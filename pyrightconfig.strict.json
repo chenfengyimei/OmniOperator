@@ -30,6 +30,7 @@
     "agent/src/omni/adapters/persistence/configuration_repository.py",
     "agent/src/omni/adapters/persistence/credential_predicates.py",
     "agent/src/omni/adapters/persistence/credential_repository.py",
+    "agent/src/omni/adapters/persistence/delivery_repository.py",
     "agent/src/omni/adapters/persistence/database.py",
     "agent/src/omni/adapters/persistence/delivery_predicates.py",
     "agent/src/omni/adapters/persistence/deployed_instance.py",

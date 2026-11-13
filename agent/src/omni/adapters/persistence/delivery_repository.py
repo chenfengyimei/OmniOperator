@@ -3,9 +3,11 @@
 from __future__ import annotations
 
 import datetime as dt
+from typing import cast
 
 from sqlalchemy import func, insert, or_, select, update
 
+from ...application.ports import Record
 from ...domain.bilibili import ADAPTER as BILIBILI_ADAPTER
 from ...domain.contracts import BusinessError
 from ...domain.delivery import (
@@ -31,7 +33,7 @@ from .qq_authority import qq_run_authorized, qq_send_after
 
 
 class DeliveryRepositories(ConfigurationRepositories, LeaseRepositories):
-    def _delivery_change(self, row: dict, *, outcome: bool = False, **value) -> None:
+    def _delivery_change(self, row: Record, *, outcome: bool = False, **value: object) -> None:
         if outcome:
             value["outcome_revision"] = s.outbox.c.outcome_revision + 1
             value.setdefault("reviewed_epoch", 0)
@@ -39,12 +41,12 @@ class DeliveryRepositories(ConfigurationRepositories, LeaseRepositories):
             update(s.outbox).where(s.outbox.c.id == row["id"]).values(revision=s.outbox.c.revision + 1, **value)
         )
 
-    def _delivery_source(self, agent_id: str, message_id: str) -> tuple[dict, dict, dict]:
+    def _delivery_source(self, agent_id: str, message_id: str) -> tuple[Record, Record, Record]:
         message = self._one(s.messages, agent_id, message_id)
         if message["role"] != "assistant" or not message["run_id"] or message["deleted_at"]:
             raise BusinessError("delivery_source_invalid", "A saved, unerased assistant output is required")
-        run = self._one(s.runs, agent_id, message["run_id"])
-        session = self._one(s.sessions, agent_id, message["session_id"])
+        run = self._one(s.runs, agent_id, cast(str, message["run_id"]))
+        session = self._one(s.sessions, agent_id, cast(str, message["session_id"]))
         epoch = self.connection.execute(
             select(s.context_snapshots.c.session_epoch)
             .where(s.context_snapshots.c.run_id == run["id"])
@@ -57,7 +59,7 @@ class DeliveryRepositories(ConfigurationRepositories, LeaseRepositories):
 
     def delivery_lookup(
         self, agent_id: str, key: str, message_id: str, config_id: str, target: str, parent_id: str | None
-    ) -> dict | None:
+    ) -> Record | None:
         row = (
             self.connection.execute(select(s.outbox).where(s.outbox.c.agent_id == agent_id, s.outbox.c.key == key))
             .mappings()
@@ -75,7 +77,7 @@ class DeliveryRepositories(ConfigurationRepositories, LeaseRepositories):
             }.items()
         ):
             raise BusinessError("idempotency_conflict", "This key already identifies a different outbound intent")
-        return self.delivery_get(agent_id, row["id"])
+        return self.delivery_get(agent_id, cast(str, row["id"]))
 
     def delivery_create(
         self,
@@ -91,7 +93,7 @@ class DeliveryRepositories(ConfigurationRepositories, LeaseRepositories):
         acknowledge_duplicate: bool = False,
         *,
         allow_running: bool = False,
-    ) -> dict:
+    ) -> Record:
         bounded_text(key, 200, "idempotency key")
         bounded_text(target, 512, "target")
         bounded_text(adapter_id, 100, "adapter identity")
@@ -119,7 +121,7 @@ class DeliveryRepositories(ConfigurationRepositories, LeaseRepositories):
             else None
         )
         try:
-            body_hash(message["content"])
+            body_hash(cast(str, message["content"]))
         except BusinessError as exc:
             if not allow_running:
                 raise
@@ -128,7 +130,7 @@ class DeliveryRepositories(ConfigurationRepositories, LeaseRepositories):
             select(s.agents.c.id).where(s.agents.c.id == agent_id, s.agents.c.enabled.is_(True))
         ).first():
             raise BusinessError("agent_disabled", "Agent is disabled")
-        resource = account_resource(config["value"]["driver"], account_key)
+        resource = account_resource(cast(str, cast(Record, config["value"])["driver"]), account_key)
         parent = self._one(s.outbox, agent_id, parent_id) if parent_id else None
         if parent is not None:
             if parent["message_id"] != message_id:
@@ -161,7 +163,7 @@ class DeliveryRepositories(ConfigurationRepositories, LeaseRepositories):
                 "delivery_already_exists", "Inspect the existing intent and explicitly create a new one"
             )
         if parent is not None and parent["state"] == "blocked":
-            self.delivery_interrupt(agent_id, parent["id"], "delivery_superseded")
+            self.delivery_interrupt(agent_id, cast(str, parent["id"]), "delivery_superseded")
         waiting = self.connection.execute(
             select(func.count())
             .select_from(s.outbox)
@@ -176,7 +178,7 @@ class DeliveryRepositories(ConfigurationRepositories, LeaseRepositories):
             if not allow_running:
                 raise BusinessError("delivery_queue_full", "Outbound queue is full", status=429, retryable=True)
             blocked = "delivery_queue_full"
-        identity = {
+        identity: dict[str, object] = {
             "message_id": message_id,
             "run_id": run["id"],
             "config_id": config_id,
@@ -184,7 +186,7 @@ class DeliveryRepositories(ConfigurationRepositories, LeaseRepositories):
             "adapter_id": adapter_id,
             "account_key": account_key,
             "target": target,
-            "body_hash": text_fingerprint(message["content"]),
+            "body_hash": text_fingerprint(cast(str, message["content"])),
             "session_epoch": session["content_epoch"],
             "policy": POLICY,
         }
@@ -192,7 +194,7 @@ class DeliveryRepositories(ConfigurationRepositories, LeaseRepositories):
             s.outbox,
             {
                 **identity,
-                "channel": config["value"]["driver"],
+                "channel": cast(str, cast(Record, config["value"])["driver"]),
                 "resource_key": resource,
                 "key": key,
                 "parent_id": parent_id,
@@ -217,22 +219,32 @@ class DeliveryRepositories(ConfigurationRepositories, LeaseRepositories):
             },
             agent_id,
         )
-        self.audit(agent_id, "delivery.created", row["id"], {"run_id": run["id"], "fingerprint": row["fingerprint"]})
+        self.audit(
+            agent_id,
+            "delivery.created",
+            cast(str, row["id"]),
+            {"run_id": run["id"], "fingerprint": row["fingerprint"]},
+        )
         if publication:
             self._record(
                 s.bilibili_deliveries, {"publication_id": publication["id"], "delivery_id": row["id"]}, agent_id
             )
-        return self.delivery_get(agent_id, row["id"])
+        return self.delivery_get(agent_id, cast(str, row["id"]))
 
-    def _delivery_authority(self, row: dict) -> dict:
+    def _delivery_authority(self, row: Record) -> Record:
         if row["legacy"] or row["policy"] != POLICY:
             raise BusinessError("delivery_unverified", "Historical outbound metadata cannot authorize sending")
-        message, run, session = self._delivery_source(row["agent_id"], row["message_id"])
+        message, run, session = self._delivery_source(cast(str, row["agent_id"]), cast(str, row["message_id"]))
         if row["adapter_id"] == BILIBILI_ADAPTER:
             publication_for_delivery(
-                self, row["agent_id"], row["message_id"], row["config_id"], row["target"], row["config_revision_id"]
+                self,
+                cast(str, row["agent_id"]),
+                cast(str, row["message_id"]),
+                cast(str, row["config_id"]),
+                cast(str, row["target"]),
+                cast(str, row["config_revision_id"]),
             )
-        route = qq_run_authorized(self, row["agent_id"], run["id"])
+        route = qq_run_authorized(self, cast(str, row["agent_id"]), cast(str, run["id"]))
         if route and any(
             row[k] != route[k] for k in ("config_id", "config_revision_id", "adapter_id", "account_key", "target")
         ):
@@ -241,10 +253,10 @@ class DeliveryRepositories(ConfigurationRepositories, LeaseRepositories):
             run["id"] != row["run_id"]
             or run["state"] != "succeeded"
             or session["content_epoch"] != row["session_epoch"]
-            or body_hash(message["content"]) != row["body_hash"]
+            or body_hash(cast(str, message["content"])) != row["body_hash"]
         ):
             raise BusinessError("delivery_source_invalid", "Outbound source changed or was invalidated")
-        config = self.configuration_get(row["agent_id"], row["config_id"])
+        config = self.configuration_get(cast(str, row["agent_id"]), cast(str, row["config_id"]))
         if config["revision_id"] != row["config_revision_id"] or not config["enabled"]:
             raise BusinessError("delivery_authorization_revoked", "Channel configuration changed or was disabled")
         self.credential_authorize(config["value"]["credential_ref"])
@@ -255,7 +267,7 @@ class DeliveryRepositories(ConfigurationRepositories, LeaseRepositories):
             raise BusinessError("agent_disabled", "Agent is disabled")
         return config
 
-    def delivery_get(self, agent_id: str, delivery_id: str) -> dict:
+    def delivery_get(self, agent_id: str, delivery_id: str) -> Record:
         row = self._one(s.outbox, agent_id, delivery_id)
         approval = (
             self.connection.execute(
@@ -267,9 +279,12 @@ class DeliveryRepositories(ConfigurationRepositories, LeaseRepositories):
         text = ""
         source_error = ""
         try:
-            message, _, session = self._delivery_source(agent_id, row["message_id"])
-            if session["content_epoch"] == row["session_epoch"] and body_hash(message["content"]) == row["body_hash"]:
-                text = message["content"]
+            message, _, session = self._delivery_source(agent_id, cast(str, row["message_id"]))
+            if (
+                session["content_epoch"] == row["session_epoch"]
+                and body_hash(cast(str, message["content"])) == row["body_hash"]
+            ):
+                text = cast(str, message["content"])
             else:
                 source_error = "delivery_source_invalid"
         except BusinessError as exc:
@@ -277,11 +292,11 @@ class DeliveryRepositories(ConfigurationRepositories, LeaseRepositories):
         return {
             **row,
             "approval": dict(approval) if approval else None,
-            "last_review": self._one(s.delivery_reviews, agent_id, row["last_review_id"])
+            "last_review": self._one(s.delivery_reviews, agent_id, cast(str, row["last_review_id"]))
             if row["last_review_id"]
             else None,
             "text": text,
-            "publication": publication_preview(self, agent_id, row["target"])
+            "publication": publication_preview(self, agent_id, cast(str, row["target"]))
             if row["adapter_id"] == BILIBILI_ADAPTER
             else None,
             "source_error": source_error,
@@ -290,14 +305,14 @@ class DeliveryRepositories(ConfigurationRepositories, LeaseRepositories):
         }
 
     @staticmethod
-    def _delivery_review_fingerprint(row: dict) -> str:
+    def _delivery_review_fingerprint(row: Record) -> str:
         return digest(
             {k: row[k] for k in ("id", "fingerprint", "revision", "state", "latest_attempt_id", "review_epoch")}
         )
 
     def delivery_page(
         self, agent_id: str, after: int = 0, limit: int = 100, include_archived: bool = False
-    ) -> list[dict]:
+    ) -> list[Record]:
         self._configuration_agent(agent_id)
         query = select(s.outbox.c.id).where(s.outbox.c.agent_id == agent_id, s.outbox.c.queue_sequence > after)
         if not include_archived:
@@ -309,7 +324,9 @@ class DeliveryRepositories(ConfigurationRepositories, LeaseRepositories):
             ).scalars()
         ]
 
-    def delivery_decide(self, agent_id: str, delivery_id: str, allowed: bool, revision: int, fingerprint: str) -> dict:
+    def delivery_decide(
+        self, agent_id: str, delivery_id: str, allowed: bool, revision: int, fingerprint: str
+    ) -> Record:
         row = self._one(s.outbox, agent_id, delivery_id)
         if (
             type(allowed) is not bool
@@ -348,7 +365,7 @@ class DeliveryRepositories(ConfigurationRepositories, LeaseRepositories):
         )
         return self.delivery_get(agent_id, delivery_id)
 
-    def delivery_attempt_page(self, agent_id: str, delivery_id: str, after: int = 0, limit: int = 50) -> list[dict]:
+    def delivery_attempt_page(self, agent_id: str, delivery_id: str, after: int = 0, limit: int = 50) -> list[Record]:
         self._one(s.outbox, agent_id, delivery_id)
         rows = self.connection.execute(
             select(s.delivery_attempts)
@@ -356,7 +373,7 @@ class DeliveryRepositories(ConfigurationRepositories, LeaseRepositories):
             .order_by(s.delivery_attempts.c.seq)
             .limit(min(200, max(1, limit)))
         ).mappings()
-        result = []
+        result: list[Record] = []
         for row in rows:
             observations = [
                 dict(r)
@@ -367,10 +384,10 @@ class DeliveryRepositories(ConfigurationRepositories, LeaseRepositories):
                     .limit(50)
                 ).mappings()
             ]
-            result.append({**{k: v for k, v in row.items() if k != "token"}, "results": observations})
+            result.append(cast(Record, {**{k: v for k, v in row.items() if k != "token"}, "results": observations}))
         return result
 
-    def delivery_candidates(self, limit: int = 64) -> list[dict]:
+    def delivery_candidates(self, limit: int = 64) -> list[Record]:
         rows = self.connection.execute(
             select(s.outbox.c.agent_id, s.outbox.c.id)
             .where(
@@ -384,7 +401,7 @@ class DeliveryRepositories(ConfigurationRepositories, LeaseRepositories):
         ).all()
         return [self.delivery_get(agent, key) for agent, key in rows]
 
-    def _delivery_release(self, attempt: dict) -> None:
+    def _delivery_release(self, attempt: Record) -> None:
         self.connection.execute(
             update(s.dispatch_resources)
             .where(
@@ -396,13 +413,15 @@ class DeliveryRepositories(ConfigurationRepositories, LeaseRepositories):
             .values(state="released")
         )
 
-    def _delivery_block(self, row: dict, code: str) -> None:
+    def _delivery_block(self, row: Record, code: str) -> None:
         if row["state"] == "sending":
-            self.delivery_interrupt(row["agent_id"], row["id"], code)
+            self.delivery_interrupt(cast(str, row["agent_id"]), cast(str, row["id"]), code)
             return
         if row["state"] in LIVE_DELIVERIES:
             if row["state"] == "claimed" and row["latest_attempt_id"]:
-                attempt = self._one(s.delivery_attempts, row["agent_id"], row["latest_attempt_id"])
+                attempt = self._one(
+                    s.delivery_attempts, cast(str, row["agent_id"]), cast(str, row["latest_attempt_id"])
+                )
                 self.connection.execute(
                     update(s.delivery_attempts)
                     .where(s.delivery_attempts.c.id == attempt["id"])
@@ -418,12 +437,12 @@ class DeliveryRepositories(ConfigurationRepositories, LeaseRepositories):
                 )
                 .values(state="revoked", revoked_at=self.clock.now(), revision=s.delivery_approvals.c.revision + 1)
             )
-            self.audit(row["agent_id"], "delivery.blocked", row["id"], {"error_code": code})
+            self.audit(cast(str, row["agent_id"]), "delivery.blocked", cast(str, row["id"]), {"error_code": code})
 
-    def delivery_claim(self, agent_id: str, delivery_id: str, adapter_id: str, account_key: str) -> dict | None:
+    def delivery_claim(self, agent_id: str, delivery_id: str, adapter_id: str, account_key: str) -> Record | None:
         row = self._one(s.outbox, agent_id, delivery_id)
         if row["state"] not in {"approved", "retry_wait"} or (
-            row["next_attempt_at"] and row["next_attempt_at"] > self.clock.now()
+            row["next_attempt_at"] and cast(str, row["next_attempt_at"]) > self.clock.now()
         ):
             return None
         if (
@@ -437,7 +456,7 @@ class DeliveryRepositories(ConfigurationRepositories, LeaseRepositories):
             self._delivery_authority(row)
             if row["adapter_id"] != adapter_id or row["account_key"] != account_key:
                 raise BusinessError("delivery_adapter_changed", "Sender identity or adapter changed")
-            if not row["approval_until"] or row["approval_until"] <= self.clock.now():
+            if not row["approval_until"] or cast(str, row["approval_until"]) <= self.clock.now():
                 raise BusinessError("delivery_approval_expired", "Sending approval expired")
             approval = (
                 self.connection.execute(
@@ -479,18 +498,18 @@ class DeliveryRepositories(ConfigurationRepositories, LeaseRepositories):
         )
         if lease and lease["state"] == "held":
             return None
-        if row["attempt_seq"] >= MAX_ATTEMPTS:
+        if cast(int, row["attempt_seq"]) >= MAX_ATTEMPTS:
             self._delivery_block(row, "delivery_attempt_limit")
             return None
         attempt = self._record(
             s.delivery_attempts,
             {
                 "delivery_id": delivery_id,
-                "seq": row["attempt_seq"] + 1,
+                "seq": cast(int, row["attempt_seq"]) + 1,
                 "state": "claimed",
                 "boot_id": self.boot_id,
                 "token": self.ids.new(),
-                "fence": lease["fence"] + 1 if lease else 1,
+                "fence": cast(int, lease["fence"]) + 1 if lease else 1,
             },
             agent_id,
         )
@@ -525,10 +544,10 @@ class DeliveryRepositories(ConfigurationRepositories, LeaseRepositories):
             "adapter_id": adapter_id,
             "fingerprint": row["fingerprint"],
             "run_id": row["run_id"],
-            "session_id": self._one(s.runs, agent_id, row["run_id"])["session_id"],
+            "session_id": self._one(s.runs, agent_id, cast(str, row["run_id"]))["session_id"],
         }
 
-    def _delivery_owned(self, attempt: dict, *, unexpired: bool = True) -> bool:
+    def _delivery_owned(self, attempt: Record, *, unexpired: bool = True) -> bool:
         query = select(s.dispatch_resources.c.resource_key).where(
             s.dispatch_resources.c.attempt_id == attempt["id"],
             s.dispatch_resources.c.boot_id == self.boot_id,
@@ -542,9 +561,9 @@ class DeliveryRepositories(ConfigurationRepositories, LeaseRepositories):
 
     def delivery_start(
         self, agent_id: str, attempt_id: str, token: str, adapter_id: str, account_key: str
-    ) -> dict | None:
+    ) -> Record | None:
         attempt = self._one(s.delivery_attempts, agent_id, attempt_id)
-        row = self._one(s.outbox, agent_id, attempt["delivery_id"])
+        row = self._one(s.outbox, agent_id, cast(str, attempt["delivery_id"]))
         if attempt["token"] != token or attempt["boot_id"] != self.boot_id or row["latest_attempt_id"] != attempt_id:
             raise BusinessError("delivery_claim_lost", "Delivery ownership changed")
         if attempt["state"] != "claimed" or row["state"] != "claimed":
@@ -563,7 +582,7 @@ class DeliveryRepositories(ConfigurationRepositories, LeaseRepositories):
                 or row["adapter_id"] != adapter_id
                 or row["account_key"] != account_key
                 or approval["state"] != "approved"
-                or row["approval_until"] <= self.clock.now()
+                or cast(str, row["approval_until"]) <= self.clock.now()
             ):
                 raise BusinessError(
                     "delivery_authorization_revoked", "Delivery lease or exact sending authority expired"
@@ -584,7 +603,10 @@ class DeliveryRepositories(ConfigurationRepositories, LeaseRepositories):
         )
         self._delivery_change(row, state="sending")
         self.audit(
-            agent_id, "delivery.send_intent", row["id"], {"attempt_id": attempt_id, "fingerprint": row["fingerprint"]}
+            agent_id,
+            "delivery.send_intent",
+            cast(str, row["id"]),
+            {"attempt_id": attempt_id, "fingerprint": row["fingerprint"]},
         )
         return {
             "delivery_id": row["id"],
@@ -593,16 +615,18 @@ class DeliveryRepositories(ConfigurationRepositories, LeaseRepositories):
             "fingerprint": row["fingerprint"],
             "account_key": account_key,
             "target": row["target"],
-            "text": self._one(s.messages, agent_id, row["message_id"])["content"],
+            "text": self._one(s.messages, agent_id, cast(str, row["message_id"]))["content"],
             "configuration": config["value"],
         }
 
-    def delivery_interrupt(self, agent_id: str, delivery_id: str, code: str = "delivery_cancelled") -> dict:
+    def delivery_interrupt(self, agent_id: str, delivery_id: str, code: str = "delivery_cancelled") -> Record:
         row = self._one(s.outbox, agent_id, delivery_id)
         if row["state"] not in CANCELLABLE_DELIVERIES:
             return self.delivery_get(agent_id, delivery_id)
         attempt = (
-            self._one(s.delivery_attempts, agent_id, row["latest_attempt_id"]) if row["latest_attempt_id"] else None
+            self._one(s.delivery_attempts, agent_id, cast(str, row["latest_attempt_id"]))
+            if row["latest_attempt_id"]
+            else None
         )
         sending = row["state"] == "sending"
         self._delivery_change(row, outcome=True, state="unknown" if sending else "cancelled", error_code=code)
@@ -630,9 +654,9 @@ class DeliveryRepositories(ConfigurationRepositories, LeaseRepositories):
         )
         return self.delivery_get(agent_id, delivery_id)
 
-    def delivery_settle(self, agent_id: str, attempt_id: str, token: str, result: dict) -> str:
+    def delivery_settle(self, agent_id: str, attempt_id: str, token: str, result: Record) -> str:
         attempt = self._one(s.delivery_attempts, agent_id, attempt_id)
-        row = self._one(s.outbox, agent_id, attempt["delivery_id"])
+        row = self._one(s.outbox, agent_id, cast(str, attempt["delivery_id"]))
         if attempt["token"] != token or attempt["boot_id"] != self.boot_id:
             raise BusinessError("delivery_claim_lost", "A different boot or owner cannot settle this attempt")
         prior = (
@@ -647,7 +671,7 @@ class DeliveryRepositories(ConfigurationRepositories, LeaseRepositories):
         if prior:
             if any(prior[k] != v for k, v in result.items()):
                 raise BusinessError("delivery_result_conflict", "Attempt observation already committed")
-            return row["state"]
+            return cast(str, row["state"])
         if result["fingerprint"] != row["fingerprint"]:
             result = {
                 "status": "unknown",
@@ -678,13 +702,13 @@ class DeliveryRepositories(ConfigurationRepositories, LeaseRepositories):
             agent_id,
         )
         if valid:
-            state = result["status"]
+            state = cast(str, result["status"])
             self.connection.execute(
                 update(s.delivery_attempts)
                 .where(s.delivery_attempts.c.id == attempt_id)
                 .values(state=state, ended_at=self.clock.now(), error_code=result["error_code"])
             )
-            retry = state == "not_sent" and result["retryable"] and attempt["seq"] < MAX_ATTEMPTS
+            retry = state == "not_sent" and bool(result["retryable"]) and cast(int, attempt["seq"]) < MAX_ATTEMPTS
             next_state = (
                 "retry_wait" if retry else "sent" if state == "sent" else "unknown" if state == "unknown" else "blocked"
             )
@@ -693,21 +717,25 @@ class DeliveryRepositories(ConfigurationRepositories, LeaseRepositories):
                 outcome=True,
                 state=next_state,
                 error_code=result["error_code"],
-                next_attempt_at=timestamp(instant(self.clock.now()) + dt.timedelta(seconds=2 ** attempt["seq"]))
+                next_attempt_at=timestamp(
+                    instant(self.clock.now()) + dt.timedelta(seconds=2 ** cast(int, attempt["seq"]))
+                )
                 if retry
                 else None,
             )
         else:
             if row["state"] in LIVE_DELIVERIES:
-                next_state = str(self.delivery_interrupt(agent_id, row["id"], "delivery_late_result")["state"])
+                next_state = str(
+                    self.delivery_interrupt(agent_id, cast(str, row["id"]), "delivery_late_result")["state"]
+                )
             else:
                 self._delivery_change(row, outcome=True)
-                next_state = row["state"]
+                next_state = cast(str, row["state"])
         self._delivery_release(attempt)
         self.audit(
             agent_id,
             "delivery.result",
-            row["id"],
+            cast(str, row["id"]),
             {"attempt_id": attempt_id, "status": result["status"], "late": not valid},
         )
         return next_state
@@ -733,7 +761,7 @@ class DeliveryRepositories(ConfigurationRepositories, LeaseRepositories):
 
     def delivery_review(
         self, agent_id: str, delivery_id: str, revision: int, fingerprint: str, decision: str, evidence: str
-    ) -> dict:
+    ) -> Record:
         row = self._one(s.outbox, agent_id, delivery_id)
         if (
             row["state"] != "unknown"
@@ -745,7 +773,7 @@ class DeliveryRepositories(ConfigurationRepositories, LeaseRepositories):
             raise BusinessError("review_conflict", "This unknown outcome was already reviewed")
         if (
             decision not in {"confirmed_sent", "confirmed_not_sent", "allow_future"}
-            or not isinstance(evidence, str)
+            or not isinstance(cast(object, evidence), str)
             or not evidence.strip()
             or len(evidence) > 2000
         ):
@@ -845,18 +873,21 @@ class DeliveryRepositories(ConfigurationRepositories, LeaseRepositories):
                 update(s.dispatch_resources).where(s.dispatch_resources.c.state == "held").values(state="released")
             )
 
-    def delivery_configuration(self, agent_id: str, delivery_id: str) -> dict:
+    def delivery_configuration(self, agent_id: str, delivery_id: str) -> Record:
         row = self._one(s.outbox, agent_id, delivery_id)
         if not row["config_revision_id"]:
             raise BusinessError("delivery_unverified", "Historical delivery has no verified channel binding")
-        return self._configuration_revision(agent_id, row["config_revision_id"])["value"]
+        return cast(
+            Record,
+            self._configuration_revision(agent_id, cast(str, row["config_revision_id"]))["value"],
+        )
 
     def delivery_block(self, agent_id: str, delivery_id: str, code: str) -> None:
         self._delivery_block(self._one(s.outbox, agent_id, delivery_id), code)
 
     def delivery_active_check(self, agent_id: str, attempt_id: str) -> bool:
         attempt = self._one(s.delivery_attempts, agent_id, attempt_id)
-        row = self._one(s.outbox, agent_id, attempt["delivery_id"])
+        row = self._one(s.outbox, agent_id, cast(str, attempt["delivery_id"]))
         if row["state"] not in {"claimed", "sending"}:
             return False
         try:
