@@ -14,13 +14,13 @@ Windows 上 V2 底座**可冷启动、可自检、可服务、可跑全量测试
 
 | 项 | 数值 | 证据/命令 |
 | --- | --- | --- |
-| strict 门禁 | **266 文件 / 0 errors / 0 warnings** | `uv run --no-sync pyright --project pyrightconfig.strict.json` |
-| strict 分层 | 53/53 domain、43/44 application、160/222 adapters、10/13 composition | `docs/TYPE_CHECKING.md` |
-| 未纳入 strict | 62 个 adapters（6840 错）+ `application/android.py`(475) + composition `cli`(45)（`instance`/`http` 已纳入） | `temp/build/probe_strict.py`（survey-remaining.py 已不在库） |
+| strict 门禁 | **269 文件 / 0 errors / 0 warnings** | `uv run --no-sync pyright --project pyrightconfig.strict.json` |
+| strict 分层 | 53/53 domain、43/44 application、160/222 adapters、**13/13 composition 全层** | `docs/TYPE_CHECKING.md` |
+| 未纳入 strict | 62 个 adapters（6840 错）+ `application/android.py`(475)（composition 已全层纳入） | `temp/build/probe_strict.py`（survey-remaining.py 已不在库） |
 | 全量测试 | 4656 项：**4653 passed / 3 failed / 0 errors**（`-n 2`，58 分钟） | `temp/build/v2-full-144.xml`、`docs/evidence/v2-typecheck.json` 的 `full_run` |
 | 失败性质 | 3 项均为 `-n 2` 资源争用抖动，**串行/隔离全部通过** | 见 §5「验收口径」 |
 | 默认入口 | `V1 until R6 parity gate` | `docs/tasks/v2.json` 的 `default_entrypoints` |
-| 台账 | `status=d7_typecheck_batch_143`、`checkpoint_commit=0164f79`、源码指纹 `acd1565a…` | `docs/tasks/v2.json`、`docs/evidence/v2-typecheck.json` |
+| 台账 | `status=d7_typecheck_batch_145`、`checkpoint_commit=456c59f`、源码指纹 `bbc5d22c…` | `docs/tasks/v2.json`、`docs/evidence/v2-typecheck.json` |
 | 工作树 | 干净，`codex/architecture-v2` 与 origin 同步（HEAD `e2f72a0` 之后的文档提交） | `git status -sb` |
 
 ## 3. 现在能用什么（Windows，实测）
@@ -39,13 +39,14 @@ uv run --no-sync python -m omni.composition.cli --home temp\demo-home auth
 
 ## 4. 剩余工作（按顺序，含文件与实测错误数）
 
-### 4.1 P1 收尾：composition（还差 1 个）
+### 4.1 P1 收尾：composition —— **已全部完成（13/13）**
 
-1. ~~**`composition/instance.py`（58 错）**~~ —— **已完成**（第一百四十二批，提交 `9f8f1f2`）。
-2. ~~**`composition/http.py`（实测 25 错）**~~ —— **已完成**（第一百四十三批，提交 `0164f79`，strict 266）。
-   私有成员改用 `database`/`logging`/`identity_files`/`lifetime` 只读访问器，令牌/排空/关停回执显式 `Record`，
-   未类型化 `request_drain` 签名局部 `Any` 桥接。
-3. **`composition/cli.py`（45 错，993 行）** —— 拆 3 个节点（子命令注册 / serve+auth / 其余子命令）。完成后 composition 13/13。
+1. ~~`composition/instance.py`（58 错）~~ —— 第一百四十二批，提交 `9f8f1f2`。
+2. ~~`composition/http.py`（实测 25 错）~~ —— 第一百四十三批，提交 `0164f79`。
+3. ~~`composition/cli.py`（实测 39 错）~~ —— 第一百四十四批，提交 `ea7e8c2`（含 5 个支撑适配器返回类型纯精化）。
+4. ~~`composition/service_control.py`（5 错）+ `__init__.py`~~ —— 第一百四十五批，提交 `456c59f`，composition 全层完成。
+
+**下一节点是 P2 `application/android.py`（475 错，拆 5 节点），见 §4.2。**
 
 ### 4.2 P2 Android（业务缺口最大）
 
@@ -123,8 +124,8 @@ uv run --no-sync python -m omni.composition.cli --home temp\demo-home auth
 
 ```powershell
 git status -sb                                   # 必须干净；脏的话先确认不是自己的改动
-uv run --no-sync pyright --project pyrightconfig.strict.json   # 期望 0/0（266 文件）
-uv run --no-sync python temp/build/probe_strict.py agent/src/omni/composition/cli.py  # 期望约 45 错（以实测为准）
+uv run --no-sync pyright --project pyrightconfig.strict.json   # 期望 0/0（269 文件）
+uv run --no-sync python temp/build/probe_strict.py agent/src/omni/application/android.py  # 期望约 475 错（以实测为准）
 ```
 
-`instance.py`/`http.py` 已纳入（第一百四十二/一百四十三批）。从 `cli.py` 开始，做完记得把 strict 计数改成 267 并同步三处。
+composition 已全层纳入（第一百四十二～一百四十五批）。从 P2 `application/android.py` 开始，做完记得把 strict 计数改成 270 并同步三处。

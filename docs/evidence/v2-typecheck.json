@@ -6,9 +6,9 @@
  "d7_complete": false,
  "default_entrypoint": "v1",
  "source": {
-  "code_version": "acd1565a633089ae8af017a6b55010eed4644427d47f8e38819522013d035c49",
+  "code_version": "bbc5d22c25fc2d08dc0511921bcc02a54ea8c9126ad18c09689fd89c23248f49",
   "fixed_source_files": 1203,
-  "git_head": "0164f79",
+  "git_head": "456c59f",
   "dirty_checkout": false,
   "recipe": "sha256(json.dumps({path: sha256(blob) for tracked agent/, web/, scripts/ files}, sort_keys=True)); see temp/build/source_version.py",
   "head_ui": "75c4219"
@@ -164,11 +164,13 @@
    "Strict scope reaches 263 files (53 domain + 43 application + 160 adapters + 7 composition); capabilities, releases and service_exchange type their spec list, close callbacks and plan lookups, and the ReleaseData adapter now matches ReleaseDataPort signatures; approval/plan/journal rules unchanged",
    "Strict scope reaches 264 files (53 domain + 43 application + 160 adapters + 8 composition); lifecycle parameterises its joinable close tasks, narrows the dict branch of _successful and casts shutdown receipts to Record; the bounded-budget and residual-ownership rules are unchanged",
    "Strict scope reaches 265 files (53 domain + 43 application + 160 adapters + 9 composition); the instance composition root types its identity/health/shutdown receipts as explicit Record, narrows the operational health projection layer by layer, pins the Bilibili/media port injections and bridges the untyped local-vector dimension through a local Any view; UnitOfWork gains the audit declaration already implemented by RepositoryBase; assembly, approval and bounded-shutdown rules are unchanged",
-   "Strict scope reaches 266 files (53 domain + 43 application + 160 adapters + 10 composition); the HTTP composition root replaces private instance members with the database/logging/identity_files/lifetime read-only accessors, types the token-session/rotation/logs/drain/shutdown receipts as explicit Record and bridges the untyped request_drain signature through a local Any view; token publication, drain authorization and bounded-shutdown rules are unchanged"
+   "Strict scope reaches 266 files (53 domain + 43 application + 160 adapters + 10 composition); the HTTP composition root replaces private instance members with the database/logging/identity_files/lifetime read-only accessors, types the token-session/rotation/logs/drain/shutdown receipts as explicit Record and bridges the untyped request_drain signature through a local Any view; token publication, drain authorization and bounded-shutdown rules are unchanged",
+   "Strict scope reaches 267 files (53 domain + 43 application + 160 adapters + 11 composition); the CLI development entrypoint types its installation/doctor/object-collection/diagnostic receipts as explicit Record and narrows JSON deep indexing layer by layer; the supporting publish_diagnostic/derived_indexes/object_report/plan_collection/apply_collection signatures are refined from bare dict to dict[str, object] (pure typing, no behavior change, default-mode error count unchanged); installation sealing, exclusive diagnostics and collection journal rules are unchanged",
+   "Strict scope reaches 269 files (53 domain + 43 application + 160 adapters + 13 composition); service_control narrows the admin operation to Record and types its shutdown receipt, and the composition package marker joins the scope, completing the composition layer (13/13); reviewed root routing, once-dispatch and bounded-shutdown rules are unchanged"
   ],
   "pending": [
    "application 43/44 and adapters 160/222 strict typing",
-   "composition layer: 10 of 13 modules in strict scope",
+   "composition layer: 13 of 13 modules in strict scope (complete)",
    "Workbench redesign UI suite rerun after the parallel session lands",
    "Three-platform packaging/install/update/restore and real-environment acceptance"
   ]
@@ -176,8 +178,8 @@
  "validation": {
   "all_latest_cases_passed": true,
   "latest_batch": {
-   "report": "temp/build/v2-typecheck-143-callers.xml",
-   "tests": 70,
+   "report": "temp/build/v2-typecheck-145-callers.xml",
+   "tests": 38,
    "failures": 0
   },
   "targeted_reports": [
@@ -1475,6 +1477,24 @@
     "errors": 0,
     "duration_s": 47.77,
     "note": "P1 http batch: HTTP composition root + guard/arch/http/owner-token/service-identity/service-drain callers"
+   },
+   {
+    "path": "temp/build/v2-typecheck-144-callers.xml",
+    "sha256": "108d28b3203a9540d1e4e7e701549e4ff113f729b86e74e9aef064d4a1602eef",
+    "tests": 75,
+    "failures": 0,
+    "errors": 0,
+    "duration_s": 91.4,
+    "note": "P1 cli batch: CLI development entrypoint + guard/arch/operations-cli/objects/documents-faults/history callers"
+   },
+   {
+    "path": "temp/build/v2-typecheck-145-callers.xml",
+    "sha256": "56ed89c077d492aa5196a48d2df0b39400e7854d139b55648b6c25f8e16e2cd7",
+    "tests": 38,
+    "failures": 0,
+    "errors": 0,
+    "duration_s": 25.15,
+    "note": "P1 service_control batch: composition layer complete (13/13) + guard/arch/service-control callers"
    }
   ],
   "gates": {
@@ -1486,7 +1506,7 @@
   "strict": {
    "config": "pyrightconfig.strict.json",
    "summary": {
-    "filesAnalyzed": 266,
+    "filesAnalyzed": 269,
     "errorCount": 0,
     "warningCount": 0,
     "informationCount": 0
@@ -1500,7 +1520,7 @@
     "informationCount": 0
    },
    "sources": [
-    "agent/src/omni/composition/http.py"
+    "agent/src/omni/composition/service_control.py"
    ]
   },
   "full_run": {

@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "5798c759412454e9fb67ee47572d7bf95eb47a5a5696dd06ece2d30de594c04b",
+  "source_sha256": "662689a752757d4447346832fd806c86357328a674333cfdaff207e763cfa800",
   "modules": [
     {
       "id": "v2-domain",
@@ -404,7 +404,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 53298,
+      "lines": 53301,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -439,7 +439,7 @@
         "agent/src/omni/composition/service_runner.py",
         "agent/src/omni/composition/serving.py"
       ],
-      "lines": 3033,
+      "lines": 3041,
       "dependencies": [
         "v2-adapters",
         "v2-application",
@@ -495,7 +495,7 @@
         "web/ui/v2/tokens.js",
         "web/ui/v2/workbench.css"
       ],
-      "lines": 14251,
+      "lines": 14353,
       "dependencies": []
     },
     {
@@ -18620,7 +18620,7 @@
       "path": "agent/src/omni/adapters/persistence/object_gc.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.persistence.object_gc",
-      "lines": 214,
+      "lines": 217,
       "imports": [
         "omni.adapters.object_store",
         "omni.adapters.persistence.database",
@@ -18634,7 +18634,7 @@
       "symbols": [
         {
           "name": "_instant",
-          "line": 22,
+          "line": 23,
           "kind": "function",
           "parameters": [
             "now"
@@ -18645,7 +18645,7 @@
         },
         {
           "name": "_plan",
-          "line": 29,
+          "line": 30,
           "kind": "function",
           "parameters": [
             "paths",
@@ -18658,7 +18658,7 @@
         },
         {
           "name": "plan_collection",
-          "line": 79,
+          "line": 80,
           "kind": "function",
           "parameters": [
             "paths",
@@ -18671,7 +18671,7 @@
         },
         {
           "name": "_journal_path",
-          "line": 88,
+          "line": 89,
           "kind": "function",
           "parameters": [
             "paths",
@@ -18684,7 +18684,7 @@
         },
         {
           "name": "apply_collection",
-          "line": 104,
+          "line": 105,
           "kind": "function",
           "parameters": [
             "paths",
@@ -18693,7 +18693,7 @@
           ],
           "annotations": {
             "paths": "InstancePaths",
-            "plan": "dict",
+            "plan": "Mapping[str, object]",
             "now": "dt.datetime | None"
           }
         }
@@ -58743,7 +58743,7 @@
       "path": "agent/src/omni/composition/cli.py",
       "module": "v2-composition",
       "python_module": "omni.composition.cli",
-      "lines": 1001,
+      "lines": 1008,
       "imports": [
         "omni.adapters.diagnostic_bundle",
         "omni.adapters.persistence.audit_pruning",
@@ -58773,6 +58773,7 @@
         "omni.adapters.platform.wheel_uninstall",
         "omni.adapters.primitives",
         "omni.adapters.vector_files",
+        "omni.application.ports",
         "omni.application.service_deployment",
         "omni.composition.instance",
         "omni.composition.releases",
@@ -58787,7 +58788,7 @@
       "symbols": [
         {
           "name": "_database_schema",
-          "line": 52,
+          "line": 54,
           "kind": "function",
           "parameters": [
             "database"
@@ -58798,7 +58799,7 @@
         },
         {
           "name": "installation_report",
-          "line": 56,
+          "line": 58,
           "kind": "function",
           "parameters": [
             "paths"
@@ -58809,7 +58810,7 @@
         },
         {
           "name": "seal_installation",
-          "line": 97,
+          "line": 99,
           "kind": "function",
           "parameters": [
             "paths"
@@ -58820,14 +58821,14 @@
         },
         {
           "name": "parser",
-          "line": 124,
+          "line": 126,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "local_origin",
-          "line": 421,
+          "line": 423,
           "kind": "function",
           "parameters": [
             "value"
@@ -58838,7 +58839,7 @@
         },
         {
           "name": "diagnostic_download",
-          "line": 440,
+          "line": 442,
           "kind": "function",
           "parameters": [
             "paths",
@@ -58851,7 +58852,7 @@
         },
         {
           "name": "main",
-          "line": 482,
+          "line": 484,
           "kind": "function",
           "parameters": [],
           "annotations": {}
@@ -59459,7 +59460,7 @@
       "path": "agent/src/omni/composition/service_control.py",
       "module": "v2-composition",
       "python_module": "omni.composition.service_control",
-      "lines": 68,
+      "lines": 69,
       "imports": [
         "omni.adapters.platform.deployment_files",
         "omni.adapters.platform.service_admin_client",
@@ -59476,7 +59477,7 @@
       "symbols": [
         {
           "name": "run_control",
-          "line": 19,
+          "line": 20,
           "kind": "function",
           "parameters": [
             "command",
@@ -95494,7 +95495,7 @@
       "path": "web/ui/v2/index.html",
       "module": "v2-workbench",
       "python_module": null,
-      "lines": 1503,
+      "lines": 1506,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -95514,7 +95515,7 @@
       "path": "web/ui/v2/main.js",
       "module": "v2-workbench",
       "python_module": null,
-      "lines": 1303,
+      "lines": 1344,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -95684,7 +95685,7 @@
       "path": "web/ui/v2/workbench.css",
       "module": "v2-workbench",
       "python_module": null,
-      "lines": 2363,
+      "lines": 2421,
       "imports": [],
       "symbols": [],
       "kind": "asset",
