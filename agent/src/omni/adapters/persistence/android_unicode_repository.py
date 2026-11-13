@@ -3,10 +3,11 @@
 from __future__ import annotations
 
 import re
-from typing import TYPE_CHECKING, cast
+from typing import Any, cast
 
 from sqlalchemy import select, update
 
+from ...application.ports import Record
 from ...domain.android import RESTORE_SPEC, identity
 from ...domain.android_unicode import fingerprint, ime_component, profile
 from ...domain.contracts import BusinessError
@@ -15,12 +16,9 @@ from . import schema as s
 from .action_predicates import unresolved_action
 from .configuration_repository import ConfigurationRepositories
 
-if TYPE_CHECKING:
-    from .repository import Repositories
-
 
 class AndroidUnicodeRepositories(ConfigurationRepositories):
-    def android_unicode_profile(self, agent_id: str, grant_id: str) -> dict:
+    def android_unicode_profile(self, agent_id: str, grant_id: str) -> Record:
         self._one(s.android_grants, agent_id, grant_id)
         row = (
             self.connection.execute(
@@ -34,7 +32,8 @@ class AndroidUnicodeRepositories(ConfigurationRepositories):
             .mappings()
             .first()
         )
-        return (
+        return cast(
+            Record,
             dict(row)
             if row
             else {
@@ -44,17 +43,17 @@ class AndroidUnicodeRepositories(ConfigurationRepositories):
                 "credential_ref": "",
                 "apk_sha256": "",
                 "certificate_sha256": "",
-            }
+            },
         )
 
-    def android_unicode_save(self, agent_id: str, grant_id: str, value: dict, revision: int) -> dict:
+    def android_unicode_save(self, agent_id: str, grant_id: str, value: Record, revision: int) -> Record:
         checked = profile(value)
         current = self.android_unicode_profile(agent_id, grant_id)
         if type(revision) is not int or revision != current["revision"]:
             raise BusinessError("revision_conflict", "Unicode helper profile changed", status=409)
         if checked["enabled"]:
-            cast("Repositories", self).android_authorize(agent_id, grant_id)
-            self.credential_authorize(checked["credential_ref"])
+            cast(Any, self).android_authorize(agent_id, grant_id)
+            self.credential_authorize(cast(str, checked["credential_ref"]))
         row = self._record(
             s.android_unicode_profiles,
             {"grant_id": grant_id, "revision": revision + 1, **checked, "fingerprint": fingerprint(checked)},
@@ -63,38 +62,41 @@ class AndroidUnicodeRepositories(ConfigurationRepositories):
         self.audit(
             agent_id,
             "android.unicode_profile_saved",
-            row["id"],
+            cast(str, row["id"]),
             {"grant_id": grant_id, "revision": revision + 1, "fingerprint": row["fingerprint"]},
         )
         return row
 
-    def android_unicode_authority(self, agent_id: str, grant_id: str) -> dict:
-        cast("Repositories", self).android_authorize(agent_id, grant_id)
+    def android_unicode_authority(self, agent_id: str, grant_id: str) -> Record:
+        cast(Any, self).android_authorize(agent_id, grant_id)
         row = self.android_unicode_profile(agent_id, grant_id)
         if not row["enabled"]:
             raise BusinessError("android_unicode_unconfigured", "Explicitly configure the pinned Unicode helper first")
-        self.credential_authorize(row["credential_ref"])
+        credential_ref = cast(str, row["credential_ref"])
+        self.credential_authorize(credential_ref)
         version = self.connection.execute(
             select(s.credential_references.c.revision, s.credential_references.c.authority_epoch).where(
-                s.credential_references.c.reference_sha256 == reference_fingerprint(row["credential_ref"])
+                s.credential_references.c.reference_sha256 == reference_fingerprint(credential_ref)
             )
         ).one()
         return {"profile": row, "credential_generation": ":".join(map(str, version))}
 
     def android_unicode_begin(
-        self, agent_id: str, run_id: str, action_id: str, arguments: dict, profile_id: str, snapshot: dict
-    ) -> dict:
-        unit = cast("Repositories", self)
+        self, agent_id: str, run_id: str, action_id: str, arguments: Record, profile_id: str, snapshot: Record
+    ) -> Record:
+        unit: Any = self
         action = unit.action(agent_id, action_id)
-        unit.approved_dispatch(agent_id, run_id, action_id, arguments, action["tool"])
-        if action["tool"] not in {"android_input", "android_act"} or arguments.get("kind") != "append_unicode":
+        tool = cast(str, action["tool"])
+        unit.approved_dispatch(agent_id, run_id, action_id, arguments, tool)
+        if tool not in {"android_input", "android_act"} or arguments.get("kind") != "append_unicode":
             raise BusinessError("android_unicode_invalid", "Restoration intent requires an approved Unicode input")
-        if action["tool"] == "android_act":
-            grant_id = unit.android_access_authorize(agent_id, run_id, arguments["access_id"])["grant"]["id"]
+        if tool == "android_act":
+            access = unit.android_access_authorize(agent_id, run_id, cast(str, arguments["access_id"]))
+            grant_id = cast(str, cast(Record, access["grant"])["id"])
         else:
-            grant_id = arguments["grant_id"]
+            grant_id = cast(str, arguments["grant_id"])
         authority = self.android_unicode_authority(agent_id, grant_id)
-        if authority["profile"]["id"] != profile_id:
+        if cast(Record, authority["profile"])["id"] != profile_id:
             raise BusinessError("android_unicode_profile_changed", "Unicode helper profile changed")
         if set(snapshot) != {"prepare_nonce", "original_ime", "original_subtype", "enabled_sha256"}:
             raise BusinessError("android_unicode_invalid", "Exact IME restoration evidence is required")
@@ -119,16 +121,17 @@ class AndroidUnicodeRepositories(ConfigurationRepositories):
         if prior:
             if any(prior[key] != value for key, value in snapshot.items()):
                 raise BusinessError("android_unicode_replay_denied", "An earlier IME intent cannot be replayed")
-            return dict(prior)
+            return cast(Record, dict(prior))
         root = unit.android_authorize(agent_id, grant_id)
+        root_grant = cast(Record, root["grant"])
         row = self._record(
             s.android_unicode_environments,
             {
                 "action_id": action_id,
                 "grant_id": grant_id,
                 "profile_id": profile_id,
-                "device_serial": root["grant"]["device"]["serial"],
-                "server_port": root["connection"]["port"],
+                "device_serial": cast(Record, root_grant["device"])["serial"],
+                "server_port": cast(Record, root["connection"])["port"],
                 **snapshot,
                 "state": "pending",
                 "revision": 1,
@@ -139,23 +142,23 @@ class AndroidUnicodeRepositories(ConfigurationRepositories):
         self.audit(
             agent_id,
             "android.ime_restoration_prepared",
-            row["id"],
+            cast(str, row["id"]),
             {"action_id": action_id, "snapshot_sha256": fingerprint(snapshot)},
         )
         return row
 
-    def android_unicode_environment(self, agent_id: str, environment_id: str) -> dict:
+    def android_unicode_environment(self, agent_id: str, environment_id: str) -> Record:
         row = self._one(s.android_unicode_environments, agent_id, environment_id)
-        return {**row, "device": self._one(s.android_grants, agent_id, row["grant_id"])["device"]}
+        return {**row, "device": self._one(s.android_grants, agent_id, cast(str, row["grant_id"]))["device"]}
 
-    def android_unicode_environments(self, agent_id: str, after: str, limit: int) -> list[dict]:
+    def android_unicode_environments(self, agent_id: str, after: str, limit: int) -> list[Record]:
         self._configuration_agent(agent_id)
         if after:
             identity(after)
         if type(limit) is not int or not 1 <= limit <= 100:
             raise BusinessError("invalid_page", "IME obligations require a bounded page", status=422)
         return [
-            dict(r)
+            cast(Record, dict(r))
             for r in self.connection.execute(
                 select(s.android_unicode_environments)
                 .where(
@@ -166,7 +169,7 @@ class AndroidUnicodeRepositories(ConfigurationRepositories):
             ).mappings()
         ]
 
-    def android_unicode_observed(self, agent_id: str, environment_id: str, value: dict) -> dict:
+    def android_unicode_observed(self, agent_id: str, environment_id: str, value: Record) -> Record:
         row = self._one(s.android_unicode_environments, agent_id, environment_id)
         if row["state"] != "pending":
             return row
@@ -174,7 +177,11 @@ class AndroidUnicodeRepositories(ConfigurationRepositories):
             self.connection.execute(
                 update(s.android_unicode_environments)
                 .where(s.android_unicode_environments.c.id == environment_id)
-                .values(result_code=value["result_code"], observed_at=self.clock.now(), revision=row["revision"] + 1)
+                .values(
+                    result_code=value["result_code"],
+                    observed_at=self.clock.now(),
+                    revision=cast(int, row["revision"]) + 1,
+                )
             )
             self.audit(
                 agent_id, "android.ime_restoration_unknown", environment_id, {"result_code": value["result_code"]}
@@ -203,7 +210,7 @@ class AndroidUnicodeRepositories(ConfigurationRepositories):
                 current_subtype=value["current_subtype"],
                 result_code=value["result_code"],
                 observed_at=self.clock.now(),
-                revision=row["revision"] + 1,
+                revision=cast(int, row["revision"]) + 1,
                 state="restored" if restored else "pending",
             )
         )
@@ -215,10 +222,12 @@ class AndroidUnicodeRepositories(ConfigurationRepositories):
         )
         return self._one(s.android_unicode_environments, agent_id, environment_id)
 
-    def android_unicode_recovery_dispatch(self, agent_id: str, run_id: str, action_id: str, arguments: dict) -> dict:
-        unit = cast("Repositories", self)
+    def android_unicode_recovery_dispatch(
+        self, agent_id: str, run_id: str, action_id: str, arguments: Record
+    ) -> Record:
+        unit: Any = self
         unit.owner_dispatch(agent_id, run_id, action_id, arguments, RESTORE_SPEC.name)
-        row = self.android_unicode_environment(agent_id, arguments["environment_id"])
+        row = self.android_unicode_environment(agent_id, cast(str, arguments["environment_id"]))
         if (
             row["state"] != "pending"
             or row["revision"] != arguments["revision"]
