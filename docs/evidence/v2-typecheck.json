@@ -6,9 +6,9 @@
  "d7_complete": false,
  "default_entrypoint": "v1",
  "source": {
-  "code_version": "a0f73ea1e8f97661028484afeeb8cd9494e39da187994b55cfdf4b10f81c3424",
+  "code_version": "f33aedca6f4d611b7fbdad6a535caebc58d5605db8da7bbd05a10a07a67f7720",
   "fixed_source_files": 1203,
-  "git_head": "3d8b7a8",
+  "git_head": "c1d03aa",
   "dirty_checkout": false,
   "recipe": "sha256(json.dumps({path: sha256(blob) for tracked agent/, web/, scripts/ files}, sort_keys=True)); see temp/build/source_version.py",
   "head_ui": "75c4219"
@@ -170,7 +170,8 @@
    "Strict scope reaches 270 files (53 domain + 44 application + 160 adapters + 13 composition); the Android owner service types its device-grant/observation/input-dispatch/IME-recovery use cases as explicit Record/Payload, generics the bounded task owner and narrows lease/guard payloads layer by layer, and the AndroidPort args/health signatures are refined (the now-redundant instance cast is removed), completing the application layer (44/44); device authority, per-run scope, once-dispatch and unknown no-replay rules are unchanged",
    "Strict scope reaches 271 files (53 domain + 44 application + 161 adapters + 13 composition); the Android Unicode repository types its helper-profile/authority/IME-recovery preparation/observation/dispatch receipts as explicit Record, bridges the not-yet-typed repository aggregate through a local Any view and narrows revision/subtype guards; helper pinning, IME obligation and unknown no-replay rules are unchanged",
    "Strict scope reaches 272 files (53 domain + 44 application + 162 adapters + 13 composition); the Android device-grant/run-access repository types its access-record/model-run/authorize/dispatch/connection/grant receipts as explicit Record, bridges the not-yet-typed aggregate and settings through a local Any view and narrows package/kind lists and expiry comparisons; device authority, run scope and unknown no-replay rules are unchanged",
-   "Strict scope reaches 273 files (53 domain + 44 application + 163 adapters + 13 composition); the managed Unicode/IME transaction flow types its factory/secrets/client/args/context/guard/environment parameters and narrows credential references and snapshot payloads; the unknown no-replay and restoration-obligation rules are unchanged"
+   "Strict scope reaches 273 files (53 domain + 44 application + 163 adapters + 13 composition); the managed Unicode/IME transaction flow types its factory/secrets/client/args/context/guard/environment parameters and narrows credential references and snapshot payloads; the unknown no-replay and restoration-obligation rules are unchanged",
+   "Strict scope reaches 274 files (53 domain + 44 application + 164 adapters + 13 composition); the managed Android worker backend types its factory/secrets/execute/_execute/_load surface and narrows staging inventory and process reclaim, with execute parameters aligned to the AndroidPort Payload variance (the Unicode flow environment callback is widened to match); worker admission, capture bounds and unknown no-replay rules are unchanged"
   ],
   "pending": [
    "application 44/44 complete; adapters 160/222 strict typing",
@@ -182,8 +183,8 @@
  "validation": {
   "all_latest_cases_passed": true,
   "latest_batch": {
-   "report": "temp/build/v2-typecheck-149-callers.xml",
-   "tests": 54,
+   "report": "temp/build/v2-typecheck-150-callers.xml",
+   "tests": 70,
    "failures": 0
   },
   "targeted_reports": [
@@ -1535,6 +1536,15 @@
     "errors": 0,
     "duration_s": 106.18,
     "note": "P2 android_unicode adapter batch: managed Unicode/IME flow + guard/arch/android-unicode callers"
+   },
+   {
+    "path": "temp/build/v2-typecheck-150-callers.xml",
+    "sha256": "4d2432edadd9060b0b133f362c613aeaa5db9c07e23409161c3108cb00ac2dca",
+    "tests": 70,
+    "failures": 0,
+    "errors": 0,
+    "duration_s": 225.87,
+    "note": "P2 android backend batch: managed worker/PNG backend + guard/arch/android/android-unicode callers"
    }
   ],
   "gates": {
@@ -1546,7 +1556,7 @@
   "strict": {
    "config": "pyrightconfig.strict.json",
    "summary": {
-    "filesAnalyzed": 273,
+    "filesAnalyzed": 274,
     "errorCount": 0,
     "warningCount": 0,
     "informationCount": 0
@@ -1560,6 +1570,7 @@
     "informationCount": 0
    },
    "sources": [
+    "agent/src/omni/adapters/android.py",
     "agent/src/omni/adapters/android_unicode.py"
    ]
   },

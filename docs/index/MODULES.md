@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`2be2791c44ae6aadab426c2d1d6b5b1251b0024197db674856c14a628064c344`。包含 65 个职责模块、735 个源码/界面文件。
+源码指纹：`2020c9062bfbf21ecb607aa09c19628bf60160a0975dc8a9eb2fad9801d0a3eb`。包含 65 个职责模块、735 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -136,7 +136,7 @@
 | 文件 | 行数 | 职责 |
 |---|---:|---|
 | [agent/src/omni/adapters/__init__.py](../../agent/src/omni/adapters/__init__.py) | 1 | V2 infrastructure and channel adapters; no import-time external activity. |
-| [agent/src/omni/adapters/android.py](../../agent/src/omni/adapters/android.py) | 177 | Managed Android workers and bounded PNG loading; no main-process device API or application database. |
+| [agent/src/omni/adapters/android.py](../../agent/src/omni/adapters/android.py) | 197 | Managed Android workers and bounded PNG loading; no main-process device API or application database. |
 | [agent/src/omni/adapters/android_unicode.py](../../agent/src/omni/adapters/android_unicode.py) | 160 | Owned Unicode/IME transaction over managed workers; secrets stay in private IPC. |
 | [agent/src/omni/adapters/bilibili.py](../../agent/src/omni/adapters/bilibili.py) | 540 | Bounded Bilibili reads and a single approved UI publication; credentials never enter diagnostics. |
 | [agent/src/omni/adapters/build_identity.py](../../agent/src/omni/adapters/build_identity.py) | 5 | Shared inventory of executable V2 resources for runtime and deployment identities. |
@@ -431,9 +431,9 @@
 | [web/ui/v2/desktop.js](../../web/ui/v2/desktop.js) | 568 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/documents.js](../../web/ui/v2/documents.js) | 487 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/extensions.js](../../web/ui/v2/extensions.js) | 656 | 原生源码、平台脚本或界面资源 |
-| [web/ui/v2/index.html](../../web/ui/v2/index.html) | 1513 | 原生源码、平台脚本或界面资源 |
+| [web/ui/v2/index.html](../../web/ui/v2/index.html) | 1514 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/inspector.js](../../web/ui/v2/inspector.js) | 266 | 原生源码、平台脚本或界面资源 |
-| [web/ui/v2/main.js](../../web/ui/v2/main.js) | 1493 | 原生源码、平台脚本或界面资源 |
+| [web/ui/v2/main.js](../../web/ui/v2/main.js) | 1495 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/maintenance.js](../../web/ui/v2/maintenance.js) | 126 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/mcp.js](../../web/ui/v2/mcp.js) | 362 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/media.js](../../web/ui/v2/media.js) | 365 | 原生源码、平台脚本或界面资源 |
@@ -452,8 +452,8 @@
 | [web/ui/v2/tokens.js](../../web/ui/v2/tokens.js) | 81 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/v1/components.css](../../web/ui/v2/v1/components.css) | 655 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/v1/frame.css](../../web/ui/v2/v1/frame.css) | 955 | 原生源码、平台脚本或界面资源 |
-| [web/ui/v2/v1/workbench.css](../../web/ui/v2/v1/workbench.css) | 4450 | 原生源码、平台脚本或界面资源 |
-| [web/ui/v2/workbench.css](../../web/ui/v2/workbench.css) | 972 | 原生源码、平台脚本或界面资源 |
+| [web/ui/v2/v1/workbench.css](../../web/ui/v2/v1/workbench.css) | 4444 | 原生源码、平台脚本或界面资源 |
+| [web/ui/v2/workbench.css](../../web/ui/v2/workbench.css) | 978 | 原生源码、平台脚本或界面资源 |
 
 文档：[docs/V2_REFACTOR.md](../../docs/V2_REFACTOR.md)
 
@@ -802,7 +802,7 @@
 | [web/ui/markdown.js](../../web/ui/markdown.js) | 152 | 原生源码、平台脚本或界面资源 |
 | [web/ui/sections.js](../../web/ui/sections.js) | 144 | 原生源码、平台脚本或界面资源 |
 | [web/ui/shared.js](../../web/ui/shared.js) | 341 | 原生源码、平台脚本或界面资源 |
-| [web/ui/terminal-theme.js](../../web/ui/terminal-theme.js) | 64 | 原生源码、平台脚本或界面资源 |
+| [web/ui/terminal-theme.js](../../web/ui/terminal-theme.js) | 68 | 原生源码、平台脚本或界面资源 |
 | [web/ui/theme.js](../../web/ui/theme.js) | 96 | 原生源码、平台脚本或界面资源 |
 | [web/ui/tokens.css](../../web/ui/tokens.css) | 251 | 原生源码、平台脚本或界面资源 |
 | [web/ui/workbench.css](../../web/ui/workbench.css) | 4443 | 原生源码、平台脚本或界面资源 |

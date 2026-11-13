@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "2be2791c44ae6aadab426c2d1d6b5b1251b0024197db674856c14a628064c344",
+  "source_sha256": "2020c9062bfbf21ecb607aa09c19628bf60160a0975dc8a9eb2fad9801d0a3eb",
   "modules": [
     {
       "id": "v2-domain",
@@ -404,7 +404,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 53349,
+      "lines": 53369,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -498,7 +498,7 @@
         "web/ui/v2/v1/workbench.css",
         "web/ui/v2/workbench.css"
       ],
-      "lines": 19120,
+      "lines": 19123,
       "dependencies": []
     },
     {
@@ -1040,7 +1040,7 @@
         "web/ui/tokens.css",
         "web/ui/workbench.css"
       ],
-      "lines": 12652,
+      "lines": 12656,
       "dependencies": []
     },
     {
@@ -2347,13 +2347,14 @@
       "path": "agent/src/omni/adapters/android.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.android",
-      "lines": 177,
+      "lines": 197,
       "imports": [
         "omni.adapters.android_unicode",
         "omni.adapters.object_store",
         "omni.adapters.platform.desktop_capture",
         "omni.adapters.platform.permissions",
         "omni.adapters.workers.client",
+        "omni.application.ports",
         "omni.domain.android",
         "omni.domain.contracts",
         "omni.domain.desktop"
@@ -2361,12 +2362,12 @@
       "symbols": [
         {
           "name": "AndroidBackend",
-          "line": 25,
+          "line": 30,
           "kind": "class"
         },
         {
           "name": "AndroidBackend.__init__",
-          "line": 26,
+          "line": 31,
           "kind": "function",
           "parameters": [
             "self",
@@ -2375,12 +2376,14 @@
             "secrets"
           ],
           "annotations": {
-            "staging": "Path"
+            "staging": "Path",
+            "worker_factory": "Callable[[], WorkerClient] | None",
+            "secrets": "AsyncSecretPort | None"
           }
         },
         {
           "name": "AndroidBackend.health",
-          "line": 42,
+          "line": 53,
           "kind": "function",
           "parameters": [
             "self"
@@ -2389,7 +2392,7 @@
         },
         {
           "name": "AndroidBackend.quiescent",
-          "line": 59,
+          "line": 70,
           "kind": "function",
           "parameters": [
             "self"
@@ -2398,7 +2401,7 @@
         },
         {
           "name": "AndroidBackend.execute",
-          "line": 62,
+          "line": 73,
           "kind": "function",
           "parameters": [
             "self",
@@ -2411,25 +2414,27 @@
           ],
           "annotations": {
             "name": "str",
-            "args": "dict",
+            "args": "Payload",
             "context": "InvocationContext",
             "before_dispatch": "Callable[[], Awaitable[None]]",
-            "action": "dict | None",
-            "environment": "Callable[[str, dict], Awaitable[None]] | None"
+            "action": "Payload | None",
+            "environment": "Callable[[str, Payload], Awaitable[None]] | None"
           }
         },
         {
           "name": "AndroidBackend.execute.done",
-          "line": 79,
+          "line": 90,
           "kind": "function",
           "parameters": [
             "future"
           ],
-          "annotations": {}
+          "annotations": {
+            "future": "asyncio.Task[object]"
+          }
         },
         {
           "name": "AndroidBackend._execute",
-          "line": 87,
+          "line": 98,
           "kind": "function",
           "parameters": [
             "self",
@@ -2440,11 +2445,18 @@
             "action",
             "environment"
           ],
-          "annotations": {}
+          "annotations": {
+            "name": "str",
+            "args": "Payload",
+            "context": "InvocationContext",
+            "guard": "Callable[[], Awaitable[None]]",
+            "action": "Payload | None",
+            "environment": "Callable[[str, Payload], Awaitable[None]] | None"
+          }
         },
         {
           "name": "AndroidBackend._load",
-          "line": 142,
+          "line": 162,
           "kind": "function",
           "parameters": [
             "path",
@@ -2452,12 +2464,12 @@
           ],
           "annotations": {
             "path": "Path",
-            "receipt": "dict"
+            "receipt": "Record"
           }
         },
         {
           "name": "AndroidBackend.stop_accepting",
-          "line": 170,
+          "line": 190,
           "kind": "function",
           "parameters": [
             "self"
@@ -2466,7 +2478,7 @@
         },
         {
           "name": "AndroidBackend.close",
-          "line": 173,
+          "line": 193,
           "kind": "function",
           "parameters": [
             "self",
@@ -2526,7 +2538,7 @@
             "args": "Record",
             "context": "InvocationContext",
             "guard": "Callable[[], Awaitable[None]]",
-            "environment": "Callable[[str, Record], Awaitable[None]]"
+            "environment": "Callable[[str, dict[str, object]], Awaitable[None]]"
           }
         },
         {
@@ -2561,7 +2573,7 @@
             "args": "Record",
             "context": "InvocationContext",
             "guard": "Callable[[], Awaitable[None]]",
-            "environment": "Callable[[str, Record], Awaitable[None]]"
+            "environment": "Callable[[str, dict[str, object]], Awaitable[None]]"
           }
         }
       ],
@@ -95406,7 +95418,7 @@
       "path": "web/ui/terminal-theme.js",
       "module": "ui-shared",
       "python_module": null,
-      "lines": 64,
+      "lines": 68,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -95566,7 +95578,7 @@
       "path": "web/ui/v2/index.html",
       "module": "v2-workbench",
       "python_module": null,
-      "lines": 1513,
+      "lines": 1514,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -95586,7 +95598,7 @@
       "path": "web/ui/v2/main.js",
       "module": "v2-workbench",
       "python_module": null,
-      "lines": 1493,
+      "lines": 1495,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -95776,7 +95788,7 @@
       "path": "web/ui/v2/v1/workbench.css",
       "module": "v2-workbench",
       "python_module": null,
-      "lines": 4450,
+      "lines": 4444,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -95786,7 +95798,7 @@
       "path": "web/ui/v2/workbench.css",
       "module": "v2-workbench",
       "python_module": null,
-      "lines": 972,
+      "lines": 978,
       "imports": [],
       "symbols": [],
       "kind": "asset",
