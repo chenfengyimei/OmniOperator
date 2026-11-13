@@ -7,10 +7,11 @@ import hashlib
 import json
 import logging
 import sys
+from collections.abc import Generator
 from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
-from typing import cast
+from typing import Any, cast
 
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.trace import Span, StatusCode
@@ -86,9 +87,11 @@ from ..application.ports import (
     MetricsPort,
     ModelPort,
     ModelStreamingPort,
+    Record,
     SecretStore,
     TerminalBackendPort,
     TokenCounter,
+    UnitOfWork,
 )
 from ..application.qq import QQService, QQTransportPort
 from ..application.routing import RoutingService
@@ -102,7 +105,9 @@ from ..domain.android import OBSERVE_SPEC as ANDROID_OBSERVE
 from ..domain.android import RESTORE_SPEC as ANDROID_RESTORE
 from ..domain.android import SPEC as ANDROID_ACTION
 from ..domain.contracts import BusinessError, Outcome
+from ..domain.delivery import OutboundMessage
 from ..domain.desktop_actions import SPEC as DESKTOP_ACTION
+from ..domain.mcp import ServerTarget
 from ..domain.skills import SKILL_SPECS
 from .capabilities import builtin_capabilities
 from .lifecycle import Lifetime, close_sync
@@ -126,12 +131,12 @@ class Observation:
         self.tracer = self.provider.get_tracer("omni.v2")
 
     @contextmanager
-    def context(self, **fields: str):
+    def context(self, **fields: str) -> Generator[None, None, None]:
         with bind_context(**fields):
             yield
 
     @contextmanager
-    def span(self, name: str):
+    def span(self, name: str) -> Generator[SpanMeasurement, None, None]:
         operation = {
             "agent.turn": "turn",
             "model.complete": "model",
@@ -173,10 +178,16 @@ class Observation:
                     )
 
 
+def _record(value: object) -> Record:
+    """组合层把适配器健康/度量快照（dict[str, Any]）收敛为显式 JSON 记录视图。"""
+    return cast(Record, value)
+
+
 @dataclass
 class Instance:
     application: Application
     paths: InstancePaths
+
     @property
     def database(self) -> Database:
         """组合层只读访问：单写者数据库 actor。"""
@@ -203,7 +214,7 @@ class Instance:
     _observation: Observation
     boot_id: str
     build_id: str
-    identity: dict
+    identity: Record
     _identity_files: RuntimeIdentityFiles
     objects: ObjectService
     images: ImageService
@@ -236,29 +247,29 @@ class Instance:
     _process_diagnostics: ProcessDiagnostics | None = None
     _closed: bool = False
 
-    def identity_proof(self, challenge: str) -> dict:
+    def identity_proof(self, challenge: str) -> Record:
         return canonical_proof(self.health(), challenge, self._identity_files.key)
 
-    def health(self) -> dict:
-        health = {
+    def health(self) -> Record:
+        health: Record = {
             **self.application.health(),
             **self.identity,
             "boot_id": self.boot_id,
             "build_id": self.build_id,
             "api_version": 1,
             "schema_version": self._database.schema_version,
-            "database": self._database.metrics,
-            "logs": self._logging.sink.snapshot(),
+            "database": _record(self._database.metrics),
+            "logs": _record(self._logging.sink.snapshot()),
             "documents": self.documents.health(),
             "memory_semantics": self.memory_semantics.health(),
             "skills": self.skills.health(),
             "schedules": self.schedules.health(),
             "deliveries": self.deliveries.health(),
-            "qq": self.qq.health(),
-            "bilibili": self.bilibili.health(),
+            "qq": _record(self.qq.health()),
+            "bilibili": _record(self.bilibili.health()),
             "media": self.media.health(),
             "mcp": self.mcp.health(),
-            "android": self.android.health(),
+            "android": cast(Record, self.android.health()),
             "credentials": self.credentials.health(),
             "action_reviews": self.action_reviews.health(),
             "terminals": self.terminals.health(),
@@ -269,7 +280,7 @@ class Instance:
             "maintenance": self.maintenance.health(),
             "memory_organization": self.memory_organization.health(),
             "extensions": self.extensions.health(),
-            "images": self.images.health(),
+            "images": _record(self.images.health()),
             "shutdown_residual": list(self._lifetime.residual),
             "platform_acceptance": "pending",
             "unhandled_exceptions": dict(self._process_diagnostics.counts) if self._process_diagnostics else {},
@@ -290,9 +301,9 @@ class Instance:
         )
         return health
 
-    async def close(self, timeout_s: float = 30) -> dict:
+    async def close(self, timeout_s: float = 30) -> Record:
         result = await self._lifetime.close(timeout_s)
-        self._closed = result["complete"]
+        self._closed = result["complete"] is True
         return result
 
 
@@ -318,7 +329,7 @@ async def open_instance(
     terminal_backend: TerminalBackendPort | None = None,
     desktop_backend: DesktopBackendPort | None = None,
     portal_backend: DesktopPortalPort | None = None,
-    deployment: dict | None = None,
+    deployment: Record | None = None,
 ) -> Instance:
     paths = InstancePaths.resolve(home)
     if master_key_file and master_key_file.resolve().is_relative_to(paths.home):
@@ -330,7 +341,7 @@ async def open_instance(
     lifetime.own("instance_lock", 6, lambda _: close_sync(lock.close))
     try:
         if deployment is not None:
-            verify_deployed_instance(paths.database, deployment["instance_id"])
+            verify_deployed_instance(paths.database, str(deployment["instance_id"]))
         ids, clock = UUIDs(), clock or SystemClock()
         boot_id = consume_launch(paths.control, deployment)
         source = Path(__file__).resolve().parents[1]
@@ -500,23 +511,25 @@ async def open_instance(
                 lifetime.own("model_streams", 1, model_streamer.close, model_streamer.stop_accepting)
         contexts = ContextService(database, calls, images)
 
-        async def authorize_qq(message):
+        async def authorize_qq(message: OutboundMessage) -> str:
             return await database.read(lambda u: u.qq_outbound_authorized(message))
 
-        async def authorize_bilibili(message):
+        async def authorize_bilibili(message: OutboundMessage) -> Record:
             return await database.read(lambda u: u.bilibili_outbound_authorized(message))
 
         onebot = qq_transport if qq_transport is not None else OneBotTransport(credential_io, authorize_qq)
         lifetime.own("onebot", 1, onebot.close)
-        bili_gateway = (
+        bili_gateway: BilibiliPort = (
             bilibili_backend
             if bilibili_backend is not None
-            else BilibiliGateway(credential_io, sink.redactor, authorize_bilibili)
+            else cast(BilibiliPort, BilibiliGateway(credential_io, sink.redactor, authorize_bilibili))
         )
         lifetime.own("bilibili_gateway", 1, bili_gateway.close)
         bilibili = BilibiliService(database, bili_gateway)
         lifetime.own("bilibili", 0, bilibili.close, bilibili.stop_accepting)
-        processor = media_processor if media_processor is not None else MediaProcessor()
+        processor: MediaProcessingPort = (
+            media_processor if media_processor is not None else cast(MediaProcessingPort, MediaProcessor())
+        )
         lifetime.own("media_processor", 1, processor.close, processor.stop_accepting)
         # The gateway protocol splits by use case; the concrete object serves both
         # reads and bounded downloads for the media pipeline.
@@ -546,7 +559,7 @@ async def open_instance(
 
         oauth_flow = OAuthFlow(credential_io, redact=sink.redactor.register)
 
-        async def mcp_authorization(target):
+        async def mcp_authorization(target: ServerTarget) -> str:
             if target.auth_mode == "none":
                 return ""
             if target.auth_mode == "oauth":
@@ -559,10 +572,13 @@ async def open_instance(
             if not raw:
                 return ""
             try:
-                parsed = json.loads(raw)
+                parsed: object = json.loads(raw)
             except (ValueError, TypeError):
                 return raw
-            return str(parsed.get("access_token") or "") if isinstance(parsed, dict) else raw
+            if isinstance(parsed, dict):
+                fields = cast(dict[str, object], parsed)
+                return str(fields.get("access_token") or "")
+            return raw
 
         mcp = MCPService(
             database,
@@ -624,41 +640,61 @@ async def open_instance(
         diagnostic = DiagnosticFiles(paths, sink)
         lifetime.own("operations", 0, diagnostic.close)
 
-        def operational_health():
+        def operational_health() -> Record:
             health = current_instance.health()
+            deliveries = _record(health["deliveries"])
+            maintenance = _record(health["maintenance"])
+            memory_organization = _record(health["memory_organization"])
+            extensions = _record(health["extensions"])
+            hosts = _record(extensions["hosts"])
+            terminals = _record(health["terminals"])
+            media = _record(health["media"])
+            mcp_transports = _record(_record(health["mcp"])["transports"])
+            sessions = mcp_transports["sessions"]
+            desktop = _record(health["desktop"])
+            desktop_backend = _record(desktop["backend"])
+            portal = _record(health["desktop_portal"])
+            portal_backend = _record(portal["backend"])
+            terminal_reviews = _record(health["terminal_reviews"])
+            schedules = _record(health["schedules"])
+            documents = _record(health["documents"])
+            vector = _record(documents["vector"])
+            residual = health["shutdown_residual"]
             return {
                 "ready": health["ready"],
                 "closing": health["closing"],
                 "active_runs": health["active_runs"],
-                "active_deliveries": health["deliveries"]["active"],
-                "active_maintenance": health["maintenance"]["active"],
-                "memory_organization_pending": health["memory_organization"]["pending"],
-                "extension_hosts": health["extensions"]["hosts"]["resident"],
-                "extension_cleanup_pending": health["extensions"]["hosts"]["cleanup_pending"],
-                "active_terminals": health["terminals"]["active"],
-                "media_jobs_pending": health["media"]["pending"],
-                "mcp_sessions": health["mcp"]["transports"]["resident"],
+                "active_deliveries": deliveries["active"],
+                "active_maintenance": maintenance["active"],
+                "memory_organization_pending": memory_organization["pending"],
+                "extension_hosts": hosts["resident"],
+                "extension_cleanup_pending": hosts["cleanup_pending"],
+                "active_terminals": terminals["active"],
+                "media_jobs_pending": media["pending"],
+                "mcp_sessions": mcp_transports["resident"],
                 "mcp_cleanup_pending": sum(
-                    1 for session in health["mcp"]["transports"]["sessions"] if session.get("cleanup_pending")
+                    1
+                    for session in (sessions if isinstance(sessions, list) else [])
+                    if isinstance(session, dict) and cast(dict[str, object], session).get("cleanup_pending")
                 ),
-                "desktop_observations": health["desktop"]["pending"],
-                "desktop_portal_pending": health["desktop_portal"]["pending"],
-                "desktop_portal_resident": health["desktop_portal"]["backend"]["resident"],
-                "desktop_portal_cleanup_pending": health["desktop_portal"]["backend"]["cleanup_pending"],
-                "desktop_cleanup_pending": health["desktop"]["backend"].get("cleanup_pending", 0),
-                "desktop_capture_staging": health["desktop"]["backend"].get("capture_staging"),
-                "terminal_cleanup_pending": health["terminals"]["cleanup_pending"],
-                "terminal_state_pending": health["terminals"]["state_pending"],
-                "terminal_reviews_pending": health["terminal_reviews"]["pending"],
+                "desktop_observations": desktop["pending"],
+                "desktop_portal_pending": portal["pending"],
+                "desktop_portal_resident": portal_backend["resident"],
+                "desktop_portal_cleanup_pending": portal_backend["cleanup_pending"],
+                "desktop_cleanup_pending": desktop_backend.get("cleanup_pending", 0),
+                "desktop_capture_staging": desktop_backend.get("capture_staging"),
+                "terminal_cleanup_pending": terminals["cleanup_pending"],
+                "terminal_state_pending": terminals["state_pending"],
+                "terminal_reviews_pending": terminal_reviews["pending"],
                 "database": health["database"],
-                "scheduler_ready": health["schedules"]["ready"],
-                "delivery_ready": health["deliveries"]["ready"],
-                "document_queries": health["documents"]["pending"],
-                "vector_available": health["documents"]["vector"]["available"],
-                "installed_delivery_transports": health["deliveries"]["installed_transports"],
-                "stalled_deliveries": health["deliveries"]["stalled"],
+                "scheduler_ready": schedules["ready"],
+                "delivery_ready": deliveries["ready"],
+                "document_queries": documents["pending"],
+                "vector_available": vector["available"],
+                "installed_delivery_transports": deliveries["installed_transports"],
+                "stalled_deliveries": deliveries["stalled"],
                 "credentials": health["credentials"],
-                "shutdown_residual_count": len(health["shutdown_residual"]),
+                "shutdown_residual_count": len(residual) if isinstance(residual, list) else 0,
             }
 
         debugging = DebugService(database, diagnostic, clock, ids)
@@ -669,7 +705,10 @@ async def open_instance(
         if local_vectors is not None:
             vector_state = documents.vector_status()
 
-            def audit_vectors(u):
+            def audit_vectors(u: UnitOfWork) -> None:
+                # LocalVectors 尚未纳入 strict；维度按协议为 int，用局部 Any 桥接其未类型化对象。
+                vectorizer: Any = local_vectors
+                vector_dimension = vectorizer.dimension
                 for agent in u.query("agents", ""):
                     u.audit(
                         str(agent["id"]),
@@ -677,14 +716,14 @@ async def open_instance(
                         boot_id,
                         {
                             "version": local_vectors.version,
-                            "dimension": local_vectors.dimension,
+                            "dimension": cast(int, vector_dimension),
                             "state": vector_state.get("state", vector_state.get("reason", "unavailable")),
                             "available": vector_state["available"],
                         },
                     )
 
             await database.write(audit_vectors)
-        identity = {
+        identity: Record = {
             **await database.read(lambda u: u.instance_identity()),
             **process_identity(),
             "boot_id": boot_id,

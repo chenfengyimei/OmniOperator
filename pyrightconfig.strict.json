@@ -205,6 +205,7 @@
     "agent/src/omni/application/terminal_review.py",
     "agent/src/omni/application/terminals.py",
     "agent/src/omni/composition/capabilities.py",
+    "agent/src/omni/composition/instance.py",
     "agent/src/omni/composition/lifecycle.py",
     "agent/src/omni/composition/releases.py",
     "agent/src/omni/composition/service_cleanup.py",
