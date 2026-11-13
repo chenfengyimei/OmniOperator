@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "7179fc677c781fb3dace8b380ee05bc94d3aea2cfd5002641a9f275b2b822901",
+  "source_sha256": "d23ec0cf960c6acdaaa5efec2a5cb9413b2653fb7a6c1e535bc8094e8eb67481",
   "modules": [
     {
       "id": "v2-domain",
@@ -404,7 +404,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 53908,
+      "lines": 53937,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -15688,22 +15688,23 @@
       "path": "agent/src/omni/adapters/persistence/maintenance_repository.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.persistence.maintenance_repository",
-      "lines": 514,
+      "lines": 543,
       "imports": [
         "omni.adapters.persistence",
         "omni.adapters.persistence.document_repository",
+        "omni.application.ports",
         "omni.domain.contracts",
         "omni.domain.maintenance"
       ],
       "symbols": [
         {
           "name": "MaintenanceRepositories",
-          "line": 31,
+          "line": 33,
           "kind": "class"
         },
         {
           "name": "MaintenanceRepositories._maintenance_agent",
-          "line": 32,
+          "line": 34,
           "kind": "function",
           "parameters": [
             "self",
@@ -15715,31 +15716,31 @@
         },
         {
           "name": "MaintenanceRepositories._maintenance_attempt",
-          "line": 36,
+          "line": 38,
           "kind": "function",
           "parameters": [
             "self",
             "job"
           ],
           "annotations": {
-            "job": "dict"
+            "job": "Record"
           }
         },
         {
           "name": "MaintenanceRepositories._maintenance_metadata",
-          "line": 50,
+          "line": 52,
           "kind": "function",
           "parameters": [
             "self",
             "job"
           ],
           "annotations": {
-            "job": "dict"
+            "job": "Record"
           }
         },
         {
           "name": "MaintenanceRepositories._maintenance_change",
-          "line": 53,
+          "line": 55,
           "kind": "function",
           "parameters": [
             "self",
@@ -15747,31 +15748,31 @@
             "**values"
           ],
           "annotations": {
-            "job": "dict"
+            "job": "Record"
           }
         },
         {
           "name": "MaintenanceRepositories._maintenance_lost",
-          "line": 68,
+          "line": 70,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "MaintenanceRepositories._maintenance_input",
-          "line": 71,
+          "line": 73,
           "kind": "function",
           "parameters": [
             "self",
             "job"
           ],
           "annotations": {
-            "job": "dict"
+            "job": "Record"
           }
         },
         {
           "name": "MaintenanceRepositories.maintenance_enqueue",
-          "line": 100,
+          "line": 102,
           "kind": "function",
           "parameters": [
             "self",
@@ -15780,12 +15781,12 @@
           ],
           "annotations": {
             "agent_id": "str",
-            "request": "dict"
+            "request": "Record"
           }
         },
         {
           "name": "MaintenanceRepositories.maintenance_get",
-          "line": 172,
+          "line": 178,
           "kind": "function",
           "parameters": [
             "self",
@@ -15799,7 +15800,7 @@
         },
         {
           "name": "MaintenanceRepositories.maintenance_page",
-          "line": 175,
+          "line": 181,
           "kind": "function",
           "parameters": [
             "self",
@@ -15815,7 +15816,7 @@
         },
         {
           "name": "MaintenanceRepositories.maintenance_cancel",
-          "line": 186,
+          "line": 192,
           "kind": "function",
           "parameters": [
             "self",
@@ -15831,7 +15832,7 @@
         },
         {
           "name": "MaintenanceRepositories.maintenance_claim",
-          "line": 208,
+          "line": 214,
           "kind": "function",
           "parameters": [
             "self",
@@ -15843,7 +15844,7 @@
         },
         {
           "name": "MaintenanceRepositories._maintenance_owner",
-          "line": 276,
+          "line": 288,
           "kind": "function",
           "parameters": [
             "self",
@@ -15867,7 +15868,7 @@
         },
         {
           "name": "MaintenanceRepositories.maintenance_guard",
-          "line": 314,
+          "line": 326,
           "kind": "function",
           "parameters": [
             "self",
@@ -15889,31 +15890,31 @@
         },
         {
           "name": "MaintenanceRepositories._maintenance_claim_identity",
-          "line": 323,
+          "line": 335,
           "kind": "function",
           "parameters": [
             "self",
             "claim"
           ],
           "annotations": {
-            "claim": "Claim | dict"
+            "claim": "Claim | Record"
           }
         },
         {
           "name": "MaintenanceRepositories.maintenance_start",
-          "line": 336,
+          "line": 354,
           "kind": "function",
           "parameters": [
             "self",
             "claim"
           ],
           "annotations": {
-            "claim": "Claim | dict"
+            "claim": "Claim | Record"
           }
         },
         {
           "name": "MaintenanceRepositories.maintenance_bind_build",
-          "line": 352,
+          "line": 375,
           "kind": "function",
           "parameters": [
             "self",
@@ -15921,13 +15922,13 @@
             "build_id"
           ],
           "annotations": {
-            "claim": "Claim | dict",
+            "claim": "Claim | Record",
             "build_id": "str"
           }
         },
         {
           "name": "MaintenanceRepositories.maintenance_finish",
-          "line": 386,
+          "line": 409,
           "kind": "function",
           "parameters": [
             "self",
@@ -15935,13 +15936,13 @@
             "build_id"
           ],
           "annotations": {
-            "claim": "Claim | dict",
+            "claim": "Claim | Record",
             "build_id": "str | None"
           }
         },
         {
           "name": "MaintenanceRepositories.maintenance_fail",
-          "line": 429,
+          "line": 452,
           "kind": "function",
           "parameters": [
             "self",
@@ -15949,25 +15950,25 @@
             "error"
           ],
           "annotations": {
-            "claim": "Claim | dict",
+            "claim": "Claim | Record",
             "error": "str"
           }
         },
         {
           "name": "MaintenanceRepositories.maintenance_heartbeat",
-          "line": 452,
+          "line": 480,
           "kind": "function",
           "parameters": [
             "self",
             "claim"
           ],
           "annotations": {
-            "claim": "Claim | dict"
+            "claim": "Claim | Record"
           }
         },
         {
           "name": "MaintenanceRepositories.maintenance_recover",
-          "line": 467,
+          "line": 495,
           "kind": "function",
           "parameters": [
             "self"

@@ -1,14 +1,14 @@
 {
  "schema": 1,
- "batch": 174,
+ "batch": 175,
  "date": "2026-11-13",
  "whole_v2_complete": false,
  "d7_complete": false,
  "default_entrypoint": "v1",
  "source": {
-  "code_version": "18ef98a30c39513e24951ae12808aad97cd3f26e1aff2fc13bca1789833d4dd0",
+  "code_version": "982f58665eb41b29ed0752cbb65e1f3daf607abb2fc31a0e1cf2a8492df8a894",
   "fixed_source_files": 1206,
-  "git_head": "560e24c",
+  "git_head": "2583a1b",
   "dirty_checkout": false,
   "recipe": "sha256(json.dumps({path: sha256(blob) for tracked agent/, web/, scripts/ files}, sort_keys=True)); see temp/build/source_version.py",
   "head_ui": "75c4219"
@@ -193,12 +193,12 @@
  "validation": {
   "all_latest_cases_passed": false,
   "latest_batch": {
-   "batch": 174,
+   "batch": 175,
    "sources": [
-    "agent/src/omni/adapters/persistence/extension_repository.py"
+    "agent/src/omni/adapters/persistence/maintenance_repository.py"
    ],
-   "report": "temp/build/v2-typecheck-174-callers.xml",
-   "tests": 104
+   "report": "temp/build/v2-typecheck-175-callers.xml",
+   "tests": 99
   },
   "targeted_reports": [
    {
@@ -1775,6 +1775,15 @@
     "errors": 0,
     "duration_s": 112.11,
     "note": "P3 extension_repository batch: immutable plugin versions, grants and execution bindings + guard/arch/extensions/extension-repository/extensions-contract/extensions-http/extensions-migration/extension-crash/extension-hosts callers; covers unverifiable artifacts ending unknown without publishing and host-callback budget violations ending unknown without replay"
+   },
+   {
+    "path": "temp/build/v2-typecheck-175-callers.xml",
+    "sha256": "9c7b9e7f954f71a804d6affb658228ea6262936356239d66cfc8cc8a9d2c5b79",
+    "tests": 99,
+    "failures": 0,
+    "errors": 0,
+    "duration_s": 33.03,
+    "note": "P3 maintenance_repository batch: bounded maintenance admission, fenced attempts and settlement + guard/arch/maintenance/maintenance-crash/maintenance-contract/maintenance-ownership callers; covers cancellation compare-and-swap retaining attempts until real settlement and queued jobs never rebuilding newer unconfirmed revisions"
    }
   ],
   "gates": {
@@ -1786,7 +1795,7 @@
   "strict": {
    "config": "pyrightconfig.strict.json",
    "summary": {
-    "filesAnalyzed": 298,
+    "filesAnalyzed": 299,
     "errorCount": 0,
     "warningCount": 0,
     "informationCount": 0
@@ -1992,7 +2001,8 @@
    "Strict scope reaches 295 files (53 domain + 44 application + 185 adapters + 13 composition); the execution-body retention repository aligns pin/inspect/plan/batch/prepare/prune/complete/cancel/preview receipts with the port Record contract, types the shared protection-reason list as list[str], narrows the ended-at comparison to str and casts plans to dict[str, object] at the domain validate_retention_plan boundary because Record (dict[str, JSON]) does not auto-satisfy the wider parameter; terminal-state/30-day-window/pin/pending-approval/unresolved-action/model-cost/work-item/lease/outbound/memory-source/document-source/pinned-artifact protections, cross-batch holding, fingerprint checks, immutable identities and ledgers, and cancel-without-body-restore are unchanged",
    "Strict scope reaches 296 files (53 domain + 44 application + 186 adapters + 13 composition); the owner-observation ledger aligns action/source/proof/head/public/detail/page/replay/commit receipts with the port Record contract, uses a tcast alias because sqlalchemy already owns the name cast in this module, types computed column labels as Column[int] and dynamic field selection as Column[str], and keeps the detail dict as dict[str, object] to hold the history list before narrowing at return; unknown preservation without touching the original action, oversized-observation offline refusal, per-field plugin identity checks, fingerprint/epoch conflict refusal, replay immutability and evidence hashing with audit trail are unchanged",
    "Strict scope reaches 297 files (53 domain + 44 application + 187 adapters + 13 composition); the scoped media source/bounded-job/immutable-artifact repository aligns source/job/transcript/frames/recover receipts with the port Record contract, types the _latest static helper with explicit Connection/Table parameters and a str | None return, narrows the source-view identifiers to str and types _complete's table as Table; same-BVID metadata conflict refusal, config rebinding audit, active-job deletion blocking, queued-only start/cancel, running-only completion, terminal immutability and startup reconciliation (queued to cancelled, running to unknown without replay) are unchanged, and the module still never reads files",
-   "Strict scope reaches 298 files (53 domain + 44 application + 188 adapters + 13 composition); the immutable trusted-plugin version/grant/execution-binding repository aligns install/replay/detail/page/authorize/disable/drift/run-tools/assert/dispatch receipts with the port Record contract, narrows revisions and authority epochs to int before incrementing, narrows executing-action and binding id lists to list[str], types the live-grants query as an explicit Select, narrows file-manifest entries through dict[str, object] and keeps the error-code runtime guard; immutable package identity, catalog fingerprint and archive hash checks, the 16-slot/128-version/64-tool ceilings, revocation cancelling pending approvals without interrupting executing actions, run-capture epoch binding, per-field dispatch consistency checks and unknown no-replay are unchanged, and the module executes no plugin code and does no file I/O"
+   "Strict scope reaches 298 files (53 domain + 44 application + 188 adapters + 13 composition); the immutable trusted-plugin version/grant/execution-binding repository aligns install/replay/detail/page/authorize/disable/drift/run-tools/assert/dispatch receipts with the port Record contract, narrows revisions and authority epochs to int before incrementing, narrows executing-action and binding id lists to list[str], types the live-grants query as an explicit Select, narrows file-manifest entries through dict[str, object] and keeps the error-code runtime guard; immutable package identity, catalog fingerprint and archive hash checks, the 16-slot/128-version/64-tool ceilings, revocation cancelling pending approvals without interrupting executing actions, run-capture epoch binding, per-field dispatch consistency checks and unknown no-replay are unchanged, and the module executes no plugin code and does no file I/O",
+   "Strict scope reaches 299 files (53 domain + 44 application + 189 adapters + 13 composition); the bounded document-maintenance admission/fenced-attempt/settlement repository aligns enqueue/get/page/cancel/claim/guard/start/bind-build/finish/fail/heartbeat/recover receipts with the port Record contract, accepts claims as Claim | Record to stay compatible with the port, narrows revisions and attempt counts to int before incrementing, types recovery counters as Record and keeps the boot-id runtime guards via cast(object, ...); the queue ceiling counting memory-organization batches together, captured source-revision validation, the boot/token/fence/lease ownership quadruple, same-document mutual exclusion, attempt-limit failure, cancellation compare-and-swap retaining the attempt until real settlement and foreign-boot recovery marking interrupted before requeue-or-fail by input validity are unchanged, and the module performs no execution or I/O"
   ]
  },
  "source_recovery": {
