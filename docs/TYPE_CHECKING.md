@@ -324,6 +324,7 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 5. 全仓 strict 完成前，任何报告不得写“全仓严格类型已通过”。
 6. 已知前置阻塞（纳入 strict 前必须先处理）：
    - `agent/src/omni/adapters/platform/deployment_files.py` 用绝对 `import omni` 取包版本，strict 会报 `reportMissingTypeStubs`（`omni` 无 `py.typed`）。纳入前应改为相对导入或 `importlib.metadata.version`，不要用忽略注释绕过。
+   - composition/http.py 依赖 composition/instance.py 的公开面（数据库/日志/身份/关停）：纳入顺序必须先 instance.py 再 http.py`，否则只能靠 Any 桥接，不符合本文件的清零口径。
    - 仓储 mixin 体系（`repository.py` 及其 70 余个 mixin）依赖 `RepositoryBase` 的公共方法；新增跨模块助手时应使用 `one` 等公共方法，而不是访问 `_one` 等受保护成员。
 
 
