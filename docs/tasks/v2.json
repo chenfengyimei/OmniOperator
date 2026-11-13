@@ -284,9 +284,9 @@
       ]
     }
   ],
-  "checkpoint_commit": "3405c64",
+  "checkpoint_commit": "2afd88e",
   "current_validation": {
-    "status": "p0_unblocked",
+    "status": "d7_typecheck_batch_139",
     "targeted_unique_passed": 228,
     "includes_browser_cases": 10,
     "current_full_passed": false,
@@ -304,7 +304,7 @@
         "first_report": "temp/build/v2-full-144.xml"
       }
     ],
-    "code_version": "4c4e9bf2c5d973ab8768ec4ee966829a61bbf32f661c2e69ed69d4156e085c87",
+    "code_version": "8af85826d823101895a7b4f681922c44dce26781e6512327487a0fe6cbb8bc3e",
     "fixed_source_files": 1200,
     "baseline_repair_evidence": "docs/evidence/v2-baseline-repair.json",
     "market_evidence": "docs/evidence/v2-extension-market.json",
@@ -325,7 +325,7 @@
     "id": "D7.product_switch",
     "status": "进行中",
     "design": "docs/V2_PACKAGING.md",
-    "scope": "Windows wheel/sdist 构建验证与安装/更新/恢复同步调用已完成，strict 已到 257 文件（domain 53/53、application 43/44、adapters 160/222、composition 1/13）；剩余：application/adapters/composition 严格化、工作台改版 UI 功能、完整安装/更新执行、容器与三平台构建、干净机器端到端、正式入口切换。"
+    "scope": "P1：composition 剩 capabilities/releases/lifecycle/service_exchange；随后 P2 android.py(475) 与 P3 持久化 34 文件。strict 已到 260 文件（domain 53/53、application 43/44、adapters 160/222、composition 4/13）。"
   },
   "milestones": [
     {
