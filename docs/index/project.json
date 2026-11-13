@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "b7d190191d3d61d774a36291d1bc2f8f4d8f25f24f97b7b1f2ece18acf703877",
+  "source_sha256": "7179fc677c781fb3dace8b380ee05bc94d3aea2cfd5002641a9f275b2b822901",
   "modules": [
     {
       "id": "v2-domain",
@@ -404,7 +404,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 53853,
+      "lines": 53908,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -14510,22 +14510,23 @@
       "path": "agent/src/omni/adapters/persistence/extension_repository.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.persistence.extension_repository",
-      "lines": 751,
+      "lines": 806,
       "imports": [
         "omni.adapters.persistence",
         "omni.adapters.persistence.repository_base",
+        "omni.application.ports",
         "omni.domain.contracts",
         "omni.domain.extensions"
       ],
       "symbols": [
         {
           "name": "ExtensionRepositories",
-          "line": 35,
+          "line": 37,
           "kind": "class"
         },
         {
           "name": "ExtensionRepositories._extension_agent",
-          "line": 36,
+          "line": 38,
           "kind": "function",
           "parameters": [
             "self",
@@ -14537,7 +14538,7 @@
         },
         {
           "name": "ExtensionRepositories._extension_epoch",
-          "line": 40,
+          "line": 42,
           "kind": "function",
           "parameters": [
             "self"
@@ -14546,14 +14547,14 @@
         },
         {
           "name": "ExtensionRepositories._extension_denied",
-          "line": 44,
+          "line": 46,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "ExtensionRepositories._extension_version",
-          "line": 47,
+          "line": 49,
           "kind": "function",
           "parameters": [
             "self",
@@ -14561,13 +14562,13 @@
             "revision_id"
           ],
           "annotations": {
-            "slot": "dict",
+            "slot": "Record",
             "revision_id": "str | None"
           }
         },
         {
           "name": "ExtensionRepositories._extension_detail",
-          "line": 53,
+          "line": 59,
           "kind": "function",
           "parameters": [
             "self",
@@ -14575,13 +14576,13 @@
             "revision_id"
           ],
           "annotations": {
-            "slot": "dict",
+            "slot": "Record",
             "revision_id": "str | None"
           }
         },
         {
           "name": "ExtensionRepositories.extension_get",
-          "line": 112,
+          "line": 123,
           "kind": "function",
           "parameters": [
             "self",
@@ -14595,7 +14596,7 @@
         },
         {
           "name": "ExtensionRepositories.extension_page",
-          "line": 115,
+          "line": 126,
           "kind": "function",
           "parameters": [
             "self",
@@ -14611,7 +14612,7 @@
         },
         {
           "name": "ExtensionRepositories.extension_action_page",
-          "line": 131,
+          "line": 142,
           "kind": "function",
           "parameters": [
             "self",
@@ -14629,7 +14630,7 @@
         },
         {
           "name": "ExtensionRepositories.extension_install_replay",
-          "line": 169,
+          "line": 185,
           "kind": "function",
           "parameters": [
             "self",
@@ -14645,7 +14646,7 @@
         },
         {
           "name": "ExtensionRepositories._extension_change",
-          "line": 193,
+          "line": 209,
           "kind": "function",
           "parameters": [
             "self",
@@ -14653,24 +14654,24 @@
             "**values"
           ],
           "annotations": {
-            "slot": "dict"
+            "slot": "Record"
           }
         },
         {
           "name": "ExtensionRepositories._extension_revoke",
-          "line": 212,
+          "line": 228,
           "kind": "function",
           "parameters": [
             "self",
             "slot"
           ],
           "annotations": {
-            "slot": "dict"
+            "slot": "Record"
           }
         },
         {
           "name": "ExtensionRepositories.extension_install",
-          "line": 269,
+          "line": 290,
           "kind": "function",
           "parameters": [
             "self",
@@ -14681,14 +14682,14 @@
           ],
           "annotations": {
             "agent_id": "str",
-            "request": "dict",
-            "captured": "dict",
+            "request": "Record",
+            "captured": "Record",
             "object_id": "str"
           }
         },
         {
           "name": "ExtensionRepositories.extension_authorize",
-          "line": 437,
+          "line": 470,
           "kind": "function",
           "parameters": [
             "self",
@@ -14699,12 +14700,12 @@
           "annotations": {
             "agent_id": "str",
             "extension_id": "str",
-            "request": "dict"
+            "request": "Record"
           }
         },
         {
           "name": "ExtensionRepositories.extension_disable",
-          "line": 526,
+          "line": 563,
           "kind": "function",
           "parameters": [
             "self",
@@ -14720,7 +14721,7 @@
         },
         {
           "name": "ExtensionRepositories.extension_mark_drift",
-          "line": 543,
+          "line": 587,
           "kind": "function",
           "parameters": [
             "self",
@@ -14738,7 +14739,7 @@
         },
         {
           "name": "ExtensionRepositories._extension_live_grants",
-          "line": 567,
+          "line": 618,
           "kind": "function",
           "parameters": [
             "self",
@@ -14750,7 +14751,7 @@
         },
         {
           "name": "ExtensionRepositories.extension_capture_run",
-          "line": 585,
+          "line": 637,
           "kind": "function",
           "parameters": [
             "self",
@@ -14764,7 +14765,7 @@
         },
         {
           "name": "ExtensionRepositories._extension_binding",
-          "line": 622,
+          "line": 674,
           "kind": "function",
           "parameters": [
             "self",
@@ -14778,7 +14779,7 @@
         },
         {
           "name": "ExtensionRepositories.extension_run_tools",
-          "line": 671,
+          "line": 723,
           "kind": "function",
           "parameters": [
             "self",
@@ -14792,7 +14793,7 @@
         },
         {
           "name": "ExtensionRepositories.extension_bind_action",
-          "line": 695,
+          "line": 750,
           "kind": "function",
           "parameters": [
             "self",
@@ -14810,7 +14811,7 @@
         },
         {
           "name": "ExtensionRepositories.extension_assert_action",
-          "line": 717,
+          "line": 772,
           "kind": "function",
           "parameters": [
             "self",
@@ -14824,7 +14825,7 @@
         },
         {
           "name": "ExtensionRepositories._extension_dispatch_binding",
-          "line": 738,
+          "line": 793,
           "kind": "function",
           "parameters": [
             "self",

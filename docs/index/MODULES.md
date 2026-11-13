@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`b7d190191d3d61d774a36291d1bc2f8f4d8f25f24f97b7b1f2ece18acf703877`。包含 65 个职责模块、735 个源码/界面文件。
+源码指纹：`7179fc677c781fb3dace8b380ee05bc94d3aea2cfd5002641a9f275b2b822901`。包含 65 个职责模块、735 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -186,7 +186,7 @@
 | [agent/src/omni/adapters/persistence/event_retention_repository.py](../../agent/src/omni/adapters/persistence/event_retention_repository.py) | 332 | Preview and prune retired run events through the shared history cycle; never remove run identities. |
 | [agent/src/omni/adapters/persistence/execution_pruning.py](../../agent/src/omni/adapters/persistence/execution_pruning.py) | 41 | Execution-body maintenance bindings; shared offline infrastructure owns files and lifecycle. |
 | [agent/src/omni/adapters/persistence/execution_retention_repository.py](../../agent/src/omni/adapters/persistence/execution_retention_repository.py) | 464 | Execution-body eligibility, owner pins and transactional prune progress; preserves conversations and ledgers. |
-| [agent/src/omni/adapters/persistence/extension_repository.py](../../agent/src/omni/adapters/persistence/extension_repository.py) | 751 | Immutable trusted-plugin versions, scoped grants and execution bindings; no plugin code or file I/O. |
+| [agent/src/omni/adapters/persistence/extension_repository.py](../../agent/src/omni/adapters/persistence/extension_repository.py) | 806 | Immutable trusted-plugin versions, scoped grants and execution bindings; no plugin code or file I/O. |
 | [agent/src/omni/adapters/persistence/history_protection.py](../../agent/src/omni/adapters/persistence/history_protection.py) | 69 | Shared provenance and maintenance protection for aged pruned history; never reads execution bodies. |
 | [agent/src/omni/adapters/persistence/history_pruning_cycle.py](../../agent/src/omni/adapters/persistence/history_pruning_cycle.py) | 308 | One transactional history-pruning algorithm; stream policies own target eligibility and identity. |
 | [agent/src/omni/adapters/persistence/history_repository.py](../../agent/src/omni/adapters/persistence/history_repository.py) | 86 | Read history pages and retention revisions in one transaction; does not delete history. |
