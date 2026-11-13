@@ -14,13 +14,13 @@ Windows 上 V2 底座**可冷启动、可自检、可服务、可跑全量测试
 
 | 项 | 数值 | 证据/命令 |
 | --- | --- | --- |
-| strict 门禁 | **269 文件 / 0 errors / 0 warnings** | `uv run --no-sync pyright --project pyrightconfig.strict.json` |
-| strict 分层 | 53/53 domain、43/44 application、160/222 adapters、**13/13 composition 全层** | `docs/TYPE_CHECKING.md` |
-| 未纳入 strict | 62 个 adapters（6840 错）+ `application/android.py`(475)（composition 已全层纳入） | `temp/build/probe_strict.py`（survey-remaining.py 已不在库） |
+| strict 门禁 | **270 文件 / 0 errors / 0 warnings** | `uv run --no-sync pyright --project pyrightconfig.strict.json` |
+| strict 分层 | 53/53 domain、**44/44 application 全层**、160/222 adapters、**13/13 composition 全层** | `docs/TYPE_CHECKING.md` |
+| 未纳入 strict | 62 个 adapters（6840 错，含 6 个 android 适配器/仓储/worker）（domain/application/composition 已全层纳入） | `temp/build/probe_strict.py`（survey-remaining.py 已不在库） |
 | 全量测试 | 4656 项：**4653 passed / 3 failed / 0 errors**（`-n 2`，58 分钟） | `temp/build/v2-full-144.xml`、`docs/evidence/v2-typecheck.json` 的 `full_run` |
 | 失败性质 | 3 项均为 `-n 2` 资源争用抖动，**串行/隔离全部通过** | 见 §5「验收口径」 |
 | 默认入口 | `V1 until R6 parity gate` | `docs/tasks/v2.json` 的 `default_entrypoints` |
-| 台账 | `status=d7_typecheck_batch_145`、`checkpoint_commit=456c59f`、源码指纹 `bbc5d22c…` | `docs/tasks/v2.json`、`docs/evidence/v2-typecheck.json` |
+| 台账 | `status=d7_typecheck_batch_146`、`checkpoint_commit=46bbaa3`、源码指纹 `c2bfbacc…` | `docs/tasks/v2.json`、`docs/evidence/v2-typecheck.json` |
 | 工作树 | 干净，`codex/architecture-v2` 与 origin 同步（HEAD `e2f72a0` 之后的文档提交） | `git status -sb` |
 
 ## 3. 现在能用什么（Windows，实测）
@@ -50,8 +50,9 @@ uv run --no-sync python -m omni.composition.cli --home temp\demo-home auth
 
 ### 4.2 P2 Android（业务缺口最大）
 
-- `application/android.py`（**475 错，735 行**）拆 5 节点：观察 / 设备授权 / 授权校验 / 输入派发 / 剪贴板与权限。
-- 随后：`adapters/android.py`、`adapters/android_unicode.py`、`workers/android.py`(245)、
+- ~~`application/android.py`（475 错）~~ —— **已完成**（第一百四十六批，提交 `46bbaa3`，application 44/44 全层）。
+  设备授权/观察/输入派发/IME 恢复用例显式 Record/Payload，有界任务泛型化，AndroidPort 协议精化。
+- 剩余 6 个：`adapters/android.py`、`adapters/android_unicode.py`、`workers/android.py`(245)、
   `workers/android_unicode.py`、`persistence/android_repository.py`、`persistence/android_unicode_repository.py`。
 
 ### 4.3 P3 持久化（34 文件，6840 错里的大头）
@@ -124,8 +125,8 @@ uv run --no-sync python -m omni.composition.cli --home temp\demo-home auth
 
 ```powershell
 git status -sb                                   # 必须干净；脏的话先确认不是自己的改动
-uv run --no-sync pyright --project pyrightconfig.strict.json   # 期望 0/0（269 文件）
-uv run --no-sync python temp/build/probe_strict.py agent/src/omni/application/android.py  # 期望约 475 错（以实测为准）
+uv run --no-sync pyright --project pyrightconfig.strict.json   # 期望 0/0（270 文件）
+uv run --no-sync python temp/build/probe_strict.py agent/src/omni/adapters/android.py  # 以实测为准
 ```
 
-composition 已全层纳入（第一百四十二～一百四十五批）。从 P2 `application/android.py` 开始，做完记得把 strict 计数改成 270 并同步三处。
+domain/application/composition 已全层纳入（第一百四十二～一百四十六批）。P2 剩 6 个 android 适配器/仓储/worker（`adapters/android.py`、`adapters/android_unicode.py`、`workers/android.py`(245)、`workers/android_unicode.py`、`persistence/android_repository.py`、`persistence/android_unicode_repository.py`），随后 P3 持久化。每节点同步三处。

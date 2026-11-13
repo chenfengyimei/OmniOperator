@@ -284,9 +284,9 @@
       ]
     }
   ],
-  "checkpoint_commit": "456c59f",
+  "checkpoint_commit": "46bbaa3",
   "current_validation": {
-    "status": "d7_typecheck_batch_145",
+    "status": "d7_typecheck_batch_146",
     "targeted_unique_passed": 228,
     "includes_browser_cases": 10,
     "current_full_passed": false,
@@ -304,7 +304,7 @@
         "first_report": "temp/build/v2-full-144.xml"
       }
     ],
-    "code_version": "bbc5d22c25fc2d08dc0511921bcc02a54ea8c9126ad18c09689fd89c23248f49",
+    "code_version": "c2bfbacc64cdaab102841ef8d6a65a03459f389897951bb9ccc7d54f5429c29a",
     "fixed_source_files": 1203,
     "baseline_repair_evidence": "docs/evidence/v2-baseline-repair.json",
     "market_evidence": "docs/evidence/v2-extension-market.json",
@@ -325,7 +325,7 @@
     "id": "D7.product_switch",
     "status": "进行中",
     "design": "docs/V2_PACKAGING.md",
-    "scope": "P1 composition 全层完成（13/13）；随后 P2 android.py(475)、P3 持久化 34 文件。strict 已到 269 文件（domain 53/53、application 43/44、adapters 160/222、composition 13/13）。"
+    "scope": "P1 composition 全层（13/13）、P2 application/android.py 已完成（application 44/44）；随后 P2 剩 6 个 android 适配器/仓储/worker、P3 持久化 34 文件。strict 已到 270 文件（domain 53/53、application 44/44、adapters 160/222、composition 13/13）。"
   },
   "milestones": [
     {

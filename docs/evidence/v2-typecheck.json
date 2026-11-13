@@ -6,9 +6,9 @@
  "d7_complete": false,
  "default_entrypoint": "v1",
  "source": {
-  "code_version": "bbc5d22c25fc2d08dc0511921bcc02a54ea8c9126ad18c09689fd89c23248f49",
+  "code_version": "c2bfbacc64cdaab102841ef8d6a65a03459f389897951bb9ccc7d54f5429c29a",
   "fixed_source_files": 1203,
-  "git_head": "456c59f",
+  "git_head": "46bbaa3",
   "dirty_checkout": false,
   "recipe": "sha256(json.dumps({path: sha256(blob) for tracked agent/, web/, scripts/ files}, sort_keys=True)); see temp/build/source_version.py",
   "head_ui": "75c4219"
@@ -166,10 +166,11 @@
    "Strict scope reaches 265 files (53 domain + 43 application + 160 adapters + 9 composition); the instance composition root types its identity/health/shutdown receipts as explicit Record, narrows the operational health projection layer by layer, pins the Bilibili/media port injections and bridges the untyped local-vector dimension through a local Any view; UnitOfWork gains the audit declaration already implemented by RepositoryBase; assembly, approval and bounded-shutdown rules are unchanged",
    "Strict scope reaches 266 files (53 domain + 43 application + 160 adapters + 10 composition); the HTTP composition root replaces private instance members with the database/logging/identity_files/lifetime read-only accessors, types the token-session/rotation/logs/drain/shutdown receipts as explicit Record and bridges the untyped request_drain signature through a local Any view; token publication, drain authorization and bounded-shutdown rules are unchanged",
    "Strict scope reaches 267 files (53 domain + 43 application + 160 adapters + 11 composition); the CLI development entrypoint types its installation/doctor/object-collection/diagnostic receipts as explicit Record and narrows JSON deep indexing layer by layer; the supporting publish_diagnostic/derived_indexes/object_report/plan_collection/apply_collection signatures are refined from bare dict to dict[str, object] (pure typing, no behavior change, default-mode error count unchanged); installation sealing, exclusive diagnostics and collection journal rules are unchanged",
-   "Strict scope reaches 269 files (53 domain + 43 application + 160 adapters + 13 composition); service_control narrows the admin operation to Record and types its shutdown receipt, and the composition package marker joins the scope, completing the composition layer (13/13); reviewed root routing, once-dispatch and bounded-shutdown rules are unchanged"
+   "Strict scope reaches 269 files (53 domain + 43 application + 160 adapters + 13 composition); service_control narrows the admin operation to Record and types its shutdown receipt, and the composition package marker joins the scope, completing the composition layer (13/13); reviewed root routing, once-dispatch and bounded-shutdown rules are unchanged",
+   "Strict scope reaches 270 files (53 domain + 44 application + 160 adapters + 13 composition); the Android owner service types its device-grant/observation/input-dispatch/IME-recovery use cases as explicit Record/Payload, generics the bounded task owner and narrows lease/guard payloads layer by layer, and the AndroidPort args/health signatures are refined (the now-redundant instance cast is removed), completing the application layer (44/44); device authority, per-run scope, once-dispatch and unknown no-replay rules are unchanged"
   ],
   "pending": [
-   "application 43/44 and adapters 160/222 strict typing",
+   "application 44/44 complete; adapters 160/222 strict typing",
    "composition layer: 13 of 13 modules in strict scope (complete)",
    "Workbench redesign UI suite rerun after the parallel session lands",
    "Three-platform packaging/install/update/restore and real-environment acceptance"
@@ -178,8 +179,8 @@
  "validation": {
   "all_latest_cases_passed": true,
   "latest_batch": {
-   "report": "temp/build/v2-typecheck-145-callers.xml",
-   "tests": 38,
+   "report": "temp/build/v2-typecheck-146-callers.xml",
+   "tests": 90,
    "failures": 0
   },
   "targeted_reports": [
@@ -1495,6 +1496,15 @@
     "errors": 0,
     "duration_s": 25.15,
     "note": "P1 service_control batch: composition layer complete (13/13) + guard/arch/service-control callers"
+   },
+   {
+    "path": "temp/build/v2-typecheck-146-callers.xml",
+    "sha256": "f933d9317a876eb8964c6e690287845828313dae193732b83357020973de82a7",
+    "tests": 90,
+    "failures": 0,
+    "errors": 0,
+    "duration_s": 248.26,
+    "note": "P2 android batch: application layer complete (44/44) + guard/arch/android/android-model/android-unicode callers"
    }
   ],
   "gates": {
@@ -1506,7 +1516,7 @@
   "strict": {
    "config": "pyrightconfig.strict.json",
    "summary": {
-    "filesAnalyzed": 269,
+    "filesAnalyzed": 270,
     "errorCount": 0,
     "warningCount": 0,
     "informationCount": 0
@@ -1514,13 +1524,14 @@
   },
   "default_pyright": {
    "summary": {
-    "filesAnalyzed": 1,
+    "filesAnalyzed": 2,
     "errorCount": 0,
     "warningCount": 0,
     "informationCount": 0
    },
    "sources": [
-    "agent/src/omni/composition/service_control.py"
+    "agent/src/omni/application/android.py",
+    "agent/src/omni/composition/instance.py"
    ]
   },
   "full_run": {

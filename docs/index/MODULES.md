@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`662689a752757d4447346832fd806c86357328a674333cfdaff207e763cfa800`。包含 65 个职责模块、732 个源码/界面文件。
+源码指纹：`4ffdd0842e1e8065993d6b8d860fe9f67e963573a7fffe2be8fe2d28033c94e6`。包含 65 个职责模块、732 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -79,7 +79,7 @@
 |---|---:|---|
 | [agent/src/omni/application/__init__.py](../../agent/src/omni/application/__init__.py) | 1 | V2 use cases consume ports and domain types, never infrastructure. |
 | [agent/src/omni/application/action_review.py](../../agent/src/omni/application/action_review.py) | 111 | Owner reconciliation records observations, never dispatches an action or rewrites its result. |
-| [agent/src/omni/application/android.py](../../agent/src/omni/application/android.py) | 735 | Owner Android device grants, ephemeral observations and shared approved actions; no platform I/O. |
+| [agent/src/omni/application/android.py](../../agent/src/omni/application/android.py) | 802 | Owner Android device grants, ephemeral observations and shared approved actions; no platform I/O. |
 | [agent/src/omni/application/bilibili.py](../../agent/src/omni/application/bilibili.py) | 210 | Owner Bilibili queries and publication preparation; all sending remains in shared approvals/outbox. |
 | [agent/src/omni/application/configuration.py](../../agent/src/omni/application/configuration.py) | 186 | Owner configuration use cases; import only previews and never starts an adapter. |
 | [agent/src/omni/application/context.py](../../agent/src/omni/application/context.py) | 236 | Token-aware bounded compression; external calls never hold a transaction. |

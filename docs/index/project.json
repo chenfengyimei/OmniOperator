@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "662689a752757d4447346832fd806c86357328a674333cfdaff207e763cfa800",
+  "source_sha256": "4ffdd0842e1e8065993d6b8d860fe9f67e963573a7fffe2be8fe2d28033c94e6",
   "modules": [
     {
       "id": "v2-domain",
@@ -136,7 +136,7 @@
         "agent/src/omni/application/terminal_review.py",
         "agent/src/omni/application/terminals.py"
       ],
-      "lines": 11165,
+      "lines": 11232,
       "dependencies": [
         "v2-domain"
       ]
@@ -35142,7 +35142,7 @@
       "path": "agent/src/omni/application/android.py",
       "module": "v2-application",
       "python_module": "omni.application.android",
-      "lines": 735,
+      "lines": 802,
       "imports": [
         "omni.application.objects",
         "omni.application.ports",
@@ -35153,12 +35153,12 @@
       "symbols": [
         {
           "name": "AndroidPort",
-          "line": 30,
+          "line": 34,
           "kind": "class"
         },
         {
           "name": "AndroidPort.execute",
-          "line": 31,
+          "line": 35,
           "kind": "function",
           "parameters": [
             "self",
@@ -35171,16 +35171,16 @@
           ],
           "annotations": {
             "name": "str",
-            "args": "dict",
+            "args": "Payload",
             "context": "InvocationContext",
             "before_dispatch": "Callable[[], Awaitable[None]]",
-            "action": "dict | None",
-            "environment": "Callable[[str, dict], Awaitable[None]] | None"
+            "action": "Payload | None",
+            "environment": "Callable[[str, Payload], Awaitable[None]] | None"
           }
         },
         {
           "name": "AndroidPort.health",
-          "line": 41,
+          "line": 45,
           "kind": "function",
           "parameters": [
             "self"
@@ -35189,7 +35189,7 @@
         },
         {
           "name": "AndroidPort.quiescent",
-          "line": 42,
+          "line": 46,
           "kind": "function",
           "parameters": [
             "self"
@@ -35198,7 +35198,7 @@
         },
         {
           "name": "AndroidPort.stop_accepting",
-          "line": 43,
+          "line": 47,
           "kind": "function",
           "parameters": [
             "self"
@@ -35207,7 +35207,7 @@
         },
         {
           "name": "AndroidPort.close",
-          "line": 44,
+          "line": 48,
           "kind": "function",
           "parameters": [
             "self",
@@ -35219,12 +35219,12 @@
         },
         {
           "name": "AndroidService",
-          "line": 47,
+          "line": 51,
           "kind": "class"
         },
         {
           "name": "AndroidService.__init__",
-          "line": 48,
+          "line": 52,
           "kind": "function",
           "parameters": [
             "self",
@@ -35246,26 +35246,30 @@
         },
         {
           "name": "AndroidService._owned",
-          "line": 68,
+          "line": 72,
           "kind": "function",
           "parameters": [
             "self",
             "coroutine"
           ],
-          "annotations": {}
+          "annotations": {
+            "coroutine": "Coroutine[object, object, T]"
+          }
         },
         {
           "name": "AndroidService._owned.done",
-          "line": 75,
+          "line": 79,
           "kind": "function",
           "parameters": [
             "future"
           ],
-          "annotations": {}
+          "annotations": {
+            "future": "asyncio.Task[object]"
+          }
         },
         {
           "name": "AndroidService._sweep",
-          "line": 83,
+          "line": 87,
           "kind": "function",
           "parameters": [
             "self"
@@ -35274,7 +35278,7 @@
         },
         {
           "name": "AndroidService._context",
-          "line": 91,
+          "line": 95,
           "kind": "function",
           "parameters": [
             "self",
@@ -35286,7 +35290,7 @@
         },
         {
           "name": "AndroidService.probe",
-          "line": 94,
+          "line": 98,
           "kind": "function",
           "parameters": [
             "self",
@@ -35302,25 +35306,28 @@
         },
         {
           "name": "AndroidService._probe",
-          "line": 99,
+          "line": 103,
           "kind": "function",
           "parameters": [
             "self",
             "agent_id",
             "config_id"
           ],
-          "annotations": {}
+          "annotations": {
+            "agent_id": "str",
+            "config_id": "str"
+          }
         },
         {
           "name": "AndroidService._probe.guard",
-          "line": 103,
+          "line": 107,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "AndroidService.grant",
-          "line": 127,
+          "line": 131,
           "kind": "function",
           "parameters": [
             "self",
@@ -35336,18 +35343,21 @@
         },
         {
           "name": "AndroidService._grant",
-          "line": 132,
+          "line": 136,
           "kind": "function",
           "parameters": [
             "self",
             "agent_id",
             "probe_id"
           ],
-          "annotations": {}
+          "annotations": {
+            "agent_id": "str",
+            "probe_id": "str"
+          }
         },
         {
           "name": "AndroidService.page",
-          "line": 144,
+          "line": 152,
           "kind": "function",
           "parameters": [
             "self",
@@ -35363,7 +35373,7 @@
         },
         {
           "name": "AndroidService.revoke",
-          "line": 152,
+          "line": 163,
           "kind": "function",
           "parameters": [
             "self",
@@ -35379,7 +35389,7 @@
         },
         {
           "name": "AndroidService._authority",
-          "line": 159,
+          "line": 170,
           "kind": "function",
           "parameters": [
             "self",
@@ -35393,7 +35403,7 @@
         },
         {
           "name": "AndroidService.observe",
-          "line": 168,
+          "line": 179,
           "kind": "function",
           "parameters": [
             "self",
@@ -35407,7 +35417,7 @@
         },
         {
           "name": "AndroidService.unicode_profile",
-          "line": 171,
+          "line": 182,
           "kind": "function",
           "parameters": [
             "self",
@@ -35421,7 +35431,7 @@
         },
         {
           "name": "AndroidService.save_unicode_profile",
-          "line": 174,
+          "line": 185,
           "kind": "function",
           "parameters": [
             "self",
@@ -35433,13 +35443,13 @@
           "annotations": {
             "agent_id": "str",
             "grant_id": "str",
-            "value": "dict",
+            "value": "Record",
             "revision": "int"
           }
         },
         {
           "name": "AndroidService.environments",
-          "line": 179,
+          "line": 190,
           "kind": "function",
           "parameters": [
             "self",
@@ -35455,7 +35465,7 @@
         },
         {
           "name": "AndroidService.restore_ime",
-          "line": 183,
+          "line": 194,
           "kind": "function",
           "parameters": [
             "self",
@@ -35466,12 +35476,12 @@
           "annotations": {
             "agent_id": "str",
             "environment_id": "str",
-            "value": "dict"
+            "value": "Record"
           }
         },
         {
           "name": "AndroidService._model_authority",
-          "line": 216,
+          "line": 227,
           "kind": "function",
           "parameters": [
             "self",
@@ -35485,7 +35495,7 @@
         },
         {
           "name": "AndroidService._observe",
-          "line": 233,
+          "line": 244,
           "kind": "function",
           "parameters": [
             "self",
@@ -35494,18 +35504,23 @@
             "context",
             "access_id"
           ],
-          "annotations": {}
+          "annotations": {
+            "agent_id": "str",
+            "grant_id": "str",
+            "context": "InvocationContext | None",
+            "access_id": "str"
+          }
         },
         {
           "name": "AndroidService._observe.guard",
-          "line": 239,
+          "line": 252,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "AndroidService.dismiss",
-          "line": 323,
+          "line": 342,
           "kind": "function",
           "parameters": [
             "self",
@@ -35519,7 +35534,7 @@
         },
         {
           "name": "AndroidService.capture",
-          "line": 329,
+          "line": 348,
           "kind": "function",
           "parameters": [
             "self",
@@ -35535,7 +35550,7 @@
         },
         {
           "name": "AndroidService._capture",
-          "line": 332,
+          "line": 351,
           "kind": "function",
           "parameters": [
             "self",
@@ -35543,18 +35558,22 @@
             "grant_id",
             "session_id"
           ],
-          "annotations": {}
+          "annotations": {
+            "agent_id": "str",
+            "grant_id": "str",
+            "session_id": "str"
+          }
         },
         {
           "name": "AndroidService._capture.guard",
-          "line": 336,
+          "line": 355,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "AndroidService._binding",
-          "line": 354,
+          "line": 373,
           "kind": "function",
           "parameters": [
             "self",
@@ -35564,13 +35583,13 @@
           ],
           "annotations": {
             "agent_id": "str",
-            "request": "dict",
+            "request": "Payload",
             "context": "InvocationContext | None"
           }
         },
         {
           "name": "AndroidService.submit",
-          "line": 374,
+          "line": 397,
           "kind": "function",
           "parameters": [
             "self",
@@ -35584,18 +35603,21 @@
         },
         {
           "name": "AndroidService._submit",
-          "line": 378,
+          "line": 401,
           "kind": "function",
           "parameters": [
             "self",
             "agent_id",
             "request"
           ],
-          "annotations": {}
+          "annotations": {
+            "agent_id": "str",
+            "request": "Payload"
+          }
         },
         {
           "name": "AndroidService.invoke",
-          "line": 422,
+          "line": 449,
           "kind": "function",
           "parameters": [
             "self",
@@ -35613,7 +35635,7 @@
         },
         {
           "name": "AndroidService._invoke",
-          "line": 427,
+          "line": 454,
           "kind": "function",
           "parameters": [
             "self",
@@ -35622,11 +35644,16 @@
             "operation_id",
             "context"
           ],
-          "annotations": {}
+          "annotations": {
+            "name": "str",
+            "arguments": "Payload",
+            "operation_id": "str",
+            "context": "InvocationContext"
+          }
         },
         {
           "name": "AndroidService._perform",
-          "line": 512,
+          "line": 547,
           "kind": "function",
           "parameters": [
             "self",
@@ -35636,18 +35663,24 @@
             "context",
             "tool"
           ],
-          "annotations": {}
+          "annotations": {
+            "binding": "Payload",
+            "arguments": "Payload",
+            "operation_id": "str",
+            "context": "InvocationContext",
+            "tool": "str"
+          }
         },
         {
           "name": "AndroidService._perform.guard",
-          "line": 515,
+          "line": 556,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "AndroidService._unicode_binding",
-          "line": 600,
+          "line": 650,
           "kind": "function",
           "parameters": [
             "self",
@@ -35655,11 +35688,15 @@
             "request",
             "observed"
           ],
-          "annotations": {}
+          "annotations": {
+            "agent_id": "str",
+            "request": "Payload",
+            "observed": "Payload"
+          }
         },
         {
           "name": "AndroidService._recover_ime",
-          "line": 611,
+          "line": 665,
           "kind": "function",
           "parameters": [
             "self",
@@ -35667,18 +35704,22 @@
             "operation_id",
             "context"
           ],
-          "annotations": {}
+          "annotations": {
+            "arguments": "Payload",
+            "operation_id": "str",
+            "context": "InvocationContext"
+          }
         },
         {
           "name": "AndroidService._recover_ime.guard",
-          "line": 614,
+          "line": 669,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "AndroidService.access_page",
-          "line": 662,
+          "line": 721,
           "kind": "function",
           "parameters": [
             "self",
@@ -35694,7 +35735,7 @@
         },
         {
           "name": "AndroidService.revoke_access",
-          "line": 666,
+          "line": 725,
           "kind": "function",
           "parameters": [
             "self",
@@ -35710,7 +35751,7 @@
         },
         {
           "name": "AndroidService.apps",
-          "line": 669,
+          "line": 728,
           "kind": "function",
           "parameters": [
             "self",
@@ -35726,7 +35767,7 @@
         },
         {
           "name": "AndroidService._apps",
-          "line": 672,
+          "line": 731,
           "kind": "function",
           "parameters": [
             "self",
@@ -35736,18 +35777,24 @@
             "access_id",
             "after"
           ],
-          "annotations": {}
+          "annotations": {
+            "agent_id": "str",
+            "grant_id": "str",
+            "context": "InvocationContext | None",
+            "access_id": "str",
+            "after": "str"
+          }
         },
         {
           "name": "AndroidService._apps.guard",
-          "line": 677,
+          "line": 744,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "AndroidService._release_leases",
-          "line": 700,
+          "line": 767,
           "kind": "function",
           "parameters": [
             "self"
@@ -35756,7 +35803,7 @@
         },
         {
           "name": "AndroidService.health",
-          "line": 711,
+          "line": 778,
           "kind": "function",
           "parameters": [
             "self"
@@ -35765,7 +35812,7 @@
         },
         {
           "name": "AndroidService.quiescent",
-          "line": 721,
+          "line": 788,
           "kind": "function",
           "parameters": [
             "self"
@@ -35774,7 +35821,7 @@
         },
         {
           "name": "AndroidService.stop_accepting",
-          "line": 724,
+          "line": 791,
           "kind": "function",
           "parameters": [
             "self"
@@ -35783,7 +35830,7 @@
         },
         {
           "name": "AndroidService.close",
-          "line": 730,
+          "line": 797,
           "kind": "function",
           "parameters": [
             "self",
