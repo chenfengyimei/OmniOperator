@@ -10,16 +10,19 @@ import sys
 import uuid
 import xml.etree.ElementTree as ET
 from pathlib import Path
+from typing import cast
 
 from ...domain.android import METHODS, device, digest, input_params, package, scroll_verified
-from ...domain.contracts import ActionResult, Effect, Outcome
+from ...domain.contracts import JSON, ActionResult, Effect, Outcome
 from .android_adb import Adb
 from .android_unicode import UnicodeWorker
 from .protocol import MAX_FRAME, encode_response
 from .protocol import request as decode_request
 
+Payload = dict[str, object]
 
-def hierarchy(raw: bytes, package: str) -> dict:
+
+def hierarchy(raw: bytes, package: str) -> Payload:
     if len(raw) > 262144 or b"<!" in raw:
         raise ValueError("Unsafe or oversized hierarchy")
     start, end = raw.find(b"<?xml"), raw.rfind(b"</hierarchy>")
@@ -29,9 +32,10 @@ def hierarchy(raw: bytes, package: str) -> dict:
     root = ET.fromstring(xml)
     if root.tag != "hierarchy":
         raise ValueError("Invalid Android hierarchy")
-    nodes, text_bytes, truncated, seen = [], 0, False, 0
+    nodes: list[Payload] = []
+    text_bytes, truncated, seen = 0, False, 0
 
-    def walk(element, path, depth):
+    def walk(element: ET.Element, path: list[int], depth: int) -> None:
         nonlocal text_bytes, truncated, seen
         seen += 1
         if seen > 4096:
@@ -57,7 +61,7 @@ def hierarchy(raw: bytes, package: str) -> dict:
             text_bytes += len((text + description).encode())
             if text_bytes >= 16384:
                 truncated = True
-            actions = []
+            actions: list[str] = []
             if not password and attrs.get("enabled") == "true":
                 actions.append("launch")
                 if attrs.get("focused") == "true":
@@ -100,51 +104,61 @@ def hierarchy(raw: bytes, package: str) -> dict:
 
 
 class AndroidWorker:
-    def __init__(self):
-        self.ready = None
+    def __init__(self) -> None:
+        self.ready: Payload | None = None
         self.unicode = UnicodeWorker()
 
-    async def observe(self, adb: Adb, target: dict, allowed_packages=None) -> dict:
+    async def observe(self, adb: Adb, target: Payload, allowed_packages: list[str] | None = None) -> Payload:
         await adb.require(target)
         before = await adb.window(target)
         if allowed_packages is not None and before["package"] not in allowed_packages:
             raise ValueError("Foreground application is outside the approved scope")
         # shell-v2 raw has no controlling TTY. Dump to this process's stdout without a remote temporary file.
-        raw = await adb.shell(target["transport_id"], "uiautomator dump /proc/self/fd/1")
-        tree = hierarchy(raw, before["package"])
+        raw = await adb.shell(cast(int, target["transport_id"]), "uiautomator dump /proc/self/fd/1")
+        tree = hierarchy(raw, cast(str, before["package"]))
         after = await adb.window(target)
         await adb.require(target)
         if before != after:
             raise ValueError("Android foreground changed")
         return {"device": target, "window": after, **tree}
 
-    async def invoke(self, name: str, args: dict, context: dict) -> ActionResult:
+    async def invoke(self, name: str, args: Payload, context: Payload) -> ActionResult:
         if name.startswith("android_unicode_"):
             return await self.unicode.invoke(name, args, context)
         attempted = False
         try:
-            adb = Adb(args["connection"]["port"], args["connection"]["serial"])
+            connection = cast(Payload, args["connection"])
+            adb = Adb(cast(int, connection["port"]), cast(str, connection["serial"]))
             async with asyncio.timeout(20):
                 if name == "android_probe":
                     return ActionResult(
-                        Outcome.OK, "Android device identity observed", data={"device": await adb.identify()}
+                        Outcome.OK,
+                        "Android device identity observed",
+                        data=cast(dict[str, JSON], {"device": await adb.identify()}),
                     )
                 target = device(args["device"])
-                allowed = args.get("allowed_packages")
-                if allowed is not None:
-                    if not isinstance(allowed, list) or not 1 <= len(allowed) <= 16:
+                transport = cast(int, target["transport_id"])
+                allowed_raw = args.get("allowed_packages")
+                allowed: list[str] | None = None
+                if allowed_raw is not None:
+                    if not isinstance(allowed_raw, list):
                         raise ValueError("Invalid application scope")
-                    allowed = [package(p) for p in allowed]
+                    scope = cast(list[object], allowed_raw)
+                    if not 1 <= len(scope) <= 16:
+                        raise ValueError("Invalid application scope")
+                    allowed = [package(p) for p in scope]
                 if name == "android_observe":
                     return ActionResult(
-                        Outcome.OK, "Android UI observed", data=await self.observe(adb, target, allowed)
+                        Outcome.OK,
+                        "Android UI observed",
+                        data=cast(dict[str, JSON], await self.observe(adb, target, allowed)),
                     )
                 if name == "android_apps":
                     await adb.require(target)
-                    raw = (
-                        await adb.shell(target["transport_id"], "pm list packages --user " + str(target["user_id"]))
-                    ).decode("utf-8")
-                    values = []
+                    raw = (await adb.shell(transport, "pm list packages --user " + str(target["user_id"]))).decode(
+                        "utf-8"
+                    )
+                    values: list[str] = []
                     for line in raw.splitlines():
                         if not line.startswith("package:"):
                             raise ValueError("Invalid package inventory")
@@ -152,30 +166,33 @@ class AndroidWorker:
                         if len(values) > 4096:
                             raise ValueError("Package inventory exceeds limit")
                     await adb.require(target)
-                    after = args.get("after", "")
+                    after = cast(str, args.get("after", ""))
                     if after:
                         package(after)
                     values = sorted({v for v in values if (allowed is None or v in allowed) and v > after})
                     return ActionResult(
                         Outcome.OK,
                         "Installed applications queried",
-                        data={
-                            "items": values[:200],
-                            "truncated": len(values) > 200,
-                            "next_after": values[199] if len(values) > 200 else None,
-                        },
+                        data=cast(
+                            dict[str, JSON],
+                            {
+                                "items": values[:200],
+                                "truncated": len(values) > 200,
+                                "next_after": values[199] if len(values) > 200 else None,
+                            },
+                        ),
                     )
                 if name == "android_capture":
                     await adb.require(target)
                     before = await adb.window(target)
-                    raw = await adb.shell(target["transport_id"], "screencap -p", maximum=16 * 1024 * 1024)
+                    raw = await adb.shell(transport, "screencap -p", maximum=16 * 1024 * 1024)
                     await adb.require(target)
                     if before != await adb.window(target) or not raw.startswith(b"\x89PNG\r\n\x1a\n") or len(raw) < 33:
                         raise ValueError("Invalid or changed Android capture")
                     width, height = struct.unpack(">II", raw[16:24])
                     if not 1 <= width <= 8192 or not 1 <= height <= 8192 or width * height > 16000000:
                         raise ValueError("Capture dimensions exceed limit")
-                    destination = Path(args["destination"])
+                    destination = Path(cast(str, args["destination"]))
                     if not destination.is_absolute() or not destination.parent.is_dir():
                         raise ValueError("Capture destination is unverified")
                     fd = os.open(destination, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
@@ -188,26 +205,29 @@ class AndroidWorker:
                     )
                 if name == "android_ready":
                     observed = await self.observe(adb, target, allowed)
-                    node = args["node"]
-                    params = input_params(args["kind"], args.get("params", {}))
-                    actual = next((n for n in observed["nodes"] if n["path"] == node["path"]), None)
+                    node = cast(Payload, args["node"])
+                    kind = cast(str, args["kind"])
+                    params = input_params(kind, args.get("params", {}))
+                    observed_nodes = cast(list[Payload], observed["nodes"])
+                    observed_window = cast(Payload, observed["window"])
+                    actual = next((n for n in observed_nodes if n["path"] == node["path"]), None)
                     if (
                         observed["tree_sha256"] != args["tree_sha256"]
                         or observed["window"] != args["window"]
-                        or not observed["window"]["unlocked"]
+                        or not observed_window["unlocked"]
                         or actual != node
-                        or args["kind"] not in node["actions"]
+                        or kind not in cast(list[object], node["actions"])
                     ):
                         raise ValueError("Android observation changed or input is unavailable")
-                    component = None
-                    if args["kind"] == "launch":
-                        destination = params["package"]
-                        if allowed is not None and destination not in allowed:
+                    component: str | None = None
+                    if kind == "launch":
+                        launch_target = cast(str, params["package"])
+                        if allowed is not None and launch_target not in allowed:
                             raise ValueError("Launch destination is outside the approved scope")
                         raw = (
                             await adb.shell(
-                                target["transport_id"],
-                                f"cmd package resolve-activity --brief --user {target['user_id']} -a android.intent.action.MAIN -c android.intent.category.LAUNCHER -p {destination}",
+                                transport,
+                                f"cmd package resolve-activity --brief --user {target['user_id']} -a android.intent.action.MAIN -c android.intent.category.LAUNCHER -p {launch_target}",
                                 maximum=8192,
                             )
                         ).decode("utf-8")
@@ -216,7 +236,7 @@ class AndroidWorker:
                             for line in raw.splitlines()
                             if re.fullmatch(r"[A-Za-z0-9_.]+/[A-Za-z0-9_.$]+", line.strip())
                         ]
-                        if len(matches) != 1 or matches[0].split("/", 1)[0] != destination:
+                        if len(matches) != 1 or matches[0].split("/", 1)[0] != launch_target:
                             raise ValueError("Launcher activity is absent or ambiguous")
                         component = matches[0]
                     token = str(uuid.uuid4())
@@ -237,36 +257,38 @@ class AndroidWorker:
                     not bound
                     or args.get("token") != bound["token"]
                     or context != bound["context"]
-                    or asyncio.get_running_loop().time() > bound["deadline"]
+                    or asyncio.get_running_loop().time() > cast(float, bound["deadline"])
                 ):
                     raise ValueError("Android permit expired")
-                action = bound["args"]
+                action = cast(Payload, bound["args"])
                 if args["device"] != action["device"] or args["connection"] != action["connection"]:
                     raise ValueError("Android permit changed")
-                fresh = await self.observe(adb, target, action.get("allowed_packages"))
-                node = action["node"]
-                params = input_params(action["kind"], action.get("params", {}))
+                fresh = await self.observe(adb, target, cast("list[str] | None", action.get("allowed_packages")))
+                node = cast(Payload, action["node"])
+                action_kind = cast(str, action["kind"])
+                params = input_params(action_kind, action.get("params", {}))
+                fresh_window = cast(Payload, fresh["window"])
                 if (
                     fresh["tree_sha256"] != action["tree_sha256"]
                     or fresh["window"] != action["window"]
-                    or not fresh["window"]["unlocked"]
+                    or not fresh_window["unlocked"]
                 ):
                     raise ValueError("Android target changed before input")
-                if action["kind"] == "append_ascii":
+                if action_kind == "append_ascii":
                     text = action["text"]
                     if not isinstance(text, str) or not re.fullmatch(r"[A-Za-z0-9 .,_@+-]{1,256}", text):
                         raise ValueError("Unsupported Android text")
                     command = "input text '" + text.replace(" ", "%s") + "'"
-                elif action["kind"] == "key":
-                    command = "input keyevent KEYCODE_" + params["key"]
-                elif action["kind"] == "launch":
+                elif action_kind == "key":
+                    command = "input keyevent KEYCODE_" + cast(str, params["key"])
+                elif action_kind == "launch":
                     command = f"am start -W --user {target['user_id']} -n '{bound['component']}' -a android.intent.action.MAIN -c android.intent.category.LAUNCHER"
                 else:
-                    x1, y1, x2, y2 = node["bounds"]
+                    x1, y1, x2, y2 = cast(list[int], node["bounds"])
                     x, y = (x1 + x2) // 2, (y1 + y2) // 2
-                    if action["kind"] == "long_press":
+                    if action_kind == "long_press":
                         command = f"input swipe {x} {y} {x} {y} {params['duration_ms']}"
-                    elif action["kind"] == "swipe":
+                    elif action_kind == "swipe":
                         dx, dy = max(1, (x2 - x1) * 3 // 10), max(1, (y2 - y1) * 3 // 10)
                         paths = {
                             "up": (x, y + dy, x, y - dy),
@@ -274,7 +296,7 @@ class AndroidWorker:
                             "left": (x + dx, y, x - dx, y),
                             "right": (x - dx, y, x + dx, y),
                         }
-                        points = paths[params["direction"]]
+                        points = paths[cast(str, params["direction"])]
                         if not (
                             x1 <= points[0] < x2
                             and x1 <= points[2] < x2
@@ -286,19 +308,18 @@ class AndroidWorker:
                     else:
                         command = f"input tap {x} {y}"
 
-                def dispatched():
+                def dispatched() -> None:
                     nonlocal attempted
                     attempted = True
 
-                await adb.shell(target["transport_id"], command, maximum=4096, before_send=dispatched)
-                if action["kind"] == "launch":
+                await adb.shell(transport, command, maximum=4096, before_send=dispatched)
+                if action_kind == "launch":
                     await adb.require(target)
                     window = await adb.window(target)
-                    dest, activity = bound["component"].split("/", 1)
+                    dest, activity = cast(str, bound["component"]).split("/", 1)
+                    window_activity = cast(str, window["activity"])
                     expected_activity = dest + activity if activity.startswith(".") else activity
-                    actual_activity = (
-                        dest + window["activity"] if window["activity"].startswith(".") else window["activity"]
-                    )
+                    actual_activity = dest + window_activity if window_activity.startswith(".") else window_activity
                     if window["unlocked"] and window["package"] == dest and actual_activity == expected_activity:
                         return ActionResult(
                             Outcome.OK,
@@ -307,10 +328,11 @@ class AndroidWorker:
                             verification="foreground_application",
                         )
                     raise ValueError("Launch foreground could not be verified")
-                verified = await self.observe(adb, target, action.get("allowed_packages"))
+                verified = await self.observe(adb, target, cast("list[str] | None", action.get("allowed_packages")))
+                verified_nodes = cast(list[Payload], verified["nodes"])
                 matches = [
                     n
-                    for n in verified["nodes"]
+                    for n in verified_nodes
                     if n["path"] == node["path"]
                     and n["resource_id"] == node["resource_id"]
                     and n["class"] == node["class"]
@@ -318,9 +340,11 @@ class AndroidWorker:
                 if verified["window"] == action["window"] and len(matches) == 1:
                     after = matches[0]
                     if (
-                        action["kind"] == "swipe"
+                        action_kind == "swipe"
                         and after["bounds"] == node["bounds"]
-                        and scroll_verified(fresh["nodes"], verified["nodes"], node, params["direction"])
+                        and scroll_verified(
+                            cast(list[Payload], fresh["nodes"]), verified_nodes, node, cast(str, params["direction"])
+                        )
                     ):
                         return ActionResult(
                             Outcome.OK,
@@ -328,15 +352,16 @@ class AndroidWorker:
                             Effect.APPLIED,
                             verification="scroll_content_moved",
                         )
-                    confirmed = (action["kind"] == "toggle" and after["checked"] != node["checked"]) or (
-                        action["kind"] == "append_ascii" and after["text"] == node["text"] + action["text"]
+                    confirmed = (action_kind == "toggle" and after["checked"] != node["checked"]) or (
+                        action_kind == "append_ascii"
+                        and after["text"] == cast(str, node["text"]) + cast(str, action["text"])
                     )
                     if confirmed:
                         return ActionResult(
                             Outcome.OK,
                             "Android postcondition verified",
                             Effect.APPLIED,
-                            verification="checked_changed" if action["kind"] == "toggle" else "text_appended",
+                            verification="checked_changed" if action_kind == "toggle" else "text_appended",
                         )
                 # Generic coordinate taps have no trustworthy semantic postcondition.
                 return ActionResult(
@@ -362,15 +387,16 @@ class AndroidWorker:
             )
 
 
-async def serve():
+async def serve() -> None:
     worker = AndroidWorker()
     try:
         while raw := await asyncio.to_thread(sys.stdin.buffer.readline, MAX_FRAME + 1):
             request = decode_request(raw)
-            if request["method"] not in METHODS or request["writes"] is not METHODS[request["method"]]:
+            method = cast(str, request["method"])
+            if method not in METHODS or request["writes"] is not METHODS[method]:
                 return
-            result = await worker.invoke(request["method"], request["arguments"], request["context"])
-            sys.stdout.buffer.write(encode_response(request["id"], result))
+            result = await worker.invoke(method, cast(Payload, request["arguments"]), cast(Payload, request["context"]))
+            sys.stdout.buffer.write(encode_response(cast(str, request["id"]), result))
             sys.stdout.buffer.flush()
     finally:
         await worker.unicode.close()

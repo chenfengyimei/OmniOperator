@@ -154,6 +154,7 @@
     "agent/src/omni/adapters/token_counter.py",
     "agent/src/omni/adapters/vector_files.py",
     "agent/src/omni/adapters/workers/__init__.py",
+    "agent/src/omni/adapters/workers/android.py",
     "agent/src/omni/adapters/workers/android_adb.py",
     "agent/src/omni/adapters/workers/android_unicode.py",
     "agent/src/omni/adapters/workers/client.py",
