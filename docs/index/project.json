@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "7f3c1b769b65756c40d12e6dc4aa3ead07a28217ea8828d29f3d8cccd3c65e23",
+  "source_sha256": "76ce6f0fca3cb57dc3c5aa816af28339478d9b77bdd5523a73e7af2a2f87dce6",
   "modules": [
     {
       "id": "v2-domain",
@@ -404,7 +404,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 53301,
+      "lines": 53310,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -498,7 +498,7 @@
         "web/ui/v2/v1/workbench.css",
         "web/ui/v2/workbench.css"
       ],
-      "lines": 19050,
+      "lines": 19082,
       "dependencies": []
     },
     {
@@ -11243,12 +11243,12 @@
       "path": "agent/src/omni/adapters/persistence/android_unicode_repository.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.persistence.android_unicode_repository",
-      "lines": 242,
+      "lines": 251,
       "imports": [
         "omni.adapters.persistence",
         "omni.adapters.persistence.action_predicates",
         "omni.adapters.persistence.configuration_repository",
-        "omni.adapters.persistence.repository",
+        "omni.application.ports",
         "omni.domain.android",
         "omni.domain.android_unicode",
         "omni.domain.contracts",
@@ -11257,12 +11257,12 @@
       "symbols": [
         {
           "name": "AndroidUnicodeRepositories",
-          "line": 22,
+          "line": 20,
           "kind": "class"
         },
         {
           "name": "AndroidUnicodeRepositories.android_unicode_profile",
-          "line": 23,
+          "line": 21,
           "kind": "function",
           "parameters": [
             "self",
@@ -11276,7 +11276,7 @@
         },
         {
           "name": "AndroidUnicodeRepositories.android_unicode_save",
-          "line": 50,
+          "line": 49,
           "kind": "function",
           "parameters": [
             "self",
@@ -11288,13 +11288,13 @@
           "annotations": {
             "agent_id": "str",
             "grant_id": "str",
-            "value": "dict",
+            "value": "Record",
             "revision": "int"
           }
         },
         {
           "name": "AndroidUnicodeRepositories.android_unicode_authority",
-          "line": 71,
+          "line": 70,
           "kind": "function",
           "parameters": [
             "self",
@@ -11323,14 +11323,14 @@
             "agent_id": "str",
             "run_id": "str",
             "action_id": "str",
-            "arguments": "dict",
+            "arguments": "Record",
             "profile_id": "str",
-            "snapshot": "dict"
+            "snapshot": "Record"
           }
         },
         {
           "name": "AndroidUnicodeRepositories.android_unicode_environment",
-          "line": 147,
+          "line": 150,
           "kind": "function",
           "parameters": [
             "self",
@@ -11344,7 +11344,7 @@
         },
         {
           "name": "AndroidUnicodeRepositories.android_unicode_environments",
-          "line": 151,
+          "line": 154,
           "kind": "function",
           "parameters": [
             "self",
@@ -11360,7 +11360,7 @@
         },
         {
           "name": "AndroidUnicodeRepositories.android_unicode_observed",
-          "line": 169,
+          "line": 172,
           "kind": "function",
           "parameters": [
             "self",
@@ -11371,12 +11371,12 @@
           "annotations": {
             "agent_id": "str",
             "environment_id": "str",
-            "value": "dict"
+            "value": "Record"
           }
         },
         {
           "name": "AndroidUnicodeRepositories.android_unicode_recovery_dispatch",
-          "line": 218,
+          "line": 225,
           "kind": "function",
           "parameters": [
             "self",
@@ -11389,7 +11389,7 @@
             "agent_id": "str",
             "run_id": "str",
             "action_id": "str",
-            "arguments": "dict"
+            "arguments": "Record"
           }
         }
       ],
@@ -95765,7 +95765,7 @@
       "path": "web/ui/v2/workbench.css",
       "module": "v2-workbench",
       "python_module": null,
-      "lines": 905,
+      "lines": 937,
       "imports": [],
       "symbols": [],
       "kind": "asset",

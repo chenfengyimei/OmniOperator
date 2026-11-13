@@ -6,21 +6,21 @@
 
 ## 1. 一句话现状
 
-Windows 上 V2 底座**可冷启动、可自检、可服务、可跑全量测试、可离线打包**；strict 门禁 **264 文件 0 错误**；
-但 **62 个 adapters + `application/android.py` + 5 个 composition 模块未类型化**，且**真实模型/MCP/市场/设备/
-安装态/三平台验收全部未做**，入口切换未评估。
+Windows 上 V2 底座**可冷启动、可自检、可服务、可跑全量测试、可离线打包**；strict 门禁 **271 文件 0 错误**
+（domain/application/composition 三层全层完成）；但 **61 个 adapters 未类型化**（含 5 个 android 适配器/仓储/worker），
+且**真实模型/MCP/市场/设备/安装态/三平台验收全部未做**，入口切换未评估。
 
 ## 2. 已核验的事实（可直接引用，不必重测）
 
 | 项 | 数值 | 证据/命令 |
 | --- | --- | --- |
-| strict 门禁 | **270 文件 / 0 errors / 0 warnings** | `uv run --no-sync pyright --project pyrightconfig.strict.json` |
-| strict 分层 | 53/53 domain、**44/44 application 全层**、160/222 adapters、**13/13 composition 全层** | `docs/TYPE_CHECKING.md` |
-| 未纳入 strict | 62 个 adapters（6840 错，含 6 个 android 适配器/仓储/worker）（domain/application/composition 已全层纳入） | `temp/build/probe_strict.py`（survey-remaining.py 已不在库） |
+| strict 门禁 | **271 文件 / 0 errors / 0 warnings** | `uv run --no-sync pyright --project pyrightconfig.strict.json` |
+| strict 分层 | 53/53 domain、**44/44 application 全层**、161/222 adapters、**13/13 composition 全层** | `docs/TYPE_CHECKING.md` |
+| 未纳入 strict | 61 个 adapters（含 5 个 android 适配器/仓储/worker，android_unicode_repository 已纳入）（domain/application/composition 已全层纳入） | `temp/build/probe_strict.py`（survey-remaining.py 已不在库） |
 | 全量测试 | 4656 项：**4625 passed / 31 failed / 0 errors**（`-n 2`，66 分钟，第 5 节点） | `temp/build/v2-full-146.xml`、`docs/evidence/v2-typecheck.json` 的 `full_run` |
 | 失败性质 | 31 项均 UI 重度用例：串行复跑 **30 过 1 败**，剩 memory_organization_ui 1 项隔离**时通时败**（前端异步时序，非功能缺陷、非本批回归） | 见 §5「验收口径」；三份报告留档 |
 | 默认入口 | `V1 until R6 parity gate` | `docs/tasks/v2.json` 的 `default_entrypoints` |
-| 台账 | `status=d7_typecheck_batch_146`、`checkpoint_commit=46bbaa3`、源码指纹 `c2bfbacc…` | `docs/tasks/v2.json`、`docs/evidence/v2-typecheck.json` |
+| 台账 | `status=d7_typecheck_batch_147`、`checkpoint_commit=fa5f171`、源码指纹 `c9baf6c6…` | `docs/tasks/v2.json`、`docs/evidence/v2-typecheck.json` |
 | 工作树 | 干净，`codex/architecture-v2` 与 origin 同步（HEAD `e2f72a0` 之后的文档提交） | `git status -sb` |
 
 ## 3. 现在能用什么（Windows，实测）
@@ -46,14 +46,15 @@ uv run --no-sync python -m omni.composition.cli --home temp\demo-home auth
 3. ~~`composition/cli.py`（实测 39 错）~~ —— 第一百四十四批，提交 `ea7e8c2`（含 5 个支撑适配器返回类型纯精化）。
 4. ~~`composition/service_control.py`（5 错）+ `__init__.py`~~ —— 第一百四十五批，提交 `456c59f`，composition 全层完成。
 
-**下一节点是 P2 `application/android.py`（475 错，拆 5 节点），见 §4.2。**
+**P1 composition 与 P2 application/android.py 均已完成；下一节点是 P2 剩余 android 适配器/仓储/worker，见 §4.2。**
 
 ### 4.2 P2 Android（业务缺口最大）
 
 - ~~`application/android.py`（475 错）~~ —— **已完成**（第一百四十六批，提交 `46bbaa3`，application 44/44 全层）。
   设备授权/观察/输入派发/IME 恢复用例显式 Record/Payload，有界任务泛型化，AndroidPort 协议精化。
-- 剩余 6 个：`adapters/android.py`、`adapters/android_unicode.py`、`workers/android.py`(245)、
-  `workers/android_unicode.py`、`persistence/android_repository.py`、`persistence/android_unicode_repository.py`。
+- ~~`persistence/android_unicode_repository.py`(84)~~ —— 第一百四十七批，提交 `fa5f171`。
+- 剩余 5 个：`adapters/android.py`(99)、`adapters/android_unicode.py`(88)、`workers/android.py`(245)、
+  `workers/android_unicode.py`(105)、`persistence/android_repository.py`(93)。
 
 ### 4.3 P3 持久化（34 文件，6840 错里的大头）
 
@@ -125,8 +126,8 @@ uv run --no-sync python -m omni.composition.cli --home temp\demo-home auth
 
 ```powershell
 git status -sb                                   # 必须干净；脏的话先确认不是自己的改动
-uv run --no-sync pyright --project pyrightconfig.strict.json   # 期望 0/0（270 文件）
+uv run --no-sync pyright --project pyrightconfig.strict.json   # 期望 0/0（271 文件）
 uv run --no-sync python temp/build/probe_strict.py agent/src/omni/adapters/android.py  # 以实测为准
 ```
 
-domain/application/composition 已全层纳入（第一百四十二～一百四十六批）。P2 剩 6 个 android 适配器/仓储/worker（`adapters/android.py`、`adapters/android_unicode.py`、`workers/android.py`(245)、`workers/android_unicode.py`、`persistence/android_repository.py`、`persistence/android_unicode_repository.py`），随后 P3 持久化。每节点同步三处。
+domain/application/composition 已全层纳入（第一百四十二～一百四十六批），android_unicode_repository 已纳入（第一百四十七批）。P2 剩 5 个 android 适配器/仓储/worker（`adapters/android.py`(99)、`adapters/android_unicode.py`(88)、`workers/android.py`(245)、`workers/android_unicode.py`(105)、`persistence/android_repository.py`(93)），随后 P3 持久化。每节点同步三处。
