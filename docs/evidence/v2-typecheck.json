@@ -1,14 +1,14 @@
 {
  "schema": 1,
- "batch": 165,
+ "batch": 166,
  "date": "2026-11-13",
  "whole_v2_complete": false,
  "d7_complete": false,
  "default_entrypoint": "v1",
  "source": {
-  "code_version": "abd9d5961ff4c28b1614bb1e6d6cd64ae0615b411034aa04fc797aa153c0dcf2",
+  "code_version": "d568d95779ca79666e954b53f8071f4c690a3fabb67c1758911251c1f6bb4000",
   "fixed_source_files": 1206,
-  "git_head": "d20e404",
+  "git_head": "9e7b305",
   "dirty_checkout": false,
   "recipe": "sha256(json.dumps({path: sha256(blob) for tracked agent/, web/, scripts/ files}, sort_keys=True)); see temp/build/source_version.py",
   "head_ui": "75c4219"
@@ -193,12 +193,12 @@
  "validation": {
   "all_latest_cases_passed": false,
   "latest_batch": {
-   "batch": 165,
+   "batch": 166,
    "sources": [
-    "agent/src/omni/adapters/persistence/memory_organization_predicates.py"
+    "agent/src/omni/adapters/persistence/migrations/versions/v0005.py"
    ],
-   "report": "temp/build/v2-typecheck-165-callers.xml",
-   "tests": 108
+   "report": "temp/build/v2-typecheck-166-callers.xml",
+   "tests": 123
   },
   "targeted_reports": [
    {
@@ -1693,6 +1693,15 @@
     "errors": 0,
     "duration_s": 94.91,
     "note": "P3 memory_organization_predicates batch: approved-duplicate predicate + guard/arch/memory-organization/organization-repository/organization-contract/memory-semantics/context callers; predicate SQL additionally verified byte-identical against HEAD over the sqlite dialect"
+   },
+   {
+    "path": "temp/build/v2-typecheck-166-callers.xml",
+    "sha256": "89c8b2b6557b9c323a696c21ec7e90f8c71fa32bad3996cedaa542cca5da5e52",
+    "tests": 123,
+    "failures": 0,
+    "errors": 0,
+    "duration_s": 380.24,
+    "note": "Frozen migration v0005 batch: guard/arch/schema-release + all 17 test_v2_*migration* suites, executing the migration chain for real; SQL literals and module constants additionally verified identical to HEAD"
    }
   ],
   "gates": {
@@ -1704,7 +1713,7 @@
   "strict": {
    "config": "pyrightconfig.strict.json",
    "summary": {
-    "filesAnalyzed": 289,
+    "filesAnalyzed": 290,
     "errorCount": 0,
     "warningCount": 0,
     "informationCount": 0
@@ -1852,7 +1861,8 @@
    "Strict scope reaches 286 files (53 domain + 44 application + 176 adapters + 13 composition); the revision-bound summary and context provenance repository aligns plan, snapshot, summary and report receipts with the port Record contract, types _history as tuple[Record, Record, Select], narrows the domain batch/tail/turns Mapping results to Record before writing or returning them, narrows epochs, sequences and covered counts to int, and narrows source_digest's epoch and parent_id to its declared signature; erasure boundaries, whole-turn suffix selection, source-hash validation, the summary unknown state and the budget gate are unchanged",
    "Strict scope reaches 287 files (53 domain + 44 application + 177 adapters + 13 composition); the source-revision, bounded-search and derived-index repository aligns get/page/history/search/build/health receipts with the port Record contract, narrows chunk position/start/end and covered lengths to int, narrows the erasure attempt counter to int, narrows derived memory and session sets to set[str], and casts the search statement to an explicit Select; source-byte integrity, revision conflicts, idempotent creation identity, chunk contiguity and fingerprint checks, source-erasure-before-completion ordering and vector/chunk count parity are unchanged, and the module still never reads files",
    "Strict scope reaches 288 files (53 domain + 44 application + 178 adapters + 13 composition); the retired-event preview and pruning repository aligns candidate, preview, target and plan receipts with Record, types the projected columns as ColumnElement|Label with a Label-returning field closure, types the run/action caches as dict[str, Record | None], narrows sequences, epochs and high-water marks to int, and keeps the query-parameter runtime guards via cast(object, ...); projecting only preserved identifiers instead of the JSON body, event/run state agreement, action ownership, the unknown-effect refusal and never deleting run identities are unchanged",
-   "Strict scope reaches 289 files (53 domain + 44 application + 179 adapters + 13 composition); the single approved-duplicate predicate types its live_source closure parameters as NamedFromClause[ReadOnlyColumnCollection[str, KeyedColumnElement[Any]]] because .alias() returns NamedFromClause rather than Alias, types the condition as ColumnElement[bool], casts the relation query to a four-column Select at the return site and types memory_is_organized as Table | Alias -> Exists; both versions were compiled over the sqlite dialect and compared byte for byte, and the SQL is identical (sha256 e25a82d13f6020380bfb0b633bc89266641ed01059d6cae891eef71c81e6a30b), so the approved-duplicate decision, epoch binding and live-person check are unchanged"
+   "Strict scope reaches 289 files (53 domain + 44 application + 179 adapters + 13 composition); the single approved-duplicate predicate types its live_source closure parameters as NamedFromClause[ReadOnlyColumnCollection[str, KeyedColumnElement[Any]]] because .alias() returns NamedFromClause rather than Alias, types the condition as ColumnElement[bool], casts the relation query to a four-column Select at the return site and types memory_is_organized as Table | Alias -> Exists; both versions were compiled over the sqlite dialect and compared byte for byte, and the SQL is identical (sha256 e25a82d13f6020380bfb0b633bc89266641ed01059d6cae891eef71c81e6a30b), so the approved-duplicate decision, epoch binding and live-person check are unchanged",
+   "Strict scope reaches 290 files (53 domain + 44 application + 180 adapters + 13 composition); frozen migration v0005 annotates upgrade/downgrade returns, types the configuration/model/preference backfill closures along their real data flow, gives options/ordinal/preferences explicit container types, narrows historical row fields at each use and types the default preference/model payloads; zero SQL change was verified twice — all 181 string literals match HEAD as a multiset and every module constant (TABLES/INDEXES/COLUMNS/TRIGGERS) is equal — and schema-release plus all 17 migration suites executed for real and passed"
   ]
  },
  "source_recovery": {

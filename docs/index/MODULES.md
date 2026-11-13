@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`3149e3743833ce59803b061ab92e43bc45f22c43eda78bf5fe17c9622a5f10b7`。包含 65 个职责模块、735 个源码/界面文件。
+源码指纹：`fe0070f5e7796b5b27b92b1a8da30629fec8402832e67aba69ca6cb83f5c3947`。包含 65 个职责模块、735 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -147,7 +147,7 @@
 | [agent/src/omni/adapters/extensions/hosts.py](../../agent/src/omni/adapters/extensions/hosts.py) | 208 | Bounded trusted Python worker ownership; no database, model, credential or arbitrary command access. |
 | [agent/src/omni/adapters/extensions/packages.py](../../agent/src/omni/adapters/extensions/packages.py) | 558 | Bounded zero-execution package capture and immutable verified snapshots; never opens a database. |
 | [agent/src/omni/adapters/extensions/worker.py](../../agent/src/omni/adapters/extensions/worker.py) | 326 | Static extension handshake and trusted Python invocation in an owned child; never opens the main database. |
-| [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py) | 2170 | Versioned HTTP contract for the V2 kernel; business access goes through use cases. |
+| [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py) | 2201 | Versioned HTTP contract for the V2 kernel; business access goes through use cases. |
 | [agent/src/omni/adapters/images.py](../../agent/src/omni/adapters/images.py) | 79 | Bounded image verification and metadata-free low-detail PNG encoding; no database or remote URLs. |
 | [agent/src/omni/adapters/local_vectors.py](../../agent/src/omni/adapters/local_vectors.py) | 284 | One bounded, supervised local embedding process; no native ML imports in the application process. |
 | [agent/src/omni/adapters/log_query.py](../../agent/src/omni/adapters/log_query.py) | 320 | Bounded diagnostic pages with cursors that survive rename and process restart. |
@@ -208,7 +208,7 @@
 | [agent/src/omni/adapters/persistence/migrations/versions/v0002.py](../../agent/src/omni/adapters/persistence/migrations/versions/v0002.py) | 36 | Object pin revisions and action artifact references; frozen SQL, no current schema imports. |
 | [agent/src/omni/adapters/persistence/migrations/versions/v0003.py](../../agent/src/omni/adapters/persistence/migrations/versions/v0003.py) | 150 | People, revision-bound evidence and memory context; frozen schema evolution. |
 | [agent/src/omni/adapters/persistence/migrations/versions/v0004.py](../../agent/src/omni/adapters/persistence/migrations/versions/v0004.py) | 99 | Persistent conversation summaries and context barriers; frozen SQL, no current metadata. |
-| [agent/src/omni/adapters/persistence/migrations/versions/v0005.py](../../agent/src/omni/adapters/persistence/migrations/versions/v0005.py) | 242 | Typed business configuration and immutable run references; frozen migration. |
+| [agent/src/omni/adapters/persistence/migrations/versions/v0005.py](../../agent/src/omni/adapters/persistence/migrations/versions/v0005.py) | 254 | Typed business configuration and immutable run references; frozen migration. |
 | [agent/src/omni/adapters/persistence/migrations/versions/v0006.py](../../agent/src/omni/adapters/persistence/migrations/versions/v0006.py) | 85 | Source document revisions, provenance and rebuildable local indexes; frozen sql_statements. |
 | [agent/src/omni/adapters/persistence/migrations/versions/v0007.py](../../agent/src/omni/adapters/persistence/migrations/versions/v0007.py) | 152 | Immutable schedules, due identities and fenced work claims; frozen migration. |
 | [agent/src/omni/adapters/persistence/migrations/versions/v0008.py](../../agent/src/omni/adapters/persistence/migrations/versions/v0008.py) | 101 | Outbound intent, attempt, approval and recovery baseline; frozen SQL only. |
@@ -395,7 +395,7 @@
 | [agent/src/omni/composition/__init__.py](../../agent/src/omni/composition/__init__.py) | 1 | V2 composition root. Constructors and lifecycle ownership are explicit here. |
 | [agent/src/omni/composition/capabilities.py](../../agent/src/omni/composition/capabilities.py) | 166 | Explicit builtin capability registration; capabilities never construct the kernel. |
 | [agent/src/omni/composition/cli.py](../../agent/src/omni/composition/cli.py) | 1008 | V2 development entrypoint. Online commands use the authenticated HTTP facade. |
-| [agent/src/omni/composition/http.py](../../agent/src/omni/composition/http.py) | 236 | HTTP composition and owner bootstrap; tokens never appear in diagnostic output. |
+| [agent/src/omni/composition/http.py](../../agent/src/omni/composition/http.py) | 237 | HTTP composition and owner bootstrap; tokens never appear in diagnostic output. |
 | [agent/src/omni/composition/instance.py](../../agent/src/omni/composition/instance.py) | 794 | Build one isolated instance; never imports or opens the V1 runtime. |
 | [agent/src/omni/composition/lifecycle.py](../../agent/src/omni/composition/lifecycle.py) | 166 | Own startup rollback and one shared shutdown budget; never dispatches business work. |
 | [agent/src/omni/composition/releases.py](../../agent/src/omni/composition/releases.py) | 125 | Assemble explicit offline release commands. No service install, stop, model or default-entry switch. |
@@ -431,9 +431,9 @@
 | [web/ui/v2/desktop.js](../../web/ui/v2/desktop.js) | 568 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/documents.js](../../web/ui/v2/documents.js) | 487 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/extensions.js](../../web/ui/v2/extensions.js) | 656 | 原生源码、平台脚本或界面资源 |
-| [web/ui/v2/index.html](../../web/ui/v2/index.html) | 1523 | 原生源码、平台脚本或界面资源 |
+| [web/ui/v2/index.html](../../web/ui/v2/index.html) | 1524 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/inspector.js](../../web/ui/v2/inspector.js) | 266 | 原生源码、平台脚本或界面资源 |
-| [web/ui/v2/main.js](../../web/ui/v2/main.js) | 1570 | 原生源码、平台脚本或界面资源 |
+| [web/ui/v2/main.js](../../web/ui/v2/main.js) | 1624 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/maintenance.js](../../web/ui/v2/maintenance.js) | 126 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/mcp.js](../../web/ui/v2/mcp.js) | 362 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/media.js](../../web/ui/v2/media.js) | 365 | 原生源码、平台脚本或界面资源 |
@@ -453,7 +453,7 @@
 | [web/ui/v2/v1/components.css](../../web/ui/v2/v1/components.css) | 655 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/v1/frame.css](../../web/ui/v2/v1/frame.css) | 932 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/v1/workbench.css](../../web/ui/v2/v1/workbench.css) | 4450 | 原生源码、平台脚本或界面资源 |
-| [web/ui/v2/workbench.css](../../web/ui/v2/workbench.css) | 1681 | 原生源码、平台脚本或界面资源 |
+| [web/ui/v2/workbench.css](../../web/ui/v2/workbench.css) | 1693 | 原生源码、平台脚本或界面资源 |
 
 文档：[docs/V2_REFACTOR.md](../../docs/V2_REFACTOR.md)
 
