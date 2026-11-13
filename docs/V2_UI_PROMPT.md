@@ -54,7 +54,7 @@ section.page[id]                  ← 22 个页面分区，id 与 data-page 一�
 
 - 页面切换只允许通过 `[data-page]` 按钮点击触发；`test_v2_navigation_ui.py` 会在 390/1024 两个宽度逐项点击并断言目标分区可见。
 - 任何新增可见按钮，如果文案与既有页面名相同（如"设置"），必须换名或用 `title/aria-label` 区分，避免 `get_by_role(..., exact=True)` 命中两个元素。
-- 资源版本串：`index.html` 与所有模块 import 当前为 `?v=20261113v120`。**任何 HTML/CSS/JS 改动都要整体升级版本号**（v58、v59…），并同步：
+- 资源版本串：`index.html` 与所有模块 import 当前为 `?v=20261113v122`。**任何 HTML/CSS/JS 改动都要整体升级版本号**（v58、v59…），并同步：
   - `agent/tests/test_v2_mcp_ui.py` 里的 `assert "main.js?v=..." in page.content()`
   - `docs/V2_AI_CONTINUATION_PROMPT.md` 的版本说明
   - 本文第 3 节这里的版本号
@@ -64,7 +64,7 @@ section.page[id]                  ← 22 个页面分区，id 与 data-page 一�
 
 ## 4. 当前 UI 状态（已完成）
 
-**直接复用 V1 界面**（2026-11-13/14，资源版本 `20261113v120`）：按所有者要求，不再自创视觉，
+**直接复用 V1 界面**（2026-11-13/14，资源版本 `20261113v122`）：按所有者要求，不再自创视觉，
 把 V1 的 `components.css` / `frame.css` / `workbench.css` **原样复制**到 `web/ui/v2/v1/`。
 **声明内容一字未改**，只做三类必要映射：
 
@@ -77,6 +77,26 @@ section.page[id]                  ← 22 个页面分区，id 与 data-page 一�
 真正的发送键反而完全没有样式（灰底凸边框）、容器被按钮的 27px 高度压扁。
 另为 `.rail` 追加等效属性选择器别名（V2 的 `nav` 不能带 class，守卫正则依赖标签原文）。
 V1 原文件保持只读，未被修改。
+
+**本机启动即用（自动连接）**：V1 靠配对 Cookie 自动携带凭证（`credentials:'same-origin'`），
+起服务就能用；V2 换成所有者令牌 + `Authorization: Bearer` 后，前端一度**没有任何获取通道**，
+使用者每次都要去实例目录翻 `run/owner.token` 手工粘贴——这是相对 V1 的体验退化，已修复。
+
+- 后端 `GET /api/v1/owner-token/local`（`src/omni/adapters/http.py`）。**必须注册在 `app` 上**，
+  不能挂到 `router`——那个 router 整体带 `Depends(authenticate)`，会被它要引导的鉴权自己拦住。
+- 三重闸门，缺一不可：① 装配时提供 `local_owner_token` 回调，未提供直接 503；
+  ② 客户端 IP 必须是回环，且带 `X-Forwarded-For`/`X-Real-IP`/`Forwarded` 一律 403；
+  ③ 有 `Origin` 且不等于 `base_url` 一律 403。**其余 API 鉴权完全不变**。
+- 前端 `bootstrapLocal()` **先读公开的 `/openapi.json` 探测能力**，确认存在该路径才发引导请求——直接请求会让没有该端点的旧实例在控制台留 404。探测后：新后端自动连接、旧后端静默回退，两者零失败请求。
+- 取到的令牌**只赋内存变量，
+  绝不写 `localStorage`/`sessionStorage`**（项目既有安全约定）。
+- **手动优先**：用户一旦 `input`/`focus`/`pointerdown` 令牌框或提交表单，
+  `manualConnectStarted` 置真，自动连接在请求前后各检查一次并让位。
+  缺这道让位会清空用户刚填的令牌、把按钮改成「重新连接」，曾因此让 4 个既有测试失败。
+- 连接成功后连接卡收成 38px 状态条（绿点 + 实例已连接 + 重新连接），
+  点「重新连接」展开令牌框，刷新自动还原完整表单。
+- 契约测试：`test_v2_owner_token_ui.py::test_local_bootstrap_connects_without_pasting_and_stays_loopback_only`
+  与 `::test_manual_token_entry_wins_over_local_bootstrap`。
 
 V2 结构已改用 V1 类名，让复制来的样式真正命中：
 

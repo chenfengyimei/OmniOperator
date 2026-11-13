@@ -91,3 +91,69 @@ def test_token_page_lists_sessions_rotates_and_hands_off_the_new_token(ui_browse
         expect(page.locator("#token-sessions")).to_contain_text("当前会话")
     finally:
         context.close()
+
+
+def test_local_bootstrap_connects_without_pasting_and_stays_loopback_only(token_server, ui_browser):
+    """本机启动即用：不粘贴令牌就能连上；跨源与代理来源一律拿不到令牌。
+
+    V1 靠配对 Cookie 自动携带凭证，V2 改 Bearer 后前端曾无获取通道，
+    使用者每次都要去实例目录翻 owner.token。此用例守住补上的那条通道，
+    同时守住它的三重闸门与「令牌不进浏览器存储」。
+    """
+    url, token = token_server
+    context = ui_browser.new_context(viewport={"width": 1440, "height": 1000})
+    try:
+        page = context.new_page()
+        errors = []
+        page.on("pageerror", lambda exc: errors.append(str(exc)))
+        page.goto(url)
+        # 完全不填令牌，等自动连接完成
+        expect(page.locator("#agents option")).to_have_count(1, timeout=15000)
+        assert page.evaluate("document.body.dataset.connected") == "true"
+        assert page.locator("#token").input_value() == ""
+        assert token not in page.evaluate("JSON.stringify({...localStorage}) + JSON.stringify({...sessionStorage})")
+
+        # 闸门一：跨源请求被拒
+        cross = page.request.get(url + "/api/v1/owner-token/local", headers={"Origin": "https://evil.example"})
+        assert cross.status == 403
+        # 闸门二：带代理转发头被拒
+        proxied = page.request.get(url + "/api/v1/owner-token/local", headers={"X-Forwarded-For": "8.8.8.8"})
+        assert proxied.status == 403
+        assert proxied.json()["error"]["code"] == "local_only"
+        # 本机同源可取，且取到的就是当前有效令牌
+        local = page.request.get(url + "/api/v1/owner-token/local")
+        assert local.status == 200
+        assert local.json()["token"] == token
+        assert local.json()["scope"] == "loopback"
+        # 其余 API 仍需鉴权，引导端点没有削弱它们
+        assert page.request.get(url + "/api/v1/agents").status == 401
+        assert errors == []
+    finally:
+        context.close()
+
+
+def test_manual_token_entry_wins_over_local_bootstrap(token_server, ui_browser):
+    """用户一旦开始手动填令牌，自动连接必须让位，不得清空输入或改写按钮。"""
+    url, token = token_server
+    context = ui_browser.new_context(viewport={"width": 1440, "height": 1000})
+    try:
+        page = context.new_page()
+        errors = []
+        page.on("pageerror", lambda exc: errors.append(str(exc)))
+        # 让引导端点慢响应，制造与手动输入的竞争窗口
+        page.route(
+            "**/api/v1/owner-token/local",
+            lambda route: (time.sleep(1.2), route.continue_()),
+        )
+        page.goto(url)
+        page.locator("#token").fill(token)
+        page.get_by_role("button", name="连接实例", exact=True).click()
+        expect(page.locator("#agents option")).to_have_count(1, timeout=15000)
+        # 慢响应的自动连接回来后不得把已连接状态改回手动表单
+        page.wait_for_timeout(2000)
+        assert page.evaluate("document.body.dataset.connected") == "true"
+        assert page.locator("#connect button[type=submit]").inner_text() == "重新连接"
+        assert page.locator("#token").input_value() == ""
+        assert errors == []
+    finally:
+        context.close()

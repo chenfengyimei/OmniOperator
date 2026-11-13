@@ -228,6 +228,7 @@ def http_app(
                 drain=drain if shutdown is not None else None,
                 token_sessions=token_sessions,
                 rotate_token=rotate_token,
+                local_owner_token=lambda: token_path.read_text(encoding="utf-8").strip(),
             )
         except BaseException:
             await instance.close()

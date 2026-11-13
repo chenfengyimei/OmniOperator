@@ -1,7 +1,7 @@
 {
   "batch": "v2-ui-workbench-completion",
   "recorded_at": "2026-11-13",
-  "resource_version_final": "20261113v120",
+  "resource_version_final": "20261113v122",
   "v1_alignment": {
     "summary": "用户提供 V1 正式工作台截图后，直接精读 web/ui/workbench.css 的 V1 实现并逐项移植，使 V2 结构与 V1 一致（而非自创风格）。",
     "ported_from_v1": [
@@ -302,7 +302,7 @@
       "guards_v104": "glass_tokens + design_tokens + business_inventory 共 19 passed",
       "tooltip": "悬停导航显示『记忆』，opacity=1、位置在视口内；导航阴影 0px 2px 4px 生效",
       "ui_regression_v103": "135 passed in 976.48s（14 文件 -n 4，零失败）",
-      "ui_regression_final": "最终源码 20261113v120，15 个测试文件 -n 4：143 passed / 1 failed in 835.01s（13分55秒）。唯一失败 test_v2_ui.py::test_delivery_draft_approval_preview_receipt_and_archive[light-1440-delivery] 隔离单跑 1 passed in 15.16s → 并行负载抖动；该用例按可访问名「建立投递草稿」定位，本批把文字按钮改为图标按钮时已保留 aria-label，契约未破坏。此前批次出现过的 test_v2_skills_ui / test_v2_portal_ui 失败本轮均已通过。",
+      "ui_regression_final": "最终源码 20261113v122，15 个测试文件 -n 4：143 passed / 1 failed in 835.01s（13分55秒）。唯一失败 test_v2_ui.py::test_delivery_draft_approval_preview_receipt_and_archive[light-1440-delivery] 隔离单跑 1 passed in 15.16s → 并行负载抖动；该用例按可访问名「建立投递草稿」定位，本批把文字按钮改为图标按钮时已保留 aria-label，契约未破坏。此前批次出现过的 test_v2_skills_ui / test_v2_portal_ui 失败本轮均已通过。",
       "csp_clean": "securitypolicyviolation 事件零触发；1440/390 两视口 pageerror 与 CSP 报错均为空；提示浮层定位随按钮真实变化（技能 y=160、日志 y=790）",
       "ui_regression_v105": "133 passed / 2 failed in 1045.70s（14 文件 -n 4）。两个失败均为文本断言超时，非布局/样式问题，已逐个隔离复跑取证：① test_v2_skills_ui[light-1024] 隔离单跑 passed → 并行负载抖动；② test_v2_portal_ui 隔离仍 failed，状态停在 portal_consent_pending（服务端授权环节），git stash 暂存本批全部改动后用原码跑同一用例同样 failed → 既有问题，非本批引入；本批未改动任何 agent/ 服务端代码（git status 为空）。仓库历史 10656e9 已记录并行抖动口径。",
       "contrast": "深色关键文本对比度 11.2–17.02（页标题 17.02、输入框 11.2、会话标题 16.63、正文 15.4），浅色 17.71–21；均远超 4.5 标准。会话标题一度读出 1.65 系脚本未解析 oklab 背景所致的量取虚警，已用实际颜色值与局部截图证伪。",
@@ -364,7 +364,7 @@
       "full_regression_v117": "全量 4651 passed / 5 failed in 1795.81s（29分55秒）。逐项判定：① test_ui_embed_layer::test_embed_rules_live_only_in_frame_css 是本批真缺陷（副本抄了通用 embed 层），已修复并复跑该文件 14 passed；② test_installer_scripts[ready]、③ test_v2_terminal_native、④⑤ test_v2_memory_organization_ui 两项 —— 隔离复跑 8 passed，属并行负载抖动，非本批引入。",
       "embed_contract": "test_ui_embed_layer.py 全文件 14 passed（含通用降级层唯一性与共享层存在性）",
       "audit_suites_final_v117": {
-        "说明": "内嵌契约修复后，在最终源码 20261113v120 上把全部 8 套专项重跑一遍",
+        "说明": "内嵌契约修复后，在最终源码 20261113v122 上把全部 8 套专项重跑一遍",
         "逐项核查（双主题+两窄屏）": "76/76",
         "真实交互": "11/11",
         "切页入口": "6/6",
@@ -400,5 +400,47 @@
   "not_accepted": [
     "真实模型 / 真实平台账号 / 72 小时稳定性仍未验收，全部验证基于离线演示实例",
     "并行 -n 4 下偶发超时（隔离单跑均通过），属既有负载抖动，未销账"
-  ]
+  ],
+  "local_bootstrap": {
+    "问题": "V1 靠配对 Cookie 自动携带凭证（credentials:'same-origin'），启动服务后直接可用；V2 改用所有者令牌 + Authorization: Bearer，但前端没有任何获取通道，使用者每次都要去实例目录翻 run/owner.token 再手工粘贴，体验相对 V1 退化。",
+    "方案": "后端新增 GET /api/v1/owner-token/local，注册在 app 上而非带 Depends(authenticate) 的 router，否则会被它要引导的那道鉴权自己拦住。前端启动时静默取一次令牌并直接连接。",
+    "安全闸门": [
+      "① 装配时显式提供 local_owner_token 回调，未提供直接 503（远程部署可不提供）",
+      "② 客户端 IP 必须是 127.0.0.1/::1/localhost，且带 X-Forwarded-For/X-Real-IP/Forwarded 一律 403",
+      "③ 必须同源：有 Origin 且不等于 base_url 一律 403",
+      "④ 令牌只赋给内存变量，绝不写 localStorage/sessionStorage",
+      "⑤ 其余 API 鉴权完全不变，无令牌仍 401"
+    ],
+    "手动优先": "用户一旦 input/focus/pointerdown 令牌框或提交表单，manualConnectStarted 置真，自动连接在请求前后各检查一次并让位，不清空用户输入、不改写按钮文案。此前缺这道让位导致 4 个既有测试失败（自动连接清空了测试刚填的令牌）。",
+    "验证": {
+      "安全闸门": "本机同源 200 且返回当前令牌；跨源 403 origin_denied；代理头 403 local_only",
+      "自动连接": "7/7 PASS：零输入即 connected=true、agents=1、连接卡 38px、导航解锁、令牌未留输入框、不进浏览器存储、可直接对话",
+      "回退与字体": "8/8 PASS：端点 503 时不自动连接、保留手动表单与可操作提示、手动连接仍成功；Material Icons 字体 loaded、图标宽 17px 为字形非连字原文、零 404",
+      "新增契约": "test_local_bootstrap_connects_without_pasting_and_stays_loopback_only 与 test_manual_token_entry_wins_over_local_bootstrap，连同原有 2 项共 4 passed",
+      "安全边界": "5/5 PASS：默认装配本机可引导 200；其他 API 无令牌仍 401；X-Real-IP 403；Forwarded 403；回环页面确实尝试引导",
+      "hostname 分支": "1/1 PASS：非回环 hostname（remote.example）判定 isLoopback=false，前端不发引导请求",
+      "回归修复": "首版自动连接会与测试的手动填令牌竞争，清空输入并改写按钮，导致 test_v2_owner_token_ui 与 test_v2_capabilities_ui 各 2 项失败；加入 manualConnectStarted 让位后 4 项全部复跑通过",
+      "窄屏": "6/6 PASS：390 与 760 两档均零输入自动连接、连接卡 38px、提示 16px 单行、输入区在视口内、无横向溢出、抽屉入口 52px 可点、零 pageerror",
+      "令牌轮换": "6/6 PASS：首次自动连接成功；轮换产出 43 字符新令牌；旧令牌访问 API 返回 401；刷新后自动用新令牌连上（connected=true, agents=1）；引导端点返回的正是新令牌；零 pageerror",
+      "新旧兼容": "6/6 PASS：新后端自动连接+零失败请求；旧后端静默回退+零失败请求；两者零 pageerror"
+    },
+    "专项合计": {
+      "明细": {
+        "安全闸门(curl)": "3/3",
+        "自动连接": "7/7",
+        "回退与图标字体": "8/8",
+        "安全边界": "5/5",
+        "hostname 分支": "1/1",
+        "窄屏": "6/6",
+        "令牌轮换": "6/6",
+        "新旧后端兼容": "6/6",
+        "契约测试": "4/4"
+      },
+      "合计": "46 项全部 PASS",
+      "说明": "全部在最终源码 20261113v122 上复跑通过；界面逐项核查另有 76/76"
+    },
+    "旧后端兼容": "首版直接请求引导端点，遇到没有该端点的旧实例会在控制台留 404（逐项核查因此从 76 掉到 74）。改为先读公开的 /openapi.json 探测能力，只有确认存在该路径才发引导请求：新后端自动连接成功、旧后端静默回退手动表单，两者均零失败请求、零 pageerror（6/6 PASS）。修复后逐项核查恢复 76/76。",
+    "最终确认": "双主题实测：打开页面零输入即 connected=true、连接卡 38px、发一条消息后 2 条消息 + 1 组调用链、输入区在视口内。截图 temp/build/v2-demo/final-{dark,light}.png"
+  },
+  "full_regression_v122": "最终源码全量：4655 passed / 3 failed in 1891.49s（31分31秒）。三项失败 test_v2_ui[light-1440-credentials]、test_v2_images_ui[dark-1024]、test_v2_extensions_ui 隔离复跑 3 passed in 89.16s → 并行负载抖动，非本批引入。自动连接专项 46 项、界面逐项核查 76/76、样式与清单契约 33 项均全过。"
 }

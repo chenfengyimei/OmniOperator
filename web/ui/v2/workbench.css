@@ -187,6 +187,18 @@ body[data-ui-page="workbench-v2"][data-connected="true"] #connect button[type="s
   border-color: var(--line-accent);
   color: var(--text-1);
 }
+/* 连接状态提示：说明自动连接进展或回退原因，字号小但对比度达标 */
+body[data-ui-page="workbench-v2"] .connect-hint {
+  flex: 0 0 auto;
+  margin: -2px 2px 0;
+  color: var(--text-1);
+  font-size: var(--fs-caption);
+  line-height: 1.55;
+  opacity: 0.78;
+}
+body[data-ui-page="workbench-v2"] .connect-hint:empty {
+  display: none;
+}
 body[data-ui-page="workbench-v2"] .agent-field {
   flex: 0 0 auto;
   display: grid;

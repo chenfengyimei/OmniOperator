@@ -1,30 +1,30 @@
-import { mountSkills } from './skills.js?v=20261113v120';
-import { mountCredentials } from './credentials.js?v=20261113v120';
-import { mountAuditHistory, mountOperations } from './operations.js?v=20261113v120';
-import { mountCapabilities } from './capabilities.js?v=20261113v120';
-import { mountTokens } from './tokens.js?v=20261113v120';
-import { mountDocuments } from './documents.js?v=20261113v120';
-import { mountConfiguration } from './configuration.js?v=20261113v120';
+import { mountSkills } from './skills.js?v=20261113v122';
+import { mountCredentials } from './credentials.js?v=20261113v122';
+import { mountAuditHistory, mountOperations } from './operations.js?v=20261113v122';
+import { mountCapabilities } from './capabilities.js?v=20261113v122';
+import { mountTokens } from './tokens.js?v=20261113v122';
+import { mountDocuments } from './documents.js?v=20261113v122';
+import { mountConfiguration } from './configuration.js?v=20261113v122';
 import { ask } from '../dialog.js?v=20261103v7';
-import { mountPeople } from './people.js?v=20261113v120';
-import { mountDeliveries } from './deliveries.js?v=20261113v120';
-import { mountSchedules } from './schedules.js?v=20261113v120';
-import { mountMemorySemantics } from './memory-semantics.js?v=20261113v120';
-import { mountMemoryOrganization } from './memory-organization.js?v=20261113v120';
-import { mountExtensions } from './extensions.js?v=20261113v120';
-import { mountActionReviews } from './action-reviews.js?v=20261113v120';
-import { mountTerminals } from './terminals.js?v=20261113v120';
-import { mountDesktop } from './desktop.js?v=20261113v120';
-import { mountQQ } from './qq.js?v=20261113v120';
-import { mountBilibili } from './bilibili.js?v=20261113v120';
-import { mountMedia } from './media.js?v=20261113v120';
-import { mountMcp } from './mcp.js?v=20261113v120';
-import { mountAndroid } from './android.js?v=20261113v120';
-import { mountModelOutput } from './model-output.js?v=20261113v120';
-import { mountRouting } from './routing.js?v=20261113v120';
-import { mountChatImages } from './chat-images.js?v=20261113v120';
-import { mountInspector } from './inspector.js?v=20261113v120';
-import { mountSettingsRail } from './settings-rail.js?v=20261113v120';
+import { mountPeople } from './people.js?v=20261113v122';
+import { mountDeliveries } from './deliveries.js?v=20261113v122';
+import { mountSchedules } from './schedules.js?v=20261113v122';
+import { mountMemorySemantics } from './memory-semantics.js?v=20261113v122';
+import { mountMemoryOrganization } from './memory-organization.js?v=20261113v122';
+import { mountExtensions } from './extensions.js?v=20261113v122';
+import { mountActionReviews } from './action-reviews.js?v=20261113v122';
+import { mountTerminals } from './terminals.js?v=20261113v122';
+import { mountDesktop } from './desktop.js?v=20261113v122';
+import { mountQQ } from './qq.js?v=20261113v122';
+import { mountBilibili } from './bilibili.js?v=20261113v122';
+import { mountMedia } from './media.js?v=20261113v122';
+import { mountMcp } from './mcp.js?v=20261113v122';
+import { mountAndroid } from './android.js?v=20261113v122';
+import { mountModelOutput } from './model-output.js?v=20261113v122';
+import { mountRouting } from './routing.js?v=20261113v122';
+import { mountChatImages } from './chat-images.js?v=20261113v122';
+import { mountInspector } from './inspector.js?v=20261113v122';
+import { mountSettingsRail } from './settings-rail.js?v=20261113v122';
 // 直接复用 V1 的 rail 提示浮层模块（data-tip → #tip-layer），不自创实现
 import '../app/tips.js?v=20261103u5';
 
@@ -1141,22 +1141,22 @@ async function selectAgentBody() {
   document.querySelector('nav').inert = false;
   schedule();
 }
-$('connect').addEventListener(
-  'submit',
-  wrap(async () => {
-    stop();
-    token = $('token').value.trim();
-    const version = await api('/version');
-    if (version.api_version !== 1) throw new Error('API 版本不匹配');
-    build = version.build_id;
-    const data = await api('/agents');
-    $('agents').replaceChildren(...data.items.map((item) => new Option(item.name, item.id)));
-    document.body.dataset.connected = 'true';
-    await selectAgent();
-    $('token').value = '';
-    setConnectedChrome(true);
-  }),
-);
+// 连接流程抽成函数，手动提交与本机自动引导共用同一条路径
+async function connectWith(value) {
+  stop();
+  token = String(value || '').trim();
+  if (!token) throw new Error('请填入所有者令牌');
+  const version = await api('/version');
+  if (version.api_version !== 1) throw new Error('API 版本不匹配');
+  build = version.build_id;
+  const data = await api('/agents');
+  $('agents').replaceChildren(...data.items.map((item) => new Option(item.name, item.id)));
+  document.body.dataset.connected = 'true';
+  await selectAgent();
+  $('token').value = '';
+  setConnectedChrome(true);
+}
+$('connect').addEventListener('submit', wrap(() => connectWith($('token').value)));
 // 连接卡收成状态条：空令牌框与「连接实例」常驻会挤占会话列表，且看着像没连上。
 // 只改文案与 title，不动结构；刷新后 body[data-connected] 消失即自动还原。
 function setConnectedChrome(on) {
@@ -1180,6 +1180,58 @@ $('connect').addEventListener('click', (event) => {
   document.body.removeAttribute('data-connected');
   $('token').focus();
 });
+// 本机自动连接：V1 靠配对 Cookie 自动带凭证，启动即用；V2 换成 Bearer 令牌后
+// 前端一直没有获取通道，使用者每次都要去实例目录翻 owner.token 手工粘贴。
+// 这里向后端的本机引导端点取一次令牌（仅回环 + 同源才会下发），成功就直接连上。
+// 令牌只赋给内存变量，绝不写 localStorage/sessionStorage；失败则安静回退到手动表单。
+// 用户一旦碰过令牌框或提交过表单，自动连接必须让位：
+// 否则它会清空用户刚填的令牌、把按钮改成「重新连接」，让手动路径落空。
+let manualConnectStarted = false;
+for (const evt of ['input', 'focus', 'pointerdown']) {
+  $('token').addEventListener(evt, () => {
+    manualConnectStarted = true;
+  });
+}
+$('connect').addEventListener('submit', () => {
+  manualConnectStarted = true;
+});
+async function bootstrapLocal() {
+  const hint = $('connect-hint');
+  const isLoopback = ['127.0.0.1', 'localhost', '[::1]', '::1'].includes(location.hostname);
+  if (!isLoopback) {
+    if (hint) hint.textContent = '远程访问需手动填入所有者令牌。';
+    return;
+  }
+  if (manualConnectStarted) return;
+  if (hint) hint.textContent = '正在连接本机实例…';
+  try {
+    // 先看后端有没有这条通道：旧版本实例没有该端点，直接请求会在控制台留 404。
+    // OpenAPI 是公开文档，用它探测能力，旧后端下就不会产生任何失败请求。
+    const schema = await fetch('/openapi.json', { cache: 'no-store', headers: { Accept: 'application/json' } });
+    if (!schema.ok) throw new Error('schema_unavailable');
+    const spec = await schema.json();
+    if (!spec?.paths?.['/api/v1/owner-token/local']) throw new Error('bootstrap_absent');
+    if (manualConnectStarted) return;
+    const response = await fetch('/api/v1/owner-token/local', {
+      cache: 'no-store',
+      credentials: 'same-origin',
+      headers: { Accept: 'application/json' },
+    });
+    if (!response.ok) throw new Error('bootstrap_unavailable');
+    const data = await response.json();
+    if (!data?.token) throw new Error('bootstrap_empty');
+    // 请求期间用户可能已经开始手动填写，此刻仍要让位
+    if (manualConnectStarted) return;
+    await connectWith(data.token);
+    if (hint) hint.textContent = '已自动连接本机实例。令牌轮换后点「重新连接」即可。';
+  } catch {
+    // 旧后端、端点关闭、被代理、令牌未就绪都走这里：保留手动表单，不弹错误打断首屏
+    if (!manualConnectStarted) {
+      token = '';
+      if (hint) hint.textContent = '请填入所有者令牌（实例目录 run/owner.token）后连接。';
+    }
+  }
+}
 $('agents').addEventListener('change', wrap(selectAgent));
 $('back-to-chat').addEventListener('click', () => document.querySelector('nav[aria-label="工作台"] [data-page="chat"]')?.click());
 $('open-settings').addEventListener('click', () => document.querySelector('nav[aria-label="工作台"] [data-page="settings"]')?.click());
@@ -1518,6 +1570,8 @@ for (const tab of document.querySelectorAll('[data-inspector]'))
   });
 syncPageChrome('chat');
 themeLabel();
+// 启动即尝试本机自动连接，恢复 V1 的「运行起来就能用」
+bootstrapLocal();
 // 自定义文件选择器：隐藏原生 input，用玻璃按钮 + 文件名标签替代浏览器默认控件
 for (const input of document.querySelectorAll('input[type="file"]')) {
   if (input.dataset.fileUi) continue;

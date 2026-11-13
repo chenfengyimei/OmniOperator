@@ -84,6 +84,9 @@ class HttpRuntime:
     drain: Callable[[dict], Awaitable[dict]] | None = None
     token_sessions: Callable[[], Awaitable[list[dict]]] | None = None
     rotate_token: Callable[[], Awaitable[dict]] | None = None
+    # 本机免粘贴引导：只在回环地址 + 同源时下发所有者令牌，让「启动即用」回到 V1 体验。
+    # 默认 None 表示关闭；远程绑定与跨源请求一律拿不到，API 鉴权强度不变。
+    local_owner_token: Callable[[], str] | None = None
     qq: QQService | None = None
     bilibili: BilibiliService | None = None
     media: MediaService | None = None
@@ -551,6 +554,34 @@ def create_app(factory: Callable[[], Awaitable[HttpRuntime]], *, allowed_origins
     @router.get("/capabilities")
     async def capabilities(request: Request):
         return capability_report(runtime(request).describe())
+
+    # 注意：router 整体挂了 Depends(authenticate)，引导端点必须注册在 app 上而非 router，
+    # 否则会被它要引导的那道鉴权自己拦住。它自身有下面三重本机闸门。
+    @app.get("/api/v1/owner-token/local")
+    async def owner_token_local(request: Request):
+        """本机免粘贴引导：让「启动服务后直接可用」回到 V1 的体验。
+
+        V1 靠配对 Cookie 自动携带凭证；V2 改用 Bearer 令牌后，前端却没有获取通道，
+        使用者每次都要去实例目录翻 owner.token 再手工粘贴。此端点补上这条通道。
+
+        三重闸门，缺一不可：
+        ① 装配时显式提供 local_owner_token（远程部署不提供，直接 503）；
+        ② 客户端 IP 必须是回环地址，且没有代理转发头（反代后一律拒绝）；
+        ③ 必须同源——浏览器地址栏直开无 Origin，脚本跨源请求的 Origin 会被拒。
+        令牌只在此响应里出现一次，前端仅存内存，不写任何浏览器存储。
+        """
+        operation = runtime(request).local_owner_token
+        if operation is None:
+            raise BusinessError("owner_token_unavailable", "Local token bootstrap is unavailable", status=503)
+        if any(header in request.headers for header in ("x-forwarded-for", "x-real-ip", "forwarded")):
+            raise BusinessError("local_only", "Local bootstrap is not available through a proxy", status=403)
+        client = request.client.host if request.client else ""
+        if client not in {"127.0.0.1", "::1", "localhost"}:
+            raise BusinessError("local_only", "Local bootstrap requires a loopback client", status=403)
+        origin = request.headers.get("origin")
+        if origin and origin != str(request.base_url).rstrip("/"):
+            raise BusinessError("local_only", "Local bootstrap requires a same-origin request", status=403)
+        return {"token": operation(), "scope": "loopback"}
 
     @router.get("/owner-token/sessions")
     async def owner_token_sessions(request: Request):
