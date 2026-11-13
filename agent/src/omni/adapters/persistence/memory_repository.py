@@ -3,10 +3,11 @@
 from __future__ import annotations
 
 import re
-from typing import Any
+from typing import cast
 
 from sqlalchemy import column, delete, literal_column, select, table, text, update
 
+from ...application.ports import Record
 from ...domain.contracts import BusinessError
 from ...domain.people import DOCUMENT_KINDS, content_fingerprint, source_fingerprint
 from . import schema as s
@@ -15,7 +16,7 @@ from .memory_organization_predicates import memory_is_organized
 
 
 class MemoryRepositories(DocumentRepositories):
-    def _live_person(self, agent_id: str, person_id: str) -> dict[str, Any]:
+    def _live_person(self, agent_id: str, person_id: str) -> Record:
         person = self._one(s.people, agent_id, person_id)
         if person["deleted_at"]:
             raise BusinessError("person_deleted", "Person was erased", status=410)
@@ -46,10 +47,10 @@ class MemoryRepositories(DocumentRepositories):
             raise BusinessError("invalid_evidence", "Evidence must identify one source", status=422)
         if message_id:
             source = self._one(s.messages, agent_id, message_id)
-            if source["deleted_at"] or not quote or quote not in source["content"]:
+            if source["deleted_at"] or not quote or quote not in cast(str, source["content"]):
                 raise BusinessError("invalid_evidence", "Evidence must quote a live source message", status=422)
-            session = self._one(s.sessions, agent_id, source["session_id"])
-            if model_authored and source["seq"] <= session["context_floor_seq"]:
+            session = self._one(s.sessions, agent_id, cast(str, source["session_id"]))
+            if model_authored and cast(int, source["seq"]) <= cast(int, session["context_floor_seq"]):
                 raise BusinessError("memory_forgotten", "This source was excluded after an explicit erasure")
             kind, identity, column = "message", message_id, "message_id"
         elif document_revision_id:
@@ -71,7 +72,9 @@ class MemoryRepositories(DocumentRepositories):
                     )
                 ).all()
                 offsets = [
-                    left + content[left:right].index(quote) for left, right in ranges if quote in content[left:right]
+                    cast(int, left) + content[cast(int, left) : cast(int, right)].index(quote)
+                    for left, right in ranges
+                    if quote in content[cast(int, left) : cast(int, right)]
                 ]
                 if not offsets:
                     raise BusinessError(
@@ -83,19 +86,20 @@ class MemoryRepositories(DocumentRepositories):
             kind, identity, column = "document", document_revision_id, "document_revision_id"
         elif action_id:
             action = self._one(s.actions, agent_id, action_id)
-            source_run = self._one(s.runs, agent_id, action["run_id"])
-            session = self._one(s.sessions, agent_id, source_run["session_id"])
-            incoming = self._one(s.messages, agent_id, source_run["input_message_id"])
-            result = action["result"] or {}
+            source_run = self._one(s.runs, agent_id, cast(str, action["run_id"]))
+            session = self._one(s.sessions, agent_id, cast(str, source_run["session_id"]))
+            incoming = self._one(s.messages, agent_id, cast(str, source_run["input_message_id"]))
+            result = cast(Record, action["result"] or {})
             if (
                 action["state"] != "ok"
                 or not quote
                 or quote not in str(result.get("text", ""))
-                or result.get("data", {}).get("erased")
+                or cast(Record, result.get("data", {})).get("erased")
             ):
                 raise BusinessError("invalid_evidence", "Tool evidence requires an exact successful result", status=422)
             if model_authored and (
-                action["run_id"] != source_run_id or incoming["seq"] <= session["context_floor_seq"]
+                action["run_id"] != source_run_id
+                or cast(int, incoming["seq"]) <= cast(int, session["context_floor_seq"])
             ):
                 raise BusinessError(
                     "evidence_required", "Tool evidence must be observed in the current live run", status=422
@@ -147,7 +151,7 @@ class MemoryRepositories(DocumentRepositories):
         action_id: str | None = None,
         document_revision_id: str | None = None,
         source_run_id: str | None = None,
-    ) -> dict[str, Any]:
+    ) -> Record:
         if (
             not content.strip()
             or len(content) > 20_000
@@ -185,8 +189,8 @@ class MemoryRepositories(DocumentRepositories):
         )
         self._evidence(
             agent_id,
-            entry["id"],
-            revision["id"],
+            cast(str, entry["id"]),
+            cast(str, revision["id"]),
             message_id=message_id,
             quote=quote,
             object_id=object_id,
@@ -207,14 +211,14 @@ class MemoryRepositories(DocumentRepositories):
         *,
         object_id: str | None = None,
         quote: str = "",
-    ) -> dict[str, Any]:
+    ) -> Record:
         row = self._one(s.memory_entries, agent_id, memory_id)
         if row["deleted_at"]:
             raise BusinessError("memory_deleted", "Memory was forgotten", status=410)
         if row["revision"] != revision:
             raise BusinessError("revision_conflict", "Memory changed; reload before saving")
         if row["person_id"]:
-            self._live_person(agent_id, row["person_id"])
+            self._live_person(agent_id, cast(str, row["person_id"]))
         if not content.strip() or len(content) > 20_000:
             raise BusinessError("invalid_memory", "Memory must contain bounded text", status=422)
         self.connection.execute(
@@ -225,8 +229,8 @@ class MemoryRepositories(DocumentRepositories):
         version = self._record(
             s.memory_revisions, {"memory_id": memory_id, "revision": revision + 1, "content": content}, agent_id
         )
-        self._evidence(agent_id, memory_id, version["id"], object_id=object_id, quote=quote)
-        self._touch_person(row["person_id"])
+        self._evidence(agent_id, memory_id, cast(str, version["id"]), object_id=object_id, quote=quote)
+        self._touch_person(cast(str | None, row["person_id"]))
         self.audit(agent_id, "memory.revised", memory_id, {"revision": revision + 1})
         return self._one(s.memory_entries, agent_id, memory_id)
 
@@ -236,7 +240,7 @@ class MemoryRepositories(DocumentRepositories):
             return
         if revision is not None and root["revision"] != revision:
             raise BusinessError("revision_conflict", "Memory changed before it could be forgotten")
-        pending, seen, invalidated = {memory_id}, set(), set()
+        pending, seen, invalidated = {memory_id}, cast(set[str], set()), cast(set[str], set())
         while pending:
             identity = pending.pop()
             if identity in seen:
@@ -261,15 +265,18 @@ class MemoryRepositories(DocumentRepositories):
             return
         if revision is not None and entry["revision"] != revision:
             raise BusinessError("revision_conflict", "Memory changed before it could be forgotten")
-        hashes = set(
-            self.connection.execute(
-                select(s.source_anchors.c.source_hash).where(
-                    s.source_anchors.c.agent_id == agent_id, s.source_anchors.c.memory_id == memory_id
-                )
-            ).scalars()
+        hashes = cast(
+            set[str],
+            set(
+                self.connection.execute(
+                    select(s.source_anchors.c.source_hash).where(
+                        s.source_anchors.c.agent_id == agent_id, s.source_anchors.c.memory_id == memory_id
+                    )
+                ).scalars()
+            ),
         ) - {""}
         hashes.update(
-            content_fingerprint(content)
+            content_fingerprint(cast(str, content))
             for content in self.connection.execute(
                 select(s.memory_revisions.c.content).where(s.memory_revisions.c.memory_id == memory_id)
             ).scalars()
@@ -285,7 +292,7 @@ class MemoryRepositories(DocumentRepositories):
         self.connection.execute(
             update(s.memory_entries)
             .where(s.memory_entries.c.id == memory_id)
-            .values(content="", deleted_at=self.clock.now(), revision=entry["revision"] + 1)
+            .values(content="", deleted_at=self.clock.now(), revision=cast(int, entry["revision"]) + 1)
         )
         self.connection.execute(
             update(s.memory_revisions).where(s.memory_revisions.c.memory_id == memory_id).values(content="")
@@ -293,10 +300,10 @@ class MemoryRepositories(DocumentRepositories):
         # Dropping evidence releases object references. Hash-only tombstones
         # prevent extraction of the same source without retaining its raw quote.
         self.connection.execute(delete(s.source_anchors).where(s.source_anchors.c.memory_id == memory_id))
-        self._touch_person(entry["person_id"])
+        self._touch_person(cast(str | None, entry["person_id"]))
         self.audit(agent_id, "memory.forgotten", memory_id, {})
 
-    def memory_history(self, agent_id: str, memory_id: str, after: int = 0, limit: int = 50) -> list[dict]:
+    def memory_history(self, agent_id: str, memory_id: str, after: int = 0, limit: int = 50) -> list[Record]:
         entry = self._one(s.memory_entries, agent_id, memory_id)
         rows = self.connection.execute(
             select(s.memory_revisions)
@@ -308,20 +315,20 @@ class MemoryRepositories(DocumentRepositories):
             .order_by(s.memory_revisions.c.revision)
             .limit(min(100, max(1, limit)))
         ).mappings()
-        result = []
+        result: list[Record] = []
         for row in rows:
             sources = [
-                dict(r)
+                cast(Record, dict(r))
                 for r in self.connection.execute(
                     select(s.source_anchors).where(s.source_anchors.c.memory_revision_id == row["id"])
                 ).mappings()
             ]
-            result.append({**dict(row), "sources": sources, "erased": entry["deleted_at"] is not None})
+            result.append(cast(Record, {**dict(row), "sources": sources, "erased": entry["deleted_at"] is not None}))
         return result
 
     def search_memory(
         self, agent_id: str, query: str, limit: int = 20, *, include_documents: bool = False
-    ) -> list[dict]:
+    ) -> list[Record]:
         if not self.connection.execute(select(s.agents.c.id).where(s.agents.c.id == agent_id)).first():
             raise BusinessError("not_found", "Agent does not exist", status=404)
         if not query.strip():
@@ -351,7 +358,7 @@ class MemoryRepositories(DocumentRepositories):
                 .all()
             )
             if matches:
-                return [dict(row) for row in matches]
+                return [cast(Record, dict(row)) for row in matches]
         statement = (
             select(s.memory_entries)
             .where(
@@ -365,4 +372,4 @@ class MemoryRepositories(DocumentRepositories):
             )
             .limit(min(100, max(1, limit)))
         )
-        return [dict(row) for row in self.connection.execute(statement).mappings()]
+        return [cast(Record, dict(row)) for row in self.connection.execute(statement).mappings()]
