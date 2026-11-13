@@ -6,6 +6,7 @@ import asyncio
 import logging
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
+from typing import cast
 
 from ..application.ports import Record
 
@@ -23,8 +24,8 @@ class Lifetime:
     def __init__(self) -> None:
         self._steps: dict[str, CloseStep] = {}
         self._stops: dict[str, Callable[[], None]] = {}
-        self._tasks: dict[str, asyncio.Task] = {}
-        self._coordinator: asyncio.Task | None = None
+        self._tasks: dict[str, asyncio.Task[object]] = {}
+        self._coordinator: asyncio.Task[Record] | None = None
         self.closing = self.complete = False
         self.residual: list[str] = []
 
@@ -38,20 +39,22 @@ class Lifetime:
             self._stops[name] = stop
 
     @staticmethod
-    def _successful(task: asyncio.Task) -> bool:
+    def _successful(task: asyncio.Task[object]) -> bool:
         if not task.done() or task.cancelled() or task.exception() is not None:
             return False
         value = task.result()
-        return value.get("complete") is True if isinstance(value, dict) else value is None or value is True
+        if isinstance(value, dict):
+            return cast(dict[str, object], value).get("complete") is True
+        return value is None or value is True
 
     async def _close_step(self, name: str, remaining: float) -> object:
         return await self._steps[name].close(remaining)
 
-    async def _perform(self, timeout_s: float) -> dict:
+    async def _perform(self, timeout_s: float) -> Record:
         deadline = asyncio.get_running_loop().time() + max(0, timeout_s)
         for phase in sorted({step.phase for step in self._steps.values()}):
             names = [step.name for step in self._steps.values() if step.phase == phase]
-            inherited = set()
+            inherited: set[str] = set()
             for name in names:
                 task = self._tasks.get(name)
                 if task is not None and not task.done():
@@ -96,15 +99,15 @@ class Lifetime:
                                 "error_code": type(task.exception()).__name__,
                             },
                         )
-                return {"complete": False, "residual": list(self.residual)}
+                return cast(Record, {"complete": False, "residual": list(self.residual)})
         self.complete = True
         self.residual = []
-        return {"complete": True, "residual": []}
+        return cast(Record, {"complete": True, "residual": []})
 
-    async def close(self, timeout_s: float = 30) -> dict:
+    async def close(self, timeout_s: float = 30) -> Record:
         deadline = asyncio.get_running_loop().time() + max(0, timeout_s)
         if self.complete:
-            return {"complete": True, "residual": []}
+            return cast(Record, {"complete": True, "residual": []})
         self.stop_accepting()
         reused = self._coordinator is not None and not self._coordinator.done()
         if self._coordinator is None or self._coordinator.done():
@@ -113,7 +116,7 @@ class Lifetime:
         _, pending = await asyncio.wait((coordinator,), timeout=max(0, timeout_s))
         if pending:
             residual = [name for name, task in self._tasks.items() if not self._successful(task)]
-            return {"complete": False, "residual": residual or ["shutdown_coordinator"]}
+            return cast(Record, {"complete": False, "residual": residual or ["shutdown_coordinator"]})
         result = coordinator.result()
         remaining = max(0, deadline - asyncio.get_running_loop().time())
         if reused and not result["complete"] and remaining:
@@ -152,7 +155,10 @@ async def close_until_quiescent(
         if not warned:
             log.warning(
                 "Shutdown budget exhausted; actual cleanup remains owned",
-                extra={"event": "runtime.shutdown_pending", "residual_count": len(result.get("residual", []))},
+                extra={
+                    "event": "runtime.shutdown_pending",
+                    "residual_count": len(pending) if isinstance((pending := result.get("residual")), list) else 0,
+                },
             )
             warned = True
         await asyncio.sleep(0.25)
