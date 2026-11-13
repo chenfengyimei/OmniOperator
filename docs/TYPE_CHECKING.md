@@ -231,6 +231,7 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 | `agent/src/omni/adapters/persistence/schema.py` | 关系表结构定义（列/约束辅助函数显式 SchemaItem 与列泛型，DDL 不变） |
 | `agent/src/omni/adapters/persistence/android_repository.py` | 设备授权/运行访问仓储（显式 Record、跨模块聚合与设置 Any 桥接） |
 | `agent/src/omni/adapters/persistence/android_unicode_repository.py` | 输入助手配置/IME 恢复义务仓储（显式 Record、跨模块聚合 Any 桥接） |
+| `agent/src/omni/adapters/persistence/history_pruning_cycle.py` | 历史裁剪单事务算法（计划/目标 Record、目标键 str\|int 收窄、基类写入 Any 桥接） |
 | `agent/src/omni/adapters/persistence/history_repository.py` | 历史游标分页仓储 |
 | `agent/src/omni/adapters/persistence/migrations/versions/v0006.py` | 冻结迁移版本 v0006（文档来源与索引） |
 | `agent/src/omni/adapters/persistence/migrations/versions/v0027.py` | 冻结迁移版本 v0027（QQ 入站归属） |
@@ -307,7 +308,7 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 | --- | --- |
 | `agent/src/omni/domain`（全部 53 文件） | 2321 |
 
-`service_control.py`（94）已在纳入 strict 前清零；`model_stream.py`（75）、`context.py`（38）、`recovery_authority.py`（27）、`memory_semantics.py`（19）、`foreground.py`（24）、`metering.py`（19）与 `release_fence.py`（16）同样已清零，基线表中不再列逐文件例外。`application/` 已全部纳入（44/44 个模块）、`adapters/` 172 个模块；`composition/` 已全部纳入（13/13 个模块，守卫允许层已加入 composition）；`agent/tests/` 尚未开始 strict。
+`service_control.py`（94）已在纳入 strict 前清零；`model_stream.py`（75）、`context.py`（38）、`recovery_authority.py`（27）、`memory_semantics.py`（19）、`foreground.py`（24）、`metering.py`（19）与 `release_fence.py`（16）同样已清零，基线表中不再列逐文件例外。`application/` 已全部纳入（44/44 个模块）、`adapters/` 173 个模块；`composition/` 已全部纳入（13/13 个模块，守卫允许层已加入 composition）；`agent/tests/` 尚未开始 strict。
 
 ### 3.1 剩余 adapters 错误数（本源码版本，仅记录）
 

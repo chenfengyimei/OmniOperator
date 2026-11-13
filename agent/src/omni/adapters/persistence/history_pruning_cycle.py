@@ -4,10 +4,11 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, cast
 
 from sqlalchemy import Table, delete, func, insert, select, update
 
+from ...application.ports import Record
 from ...domain.contracts import BusinessError
 from ...domain.retention import body_fingerprint
 from . import schema as s
@@ -30,21 +31,19 @@ class PruningSpec:
 
 
 class PruningCycle:
-    def __init__(
-        self, unit: RepositoryBase, spec: PruningSpec, resolve: Callable[..., dict[str, Any]]
-    ) -> None:
+    def __init__(self, unit: RepositoryBase, spec: PruningSpec, resolve: Callable[..., dict[str, Any]]) -> None:
         self.unit, self.spec, self.resolve = unit, spec, resolve
         self.connection = unit.connection
 
-    def batch(self, identity: str) -> dict[str, Any] | None:
+    def batch(self, identity: str) -> Record | None:
         row = (
             self.connection.execute(select(self.spec.batches).where(self.spec.batches.c.id == identity))
             .mappings()
             .first()
         )
-        return dict(row) if row else None
+        return cast(Record, dict(row)) if row else None
 
-    def bound_batch(self, plan: dict, *, cancelling: bool = False) -> dict | None:
+    def bound_batch(self, plan: Record, *, cancelling: bool = False) -> Record | None:
         sha = self.spec.validate(plan, self.unit.clock.now(), allow_future=cancelling)
         instance = self.connection.execute(select(s.instances.c.id)).scalar_one()
         version = self.connection.exec_driver_sql("SELECT version_num FROM alembic_version").scalar_one()
@@ -52,7 +51,7 @@ class PruningCycle:
             raise BusinessError(f"{self.spec.prefix}_identity_mismatch", "Plan belongs to another instance or schema")
         if not self.connection.execute(select(s.agents.c.id).where(s.agents.c.id == plan["agent_id"])).first():
             raise BusinessError(f"{self.spec.prefix}_identity_mismatch", "Plan Agent does not exist in this instance")
-        batch = self.batch(plan["id"])
+        batch = self.batch(cast(str, plan["id"]))
         if batch and (batch["plan_sha256"] != sha or batch["agent_id"] != plan["agent_id"]):
             raise BusinessError(f"{self.spec.prefix}_conflict", "Persisted plan identity changed")
         if not cancelling:
@@ -70,18 +69,19 @@ class PruningCycle:
                 raise BusinessError(f"{self.spec.prefix}_conflict", "The history maintenance plan was cancelled")
         return batch
 
-    def progress(self, plan: dict, batch: dict | None) -> dict[str | int, dict]:
-        rows = {
-            row[self.spec.target_key]: dict(row)
+    def progress(self, plan: Record, batch: Record | None) -> dict[str | int, Record]:
+        rows: dict[str | int, Record] = {
+            cast(str | int, row[self.spec.target_key]): cast(Record, dict(row))
             for row in self.connection.execute(
                 select(self.spec.targets).where(self.spec.targets.c.batch_id == plan["id"])
             ).mappings()
         }
-        expected = {target[self.spec.target_key] for target in plan["targets"]}
+        targets = cast(list[Record], plan["targets"])
+        expected = {cast(str | int, target[self.spec.target_key]) for target in targets}
         if (batch and set(rows) != expected) or (not batch and rows):
             raise BusinessError(f"{self.spec.prefix}_conflict", "Persisted target set differs from the reviewed plan")
-        for target in plan["targets"]:
-            old = rows.get(target[self.spec.target_key])
+        for target in targets:
+            old = rows.get(cast(str | int, target[self.spec.target_key]))
             if old and any(old[key] != value for key, value in target.items()):
                 raise BusinessError(
                     f"{self.spec.prefix}_conflict", "Persisted target identity differs from the reviewed plan"
@@ -95,13 +95,13 @@ class PruningCycle:
                 )
             ).scalar_one()
             deleted = sum(row["state"] == "deleted" for row in rows.values())
-            if current != plan["trim_revision"] + deleted:
+            if current != cast(int, plan["trim_revision"]) + deleted:
                 raise BusinessError(
                     f"{self.spec.prefix}_history_changed", "History changed outside this maintenance plan"
                 )
         return rows
 
-    def recheck(self, plan: dict, target: dict, progress: dict | None) -> bool:
+    def recheck(self, plan: Record, target: Record, progress: Record | None) -> bool:
         if progress and progress["state"] == "deleted":
             if self.connection.execute(
                 select(self.spec.source.c[self.spec.source_key]).where(
@@ -117,7 +117,7 @@ class PruningCycle:
             raise BusinessError(f"{self.spec.prefix}_conflict", "History content, subject or pruning proof changed")
         return True
 
-    def validate(self, plan: dict[str, Any]) -> None:
+    def validate(self, plan: Record) -> None:
         batch = self.bound_batch(plan)
         other = self.connection.execute(
             select(self.spec.batches.c.id)
@@ -139,21 +139,22 @@ class PruningCycle:
         if (other or peer) and (not batch or batch["state"] != "complete"):
             raise BusinessError(f"{self.spec.prefix}_conflict", "Another history maintenance plan owns this Agent")
         rows = self.progress(plan, batch)
-        for target in plan["targets"]:
-            pending = self.recheck(plan, target, rows.get(target[self.spec.target_key]))
+        for target in cast(list[Record], plan["targets"]):
+            pending = self.recheck(plan, target, rows.get(cast(str | int, target[self.spec.target_key])))
             if batch and batch["state"] == "complete" and pending:
                 raise BusinessError(f"{self.spec.prefix}_conflict", "Complete receipt has an undeleted target")
 
-    def prepare(self, plan: dict[str, Any], backup_path: str, backup_sha256: str) -> dict[str, Any]:
+    def prepare(self, plan: Record, backup_path: str, backup_sha256: str) -> Record:
         self.validate(plan)
-        batch = self.batch(plan["id"])
+        batch = self.batch(cast(str, plan["id"]))
         if batch:
             if batch["backup_path"] != backup_path or batch["backup_sha256"] != backup_sha256:
                 raise BusinessError(
                     f"{self.spec.prefix}_backup_changed", "Resume requires the original verified snapshot"
                 )
             return batch
-        batch = self.unit._record(
+        unit: Any = self.unit
+        batch = unit._record(
             self.spec.batches,
             {
                 "id": plan["id"],
@@ -175,28 +176,28 @@ class PruningCycle:
                 "backup_sha256": backup_sha256,
                 "state": "prepared",
             },
-            plan["agent_id"],
+            cast(str, plan["agent_id"]),
         )
-        for target in plan["targets"]:
+        for target in cast(list[Record], plan["targets"]):
             self.connection.execute(insert(self.spec.targets).values(batch_id=plan["id"], state="pending", **target))
         self.unit.audit(
-            plan["agent_id"],
+            cast(str, plan["agent_id"]),
             f"{self.spec.prefix}.prepared",
-            plan["id"],
+            cast(str, plan["id"]),
             {
-                "targets": len(plan["targets"]),
+                "targets": len(cast(list[Record], plan["targets"])),
                 "plan_sha256": batch["plan_sha256"],
                 "backup_sha256": backup_sha256,
             },
         )
         return batch
 
-    def prune(self, plan: dict[str, Any], target: dict[str, Any]) -> None:
+    def prune(self, plan: Record, target: Record) -> None:
         batch = self.bound_batch(plan)
-        if not batch or target not in plan["targets"]:
+        if not batch or target not in cast(list[Record], plan["targets"]):
             raise BusinessError(f"{self.spec.prefix}_conflict", "Deletion requires an original prepared target")
         rows = self.progress(plan, batch)
-        progress = rows.get(target[self.spec.target_key])
+        progress = rows.get(cast(str | int, target[self.spec.target_key]))
         if not self.recheck(plan, target, progress):
             return
         if batch["state"] != "prepared" or not progress:
@@ -219,9 +220,9 @@ class PruningCycle:
             .values(state="deleted", ended_at=self.unit.clock.now())
         )
         self.unit.audit(
-            plan["agent_id"],
+            cast(str, plan["agent_id"]),
             f"{self.spec.prefix}.deleted",
-            plan["id"],
+            cast(str, plan["id"]),
             {
                 self.spec.target_key: target[self.spec.target_key],
                 "sequence": target["sequence"],
@@ -230,7 +231,7 @@ class PruningCycle:
             },
         )
 
-    def complete(self, identity: str) -> dict[str, Any]:
+    def complete(self, identity: str) -> Record:
         batch = self.batch(identity)
         if not batch or batch["state"] == "cancelled":
             raise BusinessError(f"{self.spec.prefix}_conflict", "Completion requires an active original plan")
@@ -250,14 +251,16 @@ class PruningCycle:
                     s.history_scopes.c.kind == self.spec.stream, s.history_scopes.c.scope_id == batch["agent_id"]
                 )
             ).scalar_one()
-            if current_revision != batch["trim_revision"] + len(states):
+            if current_revision != cast(int, batch["trim_revision"]) + len(states):
                 raise BusinessError(f"{self.spec.prefix}_history_changed", "History changed before completion")
             self.connection.execute(
                 update(self.spec.batches)
                 .where(self.spec.batches.c.id == identity)
                 .values(state="complete", completed_at=self.unit.clock.now())
             )
-            self.unit.audit(batch["agent_id"], f"{self.spec.prefix}.completed", identity, {"deleted": len(states)})
+            self.unit.audit(
+                cast(str, batch["agent_id"]), f"{self.spec.prefix}.completed", identity, {"deleted": len(states)}
+            )
         return {
             "plan_id": identity,
             "complete": True,
@@ -266,9 +269,9 @@ class PruningCycle:
             "business_records_deleted": False,
         }
 
-    def cancel(self, plan: dict[str, Any], reason: str) -> dict[str, Any]:
+    def cancel(self, plan: Record, reason: str) -> Record:
         batch = self.bound_batch(plan, cancelling=True)
-        if not isinstance(reason, str) or not 1 <= len(reason.strip()) <= 500:
+        if not isinstance(cast(object, reason), str) or not 1 <= len(reason.strip()) <= 500:
             raise BusinessError(
                 f"{self.spec.prefix}_invalid", "Cancellation needs a reason of 1 to 500 characters", status=422
             )
@@ -289,9 +292,9 @@ class PruningCycle:
                 .values(state="cancelled", completed_at=self.unit.clock.now())
             )
             self.unit.audit(
-                plan["agent_id"],
+                cast(str, plan["agent_id"]),
                 f"{self.spec.prefix}.cancelled",
-                plan["id"],
+                cast(str, plan["id"]),
                 {"reason": reason.strip(), self.spec.restored_field: False},
             )
         deleted = self.connection.execute(
