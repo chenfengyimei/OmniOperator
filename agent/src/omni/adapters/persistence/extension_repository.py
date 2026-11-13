@@ -3,9 +3,11 @@
 from __future__ import annotations
 
 import re
+from typing import cast
 
-from sqlalchemy import and_, func, select, update
+from sqlalchemy import Select, and_, func, select, update
 
+from ...application.ports import Record
 from ...domain.contracts import BusinessError, ToolSpec
 from ...domain.extensions import (
     MAX_FILE_BYTES,
@@ -38,22 +40,26 @@ class ExtensionRepositories(RepositoryBase):
             raise BusinessError("not_found", "Agent space does not exist", status=404)
 
     def _extension_epoch(self) -> str:
-        return self.connection.execute(select(s.history_identity.c.epoch)).scalar_one()
+        return cast(str, self.connection.execute(select(s.history_identity.c.epoch)).scalar_one())
 
     @staticmethod
     def _extension_denied() -> BusinessError:
         return BusinessError("extension_not_authorized", "Plugin authorization changed; use a newly authorized run")
 
-    def _extension_version(self, slot: dict, revision_id: str | None = None) -> dict:
-        version = self._one(s.extension_revisions, slot["agent_id"], revision_id or slot["current_revision_id"])
+    def _extension_version(self, slot: Record, revision_id: str | None = None) -> Record:
+        version = self._one(
+            s.extension_revisions,
+            cast(str, slot["agent_id"]),
+            revision_id or cast(str, slot["current_revision_id"]),
+        )
         if version["extension_id"] != slot["id"]:
             raise self._extension_denied()
         return version
 
-    def _extension_detail(self, slot: dict, revision_id: str | None = None) -> dict:
+    def _extension_detail(self, slot: Record, revision_id: str | None = None) -> Record:
         version, epoch = self._extension_version(slot, revision_id), self._extension_epoch()
         tools = [
-            dict(row)
+            cast(Record, dict(row))
             for row in self.connection.execute(
                 select(s.extension_tools)
                 .where(
@@ -66,7 +72,7 @@ class ExtensionRepositories(RepositoryBase):
             ).mappings()
         ]
         grants = {
-            row["tool_id"]: dict(row)
+            cast(str, row["tool_id"]): cast(Record, dict(row))
             for row in self.connection.execute(
                 select(s.grants)
                 .where(
@@ -82,41 +88,46 @@ class ExtensionRepositories(RepositoryBase):
         }
         current = slot["current_revision_id"] == version["id"]
         enabled = current and slot["enabled"] and slot["state"] == "enabled"
-        return {
-            **slot,
-            "extension_id": slot["id"],
-            "extension_revision_id": version["id"],
-            "version": version["version"],
-            "plugin_key": version["manifest"]["id"],
-            "protocol": version["protocol"],
-            "package_sha256": version["package_sha256"],
-            "catalog_sha256": version["catalog_sha256"],
-            "object_id": version["object_id"],
-            "manifest": version["manifest"],
-            "files": version["files"],
-            "entry": version["entry"],
-            "file_count": version["file_count"],
-            "total_bytes": version["total_bytes"],
-            "history_epoch": epoch,
-            "is_current_version": current,
-            "tools": [
-                {
-                    **tool,
-                    "granted": bool(enabled and tool["id"] in grants),
-                    "grant_id": grants[tool["id"]]["id"] if enabled and tool["id"] in grants else None,
-                }
-                for tool in tools
-            ],
-        }
+        return cast(
+            Record,
+            {
+                **slot,
+                "extension_id": slot["id"],
+                "extension_revision_id": version["id"],
+                "version": version["version"],
+                "plugin_key": cast(Record, version["manifest"])["id"],
+                "protocol": version["protocol"],
+                "package_sha256": version["package_sha256"],
+                "catalog_sha256": version["catalog_sha256"],
+                "object_id": version["object_id"],
+                "manifest": version["manifest"],
+                "files": version["files"],
+                "entry": version["entry"],
+                "file_count": version["file_count"],
+                "total_bytes": version["total_bytes"],
+                "history_epoch": epoch,
+                "is_current_version": current,
+                "tools": [
+                    {
+                        **tool,
+                        "granted": bool(enabled and cast(str, tool["id"]) in grants),
+                        "grant_id": grants[cast(str, tool["id"])]["id"]
+                        if enabled and cast(str, tool["id"]) in grants
+                        else None,
+                    }
+                    for tool in tools
+                ],
+            },
+        )
 
-    def extension_get(self, agent_id: str, extension_id: str) -> dict:
+    def extension_get(self, agent_id: str, extension_id: str) -> Record:
         return self._extension_detail(self._one(s.extensions, agent_id, extension_id))
 
-    def extension_page(self, agent_id: str, after: int = 0, limit: int = 20) -> list[dict]:
+    def extension_page(self, agent_id: str, after: int = 0, limit: int = 20) -> list[Record]:
         page(after, limit)
         self._extension_agent(agent_id)
         return [
-            self._extension_detail(dict(row))
+            self._extension_detail(cast(Record, dict(row)))
             for row in self.connection.execute(
                 select(s.extensions)
                 .where(
@@ -128,10 +139,15 @@ class ExtensionRepositories(RepositoryBase):
             ).mappings()
         ]
 
-    def extension_action_page(self, agent_id: str, extension_id: str, after: str = "", limit: int = 20) -> list[dict]:
+    def extension_action_page(self, agent_id: str, extension_id: str, after: str = "", limit: int = 20) -> list[Record]:
         """Owner-visible action evidence for one plugin; text and arguments stay in the action row."""
         self._one(s.extensions, agent_id, extension_id)
-        if not isinstance(after, str) or len(after) > 36 or type(limit) is not int or not 1 <= limit <= 50:
+        if (
+            not isinstance(cast(object, after), str)
+            or len(after) > 36
+            or type(limit) is not int
+            or not 1 <= limit <= 50
+        ):
             raise BusinessError("invalid_extension_query", "Bounded action cursor and limit are required", status=422)
         rows = self.connection.execute(
             select(
@@ -164,9 +180,9 @@ class ExtensionRepositories(RepositoryBase):
             .order_by(s.actions.c.id)
             .limit(limit)
         ).mappings()
-        return [dict(row) for row in rows]
+        return [cast(Record, dict(row)) for row in rows]
 
-    def extension_install_replay(self, agent_id: str, key: str, request_sha: str) -> dict | None:
+    def extension_install_replay(self, agent_id: str, key: str, request_sha: str) -> Record | None:
         self._extension_agent(agent_id)
         previous = (
             self.connection.execute(
@@ -182,15 +198,15 @@ class ExtensionRepositories(RepositoryBase):
             return None
         if previous["request_sha256"] != request_sha:
             raise BusinessError("idempotency_conflict", "This key already identifies another plugin installation")
-        slot = self._one(s.extensions, agent_id, previous["extension_id"])
+        slot = self._one(s.extensions, agent_id, cast(str, previous["extension_id"]))
         return {
-            **self._extension_detail(slot, previous["extension_revision_id"]),
+            **self._extension_detail(slot, cast(str, previous["extension_revision_id"])),
             "replayed": True,
             "cancel_operations": [],
             "retired_authority_epoch": 0,
         }
 
-    def _extension_change(self, slot: dict, **values) -> dict:
+    def _extension_change(self, slot: Record, **values: object) -> Record:
         changed = self.connection.execute(
             update(s.extensions)
             .where(
@@ -199,18 +215,18 @@ class ExtensionRepositories(RepositoryBase):
                 s.extensions.c.revision == slot["revision"],
             )
             .values(
-                revision=slot["revision"] + 1,
-                authority_epoch=slot["authority_epoch"] + 1,
+                revision=cast(int, slot["revision"]) + 1,
+                authority_epoch=cast(int, slot["authority_epoch"]) + 1,
                 updated_at=self.clock.now(),
                 **values,
             )
         ).rowcount
         if changed != 1:
             raise BusinessError("revision_conflict", "Plugin changed; reload before editing")
-        return self._one(s.extensions, slot["agent_id"], slot["id"])
+        return self._one(s.extensions, cast(str, slot["agent_id"]), cast(str, slot["id"]))
 
-    def _extension_revoke(self, slot: dict) -> list[str]:
-        now, agent = self.clock.now(), slot["agent_id"]
+    def _extension_revoke(self, slot: Record) -> list[str]:
+        now, agent = self.clock.now(), cast(str, slot["agent_id"])
         self.connection.execute(
             update(s.grants)
             .where(s.grants.c.agent_id == agent, s.grants.c.extension_id == slot["id"], s.grants.c.revoked_at.is_(None))
@@ -228,7 +244,7 @@ class ExtensionRepositories(RepositoryBase):
             .where(s.action_extension_bindings.c.agent_id == agent, s.run_extension_tools.c.extension_id == slot["id"])
         )
         pending = [
-            dict(row)
+            cast(Record, dict(row))
             for row in self.connection.execute(
                 select(s.actions.c.id, s.actions.c.run_id).where(
                     s.actions.c.agent_id == agent,
@@ -237,12 +253,17 @@ class ExtensionRepositories(RepositoryBase):
                 )
             ).mappings()
         ]
-        executing = list(
-            self.connection.execute(
-                select(s.actions.c.id).where(
-                    s.actions.c.agent_id == agent, s.actions.c.id.in_(actions), s.actions.c.state == "executing"
-                )
-            ).scalars()
+        executing = cast(
+            list[str],
+            list(
+                self.connection.execute(
+                    select(s.actions.c.id).where(
+                        s.actions.c.agent_id == agent,
+                        s.actions.c.id.in_(actions),
+                        s.actions.c.state == "executing",
+                    )
+                ).scalars()
+            ),
         )
         if pending:
             ids = [row["id"] for row in pending]
@@ -266,10 +287,10 @@ class ExtensionRepositories(RepositoryBase):
             )
         return executing
 
-    def extension_install(self, agent_id: str, request: dict, captured: dict, object_id: str) -> dict:
+    def extension_install(self, agent_id: str, request: Record, captured: Record, object_id: str) -> Record:
         normalized = parse_install(request)
         sha = request_fingerprint(normalized)
-        replay = self.extension_install_replay(agent_id, normalized["key"], sha)
+        replay = self.extension_install_replay(agent_id, cast(str, normalized["key"]), sha)
         if replay is not None:
             return replay
         manifest = parse_manifest(captured["manifest"])
@@ -279,40 +300,45 @@ class ExtensionRepositories(RepositoryBase):
         try:
             if not isinstance(files, (list, tuple)) or not 1 <= len(files) <= MAX_FILES:
                 raise ValueError
-            paths = []
+            paths: list[str] = []
             for item in files:
                 if not isinstance(item, dict) or set(item) != {"path", "bytes", "sha256"}:
                     raise ValueError
-                path = item["path"]
+                entry = cast(dict[str, object], item)
+                path = entry["path"]
                 if (
                     not isinstance(path, str)
                     or not 1 <= len(path) <= 240
                     or "\\" in path
                     or ":" in path
                     or any(part in {"", ".", ".."} for part in path.split("/"))
-                    or type(item["bytes"]) is not int
-                    or not 0 <= item["bytes"] <= MAX_FILE_BYTES
-                    or not isinstance(item["sha256"], str)
-                    or re.fullmatch(r"[0-9a-f]{64}", item["sha256"]) is None
+                    or type(entry["bytes"]) is not int
+                    or not 0 <= entry["bytes"] <= MAX_FILE_BYTES
+                    or not isinstance(entry["sha256"], str)
+                    or re.fullmatch(r"[0-9a-f]{64}", entry["sha256"]) is None
                 ):
                     raise ValueError
                 paths.append(path)
-            if paths != sorted(set(paths)) or "extension.json" not in paths or manifest["entry"] not in paths:
+            if (
+                paths != sorted(set(paths))
+                or "extension.json" not in paths
+                or cast(str, manifest["entry"]) not in paths
+            ):
                 raise ValueError
         except (ValueError, TypeError, KeyError) as exc:
             raise BusinessError(
                 "extension_invalid", "Plugin file manifest exceeds its bounded contract", status=422
             ) from exc
-        total = sum(item["bytes"] for item in files)
+        total = sum(cast(int, cast(dict[str, object], item)["bytes"]) for item in files)
         if total > MAX_PACKAGE_BYTES or total < 1 or catalog_fingerprint(manifest) != captured["catalog_sha256"]:
             raise BusinessError("extension_integrity_failed", "Captured plugin metadata does not match its identity")
         package = self._one(s.objects, agent_id, object_id)
-        if package["sha256"] != captured["package_sha256"] or not 0 < package["bytes"] <= MAX_ARCHIVE_BYTES:
+        if package["sha256"] != captured["package_sha256"] or not 0 < cast(int, package["bytes"]) <= MAX_ARCHIVE_BYTES:
             raise BusinessError(
                 "extension_integrity_failed", "Plugin archive object does not match the captured package"
             )
         if normalized["extension_id"]:
-            slot = self._one(s.extensions, agent_id, normalized["extension_id"])
+            slot = self._one(s.extensions, agent_id, cast(str, normalized["extension_id"]))
             if slot["revision"] != normalized["revision"]:
                 raise BusinessError("revision_conflict", "Plugin changed before installation")
             if slot["name"] != manifest["id"]:
@@ -361,16 +387,20 @@ class ExtensionRepositories(RepositoryBase):
                 },
                 agent_id,
             )
-            cancelled, ordinal, retired = [], 1, 0
+            cancelled, ordinal, retired = cast(list[str], []), 1, 0
         else:
-            retired = slot["authority_epoch"]
+            retired = cast(int, slot["authority_epoch"])
             cancelled = self._extension_revoke(slot)
             ordinal = (
-                self.connection.execute(
-                    select(func.coalesce(func.max(s.extension_revisions.c.ordinal), 0)).where(
-                        s.extension_revisions.c.agent_id == agent_id, s.extension_revisions.c.extension_id == slot["id"]
-                    )
-                ).scalar_one()
+                cast(
+                    int,
+                    self.connection.execute(
+                        select(func.coalesce(func.max(s.extension_revisions.c.ordinal), 0)).where(
+                            s.extension_revisions.c.agent_id == agent_id,
+                            s.extension_revisions.c.extension_id == slot["id"],
+                        )
+                    ).scalar_one(),
+                )
                 + 1
             )
             slot = self._extension_change(
@@ -419,7 +449,7 @@ class ExtensionRepositories(RepositoryBase):
         self.audit(
             agent_id,
             "extension.installed",
-            slot["id"],
+            cast(str, slot["id"]),
             {
                 "extension_revision_id": version_id,
                 "package_sha256": captured["package_sha256"],
@@ -427,14 +457,17 @@ class ExtensionRepositories(RepositoryBase):
                 "tool_count": len(tools),
             },
         )
-        return {
-            **self.extension_get(agent_id, slot["id"]),
-            "replayed": False,
-            "cancel_operations": cancelled,
-            "retired_authority_epoch": retired,
-        }
+        return cast(
+            Record,
+            {
+                **self.extension_get(agent_id, cast(str, slot["id"])),
+                "replayed": False,
+                "cancel_operations": cancelled,
+                "retired_authority_epoch": retired,
+            },
+        )
 
-    def extension_authorize(self, agent_id: str, extension_id: str, request: dict) -> dict:
+    def extension_authorize(self, agent_id: str, extension_id: str, request: Record) -> Record:
         authorization = parse_authorization(request)
         slot = self._one(s.extensions, agent_id, extension_id)
         if slot["revision"] != authorization["revision"]:
@@ -450,7 +483,7 @@ class ExtensionRepositories(RepositoryBase):
         if slot["state"] == "drifted":
             raise BusinessError("extension_drifted", "Reinstall and verify the package before granting it again")
         tools = [
-            dict(row)
+            cast(Record, dict(row))
             for row in self.connection.execute(
                 select(s.extension_tools)
                 .where(
@@ -461,8 +494,9 @@ class ExtensionRepositories(RepositoryBase):
                 .limit(MAX_TOOLS + 1)
             ).mappings()
         ]
-        selected = {tool["name"]: tool for tool in tools if tool["name"] in authorization["tools"]}
-        if len(selected) != len(authorization["tools"]):
+        wanted = cast(list[object], authorization["tools"])
+        selected = {cast(str, tool["name"]): tool for tool in tools if tool["name"] in wanted}
+        if len(selected) != len(wanted):
             raise BusinessError(
                 "extension_invalid", "Authorization must select tools from the exact current catalog", status=422
             )
@@ -487,7 +521,7 @@ class ExtensionRepositories(RepositoryBase):
         ).scalar_one()
         if enabled + len(selected) > MAX_ENABLED_TOOLS:
             raise BusinessError("extension_capacity", "An Agent can enable at most 64 plugin tools", status=422)
-        retired = slot["authority_epoch"]
+        retired = cast(int, slot["authority_epoch"])
         cancelled = self._extension_revoke(slot)
         slot = self._extension_change(slot, enabled=True, state="enabled", error_code="")
         audit_id = self.audit(
@@ -517,38 +551,52 @@ class ExtensionRepositories(RepositoryBase):
                 },
                 agent_id,
             )
-        return {
-            **self.extension_get(agent_id, extension_id),
-            "cancel_operations": cancelled,
-            "retired_authority_epoch": retired,
-        }
+        return cast(
+            Record,
+            {
+                **self.extension_get(agent_id, extension_id),
+                "cancel_operations": cancelled,
+                "retired_authority_epoch": retired,
+            },
+        )
 
-    def extension_disable(self, agent_id: str, extension_id: str, revision: int) -> dict:
+    def extension_disable(self, agent_id: str, extension_id: str, revision: int) -> Record:
         positive_revision(revision)
         slot = self._one(s.extensions, agent_id, extension_id)
         if slot["revision"] != revision:
             raise BusinessError("revision_conflict", "Plugin changed; reload before disabling")
         if not slot["enabled"] and slot["state"] == "disabled":
-            return {**self.extension_get(agent_id, extension_id), "cancel_operations": [], "retired_authority_epoch": 0}
-        retired = slot["authority_epoch"]
+            return {
+                **self.extension_get(agent_id, extension_id),
+                "cancel_operations": [],
+                "retired_authority_epoch": 0,
+            }
+        retired = cast(int, slot["authority_epoch"])
         cancelled = self._extension_revoke(slot)
         slot = self._extension_change(slot, enabled=False, state="disabled", error_code="")
         self.audit(agent_id, "extension.disabled", extension_id, {"authority_epoch": slot["authority_epoch"]})
-        return {
-            **self.extension_get(agent_id, extension_id),
-            "cancel_operations": cancelled,
-            "retired_authority_epoch": retired,
-        }
+        return cast(
+            Record,
+            {
+                **self.extension_get(agent_id, extension_id),
+                "cancel_operations": cancelled,
+                "retired_authority_epoch": retired,
+            },
+        )
 
-    def extension_mark_drift(self, agent_id: str, extension_id: str, revision_id: str, code: str) -> dict:
+    def extension_mark_drift(self, agent_id: str, extension_id: str, revision_id: str, code: str) -> Record:
         slot = self._one(s.extensions, agent_id, extension_id)
         if slot["current_revision_id"] != revision_id or slot["state"] == "drifted":
-            return {**self.extension_get(agent_id, extension_id), "cancel_operations": [], "retired_authority_epoch": 0}
-        retired = slot["authority_epoch"]
+            return {
+                **self.extension_get(agent_id, extension_id),
+                "cancel_operations": [],
+                "retired_authority_epoch": 0,
+            }
+        retired = cast(int, slot["authority_epoch"])
         cancelled = self._extension_revoke(slot)
         error = (
             code
-            if isinstance(code, str) and re.fullmatch(r"[a-z][a-z0-9_]{0,79}", code)
+            if isinstance(cast(object, code), str) and re.fullmatch(r"[a-z][a-z0-9_]{0,79}", code)
             else "extension_integrity_failed"
         )
         slot = self._extension_change(slot, enabled=False, state="drifted", error_code=error)
@@ -558,14 +606,17 @@ class ExtensionRepositories(RepositoryBase):
             extension_id,
             {"extension_revision_id": revision_id, "authority_epoch": slot["authority_epoch"], "error_code": error},
         )
-        return {
-            **self.extension_get(agent_id, extension_id),
-            "cancel_operations": cancelled,
-            "retired_authority_epoch": retired,
-        }
+        return cast(
+            Record,
+            {
+                **self.extension_get(agent_id, extension_id),
+                "cancel_operations": cancelled,
+                "retired_authority_epoch": retired,
+            },
+        )
 
-    def _extension_live_grants(self, agent_id: str):
-        return (
+    def _extension_live_grants(self, agent_id: str) -> Select[tuple[object, ...]]:
+        statement = (
             select(s.grants)
             .join(
                 s.extensions,
@@ -581,6 +632,7 @@ class ExtensionRepositories(RepositoryBase):
                 s.extensions.c.state == "enabled",
             )
         )
+        return cast(Select[tuple[object, ...]], statement)
 
     def extension_capture_run(self, agent_id: str, run_id: str) -> None:
         run = self._one(s.runs, agent_id, run_id)
@@ -590,7 +642,7 @@ class ExtensionRepositories(RepositoryBase):
         if run["state"] != "queued":
             raise self._extension_denied()
         grants = [
-            dict(row)
+            cast(Record, dict(row))
             for row in self.connection.execute(
                 self._extension_live_grants(agent_id).order_by(s.grants.c.id).limit(MAX_ENABLED_TOOLS + 1)
             ).mappings()
@@ -598,7 +650,7 @@ class ExtensionRepositories(RepositoryBase):
         if len(grants) > MAX_ENABLED_TOOLS:
             raise BusinessError("extension_capacity", "Stored plugin grants exceed the per-Agent tool bound")
         for grant in grants:
-            tool = self._one(s.extension_tools, agent_id, grant["tool_id"])
+            tool = self._one(s.extension_tools, agent_id, cast(str, grant["tool_id"]))
             self._record(
                 s.run_extension_tools,
                 {
@@ -619,13 +671,13 @@ class ExtensionRepositories(RepositoryBase):
             .values(extension_capture_epoch=epoch)
         )
 
-    def _extension_binding(self, agent_id: str, binding_id: str) -> dict:
+    def _extension_binding(self, agent_id: str, binding_id: str) -> Record:
         binding = self._one(s.run_extension_tools, agent_id, binding_id)
-        slot = self._one(s.extensions, agent_id, binding["extension_id"])
-        version = self._extension_version(slot, binding["extension_revision_id"])
-        tool = self._one(s.extension_tools, agent_id, binding["tool_id"])
-        grant = self._one(s.grants, agent_id, binding["grant_id"])
-        run = self._one(s.runs, agent_id, binding["run_id"])
+        slot = self._one(s.extensions, agent_id, cast(str, binding["extension_id"]))
+        version = self._extension_version(slot, cast(str, binding["extension_revision_id"]))
+        tool = self._one(s.extension_tools, agent_id, cast(str, binding["tool_id"]))
+        grant = self._one(s.grants, agent_id, cast(str, binding["grant_id"]))
+        run = self._one(s.runs, agent_id, cast(str, binding["run_id"]))
         epoch = self._extension_epoch()
         if (
             not slot["enabled"]
@@ -665,25 +717,28 @@ class ExtensionRepositories(RepositoryBase):
             "entry": version["entry"],
             "file_count": version["file_count"],
             "total_bytes": version["total_bytes"],
-            "plugin_key": version["manifest"]["id"],
+            "plugin_key": cast(Record, version["manifest"])["id"],
         }
 
-    def extension_run_tools(self, agent_id: str, run_id: str) -> list[dict]:
+    def extension_run_tools(self, agent_id: str, run_id: str) -> list[Record]:
         self._one(s.runs, agent_id, run_id)
-        bindings = list(
-            self.connection.execute(
-                select(s.run_extension_tools.c.id)
-                .where(
-                    s.run_extension_tools.c.agent_id == agent_id,
-                    s.run_extension_tools.c.run_id == run_id,
-                )
-                .order_by(s.run_extension_tools.c.name)
-                .limit(MAX_ENABLED_TOOLS + 1)
-            ).scalars()
+        bindings = cast(
+            list[str],
+            list(
+                self.connection.execute(
+                    select(s.run_extension_tools.c.id)
+                    .where(
+                        s.run_extension_tools.c.agent_id == agent_id,
+                        s.run_extension_tools.c.run_id == run_id,
+                    )
+                    .order_by(s.run_extension_tools.c.name)
+                    .limit(MAX_ENABLED_TOOLS + 1)
+                ).scalars()
+            ),
         )
         if len(bindings) > MAX_ENABLED_TOOLS:
             raise BusinessError("extension_capacity", "A run exceeds its captured plugin-tool bound")
-        result = []
+        result: list[Record] = []
         for identity in bindings:
             try:
                 result.append(self._extension_binding(agent_id, identity))
@@ -714,7 +769,7 @@ class ExtensionRepositories(RepositoryBase):
             raise self._extension_denied()
         self._record(s.action_extension_bindings, {"action_id": action_id, "run_tool_id": spec.binding_id}, agent_id)
 
-    def extension_assert_action(self, agent_id: str, action_id: str) -> dict | None:
+    def extension_assert_action(self, agent_id: str, action_id: str) -> Record | None:
         action = self._one(s.actions, agent_id, action_id)
         binding = (
             self.connection.execute(
@@ -727,15 +782,15 @@ class ExtensionRepositories(RepositoryBase):
             .first()
         )
         if binding is None:
-            if action["tool"].startswith("ext__"):
+            if cast(str, action["tool"]).startswith("ext__"):
                 raise self._extension_denied()
             return None
-        captured = self._extension_binding(agent_id, binding["run_tool_id"])
+        captured = self._extension_binding(agent_id, cast(str, binding["run_tool_id"]))
         if captured["run_id"] != action["run_id"] or captured["name"] != action["tool"] or action["writes"] is not True:
             raise self._extension_denied()
         return captured
 
-    def _extension_dispatch_binding(self, agent_id: str, run_id: str, action_id: str, name: str) -> dict:
+    def _extension_dispatch_binding(self, agent_id: str, run_id: str, action_id: str, name: str) -> Record:
         action = self._one(s.actions, agent_id, action_id)
         run = self._one(s.runs, agent_id, run_id)
         if (
