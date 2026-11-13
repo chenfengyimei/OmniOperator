@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "9b17350a0ea879b60192dd5e1e69c30da3649ea5d5711396acd63f0cd3665838",
+  "source_sha256": "c2ed277939a166a174327718dd0f08086253e25f73bc9756c13bce83f8b687cc",
   "modules": [
     {
       "id": "v2-domain",
@@ -404,7 +404,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 53616,
+      "lines": 53648,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -14022,11 +14022,12 @@
       "path": "agent/src/omni/adapters/persistence/event_retention_repository.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.persistence.event_retention_repository",
-      "lines": 300,
+      "lines": 332,
       "imports": [
         "omni.adapters.persistence",
         "omni.adapters.persistence.history_protection",
         "omni.adapters.persistence.history_pruning_cycle",
+        "omni.application.ports",
         "omni.domain.contracts",
         "omni.domain.event_retention",
         "omni.domain.retention"
@@ -14034,14 +14035,14 @@
       "symbols": [
         {
           "name": "_event_columns",
-          "line": 40,
+          "line": 43,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "_event_columns.field",
-          "line": 43,
+          "line": 46,
           "kind": "function",
           "parameters": [
             "name"
@@ -14052,12 +14053,12 @@
         },
         {
           "name": "EventRetentionRepositories",
-          "line": 71,
+          "line": 74,
           "kind": "class"
         },
         {
           "name": "EventRetentionRepositories._event_candidates",
-          "line": 72,
+          "line": 75,
           "kind": "function",
           "parameters": [
             "self",
@@ -14068,14 +14069,14 @@
           ],
           "annotations": {
             "agent_id": "str",
-            "rows": "list[dict]",
+            "rows": "list[Record]",
             "cutoff": "str",
             "batch_id": "str"
           }
         },
         {
           "name": "EventRetentionRepositories.event_retention_preview",
-          "line": 156,
+          "line": 164,
           "kind": "function",
           "parameters": [
             "self",
@@ -14093,7 +14094,7 @@
         },
         {
           "name": "EventRetentionRepositories._event_target",
-          "line": 238,
+          "line": 264,
           "kind": "function",
           "parameters": [
             "self",
@@ -14111,7 +14112,7 @@
         },
         {
           "name": "EventRetentionRepositories.event_retention_plan",
-          "line": 258,
+          "line": 287,
           "kind": "function",
           "parameters": [
             "self",
@@ -14129,7 +14130,7 @@
         },
         {
           "name": "EventRetentionRepositories._event_cycle",
-          "line": 281,
+          "line": 313,
           "kind": "function",
           "parameters": [
             "self"
@@ -14138,7 +14139,7 @@
         },
         {
           "name": "EventRetentionRepositories.event_retention_batch",
-          "line": 284,
+          "line": 316,
           "kind": "function",
           "parameters": [
             "self",
@@ -14150,19 +14151,19 @@
         },
         {
           "name": "EventRetentionRepositories.event_retention_validate",
-          "line": 287,
+          "line": 319,
           "kind": "function",
           "parameters": [
             "self",
             "plan"
           ],
           "annotations": {
-            "plan": "dict"
+            "plan": "Record"
           }
         },
         {
           "name": "EventRetentionRepositories.event_retention_prepare",
-          "line": 290,
+          "line": 322,
           "kind": "function",
           "parameters": [
             "self",
@@ -14171,14 +14172,14 @@
             "backup_sha256"
           ],
           "annotations": {
-            "plan": "dict",
+            "plan": "Record",
             "backup_path": "str",
             "backup_sha256": "str"
           }
         },
         {
           "name": "EventRetentionRepositories.event_retention_delete",
-          "line": 293,
+          "line": 325,
           "kind": "function",
           "parameters": [
             "self",
@@ -14186,13 +14187,13 @@
             "target"
           ],
           "annotations": {
-            "plan": "dict",
-            "target": "dict"
+            "plan": "Record",
+            "target": "Record"
           }
         },
         {
           "name": "EventRetentionRepositories.event_retention_complete",
-          "line": 296,
+          "line": 328,
           "kind": "function",
           "parameters": [
             "self",
@@ -14204,7 +14205,7 @@
         },
         {
           "name": "EventRetentionRepositories.event_retention_cancel",
-          "line": 299,
+          "line": 331,
           "kind": "function",
           "parameters": [
             "self",
@@ -14212,7 +14213,7 @@
             "reason"
           ],
           "annotations": {
-            "plan": "dict",
+            "plan": "Record",
             "reason": "str"
           }
         }
