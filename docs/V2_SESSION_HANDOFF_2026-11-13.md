@@ -21,8 +21,9 @@ Windows 上 V2 底座**可冷启动、可自检、可服务、可跑全量测试
 | 失败性质 | 2 项：串行复跑 **1 过 1 败**（skills_ui[dark-760] 为抖动）；剩 `test_ui_embed_layer` 为**并行 UI 会话提交 `0497fe8` 引入的真实守卫违规**（`ui/v2/v1/frame.css` 副本截至第 15 节点仍未移除），归 UI 会话修，非本批回归 | 见 §5「验收口径」；两份报告留档 |
 | 默认入口 | `V1 until R6 parity gate` | `docs/tasks/v2.json` 的 `default_entrypoints` |
 | 台账 | `status=d7_typecheck_batch_165`、`checkpoint_commit=d20e404`、源码指纹 `abd9d596…`（1206 文件） |
+| 第 25 节点全量 | 4656 项：4655 passed / 1 failed（-n 2，2830.94s）；干净 HEAD 三次对照证实既有 flaky |
 | 第 20 节点全量 | 4656 项：4655 passed / 1 failed（-n 2，3219.56s）；失败项串行复跑通过 |
-| 失败归属 | embed 副本守卫违规由并行 UI 会话 0497fe8 引入；其工作区已删副本但**未提交**，HEAD 仍含 14 处特征；守卫读工作区故串行转绿。非本批回归、非抖动、版本库层面未关闭 | | `docs/tasks/v2.json`、`docs/evidence/v2-typecheck.json` |
+| 失败归属 | 第 25 节点：`test_v2_portal_ui` 授权用例在干净 HEAD 上通过/失败/通过，属既有 flaky，开放项 `test.portal_ui_flaky_on_clean_head`。第 20 节点的 embed 副本守卫本次已通过（UI 会话工作区已移除副本） | | `docs/tasks/v2.json`、`docs/evidence/v2-typecheck.json` |
 | 工作树 | 干净，`codex/architecture-v2` 与 origin 同步（HEAD `e2f72a0` 之后的文档提交） | `git status -sb` |
 
 ## 3. 现在能用什么（Windows，实测）
