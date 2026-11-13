@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "9a574fea6d949f5ad704965e3309d737c78c2ebab34474a5215295b70caf433a",
+  "source_sha256": "75eb835190830f3a7b7f116d8794abd9b9c0e89027cf5c91f2504fb0a48205b9",
   "modules": [
     {
       "id": "v2-domain",
@@ -439,7 +439,7 @@
         "agent/src/omni/composition/service_runner.py",
         "agent/src/omni/composition/serving.py"
       ],
-      "lines": 2971,
+      "lines": 2991,
       "dependencies": [
         "v2-adapters",
         "v2-application",
@@ -58932,7 +58932,7 @@
       "path": "agent/src/omni/composition/instance.py",
       "module": "v2-composition",
       "python_module": "omni.composition.instance",
-      "lines": 735,
+      "lines": 755,
       "imports": [
         "omni.adapters.android",
         "omni.adapters.bilibili",
@@ -59071,8 +59071,44 @@
           "kind": "class"
         },
         {
+          "name": "Instance.database",
+          "line": 181,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "Instance.logging",
+          "line": 186,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "Instance.identity_files",
+          "line": 191,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "Instance.lifetime",
+          "line": 196,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
           "name": "Instance.identity_proof",
-          "line": 219,
+          "line": 239,
           "kind": "function",
           "parameters": [
             "self",
@@ -59084,7 +59120,7 @@
         },
         {
           "name": "Instance.health",
-          "line": 222,
+          "line": 242,
           "kind": "function",
           "parameters": [
             "self"
@@ -59093,7 +59129,7 @@
         },
         {
           "name": "Instance.close",
-          "line": 273,
+          "line": 293,
           "kind": "function",
           "parameters": [
             "self",
@@ -59105,7 +59141,7 @@
         },
         {
           "name": "open_instance",
-          "line": 279,
+          "line": 299,
           "kind": "function",
           "parameters": [
             "home",
