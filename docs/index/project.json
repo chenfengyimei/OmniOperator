@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "e7337a353d04ee9977f0d5a832c0d4291c0da2d77cd70d883934c8f39f0daa63",
+  "source_sha256": "cc71306e755d97678d2c51b718709a911baecea2b23576f4f7a9cedaa47da742",
   "modules": [
     {
       "id": "v2-domain",
@@ -498,7 +498,7 @@
         "web/ui/v2/v1/workbench.css",
         "web/ui/v2/workbench.css"
       ],
-      "lines": 19904,
+      "lines": 19933,
       "dependencies": []
     },
     {
@@ -95617,7 +95617,7 @@
       "path": "web/ui/v2/main.js",
       "module": "v2-workbench",
       "python_module": null,
-      "lines": 1517,
+      "lines": 1546,
       "imports": [],
       "symbols": [],
       "kind": "asset",

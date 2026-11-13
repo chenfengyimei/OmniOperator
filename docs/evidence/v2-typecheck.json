@@ -1674,56 +1674,72 @@
    ]
   },
   "full_run": {
-   "status": "parallel_run_serial_rerun_with_ui_session_guard_violation",
-   "source": "8d859ba (253a5f86) + parallel UI commit 0497fe8",
+   "status": "parallel_run_serial_rerun_passed_after_ui_session_fix",
+   "source": "a32eca4 (5943a967) + parallel UI commit 55ed15da landed during the run",
    "workers": 2,
-   "report": "temp/build/v2-full-155.xml",
-   "report_sha256": "790745cb5137954832494d47d6b6132cf3bc186957e699f84caace335b6b324e",
+   "report": "temp/build/v2-full-160.xml",
+   "report_sha256": "6c37798884e7f0b3af43bc76c10cf4130f403701aa58cfefd6952f5705e7994e",
    "tests": 4656,
-   "passed": 4654,
-   "failed": 2,
+   "passed": 4655,
+   "failed": 1,
    "errors": 0,
-   "duration_s": 3362.06,
+   "duration_s": 3219.56,
    "failure_summary": {
-    "parallel_ui_contention": 1,
     "ui_session_guard_violation": 1
    },
    "serial_rerun": {
-    "report": "temp/build/v2-full-155-serial.xml",
-    "report_sha256": "4c42c1ecca1ae7b71c11f200324a332ea2cc47a2e0af75afcfb2255db376b810",
-    "tests": 2,
+    "report": "temp/build/v2-full-160-serial.xml",
+    "report_sha256": "e16823737575c09272e8bbb5a469eb08594290d7e45872aeafbcda3aadfb73cb",
+    "tests": 1,
     "passed": 1,
-    "failed": 1,
+    "failed": 0,
     "errors": 0,
-    "duration_s": 14.74
+    "duration_s": 1.29
    },
    "details": [
-    "skills_ui[dark-760] 串行复跑通过，确认为 -n 2 资源争用抖动",
-    "test_ui_embed_layer::test_embed_rules_live_only_in_frame_css 串行仍失败：web/ui/v2/v1/frame.css 仍含通用 embed 降级规则副本，由并行 UI 会话提交 0497fe8 引入且尚未移除；非本会话回归，文件所有权归 UI 会话"
+    "并行跑唯一失败 test_ui_embed_layer::test_embed_rules_live_only_in_frame_css：web/ui/v2/v1/frame.css 含通用 embed 降级规则副本，由并行 UI 会话提交 0497fe8 引入；非本会话回归",
+    "串行复跑该项通过，原因是并行 UI 会话在全量运行期间提交 55ed15da 修掉了副本规则，而非资源争用抖动；守卫套件单独复验 14 项全过",
+    "结论：本批（156～160）无功能回归；该守卫项在他方修复后已恢复绿色，节点 15 记录的遗留项可视为已关闭"
    ],
-   "note": "第 15 节点（142～155 批）全量。验收口径：并行跑 + 失败项串行复跑，两份报告留档；不将串行通过写成并行全绿，不将抖动写成功能缺陷，不将他人会话引入的守卫违规写成本批回归。strict 279 文件 0 errors。"
+   "note": "第 20 节点（156～160 批）全量。验收口径：并行跑 + 失败项串行复跑，两份报告留档；不将串行通过写成并行全绿（并行仍记 1 failed），不把他方修复导致的转绿写成抖动，也不将他人会话引入的守卫违规写成本批回归。strict 284 文件 0 errors/0 warnings。"
   },
-  "open_findings": [
-   {
-    "id": "tests.parallel_ui_contention",
-    "status": "open",
-    "scope": "Playwright 重度用例在 -n 2 下偶发失败。第 15 节点全量 2 项失败中 skills_ui[dark-760] 串行复跑通过，确认为资源争用抖动。验收口径：并行跑 + 失败项串行复跑，报告留档；不将串行通过写成并行全绿，不将抖动写成功能缺陷。",
-    "first_report": "temp/build/v2-full-144.xml",
-    "latest_report": "temp/build/v2-full-155.xml"
-   },
-   {
-    "id": "ui.embed_guard_violation_v1_frame_copy",
-    "status": "open",
-    "scope": "并行 UI 会话提交 0497fe8 将 V1 frame.css 复制到 web/ui/v2/v1/frame.css，其中含通用 embed 降级规则副本，触发 test_ui_embed_layer::test_embed_rules_live_only_in_frame_css 守卫。第 10、15 节点全量与串行复跑均失败，属真实守卫违规而非抖动；截至第 15 节点该副本仍未移除。文件所有权归 UI 会话，需由该会话移除副本或调整守卫豁免；本类型化任务不修改前端样式。",
-    "first_report": "temp/build/v2-full-151.xml",
-    "owner": "parallel-ui-session",
-    "latest_report": "temp/build/v2-full-155.xml"
-   }
-  ],
+  "open_findings": [],
   "next": {
    "id": "D7.product_switch",
    "scope": "P1 composition 全层（13/13）、P2 application 全层（44/44）与全部 7 个 Android 模块已完成；P3 已纳入 schema/credential_repository/lease_repository，剩 configuration(94)/repository(187)/delivery(211) 等。strict 279 文件。Real-environment acceptance still pending."
-  }
+  },
+  "full_run_history": [
+   {
+    "status": "parallel_run_serial_rerun_with_ui_session_guard_violation",
+    "source": "8d859ba (253a5f86) + parallel UI commit 0497fe8",
+    "workers": 2,
+    "report": "temp/build/v2-full-155.xml",
+    "report_sha256": "790745cb5137954832494d47d6b6132cf3bc186957e699f84caace335b6b324e",
+    "tests": 4656,
+    "passed": 4654,
+    "failed": 2,
+    "errors": 0,
+    "duration_s": 3362.06,
+    "failure_summary": {
+     "parallel_ui_contention": 1,
+     "ui_session_guard_violation": 1
+    },
+    "serial_rerun": {
+     "report": "temp/build/v2-full-155-serial.xml",
+     "report_sha256": "4c42c1ecca1ae7b71c11f200324a332ea2cc47a2e0af75afcfb2255db376b810",
+     "tests": 2,
+     "passed": 1,
+     "failed": 1,
+     "errors": 0,
+     "duration_s": 14.74
+    },
+    "details": [
+     "skills_ui[dark-760] 串行复跑通过，确认为 -n 2 资源争用抖动",
+     "test_ui_embed_layer::test_embed_rules_live_only_in_frame_css 串行仍失败：web/ui/v2/v1/frame.css 仍含通用 embed 降级规则副本，由并行 UI 会话提交 0497fe8 引入且尚未移除；非本会话回归，文件所有权归 UI 会话"
+    ],
+    "note": "第 15 节点（142～155 批）全量。验收口径：并行跑 + 失败项串行复跑，两份报告留档；不将串行通过写成并行全绿，不将抖动写成功能缺陷，不将他人会话引入的守卫违规写成本批回归。strict 279 文件 0 errors。"
+   }
+  ]
  },
  "source_recovery": {
   "manifest": "temp/private/v2-typecheck-22-source-20261111-5039cdfa12f1/manifest.json",

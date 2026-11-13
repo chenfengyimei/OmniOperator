@@ -1,30 +1,30 @@
-import { mountSkills } from './skills.js?v=20261113v115';
-import { mountCredentials } from './credentials.js?v=20261113v115';
-import { mountAuditHistory, mountOperations } from './operations.js?v=20261113v115';
-import { mountCapabilities } from './capabilities.js?v=20261113v115';
-import { mountTokens } from './tokens.js?v=20261113v115';
-import { mountDocuments } from './documents.js?v=20261113v115';
-import { mountConfiguration } from './configuration.js?v=20261113v115';
+import { mountSkills } from './skills.js?v=20261113v116';
+import { mountCredentials } from './credentials.js?v=20261113v116';
+import { mountAuditHistory, mountOperations } from './operations.js?v=20261113v116';
+import { mountCapabilities } from './capabilities.js?v=20261113v116';
+import { mountTokens } from './tokens.js?v=20261113v116';
+import { mountDocuments } from './documents.js?v=20261113v116';
+import { mountConfiguration } from './configuration.js?v=20261113v116';
 import { ask } from '../dialog.js?v=20261103v7';
-import { mountPeople } from './people.js?v=20261113v115';
-import { mountDeliveries } from './deliveries.js?v=20261113v115';
-import { mountSchedules } from './schedules.js?v=20261113v115';
-import { mountMemorySemantics } from './memory-semantics.js?v=20261113v115';
-import { mountMemoryOrganization } from './memory-organization.js?v=20261113v115';
-import { mountExtensions } from './extensions.js?v=20261113v115';
-import { mountActionReviews } from './action-reviews.js?v=20261113v115';
-import { mountTerminals } from './terminals.js?v=20261113v115';
-import { mountDesktop } from './desktop.js?v=20261113v115';
-import { mountQQ } from './qq.js?v=20261113v115';
-import { mountBilibili } from './bilibili.js?v=20261113v115';
-import { mountMedia } from './media.js?v=20261113v115';
-import { mountMcp } from './mcp.js?v=20261113v115';
-import { mountAndroid } from './android.js?v=20261113v115';
-import { mountModelOutput } from './model-output.js?v=20261113v115';
-import { mountRouting } from './routing.js?v=20261113v115';
-import { mountChatImages } from './chat-images.js?v=20261113v115';
-import { mountInspector } from './inspector.js?v=20261113v115';
-import { mountSettingsRail } from './settings-rail.js?v=20261113v115';
+import { mountPeople } from './people.js?v=20261113v116';
+import { mountDeliveries } from './deliveries.js?v=20261113v116';
+import { mountSchedules } from './schedules.js?v=20261113v116';
+import { mountMemorySemantics } from './memory-semantics.js?v=20261113v116';
+import { mountMemoryOrganization } from './memory-organization.js?v=20261113v116';
+import { mountExtensions } from './extensions.js?v=20261113v116';
+import { mountActionReviews } from './action-reviews.js?v=20261113v116';
+import { mountTerminals } from './terminals.js?v=20261113v116';
+import { mountDesktop } from './desktop.js?v=20261113v116';
+import { mountQQ } from './qq.js?v=20261113v116';
+import { mountBilibili } from './bilibili.js?v=20261113v116';
+import { mountMedia } from './media.js?v=20261113v116';
+import { mountMcp } from './mcp.js?v=20261113v116';
+import { mountAndroid } from './android.js?v=20261113v116';
+import { mountModelOutput } from './model-output.js?v=20261113v116';
+import { mountRouting } from './routing.js?v=20261113v116';
+import { mountChatImages } from './chat-images.js?v=20261113v116';
+import { mountInspector } from './inspector.js?v=20261113v116';
+import { mountSettingsRail } from './settings-rail.js?v=20261113v116';
 // 直接复用 V1 的 rail 提示浮层模块（data-tip → #tip-layer），不自创实现
 import '../app/tips.js?v=20261103u5';
 
@@ -592,7 +592,7 @@ function renderMessages(items) {
     const openSettings = document.createElement('button');
     openSettings.type = 'button';
     openSettings.textContent = '打开设置中心';
-    openSettings.addEventListener('click', () => document.querySelector('[data-page="settings"]').click());
+    openSettings.addEventListener('click', () => document.querySelector('nav[aria-label="工作台"] [data-page="settings"]')?.click());
     actions.append(fresh, openSettings);
     empty.append(mark, strong, hint, actions);
     $('messages').replaceChildren(empty);
@@ -660,11 +660,32 @@ function renderMessages(items) {
       };
       const copy = iconBtn('content_copy', '复制这条消息');
       copy.classList.add('copy-msg');
-      copy.addEventListener('click', () => {
-        navigator.clipboard?.writeText(String(m.content || '')).then(() => {
-          copy.querySelector('.material-icons').textContent = 'check';
-          setTimeout(() => (copy.querySelector('.material-icons').textContent = 'content_copy'), 1200);
-        });
+      copy.addEventListener('click', async () => {
+        const glyph = copy.querySelector('.material-icons');
+        const text = String(m.content || '');
+        const flash = (icon, tip) => {
+          glyph.textContent = icon;
+          copy.title = tip;
+          setTimeout(() => {
+            glyph.textContent = 'content_copy';
+            copy.title = '复制这条消息';
+          }, 1600);
+        };
+        try {
+          // 剪贴板权限可能被拒（非安全上下文、用户拒绝、无头环境），
+          // 不做兜底会抛未捕获的 writeText 异常。
+          if (!navigator.clipboard?.writeText) throw new Error('clipboard_unavailable');
+          await navigator.clipboard.writeText(text);
+          flash('check', '已复制到剪贴板');
+        } catch {
+          // 回退：选中该条正文，用户可直接 Ctrl+C；并明确告知而非静默失败
+          const range = document.createRange();
+          range.selectNodeContents(body);
+          const sel = window.getSelection();
+          sel?.removeAllRanges();
+          sel?.addRange(range);
+          flash('content_paste', '剪贴板不可用，已选中文本，请按 Ctrl+C 复制');
+        }
       });
       head.append(copy);
       // 参考原型：操作图标挂在头像行/时间行右侧，悬停显现，不常驻正文底部
@@ -682,7 +703,8 @@ function renderMessages(items) {
         publish.addEventListener('click', () => {
           if (agent !== boundAgent || session !== boundSession) return;
           bilibiliPanel.useMessage(m.id);
-          document.querySelector('[data-page="bilibili"]').click();
+          // 限定到导航按钮：body 也带 data-page，裸选择器会匹配到它
+          document.querySelector('nav[aria-label="工作台"] [data-page="bilibili"]')?.click();
         });
         actions.append(publish);
       }
@@ -722,8 +744,15 @@ function renderMessages(items) {
           'click',
           wrap(async () => {
             if (boundAgent !== agent || boundSession !== session) throw new Error('空间或会话已变化');
-            page = 'deliveries';
-            for (const section of document.querySelectorAll('.page')) section.hidden = section.id !== page;
+            // 走导航同一条切页路径：此前只改 page 与 hidden，
+            // 页头标题、导航选中态、body.dataset.page 都没同步，出现半切换状态。
+            const nav = document.querySelector('nav[aria-label="工作台"] [data-page="deliveries"]');
+            if (nav) nav.click();
+            else {
+              page = 'deliveries';
+              syncPageChrome('deliveries');
+              for (const section of document.querySelectorAll('.page')) section.hidden = section.id !== page;
+            }
             await deliveriesPanel.fromMessage(m.id);
           }),
         );
@@ -1128,8 +1157,8 @@ $('connect').addEventListener(
   }),
 );
 $('agents').addEventListener('change', wrap(selectAgent));
-$('back-to-chat').addEventListener('click', () => document.querySelector('[data-page="chat"]').click());
-$('open-settings').addEventListener('click', () => document.querySelector('[data-page="settings"]').click());
+$('back-to-chat').addEventListener('click', () => document.querySelector('nav[aria-label="工作台"] [data-page="chat"]')?.click());
+$('open-settings').addEventListener('click', () => document.querySelector('nav[aria-label="工作台"] [data-page="settings"]')?.click());
 
 // 窄屏两个抽屉互斥：同时展开会把对话与输入区挤没。
 // 宽屏 data-open 不参与布局，左右两栏仍常驻。
@@ -1168,7 +1197,7 @@ document.addEventListener('keydown', (event) => {
   // 模态对话框自己有 Esc 语义，先让它处理，避免一次按键关掉两层。
   if (document.getElementById('ui-dialog')?.open) return;
   if (event.target?.closest?.('select, input, textarea')) return;
-  document.querySelector('[data-page="chat"]').click();
+  document.querySelector('nav[aria-label="工作台"] [data-page="chat"]')?.click();
 });
 
 $('message').addEventListener('keydown', (event) => {

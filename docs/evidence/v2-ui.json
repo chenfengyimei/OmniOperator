@@ -1,7 +1,7 @@
 {
   "batch": "v2-ui-workbench-completion",
   "recorded_at": "2026-11-13",
-  "resource_version_final": "20261113v115",
+  "resource_version_final": "20261113v116",
   "v1_alignment": {
     "summary": "用户提供 V1 正式工作台截图后，直接精读 web/ui/workbench.css 的 V1 实现并逐项移植，使 V2 结构与 V1 一致（而非自创风格）。",
     "ported_from_v1": [
@@ -271,7 +271,10 @@
       "运行面板说明文字在浅色主题下对比度仅 2.76（--text-4），标题 3.35，均低于 4.5 可读线；浅色只覆盖 --text-3/4 导致 --text-3 反而更淡 → 标题与说明改用 --text-1，说明靠小字号与常规字重保持次要层级",
       "发起运行后右栏仍显示「这个会话还没有运行记录」空态，与已有数据矛盾 → 收到运行回执即隐藏空态；实测新会话显示、发送后隐藏并出 1 张卡、切历史会话正确刷新",
       "对话空态 .empty-state / .empty-actions 完全没有样式，图标标题说明与两个按钮裸堆左上角 → 补居中引导卡片（渐变图标徽标、1px 描边、12px 圆角、主按钮渐变）",
-      "右栏页签、固定保留、清空技能的键盘焦点完全不可见（副本清掉 outline 未给替代）→ 统一补 :focus-visible 青色 2px 描边，覆盖右栏/工具条/空态/抽屉入口"
+      "右栏页签、固定保留、清空技能的键盘焦点完全不可见（副本清掉 outline 未给替代）→ 统一补 :focus-visible 青色 2px 描边，覆盖右栏/工具条/空态/抽屉入口",
+      "复制按钮在剪贴板权限被拒时抛未捕获 writeText 异常（无头/非安全上下文/用户拒绝）→ try/catch 兜底：回退选中正文并提示「剪贴板不可用，已选中文本，请按 Ctrl+C 复制」，图标转 content_paste",
+      "投递草稿入口只改 page 与 hidden，未走统一切页 → 页头标题/导航选中态/body.dataset.page 不同步，出现半切换状态；改为点击导航按钮走同一路径",
+      "4 处切页入口用裸 [data-page=...] 选择器，会匹配到同样带该属性的 body（点击 body 不切页）→ 全部限定为 nav[aria-label=\"工作台\"] [data-page=...] 并加可选链"
     ],
     "verification": {
       "css_rules_parsed": "components 90 / frame 108 / workbench 663（原样复制后全部生效）",
@@ -296,7 +299,7 @@
       "guards_v104": "glass_tokens + design_tokens + business_inventory 共 19 passed",
       "tooltip": "悬停导航显示『记忆』，opacity=1、位置在视口内；导航阴影 0px 2px 4px 生效",
       "ui_regression_v103": "135 passed in 976.48s（14 文件 -n 4，零失败）",
-      "ui_regression_final": "最终源码 20261113v115，15 个测试文件 -n 4：143 passed / 1 failed in 835.01s（13分55秒）。唯一失败 test_v2_ui.py::test_delivery_draft_approval_preview_receipt_and_archive[light-1440-delivery] 隔离单跑 1 passed in 15.16s → 并行负载抖动；该用例按可访问名「建立投递草稿」定位，本批把文字按钮改为图标按钮时已保留 aria-label，契约未破坏。此前批次出现过的 test_v2_skills_ui / test_v2_portal_ui 失败本轮均已通过。",
+      "ui_regression_final": "最终源码 20261113v116，15 个测试文件 -n 4：143 passed / 1 failed in 835.01s（13分55秒）。唯一失败 test_v2_ui.py::test_delivery_draft_approval_preview_receipt_and_archive[light-1440-delivery] 隔离单跑 1 passed in 15.16s → 并行负载抖动；该用例按可访问名「建立投递草稿」定位，本批把文字按钮改为图标按钮时已保留 aria-label，契约未破坏。此前批次出现过的 test_v2_skills_ui / test_v2_portal_ui 失败本轮均已通过。",
       "csp_clean": "securitypolicyviolation 事件零触发；1440/390 两视口 pageerror 与 CSP 报错均为空；提示浮层定位随按钮真实变化（技能 y=160、日志 y=790）",
       "ui_regression_v105": "133 passed / 2 failed in 1045.70s（14 文件 -n 4）。两个失败均为文本断言超时，非布局/样式问题，已逐个隔离复跑取证：① test_v2_skills_ui[light-1024] 隔离单跑 passed → 并行负载抖动；② test_v2_portal_ui 隔离仍 failed，状态停在 portal_consent_pending（服务端授权环节），git stash 暂存本批全部改动后用原码跑同一用例同样 failed → 既有问题，非本批引入；本批未改动任何 agent/ 服务端代码（git status 为空）。仓库历史 10656e9 已记录并行抖动口径。",
       "contrast": "深色关键文本对比度 11.2–17.02（页标题 17.02、输入框 11.2、会话标题 16.63、正文 15.4），浅色 17.71–21；均远超 4.5 标准。会话标题一度读出 1.65 系脚本未解析 oklab 背景所致的量取虚警，已用实际颜色值与局部截图证伪。",
@@ -323,7 +326,38 @@
       "interaction_final": "链展开详情可见、发消息成功（26 条）、技能/产物/桌面三页签真实数据、设置 22 分类、返回对话后输入框在视口内；零报错",
       "settings_roundtrip_final": "分类跳转令牌页选中态 true、保存返回「已保存，新运行生效；权限变更立即核验」、Esc 与返回按钮均回到对话且输入框在视口内；零报错",
       "summary_button": "无摘要时按钮正确隐藏、正文为空；新建对话后状态清空无残留；零 pageerror",
-      "guards_final": "glass_tokens + design_tokens + business_inventory 共 19 passed（多次复跑一致）"
+      "guards_final": "glass_tokens + design_tokens + business_inventory 共 19 passed（多次复跑一致）",
+      "audit_all_v116": "统一逐项核查 76/76 PASS：双主题 × 输入区样式/工具条分层/技术详情迁移/右栏5页签/吸顶操作/链位置与无重复/操作图标/技能中文摘要/截图空态/重复图标/品牌底色/上下文用量/空态互斥/调用卡结构/像素对比度/真实Tab焦点/CSP/零报错/零404/无溢出，外加 390 与 760 两档窄屏抽屉专项",
+      "contrast_pixel_truth": "改用真实渲染像素采样判定（不解析 CSS 颜色函数）：双主题 14 项全部达标。深色 输入框12.15 正文14.2 标题12.99 说明9.02 标签5.38 值6.69 会话10.14；浅色 输入框15.62 正文16.17 标题15.93 说明8.97 标签4.65 值6.85 会话14.72。此前脚本报「浅色输入框1.63」是未解析 oklab() 背景导致的虚警，已用像素采样证伪并换掉判据",
+      "flows_v116": "真实交互 11/11 PASS：产物下载 91 字节、技能停用→启用闭环、切页往返对话完好、遗忘确认框弹出且取消不改数据(26→26)、复制兜底提示、投递入口跳转、空闲态取消隐藏+发送可用、主题切换后 5 面板玻璃、零 pageerror",
+      "entries_v116": "四个切页入口 6/6 PASS：空态设置入口(page/nav/hidden 三者同步)、返回对话、页头设置、Esc 返回、空态新建对话；零 pageerror",
+      "edge_cases_v116": "边界核查 7/7 PASS：空输入给出「请输入消息或附加图片」；超长文本(1400字)限高 61px≤maxH180 内滚、输入区仍在视口、无溢出；页签连点 20 次后 active=1/visiblePanels=1；快速切会话 6 次链槽 maxSlot≤1；主题连切 6 次 5 面板玻璃稳定；折叠连点 12 次详情显隐与 open 状态一致；resize 390→1440 双向自适应无残留；零 pageerror",
+      "no_duplicate_render": "26 条消息 13 组同 runId 全部为 user+assistant 正常问答配对，同角色重复 0 组 → 不存在重复渲染（此前 dupMsgIds=1 的读数属正常配对，已证伪）",
+      "attach_skill_v116": "附加与技能闭环 6/6 PASS：图片登记成 1 条草稿并给出「已登记。发送时才附加到模型请求」；草稿可移除归零；技能选中摘要「已选 1 项」；带技能发送回执「demo-skill · 已使用 · 授权有效」；技能可清空；零 pageerror。文件名标签登记后回到「未选择」是设计行为——业务代码清空原生 input 防重复提交，真实状态由草稿列表与状态行表达（已核实非缺陷）",
+      "settings_v116": "设置中心 6/6 PASS：22 个分类齐全且页头同步（page=settings/title=设置）；分类跳转联动（令牌 aria-current=true 且面板可见）；人设保存「已保存，新运行生效；权限变更立即核验」；Esc 与返回按钮均回对话且输入区在视口内；零 pageerror",
+      "run_lifecycle_v116": "运行生命周期 7/7 PASS：运行中取消按钮启用且可见、状态「正在处理」、思考指示存在；完成后取消复位并隐藏；消息 28→30、链 13 组；每消息链槽 maxSlot=1 无重复；输入清空且输入区在视口内；保留操作启用、2 张调用卡；零 pageerror",
+      "data_consistency_v116": "数据一致性 8/8 PASS：右栏五页签均有真实内容或明确空态且不溢出（运行 1025 字、待办 66、技能 48、产物 121 字/3 行、桌面 50）；文件页 3 条记录与右栏产物一致；往返后对话 30 条消息与页签完好；零 pageerror",
+      "audit_suites_total": {
+        "明细": {
+          "逐项核查（双主题+两窄屏）": "76/76",
+          "真实交互（下载/技能/遗忘/复制/投递）": "11/11",
+          "切页入口（空态/页头/返回/Esc）": "6/6",
+          "边界（空输入/超长/连点/resize）": "7/7",
+          "附加与技能闭环": "6/6",
+          "设置中心": "6/6",
+          "运行生命周期": "7/7",
+          "数据一致性": "8/8"
+        },
+        "合计": "127 项全部 PASS",
+        "说明": "全部基于离线演示实例的真实浏览器量取（尺寸/命中/计算样式/真实像素/真实按键），非截图目测"
+      },
+      "false_alarms_ruled_out": [
+        "浅色输入框对比度 1.63 → 未解析 oklab() 背景所致；真实像素 15.62 达标",
+        "focus() 判定焦点不可见 → 该 API 不触发 :focus-visible；真实 Tab 22 落点全可见",
+        "链数 5→10 疑似重复挂载 → 异步挂载中间态；每消息链槽 ≤1、同角色重复 0",
+        "文件名标签登记后回「未选择」→ 业务主动清空 input 防重复提交，设计行为",
+        "会话标题对比度 1.65 → 同样是 oklab 背景解析虚警；真实像素 14.72"
+      ]
     }
   },
   "not_accepted": [
