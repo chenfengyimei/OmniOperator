@@ -9,8 +9,10 @@ import json
 import uuid
 from collections.abc import Mapping
 from pathlib import Path
+from typing import cast
 
-from ...domain.contracts import BusinessError
+from ...application.ports import Record, UnitOfWork
+from ...domain.contracts import JSON, BusinessError
 from ...domain.objects import Blob
 from ..object_store import checked_path, sync_directory
 from ..platform.paths import InstanceLock, InstancePaths
@@ -27,17 +29,19 @@ def _instant(now: dt.datetime | None) -> dt.datetime:
     return chosen.astimezone(dt.timezone.utc)
 
 
-def _plan(paths: InstancePaths, now: dt.datetime) -> dict:
+def _plan(paths: InstancePaths, now: dt.datetime) -> dict[str, object]:
     instance, schema, rows, references = registry(paths.database)
-    by_key = {Blob(row["agent_id"], row["sha256"], row["bytes"]).key: row for row in rows}
-    entries = []
+    by_key = {
+        Blob(cast(str, row["agent_id"]), cast(str, row["sha256"]), cast(int, row["bytes"])).key: row for row in rows
+    }
+    entries: list[Record] = []
     protected = 0
     for key, row in by_key.items():
         if (
             row["pinned"]
             or row["id"] in references
             or not row["expires_at"]
-            or dt.datetime.fromisoformat(row["expires_at"]) > now
+            or dt.datetime.fromisoformat(cast(str, row["expires_at"])) > now
         ):
             protected += 1
             continue
@@ -72,7 +76,7 @@ def _plan(paths: InstancePaths, now: dt.datetime) -> dict:
         "schema": schema,
         "created_at": now.isoformat(timespec="microseconds"),
         "orphan_grace_hours": 24,
-        "entries": sorted(entries, key=lambda entry: entry["key"]),
+        "entries": sorted(entries, key=lambda entry: cast(str, entry["key"])),
         "protected": protected,
     }
 
@@ -109,7 +113,7 @@ def apply_collection(
         not isinstance(plan, dict)
         or plan.get("format") != "omni-object-gc-1"
         or not isinstance(plan.get("entries"), list)
-        or len(plan["entries"]) > MAX_INVENTORY
+        or len(cast(list[object], plan["entries"])) > MAX_INVENTORY
     ):
         raise BusinessError("invalid_gc_plan", "A bounded collection plan is required", status=422)
     instant = _instant(now)
@@ -119,48 +123,71 @@ def apply_collection(
         current = _plan(paths, instant)
         if (current["instance_id"], current["schema"]) != (plan.get("instance_id"), plan.get("schema")):
             raise BusinessError("stale_gc_plan", "Collection plan belongs to another instance or schema")
-        path = _journal_path(paths, plan.get("plan_id", ""))
+        path = _journal_path(paths, cast(str, plan.get("plan_id", "")))
         digest = hashlib.sha256(json.dumps(plan, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
-        previous = json.loads(path.read_text(encoding="utf-8")) if path.exists() else None
+        previous: Record | None = cast(Record, json.loads(path.read_text(encoding="utf-8"))) if path.exists() else None
         if previous and previous.get("plan_sha256") != digest:
             raise BusinessError("stale_gc_plan", "Collection plan changed after its first application")
         resumed = previous is not None
-        candidates = {entry["key"]: entry for entry in current["entries"]}
+        current_entries = cast(list[Record], current["entries"])
+        candidates = {cast(str, entry["key"]): entry for entry in current_entries}
         _, _, registered, _ = registry(paths.database)
-        by_key = {Blob(row["agent_id"], row["sha256"], row["bytes"]).key: row for row in registered}
-        keys = set()
-        for entry in plan["entries"]:
-            if not isinstance(entry, dict) or not isinstance(entry.get("key"), str) or entry["key"] in keys:
+        by_key = {
+            Blob(cast(str, row["agent_id"]), cast(str, row["sha256"]), cast(int, row["bytes"])).key: row
+            for row in registered
+        }
+        keys: set[str] = set()
+        for entry in cast(list[object], plan["entries"]):
+            if (
+                not isinstance(entry, dict)
+                or not isinstance(cast(dict[str, object], entry).get("key"), str)
+                or cast(dict[str, object], entry)["key"] in keys
+            ):
                 raise BusinessError("invalid_gc_plan", "Collection targets must be unique controlled paths", status=422)
-            key = entry["key"]
+            key = cast(str, entry["key"])
             keys.add(key)
             # A caller-supplied path must be a currently eligible candidate, or
             # an unchanged leftover from this exact durable collection journal.
             actual = candidates.get(key)
             if actual == entry:
                 continue
-            if resumed and key not in by_key and signature(paths.objects, key) in (entry.get("file"), None):
+            if (
+                resumed
+                and key not in by_key
+                and signature(paths.objects, key) in (cast(dict[str, object], entry).get("file"), None)
+            ):
                 continue
             raise BusinessError("stale_gc_plan", "A collection target, reference or fingerprint changed")
-        journal = {"plan_sha256": digest, "plan": plan, "complete": False, "phase": "applying", "residual": []}
+        journal: Record = {
+            "plan_sha256": digest,
+            "plan": cast(Record, dict(plan)),
+            "complete": False,
+            "phase": "applying",
+            "residual": [],
+        }
         durable_json(path, journal)
         status_path = path.with_suffix(".status.json")
-        durable_json(status_path, {"plan_id": plan["plan_id"], "complete": False, "phase": "applying"})
+        durable_json(
+            status_path,
+            cast(Record, {"plan_id": plan["plan_id"], "complete": False, "phase": "applying"}),
+        )
 
         class MaintenanceClock(SystemClock):
-            def now(self):
+            def now(self) -> str:
                 return instant.isoformat(timespec="microseconds")
 
-        async def remove_metadata():
+        async def remove_metadata() -> int:
             database = Database(paths.database, MaintenanceClock(), UUIDs(), objects_root=paths.objects)
             try:
 
-                def remove(u):
+                def remove(u: UnitOfWork) -> int:
                     removed = 0
-                    for entry in plan["entries"]:
-                        row = entry["object"]
-                        if row and entry["key"] in by_key:
-                            u.object_remove(row["agent_id"], row["id"], row["revision"])
+                    for entry in cast(list[Record], plan["entries"]):
+                        row = cast(Record | None, entry["object"])
+                        if row and cast(str, entry["key"]) in by_key:
+                            u.object_remove(
+                                cast(str, row["agent_id"]), cast(str, row["id"]), cast(int, row["revision"])
+                            )
                             removed += 1
                     return removed
 
@@ -171,12 +198,12 @@ def apply_collection(
         removed = asyncio.run(remove_metadata())
         journal["phase"] = "metadata_committed"
         durable_json(path, journal)
-        unlinked, residual = 0, []
-        for entry in plan["entries"]:
-            target = checked_path(paths.objects, entry["key"])
+        unlinked, residual = 0, cast(list[Record], [])
+        for entry in cast(list[Record], plan["entries"]):
+            target = checked_path(paths.objects, cast(str, entry["key"]))
             try:
                 if target.exists():
-                    if signature(paths.objects, entry["key"]) != entry["file"]:
+                    if signature(paths.objects, cast(str, entry["key"])) != entry["file"]:
                         raise BusinessError("object_changed", "Object changed after collection commit")
                     target.unlink()
                     sync_directory(target.parent)
@@ -191,19 +218,22 @@ def apply_collection(
         journal.update(
             phase="finished",
             complete=not residual,
-            residual=residual,
+            residual=cast(list[JSON], residual),
             removed_metadata=removed,
             unlinked_files=unlinked,
         )
         durable_json(path, journal)
         durable_json(
             status_path,
-            {
-                "plan_id": plan["plan_id"],
-                "complete": not residual,
-                "phase": "finished",
-                "residual_count": len(residual),
-            },
+            cast(
+                Record,
+                {
+                    "plan_id": plan["plan_id"],
+                    "complete": not residual,
+                    "phase": "finished",
+                    "residual_count": len(residual),
+                },
+            ),
         )
         return {
             "plan_id": plan["plan_id"],
