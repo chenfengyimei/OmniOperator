@@ -4,16 +4,27 @@ from __future__ import annotations
 
 import asyncio
 import uuid
+from collections.abc import Awaitable, Callable
+from typing import cast
 
-from ..domain.contracts import ActionResult, BusinessError, Effect, Outcome
+from ..application.ports import AsyncSecretPort, Record
+from ..domain.contracts import ActionResult, BusinessError, Effect, InvocationContext, Outcome
+from .workers.client import WorkerClient
 
 
 class UnicodeFlow:
-    def __init__(self, factory, secrets):
+    def __init__(self, factory: Callable[[], WorkerClient], secrets: AsyncSecretPort | None) -> None:
         self.factory, self.secrets = factory, secrets
 
-    async def run(self, client, args, context, guard, environment):
-        snapshot = None
+    async def run(
+        self,
+        client: WorkerClient,
+        args: Record,
+        context: InvocationContext,
+        guard: Callable[[], Awaitable[None]],
+        environment: Callable[[str, Record], Awaitable[None]],
+    ) -> ActionResult:
+        snapshot: Record | None = None
         uncertain = False
         selection_started = False
         result = ActionResult(
@@ -21,7 +32,7 @@ class UnicodeFlow:
         )
         restored = False
 
-        async def invoke(method, values, check=guard):
+        async def invoke(method: str, values: Record, check: Callable[[], Awaitable[None]] = guard) -> ActionResult:
             return await client.invoke(
                 method, values, operation_id=str(uuid.uuid4()), context=context, before_dispatch=check
             )
@@ -34,7 +45,9 @@ class UnicodeFlow:
                     if self.secrets is None:
                         raise BusinessError("android_unicode_unavailable", "Credential backend is unavailable")
                     await guard()
-                    key = await self.secrets.get(args["unicode_profile"]["profile"]["credential_ref"])
+                    unicode_profile = cast(Record, args["unicode_profile"])
+                    profile = cast(Record, unicode_profile["profile"])
+                    key = await self.secrets.get(cast(str, profile["credential_ref"]))
                     await guard()
                     if key is None:
                         raise BusinessError("android_pairing_key_missing", "Store the helper pairing key first")
@@ -67,7 +80,7 @@ class UnicodeFlow:
         finally:
             if snapshot is not None:
                 observer = client
-                extra = None
+                extra: WorkerClient | None = None
                 try:
                     if uncertain:
                         # An uncertain command may still be running. Reclaim it before a read-only observation.
@@ -79,7 +92,10 @@ class UnicodeFlow:
                             "android_unicode_environment"
                             if uncertain or not selection_started
                             else "android_unicode_restore",
-                            {"connection": args["connection"], "device": args["device"], "environment": snapshot},
+                            cast(
+                                Record,
+                                {"connection": args["connection"], "device": args["device"], "environment": snapshot},
+                            ),
                             operation_id=str(uuid.uuid4()),
                             context=context,
                         )
@@ -112,7 +128,14 @@ class UnicodeFlow:
             data={"ime_restored": restored} if snapshot else {},
         )
 
-    async def recover(self, client, args, context, guard, environment):
+    async def recover(
+        self,
+        client: WorkerClient,
+        args: Record,
+        context: InvocationContext,
+        guard: Callable[[], Awaitable[None]],
+        environment: Callable[[str, Record], Awaitable[None]],
+    ) -> ActionResult:
         try:
             async with asyncio.timeout(22):
                 result = await client.invoke(

@@ -112,6 +112,7 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 | `agent/src/omni/application/service_cleanup.py` | 隔离定义审查/清理计划复用 |
 | `agent/src/omni/application/service_control.py` | 服务启动/停止/复核编排（显式 Record） |
 | `agent/src/omni/adapters/metrics.py` | 运行指标观测适配器 |
+| `agent/src/omni/adapters/android_unicode.py` | 受管 Unicode/IME 事务流（显式 Record/回调类型、凭据端口、未知不重放） |
 | `agent/src/omni/adapters/build_identity.py` | 构建身份常量与代码后缀 |
 | `agent/src/omni/adapters/primitives.py` | 时钟/ID 原语 Protocol 与实现 |
 | `agent/src/omni/adapters/timezones.py` | 时区数据库标识读取边界 |
@@ -297,7 +298,7 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 | --- | --- |
 | `agent/src/omni/domain`（全部 53 文件） | 2321 |
 
-`service_control.py`（94）已在纳入 strict 前清零；`model_stream.py`（75）、`context.py`（38）、`recovery_authority.py`（27）、`memory_semantics.py`（19）、`foreground.py`（24）、`metering.py`（19）与 `release_fence.py`（16）同样已清零，基线表中不再列逐文件例外。`application/` 已全部纳入（44/44 个模块）、`adapters/` 162 个模块；`composition/` 已全部纳入（13/13 个模块，守卫允许层已加入 composition）；`agent/tests/` 尚未开始 strict。
+`service_control.py`（94）已在纳入 strict 前清零；`model_stream.py`（75）、`context.py`（38）、`recovery_authority.py`（27）、`memory_semantics.py`（19）、`foreground.py`（24）、`metering.py`（19）与 `release_fence.py`（16）同样已清零，基线表中不再列逐文件例外。`application/` 已全部纳入（44/44 个模块）、`adapters/` 163 个模块；`composition/` 已全部纳入（13/13 个模块，守卫允许层已加入 composition）；`agent/tests/` 尚未开始 strict。
 
 ### 3.1 剩余 adapters 错误数（本源码版本，仅记录）
 
