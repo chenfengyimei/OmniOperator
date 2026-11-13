@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "383e8d37531ada7de81d30383fcbc36e22a951552f8fc4d89df5f724d954be46",
+  "source_sha256": "2be2791c44ae6aadab426c2d1d6b5b1251b0024197db674856c14a628064c344",
   "modules": [
     {
       "id": "v2-domain",
@@ -404,7 +404,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 53326,
+      "lines": 53349,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -498,7 +498,7 @@
         "web/ui/v2/v1/workbench.css",
         "web/ui/v2/workbench.css"
       ],
-      "lines": 19117,
+      "lines": 19120,
       "dependencies": []
     },
     {
@@ -2483,30 +2483,35 @@
       "path": "agent/src/omni/adapters/android_unicode.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.android_unicode",
-      "lines": 137,
+      "lines": 160,
       "imports": [
+        "omni.adapters.workers.client",
+        "omni.application.ports",
         "omni.domain.contracts"
       ],
       "symbols": [
         {
           "name": "UnicodeFlow",
-          "line": 11,
+          "line": 15,
           "kind": "class"
         },
         {
           "name": "UnicodeFlow.__init__",
-          "line": 12,
+          "line": 16,
           "kind": "function",
           "parameters": [
             "self",
             "factory",
             "secrets"
           ],
-          "annotations": {}
+          "annotations": {
+            "factory": "Callable[[], WorkerClient]",
+            "secrets": "AsyncSecretPort | None"
+          }
         },
         {
           "name": "UnicodeFlow.run",
-          "line": 15,
+          "line": 19,
           "kind": "function",
           "parameters": [
             "self",
@@ -2516,22 +2521,32 @@
             "guard",
             "environment"
           ],
-          "annotations": {}
+          "annotations": {
+            "client": "WorkerClient",
+            "args": "Record",
+            "context": "InvocationContext",
+            "guard": "Callable[[], Awaitable[None]]",
+            "environment": "Callable[[str, Record], Awaitable[None]]"
+          }
         },
         {
           "name": "UnicodeFlow.run.invoke",
-          "line": 24,
+          "line": 35,
           "kind": "function",
           "parameters": [
             "method",
             "values",
             "check"
           ],
-          "annotations": {}
+          "annotations": {
+            "method": "str",
+            "values": "Record",
+            "check": "Callable[[], Awaitable[None]]"
+          }
         },
         {
           "name": "UnicodeFlow.recover",
-          "line": 115,
+          "line": 131,
           "kind": "function",
           "parameters": [
             "self",
@@ -2541,7 +2556,13 @@
             "guard",
             "environment"
           ],
-          "annotations": {}
+          "annotations": {
+            "client": "WorkerClient",
+            "args": "Record",
+            "context": "InvocationContext",
+            "guard": "Callable[[], Awaitable[None]]",
+            "environment": "Callable[[str, Record], Awaitable[None]]"
+          }
         }
       ],
       "summary": "Owned Unicode/IME transaction over managed workers; secrets stay in private IPC."
@@ -95565,7 +95586,7 @@
       "path": "web/ui/v2/main.js",
       "module": "v2-workbench",
       "python_module": null,
-      "lines": 1490,
+      "lines": 1493,
       "imports": [],
       "symbols": [],
       "kind": "asset",
