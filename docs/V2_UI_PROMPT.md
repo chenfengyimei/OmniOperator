@@ -54,7 +54,7 @@ section.page[id]                  ← 22 个页面分区，id 与 data-page 一�
 
 - 页面切换只允许通过 `[data-page]` 按钮点击触发；`test_v2_navigation_ui.py` 会在 390/1024 两个宽度逐项点击并断言目标分区可见。
 - 任何新增可见按钮，如果文案与既有页面名相同（如"设置"），必须换名或用 `title/aria-label` 区分，避免 `get_by_role(..., exact=True)` 命中两个元素。
-- 资源版本串：`index.html` 与所有模块 import 当前为 `?v=20261113v74`。**任何 HTML/CSS/JS 改动都要整体升级版本号**（v58、v59…），并同步：
+- 资源版本串：`index.html` 与所有模块 import 当前为 `?v=20261113v105`。**任何 HTML/CSS/JS 改动都要整体升级版本号**（v58、v59…），并同步：
   - `agent/tests/test_v2_mcp_ui.py` 里的 `assert "main.js?v=..." in page.content()`
   - `docs/V2_AI_CONTINUATION_PROMPT.md` 的版本说明
   - 本文第 3 节这里的版本号
@@ -64,16 +64,30 @@ section.page[id]                  ← 22 个页面分区，id 与 data-page 一�
 
 ## 4. 当前 UI 状态（已完成）
 
-**统一毛玻璃设计系统**（2026-11-13 重构，资源版本 `20261113v74`）：`workbench.css` 已从 3060 行 override 堆叠重写为约 2140 行的分层设计系统（令牌→基础→控件→壳层→左栏→对话→右栏→设置→页面内容→移动端）。颜色全部派生自 `tokens.css` 种子与玻璃三档 token（壳强/面板中/列表弱），浅色自动翻面，不写死色值；排版学 hermes（15px 正文、宽字距大写面板标题、grain 质感）。
+**直接复用 V1 界面**（2026-11-13，资源版本 `20261113v105`）：按所有者要求，不再自创视觉，
+把 V1 的 `components.css` / `frame.css` / `workbench.css` **原样复制**到 `web/ui/v2/v1/`，
+只改两处——页面标识 `data-ui-page="workbench"` → `"workbench-v2"`、资源路径 `/ui/` → `/assets/ui/`。
+样式内容一字未改，因此外观与 V1 完全一致；V1 原文件保持只读，未被修改。
 
-- 左栏：连接卡 → Agent 空间 → 会话（弹性滚动）→ 服务（真实健康数据）→ 上下文用量；**非对话模式只隐藏会话/服务/上下文面板，连接卡与 Agent 选择器始终可用**（契约要求，勿再整体隐藏会话栏）
-- 中间：消息列（880px 居中）、用户青紫渐变气泡、助手渐变头像+名称行（小鱼 · HH:MM）、悬停复制、Enter 发送 / Shift+Enter 换行
-- 工具调用卡：`调用过程 · N 步 · M 个工具` 折叠块，按 action 完成事件显示真实状态图标（ok/error/denied/cancelled/unknown）与耗时
-- 底部：玻璃 dock（聚焦辉光）+ 青色发送胶囊 + 档位/技能/图片/截图工具条；文件选择为自定义玻璃按钮（原生 input 用 sr-only 保留可交互，勿改 display:none）
-- 右侧：`.panel` + `.tabs`（待办/技能/产物/桌面），三个数据页签接真实数据，空态带图标+引导
-- 设置中心：固定覆盖层（左边界让出会话栏），内部「分类栏 216px + 内容列」两列网格，面包屑"设置中心"、900px 内容宽、返回对话 + Esc 关闭
-- 主题：`data-theme=dark` 炭黑+青（种子 `#070809`/`#3ddbd9`，表面色阶抬升、次要文字提亮保证对比）；`light` 柔化阴影+增强描边
-- 响应式：≤1180 隐藏右栏；≤900 rail 横排（40px 触控目标）+ 设置覆盖层退化为文档流；≤620 会话抽屉（默认展开、未连接强制可见）+ dock 贴底
+V2 结构已改用 V1 类名，让复制来的样式真正命中：
+
+- `nav.rail` + `.rail-brand` + `.rail-btn`（V1 图标栏；分组标题视觉隐藏但保留在 DOM，守卫依赖）
+- `aside.workbench-side` + `.panel.session-panel` / `.service-panel` / `.context-panel`
+- `#chat > #messages` + `#composer > form.dock > textarea + .dock-bar`
+- 右栏 `.panel > .tabs`（3 列 grid，选中用 `.active`）+ `.tab-body`
+- 助手 `.a-head > .a-avatar(svg) + .a-name + .a-meta + .spacer + .copy-msg`；用户 `.bubble` + `.turn-foot > .ts`
+- 调用链 `.scaffolds > .scaf-toggle + .scaf(+ .scaf-out)`，折叠与单行详情交互与 V1 一致
+
+`web/ui/v2/workbench.css` 已降级为**桥接层**，只补 V1 没有的部分（22 个 `section.page`、页头、
+连接卡与 Agent 选择、设置覆盖层、右栏数据行、运行技术详情、窄屏抽屉），不再定义面板/气泡/dock/rail/tabs 外观。
+
+**踩过的坑（勿重犯）**：
+
+1. 不要用 CSS 嵌套（`body[...] { 原样V1规则 }`）包裹副本——实测 664 条规则只解析出 1 条，样式几乎全失效。原样复制即可。
+2. `.page { display:flex }` 会压过 `[hidden]`，导致 21 个隐藏页全部显示、把 `#chat` 挤成 2px、输入框被顶出视口。桥接层里 `[hidden]` 必须 `display:none !important`。
+3. `base.css` 的 `body[data-ui-page]:not([data-ui-page="workbench"]):not([data-ui-page="project"])` 会给 V2 加 22px 内边距与 1500px 限宽，必须用**同等特异性**覆盖。
+4. V1 用 `body { padding-left: var(--rail-w) }` 给 fixed rail 让位；V2 改用 grid 骨架，别再叠 margin-left。
+5. 设置包裹层 `.settings-layout` / `.settings-content` 在对话模式必须成为满高容器（grid 单行），否则高度链断裂、dock 贴不到底。
 
 **已知遗留问题**：
 

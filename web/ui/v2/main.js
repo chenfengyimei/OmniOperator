@@ -1,30 +1,32 @@
-import { mountSkills } from './skills.js?v=20261113v74';
-import { mountCredentials } from './credentials.js?v=20261113v74';
-import { mountAuditHistory, mountOperations } from './operations.js?v=20261113v74';
-import { mountCapabilities } from './capabilities.js?v=20261113v74';
-import { mountTokens } from './tokens.js?v=20261113v74';
-import { mountDocuments } from './documents.js?v=20261113v74';
-import { mountConfiguration } from './configuration.js?v=20261113v74';
+import { mountSkills } from './skills.js?v=20261113v105';
+import { mountCredentials } from './credentials.js?v=20261113v105';
+import { mountAuditHistory, mountOperations } from './operations.js?v=20261113v105';
+import { mountCapabilities } from './capabilities.js?v=20261113v105';
+import { mountTokens } from './tokens.js?v=20261113v105';
+import { mountDocuments } from './documents.js?v=20261113v105';
+import { mountConfiguration } from './configuration.js?v=20261113v105';
 import { ask } from '../dialog.js?v=20261103v7';
-import { mountPeople } from './people.js?v=20261113v74';
-import { mountDeliveries } from './deliveries.js?v=20261113v74';
-import { mountSchedules } from './schedules.js?v=20261113v74';
-import { mountMemorySemantics } from './memory-semantics.js?v=20261113v74';
-import { mountMemoryOrganization } from './memory-organization.js?v=20261113v74';
-import { mountExtensions } from './extensions.js?v=20261113v74';
-import { mountActionReviews } from './action-reviews.js?v=20261113v74';
-import { mountTerminals } from './terminals.js?v=20261113v74';
-import { mountDesktop } from './desktop.js?v=20261113v74';
-import { mountQQ } from './qq.js?v=20261113v74';
-import { mountBilibili } from './bilibili.js?v=20261113v74';
-import { mountMedia } from './media.js?v=20261113v74';
-import { mountMcp } from './mcp.js?v=20261113v74';
-import { mountAndroid } from './android.js?v=20261113v74';
-import { mountModelOutput } from './model-output.js?v=20261113v74';
-import { mountRouting } from './routing.js?v=20261113v74';
-import { mountChatImages } from './chat-images.js?v=20261113v74';
-import { mountInspector } from './inspector.js?v=20261113v74';
-import { mountSettingsRail } from './settings-rail.js?v=20261113v74';
+import { mountPeople } from './people.js?v=20261113v105';
+import { mountDeliveries } from './deliveries.js?v=20261113v105';
+import { mountSchedules } from './schedules.js?v=20261113v105';
+import { mountMemorySemantics } from './memory-semantics.js?v=20261113v105';
+import { mountMemoryOrganization } from './memory-organization.js?v=20261113v105';
+import { mountExtensions } from './extensions.js?v=20261113v105';
+import { mountActionReviews } from './action-reviews.js?v=20261113v105';
+import { mountTerminals } from './terminals.js?v=20261113v105';
+import { mountDesktop } from './desktop.js?v=20261113v105';
+import { mountQQ } from './qq.js?v=20261113v105';
+import { mountBilibili } from './bilibili.js?v=20261113v105';
+import { mountMedia } from './media.js?v=20261113v105';
+import { mountMcp } from './mcp.js?v=20261113v105';
+import { mountAndroid } from './android.js?v=20261113v105';
+import { mountModelOutput } from './model-output.js?v=20261113v105';
+import { mountRouting } from './routing.js?v=20261113v105';
+import { mountChatImages } from './chat-images.js?v=20261113v105';
+import { mountInspector } from './inspector.js?v=20261113v105';
+import { mountSettingsRail } from './settings-rail.js?v=20261113v105';
+// 直接复用 V1 的 rail 提示浮层模块（data-tip → #tip-layer），不自创实现
+import '../app/tips.js?v=20261103u5';
 
 const $ = (id) => document.getElementById(id);
 let token = '',
@@ -253,8 +255,13 @@ function syncPageChrome(next) {
   document.body.dataset.page = next;
   document.body.classList.toggle('chat-mode', next === 'chat');
   for (const button of document.querySelectorAll('[data-page]')) {
-    if (button.dataset.page === next) button.setAttribute('aria-current', 'page');
-    else button.removeAttribute('aria-current');
+    if (button.dataset.page === next) {
+      button.setAttribute('aria-current', 'page');
+      button.classList.add('active');
+    } else {
+      button.removeAttribute('aria-current');
+      button.classList.remove('active');
+    }
   }
   const meta = PAGE_META[next] || [next, ''];
   const title = $('page-title'),
@@ -275,17 +282,83 @@ function themeLabel() {
   button.title = `切换主题（当前：${{ auto: '跟随系统', light: '浅色', dark: '深色' }[pref] || pref}）`;
 }
 const runToolsCache = new Map();
-async function loadRunTools(runId) {
-  if (!runId) return [];
+// 一轮运行即使没有工具调用，也有档位选择与模型调用的输入输出，这些都要能查看
+async function loadRunTrace(runId) {
+  if (!runId) return null;
   if (runToolsCache.has(runId)) return runToolsCache.get(runId);
   const data = await api(scope(`/runs/${runId}/events?limit=200`));
-  const rows = (data.items || []).filter((row) => /^(tool|action)\./.test(String(row.kind || '')));
-  runToolsCache.set(runId, rows);
-  return rows;
+  const items = data.items || [];
+  const trace = {
+    tools: items.filter((row) => /^(tool|action)\./.test(String(row.kind || ''))),
+    routing: items.find((row) => String(row.kind) === 'routing.selected') || null,
+    report: null,
+  };
+  try {
+    trace.report = await api(scope(`/runs/${runId}/routing`));
+  } catch {
+    // 档位服务不可用时仍展示已登记的事件，不阻断过程查看
+  }
+  runToolsCache.set(runId, trace);
+  return trace;
 }
-function renderToolBlock(node, rows) {
-  if (!rows.length || node.querySelector('.tool-calls')) return;
-  // 按 action_id 关联完成事件，拿到真实状态与结束时间
+const MODE_LABEL = { chat: '聊天', retrieval: '检索', agent: '完整' };
+const REASON_LABEL = {
+  conservative_full: '保守起见用完整档',
+  greeting: '识别为问候，用聊天档',
+  read_request: '识别为读取请求，用检索档',
+  image_input: '含图片输入，用完整档',
+  policy_default: '按空间默认档位',
+  explicit_mode: '你在本轮显式指定',
+  restricted_channel: '受限通道固定聊天档',
+};
+
+// V1 调用链结构：.scaffolds > .scaf-toggle + .scaf(+ .scaf-out)
+function scafRow(cls, icon, label, arg, time, detail) {
+  const row = document.createElement('div');
+  row.className = `scaf ${cls}`;
+  const glyph = document.createElement('span');
+  glyph.className = 'scaf-glyph';
+  const gi = document.createElement('span');
+  gi.className = 'material-icons';
+  gi.textContent = icon;
+  glyph.append(gi);
+  const name = document.createElement('span');
+  name.className = 'scaf-label';
+  name.innerHTML = '';
+  name.textContent = label;
+  row.append(glyph, name);
+  if (arg) {
+    const a = document.createElement('span');
+    a.className = 'scaf-arg';
+    a.textContent = arg;
+    row.append(a);
+  }
+  if (time) {
+    const t = document.createElement('span');
+    t.className = 'scaf-time';
+    t.textContent = time;
+    row.append(t);
+  }
+  if (detail) {
+    const chev = document.createElement('span');
+    chev.className = 'scaf-chev';
+    const ci = document.createElement('span');
+    ci.className = 'material-icons';
+    ci.textContent = 'chevron_right';
+    chev.append(ci);
+    row.append(chev);
+    row.dataset.action = 'toggle-scaf';
+  }
+  return row;
+}
+const durText = (ms) => (ms == null ? '' : ms >= 1000 ? `${(ms / 1000).toFixed(1)}s` : `${Math.round(ms)}ms`);
+
+function renderToolBlock(node, trace) {
+  if (!trace || node.querySelector('.scaffolds')) return;
+  const rows = trace.tools || [];
+  const report = trace.report;
+  const route = report?.route?.recorded ? report.route : null;
+  const calls = report?.calls || [];
   const completed = new Map();
   for (const row of rows) {
     const data = typeof row.data === 'object' && row.data ? row.data : {};
@@ -299,68 +372,115 @@ function renderToolBlock(node, rows) {
     const name = row.tool || data.tool || data.name;
     if (name) names.add(String(name));
   }
-  const details = document.createElement('details');
-  details.className = 'tool-calls';
-  details.open = true;
-  const summary = document.createElement('summary');
-  const sumIcon = document.createElement('span');
-  sumIcon.className = 'material-icons';
-  sumIcon.textContent = 'account_tree';
-  const sumText = document.createElement('span');
-  sumText.textContent = `调用过程 · ${steps.length} 步${names.size ? ` · ${names.size} 个工具` : ''}`;
-  const sumChev = document.createElement('span');
-  sumChev.className = 'material-icons tool-chev';
-  sumChev.textContent = 'expand_more';
-  summary.append(sumIcon, sumText, sumChev);
-  details.append(summary);
-  const STATE_ICON = {
-    ok: 'check',
-    error: 'close',
-    denied: 'block',
-    cancelled: 'remove',
-    unknown: 'help',
-  };
+  if (!steps.length && !route && !calls.length && !trace.routing) return;
+
+  const box = document.createElement('div');
+  box.className = 'scaffolds';
+  const toggle = document.createElement('div');
+  toggle.className = 'scaf-toggle';
+  toggle.dataset.action = 'toggle-chain';
+  const tIcon = document.createElement('span');
+  tIcon.className = 'material-icons';
+  tIcon.textContent = 'manage_search';
+  const tName = document.createElement('b');
+  tName.textContent = '调用过程';
+  const tMeta = document.createElement('span');
+  tMeta.className = 'scaf-toggle-meta';
+  const stepCount = calls.length + steps.length;
+  tMeta.textContent = `· ${stepCount} 步${names.size ? ` · ${names.size} 个工具` : ''}`;
+  const chev = document.createElement('span');
+  chev.className = 'chev';
+  const chevIcon = document.createElement('span');
+  chevIcon.className = 'material-icons';
+  chevIcon.textContent = 'chevron_right';
+  chev.append(chevIcon);
+  toggle.append(tIcon, tName, tMeta, chev);
+  box.append(toggle);
+
+  // 档位选择
+  if (route || trace.routing) {
+    const picked = route || trace.routing.data || {};
+    const requested = picked.requested_mode;
+    const asked =
+      requested === 'default' || requested == null ? '跟随设置' : MODE_LABEL[requested] || String(requested);
+    const reason = REASON_LABEL[picked.reason] || picked.reason || '';
+    box.append(
+      scafRow(
+        'done',
+        'tune',
+        '档位选择',
+        `${asked} → ${MODE_LABEL[picked.mode || picked.initial_mode] || '完整'}${reason ? ` · ${reason}` : ''}`,
+      ),
+    );
+  }
+  // 模型调用
+  calls.slice(0, 12).forEach((call, index) => {
+    const tokens = call.input_token_estimate;
+    const bits = [
+      tokens != null ? `输入约 ${tokens} tokens` : '输入未计量',
+      `工具 ${call.tool_count}/${call.full_tool_count}`,
+      call.cost_micro != null ? `${call.cost_micro} 微美元` : '费用待结清',
+    ];
+    const row = scafRow('done', 'check', `模型调用 第 ${index + 1} 次`, bits.join(' · '), '', true);
+    box.append(row);
+    const out = document.createElement('div');
+    out.className = 'scaf-out';
+    out.textContent =
+      `档位 ${MODE_LABEL[call.mode] || call.mode}｜计量 ${call.counting_method || '未登记'}\n` +
+      `工具规格 ${call.tool_bytes} 字节（完整 ${call.full_tool_bytes} 字节）\n` +
+      `调用状态 ${call.call_state}`;
+    box.append(out);
+  });
+  // 工具步骤
+  if (!steps.length) {
+    box.append(scafRow('done', 'do_not_disturb_on', '工具调用', '本轮未调用工具，模型直接回复'));
+  }
+  const STATE = { ok: ['done', 'check'], error: ['fail', 'error'], denied: ['fail', 'block'], cancelled: ['fail', 'block'], unknown: ['fail', 'help'] };
   for (const row of steps.slice(0, 40)) {
     const data = typeof row.data === 'object' && row.data ? row.data : {};
-    const payload = typeof row.data === 'string' ? row.data : JSON.stringify(data || {});
     const done = data.action_id ? completed.get(String(data.action_id)) : null;
     const doneData = done && typeof done.data === 'object' ? done.data : {};
     const state = doneData.status || 'unknown';
-    const item = document.createElement('div');
-    item.className = 'tool-call-row';
-    item.dataset.state = state;
-    const glyphBox = document.createElement('span');
-    glyphBox.className = 'tool-glyph';
-    const icon = document.createElement('span');
-    icon.className = 'material-icons';
-    icon.textContent = done ? STATE_ICON[state] || 'help' : 'more_horiz';
-    glyphBox.append(icon);
-    const name = document.createElement('code');
-    name.className = 'tool-name';
-    name.textContent = String(row.tool || data.tool || row.kind || 'tool').replace(/^(tool|action)\./, '');
-    const args = document.createElement('code');
-    args.className = 'tool-args';
-    args.textContent = payload && payload !== '{}' ? payload.slice(0, 200) : '';
-    item.append(glyphBox, name, args);
     let ms = data.duration_ms ?? data.elapsed_ms ?? data.ms;
     if (typeof ms !== 'number' && done && row.created_at && done.created_at) {
       const delta = Date.parse(done.created_at) - Date.parse(row.created_at);
       if (Number.isFinite(delta) && delta >= 0) ms = delta;
     }
-    if (typeof ms === 'number') {
-      const dur = document.createElement('span');
-      dur.className = 'tool-ms';
-      dur.textContent = ms >= 1000 ? `${(ms / 1000).toFixed(1)}s` : `${ms}ms`;
-      item.append(dur);
-    }
-    const chev = document.createElement('span');
-    chev.className = 'material-icons tool-row-chev';
-    chev.textContent = 'chevron_right';
-    item.append(chev);
-    details.append(item);
+    const [cls, icon] = STATE[state] || STATE.unknown;
+    const toolName = String(row.tool || data.tool || row.kind || 'tool').replace(/^(tool|action)\./, '');
+    const item = scafRow(
+      done ? cls : 'run',
+      done ? icon : 'progress_activity',
+      toolName,
+      data.requires_approval ? '写动作 · 需审批' : '只读 · 无需审批',
+      durText(ms),
+      true,
+    );
+    box.append(item);
+    const out = document.createElement('div');
+    out.className = 'scaf-out';
+    const fp = String(data.arguments_sha256 || '');
+    out.textContent =
+      `状态 ${state}｜副作用 ${doneData.effect || 'none'}\n` +
+      (fp ? `参数指纹 sha256:${fp}\n` : '') +
+      '参数与结果原文已留存；所有者接口按设计不外发。';
+    box.append(out);
   }
-  node.append(details);
+  node.append(box);
 }
+// V1 的折叠交互：链开关与单行详情
+document.addEventListener('click', (event) => {
+  const toggle = event.target.closest?.('[data-action="toggle-chain"]');
+  if (toggle) {
+    const box = toggle.closest('.scaffolds');
+    box?.classList.toggle('open');
+    if (!box?.classList.contains('open'))
+      box?.querySelectorAll('.scaf.open').forEach((row) => row.classList.remove('open'));
+    return;
+  }
+  const row = event.target.closest?.('[data-action="toggle-scaf"]');
+  if (row) row.classList.toggle('open');
+});
 function statusRow(name, state, detail) {
   const row = document.createElement('div');
   row.className = 'svc-row';
@@ -521,34 +641,43 @@ function renderMessages(items) {
       const bubble = document.createElement('div');
       bubble.className = 'bubble';
       const head = document.createElement('div');
-      head.className = 'message-head';
+      head.className = m.role === 'user' ? 'turn-foot' : 'a-head';
+      const clockText = (() => {
+        if (!m.created_at) return '';
+        const stamp = String(m.created_at);
+        const hit = /T(\d{2}:\d{2})/.exec(stamp);
+        return hit ? hit[1] : stamp.slice(11, 16);
+      })();
       if (m.role !== 'user') {
-        const avatar = document.createElement('span');
+        const avatar = document.createElement('div');
         avatar.className = 'a-avatar';
         avatar.setAttribute('aria-hidden', 'true');
-        const glyph = document.createElement('span');
-        glyph.className = 'material-icons';
-        glyph.textContent = 'smart_toy';
-        avatar.append(glyph);
-        head.append(avatar);
-      }
-      const role = document.createElement('span');
-      role.className = 'message-role';
-      role.textContent = m.role === 'user' ? '你' : '小鱼';
-      head.append(role);
-      if (m.created_at) {
-        const time = document.createElement('time');
-        const stamp = String(m.created_at);
-        const clock = /T(\d{2}:\d{2})/.exec(stamp);
-        time.textContent = clock ? clock[1] : stamp.slice(11, 16);
-        time.dateTime = stamp;
-        head.append(time);
+        avatar.innerHTML =
+          '<svg viewBox="0 0 24 24" fill="none"><path d="M2.6 12c2.9-4.7 6.7-6.9 10.6-6.9 2.6 0 4.6.9 6.2 2.6-1.7.9-2.7 2.2-2.7 4.3s1 3.4 2.7 4.3c-1.6 1.7-3.6 2.6-6.2 2.6-3.9 0-7.7-2.2-10.6-6.9Z" fill="rgba(4,18,26,.84)"/><circle cx="8.6" cy="10.6" r="1.15" fill="#eafcfb"/></svg>';
+        const name = document.createElement('span');
+        name.className = 'a-name';
+        name.textContent = '小鱼';
+        head.append(avatar, name);
+        if (clockText) {
+          const meta = document.createElement('span');
+          meta.className = 'a-meta';
+          meta.textContent = clockText;
+          head.append(meta);
+        }
+        const spacer = document.createElement('div');
+        spacer.className = 'spacer';
+        head.append(spacer);
+      } else if (clockText) {
+        const ts = document.createElement('span');
+        ts.className = 'ts';
+        ts.textContent = clockText;
+        head.append(ts);
       }
       const body = document.createElement('div');
       body.className = 'message-body';
       body.textContent = m.content;
       const actions = document.createElement('div');
-      actions.className = 'message-actions';
+      actions.className = 'msg-actions';
       const copy = document.createElement('button');
       copy.type = 'button';
       copy.className = 'copy-msg';
@@ -562,8 +691,13 @@ function renderMessages(items) {
         });
       });
       head.append(copy);
-      bubble.append(head, body, actions);
-      node.append(bubble);
+      if (m.role === 'user') {
+        bubble.append(body);
+        node.append(bubble, head, actions);
+      } else {
+        bubble.append(body);
+        node.append(head, bubble, actions);
+      }
       chatImages.append(node, m);
       if (m.role === 'assistant') {
         const publish = document.createElement('button');
@@ -627,12 +761,46 @@ function renderMessages(items) {
   );
   $('messages').scrollTop = $('messages').scrollHeight;
   setThinking(false);
-  for (const node of $('messages').querySelectorAll('.msg[data-run-id]'))
-    loadRunTools(node.dataset.runId)
-      .then((rows) => {
-        if (rows.length) renderToolBlock(node.querySelector('.bubble') || node, rows);
+  // 运行过程只属于助手这一轮回复；用户消息不重复挂载同一份信息
+  for (const node of $('messages').querySelectorAll('.msg.assistant[data-run-id]'))
+    loadRunTrace(node.dataset.runId)
+      .then((trace) => {
+        if (!trace) return;
+        renderToolBlock(node.querySelector('.bubble') || node, trace);
+        // 过程条是异步挂上的，会撑高最后一条消息；重新贴底避免被面板边缘裁掉
+        $('messages').scrollTop = $('messages').scrollHeight;
       })
       .catch(() => {});
+}
+// 技术详情跟随当前会话最近一次运行；没有运行就明确说明，而不是留白
+let runDetailsTicket = 0;
+async function showRunDetails(runId, sessionId) {
+  const stamp = generation,
+    ticket = ++runDetailsTicket;
+  const stale = () => stamp !== generation || ticket !== runDetailsTicket || session !== sessionId;
+  if (!runId) {
+    for (const id of ['route-run-status', 'skill-run-status', 'run-retention-status', 'context-status'])
+      $(id).textContent = '';
+    $('route-call-list').replaceChildren();
+    $('run-details-empty').hidden = false;
+    return;
+  }
+  $('run-details-empty').hidden = true;
+  await routingPanel.report(runId, sessionId);
+  if (stale()) return;
+  await skillsPanel.report(runId, sessionId);
+  if (stale()) return;
+  const record = await api(scope(`/runs/${runId}`));
+  if (stale()) return;
+  renderRetention(record);
+  const report = await api(scope(`/runs/${runId}/context`));
+  if (stale()) return;
+  const latest = report.snapshots.at(-1);
+  const erased = report.items.filter((row) => row.erased).length;
+  $('context-status').textContent =
+    `本轮登记 ${report.items.length} 条上下文记录，其中 ${erased} 条已遗忘；` +
+    `历史处理 ${latest?.mode === 'complete' ? '完整保留' : latest?.mode === 'summary' ? '已登记摘要' : latest?.mode ? '有省略' : '未登记'}，` +
+    `压缩 ${report.attempts.length} 次。`;
 }
 async function refreshSessions() {
   const current = generation,
@@ -668,8 +836,12 @@ async function refreshSessions() {
         wrap(async () => {
           session = item.id;
           clearContext();
-          renderMessages((await api(scope(`/sessions/${session}/messages`))).items);
+          const history = (await api(scope(`/sessions/${session}/messages`))).items;
+          renderMessages(history);
           for (const other of $('sessions').children) other.classList.toggle('active', other === row);
+          // 打开历史会话时，技术详情要跟着切到该会话最近一次运行，否则整块空白
+          const lastRun = [...history].reverse().find((m) => m.run_id)?.run_id || null;
+          await showRunDetails(lastRun, session);
         }),
       );
       return row;
@@ -829,6 +1001,8 @@ function clearContext() {
   $('show-summary').hidden = true;
   $('summary-body').textContent = '';
   $('context-status').textContent = '';
+  const detailsEmpty = $('run-details-empty');
+  if (detailsEmpty) detailsEmpty.hidden = false;
 }
 $('show-summary').addEventListener(
   'click',
@@ -1253,10 +1427,15 @@ window.addEventListener('pagehide', stop);
 for (const tab of document.querySelectorAll('[data-inspector]'))
   tab.addEventListener('click', () => {
     const selected = tab.dataset.inspector;
-    for (const other of document.querySelectorAll('[data-inspector]'))
+    for (const other of document.querySelectorAll('[data-inspector]')) {
       other.setAttribute('aria-selected', String(other === tab));
-    for (const panel of document.querySelectorAll('[data-inspector-panel]'))
-      panel.hidden = panel.dataset.inspectorPanel !== selected;
+      other.classList.toggle('active', other === tab);
+    }
+    for (const panel of document.querySelectorAll('[data-inspector-panel]')) {
+      const on = panel.dataset.inspectorPanel === selected;
+      panel.hidden = !on;
+      panel.classList.toggle('hidden', !on);
+    }
     if (!agent) return;
     if (selected === 'skills') inspectorPanel.loadSkills();
     if (selected === 'objects') inspectorPanel.loadObjects();
@@ -1269,6 +1448,9 @@ for (const input of document.querySelectorAll('input[type="file"]')) {
   if (input.dataset.fileUi) continue;
   input.dataset.fileUi = '1';
   input.classList.add('file-native');
+  // 视觉隐藏的原生 input 不再抢 Tab 焦点；键盘走自定义按钮，测试仍可按 id 定位
+  input.tabIndex = -1;
+  input.setAttribute('aria-hidden', 'true');
   const wrap = document.createElement('span');
   wrap.className = 'file-picker';
   const btn = document.createElement('button');
@@ -1281,11 +1463,21 @@ for (const input of document.querySelectorAll('input[type="file"]')) {
   const name = document.createElement('span');
   name.className = 'file-picker-name';
   name.textContent = '未选择';
-  btn.addEventListener('click', () => input.click());
+  btn.addEventListener('click', () => {
+    if (!input.disabled) input.click();
+  });
   input.addEventListener('change', () => {
     name.textContent = input.files?.[0]?.name || '未选择';
     name.title = input.files?.[0]?.name || '';
   });
+  // 原生 input 的禁用态要同步到自定义按钮，否则按钮看着可点却无反应
+  const syncDisabled = () => {
+    btn.disabled = input.disabled;
+    wrap.dataset.disabled = String(input.disabled);
+    btn.title = input.disabled ? '当前不可附加图片' : '选择图片文件';
+  };
+  syncDisabled();
+  new MutationObserver(syncDisabled).observe(input, { attributes: true, attributeFilter: ['disabled'] });
   input.replaceWith(wrap);
   wrap.append(btn, name, input);
 }

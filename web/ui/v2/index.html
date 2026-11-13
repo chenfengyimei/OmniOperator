@@ -8,10 +8,13 @@
     <link rel="stylesheet" href="/assets/ui/tokens.css?v=20261103v7" />
     <link rel="stylesheet" href="/assets/ui/base.css?v=20261103v7" />
     <link rel="stylesheet" href="/assets/ui/icons.css?v=20261103v7" />
-    <link rel="stylesheet" href="/assets/ui/v2/workbench.css?v=20261113v74" />
-    <link rel="stylesheet" href="/assets/vendor/xterm.min.css?v=20261113v74" />
+    <link rel="stylesheet" href="/assets/ui/v2/v1/components.css?v=20261113v105" />
+    <link rel="stylesheet" href="/assets/ui/v2/v1/frame.css?v=20261113v105" />
+    <link rel="stylesheet" href="/assets/ui/v2/v1/workbench.css?v=20261113v105" />
+    <link rel="stylesheet" href="/assets/ui/v2/workbench.css?v=20261113v105" />
+    <link rel="stylesheet" href="/assets/vendor/xterm.min.css?v=20261113v81" />
   </head>
-  <body class="chat-mode">
+  <body class="chat-mode" data-ui-page="workbench-v2">
     <header class="app-header">
       <img src="/assets/ui/brand-mark.svg" width="26" height="26" alt="" />
       <span class="brand-text"><strong>OmniOperator</strong><small>V2 开发工作台</small></span>
@@ -21,38 +24,39 @@
       <button id="theme" type="button" title="切换主题" aria-label="切换主题">◐</button>
     </header>
     <nav aria-label="工作台" inert>
+      <div class="rail-brand" data-tip="OmniOperator" role="img" aria-label="OmniOperator"></div>
       <p class="nav-group">对话与记忆</p>
-      <button type="button" data-page="chat" aria-label="对话" title="对话"><span class="material-icons">forum</span></button>
-      <button type="button" data-page="memory" aria-label="记忆" title="记忆"><span class="material-icons">psychology</span></button>
+      <button type="button" class="rail-btn" data-page="chat" data-tip="对话" aria-label="对话" title="对话"><span class="material-icons">forum</span></button>
+      <button type="button" class="rail-btn" data-page="memory" data-tip="记忆" aria-label="记忆" title="记忆"><span class="material-icons">psychology</span></button>
       <p class="nav-group">知识与技能</p>
-      <button type="button" data-page="skills" aria-label="技能" title="技能"><span class="material-icons">auto_awesome</span></button>
-      <button type="button" data-page="documents" aria-label="来源文档" title="来源文档"><span class="material-icons">description</span></button>
+      <button type="button" class="rail-btn" data-page="skills" data-tip="技能" aria-label="技能" title="技能"><span class="material-icons">auto_awesome</span></button>
+      <button type="button" class="rail-btn" data-page="documents" data-tip="来源文档" aria-label="来源文档" title="来源文档"><span class="material-icons">description</span></button>
       <p class="nav-group">工具与扩展</p>
-      <button type="button" data-page="extensions" aria-label="可信插件" title="可信插件"><span class="material-icons">extension</span></button>
-      <button type="button" data-page="mcp" aria-label="MCP" title="MCP"><span class="material-icons">device_hub</span></button>
-      <button type="button" data-page="action-reviews" aria-label="动作核查" title="动作核查"><span class="material-icons">fact_check</span></button>
+      <button type="button" class="rail-btn" data-page="extensions" data-tip="可信插件" aria-label="可信插件" title="可信插件"><span class="material-icons">extension</span></button>
+      <button type="button" class="rail-btn" data-page="mcp" data-tip="MCP" aria-label="MCP" title="MCP"><span class="material-icons">device_hub</span></button>
+      <button type="button" class="rail-btn" data-page="action-reviews" data-tip="动作核查" aria-label="动作核查" title="动作核查"><span class="material-icons">fact_check</span></button>
       <p class="nav-group">设备与平台</p>
-      <button type="button" data-page="qq" aria-label="QQ 通道" title="QQ 通道"><span class="material-icons">chat</span></button>
-      <button type="button" data-page="bilibili" aria-label="B站" title="B站"><span class="material-icons">live_tv</span></button>
-      <button type="button" data-page="android" aria-label="安卓设备" title="安卓设备"><span class="material-icons">smartphone</span></button>
-      <button type="button" data-page="desktop" aria-label="桌面能力" title="桌面能力"><span class="material-icons">desktop_windows</span></button>
-      <button type="button" data-page="terminals" aria-label="所有者终端" title="所有者终端"><span class="material-icons">terminal</span></button>
+      <button type="button" class="rail-btn" data-page="qq" data-tip="QQ 通道" aria-label="QQ 通道" title="QQ 通道"><span class="material-icons">chat</span></button>
+      <button type="button" class="rail-btn" data-page="bilibili" data-tip="B站" aria-label="B站" title="B站"><span class="material-icons">live_tv</span></button>
+      <button type="button" class="rail-btn" data-page="android" data-tip="安卓设备" aria-label="安卓设备" title="安卓设备"><span class="material-icons">smartphone</span></button>
+      <button type="button" class="rail-btn" data-page="desktop" data-tip="桌面能力" aria-label="桌面能力" title="桌面能力"><span class="material-icons">desktop_windows</span></button>
+      <button type="button" class="rail-btn" data-page="terminals" data-tip="所有者终端" aria-label="所有者终端" title="所有者终端"><span class="material-icons">terminal</span></button>
       <p class="nav-group">资料与媒体</p>
-      <button type="button" data-page="people" aria-label="人物与档案" title="人物与档案"><span class="material-icons">person</span></button>
-      <button type="button" data-page="objects" aria-label="文件" title="文件"><span class="material-icons">folder</span></button>
-      <button type="button" data-page="media" aria-label="媒体" title="媒体"><span class="material-icons">movie</span></button>
+      <button type="button" class="rail-btn" data-page="people" data-tip="人物与档案" aria-label="人物与档案" title="人物与档案"><span class="material-icons">person</span></button>
+      <button type="button" class="rail-btn" data-page="objects" data-tip="文件" aria-label="文件" title="文件"><span class="material-icons">folder</span></button>
+      <button type="button" class="rail-btn" data-page="media" data-tip="媒体" aria-label="媒体" title="媒体"><span class="material-icons">movie</span></button>
       <p class="nav-group">自动化</p>
-      <button type="button" data-page="schedules" aria-label="持久调度" title="持久调度"><span class="material-icons">schedule</span></button>
-      <button type="button" data-page="deliveries" aria-label="持久投递" title="持久投递"><span class="material-icons">send</span></button>
+      <button type="button" class="rail-btn" data-page="schedules" data-tip="持久调度" aria-label="持久调度" title="持久调度"><span class="material-icons">schedule</span></button>
+      <button type="button" class="rail-btn" data-page="deliveries" data-tip="持久投递" aria-label="持久投递" title="持久投递"><span class="material-icons">send</span></button>
       <p class="nav-group">系统与运维</p>
-      <button type="button" data-page="settings" aria-label="设置" title="设置"><span class="material-icons">settings</span></button>
-      <button type="button" data-page="capabilities" aria-label="能力" title="能力"><span class="material-icons">dashboard</span></button>
-      <button type="button" data-page="tokens" aria-label="令牌" title="令牌"><span class="material-icons">key</span></button>
-      <button type="button" data-page="logs" aria-label="诊断日志" title="诊断日志"><span class="material-icons">article</span></button>
-      <button type="button" data-page="audit" aria-label="审计记录" title="审计记录"><span class="material-icons">history</span></button>
+      <button type="button" class="rail-btn" data-page="settings" data-tip="设置" aria-label="设置" title="设置"><span class="material-icons">settings</span></button>
+      <button type="button" class="rail-btn" data-page="capabilities" data-tip="能力" aria-label="能力" title="能力"><span class="material-icons">dashboard</span></button>
+      <button type="button" class="rail-btn" data-page="tokens" data-tip="令牌" aria-label="令牌" title="令牌"><span class="material-icons">key</span></button>
+      <button type="button" class="rail-btn" data-page="logs" data-tip="诊断日志" aria-label="诊断日志" title="诊断日志"><span class="material-icons">article</span></button>
+      <button type="button" class="rail-btn" data-page="audit" data-tip="审计记录" aria-label="审计记录" title="审计记录"><span class="material-icons">history</span></button>
     </nav>
     <main>
-      <aside class="sessions-panel workbench-side" id="sessions-panel">
+      <aside class="workbench-side sessions-panel" id="sessions-panel">
         <form id="connect" class="panel">
           <label>所有者令牌<input id="token" type="password" autocomplete="off" required /></label>
           <button type="submit">连接实例</button>
@@ -114,52 +118,75 @@
             <pre id="model-live-text"></pre>
           </section>
           <button id="pin-run" type="button" disabled>固定保留本次运行</button>
-          <details>
-            <summary>本轮运行详情与计量</summary>
-            <p id="run-retention-status" role="status"></p>
-            <p id="context-status" role="status"></p>
-            <pre id="route-run-status" role="status"></pre>
-            <pre id="skill-run-status" role="status"></pre>
-            <div id="route-call-list"></div>
+          <details id="run-details">
+            <summary>
+              <span class="material-icons" aria-hidden="true">insights</span>
+              <span>运行技术详情</span>
+              <span class="run-details-hint">模型档位 · 技能 · 保留策略</span>
+            </summary>
+            <div class="run-details-body">
+              <p id="run-details-empty" class="run-detail-empty" hidden>
+                这个会话还没有运行记录。发一条消息后，这里会显示本轮的模型档位、技能与计量口径。
+              </p>
+              <section class="run-detail-group">
+                <h4>模型与档位</h4>
+                <p class="run-detail-note">本轮实际使用的模型、能力档位与预留费用。</p>
+                <pre id="route-run-status" role="status"></pre>
+                <div id="route-call-list"></div>
+              </section>
+              <section class="run-detail-group">
+                <h4>本轮技能</h4>
+                <p class="run-detail-note">技能只是流程说明，不额外授予工具权限。</p>
+                <pre id="skill-run-status" role="status"></pre>
+              </section>
+              <section class="run-detail-group">
+                <h4>保留与计量</h4>
+                <p class="run-detail-note">上下文用量的实时视图在左栏；此处是本轮的计数口径与保留状态。</p>
+                <p id="run-retention-status" role="status"></p>
+                <p id="context-status" role="status"></p>
+              </section>
+            </div>
           </details>
           <button id="show-summary" type="button" hidden>查看当前摘要</button>
           <pre id="summary-body"></pre>
-          <form id="send">
-            <div class="composer-main">
-              <textarea id="message" rows="2" placeholder="给小鱼发消息…（Enter 发送，Shift + Enter 换行）"></textarea>
-              <div class="composer-actions">
-                <button type="submit">发送</button>
-                <button id="cancel" type="button" disabled>取消运行</button>
+          <div id="composer">
+            <form id="send" class="dock">
+              <textarea id="message" rows="2" placeholder="给小鱼发消息…（丢 B 站链接、说排程需求都行）"></textarea>
+              <div class="dock-bar">
+                <label class="mode-pick" title="能力档位：跟随设置 / 自动 / 聊天 / 检索 / 完整">
+                  <span class="material-icons" aria-hidden="true">tune</span>
+                  <select id="chat-mode" aria-label="能力档位">
+                    <option value="">跟随设置</option>
+                    <option value="auto">自动</option>
+                    <option value="chat">聊天</option>
+                    <option value="retrieval">检索</option>
+                    <option value="agent">完整</option>
+                  </select>
+                </label>
+                <label class="mode-pick" title="本轮使用的技能">
+                  <span class="material-icons" aria-hidden="true">auto_awesome</span>
+                  <select id="skill-turn" multiple size="1" aria-label="本轮技能"></select>
+                </label>
+                <button id="skill-turn-clear" type="button" class="btn small" title="清空本轮技能选择">清空</button>
+                <label class="mode-pick" title="附加图片">
+                  <span class="material-icons" aria-hidden="true">image</span>
+                  <input id="image-file" type="file" accept="image/png,image/jpeg,image/webp" disabled />
+                </label>
+                <button id="image-refresh-captures" type="button" class="btn small" title="载入会话截图">载入截图</button>
+                <label class="mode-pick" title="复用会话截图">
+                  <span class="material-icons" aria-hidden="true">photo_library</span>
+                  <select id="image-capture" aria-label="复用截图"></select>
+                </label>
+                <button id="image-add-capture" type="button" class="btn small" disabled title="附加所选截图">附加</button>
+                <span class="dock-meta"><kbd>Enter</kbd>发送 <kbd>Shift</kbd>+<kbd>Enter</kbd>换行</span>
+                <button id="cancel" type="button" class="btn small danger" disabled>取消运行</button>
+                <button type="submit" id="send-btn">发送</button>
               </div>
-            </div>
-            <div class="composer-tools">
-              <label class="mini"
-                >档位<select id="chat-mode">
-                  <option value="">跟随空间档位设置</option>
-                  <option value="auto">自动（不确定时完整）</option>
-                  <option value="chat">聊天</option>
-                  <option value="retrieval">检索</option>
-                  <option value="agent">完整</option>
-                </select></label
-              >
-              <label class="mini">技能<select id="skill-turn" multiple size="1"></select></label>
-              <button id="skill-turn-clear" type="button" title="清空本轮技能选择">清空</button>
-              <label class="mini"
-                >图片<input
-                  id="image-file"
-                  type="file"
-                  accept="image/png,image/jpeg,image/webp"
-                  disabled
-              /></label>
-              <button id="image-refresh-captures" type="button" title="载入会话截图">载入截图</button>
-              <label class="mini">复用<select id="image-capture"></select></label>
-              <button id="image-add-capture" type="button" disabled title="附加所选截图">附加</button>
-              <span class="dock-hint" aria-hidden="true"><kbd>Enter</kbd> 发送 <kbd>Shift</kbd>+<kbd>Enter</kbd> 换行</span>
-            </div>
-            <ul id="image-drafts"></ul>
-            <p id="image-status" role="status"></p>
-            <p id="image-run-status" role="status"></p>
-          </form>
+              <ul id="image-drafts"></ul>
+              <p id="image-status" role="status"></p>
+              <p id="image-run-status" role="status"></p>
+            </form>
+          </div>
         </section>
         <section id="android" class="page" hidden>
           <h2>安卓设备</h2>
@@ -219,7 +246,7 @@
           <button type="button" id="android-apps-more" disabled>更多应用</button>
           <pre id="android-apps-result"></pre>
           <label>归属会话 UUID<input id="android-session" maxlength="36" /></label>
-          <img id="android-image" alt="已授权安卓设备截图" hidden style="max-width: 100%; max-height: 32rem" />
+          <img id="android-image" alt="已授权安卓设备截图" hidden />
           <details>
             <summary>本次界面观察</summary>
             <pre id="android-tree"></pre>
@@ -1451,35 +1478,37 @@
           </div>
         </div>
       </section>
-      <aside class="inspector panel" aria-label="会话面板">
+      <aside class="inspector" aria-label="会话面板"><div class="panel inspector-panel">
         <div class="tabs" role="tablist">
-          <button type="button" data-inspector="todo" role="tab" aria-selected="true">待办</button>
-          <button type="button" data-inspector="skills" role="tab" aria-selected="false">技能</button>
-          <button type="button" data-inspector="objects" role="tab" aria-selected="false">产物</button>
-          <button type="button" data-inspector="desktop" role="tab" aria-selected="false">桌面</button>
+          <button type="button" data-inspector="todo" role="tab" class="active" aria-selected="true">待办</button>
+          <button type="button" data-inspector="skills" role="tab" class="" aria-selected="false">技能</button>
+          <button type="button" data-inspector="objects" role="tab" class="" aria-selected="false">产物</button>
+          <button type="button" data-inspector="desktop" role="tab" class="" aria-selected="false">桌面</button>
         </div>
         <div class="inspector-body">
-          <section data-inspector-panel="todo">
+          <section data-inspector-panel="todo" class="tab-body">
             <div class="inspector-empty-todo">
               <span class="material-icons">task_alt</span>
               <strong id="inspector-todo-count">暂无待办</strong>
               <span>需要审批的动作会显示在对话上方，批准后才会执行。</span>
             </div>
           </section>
-          <section data-inspector-panel="skills" hidden>
+          <section data-inspector-panel="skills" class="tab-body hidden">
             <div id="inspector-skills" class="muted">本轮未使用技能</div>
           </section>
-          <section data-inspector-panel="objects" hidden>
+          <section data-inspector-panel="objects" class="tab-body hidden">
             <div id="inspector-objects" class="muted">暂无产物</div>
           </section>
-          <section data-inspector-panel="desktop" hidden>
+          <section data-inspector-panel="desktop" class="tab-body hidden">
             <p id="inspector-desktop" class="muted">桌面截图与窗口操作在「桌面能力」页。</p>
           </section>
         </div>
+        </div>
       </aside>
     </main>
-    <script src="/assets/vendor/xterm.js?v=20261113v74"></script>
-    <script src="/assets/vendor/xterm-addon-fit.js?v=20261113v74"></script>
-    <script type="module" src="/assets/ui/v2/main.js?v=20261113v74"></script>
+    <div id="tip-layer"></div>
+    <script src="/assets/vendor/xterm.js?v=20261113v105"></script>
+    <script src="/assets/vendor/xterm-addon-fit.js?v=20261113v105"></script>
+    <script type="module" src="/assets/ui/v2/main.js?v=20261113v105"></script>
   </body>
 </html>

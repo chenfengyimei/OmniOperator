@@ -1,541 +1,31 @@
 /* ==========================================================================
-   OmniOperator V2 开发工作台 · 统一毛玻璃设计系统
+   V2 桥接层 —— 只处理 V1 没有的部分，外观一律由 v1/*.css 决定
    --------------------------------------------------------------------------
-   设计来源：V1 工作台的三档玻璃 token（壳强 / 面板中 / 列表弱）+ hermes 的
-   排版（15px 正文、宽字距大写面板标题、低对比描边）。颜色全部派生自
-   tokens.css 的种子与表面变量，浅色主题自动翻面；本文件不写死色值。
-   结构分层：令牌 → 基础 → 控件 → 壳层 → 左栏 → 对话 → 右栏 → 设置 → 页面
-   内容 → 移动端。只依赖 index.html 语义结构与 JS 模块类名，不改契约钩子。
+   加载顺序：tokens → base → icons → v1/components → v1/frame → v1/workbench → 本文件。
+   本文件不重定义面板/气泡/dock/rail/tabs 等已有组件外观；只补：
+     1. V2 特有的 22 个 section.page 与页头；
+     2. 设置中心覆盖层；
+     3. 连接卡与 Agent 选择（V1 无此二控件）；
+     4. 右栏数据行与空态；
+     5. 运行技术详情分组；
+     6. 窄屏会话抽屉。
    ========================================================================== */
 
-/* ---------- 设计令牌（V2 作用域） ---------- */
-:root {
-  --header-h: 52px;
-  --rail-w: 54px;
-  /* 栏宽随视口自适应：宽屏取上限，窄屏收到下限，避免中等屏拥挤 */
-  --side-w: clamp(232px, 21vw, 300px);
-  --inspector-w: clamp(240px, 22vw, 312px);
-  --gap: 12px;
-  --pad: 12px;
-}
-body {
-  /* hermes 排版刻度：正文 15px，层级靠字重与颜色拉开 */
-  --fs-body: 15px;
-  --fs-secondary: 13px;
-  --fs-small: 12px;
-  --fs-caption: 11px;
+body[data-ui-page="workbench-v2"] {
+  --v2-page-max: 980px;
 }
 
-* {
-  box-sizing: border-box;
-}
-html,
-body {
-  height: 100%;
-}
-
-/* ---------- 滚动条（统一玻璃语言） ---------- */
-* {
-  scrollbar-width: thin;
-  scrollbar-color: color-mix(in srgb, var(--seed-fg) 22%, transparent) transparent;
-}
-*::-webkit-scrollbar {
-  width: 9px;
-  height: 9px;
-}
-*::-webkit-scrollbar-track {
-  background: transparent;
-}
-*::-webkit-scrollbar-thumb {
-  background: color-mix(in srgb, var(--seed-fg) 20%, transparent);
-  border: 2px solid transparent;
-  background-clip: content-box;
-  border-radius: var(--r-full);
-}
-*::-webkit-scrollbar-thumb:hover {
-  background: color-mix(in srgb, var(--seed-accent) 45%, transparent);
-  background-clip: content-box;
-}
-
-/* ---------- 基础 ---------- */
-body {
-  margin: 0;
-  color: var(--text-1);
-  font: var(--fs-body) / 1.6 var(--font-sans);
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  /* 分层环境光：两团柔和的青/紫辉光 + 细颗粒，让玻璃有可折射的底 */
-  background:
-    radial-gradient(1100px 560px at 16% -14%, color-mix(in srgb, var(--seed-accent) 10%, transparent), transparent 62%),
-    radial-gradient(940px 520px at 94% -18%, color-mix(in srgb, var(--seed-accent2) 9%, transparent), transparent 60%),
-    var(--bg);
-  background-attachment: fixed;
-}
-/* 细颗粒质感（hermes grain），极低透明度，不干扰阅读 */
-body::after {
-  content: "";
+/* rail：沿用 V1 固定定位，滚动条走 V1 语言 */
+body[data-ui-page="workbench-v2"] > nav[aria-label="工作台"] {
   position: fixed;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  opacity: 0.05;
-  background-image: repeating-conic-gradient(color-mix(in srgb, var(--seed-fg) 60%, transparent) 0% 25%, transparent 0% 50%);
-  background-size: 3px 3px;
-}
-
-a {
-  color: var(--accent);
-  text-decoration: none;
-}
-a:hover {
-  text-decoration: underline;
-}
-::selection {
-  background: color-mix(in srgb, var(--seed-accent) 32%, transparent);
-}
-[hidden] {
-  display: none !important;
-}
-.muted {
-  color: var(--text-3);
-}
-
-h1,
-h2,
-h3,
-h4 {
-  margin: 0;
-  font-weight: 650;
-  letter-spacing: 0.01em;
-}
-p {
-  margin: 0;
-}
-
-/* ---------- 表单控件（统一玻璃质感） ---------- */
-label {
-  display: grid;
-  gap: 6px;
-  color: var(--text-3);
-  font-size: var(--fs-small);
-}
-input,
-textarea,
-select {
-  width: 100%;
-  padding: 8px 11px;
-  border: 1px solid var(--line-2);
-  border-radius: var(--r-md);
-  background: color-mix(in srgb, var(--surface-inset) 80%, transparent);
-  color: var(--text-1);
-  font: inherit;
-  font-size: var(--fs-secondary);
-  transition:
-    border-color 0.16s var(--ease-out),
-    box-shadow 0.16s var(--ease-out),
-    background 0.16s var(--ease-out);
-}
-input::placeholder,
-textarea::placeholder {
-  color: var(--text-4);
-}
-input:hover,
-textarea:hover,
-select:hover {
-  border-color: var(--line-1);
-}
-input:focus-visible,
-textarea:focus-visible,
-select:focus-visible {
-  outline: none;
-  border-color: var(--line-accent);
-  background: var(--surface-inset);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--seed-accent) 16%, transparent);
-}
-textarea {
-  resize: vertical;
-  min-height: 76px;
-  line-height: 1.55;
-}
-input[type="file"] {
-  padding: 6px 8px;
-  font-size: var(--fs-small);
-  cursor: pointer;
-}
-input[type="file"]::file-selector-button {
-  margin-right: 8px;
-  padding: 3px 10px;
-  border: 1px solid var(--line-2);
-  border-radius: var(--r-sm);
-  background: var(--glass-weak-bg);
-  color: var(--text-2);
-  font: inherit;
-  font-size: var(--fs-caption);
-  cursor: pointer;
-}
-input[type="checkbox"] {
-  width: auto;
-  accent-color: var(--seed-accent);
-}
-select {
-  cursor: pointer;
-}
-select[multiple] {
-  min-height: 88px;
-}
-fieldset {
-  min-width: 0;
-  margin: 0;
-  padding: 0;
-  border: 0;
-}
-legend {
-  padding: 0;
-  color: var(--text-3);
-  font-size: var(--fs-small);
-  font-weight: 600;
-}
-hr {
-  border: 0;
-  border-top: 1px solid var(--line-3);
-  margin: 12px 0;
-}
-
-/* ---------- 按钮 ---------- */
-button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  min-height: 32px;
-  padding: 0 14px;
-  border: 1px solid var(--line-2);
-  border-radius: var(--r-md);
-  background: var(--glass-weak-bg);
-  color: var(--text-1);
-  font: inherit;
-  font-size: var(--fs-secondary);
-  cursor: pointer;
-  transition:
-    background 0.16s var(--ease-out),
-    border-color 0.16s var(--ease-out),
-    transform 0.06s var(--ease-out);
-}
-button:hover {
-  border-color: var(--line-accent);
-  background: color-mix(in srgb, var(--surface-2) 80%, transparent);
-}
-button:active {
-  transform: translateY(1px);
-}
-button:focus-visible {
-  outline: none;
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--seed-accent) 22%, transparent);
-}
-button:disabled {
-  opacity: 0.45;
-  cursor: default;
-  transform: none;
-}
-button[type="submit"] {
-  border-color: transparent;
-  background: var(--grad);
-  color: var(--on-accent);
-  font-weight: 650;
-  box-shadow: inset 0 1px 0 color-mix(in srgb, #fff 28%, transparent);
-}
-button[type="submit"]:hover {
-  filter: brightness(1.07);
-  border-color: transparent;
-}
-#cancel {
-  color: var(--danger);
-  border-color: var(--danger-bd);
-  background: var(--danger-bg);
-}
-#cancel:hover {
-  border-color: var(--danger);
-}
-
-/* ---------- 代码 / 折叠 / 卡片 ---------- */
-pre {
-  margin: 0;
-  padding: 10px 12px;
-  overflow: auto;
-  border: 1px solid var(--line-3);
-  border-radius: var(--r-md);
-  background: color-mix(in srgb, var(--surface-inset) 75%, transparent);
-  color: var(--text-2);
-  font: var(--fs-small) / 1.55 var(--font-mono);
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
-}
-code {
-  font-family: var(--font-mono);
-}
-pre:empty,
-p[role="status"]:empty,
-#route-run-status:empty,
-#skill-run-status:empty,
-#run-status:empty,
-#context-status:empty,
-#run-retention-status:empty,
-#image-status:empty,
-#image-run-status:empty {
-  display: none;
-}
-details {
-  border: 1px solid var(--line-2);
-  border-radius: var(--r-md);
-  background: var(--glass-weak-bg);
-  padding: 2px 12px;
-}
-details[open] {
-  padding-bottom: 10px;
-}
-summary {
-  padding: 8px 0;
-  color: var(--text-2);
-  font-size: var(--fs-secondary);
-  cursor: pointer;
-  user-select: none;
-}
-summary:hover {
-  color: var(--text-1);
-}
-article {
-  padding: 14px 16px;
-  border: 1px solid var(--glass-mid-line);
-  border-radius: var(--r-card);
-  background: var(--glass-mid-bg);
-  box-shadow: var(--glass-mid-shadow), var(--glass-mid-sheen);
-  overflow-wrap: anywhere;
-}
-article + article {
-  margin-top: 10px;
-}
-article h3 {
-  margin: 0 0 6px;
-  font-size: var(--fs-secondary);
-  font-weight: 650;
-}
-article p {
-  margin: 0 0 6px;
-  color: var(--text-2);
-}
-article p:last-child {
-  margin-bottom: 0;
-}
-.badge,
-[data-badge] {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 2px 9px;
-  border: 1px solid var(--line-2);
-  border-radius: var(--r-full);
-  background: var(--glass-weak-bg);
-  color: var(--text-2);
-  font-size: var(--fs-caption);
-}
-.actions {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px;
-}
-.log-filters,
-.form-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-}
-.log-filters > label,
-.form-row > label {
-  flex: 1 1 180px;
-}
-
-/* ---------- 空态（图标 + 标题 + 引导 + 下一步） ---------- */
-.empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 44px 20px;
-  border: 1px dashed var(--line-2);
-  border-radius: var(--r-card);
-  color: var(--text-3);
-  text-align: center;
-}
-.empty-state .material-icons {
-  font-size: 30px;
-  color: var(--text-4);
-}
-.empty-state strong {
-  color: var(--text-2);
-  font-size: var(--fs-body);
-}
-.empty-state span {
-  max-width: 420px;
-  font-size: var(--fs-small);
-  line-height: 1.6;
-}
-.empty-actions {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 8px;
-  margin-top: 6px;
-}
-
-/* ==========================================================================
-   壳层：body 网格（header 横跨 / rail 左 / main 右）
-   ========================================================================== */
-body {
-  position: relative;
-  z-index: 1;
-  display: grid;
-  grid-template-columns: var(--rail-w) minmax(0, 1fr);
-  grid-template-rows: var(--header-h) minmax(0, 1fr);
-  height: 100dvh;
-  overflow: hidden;
-}
-body > header {
-  grid-column: 1 / -1;
-  grid-row: 1;
-}
-body > nav[aria-label="工作台"] {
-  grid-column: 1;
-  grid-row: 2;
-}
-body > main {
-  grid-column: 2;
-  grid-row: 2;
-}
-
-/* 顶栏：强玻璃 */
-header.app-header {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  height: var(--header-h);
-  padding: 0 16px;
-  background: color-mix(in srgb, var(--surface-1) 58%, transparent);
-  border-bottom: 1px solid var(--glass-strong-line);
-  backdrop-filter: blur(var(--glass-strong-blur)) saturate(var(--glass-strong-sat));
-  -webkit-backdrop-filter: blur(var(--glass-strong-blur)) saturate(var(--glass-strong-sat));
-  box-shadow: var(--glass-strong-sheen);
-}
-body > header img {
-  width: 26px;
-  height: 26px;
-  border-radius: var(--r-sm);
-}
-.brand-text {
-  display: flex;
-  align-items: baseline;
-  gap: 8px;
-  min-width: 0;
-  white-space: nowrap;
-}
-.brand-text strong {
-  font-size: 14px;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-}
-.brand-text small {
-  color: var(--text-3);
-  font-size: var(--fs-caption);
-}
-.header-spacer {
-  flex: 1;
-}
-#open-settings {
-  border-color: color-mix(in srgb, var(--seed-accent) 32%, transparent);
-  color: var(--accent);
-  background: color-mix(in srgb, var(--seed-accent) 8%, transparent);
-}
-#open-settings:hover {
-  background: color-mix(in srgb, var(--seed-accent) 15%, transparent);
-}
-#theme {
-  flex: 0 0 auto;
-  width: 32px;
-  height: 32px;
-  min-height: 32px;
-  padding: 0;
-  border-radius: var(--r-full);
-  font-size: 14px;
-  line-height: 1;
-}
-
-/* 连接状态胶囊 */
-#health {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  max-width: 320px;
-  padding: 5px 12px;
-  overflow: hidden;
-  border: 1px solid var(--line-2);
-  border-radius: var(--r-full);
-  background: var(--glass-weak-bg);
-  color: var(--text-2);
-  font-size: var(--fs-small);
-  white-space: nowrap;
-  text-overflow: ellipsis;
-}
-#health::before {
-  content: "";
-  flex: 0 0 auto;
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--text-4);
-}
-#health[data-state="ok"] {
-  border-color: var(--ok-bd);
-  background: var(--ok-bg);
-  color: var(--text-1);
-}
-#health[data-state="ok"]::before {
-  background: var(--ok);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--ok) 18%, transparent);
-}
-#health[data-state="warn"] {
-  border-color: var(--warn-bd);
-  background: var(--warn-bg);
-}
-#health[data-state="warn"]::before {
-  background: var(--warn);
-}
-#health[data-state="error"] {
-  border-color: var(--danger-bd);
-  background: var(--danger-bg);
-}
-#health[data-state="error"]::before {
-  background: var(--danger);
-}
-
-/* 左侧图标 rail：弱玻璃 */
-body > nav[aria-label="工作台"] {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  padding: 10px 0 14px;
-  overflow-x: hidden;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 40;
   overflow-y: auto;
-  border-right: 1px solid var(--line-3);
-  background: color-mix(in srgb, var(--surface-1) 55%, transparent);
-  scrollbar-width: none;
+  overflow-x: hidden;
 }
-body > nav[aria-label="工作台"]::-webkit-scrollbar {
-  width: 0;
-}
-/* 分组标题视觉隐藏但保留在 DOM（守卫与可访问名依赖） */
-body > nav .nav-group {
+body[data-ui-page="workbench-v2"] > nav[aria-label="工作台"] .nav-group {
   position: absolute;
   width: 1px;
   height: 1px;
@@ -543,1719 +33,838 @@ body > nav .nav-group {
   clip-path: inset(50%);
   white-space: nowrap;
 }
-body > nav button[data-page] {
-  position: relative;
-  display: grid;
-  place-items: center;
-  width: 40px;
-  height: 40px;
-  min-height: 40px;
-  padding: 0;
-  border: 1px solid transparent;
-  border-radius: var(--r-md);
-  background: transparent;
-  color: var(--text-3);
-  transition:
-    background 0.16s var(--ease-out),
-    color 0.16s var(--ease-out);
-}
-body > nav button[data-page]:hover {
-  background: var(--glass-weak-bg);
-  color: var(--text-1);
-}
-body > nav button[data-page][aria-current="page"] {
-  background: color-mix(in srgb, var(--seed-accent) 15%, var(--surface-2));
-  border-color: color-mix(in srgb, var(--seed-accent) 30%, transparent);
-  color: var(--text-1);
-}
-body > nav button[data-page][aria-current="page"]::before {
-  content: "";
-  position: absolute;
-  left: -6px;
-  top: 9px;
-  bottom: 9px;
-  width: 3px;
-  border-radius: var(--r-full);
-  background: var(--grad);
-  box-shadow: 0 0 8px color-mix(in srgb, var(--seed-accent) 70%, transparent);
-}
-body > nav button .material-icons {
-  font-size: 20px;
-}
-body > nav[inert] button[data-page] {
-  opacity: 0.4;
+body[data-ui-page="workbench-v2"] > nav[aria-label="工作台"][inert] .rail-btn {
+  opacity: 0.42;
   cursor: default;
 }
 
-/* 主区域：三栏（会话 / 对话 / 右栏） */
-body > main {
-  display: grid;
-  grid-template-columns: var(--side-w) minmax(0, 1fr) var(--inspector-w);
-  gap: var(--gap);
-  height: 100%;
-  min-height: 0;
-  padding: var(--pad);
-  overflow: hidden;
-}
-/* 非对话模式：会话栏与右栏隐藏，设置覆盖层接管 */
-body:not(.chat-mode) > main {
-  grid-template-columns: var(--side-w) minmax(0, 1fr);
-}
-/* 连接卡与 Agent 选择必须在任何页面可用；只隐藏会话/服务/上下文面板与右栏 */
-body:not(.chat-mode) > main > aside.sessions-panel > .panel.session-panel,
-body:not(.chat-mode) > main > aside.sessions-panel > .panel.service-panel,
-body:not(.chat-mode) > main > aside.sessions-panel > .panel.context-panel,
-body:not(.chat-mode) > main > aside.inspector {
-  display: none;
-}
-body > main > section {
-  display: flex;
-  flex-direction: column;
-  gap: var(--gap);
+/* 工作区中间栏：容纳 22 个页面 */
+body[data-ui-page="workbench-v2"] main > section[aria-label="工作区"] {
   min-width: 0;
   min-height: 0;
-  height: 100%;
-  overflow-y: auto;
-}
-body.chat-mode > main > section {
-  overflow-y: hidden;
-}
-
-/* 页头（标题 + 一句话说明 + 返回对话） */
-.page-head {
-  position: sticky;
-  top: 0;
-  z-index: 5;
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
+  gap: 0;
+  overflow: hidden;
+}
+body[data-ui-page="workbench-v2"] .page-head {
+  display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 10px;
-  padding: 12px 16px 10px;
+  gap: 12px;
+  flex: 0 0 auto;
+  padding: 10px 14px 8px;
   border-bottom: 1px solid var(--line-3);
-  background: color-mix(in srgb, var(--bg) 88%, transparent);
-  backdrop-filter: blur(var(--glass-weak-blur));
-  -webkit-backdrop-filter: blur(var(--glass-weak-blur));
 }
-.page-head-text {
+body[data-ui-page="workbench-v2"] .page-head h1 {
+  font-size: 15px;
+  font-weight: 700;
+}
+body[data-ui-page="workbench-v2"] .page-head p {
+  color: var(--text-3);
+  font-size: var(--fs-small);
+}
+body[data-ui-page="workbench-v2"] .page-head-text {
   display: flex;
   flex-direction: column;
   gap: 2px;
   min-width: 0;
 }
-.page-head h1 {
-  font-size: 17px;
-  font-weight: 700;
-}
-.page-head p {
-  color: var(--text-3);
-  font-size: var(--fs-small);
-}
-#back-to-chat {
-  flex: 0 0 auto;
-  margin-left: auto;
-}
-.drawer-toggle {
+body[data-ui-page="workbench-v2"].chat-mode .page-head {
   display: none;
 }
-
-/* 错误与审批 */
-#error {
-  margin: 0;
-  padding: 11px 14px;
-  border: 1px solid var(--danger-bd);
-  border-radius: var(--r-md);
-  background: var(--danger-bg);
-  color: var(--text-1);
-  font-size: var(--fs-secondary);
-}
-#approvals article {
-  border-color: var(--warn-bd);
-  background: color-mix(in srgb, var(--warn-bg) 60%, var(--surface-1));
-  white-space: pre-wrap;
-}
-#approvals article button {
-  margin-top: 8px;
-  margin-right: 8px;
-}/* ==========================================================================
-   左栏：连接卡 → Agent 空间 → 会话（弹性）→ 服务 → 上下文用量
-   ========================================================================== */
-body > main > aside.sessions-panel {
+body[data-ui-page="workbench-v2"] .page {
+  flex: 1 1 auto;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   gap: 10px;
-  height: 100%;
-  min-height: 0;
+  padding: 12px 14px 14px;
+  overflow-y: auto;
+}
+/* [hidden] 必须胜过 .page 的 display，否则 21 个隐藏页会一起占高度 */
+body[data-ui-page="workbench-v2"] .page[hidden],
+body[data-ui-page="workbench-v2"] [hidden] {
+  display: none !important;
+}
+body[data-ui-page="workbench-v2"].chat-mode #chat {
   padding: 0;
   overflow: hidden;
 }
-/* 面板统一中玻璃 */
-.panel {
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-  overflow: hidden;
-  border: 1px solid var(--glass-mid-line);
-  border-radius: var(--r-card);
-  background: var(--glass-mid-bg);
-  box-shadow: var(--glass-mid-shadow), var(--glass-mid-sheen);
+body[data-ui-page="workbench-v2"] .page > form {
+  display: grid;
+  gap: 10px;
 }
-.panel-title {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  padding: 10px 12px 8px;
-  border-bottom: 1px solid var(--line-3);
-  color: var(--text-3);
+body[data-ui-page="workbench-v2"] .page h2 {
+  font-size: var(--fs-secondary);
+  font-weight: 650;
+}
+body[data-ui-page="workbench-v2"] .page h3 {
   font-size: var(--fs-small);
-  font-weight: 600;
-  letter-spacing: 0.04em;
-}
-.panel-title > span:first-child {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-}
-.panel-title > span:first-child::before {
-  content: "";
-  width: 3px;
-  height: 11px;
-  border-radius: 2px;
-  background: linear-gradient(180deg, var(--seed-accent), var(--seed-accent2));
-  opacity: 0.75;
-}
-.panel-meta {
-  color: var(--text-4);
-  font-size: var(--fs-caption);
-  font-weight: 500;
-  letter-spacing: 0.02em;
-  text-transform: none;
-}
-.panel-title button {
-  min-height: 24px;
-  padding: 0 8px;
-  border: 1px solid var(--line-accent);
-  border-radius: var(--r-sm);
-  background: color-mix(in srgb, var(--seed-accent) 12%, transparent);
-  color: var(--accent);
-  font-size: var(--fs-caption);
-  font-weight: 600;
-}
-.panel-title button:hover {
-  background: color-mix(in srgb, var(--seed-accent) 20%, transparent);
-}
-.panel-title button .material-icons {
-  font-size: 16px;
+  font-weight: 650;
 }
 
-/* 连接卡 */
-#connect.panel {
+/* 连接卡与 Agent 选择 */
+body[data-ui-page="workbench-v2"] #connect.panel {
   flex: 0 0 auto;
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: end;
   gap: 8px;
-  padding: 12px;
+  padding: 10px 12px;
 }
-#connect label {
-  gap: 5px;
-}
-#connect input {
-  font-family: var(--font-mono);
-  letter-spacing: 0.04em;
-}
-#connect button[type="submit"] {
-  height: 34px;
-  min-height: 34px;
-  padding: 0 14px;
-}
-
-/* Agent 空间 */
-.agent-field {
-  flex: 0 0 auto;
+body[data-ui-page="workbench-v2"] #connect label {
   display: grid;
-  gap: 5px;
-  padding: 0 2px;
+  gap: 4px;
+  color: var(--text-3);
+  font-size: var(--fs-small);
 }
-
-/* 会话面板（弹性滚动） */
-.panel.session-panel {
-  flex: 1 1 auto;
-  min-height: 120px;
+body[data-ui-page="workbench-v2"] #connect input {
+  width: 100%;
+  padding: 6px 9px;
+  border: 1px solid var(--line-2);
+  border-radius: var(--r-md);
+  background: var(--surface-inset);
+  color: var(--text-1);
+  font: var(--fs-small) / 1.5 var(--font-mono);
 }
-#sessions {
-  flex: 1 1 auto;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-height: 0;
-  margin: 0;
-  padding: 6px;
-  overflow-y: auto;
-  list-style: none;
-}
-#sessions li {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  padding: 8px 10px;
+body[data-ui-page="workbench-v2"] #connect button[type="submit"] {
+  min-height: 30px;
+  padding: 0 12px;
   border: 1px solid transparent;
   border-radius: var(--r-md);
-  color: var(--text-2);
-  cursor: pointer;
-  transition:
-    background 0.14s var(--ease-out),
-    border-color 0.14s var(--ease-out);
-}
-#sessions li:hover {
-  background: color-mix(in srgb, var(--surface-2) 65%, transparent);
-}
-#sessions li.active {
-  background: color-mix(in oklab, var(--surface-accent) 76%, transparent);
-  border-color: var(--line-accent);
-  box-shadow: inset 0 0 22px -9px color-mix(in srgb, var(--seed-accent) 44%, transparent);
-}
-#sessions li.active::before {
-  content: "";
-  position: absolute;
-  left: -1px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 2px;
-  height: 16px;
-  border-radius: var(--r-full);
-  background: var(--grad);
-  box-shadow: 0 0 8px color-mix(in srgb, var(--seed-accent) 76%, transparent);
-}
-#sessions .sess-main {
-  flex: 1 1 auto;
-  min-width: 0;
-}
-#sessions .s-title {
-  display: block;
-  min-width: 0;
-  overflow: hidden;
-  color: var(--text-2);
-  font-size: var(--fs-small);
-  font-weight: 520;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-}
-#sessions .s-meta {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  margin-top: 2px;
-  color: var(--text-4);
-  font-size: var(--fs-caption);
-}
-#sessions .s-meta .material-icons {
-  font-size: 10px;
-}
-#sessions li:hover .s-title,
-#sessions li.active .s-title {
-  color: var(--text-1);
-}
-#sessions li.active .s-title {
-  font-weight: 650;
-}
-#sessions .s-id {
-  flex: 0 0 auto;
-  color: var(--text-4);
-  font-family: var(--font-mono);
-  font-size: 10px;
-  letter-spacing: 0.02em;
-}
-
-/* 服务面板 */
-.panel.service-panel,
-.panel.context-panel {
-  flex: 0 0 auto;
-}
-.svc-list {
-  display: flex;
-  flex-direction: column;
-  padding: 4px 6px 6px;
-}
-.svc-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 8px;
-  border-radius: var(--r-sm);
-  font-size: var(--fs-small);
-}
-.svc-row:hover {
-  background: color-mix(in srgb, var(--surface-2) 55%, transparent);
-}
-.svc-row + .svc-row {
-  border-top: 1px solid var(--line-3);
-}
-.svc-dot {
-  flex: 0 0 auto;
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--text-4);
-}
-.svc-dot.ok {
-  background: var(--ok);
-}
-.svc-dot.warn {
-  background: var(--warn);
-}
-.svc-dot.off {
-  background: var(--danger);
-}
-.svc-name {
-  flex: 0 0 auto;
-  min-width: 64px;
-  color: var(--text-2);
-}
-.svc-detail {
-  margin-left: auto;
-  overflow: hidden;
-  color: var(--text-3);
-  font-size: var(--fs-caption);
-  white-space: nowrap;
-  text-overflow: ellipsis;
-}
-
-/* 上下文用量 */
-.ctx {
-  display: flex;
-  flex-direction: column;
-  gap: 7px;
-  padding: 10px 12px 12px;
-}
-.ctx-head {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 8px;
-}
-.ctx-val {
-  color: var(--text-1);
-  font-size: var(--fs-body);
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-}
-.ctx-percent {
-  color: var(--text-3);
-  font-size: var(--fs-caption);
-}
-.ctx-bar {
-  display: flex;
-  height: 8px;
-  overflow: hidden;
-  border-radius: var(--r-full);
-  background: color-mix(in srgb, var(--surface-inset) 80%, transparent);
-}
-.ctx-seg {
-  display: block;
-  height: 100%;
-}
-.ctx-legend {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  color: var(--text-3);
-  font-size: var(--fs-caption);
-}
-.ctx-legend-item {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-}
-.ctx-legend-item i {
-  display: inline-block;
-  width: 8px;
-  height: 8px;
-  border-radius: 2px;
-}
-.ctx-note {
-  color: var(--text-4);
-  font-size: var(--fs-caption);
-  line-height: 1.5;
-}
-
-/* ==========================================================================
-   对话区：V1 整块圆角面板（消息填满 + 底部 dock）
-   ========================================================================== */
-#chat {
-  display: flex;
-  flex: 1 1 auto;
-  flex-direction: column;
-  min-height: 0;
-  overflow: hidden;
-  border: 1px solid var(--glass-mid-line);
-  border-radius: var(--r-card);
-  background: var(--glass-mid-bg);
-  box-shadow: var(--glass-mid-shadow), var(--glass-mid-sheen);
-}
-#chat > * {
-  flex: 0 0 auto;
-}
-#messages {
-  flex: 1 1 auto;
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
-  width: 100%;
-  min-height: 120px;
-  margin: 0;
-  padding: 20px 22px;
-  overflow-y: auto;
-}
-
-#messages > .empty-state {
-  flex: 1 1 auto;
-  align-self: stretch;
-  margin: auto 0;
-  border-style: dashed;
-}
-/* 消息行 */
-.msg {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-}
-.msg.user {
-  align-items: flex-end;
-}
-.bubble {
-  max-width: 100%;
-  font-size: var(--fs-body);
-  line-height: 1.7;
-  white-space: pre-wrap;
-  word-break: break-word;
-}
-/* 用户气泡：青紫渐变玻璃 */
-.msg.user .bubble {
-  max-width: min(640px, 78%);
-  padding: 10px 14px;
-  border: 1px solid color-mix(in srgb, var(--seed-accent) 26%, transparent);
-  border-radius: var(--r-card) 14px 6px 14px;
-  background: linear-gradient(
-    135deg,
-    color-mix(in oklab, var(--seed-accent) 22%, var(--surface-3)),
-    color-mix(in oklab, var(--seed-accent2) 20%, var(--surface-3))
-  );
-  color: var(--text-1);
-  box-shadow:
-    var(--sh-1),
-    inset 0 1px 0 color-mix(in srgb, #fff 8%, transparent);
-}
-/* 助手：无气泡，头像 + 名称行 + 正文 */
-.msg.assistant .bubble {
-  width: 100%;
-  max-width: 760px;
-  padding: 0;
-  background: none;
-  border: none;
-}
-.msg .message-head {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  min-height: 20px;
-  margin-bottom: 5px;
-  color: var(--text-3);
-  font-size: var(--fs-caption);
-}
-.msg .message-role {
-  color: var(--text-2);
-  font-weight: 700;
-}
-.msg .message-head time {
-  color: var(--text-4);
-  font-family: var(--font-mono);
-  font-variant-numeric: tabular-nums;
-}
-/* 助手头像：渐变圆 + 图标 */
-.a-avatar {
-  display: grid;
-  place-items: center;
-  flex: 0 0 auto;
-  width: 22px;
-  height: 22px;
-  border-radius: var(--r-full);
   background: var(--grad);
   color: var(--on-accent);
-  box-shadow: 0 0 10px -2px color-mix(in srgb, var(--seed-accent) 60%, transparent);
-}
-.a-avatar .material-icons {
-  font-size: 14px;
-}
-.msg .message-body {
-  color: var(--text-1);
-}
-.msg.assistant .message-body {
-  padding-left: 30px;
-}
-.msg .message-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-top: 8px;
-  opacity: 0.5;
-  transition: opacity 0.16s var(--ease-out);
-}
-.msg:hover .message-actions {
-  opacity: 1;
-}
-.msg.assistant .message-actions {
-  padding-left: 30px;
-}
-.msg .message-actions button {
-  min-height: 26px;
-  padding: 0 10px;
-  font-size: var(--fs-caption);
-}
-/* 复制按钮 */
-.copy-msg {
-  width: 22px;
-  height: 22px;
-  min-height: 22px;
-  padding: 0;
-  border: none;
-  border-radius: var(--r-sm);
-  background: none;
-  color: var(--text-4);
   font-size: var(--fs-small);
-  opacity: 0;
-  transition:
-    opacity 0.14s,
-    color 0.14s,
-    background 0.14s;
-}
-.msg:hover .copy-msg {
-  opacity: 1;
-}
-.copy-msg:hover {
-  color: var(--accent);
-  background: var(--surface-accent);
-}
-.msg .message-head .copy-msg {
-  margin-left: auto;
-}
-
-/* 助手正文排版 */
-.msg.assistant .bubble p {
-  margin: 0 0 9px;
-}
-.msg.assistant .bubble p:last-child {
-  margin-bottom: 0;
-}
-.msg.assistant .bubble code {
-  padding: 1.5px 5px;
-  border: 1px solid var(--line-3);
-  border-radius: var(--r-sm);
-  background: color-mix(in oklab, var(--surface-3) 78%, transparent);
-  color: color-mix(in srgb, var(--seed-accent) 68%, var(--text-1));
-  font-size: var(--fs-small);
-}
-.msg.assistant .bubble pre {
-  margin: 0 0 10px;
-}
-.msg.assistant .bubble pre code {
-  padding: 0;
-  border: none;
-  background: none;
-  color: var(--text-2);
-  white-space: pre;
-}
-
-/* 工具调用卡：V1 逐行形态（勾选方块 + 工具名 + 参数 + 耗时 + 箭头） */
-.tool-calls {
-  margin-top: 8px;
-  padding: 0;
-  border: none;
-  background: none;
-}
-.msg.assistant .tool-calls {
-  margin-left: 26px;
-}
-.tool-calls summary {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  width: fit-content;
-  max-width: 100%;
-  padding: 3px 6px;
-  border-radius: var(--r-sm);
-  color: var(--text-4);
-  font-size: 10px;
-  font-weight: 600;
-  list-style: none;
+  font-weight: 650;
   cursor: pointer;
 }
-.tool-calls summary::-webkit-details-marker {
-  display: none;
-}
-.tool-calls summary:hover {
-  color: var(--text-2);
-  background: color-mix(in oklab, var(--surface-2) 55%, transparent);
-}
-.tool-calls summary .material-icons {
-  font-size: var(--fs-small);
-}
-.tool-calls summary .tool-chev {
-  transition: transform 0.15s var(--ease-out);
-}
-.tool-calls[open] summary .tool-chev {
-  transform: rotate(180deg);
-}
-.tool-call-row {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  padding: 3.5px 8px 3.5px 4px;
-  border: 1px solid transparent;
-  border-radius: var(--r-md);
-  color: var(--text-2);
-  font-size: var(--fs-caption);
-  cursor: pointer;
-  transition:
-    background 0.12s,
-    border-color 0.12s;
-}
-.tool-call-row:hover {
-  background: color-mix(in oklab, var(--surface-2) 55%, transparent);
-  border-color: var(--line-3);
-}
-.tool-glyph {
+body[data-ui-page="workbench-v2"] .agent-field {
+  flex: 0 0 auto;
   display: grid;
-  place-items: center;
-  flex: 0 0 auto;
-  width: 17px;
-  height: 17px;
-  border: 1px solid var(--line-3);
-  border-radius: var(--r-sm);
-  background: color-mix(in oklab, var(--surface-3) 74%, transparent);
-  color: var(--text-3);
-}
-.tool-glyph .material-icons {
-  font-size: var(--fs-caption);
-}
-.tool-call-row[data-state="ok"] .tool-glyph {
-  color: var(--ok);
-  border-color: color-mix(in srgb, var(--ok) 28%, transparent);
-}
-.tool-call-row[data-state="error"] .tool-glyph,
-.tool-call-row[data-state="denied"] .tool-glyph {
-  color: var(--danger);
-  border-color: color-mix(in srgb, var(--danger) 32%, transparent);
-}
-.tool-call-row[data-state="cancelled"] .tool-glyph,
-.tool-call-row[data-state="unknown"] .tool-glyph {
-  color: var(--warn);
-  border-color: color-mix(in srgb, var(--warn) 30%, transparent);
-}
-.tool-call-row .tool-name {
-  flex: 0 0 auto;
-  color: color-mix(in srgb, var(--seed-accent) 58%, var(--text-2));
-  font-family: var(--font-mono);
-  font-size: 10px;
-  font-weight: 640;
-}
-.tool-call-row .tool-args {
-  flex: 1 1 auto;
-  min-width: 0;
-  overflow: hidden;
-  color: var(--text-4);
-  font-family: var(--font-mono);
-  font-size: var(--fs-caption);
-  white-space: nowrap;
-  text-overflow: ellipsis;
-}
-.tool-call-row .tool-ms {
-  flex: 0 0 auto;
-  color: var(--text-4);
-  font-family: var(--font-mono);
-  font-size: 10px;
-  font-variant-numeric: tabular-nums;
-}
-.tool-call-row .tool-row-chev {
-  flex: 0 0 auto;
-  color: var(--text-4);
-  font-size: var(--fs-body);
-}
-
-/* 运行中等待指示（三点脉冲） */
-.thinking-indicator {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 2px 0 0 30px;
+  gap: 4px;
+  padding: 0 2px;
   color: var(--text-3);
   font-size: var(--fs-small);
 }
-.thinking-dots {
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-}
-.thinking-dots i {
-  width: 5px;
-  height: 5px;
-  border-radius: var(--r-full);
-  background: var(--accent);
-  opacity: 0.3;
-  animation: thinking-pulse 1.2s var(--ease-out) infinite;
-}
-.thinking-dots i:nth-child(2) {
-  animation-delay: 0.18s;
-}
-.thinking-dots i:nth-child(3) {
-  animation-delay: 0.36s;
-}
-@keyframes thinking-pulse {
-  0%,
-  60%,
-  100% {
-    opacity: 0.25;
-    transform: scale(0.85);
-  }
-  30% {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-/* 运行状态与计量 */
-#run-status {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  width: auto;
-  margin: 0 14px;
-  padding: 7px 11px;
-  border: 1px solid var(--line-3);
-  border-radius: var(--r-md);
-  background: color-mix(in srgb, var(--surface-1) 60%, transparent);
-  color: var(--text-3);
-  font-size: var(--fs-small);
-  line-height: 1.5;
-}
-#run-status::before {
-  content: "";
-  flex: 0 0 auto;
-  width: 6px;
-  height: 6px;
-  border-radius: var(--r-full);
-  background: var(--text-4);
-}
-#run-status[data-state="running"],
-#run-status[data-state="waiting_approval"],
-#run-status[data-state="cancelling"] {
-  border-color: var(--line-accent);
-  background: color-mix(in srgb, var(--seed-accent) 8%, transparent);
-  color: var(--text-2);
-}
-#run-status[data-state="running"]::before,
-#run-status[data-state="waiting_approval"]::before,
-#run-status[data-state="cancelling"]::before {
-  background: var(--accent);
-}
-#run-status[data-state="succeeded"] {
-  border-color: var(--ok-bd);
-  background: var(--ok-bg);
-  color: var(--text-2);
-}
-#run-status[data-state="succeeded"]::before {
-  background: var(--ok);
-}
-#run-status[data-state="failed"],
-#run-status[data-state="unknown"] {
-  border-color: var(--warn-bd);
-  background: var(--warn-bg);
-  color: var(--text-1);
-}
-#run-status[data-state="failed"]::before,
-#run-status[data-state="unknown"]::before {
-  background: var(--warn);
-}
-#model-live {
+body[data-ui-page="workbench-v2"] .agent-field select {
   width: 100%;
-  max-width: 880px;
-  margin: 0 auto;
-  padding: 10px 14px;
-  border: 1px dashed var(--line-accent);
-  border-radius: var(--r-md);
-  background: color-mix(in srgb, var(--seed-accent) 6%, transparent);
-}
-#pin-run,
-#chat > details,
-#show-summary,
-#summary-body {
-  width: min(880px, calc(100% - 40px));
-  margin-inline: auto;
-}
-#pin-run {
-  align-self: center;
-}
-#pin-run:disabled,
-#cancel:disabled {
-  display: none;
-}
-#route-call-list {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  padding: 4px 0 2px;
-}
-#route-call-list > * {
   padding: 6px 9px;
-  border: 1px solid var(--line-3);
-  border-radius: var(--r-sm);
-  background: color-mix(in srgb, var(--surface-inset) 70%, transparent);
+  border: 1px solid var(--line-2);
+  border-radius: var(--r-md);
+  background: var(--surface-inset);
+  color: var(--text-1);
   font-size: var(--fs-small);
+}
+body[data-ui-page="workbench-v2"] #sessions .s-meta .material-icons {
+  font-size: 10px;
 }
 
-/* 输入 dock：V1 面板内底部（圆角容器 + 底栏键帽），聚焦辉光 */
-#send {
-  flex: 0 0 auto;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  width: auto;
-  margin: 0 14px 12px;
-  padding: 10px 12px;
-  border: 1px solid var(--line-2);
-  border-radius: var(--r-card);
-  background: color-mix(in oklab, var(--surface-2) 76%, transparent);
-  box-shadow: var(--sh-2);
-  transition:
-    border-color 0.16s var(--ease-out),
-    box-shadow 0.16s var(--ease-out);
-}
-#send:focus-within {
-  border-color: var(--line-accent);
-  box-shadow:
-    var(--sh-2),
-    0 0 24px -8px color-mix(in srgb, var(--seed-accent) 55%, transparent);
-}
-.composer-main {
-  display: flex;
-  align-items: flex-end;
-  gap: 10px;
-}
-.composer-main textarea {
-  flex: 1 1 auto;
-  min-height: 56px;
-  max-height: 180px;
-  padding: 8px 4px;
-  border: none;
-  background: transparent;
-  font-size: var(--fs-body);
-  line-height: 1.6;
-}
-.composer-main textarea:focus-visible {
-  box-shadow: none;
-}
-.composer-actions {
-  display: flex;
-  flex: 0 0 auto;
-  flex-direction: column;
-  gap: 6px;
-}
-.composer-actions button {
-  min-width: 88px;
-}
-#send button[type="submit"] {
-  border-radius: var(--r-full);
-  padding: 0 20px;
-}
-.composer-tools {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 6px 12px;
-  padding-top: 8px;
-  border-top: 1px solid var(--line-3);
-}
-.dock-hint {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  margin-left: auto;
-  color: var(--text-4);
-  font-size: var(--fs-caption);
-  white-space: nowrap;
-}
-.dock-hint kbd {
-  padding: 1px 5px;
-  border: 1px solid var(--line-2);
-  border-radius: var(--r-sm);
-  background: var(--surface-inset);
-  color: var(--text-3);
-  font: 10px/1.4 var(--font-mono);
-}
-.composer-tools label.mini {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  margin: 0;
-  color: var(--text-3);
-  font-size: var(--fs-caption);
-  white-space: nowrap;
-}
-.composer-tools select,
-.composer-tools input[type="file"] {
-  width: auto;
-  height: 26px;
-  padding: 1px 6px;
-  font-size: var(--fs-caption);
-}
-.composer-tools button {
-  height: 26px;
-  min-height: 26px;
-  padding: 0 9px;
-  font-size: var(--fs-caption);
-}
-#skill-turn {
-  min-height: 26px;
-  height: 26px;
-}
-#image-drafts {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-#image-drafts:empty {
-  display: none;
-}
-/* ==========================================================================
-   右栏（会话面板）：tabs + 技能 / 产物 / 桌面
-   ========================================================================== */
-body > main > aside.inspector {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  min-height: 0;
-  padding: 0;
-}
-.tabs {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 4px;
-  padding: 8px;
-  border-bottom: 1px solid var(--line-2);
-}
-.tabs button {
-  position: relative;
+/* 右栏四个数据页签 */
+body[data-ui-page="workbench-v2"] aside.inspector {
   min-width: 0;
-  min-height: 32px;
-  padding: 5px 4px;
-  border: 1px solid transparent;
-  border-radius: var(--r-sm);
-  background: none;
-  color: var(--text-3);
-  font-size: var(--fs-small);
-  font-weight: 560;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  transition:
-    color 0.15s,
-    background 0.15s,
-    border-color 0.15s;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
 }
-.tabs button:hover {
-  color: var(--text-1);
-  background: var(--glass-weak-bg);
-}
-.tabs button[aria-selected="true"] {
-  color: var(--seed-accent);
-  background: var(--surface-accent);
-  border-color: var(--line-accent);
-}
-.tabs .badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 16px;
-  height: 16px;
-  margin-left: 4px;
-  padding: 0 4px;
-  border-radius: var(--r-full);
-  color: var(--seed-accent);
-  background: color-mix(in srgb, var(--seed-accent) 13%, transparent);
-  font: 600 10px/1 var(--font-mono);
-}
-.inspector-body {
+body[data-ui-page="workbench-v2"] .inspector-panel {
   flex: 1 1 auto;
   min-height: 0;
-  padding: 12px;
+}
+body[data-ui-page="workbench-v2"] .inspector-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: 10px 12px;
   overflow-y: auto;
 }
-.inspector-body section {
+body[data-ui-page="workbench-v2"] .inspector-body > section {
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
-.inspector-body .object-row {
-  padding: 6px 8px;
-  border: 1px solid var(--line-3);
-  border-radius: var(--r-sm);
-  font-size: var(--fs-small);
-  overflow-wrap: anywhere;
-}
-/* 右栏空态 */
-.inspector-empty {
+body[data-ui-page="workbench-v2"] .inspector-empty,
+body[data-ui-page="workbench-v2"] .inspector-empty-todo {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 6px;
-  padding: 26px 14px;
+  padding: 22px 12px;
   border: 1px dashed var(--line-2);
   border-radius: var(--r-md);
   color: var(--text-3);
   text-align: center;
 }
-.inspector-empty .material-icons {
-  font-size: 24px;
+body[data-ui-page="workbench-v2"] .inspector-empty .material-icons,
+body[data-ui-page="workbench-v2"] .inspector-empty-todo .material-icons {
+  font-size: 22px;
   color: var(--text-4);
 }
-.inspector-empty strong {
+body[data-ui-page="workbench-v2"] .inspector-empty strong,
+body[data-ui-page="workbench-v2"] .inspector-empty-todo strong {
   color: var(--text-2);
-  font-size: var(--fs-secondary);
-  font-weight: 650;
+  font-size: var(--fs-small);
 }
-.inspector-empty-hint {
+body[data-ui-page="workbench-v2"] .inspector-empty-hint,
+body[data-ui-page="workbench-v2"] .inspector-empty-todo span {
   font-size: var(--fs-caption);
   line-height: 1.55;
 }
-.inspector-empty button {
-  margin-top: 4px;
-  min-height: 26px;
-  padding: 0 10px;
-  font-size: var(--fs-caption);
-}
-/* 右栏数据行 */
-.inspector-list {
+body[data-ui-page="workbench-v2"] .inspector-list {
   display: flex;
   flex-direction: column;
   gap: 4px;
 }
-.inspector-row {
+body[data-ui-page="workbench-v2"] .inspector-row {
   display: flex;
   align-items: flex-start;
   gap: 8px;
   width: 100%;
-  padding: 7px 8px;
+  padding: 7px 9px;
   border: 1px solid var(--line-3);
   border-radius: var(--r-sm);
-  background: color-mix(in srgb, var(--surface-1) 55%, transparent);
+  background: var(--glass-weak-bg);
   color: var(--text-2);
   font-size: var(--fs-small);
   text-align: left;
 }
-.inspector-row .material-icons {
+body[data-ui-page="workbench-v2"] .inspector-row .material-icons {
   flex: 0 0 auto;
-  margin-top: 1px;
   font-size: 15px;
   color: var(--text-4);
 }
-.inspector-row[data-active="true"] .material-icons {
+body[data-ui-page="workbench-v2"] .inspector-row[data-active="true"] .material-icons {
   color: var(--accent);
 }
-.inspector-row-text {
+body[data-ui-page="workbench-v2"] .inspector-row-text {
   display: flex;
   flex-direction: column;
   gap: 2px;
   min-width: 0;
 }
-.inspector-row-text strong {
+body[data-ui-page="workbench-v2"] .inspector-row-text strong {
   color: var(--text-1);
   font-weight: 600;
   overflow-wrap: anywhere;
 }
-.inspector-row-text span {
+body[data-ui-page="workbench-v2"] .inspector-row-text span {
   color: var(--text-3);
   font-size: var(--fs-caption);
   overflow-wrap: anywhere;
 }
-.inspector-row-button {
+body[data-ui-page="workbench-v2"] .inspector-row-button {
   cursor: pointer;
 }
-.inspector-row-button:hover {
+body[data-ui-page="workbench-v2"] .inspector-row-button:hover {
   border-color: var(--line-accent);
-  background: color-mix(in srgb, var(--surface-2) 70%, transparent);
+  background: var(--surface-accent);
 }
-.inspector-preview-caption {
-  margin: 0 0 6px;
+body[data-ui-page="workbench-v2"] .inspector-preview-caption {
   color: var(--text-3);
   font-size: var(--fs-caption);
-  line-height: 1.5;
 }
-.inspector-preview {
+body[data-ui-page="workbench-v2"] .inspector-preview {
   display: block;
   width: 100%;
-  max-height: 260px;
-  margin-top: 8px;
+  max-height: 240px;
   border: 1px solid var(--line-2);
   border-radius: var(--r-md);
   object-fit: contain;
-  background: color-mix(in srgb, var(--surface-inset) 70%, transparent);
 }
 
-/* ==========================================================================
-   设置中心：覆盖层 + 左分类栏 + 右内容列
-   ========================================================================== */
-.settings-layout {
-  display: contents;
+/* 运行状态条与技术详情 */
+body[data-ui-page="workbench-v2"] #run-status {
+  flex: 0 0 auto;
+  margin: 0 14px;
+  padding: 6px 10px;
+  border: 1px solid var(--line-3);
+  border-radius: var(--r-md);
+  background: var(--glass-weak-bg);
+  color: var(--text-3);
+  font-size: var(--fs-small);
 }
-.settings-content {
-  display: contents;
+body[data-ui-page="workbench-v2"] #run-status[data-state="failed"],
+body[data-ui-page="workbench-v2"] #run-status[data-state="unknown"] {
+  border-color: var(--warn-bd);
+  background: var(--warn-bg);
+  color: var(--text-1);
 }
-#settings-rail {
+body[data-ui-page="workbench-v2"] #run-status[data-state="succeeded"] {
+  border-color: var(--ok-bd);
+  background: var(--ok-bg);
+}
+body[data-ui-page="workbench-v2"] #pin-run,
+body[data-ui-page="workbench-v2"] #chat > #run-details,
+body[data-ui-page="workbench-v2"] #show-summary,
+body[data-ui-page="workbench-v2"] #summary-body,
+body[data-ui-page="workbench-v2"] #model-live {
+  flex: 0 0 auto;
+  width: auto;
+  margin: 0 14px;
+}
+body[data-ui-page="workbench-v2"] #pin-run:disabled,
+body[data-ui-page="workbench-v2"] #cancel:disabled {
   display: none;
 }
-/* 非对话模式：工作区变为固定覆盖层，内部是「分类栏 + 内容」两列网格 */
-body:not(.chat-mode) > main > section {
-  position: fixed;
-  top: var(--header-h);
-  right: 0;
-  bottom: 0;
-  left: calc(var(--rail-w) + var(--side-w) + var(--pad) * 2);
-  z-index: 30;
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-  max-width: none;
-  height: auto;
-  padding: 0;
-  overflow: hidden;
-  border-left: 1px solid var(--glass-strong-line);
-  background: color-mix(in srgb, var(--bg) 86%, transparent);
-  backdrop-filter: blur(var(--glass-strong-blur)) saturate(var(--glass-strong-sat));
-  -webkit-backdrop-filter: blur(var(--glass-strong-blur)) saturate(var(--glass-strong-sat));
-  box-shadow: -18px 0 48px color-mix(in srgb, #000 35%, transparent);
-  animation: settings-in 0.2s var(--ease-out);
-}
-@keyframes settings-in {
-  from {
-    opacity: 0.5;
-    transform: translateX(16px);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
-/* 覆盖层页头：面包屑 + 标题 */
-body:not(.chat-mode) .page-head {
-  position: static;
-  flex: 0 0 auto;
-  padding: 14px 24px 12px;
-  background: transparent;
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
-}
-body:not(.chat-mode) .page-head-text::before {
-  content: "设置中心";
-  display: block;
-  margin-bottom: 3px;
-  color: var(--accent);
-  font-size: var(--fs-caption);
-  font-weight: 650;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-}
-/* 两列网格：左分类 右内容 */
-body:not(.chat-mode) .settings-layout {
-  display: grid;
-  grid-template-columns: 216px minmax(0, 1fr);
-  flex: 1 1 auto;
-  min-height: 0;
-}
-body:not(.chat-mode) #settings-rail {
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  gap: 2px;
-  min-height: 0;
-  padding: 14px 12px 20px;
-  overflow-y: auto;
-  border-right: 1px solid var(--line-3);
-}
-.settings-rail-group {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-.settings-rail-title {
-  margin: 14px 8px 4px;
-  color: var(--text-4);
-  font-size: var(--fs-caption);
-  font-weight: 650;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-}
-.settings-rail-group:first-child .settings-rail-title {
-  margin-top: 0;
-}
-.settings-rail-link {
-  padding: 6px 10px;
-  border: 1px solid transparent;
-  border-radius: var(--r-md);
-  color: var(--text-3);
-  font-size: var(--fs-small);
-  text-decoration: none;
-  transition:
-    background 0.14s var(--ease-out),
-    color 0.14s var(--ease-out);
-}
-.settings-rail-link:hover {
-  background: color-mix(in srgb, var(--surface-2) 60%, transparent);
-  color: var(--text-1);
-  text-decoration: none;
-}
-.settings-rail-link[aria-current="true"] {
-  border-color: color-mix(in srgb, var(--seed-accent) 30%, transparent);
-  background: color-mix(in srgb, var(--seed-accent) 13%, var(--surface-2));
-  color: var(--text-1);
-  font-weight: 650;
-}
-/* 内容列：独立滚动，表单限宽居中 */
-body:not(.chat-mode) .settings-content {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  min-width: 0;
-  min-height: 0;
-  padding: 18px 28px 28px;
-  overflow-y: auto;
-}
-body:not(.chat-mode) .settings-content > * {
-  width: 100%;
-  max-width: 900px;
-}
-/* 页面内标题降级为二级（页头已有 h1） */
-body:not(.chat-mode) .page > h1 {
-  margin: 4px 0 8px;
-  color: var(--text-2);
-  font-size: 15px;
-  font-weight: 650;
-}
-body:not(.chat-mode) .page h2 {
-  margin: 10px 0 6px;
-  font-size: var(--fs-secondary);
-}
-body:not(.chat-mode) .page h3 {
-  margin: 8px 0 4px;
-  font-size: var(--fs-small);
-  color: var(--text-2);
-}
-body:not(.chat-mode) .page > form,
-body:not(.chat-mode) .page form {
-  display: grid;
-  gap: 12px;
-}
-
-/* ==========================================================================
-   页面内容（22 个分区共用）
-   ========================================================================== */
-.page {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  min-width: 0;
-}
-.page > form,
-.page form {
-  display: grid;
-  gap: 10px;
-}
-.page h2 {
-  margin: 8px 0 4px;
-  font-size: var(--fs-secondary);
-}
-.page h3 {
-  margin: 6px 0 4px;
-  font-size: var(--fs-small);
-}
-.page > p,
-.page > .muted {
-  line-height: 1.6;
-}
-.page label {
-  max-width: 100%;
-}
-/* 页面内卡片列表 */
-.page article {
-  font-size: var(--fs-secondary);
-}
-.page article button {
-  margin-top: 8px;
-  margin-right: 6px;
-}
-/* MCP 工具卡 */
-.mcp-tool summary {
-  font-weight: 600;
-}
-.mcp-tool label {
+body[data-ui-page="workbench-v2"] #run-details > summary {
   display: flex;
   align-items: center;
-  gap: 6px;
-  margin-top: 6px;
+  gap: 8px;
+  color: var(--text-3);
+  font-size: var(--fs-small);
+  font-weight: 600;
+  list-style: none;
 }
-/* 终端屏幕 */
-.terminal-screen {
-  min-height: 320px;
-  height: 420px;
-  padding: 8px;
-  overflow: hidden;
-  border: 1px solid var(--line-2);
-  border-radius: var(--r-md);
-  background: var(--terminal-bg);
+body[data-ui-page="workbench-v2"] #run-details > summary::-webkit-details-marker {
+  display: none;
 }
-#terminal-gap {
-  padding: 11px 14px;
-  border: 1px solid var(--danger-bd);
-  border-radius: var(--r-md);
-  background: var(--danger-bg);
-  overflow-wrap: anywhere;
+body[data-ui-page="workbench-v2"] .run-details-hint {
+  margin-left: auto;
+  color: var(--text-4);
+  font-size: var(--fs-caption);
+  font-weight: 500;
 }
-/* 桌面截图预览 */
-.desktop-capture-preview {
-  display: block;
-  max-width: 100%;
-  max-height: 70vh;
-  margin-block: 12px;
-  border: 1px solid var(--line-2);
-  border-radius: var(--r-md);
-  object-fit: contain;
+body[data-ui-page="workbench-v2"] .run-details-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 10px 2px 2px;
 }
-/* 安卓截图 */
-#android-image {
-  max-width: 100%;
-  border-radius: var(--r-md);
+body[data-ui-page="workbench-v2"] .run-detail-group {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
 }
-/* 媒体帧拼图 */
-#media-frames-image {
-  max-width: 100%;
-  border-radius: var(--r-md);
+body[data-ui-page="workbench-v2"] .run-detail-group h4 {
+  color: var(--text-2);
+  font-size: var(--fs-small);
+  font-weight: 650;
+}
+body[data-ui-page="workbench-v2"] .run-detail-note,
+body[data-ui-page="workbench-v2"] .run-detail-empty {
+  color: var(--text-4);
+  font-size: var(--fs-caption);
+  line-height: 1.55;
+}
+body[data-ui-page="workbench-v2"] .run-detail-group pre,
+body[data-ui-page="workbench-v2"] .run-detail-group p[role="status"] {
+  font-size: var(--fs-caption);
+}
+body[data-ui-page="workbench-v2"] .run-detail-group pre:empty,
+body[data-ui-page="workbench-v2"] .run-detail-group p[role="status"]:empty,
+body[data-ui-page="workbench-v2"] #route-call-list:empty {
+  display: none;
+}
+body[data-ui-page="workbench-v2"]
+  .run-detail-group:not(:has(pre:not(:empty), p[role="status"]:not(:empty), #route-call-list:not(:empty))) {
+  display: none;
 }
 
-/* ==========================================================================
-   响应式
-   ========================================================================== */
-/* 平板：rail 横排，会话栏 + 对话两栏，收起右栏 */
+/* 消息操作行与等待指示 */
+body[data-ui-page="workbench-v2"] .msg-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+  opacity: 0.5;
+  transition: opacity 0.14s;
+}
+body[data-ui-page="workbench-v2"] .msg:hover .msg-actions {
+  opacity: 1;
+}
+body[data-ui-page="workbench-v2"] .msg.assistant .msg-actions {
+  padding-left: 26px;
+}
+body[data-ui-page="workbench-v2"] .msg-actions button {
+  min-height: 24px;
+  padding: 0 9px;
+  font-size: var(--fs-caption);
+}
+body[data-ui-page="workbench-v2"] .msg .message-body {
+  color: var(--text-1);
+}
+body[data-ui-page="workbench-v2"] .thinking-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-left: 26px;
+  color: var(--text-3);
+  font-size: var(--fs-small);
+}
+body[data-ui-page="workbench-v2"] .thinking-dots {
+  display: inline-flex;
+  gap: 3px;
+}
+body[data-ui-page="workbench-v2"] .thinking-dots i {
+  width: 5px;
+  height: 5px;
+  border-radius: var(--r-full);
+  background: var(--accent);
+  animation: v2-pulse 1.2s ease-out infinite;
+}
+body[data-ui-page="workbench-v2"] .thinking-dots i:nth-child(2) {
+  animation-delay: 0.18s;
+}
+body[data-ui-page="workbench-v2"] .thinking-dots i:nth-child(3) {
+  animation-delay: 0.36s;
+}
+@keyframes v2-pulse {
+  0%,
+  60%,
+  100% {
+    opacity: 0.25;
+  }
+  30% {
+    opacity: 1;
+  }
+}
+
+/* 设置中心覆盖层 */
+body[data-ui-page="workbench-v2"]:not(.chat-mode) main > section[aria-label="工作区"] {
+  position: fixed;
+  top: 52px;
+  right: 0;
+  bottom: 0;
+  left: calc(var(--rail-w) + 230px + 24px);
+  z-index: 30;
+  border-left: 1px solid var(--line-2);
+  background: var(--surface-0);
+  box-shadow: var(--sh-3);
+}
+body[data-ui-page="workbench-v2"]:not(.chat-mode) .page {
+  padding: 16px 22px 24px;
+}
+body[data-ui-page="workbench-v2"]:not(.chat-mode) .page > * {
+  max-width: var(--v2-page-max);
+}
+body[data-ui-page="workbench-v2"] #settings-rail {
+  display: none;
+}
+body[data-ui-page="workbench-v2"]:not(.chat-mode) #settings-rail {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 4px;
+  flex: 0 0 auto;
+  min-height: 40px;
+  padding: 8px 14px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  border-bottom: 1px solid var(--line-3);
+  scrollbar-width: none;
+}
+body[data-ui-page="workbench-v2"]:not(.chat-mode) #settings-rail::-webkit-scrollbar {
+  display: none;
+}
+body[data-ui-page="workbench-v2"] .settings-rail-group {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex: 0 0 auto;
+}
+body[data-ui-page="workbench-v2"] .settings-rail-title {
+  display: none;
+}
+body[data-ui-page="workbench-v2"] .settings-rail-link {
+  flex: 0 0 auto;
+  padding: 4px 10px;
+  border: 1px solid transparent;
+  border-radius: var(--r-full);
+  color: var(--text-3);
+  font-size: var(--fs-small);
+  white-space: nowrap;
+  text-decoration: none;
+}
+body[data-ui-page="workbench-v2"] .settings-rail-link:hover {
+  border-color: var(--line-2);
+  background: var(--glass-weak-bg);
+  color: var(--text-1);
+}
+body[data-ui-page="workbench-v2"] .settings-rail-link[aria-current="true"] {
+  border-color: var(--line-accent);
+  background: var(--surface-accent);
+  color: var(--accent);
+  font-weight: 650;
+}
+
+/* 窄屏 */
+body[data-ui-page="workbench-v2"] .drawer-toggle {
+  display: none;
+}
 @media (max-width: 900px) {
-  body > main > aside.inspector {
-    display: none;
-  }
-  body {
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: var(--header-h) auto minmax(0, 1fr);
-  }
-  body > header {
-    grid-column: 1;
-    grid-row: 1;
-  }
-  body > nav[aria-label="工作台"] {
-    grid-column: 1;
-    grid-row: 2;
-    flex-direction: row;
-    align-items: center;
-    padding: 6px 8px;
-    overflow-x: auto;
-    overflow-y: hidden;
-    border-right: 0;
-    border-bottom: 1px solid var(--line-3);
-    mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent);
-    -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent);
-  }
-  body > nav .nav-group {
-    display: none;
-  }
-  body > nav button[data-page] {
-    flex: 0 0 auto;
-    width: 40px;
-    height: 40px;
-    min-height: 40px;
-  }
-  body > nav[aria-label="工作台"] {
-    gap: 6px;
-  }
-  body > nav button[data-page][aria-current="page"]::before {
-    left: 8px;
-    right: 8px;
-    top: auto;
-    bottom: -4px;
-    width: auto;
-    height: 2px;
-  }
-  body > main {
-    grid-column: 1;
-    grid-row: 3;
-    grid-template-columns: 240px minmax(0, 1fr);
-    padding: 10px;
-  }
-  body:not(.chat-mode) > main {
-    grid-template-columns: minmax(0, 1fr);
-  }
-  /* 设置覆盖层退化为文档流 */
-  body:not(.chat-mode) > main > section {
+  body[data-ui-page="workbench-v2"]:not(.chat-mode) main > section[aria-label="工作区"] {
     position: static;
-    height: auto;
-    overflow: visible;
     border-left: 0;
     box-shadow: none;
-    animation: none;
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
-  }
-  body:not(.chat-mode) .settings-layout {
-    display: flex;
-    flex-direction: column;
-  }
-  body:not(.chat-mode) #settings-rail {
-    flex-direction: row;
-    flex-wrap: nowrap;
-    align-items: center;
-    flex: 0 0 auto;
-    min-height: 42px;
-    padding: 8px 12px;
-    overflow-x: auto;
-    overflow-y: hidden;
-    border-right: 0;
-    border-bottom: 1px solid var(--line-3);
-  }
-  body:not(.chat-mode) .settings-rail-group {
-    flex-direction: row;
-    align-items: center;
-    flex: 0 0 auto;
-  }
-  body:not(.chat-mode) .settings-rail-title {
-    display: none;
-  }
-  body:not(.chat-mode) .settings-rail-link {
-    flex: 0 0 auto;
-    white-space: nowrap;
-  }
-  body:not(.chat-mode) .settings-content {
-    overflow: visible;
-    padding: 14px;
   }
 }
-/* 手机：会话抽屉 + dock 贴底 */
 @media (max-width: 520px) {
-  :root {
-    --side-w: 0px;
-  }
-  body > main {
-    grid-template-columns: minmax(0, 1fr);
-    padding: 8px;
-  }
-  .drawer-toggle {
+  body[data-ui-page="workbench-v2"] .drawer-toggle {
     display: inline-flex;
-    flex: 0 0 auto;
-    min-height: 28px;
-    padding: 0 12px;
-    font-size: var(--fs-caption);
   }
-  /* 会话栏：默认展开的顶部面板，可收起 */
-  body > main > aside.sessions-panel {
-    max-height: 42vh;
-    overflow-y: auto;
-  }
-  body > main > aside.sessions-panel[data-open="false"] {
+  body[data-ui-page="workbench-v2"] aside.workbench-side[data-open="false"] {
     display: none;
   }
-  body:not([data-connected="true"]) > main > aside.sessions-panel {
+  body[data-ui-page="workbench-v2"]:not([data-connected="true"]) aside.workbench-side {
     display: flex;
-    max-height: none;
   }
-  body:not([data-connected="true"]) .drawer-toggle {
+  body[data-ui-page="workbench-v2"]:not([data-connected="true"]) .drawer-toggle {
     display: none;
   }
-  /* 对话页锁定视口，消息区内部滚动，dock 贴底 */
-  body.chat-mode > main {
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-  }
-  body.chat-mode > main > section {
-    flex: 1 1 auto;
-    min-height: 0;
-    height: auto;
-  }
-  body.chat-mode #messages {
-    padding: 12px 12px 8px;
-  }
-  body.chat-mode #send {
-    margin-top: 6px;
-    border-radius: var(--r-card) var(--r-card) 0 0;
-  }
-  .msg.user .bubble {
-    max-width: 88%;
-  }
-  .msg.assistant .message-body,
-  .msg.assistant .message-actions,
-  .msg.assistant .tool-calls {
-    padding-left: 0;
-    margin-left: 0;
-  }
-  .thinking-indicator {
-    padding-left: 0;
-  }
-  .page-head p {
+  body[data-ui-page="workbench-v2"] .page-head p {
     display: none;
-  }
-  .brand-text small {
-    display: none;
-  }
-  #health {
-    max-width: 150px;
   }
 }
-/* 减少动效 */
 @media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    transition: none !important;
-    animation: none !important;
-  }
-  .thinking-dots i {
+  body[data-ui-page="workbench-v2"] .thinking-dots i {
+    animation: none;
     opacity: 0.6;
   }
 }
 /* ==========================================================================
-   精修：自定义控件、深色层次与对比度、浅色通透感、空态
+   骨架：用 grid 精确让位，避免 V1 的 body padding 与 margin 叠加
    ========================================================================== */
-/* 下拉箭头：用 mask 着色的 chevron，跟随文字颜色，替换浏览器默认箭头 */
-select {
-  appearance: none;
-  -webkit-appearance: none;
-  padding-right: 30px;
+/* base.css 把非 workbench 的 data-ui-page 当子站，给了 22px 内边距与 1500px 限宽；
+   V2 用的是 workbench-v2，必须在这里撤销，否则整体偏移且高度溢出。 */
+/* base.css 的 body[data-ui-page]:not([data-ui-page="workbench"]):not([data-ui-page="project"])
+   特异性高于单属性选择器，会给 V2 加 22px 内边距与 1500px 限宽。
+   这里用同等特异性精确覆盖，其余外观仍由 v1/*.css 决定。 */
+body[data-ui-page="workbench-v2"]:not([data-ui-page="workbench"]):not([data-ui-page="project"]) {
+  display: grid;
+  grid-template-columns: var(--rail-w) minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr);
+  box-sizing: border-box;
+  width: 100%;
+  max-width: none;
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background: var(--surface-0);
+  line-height: 1.6;
 }
-select:not([multiple]) {
-  background-image: linear-gradient(45deg, transparent 50%, currentColor 50%),
-    linear-gradient(135deg, currentColor 50%, transparent 50%);
-  background-position:
-    calc(100% - 17px) calc(50% - 1px),
-    calc(100% - 12px) calc(50% - 1px);
-  background-size:
-    5px 5px,
-    5px 5px;
-  background-repeat: no-repeat;
+body[data-ui-page="workbench-v2"] > header {
+  grid-column: 2;
+  grid-row: 1;
+  margin-left: 0;
+  min-width: 0;
 }
-select[multiple] {
-  padding-right: 11px;
+body[data-ui-page="workbench-v2"] > main {
+  grid-column: 2;
+  grid-row: 2;
+  margin-left: 0;
+  min-height: 0;
+  height: 100%;
+  overflow: hidden;
 }
-/* 文件选择按钮：中文化、玻璃质感 */
-input[type="file"]::file-selector-button {
-  margin-right: 10px;
-  padding: 4px 12px;
+body[data-ui-page="workbench-v2"] > nav[aria-label="工作台"] {
+  grid-column: 1;
+  grid-row: 1 / -1;
+  position: relative;
+  top: auto;
+  bottom: auto;
+  left: auto;
+  height: 100%;
+  padding-bottom: 14px;
+}
+/* 三栏各自不超出 main 高度 */
+body[data-ui-page="workbench-v2"] > main > aside,
+body[data-ui-page="workbench-v2"] > main > section {
+  min-height: 0;
+  max-height: 100%;
+}
+/* #chat 内除消息区与 dock 外还有运行状态/详情等块：
+   必须让消息区吸收剩余空间，其余块按内容高度排列，dock 永远留在底部可见。 */
+body[data-ui-page="workbench-v2"].chat-mode #chat {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  height: 100%;
+  overflow: hidden;
+}
+body[data-ui-page="workbench-v2"].chat-mode #chat > * {
+  flex: 0 0 auto;
+}
+body[data-ui-page="workbench-v2"].chat-mode #messages {
+  flex: 1 1 auto;
+  min-height: 60px;
+  overflow-y: auto;
+}
+body[data-ui-page="workbench-v2"].chat-mode #composer {
+  flex: 0 0 auto;
+  margin-top: auto;
+}
+/* 运行详情展开时限高内滚，不把 dock 顶出视口 */
+body[data-ui-page="workbench-v2"].chat-mode #run-details[open] .run-details-body {
+  max-height: 30vh;
+  overflow-y: auto;
+}
+/* 设置覆盖层左边界随三栏实际宽度 */
+body[data-ui-page="workbench-v2"]:not(.chat-mode) main > section[aria-label="工作区"] {
+  left: calc(var(--rail-w) + 230px + 24px);
+}
+@media (max-width: 900px) {
+  body[data-ui-page="workbench-v2"]:not([data-ui-page="workbench"]):not([data-ui-page="project"]) {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto auto minmax(0, 1fr);
+    height: 100vh;
+  }
+  body[data-ui-page="workbench-v2"] > nav[aria-label="工作台"] {
+    grid-column: 1;
+    grid-row: 1;
+    flex-direction: row;
+    width: auto;
+    height: auto;
+    overflow-x: auto;
+    overflow-y: hidden;
+    border-right: 0;
+    border-bottom: 1px solid var(--line-2);
+  }
+  body[data-ui-page="workbench-v2"] > header {
+    grid-column: 1;
+    grid-row: 2;
+  }
+  body[data-ui-page="workbench-v2"] > main {
+    grid-column: 1;
+    grid-row: 3;
+  }
+}
+
+/* ==========================================================================
+   对话模式：settings-layout / settings-content 只是设置页的包裹层，
+   在对话模式必须 display:contents，否则它们会把 22 个页面全算进高度，
+   把 #chat 挤成一条、把输入 dock 顶出视口。
+   ========================================================================== */
+body[data-ui-page="workbench-v2"].chat-mode .settings-layout,
+body[data-ui-page="workbench-v2"].chat-mode .settings-content {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  height: 100%;
+  gap: 0;
+  overflow: hidden;
+}
+/* 对话模式下工作区只承载 #chat；其余 .page 已 hidden */
+body[data-ui-page="workbench-v2"].chat-mode main > section[aria-label="工作区"] {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* #chat 同时带 .page 类：对话模式下必须独占整栏高度。
+   祖先用了 display:contents，#chat 实际是工作区的直接 flex 项。 */
+body[data-ui-page="workbench-v2"].chat-mode #chat.page {
+  flex: 1 1 auto;
+  align-self: stretch;
+  min-height: 0;
+  height: auto;
+  max-height: none;
+  padding: 0;
+  overflow: hidden;
+}
+/* 390 窄屏 rail 横排时必须有实际高度 */
+@media (max-width: 900px) {
+  body[data-ui-page="workbench-v2"] > nav[aria-label="工作台"] {
+    min-height: 46px;
+    height: auto;
+    align-items: center;
+    padding: 6px 8px;
+  }
+  body[data-ui-page="workbench-v2"] > nav[aria-label="工作台"] .rail-brand {
+    margin-bottom: 0;
+    margin-right: 6px;
+  }
+}
+
+/* 对话模式：内容层用 grid 单行强制 #chat 占满，避免 flex 收缩把它压成一条。
+   其余 .page 已 hidden，不占轨道。 */
+body[data-ui-page="workbench-v2"].chat-mode .settings-content {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr);
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+body[data-ui-page="workbench-v2"].chat-mode #chat.page {
+  grid-row: 1;
+  grid-column: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  height: 100%;
+  max-height: 100%;
+  overflow: hidden;
+}
+
+/* 窄屏 rail：横排且必须有实际高度（V1 的 .rail 是 fixed，V2 是 grid 行） */
+@media (max-width: 900px) {
+  body[data-ui-page="workbench-v2"] > nav[aria-label="工作台"] {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 4px;
+    width: 100%;
+    min-height: 48px;
+    height: auto;
+    padding: 6px 10px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    border-right: 0;
+    border-bottom: 1px solid var(--line-2);
+  }
+  body[data-ui-page="workbench-v2"] > nav[aria-label="工作台"] .rail-brand {
+    flex: 0 0 auto;
+    margin: 0 6px 0 0;
+  }
+  body[data-ui-page="workbench-v2"] > nav[aria-label="工作台"] .rail-btn {
+    flex: 0 0 auto;
+  }
+  body[data-ui-page="workbench-v2"] > nav[aria-label="工作台"] .rail-sep,
+  body[data-ui-page="workbench-v2"] > nav[aria-label="工作台"] .rail-foot {
+    display: none;
+  }
+}
+
+/* 窄屏：左栏会话抽屉收起后，对话区要占满剩余视口，不留底部空白 */
+@media (max-width: 520px) {
+  body[data-ui-page="workbench-v2"].chat-mode > main {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-height: 0;
+    overflow: hidden;
+  }
+  body[data-ui-page="workbench-v2"].chat-mode > main > aside.workbench-side {
+    flex: 0 0 auto;
+    max-height: 38vh;
+    overflow-y: auto;
+  }
+  body[data-ui-page="workbench-v2"].chat-mode > main > aside.inspector {
+    display: none;
+  }
+  body[data-ui-page="workbench-v2"].chat-mode > main > section[aria-label="工作区"] {
+    flex: 1 1 auto;
+    min-height: 0;
+    height: auto;
+    max-height: none;
+  }
+}
+
+/* ==========================================================================
+   输入区：#chat 内 dock 必须按内容撑开，不能被 flex 压扁
+   （实测 #composer 39px 装 91px 内容、发送按钮被压到 17px 宽）
+   ========================================================================== */
+body[data-ui-page="workbench-v2"].chat-mode #composer {
+  flex: 0 0 auto;
+  min-height: auto;
+  height: auto;
+  overflow: visible;
+}
+body[data-ui-page="workbench-v2"].chat-mode #composer > .dock {
+  display: flex;
+  flex-direction: column;
+  min-height: auto;
+  height: auto;
+  overflow: visible;
+}
+body[data-ui-page="workbench-v2"].chat-mode #message {
+  flex: 0 0 auto;
+  min-height: 56px;
+  height: auto;
+  max-height: 180px;
+}
+body[data-ui-page="workbench-v2"].chat-mode .dock-bar {
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+  min-height: auto;
+  height: auto;
+}
+/* 发送按钮不被挤压：V1 的 #send 是按钮，V2 是 form，故用 id 与 type 双保险 */
+body[data-ui-page="workbench-v2"] .dock-bar > button[type="submit"],
+body[data-ui-page="workbench-v2"] #send-btn {
+  flex: 0 0 auto;
+  min-width: 72px;
+  padding: 0 16px;
+}
+/* 文件选择器在 dock 内不占满整行，避免把工具条撑成两行 */
+body[data-ui-page="workbench-v2"] .dock-bar .file-picker {
+  width: auto;
+  max-width: 190px;
+}
+body[data-ui-page="workbench-v2"] .dock-bar .mode-pick {
+  flex: 0 0 auto;
+}
+/* 左栏卡片之间留出间隔，让三张卡各自独立（V1 靠 aside 的 gap） */
+body[data-ui-page="workbench-v2"] > main > aside.workbench-side {
+  gap: 11px;
+}
+
+/* dock 内文件选择：原生 input 视觉隐藏后，标签只留图标+按钮+文件名，且文件名可省略 */
+body[data-ui-page="workbench-v2"] .dock-bar .file-picker-name {
+  min-width: 0;
+  max-width: 96px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+body[data-ui-page="workbench-v2"] .dock-bar .file-picker-btn {
+  flex: 0 0 auto;
+  min-height: 24px;
+  padding: 0 9px;
+  font-size: var(--fs-caption);
+}
+/* 发送按钮高度与工具条其它控件对齐 */
+body[data-ui-page="workbench-v2"] .dock-bar > button[type="submit"],
+body[data-ui-page="workbench-v2"] #send-btn {
+  min-height: 30px;
+  align-self: center;
+}
+body[data-ui-page="workbench-v2"] .dock-bar .dock-meta {
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* ==========================================================================
+   自定义文件选择器（V2 特有，V1 用原生 input）：
+   隐藏原生控件但保留可交互，用玻璃按钮 + 文件名替代浏览器默认外观。
+   ========================================================================== */
+body[data-ui-page="workbench-v2"] .file-picker {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  max-width: 100%;
+}
+body[data-ui-page="workbench-v2"] .file-picker-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  flex: 0 0 auto;
+  min-height: 28px;
+  padding: 0 11px;
   border: 1px solid var(--line-accent);
   border-radius: var(--r-sm);
   background: color-mix(in srgb, var(--seed-accent) 12%, transparent);
   color: var(--accent);
-  font: inherit;
   font-size: var(--fs-caption);
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.14s var(--ease-out);
 }
-input[type="file"]::file-selector-button:hover {
+body[data-ui-page="workbench-v2"] .file-picker-btn:hover {
   background: color-mix(in srgb, var(--seed-accent) 22%, transparent);
 }
-/* 深色：抬升次要文字亮度（保证可读），强化表面层次 */
-html[data-theme="dark"] body {
-  --text-3: color-mix(in srgb, var(--seed-fg) 80%, transparent);
-  --text-4: color-mix(in srgb, var(--seed-fg) 70%, transparent);
-  --surface-1: color-mix(in srgb, var(--seed-fg) 8%, var(--seed-bg));
-  --surface-2: color-mix(in srgb, var(--seed-fg) 13%, var(--seed-bg));
-  --surface-3: color-mix(in srgb, var(--seed-fg) 19%, var(--seed-bg));
+body[data-ui-page="workbench-v2"] .file-picker-btn .material-icons {
+  font-size: 14px;
 }
-/* 浅色：柔化阴影、增强描边，通透而非灰纸片 */
-html[data-theme="light"] .panel,
-html[data-theme="light"] article {
-  box-shadow: 0 1px 2px color-mix(in srgb, var(--seed-fg) 6%, transparent);
-  border-color: color-mix(in srgb, var(--seed-fg) 13%, transparent);
-}
-html[data-theme="light"] #send {
-  box-shadow: 0 1px 3px color-mix(in srgb, var(--seed-fg) 8%, transparent);
-}
-/* 右栏待办空态：图标 + 引导，不再孤悬一行字 */
-.inspector-empty-todo {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  padding: 30px 16px;
-  border: 1px dashed var(--line-2);
-  border-radius: var(--r-md);
-  color: var(--text-3);
-  text-align: center;
-}
-.inspector-empty-todo .material-icons {
-  font-size: 26px;
-  color: var(--text-4);
-}
-.inspector-empty-todo strong {
-  color: var(--text-2);
-  font-size: var(--fs-secondary);
-}
-.inspector-empty-todo span {
-  font-size: var(--fs-caption);
-  line-height: 1.55;
-}
-/* 输入区工具条：控件高度统一、垂直居中 */
-.composer-tools select,
-.composer-tools input[type="file"],
-.composer-tools button {
-  height: 28px;
-  min-height: 28px;
-}
-.composer-tools input[type="file"] {
-  padding: 0 6px;
-  line-height: 26px;
-}
-/* 会话选中态：提高与未选中的对比 */
-#sessions li.active {
-  background: color-mix(in oklab, var(--surface-accent) 88%, transparent);
-}
-
-/* 自定义文件选择器：玻璃按钮 + 文件名，原生 input 视觉隐藏但保留可交互 */
-.file-picker {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  max-width: 100%;
-  min-width: 0;
-}
-.file-picker-btn {
-  flex: 0 0 auto;
-  gap: 5px;
-  min-height: 30px;
-  padding: 0 12px;
-  border: 1px solid var(--line-accent);
-  border-radius: var(--r-md);
-  background: color-mix(in srgb, var(--seed-accent) 12%, transparent);
-  color: var(--accent);
-  font-size: var(--fs-caption);
-  font-weight: 600;
-}
-.file-picker-btn:hover {
-  background: color-mix(in srgb, var(--seed-accent) 22%, transparent);
-}
-.file-picker-btn .material-icons {
-  font-size: 15px;
-}
-.file-picker-name {
-  flex: 1 1 auto;
+body[data-ui-page="workbench-v2"] .file-picker-name {
+  flex: 0 1 auto;
   min-width: 0;
   overflow: hidden;
   color: var(--text-3);
@@ -2263,7 +872,7 @@ html[data-theme="light"] #send {
   white-space: nowrap;
   text-overflow: ellipsis;
 }
-input.file-native {
+body[data-ui-page="workbench-v2"] input.file-native {
   position: absolute;
   width: 1px;
   height: 1px;
@@ -2274,8 +883,96 @@ input.file-native {
   white-space: nowrap;
   border: 0;
 }
-/* 表单里的文件选择器占满一行 */
-.page .file-picker,
-#send .file-picker {
+/* 表单里的文件选择器占满一行；dock 内联展示 */
+body[data-ui-page="workbench-v2"] .page .file-picker {
   width: 100%;
+}
+body[data-ui-page="workbench-v2"] .dock-bar .file-picker {
+  width: auto;
+  max-width: 200px;
+}
+
+/* 文件选择按钮的禁用态：明确变灰但文字仍可读，不是半透明糊掉 */
+body[data-ui-page="workbench-v2"] .file-picker-btn:disabled {
+  border-color: var(--line-2);
+  background: var(--glass-weak-bg);
+  color: var(--text-3);
+  cursor: not-allowed;
+  opacity: 1;
+}
+body[data-ui-page="workbench-v2"] .file-picker[data-disabled="true"] .file-picker-name {
+  color: var(--text-4);
+}
+
+/* ==========================================================================
+   窄屏修正：rail 是 grid 行，不能盖住内容；页面内按钮必须保持可点尺寸
+   （实测 390 宽下 #desktop-portal-open/query 宽高为 0、点击命中 NAV）
+   ========================================================================== */
+@media (max-width: 900px) {
+  body[data-ui-page="workbench-v2"] > nav[aria-label="工作台"] {
+    position: relative;
+    z-index: 2;
+  }
+  body[data-ui-page="workbench-v2"] > main {
+    position: relative;
+    z-index: 1;
+  }
+  /* V1 的 .rail-btn 尺寸只属于 rail；页面内按钮不得被压成 0 */
+  body[data-ui-page="workbench-v2"] .page button,
+  body[data-ui-page="workbench-v2"] .page .btn {
+    width: auto;
+    min-width: 0;
+    min-height: 28px;
+    height: auto;
+    padding: 4px 11px;
+  }
+  body[data-ui-page="workbench-v2"] .page .actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  body[data-ui-page="workbench-v2"] .page .actions > button {
+    flex: 0 1 auto;
+  }
+}
+
+/* ==========================================================================
+   右栏留白收口：空态不再孤悬顶部，列表区吸收剩余空间
+   ========================================================================== */
+body[data-ui-page="workbench-v2"] .inspector-body > section {
+  height: 100%;
+}
+body[data-ui-page="workbench-v2"] .inspector-body .inspector-empty,
+body[data-ui-page="workbench-v2"] .inspector-body .inspector-empty-todo {
+  flex: 0 0 auto;
+  margin: auto 0;
+  padding: 28px 14px;
+}
+body[data-ui-page="workbench-v2"] .inspector-body .inspector-list {
+  flex: 0 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+}
+/* 列表滚动条走面板语言，不用浏览器默认 */
+body[data-ui-page="workbench-v2"] .inspector-list::-webkit-scrollbar {
+  width: 8px;
+}
+body[data-ui-page="workbench-v2"] .inspector-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+body[data-ui-page="workbench-v2"] .inspector-list::-webkit-scrollbar-thumb {
+  border: 2px solid transparent;
+  border-radius: var(--r-full);
+  background: color-mix(in srgb, var(--seed-fg) 18%, transparent);
+  background-clip: content-box;
+}
+body[data-ui-page="workbench-v2"] .inspector-list::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in srgb, var(--seed-accent) 45%, transparent);
+  background-clip: content-box;
+}
+
+/* 安卓设备截图尺寸（原为内联 style，违反 style-src 'self'，移入样式表） */
+body[data-ui-page="workbench-v2"] #android-image {
+  max-width: 100%;
+  max-height: 32rem;
 }

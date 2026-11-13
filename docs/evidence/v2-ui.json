@@ -1,7 +1,7 @@
 {
   "batch": "v2-ui-workbench-completion",
   "recorded_at": "2026-11-13",
-  "resource_version_final": "20261113v74",
+  "resource_version_final": "20261113v105",
   "v1_alignment": {
     "summary": "用户提供 V1 正式工作台截图后，直接精读 web/ui/workbench.css 的 V1 实现并逐项移植，使 V2 结构与 V1 一致（而非自创风格）。",
     "ported_from_v1": [
@@ -159,5 +159,123 @@
     "未做 72 小时稳定性与三平台原生验收",
     "性能与大规模数据（产物/截图数量很大时）未测",
     "本批不构成验收，V2 仍未切换正式入口"
-  ]
+  ],
+  "run_steps_and_details": {
+    "user_questions": [
+      "为什么 AI 消息上没有折叠的可查看执行步骤",
+      "最底下意义不明的『本次运行详情与计量』是什么"
+    ],
+    "root_causes": [
+      "工具卡只在有工具事件时渲染；原演示实例未注册任何工具能力，运行事件只有 run.*/routing.selected，因此卡片不存在（非渲染缺陷）",
+      "底部 details 把保留状态/上下文/路由报告/技能报告/调用清单五种原始文本堆在一起，标题含义不清且与左栏上下文用量重复"
+    ],
+    "fixed": [
+      "演示实例注入三个只读演示工具（system_info/files_list/memory_search），由真实工具链产生 action.prepared/action.completed 事件，不伪造记录",
+      "修复同一次运行的步骤卡在用户与助手消息上重复渲染：改为只挂 .msg.assistant",
+      "步骤卡默认折叠，折叠态加青色描边底与 chevron，明确可展开",
+      "步骤行不再显示内部 action_id：改为工具名 + 只读/需审批 + 耗时，参数指纹移到 title（参数原文按设计不入库）",
+      "消息区底部留白并在步骤卡异步挂载后重新贴底，修复步骤条被面板边缘裁掉",
+      "底部 details 重构为『运行技术详情』三组卡片（模型与档位 / 本轮技能 / 保留与计量），每组带一句说明",
+      "打开历史会话时按该会话最近一次运行加载三组数据（原先只在本页发起运行时填充，导致整块空白）",
+      "无运行记录时显示明确空态；整组无数据时隐藏，不留空标题",
+      "运行详情加载加序号防止连续切会话时旧请求覆盖"
+    ],
+    "verification": {
+      "tool_events": "3 次 action.prepared + 3 次 action.completed，状态均 ok",
+      "dom_probe": "步骤卡 1 个（用户消息 0 个）、步骤行 3 行、文案为『system_info 只读·无需审批 380ms』",
+      "layout_probe": "步骤条完整落在消息区内（681–710 vs 容器底 739），无横向溢出",
+      "details_probe": "展开后三组均 display:flex 且有真实数据",
+      "style_guards": "glass/design tokens + business_inventory + mcp 共 21 passed",
+      "visual_review": "读图评审 9/10，无内部 ID 暴露、无重叠裁切"
+    }
+  },
+  "run_trace_without_tools": {
+    "user_correction": "就算没工具调用，也有档位切换以及输入输出信息可显示",
+    "accepted": true,
+    "previous_wrong_claim": "此前称『没有工具调用所以没有过程可显示』不完整；档位选择与模型调用计量本就可查",
+    "implemented": [
+      "loadRunTools 扩展为 loadRunTrace：同时取运行事件与 /runs/{id}/routing 报告",
+      "过程卡改为每轮都渲染，摘要为『运行过程 · 完整档 · N 次模型调用 · M 个工具/未调用工具』",
+      "第一段档位选择：请求档位 → 实际档位 + 中文原因（保守起见/问候/读取请求/含图片等）",
+      "第二段每次模型调用：输入 token 估算、可用工具数、费用或待结清；悬停显示计量方式与工具规格字节",
+      "第三段工具步骤：有则逐行列出并带耗时；无则明确显示『本轮未调用工具，模型直接给出回复』",
+      "三类行用 data-kind 区分标识色（档位紫 / 模型青 / 无工具灰虚线）"
+    ],
+    "correction_on_arguments": "此前称参数原文『不入库』有误：actions 表确实存 arguments 与 result；但所有者读取接口按设计不外发（extensions.actions 注释明确 no arguments or free text）。文案已改为准确表述",
+    "verification": {
+      "zero_tool_turn": "摘要『运行过程 · 完整档 · 1 次模型调用 · 未调用工具』，3 行：档位选择 / 模型调用（输入约 1138 tokens · 费用 0 微美元）/ 未调用工具说明",
+      "with_tool_turn": "摘要『运行过程 · 完整档 · 2 次模型调用 · 3 个工具』，6 行：档位 + 2 次模型调用 + 3 工具（380/626/547ms）",
+      "runtime": "双主题无 pageerror、无横向溢出",
+      "ui_regression": "运行中"
+    }
+  },
+  "v1_direct_reuse": {
+    "user_instruction": "直接把 V1 的界面与布局复制过来，不要自创",
+    "approach": "原样复制 V1 的 components/frame/workbench 三份 CSS 到 web/ui/v2/v1/，仅改页面标识与资源路径；V2 结构改用 V1 类名；自创样式表降级为仅补 V2 特有部分的桥接层",
+    "copied_files": [
+      "web/ui/v2/v1/components.css",
+      "web/ui/v2/v1/frame.css",
+      "web/ui/v2/v1/workbench.css"
+    ],
+    "structure_aligned": [
+      "nav.rail + rail-brand + rail-btn（V1 图标栏）",
+      "aside.workbench-side + panel/session-panel/service-panel/context-panel",
+      "#chat > #messages + #composer > .dock > textarea + .dock-bar",
+      "右栏 .panel > .tabs（3 列 grid）+ .tab-body",
+      "助手 .a-head > .a-avatar(svg) + .a-name + .a-meta + .spacer + .copy-msg",
+      "用户 .bubble + .turn-foot > .ts",
+      "调用链 .scaffolds > .scaf-toggle + .scaf(+ .scaf-out)，折叠与单行详情交互与 V1 一致"
+    ],
+    "defects_found_and_fixed": [
+      "嵌套包裹导致副本只解析出 1 条规则（样式几乎全部失效）→ 改为原样复制，实测解析 90/108/664 条",
+      "base.css 的 :not([data-ui-page=workbench]) 给 V2 加了 22px 内边距与 1500px 限宽 → 用同等特异性覆盖",
+      "V1 的 body padding-left 与 margin-left 叠加造成左栏偏移 → 改 grid 骨架精确让位",
+      ".page 的 display:flex 压过 [hidden]，21 个隐藏页全部可见并把 #chat 挤成 2px、输入框被顶出视口 → [hidden] 加 !important",
+      "设置包裹层在对话模式参与布局导致高度链断裂 → 改为满高 grid 单行容器",
+      "窄屏 rail 高度为 0、对话区底部留白 → 横排 48px 与 flex 占满剩余视口",
+      "副本内 /ui/ 资源路径 404 → 改为 /assets/ui/",
+      "给 nav 加 class 破坏守卫正则 '<nav aria-label=\"工作台\" inert>' → 恢复标签原文，改为在副本中为 .rail 追加等效属性选择器（只扩展选择器，不改声明）",
+      "桥接层的 .page flex 规则把 #composer 压到 39px 装 91px 内容、.dock 27px、发送按钮 17px 宽 → dock/textarea/dock-bar 全部按内容撑开，发送按钮 min-width 72px",
+      "重写桥接层时漏掉 .file-picker 基础 flex 样式，导致按钮与文件名竖排溢出 → 补回完整文件选择器样式，实测 119×24 无裁切",
+      "左栏卡片缺少间隔 → aside.workbench-side gap 11px，四张卡各自 1px 描边 + 12px 圆角",
+      "自定义文件按钮未同步原生 input 的 disabled，显示为半透明糊字 → MutationObserver 同步禁用态，禁用时用灰底 text-3（opacity:1）保证可读；实测连接后为可用态青色 rgb(61,219,217)、opacity 1",
+      "窄屏 rail 的按钮尺寸规则外溢到页面内按钮，390 宽下桌面页按钮宽高为 0、点击命中 NAV，导致 test_v2_portal_ui 失败（用 git stash 对照原代码确认属本批引入）→ 限定 rail 尺寸只作用于 rail，页面内按钮 min-height 28px 且 width:auto，并修正 rail/main 层级；隔离复跑 portal 已通过",
+      "右栏空态孤悬顶部、宽屏留白过多 → 空态垂直居中、列表区吸收剩余空间并自带面板风格滚动条",
+      "视觉隐藏的原生文件 input 仍占 Tab 焦点 → tabIndex=-1 + aria-hidden，键盘改由自定义玻璃按钮承接（测试仍按 id 定位，不受影响）",
+      "副本别名盲替换污染注释，连带使导航阴影规则失效（规则数 663→664 证实）→ 按原件精确恢复两处",
+      "V2 只复制了浮层样式却未接 V1 提示模块，导航悬停无提示 → 补 #tip-layer 容器并原样复用 app/tips.js",
+      "入口脚本与 xterm 仍挂旧版本串 v81 → 统一升到当前版本",
+      "安卓截图用内联 style 属性触发 style-src-attr 拦截（securitypolicyviolation 定位到具体行） → 尺寸移入样式表，全页内联 style 归零；实测 maxWidth=100%/maxHeight=512px 生效",
+      "终端主题探测用 cssText 整串赋值 → 改逐条属性赋值，等价且合规"
+    ],
+    "verification": {
+      "css_rules_parsed": "components 90 / frame 108 / workbench 663（原样复制后全部生效）",
+      "layout_probe": "三栏 230/802/300，rail 固定 54px，5 个面板均 1px 描边 + ≥8px 圆角 + 半透明底",
+      "viewport_matrix": "1440/1024/390 × dark/light 六组全部：无横向溢出、工作区与输入框在视口内、rail 正常、5 面板均玻璃描边、零 pageerror、零 404",
+      "components": "a-head 2 / a-avatar svg 2 / scaffolds 2 / scaf-toggle 2 / tabs display:grid / dock-bar 1",
+      "interaction": "调用链展开→行可见→单行详情可见；发消息成功；技能/产物/桌面真实数据；设置 22 分类；返回对话后输入框在视口内",
+      "visual_review": "读图评审 9/10，三栏/玻璃/头像/调用链/dock 均与 V1 一致，无重叠裁切错位",
+      "ui_regression": "运行中（最终源码 v103，14 个测试文件 -n 4）",
+      "rail_appearance": "nav 宽 54px、玻璃底 68%、右描边 1px、按钮 34×32、选中青色、品牌标 30px（与 V1 一致）",
+      "dock_probe": "#composer 141px 装 141px 无裁切；textarea 56px；dock-meta 17px 完整；发送按钮 72×30；文件选择器 119×24 无溢出；工具条底 925 < 视口 950",
+      "guards": "business_inventory + glass_tokens + design_tokens 共 19 passed",
+      "note_on_visual_review": "读图服务两次返回同一缓存 URL 导致误报『按钮模糊』；已用计算样式量取证伪，以客观量取为准",
+      "regression_v101": "127 passed / 1 failed（portal），该失败已定位为窄屏按钮尺寸并修复",
+      "pages_matrix": "settings/memory/skills/objects/capabilities/tokens/logs/schedules × 1440/390 共 16 组：分区宽度与工作区一致、无横向溢出、无隐藏裁切、返回对话按钮可见、零 pageerror",
+      "settings_flow": "22 分类跳转（tokens 选中态 aria-current=true）→ 改人设保存成功『已保存，新运行生效』→ Esc 回到对话 → 再进设置用返回按钮回到对话且输入框在视口内",
+      "inspector_flow": "产物页签 1 条真实记录，点击下载成功（7f8ca424f3bf.bin，91 字节）；技能/桌面空态引导按钮可跳转对应页；待办计数正常",
+      "stability": "3 轮主题切换 + 12 次页面往返 + 4 次调用链折叠后：消息 10 条、调用链 5 组无重复累积；再发一条消息后 11 条、输入框仍在视口内；全程零 pageerror",
+      "guards_v103": "glass_tokens + design_tokens + business_inventory 共 19 passed",
+      "layout_v103": "1440/390 × dark/light 四组复验：无溢出、输入框在视口内、rail 正常、5 面板玻璃、零报错",
+      "keyboard_a11y": "rail 22 按钮全部有 aria-label、7 组齐全、连接后 inert 解除；Tab 前 12 个落点焦点全部可见；输入框可直接键盘打字；Esc 正确关闭设置层",
+      "guards_v104": "glass_tokens + design_tokens + business_inventory 共 19 passed",
+      "tooltip": "悬停导航显示『记忆』，opacity=1、位置在视口内；导航阴影 0px 2px 4px 生效",
+      "ui_regression_v103": "135 passed in 976.48s（14 文件 -n 4，零失败）",
+      "ui_regression_final": "运行中（含浮层接入与版本修正）",
+      "csp_clean": "securitypolicyviolation 事件零触发；1440/390 两视口 pageerror 与 CSP 报错均为空；提示浮层定位随按钮真实变化（技能 y=160、日志 y=790）",
+      "ui_regression_v105": "133 passed / 2 failed in 1045.70s（14 文件 -n 4）。两个失败均为文本断言超时，非布局/样式问题，已逐个隔离复跑取证：① test_v2_skills_ui[light-1024] 隔离单跑 passed → 并行负载抖动；② test_v2_portal_ui 隔离仍 failed，状态停在 portal_consent_pending（服务端授权环节），git stash 暂存本批全部改动后用原码跑同一用例同样 failed → 既有问题，非本批引入；本批未改动任何 agent/ 服务端代码（git status 为空）。仓库历史 10656e9 已记录并行抖动口径。",
+      "contrast": "深色关键文本对比度 11.2–17.02（页标题 17.02、输入框 11.2、会话标题 16.63、正文 15.4），浅色 17.71–21；均远超 4.5 标准。会话标题一度读出 1.65 系脚本未解析 oklab 背景所致的量取虚警，已用实际颜色值与局部截图证伪。",
+      "narrow_inspector": "390 宽右栏 display:none 属既定响应式设计（空间让给对话），非缺陷；页签在 1440 下四个均可点击切换且无溢出"
+    }
+  }
 }

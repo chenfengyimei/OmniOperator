@@ -8,7 +8,11 @@
   'use strict';
   function resolve(varName) {
     var probe = document.createElement('i');
-    probe.style.cssText = 'position:absolute;width:0;height:0;visibility:hidden';
+    // 逐条赋值而非 cssText 整串：后者会被 style-src 'self' 拦截（CSP）
+    probe.style.position = 'absolute';
+    probe.style.width = '0';
+    probe.style.height = '0';
+    probe.style.visibility = 'hidden';
     probe.style.color = 'var(' + varName + ')';
     document.body.appendChild(probe);
     var value = getComputedStyle(probe).color;
