@@ -7,6 +7,7 @@ import hashlib
 import re
 import secrets
 import uuid
+from typing import cast
 
 from ...domain.android import device, identity
 from ...domain.android_unicode import (
@@ -21,22 +22,29 @@ from ...domain.android_unicode import (
     text_value,
     unpack,
 )
-from ...domain.contracts import ActionResult, Effect, Outcome
+from ...domain.contracts import JSON, ActionResult, Effect, Outcome
 from .android_adb import Adb
 
 
 class UnicodeWorker:
-    def __init__(self):
-        self.snapshot = self.args = self.context = None
-        self.reader = self.writer = self.key = self.token = None
+    def __init__(self) -> None:
+        self.snapshot: dict[str, object] | None = None
+        self.args: dict[str, object] | None = None
+        self.context: dict[str, object] | None = None
+        self.reader: asyncio.StreamReader | None = None
+        self.writer: asyncio.StreamWriter | None = None
+        self.key: bytes | None = None
+        self.token: str | None = None
         self.begun = False
 
-    async def environment(self, adb: Adb, target: dict) -> dict:
+    async def environment(self, adb: Adb, target: dict[str, object]) -> dict[str, object]:
         await adb.require(target)
 
-        async def setting(name):
+        async def setting(name: str) -> str:
             raw = await adb.shell(
-                target["transport_id"], f"settings --user {target['user_id']} get secure {name}", maximum=32768
+                cast(int, target["transport_id"]),
+                f"settings --user {target['user_id']} get secure {name}",
+                maximum=32768,
             )
             return raw.decode("utf-8").strip()
 
@@ -60,11 +68,11 @@ class UnicodeWorker:
             "enabled_ids": ids,
         }
 
-    async def call(self, method: str, data: dict) -> dict:
+    async def call(self, method: str, data: dict[str, object]) -> dict[str, object]:
         if self.writer is None or self.reader is None or self.key is None or self.snapshot is None or self.args is None:
             raise ValueError("Helper connection is absent")
         nonce = secrets.token_hex(16)
-        request = {
+        request: dict[str, object] = {
             "version": 1,
             "nonce": nonce,
             "method": method,
@@ -80,15 +88,18 @@ class UnicodeWorker:
             if not 1 <= length <= MAX_PACKET:
                 raise ValueError("Helper response exceeds limit")
             result = unpack(await self.reader.readexactly(length), await self.reader.readexactly(32), self.key, nonce)
+        unicode_profile = cast(dict[str, object], self.args["unicode_profile"])
+        profile = cast(dict[str, object], unicode_profile["profile"])
+        device_row = cast(dict[str, object], self.args["device"])
         if result.get("status") not in {"denied", "unknown", "closing"} and (
-            result.get("certificate_sha256") != self.args["unicode_profile"]["profile"]["certificate_sha256"]
+            result.get("certificate_sha256") != profile["certificate_sha256"]
             or type(result.get("user")) is not int
-            or result["user"] != self.args["device"]["user_id"]
+            or result["user"] != device_row["user_id"]
         ):
             raise ValueError("Helper identity changed")
         return result
 
-    async def close(self):
+    async def close(self) -> None:
         if self.writer is not None:
             self.writer.close()
             try:
@@ -98,22 +109,20 @@ class UnicodeWorker:
                 pass
         self.reader = self.writer = self.key = self.token = None
 
-    async def invoke(self, name: str, args: dict, context: dict) -> ActionResult:
+    async def invoke(self, name: str, args: dict[str, object], context: dict[str, object]) -> ActionResult:
         attempted = False
         try:
-            adb = Adb(args["connection"]["port"], args["connection"]["serial"])
+            connection = cast(dict[str, object], args["connection"])
+            adb = Adb(cast(int, connection["port"]), cast(str, connection["serial"]))
             target = device(args["device"])
+            transport = cast(int, target["transport_id"])
             if name == "android_unicode_prepare":
                 if self.snapshot is not None:
                     raise ValueError("IME preparation cannot be reused")
                 await adb.require(target)
-                meta = args["unicode_profile"]["profile"]
+                meta = cast(dict[str, object], cast(dict[str, object], args["unicode_profile"])["profile"])
                 paths = (
-                    (
-                        await adb.shell(
-                            target["transport_id"], f"pm path --user {target['user_id']} {PACKAGE}", maximum=8192
-                        )
-                    )
+                    (await adb.shell(transport, f"pm path --user {target['user_id']} {PACKAGE}", maximum=8192))
                     .decode()
                     .splitlines()
                 )
@@ -122,13 +131,11 @@ class UnicodeWorker:
                 path = paths[0].removeprefix("package:")
                 if not re.fullmatch(r"/[A-Za-z0-9_./=+~-]+\.apk", path):
                     raise ValueError("Invalid helper APK path")
-                checksum = (
-                    (await adb.shell(target["transport_id"], "sha256sum '" + path + "'", maximum=8192)).decode().split()
-                )
+                checksum = (await adb.shell(transport, "sha256sum '" + path + "'", maximum=8192)).decode().split()
                 if not checksum or checksum[0] != meta["apk_sha256"]:
                     raise ValueError("Installed helper APK fingerprint changed")
                 state = await self.environment(adb, target)
-                if COMPONENT not in state["enabled_ids"]:
+                if COMPONENT not in cast(list[object], state["enabled_ids"]):
                     raise ValueError("Enable the helper explicitly in Android settings first")
                 self.snapshot = {
                     "prepare_nonce": str(uuid.uuid4()),
@@ -137,9 +144,11 @@ class UnicodeWorker:
                     "enabled_sha256": state["enabled_sha256"],
                 }
                 self.args, self.context = dict(args), dict(context)
-                return ActionResult(Outcome.OK, "IME restoration snapshot prepared", data=dict(self.snapshot))
+                return ActionResult(
+                    Outcome.OK, "IME restoration snapshot prepared", data=cast(dict[str, JSON], dict(self.snapshot))
+                )
             if name in {"android_unicode_restore", "android_unicode_environment"}:
-                snapshot = args["environment"]
+                snapshot = cast(dict[str, object], args["environment"])
                 ime_component(snapshot["original_ime"])
                 await self.close()
                 state = await self.environment(adb, target)
@@ -157,15 +166,15 @@ class UnicodeWorker:
                     if (
                         state["current_ime"] == COMPONENT
                         and state["enabled_sha256"] == snapshot["enabled_sha256"]
-                        and snapshot["original_ime"] in state["enabled_ids"]
+                        and snapshot["original_ime"] in cast(list[object], state["enabled_ids"])
                     ):
 
-                        def dispatched():
+                        def dispatched() -> None:
                             nonlocal attempted
                             attempted = True
 
                         await adb.shell(
-                            target["transport_id"],
+                            transport,
                             f"ime set --user {target['user_id']} '{snapshot['original_ime']}'",
                             maximum=8192,
                             before_send=dispatched,
@@ -179,14 +188,14 @@ class UnicodeWorker:
                 state["result_code"] = "restored" if restored else "environment_changed"
                 state.pop("enabled_ids")
                 if name == "android_unicode_environment":
-                    return ActionResult(Outcome.OK, "IME environment observed", data=state)
+                    return ActionResult(Outcome.OK, "IME environment observed", data=cast(dict[str, JSON], state))
                 return ActionResult(
                     Outcome.OK if restored else Outcome.UNKNOWN,
                     "IME restoration verified" if restored else "IME restoration requires owner review",
                     Effect.APPLIED if restored and attempted else Effect.NONE if restored else Effect.UNKNOWN,
                     verification="ime_restored" if restored else "",
                     error_code="" if restored else "android_ime_cleanup_pending",
-                    data=state,
+                    data=cast(dict[str, JSON], state),
                 )
             if (
                 self.snapshot is None
@@ -209,12 +218,12 @@ class UnicodeWorker:
                     raise ValueError("IME settings changed before selection")
                 if current["current_ime"] != COMPONENT:
 
-                    def dispatched():
+                    def dispatched() -> None:
                         nonlocal attempted
                         attempted = True
 
                     await adb.shell(
-                        target["transport_id"],
+                        transport,
                         f"ime set --user {target['user_id']} {COMPONENT}",
                         maximum=8192,
                         before_send=dispatched,
@@ -230,7 +239,8 @@ class UnicodeWorker:
                     Outcome.OK, "Temporary helper IME selected", Effect.APPLIED if attempted else Effect.NONE
                 )
             window = await adb.window(target)
-            if not self.begun or not window["unlocked"] or window["package"] != self.args["window"]["package"]:
+            args_window = cast(dict[str, object], self.args["window"])
+            if not self.begun or not window["unlocked"] or window["package"] != args_window["package"]:
                 raise ValueError("Editor foreground changed")
             if name == "android_unicode_ready":
                 self.key = key_value(args["pairing_key"])
@@ -238,12 +248,13 @@ class UnicodeWorker:
                     self.reader, self.writer = await asyncio.open_connection("127.0.0.1", adb.port)
                     await adb.request(self.reader, self.writer, "host:transport-id:" + str(target["transport_id"]))
                     await adb.request(self.reader, self.writer, "localabstract:" + SOCKET + str(target["user_id"]))
+                node = cast(dict[str, object], self.args["node"])
                 reply = await self.call(
                     "prepare",
                     {
-                        "application": self.args["window"]["package"],
-                        "resource": self.args["node"]["resource_id"],
-                        "before_hash": hashlib.sha256(self.args["node"]["text"].encode()).hexdigest(),
+                        "application": args_window["package"],
+                        "resource": node["resource_id"],
+                        "before_hash": hashlib.sha256(cast(str, node["text"]).encode()).hexdigest(),
                         "user": target["user_id"],
                         "original_ime": self.snapshot["original_ime"],
                         "original_subtype": self.snapshot["original_subtype"],
@@ -262,7 +273,8 @@ class UnicodeWorker:
                 token, self.token = self.token, None
                 attempted = True
                 reply = await self.call("commit", {"token": token, "text": text})
-                expected = self.args["node"]["text"] + text
+                node = cast(dict[str, object], self.args["node"])
+                expected = cast(str, node["text"]) + text
                 if (
                     reply.get("status") == "verified"
                     and reply.get("after_hash") == hashlib.sha256(expected.encode()).hexdigest()
