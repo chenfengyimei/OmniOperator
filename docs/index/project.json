@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "15eb1969e514a85b9df14013ec59a425f5306efabe894cdc4b7cc6976d3b801b",
+  "source_sha256": "efe423aa79632c90d76ebc47f23cf3ad34fe819c6f5652d559e4b03b6004c1d7",
   "modules": [
     {
       "id": "v2-domain",
@@ -404,7 +404,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 53555,
+      "lines": 53583,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -498,7 +498,7 @@
         "web/ui/v2/v1/workbench.css",
         "web/ui/v2/workbench.css"
       ],
-      "lines": 19982,
+      "lines": 19995,
       "dependencies": []
     },
     {
@@ -12318,12 +12318,13 @@
       "path": "agent/src/omni/adapters/persistence/context_repository.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.persistence.context_repository",
-      "lines": 487,
+      "lines": 515,
       "imports": [
         "omni.adapters.persistence",
         "omni.adapters.persistence.memory_organization_predicates",
         "omni.adapters.persistence.qq_authority",
         "omni.adapters.persistence.retention_repository",
+        "omni.application.ports",
         "omni.domain.context",
         "omni.domain.contracts",
         "omni.domain.metering"
@@ -12331,12 +12332,12 @@
       "symbols": [
         {
           "name": "ContextRepositories",
-          "line": 16,
+          "line": 19,
           "kind": "class"
         },
         {
           "name": "ContextRepositories._history",
-          "line": 17,
+          "line": 20,
           "kind": "function",
           "parameters": [
             "self",
@@ -12350,7 +12351,7 @@
         },
         {
           "name": "ContextRepositories.context_plan",
-          "line": 37,
+          "line": 40,
           "kind": "function",
           "parameters": [
             "self",
@@ -12364,7 +12365,7 @@
         },
         {
           "name": "ContextRepositories.context_messages",
-          "line": 106,
+          "line": 112,
           "kind": "function",
           "parameters": [
             "self",
@@ -12378,7 +12379,7 @@
         },
         {
           "name": "ContextRepositories.snapshot",
-          "line": 109,
+          "line": 115,
           "kind": "function",
           "parameters": [
             "self",
@@ -12396,7 +12397,7 @@
         },
         {
           "name": "ContextRepositories._capture_memories",
-          "line": 140,
+          "line": 146,
           "kind": "function",
           "parameters": [
             "self",
@@ -12412,7 +12413,7 @@
         },
         {
           "name": "ContextRepositories.capture_tool_memories",
-          "line": 171,
+          "line": 177,
           "kind": "function",
           "parameters": [
             "self",
@@ -12428,7 +12429,7 @@
         },
         {
           "name": "ContextRepositories.prepare_context",
-          "line": 182,
+          "line": 188,
           "kind": "function",
           "parameters": [
             "self",
@@ -12442,7 +12443,7 @@
         },
         {
           "name": "ContextRepositories.context_failure",
-          "line": 209,
+          "line": 218,
           "kind": "function",
           "parameters": [
             "self",
@@ -12458,7 +12459,7 @@
         },
         {
           "name": "ContextRepositories.prepare_summary",
-          "line": 228,
+          "line": 237,
           "kind": "function",
           "parameters": [
             "self",
@@ -12474,7 +12475,7 @@
         },
         {
           "name": "ContextRepositories.summary_call",
-          "line": 272,
+          "line": 287,
           "kind": "function",
           "parameters": [
             "self",
@@ -12490,7 +12491,7 @@
         },
         {
           "name": "ContextRepositories.settle_summary",
-          "line": 283,
+          "line": 298,
           "kind": "function",
           "parameters": [
             "self",
@@ -12508,7 +12509,7 @@
         },
         {
           "name": "ContextRepositories.finalize_context",
-          "line": 326,
+          "line": 347,
           "kind": "function",
           "parameters": [
             "self",
@@ -12536,7 +12537,7 @@
         },
         {
           "name": "ContextRepositories.run_context_report",
-          "line": 404,
+          "line": 429,
           "kind": "function",
           "parameters": [
             "self",
@@ -12550,7 +12551,7 @@
         },
         {
           "name": "ContextRepositories.summary_get",
-          "line": 478,
+          "line": 506,
           "kind": "function",
           "parameters": [
             "self",
@@ -95718,7 +95719,7 @@
       "path": "web/ui/v2/routing.js",
       "module": "v2-workbench",
       "python_module": null,
-      "lines": 172,
+      "lines": 185,
       "imports": [],
       "symbols": [],
       "kind": "asset",

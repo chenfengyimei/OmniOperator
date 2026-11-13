@@ -1,14 +1,14 @@
 {
  "schema": 1,
- "batch": 161,
+ "batch": 162,
  "date": "2026-11-13",
  "whole_v2_complete": false,
  "d7_complete": false,
  "default_entrypoint": "v1",
  "source": {
-  "code_version": "8a7a9185250ecc570a94841fd93b079823dfe8c15c24237357bf7e0bd17c8d52",
+  "code_version": "24f79b252d34d45d78ad59acb81cae73f60e99a65195989c122d4da2d2cd0eb5",
   "fixed_source_files": 1206,
-  "git_head": "7e5b7e5",
+  "git_head": "98ee419",
   "dirty_checkout": false,
   "recipe": "sha256(json.dumps({path: sha256(blob) for tracked agent/, web/, scripts/ files}, sort_keys=True)); see temp/build/source_version.py",
   "head_ui": "75c4219"
@@ -193,12 +193,12 @@
  "validation": {
   "all_latest_cases_passed": false,
   "latest_batch": {
-   "batch": 161,
+   "batch": 162,
    "sources": [
-    "agent/src/omni/adapters/persistence/image_repository.py"
+    "agent/src/omni/adapters/persistence/context_repository.py"
    ],
-   "report": "temp/build/v2-typecheck-161-callers.xml",
-   "tests": 58
+   "report": "temp/build/v2-typecheck-162-callers.xml",
+   "tests": 49
   },
   "targeted_reports": [
    {
@@ -1657,6 +1657,15 @@
     "errors": 0,
     "duration_s": 126.47,
     "note": "P3 image_repository batch: image metadata/policy/per-call references + guard/arch/images/images-http/images-migration/images-ui callers (four viewports, both themes)"
+   },
+   {
+    "path": "temp/build/v2-typecheck-162-callers.xml",
+    "sha256": "0f17e5f40e6aacc1461daa7d65e612a72c6dd821931da3bc53a55b3cf696f1d4",
+    "tests": 49,
+    "failures": 0,
+    "errors": 0,
+    "duration_s": 55.52,
+    "note": "P3 context_repository batch: revision-bound summaries and context provenance + guard/arch/context/context-faults callers; covers summary publication rollback, process-exit ledger truth and no stale publication during erasure"
    }
   ],
   "gates": {
@@ -1668,7 +1677,7 @@
   "strict": {
    "config": "pyrightconfig.strict.json",
    "summary": {
-    "filesAnalyzed": 285,
+    "filesAnalyzed": 286,
     "errorCount": 0,
     "warningCount": 0,
     "informationCount": 0
@@ -1762,7 +1771,8 @@
    }
   ],
   "scope": [
-   "Strict scope reaches 285 files (53 domain + 44 application + 175 adapters + 13 composition); the image metadata/policy/per-call-reference repository aligns register, policy, parts and report receipts with the port Record contract, narrows per-call and run budgets to int and snapshot message ids to list[str], and keeps model_image_policy_add's value at Record to match the port (a wider dict[str, object] broke protocol contravariance and was corrected); integrity checks, unverified-attachment refusal, the cumulative budget gate and the no-file-read/no-encode boundary are unchanged"
+   "Strict scope reaches 285 files (53 domain + 44 application + 175 adapters + 13 composition); the image metadata/policy/per-call-reference repository aligns register, policy, parts and report receipts with the port Record contract, narrows per-call and run budgets to int and snapshot message ids to list[str], and keeps model_image_policy_add's value at Record to match the port (a wider dict[str, object] broke protocol contravariance and was corrected); integrity checks, unverified-attachment refusal, the cumulative budget gate and the no-file-read/no-encode boundary are unchanged",
+   "Strict scope reaches 286 files (53 domain + 44 application + 176 adapters + 13 composition); the revision-bound summary and context provenance repository aligns plan, snapshot, summary and report receipts with the port Record contract, types _history as tuple[Record, Record, Select], narrows the domain batch/tail/turns Mapping results to Record before writing or returning them, narrows epochs, sequences and covered counts to int, and narrows source_digest's epoch and parent_id to its declared signature; erasure boundaries, whole-turn suffix selection, source-hash validation, the summary unknown state and the budget gate are unchanged"
   ]
  },
  "source_recovery": {

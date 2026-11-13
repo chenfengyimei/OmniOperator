@@ -33,10 +33,10 @@
 **验收口径（务必照此表述）：** `-n 2` 下 Playwright 重度用例会因资源争用偶发失败；先并行跑，再把失败项
 `-n 0` 串行复跑，两份报告都留档。**禁止**把"串行通过"写成"并行全绿"，也禁止把抖动写成功能缺陷。
 
-**当前基线（2026-11-13 实测，开工前再核一次）：** strict **285 文件 / 0 errors**（53 domain + **44 application 全层** +
-175 adapters + **13/13 composition 全层**）；未纳入 61 个 adapters（含 5 个 android 适配器/仓储/worker）
+**当前基线（2026-11-13 实测，开工前再核一次）：** strict **286 文件 / 0 errors**（53 domain + **44 application 全层** +
+176 adapters + **13/13 composition 全层**）；未纳入 61 个 adapters（含 5 个 android 适配器/仓储/worker）
 （domain/application/composition 已全层纳入）；全量 4656 项 4653 passed / 3 failed（抖动，串行全过）/ 0 errors；
-台账 `d7_typecheck_batch_161`。第 20 节点全量 4656 项：4655 passed / 1 failed，失败项为并行 UI 会话的 embed 守卫违规，其工作区已删副本但未提交，守卫读工作区故串行通过；HEAD 仍未修。
+台账 `d7_typecheck_batch_162`。第 20 节点全量 4656 项：4655 passed / 1 failed，失败项为并行 UI 会话的 embed 守卫违规，其工作区已删副本但未提交，守卫读工作区故串行通过；HEAD 仍未修。
 
 **本次要做的顺序：**
 1. ~~`composition/instance.py`（58）~~ → 第一百四十二批，提交 `9f8f1f2`；
