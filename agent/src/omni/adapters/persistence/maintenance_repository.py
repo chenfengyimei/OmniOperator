@@ -3,9 +3,11 @@
 from __future__ import annotations
 
 import re
+from typing import cast
 
 from sqlalchemy import func, select, update
 
+from ...application.ports import Record
 from ...domain.contracts import BusinessError
 from ...domain.maintenance import (
     ACTIVE,
@@ -33,7 +35,7 @@ class MaintenanceRepositories(DocumentRepositories):
         if not self.connection.execute(select(s.agents.c.id).where(s.agents.c.id == agent_id)).first():
             raise BusinessError("not_found", "Agent does not exist", status=404)
 
-    def _maintenance_attempt(self, job: dict) -> dict | None:
+    def _maintenance_attempt(self, job: Record) -> Record | None:
         row = (
             self.connection.execute(
                 select(s.maintenance_attempts).where(
@@ -45,12 +47,12 @@ class MaintenanceRepositories(DocumentRepositories):
             .mappings()
             .first()
         )
-        return dict(row) if row else None
+        return cast(Record, dict(row)) if row else None
 
-    def _maintenance_metadata(self, job: dict) -> dict:
+    def _maintenance_metadata(self, job: Record) -> Record:
         return {**job, "attempt": self._maintenance_attempt(job)}
 
-    def _maintenance_change(self, job: dict, **values) -> dict:
+    def _maintenance_change(self, job: Record, **values: object) -> Record:
         changed = self.connection.execute(
             update(s.maintenance_jobs)
             .where(
@@ -58,20 +60,20 @@ class MaintenanceRepositories(DocumentRepositories):
                 s.maintenance_jobs.c.id == job["id"],
                 s.maintenance_jobs.c.revision == job["revision"],
             )
-            .values(revision=job["revision"] + 1, updated_at=self.clock.now(), **values)
+            .values(revision=cast(int, job["revision"]) + 1, updated_at=self.clock.now(), **values)
         ).rowcount
         if changed != 1:
             raise BusinessError("revision_conflict", "Maintenance state changed; reload before editing")
-        return self._one(s.maintenance_jobs, job["agent_id"], job["id"])
+        return self._one(s.maintenance_jobs, cast(str, job["agent_id"]), cast(str, job["id"]))
 
     @staticmethod
     def _maintenance_lost() -> BusinessError:
         return BusinessError("maintenance_claim_lost", "Maintenance attempt ownership is no longer valid")
 
-    def _maintenance_input(self, job: dict) -> None:
-        agent = job["agent_id"]
-        document = self._one(s.source_documents, agent, job["document_id"])
-        revision = self._one(s.document_revisions, agent, job["revision_id"])
+    def _maintenance_input(self, job: Record) -> None:
+        agent = cast(str, job["agent_id"])
+        document = self._one(s.source_documents, agent, cast(str, job["document_id"]))
+        revision = self._one(s.document_revisions, agent, cast(str, job["revision_id"]))
         if revision["document_id"] != document["id"] or revision["revision"] != job["source_revision"]:
             raise BusinessError("maintenance_source_changed", "The captured document revision changed")
         if job["kind"] == "document_index_rebuild":
@@ -83,7 +85,7 @@ class MaintenanceRepositories(DocumentRepositories):
             ):
                 raise BusinessError("maintenance_source_changed", "The captured source is no longer current")
         elif job["kind"] == "document_erasure_resume":
-            erasure = self._one(s.document_erasure_jobs, agent, job["erasure_job_id"])
+            erasure = self._one(s.document_erasure_jobs, agent, cast(str, job["erasure_job_id"]))
             if (
                 erasure["document_id"] != document["id"]
                 or erasure["revision"] != job["source_revision"]
@@ -97,7 +99,7 @@ class MaintenanceRepositories(DocumentRepositories):
         else:
             raise BusinessError("maintenance_invalid", "Unknown maintenance kind", status=422)
 
-    def maintenance_enqueue(self, agent_id: str, request: dict) -> dict:
+    def maintenance_enqueue(self, agent_id: str, request: Record) -> Record:
         normalized = parse_request(request)
         sha = request_fingerprint(normalized)
         self._maintenance_agent(agent_id)
@@ -114,7 +116,7 @@ class MaintenanceRepositories(DocumentRepositories):
         if prior:
             if prior["request_sha256"] != sha:
                 raise BusinessError("idempotency_conflict", "This key already identifies another maintenance request")
-            return self._maintenance_metadata(dict(prior))
+            return self._maintenance_metadata(cast(Record, dict(prior)))
         if (
             self.connection.execute(
                 select(func.count()).select_from(s.maintenance_jobs).where(s.maintenance_jobs.c.state.in_(ACTIVE))
@@ -128,13 +130,17 @@ class MaintenanceRepositories(DocumentRepositories):
         ):
             raise BusinessError("maintenance_busy", "The maintenance queue is full", retryable=True, status=503)
         if normalized["kind"] == "document_index_rebuild":
-            source = self.document_get(agent_id, normalized["document_id"])
+            source = self.document_get(agent_id, cast(str, normalized["document_id"]))
             if source["head_revision"] != normalized["revision"]:
                 raise BusinessError("revision_conflict", "Document changed before maintenance admission")
-            document_id, source_revision, revision_id = source["id"], source["revision"], source["revision_id"]
+            document_id, source_revision, revision_id = (
+                cast(str, source["id"]),
+                source["revision"],
+                cast(str, source["revision_id"]),
+            )
             erasure_id, version = None, INDEX_VERSION
         else:
-            erasure = self._one(s.document_erasure_jobs, agent_id, normalized["erasure_job_id"])
+            erasure = self._one(s.document_erasure_jobs, agent_id, cast(str, normalized["erasure_job_id"]))
             document_id, source_revision = erasure["document_id"], erasure["revision"]
             source = self.connection.execute(
                 select(s.document_revisions.c.id).where(
@@ -145,14 +151,14 @@ class MaintenanceRepositories(DocumentRepositories):
             ).first()
             if source is None:
                 raise BusinessError("maintenance_source_changed", "The originally confirmed revision is missing")
-            revision_id, erasure_id, version = source.id, erasure["id"], ""
-        values = {
-            "kind": normalized["kind"],
+            revision_id, erasure_id, version = cast(str, source.id), cast(str, erasure["id"]), ""
+        values: Record = {
+            "kind": cast(str, normalized["kind"]),
             "document_id": document_id,
             "revision_id": revision_id,
             "source_revision": source_revision,
             "erasure_job_id": erasure_id,
-            "request_key": normalized["key"],
+            "request_key": cast(str, normalized["key"]),
             "request_sha256": sha,
             "index_version": version,
             "state": "queued",
@@ -166,13 +172,13 @@ class MaintenanceRepositories(DocumentRepositories):
         }
         self._maintenance_input({"agent_id": agent_id, **values})
         job = self._record(s.maintenance_jobs, values, agent_id)
-        self.audit(agent_id, "maintenance.queued", job["id"], {"kind": job["kind"], "request_sha256": sha})
-        return self.maintenance_get(agent_id, job["id"])
+        self.audit(agent_id, "maintenance.queued", cast(str, job["id"]), {"kind": job["kind"], "request_sha256": sha})
+        return self.maintenance_get(agent_id, cast(str, job["id"]))
 
-    def maintenance_get(self, agent_id: str, job_id: str) -> dict:
+    def maintenance_get(self, agent_id: str, job_id: str) -> Record:
         return self._maintenance_metadata(self._one(s.maintenance_jobs, agent_id, job_id))
 
-    def maintenance_page(self, agent_id: str, after: int = 0, limit: int = 50) -> list[dict]:
+    def maintenance_page(self, agent_id: str, after: int = 0, limit: int = 50) -> list[Record]:
         page(after, limit)
         self._maintenance_agent(agent_id)
         rows = self.connection.execute(
@@ -181,9 +187,9 @@ class MaintenanceRepositories(DocumentRepositories):
             .order_by(s.maintenance_jobs.c.sequence)
             .limit(limit)
         ).mappings()
-        return [self._maintenance_metadata(dict(row)) for row in rows]
+        return [self._maintenance_metadata(cast(Record, dict(row))) for row in rows]
 
-    def maintenance_cancel(self, agent_id: str, job_id: str, revision: int) -> dict:
+    def maintenance_cancel(self, agent_id: str, job_id: str, revision: int) -> Record:
         page(revision, 1)
         if revision < 1:
             raise BusinessError("maintenance_invalid", "A positive revision is required", status=422)
@@ -205,10 +211,10 @@ class MaintenanceRepositories(DocumentRepositories):
         )
         return self._maintenance_metadata(job)
 
-    def maintenance_claim(self, limit: int = MAX_ACTIVE) -> list[dict]:
+    def maintenance_claim(self, limit: int = MAX_ACTIVE) -> list[Record]:
         if type(limit) is not int or not 0 <= limit <= MAX_ACTIVE:
             raise BusinessError("maintenance_invalid", "Claim up to two maintenance jobs", status=422)
-        if not isinstance(self.boot_id, str) or len(self.boot_id) != 36:
+        if not isinstance(cast(object, self.boot_id), str) or len(self.boot_id) != 36:
             raise self._maintenance_lost()
         active = list(
             self.connection.execute(
@@ -220,7 +226,7 @@ class MaintenanceRepositories(DocumentRepositories):
         available = min(limit, max(0, MAX_ACTIVE - len(active)))
         if not available:
             return []
-        held = {(row.agent_id, row.document_id) for row in active}
+        held = {(cast(str, row.agent_id), cast(str, row.document_id)) for row in active}
         candidates = list(
             self.connection.execute(
                 select(s.maintenance_jobs)
@@ -229,21 +235,24 @@ class MaintenanceRepositories(DocumentRepositories):
                 .limit(MAX_PENDING)
             ).mappings()
         )
-        claimed = []
+        claimed: list[Record] = []
         for candidate in candidates:
-            job = dict(candidate)
-            resource = job["agent_id"], job["document_id"]
+            job = cast(Record, dict(candidate))
+            resource = cast(str, job["agent_id"]), cast(str, job["document_id"])
             if resource in held:
                 continue
-            if job["attempt_count"] >= MAX_ATTEMPTS:
+            if cast(int, job["attempt_count"]) >= MAX_ATTEMPTS:
                 job = self._maintenance_change(
                     job, state="failed", error_code="maintenance_attempt_limit", finished_at=self.clock.now()
                 )
                 self.audit(
-                    job["agent_id"], "maintenance.failed", job["id"], {"error_code": "maintenance_attempt_limit"}
+                    cast(str, job["agent_id"]),
+                    "maintenance.failed",
+                    cast(str, job["id"]),
+                    {"error_code": "maintenance_attempt_limit"},
                 )
                 continue
-            number = job["attempt_count"] + 1
+            number = cast(int, job["attempt_count"]) + 1
             job = self._maintenance_change(
                 job, state="claimed", attempt_count=number, error_code="", result_build_id=None
             )
@@ -262,10 +271,13 @@ class MaintenanceRepositories(DocumentRepositories):
                     "error_code": "",
                     "build_id": None,
                 },
-                job["agent_id"],
+                cast(str, job["agent_id"]),
             )
             self.audit(
-                job["agent_id"], "maintenance.claimed", job["id"], {"attempt_id": attempt["id"], "attempt_no": number}
+                cast(str, job["agent_id"]),
+                "maintenance.claimed",
+                cast(str, job["id"]),
+                {"attempt_id": attempt["id"], "attempt_no": number},
             )
             claimed.append({**job, "attempt": attempt})
             held.add(resource)
@@ -283,7 +295,7 @@ class MaintenanceRepositories(DocumentRepositories):
         *,
         unexpired: bool = True,
         active: bool = True,
-    ) -> tuple[dict, dict]:
+    ) -> tuple[Record, Record]:
         row = (
             self.connection.execute(
                 select(s.maintenance_jobs).where(
@@ -295,7 +307,7 @@ class MaintenanceRepositories(DocumentRepositories):
         )
         if row is None:
             raise self._maintenance_lost()
-        job = dict(row)
+        job = cast(Record, dict(row))
         attempt = self._maintenance_attempt(job)
         if (
             attempt is None
@@ -306,36 +318,42 @@ class MaintenanceRepositories(DocumentRepositories):
             or attempt["fence"] != fence
             or attempt["boot_id"] != self.boot_id
             or (active and (job["state"] not in EXECUTING or attempt["state"] not in ATTEMPT_ACTIVE))
-            or (unexpired and attempt["lease_until"] <= self.clock.now())
+            or (unexpired and cast(str, attempt["lease_until"]) <= self.clock.now())
         ):
             raise self._maintenance_lost()
         return job, attempt
 
     def maintenance_guard(
         self, agent_id: str, job_id: str, attempt_id: str, token: str, fence: int, *, allow_cancel: bool = False
-    ) -> dict:
+    ) -> Record:
         job, attempt = self._maintenance_owner(agent_id, job_id, attempt_id, token, fence)
         if job["cancel_requested_at"] and not allow_cancel:
             raise BusinessError("maintenance_cancelled", "Maintenance cancellation was requested")
         self._maintenance_input(job)
         return {**job, "attempt": attempt}
 
-    def _maintenance_claim_identity(self, claim: Claim | dict) -> tuple[str, str, str, str, int]:
+    def _maintenance_claim_identity(self, claim: Claim | Record) -> tuple[str, str, str, str, int]:
         if isinstance(claim, Claim):
             if claim.boot_id != self.boot_id:
                 raise self._maintenance_lost()
             return claim.agent_id, claim.job_id, claim.attempt_id, claim.token, claim.fence
         try:
-            attempt = claim["attempt"]
+            attempt = cast(Record, claim["attempt"])
             if attempt["boot_id"] != self.boot_id:
                 raise self._maintenance_lost()
-            return claim["agent_id"], claim["id"], attempt["id"], attempt["token"], attempt["fence"]
+            return (
+                cast(str, claim["agent_id"]),
+                cast(str, claim["id"]),
+                cast(str, attempt["id"]),
+                cast(str, attempt["token"]),
+                cast(int, attempt["fence"]),
+            )
         except (KeyError, TypeError) as exc:
             raise self._maintenance_lost() from exc
 
-    def maintenance_start(self, claim: Claim | dict) -> dict:
+    def maintenance_start(self, claim: Claim | Record) -> Record:
         current = self.maintenance_guard(*self._maintenance_claim_identity(claim))
-        attempt = current.pop("attempt")
+        attempt = cast(Record, current.pop("attempt"))
         if current["state"] == "running" and attempt["state"] == "running":
             return {**current, "attempt": attempt}
         if current["state"] != "claimed" or attempt["state"] != "claimed":
@@ -346,19 +364,24 @@ class MaintenanceRepositories(DocumentRepositories):
             .values(state="running", started_at=self.clock.now())
         )
         current = self._maintenance_change(current, state="running")
-        self.audit(current["agent_id"], "maintenance.started", current["id"], {"attempt_id": attempt["id"]})
+        self.audit(
+            cast(str, current["agent_id"]),
+            "maintenance.started",
+            cast(str, current["id"]),
+            {"attempt_id": attempt["id"]},
+        )
         return self._maintenance_metadata(current)
 
-    def maintenance_bind_build(self, claim: Claim | dict, build_id: str) -> dict:
+    def maintenance_bind_build(self, claim: Claim | Record, build_id: str) -> Record:
         current = self.maintenance_guard(*self._maintenance_claim_identity(claim))
-        attempt = current["attempt"]
+        attempt = cast(Record, current["attempt"])
         if (
             current["state"] != "running"
             or attempt["state"] != "running"
             or current["kind"] != "document_index_rebuild"
         ):
             raise self._maintenance_lost()
-        build = self._one(s.document_index_builds, current["agent_id"], build_id)
+        build = self._one(s.document_index_builds, cast(str, current["agent_id"]), build_id)
         if (
             build["revision_id"] != current["revision_id"]
             or build["kind"] != INDEX_KIND
@@ -376,26 +399,26 @@ class MaintenanceRepositories(DocumentRepositories):
                 .values(build_id=build_id)
             )
             self.audit(
-                current["agent_id"],
+                cast(str, current["agent_id"]),
                 "maintenance.build_bound",
-                current["id"],
+                cast(str, current["id"]),
                 {"attempt_id": attempt["id"], "build_id": build_id},
             )
-        return self.maintenance_get(current["agent_id"], current["id"])
+        return self.maintenance_get(cast(str, current["agent_id"]), cast(str, current["id"]))
 
-    def maintenance_finish(self, claim: Claim | dict, build_id: str | None = None) -> dict:
+    def maintenance_finish(self, claim: Claim | Record, build_id: str | None = None) -> Record:
         identity = self._maintenance_claim_identity(claim)
         job, attempt = self._maintenance_owner(*identity, unexpired=False, active=False)
         if job["state"] == "succeeded" and attempt["state"] == "succeeded":
             return self._maintenance_metadata(job)
         current = self.maintenance_guard(*identity, allow_cancel=True)
-        if current["attempt"]["state"] != "running":
+        if cast(Record, current["attempt"])["state"] != "running":
             raise self._maintenance_lost()
         if job["kind"] == "document_index_rebuild":
-            selected = build_id or attempt["build_id"]
+            selected = build_id or cast(str | None, attempt["build_id"])
             if not selected or selected != attempt["build_id"]:
                 raise BusinessError("maintenance_result_invalid", "A bound completed index build is required")
-            build = self._one(s.document_index_builds, job["agent_id"], selected)
+            build = self._one(s.document_index_builds, cast(str, job["agent_id"]), selected)
             if (
                 build["state"] != "ready"
                 or build["revision_id"] != job["revision_id"]
@@ -405,8 +428,8 @@ class MaintenanceRepositories(DocumentRepositories):
                 raise BusinessError("maintenance_result_invalid", "The captured index build is not ready")
             result_build_id = selected
         else:
-            erasure = self._one(s.document_erasure_jobs, job["agent_id"], job["erasure_job_id"])
-            document = self._one(s.source_documents, job["agent_id"], job["document_id"])
+            erasure = self._one(s.document_erasure_jobs, cast(str, job["agent_id"]), cast(str, job["erasure_job_id"]))
+            document = self._one(s.source_documents, cast(str, job["agent_id"]), cast(str, job["document_id"]))
             if erasure["state"] != "done" or not document["deleted_at"]:
                 raise BusinessError("maintenance_result_invalid", "The confirmed document erasure has not committed")
             result_build_id = None
@@ -419,14 +442,14 @@ class MaintenanceRepositories(DocumentRepositories):
             job, state="succeeded", finished_at=self.clock.now(), error_code="", result_build_id=result_build_id
         )
         self.audit(
-            job["agent_id"],
+            cast(str, job["agent_id"]),
             "maintenance.succeeded",
-            job["id"],
+            cast(str, job["id"]),
             {"attempt_id": attempt["id"], "build_id": result_build_id},
         )
         return self._maintenance_metadata(job)
 
-    def maintenance_fail(self, claim: Claim | dict, error: str) -> dict:
+    def maintenance_fail(self, claim: Claim | Record, error: str) -> Record:
         job, attempt = self._maintenance_owner(*self._maintenance_claim_identity(claim), unexpired=False, active=False)
         if job["state"] in TERMINAL:
             return self._maintenance_metadata(job)
@@ -434,7 +457,9 @@ class MaintenanceRepositories(DocumentRepositories):
             raise self._maintenance_lost()
         cancelled = bool(job["cancel_requested_at"])
         code = (
-            error if isinstance(error, str) and re.fullmatch(r"[a-z][a-z0-9_]{0,79}", error) else "maintenance_failed"
+            error
+            if isinstance(cast(object, error), str) and re.fullmatch(r"[a-z][a-z0-9_]{0,79}", error)
+            else "maintenance_failed"
         )
         state = "cancelled" if cancelled else "failed"
         code = "maintenance_cancelled" if cancelled else code
@@ -445,11 +470,14 @@ class MaintenanceRepositories(DocumentRepositories):
         )
         job = self._maintenance_change(job, state=state, finished_at=self.clock.now(), error_code=code)
         self.audit(
-            job["agent_id"], "maintenance." + state, job["id"], {"attempt_id": attempt["id"], "error_code": code}
+            cast(str, job["agent_id"]),
+            "maintenance." + state,
+            cast(str, job["id"]),
+            {"attempt_id": attempt["id"], "error_code": code},
         )
         return self._maintenance_metadata(job)
 
-    def maintenance_heartbeat(self, claim: Claim | dict) -> dict:
+    def maintenance_heartbeat(self, claim: Claim | Record) -> Record:
         identity = self._maintenance_claim_identity(claim)
         job, attempt = self._maintenance_owner(*identity, unexpired=False, active=False)
         # Publication and settlement can commit before the worker's awaited task
@@ -464,8 +492,8 @@ class MaintenanceRepositories(DocumentRepositories):
         )
         return self._maintenance_metadata(job)
 
-    def maintenance_recover(self) -> dict:
-        if not isinstance(self.boot_id, str) or len(self.boot_id) != 36:
+    def maintenance_recover(self) -> Record:
+        if not isinstance(cast(object, self.boot_id), str) or len(self.boot_id) != 36:
             raise self._maintenance_lost()
         old = list(
             self.connection.execute(
@@ -477,16 +505,16 @@ class MaintenanceRepositories(DocumentRepositories):
                 .limit(MAX_PENDING)
             ).mappings()
         )
-        counts = {"interrupted": 0, "requeued": 0, "failed": 0, "cancelled": 0}
+        counts: Record = {"interrupted": 0, "requeued": 0, "failed": 0, "cancelled": 0}
         for row in old:
-            attempt = dict(row)
-            job = self._one(s.maintenance_jobs, attempt["agent_id"], attempt["job_id"])
+            attempt = cast(Record, dict(row))
+            job = self._one(s.maintenance_jobs, cast(str, attempt["agent_id"]), cast(str, attempt["job_id"]))
             self.connection.execute(
                 update(s.maintenance_attempts)
                 .where(s.maintenance_attempts.c.id == attempt["id"])
                 .values(state="interrupted", ended_at=self.clock.now(), error_code="maintenance_process_interrupted")
             )
-            counts["interrupted"] += 1
+            counts["interrupted"] = cast(int, counts["interrupted"]) + 1
             if job["attempt_count"] != attempt["attempt_no"] or job["state"] not in EXECUTING:
                 continue
             code = "maintenance_process_interrupted"
@@ -498,17 +526,18 @@ class MaintenanceRepositories(DocumentRepositories):
                 except BusinessError as exc:
                     state, code = "failed", exc.code
                 else:
-                    state = "queued" if job["attempt_count"] < MAX_ATTEMPTS else "failed"
+                    state = "queued" if cast(int, job["attempt_count"]) < MAX_ATTEMPTS else "failed"
                     if state == "failed":
                         code = "maintenance_attempt_limit"
             job = self._maintenance_change(
                 job, state=state, finished_at=None if state == "queued" else self.clock.now(), error_code=code
             )
-            counts["requeued" if state == "queued" else state] += 1
+            key = "requeued" if state == "queued" else state
+            counts[key] = cast(int, counts[key]) + 1
             self.audit(
-                job["agent_id"],
+                cast(str, job["agent_id"]),
                 "maintenance.recovered",
-                job["id"],
+                cast(str, job["id"]),
                 {"attempt_id": attempt["id"], "state": state, "error_code": code},
             )
         return counts
