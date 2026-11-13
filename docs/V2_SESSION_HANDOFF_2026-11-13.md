@@ -17,8 +17,8 @@ Windows 上 V2 底座**可冷启动、可自检、可服务、可跑全量测试
 | strict 门禁 | **270 文件 / 0 errors / 0 warnings** | `uv run --no-sync pyright --project pyrightconfig.strict.json` |
 | strict 分层 | 53/53 domain、**44/44 application 全层**、160/222 adapters、**13/13 composition 全层** | `docs/TYPE_CHECKING.md` |
 | 未纳入 strict | 62 个 adapters（6840 错，含 6 个 android 适配器/仓储/worker）（domain/application/composition 已全层纳入） | `temp/build/probe_strict.py`（survey-remaining.py 已不在库） |
-| 全量测试 | 4656 项：**4653 passed / 3 failed / 0 errors**（`-n 2`，58 分钟） | `temp/build/v2-full-144.xml`、`docs/evidence/v2-typecheck.json` 的 `full_run` |
-| 失败性质 | 3 项均为 `-n 2` 资源争用抖动，**串行/隔离全部通过** | 见 §5「验收口径」 |
+| 全量测试 | 4656 项：**4625 passed / 31 failed / 0 errors**（`-n 2`，66 分钟，第 5 节点） | `temp/build/v2-full-146.xml`、`docs/evidence/v2-typecheck.json` 的 `full_run` |
+| 失败性质 | 31 项均 UI 重度用例：串行复跑 **30 过 1 败**，剩 memory_organization_ui 1 项隔离**时通时败**（前端异步时序，非功能缺陷、非本批回归） | 见 §5「验收口径」；三份报告留档 |
 | 默认入口 | `V1 until R6 parity gate` | `docs/tasks/v2.json` 的 `default_entrypoints` |
 | 台账 | `status=d7_typecheck_batch_146`、`checkpoint_commit=46bbaa3`、源码指纹 `c2bfbacc…` | `docs/tasks/v2.json`、`docs/evidence/v2-typecheck.json` |
 | 工作树 | 干净，`codex/architecture-v2` 与 origin 同步（HEAD `e2f72a0` 之后的文档提交） | `git status -sb` |

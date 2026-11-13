@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "4ffdd0842e1e8065993d6b8d860fe9f67e963573a7fffe2be8fe2d28033c94e6",
+  "source_sha256": "7f3c1b769b65756c40d12e6dc4aa3ead07a28217ea8828d29f3d8cccd3c65e23",
   "modules": [
     {
       "id": "v2-domain",
@@ -493,9 +493,12 @@
         "web/ui/v2/terminal-reviews.js",
         "web/ui/v2/terminals.js",
         "web/ui/v2/tokens.js",
+        "web/ui/v2/v1/components.css",
+        "web/ui/v2/v1/frame.css",
+        "web/ui/v2/v1/workbench.css",
         "web/ui/v2/workbench.css"
       ],
-      "lines": 14353,
+      "lines": 19050,
       "dependencies": []
     },
     {
@@ -95542,7 +95545,7 @@
       "path": "web/ui/v2/index.html",
       "module": "v2-workbench",
       "python_module": null,
-      "lines": 1506,
+      "lines": 1513,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -95562,7 +95565,7 @@
       "path": "web/ui/v2/main.js",
       "module": "v2-workbench",
       "python_module": null,
-      "lines": 1344,
+      "lines": 1490,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -95729,10 +95732,40 @@
       "summary": "原生源码、平台脚本或界面资源"
     },
     {
+      "path": "web/ui/v2/v1/components.css",
+      "module": "v2-workbench",
+      "python_module": null,
+      "lines": 655,
+      "imports": [],
+      "symbols": [],
+      "kind": "asset",
+      "summary": "原生源码、平台脚本或界面资源"
+    },
+    {
+      "path": "web/ui/v2/v1/frame.css",
+      "module": "v2-workbench",
+      "python_module": null,
+      "lines": 955,
+      "imports": [],
+      "symbols": [],
+      "kind": "asset",
+      "summary": "原生源码、平台脚本或界面资源"
+    },
+    {
+      "path": "web/ui/v2/v1/workbench.css",
+      "module": "v2-workbench",
+      "python_module": null,
+      "lines": 4450,
+      "imports": [],
+      "symbols": [],
+      "kind": "asset",
+      "summary": "原生源码、平台脚本或界面资源"
+    },
+    {
       "path": "web/ui/v2/workbench.css",
       "module": "v2-workbench",
       "python_module": null,
-      "lines": 2421,
+      "lines": 905,
       "imports": [],
       "symbols": [],
       "kind": "asset",
