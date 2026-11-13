@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "c2ed277939a166a174327718dd0f08086253e25f73bc9756c13bce83f8b687cc",
+  "source_sha256": "3149e3743833ce59803b061ab92e43bc45f22c43eda78bf5fe17c9622a5f10b7",
   "modules": [
     {
       "id": "v2-domain",
@@ -404,7 +404,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 53648,
+      "lines": 53658,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -16861,7 +16861,7 @@
       "path": "agent/src/omni/adapters/persistence/memory_organization_predicates.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.persistence.memory_organization_predicates",
-      "lines": 104,
+      "lines": 114,
       "imports": [
         "omni.adapters.persistence",
         "omni.domain.memory_organization"
@@ -16869,30 +16869,36 @@
       "symbols": [
         {
           "name": "live_organization_relations",
-          "line": 9,
+          "line": 14,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "live_organization_relations.live_source",
-          "line": 19,
+          "line": 24,
           "kind": "function",
           "parameters": [
             "source",
             "memory",
             "revision"
           ],
-          "annotations": {}
+          "annotations": {
+            "source": "NamedFromClause[ReadOnlyColumnCollection[str, KeyedColumnElement[Any]]]",
+            "memory": "NamedFromClause[ReadOnlyColumnCollection[str, KeyedColumnElement[Any]]]",
+            "revision": "NamedFromClause[ReadOnlyColumnCollection[str, KeyedColumnElement[Any]]]"
+          }
         },
         {
           "name": "memory_is_organized",
-          "line": 97,
+          "line": 107,
           "kind": "function",
           "parameters": [
             "memory"
           ],
-          "annotations": {}
+          "annotations": {
+            "memory": "Table | Alias"
+          }
         }
       ],
       "summary": "One live approved-duplicate predicate for recall and new context capture; never edits memory truth."

@@ -284,9 +284,9 @@
       ]
     }
   ],
-  "checkpoint_commit": "030d92b",
+  "checkpoint_commit": "d20e404",
   "current_validation": {
-    "status": "d7_typecheck_batch_164",
+    "status": "d7_typecheck_batch_165",
     "targeted_unique_passed": 228,
     "includes_browser_cases": 10,
     "current_full_passed": false,
@@ -305,7 +305,7 @@
         "latest_report": "temp/build/v2-full-146.xml"
       }
     ],
-    "code_version": "cf530b59c6bc03e36551534081f2971fa2a9d7e573f1ea8c21d8544c2418277a",
+    "code_version": "abd9d5961ff4c28b1614bb1e6d6cd64ae0615b411034aa04fc797aa153c0dcf2",
     "fixed_source_files": 1206,
     "baseline_repair_evidence": "docs/evidence/v2-baseline-repair.json",
     "market_evidence": "docs/evidence/v2-extension-market.json",
@@ -328,7 +328,7 @@
     "id": "D7.product_switch",
     "status": "进行中",
     "design": "docs/V2_PACKAGING.md",
-    "scope": "P1 composition 全层（13/13）、P2 application/android.py 已完成（application 44/44）；随后 P2 Android 全部完成；P3 持久化起步（schema 已纳入，DDL 逐字不变）；P3 剩 20 个分片（六大核心仓储、history_pruning_cycle、object_gc、image、context、document、event_retention 已纳入）。strict 已到 288 文件（domain 53/53、application 44/44、adapters 178/222、composition 13/13）。"
+    "scope": "P1 composition 全层（13/13）、P2 application/android.py 已完成（application 44/44）；随后 P2 Android 全部完成；P3 持久化起步（schema 已纳入，DDL 逐字不变）；P3 剩 19 个分片（核心仓储与裁剪/回收/图像/上下文/文档/事件保留/整理谓词已纳入）。strict 已到 289 文件（domain 53/53、application 44/44、adapters 179/222、composition 13/13）。"
   },
   "milestones": [
     {
