@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`e9bccd420dc22a3e036e68fc92e162823bef364cad602a15c355e1a36aa34c70`。包含 65 个职责模块、735 个源码/界面文件。
+源码指纹：`65f0ad9374d7e5530e1ca74d6fe36b105c8e1b1a248b1932d32eee1c7282a4b8`。包含 65 个职责模块、735 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -339,7 +339,7 @@
 | [agent/src/omni/adapters/token_counter.py](../../agent/src/omni/adapters/token_counter.py) | 34 | Local conservative token estimate; it never fetches model metadata or credentials. |
 | [agent/src/omni/adapters/vector_files.py](../../agent/src/omni/adapters/vector_files.py) | 130 | Verify explicit local vector files and startup selection; never imports a model or downloads data. |
 | [agent/src/omni/adapters/workers/__init__.py](../../agent/src/omni/adapters/workers/__init__.py) | 1 | Owned capability workers; no application database or credentials access. |
-| [agent/src/omni/adapters/workers/android.py](../../agent/src/omni/adapters/workers/android.py) | 380 | Fixed Android observation/input worker. No database, arbitrary shell or automatic device setup. |
+| [agent/src/omni/adapters/workers/android.py](../../agent/src/omni/adapters/workers/android.py) | 406 | Fixed Android observation/input worker. No database, arbitrary shell or automatic device setup. |
 | [agent/src/omni/adapters/workers/android_adb.py](../../agent/src/omni/adapters/workers/android_adb.py) | 127 | Bounded smart-socket ADB client. Never starts a server, pairs, installs, roots or accepts arbitrary commands. |
 | [agent/src/omni/adapters/workers/android_unicode.py](../../agent/src/omni/adapters/workers/android_unicode.py) | 307 | Fixed IME transaction and authenticated localabstract IPC; no database or arbitrary shell. |
 | [agent/src/omni/adapters/workers/bilibili.py](../../agent/src/omni/adapters/workers/bilibili.py) | 481 | One isolated Bilibili browser transaction; no database, arbitrary script, API writes or persisted cookies. |

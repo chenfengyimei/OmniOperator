@@ -6,9 +6,9 @@
  "d7_complete": false,
  "default_entrypoint": "v1",
  "source": {
-  "code_version": "a4a6b9d825b343f29cf50fd801fd0e11826be6ddefdc3355d6903b46a4cc9423",
-  "fixed_source_files": 1203,
-  "git_head": "2906dc0",
+  "code_version": "5538e8e4447d0da008a9b2d0fd0a19005f9adbb8739fb404ae4407b63952b3de",
+  "fixed_source_files": 1206,
+  "git_head": "142eff1",
   "dirty_checkout": false,
   "recipe": "sha256(json.dumps({path: sha256(blob) for tracked agent/, web/, scripts/ files}, sort_keys=True)); see temp/build/source_version.py",
   "head_ui": "75c4219"
@@ -172,7 +172,8 @@
    "Strict scope reaches 272 files (53 domain + 44 application + 162 adapters + 13 composition); the Android device-grant/run-access repository types its access-record/model-run/authorize/dispatch/connection/grant receipts as explicit Record, bridges the not-yet-typed aggregate and settings through a local Any view and narrows package/kind lists and expiry comparisons; device authority, run scope and unknown no-replay rules are unchanged",
    "Strict scope reaches 273 files (53 domain + 44 application + 163 adapters + 13 composition); the managed Unicode/IME transaction flow types its factory/secrets/client/args/context/guard/environment parameters and narrows credential references and snapshot payloads; the unknown no-replay and restoration-obligation rules are unchanged",
    "Strict scope reaches 274 files (53 domain + 44 application + 164 adapters + 13 composition); the managed Android worker backend types its factory/secrets/execute/_execute/_load surface and narrows staging inventory and process reclaim, with execute parameters aligned to the AndroidPort Payload variance (the Unicode flow environment callback is widened to match); worker admission, capture bounds and unknown no-replay rules are unchanged",
-   "Strict scope reaches 275 files (53 domain + 44 application + 165 adapters + 13 composition); the fixed IME transaction worker types its connection/snapshot/argument fields and narrows environment/packet/invoke payloads layer by layer, casting transport ids and node text; the authenticated localabstract IPC and unknown no-replay rules are unchanged"
+   "Strict scope reaches 275 files (53 domain + 44 application + 165 adapters + 13 composition); the fixed IME transaction worker types its connection/snapshot/argument fields and narrows environment/packet/invoke payloads layer by layer, casting transport ids and node text; the authenticated localabstract IPC and unknown no-replay rules are unchanged",
+   "Strict scope reaches 276 files (53 domain + 44 application + 166 adapters + 13 composition); the fixed observation/input worker types its hierarchy walk closure and node collection, narrows permit bindings, action payloads and postconditions layer by layer and narrows the service entry request fields, completing every Android module (application service, two repositories, two adapters, two workers); observation scope and outcome judgement rules are unchanged. Fixed source file count rises 1203 to 1206 from parallel UI commit 0497fe8 adding three V1 stylesheet copies"
   ],
   "pending": [
    "application 44/44 complete; adapters 160/222 strict typing",
@@ -184,8 +185,8 @@
  "validation": {
   "all_latest_cases_passed": true,
   "latest_batch": {
-   "report": "temp/build/v2-typecheck-151-callers.xml",
-   "tests": 54,
+   "report": "temp/build/v2-typecheck-152-callers.xml",
+   "tests": 90,
    "failures": 0
   },
   "targeted_reports": [
@@ -1555,6 +1556,15 @@
     "errors": 0,
     "duration_s": 112.46,
     "note": "P2 android_unicode worker batch: fixed IME transaction worker + guard/arch/android-unicode callers"
+   },
+   {
+    "path": "temp/build/v2-typecheck-152-callers.xml",
+    "sha256": "1c2acadec85ef64869f42288a1d79a3ba39acf06a744410b318b951f00dcae21",
+    "tests": 90,
+    "failures": 0,
+    "errors": 0,
+    "duration_s": 253.54,
+    "note": "P2 android worker batch: fixed observation/input worker, all Android modules complete + guard/arch/android/android-model/android-unicode callers"
    }
   ],
   "gates": {
@@ -1566,7 +1576,7 @@
   "strict": {
    "config": "pyrightconfig.strict.json",
    "summary": {
-    "filesAnalyzed": 275,
+    "filesAnalyzed": 276,
     "errorCount": 0,
     "warningCount": 0,
     "informationCount": 0
@@ -1580,7 +1590,7 @@
     "informationCount": 0
    },
    "sources": [
-    "agent/src/omni/adapters/workers/android_unicode.py"
+    "agent/src/omni/adapters/workers/android.py"
    ]
   },
   "full_run": {

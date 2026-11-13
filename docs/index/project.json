@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "e9bccd420dc22a3e036e68fc92e162823bef364cad602a15c355e1a36aa34c70",
+  "source_sha256": "65f0ad9374d7e5530e1ca74d6fe36b105c8e1b1a248b1932d32eee1c7282a4b8",
   "modules": [
     {
       "id": "v2-domain",
@@ -404,7 +404,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 53381,
+      "lines": 53407,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -32644,7 +32644,7 @@
       "path": "agent/src/omni/adapters/workers/android.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.workers.android",
-      "lines": 380,
+      "lines": 406,
       "imports": [
         "omni.adapters.workers.android_adb",
         "omni.adapters.workers.android_unicode",
@@ -32655,7 +32655,7 @@
       "symbols": [
         {
           "name": "hierarchy",
-          "line": 22,
+          "line": 25,
           "kind": "function",
           "parameters": [
             "raw",
@@ -32668,23 +32668,27 @@
         },
         {
           "name": "hierarchy.walk",
-          "line": 34,
+          "line": 38,
           "kind": "function",
           "parameters": [
             "element",
             "path",
             "depth"
           ],
-          "annotations": {}
+          "annotations": {
+            "element": "ET.Element",
+            "path": "list[int]",
+            "depth": "int"
+          }
         },
         {
           "name": "AndroidWorker",
-          "line": 102,
+          "line": 106,
           "kind": "class"
         },
         {
           "name": "AndroidWorker.__init__",
-          "line": 103,
+          "line": 107,
           "kind": "function",
           "parameters": [
             "self"
@@ -32693,7 +32697,7 @@
         },
         {
           "name": "AndroidWorker.observe",
-          "line": 107,
+          "line": 111,
           "kind": "function",
           "parameters": [
             "self",
@@ -32703,12 +32707,13 @@
           ],
           "annotations": {
             "adb": "Adb",
-            "target": "dict"
+            "target": "Payload",
+            "allowed_packages": "list[str] | None"
           }
         },
         {
           "name": "AndroidWorker.invoke",
-          "line": 121,
+          "line": 125,
           "kind": "function",
           "parameters": [
             "self",
@@ -32718,13 +32723,13 @@
           ],
           "annotations": {
             "name": "str",
-            "args": "dict",
-            "context": "dict"
+            "args": "Payload",
+            "context": "Payload"
           }
         },
         {
           "name": "serve",
-          "line": 365,
+          "line": 390,
           "kind": "function",
           "parameters": [],
           "annotations": {}

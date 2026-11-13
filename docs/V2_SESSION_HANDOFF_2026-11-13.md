@@ -6,21 +6,21 @@
 
 ## 1. 一句话现状
 
-Windows 上 V2 底座**可冷启动、可自检、可服务、可跑全量测试、可离线打包**；strict 门禁 **275 文件 0 错误**
-（domain/application/composition 三层全层完成）；但 **57 个 adapters 未类型化**（含 1 个 android worker），
+Windows 上 V2 底座**可冷启动、可自检、可服务、可跑全量测试、可离线打包**；strict 门禁 **276 文件 0 错误**
+（domain/application/composition 三层全层完成，P2 Android 全部完成）；但 **56 个 adapters 未类型化**，
 且**真实模型/MCP/市场/设备/安装态/三平台验收全部未做**，入口切换未评估。
 
 ## 2. 已核验的事实（可直接引用，不必重测）
 
 | 项 | 数值 | 证据/命令 |
 | --- | --- | --- |
-| strict 门禁 | **275 文件 / 0 errors / 0 warnings** | `uv run --no-sync pyright --project pyrightconfig.strict.json` |
-| strict 分层 | 53/53 domain、**44/44 application 全层**、165/222 adapters、**13/13 composition 全层** | `docs/TYPE_CHECKING.md` |
-| 未纳入 strict | 57 个 adapters（含 1 个 android worker，其余 android 模块已纳入）（domain/application/composition 已全层纳入） | `temp/build/probe_strict.py`（survey-remaining.py 已不在库） |
+| strict 门禁 | **276 文件 / 0 errors / 0 warnings** | `uv run --no-sync pyright --project pyrightconfig.strict.json` |
+| strict 分层 | 53/53 domain、**44/44 application 全层**、166/222 adapters、**13/13 composition 全层** | `docs/TYPE_CHECKING.md` |
+| 未纳入 strict | 56 个 adapters（P2 Android 已全部纳入；下一步 P3 持久化）（domain/application/composition 已全层纳入） | `temp/build/probe_strict.py`（survey-remaining.py 已不在库） |
 | 全量测试 | 4656 项：**4653 passed / 3 failed / 0 errors**（`-n 2`，57 分钟，第 10 节点） | `temp/build/v2-full-151.xml`、`docs/evidence/v2-typecheck.json` 的 `full_run` |
 | 失败性质 | 3 项：串行复跑 **2 过 1 败**（memory_organization_ui/portal_ui 为抖动）；剩 `test_ui_embed_layer` 为**并行 UI 会话提交 `0497fe8` 引入的真实守卫违规**（`ui/v2/v1/frame.css` 副本），归 UI 会话修，非本批回归 | 见 §5「验收口径」；两份报告留档 |
 | 默认入口 | `V1 until R6 parity gate` | `docs/tasks/v2.json` 的 `default_entrypoints` |
-| 台账 | `status=d7_typecheck_batch_151`、`checkpoint_commit=2906dc0`、源码指纹 `a4a6b9d8…` | `docs/tasks/v2.json`、`docs/evidence/v2-typecheck.json` |
+| 台账 | `status=d7_typecheck_batch_152`、`checkpoint_commit=142eff1`、源码指纹 `5538e8e4…`（1206 文件） | `docs/tasks/v2.json`、`docs/evidence/v2-typecheck.json` |
 | 工作树 | 干净，`codex/architecture-v2` 与 origin 同步（HEAD `e2f72a0` 之后的文档提交） | `git status -sb` |
 
 ## 3. 现在能用什么（Windows，实测）
@@ -57,7 +57,8 @@ uv run --no-sync python -m omni.composition.cli --home temp\demo-home auth
 - ~~`adapters/android_unicode.py`(88)~~ —— 第一百四十九批，提交 `3d8b7a8`。
 - ~~`adapters/android.py`(97)~~ —— 第一百五十批，提交 `c1d03aa`（协议口径对齐）。
 - ~~`workers/android_unicode.py`(105)~~ —— 第一百五十一批，提交 `2906dc0`。
-- 剩余 1 个：`workers/android.py`(245)。
+- ~~`workers/android.py`(246)~~ —— 第一百五十二批，提交 `142eff1`。
+- **P2 Android 7 个模块全部完成。下一步 P3 持久化 34 文件，见 §4.3。**
 
 ### 4.3 P3 持久化（34 文件，6840 错里的大头）
 
@@ -129,8 +130,8 @@ uv run --no-sync python -m omni.composition.cli --home temp\demo-home auth
 
 ```powershell
 git status -sb                                   # 必须干净；脏的话先确认不是自己的改动
-uv run --no-sync pyright --project pyrightconfig.strict.json   # 期望 0/0（275 文件）
+uv run --no-sync pyright --project pyrightconfig.strict.json   # 期望 0/0（276 文件）
 uv run --no-sync python temp/build/probe_strict.py agent/src/omni/adapters/android.py  # 以实测为准
 ```
 
-domain/application/composition 已全层纳入（第一百四十二～一百四十六批），其余 android 模块已纳入（第一百四十七～一百五十一批）。P2 剩 1 个 android worker（`workers/android.py`(245)），随后 P3 持久化。每节点同步三处。
+domain/application/composition 已全层纳入（第一百四十二～一百四十六批），P2 Android 7 个模块全部纳入（第一百四十七～一百五十二批）。**下一步 P3 持久化 34 文件**（按 §4.3 六片推进）。每节点同步三处。
