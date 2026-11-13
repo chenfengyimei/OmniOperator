@@ -3,9 +3,11 @@
 from __future__ import annotations
 
 import re
+from typing import cast
 
-from sqlalchemy import delete, func, select, text, update
+from sqlalchemy import Select, delete, func, select, text, update
 
+from ...application.ports import Record
 from ...domain.contracts import BusinessError
 from ...domain.documents import TEXT_INDEX_VERSION, VECTOR_CANDIDATES, DocumentText, document_title, normalized_vector
 from . import schema as s
@@ -13,7 +15,7 @@ from .retention_repository import RetentionRepositories
 
 
 class DocumentRepositories(RetentionRepositories):
-    def document_get(self, agent_id: str, document_id: str, revision_id: str | None = None) -> dict:
+    def document_get(self, agent_id: str, document_id: str, revision_id: str | None = None) -> Record:
         doc = self._one(s.source_documents, agent_id, document_id)
         if doc["deleted_at"]:
             raise BusinessError("document_erased", "Source document was erased", status=410)
@@ -30,13 +32,16 @@ class DocumentRepositories(RetentionRepositories):
             raise BusinessError("not_found", "Document revision does not exist", status=404)
         if row["redacted_at"]:
             raise BusinessError("document_erased", "Source revision was erased", status=410)
-        return {**dict(row), "revision_id": row["id"], "id": document_id, "head_revision": doc["revision"]}
+        return cast(
+            Record,
+            {**dict(row), "revision_id": row["id"], "id": document_id, "head_revision": doc["revision"]},
+        )
 
-    def document_page(self, agent_id: str, after: str = "", limit: int = 100) -> list[dict]:
+    def document_page(self, agent_id: str, after: str = "", limit: int = 100) -> list[Record]:
         if not self.connection.execute(select(s.agents.c.id).where(s.agents.c.id == agent_id)).first():
             raise BusinessError("not_found", "Agent does not exist", status=404)
         return [
-            dict(row)
+            cast(Record, dict(row))
             for row in self.connection.execute(
                 select(s.source_documents)
                 .where(
@@ -61,7 +66,7 @@ class DocumentRepositories(RetentionRepositories):
         content: DocumentText,
         document_id: str | None = None,
         revision: int = 0,
-    ) -> dict:
+    ) -> Record:
         title = document_title(title)
         if type(revision) is not int or revision < 0 or (document_id is None and revision != 0):
             raise BusinessError("invalid_document", "An exact document revision is required", status=422)
@@ -90,7 +95,7 @@ class DocumentRepositories(RetentionRepositories):
                     raise BusinessError(
                         "idempotency_conflict", "Document creation identity belongs to different content"
                     )
-                return self.document_get(agent_id, document_id, first["id"])
+                return self.document_get(agent_id, document_id, cast(str, first["id"]))
         if document_id and revision > 0:
             current = self.document_get(agent_id, document_id)
             if current["head_revision"] != revision:
@@ -101,10 +106,10 @@ class DocumentRepositories(RetentionRepositories):
                 .values(title=title, revision=revision + 1)
             )
         else:
-            values = {"title": title, "revision": 1}
+            values: Record = {"title": title, "revision": 1}
             if document_id:
                 values["id"] = document_id
-            document_id = self._record(s.source_documents, values, agent_id)["id"]
+            document_id = cast(str, self._record(s.source_documents, values, agent_id)["id"])
         assert isinstance(document_id, str)
         audit = self.audit(
             agent_id, "document.saved", document_id, {"revision": revision + 1, "sha256": content.sha256}
@@ -124,7 +129,7 @@ class DocumentRepositories(RetentionRepositories):
             },
             agent_id,
         )
-        self._document_chunks(agent_id, row["id"], content, document_id)
+        self._document_chunks(agent_id, cast(str, row["id"]), content, document_id)
         self._record(
             s.document_index_builds,
             {
@@ -139,10 +144,10 @@ class DocumentRepositories(RetentionRepositories):
         )
         return self.document_get(agent_id, document_id)
 
-    def document_history(self, agent_id: str, document_id: str, after: int = 0, limit: int = 50) -> list[dict]:
+    def document_history(self, agent_id: str, document_id: str, after: int = 0, limit: int = 50) -> list[Record]:
         self._one(s.source_documents, agent_id, document_id)
         return [
-            dict(row)
+            cast(Record, dict(row))
             for row in self.connection.execute(
                 select(s.document_revisions)
                 .where(
@@ -157,7 +162,7 @@ class DocumentRepositories(RetentionRepositories):
 
     def document_text(self, agent_id: str, revision_id: str) -> str:
         version = self._one(s.document_revisions, agent_id, revision_id)
-        self.document_get(agent_id, version["document_id"], revision_id)
+        self.document_get(agent_id, cast(str, version["document_id"]), revision_id)
         rows = list(
             self.connection.execute(
                 select(s.document_chunks)
@@ -168,10 +173,14 @@ class DocumentRepositories(RetentionRepositories):
         )
         position = 0
         for i, row in enumerate(rows):
-            if row["position"] != i or row["start"] != position or row["end"] != row["start"] + len(row["content"]):
+            if (
+                row["position"] != i
+                or row["start"] != position
+                or cast(int, row["end"]) != cast(int, row["start"]) + len(cast(str, row["content"]))
+            ):
                 raise BusinessError("document_index_invalid", "Source chunks need a verified rebuild", status=503)
-            position = row["end"]
-        content = DocumentText.from_text("".join(row["content"] for row in rows))
+            position = cast(int, row["end"])
+        content = DocumentText.from_text("".join(cast(str, row["content"]) for row in rows))
         if (
             content.sha256 != version["sha256"]
             or content.size != version["bytes"]
@@ -182,8 +191,8 @@ class DocumentRepositories(RetentionRepositories):
             )
         return content.content
 
-    def _document_search_statement(self):
-        return (
+    def _document_search_statement(self) -> Select[tuple[object, ...]]:
+        statement = (
             select(
                 s.document_chunks.c.id.label("chunk_id"),
                 s.document_chunks.c.document_id,
@@ -198,8 +207,9 @@ class DocumentRepositories(RetentionRepositories):
             .join(s.document_revisions, s.document_revisions.c.id == s.document_chunks.c.revision_id)
             .join(s.source_documents, s.source_documents.c.id == s.document_chunks.c.document_id)
         )
+        return cast(Select[tuple[object, ...]], statement)
 
-    def document_search(self, agent_id: str, query: str, limit: int = 20) -> list[dict]:
+    def document_search(self, agent_id: str, query: str, limit: int = 20) -> list[Record]:
         if not query.strip():
             return []
         tokens = re.findall(r"[^\W_]+", query, flags=re.UNICODE)[:20]
@@ -214,7 +224,7 @@ class DocumentRepositories(RetentionRepositories):
                 ).mappings()
             )
             if rows:
-                return [dict(row) for row in rows]
+                return [cast(Record, dict(row)) for row in rows]
         statement = (
             self._document_search_statement()
             .where(
@@ -228,9 +238,9 @@ class DocumentRepositories(RetentionRepositories):
             .order_by(s.document_chunks.c.id)
             .limit(limit)
         )
-        return [dict(row) for row in self.connection.execute(statement).mappings()]
+        return [cast(Record, dict(row)) for row in self.connection.execute(statement).mappings()]
 
-    def document_capture(self, agent_id: str, run_id: str, action_id: str, sources: list[dict]) -> None:
+    def document_capture(self, agent_id: str, run_id: str, action_id: str, sources: list[Record]) -> None:
         self.assert_context(agent_id, run_id)
         action = self._one(s.actions, agent_id, action_id)
         if action["run_id"] != run_id or action["state"] != "executing" or action["writes"]:
@@ -242,7 +252,7 @@ class DocumentRepositories(RetentionRepositories):
             .limit(1)
         ).scalar_one()
         for source in sources:
-            revision_id = source["document_revision_id"]
+            revision_id = cast(str, source["document_revision_id"])
             content = self.document_text(agent_id, revision_id)
             start, end = source["start"], source["end"]
             if type(start) is not int or type(end) is not int or not 0 <= start < end <= len(content):
@@ -270,15 +280,17 @@ class DocumentRepositories(RetentionRepositories):
                     agent_id,
                 )
 
-    def document_validate_results(self, agent_id: str, rows: list[dict]) -> None:
-        for revision_id in {r["document_revision_id"] for r in rows}:
+    def document_validate_results(self, agent_id: str, rows: list[Record]) -> None:
+        for revision_id in {cast(str, r["document_revision_id"]) for r in rows}:
             content = self.document_text(agent_id, revision_id)
             if any(
-                content[r["start"] : r["end"]] != r["content"] for r in rows if r["document_revision_id"] == revision_id
+                content[cast(int, r["start"]) : cast(int, r["end"])] != r["content"]
+                for r in rows
+                if r["document_revision_id"] == revision_id
             ):
                 raise BusinessError("document_index_invalid", "Search result changed; rebuild the index", status=503)
 
-    def document_erasure_status(self, agent_id: str, document_id: str) -> dict | None:
+    def document_erasure_status(self, agent_id: str, document_id: str) -> Record | None:
         self._one(s.source_documents, agent_id, document_id)
         row = (
             self.connection.execute(
@@ -292,9 +304,9 @@ class DocumentRepositories(RetentionRepositories):
             .mappings()
             .first()
         )
-        return dict(row) if row else None
+        return cast(Record, dict(row)) if row else None
 
-    def document_erasure_begin(self, agent_id: str, document_id: str, revision: int) -> dict:
+    def document_erasure_begin(self, agent_id: str, document_id: str, revision: int) -> Record:
         doc = self._one(s.source_documents, agent_id, document_id)
         if type(revision) is not int or revision != doc["revision"]:
             raise BusinessError("revision_conflict", "Document changed before erasure")
@@ -304,9 +316,14 @@ class DocumentRepositories(RetentionRepositories):
                 self.connection.execute(
                     update(s.document_erasure_jobs)
                     .where(s.document_erasure_jobs.c.id == job["id"])
-                    .values(state="pending", attempt=job["attempt"] + 1, error_code="", updated_at=self.clock.now())
+                    .values(
+                        state="pending",
+                        attempt=cast(int, job["attempt"]) + 1,
+                        error_code="",
+                        updated_at=self.clock.now(),
+                    )
                 )
-            return self._one(s.document_erasure_jobs, agent_id, job["id"])
+            return self._one(s.document_erasure_jobs, agent_id, cast(str, job["id"]))
         row = self._record(
             s.document_erasure_jobs,
             {
@@ -320,7 +337,10 @@ class DocumentRepositories(RetentionRepositories):
             agent_id,
         )
         self.audit(
-            agent_id, "document.erasure_requested", row["id"], {"document_id": document_id, "revision": revision}
+            agent_id,
+            "document.erasure_requested",
+            cast(str, row["id"]),
+            {"document_id": document_id, "revision": revision},
         )
         return row
 
@@ -338,7 +358,7 @@ class DocumentRepositories(RetentionRepositories):
             )
             self.audit(agent_id, "document.erasure_failed", job_id, {"error_code": error})
             return
-        if not self._one(s.source_documents, agent_id, job["document_id"])["deleted_at"]:
+        if not self._one(s.source_documents, agent_id, cast(str, job["document_id"]))["deleted_at"]:
             raise BusinessError("erasure_not_applied", "Source erasure must commit before requests can complete")
         resolved = self.connection.execute(
             update(s.document_erasure_jobs)
@@ -367,22 +387,29 @@ class DocumentRepositories(RetentionRepositories):
         versions = select(s.document_revisions.c.id).where(
             s.document_revisions.c.document_id == document_id, s.document_revisions.c.agent_id == agent_id
         )
-        derived = set(
-            self.connection.execute(
-                select(s.source_anchors.c.memory_id).where(
-                    s.source_anchors.c.document_revision_id.in_(versions), s.source_anchors.c.agent_id == agent_id
-                )
-            ).scalars()
+        derived = cast(
+            set[str],
+            set(
+                self.connection.execute(
+                    select(s.source_anchors.c.memory_id).where(
+                        s.source_anchors.c.document_revision_id.in_(versions),
+                        s.source_anchors.c.agent_id == agent_id,
+                    )
+                ).scalars()
+            ),
         )
         reads = select(s.context_documents.c.action_id).where(
             s.context_documents.c.document_revision_id.in_(versions), s.context_documents.c.agent_id == agent_id
         )
-        sessions = set(
-            self.connection.execute(
-                select(s.runs.c.session_id)
-                .join(s.actions, s.actions.c.run_id == s.runs.c.id)
-                .where(s.actions.c.id.in_(reads))
-            ).scalars()
+        sessions = cast(
+            set[str],
+            set(
+                self.connection.execute(
+                    select(s.runs.c.session_id)
+                    .join(s.actions, s.actions.c.run_id == s.runs.c.id)
+                    .where(s.actions.c.id.in_(reads))
+                ).scalars()
+            ),
         )
         derived.update(self._invalidate_sessions(agent_id, sessions))
         self.connection.execute(
@@ -447,7 +474,7 @@ class DocumentRepositories(RetentionRepositories):
         dimension: int | None,
         *,
         expected_revision_id: str | None = None,
-    ) -> dict:
+    ) -> Record:
         row = self.document_get(agent_id, document_id)
         if expected_revision_id is not None and row["revision_id"] != expected_revision_id:
             raise BusinessError("revision_conflict", "Document changed after the maintenance request")
@@ -470,8 +497,8 @@ class DocumentRepositories(RetentionRepositories):
             },
             agent_id,
         )
-        self.audit(agent_id, "document.index_started", build["id"], {"kind": kind, "version": version})
-        return {**build, "document": row}
+        self.audit(agent_id, "document.index_started", cast(str, build["id"]), {"kind": kind, "version": version})
+        return cast(Record, {**build, "document": row})
 
     def document_build_finish(
         self,
@@ -480,12 +507,12 @@ class DocumentRepositories(RetentionRepositories):
         content: DocumentText | None = None,
         vectors: list[list[float]] | None = None,
         error: str = "",
-    ) -> dict:
+    ) -> Record:
         build = self._one(s.document_index_builds, agent_id, build_id)
         if build["state"] != "building":
             return build
-        version = self._one(s.document_revisions, agent_id, build["revision_id"])
-        doc = self._one(s.source_documents, agent_id, version["document_id"])
+        version = self._one(s.document_revisions, agent_id, cast(str, build["revision_id"]))
+        doc = self._one(s.source_documents, agent_id, cast(str, version["document_id"]))
         stale = doc["deleted_at"] or version["redacted_at"] or version["revision"] != doc["revision"]
         state = "invalidated" if stale else "failed" if error else "ready"
         if state == "ready" and build["kind"] == "full_text":
@@ -506,16 +533,19 @@ class DocumentRepositories(RetentionRepositories):
                 .values(state="invalidated", error_code="text_index_rebuilt")
             )
             self.connection.execute(delete(s.document_chunks).where(s.document_chunks.c.revision_id == version["id"]))
-            self._document_chunks(agent_id, version["id"], content, version["document_id"])
+            self._document_chunks(agent_id, cast(str, version["id"]), content, cast(str, version["document_id"]))
         elif state == "ready":
-            chunks = list(
-                self.connection.execute(
-                    select(s.document_chunks.c.id)
-                    .where(s.document_chunks.c.revision_id == version["id"])
-                    .order_by(s.document_chunks.c.position)
-                ).scalars()
+            chunks = cast(
+                list[str],
+                list(
+                    self.connection.execute(
+                        select(s.document_chunks.c.id)
+                        .where(s.document_chunks.c.revision_id == version["id"])
+                        .order_by(s.document_chunks.c.position)
+                    ).scalars()
+                ),
             )
-            self.document_text(agent_id, version["id"])
+            self.document_text(agent_id, cast(str, version["id"]))
             if vectors is None or len(vectors) != len(chunks):
                 raise BusinessError("invalid_vector", "Vector count does not match the captured source chunks")
             for chunk, embedding in zip(chunks, vectors, strict=True):
@@ -524,7 +554,7 @@ class DocumentRepositories(RetentionRepositories):
                         build_id=build_id,
                         chunk_id=chunk,
                         agent_id=agent_id,
-                        embedding=normalized_vector(embedding, build["dimension"]),
+                        embedding=normalized_vector(embedding, cast(int, build["dimension"])),
                     )
                 )
         self.connection.execute(
@@ -541,11 +571,11 @@ class DocumentRepositories(RetentionRepositories):
         self.audit(agent_id, "document.index_" + state, build_id, {"kind": build["kind"]})
         return self._one(s.document_index_builds, agent_id, build_id)
 
-    def document_builds(self, agent_id: str, document_id: str, after: str = "", limit: int = 50) -> list[dict]:
+    def document_builds(self, agent_id: str, document_id: str, after: str = "", limit: int = 50) -> list[Record]:
         self._one(s.source_documents, agent_id, document_id)
         versions = select(s.document_revisions.c.id).where(s.document_revisions.c.document_id == document_id)
         return [
-            dict(row)
+            cast(Record, dict(row))
             for row in self.connection.execute(
                 select(s.document_index_builds)
                 .where(
@@ -558,7 +588,7 @@ class DocumentRepositories(RetentionRepositories):
             ).mappings()
         ]
 
-    def document_vector_candidates(self, agent_id: str, version: str, dimension: int) -> list[dict]:
+    def document_vector_candidates(self, agent_id: str, version: str, dimension: int) -> list[Record]:
         statement = (
             self._document_search_statement()
             .add_columns(s.document_vectors.c.embedding)
@@ -578,9 +608,9 @@ class DocumentRepositories(RetentionRepositories):
             .order_by(s.document_chunks.c.id)
             .limit(VECTOR_CANDIDATES + 1)
         )
-        return [dict(row) for row in self.connection.execute(statement).mappings()]
+        return [cast(Record, dict(row)) for row in self.connection.execute(statement).mappings()]
 
-    def document_index_health(self, agent_id: str, document_id: str | None = None) -> dict:
+    def document_index_health(self, agent_id: str, document_id: str | None = None) -> Record:
         count = (
             select(func.count())
             .select_from(s.document_chunks)
@@ -613,4 +643,7 @@ class DocumentRepositories(RetentionRepositories):
                 | (invalid.c.chunks != (invalid.c.chars + 999) // 1000)
             )
         ).scalar_one()
-        return {"unindexed_documents": missing, "text_index_version": TEXT_INDEX_VERSION}
+        return cast(
+            Record,
+            {"unindexed_documents": missing, "text_index_version": TEXT_INDEX_VERSION},
+        )
