@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "5851d1d26476a4ad4a4966796f6725321046575f2254d405b693ddf98645e674",
+  "source_sha256": "75a12cd49cd23d775d48038c89d775fdd654ada51b5741756c57d7cefe826d9d",
   "modules": [
     {
       "id": "v2-domain",
@@ -404,7 +404,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 53442,
+      "lines": 53479,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -498,7 +498,7 @@
         "web/ui/v2/v1/workbench.css",
         "web/ui/v2/workbench.css"
       ],
-      "lines": 19621,
+      "lines": 19669,
       "dependencies": []
     },
     {
@@ -20066,7 +20066,7 @@
       "path": "agent/src/omni/adapters/persistence/repository.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.persistence.repository",
-      "lines": 1059,
+      "lines": 1096,
       "imports": [
         "omni.adapters.persistence",
         "omni.adapters.persistence.action_review_repository",
@@ -20102,12 +20102,12 @@
       "symbols": [
         {
           "name": "Repositories",
-          "line": 41,
+          "line": 42,
           "kind": "class"
         },
         {
           "name": "Repositories.instance_identity",
-          "line": 66,
+          "line": 67,
           "kind": "function",
           "parameters": [
             "self"
@@ -20116,7 +20116,7 @@
         },
         {
           "name": "Repositories.initialize",
-          "line": 72,
+          "line": 73,
           "kind": "function",
           "parameters": [
             "self"
@@ -20125,7 +20125,7 @@
         },
         {
           "name": "Repositories.probe_write",
-          "line": 81,
+          "line": 82,
           "kind": "function",
           "parameters": [
             "self"
@@ -20134,7 +20134,7 @@
         },
         {
           "name": "Repositories.create_agent",
-          "line": 84,
+          "line": 85,
           "kind": "function",
           "parameters": [
             "self",
@@ -20146,7 +20146,7 @@
         },
         {
           "name": "Repositories.issue_token",
-          "line": 111,
+          "line": 112,
           "kind": "function",
           "parameters": [
             "self",
@@ -20160,7 +20160,7 @@
         },
         {
           "name": "Repositories.token_valid",
-          "line": 116,
+          "line": 117,
           "kind": "function",
           "parameters": [
             "self",
@@ -20172,7 +20172,7 @@
         },
         {
           "name": "Repositories.token_sessions",
-          "line": 128,
+          "line": 129,
           "kind": "function",
           "parameters": [
             "self",
@@ -20184,7 +20184,7 @@
         },
         {
           "name": "Repositories.revoke_other_tokens",
-          "line": 138,
+          "line": 139,
           "kind": "function",
           "parameters": [
             "self",
@@ -20196,7 +20196,7 @@
         },
         {
           "name": "Repositories._message",
-          "line": 145,
+          "line": 146,
           "kind": "function",
           "parameters": [
             "self",
@@ -20214,7 +20214,7 @@
         },
         {
           "name": "Repositories.accept_turn",
-          "line": 153,
+          "line": 154,
           "kind": "function",
           "parameters": [
             "self",
@@ -20246,7 +20246,7 @@
         },
         {
           "name": "Repositories.owner_command",
-          "line": 291,
+          "line": 301,
           "kind": "function",
           "parameters": [
             "self",
@@ -20260,7 +20260,7 @@
         },
         {
           "name": "Repositories.owner_command_replay",
-          "line": 303,
+          "line": 313,
           "kind": "function",
           "parameters": [
             "self",
@@ -20276,7 +20276,7 @@
         },
         {
           "name": "Repositories.accept_owner_command",
-          "line": 320,
+          "line": 330,
           "kind": "function",
           "parameters": [
             "self",
@@ -20298,7 +20298,7 @@
         },
         {
           "name": "Repositories.assert_run_authorized",
-          "line": 367,
+          "line": 377,
           "kind": "function",
           "parameters": [
             "self",
@@ -20312,7 +20312,7 @@
         },
         {
           "name": "Repositories.desktop_dispatch",
-          "line": 372,
+          "line": 382,
           "kind": "function",
           "parameters": [
             "self",
@@ -20330,7 +20330,7 @@
         },
         {
           "name": "Repositories.owner_dispatch",
-          "line": 375,
+          "line": 385,
           "kind": "function",
           "parameters": [
             "self",
@@ -20350,7 +20350,7 @@
         },
         {
           "name": "Repositories.approved_dispatch",
-          "line": 381,
+          "line": 391,
           "kind": "function",
           "parameters": [
             "self",
@@ -20370,7 +20370,7 @@
         },
         {
           "name": "Repositories.get_run",
-          "line": 403,
+          "line": 414,
           "kind": "function",
           "parameters": [
             "self",
@@ -20384,7 +20384,7 @@
         },
         {
           "name": "Repositories.transition",
-          "line": 406,
+          "line": 417,
           "kind": "function",
           "parameters": [
             "self",
@@ -20402,7 +20402,7 @@
         },
         {
           "name": "Repositories.event",
-          "line": 446,
+          "line": 460,
           "kind": "function",
           "parameters": [
             "self",
@@ -20415,12 +20415,12 @@
             "agent_id": "str",
             "run_id": "str",
             "kind": "str",
-            "data": "dict"
+            "data": "Record"
           }
         },
         {
           "name": "Repositories.messages",
-          "line": 463,
+          "line": 477,
           "kind": "function",
           "parameters": [
             "self",
@@ -20436,7 +20436,7 @@
         },
         {
           "name": "Repositories.context_memories",
-          "line": 481,
+          "line": 495,
           "kind": "function",
           "parameters": [
             "self",
@@ -20450,7 +20450,7 @@
         },
         {
           "name": "Repositories.run_context",
-          "line": 505,
+          "line": 519,
           "kind": "function",
           "parameters": [
             "self",
@@ -20464,7 +20464,7 @@
         },
         {
           "name": "Repositories.finish",
-          "line": 514,
+          "line": 528,
           "kind": "function",
           "parameters": [
             "self",
@@ -20482,7 +20482,7 @@
         },
         {
           "name": "Repositories.reserve_call",
-          "line": 542,
+          "line": 558,
           "kind": "function",
           "parameters": [
             "self",
@@ -20504,7 +20504,7 @@
         },
         {
           "name": "Repositories.settle_call",
-          "line": 584,
+          "line": 603,
           "kind": "function",
           "parameters": [
             "self",
@@ -20522,7 +20522,7 @@
         },
         {
           "name": "Repositories.prepare_action",
-          "line": 619,
+          "line": 638,
           "kind": "function",
           "parameters": [
             "self",
@@ -20542,7 +20542,7 @@
         },
         {
           "name": "Repositories.pending_approvals",
-          "line": 674,
+          "line": 696,
           "kind": "function",
           "parameters": [
             "self",
@@ -20554,7 +20554,7 @@
         },
         {
           "name": "Repositories.resolve_approval",
-          "line": 689,
+          "line": 711,
           "kind": "function",
           "parameters": [
             "self",
@@ -20572,7 +20572,7 @@
         },
         {
           "name": "Repositories.authorize_action",
-          "line": 708,
+          "line": 735,
           "kind": "function",
           "parameters": [
             "self",
@@ -20586,7 +20586,7 @@
         },
         {
           "name": "Repositories.extension_dispatch",
-          "line": 733,
+          "line": 762,
           "kind": "function",
           "parameters": [
             "self",
@@ -20604,19 +20604,19 @@
         },
         {
           "name": "Repositories._extension_revoke",
-          "line": 756,
+          "line": 792,
           "kind": "function",
           "parameters": [
             "self",
             "slot"
           ],
           "annotations": {
-            "slot": "dict"
+            "slot": "Record"
           }
         },
         {
           "name": "Repositories.settle_action",
-          "line": 795,
+          "line": 832,
           "kind": "function",
           "parameters": [
             "self",
@@ -20632,7 +20632,7 @@
         },
         {
           "name": "Repositories.action",
-          "line": 828,
+          "line": 865,
           "kind": "function",
           "parameters": [
             "self",
@@ -20646,7 +20646,7 @@
         },
         {
           "name": "Repositories.cancel",
-          "line": 846,
+          "line": 883,
           "kind": "function",
           "parameters": [
             "self",
@@ -20660,7 +20660,7 @@
         },
         {
           "name": "Repositories.cancel_approvals",
-          "line": 870,
+          "line": 907,
           "kind": "function",
           "parameters": [
             "self"
@@ -20669,7 +20669,7 @@
         },
         {
           "name": "Repositories.close_run_actions",
-          "line": 876,
+          "line": 913,
           "kind": "function",
           "parameters": [
             "self",
@@ -20683,7 +20683,7 @@
         },
         {
           "name": "Repositories.recover",
-          "line": 923,
+          "line": 960,
           "kind": "function",
           "parameters": [
             "self"
@@ -20692,7 +20692,7 @@
         },
         {
           "name": "Repositories.query",
-          "line": 1023,
+          "line": 1060,
           "kind": "function",
           "parameters": [
             "self",
@@ -95814,7 +95814,7 @@
       "path": "web/ui/v2/workbench.css",
       "module": "v2-workbench",
       "python_module": null,
-      "lines": 1392,
+      "lines": 1440,
       "imports": [],
       "symbols": [],
       "kind": "asset",
