@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "2020c9062bfbf21ecb607aa09c19628bf60160a0975dc8a9eb2fad9801d0a3eb",
+  "source_sha256": "e9bccd420dc22a3e036e68fc92e162823bef364cad602a15c355e1a36aa34c70",
   "modules": [
     {
       "id": "v2-domain",
@@ -404,7 +404,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 53369,
+      "lines": 53381,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -32851,7 +32851,7 @@
       "path": "agent/src/omni/adapters/workers/android_unicode.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.workers.android_unicode",
-      "lines": 295,
+      "lines": 307,
       "imports": [
         "omni.adapters.workers.android_adb",
         "omni.domain.android",
@@ -32861,12 +32861,12 @@
       "symbols": [
         {
           "name": "UnicodeWorker",
-          "line": 28,
+          "line": 29,
           "kind": "class"
         },
         {
           "name": "UnicodeWorker.__init__",
-          "line": 29,
+          "line": 30,
           "kind": "function",
           "parameters": [
             "self"
@@ -32875,7 +32875,7 @@
         },
         {
           "name": "UnicodeWorker.environment",
-          "line": 34,
+          "line": 40,
           "kind": "function",
           "parameters": [
             "self",
@@ -32884,21 +32884,23 @@
           ],
           "annotations": {
             "adb": "Adb",
-            "target": "dict"
+            "target": "dict[str, object]"
           }
         },
         {
           "name": "UnicodeWorker.environment.setting",
-          "line": 37,
+          "line": 43,
           "kind": "function",
           "parameters": [
             "name"
           ],
-          "annotations": {}
+          "annotations": {
+            "name": "str"
+          }
         },
         {
           "name": "UnicodeWorker.call",
-          "line": 63,
+          "line": 71,
           "kind": "function",
           "parameters": [
             "self",
@@ -32907,12 +32909,12 @@
           ],
           "annotations": {
             "method": "str",
-            "data": "dict"
+            "data": "dict[str, object]"
           }
         },
         {
           "name": "UnicodeWorker.close",
-          "line": 91,
+          "line": 102,
           "kind": "function",
           "parameters": [
             "self"
@@ -32921,7 +32923,7 @@
         },
         {
           "name": "UnicodeWorker.invoke",
-          "line": 101,
+          "line": 112,
           "kind": "function",
           "parameters": [
             "self",
@@ -32931,8 +32933,8 @@
           ],
           "annotations": {
             "name": "str",
-            "args": "dict",
-            "context": "dict"
+            "args": "dict[str, object]",
+            "context": "dict[str, object]"
           }
         }
       ],
