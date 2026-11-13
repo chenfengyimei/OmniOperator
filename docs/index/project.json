@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "ecd491874fafba7ee32767bc3d1c214be17bf201741ef2d6c7c429536efdb3c8",
+  "source_sha256": "9a574fea6d949f5ad704965e3309d737c78c2ebab34474a5215295b70caf433a",
   "modules": [
     {
       "id": "v2-domain",
@@ -439,7 +439,7 @@
         "agent/src/omni/composition/service_runner.py",
         "agent/src/omni/composition/serving.py"
       ],
-      "lines": 2965,
+      "lines": 2971,
       "dependencies": [
         "v2-adapters",
         "v2-application",
@@ -59161,24 +59161,24 @@
       "path": "agent/src/omni/composition/lifecycle.py",
       "module": "v2-composition",
       "python_module": "omni.composition.lifecycle",
-      "lines": 160,
+      "lines": 166,
       "imports": [
         "omni.application.ports"
       ],
       "symbols": [
         {
           "name": "CloseStep",
-          "line": 16,
+          "line": 17,
           "kind": "class"
         },
         {
           "name": "Lifetime",
-          "line": 22,
+          "line": 23,
           "kind": "class"
         },
         {
           "name": "Lifetime.__init__",
-          "line": 23,
+          "line": 24,
           "kind": "function",
           "parameters": [
             "self"
@@ -59187,7 +59187,7 @@
         },
         {
           "name": "Lifetime.own",
-          "line": 31,
+          "line": 32,
           "kind": "function",
           "parameters": [
             "self",
@@ -59205,18 +59205,18 @@
         },
         {
           "name": "Lifetime._successful",
-          "line": 41,
+          "line": 42,
           "kind": "function",
           "parameters": [
             "task"
           ],
           "annotations": {
-            "task": "asyncio.Task"
+            "task": "asyncio.Task[object]"
           }
         },
         {
           "name": "Lifetime._close_step",
-          "line": 47,
+          "line": 50,
           "kind": "function",
           "parameters": [
             "self",
@@ -59230,7 +59230,7 @@
         },
         {
           "name": "Lifetime._perform",
-          "line": 50,
+          "line": 53,
           "kind": "function",
           "parameters": [
             "self",
@@ -59242,7 +59242,7 @@
         },
         {
           "name": "Lifetime.close",
-          "line": 104,
+          "line": 107,
           "kind": "function",
           "parameters": [
             "self",
@@ -59254,7 +59254,7 @@
         },
         {
           "name": "Lifetime.stop_accepting",
-          "line": 130,
+          "line": 133,
           "kind": "function",
           "parameters": [
             "self"
@@ -59263,7 +59263,7 @@
         },
         {
           "name": "close_sync",
-          "line": 140,
+          "line": 143,
           "kind": "function",
           "parameters": [
             "operation"
@@ -59274,7 +59274,7 @@
         },
         {
           "name": "close_until_quiescent",
-          "line": 145,
+          "line": 148,
           "kind": "function",
           "parameters": [
             "close",

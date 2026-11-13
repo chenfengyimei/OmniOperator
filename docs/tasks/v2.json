@@ -284,9 +284,9 @@
       ]
     }
   ],
-  "checkpoint_commit": "07368b4",
+  "checkpoint_commit": "d0b5ea9",
   "current_validation": {
-    "status": "d7_typecheck_batch_140",
+    "status": "d7_typecheck_batch_141",
     "targeted_unique_passed": 228,
     "includes_browser_cases": 10,
     "current_full_passed": false,
@@ -304,7 +304,7 @@
         "first_report": "temp/build/v2-full-144.xml"
       }
     ],
-    "code_version": "8af85826d823101895a7b4f681922c44dce26781e6512327487a0fe6cbb8bc3e",
+    "code_version": "6d6ef0fdcc423a0f5f4758ffb83eeaaf0231d29e915438e9fb4fb45b6eae2921",
     "fixed_source_files": 1200,
     "baseline_repair_evidence": "docs/evidence/v2-baseline-repair.json",
     "market_evidence": "docs/evidence/v2-extension-market.json",
@@ -325,7 +325,7 @@
     "id": "D7.product_switch",
     "status": "进行中",
     "design": "docs/V2_PACKAGING.md",
-    "scope": "P1 剩 composition lifecycle(63) 与大模块 http/instance/cli；随后 P2 android.py(475)、P3 持久化 34 文件。strict 已到 263 文件（domain 53/53、application 43/44、adapters 160/222、composition 7/13）。"
+    "scope": "P1 剩 composition http/instance/cli；随后 P2 android.py(475)、P3 持久化 34 文件。strict 已到 264 文件（domain 53/53、application 43/44、adapters 160/222、composition 8/13）。"
   },
   "milestones": [
     {

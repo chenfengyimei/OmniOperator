@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`ecd491874fafba7ee32767bc3d1c214be17bf201741ef2d6c7c429536efdb3c8`。包含 65 个职责模块、732 个源码/界面文件。
+源码指纹：`9a574fea6d949f5ad704965e3309d737c78c2ebab34474a5215295b70caf433a`。包含 65 个职责模块、732 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -397,7 +397,7 @@
 | [agent/src/omni/composition/cli.py](../../agent/src/omni/composition/cli.py) | 1001 | V2 development entrypoint. Online commands use the authenticated HTTP facade. |
 | [agent/src/omni/composition/http.py](../../agent/src/omni/composition/http.py) | 233 | HTTP composition and owner bootstrap; tokens never appear in diagnostic output. |
 | [agent/src/omni/composition/instance.py](../../agent/src/omni/composition/instance.py) | 735 | Build one isolated instance; never imports or opens the V1 runtime. |
-| [agent/src/omni/composition/lifecycle.py](../../agent/src/omni/composition/lifecycle.py) | 160 | Own startup rollback and one shared shutdown budget; never dispatches business work. |
+| [agent/src/omni/composition/lifecycle.py](../../agent/src/omni/composition/lifecycle.py) | 166 | Own startup rollback and one shared shutdown budget; never dispatches business work. |
 | [agent/src/omni/composition/releases.py](../../agent/src/omni/composition/releases.py) | 125 | Assemble explicit offline release commands. No service install, stop, model or default-entry switch. |
 | [agent/src/omni/composition/service_cleanup.py](../../agent/src/omni/composition/service_cleanup.py) | 79 | Assemble quarantined registration cleanup, with an explicit root route for system definitions. |
 | [agent/src/omni/composition/service_control.py](../../agent/src/omni/composition/service_control.py) | 68 | Assemble reviewed lifecycle commands, with no operation during import or plan inspection. |
