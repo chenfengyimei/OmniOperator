@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "6bd83410bc6e5dc6a979a385da1912dfe2e30741b662d2a75df5503280ad2d25",
+  "source_sha256": "71068795d04a20da244ef9121c720fbc16b429001ba54ca9ce75894be24bcc84",
   "modules": [
     {
       "id": "v2-domain",
@@ -404,7 +404,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 53810,
+      "lines": 53828,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -498,7 +498,7 @@
         "web/ui/v2/v1/workbench.css",
         "web/ui/v2/workbench.css"
       ],
-      "lines": 20383,
+      "lines": 20447,
       "dependencies": []
     },
     {
@@ -14310,7 +14310,7 @@
       "path": "agent/src/omni/adapters/persistence/execution_retention_repository.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.persistence.execution_retention_repository",
-      "lines": 446,
+      "lines": 464,
       "imports": [
         "omni.adapters.persistence",
         "omni.adapters.persistence.action_predicates",
@@ -14323,12 +14323,12 @@
       "symbols": [
         {
           "name": "ExecutionRetentionRepositories",
-          "line": 26,
+          "line": 27,
           "kind": "class"
         },
         {
           "name": "ExecutionRetentionRepositories.retention_pin",
-          "line": 27,
+          "line": 28,
           "kind": "function",
           "parameters": [
             "self",
@@ -14346,7 +14346,7 @@
         },
         {
           "name": "ExecutionRetentionRepositories._retention_protections",
-          "line": 48,
+          "line": 49,
           "kind": "function",
           "parameters": [
             "self",
@@ -14364,7 +14364,7 @@
         },
         {
           "name": "ExecutionRetentionRepositories.retention_inspect",
-          "line": 124,
+          "line": 125,
           "kind": "function",
           "parameters": [
             "self",
@@ -14382,7 +14382,7 @@
         },
         {
           "name": "ExecutionRetentionRepositories.retention_plan",
-          "line": 161,
+          "line": 165,
           "kind": "function",
           "parameters": [
             "self",
@@ -14396,7 +14396,7 @@
         },
         {
           "name": "ExecutionRetentionRepositories.retention_batch",
-          "line": 179,
+          "line": 186,
           "kind": "function",
           "parameters": [
             "self",
@@ -14408,7 +14408,7 @@
         },
         {
           "name": "ExecutionRetentionRepositories._retention_target",
-          "line": 187,
+          "line": 194,
           "kind": "function",
           "parameters": [
             "self",
@@ -14416,25 +14416,25 @@
             "target"
           ],
           "annotations": {
-            "plan": "dict",
-            "target": "dict"
+            "plan": "Record",
+            "target": "Record"
           }
         },
         {
           "name": "ExecutionRetentionRepositories.retention_validate",
-          "line": 202,
+          "line": 212,
           "kind": "function",
           "parameters": [
             "self",
             "plan"
           ],
           "annotations": {
-            "plan": "dict"
+            "plan": "Record"
           }
         },
         {
           "name": "ExecutionRetentionRepositories.retention_prepare",
-          "line": 217,
+          "line": 227,
           "kind": "function",
           "parameters": [
             "self",
@@ -14443,14 +14443,14 @@
             "backup_sha256"
           ],
           "annotations": {
-            "plan": "dict",
+            "plan": "Record",
             "backup_path": "str",
             "backup_sha256": "str"
           }
         },
         {
           "name": "ExecutionRetentionRepositories.retention_prune",
-          "line": 252,
+          "line": 262,
           "kind": "function",
           "parameters": [
             "self",
@@ -14458,13 +14458,13 @@
             "target"
           ],
           "annotations": {
-            "plan": "dict",
-            "target": "dict"
+            "plan": "Record",
+            "target": "Record"
           }
         },
         {
           "name": "ExecutionRetentionRepositories.retention_complete",
-          "line": 355,
+          "line": 365,
           "kind": "function",
           "parameters": [
             "self",
@@ -14476,7 +14476,7 @@
         },
         {
           "name": "ExecutionRetentionRepositories.retention_cancel",
-          "line": 379,
+          "line": 389,
           "kind": "function",
           "parameters": [
             "self",
@@ -14484,13 +14484,13 @@
             "reason"
           ],
           "annotations": {
-            "plan": "dict",
+            "plan": "Record",
             "reason": "str"
           }
         },
         {
           "name": "ExecutionRetentionRepositories.retention_preview",
-          "line": 420,
+          "line": 430,
           "kind": "function",
           "parameters": [
             "self",
@@ -95657,7 +95657,7 @@
       "path": "web/ui/v2/main.js",
       "module": "v2-workbench",
       "python_module": null,
-      "lines": 1624,
+      "lines": 1631,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -95857,7 +95857,7 @@
       "path": "web/ui/v2/workbench.css",
       "module": "v2-workbench",
       "python_module": null,
-      "lines": 2014,
+      "lines": 2071,
       "imports": [],
       "symbols": [],
       "kind": "asset",
