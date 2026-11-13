@@ -191,7 +191,7 @@
   ]
  },
  "validation": {
-  "all_latest_cases_passed": true,
+  "all_latest_cases_passed": false,
   "latest_batch": {
    "report": "temp/build/v2-typecheck-160-callers.xml",
    "tests": 48,
@@ -1674,8 +1674,8 @@
    ]
   },
   "full_run": {
-   "status": "parallel_run_serial_rerun_passed_after_ui_session_fix",
-   "source": "a32eca4 (5943a967) + parallel UI commit 55ed15da landed during the run",
+   "status": "parallel_run_serial_rerun_green_only_via_ui_session_uncommitted_worktree",
+   "source": "a32eca4 (5943a967); embed guard reads the parallel UI session's UNCOMMITTED worktree",
    "workers": 2,
    "report": "temp/build/v2-full-160.xml",
    "report_sha256": "6c37798884e7f0b3af43bc76c10cf4130f403701aa58cfefd6952f5705e7994e",
@@ -1698,12 +1698,21 @@
    },
    "details": [
     "并行跑唯一失败 test_ui_embed_layer::test_embed_rules_live_only_in_frame_css：web/ui/v2/v1/frame.css 含通用 embed 降级规则副本，由并行 UI 会话提交 0497fe8 引入；非本会话回归",
-    "串行复跑该项通过，原因是并行 UI 会话在全量运行期间提交 55ed15da 修掉了副本规则，而非资源争用抖动；守卫套件单独复验 14 项全过",
-    "结论：本批（156～160）无功能回归；该守卫项在他方修复后已恢复绿色，节点 15 记录的遗留项可视为已关闭"
+    "串行复跑该项通过的真实原因：并行 UI 会话在运行期间把副本规则从其**工作区**删掉了（约 53 行），但该修复**尚未提交**——HEAD 版本仍含 14 处 ui-embed 特征，提交 55ed15da 并未触及 frame.css。守卫读取工作区文件，故转绿；这不是资源争用抖动，也不是任何提交带来的修复",
+    "结论：本批（156～160）无功能回归；该守卫项仍未在版本库层面关闭，取决于 UI 会话提交其工作区修复"
    ],
-   "note": "第 20 节点（156～160 批）全量。验收口径：并行跑 + 失败项串行复跑，两份报告留档；不将串行通过写成并行全绿（并行仍记 1 failed），不把他方修复导致的转绿写成抖动，也不将他人会话引入的守卫违规写成本批回归。strict 284 文件 0 errors/0 warnings。"
+   "note": "第 20 节点（156～160 批）全量。验收口径：并行跑 + 失败项串行复跑，两份报告留档；不将串行通过写成并行全绿（并行仍记 1 failed），不把他方未提交工作区导致的转绿写成抖动或已修复，也不将他人会话引入的守卫违规写成本批回归。strict 284 文件 0 errors/0 warnings。"
   },
-  "open_findings": [],
+  "open_findings": [
+   {
+    "id": "ui.embed_guard_violation_v1_frame_copy",
+    "owner": "parallel-ui-session",
+    "state": "open_in_repository_worktree_fixed_only",
+    "detail": "web/ui/v2/v1/frame.css 的通用 embed 降级规则副本由 UI 会话提交 0497fe8 引入；HEAD 仍含 14 处 ui-embed 特征，其工作区已删除副本但未提交。守卫读工作区故当前通过，版本库层面未关闭。非本类型化任务回归，不代改其文件。",
+    "introduced_by": "0497fe8",
+    "not_fixed_by": "55ed15da (does not touch frame.css)"
+   }
+  ],
   "next": {
    "id": "D7.product_switch",
    "scope": "P1 composition 全层（13/13）、P2 application 全层（44/44）与全部 7 个 Android 模块已完成；P3 已纳入 schema/credential_repository/lease_repository，剩 configuration(94)/repository(187)/delivery(211) 等。strict 279 文件。Real-environment acceptance still pending."

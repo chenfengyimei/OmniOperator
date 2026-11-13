@@ -22,7 +22,7 @@ Windows 上 V2 底座**可冷启动、可自检、可服务、可跑全量测试
 | 默认入口 | `V1 until R6 parity gate` | `docs/tasks/v2.json` 的 `default_entrypoints` |
 | 台账 | `status=d7_typecheck_batch_160`、`checkpoint_commit=a32eca4`、源码指纹 `5943a967…`（1206 文件） |
 | 第 20 节点全量 | 4656 项：4655 passed / 1 failed（-n 2，3219.56s）；失败项串行复跑通过 |
-| 失败归属 | embed 副本守卫违规由并行 UI 会话 0497fe8 引入、其 55ed15da 修复；非本批回归，非抖动 | | `docs/tasks/v2.json`、`docs/evidence/v2-typecheck.json` |
+| 失败归属 | embed 副本守卫违规由并行 UI 会话 0497fe8 引入；其工作区已删副本但**未提交**，HEAD 仍含 14 处特征；守卫读工作区故串行转绿。非本批回归、非抖动、版本库层面未关闭 | | `docs/tasks/v2.json`、`docs/evidence/v2-typecheck.json` |
 | 工作树 | 干净，`codex/architecture-v2` 与 origin 同步（HEAD `e2f72a0` 之后的文档提交） | `git status -sb` |
 
 ## 3. 现在能用什么（Windows，实测）
