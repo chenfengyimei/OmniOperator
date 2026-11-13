@@ -52,6 +52,7 @@
     "agent/src/omni/adapters/persistence/migrations/versions/v0002.py",
     "agent/src/omni/adapters/persistence/migrations/versions/v0003.py",
     "agent/src/omni/adapters/persistence/migrations/versions/v0004.py",
+    "agent/src/omni/adapters/persistence/migrations/versions/v0005.py",
     "agent/src/omni/adapters/persistence/migrations/versions/v0006.py",
     "agent/src/omni/adapters/persistence/migrations/versions/v0007.py",
     "agent/src/omni/adapters/persistence/migrations/versions/v0008.py",

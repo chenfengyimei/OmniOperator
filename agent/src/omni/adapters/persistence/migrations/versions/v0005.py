@@ -4,6 +4,7 @@ import hashlib
 import json
 import unicodedata
 import uuid
+from typing import Any, cast
 
 from alembic import op
 
@@ -13,7 +14,7 @@ branch_labels = None
 depends_on = None
 
 
-def upgrade():
+def upgrade() -> None:
     db = op.get_bind()
     op.execute("CREATE TEMP TABLE _v5_settings AS SELECT * FROM settings")
     op.execute("CREATE TEMP TABLE _v5_runs AS SELECT id,agent_id,config_revision,config_snapshot FROM runs")
@@ -26,10 +27,18 @@ def upgrade():
         op.execute(statement)
     for statement in COLUMNS:
         op.execute(statement)
-    options = {}
-    ordinal = {}
+    options: dict[tuple[str, str], tuple[str, str]] = {}
+    ordinal: dict[str, int] = {}
 
-    def configuration(agent, kind, name, value, now, number=1, identity=None):
+    def configuration(
+        agent: str,
+        kind: str,
+        name: str,
+        value: dict[str, Any],
+        now: str,
+        number: int = 1,
+        identity: str | None = None,
+    ) -> tuple[str, str]:
         entity = identity or str(uuid.uuid4())
         rev = str(uuid.uuid4())
         key = unicodedata.normalize("NFKC", name.strip()).casefold()
@@ -52,7 +61,7 @@ def upgrade():
         )
         return entity, rev
 
-    def model(agent, value, now):
+    def model(agent: str, value: dict[str, Any], now: str) -> tuple[str, str]:
         payload = {
             **DEFAULT_MODEL,
             "model": value.get("model", ""),
@@ -65,11 +74,11 @@ def upgrade():
             options[key] = configuration(agent, "model", f"Migrated model {ordinal[agent]}", payload, now)
         return options[key]
 
-    preferences = {}
+    preferences: dict[tuple[str, int], tuple[str, str]] = {}
 
-    def preference(agent, number, value, now):
+    def preference(agent: str, number: int, value: dict[str, Any], now: str) -> tuple[str, str, dict[str, Any]]:
         model_id, model_revision = model(agent, value, now)
-        payload = {k: value[k] for k in PREF_KEYS}
+        payload: dict[str, Any] = {k: value[k] for k in PREF_KEYS}
         payload["model_profile_id"] = model_id
         canonical = json.dumps(payload, sort_keys=True)
         key = (agent, number)
@@ -93,14 +102,14 @@ def upgrade():
         preferences[key] = (identity, canonical)
         return identity, model_revision, payload
 
-    previous = {r["agent_id"]: dict(r) for r in db.exec_driver_sql("SELECT * FROM _v5_settings").mappings()}
+    previous = {cast(str, r["agent_id"]): dict(r) for r in db.exec_driver_sql("SELECT * FROM _v5_settings").mappings()}
     for row in db.exec_driver_sql("SELECT id,created_at FROM agents").mappings():
-        agent, now = row["id"], row["created_at"]
+        agent, now = cast(str, row["id"]), cast(str, row["created_at"])
         old = previous.get(agent)
         value = json.loads(old["value"]) if old else dict(DEFAULT_PREFERENCES)
         if not set(PREF_KEYS) <= set(value):
             raise RuntimeError("Current Agent settings are incomplete")
-        number = old["revision"] if old else 1
+        number = cast(int, old["revision"]) if old else 1
         _, _, payload = preference(agent, number, value, now)
         fields = [
             "agent_id",
@@ -115,14 +124,14 @@ def upgrade():
                 agent,
                 number,
                 number,
-                old["updated_at"] if old else now,
+                cast(str, old["updated_at"]) if old else now,
                 *[v for k, v in payload.items() if k != "disabled_tools"],
             ),
         )
         for tool in payload["disabled_tools"]:
             db.exec_driver_sql("INSERT INTO settings_disabled_tools(agent_id,tool) VALUES(?,?)", (agent, tool))
     for row in db.exec_driver_sql("SELECT * FROM _v5_runs").mappings():
-        value = json.loads(row["config_snapshot"])
+        value = cast(dict[str, Any], json.loads(cast(str, row["config_snapshot"])))
         if not set(PREF_KEYS) <= set(value) or "model" not in value:
             db.exec_driver_sql(
                 "UPDATE runs SET state=CASE WHEN state IN ('queued','running','waiting_approval','cancelling') THEN 'interrupted' ELSE state END,error_code='legacy_configuration_unresolved' WHERE id=?",
@@ -133,21 +142,24 @@ def upgrade():
                 (row["id"],),
             )
             continue
-        created = db.exec_driver_sql("SELECT created_at FROM runs WHERE id=?", (row["id"],)).scalar_one()
-        pref, rev, _ = preference(row["agent_id"], row["config_revision"], value, created)
+        created = cast(
+            str,
+            db.exec_driver_sql("SELECT created_at FROM runs WHERE id=?", (row["id"],)).scalar_one(),
+        )
+        pref, rev, _ = preference(cast(str, row["agent_id"]), cast(int, row["config_revision"]), value, created)
         db.exec_driver_sql(
             "UPDATE runs SET settings_revision_id=?,model_revision_id=?,model_permission_epoch=1,policy_epoch=? WHERE id=?",
             (pref, rev, row["config_revision"], row["id"]),
         )
     for row in db.exec_driver_sql("SELECT * FROM _v5_presets").mappings():
         configuration(
-            row["agent_id"],
+            cast(str, row["agent_id"]),
             "preset",
-            row["name"],
+            cast(str, row["name"]),
             {"content": row["content"]},
-            row["created_at"],
-            row["revision"],
-            row["id"],
+            cast(str, row["created_at"]),
+            cast(int, row["revision"]),
+            cast(str, row["id"]),
         )
     op.execute("ALTER TABLE runs DROP COLUMN config_snapshot")
     for statement in TRIGGERS:
@@ -168,12 +180,12 @@ def upgrade():
         op.execute("DROP TABLE " + table)
 
 
-def downgrade():
+def downgrade() -> None:
     raise RuntimeError("Restore a verified snapshot into a new home instead of downgrading")
 
 
 PREF_KEYS = ("persona", "workspace", "daily_budget_micro", "call_reservation_micro", "max_steps", "disabled_tools")
-DEFAULT_PREFERENCES = {
+DEFAULT_PREFERENCES: dict[str, Any] = {
     "persona": "You are a helpful personal assistant.",
     "workspace": "",
     "daily_budget_micro": 1000000,
@@ -182,7 +194,7 @@ DEFAULT_PREFERENCES = {
     "disabled_tools": [],
     "model": "",
 }
-DEFAULT_MODEL = {
+DEFAULT_MODEL: dict[str, Any] = {
     "model": "",
     "base_url": "",
     "credential_ref": "",

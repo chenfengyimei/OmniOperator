@@ -187,6 +187,7 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 | `agent/src/omni/adapters/persistence/migrations/versions/v0001.py` | 冻结迁移版本 v0001 |
 | `agent/src/omni/adapters/persistence/migrations/versions/v0002.py` | 冻结迁移版本 v0002 |
 | `agent/src/omni/adapters/persistence/migrations/versions/v0004.py` | 冻结迁移版本 v0004 |
+| `agent/src/omni/adapters/persistence/migrations/versions/v0005.py` | 冻结迁移版本 v0005（类型化配置与不可变运行引用；搬迁闭包与容器标注，SQL 字面量多重集与 HEAD 一致） |
 | `agent/src/omni/adapters/persistence/migrations/versions/v0007.py` | 冻结迁移版本 v0007 |
 | `agent/src/omni/adapters/persistence/migrations/versions/v0008.py` | 冻结迁移版本 v0008 |
 | `agent/src/omni/adapters/persistence/migrations/versions/v0009.py` | 冻结迁移版本 v0009 |
@@ -314,7 +315,7 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 | --- | --- |
 | `agent/src/omni/domain`（全部 53 文件） | 2321 |
 
-`service_control.py`（94）已在纳入 strict 前清零；`model_stream.py`（75）、`context.py`（38）、`recovery_authority.py`（27）、`memory_semantics.py`（19）、`foreground.py`（24）、`metering.py`（19）与 `release_fence.py`（16）同样已清零，基线表中不再列逐文件例外。`application/` 已全部纳入（44/44 个模块）、`adapters/` 179 个模块；`composition/` 已全部纳入（13/13 个模块，守卫允许层已加入 composition）；`agent/tests/` 尚未开始 strict。
+`service_control.py`（94）已在纳入 strict 前清零；`model_stream.py`（75）、`context.py`（38）、`recovery_authority.py`（27）、`memory_semantics.py`（19）、`foreground.py`（24）、`metering.py`（19）与 `release_fence.py`（16）同样已清零，基线表中不再列逐文件例外。`application/` 已全部纳入（44/44 个模块）、`adapters/` 180 个模块；`composition/` 已全部纳入（13/13 个模块，守卫允许层已加入 composition）；`agent/tests/` 尚未开始 strict。
 
 ### 3.1 剩余 adapters 错误数（本源码版本，仅记录）
 
