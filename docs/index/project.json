@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "ad26991e08afe15c56ed06aa03b3d4cdde4b3adc2e0ce177577d66ad07b838be",
+  "source_sha256": "b7d190191d3d61d774a36291d1bc2f8f4d8f25f24f97b7b1f2ece18acf703877",
   "modules": [
     {
       "id": "v2-domain",
@@ -404,7 +404,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 53848,
+      "lines": 53853,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -16560,22 +16560,23 @@
       "path": "agent/src/omni/adapters/persistence/media_repository.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.persistence.media_repository",
-      "lines": 329,
+      "lines": 334,
       "imports": [
         "omni.adapters.persistence",
         "omni.adapters.persistence.bilibili_repository",
+        "omni.application.ports",
         "omni.domain.contracts",
         "omni.domain.media"
       ],
       "symbols": [
         {
           "name": "MediaRepositories",
-          "line": 17,
+          "line": 19,
           "kind": "class"
         },
         {
           "name": "MediaRepositories._job",
-          "line": 18,
+          "line": 20,
           "kind": "function",
           "parameters": [
             "self",
@@ -16587,7 +16588,7 @@
         },
         {
           "name": "MediaRepositories._source",
-          "line": 36,
+          "line": 38,
           "kind": "function",
           "parameters": [
             "self",
@@ -16601,7 +16602,7 @@
         },
         {
           "name": "MediaRepositories.media_source_register",
-          "line": 45,
+          "line": 47,
           "kind": "function",
           "parameters": [
             "self",
@@ -16610,12 +16611,12 @@
           ],
           "annotations": {
             "agent_id": "str",
-            "row": "dict"
+            "row": "Record"
           }
         },
         {
           "name": "MediaRepositories._latest",
-          "line": 86,
+          "line": 88,
           "kind": "function",
           "parameters": [
             "connection",
@@ -16624,25 +16625,27 @@
             "source_id"
           ],
           "annotations": {
+            "connection": "Connection",
+            "table": "Table",
             "agent_id": "str",
             "source_id": "str"
           }
         },
         {
           "name": "MediaRepositories._source_view",
-          "line": 94,
+          "line": 99,
           "kind": "function",
           "parameters": [
             "self",
             "source"
           ],
           "annotations": {
-            "source": "dict"
+            "source": "Record"
           }
         },
         {
           "name": "MediaRepositories.media_source_page",
-          "line": 112,
+          "line": 117,
           "kind": "function",
           "parameters": [
             "self",
@@ -16658,7 +16661,7 @@
         },
         {
           "name": "MediaRepositories.media_source_get",
-          "line": 125,
+          "line": 130,
           "kind": "function",
           "parameters": [
             "self",
@@ -16672,7 +16675,7 @@
         },
         {
           "name": "MediaRepositories.media_source_delete",
-          "line": 128,
+          "line": 133,
           "kind": "function",
           "parameters": [
             "self",
@@ -16686,7 +16689,7 @@
         },
         {
           "name": "MediaRepositories.media_job_create",
-          "line": 159,
+          "line": 164,
           "kind": "function",
           "parameters": [
             "self",
@@ -16699,12 +16702,12 @@
             "agent_id": "str",
             "source_id": "str",
             "operation": "str",
-            "plan": "dict"
+            "plan": "Record"
           }
         },
         {
           "name": "MediaRepositories.media_job_get",
-          "line": 182,
+          "line": 187,
           "kind": "function",
           "parameters": [
             "self",
@@ -16716,7 +16719,7 @@
         },
         {
           "name": "MediaRepositories.media_job_page",
-          "line": 185,
+          "line": 190,
           "kind": "function",
           "parameters": [
             "self",
@@ -16734,7 +16737,7 @@
         },
         {
           "name": "MediaRepositories.media_job_start",
-          "line": 203,
+          "line": 208,
           "kind": "function",
           "parameters": [
             "self",
@@ -16746,7 +16749,7 @@
         },
         {
           "name": "MediaRepositories.media_job_cancel",
-          "line": 216,
+          "line": 221,
           "kind": "function",
           "parameters": [
             "self",
@@ -16758,7 +16761,7 @@
         },
         {
           "name": "MediaRepositories.media_job_finish",
-          "line": 224,
+          "line": 229,
           "kind": "function",
           "parameters": [
             "self",
@@ -16774,7 +16777,7 @@
         },
         {
           "name": "MediaRepositories._complete",
-          "line": 247,
+          "line": 252,
           "kind": "function",
           "parameters": [
             "self",
@@ -16784,12 +16787,13 @@
           ],
           "annotations": {
             "job_id": "str",
-            "values": "dict"
+            "table": "Table",
+            "values": "Record"
           }
         },
         {
           "name": "MediaRepositories.media_job_complete_transcript",
-          "line": 260,
+          "line": 265,
           "kind": "function",
           "parameters": [
             "self",
@@ -16798,12 +16802,12 @@
           ],
           "annotations": {
             "job_id": "str",
-            "info": "dict"
+            "info": "Record"
           }
         },
         {
           "name": "MediaRepositories.media_job_complete_frames",
-          "line": 274,
+          "line": 279,
           "kind": "function",
           "parameters": [
             "self",
@@ -16812,12 +16816,12 @@
           ],
           "annotations": {
             "job_id": "str",
-            "info": "dict"
+            "info": "Record"
           }
         },
         {
           "name": "MediaRepositories.media_transcript_get",
-          "line": 289,
+          "line": 294,
           "kind": "function",
           "parameters": [
             "self",
@@ -16831,7 +16835,7 @@
         },
         {
           "name": "MediaRepositories.media_transcript_latest",
-          "line": 300,
+          "line": 305,
           "kind": "function",
           "parameters": [
             "self",
@@ -16845,7 +16849,7 @@
         },
         {
           "name": "MediaRepositories.media_frames_get",
-          "line": 306,
+          "line": 311,
           "kind": "function",
           "parameters": [
             "self",
@@ -16859,7 +16863,7 @@
         },
         {
           "name": "MediaRepositories.media_recover",
-          "line": 315,
+          "line": 320,
           "kind": "function",
           "parameters": [
             "self"
