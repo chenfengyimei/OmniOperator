@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "75eb835190830f3a7b7f116d8794abd9b9c0e89027cf5c91f2504fb0a48205b9",
+  "source_sha256": "b448db2e8e30976b314b6943b82738bfa4dbbdc2b352318260b4131f3caac19d",
   "modules": [
     {
       "id": "v2-domain",
@@ -136,7 +136,7 @@
         "agent/src/omni/application/terminal_review.py",
         "agent/src/omni/application/terminals.py"
       ],
-      "lines": 11164,
+      "lines": 11165,
       "dependencies": [
         "v2-domain"
       ]
@@ -439,7 +439,7 @@
         "agent/src/omni/composition/service_runner.py",
         "agent/src/omni/composition/serving.py"
       ],
-      "lines": 2991,
+      "lines": 3030,
       "dependencies": [
         "v2-adapters",
         "v2-application",
@@ -42916,7 +42916,7 @@
       "path": "agent/src/omni/application/ports.py",
       "module": "v2-application",
       "python_module": "omni.application.ports",
-      "lines": 982,
+      "lines": 983,
       "imports": [
         "omni.domain.contracts",
         "omni.domain.delivery",
@@ -50904,24 +50904,30 @@
           }
         },
         {
+          "name": "UnitOfWork.audit",
+          "line": 964,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "agent_id",
+            "kind",
+            "operation_id",
+            "data"
+          ],
+          "annotations": {
+            "agent_id": "str",
+            "kind": "str",
+            "operation_id": "str | None",
+            "data": "Record"
+          }
+        },
+        {
           "name": "DatabasePort",
-          "line": 966,
+          "line": 967,
           "kind": "class"
         },
         {
           "name": "DatabasePort.write",
-          "line": 967,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "operation"
-          ],
-          "annotations": {
-            "operation": "Callable[[UnitOfWork], T]"
-          }
-        },
-        {
-          "name": "DatabasePort.read",
           "line": 968,
           "kind": "function",
           "parameters": [
@@ -50933,8 +50939,20 @@
           }
         },
         {
-          "name": "DatabasePort.close",
+          "name": "DatabasePort.read",
           "line": 969,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "operation"
+          ],
+          "annotations": {
+            "operation": "Callable[[UnitOfWork], T]"
+          }
+        },
+        {
+          "name": "DatabasePort.close",
+          "line": 970,
           "kind": "function",
           "parameters": [
             "self"
@@ -50943,12 +50961,12 @@
         },
         {
           "name": "SpanReport",
-          "line": 972,
+          "line": 973,
           "kind": "class"
         },
         {
           "name": "SpanReport.result",
-          "line": 973,
+          "line": 974,
           "kind": "function",
           "parameters": [
             "self",
@@ -50960,12 +50978,12 @@
         },
         {
           "name": "Observer",
-          "line": 976,
+          "line": 977,
           "kind": "class"
         },
         {
           "name": "Observer.context",
-          "line": 977,
+          "line": 978,
           "kind": "function",
           "parameters": [
             "self",
@@ -50975,7 +50993,7 @@
         },
         {
           "name": "Observer.span",
-          "line": 978,
+          "line": 979,
           "kind": "function",
           "parameters": [
             "self",
@@ -58932,7 +58950,7 @@
       "path": "agent/src/omni/composition/instance.py",
       "module": "v2-composition",
       "python_module": "omni.composition.instance",
-      "lines": 755,
+      "lines": 794,
       "imports": [
         "omni.adapters.android",
         "omni.adapters.bilibili",
@@ -59002,19 +59020,21 @@
         "omni.composition.lifecycle",
         "omni.domain.android",
         "omni.domain.contracts",
+        "omni.domain.delivery",
         "omni.domain.desktop_actions",
         "omni.domain.installation",
+        "omni.domain.mcp",
         "omni.domain.skills"
       ],
       "symbols": [
         {
           "name": "SpanMeasurement",
-          "line": 112,
+          "line": 117,
           "kind": "class"
         },
         {
           "name": "SpanMeasurement.result",
-          "line": 117,
+          "line": 122,
           "kind": "function",
           "parameters": [
             "self",
@@ -59026,12 +59046,12 @@
         },
         {
           "name": "Observation",
-          "line": 122,
+          "line": 127,
           "kind": "class"
         },
         {
           "name": "Observation.__init__",
-          "line": 123,
+          "line": 128,
           "kind": "function",
           "parameters": [
             "self",
@@ -59045,7 +59065,7 @@
         },
         {
           "name": "Observation.context",
-          "line": 129,
+          "line": 134,
           "kind": "function",
           "parameters": [
             "self",
@@ -59055,7 +59075,7 @@
         },
         {
           "name": "Observation.span",
-          "line": 134,
+          "line": 139,
           "kind": "function",
           "parameters": [
             "self",
@@ -59066,13 +59086,24 @@
           }
         },
         {
+          "name": "_record",
+          "line": 181,
+          "kind": "function",
+          "parameters": [
+            "value"
+          ],
+          "annotations": {
+            "value": "object"
+          }
+        },
+        {
           "name": "Instance",
-          "line": 177,
+          "line": 187,
           "kind": "class"
         },
         {
           "name": "Instance.database",
-          "line": 181,
+          "line": 192,
           "kind": "function",
           "parameters": [
             "self"
@@ -59081,7 +59112,7 @@
         },
         {
           "name": "Instance.logging",
-          "line": 186,
+          "line": 197,
           "kind": "function",
           "parameters": [
             "self"
@@ -59090,7 +59121,7 @@
         },
         {
           "name": "Instance.identity_files",
-          "line": 191,
+          "line": 202,
           "kind": "function",
           "parameters": [
             "self"
@@ -59099,7 +59130,7 @@
         },
         {
           "name": "Instance.lifetime",
-          "line": 196,
+          "line": 207,
           "kind": "function",
           "parameters": [
             "self"
@@ -59108,7 +59139,7 @@
         },
         {
           "name": "Instance.identity_proof",
-          "line": 239,
+          "line": 250,
           "kind": "function",
           "parameters": [
             "self",
@@ -59120,7 +59151,7 @@
         },
         {
           "name": "Instance.health",
-          "line": 242,
+          "line": 253,
           "kind": "function",
           "parameters": [
             "self"
@@ -59129,7 +59160,7 @@
         },
         {
           "name": "Instance.close",
-          "line": 293,
+          "line": 304,
           "kind": "function",
           "parameters": [
             "self",
@@ -59141,7 +59172,7 @@
         },
         {
           "name": "open_instance",
-          "line": 299,
+          "line": 310,
           "kind": "function",
           "parameters": [
             "home",
@@ -59187,7 +59218,7 @@
             "terminal_backend": "TerminalBackendPort | None",
             "desktop_backend": "DesktopBackendPort | None",
             "portal_backend": "DesktopPortalPort | None",
-            "deployment": "dict | None"
+            "deployment": "Record | None"
           }
         }
       ],

@@ -33,15 +33,14 @@
 **验收口径（务必照此表述）：** `-n 2` 下 Playwright 重度用例会因资源争用偶发失败；先并行跑，再把失败项
 `-n 0` 串行复跑，两份报告都留档。**禁止**把"串行通过"写成"并行全绿"，也禁止把抖动写成功能缺陷。
 
-**当前基线（2026-11-13 实测，开工前再核一次）：** strict **264 文件 / 0 errors**（53 domain + 43 application +
-160 adapters + 8/13 composition）；未纳入 62 个 adapters（6840 错）+ `application/android.py`(475) +
-composition `instance`(58)/`http`(31)/`cli`(45)；全量 4656 项 4653 passed / 3 failed（抖动，串行全过）/ 0 errors；
-台账 `d7_typecheck_batch_141`。
+**当前基线（2026-11-13 实测，开工前再核一次）：** strict **265 文件 / 0 errors**（53 domain + 43 application +
+160 adapters + 9/13 composition）；未纳入 62 个 adapters（6840 错）+ `application/android.py`(475) +
+composition `http`(31)/`cli`(45)（`instance` 已纳入）；全量 4656 项 4653 passed / 3 failed（抖动，串行全过）/ 0 errors；
+台账 `d7_typecheck_batch_142`。
 
 **本次要做的顺序：**
-1. `composition/instance.py`（58，拆 2 节点；已提供 `database`/`logging`/`identity_files`/`lifetime` 只读访问器，
-   直接用，不要摸私有成员）→ 纳入 strict；
-2. `composition/http.py`（31，必须在 instance 之后）→ 纳入；
+1. ~~`composition/instance.py`（58）~~ → **已纳入 strict**（第一百四十二批，提交 `9f8f1f2`）；
+2. `composition/http.py`（31，必须在 instance 之后；instance 已完成，可直接开工）→ 纳入；
 3. `composition/cli.py`（45，拆 3）→ composition 13/13；
 4. P2 `application/android.py`（475，拆 5）→ 再 6 个 android 适配器/仓储/worker；
 5. P3 持久化 34 文件（切片顺序见交接文档 §4.3）；

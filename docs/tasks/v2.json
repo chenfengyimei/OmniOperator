@@ -284,9 +284,9 @@
       ]
     }
   ],
-  "checkpoint_commit": "d0b5ea9",
+  "checkpoint_commit": "9f8f1f2",
   "current_validation": {
-    "status": "d7_typecheck_batch_141",
+    "status": "d7_typecheck_batch_142",
     "targeted_unique_passed": 228,
     "includes_browser_cases": 10,
     "current_full_passed": false,
@@ -304,8 +304,8 @@
         "first_report": "temp/build/v2-full-144.xml"
       }
     ],
-    "code_version": "6d6ef0fdcc423a0f5f4758ffb83eeaaf0231d29e915438e9fb4fb45b6eae2921",
-    "fixed_source_files": 1200,
+    "code_version": "b41e6b49f5a5e336ed9017de54e0ef2ba9a37e81f442d36dc5407d262a2ca593",
+    "fixed_source_files": 1203,
     "baseline_repair_evidence": "docs/evidence/v2-baseline-repair.json",
     "market_evidence": "docs/evidence/v2-extension-market.json",
     "final_full_run": {
@@ -325,7 +325,7 @@
     "id": "D7.product_switch",
     "status": "进行中",
     "design": "docs/V2_PACKAGING.md",
-    "scope": "P1 剩 composition http/instance/cli；随后 P2 android.py(475)、P3 持久化 34 文件。strict 已到 264 文件（domain 53/53、application 43/44、adapters 160/222、composition 8/13）。"
+    "scope": "P1 剩 composition http/cli（instance 已纳入）；随后 P2 android.py(475)、P3 持久化 34 文件。strict 已到 265 文件（domain 53/53、application 43/44、adapters 160/222、composition 9/13）。"
   },
   "milestones": [
     {
