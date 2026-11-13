@@ -3,9 +3,11 @@
 from __future__ import annotations
 
 import re
+from typing import cast as tcast
 
-from sqlalchemy import LargeBinary, cast, func, literal_column, or_, select, update
+from sqlalchemy import Column, LargeBinary, cast, func, literal_column, or_, select, update
 
+from ...application.ports import Record
 from ...domain.action_review import (
     POLICY,
     TERMINAL_RUNS,
@@ -42,13 +44,13 @@ class ActionReviewRepositories(RepositoryBase):
         if not self.connection.execute(select(s.agents.c.id).where(s.agents.c.id == agent_id)).first():
             raise BusinessError("not_found", "Agent space does not exist", status=404)
 
-    def _action_review_action(self, agent_id: str, action_id: str) -> dict:
+    def _action_review_action(self, agent_id: str, action_id: str) -> Record:
         row = (
             self.connection.execute(
                 select(
-                    literal_column("actions.rowid").label("sequence"),
-                    *(s.actions.c[key] for key in ACTION_FIELDS),
-                    func.length(cast(s.actions.c.result, LargeBinary)).label("result_bytes"),
+                    tcast(Column[int], literal_column("actions.rowid").label("sequence")),
+                    *(tcast(Column[str], s.actions.c[key]) for key in ACTION_FIELDS),
+                    tcast(Column[int], func.length(cast(s.actions.c.result, LargeBinary)).label("result_bytes")),
                 ).where(s.actions.c.agent_id == agent_id, s.actions.c.id == action_id)
             )
             .mappings()
@@ -56,9 +58,9 @@ class ActionReviewRepositories(RepositoryBase):
         )
         if row is None:
             raise BusinessError("not_found", "Action does not exist in this Agent space", status=404)
-        return dict(row)
+        return tcast(Record, dict(row))
 
-    def _action_review_source(self, action: dict) -> dict:
+    def _action_review_source(self, action: Record) -> Record:
         binding = self.connection.execute(
             select(s.action_extension_bindings.c.run_tool_id).where(
                 s.action_extension_bindings.c.agent_id == action["agent_id"],
@@ -66,14 +68,14 @@ class ActionReviewRepositories(RepositoryBase):
             )
         ).scalar_one_or_none()
         if binding is None:
-            if action["tool"].startswith("ext__"):
+            if tcast(str, action["tool"]).startswith("ext__"):
                 raise BusinessError("action_review_source_changed", "The action has no verifiable plugin identity")
             return {"kind": "builtin_unversioned"}
-        agent = action["agent_id"]
+        agent = tcast(str, action["agent_id"])
         captured = self._one(s.run_extension_tools, agent, binding)
-        version = self._one(s.extension_revisions, agent, captured["extension_revision_id"])
-        tool = self._one(s.extension_tools, agent, captured["tool_id"])
-        grant = self._one(s.grants, agent, captured["grant_id"])
+        version = self._one(s.extension_revisions, agent, tcast(str, captured["extension_revision_id"]))
+        tool = self._one(s.extension_tools, agent, tcast(str, captured["tool_id"]))
+        grant = self._one(s.grants, agent, tcast(str, captured["grant_id"]))
         if (
             captured["run_id"] != action["run_id"]
             or captured["name"] != action["tool"]
@@ -89,25 +91,28 @@ class ActionReviewRepositories(RepositoryBase):
         ):
             raise BusinessError("action_review_source_changed", "The captured plugin identity is inconsistent")
         # Historical observations remain reviewable after ordinary plugin revocation or replacement.
-        return {
-            "kind": "plugin",
-            "binding_id": binding,
-            "extension_id": captured["extension_id"],
-            "extension_revision_id": version["id"],
-            "tool_id": tool["id"],
-            "grant_id": grant["id"],
-            "authority_epoch": captured["authority_epoch"],
-            "history_epoch": captured["history_epoch"],
-            "package_sha256": version["package_sha256"],
-            "catalog_sha256": version["catalog_sha256"],
-            "spec_sha256": tool["spec_sha256"],
-        }
+        return tcast(
+            Record,
+            {
+                "kind": "plugin",
+                "binding_id": binding,
+                "extension_id": captured["extension_id"],
+                "extension_revision_id": version["id"],
+                "tool_id": tool["id"],
+                "grant_id": grant["id"],
+                "authority_epoch": captured["authority_epoch"],
+                "history_epoch": captured["history_epoch"],
+                "package_sha256": version["package_sha256"],
+                "catalog_sha256": version["catalog_sha256"],
+                "spec_sha256": tool["spec_sha256"],
+            },
+        )
 
-    def _action_review_proof(self, action: dict) -> tuple[dict | None, list[str], dict, str]:
-        run = self._one(s.runs, action["agent_id"], action["run_id"])
-        session = self._one(s.sessions, action["agent_id"], run["session_id"])
-        epoch = self.connection.execute(select(s.history_identity.c.epoch)).scalar_one()
-        reasons = []
+    def _action_review_proof(self, action: Record) -> tuple[Record | None, list[str], Record, str]:
+        run = self._one(s.runs, tcast(str, action["agent_id"]), tcast(str, action["run_id"]))
+        session = self._one(s.sessions, tcast(str, action["agent_id"]), tcast(str, run["session_id"]))
+        epoch = tcast(str, self.connection.execute(select(s.history_identity.c.epoch)).scalar_one())
+        reasons: list[str] = []
         if not action["writes"]:
             reasons.append("action_not_write")
         if action["state"] != "unknown" and action["effect"] != "unknown":
@@ -126,7 +131,7 @@ class ActionReviewRepositories(RepositoryBase):
                 if not isinstance(digest, str) or re.fullmatch(r"[0-9a-f]{64}", digest) is None:
                     raise BusinessError("action_review_source_changed", "The pruned observation fingerprint is missing")
             else:
-                if (action["result_bytes"] or 0) > MAX_OBSERVATION_BYTES:
+                if (tcast(int, action["result_bytes"]) or 0) > MAX_OBSERVATION_BYTES:
                     raise BusinessError(
                         "action_review_observation_too_large", "Inspect this oversized observation offline"
                     )
@@ -136,7 +141,7 @@ class ActionReviewRepositories(RepositoryBase):
                     )
                 ).scalar_one()
                 digest = body_fingerprint([{"result": result}])[0]
-            proof = {
+            proof: Record = {
                 "policy": POLICY,
                 "agent_id": action["agent_id"],
                 "action_id": action["id"],
@@ -160,7 +165,7 @@ class ActionReviewRepositories(RepositoryBase):
         except BusinessError as exc:
             return None, [exc.code], run, epoch
 
-    def _action_review_head(self, action: dict, proof: dict | None) -> dict | None:
+    def _action_review_head(self, action: Record, proof: Record | None) -> Record | None:
         row = (
             self.connection.execute(
                 select(s.action_review_heads).where(
@@ -171,11 +176,11 @@ class ActionReviewRepositories(RepositoryBase):
             .mappings()
             .first()
         )
-        head = dict(row) if row else None
+        head = tcast(Record, dict(row)) if row else None
         if proof is None:
             return head
         fingerprint = proof_fingerprint(proof)
-        values = {
+        values: Record = {
             "history_epoch": proof["history_epoch"],
             "fingerprint": fingerprint,
             "arguments_sha256": proof["arguments_sha256"],
@@ -191,7 +196,7 @@ class ActionReviewRepositories(RepositoryBase):
             head = self._record(
                 s.action_review_heads,
                 {"action_id": action["id"], "run_id": action["run_id"], "revision": 0, "policy": POLICY, **values},
-                action["agent_id"],
+                tcast(str, action["agent_id"]),
             )
         elif (
             head["fingerprint"] != fingerprint
@@ -206,13 +211,13 @@ class ActionReviewRepositories(RepositoryBase):
                     s.action_review_heads.c.id == head["id"],
                     s.action_review_heads.c.revision == head["revision"],
                 )
-                .values(revision=head["revision"] + 1, **values)
+                .values(revision=tcast(int, head["revision"]) + 1, **values)
             ).rowcount
             if changed != 1:
                 raise BusinessError("action_review_conflict", "Action observation changed while inspecting")
-        return self._one(s.action_review_heads, action["agent_id"], head["id"])
+        return self._one(s.action_review_heads, tcast(str, action["agent_id"]), tcast(str, head["id"]))
 
-    def _action_review_public(self, review: dict) -> dict:
+    def _action_review_public(self, review: Record) -> Record:
         evidence = (
             self.connection.execute(
                 select(s.action_review_evidence).where(
@@ -224,20 +229,23 @@ class ActionReviewRepositories(RepositoryBase):
             .first()
         )
         available = bool(evidence and evidence["erased_at"] is None and evidence["body"])
-        return {
-            **{key: value for key, value in review.items() if key != "request_sha256"},
-            "revision": review["head_revision"] + 1,
-            "sequence": review["head_revision"] + 1,
-            "evidence_available": available,
-            **({"evidence": evidence["body"]} if available and evidence is not None else {}),
-        }
+        return tcast(
+            Record,
+            {
+                **{key: value for key, value in review.items() if key != "request_sha256"},
+                "revision": tcast(int, review["head_revision"]) + 1,
+                "sequence": tcast(int, review["head_revision"]) + 1,
+                "evidence_available": available,
+                **({"evidence": evidence["body"]} if available and evidence is not None else {}),
+            },
+        )
 
-    def action_review_history(self, agent_id: str, action_id: str, after: int = 0, limit: int = 20) -> list[dict]:
+    def action_review_history(self, agent_id: str, action_id: str, after: int = 0, limit: int = 20) -> list[Record]:
         page(after, limit)
         self._action_review_action(agent_id, action_id)
         sequence = s.action_reviews.c.head_revision + 1
         return [
-            self._action_review_public(dict(row))
+            self._action_review_public(tcast(Record, dict(row)))
             for row in self.connection.execute(
                 select(s.action_reviews, sequence.label("sequence"))
                 .where(
@@ -248,7 +256,7 @@ class ActionReviewRepositories(RepositoryBase):
             ).mappings()
         ]
 
-    def _action_review_detail(self, agent_id: str, action_id: str, *, history: bool) -> dict:
+    def _action_review_detail(self, agent_id: str, action_id: str, *, history: bool) -> Record:
         action = self._action_review_action(agent_id, action_id)
         proof, reasons, run, epoch = self._action_review_proof(action)
         head = self._action_review_head(action, proof)
@@ -262,7 +270,7 @@ class ActionReviewRepositories(RepositoryBase):
             and head["last_review_id"]
         )
         resolution = head["resolution"] if valid and head is not None else None
-        result = {
+        result: dict[str, object] = {
             "sequence": action["sequence"],
             "agent_id": agent_id,
             "action_id": action_id,
@@ -289,7 +297,7 @@ class ActionReviewRepositories(RepositoryBase):
         if history:
             rows = self.action_review_history(agent_id, action_id)
             latest = (
-                self._one(s.action_reviews, agent_id, head["last_review_id"])
+                self._one(s.action_reviews, agent_id, tcast(str, head["last_review_id"]))
                 if head and head["last_review_id"]
                 else None
             )
@@ -300,31 +308,34 @@ class ActionReviewRepositories(RepositoryBase):
                 history=rows,
                 history_next_after=rows[-1]["revision"] if len(rows) == 20 else None,
             )
-        return result
+        return tcast(Record, result)
 
-    def action_review_get(self, agent_id: str, action_id: str) -> dict:
+    def action_review_get(self, agent_id: str, action_id: str) -> Record:
         return self._action_review_detail(agent_id, action_id, history=True)
 
-    def action_review_page(self, agent_id: str, after: int = 0, limit: int = 20) -> list[dict]:
+    def action_review_page(self, agent_id: str, after: int = 0, limit: int = 20) -> list[Record]:
         page(after, limit)
         self._action_review_agent(agent_id)
-        sequence = literal_column("actions.rowid")
-        identities = list(
-            self.connection.execute(
-                select(s.actions.c.id)
-                .where(
-                    s.actions.c.agent_id == agent_id,
-                    s.actions.c.writes.is_(True),
-                    or_(s.actions.c.state == "unknown", s.actions.c.effect == "unknown"),
-                    sequence > after,
-                )
-                .order_by(sequence)
-                .limit(limit)
-            ).scalars()
+        sequence = tcast(Column[int], literal_column("actions.rowid"))
+        identities = tcast(
+            list[str],
+            list(
+                self.connection.execute(
+                    select(s.actions.c.id)
+                    .where(
+                        s.actions.c.agent_id == agent_id,
+                        s.actions.c.writes.is_(True),
+                        or_(s.actions.c.state == "unknown", s.actions.c.effect == "unknown"),
+                        sequence > after,
+                    )
+                    .order_by(sequence)
+                    .limit(limit)
+                ).scalars()
+            ),
         )
         return [self._action_review_detail(agent_id, action_id, history=False) for action_id in identities]
 
-    def action_review_replay(self, agent_id: str, action_id: str, request: dict) -> dict | None:
+    def action_review_replay(self, agent_id: str, action_id: str, request: Record) -> Record | None:
         decision = parse_review(request)
         sha = request_fingerprint(decision)
         previous = (
@@ -339,14 +350,17 @@ class ActionReviewRepositories(RepositoryBase):
                 raise BusinessError(
                     "action_review_conflict", "This review identity already records another observation"
                 )
-            return {
-                **self.action_review_get(agent_id, action_id),
-                "replayed": True,
-                "review": self._action_review_public(dict(previous)),
-            }
+            return tcast(
+                Record,
+                {
+                    **self.action_review_get(agent_id, action_id),
+                    "replayed": True,
+                    "review": self._action_review_public(tcast(Record, dict(previous))),
+                },
+            )
         return None
 
-    def action_review_commit(self, agent_id: str, action_id: str, request: dict) -> dict:
+    def action_review_commit(self, agent_id: str, action_id: str, request: Record) -> Record:
         replay = self.action_review_replay(agent_id, action_id, request)
         if replay is not None:
             return replay
@@ -364,19 +378,22 @@ class ActionReviewRepositories(RepositoryBase):
             raise BusinessError(
                 "action_review_conflict", "Action proof changed; inspect it before recording a decision"
             )
-        head, proof = current["head"], current["proof"]
+        head, proof = tcast(Record, current["head"]), tcast(Record, current["proof"])
         audit_id = self.audit(
             agent_id,
             "action.reviewed",
             action_id,
-            {
-                "review_id": decision["review_id"],
-                "decision": decision["decision"],
-                "fingerprint": decision["fingerprint"],
-                "unknown_preserved": True,
-            },
+            tcast(
+                Record,
+                {
+                    "review_id": decision["review_id"],
+                    "decision": decision["decision"],
+                    "fingerprint": decision["fingerprint"],
+                    "unknown_preserved": True,
+                },
+            ),
         )
-        evidence_sha = evidence_sha256(decision["evidence"])
+        evidence_sha = evidence_sha256(tcast(str, decision["evidence"]))
         review = self._record(
             s.action_reviews,
             {
@@ -409,7 +426,7 @@ class ActionReviewRepositories(RepositoryBase):
                 s.action_review_heads.c.revision == current["revision"],
             )
             .values(
-                revision=current["revision"] + 1,
+                revision=tcast(int, current["revision"]) + 1,
                 state="reviewed",
                 resolution=decision["decision"],
                 last_review_id=review["id"],
@@ -419,8 +436,11 @@ class ActionReviewRepositories(RepositoryBase):
         ).rowcount
         if changed != 1:
             raise BusinessError("action_review_conflict", "Another owner observation committed first")
-        return {
-            **self.action_review_get(agent_id, action_id),
-            "replayed": False,
-            "review": self._action_review_public(review),
-        }
+        return tcast(
+            Record,
+            {
+                **self.action_review_get(agent_id, action_id),
+                "replayed": False,
+                "review": self._action_review_public(review),
+            },
+        )
