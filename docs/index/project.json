@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "fe0070f5e7796b5b27b92b1a8da30629fec8402832e67aba69ca6cb83f5c3947",
+  "source_sha256": "b59ae0417bab0be753432ada405f92c5f8f35cab820292d5e0c1fe8a73198ecd",
   "modules": [
     {
       "id": "v2-domain",
@@ -404,7 +404,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 53701,
+      "lines": 53721,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -15444,7 +15444,7 @@
       "path": "agent/src/omni/adapters/persistence/maintenance.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.persistence.maintenance",
-      "lines": 1046,
+      "lines": 1066,
       "imports": [
         "omni.adapters.object_store",
         "omni.adapters.persistence",
@@ -15575,7 +15575,7 @@
         },
         {
           "name": "durable_json",
-          "line": 380,
+          "line": 381,
           "kind": "function",
           "parameters": [
             "path",
@@ -15588,7 +15588,7 @@
         },
         {
           "name": "migration_snapshot",
-          "line": 399,
+          "line": 400,
           "kind": "function",
           "parameters": [
             "database",
@@ -15601,7 +15601,7 @@
         },
         {
           "name": "object_report",
-          "line": 406,
+          "line": 407,
           "kind": "function",
           "parameters": [
             "paths"
@@ -15612,7 +15612,7 @@
         },
         {
           "name": "_quarantine_restored_work",
-          "line": 444,
+          "line": 451,
           "kind": "function",
           "parameters": [
             "connection",
@@ -15625,7 +15625,7 @@
         },
         {
           "name": "_finish_restore_marker",
-          "line": 819,
+          "line": 827,
           "kind": "function",
           "parameters": [
             "destination",
@@ -15638,7 +15638,7 @@
         },
         {
           "name": "verify_snapshot",
-          "line": 831,
+          "line": 839,
           "kind": "function",
           "parameters": [
             "source"
@@ -15649,7 +15649,7 @@
         },
         {
           "name": "_restore_verified",
-          "line": 903,
+          "line": 914,
           "kind": "function",
           "parameters": [
             "source",
@@ -15668,7 +15668,7 @@
         },
         {
           "name": "restore",
-          "line": 1022,
+          "line": 1042,
           "kind": "function",
           "parameters": [
             "source",

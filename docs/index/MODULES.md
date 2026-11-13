@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`fe0070f5e7796b5b27b92b1a8da30629fec8402832e67aba69ca6cb83f5c3947`。包含 65 个职责模块、735 个源码/界面文件。
+源码指纹：`b59ae0417bab0be753432ada405f92c5f8f35cab820292d5e0c1fe8a73198ecd`。包含 65 个职责模块、735 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -193,7 +193,7 @@
 | [agent/src/omni/adapters/persistence/history_sequence.py](../../agent/src/omni/adapters/persistence/history_sequence.py) | 27 | Allocate global history positions in the caller's transaction; never opens connections. |
 | [agent/src/omni/adapters/persistence/image_repository.py](../../agent/src/omni/adapters/persistence/image_repository.py) | 331 | Scoped image metadata, model-revision policies and per-call references; never reads files or encodes images. |
 | [agent/src/omni/adapters/persistence/lease_repository.py](../../agent/src/omni/adapters/persistence/lease_repository.py) | 283 | Persistent FIFO claims and fenced resource leases, within the caller's transaction. |
-| [agent/src/omni/adapters/persistence/maintenance.py](../../agent/src/omni/adapters/persistence/maintenance.py) | 1046 | Exclusive offline snapshots and restore. Live SQLite files are never copied directly. |
+| [agent/src/omni/adapters/persistence/maintenance.py](../../agent/src/omni/adapters/persistence/maintenance.py) | 1066 | Exclusive offline snapshots and restore. Live SQLite files are never copied directly. |
 | [agent/src/omni/adapters/persistence/maintenance_repository.py](../../agent/src/omni/adapters/persistence/maintenance_repository.py) | 514 | Bounded document-maintenance admission, fenced attempts and business-result settlement; no execution or I/O. |
 | [agent/src/omni/adapters/persistence/mcp_repository.py](../../agent/src/omni/adapters/persistence/mcp_repository.py) | 977 | MCP runtime generations, catalog snapshots, per-tool grants, run captures and call records. |
 | [agent/src/omni/adapters/persistence/media_repository.py](../../agent/src/omni/adapters/persistence/media_repository.py) | 329 | Scoped media sources, bounded jobs and immutable artifact rows; never reads files. |
