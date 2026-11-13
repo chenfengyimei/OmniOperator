@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "f58084bc520be308966b5eca57839fa2e3c534349b137625caf8c4d7afcecf4e",
+  "source_sha256": "ff4292d777013eb2c3faa3503c8792e358ecc0e64f6cd2269a0e6c7f80677e2c",
   "modules": [
     {
       "id": "v2-domain",
@@ -404,7 +404,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 53510,
+      "lines": 53513,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -498,7 +498,7 @@
         "web/ui/v2/v1/workbench.css",
         "web/ui/v2/workbench.css"
       ],
-      "lines": 19774,
+      "lines": 19800,
       "dependencies": []
     },
     {
@@ -14869,27 +14869,28 @@
       "path": "agent/src/omni/adapters/persistence/history_pruning_cycle.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.persistence.history_pruning_cycle",
-      "lines": 305,
+      "lines": 308,
       "imports": [
         "omni.adapters.persistence",
         "omni.adapters.persistence.repository_base",
+        "omni.application.ports",
         "omni.domain.contracts",
         "omni.domain.retention"
       ],
       "symbols": [
         {
           "name": "PruningSpec",
-          "line": 18,
+          "line": 19,
           "kind": "class"
         },
         {
           "name": "PruningCycle",
-          "line": 32,
+          "line": 33,
           "kind": "class"
         },
         {
           "name": "PruningCycle.__init__",
-          "line": 33,
+          "line": 34,
           "kind": "function",
           "parameters": [
             "self",
@@ -14905,7 +14906,7 @@
         },
         {
           "name": "PruningCycle.batch",
-          "line": 39,
+          "line": 38,
           "kind": "function",
           "parameters": [
             "self",
@@ -14917,7 +14918,7 @@
         },
         {
           "name": "PruningCycle.bound_batch",
-          "line": 47,
+          "line": 46,
           "kind": "function",
           "parameters": [
             "self",
@@ -14925,13 +14926,13 @@
             "cancelling"
           ],
           "annotations": {
-            "plan": "dict",
+            "plan": "Record",
             "cancelling": "bool"
           }
         },
         {
           "name": "PruningCycle.progress",
-          "line": 73,
+          "line": 72,
           "kind": "function",
           "parameters": [
             "self",
@@ -14939,8 +14940,8 @@
             "batch"
           ],
           "annotations": {
-            "plan": "dict",
-            "batch": "dict | None"
+            "plan": "Record",
+            "batch": "Record | None"
           }
         },
         {
@@ -14954,9 +14955,9 @@
             "progress"
           ],
           "annotations": {
-            "plan": "dict",
-            "target": "dict",
-            "progress": "dict | None"
+            "plan": "Record",
+            "target": "Record",
+            "progress": "Record | None"
           }
         },
         {
@@ -14968,7 +14969,7 @@
             "plan"
           ],
           "annotations": {
-            "plan": "dict[str, Any]"
+            "plan": "Record"
           }
         },
         {
@@ -14982,14 +14983,14 @@
             "backup_sha256"
           ],
           "annotations": {
-            "plan": "dict[str, Any]",
+            "plan": "Record",
             "backup_path": "str",
             "backup_sha256": "str"
           }
         },
         {
           "name": "PruningCycle.prune",
-          "line": 194,
+          "line": 195,
           "kind": "function",
           "parameters": [
             "self",
@@ -14997,13 +14998,13 @@
             "target"
           ],
           "annotations": {
-            "plan": "dict[str, Any]",
-            "target": "dict[str, Any]"
+            "plan": "Record",
+            "target": "Record"
           }
         },
         {
           "name": "PruningCycle.complete",
-          "line": 233,
+          "line": 234,
           "kind": "function",
           "parameters": [
             "self",
@@ -15015,7 +15016,7 @@
         },
         {
           "name": "PruningCycle.cancel",
-          "line": 269,
+          "line": 272,
           "kind": "function",
           "parameters": [
             "self",
@@ -15023,7 +15024,7 @@
             "reason"
           ],
           "annotations": {
-            "plan": "dict[str, Any]",
+            "plan": "Record",
             "reason": "str"
           }
         }
@@ -95595,7 +95596,7 @@
       "path": "web/ui/v2/index.html",
       "module": "v2-workbench",
       "python_module": null,
-      "lines": 1523,
+      "lines": 1527,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -95815,7 +95816,7 @@
       "path": "web/ui/v2/workbench.css",
       "module": "v2-workbench",
       "python_module": null,
-      "lines": 1511,
+      "lines": 1533,
       "imports": [],
       "symbols": [],
       "kind": "asset",

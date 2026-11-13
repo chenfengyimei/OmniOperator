@@ -6,9 +6,9 @@
  "d7_complete": false,
  "default_entrypoint": "v1",
  "source": {
-  "code_version": "06a8edd37efe81f85d37d6ee54886256ecdf3fb31e51fe379e4dd4d0f39c7483",
+  "code_version": "74efc14a85481ce2c43c48ba8c588cab6df6895a6d7da0f7ef04a42b34163381",
   "fixed_source_files": 1206,
-  "git_head": "8a7e688",
+  "git_head": "a4bf21b",
   "dirty_checkout": false,
   "recipe": "sha256(json.dumps({path: sha256(blob) for tracked agent/, web/, scripts/ files}, sort_keys=True)); see temp/build/source_version.py",
   "head_ui": "75c4219"
@@ -179,7 +179,8 @@
    "Strict scope reaches 279 files (53 domain + 44 application + 169 adapters + 13 composition); the lease repository types its lease/work-item/schedule-blocker/claim receipts as explicit Record, annotates the query-condition closure with Table and ColumnElement[bool], and narrows fence increments and session identifiers; FIFO ordering, fencing and previous-outcome-unknown blocking are unchanged",
    "Strict scope reaches 280 files (53 domain + 44 application + 170 adapters + 13 composition); the configuration repository types its revision/configuration/settings/history/capture/dispatch-authority receipts as explicit Record, narrows option-table lookups and permission epochs and keeps the settings normalisation runtime check. Compatibility: configuration_get keeps its original dict[str, Any] return because four already-strict callers rely on that width, while value parameters use Record to satisfy the UnitOfWork protocol variance, with casts at the domain boundary; revision conflicts, permission epochs and model-authority rules are unchanged",
    "Strict scope reaches 281 files (53 domain + 44 application + 171 adapters + 13 composition); the transaction repository aggregate (24 mixins) types its initialize/create-agent/accept-turn/token-session/message/transition and action receipts as explicit Record, narrows identifiers, sequences and policy payloads layer by layer, and bridges the not-yet-strict routing/QQ/delivery/extension/MCP/action-review mixins through local Any views; queue bounds, fencing, approval and unknown no-replay rules are unchanged",
-   "Strict scope reaches 282 files (53 domain + 44 application + 172 adapters + 13 composition); the outbound authority and FIFO ownership repository aligns every receipt with the application port Record contract, keeps the settle result parameter at Record to match port contravariance, narrows message/run/session identifiers, attempt sequences, lease fences and approval deadlines layer by layer, and types the identity payload as dict[str, object] for the domain digest helper; unknown no-replay, fail-closed approval and same-account FIFO serialization are unchanged"
+   "Strict scope reaches 282 files (53 domain + 44 application + 172 adapters + 13 composition); the outbound authority and FIFO ownership repository aligns every receipt with the application port Record contract, keeps the settle result parameter at Record to match port contravariance, narrows message/run/session identifiers, attempt sequences, lease fences and approval deadlines layer by layer, and types the identity payload as dict[str, object] for the domain digest helper; unknown no-replay, fail-closed approval and same-account FIFO serialization are unchanged",
+   "Strict scope reaches 283 files (53 domain + 44 application + 173 adapters + 13 composition); the single-transaction history pruning algorithm types plan/target/batch/progress as Record to match the already-strict audit and event pruning bindings, narrows the progress map key to str | int for the audit_id and sequence target keys, narrows trim revisions to int, and bridges the protected base writer through a local Any view per existing repository convention; plan identity, backup, epoch checks and complete-receipt validity are unchanged"
   ],
   "pending": [
    "application 44/44 complete; adapters 160/222 strict typing",
@@ -191,8 +192,8 @@
  "validation": {
   "all_latest_cases_passed": true,
   "latest_batch": {
-   "report": "temp/build/v2-typecheck-158-callers.xml",
-   "tests": 56,
+   "report": "temp/build/v2-typecheck-159-callers.xml",
+   "tests": 135,
    "failures": 0
   },
   "targeted_reports": [
@@ -1625,6 +1626,15 @@
     "errors": 0,
     "duration_s": 81.65,
     "note": "P3 delivery_repository batch: outbound authority and FIFO ownership + guard/arch/delivery/delivery-faults/delivery-http callers"
+   },
+   {
+    "path": "temp/build/v2-typecheck-159-callers.xml",
+    "sha256": "4b03deee67835af9287a4fd3555ab68d418ed983b6c59a82f57b983425cb5bbc",
+    "tests": 135,
+    "failures": 0,
+    "errors": 0,
+    "duration_s": 59.76,
+    "note": "P3 history_pruning_cycle batch: single-transaction pruning algorithm + guard/arch/audit-retention/audit-retention-contract/audit-retention-http/event-retention-contract/event-retention-http/retention-preview callers"
    }
   ],
   "gates": {
@@ -1636,7 +1646,7 @@
   "strict": {
    "config": "pyrightconfig.strict.json",
    "summary": {
-    "filesAnalyzed": 282,
+    "filesAnalyzed": 283,
     "errorCount": 0,
     "warningCount": 0,
     "informationCount": 0
@@ -1650,7 +1660,7 @@
     "informationCount": 0
    },
    "sources": [
-    "agent/src/omni/adapters/persistence/delivery_repository.py"
+    "agent/src/omni/adapters/persistence/history_pruning_cycle.py"
    ]
   },
   "full_run": {

@@ -6,21 +6,21 @@
 
 ## 1. 一句话现状
 
-Windows 上 V2 底座**可冷启动、可自检、可服务、可跑全量测试、可离线打包**；strict 门禁 **282 文件 0 错误**
-（domain/application/composition 三层全层完成，P2 Android 全部完成，P3 已起步）；但 **50 个 adapters 未类型化**，
+Windows 上 V2 底座**可冷启动、可自检、可服务、可跑全量测试、可离线打包**；strict 门禁 **283 文件 0 错误**
+（domain/application/composition 三层全层完成，P2 Android 全部完成，P3 已起步）；但 **49 个 adapters 未类型化**，
 且**真实模型/MCP/市场/设备/安装态/三平台验收全部未做**，入口切换未评估。
 
 ## 2. 已核验的事实（可直接引用，不必重测）
 
 | 项 | 数值 | 证据/命令 |
 | --- | --- | --- |
-| strict 门禁 | **282 文件 / 0 errors / 0 warnings** | `uv run --no-sync pyright --project pyrightconfig.strict.json` |
-| strict 分层 | 53/53 domain、**44/44 application 全层**、172/222 adapters、**13/13 composition 全层** | `docs/TYPE_CHECKING.md` |
-| 未纳入 strict | 50 个 adapters（P3 已纳入 schema/credential/lease/configuration/repository/delivery）（domain/application/composition 已全层纳入） | `temp/build/probe_strict.py`（survey-remaining.py 已不在库） |
+| strict 门禁 | **283 文件 / 0 errors / 0 warnings** | `uv run --no-sync pyright --project pyrightconfig.strict.json` |
+| strict 分层 | 53/53 domain、**44/44 application 全层**、173/222 adapters、**13/13 composition 全层** | `docs/TYPE_CHECKING.md` |
+| 未纳入 strict | 49 个 adapters（P3 剩 25 个 persistence 分片）（domain/application/composition 已全层纳入） | `temp/build/probe_strict.py`（survey-remaining.py 已不在库） |
 | 全量测试 | 4656 项：**4654 passed / 2 failed / 0 errors**（`-n 2`，56 分钟，第 15 节点） | `temp/build/v2-full-155.xml`、`docs/evidence/v2-typecheck.json` 的 `full_run` |
 | 失败性质 | 2 项：串行复跑 **1 过 1 败**（skills_ui[dark-760] 为抖动）；剩 `test_ui_embed_layer` 为**并行 UI 会话提交 `0497fe8` 引入的真实守卫违规**（`ui/v2/v1/frame.css` 副本截至第 15 节点仍未移除），归 UI 会话修，非本批回归 | 见 §5「验收口径」；两份报告留档 |
 | 默认入口 | `V1 until R6 parity gate` | `docs/tasks/v2.json` 的 `default_entrypoints` |
-| 台账 | `status=d7_typecheck_batch_158`、`checkpoint_commit=8a7e688`、源码指纹 `06a8edd3…`（1206 文件） | `docs/tasks/v2.json`、`docs/evidence/v2-typecheck.json` |
+| 台账 | `status=d7_typecheck_batch_159`、`checkpoint_commit=a4bf21b`、源码指纹 `74efc14a…`（1206 文件） | `docs/tasks/v2.json`、`docs/evidence/v2-typecheck.json` |
 | 工作树 | 干净，`codex/architecture-v2` 与 origin 同步（HEAD `e2f72a0` 之后的文档提交） | `git status -sb` |
 
 ## 3. 现在能用什么（Windows，实测）
@@ -130,8 +130,8 @@ uv run --no-sync python -m omni.composition.cli --home temp\demo-home auth
 
 ```powershell
 git status -sb                                   # 必须干净；脏的话先确认不是自己的改动
-uv run --no-sync pyright --project pyrightconfig.strict.json   # 期望 0/0（282 文件）
+uv run --no-sync pyright --project pyrightconfig.strict.json   # 期望 0/0（283 文件）
 uv run --no-sync python temp/build/probe_strict.py agent/src/omni/adapters/android.py  # 以实测为准
 ```
 
-domain/application/composition 已全层纳入（第一百四十二～一百四十六批），P2 Android 7 个模块全部纳入（第一百四十七～一百五十二批）。**P3 已起步**：`persistence/schema.py`(58) 已纳入（第一百五十三批，提交 `eacf4dc`，136 张表 DDL 与 HEAD 逐字一致 sha256 `e49d4152`）。`persistence/credential_repository.py`(80) 已纳入（第一百五十四批，提交 `ae6d07d`）。`persistence/lease_repository.py`(88) 已纳入（第一百五十五批，提交 `8d859ba`）。`persistence/configuration_repository.py`(94) 已纳入（第一百五十六批，提交 `1813ff9`；`configuration_get` 保持原 `dict[str, Any]` 口径以兼容 4 个已纳入调用方）。`persistence/delivery_repository.py`（实测 207）已纳入（第一百五十八批，提交 `8a7e688`）：回执对齐端口 `Record` 契约，`result` 参数保持 `Record` 符合逆变。P3 剩余为 §4.3 其余分片。每节点同步三处。
+domain/application/composition 已全层纳入（第一百四十二～一百四十六批），P2 Android 7 个模块全部纳入（第一百四十七～一百五十二批）。**P3 已起步**：`persistence/schema.py`(58) 已纳入（第一百五十三批，提交 `eacf4dc`，136 张表 DDL 与 HEAD 逐字一致 sha256 `e49d4152`）。`persistence/credential_repository.py`(80) 已纳入（第一百五十四批，提交 `ae6d07d`）。`persistence/lease_repository.py`(88) 已纳入（第一百五十五批，提交 `8d859ba`）。`persistence/configuration_repository.py`(94) 已纳入（第一百五十六批，提交 `1813ff9`；`configuration_get` 保持原 `dict[str, Any]` 口径以兼容 4 个已纳入调用方）。`persistence/history_pruning_cycle.py`（实测 45）已纳入（第一百五十九批，提交 `a4bf21b`）。P3 剩 25 个分片，实测错误数：context(73)、document(77)、event_retention(77)、execution_retention(105)、image(62)、maintenance(89)、memory_organization_predicates(81)、v0005(78)、object_gc(57)、terminal(100) 等，建议由小到大推进。每节点同步三处。
