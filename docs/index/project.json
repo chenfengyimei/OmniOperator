@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "1ab4ae7473c53c78886cefb79b5f2c2b363bd6479a9f5f44f82e4c6f3d2171c7",
+  "source_sha256": "48f5735bd758fd68dacab33b05fe183751817cdfc7e25420b9c556f8f14f8a7e",
   "modules": [
     {
       "id": "v2-domain",
@@ -404,7 +404,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 54054,
+      "lines": 54079,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -19819,10 +19819,11 @@
       "path": "agent/src/omni/adapters/persistence/reference_release_repository.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.persistence.reference_release_repository",
-      "lines": 305,
+      "lines": 330,
       "imports": [
         "omni.adapters.persistence",
         "omni.adapters.persistence.execution_retention_repository",
+        "omni.application.ports",
         "omni.domain.contracts",
         "omni.domain.reference_release",
         "omni.domain.retention"
@@ -19830,12 +19831,12 @@
       "symbols": [
         {
           "name": "ReferenceReleaseRepositories",
-          "line": 14,
+          "line": 17,
           "kind": "class"
         },
         {
           "name": "ReferenceReleaseRepositories.reference_inspect",
-          "line": 15,
+          "line": 18,
           "kind": "function",
           "parameters": [
             "self",
@@ -19851,7 +19852,7 @@
         },
         {
           "name": "ReferenceReleaseRepositories.reference_preview",
-          "line": 71,
+          "line": 79,
           "kind": "function",
           "parameters": [
             "self",
@@ -19865,7 +19866,7 @@
         },
         {
           "name": "ReferenceReleaseRepositories.reference_plan",
-          "line": 96,
+          "line": 111,
           "kind": "function",
           "parameters": [
             "self",
@@ -19879,7 +19880,7 @@
         },
         {
           "name": "ReferenceReleaseRepositories.reference_batch",
-          "line": 114,
+          "line": 132,
           "kind": "function",
           "parameters": [
             "self",
@@ -19891,7 +19892,7 @@
         },
         {
           "name": "ReferenceReleaseRepositories._reference_target",
-          "line": 124,
+          "line": 142,
           "kind": "function",
           "parameters": [
             "self",
@@ -19899,25 +19900,25 @@
             "target"
           ],
           "annotations": {
-            "plan": "dict",
-            "target": "dict"
+            "plan": "Record",
+            "target": "Record"
           }
         },
         {
           "name": "ReferenceReleaseRepositories.reference_validate",
-          "line": 146,
+          "line": 166,
           "kind": "function",
           "parameters": [
             "self",
             "plan"
           ],
           "annotations": {
-            "plan": "dict"
+            "plan": "Record"
           }
         },
         {
           "name": "ReferenceReleaseRepositories.reference_prepare",
-          "line": 158,
+          "line": 178,
           "kind": "function",
           "parameters": [
             "self",
@@ -19926,14 +19927,14 @@
             "backup_sha256"
           ],
           "annotations": {
-            "plan": "dict",
+            "plan": "Record",
             "backup_path": "str",
             "backup_sha256": "str"
           }
         },
         {
           "name": "ReferenceReleaseRepositories.reference_release",
-          "line": 194,
+          "line": 214,
           "kind": "function",
           "parameters": [
             "self",
@@ -19941,13 +19942,13 @@
             "target"
           ],
           "annotations": {
-            "plan": "dict",
-            "target": "dict"
+            "plan": "Record",
+            "target": "Record"
           }
         },
         {
           "name": "ReferenceReleaseRepositories.reference_complete",
-          "line": 241,
+          "line": 266,
           "kind": "function",
           "parameters": [
             "self",
@@ -19959,7 +19960,7 @@
         },
         {
           "name": "ReferenceReleaseRepositories.reference_cancel",
-          "line": 268,
+          "line": 293,
           "kind": "function",
           "parameters": [
             "self",
@@ -19967,7 +19968,7 @@
             "reason"
           ],
           "annotations": {
-            "plan": "dict",
+            "plan": "Record",
             "reason": "str"
           }
         }

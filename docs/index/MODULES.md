@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`1ab4ae7473c53c78886cefb79b5f2c2b363bd6479a9f5f44f82e4c6f3d2171c7`。包含 65 个职责模块、735 个源码/界面文件。
+源码指纹：`48f5735bd758fd68dacab33b05fe183751817cdfc7e25420b9c556f8f14f8a7e`。包含 65 个职责模块、735 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -251,7 +251,7 @@
 | [agent/src/omni/adapters/persistence/qq_authority.py](../../agent/src/omni/adapters/persistence/qq_authority.py) | 99 | Shared QQ audience and credential authority for context, model and outbound checks. |
 | [agent/src/omni/adapters/persistence/qq_repository.py](../../agent/src/omni/adapters/persistence/qq_repository.py) | 242 | QQ admission and authority within the shared unit of work; no network or extra truth store. |
 | [agent/src/omni/adapters/persistence/reference_release.py](../../agent/src/omni/adapters/persistence/reference_release.py) | 41 | Offline reference release uses the shared verified maintenance lifecycle; never unlinks objects. |
-| [agent/src/omni/adapters/persistence/reference_release_repository.py](../../agent/src/omni/adapters/persistence/reference_release_repository.py) | 305 | Release only reviewed retired action-object references; history is not a live object reference. |
+| [agent/src/omni/adapters/persistence/reference_release_repository.py](../../agent/src/omni/adapters/persistence/reference_release_repository.py) | 330 | Release only reviewed retired action-object references; history is not a live object reference. |
 | [agent/src/omni/adapters/persistence/releases.py](../../agent/src/omni/adapters/persistence/releases.py) | 214 | Consistent release snapshots and quarantined new-directory restores under caller-owned instance locks. |
 | [agent/src/omni/adapters/persistence/repository.py](../../agent/src/omni/adapters/persistence/repository.py) | 1096 | Transaction-scoped repositories. No connection creation, DDL or external calls. |
 | [agent/src/omni/adapters/persistence/repository_base.py](../../agent/src/omni/adapters/persistence/repository_base.py) | 52 | Common transaction-scoped identity, ownership and audit primitives. |
