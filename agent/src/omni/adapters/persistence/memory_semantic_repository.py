@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING, Any, cast
 
 from sqlalchemy import and_, select, update
 
+from ...application.ports import Record
 from ...domain.contracts import BusinessError
 from ...domain.documents import normalized_vector, vector_identity
 from ...domain.memory_organization import parse_decision, parse_request, request_fingerprint
@@ -22,17 +23,18 @@ class MemorySemanticRepositories(MemoryOrganizationRepositories):
     def memory_index_audit(self, agent_id: str, version: str, count: int, ready: int) -> None:
         self.audit(agent_id, "memory.index.prepared", agent_id, {"version": version, "count": count, "ready": ready})
 
-    def memory_semantic_capture(self, agent_id: str, memory_id: str, revision: int) -> dict:
-        row, _ = self._organization_capture(
+    def memory_semantic_capture(self, agent_id: str, memory_id: str, revision: int) -> Record:
+        parent: Any = self
+        row, _ = parent._organization_capture(
             agent_id, memory_id, revision, MAX_BYTES, kinds=("fact", "profile", "resident")
         )
-        return row
+        return cast(Record, row)
 
-    def memory_index_page(self, agent_id: str, after: str, limit: int) -> list[dict]:
+    def memory_index_page(self, agent_id: str, after: str, limit: int) -> list[Record]:
         paging(after, limit)
         self._organization_agent(agent_id)
         return [
-            dict(r)
+            cast(Record, dict(r))
             for r in self.connection.execute(
                 select(s.memory_entries.c.id, s.memory_entries.c.revision)
                 .where(
@@ -47,9 +49,9 @@ class MemorySemanticRepositories(MemoryOrganizationRepositories):
             ).mappings()
         ]
 
-    def memory_embedding_begin(self, agent_id: str, source: dict, version: str, dimension: int) -> dict:
+    def memory_embedding_begin(self, agent_id: str, source: Record, version: str, dimension: int) -> Record:
         vector_identity(version, dimension)
-        current = self.memory_semantic_capture(agent_id, source["memory_id"], source["revision"])
+        current = self.memory_semantic_capture(agent_id, cast(str, source["memory_id"]), cast(int, source["revision"]))
         if current != source:
             raise BusinessError("memory_recall_stale", "Memory or its sources changed")
         old = (
@@ -65,7 +67,7 @@ class MemorySemanticRepositories(MemoryOrganizationRepositories):
             .first()
         )
         if old:
-            return {**dict(old), "owned": False}
+            return {**cast(Record, dict(old)), "owned": False}
         return {
             **self._record(
                 s.memory_embeddings,
@@ -89,7 +91,7 @@ class MemorySemanticRepositories(MemoryOrganizationRepositories):
 
     def memory_embedding_finish(
         self, agent_id: str, identity: str, embedding: list[float] | None = None, error: str = ""
-    ) -> dict:
+    ) -> Record:
         row = self._one(s.memory_embeddings, agent_id, identity)
         if row["state"] != "building":
             return {k: v for k, v in row.items() if k != "embedding"}
@@ -97,11 +99,11 @@ class MemorySemanticRepositories(MemoryOrganizationRepositories):
             raise BusinessError("memory_index_owner_changed", "Index belongs to a different runtime")
         state = "failed" if error else "ready"
         if not error:
-            current = self.memory_semantic_capture(agent_id, row["memory_id"], row["revision"])
+            current = self.memory_semantic_capture(agent_id, cast(str, row["memory_id"]), cast(int, row["revision"]))
             if any(current[k] != row[k] for k in ("memory_revision_id", "raw_sha256", "evidence_sha256")):
                 state, error = "invalidated", "memory_recall_stale"
             else:
-                embedding = normalized_vector(embedding, row["dimension"])
+                embedding = normalized_vector(embedding, cast(int, row["dimension"]))
         self.connection.execute(
             update(s.memory_embeddings)
             .where(s.memory_embeddings.c.id == identity)
@@ -121,10 +123,10 @@ class MemorySemanticRepositories(MemoryOrganizationRepositories):
             .values(state="failed", embedding=None, finished_at=self.clock.now(), error_code="index_interrupted")
         )
 
-    def memory_vector_candidates(self, agent_id: str, version: str, dimension: int) -> list[dict]:
+    def memory_vector_candidates(self, agent_id: str, version: str, dimension: int) -> list[Record]:
         self._organization_agent(agent_id)
         return [
-            dict(r)
+            cast(Record, dict(r))
             for r in self.connection.execute(
                 select(
                     s.memory_entries.c.id,
@@ -154,19 +156,21 @@ class MemorySemanticRepositories(MemoryOrganizationRepositories):
             ).mappings()
         ]
 
-    def memory_recall_validate(self, agent_id: str, rows: list[dict], run_id: str | None = None) -> list[dict]:
-        result, used = [], 0
+    def memory_recall_validate(self, agent_id: str, rows: list[Record], run_id: str | None = None) -> list[Record]:
+        result, used = cast(list[Record], []), 0
         for row in rows:
-            current = self.memory_semantic_capture(agent_id, row["id"], row["revision"])
+            current = self.memory_semantic_capture(agent_id, cast(str, row["id"]), cast(int, row["revision"]))
             if ("content" in row and row["content"] != current["content"]) or any(
                 k in row and row[k] != current[k] for k in ("raw_sha256", "evidence_sha256")
             ):
                 raise BusinessError("memory_recall_stale", "Recall source changed before publication")
             if self.connection.execute(
-                select(s.memory_entries.c.id).where(s.memory_entries.c.id == row["id"], memory_is_organized())
+                select(s.memory_entries.c.id).where(
+                    s.memory_entries.c.id == cast(str, row["id"]), memory_is_organized()
+                )
             ).first():
                 raise BusinessError("memory_recall_stale", "An approved duplicate left recall")
-            used += len(current["content"].encode())
+            used += len(cast(str, current["content"]).encode())
             if used > MAX_BYTES:
                 raise BusinessError("memory_recall_budget", "Recall exceeds the source byte budget", status=422)
             result.append(
@@ -181,10 +185,10 @@ class MemorySemanticRepositories(MemoryOrganizationRepositories):
         if run_id:
             unit = cast("Repositories", self)
             unit.assert_run_authorized(agent_id, run_id)
-            unit.capture_tool_memories(agent_id, run_id, [r["id"] for r in result])
+            unit.capture_tool_memories(agent_id, run_id, [cast(str, r["id"]) for r in result])
         return result
 
-    def memory_semantic_replay(self, agent_id: str, request: dict) -> dict | None:
+    def memory_semantic_replay(self, agent_id: str, request: Record) -> Record | None:
         normalized = parse_request(request)
         self._organization_agent(agent_id)
         row = (
@@ -199,11 +203,11 @@ class MemorySemanticRepositories(MemoryOrganizationRepositories):
         )
         if row and row["request_sha256"] != request_fingerprint(request):
             raise BusinessError("idempotency_conflict", "This key identifies another semantic request")
-        return dict(row) if row else None
+        return cast(Record, dict(row)) if row else None
 
-    def _semantic_sources(self, agent_id: str, batch_id: str) -> list[dict]:
+    def _semantic_sources(self, agent_id: str, batch_id: str) -> list[Record]:
         return [
-            dict(r)
+            cast(Record, dict(r))
             for r in self.connection.execute(
                 select(s.memory_semantic_sources)
                 .where(
@@ -214,15 +218,19 @@ class MemorySemanticRepositories(MemoryOrganizationRepositories):
             ).mappings()
         ]
 
-    def memory_semantic_propose(self, agent_id: str, request: dict, version: str, dimension: int) -> dict:
+    def memory_semantic_propose(self, agent_id: str, request: Record, version: str, dimension: int) -> Record:
         prior = self.memory_semantic_replay(agent_id, request)
         if prior:
-            return self.memory_semantic_get(agent_id, prior["id"], version)
+            return self.memory_semantic_get(agent_id, cast(str, prior["id"]), version)
         vector_identity(version, dimension)
         normalized = parse_request(request)
-        captures, vectors, remaining = [], [], MAX_BYTES
-        for source in normalized["sources"]:
-            current, used = self._organization_capture(agent_id, source["memory_id"], source["revision"], remaining)
+        captures, vectors, remaining = cast(list[Record], []), cast(list[list[float]], []), MAX_BYTES
+        parent: Any = self
+        for source in cast(list[Record], normalized["sources"]):
+            current_raw, used = parent._organization_capture(
+                agent_id, cast(str, source["memory_id"]), cast(int, source["revision"]), remaining
+            )
+            current = cast(Record, current_raw)
             remaining -= used
             row = (
                 self.connection.execute(
@@ -243,7 +251,7 @@ class MemorySemanticRepositories(MemoryOrganizationRepositories):
                 )
             captures.append(current)
             vectors.append(normalized_vector(row["embedding"], dimension))
-        pairs = []
+        pairs: list[tuple[int, int, int]] = []
         for left, a in enumerate(captures):
             for right in range(left + 1, len(captures)):
                 b = captures[right]
@@ -262,7 +270,7 @@ class MemorySemanticRepositories(MemoryOrganizationRepositories):
         batch = self._record(
             s.memory_semantic_batches,
             {
-                "request_key": normalized["key"],
+                "request_key": cast(str, normalized["key"]),
                 "request_sha256": request_fingerprint(request),
                 "policy": POLICY,
                 "history_epoch": self._organization_epoch(),
@@ -282,7 +290,7 @@ class MemorySemanticRepositories(MemoryOrganizationRepositories):
             for i, row in enumerate(captures)
         ]
         for similarity, left, right in pairs:
-            value = {
+            value: Record = {
                 "batch_id": batch["id"],
                 "left_source_id": sources[left]["id"],
                 "right_source_id": sources[right]["id"],
@@ -293,7 +301,10 @@ class MemorySemanticRepositories(MemoryOrganizationRepositories):
                 {
                     **value,
                     "fingerprint": digest(
-                        {**value, "manifest": sources, "history_epoch": batch["history_epoch"], "version": version}
+                        cast(
+                            dict[str, object],
+                            {**value, "manifest": sources, "history_epoch": batch["history_epoch"], "version": version},
+                        )
                     ),
                     "state": "pending",
                     "revision": 1,
@@ -306,14 +317,14 @@ class MemorySemanticRepositories(MemoryOrganizationRepositories):
         self.audit(
             agent_id,
             "memory.semantic.prepared",
-            batch["id"],
+            cast(str, batch["id"]),
             {"policy": POLICY, "source_count": len(captures), "candidate_count": len(pairs), "model_calls": 0},
         )
-        return self.memory_semantic_get(agent_id, batch["id"], version)
+        return self.memory_semantic_get(agent_id, cast(str, batch["id"]), version)
 
-    def memory_semantic_get(self, agent_id: str, identity: str, version: str = "") -> dict:
+    def memory_semantic_get(self, agent_id: str, identity: str, version: str = "") -> Record:
         batch = self._one(s.memory_semantic_batches, agent_id, identity)
-        sources, current = self._semantic_sources(agent_id, identity), []
+        sources, current = self._semantic_sources(agent_id, identity), cast(list[Record], [])
         valid = (
             batch["history_epoch"] == self._organization_epoch()
             and batch["version"] == version
@@ -322,8 +333,12 @@ class MemorySemanticRepositories(MemoryOrganizationRepositories):
         if valid:
             try:
                 remaining = MAX_BYTES
+                parent: Any = self
                 for source in sources:
-                    row, used = self._organization_capture(agent_id, source["memory_id"], source["revision"], remaining)
+                    captured, used = parent._organization_capture(
+                        agent_id, cast(str, source["memory_id"]), cast(int, source["revision"]), remaining
+                    )
+                    row = cast(Record, captured)
                     remaining -= used
                     if any(row[k] != source[k] for k in CAPTURE_IDENTITY):
                         raise self._organization_stale()
@@ -331,7 +346,7 @@ class MemorySemanticRepositories(MemoryOrganizationRepositories):
             except BusinessError:
                 valid = False
         links = [
-            dict(r)
+            cast(Record, dict(r))
             for r in self.connection.execute(
                 select(s.memory_semantic_links)
                 .where(s.memory_semantic_links.c.batch_id == identity, s.memory_semantic_links.c.agent_id == agent_id)
@@ -346,11 +361,11 @@ class MemorySemanticRepositories(MemoryOrganizationRepositories):
             "links": [{**r, "valid": valid and r["state"] != "invalidated"} for r in links],
         }
 
-    def memory_semantic_page(self, agent_id: str, after: str, limit: int) -> list[dict]:
+    def memory_semantic_page(self, agent_id: str, after: str, limit: int) -> list[Record]:
         paging(after, limit)
         self._organization_agent(agent_id)
         return [
-            dict(r)
+            cast(Record, dict(r))
             for r in self.connection.execute(
                 select(
                     s.memory_semantic_batches.c.id,
@@ -365,10 +380,10 @@ class MemorySemanticRepositories(MemoryOrganizationRepositories):
             ).mappings()
         ]
 
-    def memory_semantic_decide(self, agent_id: str, identity: str, request: dict, version: str) -> dict:
+    def memory_semantic_decide(self, agent_id: str, identity: str, request: Record, version: str) -> Record:
         decision = parse_decision(request)
         row = self._one(s.memory_semantic_links, agent_id, identity)
-        report = self.memory_semantic_get(agent_id, row["batch_id"], version)
+        report = self.memory_semantic_get(agent_id, cast(str, row["batch_id"]), version)
         if row["revision"] != decision["revision"]:
             raise BusinessError("revision_conflict", "Semantic candidate changed")
         if (
@@ -385,16 +400,20 @@ class MemorySemanticRepositories(MemoryOrganizationRepositories):
             agent_id,
             "memory.semantic." + target,
             identity,
-            {"batch_id": row["batch_id"], "fingerprint": row["fingerprint"], "effect": "related_only_no_suppression"},
+            {
+                "batch_id": row["batch_id"],
+                "fingerprint": row["fingerprint"],
+                "effect": "related_only_no_suppression",
+            },
         )
         self.connection.execute(
             update(s.memory_semantic_links)
             .where(s.memory_semantic_links.c.id == identity)
             .values(
                 state=target,
-                revision=row["revision"] + 1,
+                revision=cast(int, row["revision"]) + 1,
                 updated_at=self.clock.now(),
                 **({"undo_audit_id": audit} if undo else {"review_audit_id": audit}),
             )
         )
-        return self.memory_semantic_get(agent_id, row["batch_id"], version)
+        return self.memory_semantic_get(agent_id, cast(str, row["batch_id"]), version)

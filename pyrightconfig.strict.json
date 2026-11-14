@@ -52,6 +52,7 @@
     "agent/src/omni/adapters/persistence/maintenance.py",
     "agent/src/omni/adapters/persistence/maintenance_repository.py",
     "agent/src/omni/adapters/persistence/mcp_repository.py",
+    "agent/src/omni/adapters/persistence/memory_semantic_repository.py",
     "agent/src/omni/adapters/persistence/migration_config.py",
     "agent/src/omni/adapters/persistence/migrations/__init__.py",
     "agent/src/omni/adapters/persistence/migrations/env.py",
