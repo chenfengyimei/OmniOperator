@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`c8766e2abfc9011edff7e28c5a225c5e71636437b4858789e9ffe8f5ba75d3ad`。包含 65 个职责模块、736 个源码/界面文件。
+源码指纹：`3e06936555a85888a3bbf3cd2c9aa00a2b249b10576ed61c520c908392eba152`。包含 65 个职责模块、736 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -153,7 +153,7 @@
 | [agent/src/omni/adapters/log_query.py](../../agent/src/omni/adapters/log_query.py) | 320 | Bounded diagnostic pages with cursors that survive rename and process restart. |
 | [agent/src/omni/adapters/mcp/__init__.py](../../agent/src/omni/adapters/mcp/__init__.py) | 1 | Bounded MCP transports: stdio JSON-RPC, Streamable HTTP and later explicit OAuth. |
 | [agent/src/omni/adapters/mcp/hosts.py](../../agent/src/omni/adapters/mcp/hosts.py) | 196 | Bounded MCP session ownership keyed by server generation; no database or model access. |
-| [agent/src/omni/adapters/mcp/http.py](../../agent/src/omni/adapters/mcp/http.py) | 299 | Bounded Streamable HTTP JSON-RPC transport with explicit bearer/OAuth tokens. |
+| [agent/src/omni/adapters/mcp/http.py](../../agent/src/omni/adapters/mcp/http.py) | 316 | Bounded Streamable HTTP JSON-RPC transport with explicit bearer/OAuth tokens. |
 | [agent/src/omni/adapters/mcp/oauth.py](../../agent/src/omni/adapters/mcp/oauth.py) | 481 | Explicit MCP OAuth 2.0 authorization-code flow with PKCE, state and a vault token store. |
 | [agent/src/omni/adapters/mcp/stdio.py](../../agent/src/omni/adapters/mcp/stdio.py) | 315 | Bounded JSON-RPC over one owned stdio process per MCP server generation. |
 | [agent/src/omni/adapters/media.py](../../agent/src/omni/adapters/media.py) | 192 | One bounded, supervised media processing subprocess; heavy libraries never load in the host. |

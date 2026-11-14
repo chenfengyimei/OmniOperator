@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "c8766e2abfc9011edff7e28c5a225c5e71636437b4858789e9ffe8f5ba75d3ad",
+  "source_sha256": "3e06936555a85888a3bbf3cd2c9aa00a2b249b10576ed61c520c908392eba152",
   "modules": [
     {
       "id": "v2-domain",
@@ -404,7 +404,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 54443,
+      "lines": 54460,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -9139,19 +9139,19 @@
       "path": "agent/src/omni/adapters/mcp/http.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.mcp.http",
-      "lines": 299,
+      "lines": 316,
       "imports": [
         "omni.domain.mcp"
       ],
       "symbols": [
         {
           "name": "HttpSession",
-          "line": 32,
+          "line": 34,
           "kind": "class"
         },
         {
           "name": "HttpSession.__init__",
-          "line": 37,
+          "line": 39,
           "kind": "function",
           "parameters": [
             "self",
@@ -9167,7 +9167,7 @@
         },
         {
           "name": "HttpSession._session",
-          "line": 54,
+          "line": 56,
           "kind": "function",
           "parameters": [
             "self"
@@ -9176,7 +9176,7 @@
         },
         {
           "name": "HttpSession.close",
-          "line": 63,
+          "line": 65,
           "kind": "function",
           "parameters": [
             "self",
@@ -9188,7 +9188,7 @@
         },
         {
           "name": "HttpSession.health",
-          "line": 70,
+          "line": 72,
           "kind": "function",
           "parameters": [
             "self"
@@ -9197,7 +9197,7 @@
         },
         {
           "name": "HttpSession._headers",
-          "line": 82,
+          "line": 84,
           "kind": "function",
           "parameters": [
             "self"
@@ -9206,7 +9206,7 @@
         },
         {
           "name": "HttpSession._matching",
-          "line": 99,
+          "line": 101,
           "kind": "function",
           "parameters": [
             "value",
@@ -9219,7 +9219,7 @@
         },
         {
           "name": "HttpSession._read_sse",
-          "line": 108,
+          "line": 118,
           "kind": "function",
           "parameters": [
             "self",
@@ -9233,7 +9233,7 @@
         },
         {
           "name": "HttpSession._post",
-          "line": 144,
+          "line": 154,
           "kind": "function",
           "parameters": [
             "self",
@@ -9244,7 +9244,7 @@
             "strict"
           ],
           "annotations": {
-            "payload": "dict",
+            "payload": "Packet",
             "identity": "int",
             "timeout_s": "float",
             "uncertain_on_loss": "bool",
@@ -9253,7 +9253,7 @@
         },
         {
           "name": "HttpSession._request",
-          "line": 225,
+          "line": 235,
           "kind": "function",
           "parameters": [
             "self",
@@ -9264,14 +9264,14 @@
           ],
           "annotations": {
             "method": "str",
-            "params": "dict",
+            "params": "Packet",
             "timeout_s": "float",
             "uncertain_on_loss": "bool"
           }
         },
         {
           "name": "HttpSession._notify",
-          "line": 236,
+          "line": 246,
           "kind": "function",
           "parameters": [
             "self",
@@ -9280,12 +9280,12 @@
           ],
           "annotations": {
             "method": "str",
-            "params": "dict"
+            "params": "Packet"
           }
         },
         {
           "name": "HttpSession.start",
-          "line": 248,
+          "line": 258,
           "kind": "function",
           "parameters": [
             "self"
@@ -9294,7 +9294,7 @@
         },
         {
           "name": "HttpSession.catalog",
-          "line": 269,
+          "line": 279,
           "kind": "function",
           "parameters": [
             "self"
@@ -9303,7 +9303,7 @@
         },
         {
           "name": "HttpSession.call",
-          "line": 291,
+          "line": 301,
           "kind": "function",
           "parameters": [
             "self",
@@ -9314,8 +9314,9 @@
           ],
           "annotations": {
             "name": "str",
-            "arguments": "dict",
-            "timeout_s": "float"
+            "arguments": "Packet",
+            "timeout_s": "float",
+            "before_send": "Callable[[], Awaitable[None]] | None"
           }
         }
       ],
