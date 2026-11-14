@@ -1,14 +1,14 @@
 {
  "schema": 1,
- "batch": 191,
+ "batch": 192,
  "date": "2026-11-14",
  "whole_v2_complete": false,
  "d7_complete": false,
  "default_entrypoint": "v1",
  "source": {
-  "code_version": "9b7b96b3a5d84e79f1eff144f573fb71a9741d5ea8c1bd0da855bc845d0c86a6",
+  "code_version": "93582f03fb232ad53955ae56e7f69bd37091e2c0bf2b0412ad65c4086b51ac29",
   "fixed_source_files": 1208,
-  "git_head": "24717781",
+  "git_head": "b93d623d",
   "dirty_checkout": true,
   "recipe": "sha256(json.dumps({path: sha256(blob) for tracked agent/, web/, scripts/ files}, sort_keys=True)); see temp/build/source_version.py",
   "head_ui": "75c4219",
@@ -197,14 +197,15 @@
  "validation": {
   "all_latest_cases_passed": false,
   "latest_batch": {
-   "batch": 191,
+   "batch": 192,
    "sources": [
-    "agent/src/omni/adapters/workers/media.py",
-    "agent/tests/test_v2_media.py"
+    "agent/src/omni/adapters/workers/bilibili.py"
    ],
-   "report": "temp/build/v2-typecheck-191-callers.xml",
-   "tests": 60,
-   "included_in_strict_scope": true
+   "report": "temp/build/v2-typecheck-192-callers.xml",
+   "tests": 62,
+   "included_in_strict_scope": false,
+   "module_complete": false,
+   "remaining_strict_errors": 26
   },
   "targeted_reports": [
    {
@@ -1951,6 +1952,16 @@
     "skipped": 0,
     "duration_s": 75.406,
     "note": "Batch 191: strict 315 files (53 domain, 44 application, 205/222 adapters, 13 composition); 媒体 worker（IPC Payload、音频/图像 SDK 边界显式类型、固定可选依赖加载；离线缓存、VAD 空结果回退及采样字节不变）"
+   },
+   {
+    "path": "temp/build/v2-typecheck-192-callers.xml",
+    "sha256": "05141d243a6b00b3bd28b085d0da7ca0d09e19af58b7bb570c5c96f8dee6001e",
+    "tests": 62,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "duration_s": 53.643,
+    "note": "Batch 192: strict 315 files (53 domain, 44 application, 205/222 adapters, 13 composition); Bilibili 发布闸门与页面表单类型化（第一步，26项待续）"
    }
   ],
   "gates": {
@@ -1974,10 +1985,11 @@
     "filesAnalyzed": 1,
     "errorCount": 0,
     "warningCount": 0,
-    "informationCount": 0
+    "informationCount": 0,
+    "timeInSec": 1.222
    },
    "sources": [
-    "agent/src/omni/adapters/workers/media.py"
+    "agent/src/omni/adapters/workers/bilibili.py"
    ]
   },
   "full_run": {
@@ -2376,7 +2388,8 @@
    "Batch 188: strict 312 files (53 domain, 44 application, 202/222 adapters, 13 composition); 模型流式适配器（SDK 迭代器/关闭回调/计费载荷显式类型；供应商结束与用量证据、分片限额、取消后实际关闭及未知费用不变）",
    "Batch 189: strict 313 files (53 domain, 44 application, 203/222 adapters, 13 composition); 诊断包（来源/调试回执对齐 Record、关联项白名单显式 Payload、I/O Future 泛型化；脱敏边界、容量、取消归属及不覆盖导出不变）",
    "Batch 190: strict 314 files (53 domain, 44 application, 204/222 adapters, 13 composition); OneBot 传输（发送账号对齐 Record、监听配置 Payload、回调 object、上下文管理器 AsyncGenerator；发送前授权复核及 unknown 不重放不变）",
-   "Batch 191: strict 315 files (53 domain, 44 application, 205/222 adapters, 13 composition); 媒体 worker（IPC Payload、音频/图像 SDK 边界显式类型、固定可选依赖加载；离线缓存、VAD 空结果回退及采样字节不变）"
+   "Batch 191: strict 315 files (53 domain, 44 application, 205/222 adapters, 13 composition); 媒体 worker（IPC Payload、音频/图像 SDK 边界显式类型、固定可选依赖加载；离线缓存、VAD 空结果回退及采样字节不变）",
+   "Batch 192: strict 315 files (53 domain, 44 application, 205/222 adapters, 13 composition); Bilibili 发布闸门与页面表单类型化（第一步，26项待续）"
   ],
   "next_full_checkpoint": 194
  },
@@ -2390,7 +2403,7 @@
   ]
  },
  "next": {
-  "id": "D7.typecheck.p4_business_adapters",
+  "id": "D7.typecheck.p4_adapters",
   "scope": "P4 in progress; 17 adapters remain across P4/P5/P6. Next full-suite checkpoint: batch 194. Real-environment acceptance pending."
  }
 }

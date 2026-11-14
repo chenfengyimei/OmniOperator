@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "182cc152f9e275f3cf423785ecd4e3100d318bf071d61526df0651c6befe6932",
+  "source_sha256": "c819950726b304512e9ebf395d04a171a00554795d35a0d7f7ba4056f901aa73",
   "modules": [
     {
       "id": "v2-domain",
@@ -404,7 +404,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 54237,
+      "lines": 54251,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -33045,7 +33045,7 @@
       "path": "agent/src/omni/adapters/workers/bilibili.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.workers.bilibili",
-      "lines": 481,
+      "lines": 495,
       "imports": [
         "omni.adapters.workers.protocol",
         "omni.domain.bilibili",
@@ -33055,49 +33055,53 @@
       "symbols": [
         {
           "name": "PublicationGate",
-          "line": 24,
+          "line": 26,
           "kind": "class"
         },
         {
           "name": "PublicationGate.__init__",
-          "line": 27,
+          "line": 29,
           "kind": "function",
           "parameters": [
             "self",
             "spec"
           ],
           "annotations": {
-            "spec": "dict"
+            "spec": "Payload"
           }
         },
         {
           "name": "PublicationGate.route",
-          "line": 33,
+          "line": 35,
           "kind": "function",
           "parameters": [
             "self",
             "route"
           ],
-          "annotations": {}
+          "annotations": {
+            "route": "Route"
+          }
         },
         {
           "name": "PublicationGate.matches",
-          "line": 55,
+          "line": 57,
           "kind": "function",
           "parameters": [
             "self",
             "request"
           ],
-          "annotations": {}
+          "annotations": {
+            "request": "Request"
+          }
         },
         {
           "name": "PageForms",
-          "line": 107,
+          "line": 109,
           "kind": "class"
         },
         {
           "name": "PageForms.__init__",
-          "line": 108,
+          "line": 110,
           "kind": "function",
           "parameters": [
             "self",
@@ -33107,23 +33111,28 @@
             "verifier"
           ],
           "annotations": {
-            "spec": "dict",
-            "gate": "PublicationGate | None"
+            "page": "Page",
+            "spec": "Payload",
+            "gate": "PublicationGate | None",
+            "verifier": "Callable[[], Awaitable[Page]] | None"
           }
         },
         {
           "name": "PageForms.one",
-          "line": 119,
+          "line": 127,
           "kind": "function",
           "parameters": [
             "scope",
             "selector"
           ],
-          "annotations": {}
+          "annotations": {
+            "scope": "Page | Locator",
+            "selector": "str"
+          }
         },
         {
           "name": "PageForms.capture",
-          "line": 125,
+          "line": 133,
           "kind": "function",
           "parameters": [
             "self"
@@ -33132,7 +33141,7 @@
         },
         {
           "name": "PageForms.open",
-          "line": 162,
+          "line": 173,
           "kind": "function",
           "parameters": [
             "self"
@@ -33141,19 +33150,19 @@
         },
         {
           "name": "PageForms.fill",
-          "line": 173,
+          "line": 184,
           "kind": "function",
           "parameters": [
             "self",
             "args"
           ],
           "annotations": {
-            "args": "dict"
+            "args": "Payload"
           }
         },
         {
           "name": "PageForms.chips",
-          "line": 243,
+          "line": 254,
           "kind": "function",
           "parameters": [
             "self",
@@ -33161,47 +33170,52 @@
             "selector"
           ],
           "annotations": {
+            "scope": "Page | Locator",
             "selector": "str"
           }
         },
         {
           "name": "PageForms.commit",
-          "line": 253,
+          "line": 264,
           "kind": "function",
           "parameters": [
             "self",
             "args"
           ],
           "annotations": {
-            "args": "dict"
+            "args": "Payload"
           }
         },
         {
           "name": "PageForms.commit.relevant",
-          "line": 272,
+          "line": 283,
           "kind": "function",
           "parameters": [
             "request"
           ],
-          "annotations": {}
+          "annotations": {
+            "request": "Request"
+          }
         },
         {
           "name": "PageForms.commit.observed",
-          "line": 284,
+          "line": 295,
           "kind": "function",
           "parameters": [
             "request"
           ],
-          "annotations": {}
+          "annotations": {
+            "request": "Request"
+          }
         },
         {
           "name": "BrowserWorker",
-          "line": 395,
+          "line": 409,
           "kind": "class"
         },
         {
           "name": "BrowserWorker.__init__",
-          "line": 396,
+          "line": 410,
           "kind": "function",
           "parameters": [
             "self"
@@ -33210,7 +33224,7 @@
         },
         {
           "name": "BrowserWorker.invoke",
-          "line": 400,
+          "line": 414,
           "kind": "function",
           "parameters": [
             "self",
@@ -33226,7 +33240,7 @@
         },
         {
           "name": "BrowserWorker.close",
-          "line": 459,
+          "line": 473,
           "kind": "function",
           "parameters": [
             "self"
@@ -33235,7 +33249,7 @@
         },
         {
           "name": "serve",
-          "line": 466,
+          "line": 480,
           "kind": "function",
           "parameters": [],
           "annotations": {}

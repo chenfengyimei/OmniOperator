@@ -1,6 +1,6 @@
 # OmniOperator 当前交接入口
 
-> strict 当前接续（2026-11-14，第 191 批）：**315 文件 / 0 errors / 0 warnings**；adapters **205/222**，剩 **17** 个模块。最新 `agent/src/omni/adapters/workers/media.py`：媒体 worker（IPC Payload、音频/图像 SDK 边界显式类型、固定可选依赖加载；离线缓存、VAD 空结果回退及采样字节不变）。相关专项 **60 项通过**，源码 `24717781`；最近全量记录为第 50 节点（4660 passed / 1 failed），仅代表其固定源码；下一全量节点第 194 批。默认正式入口仍是 V1，真实验收未完成。
+> strict 当前接续（2026-11-14，第 192 批）：**315 文件 / 0 errors / 0 warnings**；adapters **205/222**，剩 **17** 个模块。最新 `agent/src/omni/adapters/workers/bilibili.py`：Bilibili 发布闸门与页面表单类型化（第一步，26项待续）。该模块分步收口，尚有 26 项 strict 诊断，未纳入门禁；相关专项 **62 项通过**，源码 `b93d623d`；最近全量记录为第 50 节点（4660 passed / 1 failed），仅代表其固定源码；下一全量节点第 194 批。默认正式入口仍是 V1，真实验收未完成。
 
 > 当前正在实施V2底层重构；先读 [V2实施记录](V2_REFACTOR.md) 和 [V2任务台账](tasks/v2.json)。默认入口仍为V1，不能将新基础批次称为完整迁移。
 
