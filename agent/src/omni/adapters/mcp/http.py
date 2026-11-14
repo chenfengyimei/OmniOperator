@@ -7,6 +7,7 @@ import inspect
 import json
 import logging
 from collections.abc import Awaitable, Callable
+from typing import Any, cast
 
 import httpx
 
@@ -24,6 +25,7 @@ from ...domain.mcp import (
 )
 
 log = logging.getLogger("omni.v2.mcp")
+Packet = dict[str, Any]
 
 CONNECT_TIMEOUT_S = 10.0
 MAX_SSE_EVENTS = 256
@@ -49,7 +51,7 @@ class HttpSession:
         self._lock = asyncio.Lock()
         self._next_id = 1
         self._closed = False
-        self._handshake: dict = {}
+        self._handshake: Packet = {}
 
     def _session(self) -> httpx.AsyncClient:
         if self._client is None:
@@ -67,7 +69,7 @@ class HttpSession:
             self._client = None
         return True
 
-    def health(self) -> dict:
+    def health(self) -> Packet:
         return {
             "transport": self.kind,
             "running": self._client is not None and not self._closed,
@@ -96,16 +98,24 @@ class HttpSession:
         return headers
 
     @staticmethod
-    def _matching(value: object, identity: int) -> dict | None:
-        if isinstance(value, dict) and value.get("id") == identity and value.get("jsonrpc") == "2.0":
-            return value
+    def _matching(value: object, identity: int) -> Packet | None:
+        if (
+            isinstance(value, dict)
+            and cast(Packet, value).get("id") == identity
+            and cast(Packet, value).get("jsonrpc") == "2.0"
+        ):
+            return cast(Packet, value)
         if isinstance(value, list):
-            for item in value:
-                if isinstance(item, dict) and item.get("id") == identity and item.get("jsonrpc") == "2.0":
-                    return item
+            for item in cast(list[object], value):
+                if (
+                    isinstance(item, dict)
+                    and cast(Packet, item).get("id") == identity
+                    and cast(Packet, item).get("jsonrpc") == "2.0"
+                ):
+                    return cast(Packet, item)
         return None
 
-    async def _read_sse(self, response: httpx.Response, identity: int) -> dict:
+    async def _read_sse(self, response: httpx.Response, identity: int) -> Packet:
         data: list[str] = []
         events = 0
         total = 0
@@ -142,8 +152,8 @@ class HttpSession:
         raise MCPUncertain("mcp_protocol_error", "MCP event stream ended without a matching response")
 
     async def _post(
-        self, payload: dict, identity: int, timeout_s: float, *, uncertain_on_loss: bool, strict: bool = True
-    ) -> dict:
+        self, payload: Packet, identity: int, timeout_s: float, *, uncertain_on_loss: bool, strict: bool = True
+    ) -> Packet:
         if self._closed:
             raise MCPDispatchError("mcp_not_connected", "MCP session is closed")
         client = self._session()
@@ -215,14 +225,14 @@ class HttpSession:
             raise
         if "error" in matched:
             error = matched["error"]
-            code = str(error.get("code", ""))[:40] if isinstance(error, dict) else ""
+            code = str(cast(Packet, error).get("code", ""))[:40] if isinstance(error, dict) else ""
             raise MCPDispatchError("mcp_server_error", f"MCP server rejected the request ({code})".strip())
         result = matched.get("result")
         if not isinstance(result, dict):
             raise MCPUncertain("mcp_protocol_error", "MCP response has no bounded result object")
-        return result
+        return cast(Packet, result)
 
-    async def _request(self, method: str, params: dict, timeout_s: float, *, uncertain_on_loss: bool) -> dict:
+    async def _request(self, method: str, params: Packet, timeout_s: float, *, uncertain_on_loss: bool) -> Packet:
         async with self._lock:
             identity = self._next_id
             self._next_id += 1
@@ -233,7 +243,7 @@ class HttpSession:
                 uncertain_on_loss=uncertain_on_loss,
             )
 
-    async def _notify(self, method: str, params: dict) -> None:
+    async def _notify(self, method: str, params: Packet) -> None:
         async with self._lock:
             await self._post(
                 {"jsonrpc": "2.0", "method": method, "params": params},
@@ -245,7 +255,7 @@ class HttpSession:
 
     # ---------- MCP operations ----------
 
-    async def start(self) -> dict:
+    async def start(self) -> Packet:
         result = await self._request(
             "initialize",
             {
@@ -257,7 +267,7 @@ class HttpSession:
             uncertain_on_loss=False,
         )
         server_info = result.get("serverInfo")
-        info = server_info if isinstance(server_info, dict) else {}
+        info: Packet = cast(Packet, server_info) if isinstance(server_info, dict) else {}
         self._handshake = {
             "protocol_version": str(result.get("protocolVersion") or PROTOCOL_VERSION)[:40],
             "server_name": str(info.get("name", ""))[:100],
@@ -266,8 +276,8 @@ class HttpSession:
         await self._notify("notifications/initialized", {})
         return self._handshake
 
-    async def catalog(self) -> list[dict]:
-        tools: list[dict] = []
+    async def catalog(self) -> list[Packet]:
+        tools: list[Packet] = []
         cursor = ""
         started = asyncio.get_running_loop().time()
         for _ in range(MAX_PAGES):
@@ -277,10 +287,10 @@ class HttpSession:
             page = await self._request(
                 "tools/list", {"cursor": cursor} if cursor else {}, remaining, uncertain_on_loss=False
             )
-            listed = page.get("tools")
-            if not isinstance(listed, list) or len(listed) > MAX_TOOLS:
+            listed = cast(list[Packet], page.get("tools"))
+            if not isinstance(cast(object, listed), list) or len(listed) > MAX_TOOLS:
                 raise MCPDispatchError("mcp_catalog_invalid", "MCP catalog page was not bounded")
-            tools.extend(item for item in listed if isinstance(item, dict))
+            tools.extend(item for item in listed if isinstance(cast(object, item), dict))
             if len(tools) > MAX_TOOLS:
                 raise MCPDispatchError("mcp_catalog_too_large", "The MCP catalog exceeds its tool bound")
             cursor = page.get("nextCursor") or ""
@@ -288,7 +298,14 @@ class HttpSession:
                 return tools
         raise MCPDispatchError("mcp_catalog_too_large", "MCP catalog pagination exceeded its page bound")
 
-    async def call(self, name: str, arguments: dict, timeout_s: float, *, before_send=None) -> dict:
+    async def call(
+        self,
+        name: str,
+        arguments: Packet,
+        timeout_s: float,
+        *,
+        before_send: Callable[[], Awaitable[None]] | None = None,
+    ) -> Packet:
         if before_send is not None:
             await before_send()
         return await self._request(
