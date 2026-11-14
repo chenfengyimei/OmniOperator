@@ -20,7 +20,7 @@ import zipfile
 from collections.abc import Callable, Mapping
 from concurrent.futures import Future, ThreadPoolExecutor
 from pathlib import Path
-from typing import TypeVar
+from typing import Any, TypeVar, cast
 
 from ...application.ports import Record
 from ...domain.contracts import BusinessError
@@ -37,6 +37,7 @@ from ...domain.extensions import (
 from ..object_store import sync_directory
 
 T = TypeVar("T")
+Payload = dict[str, object]
 PRIVATE = frozenset(
     {
         ".git",
@@ -124,7 +125,12 @@ def _read_file(path: Path) -> bytes:
         after = os.fstat(stream.fileno())
     no_links(path)
     current = path.stat(follow_symlinks=False)
-    identity = lambda item: (item.st_dev, item.st_ino, item.st_size, item.st_mtime_ns)
+    identity: Callable[[os.stat_result], tuple[int, int, int, int]] = lambda item: (
+        item.st_dev,
+        item.st_ino,
+        item.st_size,
+        item.st_mtime_ns,
+    )
     if len(data) != before.st_size or identity(before) != identity(after) or identity(before) != identity(current):
         raise _invalid("extension_source_changed", status=409)
     return data
@@ -174,8 +180,8 @@ def _directory_files(root: Path) -> dict[str, bytes]:
     return files
 
 
-def _pairs(items):
-    result = {}
+def _pairs(items: list[tuple[str, object]]) -> Payload:
+    result: Payload = {}
     for key, value in items:
         if key in result:
             raise _invalid()
@@ -183,7 +189,7 @@ def _pairs(items):
     return result
 
 
-def _manifest(data: bytes) -> dict:
+def _manifest(data: bytes) -> Payload:
     if len(data) > MAX_MANIFEST_BYTES:
         raise _invalid()
     try:
@@ -211,7 +217,7 @@ def _captured(files: dict[str, bytes]) -> CapturedPackage:
     manifest = _manifest(files["extension.json"])
     if relative_path(manifest["entry"]) not in files:
         raise _invalid()
-    proof = tuple(
+    proof: tuple[Payload, ...] = tuple(
         {"path": name, "bytes": len(data), "sha256": hashlib.sha256(data).hexdigest()}
         for name, data in sorted(files.items())
     )
@@ -234,13 +240,13 @@ def verify_snapshot(location: Path, package_sha256: str, catalog_sha256: str) ->
         raise _invalid("extension_snapshot_drift", status=409) from exc
 
 
-def _check_revision(revision: Record) -> tuple[dict, tuple[dict, ...], str, str]:
+def _check_revision(revision: Record) -> tuple[Payload, tuple[Payload, ...], str, str]:
     try:
         manifest = parse_manifest(revision["manifest"])
         files = revision["files"]
         if not isinstance(files, (list, tuple)) or not 1 <= len(files) <= MAX_FILES:
             raise _invalid()
-        proof = []
+        proof: list[Payload] = []
         total = 0
         for row in files:
             if not isinstance(row, dict) or set(row) != {"path", "bytes", "sha256"}:
@@ -251,8 +257,8 @@ def _check_revision(revision: Record) -> tuple[dict, tuple[dict, ...], str, str]
             if not isinstance(row["sha256"], str) or re.fullmatch(r"[0-9a-f]{64}", row["sha256"]) is None:
                 raise _invalid()
             total += row["bytes"]
-            proof.append(dict(row))
-        paths = [row["path"] for row in proof]
+            proof.append(cast(Payload, dict(row)))
+        paths = [cast(str, row["path"]) for row in proof]
         if total > MAX_PACKAGE_BYTES or paths != sorted(set(paths)):
             raise _invalid()
         _names(paths)
@@ -280,7 +286,7 @@ def _decode_package(payload: bytes, revision: Record) -> tuple[CapturedPackage, 
     manifest, proof, package_sha, catalog_sha = _check_revision(revision)
     try:
         if (
-            not isinstance(payload, bytes)
+            not isinstance(cast(object, payload), bytes)
             or len(payload) > MAX_ARCHIVE_BYTES
             or hashlib.sha256(payload).hexdigest() != package_sha
         ):
@@ -355,7 +361,7 @@ class ExtensionPackages:
     def __init__(self, cache_root: Path) -> None:
         self._root = cache_root.absolute()
         self._executor = ThreadPoolExecutor(max_workers=2, thread_name_prefix="omni-extension-io")
-        self._jobs: set[Future] = set()
+        self._jobs: set[Future[Any]] = set()
         self._lock = threading.RLock()
         self._snapshots = threading.RLock()
         self._closing = self._closed = False
@@ -371,7 +377,7 @@ class ExtensionPackages:
             actual = self._executor.submit(contextvars.copy_context().run, operation)
             self._jobs.add(actual)
 
-        def complete(future):
+        def complete(future: Future[T]) -> None:
             with self._lock:
                 self._jobs.discard(future)
 
@@ -381,9 +387,9 @@ class ExtensionPackages:
         return await asyncio.shield(waiting)
 
     async def capture(self, source: str) -> CapturedPackage:
-        def perform():
+        def perform() -> CapturedPackage:
             try:
-                if not isinstance(source, str) or len(source) > 4000 or "\0" in source:
+                if not isinstance(cast(object, source), str) or len(source) > 4000 or "\0" in source:
                     raise _invalid()
                 return capture_directory(Path(source))
             except OSError as exc:
@@ -393,18 +399,18 @@ class ExtensionPackages:
 
         return await self._execute(perform)
 
-    async def market(self, source: str) -> list[dict]:
+    async def market(self, source: str) -> list[Record]:
         """Read-only manifest scan of one owner-supplied directory; never captures or imports code."""
 
-        def perform():
+        def perform() -> list[Record]:
             try:
-                if not isinstance(source, str) or not source or len(source) > 4000 or "\0" in source:
+                if not isinstance(cast(object, source), str) or not source or len(source) > 4000 or "\0" in source:
                     raise _invalid()
                 root = Path(source)
                 if not root.is_absolute() or not root.is_dir():
                     raise _invalid()
                 no_links(root)
-                candidates = []
+                candidates: list[Record] = []
                 entries = 0
                 for entry in sorted(root.iterdir()):
                     entries += 1
@@ -426,9 +432,9 @@ class ExtensionPackages:
                         continue
                     candidates.append(
                         {
-                            "name": manifest["id"],
-                            "version": manifest["version"],
-                            "entry": manifest["entry"],
+                            "name": cast(str, manifest["id"]),
+                            "version": cast(str, manifest["version"]),
+                            "entry": cast(str, manifest["entry"]),
                             "source": str(entry),
                             "catalog_sha256": catalog_fingerprint(manifest),
                         }
@@ -442,7 +448,7 @@ class ExtensionPackages:
         return await self._execute(perform)
 
     def _location(self, location: str, revision: Record) -> Path:
-        if not isinstance(location, str):
+        if not isinstance(cast(object, location), str):
             raise _invalid("extension_snapshot_drift", status=409)
         path = Path(location)
         _, _, package_sha, _ = _check_revision(revision)
@@ -474,7 +480,7 @@ class ExtensionPackages:
             raise _invalid("extension_snapshot_drift", status=409) from exc
 
     async def verify(self, location: str, revision: Record) -> None:
-        def perform():
+        def perform() -> None:
             with self._snapshots:
                 self._verify(location, revision)
 
@@ -533,7 +539,7 @@ class ExtensionPackages:
             ) from exc
 
     async def prepare(self, agent_id: str, revision: Record, payload: bytes) -> str:
-        def perform():
+        def perform() -> str:
             with self._snapshots:
                 return self._prepare(agent_id, revision, payload)
 

@@ -9,6 +9,7 @@
     "agent/src/omni/adapters/diagnostics.py",
     "agent/src/omni/adapters/extensions/__init__.py",
     "agent/src/omni/adapters/extensions/hosts.py",
+    "agent/src/omni/adapters/extensions/packages.py",
     "agent/src/omni/adapters/extensions/worker.py",
     "agent/src/omni/adapters/images.py",
     "agent/src/omni/adapters/local_vectors.py",
