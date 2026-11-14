@@ -211,6 +211,7 @@
     "agent/src/omni/adapters/workers/darwin_admin_probe.py",
     "agent/src/omni/adapters/workers/desktop.py",
     "agent/src/omni/adapters/workers/linux_action.py",
+    "agent/src/omni/adapters/workers/linux_desktop.py",
     "agent/src/omni/adapters/workers/local_vectors.py",
     "agent/src/omni/adapters/workers/main.py",
     "agent/src/omni/adapters/workers/media.py",

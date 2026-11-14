@@ -7,7 +7,7 @@ import hashlib
 import json
 from collections.abc import Awaitable, Callable
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 from ...domain.contracts import BusinessError
 from ...domain.desktop import LINUX_ERRORS, VERSION
@@ -19,8 +19,10 @@ from ..platform.linux_session import FactoryPort, LocalFactory, OpsPort, Session
 from ..platform.linux_x11 import X11Desktop
 from ..platform.linux_x11_wire import XError
 
+Payload = dict[str, object]
 
-def session_record(inspector: SessionInspector | None, error: str | None) -> dict:
+
+def session_record(inspector: SessionInspector | None, error: str | None) -> Payload:
     if inspector is not None and inspector.session is not None:
         identity = (
             inspector.scope
@@ -31,9 +33,17 @@ def session_record(inspector: SessionInspector | None, error: str | None) -> dic
     return {"kind": "headless" if error == "desktop_headless" else "unknown", "identity": None}
 
 
-def capability_report(inspector, error, installed, atspi_ready, x11, x11_ready, x11_error):
+def capability_report(
+    inspector: SessionInspector | None,
+    error: str | None,
+    installed: bool,
+    atspi_ready: bool,
+    x11: X11Desktop | None,
+    x11_ready: bool,
+    x11_error: str | None,
+) -> Payload:
     value = report(session_record(inspector, error), atspi_ready, error, installed)
-    for item in value["capabilities"]:
+    for item in cast(list[Payload], value["capabilities"]):
         if item["id"] == "window_identity" and x11_ready:
             item.update(
                 installed=True,
@@ -66,8 +76,8 @@ async def perform(
     *,
     ops: OpsPort | None = None,
     factory: FactoryPort | None = None,
-    x11_factory: Any = X11Desktop,
-    monitor_factory: Any = X11Input,
+    x11_factory: Callable[[SessionInspector], X11Desktop] = X11Desktop,
+    monitor_factory: Callable[[SessionInspector], X11Input] = X11Input,
     permit: Callable[[], Awaitable[bool]] | None = None,
 ) -> dict[str, Any]:
     inspector: SessionInspector | None = None
@@ -80,7 +90,7 @@ async def perform(
     try:
         if request["operation"] not in {"probe", "targets", "verify", "observe", "capture", "act"}:
             raise BusinessError("desktop_observation_unavailable", "Linux write adapters are not connected")
-        if request["operation"] == "act" and (request.get("target") or {}).get("backend") != "atspi":
+        if request["operation"] == "act" and cast(Payload, request.get("target") or {}).get("backend") != "atspi":
             raise BusinessError("desktop_input_unverified", "Only addressed AT-SPI semantic actions are implemented")
         if ops is None:
             load_types()
@@ -94,7 +104,7 @@ async def perform(
         async with asyncio.timeout(4):
             await inspector.open(accessibility=False)
             operation = request["operation"]
-            backend = (request.get("target") or {}).get("backend")
+            backend = cast(Payload, request.get("target") or {}).get("backend")
             if operation in {"probe", "targets"} or backend == "atspi":
                 try:
                     await inspector.open_accessibility()
@@ -179,7 +189,9 @@ async def perform(
                 if operation == "act":
                     if monitor is None or not actions:
                         raise BusinessError("desktop_input_unverified", "Reliable input-change guard is not available")
-                    result = await Semantics(adapter).act(request["target"], request["action"], monitor, permit)
+                    result = await Semantics(adapter).act(
+                        request["target"], request["action"], monitor, cast(Callable[[], Awaitable[bool]], permit)
+                    )
                 elif operation == "verify":
                     result = await adapter.verify(request["target"])
                 else:
