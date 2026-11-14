@@ -194,6 +194,7 @@
     "agent/src/omni/adapters/workers/android.py",
     "agent/src/omni/adapters/workers/android_adb.py",
     "agent/src/omni/adapters/workers/android_unicode.py",
+    "agent/src/omni/adapters/workers/bilibili.py",
     "agent/src/omni/adapters/workers/client.py",
     "agent/src/omni/adapters/workers/credentials.py",
     "agent/src/omni/adapters/workers/darwin_admin_probe.py",

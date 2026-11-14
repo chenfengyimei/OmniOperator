@@ -20,7 +20,7 @@ METHODS = {"bilibili_open": False, "bilibili_fill": True, "bilibili_commit": Tru
 Payload = dict[str, object]
 
 if TYPE_CHECKING:
-    from playwright.async_api import Locator, Page, Request, Route
+    from playwright.async_api import Browser, BrowserContext, Locator, Page, Playwright, Request, Route, WebSocketRoute
 
 
 class PublicationGate:
@@ -407,11 +407,15 @@ class PageForms:
 
 
 class BrowserWorker:
-    def __init__(self):
+    def __init__(self) -> None:
+        self.playwright: Playwright | None
+        self.browser: Browser | None
+        self.context: BrowserContext | None
+        self.forms: PageForms | None
         self.playwright = self.browser = self.context = self.forms = None
-        self.binding = None
+        self.binding: Payload | None = None
 
-    async def invoke(self, method: str, args: dict, context: dict) -> ActionResult:
+    async def invoke(self, method: str, args: Payload, context: Payload) -> ActionResult:
         try:
             if self.binding is not None and self.binding != context:
                 raise ValueError("Publication worker scope changed")
@@ -420,20 +424,20 @@ class BrowserWorker:
                     raise ValueError("One publication per worker")
                 from playwright.async_api import async_playwright
 
-                url, key = target(args["kind"], args["url"])
-                if key != args["target_key"] or url != args["url"]:
+                url, key = target(cast(str, args["kind"]), cast(str, args["url"]))
+                if key != args["target_key"] or url != cast(str, args["url"]):
                     raise ValueError("Target proof changed")
                 self.playwright = await async_playwright().start()
                 if type(args.get("headless")) is not bool:
                     raise ValueError("Browser mode was not bound to a reviewed profile")
-                self.browser = await self.playwright.chromium.launch(headless=args["headless"])
+                self.browser = await self.playwright.chromium.launch(headless=cast(bool, args["headless"]))
                 self.binding = context
                 gate = PublicationGate({k: v for k, v in args.items() if k != "cookies"})
 
-                async def close_socket(route):
+                async def close_socket(route: WebSocketRoute) -> None:
                     await route.close()
 
-                async def new_context():
+                async def new_context() -> BrowserContext:
                     assert self.browser is not None
                     fresh = await self.browser.new_context(accept_downloads=False, service_workers="block")
                     await fresh.route("**/*", gate.route)
@@ -441,7 +445,7 @@ class BrowserWorker:
                     await fresh.add_cookies(
                         [
                             {"name": name, "value": value, "domain": ".bilibili.com", "path": "/", "secure": True}
-                            for name, value in args["cookies"].items()
+                            for name, value in cast(dict[str, str], args["cookies"]).items()
                         ]
                     )
                     return fresh
@@ -450,7 +454,7 @@ class BrowserWorker:
                 page = await self.context.new_page()
                 await page.goto(url, wait_until="domcontentloaded", timeout=8000)
 
-                async def verify_page():
+                async def verify_page() -> Page:
                     fresh = await new_context()
                     verified = await fresh.new_page()
                     await verified.goto(url, wait_until="domcontentloaded", timeout=5000)
@@ -470,14 +474,14 @@ class BrowserWorker:
                 Outcome.ERROR, "Publication form is unavailable", error_code="bilibili_form_unavailable"
             )
 
-    async def close(self):
+    async def close(self) -> None:
         if self.browser:
             await self.browser.close()
         if self.playwright:
             await self.playwright.stop()
 
 
-async def serve():
+async def serve() -> None:
     worker = BrowserWorker()
     try:
         while raw := await asyncio.to_thread(sys.stdin.buffer.readline, MAX_FRAME + 1):
