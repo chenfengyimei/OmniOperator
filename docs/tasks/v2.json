@@ -209,7 +209,7 @@
    "id": "R6",
    "title": "业务接入与交付",
    "status": "开发中",
-   "notes": "媒体、MCP 运行适配器、插件产物/本地市场/宿主回调已有离线实现；当前 D7 产品化与严格类型收口中（323 文件，adapters 213/222）。默认正式入口仍 V1，平台及真实业务验收待完成。",
+   "notes": "媒体、MCP 运行适配器、插件产物/本地市场/宿主回调已有离线实现；当前 D7 产品化与严格类型收口中（324 文件，adapters 214/222）。默认正式入口仍 V1，平台及真实业务验收待完成。",
    "evidence": [
     "docs/evidence/v2-offline.json",
     "docs/evidence/v2-people.json",
@@ -284,9 +284,9 @@
    ]
   }
  ],
- "checkpoint_commit": "c902a420",
+ "checkpoint_commit": "049ea957",
  "current_validation": {
-  "status": "d7_typecheck_batch_203",
+  "status": "d7_typecheck_batch_204",
   "targeted_unique_passed": 228,
   "includes_browser_cases": 10,
   "current_full_passed": false,
@@ -343,7 +343,7 @@
     ]
    }
   ],
-  "code_version": "2dd3cfa3f91b4d8336c3f7e4b71da82e41bc24d40296d032ea3d03a4fcc46e9b",
+  "code_version": "1e0ac8c9304668a652c3328712be279958f4633c35f246285b7dd27ca1a9173f",
   "fixed_source_files": 1208,
   "baseline_repair_evidence": "docs/evidence/v2-baseline-repair.json",
   "market_evidence": "docs/evidence/v2-extension-market.json",
@@ -450,7 +450,7 @@
   "id": "D7.product_switch",
   "status": "进行中",
   "design": "docs/V2_PACKAGING.md",
-  "scope": "P1 composition/P2 Android/P3 persistence complete; P5 adapters in progress. strict 323 files (53 domain, 44 application, 213/222 adapters, 13 composition), 9 adapters remain. Next full-suite checkpoint: batch 204."
+  "scope": "P1 composition/P2 Android/P3 persistence complete; P5 adapters in progress. strict 324 files (53 domain, 44 application, 214/222 adapters, 13 composition), 8 adapters remain. Next full-suite checkpoint: batch 204."
  },
  "milestones": [
   {

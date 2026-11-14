@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "7b7569a3ad8f7a862e8d02cc0cf0cac6bb0c7d0b5544a236923b07fb3c4939b6",
+  "source_sha256": "6c508bd53d9c944a16d640bbb344c7e8544a25a8f467e2341905cdcd6bae2c21",
   "modules": [
     {
       "id": "v2-domain",
@@ -404,7 +404,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 54356,
+      "lines": 54359,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -29845,7 +29845,7 @@
       "path": "agent/src/omni/adapters/platform/service_operation_files.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.service_operation_files",
-      "lines": 264,
+      "lines": 267,
       "imports": [
         "omni.adapters.object_store",
         "omni.adapters.persistence.deployed_instance",
@@ -29859,7 +29859,7 @@
       "symbols": [
         {
           "name": "_digest",
-          "line": 23,
+          "line": 24,
           "kind": "function",
           "parameters": [
             "value"
@@ -29870,12 +29870,12 @@
         },
         {
           "name": "ServiceOperationFiles",
-          "line": 27,
+          "line": 28,
           "kind": "class"
         },
         {
           "name": "ServiceOperationFiles.__init__",
-          "line": 28,
+          "line": 29,
           "kind": "function",
           "parameters": [
             "self",
@@ -29891,7 +29891,7 @@
         },
         {
           "name": "ServiceOperationFiles.publish",
-          "line": 41,
+          "line": 42,
           "kind": "function",
           "parameters": [
             "self",
@@ -29905,7 +29905,7 @@
         },
         {
           "name": "ServiceOperationFiles._paths",
-          "line": 61,
+          "line": 62,
           "kind": "function",
           "parameters": [
             "self",
@@ -29917,7 +29917,7 @@
         },
         {
           "name": "ServiceOperationFiles.exclusive",
-          "line": 73,
+          "line": 74,
           "kind": "function",
           "parameters": [
             "self",
@@ -29929,7 +29929,7 @@
         },
         {
           "name": "ServiceOperationFiles.maintenance",
-          "line": 107,
+          "line": 110,
           "kind": "function",
           "parameters": [
             "self",
@@ -29941,7 +29941,7 @@
         },
         {
           "name": "ServiceOperationFiles._private_json",
-          "line": 131,
+          "line": 134,
           "kind": "function",
           "parameters": [
             "path",
@@ -29954,7 +29954,7 @@
         },
         {
           "name": "ServiceOperationFiles._marker",
-          "line": 136,
+          "line": 139,
           "kind": "function",
           "parameters": [
             "operation"
@@ -29965,7 +29965,7 @@
         },
         {
           "name": "ServiceOperationFiles.latest",
-          "line": 139,
+          "line": 142,
           "kind": "function",
           "parameters": [
             "self",
@@ -29977,7 +29977,7 @@
         },
         {
           "name": "ServiceOperationFiles.activate",
-          "line": 197,
+          "line": 200,
           "kind": "function",
           "parameters": [
             "self",
@@ -29989,7 +29989,7 @@
         },
         {
           "name": "ServiceOperationFiles.dispatched",
-          "line": 215,
+          "line": 218,
           "kind": "function",
           "parameters": [
             "self",
@@ -30001,7 +30001,7 @@
         },
         {
           "name": "ServiceOperationFiles.append",
-          "line": 230,
+          "line": 233,
           "kind": "function",
           "parameters": [
             "self",
@@ -30015,7 +30015,7 @@
         },
         {
           "name": "ServiceOperationFiles.settled",
-          "line": 252,
+          "line": 255,
           "kind": "function",
           "parameters": [
             "self",
