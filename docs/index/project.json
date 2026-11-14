@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "6ffcac7a7a6ee5f7258e5568df63223a59966e2470ccb2fd3987498fe26fd863",
+  "source_sha256": "9533d60a204fd013d8e9af1a1535737023e227ec70b00acb42a3965ef3d28758",
   "modules": [
     {
       "id": "v2-domain",
@@ -404,7 +404,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 54261,
+      "lines": 54265,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -2584,7 +2584,7 @@
       "path": "agent/src/omni/adapters/bilibili.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.bilibili",
-      "lines": 546,
+      "lines": 550,
       "imports": [
         "omni.adapters.diagnostics",
         "omni.adapters.workers.client",
@@ -2709,13 +2709,14 @@
             "video"
           ],
           "annotations": {
-            "nav": "dict",
-            "video": "dict"
+            "client": "Any",
+            "nav": "Payload",
+            "video": "Payload"
           }
         },
         {
           "name": "BilibiliGateway._streams",
-          "line": 171,
+          "line": 173,
           "kind": "function",
           "parameters": [
             "self",
@@ -2723,12 +2724,13 @@
             "video"
           ],
           "annotations": {
-            "video": "dict"
+            "client": "Any",
+            "video": "Payload"
           }
         },
         {
           "name": "BilibiliGateway.read",
-          "line": 231,
+          "line": 235,
           "kind": "function",
           "parameters": [
             "self",
@@ -2738,7 +2740,7 @@
             "limit"
           ],
           "annotations": {
-            "configuration": "dict",
+            "configuration": "Mapping[str, object]",
             "operation": "str",
             "target": "str",
             "limit": "int"
@@ -2746,7 +2748,7 @@
         },
         {
           "name": "BilibiliGateway.download",
-          "line": 331,
+          "line": 335,
           "kind": "function",
           "parameters": [
             "self",
@@ -2758,7 +2760,7 @@
             "before_dispatch"
           ],
           "annotations": {
-            "configuration": "dict",
+            "configuration": "Record",
             "url": "str",
             "destination": "Path",
             "max_bytes": "int",
@@ -2768,7 +2770,7 @@
         },
         {
           "name": "BilibiliGateway.send",
-          "line": 424,
+          "line": 428,
           "kind": "function",
           "parameters": [
             "self",
@@ -2780,7 +2782,7 @@
         },
         {
           "name": "BilibiliGateway.close",
-          "line": 542,
+          "line": 546,
           "kind": "function",
           "parameters": [
             "self",
