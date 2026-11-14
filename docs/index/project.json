@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "a22b56b6dfb3f8d33e216c02b340e4af5c125eba0089d1438d0dc02fa0517459",
+  "source_sha256": "7867e3f067b3df0ca87b1325277ea6ec7a706f4469b1f27be6b11a3397283b83",
   "modules": [
     {
       "id": "v2-domain",
@@ -404,7 +404,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 53970,
+      "lines": 53983,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -19586,12 +19586,13 @@
       "path": "agent/src/omni/adapters/persistence/qq_repository.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.persistence.qq_repository",
-      "lines": 229,
+      "lines": 242,
       "imports": [
         "omni.adapters.persistence",
         "omni.adapters.persistence.people_repository",
         "omni.adapters.persistence.qq_authority",
         "omni.adapters.persistence.repository",
+        "omni.application.ports",
         "omni.domain.contracts",
         "omni.domain.delivery",
         "omni.domain.qq",
@@ -19600,12 +19601,12 @@
       "symbols": [
         {
           "name": "QQRepositories",
-          "line": 22,
+          "line": 23,
           "kind": "class"
         },
         {
           "name": "QQRepositories.qq_binding_page",
-          "line": 23,
+          "line": 24,
           "kind": "function",
           "parameters": [
             "self",
@@ -19621,7 +19622,7 @@
         },
         {
           "name": "QQRepositories.qq_cooldowns",
-          "line": 35,
+          "line": 36,
           "kind": "function",
           "parameters": [
             "self",
@@ -19633,7 +19634,7 @@
         },
         {
           "name": "QQRepositories.qq_binding_put",
-          "line": 50,
+          "line": 51,
           "kind": "function",
           "parameters": [
             "self",
@@ -19646,14 +19647,14 @@
           "annotations": {
             "agent_id": "str",
             "config_id": "str",
-            "value": "dict",
+            "value": "Record",
             "binding_id": "str",
             "revision": "int"
           }
         },
         {
           "name": "QQRepositories.qq_connections",
-          "line": 83,
+          "line": 91,
           "kind": "function",
           "parameters": [
             "self"
@@ -19662,7 +19663,7 @@
         },
         {
           "name": "QQRepositories.qq_connection_authorized",
-          "line": 112,
+          "line": 122,
           "kind": "function",
           "parameters": [
             "self",
@@ -19678,7 +19679,7 @@
         },
         {
           "name": "QQRepositories.qq_accept",
-          "line": 115,
+          "line": 125,
           "kind": "function",
           "parameters": [
             "self",
@@ -19698,7 +19699,7 @@
         },
         {
           "name": "QQRepositories.qq_run",
-          "line": 199,
+          "line": 209,
           "kind": "function",
           "parameters": [
             "self",
@@ -19712,7 +19713,7 @@
         },
         {
           "name": "QQRepositories.qq_run_authorized",
-          "line": 202,
+          "line": 212,
           "kind": "function",
           "parameters": [
             "self",
@@ -19726,7 +19727,7 @@
         },
         {
           "name": "QQRepositories.qq_outbound_authorized",
-          "line": 205,
+          "line": 215,
           "kind": "function",
           "parameters": [
             "self",

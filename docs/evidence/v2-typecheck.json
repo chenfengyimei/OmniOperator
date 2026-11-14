@@ -1,14 +1,14 @@
 {
  "schema": 1,
- "batch": 176,
+ "batch": 177,
  "date": "2026-11-13",
  "whole_v2_complete": false,
  "d7_complete": false,
  "default_entrypoint": "v1",
  "source": {
-  "code_version": "f975fe36e220dfc16a9234ca3b632c45923cad5c2cbd7b50c28f7ea703965deb",
+  "code_version": "8e101a55f498e6192f3731e7ee646e569c132833f9568c2e45d34be8ece61554",
   "fixed_source_files": 1206,
-  "git_head": "1c13953",
+  "git_head": "29258f5",
   "dirty_checkout": false,
   "recipe": "sha256(json.dumps({path: sha256(blob) for tracked agent/, web/, scripts/ files}, sort_keys=True)); see temp/build/source_version.py",
   "head_ui": "75c4219"
@@ -193,12 +193,12 @@
  "validation": {
   "all_latest_cases_passed": false,
   "latest_batch": {
-   "batch": 176,
+   "batch": 177,
    "sources": [
-    "agent/src/omni/adapters/persistence/mcp_repository.py"
+    "agent/src/omni/adapters/persistence/qq_repository.py"
    ],
-   "report": "temp/build/v2-typecheck-176-callers.xml",
-   "tests": 51
+   "report": "temp/build/v2-typecheck-177-callers.xml",
+   "tests": 50
   },
   "targeted_reports": [
    {
@@ -1793,6 +1793,15 @@
     "errors": 0,
     "duration_s": 47.57,
     "note": "P3 mcp_repository batch (largest shard): MCP generations, catalogs, grants and calls + guard/arch/mcp/mcp-flow/mcp-oauth callers; covers OAuth PKCE with callback revoking old authorization and missing remote token failing connect without starting OAuth"
+   },
+   {
+    "path": "temp/build/v2-typecheck-177-callers.xml",
+    "sha256": "efa38f14e242639569bc97f8f2c983f7ed4de4f353da19f551bf5636059d034e",
+    "tests": 50,
+    "failures": 0,
+    "errors": 0,
+    "duration_s": 106.72,
+    "note": "P3 qq_repository batch: QQ admission and authority + guard/arch/qq/qq-http callers; covers revocation blocking pending delivery and new admission on both configuration and binding paths and owner-only scoped revisioned grants"
    }
   ],
   "gates": {
@@ -1804,7 +1813,7 @@
   "strict": {
    "config": "pyrightconfig.strict.json",
    "summary": {
-    "filesAnalyzed": 300,
+    "filesAnalyzed": 301,
     "errorCount": 0,
     "warningCount": 0,
     "informationCount": 0
@@ -2059,7 +2068,8 @@
    "Strict scope reaches 297 files (53 domain + 44 application + 187 adapters + 13 composition); the scoped media source/bounded-job/immutable-artifact repository aligns source/job/transcript/frames/recover receipts with the port Record contract, types the _latest static helper with explicit Connection/Table parameters and a str | None return, narrows the source-view identifiers to str and types _complete's table as Table; same-BVID metadata conflict refusal, config rebinding audit, active-job deletion blocking, queued-only start/cancel, running-only completion, terminal immutability and startup reconciliation (queued to cancelled, running to unknown without replay) are unchanged, and the module still never reads files",
    "Strict scope reaches 298 files (53 domain + 44 application + 188 adapters + 13 composition); the immutable trusted-plugin version/grant/execution-binding repository aligns install/replay/detail/page/authorize/disable/drift/run-tools/assert/dispatch receipts with the port Record contract, narrows revisions and authority epochs to int before incrementing, narrows executing-action and binding id lists to list[str], types the live-grants query as an explicit Select, narrows file-manifest entries through dict[str, object] and keeps the error-code runtime guard; immutable package identity, catalog fingerprint and archive hash checks, the 16-slot/128-version/64-tool ceilings, revocation cancelling pending approvals without interrupting executing actions, run-capture epoch binding, per-field dispatch consistency checks and unknown no-replay are unchanged, and the module executes no plugin code and does no file I/O",
    "Strict scope reaches 299 files (53 domain + 44 application + 189 adapters + 13 composition); the bounded document-maintenance admission/fenced-attempt/settlement repository aligns enqueue/get/page/cancel/claim/guard/start/bind-build/finish/fail/heartbeat/recover receipts with the port Record contract, accepts claims as Claim | Record to stay compatible with the port, narrows revisions and attempt counts to int before incrementing, types recovery counters as Record and keeps the boot-id runtime guards via cast(object, ...); the queue ceiling counting memory-organization batches together, captured source-revision validation, the boot/token/fence/lease ownership quadruple, same-document mutual exclusion, attempt-limit failure, cancellation compare-and-swap retaining the attempt until real settlement and foreign-boot recovery marking interrupted before requeue-or-fail by input validity are unchanged, and the module performs no execution or I/O",
-   "Strict scope reaches 300 files (53 domain + 44 application + 190 adapters + 13 composition); the MCP runtime-generation/catalog-snapshot/per-tool-grant/call-record repository (the largest P3 shard, 315 errors) aligns configuration/server-view/lifecycle/catalog-commit/page/authorize/tool-decision/revoke/oauth/run-capture/binding/assert/dispatch/call/recover receipts with the port Record contract, keeps tools at Sequence[Record] per the port, narrows parse_tool_authorization's wide dict result to dict[str, Record], types the live-grants query as an explicit Select and narrows the arguments list to list[JSON]; catalog-fingerprint drift revoking grants and bumping the epoch, owner-declared read-only flags, per-field run-capture consistency, approval-deadline checks before write dispatch, restart reconciliation (prepared to failed, dispatched to unknown without replay) and never opening sockets, spawning processes or resolving credentials are unchanged"
+   "Strict scope reaches 300 files (53 domain + 44 application + 190 adapters + 13 composition); the MCP runtime-generation/catalog-snapshot/per-tool-grant/call-record repository (the largest P3 shard, 315 errors) aligns configuration/server-view/lifecycle/catalog-commit/page/authorize/tool-decision/revoke/oauth/run-capture/binding/assert/dispatch/call/recover receipts with the port Record contract, keeps tools at Sequence[Record] per the port, narrows parse_tool_authorization's wide dict result to dict[str, Record], types the live-grants query as an explicit Select and narrows the arguments list to list[JSON]; catalog-fingerprint drift revoking grants and bumping the epoch, owner-declared read-only flags, per-field run-capture consistency, approval-deadline checks before write dispatch, restart reconciliation (prepared to failed, dispatched to unknown without replay) and never opening sockets, spawning processes or resolving credentials are unchanged",
+   "Strict scope reaches 301 files (53 domain + 44 application + 191 adapters + 13 composition); the QQ admission/authority repository aligns binding-page/cooldown/put/connections/authorized/accept/run/outbound receipts with the port Record contract, keeps binding_value's checked result in a separate local, narrows cooldown timestamps to str/int, casts the authority helpers' dict[str, Any] returns to Record at the boundary and narrows the outbound transport_revision to str; immutable conversation targets (scene/peer_id), the 64-binding ceiling, event-fingerprint idempotency conflicts, sender-must-bind-person, cooldown windows, credential-generation checks, per-field outbound ownership and approval-deadline validation and revocation blocking pending delivery and new admission are unchanged, with no network and no extra truth store"
   ]
  },
  "source_recovery": {
