@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "90f321cd6fd16880334316604f882ea74be1bd270f3b71ec9a96cac0353dffd6",
+  "source_sha256": "34aa8c8b4d10615be9dbc12f729abb8e0b89d1ba481fedf7f14f50a51eecd6fa",
   "modules": [
     {
       "id": "v2-domain",
@@ -404,7 +404,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 54020,
+      "lines": 54037,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -498,7 +498,7 @@
         "web/ui/v2/v1/workbench.css",
         "web/ui/v2/workbench.css"
       ],
-      "lines": 20481,
+      "lines": 20518,
       "dependencies": []
     },
     {
@@ -21519,23 +21519,24 @@
       "path": "agent/src/omni/adapters/persistence/skill_repository.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.persistence.skill_repository",
-      "lines": 459,
+      "lines": 476,
       "imports": [
         "omni.adapters.persistence",
         "omni.adapters.persistence.repository",
         "omni.adapters.persistence.repository_base",
+        "omni.application.ports",
         "omni.domain.contracts",
         "omni.domain.skills"
       ],
       "symbols": [
         {
           "name": "SkillRepositories",
-          "line": 18,
+          "line": 19,
           "kind": "class"
         },
         {
           "name": "SkillRepositories.skill_available",
-          "line": 19,
+          "line": 20,
           "kind": "function",
           "parameters": [
             "self",
@@ -21549,7 +21550,7 @@
         },
         {
           "name": "SkillRepositories._skill_agent",
-          "line": 38,
+          "line": 39,
           "kind": "function",
           "parameters": [
             "self",
@@ -21561,7 +21562,7 @@
         },
         {
           "name": "SkillRepositories.skill_get",
-          "line": 42,
+          "line": 43,
           "kind": "function",
           "parameters": [
             "self",
@@ -21577,7 +21578,7 @@
         },
         {
           "name": "SkillRepositories.skill_page",
-          "line": 75,
+          "line": 79,
           "kind": "function",
           "parameters": [
             "self",
@@ -21593,7 +21594,7 @@
         },
         {
           "name": "SkillRepositories.skill_history",
-          "line": 101,
+          "line": 110,
           "kind": "function",
           "parameters": [
             "self",
@@ -21611,7 +21612,7 @@
         },
         {
           "name": "SkillRepositories.skill_install",
-          "line": 125,
+          "line": 134,
           "kind": "function",
           "parameters": [
             "self",
@@ -21623,15 +21624,15 @@
           ],
           "annotations": {
             "agent_id": "str",
-            "metadata": "dict",
-            "files": "list[dict]",
+            "metadata": "Record",
+            "files": "list[Record]",
             "skill_id": "str | None",
             "revision": "int"
           }
         },
         {
           "name": "SkillRepositories.skill_state",
-          "line": 230,
+          "line": 239,
           "kind": "function",
           "parameters": [
             "self",
@@ -21653,7 +21654,7 @@
         },
         {
           "name": "SkillRepositories.skill_capture_run",
-          "line": 268,
+          "line": 281,
           "kind": "function",
           "parameters": [
             "self",
@@ -21671,7 +21672,7 @@
         },
         {
           "name": "SkillRepositories.skill_authorize_run",
-          "line": 300,
+          "line": 314,
           "kind": "function",
           "parameters": [
             "self",
@@ -21685,7 +21686,7 @@
         },
         {
           "name": "SkillRepositories.skill_run_report",
-          "line": 324,
+          "line": 338,
           "kind": "function",
           "parameters": [
             "self",
@@ -21701,7 +21702,7 @@
         },
         {
           "name": "SkillRepositories.skill_catalog",
-          "line": 361,
+          "line": 378,
           "kind": "function",
           "parameters": [
             "self",
@@ -21719,7 +21720,7 @@
         },
         {
           "name": "SkillRepositories.skill_activate_run",
-          "line": 398,
+          "line": 415,
           "kind": "function",
           "parameters": [
             "self",
@@ -95867,7 +95868,7 @@
       "path": "web/ui/v2/workbench.css",
       "module": "v2-workbench",
       "python_module": null,
-      "lines": 2105,
+      "lines": 2142,
       "imports": [],
       "symbols": [],
       "kind": "asset",
