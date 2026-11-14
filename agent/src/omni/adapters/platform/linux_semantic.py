@@ -4,12 +4,16 @@ from __future__ import annotations
 
 import hashlib
 import json
+from collections.abc import Sequence
+from typing import cast
 
 from ...domain.contracts import BusinessError
 from ...domain.desktop_actions import node_proof, semantic
 from .linux_atspi import ACCESSIBLE, PASSWORD_ROLE, TEXT, AtspiDesktop, reference
 from .linux_bus import RemoteError, failure
 from .linux_session import number
+
+Payload = dict[str, object]
 
 ACTION, EDITABLE, SELECTION = ("org.a11y.atspi." + item for item in ("Action", "EditableText", "Selection"))
 SAFE_ACTIONS = {"click", "press", "activate"}
@@ -21,7 +25,7 @@ def digest(value: object) -> str:
     ).hexdigest()
 
 
-def result(status: str, code="", verification="not_verified") -> dict:
+def result(status: str, code: str = "", verification: str = "not_verified") -> Payload:
     return {
         "status": status,
         "effect": {"ok": "applied", "denied": "none", "unknown": "unknown"}[status],
@@ -34,17 +38,17 @@ class Semantics:
     def __init__(self, desktop: AtspiDesktop) -> None:
         self.desktop = desktop
 
-    async def interfaces(self, ref) -> list[str]:
-        values = await self.desktop.call(ref, ACCESSIBLE, "GetInterfaces", returns="as")
+    async def interfaces(self, ref: tuple[str, str]) -> list[str]:
+        values: list[str] = await self.desktop.call(ref, ACCESSIBLE, "GetInterfaces", returns="as")
         if (
-            not isinstance(values, list)
+            not isinstance(cast(object, values), list)
             or len(values) > 64
-            or any(not isinstance(v, str) or len(v) > 255 for v in values)
+            or any(not isinstance(cast(object, v), str) or len(v) > 255 for v in values)
         ):
             raise failure("desktop_bus_response_invalid")
         return values
 
-    async def facts(self, ref) -> dict:
+    async def facts(self, ref: tuple[str, str]) -> Payload:
         role, flags = await self.desktop.role_state(ref)
         if role == PASSWORD_ROLE:
             raise failure("desktop_password_control")
@@ -62,21 +66,27 @@ class Semantics:
                 raise failure("desktop_bus_response_invalid")
         return {"role": role, "flags": flags, "name": name, "text": text, "interfaces": interfaces}
 
-    async def catalogue(self, ref, parent, facts) -> dict:
-        entries = {}
-        if not {8, 24, 25, 30} <= facts["flags"]:
+    async def catalogue(self, ref: tuple[str, str], parent: tuple[str, str] | None, facts: Payload) -> Payload:
+        entries: Payload = {}
+        if not {8, 24, 25, 30} <= cast(set[int], facts["flags"]):
             return entries
-        if EDITABLE in facts["interfaces"] and TEXT in facts["interfaces"] and 7 in facts["flags"]:
+        if (
+            EDITABLE in cast(list[str], facts["interfaces"])
+            and TEXT in cast(list[str], facts["interfaces"])
+            and 7 in cast(set[int], facts["flags"])
+        ):
             entries["set_text"] = True
-        if ACTION in facts["interfaces"]:
+        if ACTION in cast(list[str], facts["interfaces"]):
             count = number(await self.desktop.property(ref, ACTION, "NActions", "i"), 16)
-            names = [await self.desktop.call(ref, ACTION, "GetName", "i", [i], returns="s") for i in range(count)]
-            if any(not isinstance(n, str) or len(n) > 80 for n in names):
+            names: list[str] = [
+                await self.desktop.call(ref, ACTION, "GetName", "i", [i], returns="s") for i in range(count)
+            ]
+            if any(not isinstance(cast(object, n), str) or len(n) > 80 for n in names):
                 raise failure("desktop_bus_response_invalid")
             eligible = [i for i, name in enumerate(names) if name in SAFE_ACTIONS]
             if len(eligible) == 1:
                 entries["invoke"] = {"index": eligible[0], "names": names}
-        if parent is not None and 22 in facts["flags"]:
+        if parent is not None and 22 in cast(set[int], facts["flags"]):
             parent_role, parent_flags = await self.desktop.role_state(parent)
             if (
                 parent_role != PASSWORD_ROLE
@@ -88,7 +98,9 @@ class Semantics:
         return entries
 
     @staticmethod
-    def make_proof(path, trail, facts, catalog) -> dict:
+    def make_proof(
+        path: list[int], trail: Sequence[tuple[list[str], int, str]], facts: Payload, catalog: Payload
+    ) -> Payload:
         return node_proof(
             {
                 "backend": "atspi",
@@ -106,21 +118,25 @@ class Semantics:
         ref: tuple[str, str],
         parent: tuple[str, str] | None,
         path: list[int],
-        trail: tuple[tuple[list[str], int, str], ...],
-        facts: dict[str, object],
-    ) -> tuple[dict[str, object] | None, list[str]]:
+        trail: Sequence[tuple[list[str], int, str]],
+        facts: Payload,
+    ) -> tuple[Payload | None, list[str]]:
         try:
             catalog = await self.catalogue(ref, parent, facts)
             return (self.make_proof(path, trail, facts, catalog), list(catalog)) if catalog else (None, [])
         except (BusinessError, RemoteError):
             return None, []
 
-    async def resolve(self, target: dict, path: list[int]) -> tuple:
+    async def resolve(
+        self, target: Payload, path: list[int]
+    ) -> tuple[tuple[str, str], tuple[str, str] | None, Payload, Payload, Payload]:
         ref = await self.desktop.verified(target)
+        trail: list[tuple[list[str], int, str]]
+        parent: tuple[str, str] | None
         trail, parent = [], None
         for position in range(len(path) + 1):
             facts = await self.facts(ref)
-            trail.append((list(ref), facts["role"], digest(facts["name"])))
+            trail.append((list(ref), cast(int, facts["role"]), digest(facts["name"])))
             if position == len(path):
                 catalog = await self.catalogue(ref, parent, facts)
                 proof = self.make_proof(path, trail, facts, catalog)
@@ -134,45 +150,54 @@ class Semantics:
             parent, ref = ref, child
         raise failure("desktop_observation_changed")
 
-    async def proof(self, target: dict, path: list[int]) -> tuple[dict | None, list[str]]:
+    async def proof(self, target: Payload, path: list[int]) -> tuple[Payload | None, list[str]]:
         try:
             _, _, _, catalog, proof = await self.resolve(target, path)
             return (proof, list(catalog)) if catalog else (None, [])
         except (BusinessError, RemoteError):
             return None, []  # the normal bounded read remains available without write proof
 
-    async def act(self, target: dict, action: dict, monitor, permit) -> dict:
+    async def act(self, target: Payload, action: Payload, monitor, permit) -> Payload:
         action = semantic(action)
         sent = False
         try:
-            if action["node"].get("backend") != "atspi":
+            if cast(Payload, action["node"]).get("backend") != "atspi":
                 raise failure("desktop_observation_changed")
-            ref, parent, _facts, catalog, proof = await self.resolve(target, action["node"]["path"])
-            if proof != action["node"] or action["kind"] not in catalog:
+            ref, parent, _facts, catalog, proof = await self.resolve(
+                target, cast(list[int], cast(Payload, action["node"])["path"])
+            )
+            if proof != action["node"] or cast(str, action["kind"]) not in catalog:
                 raise failure("desktop_observation_changed")
             await monitor.arm()
             if not await permit():
                 raise failure("desktop_action_revoked")
             # Approval waiting is outside every native write. Re-read the full
             # proof and user-input barrier after the parent grants dispatch.
-            actual = await self.resolve(target, proof["path"])
+            actual = await self.resolve(target, cast(list[int], proof["path"]))
             if actual[-1] != proof:
                 raise failure("desktop_observation_changed")
             await monitor.check()
-            kind = action["kind"]
+            kind = cast(str, action["kind"])
             sent = True  # the RPC may execute even if its reply is lost
             if kind == "set_text":
                 applied = await self.desktop.call(ref, EDITABLE, "SetTextContents", "s", [action["text"]], returns="b")
             elif kind == "invoke":
-                applied = await self.desktop.call(ref, ACTION, "DoAction", "i", [catalog[kind]["index"]], returns="b")
+                applied = await self.desktop.call(
+                    ref, ACTION, "DoAction", "i", [cast(Payload, catalog[kind])["index"]], returns="b"
+                )
             else:
                 applied = await self.desktop.call(
-                    parent, SELECTION, "SelectChild", "i", [proof["path"][-1]], returns="b"
+                    cast(tuple[str, str], parent),
+                    SELECTION,
+                    "SelectChild",
+                    "i",
+                    [cast(list[int], proof["path"])[-1]],
+                    returns="b",
                 )
             await monitor.check()
             if type(applied) is not bool or not applied:
                 raise failure("desktop_action_unverified")
-            current = await self.resolve(target, proof["path"])
+            current = await self.resolve(target, cast(list[int], proof["path"]))
             expected = {**proof, "value_sha256": digest(action["text"])} if kind == "set_text" else proof
             if current[-1] != expected:
                 raise failure("desktop_observation_changed")
@@ -180,7 +205,12 @@ class Semantics:
                 outcome = result("ok", verification="value_matches")
             elif kind == "select":
                 selected = await self.desktop.call(
-                    parent, SELECTION, "IsChildSelected", "i", [proof["path"][-1]], returns="b"
+                    cast(tuple[str, str], parent),
+                    SELECTION,
+                    "IsChildSelected",
+                    "i",
+                    [cast(list[int], proof["path"])[-1]],
+                    returns="b",
                 )
                 outcome = (
                     result("ok", verification="selected")
