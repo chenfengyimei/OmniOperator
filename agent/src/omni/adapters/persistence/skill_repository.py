@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING, cast
 
 from sqlalchemy import and_, func, select, update
 
+from ...application.ports import Record
 from ...domain.contracts import BusinessError
 from ...domain.skills import MAX_ACTIVE, PLATFORMS, file_path, invalid, manifest
 from . import schema as s
@@ -16,12 +17,12 @@ if TYPE_CHECKING:
 
 
 class SkillRepositories(RepositoryBase):
-    def skill_available(self, agent_id: str, platform: str) -> list[dict]:
+    def skill_available(self, agent_id: str, platform: str) -> list[Record]:
         self._skill_agent(agent_id)
         if platform not in PLATFORMS:
             raise invalid()
         return [
-            dict(r)
+            cast(Record, dict(r))
             for r in self.connection.execute(
                 select(s.skills.c.id, s.skills.c.name, s.skills.c.current_revision_id, s.skill_manifests.c.description)
                 .join(s.skill_manifests, s.skill_manifests.c.revision_id == s.skills.c.current_revision_id)
@@ -39,9 +40,9 @@ class SkillRepositories(RepositoryBase):
         if not self.connection.execute(select(s.agents.c.id).where(s.agents.c.id == agent_id)).first():
             raise BusinessError("not_found", "Agent does not exist", status=404)
 
-    def skill_get(self, agent_id: str, skill_id: str, revision_id: str | None = None) -> dict:
+    def skill_get(self, agent_id: str, skill_id: str, revision_id: str | None = None) -> Record:
         head = self._one(s.skills, agent_id, skill_id)
-        revision = self._one(s.skill_revisions, agent_id, revision_id or head["current_revision_id"])
+        revision = self._one(s.skill_revisions, agent_id, revision_id or cast(str, head["current_revision_id"]))
         detail = (
             self.connection.execute(
                 select(s.skill_manifests).where(
@@ -56,7 +57,7 @@ class SkillRepositories(RepositoryBase):
         if not detail:
             raise BusinessError("not_found", "Revision does not belong to this skill", status=404)
         files = [
-            dict(r)
+            cast(Record, dict(r))
             for r in self.connection.execute(
                 select(s.skill_files)
                 .where(s.skill_files.c.revision_id == revision["id"], s.skill_files.c.agent_id == agent_id)
@@ -64,20 +65,28 @@ class SkillRepositories(RepositoryBase):
                 .limit(18)
             ).mappings()
         ]
-        return {
-            **head,
-            "revision_id": revision["id"],
-            "content_revision": revision["revision"],
-            **{k: detail[k] for k in ("description", "manifest_sha256", *PLATFORMS)},
-            "files": files,
-        }
+        return cast(
+            Record,
+            {
+                **head,
+                "revision_id": revision["id"],
+                "content_revision": revision["revision"],
+                **{k: detail[k] for k in ("description", "manifest_sha256", *PLATFORMS)},
+                "files": files,
+            },
+        )
 
-    def skill_page(self, agent_id: str, after: str = "", limit: int = 50) -> list[dict]:
+    def skill_page(self, agent_id: str, after: str = "", limit: int = 50) -> list[Record]:
         self._skill_agent(agent_id)
-        if not isinstance(after, str) or len(after) > 36 or type(limit) is not int or not 1 <= limit <= 50:
+        if (
+            not isinstance(cast(object, after), str)
+            or len(after) > 36
+            or type(limit) is not int
+            or not 1 <= limit <= 50
+        ):
             raise invalid()
         return [
-            dict(r)
+            cast(Record, dict(r))
             for r in self.connection.execute(
                 select(
                     s.skills,
@@ -98,12 +107,12 @@ class SkillRepositories(RepositoryBase):
             ).mappings()
         ]
 
-    def skill_history(self, agent_id: str, skill_id: str, after: int = 0, limit: int = 50) -> list[dict]:
+    def skill_history(self, agent_id: str, skill_id: str, after: int = 0, limit: int = 50) -> list[Record]:
         self._one(s.skills, agent_id, skill_id)
         if type(after) is not int or after < 0 or type(limit) is not int or not 1 <= limit <= 50:
             raise invalid()
         return [
-            dict(r)
+            cast(Record, dict(r))
             for r in self.connection.execute(
                 select(
                     s.skill_revisions.c.id,
@@ -123,8 +132,8 @@ class SkillRepositories(RepositoryBase):
         ]
 
     def skill_install(
-        self, agent_id: str, metadata: dict, files: list[dict], skill_id: str | None = None, revision: int = 0
-    ) -> dict:
+        self, agent_id: str, metadata: Record, files: list[Record], skill_id: str | None = None, revision: int = 0
+    ) -> Record:
         self._skill_agent(agent_id)
         if type(revision) is not int or revision < 0:
             raise invalid()
@@ -135,19 +144,19 @@ class SkillRepositories(RepositoryBase):
             raise invalid()
         if (
             not 1 <= len(files) <= 17
-            or sum(r["bytes"] for r in files) > 512 * 1024
-            or len({r["path"].casefold() for r in files}) != len(files)
+            or sum(cast(int, r["bytes"]) for r in files) > 512 * 1024
+            or len({cast(str, r["path"]).casefold() for r in files}) != len(files)
         ):
             raise invalid()
         for row in files:
-            file_path(row["path"])
-            obj = self._one(s.objects, agent_id, row["object_id"])
+            file_path(cast(str, row["path"]))
+            obj = self._one(s.objects, agent_id, cast(str, row["object_id"]))
             if obj["sha256"] != row["sha256"] or obj["bytes"] != row["bytes"]:
                 raise invalid("skill_object_changed")
         main = next((r for r in files if r["path"] == "SKILL.md"), None)
         if not main:
             raise invalid()
-        if old and old["content_revision"] >= 128:
+        if old and cast(int, old["content_revision"]) >= 128:
             raise BusinessError("skill_capacity", "Skill revision limit reached", status=422)
         if (
             not old
@@ -176,13 +185,13 @@ class SkillRepositories(RepositoryBase):
                 },
                 agent_id,
             )
-            skill_id = head["id"]
+            skill_id = cast(str, head["id"])
         self._record(
             s.skill_revisions,
             {
                 "id": version_id,
                 "name": metadata["name"],
-                "revision": old["content_revision"] + 1 if old else 1,
+                "revision": cast(int, old["content_revision"]) + 1 if old else 1,
                 "object_id": main["object_id"],
             },
             agent_id,
@@ -193,7 +202,7 @@ class SkillRepositories(RepositoryBase):
                 skill_id=skill_id,
                 agent_id=agent_id,
                 description=metadata["description"],
-                manifest_sha256=manifest(files),
+                manifest_sha256=manifest(cast(list[dict[str, object]], files)),
                 **{p: metadata[p] for p in PLATFORMS},
             )
         )
@@ -211,7 +220,7 @@ class SkillRepositories(RepositoryBase):
                     current_revision_id=version_id,
                     state="disabled",
                     revision=revision + 1,
-                    authority_epoch=old["authority_epoch"] + 1,
+                    authority_epoch=cast(int, old["authority_epoch"]) + 1,
                 )
             )
         self.audit(
@@ -220,7 +229,7 @@ class SkillRepositories(RepositoryBase):
             skill_id,
             {
                 "revision_id": version_id,
-                "manifest_sha256": manifest(files),
+                "manifest_sha256": manifest(cast(list[dict[str, object]], files)),
                 "state": "disabled",
                 "file_count": len(files),
             },
@@ -229,7 +238,7 @@ class SkillRepositories(RepositoryBase):
 
     def skill_state(
         self, agent_id: str, skill_id: str, revision: int, state: str, revision_id: str, sha256: str
-    ) -> dict:
+    ) -> Record:
         row = self.skill_get(agent_id, skill_id)
         if row["revision"] != revision or row["revision_id"] != revision_id or row["manifest_sha256"] != sha256:
             raise BusinessError("revision_conflict", "Skill changed; review its exact revision")
@@ -251,7 +260,11 @@ class SkillRepositories(RepositoryBase):
             agent_id,
             "skill." + state,
             skill_id,
-            {"revision_id": revision_id, "manifest_sha256": sha256, "authority_epoch": row["authority_epoch"] + 1},
+            {
+                "revision_id": revision_id,
+                "manifest_sha256": sha256,
+                "authority_epoch": cast(int, row["authority_epoch"]) + 1,
+            },
         )
         self.connection.execute(
             update(s.skills)
@@ -259,7 +272,7 @@ class SkillRepositories(RepositoryBase):
             .values(
                 state=state,
                 revision=revision + 1,
-                authority_epoch=row["authority_epoch"] + 1,
+                authority_epoch=cast(int, row["authority_epoch"]) + 1,
                 review_audit_id=audit_id if state == "enabled" else row["review_audit_id"],
             )
         )
@@ -269,14 +282,15 @@ class SkillRepositories(RepositoryBase):
         run = self._one(s.runs, agent_id, run_id)
         if run["skill_capture_epoch"] is not None:
             raise invalid("skill_catalog_sealed")
-        enabled = list(
-            self.connection.execute(
+        enabled = [
+            cast(Record, dict(r))
+            for r in self.connection.execute(
                 select(s.skills)
                 .where(s.skills.c.agent_id == agent_id, s.skills.c.state == "enabled")
                 .order_by(s.skills.c.id)
                 .limit(33)
             ).mappings()
-        )
+        ]
         if len(enabled) > 32:
             raise invalid("skill_capacity")
         for position, row in enumerate(enabled):
@@ -321,7 +335,7 @@ class SkillRepositories(RepositoryBase):
         ):
             raise BusinessError("skill_authority_revoked", "An active skill changed or was revoked; use a new run")
 
-    def skill_run_report(self, agent_id: str, run_id: str, platform: str) -> dict:
+    def skill_run_report(self, agent_id: str, run_id: str, platform: str) -> Record:
         run = self._one(s.runs, agent_id, run_id)
         if platform not in PLATFORMS:
             raise invalid()
@@ -342,23 +356,26 @@ class SkillRepositories(RepositoryBase):
             .order_by(s.run_skill_catalog.c.position)
             .limit(32)
         ).mappings()
-        return {
-            "captured": run["skill_capture_epoch"] is not None,
-            "platform": platform,
-            "items": [
-                {
-                    **dict(r),
-                    "active": r["activation_id"] is not None,
-                    "available": r["state"] == "enabled"
-                    and r["authority_epoch"] == r["current_epoch"]
-                    and run["skill_capture_epoch"] == epoch
-                    and r["platform_supported"],
-                }
-                for r in rows
-            ],
-        }
+        return cast(
+            Record,
+            {
+                "captured": run["skill_capture_epoch"] is not None,
+                "platform": platform,
+                "items": [
+                    {
+                        **dict(r),
+                        "active": r["activation_id"] is not None,
+                        "available": r["state"] == "enabled"
+                        and r["authority_epoch"] == r["current_epoch"]
+                        and run["skill_capture_epoch"] == epoch
+                        and r["platform_supported"],
+                    }
+                    for r in rows
+                ],
+            },
+        )
 
-    def skill_catalog(self, agent_id: str, run_id: str, platform: str, *, active: bool = False) -> list[dict]:
+    def skill_catalog(self, agent_id: str, run_id: str, platform: str, *, active: bool = False) -> list[Record]:
         self._one(s.runs, agent_id, run_id)
         self.skill_authorize_run(agent_id, run_id)
         if platform not in PLATFORMS:
@@ -381,7 +398,7 @@ class SkillRepositories(RepositoryBase):
                 s.run_skill_activations, s.run_skill_activations.c.catalog_id == s.run_skill_catalog.c.id
             )
         return [
-            dict(r)
+            cast(Record, dict(r))
             for r in self.connection.execute(
                 statement.where(
                     s.run_skill_catalog.c.agent_id == agent_id,
@@ -397,7 +414,7 @@ class SkillRepositories(RepositoryBase):
 
     def skill_activate_run(
         self, agent_id: str, run_id: str, skill_id: str, platform: str, action_id: str | None = None
-    ) -> dict:
+    ) -> Record:
         if action_id:
             unit = cast("Repositories", self)
             unit.assert_run_authorized(agent_id, run_id)
@@ -408,7 +425,7 @@ class SkillRepositories(RepositoryBase):
                 or action["tool"] not in {"skill_activate", "skill_view"}
                 or action["state"] != "executing"
                 or current["policy_revision"] != action["policy_revision"]
-                or action["tool"] in current["value"]["disabled_tools"]
+                or action["tool"] in cast(list[object], cast(Record, current["value"])["disabled_tools"])
             ):
                 raise BusinessError("policy_changed", "Skill read authority changed before publication")
         catalog = next((r for r in self.skill_catalog(agent_id, run_id, platform) if r["skill_id"] == skill_id), None)
@@ -456,4 +473,4 @@ class SkillRepositories(RepositoryBase):
                     "source": "model" if action_id else "owner",
                 },
             )
-        return self.skill_get(agent_id, skill_id, catalog["revision_id"])
+        return self.skill_get(agent_id, skill_id, cast(str, catalog["revision_id"]))
