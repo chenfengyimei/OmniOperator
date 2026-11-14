@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "d23ec0cf960c6acdaaa5efec2a5cb9413b2653fb7a6c1e535bc8094e8eb67481",
+  "source_sha256": "a22b56b6dfb3f8d33e216c02b340e4af5c125eba0089d1438d0dc02fa0517459",
   "modules": [
     {
       "id": "v2-domain",
@@ -404,7 +404,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 53937,
+      "lines": 53970,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -498,7 +498,7 @@
         "web/ui/v2/v1/workbench.css",
         "web/ui/v2/workbench.css"
       ],
-      "lines": 20447,
+      "lines": 20476,
       "dependencies": []
     },
     {
@@ -15982,22 +15982,23 @@
       "path": "agent/src/omni/adapters/persistence/mcp_repository.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.persistence.mcp_repository",
-      "lines": 977,
+      "lines": 1010,
       "imports": [
         "omni.adapters.persistence",
         "omni.adapters.persistence.context_repository",
+        "omni.application.ports",
         "omni.domain.contracts",
         "omni.domain.mcp"
       ],
       "symbols": [
         {
           "name": "MCPRepositories",
-          "line": 28,
+          "line": 29,
           "kind": "class"
         },
         {
           "name": "MCPRepositories.mcp_configuration",
-          "line": 31,
+          "line": 32,
           "kind": "function",
           "parameters": [
             "self",
@@ -16013,7 +16014,7 @@
         },
         {
           "name": "MCPRepositories._mcp_server",
-          "line": 43,
+          "line": 44,
           "kind": "function",
           "parameters": [
             "self",
@@ -16027,7 +16028,7 @@
         },
         {
           "name": "MCPRepositories._mcp_require_server",
-          "line": 55,
+          "line": 56,
           "kind": "function",
           "parameters": [
             "self",
@@ -16041,7 +16042,7 @@
         },
         {
           "name": "MCPRepositories._mcp_counts",
-          "line": 61,
+          "line": 62,
           "kind": "function",
           "parameters": [
             "self",
@@ -16055,7 +16056,7 @@
         },
         {
           "name": "MCPRepositories._mcp_view",
-          "line": 83,
+          "line": 84,
           "kind": "function",
           "parameters": [
             "self",
@@ -16065,13 +16066,13 @@
           ],
           "annotations": {
             "agent_id": "str",
-            "config": "dict",
-            "server": "dict | None"
+            "config": "Record",
+            "server": "Record | None"
           }
         },
         {
           "name": "MCPRepositories.mcp_server_overview",
-          "line": 126,
+          "line": 127,
           "kind": "function",
           "parameters": [
             "self",
@@ -16083,7 +16084,7 @@
         },
         {
           "name": "MCPRepositories.mcp_server_get",
-          "line": 134,
+          "line": 137,
           "kind": "function",
           "parameters": [
             "self",
@@ -16097,7 +16098,7 @@
         },
         {
           "name": "MCPRepositories._mcp_runtime",
-          "line": 142,
+          "line": 145,
           "kind": "function",
           "parameters": [
             "self",
@@ -16112,7 +16113,7 @@
         },
         {
           "name": "MCPRepositories._mcp_revoke",
-          "line": 150,
+          "line": 153,
           "kind": "function",
           "parameters": [
             "self",
@@ -16122,13 +16123,13 @@
           ],
           "annotations": {
             "agent_id": "str",
-            "server": "dict",
+            "server": "Record",
             "reason": "str"
           }
         },
         {
           "name": "MCPRepositories.mcp_server_begin",
-          "line": 169,
+          "line": 172,
           "kind": "function",
           "parameters": [
             "self",
@@ -16144,7 +16145,7 @@
         },
         {
           "name": "MCPRepositories._mcp_catalog",
-          "line": 225,
+          "line": 228,
           "kind": "function",
           "parameters": [
             "self",
@@ -16160,7 +16161,7 @@
         },
         {
           "name": "MCPRepositories._mcp_tools",
-          "line": 239,
+          "line": 242,
           "kind": "function",
           "parameters": [
             "self",
@@ -16174,7 +16175,7 @@
         },
         {
           "name": "MCPRepositories._mcp_active_grants",
-          "line": 249,
+          "line": 252,
           "kind": "function",
           "parameters": [
             "self",
@@ -16188,7 +16189,7 @@
         },
         {
           "name": "MCPRepositories.mcp_catalog_commit",
-          "line": 261,
+          "line": 264,
           "kind": "function",
           "parameters": [
             "self",
@@ -16201,12 +16202,12 @@
             "agent_id": "str",
             "config_id": "str",
             "revision_id": "str",
-            "tools": "Sequence[dict]"
+            "tools": "Sequence[Record]"
           }
         },
         {
           "name": "MCPRepositories.mcp_server_failed",
-          "line": 323,
+          "line": 336,
           "kind": "function",
           "parameters": [
             "self",
@@ -16222,7 +16223,7 @@
         },
         {
           "name": "MCPRepositories.mcp_server_stopped",
-          "line": 332,
+          "line": 345,
           "kind": "function",
           "parameters": [
             "self",
@@ -16238,7 +16239,7 @@
         },
         {
           "name": "MCPRepositories.mcp_server_reset",
-          "line": 341,
+          "line": 354,
           "kind": "function",
           "parameters": [
             "self",
@@ -16252,7 +16253,7 @@
         },
         {
           "name": "MCPRepositories.mcp_catalog_page",
-          "line": 352,
+          "line": 365,
           "kind": "function",
           "parameters": [
             "self",
@@ -16270,7 +16271,7 @@
         },
         {
           "name": "MCPRepositories.mcp_authorize",
-          "line": 396,
+          "line": 412,
           "kind": "function",
           "parameters": [
             "self",
@@ -16281,12 +16282,12 @@
           "annotations": {
             "agent_id": "str",
             "config_id": "str",
-            "request": "dict"
+            "request": "Record"
           }
         },
         {
           "name": "MCPRepositories.mcp_tool_decision",
-          "line": 466,
+          "line": 486,
           "kind": "function",
           "parameters": [
             "self",
@@ -16310,7 +16311,7 @@
         },
         {
           "name": "MCPRepositories.mcp_revoke_grants",
-          "line": 549,
+          "line": 569,
           "kind": "function",
           "parameters": [
             "self",
@@ -16326,7 +16327,7 @@
         },
         {
           "name": "MCPRepositories.mcp_oauth_authorized",
-          "line": 554,
+          "line": 574,
           "kind": "function",
           "parameters": [
             "self",
@@ -16340,7 +16341,7 @@
         },
         {
           "name": "MCPRepositories._mcp_live_grants",
-          "line": 598,
+          "line": 618,
           "kind": "function",
           "parameters": [
             "self",
@@ -16352,7 +16353,7 @@
         },
         {
           "name": "MCPRepositories._mcp_capture_row",
-          "line": 636,
+          "line": 657,
           "kind": "function",
           "parameters": [
             "self",
@@ -16368,7 +16369,7 @@
         },
         {
           "name": "MCPRepositories._mcp_live_binding",
-          "line": 648,
+          "line": 669,
           "kind": "function",
           "parameters": [
             "self",
@@ -16377,12 +16378,12 @@
           ],
           "annotations": {
             "agent_id": "str",
-            "binding": "dict"
+            "binding": "Record"
           }
         },
         {
           "name": "MCPRepositories.mcp_run_capture",
-          "line": 710,
+          "line": 731,
           "kind": "function",
           "parameters": [
             "self",
@@ -16396,7 +16397,7 @@
         },
         {
           "name": "MCPRepositories.mcp_run_tools",
-          "line": 749,
+          "line": 770,
           "kind": "function",
           "parameters": [
             "self",
@@ -16410,7 +16411,7 @@
         },
         {
           "name": "MCPRepositories.mcp_bind_action",
-          "line": 770,
+          "line": 794,
           "kind": "function",
           "parameters": [
             "self",
@@ -16428,7 +16429,7 @@
         },
         {
           "name": "MCPRepositories.mcp_assert_action",
-          "line": 786,
+          "line": 810,
           "kind": "function",
           "parameters": [
             "self",
@@ -16442,7 +16443,7 @@
         },
         {
           "name": "MCPRepositories.mcp_dispatch",
-          "line": 807,
+          "line": 831,
           "kind": "function",
           "parameters": [
             "self",
@@ -16460,7 +16461,7 @@
         },
         {
           "name": "MCPRepositories.mcp_call_begin",
-          "line": 833,
+          "line": 863,
           "kind": "function",
           "parameters": [
             "self",
@@ -16473,12 +16474,12 @@
             "agent_id": "str",
             "run_id": "str",
             "action_id": "str",
-            "binding": "dict"
+            "binding": "Record"
           }
         },
         {
           "name": "MCPRepositories.mcp_call_get",
-          "line": 862,
+          "line": 892,
           "kind": "function",
           "parameters": [
             "self",
@@ -16492,7 +16493,7 @@
         },
         {
           "name": "MCPRepositories.mcp_call_dispatched",
-          "line": 865,
+          "line": 895,
           "kind": "function",
           "parameters": [
             "self",
@@ -16506,7 +16507,7 @@
         },
         {
           "name": "MCPRepositories.mcp_call_finish",
-          "line": 873,
+          "line": 903,
           "kind": "function",
           "parameters": [
             "self",
@@ -16530,7 +16531,7 @@
         },
         {
           "name": "MCPRepositories.mcp_call_page",
-          "line": 920,
+          "line": 950,
           "kind": "function",
           "parameters": [
             "self",
@@ -16548,7 +16549,7 @@
         },
         {
           "name": "MCPRepositories.mcp_calls_recover",
-          "line": 952,
+          "line": 985,
           "kind": "function",
           "parameters": [
             "self"
@@ -95864,7 +95865,7 @@
       "path": "web/ui/v2/workbench.css",
       "module": "v2-workbench",
       "python_module": null,
-      "lines": 2071,
+      "lines": 2100,
       "imports": [],
       "symbols": [],
       "kind": "asset",

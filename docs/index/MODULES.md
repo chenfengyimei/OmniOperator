@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`d23ec0cf960c6acdaaa5efec2a5cb9413b2653fb7a6c1e535bc8094e8eb67481`。包含 65 个职责模块、735 个源码/界面文件。
+源码指纹：`a22b56b6dfb3f8d33e216c02b340e4af5c125eba0089d1438d0dc02fa0517459`。包含 65 个职责模块、735 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -195,7 +195,7 @@
 | [agent/src/omni/adapters/persistence/lease_repository.py](../../agent/src/omni/adapters/persistence/lease_repository.py) | 283 | Persistent FIFO claims and fenced resource leases, within the caller's transaction. |
 | [agent/src/omni/adapters/persistence/maintenance.py](../../agent/src/omni/adapters/persistence/maintenance.py) | 1066 | Exclusive offline snapshots and restore. Live SQLite files are never copied directly. |
 | [agent/src/omni/adapters/persistence/maintenance_repository.py](../../agent/src/omni/adapters/persistence/maintenance_repository.py) | 543 | Bounded document-maintenance admission, fenced attempts and business-result settlement; no execution or I/O. |
-| [agent/src/omni/adapters/persistence/mcp_repository.py](../../agent/src/omni/adapters/persistence/mcp_repository.py) | 977 | MCP runtime generations, catalog snapshots, per-tool grants, run captures and call records. |
+| [agent/src/omni/adapters/persistence/mcp_repository.py](../../agent/src/omni/adapters/persistence/mcp_repository.py) | 1010 | MCP runtime generations, catalog snapshots, per-tool grants, run captures and call records. |
 | [agent/src/omni/adapters/persistence/media_repository.py](../../agent/src/omni/adapters/persistence/media_repository.py) | 334 | Scoped media sources, bounded jobs and immutable artifact rows; never reads files. |
 | [agent/src/omni/adapters/persistence/memory_organization_predicates.py](../../agent/src/omni/adapters/persistence/memory_organization_predicates.py) | 114 | One live approved-duplicate predicate for recall and new context capture; never edits memory truth. |
 | [agent/src/omni/adapters/persistence/memory_organization_repository.py](../../agent/src/omni/adapters/persistence/memory_organization_repository.py) | 584 | Bounded exact-duplicate proposals and owner review; never changes, forgets or copies memory truth. |
@@ -453,7 +453,7 @@
 | [web/ui/v2/v1/components.css](../../web/ui/v2/v1/components.css) | 655 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/v1/frame.css](../../web/ui/v2/v1/frame.css) | 932 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/v1/workbench.css](../../web/ui/v2/v1/workbench.css) | 4450 | 原生源码、平台脚本或界面资源 |
-| [web/ui/v2/workbench.css](../../web/ui/v2/workbench.css) | 2071 | 原生源码、平台脚本或界面资源 |
+| [web/ui/v2/workbench.css](../../web/ui/v2/workbench.css) | 2100 | 原生源码、平台脚本或界面资源 |
 
 文档：[docs/V2_REFACTOR.md](../../docs/V2_REFACTOR.md)
 
