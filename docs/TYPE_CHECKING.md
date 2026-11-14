@@ -282,6 +282,7 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 | `agent/src/omni/adapters/persistence/memory_repository.py` | 记忆真相/证据/修订与抹除（对齐端口 Record、来源序号与区间 int 收窄、墓碑不重放保留） |
 | `agent/src/omni/adapters/persistence/object_inventory.py` | 离线对象登记/物理清单校验 |
 | `agent/src/omni/adapters/persistence/reference_release.py` | 引用释放计划（读/建/应用/取消） |
+| `agent/src/omni/adapters/persistence/reference_release_repository.py` | 已审阅退役动作-对象引用释放（对齐端口 Record、领域计划校验前 cast 宽字典、只删引用不删对象不改过期） |
 | `agent/src/omni/adapters/workers/terminal_gate.py` | Windows ConPTY 启动门（Job 归属后放行） |
 | `agent/src/omni/adapters/workers/service_admin_boot.py` | 受审管理员工件物的隔离 root 入口（按持有 fd 降层校验） |
 | `agent/src/omni/adapters/workers/linux_action.py` | Linux 语义动作 worker 单帧入口（初始帧不授权写入） |
@@ -330,7 +331,7 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 | --- | --- |
 | `agent/src/omni/domain`（全部 53 文件） | 2321 |
 
-`service_control.py`（94）已在纳入 strict 前清零；`model_stream.py`（75）、`context.py`（38）、`recovery_authority.py`（27）、`memory_semantics.py`（19）、`foreground.py`（24）、`metering.py`（19）与 `release_fence.py`（16）同样已清零，基线表中不再列逐文件例外。`application/` 已全部纳入（44/44 个模块）、`adapters/` 195 个模块；`composition/` 已全部纳入（13/13 个模块，守卫允许层已加入 composition）；`agent/tests/` 尚未开始 strict。
+`service_control.py`（94）已在纳入 strict 前清零；`model_stream.py`（75）、`context.py`（38）、`recovery_authority.py`（27）、`memory_semantics.py`（19）、`foreground.py`（24）、`metering.py`（19）与 `release_fence.py`（16）同样已清零，基线表中不再列逐文件例外。`application/` 已全部纳入（44/44 个模块）、`adapters/` 196 个模块；`composition/` 已全部纳入（13/13 个模块，守卫允许层已加入 composition）；`agent/tests/` 尚未开始 strict。
 
 ### 3.1 剩余 adapters 错误数（本源码版本，仅记录）
 
