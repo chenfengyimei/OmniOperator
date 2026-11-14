@@ -1858,73 +1858,55 @@
    ]
   },
   "full_run": {
-   "status": "parallel_run_serial_and_clean_head_controls_ui_session_worktree_attributed",
-   "source": "2583a1b (982f5866); worktree carries the parallel UI session's uncommitted front-end edits (main.js/index.html/workbench.css +472 lines and per-page js), which changed again mid-acceptance",
+   "status": "parallel_run_serial_and_repeat_controls_both_flaky",
+   "source": "a7a9970 (fa8f0d71); worktree also carries the parallel UI session's uncommitted front-end edits",
    "workers": 2,
-   "report": "temp/build/v2-full-175.xml",
-   "report_sha256": "b6eb6e3c90eda3d0310113d33b1dd68b5042fa01ff2a80cd27705fdee929b2cc",
+   "report": "temp/build/v2-full-180.xml",
+   "report_sha256": "a6c25645bb334c95438d6355b9ab723b4954c8064e2c273a0a684c2062109b85",
    "tests": 4658,
-   "passed": 4636,
-   "failed": 22,
+   "passed": 4656,
+   "failed": 2,
    "errors": 0,
-   "duration_s": 2938.09,
+   "duration_s": 3899.21,
    "failure_summary": {
-    "ui_session_agents_selector_hidden": 14,
-    "ui_session_css_guard_violations": 3,
-    "ui_session_model_live_hidden": 2,
-    "ui_session_configuration_response_shape": 3
+    "playwright_contention_or_timing_flaky": 2
    },
    "serial_rerun": {
-    "report": "temp/build/v2-full-175-serial.xml",
-    "report_sha256": "e66e0020b05165ca8aa8714177fd6539c64e3309bc33e71a5e65d298c09681e0",
-    "tests": 22,
-    "passed": 8,
-    "failed": 14,
+    "report": "temp/build/v2-full-180-serial.xml",
+    "report_sha256": "6e413c87a05f11765b8c4a2e0efaeb03c7fb394c8a1d62ef0a144d89d944548b",
+    "tests": 2,
+    "passed": 1,
+    "failed": 1,
     "errors": 0,
-    "duration_s": 546.32
+    "duration_s": 128.12
    },
    "clean_head_control": {
-    "report": "temp/build/v2-full-175-clean-head.xml",
-    "report_sha256": "90cb6385aac83810e99d7b585975b5dd089162a1b07d5d26464ec6294fc373c4",
-    "method": "git worktree at HEAD (bd9f53e) with the main interpreter and PYTHONPATH pointed at the copy; representative failures from three symptom families (configuration KeyError, agents select_option, action-review two_agents)",
-    "tests": 3,
-    "passed": 3,
+    "report": "temp/build/v2-full-180-clean-head.xml",
+    "report_sha256": "5082456c31bb362a55245f9ee3a6def8d3c40f21c7a3afa87547a283973d5b6d",
+    "method": "git worktree at HEAD (71e70b3) with the main interpreter and PYTHONPATH pointed at the copy",
+    "tests": 2,
+    "passed": 2,
     "failed": 0,
     "errors": 0,
-    "duration_s": 33.21,
-    "conclusion": "all three representative failures pass on clean HEAD without the parallel session's uncommitted front-end edits; this batch touches only persistence/maintenance_repository.py"
+    "duration_s": 31.57,
+    "extra_runs": "portal case additionally passed twice more on the clean copy (3/3 total)"
    },
    "details": [
-    "并行 22 败全部为 UI/静态守卫，无任何 persistence/domain/application 失败；本批（171～175）只改 persistence 层，专项 402 项全过",
-    "14 项 two_agents/多视口用例：#agents 选择器不可见（select_option 30s 超时）——并行 UI 会话未提交的会话面板/连接卡改版（main.js bootstrapLocal + workbench.css +472 行）所致；串行复跑仍败 14 项（确定性，非争用抖动）",
-    "3 项 test_ui_glass_tokens（--r-xs 悬空、#767676 未登记、blur 字面量）：并行时为 UI 会话未提交 workbench.css 违规；串行时该会话已在工作区修掉（现守卫 10/10 过，HEAD 亦无违规），故串行转绿——转绿源于他方工作区修复，不是抖动",
-    "2 项 model_stream_ui（#model-live 未转可见）与 3 项 configuration drafts（GET 响应缺 name 键）：同属 UI 会话在途改版影响；configuration 3 项串行通过（时序敏感），model-live 2 项串行通过",
-    "干净 HEAD 对照：三类症状代表用例（configuration KeyError / agents select_option / action-review）3/3 通过，确证失败由他会未提交前端改动引入，非本批回归",
-    "他会改动在验收期间持续变化（workbench.css 从 +449 行违规到修复清零），本报告按并行时点快照记录，串行/对照时点差异已如实注明"
+    "并行仅 2 败，均为 UI 用例；第 35 节点的 14 项 #agents 不可见与 3 项 CSS 守卫本次全部通过（UI 会话已修复其工作区改动），无任何 persistence/domain/application 失败",
+    "test_v2_ui::test_delivery_draft_approval_preview_receipt_and_archive[dark-1024-delivery]：归档后列表仍 2 项（期望 1）；串行复跑通过，干净 HEAD 亦通过 —— 判定 -n 2 争用/时序抖动",
+    "test_v2_portal_ui::test_owner_selects_queries_captures_and_leaving_revokes_without_implicit_pixels：portal_consent_pending 未在 5 秒内转已授权；串行复跑一次失败，但随后主工作区连跑两次均通过，干净 HEAD 副本连跑三次全过 —— 与第 25 节点结论一致，属既有 flaky（开放项 test.portal_ui_flaky_on_clean_head），非他会改动所致、非本批回归",
+    "过程更正：串行单次失败时曾倾向归因他会未提交 desktop.js 改动，但主工作区复跑两次通过与干净副本三次全过推翻了该判断；最终以多次对照为准",
+    "结论：本批（176～180）无功能回归；2 项均为既有/并发时序抖动，已留档"
    ],
-   "note": "第 35 节点（171～175 批）全量。验收口径：并行跑 + 全部失败项串行复跑 + 干净 HEAD 代表对照，全部报告留档；不将串行通过写成并行全绿（并行仍记 22 failed），不把他方未提交改动的确定性失败写成抖动，也不将他人会话的违规写成本批回归。strict 299 文件 0 errors/0 warnings。"
+   "note": "第 40 节点（176～180 批）全量。验收口径：并行跑 + 失败项串行复跑 + 干净 HEAD 对照 + 主工作区重复复跑，全部报告留档；不将串行通过写成并行全绿（并行仍记 2 failed），不把单次失败当作稳定归属结论。strict 304 文件 0 errors/0 warnings。"
   },
   "open_findings": [
    {
     "id": "test.portal_ui_flaky_on_clean_head",
     "owner": "shared-test-suite",
     "state": "open",
-    "detail": "test_v2_portal_ui::test_owner_selects_queries_captures_and_leaving_revokes_without_implicit_pixels 在干净 HEAD 上连跑三次为 通过/失败/通过，两种症状：portal_consent_pending 未在 5 秒内转 active，以及 #model 输入框 30 秒未启用。属既有用例稳定性问题，非本类型化任务引入；建议由门户/桌面用例负责人加固等待条件或注入确定性时钟。",
-    "evidence": "temp/build/v2-full-165.xml, v2-full-165-serial.xml, v2-full-165-clean-head.xml"
-   },
-   {
-    "id": "ui.agents_selector_hidden_worktree_uncommitted",
-    "owner": "parallel-ui-session",
-    "state": "open_in_worktree_uncommitted",
-    "detail": "并行 UI 会话未提交的会话面板/连接卡改版使 #agents 选择器不可见，14 项 two_agents/多视口用例 select_option 30s 超时（串行仍败，确定性）。干净 HEAD 对照通过。归其修正后提交；本类型化任务不代改其文件。取代旧开放项 ui.agents_select_hidden_worktree_uncommitted（同一根因，规模扩大）。",
-    "evidence": "temp/build/v2-full-175.xml, v2-full-175-serial.xml, v2-full-175-clean-head.xml"
-   },
-   {
-    "id": "ui.glass_tokens_violations_workbench_uncommitted",
-    "owner": "parallel-ui-session",
-    "state": "resolved_in_worktree_commit_pending",
-    "detail": "第 30 节点登记的 workbench.css 三项守卫违规（--r-xs/#767676/blur 字面量），UI 会话已在第 35 节点验收期间于工作区修复（现守卫 10/10 过，HEAD 无违规）；是否随其下次提交入库由其自行确认。",
-    "evidence": "temp/build/v2-full-175.xml, v2-full-175-serial.xml"
+    "detail": "test_v2_portal_ui::test_owner_selects_queries_captures_and_leaving_revokes_without_implicit_pixels 在第 25 与第 40 节点均出现：portal_consent_pending 未在 5 秒内转 active。第 40 节点干净 HEAD 三次全过、主工作区复跑两次全过，串行单次失败；确认为既有 flaky。建议由门户/桌面用例负责人加固等待条件或注入确定性时钟。",
+    "evidence": "temp/build/v2-full-165*.xml, v2-full-180.xml, v2-full-180-serial.xml, v2-full-180-clean-head.xml"
    }
   ],
   "next": {
@@ -2077,6 +2059,53 @@
      "结论：本批（166～170）无功能回归；2 项真实守卫违规归并行 UI 会话未提交改动，2 项为并发抖动"
     ],
     "note": "第 30 节点（166～170 批）全量。验收口径：并行跑 + 失败项串行复跑 + UI 项隔离复跑，全部报告留档；不将串行/隔离通过写成并行全绿（并行仍记 4 failed），不把他方未提交改动的确定性守卫失败写成抖动，也不将他人会话的违规写成本批回归。strict 294 文件 0 errors/0 warnings。"
+   },
+   {
+    "status": "parallel_run_serial_and_clean_head_controls_ui_session_worktree_attributed",
+    "source": "2583a1b (982f5866); worktree carries the parallel UI session's uncommitted front-end edits (main.js/index.html/workbench.css +472 lines and per-page js), which changed again mid-acceptance",
+    "workers": 2,
+    "report": "temp/build/v2-full-175.xml",
+    "report_sha256": "b6eb6e3c90eda3d0310113d33b1dd68b5042fa01ff2a80cd27705fdee929b2cc",
+    "tests": 4658,
+    "passed": 4636,
+    "failed": 22,
+    "errors": 0,
+    "duration_s": 2938.09,
+    "failure_summary": {
+     "ui_session_agents_selector_hidden": 14,
+     "ui_session_css_guard_violations": 3,
+     "ui_session_model_live_hidden": 2,
+     "ui_session_configuration_response_shape": 3
+    },
+    "serial_rerun": {
+     "report": "temp/build/v2-full-175-serial.xml",
+     "report_sha256": "e66e0020b05165ca8aa8714177fd6539c64e3309bc33e71a5e65d298c09681e0",
+     "tests": 22,
+     "passed": 8,
+     "failed": 14,
+     "errors": 0,
+     "duration_s": 546.32
+    },
+    "clean_head_control": {
+     "report": "temp/build/v2-full-175-clean-head.xml",
+     "report_sha256": "90cb6385aac83810e99d7b585975b5dd089162a1b07d5d26464ec6294fc373c4",
+     "method": "git worktree at HEAD (bd9f53e) with the main interpreter and PYTHONPATH pointed at the copy; representative failures from three symptom families (configuration KeyError, agents select_option, action-review two_agents)",
+     "tests": 3,
+     "passed": 3,
+     "failed": 0,
+     "errors": 0,
+     "duration_s": 33.21,
+     "conclusion": "all three representative failures pass on clean HEAD without the parallel session's uncommitted front-end edits; this batch touches only persistence/maintenance_repository.py"
+    },
+    "details": [
+     "并行 22 败全部为 UI/静态守卫，无任何 persistence/domain/application 失败；本批（171～175）只改 persistence 层，专项 402 项全过",
+     "14 项 two_agents/多视口用例：#agents 选择器不可见（select_option 30s 超时）——并行 UI 会话未提交的会话面板/连接卡改版（main.js bootstrapLocal + workbench.css +472 行）所致；串行复跑仍败 14 项（确定性，非争用抖动）",
+     "3 项 test_ui_glass_tokens（--r-xs 悬空、#767676 未登记、blur 字面量）：并行时为 UI 会话未提交 workbench.css 违规；串行时该会话已在工作区修掉（现守卫 10/10 过，HEAD 亦无违规），故串行转绿——转绿源于他方工作区修复，不是抖动",
+     "2 项 model_stream_ui（#model-live 未转可见）与 3 项 configuration drafts（GET 响应缺 name 键）：同属 UI 会话在途改版影响；configuration 3 项串行通过（时序敏感），model-live 2 项串行通过",
+     "干净 HEAD 对照：三类症状代表用例（configuration KeyError / agents select_option / action-review）3/3 通过，确证失败由他会未提交前端改动引入，非本批回归",
+     "他会改动在验收期间持续变化（workbench.css 从 +449 行违规到修复清零），本报告按并行时点快照记录，串行/对照时点差异已如实注明"
+    ],
+    "note": "第 35 节点（171～175 批）全量。验收口径：并行跑 + 全部失败项串行复跑 + 干净 HEAD 代表对照，全部报告留档；不将串行通过写成并行全绿（并行仍记 22 failed），不把他方未提交改动的确定性失败写成抖动，也不将他人会话的违规写成本批回归。strict 299 文件 0 errors/0 warnings。"
    }
   ],
   "scope": [
