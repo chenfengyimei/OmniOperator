@@ -2,12 +2,12 @@
 
 ## 当前断点（2026-11-15）
 
-- 工作区 D:/xm/OmniOperator，PowerShell，分支 codex/architecture-v2，上游 origin（Gitee）。
+- 工作区 D:/xm/OmniOperator，PowerShell（用分号，不用 &&），分支 codex/architecture-v2，上游 origin（Gitee）。
 - 原 P4/P5/P6 的 24 个 adapters 已在第185～214批完成。strict 合同范围332文件、0 errors/0 warnings：domain53、application44、adapters222/222、composition13。
 - 最后源码提交 73faa51a；源码指纹 1466148486cd6de41b467a190da0c3cdb062e91c07b7277fde39817d15cc5b39（1208个HEAD跟踪源码文件）。V1/tests与两个仅含说明的包入口不在该strict范围；不得称为全仓严格类型。
 - 结构136表，迁移头v2_0037。整个V2仍未完成，默认正式入口仍V1，不迁V1数据，不双写，未经评审不切换入口。
-- 最近收割全量：第60节点、批199，固定提交5aec7588：4660 passed / 3 failed / 0 errors / 0 skipped。复跑不替换原始并行口径。
-- 待收割固定源码队列：第65节点/批204、第70节点/批209、第75节点/批214。先核对证据的full_run、full_run_history及full_checkpoints_pending；已完成的报告不要重新跑。
+- 最近收割全量：第65节点、批204，固定提交ddb79e5a：4659 passed / 4 failed / 0 errors / 0 skipped。复跑不替换原始并行口径。
+- 待收割固定源码队列：第70节点/批209、第75节点/批214。先核对证据的full_run、full_run_history及full_checkpoints_pending；已完成的报告不要重新跑。
 
 ## 必读与当前任务
 
@@ -19,7 +19,7 @@
 
 ## 验收边界
 
-Portal等待、插件详情、记忆候选、模型预览、桌面view_id与Windows输入屏障观察都保留在open_findings，归属不同。逐项看原始报告、串行/隔离与旧提交对照；不能把单次复跑当成持久修复，也不能把他会在途代码导致的转绿叫作抖动。
+Portal等待、插件详情、记忆候选、模型预览、桌面view_id与Windows输入屏障等观察都保留在open_findings，归属不同。逐项看原始报告、串行/隔离与旧提交对照；不能把单次复跑当成持久修复，也不能把他会在途代码导致的转绿叫作抖动。
 
 全量固定提交副本按顺序执行，禁止两个全量并跑。不要直接把快照源码写入PYTHONPATH：它会进入wheel安装子解释器并遮蔽已安装包。当前本机辅助工具temp/build/_full_checkpoint.py与_checkpoint_interpreter.py使用一次性解释器的.pth复用已有依赖及快照源码；不重建用户环境。原报告、快照哈希与HEAD blob指纹分别保存，Git archive换行转换不混作同一个指纹。
 

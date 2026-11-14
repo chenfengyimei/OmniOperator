@@ -250,7 +250,7 @@
    "id": "R7",
    "title": "稳定性验收",
    "status": "待开始",
-   "notes": "第 60 节点原始全量（-n 2）4660 passed / 3 failed / 0 errors / 0 skipped，3402.93s。3项UI并行失败原nodeid串行3过；模型预览旧提交两轮过，桌面view_id旧提交一败一过，分别保留开放观察。修正隔离解释器后，之前3项wheel验证环境失败均未复现。真实功能、故障负载、三平台与72小时验收仍未开始。",
+   "notes": "第 65 节点原始全量（-n 2）4659 passed / 4 failed / 0 errors / 0 skipped，3175.94s。4项原始失败，串行3过1败，剩余模型UI隔离1过；两个新增症状旧提交各两轮通过，保留未定归属的运行/UI观察。真实功能、故障负载、三平台与72小时验收仍未开始。",
    "evidence": [
     "docs/evidence/v2-offline.json",
     "docs/evidence/v2-objects.json",
@@ -290,7 +290,7 @@
   "targeted_unique_passed": 228,
   "includes_browser_cases": 10,
   "current_full_passed": false,
-  "full_runs_this_checkpoint": 11,
+  "full_runs_this_checkpoint": 12,
   "whole_plan_complete": false,
   "evidence": "docs/evidence/v2-extension-artifacts.json",
   "last_full_evidence": "docs/evidence/v2-typecheck.json",
@@ -365,6 +365,30 @@
      "temp/build/v2-full-199-control-1.xml",
      "temp/build/v2-full-199-control-2.xml"
     ]
+   },
+   {
+    "id": "test.partial_tool_stream_wait_timeout",
+    "status": "open",
+    "scope": "Node 65 partial-tool-stream approval test hit a wait TimeoutError in parallel; its exact serial rerun and two earlier committed 50e36455 controls passed. Ownership remains unconfirmed; keep the runtime validation observation open.",
+    "owner": "Offline runtime/UI validation owner",
+    "evidence": [
+     "temp/build/v2-full-204.xml",
+     "temp/build/v2-full-204-serial.xml",
+     "temp/build/v2-full-204-control-1.xml",
+     "temp/build/v2-full-204-control-2.xml"
+    ]
+   },
+   {
+    "id": "test.configuration_ui_response_name_missing",
+    "status": "open",
+    "scope": "Node 65 configuration draft UI hit KeyError name in one viewport. Exact serial rerun and two earlier committed 50e36455 controls passed. The snapshot was frozen, so this is not attributed to another session changing source during the run; ownership remains unconfirmed.",
+    "owner": "Offline runtime/UI validation owner",
+    "evidence": [
+     "temp/build/v2-full-204.xml",
+     "temp/build/v2-full-204-serial.xml",
+     "temp/build/v2-full-204-control-1.xml",
+     "temp/build/v2-full-204-control-2.xml"
+    ]
    }
   ],
   "code_version": "1466148486cd6de41b467a190da0c3cdb062e91c07b7277fde39817d15cc5b39",
@@ -372,77 +396,89 @@
   "baseline_repair_evidence": "docs/evidence/v2-baseline-repair.json",
   "market_evidence": "docs/evidence/v2-extension-market.json",
   "final_full_run": {
-   "report": "temp/build/v2-full-199.xml",
-   "report_sha256": "7605294ab0e9c5da42e92b24bb0892d0f6cab9da47c9b741251541b3f3a93db7",
+   "report": "temp/build/v2-full-204.xml",
+   "report_sha256": "a319ce1729ccf911b2d987e1b424feaf0576b5351b78158e4cd7eac9958e8364",
    "tests": 4663,
-   "passed": 4660,
-   "failed": 3,
+   "passed": 4659,
+   "failed": 4,
    "errors": 0,
    "skipped": 0,
-   "duration_s": 3402.93,
-   "checkpoint": 60,
-   "strict_checkpoint": 199,
-   "source_head": "5aec7588e99340ffb931255ff8ec013f79c29c55",
+   "duration_s": 3175.94,
+   "checkpoint": 65,
+   "strict_checkpoint": 204,
+   "source_head": "ddb79e5a74647ab1cdac4f1ed1c79c0ecd90cfb5",
    "source_unchanged": true,
-   "working_source_version": "d124fea2e60fbd7a789a20241e82728a30b2bc1e39f850d8143f2e80c023ef9f",
+   "working_source_version": "e36e627abb1b29b3c6797099df828720e369768057c29d02034c05bc53a1851a",
    "fixed_source_files": 1208,
-   "strict_files": 319,
+   "strict_files": 324,
    "snapshot": {
-    "path": "temp/build/v2-full-199-snapshot.json",
-    "sha256": "825e34d1442f672652e218cc2c168419e27a5dfba33630bd946fd7d1abc8851f"
+    "path": "temp/build/v2-full-204-snapshot.json",
+    "sha256": "0cfc8733f1dc5d9aad8a264f83edc16225c2d4e3a5ad00e536985d178fcf5edc"
    },
    "workers": 2,
-   "code_version": "fe119d97793eb6a2b828f0b7839e3ad0788a4937f589b81d522f0c9c0b2caa68",
-   "junit_duration_s": 3402.79,
-   "wall_duration_s": 3404.076,
-   "command": "D:\\xm\\OmniOperator\\temp\\build\\checkpoint-interpreter-199\\Scripts\\python.exe -m pytest -q -n 2 --junitxml=<absolute report>",
+   "code_version": "1e0ac8c9304668a652c3328712be279958f4633c35f246285b7dd27ca1a9173f",
+   "junit_duration_s": 3175.807,
+   "wall_duration_s": 3177.045,
+   "command": "D:\\xm\\OmniOperator\\temp\\build\\checkpoint-interpreter-204\\Scripts\\python.exe -m pytest -q -n 2 --junitxml=<absolute report>",
    "environment": "Frozen HEAD archive; disposable interpreter .pth reuses existing dependencies and the snapshot source; no source PYTHONPATH leaks into wheel-installed children.",
    "reruns": [
     {
-     "report": "temp/build/v2-full-199-control-1.xml",
-     "report_sha256": "9a2d9ec2194635e9330bc11f84ee95abb9c5a6ea9cfbc877251f1c98027ef476",
-     "tests": 2,
-     "passed": 1,
-     "failed": 1,
-     "errors": 0,
-     "skipped": 0,
-     "duration_s": 15.868,
-     "kind": "earlier_committed_head_control",
-     "source_head": "50e36455"
-    },
-    {
-     "report": "temp/build/v2-full-199-control-2.xml",
-     "report_sha256": "75dfbf6236759a9843e73714726f16c5b5b33db584c774a05b719c80c7cc3b59",
+     "report": "temp/build/v2-full-204-control-1.xml",
+     "report_sha256": "d1040b2008fcb5d536c76f3c6521e9608a692016640f7c6a85ba215e6d3ce4d9",
      "tests": 2,
      "passed": 2,
      "failed": 0,
      "errors": 0,
      "skipped": 0,
-     "duration_s": 14.794,
+     "duration_s": 16.071,
      "kind": "earlier_committed_head_control",
      "source_head": "50e36455"
     },
     {
-     "report": "temp/build/v2-full-199-serial.xml",
-     "report_sha256": "ee01c7536725d1fde12ca7662c1aeaf0005c1a2dc6645372e1785e122f5628bf",
-     "tests": 3,
-     "passed": 3,
+     "report": "temp/build/v2-full-204-control-2.xml",
+     "report_sha256": "e8c70c90891558a072c8480928615870629641862e6fc9d0df46939e354b636e",
+     "tests": 2,
+     "passed": 2,
      "failed": 0,
      "errors": 0,
      "skipped": 0,
-     "duration_s": 18.806,
+     "duration_s": 15.772,
+     "kind": "earlier_committed_head_control",
+     "source_head": "50e36455"
+    },
+    {
+     "report": "temp/build/v2-full-204-isolated-0.xml",
+     "report_sha256": "87db60cd5af474a6b4f91e54a03a57af380b6e46db401538963fae9ac2dd4c7a",
+     "tests": 1,
+     "passed": 1,
+     "failed": 0,
+     "errors": 0,
+     "skipped": 0,
+     "duration_s": 7.846,
      "kind": "same_frozen_source_rerun",
-     "source_head": "5aec7588e99340ffb931255ff8ec013f79c29c55"
+     "source_head": "ddb79e5a74647ab1cdac4f1ed1c79c0ecd90cfb5"
+    },
+    {
+     "report": "temp/build/v2-full-204-serial.xml",
+     "report_sha256": "f6f98305c717cb86c2d22a2f92cbe0dd254c11eff11777ec8005f4db9faa8d46",
+     "tests": 4,
+     "passed": 3,
+     "failed": 1,
+     "errors": 0,
+     "skipped": 0,
+     "duration_s": 27.51,
+     "kind": "same_frozen_source_rerun",
+     "source_head": "ddb79e5a74647ab1cdac4f1ed1c79c0ecd90cfb5"
     }
    ],
    "status": "parallel_failures_preserved_reruns_separate",
    "details": [
-    "Raw frozen-source parallel result remains 4660 passed / 3 failed. All three exact nodeids passed serially without any snapshot source change.",
-    "Two model-preview visibility failures share one symptom; one representative passed twice on earlier committed 50e36455. Its ownership remains unconfirmed and the observation stays open.",
-    "Desktop UI request view_id drift reproduced on earlier committed 50e36455 in control round 1, then passed in round 2. This establishes an intermittent prior-HEAD observation; keep it open for synchronization hardening, not a type-change functional defect.",
-    "The three wheel-installation cases previously affected by runner PYTHONPATH passed in this corrected full environment. The runner reuses dependencies through a disposable interpreter .pth rather than leaking source PYTHONPATH into wheel-installed child environments.",
-    "Main work continued after the checkpoint was frozen; none of those later source changes are included in this run. Actual frozen source/test/dependency/config bytes are unchanged.",
-    "Default V1 and real model/platform/device/install/long-run acceptance remain pending."
+    "Raw frozen-source parallel result remains 4659 passed / 4 failed: one partial-tool-stream wait timeout, one configuration UI name-key failure, and two model-preview visibility failures.",
+    "Exact serial rerun: 3 passed / 1 model-preview failure. The remaining light-390 model-preview case passed in a separate isolated process without a snapshot source change.",
+    "Two newly observed symptom representatives (partial tool stream and configuration draft) both passed two serial controls on earlier committed 50e36455. Ownership remains unconfirmed; do not treat earlier in-flight UI work as the cause of these frozen-source failures.",
+    "Model-preview observations remain linked to the existing open finding. No timeout, assertion, network gate, approval requirement or input barrier was weakened.",
+    "All snapshot source/test/dependency/config bytes remain unchanged; subsequent main-checkout source belongs to later checkpoints only.",
+    "Real model/platform/device/install/long-run and entry-switch acceptance remain pending; default entry is V1."
    ]
   },
   "capabilities_evidence": "docs/evidence/v2-capabilities.json",
@@ -460,7 +496,7 @@
   "id": "D7.product_switch",
   "status": "进行中",
   "design": "docs/V2_PACKAGING.md",
-  "scope": "V2 defined strict scope complete: 332 files, all 222 adapters. Harvest pending frozen batches 204, 209, 214; UI/native observations and real-environment acceptance remain open. Default V1; no new typing batch is required."
+  "scope": "V2 defined strict scope complete: 332 files, all 222 adapters. Harvest pending frozen batches 209, 214; UI/native observations and real-environment acceptance remain open. Default V1; no new typing batch is required."
  },
  "milestones": [
   {
