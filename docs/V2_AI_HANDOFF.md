@@ -2,7 +2,7 @@
 
 > 最近全量接续（第 55 节点，第 194 批）：原始 **4658 passed / 5 failed / 0 errors / 0 skipped**；固定提交 102cf4a6，后续源码不在本次范围。3项wheel失败归验证器PYTHONPATH污染，纠正后通过；2项UI分别串行/隔离通过并完成两轮基线对照，仍保留开放观察。详见证据台账，不记并行全绿。
 
-> strict 当前接续（2026-11-15，第 210 批）：**328 文件 / 0 errors / 0 warnings**；adapters **218/222**，剩 **4** 个模块。最新 `agent/src/omni/adapters/platform/portal.py`：Portal文件任务、采集与回收类型收官，授权和配额不变。相关专项 **110 项通过 / 0 项失败**，源码 `69d84759`；最近全量记录为第 55 节点（4658 passed / 5 failed），仅代表其固定源码；下一全量节点第 214 批。默认正式入口仍是 V1，真实验收未完成。
+> strict 当前接续（2026-11-15，第 211 批）：**329 文件 / 0 errors / 0 warnings**；adapters **219/222**，剩 **3** 个模块。最新 `agent/src/omni/adapters/workers/linux_desktop.py`：Linux桌面worker收官，真实工厂签名与语义调用类型贯通。相关专项 **163 项通过 / 0 项失败**，源码 `59b4e1dc`；最近全量记录为第 55 节点（4658 passed / 5 failed），仅代表其固定源码；下一全量节点第 214 批。默认正式入口仍是 V1，真实验收未完成。
 
 交接日期：2026-11-10（Asia/Shanghai），2026-11-14 更新进度段。本文是交接时点的快照；后续以 `docs/tasks/v2.json`、当前源码和 `docs/evidence/` 共同核验。不要用文件修改时间推断功能完成度。
 

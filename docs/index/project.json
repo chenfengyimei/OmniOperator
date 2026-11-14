@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "e42c783ce627a70308e9e6eb8b7eb15a229dc5bcefd3ab642411fe350696a41c",
+  "source_sha256": "0f304aadfc56a75eed0623c6ae2a413b94e8df45c248e948e0999b029d2b14c8",
   "modules": [
     {
       "id": "v2-domain",
@@ -404,7 +404,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 54417,
+      "lines": 54429,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -33762,7 +33762,7 @@
       "path": "agent/src/omni/adapters/workers/linux_desktop.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.workers.linux_desktop",
-      "lines": 249,
+      "lines": 261,
       "imports": [
         "omni.adapters.platform.linux_atspi",
         "omni.adapters.platform.linux_bus",
@@ -33777,7 +33777,7 @@
       "symbols": [
         {
           "name": "session_record",
-          "line": 23,
+          "line": 25,
           "kind": "function",
           "parameters": [
             "inspector",
@@ -33790,7 +33790,7 @@
         },
         {
           "name": "capability_report",
-          "line": 34,
+          "line": 36,
           "kind": "function",
           "parameters": [
             "inspector",
@@ -33801,11 +33801,19 @@
             "x11_ready",
             "x11_error"
           ],
-          "annotations": {}
+          "annotations": {
+            "inspector": "SessionInspector | None",
+            "error": "str | None",
+            "installed": "bool",
+            "atspi_ready": "bool",
+            "x11": "X11Desktop | None",
+            "x11_ready": "bool",
+            "x11_error": "str | None"
+          }
         },
         {
           "name": "perform",
-          "line": 64,
+          "line": 74,
           "kind": "function",
           "parameters": [
             "request",
@@ -33819,8 +33827,8 @@
             "request": "dict[str, Any]",
             "ops": "OpsPort | None",
             "factory": "FactoryPort | None",
-            "x11_factory": "Any",
-            "monitor_factory": "Any",
+            "x11_factory": "Callable[[SessionInspector], X11Desktop]",
+            "monitor_factory": "Callable[[SessionInspector], X11Input]",
             "permit": "Callable[[], Awaitable[bool]] | None"
           }
         }
