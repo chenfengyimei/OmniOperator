@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "d1b59e6047ca0d81fc5cd0276f38000307dddd39a3635308bde9ecc460d3748e",
+  "source_sha256": "90f321cd6fd16880334316604f882ea74be1bd270f3b71ec9a96cac0353dffd6",
   "modules": [
     {
       "id": "v2-domain",
@@ -404,7 +404,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 54007,
+      "lines": 54020,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -498,7 +498,7 @@
         "web/ui/v2/v1/workbench.css",
         "web/ui/v2/workbench.css"
       ],
-      "lines": 20062,
+      "lines": 20481,
       "dependencies": []
     },
     {
@@ -22092,10 +22092,11 @@
       "path": "agent/src/omni/adapters/persistence/terminal_review_repository.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.persistence.terminal_review_repository",
-      "lines": 225,
+      "lines": 238,
       "imports": [
         "omni.adapters.persistence",
         "omni.adapters.persistence.terminal_repository",
+        "omni.application.ports",
         "omni.domain.contracts",
         "omni.domain.terminal_review",
         "omni.domain.terminals"
@@ -22103,12 +22104,12 @@
       "symbols": [
         {
           "name": "TerminalReviewRepositories",
-          "line": 16,
+          "line": 18,
           "kind": "class"
         },
         {
           "name": "TerminalReviewRepositories._terminal_review_source",
-          "line": 17,
+          "line": 19,
           "kind": "function",
           "parameters": [
             "self",
@@ -22122,7 +22123,7 @@
         },
         {
           "name": "TerminalReviewRepositories._terminal_review_proof",
-          "line": 24,
+          "line": 26,
           "kind": "function",
           "parameters": [
             "operation",
@@ -22130,14 +22131,14 @@
             "epoch"
           ],
           "annotations": {
-            "operation": "dict",
-            "session": "dict",
+            "operation": "Record",
+            "session": "Record",
             "epoch": "str"
           }
         },
         {
           "name": "TerminalReviewRepositories.terminal_review_detail",
-          "line": 64,
+          "line": 69,
           "kind": "function",
           "parameters": [
             "self",
@@ -22151,7 +22152,7 @@
         },
         {
           "name": "TerminalReviewRepositories.terminal_review_page",
-          "line": 105,
+          "line": 113,
           "kind": "function",
           "parameters": [
             "self",
@@ -22167,7 +22168,7 @@
         },
         {
           "name": "TerminalReviewRepositories.terminal_review_replay",
-          "line": 120,
+          "line": 128,
           "kind": "function",
           "parameters": [
             "self",
@@ -22178,12 +22179,12 @@
           "annotations": {
             "agent_id": "str",
             "operation_id": "str",
-            "data": "dict"
+            "data": "Record"
           }
         },
         {
           "name": "TerminalReviewRepositories.terminal_review_commit",
-          "line": 136,
+          "line": 144,
           "kind": "function",
           "parameters": [
             "self",
@@ -22194,12 +22195,12 @@
           "annotations": {
             "agent_id": "str",
             "operation_id": "str",
-            "data": "dict"
+            "data": "Record"
           }
         },
         {
           "name": "TerminalReviewRepositories.terminal_review_history",
-          "line": 190,
+          "line": 201,
           "kind": "function",
           "parameters": [
             "self",
@@ -22217,7 +22218,7 @@
         },
         {
           "name": "TerminalReviewRepositories.terminal_review_erase_evidence",
-          "line": 208,
+          "line": 221,
           "kind": "function",
           "parameters": [
             "self",
@@ -95666,7 +95667,7 @@
       "path": "web/ui/v2/main.js",
       "module": "v2-workbench",
       "python_module": null,
-      "lines": 1624,
+      "lines": 1631,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -95866,7 +95867,7 @@
       "path": "web/ui/v2/workbench.css",
       "module": "v2-workbench",
       "python_module": null,
-      "lines": 1693,
+      "lines": 2105,
       "imports": [],
       "symbols": [],
       "kind": "asset",
