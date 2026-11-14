@@ -1,6 +1,6 @@
 # OmniOperator V2：AI 接续开发完整交接
 
-> strict 当前接续（2026-11-14，第 185 批）：**309 文件 / 0 errors / 0 warnings**；adapters **199/222**，剩 **23** 个模块。最新 `agent/src/omni/adapters/workers/local_vectors.py`：本地向量 worker（IPC/清单显式 Payload、受检字段收窄、窗口归属带类型；模型图校验、分窗、池化及错误码不变）。相关专项 **116 项通过**，源码 `9d6f52c1`；全量沿用第 184 批原始记录，下一全量节点第 189 批。默认正式入口仍是 V1，真实验收未完成。
+> strict 当前接续（2026-11-14，第 186 批）：**310 文件 / 0 errors / 0 warnings**；adapters **200/222**，剩 **22** 个模块。最新 `agent/src/omni/adapters/local_vectors.py`：本地向量宿主（IPC 显式 Payload、状态对齐 Record、启动/计算/回收 Task 泛型化；取消归属、实际回收及全文降级不变）。相关专项 **95 项通过**，源码 `8bda8801`；全量沿用第 184 批原始记录，下一全量节点第 189 批。默认正式入口仍是 V1，真实验收未完成。
 
 交接日期：2026-11-10（Asia/Shanghai），2026-11-14 更新进度段。本文是交接时点的快照；后续以 `docs/tasks/v2.json`、当前源码和 `docs/evidence/` 共同核验。不要用文件修改时间推断功能完成度。
 
