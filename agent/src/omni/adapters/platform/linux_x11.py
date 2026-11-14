@@ -10,6 +10,7 @@ import re
 import stat
 import struct
 import uuid
+from collections.abc import Awaitable, Callable
 from pathlib import Path
 from typing import Any, cast
 
@@ -66,9 +67,9 @@ class X11Desktop:
         self,
         inspector: SessionInspector,
         *,
-        connection_factory=Connection.open,
-        wire_factory=Wire,
-        publish_file=publish,
+        connection_factory: Callable[[SessionInspector], Awaitable[Connection]] = Connection.open,
+        wire_factory: Callable[..., Wire] = Wire,
+        publish_file: Callable[[Path, bytes], None] = publish,
     ) -> None:
         self.inspector = inspector
         self._connect, self._wire, self._publish = connection_factory, wire_factory, publish_file
@@ -99,7 +100,7 @@ class X11Desktop:
                 raise
             self.composite = None
         assert self.inspector.session is not None and self.inspector.system is not None
-        payload = {
+        payload: dict[str, object] = {
             "session": vars(self.inspector.session),
             "system": self.inspector.system.fingerprint,
             "server": vars(self.connection.process),
@@ -113,7 +114,7 @@ class X11Desktop:
         )
         await self.connection.verify()
 
-    async def target(self, window: int) -> tuple[dict, tuple, int]:
+    async def target(self, window: int) -> tuple[dict[str, object], tuple[int, int, int, int, int], int]:
         assert self.res is not None and self.scope is not None and self.wire.setup is not None
         if type(window) is not int or not 1 <= window <= 0xFFFFFFFF or window == self.wire.setup.root:
             raise failure("desktop_x11_target_unverified")
@@ -149,27 +150,27 @@ class X11Desktop:
         return target, geometry, visual
 
     @staticmethod
-    def window(target: dict) -> int:
+    def window(target: dict[str, object]) -> int:
         value = target.get("native_id", "")
         if (
             target.get("platform") != "linux"
             or target.get("backend") != "x11"
-            or re.fullmatch(r"x11:[0-9a-f]{8}:[0-9a-f]{64}", value) is None
+            or re.fullmatch(r"x11:[0-9a-f]{8}:[0-9a-f]{64}", cast(str, value)) is None
         ):
             raise failure("desktop_target_changed")
-        return int(value.split(":")[1], 16)
+        return int(cast(str, value).split(":")[1], 16)
 
-    async def verified(self, target: dict) -> tuple[tuple, int]:
+    async def verified(self, target: dict[str, object]) -> tuple[tuple[int, int, int, int, int], int]:
         await self.connection.verify()
         actual, geometry, visual = await self.target(self.window(target))
         if actual != target:
             raise failure("desktop_target_changed")
         return geometry, visual
 
-    async def targets(self, limit: int) -> dict:
+    async def targets(self, limit: int) -> dict[str, object]:
         await self.connection.verify()
         candidates, truncated = await self.wire.windows()
-        items = []
+        items: list[dict[str, object]] = []
         for window in candidates:
             try:
                 item, _, _ = await self.target(window)
@@ -192,7 +193,7 @@ class X11Desktop:
         await self.connection.verify()
         return validate_targets({"items": items, "truncated": truncated}, limit)
 
-    async def verify(self, target: dict) -> dict:
+    async def verify(self, target: dict[str, object]) -> dict[str, object]:
         try:
             await self.verified(target)
         except XError:
@@ -203,7 +204,7 @@ class X11Desktop:
             return {"matches": False, "target": None, "reason": error.code}
         return {"matches": True, "target": target, "reason": None}
 
-    async def capture(self, target: dict, path: Path) -> dict:
+    async def capture(self, target: dict[str, object], path: Path) -> dict[str, object]:
         if self.composite is None:
             raise failure(self.capture_error or "desktop_capture_unavailable")
         geometry, visual = await self.verified(target)
