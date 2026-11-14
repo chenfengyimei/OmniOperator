@@ -7,7 +7,7 @@ import json
 import re
 import sys
 import time
-from collections.abc import Awaitable, Callable
+from collections.abc import Awaitable, Callable, Mapping
 from pathlib import Path
 from typing import Any, cast
 
@@ -90,7 +90,7 @@ class BilibiliGateway:
         )
 
     @staticmethod
-    async def _get(client: Any, path: str, params: Payload | None = None) -> dict[str, Any]:
+    async def _get(client: Any, path: str, params: Payload | None = None) -> Payload:
         async with client.stream("GET", path, params=params or {}) as response:
             if response.status_code != 200 or "json" not in response.headers.get("content-type", "").lower():
                 raise BusinessError(
@@ -130,7 +130,7 @@ class BilibiliGateway:
         nav = await self._login_nav(client, account)
         return {"uid": account, "name": str(nav.get("uname", ""))[:100], "logged_in": True}
 
-    async def _subtitle(self, client, nav: dict, video: dict) -> dict:
+    async def _subtitle(self, client: Any, nav: Payload, video: Payload) -> Payload:
         """Official subtitle text via the WBI-signed player endpoint; empty means none exists."""
         from ..domain.bilibili import sign_wbi, subtitle_url, wbi_keys
 
@@ -140,8 +140,10 @@ class BilibiliGateway:
             "/x/player/wbi/v2",
             sign_wbi({"bvid": video["bvid"], "cid": video["cid"]}, img, sub, int(time.time())),
         )
-        subtitles = (player.get("subtitle") or {}).get("subtitles") or []
-        if not isinstance(subtitles, list) or len(subtitles) > 32:
+        subtitles: list[Payload] = cast(
+            list[Payload], cast(Payload, player.get("subtitle") or {}).get("subtitles") or []
+        )
+        if not isinstance(cast(object, subtitles), list) or len(subtitles) > 32:
             raise BusinessError("bilibili_response_invalid", "Subtitle list changed format", status=502)
         picked = next(
             (s for s in subtitles if str(s.get("lan", "")).startswith("zh")), subtitles[0] if subtitles else None
@@ -160,82 +162,84 @@ class BilibiliGateway:
             raise BusinessError(
                 "bilibili_response_invalid", "Subtitle response was not valid JSON", status=502
             ) from exc
-        lines = body.get("body") if isinstance(body, dict) else None
+        lines = cast(list[Payload] | None, cast(Payload, body).get("body") if isinstance(body, dict) else None)
         if not isinstance(lines, list) or len(lines) > 20000:
             raise BusinessError("bilibili_response_invalid", "Subtitle body changed format", status=502)
-        text = "\n".join(str(line.get("content", "")) for line in lines if isinstance(line, dict)).strip()
+        text = "\n".join(str(line.get("content", "")) for line in lines if isinstance(cast(object, line), dict)).strip()
         if not text or len(text) > 60000:
             raise BusinessError("bilibili_response_invalid", "Subtitle body is empty or exceeds its bound", status=502)
         return {"language": str(picked.get("lan", ""))[:16], "text": text[:60000]}
 
-    async def _streams(self, client, video: dict) -> dict:
+    async def _streams(self, client: Any, video: Payload) -> Payload:
         """Lowest-bitrate audio and decodable video direct URLs with bounded sizes."""
         from ..domain.bilibili import stream_url
 
         bvid, cid = video["bvid"], video["cid"]
-        audio: dict = {}
+        audio: Payload = {}
         play = await self._get(
             client, "/x/player/playurl", {"bvid": bvid, "cid": cid, "qn": 64, "fnval": 16, "fnver": 0, "fourk": 0}
         )
-        tracks = (play.get("dash") or {}).get("audio") or []
-        if isinstance(tracks, list) and tracks:
+        tracks: list[Payload] = cast(list[Payload], cast(Payload, play.get("dash") or {}).get("audio") or [])
+        if isinstance(cast(object, tracks), list) and tracks:
             best = min(
-                (t for t in tracks if isinstance(t, dict)), key=lambda t: int(t.get("bandwidth") or 10**9), default=None
+                (t for t in tracks if isinstance(cast(object, t), dict)),
+                key=lambda t: int(cast(int, t.get("bandwidth") or 10**9)),
+                default=None,
             )
             if best is not None:
                 url = str(best.get("baseUrl") or best.get("base_url") or "")
                 if not url:
-                    backups = best.get("backupUrl") or best.get("backup_url") or []
-                    url = str(backups[0]) if isinstance(backups, list) and backups else ""
+                    backups: list[object] = cast(list[object], best.get("backupUrl") or best.get("backup_url") or [])
+                    url = str(backups[0]) if isinstance(cast(object, backups), list) and backups else ""
                 if url:
                     audio = {
                         "url": stream_url(url),
-                        "bytes": int(best.get("size") or 0),
+                        "bytes": int(cast(int, best.get("size") or 0)),
                     }
         if not audio:
-            merged = play.get("durl") or []
-            if isinstance(merged, list) and merged and isinstance(merged[0], dict):
+            merged: list[Payload] = cast(list[Payload], play.get("durl") or [])
+            if isinstance(cast(object, merged), list) and merged and isinstance(cast(object, merged[0]), dict):
                 url = str(merged[0].get("url") or "")
                 if url:
-                    audio = {"url": stream_url(url), "bytes": int(merged[0].get("size") or 0)}
-        video_stream: dict = {}
+                    audio = {"url": stream_url(url), "bytes": int(cast(int, merged[0].get("size") or 0))}
+        video_stream: Payload = {}
         merged_play = await self._get(
             client, "/x/player/playurl", {"bvid": bvid, "cid": cid, "qn": 32, "fnval": 0, "fnver": 0, "fourk": 0}
         )
-        merged = merged_play.get("durl") or []
-        if isinstance(merged, list) and merged and isinstance(merged[0], dict):
+        merged = cast(list[Payload], merged_play.get("durl") or [])
+        if isinstance(cast(object, merged), list) and merged and isinstance(cast(object, merged[0]), dict):
             url = str(merged[0].get("url") or "")
             if url:
-                video_stream = {"url": stream_url(url), "bytes": int(merged[0].get("size") or 0)}
+                video_stream = {"url": stream_url(url), "bytes": int(cast(int, merged[0].get("size") or 0))}
         if not video_stream:
-            tracks = (play.get("dash") or {}).get("video") or []
-            if isinstance(tracks, list) and tracks:
+            tracks = cast(list[Payload], cast(Payload, play.get("dash") or {}).get("video") or [])
+            if isinstance(cast(object, tracks), list) and tracks:
                 best = min(
-                    (t for t in tracks if isinstance(t, dict)),
-                    key=lambda t: int(t.get("bandwidth") or 10**9),
+                    (t for t in tracks if isinstance(cast(object, t), dict)),
+                    key=lambda t: int(cast(int, t.get("bandwidth") or 10**9)),
                     default=None,
                 )
                 if best is not None:
                     url = str(best.get("baseUrl") or best.get("base_url") or "")
                     if not url:
-                        backups = best.get("backupUrl") or best.get("backup_url") or []
-                        url = str(backups[0]) if isinstance(backups, list) and backups else ""
+                        backups = cast(list[object], best.get("backupUrl") or best.get("backup_url") or [])
+                        url = str(backups[0]) if isinstance(cast(object, backups), list) and backups else ""
                     if url:
-                        video_stream = {"url": stream_url(url), "bytes": int(best.get("size") or 0)}
+                        video_stream = {"url": stream_url(url), "bytes": int(cast(int, best.get("size") or 0))}
         if not audio and not video_stream:
             raise BusinessError(
                 "bilibili_read_rejected", "This video exposes no decodable audio or video stream", status=502
             )
         return {"audio": audio or None, "video": video_stream or None}
 
-    async def read(self, configuration: dict, operation: str, target: str, limit: int = 10) -> dict:
+    async def read(self, configuration: Mapping[str, object], operation: str, target: str, limit: int = 10) -> Payload:
         if self._closing or len(self._reads) >= 8:
             raise BusinessError("bilibili_busy", "Bilibili reader is draining or busy", status=503)
         owner = asyncio.current_task()
         assert owner is not None
         self._reads.add(owner)
         try:
-            value = connection(configuration)
+            value = connection(cast(Payload, configuration))
             if (
                 operation not in {"account", "video", "comments", "replies", "subtitle", "streams"}
                 or type(limit) is not int
@@ -260,7 +264,7 @@ class BilibiliGateway:
                     nav = await self._login_nav(client, cast(str, value["account"]))
                     if operation == "account":
                         return {
-                            "uid": value["account"],
+                            "uid": cast(str, value["account"]),
                             "name": str(nav.get("uname", ""))[:100],
                             "logged_in": True,
                         }
@@ -274,7 +278,7 @@ class BilibiliGateway:
                             "cid": uid(video.get("cid")),
                             "title": str(video.get("title", ""))[:300],
                             "description": str(video.get("desc", ""))[:8000],
-                            "owner": str(video.get("owner", {}).get("name", ""))[:100],
+                            "owner": str(cast(Payload, video.get("owner", {})).get("name", ""))[:100],
                             "duration_s": video.get("duration") if type(video.get("duration")) is int else None,
                         }
                     if operation == "subtitle":
@@ -295,16 +299,16 @@ class BilibiliGateway:
                     )
                     if "replies" not in comments:
                         raise BusinessError("bilibili_response_invalid", "Comment list field is missing", status=502)
-                    rows = comments.get("replies")
+                    rows = cast(list[Payload] | None, comments.get("replies"))
                     if rows is None:
                         rows = []
-                    if not isinstance(rows, list) or len(rows) > 100:
+                    if not isinstance(cast(object, rows), list) or len(rows) > 100:
                         raise BusinessError("bilibili_response_invalid", "Comment list changed format", status=502)
                     if any(
-                        not isinstance(r, dict)
+                        not isinstance(cast(object, r), dict)
                         or not isinstance(r.get("member"), dict)
                         or not isinstance(r.get("content"), dict)
-                        or not isinstance(r["content"].get("message"), str)
+                        or not isinstance(cast(Payload, r["content"]).get("message"), str)
                         for r in rows[:limit]
                     ):
                         raise BusinessError("bilibili_response_invalid", "Comment records changed format", status=502)
@@ -314,8 +318,8 @@ class BilibiliGateway:
                             {
                                 "id": uid(r.get("rpid")),
                                 "author_uid": uid(r.get("mid")),
-                                "name": str(r.get("member", {}).get("uname", ""))[:100],
-                                "text": str(r.get("content", {}).get("message", ""))[:1000],
+                                "name": str(cast(Payload, r.get("member", {})).get("uname", ""))[:100],
+                                "text": str(cast(Payload, r.get("content", {})).get("message", ""))[:1000],
                             }
                             for r in rows[:limit]
                         ],
@@ -330,14 +334,14 @@ class BilibiliGateway:
 
     async def download(
         self,
-        configuration: dict,
+        configuration: Record,
         url: str,
         destination: Path,
         *,
         max_bytes: int,
         budget_s: float,
         before_dispatch: Callable[[], Awaitable[None]] | None = None,
-    ) -> dict:
+    ) -> Record:
         """Bounded resumable media download with the connection's cookies and Referer.
 
         CDN streams may drop mid-transfer (observed on a real machine): each
@@ -358,7 +362,7 @@ class BilibiliGateway:
         try:
             async with self._slots, asyncio.timeout(budget_s):
                 checked = stream_url(url)
-                value = connection(configuration)
+                value = connection(cast(Payload, configuration))
                 cookies = await self._cookies(value)
                 factory = self._client_factory or httpx.AsyncClient
                 async with factory(
@@ -373,7 +377,7 @@ class BilibiliGateway:
                     },
                     limits=httpx.Limits(max_connections=2, max_keepalive_connections=0),
                 ) as client:
-                    for attempt in range(3):
+                    for _attempt in range(3):
                         try:
                             have = destination.stat().st_size if destination.exists() else 0
                             headers = {"Range": f"bytes={have}-"} if have else {}
