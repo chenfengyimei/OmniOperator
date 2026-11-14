@@ -1,7 +1,7 @@
 {
   "batch": "v2-ui-workbench-completion",
   "recorded_at": "2026-11-13",
-  "resource_version_final": "20261113v125",
+  "resource_version_final": "20261113v126",
   "v1_alignment": {
     "summary": "用户提供 V1 正式工作台截图后，直接精读 web/ui/workbench.css 的 V1 实现并逐项移植，使 V2 结构与 V1 一致（而非自创风格）。",
     "ported_from_v1": [
@@ -460,5 +460,31 @@
     "草稿隔离回归修复": "首版设置布局在非对话模式 display:none 左栏，而 #agents 在左栏内，two_agents 草稿隔离测试在任意页面 select_option(#agents) 超时，致 14 项回归（stash 对照确认本批引入）。修复：宽屏非对话保留左栏(196px)+内容两列、只隐藏右栏；窄屏非对话左栏 display:contents 不占列、连接卡/会话/上下文隐藏、#agents 经 position:fixed 提升页头右上角保持可见可切换。16 项失败用例复跑 15 过 + 1 隔离过 = 全过；窄屏 Agent 4/4、设置核查 56/56。",
     "窄屏Agent遮挡修复": "首版窄屏把 #agents 用 position:fixed 提升页头右上角，浮在内容上拦截了 portal 等页面按钮点击（stash 对照确认本批引入）。改为左栏 display:contents + main grid-template-rows:auto 1fr，#agents 排顶部独立行、工作区排第二行，不遮挡内容。portal 与草稿隔离用例复跑通过；设置核查 56/56、窄屏 Agent 4/4。"
   },
-  "full_regression_final_v125": "最终源码全量：4657 passed / 1 failed in 2018.52s（33分38秒）。唯一失败 test_v2_portal_ui 隔离复跑 1 passed in 19.69s → 并行负载抖动，非缺陷。此前 16 项草稿隔离回归与 portal 遮挡回归均已修复（顶栏行内布局）。设置中心核查 56/56、窄屏 Agent 4/4、设置交互 7/7、守卫 33 项全过。"
+  "full_regression_final_v125": "最终源码全量：4657 passed / 1 failed in 2018.52s（33分38秒）。唯一失败 test_v2_portal_ui 隔离复跑 1 passed in 19.69s → 并行负载抖动，非缺陷。此前 16 项草稿隔离回归与 portal 遮挡回归均已修复（顶栏行内布局）。设置中心核查 56/56、窄屏 Agent 4/4、设置交互 7/7、守卫 33 项全过。",
+  "model_onboarding": {
+    "需求": "所有者反馈设置中心缺少可填写模型 API Key、选择供应商的 UI；要求验收并完善。",
+    "交付": [
+      "新增「模型接入」页（nav/section/PAGE_META/业务清单/导航契约 23 页），位于系统与运维组首位",
+      "8 个供应商卡片（OpenAI/Anthropic/阿里百炼/DeepSeek/Moonshot/智谱/Gemini/自定义），自动预填端点、模型建议、凭据引用",
+      "API Key 密码输入 + 显示/隐藏切换；保存即写入服务端凭据库（PUT /credentials），配置只存引用名",
+      "一键保存并启用（POST/PUT configurations + 可选设为默认），容量/计量高级折叠默认通用值",
+      "已配置模型列表：诊断状态、启用/停用、设为默认、测试连接",
+      "新增 POST /configurations/{id}/probe 连接测试端点，复用真实模型适配器做一次最小调用（输出上限压到 16 token）",
+      "Instance/HttpRuntime 暴露 model_port，组合层注入当前适配器"
+    ],
+    "安全口径": "密钥只存服务端凭据库；前端 input 保存后立即清空，不写 localStorage/sessionStorage，不回显明文；probe 先经 diagnose 校验凭据授权与配置启用。",
+    "修复的缺陷": [
+      "并发加载竞态：导航与保存后各触发一次 load()，严格 epoch 守卫使二者互相取消导致列表空白 → 改为仅按空间+连接代次守卫",
+      "列表接口不返回模型值（value 在修订表）→ load() 并行读详情补全 value/image_policy",
+      "PowerShell 5.1 版本替换命令以 GBK 读 UTF-8 致全部 js/index.html 乱码 → git 恢复基线后用 UTF-8 安全 Python 脚本重应用"
+    ],
+    "验收": {
+      "端到端": "17/17 PASS：UI 填 Key→服务端凭据库→真实 LiteLLM 适配器→本地 OpenAI 兼容端点（记录到正确 Bearer 密钥与模型）→流式对话回复渲染；密钥不进浏览器存储；零 pageerror",
+      "UI": "25/25 PASS：1440/1024/390 × dark/light 渲染 8 供应商、无横向溢出、密钥掩码、零报错；离线实例测试连接明确拒绝（offline_model_denied）",
+      "守卫": "样式令牌+业务清单+embed 33 项、导航 23 入口、配置/凭据 37 项全过",
+      "永久测试": "agent/tests/test_v2_models_ui.py 3 项：390/1024 渲染8供应商+密钥掩码+显隐切换+无溢出；保存后密钥清空且不进浏览器存储；离线实例连接测试明确拒绝。3 passed。",
+      "全量回归": "4656 passed / 2 failed（1792s，-n 4）。两败 test_v2_ui[credential dark-760] 与 test_terminal[echo_roundtrip] 隔离复跑均通过，属并行负载抖动；后者与本批无关。模型接入相关守卫/导航/配置/凭据/新增 UI 测试全过。"
+    },
+    "未验收": "真实外部供应商（OpenAI/Anthropic 等）端到端、真实平台账号、72 小时稳定性仍未验收；端到端用本地 OpenAI 兼容端点验证适配链路，不等同真实供应商验收。"
+  }
 }

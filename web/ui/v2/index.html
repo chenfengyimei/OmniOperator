@@ -8,11 +8,11 @@
     <link rel="stylesheet" href="/assets/ui/tokens.css?v=20261103v7" />
     <link rel="stylesheet" href="/assets/ui/base.css?v=20261103v7" />
     <link rel="stylesheet" href="/assets/ui/icons.css?v=20261103v7" />
-    <link rel="stylesheet" href="/assets/ui/v2/v1/components.css?v=20261113v125" />
-    <link rel="stylesheet" href="/assets/ui/v2/v1/frame.css?v=20261113v125" />
-    <link rel="stylesheet" href="/assets/ui/v2/v1/workbench.css?v=20261113v125" />
-    <link rel="stylesheet" href="/assets/ui/v2/workbench.css?v=20261113v125" />
-    <link rel="stylesheet" href="/assets/vendor/xterm.min.css?v=20261113v125" />
+    <link rel="stylesheet" href="/assets/ui/v2/v1/components.css?v=20261113v126" />
+    <link rel="stylesheet" href="/assets/ui/v2/v1/frame.css?v=20261113v126" />
+    <link rel="stylesheet" href="/assets/ui/v2/v1/workbench.css?v=20261113v126" />
+    <link rel="stylesheet" href="/assets/ui/v2/workbench.css?v=20261113v126" />
+    <link rel="stylesheet" href="/assets/vendor/xterm.min.css?v=20261113v126" />
   </head>
   <body class="chat-mode" data-ui-page="workbench-v2">
     <header class="app-header">
@@ -49,6 +49,7 @@
       <button type="button" class="rail-btn" data-page="schedules" data-tip="持久调度" aria-label="持久调度" title="持久调度"><span class="material-icons">schedule</span></button>
       <button type="button" class="rail-btn" data-page="deliveries" data-tip="持久投递" aria-label="持久投递" title="持久投递"><span class="material-icons">send</span></button>
       <p class="nav-group">系统与运维</p>
+      <button type="button" class="rail-btn" data-page="models" data-tip="模型接入" aria-label="模型接入" title="模型接入"><span class="material-icons">hub</span></button>
       <button type="button" class="rail-btn" data-page="settings" data-tip="设置" aria-label="设置" title="设置"><span class="material-icons">settings</span></button>
       <button type="button" class="rail-btn" data-page="capabilities" data-tip="能力" aria-label="能力" title="能力"><span class="material-icons">dashboard</span></button>
       <button type="button" class="rail-btn" data-page="tokens" data-tip="令牌" aria-label="令牌" title="令牌"><span class="material-icons">key</span></button>
@@ -902,6 +903,90 @@
             <button id="extension-authorize" type="button" disabled>授权所选工具</button>
           </fieldset>
         </section>
+        <section id="models" class="page" hidden>
+          <div class="mo-hero">
+            <div class="mo-hero-text">
+              <h1>模型接入</h1>
+              <p class="mo-hero-sub">选择供应商、填入 API Key，即可让当前 Agent 空间开始对话。密钥只写入本实例凭据库，页面与配置目录都不回显明文。</p>
+            </div>
+            <div class="mo-hero-status" id="mo-hero-status" role="status" data-state="idle">
+              <span class="mo-hero-dot" aria-hidden="true"></span>
+              <span id="mo-hero-text">尚未配置模型</span>
+            </div>
+          </div>
+
+          <ol class="mo-steps" aria-label="接入步骤">
+            <li class="mo-step" data-step="1" data-state="active"><span class="mo-step-num">1</span><span class="mo-step-label">选供应商</span></li>
+            <li class="mo-step" data-step="2"><span class="mo-step-num">2</span><span class="mo-step-label">填密钥</span></li>
+            <li class="mo-step" data-step="3"><span class="mo-step-num">3</span><span class="mo-step-label">存并启用</span></li>
+          </ol>
+
+          <div class="mo-grid">
+            <form id="mo-form" class="mo-card mo-wizard">
+              <fieldset id="mo-fields">
+                <legend class="mo-legend"><span class="material-icons" aria-hidden="true">hub</span>选择供应商</legend>
+                <div id="mo-providers" class="mo-providers" role="radiogroup" aria-label="模型供应商"></div>
+
+                <div class="mo-field-grid">
+                  <label class="mo-field mo-field-wide">
+                    <span class="mo-label">API 端点</span>
+                    <input id="mo-base-url" type="url" placeholder="https://api.example.com/v1" autocomplete="off" />
+                    <span class="mo-hint" id="mo-base-hint">选择供应商后自动填入，可改为代理或兼容端点。</span>
+                  </label>
+                  <label class="mo-field">
+                    <span class="mo-label">模型标识</span>
+                    <input id="mo-model" list="mo-model-suggestions" maxlength="200" placeholder="provider/model" autocomplete="off" />
+                    <datalist id="mo-model-suggestions"></datalist>
+                    <span class="mo-hint">须含供应商前缀，例如 openai/gpt-4o。</span>
+                  </label>
+                  <label class="mo-field">
+                    <span class="mo-label">凭据引用名称</span>
+                    <input id="mo-cred-ref" maxlength="200" placeholder="例如 openai-key" autocomplete="off" />
+                    <span class="mo-hint">密钥在凭据库中的名字，配置只存这个名字。</span>
+                  </label>
+                  <label class="mo-field mo-field-wide">
+                    <span class="mo-label">API Key</span>
+                    <span class="mo-key-row">
+                      <input id="mo-api-key" type="password" placeholder="粘贴供应商 API Key" autocomplete="off" />
+                      <button id="mo-key-toggle" type="button" class="mo-icon-btn" aria-label="显示密钥" title="显示 / 隐藏密钥"><span class="material-icons" aria-hidden="true">visibility</span></button>
+                    </span>
+                    <span class="mo-hint" id="mo-key-hint">仅写入本实例凭据库；保存后立即从本页清空，不写入浏览器存储。</span>
+                  </label>
+                </div>
+
+                <details class="mo-advanced">
+                  <summary><span class="material-icons" aria-hidden="true">tune</span>容量与计量（默认已按通用值填好）</summary>
+                  <div class="mo-field-grid">
+                    <label class="mo-field"><span class="mo-label">上下文容量（token）</span><input id="mo-context" type="number" min="1024" max="2000000" value="32768" /></label>
+                    <label class="mo-field"><span class="mo-label">回答输出上限</span><input id="mo-output" type="number" min="1" max="100000" value="2048" /></label>
+                    <label class="mo-field"><span class="mo-label">摘要输出上限</span><input id="mo-summary" type="number" min="1" max="16000" value="1024" /></label>
+                    <label class="mo-field"><span class="mo-label">安全余量</span><input id="mo-margin" type="number" min="128" max="16000" value="1024" /></label>
+                  </div>
+                  <p class="mo-hint">容量须按目标模型声明填写；输出上限 + 安全余量必须小于上下文容量。计量默认本地保守估计。</p>
+                </details>
+
+                <label class="mo-check"><input id="mo-set-default" type="checkbox" checked />保存后设为本空间默认模型（新运行立即使用）</label>
+
+                <div class="mo-actions">
+                  <button id="mo-save" type="submit" class="mo-primary"><span class="material-icons" aria-hidden="true">save</span>保存并启用</button>
+                  <button id="mo-test" type="button"><span class="material-icons" aria-hidden="true">network_check</span>测试连接</button>
+                  <button id="mo-reset" type="button">清空表单</button>
+                </div>
+                <p id="mo-status" class="mo-status" role="status"></p>
+                <p id="mo-test-result" class="mo-test-result" role="status" hidden></p>
+              </fieldset>
+            </form>
+
+            <div class="mo-card mo-list-card">
+              <div class="mo-list-head">
+                <h2><span class="material-icons" aria-hidden="true">dns</span>已配置的模型</h2>
+                <button id="mo-refresh" type="button" class="mo-icon-btn" aria-label="刷新模型列表" title="刷新"><span class="material-icons" aria-hidden="true">refresh</span></button>
+              </div>
+              <div id="mo-list" class="mo-list" aria-live="polite"></div>
+              <p class="mo-hint">「测试连接」会用所存密钥向端点发起一次最小真实调用，可能产生极少量费用；离线实例会明确拒绝。</p>
+            </div>
+          </div>
+        </section>
         <section id="settings" class="page" hidden>
           <h1>运行设置</h1>
           <h2>运行偏好</h2>
@@ -1517,8 +1602,8 @@
       </aside>
     </main>
     <div id="tip-layer"></div>
-    <script src="/assets/vendor/xterm.js?v=20261113v125"></script>
-    <script src="/assets/vendor/xterm-addon-fit.js?v=20261113v125"></script>
-    <script type="module" src="/assets/ui/v2/main.js?v=20261113v125"></script>
+    <script src="/assets/vendor/xterm.js?v=20261113v126"></script>
+    <script src="/assets/vendor/xterm-addon-fit.js?v=20261113v126"></script>
+    <script type="module" src="/assets/ui/v2/main.js?v=20261113v126"></script>
   </body>
 </html>

@@ -6,7 +6,7 @@
 
 把 OmniOperator **V2 的 Web 工作台**（`web/ui/v2/`）继续做成"V1 的成熟度 + Hermes 的排版/配色质感"：
 
-- 保留现有功能与测试契约（22 个页面、7 组导航、所有 id 钩子）；
+- 保留现有功能与测试契约（23 个页面、7 组导航、所有 id 钩子）；
 - 按本文第 8 节的顺序补齐剩余 UI；
 - 每完成一块：截图自检 → 跑相关测试 → 只提交自己改的文件。
 
@@ -48,13 +48,13 @@ uv run --no-sync python -m omni.composition.cli --home D:\xm\omni-v2-verify serv
 #open-settings #back-to-chat
 nav[aria-label="工作台"][inert]    ← 原文必须保留，守卫用正则匹配这串
 nav p.nav-group                   ← 必须 7 个，文本固定
-nav button[data-page]             ← 必须 22 个，可访问名 = 页面中文名（aria-label）
-section.page[id]                  ← 22 个页面分区，id 与 data-page 一一对应
+nav button[data-page]             ← 必须 23 个，可访问名 = 页面中文名（aria-label）
+section.page[id]                  ← 23 个页面分区，id 与 data-page 一一对应
 ```
 
 - 页面切换只允许通过 `[data-page]` 按钮点击触发；`test_v2_navigation_ui.py` 会在 390/1024 两个宽度逐项点击并断言目标分区可见。
 - 任何新增可见按钮，如果文案与既有页面名相同（如"设置"），必须换名或用 `title/aria-label` 区分，避免 `get_by_role(..., exact=True)` 命中两个元素。
-- 资源版本串：`index.html` 与所有模块 import 当前为 `?v=20261113v125`。**任何 HTML/CSS/JS 改动都要整体升级版本号**（v58、v59…），并同步：
+- 资源版本串：`index.html` 与所有模块 import 当前为 `?v=20261113v126`。**任何 HTML/CSS/JS 改动都要整体升级版本号**（v58、v59…），并同步：
   - `agent/tests/test_v2_mcp_ui.py` 里的 `assert "main.js?v=..." in page.content()`
   - `docs/V2_AI_CONTINUATION_PROMPT.md` 的版本说明
   - 本文第 3 节这里的版本号
@@ -64,7 +64,7 @@ section.page[id]                  ← 22 个页面分区，id 与 data-page 一�
 
 ## 4. 当前 UI 状态（已完成）
 
-**直接复用 V1 界面**（2026-11-13/14，资源版本 `20261113v125`）：按所有者要求，不再自创视觉，
+**直接复用 V1 界面**（2026-11-13/14，资源版本 `20261113v126`）：按所有者要求，不再自创视觉，
 把 V1 的 `components.css` / `frame.css` / `workbench.css` **原样复制**到 `web/ui/v2/v1/`。
 **声明内容一字未改**，只做三类必要映射：
 
@@ -109,7 +109,7 @@ V2 结构已改用 V1 类名，让复制来的样式真正命中：
 - 调用链 `.chain-slot > .scaffolds.open > .scaf-toggle + .scaf(+ .scaf-out)`，**挂在助手正文上方**，默认展开
 - 消息操作是头像行/时间行右侧的 `.act` 图标，悬停显现；名称走 `aria-label`（测试按可访问名点击）
 
-`web/ui/v2/workbench.css` 已降级为**桥接层**，只补 V1 没有的部分（22 个 `section.page`、页头、
+`web/ui/v2/workbench.css` 已降级为**桥接层**，只补 V1 没有的部分（23 个 `section.page`、页头、
 连接卡与 Agent 选择、设置覆盖层、右栏数据行、运行技术详情、窄屏抽屉），不再定义面板/气泡/dock/rail/tabs 外观。
 
 **踩过的坑（勿重犯）**：
@@ -173,7 +173,7 @@ V2 结构已改用 V1 类名，让复制来的样式真正命中：
 
 ```
 web/ui/v2/
-├── index.html          壳层、22 个 <section class="page">、dock、右栏、设置面板
+├── index.html          壳层、23 个 <section class="page">、dock、右栏、设置面板
 ├── main.js             连接/轮询/消息渲染/会话/工具卡/面板数据（约 1000 行）
 ├── workbench.css       全部样式（含 V1 组件移植与主题覆盖）
 ├── capabilities.js …   各页面模块（只负责自己分区的渲染与事件）
@@ -252,7 +252,7 @@ uv run --no-sync python scripts/project_index.py --check
 | 测试文件 | 覆盖 |
 |---|---|
 | `agent/tests/test_v2_ui.py` | 主工作台 73 项（双主题 × 四视口） |
-| `agent/tests/test_v2_navigation_ui.py` | 7 组 22 项导航、页面可达、无横向溢出 |
+| `agent/tests/test_v2_navigation_ui.py` | 7 组 23 项导航、页面可达、无横向溢出 |
 | `agent/tests/test_v2_business_inventory.py` | 导航/分区/业务清单三方一致 |
 | `agent/tests/test_v2_capabilities_ui.py` | 能力页 |
 | `agent/tests/test_v2_mcp_ui.py` | MCP 页 + 资源版本断言 |
@@ -263,9 +263,20 @@ uv run --no-sync python scripts/project_index.py --check
 
 ---
 
+## 10.5 模型接入页（models，v126 新增）
+
+设置中心新增「模型接入」页（系统与运维组首位，导航/分区/清单/契约同步为 23 页）：
+8 供应商卡片自动预填端点/模型/凭据引用；API Key 密码输入+显隐切换；一键保存并启用、
+可选设为默认；已配置列表带诊断/启停/设默认/测试连接。密钥只经 `PUT /credentials` 写服务端
+凭据库，配置只存引用名，前端保存即清空、不落浏览器存储。新增 `POST /configurations/{id}/probe`
+复用真实适配器做最小调用（输出压到 16 token），先经 diagnose 校验授权与启用。
+`load()` 只按空间+连接代次守卫（并发刷新不互相取消），并并行读详情补全列表 value。
+验收：端到端 17/17（本地 OpenAI 兼容端点验证适配链路）、UI 25/25、离线闸门明确拒绝。
+**真实外部供应商与 72 小时稳定性仍未验收**。
+
 ## 11. 交付标准
 
-1. 22 个页面在 1440 / 1024 / 390 下均可操作，无横向滚动、无重叠；
+1. 23 个页面在 1440 / 1024 / 390 下均可操作，无横向滚动、无重叠；
 2. `test_v2_ui.py` 73 项全过（或失败项有独立复现记录）；
 3. 深浅主题都可读，对比度不低于 AA；
 4. 资源版本号已升级并被测试覆盖；

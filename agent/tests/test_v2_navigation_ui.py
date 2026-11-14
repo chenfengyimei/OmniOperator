@@ -1,4 +1,4 @@
-"""Grouped workbench navigation: seven business groups, 22 entries, all pages reachable, 390/1024."""
+"""Grouped workbench navigation: seven business groups, 23 entries, all pages reachable, 390/1024."""
 
 import socket
 import threading
@@ -69,7 +69,7 @@ def test_grouped_navigation_keeps_every_page_reachable(ui_browser, navigation_se
         expect(labels).to_have_count(len(GROUPS))
         for index, group in enumerate(GROUPS):
             expect(labels.nth(index)).to_have_text(group)
-        expect(page.locator("nav button[data-page]")).to_have_count(22)
+        expect(page.locator("nav button[data-page]")).to_have_count(23)
 
         for target, marker in (
             ("可信插件", "#extensions"),

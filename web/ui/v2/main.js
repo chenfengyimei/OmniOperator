@@ -1,30 +1,31 @@
-import { mountSkills } from './skills.js?v=20261113v125';
-import { mountCredentials } from './credentials.js?v=20261113v125';
-import { mountAuditHistory, mountOperations } from './operations.js?v=20261113v125';
-import { mountCapabilities } from './capabilities.js?v=20261113v125';
-import { mountTokens } from './tokens.js?v=20261113v125';
-import { mountDocuments } from './documents.js?v=20261113v125';
-import { mountConfiguration } from './configuration.js?v=20261113v125';
+import { mountSkills } from './skills.js?v=20261113v126';
+import { mountCredentials } from './credentials.js?v=20261113v126';
+import { mountAuditHistory, mountOperations } from './operations.js?v=20261113v126';
+import { mountCapabilities } from './capabilities.js?v=20261113v126';
+import { mountTokens } from './tokens.js?v=20261113v126';
+import { mountDocuments } from './documents.js?v=20261113v126';
+import { mountConfiguration } from './configuration.js?v=20261113v126';
+import { mountModels } from './models.js?v=20261113v126';
 import { ask } from '../dialog.js?v=20261103v7';
-import { mountPeople } from './people.js?v=20261113v125';
-import { mountDeliveries } from './deliveries.js?v=20261113v125';
-import { mountSchedules } from './schedules.js?v=20261113v125';
-import { mountMemorySemantics } from './memory-semantics.js?v=20261113v125';
-import { mountMemoryOrganization } from './memory-organization.js?v=20261113v125';
-import { mountExtensions } from './extensions.js?v=20261113v125';
-import { mountActionReviews } from './action-reviews.js?v=20261113v125';
-import { mountTerminals } from './terminals.js?v=20261113v125';
-import { mountDesktop } from './desktop.js?v=20261113v125';
-import { mountQQ } from './qq.js?v=20261113v125';
-import { mountBilibili } from './bilibili.js?v=20261113v125';
-import { mountMedia } from './media.js?v=20261113v125';
-import { mountMcp } from './mcp.js?v=20261113v125';
-import { mountAndroid } from './android.js?v=20261113v125';
-import { mountModelOutput } from './model-output.js?v=20261113v125';
-import { mountRouting } from './routing.js?v=20261113v125';
-import { mountChatImages } from './chat-images.js?v=20261113v125';
-import { mountInspector } from './inspector.js?v=20261113v125';
-import { mountSettingsRail } from './settings-rail.js?v=20261113v125';
+import { mountPeople } from './people.js?v=20261113v126';
+import { mountDeliveries } from './deliveries.js?v=20261113v126';
+import { mountSchedules } from './schedules.js?v=20261113v126';
+import { mountMemorySemantics } from './memory-semantics.js?v=20261113v126';
+import { mountMemoryOrganization } from './memory-organization.js?v=20261113v126';
+import { mountExtensions } from './extensions.js?v=20261113v126';
+import { mountActionReviews } from './action-reviews.js?v=20261113v126';
+import { mountTerminals } from './terminals.js?v=20261113v126';
+import { mountDesktop } from './desktop.js?v=20261113v126';
+import { mountQQ } from './qq.js?v=20261113v126';
+import { mountBilibili } from './bilibili.js?v=20261113v126';
+import { mountMedia } from './media.js?v=20261113v126';
+import { mountMcp } from './mcp.js?v=20261113v126';
+import { mountAndroid } from './android.js?v=20261113v126';
+import { mountModelOutput } from './model-output.js?v=20261113v126';
+import { mountRouting } from './routing.js?v=20261113v126';
+import { mountChatImages } from './chat-images.js?v=20261113v126';
+import { mountInspector } from './inspector.js?v=20261113v126';
+import { mountSettingsRail } from './settings-rail.js?v=20261113v126';
 // 直接复用 V1 的 rail 提示浮层模块（data-tip → #tip-layer），不自创实现
 import '../app/tips.js?v=20261103u5';
 
@@ -116,6 +117,7 @@ const androidPanel = mountAndroid({
 });
 const documentsPanel = mountDocuments({ api, wrap, getAgent: () => agent, getGeneration: () => generation });
 const configurationPanel = mountConfiguration({ api, wrap, getAgent: () => agent, getGeneration: () => generation });
+const modelsPanel = mountModels({ api, wrap, getAgent: () => agent, getGeneration: () => generation });
 const schedulesPanel = mountSchedules({ api, wrap, getAgent: () => agent, getGeneration: () => generation });
 const deliveriesPanel = mountDeliveries({ api, wrap, getAgent: () => agent, getGeneration: () => generation });
 const credentialsPanel = mountCredentials({ api, wrap, getGeneration: () => generation });
@@ -245,6 +247,7 @@ const PAGE_META = {
   media: ['媒体', '来源登记、字幕/ASR/抽帧与时间锚点转写。'],
   schedules: ['持久调度', '计划、时区、到期入队与重试。'],
   deliveries: ['持久投递', '草稿、审批、回执与归档。'],
+  models: ['模型接入', '选择供应商、填入 API Key、保存启用并测试连接。'],
   settings: ['设置', '模型档案、凭据引用、路由与预算。'],
   capabilities: ['能力', '只读能力报告与未验收声明。'],
   tokens: ['令牌', '所有者的会话列表与显式轮换。'],
@@ -1078,6 +1081,7 @@ async function selectAgentBody() {
   mcpPanel.reset();
   androidPanel.reset();
   configurationPanel.reset();
+  modelsPanel.reset();
   routingPanel.reset();
   skillsPanel.reset();
   documentsPanel.reset();
@@ -1124,6 +1128,7 @@ async function selectAgentBody() {
   if (page === 'capabilities') await capabilitiesPanel.load();
   if (page === 'tokens') await tokensPanel.load();
   if (page === 'audit') await auditPanel.load();
+  if (page === 'models') await modelsPanel.load();
   if (page === 'settings') await credentialsPanel.load();
   if (page === 'objects') await loadObjects();
   if (page === 'people') await peoplePanel.load();
@@ -1533,6 +1538,7 @@ for (const button of document.querySelectorAll('[data-page]'))
       if (selectedPage === 'action-reviews') await actionReviewsPanel.load();
       if (selectedPage === 'terminals') await terminalsPanel.load();
       if (selectedPage === 'desktop') await desktopPanel.load();
+      if (selectedPage === 'models') await modelsPanel.load();
       if (selectedPage === 'settings') await Promise.all([credentialsPanel.load(), routingPanel.load()]);
       if (selectedPage === 'logs') await Promise.all([loadLogs(), operationsPanel.load()]);
       if (selectedPage === 'capabilities') await capabilitiesPanel.load();

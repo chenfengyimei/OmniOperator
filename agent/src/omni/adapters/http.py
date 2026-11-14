@@ -96,6 +96,8 @@ class HttpRuntime:
     routing: RoutingService | None = None
     memory_semantics: MemorySemanticService | None = None
     skills: SkillService | None = None
+    # 连接测试复用当前模型适配器；离线实例的适配器会明确拒绝真实调用。
+    model_port: object | None = None
 
 
 class StrictInput(BaseModel):
@@ -1185,6 +1187,60 @@ def create_app(factory: Callable[[], Awaitable[HttpRuntime]], *, allowed_origins
     @router.get("/agents/{agent_id}/configurations/{config_id}/preset")
     async def apply_preset(agent_id: uuid.UUID, config_id: uuid.UUID, request: Request):
         return await runtime(request).configurations.preset(str(agent_id), str(config_id))
+
+    @router.post("/agents/{agent_id}/configurations/{config_id}/probe")
+    async def configuration_probe(agent_id: uuid.UUID, config_id: uuid.UUID, request: Request):
+        """连接测试：用所存凭据向端点发起一次最小真实调用，验证 Key/端点/模型可用。
+
+        不创建运行、不落库调用台账；离线实例的适配器会明确拒绝（offline_model_denied）。
+        先经 diagnose 校验凭据授权与配置启用，避免未授权凭据被尝试使用。
+        """
+        rt = runtime(request)
+        row = await rt.configurations.get(str(agent_id), str(config_id))
+        if row["kind"] != "model":
+            raise BusinessError("probe_not_model", "Only model configurations can be probed", status=422)
+        diagnosis = await rt.configurations.diagnose(str(agent_id), str(config_id))
+        if not diagnosis.get("configuration_enabled"):
+            raise BusinessError("probe_disabled", "Enable the model configuration before probing", status=409)
+        if not diagnosis.get("available"):
+            raise BusinessError(
+                "probe_unavailable",
+                f"Model is not ready: {diagnosis.get('state', 'unknown')}",
+                status=409,
+            )
+        port = rt.model_port
+        if port is None:
+            raise BusinessError("probe_unavailable", "No model adapter is wired in this instance", status=503)
+        fields = dict(row["value"])
+        # 最小调用：输出上限压到 16 token，避免测试产生明显费用。
+        fields["output_tokens"] = min(int(fields.get("output_tokens", 16)), 16)
+        settings = {
+            "persona": "",
+            "workspace": "",
+            "daily_budget_micro": 0,
+            "call_reservation_micro": 1,
+            "max_steps": 1,
+            "disabled_tools": [],
+            "model_profile_id": str(config_id),
+            "model_revision_id": str(row.get("revision_id", "")),
+            "model_permission_epoch": 1,
+            **fields,
+        }
+        from ..domain.settings import settings_value
+
+        resolved = settings_value(settings)
+        complete = getattr(port, "complete", None)
+        if complete is None:
+            raise BusinessError("probe_unavailable", "Model adapter does not support probing", status=503)
+        reply = await complete(
+            [{"role": "user", "content": "Reply with the single word: ok"}], [], resolved
+        )
+        return {
+            "ok": True,
+            "model": fields.get("model", ""),
+            "content": str(getattr(reply, "content", "") or "")[:120],
+            "completion_reason": getattr(reply, "completion_reason", "stop"),
+        }
 
     @router.get("/agents/{agent_id}/settings/revisions")
     async def settings_history(

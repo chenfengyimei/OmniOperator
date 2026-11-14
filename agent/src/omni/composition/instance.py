@@ -246,6 +246,8 @@ class Instance:
     desktop_actions: DesktopActions
     _process_diagnostics: ProcessDiagnostics | None = None
     _closed: bool = False
+    # 连接测试端口：组合层注入当前模型适配器（真实或离线桩），供 HTTP 层做一次最小调用。
+    model_port: ModelPort | None = None
 
     def identity_proof(self, challenge: str) -> Record:
         return canonical_proof(self.health(), challenge, self._identity_files.key)
@@ -495,6 +497,7 @@ async def open_instance(
             production_model = LiteLLMModel(
                 credential_io, sink.redactor, host_diagnostics.capture if host_diagnostics else None
             )
+            active_model: ModelPort = production_model
             calls = ModelCalls(
                 database,
                 production_model,
@@ -506,6 +509,7 @@ async def open_instance(
             )
             lifetime.own("model_streams", 1, production_model.close, production_model.stop_accepting)
         else:
+            active_model = model
             calls = ModelCalls(database, model, observation, counter, streamer=model_streamer, images=images)
             if model_streamer is not None:
                 lifetime.own("model_streams", 1, model_streamer.close, model_streamer.stop_accepting)
@@ -779,6 +783,7 @@ async def open_instance(
             desktop_portal=desktop_portal,
             desktop_actions=desktop_actions,
             _process_diagnostics=host_diagnostics,
+            model_port=active_model,
         )
         return current_instance
     except BaseException:
