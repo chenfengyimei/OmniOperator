@@ -23,6 +23,7 @@
     "agent/src/omni/adapters/models.py",
     "agent/src/omni/adapters/native_credentials.py",
     "agent/src/omni/adapters/object_store.py",
+    "agent/src/omni/adapters/onebot.py",
     "agent/src/omni/adapters/persistence/__init__.py",
     "agent/src/omni/adapters/persistence/action_predicates.py",
     "agent/src/omni/adapters/persistence/action_review_repository.py",

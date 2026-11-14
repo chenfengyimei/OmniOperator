@@ -5,14 +5,20 @@ from __future__ import annotations
 import asyncio
 import json
 import uuid
-from collections.abc import AsyncIterator, Awaitable, Callable
+from collections.abc import AsyncGenerator, Awaitable, Callable
 from contextlib import asynccontextmanager
+from typing import TYPE_CHECKING, Any, cast
 from urllib.parse import urlsplit
 
-from ..application.ports import AsyncSecretPort
+from ..application.ports import AsyncSecretPort, Record
 from ..domain.contracts import BusinessError
 from ..domain.delivery import DeliveryResult, OutboundMessage
 from ..domain.qq import ADAPTER, connection_value, qq_id
+
+if TYPE_CHECKING:
+    import logging
+
+Payload = dict[str, object]
 
 
 class OneBotTransport:
@@ -23,20 +29,20 @@ class OneBotTransport:
         credentials: AsyncSecretPort,
         authorize: Callable[[OutboundMessage], Awaitable[str]],
         *,
-        connector: Callable | None = None,
+        connector: Callable[..., Any] | None = None,
     ) -> None:
         self._credentials, self._connector = credentials, connector
         self._authorize = authorize
-        self._connections: set = set()
+        self._connections: set[Any] = set()
         self._closing = False
         self._slots = asyncio.Semaphore(8)
-        self._owners: set[asyncio.Task] = set()
+        self._owners: set[asyncio.Task[Any]] = set()
 
-    def account_key(self, configuration: dict) -> str:
-        return connection_value(configuration)["account"]
+    def account_key(self, configuration: Record) -> str:
+        return cast(str, connection_value(cast(Payload, configuration))["account"])
 
     @asynccontextmanager
-    async def _connect(self, configuration: dict) -> AsyncIterator:
+    async def _connect(self, configuration: Payload) -> AsyncGenerator[Any, None]:
         owner = asyncio.current_task()
         assert owner is not None
         self._owners.add(owner)
@@ -47,11 +53,11 @@ class OneBotTransport:
             self._owners.discard(owner)
 
     @asynccontextmanager
-    async def _open(self, configuration: dict) -> AsyncIterator:
+    async def _open(self, configuration: Payload) -> AsyncGenerator[Any, None]:
         value = connection_value(configuration)
         if self._closing:
             raise BusinessError("qq_closing", "QQ transport is draining")
-        token = await self._credentials.get(value["credential_ref"]) if value["credential_ref"] else None
+        token = await self._credentials.get(cast(str, value["credential_ref"])) if value["credential_ref"] else None
         if value["credential_ref"] and not token:
             raise BusinessError("qq_credential_unavailable", "QQ credential is unavailable")
         if token and any(ord(ch) < 32 or ord(ch) == 127 for ch in token):
@@ -65,9 +71,11 @@ class OneBotTransport:
             if self._closing:
                 raise BusinessError("qq_closing", "QQ transport is draining")
             async with connector(
-                value["endpoint"],
+                cast(str, value["endpoint"]),
                 additional_headers={"Authorization": "Bearer " + token} if token else {},
-                proxy=None if urlsplit(value["endpoint"]).hostname in {"127.0.0.1", "localhost", "::1"} else True,
+                proxy=None
+                if urlsplit(cast(str, value["endpoint"])).hostname in {"127.0.0.1", "localhost", "::1"}
+                else True,
                 open_timeout=5,
                 close_timeout=2,
                 max_size=65536,
@@ -81,14 +89,17 @@ class OneBotTransport:
                 try:
                     async with asyncio.timeout(5):
                         result = await self._rpc(ws, "get_login_info", {})
-                    if not _success(result) or qq_id(result.get("data", {}).get("user_id")) != value["account"]:
+                    if (
+                        not _success(result)
+                        or qq_id(cast(Payload, result.get("data", {})).get("user_id")) != value["account"]
+                    ):
                         raise BusinessError("qq_account_mismatch", "OneBot login identity does not match configuration")
                     yield ws
                 finally:
                     self._connections.discard(ws)
 
     @staticmethod
-    async def _rpc(ws, action: str, params: dict) -> dict:
+    async def _rpc(ws: Any, action: str, params: Payload) -> Payload:
         echo = str(uuid.uuid4())
         await ws.send(json.dumps({"action": action, "params": params, "echo": echo}, ensure_ascii=False))
         while True:
@@ -97,7 +108,7 @@ class OneBotTransport:
                 return response
 
     async def listen(
-        self, configuration: dict, receive: Callable[[dict], Awaitable[None]], connected: Callable[[], None]
+        self, configuration: Payload, receive: Callable[[object], Awaitable[None]], connected: Callable[[], None]
     ) -> None:
         async with self._connect(configuration) as ws:
             connected()
@@ -132,7 +143,9 @@ class OneBotTransport:
                         },
                     )
                     identity = (
-                        response.get("data", {}).get("message_id") if isinstance(response.get("data"), dict) else None
+                        cast(Payload, response.get("data", {})).get("message_id")
+                        if isinstance(response.get("data"), dict)
+                        else None
                     )
                     if _success(response) and type(identity) is int and -(2**31) <= identity < 2**31:
                         return DeliveryResult("sent", message.fingerprint, receipt_id=str(identity))
@@ -155,7 +168,7 @@ class OneBotTransport:
         return not self._owners and not self._connections
 
 
-def _frame(raw: object) -> dict:
+def _frame(raw: object) -> Payload:
     if not isinstance(raw, str) or len(raw.encode("utf-8")) > 65536:
         raise BusinessError("qq_protocol_invalid", "OneBot requires bounded UTF-8 JSON frames")
     try:
@@ -164,10 +177,10 @@ def _frame(raw: object) -> dict:
         raise BusinessError("qq_protocol_invalid", "OneBot returned invalid JSON") from exc
     if not isinstance(value, dict):
         raise BusinessError("qq_protocol_invalid", "OneBot frame must be an object")
-    return value
+    return cast(Payload, value)
 
 
-def _success(value: dict) -> bool:
+def _success(value: Payload) -> bool:
     return (
         value.get("status") == "ok"
         and type(value.get("retcode")) is int
@@ -176,7 +189,7 @@ def _success(value: dict) -> bool:
     )
 
 
-def _quiet_logger():
+def _quiet_logger() -> logging.Logger:
     import logging
 
     logger = logging.getLogger("omni.v2.onebot.wire")
