@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "6c508bd53d9c944a16d640bbb344c7e8544a25a8f467e2341905cdcd6bae2c21",
+  "source_sha256": "da68da9d0e39b07aee61b3fa1f6c025b4e10ff543c9fd966fef35ae7c6d75b1e",
   "modules": [
     {
       "id": "v2-domain",
@@ -404,7 +404,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 54359,
+      "lines": 54366,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -30510,7 +30510,7 @@
       "path": "agent/src/omni/adapters/platform/service_registration.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.service_registration",
-      "lines": 413,
+      "lines": 420,
       "imports": [
         "omni.adapters.object_store",
         "omni.adapters.platform.deployment_files",
@@ -30526,7 +30526,7 @@
       "symbols": [
         {
           "name": "_unknown",
-          "line": 26,
+          "line": 31,
           "kind": "function",
           "parameters": [
             "code",
@@ -30539,7 +30539,7 @@
         },
         {
           "name": "_owner_can_register",
-          "line": 38,
+          "line": 43,
           "kind": "function",
           "parameters": [
             "info",
@@ -30552,12 +30552,12 @@
         },
         {
           "name": "ServiceRegistration",
-          "line": 42,
+          "line": 47,
           "kind": "class"
         },
         {
           "name": "ServiceRegistration.__init__",
-          "line": 45,
+          "line": 50,
           "kind": "function",
           "parameters": [
             "self"
@@ -30566,19 +30566,19 @@
         },
         {
           "name": "ServiceRegistration._supported",
-          "line": 49,
+          "line": 54,
           "kind": "function",
           "parameters": [
             "self",
             "plan"
           ],
           "annotations": {
-            "plan": "dict"
+            "plan": "Record"
           }
         },
         {
           "name": "ServiceRegistration.inspect",
-          "line": 57,
+          "line": 64,
           "kind": "function",
           "parameters": [
             "self",
@@ -30590,7 +30590,7 @@
         },
         {
           "name": "ServiceRegistration.start",
-          "line": 70,
+          "line": 77,
           "kind": "function",
           "parameters": [
             "self",
@@ -30602,31 +30602,31 @@
         },
         {
           "name": "ServiceRegistration._inspect_macos",
-          "line": 105,
+          "line": 112,
           "kind": "function",
           "parameters": [
             "self",
             "plan"
           ],
           "annotations": {
-            "plan": "dict"
+            "plan": "Record"
           }
         },
         {
           "name": "ServiceRegistration._inspect_linux",
-          "line": 145,
+          "line": 152,
           "kind": "function",
           "parameters": [
             "self",
             "plan"
           ],
           "annotations": {
-            "plan": "dict"
+            "plan": "Record"
           }
         },
         {
           "name": "ServiceRegistration._check_unit_path",
-          "line": 179,
+          "line": 186,
           "kind": "function",
           "parameters": [
             "path",
@@ -30634,36 +30634,36 @@
           ],
           "annotations": {
             "path": "Path",
-            "plan": "dict"
+            "plan": "Record"
           }
         },
         {
           "name": "ServiceRegistration._publish_unit",
-          "line": 199,
+          "line": 206,
           "kind": "function",
           "parameters": [
             "self",
             "plan"
           ],
           "annotations": {
-            "plan": "dict"
+            "plan": "Record"
           }
         },
         {
           "name": "ServiceRegistration._remove_unit",
-          "line": 229,
+          "line": 236,
           "kind": "function",
           "parameters": [
             "self",
             "plan"
           ],
           "annotations": {
-            "plan": "dict"
+            "plan": "Record"
           }
         },
         {
           "name": "ServiceRegistration.change",
-          "line": 242,
+          "line": 249,
           "kind": "function",
           "parameters": [
             "self",
@@ -30677,7 +30677,7 @@
         },
         {
           "name": "ServiceRegistration._change_macos",
-          "line": 258,
+          "line": 265,
           "kind": "function",
           "parameters": [
             "self",
@@ -30685,13 +30685,13 @@
             "action"
           ],
           "annotations": {
-            "plan": "dict",
+            "plan": "Record",
             "action": "str"
           }
         },
         {
           "name": "ServiceRegistration._change_linux",
-          "line": 297,
+          "line": 304,
           "kind": "function",
           "parameters": [
             "self",
@@ -30699,13 +30699,13 @@
             "action"
           ],
           "annotations": {
-            "plan": "dict",
+            "plan": "Record",
             "action": "str"
           }
         },
         {
           "name": "ServiceRegistration._windows",
-          "line": 328,
+          "line": 335,
           "kind": "function",
           "parameters": [
             "self",
@@ -30713,7 +30713,7 @@
             "action"
           ],
           "annotations": {
-            "plan": "dict",
+            "plan": "Record",
             "action": "str"
           }
         }
