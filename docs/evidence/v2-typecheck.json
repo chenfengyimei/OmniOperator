@@ -1,14 +1,14 @@
 {
  "schema": 1,
- "batch": 180,
+ "batch": 181,
  "date": "2026-11-13",
  "whole_v2_complete": false,
  "d7_complete": false,
  "default_entrypoint": "v1",
  "source": {
-  "code_version": "fa8f0d710ad2d3f1d19fb2751804ac1c73bd6b20a79977e2adf3546a75c580b6",
+  "code_version": "d3bc1a4164fe51cb19f5ae1146c249c6675273aee2cae7f048f77119e6fb15a6",
   "fixed_source_files": 1206,
-  "git_head": "a7a9970",
+  "git_head": "292ce7a",
   "dirty_checkout": false,
   "recipe": "sha256(json.dumps({path: sha256(blob) for tracked agent/, web/, scripts/ files}, sort_keys=True)); see temp/build/source_version.py",
   "head_ui": "75c4219"
@@ -193,12 +193,12 @@
  "validation": {
   "all_latest_cases_passed": false,
   "latest_batch": {
-   "batch": 180,
+   "batch": 181,
    "sources": [
-    "agent/src/omni/adapters/persistence/skill_repository.py"
+    "agent/src/omni/adapters/persistence/routing_repository.py"
    ],
-   "report": "temp/build/v2-typecheck-180-callers.xml",
-   "tests": 59
+   "report": "temp/build/v2-typecheck-181-callers.xml",
+   "tests": 49
   },
   "targeted_reports": [
    {
@@ -1829,6 +1829,15 @@
     "errors": 0,
     "duration_s": 60.08,
     "note": "P3 skill_repository batch: immutable skill versions, review state and per-run bindings + guard/arch/skills/skills-http/skills-migration callers; covers revocation during model calls keeping actual cost without publishing output and platform/empty captures gaining no later authority"
+   },
+   {
+    "path": "temp/build/v2-typecheck-181-callers.xml",
+    "sha256": "5f8db7ad501b7e673b3f103ecfbfd21999a3470b62ccdd1ca5344a1161233742",
+    "tests": 49,
+    "failures": 0,
+    "errors": 0,
+    "duration_s": 126.33,
+    "note": "P3 routing_repository batch: immutable tier policies, run choices, promotions and actual tool manifests + guard/arch/routing/routing-http/routing-migration callers; covers profile/reservation/tool-snapshot/unknown-cost as one run truth and reservation rejection never rerouting or calling the provider"
    }
   ],
   "gates": {
@@ -1840,7 +1849,7 @@
   "strict": {
    "config": "pyrightconfig.strict.json",
    "summary": {
-    "filesAnalyzed": 304,
+    "filesAnalyzed": 305,
     "errorCount": 0,
     "warningCount": 0,
     "informationCount": 0
@@ -2128,7 +2137,8 @@
    "Strict scope reaches 301 files (53 domain + 44 application + 191 adapters + 13 composition); the QQ admission/authority repository aligns binding-page/cooldown/put/connections/authorized/accept/run/outbound receipts with the port Record contract, keeps binding_value's checked result in a separate local, narrows cooldown timestamps to str/int, casts the authority helpers' dict[str, Any] returns to Record at the boundary and narrows the outbound transport_revision to str; immutable conversation targets (scene/peer_id), the 64-binding ceiling, event-fingerprint idempotency conflicts, sender-must-bind-person, cooldown windows, credential-generation checks, per-field outbound ownership and approval-deadline validation and revocation blocking pending delivery and new admission are unchanged, with no network and no extra truth store",
    "Strict scope reaches 302 files (53 domain + 44 application + 192 adapters + 13 composition); the immutable-schedule/durable-due-cursor/atomic-occurrence repository aligns get/page/save/history/occurrences/candidates/materialize/enqueue/review/cancel receipts with the port, keeps save's value at dict[str, object] and materialize/enqueue at Mapping[str, object] per the port, narrows nested progress/blocker to Record layer by layer, narrows sequences and review cursors to int and casts the correlated-subquery column at the predicate boundary; the 4096-storage/256-enabled ceilings, erased-session refusal, timezone-data-change pause, unknown blocking without automatic continuation, non-repeatable due identities, savepoint-kept due ledgers, review preserving unknown records and cancel being request-only without fabricated outcomes are unchanged",
    "Strict scope reaches 303 files (53 domain + 44 application + 193 adapters + 13 composition); the terminal unknown-observation review repository aligns detail/page/replay/commit/history/erase-evidence receipts with the port Record contract, types the source triple as tuple[Record, Record, str] and the proof as Record, narrows review revisions to int before incrementing and evidence to str before hashing, and narrows the audit payload explicitly; only ended unknown observations being reviewable, epoch changes invalidating old proofs without deleting observations, review and audit rolling back together, metadata immutability, erasable evidence with retained hashes, receipt_unchanged always true and authorizes_replay always false are unchanged",
-   "Strict scope reaches 304 files (53 domain + 44 application + 194 adapters + 13 composition); the immutable skill-version/review-state/per-run-binding repository aligns available/get/page/history/install/state/report/catalog/activate receipts with the port Record contract, keeps metadata/files at Record per the port, casts files to list[dict[str, object]] at the manifest boundary, narrows content revisions and authority epochs to int before incrementing and narrows file paths/bytes/object ids at each use; the 17-file/512KB/256-skill/128-revision/32-enabled ceilings, NFC path and case-fold dedup, object-hash consistency, required SKILL.md, install-then-disabled requiring re-review, irreversible archive, sealed run captures gaining no later authority and revocation keeping actual cost without publishing output are unchanged, with no package or filesystem access"
+   "Strict scope reaches 304 files (53 domain + 44 application + 194 adapters + 13 composition); the immutable skill-version/review-state/per-run-binding repository aligns available/get/page/history/install/state/report/catalog/activate receipts with the port Record contract, keeps metadata/files at Record per the port, casts files to list[dict[str, object]] at the manifest boundary, narrows content revisions and authority epochs to int before incrementing and narrows file paths/bytes/object ids at each use; the 17-file/512KB/256-skill/128-revision/32-enabled ceilings, NFC path and case-fold dedup, object-hash consistency, required SKILL.md, install-then-disabled requiring re-review, irreversible archive, sealed run captures gaining no later authority and revocation keeping actual cost without publishing output are unchanged, with no package or filesystem access",
+   "Strict scope reaches 305 files (53 domain + 44 application + 195 adapters + 13 composition); the immutable tier-policy/run-choice/promotion/actual-tool-manifest repository aligns policy/save/resolve/attach/run-route/reservation/promote/report receipts with the port Record contract, narrows nested settings.value and model.value, narrows default_mode and route.mode to str and narrows byte counts to int before differencing; tier models must be enabled, escalation is upward-only and once, requires a request_mode snapshot with a settled call, tool sets must match the baseline fingerprint, reservation refusal never reroutes or calls the provider, per-tool manifest hashes are retained and the savings claim stays schema-bytes-only rather than real cost or quality, with no model calls or I/O"
   ]
  },
  "source_recovery": {
