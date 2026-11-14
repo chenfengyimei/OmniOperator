@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "9533d60a204fd013d8e9af1a1535737023e227ec70b00acb42a3965ef3d28758",
+  "source_sha256": "b384a5487feef334aef1a7879d66aab65ebec57f46bc5fb108ecb1962361efba",
   "modules": [
     {
       "id": "v2-domain",
@@ -404,7 +404,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 54265,
+      "lines": 54269,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -2584,7 +2584,7 @@
       "path": "agent/src/omni/adapters/bilibili.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.bilibili",
-      "lines": 550,
+      "lines": 554,
       "imports": [
         "omni.adapters.diagnostics",
         "omni.adapters.workers.client",
@@ -2614,7 +2614,7 @@
           "annotations": {
             "credentials": "AsyncSecretPort",
             "redactor": "Redactor",
-            "authorize": "Callable[[OutboundMessage], Awaitable[dict[str, Any]]]",
+            "authorize": "Callable[[OutboundMessage], Awaitable[Record]]",
             "client_factory": "Callable[..., Any] | None",
             "worker_factory": "Callable[[], WorkerClient] | None"
           }
@@ -2782,7 +2782,7 @@
         },
         {
           "name": "BilibiliGateway.close",
-          "line": 546,
+          "line": 550,
           "kind": "function",
           "parameters": [
             "self",

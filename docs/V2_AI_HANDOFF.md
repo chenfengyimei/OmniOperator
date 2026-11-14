@@ -1,6 +1,6 @@
 # OmniOperator V2：AI 接续开发完整交接
 
-> strict 当前接续（2026-11-14，第 195 批）：**316 文件 / 0 errors / 0 warnings**；adapters **206/222**，剩 **16** 个模块。最新 `agent/src/omni/adapters/bilibili.py`：Bilibili 字幕、流、读取与下载类型化（第二步，5项待续）。该模块分步收口，尚有 5 项 strict 诊断，未纳入门禁；相关专项 **71 项通过**，源码 `7d26deda`；最近全量记录为第 50 节点（4660 passed / 1 failed），仅代表其固定源码；下一全量节点第 194 批。默认正式入口仍是 V1，真实验收未完成。
+> strict 当前接续（2026-11-14，第 196 批）：**317 文件 / 0 errors / 0 warnings**；adapters **207/222**，剩 **15** 个模块。最新 `agent/src/omni/adapters/bilibili.py`：Bilibili 网关严格类型收官（317文件）。相关专项 **71 项通过**，源码 `1bde555d`；最近全量记录为第 50 节点（4660 passed / 1 failed），仅代表其固定源码；下一全量节点第 199 批。默认正式入口仍是 V1，真实验收未完成。
 
 交接日期：2026-11-10（Asia/Shanghai），2026-11-14 更新进度段。本文是交接时点的快照；后续以 `docs/tasks/v2.json`、当前源码和 `docs/evidence/` 共同核验。不要用文件修改时间推断功能完成度。
 

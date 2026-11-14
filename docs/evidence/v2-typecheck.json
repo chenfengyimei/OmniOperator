@@ -1,14 +1,14 @@
 {
  "schema": 1,
- "batch": 195,
+ "batch": 196,
  "date": "2026-11-14",
  "whole_v2_complete": false,
  "d7_complete": false,
  "default_entrypoint": "v1",
  "source": {
-  "code_version": "418f840dd02343b4f39f3a2ac78d98fa3a5a579378072e168a0a8b2189ec0dab",
+  "code_version": "d3150a863f9f025eef1d04bca75a023185daa8cab9a6872356f09ccbd8a8dcd8",
   "fixed_source_files": 1208,
-  "git_head": "7d26deda",
+  "git_head": "1bde555d",
   "dirty_checkout": true,
   "recipe": "sha256(json.dumps({path: sha256(blob) for tracked agent/, web/, scripts/ files}, sort_keys=True)); see temp/build/source_version.py",
   "head_ui": "75c4219",
@@ -188,7 +188,7 @@
    "Strict scope reaches 284 files (53 domain + 44 application + 174 adapters + 13 composition); the exclusive collection plan/apply module types its entries, residual ledger and durable journals as Record, narrows Blob construction plus agent/digest/size/revision fields layer by layer, aligns the metadata write callback with the UnitOfWork protocol and converts the residual list to list[JSON] for the journal update; the order of committing unreferenced metadata, revalidating every target fingerprint and only then unlinking with directory sync is unchanged, as are pin/reference protection, the 24-hour orphan grace, the inventory ceiling and journal resume"
   ],
   "pending": [
-   "domain/application/composition complete; adapters 206/222 strict, 16 modules remaining",
+   "domain/application/composition complete; adapters 207/222 strict, 15 modules remaining",
    "composition layer: 13 of 13 modules in strict scope (complete)",
    "Workbench redesign UI suite rerun after the parallel session lands",
    "Three-platform packaging/install/update/restore and real-environment acceptance"
@@ -197,15 +197,13 @@
  "validation": {
   "all_latest_cases_passed": false,
   "latest_batch": {
-   "batch": 195,
+   "batch": 196,
    "sources": [
     "agent/src/omni/adapters/bilibili.py"
    ],
-   "report": "temp/build/v2-typecheck-195-callers.xml",
+   "report": "temp/build/v2-typecheck-196-callers.xml",
    "tests": 71,
-   "included_in_strict_scope": false,
-   "module_complete": false,
-   "remaining_strict_errors": 5
+   "included_in_strict_scope": true
   },
   "targeted_reports": [
    {
@@ -1992,6 +1990,16 @@
     "skipped": 0,
     "duration_s": 87.239,
     "note": "Batch 195: strict 316 files (53 domain, 44 application, 206/222 adapters, 13 composition); Bilibili 字幕、流、读取与下载类型化（第二步，5项待续）"
+   },
+   {
+    "path": "temp/build/v2-typecheck-196-callers.xml",
+    "sha256": "74625af124c42e7b8ad4869571763bea599f93adc2779922dbf0784445663358",
+    "tests": 71,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "duration_s": 87.83,
+    "note": "Batch 196: strict 317 files (53 domain, 44 application, 207/222 adapters, 13 composition); Bilibili 网关严格类型收官（317文件）"
    }
   ],
   "gates": {
@@ -2003,7 +2011,7 @@
   "strict": {
    "config": "pyrightconfig.strict.json",
    "summary": {
-    "filesAnalyzed": 316,
+    "filesAnalyzed": 317,
     "errorCount": 0,
     "warningCount": 0,
     "informationCount": 0,
@@ -2016,7 +2024,7 @@
     "errorCount": 0,
     "warningCount": 0,
     "informationCount": 0,
-    "timeInSec": 0.954
+    "timeInSec": 0.729
    },
    "sources": [
     "agent/src/omni/adapters/bilibili.py"
@@ -2422,9 +2430,17 @@
    "Batch 192: strict 315 files (53 domain, 44 application, 205/222 adapters, 13 composition); Bilibili 发布闸门与页面表单类型化（第一步，26项待续）",
    "Batch 193: strict 316 files (53 domain, 44 application, 206/222 adapters, 13 composition); Bilibili 浏览器 worker 严格类型收官（316文件）",
    "Batch 194: strict 316 files (53 domain, 44 application, 206/222 adapters, 13 composition); Bilibili 读取基础与边界类型化（第一步，146项待续）",
-   "Batch 195: strict 316 files (53 domain, 44 application, 206/222 adapters, 13 composition); Bilibili 字幕、流、读取与下载类型化（第二步，5项待续）"
+   "Batch 195: strict 316 files (53 domain, 44 application, 206/222 adapters, 13 composition); Bilibili 字幕、流、读取与下载类型化（第二步，5项待续）",
+   "Batch 196: strict 317 files (53 domain, 44 application, 207/222 adapters, 13 composition); Bilibili 网关严格类型收官（317文件）"
   ],
-  "next_full_checkpoint": 194
+  "next_full_checkpoint": 199,
+  "full_checkpoints_frozen": [
+   {
+    "batch": 194,
+    "head": "102cf4a6569c2f8fc0efa1d4610881ba4ee1959e",
+    "snapshot": "temp/build/v2-full-194-snapshot.json"
+   }
+  ]
  },
  "source_recovery": {
   "manifest": "temp/private/v2-typecheck-22-source-20261111-5039cdfa12f1/manifest.json",
@@ -2437,6 +2453,6 @@
  },
  "next": {
   "id": "D7.typecheck.p4_adapters",
-  "scope": "P4 in progress; 16 adapters remain across P4/P5/P6. Next full-suite checkpoint: batch 194. Real-environment acceptance pending."
+  "scope": "P4 in progress; 15 adapters remain across P4/P5/P6. Next full-suite checkpoint: batch 199. Real-environment acceptance pending."
  }
 }
