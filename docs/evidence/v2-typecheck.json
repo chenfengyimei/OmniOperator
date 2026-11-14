@@ -1,14 +1,14 @@
 {
  "schema": 1,
- "batch": 205,
+ "batch": 206,
  "date": "2026-11-15",
  "whole_v2_complete": false,
  "d7_complete": false,
  "default_entrypoint": "v1",
  "source": {
-  "code_version": "4776670fd7e62e8e7bbde42900b33f13cc8650286271b2ed41fd26f5ffd6eb1c",
+  "code_version": "28b3f688fd2e5eb62a8a7a6ece2ecda0cb5a5789ca8aeecb57c987240978b920",
   "fixed_source_files": 1208,
-  "git_head": "33581069",
+  "git_head": "514818ea",
   "dirty_checkout": true,
   "recipe": "sha256(json.dumps({path: sha256(blob) for tracked agent/, web/, scripts/ files}, sort_keys=True)); see temp/build/source_version.py",
   "head_ui": "75c4219",
@@ -188,7 +188,7 @@
    "Strict scope reaches 284 files (53 domain + 44 application + 174 adapters + 13 composition); the exclusive collection plan/apply module types its entries, residual ledger and durable journals as Record, narrows Blob construction plus agent/digest/size/revision fields layer by layer, aligns the metadata write callback with the UnitOfWork protocol and converts the residual list to list[JSON] for the journal update; the order of committing unreferenced metadata, revalidating every target fingerprint and only then unlinking with directory sync is unchanged, as are pin/reference protection, the 24-hour orphan grace, the inventory ceiling and journal resume"
   ],
   "pending": [
-   "domain/application/composition complete; adapters 215/222 strict, 7 modules remaining",
+   "domain/application/composition complete; adapters 216/222 strict, 6 modules remaining",
    "composition layer: 13 of 13 modules in strict scope (complete)",
    "Workbench redesign UI suite rerun after the parallel session lands",
    "Three-platform packaging/install/update/restore and real-environment acceptance"
@@ -197,15 +197,13 @@
  "validation": {
   "all_latest_cases_passed": false,
   "latest_batch": {
-   "batch": 205,
+   "batch": 206,
    "sources": [
-    "agent/src/omni/adapters/platform/service_registration.py"
+    "agent/src/omni/adapters/workers/portal.py"
    ],
-   "report": "temp/build/v2-typecheck-205-callers.xml",
-   "tests": 201,
-   "included_in_strict_scope": true,
-   "initial_import_binding_regression": "temp/build/v2-typecheck-205-initial.xml",
-   "resolved_by": "temp/build/v2-typecheck-205-fault-rerun.xml"
+   "report": "temp/build/v2-typecheck-206-callers.xml",
+   "tests": 95,
+   "included_in_strict_scope": true
   },
   "targeted_reports": [
    {
@@ -2139,23 +2137,33 @@
     "skipped": 0,
     "duration_s": 73.532,
     "note": "Batch 205: strict 325 files (53 domain, 44 application, 215/222 adapters, 13 composition); 用户服务注册类型化，保留原故障注入别名与固定命令语义"
+   },
+   {
+    "path": "temp/build/v2-typecheck-206-callers.xml",
+    "sha256": "142b87f887edad1c0be048cfc0a193e2d846d04e45129abac3e7bbcc90eeafea",
+    "tests": 95,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "duration_s": 46.526,
+    "note": "Batch 206: strict 326 files (53 domain, 44 application, 216/222 adapters, 13 composition); Portal worker类型化，显式授权、帧请求与清理时限不变"
    }
   ],
   "gates": {
-   "path": "temp/build/v2-typecheck-205-gates.json",
-   "sha256": "685e736e2c794737964f9e7ca06430ca262fd2030a8c33f6614c635507c3e937",
+   "path": "temp/build/v2-typecheck-206-gates.json",
+   "sha256": "e278f11fcffe98671de2f43ffb9cc0d4d835bb29e3189bbb0de40dd8b1677152",
    "passed": 5,
    "total": 5,
-   "batch": 205
+   "batch": 206
   },
   "strict": {
    "config": "pyrightconfig.strict.json",
    "summary": {
-    "filesAnalyzed": 325,
+    "filesAnalyzed": 326,
     "errorCount": 0,
     "warningCount": 0,
     "informationCount": 0,
-    "timeInSec": 24.318
+    "timeInSec": 24.145
    }
   },
   "default_pyright": {
@@ -2164,10 +2172,10 @@
     "errorCount": 0,
     "warningCount": 0,
     "informationCount": 0,
-    "timeInSec": 0.702
+    "timeInSec": 0.658
    },
    "sources": [
-    "agent/src/omni/adapters/platform/service_registration.py"
+    "agent/src/omni/adapters/workers/portal.py"
    ]
   },
   "full_run": {
@@ -2709,7 +2717,8 @@
    "Batch 202: strict 322 files (53 domain, 44 application, 212/222 adapters, 13 composition); 服务模板类型化，固定服务命令与产物字节不变",
    "Batch 203: strict 323 files (53 domain, 44 application, 213/222 adapters, 13 composition); 运行身份、Task/Future所有权与受控drain回执类型化",
    "Batch 204: strict 324 files (53 domain, 44 application, 214/222 adapters, 13 composition); 离线服务日志类型化，保留连续链、unknown与单所有者文件锁",
-   "Batch 205: strict 325 files (53 domain, 44 application, 215/222 adapters, 13 composition); 用户服务注册类型化，保留原故障注入别名与固定命令语义"
+   "Batch 205: strict 325 files (53 domain, 44 application, 215/222 adapters, 13 composition); 用户服务注册类型化，保留原故障注入别名与固定命令语义",
+   "Batch 206: strict 326 files (53 domain, 44 application, 216/222 adapters, 13 composition); Portal worker类型化，显式授权、帧请求与清理时限不变"
   ],
   "next_full_checkpoint": 209,
   "full_checkpoints_frozen": [
@@ -2741,6 +2750,6 @@
  },
  "next": {
   "id": "D7.typecheck.p5_adapters",
-  "scope": "P5 in progress; 7 adapters remain across P4/P5/P6. Next full-suite checkpoint: batch 209. Real-environment acceptance pending."
+  "scope": "P5 in progress; 6 adapters remain across P4/P5/P6. Next full-suite checkpoint: batch 209. Real-environment acceptance pending."
  }
 }

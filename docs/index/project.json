@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "da68da9d0e39b07aee61b3fa1f6c025b4e10ff543c9fd966fef35ae7c6d75b1e",
+  "source_sha256": "cbb4fc27891dda1660c78228e9df04e620822a3bed4b04168536a8c10a6af480",
   "modules": [
     {
       "id": "v2-domain",
@@ -404,7 +404,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 54366,
+      "lines": 54371,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -34361,7 +34361,7 @@
       "path": "agent/src/omni/adapters/workers/portal.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.workers.portal",
-      "lines": 250,
+      "lines": 255,
       "imports": [
         "omni.adapters.platform.linux_bus",
         "omni.adapters.platform.linux_pipewire",
@@ -34373,7 +34373,7 @@
       "symbols": [
         {
           "name": "run",
-          "line": 20,
+          "line": 21,
           "kind": "function",
           "parameters": [
             "reader",
@@ -34383,12 +34383,14 @@
           ],
           "annotations": {
             "reader": "asyncio.StreamReader",
-            "send": "Callable[[bytes], Awaitable[None]]"
+            "send": "Callable[[bytes], Awaitable[None]]",
+            "session_factory": "Callable[[], PortalSession] | None",
+            "frame_factory": "Callable[[], FrameExecutor] | None"
           }
         },
         {
           "name": "run.emit",
-          "line": 38,
+          "line": 43,
           "kind": "function",
           "parameters": [
             "next_phase",
@@ -34397,12 +34399,15 @@
             "cleaned"
           ],
           "annotations": {
-            "next_phase": "str"
+            "next_phase": "str",
+            "kind": "str",
+            "code": "str | None",
+            "cleaned": "bool"
           }
         },
         {
           "name": "run.emit_locked",
-          "line": 42,
+          "line": 47,
           "kind": "function",
           "parameters": [
             "next_phase",
@@ -34411,58 +34416,65 @@
             "cleaned"
           ],
           "annotations": {
-            "next_phase": "str"
+            "next_phase": "str",
+            "kind": "str",
+            "code": "str | None",
+            "cleaned": "bool"
           }
         },
         {
           "name": "run.controls",
-          "line": 62,
+          "line": 67,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "run.monitor",
-          "line": 87,
+          "line": 92,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "run.until_stop",
-          "line": 105,
+          "line": 110,
           "kind": "function",
           "parameters": [
             "work"
           ],
-          "annotations": {}
+          "annotations": {
+            "work": "Coroutine[Any, Any, object]"
+          }
         },
         {
           "name": "run.capture_frames",
-          "line": 122,
+          "line": 127,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "pipe_main",
-          "line": 211,
+          "line": 216,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "pipe_main.send",
-          "line": 218,
+          "line": 223,
           "kind": "function",
           "parameters": [
             "data"
           ],
-          "annotations": {}
+          "annotations": {
+            "data": "bytes"
+          }
         },
         {
           "name": "main",
-          "line": 240,
+          "line": 245,
           "kind": "function",
           "parameters": [],
           "annotations": {}
