@@ -9,11 +9,11 @@ import json
 import logging
 import time
 import uuid
-from collections.abc import Awaitable, Callable
+from collections.abc import Awaitable, Callable, Mapping
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Literal
+from typing import Literal, cast
 
 from fastapi import APIRouter, Depends, FastAPI, Query, Request
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, Response
@@ -40,6 +40,7 @@ from ..application.memory_semantics import MemorySemanticService
 from ..application.objects import ObjectService
 from ..application.operations import OperationsService
 from ..application.people import PeopleService
+from ..application.ports import Record
 from ..application.qq import QQService
 from ..application.routing import RoutingService
 from ..application.scheduling import SchedulingService
@@ -53,6 +54,7 @@ from .diagnostics import bind_context
 from .log_query import LogQuery
 
 log = logging.getLogger("omni.v2.http")
+Payload = dict[str, object]
 
 
 @dataclass
@@ -423,7 +425,7 @@ def create_app(factory: Callable[[], Awaitable[HttpRuntime]], *, allowed_origins
             raise BusinessError("unauthenticated", "A valid owner token is required", status=401)
 
     @app.middleware("http")
-    async def boundary(request: Request, call_next):
+    async def boundary(request: Request, call_next: Callable[[Request], Awaitable[Response]]) -> Response:
         started = time.monotonic()
         request_id = str(uuid.uuid4())
         request.state.request_id = request_id
@@ -611,9 +613,9 @@ def create_app(factory: Callable[[], Awaitable[HttpRuntime]], *, allowed_origins
             raise BusinessError("android_unavailable", "Android service is unavailable", status=503)
         return service
 
-    async def android_input(request: Request, fields: set[str]) -> dict:
+    async def android_input(request: Request, fields: set[str]) -> Record:
         value = await bounded_configuration(request, 4096)
-        if not isinstance(value, dict) or set(value) != fields:
+        if not isinstance(cast(object, value), dict) or set(value) != fields:
             raise BusinessError("android_invalid", "Exact Android request fields are required", status=422)
         return value
 
@@ -626,7 +628,9 @@ def create_app(factory: Callable[[], Awaitable[HttpRuntime]], *, allowed_origins
     @router.post("/agents/{agent_id}/android/probe")
     async def android_probe(agent_id: uuid.UUID, request: Request):
         value = await android_input(request, {"config_id", "consent"})
-        return await android_service(request).probe(str(agent_id), str(value["config_id"]), value["consent"])
+        return await android_service(request).probe(
+            str(agent_id), str(value["config_id"]), cast(bool, value["consent"])
+        )
 
     @router.get("/agents/{agent_id}/android/grants/{grant_id}/unicode")
     async def android_unicode_profile(agent_id: uuid.UUID, grant_id: uuid.UUID, request: Request):
@@ -636,7 +640,7 @@ def create_app(factory: Callable[[], Awaitable[HttpRuntime]], *, allowed_origins
     async def android_unicode_profile_save(agent_id: uuid.UUID, grant_id: uuid.UUID, request: Request):
         value = await android_input(request, {"revision", "profile"})
         return await android_service(request).save_unicode_profile(
-            str(agent_id), str(grant_id), value["profile"], value["revision"]
+            str(agent_id), str(grant_id), cast(Record, value["profile"]), cast(int, value["revision"])
         )
 
     @router.get("/agents/{agent_id}/android/environments")
@@ -661,43 +665,45 @@ def create_app(factory: Callable[[], Awaitable[HttpRuntime]], *, allowed_origins
     @router.post("/agents/{agent_id}/android/access/{access_id}/revoke")
     async def android_access_revoke(agent_id: uuid.UUID, access_id: uuid.UUID, request: Request):
         value = await android_input(request, {"revision"})
-        return await android_service(request).revoke_access(str(agent_id), str(access_id), value["revision"])
+        return await android_service(request).revoke_access(str(agent_id), str(access_id), cast(int, value["revision"]))
 
     @router.post("/agents/{agent_id}/android/grants/{grant_id}/apps")
     async def android_apps(agent_id: uuid.UUID, grant_id: uuid.UUID, request: Request):
         value = await bounded_configuration(request, 4096)
         if (
-            not isinstance(value, dict)
+            not isinstance(cast(object, value), dict)
             or set(value) - {"consent", "after"}
             or value.get("consent") is not True
             or not isinstance(value.get("after", ""), str)
         ):
             raise BusinessError("android_invalid", "Explicit bounded application query is required", status=422)
-        return await android_service(request).apps(str(agent_id), str(grant_id), value.get("after", ""))
+        return await android_service(request).apps(str(agent_id), str(grant_id), cast(str, value.get("after", "")))
 
     @router.post("/agents/{agent_id}/android/grants", status_code=201)
     async def android_grant(agent_id: uuid.UUID, request: Request):
         value = await android_input(request, {"probe_id", "consent"})
-        return await android_service(request).grant(str(agent_id), value["probe_id"], value["consent"])
+        return await android_service(request).grant(
+            str(agent_id), cast(str, value["probe_id"]), cast(bool, value["consent"])
+        )
 
     @router.post("/agents/{agent_id}/android/grants/{grant_id}/revoke")
     async def android_revoke(agent_id: uuid.UUID, grant_id: uuid.UUID, request: Request):
         value = await android_input(request, {"revision"})
-        return await android_service(request).revoke(str(agent_id), str(grant_id), value["revision"])
+        return await android_service(request).revoke(str(agent_id), str(grant_id), cast(int, value["revision"]))
 
     @router.post("/agents/{agent_id}/android/grants/{grant_id}/observe")
     async def android_observe(agent_id: uuid.UUID, grant_id: uuid.UUID, request: Request):
         value = await android_input(request, {"consent"})
-        if value["consent"] is not True:
+        if cast(bool, value["consent"]) is not True:
             raise BusinessError("android_consent_required", "Explicit observation consent is required", status=422)
         return await android_service(request).observe(str(agent_id), str(grant_id))
 
     @router.post("/agents/{agent_id}/android/grants/{grant_id}/capture")
     async def android_capture(agent_id: uuid.UUID, grant_id: uuid.UUID, request: Request):
         value = await android_input(request, {"consent", "session_id"})
-        if value["consent"] is not True:
+        if cast(bool, value["consent"]) is not True:
             raise BusinessError("android_consent_required", "Explicit screen capture consent is required", status=422)
-        return await android_service(request).capture(str(agent_id), str(grant_id), value["session_id"])
+        return await android_service(request).capture(str(agent_id), str(grant_id), cast(str, value["session_id"]))
 
     @router.delete("/agents/{agent_id}/android/observations/{observation_id}")
     async def android_dismiss(agent_id: uuid.UUID, observation_id: uuid.UUID, request: Request):
@@ -738,7 +744,13 @@ def create_app(factory: Callable[[], Awaitable[HttpRuntime]], *, allowed_origins
     async def bilibili_prepare(agent_id: uuid.UUID, request: Request):
         data = configuration_input(BilibiliPublicationInput, await bounded_configuration(request, 16384, strict=True))
         return await bilibili_service(request).prepare(
-            str(agent_id), str(data.message_id), str(data.config_id), data.kind, data.target, data.mentions, data.key
+            str(agent_id),
+            str(data.message_id),
+            str(data.config_id),
+            data.kind,
+            data.target,
+            cast(list[Mapping[str, object]], data.mentions),
+            data.key,
         )
 
     @router.get("/agents/{agent_id}/bilibili/publications")
@@ -786,7 +798,7 @@ def create_app(factory: Callable[[], Awaitable[HttpRuntime]], *, allowed_origins
     @router.post("/agents/{agent_id}/media/sources/{source_id}/jobs", status_code=201)
     async def media_job_submit(agent_id: uuid.UUID, source_id: uuid.UUID, request: Request):
         data = configuration_input(MediaJobInput, await bounded_configuration(request, 4096, strict=True))
-        params: dict = {}
+        params: Record = {}
         if data.operation == "transcribe":
             params = {"model": data.model, "device": data.device, "compute_type": data.compute_type}
         if data.operation == "frames":
@@ -1127,7 +1139,7 @@ def create_app(factory: Callable[[], Awaitable[HttpRuntime]], *, allowed_origins
 
     @router.put("/agents/{agent_id}/routing")
     async def save_route_policy(agent_id: uuid.UUID, data: RoutingInput, request: Request):
-        return await routing_service(request).save(str(agent_id), data.value, data.revision)
+        return await routing_service(request).save(str(agent_id), cast(Record, data.value), data.revision)
 
     @router.get("/agents/{agent_id}/runs/{run_id}/routing")
     async def route_report(agent_id: uuid.UUID, run_id: uuid.UUID, request: Request):
@@ -1137,7 +1149,12 @@ def create_app(factory: Callable[[], Awaitable[HttpRuntime]], *, allowed_origins
     async def create_configuration(agent_id: uuid.UUID, request: Request):
         data = configuration_input(ConfigurationInput, await bounded_configuration(request))
         return await runtime(request).configurations.create(
-            str(agent_id), data.kind, data.name, data.enabled, data.value, data.image_policy
+            str(agent_id),
+            data.kind,
+            data.name,
+            data.enabled,
+            cast(Record, data.value),
+            cast(Record | None, data.image_policy),
         )
 
     @router.get("/agents/{agent_id}/configurations/template")
@@ -1160,7 +1177,13 @@ def create_app(factory: Callable[[], Awaitable[HttpRuntime]], *, allowed_origins
     async def save_configuration(agent_id: uuid.UUID, config_id: uuid.UUID, request: Request):
         data = configuration_input(ConfigurationEdit, await bounded_configuration(request))
         return await runtime(request).configurations.save(
-            str(agent_id), str(config_id), data.name, data.enabled, data.value, data.revision, data.image_policy
+            str(agent_id),
+            str(config_id),
+            data.name,
+            data.enabled,
+            cast(Record, data.value),
+            data.revision,
+            cast(Record | None, data.image_policy),
         )
 
     @router.delete("/agents/{agent_id}/configurations/{config_id}")
@@ -1211,10 +1234,10 @@ def create_app(factory: Callable[[], Awaitable[HttpRuntime]], *, allowed_origins
         port = rt.model_port
         if port is None:
             raise BusinessError("probe_unavailable", "No model adapter is wired in this instance", status=503)
-        fields = dict(row["value"])
+        fields = dict(cast(Payload, row["value"]))
         # 最小调用：输出上限压到 16 token，避免测试产生明显费用。
-        fields["output_tokens"] = min(int(fields.get("output_tokens", 16)), 16)
-        settings = {
+        fields["output_tokens"] = min(int(cast(int, fields.get("output_tokens", 16))), 16)
+        settings: Payload = {
             "persona": "",
             "workspace": "",
             "daily_budget_micro": 0,
@@ -1232,9 +1255,7 @@ def create_app(factory: Callable[[], Awaitable[HttpRuntime]], *, allowed_origins
         complete = getattr(port, "complete", None)
         if complete is None:
             raise BusinessError("probe_unavailable", "Model adapter does not support probing", status=503)
-        reply = await complete(
-            [{"role": "user", "content": "Reply with the single word: ok"}], [], resolved
-        )
+        reply = await complete([{"role": "user", "content": "Reply with the single word: ok"}], [], resolved)
         return {
             "ok": True,
             "model": fields.get("model", ""),
@@ -1586,9 +1607,9 @@ def create_app(factory: Callable[[], Awaitable[HttpRuntime]], *, allowed_origins
     @router.post("/agents/{agent_id}/maintenance/{job_id}/cancel")
     async def maintenance_cancel(agent_id: uuid.UUID, job_id: uuid.UUID, request: Request):
         data = await bounded_configuration(request, 2048)
-        if set(data) != {"revision"} or type(data["revision"]) is not int or data["revision"] < 1:
+        if set(data) != {"revision"} or type(cast(int, data["revision"])) is not int or cast(int, data["revision"]) < 1:
             raise BusinessError("maintenance_invalid", "Cancel requires the current positive revision", status=422)
-        return await runtime(request).maintenance.cancel(str(agent_id), str(job_id), data["revision"])
+        return await runtime(request).maintenance.cancel(str(agent_id), str(job_id), cast(int, data["revision"]))
 
     @router.get("/agents/{agent_id}/events/retention-preview")
     async def event_retention_preview(
@@ -1658,7 +1679,7 @@ def create_app(factory: Callable[[], Awaitable[HttpRuntime]], *, allowed_origins
     @router.put("/agents/{agent_id}/settings")
     async def save_settings(agent_id: uuid.UUID, request: Request):
         data = configuration_input(SettingsInput, await bounded_configuration(request))
-        return await runtime(request).application.save_settings(str(agent_id), data.value, data.revision)
+        return await runtime(request).application.save_settings(str(agent_id), cast(Record, data.value), data.revision)
 
     @router.get("/agents/{agent_id}/approvals")
     async def approvals(agent_id: uuid.UUID, request: Request):
@@ -1884,7 +1905,7 @@ def create_app(factory: Callable[[], Awaitable[HttpRuntime]], *, allowed_origins
     async def extension_market(agent_id: uuid.UUID, request: Request):
         data = await bounded_configuration(request, 4096)
         if (
-            not isinstance(data, dict)
+            not isinstance(cast(object, data), dict)
             or set(data) != {"source"}
             or not isinstance(data["source"], str)
             or not 1 <= len(data["source"]) <= 4000
@@ -1926,9 +1947,9 @@ def create_app(factory: Callable[[], Awaitable[HttpRuntime]], *, allowed_origins
     @router.post("/agents/{agent_id}/extensions/{extension_id}/disable")
     async def extension_disable(agent_id: uuid.UUID, extension_id: uuid.UUID, request: Request):
         data = await bounded_configuration(request, 2048)
-        if set(data) != {"revision"} or type(data.get("revision")) is not int or data["revision"] < 1:
+        if set(data) != {"revision"} or type(data.get("revision")) is not int or cast(int, data["revision"]) < 1:
             raise BusinessError("extension_invalid", "Use the observed plugin revision", status=422)
-        return await runtime(request).extensions.disable(str(agent_id), str(extension_id), data["revision"])
+        return await runtime(request).extensions.disable(str(agent_id), str(extension_id), cast(int, data["revision"]))
 
     def skill_service(request: Request) -> SkillService:
         service = runtime(request).skills
@@ -2072,11 +2093,13 @@ def create_app(factory: Callable[[], Awaitable[HttpRuntime]], *, allowed_origins
     @router.post("/agents/{agent_id}/memory/organizations/{batch_id}/cancel")
     async def memory_organization_cancel(agent_id: uuid.UUID, batch_id: uuid.UUID, request: Request):
         data = await bounded_configuration(request, 2048)
-        if set(data) != {"revision"} or type(data.get("revision")) is not int or data["revision"] < 1:
+        if set(data) != {"revision"} or type(data.get("revision")) is not int or cast(int, data["revision"]) < 1:
             raise BusinessError(
                 "memory_organization_invalid", "A positive cancellation revision is required", status=422
             )
-        return await runtime(request).memory_organization.cancel(str(agent_id), str(batch_id), data["revision"])
+        return await runtime(request).memory_organization.cancel(
+            str(agent_id), str(batch_id), cast(int, data["revision"])
+        )
 
     @router.post("/agents/{agent_id}/memory/organizations/candidates/{candidate_id}/decision")
     async def memory_organization_decision(agent_id: uuid.UUID, candidate_id: uuid.UUID, request: Request):
