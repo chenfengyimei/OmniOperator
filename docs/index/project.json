@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "0f304aadfc56a75eed0623c6ae2a413b94e8df45c248e948e0999b029d2b14c8",
+  "source_sha256": "c8766e2abfc9011edff7e28c5a225c5e71636437b4858789e9ffe8f5ba75d3ad",
   "modules": [
     {
       "id": "v2-domain",
@@ -404,7 +404,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 54429,
+      "lines": 54443,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -9604,7 +9604,7 @@
       "path": "agent/src/omni/adapters/mcp/stdio.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.mcp.stdio",
-      "lines": 301,
+      "lines": 315,
       "imports": [
         "omni.adapters.platform.processes",
         "omni.domain.mcp"
@@ -9612,7 +9612,7 @@
       "symbols": [
         {
           "name": "bounded_payload",
-          "line": 41,
+          "line": 44,
           "kind": "function",
           "parameters": [
             "value",
@@ -9625,12 +9625,12 @@
         },
         {
           "name": "StdioSession",
-          "line": 53,
+          "line": 56,
           "kind": "class"
         },
         {
           "name": "StdioSession.__init__",
-          "line": 58,
+          "line": 61,
           "kind": "function",
           "parameters": [
             "self",
@@ -9644,7 +9644,7 @@
         },
         {
           "name": "StdioSession._env",
-          "line": 73,
+          "line": 76,
           "kind": "function",
           "parameters": [
             "self"
@@ -9653,7 +9653,7 @@
         },
         {
           "name": "StdioSession._drain",
-          "line": 87,
+          "line": 90,
           "kind": "function",
           "parameters": [
             "self",
@@ -9665,7 +9665,7 @@
         },
         {
           "name": "StdioSession._spawn",
-          "line": 102,
+          "line": 105,
           "kind": "function",
           "parameters": [
             "self"
@@ -9674,7 +9674,7 @@
         },
         {
           "name": "StdioSession.start",
-          "line": 120,
+          "line": 123,
           "kind": "function",
           "parameters": [
             "self"
@@ -9683,7 +9683,7 @@
         },
         {
           "name": "StdioSession._reclaim",
-          "line": 149,
+          "line": 152,
           "kind": "function",
           "parameters": [
             "self",
@@ -9695,7 +9695,7 @@
         },
         {
           "name": "StdioSession.close",
-          "line": 166,
+          "line": 169,
           "kind": "function",
           "parameters": [
             "self",
@@ -9707,7 +9707,7 @@
         },
         {
           "name": "StdioSession.health",
-          "line": 170,
+          "line": 173,
           "kind": "function",
           "parameters": [
             "self"
@@ -9716,7 +9716,7 @@
         },
         {
           "name": "StdioSession._notify",
-          "line": 185,
+          "line": 188,
           "kind": "function",
           "parameters": [
             "self",
@@ -9725,12 +9725,12 @@
           ],
           "annotations": {
             "method": "str",
-            "params": "dict"
+            "params": "Packet"
           }
         },
         {
           "name": "StdioSession._request",
-          "line": 195,
+          "line": 198,
           "kind": "function",
           "parameters": [
             "self",
@@ -9741,14 +9741,14 @@
           ],
           "annotations": {
             "method": "str",
-            "params": "dict",
+            "params": "Packet",
             "timeout_s": "float",
             "uncertain_on_loss": "bool"
           }
         },
         {
           "name": "StdioSession.catalog",
-          "line": 271,
+          "line": 278,
           "kind": "function",
           "parameters": [
             "self"
@@ -9757,7 +9757,7 @@
         },
         {
           "name": "StdioSession.call",
-          "line": 293,
+          "line": 300,
           "kind": "function",
           "parameters": [
             "self",
@@ -9768,8 +9768,9 @@
           ],
           "annotations": {
             "name": "str",
-            "arguments": "dict",
-            "timeout_s": "float"
+            "arguments": "Packet",
+            "timeout_s": "float",
+            "before_send": "Callable[[], Awaitable[None]] | None"
           }
         }
       ],

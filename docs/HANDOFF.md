@@ -2,7 +2,7 @@
 
 > 最近全量接续（第 55 节点，第 194 批）：原始 **4658 passed / 5 failed / 0 errors / 0 skipped**；固定提交 102cf4a6，后续源码不在本次范围。3项wheel失败归验证器PYTHONPATH污染，纠正后通过；2项UI分别串行/隔离通过并完成两轮基线对照，仍保留开放观察。详见证据台账，不记并行全绿。
 
-> strict 当前接续（2026-11-15，第 211 批）：**329 文件 / 0 errors / 0 warnings**；adapters **219/222**，剩 **3** 个模块。最新 `agent/src/omni/adapters/workers/linux_desktop.py`：Linux桌面worker收官，真实工厂签名与语义调用类型贯通。相关专项 **163 项通过 / 0 项失败**，源码 `59b4e1dc`；最近全量记录为第 55 节点（4658 passed / 5 failed），仅代表其固定源码；下一全量节点第 214 批。默认正式入口仍是 V1，真实验收未完成。
+> strict 当前接续（2026-11-15，第 212 批）：**330 文件 / 0 errors / 0 warnings**；adapters **220/222**，剩 **2** 个模块。最新 `agent/src/omni/adapters/mcp/stdio.py`：MCP stdio类型化，保留有界、取消与进程销毁边界。相关专项 **94 项通过 / 0 项失败**，源码 `4eb675c0`；最近全量记录为第 55 节点（4658 passed / 5 failed），仅代表其固定源码；下一全量节点第 214 批。默认正式入口仍是 V1，真实验收未完成。
 
 > 当前正在实施V2底层重构；先读 [V2实施记录](V2_REFACTOR.md) 和 [V2任务台账](tasks/v2.json)。默认入口仍为V1，不能将新基础批次称为完整迁移。
 
