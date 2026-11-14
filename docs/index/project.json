@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "04be06a4e565c4d3f99fa149e1e2c470e878772b18793a4a436496bb5ef24c8f",
+  "source_sha256": "182cc152f9e275f3cf423785ecd4e3100d318bf071d61526df0651c6befe6932",
   "modules": [
     {
       "id": "v2-domain",
@@ -404,7 +404,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 54216,
+      "lines": 54237,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -34129,12 +34129,12 @@
       "path": "agent/src/omni/adapters/workers/media.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.workers.media",
-      "lines": 346,
+      "lines": 367,
       "imports": [],
       "symbols": [
         {
           "name": "_fail",
-          "line": 34,
+          "line": 38,
           "kind": "function",
           "parameters": [
             "operation_id",
@@ -34149,7 +34149,7 @@
         },
         {
           "name": "_ok",
-          "line": 40,
+          "line": 48,
           "kind": "function",
           "parameters": [
             "operation_id",
@@ -34157,12 +34157,12 @@
           ],
           "annotations": {
             "operation_id": "str",
-            "result": "dict"
+            "result": "Payload"
           }
         },
         {
           "name": "_bounded_path",
-          "line": 49,
+          "line": 57,
           "kind": "function",
           "parameters": [
             "value"
@@ -34173,14 +34173,14 @@
         },
         {
           "name": "_probe",
-          "line": 58,
+          "line": 66,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "_decode_audio_16k_mono",
-          "line": 89,
+          "line": 94,
           "kind": "function",
           "parameters": [
             "path"
@@ -34191,18 +34191,18 @@
         },
         {
           "name": "_transcribe",
-          "line": 115,
+          "line": 120,
           "kind": "function",
           "parameters": [
             "request"
           ],
           "annotations": {
-            "request": "dict"
+            "request": "Payload"
           }
         },
         {
           "name": "_format_time",
-          "line": 171,
+          "line": 192,
           "kind": "function",
           "parameters": [
             "seconds"
@@ -34213,7 +34213,7 @@
         },
         {
           "name": "_target_times",
-          "line": 176,
+          "line": 197,
           "kind": "function",
           "parameters": [
             "duration_s",
@@ -34226,7 +34226,7 @@
         },
         {
           "name": "_frame_at",
-          "line": 185,
+          "line": 206,
           "kind": "function",
           "parameters": [
             "container",
@@ -34234,23 +34234,25 @@
             "target"
           ],
           "annotations": {
+            "container": "Any",
+            "stream": "Any",
             "target": "float"
           }
         },
         {
           "name": "_frames",
-          "line": 200,
+          "line": 221,
           "kind": "function",
           "parameters": [
             "request"
           ],
           "annotations": {
-            "request": "dict"
+            "request": "Payload"
           }
         },
         {
           "name": "_asr_model_missing",
-          "line": 269,
+          "line": 290,
           "kind": "function",
           "parameters": [
             "exc"
@@ -34261,7 +34263,7 @@
         },
         {
           "name": "_handle",
-          "line": 285,
+          "line": 306,
           "kind": "function",
           "parameters": [
             "line"
@@ -34272,7 +34274,7 @@
         },
         {
           "name": "main",
-          "line": 327,
+          "line": 348,
           "kind": "function",
           "parameters": [],
           "annotations": {}

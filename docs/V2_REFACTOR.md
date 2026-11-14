@@ -1,6 +1,6 @@
 # V2 架构重构：当前实施入口
 
-> strict 当前接续（2026-11-14，第 190 批）：**314 文件 / 0 errors / 0 warnings**；adapters **204/222**，剩 **18** 个模块。最新 `agent/src/omni/adapters/onebot.py`：OneBot 传输（发送账号对齐 Record、监听配置 Payload、回调 object、上下文管理器 AsyncGenerator；发送前授权复核及 unknown 不重放不变）。相关专项 **66 项通过**，源码 `33344482`；全量第 50 节点 **4660 passed / 1 failed / 0 errors / 0 skipped**（-n 2，3208.33s，实际集成源码 `50e36455`、运行前后字节一致）；唯一失败为既有 portal 偶发项，原 nodeid 串行 **1 passed**。并行口径仍记 1 failed；下一全量第 194 批。默认正式入口仍是 V1，真实验收未完成。
+> strict 当前接续（2026-11-14，第 191 批）：**315 文件 / 0 errors / 0 warnings**；adapters **205/222**，剩 **17** 个模块。最新 `agent/src/omni/adapters/workers/media.py`：媒体 worker（IPC Payload、音频/图像 SDK 边界显式类型、固定可选依赖加载；离线缓存、VAD 空结果回退及采样字节不变）。相关专项 **60 项通过**，源码 `24717781`；最近全量记录为第 50 节点（4660 passed / 1 failed），仅代表其固定源码；下一全量节点第 194 批。默认正式入口仍是 V1，真实验收未完成。
 
 > D6扩展链离线节点已完成：产物协议、产物工作台、本地市场只读扫描、市场更新工作台与受控宿主回调（context/log、白名单/预算、违规归UNKNOWN不重放）；MCP运行适配器（stdio/Streamable HTTP/OAuth/逐工具授权/工作台）已收口；基线26项历史测试失败已测试-only修复（5f3b46e）。136表/v2_0037，工作台v51；扩展产物/工作台与MCP合并228个不同节点最新全过（含6例390/1024浏览器），市场扫描62项、市场工作台25项与宿主回调93项全过。最终全量4583项：4580 passed / 3 failed / 0 errors（service_runtime身份、debug_sink、portal_ui各一处并行时序，同源码隔离36项全过并观察）。下一阶段D7/D8；真实市场源、真实第三方插件、MCP真实服务与三平台原生仍待，整个V2未完成，默认入口仍为V1。见[扩展合同](V2_EXTENSIONS.md)、[回调证据](evidence/v2-extension-callbacks.json)、[市场证据](evidence/v2-extension-market.json)、[扩展证据](evidence/v2-extension-artifacts.json)、[基线修复证据](evidence/v2-baseline-repair.json)与[MCP证据](evidence/v2-mcp.json)。
 

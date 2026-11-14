@@ -1,20 +1,21 @@
 {
  "schema": 1,
- "batch": 190,
+ "batch": 191,
  "date": "2026-11-14",
  "whole_v2_complete": false,
  "d7_complete": false,
  "default_entrypoint": "v1",
  "source": {
-  "code_version": "27dbf873275d5e5563c463d6d91005e3e9da1e4c30a283e1b81a9dac24be309f",
+  "code_version": "9b7b96b3a5d84e79f1eff144f573fb71a9741d5ea8c1bd0da855bc845d0c86a6",
   "fixed_source_files": 1208,
-  "git_head": "50e36455",
+  "git_head": "24717781",
   "dirty_checkout": true,
   "recipe": "sha256(json.dumps({path: sha256(blob) for tracked agent/, web/, scripts/ files}, sort_keys=True)); see temp/build/source_version.py",
   "head_ui": "75c4219",
-  "fingerprint_scope": "Committed integrated source at full_run.source_head; actual working bytes separately captured in full_run.source_snapshots; only personal material directories remain untracked",
+  "fingerprint_scope": "Committed HEAD blobs only; source/test/config worktree differences are recorded separately, and personal material directories are excluded",
   "strict_batch_git_head": "33344482",
-  "dirty_source_checkout": false
+  "dirty_source_checkout": false,
+  "uncommitted_source_paths": []
  },
  "development": {
   "schema_tables": 136,
@@ -187,7 +188,7 @@
    "Strict scope reaches 284 files (53 domain + 44 application + 174 adapters + 13 composition); the exclusive collection plan/apply module types its entries, residual ledger and durable journals as Record, narrows Blob construction plus agent/digest/size/revision fields layer by layer, aligns the metadata write callback with the UnitOfWork protocol and converts the residual list to list[JSON] for the journal update; the order of committing unreferenced metadata, revalidating every target fingerprint and only then unlinking with directory sync is unchanged, as are pin/reference protection, the 24-hour orphan grace, the inventory ceiling and journal resume"
   ],
   "pending": [
-   "domain/application/composition complete; adapters 204/222 strict, 18 modules remaining",
+   "domain/application/composition complete; adapters 205/222 strict, 17 modules remaining",
    "composition layer: 13 of 13 modules in strict scope (complete)",
    "Workbench redesign UI suite rerun after the parallel session lands",
    "Three-platform packaging/install/update/restore and real-environment acceptance"
@@ -196,12 +197,14 @@
  "validation": {
   "all_latest_cases_passed": false,
   "latest_batch": {
-   "batch": 190,
+   "batch": 191,
    "sources": [
-    "agent/src/omni/adapters/onebot.py"
+    "agent/src/omni/adapters/workers/media.py",
+    "agent/tests/test_v2_media.py"
    ],
-   "report": "temp/build/v2-typecheck-190-callers.xml",
-   "tests": 66
+   "report": "temp/build/v2-typecheck-191-callers.xml",
+   "tests": 60,
+   "included_in_strict_scope": true
   },
   "targeted_reports": [
    {
@@ -1938,6 +1941,16 @@
     "skipped": 0,
     "duration_s": 120.393,
     "note": "Batch 190: strict 314 files (53 domain, 44 application, 204/222 adapters, 13 composition); OneBot 传输（发送账号对齐 Record、监听配置 Payload、回调 object、上下文管理器 AsyncGenerator；发送前授权复核及 unknown 不重放不变）"
+   },
+   {
+    "path": "temp/build/v2-typecheck-191-callers.xml",
+    "sha256": "4ab7eea905179b5d086d656d8c57e9c521daf46ad4d6d1fa79bd0fa3d8dc8391",
+    "tests": 60,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "duration_s": 75.406,
+    "note": "Batch 191: strict 315 files (53 domain, 44 application, 205/222 adapters, 13 composition); 媒体 worker（IPC Payload、音频/图像 SDK 边界显式类型、固定可选依赖加载；离线缓存、VAD 空结果回退及采样字节不变）"
    }
   ],
   "gates": {
@@ -1949,7 +1962,7 @@
   "strict": {
    "config": "pyrightconfig.strict.json",
    "summary": {
-    "filesAnalyzed": 314,
+    "filesAnalyzed": 315,
     "errorCount": 0,
     "warningCount": 0,
     "informationCount": 0,
@@ -1958,19 +1971,13 @@
   },
   "default_pyright": {
    "summary": {
-    "filesAnalyzed": 6,
+    "filesAnalyzed": 1,
     "errorCount": 0,
     "warningCount": 0,
-    "informationCount": 0,
-    "timeInSec": 1.314
+    "informationCount": 0
    },
    "sources": [
-    "agent/src/omni/adapters/workers/local_vectors.py",
-    "agent/src/omni/adapters/local_vectors.py",
-    "agent/src/omni/adapters/extensions/packages.py",
-    "agent/src/omni/adapters/model_stream.py",
-    "agent/src/omni/adapters/diagnostic_bundle.py",
-    "agent/src/omni/adapters/onebot.py"
+    "agent/src/omni/adapters/workers/media.py"
    ]
   },
   "full_run": {
@@ -2368,7 +2375,8 @@
    "Batch 187: strict 311 files (53 domain, 44 application, 201/222 adapters, 13 composition); 插件包与快照（清单/文件证明显式 Payload、市场回执对齐 Record、异构 I/O Future 有界归属；零执行捕获、路径校验及原子不覆盖发布不变）",
    "Batch 188: strict 312 files (53 domain, 44 application, 202/222 adapters, 13 composition); 模型流式适配器（SDK 迭代器/关闭回调/计费载荷显式类型；供应商结束与用量证据、分片限额、取消后实际关闭及未知费用不变）",
    "Batch 189: strict 313 files (53 domain, 44 application, 203/222 adapters, 13 composition); 诊断包（来源/调试回执对齐 Record、关联项白名单显式 Payload、I/O Future 泛型化；脱敏边界、容量、取消归属及不覆盖导出不变）",
-   "Batch 190: strict 314 files (53 domain, 44 application, 204/222 adapters, 13 composition); OneBot 传输（发送账号对齐 Record、监听配置 Payload、回调 object、上下文管理器 AsyncGenerator；发送前授权复核及 unknown 不重放不变）"
+   "Batch 190: strict 314 files (53 domain, 44 application, 204/222 adapters, 13 composition); OneBot 传输（发送账号对齐 Record、监听配置 Payload、回调 object、上下文管理器 AsyncGenerator；发送前授权复核及 unknown 不重放不变）",
+   "Batch 191: strict 315 files (53 domain, 44 application, 205/222 adapters, 13 composition); 媒体 worker（IPC Payload、音频/图像 SDK 边界显式类型、固定可选依赖加载；离线缓存、VAD 空结果回退及采样字节不变）"
   ],
   "next_full_checkpoint": 194
  },
@@ -2383,6 +2391,6 @@
  },
  "next": {
   "id": "D7.typecheck.p4_business_adapters",
-  "scope": "P4 typing in progress: 314 strict files, 204/222 adapters, 18 adapters remain. Node-50 full run on frozen integrated 50e36455 source: 4660 passed / 1 known portal flaky failure; exact nodeid passed serially. Next full-suite checkpoint: batch 194. Real-environment acceptance pending."
+  "scope": "P4 in progress; 17 adapters remain across P4/P5/P6. Next full-suite checkpoint: batch 194. Real-environment acceptance pending."
  }
 }
