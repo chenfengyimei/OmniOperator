@@ -18,6 +18,7 @@
     "agent/src/omni/adapters/mcp/hosts.py",
     "agent/src/omni/adapters/media.py",
     "agent/src/omni/adapters/metrics.py",
+    "agent/src/omni/adapters/model_stream.py",
     "agent/src/omni/adapters/models.py",
     "agent/src/omni/adapters/native_credentials.py",
     "agent/src/omni/adapters/object_store.py",

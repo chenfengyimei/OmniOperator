@@ -8,6 +8,7 @@ import json
 import types
 from collections.abc import Awaitable, Callable
 from dataclasses import replace
+from typing import Any, cast
 
 from ..domain.contracts import BusinessError, ModelReply
 from ..domain.model_stream import MAX_CHUNKS, MAX_FRAME_BYTES, MAX_STREAM_BYTES, StreamAssembly, invalid
@@ -16,18 +17,18 @@ from ..domain.model_stream import MAX_CHUNKS, MAX_FRAME_BYTES, MAX_STREAM_BYTES,
 class ProviderEvidence:
     """Observe provider frames before SDK-synthesized completion/usage chunks."""
 
-    def __init__(self, native):
+    def __init__(self, native: Any) -> None:
         self.native = native
         self.finish_reason = ""
-        self.usage = None
+        self.usage: dict[str, object] | None = None
         self.chunks = self.wire_bytes = 0
 
-    def __aiter__(self):
+    def __aiter__(self) -> ProviderEvidence:
         return self
 
-    async def __anext__(self):
+    async def __anext__(self) -> Any:
         value = await self.native.__anext__()
-        raw = value.model_dump() if hasattr(value, "model_dump") else value
+        raw: Any = value.model_dump() if hasattr(value, "model_dump") else value
         try:
             size = (
                 len(raw)
@@ -54,31 +55,32 @@ class ProviderEvidence:
             except (ValueError, TypeError):
                 raw = None
         if isinstance(raw, dict):
-            usage = raw.get("usage")
+            usage = cast(dict[str, Any], raw).get("usage")
             dump = getattr(usage, "model_dump", None)
             if callable(dump):
                 usage = dump()
             if isinstance(usage, dict) and all(
-                type(usage.get(k)) is int and 0 <= usage[k] <= 2**63 - 1 for k in ("prompt_tokens", "completion_tokens")
+                type(cast(dict[str, Any], usage).get(k)) is int and 0 <= cast(dict[str, Any], usage)[k] <= 2**63 - 1
+                for k in ("prompt_tokens", "completion_tokens")
             ):
-                self.usage = dict(usage)
-            choices = raw.get("choices")
+                self.usage = dict(cast(dict[str, object], usage))
+            choices = cast(dict[str, Any], raw).get("choices")
             reason = (
-                choices[0].get("finish_reason")
-                if isinstance(choices, list) and len(choices) == 1 and isinstance(choices[0], dict)
-                else raw.get("finish_reason")
+                cast(dict[str, Any], choices[0]).get("finish_reason")
+                if isinstance(choices, list) and len(cast(list[Any], choices)) == 1 and isinstance(choices[0], dict)
+                else cast(dict[str, Any], raw).get("finish_reason")
             )
             if reason in {"stop", "tool_calls", "length", "content_filter"}:
                 self.finish_reason = reason
         return value
 
-    async def aclose(self):
+    async def aclose(self) -> None:
         await PreparedStream.closer(self.native)()
 
 
 async def finish_close(close: Awaitable[None]) -> None:
     # Keep the run task alive through repeated cancellation while the actual transport closes.
-    async def perform():
+    async def perform() -> None:
         await close
 
     task = asyncio.create_task(perform(), name="model-stream-close")
@@ -96,27 +98,29 @@ async def finish_close(close: Awaitable[None]) -> None:
 class PreparedStream:
     def __init__(
         self,
-        send: Callable[[], Awaitable],
-        price: Callable[[dict], int | None],
+        send: Callable[[], Awaitable[Any]],
+        price: Callable[[dict[str, Any]], int | None],
         released: Callable[[], None] = lambda: None,
-    ):
+    ) -> None:
         self._send, self._price, self._used = send, price, False
+        self._stream: Any
+        self._native: Any
         self._stream = self._native = None
         self._released = released
         self._close_lock = asyncio.Lock()
         self.active = self.cleanup_pending = self._closed = False
 
     @staticmethod
-    def closer(native):
+    def closer(native: Any) -> Callable[[], Awaitable[None]]:
         for name in ("aclose", "close"):
             method = getattr(native, name, None)
             if method is not None and (
                 inspect.iscoroutinefunction(method) or isinstance(native, types.AsyncGeneratorType)
             ):
-                return method
+                return cast(Callable[[], Awaitable[None]], method)
         raise BusinessError("model_stream_cleanup_failed", "Streaming transport has no verifiable async close")
 
-    async def close(self):
+    async def close(self) -> None:
         async with self._close_lock:
             if self._stream is not None:
                 try:
@@ -167,22 +171,22 @@ class PreparedStream:
                             chunk = await iterator.__anext__()
                     except StopAsyncIteration:
                         break
-                    payload = chunk.model_dump()
+                    payload: dict[str, Any] = chunk.model_dump()
                     # The locked SDK emits its terminal usage in one empty choice instead of choices=[].
                     choices = payload.get("choices")
                     if (
                         assembled.finish_reason
                         and payload.get("usage") is not None
                         and isinstance(choices, list)
-                        and len(choices) == 1
+                        and len(cast(list[Any], choices)) == 1
                     ):
-                        choice = choices[0]
-                        delta_value = choice.get("delta") if isinstance(choice, dict) else None
+                        choice = cast(dict[str, Any], choices[0])
+                        delta_value = choice.get("delta") if isinstance(cast(object, choice), dict) else None
                         if (
                             choice.get("index") == 0
                             and choice.get("finish_reason") is None
                             and isinstance(delta_value, dict)
-                            and all(v is None or v == "" for v in delta_value.values())
+                            and all(v is None or v == "" for v in cast(dict[str, Any], delta_value).values())
                         ):
                             payload = {**payload, "choices": []}
                     delta = assembled.feed(payload)
