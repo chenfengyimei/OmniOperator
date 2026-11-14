@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "3e259ffe4d121ef651263b2bb9b21da0657f1c0130fec5bf8602a1c5a3ae9a8b",
+  "source_sha256": "de10a8d7694b3c4e5d9f2f02256e4b8d4a0ae362960f44d168385c1380c0abea",
   "modules": [
     {
       "id": "v2-domain",
@@ -404,7 +404,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 54295,
+      "lines": 54326,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -24287,7 +24287,7 @@
       "path": "agent/src/omni/adapters/platform/linux_atspi.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.linux_atspi",
-      "lines": 341,
+      "lines": 365,
       "imports": [
         "omni.adapters.platform.linux_bus",
         "omni.adapters.platform.linux_semantic",
@@ -24298,7 +24298,7 @@
       "symbols": [
         {
           "name": "reference",
-          "line": 31,
+          "line": 33,
           "kind": "function",
           "parameters": [
             "value"
@@ -24309,7 +24309,7 @@
         },
         {
           "name": "native_id",
-          "line": 37,
+          "line": 39,
           "kind": "function",
           "parameters": [
             "name",
@@ -24322,7 +24322,7 @@
         },
         {
           "name": "parse_native_id",
-          "line": 44,
+          "line": 46,
           "kind": "function",
           "parameters": [
             "value"
@@ -24333,7 +24333,7 @@
         },
         {
           "name": "state",
-          "line": 52,
+          "line": 54,
           "kind": "function",
           "parameters": [
             "values"
@@ -24344,7 +24344,7 @@
         },
         {
           "name": "clean",
-          "line": 58,
+          "line": 65,
           "kind": "function",
           "parameters": [
             "value"
@@ -24355,7 +24355,7 @@
         },
         {
           "name": "report",
-          "line": 64,
+          "line": 71,
           "kind": "function",
           "parameters": [
             "session",
@@ -24364,7 +24364,7 @@
             "installed"
           ],
           "annotations": {
-            "session": "dict",
+            "session": "Payload",
             "available": "bool",
             "error": "str | None",
             "installed": "bool"
@@ -24372,12 +24372,12 @@
         },
         {
           "name": "AtspiDesktop",
-          "line": 100,
+          "line": 107,
           "kind": "class"
         },
         {
           "name": "AtspiDesktop.__init__",
-          "line": 101,
+          "line": 108,
           "kind": "function",
           "parameters": [
             "self",
@@ -24389,7 +24389,7 @@
         },
         {
           "name": "AtspiDesktop.setup",
-          "line": 104,
+          "line": 111,
           "kind": "function",
           "parameters": [
             "self"
@@ -24398,7 +24398,7 @@
         },
         {
           "name": "AtspiDesktop.call",
-          "line": 107,
+          "line": 114,
           "kind": "function",
           "parameters": [
             "self",
@@ -24413,12 +24413,14 @@
             "ref": "tuple[str, str]",
             "interface": "str",
             "member": "str",
+            "signature": "str",
+            "body": "list[Any] | None",
             "returns": "str"
           }
         },
         {
           "name": "AtspiDesktop.property",
-          "line": 115,
+          "line": 129,
           "kind": "function",
           "parameters": [
             "self",
@@ -24428,6 +24430,7 @@
             "signature"
           ],
           "annotations": {
+            "ref": "tuple[str, str]",
             "interface": "str",
             "name": "str",
             "signature": "str"
@@ -24435,17 +24438,19 @@
         },
         {
           "name": "AtspiDesktop.children_count",
-          "line": 118,
+          "line": 132,
           "kind": "function",
           "parameters": [
             "self",
             "ref"
           ],
-          "annotations": {}
+          "annotations": {
+            "ref": "tuple[str, str]"
+          }
         },
         {
           "name": "AtspiDesktop.child",
-          "line": 121,
+          "line": 135,
           "kind": "function",
           "parameters": [
             "self",
@@ -24453,22 +24458,25 @@
             "index"
           ],
           "annotations": {
+            "ref": "tuple[str, str]",
             "index": "int"
           }
         },
         {
           "name": "AtspiDesktop.role_state",
-          "line": 124,
+          "line": 138,
           "kind": "function",
           "parameters": [
             "self",
             "ref"
           ],
-          "annotations": {}
+          "annotations": {
+            "ref": "tuple[str, str]"
+          }
         },
         {
           "name": "AtspiDesktop.target",
-          "line": 131,
+          "line": 145,
           "kind": "function",
           "parameters": [
             "self",
@@ -24482,7 +24490,7 @@
         },
         {
           "name": "AtspiDesktop.targets",
-          "line": 153,
+          "line": 167,
           "kind": "function",
           "parameters": [
             "self",
@@ -24494,31 +24502,31 @@
         },
         {
           "name": "AtspiDesktop.verified",
-          "line": 201,
+          "line": 217,
           "kind": "function",
           "parameters": [
             "self",
             "target"
           ],
           "annotations": {
-            "target": "dict"
+            "target": "Payload"
           }
         },
         {
           "name": "AtspiDesktop.verify",
-          "line": 214,
+          "line": 230,
           "kind": "function",
           "parameters": [
             "self",
             "target"
           ],
           "annotations": {
-            "target": "dict"
+            "target": "Payload"
           }
         },
         {
           "name": "AtspiDesktop.observe",
-          "line": 228,
+          "line": 244,
           "kind": "function",
           "parameters": [
             "self",
@@ -24526,13 +24534,13 @@
             "actions"
           ],
           "annotations": {
-            "target": "dict",
+            "target": "Payload",
             "actions": "bool"
           }
         },
         {
           "name": "AtspiDesktop.observe.budget",
-          "line": 236,
+          "line": 254,
           "kind": "function",
           "parameters": [
             "value"
@@ -24543,7 +24551,7 @@
         },
         {
           "name": "AtspiDesktop.observe.visit",
-          "line": 247,
+          "line": 265,
           "kind": "function",
           "parameters": [
             "current",
@@ -24556,12 +24564,15 @@
           "annotations": {
             "current": "tuple[str, str]",
             "parent": "int | None",
-            "depth": "int"
+            "depth": "int",
+            "parent_ref": "tuple[str, str] | None",
+            "path": "list[int] | None",
+            "trail": "tuple[tuple[list[str], int, str], ...]"
           }
         },
         {
           "name": "AtspiDesktop.close",
-          "line": 340,
+          "line": 364,
           "kind": "function",
           "parameters": [
             "self"
@@ -25499,7 +25510,7 @@
       "path": "agent/src/omni/adapters/platform/linux_semantic.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.linux_semantic",
-      "lines": 193,
+      "lines": 200,
       "imports": [
         "omni.adapters.platform.linux_atspi",
         "omni.adapters.platform.linux_bus",
@@ -25605,11 +25616,17 @@
             "trail",
             "facts"
           ],
-          "annotations": {}
+          "annotations": {
+            "ref": "tuple[str, str]",
+            "parent": "tuple[str, str] | None",
+            "path": "list[int]",
+            "trail": "tuple[tuple[list[str], int, str], ...]",
+            "facts": "dict[str, object]"
+          }
         },
         {
           "name": "Semantics.resolve",
-          "line": 111,
+          "line": 118,
           "kind": "function",
           "parameters": [
             "self",
@@ -25623,7 +25640,7 @@
         },
         {
           "name": "Semantics.proof",
-          "line": 130,
+          "line": 137,
           "kind": "function",
           "parameters": [
             "self",
@@ -25637,7 +25654,7 @@
         },
         {
           "name": "Semantics.act",
-          "line": 137,
+          "line": 144,
           "kind": "function",
           "parameters": [
             "self",

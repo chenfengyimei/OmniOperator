@@ -2,7 +2,7 @@
 
 > 最近全量接续（第 55 节点，第 194 批）：原始 **4658 passed / 5 failed / 0 errors / 0 skipped**；固定提交 102cf4a6，后续源码不在本次范围。3项wheel失败归验证器PYTHONPATH污染，纠正后通过；2项UI分别串行/隔离通过并完成两轮基线对照，仍保留开放观察。详见证据台账，不记并行全绿。
 
-> strict 当前接续（2026-11-14，第 198 批）：**318 文件 / 0 errors / 0 warnings**；adapters **208/222**，剩 **14** 个模块。最新 `agent/src/omni/adapters/http.py`：HTTP 请求模型与输入工厂严格类型收官（318文件，schema等价）。相关专项 **142 项通过**，源码 `b0195e08`；最近全量记录为第 55 节点（4658 passed / 5 failed），仅代表其固定源码；下一全量节点第 199 批。默认正式入口仍是 V1，真实验收未完成。
+> strict 当前接续（2026-11-14，第 199 批）：**319 文件 / 0 errors / 0 warnings**；adapters **209/222**，剩 **13** 个模块。最新 `agent/src/omni/adapters/platform/linux_atspi.py`：AT-SPI 只读适配器类型收口（319文件；Windows夹具守卫失败独立留档）。相关专项 **144 项通过 / 1 项失败**，源码 `98ee8344`；最近全量记录为第 55 节点（4658 passed / 5 failed），仅代表其固定源码；下一全量节点第 199 批。默认正式入口仍是 V1，真实验收未完成。
 
 交接日期：2026-11-10（Asia/Shanghai），2026-11-14 更新进度段。本文是交接时点的快照；后续以 `docs/tasks/v2.json`、当前源码和 `docs/evidence/` 共同核验。不要用文件修改时间推断功能完成度。
 
