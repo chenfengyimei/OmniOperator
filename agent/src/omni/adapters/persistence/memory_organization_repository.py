@@ -5,9 +5,11 @@ from __future__ import annotations
 import hashlib
 import json
 import re
+from typing import cast as tcast
 
-from sqlalchemy import LargeBinary, cast, func, or_, select, update
+from sqlalchemy import Column, LargeBinary, cast, func, or_, select, update
 
+from ...application.ports import Record
 from ...domain.contracts import BusinessError
 from ...domain.maintenance import ACTIVE, MAX_PENDING
 from ...domain.memory_organization import (
@@ -63,7 +65,7 @@ class MemoryOrganizationRepositories(MemoryRepositories):
             raise BusinessError("not_found", "Agent does not exist", status=404)
 
     def _organization_epoch(self) -> str:
-        return self.connection.execute(select(s.history_identity.c.epoch)).scalar_one()
+        return tcast(str, self.connection.execute(select(s.history_identity.c.epoch)).scalar_one())
 
     @staticmethod
     def _organization_stale() -> BusinessError:
@@ -79,13 +81,16 @@ class MemoryOrganizationRepositories(MemoryRepositories):
 
     def _organization_capture(
         self, agent_id: str, memory_id: str, revision: int, remaining: int, *, kinds: tuple[str, ...] = ("fact",)
-    ) -> tuple[dict, int]:
+    ) -> tuple[Record, int]:
         # Inspect byte lengths before fetching any potentially large body or excerpt.
         head = (
             self.connection.execute(
                 select(
                     *[column for column in s.memory_entries.c if column.name != "content"],
-                    func.length(cast(s.memory_entries.c.content, LargeBinary)).label("content_bytes"),
+                    tcast(
+                        Column[int],
+                        func.length(cast(s.memory_entries.c.content, LargeBinary)).label("content_bytes"),
+                    ),
                 ).where(s.memory_entries.c.agent_id == agent_id, s.memory_entries.c.id == memory_id)
             )
             .mappings()
@@ -108,7 +113,10 @@ class MemoryOrganizationRepositories(MemoryRepositories):
             self.connection.execute(
                 select(
                     s.memory_revisions.c.id,
-                    func.length(cast(s.memory_revisions.c.content, LargeBinary)).label("content_bytes"),
+                    tcast(
+                        Column[int],
+                        func.length(cast(s.memory_revisions.c.content, LargeBinary)).label("content_bytes"),
+                    ),
                 ).where(
                     s.memory_revisions.c.agent_id == agent_id,
                     s.memory_revisions.c.memory_id == memory_id,
@@ -125,25 +133,31 @@ class MemoryOrganizationRepositories(MemoryRepositories):
             s.source_anchors.c.memory_id == memory_id,
             s.source_anchors.c.memory_revision_id == version["id"],
         )
-        anchor_sizes = list(
-            self.connection.execute(
-                anchor_query.with_only_columns(func.length(cast(s.source_anchors.c.quote, LargeBinary))).limit(
-                    MAX_ANCHORS + 1
-                )
-            ).scalars()
+        anchor_sizes = tcast(
+            list[int],
+            list(
+                self.connection.execute(
+                    anchor_query.with_only_columns(func.length(cast(s.source_anchors.c.quote, LargeBinary))).limit(
+                        MAX_ANCHORS + 1
+                    )
+                ).scalars()
+            ),
         )
         if len(anchor_sizes) > MAX_ANCHORS:
             raise BusinessError(
                 "memory_organization_sources", "Each fact may have at most eight current source anchors", status=422
             )
-        used = head["content_bytes"] + sum(anchor_sizes)
+        used = tcast(int, head["content_bytes"]) + sum(anchor_sizes)
         if used > remaining:
             raise self._organization_budget()
-        content = self.connection.execute(
-            select(s.memory_entries.c.content).where(
-                s.memory_entries.c.id == memory_id, s.memory_entries.c.agent_id == agent_id
-            )
-        ).scalar_one()
+        content = tcast(
+            str,
+            self.connection.execute(
+                select(s.memory_entries.c.content).where(
+                    s.memory_entries.c.id == memory_id, s.memory_entries.c.agent_id == agent_id
+                )
+            ).scalar_one(),
+        )
         historic = self.connection.execute(
             select(s.memory_revisions.c.content).where(
                 s.memory_revisions.c.id == version["id"], s.memory_revisions.c.agent_id == agent_id
@@ -152,7 +166,7 @@ class MemoryOrganizationRepositories(MemoryRepositories):
         if content != historic:
             raise self._organization_stale()
         anchors = [
-            dict(row)
+            tcast(Record, dict(row))
             for row in self.connection.execute(
                 anchor_query.order_by(s.source_anchors.c.id).limit(MAX_ANCHORS)
             ).mappings()
@@ -169,9 +183,9 @@ class MemoryOrganizationRepositories(MemoryRepositories):
             "source_count": len(anchors),
         }, used
 
-    def _organization_sources(self, batch: dict) -> list[dict]:
+    def _organization_sources(self, batch: Record) -> list[Record]:
         return [
-            dict(row)
+            tcast(Record, dict(row))
             for row in self.connection.execute(
                 select(s.memory_organization_sources)
                 .where(
@@ -183,7 +197,7 @@ class MemoryOrganizationRepositories(MemoryRepositories):
             ).mappings()
         ]
 
-    def _organization_manifest(self, batch: dict, sources: list[dict]) -> list[dict]:
+    def _organization_manifest(self, batch: Record, sources: list[Record]) -> list[Record]:
         if (
             batch["state"] not in LIVE_BATCHES
             or batch["policy"] != POLICY
@@ -193,12 +207,15 @@ class MemoryOrganizationRepositories(MemoryRepositories):
             or not 2 <= len(sources) <= MAX_SOURCES
         ):
             raise self._organization_stale()
-        remaining, current = MAX_SOURCE_BYTES, []
+        remaining, current = MAX_SOURCE_BYTES, tcast(list[Record], [])
         for position, source in enumerate(sources):
             if source["position"] != position:
                 raise self._organization_stale()
             captured, used = self._organization_capture(
-                batch["agent_id"], source["memory_id"], source["revision"], remaining
+                tcast(str, batch["agent_id"]),
+                tcast(str, source["memory_id"]),
+                tcast(int, source["revision"]),
+                remaining,
             )
             if any(captured[key] != source[key] for key in CAPTURE_IDENTITY):
                 raise self._organization_stale()
@@ -207,7 +224,7 @@ class MemoryOrganizationRepositories(MemoryRepositories):
         return current
 
     @staticmethod
-    def _organization_fingerprint(batch: dict, sources: list[dict], keep: str, duplicate: str) -> str:
+    def _organization_fingerprint(batch: Record, sources: list[Record], keep: str, duplicate: str) -> str:
         return _digest(
             {
                 "batch_id": batch["id"],
@@ -221,7 +238,7 @@ class MemoryOrganizationRepositories(MemoryRepositories):
             }
         )
 
-    def _organization_change(self, batch: dict, **values) -> dict:
+    def _organization_change(self, batch: Record, **values: object) -> Record:
         changed = self.connection.execute(
             update(s.memory_organization_batches)
             .where(
@@ -229,13 +246,13 @@ class MemoryOrganizationRepositories(MemoryRepositories):
                 s.memory_organization_batches.c.id == batch["id"],
                 s.memory_organization_batches.c.revision == batch["revision"],
             )
-            .values(revision=batch["revision"] + 1, updated_at=self.clock.now(), **values)
+            .values(revision=tcast(int, batch["revision"]) + 1, updated_at=self.clock.now(), **values)
         ).rowcount
         if changed != 1:
             raise BusinessError("revision_conflict", "Memory organization changed; reload before editing")
-        return self._one(s.memory_organization_batches, batch["agent_id"], batch["id"])
+        return self._one(s.memory_organization_batches, tcast(str, batch["agent_id"]), tcast(str, batch["id"]))
 
-    def _organization_invalidate(self, batch: dict) -> dict:
+    def _organization_invalidate(self, batch: Record) -> Record:
         if batch["state"] in LIVE_BATCHES:
             self.connection.execute(
                 update(s.memory_organization_candidates)
@@ -254,19 +271,24 @@ class MemoryOrganizationRepositories(MemoryRepositories):
             batch = self._organization_change(
                 batch, state="invalidated", error_code="memory_organization_source_changed"
             )
-            self.audit(batch["agent_id"], "memory.organization.invalidated", batch["id"], {"policy": POLICY})
+            self.audit(
+                tcast(str, batch["agent_id"]),
+                "memory.organization.invalidated",
+                tcast(str, batch["id"]),
+                {"policy": POLICY},
+            )
         return batch
 
-    def memory_organization_get(self, agent_id: str, batch_id: str) -> dict:
+    def memory_organization_get(self, agent_id: str, batch_id: str) -> Record:
         batch = self._one(s.memory_organization_batches, agent_id, batch_id)
         sources = self._organization_sources(batch)
         try:
             current = self._organization_manifest(batch, sources)
             valid = True
         except BusinessError:
-            current, valid = [], False
+            current, valid = tcast(list[Record], []), False
         candidates = [
-            dict(row)
+            tcast(Record, dict(row))
             for row in self.connection.execute(
                 select(s.memory_organization_candidates)
                 .where(
@@ -290,7 +312,7 @@ class MemoryOrganizationRepositories(MemoryRepositories):
             ],
         }
 
-    def memory_organization_enqueue(self, agent_id: str, request: dict) -> dict:
+    def memory_organization_enqueue(self, agent_id: str, request: Record) -> Record:
         normalized, sha = parse_request(request), request_fingerprint(request)
         self._organization_agent(agent_id)
         prior = (
@@ -306,7 +328,7 @@ class MemoryOrganizationRepositories(MemoryRepositories):
         if prior:
             if prior["request_sha256"] != sha:
                 raise BusinessError("idempotency_conflict", "This key already identifies another organization request")
-            return self.memory_organization_get(agent_id, prior["id"])
+            return self.memory_organization_get(agent_id, tcast(str, prior["id"]))
         count = self.connection.execute(
             select(func.count()).select_from(s.maintenance_jobs).where(s.maintenance_jobs.c.state.in_(ACTIVE))
         ).scalar_one()
@@ -317,15 +339,17 @@ class MemoryOrganizationRepositories(MemoryRepositories):
         ).scalar_one()
         if count >= MAX_PENDING:
             raise BusinessError("maintenance_busy", "The shared maintenance queue is full", retryable=True, status=503)
-        remaining, captured = MAX_SOURCE_BYTES, []
-        for source in normalized["sources"]:
-            item, used = self._organization_capture(agent_id, source["memory_id"], source["revision"], remaining)
+        remaining, captured = MAX_SOURCE_BYTES, tcast(list[Record], [])
+        for source in tcast(list[Record], normalized["sources"]):
+            item, used = self._organization_capture(
+                agent_id, tcast(str, source["memory_id"]), tcast(int, source["revision"]), remaining
+            )
             remaining -= used
             captured.append(item)
         batch = self._record(
             s.memory_organization_batches,
             {
-                "request_key": normalized["key"],
+                "request_key": tcast(str, normalized["key"]),
                 "request_sha256": sha,
                 "policy": POLICY,
                 "history_epoch": self._organization_epoch(),
@@ -349,12 +373,12 @@ class MemoryOrganizationRepositories(MemoryRepositories):
         self.audit(
             agent_id,
             "memory.organization.queued",
-            batch["id"],
+            tcast(str, batch["id"]),
             {"policy": POLICY, "source_count": len(captured), "budget_micro": BUDGET_MICRO},
         )
-        return self.memory_organization_get(agent_id, batch["id"])
+        return self.memory_organization_get(agent_id, tcast(str, batch["id"]))
 
-    def memory_organization_page(self, agent_id: str, after: int = 0, limit: int = 20) -> list[dict]:
+    def memory_organization_page(self, agent_id: str, after: int = 0, limit: int = 20) -> list[Record]:
         page(after, limit)
         self._organization_agent(agent_id)
         epoch = self._organization_epoch()
@@ -374,7 +398,7 @@ class MemoryOrganizationRepositories(MemoryRepositories):
             ).mappings()
         ]
 
-    def memory_organization_next(self) -> dict | None:
+    def memory_organization_next(self) -> Record | None:
         row = (
             self.connection.execute(
                 select(s.memory_organization_batches.c.id, s.memory_organization_batches.c.agent_id)
@@ -385,9 +409,9 @@ class MemoryOrganizationRepositories(MemoryRepositories):
             .mappings()
             .first()
         )
-        return dict(row) if row else None
+        return tcast(Record, dict(row)) if row else None
 
-    def memory_organization_process(self, agent_id: str, batch_id: str) -> dict:
+    def memory_organization_process(self, agent_id: str, batch_id: str) -> Record:
         batch = self._one(s.memory_organization_batches, agent_id, batch_id)
         if batch["state"] != "queued":
             return self.memory_organization_get(agent_id, batch_id)
@@ -399,9 +423,13 @@ class MemoryOrganizationRepositories(MemoryRepositories):
                 raise
             self._organization_invalidate(batch)
             return self.memory_organization_get(agent_id, batch_id)
-        groups: dict[tuple[bytes, str | None, str | None], list[dict]] = {}
+        groups: dict[tuple[bytes, str | None, str | None], list[Record]] = {}
         for source, content in zip(sources, current, strict=True):
-            key = content["content"].encode("utf-8"), content["person_id"], content["session_id"]
+            key = (
+                tcast(str, content["content"]).encode("utf-8"),
+                tcast(str | None, content["person_id"]),
+                tcast(str | None, content["session_id"]),
+            )
             groups.setdefault(key, []).append(source)
         count = 0
         for group in groups.values():
@@ -415,7 +443,9 @@ class MemoryOrganizationRepositories(MemoryRepositories):
                         "duplicate_source_id": duplicate["id"],
                         "state": "pending",
                         "revision": 1,
-                        "fingerprint": self._organization_fingerprint(batch, sources, keeper["id"], duplicate["id"]),
+                        "fingerprint": self._organization_fingerprint(
+                            batch, sources, tcast(str, keeper["id"]), tcast(str, duplicate["id"])
+                        ),
                         "updated_at": self.clock.now(),
                         "reviewed_at": None,
                         "review_audit_id": None,
@@ -435,19 +465,19 @@ class MemoryOrganizationRepositories(MemoryRepositories):
         )
         return self.memory_organization_get(agent_id, batch_id)
 
-    def memory_organization_fail(self, agent_id: str, batch_id: str, error: str) -> dict:
+    def memory_organization_fail(self, agent_id: str, batch_id: str, error: str) -> Record:
         batch = self._one(s.memory_organization_batches, agent_id, batch_id)
         if batch["state"] == "queued":
             code = (
                 error
-                if isinstance(error, str) and re.fullmatch(r"[a-z][a-z0-9_]{0,79}", error)
+                if isinstance(tcast(object, error), str) and re.fullmatch(r"[a-z][a-z0-9_]{0,79}", error)
                 else "memory_organization_failed"
             )
             self._organization_change(batch, state="failed", error_code=code)
             self.audit(agent_id, "memory.organization.failed", batch_id, {"error_code": code, "policy": POLICY})
         return self.memory_organization_get(agent_id, batch_id)
 
-    def memory_organization_cancel(self, agent_id: str, batch_id: str, revision: int) -> dict:
+    def memory_organization_cancel(self, agent_id: str, batch_id: str, revision: int) -> Record:
         page(revision, 1)
         if revision < 1:
             raise BusinessError("memory_organization_invalid", "A positive revision is required", status=422)
@@ -476,10 +506,10 @@ class MemoryOrganizationRepositories(MemoryRepositories):
         self.audit(agent_id, "memory.organization.cancelled", batch_id, {"policy": POLICY})
         return self.memory_organization_get(agent_id, batch_id)
 
-    def memory_organization_decide(self, agent_id: str, candidate_id: str, request: dict) -> dict:
+    def memory_organization_decide(self, agent_id: str, candidate_id: str, request: Record) -> Record:
         decision = parse_decision(request)
         candidate = self._one(s.memory_organization_candidates, agent_id, candidate_id)
-        batch = self._one(s.memory_organization_batches, agent_id, candidate["batch_id"])
+        batch = self._one(s.memory_organization_batches, agent_id, tcast(str, candidate["batch_id"]))
         if candidate["revision"] != decision["revision"]:
             raise BusinessError("revision_conflict", "Candidate changed; reload before deciding")
         if (
@@ -491,7 +521,10 @@ class MemoryOrganizationRepositories(MemoryRepositories):
         sources = self._organization_sources(batch)
         if (
             self._organization_fingerprint(
-                batch, sources, candidate["keep_source_id"], candidate["duplicate_source_id"]
+                batch,
+                sources,
+                tcast(str, candidate["keep_source_id"]),
+                tcast(str, candidate["duplicate_source_id"]),
             )
             != candidate["fingerprint"]
         ):
@@ -502,7 +535,7 @@ class MemoryOrganizationRepositories(MemoryRepositories):
             current = self._organization_manifest(batch, sources)
         except BusinessError:
             self._organization_invalidate(batch)
-            return self.memory_organization_get(agent_id, batch["id"])
+            return self.memory_organization_get(agent_id, tcast(str, batch["id"]))
         kind = decision["decision"]
         if kind == "undo":
             if candidate["state"] != "applied":
@@ -513,13 +546,13 @@ class MemoryOrganizationRepositories(MemoryRepositories):
                 raise BusinessError("memory_organization_state", "Only a pending proposal can be reviewed")
             state = "applied" if kind == "apply" else "rejected"
         if state == "applied":
-            selected = {source["id"]: source for source in sources}
-            keeper = selected[candidate["keep_source_id"]]
-            duplicate = selected[candidate["duplicate_source_id"]]
+            selected = {tcast(str, source["id"]): source for source in sources}
+            keeper = selected[tcast(str, candidate["keep_source_id"])]
+            duplicate = selected[tcast(str, candidate["duplicate_source_id"])]
             # Re-prove the classification, not merely a hash supplied by the caller.
-            by_id = {source["id"]: item for source, item in zip(sources, current, strict=True)}
+            by_id = {tcast(str, source["id"]): item for source, item in zip(sources, current, strict=True)}
             if (
-                by_id[keeper["id"]]["content"] != by_id[duplicate["id"]]["content"]
+                by_id[tcast(str, keeper["id"])]["content"] != by_id[tcast(str, duplicate["id"])]["content"]
                 or keeper["person_id"] != duplicate["person_id"]
                 or keeper["session_id"] != duplicate["session_id"]
             ):
@@ -530,8 +563,10 @@ class MemoryOrganizationRepositories(MemoryRepositories):
                 .where(
                     relations.c.agent_id == agent_id,
                     or_(
-                        relations.c.duplicate_memory_id.in_([keeper["memory_id"], duplicate["memory_id"]]),
-                        relations.c.keep_memory_id == duplicate["memory_id"],
+                        relations.c.duplicate_memory_id.in_(
+                            [tcast(str, keeper["memory_id"]), tcast(str, duplicate["memory_id"])]
+                        ),
+                        relations.c.keep_memory_id == tcast(str, duplicate["memory_id"]),
                     ),
                 )
                 .limit(1)
@@ -544,12 +579,15 @@ class MemoryOrganizationRepositories(MemoryRepositories):
             agent_id,
             "memory.organization." + state,
             candidate_id,
-            {
-                "batch_id": batch["id"],
-                "policy": POLICY,
-                "fingerprint": candidate["fingerprint"],
-                "decision": kind,
-            },
+            tcast(
+                Record,
+                {
+                    "batch_id": batch["id"],
+                    "policy": POLICY,
+                    "fingerprint": candidate["fingerprint"],
+                    "decision": kind,
+                },
+            ),
         )
         changed = self.connection.execute(
             update(s.memory_organization_candidates)
@@ -560,7 +598,7 @@ class MemoryOrganizationRepositories(MemoryRepositories):
             )
             .values(
                 state=state,
-                revision=candidate["revision"] + 1,
+                revision=tcast(int, candidate["revision"]) + 1,
                 reviewed_at=self.clock.now(),
                 review_audit_id=audit_id,
                 updated_at=self.clock.now(),
@@ -581,4 +619,4 @@ class MemoryOrganizationRepositories(MemoryRepositories):
         self._organization_change(
             batch, state="complete" if batch["state"] == "ready" and not pending else batch["state"]
         )
-        return self.memory_organization_get(agent_id, batch["id"])
+        return self.memory_organization_get(agent_id, tcast(str, batch["id"]))

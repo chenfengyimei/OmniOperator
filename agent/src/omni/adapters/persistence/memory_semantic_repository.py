@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING, cast
 
 from sqlalchemy import and_, select, update
 
@@ -24,11 +24,10 @@ class MemorySemanticRepositories(MemoryOrganizationRepositories):
         self.audit(agent_id, "memory.index.prepared", agent_id, {"version": version, "count": count, "ready": ready})
 
     def memory_semantic_capture(self, agent_id: str, memory_id: str, revision: int) -> Record:
-        parent: Any = self
-        row, _ = parent._organization_capture(
+        row, _ = self._organization_capture(
             agent_id, memory_id, revision, MAX_BYTES, kinds=("fact", "profile", "resident")
         )
-        return cast(Record, row)
+        return row
 
     def memory_index_page(self, agent_id: str, after: str, limit: int) -> list[Record]:
         paging(after, limit)
@@ -225,12 +224,10 @@ class MemorySemanticRepositories(MemoryOrganizationRepositories):
         vector_identity(version, dimension)
         normalized = parse_request(request)
         captures, vectors, remaining = cast(list[Record], []), cast(list[list[float]], []), MAX_BYTES
-        parent: Any = self
         for source in cast(list[Record], normalized["sources"]):
-            current_raw, used = parent._organization_capture(
+            current, used = self._organization_capture(
                 agent_id, cast(str, source["memory_id"]), cast(int, source["revision"]), remaining
             )
-            current = cast(Record, current_raw)
             remaining -= used
             row = (
                 self.connection.execute(
@@ -333,12 +330,10 @@ class MemorySemanticRepositories(MemoryOrganizationRepositories):
         if valid:
             try:
                 remaining = MAX_BYTES
-                parent: Any = self
                 for source in sources:
-                    captured, used = parent._organization_capture(
+                    row, used = self._organization_capture(
                         agent_id, cast(str, source["memory_id"]), cast(int, source["revision"]), remaining
                     )
-                    row = cast(Record, captured)
                     remaining -= used
                     if any(row[k] != source[k] for k in CAPTURE_IDENTITY):
                         raise self._organization_stale()
