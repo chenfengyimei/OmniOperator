@@ -110,6 +110,7 @@
     "agent/src/omni/adapters/persistence/repository_base.py",
     "agent/src/omni/adapters/persistence/retention_repository.py",
     "agent/src/omni/adapters/persistence/schema.py",
+    "agent/src/omni/adapters/persistence/schedule_repository.py",
     "agent/src/omni/adapters/persistence/schema_upgrade.py",
     "agent/src/omni/adapters/persistence/search_schema.py",
     "agent/src/omni/adapters/persistence/sqlalchemy_access.py",
