@@ -9,16 +9,21 @@ import stat
 import sys
 import uuid
 from pathlib import Path
+from typing import cast
 
 from ...application.ports import Record
 from ...domain.contracts import BusinessError
 from ...domain.service_control import start_precondition
 from ...domain.service_deployment import manager_identity, validate_plan
 from ..object_store import sync_directory
-from .deployment_files import _decode, _no_links, _read
+from .deployment_files import decode as _decode
+from .deployment_files import no_links as _no_links
+from .deployment_files import read_file as _read
 from .macos_service import MacOSServiceInspection, disabled_override
 from .service_query import ServiceQuery
 from .service_templates import render
+
+Payload = dict[str, object]
 
 SUPPORTED = {"windows-user": "win32", "linux-user": "linux", "macos-user": "darwin"}
 
@@ -46,29 +51,31 @@ class ServiceRegistration(ServiceQuery):
         super().__init__()
         self._changing = False
 
-    def _supported(self, plan: dict) -> bool:
-        target = plan["request"]["target"]
+    def _supported(self, plan: Record) -> bool:
+        target = cast(str, cast(Record, plan["request"])["target"])
         if SUPPORTED.get(target) != sys.platform:
             return False
         if target in {"linux-user", "macos-user"}:
-            return str(getattr(os, "geteuid", lambda: None)()) == plan["request"]["principal"]["id"]
+            return str(getattr(os, "geteuid", lambda: None)()) == cast(
+                str, cast(Record, cast(Record, plan["request"])["principal"])["id"]
+            )
         return True  # The Windows helper rechecks the current token SID independently.
 
     async def inspect(self, plan: Record) -> Record:
-        checked = validate_plan(plan)
+        checked = cast(Record, validate_plan(plan))
         if not self._supported(checked):
             return _unknown("service_registration_target_unimplemented", available=False)
-        if checked["request"]["target"] == "windows-user":
+        if cast(str, cast(Record, checked["request"])["target"]) == "windows-user":
             return await self._windows(checked, "inspect")
         try:
-            if checked["request"]["target"] == "macos-user":
+            if cast(str, cast(Record, checked["request"])["target"]) == "macos-user":
                 return await self._inspect_macos(checked)
             return await self._inspect_linux(checked)
         except (OSError, ValueError, BusinessError, UnicodeError):
             return _unknown("service_registration_unverified")
 
     async def start(self, plan: Record) -> Record:
-        checked = validate_plan(plan)
+        checked = cast(Record, validate_plan(plan))
         if not self._supported(checked) or self._changing:
             return {"effect": "none", "error_code": "service_start_target_unavailable"}
         self._changing = True
@@ -76,13 +83,13 @@ class ServiceRegistration(ServiceQuery):
             before = await self.inspect(checked)
             if not start_precondition(before):
                 return {"effect": "none", "error_code": "service_start_precondition"}
-            target = checked["request"]["target"]
+            target = cast(str, cast(Record, checked["request"])["target"])
             if target == "windows-user":
                 return await self._windows(checked, "start")
             program = self._program(target)
             if program is None:
                 return {"effect": "none", "error_code": "service_manager_missing"}
-            manager = manager_identity(checked)
+            manager = cast(dict[str, str], manager_identity(checked))
             if target == "linux-user":
                 argv = [program, "--user", "start", manager["name"], "--no-block", "--no-ask-password"]
             elif before.get("loaded") is False:
@@ -102,13 +109,13 @@ class ServiceRegistration(ServiceQuery):
         finally:
             self._changing = False
 
-    async def _inspect_macos(self, plan: dict) -> Record:
-        manager = manager_identity(plan)
+    async def _inspect_macos(self, plan: Record) -> Record:
+        manager = cast(dict[str, str], manager_identity(plan))
         native = await MacOSServiceInspection(self._command, self._native_helper).probe(plan)
         path = Path(manager["installed_path"])
         self._check_unit_path(path, plan)
         present = path.exists()
-        same_file = present and await self._file(path) == render(plan)[manager["artifact"]]
+        same_file = present and await self._file(path) == render(cast(Payload, plan))[manager["artifact"]]
         program = self._program("macos-user")
         if program is None:
             return _unknown("service_manager_missing", available=False)
@@ -142,10 +149,10 @@ class ServiceRegistration(ServiceQuery):
             else "service_definition_mismatch",
         }
 
-    async def _inspect_linux(self, plan: dict) -> Record:
+    async def _inspect_linux(self, plan: Record) -> Record:
         from .service_query import PROPERTIES
 
-        manager = manager_identity(plan)
+        manager = cast(dict[str, str], manager_identity(plan))
         program = self._program("linux-user")
         if program is None:
             return _unknown("service_manager_missing", available=False)
@@ -154,7 +161,7 @@ class ServiceRegistration(ServiceQuery):
         )
         # systemctl can exit nonzero for a missing unit, but only a full,
         # identity-bound structured not-found report proves absence.
-        report = await self._linux(output, manager, render(plan)[manager["artifact"]])
+        report = await self._linux(output, manager, render(cast(Payload, plan))[manager["artifact"]])
         path = Path(manager["installed_path"])
         _no_links(path)
         present = path.exists()
@@ -176,14 +183,14 @@ class ServiceRegistration(ServiceQuery):
         return report
 
     @staticmethod
-    def _check_unit_path(path: Path, plan: dict) -> None:
+    def _check_unit_path(path: Path, plan: Record) -> None:
         _no_links(path)
-        home = Path(plan["request"]["principal"]["home"])
-        if path != Path(manager_identity(plan)["installed_path"]) or not path.is_relative_to(home):
+        home = Path(cast(str, cast(Record, cast(Record, plan["request"])["principal"])["home"]))
+        if path != Path(cast(str, manager_identity(plan)["installed_path"])) or not path.is_relative_to(home):
             raise BusinessError(
                 "service_install_path_unsafe", "Service file is outside the fixed owner registration directory"
             )
-        uid = int(plan["request"]["principal"]["id"])
+        uid = int(cast(str, cast(Record, cast(Record, plan["request"])["principal"])["id"]))
         for candidate in (path, *path.parents):
             if candidate.exists():
                 info = candidate.stat(follow_symlinks=False)
@@ -196,12 +203,12 @@ class ServiceRegistration(ServiceQuery):
             if candidate == home:
                 break
 
-    def _publish_unit(self, plan: dict) -> None:
-        manager = manager_identity(plan)
+    def _publish_unit(self, plan: Record) -> None:
+        manager = cast(dict[str, str], manager_identity(plan))
         path = Path(manager["installed_path"])
         self._check_unit_path(path, plan)
-        home = Path(plan["request"]["principal"]["home"])
-        missing = []
+        home = Path(cast(str, cast(Record, cast(Record, plan["request"])["principal"])["home"]))
+        missing: list[Path] = []
         parent = path.parent
         while not parent.exists() and parent != home:
             missing.append(parent)
@@ -210,7 +217,7 @@ class ServiceRegistration(ServiceQuery):
             directory.mkdir(mode=0o700)
             sync_directory(directory.parent)
         self._check_unit_path(path, plan)
-        data = render(plan)[manager["artifact"]]
+        data = render(cast(Payload, plan))[manager["artifact"]]
         temporary = path.with_name("." + uuid.uuid4().hex + ".omni-partial")
         descriptor = os.open(temporary, os.O_WRONLY | os.O_CREAT | os.O_EXCL | getattr(os, "O_NOFOLLOW", 0), 0o600)
         try:
@@ -226,11 +233,11 @@ class ServiceRegistration(ServiceQuery):
         finally:
             temporary.unlink(missing_ok=True)
 
-    def _remove_unit(self, plan: dict) -> None:
-        manager = manager_identity(plan)
+    def _remove_unit(self, plan: Record) -> None:
+        manager = cast(dict[str, str], manager_identity(plan))
         path = Path(manager["installed_path"])
         self._check_unit_path(path, plan)
-        expected = render(plan)[manager["artifact"]]
+        expected = render(cast(Payload, plan))[manager["artifact"]]
         if _read(path, 65536, single=True) != expected:
             raise BusinessError(
                 "service_definition_mismatch", "Changed or foreign service definitions cannot be removed"
@@ -240,31 +247,31 @@ class ServiceRegistration(ServiceQuery):
         sync_directory(path.parent)
 
     async def change(self, plan: Record, action: str) -> Record:
-        checked = validate_plan(plan)
+        checked = cast(Record, validate_plan(plan))
         if action not in {"install", "uninstall"} or not self._supported(checked):
             return {"effect": "none", "error_code": "service_registration_target_unimplemented"}
         if self._changing or self._closing:
             return {"effect": "none", "error_code": "service_registration_busy"}
         self._changing = True
         try:
-            if checked["request"]["target"] == "windows-user":
+            if cast(str, cast(Record, checked["request"])["target"]) == "windows-user":
                 return await self._windows(checked, action)
-            if checked["request"]["target"] == "macos-user":
+            if cast(str, cast(Record, checked["request"])["target"]) == "macos-user":
                 return await self._change_macos(checked, action)
             return await self._change_linux(checked, action)
         finally:
             self._changing = False
 
-    async def _change_macos(self, plan: dict, action: str) -> Record:
+    async def _change_macos(self, plan: Record, action: str) -> Record:
         from ...domain.service_operations import registration_precondition
 
         program = self._program("macos-user")
         if program is None:
             return {"effect": "none", "error_code": "service_manager_missing"}
         before = await self.inspect(plan)
-        if not registration_precondition(action, before):
+        if not registration_precondition(action, cast(Payload, before)):
             return {"effect": "none", "error_code": "service_registration_changed"}
-        manager = manager_identity(plan)
+        manager = cast(dict[str, str], manager_identity(plan))
         target = manager["domain"] + "/" + manager["name"]
         try:
             if action == "install":
@@ -278,7 +285,7 @@ class ServiceRegistration(ServiceQuery):
             if code != 0:
                 return {"effect": "unknown", "error_code": "service_disable_unverified"}
             current = await self.inspect(plan)
-            if not registration_precondition(action, current) or current.get("enabled") is not False:
+            if not registration_precondition(action, cast(Payload, current)) or current.get("enabled") is not False:
                 return {"effect": "unknown", "error_code": "service_registration_changed"}
             if current.get("loaded") is True:
                 if current.get("loaded_definition_matches") is not True:
@@ -294,15 +301,15 @@ class ServiceRegistration(ServiceQuery):
         except (BusinessError, OSError, ValueError):
             return {"effect": "unknown", "error_code": "service_registration_interrupted"}
 
-    async def _change_linux(self, plan: dict, action: str) -> Record:
+    async def _change_linux(self, plan: Record, action: str) -> Record:
         program = self._program("linux-user")
         if program is None:
             return {"effect": "none", "error_code": "service_manager_missing"}
-        manager = manager_identity(plan)
+        manager = cast(dict[str, str], manager_identity(plan))
         # Recheck after the durable dispatch record; never write over a foreign unit.
         from ...domain.service_operations import registration_precondition
 
-        if not registration_precondition(action, await self.inspect(plan)):
+        if not registration_precondition(action, cast(Payload, await self.inspect(plan))):
             return {"effect": "none", "error_code": "service_registration_changed"}
         try:
             if action == "install":
@@ -325,7 +332,7 @@ class ServiceRegistration(ServiceQuery):
         except (BusinessError, OSError, ValueError):
             return {"effect": "unknown", "error_code": "service_registration_interrupted"}
 
-    async def _windows(self, plan: dict, action: str) -> Record:
+    async def _windows(self, plan: Record, action: str) -> Record:
         if sys.platform != "win32":
             return _unknown("service_registration_target_unimplemented", available=False)
         directory = ctypes.create_unicode_buffer(32768)
@@ -338,9 +345,9 @@ class ServiceRegistration(ServiceQuery):
             script = Path(__file__).resolve().parents[1] / "workers/windows_services.ps1"
             _no_links(script)
             _read(script, 65536, single=True)
-            manager = manager_identity(plan)
-            definition = Path(plan["request"]["bundle_dir"]) / manager["artifact"]
-            expected = render(plan)[manager["artifact"]]
+            manager = cast(dict[str, str], manager_identity(plan))
+            definition = Path(cast(str, cast(Record, plan["request"])["bundle_dir"])) / manager["artifact"]
+            expected = render(cast(Payload, plan))[manager["artifact"]]
             if _read(definition, 65536, single=True) != expected:
                 raise BusinessError("service_definition_mismatch", "Service bundle changed before native dispatch")
             argv = [
@@ -360,9 +367,9 @@ class ServiceRegistration(ServiceQuery):
                 "-ExpectedSHA256",
                 hashlib.sha256(expected).hexdigest(),
                 "-OwnerSID",
-                plan["request"]["principal"]["id"],
+                cast(str, cast(Record, cast(Record, plan["request"])["principal"])["id"]),
                 "-PlanSHA256",
-                plan["sha256"],
+                cast(str, plan["sha256"]),
             ]
             code, output = await self._command(argv)
             result = _decode(output)

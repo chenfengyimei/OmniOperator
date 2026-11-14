@@ -176,6 +176,7 @@
     "agent/src/omni/adapters/platform/service_operation_files.py",
     "agent/src/omni/adapters/platform/service_query.py",
     "agent/src/omni/adapters/platform/service_readiness.py",
+    "agent/src/omni/adapters/platform/service_registration.py",
     "agent/src/omni/adapters/platform/service_templates.py",
     "agent/src/omni/adapters/platform/systemd_state.py",
     "agent/src/omni/adapters/platform/terminal.py",
