@@ -1,5 +1,7 @@
 # OmniOperator 当前交接入口
 
+> strict 当前接续（2026-11-14，第 185 批）：**309 文件 / 0 errors / 0 warnings**；adapters **199/222**，剩 **23** 个模块。最新 `agent/src/omni/adapters/workers/local_vectors.py`：本地向量 worker（IPC/清单显式 Payload、受检字段收窄、窗口归属带类型；模型图校验、分窗、池化及错误码不变）。相关专项 **116 项通过**，源码 `9d6f52c1`；全量沿用第 184 批原始记录，下一全量节点第 189 批。默认正式入口仍是 V1，真实验收未完成。
+
 > 当前正在实施V2底层重构；先读 [V2实施记录](V2_REFACTOR.md) 和 [V2任务台账](tasks/v2.json)。默认入口仍为V1，不能将新基础批次称为完整迁移。
 
 跨会话接续请使用 [完整 AI 交接文档](V2_AI_HANDOFF.md) 和 [可复制的开发提示词](V2_AI_CONTINUATION_PROMPT.md)（2026-11-10）。它们补充源码恢复、当前欠账、D6.media开发合同及验证边界；后续状态仍以任务台账、当前源码和对应证据核验。
