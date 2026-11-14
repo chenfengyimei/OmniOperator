@@ -284,9 +284,9 @@
    ]
   }
  ],
- "checkpoint_commit": "1bde555d",
+ "checkpoint_commit": "976137ac",
  "current_validation": {
-  "status": "d7_typecheck_batch_196",
+  "status": "d7_typecheck_batch_197",
   "targeted_unique_passed": 228,
   "includes_browser_cases": 10,
   "current_full_passed": false,
@@ -305,7 +305,7 @@
     "evidence": "temp/build/v2-full-165*.xml, v2-full-180.xml, v2-full-180-serial.xml, v2-full-180-clean-head.xml, v2-full-184.xml"
    }
   ],
-  "code_version": "d3150a863f9f025eef1d04bca75a023185daa8cab9a6872356f09ccbd8a8dcd8",
+  "code_version": "24eed36d5acda185f896aa30f2f4a6adbfda51ab143e4c135cc59495549d89ad",
   "fixed_source_files": 1208,
   "baseline_repair_evidence": "docs/evidence/v2-baseline-repair.json",
   "market_evidence": "docs/evidence/v2-extension-market.json",
