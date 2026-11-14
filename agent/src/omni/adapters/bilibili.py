@@ -9,16 +9,18 @@ import sys
 import time
 from collections.abc import Awaitable, Callable
 from pathlib import Path
-from typing import cast
+from typing import Any, cast
 
 import httpx
 
-from ..application.ports import AsyncSecretPort
+from ..application.ports import AsyncSecretPort, Record
 from ..domain.bilibili import ADAPTER, API, connection, uid
 from ..domain.contracts import JSON, BusinessError, Effect, InvocationContext, Outcome
 from ..domain.delivery import DeliveryResult, OutboundMessage, text_fingerprint
 from .diagnostics import Redactor
 from .workers.client import WorkerClient
+
+Payload = dict[str, object]
 
 
 class BilibiliGateway:
@@ -28,32 +30,36 @@ class BilibiliGateway:
         self,
         credentials: AsyncSecretPort,
         redactor: Redactor,
-        authorize: Callable[[OutboundMessage], Awaitable[dict]],
+        authorize: Callable[[OutboundMessage], Awaitable[dict[str, Any]]],
         *,
-        client_factory: Callable | None = None,
-        worker_factory: Callable | None = None,
+        client_factory: Callable[..., Any] | None = None,
+        worker_factory: Callable[[], WorkerClient] | None = None,
     ) -> None:
         self._credentials, self._redactor, self._authorize = credentials, redactor, authorize
         self._client_factory, self._worker_factory = client_factory, worker_factory
         self._workers: set[WorkerClient] = set()
-        self._reads: set[asyncio.Task] = set()
+        self._reads: set[asyncio.Task[Any]] = set()
         self._slots = asyncio.Semaphore(4)
         self._closing = False
 
-    def account_key(self, configuration: dict) -> str:
-        return connection(configuration)["account"]
+    def account_key(self, configuration: Record) -> str:
+        return cast(str, connection(cast(Payload, configuration))["account"])
 
-    async def _cookies(self, value: dict) -> dict[str, str]:
-        raw = await self._credentials.get(value["credential_ref"])
+    async def _cookies(self, value: Payload) -> dict[str, str]:
+        raw = await self._credentials.get(cast(str, value["credential_ref"]))
         try:
             if not isinstance(raw, str) or len(raw.encode()) > 16384:
                 raise ValueError("Missing bounded cookie object")
-            cookies = json.loads(raw)
-            if not isinstance(cookies, dict) or not 1 <= len(cookies) <= 32 or not cookies.get("SESSDATA"):
+            cookies: dict[str, str] = json.loads(raw)
+            if (
+                not isinstance(cast(object, cookies), dict)
+                or not 1 <= len(cookies) <= 32
+                or not cookies.get("SESSDATA")
+            ):
                 raise ValueError("Missing session cookie")
             if any(
                 not re.fullmatch(r"[A-Za-z0-9_]{1,64}", k)
-                or not isinstance(v, str)
+                or not isinstance(cast(object, v), str)
                 or not 1 <= len(v) <= 4096
                 or any(ord(c) < 33 or ord(c) > 126 or c in ";," for c in v)
                 for k, v in cookies.items()
@@ -67,11 +73,11 @@ class BilibiliGateway:
             ) from exc
         for secret in cookies.values():
             self._redactor.register(secret)
-        if "DedeUserID" in cookies and uid(cookies["DedeUserID"]) != value["account"]:
+        if "DedeUserID" in cookies and uid(cookies["DedeUserID"]) != cast(str, value["account"]):
             raise BusinessError("bilibili_account_mismatch", "Cookie identity differs from the configured account")
         return cookies
 
-    def _client(self, cookies: dict):
+    def _client(self, cookies: dict[str, str]) -> Any:
         factory = self._client_factory or httpx.AsyncClient
         return factory(
             base_url=API,
@@ -84,7 +90,7 @@ class BilibiliGateway:
         )
 
     @staticmethod
-    async def _get(client, path: str, params: dict | None = None) -> dict:
+    async def _get(client: Any, path: str, params: Payload | None = None) -> dict[str, Any]:
         async with client.stream("GET", path, params=params or {}) as response:
             if response.status_code != 200 or "json" not in response.headers.get("content-type", "").lower():
                 raise BusinessError(
@@ -98,13 +104,13 @@ class BilibiliGateway:
                         "bilibili_response_too_large", "Bilibili response exceeded its bounded read limit", status=502
                     )
             try:
-                value = json.loads(body)
+                value: dict[str, Any] = json.loads(body)
             except (ValueError, RecursionError) as exc:
                 raise BusinessError(
                     "bilibili_response_invalid", "Bilibili response was not valid JSON", status=502
                 ) from exc
             if (
-                not isinstance(value, dict)
+                not isinstance(cast(object, value), dict)
                 or type(value.get("code")) is not int
                 or value["code"] != 0
                 or not isinstance(value.get("data"), dict)
@@ -112,15 +118,15 @@ class BilibiliGateway:
                 raise BusinessError(
                     "bilibili_read_rejected", "Bilibili denied the request or changed its response format", status=502
                 )
-            return value["data"]
+            return cast(Payload, value["data"])
 
-    async def _login_nav(self, client, account: str) -> dict:
+    async def _login_nav(self, client: Any, account: str) -> Payload:
         nav = await self._get(client, "/x/web-interface/nav")
         if nav.get("isLogin") is not True or uid(nav.get("mid")) != account:
             raise BusinessError("bilibili_account_mismatch", "Bilibili login identity does not match configuration")
         return nav
 
-    async def _login(self, client, account: str) -> dict:
+    async def _login(self, client: Any, account: str) -> Payload:
         nav = await self._login_nav(client, account)
         return {"uid": account, "name": str(nav.get("uname", ""))[:100], "logged_in": True}
 
@@ -251,7 +257,7 @@ class BilibiliGateway:
             async with self._slots, asyncio.timeout(20):
                 cookies = await self._cookies(value)
                 async with self._client(cookies) as client:
-                    nav = await self._login_nav(client, value["account"])
+                    nav = await self._login_nav(client, cast(str, value["account"]))
                     if operation == "account":
                         return {
                             "uid": value["account"],
@@ -428,7 +434,7 @@ class BilibiliGateway:
             async with asyncio.timeout(25):
                 cookies = await self._cookies(value)
                 async with self._client(cookies) as client:
-                    await self._login(client, value["account"])
+                    await self._login(client, cast(str, value["account"]))
                     if spec["kind"] == "comment":
                         from urllib.parse import urlsplit
 
@@ -471,7 +477,7 @@ class BilibiliGateway:
                         "url": spec["target"],
                         "target_key": spec["target_key"],
                         "remote_target_id": spec["remote_target_id"],
-                        "account": value["account"],
+                        "account": cast(str, value["account"]),
                         "form": spec["form"],
                         "cookies": cast(dict[str, JSON], cookies),
                     },
@@ -501,7 +507,7 @@ class BilibiliGateway:
                 proof = result.data
                 receipt_id = proof.get("record_id")
                 expected = {
-                    "account": value["account"],
+                    "account": cast(str, value["account"]),
                     "target": spec["target"],
                     "body_hash": text_fingerprint(message.text),
                     "mentions": [m["uid"] for m in spec["mentions"]],
