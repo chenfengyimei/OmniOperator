@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "7867e3f067b3df0ca87b1325277ea6ec7a706f4469b1f27be6b11a3397283b83",
+  "source_sha256": "d1b59e6047ca0d81fc5cd0276f38000307dddd39a3635308bde9ecc460d3748e",
   "modules": [
     {
       "id": "v2-domain",
@@ -404,7 +404,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 53983,
+      "lines": 54007,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -498,7 +498,7 @@
         "web/ui/v2/v1/workbench.css",
         "web/ui/v2/workbench.css"
       ],
-      "lines": 20476,
+      "lines": 20062,
       "dependencies": []
     },
     {
@@ -21123,7 +21123,7 @@
       "path": "agent/src/omni/adapters/persistence/schedule_repository.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.persistence.schedule_repository",
-      "lines": 410,
+      "lines": 434,
       "imports": [
         "omni.adapters.persistence",
         "omni.adapters.persistence.delivery_predicates",
@@ -21165,7 +21165,7 @@
         },
         {
           "name": "ScheduleRepositories.schedule_page",
-          "line": 55,
+          "line": 58,
           "kind": "function",
           "parameters": [
             "self",
@@ -21183,7 +21183,7 @@
         },
         {
           "name": "ScheduleRepositories.schedule_save",
-          "line": 71,
+          "line": 74,
           "kind": "function",
           "parameters": [
             "self",
@@ -21200,7 +21200,7 @@
             "agent_id": "str",
             "name": "str",
             "enabled": "bool",
-            "value": "dict",
+            "value": "dict[str, object]",
             "tzdb_version": "str",
             "next_at": "str | None",
             "schedule_id": "str | None",
@@ -21209,7 +21209,7 @@
         },
         {
           "name": "ScheduleRepositories.schedule_archive",
-          "line": 164,
+          "line": 169,
           "kind": "function",
           "parameters": [
             "self",
@@ -21225,7 +21225,7 @@
         },
         {
           "name": "ScheduleRepositories.schedule_history",
-          "line": 189,
+          "line": 194,
           "kind": "function",
           "parameters": [
             "self",
@@ -21243,7 +21243,7 @@
         },
         {
           "name": "ScheduleRepositories.schedule_occurrences",
-          "line": 204,
+          "line": 209,
           "kind": "function",
           "parameters": [
             "self",
@@ -21261,7 +21261,7 @@
         },
         {
           "name": "ScheduleRepositories.schedule_candidates",
-          "line": 227,
+          "line": 232,
           "kind": "function",
           "parameters": [
             "self",
@@ -21275,7 +21275,7 @@
         },
         {
           "name": "ScheduleRepositories.schedule_materialize",
-          "line": 256,
+          "line": 261,
           "kind": "function",
           "parameters": [
             "self",
@@ -21284,14 +21284,14 @@
             "tzdb_version"
           ],
           "annotations": {
-            "captured": "Mapping[str, Any]",
-            "selection": "Mapping[str, Any] | None",
+            "captured": "Mapping[str, object]",
+            "selection": "Mapping[str, object] | None",
             "tzdb_version": "str"
           }
         },
         {
           "name": "ScheduleRepositories.schedule_error",
-          "line": 315,
+          "line": 334,
           "kind": "function",
           "parameters": [
             "self",
@@ -21307,7 +21307,7 @@
         },
         {
           "name": "ScheduleRepositories.schedule_enqueue",
-          "line": 323,
+          "line": 342,
           "kind": "function",
           "parameters": [
             "self",
@@ -21315,13 +21315,13 @@
             "accept"
           ],
           "annotations": {
-            "occurrence": "Mapping[str, Any]",
+            "occurrence": "Mapping[str, object]",
             "accept": "Callable[[Mapping[str, object], str], Record]"
           }
         },
         {
           "name": "ScheduleRepositories.schedule_review",
-          "line": 357,
+          "line": 376,
           "kind": "function",
           "parameters": [
             "self",
@@ -21339,7 +21339,7 @@
         },
         {
           "name": "ScheduleRepositories.schedule_cancel",
-          "line": 398,
+          "line": 422,
           "kind": "function",
           "parameters": [
             "self",
@@ -95666,7 +95666,7 @@
       "path": "web/ui/v2/main.js",
       "module": "v2-workbench",
       "python_module": null,
-      "lines": 1631,
+      "lines": 1624,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -95866,7 +95866,7 @@
       "path": "web/ui/v2/workbench.css",
       "module": "v2-workbench",
       "python_module": null,
-      "lines": 2100,
+      "lines": 1693,
       "imports": [],
       "symbols": [],
       "kind": "asset",
