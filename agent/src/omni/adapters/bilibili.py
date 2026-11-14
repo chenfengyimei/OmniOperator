@@ -30,7 +30,7 @@ class BilibiliGateway:
         self,
         credentials: AsyncSecretPort,
         redactor: Redactor,
-        authorize: Callable[[OutboundMessage], Awaitable[dict[str, Any]]],
+        authorize: Callable[[OutboundMessage], Awaitable[Record]],
         *,
         client_factory: Callable[..., Any] | None = None,
         worker_factory: Callable[[], WorkerClient] | None = None,
@@ -432,7 +432,7 @@ class BilibiliGateway:
             if self._closing or len(self._workers) >= 4:
                 return DeliveryResult("not_sent", message.fingerprint, error_code="bilibili_busy")
             value = connection(message.configuration)
-            if value["account"] != message.account_key:
+            if cast(str, value["account"]) != message.account_key:
                 raise BusinessError("bilibili_account_mismatch", "Approved Bilibili sender changed")
             spec = await self._authorize(message)
             async with asyncio.timeout(25):
@@ -442,7 +442,7 @@ class BilibiliGateway:
                     if spec["kind"] == "comment":
                         from urllib.parse import urlsplit
 
-                        bvid = urlsplit(spec["target"]).path.rstrip("/").split("/")[-1]
+                        bvid = urlsplit(cast(str, spec["target"])).path.rstrip("/").split("/")[-1]
                         video = await self._get(client, "/x/web-interface/view", {"bvid": bvid})
                         if video.get("bvid") != bvid:
                             raise BusinessError("bilibili_source_changed", "Publication video identity changed")
@@ -463,10 +463,14 @@ class BilibiliGateway:
                 )
                 self._workers.add(worker)
                 context = InvocationContext(
-                    spec["agent_id"], spec["run_id"], spec["session_id"], int(spec["policy_revision"]), ""
+                    cast(str, spec["agent_id"]),
+                    cast(str, spec["run_id"]),
+                    cast(str, spec["session_id"]),
+                    int(cast(int, spec["policy_revision"])),
+                    "",
                 )
 
-                async def guard():
+                async def guard() -> None:
                     current = await self._authorize(message)
                     if self._closing or current["authority"] != spec["authority"]:
                         raise BusinessError(
@@ -478,7 +482,7 @@ class BilibiliGateway:
                     {
                         "kind": spec["kind"],
                         "headless": spec.get("headless", True),
-                        "url": spec["target"],
+                        "url": cast(str, spec["target"]),
                         "target_key": spec["target_key"],
                         "remote_target_id": spec["remote_target_id"],
                         "account": cast(str, value["account"]),
@@ -512,14 +516,14 @@ class BilibiliGateway:
                 receipt_id = proof.get("record_id")
                 expected = {
                     "account": cast(str, value["account"]),
-                    "target": spec["target"],
+                    "target": cast(str, spec["target"]),
                     "body_hash": text_fingerprint(message.text),
-                    "mentions": [m["uid"] for m in spec["mentions"]],
+                    "mentions": [m["uid"] for m in cast(list[Record], spec["mentions"])],
                 }
                 if (
                     result.status == Outcome.OK
                     and result.effect == Effect.APPLIED
-                    and isinstance(proof, dict)
+                    and isinstance(cast(object, proof), dict)
                     and all(proof.get(k) == v for k, v in expected.items())
                     and isinstance(receipt_id, str)
                     and 1 <= len(receipt_id) <= 128

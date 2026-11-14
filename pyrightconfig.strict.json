@@ -4,6 +4,7 @@
     "agent/src/omni/adapters/__init__.py",
     "agent/src/omni/adapters/android.py",
     "agent/src/omni/adapters/android_unicode.py",
+    "agent/src/omni/adapters/bilibili.py",
     "agent/src/omni/adapters/build_identity.py",
     "agent/src/omni/adapters/credentials.py",
     "agent/src/omni/adapters/diagnostic_bundle.py",
