@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`91ec592a2593e82cbc7fb574c1a07b9e6984599539ca14ccbbe7f9de1e494a90`。包含 65 个职责模块、736 个源码/界面文件。
+源码指纹：`7b7569a3ad8f7a862e8d02cc0cf0cac6bb0c7d0b5544a236923b07fb3c4939b6`。包含 65 个职责模块、736 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -301,7 +301,7 @@
 | [agent/src/omni/adapters/platform/processes.py](../../agent/src/omni/adapters/platform/processes.py) | 214 | Owned process groups and Windows Job Objects. Never terminate an unverified PID. |
 | [agent/src/omni/adapters/platform/publication.py](../../agent/src/omni/adapters/platform/publication.py) | 70 | Atomic, exclusive directory publication on the supported hosts; never replaces an existing target. |
 | [agent/src/omni/adapters/platform/release_files.py](../../agent/src/omni/adapters/platform/release_files.py) | 411 | Private release journals, installation bytes and startup fences; no database or native registration. |
-| [agent/src/omni/adapters/platform/runtime_identity.py](../../agent/src/omni/adapters/platform/runtime_identity.py) | 236 | Publish private boot identity while the instance lock is held; never controls another process. |
+| [agent/src/omni/adapters/platform/runtime_identity.py](../../agent/src/omni/adapters/platform/runtime_identity.py) | 237 | Publish private boot identity while the instance lock is held; never controls another process. |
 | [agent/src/omni/adapters/platform/secrets.py](../../agent/src/omni/adapters/platform/secrets.py) | 159 | Explicit OS credential store or externally keyed encrypted vault; no plaintext fallback. |
 | [agent/src/omni/adapters/platform/service_admin.py](../../agent/src/omni/adapters/platform/service_admin.py) | 364 | Fixed Linux system-service registration/start broker; no owner code execution, business DB, stop or shell. |
 | [agent/src/omni/adapters/platform/service_admin_bundle.py](../../agent/src/omni/adapters/platform/service_admin_bundle.py) | 143 | Publish a reviewable stdlib-only administrator artifact; never installs it or elevates privileges. |

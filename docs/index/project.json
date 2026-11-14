@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "91ec592a2593e82cbc7fb574c1a07b9e6984599539ca14ccbbe7f9de1e494a90",
+  "source_sha256": "7b7569a3ad8f7a862e8d02cc0cf0cac6bb0c7d0b5544a236923b07fb3c4939b6",
   "modules": [
     {
       "id": "v2-domain",
@@ -404,7 +404,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 54355,
+      "lines": 54356,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -27868,7 +27868,7 @@
       "path": "agent/src/omni/adapters/platform/runtime_identity.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.runtime_identity",
-      "lines": 236,
+      "lines": 237,
       "imports": [
         "omni.adapters.object_store",
         "omni.adapters.platform.deployment_files",
@@ -27880,7 +27880,7 @@
       "symbols": [
         {
           "name": "canonical_proof",
-          "line": 40,
+          "line": 41,
           "kind": "function",
           "parameters": [
             "report",
@@ -27895,7 +27895,7 @@
         },
         {
           "name": "read_private",
-          "line": 53,
+          "line": 54,
           "kind": "function",
           "parameters": [
             "path",
@@ -27908,7 +27908,7 @@
         },
         {
           "name": "read_private.fields",
-          "line": 69,
+          "line": 70,
           "kind": "function",
           "parameters": [
             "info"
@@ -27919,19 +27919,19 @@
         },
         {
           "name": "process_identity",
-          "line": 77,
+          "line": 78,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "RuntimeIdentityFiles",
-          "line": 82,
+          "line": 83,
           "kind": "class"
         },
         {
           "name": "RuntimeIdentityFiles.__init__",
-          "line": 83,
+          "line": 84,
           "kind": "function",
           "parameters": [
             "self",
@@ -27945,7 +27945,7 @@
         },
         {
           "name": "RuntimeIdentityFiles._write",
-          "line": 96,
+          "line": 97,
           "kind": "function",
           "parameters": [
             "self",
@@ -27957,7 +27957,7 @@
         },
         {
           "name": "RuntimeIdentityFiles._replace",
-          "line": 105,
+          "line": 106,
           "kind": "function",
           "parameters": [
             "path",
@@ -27970,7 +27970,7 @@
         },
         {
           "name": "RuntimeIdentityFiles._publish",
-          "line": 123,
+          "line": 124,
           "kind": "function",
           "parameters": [
             "self",
@@ -27982,18 +27982,18 @@
         },
         {
           "name": "RuntimeIdentityFiles._publish.finished",
-          "line": 131,
+          "line": 132,
           "kind": "function",
           "parameters": [
             "done"
           ],
           "annotations": {
-            "done": "asyncio.Future"
+            "done": "asyncio.Future[None]"
           }
         },
         {
           "name": "RuntimeIdentityFiles.start",
-          "line": 139,
+          "line": 140,
           "kind": "function",
           "parameters": [
             "self"
@@ -28002,7 +28002,7 @@
         },
         {
           "name": "RuntimeIdentityFiles.prepare_drain",
-          "line": 144,
+          "line": 145,
           "kind": "function",
           "parameters": [
             "self",
@@ -28010,20 +28010,20 @@
             "now"
           ],
           "annotations": {
-            "request": "dict",
+            "request": "Record",
             "now": "str"
           }
         },
         {
           "name": "RuntimeIdentityFiles.prepare_drain.persist",
-          "line": 151,
+          "line": 152,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "RuntimeIdentityFiles.request_drain",
-          "line": 178,
+          "line": 179,
           "kind": "function",
           "parameters": [
             "self",
@@ -28032,14 +28032,14 @@
             "accepted"
           ],
           "annotations": {
-            "request": "dict",
+            "request": "Record",
             "now": "str",
             "accepted": "Callable[[], None]"
           }
         },
         {
           "name": "RuntimeIdentityFiles.stop_accepting",
-          "line": 197,
+          "line": 198,
           "kind": "function",
           "parameters": [
             "self"
@@ -28048,7 +28048,7 @@
         },
         {
           "name": "RuntimeIdentityFiles.close",
-          "line": 203,
+          "line": 204,
           "kind": "function",
           "parameters": [
             "self",
