@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "0bd5d362c38e638345df49581ea3dfdcd8ccf677ba63a52dc2a7b46e8001617f",
+  "source_sha256": "e42c783ce627a70308e9e6eb8b7eb15a229dc5bcefd3ab642411fe350696a41c",
   "modules": [
     {
       "id": "v2-domain",
@@ -27288,7 +27288,9 @@
             "self",
             "operation"
           ],
-          "annotations": {}
+          "annotations": {
+            "operation": "Callable[[], T]"
+          }
         },
         {
           "name": "PortalBackend._file.actual",
@@ -27304,7 +27306,9 @@
           "parameters": [
             "done"
           ],
-          "annotations": {}
+          "annotations": {
+            "done": "asyncio.Task[T]"
+          }
         },
         {
           "name": "PortalBackend.capture",
@@ -27316,7 +27320,8 @@
             "before_dispatch"
           ],
           "annotations": {
-            "scope": "dict"
+            "scope": "Record",
+            "before_dispatch": "Callable[[], Awaitable[None]]"
           }
         },
         {
@@ -27326,7 +27331,9 @@
           "parameters": [
             "done"
           ],
-          "annotations": {}
+          "annotations": {
+            "done": "asyncio.Task[CapturedFrame]"
+          }
         },
         {
           "name": "PortalBackend._capture",
@@ -27338,7 +27345,8 @@
             "guard"
           ],
           "annotations": {
-            "host": "Host"
+            "host": "Host",
+            "guard": "Callable[[], Awaitable[None]]"
           }
         },
         {
@@ -27378,7 +27386,7 @@
             "scope"
           ],
           "annotations": {
-            "scope": "dict"
+            "scope": "Record"
           }
         },
         {
