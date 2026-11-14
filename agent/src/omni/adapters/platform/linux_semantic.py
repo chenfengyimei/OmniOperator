@@ -101,7 +101,14 @@ class Semantics:
             }
         )
 
-    async def observed(self, ref, parent, path, trail, facts) -> tuple[dict | None, list[str]]:
+    async def observed(
+        self,
+        ref: tuple[str, str],
+        parent: tuple[str, str] | None,
+        path: list[int],
+        trail: tuple[tuple[list[str], int, str], ...],
+        facts: dict[str, object],
+    ) -> tuple[dict[str, object] | None, list[str]]:
         try:
             catalog = await self.catalogue(ref, parent, facts)
             return (self.make_proof(path, trail, facts, catalog), list(catalog)) if catalog else (None, [])

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, cast
 
 from ...domain.contracts import BusinessError
 from ...domain.desktop import VERSION, validate_observation, validate_target, validate_targets
@@ -20,6 +20,8 @@ from .linux_session import (
     variant,
 )
 
+Payload = dict[str, object]
+
 COMPONENT = "org.a11y.atspi.Component"
 TEXT = "org.a11y.atspi.Text"
 WINDOW_ROLES = {16, 23, 69}
@@ -29,9 +31,9 @@ MAX_NODES, MAX_DEPTH, MAX_TEXT = 128, 8, 16384
 
 
 def reference(value: object) -> tuple[str, str]:
-    if not isinstance(value, list) or len(value) != 2:
+    if not isinstance(value, list) or len(cast(list[object], value)) != 2:
         raise failure("desktop_bus_response_invalid")
-    return unique(value[0]), object_path(value[1])
+    return unique(cast(list[object], value)[0]), object_path(cast(list[object], value)[1])
 
 
 def native_id(name: str, path: str) -> str:
@@ -50,9 +52,14 @@ def parse_native_id(value: object) -> tuple[str, str]:
 
 
 def state(values: object) -> set[int]:
-    if not isinstance(values, list) or not 1 <= len(values) <= 4:
+    if not isinstance(values, list) or not 1 <= len(cast(list[object], values)) <= 4:
         raise failure("desktop_bus_response_invalid")
-    return {index * 32 + bit for index, value in enumerate(values) for bit in range(32) if number(value) & (1 << bit)}
+    return {
+        index * 32 + bit
+        for index, value in enumerate(cast(list[object], values))
+        for bit in range(32)
+        if number(value) & (1 << bit)
+    }
 
 
 def clean(value: object) -> str:
@@ -61,8 +68,8 @@ def clean(value: object) -> str:
     return "".join(c for c in value if (ord(c) >= 32 or c in "\t\r\n") and not 127 <= ord(c) <= 159)[:512]
 
 
-def report(session: dict, available: bool, error: str | None, installed: bool) -> dict:
-    capabilities = []
+def report(session: Payload, available: bool, error: str | None, installed: bool) -> Payload:
+    capabilities: list[Payload] = []
     for identity in ("window_identity", "accessibility", "screen_capture", "foreground_control"):
         implemented = identity in {"window_identity", "accessibility"} and installed
         ready = implemented and available
@@ -105,30 +112,37 @@ class AtspiDesktop:
         await self.inspector.open()
 
     async def call(
-        self, ref: tuple[str, str], interface: str, member: str, signature="", body=None, *, returns: str
+        self,
+        ref: tuple[str, str],
+        interface: str,
+        member: str,
+        signature: str = "",
+        body: list[Any] | None = None,
+        *,
+        returns: str,
     ) -> Any:
         assert self.inspector.accessibility is not None
         return one(
             await self.inspector.accessibility.call(ref[0], ref[1], interface, member, signature, body, returns=returns)
         )
 
-    async def property(self, ref, interface: str, name: str, signature: str) -> Any:
+    async def property(self, ref: tuple[str, str], interface: str, name: str, signature: str) -> Any:
         return variant(await self.call(ref, PROPERTIES, "Get", "ss", [interface, name], returns="v"), signature)
 
-    async def children_count(self, ref) -> int:
+    async def children_count(self, ref: tuple[str, str]) -> int:
         return number(await self.property(ref, ACCESSIBLE, "ChildCount", "i"), 2147483647)
 
-    async def child(self, ref, index: int) -> tuple[str, str]:
+    async def child(self, ref: tuple[str, str], index: int) -> tuple[str, str]:
         return reference(await self.call(ref, ACCESSIBLE, "GetChildAtIndex", "i", [index], returns="(so)"))
 
-    async def role_state(self, ref) -> tuple[int, set[int]]:
+    async def role_state(self, ref: tuple[str, str]) -> tuple[int, set[int]]:
         role = number(await self.call(ref, ACCESSIBLE, "GetRole", returns="u"), 65535)
         flags = state(await self.call(ref, ACCESSIBLE, "GetState", returns="au"))
         if 6 in flags:
             raise failure("desktop_target_changed")
         return role, flags
 
-    async def target(self, ref: tuple[str, str], process: Process | None = None) -> dict:
+    async def target(self, ref: tuple[str, str], process: Process | None = None) -> Payload:
         process = process or await self.inspector.app(ref[0])
         role, flags = await self.role_state(ref)
         if role not in WINDOW_ROLES or not {25, 30} <= flags:
@@ -150,11 +164,13 @@ class AtspiDesktop:
             }
         )
 
-    async def targets(self, limit: int) -> dict:
+    async def targets(self, limit: int) -> Payload:
         await self.inspector.check()
         assert self.inspector.registry is not None
         root = (self.inspector.registry.name, ROOT)
         applications = await self.children_count(root)
+        items: list[Payload]
+        seen: set[str]
         items, seen = [], set()
         truncated = applications > MAX_APPS
         enumerated = eligible = unverified = 0
@@ -182,7 +198,7 @@ class AtspiDesktop:
                 target = await self.target(ref, process)
                 if target["native_id"] in seen:
                     raise failure("desktop_bus_response_invalid")
-                seen.add(target["native_id"])
+                seen.add(cast(str, target["native_id"]))
                 if len(items) >= limit:
                     truncated = True
                     break
@@ -198,7 +214,7 @@ class AtspiDesktop:
         await self.inspector.check()
         return validate_targets({"items": items, "truncated": truncated}, limit)
 
-    async def verified(self, target: dict) -> tuple[str, str]:
+    async def verified(self, target: Payload) -> tuple[str, str]:
         await self.inspector.check()
         if (
             target["platform"] != "linux"
@@ -211,7 +227,7 @@ class AtspiDesktop:
             raise failure("desktop_target_changed")
         return ref
 
-    async def verify(self, target: dict) -> dict:
+    async def verify(self, target: Payload) -> Payload:
         try:
             await self.verified(target)
         except BusinessError as error:
@@ -225,11 +241,13 @@ class AtspiDesktop:
         await self.inspector.check()
         return {"matches": True, "target": target, "reason": None}
 
-    async def observe(self, target: dict, *, actions: bool = False) -> dict:
+    async def observe(self, target: Payload, *, actions: bool = False) -> Payload:
         from .linux_semantic import Semantics, digest
 
         semantics = Semantics(self) if actions else None
         ref = await self.verified(target)
+        nodes: list[Payload]
+        seen: set[tuple[str, str]]
         nodes, seen = [], set()
         remaining, truncated = MAX_TEXT, False
 
@@ -245,7 +263,12 @@ class AtspiDesktop:
             return value
 
         async def visit(
-            current: tuple[str, str], parent: int | None, depth: int, parent_ref=None, path=None, trail=()
+            current: tuple[str, str],
+            parent: int | None,
+            depth: int,
+            parent_ref: tuple[str, str] | None = None,
+            path: list[int] | None = None,
+            trail: tuple[tuple[list[str], int, str], ...] = (),
         ) -> None:
             nonlocal truncated
             if len(nodes) >= MAX_NODES or current in seen:
@@ -260,13 +283,14 @@ class AtspiDesktop:
             raw_name = "" if password else await self.property(current, ACCESSIBLE, "Name", "s")
             name = "" if password else budget(raw_name)
             content, bounds = "", [0, 0, 0, 0]
+            interfaces: list[str]
             raw_text, count, interfaces = "", 0, []
             if not password:
                 interfaces = await self.call(current, ACCESSIBLE, "GetInterfaces", returns="as")
                 if (
-                    not isinstance(interfaces, list)
+                    not isinstance(cast(object, interfaces), list)
                     or len(interfaces) > 64
-                    or any(not isinstance(i, str) or len(i) > 255 for i in interfaces)
+                    or any(not isinstance(cast(object, i), str) or len(i) > 255 for i in interfaces)
                 ):
                     raise failure("desktop_bus_response_invalid")
                 if TEXT in interfaces:
@@ -278,7 +302,7 @@ class AtspiDesktop:
                     # CoordType.WINDOW: never fabricate global coordinates on Wayland.
                     bounds = await self.call(current, COMPONENT, "GetExtents", "u", [1], returns="(iiii)")
                     if (
-                        not isinstance(bounds, list)
+                        not isinstance(cast(object, bounds), list)
                         or len(bounds) != 4
                         or any(type(v) is not int or abs(v) > 10000000 for v in bounds)
                         or bounds[2] < 0

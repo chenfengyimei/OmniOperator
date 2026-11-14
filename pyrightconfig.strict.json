@@ -142,6 +142,7 @@
     "agent/src/omni/adapters/platform/event_loop.py",
     "agent/src/omni/adapters/platform/exchange_deployments.py",
     "agent/src/omni/adapters/platform/exchange_files.py",
+    "agent/src/omni/adapters/platform/linux_atspi.py",
     "agent/src/omni/adapters/platform/linux_bus.py",
     "agent/src/omni/adapters/platform/linux_fds.py",
     "agent/src/omni/adapters/platform/linux_input.py",
