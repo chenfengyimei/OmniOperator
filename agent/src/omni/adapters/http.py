@@ -13,7 +13,7 @@ from collections.abc import Awaitable, Callable, Mapping
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Literal, cast
+from typing import Any, Literal, TypeVar, cast
 
 from fastapi import APIRouter, Depends, FastAPI, Query, Request
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, Response
@@ -55,15 +55,16 @@ from .log_query import LogQuery
 
 log = logging.getLogger("omni.v2.http")
 Payload = dict[str, object]
+InputModel = TypeVar("InputModel", bound=BaseModel)
 
 
 @dataclass
 class HttpRuntime:
     application: Application
     authenticate: Callable[[str], Awaitable[bool]]
-    describe: Callable[[], dict]
-    close: Callable[[], Awaitable[dict]]
-    logs: Callable[[LogQuery], Awaitable[dict]]
+    describe: Callable[[], Record]
+    close: Callable[[], Awaitable[Record]]
+    logs: Callable[[LogQuery], Awaitable[Record]]
     assets: Path
     objects: ObjectService
     people: PeopleService
@@ -82,10 +83,10 @@ class HttpRuntime:
     desktop: DesktopService
     desktop_portal: DesktopPortalService
     desktop_actions: DesktopActions
-    identity_proof: Callable[[str], dict] | None = None
-    drain: Callable[[dict], Awaitable[dict]] | None = None
-    token_sessions: Callable[[], Awaitable[list[dict]]] | None = None
-    rotate_token: Callable[[], Awaitable[dict]] | None = None
+    identity_proof: Callable[[str], Record] | None = None
+    drain: Callable[[Record], Awaitable[Record]] | None = None
+    token_sessions: Callable[[], Awaitable[list[Record]]] | None = None
+    rotate_token: Callable[[], Awaitable[Record]] | None = None
     # 本机免粘贴引导：只在回环地址 + 同源时下发所有者令牌，让「启动即用」回到 V1 体验。
     # 默认 None 表示关闭；远程绑定与跨源请求一律拿不到，API 鉴权强度不变。
     local_owner_token: Callable[[], str] | None = None
@@ -110,9 +111,9 @@ class TurnInput(StrictInput):
     session_id: uuid.UUID | None = None
     key: str = Field(min_length=1, max_length=200)
     message: str = Field(default="", max_length=200_000)
-    image_ids: list[uuid.UUID] = Field(default_factory=list, max_length=4)
+    image_ids: list[uuid.UUID] = Field(default_factory=cast(Callable[[], list[uuid.UUID]], list), max_length=4)
     mode: Literal["auto", "chat", "retrieval", "agent"] | None = None
-    skill_ids: list[uuid.UUID] = Field(default_factory=list, max_length=4)
+    skill_ids: list[uuid.UUID] = Field(default_factory=cast(Callable[[], list[uuid.UUID]], list), max_length=4)
 
 
 class SkillSaveInput(StrictInput):
@@ -142,28 +143,28 @@ class SkillRollbackInput(StrictInput):
 
 class RoutingInput(StrictInput):
     revision: int = Field(ge=0, strict=True)
-    value: dict
+    value: Payload
 
 
 class SettingsInput(StrictInput):
     revision: int = Field(ge=1, strict=True)
-    value: dict
+    value: Payload
 
 
 class ConfigurationInput(StrictInput):
     kind: Literal["model", "channel", "mcp", "preset"]
     name: str = Field(min_length=1, max_length=100)
     enabled: bool = Field(default=False, strict=True)
-    value: dict
-    image_policy: dict | None = None
+    value: Payload
+    image_policy: Payload | None = None
 
 
 class ConfigurationEdit(StrictInput):
     name: str = Field(min_length=1, max_length=100)
     enabled: bool = Field(strict=True)
     revision: int = Field(ge=1, strict=True)
-    value: dict
-    image_policy: dict | None = None
+    value: Payload
+    image_policy: Payload | None = None
 
 
 class DeliveryInput(StrictInput):
@@ -188,7 +189,7 @@ class QQBindingInput(StrictInput):
 class BilibiliProfileInput(StrictInput):
     enabled: bool = Field(strict=True)
     headless: bool = Field(default=True, strict=True)
-    forms: dict
+    forms: Payload
     revision: int = Field(ge=0, strict=True)
 
 
@@ -204,7 +205,7 @@ class BilibiliPublicationInput(StrictInput):
     message_id: uuid.UUID
     kind: Literal["comment", "private_message"]
     target: str = Field(max_length=500)
-    mentions: list[dict] = Field(default_factory=list, max_length=10)
+    mentions: list[Payload] = Field(default_factory=cast(Callable[[], list[Payload]], list), max_length=10)
     key: str = Field(min_length=1, max_length=180)
 
 
@@ -233,7 +234,9 @@ class MCPToolAuthorizationInput(StrictInput):
 
 class MCPAuthorizationInput(StrictInput):
     catalog_fingerprint: str = Field(pattern=r"^[a-f0-9]{64}$")
-    tools: list[MCPToolAuthorizationInput] = Field(default_factory=list, max_length=256)
+    tools: list[MCPToolAuthorizationInput] = Field(
+        default_factory=cast(Callable[[], list[MCPToolAuthorizationInput]], list), max_length=256
+    )
     evidence: str = Field(min_length=1, max_length=200)
 
 
@@ -268,7 +271,7 @@ class DebugInput(StrictInput):
 class ScheduleInput(StrictInput):
     name: str = Field(min_length=1, max_length=100)
     enabled: bool = Field(default=False, strict=True)
-    value: dict
+    value: Payload
     revision: int = Field(default=0, ge=0, strict=True)
 
 
@@ -277,8 +280,8 @@ class ScheduleReview(StrictInput):
     fingerprint: str = Field(pattern=r"^[a-f0-9]{64}$")
 
 
-async def bounded_configuration(request: Request, max_bytes: int = 262144, *, strict: bool = False) -> dict:
-    parts = []
+async def bounded_configuration(request: Request, max_bytes: int = 262144, *, strict: bool = False) -> Record:
+    parts: list[bytes] = []
     size = 0
     async for chunk in request.stream():
         size += len(chunk)
@@ -291,8 +294,8 @@ async def bounded_configuration(request: Request, max_bytes: int = 262144, *, st
         parts.append(chunk)
     try:
 
-        def pairs(items):
-            result = {}
+        def pairs(items: list[tuple[str, Any]]) -> Record:
+            result: Record = {}
             for key, item in items:
                 if strict and key in result:
                     raise ValueError("Duplicate field")
@@ -302,12 +305,12 @@ async def bounded_configuration(request: Request, max_bytes: int = 262144, *, st
         value = json.loads(b"".join(parts).decode("utf-8"), object_pairs_hook=pairs)
         if not isinstance(value, dict):
             raise ValueError
-        return value
+        return cast(Record, value)
     except (ValueError, UnicodeError, RecursionError) as exc:
         raise BusinessError("invalid_configuration_request", "A UTF-8 JSON object is required", status=422) from exc
 
 
-def configuration_input(model, document):
+def configuration_input(model: type[InputModel], document: object) -> InputModel:
     try:
         return model.model_validate(document)
     except ValidationError as exc:
