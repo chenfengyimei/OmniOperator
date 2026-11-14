@@ -209,7 +209,7 @@
    "id": "R6",
    "title": "业务接入与交付",
    "status": "开发中",
-   "notes": "媒体、MCP 运行适配器、插件产物/本地市场/宿主回调已有离线实现；当前 D7 产品化与严格类型收口中（317 文件，adapters 207/222）。默认正式入口仍 V1，平台及真实业务验收待完成。",
+   "notes": "媒体、MCP 运行适配器、插件产物/本地市场/宿主回调已有离线实现；当前 D7 产品化与严格类型收口中（318 文件，adapters 208/222）。默认正式入口仍 V1，平台及真实业务验收待完成。",
    "evidence": [
     "docs/evidence/v2-offline.json",
     "docs/evidence/v2-people.json",
@@ -250,7 +250,7 @@
    "id": "R7",
    "title": "稳定性验收",
    "status": "待开始",
-   "notes": "第 50 节点开发全量（-n 2）4660 passed / 1 failed / 0 errors / 0 skipped，3208.33s；唯一失败为既有 portal 偶发项，原 nodeid 串行复跑 1 passed。运行前后源码/测试/依赖/配置字节一致；完整真实功能、故障负载、三平台与 72 小时验收仍未开始。",
+   "notes": "第 55 节点原始全量（-n 2）4658 passed / 5 failed / 0 errors / 0 skipped，3282.795s。3项wheel失败归验证器PYTHONPATH污染，纠正后通过；2项UI分别串行/隔离通过并完成两轮基线对照，仍保留开放观察。真实功能、故障负载、三平台与72小时验收仍未开始。",
    "evidence": [
     "docs/evidence/v2-offline.json",
     "docs/evidence/v2-objects.json",
@@ -284,13 +284,13 @@
    ]
   }
  ],
- "checkpoint_commit": "976137ac",
+ "checkpoint_commit": "b0195e08",
  "current_validation": {
-  "status": "d7_typecheck_batch_197",
+  "status": "d7_typecheck_batch_198",
   "targeted_unique_passed": 228,
   "includes_browser_cases": 10,
   "current_full_passed": false,
-  "full_runs_this_checkpoint": 9,
+  "full_runs_this_checkpoint": 10,
   "whole_plan_complete": false,
   "evidence": "docs/evidence/v2-extension-artifacts.json",
   "last_full_evidence": "docs/evidence/v2-typecheck.json",
@@ -303,64 +303,127 @@
     "scope": "test_v2_portal_ui::test_owner_selects_queries_captures_and_leaving_revokes_without_implicit_pixels 在第 25 与第 40 节点均出现：portal_consent_pending 未在 5 秒内转 active。第 40 节点干净 HEAD 三次全过、主工作区复跑两次全过，串行单次失败；确认为既有 flaky。建议由门户/桌面用例负责人加固等待条件或注入确定性时钟。 第 45 节点（v2-full-184.xml）该用例并行通过，未再复现；开放项保留，待用例负责人加固。",
     "owner": "shared-test-suite",
     "evidence": "temp/build/v2-full-165*.xml, v2-full-180.xml, v2-full-180-serial.xml, v2-full-180-clean-head.xml, v2-full-184.xml"
+   },
+   {
+    "id": "test.extensions_ui_concurrent_selection",
+    "status": "open",
+    "scope": "Node 55 parallel details selection stayed empty. Exact node passed serially and in two earlier-HEAD controls; ownership remains unconfirmed.",
+    "owner": "UI regression test owner",
+    "evidence": [
+     "temp/build/v2-full-194.xml",
+     "temp/build/v2-full-194-serial.xml",
+     "temp/build/v2-full-194-ui-isolation.xml",
+     "temp/build/v2-full-194-control-1.xml",
+     "temp/build/v2-full-194-control-2.xml"
+    ]
+   },
+   {
+    "id": "test.memory_organization_ui_candidate_race",
+    "status": "open",
+    "scope": "Node 55 candidate list was empty in parallel and serial, then the exact isolated node passed. Two earlier-HEAD controls passed; ownership remains unconfirmed.",
+    "owner": "UI regression test owner",
+    "evidence": [
+     "temp/build/v2-full-194.xml",
+     "temp/build/v2-full-194-serial.xml",
+     "temp/build/v2-full-194-ui-isolation.xml",
+     "temp/build/v2-full-194-control-1.xml",
+     "temp/build/v2-full-194-control-2.xml"
+    ]
    }
   ],
-  "code_version": "24eed36d5acda185f896aa30f2f4a6adbfda51ab143e4c135cc59495549d89ad",
+  "code_version": "d10bd3b74d81d5d3ca13e1e0c7620563d414a69084b72eace48ecc6fad4b8494",
   "fixed_source_files": 1208,
   "baseline_repair_evidence": "docs/evidence/v2-baseline-repair.json",
   "market_evidence": "docs/evidence/v2-extension-market.json",
   "final_full_run": {
-   "status": "source_unchanged_parallel_known_portal_flake_serial_passed",
-   "checkpoint": 50,
-   "strict_batches": [
-    185,
-    186,
-    187,
-    188,
-    189,
-    190
-   ],
-   "command": "uv run --no-sync pytest -q -n 2 --junitxml=temp/build/v2-full-189.xml",
-   "workers": 2,
-   "report": "temp/build/v2-full-189.xml",
-   "report_sha256": "2426fd6e09a42b3fc768478336e1a34f6312fc4eb829f2bdc8094daecdb24ff3",
-   "tests": 4661,
-   "passed": 4660,
-   "failed": 1,
+   "report": "temp/build/v2-full-194.xml",
+   "report_sha256": "6411d8adb7da275ff08484cef321cb22c7b65da7ce332fa0a57a3b30bd91d7b6",
+   "tests": 4663,
+   "passed": 4658,
+   "failed": 5,
    "errors": 0,
    "skipped": 0,
-   "duration_s": 3208.33,
-   "junit_duration_s": 3207.08,
-   "serial_rerun": {
-    "report": "temp/build/v2-full-189-serial.xml",
-    "report_sha256": "33339207004a3a89fbe818cbce8c14283ec9f8204d2348c03ef244412e69cd8f",
-    "tests": 1,
-    "passed": 1,
-    "failed": 0,
-    "errors": 0,
-    "duration_s": 11.029
-   },
-   "source_head": "50e36455531aa428accde9c35cc6c74773aa7e79",
-   "code_version": "27dbf873275d5e5563c463d6d91005e3e9da1e4c30a283e1b81a9dac24be309f",
-   "fixed_source_files": 1208,
-   "working_source_version": "c39af60f674746c47663b2e16e1bacc8f0066090831e2556f8283875bc6f6e26",
+   "duration_s": 3282.795,
+   "checkpoint": 55,
+   "strict_checkpoint": 194,
+   "source_head": "102cf4a6569c2f8fc0efa1d4610881ba4ee1959e",
    "source_unchanged": true,
-   "source_snapshots": {
-    "before": {
-     "path": "temp/build/v2-full-189-source-before.json",
-     "sha256": "f0bde58eff1de81e2d5a2c3b4f77d196d6f032c2a405f67bd906df5dcf25163f"
-    },
-    "after": {
-     "path": "temp/build/v2-full-189-source-after.json",
-     "sha256": "f0bde58eff1de81e2d5a2c3b4f77d196d6f032c2a405f67bd906df5dcf25163f"
-    }
+   "working_source_version": "ce7cb0e5de226ddd7263198925705daf24db1acb8948b46152e78dca53c60f03",
+   "fixed_source_files": 1208,
+   "strict_files": 316,
+   "snapshot": {
+    "path": "temp/build/v2-full-194-snapshot.json",
+    "sha256": "db71823932e4c8e921c792f309764c93a9b4e7e769b7938194f36fcccae0d358"
    },
+   "workers": 2,
+   "code_version": "bbed3d58b694c5e737553e9290fc664f58738ba7c93f96a2a08ec2cfaea7f600",
+   "reruns": [
+    {
+     "report": "temp/build/v2-full-194-control-1.xml",
+     "report_sha256": "ea4eb19d42072f7a31a7ab60ffd19e10ba21aeb99180ecf27056ffd60db30923",
+     "tests": 2,
+     "passed": 2,
+     "failed": 0,
+     "errors": 0,
+     "skipped": 0,
+     "duration_s": 16.745
+    },
+    {
+     "report": "temp/build/v2-full-194-control-2.xml",
+     "report_sha256": "8a11cb5312203c11f88f8b09ee0b3a3f0e639e9c75b55e05e76f5207744d6f5e",
+     "tests": 2,
+     "passed": 2,
+     "failed": 0,
+     "errors": 0,
+     "skipped": 0,
+     "duration_s": 12.744
+    },
+    {
+     "report": "temp/build/v2-full-194-serial.xml",
+     "report_sha256": "8d59a8121096895cb8126ce2bf1a67732982326738cebbf6c64934cb95914faa",
+     "tests": 5,
+     "passed": 4,
+     "failed": 1,
+     "errors": 0,
+     "skipped": 0,
+     "duration_s": 42.268
+    },
+    {
+     "report": "temp/build/v2-full-194-ui-isolation.xml",
+     "report_sha256": "aa1ee130e61c135aada3e97e72aef495ed4ac4a10a774cba99e94ee6f9cd1fb3",
+     "tests": 1,
+     "passed": 1,
+     "failed": 0,
+     "errors": 0,
+     "skipped": 0,
+     "duration_s": 7.761
+    }
+   ],
+   "status": "parallel_failures_preserved_reruns_separate",
+   "checkout_code_version": "7ab6b7b48d6102df687faf6a283523135057b399c612bee649c75cb6022c4379",
+   "command": "main existing .venv/Scripts/python.exe -m pytest -q -n 2; cwd=frozen git archive 102cf4a6; absolute JUnit output",
+   "harness_findings": [
+    {
+     "id": "validation.pythonpath_wheel_shadowing",
+     "affected_tests": 3,
+     "cause": "Snapshot source PYTHONPATH leaked into wheel-created child interpreters and shadowed the installed wheel.",
+     "resolution": "Disposable interpreter uses .pth for snapshot source and existing dependencies, with no source PYTHONPATH. All three exact wheel tests pass serially.",
+     "report": "temp/build/v2-full-194-serial.xml"
+    },
+    {
+     "id": "validation.rerun_nodeid_prefix",
+     "cause": "Snapshot XML agent.tests classname was initially prefixed with agent twice.",
+     "report": "temp/build/v2-full-194-serial-harness-error.xml",
+     "resolution": "Normalize optional agent prefix; corrected serial run collected all five original failures."
+    }
+   ],
    "details": [
-    "Queued behind an already-running peer full suite; batch 190 was completed while waiting. This run covers the actual frozen integrated source at 50e36455, including batches 185-190 and the peer model-connection UI commit.",
-    "All actual source/test/dependency/config bytes match before and after the run. No source was changed by this task during the full run.",
-    "The only parallel failure is the already-open portal UI case, with the same portal_consent_pending symptom; its exact nodeid passes on serial rerun. Parallel counts remain 4660 passed / 1 failed, never all-green.",
-    "The main worktree already matched committed HEAD at both boundaries (only personal material directories were untracked), so there is no parallel uncommitted source to remove for ownership. The portal symptom was independently established as intermittent at earlier node-25/node-40 controls. No type-change functional regression was found in the validated scope.",
-    "Real model/account/device/native platform/installation/load acceptance remains pending; default entry remains V1."
+    "Raw parallel result remains 4658 passed / 5 failed; reruns never replace raw counts.",
+    "Main checkout changes after the frozen 102cf4a6 snapshot are excluded. All measured snapshot source/test/dependency/config bytes remained unchanged.",
+    "Three wheel failures belong to the runner PYTHONPATH setup. Corrected isolated interpreter passed their exact nodeids.",
+    "Extensions UI passed serially. Memory-organization UI failed serially then passed alone. Both representatives passed two serial control rounds on earlier committed 50e36455. These observations establish neither functional regression nor durable flake resolution; keep validation findings open.",
+    "Git archive applied checkout line endings to 42 source-tree files. code_version is the committed HEAD-blob fingerprint; checkout_code_version and working_source_version describe actual bytes.",
+    "Native platform/device/model/install and long-run acceptance remain pending; default entry remains V1."
    ]
   },
   "capabilities_evidence": "docs/evidence/v2-capabilities.json",
@@ -375,7 +438,7 @@
   "id": "D7.product_switch",
   "status": "进行中",
   "design": "docs/V2_PACKAGING.md",
-  "scope": "P1 composition/P2 Android/P3 persistence complete; P4 adapters in progress. strict 317 files (53 domain, 44 application, 207/222 adapters, 13 composition), 15 adapters remain. Next full-suite checkpoint: batch 199."
+  "scope": "P1 composition/P2 Android/P3 persistence complete; P5 adapters in progress. strict 318 files (53 domain, 44 application, 208/222 adapters, 13 composition), 14 adapters remain. Next full-suite checkpoint: batch 199."
  },
  "milestones": [
   {
