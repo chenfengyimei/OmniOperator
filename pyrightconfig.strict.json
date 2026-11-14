@@ -6,6 +6,7 @@
     "agent/src/omni/adapters/android_unicode.py",
     "agent/src/omni/adapters/build_identity.py",
     "agent/src/omni/adapters/credentials.py",
+    "agent/src/omni/adapters/diagnostic_bundle.py",
     "agent/src/omni/adapters/diagnostics.py",
     "agent/src/omni/adapters/extensions/__init__.py",
     "agent/src/omni/adapters/extensions/hosts.py",

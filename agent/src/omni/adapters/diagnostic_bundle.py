@@ -20,7 +20,7 @@ from concurrent.futures import ThreadPoolExecutor
 from contextlib import AbstractContextManager
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Protocol, TypeVar
+from typing import Any, Protocol, TypeVar, cast
 
 from ..application.ports import Record
 from ..domain.contracts import BusinessError
@@ -31,6 +31,7 @@ from .platform.paths import InstancePaths
 from .platform.permissions import private_path
 
 T = TypeVar("T")
+Payload = dict[str, object]
 UUID_PATTERN = re.compile(r"[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}")
 KEY_PATTERN = re.compile(r"[a-z][a-z0-9_]*(?:\.[a-z][a-z0-9_]*){0,10}")
 MAX_BUNDLE = 2 * 1024 * 1024
@@ -57,9 +58,9 @@ def validate_bundle(content: bytes) -> None:
         ) from exc
 
 
-def correlation(record: dict) -> dict:
+def correlation(record: Payload) -> Record:
     """Export no free text; reject malformed correlation values independently of log redaction."""
-    result = {}
+    result: Record = {}
     for name in ("record_id", "boot_id", "request_id", "agent_id", "session_id", "run_id", "operation_id"):
         value = record.get(name)
         if isinstance(value, str) and UUID_PATTERN.fullmatch(value):
@@ -70,7 +71,7 @@ def correlation(record: dict) -> dict:
             result[name] = value
     level = record.get("level")
     if level in ("DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"):
-        result["level"] = level
+        result["level"] = cast(str, level)
     for name in ("event", "error_code"):
         value = record.get(name)
         if isinstance(value, str) and len(value) <= 100 and KEY_PATTERN.fullmatch(value):
@@ -94,7 +95,7 @@ def correlation(record: dict) -> dict:
         ):
             result[name] = value
     if type(record.get("retryable")) is bool:
-        result["retryable"] = record["retryable"]
+        result["retryable"] = cast(bool, record["retryable"])
     value = record.get("timestamp")
     if isinstance(value, str) and len(value) <= 40:
         try:
@@ -113,15 +114,15 @@ class DiagnosticSource(LogSource, Protocol):
     def build_id(self) -> str: ...
     @property
     def boot_id(self) -> str: ...
-    def snapshot(self) -> dict: ...
-    def maintenance(self) -> dict: ...
+    def snapshot(self) -> Record: ...
+    def maintenance(self) -> Record: ...
 
 
 class DebugCapture(Protocol):
-    def snapshot(self) -> dict: ...
-    def start(self, agent_id: str, operation_id: str, duration_s: int, byte_limit: int = 134217728) -> dict: ...
-    def stop(self, reason: str = "owner_stopped") -> dict: ...
-    def maintenance(self) -> dict: ...
+    def snapshot(self) -> Record: ...
+    def start(self, agent_id: str, operation_id: str, duration_s: int, byte_limit: int = 134217728) -> Record: ...
+    def stop(self, reason: str = "owner_stopped") -> Record: ...
+    def maintenance(self) -> Record: ...
 
 
 class StoredDiagnostics:
@@ -136,17 +137,17 @@ class StoredDiagnostics:
         self.build_id = self.boot_id = "offline"
         self.debug = None
 
-    def snapshot(self) -> dict:
+    def snapshot(self) -> Record:
         return {"mode": "offline", "writer_alive": False, "dropped": None, "written": None, "failures": None}
 
-    def maintenance(self) -> dict:
+    def maintenance(self) -> Record:
         return {"available": False, "reason": "offline"}
 
 
 @dataclass
 class CaptureSource:
     directory: Path
-    io_lock: AbstractContextManager
+    io_lock: AbstractContextManager[object, bool | None]
     redactor: Redactor
     stderr_only: bool = False
     segments: int = 1
@@ -192,7 +193,7 @@ class DiagnosticFiles:
         self._executor = ThreadPoolExecutor(max_workers=2, thread_name_prefix="omni-diagnostic-io")
         # Four public operations plus the single owned maintenance worker.
         self._slots = asyncio.Semaphore(5)
-        self._jobs: set[asyncio.Future] = set()
+        self._jobs: set[asyncio.Future[Any]] = set()
         self._closing = False
 
     async def _run(self, operation: Callable[[], T]) -> T:
@@ -204,7 +205,7 @@ class DiagnosticFiles:
         job = asyncio.get_running_loop().run_in_executor(self._executor, contextvars.copy_context().run, operation)
         self._jobs.add(job)
 
-        def completed(future):
+        def completed(future: asyncio.Future[T]) -> None:
             self._jobs.discard(future)
             self._slots.release()
             if not future.cancelled():
@@ -269,15 +270,15 @@ class DiagnosticFiles:
         return await self._run(lambda: self._capture().stop(reason))
 
     async def debug_maintenance(self) -> Record:
-        def maintain():
+        def maintain() -> Record:
             logs = self._sink.maintenance()
-            debug = self._sink.debug.maintenance() if self._sink.debug else {"available": False}
+            debug: Record = self._sink.debug.maintenance() if self._sink.debug else {"available": False}
             return {"logs": logs, "debug": debug}
 
         return await self._run(maintain)
 
     async def debug_logs(self, agent_id: str, operation_id: str, filters: Record) -> Record:
-        def page():
+        def page() -> Record:
             snapshot = self._capture().snapshot()
             if snapshot.get("agent_id") != agent_id or snapshot.get("operation_id") != operation_id:
                 raise BusinessError("debug_capture_changed", "Debug capture has changed; reload its state", status=409)
@@ -287,7 +288,7 @@ class DiagnosticFiles:
         return await self._run(page)
 
     async def log_page(self, filters: Record) -> Record:
-        def page():
+        def page() -> Record:
             # Endpoint validation and the adapter query model share the same bounds.
             return LogReader(self._sink).page(LogQuery.from_record(filters))
 
@@ -298,14 +299,14 @@ class DiagnosticFiles:
 
     def _bundle(self, information: Record) -> bytes:
         try:
-            tail = LogReader(self._sink).tail()
+            tail: Record = LogReader(self._sink).tail()
         except (BusinessError, OSError, ValueError, UnicodeError) as exc:
             tail = {
                 "available": False,
                 "error_code": exc.code if isinstance(exc, BusinessError) else "diagnostic_logs_unavailable",
                 "items": [],
             }
-        entries = [correlation(row) for row in tail.pop("items")]
+        entries = [correlation(row) for row in cast(list[Payload], tail.pop("items"))]
         payload = json.dumps(
             {**information, "diagnostic_log_excerpt": tail}, ensure_ascii=False, allow_nan=False, separators=(",", ":")
         ).encode("utf-8")
