@@ -4,13 +4,16 @@ from __future__ import annotations
 
 import hashlib
 import json
-from collections.abc import Sequence
-from typing import cast
+from collections.abc import Awaitable, Callable, Sequence
+from typing import TYPE_CHECKING, cast
 
 from ...domain.contracts import BusinessError
 from ...domain.desktop_actions import node_proof, semantic
 from .linux_atspi import ACCESSIBLE, PASSWORD_ROLE, TEXT, AtspiDesktop, reference
 from .linux_bus import RemoteError, failure
+
+if TYPE_CHECKING:
+    from .linux_input import X11Input
 from .linux_session import number
 
 Payload = dict[str, object]
@@ -157,7 +160,9 @@ class Semantics:
         except (BusinessError, RemoteError):
             return None, []  # the normal bounded read remains available without write proof
 
-    async def act(self, target: Payload, action: Payload, monitor, permit) -> Payload:
+    async def act(
+        self, target: Payload, action: Payload, monitor: X11Input, permit: Callable[[], Awaitable[bool]]
+    ) -> Payload:
         action = semantic(action)
         sent = False
         try:
