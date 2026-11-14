@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "48f5735bd758fd68dacab33b05fe183751817cdfc7e25420b9c556f8f14f8a7e",
+  "source_sha256": "8ac27399ae34b9fa80f7c4c7f9c6165b0e3ffb54b77e77aac8160178e9ad7605",
   "modules": [
     {
       "id": "v2-domain",
@@ -404,7 +404,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 54079,
+      "lines": 54098,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -17411,12 +17411,13 @@
       "path": "agent/src/omni/adapters/persistence/memory_semantic_repository.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.persistence.memory_semantic_repository",
-      "lines": 400,
+      "lines": 419,
       "imports": [
         "omni.adapters.persistence",
         "omni.adapters.persistence.memory_organization_predicates",
         "omni.adapters.persistence.memory_organization_repository",
         "omni.adapters.persistence.repository",
+        "omni.application.ports",
         "omni.domain.contracts",
         "omni.domain.documents",
         "omni.domain.memory_organization",
@@ -17425,12 +17426,12 @@
       "symbols": [
         {
           "name": "MemorySemanticRepositories",
-          "line": 21,
+          "line": 22,
           "kind": "class"
         },
         {
           "name": "MemorySemanticRepositories.memory_index_audit",
-          "line": 22,
+          "line": 23,
           "kind": "function",
           "parameters": [
             "self",
@@ -17448,7 +17449,7 @@
         },
         {
           "name": "MemorySemanticRepositories.memory_semantic_capture",
-          "line": 25,
+          "line": 26,
           "kind": "function",
           "parameters": [
             "self",
@@ -17464,7 +17465,7 @@
         },
         {
           "name": "MemorySemanticRepositories.memory_index_page",
-          "line": 31,
+          "line": 33,
           "kind": "function",
           "parameters": [
             "self",
@@ -17480,7 +17481,7 @@
         },
         {
           "name": "MemorySemanticRepositories.memory_embedding_begin",
-          "line": 50,
+          "line": 52,
           "kind": "function",
           "parameters": [
             "self",
@@ -17491,14 +17492,14 @@
           ],
           "annotations": {
             "agent_id": "str",
-            "source": "dict",
+            "source": "Record",
             "version": "str",
             "dimension": "int"
           }
         },
         {
           "name": "MemorySemanticRepositories.memory_embedding_finish",
-          "line": 90,
+          "line": 92,
           "kind": "function",
           "parameters": [
             "self",
@@ -17516,7 +17517,7 @@
         },
         {
           "name": "MemorySemanticRepositories.memory_semantic_recover",
-          "line": 117,
+          "line": 119,
           "kind": "function",
           "parameters": [
             "self"
@@ -17525,7 +17526,7 @@
         },
         {
           "name": "MemorySemanticRepositories.memory_vector_candidates",
-          "line": 124,
+          "line": 126,
           "kind": "function",
           "parameters": [
             "self",
@@ -17541,7 +17542,7 @@
         },
         {
           "name": "MemorySemanticRepositories.memory_recall_validate",
-          "line": 157,
+          "line": 159,
           "kind": "function",
           "parameters": [
             "self",
@@ -17551,13 +17552,13 @@
           ],
           "annotations": {
             "agent_id": "str",
-            "rows": "list[dict]",
+            "rows": "list[Record]",
             "run_id": "str | None"
           }
         },
         {
           "name": "MemorySemanticRepositories.memory_semantic_replay",
-          "line": 187,
+          "line": 191,
           "kind": "function",
           "parameters": [
             "self",
@@ -17566,12 +17567,12 @@
           ],
           "annotations": {
             "agent_id": "str",
-            "request": "dict"
+            "request": "Record"
           }
         },
         {
           "name": "MemorySemanticRepositories._semantic_sources",
-          "line": 204,
+          "line": 208,
           "kind": "function",
           "parameters": [
             "self",
@@ -17585,7 +17586,7 @@
         },
         {
           "name": "MemorySemanticRepositories.memory_semantic_propose",
-          "line": 217,
+          "line": 221,
           "kind": "function",
           "parameters": [
             "self",
@@ -17596,14 +17597,14 @@
           ],
           "annotations": {
             "agent_id": "str",
-            "request": "dict",
+            "request": "Record",
             "version": "str",
             "dimension": "int"
           }
         },
         {
           "name": "MemorySemanticRepositories.memory_semantic_get",
-          "line": 314,
+          "line": 325,
           "kind": "function",
           "parameters": [
             "self",
@@ -17619,7 +17620,7 @@
         },
         {
           "name": "MemorySemanticRepositories.memory_semantic_page",
-          "line": 349,
+          "line": 364,
           "kind": "function",
           "parameters": [
             "self",
@@ -17635,7 +17636,7 @@
         },
         {
           "name": "MemorySemanticRepositories.memory_semantic_decide",
-          "line": 368,
+          "line": 383,
           "kind": "function",
           "parameters": [
             "self",
@@ -17647,7 +17648,7 @@
           "annotations": {
             "agent_id": "str",
             "identity": "str",
-            "request": "dict",
+            "request": "Record",
             "version": "str"
           }
         }

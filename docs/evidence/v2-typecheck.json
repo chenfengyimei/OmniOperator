@@ -1,14 +1,14 @@
 {
  "schema": 1,
- "batch": 182,
+ "batch": 183,
  "date": "2026-11-13",
  "whole_v2_complete": false,
  "d7_complete": false,
  "default_entrypoint": "v1",
  "source": {
-  "code_version": "c66a7bd56a680a4abb9eb39a5fe48de6f91e375b4bb0987bd4a38d556dee8b25",
+  "code_version": "9e0f837ad24067eb2702b705bfa0a4b0a46a1630603f2000ee1740a5f264698a",
   "fixed_source_files": 1206,
-  "git_head": "8f52838",
+  "git_head": "529a099",
   "dirty_checkout": false,
   "recipe": "sha256(json.dumps({path: sha256(blob) for tracked agent/, web/, scripts/ files}, sort_keys=True)); see temp/build/source_version.py",
   "head_ui": "75c4219"
@@ -193,12 +193,12 @@
  "validation": {
   "all_latest_cases_passed": false,
   "latest_batch": {
-   "batch": 182,
+   "batch": 183,
    "sources": [
-    "agent/src/omni/adapters/persistence/reference_release_repository.py"
+    "agent/src/omni/adapters/persistence/memory_semantic_repository.py"
    ],
-   "report": "temp/build/v2-typecheck-182-callers.xml",
-   "tests": 169
+   "report": "temp/build/v2-typecheck-183-callers.xml",
+   "tests": 57
   },
   "targeted_reports": [
    {
@@ -1847,6 +1847,15 @@
     "errors": 0,
     "duration_s": 66.14,
     "note": "P3 reference_release_repository batch: reviewed retired action-object reference release + guard/arch/reference-release/reference-release-contract/reference-migration callers; covers release-then-GC preserving every other live owner, pending-release rollback/ownership/cancellation/recovery and partial-cancel preserving committed history"
+   },
+   {
+    "path": "temp/build/v2-typecheck-183-callers.xml",
+    "sha256": "c78bb8aca54ff5dac95e585d0f51f12b2fd252d0af31d4c4d30df72a9a452757",
+    "tests": 57,
+    "failures": 0,
+    "errors": 0,
+    "duration_s": 87.29,
+    "note": "P3 memory_semantic_repository batch: derived vectors and source-bound related-fact decisions + guard/arch/memory-semantics/semantics-http/semantics-migration/semantics-ui callers; covers the model tool using hybrid recall and capturing exact memory dependencies"
    }
   ],
   "gates": {
@@ -1858,7 +1867,7 @@
   "strict": {
    "config": "pyrightconfig.strict.json",
    "summary": {
-    "filesAnalyzed": 306,
+    "filesAnalyzed": 307,
     "errorCount": 0,
     "warningCount": 0,
     "informationCount": 0
@@ -2148,7 +2157,8 @@
    "Strict scope reaches 303 files (53 domain + 44 application + 193 adapters + 13 composition); the terminal unknown-observation review repository aligns detail/page/replay/commit/history/erase-evidence receipts with the port Record contract, types the source triple as tuple[Record, Record, str] and the proof as Record, narrows review revisions to int before incrementing and evidence to str before hashing, and narrows the audit payload explicitly; only ended unknown observations being reviewable, epoch changes invalidating old proofs without deleting observations, review and audit rolling back together, metadata immutability, erasable evidence with retained hashes, receipt_unchanged always true and authorizes_replay always false are unchanged",
    "Strict scope reaches 304 files (53 domain + 44 application + 194 adapters + 13 composition); the immutable skill-version/review-state/per-run-binding repository aligns available/get/page/history/install/state/report/catalog/activate receipts with the port Record contract, keeps metadata/files at Record per the port, casts files to list[dict[str, object]] at the manifest boundary, narrows content revisions and authority epochs to int before incrementing and narrows file paths/bytes/object ids at each use; the 17-file/512KB/256-skill/128-revision/32-enabled ceilings, NFC path and case-fold dedup, object-hash consistency, required SKILL.md, install-then-disabled requiring re-review, irreversible archive, sealed run captures gaining no later authority and revocation keeping actual cost without publishing output are unchanged, with no package or filesystem access",
    "Strict scope reaches 305 files (53 domain + 44 application + 195 adapters + 13 composition); the immutable tier-policy/run-choice/promotion/actual-tool-manifest repository aligns policy/save/resolve/attach/run-route/reservation/promote/report receipts with the port Record contract, narrows nested settings.value and model.value, narrows default_mode and route.mode to str and narrows byte counts to int before differencing; tier models must be enabled, escalation is upward-only and once, requires a request_mode snapshot with a settled call, tool sets must match the baseline fingerprint, reservation refusal never reroutes or calls the provider, per-tool manifest hashes are retained and the savings claim stays schema-bytes-only rather than real cost or quality, with no model calls or I/O",
-   "Strict scope reaches 306 files (53 domain + 44 application + 196 adapters + 13 composition); the reviewed retired action-object reference-release repository aligns inspect/preview/plan/batch/validate/prepare/release/complete/cancel receipts with the port Record contract, narrows protected_reasons to list[str] and action/run/object ids layer by layer, and casts plans to the wider dict at the domain validate_reference_plan boundary; releasing only reviewed references on pruned bodies, requiring a complete pruning batch with matching fingerprint, pinned-artifact and business protections still refusing, cross-batch holding, immutable released target identity, exactly-one-row deletion, references-only deletion without touching objects or expiry, and cancellation not restoring released references are unchanged"
+   "Strict scope reaches 306 files (53 domain + 44 application + 196 adapters + 13 composition); the reviewed retired action-object reference-release repository aligns inspect/preview/plan/batch/validate/prepare/release/complete/cancel receipts with the port Record contract, narrows protected_reasons to list[str] and action/run/object ids layer by layer, and casts plans to the wider dict at the domain validate_reference_plan boundary; releasing only reviewed references on pruned bodies, requiring a complete pruning batch with matching fingerprint, pinned-artifact and business protections still refusing, cross-batch holding, immutable released target identity, exactly-one-row deletion, references-only deletion without touching objects or expiry, and cancellation not restoring released references are unchanged",
+   "Strict scope reaches 307 files (53 domain + 44 application + 197 adapters + 13 composition); the derived-vector and source-bound related-fact repository aligns capture/index-page/embedding-begin-finish/candidates/recall-validate/replay/propose/get/page/decide receipts with the port Record contract, bridges the not-yet-strict parent MemoryOrganizationRepositories._organization_capture through a local Any view per existing convention, types the proposal pair list as tuple[int, int, int], narrows dimensions and revisions to int and narrows content to str before byte accounting; derived data never rewriting facts, per-source revalidation before recall, approved duplicates leaving recall, the byte-budget gate, foreign-boot embeddings becoming failed, decisions binding revision/fingerprint/epoch and related-only-no-suppression are unchanged"
   ]
  },
  "source_recovery": {
