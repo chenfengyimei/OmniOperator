@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "cbb4fc27891dda1660c78228e9df04e620822a3bed4b04168536a8c10a6af480",
+  "source_sha256": "55788f583a64e09753e9a32e001c63c55e5d51f3902d1bb1d003ecea263ebbcd",
   "modules": [
     {
       "id": "v2-domain",
@@ -404,7 +404,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 54371,
+      "lines": 54401,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -25541,7 +25541,7 @@
       "path": "agent/src/omni/adapters/platform/linux_semantic.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.linux_semantic",
-      "lines": 200,
+      "lines": 230,
       "imports": [
         "omni.adapters.platform.linux_atspi",
         "omni.adapters.platform.linux_bus",
@@ -25552,7 +25552,7 @@
       "symbols": [
         {
           "name": "digest",
-          "line": 18,
+          "line": 22,
           "kind": "function",
           "parameters": [
             "value"
@@ -25563,7 +25563,7 @@
         },
         {
           "name": "result",
-          "line": 24,
+          "line": 28,
           "kind": "function",
           "parameters": [
             "status",
@@ -25571,17 +25571,19 @@
             "verification"
           ],
           "annotations": {
-            "status": "str"
+            "status": "str",
+            "code": "str",
+            "verification": "str"
           }
         },
         {
           "name": "Semantics",
-          "line": 33,
+          "line": 37,
           "kind": "class"
         },
         {
           "name": "Semantics.__init__",
-          "line": 34,
+          "line": 38,
           "kind": "function",
           "parameters": [
             "self",
@@ -25593,27 +25595,31 @@
         },
         {
           "name": "Semantics.interfaces",
-          "line": 37,
+          "line": 41,
           "kind": "function",
           "parameters": [
             "self",
             "ref"
           ],
-          "annotations": {}
+          "annotations": {
+            "ref": "tuple[str, str]"
+          }
         },
         {
           "name": "Semantics.facts",
-          "line": 47,
+          "line": 51,
           "kind": "function",
           "parameters": [
             "self",
             "ref"
           ],
-          "annotations": {}
+          "annotations": {
+            "ref": "tuple[str, str]"
+          }
         },
         {
           "name": "Semantics.catalogue",
-          "line": 65,
+          "line": 69,
           "kind": "function",
           "parameters": [
             "self",
@@ -25621,11 +25627,15 @@
             "parent",
             "facts"
           ],
-          "annotations": {}
+          "annotations": {
+            "ref": "tuple[str, str]",
+            "parent": "tuple[str, str] | None",
+            "facts": "Payload"
+          }
         },
         {
           "name": "Semantics.make_proof",
-          "line": 91,
+          "line": 101,
           "kind": "function",
           "parameters": [
             "path",
@@ -25633,11 +25643,16 @@
             "facts",
             "catalog"
           ],
-          "annotations": {}
+          "annotations": {
+            "path": "list[int]",
+            "trail": "Sequence[tuple[list[str], int, str]]",
+            "facts": "Payload",
+            "catalog": "Payload"
+          }
         },
         {
           "name": "Semantics.observed",
-          "line": 104,
+          "line": 116,
           "kind": "function",
           "parameters": [
             "self",
@@ -25651,13 +25666,13 @@
             "ref": "tuple[str, str]",
             "parent": "tuple[str, str] | None",
             "path": "list[int]",
-            "trail": "tuple[tuple[list[str], int, str], ...]",
-            "facts": "dict[str, object]"
+            "trail": "Sequence[tuple[list[str], int, str]]",
+            "facts": "Payload"
           }
         },
         {
           "name": "Semantics.resolve",
-          "line": 118,
+          "line": 130,
           "kind": "function",
           "parameters": [
             "self",
@@ -25665,13 +25680,13 @@
             "path"
           ],
           "annotations": {
-            "target": "dict",
+            "target": "Payload",
             "path": "list[int]"
           }
         },
         {
           "name": "Semantics.proof",
-          "line": 137,
+          "line": 153,
           "kind": "function",
           "parameters": [
             "self",
@@ -25679,13 +25694,13 @@
             "path"
           ],
           "annotations": {
-            "target": "dict",
+            "target": "Payload",
             "path": "list[int]"
           }
         },
         {
           "name": "Semantics.act",
-          "line": 144,
+          "line": 160,
           "kind": "function",
           "parameters": [
             "self",
@@ -25695,8 +25710,8 @@
             "permit"
           ],
           "annotations": {
-            "target": "dict",
-            "action": "dict"
+            "target": "Payload",
+            "action": "Payload"
           }
         }
       ],
