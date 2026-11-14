@@ -212,6 +212,7 @@
     "agent/src/omni/adapters/workers/local_vectors.py",
     "agent/src/omni/adapters/workers/main.py",
     "agent/src/omni/adapters/workers/media.py",
+    "agent/src/omni/adapters/workers/portal.py",
     "agent/src/omni/adapters/workers/protocol.py",
     "agent/src/omni/adapters/workers/service_admin_boot.py",
     "agent/src/omni/adapters/workers/terminal.py",

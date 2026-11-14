@@ -6,8 +6,9 @@ import asyncio
 import os
 import re
 import sys
-from collections.abc import Awaitable, Callable
+from collections.abc import Awaitable, Callable, Coroutine
 from pathlib import Path
+from typing import Any, cast
 
 from ...domain.contracts import BusinessError
 from ...domain.desktop_portal import LIFETIME_SECONDS, MAX_FRAME, VERSION, command, decode, encode
@@ -18,28 +19,32 @@ from ..platform.linux_session import SessionInspector
 
 
 async def run(
-    reader: asyncio.StreamReader, send: Callable[[bytes], Awaitable[None]], *, session_factory=None, frame_factory=None
+    reader: asyncio.StreamReader,
+    send: Callable[[bytes], Awaitable[None]],
+    *,
+    session_factory: Callable[[], PortalSession] | None = None,
+    frame_factory: Callable[[], FrameExecutor] | None = None,
 ) -> int:
     opening = command(decode(await reader.readline()))
     if opening["command"] != "open":
         return 2
-    scope = opening["binding"]
+    scope = cast(dict[str, str], opening["binding"])
     phase = "starting"
     stop, permitted = asyncio.Event(), asyncio.Event()
     control_error: str | None = None
-    native = None
-    tasks: list[asyncio.Task] = []
+    native: PortalSession | None = None
+    tasks: list[asyncio.Task[Any]] = []
     error: str | None = None
     clean = False
     emission = asyncio.Lock()
     frames = frame_factory() if frame_factory else FrameExecutor()
-    captures: asyncio.Queue = asyncio.Queue(maxsize=1)
+    captures: asyncio.Queue[dict[str, object]] = asyncio.Queue(maxsize=1)
 
-    async def emit(next_phase: str, *, kind="state", code=None, cleaned=False):
+    async def emit(next_phase: str, *, kind: str = "state", code: str | None = None, cleaned: bool = False) -> None:
         async with emission:
             await emit_locked(next_phase, kind=kind, code=code, cleaned=cleaned)
 
-    async def emit_locked(next_phase: str, *, kind, code, cleaned):
+    async def emit_locked(next_phase: str, *, kind: str, code: str | None, cleaned: bool) -> None:
         nonlocal phase
         if kind == "state":
             phase = next_phase
@@ -59,7 +64,7 @@ async def run(
                 )
             )
 
-    async def controls():
+    async def controls() -> None:
         nonlocal control_error
         try:
             while True:
@@ -84,7 +89,7 @@ async def run(
             control_error = "portal_protocol_invalid"
             stop.set()
 
-    async def monitor():
+    async def monitor() -> None:
         nonlocal control_error
         while True:
             await asyncio.sleep(1)
@@ -102,7 +107,7 @@ async def run(
                 stop.set()
                 return
 
-    async def until_stop(work):
+    async def until_stop(work: Coroutine[Any, Any, object]) -> bool:
         task = asyncio.create_task(work)
         tasks.append(task)
         stopped = asyncio.create_task(stop.wait())
@@ -119,17 +124,17 @@ async def run(
         await task
         return True
 
-    async def capture_frames():
+    async def capture_frames() -> None:
         assert native is not None and native.stream is not None
         count = 0
         while True:
             value = await captures.get()
             count += 1
-            if count > 4 or Path(value["capture_path"]).parent.name != value["capture_id"]:
+            if count > 4 or Path(cast(str, value["capture_path"])).parent.name != value["capture_id"]:
                 raise failure("portal_protocol_limit")
             await native.check()
             remote = await native.open_pipewire()
-            result = await frames.read(remote, native.stream[1], Path(value["capture_path"]))
+            result = await frames.read(remote, native.stream[1], Path(cast(str, value["capture_path"])))
             await native.check()
             if stop.is_set():
                 raise failure("portal_revoked")
@@ -215,7 +220,7 @@ async def pipe_main() -> int:
     descriptor = sys.stdout.fileno()
     os.set_blocking(descriptor, False)
 
-    async def send(data):
+    async def send(data: bytes) -> None:
         pending = memoryview(data)
         while pending:
             try:
@@ -224,7 +229,7 @@ async def pipe_main() -> int:
                     raise failure("portal_parent_closed")
                 pending = pending[written:]
             except BlockingIOError:
-                writable = loop.create_future()
+                writable: asyncio.Future[None] = loop.create_future()
                 loop.add_writer(descriptor, lambda: not writable.done() and writable.set_result(None))
                 try:
                     await writable
