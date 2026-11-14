@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`8ac27399ae34b9fa80f7c4c7f9c6165b0e3ffb54b77e77aac8160178e9ad7605`。包含 65 个职责模块、735 个源码/界面文件。
+源码指纹：`ed88c4ffdc3ef59adc002ee7262fffddf43d3539cd046cd1839eda1c2022ba4c`。包含 65 个职责模块、735 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -198,9 +198,9 @@
 | [agent/src/omni/adapters/persistence/mcp_repository.py](../../agent/src/omni/adapters/persistence/mcp_repository.py) | 1010 | MCP runtime generations, catalog snapshots, per-tool grants, run captures and call records. |
 | [agent/src/omni/adapters/persistence/media_repository.py](../../agent/src/omni/adapters/persistence/media_repository.py) | 334 | Scoped media sources, bounded jobs and immutable artifact rows; never reads files. |
 | [agent/src/omni/adapters/persistence/memory_organization_predicates.py](../../agent/src/omni/adapters/persistence/memory_organization_predicates.py) | 114 | One live approved-duplicate predicate for recall and new context capture; never edits memory truth. |
-| [agent/src/omni/adapters/persistence/memory_organization_repository.py](../../agent/src/omni/adapters/persistence/memory_organization_repository.py) | 584 | Bounded exact-duplicate proposals and owner review; never changes, forgets or copies memory truth. |
+| [agent/src/omni/adapters/persistence/memory_organization_repository.py](../../agent/src/omni/adapters/persistence/memory_organization_repository.py) | 622 | Bounded exact-duplicate proposals and owner review; never changes, forgets or copies memory truth. |
 | [agent/src/omni/adapters/persistence/memory_repository.py](../../agent/src/omni/adapters/persistence/memory_repository.py) | 375 | One memory truth for facts and personal documents, evidence, revisions and erasure. |
-| [agent/src/omni/adapters/persistence/memory_semantic_repository.py](../../agent/src/omni/adapters/persistence/memory_semantic_repository.py) | 419 | Derived memory vectors and source-bound related-fact decisions; never suppresses or rewrites facts. |
+| [agent/src/omni/adapters/persistence/memory_semantic_repository.py](../../agent/src/omni/adapters/persistence/memory_semantic_repository.py) | 414 | Derived memory vectors and source-bound related-fact decisions; never suppresses or rewrites facts. |
 | [agent/src/omni/adapters/persistence/migration_config.py](../../agent/src/omni/adapters/persistence/migration_config.py) | 23 | One migration-directory and expected-head lookup for startup and offline readers. |
 | [agent/src/omni/adapters/persistence/migrations/__init__.py](../../agent/src/omni/adapters/persistence/migrations/__init__.py) | 1 | Fresh V2 baseline; V1 data is never imported. |
 | [agent/src/omni/adapters/persistence/migrations/env.py](../../agent/src/omni/adapters/persistence/migrations/env.py) | 8 | Alembic environment uses the connection and exclusive ownership of its caller. |

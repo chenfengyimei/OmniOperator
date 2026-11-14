@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "8ac27399ae34b9fa80f7c4c7f9c6165b0e3ffb54b77e77aac8160178e9ad7605",
+  "source_sha256": "ed88c4ffdc3ef59adc002ee7262fffddf43d3539cd046cd1839eda1c2022ba4c",
   "modules": [
     {
       "id": "v2-domain",
@@ -404,7 +404,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 54098,
+      "lines": 54131,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -16926,11 +16926,12 @@
       "path": "agent/src/omni/adapters/persistence/memory_organization_repository.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.persistence.memory_organization_repository",
-      "lines": 584,
+      "lines": 622,
       "imports": [
         "omni.adapters.persistence",
         "omni.adapters.persistence.memory_organization_predicates",
         "omni.adapters.persistence.memory_repository",
+        "omni.application.ports",
         "omni.domain.contracts",
         "omni.domain.maintenance",
         "omni.domain.memory_organization"
@@ -16938,7 +16939,7 @@
       "symbols": [
         {
           "name": "_digest",
-          "line": 53,
+          "line": 55,
           "kind": "function",
           "parameters": [
             "value"
@@ -16949,12 +16950,12 @@
         },
         {
           "name": "MemoryOrganizationRepositories",
-          "line": 60,
+          "line": 62,
           "kind": "class"
         },
         {
           "name": "MemoryOrganizationRepositories._organization_agent",
-          "line": 61,
+          "line": 63,
           "kind": "function",
           "parameters": [
             "self",
@@ -16966,7 +16967,7 @@
         },
         {
           "name": "MemoryOrganizationRepositories._organization_epoch",
-          "line": 65,
+          "line": 67,
           "kind": "function",
           "parameters": [
             "self"
@@ -16975,21 +16976,21 @@
         },
         {
           "name": "MemoryOrganizationRepositories._organization_stale",
-          "line": 69,
+          "line": 71,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "MemoryOrganizationRepositories._organization_budget",
-          "line": 73,
+          "line": 75,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "MemoryOrganizationRepositories._organization_capture",
-          "line": 80,
+          "line": 82,
           "kind": "function",
           "parameters": [
             "self",
@@ -17009,19 +17010,19 @@
         },
         {
           "name": "MemoryOrganizationRepositories._organization_sources",
-          "line": 172,
+          "line": 186,
           "kind": "function",
           "parameters": [
             "self",
             "batch"
           ],
           "annotations": {
-            "batch": "dict"
+            "batch": "Record"
           }
         },
         {
           "name": "MemoryOrganizationRepositories._organization_manifest",
-          "line": 186,
+          "line": 200,
           "kind": "function",
           "parameters": [
             "self",
@@ -17029,13 +17030,13 @@
             "sources"
           ],
           "annotations": {
-            "batch": "dict",
-            "sources": "list[dict]"
+            "batch": "Record",
+            "sources": "list[Record]"
           }
         },
         {
           "name": "MemoryOrganizationRepositories._organization_fingerprint",
-          "line": 210,
+          "line": 227,
           "kind": "function",
           "parameters": [
             "batch",
@@ -17044,15 +17045,15 @@
             "duplicate"
           ],
           "annotations": {
-            "batch": "dict",
-            "sources": "list[dict]",
+            "batch": "Record",
+            "sources": "list[Record]",
             "keep": "str",
             "duplicate": "str"
           }
         },
         {
           "name": "MemoryOrganizationRepositories._organization_change",
-          "line": 224,
+          "line": 241,
           "kind": "function",
           "parameters": [
             "self",
@@ -17060,24 +17061,24 @@
             "**values"
           ],
           "annotations": {
-            "batch": "dict"
+            "batch": "Record"
           }
         },
         {
           "name": "MemoryOrganizationRepositories._organization_invalidate",
-          "line": 238,
+          "line": 255,
           "kind": "function",
           "parameters": [
             "self",
             "batch"
           ],
           "annotations": {
-            "batch": "dict"
+            "batch": "Record"
           }
         },
         {
           "name": "MemoryOrganizationRepositories.memory_organization_get",
-          "line": 260,
+          "line": 282,
           "kind": "function",
           "parameters": [
             "self",
@@ -17091,7 +17092,7 @@
         },
         {
           "name": "MemoryOrganizationRepositories.memory_organization_enqueue",
-          "line": 293,
+          "line": 315,
           "kind": "function",
           "parameters": [
             "self",
@@ -17100,12 +17101,12 @@
           ],
           "annotations": {
             "agent_id": "str",
-            "request": "dict"
+            "request": "Record"
           }
         },
         {
           "name": "MemoryOrganizationRepositories.memory_organization_page",
-          "line": 357,
+          "line": 381,
           "kind": "function",
           "parameters": [
             "self",
@@ -17121,7 +17122,7 @@
         },
         {
           "name": "MemoryOrganizationRepositories.memory_organization_next",
-          "line": 377,
+          "line": 401,
           "kind": "function",
           "parameters": [
             "self"
@@ -17130,7 +17131,7 @@
         },
         {
           "name": "MemoryOrganizationRepositories.memory_organization_process",
-          "line": 390,
+          "line": 414,
           "kind": "function",
           "parameters": [
             "self",
@@ -17144,7 +17145,7 @@
         },
         {
           "name": "MemoryOrganizationRepositories.memory_organization_fail",
-          "line": 438,
+          "line": 468,
           "kind": "function",
           "parameters": [
             "self",
@@ -17160,7 +17161,7 @@
         },
         {
           "name": "MemoryOrganizationRepositories.memory_organization_cancel",
-          "line": 450,
+          "line": 480,
           "kind": "function",
           "parameters": [
             "self",
@@ -17176,7 +17177,7 @@
         },
         {
           "name": "MemoryOrganizationRepositories.memory_organization_decide",
-          "line": 479,
+          "line": 509,
           "kind": "function",
           "parameters": [
             "self",
@@ -17187,7 +17188,7 @@
           "annotations": {
             "agent_id": "str",
             "candidate_id": "str",
-            "request": "dict"
+            "request": "Record"
           }
         }
       ],
@@ -17411,7 +17412,7 @@
       "path": "agent/src/omni/adapters/persistence/memory_semantic_repository.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.persistence.memory_semantic_repository",
-      "lines": 419,
+      "lines": 414,
       "imports": [
         "omni.adapters.persistence",
         "omni.adapters.persistence.memory_organization_predicates",
@@ -17465,7 +17466,7 @@
         },
         {
           "name": "MemorySemanticRepositories.memory_index_page",
-          "line": 33,
+          "line": 32,
           "kind": "function",
           "parameters": [
             "self",
@@ -17481,7 +17482,7 @@
         },
         {
           "name": "MemorySemanticRepositories.memory_embedding_begin",
-          "line": 52,
+          "line": 51,
           "kind": "function",
           "parameters": [
             "self",
@@ -17499,7 +17500,7 @@
         },
         {
           "name": "MemorySemanticRepositories.memory_embedding_finish",
-          "line": 92,
+          "line": 91,
           "kind": "function",
           "parameters": [
             "self",
@@ -17517,7 +17518,7 @@
         },
         {
           "name": "MemorySemanticRepositories.memory_semantic_recover",
-          "line": 119,
+          "line": 118,
           "kind": "function",
           "parameters": [
             "self"
@@ -17526,7 +17527,7 @@
         },
         {
           "name": "MemorySemanticRepositories.memory_vector_candidates",
-          "line": 126,
+          "line": 125,
           "kind": "function",
           "parameters": [
             "self",
@@ -17542,7 +17543,7 @@
         },
         {
           "name": "MemorySemanticRepositories.memory_recall_validate",
-          "line": 159,
+          "line": 158,
           "kind": "function",
           "parameters": [
             "self",
@@ -17558,7 +17559,7 @@
         },
         {
           "name": "MemorySemanticRepositories.memory_semantic_replay",
-          "line": 191,
+          "line": 190,
           "kind": "function",
           "parameters": [
             "self",
@@ -17572,7 +17573,7 @@
         },
         {
           "name": "MemorySemanticRepositories._semantic_sources",
-          "line": 208,
+          "line": 207,
           "kind": "function",
           "parameters": [
             "self",
@@ -17586,7 +17587,7 @@
         },
         {
           "name": "MemorySemanticRepositories.memory_semantic_propose",
-          "line": 221,
+          "line": 220,
           "kind": "function",
           "parameters": [
             "self",
@@ -17604,7 +17605,7 @@
         },
         {
           "name": "MemorySemanticRepositories.memory_semantic_get",
-          "line": 325,
+          "line": 322,
           "kind": "function",
           "parameters": [
             "self",
@@ -17620,7 +17621,7 @@
         },
         {
           "name": "MemorySemanticRepositories.memory_semantic_page",
-          "line": 364,
+          "line": 359,
           "kind": "function",
           "parameters": [
             "self",
@@ -17636,7 +17637,7 @@
         },
         {
           "name": "MemorySemanticRepositories.memory_semantic_decide",
-          "line": 383,
+          "line": 378,
           "kind": "function",
           "parameters": [
             "self",
