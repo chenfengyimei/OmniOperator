@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "55788f583a64e09753e9a32e001c63c55e5d51f3902d1bb1d003ecea263ebbcd",
+  "source_sha256": "cc21ad2b26d894601636590fffcb9881506d239263d389b0607604e19c335c22",
   "modules": [
     {
       "id": "v2-domain",
@@ -404,7 +404,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 54401,
+      "lines": 54406,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -25541,10 +25541,11 @@
       "path": "agent/src/omni/adapters/platform/linux_semantic.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.linux_semantic",
-      "lines": 230,
+      "lines": 235,
       "imports": [
         "omni.adapters.platform.linux_atspi",
         "omni.adapters.platform.linux_bus",
+        "omni.adapters.platform.linux_input",
         "omni.adapters.platform.linux_session",
         "omni.domain.contracts",
         "omni.domain.desktop_actions"
@@ -25552,7 +25553,7 @@
       "symbols": [
         {
           "name": "digest",
-          "line": 22,
+          "line": 25,
           "kind": "function",
           "parameters": [
             "value"
@@ -25563,7 +25564,7 @@
         },
         {
           "name": "result",
-          "line": 28,
+          "line": 31,
           "kind": "function",
           "parameters": [
             "status",
@@ -25578,12 +25579,12 @@
         },
         {
           "name": "Semantics",
-          "line": 37,
+          "line": 40,
           "kind": "class"
         },
         {
           "name": "Semantics.__init__",
-          "line": 38,
+          "line": 41,
           "kind": "function",
           "parameters": [
             "self",
@@ -25595,7 +25596,7 @@
         },
         {
           "name": "Semantics.interfaces",
-          "line": 41,
+          "line": 44,
           "kind": "function",
           "parameters": [
             "self",
@@ -25607,7 +25608,7 @@
         },
         {
           "name": "Semantics.facts",
-          "line": 51,
+          "line": 54,
           "kind": "function",
           "parameters": [
             "self",
@@ -25619,7 +25620,7 @@
         },
         {
           "name": "Semantics.catalogue",
-          "line": 69,
+          "line": 72,
           "kind": "function",
           "parameters": [
             "self",
@@ -25635,7 +25636,7 @@
         },
         {
           "name": "Semantics.make_proof",
-          "line": 101,
+          "line": 104,
           "kind": "function",
           "parameters": [
             "path",
@@ -25652,7 +25653,7 @@
         },
         {
           "name": "Semantics.observed",
-          "line": 116,
+          "line": 119,
           "kind": "function",
           "parameters": [
             "self",
@@ -25672,7 +25673,7 @@
         },
         {
           "name": "Semantics.resolve",
-          "line": 130,
+          "line": 133,
           "kind": "function",
           "parameters": [
             "self",
@@ -25686,7 +25687,7 @@
         },
         {
           "name": "Semantics.proof",
-          "line": 153,
+          "line": 156,
           "kind": "function",
           "parameters": [
             "self",
@@ -25700,7 +25701,7 @@
         },
         {
           "name": "Semantics.act",
-          "line": 160,
+          "line": 163,
           "kind": "function",
           "parameters": [
             "self",
@@ -25711,7 +25712,9 @@
           ],
           "annotations": {
             "target": "Payload",
-            "action": "Payload"
+            "action": "Payload",
+            "monitor": "X11Input",
+            "permit": "Callable[[], Awaitable[bool]]"
           }
         }
       ],
