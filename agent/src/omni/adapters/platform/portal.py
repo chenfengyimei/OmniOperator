@@ -321,8 +321,8 @@ class PortalBackend:
             await self._reclaim(host, 3)
             await self._changed(host)
 
-    async def _file(self, operation):
-        async def actual():
+    async def _file(self, operation: Callable[[], T]) -> T:
+        async def actual() -> T:
             try:
                 return await asyncio.get_running_loop().run_in_executor(
                     self._files, contextvars.copy_context().run, operation
@@ -333,7 +333,7 @@ class PortalBackend:
         task = asyncio.create_task(actual(), name="portal-file")
         self._file_work.add(task)
 
-        def finished(done):
+        def finished(done: asyncio.Task[T]) -> None:
             self._file_work.discard(done)
             if not done.cancelled():
                 done.exception()
@@ -341,7 +341,7 @@ class PortalBackend:
         task.add_done_callback(finished)
         return await asyncio.shield(task)
 
-    async def capture(self, scope: dict, *, before_dispatch) -> CapturedFrame:
+    async def capture(self, scope: Record, *, before_dispatch: Callable[[], Awaitable[None]]) -> CapturedFrame:
         host = self._host(scope)
         if self._closing or self._capture_root is None or not self._record(host)["capture_available"]:
             raise error(host.capture_code or "portal_frame_unavailable")
@@ -357,7 +357,7 @@ class PortalBackend:
         host.capture_task = task
         self._captures.add(task)
 
-        def finished(done):
+        def finished(done: asyncio.Task[CapturedFrame]) -> None:
             self._captures.discard(done)
             if not done.cancelled():
                 done.exception()
@@ -365,7 +365,7 @@ class PortalBackend:
         task.add_done_callback(finished)
         return await asyncio.shield(task)
 
-    async def _capture(self, host: Host, guard) -> CapturedFrame:
+    async def _capture(self, host: Host, guard: Callable[[], Awaitable[None]]) -> CapturedFrame:
         root = self._capture_root
         assert root is not None
         ticket = str(uuid.uuid4())
@@ -395,7 +395,7 @@ class PortalBackend:
                 return result
         except BaseException:
             host.stop.set()
-            await self.stop(host.binding)
+            await self.stop(cast(Record, host.binding))
             raise
         finally:
             # A late native write can only be discarded after its process is
@@ -441,7 +441,7 @@ class PortalBackend:
             host.acquired = False
         return True
 
-    async def stop(self, scope: dict) -> bool:
+    async def stop(self, scope: Record) -> bool:
         host = self._host(scope)
         host.stop.set()
         if host.runner is not None and not host.runner.done():
@@ -454,7 +454,7 @@ class PortalBackend:
         await self._changed(host)
         return result
 
-    def health(self) -> dict:
+    def health(self) -> Record:
         return {
             "admitting": len(self._opening),
             "resident": sum(h.acquired and not h.released for h in self._hosts.values()),

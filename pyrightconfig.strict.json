@@ -160,6 +160,7 @@
     "agent/src/omni/adapters/platform/macos_service_state.py",
     "agent/src/omni/adapters/platform/paths.py",
     "agent/src/omni/adapters/platform/permissions.py",
+    "agent/src/omni/adapters/platform/portal.py",
     "agent/src/omni/adapters/platform/processes.py",
     "agent/src/omni/adapters/platform/publication.py",
     "agent/src/omni/adapters/platform/release_files.py",
