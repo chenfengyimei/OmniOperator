@@ -328,7 +328,7 @@
     "id": "D7.product_switch",
     "status": "进行中",
     "design": "docs/V2_PACKAGING.md",
-    "scope": "P1 composition 全层（13/13）、P2 application/android.py 已完成（application 44/44）；随后 P2 Android 全部完成；P3 持久化起步（schema 已纳入，DDL 逐字不变）；P3 持久化 34 模块全部纳入（收官）；下一步 P4 业务大适配器。strict 已到 308 文件（domain 53/53、application 44/44、adapters 198/222、composition 13/13）。"
+    "scope": "P1 composition 全层（13/13）、P2 application/android.py 已完成（application 44/44）；随后 P2 Android 全部完成；P3 持久化起步（schema 已纳入，DDL 逐字不变）；P3 持久化 34 模块全部纳入（收官，第 45 节点全量已验收）；下一步 P4 业务大适配器。strict 已到 308 文件（domain 53/53、application 44/44、adapters 198/222、composition 13/13）。"
   },
   "milestones": [
     {

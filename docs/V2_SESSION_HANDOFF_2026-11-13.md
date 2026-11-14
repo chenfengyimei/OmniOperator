@@ -21,7 +21,7 @@ Windows 上 V2 底座**可冷启动、可自检、可服务、可跑全量测试
 | strict 门禁 | **308 文件 / 0 errors / 0 warnings** | `uv run --no-sync pyright --project pyrightconfig.strict.json` |
 | strict 分层 | 53/53 domain、**44/44 application 全层**、198/222 adapters、**13/13 composition 全层** | `docs/TYPE_CHECKING.md` |
 | 未纳入 strict | 24 个 adapters（**P3 持久化 34 模块全部纳入**，剩 P4/P5/P6）（domain/application/composition 已全层纳入） | `temp/build/probe_strict.py`（survey-remaining.py 已不在库） |
-| 全量测试（最近完成） | **4658 项：4656 passed / 2 failed / 0 errors**（`-n 2`，3899.21s，**第 40 节点**）；第 45 节点运行中 | `temp/build/v2-full-180.xml`、`docs/evidence/v2-typecheck.json` 的 `full_run` |
+| 全量测试（最近完成） | **4658 项：4652 passed / 6 failed / 0 errors**（`-n 2`，2819.15s，**第 45 节点 / P3 收官**）；6 败全归他会未提交改版，干净 HEAD 对照 4/4 过 | `temp/build/v2-full-184.xml`、`docs/evidence/v2-typecheck.json` 的 `full_run` |
 | 失败性质（第 40 节点） | 2 项均判定抖动：投递归档串行与干净 HEAD 均过；`test_v2_portal_ui` 授权为**既有 flaky**（主工作区复跑 2 次 + 干净 HEAD 3 次全过），开放项 `test.portal_ui_flaky_on_clean_head`。第 35 节点的 #agents 与 CSS 守卫两开放项已关闭 | 见 §5「验收口径」；三份报告留档 |
 | 默认入口 | `V1 until R6 parity gate` | `docs/tasks/v2.json` 的 `default_entrypoints` |
 | 台账 | `status=d7_typecheck_batch_184`、`checkpoint_commit=aa294ef`、源码指纹 `d36a1847…`（1206 文件） | `docs/tasks/v2.json` |

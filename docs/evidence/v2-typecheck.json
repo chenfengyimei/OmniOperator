@@ -1895,55 +1895,70 @@
    ]
   },
   "full_run": {
-   "status": "parallel_run_serial_and_repeat_controls_both_flaky",
-   "source": "a7a9970 (fa8f0d71); worktree also carries the parallel UI session's uncommitted front-end edits",
+   "status": "parallel_run_serial_isolation_and_clean_head_controls_all_attributed_to_parallel_session",
+   "source": "aa294ef (d36a1847); worktree carries the parallel session's UNCOMMITTED model-connection-test feature (adapters/http.py +56, composition/http.py +1, composition/instance.py +5, test_v2_navigation_ui.py, web/ui/v2/* and the new untracked web/ui/v2/models.js), which changed again mid-acceptance",
    "workers": 2,
-   "report": "temp/build/v2-full-180.xml",
-   "report_sha256": "a6c25645bb334c95438d6355b9ab723b4954c8064e2c273a0a684c2062109b85",
+   "report": "temp/build/v2-full-184.xml",
+   "report_sha256": "6327e9133c1652a61e52bb6ad6195441c2bbd2e447fb6026472e92287404daa6",
    "tests": 4658,
-   "passed": 4656,
-   "failed": 2,
+   "passed": 4652,
+   "failed": 6,
    "errors": 0,
-   "duration_s": 3899.21,
+   "duration_s": 2819.15,
    "failure_summary": {
-    "playwright_contention_or_timing_flaky": 2
+    "parallel_session_model_live_hidden": 2,
+    "parallel_session_probe_route_missing_mid_run": 1,
+    "parallel_session_extension_details_empty": 1,
+    "parallel_session_navigation_count_mid_run": 2
    },
    "serial_rerun": {
-    "report": "temp/build/v2-full-180-serial.xml",
-    "report_sha256": "6e413c87a05f11765b8c4a2e0efaeb03c7fb394c8a1d62ef0a144d89d944548b",
-    "tests": 2,
-    "passed": 1,
+    "report": "temp/build/v2-full-184-serial.xml",
+    "report_sha256": "88db4afbdbbce5a99f287fd74e8f807ce07b834c96a3b186b2fec4caac24be1e",
+    "tests": 6,
+    "passed": 5,
     "failed": 1,
     "errors": 0,
-    "duration_s": 128.12
+    "duration_s": 44.76
    },
-   "clean_head_control": {
-    "report": "temp/build/v2-full-180-clean-head.xml",
-    "report_sha256": "5082456c31bb362a55245f9ee3a6def8d3c40f21c7a3afa87547a283973d5b6d",
-    "method": "git worktree at HEAD (71e70b3) with the main interpreter and PYTHONPATH pointed at the copy",
-    "tests": 2,
-    "passed": 2,
+   "ui_isolation_rerun": {
+    "report": "temp/build/v2-full-184-ui-isolation.xml",
+    "report_sha256": "1a1352745d50f0fcd6b2ff9837db8b448846a22147236997afb5d83f850c3c63",
+    "tests": 1,
+    "passed": 1,
     "failed": 0,
     "errors": 0,
-    "duration_s": 31.57,
-    "extra_runs": "portal case additionally passed twice more on the clean copy (3/3 total)"
+    "duration_s": 8.97
+   },
+   "clean_head_control": {
+    "report": "temp/build/v2-full-184-clean-head.xml",
+    "report_sha256": "27a5f787acf0747ad9572fe8462964831e803b4be932d726ea61f2b62b7fbfcf",
+    "method": "git worktree at HEAD (ea8f20a) with the main interpreter (.venv/Scripts/python.exe -m pytest) and PYTHONPATH pointed at the copy, so neither the parallel session's uncommitted files nor any worktree edit is present; one representative per symptom family (model-live hidden, http route contract, navigation count, extension details)",
+    "tests": 4,
+    "passed": 4,
+    "failed": 0,
+    "errors": 0,
+    "duration_s": 35.09,
+    "conclusion": "all four representatives pass on clean HEAD; batches 181-184 touch only persistence (routing / reference_release / memory_semantic / memory_organization) and are not the cause"
    },
    "details": [
-    "并行仅 2 败，均为 UI 用例；第 35 节点的 14 项 #agents 不可见与 3 项 CSS 守卫本次全部通过（UI 会话已修复其工作区改动），无任何 persistence/domain/application 失败",
-    "test_v2_ui::test_delivery_draft_approval_preview_receipt_and_archive[dark-1024-delivery]：归档后列表仍 2 项（期望 1）；串行复跑通过，干净 HEAD 亦通过 —— 判定 -n 2 争用/时序抖动",
-    "test_v2_portal_ui::test_owner_selects_queries_captures_and_leaving_revokes_without_implicit_pixels：portal_consent_pending 未在 5 秒内转已授权；串行复跑一次失败，但随后主工作区连跑两次均通过，干净 HEAD 副本连跑三次全过 —— 与第 25 节点结论一致，属既有 flaky（开放项 test.portal_ui_flaky_on_clean_head），非他会改动所致、非本批回归",
-    "过程更正：串行单次失败时曾倾向归因他会未提交 desktop.js 改动，但主工作区复跑两次通过与干净副本三次全过推翻了该判断；最终以多次对照为准",
-    "结论：本批（176～180）无功能回归；2 项均为既有/并发时序抖动，已留档"
+    "并行 6 败全部落在 UI 与 HTTP 路由契约，无任何 persistence/domain/application 失败；本批（181～184）只改 persistence 层，四批专项分别 49/169/57/130 项全过",
+    "2 项 test_v2_model_stream_ui（light-390 / dark-1024，#model-live 未转可见）：失败快照的无障碍树显示左栏仍为「正在连接本机实例…」，即并行会话的本机令牌引导/模型接入改版在途；串行复跑两项均通过，判为争用抖动叠加其在途改动",
+    "1 项 test_v2_http::test_auth_chat_and_revision_contract：索引声明了 POST /api/v1/agents/{agent_id}/configurations/{config_id}/probe 而运行中的应用没有该路由（声明集多出一项）。串行转绿的真实原因是并行会话在验收期间把 configuration_probe 路由补进了其**未提交**的 adapters/http.py（现第 1191 行），不是抖动、也不是任何提交带来的修复",
+    "2 项 test_v2_navigation_ui[390/1024]：nav button[data-page] 实际 23 个而用例期望 22 个——并行会话新增了「模型接入」页；串行转绿的真实原因是该会话同期把用例期望改成 23（现第 72 行），同样属他方工作区修复",
+    "1 项 test_v2_extensions_ui::test_register_manual_trust_cas_and_disable_never_import_plugin：登记返回 201 但 #extension-details 仍为空；串行复跑仍失败，再隔离复跑通过，判为 -n 2 Playwright 争用抖动",
+    "干净 HEAD 对照 4/4 通过（含上述 HTTP 契约与导航计数两项），确证 6 项失败均非本批回归；临时副本已用 git worktree remove 清除，并行会话未提交改动完整保留",
+    "他会改动在验收期间持续变化（probe 路由与导航期望数在并行与串行之间被补齐），本报告按并行时点快照记录，串行/对照时点差异已如实注明；当前工作区 strict 门禁复验仍为 308 文件 0 errors/0 warnings（他会新增代码自带类型）",
+    "索引一致性：scripts/project_index.py --check 报 MODULES.md/API.md/project.json 陈旧，根因是并行会话**未提交**的 configuration_probe 路由与新增 web/ui/v2/models.js（本批只改 persistence，不改路由与前端）。为避免把描述他人在途代码的派生索引提交进库，本批**不重新生成索引**，留待该会话提交其改动时一并刷新；本批新增的交接文档已在上一次提交（ea8f20a）时完成索引刷新。"
    ],
-   "note": "第 40 节点（176～180 批）全量。验收口径：并行跑 + 失败项串行复跑 + 干净 HEAD 对照 + 主工作区重复复跑，全部报告留档；不将串行通过写成并行全绿（并行仍记 2 failed），不把单次失败当作稳定归属结论。strict 304 文件 0 errors/0 warnings。"
+   "note": "第 45 节点（181～184 批，P3 持久化收官）全量。验收口径：并行跑 + 全部失败项串行复跑 + 仍败项隔离复跑 + 干净 HEAD 代表对照，四份报告留档；不将串行/隔离通过写成并行全绿（并行仍记 6 failed），不把他方未提交改动导致的转绿写成抖动，也不将他人会话的在途改版写成本批回归。strict 308 文件 0 errors/0 warnings。"
   },
   "open_findings": [
    {
     "id": "test.portal_ui_flaky_on_clean_head",
     "owner": "shared-test-suite",
     "state": "open",
-    "detail": "test_v2_portal_ui::test_owner_selects_queries_captures_and_leaving_revokes_without_implicit_pixels 在第 25 与第 40 节点均出现：portal_consent_pending 未在 5 秒内转 active。第 40 节点干净 HEAD 三次全过、主工作区复跑两次全过，串行单次失败；确认为既有 flaky。建议由门户/桌面用例负责人加固等待条件或注入确定性时钟。",
-    "evidence": "temp/build/v2-full-165*.xml, v2-full-180.xml, v2-full-180-serial.xml, v2-full-180-clean-head.xml"
+    "detail": "test_v2_portal_ui::test_owner_selects_queries_captures_and_leaving_revokes_without_implicit_pixels 在第 25 与第 40 节点均出现：portal_consent_pending 未在 5 秒内转 active。第 40 节点干净 HEAD 三次全过、主工作区复跑两次全过，串行单次失败；确认为既有 flaky。建议由门户/桌面用例负责人加固等待条件或注入确定性时钟。 第 45 节点（v2-full-184.xml）该用例并行通过，未再复现；开放项保留，待用例负责人加固。",
+    "evidence": "temp/build/v2-full-165*.xml, v2-full-180.xml, v2-full-180-serial.xml, v2-full-180-clean-head.xml, v2-full-184.xml"
    }
   ],
   "next": {
@@ -2143,6 +2158,49 @@
      "他会改动在验收期间持续变化（workbench.css 从 +449 行违规到修复清零），本报告按并行时点快照记录，串行/对照时点差异已如实注明"
     ],
     "note": "第 35 节点（171～175 批）全量。验收口径：并行跑 + 全部失败项串行复跑 + 干净 HEAD 代表对照，全部报告留档；不将串行通过写成并行全绿（并行仍记 22 failed），不把他方未提交改动的确定性失败写成抖动，也不将他人会话的违规写成本批回归。strict 299 文件 0 errors/0 warnings。"
+   },
+   {
+    "status": "parallel_run_serial_and_repeat_controls_both_flaky",
+    "source": "a7a9970 (fa8f0d71); worktree also carries the parallel UI session's uncommitted front-end edits",
+    "workers": 2,
+    "report": "temp/build/v2-full-180.xml",
+    "report_sha256": "a6c25645bb334c95438d6355b9ab723b4954c8064e2c273a0a684c2062109b85",
+    "tests": 4658,
+    "passed": 4656,
+    "failed": 2,
+    "errors": 0,
+    "duration_s": 3899.21,
+    "failure_summary": {
+     "playwright_contention_or_timing_flaky": 2
+    },
+    "serial_rerun": {
+     "report": "temp/build/v2-full-180-serial.xml",
+     "report_sha256": "6e413c87a05f11765b8c4a2e0efaeb03c7fb394c8a1d62ef0a144d89d944548b",
+     "tests": 2,
+     "passed": 1,
+     "failed": 1,
+     "errors": 0,
+     "duration_s": 128.12
+    },
+    "clean_head_control": {
+     "report": "temp/build/v2-full-180-clean-head.xml",
+     "report_sha256": "5082456c31bb362a55245f9ee3a6def8d3c40f21c7a3afa87547a283973d5b6d",
+     "method": "git worktree at HEAD (71e70b3) with the main interpreter and PYTHONPATH pointed at the copy",
+     "tests": 2,
+     "passed": 2,
+     "failed": 0,
+     "errors": 0,
+     "duration_s": 31.57,
+     "extra_runs": "portal case additionally passed twice more on the clean copy (3/3 total)"
+    },
+    "details": [
+     "并行仅 2 败，均为 UI 用例；第 35 节点的 14 项 #agents 不可见与 3 项 CSS 守卫本次全部通过（UI 会话已修复其工作区改动），无任何 persistence/domain/application 失败",
+     "test_v2_ui::test_delivery_draft_approval_preview_receipt_and_archive[dark-1024-delivery]：归档后列表仍 2 项（期望 1）；串行复跑通过，干净 HEAD 亦通过 —— 判定 -n 2 争用/时序抖动",
+     "test_v2_portal_ui::test_owner_selects_queries_captures_and_leaving_revokes_without_implicit_pixels：portal_consent_pending 未在 5 秒内转已授权；串行复跑一次失败，但随后主工作区连跑两次均通过，干净 HEAD 副本连跑三次全过 —— 与第 25 节点结论一致，属既有 flaky（开放项 test.portal_ui_flaky_on_clean_head），非他会改动所致、非本批回归",
+     "过程更正：串行单次失败时曾倾向归因他会未提交 desktop.js 改动，但主工作区复跑两次通过与干净副本三次全过推翻了该判断；最终以多次对照为准",
+     "结论：本批（176～180）无功能回归；2 项均为既有/并发时序抖动，已留档"
+    ],
+    "note": "第 40 节点（176～180 批）全量。验收口径：并行跑 + 失败项串行复跑 + 干净 HEAD 对照 + 主工作区重复复跑，全部报告留档；不将串行通过写成并行全绿（并行仍记 2 failed），不把单次失败当作稳定归属结论。strict 304 文件 0 errors/0 warnings。"
    }
   ],
   "scope": [
@@ -2183,6 +2241,6 @@
  },
  "next": {
   "id": "D7.typecheck.p4_business_adapters",
-  "scope": "P1 composition 13/13, P2 android 7 modules, P3 persistence 34/34 all complete; strict 308 files, 0 errors / 0 warnings. Remaining 24 adapters measured on 2026-11-14 total 2763 errors: P4 business 10 modules 1396 (bilibili 350, workers/bilibili 300, http 177, workers/media 99, onebot 90, diagnostic_bundle 90, local_vectors 79, model_stream 76, extensions/packages 73, workers/local_vectors 62); P5 platform 11 modules 1077 (portal 202, linux_semantic 159, service_registration 116, linux_atspi 110, runtime_identity 92, linux_x11 86, service_operation_files 84, workers/portal 71, service_templates 64, deployment_files 47, workers/linux_desktop 46); P6 MCP 3 modules 290 (oauth 136, http 87, stdio 67). Node 45 full run is still in flight (report temp/build/v2-full-184.xml); next full run is node 50 at batch 189. Authoritative handoff: docs/V2_HANDOFF_2026-11-14.md. Real-environment acceptance still pending."
+  "scope": "P1 composition 13/13, P2 android 7 modules, P3 persistence 34/34 all complete; strict 308 files, 0 errors / 0 warnings. Remaining 24 adapters measured on 2026-11-14 total 2763 errors: P4 business 10 modules 1396 (bilibili 350, workers/bilibili 300, http 177, workers/media 99, onebot 90, diagnostic_bundle 90, local_vectors 79, model_stream 76, extensions/packages 73, workers/local_vectors 62); P5 platform 11 modules 1077 (portal 202, linux_semantic 159, service_registration 116, linux_atspi 110, runtime_identity 92, linux_x11 86, service_operation_files 84, workers/portal 71, service_templates 64, deployment_files 47, workers/linux_desktop 46); P6 MCP 3 modules 290 (oauth 136, http 87, stdio 67). Node 45 full run harvested: 4658 tests, 4652 passed / 6 failed, all six attributed to the parallel session's uncommitted model-connection-test work (clean-HEAD control 4/4 pass); next full run is node 50 at batch 189. Authoritative handoff: docs/V2_HANDOFF_2026-11-14.md. Real-environment acceptance still pending."
  }
 }
