@@ -20,6 +20,7 @@
     "agent/src/omni/adapters/mcp/__init__.py",
     "agent/src/omni/adapters/mcp/hosts.py",
     "agent/src/omni/adapters/mcp/http.py",
+    "agent/src/omni/adapters/mcp/oauth.py",
     "agent/src/omni/adapters/mcp/stdio.py",
     "agent/src/omni/adapters/media.py",
     "agent/src/omni/adapters/metrics.py",

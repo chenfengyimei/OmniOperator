@@ -369,6 +369,8 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 
 | `agent/src/omni/adapters/mcp/http.py` | MCP HTTP与SSE类型化，未知写入不重放 |
 
+| `agent/src/omni/adapters/mcp/oauth.py` | MCP OAuth类型收官，V2四层合同范围332文件，真实验收仍待 |
+
 `pyrightconfig.strict.json` 的 `include` 必须与本表完全一致；`agent/tests/test_v2_typecheck_scope.py` 会双向校验。
 
 ## 3. 基线例外（未纳入，不得写成已严格化）
@@ -379,13 +381,13 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 | --- | --- |
 | `agent/src/omni/domain`（全部 53 文件） | 2321 |
 
-`service_control.py`（94）已在纳入 strict 前清零；`model_stream.py`（75）、`context.py`（38）、`recovery_authority.py`（27）、`memory_semantics.py`（19）、`foreground.py`（24）、`metering.py`（19）与 `release_fence.py`（16）同样已清零，基线表中不再列逐文件例外。`application/` 已全部纳入（44/44 个模块）、`adapters/` 221 个模块；`composition/` 已全部纳入（13/13 个模块，守卫允许层已加入 composition）；`agent/tests/` 尚未开始 strict。
+`service_control.py`（94）已在纳入 strict 前清零；`model_stream.py`（75）、`context.py`（38）、`recovery_authority.py`（27）、`memory_semantics.py`（19）、`foreground.py`（24）、`metering.py`（19）与 `release_fence.py`（16）同样已清零，基线表中不再列逐文件例外。`application/` 已全部纳入（44/44 个模块）、`adapters/` 222 个模块；`composition/` 已全部纳入（13/13 个模块，守卫允许层已加入 composition）；`agent/tests/` 尚未开始 strict。
 
-### 3.1 剩余 adapters（第 213 批）
+### 3.1 剩余 adapters（第 214 批）
 
-当前还有 **1 个 adapters 文件未纳入 strict**。错误数随源码变化，动手前用 `temp/build/probe_strict.py <file>` 复测；历史错误数不作为当前门禁。
+当前还有 **0 个 adapters 文件未纳入 strict**。错误数随源码变化，动手前用 `temp/build/probe_strict.py <file>` 复测；历史错误数不作为当前门禁。
 
-- `agent/src/omni/adapters/mcp/oauth.py`
+
 
 ## 4. 推进规则
 

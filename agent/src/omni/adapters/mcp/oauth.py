@@ -17,7 +17,7 @@ import logging
 import secrets as random_secrets
 import time
 from collections.abc import Callable
-from typing import Any
+from typing import Any, cast
 from urllib.parse import urlencode, urlsplit, urlunsplit
 
 import httpx
@@ -27,6 +27,7 @@ from ...domain.contracts import BusinessError
 from ...domain.mcp import OAUTH_TTL_S, ServerTarget, oauth_reference
 
 log = logging.getLogger("omni.v2.mcp.oauth")
+Packet = dict[str, Any]
 
 MAX_PENDING = 4
 MAX_METADATA_BYTES = 96 * 1024
@@ -98,7 +99,7 @@ class OAuthTokens:
         self._client_factory = client_factory or httpx.AsyncClient
         self._redact = redact
 
-    async def load(self, server_id: str) -> dict:
+    async def load(self, server_id: str) -> Packet:
         raw = await self._secrets.get(oauth_reference(server_id))
         if not raw:
             return {}
@@ -106,9 +107,9 @@ class OAuthTokens:
             parsed = json.loads(raw)
         except (ValueError, TypeError):
             return {}
-        return parsed if isinstance(parsed, dict) else {}
+        return cast(Packet, parsed) if isinstance(parsed, dict) else {}
 
-    async def save(self, server_id: str, value: dict) -> None:
+    async def save(self, server_id: str, value: Packet) -> None:
         token = str(value.get("access_token") or "")
         if token:
             if len(token.encode("utf-8")) > MAX_TOKEN_BYTES:
@@ -122,7 +123,7 @@ class OAuthTokens:
     async def clear(self, server_id: str) -> None:
         await self._secrets.delete(oauth_reference(server_id))
 
-    async def client(self, server_id: str) -> dict:
+    async def client(self, server_id: str) -> Packet:
         raw = await self._secrets.get(CLIENT_REFERENCE.format(server_id=server_id))
         if not raw:
             return {}
@@ -130,9 +131,9 @@ class OAuthTokens:
             parsed = json.loads(raw)
         except (ValueError, TypeError):
             return {}
-        return parsed if isinstance(parsed, dict) else {}
+        return cast(Packet, parsed) if isinstance(parsed, dict) else {}
 
-    async def save_client(self, server_id: str, value: dict) -> None:
+    async def save_client(self, server_id: str, value: Packet) -> None:
         await self._secrets.set(CLIENT_REFERENCE.format(server_id=server_id), json.dumps(value, ensure_ascii=False))
 
     async def access_token(self, server_id: str) -> str:
@@ -151,7 +152,7 @@ class OAuthTokens:
                 return refreshed
         return token
 
-    async def _refresh(self, server_id: str, value: dict) -> str:
+    async def _refresh(self, server_id: str, value: Packet) -> str:
         refresh_token = str(value.get("refresh_token") or "")
         endpoint = str(value.get("token_endpoint") or "")
         client_id = str(value.get("client_id") or "")
@@ -165,7 +166,7 @@ class OAuthTokens:
         if value.get("client_secret"):
             form["client_secret"] = str(value["client_secret"])
         try:
-            payload = await self._post_form(endpoint, form)
+            payload = await self.post_form(endpoint, form)
         except BusinessError:
             log.warning("MCP OAuth refresh failed", extra={"event": "mcp.oauth_refresh_failed"})
             return ""
@@ -181,7 +182,7 @@ class OAuthTokens:
         await self.save(server_id, updated)
         return token
 
-    async def _post_form(self, endpoint: str, form: dict) -> dict:
+    async def post_form(self, endpoint: str, form: dict[str, str]) -> Packet:
         client = self._client_factory(
             trust_env=False,
             follow_redirects=False,
@@ -205,7 +206,7 @@ class OAuthTokens:
             raise BusinessError("mcp_oauth_token_invalid", "Token endpoint returned invalid JSON", status=502) from None
         if not isinstance(parsed, dict):
             raise BusinessError("mcp_oauth_token_invalid", "Token endpoint returned an invalid object", status=502)
-        return parsed
+        return cast(Packet, parsed)
 
 
 class OAuthFlow:
@@ -220,10 +221,10 @@ class OAuthFlow:
     ) -> None:
         self.tokens = OAuthTokens(secrets, client_factory=client_factory, redact=redact)
         self._client_factory = client_factory or httpx.AsyncClient
-        self._pending: dict[str, dict] = {}
+        self._pending: dict[str, Packet] = {}
         self._lock = asyncio.Lock()
 
-    async def _fetch(self, url: str) -> dict:
+    async def _fetch(self, url: str) -> Packet:
         client = self._client_factory(
             trust_env=False,
             follow_redirects=False,
@@ -251,23 +252,23 @@ class OAuthFlow:
             raise BusinessError("mcp_oauth_discovery_failed", "OAuth metadata was not JSON", status=502) from None
         if not isinstance(parsed, dict):
             raise BusinessError("mcp_oauth_discovery_failed", "OAuth metadata was not an object", status=502)
-        return parsed
+        return cast(Packet, parsed)
 
-    async def _metadata(self, endpoint: str) -> tuple[str, dict]:
+    async def _metadata(self, endpoint: str) -> tuple[str, Packet]:
         url = urlsplit(endpoint)
         origin = urlunsplit((url.scheme, url.netloc, "", "", ""))
         candidates = [origin + "/.well-known/oauth-protected-resource"]
         if url.path not in {"", "/"}:
             candidates.insert(0, origin + "/.well-known/oauth-protected-resource" + url.path.rstrip("/"))
-        resource: dict = {}
+        resource: Packet = {}
         for candidate in candidates:
             try:
                 resource = await self._fetch(candidate)
                 break
             except BusinessError:
                 continue
-        servers = resource.get("authorization_servers")
-        if not isinstance(servers, list) or not servers or not isinstance(servers[0], str):
+        servers = cast(list[object], resource.get("authorization_servers"))
+        if not isinstance(cast(object, servers), list) or not servers or not isinstance(servers[0], str):
             raise BusinessError(
                 "mcp_oauth_discovery_failed", "The MCP server does not advertise an authorization server", status=502
             )
@@ -279,7 +280,7 @@ class OAuthFlow:
             ) from None
         issuer_url = urlsplit(issuer)
         issuer_origin = urlunsplit((issuer_url.scheme, issuer_url.netloc, "", "", ""))
-        metadata: dict = {}
+        metadata: Packet = {}
         for candidate in (
             issuer_origin + "/.well-known/oauth-authorization-server",
             issuer_origin + "/.well-known/openid-configuration",
@@ -295,7 +296,7 @@ class OAuthFlow:
             )
         return issuer, metadata
 
-    async def _client(self, target: ServerTarget, metadata: dict, redirect_uri: str) -> dict:
+    async def _client(self, target: ServerTarget, metadata: Packet, redirect_uri: str) -> Packet:
         stored = await self.tokens.client(target.server_id)
         if stored.get("client_id"):
             return stored
@@ -340,12 +341,12 @@ class OAuthFlow:
             raise BusinessError(
                 "mcp_oauth_registration_failed", "Registration response was invalid", status=502
             ) from None
-        client_id = parsed.get("client_id") if isinstance(parsed, dict) else None
+        client_id = cast(Packet, parsed).get("client_id") if isinstance(parsed, dict) else None
         if not isinstance(client_id, str) or not 1 <= len(client_id) <= 200:
             raise BusinessError("mcp_oauth_registration_failed", "Registration returned no client id", status=502)
         value = {"client_id": client_id}
-        if isinstance(parsed.get("client_secret"), str):
-            value["client_secret"] = parsed["client_secret"][:MAX_TOKEN_BYTES]
+        if isinstance(cast(Packet, parsed).get("client_secret"), str):
+            value["client_secret"] = cast(str, cast(Packet, parsed)["client_secret"])[:MAX_TOKEN_BYTES]
         await self.tokens.save_client(target.server_id, value)
         return value
 
@@ -377,7 +378,9 @@ class OAuthFlow:
         )
         scopes = metadata.get("scopes_supported")
         scope = (
-            " ".join(item for item in scopes[:8] if isinstance(item, str) and item) if isinstance(scopes, list) else ""
+            " ".join(item for item in cast(list[object], scopes)[:8] if isinstance(item, str) and item)
+            if isinstance(scopes, list)
+            else ""
         )
         query = {
             "response_type": "code",
@@ -420,7 +423,7 @@ class OAuthFlow:
         }
 
     async def callback(self, state: str, code: str) -> dict[str, Any]:
-        if not isinstance(state, str) or not 1 <= len(state) <= 200:
+        if not isinstance(cast(object, state), str) or not 1 <= len(state) <= 200:
             raise BusinessError("mcp_oauth_state_invalid", "Unknown or expired OAuth state", status=409)
         async with self._lock:
             match = None
@@ -437,7 +440,7 @@ class OAuthFlow:
                     "mcp_oauth_state_expired", "The authorization request expired; start again", status=409
                 )
         if (
-            not isinstance(code, str)
+            not isinstance(cast(object, code), str)
             or not 1 <= len(code) <= 4096
             or any(ord(char) < 33 or ord(char) > 126 for char in code)
         ):
@@ -451,7 +454,7 @@ class OAuthFlow:
         }
         if value.get("client_secret"):
             form["client_secret"] = value["client_secret"]
-        payload = await self.tokens._post_form(value["token_endpoint"], form)
+        payload = await self.tokens.post_form(value["token_endpoint"], form)
         token = payload.get("access_token")
         if not isinstance(token, str) or not token:
             raise BusinessError("mcp_oauth_token_invalid", "The token endpoint returned no access token", status=502)
