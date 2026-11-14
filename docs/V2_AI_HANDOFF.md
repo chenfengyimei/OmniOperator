@@ -2,7 +2,7 @@
 
 > 最近全量接续（第 55 节点，第 194 批）：原始 **4658 passed / 5 failed / 0 errors / 0 skipped**；固定提交 102cf4a6，后续源码不在本次范围。3项wheel失败归验证器PYTHONPATH污染，纠正后通过；2项UI分别串行/隔离通过并完成两轮基线对照，仍保留开放观察。详见证据台账，不记并行全绿。
 
-> strict 当前接续（2026-11-15，第 208 批）：**327 文件 / 0 errors / 0 warnings**；adapters **217/222**，剩 **5** 个模块。最新 `agent/src/omni/adapters/platform/linux_semantic.py`：Linux 语义动作类型收官，输入屏障、再证明与unknown语义不变。相关专项 **125 项通过 / 0 项失败**，源码 `b9be4700`；最近全量记录为第 55 节点（4658 passed / 5 failed），仅代表其固定源码；下一全量节点第 209 批。默认正式入口仍是 V1，真实验收未完成。
+> strict 当前接续（2026-11-15，第 209 批）：**327 文件 / 0 errors / 0 warnings**；adapters **217/222**，剩 **5** 个模块。最新 `agent/src/omni/adapters/platform/portal.py`：Portal会话与元数据协议类型化（第一步，46项文件与采集诊断待续）。该模块分步收口，尚有 46 项 strict 诊断，未纳入门禁；相关专项 **109 项通过 / 1 项失败**，源码 `b4f9155f`；最近全量记录为第 55 节点（4658 passed / 5 failed），仅代表其固定源码；下一全量节点第 209 批。默认正式入口仍是 V1，真实验收未完成。
 
 交接日期：2026-11-10（Asia/Shanghai），2026-11-14 更新进度段。本文是交接时点的快照；后续以 `docs/tasks/v2.json`、当前源码和 `docs/evidence/` 共同核验。不要用文件修改时间推断功能完成度。
 

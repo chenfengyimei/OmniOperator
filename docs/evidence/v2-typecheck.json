@@ -1,14 +1,14 @@
 {
  "schema": 1,
- "batch": 208,
+ "batch": 209,
  "date": "2026-11-15",
  "whole_v2_complete": false,
  "d7_complete": false,
  "default_entrypoint": "v1",
  "source": {
-  "code_version": "3cdb7c309941878879225d20bd4658c8df3093fae0e4a8fcafe70f05fabbca45",
+  "code_version": "39b6b8a1ae177ab65e0c5076ceaa61fec5857943b788f3b3dc96a52dc1aabc0b",
   "fixed_source_files": 1208,
-  "git_head": "b9be4700",
+  "git_head": "b4f9155f",
   "dirty_checkout": true,
   "recipe": "sha256(json.dumps({path: sha256(blob) for tracked agent/, web/, scripts/ files}, sort_keys=True)); see temp/build/source_version.py",
   "head_ui": "75c4219",
@@ -197,13 +197,18 @@
  "validation": {
   "all_latest_cases_passed": false,
   "latest_batch": {
-   "batch": 208,
+   "batch": 209,
    "sources": [
-    "agent/src/omni/adapters/platform/linux_semantic.py"
+    "agent/src/omni/adapters/platform/portal.py"
    ],
-   "report": "temp/build/v2-typecheck-208-callers.xml",
-   "tests": 125,
-   "included_in_strict_scope": true
+   "report": "temp/build/v2-typecheck-209-callers.xml",
+   "tests": 110,
+   "included_in_strict_scope": false,
+   "module_complete": false,
+   "remaining_strict_errors": 46,
+   "initial_failure_rerun_report": "temp/build/v2-typecheck-209-ui-rerun.xml",
+   "latest_unique_passed": 110,
+   "original_failed": 1
   },
   "targeted_reports": [
    {
@@ -2167,14 +2172,34 @@
     "skipped": 0,
     "duration_s": 55.595,
     "note": "Batch 208: strict 327 files (53 domain, 44 application, 217/222 adapters, 13 composition); Linux 语义动作类型收官，输入屏障、再证明与unknown语义不变"
+   },
+   {
+    "path": "temp/build/v2-typecheck-209-callers.xml",
+    "sha256": "047e140a67324ca1e39e7a2d95cec734bbdbefcdcc534f946d830953693c0c64",
+    "tests": 110,
+    "failures": 1,
+    "errors": 0,
+    "skipped": 0,
+    "duration_s": 62.643,
+    "note": "Batch 209: strict 327 files (53 domain, 44 application, 217/222 adapters, 13 composition); Portal会话与元数据协议类型化（第一步，46项文件与采集诊断待续）; Exact serial rerun of the already-open portal_consent_pending UI case passed without a source change. Original targeted failure remains recorded, and the known finding stays open."
+   },
+   {
+    "path": "temp/build/v2-typecheck-209-ui-rerun.xml",
+    "sha256": "03794f35ba8be537c5f3a8056e29a12114b857ea069baf2ab88d1f0151fbe06b",
+    "tests": 1,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "duration_s": 11.133,
+    "note": "Exact serial rerun of the already-open portal_consent_pending UI case passed without a source change. Original targeted failure remains recorded, and the known finding stays open."
    }
   ],
   "gates": {
-   "path": "temp/build/v2-typecheck-208-gates.json",
-   "sha256": "79d178b99bad15cbe5b6926fe06c8e310d241aa1e6f88e94548b8750a1e7c801",
+   "path": "temp/build/v2-typecheck-209-gates.json",
+   "sha256": "3b925988d6bf0fe19ceee68acef157fee9a5fb1676a26bc8df15c91163812fc0",
    "passed": 5,
    "total": 5,
-   "batch": 208
+   "batch": 209
   },
   "strict": {
    "config": "pyrightconfig.strict.json",
@@ -2183,7 +2208,7 @@
     "errorCount": 0,
     "warningCount": 0,
     "informationCount": 0,
-    "timeInSec": 18.788
+    "timeInSec": 19.291
    }
   },
   "default_pyright": {
@@ -2192,10 +2217,10 @@
     "errorCount": 0,
     "warningCount": 0,
     "informationCount": 0,
-    "timeInSec": 0.464
+    "timeInSec": 0.845
    },
    "sources": [
-    "agent/src/omni/adapters/platform/linux_semantic.py"
+    "agent/src/omni/adapters/platform/portal.py"
    ]
   },
   "full_run": {
@@ -2297,7 +2322,14 @@
     "detail": "test_v2_portal_ui::test_owner_selects_queries_captures_and_leaving_revokes_without_implicit_pixels 在第 25 与第 40 节点均出现：portal_consent_pending 未在 5 秒内转 active。第 40 节点干净 HEAD 三次全过、主工作区复跑两次全过，串行单次失败；确认为既有 flaky。建议由门户/桌面用例负责人加固等待条件或注入确定性时钟。 第 45 节点（v2-full-184.xml）该用例并行通过，未再复现；开放项保留，待用例负责人加固。",
     "evidence": "temp/build/v2-full-165*.xml, v2-full-180.xml, v2-full-180-serial.xml, v2-full-180-clean-head.xml, v2-full-184.xml",
     "node_50_observation": "Reproduced in the parallel full run with portal_consent_pending; exact nodeid passes serially. Existing intermittent finding remains open pending its owner's hardening.",
-    "node_50_report": "temp/build/v2-full-189.xml"
+    "node_50_report": "temp/build/v2-full-189.xml",
+    "latest_targeted_observation": {
+     "batch": 209,
+     "original_report": "temp/build/v2-typecheck-209-callers.xml",
+     "original_failed": 1,
+     "rerun": "temp/build/v2-typecheck-209-ui-rerun.xml",
+     "rerun_passed": 1
+    }
    },
    {
     "id": "test.extensions_ui_concurrent_selection",
@@ -2740,7 +2772,8 @@
    "Batch 205: strict 325 files (53 domain, 44 application, 215/222 adapters, 13 composition); 用户服务注册类型化，保留原故障注入别名与固定命令语义",
    "Batch 206: strict 326 files (53 domain, 44 application, 216/222 adapters, 13 composition); Portal worker类型化，显式授权、帧请求与清理时限不变",
    "Batch 207: strict 326 files (53 domain, 44 application, 216/222 adapters, 13 composition); Linux 语义证明与动作数据收窄（第一步，8项原生回调诊断待续）",
-   "Batch 208: strict 327 files (53 domain, 44 application, 217/222 adapters, 13 composition); Linux 语义动作类型收官，输入屏障、再证明与unknown语义不变"
+   "Batch 208: strict 327 files (53 domain, 44 application, 217/222 adapters, 13 composition); Linux 语义动作类型收官，输入屏障、再证明与unknown语义不变",
+   "Batch 209: strict 327 files (53 domain, 44 application, 217/222 adapters, 13 composition); Portal会话与元数据协议类型化（第一步，46项文件与采集诊断待续）"
   ],
   "next_full_checkpoint": 209,
   "full_checkpoints_frozen": [

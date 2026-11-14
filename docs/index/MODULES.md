@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`cc21ad2b26d894601636590fffcb9881506d239263d389b0607604e19c335c22`。包含 65 个职责模块、736 个源码/界面文件。
+源码指纹：`0bd5d362c38e638345df49581ea3dfdcd8ccf677ba63a52dc2a7b46e8001617f`。包含 65 个职责模块、736 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -297,7 +297,7 @@
 | [agent/src/omni/adapters/platform/macos_service_state.py](../../agent/src/omni/adapters/platform/macos_service_state.py) | 101 | Pure bounded launchd definition and override comparison shared by owner and administrator ports. |
 | [agent/src/omni/adapters/platform/paths.py](../../agent/src/omni/adapters/platform/paths.py) | 157 | Resolve writable instance paths independently from installed code and cwd. |
 | [agent/src/omni/adapters/platform/permissions.py](../../agent/src/omni/adapters/platform/permissions.py) | 159 | Current-owner private files on POSIX and NTFS; never changes ancestor ACLs. |
-| [agent/src/omni/adapters/platform/portal.py](../../agent/src/omni/adapters/platform/portal.py) | 495 | Owned long-lived Portal helper sessions with shared desktop capacity and bounded metadata pipes; no pixel or input dispatch. |
+| [agent/src/omni/adapters/platform/portal.py](../../agent/src/omni/adapters/platform/portal.py) | 506 | Owned long-lived Portal helper sessions with shared desktop capacity and bounded metadata pipes; no pixel or input dispatch. |
 | [agent/src/omni/adapters/platform/processes.py](../../agent/src/omni/adapters/platform/processes.py) | 214 | Owned process groups and Windows Job Objects. Never terminate an unverified PID. |
 | [agent/src/omni/adapters/platform/publication.py](../../agent/src/omni/adapters/platform/publication.py) | 70 | Atomic, exclusive directory publication on the supported hosts; never replaces an existing target. |
 | [agent/src/omni/adapters/platform/release_files.py](../../agent/src/omni/adapters/platform/release_files.py) | 411 | Private release journals, installation bytes and startup fences; no database or native registration. |

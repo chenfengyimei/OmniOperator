@@ -284,9 +284,9 @@
    ]
   }
  ],
- "checkpoint_commit": "b9be4700",
+ "checkpoint_commit": "b4f9155f",
  "current_validation": {
-  "status": "d7_typecheck_batch_208",
+  "status": "d7_typecheck_batch_209",
   "targeted_unique_passed": 228,
   "includes_browser_cases": 10,
   "current_full_passed": false,
@@ -343,7 +343,7 @@
     ]
    }
   ],
-  "code_version": "3cdb7c309941878879225d20bd4658c8df3093fae0e4a8fcafe70f05fabbca45",
+  "code_version": "39b6b8a1ae177ab65e0c5076ceaa61fec5857943b788f3b3dc96a52dc1aabc0b",
   "fixed_source_files": 1208,
   "baseline_repair_evidence": "docs/evidence/v2-baseline-repair.json",
   "market_evidence": "docs/evidence/v2-extension-market.json",

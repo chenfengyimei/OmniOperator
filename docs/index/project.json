@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "cc21ad2b26d894601636590fffcb9881506d239263d389b0607604e19c335c22",
+  "source_sha256": "0bd5d362c38e638345df49581ea3dfdcd8ccf677ba63a52dc2a7b46e8001617f",
   "modules": [
     {
       "id": "v2-domain",
@@ -404,7 +404,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 54406,
+      "lines": 54417,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -27077,11 +27077,12 @@
       "path": "agent/src/omni/adapters/platform/portal.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.portal",
-      "lines": 495,
+      "lines": 506,
       "imports": [
         "omni.adapters.platform",
         "omni.adapters.platform.desktop",
         "omni.adapters.platform.processes",
+        "omni.application.ports",
         "omni.domain.contracts",
         "omni.domain.desktop",
         "omni.domain.desktop_portal"
@@ -27089,7 +27090,7 @@
       "symbols": [
         {
           "name": "error",
-          "line": 37,
+          "line": 41,
           "kind": "function",
           "parameters": [
             "code"
@@ -27100,17 +27101,17 @@
         },
         {
           "name": "Host",
-          "line": 42,
+          "line": 46,
           "kind": "class"
         },
         {
           "name": "PortalBackend",
-          "line": 70,
+          "line": 74,
           "kind": "class"
         },
         {
           "name": "PortalBackend.__init__",
-          "line": 71,
+          "line": 75,
           "kind": "function",
           "parameters": [
             "self",
@@ -27119,25 +27120,26 @@
             "capture_root"
           ],
           "annotations": {
+            "process_factory": "Callable[..., Coroutine[Any, Any, OwnedProcess]] | None",
             "capacity": "asyncio.Semaphore | None",
             "capture_root": "Path | None"
           }
         },
         {
           "name": "PortalBackend._host",
-          "line": 85,
+          "line": 93,
           "kind": "function",
           "parameters": [
             "self",
             "scope"
           ],
           "annotations": {
-            "scope": "dict"
+            "scope": "Record"
           }
         },
         {
           "name": "PortalBackend._record",
-          "line": 92,
+          "line": 100,
           "kind": "function",
           "parameters": [
             "self",
@@ -27149,7 +27151,7 @@
         },
         {
           "name": "PortalBackend._changed",
-          "line": 110,
+          "line": 118,
           "kind": "function",
           "parameters": [
             "self",
@@ -27161,19 +27163,19 @@
         },
         {
           "name": "PortalBackend.status",
-          "line": 115,
+          "line": 123,
           "kind": "function",
           "parameters": [
             "self",
             "scope"
           ],
           "annotations": {
-            "scope": "dict"
+            "scope": "Record"
           }
         },
         {
           "name": "PortalBackend.wait",
-          "line": 118,
+          "line": 126,
           "kind": "function",
           "parameters": [
             "self",
@@ -27181,13 +27183,13 @@
             "revision"
           ],
           "annotations": {
-            "scope": "dict",
+            "scope": "Record",
             "revision": "int"
           }
         },
         {
           "name": "PortalBackend.open",
-          "line": 124,
+          "line": 132,
           "kind": "function",
           "parameters": [
             "self",
@@ -27195,12 +27197,13 @@
             "before_dispatch"
           ],
           "annotations": {
-            "scope": "dict"
+            "scope": "Record",
+            "before_dispatch": "Callable[[], Awaitable[None]]"
           }
         },
         {
           "name": "PortalBackend._admit",
-          "line": 140,
+          "line": 148,
           "kind": "function",
           "parameters": [
             "self",
@@ -27208,12 +27211,13 @@
             "before_dispatch"
           ],
           "annotations": {
-            "scope": "dict"
+            "scope": "Record",
+            "before_dispatch": "Callable[[], Awaitable[None]]"
           }
         },
         {
           "name": "PortalBackend._send",
-          "line": 177,
+          "line": 185,
           "kind": "function",
           "parameters": [
             "self",
@@ -27228,7 +27232,7 @@
         },
         {
           "name": "PortalBackend._stdout",
-          "line": 186,
+          "line": 194,
           "kind": "function",
           "parameters": [
             "self",
@@ -27240,7 +27244,7 @@
         },
         {
           "name": "PortalBackend._stderr",
-          "line": 227,
+          "line": 238,
           "kind": "function",
           "parameters": [
             "self",
@@ -27252,7 +27256,7 @@
         },
         {
           "name": "PortalBackend._watchdog",
-          "line": 236,
+          "line": 247,
           "kind": "function",
           "parameters": [
             "self",
@@ -27264,7 +27268,7 @@
         },
         {
           "name": "PortalBackend._run",
-          "line": 246,
+          "line": 257,
           "kind": "function",
           "parameters": [
             "self",
@@ -27272,12 +27276,13 @@
             "guard"
           ],
           "annotations": {
-            "host": "Host"
+            "host": "Host",
+            "guard": "Callable[[], Awaitable[None]]"
           }
         },
         {
           "name": "PortalBackend._file",
-          "line": 313,
+          "line": 324,
           "kind": "function",
           "parameters": [
             "self",
@@ -27287,14 +27292,14 @@
         },
         {
           "name": "PortalBackend._file.actual",
-          "line": 314,
+          "line": 325,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "PortalBackend._file.finished",
-          "line": 325,
+          "line": 336,
           "kind": "function",
           "parameters": [
             "done"
@@ -27303,7 +27308,7 @@
         },
         {
           "name": "PortalBackend.capture",
-          "line": 333,
+          "line": 344,
           "kind": "function",
           "parameters": [
             "self",
@@ -27316,7 +27321,7 @@
         },
         {
           "name": "PortalBackend.capture.finished",
-          "line": 349,
+          "line": 360,
           "kind": "function",
           "parameters": [
             "done"
@@ -27325,7 +27330,7 @@
         },
         {
           "name": "PortalBackend._capture",
-          "line": 357,
+          "line": 368,
           "kind": "function",
           "parameters": [
             "self",
@@ -27338,7 +27343,7 @@
         },
         {
           "name": "PortalBackend._reclaim",
-          "line": 398,
+          "line": 409,
           "kind": "function",
           "parameters": [
             "self",
@@ -27352,7 +27357,7 @@
         },
         {
           "name": "PortalBackend._reclaim_actual",
-          "line": 406,
+          "line": 417,
           "kind": "function",
           "parameters": [
             "self",
@@ -27366,7 +27371,7 @@
         },
         {
           "name": "PortalBackend.stop",
-          "line": 433,
+          "line": 444,
           "kind": "function",
           "parameters": [
             "self",
@@ -27378,7 +27383,7 @@
         },
         {
           "name": "PortalBackend.health",
-          "line": 446,
+          "line": 457,
           "kind": "function",
           "parameters": [
             "self"
@@ -27387,7 +27392,7 @@
         },
         {
           "name": "PortalBackend.stop_accepting",
-          "line": 464,
+          "line": 475,
           "kind": "function",
           "parameters": [
             "self"
@@ -27396,7 +27401,7 @@
         },
         {
           "name": "PortalBackend.close",
-          "line": 469,
+          "line": 480,
           "kind": "function",
           "parameters": [
             "self",
