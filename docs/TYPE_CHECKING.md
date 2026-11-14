@@ -347,6 +347,8 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 
 | `agent/src/omni/adapters/platform/linux_x11.py` | X11 目标核验与采集适配器类型化，原生证明和像素边界不变 |
 
+| `agent/src/omni/adapters/platform/deployment_files.py` | 部署文件类型化与公共发布入口，保留私有注入点及原子文件语义 |
+
 `pyrightconfig.strict.json` 的 `include` 必须与本表完全一致；`agent/tests/test_v2_typecheck_scope.py` 会双向校验。
 
 ## 3. 基线例外（未纳入，不得写成已严格化）
@@ -357,16 +359,15 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 | --- | --- |
 | `agent/src/omni/domain`（全部 53 文件） | 2321 |
 
-`service_control.py`（94）已在纳入 strict 前清零；`model_stream.py`（75）、`context.py`（38）、`recovery_authority.py`（27）、`memory_semantics.py`（19）、`foreground.py`（24）、`metering.py`（19）与 `release_fence.py`（16）同样已清零，基线表中不再列逐文件例外。`application/` 已全部纳入（44/44 个模块）、`adapters/` 210 个模块；`composition/` 已全部纳入（13/13 个模块，守卫允许层已加入 composition）；`agent/tests/` 尚未开始 strict。
+`service_control.py`（94）已在纳入 strict 前清零；`model_stream.py`（75）、`context.py`（38）、`recovery_authority.py`（27）、`memory_semantics.py`（19）、`foreground.py`（24）、`metering.py`（19）与 `release_fence.py`（16）同样已清零，基线表中不再列逐文件例外。`application/` 已全部纳入（44/44 个模块）、`adapters/` 211 个模块；`composition/` 已全部纳入（13/13 个模块，守卫允许层已加入 composition）；`agent/tests/` 尚未开始 strict。
 
-### 3.1 剩余 adapters（第 200 批）
+### 3.1 剩余 adapters（第 201 批）
 
-当前还有 **12 个 adapters 文件未纳入 strict**。错误数随源码变化，动手前用 `temp/build/probe_strict.py <file>` 复测；历史错误数不作为当前门禁。
+当前还有 **11 个 adapters 文件未纳入 strict**。错误数随源码变化，动手前用 `temp/build/probe_strict.py <file>` 复测；历史错误数不作为当前门禁。
 
 - `agent/src/omni/adapters/mcp/http.py`
 - `agent/src/omni/adapters/mcp/oauth.py`
 - `agent/src/omni/adapters/mcp/stdio.py`
-- `agent/src/omni/adapters/platform/deployment_files.py`
 - `agent/src/omni/adapters/platform/linux_semantic.py`
 - `agent/src/omni/adapters/platform/portal.py`
 - `agent/src/omni/adapters/platform/runtime_identity.py`
@@ -384,8 +385,8 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 4. 不允许用 `# type: ignore`/`# pyright: ignore` 掩盖真实错误；确需忽略时必须在类型检查文档写明原因与范围。
    - 目前唯一的忽略：`agent/src/omni/adapters/platform/event_loop.py` 中 `from asyncio.proactor_events import ...` 一行带 `# pyright: ignore[reportPrivateUsage]`。CPython 未公开 proactor 传输类，绕过导入就无法子类化该传输；范围仅限该导入行，同一文件的其余私有成员访问用 `Any` 桥接（协议仍保留形状说明）而不是忽略。
 5. 全仓 strict 完成前，任何报告不得写“全仓严格类型已通过”。
-6. 已知前置阻塞（纳入 strict 前必须先处理）：
-   - `agent/src/omni/adapters/platform/deployment_files.py` 用绝对 `import omni` 取包版本，strict 会报 `reportMissingTypeStubs`（`omni` 无 `py.typed`）。纳入前应改为相对导入或 `importlib.metadata.version`，不要用忽略注释绕过。
+6. 历史边界与施工注意（当前是否纳入以本页门禁表为准）：
+   - 部署文件适配器已使用 find_spec("omni") 定位包，避免绝对 import 的缺失 stub，并保留不执行包初始化的边界；第 201 批已纳入 strict。后续不要重新引入绝对导入或忽略注释。
    - composition/http.py 依赖 composition/instance.py 的公开面（数据库/日志/身份/关停）：纳入顺序必须先 instance.py 再 http.py`，否则只能靠 Any 桥接，不符合本文件的清零口径。
    - 仓储 mixin 体系（`repository.py` 及其 70 余个 mixin）依赖 `RepositoryBase` 的公共方法；新增跨模块助手时应使用 `one` 等公共方法，而不是访问 `_one` 等受保护成员。
 

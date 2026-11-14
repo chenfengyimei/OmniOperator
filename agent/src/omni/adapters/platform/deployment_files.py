@@ -14,7 +14,7 @@ import sys
 import uuid
 from importlib.util import find_spec
 from pathlib import Path
-from typing import Any
+from typing import Any, NoReturn, cast
 
 import psutil
 
@@ -65,7 +65,7 @@ def _no_links(path: Path, *, final: bool = True) -> None:
             raise _error("deployment_path_unsafe")
 
 
-def _identity(info: os.stat_result) -> tuple:
+def _identity(info: os.stat_result) -> tuple[int, int, int, int, int, int]:
     # Windows fstat and stat expose different ctime semantics; stable identity
     # uses inode/device, size, mode, links and last content modification instead.
     return info.st_dev, info.st_ino, stat.S_IFMT(info.st_mode), info.st_size, info.st_mtime_ns, info.st_nlink
@@ -93,15 +93,15 @@ def _read(path: str | Path, limit: int, *, single: bool = False) -> bytes:
 
 
 def _decode(data: bytes) -> Record:
-    def pairs(items):
-        result = {}
+    def pairs(items: list[tuple[str, Any]]) -> Record:
+        result: Record = {}
         for key, value in items:
             if key in result:
                 raise ValueError("duplicate deployment field")
             result[key] = value
         return result
 
-    def constant(_value):
+    def constant(_value: object) -> NoReturn:
         raise ValueError("non-finite deployment value")
 
     try:
@@ -109,14 +109,14 @@ def _decode(data: bytes) -> Record:
         if not isinstance(value, dict):
             raise ValueError
         # A finite exponent may overflow JSON's float parser too.
-        _json(value)
-        return value
+        _json(cast(Record, value))
+        return cast(Record, value)
     except (ValueError, TypeError, UnicodeError, RecursionError) as exc:
         raise _error() from exc
 
 
 def _relative(value: str) -> str:
-    if not isinstance(value, str) or not value or len(value) > 1000 or "\\" in value:
+    if not isinstance(cast(object, value), str) or not value or len(value) > 1000 or "\\" in value:
         raise _error()
     parts = value.split("/")
     if len(parts) > 24 or any(
@@ -135,10 +135,10 @@ def _walk(root: Path, *, python_only: bool = False, source_assets: bool = False)
     _no_links(_path(root))
     if not root.is_dir():
         raise _error("deployment_program_missing")
-    result = []
+    result: list[tuple[str, Path]] = []
     pending = [root]
     entries = 0
-    seen = set()
+    seen: set[str] = set()
     while pending:
         directory = pending.pop()
         _no_links(directory)
@@ -230,6 +230,7 @@ def _python() -> Record:
 def python_files(executable: Path, prefix: Path, process_executable: Path | None = None) -> Record:
     """Fingerprint an explicit interpreter's files without executing or importing that environment."""
     executable = _path(executable)
+    links: list[dict[str, str]]
     location, links = executable, []
     _no_links(executable, final=False)
     while location.is_symlink():
@@ -348,6 +349,7 @@ def _destination(path: str | Path, plan: Record) -> Path:
 class CurrentDeploymentFiles:
     def capture(self) -> Record:
         package, assets, editable = _installation()
+        files: list[Record]
         files, total = [], 0
         build, assets_digest = hashlib.sha256(), hashlib.sha256()
         candidates = [("__init__.py", package / "__init__.py")]
@@ -378,7 +380,7 @@ class CurrentDeploymentFiles:
             elif first == "web_assets":
                 assets_digest.update(name.removeprefix("web_assets/").encode())
                 assets_digest.update(content)
-        distributions = {}
+        distributions: dict[str, str] = {}
         for distribution in importlib.metadata.distributions():
             name = re.sub(r"[-_.]+", "-", distribution.metadata.get("Name", "")).lower()
             version = distribution.version
@@ -393,7 +395,7 @@ class CurrentDeploymentFiles:
             distributions[name] = version
             if len(distributions) > 512:
                 raise _error("deployment_capture_limit")
-        result = {
+        result: Record = {
             "format": "omni-service-runtime-2",
             "platform": sys.platform,
             **_python(),
@@ -423,7 +425,11 @@ class CurrentDeploymentFiles:
         _no_links(target)
         if any(
             _overlap(target, root)
-            for root in (Path(checked["package_root"]), Path(checked["python_prefix"]), *_startup_locations())
+            for root in (
+                Path(cast(str, checked["package_root"])),
+                Path(cast(str, checked["python_prefix"])),
+                *_startup_locations(),
+            )
         ):
             raise _error("deployment_destination_unsafe")
         data = _json(checked)
@@ -468,27 +474,41 @@ class CurrentDeploymentFiles:
             stream.flush()
             os.fsync(stream.fileno())
 
+    @staticmethod
+    def write_file(path: Path, data: bytes) -> None:
+        CurrentDeploymentFiles._write(path, data)
+
+    def publish_json(self, target: Path, data: bytes) -> None:
+        self._publish_json(target, data)
+
     def materialize(self, plan: Record, destination: str | Path) -> Record:
         from ...domain.service_deployment import plan_fingerprint, validate_plan
         from .service_templates import render
 
         checked = validate_plan(plan)
         target = _destination(destination, checked)
-        if checked["runtime"]["platform"] == sys.platform and target != _path(checked["request"]["bundle_dir"]):
+        if cast(Record, checked["runtime"])["platform"] == sys.platform and target != _path(
+            cast(Record, checked["request"])["bundle_dir"]
+        ):
             raise _error("deployment_location_mismatch")
         if target.exists():
             raise _error("destination_exists", status=409)
         if not target.parent.is_dir():
             raise _error("deployment_parent_missing")
         artifacts = render(checked)
-        if not isinstance(artifacts, dict) or not 1 <= len(artifacts) <= 16 or MANIFEST in artifacts:
+        if not isinstance(cast(object, artifacts), dict) or not 1 <= len(artifacts) <= 16 or MANIFEST in artifacts:
             raise _error()
-        entries = []
+        entries: list[Record] = []
         for name, content in sorted(artifacts.items()):
-            if _relative(name) != name or "/" in name or not isinstance(content, bytes) or len(content) > MAX_JSON:
+            if (
+                _relative(name) != name
+                or "/" in name
+                or not isinstance(cast(object, content), bytes)
+                or len(content) > MAX_JSON
+            ):
                 raise _error()
             entries.append(_proof(name, content))
-        manifest = {
+        manifest: Record = {
             "format": MANIFEST_FORMAT,
             "plan_id": checked["id"],
             "plan_sha256": plan_fingerprint(checked),
@@ -601,10 +621,11 @@ walk = _walk
 
 
 def write_file(path: Path, data: bytes) -> None:
-    CurrentDeploymentFiles._write(path, data)
+    CurrentDeploymentFiles.write_file(path, data)
+
 
 destination = _destination
 
 
 def publish_json(files: CurrentDeploymentFiles, target: Path, data: bytes) -> None:
-    files._publish_json(target, data)
+    files.publish_json(target, data)
