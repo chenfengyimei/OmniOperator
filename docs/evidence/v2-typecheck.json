@@ -1813,46 +1813,51 @@
    ]
   },
   "full_run": {
-   "status": "parallel_run_serial_and_isolation_rerun_two_ui_session_guard_violations",
-   "source": "79f455c (c2fe37b5); worktree carries the parallel UI session's uncommitted workbench.css edits (+332 lines)",
+   "status": "parallel_run_serial_and_clean_head_controls_ui_session_worktree_attributed",
+   "source": "2583a1b (982f5866); worktree carries the parallel UI session's uncommitted front-end edits (main.js/index.html/workbench.css +472 lines and per-page js), which changed again mid-acceptance",
    "workers": 2,
-   "report": "temp/build/v2-full-170.xml",
-   "report_sha256": "a0d4bbbb2a9eabbe8522e7b08cca14a572fb72ef1a7e2de1da2374ba1a213f65",
+   "report": "temp/build/v2-full-175.xml",
+   "report_sha256": "b6eb6e3c90eda3d0310113d33b1dd68b5042fa01ff2a80cd27705fdee929b2cc",
    "tests": 4658,
-   "passed": 4654,
-   "failed": 4,
+   "passed": 4636,
+   "failed": 22,
    "errors": 0,
-   "duration_s": 3047.62,
+   "duration_s": 2938.09,
    "failure_summary": {
-    "ui_session_css_guard_violations": 2,
-    "playwright_contention_jitter": 2
+    "ui_session_agents_selector_hidden": 14,
+    "ui_session_css_guard_violations": 3,
+    "ui_session_model_live_hidden": 2,
+    "ui_session_configuration_response_shape": 3
    },
    "serial_rerun": {
-    "report": "temp/build/v2-full-170-serial.xml",
-    "report_sha256": "603d38db7a05f1ee73aec6b03df9e57607e4f9ade521c03f2f6be87126a7ce64",
-    "tests": 4,
-    "passed": 2,
-    "failed": 2,
+    "report": "temp/build/v2-full-175-serial.xml",
+    "report_sha256": "e66e0020b05165ca8aa8714177fd6539c64e3309bc33e71a5e65d298c09681e0",
+    "tests": 22,
+    "passed": 8,
+    "failed": 14,
     "errors": 0,
-    "duration_s": 17.86
+    "duration_s": 546.32
    },
-   "ui_isolation_rerun": {
-    "report": "temp/build/v2-full-170-ui-isolation.xml",
-    "report_sha256": "1f1dfb714b36fac778ad2a4a7b53b7fe1bf475b4538690bbfb55dd135d5d06e2",
-    "tests": 2,
-    "passed": 2,
+   "clean_head_control": {
+    "report": "temp/build/v2-full-175-clean-head.xml",
+    "report_sha256": "90cb6385aac83810e99d7b585975b5dd089162a1b07d5d26464ec6294fc373c4",
+    "method": "git worktree at HEAD (bd9f53e) with the main interpreter and PYTHONPATH pointed at the copy; representative failures from three symptom families (configuration KeyError, agents select_option, action-review two_agents)",
+    "tests": 3,
+    "passed": 3,
     "failed": 0,
     "errors": 0,
-    "duration_s": 16.86
+    "duration_s": 33.21,
+    "conclusion": "all three representative failures pass on clean HEAD without the parallel session's uncommitted front-end edits; this batch touches only persistence/maintenance_repository.py"
    },
    "details": [
-    "总数 4658 较第 25 节点 +2：并行 UI 会话在提交 bd603147（本机启动即用）中新增了用例，非本会话改动",
-    "test_ui_glass_tokens::test_no_dangling_css_variables 与 test_no_second_accent_color：违规均在 web/ui/v2/workbench.css —— 悬空变量 --r-xs（114 行）与未登记颜色 #767676（22 行）。git diff 证实两处都是并行 UI 会话**未提交**的新增行（+332 行改动的一部分）；HEAD 版本无违规。串行与隔离复跑仍失败（静态守卫读工作区文件，确定性失败，不是抖动）。归属并行 UI 会话，不由本类型化任务代改其文件",
-    "test_v2_model_stream_ui[light-390]（#model-live 未转可见）与 test_v2_memory_organization_ui[two_agents]（candidates 空列表）：串行复跑通过，再隔离复跑也通过，判定为 -n 2 Playwright 争用抖动，非功能缺陷",
-    "第 25 节点的 portal_ui flaky 用例本次并行通过（与其既有 flaky 定性一致，未再复现）",
-    "结论：本批（166～170）无功能回归；2 项真实守卫违规归并行 UI 会话未提交改动，2 项为并发抖动"
+    "并行 22 败全部为 UI/静态守卫，无任何 persistence/domain/application 失败；本批（171～175）只改 persistence 层，专项 402 项全过",
+    "14 项 two_agents/多视口用例：#agents 选择器不可见（select_option 30s 超时）——并行 UI 会话未提交的会话面板/连接卡改版（main.js bootstrapLocal + workbench.css +472 行）所致；串行复跑仍败 14 项（确定性，非争用抖动）",
+    "3 项 test_ui_glass_tokens（--r-xs 悬空、#767676 未登记、blur 字面量）：并行时为 UI 会话未提交 workbench.css 违规；串行时该会话已在工作区修掉（现守卫 10/10 过，HEAD 亦无违规），故串行转绿——转绿源于他方工作区修复，不是抖动",
+    "2 项 model_stream_ui（#model-live 未转可见）与 3 项 configuration drafts（GET 响应缺 name 键）：同属 UI 会话在途改版影响；configuration 3 项串行通过（时序敏感），model-live 2 项串行通过",
+    "干净 HEAD 对照：三类症状代表用例（configuration KeyError / agents select_option / action-review）3/3 通过，确证失败由他会未提交前端改动引入，非本批回归",
+    "他会改动在验收期间持续变化（workbench.css 从 +449 行违规到修复清零），本报告按并行时点快照记录，串行/对照时点差异已如实注明"
    ],
-   "note": "第 30 节点（166～170 批）全量。验收口径：并行跑 + 失败项串行复跑 + UI 项隔离复跑，全部报告留档；不将串行/隔离通过写成并行全绿（并行仍记 4 failed），不把他方未提交改动的确定性守卫失败写成抖动，也不将他人会话的违规写成本批回归。strict 294 文件 0 errors/0 warnings。"
+   "note": "第 35 节点（171～175 批）全量。验收口径：并行跑 + 全部失败项串行复跑 + 干净 HEAD 代表对照，全部报告留档；不将串行通过写成并行全绿（并行仍记 22 failed），不把他方未提交改动的确定性失败写成抖动，也不将他人会话的违规写成本批回归。strict 299 文件 0 errors/0 warnings。"
   },
   "open_findings": [
    {
@@ -1863,18 +1868,18 @@
     "evidence": "temp/build/v2-full-165.xml, v2-full-165-serial.xml, v2-full-165-clean-head.xml"
    },
    {
-    "id": "ui.glass_tokens_violations_workbench_uncommitted",
+    "id": "ui.agents_selector_hidden_worktree_uncommitted",
     "owner": "parallel-ui-session",
     "state": "open_in_worktree_uncommitted",
-    "detail": "web/ui/v2/workbench.css 的未提交改动（+332 行）引入悬空变量 --r-xs 与未登记颜色 #767676，触发 test_ui_glass_tokens 两项守卫确定性失败（串行/隔离均失败）。HEAD 无违规。归并行 UI 会话修正后提交；本类型化任务不代改其文件。",
-    "evidence": "temp/build/v2-full-170.xml, v2-full-170-serial.xml"
+    "detail": "并行 UI 会话未提交的会话面板/连接卡改版使 #agents 选择器不可见，14 项 two_agents/多视口用例 select_option 30s 超时（串行仍败，确定性）。干净 HEAD 对照通过。归其修正后提交；本类型化任务不代改其文件。取代旧开放项 ui.agents_select_hidden_worktree_uncommitted（同一根因，规模扩大）。",
+    "evidence": "temp/build/v2-full-175.xml, v2-full-175-serial.xml, v2-full-175-clean-head.xml"
    },
    {
-    "id": "ui.agents_select_hidden_worktree_uncommitted",
+    "id": "ui.glass_tokens_violations_workbench_uncommitted",
     "owner": "parallel-ui-session",
-    "state": "open_in_worktree_uncommitted",
-    "detail": "test_v2_action_review_ui[two_agents] 在主工作区失败（#agents 选择器不可见，30s 超时），干净 HEAD 通过、干净 HEAD+第 172 批源码也通过；归并行 UI 会话未提交前端改动（bd603147 后续在途编辑）。本类型化任务不代改其文件。",
-    "evidence": "temp/build/v2-typecheck-172-callers.xml, v2-typecheck-172-ui-retry.xml"
+    "state": "resolved_in_worktree_commit_pending",
+    "detail": "第 30 节点登记的 workbench.css 三项守卫违规（--r-xs/#767676/blur 字面量），UI 会话已在第 35 节点验收期间于工作区修复（现守卫 10/10 过，HEAD 无违规）；是否随其下次提交入库由其自行确认。",
+    "evidence": "temp/build/v2-full-175.xml, v2-full-175-serial.xml"
    }
   ],
   "next": {
@@ -1985,6 +1990,48 @@
      "过程更正：曾因干净副本首跑通过而一度判为并行会话在途改动所致，第二次失败即推翻该判断，最终以三次对照的结果为准；不把单次通过当作稳定证据"
     ],
     "note": "第 25 节点（161～165 批）全量。验收口径：并行跑 + 失败项串行复跑 + 干净 HEAD 多次对照，全部报告留档；不将串行通过写成并行全绿（并行仍记 1 failed），不把既有 flaky 写成本批回归，也不把单次对照结果当作结论。strict 289 文件 0 errors/0 warnings。"
+   },
+   {
+    "status": "parallel_run_serial_and_isolation_rerun_two_ui_session_guard_violations",
+    "source": "79f455c (c2fe37b5); worktree carries the parallel UI session's uncommitted workbench.css edits (+332 lines)",
+    "workers": 2,
+    "report": "temp/build/v2-full-170.xml",
+    "report_sha256": "a0d4bbbb2a9eabbe8522e7b08cca14a572fb72ef1a7e2de1da2374ba1a213f65",
+    "tests": 4658,
+    "passed": 4654,
+    "failed": 4,
+    "errors": 0,
+    "duration_s": 3047.62,
+    "failure_summary": {
+     "ui_session_css_guard_violations": 2,
+     "playwright_contention_jitter": 2
+    },
+    "serial_rerun": {
+     "report": "temp/build/v2-full-170-serial.xml",
+     "report_sha256": "603d38db7a05f1ee73aec6b03df9e57607e4f9ade521c03f2f6be87126a7ce64",
+     "tests": 4,
+     "passed": 2,
+     "failed": 2,
+     "errors": 0,
+     "duration_s": 17.86
+    },
+    "ui_isolation_rerun": {
+     "report": "temp/build/v2-full-170-ui-isolation.xml",
+     "report_sha256": "1f1dfb714b36fac778ad2a4a7b53b7fe1bf475b4538690bbfb55dd135d5d06e2",
+     "tests": 2,
+     "passed": 2,
+     "failed": 0,
+     "errors": 0,
+     "duration_s": 16.86
+    },
+    "details": [
+     "总数 4658 较第 25 节点 +2：并行 UI 会话在提交 bd603147（本机启动即用）中新增了用例，非本会话改动",
+     "test_ui_glass_tokens::test_no_dangling_css_variables 与 test_no_second_accent_color：违规均在 web/ui/v2/workbench.css —— 悬空变量 --r-xs（114 行）与未登记颜色 #767676（22 行）。git diff 证实两处都是并行 UI 会话**未提交**的新增行（+332 行改动的一部分）；HEAD 版本无违规。串行与隔离复跑仍失败（静态守卫读工作区文件，确定性失败，不是抖动）。归属并行 UI 会话，不由本类型化任务代改其文件",
+     "test_v2_model_stream_ui[light-390]（#model-live 未转可见）与 test_v2_memory_organization_ui[two_agents]（candidates 空列表）：串行复跑通过，再隔离复跑也通过，判定为 -n 2 Playwright 争用抖动，非功能缺陷",
+     "第 25 节点的 portal_ui flaky 用例本次并行通过（与其既有 flaky 定性一致，未再复现）",
+     "结论：本批（166～170）无功能回归；2 项真实守卫违规归并行 UI 会话未提交改动，2 项为并发抖动"
+    ],
+    "note": "第 30 节点（166～170 批）全量。验收口径：并行跑 + 失败项串行复跑 + UI 项隔离复跑，全部报告留档；不将串行/隔离通过写成并行全绿（并行仍记 4 failed），不把他方未提交改动的确定性守卫失败写成抖动，也不将他人会话的违规写成本批回归。strict 294 文件 0 errors/0 warnings。"
    }
   ],
   "scope": [

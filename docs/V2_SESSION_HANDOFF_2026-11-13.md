@@ -21,10 +21,11 @@ Windows 上 V2 底座**可冷启动、可自检、可服务、可跑全量测试
 | 失败性质 | 2 项：串行复跑 **1 过 1 败**（skills_ui[dark-760] 为抖动）；剩 `test_ui_embed_layer` 为**并行 UI 会话提交 `0497fe8` 引入的真实守卫违规**（`ui/v2/v1/frame.css` 副本截至第 15 节点仍未移除），归 UI 会话修，非本批回归 | 见 §5「验收口径」；两份报告留档 |
 | 默认入口 | `V1 until R6 parity gate` | `docs/tasks/v2.json` 的 `default_entrypoints` |
 | 台账 | `status=d7_typecheck_batch_175`、`checkpoint_commit=2583a1b`、源码指纹 `982f5866…`（1206 文件） |
+| 第 35 节点全量 | 4658 项：4636 passed / 22 failed（-n 2，2938.09s）；22 败全为 UI/守卫，归 UI 会话未提交改版；干净 HEAD 对照 3/3 过 |
 | 第 30 节点全量 | 4658 项：4654 passed / 4 failed（-n 2，3047.62s）；2 项 CSS 守卫违规归 UI 会话未提交改动，2 项争用抖动 |
 | 第 25 节点全量 | 4656 项：4655 passed / 1 failed（-n 2，2830.94s）；干净 HEAD 三次对照证实既有 flaky |
 | 第 20 节点全量 | 4656 项：4655 passed / 1 failed（-n 2，3219.56s）；失败项串行复跑通过 |
-| 失败归属 | 第 30 节点：`test_ui_glass_tokens` 两项为 UI 会话未提交 workbench.css 的确定性违规（开放项 `ui.glass_tokens_violations_workbench_uncommitted`），另 2 项 UI 用例为争用抖动（串行/隔离均过）。第 25 节点：`test_v2_portal_ui` 属既有 flaky（开放项 `test.portal_ui_flaky_on_clean_head`），本次并行未复现 | | `docs/tasks/v2.json`、`docs/evidence/v2-typecheck.json` |
+| 失败归属 | 第 35 节点：14 项 #agents 不可见（开放项 `ui.agents_selector_hidden_worktree_uncommitted`，串行仍败）；3 项 CSS 守卫其已在工作区修复（`resolved_in_worktree_commit_pending`）；5 项时序敏感串行过。第 25 节点 portal_ui 既有 flaky 本次未复现 | | `docs/tasks/v2.json`、`docs/evidence/v2-typecheck.json` |
 | 工作树 | 干净，`codex/architecture-v2` 与 origin 同步（HEAD `e2f72a0` 之后的文档提交） | `git status -sb` |
 
 ## 3. 现在能用什么（Windows，实测）
