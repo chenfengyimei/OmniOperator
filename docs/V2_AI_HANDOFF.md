@@ -1,6 +1,6 @@
 # OmniOperator V2：AI 接续开发完整交接
 
-> strict 当前接续（2026-11-14，第 190 批）：**314 文件 / 0 errors / 0 warnings**；adapters **204/222**，剩 **18** 个模块。最新 `agent/src/omni/adapters/onebot.py`：OneBot 传输（发送账号对齐 Record、监听配置 Payload、回调 object、上下文管理器 AsyncGenerator；发送前授权复核及 unknown 不重放不变）。相关专项 **66 项通过**，源码 `33344482`；全量沿用第 184 批原始记录，下一全量节点第 189 批。默认正式入口仍是 V1，真实验收未完成。
+> strict 当前接续（2026-11-14，第 190 批）：**314 文件 / 0 errors / 0 warnings**；adapters **204/222**，剩 **18** 个模块。最新 `agent/src/omni/adapters/onebot.py`：OneBot 传输（发送账号对齐 Record、监听配置 Payload、回调 object、上下文管理器 AsyncGenerator；发送前授权复核及 unknown 不重放不变）。相关专项 **66 项通过**，源码 `33344482`；全量第 50 节点 **4660 passed / 1 failed / 0 errors / 0 skipped**（-n 2，3208.33s，实际集成源码 `50e36455`、运行前后字节一致）；唯一失败为既有 portal 偶发项，原 nodeid 串行 **1 passed**。并行口径仍记 1 failed；下一全量第 194 批。默认正式入口仍是 V1，真实验收未完成。
 
 交接日期：2026-11-10（Asia/Shanghai），2026-11-14 更新进度段。本文是交接时点的快照；后续以 `docs/tasks/v2.json`、当前源码和 `docs/evidence/` 共同核验。不要用文件修改时间推断功能完成度。
 

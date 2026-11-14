@@ -209,7 +209,7 @@
    "id": "R6",
    "title": "业务接入与交付",
    "status": "开发中",
-   "notes": "D6媒体已接通B站来源→字幕/ASR/抽帧→时间锚点转写对象与只读模型工具→工作台分区，取消/恢复/删除传播闭环。下一MCP stdio/HTTP/OAuth、完整插件市场、D7及真实验收仍待。",
+   "notes": "媒体、MCP 运行适配器、插件产物/本地市场/宿主回调已有离线实现；当前 D7 产品化与严格类型收口中（314 文件，adapters 204/222）。默认正式入口仍 V1，平台及真实业务验收待完成。",
    "evidence": [
     "docs/evidence/v2-offline.json",
     "docs/evidence/v2-people.json",
@@ -250,7 +250,7 @@
    "id": "R7",
    "title": "稳定性验收",
    "status": "待开始",
-   "notes": "完整验收未开始；本批MCP专项150项不同节点最新通过（含2例390/1024浏览器与74项守卫），全量4541 passed/16 failed/10 errors，失败均为基线遗留并有独立复现记录；非实机/真实服务验收。",
+   "notes": "第 50 节点开发全量（-n 2）4660 passed / 1 failed / 0 errors / 0 skipped，3208.33s；唯一失败为既有 portal 偶发项，原 nodeid 串行复跑 1 passed。运行前后源码/测试/依赖/配置字节一致；完整真实功能、故障负载、三平台与 72 小时验收仍未开始。",
    "evidence": [
     "docs/evidence/v2-offline.json",
     "docs/evidence/v2-objects.json",
@@ -284,13 +284,13 @@
    ]
   }
  ],
- "checkpoint_commit": "33344482",
+ "checkpoint_commit": "50e36455",
  "current_validation": {
   "status": "d7_typecheck_batch_190",
   "targeted_unique_passed": 228,
   "includes_browser_cases": 10,
   "current_full_passed": false,
-  "full_runs_this_checkpoint": 8,
+  "full_runs_this_checkpoint": 9,
   "whole_plan_complete": false,
   "evidence": "docs/evidence/v2-extension-artifacts.json",
   "last_full_evidence": "docs/evidence/v2-typecheck.json",
@@ -298,37 +298,84 @@
   "previous_packaging_evidence": "docs/evidence/v2-darwin-admin.json",
   "open_validation_findings": [
    {
-    "id": "tests.parallel_ui_contention",
+    "id": "test.portal_ui_flaky_on_clean_head",
     "status": "open",
-    "scope": "-n 2 下 UI 重度用例偶发。第 5 节点全量 31 败：串行复跑 30 过 1 败，memory_organization_ui 1 项隔离时通时败（前端异步时序，非功能缺陷）。口径：并行跑 + 失败项串行复跑 + 不稳定项隔离复跑，三份报告留档。",
-    "first_report": "temp/build/v2-full-144.xml",
-    "latest_report": "temp/build/v2-full-146.xml"
+    "scope": "test_v2_portal_ui::test_owner_selects_queries_captures_and_leaving_revokes_without_implicit_pixels 在第 25 与第 40 节点均出现：portal_consent_pending 未在 5 秒内转 active。第 40 节点干净 HEAD 三次全过、主工作区复跑两次全过，串行单次失败；确认为既有 flaky。建议由门户/桌面用例负责人加固等待条件或注入确定性时钟。 第 45 节点（v2-full-184.xml）该用例并行通过，未再复现；开放项保留，待用例负责人加固。",
+    "owner": "shared-test-suite",
+    "evidence": "temp/build/v2-full-165*.xml, v2-full-180.xml, v2-full-180-serial.xml, v2-full-180-clean-head.xml, v2-full-184.xml"
    }
   ],
-  "code_version": "7e93c8c2b71de39892faeec8d1a7955560449e6117ed761d9bd0800596381520",
-  "fixed_source_files": 1206,
+  "code_version": "27dbf873275d5e5563c463d6d91005e3e9da1e4c30a283e1b81a9dac24be309f",
+  "fixed_source_files": 1208,
   "baseline_repair_evidence": "docs/evidence/v2-baseline-repair.json",
   "market_evidence": "docs/evidence/v2-extension-market.json",
   "final_full_run": {
-   "passed": 4654,
-   "failed": 2,
-   "errors": 0,
-   "report": "temp/build/v2-full-155.xml",
+   "status": "source_unchanged_parallel_known_portal_flake_serial_passed",
+   "checkpoint": 50,
+   "strict_batches": [
+    185,
+    186,
+    187,
+    188,
+    189,
+    190
+   ],
+   "command": "uv run --no-sync pytest -q -n 2 --junitxml=temp/build/v2-full-189.xml",
    "workers": 2,
-   "serial_rerun": "1 passed / 1 failed (temp/build/v2-full-155-serial.xml)",
-   "remaining_failure": "test_ui_embed_layer guard violated by parallel UI commit 0497fe8 (ui/v2/v1/frame.css copy still present); owned by UI session"
+   "report": "temp/build/v2-full-189.xml",
+   "report_sha256": "2426fd6e09a42b3fc768478336e1a34f6312fc4eb829f2bdc8094daecdb24ff3",
+   "tests": 4661,
+   "passed": 4660,
+   "failed": 1,
+   "errors": 0,
+   "skipped": 0,
+   "duration_s": 3208.33,
+   "junit_duration_s": 3207.08,
+   "serial_rerun": {
+    "report": "temp/build/v2-full-189-serial.xml",
+    "report_sha256": "33339207004a3a89fbe818cbce8c14283ec9f8204d2348c03ef244412e69cd8f",
+    "tests": 1,
+    "passed": 1,
+    "failed": 0,
+    "errors": 0,
+    "duration_s": 11.029
+   },
+   "source_head": "50e36455531aa428accde9c35cc6c74773aa7e79",
+   "code_version": "27dbf873275d5e5563c463d6d91005e3e9da1e4c30a283e1b81a9dac24be309f",
+   "fixed_source_files": 1208,
+   "working_source_version": "c39af60f674746c47663b2e16e1bacc8f0066090831e2556f8283875bc6f6e26",
+   "source_unchanged": true,
+   "source_snapshots": {
+    "before": {
+     "path": "temp/build/v2-full-189-source-before.json",
+     "sha256": "f0bde58eff1de81e2d5a2c3b4f77d196d6f032c2a405f67bd906df5dcf25163f"
+    },
+    "after": {
+     "path": "temp/build/v2-full-189-source-after.json",
+     "sha256": "f0bde58eff1de81e2d5a2c3b4f77d196d6f032c2a405f67bd906df5dcf25163f"
+    }
+   },
+   "details": [
+    "Queued behind an already-running peer full suite; batch 190 was completed while waiting. This run covers the actual frozen integrated source at 50e36455, including batches 185-190 and the peer model-connection UI commit.",
+    "All actual source/test/dependency/config bytes match before and after the run. No source was changed by this task during the full run.",
+    "The only parallel failure is the already-open portal UI case, with the same portal_consent_pending symptom; its exact nodeid passes on serial rerun. Parallel counts remain 4660 passed / 1 failed, never all-green.",
+    "The main worktree already matched committed HEAD at both boundaries (only personal material directories were untracked), so there is no parallel uncommitted source to remove for ownership. The portal symptom was independently established as intermittent at earlier node-25/node-40 controls. No type-change functional regression was found in the validated scope.",
+    "Real model/account/device/native platform/installation/load acceptance remains pending; default entry remains V1."
+   ]
   },
   "capabilities_evidence": "docs/evidence/v2-capabilities.json",
   "token_evidence": "docs/evidence/v2-owner-token.json",
   "inventory_evidence": "docs/evidence/v2-business-inventory.json",
   "typecheck_evidence": "docs/evidence/v2-typecheck.json",
-  "packaging_evidence": "docs/evidence/v2-packaging.json"
+  "packaging_evidence": "docs/evidence/v2-packaging.json",
+  "strict_batch_git_head": "33344482",
+  "validated_head": "50e36455531aa428accde9c35cc6c74773aa7e79"
  },
  "next_checkpoint": {
   "id": "D7.product_switch",
   "status": "进行中",
   "design": "docs/V2_PACKAGING.md",
-  "scope": "P1 composition/P2 Android/P3 persistence complete; P4 adapters in progress. strict 314 files (53 domain, 44 application, 204/222 adapters, 13 composition), 18 adapters remain. Next full-suite checkpoint: batch 189."
+  "scope": "P1/P2/P3 complete; P4 typing 314 files (53 domain, 44 application, 204/222 adapters, 13 composition), 18 adapters remain. Node-50 full run: 4660 passed / 1 known portal flaky failure, serial 1 passed; next full checkpoint batch 194. Default V1; real acceptance pending."
  },
  "milestones": [
   {
