@@ -6,7 +6,7 @@ import importlib.metadata
 import sys
 from importlib import import_module
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 from ...domain.contracts import BusinessError
 from ...domain.local_vectors import (
@@ -20,6 +20,8 @@ from ...domain.local_vectors import (
     version,
 )
 from ..vector_files import identity, read_file, read_manifest, runtime_versions
+
+Payload = dict[str, object]
 
 
 def no_external_tensors(message: Any, depth: int = 0, budget: list[int] | None = None) -> None:
@@ -39,7 +41,7 @@ def no_external_tensors(message: Any, depth: int = 0, budget: list[int] | None =
 class Runtime:
     def __init__(self) -> None:
         self.root: Path | None = None
-        self.spec: dict = {}
+        self.spec: Payload = {}
         self.captured: dict[str, tuple[int, ...]] = {}
         self.version = ""
         self.session: Any = None
@@ -54,19 +56,19 @@ class Runtime:
             if identity(self.root / name) != captured:
                 raise invalid("vector_bundle_changed")
 
-    def load(self, arguments: dict) -> dict:
+    def load(self, arguments: Payload) -> Payload:
         if self.root is not None or set(arguments) != {"bundle", "sha256", "version"}:
             raise invalid("vector_protocol_invalid")
         if any(importlib.metadata.version(name) != wanted for name, wanted in runtime_versions().items()):
             raise invalid("vector_runtime_mismatch")
-        root = Path(arguments["bundle"])
-        spec, captured = read_manifest(root, arguments["sha256"])
-        if version(spec, runtime_versions()) != arguments["version"]:
+        root = Path(cast(str, arguments["bundle"]))
+        spec, captured = read_manifest(root, cast(str, arguments["sha256"]))
+        if version(spec, cast(Payload, runtime_versions())) != arguments["version"]:
             raise invalid("vector_protocol_invalid")
-        contents = {}
+        contents: dict[str, bytes] = {}
         self.captured = {"manifest.json": captured}
-        for name, row in spec["files"].items():
-            data, captured = read_file(root / name, row["bytes"], row["sha256"])
+        for name, row in cast(dict[str, Payload], spec["files"]).items():
+            data, captured = read_file(root / name, cast(int, row["bytes"]), cast(str, row["sha256"]))
             if len(data) != row["bytes"]:
                 raise invalid("vector_bundle_changed")
             contents[name] = data
@@ -94,7 +96,7 @@ class Runtime:
         ):
             raise invalid("vector_graph_unsupported")
         outputs = {item.name: item for item in session.get_outputs()}
-        output = outputs.get(spec["output"])
+        output = outputs.get(cast(str, spec["output"]))
         if (
             output is None
             or output.type != "tensor(float)"
@@ -106,23 +108,23 @@ class Runtime:
             raise invalid("vector_tokenizer_invalid")
         tokenizer.no_padding()
         tokenizer.enable_truncation(max_length=spec["max_tokens"], stride=0)
-        self.root, self.spec, self.version = root, spec, version(spec, runtime_versions())
+        self.root, self.spec, self.version = root, spec, version(spec, cast(Payload, runtime_versions()))
         self.session, self.tokenizer, self.np, self.inputs = session, tokenizer, np, names
         self.verify()
         return {"version": self.version, "dimension": spec["dimension"], "state": "loaded"}
 
-    def embed(self, arguments: dict) -> dict:
+    def embed(self, arguments: Payload) -> Payload:
         if set(arguments) != {"texts", "purpose", "version"} or arguments["version"] != self.version:
             raise invalid("vector_protocol_invalid")
-        texts = texts_request(arguments["texts"], arguments["purpose"])
+        texts = texts_request(cast(list[str], arguments["texts"]), cast(str, arguments["purpose"]))
         self.verify()
         spec, np = self.spec, self.np
-        prefix = spec["query_prefix"] if arguments["purpose"] == "query" else spec["document_prefix"]
-        encoded = self.tokenizer.encode_batch([prefix + text for text in texts])
-        windows = []
+        prefix = cast(str, spec["query_prefix"] if arguments["purpose"] == "query" else spec["document_prefix"])
+        encoded: list[Any] = self.tokenizer.encode_batch([prefix + text for text in texts])
+        windows: list[tuple[int, Any]] = []
         for position, row in enumerate(encoded):
             pieces = [row, *row.overflowing]
-            if len(pieces) > 16 or any(not p.ids or len(p.ids) > spec["max_tokens"] for p in pieces):
+            if len(pieces) > 16 or any(not p.ids or len(p.ids) > cast(int, spec["max_tokens"]) for p in pieces):
                 raise invalid("vector_input_too_large")
             windows.extend((position, piece) for piece in pieces)
         total = np.zeros((len(texts), spec["dimension"]), dtype=np.float64)
@@ -161,7 +163,7 @@ class Runtime:
                 total[position] += pooled[index] * int(mask[index].sum())
         self.verify()
         try:
-            result = vectors(total.tolist(), len(texts), spec["dimension"])
+            result = vectors(total.tolist(), len(texts), cast(int, spec["dimension"]))
         except BusinessError:
             raise invalid("vector_output_invalid") from None
         return {"version": self.version, "vectors": result}
@@ -180,9 +182,9 @@ def serve() -> None:
             return
         try:
             result = (
-                runtime.load(request["arguments"])
+                runtime.load(cast(Payload, request["arguments"]))
                 if request["method"] == "load"
-                else runtime.embed(request["arguments"])
+                else runtime.embed(cast(Payload, request["arguments"]))
             )
             error = ""
         except BusinessError as exc:
