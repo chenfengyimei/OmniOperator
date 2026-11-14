@@ -7,9 +7,12 @@ import ntpath
 import plistlib
 import posixpath
 import subprocess
+from typing import Any, cast
 from xml.etree import ElementTree as ET
 
 from ...domain.service_deployment import manager_identity, service_argv, startup, validate_plan
+
+Payload = dict[str, object]
 
 TASK_NAMESPACE = "http://schemas.microsoft.com/windows/2004/02/mit/task"
 
@@ -18,8 +21,12 @@ def _json(value: object) -> bytes:
     return (json.dumps(value, ensure_ascii=False, sort_keys=True, indent=2, allow_nan=False) + "\n").encode("utf-8")
 
 
-def _windows(plan: dict) -> bytes:
-    request, manager, argv = plan["request"], manager_identity(plan), service_argv(plan)
+def _windows(plan: Payload) -> bytes:
+    request, manager, argv = (
+        cast(dict[str, Any], plan["request"]),
+        cast(dict[str, str], manager_identity(plan)),
+        service_argv(plan),
+    )
 
     def element(parent: ET.Element, name: str, text: str | None = None, **attributes: str) -> ET.Element:
         child = ET.SubElement(parent, name, attributes)
@@ -28,7 +35,7 @@ def _windows(plan: dict) -> bytes:
 
     root = ET.Element("Task", {"xmlns": TASK_NAMESPACE, "version": "1.4"})
     registration = element(root, "RegistrationInfo")
-    element(registration, "Description", "OmniOperator V2; reviewed plan " + plan["sha256"])
+    element(registration, "Description", "OmniOperator V2; reviewed plan " + cast(str, plan["sha256"]))
     element(registration, "URI", "\\" + manager["name"])
     triggers = element(root, "Triggers")
     trigger = element(triggers, "LogonTrigger")
@@ -62,9 +69,9 @@ def _windows(plan: dict) -> bytes:
     return ET.tostring(root, encoding="utf-8", xml_declaration=True) + b"\n"
 
 
-def _macos(plan: dict) -> bytes:
-    request, manager = plan["request"], manager_identity(plan)
-    value = {
+def _macos(plan: Payload) -> bytes:
+    request, manager = cast(dict[str, Any], plan["request"]), cast(dict[str, str], manager_identity(plan))
+    value: Payload = {
         "Label": manager["name"],
         "ProgramArguments": service_argv(plan),
         "WorkingDirectory": request["working_directory"],
@@ -92,9 +99,9 @@ def _systemd_quote(value: str, *, argument: bool = False) -> str:
     return '"' + value.replace("\\", "\\\\").replace('"', '\\"') + '"'
 
 
-def _linux(plan: dict) -> bytes:
-    request = plan["request"]
-    lines = [
+def _linux(plan: Payload) -> bytes:
+    request = cast(dict[str, Any], plan["request"])
+    lines: list[str] = [
         "[Unit]",
         "Description=OmniOperator V2 " + request["instance_id"],
         "",
@@ -120,8 +127,8 @@ def _linux(plan: dict) -> bytes:
     return "\n".join(lines).encode("utf-8")
 
 
-def _commands(plan: dict) -> dict:
-    request, manager = plan["request"], manager_identity(plan)
+def _commands(plan: Payload) -> Payload:
+    request, manager = cast(dict[str, Any], plan["request"]), cast(dict[str, str], manager_identity(plan))
     target = request["target"]
     windows = target == "windows-user"
     join = ntpath.join if windows else posixpath.join
@@ -176,7 +183,7 @@ def _commands(plan: dict) -> dict:
 
 def render(plan: object) -> dict[str, bytes]:
     value = validate_plan(plan)
-    request, manager = value["request"], manager_identity(value)
+    request, manager = cast(dict[str, Any], value["request"]), manager_identity(value)
     target = request["target"]
     service = (
         _windows(value) if target == "windows-user" else _macos(value) if target.startswith("macos-") else _linux(value)
@@ -207,6 +214,6 @@ def render(plan: object) -> dict[str, bytes]:
     return {
         "deployment.json": _json(value),
         "startup.json": _json(startup(value)),
-        manager["artifact"]: service,
+        cast(str, manager["artifact"]): service,
         "README.txt": _json(notes),
     }
