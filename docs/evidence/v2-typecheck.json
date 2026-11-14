@@ -1,14 +1,14 @@
 {
  "schema": 1,
- "batch": 186,
+ "batch": 187,
  "date": "2026-11-14",
  "whole_v2_complete": false,
  "d7_complete": false,
  "default_entrypoint": "v1",
  "source": {
-  "code_version": "c6726f6c9bd4a8fe7bdc60c402404c66f510c0ec11ece6d8f37f2b3afd4468bb",
+  "code_version": "1dc0b1a5a670a84d9639da2b8a3e061ff07dee561fbf8e02c37b9ba11ef01459",
   "fixed_source_files": 1206,
-  "git_head": "8bda8801",
+  "git_head": "74db9efc",
   "dirty_checkout": true,
   "recipe": "sha256(json.dumps({path: sha256(blob) for tracked agent/, web/, scripts/ files}, sort_keys=True)); see temp/build/source_version.py",
   "head_ui": "75c4219",
@@ -185,7 +185,7 @@
    "Strict scope reaches 284 files (53 domain + 44 application + 174 adapters + 13 composition); the exclusive collection plan/apply module types its entries, residual ledger and durable journals as Record, narrows Blob construction plus agent/digest/size/revision fields layer by layer, aligns the metadata write callback with the UnitOfWork protocol and converts the residual list to list[JSON] for the journal update; the order of committing unreferenced metadata, revalidating every target fingerprint and only then unlinking with directory sync is unchanged, as are pin/reference protection, the 24-hour orphan grace, the inventory ceiling and journal resume"
   ],
   "pending": [
-   "domain/application/composition complete; adapters 200/222 strict, 22 modules remaining",
+   "domain/application/composition complete; adapters 201/222 strict, 21 modules remaining",
    "composition layer: 13 of 13 modules in strict scope (complete)",
    "Workbench redesign UI suite rerun after the parallel session lands",
    "Three-platform packaging/install/update/restore and real-environment acceptance"
@@ -194,12 +194,12 @@
  "validation": {
   "all_latest_cases_passed": false,
   "latest_batch": {
-   "batch": 186,
+   "batch": 187,
    "sources": [
-    "agent/src/omni/adapters/local_vectors.py"
+    "agent/src/omni/adapters/extensions/packages.py"
    ],
-   "report": "temp/build/v2-typecheck-186-callers.xml",
-   "tests": 95
+   "report": "temp/build/v2-typecheck-187-callers.xml",
+   "tests": 112
   },
   "targeted_reports": [
    {
@@ -1896,6 +1896,16 @@
     "skipped": 0,
     "duration_s": 173.16,
     "note": "Batch 186: strict 310 files (53 domain, 44 application, 200/222 adapters, 13 composition); 本地向量宿主（IPC 显式 Payload、状态对齐 Record、启动/计算/回收 Task 泛型化；取消归属、实际回收及全文降级不变）"
+   },
+   {
+    "path": "temp/build/v2-typecheck-187-callers.xml",
+    "sha256": "2d2baa60d9aa572a2fc0f4b5dde83ce599bd03923925efeb039a5912b0c67417",
+    "tests": 112,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "duration_s": 156.361,
+    "note": "Batch 187: strict 311 files (53 domain, 44 application, 201/222 adapters, 13 composition); 插件包与快照（清单/文件证明显式 Payload、市场回执对齐 Record、异构 I/O Future 有界归属；零执行捕获、路径校验及原子不覆盖发布不变）"
    }
   ],
   "gates": {
@@ -1907,7 +1917,7 @@
   "strict": {
    "config": "pyrightconfig.strict.json",
    "summary": {
-    "filesAnalyzed": 310,
+    "filesAnalyzed": 311,
     "errorCount": 0,
     "warningCount": 0,
     "informationCount": 0
@@ -1921,7 +1931,7 @@
     "informationCount": 0
    },
    "sources": [
-    "agent/src/omni/adapters/local_vectors.py"
+    "agent/src/omni/adapters/extensions/packages.py"
    ]
   },
   "full_run": {
@@ -2259,7 +2269,8 @@
    "Strict scope reaches 307 files (53 domain + 44 application + 197 adapters + 13 composition); the derived-vector and source-bound related-fact repository aligns capture/index-page/embedding-begin-finish/candidates/recall-validate/replay/propose/get/page/decide receipts with the port Record contract, bridges the not-yet-strict parent MemoryOrganizationRepositories._organization_capture through a local Any view per existing convention, types the proposal pair list as tuple[int, int, int], narrows dimensions and revisions to int and narrows content to str before byte accounting; derived data never rewriting facts, per-source revalidation before recall, approved duplicates leaving recall, the byte-budget gate, foreign-boot embeddings becoming failed, decisions binding revision/fingerprint/epoch and related-only-no-suppression are unchanged",
    "P3 PERSISTENCE COMPLETE: strict scope reaches 308 files (53 domain + 44 application + 198 adapters + 13 composition); all 34 persistence modules are now strict. The bounded exact-duplicate proposal repository aligns capture/sources/manifest/fingerprint/change/invalidate/get/enqueue/page/next/process/fail/cancel/decide receipts with the port Record contract, types _organization_capture as tuple[Record, int], types byte-length computed columns as Column[int], the anchor-size list as list[int] and grouping values as list[Record], and narrows revisions to int before incrementing; measuring bytes before fetching bodies, requiring live content to equal the historic revision, the eight-anchor ceiling, the shared maintenance queue ceiling, idempotency-key conflicts, exact-duplicate-plus-same-person-and-session candidacy, re-proving classification before apply rather than trusting a caller hash, duplicate-chain and double-suppression refusal, and never changing, forgetting or copying memory truth are unchanged. This batch also removed the three Any bridges in memory_semantic_repository because the parent became strict here, so the type chain is now fully connected",
    "Batch 185: strict 309 files (53 domain, 44 application, 199/222 adapters, 13 composition); 本地向量 worker（IPC/清单显式 Payload、受检字段收窄、窗口归属带类型；模型图校验、分窗、池化及错误码不变）",
-   "Batch 186: strict 310 files (53 domain, 44 application, 200/222 adapters, 13 composition); 本地向量宿主（IPC 显式 Payload、状态对齐 Record、启动/计算/回收 Task 泛型化；取消归属、实际回收及全文降级不变）"
+   "Batch 186: strict 310 files (53 domain, 44 application, 200/222 adapters, 13 composition); 本地向量宿主（IPC 显式 Payload、状态对齐 Record、启动/计算/回收 Task 泛型化；取消归属、实际回收及全文降级不变）",
+   "Batch 187: strict 311 files (53 domain, 44 application, 201/222 adapters, 13 composition); 插件包与快照（清单/文件证明显式 Payload、市场回执对齐 Record、异构 I/O Future 有界归属；零执行捕获、路径校验及原子不覆盖发布不变）"
   ]
  },
  "source_recovery": {
@@ -2273,6 +2284,6 @@
  },
  "next": {
   "id": "D7.typecheck.p4_business_adapters",
-  "scope": "P4 in progress; 22 adapters remain across P4/P5/P6. Next full-suite checkpoint: batch 189. Real-environment acceptance pending."
+  "scope": "P4 in progress; 21 adapters remain across P4/P5/P6. Next full-suite checkpoint: batch 189. Real-environment acceptance pending."
  }
 }

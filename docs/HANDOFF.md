@@ -1,6 +1,6 @@
 # OmniOperator 当前交接入口
 
-> strict 当前接续（2026-11-14，第 186 批）：**310 文件 / 0 errors / 0 warnings**；adapters **200/222**，剩 **22** 个模块。最新 `agent/src/omni/adapters/local_vectors.py`：本地向量宿主（IPC 显式 Payload、状态对齐 Record、启动/计算/回收 Task 泛型化；取消归属、实际回收及全文降级不变）。相关专项 **95 项通过**，源码 `8bda8801`；全量沿用第 184 批原始记录，下一全量节点第 189 批。默认正式入口仍是 V1，真实验收未完成。
+> strict 当前接续（2026-11-14，第 187 批）：**311 文件 / 0 errors / 0 warnings**；adapters **201/222**，剩 **21** 个模块。最新 `agent/src/omni/adapters/extensions/packages.py`：插件包与快照（清单/文件证明显式 Payload、市场回执对齐 Record、异构 I/O Future 有界归属；零执行捕获、路径校验及原子不覆盖发布不变）。相关专项 **112 项通过**，源码 `74db9efc`；全量沿用第 184 批原始记录，下一全量节点第 189 批。默认正式入口仍是 V1，真实验收未完成。
 
 > 当前正在实施V2底层重构；先读 [V2实施记录](V2_REFACTOR.md) 和 [V2任务台账](tasks/v2.json)。默认入口仍为V1，不能将新基础批次称为完整迁移。
 
