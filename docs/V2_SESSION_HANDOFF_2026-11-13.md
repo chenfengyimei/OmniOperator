@@ -1,5 +1,9 @@
 # V2 会话交接（2026-11-13，Windows）
 
+> **已被取代：当前权威交接是 `docs/V2_HANDOFF_2026-11-14.md`**（含 24 模块实测路线图与实战要点）。
+> 本文保留为 2026-11-13 时点的过程记录；§4.3 的建议切片顺序与 §4.4–§4.6 的错误数是**当时的估计值**，
+> 实际纳入顺序与实测错误数以新交接文档和 `probe_strict.py` 为准。
+
 > 用途：把当前会话的全部可验证状态、剩余工作与施工规范交给下一个会话。
 > **默认正式入口仍是 V1**；`omni`/`python -m omni`/`omni-web` 都还是 V1。V2 只有开发入口
 > `python -m omni.composition.cli --home <home> ...`。任何"V2 已完成/已迁移"的说法都不成立。
@@ -7,7 +11,7 @@
 ## 1. 一句话现状
 
 Windows 上 V2 底座**可冷启动、可自检、可服务、可跑全量测试、可离线打包**；strict 门禁 **308 文件 0 错误**
-（domain/application/composition 三层全层完成，P2 Android 全部完成，P3 已起步）；但 **24 个 adapters 未类型化**，
+（domain/application/composition 三层全层完成，P2 Android 全部完成，**P3 持久化 34 模块全部完成**）；但 **24 个 adapters 未类型化**，
 且**真实模型/MCP/市场/设备/安装态/三平台验收全部未做**，入口切换未评估。
 
 ## 2. 已核验的事实（可直接引用，不必重测）
@@ -17,17 +21,17 @@ Windows 上 V2 底座**可冷启动、可自检、可服务、可跑全量测试
 | strict 门禁 | **308 文件 / 0 errors / 0 warnings** | `uv run --no-sync pyright --project pyrightconfig.strict.json` |
 | strict 分层 | 53/53 domain、**44/44 application 全层**、198/222 adapters、**13/13 composition 全层** | `docs/TYPE_CHECKING.md` |
 | 未纳入 strict | 24 个 adapters（**P3 持久化 34 模块全部纳入**，剩 P4/P5/P6）（domain/application/composition 已全层纳入） | `temp/build/probe_strict.py`（survey-remaining.py 已不在库） |
-| 全量测试 | 4656 项：**4654 passed / 2 failed / 0 errors**（`-n 2`，56 分钟，第 15 节点） | `temp/build/v2-full-155.xml`、`docs/evidence/v2-typecheck.json` 的 `full_run` |
-| 失败性质 | 2 项：串行复跑 **1 过 1 败**（skills_ui[dark-760] 为抖动）；剩 `test_ui_embed_layer` 为**并行 UI 会话提交 `0497fe8` 引入的真实守卫违规**（`ui/v2/v1/frame.css` 副本截至第 15 节点仍未移除），归 UI 会话修，非本批回归 | 见 §5「验收口径」；两份报告留档 |
+| 全量测试（最近完成） | **4658 项：4656 passed / 2 failed / 0 errors**（`-n 2`，3899.21s，**第 40 节点**）；第 45 节点运行中 | `temp/build/v2-full-180.xml`、`docs/evidence/v2-typecheck.json` 的 `full_run` |
+| 失败性质（第 40 节点） | 2 项均判定抖动：投递归档串行与干净 HEAD 均过；`test_v2_portal_ui` 授权为**既有 flaky**（主工作区复跑 2 次 + 干净 HEAD 3 次全过），开放项 `test.portal_ui_flaky_on_clean_head`。第 35 节点的 #agents 与 CSS 守卫两开放项已关闭 | 见 §5「验收口径」；三份报告留档 |
 | 默认入口 | `V1 until R6 parity gate` | `docs/tasks/v2.json` 的 `default_entrypoints` |
-| 台账 | `status=d7_typecheck_batch_184`、`checkpoint_commit=aa294ef`、源码指纹 `d36a1847…`（1206 文件） |
+| 台账 | `status=d7_typecheck_batch_184`、`checkpoint_commit=aa294ef`、源码指纹 `d36a1847…`（1206 文件） | `docs/tasks/v2.json` |
 | 第 40 节点全量 | 4658 项：4656 passed / 2 failed（-n 2，3899.21s）；第 35 节点 17 项 UI/守卫失败已全绿，剩 2 项抖动 |
 | 第 35 节点全量 | 4658 项：4636 passed / 22 failed（-n 2，2938.09s）；22 败全为 UI/守卫，归 UI 会话未提交改版；干净 HEAD 对照 3/3 过 |
 | 第 30 节点全量 | 4658 项：4654 passed / 4 failed（-n 2，3047.62s）；2 项 CSS 守卫违规归 UI 会话未提交改动，2 项争用抖动 |
 | 第 25 节点全量 | 4656 项：4655 passed / 1 failed（-n 2，2830.94s）；干净 HEAD 三次对照证实既有 flaky |
 | 第 20 节点全量 | 4656 项：4655 passed / 1 failed（-n 2，3219.56s）；失败项串行复跑通过 |
-| 失败归属 | 第 40 节点：2 项均抖动——投递归档串行/干净 HEAD 均过；portal 授权既有 flaky（开放项 `test.portal_ui_flaky_on_clean_head`，主工作区复跑 2 次 + 干净 HEAD 3 次全过）。第 35 节点的 #agents 与 CSS 守卫两项开放项已关闭 | | `docs/tasks/v2.json`、`docs/evidence/v2-typecheck.json` |
-| 工作树 | 干净，`codex/architecture-v2` 与 origin 同步（HEAD `e2f72a0` 之后的文档提交） | `git status -sb` |
+| 失败归属 | 第 40 节点 2 项均抖动，第 35 节点两项 UI 开放项已关闭；唯一开放项为 `test.portal_ui_flaky_on_clean_head` | `docs/evidence/v2-typecheck.json` 的 `open_findings` |
+| 工作树 | `codex/architecture-v2` 与 origin 同步（源码 `aa294ef` / 文档 `4f6291c`）；另有并行会话在途文件与未跟踪目录，须保留 | `git status -sb` |
 
 ## 3. 现在能用什么（Windows，实测）
 
@@ -66,9 +70,9 @@ uv run --no-sync python -m omni.composition.cli --home temp\demo-home auth
 - ~~`workers/android.py`(246)~~ —— 第一百五十二批，提交 `142eff1`。
 - **P2 Android 7 个模块全部完成。下一步 P3 持久化 34 文件，见 §4.3。**
 
-### 4.3 P3 持久化（34 文件，6840 错里的大头）
+### 4.3 P3 持久化 —— **已全部完成（34/34，第 153～184 批）**
 
-建议切片顺序（每片 1 个节点，单文件或 ≤60 错）：
+下面是**当时的建议切片顺序（估计错误数，仅供历史参考）**；实际逐批提交与实测错误数见 `docs/V2_HANDOFF_2026-11-14.md` 与 `docs/evidence/v2-typecheck.json` 的 `validation.scope`：
 1. `repository.py`(188) + `schema.py`(58)；
 2. `configuration_repository` / `credential_repository` / `lease_repository` / `delivery_repository`(220)；
 3. `qq_repository`(41) / `bilibili_repository`(63) / `media_repository` / `image_repository`(59) /
@@ -80,20 +84,21 @@ uv run --no-sync python -m omni.composition.cli --home temp\demo-home auth
 6. `mcp_repository`(318) / `terminal_repository` / `terminal_review_repository`(64) / `skill_repository` /
    `routing_repository`(53) / `schedule_repository`(58) / `action_review_repository` / `extension_repository`。
 
-### 4.4 P4 业务大适配器
+### 4.4 P4 业务大适配器 —— **10 模块 / 实测 1396 错（2026-11-14）**
 
-`bilibili.py`(350，拆 3) → `workers/bilibili.py`(300，拆 2) → `workers/local_vectors.py`(62) /
-`media.py` / `local_vectors.py` / `model_stream.py`(76) / `http.py` / `onebot.py` / `diagnostic_bundle.py` /
-`extensions/packages.py`(73)。
+`bilibili.py`(350，拆3) / `workers/bilibili.py`(300，拆2) / `http.py`(177，拆2) / `workers/media.py`(99) /
+`onebot.py`(90) / `diagnostic_bundle.py`(90) / `local_vectors.py`(79) / `model_stream.py`(76) /
+`extensions/packages.py`(73) / `workers/local_vectors.py`(62)。建议先小后大，从 62 起。
 
-### 4.5 P5 platform
+### 4.5 P5 platform —— **11 模块 / 实测 1077 错（2026-11-14）**
 
-`linux_atspi.py`(110，拆 2) → `linux_x11` / `linux_semantic` / `portal` → `service_templates`(64) /
-`service_registration` / `service_operation_files` / `runtime_identity` / `deployment_files`(47)。
+`platform/portal.py`(202，拆2) / `linux_semantic.py`(159，拆2) / `service_registration.py`(116) /
+`linux_atspi.py`(110) / `runtime_identity.py`(92) / `linux_x11.py`(86) / `service_operation_files.py`(84) /
+`workers/portal.py`(71) / `service_templates.py`(64) / `deployment_files.py`(47) / `workers/linux_desktop.py`(46)。
 
-### 4.6 P6 MCP
+### 4.6 P6 MCP —— **3 模块 / 实测 290 错（2026-11-14）**
 
-`mcp/stdio.py`(67) → `mcp/http.py` → `mcp/oauth.py` 剩余方法。
+`mcp/stdio.py`(67) → `mcp/http.py`(87) → `mcp/oauth.py`(136)。真实 I/O 边界，类型化不得改动有界/取消/unknown/OAuth 显式发起等语义。
 
 ### 4.7 P8 验收闭环（可与上面并行）
 
