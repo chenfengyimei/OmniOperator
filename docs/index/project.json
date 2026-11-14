@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "de10a8d7694b3c4e5d9f2f02256e4b8d4a0ae362960f44d168385c1380c0abea",
+  "source_sha256": "3f23abf08a49c3174a828bc33cbe5233db403106e786e453ee7ee6cf8d68bdd0",
   "modules": [
     {
       "id": "v2-domain",
@@ -404,7 +404,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 54326,
+      "lines": 54327,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -26117,7 +26117,7 @@
       "path": "agent/src/omni/adapters/platform/linux_x11.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.linux_x11",
-      "lines": 247,
+      "lines": 248,
       "imports": [
         "omni.adapters.platform.linux_bus",
         "omni.adapters.platform.linux_session",
@@ -26129,7 +26129,7 @@
       "symbols": [
         {
           "name": "publish",
-          "line": 33,
+          "line": 34,
           "kind": "function",
           "parameters": [
             "path",
@@ -26142,12 +26142,12 @@
         },
         {
           "name": "X11Desktop",
-          "line": 64,
+          "line": 65,
           "kind": "class"
         },
         {
           "name": "X11Desktop.__init__",
-          "line": 65,
+          "line": 66,
           "kind": "function",
           "parameters": [
             "self",
@@ -26157,12 +26157,15 @@
             "publish_file"
           ],
           "annotations": {
-            "inspector": "SessionInspector"
+            "inspector": "SessionInspector",
+            "connection_factory": "Callable[[SessionInspector], Awaitable[Connection]]",
+            "wire_factory": "Callable[..., Wire]",
+            "publish_file": "Callable[[Path, bytes], None]"
           }
         },
         {
           "name": "X11Desktop.open",
-          "line": 82,
+          "line": 83,
           "kind": "function",
           "parameters": [
             "self"
@@ -26171,7 +26174,7 @@
         },
         {
           "name": "X11Desktop.target",
-          "line": 116,
+          "line": 117,
           "kind": "function",
           "parameters": [
             "self",
@@ -26183,30 +26186,30 @@
         },
         {
           "name": "X11Desktop.window",
-          "line": 152,
+          "line": 153,
           "kind": "function",
           "parameters": [
             "target"
           ],
           "annotations": {
-            "target": "dict"
+            "target": "dict[str, object]"
           }
         },
         {
           "name": "X11Desktop.verified",
-          "line": 162,
+          "line": 163,
           "kind": "function",
           "parameters": [
             "self",
             "target"
           ],
           "annotations": {
-            "target": "dict"
+            "target": "dict[str, object]"
           }
         },
         {
           "name": "X11Desktop.targets",
-          "line": 169,
+          "line": 170,
           "kind": "function",
           "parameters": [
             "self",
@@ -26218,19 +26221,19 @@
         },
         {
           "name": "X11Desktop.verify",
-          "line": 195,
+          "line": 196,
           "kind": "function",
           "parameters": [
             "self",
             "target"
           ],
           "annotations": {
-            "target": "dict"
+            "target": "dict[str, object]"
           }
         },
         {
           "name": "X11Desktop.capture",
-          "line": 206,
+          "line": 207,
           "kind": "function",
           "parameters": [
             "self",
@@ -26238,13 +26241,13 @@
             "path"
           ],
           "annotations": {
-            "target": "dict",
+            "target": "dict[str, object]",
             "path": "Path"
           }
         },
         {
           "name": "X11Desktop.close",
-          "line": 246,
+          "line": 247,
           "kind": "function",
           "parameters": [
             "self"

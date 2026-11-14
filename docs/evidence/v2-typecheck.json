@@ -1,14 +1,14 @@
 {
  "schema": 1,
- "batch": 199,
+ "batch": 200,
  "date": "2026-11-14",
  "whole_v2_complete": false,
  "d7_complete": false,
  "default_entrypoint": "v1",
  "source": {
-  "code_version": "fe119d97793eb6a2b828f0b7839e3ad0788a4937f589b81d522f0c9c0b2caa68",
+  "code_version": "c601a6279ad09b2b3e559451741421bed8dfe2c690aa43813bf7be281fe00f23",
   "fixed_source_files": 1208,
-  "git_head": "98ee8344",
+  "git_head": "6fe3780d",
   "dirty_checkout": true,
   "recipe": "sha256(json.dumps({path: sha256(blob) for tracked agent/, web/, scripts/ files}, sort_keys=True)); see temp/build/source_version.py",
   "head_ui": "75c4219",
@@ -188,7 +188,7 @@
    "Strict scope reaches 284 files (53 domain + 44 application + 174 adapters + 13 composition); the exclusive collection plan/apply module types its entries, residual ledger and durable journals as Record, narrows Blob construction plus agent/digest/size/revision fields layer by layer, aligns the metadata write callback with the UnitOfWork protocol and converts the residual list to list[JSON] for the journal update; the order of committing unreferenced metadata, revalidating every target fingerprint and only then unlinking with directory sync is unchanged, as are pin/reference protection, the 24-hour orphan grace, the inventory ceiling and journal resume"
   ],
   "pending": [
-   "domain/application/composition complete; adapters 209/222 strict, 13 modules remaining",
+   "domain/application/composition complete; adapters 210/222 strict, 12 modules remaining",
    "composition layer: 13 of 13 modules in strict scope (complete)",
    "Workbench redesign UI suite rerun after the parallel session lands",
    "Three-platform packaging/install/update/restore and real-environment acceptance"
@@ -197,46 +197,13 @@
  "validation": {
   "all_latest_cases_passed": false,
   "latest_batch": {
-   "batch": 199,
+   "batch": 200,
    "sources": [
-    "agent/src/omni/adapters/platform/linux_atspi.py",
-    "agent/src/omni/adapters/platform/linux_semantic.py"
+    "agent/src/omni/adapters/platform/linux_x11.py"
    ],
-   "report": "temp/build/v2-typecheck-199-callers.xml",
-   "tests": 145,
-   "included_in_strict_scope": true,
-   "passed": 144,
-   "failed": 1,
-   "known_failure_retained": true,
-   "reports": [
-    {
-     "path": "temp/build/v2-typecheck-199-native-rerun.xml",
-     "sha256": "37094b302916d54c51a707fd5206af28d54f4f0b0f77dff4692486b9ac075a2d",
-     "tests": 1,
-     "failures": 1,
-     "errors": 0,
-     "skipped": 0,
-     "note": "Windows-owned UIA fixture denied by unchanged input barrier; exact rerun and two earlier-HEAD controls preserve the same failure."
-    },
-    {
-     "path": "temp/build/v2-typecheck-199-native-control-1.xml",
-     "sha256": "a7d6dcff2a9473fa8c1fbce84778ee095c7cac2cf9b54d9b191bb07e79f4b3e3",
-     "tests": 1,
-     "failures": 1,
-     "errors": 0,
-     "skipped": 0,
-     "note": "Windows-owned UIA fixture denied by unchanged input barrier; exact rerun and two earlier-HEAD controls preserve the same failure."
-    },
-    {
-     "path": "temp/build/v2-typecheck-199-native-control-2.xml",
-     "sha256": "7d130505ab8bfbab918c8216eec93419a3e33edd1486927e9fbe9c11352ceacf",
-     "tests": 1,
-     "failures": 1,
-     "errors": 0,
-     "skipped": 0,
-     "note": "Windows-owned UIA fixture denied by unchanged input barrier; exact rerun and two earlier-HEAD controls preserve the same failure."
-    }
-   ]
+   "report": "temp/build/v2-typecheck-200-callers.xml",
+   "tests": 138,
+   "included_in_strict_scope": true
   },
   "targeted_reports": [
    {
@@ -2090,19 +2057,29 @@
     "skipped": 0,
     "duration_s": 32.333,
     "note": "Batch 199: strict 319 files (53 domain, 44 application, 209/222 adapters, 13 composition); AT-SPI 只读适配器类型收口（319文件；Windows夹具守卫失败独立留档）"
+   },
+   {
+    "path": "temp/build/v2-typecheck-200-callers.xml",
+    "sha256": "bbe20481731a5e4a98d9208133a5b8cd7e7135c01a39bd0670e6ecb75b0e9fbc",
+    "tests": 138,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "duration_s": 34.42,
+    "note": "Batch 200: strict 320 files (53 domain, 44 application, 210/222 adapters, 13 composition); X11 目标核验与采集适配器类型化，原生证明和像素边界不变"
    }
   ],
   "gates": {
-   "path": "temp/build/v2-typecheck-199-gates.json",
-   "sha256": "1f2068f77f65f72269e10c455fa5a9aa53732fee458e30acfab4932ff4fdd7f1",
+   "path": "temp/build/v2-typecheck-200-gates.json",
+   "sha256": "3520cf1e6bfb56405df7e27a5a8fed5eb368851e8e9aff26575e06355d74ceb8",
    "passed": 5,
    "total": 5,
-   "batch": 199
+   "batch": 200
   },
   "strict": {
    "config": "pyrightconfig.strict.json",
    "summary": {
-    "filesAnalyzed": 319,
+    "filesAnalyzed": 320,
     "errorCount": 0,
     "warningCount": 0,
     "informationCount": 0,
@@ -2115,10 +2092,10 @@
     "errorCount": 0,
     "warningCount": 0,
     "informationCount": 0,
-    "timeInSec": 0.441
+    "timeInSec": 0.698
    },
    "sources": [
-    "agent/src/omni/adapters/platform/linux_atspi.py"
+    "agent/src/omni/adapters/platform/linux_x11.py"
    ]
   },
   "full_run": {
@@ -2654,14 +2631,20 @@
    "Batch 196: strict 317 files (53 domain, 44 application, 207/222 adapters, 13 composition); Bilibili 网关严格类型收官（317文件）",
    "Batch 197: strict 317 files (53 domain, 44 application, 207/222 adapters, 13 composition); HTTP 路由与序列化边界类型化（第一步，128项待续）",
    "Batch 198: strict 318 files (53 domain, 44 application, 208/222 adapters, 13 composition); HTTP 请求模型与输入工厂严格类型收官（318文件，schema等价）",
-   "Batch 199: strict 319 files (53 domain, 44 application, 209/222 adapters, 13 composition); AT-SPI 只读适配器类型收口（319文件；Windows夹具守卫失败独立留档）"
+   "Batch 199: strict 319 files (53 domain, 44 application, 209/222 adapters, 13 composition); AT-SPI 只读适配器类型收口（319文件；Windows夹具守卫失败独立留档）",
+   "Batch 200: strict 320 files (53 domain, 44 application, 210/222 adapters, 13 composition); X11 目标核验与采集适配器类型化，原生证明和像素边界不变"
   ],
-  "next_full_checkpoint": 199,
+  "next_full_checkpoint": 204,
   "full_checkpoints_frozen": [
    {
     "batch": 194,
     "head": "102cf4a6569c2f8fc0efa1d4610881ba4ee1959e",
     "snapshot": "temp/build/v2-full-194-snapshot.json"
+   },
+   {
+    "batch": 199,
+    "head": "5aec7588e99340ffb931255ff8ec013f79c29c55",
+    "snapshot": "temp/build/v2-full-199-snapshot.json"
    }
   ]
  },
@@ -2676,6 +2659,6 @@
  },
  "next": {
   "id": "D7.typecheck.p5_adapters",
-  "scope": "P5 in progress; 13 adapters remain across P4/P5/P6. Next full-suite checkpoint: batch 199. Real-environment acceptance pending."
+  "scope": "P5 in progress; 12 adapters remain across P4/P5/P6. Next full-suite checkpoint: batch 204. Real-environment acceptance pending."
  }
 }

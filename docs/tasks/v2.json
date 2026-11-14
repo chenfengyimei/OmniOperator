@@ -209,7 +209,7 @@
    "id": "R6",
    "title": "业务接入与交付",
    "status": "开发中",
-   "notes": "媒体、MCP 运行适配器、插件产物/本地市场/宿主回调已有离线实现；当前 D7 产品化与严格类型收口中（319 文件，adapters 209/222）。默认正式入口仍 V1，平台及真实业务验收待完成。",
+   "notes": "媒体、MCP 运行适配器、插件产物/本地市场/宿主回调已有离线实现；当前 D7 产品化与严格类型收口中（320 文件，adapters 210/222）。默认正式入口仍 V1，平台及真实业务验收待完成。",
    "evidence": [
     "docs/evidence/v2-offline.json",
     "docs/evidence/v2-people.json",
@@ -284,9 +284,9 @@
    ]
   }
  ],
- "checkpoint_commit": "98ee8344",
+ "checkpoint_commit": "6fe3780d",
  "current_validation": {
-  "status": "d7_typecheck_batch_199",
+  "status": "d7_typecheck_batch_200",
   "targeted_unique_passed": 228,
   "includes_browser_cases": 10,
   "current_full_passed": false,
@@ -329,9 +329,21 @@
      "temp/build/v2-full-194-control-1.xml",
      "temp/build/v2-full-194-control-2.xml"
     ]
+   },
+   {
+    "id": "test.windows_uia_user_intervention_environment",
+    "status": "open",
+    "scope": "Batch 199 supplementary Windows-owned UIA act fixture is consistently denied with desktop_user_intervened on the changed checkout and two earlier committed 50e36455 controls. AT-SPI changes do not touch the Windows implementation. Keep the environment-bound native validation failure; no barrier or assertion was weakened.",
+    "owner": "Windows native fixture validation",
+    "evidence": [
+     "temp/build/v2-typecheck-199-callers.xml",
+     "temp/build/v2-typecheck-199-native-rerun.xml",
+     "temp/build/v2-typecheck-199-native-control-1.xml",
+     "temp/build/v2-typecheck-199-native-control-2.xml"
+    ]
    }
   ],
-  "code_version": "fe119d97793eb6a2b828f0b7839e3ad0788a4937f589b81d522f0c9c0b2caa68",
+  "code_version": "c601a6279ad09b2b3e559451741421bed8dfe2c690aa43813bf7be281fe00f23",
   "fixed_source_files": 1208,
   "baseline_repair_evidence": "docs/evidence/v2-baseline-repair.json",
   "market_evidence": "docs/evidence/v2-extension-market.json",
@@ -438,7 +450,7 @@
   "id": "D7.product_switch",
   "status": "进行中",
   "design": "docs/V2_PACKAGING.md",
-  "scope": "P1 composition/P2 Android/P3 persistence complete; P5 adapters in progress. strict 319 files (53 domain, 44 application, 209/222 adapters, 13 composition), 13 adapters remain. Next full-suite checkpoint: batch 199."
+  "scope": "P1 composition/P2 Android/P3 persistence complete; P5 adapters in progress. strict 320 files (53 domain, 44 application, 210/222 adapters, 13 composition), 12 adapters remain. Next full-suite checkpoint: batch 204."
  },
  "milestones": [
   {
