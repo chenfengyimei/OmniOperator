@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "34aa8c8b4d10615be9dbc12f729abb8e0b89d1ba481fedf7f14f50a51eecd6fa",
+  "source_sha256": "1ab4ae7473c53c78886cefb79b5f2c2b363bd6479a9f5f44f82e4c6f3d2171c7",
   "modules": [
     {
       "id": "v2-domain",
@@ -404,7 +404,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 54037,
+      "lines": 54054,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -498,7 +498,7 @@
         "web/ui/v2/v1/workbench.css",
         "web/ui/v2/workbench.css"
       ],
-      "lines": 20518,
+      "lines": 20520,
       "dependencies": []
     },
     {
@@ -20946,11 +20946,12 @@
       "path": "agent/src/omni/adapters/persistence/routing_repository.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.persistence.routing_repository",
-      "lines": 283,
+      "lines": 300,
       "imports": [
         "omni.adapters.persistence",
         "omni.adapters.persistence.image_repository",
         "omni.adapters.persistence.repository",
+        "omni.application.ports",
         "omni.domain.contracts",
         "omni.domain.metering",
         "omni.domain.routing"
@@ -20958,7 +20959,7 @@
       "symbols": [
         {
           "name": "encoded",
-          "line": 22,
+          "line": 23,
           "kind": "function",
           "parameters": [
             "specs"
@@ -20969,12 +20970,12 @@
         },
         {
           "name": "RoutingRepositories",
-          "line": 26,
+          "line": 27,
           "kind": "class"
         },
         {
           "name": "RoutingRepositories.route_policy",
-          "line": 27,
+          "line": 28,
           "kind": "function",
           "parameters": [
             "self",
@@ -20986,7 +20987,7 @@
         },
         {
           "name": "RoutingRepositories.route_policy_save",
-          "line": 41,
+          "line": 45,
           "kind": "function",
           "parameters": [
             "self",
@@ -20996,13 +20997,13 @@
           ],
           "annotations": {
             "agent_id": "str",
-            "value": "dict",
+            "value": "Record",
             "revision": "int"
           }
         },
         {
           "name": "RoutingRepositories.route_resolve",
-          "line": 55,
+          "line": 59,
           "kind": "function",
           "parameters": [
             "self",
@@ -21022,7 +21023,7 @@
         },
         {
           "name": "RoutingRepositories.route_attach",
-          "line": 70,
+          "line": 76,
           "kind": "function",
           "parameters": [
             "self",
@@ -21033,12 +21034,12 @@
           "annotations": {
             "agent_id": "str",
             "run_id": "str",
-            "choice": "dict"
+            "choice": "Record"
           }
         },
         {
           "name": "RoutingRepositories.run_route",
-          "line": 103,
+          "line": 109,
           "kind": "function",
           "parameters": [
             "self",
@@ -21052,7 +21053,7 @@
         },
         {
           "name": "RoutingRepositories.route_reservation",
-          "line": 135,
+          "line": 147,
           "kind": "function",
           "parameters": [
             "self",
@@ -21068,7 +21069,7 @@
         },
         {
           "name": "RoutingRepositories.route_promote",
-          "line": 139,
+          "line": 151,
           "kind": "function",
           "parameters": [
             "self",
@@ -21084,7 +21085,7 @@
         },
         {
           "name": "RoutingRepositories.route_call",
-          "line": 192,
+          "line": 204,
           "kind": "function",
           "parameters": [
             "self",
@@ -21104,7 +21105,7 @@
         },
         {
           "name": "RoutingRepositories.route_report",
-          "line": 235,
+          "line": 249,
           "kind": "function",
           "parameters": [
             "self",
@@ -95868,7 +95869,7 @@
       "path": "web/ui/v2/workbench.css",
       "module": "v2-workbench",
       "python_module": null,
-      "lines": 2142,
+      "lines": 2144,
       "imports": [],
       "symbols": [],
       "kind": "asset",

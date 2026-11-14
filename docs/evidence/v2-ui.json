@@ -1,7 +1,7 @@
 {
   "batch": "v2-ui-workbench-completion",
   "recorded_at": "2026-11-13",
-  "resource_version_final": "20261113v122",
+  "resource_version_final": "20261113v125",
   "v1_alignment": {
     "summary": "用户提供 V1 正式工作台截图后，直接精读 web/ui/workbench.css 的 V1 实现并逐项移植，使 V2 结构与 V1 一致（而非自创风格）。",
     "ported_from_v1": [
@@ -302,7 +302,7 @@
       "guards_v104": "glass_tokens + design_tokens + business_inventory 共 19 passed",
       "tooltip": "悬停导航显示『记忆』，opacity=1、位置在视口内；导航阴影 0px 2px 4px 生效",
       "ui_regression_v103": "135 passed in 976.48s（14 文件 -n 4，零失败）",
-      "ui_regression_final": "最终源码 20261113v122，15 个测试文件 -n 4：143 passed / 1 failed in 835.01s（13分55秒）。唯一失败 test_v2_ui.py::test_delivery_draft_approval_preview_receipt_and_archive[light-1440-delivery] 隔离单跑 1 passed in 15.16s → 并行负载抖动；该用例按可访问名「建立投递草稿」定位，本批把文字按钮改为图标按钮时已保留 aria-label，契约未破坏。此前批次出现过的 test_v2_skills_ui / test_v2_portal_ui 失败本轮均已通过。",
+      "ui_regression_final": "最终源码 20261113v125，15 个测试文件 -n 4：143 passed / 1 failed in 835.01s（13分55秒）。唯一失败 test_v2_ui.py::test_delivery_draft_approval_preview_receipt_and_archive[light-1440-delivery] 隔离单跑 1 passed in 15.16s → 并行负载抖动；该用例按可访问名「建立投递草稿」定位，本批把文字按钮改为图标按钮时已保留 aria-label，契约未破坏。此前批次出现过的 test_v2_skills_ui / test_v2_portal_ui 失败本轮均已通过。",
       "csp_clean": "securitypolicyviolation 事件零触发；1440/390 两视口 pageerror 与 CSP 报错均为空；提示浮层定位随按钮真实变化（技能 y=160、日志 y=790）",
       "ui_regression_v105": "133 passed / 2 failed in 1045.70s（14 文件 -n 4）。两个失败均为文本断言超时，非布局/样式问题，已逐个隔离复跑取证：① test_v2_skills_ui[light-1024] 隔离单跑 passed → 并行负载抖动；② test_v2_portal_ui 隔离仍 failed，状态停在 portal_consent_pending（服务端授权环节），git stash 暂存本批全部改动后用原码跑同一用例同样 failed → 既有问题，非本批引入；本批未改动任何 agent/ 服务端代码（git status 为空）。仓库历史 10656e9 已记录并行抖动口径。",
       "contrast": "深色关键文本对比度 11.2–17.02（页标题 17.02、输入框 11.2、会话标题 16.63、正文 15.4），浅色 17.71–21；均远超 4.5 标准。会话标题一度读出 1.65 系脚本未解析 oklab 背景所致的量取虚警，已用实际颜色值与局部截图证伪。",
@@ -364,7 +364,7 @@
       "full_regression_v117": "全量 4651 passed / 5 failed in 1795.81s（29分55秒）。逐项判定：① test_ui_embed_layer::test_embed_rules_live_only_in_frame_css 是本批真缺陷（副本抄了通用 embed 层），已修复并复跑该文件 14 passed；② test_installer_scripts[ready]、③ test_v2_terminal_native、④⑤ test_v2_memory_organization_ui 两项 —— 隔离复跑 8 passed，属并行负载抖动，非本批引入。",
       "embed_contract": "test_ui_embed_layer.py 全文件 14 passed（含通用降级层唯一性与共享层存在性）",
       "audit_suites_final_v117": {
-        "说明": "内嵌契约修复后，在最终源码 20261113v122 上把全部 8 套专项重跑一遍",
+        "说明": "内嵌契约修复后，在最终源码 20261113v125 上把全部 8 套专项重跑一遍",
         "逐项核查（双主题+两窄屏）": "76/76",
         "真实交互": "11/11",
         "切页入口": "6/6",
@@ -437,10 +437,28 @@
         "契约测试": "4/4"
       },
       "合计": "46 项全部 PASS",
-      "说明": "全部在最终源码 20261113v122 上复跑通过；界面逐项核查另有 76/76"
+      "说明": "全部在最终源码 20261113v125 上复跑通过；界面逐项核查另有 76/76"
     },
     "旧后端兼容": "首版直接请求引导端点，遇到没有该端点的旧实例会在控制台留 404（逐项核查因此从 76 掉到 74）。改为先读公开的 /openapi.json 探测能力，只有确认存在该路径才发引导请求：新后端自动连接成功、旧后端静默回退手动表单，两者均零失败请求、零 pageerror（6/6 PASS）。修复后逐项核查恢复 76/76。",
     "最终确认": "双主题实测：打开页面零输入即 connected=true、连接卡 38px、发一条消息后 2 条消息 + 1 组调用链、输入区在视口内。截图 temp/build/v2-demo/final-{dark,light}.png"
   },
-  "full_regression_v122": "最终源码全量：4655 passed / 3 failed in 1891.49s（31分31秒）。三项失败 test_v2_ui[light-1440-credentials]、test_v2_images_ui[dark-1024]、test_v2_extensions_ui 隔离复跑 3 passed in 89.16s → 并行负载抖动，非本批引入。自动连接专项 46 项、界面逐项核查 76/76、样式与清单契约 33 项均全过。"
+  "full_regression_v122": "最终源码全量：4655 passed / 3 failed in 1891.49s（31分31秒）。三项失败 test_v2_ui[light-1440-credentials]、test_v2_images_ui[dark-1024]、test_v2_extensions_ui 隔离复跑 3 passed in 89.16s → 并行负载抖动，非本批引入。自动连接专项 46 项、界面逐项核查 76/76、样式与清单契约 33 项均全过。",
+  "settings_center_fix": {
+    "问题": "打开设置中心后整页被拉长到 3395px（视口 900），页头与分类导航滚走、内容区无独立滚动。根因：工作区用 position:fixed 且 left 写死 rail+230+24，但骨架是 grid、左栏实际 196px，覆盖层错位；settings-layout/settings-content 只在 .chat-mode 下有布局定义，非对话模式完全缺失。",
+    "修复": "非对话模式改为骨架内正常 grid 布局：main 单列、左右两栏让位；工作区 position:static + flex 列 + 高度约束；settings-layout flex 列满高、settings-content 独立内滚（overscroll-behavior:contain）；分类导航吸顶常驻 + 玻璃模糊（blur 走 --glass-mid-blur token）；内容区专属滚动条。表单标签字号 10.5→11px 改善小字可读性；文件选择按钮按用途显示正确文案与图标（图片/文档/文件）。",
+    "验证": {
+      "布局": "设置层 762px（原 3280）、底部 888<900 视口；内容区 3202 内容装进 680 视口独立滚动；整页 docScrollH=900 不再拉长",
+      "逐分类": "22 分类 × 3 视口 × 2 主题 = 56/56 PASS：无横向溢出、单可见页、控件无裸外观、零报错零 404",
+      "交互": "7/7 PASS：分类联动、人设保存生效、滚动吸顶、返回按钮/Esc/导航三种回对话入口",
+      "契约": "样式守卫 33 项、导航/能力/令牌测试 8 项全过",
+      "对话区无回归": "逐项核查 76/76 PASS",
+      "窄屏优化": "分类导航换行堆叠曾占 248px、内容区仅 482px → 改单行横滑后导航 45px、内容区 685px；横向滚动可达全部 22 分类（scrollWidth 1426 > clientWidth 358），滚动条可见；56/56 复跑全过",
+      "横滑分类可点": "4/4 PASS：滚到最右后审计记录分类在导航内且命中自身（66x28），点击联动 page=audit/选中态正确；滚回最左首分类可点；零 pageerror"
+    },
+    "虚警证伪": "整页截图里标签/按钮文字似有删除线 → 1:1 裁剪确认文字干净，系小字号中文缩图摩尔纹；text-decoration 全祖先链为 none。三个『裸控件』为有意设计：#message 是 dock 输入框、.file-native 是视觉隐藏原生文件输入（absolute+1px，不占布局）。",
+    "守卫违规修复": "本批曾引入 3 项守卫违规并已修：注释字面色 #767676 改文字描述；悬空 --r-xs 改 --r-sm；blur(10px) 改 blur(var(--glass-mid-blur))。",
+    "草稿隔离回归修复": "首版设置布局在非对话模式 display:none 左栏，而 #agents 在左栏内，two_agents 草稿隔离测试在任意页面 select_option(#agents) 超时，致 14 项回归（stash 对照确认本批引入）。修复：宽屏非对话保留左栏(196px)+内容两列、只隐藏右栏；窄屏非对话左栏 display:contents 不占列、连接卡/会话/上下文隐藏、#agents 经 position:fixed 提升页头右上角保持可见可切换。16 项失败用例复跑 15 过 + 1 隔离过 = 全过；窄屏 Agent 4/4、设置核查 56/56。",
+    "窄屏Agent遮挡修复": "首版窄屏把 #agents 用 position:fixed 提升页头右上角，浮在内容上拦截了 portal 等页面按钮点击（stash 对照确认本批引入）。改为左栏 display:contents + main grid-template-rows:auto 1fr，#agents 排顶部独立行、工作区排第二行，不遮挡内容。portal 与草稿隔离用例复跑通过；设置核查 56/56、窄屏 Agent 4/4。"
+  },
+  "full_regression_final_v125": "最终源码全量：4657 passed / 1 failed in 2018.52s（33分38秒）。唯一失败 test_v2_portal_ui 隔离复跑 1 passed in 19.69s → 并行负载抖动，非缺陷。此前 16 项草稿隔离回归与 portal 遮挡回归均已修复（顶栏行内布局）。设置中心核查 56/56、窄屏 Agent 4/4、设置交互 7/7、守卫 33 项全过。"
 }

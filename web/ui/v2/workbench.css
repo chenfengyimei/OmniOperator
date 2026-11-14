@@ -15,6 +15,323 @@ body[data-ui-page="workbench-v2"] {
   --v2-page-max: 980px;
 }
 
+/* ==========================================================================
+   分区页表单设计系统
+   --------------------------------------------------------------------------
+   实测：22 个 section.page 里的 input/select/textarea 是**纯浏览器默认外观**
+   （灰色 inset 描边、白底、0 圆角、0 内边距、13.33px Times）——
+   全站没有任何通用表单规则，V1 各页靠自己的专属选择器，V2 分区页完全没被覆盖，
+   在深色主题下就是一片刺眼白块。这里补齐完整表单语言，作用域限定 .page，
+   不影响对话区 dock 与右栏（它们各有自己的规则且特异性更高）。
+   ========================================================================== */
+body[data-ui-page="workbench-v2"] .page :is(input, select, textarea) {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 32px;
+  padding: 7px 10px;
+  border: 1px solid var(--line-2);
+  border-radius: var(--r-md);
+  background: var(--surface-inset);
+  color: var(--text-1);
+  font-family: inherit;
+  font-size: var(--fs-small);
+  line-height: 1.5;
+  appearance: none;
+  transition:
+    border-color 0.14s,
+    box-shadow 0.14s,
+    background 0.14s;
+}
+body[data-ui-page="workbench-v2"] .page textarea {
+  min-height: 92px;
+  resize: vertical;
+  font-family: var(--font-mono);
+  font-size: var(--fs-caption);
+  line-height: 1.66;
+}
+body[data-ui-page="workbench-v2"] .page :is(input, select, textarea)::placeholder {
+  color: var(--text-3);
+  opacity: 1;
+}
+body[data-ui-page="workbench-v2"] .page :is(input, select, textarea):hover:not(:disabled) {
+  border-color: var(--line-1);
+}
+body[data-ui-page="workbench-v2"] .page :is(input, select, textarea):focus {
+  outline: none;
+  border-color: var(--line-accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--seed-accent) 16%, transparent);
+}
+body[data-ui-page="workbench-v2"] .page :is(input, select, textarea):disabled {
+  background: color-mix(in oklab, var(--surface-2) 55%, transparent);
+  color: var(--text-3);
+  cursor: not-allowed;
+}
+/* 下拉箭头：appearance:none 后必须自绘，否则失去可展开的视觉提示 */
+body[data-ui-page="workbench-v2"] .page select {
+  padding-right: 28px;
+  background-image: linear-gradient(45deg, transparent 50%, currentColor 50%),
+    linear-gradient(135deg, currentColor 50%, transparent 50%);
+  background-position:
+    calc(100% - 15px) calc(50% + 1px),
+    calc(100% - 10px) calc(50% + 1px);
+  background-size:
+    5px 5px,
+    5px 5px;
+  background-repeat: no-repeat;
+  cursor: pointer;
+}
+body[data-ui-page="workbench-v2"] .page select[multiple] {
+  min-height: 96px;
+  padding-right: 10px;
+  background-image: none;
+}
+body[data-ui-page="workbench-v2"] .page select option {
+  background: var(--surface-1);
+  color: var(--text-1);
+}
+/* 数字输入的步进器在深色下是白块，统一隐藏，靠键盘与输入交互 */
+body[data-ui-page="workbench-v2"] .page input[type="number"] {
+  appearance: textfield;
+}
+body[data-ui-page="workbench-v2"] .page input[type="number"]::-webkit-outer-spin-button,
+body[data-ui-page="workbench-v2"] .page input[type="number"]::-webkit-inner-spin-button {
+  appearance: none;
+  margin: 0;
+}
+/* 复选与单选：默认外观在深色下同样是白块，自绘为强调色勾选 */
+body[data-ui-page="workbench-v2"] .page :is(input[type="checkbox"], input[type="radio"]) {
+  flex: 0 0 auto;
+  width: 16px;
+  height: 16px;
+  min-height: 16px;
+  padding: 0;
+  border: 1px solid var(--line-1);
+  background: var(--surface-inset);
+  cursor: pointer;
+  position: relative;
+}
+body[data-ui-page="workbench-v2"] .page input[type="checkbox"] {
+  /* --r-xs 未登记，会触发悬空变量守卫；复选框用最小已登记圆角 */
+  border-radius: var(--r-sm);
+}
+body[data-ui-page="workbench-v2"] .page input[type="radio"] {
+  border-radius: var(--r-full);
+}
+body[data-ui-page="workbench-v2"] .page :is(input[type="checkbox"], input[type="radio"]):checked {
+  border-color: transparent;
+  background: var(--grad);
+}
+body[data-ui-page="workbench-v2"] .page input[type="checkbox"]:checked::after {
+  content: "";
+  position: absolute;
+  left: 4px;
+  top: 1px;
+  width: 5px;
+  height: 9px;
+  border: solid var(--on-accent);
+  border-width: 0 2px 2px 0;
+  transform: rotate(42deg);
+}
+body[data-ui-page="workbench-v2"] .page input[type="radio"]:checked::after {
+  content: "";
+  position: absolute;
+  inset: 4px;
+  border-radius: var(--r-full);
+  background: var(--on-accent);
+}
+/* 文件选择：原生按钮在深色下是灰白块，改成与主按钮同语言 */
+body[data-ui-page="workbench-v2"] .page input[type="file"] {
+  padding: 5px 8px;
+  font-size: var(--fs-caption);
+  cursor: pointer;
+}
+body[data-ui-page="workbench-v2"] .page input[type="file"]::file-selector-button {
+  margin-right: 9px;
+  padding: 4px 11px;
+  border: 1px solid var(--line-accent);
+  border-radius: var(--r-sm);
+  background: color-mix(in srgb, var(--seed-accent) 14%, transparent);
+  color: var(--accent);
+  font-family: inherit;
+  font-size: var(--fs-caption);
+  font-weight: 600;
+  cursor: pointer;
+}
+body[data-ui-page="workbench-v2"] .page input[type="file"]::file-selector-button:hover {
+  background: color-mix(in srgb, var(--seed-accent) 24%, transparent);
+}
+/* 标签：说明文字在上、控件在下，间距统一。
+   10.5px 的中文标签在整页缩图时会产生摩尔纹且偏小，提到 11px 改善可读性。 */
+body[data-ui-page="workbench-v2"] .page label {
+  display: grid;
+  gap: 5px;
+  margin-bottom: 12px;
+  color: var(--text-2);
+  font-size: var(--fs-small);
+  font-weight: 560;
+  line-height: 1.5;
+}
+body[data-ui-page="workbench-v2"] .page label.checkbox,
+body[data-ui-page="workbench-v2"] .page label:has(> input[type="checkbox"]),
+body[data-ui-page="workbench-v2"] .page label:has(> input[type="radio"]) {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-1);
+  font-weight: 500;
+  cursor: pointer;
+}
+/* fieldset：默认浏览器边框去掉，改为分组卡片 */
+body[data-ui-page="workbench-v2"] .page fieldset {
+  min-width: 0;
+  margin: 0 0 16px;
+  padding: 14px 16px 6px;
+  border: 1px solid var(--line-2);
+  border-radius: var(--r-card);
+  background: color-mix(in oklab, var(--surface-2) 42%, transparent);
+}
+body[data-ui-page="workbench-v2"] .page fieldset:disabled {
+  opacity: 0.72;
+}
+body[data-ui-page="workbench-v2"] .page legend {
+  padding: 0 7px;
+  color: var(--text-2);
+  font-size: var(--fs-caption);
+  font-weight: 680;
+}
+/* 并排字段行 */
+body[data-ui-page="workbench-v2"] .page :is(.form-row, .log-filters) {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 10px 12px;
+  margin-bottom: 4px;
+}
+body[data-ui-page="workbench-v2"] .page :is(.form-row, .log-filters) > label {
+  margin-bottom: 8px;
+}
+/* 按钮：分区页此前也是浏览器默认灰底凸边框 */
+body[data-ui-page="workbench-v2"] .page button {
+  box-sizing: border-box;
+  min-height: 30px;
+  padding: 0 14px;
+  border: 1px solid var(--line-2);
+  border-radius: var(--r-md);
+  background: var(--glass-weak-bg);
+  color: var(--text-1);
+  font-family: inherit;
+  font-size: var(--fs-caption);
+  font-weight: 620;
+  cursor: pointer;
+  appearance: none;
+  transition:
+    border-color 0.14s,
+    background 0.14s,
+    color 0.14s,
+    transform 0.1s;
+}
+body[data-ui-page="workbench-v2"] .page button:hover:not(:disabled) {
+  border-color: var(--line-accent);
+  background: var(--surface-accent);
+}
+body[data-ui-page="workbench-v2"] .page button:active:not(:disabled) {
+  transform: translateY(1px);
+}
+body[data-ui-page="workbench-v2"] .page button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+/* 主操作：表单提交键用渐变实心，一屏内的视觉落点 */
+body[data-ui-page="workbench-v2"] .page button[type="submit"] {
+  border-color: transparent;
+  background: var(--grad);
+  color: var(--on-accent);
+  font-weight: 700;
+}
+body[data-ui-page="workbench-v2"] .page button[type="submit"]:hover:not(:disabled) {
+  filter: brightness(1.08);
+  background: var(--grad);
+}
+body[data-ui-page="workbench-v2"] .page button.danger {
+  border-color: var(--danger-bd);
+  color: var(--danger);
+}
+body[data-ui-page="workbench-v2"] .page button.danger:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--danger) 14%, transparent);
+  border-color: var(--danger);
+}
+body[data-ui-page="workbench-v2"] .page .actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 12px 0 6px;
+}
+/* 分区页滚动条走面板语言，不用浏览器默认 */
+body[data-ui-page="workbench-v2"] .page::-webkit-scrollbar,
+body[data-ui-page="workbench-v2"] .page :is(pre, textarea, select[multiple])::-webkit-scrollbar {
+  width: 9px;
+  height: 9px;
+}
+body[data-ui-page="workbench-v2"] .page::-webkit-scrollbar-track,
+body[data-ui-page="workbench-v2"] .page :is(pre, textarea, select[multiple])::-webkit-scrollbar-track {
+  background: transparent;
+}
+body[data-ui-page="workbench-v2"] .page::-webkit-scrollbar-thumb,
+body[data-ui-page="workbench-v2"] .page :is(pre, textarea, select[multiple])::-webkit-scrollbar-thumb {
+  border: 2px solid transparent;
+  border-radius: var(--r-full);
+  background: color-mix(in srgb, var(--seed-fg) 20%, transparent);
+  background-clip: content-box;
+}
+body[data-ui-page="workbench-v2"] .page::-webkit-scrollbar-thumb:hover,
+body[data-ui-page="workbench-v2"] .page :is(pre, textarea, select[multiple])::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in srgb, var(--seed-accent) 50%, transparent);
+  background-clip: content-box;
+}
+/* 代码/日志块 */
+body[data-ui-page="workbench-v2"] .page pre {
+  margin: 0 0 12px;
+  padding: 11px 13px;
+  border: 1px solid var(--line-3);
+  border-radius: var(--r-md);
+  background: var(--surface-inset);
+  color: var(--text-2);
+  font-family: var(--font-mono);
+  font-size: var(--fs-caption);
+  line-height: 1.68;
+  white-space: pre-wrap;
+  word-break: break-word;
+  overflow: auto;
+  max-height: 340px;
+}
+body[data-ui-page="workbench-v2"] .page pre:empty {
+  display: none;
+}
+/* 表格：默认无边框无间距，补成可读的数据表 */
+body[data-ui-page="workbench-v2"] .page table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 12px;
+  font-size: var(--fs-caption);
+}
+body[data-ui-page="workbench-v2"] .page :is(th, td) {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--line-3);
+  text-align: left;
+  vertical-align: top;
+}
+body[data-ui-page="workbench-v2"] .page th {
+  color: var(--text-2);
+  font-weight: 680;
+  white-space: nowrap;
+}
+body[data-ui-page="workbench-v2"] .page td {
+  color: var(--text-1);
+}
+body[data-ui-page="workbench-v2"] .page tbody tr:hover {
+  background: color-mix(in oklab, var(--surface-2) 45%, transparent);
+}
+
 /* rail：沿用 V1 固定定位，滚动条走 V1 语言 */
 body[data-ui-page="workbench-v2"] > nav[aria-label="工作台"] {
   position: fixed;
@@ -793,20 +1110,60 @@ body[data-ui-page="workbench-v2"] .thinking-dots i:nth-child(3) {
   }
 }
 
-/* 设置中心覆盖层 */
+/* ==========================================================================
+   设置中心（非对话模式）
+   此前工作区用 position:fixed 且 left 写死 rail+230+24，但骨架是 grid、
+   左栏实际 196px，覆盖层错位；内部又没有高度约束，实测设置层 display:block、
+   高 3280px、底部 3395px 远超 900 视口 —— 整页被拉长，页头与分类导航滚走，
+   内容区没有独立滚动。这里改为骨架内的正常 grid 布局 + 内部独立滚动。
+   ========================================================================== */
+body[data-ui-page="workbench-v2"]:not(.chat-mode) > main {
+  /* 保留左栏：#agents 在左栏里，two_agents 草稿隔离测试会在任意页面切换 Agent，
+     隐藏左栏会让 #agents 不可见、select_option 超时（曾致 14 项回归）。
+     只隐藏右栏，左栏 + 内容两列。 */
+  grid-template-columns: 196px minmax(0, 1fr);
+  min-height: 0;
+  overflow: hidden;
+}
+body[data-ui-page="workbench-v2"]:not(.chat-mode) > main > aside.inspector {
+  display: none;
+}
+body[data-ui-page="workbench-v2"]:not(.chat-mode) > main > aside.workbench-side {
+  min-height: 0;
+  overflow-y: auto;
+}
 body[data-ui-page="workbench-v2"]:not(.chat-mode) main > section[aria-label="工作区"] {
-  position: fixed;
-  top: 52px;
-  right: 0;
-  bottom: 0;
-  left: calc(var(--rail-w) + 230px + 24px);
-  z-index: 30;
-  border-left: 1px solid var(--line-2);
-  background: var(--surface-0);
-  box-shadow: var(--sh-3);
+  position: static;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+  overflow: hidden;
+  border-left: 0;
+  background: transparent;
+  box-shadow: none;
+}
+/* 设置层：分类导航固定在顶部，内容区独占剩余高度并内滚 */
+body[data-ui-page="workbench-v2"]:not(.chat-mode) .settings-layout {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  height: 100%;
+  overflow: hidden;
+}
+body[data-ui-page="workbench-v2"]:not(.chat-mode) .settings-content {
+  display: block;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+  scroll-padding-top: 12px;
 }
 body[data-ui-page="workbench-v2"]:not(.chat-mode) .page {
-  padding: 16px 22px 24px;
+  padding: 16px 22px 28px;
 }
 body[data-ui-page="workbench-v2"]:not(.chat-mode) .page > * {
   max-width: var(--v2-page-max);
@@ -814,27 +1171,56 @@ body[data-ui-page="workbench-v2"]:not(.chat-mode) .page > * {
 body[data-ui-page="workbench-v2"] #settings-rail {
   display: none;
 }
+/* 分类导航：此前 flex-wrap:nowrap + overflow-x:auto + 隐藏滚动条，
+   实测 scrollWidth 1360 > clientWidth 1131，「记忆」之后的分类既看不见也点不到。
+   改为可换行的分组流，22 个分类在任何宽度都完整可见可点。 */
 body[data-ui-page="workbench-v2"]:not(.chat-mode) #settings-rail {
   display: flex;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 4px;
+  gap: 6px 10px;
   flex: 0 0 auto;
-  min-height: 40px;
-  padding: 8px 14px;
-  overflow-x: auto;
-  overflow-y: hidden;
+  padding: 10px 14px;
+  overflow: visible;
   border-bottom: 1px solid var(--line-3);
-  scrollbar-width: none;
+  background: color-mix(in oklab, var(--surface-1) 88%, transparent);
+  /* 模糊值走 token 单源，不写字面 px（守卫只许 tokens.css 定义） */
+  backdrop-filter: blur(var(--glass-mid-blur)) saturate(1.1);
 }
-body[data-ui-page="workbench-v2"]:not(.chat-mode) #settings-rail::-webkit-scrollbar {
-  display: none;
+/* 设置内容区滚动条走面板语言，不用浏览器默认 */
+body[data-ui-page="workbench-v2"]:not(.chat-mode) .settings-content::-webkit-scrollbar {
+  width: 10px;
+}
+body[data-ui-page="workbench-v2"]:not(.chat-mode) .settings-content::-webkit-scrollbar-track {
+  background: color-mix(in srgb, var(--seed-fg) 4%, transparent);
+}
+body[data-ui-page="workbench-v2"]:not(.chat-mode) .settings-content::-webkit-scrollbar-thumb {
+  border: 2px solid transparent;
+  border-radius: var(--r-full);
+  background: color-mix(in srgb, var(--seed-fg) 22%, transparent);
+  background-clip: content-box;
+}
+body[data-ui-page="workbench-v2"]:not(.chat-mode) .settings-content::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in srgb, var(--seed-accent) 55%, transparent);
+  background-clip: content-box;
+}
+body[data-ui-page="workbench-v2"]:not(.chat-mode) .settings-content {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--seed-accent) 45%, transparent) transparent;
 }
 body[data-ui-page="workbench-v2"] .settings-rail-group {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 4px;
-  flex: 0 0 auto;
+  flex: 0 1 auto;
+  min-width: 0;
+  padding-right: 10px;
+  border-right: 1px solid var(--line-3);
+}
+body[data-ui-page="workbench-v2"] .settings-rail-group:last-child {
+  padding-right: 0;
+  border-right: none;
 }
 body[data-ui-page="workbench-v2"] .settings-rail-title {
   display: none;
@@ -870,6 +1256,71 @@ body[data-ui-page="workbench-v2"] .drawer-toggle {
     position: static;
     border-left: 0;
     box-shadow: none;
+  }
+  /* 窄屏分类导航改单行横滑：换行堆叠曾占 248px，把内容区挤到 482px。
+     横滑只占约 46px，滚动条可见、分类仍全部可达。 */
+  body[data-ui-page="workbench-v2"]:not(.chat-mode) #settings-rail {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    gap: 6px;
+    padding: 8px 10px;
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in srgb, var(--seed-accent) 45%, transparent) transparent;
+  }
+  body[data-ui-page="workbench-v2"]:not(.chat-mode) #settings-rail::-webkit-scrollbar {
+    height: 6px;
+  }
+  body[data-ui-page="workbench-v2"]:not(.chat-mode) #settings-rail::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  body[data-ui-page="workbench-v2"]:not(.chat-mode) #settings-rail::-webkit-scrollbar-thumb {
+    border-radius: var(--r-full);
+    background: color-mix(in srgb, var(--seed-accent) 40%, transparent);
+  }
+  body[data-ui-page="workbench-v2"]:not(.chat-mode) .settings-rail-group {
+    flex: 0 0 auto;
+    flex-wrap: nowrap;
+    padding-right: 8px;
+  }
+  /* 窄屏非对话模式：左栏整体让位给内容（否则内容被挤到 151px 横向溢出），
+     但 #agents 必须保持可见可切换（two_agents 草稿隔离测试在任意页面切 Agent）。
+     左栏 display:contents 后 #agents 成为 main 的直接网格项，
+     用 grid-row 把它排成顶部独立一行（不遮挡内容，portal 按钮可点）。 */
+  body[data-ui-page="workbench-v2"]:not(.chat-mode) > main {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
+  }
+  /* display:contents 让左栏不产生盒子/不占列，但子级仍渲染：
+     连接卡/会话/上下文隐藏，#agents 排到顶部行。
+     不能用 display:none——它会连带隐藏子级。 */
+  body[data-ui-page="workbench-v2"]:not(.chat-mode) > main > aside.workbench-side {
+    display: contents;
+  }
+  body[data-ui-page="workbench-v2"]:not(.chat-mode) > main > aside.workbench-side > :not(.agent-field) {
+    display: none;
+  }
+  body[data-ui-page="workbench-v2"]:not(.chat-mode) .agent-field {
+    grid-column: 1;
+    grid-row: 1;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0;
+    padding: 6px 10px;
+    border-bottom: 1px solid var(--line-3);
+    background: color-mix(in oklab, var(--surface-1) 70%, transparent);
+    font-size: var(--fs-caption);
+  }
+  body[data-ui-page="workbench-v2"]:not(.chat-mode) .agent-field select {
+    width: auto;
+    max-width: 160px;
+    padding: 3px 6px;
+    font-size: var(--fs-caption);
+  }
+  body[data-ui-page="workbench-v2"]:not(.chat-mode) main > section[aria-label="工作区"] {
+    grid-column: 1;
+    grid-row: 2;
   }
 }
 @media (max-width: 900px) {

@@ -1,30 +1,30 @@
-import { mountSkills } from './skills.js?v=20261113v122';
-import { mountCredentials } from './credentials.js?v=20261113v122';
-import { mountAuditHistory, mountOperations } from './operations.js?v=20261113v122';
-import { mountCapabilities } from './capabilities.js?v=20261113v122';
-import { mountTokens } from './tokens.js?v=20261113v122';
-import { mountDocuments } from './documents.js?v=20261113v122';
-import { mountConfiguration } from './configuration.js?v=20261113v122';
+import { mountSkills } from './skills.js?v=20261113v125';
+import { mountCredentials } from './credentials.js?v=20261113v125';
+import { mountAuditHistory, mountOperations } from './operations.js?v=20261113v125';
+import { mountCapabilities } from './capabilities.js?v=20261113v125';
+import { mountTokens } from './tokens.js?v=20261113v125';
+import { mountDocuments } from './documents.js?v=20261113v125';
+import { mountConfiguration } from './configuration.js?v=20261113v125';
 import { ask } from '../dialog.js?v=20261103v7';
-import { mountPeople } from './people.js?v=20261113v122';
-import { mountDeliveries } from './deliveries.js?v=20261113v122';
-import { mountSchedules } from './schedules.js?v=20261113v122';
-import { mountMemorySemantics } from './memory-semantics.js?v=20261113v122';
-import { mountMemoryOrganization } from './memory-organization.js?v=20261113v122';
-import { mountExtensions } from './extensions.js?v=20261113v122';
-import { mountActionReviews } from './action-reviews.js?v=20261113v122';
-import { mountTerminals } from './terminals.js?v=20261113v122';
-import { mountDesktop } from './desktop.js?v=20261113v122';
-import { mountQQ } from './qq.js?v=20261113v122';
-import { mountBilibili } from './bilibili.js?v=20261113v122';
-import { mountMedia } from './media.js?v=20261113v122';
-import { mountMcp } from './mcp.js?v=20261113v122';
-import { mountAndroid } from './android.js?v=20261113v122';
-import { mountModelOutput } from './model-output.js?v=20261113v122';
-import { mountRouting } from './routing.js?v=20261113v122';
-import { mountChatImages } from './chat-images.js?v=20261113v122';
-import { mountInspector } from './inspector.js?v=20261113v122';
-import { mountSettingsRail } from './settings-rail.js?v=20261113v122';
+import { mountPeople } from './people.js?v=20261113v125';
+import { mountDeliveries } from './deliveries.js?v=20261113v125';
+import { mountSchedules } from './schedules.js?v=20261113v125';
+import { mountMemorySemantics } from './memory-semantics.js?v=20261113v125';
+import { mountMemoryOrganization } from './memory-organization.js?v=20261113v125';
+import { mountExtensions } from './extensions.js?v=20261113v125';
+import { mountActionReviews } from './action-reviews.js?v=20261113v125';
+import { mountTerminals } from './terminals.js?v=20261113v125';
+import { mountDesktop } from './desktop.js?v=20261113v125';
+import { mountQQ } from './qq.js?v=20261113v125';
+import { mountBilibili } from './bilibili.js?v=20261113v125';
+import { mountMedia } from './media.js?v=20261113v125';
+import { mountMcp } from './mcp.js?v=20261113v125';
+import { mountAndroid } from './android.js?v=20261113v125';
+import { mountModelOutput } from './model-output.js?v=20261113v125';
+import { mountRouting } from './routing.js?v=20261113v125';
+import { mountChatImages } from './chat-images.js?v=20261113v125';
+import { mountInspector } from './inspector.js?v=20261113v125';
+import { mountSettingsRail } from './settings-rail.js?v=20261113v125';
 // 直接复用 V1 的 rail 提示浮层模块（data-tip → #tip-layer），不自创实现
 import '../app/tips.js?v=20261103u5';
 
@@ -1587,8 +1587,15 @@ for (const input of document.querySelectorAll('input[type="file"]')) {
   btn.className = 'file-picker-btn';
   const icon = document.createElement('span');
   icon.className = 'material-icons';
-  icon.textContent = 'upload_file';
-  btn.append(icon, document.createTextNode('选择文件'));
+  // 按用途给图标与文案：此前技能/文档导入也一律写「选择图片文件」，与实际接受类型不符
+  const accept = (input.getAttribute('accept') || '').toLowerCase();
+  const kind = accept.includes('image/')
+    ? { icon: 'image', label: '选择图片', ready: '选择图片文件', busy: '当前不可附加图片' }
+    : accept.includes('.md') || accept.includes('markdown') || accept.includes('text/')
+      ? { icon: 'description', label: '选择文档', ready: '选择要导入的文档', busy: '当前不可导入文档' }
+      : { icon: 'upload_file', label: '选择文件', ready: '选择文件', busy: '当前不可选择文件' };
+  icon.textContent = kind.icon;
+  btn.append(icon, document.createTextNode(kind.label));
   const name = document.createElement('span');
   name.className = 'file-picker-name';
   name.textContent = '未选择';
@@ -1603,7 +1610,7 @@ for (const input of document.querySelectorAll('input[type="file"]')) {
   const syncDisabled = () => {
     btn.disabled = input.disabled;
     wrap.dataset.disabled = String(input.disabled);
-    btn.title = input.disabled ? '当前不可附加图片' : '选择图片文件';
+    btn.title = input.disabled ? kind.busy : kind.ready;
   };
   syncDisabled();
   new MutationObserver(syncDisabled).observe(input, { attributes: true, attributeFilter: ['disabled'] });

@@ -54,7 +54,7 @@ section.page[id]                  ← 22 个页面分区，id 与 data-page 一�
 
 - 页面切换只允许通过 `[data-page]` 按钮点击触发；`test_v2_navigation_ui.py` 会在 390/1024 两个宽度逐项点击并断言目标分区可见。
 - 任何新增可见按钮，如果文案与既有页面名相同（如"设置"），必须换名或用 `title/aria-label` 区分，避免 `get_by_role(..., exact=True)` 命中两个元素。
-- 资源版本串：`index.html` 与所有模块 import 当前为 `?v=20261113v122`。**任何 HTML/CSS/JS 改动都要整体升级版本号**（v58、v59…），并同步：
+- 资源版本串：`index.html` 与所有模块 import 当前为 `?v=20261113v125`。**任何 HTML/CSS/JS 改动都要整体升级版本号**（v58、v59…），并同步：
   - `agent/tests/test_v2_mcp_ui.py` 里的 `assert "main.js?v=..." in page.content()`
   - `docs/V2_AI_CONTINUATION_PROMPT.md` 的版本说明
   - 本文第 3 节这里的版本号
@@ -64,7 +64,7 @@ section.page[id]                  ← 22 个页面分区，id 与 data-page 一�
 
 ## 4. 当前 UI 状态（已完成）
 
-**直接复用 V1 界面**（2026-11-13/14，资源版本 `20261113v122`）：按所有者要求，不再自创视觉，
+**直接复用 V1 界面**（2026-11-13/14，资源版本 `20261113v125`）：按所有者要求，不再自创视觉，
 把 V1 的 `components.css` / `frame.css` / `workbench.css` **原样复制**到 `web/ui/v2/v1/`。
 **声明内容一字未改**，只做三类必要映射：
 
@@ -130,13 +130,18 @@ V2 结构已改用 V1 类名，让复制来的样式真正命中：
 14. **切页入口不要用裸 `[data-page="x"]` 选择器**：`body` 也带 `data-page`，`querySelector` 会先匹配到 body，点它不触发切页。必须写成 `nav[aria-label="工作台"] [data-page="x"]`。
 15. **程序化跳转要走导航同一条路径**：只改 `page` 变量与 `.page.hidden` 会漏掉页头标题、导航选中态、`body.dataset.page`，出现半切换状态。直接 `.click()` 对应导航按钮。
 16. **剪贴板写入必须 try/catch**：`navigator.clipboard.writeText` 在非安全上下文、用户拒绝、无头环境会 reject，不兜底就是未捕获异常。兜底做法：选中正文 + 明确提示按 Ctrl+C。
+17. **设置层布局必须两种模式都定义**：`.settings-layout` / `.settings-content` 此前只在 `.chat-mode` 下有布局，进设置（非 chat-mode）后完全缺失——工作区还是 `position:fixed` 且 `left` 写死 `rail+230+24`，与 grid 骨架（左栏实际 196px）错位，整页被拉长到 3395px、页头与分类导航滚走。正确做法：非对话模式工作区 `position:static` + flex 列满高、`settings-content` 独立内滚、分类导航吸顶。**不要再用 fixed 覆盖层**。
+18. **守卫三件套别踩**：注释里写字面色值（`#767676`）会被颜色守卫扫到；`var(--r-xs, 3px)` 的 `--r-xs` 未登记算悬空变量；`blur(10px)` 字面模糊值只准 `tokens.css` 定义，组件层用 `blur(var(--glass-mid-blur))`。
+19. **非对话模式不要 `display:none` 左栏**：`#agents` 在左栏里，`two_agents` 草稿隔离测试会在**任意页面** `select_option(#agents)`，隐藏左栏即 14 项回归。宽屏保留左栏(196px)+内容两列、只隐藏右栏；窄屏左栏 `display:contents` 不占列、其余子级隐藏、`#agents` 用 `grid-row:1` 排成顶部独立行、工作区 `grid-row:2`。**`display:none` 会连带隐藏子级，必须用 `display:contents`**。**也不要给 `#agents` 用 `position:fixed` 浮在内容上**——它会拦截 portal 等页面按钮的点击（曾致回归），顶栏行内布局才不遮挡。
 
-**量取方法教训（三次虚警都由此而来）**：
+**量取方法教训（虚警都由此而来）**：
 
 - **不要用 `getComputedStyle` 的字符串自己解析颜色**：`oklab()` / `color(srgb …)` / `color-mix()` 解析不了就会把浅底当白底，曾把浅色输入框算成 1.63（真实像素 15.62）。判定对比度请**直接采样渲染后的像素**（见 `temp/build/_ct_real.py`）。
 - **`element.focus()` 不触发 `:focus-visible`**：用它判定焦点可见性会全部误报不可见。必须用真实 `keyboard.press("Tab")`。
 - **异步挂载的中间态不是重复渲染**：调用链数量在等待期间会从 5 涨到 10，判重要按「每条消息的 `.chain-slot` 数 ≤1」和「同角色同 runId 是否重复」，而不是看总数变化。
 - **选择器先读源码再写**：`#objects-list`（实际 `#object-list`）、`[data-settings="persona"]`（实际 `[data-settings-page="settings"]`）都是猜错导致的假失败。
+- **整页缩图里小字号中文的「删除线」是摩尔纹**：设置页标签/按钮曾看似被横线穿过，1:1 裁剪确认文字干净、全祖先链 `text-decoration:none`。判定文字装饰请用原始分辨率裁剪或计算样式，不要看缩略整页图。
+- **`backdrop-filter` 会让 Playwright 稳定性判定误报元素不可见**：分类导航吸顶加玻璃模糊后 `.click()` 超时，但元素实际可见可点。核查脚本改用 DOM `element.click()` 更可靠。
 
 **已知遗留问题**：
 
