@@ -1,14 +1,14 @@
 {
  "schema": 1,
- "batch": 188,
+ "batch": 189,
  "date": "2026-11-14",
  "whole_v2_complete": false,
  "d7_complete": false,
  "default_entrypoint": "v1",
  "source": {
-  "code_version": "37d689a1602f1381ee8f460b94181d60d1123e313b0637c377810228e25b674e",
+  "code_version": "dfa2a966fab7d63adb13613323fb01ddbd129620c42b15b79a5124424ca8e74a",
   "fixed_source_files": 1206,
-  "git_head": "8cb8dabb",
+  "git_head": "7c114b4c",
   "dirty_checkout": true,
   "recipe": "sha256(json.dumps({path: sha256(blob) for tracked agent/, web/, scripts/ files}, sort_keys=True)); see temp/build/source_version.py",
   "head_ui": "75c4219",
@@ -185,7 +185,7 @@
    "Strict scope reaches 284 files (53 domain + 44 application + 174 adapters + 13 composition); the exclusive collection plan/apply module types its entries, residual ledger and durable journals as Record, narrows Blob construction plus agent/digest/size/revision fields layer by layer, aligns the metadata write callback with the UnitOfWork protocol and converts the residual list to list[JSON] for the journal update; the order of committing unreferenced metadata, revalidating every target fingerprint and only then unlinking with directory sync is unchanged, as are pin/reference protection, the 24-hour orphan grace, the inventory ceiling and journal resume"
   ],
   "pending": [
-   "domain/application/composition complete; adapters 202/222 strict, 20 modules remaining",
+   "domain/application/composition complete; adapters 203/222 strict, 19 modules remaining",
    "composition layer: 13 of 13 modules in strict scope (complete)",
    "Workbench redesign UI suite rerun after the parallel session lands",
    "Three-platform packaging/install/update/restore and real-environment acceptance"
@@ -194,12 +194,12 @@
  "validation": {
   "all_latest_cases_passed": false,
   "latest_batch": {
-   "batch": 188,
+   "batch": 189,
    "sources": [
-    "agent/src/omni/adapters/model_stream.py"
+    "agent/src/omni/adapters/diagnostic_bundle.py"
    ],
-   "report": "temp/build/v2-typecheck-188-callers.xml",
-   "tests": 70
+   "report": "temp/build/v2-typecheck-189-callers.xml",
+   "tests": 79
   },
   "targeted_reports": [
    {
@@ -1916,6 +1916,16 @@
     "skipped": 0,
     "duration_s": 157.089,
     "note": "Batch 188: strict 312 files (53 domain, 44 application, 202/222 adapters, 13 composition); 模型流式适配器（SDK 迭代器/关闭回调/计费载荷显式类型；供应商结束与用量证据、分片限额、取消后实际关闭及未知费用不变）"
+   },
+   {
+    "path": "temp/build/v2-typecheck-189-callers.xml",
+    "sha256": "947723ce7a769ca1c8300c3e6feeaf0a2556e079811397dbf9205f0f035197fd",
+    "tests": 79,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "duration_s": 72.996,
+    "note": "Batch 189: strict 313 files (53 domain, 44 application, 203/222 adapters, 13 composition); 诊断包（来源/调试回执对齐 Record、关联项白名单显式 Payload、I/O Future 泛型化；脱敏边界、容量、取消归属及不覆盖导出不变）"
    }
   ],
   "gates": {
@@ -1927,7 +1937,7 @@
   "strict": {
    "config": "pyrightconfig.strict.json",
    "summary": {
-    "filesAnalyzed": 312,
+    "filesAnalyzed": 313,
     "errorCount": 0,
     "warningCount": 0,
     "informationCount": 0
@@ -1941,7 +1951,7 @@
     "informationCount": 0
    },
    "sources": [
-    "agent/src/omni/adapters/model_stream.py"
+    "agent/src/omni/adapters/diagnostic_bundle.py"
    ]
   },
   "full_run": {
@@ -2281,7 +2291,8 @@
    "Batch 185: strict 309 files (53 domain, 44 application, 199/222 adapters, 13 composition); 本地向量 worker（IPC/清单显式 Payload、受检字段收窄、窗口归属带类型；模型图校验、分窗、池化及错误码不变）",
    "Batch 186: strict 310 files (53 domain, 44 application, 200/222 adapters, 13 composition); 本地向量宿主（IPC 显式 Payload、状态对齐 Record、启动/计算/回收 Task 泛型化；取消归属、实际回收及全文降级不变）",
    "Batch 187: strict 311 files (53 domain, 44 application, 201/222 adapters, 13 composition); 插件包与快照（清单/文件证明显式 Payload、市场回执对齐 Record、异构 I/O Future 有界归属；零执行捕获、路径校验及原子不覆盖发布不变）",
-   "Batch 188: strict 312 files (53 domain, 44 application, 202/222 adapters, 13 composition); 模型流式适配器（SDK 迭代器/关闭回调/计费载荷显式类型；供应商结束与用量证据、分片限额、取消后实际关闭及未知费用不变）"
+   "Batch 188: strict 312 files (53 domain, 44 application, 202/222 adapters, 13 composition); 模型流式适配器（SDK 迭代器/关闭回调/计费载荷显式类型；供应商结束与用量证据、分片限额、取消后实际关闭及未知费用不变）",
+   "Batch 189: strict 313 files (53 domain, 44 application, 203/222 adapters, 13 composition); 诊断包（来源/调试回执对齐 Record、关联项白名单显式 Payload、I/O Future 泛型化；脱敏边界、容量、取消归属及不覆盖导出不变）"
   ]
  },
  "source_recovery": {
@@ -2295,6 +2306,6 @@
  },
  "next": {
   "id": "D7.typecheck.p4_business_adapters",
-  "scope": "P4 in progress; 20 adapters remain across P4/P5/P6. Next full-suite checkpoint: batch 189. Real-environment acceptance pending."
+  "scope": "P4 in progress; 19 adapters remain across P4/P5/P6. Next full-suite checkpoint: batch 189. Real-environment acceptance pending."
  }
 }
