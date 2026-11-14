@@ -1,14 +1,14 @@
 {
  "schema": 1,
- "batch": 200,
+ "batch": 201,
  "date": "2026-11-14",
  "whole_v2_complete": false,
  "d7_complete": false,
  "default_entrypoint": "v1",
  "source": {
-  "code_version": "c601a6279ad09b2b3e559451741421bed8dfe2c690aa43813bf7be281fe00f23",
+  "code_version": "3343d3e3403d9daaac7ff12f7ac5a5486979f53ef372b8da1a828298c07ec9a1",
   "fixed_source_files": 1208,
-  "git_head": "6fe3780d",
+  "git_head": "6370af94",
   "dirty_checkout": true,
   "recipe": "sha256(json.dumps({path: sha256(blob) for tracked agent/, web/, scripts/ files}, sort_keys=True)); see temp/build/source_version.py",
   "head_ui": "75c4219",
@@ -188,7 +188,7 @@
    "Strict scope reaches 284 files (53 domain + 44 application + 174 adapters + 13 composition); the exclusive collection plan/apply module types its entries, residual ledger and durable journals as Record, narrows Blob construction plus agent/digest/size/revision fields layer by layer, aligns the metadata write callback with the UnitOfWork protocol and converts the residual list to list[JSON] for the journal update; the order of committing unreferenced metadata, revalidating every target fingerprint and only then unlinking with directory sync is unchanged, as are pin/reference protection, the 24-hour orphan grace, the inventory ceiling and journal resume"
   ],
   "pending": [
-   "domain/application/composition complete; adapters 210/222 strict, 12 modules remaining",
+   "domain/application/composition complete; adapters 211/222 strict, 11 modules remaining",
    "composition layer: 13 of 13 modules in strict scope (complete)",
    "Workbench redesign UI suite rerun after the parallel session lands",
    "Three-platform packaging/install/update/restore and real-environment acceptance"
@@ -197,12 +197,12 @@
  "validation": {
   "all_latest_cases_passed": false,
   "latest_batch": {
-   "batch": 200,
+   "batch": 201,
    "sources": [
-    "agent/src/omni/adapters/platform/linux_x11.py"
+    "agent/src/omni/adapters/platform/deployment_files.py"
    ],
-   "report": "temp/build/v2-typecheck-200-callers.xml",
-   "tests": 138,
+   "report": "temp/build/v2-typecheck-201-callers.xml",
+   "tests": 269,
    "included_in_strict_scope": true
   },
   "targeted_reports": [
@@ -2067,19 +2067,29 @@
     "skipped": 0,
     "duration_s": 34.42,
     "note": "Batch 200: strict 320 files (53 domain, 44 application, 210/222 adapters, 13 composition); X11 目标核验与采集适配器类型化，原生证明和像素边界不变"
+   },
+   {
+    "path": "temp/build/v2-typecheck-201-callers.xml",
+    "sha256": "b481e92132eba6c5141a8fe44bbf897931566326c58d86fdcbd1a329b11ff137",
+    "tests": 269,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "duration_s": 432.707,
+    "note": "Batch 201: strict 321 files (53 domain, 44 application, 211/222 adapters, 13 composition); 部署文件类型化与公共发布入口，保留私有注入点及原子文件语义"
    }
   ],
   "gates": {
-   "path": "temp/build/v2-typecheck-200-gates.json",
-   "sha256": "3520cf1e6bfb56405df7e27a5a8fed5eb368851e8e9aff26575e06355d74ceb8",
+   "path": "temp/build/v2-typecheck-201-gates.json",
+   "sha256": "c666b56019fd3a1c6be88555c06e70fb061f449d469c6061ee0a7adaaa913597",
    "passed": 5,
    "total": 5,
-   "batch": 200
+   "batch": 201
   },
   "strict": {
    "config": "pyrightconfig.strict.json",
    "summary": {
-    "filesAnalyzed": 320,
+    "filesAnalyzed": 321,
     "errorCount": 0,
     "warningCount": 0,
     "informationCount": 0,
@@ -2092,10 +2102,10 @@
     "errorCount": 0,
     "warningCount": 0,
     "informationCount": 0,
-    "timeInSec": 0.698
+    "timeInSec": 0.841
    },
    "sources": [
-    "agent/src/omni/adapters/platform/linux_x11.py"
+    "agent/src/omni/adapters/platform/deployment_files.py"
    ]
   },
   "full_run": {
@@ -2632,7 +2642,8 @@
    "Batch 197: strict 317 files (53 domain, 44 application, 207/222 adapters, 13 composition); HTTP 路由与序列化边界类型化（第一步，128项待续）",
    "Batch 198: strict 318 files (53 domain, 44 application, 208/222 adapters, 13 composition); HTTP 请求模型与输入工厂严格类型收官（318文件，schema等价）",
    "Batch 199: strict 319 files (53 domain, 44 application, 209/222 adapters, 13 composition); AT-SPI 只读适配器类型收口（319文件；Windows夹具守卫失败独立留档）",
-   "Batch 200: strict 320 files (53 domain, 44 application, 210/222 adapters, 13 composition); X11 目标核验与采集适配器类型化，原生证明和像素边界不变"
+   "Batch 200: strict 320 files (53 domain, 44 application, 210/222 adapters, 13 composition); X11 目标核验与采集适配器类型化，原生证明和像素边界不变",
+   "Batch 201: strict 321 files (53 domain, 44 application, 211/222 adapters, 13 composition); 部署文件类型化与公共发布入口，保留私有注入点及原子文件语义"
   ],
   "next_full_checkpoint": 204,
   "full_checkpoints_frozen": [
@@ -2659,6 +2670,6 @@
  },
  "next": {
   "id": "D7.typecheck.p5_adapters",
-  "scope": "P5 in progress; 12 adapters remain across P4/P5/P6. Next full-suite checkpoint: batch 204. Real-environment acceptance pending."
+  "scope": "P5 in progress; 11 adapters remain across P4/P5/P6. Next full-suite checkpoint: batch 204. Real-environment acceptance pending."
  }
 }
