@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "c819950726b304512e9ebf395d04a171a00554795d35a0d7f7ba4056f901aa73",
+  "source_sha256": "ed42c28a0efef5461658a6a551f64b07c33cae73615c5dfa21da96a01ba22da5",
   "modules": [
     {
       "id": "v2-domain",
@@ -404,7 +404,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 54251,
+      "lines": 54255,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -33045,7 +33045,7 @@
       "path": "agent/src/omni/adapters/workers/bilibili.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.workers.bilibili",
-      "lines": 495,
+      "lines": 499,
       "imports": [
         "omni.adapters.workers.protocol",
         "omni.domain.bilibili",
@@ -33224,7 +33224,7 @@
         },
         {
           "name": "BrowserWorker.invoke",
-          "line": 414,
+          "line": 418,
           "kind": "function",
           "parameters": [
             "self",
@@ -33234,13 +33234,13 @@
           ],
           "annotations": {
             "method": "str",
-            "args": "dict",
-            "context": "dict"
+            "args": "Payload",
+            "context": "Payload"
           }
         },
         {
           "name": "BrowserWorker.close",
-          "line": 473,
+          "line": 477,
           "kind": "function",
           "parameters": [
             "self"
@@ -33249,7 +33249,7 @@
         },
         {
           "name": "serve",
-          "line": 480,
+          "line": 484,
           "kind": "function",
           "parameters": [],
           "annotations": {}
