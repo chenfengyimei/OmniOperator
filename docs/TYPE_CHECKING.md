@@ -373,7 +373,7 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 
 `pyrightconfig.strict.json` 的 `include` 必须与本表完全一致；`agent/tests/test_v2_typecheck_scope.py` 会双向校验。
 
-## 3. 基线例外（未纳入，不得写成已严格化）
+## 3. 历史基线与当前范围
 
 在 `1a18fae` 源码上测得（仅记录，不构成门禁）：
 
@@ -383,11 +383,11 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 
 `service_control.py`（94）已在纳入 strict 前清零；`model_stream.py`（75）、`context.py`（38）、`recovery_authority.py`（27）、`memory_semantics.py`（19）、`foreground.py`（24）、`metering.py`（19）与 `release_fence.py`（16）同样已清零，基线表中不再列逐文件例外。`application/` 已全部纳入（44/44 个模块）、`adapters/` 222 个模块；`composition/` 已全部纳入（13/13 个模块，守卫允许层已加入 composition）；`agent/tests/` 尚未开始 strict。
 
-### 3.1 剩余 adapters（第 214 批）
+### 3.1 adapters 类型收口（第 214 批）
 
-当前还有 **0 个 adapters 文件未纳入 strict**。错误数随源码变化，动手前用 `temp/build/probe_strict.py <file>` 复测；历史错误数不作为当前门禁。
+全部 **222 个 adapters 已纳入 strict**；合同范围为 **332 文件**（domain 53、application 44、adapters 222、composition 13）。原 P4/P5/P6 的 24 个待办模块已完成，不再是当前施工清单。
 
-
+统计以本页逐文件表为准；domain/application 各一个仅含说明文字的包初始化文件未列入该合同范围。V1 与 tests 尚未纳入，因此**全仓严格类型尚未完成**。
 
 ## 4. 推进规则
 
@@ -399,7 +399,7 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 5. 全仓 strict 完成前，任何报告不得写“全仓严格类型已通过”。
 6. 历史边界与施工注意（当前是否纳入以本页门禁表为准）：
    - 部署文件适配器已使用 find_spec("omni") 定位包，避免绝对 import 的缺失 stub，并保留不执行包初始化的边界；第 201 批已纳入 strict。后续不要重新引入绝对导入或忽略注释。
-   - composition/http.py 依赖 composition/instance.py 的公开面（数据库/日志/身份/关停）：纳入顺序必须先 instance.py 再 http.py`，否则只能靠 Any 桥接，不符合本文件的清零口径。
+   - composition/http.py 依赖 composition/instance.py 的公开面（数据库/日志/身份/关停）：纳入顺序必须先 instance.py 再 http.py，否则只能靠 Any 桥接，不符合本文件的清零口径。
    - 仓储 mixin 体系（`repository.py` 及其 70 余个 mixin）依赖 `RepositoryBase` 的公共方法；新增跨模块助手时应使用 `one` 等公共方法，而不是访问 `_one` 等受保护成员。
 
 
@@ -408,13 +408,3 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 - strict 门禁 0 errors / 0 warnings。
 - `agent/tests/test_v2_typecheck_scope.py`：配置与文档表一致、文件存在、只允许 `domain`/`application`/`adapters` 前缀、无目录/通配批量纳入、文档保留“全仓严格类型尚未完成”。
 - 相关调用方回归：各批守卫 + 对应模块调用方测试。
-
-
-
-
-
-
-
-
-
-
