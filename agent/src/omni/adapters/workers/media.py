@@ -15,7 +15,11 @@ import json
 import re
 import sys
 import uuid
+from importlib import import_module
 from pathlib import Path
+from typing import Any, cast
+
+Payload = dict[str, object]
 
 MAX_FRAME = 8 * 1024 * 1024
 MAX_SEGMENTS = 4000
@@ -32,12 +36,16 @@ _ERROR_CODE = "media_processing_error"
 
 
 def _fail(operation_id: str, code: str, detail: str = "") -> None:
-    payload = {"version": 1, "id": operation_id, "result": {"ok": False, "code": code, "detail": detail[:300]}}
+    payload = {
+        "version": 1,
+        "id": operation_id,
+        "result": {"ok": False, "code": code, "detail": detail[:300]},
+    }
     sys.stdout.write(json.dumps(payload, ensure_ascii=False) + "\n")
     sys.stdout.flush()
 
 
-def _ok(operation_id: str, result: dict) -> None:
+def _ok(operation_id: str, result: Payload) -> None:
     payload = {"version": 1, "id": operation_id, "result": {"ok": True, **result}}
     body = json.dumps(payload, ensure_ascii=False, allow_nan=False)
     if len(body.encode("utf-8")) > MAX_FRAME:
@@ -55,30 +63,27 @@ def _bounded_path(value: object) -> Path:
     return path
 
 
-def _probe() -> dict:
-    components = {}
+def _probe() -> Payload:
+    components: dict[str, bool] = {}
     for name in ("av", "numpy", "PIL"):
         components[name] = False
     try:
-        import av  # noqa: F401
-
+        import_module("av")
         components["av"] = True
     except ImportError:
         pass
     try:
-        import numpy  # noqa: F401
-
+        import_module("numpy")
         components["numpy"] = True
     except ImportError:
         pass
     try:
-        import PIL  # noqa: F401
-
+        import_module("PIL")
         components["PIL"] = True
     except ImportError:
         pass
     try:
-        import faster_whisper  # noqa: F401
+        import_module("faster_whisper")
 
         components["faster_whisper"] = True
     except ImportError:
@@ -86,7 +91,7 @@ def _probe() -> dict:
     return {"components": components}
 
 
-def _decode_audio_16k_mono(path: Path):
+def _decode_audio_16k_mono(path: Path) -> Any:
     """PyAV decode to a 16 kHz mono float32 array.
 
     Planes are aligned buffers: writing the whole plane once produced 426 s of
@@ -103,7 +108,7 @@ def _decode_audio_16k_mono(path: Path):
             raise ValueError("no_audio_track")
         for frame in container.decode(audio=0):
             out = resampler.resample(frame)
-            for af in out if isinstance(out, (list, tuple)) else [out]:
+            for af in cast("list[av.AudioFrame]", out if isinstance(cast(object, out), (list, tuple)) else [out]):
                 need = int(af.samples) * 2
                 buffer.write(bytes(af.planes[0])[:need])
     if buffer.tell() == 0:
@@ -112,8 +117,8 @@ def _decode_audio_16k_mono(path: Path):
     return samples.astype(np.float32) / 32768.0
 
 
-def _transcribe(request: dict) -> dict:
-    import faster_whisper
+def _transcribe(request: Payload) -> Payload:
+    faster_whisper = import_module("faster_whisper")
 
     audio = _bounded_path(request["audio"])
     output = _bounded_path(request["output"])
@@ -122,7 +127,11 @@ def _transcribe(request: dict) -> dict:
     compute_type = str(request.get("compute_type") or "int8")
     if not re.fullmatch(r"[a-z0-9][a-z0-9._-]{0,40}", model_name):
         raise ValueError("Invalid ASR model name")
-    if device not in ("cpu", "auto") or compute_type not in ("int8", "float16", "float32"):
+    if device not in ("cpu", "auto") or compute_type not in (
+        "int8",
+        "float16",
+        "float32",
+    ):
         raise ValueError("Invalid ASR plan")
     models_root = _bounded_path(request["models_root"]) if request.get("models_root") else None
     # Offline cache only: models are prepared explicitly and never downloaded here.
@@ -135,12 +144,18 @@ def _transcribe(request: dict) -> dict:
     )
     audio_array = _decode_audio_16k_mono(audio)
     segments_iter, info = model.transcribe(audio_array, vad_filter=True, beam_size=5)
-    rows = []
+    rows: list[list[float | str]] = []
     for seg in segments_iter:
         text = str(getattr(seg, "text", "") or "").strip()
         if not text:
             continue
-        rows.append([float(getattr(seg, "start", 0.0) or 0.0), float(getattr(seg, "end", 0.0) or 0.0), text])
+        rows.append(
+            [
+                float(getattr(seg, "start", 0.0) or 0.0),
+                float(getattr(seg, "end", 0.0) or 0.0),
+                text,
+            ]
+        )
     if not rows:
         segments_iter, info = model.transcribe(audio_array, vad_filter=False, beam_size=5)
         rows = []
@@ -148,8 +163,14 @@ def _transcribe(request: dict) -> dict:
             text = str(getattr(seg, "text", "") or "").strip()
             if not text:
                 continue
-            rows.append([float(getattr(seg, "start", 0.0) or 0.0), float(getattr(seg, "end", 0.0) or 0.0), text])
-    if not rows or len(rows) > MAX_SEGMENTS or sum(len(r[2]) for r in rows) > MAX_TRANSCRIPT_CHARS:
+            rows.append(
+                [
+                    float(getattr(seg, "start", 0.0) or 0.0),
+                    float(getattr(seg, "end", 0.0) or 0.0),
+                    text,
+                ]
+            )
+    if not rows or len(rows) > MAX_SEGMENTS or sum(len(cast(str, r[2])) for r in rows) > MAX_TRANSCRIPT_CHARS:
         raise ValueError("transcript_unusable")
     payload = {
         "version": 1,
@@ -182,7 +203,7 @@ def _target_times(duration_s: float, count: int) -> list[float]:
     return [min(start + span * (index + 0.5) / count, max(0.0, duration_s - 0.05)) for index in range(count)]
 
 
-def _frame_at(container, stream, target: float):
+def _frame_at(container: Any, stream: Any, target: float) -> Any:
     try:
         container.seek(int(target / float(stream.time_base)), stream=stream, backward=True)
     except Exception:  # noqa: BLE001 - some containers cannot seek; that frame is absent
@@ -197,13 +218,13 @@ def _frame_at(container, stream, target: float):
     return best
 
 
-def _frames(request: dict) -> dict:
+def _frames(request: Payload) -> Payload:
     import av
 
     video = _bounded_path(request["video"])
     output = _bounded_path(request["sheet_output"])
-    count = int(request.get("count") or 6)
-    width = int(request.get("width") or 640)
+    count = int(cast(int | str | float, request.get("count") or 6))
+    width = int(cast(int | str | float, request.get("width") or 640))
     if not 1 <= count <= MAX_FRAMES or not MIN_FRAME_WIDTH <= width <= MAX_FRAME_WIDTH:
         raise ValueError("Invalid frame plan")
     from PIL import Image, ImageDraw
@@ -223,7 +244,7 @@ def _frames(request: dict) -> dict:
                 frame = _frame_at(container, stream, target)
                 if frame is None:
                     continue
-                image = frame.to_image()
+                image: Image.Image = frame.to_image()
                 if image.width != width:
                     ratio = width / max(1, image.width)
                     image = image.resize((width, max(1, int(image.height * ratio))))
@@ -233,7 +254,7 @@ def _frames(request: dict) -> dict:
             for index, frame in enumerate(container.decode(stream)):
                 if index >= count:
                     break
-                image = frame.to_image()
+                image = cast(Image.Image, cast(Any, frame).to_image())
                 if image.width != width:
                     ratio = width / max(1, image.width)
                     image = image.resize((width, max(1, int(image.height * ratio))))
@@ -290,21 +311,21 @@ def _handle(line: str) -> None:
         return
     if (
         not isinstance(request, dict)
-        or request.get("version") != 1
-        or not isinstance(request.get("id"), str)
-        or not re.fullmatch(r"[0-9a-f-]{36}", request["id"])
-        or request.get("operation") not in OPERATIONS
+        or cast(Payload, request).get("version") != 1
+        or not isinstance(cast(Payload, request).get("id"), str)
+        or not re.fullmatch(r"[0-9a-f-]{36}", cast(str, request["id"]))
+        or cast(Payload, request).get("operation") not in OPERATIONS
     ):
         _fail(str(uuid.uuid4()), "media_request_invalid")
         return
-    operation, operation_id = request["operation"], request["id"]
+    operation, operation_id = cast(str, request["operation"]), cast(str, request["id"])
     try:
         if operation == "probe":
             _ok(operation_id, _probe())
         elif operation == "transcribe":
-            _ok(operation_id, _transcribe(request))
+            _ok(operation_id, _transcribe(cast(Payload, request)))
         else:
-            _ok(operation_id, _frames(request))
+            _ok(operation_id, _frames(cast(Payload, request)))
     except ImportError as exc:
         _fail(operation_id, "media_component_missing", str(exc))
     except ValueError as exc:

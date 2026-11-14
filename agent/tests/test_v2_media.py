@@ -20,6 +20,65 @@ VIDEO = {"bvid": "BV1xx411c7mD", "aid": "123", "cid": "456", "title": "Fixture v
 EXPIRES = "2099-01-01T00:00:00+00:00"
 
 
+@pytest.mark.parametrize("vad_empty", [False, True])
+def test_worker_asr_uses_only_local_models_and_retries_without_vad_only_for_empty_output(
+    tmp_path, monkeypatch, vad_empty
+):
+    import json
+    import sys
+    import types
+
+    from omni.adapters.workers import media as worker
+
+    audio = object()
+    constructors, calls = [], []
+
+    class Model:
+        def __init__(self, name, **options):
+            constructors.append((name, options))
+
+        def transcribe(self, samples, *, vad_filter, beam_size):
+            assert samples is audio and beam_size == 5
+            calls.append(vad_filter)
+            rows = [] if vad_empty and vad_filter else [types.SimpleNamespace(start=0.25, end=1.5, text="  离线字幕  ")]
+            return iter(rows), types.SimpleNamespace(language="zh")
+
+    module = types.ModuleType("faster_whisper")
+    module.WhisperModel = Model
+    monkeypatch.setitem(sys.modules, "faster_whisper", module)
+    monkeypatch.setattr(worker, "_decode_audio_16k_mono", lambda path: audio)
+    output = tmp_path / "transcript.json"
+    result = worker._transcribe(
+        {
+            "audio": str(tmp_path / "owned.wav"),
+            "output": str(output),
+            "models_root": str(tmp_path / "models"),
+            "model": "fixture-model",
+            "device": "cpu",
+            "compute_type": "int8",
+        }
+    )
+    assert constructors == [
+        (
+            "fixture-model",
+            {
+                "device": "cpu",
+                "compute_type": "int8",
+                "download_root": str(tmp_path / "models"),
+                "local_files_only": True,
+            },
+        )
+    ]
+    assert calls == ([True, False] if vad_empty else [True])
+    assert json.loads(output.read_bytes()) == {
+        "version": 1,
+        "kind": "asr",
+        "language": "zh",
+        "segments": [[0.25, 1.5, "离线字幕"]],
+    }
+    assert result == {"segments": 1, "language": "zh", "duration_s": 1.5, "bytes": output.stat().st_size}
+
+
 @contextmanager
 def rejects(code):
     with pytest.raises(BusinessError) as caught:
