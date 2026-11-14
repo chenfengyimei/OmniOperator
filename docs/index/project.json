@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "fa2be98976e2a3e97087426ad4ab4f9687c3cfa2386b1ce49f6d675a784636c7",
+  "source_sha256": "91ec592a2593e82cbc7fb574c1a07b9e6984599539ca14ccbbe7f9de1e494a90",
   "modules": [
     {
       "id": "v2-domain",
@@ -404,7 +404,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 54348,
+      "lines": 54355,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -30724,14 +30724,14 @@
       "path": "agent/src/omni/adapters/platform/service_templates.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.service_templates",
-      "lines": 212,
+      "lines": 219,
       "imports": [
         "omni.domain.service_deployment"
       ],
       "symbols": [
         {
           "name": "_json",
-          "line": 17,
+          "line": 20,
           "kind": "function",
           "parameters": [
             "value"
@@ -30742,18 +30742,18 @@
         },
         {
           "name": "_windows",
-          "line": 21,
+          "line": 24,
           "kind": "function",
           "parameters": [
             "plan"
           ],
           "annotations": {
-            "plan": "dict"
+            "plan": "Payload"
           }
         },
         {
           "name": "_windows.element",
-          "line": 24,
+          "line": 31,
           "kind": "function",
           "parameters": [
             "parent",
@@ -30769,18 +30769,18 @@
         },
         {
           "name": "_macos",
-          "line": 65,
+          "line": 72,
           "kind": "function",
           "parameters": [
             "plan"
           ],
           "annotations": {
-            "plan": "dict"
+            "plan": "Payload"
           }
         },
         {
           "name": "_systemd_quote",
-          "line": 86,
+          "line": 93,
           "kind": "function",
           "parameters": [
             "value",
@@ -30793,29 +30793,29 @@
         },
         {
           "name": "_linux",
-          "line": 95,
+          "line": 102,
           "kind": "function",
           "parameters": [
             "plan"
           ],
           "annotations": {
-            "plan": "dict"
+            "plan": "Payload"
           }
         },
         {
           "name": "_commands",
-          "line": 123,
+          "line": 130,
           "kind": "function",
           "parameters": [
             "plan"
           ],
           "annotations": {
-            "plan": "dict"
+            "plan": "Payload"
           }
         },
         {
           "name": "render",
-          "line": 177,
+          "line": 184,
           "kind": "function",
           "parameters": [
             "plan"

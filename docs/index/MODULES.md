@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`fa2be98976e2a3e97087426ad4ab4f9687c3cfa2386b1ce49f6d675a784636c7`。包含 65 个职责模块、736 个源码/界面文件。
+源码指纹：`91ec592a2593e82cbc7fb574c1a07b9e6984599539ca14ccbbe7f9de1e494a90`。包含 65 个职责模块、736 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -316,7 +316,7 @@
 | [agent/src/omni/adapters/platform/service_query.py](../../agent/src/omni/adapters/platform/service_query.py) | 472 | Read-only OS service inspection with bounded output and retained process ownership. |
 | [agent/src/omni/adapters/platform/service_readiness.py](../../agent/src/omni/adapters/platform/service_readiness.py) | 307 | Bounded, per-boot HMAC readiness proof. Never reads or sends an owner credential. |
 | [agent/src/omni/adapters/platform/service_registration.py](../../agent/src/omni/adapters/platform/service_registration.py) | 413 | Native user-service registration with fixed commands and scoped macOS unload; no elevation or data deletion. |
-| [agent/src/omni/adapters/platform/service_templates.py](../../agent/src/omni/adapters/platform/service_templates.py) | 212 | Deterministic service artifacts. Rendering never installs or controls a service. |
+| [agent/src/omni/adapters/platform/service_templates.py](../../agent/src/omni/adapters/platform/service_templates.py) | 219 | Deterministic service artifacts. Rendering never installs or controls a service. |
 | [agent/src/omni/adapters/platform/systemd_state.py](../../agent/src/omni/adapters/platform/systemd_state.py) | 102 | Shared bounded systemd decoding; no command execution or filesystem access. |
 | [agent/src/omni/adapters/platform/terminal.py](../../agent/src/omni/adapters/platform/terminal.py) | 588 | Owned terminal IPC. Native PTY libraries run only in the fixed helper process. |
 | [agent/src/omni/adapters/platform/wheel_artifact.py](../../agent/src/omni/adapters/platform/wheel_artifact.py) | 61 | Read-only wheel artifact verification: hash, archive safety and V2 asset presence; never installs. |
