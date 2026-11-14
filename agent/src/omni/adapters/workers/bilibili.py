@@ -6,7 +6,8 @@ import asyncio
 import json
 import sys
 import uuid
-from typing import TYPE_CHECKING
+from collections.abc import Awaitable, Callable
+from typing import TYPE_CHECKING, Any, cast
 from urllib.parse import parse_qs, urlsplit
 
 from ...domain.bilibili import Form, digest, mentions_value, page_identity, target, uid
@@ -16,21 +17,22 @@ from .protocol import MAX_FRAME, encode_response
 from .protocol import request as decode_request
 
 METHODS = {"bilibili_open": False, "bilibili_fill": True, "bilibili_commit": True}
+Payload = dict[str, object]
 
 if TYPE_CHECKING:
-    from playwright.async_api import Locator
+    from playwright.async_api import Locator, Page, Request, Route
 
 
 class PublicationGate:
     """No browser write during observation/fill; exactly one content-bound request after commit."""
 
-    def __init__(self, spec: dict) -> None:
+    def __init__(self, spec: Payload) -> None:
         self.spec = spec
         self.allowed = self.sent = False
         self.text = ""
-        self.mentions: list[dict] = []
+        self.mentions: list[Payload] = []
 
-    async def route(self, route) -> None:
+    async def route(self, route: Route) -> None:
         request = route.request
         url = urlsplit(request.url)
         allowed_host = url.hostname and any(
@@ -52,7 +54,7 @@ class PublicationGate:
         else:
             await route.abort()
 
-    def matches(self, request) -> bool:
+    def matches(self, request: Request) -> bool:
         try:
             url = urlsplit(request.url)
             if (
@@ -66,37 +68,37 @@ class PublicationGate:
             raw = request.post_data
             if not isinstance(raw, str) or len(raw) > 32768:
                 return False
-            data = parse_qs(raw, keep_blank_values=True)
+            data: dict[str, Any] = parse_qs(raw, keep_blank_values=True)
             if any(len(v) != 1 for v in data.values()):
                 return False
             data = {k: v[0] for k, v in data.items()}
-            if self.spec["kind"] == "comment":
+            if cast(str, self.spec["kind"]) == "comment":
                 if url.hostname != "api.bilibili.com" or url.path != "/x/v2/reply/add":
                     return False
-                reply = parse_qs(urlsplit(self.spec["url"]).query).get("reply_id", ["0"])[0]
-                actual_mentions = json.loads(data.get("at_name_to_mid", "{}"))
-                if not isinstance(actual_mentions, dict):
+                reply = parse_qs(urlsplit(cast(str, self.spec["url"])).query).get("reply_id", ["0"])[0]
+                actual_mentions: Payload = json.loads(data.get("at_name_to_mid", "{}"))
+                if not isinstance(cast(object, actual_mentions), dict):
                     return False
                 return (
-                    data.get("oid") == self.spec["remote_target_id"]
+                    data.get("oid") == cast(str, self.spec["remote_target_id"])
                     and data.get("type") == "1"
                     and data.get("message") == self.text
                     and data.get("root", "0") == reply
                     and data.get("parent", "0") == reply
                     and data.get("pictures", "") in {"", "[]"}
                     and {name: str(value) for name, value in actual_mentions.items()}
-                    == {m["name"]: m["uid"] for m in self.mentions}
+                    == {m["name"]: cast(str, m["uid"]) for m in self.mentions}
                 )
             if url.hostname != "api.vc.bilibili.com" or url.path != "/web_im/v1/web_im/send_msg":
                 return False
-            content = json.loads(data.get("msg[content]", "null"))
+            content: Payload = json.loads(data.get("msg[content]", "null"))
             return (
                 not self.mentions
-                and data.get("msg[sender_uid]") == self.spec["account"]
-                and data.get("msg[receiver_id]") == self.spec["remote_target_id"]
+                and data.get("msg[sender_uid]") == cast(str, self.spec["account"])
+                and data.get("msg[receiver_id]") == cast(str, self.spec["remote_target_id"])
                 and data.get("msg[receiver_type]") == "1"
                 and data.get("msg[msg_type]") == "1"
-                and isinstance(content, dict)
+                and isinstance(cast(object, content), dict)
                 and set(content) == {"content"}
                 and content["content"] == self.text
             )
@@ -105,25 +107,31 @@ class PublicationGate:
 
 
 class PageForms:
-    def __init__(self, page, spec: dict, gate: PublicationGate | None = None, verifier=None) -> None:
+    def __init__(
+        self,
+        page: Page,
+        spec: Payload,
+        gate: PublicationGate | None = None,
+        verifier: Callable[[], Awaitable[Page]] | None = None,
+    ) -> None:
         self.page, self.spec = page, spec
-        self.form = Form.model_validate(spec["form"]).model_dump()
-        self.observation: dict | None = None
+        self.form: dict[str, str] = Form.model_validate(spec["form"]).model_dump()
+        self.observation: Payload | None = None
         self.used = False
         self.text = ""
-        self.mentions: list[dict] = []
+        self.mentions: list[Payload] = []
         self.gate = gate
         self.verifier = verifier
 
     @staticmethod
-    async def one(scope, selector) -> "Locator":
+    async def one(scope: Page | Locator, selector: str) -> Locator:
         item = scope.locator(selector)
         if await item.count() != 1 or not await item.is_visible():
             raise ValueError("Missing or ambiguous visible form control")
         return item
 
-    async def capture(self) -> tuple[dict, "Locator", "Locator", "Locator"]:
-        if target(self.spec["kind"], self.page.url)[0] != self.spec["url"]:
+    async def capture(self) -> tuple[Payload, Locator, Locator, Locator]:
+        if target(cast(str, self.spec["kind"]), self.page.url)[0] != cast(str, self.spec["url"]):
             raise ValueError("Page target changed")
         f = self.form
         for selector in (f["challenge"], f["logged_out"]):
@@ -134,10 +142,13 @@ class PageForms:
         root = await self.one(self.page, f["target"])
         account_raw = await account.get_attribute(f["account_attr"])
         target_raw = await root.get_attribute(f["target_attr"])
-        target_keys = {self.spec["target_key"]}
-        if self.spec["kind"] == "comment" and self.spec["target_key"].startswith("BV"):
-            target_keys.add(self.spec["remote_target_id"])
-        if page_identity(account_raw) != self.spec["account"] or page_identity(target_raw) not in target_keys:
+        target_keys = {cast(str, self.spec["target_key"])}
+        if cast(str, self.spec["kind"]) == "comment" and cast(str, self.spec["target_key"]).startswith("BV"):
+            target_keys.add(cast(str, self.spec["remote_target_id"]))
+        if (
+            page_identity(account_raw) != cast(str, self.spec["account"])
+            or page_identity(target_raw) not in target_keys
+        ):
             raise ValueError("Account or target identity changed")
         editor, button = await self.one(root, f["editor"]), await self.one(root, f["submit"])
         if not await editor.is_editable() or (await editor.get_attribute("type") or "").lower() == "password":
@@ -146,11 +157,11 @@ class PageForms:
         if not isinstance(text, str) or len(text) > 2000:
             raise ValueError("Unexpected editor content")
         key = "e => [e.tagName,e.id,e.getAttribute('name'),e.getAttribute('type'),e.getAttribute('aria-label')]"
-        observation = {
-            "url": self.spec["url"],
+        observation: Payload = {
+            "url": cast(str, self.spec["url"]),
             "epoch": await self.page.evaluate("performance.timeOrigin"),
-            "account": self.spec["account"],
-            "target_key": self.spec["target_key"],
+            "account": cast(str, self.spec["account"]),
+            "target_key": cast(str, self.spec["target_key"]),
             "account_raw": account_raw,
             "target_raw": target_raw,
             "editor_key": await editor.evaluate(key),
@@ -167,16 +178,16 @@ class PageForms:
         return ActionResult(
             Outcome.OK,
             "Reviewed form observed",
-            data={"nonce": self.observation["nonce"], "fingerprint": digest(observation)},
+            data={"nonce": cast(str, self.observation["nonce"]), "fingerprint": digest(observation)},
         )
 
-    async def fill(self, args: dict) -> ActionResult:
+    async def fill(self, args: Payload) -> ActionResult:
         if (
             self.used
             or self.observation is None
             or args["observation"]
             != {
-                "nonce": self.observation["nonce"],
+                "nonce": cast(str, self.observation["nonce"]),
                 "fingerprint": digest({k: v for k, v in self.observation.items() if k != "nonce"}),
             }
         ):
@@ -184,7 +195,7 @@ class PageForms:
         observation, _, editor, _ = await self.capture()
         if observation != {k: v for k, v in self.observation.items() if k != "nonce"}:
             raise ValueError("Form changed after observation")
-        text, mentions = args["text"], mentions_value(args["text"], args["mentions"])
+        text, mentions = cast(str, args["text"]), mentions_value(cast(str, args["text"]), args["mentions"])
         if mentions and not self.form["mention_options"]:
             raise ValueError("Real mention component is not configured")
         self.text, self.mentions = text, mentions
@@ -195,13 +206,13 @@ class PageForms:
             offset = 0
             for item in mentions:
                 await editor.focus()
-                await self.page.keyboard.insert_text(text[offset : item["start"]])
+                await self.page.keyboard.insert_text(text[offset : cast(int, item["start"])])
                 await editor.press_sequentially("@", timeout=2000)
                 if self.form["mention_input"]:
                     field = await self.one(self.page, self.form["mention_input"])
-                    await field.fill(item["name"], timeout=2000)
+                    await field.fill(cast(str, item["name"]), timeout=2000)
                 else:
-                    await self.page.keyboard.insert_text(item["name"])
+                    await self.page.keyboard.insert_text(cast(str, item["name"]))
                 options = self.page.locator(self.form["mention_options"])
                 # Candidates may arrive asynchronously; never choose by nickname alone.
                 chosen = None
@@ -212,7 +223,7 @@ class PageForms:
                     matches = [
                         options.nth(n)
                         for n in range(count)
-                        if await options.nth(n).get_attribute(self.form["mention_uid_attr"]) == item["uid"]
+                        if await options.nth(n).get_attribute(self.form["mention_uid_attr"]) == cast(str, item["uid"])
                         and await options.nth(n).is_visible()
                     ]
                     if len(matches) == 1:
@@ -224,23 +235,23 @@ class PageForms:
                 if chosen is None:
                     raise ValueError("Requested mention UID is unavailable")
                 await chosen.click(timeout=2000)
-                offset = item["end"]
+                offset = cast(int, item["end"])
             await editor.focus()
             await self.page.keyboard.insert_text(text[offset:])
         observation, _, editor, _ = await self.capture()
         if observation["text"] != text or await self.chips(editor, self.form["mention_nodes"]) != [
-            m["uid"] for m in mentions
+            cast(str, m["uid"]) for m in mentions
         ]:
             raise ValueError("Rendered content or actual mention chips differ from the approved source")
-        self.observation = {**observation, "nonce": self.observation["nonce"]}
+        self.observation = {**observation, "nonce": cast(str, self.observation["nonce"])}
         return ActionResult(
             Outcome.OK,
             "Exact content and mention chips staged",
             Effect.APPLIED,
-            data={"nonce": self.observation["nonce"], "fingerprint": digest(observation)},
+            data={"nonce": cast(str, self.observation["nonce"]), "fingerprint": digest(observation)},
         )
 
-    async def chips(self, scope, selector: str) -> list[str]:
+    async def chips(self, scope: Page | Locator, selector: str) -> list[str]:
         if not selector:
             return []
         nodes = scope.locator(selector)
@@ -250,26 +261,26 @@ class PageForms:
             uid(await nodes.nth(n).get_attribute(self.form["mention_uid_attr"])) for n in range(await nodes.count())
         ]
 
-    async def commit(self, args: dict) -> ActionResult:
+    async def commit(self, args: Payload) -> ActionResult:
         if self.used or self.observation is None:
             raise ValueError("Publication is one-shot")
         expected = {k: v for k, v in self.observation.items() if k != "nonce"}
-        if args["observation"] != {"nonce": self.observation["nonce"], "fingerprint": digest(expected)}:
+        if args["observation"] != {"nonce": cast(str, self.observation["nonce"]), "fingerprint": digest(expected)}:
             raise ValueError("Staged form token changed")
         observation, _root, editor, button = await self.capture()
         if (
             observation != expected
             or not await button.is_enabled()
-            or await self.chips(editor, self.form["mention_nodes"]) != [m["uid"] for m in self.mentions]
+            or await self.chips(editor, self.form["mention_nodes"]) != [cast(str, m["uid"]) for m in self.mentions]
         ):
             raise ValueError("Staged form changed")
         self.used = True
         if self.gate:
             self.gate.text, self.gate.mentions, self.gate.allowed = self.text, self.mentions, True
-        receipt_path = "/x/v2/reply/add" if self.spec["kind"] == "comment" else "/web_im/v1/web_im/send_msg"
-        requests = []
+        receipt_path = "/x/v2/reply/add" if cast(str, self.spec["kind"]) == "comment" else "/web_im/v1/web_im/send_msg"
+        requests: list[Request] = []
 
-        def relevant(request):
+        def relevant(request: Request) -> bool:
             from urllib.parse import urlsplit
 
             url = urlsplit(request.url)
@@ -281,7 +292,7 @@ class PageForms:
                 and request.frame == self.page.main_frame
             )
 
-        def observed(request):
+        def observed(request: Request) -> None:
             if relevant(request):
                 requests.append(request)
 
@@ -307,7 +318,7 @@ class PageForms:
                   if(JSON.stringify(u)!==JSON.stringify(p.uids))return false;
                   b.click();return true;
                 }""",
-                    {"form": self.form, "observation": expected, "uids": [m["uid"] for m in self.mentions]},
+                    {"form": self.form, "observation": expected, "uids": [cast(str, m["uid"]) for m in self.mentions]},
                 )
                 if not clicked:
                     attempted = False
@@ -320,15 +331,17 @@ class PageForms:
             raw = await response.body()
             if len(raw) > 65536:
                 raise ValueError("Oversized browser receipt")
-            data = json.loads(raw)
+            data: dict[str, Any] = json.loads(raw)
             if (
-                not isinstance(data, dict)
+                not isinstance(cast(object, data), dict)
                 or type(data.get("code")) is not int
                 or data["code"] != 0
                 or not isinstance(data.get("data"), dict)
             ):
                 raise ValueError("Rejected or changed browser receipt")
-            identity = data["data"].get("rpid" if self.spec["kind"] == "comment" else "msg_key")
+            identity = cast(Payload, data["data"]).get(
+                "rpid" if cast(str, self.spec["kind"]) == "comment" else "msg_key"
+            )
             identity = uid(identity)
             if len(requests) != 1:
                 raise ValueError("Concurrent or duplicate browser submissions")
@@ -357,9 +370,10 @@ class PageForms:
                         await author.count() == 1
                         and await body.count() == 1
                         and page_identity(await author.get_attribute(self.form["record_author_attr"]))
-                        == self.spec["account"]
+                        == cast(str, self.spec["account"])
                         and await body.inner_text() == self.text
-                        and await self.chips(record, self.form["record_mentions"]) == [m["uid"] for m in self.mentions]
+                        and await self.chips(record, self.form["record_mentions"])
+                        == [cast(str, m["uid"]) for m in self.mentions]
                     ):
                         return ActionResult(
                             Outcome.OK,
@@ -367,10 +381,10 @@ class PageForms:
                             Effect.APPLIED,
                             data={
                                 "record_id": identity,
-                                "account": self.spec["account"],
-                                "target": self.spec["url"],
+                                "account": cast(str, self.spec["account"]),
+                                "target": cast(str, self.spec["url"]),
                                 "body_hash": text_fingerprint(self.text),
-                                "mentions": [m["uid"] for m in self.mentions],
+                                "mentions": [cast(str, m["uid"]) for m in self.mentions],
                             },
                         )
                 await asyncio.sleep(0.1)
