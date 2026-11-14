@@ -1,14 +1,14 @@
 {
  "schema": 1,
- "batch": 193,
+ "batch": 194,
  "date": "2026-11-14",
  "whole_v2_complete": false,
  "d7_complete": false,
  "default_entrypoint": "v1",
  "source": {
-  "code_version": "5ed6d2b910aeb975e662281829b6e7ee3e3f3fa44a8f05d95904bc1716619208",
+  "code_version": "bbed3d58b694c5e737553e9290fc664f58738ba7c93f96a2a08ec2cfaea7f600",
   "fixed_source_files": 1208,
-  "git_head": "2c0fc3a7",
+  "git_head": "5d4f416f",
   "dirty_checkout": true,
   "recipe": "sha256(json.dumps({path: sha256(blob) for tracked agent/, web/, scripts/ files}, sort_keys=True)); see temp/build/source_version.py",
   "head_ui": "75c4219",
@@ -197,13 +197,15 @@
  "validation": {
   "all_latest_cases_passed": false,
   "latest_batch": {
-   "batch": 193,
+   "batch": 194,
    "sources": [
-    "agent/src/omni/adapters/workers/bilibili.py"
+    "agent/src/omni/adapters/bilibili.py"
    ],
-   "report": "temp/build/v2-typecheck-193-callers.xml",
-   "tests": 62,
-   "included_in_strict_scope": true
+   "report": "temp/build/v2-typecheck-194-callers.xml",
+   "tests": 71,
+   "included_in_strict_scope": false,
+   "module_complete": false,
+   "remaining_strict_errors": 146
   },
   "targeted_reports": [
    {
@@ -1970,6 +1972,16 @@
     "skipped": 0,
     "duration_s": 54.368,
     "note": "Batch 193: strict 316 files (53 domain, 44 application, 206/222 adapters, 13 composition); Bilibili 浏览器 worker 严格类型收官（316文件）"
+   },
+   {
+    "path": "temp/build/v2-typecheck-194-callers.xml",
+    "sha256": "d6f2065d1bc44c0820235370006048baaa6274d88132f598887c9286483ad518",
+    "tests": 71,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "duration_s": 71.454,
+    "note": "Batch 194: strict 316 files (53 domain, 44 application, 206/222 adapters, 13 composition); Bilibili 读取基础与边界类型化（第一步，146项待续）"
    }
   ],
   "gates": {
@@ -1994,10 +2006,10 @@
     "errorCount": 0,
     "warningCount": 0,
     "informationCount": 0,
-    "timeInSec": 1.015
+    "timeInSec": 0.804
    },
    "sources": [
-    "agent/src/omni/adapters/workers/bilibili.py"
+    "agent/src/omni/adapters/bilibili.py"
    ]
   },
   "full_run": {
@@ -2398,7 +2410,8 @@
    "Batch 190: strict 314 files (53 domain, 44 application, 204/222 adapters, 13 composition); OneBot 传输（发送账号对齐 Record、监听配置 Payload、回调 object、上下文管理器 AsyncGenerator；发送前授权复核及 unknown 不重放不变）",
    "Batch 191: strict 315 files (53 domain, 44 application, 205/222 adapters, 13 composition); 媒体 worker（IPC Payload、音频/图像 SDK 边界显式类型、固定可选依赖加载；离线缓存、VAD 空结果回退及采样字节不变）",
    "Batch 192: strict 315 files (53 domain, 44 application, 205/222 adapters, 13 composition); Bilibili 发布闸门与页面表单类型化（第一步，26项待续）",
-   "Batch 193: strict 316 files (53 domain, 44 application, 206/222 adapters, 13 composition); Bilibili 浏览器 worker 严格类型收官（316文件）"
+   "Batch 193: strict 316 files (53 domain, 44 application, 206/222 adapters, 13 composition); Bilibili 浏览器 worker 严格类型收官（316文件）",
+   "Batch 194: strict 316 files (53 domain, 44 application, 206/222 adapters, 13 composition); Bilibili 读取基础与边界类型化（第一步，146项待续）"
   ],
   "next_full_checkpoint": 194
  },

@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "ed42c28a0efef5461658a6a551f64b07c33cae73615c5dfa21da96a01ba22da5",
+  "source_sha256": "6ffcac7a7a6ee5f7258e5568df63223a59966e2470ccb2fd3987498fe26fd863",
   "modules": [
     {
       "id": "v2-domain",
@@ -404,7 +404,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 54255,
+      "lines": 54261,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -2584,7 +2584,7 @@
       "path": "agent/src/omni/adapters/bilibili.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.bilibili",
-      "lines": 540,
+      "lines": 546,
       "imports": [
         "omni.adapters.diagnostics",
         "omni.adapters.workers.client",
@@ -2596,12 +2596,12 @@
       "symbols": [
         {
           "name": "BilibiliGateway",
-          "line": 24,
+          "line": 26,
           "kind": "class"
         },
         {
           "name": "BilibiliGateway.__init__",
-          "line": 27,
+          "line": 29,
           "kind": "function",
           "parameters": [
             "self",
@@ -2614,50 +2614,50 @@
           "annotations": {
             "credentials": "AsyncSecretPort",
             "redactor": "Redactor",
-            "authorize": "Callable[[OutboundMessage], Awaitable[dict]]",
-            "client_factory": "Callable | None",
-            "worker_factory": "Callable | None"
+            "authorize": "Callable[[OutboundMessage], Awaitable[dict[str, Any]]]",
+            "client_factory": "Callable[..., Any] | None",
+            "worker_factory": "Callable[[], WorkerClient] | None"
           }
         },
         {
           "name": "BilibiliGateway.account_key",
-          "line": 43,
+          "line": 45,
           "kind": "function",
           "parameters": [
             "self",
             "configuration"
           ],
           "annotations": {
-            "configuration": "dict"
+            "configuration": "Record"
           }
         },
         {
           "name": "BilibiliGateway._cookies",
-          "line": 46,
+          "line": 48,
           "kind": "function",
           "parameters": [
             "self",
             "value"
           ],
           "annotations": {
-            "value": "dict"
+            "value": "Payload"
           }
         },
         {
           "name": "BilibiliGateway._client",
-          "line": 74,
+          "line": 80,
           "kind": "function",
           "parameters": [
             "self",
             "cookies"
           ],
           "annotations": {
-            "cookies": "dict"
+            "cookies": "dict[str, str]"
           }
         },
         {
           "name": "BilibiliGateway._get",
-          "line": 87,
+          "line": 93,
           "kind": "function",
           "parameters": [
             "client",
@@ -2665,25 +2665,13 @@
             "params"
           ],
           "annotations": {
+            "client": "Any",
             "path": "str",
-            "params": "dict | None"
+            "params": "Payload | None"
           }
         },
         {
           "name": "BilibiliGateway._login_nav",
-          "line": 117,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "client",
-            "account"
-          ],
-          "annotations": {
-            "account": "str"
-          }
-        },
-        {
-          "name": "BilibiliGateway._login",
           "line": 123,
           "kind": "function",
           "parameters": [
@@ -2692,12 +2680,27 @@
             "account"
           ],
           "annotations": {
+            "client": "Any",
+            "account": "str"
+          }
+        },
+        {
+          "name": "BilibiliGateway._login",
+          "line": 129,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "client",
+            "account"
+          ],
+          "annotations": {
+            "client": "Any",
             "account": "str"
           }
         },
         {
           "name": "BilibiliGateway._subtitle",
-          "line": 127,
+          "line": 133,
           "kind": "function",
           "parameters": [
             "self",
@@ -2712,7 +2715,7 @@
         },
         {
           "name": "BilibiliGateway._streams",
-          "line": 165,
+          "line": 171,
           "kind": "function",
           "parameters": [
             "self",
@@ -2725,7 +2728,7 @@
         },
         {
           "name": "BilibiliGateway.read",
-          "line": 225,
+          "line": 231,
           "kind": "function",
           "parameters": [
             "self",
@@ -2743,7 +2746,7 @@
         },
         {
           "name": "BilibiliGateway.download",
-          "line": 325,
+          "line": 331,
           "kind": "function",
           "parameters": [
             "self",
@@ -2765,7 +2768,7 @@
         },
         {
           "name": "BilibiliGateway.send",
-          "line": 418,
+          "line": 424,
           "kind": "function",
           "parameters": [
             "self",
@@ -2777,7 +2780,7 @@
         },
         {
           "name": "BilibiliGateway.close",
-          "line": 536,
+          "line": 542,
           "kind": "function",
           "parameters": [
             "self",
