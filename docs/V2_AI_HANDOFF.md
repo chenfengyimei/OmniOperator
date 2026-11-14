@@ -1,6 +1,6 @@
 # OmniOperator V2：AI 接续开发完整交接
 
-> strict 当前接续（2026-11-14，第 187 批）：**311 文件 / 0 errors / 0 warnings**；adapters **201/222**，剩 **21** 个模块。最新 `agent/src/omni/adapters/extensions/packages.py`：插件包与快照（清单/文件证明显式 Payload、市场回执对齐 Record、异构 I/O Future 有界归属；零执行捕获、路径校验及原子不覆盖发布不变）。相关专项 **112 项通过**，源码 `74db9efc`；全量沿用第 184 批原始记录，下一全量节点第 189 批。默认正式入口仍是 V1，真实验收未完成。
+> strict 当前接续（2026-11-14，第 188 批）：**312 文件 / 0 errors / 0 warnings**；adapters **202/222**，剩 **20** 个模块。最新 `agent/src/omni/adapters/model_stream.py`：模型流式适配器（SDK 迭代器/关闭回调/计费载荷显式类型；供应商结束与用量证据、分片限额、取消后实际关闭及未知费用不变）。相关专项 **70 项通过**，源码 `8cb8dabb`；全量沿用第 184 批原始记录，下一全量节点第 189 批。默认正式入口仍是 V1，真实验收未完成。
 
 交接日期：2026-11-10（Asia/Shanghai），2026-11-14 更新进度段。本文是交接时点的快照；后续以 `docs/tasks/v2.json`、当前源码和 `docs/evidence/` 共同核验。不要用文件修改时间推断功能完成度。
 
