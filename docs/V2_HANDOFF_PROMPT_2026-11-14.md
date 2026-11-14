@@ -6,8 +6,8 @@
 - 原 P4/P5/P6 的 24 个 adapters 已在第185～214批完成。strict 合同范围332文件、0 errors/0 warnings：domain53、application44、adapters222/222、composition13。
 - 最后源码提交 73faa51a；源码指纹 1466148486cd6de41b467a190da0c3cdb062e91c07b7277fde39817d15cc5b39（1208个HEAD跟踪源码文件）。V1/tests与两个仅含说明的包入口不在该strict范围；不得称为全仓严格类型。
 - 结构136表，迁移头v2_0037。整个V2仍未完成，默认正式入口仍V1，不迁V1数据，不双写，未经评审不切换入口。
-- 最近收割全量：第65节点、批204，固定提交ddb79e5a：4659 passed / 4 failed / 0 errors / 0 skipped。复跑不替换原始并行口径。
-- 待收割固定源码队列：第70节点/批209、第75节点/批214。先核对证据的full_run、full_run_history及full_checkpoints_pending；已完成的报告不要重新跑。
+- 最近收割全量：第75节点、批214，固定提交cbd71981：4660 passed / 3 failed / 0 errors / 0 skipped。复跑不替换原始并行口径。
+- 待收割固定源码队列：无待收割全量。先核对证据的full_run、full_run_history及full_checkpoints_pending；已完成的报告不要重新跑。
 
 ## 必读与当前任务
 
