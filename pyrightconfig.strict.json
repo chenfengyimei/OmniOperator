@@ -109,6 +109,7 @@
     "agent/src/omni/adapters/persistence/repository.py",
     "agent/src/omni/adapters/persistence/repository_base.py",
     "agent/src/omni/adapters/persistence/retention_repository.py",
+    "agent/src/omni/adapters/persistence/routing_repository.py",
     "agent/src/omni/adapters/persistence/schema.py",
     "agent/src/omni/adapters/persistence/schedule_repository.py",
     "agent/src/omni/adapters/persistence/schema_upgrade.py",

@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING, cast
 
 from sqlalchemy import func, select
 
+from ...application.ports import Record
 from ...domain.contracts import BusinessError, ToolSpec
 from ...domain.metering import wire_tools
 from ...domain.routing import MODES, POLICY_DEFAULT, choose, invalid, policy, requested, select_tools
@@ -24,7 +25,7 @@ def encoded(specs: Sequence[ToolSpec]) -> bytes:
 
 
 class RoutingRepositories(ImageRepositories):
-    def route_policy(self, agent_id: str) -> dict:
+    def route_policy(self, agent_id: str) -> Record:
         self._configuration_agent(agent_id)
         row = (
             self.connection.execute(
@@ -36,38 +37,43 @@ class RoutingRepositories(ImageRepositories):
             .mappings()
             .first()
         )
-        return dict(row) if row else {"id": None, "revision": 0, "agent_id": agent_id, **POLICY_DEFAULT}
+        return cast(
+            Record,
+            dict(row) if row else {"id": None, "revision": 0, "agent_id": agent_id, **POLICY_DEFAULT},
+        )
 
-    def route_policy_save(self, agent_id: str, value: dict, revision: int) -> dict:
+    def route_policy_save(self, agent_id: str, value: Record, revision: int) -> Record:
         checked = policy(value)
         current = self.route_policy(agent_id)
         if type(revision) is not int or revision != current["revision"]:
             raise BusinessError("revision_conflict", "Routing configuration changed; retain the draft and reload")
         for mode in MODES:
             if checked[f"{mode}_model_id"]:
-                model = self.configuration_get(agent_id, checked[f"{mode}_model_id"])
+                model = self.configuration_get(agent_id, cast(str, checked[f"{mode}_model_id"]))
                 if model["kind"] != "model" or not model["enabled"]:
                     raise invalid("routing_model_unavailable")
         row = self._record(s.model_route_policies, {**checked, "revision": revision + 1}, agent_id)
-        self.audit(agent_id, "routing.policy_saved", row["id"], {"revision": revision + 1})
+        self.audit(agent_id, "routing.policy_saved", cast(str, row["id"]), {"revision": revision + 1})
         return row
 
-    def route_resolve(self, agent_id: str, text: str, mode: str | None, images: bool, remote: bool) -> dict:
+    def route_resolve(self, agent_id: str, text: str, mode: str | None, images: bool, remote: bool) -> Record:
         config = self.route_policy(agent_id)
-        decision = choose(text, requested(mode), config["default_mode"], images=images, remote=remote)
-        current = self.settings(agent_id)["value"]
+        decision = choose(text, requested(mode), cast(str, config["default_mode"]), images=images, remote=remote)
+        current = cast(Record, self.settings(agent_id)["value"])
         return {
             **decision,
             "requested_mode": requested(mode),
             "policy_id": config["id"],
             "model_id": config[f"{decision['mode']}_model_id"] or current["model_profile_id"],
             "allow_escalation": bool(
-                config["allow_escalation"] and not remote and "request_mode" not in current["disabled_tools"]
+                config["allow_escalation"]
+                and not remote
+                and "request_mode" not in cast(list[object], current["disabled_tools"])
             ),
             "reservation_micro": config[f"{decision['mode']}_reservation_micro"] or current["call_reservation_micro"],
         }
 
-    def route_attach(self, agent_id: str, run_id: str, choice: dict) -> None:
+    def route_attach(self, agent_id: str, run_id: str, choice: Record) -> None:
         row = self._record(
             s.run_routes,
             {
@@ -91,7 +97,7 @@ class RoutingRepositories(ImageRepositories):
         self.audit(
             agent_id,
             "routing.selected",
-            row["id"],
+            cast(str, row["id"]),
             {
                 "run_id": run_id,
                 "mode": choice["mode"],
@@ -100,7 +106,7 @@ class RoutingRepositories(ImageRepositories):
             },
         )
 
-    def run_route(self, agent_id: str, run_id: str) -> dict:
+    def run_route(self, agent_id: str, run_id: str) -> Record:
         run = self._one(s.runs, agent_id, run_id)
         row = (
             self.connection.execute(
@@ -110,7 +116,10 @@ class RoutingRepositories(ImageRepositories):
             .first()
         )
         if not row:
-            return {"recorded": False, "mode": "agent", "allow_escalation": False, "promoted": False}
+            return cast(
+                Record,
+                {"recorded": False, "mode": "agent", "allow_escalation": False, "promoted": False},
+            )
         change = (
             self.connection.execute(
                 select(s.route_changes).where(
@@ -120,23 +129,26 @@ class RoutingRepositories(ImageRepositories):
             .mappings()
             .first()
         )
-        model = self._configuration_revision(agent_id, run["model_revision_id"])
-        return {
-            **dict(row),
-            "recorded": True,
-            "mode": change["to_mode"] if change else row["initial_mode"],
-            "promoted": bool(change),
-            "model_revision_id": run["model_revision_id"],
-            "model": model["value"]["model"],
-            "model_name": model["name"],
-            "change": dict(change) if change else None,
-        }
+        model = self._configuration_revision(agent_id, cast(str, run["model_revision_id"]))
+        return cast(
+            Record,
+            {
+                **dict(row),
+                "recorded": True,
+                "mode": change["to_mode"] if change else row["initial_mode"],
+                "promoted": bool(change),
+                "model_revision_id": run["model_revision_id"],
+                "model": cast(Record, model["value"])["model"],
+                "model_name": model["name"],
+                "change": dict(change) if change else None,
+            },
+        )
 
     def route_reservation(self, agent_id: str, run_id: str, default: int) -> int:
         route = self.run_route(agent_id, run_id)
-        return int(route["reservation_micro"]) if route["recorded"] else default
+        return int(cast(int, route["reservation_micro"])) if route["recorded"] else default
 
-    def route_promote(self, agent_id: str, run_id: str, target: str) -> dict:
+    def route_promote(self, agent_id: str, run_id: str, target: str) -> Record:
         unit = cast("Repositories", self)
         unit.assert_run_authorized(agent_id, run_id)
         unit.assert_context(agent_id, run_id)
@@ -147,7 +159,7 @@ class RoutingRepositories(ImageRepositories):
             raise invalid("mode_escalation_disabled")
         if route["promoted"]:
             raise invalid("mode_escalation_exhausted")
-        if target not in MODES or MODES.index(target) <= MODES.index(route["mode"]):
+        if target not in MODES or MODES.index(target) <= MODES.index(cast(str, route["mode"])):
             raise invalid("mode_escalation_not_upward")
         source = self.connection.execute(
             select(s.model_call_routes.c.id)
@@ -196,7 +208,9 @@ class RoutingRepositories(ImageRepositories):
         if not route["recorded"]:
             return
         expected = select_tools(
-            route["mode"], baseline, escalate=bool(route["allow_escalation"] and not route["promoted"])
+            cast(str, route["mode"]),
+            baseline,
+            escalate=bool(route["allow_escalation"] and not route["promoted"]),
         )
         if encoded(expected) != encoded(tools):
             raise invalid("routing_toolset_changed")
@@ -232,10 +246,10 @@ class RoutingRepositories(ImageRepositories):
                 agent_id,
             )
 
-    def route_report(self, agent_id: str, run_id: str) -> dict:
+    def route_report(self, agent_id: str, run_id: str) -> Record:
         route = self.run_route(agent_id, run_id)
         rows = [
-            dict(r)
+            cast(Record, dict(r))
             for r in self.connection.execute(
                 select(
                     s.model_call_routes,
@@ -252,7 +266,7 @@ class RoutingRepositories(ImageRepositories):
         ]
         for row in rows:
             row["tools"] = [
-                dict(t)
+                cast(Record, dict(t))
                 for t in self.connection.execute(
                     select(s.model_call_route_tools.c.name, s.model_call_route_tools.c.spec_sha256)
                     .where(
@@ -269,15 +283,18 @@ class RoutingRepositories(ImageRepositories):
                 func.count().filter(s.model_calls.c.purpose == "turn"),
             ).where(s.model_calls.c.agent_id == agent_id, s.model_calls.c.run_id == run_id)
         ).one()
-        return {
-            "route": route,
-            "calls": rows[:64],
-            "has_more": len(rows) > 64,
-            "known_cost_micro": totals[0],
-            "unsettled_calls": totals[1],
-            "unrecorded_turn_calls": max(0, totals[2] - len(rows)),
-            "currency": "USD",
-            "routing_model_calls": 0,
-            "byte_delta": sum(r["full_tool_bytes"] - r["tool_bytes"] for r in rows[:64]),
-            "savings_claim": "tool_schema_bytes_only_not_real_cost_or_quality",
-        }
+        return cast(
+            Record,
+            {
+                "route": route,
+                "calls": rows[:64],
+                "has_more": len(rows) > 64,
+                "known_cost_micro": totals[0],
+                "unsettled_calls": totals[1],
+                "unrecorded_turn_calls": max(0, totals[2] - len(rows)),
+                "currency": "USD",
+                "routing_model_calls": 0,
+                "byte_delta": sum(cast(int, r["full_tool_bytes"]) - cast(int, r["tool_bytes"]) for r in rows[:64]),
+                "savings_claim": "tool_schema_bytes_only_not_real_cost_or_quality",
+            },
+        )

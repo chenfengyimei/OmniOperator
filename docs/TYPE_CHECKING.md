@@ -263,6 +263,7 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 | `agent/src/omni/adapters/platform/wheel_uninstall.py` | 候选卸载与显式清理 |
 | `agent/src/omni/adapters/persistence/offline_plans.py` | 离线维护计划读取/校验 |
 | `agent/src/omni/adapters/persistence/retention_repository.py` | 保留/擦除会话失效仓储 |
+| `agent/src/omni/adapters/persistence/routing_repository.py` | 不可变档位策略/运行选择/升档/实际工具清单（对齐端口 Record、嵌套设置收窄、升档仅向上一次、不调模型不做 IO） |
 | `agent/src/omni/adapters/platform/desktop_capture.py` | 桌面截图文件身份校验 |
 | `agent/src/omni/adapters/platform/macos_helper.py` | macOS 辅助源指纹与文件校验 |
 | `agent/src/omni/adapters/platform/macos_service.py` | macOS launchd 查询边界（原生身份校验） |
@@ -329,7 +330,7 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 | --- | --- |
 | `agent/src/omni/domain`（全部 53 文件） | 2321 |
 
-`service_control.py`（94）已在纳入 strict 前清零；`model_stream.py`（75）、`context.py`（38）、`recovery_authority.py`（27）、`memory_semantics.py`（19）、`foreground.py`（24）、`metering.py`（19）与 `release_fence.py`（16）同样已清零，基线表中不再列逐文件例外。`application/` 已全部纳入（44/44 个模块）、`adapters/` 194 个模块；`composition/` 已全部纳入（13/13 个模块，守卫允许层已加入 composition）；`agent/tests/` 尚未开始 strict。
+`service_control.py`（94）已在纳入 strict 前清零；`model_stream.py`（75）、`context.py`（38）、`recovery_authority.py`（27）、`memory_semantics.py`（19）、`foreground.py`（24）、`metering.py`（19）与 `release_fence.py`（16）同样已清零，基线表中不再列逐文件例外。`application/` 已全部纳入（44/44 个模块）、`adapters/` 195 个模块；`composition/` 已全部纳入（13/13 个模块，守卫允许层已加入 composition）；`agent/tests/` 尚未开始 strict。
 
 ### 3.1 剩余 adapters 错误数（本源码版本，仅记录）
 
