@@ -11,8 +11,10 @@ import sys
 import uuid
 from collections.abc import Sequence
 from pathlib import Path
+from typing import cast
 
-from ..domain.contracts import BusinessError
+from ..application.ports import Record
+from ..domain.contracts import JSON, BusinessError
 from ..domain.local_vectors import (
     MAX_FRAME,
     PROTOCOL,
@@ -27,28 +29,29 @@ from .platform.processes import OwnedProcess
 from .vector_files import read_manifest, runtime_versions, selection
 
 log = logging.getLogger("omni.v2.vectors")
+Payload = dict[str, object]
 
 
 class LocalVectors:
     def __init__(
-        self, root: Path | None, sha256: str, spec: dict | None, *, error: str = "", argv: list[str] | None = None
+        self, root: Path | None, sha256: str, spec: Payload | None, *, error: str = "", argv: list[str] | None = None
     ) -> None:
         self._root, self._sha256, self._spec = root, sha256, spec
         self.runtime = runtime_versions()
-        self.version = version(spec, self.runtime) if spec is not None else "onnx-unavailable"
-        self.dimension = spec["dimension"] if spec is not None else 1
+        self.version = version(spec, cast(Payload, self.runtime)) if spec is not None else "onnx-unavailable"
+        self.dimension = cast(int, spec["dimension"]) if spec is not None else 1
         self._error = error
         self._argv = argv or [sys.executable, "-m", "omni.adapters.workers.local_vectors"]
         self._owned: OwnedProcess | None = None
-        self._starting: asyncio.Task | None = None
-        self._cleanup: asyncio.Task | None = None
-        self._stderr: asyncio.Task | None = None
-        self._pending: set[asyncio.Task] = set()
+        self._starting: asyncio.Task[OwnedProcess] | None = None
+        self._cleanup: asyncio.Task[bool] | None = None
+        self._stderr: asyncio.Task[None] | None = None
+        self._pending: set[asyncio.Task[list[list[float]]]] = set()
         self._lock = asyncio.Lock()
         self._loaded = self._closing = False
         self._stderr_bytes = 0
 
-    def status(self) -> dict:
+    def status(self) -> Record:
         available = not self._error and not self._closing and self._spec is not None
         return {
             "available": available,
@@ -58,8 +61,8 @@ class LocalVectors:
             "reason": self._error,
             "version": self.version,
             "dimension": self.dimension,
-            "model_id": self._spec["model_id"] if self._spec else "",
-            "runtime": self.runtime,
+            "model_id": cast(str, self._spec["model_id"]) if self._spec else "",
+            "runtime": cast(JSON, self.runtime),
             "local_only": True,
             "fallback": "full_text",
             "pending": len(self._pending),
@@ -122,7 +125,7 @@ class LocalVectors:
         )
         return self._owned
 
-    async def _exchange(self, method: str, arguments: dict) -> dict:
+    async def _exchange(self, method: str, arguments: Payload) -> Payload:
         assert self._owned is not None
         process = self._owned.process
         assert process.stdin is not None and process.stdout is not None
@@ -154,7 +157,7 @@ class LocalVectors:
                 "vector_bundle_invalid",
             }
             raise invalid(row["error"] if row["error"] in allowed else "vector_worker_failed")
-        return row["result"]
+        return cast(Payload, row["result"])
 
     async def _reclaim_actual(self, timeout_s: float) -> bool:
         if self._starting is not None:
