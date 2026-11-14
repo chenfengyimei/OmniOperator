@@ -4,16 +4,17 @@ from __future__ import annotations
 
 import hashlib
 import itertools
-from collections.abc import Callable, Iterator
+from collections.abc import Callable, Generator
 from contextlib import contextmanager
 from pathlib import Path
+from typing import cast
 
 from ...application.ports import Record
 from ...domain.contracts import BusinessError
 from ...domain.service_operations import validate_operation
 from ..object_store import sync_directory
 from ..persistence.deployed_instance import verify_deployed_instance
-from .deployment_files import CurrentDeploymentFiles, _decode, _destination, _json, _no_links, _read
+from .deployment_files import CurrentDeploymentFiles, decode, destination, json_bytes, no_links, read_file
 from .paths import InstanceLock, InstancePaths, PrivateFileLock
 from .permissions import assert_private, private_path
 
@@ -21,14 +22,14 @@ MAX_EVENTS = 64
 
 
 def _digest(value: Record) -> str:
-    return hashlib.sha256(_json(value)).hexdigest()
+    return hashlib.sha256(json_bytes(value)).hexdigest()
 
 
 class ServiceOperationFiles:
     def __init__(
         self,
         *,
-        validate: Callable[[object], Record] = validate_operation,
+        validate: Callable[[object], Record] = cast(Callable[[object], Record], validate_operation),
         namespace: str = "service-operations",
         exchange: Record | None = None,
     ) -> None:
@@ -40,13 +41,13 @@ class ServiceOperationFiles:
 
     def publish(self, operation: Record, output: str) -> Record:
         checked = self._validate(operation)
-        target = _destination(output, checked["deployment"])
-        bundle = Path(checked["deployment"]["request"]["bundle_dir"])
+        target = destination(output, cast(Record, checked["deployment"]))
+        bundle = Path(cast(str, cast(Record, cast(Record, checked["deployment"])["request"])["bundle_dir"]))
         if target == bundle or target.is_relative_to(bundle):
             raise BusinessError(
                 "service_operation_destination_unsafe", "Keep operation plans outside immutable bundles"
             )
-        self._publisher._publish_json(target, _json(checked))
+        self._publisher.publish_json(target, json_bytes(checked))
         return {
             "path": str(target),
             "operation_id": checked["id"],
@@ -60,22 +61,22 @@ class ServiceOperationFiles:
 
     def _paths(self, operation: Record) -> tuple[InstancePaths, Path, Path]:
         checked = self._validate(operation)
-        paths = InstancePaths(Path(checked["deployment"]["request"]["home"]))
+        paths = InstancePaths(Path(cast(str, cast(Record, cast(Record, checked["deployment"])["request"])["home"])))
         root = paths.control / self.namespace
-        folder = root / checked["id"]
+        folder = root / cast(str, checked["id"])
         for path in (paths.home, paths.control, root, folder):
-            _no_links(path)
+            no_links(path)
             if path.exists():
                 assert_private(path)
         return paths, root, folder
 
     @contextmanager
-    def exclusive(self, operation: Record) -> Iterator[None]:
+    def exclusive(self, operation: Record) -> Generator[None, None, None]:
         checked = self._validate(operation)
         paths, root, _ = self._paths(checked)
         if not paths.database.is_file() or not paths.control.is_dir():
             raise BusinessError("service_instance_unavailable", "Initialize the independent V2 home first")
-        _no_links(paths.database)
+        no_links(paths.database)
         if (paths.control / "instance.lock").exists():
             read_lock = paths.control / "instance.lock"
             assert_private(read_lock)
@@ -87,8 +88,10 @@ class ServiceOperationFiles:
             try:
                 verify_deployed_instance(
                     paths.database,
-                    checked["deployment"]["request"]["instance_id"],
-                    schema_version=checked["deployment"]["runtime"]["schema_head"],
+                    cast(str, cast(Record, cast(Record, checked["deployment"])["request"])["instance_id"]),
+                    schema_version=cast(
+                        str, cast(Record, cast(Record, checked["deployment"])["runtime"])["schema_head"]
+                    ),
                 )
                 if root.exists():
                     active = root / "active.json"
@@ -104,7 +107,7 @@ class ServiceOperationFiles:
                 lock.close()
 
     @contextmanager
-    def maintenance(self, operation: Record) -> Iterator[None]:
+    def maintenance(self, operation: Record) -> Generator[None, None, None]:
         paths, _, _ = self._paths(operation)
         mutex = PrivateFileLock(paths.control / "service-maintenance.lock")
         mutex.acquire()
@@ -130,7 +133,7 @@ class ServiceOperationFiles:
     @staticmethod
     def _private_json(path: Path, limit: int = 2 * 1024 * 1024) -> Record:
         assert_private(path)
-        return _decode(_read(path, limit, single=True))
+        return decode(read_file(path, limit, single=True))
 
     @staticmethod
     def _marker(operation: Record) -> Record:
@@ -188,7 +191,7 @@ class ServiceOperationFiles:
             content = {key: item for key, item in entry.items() if key != "sha256"}
             if entry["sha256"] != _digest(content) or not isinstance(entry["record"], dict):
                 raise BusinessError("service_journal_changed", "Maintenance journal fingerprint changed")
-            result = entry["record"]
+            result = cast(Record, entry["record"])
             if result.get("operation_sha256") != operation["sha256"] or result.get("operation_id") != operation["id"]:
                 raise BusinessError("service_journal_changed", "Maintenance receipt belongs to another operation")
             previous = str(entry["sha256"])
@@ -206,11 +209,11 @@ class ServiceOperationFiles:
             sync_directory(root.parent)
         if (root / "active.json").exists():
             raise BusinessError("service_operation_unresolved", "An earlier maintenance intent is unresolved")
-        self._publisher._publish_json(root / "active.json", _json(self._marker(operation)))
+        self._publisher.publish_json(root / "active.json", json_bytes(self._marker(operation)))
         folder.mkdir(mode=0o700)
         private_path(folder, directory=True)
         sync_directory(root)
-        self._publisher._publish_json(folder / "operation.json", _json(operation))
+        self._publisher.publish_json(folder / "operation.json", json_bytes(operation))
 
     def dispatched(self, operation: Record) -> bool:
         self.latest(operation)  # Refuse truncated, changed or noncontiguous histories.
@@ -235,7 +238,7 @@ class ServiceOperationFiles:
             private_path(folder, directory=True)
             sync_directory(folder.parent)
         if not (folder / "operation.json").exists():
-            self._publisher._publish_json(folder / "operation.json", _json(operation))
+            self._publisher.publish_json(folder / "operation.json", json_bytes(operation))
         events = sorted(path for path in folder.iterdir() if path.name != "operation.json")
         if len(events) >= MAX_EVENTS:
             raise BusinessError("service_journal_full", "Maintenance history requires explicit administrator review")
@@ -243,11 +246,11 @@ class ServiceOperationFiles:
         if result.get("state") == "dispatch" and len(events) >= MAX_EVENTS - 2:
             raise BusinessError("service_journal_full", "No capacity remains for a durable completion receipt")
         previous = self._private_json(events[-1])["sha256"] if events else "0" * 64
-        entry = {"sequence": len(events), "previous_sha256": previous, "record": result}
-        data = _json({**entry, "sha256": _digest(entry)})
+        entry: Record = {"sequence": len(events), "previous_sha256": previous, "record": result}
+        data = json_bytes({**entry, "sha256": _digest(entry)})
         if len(data) > 16384:
             raise BusinessError("service_journal_record_limit", "Maintenance receipts contain bounded metadata only")
-        self._publisher._publish_json(folder / f"{len(events):04}.json", data)
+        self._publisher.publish_json(folder / f"{len(events):04}.json", data)
 
     def settled(self, operation: Record) -> None:
         _, root, _ = self._paths(operation)
