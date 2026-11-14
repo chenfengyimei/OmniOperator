@@ -16,6 +16,7 @@ from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
 from functools import partial
 from pathlib import Path
+from typing import Any, cast
 
 import psutil
 
@@ -66,7 +67,7 @@ def read_private(path: Path, limit: int = 16384) -> bytes:
         after = os.fstat(stream.fileno())
     current = path.stat(follow_symlinks=False)
 
-    def fields(info: os.stat_result) -> tuple:
+    def fields(info: os.stat_result) -> tuple[int, int, int, int, int]:
         return info.st_dev, info.st_ino, info.st_size, info.st_mtime_ns, info.st_nlink
 
     if len(data) != before.st_size or fields(before) != fields(after) or fields(after) != fields(current):
@@ -86,11 +87,11 @@ class RuntimeIdentityFiles:
         self.key = secrets.token_bytes(32)
         self._key_published = False
         self._writer = ThreadPoolExecutor(max_workers=1, thread_name_prefix="omni-identity")
-        self._pending: set[asyncio.Future] = set()
-        self._drain: asyncio.Task | None = None
-        self._stopped: asyncio.Task | None = None
+        self._pending: set[asyncio.Future[Any]] = set()
+        self._drain: asyncio.Task[None] | None = None
+        self._stopped: asyncio.Task[None] | None = None
         self._closing = self._closed = False
-        self._control: asyncio.Task[dict] | None = None
+        self._control: asyncio.Task[Record] | None = None
         self._control_binding: tuple[str, str] | None = None
 
     def _write(self, state: str) -> None:
@@ -128,7 +129,7 @@ class RuntimeIdentityFiles:
         )
         self._pending.add(future)
 
-        def finished(done: asyncio.Future) -> None:
+        def finished(done: asyncio.Future[None]) -> None:
             self._pending.discard(done)
             if not done.cancelled():
                 done.exception()
@@ -141,18 +142,18 @@ class RuntimeIdentityFiles:
             raise BusinessError("runtime_identity_closing", "Instance is draining")
         await self._publish("running")
 
-    async def prepare_drain(self, request: dict, now: str) -> dict:
+    async def prepare_drain(self, request: Record, now: str) -> Record:
         """Persist a single authorized boot control receipt before admission is closed."""
         checked = verify_drain(request, self.identity, self.key, now)
-        expected = drain_receipt(checked, self.key)
+        expected = cast(Record, drain_receipt(checked, self.key))
         if self._closed or len(self._pending) >= 4:
             raise BusinessError("service_drain_unavailable", "Boot control writer is unavailable")
 
-        def persist() -> dict:
-            from .deployment_files import CurrentDeploymentFiles, _json, _no_links
+        def persist() -> Record:
+            from .deployment_files import CurrentDeploymentFiles, json_bytes, no_links, publish_json
 
             folder = self.path.parent / "service-drains"
-            _no_links(folder)
+            no_links(folder)
             if not folder.exists():
                 folder.mkdir(mode=0o700)
                 private_path(folder, directory=True)
@@ -165,7 +166,7 @@ class RuntimeIdentityFiles:
                 if publisher.read(path) != expected:
                     raise BusinessError("service_already_draining", "Another operation already owns this boot's drain")
             else:
-                publisher._publish_json(path, _json(expected))
+                publish_json(publisher, path, json_bytes(expected))
             return expected
 
         future = asyncio.get_running_loop().run_in_executor(self._writer, contextvars.copy_context().run, persist)
@@ -175,17 +176,17 @@ class RuntimeIdentityFiles:
         )
         return await asyncio.shield(future)
 
-    async def request_drain(self, request: dict, now: str, accepted: Callable[[], None]) -> dict:
+    async def request_drain(self, request: Record, now: str, accepted: Callable[[], None]) -> Record:
         if self._closed or (self._closing and self._control is None):
             raise BusinessError("service_drain_unavailable", "This boot is already closing")
         checked = verify_drain(request, self.identity, self.key, now)
-        binding = (checked["operation_id"], checked["operation_sha256"])
+        binding = (cast(str, checked["operation_id"]), cast(str, checked["operation_sha256"]))
         if self._control_binding is not None and self._control_binding != binding:
             raise BusinessError("service_already_draining", "Another operation owns this boot's drain")
         if self._control is None:
             self._control_binding = binding
 
-            async def perform() -> dict:
+            async def perform() -> Record:
                 result = await self.prepare_drain(request, now)
                 accepted()
                 return result
