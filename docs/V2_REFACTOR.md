@@ -2,7 +2,7 @@
 
 > 最近全量接续（第 55 节点，第 194 批）：原始 **4658 passed / 5 failed / 0 errors / 0 skipped**；固定提交 102cf4a6，后续源码不在本次范围。3项wheel失败归验证器PYTHONPATH污染，纠正后通过；2项UI分别串行/隔离通过并完成两轮基线对照，仍保留开放观察。详见证据台账，不记并行全绿。
 
-> strict 当前接续（2026-11-15，第 213 批）：**331 文件 / 0 errors / 0 warnings**；adapters **221/222**，剩 **1** 个模块。最新 `agent/src/omni/adapters/mcp/http.py`：MCP HTTP与SSE类型化，未知写入不重放。相关专项 **94 项通过 / 0 项失败**，源码 `4a9bfd0e`；最近全量记录为第 55 节点（4658 passed / 5 failed），仅代表其固定源码；下一全量节点第 214 批。默认正式入口仍是 V1，真实验收未完成。
+> strict 当前接续（2026-11-15，第 214 批）：**332 文件 / 0 errors / 0 warnings**；adapters **222/222**，剩 **0** 个模块。最新 `agent/src/omni/adapters/mcp/oauth.py`：MCP OAuth类型收官，V2四层合同范围332文件，真实验收仍待。相关专项 **94 项通过 / 0 项失败**，源码 `73faa51a`；最近全量记录为第 55 节点（4658 passed / 5 failed），仅代表其固定源码；下一全量节点第 214 批。默认正式入口仍是 V1，真实验收未完成。
 
 > D6扩展链离线节点已完成：产物协议、产物工作台、本地市场只读扫描、市场更新工作台与受控宿主回调（context/log、白名单/预算、违规归UNKNOWN不重放）；MCP运行适配器（stdio/Streamable HTTP/OAuth/逐工具授权/工作台）已收口；基线26项历史测试失败已测试-only修复（5f3b46e）。136表/v2_0037，工作台v51；扩展产物/工作台与MCP合并228个不同节点最新全过（含6例390/1024浏览器），市场扫描62项、市场工作台25项与宿主回调93项全过。最终全量4583项：4580 passed / 3 failed / 0 errors（service_runtime身份、debug_sink、portal_ui各一处并行时序，同源码隔离36项全过并观察）。下一阶段D7/D8；真实市场源、真实第三方插件、MCP真实服务与三平台原生仍待，整个V2未完成，默认入口仍为V1。见[扩展合同](V2_EXTENSIONS.md)、[回调证据](evidence/v2-extension-callbacks.json)、[市场证据](evidence/v2-extension-market.json)、[扩展证据](evidence/v2-extension-artifacts.json)、[基线修复证据](evidence/v2-baseline-repair.json)与[MCP证据](evidence/v2-mcp.json)。
 

@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "3e06936555a85888a3bbf3cd2c9aa00a2b249b10576ed61c520c908392eba152",
+  "source_sha256": "ad536f8d8e20ac8ea910d609ddcda14cd693795b6916e4c1cbc24d15bb77ded7",
   "modules": [
     {
       "id": "v2-domain",
@@ -404,7 +404,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 54460,
+      "lines": 54463,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -9326,7 +9326,7 @@
       "path": "agent/src/omni/adapters/mcp/oauth.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.mcp.oauth",
-      "lines": 481,
+      "lines": 484,
       "imports": [
         "omni.application.ports",
         "omni.domain.contracts",
@@ -9335,14 +9335,14 @@
       "symbols": [
         {
           "name": "_now",
-          "line": 41,
+          "line": 42,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "_iso",
-          "line": 45,
+          "line": 46,
           "kind": "function",
           "parameters": [
             "seconds_from_now"
@@ -9353,7 +9353,7 @@
         },
         {
           "name": "_endpoint",
-          "line": 51,
+          "line": 52,
           "kind": "function",
           "parameters": [
             "value",
@@ -9366,7 +9366,7 @@
         },
         {
           "name": "loopback_redirect",
-          "line": 67,
+          "line": 68,
           "kind": "function",
           "parameters": [
             "value"
@@ -9377,12 +9377,12 @@
         },
         {
           "name": "OAuthTokens",
-          "line": 87,
+          "line": 88,
           "kind": "class"
         },
         {
           "name": "OAuthTokens.__init__",
-          "line": 90,
+          "line": 91,
           "kind": "function",
           "parameters": [
             "self",
@@ -9398,7 +9398,7 @@
         },
         {
           "name": "OAuthTokens.load",
-          "line": 101,
+          "line": 102,
           "kind": "function",
           "parameters": [
             "self",
@@ -9410,7 +9410,7 @@
         },
         {
           "name": "OAuthTokens.save",
-          "line": 111,
+          "line": 112,
           "kind": "function",
           "parameters": [
             "self",
@@ -9419,12 +9419,12 @@
           ],
           "annotations": {
             "server_id": "str",
-            "value": "dict"
+            "value": "Packet"
           }
         },
         {
           "name": "OAuthTokens.clear",
-          "line": 122,
+          "line": 123,
           "kind": "function",
           "parameters": [
             "self",
@@ -9436,7 +9436,7 @@
         },
         {
           "name": "OAuthTokens.client",
-          "line": 125,
+          "line": 126,
           "kind": "function",
           "parameters": [
             "self",
@@ -9448,7 +9448,7 @@
         },
         {
           "name": "OAuthTokens.save_client",
-          "line": 135,
+          "line": 136,
           "kind": "function",
           "parameters": [
             "self",
@@ -9457,12 +9457,12 @@
           ],
           "annotations": {
             "server_id": "str",
-            "value": "dict"
+            "value": "Packet"
           }
         },
         {
           "name": "OAuthTokens.access_token",
-          "line": 138,
+          "line": 139,
           "kind": "function",
           "parameters": [
             "self",
@@ -9474,7 +9474,7 @@
         },
         {
           "name": "OAuthTokens._refresh",
-          "line": 154,
+          "line": 155,
           "kind": "function",
           "parameters": [
             "self",
@@ -9483,12 +9483,12 @@
           ],
           "annotations": {
             "server_id": "str",
-            "value": "dict"
+            "value": "Packet"
           }
         },
         {
-          "name": "OAuthTokens._post_form",
-          "line": 184,
+          "name": "OAuthTokens.post_form",
+          "line": 185,
           "kind": "function",
           "parameters": [
             "self",
@@ -9497,17 +9497,17 @@
           ],
           "annotations": {
             "endpoint": "str",
-            "form": "dict"
+            "form": "dict[str, str]"
           }
         },
         {
           "name": "OAuthFlow",
-          "line": 211,
+          "line": 212,
           "kind": "class"
         },
         {
           "name": "OAuthFlow.__init__",
-          "line": 214,
+          "line": 215,
           "kind": "function",
           "parameters": [
             "self",
@@ -9523,7 +9523,7 @@
         },
         {
           "name": "OAuthFlow._fetch",
-          "line": 226,
+          "line": 227,
           "kind": "function",
           "parameters": [
             "self",
@@ -9535,7 +9535,7 @@
         },
         {
           "name": "OAuthFlow._metadata",
-          "line": 256,
+          "line": 257,
           "kind": "function",
           "parameters": [
             "self",
@@ -9547,7 +9547,7 @@
         },
         {
           "name": "OAuthFlow._client",
-          "line": 298,
+          "line": 299,
           "kind": "function",
           "parameters": [
             "self",
@@ -9557,13 +9557,13 @@
           ],
           "annotations": {
             "target": "ServerTarget",
-            "metadata": "dict",
+            "metadata": "Packet",
             "redirect_uri": "str"
           }
         },
         {
           "name": "OAuthFlow.start",
-          "line": 352,
+          "line": 353,
           "kind": "function",
           "parameters": [
             "self",
@@ -9577,7 +9577,7 @@
         },
         {
           "name": "OAuthFlow.callback",
-          "line": 422,
+          "line": 425,
           "kind": "function",
           "parameters": [
             "self",
@@ -9591,7 +9591,7 @@
         },
         {
           "name": "OAuthFlow.health",
-          "line": 477,
+          "line": 480,
           "kind": "function",
           "parameters": [
             "self"

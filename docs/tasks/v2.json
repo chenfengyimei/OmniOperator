@@ -209,7 +209,7 @@
    "id": "R6",
    "title": "业务接入与交付",
    "status": "开发中",
-   "notes": "媒体、MCP 运行适配器、插件产物/本地市场/宿主回调已有离线实现；当前 D7 产品化与严格类型收口中（331 文件，adapters 221/222）。默认正式入口仍 V1，平台及真实业务验收待完成。",
+   "notes": "V2 四层合同范围严格类型已收口（332 文件，adapters 222/222，0 errors/0 warnings）；V1 与 tests 不在该门禁内。业务适配器已有离线实现，真实模型/MCP/插件、设备、三平台与部署验收仍待；默认正式入口继续为 V1。",
    "evidence": [
     "docs/evidence/v2-offline.json",
     "docs/evidence/v2-people.json",
@@ -284,9 +284,9 @@
    ]
   }
  ],
- "checkpoint_commit": "4a9bfd0e",
+ "checkpoint_commit": "73faa51a",
  "current_validation": {
-  "status": "d7_typecheck_batch_213",
+  "status": "d7_typecheck_batch_214",
   "targeted_unique_passed": 228,
   "includes_browser_cases": 10,
   "current_full_passed": false,
@@ -343,7 +343,7 @@
     ]
    }
   ],
-  "code_version": "bc2186190a9e8acd6c376102e3b1a45e6dbf5061dd9b063b00f2e763dca9835d",
+  "code_version": "1466148486cd6de41b467a190da0c3cdb062e91c07b7277fde39817d15cc5b39",
   "fixed_source_files": 1208,
   "baseline_repair_evidence": "docs/evidence/v2-baseline-repair.json",
   "market_evidence": "docs/evidence/v2-extension-market.json",
@@ -444,13 +444,15 @@
   "typecheck_evidence": "docs/evidence/v2-typecheck.json",
   "packaging_evidence": "docs/evidence/v2-packaging.json",
   "strict_batch_git_head": "33344482",
-  "validated_head": "50e36455531aa428accde9c35cc6c74773aa7e79"
+  "validated_head": "50e36455531aa428accde9c35cc6c74773aa7e79",
+  "v2_strict_scope_complete": true,
+  "whole_repository_strict_complete": false
  },
  "next_checkpoint": {
   "id": "D7.product_switch",
   "status": "进行中",
   "design": "docs/V2_PACKAGING.md",
-  "scope": "P1 composition/P2 Android/P3 persistence complete; P6 adapters in progress. strict 331 files (53 domain, 44 application, 221/222 adapters, 13 composition), 1 adapters remain. Next full-suite checkpoint: batch 214."
+  "scope": "Defined V2 four-layer strict scope complete (332 files, all 222 adapters). Harvest final frozen batch 214 full run; real model/platform/device/install/long-run and entry-switch acceptance remain pending. Default V1."
  },
  "milestones": [
   {

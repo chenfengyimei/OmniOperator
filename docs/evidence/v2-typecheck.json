@@ -1,14 +1,14 @@
 {
  "schema": 1,
- "batch": 213,
+ "batch": 214,
  "date": "2026-11-15",
  "whole_v2_complete": false,
  "d7_complete": false,
  "default_entrypoint": "v1",
  "source": {
-  "code_version": "bc2186190a9e8acd6c376102e3b1a45e6dbf5061dd9b063b00f2e763dca9835d",
+  "code_version": "1466148486cd6de41b467a190da0c3cdb062e91c07b7277fde39817d15cc5b39",
   "fixed_source_files": 1208,
-  "git_head": "4a9bfd0e",
+  "git_head": "73faa51a",
   "dirty_checkout": true,
   "recipe": "sha256(json.dumps({path: sha256(blob) for tracked agent/, web/, scripts/ files}, sort_keys=True)); see temp/build/source_version.py",
   "head_ui": "75c4219",
@@ -188,7 +188,7 @@
    "Strict scope reaches 284 files (53 domain + 44 application + 174 adapters + 13 composition); the exclusive collection plan/apply module types its entries, residual ledger and durable journals as Record, narrows Blob construction plus agent/digest/size/revision fields layer by layer, aligns the metadata write callback with the UnitOfWork protocol and converts the residual list to list[JSON] for the journal update; the order of committing unreferenced metadata, revalidating every target fingerprint and only then unlinking with directory sync is unchanged, as are pin/reference protection, the 24-hour orphan grace, the inventory ceiling and journal resume"
   ],
   "pending": [
-   "domain/application/composition complete; adapters 221/222 strict, 1 modules remaining",
+   "Defined V2 strict scope complete: 332 files, including all 222 adapters; V1/tests and real-environment acceptance are outside this gate",
    "composition layer: 13 of 13 modules in strict scope (complete)",
    "Workbench redesign UI suite rerun after the parallel session lands",
    "Three-platform packaging/install/update/restore and real-environment acceptance"
@@ -197,11 +197,11 @@
  "validation": {
   "all_latest_cases_passed": false,
   "latest_batch": {
-   "batch": 213,
+   "batch": 214,
    "sources": [
-    "agent/src/omni/adapters/mcp/http.py"
+    "agent/src/omni/adapters/mcp/oauth.py"
    ],
-   "report": "temp/build/v2-typecheck-213-callers.xml",
+   "report": "temp/build/v2-typecheck-214-callers.xml",
    "tests": 94,
    "included_in_strict_scope": true
   },
@@ -2227,23 +2227,33 @@
     "skipped": 0,
     "duration_s": 77.981,
     "note": "Batch 213: strict 331 files (53 domain, 44 application, 221/222 adapters, 13 composition); MCP HTTP与SSE类型化，未知写入不重放"
+   },
+   {
+    "path": "temp/build/v2-typecheck-214-callers.xml",
+    "sha256": "61aa92325e66d46f20bff751e422be22eb05f598d0bfdaff2f56e71f2b9c4f97",
+    "tests": 94,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "duration_s": 110.067,
+    "note": "Batch 214: strict 332 files (53 domain, 44 application, 222/222 adapters, 13 composition); MCP OAuth类型收官，V2四层合同范围332文件，真实验收仍待"
    }
   ],
   "gates": {
-   "path": "temp/build/v2-typecheck-213-gates.json",
-   "sha256": "b5a2137240ac493398685c270a2d83ffc44368c78592524f808a0ad310124737",
+   "path": "temp/build/v2-typecheck-214-gates.json",
+   "sha256": "a7f9a6d47ba951795222f11791bdb31848c1e762011890a37f6e9d1fa6d31826",
    "passed": 5,
    "total": 5,
-   "batch": 213
+   "batch": 214
   },
   "strict": {
    "config": "pyrightconfig.strict.json",
    "summary": {
-    "filesAnalyzed": 331,
+    "filesAnalyzed": 332,
     "errorCount": 0,
     "warningCount": 0,
     "informationCount": 0,
-    "timeInSec": 25.041
+    "timeInSec": 22.453
    }
   },
   "default_pyright": {
@@ -2252,10 +2262,10 @@
     "errorCount": 0,
     "warningCount": 0,
     "informationCount": 0,
-    "timeInSec": 0.678
+    "timeInSec": 0.726
    },
    "sources": [
-    "agent/src/omni/adapters/mcp/http.py"
+    "agent/src/omni/adapters/mcp/oauth.py"
    ]
   },
   "full_run": {
@@ -2812,7 +2822,8 @@
    "Batch 210: strict 328 files (53 domain, 44 application, 218/222 adapters, 13 composition); Portal文件任务、采集与回收类型收官，授权和配额不变",
    "Batch 211: strict 329 files (53 domain, 44 application, 219/222 adapters, 13 composition); Linux桌面worker收官，真实工厂签名与语义调用类型贯通",
    "Batch 212: strict 330 files (53 domain, 44 application, 220/222 adapters, 13 composition); MCP stdio类型化，保留有界、取消与进程销毁边界",
-   "Batch 213: strict 331 files (53 domain, 44 application, 221/222 adapters, 13 composition); MCP HTTP与SSE类型化，未知写入不重放"
+   "Batch 213: strict 331 files (53 domain, 44 application, 221/222 adapters, 13 composition); MCP HTTP与SSE类型化，未知写入不重放",
+   "Batch 214: strict 332 files (53 domain, 44 application, 222/222 adapters, 13 composition); MCP OAuth类型收官，V2四层合同范围332文件，真实验收仍待"
   ],
   "next_full_checkpoint": 214,
   "full_checkpoints_frozen": [
@@ -2848,7 +2859,7 @@
   ]
  },
  "next": {
-  "id": "D7.typecheck.p6_adapters",
-  "scope": "P6 in progress; 1 adapters remain across P4/P5/P6. Next full-suite checkpoint: batch 214. Real-environment acceptance pending."
+  "id": "D7.real_acceptance",
+  "scope": "V2 defined four-layer strict scope complete (332 files, 0 errors/0 warnings). Final frozen checkpoint batch 214 is pending harvest; keep default V1 and all real-acceptance gates open."
  }
 }
