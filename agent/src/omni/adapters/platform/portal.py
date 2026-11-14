@@ -7,12 +7,14 @@ import contextvars
 import sys
 import uuid
 from collections import OrderedDict
+from collections.abc import Awaitable, Callable, Coroutine
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
 from functools import partial
 from pathlib import Path
-from typing import Any
+from typing import Any, TypeVar, cast
 
+from ...application.ports import Record
 from ...domain.contracts import BusinessError
 from ...domain.desktop import CapturedFrame
 from ...domain.desktop_portal import (
@@ -33,6 +35,8 @@ from . import desktop_capture
 from .desktop import helper_environment
 from .processes import OwnedProcess
 
+T = TypeVar("T")
+
 
 def error(code: str) -> BusinessError:
     return BusinessError(code, "Window-share session is unavailable or no longer authorized", status=503)
@@ -40,7 +44,7 @@ def error(code: str) -> BusinessError:
 
 @dataclass(eq=False)
 class Host:
-    binding: dict
+    binding: dict[str, str]
     phase: str = "starting"
     code: str | None = None
     clean: bool = False
@@ -51,17 +55,17 @@ class Host:
     total: int = 0
     events: int = 0
     last_seen: float = 0
-    owned: Any = None
-    starting: asyncio.Task | None = None
-    runner: asyncio.Task | None = None
-    cleanup: asyncio.Task | None = None
-    capture_task: asyncio.Task | None = None
-    capture_reply: asyncio.Future | None = None
+    owned: OwnedProcess | None = None
+    starting: asyncio.Task[OwnedProcess] | None = None
+    runner: asyncio.Task[None] | None = None
+    cleanup: asyncio.Task[bool] | None = None
+    capture_task: asyncio.Task[CapturedFrame] | None = None
+    capture_reply: asyncio.Future[Record] | None = None
     capture_id: str | None = None
     capture_count: int = 0
     capture_available: bool = False
     capture_code: str | None = "portal_frame_adapter_missing"
-    staging: set[Path] = field(default_factory=set)
+    staging: set[Path] = field(default_factory=cast(Callable[[], set[Path]], set))
     ready: asyncio.Event = field(default_factory=asyncio.Event)
     stop: asyncio.Event = field(default_factory=asyncio.Event)
     changed: asyncio.Condition = field(default_factory=asyncio.Condition)
@@ -69,7 +73,11 @@ class Host:
 
 class PortalBackend:
     def __init__(
-        self, *, process_factory=None, capacity: asyncio.Semaphore | None = None, capture_root: Path | None = None
+        self,
+        *,
+        process_factory: Callable[..., Coroutine[Any, Any, OwnedProcess]] | None = None,
+        capacity: asyncio.Semaphore | None = None,
+        capture_root: Path | None = None,
     ) -> None:
         self._spawn = process_factory or OwnedProcess.spawn
         self._slots = capacity if capacity is not None else asyncio.Semaphore(2)
@@ -77,19 +85,19 @@ class PortalBackend:
         self._opening: set[str] = set()
         self._closing = False
         self._capture_root = capture_root.absolute() if capture_root else None
-        self._captures: set[asyncio.Task] = set()
-        self._file_work: set[asyncio.Task] = set()
+        self._captures: set[asyncio.Task[CapturedFrame]] = set()
+        self._file_work: set[asyncio.Task[Any]] = set()
         self._files = ThreadPoolExecutor(max_workers=1, thread_name_prefix="portal-files")
-        self._staging_inventory: dict | None = None
+        self._staging_inventory: Record | None = None
 
-    def _host(self, scope: dict) -> Host:
-        scope = binding(scope)
-        host = self._hosts.get(scope["grant_id"])
+    def _host(self, scope: Record) -> Host:
+        scope = cast(Record, binding(scope))
+        host = self._hosts.get(cast(str, scope["grant_id"]))
         if host is None or host.binding != scope:
             raise error("portal_grant_changed")
         return host
 
-    def _record(self, host: Host) -> dict:
+    def _record(self, host: Host) -> Record:
         available = (
             self._capture_root is not None
             and host.capture_available
@@ -112,32 +120,32 @@ class PortalBackend:
             host.revision += 1
             host.changed.notify_all()
 
-    async def status(self, scope: dict) -> dict:
+    async def status(self, scope: Record) -> Record:
         return self._record(self._host(scope))
 
-    async def wait(self, scope: dict, revision: int) -> dict:
+    async def wait(self, scope: Record, revision: int) -> Record:
         host = self._host(scope)
         async with host.changed:
             await host.changed.wait_for(lambda: host.revision != revision)
             return self._record(host)
 
-    async def open(self, scope: dict, *, before_dispatch) -> dict:
-        scope = binding(scope)
+    async def open(self, scope: Record, *, before_dispatch: Callable[[], Awaitable[None]]) -> Record:
+        scope = cast(Record, binding(scope))
         if sys.platform != "linux":
             raise error("portal_platform_unavailable")
         if self._closing:
             raise error("portal_draining")
         if len({key for key, h in self._hosts.items() if not h.released} | self._opening) >= 4:
             raise error("portal_busy")
-        if scope["grant_id"] in self._hosts or scope["grant_id"] in self._opening:
+        if cast(str, scope["grant_id"]) in self._hosts or cast(str, scope["grant_id"]) in self._opening:
             raise error("portal_grant_changed")
-        self._opening.add(scope["grant_id"])
+        self._opening.add(cast(str, scope["grant_id"]))
         try:
             return await self._admit(scope, before_dispatch)
         finally:
-            self._opening.discard(scope["grant_id"])
+            self._opening.discard(cast(str, scope["grant_id"]))
 
-    async def _admit(self, scope: dict, before_dispatch) -> dict:
+    async def _admit(self, scope: Record, before_dispatch: Callable[[], Awaitable[None]]) -> Record:
         await before_dispatch()
         if self._closing:
             raise error("portal_draining")
@@ -153,8 +161,8 @@ class PortalBackend:
             if victim is None:
                 raise error("portal_busy")
             del self._hosts[victim]
-        host = Host(scope, last_seen=asyncio.get_running_loop().time())
-        self._hosts[scope["grant_id"]] = host
+        host = Host(cast(dict[str, str], scope), last_seen=asyncio.get_running_loop().time())
+        self._hosts[cast(str, scope["grant_id"])] = host
         host.runner = asyncio.create_task(
             self._run(host, before_dispatch), name="portal-owned-session", context=contextvars.Context()
         )
@@ -174,7 +182,7 @@ class PortalBackend:
             host.stop.set()
             raise
 
-    async def _send(self, host: Host, command: str, **extra) -> None:
+    async def _send(self, host: Host, command: str, **extra: object) -> None:
         if host.owned is None or host.owned.process.stdin is None:
             raise error("portal_transport_failed")
         async with asyncio.timeout(1):
@@ -184,7 +192,7 @@ class PortalBackend:
             await host.owned.process.stdin.drain()
 
     async def _stdout(self, host: Host) -> None:
-        stream = host.owned.process.stdout
+        stream = cast(OwnedProcess, host.owned).process.stdout
         if stream is None:
             raise error("portal_transport_failed")
         while frame := await stream.readline():
@@ -203,7 +211,7 @@ class PortalBackend:
                     or result["capture_id"] != host.capture_id
                 ):
                     raise error("portal_protocol_invalid")
-                host.capture_reply.set_result(result["receipt"])
+                host.capture_reply.set_result(cast(Record, result["receipt"]))
                 continue
             value = event(value, host.binding)
             host.last_seen = asyncio.get_running_loop().time()
@@ -211,13 +219,16 @@ class PortalBackend:
                 if value["phase"] != host.phase or value["error_code"] is not None or value["clean"]:
                     raise error("portal_protocol_invalid")
                 continue
-            phase = value["phase"]
+            phase = cast(str, value["phase"])
             if phase not in TRANSITIONS[host.phase]:
                 raise error("portal_protocol_invalid")
             if phase in {"creating", "selecting", "authorizing", "active"} and not host.permitted:
                 raise error("portal_protocol_invalid")
-            host.phase, host.code, host.clean = phase, value["error_code"], value["clean"]
-            host.capture_available, host.capture_code = value["capture_available"], value["capture_error_code"]
+            host.phase, host.code, host.clean = phase, cast(str | None, value["error_code"]), cast(bool, value["clean"])
+            host.capture_available, host.capture_code = (
+                cast(bool, value["capture_available"]),
+                cast(str | None, value["capture_error_code"]),
+            )
             await self._changed(host)
             if phase == "prepared":
                 host.ready.set()
@@ -225,9 +236,9 @@ class PortalBackend:
             raise error("portal_helper_lost")
 
     async def _stderr(self, host: Host) -> None:
-        if host.owned.process.stderr is None:
+        if cast(OwnedProcess, host.owned).process.stderr is None:
             raise error("portal_transport_failed")
-        while block := await host.owned.process.stderr.read(4096):
+        while block := await cast(asyncio.StreamReader, cast(OwnedProcess, host.owned).process.stderr).read(4096):
             host.total += len(block)
             if host.total > MAX_TOTAL:
                 host.code = "portal_protocol_limit"
@@ -243,8 +254,8 @@ class PortalBackend:
                 host.stop.set()
                 return
 
-    async def _run(self, host: Host, guard) -> None:
-        tasks = []
+    async def _run(self, host: Host, guard: Callable[[], Awaitable[None]]) -> None:
+        tasks: list[asyncio.Task[Any]] = []
         try:
             async with asyncio.timeout(5):
                 await self._slots.acquire()
@@ -284,7 +295,7 @@ class PortalBackend:
                 await self._send(host, "close")
                 async with asyncio.timeout(4):
                     await output
-            if host.owned.process.returncode not in {None, 0}:
+            if cast(OwnedProcess, host.owned).process.returncode not in {None, 0}:
                 raise error("portal_helper_lost")
         except BusinessError as caught:
             host.code = caught.code if caught.code.startswith(("portal_", "desktop_")) else "portal_native_unavailable"
