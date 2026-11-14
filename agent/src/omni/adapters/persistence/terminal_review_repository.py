@@ -3,9 +3,11 @@
 from __future__ import annotations
 
 import hashlib
+from typing import cast
 
 from sqlalchemy import select, update
 
+from ...application.ports import Record
 from ...domain.contracts import BusinessError
 from ...domain.terminal_review import MAX_REVIEWS, POLICY, fingerprint, page, parse_review, request_fingerprint
 from ...domain.terminals import identity, integer
@@ -14,54 +16,57 @@ from .terminal_repository import TerminalRepositories
 
 
 class TerminalReviewRepositories(TerminalRepositories):
-    def _terminal_review_source(self, agent_id: str, operation_id: str) -> tuple[dict, dict, str]:
+    def _terminal_review_source(self, agent_id: str, operation_id: str) -> tuple[Record, Record, str]:
         operation = self._one(s.terminal_operations, agent_id, identity(operation_id))
-        session = self.terminal_get(agent_id, operation["session_id"])
-        epoch = self.connection.execute(select(s.history_identity.c.epoch)).scalar_one()
+        session = self.terminal_get(agent_id, cast(str, operation["session_id"]))
+        epoch = cast(str, self.connection.execute(select(s.history_identity.c.epoch)).scalar_one())
         return operation, session, epoch
 
     @staticmethod
-    def _terminal_review_proof(operation: dict, session: dict, epoch: str) -> dict:
-        return {
-            "schema": 1,
-            "policy": POLICY,
-            "history_epoch": epoch,
-            "agent_id": operation["agent_id"],
-            "operation": {
-                key: operation[key]
-                for key in (
-                    "id",
-                    "session_id",
-                    "boot_id",
-                    "kind",
-                    "payload_sha256",
-                    "bytes",
-                    "state",
-                    "intent_audit_id",
-                    "created_at",
-                    "ended_at",
-                    "error_code",
-                )
+    def _terminal_review_proof(operation: Record, session: Record, epoch: str) -> Record:
+        return cast(
+            Record,
+            {
+                "schema": 1,
+                "policy": POLICY,
+                "history_epoch": epoch,
+                "agent_id": operation["agent_id"],
+                "operation": {
+                    key: operation[key]
+                    for key in (
+                        "id",
+                        "session_id",
+                        "boot_id",
+                        "kind",
+                        "payload_sha256",
+                        "bytes",
+                        "state",
+                        "intent_audit_id",
+                        "created_at",
+                        "ended_at",
+                        "error_code",
+                    )
+                },
+                "session": {
+                    key: session[key]
+                    for key in (
+                        "id",
+                        "boot_id",
+                        "state",
+                        "revision",
+                        "workspace_sha256",
+                        "permission_epoch",
+                        "pid",
+                        "process_created",
+                        "cleanup_pending",
+                        "exit_code",
+                        "ended_at",
+                    )
+                },
             },
-            "session": {
-                key: session[key]
-                for key in (
-                    "id",
-                    "boot_id",
-                    "state",
-                    "revision",
-                    "workspace_sha256",
-                    "permission_epoch",
-                    "pid",
-                    "process_created",
-                    "cleanup_pending",
-                    "exit_code",
-                    "ended_at",
-                )
-            },
-        }
+        )
 
-    def terminal_review_detail(self, agent_id: str, operation_id: str) -> dict:
+    def terminal_review_detail(self, agent_id: str, operation_id: str) -> Record:
         operation, session, epoch = self._terminal_review_source(agent_id, operation_id)
         latest = (
             self.connection.execute(
@@ -73,36 +78,39 @@ class TerminalReviewRepositories(TerminalRepositories):
             .mappings()
             .first()
         )
-        reasons = []
+        reasons: list[str] = []
         if operation["state"] != "unknown":
             reasons.append("terminal_receipt_not_unknown")
         if operation["ended_at"] is None:
             reasons.append("terminal_operation_not_ended")
-        if latest and latest["revision"] >= MAX_REVIEWS:
+        if latest and cast(int, latest["revision"]) >= MAX_REVIEWS:
             reasons.append("terminal_review_capacity")
         proof = self._terminal_review_proof(operation, session, epoch)
         sha = fingerprint(proof)
         current = bool(latest and latest["history_epoch"] == epoch and latest["fingerprint"] == sha)
-        return {
-            "operation": {**operation, "operation_id": operation["id"]},
-            "session": {
-                key: session[key]
-                for key in ("id", "shell", "state", "revision", "cleanup_pending", "boot_id", "exit_code")
+        return cast(
+            Record,
+            {
+                "operation": {**operation, "operation_id": operation["id"]},
+                "session": {
+                    key: session[key]
+                    for key in ("id", "shell", "state", "revision", "cleanup_pending", "boot_id", "exit_code")
+                },
+                "policy": POLICY,
+                "history_epoch": epoch,
+                "fingerprint": sha,
+                "revision": latest["revision"] if latest else 0,
+                "reviewable": not reasons,
+                "reasons": reasons,
+                "latest_review": dict(latest) if latest else None,
+                "latest_matches_source": current,
+                "receipt_unchanged": True,
+                "authorizes_replay": False,
+                "process_reclamation_verified": session["state"] == "exited" and not session["cleanup_pending"],
             },
-            "policy": POLICY,
-            "history_epoch": epoch,
-            "fingerprint": sha,
-            "revision": latest["revision"] if latest else 0,
-            "reviewable": not reasons,
-            "reasons": reasons,
-            "latest_review": dict(latest) if latest else None,
-            "latest_matches_source": current,
-            "receipt_unchanged": True,
-            "authorizes_replay": False,
-            "process_reclamation_verified": session["state"] == "exited" and not session["cleanup_pending"],
-        }
+        )
 
-    def terminal_review_page(self, agent_id: str, after: str = "", limit: int = 20) -> list[dict]:
+    def terminal_review_page(self, agent_id: str, after: str = "", limit: int = 20) -> list[Record]:
         page(after, limit)
         self._terminal_agent(agent_id)
         operations = self.connection.execute(
@@ -115,9 +123,9 @@ class TerminalReviewRepositories(TerminalRepositories):
             .order_by(s.terminal_operations.c.id)
             .limit(limit)
         ).scalars()
-        return [self.terminal_review_detail(agent_id, operation_id) for operation_id in operations]
+        return [self.terminal_review_detail(agent_id, cast(str, operation_id)) for operation_id in operations]
 
-    def terminal_review_replay(self, agent_id: str, operation_id: str, data: dict) -> dict | None:
+    def terminal_review_replay(self, agent_id: str, operation_id: str, data: Record) -> Record | None:
         self._terminal_review_source(agent_id, operation_id)
         request = parse_review(data)
         prior = (
@@ -131,11 +139,11 @@ class TerminalReviewRepositories(TerminalRepositories):
             raise BusinessError("not_found", "Review does not exist in this Agent space", status=404)
         if prior["operation_id"] != operation_id or prior["request_sha256"] != request_fingerprint(request):
             raise BusinessError("terminal_review_conflict", "Review identity already binds different evidence")
-        return {**dict(prior), "replayed": True}
+        return cast(Record, {**dict(prior), "replayed": True})
 
-    def terminal_review_commit(self, agent_id: str, operation_id: str, data: dict) -> dict:
+    def terminal_review_commit(self, agent_id: str, operation_id: str, data: Record) -> Record:
         request = parse_review(data)
-        replay = self.terminal_review_replay(agent_id, operation_id, request)
+        replay = self.terminal_review_replay(agent_id, operation_id, cast(Record, request))
         if replay is not None:
             return replay
         inspected = self.terminal_review_detail(agent_id, operation_id)
@@ -148,22 +156,25 @@ class TerminalReviewRepositories(TerminalRepositories):
                 "terminal_review_changed", "Reload this terminal observation before reviewing", status=409
             )
         operation, session, epoch = self._terminal_review_source(agent_id, operation_id)
-        evidence_sha = hashlib.sha256(request["evidence"].encode("utf-8")).hexdigest()
+        evidence_sha = hashlib.sha256(cast(str, request["evidence"]).encode("utf-8")).hexdigest()
         audit_id = self.audit(
             agent_id,
             "terminal.review.recorded",
             operation_id,
-            {
-                "review_id": request["review_id"],
-                "session_id": session["id"],
-                "decision": request["decision"],
-                "policy": POLICY,
-                "fingerprint": inspected["fingerprint"],
-                "evidence_sha256": evidence_sha,
-                "history_epoch": epoch,
-                "receipt_unchanged": True,
-                "authorizes_replay": False,
-            },
+            cast(
+                Record,
+                {
+                    "review_id": request["review_id"],
+                    "session_id": session["id"],
+                    "decision": request["decision"],
+                    "policy": POLICY,
+                    "fingerprint": inspected["fingerprint"],
+                    "evidence_sha256": evidence_sha,
+                    "history_epoch": epoch,
+                    "receipt_unchanged": True,
+                    "authorizes_replay": False,
+                },
+            ),
         )
         row = self._record(
             s.terminal_reviews,
@@ -171,7 +182,7 @@ class TerminalReviewRepositories(TerminalRepositories):
                 "id": request["review_id"],
                 "session_id": session["id"],
                 "operation_id": operation_id,
-                "revision": inspected["revision"] + 1,
+                "revision": cast(int, inspected["revision"]) + 1,
                 "history_epoch": epoch,
                 "policy": POLICY,
                 "fingerprint": inspected["fingerprint"],
@@ -187,12 +198,14 @@ class TerminalReviewRepositories(TerminalRepositories):
         )
         return {**row, "replayed": False}
 
-    def terminal_review_history(self, agent_id: str, operation_id: str, after: int = 0, limit: int = 20) -> list[dict]:
+    def terminal_review_history(
+        self, agent_id: str, operation_id: str, after: int = 0, limit: int = 20
+    ) -> list[Record]:
         self._terminal_review_source(agent_id, operation_id)
         integer(after, 0, MAX_REVIEWS)
         integer(limit, 1, 50)
         return [
-            dict(row)
+            cast(Record, dict(row))
             for row in self.connection.execute(
                 select(s.terminal_reviews)
                 .where(
@@ -205,7 +218,7 @@ class TerminalReviewRepositories(TerminalRepositories):
             ).mappings()
         ]
 
-    def terminal_review_erase_evidence(self, agent_id: str, operation_id: str, review_id: str) -> dict:
+    def terminal_review_erase_evidence(self, agent_id: str, operation_id: str, review_id: str) -> Record:
         self._terminal_review_source(agent_id, operation_id)
         row = self._one(s.terminal_reviews, agent_id, identity(review_id))
         if row["operation_id"] != operation_id:

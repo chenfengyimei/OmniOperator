@@ -129,6 +129,7 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 | `agent/src/omni/adapters/persistence/delivery_predicates.py` | 出站待处理/未决谓词（持久化适配） |
 | `agent/src/omni/adapters/persistence/sqlite_access.py` | 离线 SQLite 连接（只读/备份，含 WAL） |
 | `agent/src/omni/adapters/persistence/terminal_repository.py` | 终端意图事务与不可变回执（对齐端口 Record、修订号 int 收窄、不启原生进程不存正文） |
+| `agent/src/omni/adapters/persistence/terminal_review_repository.py` | 终端 unknown 观测复核与可抹证据（对齐端口 Record、来源三元组显式、回执与原生生命周期不变、不授权重放） |
 | `agent/src/omni/adapters/token_counter.py` | 本地保守 token 估算（不取模型元数据） |
 | `agent/src/omni/adapters/images.py` | 图像编解码/校验（有界任务、Pillow 校验） |
 | `agent/src/omni/adapters/platform/secrets.py` | OS 凭据库/外键加密 vault 适配 |
@@ -327,7 +328,7 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 | --- | --- |
 | `agent/src/omni/domain`（全部 53 文件） | 2321 |
 
-`service_control.py`（94）已在纳入 strict 前清零；`model_stream.py`（75）、`context.py`（38）、`recovery_authority.py`（27）、`memory_semantics.py`（19）、`foreground.py`（24）、`metering.py`（19）与 `release_fence.py`（16）同样已清零，基线表中不再列逐文件例外。`application/` 已全部纳入（44/44 个模块）、`adapters/` 192 个模块；`composition/` 已全部纳入（13/13 个模块，守卫允许层已加入 composition）；`agent/tests/` 尚未开始 strict。
+`service_control.py`（94）已在纳入 strict 前清零；`model_stream.py`（75）、`context.py`（38）、`recovery_authority.py`（27）、`memory_semantics.py`（19）、`foreground.py`（24）、`metering.py`（19）与 `release_fence.py`（16）同样已清零，基线表中不再列逐文件例外。`application/` 已全部纳入（44/44 个模块）、`adapters/` 193 个模块；`composition/` 已全部纳入（13/13 个模块，守卫允许层已加入 composition）；`agent/tests/` 尚未开始 strict。
 
 ### 3.1 剩余 adapters 错误数（本源码版本，仅记录）
 
