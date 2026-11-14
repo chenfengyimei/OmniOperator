@@ -19,6 +19,7 @@
     "agent/src/omni/adapters/log_query.py",
     "agent/src/omni/adapters/mcp/__init__.py",
     "agent/src/omni/adapters/mcp/hosts.py",
+    "agent/src/omni/adapters/mcp/stdio.py",
     "agent/src/omni/adapters/media.py",
     "agent/src/omni/adapters/metrics.py",
     "agent/src/omni/adapters/model_stream.py",
