@@ -103,6 +103,7 @@
     "agent/src/omni/adapters/persistence/operations_repository.py",
     "agent/src/omni/adapters/persistence/people_repository.py",
     "agent/src/omni/adapters/persistence/qq_authority.py",
+    "agent/src/omni/adapters/persistence/qq_repository.py",
     "agent/src/omni/adapters/persistence/reference_release.py",
     "agent/src/omni/adapters/persistence/releases.py",
     "agent/src/omni/adapters/persistence/repository.py",
