@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING
 import pytest
 from offline_guard import deny, install
 
-pytest_plugins = ["failure_reports"]
+pytest_plugins = ["failure_reports", "worker_diagnostics"]
 
 if TYPE_CHECKING:
     from crash_safe_scheduler import CrashSafeLoadFileScheduling
