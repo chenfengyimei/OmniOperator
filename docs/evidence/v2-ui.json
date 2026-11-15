@@ -630,8 +630,10 @@
         "agent/tests/test_pytest_scheduler.py"
       ],
       "this_full_matches_workspace": false,
-      "next_full_artifact": 217,
-      "note": "The concurrent model-header feature and the later type/scheduler fixes are outside the frozen UI full-run source. They require their own full validation."
+      "note": "The concurrent model-header feature and the later type/scheduler fixes are outside the frozen UI full-run source. They require their own full validation.",
+      "validated_followup_artifact": 217,
+      "followup_status": "passed",
+      "followup_evidence": "docs/evidence/v2-test-stability.json"
     },
     "confirmed_problem": "Automatic connection hid the manual token input before Agent initialization finished. Manual activity during initialization could also leave old cleanup able to unlock the new connection.",
     "behavior": [
@@ -942,5 +944,12 @@
       "ran_at": "2026-11-13",
       "note": "全量在 v66 源码上通过；毛玻璃重构（v70）后的全量待补跑"
     }
-  ]
+  ],
+  "latest_followup_validation": {
+    "evidence": "docs/evidence/v2-test-stability.json",
+    "source_head": "e5910a9591d2ccbd3f89e1c8d08ad08872e3771b",
+    "full_artifact": 217,
+    "status": "passed",
+    "note": "The latest full-repository result is separate from the retained frozen UI report for source4b6c0795."
+  }
 }

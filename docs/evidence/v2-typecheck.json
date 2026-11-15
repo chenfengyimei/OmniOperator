@@ -207,7 +207,7 @@
   "scope_history_note": "The scope list below preserves historical growth; current_scope and validation.strict are the current truth."
  },
  "validation": {
-  "all_latest_cases_passed": false,
+  "all_latest_cases_passed": true,
   "latest_batch": {
    "batch": 214,
    "sources": [
@@ -2291,210 +2291,43 @@
    ]
   },
   "full_run": {
-   "status": "completed_after_explicit_scheduler_recovery_with_failures",
-   "checkpoint": 76,
-   "artifact_id": 216,
-   "ui_version": "20261115v128",
+   "status": "passed",
+   "checkpoint": 77,
+   "artifact_id": 217,
    "strict_checkpoint": 214,
-   "source_head": "4b6c07954be0c874b04fe9294049ae60ae00a06e",
-   "report": "temp/build/v2-full-216.xml",
-   "workers": 2,
-   "report_sha256": "0c584ab8dc656e68ddbf8f619ad1610a78b66d9db9cbe0000230534f7a826932",
-   "tests": 4674,
-   "passed": 4665,
-   "failed": 6,
-   "errors": 3,
-   "skipped": 0,
-   "duration_s": 4278.5,
-   "returncode": 1,
-   "source_unchanged": true,
-   "working_source_version": "60be5ce23b1a2d90bf0f884eb5db66c7704acd8b87d769bb52e742bd81833188",
-   "fixed_source_files": 1208,
+   "source_head": "e5910a9591d2ccbd3f89e1c8d08ad08872e3771b",
+   "code_version": "9b6a87587d005cd1a542cc42c265cc59fbc8a5f315a6ad56839918519ef66f96",
+   "fixed_source_files": 1210,
    "strict_files": 332,
-   "code_version": "44b8f76aef7c22bd3b7dc41cca971a250828e8f2f6a0d6b0752d52c84396f5d9",
+   "report": "temp/build/v2-full-217.xml",
+   "workers": 2,
+   "uninterrupted_default_run": true,
+   "report_sha256": "ce5d43b6ee4a3f6cc22208daf717035a47a53cffe0c5b6df5ec3e0a039e9d736",
+   "tests": 4680,
+   "passed": 4680,
+   "failed": 0,
+   "errors": 0,
+   "skipped": 0,
+   "duration_s": 2790.27,
+   "collected_tests": 4680,
+   "junit_testcase_records": 4680,
+   "unique_test_nodes_reported": 4680,
+   "all_collected_nodes_reported": true,
+   "returncode": 0,
+   "source_unchanged": true,
+   "working_source_version": "0e3094aec7fcee106830511ce9b18c9ca534ed4bee0c8c263bc9707e466f6e3f",
+   "wall_duration_s": 2791.317,
+   "junit_duration_s": 2790.147,
    "snapshot": {
-    "path": "temp/build/v2-full-216-snapshot.json",
-    "sha256": "f5821b76ffb1eb920efa2f120a29b56dc89a801a21b9d817cd066464131fb9fd"
+    "path": "temp/build/v2-full-217-snapshot.json",
+    "sha256": "29f185dde0dc22bf5e5b1843578c95a009290d2f55f3eb3615d4e71b2524f3dd"
    },
-   "wall_duration_s": 4279.646,
-   "junit_duration_s": 4276.463,
-   "command": "uv run --no-sync python temp/build/_full_checkpoint.py run 216 (frozen interpreter: python -m pytest -q -n 2)",
-   "environment": "Committed HEAD archive; disposable interpreter reuses existing dependencies via .pth. No source PYTHONPATH, no uv sync, no user service changes. Explicit scheduler recovery is recorded; the final report contains every collected node, with original failures retained.",
-   "reruns": [
-    {
-     "report": "temp/build/v2-full-216-serial.xml",
-     "report_sha256": "1c5945532a5e57c7ad87375d45cd0fc6c6ca0ed29bfa4ea16c432c17e2ec1f6f",
-     "tests": 9,
-     "passed": 9,
-     "failed": 0,
-     "errors": 0,
-     "skipped": 0,
-     "duration_s": 48.172,
-     "kind": "same_frozen_source_rerun",
-     "source_head": "4b6c07954be0c874b04fe9294049ae60ae00a06e"
-    },
-    {
-     "report": "temp/build/v2-full-216-prior-control-1.xml",
-     "report_sha256": "a5fec5d6ad0fa77def6fae546ad422104e102fa90dafad404502a34a615547f1",
-     "tests": 9,
-     "passed": 9,
-     "failed": 0,
-     "errors": 0,
-     "skipped": 0,
-     "duration_s": 52.33,
-     "kind": "prior_committed_head_control",
-     "source_head": "cbd71981bfd582bf107a62f78e06d303fff870aa",
-     "returncode": 0
-    },
-    {
-     "report": "temp/build/v2-full-216-prior-control-2.xml",
-     "report_sha256": "0b9010b38fe073482145fccbd78f4926461ffe04a4a6e0b385e752989a69640a",
-     "tests": 9,
-     "passed": 8,
-     "failed": 1,
-     "errors": 0,
-     "skipped": 0,
-     "duration_s": 79.848,
-     "kind": "prior_committed_head_control",
-     "source_head": "cbd71981bfd582bf107a62f78e06d303fff870aa",
-     "returncode": 1
-    }
-   ],
-   "failed_cases": [
-    {
-     "classname": "agent.tests.test_retrieval",
-     "name": "test_index_semantic_recall_and_scope_before_return",
-     "message": "failed on setup with \"worker 'gw1' crashed while running 'agent/tests/test_retrieval.py::test_index_semantic_recall_and_scope_before_return'\""
-    },
-    {
-     "classname": "agent.tests.test_unification",
-     "name": "test_background_recall_uses_injected_hybrid_search_without_counting_hits",
-     "message": "failed on setup with \"worker 'gw2' crashed while running 'agent/tests/test_unification.py::test_background_recall_uses_injected_hybrid_search_without_counting_hits'\""
-    },
-    {
-     "classname": "agent.tests.test_v2_bilibili_ui",
-     "name": "test_bilibili_profile_draft_and_cas_preserve_user_edits[light-390]",
-     "message": "playwright._impl._errors.Error: BrowserContext.new_page: Target crashed"
-    },
-    {
-     "classname": "agent.tests.test_asr",
-     "name": "test_decode_audio_resamples_to_16k_mono",
-     "message": "failed on setup with \"worker 'gw3' crashed while running 'agent/tests/test_asr.py::test_decode_audio_resamples_to_16k_mono'\""
-    },
-    {
-     "classname": "agent.tests.test_ui_substation_controls",
-     "name": "test_substation_buttons_keep_skin",
-     "message": "playwright._impl._errors.TimeoutError: Locator.evaluate: Timeout 30000ms exceeded.\nCall log:\n  - waiting for locator(\"button:visible\").first"
-    },
-    {
-     "classname": "agent.tests.test_v2_action_review_ui",
-     "name": "test_late_real_detail_and_committed_receipt_do_not_overwrite_agent_or_new_note[two_agents]",
-     "message": "playwright._impl._errors.TimeoutError: Page.goto: Timeout 30000ms exceeded.\nCall log:\n  - navigating to \"http://127.0.0.1:65401/\", waiting until \"load\""
-    },
-    {
-     "classname": "agent.tests.test_v2_bilibili_worker",
-     "name": "test_real_browser_selects_uid_and_requires_receipt_and_new_record_without_enter_send",
-     "message": "AssertionError: assert (<Outcome.UNKNOWN: 'unknown'> == <Outcome.OK: 'ok'>\n  \n  - ok\n  + unknown)"
-    },
-    {
-     "classname": "agent.tests.test_v2_extensions_ui",
-     "name": "test_register_manual_trust_cas_and_disable_never_import_plugin",
-     "message": "playwright._impl._errors.TimeoutError: Page.goto: Timeout 30000ms exceeded.\nCall log:\n  - navigating to \"http://127.0.0.1:53185/\", waiting until \"load\""
-    },
-    {
-     "classname": "agent.tests.test_v2_history_ui",
-     "name": "test_audit_pages_expire_clear_old_view_and_reload_without_old_cursor[agent]",
-     "message": "AssertionError: Locator expected not to have attribute ''\nActual value:  \nCall log:\n  - Expect \"not_to_have_attribute\" locator(\"nav\") with timeout 5000ms\n  - waiting for locator(\"nav\")\n    13 × locator resolved to <nav inert=\"\" aria-label=\"工作台\">…</nav>\n       - unexpected value \"\"\n\nAria snapshot:\n- navigation \"工作台\":\n  - img \"OmniOperator\"\n  - paragraph: 对话与记忆\n  - button \"对话\": forum\n  - button \"记忆\": psychology\n  - paragraph: 知识与技能\n  - button \"技能\": auto_awesome\n  - button \"来源文档\": description\n  - paragraph: 工具与扩展\n  - button \"可信插件\": extension\n  - button \"MCP\": device_hub\n  - button \"动作核查\": fact_check\n  - paragraph: 设备与平台\n  - button \"QQ 通道\": chat\n  - button \"B站\": live_tv\n  - button \"安卓设备\": smartphone\n  - button \"桌面能力\": desktop_windows\n  - button \"所有者终端\": terminal\n  - paragraph: 资料与媒体\n  - button \"人物与档案\": person\n  - button \"文件\": folder\n  - button \"媒体\": movie\n  - paragraph: 自动化\n  - button \"持久调度\": schedule\n  - button \"持久投递\": send\n  - paragraph: 系统与运维\n  - button \"模型接入\": hub\n  - button \"设置\": sett"
-    }
-   ],
-   "collected_tests": 4671,
-   "junit_testcase_records": 4674,
-   "unique_test_nodes_reported": 4671,
-   "repeated_testcase_records": 3,
-   "pytest_cli_summary": {
-    "passed": 4665,
-    "failed": 9,
-    "warnings": 6,
-    "duration_s": 4278.5
-   },
-   "worker_exit_reports": [
-    {
-     "classname": "agent.tests.test_retrieval",
-     "name": "test_index_semantic_recall_and_scope_before_return",
-     "message": "failed on setup with \"worker 'gw1' crashed while running 'agent/tests/test_retrieval.py::test_index_semantic_recall_and_scope_before_return'\""
-    },
-    {
-     "classname": "agent.tests.test_unification",
-     "name": "test_background_recall_uses_injected_hybrid_search_without_counting_hits",
-     "message": "failed on setup with \"worker 'gw2' crashed while running 'agent/tests/test_unification.py::test_background_recall_uses_injected_hybrid_search_without_counting_hits'\""
-    },
-    {
-     "classname": "agent.tests.test_asr",
-     "name": "test_decode_audio_resamples_to_16k_mono",
-     "message": "failed on setup with \"worker 'gw3' crashed while running 'agent/tests/test_asr.py::test_decode_audio_resamples_to_16k_mono'\""
-    }
-   ],
-   "uninterrupted_default_run": false,
-   "scheduler_recovery": {
-    "record": "temp/build/v2-full-216-scheduler-recovery.json",
-    "sha256": "18651144c589d02bac24fd7e34027b8867b8777b08344a50b3fe093a2da1bfad",
-    "before_state": "temp/build/v2-full-216-controller-state-before-recovery.json",
-    "before_state_sha256": "d61e4ae7b99e06df225edd3d20652de6bbc8528c29c0152a28b1a3672e46c21d",
-    "pending_identities_preserved": 31,
-    "completed_only_scopes_removed": 90,
-    "diagnostic_code": "temp/build/_inspect_full_216_controller.py",
-    "recovery_code": "temp/build/_recover_full_216_scheduler.py",
-    "recovery_code_sha256": "9e829a348ec10dcf04f56246cc3c182ccad455c1a0c74b73f0a86446db828d22",
-    "tool_provenance": [
-     "temp/build/debug-tools/py-spy-provenance.json",
-     "temp/build/debug-tools/debugpy-provenance.json"
-    ],
-    "note": "Workers were idle in TestQueue.get; controller idle in DSession.loop_once. Crash rescheduling queued 90 completed-only units ahead of 31 pending tests. Only completed-only queue entries were removed and existing scheduler methods resumed assignment. This is an explicit orchestration intervention, not an uninterrupted default full-run result."
-   },
-   "prior_controls": {
-    "source_head": "cbd71981bfd582bf107a62f78e06d303fff870aa",
-    "source_version": "1466148486cd6de41b467a190da0c3cdb062e91c07b7277fde39817d15cc5b39",
-    "new_head": "4b6c07954be0c874b04fe9294049ae60ae00a06e",
-    "production_python_unchanged": true,
-    "nine_failure_test_files_unchanged": true,
-    "nodes": [
-     "agent/tests/test_retrieval.py::test_index_semantic_recall_and_scope_before_return",
-     "agent/tests/test_unification.py::test_background_recall_uses_injected_hybrid_search_without_counting_hits",
-     "agent/tests/test_v2_bilibili_ui.py::test_bilibili_profile_draft_and_cas_preserve_user_edits[light-390]",
-     "agent/tests/test_asr.py::test_decode_audio_resamples_to_16k_mono",
-     "agent/tests/test_ui_substation_controls.py::test_substation_buttons_keep_skin",
-     "agent/tests/test_v2_action_review_ui.py::test_late_real_detail_and_committed_receipt_do_not_overwrite_agent_or_new_note[two_agents]",
-     "agent/tests/test_v2_bilibili_worker.py::test_real_browser_selects_uid_and_requires_receipt_and_new_record_without_enter_send",
-     "agent/tests/test_v2_extensions_ui.py::test_register_manual_trust_cas_and_disable_never_import_plugin",
-     "agent/tests/test_v2_history_ui.py::test_audit_pages_expire_clear_old_view_and_reload_without_old_cursor[agent]"
-    ],
-    "runs": [
-     {
-      "number": 1,
-      "returncode": 0,
-      "wall_s": 54.656,
-      "report": "temp/build/v2-full-216-prior-control-1.xml",
-      "log": "temp/build/v2-full-216-prior-control-1.log"
-     },
-     {
-      "number": 2,
-      "returncode": 1,
-      "wall_s": 82.313,
-      "report": "temp/build/v2-full-216-prior-control-2.xml",
-      "log": "temp/build/v2-full-216-prior-control-2.log"
-     }
-    ],
-    "source_unchanged": true
-   },
-   "original_failed_cases_passed_in_serial": true,
-   "details": [
-    "UI v128 follows strict batch 214; this is full checkpoint 76, not a new typing batch. Defined V2 strict scope remains 332 files.",
-    "Raw parallel counts are retained. Serial and isolated reruns never replace the original result.",
-    "All eight previously open observations remain open; the confirmed connection race is not proof of their causal mechanism. New worker-exit/browser/scheduler observations are recorded separately.",
-    "The suite collected 4671 unique nodes and emitted 4674 JUnit records because the three crashed cases were replayed; the original worker errors remain in the report. Pytest says 4665 passed / 9 failed, while JUnit separates 6 failures and 3 worker errors.",
-    "The default loadfile run stalled with both workers waiting for work. Explicit controller recovery removed 90 completed-only queued scopes, preserving all 31 pending identities. This recovered run is not represented as an uninterrupted default run or a performance benchmark.",
-    "Default entrypoints remain V1. Real model/MCP/plugin/device/platform/install and long-run acceptance are pending."
-   ]
+   "command": "uv run --no-sync python temp/build/_full_checkpoint.py run 217 (frozen interpreter: python -m pytest -q -n 2)",
+   "environment": "Committed HEAD archive, isolated interpreter metadata and reused existing dependencies; project CrashSafeLoadFileScheduling. No runtime scheduler intervention, weakened assertion, shortened timeout, offline-gate bypass, uv sync or user-service stop.",
+   "worker_exit_count": 0,
+   "pytest_cli_summary": "4680 passed, 10 warnings in 2790.27s (0:46:30)",
+   "failed_cases": [],
+   "reruns": []
   },
   "open_findings": [
    {
@@ -2742,25 +2575,6 @@
      "temp/build/v2-full-216-prior-control-1.xml",
      "temp/build/v2-full-216-prior-control-2.xml"
     ]
-   },
-   {
-    "id": "test.xdist_loadfile_crash_requeue_deadlock",
-    "state": "open",
-    "owner": "test infrastructure",
-    "classification": "scheduler_stall_confirmed_one_off_recovery_only",
-    "detail": "After worker exits, loadfile had 90 completed-only scopes ahead of 31 pending identities; both worker main threads waited in TestQueue.get and the controller in DSession.loop_once. Explicit recovery preserved all pending identities and allowed completion. A permanent repository-level crash-rescheduling fix remains to be implemented; the installed environment was not rebuilt or patched on disk.",
-    "evidence": [
-     "temp/build/v2-full-216-controller-state-before-recovery.json",
-     "temp/build/v2-full-216-scheduler-recovery.json",
-     "temp/build/v2-full-216.xml"
-    ],
-    "implementation_followup": {
-     "source_head": "e5910a9591d2ccbd3f89e1c8d08ad08872e3771b",
-     "evidence": "docs/evidence/v2-test-stability.json",
-     "targeted_passed": 9,
-     "parallel_callers_passed": 29,
-     "full_status": "running"
-    }
    }
   ],
   "next": {
@@ -3528,6 +3342,212 @@
      "V1 and tests are outside the 332-file strict gate. Product-wide completion, real model/MCP/plugin/device/platform/install/long-run acceptance and entrypoint switching remain pending."
     ],
     "original_failed_cases_passed_in_followups": true
+   },
+   {
+    "status": "completed_after_explicit_scheduler_recovery_with_failures",
+    "checkpoint": 76,
+    "artifact_id": 216,
+    "ui_version": "20261115v128",
+    "strict_checkpoint": 214,
+    "source_head": "4b6c07954be0c874b04fe9294049ae60ae00a06e",
+    "report": "temp/build/v2-full-216.xml",
+    "workers": 2,
+    "report_sha256": "0c584ab8dc656e68ddbf8f619ad1610a78b66d9db9cbe0000230534f7a826932",
+    "tests": 4674,
+    "passed": 4665,
+    "failed": 6,
+    "errors": 3,
+    "skipped": 0,
+    "duration_s": 4278.5,
+    "returncode": 1,
+    "source_unchanged": true,
+    "working_source_version": "60be5ce23b1a2d90bf0f884eb5db66c7704acd8b87d769bb52e742bd81833188",
+    "fixed_source_files": 1208,
+    "strict_files": 332,
+    "code_version": "44b8f76aef7c22bd3b7dc41cca971a250828e8f2f6a0d6b0752d52c84396f5d9",
+    "snapshot": {
+     "path": "temp/build/v2-full-216-snapshot.json",
+     "sha256": "f5821b76ffb1eb920efa2f120a29b56dc89a801a21b9d817cd066464131fb9fd"
+    },
+    "wall_duration_s": 4279.646,
+    "junit_duration_s": 4276.463,
+    "command": "uv run --no-sync python temp/build/_full_checkpoint.py run 216 (frozen interpreter: python -m pytest -q -n 2)",
+    "environment": "Committed HEAD archive; disposable interpreter reuses existing dependencies via .pth. No source PYTHONPATH, no uv sync, no user service changes. Explicit scheduler recovery is recorded; the final report contains every collected node, with original failures retained.",
+    "reruns": [
+     {
+      "report": "temp/build/v2-full-216-serial.xml",
+      "report_sha256": "1c5945532a5e57c7ad87375d45cd0fc6c6ca0ed29bfa4ea16c432c17e2ec1f6f",
+      "tests": 9,
+      "passed": 9,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 0,
+      "duration_s": 48.172,
+      "kind": "same_frozen_source_rerun",
+      "source_head": "4b6c07954be0c874b04fe9294049ae60ae00a06e"
+     },
+     {
+      "report": "temp/build/v2-full-216-prior-control-1.xml",
+      "report_sha256": "a5fec5d6ad0fa77def6fae546ad422104e102fa90dafad404502a34a615547f1",
+      "tests": 9,
+      "passed": 9,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 0,
+      "duration_s": 52.33,
+      "kind": "prior_committed_head_control",
+      "source_head": "cbd71981bfd582bf107a62f78e06d303fff870aa",
+      "returncode": 0
+     },
+     {
+      "report": "temp/build/v2-full-216-prior-control-2.xml",
+      "report_sha256": "0b9010b38fe073482145fccbd78f4926461ffe04a4a6e0b385e752989a69640a",
+      "tests": 9,
+      "passed": 8,
+      "failed": 1,
+      "errors": 0,
+      "skipped": 0,
+      "duration_s": 79.848,
+      "kind": "prior_committed_head_control",
+      "source_head": "cbd71981bfd582bf107a62f78e06d303fff870aa",
+      "returncode": 1
+     }
+    ],
+    "failed_cases": [
+     {
+      "classname": "agent.tests.test_retrieval",
+      "name": "test_index_semantic_recall_and_scope_before_return",
+      "message": "failed on setup with \"worker 'gw1' crashed while running 'agent/tests/test_retrieval.py::test_index_semantic_recall_and_scope_before_return'\""
+     },
+     {
+      "classname": "agent.tests.test_unification",
+      "name": "test_background_recall_uses_injected_hybrid_search_without_counting_hits",
+      "message": "failed on setup with \"worker 'gw2' crashed while running 'agent/tests/test_unification.py::test_background_recall_uses_injected_hybrid_search_without_counting_hits'\""
+     },
+     {
+      "classname": "agent.tests.test_v2_bilibili_ui",
+      "name": "test_bilibili_profile_draft_and_cas_preserve_user_edits[light-390]",
+      "message": "playwright._impl._errors.Error: BrowserContext.new_page: Target crashed"
+     },
+     {
+      "classname": "agent.tests.test_asr",
+      "name": "test_decode_audio_resamples_to_16k_mono",
+      "message": "failed on setup with \"worker 'gw3' crashed while running 'agent/tests/test_asr.py::test_decode_audio_resamples_to_16k_mono'\""
+     },
+     {
+      "classname": "agent.tests.test_ui_substation_controls",
+      "name": "test_substation_buttons_keep_skin",
+      "message": "playwright._impl._errors.TimeoutError: Locator.evaluate: Timeout 30000ms exceeded.\nCall log:\n  - waiting for locator(\"button:visible\").first"
+     },
+     {
+      "classname": "agent.tests.test_v2_action_review_ui",
+      "name": "test_late_real_detail_and_committed_receipt_do_not_overwrite_agent_or_new_note[two_agents]",
+      "message": "playwright._impl._errors.TimeoutError: Page.goto: Timeout 30000ms exceeded.\nCall log:\n  - navigating to \"http://127.0.0.1:65401/\", waiting until \"load\""
+     },
+     {
+      "classname": "agent.tests.test_v2_bilibili_worker",
+      "name": "test_real_browser_selects_uid_and_requires_receipt_and_new_record_without_enter_send",
+      "message": "AssertionError: assert (<Outcome.UNKNOWN: 'unknown'> == <Outcome.OK: 'ok'>\n  \n  - ok\n  + unknown)"
+     },
+     {
+      "classname": "agent.tests.test_v2_extensions_ui",
+      "name": "test_register_manual_trust_cas_and_disable_never_import_plugin",
+      "message": "playwright._impl._errors.TimeoutError: Page.goto: Timeout 30000ms exceeded.\nCall log:\n  - navigating to \"http://127.0.0.1:53185/\", waiting until \"load\""
+     },
+     {
+      "classname": "agent.tests.test_v2_history_ui",
+      "name": "test_audit_pages_expire_clear_old_view_and_reload_without_old_cursor[agent]",
+      "message": "AssertionError: Locator expected not to have attribute ''\nActual value:  \nCall log:\n  - Expect \"not_to_have_attribute\" locator(\"nav\") with timeout 5000ms\n  - waiting for locator(\"nav\")\n    13 × locator resolved to <nav inert=\"\" aria-label=\"工作台\">…</nav>\n       - unexpected value \"\"\n\nAria snapshot:\n- navigation \"工作台\":\n  - img \"OmniOperator\"\n  - paragraph: 对话与记忆\n  - button \"对话\": forum\n  - button \"记忆\": psychology\n  - paragraph: 知识与技能\n  - button \"技能\": auto_awesome\n  - button \"来源文档\": description\n  - paragraph: 工具与扩展\n  - button \"可信插件\": extension\n  - button \"MCP\": device_hub\n  - button \"动作核查\": fact_check\n  - paragraph: 设备与平台\n  - button \"QQ 通道\": chat\n  - button \"B站\": live_tv\n  - button \"安卓设备\": smartphone\n  - button \"桌面能力\": desktop_windows\n  - button \"所有者终端\": terminal\n  - paragraph: 资料与媒体\n  - button \"人物与档案\": person\n  - button \"文件\": folder\n  - button \"媒体\": movie\n  - paragraph: 自动化\n  - button \"持久调度\": schedule\n  - button \"持久投递\": send\n  - paragraph: 系统与运维\n  - button \"模型接入\": hub\n  - button \"设置\": sett"
+     }
+    ],
+    "collected_tests": 4671,
+    "junit_testcase_records": 4674,
+    "unique_test_nodes_reported": 4671,
+    "repeated_testcase_records": 3,
+    "pytest_cli_summary": {
+     "passed": 4665,
+     "failed": 9,
+     "warnings": 6,
+     "duration_s": 4278.5
+    },
+    "worker_exit_reports": [
+     {
+      "classname": "agent.tests.test_retrieval",
+      "name": "test_index_semantic_recall_and_scope_before_return",
+      "message": "failed on setup with \"worker 'gw1' crashed while running 'agent/tests/test_retrieval.py::test_index_semantic_recall_and_scope_before_return'\""
+     },
+     {
+      "classname": "agent.tests.test_unification",
+      "name": "test_background_recall_uses_injected_hybrid_search_without_counting_hits",
+      "message": "failed on setup with \"worker 'gw2' crashed while running 'agent/tests/test_unification.py::test_background_recall_uses_injected_hybrid_search_without_counting_hits'\""
+     },
+     {
+      "classname": "agent.tests.test_asr",
+      "name": "test_decode_audio_resamples_to_16k_mono",
+      "message": "failed on setup with \"worker 'gw3' crashed while running 'agent/tests/test_asr.py::test_decode_audio_resamples_to_16k_mono'\""
+     }
+    ],
+    "uninterrupted_default_run": false,
+    "scheduler_recovery": {
+     "record": "temp/build/v2-full-216-scheduler-recovery.json",
+     "sha256": "18651144c589d02bac24fd7e34027b8867b8777b08344a50b3fe093a2da1bfad",
+     "before_state": "temp/build/v2-full-216-controller-state-before-recovery.json",
+     "before_state_sha256": "d61e4ae7b99e06df225edd3d20652de6bbc8528c29c0152a28b1a3672e46c21d",
+     "pending_identities_preserved": 31,
+     "completed_only_scopes_removed": 90,
+     "diagnostic_code": "temp/build/_inspect_full_216_controller.py",
+     "recovery_code": "temp/build/_recover_full_216_scheduler.py",
+     "recovery_code_sha256": "9e829a348ec10dcf04f56246cc3c182ccad455c1a0c74b73f0a86446db828d22",
+     "tool_provenance": [
+      "temp/build/debug-tools/py-spy-provenance.json",
+      "temp/build/debug-tools/debugpy-provenance.json"
+     ],
+     "note": "Workers were idle in TestQueue.get; controller idle in DSession.loop_once. Crash rescheduling queued 90 completed-only units ahead of 31 pending tests. Only completed-only queue entries were removed and existing scheduler methods resumed assignment. This is an explicit orchestration intervention, not an uninterrupted default full-run result."
+    },
+    "prior_controls": {
+     "source_head": "cbd71981bfd582bf107a62f78e06d303fff870aa",
+     "source_version": "1466148486cd6de41b467a190da0c3cdb062e91c07b7277fde39817d15cc5b39",
+     "new_head": "4b6c07954be0c874b04fe9294049ae60ae00a06e",
+     "production_python_unchanged": true,
+     "nine_failure_test_files_unchanged": true,
+     "nodes": [
+      "agent/tests/test_retrieval.py::test_index_semantic_recall_and_scope_before_return",
+      "agent/tests/test_unification.py::test_background_recall_uses_injected_hybrid_search_without_counting_hits",
+      "agent/tests/test_v2_bilibili_ui.py::test_bilibili_profile_draft_and_cas_preserve_user_edits[light-390]",
+      "agent/tests/test_asr.py::test_decode_audio_resamples_to_16k_mono",
+      "agent/tests/test_ui_substation_controls.py::test_substation_buttons_keep_skin",
+      "agent/tests/test_v2_action_review_ui.py::test_late_real_detail_and_committed_receipt_do_not_overwrite_agent_or_new_note[two_agents]",
+      "agent/tests/test_v2_bilibili_worker.py::test_real_browser_selects_uid_and_requires_receipt_and_new_record_without_enter_send",
+      "agent/tests/test_v2_extensions_ui.py::test_register_manual_trust_cas_and_disable_never_import_plugin",
+      "agent/tests/test_v2_history_ui.py::test_audit_pages_expire_clear_old_view_and_reload_without_old_cursor[agent]"
+     ],
+     "runs": [
+      {
+       "number": 1,
+       "returncode": 0,
+       "wall_s": 54.656,
+       "report": "temp/build/v2-full-216-prior-control-1.xml",
+       "log": "temp/build/v2-full-216-prior-control-1.log"
+      },
+      {
+       "number": 2,
+       "returncode": 1,
+       "wall_s": 82.313,
+       "report": "temp/build/v2-full-216-prior-control-2.xml",
+       "log": "temp/build/v2-full-216-prior-control-2.log"
+      }
+     ],
+     "source_unchanged": true
+    },
+    "original_failed_cases_passed_in_serial": true,
+    "details": [
+     "UI v128 follows strict batch 214; this is full checkpoint 76, not a new typing batch. Defined V2 strict scope remains 332 files.",
+     "Raw parallel counts are retained. Serial and isolated reruns never replace the original result.",
+     "All eight previously open observations remain open; the confirmed connection race is not proof of their causal mechanism. New worker-exit/browser/scheduler observations are recorded separately.",
+     "The suite collected 4671 unique nodes and emitted 4674 JUnit records because the three crashed cases were replayed; the original worker errors remain in the report. Pytest says 4665 passed / 9 failed, while JUnit separates 6 failures and 3 worker errors.",
+     "The default loadfile run stalled with both workers waiting for work. Explicit controller recovery removed 90 completed-only queued scopes, preserving all 31 pending identities. This recovered run is not represented as an uninterrupted default run or a performance benchmark.",
+     "Default entrypoints remain V1. Real model/MCP/plugin/device/platform/install and long-run acceptance are pending."
+    ]
    }
   ],
   "scope": [
@@ -3586,7 +3606,7 @@
    "Batch 213: strict 331 files (53 domain, 44 application, 221/222 adapters, 13 composition); MCP HTTP与SSE类型化，未知写入不重放",
    "Batch 214: strict 332 files (53 domain, 44 application, 222/222 adapters, 13 composition); MCP OAuth类型收官，V2四层合同范围332文件，真实验收仍待"
   ],
-  "next_full_checkpoint": 77,
+  "next_full_checkpoint": null,
   "full_checkpoints_frozen": [
    {
     "batch": 194,
@@ -3647,18 +3667,12 @@
     "strict_checkpoint": 214,
     "head": "e5910a9591d2ccbd3f89e1c8d08ad08872e3771b",
     "snapshot": "temp/build/v2-full-217-snapshot.json",
-    "state": "running"
+    "state": "harvested"
    }
   ],
-  "full_checkpoints_pending": [
-   {
-    "checkpoint": 77,
-    "artifact_id": 217,
-    "source_head": "e5910a9591d2ccbd3f89e1c8d08ad08872e3771b"
-   }
-  ],
-  "next_full_checkpoint_to_harvest": 77,
-  "current_source_full_executed": false,
+  "full_checkpoints_pending": [],
+  "next_full_checkpoint_to_harvest": null,
+  "current_source_full_executed": true,
   "final_typing_checkpoint_harvested": true,
   "ui_connection_followup": {
    "evidence": "docs/evidence/v2-ui.json",
@@ -3683,7 +3697,7 @@
    "code_version": "9b6a87587d005cd1a542cc42c265cc59fbc8a5f315a6ad56839918519ef66f96",
    "checkpoint": 77,
    "artifact_id": 217,
-   "status": "running"
+   "status": "passed"
   },
   "latest_strict_repair": {
    "functional_feature_commit": "7580bef1",
@@ -3706,7 +3720,45 @@
     "duration_s": 76.744
    },
    "note": "Only typing.cast and formatting changed relative to the concurrent model-header feature; the request behavior was preserved."
-  }
+  },
+  "whole_repository_lint_passed": false,
+  "whole_repository_format_passed": false,
+  "current_static_debt_evidence": {
+   "record": "temp/build/v2-current-static-debt.json",
+   "sha256": "4a979e4cddcdab697a5eb594b252ea04f643a8f4a9d2f173507753a453a60de8",
+   "ruff_import_sort_issues": 15,
+   "python_unformatted_files": 39,
+   "frontend_unformatted_files": 11,
+   "all_affected_files_unchanged_since": "7580bef1",
+   "passed": false
+  },
+  "resolved_findings": [
+   {
+    "id": "test.xdist_loadfile_crash_requeue_deadlock",
+    "state": "resolved",
+    "owner": "test infrastructure",
+    "classification": "scheduler_stall_confirmed_one_off_recovery_only",
+    "detail": "After worker exits, loadfile had 90 completed-only scopes ahead of 31 pending identities; both worker main threads waited in TestQueue.get and the controller in DSession.loop_once. Explicit recovery preserved all pending identities and allowed completion. A permanent repository-level crash-rescheduling fix remains to be implemented; the installed environment was not rebuilt or patched on disk.",
+    "evidence": [
+     "temp/build/v2-full-216-controller-state-before-recovery.json",
+     "temp/build/v2-full-216-scheduler-recovery.json",
+     "temp/build/v2-full-216.xml"
+    ],
+    "implementation_followup": {
+     "source_head": "e5910a9591d2ccbd3f89e1c8d08ad08872e3771b",
+     "evidence": "docs/evidence/v2-test-stability.json",
+     "targeted_passed": 9,
+     "parallel_callers_passed": 29,
+     "full_status": "running"
+    },
+    "resolution": "Permanent loadfile scheduler fix; 7 prior failures reproduced, 9 targeted cases and 29 parallel callers passed; current-source default full completed without controller intervention.",
+    "resolved_evidence": [
+     "temp/build/v2-scheduler-after.xml",
+     "temp/build/v2-scheduler-parallel-callers.xml",
+     "temp/build/v2-full-217.xml"
+    ]
+   }
+  ]
  },
  "source_recovery": {
   "manifest": "temp/private/v2-typecheck-22-source-20261111-5039cdfa12f1/manifest.json",

@@ -72,6 +72,24 @@
     "contract": "Keep loadfile ownership, every unfinished identity, original crash failures, requested worker counts and all assertions/timeouts/offline gates. Remove completed-only requeued units and supply lookahead or shutdown. Explicit other distribution modes retain xdist behavior."
   },
   "targeted_unique_passed": 76,
+  "static_checks": {
+    "strict": {
+      "files": 332,
+      "errors": 0,
+      "warnings": 0
+    },
+    "changed_python_files": "Ruff check and format --check passed",
+    "whole_repository_style_debt": {
+      "record": "temp/build/v2-current-static-debt.json",
+      "sha256": "4a979e4cddcdab697a5eb594b252ea04f643a8f4a9d2f173507753a453a60de8",
+      "ruff_import_sort_issues": 15,
+      "python_unformatted_files": 39,
+      "frontend_unformatted_files": 11,
+      "all_affected_files_unchanged_since": "7580bef1",
+      "passed": false
+    },
+    "project_index": "65 modules / 736 files / 434 routes / 94 tools; --check passed"
+  },
   "previous_ui_delivery": {
     "evidence": "docs/evidence/v2-ui.json",
     "source_head": "4b6c07954be0c874b04fe9294049ae60ae00a06e",
@@ -90,7 +108,7 @@
     "scope": "Observed another session's commit statement and local report counters; no real model request was repeated here. One provider record does not complete the model/platform acceptance matrix."
   },
   "full_run": {
-    "status": "running",
+    "status": "passed",
     "checkpoint": 77,
     "artifact_id": 217,
     "strict_checkpoint": 214,
@@ -100,7 +118,33 @@
     "strict_files": 332,
     "report": "temp/build/v2-full-217.xml",
     "workers": 2,
-    "uninterrupted_default_run": true
+    "uninterrupted_default_run": true,
+    "report_sha256": "ce5d43b6ee4a3f6cc22208daf717035a47a53cffe0c5b6df5ec3e0a039e9d736",
+    "tests": 4680,
+    "passed": 4680,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0,
+    "duration_s": 2790.27,
+    "collected_tests": 4680,
+    "junit_testcase_records": 4680,
+    "unique_test_nodes_reported": 4680,
+    "all_collected_nodes_reported": true,
+    "returncode": 0,
+    "source_unchanged": true,
+    "working_source_version": "0e3094aec7fcee106830511ce9b18c9ca534ed4bee0c8c263bc9707e466f6e3f",
+    "wall_duration_s": 2791.317,
+    "junit_duration_s": 2790.147,
+    "snapshot": {
+      "path": "temp/build/v2-full-217-snapshot.json",
+      "sha256": "29f185dde0dc22bf5e5b1843578c95a009290d2f55f3eb3615d4e71b2524f3dd"
+    },
+    "command": "uv run --no-sync python temp/build/_full_checkpoint.py run 217 (frozen interpreter: python -m pytest -q -n 2)",
+    "environment": "Committed HEAD archive, isolated interpreter metadata and reused existing dependencies; project CrashSafeLoadFileScheduling. No runtime scheduler intervention, weakened assertion, shortened timeout, offline-gate bypass, uv sync or user-service stop.",
+    "worker_exit_count": 0,
+    "pytest_cli_summary": "4680 passed, 10 warnings in 2790.27s (0:46:30)",
+    "failed_cases": [],
+    "reruns": []
   },
   "not_verified": [
     "Whole-V2 parity and entrypoint switching",
