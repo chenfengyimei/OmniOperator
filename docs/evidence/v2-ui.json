@@ -946,17 +946,26 @@
     }
   ],
   "latest_followup_validation": {
-    "evidence": "docs/evidence/v2-test-stability.json",
-    "source_head": "e5910a9591d2ccbd3f89e1c8d08ad08872e3771b",
-    "full_artifact": 217,
+    "evidence": "docs/evidence/v2-static-quality.json",
+    "source_head": "92fbf78a06237414febec90915bae6067dc64c99",
+    "full_artifact": 218,
     "status": "passed",
-    "note": "The latest full-repository result is separate from the retained frozen UI report for source4b6c0795."
+    "note": "Only a pointer to the later source; the frozen historical report and its original failures remain unchanged."
   },
   "latest_static_quality_followup": {
     "evidence": "docs/evidence/v2-static-quality.json",
     "source_head": "92fbf78a06237414febec90915bae6067dc64c99",
     "full_artifact": 218,
-    "status": "running",
+    "status": "passed",
     "note": "Only a pointer to the later source; the frozen historical report and its original failures remain unchanged."
-  }
+  },
+  "followup_validation_history": [
+    {
+      "evidence": "docs/evidence/v2-test-stability.json",
+      "source_head": "e5910a9591d2ccbd3f89e1c8d08ad08872e3771b",
+      "full_artifact": 217,
+      "status": "passed",
+      "note": "The latest full-repository result is separate from the retained frozen UI report for source4b6c0795."
+    }
+  ]
 }

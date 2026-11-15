@@ -207,7 +207,7 @@
   "scope_history_note": "The scope list below preserves historical growth; current_scope and validation.strict are the current truth."
  },
  "validation": {
-  "all_latest_cases_passed": false,
+  "all_latest_cases_passed": true,
   "latest_batch": {
    "batch": 214,
    "sources": [
@@ -2292,40 +2292,40 @@
   },
   "full_run": {
    "status": "passed",
-   "checkpoint": 77,
-   "artifact_id": 217,
+   "checkpoint": 78,
+   "artifact_id": 218,
    "strict_checkpoint": 214,
-   "source_head": "e5910a9591d2ccbd3f89e1c8d08ad08872e3771b",
-   "code_version": "9b6a87587d005cd1a542cc42c265cc59fbc8a5f315a6ad56839918519ef66f96",
+   "source_head": "92fbf78a06237414febec90915bae6067dc64c99",
+   "code_version": "355d503e2aef412d78a9afab57852024a296719ea11b0e96b2f74f59340f5a3e",
    "fixed_source_files": 1210,
    "strict_files": 332,
-   "report": "temp/build/v2-full-217.xml",
+   "report": "temp/build/v2-full-218.xml",
    "workers": 2,
    "uninterrupted_default_run": true,
-   "report_sha256": "ce5d43b6ee4a3f6cc22208daf717035a47a53cffe0c5b6df5ec3e0a039e9d736",
+   "report_sha256": "1295b0968f8c7463ace88c01b6db42b1b6b84c7e61802d526994051c5d10db94",
    "tests": 4680,
    "passed": 4680,
    "failed": 0,
    "errors": 0,
    "skipped": 0,
-   "duration_s": 2790.27,
+   "duration_s": 2768.05,
    "collected_tests": 4680,
    "junit_testcase_records": 4680,
    "unique_test_nodes_reported": 4680,
-   "all_collected_nodes_reported": true,
    "returncode": 0,
    "source_unchanged": true,
-   "working_source_version": "0e3094aec7fcee106830511ce9b18c9ca534ed4bee0c8c263bc9707e466f6e3f",
-   "wall_duration_s": 2791.317,
-   "junit_duration_s": 2790.147,
+   "working_source_version": "2f42bf0224f38ab37a89ba0f5318724c5db6670f7f70c4c1c4c82db681150c28",
+   "wall_duration_s": 2769.044,
+   "junit_duration_s": 2767.715,
    "snapshot": {
-    "path": "temp/build/v2-full-217-snapshot.json",
-    "sha256": "29f185dde0dc22bf5e5b1843578c95a009290d2f55f3eb3615d4e71b2524f3dd"
+    "path": "temp/build/v2-full-218-snapshot.json",
+    "sha256": "ca94b181e469298ad92c80b838963aa753a6cb08773c4747e38bfff6adc99376"
    },
-   "command": "uv run --no-sync python temp/build/_full_checkpoint.py run 217 (frozen interpreter: python -m pytest -q -n 2)",
-   "environment": "Committed HEAD archive, isolated interpreter metadata and reused existing dependencies; project CrashSafeLoadFileScheduling. No runtime scheduler intervention, weakened assertion, shortened timeout, offline-gate bypass, uv sync or user-service stop.",
+   "command": "uv run --no-sync python temp/build/_full_checkpoint.py run 218 (frozen interpreter: python -m pytest -q -n 2)",
+   "all_collected_nodes_reported": true,
    "worker_exit_count": 0,
-   "pytest_cli_summary": "4680 passed, 10 warnings in 2790.27s (0:46:30)",
+   "environment": "Committed source archive and isolated interpreter metadata reusing existing dependencies; standard project crash-safe file scheduler. No uv sync, user-service stop, test skip, shortened timeout, assertion relaxation, offline-gate bypass or runtime intervention.",
+   "pytest_cli_summary": "4680 passed, 6 warnings in 2768.05s (0:46:08)",
    "failed_cases": [],
    "reruns": []
   },
@@ -3548,6 +3548,45 @@
      "The default loadfile run stalled with both workers waiting for work. Explicit controller recovery removed 90 completed-only queued scopes, preserving all 31 pending identities. This recovered run is not represented as an uninterrupted default run or a performance benchmark.",
      "Default entrypoints remain V1. Real model/MCP/plugin/device/platform/install and long-run acceptance are pending."
     ]
+   },
+   {
+    "status": "passed",
+    "checkpoint": 77,
+    "artifact_id": 217,
+    "strict_checkpoint": 214,
+    "source_head": "e5910a9591d2ccbd3f89e1c8d08ad08872e3771b",
+    "code_version": "9b6a87587d005cd1a542cc42c265cc59fbc8a5f315a6ad56839918519ef66f96",
+    "fixed_source_files": 1210,
+    "strict_files": 332,
+    "report": "temp/build/v2-full-217.xml",
+    "workers": 2,
+    "uninterrupted_default_run": true,
+    "report_sha256": "ce5d43b6ee4a3f6cc22208daf717035a47a53cffe0c5b6df5ec3e0a039e9d736",
+    "tests": 4680,
+    "passed": 4680,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0,
+    "duration_s": 2790.27,
+    "collected_tests": 4680,
+    "junit_testcase_records": 4680,
+    "unique_test_nodes_reported": 4680,
+    "all_collected_nodes_reported": true,
+    "returncode": 0,
+    "source_unchanged": true,
+    "working_source_version": "0e3094aec7fcee106830511ce9b18c9ca534ed4bee0c8c263bc9707e466f6e3f",
+    "wall_duration_s": 2791.317,
+    "junit_duration_s": 2790.147,
+    "snapshot": {
+     "path": "temp/build/v2-full-217-snapshot.json",
+     "sha256": "29f185dde0dc22bf5e5b1843578c95a009290d2f55f3eb3615d4e71b2524f3dd"
+    },
+    "command": "uv run --no-sync python temp/build/_full_checkpoint.py run 217 (frozen interpreter: python -m pytest -q -n 2)",
+    "environment": "Committed HEAD archive, isolated interpreter metadata and reused existing dependencies; project CrashSafeLoadFileScheduling. No runtime scheduler intervention, weakened assertion, shortened timeout, offline-gate bypass, uv sync or user-service stop.",
+    "worker_exit_count": 0,
+    "pytest_cli_summary": "4680 passed, 10 warnings in 2790.27s (0:46:30)",
+    "failed_cases": [],
+    "reruns": []
    }
   ],
   "scope": [
@@ -3606,7 +3645,7 @@
    "Batch 213: strict 331 files (53 domain, 44 application, 221/222 adapters, 13 composition); MCP HTTP与SSE类型化，未知写入不重放",
    "Batch 214: strict 332 files (53 domain, 44 application, 222/222 adapters, 13 composition); MCP OAuth类型收官，V2四层合同范围332文件，真实验收仍待"
   ],
-  "next_full_checkpoint": 78,
+  "next_full_checkpoint": null,
   "full_checkpoints_frozen": [
    {
     "batch": 194,
@@ -3675,18 +3714,12 @@
     "strict_checkpoint": 214,
     "head": "92fbf78a06237414febec90915bae6067dc64c99",
     "snapshot": "temp/build/v2-full-218-snapshot.json",
-    "state": "running"
+    "state": "harvested"
    }
   ],
-  "full_checkpoints_pending": [
-   {
-    "checkpoint": 78,
-    "artifact_id": 218,
-    "source_head": "92fbf78a06237414febec90915bae6067dc64c99"
-   }
-  ],
-  "next_full_checkpoint_to_harvest": 78,
-  "current_source_full_executed": false,
+  "full_checkpoints_pending": [],
+  "next_full_checkpoint_to_harvest": null,
+  "current_source_full_executed": true,
   "final_typing_checkpoint_harvested": true,
   "ui_connection_followup": {
    "evidence": "docs/evidence/v2-ui.json",
@@ -3778,7 +3811,7 @@
    "code_version": "355d503e2aef412d78a9afab57852024a296719ea11b0e96b2f74f59340f5a3e",
    "checkpoint": 78,
    "artifact_id": 218,
-   "status": "running"
+   "status": "passed"
   }
  },
  "source_recovery": {

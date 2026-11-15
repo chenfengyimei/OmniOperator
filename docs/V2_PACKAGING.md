@@ -2,6 +2,12 @@
 
 > **默认正式入口仍是 V1。** 本文件只记录 V2 已实际验证的构建/安装/更新/恢复链与仍未验收的部分，不把“能构建 wheel”写成“三平台已交付”。
 
+> **当前接续（2026-11-15）**：源码 `92fbf78a` 的 direct wheel、sdist→wheel、隔离导入、新实例建库及正常关闭已离线复验，123 份资源一致；报告见[静态质量证据](evidence/v2-static-quality.json)。下面 2026-11-11 的资源数量和 `installation` 命令限制属于对应历史记录。
+
+当前另有已接源码的不可变部署链：`service capture/materialize` 捕获并物化固定安装，`release prepare` 在新目录恢复一致快照；单独批准的 `release prepare-online` 可正常排空已证明身份的旧 boot，`exchange apply/resume` 串联源注册移除、目录选择、目标注册及本次启动就绪核验。隔离救援保留未知回执和最新数据，跨 schema 与分阶段管理员交接也有独立合同。因此，“没有停服/启动或数据恢复源码”已不代表当前项目。命令与边界以[版本准备](V2_RELEASES.md)、[服务交换](V2_SERVICE_EXCHANGE.md)、[恢复](V2_EXCHANGE_RECOVERY.md)、[结构升级](V2_SCHEMA_UPGRADE.md)及[管理员交接](V2_ADMIN_HANDOVER.md)为准；旧 `installation` 命令仍保持下文所列范围。
+
+这些源码与离线注入结果尚不证明干净机器 install→update→rollback→uninstall、真实系统服务、macOS/Linux 构建、容器、签名或长跑完成。本轮没有安装、切换或启停用户服务，正式入口继续保持 V1。
+
 ## 1. 已实际验证（2026-11-11，Windows 主机）
 
 命令：
@@ -67,8 +73,8 @@ python -m omni.composition.cli --home <home> installation seal
 ## 4. 明确未完成
 
 - **三平台**：仅在 Windows 主机验证纯 Python wheel 构建与隔离导入；macOS/Linux 未构建、未安装、未恢复，不得写“三平台已交付”。
-- **容器镜像**：无 Dockerfile/镜像构建链与验收。
-- **V2 尚无独立安装器/更新器（仅有本地 wheel 执行链）**：已有 stage/prepare/smoke/backup/rollback-check/migrate/switch/install 链、运行指针、候选卸载与显式 `--purge-data`、离线 venv 创建与启动选择、代码级 live 回滚，但尚无停服/启动与数据库备份恢复；`scripts/install.ps1`、`update.ps1`、`installer_lib.ps1` 仍是 V1 组件安装，不是 V2 安装链。
+- **容器镜像**：已有 [`deploy/v2/Dockerfile`](../deploy/v2/Dockerfile) 和构建说明，镜像构建、健康检查及运行仍未验收。2026-11-15 本机只读探测确认 Docker CLI 存在、Docker 引擎不可连接，未执行镜像构建，也未代为启动 Docker Desktop；配方存在不等于容器已交付。
+- **独立交付与干净机器验收**：旧 `installation` 命令包含本地 wheel、运行指针和代码级回滚，保持其原有限制；当前另有上述 `service/release/exchange` 源码链及恢复合同，不能将旧链的限制当成新链缺失。完整安装、更新、数据恢复、卸载与故障场景仍待固定安装和真实服务验收；`scripts/install.ps1`、`update.ps1`、`installer_lib.ps1` 仍是 V1 组件安装，不能作为 V2 已交付的证据。
 - **代码签名/公证**：未做 Windows 签名、macOS notarization。
 - **真实机器验收**：未在干净 Windows/macOS/Linux 机器执行“安装→升级→回滚→恢复→卸载”。
 - **正式入口切换**：未满足 D7 门槛，`omni` 仍指向 V1。

@@ -157,7 +157,7 @@
     "evidence": "docs/evidence/v2-static-quality.json",
     "source_head": "92fbf78a06237414febec90915bae6067dc64c99",
     "full_artifact": 218,
-    "status": "running",
+    "status": "passed",
     "note": "Only a pointer to the later source; the frozen historical report and its original failures remain unchanged."
   }
 }

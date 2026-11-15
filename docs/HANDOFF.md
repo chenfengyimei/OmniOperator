@@ -1,6 +1,6 @@
 # OmniOperator 当前交接入口
 
-> 静态质量接续（2026-11-15）：源码`92fbf78a`：既有15项I001、39个Python格式文件、11个前端格式文件已清零；53份Python业务AST/导入绑定及26份前端格式/版本变更已核对。Ruff/Prettier全范围、strict332零错误、85模块语法、61专项及wheel/sdist隔离导入通过，资源v129。当前固定源码的第78次全量（-n 2，artifact218）运行中，结果待收割。10项观察仍开放，整个V2未验收、默认V1。见[静态质量证据](evidence/v2-static-quality.json)。
+> 静态质量接续（2026-11-15）：源码`92fbf78a`：既有15项I001、39个Python格式文件、11个前端格式文件已清零；53份Python业务AST/导入绑定及26份前端格式/版本变更已核对。Ruff/Prettier全范围、strict332零错误、85模块语法、61专项及wheel/sdist隔离导入通过，资源v129。全量第78次：4680 passed, 6 warnings in 2768.05s (0:46:08)；JUnit 0 failure / 0 error，4680个唯一节点。10项观察仍开放，整个V2未验收、默认V1。见[静态质量证据](evidence/v2-static-quality.json)。
 
 > 稳定性历史记录（第77次全量）：源码`e5910a95`：模型请求头类型回归2→0（strict332文件），崩溃后文件调度已永久修复；模型47项、并行29项专项通过。全量第77次：4680 passed, 10 warnings in 2790.27s (0:46:30)；JUnit 0 failure / 0 error，4680个唯一节点；标准调度完成，无手动恢复。10项观察开放；当时有15项I001、39个Python与11个前端格式欠账，已在后续静态质量批次清理。整个V2未验收、默认V1。见[稳定性证据](evidence/v2-test-stability.json)。
 

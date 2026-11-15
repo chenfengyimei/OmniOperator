@@ -27,8 +27,10 @@ Windows路径同样使用显式的绝对新目录；默认V2数据目录与现�
 
 容器配方从仓库根构建：`docker build -f deploy/v2/Dockerfile -t omnioperator:v2-dev .`。
 启动时显式传入 `serve --host 0.0.0.0 --external-url https://你的域名 --stdout-logs`，由可信反向代理提供HTTPS，
-不要将后端HTTP端口直接公开。需要浏览器能力时，还须在派生镜像内安装Chromium及对应系统库；本配方仅验证核心运行。
+不要将后端HTTP端口直接公开。需要浏览器能力时，还须在派生镜像内安装Chromium及对应系统库；本配方仅面向核心运行，尚未完成镜像构建和运行验证。
 本机尚未完成容器构建、macOS/Linux运行与真实桌面验收，不能将模板存在视为已经支持。
+
+2026-11-15 只读复核：Docker CLI 已安装，但 Docker 引擎不可连接；本轮未启动 Docker Desktop 或构建镜像。当前配方和待验收边界见[打包状态](../../docs/V2_PACKAGING.md)。
 
 离线备份：停止该V2实例后执行 `... --home /absolute/new-instance backup /absolute/new-backup`。
 恢复：`... restore /absolute/new-backup /absolute/new-restored-instance`。目标必须是新目录。
