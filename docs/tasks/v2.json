@@ -253,7 +253,7 @@
    "id": "R7",
    "title": "稳定性验收",
    "status": "待开始",
-   "notes": "第79次固定源码全量（-n 2，artifact219）运行中，尚未收割。原Portal偶发项两轮可控复现，等待真实授权后显式查询的对照两轮通过；等待当前全量收割。10项运行/环境观察继续开放；跨平台、真实部署与72小时尚未整体验收。",
+   "notes": "第79次全量：1 failed, 4685 passed, 6 warnings in 3110.88s (0:51:50)；JUnit 1 failure / 0 error，4686个唯一节点。原Portal偶发项两轮可控复现，等待真实授权后显式查询的对照两轮通过；已按因果证据收口。9项运行/环境观察继续开放；跨平台、真实部署与72小时尚未整体验收。",
    "evidence": [
     "docs/evidence/v2-offline.json",
     "docs/evidence/v2-objects.json",
@@ -299,34 +299,10 @@
   "full_runs_this_checkpoint": 1,
   "whole_plan_complete": false,
   "evidence": "docs/evidence/v2-portal-authorization.json",
-  "last_full_evidence": "docs/evidence/v2-static-quality.json",
+  "last_full_evidence": "docs/evidence/v2-portal-authorization.json",
   "current_packaging_passed": true,
   "previous_packaging_evidence": "docs/evidence/v2-darwin-admin.json",
   "open_validation_findings": [
-   {
-    "id": "test.portal_ui_flaky_on_clean_head",
-    "owner": "shared-test-suite",
-    "state": "open",
-    "detail": "test_v2_portal_ui::test_owner_selects_queries_captures_and_leaving_revokes_without_implicit_pixels 在第 25 与第 40 节点均出现：portal_consent_pending 未在 5 秒内转 active。第 40 节点干净 HEAD 三次全过、主工作区复跑两次全过，串行单次失败；确认为既有 flaky。建议由门户/桌面用例负责人加固等待条件或注入确定性时钟。 第 45 节点（v2-full-184.xml）该用例并行通过，未再复现；开放项保留，待用例负责人加固。",
-    "evidence": "temp/build/v2-full-165*.xml, v2-full-180.xml, v2-full-180-serial.xml, v2-full-180-clean-head.xml, v2-full-184.xml",
-    "node_50_observation": "Reproduced in the parallel full run with portal_consent_pending; exact nodeid passes serially. Existing intermittent finding remains open pending its owner's hardening.",
-    "node_50_report": "temp/build/v2-full-189.xml",
-    "latest_targeted_observation": {
-     "batch": 209,
-     "original_report": "temp/build/v2-typecheck-209-callers.xml",
-     "original_failed": 1,
-     "rerun": "temp/build/v2-typecheck-209-ui-rerun.xml",
-     "rerun_passed": 1
-    },
-    "implementation_followup": {
-     "source_head": "a8c0048f94dee9010381e60e12c2eb9f1d4fc2e7",
-     "evidence": "docs/evidence/v2-portal-authorization.json",
-     "targeted_unique_passed": 54,
-     "old_reproduction_failures": 2,
-     "synchronized_controls_passed": 2,
-     "full_status": "running"
-    }
-   },
    {
     "id": "test.extensions_ui_concurrent_selection",
     "status": "open",
@@ -494,43 +470,66 @@
   "baseline_repair_evidence": "docs/evidence/v2-baseline-repair.json",
   "market_evidence": "docs/evidence/v2-extension-market.json",
   "final_full_run": {
-   "status": "passed",
-   "checkpoint": 78,
-   "artifact_id": 218,
+   "status": "completed_with_failures_preserved",
+   "checkpoint": 79,
+   "artifact_id": 219,
    "strict_checkpoint": 214,
-   "source_head": "92fbf78a06237414febec90915bae6067dc64c99",
-   "code_version": "355d503e2aef412d78a9afab57852024a296719ea11b0e96b2f74f59340f5a3e",
+   "source_head": "a8c0048f94dee9010381e60e12c2eb9f1d4fc2e7",
+   "code_version": "d0a6803c32e4d0bdb5deca00ac4b4f261201050dd056761458f24b821252356e",
    "fixed_source_files": 1210,
    "strict_files": 332,
-   "report": "temp/build/v2-full-218.xml",
+   "report": "temp/build/v2-full-219.xml",
    "workers": 2,
    "uninterrupted_default_run": true,
-   "report_sha256": "1295b0968f8c7463ace88c01b6db42b1b6b84c7e61802d526994051c5d10db94",
-   "tests": 4680,
-   "passed": 4680,
-   "failed": 0,
+   "report_sha256": "167569528c4b4f2b468af3c621bb2a77022f22c1464f15bc0c010dc5f6a7cccf",
+   "tests": 4686,
+   "passed": 4685,
+   "failed": 1,
    "errors": 0,
    "skipped": 0,
-   "duration_s": 2768.05,
-   "collected_tests": 4680,
-   "junit_testcase_records": 4680,
-   "unique_test_nodes_reported": 4680,
-   "returncode": 0,
-   "source_unchanged": true,
-   "working_source_version": "2f42bf0224f38ab37a89ba0f5318724c5db6670f7f70c4c1c4c82db681150c28",
-   "wall_duration_s": 2769.044,
-   "junit_duration_s": 2767.715,
-   "snapshot": {
-    "path": "temp/build/v2-full-218-snapshot.json",
-    "sha256": "ca94b181e469298ad92c80b838963aa753a6cb08773c4747e38bfff6adc99376"
+   "duration_s": 3110.88,
+   "portal_service_and_ui": {
+    "tests": 15,
+    "all_passed": true
    },
-   "command": "uv run --no-sync python temp/build/_full_checkpoint.py run 218 (frozen interpreter: python -m pytest -q -n 2)",
+   "collected_tests": 4686,
+   "junit_testcase_records": 4686,
+   "unique_test_nodes_reported": 4686,
+   "returncode": 1,
+   "source_unchanged": true,
+   "working_source_version": "4e753776a8316f0e7072b2fcd114d5863da35acf8d46dab820686cd43c02bb3f",
+   "wall_duration_s": 3111.818,
+   "junit_duration_s": 3110.73,
+   "snapshot": {
+    "path": "temp/build/v2-full-219-snapshot.json",
+    "sha256": "b26e8c22d6ea0d6d8f21a3d00b3222fcc0abdcd3e56c9b838849a56524ef7b24"
+   },
+   "command": "uv run --no-sync python temp/build/_full_checkpoint.py run 219 (frozen interpreter: python -m pytest -q -n 2)",
    "all_collected_nodes_reported": true,
    "worker_exit_count": 0,
-   "environment": "Committed source archive and isolated interpreter metadata reusing existing dependencies; standard project crash-safe file scheduler. No uv sync, user-service stop, test skip, shortened timeout, assertion relaxation, offline-gate bypass or runtime intervention.",
-   "pytest_cli_summary": "4680 passed, 6 warnings in 2768.05s (0:46:08)",
-   "failed_cases": [],
-   "reruns": []
+   "environment": "Committed source archive; disposable interpreter metadata reuses existing dependencies. Standard project scheduler, original assertions/timeouts/offline gates, no runtime intervention, uv sync or user-service stop.",
+   "pytest_cli_summary": "1 failed, 4685 passed, 6 warnings in 3110.88s (0:51:50)",
+   "failed_cases": [
+    {
+     "classname": "agent.tests.test_v2_packaging_contract",
+     "name": "test_packaging_document_lists_verified_chain_and_unfinished_platforms",
+     "message": "AssertionError: packaging document hides gap: V2 尚无独立安装器\nassert 'V2 尚无独立安装器' in '# V2 打包、安装、更新与恢复（D7）\\n\\n> **默认正式入口仍是 V1。** 本文件只记录 V2 已实际验证的构建/安装/更新/恢复链与仍未验收的部分，不把“能构建 wheel”写成“三平台已交付”。\\n\\n> **当前接续（...据目录清理与卸载保留为显式人工步骤。\\n2. 生成容器镜像与三平台构建矩阵；macOS/Linux 无环境时只记录“待真实验收”。\\n3. 干净机器端到端演练：安装→启动→升级→回滚→备份恢复→卸载，全部留证据后才评估正式入口切换。\\n'"
+    }
+   ],
+   "reruns": [
+    {
+     "report": "temp/build/v2-full-219-serial.xml",
+     "report_sha256": "7b5278a29309892006e50cab03ab97dda95bf228c485ef6b49b86725ced82214",
+     "tests": 1,
+     "passed": 0,
+     "failed": 1,
+     "errors": 0,
+     "skipped": 0,
+     "duration_s": 0.542,
+     "source_head": "a8c0048f94dee9010381e60e12c2eb9f1d4fc2e7",
+     "returncode": 1
+    }
+   ]
   },
   "capabilities_evidence": "docs/evidence/v2-capabilities.json",
   "token_evidence": "docs/evidence/v2-owner-token.json",
@@ -541,7 +540,7 @@
   "validated_head": "a8c0048f94dee9010381e60e12c2eb9f1d4fc2e7",
   "v2_strict_scope_complete": true,
   "whole_repository_strict_complete": false,
-  "current_source_full_executed": false,
+  "current_source_full_executed": true,
   "aborted_full_run": {
    "status": "aborted_without_full_result",
    "source_head": "4f0815b77766bfe72a6b25eaaca8c7f66d44a7f3",
@@ -562,34 +561,21 @@
   },
   "all_quality_gates_passed": false,
   "static_debt_evidence": {
-   "evidence": "docs/evidence/v2-static-quality.json",
+   "evidence": "docs/evidence/v2-portal-authorization.json",
    "ruff_import_sort_issues": 0,
    "python_unformatted_files": 0,
    "frontend_unformatted_files": 0,
    "passed": true,
-   "scope": "The full configured Ruff source gate, Python formatter gate and web Prettier gate; strict scope remains332, not whole-repository strict."
+   "scope": "Configured Ruff source,Python formatter and web Prettier gates; current source. Earlier debt-resolution evidence retained separately."
   },
   "current_packaging_evidence": "docs/evidence/v2-portal-authorization.json",
-  "quality_gate_scope": "Configured Ruff/Python format/Prettier,strict332/default Pyright,syntax/UI contract/duplicate checks,task/index consistency,packaging and frozen pytest; excludes complete CI/platform/real-environment acceptance.",
-  "pending_full_run": {
-   "status": "running",
-   "checkpoint": 79,
-   "artifact_id": 219,
-   "strict_checkpoint": 214,
-   "source_head": "a8c0048f94dee9010381e60e12c2eb9f1d4fc2e7",
-   "code_version": "d0a6803c32e4d0bdb5deca00ac4b4f261201050dd056761458f24b821252356e",
-   "fixed_source_files": 1210,
-   "strict_files": 332,
-   "report": "temp/build/v2-full-219.xml",
-   "workers": 2,
-   "uninterrupted_default_run": true
-  }
+  "quality_gate_scope": "Configured Ruff/Python format/Prettier,strict332/default Pyright,syntax/UI contract/duplicate checks,task/index consistency,packaging and frozen pytest; excludes complete CI/platform/real-environment acceptance."
  },
  "next_checkpoint": {
   "id": "D7.stability_and_acceptance",
   "status": "开发中",
   "design": "docs/V2_PACKAGING.md",
-  "scope": "Harvest full219; continue separately recorded UI/process/environment observations and actual platform/deployment acceptance. Defined strict332 and recorded style debt remain complete; defaultV1."
+  "scope": "Continue nine separately recorded UI/process/environment observations and actual platform/deployment acceptance. Defined strict332 and style debt complete; defaultV1."
  },
  "milestones": [
   {

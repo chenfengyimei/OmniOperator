@@ -245,7 +245,9 @@
       "portal-dark-390-pending.png",
       "portal-dark-390-ready.png",
       "portal-light-1024-pending.png",
-      "portal-light-1024-ready.png"
+      "portal-light-1024-ready.png",
+      "portal-dark-1024-pending.png",
+      "portal-light-390-pending.png"
     ]
   },
   "static_checks": {
@@ -294,7 +296,7 @@
     }
   },
   "full_run": {
-    "status": "running",
+    "status": "completed_with_failures_preserved",
     "checkpoint": 79,
     "artifact_id": 219,
     "strict_checkpoint": 214,
@@ -304,7 +306,56 @@
     "strict_files": 332,
     "report": "temp/build/v2-full-219.xml",
     "workers": 2,
-    "uninterrupted_default_run": true
+    "uninterrupted_default_run": true,
+    "report_sha256": "167569528c4b4f2b468af3c621bb2a77022f22c1464f15bc0c010dc5f6a7cccf",
+    "tests": 4686,
+    "passed": 4685,
+    "failed": 1,
+    "errors": 0,
+    "skipped": 0,
+    "duration_s": 3110.88,
+    "portal_service_and_ui": {
+      "tests": 15,
+      "all_passed": true
+    },
+    "collected_tests": 4686,
+    "junit_testcase_records": 4686,
+    "unique_test_nodes_reported": 4686,
+    "returncode": 1,
+    "source_unchanged": true,
+    "working_source_version": "4e753776a8316f0e7072b2fcd114d5863da35acf8d46dab820686cd43c02bb3f",
+    "wall_duration_s": 3111.818,
+    "junit_duration_s": 3110.73,
+    "snapshot": {
+      "path": "temp/build/v2-full-219-snapshot.json",
+      "sha256": "b26e8c22d6ea0d6d8f21a3d00b3222fcc0abdcd3e56c9b838849a56524ef7b24"
+    },
+    "command": "uv run --no-sync python temp/build/_full_checkpoint.py run 219 (frozen interpreter: python -m pytest -q -n 2)",
+    "all_collected_nodes_reported": true,
+    "worker_exit_count": 0,
+    "environment": "Committed source archive; disposable interpreter metadata reuses existing dependencies. Standard project scheduler, original assertions/timeouts/offline gates, no runtime intervention, uv sync or user-service stop.",
+    "pytest_cli_summary": "1 failed, 4685 passed, 6 warnings in 3110.88s (0:51:50)",
+    "failed_cases": [
+      {
+        "classname": "agent.tests.test_v2_packaging_contract",
+        "name": "test_packaging_document_lists_verified_chain_and_unfinished_platforms",
+        "message": "AssertionError: packaging document hides gap: V2 尚无独立安装器\nassert 'V2 尚无独立安装器' in '# V2 打包、安装、更新与恢复（D7）\\n\\n> **默认正式入口仍是 V1。** 本文件只记录 V2 已实际验证的构建/安装/更新/恢复链与仍未验收的部分，不把“能构建 wheel”写成“三平台已交付”。\\n\\n> **当前接续（...据目录清理与卸载保留为显式人工步骤。\\n2. 生成容器镜像与三平台构建矩阵；macOS/Linux 无环境时只记录“待真实验收”。\\n3. 干净机器端到端演练：安装→启动→升级→回滚→备份恢复→卸载，全部留证据后才评估正式入口切换。\\n'"
+      }
+    ],
+    "reruns": [
+      {
+        "report": "temp/build/v2-full-219-serial.xml",
+        "report_sha256": "7b5278a29309892006e50cab03ab97dda95bf228c485ef6b49b86725ced82214",
+        "tests": 1,
+        "passed": 0,
+        "failed": 1,
+        "errors": 0,
+        "skipped": 0,
+        "duration_s": 0.542,
+        "source_head": "a8c0048f94dee9010381e60e12c2eb9f1d4fc2e7",
+        "returncode": 1
+      }
+    ]
   },
   "not_verified": [
     "Actual Linux Portal/PipeWire and other native platform acceptance",
@@ -312,5 +363,28 @@
     "Clean-machine service install/update/rollback/uninstall",
     "Container and macOS/Linux builds,24h/72h,entrypoint switch",
     "Windows real foreground input remains deferred"
-  ]
+  ],
+  "documentation_gate_followup": {
+    "failure_introduced_by_documentation_commit": "9c3e78f0",
+    "original_full_artifact": 219,
+    "fix": "Restore the explicit lack of a delivered independent V2 installer/updater while preserving the implemented service/release/exchange source-chain status. No test assertion was changed.",
+    "targeted": [
+      {
+        "path": "temp/build/v2-portal-packaging-doc-rerun.xml",
+        "sha256": "b8ab9927cc3a12fcbda2a869c3a3cd58481edc0922f3e6b7c7e178422ab17765",
+        "passed": 1
+      },
+      {
+        "path": "temp/build/v2-portal-packaging-contract.xml",
+        "sha256": "82f183cd2c2b1834945d8c24dc216aab1134878006909206f79174a7ed1371cc",
+        "passed": 2
+      }
+    ],
+    "next_full": {
+      "artifact_id": 220,
+      "checkpoint": 80,
+      "state": "planned"
+    },
+    "source_tests_dependencies_configuration_changed": false
+  }
 }

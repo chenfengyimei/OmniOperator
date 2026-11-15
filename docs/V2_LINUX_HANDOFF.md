@@ -1,6 +1,6 @@
 # Linux 原生接入与验收交接
 
-共享内核当前为96表/v2_0026、工作台v36，桌面IPC6/Portal IPC2/凭据IPC1。Linux AT-SPI/X11读取、Portal窗口帧、受控语义与系统凭据helper源码已接通；本轮独立接通D4终端核查，不扩大Linux输入授权。Linux/GStreamer/Portal、原生凭据与PTY仍未实测，持续窗口身份和前台/RemoteDesktop控制仍待实现；整个V2未完成，默认V1。
+共享内核当前为136表/v2_0037、工作台v130，桌面IPC6/Portal IPC2/凭据IPC1。Linux AT-SPI/X11读取、Portal窗口帧、受控语义、系统凭据helper及D4终端核查源码已接通；Portal授权确认状态按下文明确区分系统同意和业务审计，不扩大Linux输入授权。Linux/GStreamer/Portal、原生凭据与PTY仍未实测，持续窗口身份和前台/RemoteDesktop控制仍待实现；整个V2未完成，默认V1。
 
 ## 已实现的生产链路
 

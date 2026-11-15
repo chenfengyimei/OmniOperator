@@ -74,7 +74,7 @@ python -m omni.composition.cli --home <home> installation seal
 
 - **三平台**：仅在 Windows 主机验证纯 Python wheel 构建与隔离导入；macOS/Linux 未构建、未安装、未恢复，不得写“三平台已交付”。
 - **容器镜像**：已有 [`deploy/v2/Dockerfile`](../deploy/v2/Dockerfile) 和构建说明，镜像构建、健康检查及运行仍未验收。2026-11-15 本机只读探测确认 Docker CLI 存在、Docker 引擎不可连接，未执行镜像构建，也未代为启动 Docker Desktop；配方存在不等于容器已交付。
-- **独立交付与干净机器验收**：旧 `installation` 命令包含本地 wheel、运行指针和代码级回滚，保持其原有限制；当前另有上述 `service/release/exchange` 源码链及恢复合同，不能将旧链的限制当成新链缺失。完整安装、更新、数据恢复、卸载与故障场景仍待固定安装和真实服务验收；`scripts/install.ps1`、`update.ps1`、`installer_lib.ps1` 仍是 V1 组件安装，不能作为 V2 已交付的证据。
+- **V2 尚无独立安装器/更新器的完整交付与验收**：旧 `installation` 命令包含本地 wheel、运行指针和代码级回滚，保持其原有限制；当前另有上述 `service/release/exchange` 源码链及恢复合同，不能将旧链的限制当成新链缺失。完整安装、更新、数据恢复、卸载与故障场景仍待固定安装和真实服务验收；`scripts/install.ps1`、`update.ps1`、`installer_lib.ps1` 仍是 V1 组件安装，不能作为 V2 已交付的证据。
 - **代码签名/公证**：未做 Windows 签名、macOS notarization。
 - **真实机器验收**：未在干净 Windows/macOS/Linux 机器执行“安装→升级→回滚→恢复→卸载”。
 - **正式入口切换**：未满足 D7 门槛，`omni` 仍指向 V1。
