@@ -1,6 +1,8 @@
 # V2 架构重构：当前实施入口
 
-> 静态质量接续（2026-11-15）：源码`92fbf78a`：既有15项I001、39个Python格式文件、11个前端格式文件已清零；53份Python业务AST/导入绑定及26份前端格式/版本变更已核对。Ruff/Prettier全范围、strict332零错误、85模块语法、61专项及wheel/sdist隔离导入通过，资源v129。全量第78次：4680 passed, 6 warnings in 2768.05s (0:46:08)；JUnit 0 failure / 0 error，4680个唯一节点。10项观察仍开放，整个V2未验收、默认V1。见[静态质量证据](evidence/v2-static-quality.json)。
+> Portal授权接续（2026-11-15）：源码`a8c0048f`：系统共享就绪与授权审计分离，新增派生确认状态；界面v130明确等待确认，仍须显式查询/保存。原始用例同症状两轮复现，修正同步后两轮通过；54项不同专项及打包通过，strict332零错误。第79次固定源码全量（-n 2，artifact219）运行中，尚未收割。10项观察开放，整个V2未验收、默认V1。见[Portal授权证据](evidence/v2-portal-authorization.json)。
+
+> 静态质量历史记录（第78次全量）：源码`92fbf78a`：既有15项I001、39个Python格式文件、11个前端格式文件已清零；53份Python业务AST/导入绑定及26份前端格式/版本变更已核对。Ruff/Prettier全范围、strict332零错误、85模块语法、61专项及wheel/sdist隔离导入通过，资源v129。全量第78次：4680 passed, 6 warnings in 2768.05s (0:46:08)；JUnit 0 failure / 0 error，4680个唯一节点。10项观察仍开放，整个V2未验收、默认V1。见[静态质量证据](evidence/v2-static-quality.json)。
 
 > 稳定性历史记录（第77次全量）：源码`e5910a95`：模型请求头类型回归2→0（strict332文件），崩溃后文件调度已永久修复；模型47项、并行29项专项通过。全量第77次：4680 passed, 10 warnings in 2790.27s (0:46:30)；JUnit 0 failure / 0 error，4680个唯一节点；标准调度完成，无手动恢复。10项观察开放；当时有15项I001、39个Python与11个前端格式欠账，已在后续静态质量批次清理。整个V2未验收、默认V1。见[稳定性证据](evidence/v2-test-stability.json)。
 

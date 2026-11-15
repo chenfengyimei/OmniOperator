@@ -946,11 +946,11 @@
     }
   ],
   "latest_followup_validation": {
-    "evidence": "docs/evidence/v2-static-quality.json",
-    "source_head": "92fbf78a06237414febec90915bae6067dc64c99",
-    "full_artifact": 218,
-    "status": "passed",
-    "note": "Only a pointer to the later source; the frozen historical report and its original failures remain unchanged."
+    "evidence": "docs/evidence/v2-portal-authorization.json",
+    "source_head": "a8c0048f94dee9010381e60e12c2eb9f1d4fc2e7",
+    "full_artifact": 219,
+    "status": "running",
+    "note": "Later source validation only; frozen historical reports remain unchanged."
   },
   "latest_static_quality_followup": {
     "evidence": "docs/evidence/v2-static-quality.json",
@@ -966,6 +966,20 @@
       "full_artifact": 217,
       "status": "passed",
       "note": "The latest full-repository result is separate from the retained frozen UI report for source4b6c0795."
+    },
+    {
+      "evidence": "docs/evidence/v2-static-quality.json",
+      "source_head": "92fbf78a06237414febec90915bae6067dc64c99",
+      "full_artifact": 218,
+      "status": "passed",
+      "note": "Only a pointer to the later source; the frozen historical report and its original failures remain unchanged."
     }
-  ]
+  ],
+  "latest_portal_authorization_followup": {
+    "evidence": "docs/evidence/v2-portal-authorization.json",
+    "source_head": "a8c0048f94dee9010381e60e12c2eb9f1d4fc2e7",
+    "full_artifact": 219,
+    "status": "running",
+    "note": "Later source validation only; frozen historical reports remain unchanged."
+  }
 }

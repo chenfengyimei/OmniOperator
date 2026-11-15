@@ -1,0 +1,316 @@
+{
+  "schema": 1,
+  "date": "2026-11-15",
+  "batch": "portal-authorization-v130",
+  "whole_v2_complete": false,
+  "default_entrypoint": "v1",
+  "source": {
+    "head": "a8c0048f94dee9010381e60e12c2eb9f1d4fc2e7",
+    "code_version": "d0a6803c32e4d0bdb5deca00ac4b4f261201050dd056761458f24b821252356e",
+    "fixed_source_files": 1210,
+    "strict_files": 332
+  },
+  "root_cause": "The UI performs an explicit one-shot status query. A prepared/unauthorized snapshot can arrive before the authorization audit commits; later backend settlement does not mutate that rendered receipt. The exact original test assumed the one query would already be ready. Raw native state also does not establish durable application authorization.",
+  "changes": {
+    "public_grant_field": "authorization_pending is derived from native active, application authorization not established, no terminal state and no pending reclaim; it grants no authority",
+    "ui": "Show authorization confirmation and an explicit query hint, retain disabled capture until the existing permission allows it",
+    "test_synchronization": "Observe the real owner/view/grant-scoped API for at most5s, then exercise the explicit UI query; keep all original UI assertion timeouts, frame, pixel and reclaim assertions",
+    "unchanged": "No native protocol, database schema, model calls, foreground input, runtime timeout, permission check or production polling changed",
+    "assets": "20261115v130",
+    "new_test_cases": 6
+  },
+  "causal_controls": {
+    "original_test_commit": "9c3e78f0",
+    "historical_matching_reports": [
+      "temp/build/v2-full-165.xml",
+      "temp/build/v2-full-180.xml"
+    ],
+    "method": "Execute the exact committed original test with actual injected host/worker/HTTP. Hold the real application audit until the first real status snapshot is captured, then allow audit commit. No HTTP response is fabricated. Repeat the same boundary against the synchronized test.",
+    "before": [
+      {
+        "report": "temp/build/v2-portal-original-control-1.xml",
+        "report_sha256": "f4f1780207ee8ecac4e21168cf1117bda2356d48780b685c168f61ba2fce49bc",
+        "tests": 1,
+        "passed": 0,
+        "failed": 1,
+        "errors": 0,
+        "skipped": 0,
+        "duration_s": 13.486,
+        "observation": {
+          "original_source": "9c3e78f0",
+          "original_test_sha256": "bfd72f4fd9bd8eb1904a73b26292f3658fe84453c40e51594d236277e4993085",
+          "early_snapshot": {
+            "phase": "prepared",
+            "authorized": false,
+            "capture_available": false,
+            "capture_error_code": "portal_consent_pending"
+          },
+          "authorization_audit_committed": true
+        },
+        "observation_artifact": {
+          "path": "temp/build/v2-portal-original-control-1.control.json",
+          "sha256": "dfcf3f8f6b614aa7afdeaff210099b8c4e850380f424195899c5db84e71af18b"
+        }
+      },
+      {
+        "report": "temp/build/v2-portal-original-control-2.xml",
+        "report_sha256": "db5603a99a2e18ad85675f574bf46d61cab3f216b08d96fbfae678e7a2400d71",
+        "tests": 1,
+        "passed": 0,
+        "failed": 1,
+        "errors": 0,
+        "skipped": 0,
+        "duration_s": 13.721,
+        "observation": {
+          "original_source": "9c3e78f0",
+          "original_test_sha256": "bfd72f4fd9bd8eb1904a73b26292f3658fe84453c40e51594d236277e4993085",
+          "early_snapshot": {
+            "phase": "prepared",
+            "authorized": false,
+            "capture_available": false,
+            "capture_error_code": "portal_consent_pending"
+          },
+          "authorization_audit_committed": true
+        },
+        "observation_artifact": {
+          "path": "temp/build/v2-portal-original-control-2.control.json",
+          "sha256": "dfcf3f8f6b614aa7afdeaff210099b8c4e850380f424195899c5db84e71af18b"
+        }
+      }
+    ],
+    "after": [
+      {
+        "report": "temp/build/v2-portal-current-control-1.xml",
+        "report_sha256": "7c5b618850b9bfdf8621cc10875fecb41e53c965905667e49b09e8a62757dd47",
+        "tests": 1,
+        "passed": 1,
+        "failed": 0,
+        "errors": 0,
+        "skipped": 0,
+        "duration_s": 8.279,
+        "observation": {
+          "original_source": "9c3e78f0",
+          "original_test_sha256": "bfd72f4fd9bd8eb1904a73b26292f3658fe84453c40e51594d236277e4993085",
+          "current_synchronized_control": true,
+          "early_snapshot": {
+            "phase": "prepared",
+            "authorized": false,
+            "capture_available": false,
+            "capture_error_code": "portal_consent_pending"
+          },
+          "authorization_audit_committed": true
+        },
+        "observation_artifact": {
+          "path": "temp/build/v2-portal-current-control-1.control.json",
+          "sha256": "e95a2d58ea2035f3f7dd7ef729852c792d4a04421638cab34534a51391b7b09c"
+        }
+      },
+      {
+        "report": "temp/build/v2-portal-current-control-2.xml",
+        "report_sha256": "826c72719f01baea477c9d2bbd76c61bbb37dac2e53bdfe17ffa935958340d67",
+        "tests": 1,
+        "passed": 1,
+        "failed": 0,
+        "errors": 0,
+        "skipped": 0,
+        "duration_s": 8.538,
+        "observation": {
+          "original_source": "9c3e78f0",
+          "original_test_sha256": "bfd72f4fd9bd8eb1904a73b26292f3658fe84453c40e51594d236277e4993085",
+          "current_synchronized_control": true,
+          "early_snapshot": {
+            "phase": "prepared",
+            "authorized": false,
+            "capture_available": false,
+            "capture_error_code": "portal_consent_pending"
+          },
+          "authorization_audit_committed": true
+        },
+        "observation_artifact": {
+          "path": "temp/build/v2-portal-current-control-2.control.json",
+          "sha256": "e95a2d58ea2035f3f7dd7ef729852c792d4a04421638cab34534a51391b7b09c"
+        }
+      }
+    ],
+    "contract_before": {
+      "report": "temp/build/v2-portal-contract-before.xml",
+      "report_sha256": "0c03207df5b249980dcb1a8498826cbf7a712e7dd64a91319d9fc4ad01338c2d",
+      "tests": 5,
+      "passed": 0,
+      "failed": 5,
+      "errors": 0,
+      "skipped": 0,
+      "duration_s": 28.358
+    },
+    "new_api_old_ui_before": {
+      "report": "temp/build/v2-portal-ui-before.xml",
+      "report_sha256": "da0fec910d2c54c14940865ff4c03dfb5577c26eca6e7741143b54d3db82ef70",
+      "tests": 4,
+      "passed": 0,
+      "failed": 4,
+      "errors": 0,
+      "skipped": 0,
+      "duration_s": 45.428
+    },
+    "scope": "The two pre-fix originals reproduce the historical prepared/pending UI timeout; the new API and UI contracts each have their own negative reports. These are targeted causal controls, not full-suite results."
+  },
+  "investigation_corrections": [
+    {
+      "report": {
+        "report": "temp/build/v2-portal-pending-before.xml",
+        "report_sha256": "b25efb6691e3e0649ccd5459cb0c2f8ea5aa624a074d6019be25614a1b061959",
+        "tests": 4,
+        "passed": 0,
+        "failed": 4,
+        "errors": 0,
+        "skipped": 0,
+        "duration_s": 26.415
+      },
+      "classification": "Invalid initial fixture assumption: the held audit correctly left the public phase prepared, not active. Not counted as a product regression."
+    },
+    {
+      "report": {
+        "report": "temp/build/v2-portal-ui-after.xml",
+        "report_sha256": "3889beaead995b323fb53d745ccc38b694112e34aa0c13484397beb99a2395b1",
+        "tests": 6,
+        "passed": 2,
+        "failed": 4,
+        "errors": 0,
+        "skipped": 0,
+        "duration_s": 39.406
+      },
+      "classification": "Four new cases used the wrong expected capture-denial code. Corrected to the existing exact portal_revoked contract; server guard remained unchanged. Original and audit-failure UI cases already passed."
+    }
+  ],
+  "targeted_reports": [
+    {
+      "report": "temp/build/v2-portal-callers.xml",
+      "report_sha256": "4c1e0e2f6708cd9976e4aba1b2ddbb3563047b468c73f60bee410754569fcdf0",
+      "tests": 48,
+      "passed": 48,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 0,
+      "duration_s": 57.738
+    },
+    {
+      "report": "temp/build/v2-portal-ui-final.xml",
+      "report_sha256": "44e610aaecb140b5b065a1c60a1a6d19d5ac12530ba2602565989a8b85415f08",
+      "tests": 6,
+      "passed": 6,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 0,
+      "duration_s": 45.01
+    }
+  ],
+  "targeted_unique_passed": 54,
+  "causal_positive_repeats": 2,
+  "screenshots": {
+    "images": [
+      {
+        "path": "temp/build/portal-ui-acceptance/test_pending_audit_is_not_auth0/portal-dark-390-pending.png",
+        "sha256": "6c6a83db21f7743c6d9d30eff5553cdd4483b1ddabf1da56fcc3e9e3d125c4b9"
+      },
+      {
+        "path": "temp/build/portal-ui-acceptance/test_pending_audit_is_not_auth0/portal-dark-390-ready.png",
+        "sha256": "3df57ee1d3e84f1011a1f682175125baf687d93e2e3e099799c4f1f5d19392ae"
+      },
+      {
+        "path": "temp/build/portal-ui-acceptance/test_pending_audit_is_not_auth1/portal-dark-1024-pending.png",
+        "sha256": "aabbf270a78ba46a22da850978717a178e9c4a82f8c414b60fb97ecdc422a12a"
+      },
+      {
+        "path": "temp/build/portal-ui-acceptance/test_pending_audit_is_not_auth1/portal-dark-1024-ready.png",
+        "sha256": "de05a39636f0d5d4e7806fa831de6be21aef7955b7be0da7bd313fea4aea0c28"
+      },
+      {
+        "path": "temp/build/portal-ui-acceptance/test_pending_audit_is_not_auth2/portal-light-390-pending.png",
+        "sha256": "acef712a8fd205e4214c8b64aebc8ba0304acca9fc79e11c9fb21ffbc5ad5f34"
+      },
+      {
+        "path": "temp/build/portal-ui-acceptance/test_pending_audit_is_not_auth2/portal-light-390-ready.png",
+        "sha256": "16e53947e646075e2d7be1399983627f992def78aa6afa6a8a972c7eb608ffea"
+      },
+      {
+        "path": "temp/build/portal-ui-acceptance/test_pending_audit_is_not_auth3/portal-light-1024-pending.png",
+        "sha256": "7f173691a21c805f39be185899f624b50361b0f960a11af9ad7f74bf3568d68d"
+      },
+      {
+        "path": "temp/build/portal-ui-acceptance/test_pending_audit_is_not_auth3/portal-light-1024-ready.png",
+        "sha256": "9c5d796c23d7e2ecaa27289b7cdb7a0e1468532fe2dfd325a9961698af98f433"
+      }
+    ],
+    "visually_reviewed": [
+      "portal-dark-390-pending.png",
+      "portal-dark-390-ready.png",
+      "portal-light-1024-pending.png",
+      "portal-light-1024-ready.png"
+    ]
+  },
+  "static_checks": {
+    "ruff_source_issues": 0,
+    "python_unformatted_files": 0,
+    "frontend_unformatted_files": 0,
+    "strict": {
+      "files": 332,
+      "errors": 0,
+      "warnings": 0,
+      "log": {
+        "path": "temp/build/v2-portal-strict.log",
+        "sha256": "c584b21ee012de391dc2799d5455db619d3fefbb192ab07ea4ba83fb0d704c14"
+      }
+    },
+    "default_pyright": {
+      "path": "temp/build/v2-portal-default-pyright.log",
+      "sha256": "7c3f697866028410b2e7f71af45f1676d59826b1c6c47794cdf5b082ef9ba671"
+    },
+    "syntax_modules": 85,
+    "ui_contract": "passed",
+    "duplicates": "passed",
+    "project_index": "65 modules /736 files /434 routes /94 tools; check passed",
+    "packaging": {
+      "passed": true,
+      "result": {
+        "assets": 123,
+        "sha256": "52b1c1993ec2fb55922f0e0576e99138439baad2a6f151763500499c9846f2b7",
+        "chains": [
+          "direct wheel",
+          "sdist to wheel",
+          "isolated import"
+        ],
+        "v2": [
+          "packaged assets",
+          "isolated fresh schema",
+          "no V1 imports",
+          "clean shutdown"
+        ],
+        "v2_kernel_sha256": "e122efbe4185aa537046abf0b360f8d688e7b7388bbfaec94a9c35bc3aabf777"
+      },
+      "log": {
+        "path": "temp/build/v2-portal-package.log",
+        "sha256": "aefe466068412d4d65151d722c560c1dc066bed377e4a2f88757c27c29b0c420"
+      }
+    }
+  },
+  "full_run": {
+    "status": "running",
+    "checkpoint": 79,
+    "artifact_id": 219,
+    "strict_checkpoint": 214,
+    "source_head": "a8c0048f94dee9010381e60e12c2eb9f1d4fc2e7",
+    "code_version": "d0a6803c32e4d0bdb5deca00ac4b4f261201050dd056761458f24b821252356e",
+    "fixed_source_files": 1210,
+    "strict_files": 332,
+    "report": "temp/build/v2-full-219.xml",
+    "workers": 2,
+    "uninterrupted_default_run": true
+  },
+  "not_verified": [
+    "Actual Linux Portal/PipeWire and other native platform acceptance",
+    "Complete real model/MCP/plugin/device acceptance",
+    "Clean-machine service install/update/rollback/uninstall",
+    "Container and macOS/Linux builds,24h/72h,entrypoint switch",
+    "Windows real foreground input remains deferred"
+  ]
+}

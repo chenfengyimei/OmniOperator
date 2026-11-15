@@ -788,5 +788,12 @@
       "docker_desktop_started": false
     },
     "scope": "The old installation subcommand's limitations do not describe the newer immutable release/service-exchange/recovery implementation. Source availability does not establish real service, container or cross-platform acceptance."
+  },
+  "latest_portal_authorization_followup": {
+    "evidence": "docs/evidence/v2-portal-authorization.json",
+    "source_head": "a8c0048f94dee9010381e60e12c2eb9f1d4fc2e7",
+    "full_artifact": 219,
+    "status": "running",
+    "note": "Later source validation only; frozen historical reports remain unchanged."
   }
 }
