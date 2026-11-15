@@ -41,9 +41,9 @@ V2 文档维护的开发反馈先选 `test_v2_maintenance.py`、`test_v2_mainten
 
 `failure_reports.py` 在普通失败报告渲染抛出 `MemoryError` 时，保留原节点、阶段、失败状态、用时、捕获输出和用户属性，生成有界诊断；诊断读取原异常的文本参数和有限栈帧，不再加载源码/AST，也不调用任意异常参数的字符串方法。原调用没有异常、显式跳过或报告生成抛出其他错误时继续暴露内部错误。普通失败会立即输出节点与阶段，结束时仍保留标准汇总。该兜底不修复潜在内存增长，也不把失败或错误改成通过；真实 pytest/xdist 子进程回归见 `test_pytest_failure_reports.py`。
 
-本机进程退出诊断可加 `--worker-diagnostics=temp/build/本轮新目录`。`worker_diagnostics.py` 默认不创建文件或采样；启用时要求全新目录，为控制器和每个 worker 分别保存阶段/结果、PID、系统提交内存及退出码，每个 JSONL 最多16 MiB，截断或采样失败明确标记。Windows 高位状态保存十六进制，不根据状态码自行判定根因；其他平台提交指标可为空。已有 pytest faulthandler 的独立文件描述符改接持久 `.fault.txt`，保留原生栈和既有超时栈，原超时及退出设置不改。正常关闭由 pytest 回收描述符。
+本机进程退出诊断可加 `--worker-diagnostics=temp/build/本轮新目录`。`worker_diagnostics.py` 默认不创建文件或采样；启用时要求全新目录，为控制器和每个 worker 分别保存阶段/结果、PID、系统提交内存及退出码，每个 JSONL 最多16 MiB，截断或采样失败明确标记。Windows 高位状态保存十六进制，不根据状态码自行判定根因；其他平台提交指标可为空。已有 pytest faulthandler 的独立文件描述符改接持久 `.fault.txt`，保留致命异常时的Python栈和既有超时栈，原超时及退出设置不改。正常关闭由 pytest 回收描述符。Python3.12的该输出只含Python栈位置，不提供C层回溯；参见[Python文档](https://docs.python.org/3.12/library/faulthandler.html)。
 
-控制器在通道关闭时只做非阻塞退出码查询，再在 xdist 原有回收完成后记录最终查询结果；后者可能受 xdist 回收影响，不能当成未经干预的原生故障码。日志只保存测试标识/阶段和固定指标，不记录参数、局部变量或异常正文。诊断不会关闭用户服务、修改页面文件或把失败改成通过；系统提交额度不足应单独记录，物理可用内存和 RSS 不能替代提交额度。回归见 `test_pytest_worker_diagnostics.py`；受控高位终止不是实际访问冲突复现。
+控制器在通道关闭时只做非阻塞退出码查询，再在 xdist 原有回收完成后记录最终查询结果；后者可能受 xdist 回收影响，不能当成未经干预的原生故障码。日志保存pytest节点标识（含参数ID）、阶段、固定指标和受限的通道状态，不额外序列化测试参数值、局部变量或普通测试异常正文。诊断不会关闭用户服务、修改页面文件或把失败改成通过；系统提交额度不足应单独记录，物理可用内存和 RSS 不能替代提交额度。回归见 `test_pytest_worker_diagnostics.py`；受控高位终止不是实际访问冲突复现。
 
 运行身份的短预算关闭可能在 `draining` 发布完成前返回。`test_v2_service_runtime.py` 先在最多5秒内等待该实例拥有的实际发布任务，再验证私有文件；原关闭预算、锁归属和就绪断言保持不变。另有原子替换回归明确要求读取中的身份变化仍报 `runtime_identity_changed`，生产读取检查不增加重试或放宽。
 

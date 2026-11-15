@@ -253,7 +253,7 @@
    "id": "R7",
    "title": "稳定性验收",
    "status": "待开始",
-   "notes": "运行身份读取先等待实际发布，原用例两轮复现/修复两轮通过；报告MemoryError有界兜底及即时失败节点，9报告回归、96项不同当前专项通过。第81次全量：4 failed, 4666 passed, 12 warnings, 28 errors in 3028.18s (0:50:28)；JUnit 3 failure / 29 error，4696/4696个唯一节点。31个失败节点串行复跑全过，原始失败保留；实测系统提交额度触顶，报告兜底在真实MemoryError下保留原始异常并完成套件。12项观察仍开放，内存增长根因未定；跨平台、真实部署与72小时尚未整体验收。",
+   "notes": "运行身份读取先等待实际发布，原用例两轮复现/修复两轮通过；报告MemoryError有界兜底及即时失败节点，9报告回归、96项不同当前专项通过。第81次全量：4 failed, 4666 passed, 12 warnings, 28 errors in 3028.18s (0:50:28)；JUnit 3 failure / 29 error，4696/4696个唯一节点。31个失败节点串行复跑全过，原始失败保留；实测系统提交额度触顶，报告兜底在真实MemoryError下保留原始异常并完成套件。12项观察仍开放，内存增长根因未定；跨平台、真实部署与72小时尚未整体验收。本机worker诊断接续：固定源码e731e079，11项新增回归及123项不同专项通过；第82次全量11-16已收割，22 failed, 4685 passed, 10 warnings, 1 error in 2764.82s (0:46:04)，23个失败节点串行复跑全过，原始结果保留；捕获0xc00000fd及PyAV编码调用时Python栈，提交余量476KiB。仅验证提交副本，冻结时其他会话未提交UI/迁移不在范围；退出/提交额度归属仍开放。",
    "evidence": [
     "docs/evidence/v2-offline.json",
     "docs/evidence/v2-objects.json",
@@ -287,7 +287,8 @@
     "docs/evidence/v2-test-stability.json",
     "docs/evidence/v2-static-quality.json",
     "docs/evidence/v2-portal-authorization.json",
-    "docs/evidence/v2-runtime-reporting.json"
+    "docs/evidence/v2-runtime-reporting.json",
+    "docs/evidence/v2-worker-diagnostics.json"
    ]
   }
  ],
@@ -458,6 +459,16 @@
       }
      ],
      "cause_confirmed": false
+    },
+    "diagnostic_followup": {
+     "evidence": "docs/evidence/v2-worker-diagnostics.json",
+     "source_head": "e731e0797d708d4180cacc1eb70c27957f3319fc",
+     "checkpoint": 82,
+     "artifact_id": 222,
+     "status": "completed_with_failures_preserved",
+     "validated_committed_scope_only": true,
+     "concurrent_uncommitted_work_validated": false,
+     "root_cause_resolved": false
     }
    },
    {
@@ -537,6 +548,16 @@
      "mitigation": "Bounded source-free report after renderer MemoryError; preserve original failure and continue tests. Failure node/phase logged immediately.",
      "memory_growth_cause_resolved": false,
      "full_status": "completed_with_failures_preserved"
+    },
+    "diagnostic_followup": {
+     "evidence": "docs/evidence/v2-worker-diagnostics.json",
+     "source_head": "e731e0797d708d4180cacc1eb70c27957f3319fc",
+     "checkpoint": 82,
+     "artifact_id": 222,
+     "status": "completed_with_failures_preserved",
+     "validated_committed_scope_only": true,
+     "concurrent_uncommitted_work_validated": false,
+     "root_cause_resolved": false
     }
    },
    {
@@ -549,7 +570,17 @@
      "docs/evidence/v2-runtime-reporting.json",
      "temp/build/v2-full-221-commit-observations.jsonl",
      "temp/build/v2-full-221.log"
-    ]
+    ],
+    "diagnostic_followup": {
+     "evidence": "docs/evidence/v2-worker-diagnostics.json",
+     "source_head": "e731e0797d708d4180cacc1eb70c27957f3319fc",
+     "checkpoint": 82,
+     "artifact_id": 222,
+     "status": "completed_with_failures_preserved",
+     "validated_committed_scope_only": true,
+     "concurrent_uncommitted_work_validated": false,
+     "root_cause_resolved": false
+    }
    }
   ],
   "code_version": "88c2c039f49960f7bab17bde5632811e94f8be257c24463d2b87780cf7a3356a",
@@ -884,6 +915,15 @@
    "all_collected_nodes_observed_passing": true,
    "source_unchanged": true,
    "scope": "Coverage was completed in separate serial processes; this does not turn the interrupted original run into a full pass. Original serial exit4 from the synthetic pytest.internal node is retained. --tb=native only changes diagnostic rendering."
+  },
+  "worker_diagnostics_followup": {
+   "evidence": "docs/evidence/v2-worker-diagnostics.json",
+   "source_head": "e731e0797d708d4180cacc1eb70c27957f3319fc",
+   "checkpoint": 82,
+   "artifact_id": 222,
+   "status": "completed_with_failures_preserved",
+   "validated_committed_scope_only": true,
+   "concurrent_uncommitted_work_validated": false
   }
  },
  "next_checkpoint": {

@@ -2777,6 +2777,23 @@
       }
      ],
      "cause_confirmed": false
+    },
+    "diagnostic_followup": {
+     "evidence": "docs/evidence/v2-worker-diagnostics.json",
+     "source_head": "e731e0797d708d4180cacc1eb70c27957f3319fc",
+     "checkpoint": 82,
+     "artifact_id": 222,
+     "status": "completed_with_failures_preserved",
+     "validated_committed_scope_only": true,
+     "concurrent_uncommitted_work_validated": false,
+     "root_cause_resolved": false,
+     "observed_event": {
+      "windows_status_hex": "0xc00000fd",
+      "python_frame": "test_storyboard.py:391 _make_video / stream.encode(frame)",
+      "commit_headroom_bytes": 487424,
+      "sealed_artifact": "temp/build/v2-full-222-native-gw0.json",
+      "older_exit_causes_assigned": false
+     }
     }
    },
    {
@@ -2856,6 +2873,16 @@
      "mitigation": "Bounded source-free report after renderer MemoryError; preserve original failure and continue tests. Failure node/phase logged immediately.",
      "memory_growth_cause_resolved": false,
      "full_status": "completed_with_failures_preserved"
+    },
+    "diagnostic_followup": {
+     "evidence": "docs/evidence/v2-worker-diagnostics.json",
+     "source_head": "e731e0797d708d4180cacc1eb70c27957f3319fc",
+     "checkpoint": 82,
+     "artifact_id": 222,
+     "status": "completed_with_failures_preserved",
+     "validated_committed_scope_only": true,
+     "concurrent_uncommitted_work_validated": false,
+     "root_cause_resolved": false
     }
    },
    {
@@ -2868,7 +2895,24 @@
      "docs/evidence/v2-runtime-reporting.json",
      "temp/build/v2-full-221-commit-observations.jsonl",
      "temp/build/v2-full-221.log"
-    ]
+    ],
+    "diagnostic_followup": {
+     "evidence": "docs/evidence/v2-worker-diagnostics.json",
+     "source_head": "e731e0797d708d4180cacc1eb70c27957f3319fc",
+     "checkpoint": 82,
+     "artifact_id": 222,
+     "status": "completed_with_failures_preserved",
+     "validated_committed_scope_only": true,
+     "concurrent_uncommitted_work_validated": false,
+     "root_cause_resolved": false,
+     "observed_event": {
+      "windows_status_hex": "0xc00000fd",
+      "python_frame": "test_storyboard.py:391 _make_video / stream.encode(frame)",
+      "commit_headroom_bytes": 487424,
+      "sealed_artifact": "temp/build/v2-full-222-native-gw0.json",
+      "older_exit_causes_assigned": false
+     }
+    }
    }
   ],
   "next": {
@@ -4081,6 +4125,676 @@
     "interrupted_node": "agent/tests/test_ui_market.py::test_persona_market_imports_into_presets_and_form",
     "original_missing_nodes": 172,
     "reporting_failure": "Worker MemoryError while pytest joined source lines for failure rendering; controller then rejected an unfinished crashitem. Original market exception was not rendered. Process memory at failure was not measured."
+   },
+   {
+    "status": "completed_with_failures_preserved",
+    "checkpoint": 82,
+    "artifact_id": 222,
+    "source_head": "e731e0797d708d4180cacc1eb70c27957f3319fc",
+    "code_version": "85ad69376971ae38b412db5b8420860bfb5ee9b98a6ac393d7d88ccc188384cc",
+    "fixed_source_files": 1214,
+    "strict_files": 332,
+    "expected_collected_tests": 4707,
+    "workers": 2,
+    "report": "temp/build/v2-full-222.xml",
+    "snapshot": {
+     "path": "temp/build/v2-full-222-snapshot.json",
+     "sha256": "4ca52176ea57c8ea8500e029c6db9e211886554936c4fece541e850866d8b089"
+    },
+    "scope": "Committed Git archive only. Concurrent uncommitted source/UI/migration work was not copied, staged, discarded or validated by this checkpoint.",
+    "completed": true,
+    "command": "uv run --no-sync python temp/build/_worker_diagnostics_checkpoint.py run (frozen python -m pytest -q -n2 --worker-diagnostics=... --junitxml=...)",
+    "report_sha256": "8f04b186c515cab2dbe5638df4ff9e1b8e9b6591adbf8d1cda5bcfec61fbfd38",
+    "raw_suites": [
+     {
+      "name": "pytest",
+      "errors": "2",
+      "failures": "21",
+      "skipped": "0",
+      "tests": "4708",
+      "time": "2764.628",
+      "timestamp": "2026-11-15T19:26:33.973119+08:00",
+      "hostname": "cy"
+     }
+    ],
+    "junit_testcase_records": 4708,
+    "unique_test_nodes_reported": 4707,
+    "failure_events": 21,
+    "error_events": 2,
+    "skipped": 0,
+    "unique_failed_or_errored_nodes": 23,
+    "unique_nodes_without_failure_or_error": 4684,
+    "duplicate_nodes": {
+     "agent/tests/test_storyboard.py::test_video_storyboard_tool_without_transcript_is_faster": 2
+    },
+    "failed_nodes": [
+     {
+      "nodeid": "agent/tests/test_storyboard.py::test_end_to_end_storyboard_from_synthetic_video",
+      "issues": [
+       {
+        "type": "failure",
+        "message": "av.error.MemoryError: [Errno 12] Cannot allocate memory: 'avcodec_send_frame()'"
+       }
+      ]
+     },
+     {
+      "nodeid": "agent/tests/test_v2_ui.py::test_person_create_bind_erase_and_saved_document_export",
+      "issues": [
+       {
+        "type": "failure",
+        "message": "playwright._impl._errors.Error: BrowserContext.new_page: Target crashed"
+       }
+      ]
+     },
+     {
+      "nodeid": "agent/tests/test_storyboard.py::test_pick_sharp_frames_prefers_the_textured_frame",
+      "issues": [
+       {
+        "type": "failure",
+        "message": "av.error.BlockingIOError: [Errno 11] Resource temporarily unavailable: 'avcodec_open2(\"mpeg4\", {})'"
+       }
+      ]
+     },
+     {
+      "nodeid": "agent/tests/test_storyboard.py::test_frame_at_returns_the_nearest_moment",
+      "issues": [
+       {
+        "type": "failure",
+        "message": "av.error.MemoryError: [Errno 12] Cannot allocate memory"
+       }
+      ]
+     },
+     {
+      "nodeid": "agent/tests/test_storyboard.py::test_video_storyboard_tool_returns_index_and_artifact",
+      "issues": [
+       {
+        "type": "failure",
+        "message": "av.error.BlockingIOError: [Errno 11] Resource temporarily unavailable"
+       }
+      ]
+     },
+     {
+      "nodeid": "agent/tests/test_storyboard.py::test_video_storyboard_tool_without_transcript_is_faster",
+      "issues": [
+       {
+        "type": "error",
+        "message": "failed on setup with \"worker 'gw0' crashed while running 'agent/tests/test_storyboard.py::test_video_storyboard_tool_without_transcript_is_faster'\""
+       }
+      ]
+     },
+     {
+      "nodeid": "agent/tests/test_v2_ui.py::test_summary_and_erasure_are_visible_in_the_workbench[dark-390]",
+      "issues": [
+       {
+        "type": "failure",
+        "message": "playwright._impl._errors.Error: BrowserContext.new_page: Target crashed"
+       }
+      ]
+     },
+     {
+      "nodeid": "agent/tests/test_v2_service_exchange.py::test_drift_after_source_removal_stops_selection_and_preserves_changed_files[program]",
+      "issues": [
+       {
+        "type": "error",
+        "message": "failed on setup with \"MemoryError\""
+       }
+      ]
+     },
+     {
+      "nodeid": "agent/tests/test_v2_service_runtime.py::test_readiness_requires_signed_matching_boot[build_id]",
+      "issues": [
+       {
+        "type": "failure",
+        "message": "MemoryError"
+       }
+      ]
+     },
+     {
+      "nodeid": "agent/tests/test_v2_service_runtime.py::test_readiness_requires_signed_matching_boot[ready]",
+      "issues": [
+       {
+        "type": "failure",
+        "message": "MemoryError"
+       }
+      ]
+     },
+     {
+      "nodeid": "agent/tests/test_v2_service_runtime.py::test_deployment_status_separates_manager_definition_and_runtime_readiness[unknown-False]",
+      "issues": [
+       {
+        "type": "failure",
+        "message": "MemoryError"
+       }
+      ]
+     },
+     {
+      "nodeid": "agent/tests/test_v2_service_runtime.py::test_deployment_status_separates_manager_definition_and_runtime_readiness[unknown-None]",
+      "issues": [
+       {
+        "type": "failure",
+        "message": "MemoryError"
+       }
+      ]
+     },
+     {
+      "nodeid": "agent/tests/test_v2_service_runtime.py::test_deployment_status_separates_manager_definition_and_runtime_readiness[running-True]",
+      "issues": [
+       {
+        "type": "failure",
+        "message": "MemoryError"
+       }
+      ]
+     },
+     {
+      "nodeid": "agent/tests/test_v2_service_runtime.py::test_deployment_status_separates_manager_definition_and_runtime_readiness[running-False]",
+      "issues": [
+       {
+        "type": "failure",
+        "message": "MemoryError"
+       }
+      ]
+     },
+     {
+      "nodeid": "agent/tests/test_v2_service_runtime.py::test_deployment_status_separates_manager_definition_and_runtime_readiness[running-None]",
+      "issues": [
+       {
+        "type": "failure",
+        "message": "MemoryError"
+       }
+      ]
+     },
+     {
+      "nodeid": "agent/tests/test_v2_service_runtime.py::test_preflight_reads_only_per_boot_key_after_process_and_listener_proof",
+      "issues": [
+       {
+        "type": "failure",
+        "message": "MemoryError"
+       }
+      ]
+     },
+     {
+      "nodeid": "agent/tests/test_v2_service_runtime.py::test_replaced_listener_receives_no_credential_and_cannot_forge_readiness[replacement_listener]",
+      "issues": [
+       {
+        "type": "failure",
+        "message": "MemoryError"
+       }
+      ]
+     },
+     {
+      "nodeid": "agent/tests/test_v2_service_runtime.py::test_replaced_listener_receives_no_credential_and_cannot_forge_readiness[wrong_nonce]",
+      "issues": [
+       {
+        "type": "failure",
+        "message": "MemoryError"
+       }
+      ]
+     },
+     {
+      "nodeid": "agent/tests/test_v2_service_runtime.py::test_replaced_listener_receives_no_credential_and_cannot_forge_readiness[tampered_ready]",
+      "issues": [
+       {
+        "type": "failure",
+        "message": "MemoryError"
+       }
+      ]
+     },
+     {
+      "nodeid": "agent/tests/test_v2_service_runtime.py::test_http_stage_is_bounded_and_cancelled_waiter_does_not_abandon_close",
+      "issues": [
+       {
+        "type": "failure",
+        "message": "MemoryError"
+       }
+      ]
+     },
+     {
+      "nodeid": "agent/tests/test_v2_service_runtime.py::test_total_probe_deadline_covers_preflight_and_preserves_actual_thread",
+      "issues": [
+       {
+        "type": "failure",
+        "message": "MemoryError"
+       }
+      ]
+     },
+     {
+      "nodeid": "agent/tests/test_v2_skills.py::test_owner_import_edit_history_rollback_and_review_are_one_object_truth",
+      "issues": [
+       {
+        "type": "failure",
+        "message": "MemoryError"
+       }
+      ]
+     },
+     {
+      "nodeid": "agent/tests/test_v2_skills.py::test_selected_skill_is_in_actual_model_request_and_cannot_be_reopened",
+      "issues": [
+       {
+        "type": "failure",
+        "message": "MemoryError"
+       }
+      ]
+     }
+    ],
+    "returncode": 1,
+    "wall_duration_s": 2765.784,
+    "pytest_cli_summary": "22 failed, 4685 passed, 10 warnings, 1 error in 2764.82s (0:46:04)",
+    "pytest_cli_counts": {
+     "failed": 22,
+     "passed": 4685,
+     "warnings": 10,
+     "error": 1
+    },
+    "source_unchanged": true,
+    "source_unchanged_after_reruns": true,
+    "log": {
+     "path": "temp/build/v2-full-222.log",
+     "sha256": "d4c6191704e022ccca444261373d972f83396d28132b4b3a2ec999503ad99a52"
+    },
+    "all_collected_nodes_reported": true,
+    "reruns": [
+     {
+      "report": "temp/build/v2-full-222-serial.xml",
+      "report_sha256": "efe7fe6ceae93e2562b330a46039610bab1366bdaa2f3a419527fe5556831ed3",
+      "raw_suites": [
+       {
+        "name": "pytest",
+        "errors": "0",
+        "failures": "0",
+        "skipped": "0",
+        "tests": "23",
+        "time": "60.307",
+        "timestamp": "2026-11-15T20:12:39.892125+08:00",
+        "hostname": "cy"
+       }
+      ],
+      "junit_testcase_records": 23,
+      "unique_test_nodes_reported": 23,
+      "failure_events": 0,
+      "error_events": 0,
+      "skipped": 0,
+      "unique_failed_or_errored_nodes": 0,
+      "unique_nodes_without_failure_or_error": 23,
+      "duplicate_nodes": {},
+      "failed_nodes": [],
+      "returncode": 0
+     }
+    ],
+    "diagnostics": {
+     "directory": "temp/build/v2-full-222-diagnostics",
+     "processes": [
+      {
+       "file": "controller-61144.jsonl",
+       "events": {
+        "configured": 1,
+        "worker_spawn": 3,
+        "report": 14122,
+        "worker_exit": 6,
+        "session_finish": 1
+       },
+       "malformed_lines": 0,
+       "last_phase": null,
+       "last_report": {
+        "time_ns": 1794744752577514300,
+        "nodeid": "agent/tests/test_storyboard.py::test_storyboard_tools_are_registered_under_video_toolset",
+        "when": "teardown",
+        "outcome": "passed"
+       },
+       "journal_capped": false,
+       "min_commit_headroom_bytes": 0,
+       "pid": 61144,
+       "worker": "controller",
+       "tightest_commit_sample": {
+        "time_ns": 1794742172904019800,
+        "CommitTotal": 105952972800,
+        "CommitLimit": 105952972800,
+        "CommitPeak": 105952972800,
+        "PhysicalTotal": 50700185600,
+        "PhysicalAvailable": 16361091072
+       },
+       "session_finish": {
+        "time_ns": 1794744758733139800,
+        "pid": 61144,
+        "worker": "controller",
+        "event": "session_finish",
+        "exitstatus": 1,
+        "diagnostic_errors": 0,
+        "journal_capped": false,
+        "system_commit": {
+         "CommitTotal": 88832196608,
+         "CommitLimit": 105952972800,
+         "CommitPeak": 105952972800,
+         "PhysicalTotal": 50700185600,
+         "PhysicalAvailable": 19989606400
+        }
+       }
+      },
+      {
+       "file": "gw0-20004.jsonl",
+       "events": {
+        "configured": 1,
+        "phase_start": 2120,
+        "report": 2119
+       },
+       "malformed_lines": 0,
+       "last_phase": {
+        "time_ns": 1794742173085104200,
+        "nodeid": "agent/tests/test_storyboard.py::test_video_storyboard_tool_without_transcript_is_faster",
+        "when": "call"
+       },
+       "last_report": {
+        "time_ns": 1794742173084104800,
+        "nodeid": "agent/tests/test_storyboard.py::test_video_storyboard_tool_without_transcript_is_faster",
+        "when": "setup",
+        "outcome": "passed"
+       },
+       "journal_capped": false,
+       "min_commit_headroom_bytes": 0,
+       "pid": 20004,
+       "worker": "gw0",
+       "tightest_commit_sample": {
+        "time_ns": 1794742172902505600,
+        "CommitTotal": 105952972800,
+        "CommitLimit": 105952972800,
+        "CommitPeak": 105952972800,
+        "PhysicalTotal": 50700185600,
+        "PhysicalAvailable": 16361451520
+       }
+      },
+      {
+       "file": "gw1-64096.jsonl",
+       "events": {
+        "configured": 1,
+        "phase_start": 4134,
+        "report": 4134,
+        "session_finish": 1
+       },
+       "malformed_lines": 0,
+       "last_phase": {
+        "time_ns": 1794744752574469300,
+        "nodeid": "agent/tests/test_storyboard.py::test_storyboard_tools_are_registered_under_video_toolset",
+        "when": "teardown"
+       },
+       "last_report": {
+        "time_ns": 1794744752577514300,
+        "nodeid": "agent/tests/test_storyboard.py::test_storyboard_tools_are_registered_under_video_toolset",
+        "when": "teardown",
+        "outcome": "passed"
+       },
+       "journal_capped": false,
+       "min_commit_headroom_bytes": 0,
+       "pid": 64096,
+       "worker": "gw1",
+       "tightest_commit_sample": {
+        "time_ns": 1794742172903012300,
+        "CommitTotal": 105952972800,
+        "CommitLimit": 105952972800,
+        "CommitPeak": 105952972800,
+        "PhysicalTotal": 50700185600,
+        "PhysicalAvailable": 16361648128
+       },
+       "session_finish": {
+        "time_ns": 1794744752594028500,
+        "pid": 64096,
+        "worker": "gw1",
+        "event": "session_finish",
+        "exitstatus": 1,
+        "diagnostic_errors": 0,
+        "journal_capped": false,
+        "system_commit": {
+         "CommitTotal": 92047601664,
+         "CommitLimit": 105952972800,
+         "CommitPeak": 105952972800,
+         "PhysicalTotal": 50700185600,
+         "PhysicalAvailable": 18334511104
+        }
+       }
+      },
+      {
+       "file": "gw2-54408.jsonl",
+       "events": {
+        "configured": 1,
+        "phase_start": 7868,
+        "report": 7868,
+        "session_finish": 1
+       },
+       "malformed_lines": 0,
+       "last_phase": {
+        "time_ns": 1794744752378518100,
+        "nodeid": "agent/tests/test_workbench_ui.py::test_desktop_and_publication_tabs_are_reachable",
+        "when": "teardown"
+       },
+       "last_report": {
+        "time_ns": 1794744752383224500,
+        "nodeid": "agent/tests/test_workbench_ui.py::test_desktop_and_publication_tabs_are_reachable",
+        "when": "teardown",
+        "outcome": "passed"
+       },
+       "journal_capped": false,
+       "min_commit_headroom_bytes": 22790144,
+       "pid": 54408,
+       "worker": "gw2",
+       "tightest_commit_sample": {
+        "time_ns": 1794742742392765600,
+        "CommitTotal": 105930182656,
+        "CommitLimit": 105952972800,
+        "CommitPeak": 105952972800,
+        "PhysicalTotal": 50700185600,
+        "PhysicalAvailable": 15631196160
+       },
+       "session_finish": {
+        "time_ns": 1794744752415835900,
+        "pid": 54408,
+        "worker": "gw2",
+        "event": "session_finish",
+        "exitstatus": 1,
+        "diagnostic_errors": 0,
+        "journal_capped": false,
+        "system_commit": {
+         "CommitTotal": 92046573568,
+         "CommitLimit": 105952972800,
+         "CommitPeak": 105952972800,
+         "PhysicalTotal": 50700185600,
+         "PhysicalAvailable": 18336870400
+        }
+       }
+      }
+     ],
+     "exit_polls": [
+      {
+       "time_ns": 1794742193132087900,
+       "pid": 61144,
+       "worker": "controller",
+       "event": "worker_exit",
+       "worker_id": "gw0",
+       "stage": "channel_down_poll",
+       "launcher_pid": 76776,
+       "returncode": null,
+       "windows_status_hex": null,
+       "error_type": "str",
+       "error": "Not properly terminated",
+       "worker_diagnostic_errors": null,
+       "system_commit": {
+        "CommitTotal": 104519602176,
+        "CommitLimit": 105952972800,
+        "CommitPeak": 105952972800,
+        "PhysicalTotal": 50700185600,
+        "PhysicalAvailable": 16959303680
+       }
+      },
+      {
+       "time_ns": 1794744752416835800,
+       "pid": 61144,
+       "worker": "controller",
+       "event": "worker_exit",
+       "worker_id": "gw2",
+       "stage": "channel_down_poll",
+       "launcher_pid": 16144,
+       "returncode": null,
+       "windows_status_hex": null,
+       "error_type": null,
+       "error": null,
+       "worker_diagnostic_errors": 0,
+       "system_commit": {
+        "CommitTotal": 92046573568,
+        "CommitLimit": 105952972800,
+        "CommitPeak": 105952972800,
+        "PhysicalTotal": 50700185600,
+        "PhysicalAvailable": 18336358400
+       }
+      },
+      {
+       "time_ns": 1794744752594028500,
+       "pid": 61144,
+       "worker": "controller",
+       "event": "worker_exit",
+       "worker_id": "gw1",
+       "stage": "channel_down_poll",
+       "launcher_pid": 50028,
+       "returncode": null,
+       "windows_status_hex": null,
+       "error_type": null,
+       "error": null,
+       "worker_diagnostic_errors": 0,
+       "system_commit": {
+        "CommitTotal": 92047601664,
+        "CommitLimit": 105952972800,
+        "CommitPeak": 105952972800,
+        "PhysicalTotal": 50700185600,
+        "PhysicalAvailable": 18334515200
+       }
+      },
+      {
+       "time_ns": 1794744758732140800,
+       "pid": 61144,
+       "worker": "controller",
+       "event": "worker_exit",
+       "worker_id": "gw0",
+       "stage": "after_xdist_teardown",
+       "launcher_pid": 76776,
+       "returncode": 3221225725,
+       "windows_status_hex": "0xc00000fd",
+       "error_type": null,
+       "error": null,
+       "worker_diagnostic_errors": null,
+       "system_commit": {
+        "CommitTotal": 88832196608,
+        "CommitLimit": 105952972800,
+        "CommitPeak": 105952972800,
+        "PhysicalTotal": 50700185600,
+        "PhysicalAvailable": 19989606400
+       }
+      },
+      {
+       "time_ns": 1794744758733139800,
+       "pid": 61144,
+       "worker": "controller",
+       "event": "worker_exit",
+       "worker_id": "gw1",
+       "stage": "after_xdist_teardown",
+       "launcher_pid": 50028,
+       "returncode": 0,
+       "windows_status_hex": "0x00000000",
+       "error_type": null,
+       "error": null,
+       "worker_diagnostic_errors": 0,
+       "system_commit": {
+        "CommitTotal": 88832196608,
+        "CommitLimit": 105952972800,
+        "CommitPeak": 105952972800,
+        "PhysicalTotal": 50700185600,
+        "PhysicalAvailable": 19989606400
+       }
+      },
+      {
+       "time_ns": 1794744758733139800,
+       "pid": 61144,
+       "worker": "controller",
+       "event": "worker_exit",
+       "worker_id": "gw2",
+       "stage": "after_xdist_teardown",
+       "launcher_pid": 16144,
+       "returncode": 0,
+       "windows_status_hex": "0x00000000",
+       "error_type": null,
+       "error": null,
+       "worker_diagnostic_errors": 0,
+       "system_commit": {
+        "CommitTotal": 88832196608,
+        "CommitLimit": 105952972800,
+        "CommitPeak": 105952972800,
+        "PhysicalTotal": 50700185600,
+        "PhysicalAvailable": 19989606400
+       }
+      }
+     ],
+     "artifacts": [
+      {
+       "path": "temp/build/v2-full-222-diagnostics/controller-61144.jsonl",
+       "sha256": "7b526c77145bf7a350b79debab9a1c812a2f584c511d86c077ce419d6136fd1d",
+       "bytes": 6312070
+      },
+      {
+       "path": "temp/build/v2-full-222-diagnostics/gw0-20004.jsonl",
+       "sha256": "105d65cc06a503a05b6150cab23f33a8808b2729c7d91bedfeeb6e56d9423a10",
+       "bytes": 1777188
+      },
+      {
+       "path": "temp/build/v2-full-222-diagnostics/gw1-64096.jsonl",
+       "sha256": "3a3188d5f52ed5874b2c4cf0aee3d1786926b7ecc13c9753db392c90769b50b8",
+       "bytes": 3414649
+      },
+      {
+       "path": "temp/build/v2-full-222-diagnostics/gw2-54408.jsonl",
+       "sha256": "77f05729fe8055fdc43037eb269fdd1032d833cf828177bf4262143da9d34013",
+       "bytes": 6517299
+      },
+      {
+       "path": "temp/build/v2-full-222-diagnostics/controller-61144.fault.txt",
+       "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+       "bytes": 0
+      },
+      {
+       "path": "temp/build/v2-full-222-diagnostics/gw0-20004.fault.txt",
+       "sha256": "8783454ed833999f6107f1d2bbf643d0c6441ace49913ec46dabc9a36c7fee5c",
+       "bytes": 4347
+      },
+      {
+       "path": "temp/build/v2-full-222-diagnostics/gw1-64096.fault.txt",
+       "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+       "bytes": 0
+      },
+      {
+       "path": "temp/build/v2-full-222-diagnostics/gw2-54408.fault.txt",
+       "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+       "bytes": 0
+      }
+     ],
+     "scope": "Phase/exit snapshots, not continuous allocation tracing. Final exit polls occur after ordinary xdist teardown and may reflect its cleanup. Fault files contain stack locations, not local values."
+    },
+    "main_worker_error_callbacks": [
+     {
+      "time_ns": 1794742193132087900,
+      "pid": 61144,
+      "worker": "controller",
+      "event": "worker_exit",
+      "worker_id": "gw0",
+      "stage": "channel_down_poll",
+      "launcher_pid": 76776,
+      "returncode": null,
+      "windows_status_hex": null,
+      "error_type": "str",
+      "error": "Not properly terminated",
+      "worker_diagnostic_errors": null,
+      "system_commit": {
+       "CommitTotal": 104519602176,
+       "CommitLimit": 105952972800,
+       "CommitPeak": 105952972800,
+       "PhysicalTotal": 50700185600,
+       "PhysicalAvailable": 16959303680
+      }
+     }
+    ]
    }
   ],
   "scope": [
@@ -4236,6 +4950,14 @@
     "head": "be756a0d4fa6c53ffe214efcc5a51a45a0134552",
     "snapshot": "temp/build/v2-full-221-snapshot.json",
     "state": "harvested"
+   },
+   {
+    "checkpoint": 82,
+    "artifact_id": 222,
+    "head": "e731e0797d708d4180cacc1eb70c27957f3319fc",
+    "snapshot": "temp/build/v2-full-222-snapshot.json",
+    "state": "harvested",
+    "scope": "Committed diagnostic checkpoint, excludes concurrent WIP"
    }
   ],
   "full_checkpoints_pending": [],
@@ -4423,6 +5145,685 @@
    "all_collected_nodes_observed_passing": true,
    "source_unchanged": true,
    "scope": "Coverage was completed in separate serial processes; this does not turn the interrupted original run into a full pass. Original serial exit4 from the synthetic pytest.internal node is retained. --tb=native only changes diagnostic rendering."
+  },
+  "worker_diagnostics_followup": {
+   "evidence": "docs/evidence/v2-worker-diagnostics.json",
+   "source_head": "e731e0797d708d4180cacc1eb70c27957f3319fc",
+   "checkpoint": 82,
+   "artifact_id": 222,
+   "status": "completed_with_failures_preserved",
+   "validated_committed_scope_only": true,
+   "concurrent_uncommitted_work_validated": false
+  },
+  "latest_scoped_full_run": {
+   "status": "completed_with_failures_preserved",
+   "checkpoint": 82,
+   "artifact_id": 222,
+   "source_head": "e731e0797d708d4180cacc1eb70c27957f3319fc",
+   "code_version": "85ad69376971ae38b412db5b8420860bfb5ee9b98a6ac393d7d88ccc188384cc",
+   "fixed_source_files": 1214,
+   "strict_files": 332,
+   "expected_collected_tests": 4707,
+   "workers": 2,
+   "report": "temp/build/v2-full-222.xml",
+   "snapshot": {
+    "path": "temp/build/v2-full-222-snapshot.json",
+    "sha256": "4ca52176ea57c8ea8500e029c6db9e211886554936c4fece541e850866d8b089"
+   },
+   "scope": "Committed Git archive only. Concurrent uncommitted source/UI/migration work was not copied, staged, discarded or validated by this checkpoint.",
+   "completed": true,
+   "command": "uv run --no-sync python temp/build/_worker_diagnostics_checkpoint.py run (frozen python -m pytest -q -n2 --worker-diagnostics=... --junitxml=...)",
+   "report_sha256": "8f04b186c515cab2dbe5638df4ff9e1b8e9b6591adbf8d1cda5bcfec61fbfd38",
+   "raw_suites": [
+    {
+     "name": "pytest",
+     "errors": "2",
+     "failures": "21",
+     "skipped": "0",
+     "tests": "4708",
+     "time": "2764.628",
+     "timestamp": "2026-11-15T19:26:33.973119+08:00",
+     "hostname": "cy"
+    }
+   ],
+   "junit_testcase_records": 4708,
+   "unique_test_nodes_reported": 4707,
+   "failure_events": 21,
+   "error_events": 2,
+   "skipped": 0,
+   "unique_failed_or_errored_nodes": 23,
+   "unique_nodes_without_failure_or_error": 4684,
+   "duplicate_nodes": {
+    "agent/tests/test_storyboard.py::test_video_storyboard_tool_without_transcript_is_faster": 2
+   },
+   "failed_nodes": [
+    {
+     "nodeid": "agent/tests/test_storyboard.py::test_end_to_end_storyboard_from_synthetic_video",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "av.error.MemoryError: [Errno 12] Cannot allocate memory: 'avcodec_send_frame()'"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_ui.py::test_person_create_bind_erase_and_saved_document_export",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "playwright._impl._errors.Error: BrowserContext.new_page: Target crashed"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_storyboard.py::test_pick_sharp_frames_prefers_the_textured_frame",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "av.error.BlockingIOError: [Errno 11] Resource temporarily unavailable: 'avcodec_open2(\"mpeg4\", {})'"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_storyboard.py::test_frame_at_returns_the_nearest_moment",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "av.error.MemoryError: [Errno 12] Cannot allocate memory"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_storyboard.py::test_video_storyboard_tool_returns_index_and_artifact",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "av.error.BlockingIOError: [Errno 11] Resource temporarily unavailable"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_storyboard.py::test_video_storyboard_tool_without_transcript_is_faster",
+     "issues": [
+      {
+       "type": "error",
+       "message": "failed on setup with \"worker 'gw0' crashed while running 'agent/tests/test_storyboard.py::test_video_storyboard_tool_without_transcript_is_faster'\""
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_ui.py::test_summary_and_erasure_are_visible_in_the_workbench[dark-390]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "playwright._impl._errors.Error: BrowserContext.new_page: Target crashed"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_service_exchange.py::test_drift_after_source_removal_stops_selection_and_preserves_changed_files[program]",
+     "issues": [
+      {
+       "type": "error",
+       "message": "failed on setup with \"MemoryError\""
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_service_runtime.py::test_readiness_requires_signed_matching_boot[build_id]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "MemoryError"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_service_runtime.py::test_readiness_requires_signed_matching_boot[ready]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "MemoryError"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_service_runtime.py::test_deployment_status_separates_manager_definition_and_runtime_readiness[unknown-False]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "MemoryError"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_service_runtime.py::test_deployment_status_separates_manager_definition_and_runtime_readiness[unknown-None]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "MemoryError"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_service_runtime.py::test_deployment_status_separates_manager_definition_and_runtime_readiness[running-True]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "MemoryError"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_service_runtime.py::test_deployment_status_separates_manager_definition_and_runtime_readiness[running-False]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "MemoryError"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_service_runtime.py::test_deployment_status_separates_manager_definition_and_runtime_readiness[running-None]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "MemoryError"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_service_runtime.py::test_preflight_reads_only_per_boot_key_after_process_and_listener_proof",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "MemoryError"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_service_runtime.py::test_replaced_listener_receives_no_credential_and_cannot_forge_readiness[replacement_listener]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "MemoryError"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_service_runtime.py::test_replaced_listener_receives_no_credential_and_cannot_forge_readiness[wrong_nonce]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "MemoryError"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_service_runtime.py::test_replaced_listener_receives_no_credential_and_cannot_forge_readiness[tampered_ready]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "MemoryError"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_service_runtime.py::test_http_stage_is_bounded_and_cancelled_waiter_does_not_abandon_close",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "MemoryError"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_service_runtime.py::test_total_probe_deadline_covers_preflight_and_preserves_actual_thread",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "MemoryError"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_skills.py::test_owner_import_edit_history_rollback_and_review_are_one_object_truth",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "MemoryError"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_skills.py::test_selected_skill_is_in_actual_model_request_and_cannot_be_reopened",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "MemoryError"
+      }
+     ]
+    }
+   ],
+   "returncode": 1,
+   "wall_duration_s": 2765.784,
+   "pytest_cli_summary": "22 failed, 4685 passed, 10 warnings, 1 error in 2764.82s (0:46:04)",
+   "pytest_cli_counts": {
+    "failed": 22,
+    "passed": 4685,
+    "warnings": 10,
+    "error": 1
+   },
+   "source_unchanged": true,
+   "source_unchanged_after_reruns": true,
+   "log": {
+    "path": "temp/build/v2-full-222.log",
+    "sha256": "d4c6191704e022ccca444261373d972f83396d28132b4b3a2ec999503ad99a52"
+   },
+   "all_collected_nodes_reported": true,
+   "reruns": [
+    {
+     "report": "temp/build/v2-full-222-serial.xml",
+     "report_sha256": "efe7fe6ceae93e2562b330a46039610bab1366bdaa2f3a419527fe5556831ed3",
+     "raw_suites": [
+      {
+       "name": "pytest",
+       "errors": "0",
+       "failures": "0",
+       "skipped": "0",
+       "tests": "23",
+       "time": "60.307",
+       "timestamp": "2026-11-15T20:12:39.892125+08:00",
+       "hostname": "cy"
+      }
+     ],
+     "junit_testcase_records": 23,
+     "unique_test_nodes_reported": 23,
+     "failure_events": 0,
+     "error_events": 0,
+     "skipped": 0,
+     "unique_failed_or_errored_nodes": 0,
+     "unique_nodes_without_failure_or_error": 23,
+     "duplicate_nodes": {},
+     "failed_nodes": [],
+     "returncode": 0
+    }
+   ],
+   "diagnostics": {
+    "directory": "temp/build/v2-full-222-diagnostics",
+    "processes": [
+     {
+      "file": "controller-61144.jsonl",
+      "events": {
+       "configured": 1,
+       "worker_spawn": 3,
+       "report": 14122,
+       "worker_exit": 6,
+       "session_finish": 1
+      },
+      "malformed_lines": 0,
+      "last_phase": null,
+      "last_report": {
+       "time_ns": 1794744752577514300,
+       "nodeid": "agent/tests/test_storyboard.py::test_storyboard_tools_are_registered_under_video_toolset",
+       "when": "teardown",
+       "outcome": "passed"
+      },
+      "journal_capped": false,
+      "min_commit_headroom_bytes": 0,
+      "pid": 61144,
+      "worker": "controller",
+      "tightest_commit_sample": {
+       "time_ns": 1794742172904019800,
+       "CommitTotal": 105952972800,
+       "CommitLimit": 105952972800,
+       "CommitPeak": 105952972800,
+       "PhysicalTotal": 50700185600,
+       "PhysicalAvailable": 16361091072
+      },
+      "session_finish": {
+       "time_ns": 1794744758733139800,
+       "pid": 61144,
+       "worker": "controller",
+       "event": "session_finish",
+       "exitstatus": 1,
+       "diagnostic_errors": 0,
+       "journal_capped": false,
+       "system_commit": {
+        "CommitTotal": 88832196608,
+        "CommitLimit": 105952972800,
+        "CommitPeak": 105952972800,
+        "PhysicalTotal": 50700185600,
+        "PhysicalAvailable": 19989606400
+       }
+      }
+     },
+     {
+      "file": "gw0-20004.jsonl",
+      "events": {
+       "configured": 1,
+       "phase_start": 2120,
+       "report": 2119
+      },
+      "malformed_lines": 0,
+      "last_phase": {
+       "time_ns": 1794742173085104200,
+       "nodeid": "agent/tests/test_storyboard.py::test_video_storyboard_tool_without_transcript_is_faster",
+       "when": "call"
+      },
+      "last_report": {
+       "time_ns": 1794742173084104800,
+       "nodeid": "agent/tests/test_storyboard.py::test_video_storyboard_tool_without_transcript_is_faster",
+       "when": "setup",
+       "outcome": "passed"
+      },
+      "journal_capped": false,
+      "min_commit_headroom_bytes": 0,
+      "pid": 20004,
+      "worker": "gw0",
+      "tightest_commit_sample": {
+       "time_ns": 1794742172902505600,
+       "CommitTotal": 105952972800,
+       "CommitLimit": 105952972800,
+       "CommitPeak": 105952972800,
+       "PhysicalTotal": 50700185600,
+       "PhysicalAvailable": 16361451520
+      }
+     },
+     {
+      "file": "gw1-64096.jsonl",
+      "events": {
+       "configured": 1,
+       "phase_start": 4134,
+       "report": 4134,
+       "session_finish": 1
+      },
+      "malformed_lines": 0,
+      "last_phase": {
+       "time_ns": 1794744752574469300,
+       "nodeid": "agent/tests/test_storyboard.py::test_storyboard_tools_are_registered_under_video_toolset",
+       "when": "teardown"
+      },
+      "last_report": {
+       "time_ns": 1794744752577514300,
+       "nodeid": "agent/tests/test_storyboard.py::test_storyboard_tools_are_registered_under_video_toolset",
+       "when": "teardown",
+       "outcome": "passed"
+      },
+      "journal_capped": false,
+      "min_commit_headroom_bytes": 0,
+      "pid": 64096,
+      "worker": "gw1",
+      "tightest_commit_sample": {
+       "time_ns": 1794742172903012300,
+       "CommitTotal": 105952972800,
+       "CommitLimit": 105952972800,
+       "CommitPeak": 105952972800,
+       "PhysicalTotal": 50700185600,
+       "PhysicalAvailable": 16361648128
+      },
+      "session_finish": {
+       "time_ns": 1794744752594028500,
+       "pid": 64096,
+       "worker": "gw1",
+       "event": "session_finish",
+       "exitstatus": 1,
+       "diagnostic_errors": 0,
+       "journal_capped": false,
+       "system_commit": {
+        "CommitTotal": 92047601664,
+        "CommitLimit": 105952972800,
+        "CommitPeak": 105952972800,
+        "PhysicalTotal": 50700185600,
+        "PhysicalAvailable": 18334511104
+       }
+      }
+     },
+     {
+      "file": "gw2-54408.jsonl",
+      "events": {
+       "configured": 1,
+       "phase_start": 7868,
+       "report": 7868,
+       "session_finish": 1
+      },
+      "malformed_lines": 0,
+      "last_phase": {
+       "time_ns": 1794744752378518100,
+       "nodeid": "agent/tests/test_workbench_ui.py::test_desktop_and_publication_tabs_are_reachable",
+       "when": "teardown"
+      },
+      "last_report": {
+       "time_ns": 1794744752383224500,
+       "nodeid": "agent/tests/test_workbench_ui.py::test_desktop_and_publication_tabs_are_reachable",
+       "when": "teardown",
+       "outcome": "passed"
+      },
+      "journal_capped": false,
+      "min_commit_headroom_bytes": 22790144,
+      "pid": 54408,
+      "worker": "gw2",
+      "tightest_commit_sample": {
+       "time_ns": 1794742742392765600,
+       "CommitTotal": 105930182656,
+       "CommitLimit": 105952972800,
+       "CommitPeak": 105952972800,
+       "PhysicalTotal": 50700185600,
+       "PhysicalAvailable": 15631196160
+      },
+      "session_finish": {
+       "time_ns": 1794744752415835900,
+       "pid": 54408,
+       "worker": "gw2",
+       "event": "session_finish",
+       "exitstatus": 1,
+       "diagnostic_errors": 0,
+       "journal_capped": false,
+       "system_commit": {
+        "CommitTotal": 92046573568,
+        "CommitLimit": 105952972800,
+        "CommitPeak": 105952972800,
+        "PhysicalTotal": 50700185600,
+        "PhysicalAvailable": 18336870400
+       }
+      }
+     }
+    ],
+    "exit_polls": [
+     {
+      "time_ns": 1794742193132087900,
+      "pid": 61144,
+      "worker": "controller",
+      "event": "worker_exit",
+      "worker_id": "gw0",
+      "stage": "channel_down_poll",
+      "launcher_pid": 76776,
+      "returncode": null,
+      "windows_status_hex": null,
+      "error_type": "str",
+      "error": "Not properly terminated",
+      "worker_diagnostic_errors": null,
+      "system_commit": {
+       "CommitTotal": 104519602176,
+       "CommitLimit": 105952972800,
+       "CommitPeak": 105952972800,
+       "PhysicalTotal": 50700185600,
+       "PhysicalAvailable": 16959303680
+      }
+     },
+     {
+      "time_ns": 1794744752416835800,
+      "pid": 61144,
+      "worker": "controller",
+      "event": "worker_exit",
+      "worker_id": "gw2",
+      "stage": "channel_down_poll",
+      "launcher_pid": 16144,
+      "returncode": null,
+      "windows_status_hex": null,
+      "error_type": null,
+      "error": null,
+      "worker_diagnostic_errors": 0,
+      "system_commit": {
+       "CommitTotal": 92046573568,
+       "CommitLimit": 105952972800,
+       "CommitPeak": 105952972800,
+       "PhysicalTotal": 50700185600,
+       "PhysicalAvailable": 18336358400
+      }
+     },
+     {
+      "time_ns": 1794744752594028500,
+      "pid": 61144,
+      "worker": "controller",
+      "event": "worker_exit",
+      "worker_id": "gw1",
+      "stage": "channel_down_poll",
+      "launcher_pid": 50028,
+      "returncode": null,
+      "windows_status_hex": null,
+      "error_type": null,
+      "error": null,
+      "worker_diagnostic_errors": 0,
+      "system_commit": {
+       "CommitTotal": 92047601664,
+       "CommitLimit": 105952972800,
+       "CommitPeak": 105952972800,
+       "PhysicalTotal": 50700185600,
+       "PhysicalAvailable": 18334515200
+      }
+     },
+     {
+      "time_ns": 1794744758732140800,
+      "pid": 61144,
+      "worker": "controller",
+      "event": "worker_exit",
+      "worker_id": "gw0",
+      "stage": "after_xdist_teardown",
+      "launcher_pid": 76776,
+      "returncode": 3221225725,
+      "windows_status_hex": "0xc00000fd",
+      "error_type": null,
+      "error": null,
+      "worker_diagnostic_errors": null,
+      "system_commit": {
+       "CommitTotal": 88832196608,
+       "CommitLimit": 105952972800,
+       "CommitPeak": 105952972800,
+       "PhysicalTotal": 50700185600,
+       "PhysicalAvailable": 19989606400
+      }
+     },
+     {
+      "time_ns": 1794744758733139800,
+      "pid": 61144,
+      "worker": "controller",
+      "event": "worker_exit",
+      "worker_id": "gw1",
+      "stage": "after_xdist_teardown",
+      "launcher_pid": 50028,
+      "returncode": 0,
+      "windows_status_hex": "0x00000000",
+      "error_type": null,
+      "error": null,
+      "worker_diagnostic_errors": 0,
+      "system_commit": {
+       "CommitTotal": 88832196608,
+       "CommitLimit": 105952972800,
+       "CommitPeak": 105952972800,
+       "PhysicalTotal": 50700185600,
+       "PhysicalAvailable": 19989606400
+      }
+     },
+     {
+      "time_ns": 1794744758733139800,
+      "pid": 61144,
+      "worker": "controller",
+      "event": "worker_exit",
+      "worker_id": "gw2",
+      "stage": "after_xdist_teardown",
+      "launcher_pid": 16144,
+      "returncode": 0,
+      "windows_status_hex": "0x00000000",
+      "error_type": null,
+      "error": null,
+      "worker_diagnostic_errors": 0,
+      "system_commit": {
+       "CommitTotal": 88832196608,
+       "CommitLimit": 105952972800,
+       "CommitPeak": 105952972800,
+       "PhysicalTotal": 50700185600,
+       "PhysicalAvailable": 19989606400
+      }
+     }
+    ],
+    "artifacts": [
+     {
+      "path": "temp/build/v2-full-222-diagnostics/controller-61144.jsonl",
+      "sha256": "7b526c77145bf7a350b79debab9a1c812a2f584c511d86c077ce419d6136fd1d",
+      "bytes": 6312070
+     },
+     {
+      "path": "temp/build/v2-full-222-diagnostics/gw0-20004.jsonl",
+      "sha256": "105d65cc06a503a05b6150cab23f33a8808b2729c7d91bedfeeb6e56d9423a10",
+      "bytes": 1777188
+     },
+     {
+      "path": "temp/build/v2-full-222-diagnostics/gw1-64096.jsonl",
+      "sha256": "3a3188d5f52ed5874b2c4cf0aee3d1786926b7ecc13c9753db392c90769b50b8",
+      "bytes": 3414649
+     },
+     {
+      "path": "temp/build/v2-full-222-diagnostics/gw2-54408.jsonl",
+      "sha256": "77f05729fe8055fdc43037eb269fdd1032d833cf828177bf4262143da9d34013",
+      "bytes": 6517299
+     },
+     {
+      "path": "temp/build/v2-full-222-diagnostics/controller-61144.fault.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+     },
+     {
+      "path": "temp/build/v2-full-222-diagnostics/gw0-20004.fault.txt",
+      "sha256": "8783454ed833999f6107f1d2bbf643d0c6441ace49913ec46dabc9a36c7fee5c",
+      "bytes": 4347
+     },
+     {
+      "path": "temp/build/v2-full-222-diagnostics/gw1-64096.fault.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+     },
+     {
+      "path": "temp/build/v2-full-222-diagnostics/gw2-54408.fault.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+     }
+    ],
+    "scope": "Phase/exit snapshots, not continuous allocation tracing. Final exit polls occur after ordinary xdist teardown and may reflect its cleanup. Fault files contain stack locations, not local values."
+   },
+   "main_worker_error_callbacks": [
+    {
+     "time_ns": 1794742193132087900,
+     "pid": 61144,
+     "worker": "controller",
+     "event": "worker_exit",
+     "worker_id": "gw0",
+     "stage": "channel_down_poll",
+     "launcher_pid": 76776,
+     "returncode": null,
+     "windows_status_hex": null,
+     "error_type": "str",
+     "error": "Not properly terminated",
+     "worker_diagnostic_errors": null,
+     "system_commit": {
+      "CommitTotal": 104519602176,
+      "CommitLimit": 105952972800,
+      "CommitPeak": 105952972800,
+      "PhysicalTotal": 50700185600,
+      "PhysicalAvailable": 16959303680
+     }
+    }
+   ]
   }
  },
  "source_recovery": {
