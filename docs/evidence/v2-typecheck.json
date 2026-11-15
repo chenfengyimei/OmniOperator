@@ -6,10 +6,10 @@
  "d7_complete": false,
  "default_entrypoint": "v1",
  "source": {
-  "code_version": "9b6a87587d005cd1a542cc42c265cc59fbc8a5f315a6ad56839918519ef66f96",
+  "code_version": "355d503e2aef412d78a9afab57852024a296719ea11b0e96b2f74f59340f5a3e",
   "fixed_source_files": 1210,
-  "git_head": "e5910a9591d2ccbd3f89e1c8d08ad08872e3771b",
-  "dirty_checkout": true,
+  "git_head": "92fbf78a06237414febec90915bae6067dc64c99",
+  "dirty_checkout": false,
   "recipe": "sha256(json.dumps({path: sha256(blob) for tracked agent/, web/, scripts/ files}, sort_keys=True)); see temp/build/source_version.py",
   "head_ui": "4b6c07954be0c874b04fe9294049ae60ae00a06e",
   "fingerprint_scope": "Committed HEAD blobs only; source/test/config worktree differences are recorded separately, and personal material directories are excluded",
@@ -207,7 +207,7 @@
   "scope_history_note": "The scope list below preserves historical growth; current_scope and validation.strict are the current truth."
  },
  "validation": {
-  "all_latest_cases_passed": true,
+  "all_latest_cases_passed": false,
   "latest_batch": {
    "batch": 214,
    "sources": [
@@ -2578,8 +2578,8 @@
    }
   ],
   "next": {
-   "id": "D7.product_switch",
-   "scope": "P1 composition 全层（13/13）、P2 application 全层（44/44）与全部 7 个 Android 模块已完成；P3 已纳入 schema/credential_repository/lease_repository，剩 configuration(94)/repository(187)/delivery(211) 等。strict 279 文件。Real-environment acceptance still pending."
+   "id": "D7.stability_and_acceptance",
+   "scope": "Defined strict332 scope and recorded style debt are complete. Continue separately recorded runtime/environment observations and actual deployment/platform acceptance; defaultV1."
   },
   "full_run_history": [
    {
@@ -3606,7 +3606,7 @@
    "Batch 213: strict 331 files (53 domain, 44 application, 221/222 adapters, 13 composition); MCP HTTP与SSE类型化，未知写入不重放",
    "Batch 214: strict 332 files (53 domain, 44 application, 222/222 adapters, 13 composition); MCP OAuth类型收官，V2四层合同范围332文件，真实验收仍待"
   ],
-  "next_full_checkpoint": null,
+  "next_full_checkpoint": 78,
   "full_checkpoints_frozen": [
    {
     "batch": 194,
@@ -3668,11 +3668,25 @@
     "head": "e5910a9591d2ccbd3f89e1c8d08ad08872e3771b",
     "snapshot": "temp/build/v2-full-217-snapshot.json",
     "state": "harvested"
+   },
+   {
+    "checkpoint": 78,
+    "artifact_id": 218,
+    "strict_checkpoint": 214,
+    "head": "92fbf78a06237414febec90915bae6067dc64c99",
+    "snapshot": "temp/build/v2-full-218-snapshot.json",
+    "state": "running"
    }
   ],
-  "full_checkpoints_pending": [],
-  "next_full_checkpoint_to_harvest": null,
-  "current_source_full_executed": true,
+  "full_checkpoints_pending": [
+   {
+    "checkpoint": 78,
+    "artifact_id": 218,
+    "source_head": "92fbf78a06237414febec90915bae6067dc64c99"
+   }
+  ],
+  "next_full_checkpoint_to_harvest": 78,
+  "current_source_full_executed": false,
   "final_typing_checkpoint_harvested": true,
   "ui_connection_followup": {
    "evidence": "docs/evidence/v2-ui.json",
@@ -3721,16 +3735,15 @@
    },
    "note": "Only typing.cast and formatting changed relative to the concurrent model-header feature; the request behavior was preserved."
   },
-  "whole_repository_lint_passed": false,
-  "whole_repository_format_passed": false,
+  "whole_repository_lint_passed": true,
+  "whole_repository_format_passed": true,
   "current_static_debt_evidence": {
-   "record": "temp/build/v2-current-static-debt.json",
-   "sha256": "4a979e4cddcdab697a5eb594b252ea04f643a8f4a9d2f173507753a453a60de8",
-   "ruff_import_sort_issues": 15,
-   "python_unformatted_files": 39,
-   "frontend_unformatted_files": 11,
-   "all_affected_files_unchanged_since": "7580bef1",
-   "passed": false
+   "evidence": "docs/evidence/v2-static-quality.json",
+   "ruff_import_sort_issues": 0,
+   "python_unformatted_files": 0,
+   "frontend_unformatted_files": 0,
+   "passed": true,
+   "scope": "The full configured Ruff source gate, Python formatter gate and web Prettier gate; strict scope remains332, not whole-repository strict."
   },
   "resolved_findings": [
    {
@@ -3758,7 +3771,15 @@
      "temp/build/v2-full-217.xml"
     ]
    }
-  ]
+  ],
+  "static_quality_followup": {
+   "evidence": "docs/evidence/v2-static-quality.json",
+   "source_head": "92fbf78a06237414febec90915bae6067dc64c99",
+   "code_version": "355d503e2aef412d78a9afab57852024a296719ea11b0e96b2f74f59340f5a3e",
+   "checkpoint": 78,
+   "artifact_id": 218,
+   "status": "running"
+  }
  },
  "source_recovery": {
   "manifest": "temp/private/v2-typecheck-22-source-20261111-5039cdfa12f1/manifest.json",

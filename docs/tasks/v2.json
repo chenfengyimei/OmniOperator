@@ -209,7 +209,7 @@
    "id": "R6",
    "title": "业务接入与交付",
    "status": "开发中",
-   "notes": "V2定义strict范围332文件已收口；并行模型请求头改动带来的2错已类型收窄恢复0错，47项模型回归通过。UI v128已修手动让位及后台恢复。另会OpenCodeGo模型报告8/0仅属供应商专项记录；整体模型/MCP/插件、设备、部署验收仍待，默认V1。",
+   "notes": "V2定义strict范围332文件零错误，既有15项导入排序/39个Python格式/11个前端格式欠账已清零；61专项与wheel/sdist隔离导入通过。工作台v129；另会OpenCodeGo 8/0仅属供应商专项，整体模型/MCP/插件、设备和部署验收仍待，默认V1。",
    "evidence": [
     "docs/evidence/v2-offline.json",
     "docs/evidence/v2-people.json",
@@ -244,14 +244,15 @@
     "docs/evidence/v2-memory-semantics.json",
     "docs/evidence/v2-skills.json",
     "docs/evidence/v2-media.json",
-    "docs/evidence/v2-ui.json"
+    "docs/evidence/v2-ui.json",
+    "docs/evidence/v2-static-quality.json"
    ]
   },
   {
    "id": "R7",
    "title": "稳定性验收",
    "status": "待开始",
-   "notes": "全量第77次：4680 passed, 10 warnings in 2790.27s (0:46:30)；JUnit 0 failure / 0 error，4680个唯一节点；标准调度完成，无手动恢复。永久修复崩溃后loadfile空单元/预取阻塞，9专项和29并行调用方通过；10项观察仍开放，原始失败不以复跑销账。真实功能/负载/平台/72小时尚未整体验收。",
+   "notes": "当前固定源码的第78次全量（-n 2，artifact218）运行中，结果待收割。崩溃后调度永久修复保留，10项运行/环境观察继续开放。真实功能、负载、跨平台与72小时尚未整体验收。",
    "evidence": [
     "docs/evidence/v2-offline.json",
     "docs/evidence/v2-objects.json",
@@ -282,21 +283,22 @@
     "docs/evidence/v2-linux-capture.json",
     "docs/evidence/v2-linux-portal.json",
     "docs/evidence/v2-linux-portal-frames.json",
-    "docs/evidence/v2-test-stability.json"
+    "docs/evidence/v2-test-stability.json",
+    "docs/evidence/v2-static-quality.json"
    ]
   }
  ],
- "checkpoint_commit": "e5910a95",
+ "checkpoint_commit": "92fbf78a",
  "current_validation": {
-  "status": "d7_test_stability_followup",
-  "targeted_unique_passed": 76,
-  "includes_browser_cases": 20,
-  "current_full_passed": true,
+  "status": "d7_static_quality_followup",
+  "targeted_unique_passed": 61,
+  "includes_browser_cases": 3,
+  "current_full_passed": false,
   "full_runs_this_checkpoint": 1,
   "whole_plan_complete": false,
-  "evidence": "docs/evidence/v2-test-stability.json",
+  "evidence": "docs/evidence/v2-static-quality.json",
   "last_full_evidence": "docs/evidence/v2-test-stability.json",
-  "current_packaging_passed": false,
+  "current_packaging_passed": true,
   "previous_packaging_evidence": "docs/evidence/v2-darwin-admin.json",
   "open_validation_findings": [
    {
@@ -468,7 +470,7 @@
     ]
    }
   ],
-  "code_version": "9b6a87587d005cd1a542cc42c265cc59fbc8a5f315a6ad56839918519ef66f96",
+  "code_version": "355d503e2aef412d78a9afab57852024a296719ea11b0e96b2f74f59340f5a3e",
   "fixed_source_files": 1210,
   "baseline_repair_evidence": "docs/evidence/v2-baseline-repair.json",
   "market_evidence": "docs/evidence/v2-extension-market.json",
@@ -517,10 +519,10 @@
   "typecheck_evidence": "docs/evidence/v2-typecheck.json",
   "packaging_evidence": "docs/evidence/v2-packaging.json",
   "strict_batch_git_head": "73faa51a",
-  "validated_head": "e5910a9591d2ccbd3f89e1c8d08ad08872e3771b",
+  "validated_head": "92fbf78a06237414febec90915bae6067dc64c99",
   "v2_strict_scope_complete": true,
   "whole_repository_strict_complete": false,
-  "current_source_full_executed": true,
+  "current_source_full_executed": false,
   "aborted_full_run": {
    "status": "aborted_without_full_result",
    "source_head": "4f0815b77766bfe72a6b25eaaca8c7f66d44a7f3",
@@ -541,20 +543,34 @@
   },
   "all_quality_gates_passed": false,
   "static_debt_evidence": {
-   "record": "temp/build/v2-current-static-debt.json",
-   "sha256": "4a979e4cddcdab697a5eb594b252ea04f643a8f4a9d2f173507753a453a60de8",
-   "ruff_import_sort_issues": 15,
-   "python_unformatted_files": 39,
-   "frontend_unformatted_files": 11,
-   "all_affected_files_unchanged_since": "7580bef1",
-   "passed": false
+   "evidence": "docs/evidence/v2-static-quality.json",
+   "ruff_import_sort_issues": 0,
+   "python_unformatted_files": 0,
+   "frontend_unformatted_files": 0,
+   "passed": true,
+   "scope": "The full configured Ruff source gate, Python formatter gate and web Prettier gate; strict scope remains332, not whole-repository strict."
+  },
+  "current_packaging_evidence": "docs/evidence/v2-static-quality.json",
+  "quality_gate_scope": "The nine listed static/package checks, task/index record checks and current-source frozen pytest; excludes unexecuted complete CI workflow, actual platform/deployment acceptance and long runs.",
+  "pending_full_run": {
+   "status": "running",
+   "checkpoint": 78,
+   "artifact_id": 218,
+   "strict_checkpoint": 214,
+   "source_head": "92fbf78a06237414febec90915bae6067dc64c99",
+   "code_version": "355d503e2aef412d78a9afab57852024a296719ea11b0e96b2f74f59340f5a3e",
+   "fixed_source_files": 1210,
+   "strict_files": 332,
+   "report": "temp/build/v2-full-218.xml",
+   "workers": 2,
+   "uninterrupted_default_run": true
   }
  },
  "next_checkpoint": {
   "id": "D7.stability_and_acceptance",
   "status": "开发中",
   "design": "docs/V2_PACKAGING.md",
-  "scope": "Resolve the recorded pre-existing lint/format debt, continue open worker/browser/readiness observations, and complete real-environment acceptance. No typing backlog remains in the defined 332-file scope; default entrypoints remain V1."
+  "scope": "Harvest frozen full218, then continue open runtime/environment observations and deployment/platform acceptance. Defined strict332 scope and recorded lint/format debt are complete; defaultV1."
  },
  "milestones": [
   {

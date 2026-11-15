@@ -152,5 +152,12 @@
     "Clean-machine installation/update/rollback/uninstall",
     "macOS/Linux/container builds and 24h/72h stability",
     "Windows real foreground input remains deferred"
-  ]
+  ],
+  "latest_static_quality_followup": {
+    "evidence": "docs/evidence/v2-static-quality.json",
+    "source_head": "92fbf78a06237414febec90915bae6067dc64c99",
+    "full_artifact": 218,
+    "status": "running",
+    "note": "Only a pointer to the later source; the frozen historical report and its original failures remain unchanged."
+  }
 }

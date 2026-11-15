@@ -1,0 +1,738 @@
+{
+  "schema": 1,
+  "date": "2026-11-15",
+  "batch": "v2-static-quality-after-stability",
+  "whole_v2_complete": false,
+  "default_entrypoint": "v1",
+  "source": {
+    "head": "92fbf78a06237414febec90915bae6067dc64c99",
+    "code_version": "355d503e2aef412d78a9afab57852024a296719ea11b0e96b2f74f59340f5a3e",
+    "fixed_source_files": 1210,
+    "strict_files": 332
+  },
+  "baseline": {
+    "head": "ce14ddeaae97d769a011a1dd956d98af096bd6ad",
+    "previous_stability_evidence": "docs/evidence/v2-test-stability.json",
+    "ruff_import_sort_issues": 15,
+    "python_unformatted_files": 39,
+    "frontend_unformatted_files": 11
+  },
+  "changes": {
+    "python_files": 53,
+    "frontend_files_including_cache_references": 26,
+    "behavioral_changes_intended": false,
+    "new_or_removed_source_files": 0,
+    "import_order_review": "Only preamble imports regrouped; identical binding multisets and non-preamble AST. Standard-library typing imports moved, pure domain/application imports precede adapters; no side-effect import, wildcard or alias replacement added.",
+    "python_proof": {
+      "baseline_head": "ce14ddeaae97d769a011a1dd956d98af096bd6ad",
+      "files": [
+        {
+          "path": "agent/src/omni/adapters/credentials.py",
+          "before_sha256": "715e1a2fb121a5e507db23c5d1a5383e7362e669c0f8f6d6c07ab95339b19c5c",
+          "after_sha256": "40cfa346dc7a6afa7e1039483d83aa80ef683998ed457a9f8f4bef33c3164ea1",
+          "body_ast_unchanged": true,
+          "import_bindings_unchanged": true,
+          "imports_reordered": true
+        },
+        {
+          "path": "agent/src/omni/adapters/images.py",
+          "before_sha256": "6fd1d3e00b40d2eeb45fcc53231ad439ac01e510129bd3e0bfc919c67ecfd658",
+          "after_sha256": "17d1856c3a804e6cfe91ff01cb9453a6c68b3a05e8723a44f020ef628e2c5852",
+          "body_ast_unchanged": true,
+          "import_bindings_unchanged": true,
+          "imports_reordered": true
+        },
+        {
+          "path": "agent/src/omni/adapters/persistence/audit_pruning_repository.py",
+          "before_sha256": "e0e980d46ac9d4567da40972401ab7ace448f394be632c0084beb86eeac2a54a",
+          "after_sha256": "408f5288b10e9bd42d98fa1539fefb21a61f977a83d07502be6000d5e4266293",
+          "body_ast_unchanged": true,
+          "import_bindings_unchanged": true,
+          "imports_reordered": false
+        },
+        {
+          "path": "agent/src/omni/adapters/persistence/audit_retention_repository.py",
+          "before_sha256": "59df32311d42d0d0c3b7a9ae8d32ccf255ddc9e507df2060e2a996234c2dfd39",
+          "after_sha256": "8210cf83cef56a0c13dad13c06756fc20b5648bfe79b407a915eab6ad139bc5a",
+          "body_ast_unchanged": true,
+          "import_bindings_unchanged": true,
+          "imports_reordered": false
+        },
+        {
+          "path": "agent/src/omni/adapters/persistence/bilibili_authority.py",
+          "before_sha256": "13c99a72ccf52931277729b48d29c277047d7869dee1ef778da397be24c3b858",
+          "after_sha256": "ab6244e8d11cb7079dd4eac8c6e0b04818a9a9e2ac4139f31dc8a25f2f857d86",
+          "body_ast_unchanged": true,
+          "import_bindings_unchanged": true,
+          "imports_reordered": false
+        },
+        {
+          "path": "agent/src/omni/adapters/persistence/execution_pruning.py",
+          "before_sha256": "3238f4a081e5a2b31dcc0183f25c1bb24454dd8a261e4184023147dc45100ab3",
+          "after_sha256": "fe28fcdaae07bb227dc4bd40b3a07ef3e002ed12764553f643f4bf4581e10cf4",
+          "body_ast_unchanged": true,
+          "import_bindings_unchanged": true,
+          "imports_reordered": false
+        },
+        {
+          "path": "agent/src/omni/adapters/persistence/history_protection.py",
+          "before_sha256": "c28815b8cdc349ef6f65c987c043c1be53003e5fc5ab128e69b0d85965d21937",
+          "after_sha256": "5432bf4a2331b6d25f9f8c1c2e95f88542adbae040d6d1f5869fbec68d1b7d73",
+          "body_ast_unchanged": true,
+          "import_bindings_unchanged": true,
+          "imports_reordered": false
+        },
+        {
+          "path": "agent/src/omni/adapters/persistence/history_repository.py",
+          "before_sha256": "4d18c0f52041517ecd950b00d9b5c254d2fe6ac60984bc69fe948f73a3f27b6d",
+          "after_sha256": "fbafab45b6f88c01bfbaf2e3fe939bc93d83645bd47d2edec58c77531ee30025",
+          "body_ast_unchanged": true,
+          "import_bindings_unchanged": true,
+          "imports_reordered": true
+        },
+        {
+          "path": "agent/src/omni/adapters/persistence/people_repository.py",
+          "before_sha256": "fc78861df7f85ea4b9dc29d160b5c2a9734a222a90dd4f4c4fd2823b3d744e0b",
+          "after_sha256": "efa19a8bfaacb743d3363078c1baae5459a23ab290a1fff03540ea3dfc63fbcd",
+          "body_ast_unchanged": true,
+          "import_bindings_unchanged": true,
+          "imports_reordered": false
+        },
+        {
+          "path": "agent/src/omni/adapters/persistence/reference_release.py",
+          "before_sha256": "927e33bb021cd7e8faa60066d60816aa24528c4dc92b1c42f0fa2522e80bdba4",
+          "after_sha256": "4a443b912ffe3518a6af59f898888eb16d4368f9a55dae8651a55ccfcdd91849",
+          "body_ast_unchanged": true,
+          "import_bindings_unchanged": true,
+          "imports_reordered": false
+        },
+        {
+          "path": "agent/src/omni/adapters/platform/macos_helper.py",
+          "before_sha256": "1a73d90e27959175e86de12875e3627a2234b590249769511e39376ac9d8b223",
+          "after_sha256": "0ca4cc8fe4a2407cc6d8e7d98fb4d7911823cd8385ca352b9dc7307e549b2db8",
+          "body_ast_unchanged": true,
+          "import_bindings_unchanged": true,
+          "imports_reordered": false
+        },
+        {
+          "path": "agent/src/omni/adapters/platform/macos_service_state.py",
+          "before_sha256": "620673be0c97c8248bc2a15af80424435cd43e8306dfabe237de782ed9edd117",
+          "after_sha256": "0e9f6fa68029daa13141946d9caaa52c468244c4b0a9d832528da04d7a51b59d",
+          "body_ast_unchanged": true,
+          "import_bindings_unchanged": true,
+          "imports_reordered": true
+        },
+        {
+          "path": "agent/src/omni/adapters/platform/service_control_files.py",
+          "before_sha256": "cc82f66a5024c5d13adfb7a15d7f4faed48dc3bc355b65e94838b3dbf6885c1d",
+          "after_sha256": "8272000890dab975afb205394d3b5a198f61205009ad1db777d59a6b41dc1e9e",
+          "body_ast_unchanged": true,
+          "import_bindings_unchanged": true,
+          "imports_reordered": false
+        },
+        {
+          "path": "agent/src/omni/adapters/platform/service_handover.py",
+          "before_sha256": "bed49f88c7021b64fc49d5b2d408f7199211bee23afde7c593a3dbfdc06a5d38",
+          "after_sha256": "82798f192ae4e7da52822f121a45b78efe7ddd20bac0413134877dd14cd469fa",
+          "body_ast_unchanged": true,
+          "import_bindings_unchanged": true,
+          "imports_reordered": false
+        },
+        {
+          "path": "agent/src/omni/adapters/platform/service_launch.py",
+          "before_sha256": "4dd0abf78aeae8ad1226d66e9412126da9a03437990499690423c92bab9f69d1",
+          "after_sha256": "2aa1a88e438ce3ca1bd9141395681e9c82126b2e46fb63a7cbc4194cc1799d77",
+          "body_ast_unchanged": true,
+          "import_bindings_unchanged": true,
+          "imports_reordered": true
+        },
+        {
+          "path": "agent/src/omni/adapters/platform/systemd_state.py",
+          "before_sha256": "229aa6c4e30762ba9bf7caec6c30ec73dcdc891b8f0ee4fb3756809d428496c1",
+          "after_sha256": "24d03620e4f4594f7e73ae355d987b1c22cecbc43df36b77c5f8468dc00d7535",
+          "body_ast_unchanged": true,
+          "import_bindings_unchanged": true,
+          "imports_reordered": false
+        },
+        {
+          "path": "agent/src/omni/adapters/platform/wheel_backup.py",
+          "before_sha256": "ea1e66eb22c6a11914d206f0385d2a2dbdfe0ceda0505524271717c6c45cd6dc",
+          "after_sha256": "3031f37b712401b09be9589831030150ae25dd4f57cd59cb2d0449340634a9ee",
+          "body_ast_unchanged": true,
+          "import_bindings_unchanged": true,
+          "imports_reordered": true
+        },
+        {
+          "path": "agent/src/omni/adapters/platform/wheel_prepare.py",
+          "before_sha256": "71abd2703c561bdeae92962f06571db73a2dbdc0a38b29f7c095062da13d3689",
+          "after_sha256": "45b5ed6d48ebab1b1ef391422b1559e426bec83f91eba4f0c2e9206a2d362a18",
+          "body_ast_unchanged": true,
+          "import_bindings_unchanged": true,
+          "imports_reordered": true
+        },
+        {
+          "path": "agent/src/omni/adapters/platform/wheel_rollback.py",
+          "before_sha256": "b9dd4351eccc98b67af361554a532ff70d6a9b7f702500780a7fb09c4fbdb444",
+          "after_sha256": "c39bd4513675053e8fd34ec0268542d1f7bae066f67ca43199c07ae65ca26c7f",
+          "body_ast_unchanged": true,
+          "import_bindings_unchanged": true,
+          "imports_reordered": true
+        },
+        {
+          "path": "agent/src/omni/adapters/platform/wheel_uninstall.py",
+          "before_sha256": "462b48311ded382e7ee72d5101c1097bf3911d55b88ebb64116090ac9e02ae06",
+          "after_sha256": "728d4a00b3664a215d8c43adaf4330dfa001afc607270db3dcb6f783225fcd37",
+          "body_ast_unchanged": true,
+          "import_bindings_unchanged": true,
+          "imports_reordered": true
+        },
+        {
+          "path": "agent/src/omni/adapters/workers/main.py",
+          "before_sha256": "8384192f9dc33d408c67641482b881fdff7f5fc7de9415611833737b2ff0cedd",
+          "after_sha256": "4f323bce4ce64c0111131bedac7003bc0a96bfd7b2ec90d21d6393952fb4ad3e",
+          "body_ast_unchanged": true,
+          "import_bindings_unchanged": true,
+          "imports_reordered": false
+        },
+        {
+          "path": "agent/src/omni/application/bilibili.py",
+          "before_sha256": "fa2132f107d314a5d5d1f94674772b79a15ec5d76317b9e07595c60796f3e521",
+          "after_sha256": "8e8a30a51de13073a53b0e490c63152cc0dcda0375ed668c4814ed8405ce2958",
+          "body_ast_unchanged": true,
+          "import_bindings_unchanged": true,
+          "imports_reordered": false
+        },
+        {
+          "path": "agent/src/omni/application/configuration.py",
+          "before_sha256": "75819e93a6e1cfefae42685e0c5540de93d106d2bb381bb6532c3f1e4416e813",
+          "after_sha256": "6e2033b5c03d2f8d15a80326825584e5bd6a3be4c5f8cff985321e5384bb3872",
+          "body_ast_unchanged": true,
+          "import_bindings_unchanged": true,
+          "imports_reordered": false
+        },
+        {
+          "path": "agent/src/omni/application/context.py",
+          "before_sha256": "66bfc4e11d3aebe98a43425803d95cc59ef4a187b446590809fc1550aaa568f7",
+          "after_sha256": "4ba64f8635a09ac6b445e057be06d8abc4f6ae4ec9fd454de8239c8d1301eb79",
+          "body_ast_unchanged": true,
+          "import_bindings_unchanged": true,
+          "imports_reordered": false
+        },
+        {
+          "path": "agent/src/omni/application/desktop.py",
+          "before_sha256": "0a53e0d60440be3404f8c65781ca8f6e4a0b3a88a2b7efe4df1edfc9bf1ff3fe",
+          "after_sha256": "34d5cbc2aa6aae4b9111fd20ad7590624249a72f8ae22bdfdf546b2cbe1e252b",
+          "body_ast_unchanged": true,
+          "import_bindings_unchanged": true,
+          "imports_reordered": false
+        },
+        {
+          "path": "agent/src/omni/application/desktop_portal.py",
+          "before_sha256": "4e92d6d076f86fd2fc0afcdc53fa31ed7c66827e2db32fab2397f49025057ec3",
+          "after_sha256": "ee300c1c73568889ccb33e8eeee22ffc6e15eae4e99a041aea7de0ace881b443",
+          "body_ast_unchanged": true,
+          "import_bindings_unchanged": true,
+          "imports_reordered": false
+        },
+        {
+          "path": "agent/src/omni/application/documents.py",
+          "before_sha256": "0ed386a9b651b6b4e3883e9ed9e7232ba4ec3ffc17d65def1f229a51c88c5748",
+          "after_sha256": "7950e66d4c66de060d1dd7848e67e230f93fdf39d4bdbb25736768574606e1bd",
+          "body_ast_unchanged": true,
+          "import_bindings_unchanged": true,
+          "imports_reordered": false
+        },
+        {
+          "path": "agent/src/omni/application/extensions.py",
+          "before_sha256": "f226052ea5b171cda7ed48a76d11e7c487af2a079858b631dfe9452a991b2d94",
+          "after_sha256": "e04589eec5963c53e3f743abf849f6224aab9bb397bb332fca8ef8090f2831f6",
+          "body_ast_unchanged": true,
+          "import_bindings_unchanged": true,
+          "imports_reordered": false
+        },
+        {
+          "path": "agent/src/omni/application/images.py",
+          "before_sha256": "522d6c1259beb3380d2724517ed66b24f95207dee06c664368ef448c162ec75a",
+          "after_sha256": "eb641954644f757cbd122a066fe672166b61be32d3e1773c4d74dd0b3aaf09cf",
+          "body_ast_unchanged": true,
+          "import_bindings_unchanged": true,
+          "imports_reordered": false
+        },
+        {
+          "path": "agent/src/omni/application/maintenance.py",
+          "before_sha256": "a1171a65940fe7762681272c1540067d550e297d67fbbd3025e1fc635fbff4bd",
+          "after_sha256": "91b34edfc2e316e21a194496e40f6185a7c3788b5a1a433d826c407742595563",
+          "body_ast_unchanged": true,
+          "import_bindings_unchanged": true,
+          "imports_reordered": false
+        },
+        {
+          "path": "agent/src/omni/application/media.py",
+          "before_sha256": "4b4e83c70fc40598db9f865ee8273b4a0f62a5a05f181bf905bc11c989b5f86e",
+          "after_sha256": "f95efe24719ce1a525f24f3208e906c9e2f8f91664e1c68895fef1d14850fe6c",
+          "body_ast_unchanged": true,
+          "import_bindings_unchanged": true,
+          "imports_reordered": false
+        },
+        {
+          "path": "agent/src/omni/application/memory_semantics.py",
+          "before_sha256": "d10a8ba16afb1d06a18c6ee4065c0675c6f8aa3d092b4f916ccb4f36f96d0379",
+          "after_sha256": "f1b2e9316145a403b0d386f70b0a3411a6bc05607ec7811f6e281fda2c5469e3",
+          "body_ast_unchanged": true,
+          "import_bindings_unchanged": true,
+          "imports_reordered": false
+        },
+        {
+          "path": "agent/src/omni/application/model_calls.py",
+          "before_sha256": "cfd4c4a34cdadc0e1ffeb8b5942271dac0a4faedf430dd9e1da8dc21b616c474",
+          "after_sha256": "64fc69d07ba0134b0b42d8ea2c6f105fe18c13dc38dbd7bcfc33691cb9e45dda",
+          "body_ast_unchanged": true,
+          "import_bindings_unchanged": true,
+          "imports_reordered": false
+        },
+        {
+          "path": "agent/src/omni/application/ports.py",
+          "before_sha256": "eca9f94b102168181515b4c6506902b8dde5ba0b770d36de942b4e940b9502ef",
+          "after_sha256": "1efdc009423500fe6e12ec7640c713021ca205ee20ed0b0e74db83bf31baac42",
+          "body_ast_unchanged": true,
+          "import_bindings_unchanged": true,
+          "imports_reordered": false
+        },
+        {
+          "path": "agent/src/omni/application/qq.py",
+          "before_sha256": "a4185600ce9d201e22a76ca4967ecf817cec64803d1c3298e94f7f651ccdcc9a",
+          "after_sha256": "d0aef72aeb6dd8c7db5aba0f75c3f307d84598b0f519c4dc0f0fe02caff8c922",
+          "body_ast_unchanged": true,
+          "import_bindings_unchanged": true,
+          "imports_reordered": false
+        },
+        {
+          "path": "agent/src/omni/application/releases.py",
+          "before_sha256": "5165c2a752c0ee412864c41cdbad1065f9ec022923b1e2fc2a205da73dc296b8",
+          "after_sha256": "f8469e64b75d63e133271c33b6425c2654d13c2b3854106859a863b4d8bdcf37",
+          "body_ast_unchanged": true,
+          "import_bindings_unchanged": true,
+          "imports_reordered": false
+        },
+        {
+          "path": "agent/src/omni/application/service_control.py",
+          "before_sha256": "4133e5e4a390c13784148e6aba5eca95d8c400342c3268919d22dfc6890fd0ca",
+          "after_sha256": "9d6f1f5e01d5cd5adb0e38629312b7a87a2680e4b3a11b7e686a0e34074cf213",
+          "body_ast_unchanged": true,
+          "import_bindings_unchanged": true,
+          "imports_reordered": false
+        },
+        {
+          "path": "agent/src/omni/application/skills.py",
+          "before_sha256": "96c91d94267f1a17948a20c1be16d6d5ab037241fad2985288033110301b5417",
+          "after_sha256": "1cb46df83a43ee97f7620ec9213279ad1ea146f169b555eeb87e9f14d09409a3",
+          "body_ast_unchanged": true,
+          "import_bindings_unchanged": true,
+          "imports_reordered": false
+        },
+        {
+          "path": "agent/src/omni/application/terminals.py",
+          "before_sha256": "5908630eec8601677baa7122485cd289cfc9e392fb022438f625c473bbb30d0c",
+          "after_sha256": "fbd630856b878d80ec955b50f0113da5f6cad35e32abd139191c7056c00c3330",
+          "body_ast_unchanged": true,
+          "import_bindings_unchanged": true,
+          "imports_reordered": false
+        },
+        {
+          "path": "agent/src/omni/composition/lifecycle.py",
+          "before_sha256": "f453979ee8f26f9ba87efb62a0d67287d1fb19664a9680c06ddc51fb06c1e774",
+          "after_sha256": "76fe951fb6dd1fb6e3556950ecc041360fb04807952c70c6b9eea7ed6df80f3a",
+          "body_ast_unchanged": true,
+          "import_bindings_unchanged": true,
+          "imports_reordered": false
+        },
+        {
+          "path": "agent/src/omni/composition/releases.py",
+          "before_sha256": "655d5d4bc036e6f627b4fe5fbc3df19129b3a4d8e7927189c611485df07cc021",
+          "after_sha256": "2f06770a13d7c5ff8539bd227f8ea2f5986313d09935296ec94f54d823ea5d16",
+          "body_ast_unchanged": true,
+          "import_bindings_unchanged": true,
+          "imports_reordered": false
+        },
+        {
+          "path": "agent/src/omni/domain/android.py",
+          "before_sha256": "138bb3a0b3a6d53891bb3d72c47dc57c18ec09a5083f237114c90acd1ba3654d",
+          "after_sha256": "e04fbf03aeb7220f6c667877909b7d8a38dc7409b56d5a2ed24919b1f81ef803",
+          "body_ast_unchanged": true,
+          "import_bindings_unchanged": true,
+          "imports_reordered": false
+        },
+        {
+          "path": "agent/src/omni/domain/bilibili.py",
+          "before_sha256": "d4e79399f829c29a5b3439cde9656c637a25f0f87822cb04fa60ada8eccf1ec4",
+          "after_sha256": "a3c970e83819c7546b8f5d65ede80553888fcab630ad653de47e7f207034e240",
+          "body_ast_unchanged": true,
+          "import_bindings_unchanged": true,
+          "imports_reordered": false
+        },
+        {
+          "path": "agent/src/omni/domain/desktop.py",
+          "before_sha256": "1d0d9e3668c52f5c3bde36ee4b16c4779559bcfcf30d07c275049b1dd2d1906e",
+          "after_sha256": "1f40c2c96bd9d0d60ad993975e53c9578d79aa036c590e9b7ffcf4046f2a5627",
+          "body_ast_unchanged": true,
+          "import_bindings_unchanged": true,
+          "imports_reordered": false
+        },
+        {
+          "path": "agent/src/omni/domain/desktop_actions.py",
+          "before_sha256": "dacb4222639519f0f19365d84d1b4f3a3cad67b35c44f5044901c753cbb5fd07",
+          "after_sha256": "c8736a59c5b3756afd6b6a3a8b487a8edec2bf7679db888dbed86245d035becc",
+          "body_ast_unchanged": true,
+          "import_bindings_unchanged": true,
+          "imports_reordered": false
+        },
+        {
+          "path": "agent/src/omni/domain/desktop_portal.py",
+          "before_sha256": "a2b17e9b9be78220141468f741a2a54f74c99d46861e6d49470890bfc3214214",
+          "after_sha256": "938b9230c6d6b5520406e586a065d97b93903395e21369604933e508fdc0a4a1",
+          "body_ast_unchanged": true,
+          "import_bindings_unchanged": true,
+          "imports_reordered": false
+        },
+        {
+          "path": "agent/src/omni/domain/extensions.py",
+          "before_sha256": "b2c06783b035f5104cbd59063df10db1ef37ca43675ba642a5b7628413248f75",
+          "after_sha256": "1e0c0e24c935dfe8e24a60c0c1a805a0c194f437adb5a374637a57af64e5cad3",
+          "body_ast_unchanged": true,
+          "import_bindings_unchanged": true,
+          "imports_reordered": true
+        },
+        {
+          "path": "agent/src/omni/domain/mcp.py",
+          "before_sha256": "5f57ab411a57bf270c63cf24ae521bb15216c29431f503e5e7cfcbc27bd35d3d",
+          "after_sha256": "f5a649f0cccd7d1ab733b161d97a2c18d4c9e021ba1810dfcfe65a351c776047",
+          "body_ast_unchanged": true,
+          "import_bindings_unchanged": true,
+          "imports_reordered": true
+        },
+        {
+          "path": "agent/src/omni/domain/media.py",
+          "before_sha256": "8b1b92f93cf22f7562ee140c9a509027af70475100461448f7c817eb7ce8513c",
+          "after_sha256": "c9de796758ecf4126b30313ee7c13b3ff8c17af73a02d6ab171a5fffbdc8f273",
+          "body_ast_unchanged": true,
+          "import_bindings_unchanged": true,
+          "imports_reordered": false
+        },
+        {
+          "path": "agent/src/omni/domain/releases.py",
+          "before_sha256": "a3163b6ab7517c59790977eaf4f868c901c532571f80d47423dff4ce240a54c6",
+          "after_sha256": "6f714c3decca462a7e2477fe40143ecc59bf6f374e781ad24e92b42c2ca15ca4",
+          "body_ast_unchanged": true,
+          "import_bindings_unchanged": true,
+          "imports_reordered": false
+        },
+        {
+          "path": "agent/src/omni/domain/service_admin.py",
+          "before_sha256": "3531da314f09e8c04d89b9bb5ae22085274c6acfd70b26c4f97462e63ec9fe13",
+          "after_sha256": "6cfeec103ebfb98de56946edde02285ae79763b69ca05faf83244cd05950fb6e",
+          "body_ast_unchanged": true,
+          "import_bindings_unchanged": true,
+          "imports_reordered": false
+        },
+        {
+          "path": "agent/src/omni/domain/service_deployment.py",
+          "before_sha256": "24a12df9d6068dd83b63560b96f0fdb8b5ca26304e0906315cc6ce934c6fd4f9",
+          "after_sha256": "802551204bb48f7290bbb38a6a9b3139d1b77de5d006e325a0bb8b1ffe5ee6be",
+          "body_ast_unchanged": true,
+          "import_bindings_unchanged": true,
+          "imports_reordered": false
+        },
+        {
+          "path": "agent/tests/test_v2_models_ui.py",
+          "before_sha256": "9dc3e554c5e799ffba649855b62102c8ec60d7783c809e3c5e7bdea70980ae9a",
+          "after_sha256": "b77e9b75fed2d4fd4ffe4818f1a6a4b0170dc29c8905b569629ceeb82380f949",
+          "body_ast_unchanged": true,
+          "import_bindings_unchanged": true,
+          "imports_reordered": false
+        }
+      ],
+      "scope": "Exact non-preamble AST equality and identical import binding multisets; import ordering reviewed separately."
+    },
+    "frontend_proof": {
+      "baseline_head": "ce14ddeaae97d769a011a1dd956d98af096bd6ad",
+      "prettier_version": "3.6.2",
+      "v2_assets": "20261115v129",
+      "shared_assets": "20261115u1",
+      "files": [
+        {
+          "path": "web/android/index.html",
+          "before_sha256": "f7ee84e61b9b55f0dcd3d3add201604ebca79e6f08edac2c0902773662b67865",
+          "after_sha256": "bd425f10e96c7e66321cfa3fc11cfc057e5ffe3040600720c619a42a20c34242",
+          "only_prettier_and_declared_cache_versions": true
+        },
+        {
+          "path": "web/capabilities/index.html",
+          "before_sha256": "0f35211b111510a4a2d3329bf7d6ca9bc636a653f3e52273bb9fe2806e8cd572",
+          "after_sha256": "7122b3d73f3c8d4412e0d3f9e1962af3724a9087d1c3eada0693bd37ca7f1e53",
+          "only_prettier_and_declared_cache_versions": true
+        },
+        {
+          "path": "web/index.html",
+          "before_sha256": "81d0ce877a72768d15dfccc393a6755f41489df0e5469d5144f5eddc11cab4b8",
+          "after_sha256": "cb382293a9ecc108793d460d7fcf7ac9eb866468d30dc6d8b8594ce18a80d7cd",
+          "only_prettier_and_declared_cache_versions": true
+        },
+        {
+          "path": "web/jobs/index.html",
+          "before_sha256": "fe5a55d86c21b95b016b0b180369b50e6e240937184441aa9367ed67ce200b81",
+          "after_sha256": "b92f7d0e597b8ec8a959102d2a818fbfb77e8bd2191f4396a0ce006decb187a7",
+          "only_prettier_and_declared_cache_versions": true
+        },
+        {
+          "path": "web/mcp/index.html",
+          "before_sha256": "5d4537aeb931a9fdec7ca5dd02b9d20ead1d692870b90f59fa33cf43df29ff82",
+          "after_sha256": "e024084bad4298343ea77c9217792213340fdbac659dae02a94ec56b5863cca2",
+          "only_prettier_and_declared_cache_versions": true
+        },
+        {
+          "path": "web/memory/index.html",
+          "before_sha256": "6a51b6abdf4351d19aeacaedd7bf3a16cfe225f612ae8acaa3c9132bb71ffd82",
+          "after_sha256": "36a5fc8f3dd754cc127e9e91a8f3dbcdd642490b4b77550e52237a122eb9531d",
+          "only_prettier_and_declared_cache_versions": true
+        },
+        {
+          "path": "web/project/index.html",
+          "before_sha256": "2fda2171b18a12d60e6a025d66565a8f49df776758f5443a7b3e45f74ff10efe",
+          "after_sha256": "9e57e4a2103dcfb8d2a7721c4282166509ce9235b48eb4c13f39ef761fcaa7fa",
+          "only_prettier_and_declared_cache_versions": true
+        },
+        {
+          "path": "web/storage/index.html",
+          "before_sha256": "2ba7d4924132bd55c3925310af4a184092098d4850d484d32bae857df0370ab7",
+          "after_sha256": "28e237db5ee0cd39ed341c44f209e64b507e3ad50e09fbe28adf93159240dafc",
+          "only_prettier_and_declared_cache_versions": true
+        },
+        {
+          "path": "web/terminal/index.html",
+          "before_sha256": "03e891123c48a07fc07b9948560e223e23096c114e30930964d6207778ab6e8d",
+          "after_sha256": "c39839a9f3d1e6a0d49df3d9571fe191bf445a6afffa9e8668d2d8da18a6f71b",
+          "only_prettier_and_declared_cache_versions": true
+        },
+        {
+          "path": "web/ui/icons.css",
+          "before_sha256": "bf99afac676343a02ae4a2a05168e56c8b476770adda9734d2e18c9bdfb6cae9",
+          "after_sha256": "422b95c90ff03344bc3e5fdc3a3874327c2dffab8dbc50ddf1309de271e85753",
+          "only_prettier_and_declared_cache_versions": true
+        },
+        {
+          "path": "web/ui/tokens.css",
+          "before_sha256": "9836930211674a121e33bd4869a4c0b3cfca3de0775111bc428facefe16cfc29",
+          "after_sha256": "4e6295383d76c5bb53604625c466a6bf526dbf85f633590d221e52ef5a5376e2",
+          "only_prettier_and_declared_cache_versions": true
+        },
+        {
+          "path": "web/ui/v2/android.js",
+          "before_sha256": "71c71968cbe797d1fe6d33ec3793a380b3f7439016a7367c6a2e8ae5e4a06b30",
+          "after_sha256": "82fd86ee7f3f1cde39639739c1bc783baa90fa6da8e27bc8c7ee89c747dd0718",
+          "only_prettier_and_declared_cache_versions": true
+        },
+        {
+          "path": "web/ui/v2/chat-images.js",
+          "before_sha256": "b2c1ebc14c5a90a209aea30e2e506c5a757b0abd8c3849933ed60e94060fc9ce",
+          "after_sha256": "9e2d25e4eaf55988e83f45d09712523b72b5d99591983485b8a8eb877c94020b",
+          "only_prettier_and_declared_cache_versions": true
+        },
+        {
+          "path": "web/ui/v2/desktop.js",
+          "before_sha256": "af6a5f866144a19b7bd15d5039217d788532cab2a56298982adbb553bdead801",
+          "after_sha256": "ad8160aaed4a19d8054a235fd4b5408b84a3c80270c0855b03b310023dca7e03",
+          "only_prettier_and_declared_cache_versions": true
+        },
+        {
+          "path": "web/ui/v2/documents.js",
+          "before_sha256": "1d89c5b124b5ebf62df8b4dbf04cf0552a96c530776a454ce1125451db9d7fb6",
+          "after_sha256": "6e9416e97a83d78401e058fa178935894031ab8efbb9f83985233c00e44a40d9",
+          "only_prettier_and_declared_cache_versions": true
+        },
+        {
+          "path": "web/ui/v2/index.html",
+          "before_sha256": "c8f50957ae01a952f449cad9791f538e294b0f55be4ecbe1f941c187c06983ad",
+          "after_sha256": "a73dcdb46e97f4dc10ea2fb0a04c361c480a238174711f4ae712b30cbfeb7c3f",
+          "only_prettier_and_declared_cache_versions": true
+        },
+        {
+          "path": "web/ui/v2/inspector.js",
+          "before_sha256": "f99861a2228b00ad49d685ccdc3e5a0656ae1fe6599266977aa947c8536c7b32",
+          "after_sha256": "d57d37c09e6f88f2308e3fc9fb765e4d340c6de08776ed25de9d7feb1c02547b",
+          "only_prettier_and_declared_cache_versions": true
+        },
+        {
+          "path": "web/ui/v2/main.js",
+          "before_sha256": "e31339b924629c6799db5502b510f4086f003b30db97718fcc82bf73493b6110",
+          "after_sha256": "f96e06657599e483d0635576cc91b8d4f4dd928ea53177d1d7aa6d17b42ff1cb",
+          "only_prettier_and_declared_cache_versions": true
+        },
+        {
+          "path": "web/ui/v2/models.js",
+          "before_sha256": "172a88caa5ba2b1809e69d44fa4c7ff05cc513f002e9b341f04b1af6c28a2b08",
+          "after_sha256": "b83c1043ebc5373ec3a0c9241a57f5b8c7f5ad4ea7c67ec8fdb309f0f939478e",
+          "only_prettier_and_declared_cache_versions": true
+        },
+        {
+          "path": "web/ui/v2/operations.js",
+          "before_sha256": "e02581f3e61fb6bd6028bc0f44075b9526bfae056ca09359daa37f54d9fc9d73",
+          "after_sha256": "786576dde16a3ace71aba646a61e3f6cd902c023cedc429779e3bb0194955731",
+          "only_prettier_and_declared_cache_versions": true
+        },
+        {
+          "path": "web/ui/v2/settings-rail.js",
+          "before_sha256": "f0ef708c6fb288b022d3d50ff570ad1df04f27156a78eb0f93b0ae0b15546075",
+          "after_sha256": "89fecb9db00538eef861b13ec16d56ba0c6156ddb3ebbf85604ea61aa34a10f4",
+          "only_prettier_and_declared_cache_versions": true
+        },
+        {
+          "path": "web/ui/v2/skills.js",
+          "before_sha256": "ff477dd2ee80a3df6c1e279411ca6162121d438dffb8f456674b8c06cf8da721",
+          "after_sha256": "5336073459f1d752e3a7d324c8e61fbfa49bcb38a1a136125fe73746e3b37753",
+          "only_prettier_and_declared_cache_versions": true
+        },
+        {
+          "path": "web/ui/v2/terminals.js",
+          "before_sha256": "f6c9d93286b069b59e09fb5669a5ca02fe268c452b7437b07ae5de7ea8729247",
+          "after_sha256": "954ade900fefdd17a9f813b0347c31acfd77bf3806bda7989668f4b9cc84a2f9",
+          "only_prettier_and_declared_cache_versions": true
+        },
+        {
+          "path": "web/ui/v2/v1/frame.css",
+          "before_sha256": "526d7d635b0bf7fded9fbbac18278ff7b235f6ff27509704a2aa095d9422255d",
+          "after_sha256": "079970f903e80c9d55b241c3f6f69488704e04a3a14b927d43ab325b6a160710",
+          "only_prettier_and_declared_cache_versions": true
+        },
+        {
+          "path": "web/ui/v2/v1/workbench.css",
+          "before_sha256": "241a07659c27847dd99d8fbad7b39fb7166fcf9b55119ffba8752018ea466115",
+          "after_sha256": "fe5549ada824222b15079ea68b638088862ea6e3cf8f8c023dad7d88c3ec8e72",
+          "only_prettier_and_declared_cache_versions": true
+        },
+        {
+          "path": "web/ui/v2/workbench.css",
+          "before_sha256": "66f5a963f08dc39519d0866059a956fe5298952c19cf5f4f618df7cefa265068",
+          "after_sha256": "d3741d249dfd992aacadb7e5768f6986065c63f5a9f7bce93515878d5e31e771",
+          "only_prettier_and_declared_cache_versions": true
+        }
+      ]
+    }
+  },
+  "targeted": {
+    "report": "temp/build/v2-style-callers.xml",
+    "report_sha256": "488f5c4a883f3feb4a2e416da4cf3db741a9c79de02b769d5b863043b11be940",
+    "tests": 61,
+    "passed": 61,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0,
+    "duration_s": 22.805
+  },
+  "targeted_unique_passed": 61,
+  "targeted_browser_cases": 3,
+  "gates": [
+    {
+      "command": "uv run --no-sync ruff check agent/src/omni",
+      "passed": true,
+      "issues": 0
+    },
+    {
+      "command": "uv run --no-sync ruff format --check agent/src/omni agent/tests agent/scripts agent/hatch_build.py",
+      "passed": true,
+      "formatted_files": 1017,
+      "unformatted_files": 0
+    },
+    {
+      "command": "npm run format:check (cwd web/)",
+      "passed": true,
+      "prettier_version": "3.6.2",
+      "unformatted_files": 0
+    },
+    {
+      "command": "uv run --no-sync pyright --project pyrightconfig.strict.json",
+      "passed": true,
+      "files": 332,
+      "errors": 0,
+      "warnings": 0,
+      "log": {
+        "path": "temp/build/v2-style-strict.log",
+        "sha256": "c584b21ee012de391dc2799d5455db619d3fefbb192ab07ea4ba83fb0d704c14"
+      }
+    },
+    {
+      "command": "uv run --no-sync python scripts/run_pyright.py",
+      "passed": true,
+      "scope": "The existing default four-file V1 gate, separate from V2 strict332",
+      "log": {
+        "path": "temp/build/v2-style-default-pyright.log",
+        "sha256": "7c3f697866028410b2e7f71af45f1676d59826b1c6c47794cdf5b082ef9ba671"
+      }
+    },
+    {
+      "command": "uv run --no-sync python scripts/check_frontend.py",
+      "passed": true,
+      "syntax_checked_modules": 85
+    },
+    {
+      "command": "uv run --no-sync python scripts/check_ui_contract.py",
+      "passed": true,
+      "scope": "Existing V1 UI ids/functions/actions and CSS contract"
+    },
+    {
+      "command": "uv run --no-sync python scripts/scan_duplicates.py",
+      "passed": true
+    },
+    {
+      "command": "uv run --no-sync python scripts/check_package.py",
+      "passed": true,
+      "log": {
+        "path": "temp/build/v2-style-package.log",
+        "sha256": "a57df6bad0eeea9c4b6b1bfd526b35f93b6af6bc583681bdcae131af3bba6ce0"
+      },
+      "result": {
+        "assets": 123,
+        "sha256": "a5d2903a0c0f7216305df2c67481f009be0221a47ebceb0165b1bb798b24a682",
+        "chains": [
+          "direct wheel",
+          "sdist to wheel",
+          "isolated import"
+        ],
+        "v2": [
+          "packaged assets",
+          "isolated fresh schema",
+          "no V1 imports",
+          "clean shutdown"
+        ],
+        "v2_kernel_sha256": "100fd67c35bc3154edd16b0b5e9220677a897c73a8410bb4ea51a417072d08e9"
+      }
+    }
+  ],
+  "static_debt": {
+    "ruff_import_sort_issues": 0,
+    "python_unformatted_files": 0,
+    "frontend_unformatted_files": 0,
+    "passed": true,
+    "scope": "The full configured Ruff source gate, Python formatter gate and web Prettier gate; strict scope remains332, not whole-repository strict."
+  },
+  "full_run": {
+    "status": "running",
+    "checkpoint": 78,
+    "artifact_id": 218,
+    "strict_checkpoint": 214,
+    "source_head": "92fbf78a06237414febec90915bae6067dc64c99",
+    "code_version": "355d503e2aef412d78a9afab57852024a296719ea11b0e96b2f74f59340f5a3e",
+    "fixed_source_files": 1210,
+    "strict_files": 332,
+    "report": "temp/build/v2-full-218.xml",
+    "workers": 2,
+    "uninterrupted_default_run": true
+  },
+  "not_verified": [
+    "Complete real model/MCP/market/plugin/device acceptance",
+    "Clean-machine installation/update/rollback/uninstall",
+    "macOS/Linux/container builds",
+    "24h/72h stability and default-entrypoint switch",
+    "Windows real foreground input remains deferred"
+  ],
+  "scope_note": "Style cleanup and offline validation do not resolve the ten open runtime/environment observations. Frozen historical results retain their source bindings."
+}
