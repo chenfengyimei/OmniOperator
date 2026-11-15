@@ -65,6 +65,7 @@ class LiteLLMModel:
             raise BusinessError(
                 "model_stream_capacity", "Model streaming transport admission is closed or full", status=503
             )
+
         def price(payload: dict[str, Any]) -> int | None:
             return self._price(litellm.ModelResponse(**payload))
 
@@ -129,8 +130,12 @@ class LiteLLMModel:
             headers["x-opencode-session"] = str(settings.get("model_profile_id") or "omni-operator")
         custom = settings.get("extra_headers")
         if isinstance(custom, dict):
-            for key, value in custom.items():
-                if isinstance(key, str) and isinstance(value, str) and key.lower() not in {"authorization", "x-api-key"}:
+            for key, value in cast(dict[object, object], custom).items():
+                if (
+                    isinstance(key, str)
+                    and isinstance(value, str)
+                    and key.lower() not in {"authorization", "x-api-key"}
+                ):
                     headers[key] = value
         kwargs["extra_headers"] = headers
         if tools:
@@ -174,9 +179,7 @@ class LiteLLMModel:
                 raise BusinessError(
                     "invalid_tool_arguments", "Model returned invalid tool arguments", status=502
                 ) from exc
-            calls.append(
-                Invocation(str(call["id"]), str(call["function"]["name"]), cast(dict[str, Any], arguments))
-            )
+            calls.append(Invocation(str(call["id"]), str(call["function"]["name"]), cast(dict[str, Any], arguments)))
         cost = self._price(response)
         usage: dict[str, Any] = payload.get("usage") or {}
         return ModelReply(

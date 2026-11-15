@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "34a4c1c3211cb4f2722de03a5a1af126797073af3028952603e3cef088872182",
+  "source_sha256": "7af269767ab547e615a1c5e4b2734b3de9a326c94fdba6a7b7b435e7dee8d980",
   "modules": [
     {
       "id": "v2-domain",
@@ -404,7 +404,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 54463,
+      "lines": 54477,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -10107,7 +10107,7 @@
       "path": "agent/src/omni/adapters/models.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.models",
-      "lines": 193,
+      "lines": 207,
       "imports": [
         "omni.adapters.diagnostics",
         "omni.adapters.model_stream",
@@ -10221,7 +10221,7 @@
         },
         {
           "name": "LiteLLMModel.prepare_stream.price",
-          "line": 68,
+          "line": 69,
           "kind": "function",
           "parameters": [
             "payload"
@@ -10232,7 +10232,7 @@
         },
         {
           "name": "LiteLLMModel.health",
-          "line": 75,
+          "line": 76,
           "kind": "function",
           "parameters": [
             "self"
@@ -10241,7 +10241,7 @@
         },
         {
           "name": "LiteLLMModel.stop_accepting",
-          "line": 84,
+          "line": 85,
           "kind": "function",
           "parameters": [
             "self"
@@ -10250,7 +10250,7 @@
         },
         {
           "name": "LiteLLMModel.close",
-          "line": 87,
+          "line": 88,
           "kind": "function",
           "parameters": [
             "self",
@@ -10262,7 +10262,7 @@
         },
         {
           "name": "LiteLLMModel._prepare",
-          "line": 100,
+          "line": 101,
           "kind": "function",
           "parameters": [
             "self",
@@ -10278,7 +10278,7 @@
         },
         {
           "name": "LiteLLMModel._send",
-          "line": 138,
+          "line": 154,
           "kind": "function",
           "parameters": [
             "self",
@@ -10290,7 +10290,7 @@
         },
         {
           "name": "LiteLLMModel._price",
-          "line": 181,
+          "line": 195,
           "kind": "function",
           "parameters": [
             "response"
