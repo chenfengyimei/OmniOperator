@@ -139,9 +139,7 @@ class TerminalService:
                         "Terminal state must settle before admitting another process",
                         status=503,
                     )
-                prior = await self._db.read(
-                    lambda u: u.terminal_open_replay(agent_id, cast(Record, checked))
-                )
+                prior = await self._db.read(lambda u: u.terminal_open_replay(agent_id, cast(Record, checked)))
                 if prior is not None:
                     return prior
                 if len(self._live) >= MAX_SESSIONS:
@@ -267,9 +265,9 @@ class TerminalService:
             )
         entry.expires = self._clock.monotonic() + LEASE_SECONDS
         earliest = entry.chunks[0][0] if entry.chunks else entry.sequence + 1
-        rows: list[Record] = [
-            cast(Record, {"seq": seq, "data": data}) for seq, data, _ in entry.chunks if seq > after
-        ][:16]
+        rows: list[Record] = [cast(Record, {"seq": seq, "data": data}) for seq, data, _ in entry.chunks if seq > after][
+            :16
+        ]
         chunks: list[JSON] = list(rows)
         next_after = cast(int, rows[-1]["seq"]) if rows else after
         dropped = cast(int, entry.process.snapshot().get("output_dropped", 0))
@@ -329,9 +327,7 @@ class TerminalService:
             sha = payload_fingerprint(kind, checked)
             await self.get(agent_id, identity)
             try:
-                old = await self._db.read(
-                    lambda u: u.terminal_operation_lookup(agent_id, str(checked["operation_id"]))
-                )
+                old = await self._db.read(lambda u: u.terminal_operation_lookup(agent_id, str(checked["operation_id"])))
             except BusinessError as exc:
                 if exc.status != 404:
                     raise
@@ -364,9 +360,7 @@ class TerminalService:
                     self._writer(entry, str(checked["connection_id"]))
                     dispatched = True
                     if kind == "input":
-                        accepted = await entry.process.write(
-                            cast(str, checked["data"]), str(checked["operation_id"])
-                        )
+                        accepted = await entry.process.write(cast(str, checked["data"]), str(checked["operation_id"]))
                         if accepted != size:
                             raise BusinessError("terminal_partial_input", "PTY accepted an incomplete input frame")
                     else:
@@ -390,9 +384,7 @@ class TerminalService:
                         u.terminal_mark_resized(
                             agent_id, identity, cast(int, checked["cols"]), cast(int, checked["rows"])
                         )
-                    return u.terminal_operation_settle(
-                        agent_id, identity, str(checked["operation_id"]), "accepted"
-                    )
+                    return u.terminal_operation_settle(agent_id, identity, str(checked["operation_id"]), "accepted")
 
                 return await self._db.write(settled)
 

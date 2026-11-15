@@ -81,12 +81,7 @@ def segment_rows(segments: object) -> list[list[object]]:
         if type(start) not in (int, float) or type(end) not in (int, float) or not isinstance(text, str):
             raise invalid("media_transcript_invalid")
         start_s, end_s = float(cast(float, start)), float(cast(float, end))
-        if (
-            not 0 <= start_s <= end_s
-            or end_s > MAX_DURATION_S
-            or start_s < previous_end - 0.001
-            or not text.strip()
-        ):
+        if not 0 <= start_s <= end_s or end_s > MAX_DURATION_S or start_s < previous_end - 0.001 or not text.strip():
             raise invalid("media_transcript_invalid")
         previous_end = end_s
         total += len(text)
@@ -154,9 +149,7 @@ def transcript_body(kind: str, rows: Sequence[Sequence[object]]) -> str:
     """Full anchored text: '[MM:SS-MM:SS] line' rows for ASR, plain text for subtitles."""
     if kind == "subtitle":
         return str(rows[0][2]) if rows else ""
-    return "\n".join(
-        f"[{_stamp(cast(float, row[0]))}-{_stamp(cast(float, row[1]))}] {row[2]}" for row in rows
-    )
+    return "\n".join(f"[{_stamp(cast(float, row[0]))}-{_stamp(cast(float, row[1]))}] {row[2]}" for row in rows)
 
 
 def transcript_text(

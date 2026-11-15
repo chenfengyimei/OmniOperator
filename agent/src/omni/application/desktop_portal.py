@@ -163,9 +163,7 @@ class DesktopPortalService:
 
     async def _watch(self, grant: Grant) -> None:
         try:
-            value = backend_status(
-                await self._backend.status(grant.scope), cast(str, grant.scope["grant_id"])
-            )
+            value = backend_status(await self._backend.status(grant.scope), cast(str, grant.scope["grant_id"]))
             while True:
                 if value["phase"] == "active" and not grant.authorized:
                     await self._guard(grant)
@@ -240,9 +238,7 @@ class DesktopPortalService:
         if agent_id in self._capturing or len(self._capturing) >= 4 or self._closing:
             raise BusinessError("portal_frame_busy", "Window frame requests are bounded", status=503)
         self._capturing.add(agent_id)
-        task = asyncio.create_task(
-            self._capture(grant, request["session_id"]), name="portal-frame-publication"
-        )
+        task = asyncio.create_task(self._capture(grant, request["session_id"]), name="portal-frame-publication")
         self._own(task)
         return await asyncio.shield(task)
 
@@ -254,9 +250,7 @@ class DesktopPortalService:
 
             async def guard():
                 await self._guard(grant)
-                native = backend_status(
-                    await self._backend.status(grant.scope), cast(str, grant.scope["grant_id"])
-                )
+                native = backend_status(await self._backend.status(grant.scope), cast(str, grant.scope["grant_id"]))
                 if (
                     not grant.authorized
                     or native["phase"] != "active"

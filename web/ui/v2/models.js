@@ -167,11 +167,13 @@ export function mountModels({ api, wrap, getAgent, getGeneration }) {
       ? `${p.name} 默认端点，可改为代理或兼容网关。`
       : '自定义端点：填写完整 base_url（含 /v1 等路径）。';
     const list = $('mo-model-suggestions');
-    list.replaceChildren(...p.models.map((m) => {
-      const option = document.createElement('option');
-      option.value = m;
-      return option;
-    }));
+    list.replaceChildren(
+      ...p.models.map((m) => {
+        const option = document.createElement('option');
+        option.value = m;
+        return option;
+      }),
+    );
     if (!keepKey) $('mo-api-key').value = '';
     steps(2);
     setStatus(`已选择 ${p.name}，填入 API Key 后保存。`, 'idle');
@@ -301,17 +303,13 @@ export function mountModels({ api, wrap, getAgent, getGeneration }) {
           actionBtn('network_check', '测试', () => testRow(row)),
           actionBtn(row.enabled ? 'pause_circle' : 'play_circle', row.enabled ? '停用' : '启用', () => toggleRow(row)),
         );
-        if (row.id !== defaultId && row.enabled)
-          actions.append(actionBtn('star', '设为默认', () => defaultRow(row)));
+        if (row.id !== defaultId && row.enabled) actions.append(actionBtn('star', '设为默认', () => defaultRow(row)));
         card.append(head, meta, ref, diag, actions);
         return card;
       }),
     );
     const usable = rows.filter((r) => r.enabled && r.diag?.available).length;
-    hero(
-      usable ? `${usable} 个模型可用 · 默认已就绪` : '已有配置，但尚无可运行模型',
-      usable ? 'ok' : 'warn',
-    );
+    hero(usable ? `${usable} 个模型可用 · 默认已就绪` : '已有配置，但尚无可运行模型', usable ? 'ok' : 'warn');
   }
 
   function actionBtn(icon, label, onClick) {
@@ -349,7 +347,8 @@ export function mountModels({ api, wrap, getAgent, getGeneration }) {
     renderList();
     const def = rows.find((r) => r.id === settingsRow.value?.model_profile_id);
     if (def) {
-      const match = PROVIDERS.find((p) => def.value?.model?.startsWith(p.id + '/')) ||
+      const match =
+        PROVIDERS.find((p) => def.value?.model?.startsWith(p.id + '/')) ||
         PROVIDERS.find((p) => p.base && def.value?.base_url === p.base);
       if (match) {
         selectProvider(match, { keepKey: true });
@@ -408,7 +407,13 @@ export function mountModels({ api, wrap, getAgent, getGeneration }) {
     }
     await api(`${root()}/configurations/${row.id}`, {
       method: 'PUT',
-      body: { name: row.name, enabled: !row.enabled, value: row.value, revision: row.revision, image_policy: row.image_policy },
+      body: {
+        name: row.name,
+        enabled: !row.enabled,
+        value: row.value,
+        revision: row.revision,
+        image_policy: row.image_policy,
+      },
     });
     if (!current(t)) return;
     await load();
@@ -444,7 +449,10 @@ export function mountModels({ api, wrap, getAgent, getGeneration }) {
           if (!current(t)) return;
         }
         steps(3);
-        setStatus(`已保存并启用「${saved.name}」${$('mo-set-default').checked ? '，已设为默认' : ''}。可点「测试连接」验证。`, 'ok');
+        setStatus(
+          `已保存并启用「${saved.name}」${$('mo-set-default').checked ? '，已设为默认' : ''}。可点「测试连接」验证。`,
+          'ok',
+        );
         await load();
       } finally {
         if (current(t)) $('mo-fields').disabled = false;

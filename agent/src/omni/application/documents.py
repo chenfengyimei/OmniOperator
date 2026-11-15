@@ -358,8 +358,3 @@ class DocumentService:
                 return False
         self._closed = True
         return True
-
-
-
-
-

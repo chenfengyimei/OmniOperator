@@ -1432,7 +1432,7 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 
 ### Form
 
-定位：[agent/src/omni/domain/bilibili.py](../../agent/src/omni/domain/bilibili.py#L124)。
+定位：[agent/src/omni/domain/bilibili.py](../../agent/src/omni/domain/bilibili.py#L184)。
 
 | 字段 | 类型 | 必填 |
 |---|---|---|

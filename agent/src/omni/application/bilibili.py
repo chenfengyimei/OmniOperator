@@ -64,7 +64,9 @@ PREPARE_SPEC = ToolSpec(
 
 
 class BilibiliPort(DeliveryPort, Protocol):
-    async def read(self, configuration: Mapping[str, object], operation: str, target: str, limit: int = 10) -> dict[str, object]: ...
+    async def read(
+        self, configuration: Mapping[str, object], operation: str, target: str, limit: int = 10
+    ) -> dict[str, object]: ...
 
 
 log = logging.getLogger("omni.v2.bilibili")
@@ -123,7 +125,9 @@ class BilibiliService:
         if self._closing:
             raise BusinessError("bilibili_closing", "Bilibili admission is draining", status=503)
         return await self._db.write(
-            lambda u: u.bilibili_profile_save(agent_id, config_id, enabled, cast(dict[str, object], forms), revision, headless)
+            lambda u: u.bilibili_profile_save(
+                agent_id, config_id, enabled, cast(dict[str, object], forms), revision, headless
+            )
         )
 
     async def prepare(
@@ -204,7 +208,3 @@ class BilibiliService:
             _, pending = await asyncio.wait(tuple(self._pending), timeout=max(0, timeout_s))
             return not pending
         return True
-
-
-
-

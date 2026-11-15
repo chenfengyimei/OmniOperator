@@ -283,4 +283,3 @@ def validate_response(value: object, expected: Mapping[str, object]) -> dict[str
     ):
         raise invalid()
     return fields
-

@@ -151,9 +151,7 @@ class AuditRetentionRepositories(HistoryProtectionRepositories):
         actions: dict[str, dict[str, Any] | None] = {}
         protections: dict[str, list[str]] = {}
 
-        def owned(
-            table: Table, identity: str | None, cache: dict[str, dict[str, Any] | None]
-        ) -> dict[str, Any] | None:
+        def owned(table: Table, identity: str | None, cache: dict[str, dict[str, Any] | None]) -> dict[str, Any] | None:
             if not identity:
                 return None
             if identity not in cache:

@@ -69,9 +69,7 @@ class QQService:
         if event is None:
             return None
         result = await self._db.write(
-            lambda u: u.qq_accept(
-                agent_id, config_id, revision_id, event, cast(str, config["transport_revision"])
-            )
+            lambda u: u.qq_accept(agent_id, config_id, revision_id, event, cast(str, config["transport_revision"]))
         )
         self._notify()
         return result
@@ -227,4 +225,3 @@ class QQService:
             await asyncio.gather(*tasks, return_exceptions=True)
         self._listeners.clear()
         return True
-

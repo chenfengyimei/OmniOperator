@@ -104,9 +104,7 @@ class DesktopService:
                         if not done.cancelled():
                             done.exception()
 
-                    task.add_done_callback(
-                        lambda future: detached(cast(asyncio.Task[object], future))
-                    )
+                    task.add_done_callback(lambda future: detached(cast(asyncio.Task[object], future)))
                 del self._views[victim]
             self._views[agent_id] = DesktopView(self._ids.new())
         self._views.move_to_end(agent_id)
@@ -390,9 +388,7 @@ class DesktopService:
             )
             await guard()
             # UI text is returned once, never cached, audited or turned into an action lease.
-            identities = {
-                str(node["id"]): self._ids.new() for node in cast(list[Record], report["nodes"])
-            }
+            identities = {str(node["id"]): self._ids.new() for node in cast(list[Record], report["nodes"])}
             view.observation_id, view.observed_target = self._ids.new(), cast(str, request["target_id"])
             view.references = {
                 identities[str(node["id"])]: {"reference": node["reference"], "actions": node["actions"]}
@@ -417,7 +413,9 @@ class DesktopService:
                 "expires_in_s": max(0, view.expires - self._clock.monotonic()),
                 "nodes": nodes,
                 "truncated": cast(JSON, report["truncated"]),
-                **({"coordinate_space": cast(JSON, report["coordinate_space"])} if "coordinate_space" in report else {}),
+                **(
+                    {"coordinate_space": cast(JSON, report["coordinate_space"])} if "coordinate_space" in report else {}
+                ),
             }
 
         return await self._execute(agent_id, cast(str, request["view_id"]), "observe", perform)

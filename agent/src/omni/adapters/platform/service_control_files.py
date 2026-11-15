@@ -22,7 +22,9 @@ from .service_operation_files import ServiceOperationFiles
 class ServiceControlFiles(ServiceOperationFiles):
     def __init__(self, *, exchange: Record | None = None) -> None:
         super().__init__(
-            validate=lambda value: cast(Record, validate_control(value)), namespace="service-controls", exchange=exchange
+            validate=lambda value: cast(Record, validate_control(value)),
+            namespace="service-controls",
+            exchange=exchange,
         )
 
     def publish(self, operation: Record, output: str) -> Record:

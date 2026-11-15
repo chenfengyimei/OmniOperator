@@ -152,11 +152,7 @@ def receipt(value: object) -> dict[str, object]:
 
 def frame_event(value: object, expected: dict[str, str]) -> dict[str, object]:
     fields = _fields(value, {"version", "binding", "kind", "capture_id", "receipt"})
-    if (
-        fields["version"] != VERSION
-        or fields["kind"] != "frame"
-        or binding(fields["binding"]) != binding(expected)
-    ):
+    if fields["version"] != VERSION or fields["kind"] != "frame" or binding(fields["binding"]) != binding(expected):
         raise invalid()
     return {"capture_id": uuid_value(fields["capture_id"]), "receipt": receipt(fields["receipt"])}
 

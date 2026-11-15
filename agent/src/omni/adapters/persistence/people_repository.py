@@ -136,9 +136,7 @@ class PeopleRepositories(MemoryRepositories):
             agent_id,
         )
         self._touch_person(person_id)
-        self.audit(
-            agent_id, "account.bound", cast(str, row["id"]), {"person_id": person_id, "verification": "manual"}
-        )
+        self.audit(agent_id, "account.bound", cast(str, row["id"]), {"person_id": person_id, "verification": "manual"})
         return row
 
     def account_unbind(self, agent_id: str, person_id: str, account_id: str, revision: int) -> None:
@@ -152,9 +150,7 @@ class PeopleRepositories(MemoryRepositories):
         self._touch_person(person_id)
         self.audit(agent_id, "account.unbound", account_id, {"person_id": person_id})
 
-    def accounts_page(
-        self, agent_id: str, person_id: str, after: str = "", limit: int = 100
-    ) -> list[dict[str, Any]]:
+    def accounts_page(self, agent_id: str, person_id: str, after: str = "", limit: int = 100) -> list[dict[str, Any]]:
         self._live_person(agent_id, person_id)
         return [
             dict(row)

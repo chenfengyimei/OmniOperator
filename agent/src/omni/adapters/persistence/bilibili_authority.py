@@ -55,7 +55,8 @@ def publication_for_delivery(
     if message["deleted_at"] or body_hash(content) != row["body_hash"]:
         raise BusinessError("bilibili_source_invalid", "Publication source was erased or changed")
     mentions = mentions_value(
-        content, [{**m, "name": content[m["start"] + 1 : m["end"]]} for m in cast(list[dict[str, Any]], row["mentions"])]
+        content,
+        [{**m, "name": content[m["start"] + 1 : m["end"]]} for m in cast(list[dict[str, Any]], row["mentions"])],
     )
     return {
         **row,

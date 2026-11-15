@@ -162,9 +162,7 @@ class ExtensionService:
         normalized, digest = parse_install(request), request_fingerprint(request)
 
         async def perform() -> Record:
-            prior = await self._db.read(
-                lambda u: u.extension_install_replay(agent_id, str(normalized["key"]), digest)
-            )
+            prior = await self._db.read(lambda u: u.extension_install_replay(agent_id, str(normalized["key"]), digest))
             if prior:
                 return self._public(prior)
             captured = await self._packages.capture(str(normalized["source"]))
@@ -203,9 +201,7 @@ class ExtensionService:
         """Bounded owner view of what this plugin actually returned; no arguments or free text."""
 
         async def perform() -> Record:
-            records = await self._db.read(
-                lambda u: u.extension_action_page(agent_id, extension_id, after, limit)
-            )
+            records = await self._db.read(lambda u: u.extension_action_page(agent_id, extension_id, after, limit))
             items: list[Record] = []
             for record in records:
                 raw_result = record.get("result")

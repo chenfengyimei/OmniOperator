@@ -2,15 +2,14 @@
 
 from __future__ import annotations
 
-from sqlalchemy import select
-
-from ...domain.contracts import BusinessError
-from ...domain.history import decode_cursor, encode_cursor
-from . import schema as s
 from typing import cast
 
+from sqlalchemy import select
+
 from ...application.ports import Record
-from ...domain.contracts import JSON
+from ...domain.contracts import JSON, BusinessError
+from ...domain.history import decode_cursor, encode_cursor
+from . import schema as s
 from .repository_base import RepositoryBase
 
 

@@ -240,4 +240,3 @@ class ServiceControl:
         self._settle()
         self._release()
         return True
-

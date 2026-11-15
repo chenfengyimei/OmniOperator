@@ -23,7 +23,7 @@ from jsonschema import Draft202012Validator
 from jsonschema.exceptions import SchemaError
 
 from .configuration import MCPOptions
-from .contracts import BusinessError, JSON, ToolSpec
+from .contracts import JSON, BusinessError, ToolSpec
 
 TRANSPORTS = frozenset({"stdio", "streamable_http"})
 AUTH_MODES = frozenset({"none", "bearer", "oauth"})

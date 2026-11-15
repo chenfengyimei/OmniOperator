@@ -384,17 +384,19 @@ def _content(plan: object) -> dict[str, object]:
     if not isinstance(plan, dict):
         raise invalid()
     fields = cast(dict[str, object], plan)
-    if set(fields) not in (
-        {"format", "id", "created_at", "request", "runtime", "isolated_registration"},
-        {"format", "id", "created_at", "request", "runtime", "isolated_registration", "sha256"},
-    ) or fields["format"] != PLAN_FORMAT:
+    if (
+        set(fields)
+        not in (
+            {"format", "id", "created_at", "request", "runtime", "isolated_registration"},
+            {"format", "id", "created_at", "request", "runtime", "isolated_registration", "sha256"},
+        )
+        or fields["format"] != PLAN_FORMAT
+    ):
         raise invalid()
     request, runtime = parse_request(fields["request"]), validate_runtime(fields["runtime"])
     if type(fields["isolated_registration"]) is not bool:
         raise invalid()
-    platform = {"windows": "win32", "macos": "darwin", "linux": "linux"}[
-        cast(str, request["target"]).split("-", 1)[0]
-    ]
+    platform = {"windows": "win32", "macos": "darwin", "linux": "linux"}[cast(str, request["target"]).split("-", 1)[0]]
     if platform != runtime["platform"] or request["principal"] != runtime["principal"]:
         raise invalid()
     return {
@@ -535,9 +537,7 @@ def manager_identity(plan: object) -> dict[str, object]:
     if target.startswith("macos-"):
         name = "com.omnioperator.v2." + identity
         directory = (
-            "/Library/LaunchDaemons"
-            if system
-            else posixpath.join(cast(str, principal["home"]), "Library/LaunchAgents")
+            "/Library/LaunchDaemons" if system else posixpath.join(cast(str, principal["home"]), "Library/LaunchAgents")
         )
         return {
             "manager": "launchd",
@@ -549,9 +549,7 @@ def manager_identity(plan: object) -> dict[str, object]:
         }
     name = "omnioperator-v2-" + identity + ".service"
     directory = (
-        "/etc/systemd/system"
-        if system
-        else posixpath.join(cast(str, principal["home"]), ".config/systemd/user")
+        "/etc/systemd/system" if system else posixpath.join(cast(str, principal["home"]), ".config/systemd/user")
     )
     return {
         "manager": "systemd",

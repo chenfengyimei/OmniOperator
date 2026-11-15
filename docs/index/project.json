@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "7af269767ab547e615a1c5e4b2734b3de9a326c94fdba6a7b7b435e7dee8d980",
+  "source_sha256": "615d840ccf00d0e49a007be567a4b2c28b9ae1d7f3b3b26dd0bd4fa70a5d3504",
   "modules": [
     {
       "id": "v2-domain",
@@ -72,7 +72,7 @@
         "agent/src/omni/domain/terminal_review.py",
         "agent/src/omni/domain/terminals.py"
       ],
-      "lines": 9587,
+      "lines": 9621,
       "dependencies": []
     },
     {
@@ -136,7 +136,7 @@
         "agent/src/omni/application/terminal_review.py",
         "agent/src/omni/application/terminals.py"
       ],
-      "lines": 11232,
+      "lines": 11176,
       "dependencies": [
         "v2-domain"
       ]
@@ -404,7 +404,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 54477,
+      "lines": 54460,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -439,7 +439,7 @@
         "agent/src/omni/composition/service_runner.py",
         "agent/src/omni/composition/serving.py"
       ],
-      "lines": 3048,
+      "lines": 3044,
       "dependencies": [
         "v2-adapters",
         "v2-application",
@@ -499,7 +499,7 @@
         "web/ui/v2/v1/workbench.css",
         "web/ui/v2/workbench.css"
       ],
-      "lines": 21746,
+      "lines": 22004,
       "dependencies": []
     },
     {
@@ -1041,7 +1041,7 @@
         "web/ui/tokens.css",
         "web/ui/workbench.css"
       ],
-      "lines": 12656,
+      "lines": 12654,
       "dependencies": []
     },
     {
@@ -11594,7 +11594,7 @@
       "path": "agent/src/omni/adapters/persistence/audit_pruning_repository.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.persistence.audit_pruning_repository",
-      "lines": 107,
+      "lines": 103,
       "imports": [
         "omni.adapters.persistence",
         "omni.adapters.persistence.audit_retention_repository",
@@ -11629,7 +11629,7 @@
         },
         {
           "name": "AuditPruningRepositories.audit_retention_plan",
-          "line": 61,
+          "line": 59,
           "kind": "function",
           "parameters": [
             "self",
@@ -11647,7 +11647,7 @@
         },
         {
           "name": "AuditPruningRepositories._audit_cycle",
-          "line": 86,
+          "line": 84,
           "kind": "function",
           "parameters": [
             "self"
@@ -11656,7 +11656,7 @@
         },
         {
           "name": "AuditPruningRepositories.audit_retention_batch",
-          "line": 89,
+          "line": 87,
           "kind": "function",
           "parameters": [
             "self",
@@ -11668,7 +11668,7 @@
         },
         {
           "name": "AuditPruningRepositories.audit_retention_validate",
-          "line": 92,
+          "line": 90,
           "kind": "function",
           "parameters": [
             "self",
@@ -11680,7 +11680,7 @@
         },
         {
           "name": "AuditPruningRepositories.audit_retention_prepare",
-          "line": 95,
+          "line": 93,
           "kind": "function",
           "parameters": [
             "self",
@@ -11696,7 +11696,7 @@
         },
         {
           "name": "AuditPruningRepositories.audit_retention_delete",
-          "line": 100,
+          "line": 96,
           "kind": "function",
           "parameters": [
             "self",
@@ -11710,7 +11710,7 @@
         },
         {
           "name": "AuditPruningRepositories.audit_retention_complete",
-          "line": 103,
+          "line": 99,
           "kind": "function",
           "parameters": [
             "self",
@@ -11722,7 +11722,7 @@
         },
         {
           "name": "AuditPruningRepositories.audit_retention_cancel",
-          "line": 106,
+          "line": 102,
           "kind": "function",
           "parameters": [
             "self",
@@ -11741,7 +11741,7 @@
       "path": "agent/src/omni/adapters/persistence/audit_retention_repository.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.persistence.audit_retention_repository",
-      "lines": 218,
+      "lines": 216,
       "imports": [
         "omni.adapters.persistence",
         "omni.adapters.persistence.history_protection",
@@ -11812,7 +11812,7 @@
       "path": "agent/src/omni/adapters/persistence/bilibili_authority.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.persistence.bilibili_authority",
-      "lines": 73,
+      "lines": 74,
       "imports": [
         "omni.adapters.persistence",
         "omni.adapters.persistence.configuration_repository",
@@ -11862,7 +11862,7 @@
         },
         {
           "name": "publication_preview",
-          "line": 69,
+          "line": 70,
           "kind": "function",
           "parameters": [
             "unit",
@@ -14277,7 +14277,7 @@
       "path": "agent/src/omni/adapters/persistence/execution_pruning.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.persistence.execution_pruning",
-      "lines": 41,
+      "lines": 40,
       "imports": [
         "omni.adapters.persistence.offline_plans",
         "omni.adapters.platform.paths",
@@ -14287,7 +14287,7 @@
       "symbols": [
         {
           "name": "read_pruning_plan",
-          "line": 28,
+          "line": 27,
           "kind": "function",
           "parameters": [
             "path",
@@ -14300,7 +14300,7 @@
         },
         {
           "name": "plan_pruning",
-          "line": 32,
+          "line": 31,
           "kind": "function",
           "parameters": [
             "paths",
@@ -14317,7 +14317,7 @@
         },
         {
           "name": "apply_pruning",
-          "line": 36,
+          "line": 35,
           "kind": "function",
           "parameters": [
             "paths",
@@ -14332,7 +14332,7 @@
         },
         {
           "name": "cancel_pruning",
-          "line": 40,
+          "line": 39,
           "kind": "function",
           "parameters": [
             "paths",
@@ -14889,7 +14889,7 @@
       "path": "agent/src/omni/adapters/persistence/history_protection.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.persistence.history_protection",
-      "lines": 69,
+      "lines": 68,
       "imports": [
         "omni.adapters.persistence",
         "omni.adapters.persistence.execution_retention_repository",
@@ -14898,12 +14898,12 @@
       "symbols": [
         {
           "name": "HistoryProtectionRepositories",
-          "line": 13,
+          "line": 12,
           "kind": "class"
         },
         {
           "name": "HistoryProtectionRepositories._history_run_protections",
-          "line": 14,
+          "line": 13,
           "kind": "function",
           "parameters": [
             "self",
@@ -15092,7 +15092,7 @@
       "path": "agent/src/omni/adapters/persistence/history_repository.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.persistence.history_repository",
-      "lines": 86,
+      "lines": 85,
       "imports": [
         "omni.adapters.persistence",
         "omni.adapters.persistence.repository_base",
@@ -15103,12 +15103,12 @@
       "symbols": [
         {
           "name": "HistoryRepositories",
-          "line": 17,
+          "line": 16,
           "kind": "class"
         },
         {
           "name": "HistoryRepositories.history_page",
-          "line": 18,
+          "line": 17,
           "kind": "function",
           "parameters": [
             "self",
@@ -19333,7 +19333,7 @@
       "path": "agent/src/omni/adapters/persistence/people_repository.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.persistence.people_repository",
-      "lines": 216,
+      "lines": 212,
       "imports": [
         "omni.adapters.persistence",
         "omni.adapters.persistence.memory_repository",
@@ -19468,7 +19468,7 @@
         },
         {
           "name": "PeopleRepositories.account_unbind",
-          "line": 144,
+          "line": 142,
           "kind": "function",
           "parameters": [
             "self",
@@ -19486,7 +19486,7 @@
         },
         {
           "name": "PeopleRepositories.accounts_page",
-          "line": 155,
+          "line": 153,
           "kind": "function",
           "parameters": [
             "self",
@@ -19504,7 +19504,7 @@
         },
         {
           "name": "PeopleRepositories.personal_document",
-          "line": 169,
+          "line": 165,
           "kind": "function",
           "parameters": [
             "self",
@@ -19520,7 +19520,7 @@
         },
         {
           "name": "PeopleRepositories.save_document",
-          "line": 192,
+          "line": 188,
           "kind": "function",
           "parameters": [
             "self",
@@ -19787,7 +19787,7 @@
       "path": "agent/src/omni/adapters/persistence/reference_release.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.persistence.reference_release",
-      "lines": 41,
+      "lines": 40,
       "imports": [
         "omni.adapters.persistence.offline_plans",
         "omni.adapters.platform.paths",
@@ -19797,7 +19797,7 @@
       "symbols": [
         {
           "name": "read_reference_plan",
-          "line": 28,
+          "line": 27,
           "kind": "function",
           "parameters": [
             "path",
@@ -19810,7 +19810,7 @@
         },
         {
           "name": "plan_reference_release",
-          "line": 32,
+          "line": 31,
           "kind": "function",
           "parameters": [
             "paths",
@@ -19827,7 +19827,7 @@
         },
         {
           "name": "apply_reference_release",
-          "line": 36,
+          "line": 35,
           "kind": "function",
           "parameters": [
             "paths",
@@ -19842,7 +19842,7 @@
         },
         {
           "name": "cancel_reference_release",
-          "line": 40,
+          "line": 39,
           "kind": "function",
           "parameters": [
             "paths",
@@ -26719,7 +26719,7 @@
       "path": "agent/src/omni/adapters/platform/macos_helper.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.macos_helper",
-      "lines": 113,
+      "lines": 114,
       "imports": [
         "omni.domain.contracts",
         "omni.domain.desktop"
@@ -26765,7 +26765,7 @@
         },
         {
           "name": "resolve",
-          "line": 71,
+          "line": 72,
           "kind": "function",
           "parameters": [],
           "annotations": {}
@@ -29605,7 +29605,7 @@
       "path": "agent/src/omni/adapters/platform/service_control_files.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.service_control_files",
-      "lines": 124,
+      "lines": 126,
       "imports": [
         "omni.adapters.object_store",
         "omni.adapters.persistence.deployed_instance",
@@ -29639,7 +29639,7 @@
         },
         {
           "name": "ServiceControlFiles.publish",
-          "line": 28,
+          "line": 30,
           "kind": "function",
           "parameters": [
             "self",
@@ -29653,7 +29653,7 @@
         },
         {
           "name": "ServiceControlFiles.exclusive",
-          "line": 47,
+          "line": 49,
           "kind": "function",
           "parameters": [
             "self",
@@ -29665,7 +29665,7 @@
         },
         {
           "name": "ServiceControlFiles.reserve",
-          "line": 54,
+          "line": 56,
           "kind": "function",
           "parameters": [
             "self",
@@ -29677,7 +29677,7 @@
         },
         {
           "name": "ServiceControlFiles.dispatched",
-          "line": 71,
+          "line": 73,
           "kind": "function",
           "parameters": [
             "self",
@@ -29689,7 +29689,7 @@
         },
         {
           "name": "ServiceControlFiles.finish_launch",
-          "line": 82,
+          "line": 84,
           "kind": "function",
           "parameters": [
             "self",
@@ -29701,7 +29701,7 @@
         },
         {
           "name": "ServiceControlFiles.closed",
-          "line": 101,
+          "line": 103,
           "kind": "function",
           "parameters": [
             "self",
@@ -29718,7 +29718,7 @@
       "path": "agent/src/omni/adapters/platform/service_handover.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.service_handover",
-      "lines": 79,
+      "lines": 77,
       "imports": [
         "omni.adapters.platform.service_admin_client",
         "omni.application.ports",
@@ -29746,7 +29746,7 @@
         },
         {
           "name": "AdministratorHandover.prepare_resume",
-          "line": 28,
+          "line": 26,
           "kind": "function",
           "parameters": [
             "self",
@@ -29758,7 +29758,7 @@
         },
         {
           "name": "AdministratorHandover.admit",
-          "line": 32,
+          "line": 30,
           "kind": "function",
           "parameters": [
             "self",
@@ -29770,7 +29770,7 @@
         },
         {
           "name": "AdministratorHandover.close_source",
-          "line": 56,
+          "line": 54,
           "kind": "function",
           "parameters": [
             "self",
@@ -29782,7 +29782,7 @@
         },
         {
           "name": "AdministratorHandover.close_target",
-          "line": 64,
+          "line": 62,
           "kind": "function",
           "parameters": [
             "self",
@@ -29794,7 +29794,7 @@
         },
         {
           "name": "AdministratorHandover.close",
-          "line": 74,
+          "line": 72,
           "kind": "function",
           "parameters": [
             "self",
@@ -30864,12 +30864,12 @@
       "path": "agent/src/omni/adapters/platform/systemd_state.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.systemd_state",
-      "lines": 102,
+      "lines": 101,
       "imports": [],
       "symbols": [
         {
           "name": "manager_report",
-          "line": 25,
+          "line": 24,
           "kind": "function",
           "parameters": [
             "available",
@@ -30892,12 +30892,12 @@
         },
         {
           "name": "SystemdState",
-          "line": 47,
+          "line": 46,
           "kind": "class"
         },
         {
           "name": "systemd_state",
-          "line": 52,
+          "line": 51,
           "kind": "function",
           "parameters": [
             "output",
@@ -34104,7 +34104,7 @@
       "path": "agent/src/omni/adapters/workers/main.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.workers.main",
-      "lines": 285,
+      "lines": 281,
       "imports": [
         "omni.adapters.object_store",
         "omni.adapters.workers.protocol",
@@ -34195,7 +34195,7 @@
         },
         {
           "name": "Worker._shell.drain",
-          "line": 180,
+          "line": 176,
           "kind": "function",
           "parameters": [
             "stream"
@@ -34206,7 +34206,7 @@
         },
         {
           "name": "Worker._web",
-          "line": 211,
+          "line": 207,
           "kind": "function",
           "parameters": [
             "self",
@@ -34224,7 +34224,7 @@
         },
         {
           "name": "Worker.close",
-          "line": 256,
+          "line": 252,
           "kind": "function",
           "parameters": [
             "self"
@@ -34233,7 +34233,7 @@
         },
         {
           "name": "serve",
-          "line": 263,
+          "line": 259,
           "kind": "function",
           "parameters": [],
           "annotations": {}
@@ -36147,12 +36147,12 @@
         },
         {
           "name": "BilibiliService",
-          "line": 73,
+          "line": 75,
           "kind": "class"
         },
         {
           "name": "BilibiliService.__init__",
-          "line": 74,
+          "line": 76,
           "kind": "function",
           "parameters": [
             "self",
@@ -36166,7 +36166,7 @@
         },
         {
           "name": "BilibiliService.read",
-          "line": 79,
+          "line": 81,
           "kind": "function",
           "parameters": [
             "self",
@@ -36186,14 +36186,14 @@
         },
         {
           "name": "BilibiliService.read.perform",
-          "line": 85,
+          "line": 87,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "BilibiliService._retire",
-          "line": 106,
+          "line": 108,
           "kind": "function",
           "parameters": [
             "self",
@@ -36205,7 +36205,7 @@
         },
         {
           "name": "BilibiliService.profile",
-          "line": 111,
+          "line": 113,
           "kind": "function",
           "parameters": [
             "self",
@@ -36219,7 +36219,7 @@
         },
         {
           "name": "BilibiliService.save_profile",
-          "line": 114,
+          "line": 116,
           "kind": "function",
           "parameters": [
             "self",
@@ -36241,7 +36241,7 @@
         },
         {
           "name": "BilibiliService.prepare",
-          "line": 129,
+          "line": 133,
           "kind": "function",
           "parameters": [
             "self",
@@ -36265,7 +36265,7 @@
         },
         {
           "name": "BilibiliService.get",
-          "line": 147,
+          "line": 151,
           "kind": "function",
           "parameters": [
             "self",
@@ -36279,7 +36279,7 @@
         },
         {
           "name": "BilibiliService.page",
-          "line": 150,
+          "line": 154,
           "kind": "function",
           "parameters": [
             "self",
@@ -36295,7 +36295,7 @@
         },
         {
           "name": "BilibiliService.invoke",
-          "line": 154,
+          "line": 158,
           "kind": "function",
           "parameters": [
             "self",
@@ -36313,7 +36313,7 @@
         },
         {
           "name": "BilibiliService.health",
-          "line": 195,
+          "line": 199,
           "kind": "function",
           "parameters": [
             "self"
@@ -36322,7 +36322,7 @@
         },
         {
           "name": "BilibiliService.stop_accepting",
-          "line": 198,
+          "line": 202,
           "kind": "function",
           "parameters": [
             "self"
@@ -36331,7 +36331,7 @@
         },
         {
           "name": "BilibiliService.close",
-          "line": 201,
+          "line": 205,
           "kind": "function",
           "parameters": [
             "self",
@@ -36348,7 +36348,7 @@
       "path": "agent/src/omni/application/configuration.py",
       "module": "v2-application",
       "python_module": "omni.application.configuration",
-      "lines": 186,
+      "lines": 184,
       "imports": [
         "omni.application.ports",
         "omni.domain.configuration",
@@ -36604,7 +36604,7 @@
       "path": "agent/src/omni/application/context.py",
       "module": "v2-application",
       "python_module": "omni.application.context",
-      "lines": 236,
+      "lines": 231,
       "imports": [
         "omni.application.images",
         "omni.application.model_calls",
@@ -36662,7 +36662,7 @@
         },
         {
           "name": "ContextService._summary_sources",
-          "line": 41,
+          "line": 39,
           "kind": "function",
           "parameters": [
             "self",
@@ -36676,7 +36676,7 @@
         },
         {
           "name": "ContextService.summary_request",
-          "line": 45,
+          "line": 43,
           "kind": "function",
           "parameters": [
             "parent",
@@ -36689,7 +36689,7 @@
         },
         {
           "name": "ContextService._fits",
-          "line": 73,
+          "line": 71,
           "kind": "function",
           "parameters": [
             "self",
@@ -36707,7 +36707,7 @@
         },
         {
           "name": "ContextService.prepare",
-          "line": 81,
+          "line": 79,
           "kind": "function",
           "parameters": [
             "self",
@@ -37515,7 +37515,7 @@
       "path": "agent/src/omni/application/desktop.py",
       "module": "v2-application",
       "python_module": "omni.application.desktop",
-      "lines": 533,
+      "lines": 531,
       "imports": [
         "omni.application.objects",
         "omni.application.ports",
@@ -37613,7 +37613,7 @@
         },
         {
           "name": "DesktopService._execute",
-          "line": 117,
+          "line": 115,
           "kind": "function",
           "parameters": [
             "self",
@@ -37631,14 +37631,14 @@
         },
         {
           "name": "DesktopService._execute.perform",
-          "line": 133,
+          "line": 131,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "DesktopService._execute.finished",
-          "line": 146,
+          "line": 144,
           "kind": "function",
           "parameters": [
             "done"
@@ -37649,7 +37649,7 @@
         },
         {
           "name": "DesktopService._current",
-          "line": 156,
+          "line": 154,
           "kind": "function",
           "parameters": [
             "self",
@@ -37665,7 +37665,7 @@
         },
         {
           "name": "DesktopService._dispatch_guard",
-          "line": 162,
+          "line": 160,
           "kind": "function",
           "parameters": [
             "self",
@@ -37683,14 +37683,14 @@
         },
         {
           "name": "DesktopService._dispatch_guard.guard",
-          "line": 165,
+          "line": 163,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "DesktopService.status",
-          "line": 175,
+          "line": 173,
           "kind": "function",
           "parameters": [
             "self",
@@ -37702,7 +37702,7 @@
         },
         {
           "name": "DesktopService.begin",
-          "line": 193,
+          "line": 191,
           "kind": "function",
           "parameters": [
             "self",
@@ -37716,7 +37716,7 @@
         },
         {
           "name": "DesktopService._audit",
-          "line": 215,
+          "line": 213,
           "kind": "function",
           "parameters": [
             "self",
@@ -37735,7 +37735,7 @@
         },
         {
           "name": "DesktopService.probe",
-          "line": 227,
+          "line": 225,
           "kind": "function",
           "parameters": [
             "self",
@@ -37749,7 +37749,7 @@
         },
         {
           "name": "DesktopService.probe.perform",
-          "line": 230,
+          "line": 228,
           "kind": "function",
           "parameters": [
             "view",
@@ -37764,7 +37764,7 @@
         },
         {
           "name": "DesktopService.targets",
-          "line": 258,
+          "line": 256,
           "kind": "function",
           "parameters": [
             "self",
@@ -37778,7 +37778,7 @@
         },
         {
           "name": "DesktopService.targets.perform",
-          "line": 261,
+          "line": 259,
           "kind": "function",
           "parameters": [
             "view",
@@ -37793,7 +37793,7 @@
         },
         {
           "name": "DesktopService.verify",
-          "line": 317,
+          "line": 315,
           "kind": "function",
           "parameters": [
             "self",
@@ -37807,7 +37807,7 @@
         },
         {
           "name": "DesktopService.verify.perform",
-          "line": 320,
+          "line": 318,
           "kind": "function",
           "parameters": [
             "view",
@@ -37822,7 +37822,7 @@
         },
         {
           "name": "DesktopService.observe",
-          "line": 364,
+          "line": 362,
           "kind": "function",
           "parameters": [
             "self",
@@ -37836,7 +37836,7 @@
         },
         {
           "name": "DesktopService.observe.perform",
-          "line": 367,
+          "line": 365,
           "kind": "function",
           "parameters": [
             "view",
@@ -37851,7 +37851,7 @@
         },
         {
           "name": "DesktopService.action_binding",
-          "line": 425,
+          "line": 423,
           "kind": "function",
           "parameters": [
             "self",
@@ -37865,7 +37865,7 @@
         },
         {
           "name": "DesktopService.consume_observation",
-          "line": 447,
+          "line": 445,
           "kind": "function",
           "parameters": [
             "self",
@@ -37879,7 +37879,7 @@
         },
         {
           "name": "DesktopService.capture",
-          "line": 452,
+          "line": 450,
           "kind": "function",
           "parameters": [
             "self",
@@ -37893,7 +37893,7 @@
         },
         {
           "name": "DesktopService.capture.perform",
-          "line": 455,
+          "line": 453,
           "kind": "function",
           "parameters": [
             "view",
@@ -37908,14 +37908,14 @@
         },
         {
           "name": "DesktopService.capture.perform.guard",
-          "line": 462,
+          "line": 460,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "DesktopService.forget",
-          "line": 490,
+          "line": 488,
           "kind": "function",
           "parameters": [
             "self",
@@ -37929,7 +37929,7 @@
         },
         {
           "name": "DesktopService.health",
-          "line": 503,
+          "line": 501,
           "kind": "function",
           "parameters": [
             "self"
@@ -37938,7 +37938,7 @@
         },
         {
           "name": "DesktopService.stop_accepting",
-          "line": 511,
+          "line": 509,
           "kind": "function",
           "parameters": [
             "self"
@@ -37947,7 +37947,7 @@
         },
         {
           "name": "DesktopService.close",
-          "line": 522,
+          "line": 520,
           "kind": "function",
           "parameters": [
             "self",
@@ -38152,7 +38152,7 @@
       "path": "agent/src/omni/application/desktop_portal.py",
       "module": "v2-application",
       "python_module": "omni.application.desktop_portal",
-      "lines": 328,
+      "lines": 322,
       "imports": [
         "omni.application.objects",
         "omni.application.ports",
@@ -38300,7 +38300,7 @@
         },
         {
           "name": "DesktopPortalService.status",
-          "line": 197,
+          "line": 195,
           "kind": "function",
           "parameters": [
             "self",
@@ -38314,7 +38314,7 @@
         },
         {
           "name": "DesktopPortalService.detach",
-          "line": 210,
+          "line": 208,
           "kind": "function",
           "parameters": [
             "self",
@@ -38328,7 +38328,7 @@
         },
         {
           "name": "DesktopPortalService.close_grant",
-          "line": 222,
+          "line": 220,
           "kind": "function",
           "parameters": [
             "self",
@@ -38344,7 +38344,7 @@
         },
         {
           "name": "DesktopPortalService.capture",
-          "line": 230,
+          "line": 228,
           "kind": "function",
           "parameters": [
             "self",
@@ -38358,7 +38358,7 @@
         },
         {
           "name": "DesktopPortalService._capture",
-          "line": 249,
+          "line": 245,
           "kind": "function",
           "parameters": [
             "self",
@@ -38372,7 +38372,7 @@
         },
         {
           "name": "DesktopPortalService.health",
-          "line": 296,
+          "line": 290,
           "kind": "function",
           "parameters": [
             "self"
@@ -38381,7 +38381,7 @@
         },
         {
           "name": "DesktopPortalService.stop_accepting",
-          "line": 304,
+          "line": 298,
           "kind": "function",
           "parameters": [
             "self"
@@ -38390,7 +38390,7 @@
         },
         {
           "name": "DesktopPortalService.close",
-          "line": 310,
+          "line": 304,
           "kind": "function",
           "parameters": [
             "self",
@@ -38407,7 +38407,7 @@
       "path": "agent/src/omni/application/documents.py",
       "module": "v2-application",
       "python_module": "omni.application.documents",
-      "lines": 365,
+      "lines": 360,
       "imports": [
         "omni.application.local_vectors",
         "omni.application.objects",
@@ -39703,7 +39703,7 @@
       "path": "agent/src/omni/application/extensions.py",
       "module": "v2-application",
       "python_module": "omni.application.extensions",
-      "lines": 507,
+      "lines": 503,
       "imports": [
         "omni.application.objects",
         "omni.application.ports",
@@ -39894,7 +39894,7 @@
         },
         {
           "name": "ExtensionService.get",
-          "line": 186,
+          "line": 184,
           "kind": "function",
           "parameters": [
             "self",
@@ -39908,14 +39908,14 @@
         },
         {
           "name": "ExtensionService.get.perform",
-          "line": 187,
+          "line": 185,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "ExtensionService.page",
-          "line": 192,
+          "line": 190,
           "kind": "function",
           "parameters": [
             "self",
@@ -39931,14 +39931,14 @@
         },
         {
           "name": "ExtensionService.page.perform",
-          "line": 193,
+          "line": 191,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "ExtensionService.actions",
-          "line": 202,
+          "line": 200,
           "kind": "function",
           "parameters": [
             "self",
@@ -39956,14 +39956,14 @@
         },
         {
           "name": "ExtensionService.actions.perform",
-          "line": 205,
+          "line": 203,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "ExtensionService.market",
-          "line": 242,
+          "line": 238,
           "kind": "function",
           "parameters": [
             "self",
@@ -39977,14 +39977,14 @@
         },
         {
           "name": "ExtensionService.market.perform",
-          "line": 245,
+          "line": 241,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "ExtensionService.authorize",
-          "line": 283,
+          "line": 279,
           "kind": "function",
           "parameters": [
             "self",
@@ -40000,14 +40000,14 @@
         },
         {
           "name": "ExtensionService.authorize.perform",
-          "line": 286,
+          "line": 282,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "ExtensionService.disable",
-          "line": 305,
+          "line": 301,
           "kind": "function",
           "parameters": [
             "self",
@@ -40023,14 +40023,14 @@
         },
         {
           "name": "ExtensionService.disable.perform",
-          "line": 306,
+          "line": 302,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "ExtensionService.tools_for_run",
-          "line": 317,
+          "line": 313,
           "kind": "function",
           "parameters": [
             "self",
@@ -40044,14 +40044,14 @@
         },
         {
           "name": "ExtensionService.tools_for_run.perform",
-          "line": 318,
+          "line": 314,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "ExtensionService.invoke",
-          "line": 341,
+          "line": 337,
           "kind": "function",
           "parameters": [
             "self",
@@ -40069,21 +40069,21 @@
         },
         {
           "name": "ExtensionService.invoke.perform",
-          "line": 344,
+          "line": 340,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "ExtensionService.invoke.perform.before_dispatch",
-          "line": 385,
+          "line": 381,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "ExtensionService.health",
-          "line": 472,
+          "line": 468,
           "kind": "function",
           "parameters": [
             "self"
@@ -40092,7 +40092,7 @@
         },
         {
           "name": "ExtensionService.review_quiescent",
-          "line": 480,
+          "line": 476,
           "kind": "function",
           "parameters": [
             "self",
@@ -40108,7 +40108,7 @@
         },
         {
           "name": "ExtensionService.stop_accepting",
-          "line": 496,
+          "line": 492,
           "kind": "function",
           "parameters": [
             "self"
@@ -40117,7 +40117,7 @@
         },
         {
           "name": "ExtensionService.close",
-          "line": 499,
+          "line": 495,
           "kind": "function",
           "parameters": [
             "self",
@@ -40134,7 +40134,7 @@
       "path": "agent/src/omni/application/images.py",
       "module": "v2-application",
       "python_module": "omni.application.images",
-      "lines": 150,
+      "lines": 147,
       "imports": [
         "omni.application.objects",
         "omni.application.ports",
@@ -40327,7 +40327,7 @@
         },
         {
           "name": "ImageService.messages",
-          "line": 89,
+          "line": 87,
           "kind": "function",
           "parameters": [
             "self",
@@ -40341,7 +40341,7 @@
         },
         {
           "name": "ImageService.wire",
-          "line": 93,
+          "line": 91,
           "kind": "function",
           "parameters": [
             "self",
@@ -40357,7 +40357,7 @@
         },
         {
           "name": "ImageService._wire",
-          "line": 98,
+          "line": 96,
           "kind": "function",
           "parameters": [
             "self",
@@ -40373,7 +40373,7 @@
         },
         {
           "name": "ImageService.report",
-          "line": 136,
+          "line": 134,
           "kind": "function",
           "parameters": [
             "self",
@@ -40387,7 +40387,7 @@
         },
         {
           "name": "ImageService.health",
-          "line": 139,
+          "line": 137,
           "kind": "function",
           "parameters": [
             "self"
@@ -40396,7 +40396,7 @@
         },
         {
           "name": "ImageService.stop_accepting",
-          "line": 142,
+          "line": 140,
           "kind": "function",
           "parameters": [
             "self"
@@ -40405,7 +40405,7 @@
         },
         {
           "name": "ImageService.close",
-          "line": 145,
+          "line": 143,
           "kind": "function",
           "parameters": [
             "self",
@@ -40466,7 +40466,7 @@
       "path": "agent/src/omni/application/maintenance.py",
       "module": "v2-application",
       "python_module": "omni.application.maintenance",
-      "lines": 253,
+      "lines": 252,
       "imports": [
         "omni.application.documents",
         "omni.application.memory_organization",
@@ -41137,7 +41137,7 @@
       "path": "agent/src/omni/application/media.py",
       "module": "v2-application",
       "python_module": "omni.application.media",
-      "lines": 471,
+      "lines": 469,
       "imports": [
         "omni.application.images",
         "omni.application.objects",
@@ -41389,14 +41389,14 @@
         },
         {
           "name": "MediaService.submit.perform",
-          "line": 167,
+          "line": 165,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "MediaService._retire",
-          "line": 176,
+          "line": 174,
           "kind": "function",
           "parameters": [
             "self",
@@ -41408,7 +41408,7 @@
         },
         {
           "name": "MediaService._configuration",
-          "line": 181,
+          "line": 179,
           "kind": "function",
           "parameters": [
             "self",
@@ -41424,7 +41424,7 @@
         },
         {
           "name": "MediaService._execute",
-          "line": 189,
+          "line": 187,
           "kind": "function",
           "parameters": [
             "self",
@@ -41436,7 +41436,7 @@
         },
         {
           "name": "MediaService._register_sheet",
-          "line": 283,
+          "line": 281,
           "kind": "function",
           "parameters": [
             "self",
@@ -41452,7 +41452,7 @@
         },
         {
           "name": "MediaService._cleanup",
-          "line": 305,
+          "line": 303,
           "kind": "function",
           "parameters": [
             "self",
@@ -41464,7 +41464,7 @@
         },
         {
           "name": "MediaService.cancel",
-          "line": 314,
+          "line": 312,
           "kind": "function",
           "parameters": [
             "self",
@@ -41478,7 +41478,7 @@
         },
         {
           "name": "MediaService.job",
-          "line": 330,
+          "line": 328,
           "kind": "function",
           "parameters": [
             "self",
@@ -41492,7 +41492,7 @@
         },
         {
           "name": "MediaService.jobs",
-          "line": 336,
+          "line": 334,
           "kind": "function",
           "parameters": [
             "self",
@@ -41510,7 +41510,7 @@
         },
         {
           "name": "MediaService.transcript",
-          "line": 345,
+          "line": 343,
           "kind": "function",
           "parameters": [
             "self",
@@ -41524,14 +41524,14 @@
         },
         {
           "name": "MediaService.transcript.perform",
-          "line": 346,
+          "line": 344,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "MediaService.transcript_window",
-          "line": 361,
+          "line": 359,
           "kind": "function",
           "parameters": [
             "self",
@@ -41551,7 +41551,7 @@
         },
         {
           "name": "MediaService.transcript_window_for",
-          "line": 388,
+          "line": 386,
           "kind": "function",
           "parameters": [
             "self",
@@ -41569,7 +41569,7 @@
         },
         {
           "name": "MediaService.frames",
-          "line": 393,
+          "line": 391,
           "kind": "function",
           "parameters": [
             "self",
@@ -41583,7 +41583,7 @@
         },
         {
           "name": "MediaService._run_bounded",
-          "line": 396,
+          "line": 394,
           "kind": "function",
           "parameters": [
             "self",
@@ -41595,7 +41595,7 @@
         },
         {
           "name": "MediaService.invoke",
-          "line": 407,
+          "line": 405,
           "kind": "function",
           "parameters": [
             "self",
@@ -41613,7 +41613,7 @@
         },
         {
           "name": "MediaService.processor_probe",
-          "line": 446,
+          "line": 444,
           "kind": "function",
           "parameters": [
             "self"
@@ -41622,7 +41622,7 @@
         },
         {
           "name": "MediaService.recover",
-          "line": 450,
+          "line": 448,
           "kind": "function",
           "parameters": [
             "self"
@@ -41631,7 +41631,7 @@
         },
         {
           "name": "MediaService.health",
-          "line": 454,
+          "line": 452,
           "kind": "function",
           "parameters": [
             "self"
@@ -41640,7 +41640,7 @@
         },
         {
           "name": "MediaService.stop_accepting",
-          "line": 462,
+          "line": 460,
           "kind": "function",
           "parameters": [
             "self"
@@ -41649,7 +41649,7 @@
         },
         {
           "name": "MediaService.close",
-          "line": 465,
+          "line": 463,
           "kind": "function",
           "parameters": [
             "self",
@@ -41908,7 +41908,7 @@
       "path": "agent/src/omni/application/memory_semantics.py",
       "module": "v2-application",
       "python_module": "omni.application.memory_semantics",
-      "lines": 224,
+      "lines": 222,
       "imports": [
         "omni.application.local_vectors",
         "omni.application.ports",
@@ -42240,7 +42240,7 @@
       "path": "agent/src/omni/application/model_calls.py",
       "module": "v2-application",
       "python_module": "omni.application.model_calls",
-      "lines": 293,
+      "lines": 288,
       "imports": [
         "omni.application.images",
         "omni.application.model_output",
@@ -43232,7 +43232,7 @@
       "path": "agent/src/omni/application/ports.py",
       "module": "v2-application",
       "python_module": "omni.application.ports",
-      "lines": 983,
+      "lines": 979,
       "imports": [
         "omni.domain.contracts",
         "omni.domain.delivery",
@@ -51326,7 +51326,7 @@
       "path": "agent/src/omni/application/qq.py",
       "module": "v2-application",
       "python_module": "omni.application.qq",
-      "lines": 230,
+      "lines": 227,
       "imports": [
         "omni.application.ports",
         "omni.domain.contracts",
@@ -51438,7 +51438,7 @@
         },
         {
           "name": "QQService.health",
-          "line": 79,
+          "line": 77,
           "kind": "function",
           "parameters": [
             "self"
@@ -51447,7 +51447,7 @@
         },
         {
           "name": "QQService.status",
-          "line": 88,
+          "line": 86,
           "kind": "function",
           "parameters": [
             "self",
@@ -51459,7 +51459,7 @@
         },
         {
           "name": "QQService.start",
-          "line": 101,
+          "line": 99,
           "kind": "function",
           "parameters": [
             "self"
@@ -51468,7 +51468,7 @@
         },
         {
           "name": "QQService._listen",
-          "line": 105,
+          "line": 103,
           "kind": "function",
           "parameters": [
             "self",
@@ -51480,7 +51480,7 @@
         },
         {
           "name": "QQService._listen.receive",
-          "line": 110,
+          "line": 108,
           "kind": "function",
           "parameters": [
             "raw"
@@ -51491,7 +51491,7 @@
         },
         {
           "name": "QQService._loop",
-          "line": 150,
+          "line": 148,
           "kind": "function",
           "parameters": [
             "self"
@@ -51500,7 +51500,7 @@
         },
         {
           "name": "QQService.stop_accepting",
-          "line": 212,
+          "line": 210,
           "kind": "function",
           "parameters": [
             "self"
@@ -51509,7 +51509,7 @@
         },
         {
           "name": "QQService.close",
-          "line": 215,
+          "line": 213,
           "kind": "function",
           "parameters": [
             "self",
@@ -51595,7 +51595,7 @@
       "path": "agent/src/omni/application/releases.py",
       "module": "v2-application",
       "python_module": "omni.application.releases",
-      "lines": 338,
+      "lines": 337,
       "imports": [
         "omni.application.ports",
         "omni.domain.contracts",
@@ -52314,7 +52314,7 @@
       "path": "agent/src/omni/application/service_control.py",
       "module": "v2-application",
       "python_module": "omni.application.service_control",
-      "lines": 243,
+      "lines": 242,
       "imports": [
         "omni.application.ports",
         "omni.domain.contracts",
@@ -52954,7 +52954,7 @@
       "path": "agent/src/omni/application/skills.py",
       "module": "v2-application",
       "python_module": "omni.application.skills",
-      "lines": 373,
+      "lines": 371,
       "imports": [
         "omni.application.objects",
         "omni.application.ports",
@@ -53352,7 +53352,7 @@
         },
         {
           "name": "SkillService.health",
-          "line": 358,
+          "line": 356,
           "kind": "function",
           "parameters": [
             "self"
@@ -53361,7 +53361,7 @@
         },
         {
           "name": "SkillService.stop_accepting",
-          "line": 366,
+          "line": 364,
           "kind": "function",
           "parameters": [
             "self"
@@ -53370,7 +53370,7 @@
         },
         {
           "name": "SkillService.close",
-          "line": 369,
+          "line": 367,
           "kind": "function",
           "parameters": [
             "self",
@@ -53591,7 +53591,7 @@
       "path": "agent/src/omni/application/terminals.py",
       "module": "v2-application",
       "python_module": "omni.application.terminals",
-      "lines": 514,
+      "lines": 506,
       "imports": [
         "omni.application.ports",
         "omni.domain.contracts",
@@ -53772,7 +53772,7 @@
         },
         {
           "name": "TerminalService._entry",
-          "line": 211,
+          "line": 209,
           "kind": "function",
           "parameters": [
             "self",
@@ -53786,7 +53786,7 @@
         },
         {
           "name": "TerminalService._writer",
-          "line": 221,
+          "line": 219,
           "kind": "function",
           "parameters": [
             "self",
@@ -53800,7 +53800,7 @@
         },
         {
           "name": "TerminalService.attach",
-          "line": 228,
+          "line": 226,
           "kind": "function",
           "parameters": [
             "self",
@@ -53814,14 +53814,14 @@
         },
         {
           "name": "TerminalService.attach.perform",
-          "line": 229,
+          "line": 227,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "TerminalService.detach",
-          "line": 250,
+          "line": 248,
           "kind": "function",
           "parameters": [
             "self",
@@ -53837,7 +53837,7 @@
         },
         {
           "name": "TerminalService.output",
-          "line": 258,
+          "line": 256,
           "kind": "function",
           "parameters": [
             "self",
@@ -53857,7 +53857,7 @@
         },
         {
           "name": "TerminalService._drain",
-          "line": 290,
+          "line": 288,
           "kind": "function",
           "parameters": [
             "self",
@@ -53869,7 +53869,7 @@
         },
         {
           "name": "TerminalService._pump_completed",
-          "line": 310,
+          "line": 308,
           "kind": "function",
           "parameters": [
             "self",
@@ -53883,7 +53883,7 @@
         },
         {
           "name": "TerminalService._close_and_record",
-          "line": 314,
+          "line": 312,
           "kind": "function",
           "parameters": [
             "self",
@@ -53899,7 +53899,7 @@
         },
         {
           "name": "TerminalService._change",
-          "line": 325,
+          "line": 323,
           "kind": "function",
           "parameters": [
             "self",
@@ -53917,14 +53917,14 @@
         },
         {
           "name": "TerminalService._change.perform",
-          "line": 328,
+          "line": 326,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "TerminalService.input",
-          "line": 401,
+          "line": 393,
           "kind": "function",
           "parameters": [
             "self",
@@ -53940,7 +53940,7 @@
         },
         {
           "name": "TerminalService.resize",
-          "line": 404,
+          "line": 396,
           "kind": "function",
           "parameters": [
             "self",
@@ -53956,7 +53956,7 @@
         },
         {
           "name": "TerminalService.end",
-          "line": 407,
+          "line": 399,
           "kind": "function",
           "parameters": [
             "self",
@@ -53972,14 +53972,14 @@
         },
         {
           "name": "TerminalService.end.perform",
-          "line": 410,
+          "line": 402,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "TerminalService.end.perform.settled",
-          "line": 431,
+          "line": 423,
           "kind": "function",
           "parameters": [
             "u"
@@ -53990,7 +53990,7 @@
         },
         {
           "name": "TerminalService._close_live",
-          "line": 448,
+          "line": 440,
           "kind": "function",
           "parameters": [
             "self",
@@ -54004,7 +54004,7 @@
         },
         {
           "name": "TerminalService.health",
-          "line": 470,
+          "line": 462,
           "kind": "function",
           "parameters": [
             "self"
@@ -54013,7 +54013,7 @@
         },
         {
           "name": "TerminalService.stop_accepting",
-          "line": 486,
+          "line": 478,
           "kind": "function",
           "parameters": [
             "self"
@@ -54022,7 +54022,7 @@
         },
         {
           "name": "TerminalService.close",
-          "line": 491,
+          "line": 483,
           "kind": "function",
           "parameters": [
             "self",
@@ -59545,7 +59545,7 @@
       "path": "agent/src/omni/composition/lifecycle.py",
       "module": "v2-composition",
       "python_module": "omni.composition.lifecycle",
-      "lines": 166,
+      "lines": 164,
       "imports": [
         "omni.application.ports"
       ],
@@ -59676,7 +59676,7 @@
       "path": "agent/src/omni/composition/releases.py",
       "module": "v2-composition",
       "python_module": "omni.composition.releases",
-      "lines": 125,
+      "lines": 123,
       "imports": [
         "omni.adapters.persistence.releases",
         "omni.adapters.platform.deployment_files",
@@ -63410,7 +63410,7 @@
       "path": "agent/src/omni/domain/android.py",
       "module": "v2-domain",
       "python_module": "omni.domain.android",
-      "lines": 401,
+      "lines": 393,
       "imports": [
         "omni.domain.android_unicode",
         "omni.domain.contracts"
@@ -63473,7 +63473,7 @@
         },
         {
           "name": "action_request",
-          "line": 105,
+          "line": 101,
           "kind": "function",
           "parameters": [
             "value"
@@ -63484,7 +63484,7 @@
         },
         {
           "name": "package",
-          "line": 130,
+          "line": 126,
           "kind": "function",
           "parameters": [
             "value"
@@ -63495,7 +63495,7 @@
         },
         {
           "name": "input_params",
-          "line": 140,
+          "line": 136,
           "kind": "function",
           "parameters": [
             "kind",
@@ -63508,7 +63508,7 @@
         },
         {
           "name": "access_request",
-          "line": 205,
+          "line": 201,
           "kind": "function",
           "parameters": [
             "value"
@@ -63519,7 +63519,7 @@
         },
         {
           "name": "scroll_verified",
-          "line": 243,
+          "line": 235,
           "kind": "function",
           "parameters": [
             "before",
@@ -63536,7 +63536,7 @@
         },
         {
           "name": "scroll_verified.children",
-          "line": 255,
+          "line": 247,
           "kind": "function",
           "parameters": [
             "nodes"
@@ -63881,14 +63881,14 @@
       "path": "agent/src/omni/domain/bilibili.py",
       "module": "v2-domain",
       "python_module": "omni.domain.bilibili",
-      "lines": 286,
+      "lines": 346,
       "imports": [
         "omni.domain.contracts"
       ],
       "symbols": [
         {
           "name": "wbi_keys",
-          "line": 33,
+          "line": 93,
           "kind": "function",
           "parameters": [
             "nav"
@@ -63899,7 +63899,7 @@
         },
         {
           "name": "sign_wbi",
-          "line": 49,
+          "line": 109,
           "kind": "function",
           "parameters": [
             "params",
@@ -63916,7 +63916,7 @@
         },
         {
           "name": "subtitle_url",
-          "line": 61,
+          "line": 121,
           "kind": "function",
           "parameters": [
             "value"
@@ -63927,7 +63927,7 @@
         },
         {
           "name": "stream_url",
-          "line": 74,
+          "line": 134,
           "kind": "function",
           "parameters": [
             "value"
@@ -63938,7 +63938,7 @@
         },
         {
           "name": "uid",
-          "line": 91,
+          "line": 151,
           "kind": "function",
           "parameters": [
             "value"
@@ -63949,7 +63949,7 @@
         },
         {
           "name": "connection",
-          "line": 99,
+          "line": 159,
           "kind": "function",
           "parameters": [
             "value"
@@ -63960,7 +63960,7 @@
         },
         {
           "name": "page_identity",
-          "line": 109,
+          "line": 169,
           "kind": "function",
           "parameters": [
             "value"
@@ -63971,12 +63971,12 @@
         },
         {
           "name": "Form",
-          "line": 124,
+          "line": 184,
           "kind": "class"
         },
         {
           "name": "forms_value",
-          "line": 147,
+          "line": 207,
           "kind": "function",
           "parameters": [
             "forms",
@@ -63989,7 +63989,7 @@
         },
         {
           "name": "target",
-          "line": 187,
+          "line": 247,
           "kind": "function",
           "parameters": [
             "kind",
@@ -64002,7 +64002,7 @@
         },
         {
           "name": "mentions_value",
-          "line": 219,
+          "line": 279,
           "kind": "function",
           "parameters": [
             "text",
@@ -64015,7 +64015,7 @@
         },
         {
           "name": "digest",
-          "line": 283,
+          "line": 343,
           "kind": "function",
           "parameters": [
             "value"
@@ -64709,7 +64709,7 @@
       "path": "agent/src/omni/domain/desktop.py",
       "module": "v2-domain",
       "python_module": "omni.domain.desktop",
-      "lines": 613,
+      "lines": 616,
       "imports": [
         "omni.domain.contracts",
         "omni.domain.desktop_actions",
@@ -65037,7 +65037,7 @@
         },
         {
           "name": "parse_response",
-          "line": 530,
+          "line": 534,
           "kind": "function",
           "parameters": [
             "data",
@@ -65050,7 +65050,7 @@
         },
         {
           "name": "parse_owner",
-          "line": 585,
+          "line": 589,
           "kind": "function",
           "parameters": [
             "operation",
@@ -65068,7 +65068,7 @@
       "path": "agent/src/omni/domain/desktop_actions.py",
       "module": "v2-domain",
       "python_module": "omni.domain.desktop_actions",
-      "lines": 228,
+      "lines": 224,
       "imports": [
         "omni.domain.contracts",
         "omni.domain.desktop",
@@ -65099,7 +65099,7 @@
         },
         {
           "name": "semantic",
-          "line": 80,
+          "line": 76,
           "kind": "function",
           "parameters": [
             "value"
@@ -65110,7 +65110,7 @@
         },
         {
           "name": "linux_ready",
-          "line": 96,
+          "line": 92,
           "kind": "function",
           "parameters": [
             "request",
@@ -65123,7 +65123,7 @@
         },
         {
           "name": "owner_action",
-          "line": 112,
+          "line": 108,
           "kind": "function",
           "parameters": [
             "value"
@@ -65134,7 +65134,7 @@
         },
         {
           "name": "action_result",
-          "line": 160,
+          "line": 156,
           "kind": "function",
           "parameters": [
             "value",
@@ -65152,7 +65152,7 @@
       "path": "agent/src/omni/domain/desktop_portal.py",
       "module": "v2-domain",
       "python_module": "omni.domain.desktop_portal",
-      "lines": 240,
+      "lines": 236,
       "imports": [
         "omni.domain.contracts"
       ],
@@ -65262,7 +65262,7 @@
         },
         {
           "name": "encode",
-          "line": 164,
+          "line": 160,
           "kind": "function",
           "parameters": [
             "value"
@@ -65273,7 +65273,7 @@
         },
         {
           "name": "decode",
-          "line": 171,
+          "line": 167,
           "kind": "function",
           "parameters": [
             "data"
@@ -65284,7 +65284,7 @@
         },
         {
           "name": "decode.pairs",
-          "line": 175,
+          "line": 171,
           "kind": "function",
           "parameters": [
             "items"
@@ -65295,7 +65295,7 @@
         },
         {
           "name": "decode.constant",
-          "line": 183,
+          "line": 179,
           "kind": "function",
           "parameters": [
             "_"
@@ -65306,7 +65306,7 @@
         },
         {
           "name": "owner",
-          "line": 195,
+          "line": 191,
           "kind": "function",
           "parameters": [
             "value"
@@ -65317,7 +65317,7 @@
         },
         {
           "name": "capture_request",
-          "line": 202,
+          "line": 198,
           "kind": "function",
           "parameters": [
             "value"
@@ -65328,7 +65328,7 @@
         },
         {
           "name": "backend_status",
-          "line": 209,
+          "line": 205,
           "kind": "function",
           "parameters": [
             "value",
@@ -65644,7 +65644,7 @@
       "path": "agent/src/omni/domain/extensions.py",
       "module": "v2-domain",
       "python_module": "omni.domain.extensions",
-      "lines": 483,
+      "lines": 482,
       "imports": [
         "omni.domain.contracts",
         "omni.domain.history"
@@ -66932,7 +66932,7 @@
       "path": "agent/src/omni/domain/media.py",
       "module": "v2-domain",
       "python_module": "omni.domain.media",
-      "lines": 214,
+      "lines": 207,
       "imports": [
         "omni.domain.bilibili",
         "omni.domain.contracts"
@@ -67012,7 +67012,7 @@
         },
         {
           "name": "subtitle_text",
-          "line": 99,
+          "line": 94,
           "kind": "function",
           "parameters": [
             "value"
@@ -67023,7 +67023,7 @@
         },
         {
           "name": "transcript_payload",
-          "line": 105,
+          "line": 100,
           "kind": "function",
           "parameters": [
             "kind",
@@ -67038,7 +67038,7 @@
         },
         {
           "name": "parse_transcript",
-          "line": 116,
+          "line": 111,
           "kind": "function",
           "parameters": [
             "payload"
@@ -67049,7 +67049,7 @@
         },
         {
           "name": "_stamp",
-          "line": 149,
+          "line": 144,
           "kind": "function",
           "parameters": [
             "seconds"
@@ -67060,7 +67060,7 @@
         },
         {
           "name": "transcript_body",
-          "line": 153,
+          "line": 148,
           "kind": "function",
           "parameters": [
             "kind",
@@ -67073,7 +67073,7 @@
         },
         {
           "name": "transcript_text",
-          "line": 162,
+          "line": 155,
           "kind": "function",
           "parameters": [
             "kind",
@@ -67090,7 +67090,7 @@
         },
         {
           "name": "sheet_result",
-          "line": 174,
+          "line": 167,
           "kind": "function",
           "parameters": [
             "count",
@@ -67111,7 +67111,7 @@
         },
         {
           "name": "source_row",
-          "line": 203,
+          "line": 196,
           "kind": "function",
           "parameters": [
             "config_id",
@@ -67860,7 +67860,7 @@
       "path": "agent/src/omni/domain/releases.py",
       "module": "v2-domain",
       "python_module": "omni.domain.releases",
-      "lines": 275,
+      "lines": 273,
       "imports": [
         "omni.domain.contracts",
         "omni.domain.recovery_authority",
@@ -67962,7 +67962,7 @@
         },
         {
           "name": "validate_release",
-          "line": 242,
+          "line": 240,
           "kind": "function",
           "parameters": [
             "value"
@@ -68387,7 +68387,7 @@
       "path": "agent/src/omni/domain/service_admin.py",
       "module": "v2-domain",
       "python_module": "omni.domain.service_admin",
-      "lines": 286,
+      "lines": 285,
       "imports": [
         "omni.domain.contracts",
         "omni.domain.service_control",
@@ -68936,7 +68936,7 @@
       "path": "agent/src/omni/domain/service_deployment.py",
       "module": "v2-domain",
       "python_module": "omni.domain.service_deployment",
-      "lines": 568,
+      "lines": 566,
       "imports": [
         "omni.domain.contracts"
       ],
@@ -69215,7 +69215,7 @@
         },
         {
           "name": "plan_fingerprint",
-          "line": 410,
+          "line": 412,
           "kind": "function",
           "parameters": [
             "plan"
@@ -69226,7 +69226,7 @@
         },
         {
           "name": "make_plan",
-          "line": 415,
+          "line": 417,
           "kind": "function",
           "parameters": [
             "request",
@@ -69245,7 +69245,7 @@
         },
         {
           "name": "validate_plan",
-          "line": 431,
+          "line": 433,
           "kind": "function",
           "parameters": [
             "plan"
@@ -69256,7 +69256,7 @@
         },
         {
           "name": "startup",
-          "line": 440,
+          "line": 442,
           "kind": "function",
           "parameters": [
             "plan"
@@ -69267,7 +69267,7 @@
         },
         {
           "name": "parse_startup",
-          "line": 464,
+          "line": 466,
           "kind": "function",
           "parameters": [
             "data"
@@ -69278,7 +69278,7 @@
         },
         {
           "name": "service_argv",
-          "line": 501,
+          "line": 503,
           "kind": "function",
           "parameters": [
             "plan"
@@ -69289,7 +69289,7 @@
         },
         {
           "name": "manager_identity",
-          "line": 516,
+          "line": 518,
           "kind": "function",
           "parameters": [
             "plan"
@@ -95611,7 +95611,7 @@
       "path": "web/ui/icons.css",
       "module": "ui-shared",
       "python_module": null,
-      "lines": 25,
+      "lines": 24,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -95671,7 +95671,7 @@
       "path": "web/ui/tokens.css",
       "module": "ui-shared",
       "python_module": null,
-      "lines": 251,
+      "lines": 250,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -95731,7 +95731,7 @@
       "path": "web/ui/v2/chat-images.js",
       "module": "v2-workbench",
       "python_module": null,
-      "lines": 175,
+      "lines": 174,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -95811,7 +95811,7 @@
       "path": "web/ui/v2/index.html",
       "module": "v2-workbench",
       "python_module": null,
-      "lines": 1609,
+      "lines": 1861,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -95901,7 +95901,7 @@
       "path": "web/ui/v2/models.js",
       "module": "v2-workbench",
       "python_module": null,
-      "lines": 487,
+      "lines": 495,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -95971,7 +95971,7 @@
       "path": "web/ui/v2/skills.js",
       "module": "v2-workbench",
       "python_module": null,
-      "lines": 460,
+      "lines": 458,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -96021,7 +96021,7 @@
       "path": "web/ui/v2/v1/frame.css",
       "module": "v2-workbench",
       "python_module": null,
-      "lines": 932,
+      "lines": 938,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -96031,7 +96031,7 @@
       "path": "web/ui/v2/v1/workbench.css",
       "module": "v2-workbench",
       "python_module": null,
-      "lines": 4450,
+      "lines": 4451,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -96041,7 +96041,7 @@
       "path": "web/ui/v2/workbench.css",
       "module": "v2-workbench",
       "python_module": null,
-      "lines": 2733,
+      "lines": 2727,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -106959,7 +106959,7 @@
     {
       "name": "Form",
       "source": "agent/src/omni/domain/bilibili.py",
-      "line": 124,
+      "line": 184,
       "fields": [
         {
           "name": "account",

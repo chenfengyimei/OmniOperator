@@ -54,7 +54,7 @@ section.page[id]                  ← 23 个页面分区，id 与 data-page 一�
 
 - 页面切换只允许通过 `[data-page]` 按钮点击触发；`test_v2_navigation_ui.py` 会在 390/1024 两个宽度逐项点击并断言目标分区可见。
 - 任何新增可见按钮，如果文案与既有页面名相同（如"设置"），必须换名或用 `title/aria-label` 区分，避免 `get_by_role(..., exact=True)` 命中两个元素。
-- 资源版本串：`index.html` 与所有模块 import 当前为 `?v=20261115v128`。**任何 HTML/CSS/JS 改动都要整体升级版本号**（v58、v59…），并同步：
+- 资源版本串：`index.html` 与所有模块 import 当前为 `?v=20261115v129`。**任何 HTML/CSS/JS 改动都要整体升级版本号**（v58、v59…），并同步：
   - `agent/tests/test_v2_mcp_ui.py` 里的 `assert "main.js?v=..." in page.content()`
   - `docs/V2_AI_CONTINUATION_PROMPT.md` 的版本说明
   - 本文第 3 节这里的版本号
@@ -64,7 +64,7 @@ section.page[id]                  ← 23 个页面分区，id 与 data-page 一�
 
 ## 4. 当前 UI 状态（已完成）
 
-**直接复用 V1 界面**（2026-11-13/14，资源版本 `20261115v128`）：按所有者要求，不再自创视觉，
+**直接复用 V1 界面**（2026-11-13/14，资源版本 `20261115v129`）：按所有者要求，不再自创视觉，
 把 V1 的 `components.css` / `frame.css` / `workbench.css` **原样复制**到 `web/ui/v2/v1/`。
 **声明内容一字未改**，只做三类必要映射：
 

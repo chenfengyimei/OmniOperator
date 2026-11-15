@@ -193,9 +193,7 @@ class ModelCalls:
                         await self._db.write(prepare_images)
                         wire_messages = cast(
                             list[Record],
-                            await self._images.wire(
-                                agent_id, cast(list[dict[str, object]], wire_messages), guard
-                            ),
+                            await self._images.wire(agent_id, cast(list[dict[str, object]], wire_messages), guard),
                         )
                     streaming = (
                         await self._streamer.prepare_stream(wire_messages, tools, settings)
@@ -288,6 +286,3 @@ class ModelCalls:
                 "The provider exceeded the requested output budget; recorded costs remain settled",
             )
         return reply
-
-
-

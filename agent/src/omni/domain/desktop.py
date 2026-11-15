@@ -479,7 +479,10 @@ def validate_observation(data: object, target: object) -> dict[str, object]:
         bounds = cast(list[object], bounds_raw)
         if len(bounds) != 4:
             raise invalid()
-        if any(type(v) not in {int, float} or abs(cast(float, v)) > 10_000_000 or not math.isfinite(cast(float, v)) for v in bounds):
+        if any(
+            type(v) not in {int, float} or abs(cast(float, v)) > 10_000_000 or not math.isfinite(cast(float, v))
+            for v in bounds
+        ):
             raise invalid()
         if cast(float, bounds[2]) < 0 or cast(float, bounds[3]) < 0:
             raise invalid()
@@ -512,7 +515,8 @@ def validate_observation(data: object, target: object) -> dict[str, object]:
             reference = node_proof(entry["reference"]) if entry["reference"] is not None else None
             if (
                 reference is not None
-                and reference.get("backend") != {"win32": None, "darwin": "ax", "linux": "atspi"}[cast(str, actual["platform"])]
+                and reference.get("backend")
+                != {"win32": None, "darwin": "ax", "linux": "atspi"}[cast(str, actual["platform"])]
             ):
                 raise invalid()
             if linux and (actual["backend"] != "atspi" or any(a not in KINDS for a in actions)):
@@ -610,4 +614,3 @@ def parse_owner(operation: object, data: object) -> dict[str, object]:
     if operation == "capture":
         result["session_id"] = _uuid(value["session_id"])
     return result
-

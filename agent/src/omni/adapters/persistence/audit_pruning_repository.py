@@ -29,9 +29,7 @@ AUDIT_SPEC = PruningSpec(
 
 
 class AuditPruningRepositories(AuditRetentionRepositories):
-    def _audit_target(
-        self, agent_id: str, audit_id: str, cutoff: str, batch_id: str = ""
-    ) -> dict[str, Any]:
+    def _audit_target(self, agent_id: str, audit_id: str, cutoff: str, batch_id: str = "") -> dict[str, Any]:
         row = (
             self.connection.execute(select(s.audit).where(s.audit.c.agent_id == agent_id, s.audit.c.id == audit_id))
             .mappings()
@@ -92,9 +90,7 @@ class AuditPruningRepositories(AuditRetentionRepositories):
     def audit_retention_validate(self, plan: dict[str, Any]) -> None:
         self._audit_cycle().validate(plan)
 
-    def audit_retention_prepare(
-        self, plan: dict[str, Any], backup_path: str, backup_sha256: str
-    ) -> dict[str, Any]:
+    def audit_retention_prepare(self, plan: dict[str, Any], backup_path: str, backup_sha256: str) -> dict[str, Any]:
         return self._audit_cycle().prepare(plan, backup_path, backup_sha256)
 
     def audit_retention_delete(self, plan: dict[str, Any], target: dict[str, Any]) -> None:

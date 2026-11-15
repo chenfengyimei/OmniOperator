@@ -12,7 +12,7 @@ from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from typing import cast
 
-from .contracts import BusinessError, JSON, ToolSpec
+from .contracts import JSON, BusinessError, ToolSpec
 from .history import MAX_INTEGER
 
 FORMAT = "omni-python-extension-1"
@@ -480,4 +480,3 @@ class CapturedPackage:
     package_sha256: str
     catalog_sha256: str
     content: bytes
-

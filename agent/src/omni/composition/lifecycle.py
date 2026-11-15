@@ -145,9 +145,7 @@ async def close_sync(operation: Callable[[], object]) -> object:
     return await asyncio.to_thread(operation)
 
 
-async def close_until_quiescent(
-    close: Callable[[float], Awaitable[Record]], initial_budget: float
-) -> Record:
+async def close_until_quiescent(close: Callable[[float], Awaitable[Record]], initial_budget: float) -> Record:
     """Report the bounded normal shutdown; keep the loop and actual ownership for residual cleanup."""
     result = await close(max(0, initial_budget))
     warned = False

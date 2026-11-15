@@ -160,9 +160,7 @@ class MediaService:
                 str(params.get("device") or ASR_DEFAULT["device"]),
                 str(params.get("compute_type") or ASR_DEFAULT["compute_type"]),
             )
-        job = await self._db.write(
-            lambda u: u.media_job_create(agent_id, source_id, operation, cast(Record, plan))
-        )
+        job = await self._db.write(lambda u: u.media_job_create(agent_id, source_id, operation, cast(Record, plan)))
 
         async def perform() -> None:
             async with self._slots:

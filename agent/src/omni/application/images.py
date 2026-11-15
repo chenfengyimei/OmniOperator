@@ -66,12 +66,12 @@ class ImageService:
         self, agent_id: str, run_id: str, rows: list[dict[str, object]], settings: Mapping[str, object]
     ) -> list[dict[str, object]]:
         def read(u: UnitOfWork) -> tuple[Record, list[Record]]:
-            return u.run_image_policy(agent_id, run_id), u.image_parts(
-                agent_id, [cast(str, r["id"]) for r in rows]
-            )
+            return u.run_image_policy(agent_id, run_id), u.image_parts(agent_id, [cast(str, r["id"]) for r in rows])
 
         config, parts = await self._db.read(read)
-        result = with_images(rows, cast(list[dict[str, object]], parts), cast(dict[str, object], config), str(settings["model"]))
+        result = with_images(
+            rows, cast(list[dict[str, object]], parts), cast(dict[str, object], config), str(settings["model"])
+        )
         if references(result) and (
             settings["counter_mode"] != "utf8_upper_bound" or settings["counter_ref"] != "utf8-envelope-v1"
         ):
@@ -82,9 +82,7 @@ class ImageService:
 
     async def summary_sources(self, agent_id: str, rows: list[dict[str, object]]) -> list[dict[str, object]]:
         parts = await self._db.read(lambda u: u.image_parts(agent_id, [cast(str, r["id"]) for r in rows]))
-        return [
-            {**row, "image_reference_count": sum(p["message_id"] == row["id"] for p in parts)} for row in rows
-        ]
+        return [{**row, "image_reference_count": sum(p["message_id"] == row["id"] for p in parts)} for row in rows]
 
     async def messages(self, agent_id: str, rows: list[dict[str, object]]) -> list[dict[str, object]]:
         parts = await self._db.read(lambda u: u.image_parts(agent_id, [cast(str, r["id"]) for r in rows]))
@@ -147,4 +145,3 @@ class ImageService:
         if self._pending:
             await asyncio.wait(self._pending, timeout=max(0, timeout_s))
         return not self._pending
-

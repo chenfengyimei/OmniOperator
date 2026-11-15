@@ -220,5 +220,3 @@ class MemorySemanticService:
             _, pending = await asyncio.wait(self._pending, timeout=max(0, timeout_s))
             return not pending
         return True
-
-

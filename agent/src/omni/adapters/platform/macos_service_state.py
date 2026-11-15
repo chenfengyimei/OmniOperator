@@ -5,8 +5,8 @@ from __future__ import annotations
 import json
 import plistlib
 import re
-from typing import cast
 from collections.abc import Mapping
+from typing import cast
 
 from ...domain.service_deployment import manager_identity
 from .service_templates import render

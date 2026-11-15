@@ -3,11 +3,11 @@
 from __future__ import annotations
 
 import asyncio
-from typing import cast
 import base64
 import hashlib
 import io
 import warnings
+from typing import cast
 
 from PIL import Image, ImageOps
 

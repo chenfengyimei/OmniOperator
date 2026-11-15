@@ -18,9 +18,7 @@ class AdministratorHandover:
         self.parents: dict[str, ExchangeAdministrator] = {}
         for role in ("source", "target"):
             approval = cast(Record, administrator_approval(self.plan, role))
-            self.parents[role] = ExchangeAdministrator(
-                approval, socket_path(approval), str(approval["broker_sha256"])
-            )
+            self.parents[role] = ExchangeAdministrator(approval, socket_path(approval), str(approval["broker_sha256"]))
         self._admitted: set[str] = set()
         self._source_closed = False
         self._target_closed = False

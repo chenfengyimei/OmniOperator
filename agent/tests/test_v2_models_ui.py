@@ -24,7 +24,9 @@ def models_server(tmp_path):
     listener.listen(128)
     port = listener.getsockname()[1]
     server = uvicorn.Server(
-        uvicorn.Config(app, loop="omni.adapters.platform.event_loop:create_event_loop", log_config=None, access_log=False)
+        uvicorn.Config(
+            app, loop="omni.adapters.platform.event_loop:create_event_loop", log_config=None, access_log=False
+        )
     )
     thread = threading.Thread(target=lambda: server.run(sockets=[listener]), daemon=True)
     thread.start()

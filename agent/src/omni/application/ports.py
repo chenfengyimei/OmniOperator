@@ -395,7 +395,7 @@ class UnitOfWork(Protocol):
         enabled: bool,
         forms: dict[str, object],
         revision: int,
-        headless: bool = True
+        headless: bool = True,
     ) -> Record: ...
     def bilibili_prepare(
         self,
@@ -405,7 +405,7 @@ class UnitOfWork(Protocol):
         kind: str,
         url: str,
         mentions: list[dict[str, object]],
-        key: str
+        key: str,
     ) -> Record: ...
     def bilibili_publication_get(self, agent_id: str, identity: str) -> Record: ...
     def bilibili_publication_page(self, agent_id: str, after: str = "", limit: int = 50) -> list[Record]: ...
@@ -977,7 +977,3 @@ class SpanReport(Protocol):
 class Observer(Protocol):
     def context(self, **fields: str) -> AbstractContextManager[None]: ...
     def span(self, name: str) -> AbstractContextManager[SpanReport | None]: ...
-
-
-
-

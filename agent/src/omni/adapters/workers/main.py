@@ -161,11 +161,7 @@ class Worker:
         if not isinstance(raw_argv, list):
             raise ValueError("Provide a bounded argv array; shell interpolation is not supported")
         argv = cast(list[Any], raw_argv)
-        if (
-            not argv
-            or len(argv) > 100
-            or not all(isinstance(item, str) and "\0" not in item for item in argv)
-        ):
+        if not argv or len(argv) > 100 or not all(isinstance(item, str) and "\0" not in item for item in argv):
             raise ValueError("Provide a bounded argv array; shell interpolation is not supported")
         cwd = workspace_path(context["workspace"], str(args.get("cwd", ".")))
         effects.dispatched = True

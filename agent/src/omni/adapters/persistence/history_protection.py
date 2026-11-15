@@ -5,7 +5,6 @@ from __future__ import annotations
 from sqlalchemy import select
 
 from ...application.ports import Record
-
 from . import schema as s
 from .execution_retention_repository import ExecutionRetentionRepositories
 

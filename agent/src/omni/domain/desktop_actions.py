@@ -40,11 +40,7 @@ def node_proof(value: object) -> dict[str, object]:
                 raise invalid()
             for key in ("ancestry_sha256", "name_sha256", "value_sha256", "actions_sha256"):
                 digest = checked[key]
-                if (
-                    not isinstance(digest, str)
-                    or len(digest) != 64
-                    or any(c not in "0123456789abcdef" for c in digest)
-                ):
+                if not isinstance(digest, str) or len(digest) != 64 or any(c not in "0123456789abcdef" for c in digest):
                     raise invalid()
             return {
                 **checked,

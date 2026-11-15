@@ -335,4 +335,3 @@ class Releases:
             return False
         self._release()
         return True
-

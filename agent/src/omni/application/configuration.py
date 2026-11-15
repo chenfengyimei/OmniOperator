@@ -182,5 +182,3 @@ class ConfigurationService:
             "configuration_enabled": row["enabled"],
         }
         return result
-
-

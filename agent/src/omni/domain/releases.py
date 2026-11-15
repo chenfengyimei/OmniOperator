@@ -178,9 +178,7 @@ def make_release(
     ):
         raise invalid("release_installations_not_separate")
     if any(
-        overlaps(cast(str, bundle), code)
-        for bundle in (a["bundle_dir"], b["bundle_dir"])
-        for code in immutable[2:]
+        overlaps(cast(str, bundle), code) for bundle in (a["bundle_dir"], b["bundle_dir"]) for code in immutable[2:]
     ):
         raise invalid("release_paths_overlap")
     restore = None

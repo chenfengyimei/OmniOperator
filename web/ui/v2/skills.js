@@ -381,9 +381,7 @@ export function mountSkills({ api, wrap, getAgent, getGeneration, getSession }) 
       : usable
         ? `选择技能（${usable}）`
         : '暂无可用技能';
-    turnLabel.title = picked.length
-      ? picked.map((o) => o.textContent).join('\n')
-      : '本轮使用的技能，最多 4 个';
+    turnLabel.title = picked.length ? picked.map((o) => o.textContent).join('\n') : '本轮使用的技能，最多 4 个';
     turnLabel.dataset.count = String(picked.length);
   };
   // 聚焦即展开原生多选列表（浮层），失焦收回；键盘与自动化操作均走原生控件

@@ -274,9 +274,7 @@ class SkillService:
                 if name == "skill_history":
                     rows = cast(list[Record], (await self.history(agent, skill_id))["items"])
                     history_payload: dict[str, JSON] = {"items": cast(JSON, rows)}
-                    return ActionResult(
-                        Outcome.OK, json.dumps(rows, ensure_ascii=False), data=history_payload
-                    )
+                    return ActionResult(Outcome.OK, json.dumps(rows, ensure_ascii=False), data=history_payload)
                 row = await self.get(
                     agent, skill_id, str(captured["revision_id"]), str(arguments.get("path", "SKILL.md"))
                 )
@@ -291,7 +289,7 @@ class SkillService:
                 }
                 return ActionResult(
                     Outcome.OK,
-                        json.dumps({**metadata, "content": row["content"]}, ensure_ascii=False),
+                    json.dumps({**metadata, "content": row["content"]}, ensure_ascii=False),
                     data=metadata,
                 )
             revision = cast(int, arguments.get("revision", 0))

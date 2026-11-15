@@ -93,11 +93,7 @@ def device(value: object) -> dict[str, object]:
             raise invalid()
     identity(fields["boot_id"])
     fingerprint = fields["fingerprint"]
-    if (
-        not isinstance(fingerprint, str)
-        or not 1 <= len(fingerprint) <= 512
-        or any(ord(c) < 32 for c in fingerprint)
-    ):
+    if not isinstance(fingerprint, str) or not 1 <= len(fingerprint) <= 512 or any(ord(c) < 32 for c in fingerprint):
         raise invalid()
     return dict(fields)
 
@@ -231,11 +227,7 @@ def access_request(value: object) -> dict[str, object]:
     if not isinstance(kinds, list):
         raise invalid()
     kind_rows = cast(list[object], kinds)
-    if (
-        len(kind_rows) > len(KINDS)
-        or any(k not in KINDS for k in kind_rows)
-        or len(set(kind_rows)) != len(kind_rows)
-    ):
+    if len(kind_rows) > len(KINDS) or any(k not in KINDS for k in kind_rows) or len(set(kind_rows)) != len(kind_rows):
         raise invalid()
     return {**fields, "packages": [package(p) for p in package_rows], "kinds": list(kind_rows)}
 

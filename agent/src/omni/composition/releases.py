@@ -55,9 +55,7 @@ async def run_release(
                 "release_admin_source_changed",
                 "The read-only root query must bind the exact source uninstall operation",
             )
-        manager = PrivilegedServiceClient(
-            cast(Record, operation), str(admin_socket.absolute()), admin_bundle_sha256
-        )
+        manager = PrivilegedServiceClient(cast(Record, operation), str(admin_socket.absolute()), admin_bundle_sha256)
     else:
         manager = ServiceRegistration()
     drain = None

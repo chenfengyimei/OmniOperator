@@ -3005,7 +3005,8 @@ dialog.modal::backdrop {
 
 /* ---------------- 窄屏：rail 收起，交还给 base.css 的 .ui-panes 面板切换 ---------------- */
 @media (max-width: 900px) {
-.rail, nav[aria-label="工作台"] {
+  .rail,
+  nav[aria-label="工作台"] {
     display: none;
   }
   body {

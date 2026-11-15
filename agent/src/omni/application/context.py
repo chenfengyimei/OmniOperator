@@ -33,9 +33,7 @@ class ContextService:
     ) -> list[dict[str, object]]:
         messages: Sequence[Mapping[str, object]] = rows
         if self._images is not None:
-            messages = await self._images.context(
-                agent_id, run_id, cast(list[dict[str, object]], rows), settings
-            )
+            messages = await self._images.context(agent_id, run_id, cast(list[dict[str, object]], rows), settings)
         return history_request(settings, memories, messages, parent, notice)
 
     async def _summary_sources(self, agent_id: str, rows: list[dict[str, object]]) -> list[dict[str, object]]:
@@ -181,10 +179,8 @@ class ContextService:
                 reason = code
                 break
             state = await self._db.write(
-                    lambda u: u.settle_summary(
-                        agent_id, sid, reply.text, "summary_tools_forbidden" if reply.calls else ""
-                    )
-                )
+                lambda u: u.settle_summary(agent_id, sid, reply.text, "summary_tools_forbidden" if reply.calls else "")
+            )
             if state["state"] != "ready":
                 reason = str(state["error_code"] or "summary_failed")
                 break
@@ -193,8 +189,8 @@ class ContextService:
         parent = cast(Mapping[str, object] | None, plan["parent"])
         while True:
             selected = [r for group in groups for r in group]
-            omitted = cast(int, plan["total_count"]) - len(selected) - (
-                cast(int, parent["covered_count"]) if parent else 0
+            omitted = (
+                cast(int, plan["total_count"]) - len(selected) - (cast(int, parent["covered_count"]) if parent else 0)
             )
             visible_reason = (
                 (reason or "compression_limit") if omitted else "history_erased" if plan["floor_seq"] else ""
@@ -220,17 +216,16 @@ class ContextService:
                 raise BusinessError(code, "Current input and fixed configuration exceed the declared model capacity")
         estimate = await self._calls.estimate(cast(Sequence[Record], request), tools, settings)
         metadata = await self._db.write(
-                lambda u: u.finalize_context(
-                    agent_id,
-                    run_id,
-                    identity,
-                    CONTEXT_CHARS,
-                    visible_reason,
-                    message_ids=[str(r["id"]) for r in selected],
-                    include_summary=bool(parent),
-                    estimate=estimate,
-                    output_limit=settings["output_tokens"],
-                )
+            lambda u: u.finalize_context(
+                agent_id,
+                run_id,
+                identity,
+                CONTEXT_CHARS,
+                visible_reason,
+                message_ids=[str(r["id"]) for r in selected],
+                include_summary=bool(parent),
+                estimate=estimate,
+                output_limit=settings["output_tokens"],
             )
+        )
         return cast(Record, {**metadata, "notice": notice, "request": request})
-

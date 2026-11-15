@@ -7,8 +7,8 @@ import shutil
 from pathlib import Path
 from typing import cast
 
-from ...domain.contracts import BusinessError
 from ...application.ports import Record
+from ...domain.contracts import BusinessError
 from .paths import InstanceLock, InstancePaths
 from .wheel_install import FORMAT as RUNTIME_FORMAT
 

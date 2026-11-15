@@ -47,8 +47,7 @@ export function mountChatImages({ api, wrap, getAgent, getSession, getGeneration
       }),
     );
     $('image-file').disabled = busy || !getAgent() || rows().length >= 4;
-    $('image-add-capture').disabled =
-      busy || !getAgent() || rows().length >= 4 || !$('image-capture').value;
+    $('image-add-capture').disabled = busy || !getAgent() || rows().length >= 4 || !$('image-capture').value;
   }
   function add(image) {
     if (rows().some((r) => r.object_id === image.object_id)) return;
