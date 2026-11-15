@@ -1,31 +1,31 @@
-import { mountSkills } from './skills.js?v=20261115v127';
-import { mountCredentials } from './credentials.js?v=20261115v127';
-import { mountAuditHistory, mountOperations } from './operations.js?v=20261115v127';
-import { mountCapabilities } from './capabilities.js?v=20261115v127';
-import { mountTokens } from './tokens.js?v=20261115v127';
-import { mountDocuments } from './documents.js?v=20261115v127';
-import { mountConfiguration } from './configuration.js?v=20261115v127';
-import { mountModels } from './models.js?v=20261115v127';
+import { mountSkills } from './skills.js?v=20261115v128';
+import { mountCredentials } from './credentials.js?v=20261115v128';
+import { mountAuditHistory, mountOperations } from './operations.js?v=20261115v128';
+import { mountCapabilities } from './capabilities.js?v=20261115v128';
+import { mountTokens } from './tokens.js?v=20261115v128';
+import { mountDocuments } from './documents.js?v=20261115v128';
+import { mountConfiguration } from './configuration.js?v=20261115v128';
+import { mountModels } from './models.js?v=20261115v128';
 import { ask } from '../dialog.js?v=20261103v7';
-import { mountPeople } from './people.js?v=20261115v127';
-import { mountDeliveries } from './deliveries.js?v=20261115v127';
-import { mountSchedules } from './schedules.js?v=20261115v127';
-import { mountMemorySemantics } from './memory-semantics.js?v=20261115v127';
-import { mountMemoryOrganization } from './memory-organization.js?v=20261115v127';
-import { mountExtensions } from './extensions.js?v=20261115v127';
-import { mountActionReviews } from './action-reviews.js?v=20261115v127';
-import { mountTerminals } from './terminals.js?v=20261115v127';
-import { mountDesktop } from './desktop.js?v=20261115v127';
-import { mountQQ } from './qq.js?v=20261115v127';
-import { mountBilibili } from './bilibili.js?v=20261115v127';
-import { mountMedia } from './media.js?v=20261115v127';
-import { mountMcp } from './mcp.js?v=20261115v127';
-import { mountAndroid } from './android.js?v=20261115v127';
-import { mountModelOutput } from './model-output.js?v=20261115v127';
-import { mountRouting } from './routing.js?v=20261115v127';
-import { mountChatImages } from './chat-images.js?v=20261115v127';
-import { mountInspector } from './inspector.js?v=20261115v127';
-import { mountSettingsRail } from './settings-rail.js?v=20261115v127';
+import { mountPeople } from './people.js?v=20261115v128';
+import { mountDeliveries } from './deliveries.js?v=20261115v128';
+import { mountSchedules } from './schedules.js?v=20261115v128';
+import { mountMemorySemantics } from './memory-semantics.js?v=20261115v128';
+import { mountMemoryOrganization } from './memory-organization.js?v=20261115v128';
+import { mountExtensions } from './extensions.js?v=20261115v128';
+import { mountActionReviews } from './action-reviews.js?v=20261115v128';
+import { mountTerminals } from './terminals.js?v=20261115v128';
+import { mountDesktop } from './desktop.js?v=20261115v128';
+import { mountQQ } from './qq.js?v=20261115v128';
+import { mountBilibili } from './bilibili.js?v=20261115v128';
+import { mountMedia } from './media.js?v=20261115v128';
+import { mountMcp } from './mcp.js?v=20261115v128';
+import { mountAndroid } from './android.js?v=20261115v128';
+import { mountModelOutput } from './model-output.js?v=20261115v128';
+import { mountRouting } from './routing.js?v=20261115v128';
+import { mountChatImages } from './chat-images.js?v=20261115v128';
+import { mountInspector } from './inspector.js?v=20261115v128';
+import { mountSettingsRail } from './settings-rail.js?v=20261115v128';
 // 直接复用 V1 的 rail 提示浮层模块（data-tip → #tip-layer），不自创实现
 import '../app/tips.js?v=20261103u5';
 
@@ -40,7 +40,8 @@ let generation = 0,
   pendingKey = null,
   build = null;
 const inflight = new Set();
-let connecting = null;
+let connecting = null,
+  initializingAgent = null;
 const modelOutput = mountModelOutput({ api, getAgent: () => agent, getGeneration: () => generation });
 const routingPanel = mountRouting({
   api,
@@ -1083,6 +1084,9 @@ function schedule() {
 }
 async function selectAgent() {
   // 当前初始化退出时解除 inert；被取代的初始化必须保留新连接的交互屏障。
+  const initialization = {},
+    selectedConnection = connecting;
+  initializingAgent = initialization;
   stop();
   const selectedGeneration = generation;
   const nav = document.querySelector('nav');
@@ -1092,7 +1096,9 @@ async function selectAgent() {
     await selectAgentBody(selectedGeneration);
   } finally {
     // 被新连接取代的初始化没有权利提前开放新连接的控件。
-    if (selectedGeneration === generation) {
+    // visibilitychange 只中断请求，没有新初始化接管时仍须恢复交互。
+    if (initializingAgent === initialization && connecting === selectedConnection) {
+      initializingAgent = null;
       nav.inert = false;
       $('send').inert = false;
     }

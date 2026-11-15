@@ -8,6 +8,8 @@ from pathlib import Path
 import pytest
 import uvicorn
 from playwright.sync_api import expect
+from test_v2_history_ui import connect
+from test_v2_ui import v2_server as v2_server
 
 from omni.composition.http import http_app
 
@@ -224,5 +226,48 @@ def test_superseded_bootstrap_cannot_unlock_manual_connection(token_server, ui_b
         expect(page.locator("nav")).not_to_have_attribute("inert", "")
         expect(page.locator("#send")).not_to_have_attribute("inert", "")
         expect(page.locator("#error")).to_be_hidden()
+    finally:
+        context.close()
+
+
+@pytest.mark.parametrize("v2_server", ["two_agents"], indirect=True)
+def test_interrupted_agent_selection_releases_its_own_controls(v2_server, ui_browser):
+    """Backgrounding interrupts a load without transferring its controls to another load."""
+    context = ui_browser.new_context(viewport={"width": 1440, "height": 1000})
+    try:
+        page, errors = connect(context, v2_server)
+        expect(page.locator("#connect")).to_have_attribute("data-connected", "true")
+        original = page.locator("#agents").input_value()
+        other = next(
+            value
+            for value in page.locator("#agents option").evaluate_all("rows => rows.map(r => r.value)")
+            if value != original
+        )
+        held = []
+        page.route("**/api/v1/agents/*/settings", lambda route: held.append(route))
+        with page.expect_request("**/api/v1/agents/*/settings"):
+            page.locator("#agents").select_option(other)
+
+        def visibility(hidden):
+            page.evaluate(
+                """hidden => {
+                    Object.defineProperty(document, 'hidden', {configurable: true, value: hidden});
+                    document.dispatchEvent(new Event('visibilitychange'));
+                }""",
+                hidden,
+            )
+
+        with page.expect_event("requestfailed", predicate=lambda request: request.url.endswith("/settings")):
+            visibility(True)
+        assert len(held) == 1
+        held.pop().continue_()
+        page.unroute("**/api/v1/agents/*/settings")
+        visibility(False)
+        expect(page.locator("nav")).not_to_have_attribute("inert", "")
+        expect(page.locator("#send")).not_to_have_attribute("inert", "")
+        page.locator("#agents").select_option(original)
+        expect(page.locator("nav")).not_to_have_attribute("inert", "")
+        expect(page.locator("#settings-fields")).to_be_enabled()
+        assert not errors
     finally:
         context.close()
