@@ -39,6 +39,10 @@ V2 文档维护的开发反馈先选 `test_v2_maintenance.py`、`test_v2_mainten
 
 `conftest.py` 仅为 `loadfile` 装配 `CrashSafeLoadFileScheduling`：worker 崩溃重排后清除队列中已完成的空工作单元，并为替换 worker 补足执行当前用例所需的下一项或正常关闭标记。全部未完成用例及文件归属保留，原崩溃仍记失败；其他显式调度模式继续使用 xdist 默认实现。回归见 `test_pytest_scheduler.py`，不调整 worker 数、断言、超时或离线闸门。
 
+`failure_reports.py` 在普通失败报告渲染抛出 `MemoryError` 时，保留原节点、阶段、失败状态、用时、捕获输出和用户属性，生成有界诊断；诊断读取原异常的文本参数和有限栈帧，不再加载源码/AST，也不调用任意异常参数的字符串方法。原调用没有异常、显式跳过或报告生成抛出其他错误时继续暴露内部错误。普通失败会立即输出节点与阶段，结束时仍保留标准汇总。该兜底不修复潜在内存增长，也不把失败或错误改成通过；真实 pytest/xdist 子进程回归见 `test_pytest_failure_reports.py`。
+
+运行身份的短预算关闭可能在 `draining` 发布完成前返回。`test_v2_service_runtime.py` 先在最多5秒内等待该实例拥有的实际发布任务，再验证私有文件；原关闭预算、锁归属和就绪断言保持不变。另有原子替换回归明确要求读取中的身份变化仍报 `runtime_identity_changed`，生产读取检查不增加重试或放宽。
+
 Python 网络/模型闸门仍在每个 worker 启用；子进程继承离线环境。并行不改变测试数量、断言、业务超时或真实设备验收边界。
 
 Portal 的原生共享状态与应用授权审计分两步完成。`test_v2_portal_service.py` 的就绪帮助函数要求 active 且 authorized；`test_v2_portal_ui.py` 通过真实作用域 API 观察同一 grant 的授权完成，最多等待5秒，再点击显式查询按钮；原界面断言的超时、截图、像素及回收检查保持不变。新增受控审计夹具覆盖确认中、提交后刷新和失败回收；在应用异步边界暂停，不阻塞数据库线程、不伪造 HTTP 成功，也不要求生产界面增加轮询。每例仍独立数据库和 BrowserContext。

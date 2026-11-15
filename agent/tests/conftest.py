@@ -10,6 +10,8 @@ from typing import TYPE_CHECKING
 import pytest
 from offline_guard import deny, install
 
+pytest_plugins = ["failure_reports"]
+
 if TYPE_CHECKING:
     from crash_safe_scheduler import CrashSafeLoadFileScheduling
     from xdist.remote import Producer

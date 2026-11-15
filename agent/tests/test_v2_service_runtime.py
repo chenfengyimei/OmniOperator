@@ -4,13 +4,13 @@ from __future__ import annotations
 
 import asyncio
 import json
+import os
 import threading
 from pathlib import Path
 from types import SimpleNamespace
 
 import httpx
 import pytest
-
 from test_v2_deployment_files import installation as installation
 from test_v2_deployment_files import plan_for
 
@@ -44,10 +44,11 @@ def test_identity_tracks_real_boot_and_drains_before_releasing_lock(tmp_path):
         instance._lifetime.own("fixture", 0, stalled)
         try:
             assert not (await instance.close(0.03))["complete"]
-            for _ in range(100):
-                if json.loads(read_private(path))["state"] == "draining":
-                    break
-                await asyncio.sleep(0.005)
+            # The short close can return while the ordered writer is still replacing this file.
+            # Join the owned publication before applying the unchanged private-file identity checks.
+            assert instance.identity_files._drain is not None
+            async with asyncio.timeout(5):
+                await instance.identity_files._drain
             assert json.loads(read_private(path))["state"] == "draining"
             assert not instance.health()["ready"]
             with pytest.raises(BusinessError):
@@ -63,6 +64,39 @@ def test_identity_tracks_real_boot_and_drains_before_releasing_lock(tmp_path):
             assert json.loads(read_private(path))["boot_id"] == again.boot_id
         finally:
             assert (await again.close())["complete"]
+
+    asyncio.run(scenario())
+
+
+def test_private_identity_read_rejects_atomic_publication_during_inspection(tmp_path, monkeypatch):
+    async def scenario():
+        publisher = RuntimeIdentityFiles(tmp_path, {"boot_id": UUIDs().new()})
+        await publisher.start()
+        original_stat, original_fstat = Path.stat, os.fstat
+        calls, replaced = 0, False
+
+        def observed_fstat(descriptor):
+            nonlocal calls
+            calls += 1
+            return original_fstat(descriptor)
+
+        def publish_before_path_check(path, *, follow_symlinks=True):
+            nonlocal replaced
+            if path == publisher.path and calls >= 2 and not replaced:
+                replaced = True
+                publisher._write("draining")
+            return original_stat(path, follow_symlinks=follow_symlinks)
+
+        try:
+            with monkeypatch.context() as scoped:
+                scoped.setattr(os, "fstat", observed_fstat)
+                scoped.setattr(Path, "stat", publish_before_path_check)
+                with pytest.raises(BusinessError) as changed:
+                    read_private(publisher.path)
+            assert replaced and changed.value.code == "runtime_identity_changed"
+            assert json.loads(read_private(publisher.path))["state"] == "draining"
+        finally:
+            assert await publisher.close(5)
 
     asyncio.run(scenario())
 
