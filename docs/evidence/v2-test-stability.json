@@ -1,0 +1,112 @@
+{
+  "schema": 1,
+  "date": "2026-11-15",
+  "batch": "v2-test-stability-after-ui-v128",
+  "whole_v2_complete": false,
+  "default_entrypoint": "v1",
+  "source": {
+    "head": "e5910a9591d2ccbd3f89e1c8d08ad08872e3771b",
+    "code_version": "9b6a87587d005cd1a542cc42c265cc59fbc8a5f315a6ad56839918519ef66f96",
+    "fixed_source_files": 1210,
+    "strict_files": 332
+  },
+  "model_header_type_repair": {
+    "functional_feature_commit": "7580bef1",
+    "type_only_fix_commit": "aeaed3f",
+    "before_strict_errors": 2,
+    "after_strict_errors": 0,
+    "strict_files": 332,
+    "ast_proof": {
+      "path": "temp/build/v2-model-header-type-proof.json",
+      "sha256": "f300bb679a2d51116d7fb5dad94036e8b73bb855503143cfd2c4cc07aa007c52"
+    },
+    "callers": {
+      "report": "temp/build/v2-model-header-type-regression.xml",
+      "report_sha256": "0d6b07c8f9bb5830d232c9a46687ec7fd92bc2edb00edc0b969e4f43abe3ca41",
+      "tests": 47,
+      "passed": 47,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 0,
+      "duration_s": 76.744
+    },
+    "note": "Only typing.cast and formatting changed relative to the concurrent model-header feature; the request behavior was preserved."
+  },
+  "crash_safe_scheduler": {
+    "source_commit": "e5910a9",
+    "files": [
+      "agent/tests/crash_safe_scheduler.py",
+      "agent/tests/conftest.py",
+      "agent/tests/test_pytest_scheduler.py"
+    ],
+    "before": {
+      "report": "temp/build/v2-scheduler-before.xml",
+      "report_sha256": "a780a4f11941cf032af238489a794af1fa87fb7a27bcc10ebf139136e5eaaa69",
+      "tests": 8,
+      "passed": 1,
+      "failed": 7,
+      "errors": 0,
+      "skipped": 0,
+      "duration_s": 0.624
+    },
+    "after": {
+      "report": "temp/build/v2-scheduler-after.xml",
+      "report_sha256": "ad1ced29344cbf928466bc2e1a7b999703edf72d784af604d3282b91c685f847",
+      "tests": 9,
+      "passed": 9,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 0,
+      "duration_s": 0.322
+    },
+    "parallel_callers": {
+      "report": "temp/build/v2-scheduler-parallel-callers.xml",
+      "report_sha256": "714933efc103d261a386cb9e1e4be17e534fdfd532eb1af16ce69d1bdf81ff97",
+      "tests": 29,
+      "passed": 29,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 0,
+      "duration_s": 47.962
+    },
+    "contract": "Keep loadfile ownership, every unfinished identity, original crash failures, requested worker counts and all assertions/timeouts/offline gates. Remove completed-only requeued units and supply lookahead or shutdown. Explicit other distribution modes retain xdist behavior."
+  },
+  "targeted_unique_passed": 76,
+  "previous_ui_delivery": {
+    "evidence": "docs/evidence/v2-ui.json",
+    "source_head": "4b6c07954be0c874b04fe9294049ae60ae00a06e",
+    "source_exactly_matches_this_delivery": false,
+    "dedicated_targeted_passed": 89,
+    "full_artifact": 216,
+    "note": "Its recovered full report belongs only to its frozen UI source and is not reused as a current-source full result."
+  },
+  "other_session_model_acceptance": {
+    "artifact": "temp/build/_real_accept.json",
+    "sha256": "28203501c8420400833980203fba1489d5a934a802ac277205606afdb0067615",
+    "reported_total": 8,
+    "reported_failed": 0,
+    "model": "openai/qwen3.8-flash",
+    "declared_source_commit": "7580bef1",
+    "scope": "Observed another session's commit statement and local report counters; no real model request was repeated here. One provider record does not complete the model/platform acceptance matrix."
+  },
+  "full_run": {
+    "status": "running",
+    "checkpoint": 77,
+    "artifact_id": 217,
+    "strict_checkpoint": 214,
+    "source_head": "e5910a9591d2ccbd3f89e1c8d08ad08872e3771b",
+    "code_version": "9b6a87587d005cd1a542cc42c265cc59fbc8a5f315a6ad56839918519ef66f96",
+    "fixed_source_files": 1210,
+    "strict_files": 332,
+    "report": "temp/build/v2-full-217.xml",
+    "workers": 2,
+    "uninterrupted_default_run": true
+  },
+  "not_verified": [
+    "Whole-V2 parity and entrypoint switching",
+    "Complete multi-provider/model/MCP/plugin/device acceptance",
+    "Clean-machine installation/update/rollback/uninstall",
+    "macOS/Linux/container builds and 24h/72h stability",
+    "Windows real foreground input remains deferred"
+  ]
+}

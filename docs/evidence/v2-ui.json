@@ -1,7 +1,7 @@
 {
-  "batch": "v2-ui-workbench-completion",
-  "recorded_at": "2026-11-13",
-  "resource_version_final": "20261113v126",
+  "batch": "v2-ui-connection-stability-v128",
+  "recorded_at": "2026-11-15",
+  "resource_version_final": "20261115v128",
   "v1_alignment": {
     "summary": "用户提供 V1 正式工作台截图后，直接精读 web/ui/workbench.css 的 V1 实现并逐项移植，使 V2 结构与 V1 一致（而非自创风格）。",
     "ported_from_v1": [
@@ -57,10 +57,12 @@
     ]
   },
   "full_suite": {
-    "command": "uv run --no-sync pytest -q",
-    "result": "4656 passed, 10 warnings in 1585.54s (0:26:25)",
-    "ran_at": "2026-11-13",
-    "note": "全量在 v66 源码上通过；毛玻璃重构（v70）后的全量待补跑"
+    "command": "uv run --no-sync python temp/build/_full_checkpoint.py run 216 (frozen interpreter: python -m pytest -q -n 2)",
+    "source_head": "4b6c07954be0c874b04fe9294049ae60ae00a06e",
+    "report": "temp/build/v2-full-216.xml",
+    "result": "4665 passed / 6 failed / 3 errors / 0 skipped in 4278.5s",
+    "ran_at": "2026-11-15",
+    "note": "Raw fixed-source parallel result; reruns remain separately recorded in connection_stability_v128.full_run."
   },
   "scope": {
     "files": [
@@ -485,6 +487,460 @@
       "永久测试": "agent/tests/test_v2_models_ui.py 3 项：390/1024 渲染8供应商+密钥掩码+显隐切换+无溢出；保存后密钥清空且不进浏览器存储；离线实例连接测试明确拒绝。3 passed。",
       "全量回归": "4656 passed / 2 failed（1792s，-n 4）。两败 test_v2_ui[credential dark-760] 与 test_terminal[echo_roundtrip] 隔离复跑均通过，属并行负载抖动；后者与本批无关。模型接入相关守卫/导航/配置/凭据/新增 UI 测试全过。"
     },
-    "未验收": "真实外部供应商（OpenAI/Anthropic 等）端到端、真实平台账号、72 小时稳定性仍未验收；端到端用本地 OpenAI 兼容端点验证适配链路，不等同真实供应商验收。"
-  }
+    "未验收": "真实外部供应商（OpenAI/Anthropic 等）端到端、真实平台账号、72 小时稳定性仍未验收；端到端用本地 OpenAI 兼容端点验证适配链路，不等同真实供应商验收。",
+    "真实供应商验收": {
+      "供应商": "OpenCode Go（https://opencode.ai/zen/go/v1）",
+      "模型": "openai/qwen3.8-flash",
+      "结果": "8/8 PASS：UI 填 Key→服务端凭据库→真实 LiteLLM 适配器→真实端点→流式对话回复渲染；密钥不进浏览器存储；零 pageerror",
+      "集成修复": "OpenCode Go 要求自身 User-Agent 与每会话稳定 x-opencode-session；适配器已加入（以 model_profile_id 为会话标识），并支持配置级 extra_headers（禁止覆盖鉴权头）",
+      "费用": "仅一次最小 probe（16 token）与一次短对话，极少量"
+    }
+  },
+  "previous_ui_resource_version": "20261113v126",
+  "latest_recorded_at": "2026-11-15",
+  "connection_stability_v127": {
+    "status": "superseded_by_v128_before_full_completion",
+    "source": {
+      "head": "4f0815b77766bfe72a6b25eaaca8c7f66d44a7f3",
+      "code_version": "6795b19fef14e36b19333d9600f399e691f35fcfe06efad9cf7500bf77eb1f0a",
+      "fixed_source_files": 1208,
+      "strict_files": 332,
+      "working_source_version": "47cec7f4fc0ce1c7a5974fab7c3398739b1b4c9d9e81e09e7e75b86fbb679988",
+      "snapshot": {
+        "path": "temp/build/v2-full-215-snapshot.json",
+        "sha256": "19850f0a4351b3148966335795703be1d16e31476afcfb069d1a92ac986ef23f"
+      }
+    },
+    "confirmed_problem": "Automatic connection hid the manual token input before Agent initialization finished. Manual activity during initialization could also leave old cleanup able to unlock the new connection.",
+    "behavior": [
+      "Collapse the connection card only after Agent initialization completes.",
+      "Manual input/focus/pointerdown immediately cancels an active automatic connection and preserves the token draft.",
+      "Connection attempts own their responses; Agent initialization owns navigation/send barriers by generation. Superseded work cannot overwrite or unlock newer work.",
+      "The cancel path updates the hint and keeps navigation/send blocked until a subsequent explicit connection finishes."
+    ],
+    "before_fix": {
+      "report": "temp/build/v2-ui-connection-before.xml",
+      "report_sha256": "a55b65b2267c87a065fa502eab32f035ba03d2a6315fdb7673f2a90ecf20ecaf",
+      "tests": 2,
+      "passed": 0,
+      "failed": 2,
+      "errors": 0,
+      "skipped": 0,
+      "duration_s": 68.689,
+      "scope": "Two initial unparameterized regressions failed because the token input was hidden during the held initialization request; no rerun success is substituted for this result."
+    },
+    "targeted": {
+      "unique_passed": 88,
+      "browser_cases": 46,
+      "reports": [
+        {
+          "report": "temp/build/v2-ui-connection-callers.xml",
+          "report_sha256": "c877f8ae59f2eba4ff600f3062ab6626a6207487d67fc2447042af25307eeb90",
+          "tests": 44,
+          "passed": 44,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0,
+          "duration_s": 256.835
+        },
+        {
+          "report": "temp/build/v2-ui-connection-gates.xml",
+          "report_sha256": "83bc769dc770e252b9008694722cdd3fa760e87187097ac821725ef871e8739c",
+          "tests": 18,
+          "passed": 18,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0,
+          "duration_s": 49.712
+        },
+        {
+          "report": "temp/build/v2-ui-connection-style.xml",
+          "report_sha256": "af1a7ebfdf34fd7170c9cd3b0b86f8a7845923e10e54d2c64f361233c6dc1483",
+          "tests": 37,
+          "passed": 37,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0,
+          "duration_s": 1.489
+        }
+      ],
+      "note": "44 caller cases, 18 gate cases, 37 style cases; 11 repeated owner-token cases are counted once. The final seven new regressions include explicit cancellation evidence and a held newer /version response."
+    },
+    "static": {
+      "strict": "332 files; 0 errors, 0 warnings",
+      "ruff": "Changed Python test passes check and format --check",
+      "frontend_syntax": "85 ES modules passed",
+      "project_index": "65 modules / 736 files / 434 routes / 94 declared tools; --check passed",
+      "changed_js_prettier": "All six modified JS modules passed",
+      "whole_web_prettier": {
+        "passed": false,
+        "remaining_files": 11,
+        "prior_head_files": 12,
+        "baseline": "temp/build/v2-ui-connection-format-baseline.json",
+        "note": "All remaining failures existed at the prior committed HEAD. Only main.js formatting was cleaned while editing its connection flow; unrelated files were not reformatted."
+      }
+    },
+    "screenshots": [
+      "temp/build/v2-ui-connection/manual-light-390.png",
+      "temp/build/v2-ui-connection/manual-light-1024.png",
+      "temp/build/v2-ui-connection/manual-light-1440.png",
+      "temp/build/v2-ui-connection/manual-dark-390.png",
+      "temp/build/v2-ui-connection/manual-dark-1024.png",
+      "temp/build/v2-ui-connection/manual-dark-1440.png"
+    ],
+    "visual_review": "Inspected 390 dark and 1440 light screenshots; all six cases assert no horizontal overflow after connection. No visual redesign.",
+    "full_run": {
+      "status": "aborted_without_full_result",
+      "source_head": "4f0815b77766bfe72a6b25eaaca8c7f66d44a7f3",
+      "artifact_id": 215,
+      "record": "temp/build/v2-full-215-aborted.json",
+      "record_sha256": "afe8e14709962e258b85c684ad557e409927bffffda6f15772b18fa45965cb72",
+      "log": "temp/build/v2-full-215.log",
+      "note": "Stopped only the verified owned test process tree after identifying the visibility regression. No complete JUnit result exists; progress dots are not test counts or a full-suite result."
+    },
+    "not_claimed": [
+      "No existing intermittent UI finding is closed by this change",
+      "Not whole-repository strict",
+      "Not whole-V2 acceptance",
+      "Real foreground input remains explicitly deferred"
+    ]
+  },
+  "previous_workbench_batch": "v2-ui-workbench-completion",
+  "previous_recorded_at": "2026-11-13",
+  "connection_stability_v128": {
+    "status": "implemented_full_harvested",
+    "source": {
+      "head": "4b6c07954be0c874b04fe9294049ae60ae00a06e",
+      "code_version": "44b8f76aef7c22bd3b7dc41cca971a250828e8f2f6a0d6b0752d52c84396f5d9",
+      "fixed_source_files": 1208,
+      "strict_files": 332,
+      "working_source_version": "60be5ce23b1a2d90bf0f884eb5db66c7704acd8b87d769bb52e742bd81833188",
+      "snapshot": {
+        "path": "temp/build/v2-full-216-snapshot.json",
+        "sha256": "f5821b76ffb1eb920efa2f120a29b56dc89a801a21b9d817cd066464131fb9fd"
+      }
+    },
+    "workspace_followup": {
+      "source_head": "e5910a9591d2ccbd3f89e1c8d08ad08872e3771b",
+      "code_version": "9b6a87587d005cd1a542cc42c265cc59fbc8a5f315a6ad56839918519ef66f96",
+      "changed_source_paths_since_this_ui_snapshot": [
+        "agent/src/omni/adapters/models.py",
+        "agent/tests/conftest.py",
+        "agent/tests/crash_safe_scheduler.py",
+        "agent/tests/test_pytest_scheduler.py"
+      ],
+      "this_full_matches_workspace": false,
+      "next_full_artifact": 217,
+      "note": "The concurrent model-header feature and the later type/scheduler fixes are outside the frozen UI full-run source. They require their own full validation."
+    },
+    "confirmed_problem": "Automatic connection hid the manual token input before Agent initialization finished. Manual activity during initialization could also leave old cleanup able to unlock the new connection.",
+    "behavior": [
+      "Collapse the connection card only after Agent initialization completes.",
+      "Manual input/focus/pointerdown immediately cancels an active automatic connection and preserves the token draft.",
+      "Connection attempts own their responses; explicit initialization and connection identities own navigation/send barriers, while request generations reject stale data. Superseded work cannot overwrite or unlock newer work.",
+      "The cancel path updates the hint and keeps navigation/send blocked until a subsequent explicit connection finishes."
+    ],
+    "before_fix": {
+      "report": "temp/build/v2-ui-connection-before.xml",
+      "report_sha256": "a55b65b2267c87a065fa502eab32f035ba03d2a6315fdb7673f2a90ecf20ecaf",
+      "tests": 2,
+      "passed": 0,
+      "failed": 2,
+      "errors": 0,
+      "skipped": 0,
+      "duration_s": 68.689,
+      "scope": "Two initial unparameterized regressions failed because the token input was hidden during the held initialization request; no rerun success is substituted for this result."
+    },
+    "visibility_regression_before_correction": {
+      "report": "temp/build/v2-ui-connection-visibility-before.xml",
+      "report_sha256": "6d714020caa59e1c62b610aac03d7c905a084cfbea271deaf15427a34f9a95a1",
+      "tests": 1,
+      "passed": 0,
+      "failed": 1,
+      "errors": 0,
+      "skipped": 0,
+      "duration_s": 13.085,
+      "source_head": "4f0815b77766bfe72a6b25eaaca8c7f66d44a7f3",
+      "scope": "The first connection fix kept controls locked after visibility interrupted Agent selection. The additional regression failed at the still-inert navigation; final v128 releases only controls still owned by that initialization."
+    },
+    "targeted": {
+      "unique_passed": 89,
+      "browser_cases": 47,
+      "reports": [
+        {
+          "report": "temp/build/v2-ui-connection-final-owner.xml",
+          "report_sha256": "14ddfdd678692a5d58062635b7cb0fc55186a18d55760d2da87263642aba0d0d",
+          "tests": 12,
+          "passed": 12,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0,
+          "duration_s": 45.342
+        },
+        {
+          "report": "temp/build/v2-ui-connection-final-callers.xml",
+          "report_sha256": "d214495c52a8dc617a4d91021dc7ede75d71707449696204215cc21fe3f951b7",
+          "tests": 77,
+          "passed": 77,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0,
+          "duration_s": 230.104
+        }
+      ],
+      "note": "12 final owner-token cases plus 77 final caller/gate/style cases, with no overlap. Eight new regressions cover explicit cancellation, a held newer /version response, and background-interrupted Agent selection."
+    },
+    "static": {
+      "strict": "332 files; 0 errors, 0 warnings",
+      "ruff": "Changed Python test passes check and format --check",
+      "frontend_syntax": "85 ES modules passed",
+      "project_index": "65 modules / 736 files / 434 routes / 94 declared tools; --check passed",
+      "changed_js_prettier": "All six modified JS modules passed",
+      "whole_web_prettier": {
+        "passed": false,
+        "remaining_files": 11,
+        "prior_head_files": 12,
+        "baseline": "temp/build/v2-ui-connection-format-baseline.json",
+        "note": "All remaining failures existed at the prior committed HEAD. Only main.js formatting was cleaned while editing its connection flow; unrelated files were not reformatted."
+      }
+    },
+    "screenshots": [
+      "temp/build/v2-ui-connection/manual-light-390.png",
+      "temp/build/v2-ui-connection/manual-light-1024.png",
+      "temp/build/v2-ui-connection/manual-light-1440.png",
+      "temp/build/v2-ui-connection/manual-dark-390.png",
+      "temp/build/v2-ui-connection/manual-dark-1024.png",
+      "temp/build/v2-ui-connection/manual-dark-1440.png"
+    ],
+    "visual_review": "Inspected 390 dark and 1440 light screenshots; all six cases assert no horizontal overflow after connection. No visual redesign.",
+    "full_run": {
+      "status": "completed_after_explicit_scheduler_recovery_with_failures",
+      "checkpoint": 76,
+      "artifact_id": 216,
+      "ui_version": "20261115v128",
+      "strict_checkpoint": 214,
+      "source_head": "4b6c07954be0c874b04fe9294049ae60ae00a06e",
+      "report": "temp/build/v2-full-216.xml",
+      "workers": 2,
+      "report_sha256": "0c584ab8dc656e68ddbf8f619ad1610a78b66d9db9cbe0000230534f7a826932",
+      "tests": 4674,
+      "passed": 4665,
+      "failed": 6,
+      "errors": 3,
+      "skipped": 0,
+      "duration_s": 4278.5,
+      "returncode": 1,
+      "source_unchanged": true,
+      "working_source_version": "60be5ce23b1a2d90bf0f884eb5db66c7704acd8b87d769bb52e742bd81833188",
+      "fixed_source_files": 1208,
+      "strict_files": 332,
+      "code_version": "44b8f76aef7c22bd3b7dc41cca971a250828e8f2f6a0d6b0752d52c84396f5d9",
+      "snapshot": {
+        "path": "temp/build/v2-full-216-snapshot.json",
+        "sha256": "f5821b76ffb1eb920efa2f120a29b56dc89a801a21b9d817cd066464131fb9fd"
+      },
+      "wall_duration_s": 4279.646,
+      "junit_duration_s": 4276.463,
+      "command": "uv run --no-sync python temp/build/_full_checkpoint.py run 216 (frozen interpreter: python -m pytest -q -n 2)",
+      "environment": "Committed HEAD archive; disposable interpreter reuses existing dependencies via .pth. No source PYTHONPATH, no uv sync, no user service changes. Explicit scheduler recovery is recorded; the final report contains every collected node, with original failures retained.",
+      "reruns": [
+        {
+          "report": "temp/build/v2-full-216-serial.xml",
+          "report_sha256": "1c5945532a5e57c7ad87375d45cd0fc6c6ca0ed29bfa4ea16c432c17e2ec1f6f",
+          "tests": 9,
+          "passed": 9,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0,
+          "duration_s": 48.172,
+          "kind": "same_frozen_source_rerun",
+          "source_head": "4b6c07954be0c874b04fe9294049ae60ae00a06e"
+        },
+        {
+          "report": "temp/build/v2-full-216-prior-control-1.xml",
+          "report_sha256": "a5fec5d6ad0fa77def6fae546ad422104e102fa90dafad404502a34a615547f1",
+          "tests": 9,
+          "passed": 9,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0,
+          "duration_s": 52.33,
+          "kind": "prior_committed_head_control",
+          "source_head": "cbd71981bfd582bf107a62f78e06d303fff870aa",
+          "returncode": 0
+        },
+        {
+          "report": "temp/build/v2-full-216-prior-control-2.xml",
+          "report_sha256": "0b9010b38fe073482145fccbd78f4926461ffe04a4a6e0b385e752989a69640a",
+          "tests": 9,
+          "passed": 8,
+          "failed": 1,
+          "errors": 0,
+          "skipped": 0,
+          "duration_s": 79.848,
+          "kind": "prior_committed_head_control",
+          "source_head": "cbd71981bfd582bf107a62f78e06d303fff870aa",
+          "returncode": 1
+        }
+      ],
+      "failed_cases": [
+        {
+          "classname": "agent.tests.test_retrieval",
+          "name": "test_index_semantic_recall_and_scope_before_return",
+          "message": "failed on setup with \"worker 'gw1' crashed while running 'agent/tests/test_retrieval.py::test_index_semantic_recall_and_scope_before_return'\""
+        },
+        {
+          "classname": "agent.tests.test_unification",
+          "name": "test_background_recall_uses_injected_hybrid_search_without_counting_hits",
+          "message": "failed on setup with \"worker 'gw2' crashed while running 'agent/tests/test_unification.py::test_background_recall_uses_injected_hybrid_search_without_counting_hits'\""
+        },
+        {
+          "classname": "agent.tests.test_v2_bilibili_ui",
+          "name": "test_bilibili_profile_draft_and_cas_preserve_user_edits[light-390]",
+          "message": "playwright._impl._errors.Error: BrowserContext.new_page: Target crashed"
+        },
+        {
+          "classname": "agent.tests.test_asr",
+          "name": "test_decode_audio_resamples_to_16k_mono",
+          "message": "failed on setup with \"worker 'gw3' crashed while running 'agent/tests/test_asr.py::test_decode_audio_resamples_to_16k_mono'\""
+        },
+        {
+          "classname": "agent.tests.test_ui_substation_controls",
+          "name": "test_substation_buttons_keep_skin",
+          "message": "playwright._impl._errors.TimeoutError: Locator.evaluate: Timeout 30000ms exceeded.\nCall log:\n  - waiting for locator(\"button:visible\").first"
+        },
+        {
+          "classname": "agent.tests.test_v2_action_review_ui",
+          "name": "test_late_real_detail_and_committed_receipt_do_not_overwrite_agent_or_new_note[two_agents]",
+          "message": "playwright._impl._errors.TimeoutError: Page.goto: Timeout 30000ms exceeded.\nCall log:\n  - navigating to \"http://127.0.0.1:65401/\", waiting until \"load\""
+        },
+        {
+          "classname": "agent.tests.test_v2_bilibili_worker",
+          "name": "test_real_browser_selects_uid_and_requires_receipt_and_new_record_without_enter_send",
+          "message": "AssertionError: assert (<Outcome.UNKNOWN: 'unknown'> == <Outcome.OK: 'ok'>\n  \n  - ok\n  + unknown)"
+        },
+        {
+          "classname": "agent.tests.test_v2_extensions_ui",
+          "name": "test_register_manual_trust_cas_and_disable_never_import_plugin",
+          "message": "playwright._impl._errors.TimeoutError: Page.goto: Timeout 30000ms exceeded.\nCall log:\n  - navigating to \"http://127.0.0.1:53185/\", waiting until \"load\""
+        },
+        {
+          "classname": "agent.tests.test_v2_history_ui",
+          "name": "test_audit_pages_expire_clear_old_view_and_reload_without_old_cursor[agent]",
+          "message": "AssertionError: Locator expected not to have attribute ''\nActual value:  \nCall log:\n  - Expect \"not_to_have_attribute\" locator(\"nav\") with timeout 5000ms\n  - waiting for locator(\"nav\")\n    13 × locator resolved to <nav inert=\"\" aria-label=\"工作台\">…</nav>\n       - unexpected value \"\"\n\nAria snapshot:\n- navigation \"工作台\":\n  - img \"OmniOperator\"\n  - paragraph: 对话与记忆\n  - button \"对话\": forum\n  - button \"记忆\": psychology\n  - paragraph: 知识与技能\n  - button \"技能\": auto_awesome\n  - button \"来源文档\": description\n  - paragraph: 工具与扩展\n  - button \"可信插件\": extension\n  - button \"MCP\": device_hub\n  - button \"动作核查\": fact_check\n  - paragraph: 设备与平台\n  - button \"QQ 通道\": chat\n  - button \"B站\": live_tv\n  - button \"安卓设备\": smartphone\n  - button \"桌面能力\": desktop_windows\n  - button \"所有者终端\": terminal\n  - paragraph: 资料与媒体\n  - button \"人物与档案\": person\n  - button \"文件\": folder\n  - button \"媒体\": movie\n  - paragraph: 自动化\n  - button \"持久调度\": schedule\n  - button \"持久投递\": send\n  - paragraph: 系统与运维\n  - button \"模型接入\": hub\n  - button \"设置\": sett"
+        }
+      ],
+      "collected_tests": 4671,
+      "junit_testcase_records": 4674,
+      "unique_test_nodes_reported": 4671,
+      "repeated_testcase_records": 3,
+      "pytest_cli_summary": {
+        "passed": 4665,
+        "failed": 9,
+        "warnings": 6,
+        "duration_s": 4278.5
+      },
+      "worker_exit_reports": [
+        {
+          "classname": "agent.tests.test_retrieval",
+          "name": "test_index_semantic_recall_and_scope_before_return",
+          "message": "failed on setup with \"worker 'gw1' crashed while running 'agent/tests/test_retrieval.py::test_index_semantic_recall_and_scope_before_return'\""
+        },
+        {
+          "classname": "agent.tests.test_unification",
+          "name": "test_background_recall_uses_injected_hybrid_search_without_counting_hits",
+          "message": "failed on setup with \"worker 'gw2' crashed while running 'agent/tests/test_unification.py::test_background_recall_uses_injected_hybrid_search_without_counting_hits'\""
+        },
+        {
+          "classname": "agent.tests.test_asr",
+          "name": "test_decode_audio_resamples_to_16k_mono",
+          "message": "failed on setup with \"worker 'gw3' crashed while running 'agent/tests/test_asr.py::test_decode_audio_resamples_to_16k_mono'\""
+        }
+      ],
+      "uninterrupted_default_run": false,
+      "scheduler_recovery": {
+        "record": "temp/build/v2-full-216-scheduler-recovery.json",
+        "sha256": "18651144c589d02bac24fd7e34027b8867b8777b08344a50b3fe093a2da1bfad",
+        "before_state": "temp/build/v2-full-216-controller-state-before-recovery.json",
+        "before_state_sha256": "d61e4ae7b99e06df225edd3d20652de6bbc8528c29c0152a28b1a3672e46c21d",
+        "pending_identities_preserved": 31,
+        "completed_only_scopes_removed": 90,
+        "diagnostic_code": "temp/build/_inspect_full_216_controller.py",
+        "recovery_code": "temp/build/_recover_full_216_scheduler.py",
+        "recovery_code_sha256": "9e829a348ec10dcf04f56246cc3c182ccad455c1a0c74b73f0a86446db828d22",
+        "tool_provenance": [
+          "temp/build/debug-tools/py-spy-provenance.json",
+          "temp/build/debug-tools/debugpy-provenance.json"
+        ],
+        "note": "Workers were idle in TestQueue.get; controller idle in DSession.loop_once. Crash rescheduling queued 90 completed-only units ahead of 31 pending tests. Only completed-only queue entries were removed and existing scheduler methods resumed assignment. This is an explicit orchestration intervention, not an uninterrupted default full-run result."
+      },
+      "prior_controls": {
+        "source_head": "cbd71981bfd582bf107a62f78e06d303fff870aa",
+        "source_version": "1466148486cd6de41b467a190da0c3cdb062e91c07b7277fde39817d15cc5b39",
+        "new_head": "4b6c07954be0c874b04fe9294049ae60ae00a06e",
+        "production_python_unchanged": true,
+        "nine_failure_test_files_unchanged": true,
+        "nodes": [
+          "agent/tests/test_retrieval.py::test_index_semantic_recall_and_scope_before_return",
+          "agent/tests/test_unification.py::test_background_recall_uses_injected_hybrid_search_without_counting_hits",
+          "agent/tests/test_v2_bilibili_ui.py::test_bilibili_profile_draft_and_cas_preserve_user_edits[light-390]",
+          "agent/tests/test_asr.py::test_decode_audio_resamples_to_16k_mono",
+          "agent/tests/test_ui_substation_controls.py::test_substation_buttons_keep_skin",
+          "agent/tests/test_v2_action_review_ui.py::test_late_real_detail_and_committed_receipt_do_not_overwrite_agent_or_new_note[two_agents]",
+          "agent/tests/test_v2_bilibili_worker.py::test_real_browser_selects_uid_and_requires_receipt_and_new_record_without_enter_send",
+          "agent/tests/test_v2_extensions_ui.py::test_register_manual_trust_cas_and_disable_never_import_plugin",
+          "agent/tests/test_v2_history_ui.py::test_audit_pages_expire_clear_old_view_and_reload_without_old_cursor[agent]"
+        ],
+        "runs": [
+          {
+            "number": 1,
+            "returncode": 0,
+            "wall_s": 54.656,
+            "report": "temp/build/v2-full-216-prior-control-1.xml",
+            "log": "temp/build/v2-full-216-prior-control-1.log"
+          },
+          {
+            "number": 2,
+            "returncode": 1,
+            "wall_s": 82.313,
+            "report": "temp/build/v2-full-216-prior-control-2.xml",
+            "log": "temp/build/v2-full-216-prior-control-2.log"
+          }
+        ],
+        "source_unchanged": true
+      },
+      "original_failed_cases_passed_in_serial": true,
+      "details": [
+        "UI v128 follows strict batch 214; this is full checkpoint 76, not a new typing batch. Defined V2 strict scope remains 332 files.",
+        "Raw parallel counts are retained. Serial and isolated reruns never replace the original result.",
+        "All eight previously open observations remain open; the confirmed connection race is not proof of their causal mechanism. New worker-exit/browser/scheduler observations are recorded separately.",
+        "The suite collected 4671 unique nodes and emitted 4674 JUnit records because the three crashed cases were replayed; the original worker errors remain in the report. Pytest says 4665 passed / 9 failed, while JUnit separates 6 failures and 3 worker errors.",
+        "The default loadfile run stalled with both workers waiting for work. Explicit controller recovery removed 90 completed-only queued scopes, preserving all 31 pending identities. This recovered run is not represented as an uninterrupted default run or a performance benchmark.",
+        "Default entrypoints remain V1. Real model/MCP/plugin/device/platform/install and long-run acceptance are pending."
+      ]
+    },
+    "not_claimed": [
+      "No existing intermittent UI finding is closed by this change",
+      "Not whole-repository strict",
+      "Not whole-V2 acceptance",
+      "Real foreground input remains explicitly deferred"
+    ],
+    "aborted_intermediate_full_run": {
+      "status": "aborted_without_full_result",
+      "source_head": "4f0815b77766bfe72a6b25eaaca8c7f66d44a7f3",
+      "artifact_id": 215,
+      "record": "temp/build/v2-full-215-aborted.json",
+      "record_sha256": "afe8e14709962e258b85c684ad557e409927bffffda6f15772b18fa45965cb72",
+      "log": "temp/build/v2-full-215.log",
+      "note": "Stopped only the verified owned test process tree after identifying the visibility regression. No complete JUnit result exists; progress dots are not test counts or a full-suite result."
+    }
+  },
+  "full_suite_history": [
+    {
+      "command": "uv run --no-sync pytest -q",
+      "result": "4656 passed, 10 warnings in 1585.54s (0:26:25)",
+      "ran_at": "2026-11-13",
+      "note": "全量在 v66 源码上通过；毛玻璃重构（v70）后的全量待补跑"
+    }
+  ]
 }

@@ -1,13 +1,17 @@
 你接手 OmniOperator V2 的后续开发与验收。请实际核对代码和证据，不要重复已经完成的类型化。
 
+> 稳定性接续（2026-11-15）：源码`e5910a95`：模型请求头类型回归2→0（strict332文件），崩溃后文件调度已永久修复；模型47项、并行29项专项通过。最新源码的第77次全量（-n 2）运行中，报告temp/build/v2-full-217.xml。11项观察开放，整个V2未验收、默认V1。见[稳定性证据](evidence/v2-test-stability.json)。
+
+> UI v128冻结记录（第76次全量）：手动连接接管、旧流程屏障与后台恢复已修复，89项专项通过。固定源码`4b6c0795`，pytest原始汇总4665 passed / 9 failed，4278.50s；JUnit分为6 failure和3 worker error，4671项收集/4674条记录含3次崩溃重放；调度恢复后完成。11项观察开放（原8项保留）；332文件类型收口不重做，V2未整体验收、默认V1。详见[UI证据](evidence/v2-ui.json)。
+
 ## 当前断点（2026-11-15）
 
 - 工作区 D:/xm/OmniOperator，PowerShell（用分号，不用 &&），分支 codex/architecture-v2，上游 origin（Gitee）。
 - 原 P4/P5/P6 的 24 个 adapters 已在第185～214批完成。strict 合同范围332文件、0 errors/0 warnings：domain53、application44、adapters222/222、composition13。
-- 最后源码提交 73faa51a；源码指纹 1466148486cd6de41b467a190da0c3cdb062e91c07b7277fde39817d15cc5b39（1208个HEAD跟踪源码文件）。V1/tests与两个仅含说明的包入口不在该strict范围；不得称为全仓严格类型。
+- 类型收口源码提交 73faa51a；源码指纹 1466148486cd6de41b467a190da0c3cdb062e91c07b7277fde39817d15cc5b39（1208个HEAD跟踪源码文件）。V1/tests与两个仅含说明的包入口不在该strict范围；不得称为全仓严格类型。
 - 结构136表，迁移头v2_0037。整个V2仍未完成，默认正式入口仍V1，不迁V1数据，不双写，未经评审不切换入口。
-- 最近收割全量：第75节点、批214，固定提交cbd71981：4660 passed / 3 failed / 0 errors / 0 skipped。复跑不替换原始并行口径。
-- 待收割固定源码队列：无待收割全量。先核对证据的full_run、full_run_history及full_checkpoints_pending；已完成的报告不要重新跑。
+- 类型收口历史全量：第75节点、批214，固定提交cbd71981：4660 passed / 3 failed / 0 errors / 0 skipped。复跑不替换原始并行口径。
+- 待收割固定源码队列：第77次/artifact217运行中，固定源码e5910a9；不要启动第二个全量。
 
 ## 必读与当前任务
 
