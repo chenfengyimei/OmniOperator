@@ -607,5 +607,12 @@
         "temp/build/v2-full-220-supplement.xml"
       ]
     }
-  ]
+  ],
+  "latest_runtime_reporting_followup": {
+    "evidence": "docs/evidence/v2-runtime-reporting.json",
+    "source_head": "be756a0d4fa6c53ffe214efcc5a51a45a0134552",
+    "checkpoint": 81,
+    "artifact_id": 221,
+    "status": "completed_with_failures_preserved"
+  }
 }

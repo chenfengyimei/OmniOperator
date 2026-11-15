@@ -166,5 +166,12 @@
     "full_artifact": 220,
     "status": "interrupted_internal_error",
     "note": "Later source validation only; frozen historical reports remain unchanged."
+  },
+  "latest_runtime_reporting_followup": {
+    "evidence": "docs/evidence/v2-runtime-reporting.json",
+    "source_head": "be756a0d4fa6c53ffe214efcc5a51a45a0134552",
+    "checkpoint": 81,
+    "artifact_id": 221,
+    "status": "completed_with_failures_preserved"
   }
 }

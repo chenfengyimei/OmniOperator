@@ -253,7 +253,7 @@
    "id": "R7",
    "title": "稳定性验收",
    "status": "待开始",
-   "notes": "第80次原始全量因报告MemoryError中断：4512 passed / 2 failed，4514/4686具名节点；JUnit另有2条框架error事件及非标准记录。3项精确复跑和171项遗漏补跑均过，分阶段覆盖4686项，原始中断与失败保留。原Portal偶发项两轮可控复现及两轮正向对照通过，原始两次全量的Portal15项均过，该项已收口。12项运行/环境观察继续开放；跨平台、真实部署与72小时尚未整体验收。",
+   "notes": "运行身份读取先等待实际发布，原用例两轮复现/修复两轮通过；报告MemoryError有界兜底及即时失败节点，9报告回归、96项不同当前专项通过。第81次全量：4 failed, 4666 passed, 12 warnings, 28 errors in 3028.18s (0:50:28)；JUnit 3 failure / 29 error，4696/4696个唯一节点。31个失败节点串行复跑全过，原始失败保留；实测系统提交额度触顶，报告兜底在真实MemoryError下保留原始异常并完成套件。12项观察仍开放，内存增长根因未定；跨平台、真实部署与72小时尚未整体验收。",
    "evidence": [
     "docs/evidence/v2-offline.json",
     "docs/evidence/v2-objects.json",
@@ -286,20 +286,21 @@
     "docs/evidence/v2-linux-portal-frames.json",
     "docs/evidence/v2-test-stability.json",
     "docs/evidence/v2-static-quality.json",
-    "docs/evidence/v2-portal-authorization.json"
+    "docs/evidence/v2-portal-authorization.json",
+    "docs/evidence/v2-runtime-reporting.json"
    ]
   }
  ],
- "checkpoint_commit": "5c5402c8",
+ "checkpoint_commit": "be756a0d",
  "current_validation": {
-  "status": "d7_portal_authorization_followup",
-  "targeted_unique_passed": 54,
-  "includes_browser_cases": 13,
+  "status": "d7_runtime_reporting_followup",
+  "targeted_unique_passed": 96,
+  "includes_browser_cases": 7,
   "current_full_passed": false,
-  "full_runs_this_checkpoint": 2,
+  "full_runs_this_checkpoint": 1,
   "whole_plan_complete": false,
-  "evidence": "docs/evidence/v2-portal-authorization.json",
-  "last_full_evidence": "docs/evidence/v2-portal-authorization.json",
+  "evidence": "docs/evidence/v2-runtime-reporting.json",
+  "last_full_evidence": "docs/evidence/v2-runtime-reporting.json",
   "current_packaging_passed": true,
   "previous_packaging_evidence": "docs/evidence/v2-darwin-admin.json",
   "open_validation_findings": [
@@ -417,7 +418,47 @@
      "temp/build/v2-full-216-serial.xml",
      "temp/build/v2-full-216-prior-control-1.xml",
      "temp/build/v2-full-216-prior-control-2.xml"
-    ]
+    ],
+    "node_81_observation": {
+     "source_head": "be756a0d4fa6c53ffe214efcc5a51a45a0134552",
+     "evidence": "docs/evidence/v2-runtime-reporting.json",
+     "worker_exit_count": 1,
+     "report": "temp/build/v2-full-221.xml",
+     "failed_nodes": [
+      "agent/tests/test_retrieval.py::test_index_semantic_recall_and_scope_before_return"
+     ],
+     "exact_serial_reports": [
+      {
+       "report": "temp/build/v2-full-221-serial.xml",
+       "report_sha256": "dd3346a9e81b703d709f6437da625355d0dde0c94918837935a0db2ae840c17b",
+       "tests": 31,
+       "passed": 31,
+       "failed": 0,
+       "errors": 0,
+       "skipped": 0,
+       "failed_testcase_records": 0,
+       "error_testcase_records": 0,
+       "count_basis": "Named JUnit testcase records and failure/error events; phase events may outnumber unique test identities. Pytest CLI summary is separate.",
+       "junit_testcase_records": 31,
+       "raw_suites": [
+        {
+         "name": "pytest",
+         "errors": "0",
+         "failures": "0",
+         "skipped": "0",
+         "tests": "31",
+         "time": "232.263",
+         "timestamp": "2026-11-15T18:30:54.972592+08:00",
+         "hostname": "cy"
+        }
+       ],
+       "unique_test_nodes_reported": 31,
+       "duration_s": 232.263,
+       "returncode": 0
+      }
+     ],
+     "cause_confirmed": false
+    }
    },
    {
     "id": "test.full_run_browser_and_readiness_failures",
@@ -465,19 +506,6 @@
     ]
    },
    {
-    "id": "test.runtime_identity_read_changed_during_full",
-    "state": "open",
-    "owner": "runtime validation",
-    "classification": "identity_snapshot_timing_cause_unconfirmed",
-    "detail": "Full220 test_identity_tracks_real_boot_and_drains_before_releasing_lock raised Runtime identity changed during inspection. Exact cold replay passed; test file is byte-identical to earlier full218. Do not relax the identity check or attribute this to Portal without evidence.",
-    "evidence": [
-     "temp/build/v2-full-220.xml",
-     "temp/build/v2-full-220-serial-corrected.xml",
-     "temp/build/v2-full-220-prior-control-1.xml",
-     "temp/build/v2-full-220-prior-control-2.xml"
-    ]
-   },
-   {
     "id": "test.v1_fact_delete_dialog_click_timeout",
     "state": "open",
     "owner": "V1 UI validation",
@@ -501,111 +529,294 @@
      "temp/build/v2-full-220.log",
      "temp/build/v2-full-220-serial-corrected.xml",
      "temp/build/v2-full-220-supplement.xml"
+    ],
+    "implementation_followup": {
+     "source_head": "be756a0d4fa6c53ffe214efcc5a51a45a0134552",
+     "evidence": "docs/evidence/v2-runtime-reporting.json",
+     "reporter_cases_passed": 9,
+     "mitigation": "Bounded source-free report after renderer MemoryError; preserve original failure and continue tests. Failure node/phase logged immediately.",
+     "memory_growth_cause_resolved": false,
+     "full_status": "completed_with_failures_preserved"
+    }
+   },
+   {
+    "id": "test.windows_system_commit_exhaustion",
+    "state": "open",
+    "owner": "local validation environment",
+    "classification": "windows_system_commit_limit_exhaustion",
+    "detail": "During full221, external GetPerformanceInfo observed system commit about103GB against106GB limit and peak at the limit while physical available was about20GB. Browser/subprocess setup failures clustered; external sampling and even PowerShell startup raised1455/0x800705AF. Allocation ownership and linkage to earlier native exits or full220 MemoryError remain unconfirmed. No user service or pagefile setting was changed.",
+    "evidence": [
+     "docs/evidence/v2-runtime-reporting.json",
+     "temp/build/v2-full-221-commit-observations.jsonl",
+     "temp/build/v2-full-221.log"
     ]
    }
   ],
-  "code_version": "d0a6803c32e4d0bdb5deca00ac4b4f261201050dd056761458f24b821252356e",
-  "fixed_source_files": 1210,
+  "code_version": "88c2c039f49960f7bab17bde5632811e94f8be257c24463d2b87780cf7a3356a",
+  "fixed_source_files": 1212,
   "baseline_repair_evidence": "docs/evidence/v2-baseline-repair.json",
   "market_evidence": "docs/evidence/v2-extension-market.json",
   "final_full_run": {
-   "status": "interrupted_internal_error",
-   "checkpoint": 80,
-   "artifact_id": 220,
+   "status": "completed_with_failures_preserved",
+   "checkpoint": 81,
+   "artifact_id": 221,
    "strict_checkpoint": 214,
-   "source_head": "5c5402c85e8e6c13c9c913551834f5c30bc36d38",
-   "code_version": "d0a6803c32e4d0bdb5deca00ac4b4f261201050dd056761458f24b821252356e",
-   "fixed_source_files": 1210,
+   "source_head": "be756a0d4fa6c53ffe214efcc5a51a45a0134552",
+   "code_version": "88c2c039f49960f7bab17bde5632811e94f8be257c24463d2b87780cf7a3356a",
+   "fixed_source_files": 1212,
    "strict_files": 332,
-   "report": "temp/build/v2-full-220.xml",
    "workers": 2,
-   "uninterrupted_default_run": false,
-   "report_sha256": "19f03ed83ca02dd664fbe9e6a9be3486ad317c97679ec2abff492bf6f6f2ee64",
-   "tests": 4516,
-   "passed": 4512,
-   "failed": 2,
-   "errors": 2,
-   "skipped": 0,
-   "duration_s": 2842.6,
-   "portal_service_and_ui": {
-    "tests": 15,
-    "all_passed": true
-   },
-   "collected_tests": 4686,
-   "junit_testcase_records": 4517,
-   "unique_test_nodes_reported": 4514,
-   "returncode": 3,
-   "source_unchanged": true,
-   "working_source_version": "4e753776a8316f0e7072b2fcd114d5863da35acf8d46dab820686cd43c02bb3f",
-   "wall_duration_s": 2843.527,
-   "junit_duration_s": 2842.254,
+   "collected_tests": 4696,
+   "report": "temp/build/v2-full-221.xml",
    "snapshot": {
-    "path": "temp/build/v2-full-220-snapshot.json",
-    "sha256": "0e297a4c7cabfb774be26dc318d9058bb25c26d6e0daf2bfc3642bfc846f80bb"
+    "path": "temp/build/v2-full-221-snapshot.json",
+    "sha256": "587145e6e32091bc63c847c53728c3f5e6495d9c16c32ae3d42986660fa08a28"
    },
-   "command": "uv run --no-sync python temp/build/_full_checkpoint.py run 220 (frozen interpreter: python -m pytest -q -n 2)",
-   "all_collected_nodes_reported": false,
-   "worker_exit_count": 0,
-   "environment": "Committed source archive; disposable interpreter metadata reuses existing dependencies. Standard project scheduler, original assertions/timeouts/offline gates, no runtime intervention, uv sync or user-service stop.",
-   "pytest_cli_summary": "2 failed, 4512 passed, 12 warnings in 2842.60s (0:47:22)",
-   "failed_cases": [
+   "command": "uv run --no-sync python temp/build/_full_checkpoint.py run 221 (frozen interpreter: python -m pytest -q -n 2)",
+   "execution_attempted": true,
+   "completed": true,
+   "report_sha256": "bc3639da010ee5144798a40c207fb98cf476f1366d8c5d050c2dae46f2c2926e",
+   "tests": 4697,
+   "passed": 4666,
+   "failed": 3,
+   "errors": 29,
+   "skipped": 0,
+   "failed_testcase_records": 3,
+   "error_testcase_records": 28,
+   "count_basis": "Named JUnit testcase records and failure/error events; phase events may outnumber unique test identities. Pytest CLI summary is separate.",
+   "junit_testcase_records": 4697,
+   "raw_suites": [
     {
-     "classname": "agent.tests.test_v2_service_runtime",
-     "name": "test_identity_tracks_real_boot_and_drains_before_releasing_lock",
-     "message": "omni.domain.contracts.BusinessError: Runtime identity changed during inspection"
-    },
-    {
-     "classname": "agent.tests.test_ui_facts_delete",
-     "name": "test_fact_delete_removes_that_row",
-     "message": "playwright._impl._errors.TimeoutError: Locator.click: Timeout 30000ms exceeded.\nCall log:\n  - waiting for locator(\".ui-dialog\").locator(\"button\").filter(has_text=\"删除\")\n    - locator resolved to <button value=\"confirm\" class=\"ui-danger\">删除</button>\n  - attempting click action\n    - waiting for element to be visible, enabled and stable"
+     "name": "pytest",
+     "errors": "29",
+     "failures": "3",
+     "skipped": "0",
+     "tests": "4697",
+     "time": "3027.265",
+     "timestamp": "2026-11-15T17:40:25.161224+08:00",
+     "hostname": "cy"
     }
    ],
+   "unique_test_nodes_reported": 4696,
+   "duration_s": 3028.18,
+   "returncode": 1,
+   "source_unchanged": true,
+   "source_unchanged_after_reruns": true,
+   "working_source_version": "5eff9812dd17a02c8c832a31c155da5588746fe6dffa9d4f48663e605dcd93ae",
+   "all_collected_nodes_reported": true,
+   "wall_duration_s": 3029.164,
+   "pytest_cli_summary": "4 failed, 4666 passed, 12 warnings, 28 errors in 3028.18s (0:50:28)",
+   "worker_exit_count": 1,
+   "runtime_intervention": false,
+   "log": {
+    "path": "temp/build/v2-full-221.log",
+    "sha256": "f447a4b7a71d1b7648bd3e4b412a6a7fa000e9472ce6087dd4daa488f71d5b04"
+   },
+   "junit_duration_s": 3027.265,
+   "pytest_cli_counts": {
+    "failed": 4,
+    "passed": 4666,
+    "warnings": 12,
+    "errors": 28
+   },
+   "native_worker_exit_nodes": [
+    "agent/tests/test_retrieval.py::test_index_semantic_recall_and_scope_before_return"
+   ],
+   "failed_cases": [
+    {
+     "nodeid": "agent/tests/test_retrieval.py::test_index_semantic_recall_and_scope_before_return",
+     "message": "failed on setup with \"worker 'gw1' crashed while running 'agent/tests/test_retrieval.py::test_index_semantic_recall_and_scope_before_return'\""
+    },
+    {
+     "nodeid": "agent/tests/test_pytest_failure_reports.py::test_xdist_sends_failure_and_finishes_every_node_after_renderer_memory_error",
+     "message": "AssertionError: assert <ExitCode.INTERNAL_ERROR: 3> == <ExitCode.TESTS_FAILED: 1>\n +  where <ExitCode.INTERNAL_ERROR: 3> = <RunResult ret=3 len(stdout.lines)=40 len(stderr.lines)=0 duration=0.87s>.ret\n +  and   <ExitCode.TESTS_FAILED: 1> = <enum 'ExitCode'>.TESTS_FAILED\n +    where <enum 'ExitCode'> = pytest.ExitCode"
+    },
+    {
+     "nodeid": "agent/tests/test_v2_bilibili_ui.py::test_bilibili_profile_draft_and_cas_preserve_user_edits[light-390]",
+     "message": "failed on setup with \"Exception: Connection.init: Connection closed while reading from the driver\""
+    },
+    {
+     "nodeid": "agent/tests/test_v2_bilibili_ui.py::test_bilibili_profile_draft_and_cas_preserve_user_edits[light-760]",
+     "message": "failed on setup with \"Exception: Connection.init: Connection closed while reading from the driver\""
+    },
+    {
+     "nodeid": "agent/tests/test_v2_bilibili_ui.py::test_bilibili_profile_draft_and_cas_preserve_user_edits[light-1024]",
+     "message": "failed on setup with \"Exception: Connection.init: Connection closed while reading from the driver\""
+    },
+    {
+     "nodeid": "agent/tests/test_v2_bilibili_ui.py::test_bilibili_profile_draft_and_cas_preserve_user_edits[light-1440]",
+     "message": "failed on setup with \"Exception: Connection.init: Connection closed while reading from the driver\""
+    },
+    {
+     "nodeid": "agent/tests/test_v2_bilibili_ui.py::test_bilibili_profile_draft_and_cas_preserve_user_edits[dark-390]",
+     "message": "failed on setup with \"Exception: Connection.init: Connection closed while reading from the driver\""
+    },
+    {
+     "nodeid": "agent/tests/test_v2_bilibili_ui.py::test_bilibili_profile_draft_and_cas_preserve_user_edits[dark-760]",
+     "message": "failed on setup with \"Exception: Connection.init: Connection closed while reading from the driver\""
+    },
+    {
+     "nodeid": "agent/tests/test_v2_bilibili_ui.py::test_bilibili_profile_draft_and_cas_preserve_user_edits[dark-1024]",
+     "message": "failed on setup with \"Exception: Connection.init: Connection closed while reading from the driver\""
+    },
+    {
+     "nodeid": "agent/tests/test_v2_bilibili_ui.py::test_bilibili_profile_draft_and_cas_preserve_user_edits[dark-1440]",
+     "message": "failed on setup with \"Exception: Connection.init: Connection closed while reading from the driver\""
+    },
+    {
+     "nodeid": "agent/tests/test_v2_bilibili_ui.py::test_assistant_output_opens_publication_and_exact_target_is_visible_before_approval",
+     "message": "failed on setup with \"Exception: Connection.init: Connection closed while reading from the driver\""
+    },
+    {
+     "nodeid": "agent/tests/test_v2_reliability.py::test_backup_restore_fingerprints_and_repeated_restore",
+     "message": "MemoryError"
+    },
+    {
+     "nodeid": "agent/tests/test_v2_wheel_install.py::test_switch_refuses_running_instance",
+     "message": "MemoryError"
+    },
+    {
+     "nodeid": "agent/tests/test_ui_model_settings.py::test_chosen_model_survives_reload",
+     "message": "failed on setup with \"sqlite3.OperationalError: disk I/O error\""
+    },
+    {
+     "nodeid": "agent/tests/test_ui_theme.py::test_theme_toggle_exists_on_all_pages",
+     "message": "failed on setup with \"OSError: [WinError 1455] 页面文件太小，无法完成操作。\""
+    },
+    {
+     "nodeid": "agent/tests/test_ui_theme.py::test_theme_persists_across_reload",
+     "message": "failed on setup with \"OSError: [WinError 1455] 页面文件太小，无法完成操作。\""
+    },
+    {
+     "nodeid": "agent/tests/test_ui_theme.py::test_theme_persists_across_pages",
+     "message": "failed on setup with \"OSError: [WinError 1455] 页面文件太小，无法完成操作。\""
+    },
+    {
+     "nodeid": "agent/tests/test_ui_theme.py::test_theme_cycle_covers_three_states",
+     "message": "failed on setup with \"OSError: [WinError 1455] 页面文件太小，无法完成操作。\""
+    },
+    {
+     "nodeid": "agent/tests/test_ui_model_settings.py::test_reasoning_level_survives_reload",
+     "message": "failed on setup with \"failure report MemoryError: source rendering failed; original failure retained.\nOriginal Error: BrowserContext.new_page: Target crashed \n  D:\\xm\\OmniOperator\\.venv\\Lib\\site-packages\\_pytest\\runner.py:361 in from_call\n  D:\\xm\\OmniOperator\\.venv\\Lib\\site-packages\\_pytest\\runner.py:250 in <lambda>\n  D:\\xm\\OmniOperator\\.venv\\Lib\\site-packages\\pluggy\\_caller.py:197 in __call__\n  D:\\xm\\OmniOperator\\.venv\\Lib\\site-packages\\pluggy\\_manager.py:183 in _hookexec\n  D:\\xm\\OmniOperator\\.venv\\Lib\\site-packages\\pluggy\\_execution.py:195 in _multicall\n  D:\\xm\\OmniOperator\\.venv\\Lib\\site-packages\\pluggy\\_execution.py:167 in _multicall\n  D:\\xm\\OmniOperator\\.venv\\Lib\\site-packages\\_pytest\\logging.py:858 in pytest_runtest_setup\n  D:\\xm\\OmniOperator\\.venv\\Lib\\site-packages\\pluggy\\_execution.py:167 in _multicall\n  [traceback frames truncated]\""
+    },
+    {
+     "nodeid": "agent/tests/test_ui_theme.py::test_theme_follows_system_when_auto",
+     "message": "failed on setup with \"OSError: [WinError 1455] 页面文件太小，无法完成操作。\""
+    },
+    {
+     "nodeid": "agent/tests/test_ui_theme.py::test_no_flash_on_load",
+     "message": "failed on setup with \"OSError: [WinError 1455] 页面文件太小，无法完成操作。\""
+    },
+    {
+     "nodeid": "agent/tests/test_ui_model_settings.py::test_clearing_a_slot_writes_empty_and_does_not_block_save",
+     "message": "failed on setup with \"sqlite3.OperationalError: unable to open database file\""
+    },
+    {
+     "nodeid": "agent/tests/test_ui_theme.py::test_embedded_storage_follows_host_theme",
+     "message": "failed on setup with \"OSError: [WinError 1455] 页面文件太小，无法完成操作。\""
+    },
+    {
+     "nodeid": "agent/tests/test_v2_android_unicode_ui.py::test_unicode_profile_draft_approval_and_recovery_show_honest_state[light-390]",
+     "message": "failed on setup with \"OSError: [WinError 1455] 页面文件太小，无法完成操作。\""
+    },
+    {
+     "nodeid": "agent/tests/test_v2_android_unicode_ui.py::test_unicode_profile_draft_approval_and_recovery_show_honest_state[light-760]",
+     "message": "failed on setup with \"OSError: [WinError 1455] 页面文件太小，无法完成操作。\""
+    },
+    {
+     "nodeid": "agent/tests/test_v2_android_unicode_ui.py::test_unicode_profile_draft_approval_and_recovery_show_honest_state[light-1024]",
+     "message": "failed on setup with \"OSError: [WinError 1455] 页面文件太小，无法完成操作。\""
+    },
+    {
+     "nodeid": "agent/tests/test_v2_android_unicode_ui.py::test_unicode_profile_draft_approval_and_recovery_show_honest_state[light-1440]",
+     "message": "failed on setup with \"OSError: [WinError 1455] 页面文件太小，无法完成操作。\""
+    },
+    {
+     "nodeid": "agent/tests/test_v2_android_unicode_ui.py::test_unicode_profile_draft_approval_and_recovery_show_honest_state[dark-390]",
+     "message": "failed on setup with \"OSError: [WinError 1455] 页面文件太小，无法完成操作。\""
+    },
+    {
+     "nodeid": "agent/tests/test_v2_android_unicode_ui.py::test_unicode_profile_draft_approval_and_recovery_show_honest_state[dark-760]",
+     "message": "failed on setup with \"OSError: [WinError 1455] 页面文件太小，无法完成操作。\""
+    },
+    {
+     "nodeid": "agent/tests/test_v2_android_unicode_ui.py::test_unicode_profile_draft_approval_and_recovery_show_honest_state[dark-1024]",
+     "message": "failed on setup with \"OSError: [WinError 1455] 页面文件太小，无法完成操作。\""
+    },
+    {
+     "nodeid": "agent/tests/test_v2_android_unicode_ui.py::test_unicode_profile_draft_approval_and_recovery_show_honest_state[dark-1440]",
+     "message": "failed on setup with \"OSError: [WinError 1455] 页面文件太小，无法完成操作。\""
+    }
+   ],
+   "unique_nodes_without_failure_or_error": 4665,
+   "unique_failed_or_errored_nodes": 31,
+   "duplicate_node_records": {
+    "agent/tests/test_retrieval.py::test_index_semantic_recall_and_scope_before_return": 2
+   },
+   "duplicate_node_attempts": [
+    {
+     "nodeid": "agent/tests/test_retrieval.py::test_index_semantic_recall_and_scope_before_return",
+     "outcomes": [
+      "error",
+      "passed"
+     ]
+    }
+   ],
+   "accounting_note": "CLI counts report attempts/phases. A crashed retrieval identity was replayed, and another identity has setup plus teardown errors; do not sum phase/attempt counts to claim extra unique tests. All4696 identities are reported, with original failures retained.",
+   "cases_with_multiple_issue_events": [
+    {
+     "nodeid": "agent/tests/test_ui_model_settings.py::test_reasoning_level_survives_reload",
+     "issues": [
+      {
+       "type": "error",
+       "message": "failed on setup with \"failure report MemoryError: source rendering failed; original failure retained.\nOriginal Error: BrowserContext.new_page: Target crashed \n  D:\\xm\\OmniOperator\\.venv\\Lib\\site-packages\\_pytest\\runner.py:361 in from_call\n  D:\\xm\\OmniOperator\\.venv\\Lib\\site-packages\\_pytest\\runner.py:250 in <lambda>\n  D:\\xm\\OmniOperator\\.venv\\Lib\\site-packages\\pluggy\\_caller.py:197 in __call__\n  D:\\xm\\OmniOperator\\.venv\\Lib\\site-packages\\pluggy\\_manager.py:183 in _hookexec\n  D:\\xm\\OmniOperator\\.venv\\Lib\\site-packages\\pluggy\\_execution.py:195 in _multicall\n  D:\\xm\\OmniOperator\\.venv\\Lib\\site-packages\\pluggy\\_execution.py:167 in _multicall\n  D:\\xm\\OmniOperator\\.venv\\Lib\\site-packages\\_pytest\\logging.py:858 in pytest_runtest_setup\n  D:\\xm\\OmniOperator\\.venv\\Lib\\site-packages\\pluggy\\_execution.py:167 in _multicall\n  [traceback frames truncated]\""
+      },
+      {
+       "type": "error",
+       "message": "failed on teardown with \"KeyError: <_pytest.stash.StashKey object at 0x0000022C37CF58E0>\""
+      }
+     ]
+    }
+   ],
+   "actual_memory_fallback_reports": [
+    {
+     "nodeid": "agent/tests/test_ui_model_settings.py::test_reasoning_level_survives_reload",
+     "message": "failed on setup with \"failure report MemoryError: source rendering failed; original failure retained.\nOriginal Error: BrowserContext.new_page: Target crashed \n  D:\\xm\\OmniOperator\\.venv\\Lib\\site-packages\\_pytest\\runner.py:361 in from_call\n  D:\\xm\\OmniOperator\\.venv\\Lib\\site-packages\\_pytest\\runner.py:250 in <lambda>\n  D:\\xm\\OmniOperator\\.venv\\Lib\\site-packages\\pluggy\\_caller.py:197 in __call__\n  D:\\xm\\OmniOperator\\.venv\\Lib\\site-packages\\pluggy\\_manager.py:183 in _hookexec\n  D:\\xm\\OmniOperator\\.venv\\Lib\\site-packages\\pluggy\\_execution.py:195 in _multicall\n  D:\\xm\\OmniOperator\\.venv\\Lib\\site-packages\\pluggy\\_execution.py:167 in _multicall\n  D:\\xm\\OmniOperator\\.venv\\Lib\\site-packages\\_pytest\\logging.py:858 in pytest_runtest_setup\n  D:\\xm\\OmniOperator\\.venv\\Lib\\site-packages\\pluggy\\_execution.py:167 in _multicall\n  [traceback frames truncated]\""
+    }
+   ],
+   "uninterrupted_default_run": false,
    "reruns": [
     {
-     "report": "temp/build/v2-full-220-serial.xml",
-     "report_sha256": "7f7bf4b3f104c87a604ea457361018f78150cf0d5f21604d67bd3b483ed201a6",
-     "tests": 0,
-     "passed": 0,
+     "report": "temp/build/v2-full-221-serial.xml",
+     "report_sha256": "dd3346a9e81b703d709f6437da625355d0dde0c94918837935a0db2ae840c17b",
+     "tests": 31,
+     "passed": 31,
      "failed": 0,
      "errors": 0,
      "skipped": 0,
-     "duration_s": 0.004,
-     "source_head": "5c5402c85e8e6c13c9c913551834f5c30bc36d38",
-     "returncode": 4
+     "failed_testcase_records": 0,
+     "error_testcase_records": 0,
+     "count_basis": "Named JUnit testcase records and failure/error events; phase events may outnumber unique test identities. Pytest CLI summary is separate.",
+     "junit_testcase_records": 31,
+     "raw_suites": [
+      {
+       "name": "pytest",
+       "errors": "0",
+       "failures": "0",
+       "skipped": "0",
+       "tests": "31",
+       "time": "232.263",
+       "timestamp": "2026-11-15T18:30:54.972592+08:00",
+       "hostname": "cy"
+      }
+     ],
+     "unique_test_nodes_reported": 31,
+     "duration_s": 232.263,
+     "returncode": 0
     }
    ],
-   "execution_attempted": true,
-   "completed": false,
-   "named_test_records": 4514,
-   "named_test_errors": 0,
-   "framework_error_events": 2,
-   "runtime_intervention": false,
-   "raw_junit_suite": {
-    "name": "pytest",
-    "errors": "2",
-    "failures": "2",
-    "skipped": "0",
-    "tests": "4516",
-    "time": "2842.254",
-    "timestamp": "2026-11-15T16:01:59.412072+08:00",
-    "hostname": "cy"
-   },
-   "nonstandard_junit_records": [
-    {
-     "time": "4.995"
-    },
-    {
-     "time": "1.224"
-    },
-    {
-     "classname": "pytest",
-     "name": "internal",
-     "time": "0.000"
-    }
-   ],
-   "interrupted_node": "agent/tests/test_ui_market.py::test_persona_market_imports_into_presets_and_form",
-   "original_missing_nodes": 172,
-   "reporting_failure": "Worker MemoryError while pytest joined source lines for failure rendering; controller then rejected an unfinished crashitem. Original market exception was not rendered. Process memory at failure was not measured."
+   "runtime_identity_original_case_records": 1,
+   "runtime_identity_original_case_passed": true
   },
   "capabilities_evidence": "docs/evidence/v2-capabilities.json",
   "token_evidence": "docs/evidence/v2-owner-token.json",
@@ -613,10 +824,10 @@
   "typecheck_evidence": "docs/evidence/v2-typecheck.json",
   "packaging_evidence": "docs/evidence/v2-packaging.json",
   "strict_batch_git_head": "73faa51a",
-  "validated_head": "5c5402c85e8e6c13c9c913551834f5c30bc36d38",
+  "validated_head": "be756a0d4fa6c53ffe214efcc5a51a45a0134552",
   "v2_strict_scope_complete": true,
   "whole_repository_strict_complete": false,
-  "current_source_full_executed": false,
+  "current_source_full_executed": true,
   "aborted_full_run": {
    "status": "aborted_without_full_result",
    "source_head": "4f0815b77766bfe72a6b25eaaca8c7f66d44a7f3",
@@ -645,10 +856,10 @@
    "scope": "Configured Ruff source,Python formatter and web Prettier gates; current source. Earlier debt-resolution evidence retained separately."
   },
   "current_packaging_evidence": "docs/evidence/v2-portal-authorization.json",
-  "quality_gate_scope": "Configured Ruff/Python format/Prettier,strict332/default Pyright,syntax/UI contract/duplicate checks,task/index consistency,packaging and frozen pytest; excludes complete CI/platform/real-environment acceptance.",
+  "quality_gate_scope": "Current Ruff/Python formatter and targeted/frozen pytest; production-identical strict332/frontend/packaging gates retained by explicit blob equivalence. Excludes complete CI/platform/real-environment acceptance.",
   "current_source_full_attempted": true,
-  "current_source_full_completed": false,
-  "supplemental_validation": {
+  "current_source_full_completed": true,
+  "previous_full220_supplemental_validation": {
    "original_full_result_replaced": false,
    "plan": "temp/build/v2-full-220-recovery-plan.json",
    "raw_named_nodes": 4514,
@@ -679,7 +890,7 @@
   "id": "D7.stability_and_acceptance",
   "status": "开发中",
   "design": "docs/V2_PACKAGING.md",
-  "scope": "Continue12 separately recorded UI/process/environment observations and actual platform/deployment acceptance. Raw full220 interrupted; missing-node supplementation is separate. Defined strict332 and style debt complete;defaultV1."
+  "scope": "Continue 12 separately recorded UI/process/environment observations and actual model/device/deployment acceptance. Check system commit headroom before broad validation, then prioritize native exit diagnostics for the recurring retrieval node. Runtime publication synchronization and report-memory containment delivered; allocation ownership remains open. Defined strict332 and style debt complete; defaultV1."
  },
  "milestones": [
   {

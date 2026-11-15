@@ -946,11 +946,12 @@
     }
   ],
   "latest_followup_validation": {
-    "evidence": "docs/evidence/v2-portal-authorization.json",
-    "source_head": "5c5402c85e8e6c13c9c913551834f5c30bc36d38",
-    "full_artifact": 220,
-    "status": "interrupted_internal_error",
-    "note": "Later source validation only; frozen historical reports remain unchanged."
+    "evidence": "docs/evidence/v2-runtime-reporting.json",
+    "source_head": "be756a0d4fa6c53ffe214efcc5a51a45a0134552",
+    "checkpoint": 81,
+    "artifact_id": 221,
+    "status": "completed_with_failures_preserved",
+    "full_artifact": 221
   },
   "latest_static_quality_followup": {
     "evidence": "docs/evidence/v2-static-quality.json",
@@ -980,6 +981,13 @@
       "full_artifact": 219,
       "status": "completed_with_failures_preserved",
       "note": "Later source validation only; frozen historical reports remain unchanged."
+    },
+    {
+      "evidence": "docs/evidence/v2-portal-authorization.json",
+      "source_head": "5c5402c85e8e6c13c9c913551834f5c30bc36d38",
+      "full_artifact": 220,
+      "status": "interrupted_internal_error",
+      "note": "Later source validation only; frozen historical reports remain unchanged."
     }
   ],
   "latest_portal_authorization_followup": {
@@ -988,5 +996,12 @@
     "full_artifact": 220,
     "status": "interrupted_internal_error",
     "note": "Later source validation only; frozen historical reports remain unchanged."
+  },
+  "latest_runtime_reporting_followup": {
+    "evidence": "docs/evidence/v2-runtime-reporting.json",
+    "source_head": "be756a0d4fa6c53ffe214efcc5a51a45a0134552",
+    "checkpoint": 81,
+    "artifact_id": 221,
+    "status": "completed_with_failures_preserved"
   }
 }
