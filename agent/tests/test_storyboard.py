@@ -23,7 +23,6 @@ from omni.tools.storyboard import decode, detect, render, segments
 from omni.tools.storyboard.detect import Cut
 from omni.tools.storyboard.segments import Cell, Storyboard
 
-
 # ---------------------------------------------------------------- 合成帧
 
 
@@ -377,22 +376,24 @@ def _make_video(
     from PIL import Image, ImageDraw
 
     container = av.open(str(path), mode="w")
-    stream = container.add_stream("mpeg4", rate=fps)
-    stream.width, stream.height = size
-    stream.pix_fmt = "yuv420p"
-    for index, (seconds, color) in enumerate(shots):
-        for _ in range(int(round(seconds * fps))):
-            image = Image.new("RGB", size, color)
-            if index == textured:
-                draw = ImageDraw.Draw(image)
-                for x in range(0, size[0], 6):
-                    draw.line([(x, 0), (x, size[1])], fill=(255, 255, 255), width=2)
-            frame = av.VideoFrame.from_image(image)
-            for packet in stream.encode(frame):
-                container.mux(packet)
-    for packet in stream.encode():
-        container.mux(packet)
-    container.close()
+    try:
+        stream = container.add_stream("mpeg4", rate=fps)
+        stream.width, stream.height = size
+        stream.pix_fmt = "yuv420p"
+        for index, (seconds, color) in enumerate(shots):
+            for _ in range(int(round(seconds * fps))):
+                image = Image.new("RGB", size, color)
+                if index == textured:
+                    draw = ImageDraw.Draw(image)
+                    for x in range(0, size[0], 6):
+                        draw.line([(x, 0), (x, size[1])], fill=(255, 255, 255), width=2)
+                frame = av.VideoFrame.from_image(image)
+                for packet in stream.encode(frame):
+                    container.mux(packet)
+        for packet in stream.encode():
+            container.mux(packet)
+    finally:
+        container.close()
     return path
 
 

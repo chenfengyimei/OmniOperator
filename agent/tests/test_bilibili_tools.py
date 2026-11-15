@@ -177,16 +177,18 @@ class VideoAPI(FakeAPI):
         from PIL import Image
 
         container = av.open(str(dest), mode="w")
-        stream = container.add_stream("mpeg4", rate=5)
-        stream.width, stream.height = 160, 120
-        stream.pix_fmt = "yuv420p"
-        for index in range(10):
-            frame = av.VideoFrame.from_image(Image.new("RGB", (160, 120), (index * 20, 10, 90)))
-            for packet in stream.encode(frame):
+        try:
+            stream = container.add_stream("mpeg4", rate=5)
+            stream.width, stream.height = 160, 120
+            stream.pix_fmt = "yuv420p"
+            for index in range(10):
+                frame = av.VideoFrame.from_image(Image.new("RGB", (160, 120), (index * 20, 10, 90)))
+                for packet in stream.encode(frame):
+                    container.mux(packet)
+            for packet in stream.encode():
                 container.mux(packet)
-        for packet in stream.encode():
-            container.mux(packet)
-        container.close()
+        finally:
+            container.close()
 
 
 def test_video_frames_tool_saves_one_artifact(tmp_path):

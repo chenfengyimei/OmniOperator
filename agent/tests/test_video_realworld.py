@@ -29,7 +29,6 @@
 
 from __future__ import annotations
 
-import io
 import math
 import struct
 import wave
@@ -41,7 +40,6 @@ from omni.tools.bilibili import asr
 from omni.tools.bilibili.api import BiliAPI, BiliAPIError
 from omni.tools.storyboard import decode
 from omni.tools.storyboard.decode import effective_scan_fps
-
 
 # ============================================================ 1. 音频对齐填充
 
@@ -60,22 +58,24 @@ def _make_aac_audio(path: Path, seconds: float, sample_rate: int = 44100) -> Pat
     if total % 2 == 0:  # 强行取奇数样本，逼出对齐填充
         total += 1
     container = av.open(str(path), mode="w")
-    stream = container.add_stream("aac", rate=sample_rate)
-    stream.layout = "mono"
-    # 造一个 440Hz 正弦的 int16 数组
-    samples = [int(10000 * math.sin(2 * math.pi * 440 * i / sample_rate)) for i in range(total)]
-    frame = av.AudioFrame.from_ndarray(
-        __import__("numpy").array(samples, dtype="int16").reshape(1, -1),
-        format="s16",
-        layout="mono",
-    )
-    frame.rate = sample_rate
-    frame.pts = 0
-    for packet in stream.encode(frame):
-        container.mux(packet)
-    for packet in stream.encode():
-        container.mux(packet)
-    container.close()
+    try:
+        stream = container.add_stream("aac", rate=sample_rate)
+        stream.layout = "mono"
+        # 造一个 440Hz 正弦的 int16 数组
+        samples = [int(10000 * math.sin(2 * math.pi * 440 * i / sample_rate)) for i in range(total)]
+        frame = av.AudioFrame.from_ndarray(
+            __import__("numpy").array(samples, dtype="int16").reshape(1, -1),
+            format="s16",
+            layout="mono",
+        )
+        frame.rate = sample_rate
+        frame.pts = 0
+        for packet in stream.encode(frame):
+            container.mux(packet)
+        for packet in stream.encode():
+            container.mux(packet)
+    finally:
+        container.close()
     return path
 
 
@@ -238,27 +238,29 @@ def test_scan_cut_scores_covers_whole_long_video(tmp_path):
     fps = 12
     seconds = 520
     container = av.open(str(path), mode="w")
-    stream = container.add_stream("mpeg4", rate=fps)
-    stream.width, stream.height = (160, 120)
-    stream.pix_fmt = "yuv420p"
-    # 每 5 秒换一次颜色，保证有剪辑点可检
-    color = (30, 60, 90)
-    for second in range(seconds):
-        if second and second % 5 == 0:
-            color = ((color[0] + 47) % 256, (color[1] + 83) % 256, (color[2] + 29) % 256)
-        image = Image.new("RGB", (160, 120), color)
-        for _ in range(fps):
-            frame = av.VideoFrame.from_image(image)
-            for packet in stream.encode(frame):
-                container.mux(packet)
-    for packet in stream.encode():
-        container.mux(packet)
-    container.close()
+    try:
+        stream = container.add_stream("mpeg4", rate=fps)
+        stream.width, stream.height = (160, 120)
+        stream.pix_fmt = "yuv420p"
+        # 每 5 秒换一次颜色，保证有剪辑点可检
+        color = (30, 60, 90)
+        for second in range(seconds):
+            if second and second % 5 == 0:
+                color = ((color[0] + 47) % 256, (color[1] + 83) % 256, (color[2] + 29) % 256)
+            image = Image.new("RGB", (160, 120), color)
+            for _ in range(fps):
+                frame = av.VideoFrame.from_image(image)
+                for packet in stream.encode(frame):
+                    container.mux(packet)
+        for packet in stream.encode():
+            container.mux(packet)
+    finally:
+        container.close()
 
     duration, _fps, _w, _h = decode.probe_video(path)
     assert duration == pytest.approx(seconds, abs=5.0)
 
-    times, scores, _d = decode.scan_cut_scores(path)
+    times, _scores, _d = decode.scan_cut_scores(path)
     assert times
     # 扫到的最后一刻必须贴着片尾（容差 3 秒：重采样与关键帧定位）
     assert times[-1] >= duration - 3.0, f"只扫到 {times[-1]:.1f}s，片长 {duration:.1f}s —— 后半段没看"
