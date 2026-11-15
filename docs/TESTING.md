@@ -39,6 +39,8 @@ V2 文档维护的开发反馈先选 `test_v2_maintenance.py`、`test_v2_mainten
 
 Python 网络/模型闸门仍在每个 worker 启用；子进程继承离线环境。并行不改变测试数量、断言、业务超时或真实设备验收边界。
 
+Portal 的原生共享状态与应用授权审计分两步完成。`test_v2_portal_service.py` 的就绪帮助函数要求 active 且 authorized；`test_v2_portal_ui.py` 通过真实作用域 API 观察同一 grant 的授权完成，最多等待5秒，再点击显式查询按钮；原界面断言的超时、截图、像素及回收检查保持不变。新增受控审计夹具覆盖确认中、提交后刷新和失败回收；在应用异步边界暂停，不阻塞数据库线程、不伪造 HTTP 成功，也不要求生产界面增加轮询。每例仍独立数据库和 BrowserContext。
+
 ## 环境与 CI
 
 全新开发环境使用 `uv sync --frozen`，安装浏览器用 `uv run --no-sync python -m playwright install chromium`。常驻服务正在使用 `.venv` 时不要重建环境或停止服务；测试使用 `uv run --no-sync`。

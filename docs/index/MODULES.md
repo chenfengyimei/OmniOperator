@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`615d840ccf00d0e49a007be567a4b2c28b9ae1d7f3b3b26dd0bd4fa70a5d3504`。包含 65 个职责模块、736 个源码/界面文件。
+源码指纹：`61825ba3dff9dcce7c78a454455d0b98bae257a74e5d48d7b53bd78cf55b7c36`。包含 65 个职责模块、736 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -88,7 +88,7 @@
 | [agent/src/omni/application/delivery.py](../../agent/src/omni/application/delivery.py) | 428 | Supervised, bounded outbound execution; never supplies a real transport by default. |
 | [agent/src/omni/application/desktop.py](../../agent/src/omni/application/desktop.py) | 531 | Owner desktop observations with short-lived scoped identities; never authorizes or dispatches desktop writes. |
 | [agent/src/omni/application/desktop_actions.py](../../agent/src/omni/application/desktop_actions.py) | 224 | Owner-selected semantic commands using the shared run, approval and action ledger. |
-| [agent/src/omni/application/desktop_portal.py](../../agent/src/omni/application/desktop_portal.py) | 322 | Owner/view-scoped temporary share sessions with durable consent metadata; no image, native identity or input authorization. |
+| [agent/src/omni/application/desktop_portal.py](../../agent/src/omni/application/desktop_portal.py) | 326 | Owner/view-scoped temporary share sessions with durable consent metadata; no image, native identity or input authorization. |
 | [agent/src/omni/application/documents.py](../../agent/src/omni/application/documents.py) | 360 | Source documents, explicitly requested local indexes and registered retrieval dependencies. |
 | [agent/src/omni/application/engine.py](../../agent/src/omni/application/engine.py) | 643 | One supervised runtime: admission, session FIFO, model/tool execution and shutdown. |
 | [agent/src/omni/application/exchange_recovery.py](../../agent/src/omni/application/exchange_recovery.py) | 86 | Explicit offline exchange quarantine and new-directory rescue; no native changes or unknown-outcome erasure. |
@@ -428,7 +428,7 @@
 | [web/ui/v2/credentials.js](../../web/ui/v2/credentials.js) | 182 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/deliveries.js](../../web/ui/v2/deliveries.js) | 367 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/desktop-actions.js](../../web/ui/v2/desktop-actions.js) | 148 | 原生源码、平台脚本或界面资源 |
-| [web/ui/v2/desktop.js](../../web/ui/v2/desktop.js) | 568 | 原生源码、平台脚本或界面资源 |
+| [web/ui/v2/desktop.js](../../web/ui/v2/desktop.js) | 572 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/documents.js](../../web/ui/v2/documents.js) | 487 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/extensions.js](../../web/ui/v2/extensions.js) | 656 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/index.html](../../web/ui/v2/index.html) | 1861 | 原生源码、平台脚本或界面资源 |

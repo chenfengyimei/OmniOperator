@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "615d840ccf00d0e49a007be567a4b2c28b9ae1d7f3b3b26dd0bd4fa70a5d3504",
+  "source_sha256": "61825ba3dff9dcce7c78a454455d0b98bae257a74e5d48d7b53bd78cf55b7c36",
   "modules": [
     {
       "id": "v2-domain",
@@ -136,7 +136,7 @@
         "agent/src/omni/application/terminal_review.py",
         "agent/src/omni/application/terminals.py"
       ],
-      "lines": 11176,
+      "lines": 11180,
       "dependencies": [
         "v2-domain"
       ]
@@ -499,7 +499,7 @@
         "web/ui/v2/v1/workbench.css",
         "web/ui/v2/workbench.css"
       ],
-      "lines": 22004,
+      "lines": 22008,
       "dependencies": []
     },
     {
@@ -38152,7 +38152,7 @@
       "path": "agent/src/omni/application/desktop_portal.py",
       "module": "v2-application",
       "python_module": "omni.application.desktop_portal",
-      "lines": 322,
+      "lines": 326,
       "imports": [
         "omni.application.objects",
         "omni.application.ports",
@@ -38225,7 +38225,7 @@
         },
         {
           "name": "DesktopPortalService._guard",
-          "line": 84,
+          "line": 88,
           "kind": "function",
           "parameters": [
             "self",
@@ -38237,7 +38237,7 @@
         },
         {
           "name": "DesktopPortalService.open",
-          "line": 91,
+          "line": 95,
           "kind": "function",
           "parameters": [
             "self",
@@ -38251,7 +38251,7 @@
         },
         {
           "name": "DesktopPortalService._own",
-          "line": 107,
+          "line": 111,
           "kind": "function",
           "parameters": [
             "self",
@@ -38263,7 +38263,7 @@
         },
         {
           "name": "DesktopPortalService._own.done",
-          "line": 110,
+          "line": 114,
           "kind": "function",
           "parameters": [
             "future"
@@ -38274,7 +38274,7 @@
         },
         {
           "name": "DesktopPortalService._open",
-          "line": 117,
+          "line": 121,
           "kind": "function",
           "parameters": [
             "self",
@@ -38288,7 +38288,7 @@
         },
         {
           "name": "DesktopPortalService._watch",
-          "line": 164,
+          "line": 168,
           "kind": "function",
           "parameters": [
             "self",
@@ -38300,7 +38300,7 @@
         },
         {
           "name": "DesktopPortalService.status",
-          "line": 195,
+          "line": 199,
           "kind": "function",
           "parameters": [
             "self",
@@ -38314,7 +38314,7 @@
         },
         {
           "name": "DesktopPortalService.detach",
-          "line": 208,
+          "line": 212,
           "kind": "function",
           "parameters": [
             "self",
@@ -38328,7 +38328,7 @@
         },
         {
           "name": "DesktopPortalService.close_grant",
-          "line": 220,
+          "line": 224,
           "kind": "function",
           "parameters": [
             "self",
@@ -38344,7 +38344,7 @@
         },
         {
           "name": "DesktopPortalService.capture",
-          "line": 228,
+          "line": 232,
           "kind": "function",
           "parameters": [
             "self",
@@ -38358,7 +38358,7 @@
         },
         {
           "name": "DesktopPortalService._capture",
-          "line": 245,
+          "line": 249,
           "kind": "function",
           "parameters": [
             "self",
@@ -38372,7 +38372,7 @@
         },
         {
           "name": "DesktopPortalService.health",
-          "line": 290,
+          "line": 294,
           "kind": "function",
           "parameters": [
             "self"
@@ -38381,7 +38381,7 @@
         },
         {
           "name": "DesktopPortalService.stop_accepting",
-          "line": 298,
+          "line": 302,
           "kind": "function",
           "parameters": [
             "self"
@@ -38390,7 +38390,7 @@
         },
         {
           "name": "DesktopPortalService.close",
-          "line": 304,
+          "line": 308,
           "kind": "function",
           "parameters": [
             "self",
@@ -95781,7 +95781,7 @@
       "path": "web/ui/v2/desktop.js",
       "module": "v2-workbench",
       "python_module": null,
-      "lines": 568,
+      "lines": 572,
       "imports": [],
       "symbols": [],
       "kind": "asset",

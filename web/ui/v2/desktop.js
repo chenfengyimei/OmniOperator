@@ -1,4 +1,4 @@
-import { renderDesktopActions } from './desktop-actions.js?v=20261115v129';
+import { renderDesktopActions } from './desktop-actions.js?v=20261115v130';
 
 export function mountDesktop({ api, wrap, getAgent, getGeneration, getSession }) {
   const $ = (id) => document.getElementById(id);
@@ -74,8 +74,12 @@ export function mountDesktop({ api, wrap, getAgent, getGeneration, getSession })
       denied: '未授权',
       failed: '共享不可用',
     };
+    const phaseText =
+      grant?.authorization_pending === true
+        ? '正在确认共享授权，请稍后查询共享状态'
+        : phases[grant?.phase] || '状态待核查';
     $('desktop-portal-status').textContent = grant
-      ? `${phases[grant.phase] || '状态待核查'}。${grant.cleanup_pending ? '资源仍在回收，请查询状态。' : ''}${grant.capture_available ? '可以显式保存当前窗口单帧。' : '当前不能保存画面。'}${grant.error_code || grant.capture_error_code ? ' 原因：' + (grant.error_code || grant.capture_error_code) : ''}`
+      ? `${phaseText}。${grant.cleanup_pending ? '资源仍在回收，请查询状态。' : ''}${grant.capture_available ? '可以显式保存当前窗口单帧。' : '当前不能保存画面。'}${grant.error_code || grant.capture_error_code ? ' 原因：' + (grant.error_code || grant.capture_error_code) : ''}`
       : '本次视图暂无窗口共享。';
     controls();
   }

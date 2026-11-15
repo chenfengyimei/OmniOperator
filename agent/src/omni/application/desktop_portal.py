@@ -66,6 +66,10 @@ class DesktopPortalService:
             "view_id": grant.scope["view_id"],
             "phase": phase,
             "error_code": grant.error_code or native["error_code"],
+            "authorization_pending": native["phase"] == "active"
+            and not grant.authorized
+            and grant.phase not in TERMINAL
+            and not native["cleanup_pending"],
             "authorized": grant.authorized
             and phase == "active"
             and native["phase"] == "active"

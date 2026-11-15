@@ -54,6 +54,8 @@ Linux实机先在隔离账号下打开临时GTK/Qt测试窗口，再通过V2工�
 
 所有者API为POST/GET/DELETE `/api/v1/agents/{agent_id}/desktop/portal`。POST只接受`{"consent":true,"view_id":"<UUID>"}`；GET带view_id；DELETE带view_id和grant_id。拒绝客户端提供native handle、PID、monitor类型或restore token。新增POST `/api/v1/agents/{agent_id}/desktop/portal/capture`，只接consent=true、view_id、grant_id、session_id。客户端不能提交FD、node ID、serial或输出路径。授权审计未提交、视图变化、跨Agent会话、依赖缺失或撤回时拒绝读取；每个共享最多4帧，同Agent串行，最多4个在途保存。input_authorized始终false。
 
+共享回执的 `authorization_pending` 是派生的确认状态：仅在原生共享已经 active、应用授权尚未成立、且没有终态或回收义务时为 true，不新增持久状态或授权来源。`phase` 保留原语义，不能单独替代 `authorized`。工作台此时显示“正在确认共享授权”，继续禁用保存；后台审计完成后，所有者显式查询才更新本次回执。系统仍等待用户选择、审计失败或正在回收时不标记为该确认状态，截图许可仍由原有完整检查决定。
+
 主进程和HTTP不接触FD或GStreamer。只有专用Portal用户总线协商Unix FD；已核验的同一连接发送OpenPipeWireRemote，并按唯一sender、reply_serial、h签名、零索引和恰好一个描述符收取。设置不可继承，拒绝截断/多余描述符；部分帧、迟到响应、错误与关闭都保留清理义务。系统/AT-SPI普通连接仍禁止FD。
 
 helper内单个有界工作线程调用固定GStreamer pipeline：pipewiresrc → 尺寸限制 → videoconvert → RGB → appsink。source只设置Portal FD、完整十进制pipewire-serial和dont-reconnect，不设置可复用node ID或默认远端；只接受必要属性均存在的插件。上游缓冲2、appsink 1、转换线程1；单帧最多3秒采样，边长4096、1600万像素、原始64MiB、PNG16MiB。RGB步长/偏移、平面、映射、均匀内容和NULL状态回收均核验；未能证明回收时不发布成功。

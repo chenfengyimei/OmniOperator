@@ -42,7 +42,7 @@ async def settled(service, agent, view, wanted):
         while True:
             result = await service.status(agent, view["view_id"])
             grant = result["grant"]
-            if grant is not None and grant["phase"] == wanted:
+            if grant is not None and grant["phase"] == wanted and (wanted != "active" or grant["authorized"]):
                 return grant
             await asyncio.sleep(0)
 
@@ -93,10 +93,61 @@ def test_failed_audit_never_exposes_permission_and_closes_helper(tmp_path, monke
                 await instance.desktop_portal.open(agent, view)
                 failed = await settled(instance.desktop_portal, agent, view, "failed")
                 assert not failed["authorized"] and failed["error_code"] == "portal_audit_failed"
+                assert failed["authorization_pending"] is False
                 async with asyncio.timeout(5):
                     while not all(o.reclaimed for o in spawn.owners):
                         await asyncio.sleep(0)
             assert backend.health()["resident"] == 0
+
+    asyncio.run(scenario())
+
+
+def test_native_ready_is_pending_until_authorization_audit_commits(tmp_path, monkeypatch):
+    async def scenario():
+        async with prepared(tmp_path, monkeypatch) as (instance, spawn, backend, agent):
+            service = instance.desktop_portal
+            entered, release = asyncio.Event(), asyncio.Event()
+            original = service._audit
+
+            async def audit(grant, kind, **data):
+                if kind == "desktop.portal_authorized":
+                    entered.set()
+                    await release.wait()
+                return await original(grant, kind, **data)
+
+            monkeypatch.setattr(service, "_audit", audit)
+            view = await begin(instance.desktop, agent)
+            try:
+                opened = await service.open(agent, view)
+                async with asyncio.timeout(5):
+                    await entered.wait()
+                pending = (await service.status(agent, view["view_id"]))["grant"]
+                native = await backend.status(service._grants[agent].scope)
+                assert native["phase"] == "active" and pending["authorization_pending"] is True
+                assert (
+                    not pending["authorized"] and not pending["capture_available"] and not pending["input_authorized"]
+                )
+                audits = await instance._database.read(lambda u: u.query("audit", agent))
+                assert {a["kind"] for a in audits if a["operation_id"] == opened["grant_id"]} == {
+                    "desktop.portal_requested"
+                }
+                release.set()
+                async with asyncio.timeout(5):
+                    while True:
+                        ready = (await service.status(agent, view["view_id"]))["grant"]
+                        if ready["authorized"]:
+                            break
+                        await asyncio.sleep(0)
+                assert ready["authorization_pending"] is False and not ready["input_authorized"]
+                audits = await instance._database.read(lambda u: u.query("audit", agent))
+                assert {a["kind"] for a in audits if a["operation_id"] == opened["grant_id"]} >= {
+                    "desktop.portal_requested",
+                    "desktop.portal_authorized",
+                }
+                await instance.desktop.forget(agent, view["view_id"])
+                assert all(o.reclaimed for o in spawn.owners) and backend.health()["resident"] == 0
+            finally:
+                release.set()
 
     asyncio.run(scenario())
 
@@ -106,7 +157,8 @@ def test_explicit_reprobe_and_new_view_revoke_previous_share(tmp_path, monkeypat
         async with prepared(tmp_path, monkeypatch, hold=True) as (instance, spawn, backend, agent):
             old = await begin(instance.desktop, agent)
             await instance.desktop_portal.open(agent, old)
-            await settled(instance.desktop_portal, agent, old, "authorizing")
+            waiting = await settled(instance.desktop_portal, agent, old, "authorizing")
+            assert waiting["authorization_pending"] is False and not waiting["authorized"]
             new = await begin(instance.desktop, agent)
             assert spawn.owners[0].reclaimed
             await instance.desktop_portal.open(agent, new)
@@ -133,6 +185,7 @@ def test_http_requires_owner_exact_view_and_grant_identity(tmp_path, monkeypatch
         assert response.status_code == 202, response.text
         grant = response.json()
         assert grant["capture_available"] is False and grant["input_authorized"] is False
+        assert grant["authorization_pending"] is False
         assert (
             client.delete(path, params={"view_id": view["view_id"], "grant_id": str(uuid.uuid4())}).status_code == 409
         )
