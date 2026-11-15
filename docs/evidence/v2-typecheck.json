@@ -8,7 +8,7 @@
  "source": {
   "code_version": "d0a6803c32e4d0bdb5deca00ac4b4f261201050dd056761458f24b821252356e",
   "fixed_source_files": 1210,
-  "git_head": "a8c0048f94dee9010381e60e12c2eb9f1d4fc2e7",
+  "git_head": "5c5402c85e8e6c13c9c913551834f5c30bc36d38",
   "dirty_checkout": false,
   "recipe": "sha256(json.dumps({path: sha256(blob) for tracked agent/, web/, scripts/ files}, sort_keys=True)); see temp/build/source_version.py",
   "head_ui": "4b6c07954be0c874b04fe9294049ae60ae00a06e",
@@ -2587,7 +2587,7 @@
   ],
   "next": {
    "id": "D7.stability_and_acceptance",
-   "scope": "Continue nine separately recorded UI/process/environment observations and actual platform/deployment acceptance. Defined strict332 and style debt complete; defaultV1."
+   "scope": "Harvest full220; continue separately recorded UI/process/environment observations and actual platform/deployment acceptance. Defined strict332 and recorded style debt remain complete; defaultV1."
   },
   "full_run_history": [
    {
@@ -3692,7 +3692,7 @@
    "Batch 213: strict 331 files (53 domain, 44 application, 221/222 adapters, 13 composition); MCP HTTP与SSE类型化，未知写入不重放",
    "Batch 214: strict 332 files (53 domain, 44 application, 222/222 adapters, 13 composition); MCP OAuth类型收官，V2四层合同范围332文件，真实验收仍待"
   ],
-  "next_full_checkpoint": null,
+  "next_full_checkpoint": 80,
   "full_checkpoints_frozen": [
    {
     "batch": 194,
@@ -3770,11 +3770,25 @@
     "head": "a8c0048f94dee9010381e60e12c2eb9f1d4fc2e7",
     "snapshot": "temp/build/v2-full-219-snapshot.json",
     "state": "harvested"
+   },
+   {
+    "checkpoint": 80,
+    "artifact_id": 220,
+    "strict_checkpoint": 214,
+    "head": "5c5402c85e8e6c13c9c913551834f5c30bc36d38",
+    "snapshot": "temp/build/v2-full-220-snapshot.json",
+    "state": "running"
    }
   ],
-  "full_checkpoints_pending": [],
-  "next_full_checkpoint_to_harvest": null,
-  "current_source_full_executed": true,
+  "full_checkpoints_pending": [
+   {
+    "checkpoint": 80,
+    "artifact_id": 220,
+    "source_head": "5c5402c85e8e6c13c9c913551834f5c30bc36d38"
+   }
+  ],
+  "next_full_checkpoint_to_harvest": 80,
+  "current_source_full_executed": false,
   "final_typing_checkpoint_harvested": true,
   "ui_connection_followup": {
    "evidence": "docs/evidence/v2-ui.json",
@@ -3900,10 +3914,10 @@
   },
   "portal_authorization_followup": {
    "evidence": "docs/evidence/v2-portal-authorization.json",
-   "source_head": "a8c0048f94dee9010381e60e12c2eb9f1d4fc2e7",
-   "checkpoint": 79,
-   "artifact_id": 219,
-   "status": "completed_with_failures_preserved"
+   "source_head": "5c5402c85e8e6c13c9c913551834f5c30bc36d38",
+   "checkpoint": 80,
+   "artifact_id": 220,
+   "status": "running"
   }
  },
  "source_recovery": {

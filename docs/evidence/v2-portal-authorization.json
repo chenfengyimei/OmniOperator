@@ -5,7 +5,7 @@
   "whole_v2_complete": false,
   "default_entrypoint": "v1",
   "source": {
-    "head": "a8c0048f94dee9010381e60e12c2eb9f1d4fc2e7",
+    "head": "5c5402c85e8e6c13c9c913551834f5c30bc36d38",
     "code_version": "d0a6803c32e4d0bdb5deca00ac4b4f261201050dd056761458f24b821252356e",
     "fixed_source_files": 1210,
     "strict_files": 332
@@ -296,6 +296,26 @@
     }
   },
   "full_run": {
+    "status": "running",
+    "checkpoint": 80,
+    "artifact_id": 220,
+    "strict_checkpoint": 214,
+    "source_head": "5c5402c85e8e6c13c9c913551834f5c30bc36d38",
+    "code_version": "d0a6803c32e4d0bdb5deca00ac4b4f261201050dd056761458f24b821252356e",
+    "fixed_source_files": 1210,
+    "strict_files": 332,
+    "report": "temp/build/v2-full-220.xml",
+    "workers": 2,
+    "uninterrupted_default_run": true
+  },
+  "not_verified": [
+    "Actual Linux Portal/PipeWire and other native platform acceptance",
+    "Complete real model/MCP/plugin/device acceptance",
+    "Clean-machine service install/update/rollback/uninstall",
+    "Container and macOS/Linux builds,24h/72h,entrypoint switch",
+    "Windows real foreground input remains deferred"
+  ],
+  "previous_full_attempt": {
     "status": "completed_with_failures_preserved",
     "checkpoint": 79,
     "artifact_id": 219,
@@ -357,13 +377,6 @@
       }
     ]
   },
-  "not_verified": [
-    "Actual Linux Portal/PipeWire and other native platform acceptance",
-    "Complete real model/MCP/plugin/device acceptance",
-    "Clean-machine service install/update/rollback/uninstall",
-    "Container and macOS/Linux builds,24h/72h,entrypoint switch",
-    "Windows real foreground input remains deferred"
-  ],
   "documentation_gate_followup": {
     "failure_introduced_by_documentation_commit": "9c3e78f0",
     "original_full_artifact": 219,
@@ -383,8 +396,15 @@
     "next_full": {
       "artifact_id": 220,
       "checkpoint": 80,
-      "state": "planned"
+      "state": "running"
     },
     "source_tests_dependencies_configuration_changed": false
+  },
+  "source_equivalence": {
+    "feature_commit": "a8c0048f94dee9010381e60e12c2eb9f1d4fc2e7",
+    "previous_full_artifact": 219,
+    "source_tests_dependencies_configuration_byte_identical": true,
+    "documentation_revision": "5c5402c85e8e6c13c9c913551834f5c30bc36d38",
+    "note": "Second full verifies the corrected documentation gate. The original 4685/1 result and failed serial replay remain preserved; no production/test/dependency/configuration changes were made."
   }
 }

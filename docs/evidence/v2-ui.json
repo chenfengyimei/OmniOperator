@@ -947,9 +947,9 @@
   ],
   "latest_followup_validation": {
     "evidence": "docs/evidence/v2-portal-authorization.json",
-    "source_head": "a8c0048f94dee9010381e60e12c2eb9f1d4fc2e7",
-    "full_artifact": 219,
-    "status": "completed_with_failures_preserved",
+    "source_head": "5c5402c85e8e6c13c9c913551834f5c30bc36d38",
+    "full_artifact": 220,
+    "status": "running",
     "note": "Later source validation only; frozen historical reports remain unchanged."
   },
   "latest_static_quality_followup": {
@@ -973,13 +973,20 @@
       "full_artifact": 218,
       "status": "passed",
       "note": "Only a pointer to the later source; the frozen historical report and its original failures remain unchanged."
+    },
+    {
+      "evidence": "docs/evidence/v2-portal-authorization.json",
+      "source_head": "a8c0048f94dee9010381e60e12c2eb9f1d4fc2e7",
+      "full_artifact": 219,
+      "status": "completed_with_failures_preserved",
+      "note": "Later source validation only; frozen historical reports remain unchanged."
     }
   ],
   "latest_portal_authorization_followup": {
     "evidence": "docs/evidence/v2-portal-authorization.json",
-    "source_head": "a8c0048f94dee9010381e60e12c2eb9f1d4fc2e7",
-    "full_artifact": 219,
-    "status": "completed_with_failures_preserved",
+    "source_head": "5c5402c85e8e6c13c9c913551834f5c30bc36d38",
+    "full_artifact": 220,
+    "status": "running",
     "note": "Later source validation only; frozen historical reports remain unchanged."
   }
 }

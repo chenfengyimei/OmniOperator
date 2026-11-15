@@ -1,6 +1,6 @@
 # OmniOperator 当前交接入口
 
-> Portal授权接续（2026-11-15）：源码`a8c0048f`：系统共享就绪与授权审计分离，新增派生确认状态；界面v130明确等待确认，仍须显式查询/保存。原始用例同症状两轮复现，修正同步后两轮通过；54项不同专项及打包通过，strict332零错误。第79次全量：1 failed, 4685 passed, 6 warnings in 3110.88s (0:51:50)；JUnit 1 failure / 0 error，4686个唯一节点。9项观察开放，整个V2未验收、默认V1。见[Portal授权证据](evidence/v2-portal-authorization.json)。
+> Portal授权接续（2026-11-15）：源码`5c5402c8`：系统共享就绪与授权审计分离，新增派生确认状态；界面v130明确等待确认，仍须显式查询/保存。原始用例同症状两轮复现，修正同步后两轮通过；54项不同专项及打包通过，strict332零错误。第80次固定源码全量（-n 2，artifact220）运行中，尚未收割。9项观察开放，整个V2未验收、默认V1。见[Portal授权证据](evidence/v2-portal-authorization.json)。
 
 > 静态质量历史记录（第78次全量）：源码`92fbf78a`：既有15项I001、39个Python格式文件、11个前端格式文件已清零；53份Python业务AST/导入绑定及26份前端格式/版本变更已核对。Ruff/Prettier全范围、strict332零错误、85模块语法、61专项及wheel/sdist隔离导入通过，资源v129。全量第78次：4680 passed, 6 warnings in 2768.05s (0:46:08)；JUnit 0 failure / 0 error，4680个唯一节点。10项观察仍开放，整个V2未验收、默认V1。见[静态质量证据](evidence/v2-static-quality.json)。
 
