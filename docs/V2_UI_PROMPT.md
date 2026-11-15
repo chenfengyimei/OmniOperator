@@ -54,7 +54,7 @@ section.page[id]                  ← 23 个页面分区，id 与 data-page 一�
 
 - 页面切换只允许通过 `[data-page]` 按钮点击触发；`test_v2_navigation_ui.py` 会在 390/1024 两个宽度逐项点击并断言目标分区可见。
 - 任何新增可见按钮，如果文案与既有页面名相同（如"设置"），必须换名或用 `title/aria-label` 区分，避免 `get_by_role(..., exact=True)` 命中两个元素。
-- 资源版本串：`index.html` 与所有模块 import 当前为 `?v=20261113v126`。**任何 HTML/CSS/JS 改动都要整体升级版本号**（v58、v59…），并同步：
+- 资源版本串：`index.html` 与所有模块 import 当前为 `?v=20261115v127`。**任何 HTML/CSS/JS 改动都要整体升级版本号**（v58、v59…），并同步：
   - `agent/tests/test_v2_mcp_ui.py` 里的 `assert "main.js?v=..." in page.content()`
   - `docs/V2_AI_CONTINUATION_PROMPT.md` 的版本说明
   - 本文第 3 节这里的版本号
@@ -64,7 +64,7 @@ section.page[id]                  ← 23 个页面分区，id 与 data-page 一�
 
 ## 4. 当前 UI 状态（已完成）
 
-**直接复用 V1 界面**（2026-11-13/14，资源版本 `20261113v126`）：按所有者要求，不再自创视觉，
+**直接复用 V1 界面**（2026-11-13/14，资源版本 `20261115v127`）：按所有者要求，不再自创视觉，
 把 V1 的 `components.css` / `frame.css` / `workbench.css` **原样复制**到 `web/ui/v2/v1/`。
 **声明内容一字未改**，只做三类必要映射：
 
@@ -93,10 +93,11 @@ V1 原文件保持只读，未被修改。
 - **手动优先**：用户一旦 `input`/`focus`/`pointerdown` 令牌框或提交表单，
   `manualConnectStarted` 置真，自动连接在请求前后各检查一次并让位。
   缺这道让位会清空用户刚填的令牌、把按钮改成「重新连接」，曾因此让 4 个既有测试失败。
+- v127 补齐初始化期间的让位：自动流程已开始加载 Agent 时，手动输入也立即取消旧请求并保留草稿；连接卡仅在初始化结束后收起。连接与 Agent 初始化分别核对当前归属，旧流程退出不得解除新流程的导航和发送屏障。
 - 连接成功后连接卡收成 38px 状态条（绿点 + 实例已连接 + 重新连接），
   点「重新连接」展开令牌框，刷新自动还原完整表单。
 - 契约测试：`test_v2_owner_token_ui.py::test_local_bootstrap_connects_without_pasting_and_stays_loopback_only`
-  与 `::test_manual_token_entry_wins_over_local_bootstrap`。
+  与 `::test_manual_token_entry_wins_over_local_bootstrap`；初始化延迟回归见 `::test_manual_input_during_bootstrap_initialization_is_preserved`（三视口双主题）及 `::test_superseded_bootstrap_cannot_unlock_manual_connection`。
 
 V2 结构已改用 V1 类名，让复制来的样式真正命中：
 

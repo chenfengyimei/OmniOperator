@@ -1,31 +1,31 @@
-import { mountSkills } from './skills.js?v=20261113v126';
-import { mountCredentials } from './credentials.js?v=20261113v126';
-import { mountAuditHistory, mountOperations } from './operations.js?v=20261113v126';
-import { mountCapabilities } from './capabilities.js?v=20261113v126';
-import { mountTokens } from './tokens.js?v=20261113v126';
-import { mountDocuments } from './documents.js?v=20261113v126';
-import { mountConfiguration } from './configuration.js?v=20261113v126';
-import { mountModels } from './models.js?v=20261113v126';
+import { mountSkills } from './skills.js?v=20261115v127';
+import { mountCredentials } from './credentials.js?v=20261115v127';
+import { mountAuditHistory, mountOperations } from './operations.js?v=20261115v127';
+import { mountCapabilities } from './capabilities.js?v=20261115v127';
+import { mountTokens } from './tokens.js?v=20261115v127';
+import { mountDocuments } from './documents.js?v=20261115v127';
+import { mountConfiguration } from './configuration.js?v=20261115v127';
+import { mountModels } from './models.js?v=20261115v127';
 import { ask } from '../dialog.js?v=20261103v7';
-import { mountPeople } from './people.js?v=20261113v126';
-import { mountDeliveries } from './deliveries.js?v=20261113v126';
-import { mountSchedules } from './schedules.js?v=20261113v126';
-import { mountMemorySemantics } from './memory-semantics.js?v=20261113v126';
-import { mountMemoryOrganization } from './memory-organization.js?v=20261113v126';
-import { mountExtensions } from './extensions.js?v=20261113v126';
-import { mountActionReviews } from './action-reviews.js?v=20261113v126';
-import { mountTerminals } from './terminals.js?v=20261113v126';
-import { mountDesktop } from './desktop.js?v=20261113v126';
-import { mountQQ } from './qq.js?v=20261113v126';
-import { mountBilibili } from './bilibili.js?v=20261113v126';
-import { mountMedia } from './media.js?v=20261113v126';
-import { mountMcp } from './mcp.js?v=20261113v126';
-import { mountAndroid } from './android.js?v=20261113v126';
-import { mountModelOutput } from './model-output.js?v=20261113v126';
-import { mountRouting } from './routing.js?v=20261113v126';
-import { mountChatImages } from './chat-images.js?v=20261113v126';
-import { mountInspector } from './inspector.js?v=20261113v126';
-import { mountSettingsRail } from './settings-rail.js?v=20261113v126';
+import { mountPeople } from './people.js?v=20261115v127';
+import { mountDeliveries } from './deliveries.js?v=20261115v127';
+import { mountSchedules } from './schedules.js?v=20261115v127';
+import { mountMemorySemantics } from './memory-semantics.js?v=20261115v127';
+import { mountMemoryOrganization } from './memory-organization.js?v=20261115v127';
+import { mountExtensions } from './extensions.js?v=20261115v127';
+import { mountActionReviews } from './action-reviews.js?v=20261115v127';
+import { mountTerminals } from './terminals.js?v=20261115v127';
+import { mountDesktop } from './desktop.js?v=20261115v127';
+import { mountQQ } from './qq.js?v=20261115v127';
+import { mountBilibili } from './bilibili.js?v=20261115v127';
+import { mountMedia } from './media.js?v=20261115v127';
+import { mountMcp } from './mcp.js?v=20261115v127';
+import { mountAndroid } from './android.js?v=20261115v127';
+import { mountModelOutput } from './model-output.js?v=20261115v127';
+import { mountRouting } from './routing.js?v=20261115v127';
+import { mountChatImages } from './chat-images.js?v=20261115v127';
+import { mountInspector } from './inspector.js?v=20261115v127';
+import { mountSettingsRail } from './settings-rail.js?v=20261115v127';
 // 直接复用 V1 的 rail 提示浮层模块（data-tip → #tip-layer），不自创实现
 import '../app/tips.js?v=20261103u5';
 
@@ -40,6 +40,7 @@ let generation = 0,
   pendingKey = null,
   build = null;
 const inflight = new Set();
+let connecting = null;
 const modelOutput = mountModelOutput({ api, getAgent: () => agent, getGeneration: () => generation });
 const routingPanel = mountRouting({
   api,
@@ -402,7 +403,13 @@ function renderToolBlock(node, trace) {
 
   // 档位与模型计量属于技术详情，已移入右栏「运行」页签；
   // 对话内的链只呈现真实工具步骤，与参考原型一致。
-  const STATE = { ok: ['done', 'check'], error: ['fail', 'error'], denied: ['fail', 'block'], cancelled: ['fail', 'block'], unknown: ['fail', 'help'] };
+  const STATE = {
+    ok: ['done', 'check'],
+    error: ['fail', 'error'],
+    denied: ['fail', 'block'],
+    cancelled: ['fail', 'block'],
+    unknown: ['fail', 'help'],
+  };
   for (const row of steps.slice(0, 40)) {
     const data = typeof row.data === 'object' && row.data ? row.data : {};
     const done = data.action_id ? completed.get(String(data.action_id)) : null;
@@ -474,7 +481,11 @@ function renderServices(version) {
   const term = version.terminals || {};
   const media = version.media?.processor || {};
   const items = [
-    ['数据库', db.closed ? 'off' : db.error_code ? 'warn' : 'ok', db.closed ? '已关闭' : db.error_code || `写 ${db.pending_writes ?? 0} / 读 ${db.pending_reads ?? 0}`],
+    [
+      '数据库',
+      db.closed ? 'off' : db.error_code ? 'warn' : 'ok',
+      db.closed ? '已关闭' : db.error_code || `写 ${db.pending_writes ?? 0} / 读 ${db.pending_reads ?? 0}`,
+    ],
     ['诊断日志', logs.writer_alive ? 'ok' : 'off', `写入 ${logs.written ?? 0} · 丢弃 ${logs.dropped ?? 0}`],
     ['QQ 通道', qq.worker_alive ? 'ok' : 'off', qq.worker_alive ? `监听 ${qq.listeners ?? 0}` : '未启动'],
     ['持久调度', sch.ready ? 'ok' : 'off', sch.ready ? `${sch.ticks ?? 0} tick` : '未就绪'],
@@ -501,7 +512,15 @@ function renderContext(report, snapshot) {
   const chars = snap.input_chars || 0;
   const tokens = snap.input_token_estimate;
   $('ctx-chars').textContent = tokens != null ? `${tokens} tok` : `${chars} 字符`;
-  const modes = { complete: '完整历史', summary: '摘要', truncated: '已省略', redacted: '已遗忘', blocked: '受阻', preparing: '准备中', legacy: '旧记录' };
+  const modes = {
+    complete: '完整历史',
+    summary: '摘要',
+    truncated: '已省略',
+    redacted: '已遗忘',
+    blocked: '受阻',
+    preparing: '准备中',
+    legacy: '旧记录',
+  };
   $('ctx-mode').textContent = modes[snap.mode] || snap.mode || '—';
   $('context-meta').textContent = `省略 ${snap.omitted_count ?? 0} 条`;
   const segs = [
@@ -595,7 +614,9 @@ function renderMessages(items) {
     const openSettings = document.createElement('button');
     openSettings.type = 'button';
     openSettings.textContent = '打开设置中心';
-    openSettings.addEventListener('click', () => document.querySelector('nav[aria-label="工作台"] [data-page="settings"]')?.click());
+    openSettings.addEventListener('click', () =>
+      document.querySelector('nav[aria-label="工作台"] [data-page="settings"]')?.click(),
+    );
     actions.append(fresh, openSettings);
     empty.append(mark, strong, hint, actions);
     $('messages').replaceChildren(empty);
@@ -948,7 +969,9 @@ async function poll() {
       ? `${RUN_LABEL[result.state] || result.state}：${ERROR_HINT[result.error_code] || result.error_code}`
       : RUN_LABEL[result.state] || String(result.state);
     setThinking(
-      page === 'chat' && session === result.session_id && ['running', 'waiting_approval', 'cancelling'].includes(result.state),
+      page === 'chat' &&
+        session === result.session_id &&
+        ['running', 'waiting_approval', 'cancelling'].includes(result.state),
     );
     renderRetention(result);
     if (page === 'chat' && session === result.session_id && result.state === 'running')
@@ -1059,17 +1082,23 @@ function schedule() {
   }, 1000);
 }
 async function selectAgent() {
-  // 任何异常或提前返回都必须解除 inert，否则整个导航（含 #agents）永久不可交互。
+  // 当前初始化退出时解除 inert；被取代的初始化必须保留新连接的交互屏障。
+  stop();
+  const selectedGeneration = generation;
   const nav = document.querySelector('nav');
   nav.inert = true;
+  $('send').inert = true;
   try {
-    await selectAgentBody();
+    await selectAgentBody(selectedGeneration);
   } finally {
-    nav.inert = false;
+    // 被新连接取代的初始化没有权利提前开放新连接的控件。
+    if (selectedGeneration === generation) {
+      nav.inert = false;
+      $('send').inert = false;
+    }
   }
 }
-async function selectAgentBody() {
-  stop();
+async function selectAgentBody(selectedGeneration) {
   renderRetention(null);
   summaryTarget = null;
   $('show-summary').hidden = true;
@@ -1108,16 +1137,15 @@ async function selectAgentBody() {
   chatImages.change();
   pendingKey = null;
   $('settings-fields').disabled = true;
-  const selectedGeneration = generation;
   await configurationPanel.load();
+  if (selectedGeneration !== generation) return;
   await routingPanel.load();
+  if (selectedGeneration !== generation) return;
   await skillsPanel.available();
-  if (selectedGeneration !== generation) {
-    document.querySelector('nav').inert = false;
-    return;
-  }
+  if (selectedGeneration !== generation) return;
   renderMessages([]);
   await refreshSessions();
+  if (selectedGeneration !== generation) return;
   if (page === 'memory') await Promise.all([loadMemory(), memoryOrganizationPanel.load(), memorySemanticPanel.load()]);
   if (page === 'skills') await skillsPanel.load();
   if (page === 'extensions') await extensionsPanel.load();
@@ -1139,29 +1167,43 @@ async function selectAgentBody() {
   if (page === 'documents') await documentsPanel.load();
   if (page === 'schedules') await schedulesPanel.load();
   if (page === 'deliveries') await deliveriesPanel.load();
-  if (selectedGeneration !== generation) {
-    document.querySelector('nav').inert = false;
-    return;
-  }
-  document.querySelector('nav').inert = false;
+  if (selectedGeneration !== generation) return;
   schedule();
 }
 // 连接流程抽成函数，手动提交与本机自动引导共用同一条路径
-async function connectWith(value) {
+async function connectWith(value, { automatic = false } = {}) {
+  const attempt = { automatic };
+  connecting = attempt;
   stop();
-  token = String(value || '').trim();
-  if (!token) throw new Error('请填入所有者令牌');
-  const version = await api('/version');
-  if (version.api_version !== 1) throw new Error('API 版本不匹配');
-  build = version.build_id;
-  const data = await api('/agents');
-  $('agents').replaceChildren(...data.items.map((item) => new Option(item.name, item.id)));
-  document.body.dataset.connected = 'true';
-  await selectAgent();
-  $('token').value = '';
-  setConnectedChrome(true);
+  document.querySelector('nav').inert = true;
+  $('send').inert = true;
+  try {
+    token = String(value || '').trim();
+    if (!token) throw new Error('请填入所有者令牌');
+    const version = await api('/version');
+    if (connecting !== attempt) return;
+    if (version.api_version !== 1) throw new Error('API 版本不匹配');
+    build = version.build_id;
+    const data = await api('/agents');
+    if (connecting !== attempt) return;
+    $('agents').replaceChildren(...data.items.map((item) => new Option(item.name, item.id)));
+    await selectAgent();
+    if (connecting !== attempt) return;
+    document.body.dataset.connected = 'true';
+    $('token').value = '';
+    setConnectedChrome(true);
+  } finally {
+    if (connecting === attempt) {
+      connecting = null;
+      document.querySelector('nav').inert = false;
+      $('send').inert = false;
+    }
+  }
 }
-$('connect').addEventListener('submit', wrap(() => connectWith($('token').value)));
+$('connect').addEventListener(
+  'submit',
+  wrap(() => connectWith($('token').value)),
+);
 // 连接卡收成状态条：空令牌框与「连接实例」常驻会挤占会话列表，且看着像没连上。
 // 只改文案与 title，不动结构；刷新后 body[data-connected] 消失即自动还原。
 function setConnectedChrome(on) {
@@ -1192,14 +1234,21 @@ $('connect').addEventListener('click', (event) => {
 // 用户一旦碰过令牌框或提交过表单，自动连接必须让位：
 // 否则它会清空用户刚填的令牌、把按钮改成「重新连接」，让手动路径落空。
 let manualConnectStarted = false;
-for (const evt of ['input', 'focus', 'pointerdown']) {
-  $('token').addEventListener(evt, () => {
-    manualConnectStarted = true;
-  });
-}
-$('connect').addEventListener('submit', () => {
+function beginManualConnect() {
   manualConnectStarted = true;
-});
+  if (!connecting?.automatic) return;
+  // 自动流程可能已拿到令牌并开始加载 Agent，输入期间也必须立即让位。
+  connecting = null;
+  stop();
+  token = '';
+  document.body.removeAttribute('data-connected');
+  setConnectedChrome(false);
+  $('connect-hint').textContent = '请填入所有者令牌后连接。';
+}
+for (const evt of ['input', 'focus', 'pointerdown']) {
+  $('token').addEventListener(evt, beginManualConnect);
+}
+$('connect').addEventListener('submit', beginManualConnect);
 async function bootstrapLocal() {
   const hint = $('connect-hint');
   const isLoopback = ['127.0.0.1', 'localhost', '[::1]', '::1'].includes(location.hostname);
@@ -1227,8 +1276,8 @@ async function bootstrapLocal() {
     if (!data?.token) throw new Error('bootstrap_empty');
     // 请求期间用户可能已经开始手动填写，此刻仍要让位
     if (manualConnectStarted) return;
-    await connectWith(data.token);
-    if (hint) hint.textContent = '已自动连接本机实例。令牌轮换后点「重新连接」即可。';
+    await connectWith(data.token, { automatic: true });
+    if (!manualConnectStarted && hint) hint.textContent = '已自动连接本机实例。令牌轮换后点「重新连接」即可。';
   } catch {
     // 旧后端、端点关闭、被代理、令牌未就绪都走这里：保留手动表单，不弹错误打断首屏
     if (!manualConnectStarted) {
@@ -1238,8 +1287,12 @@ async function bootstrapLocal() {
   }
 }
 $('agents').addEventListener('change', wrap(selectAgent));
-$('back-to-chat').addEventListener('click', () => document.querySelector('nav[aria-label="工作台"] [data-page="chat"]')?.click());
-$('open-settings').addEventListener('click', () => document.querySelector('nav[aria-label="工作台"] [data-page="settings"]')?.click());
+$('back-to-chat').addEventListener('click', () =>
+  document.querySelector('nav[aria-label="工作台"] [data-page="chat"]')?.click(),
+);
+$('open-settings').addEventListener('click', () =>
+  document.querySelector('nav[aria-label="工作台"] [data-page="settings"]')?.click(),
+);
 
 // 窄屏两个抽屉互斥：同时展开会把对话与输入区挤没。
 // 宽屏 data-open 不参与布局，左右两栏仍常驻。

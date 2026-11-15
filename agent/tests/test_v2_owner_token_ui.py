@@ -109,7 +109,7 @@ def test_local_bootstrap_connects_without_pasting_and_stays_loopback_only(token_
         page.goto(url)
         # 完全不填令牌，等自动连接完成
         expect(page.locator("#agents option")).to_have_count(1, timeout=15000)
-        assert page.evaluate("document.body.dataset.connected") == "true"
+        expect(page.locator("body")).to_have_attribute("data-connected", "true")
         assert page.locator("#token").input_value() == ""
         assert token not in page.evaluate("JSON.stringify({...localStorage}) + JSON.stringify({...sessionStorage})")
 
@@ -151,9 +151,78 @@ def test_manual_token_entry_wins_over_local_bootstrap(token_server, ui_browser):
         expect(page.locator("#agents option")).to_have_count(1, timeout=15000)
         # 慢响应的自动连接回来后不得把已连接状态改回手动表单
         page.wait_for_timeout(2000)
-        assert page.evaluate("document.body.dataset.connected") == "true"
+        expect(page.locator("body")).to_have_attribute("data-connected", "true")
         assert page.locator("#connect button[type=submit]").inner_text() == "重新连接"
         assert page.locator("#token").input_value() == ""
         assert errors == []
+    finally:
+        context.close()
+
+
+@pytest.mark.parametrize("width", [390, 1024, 1440])
+@pytest.mark.parametrize("theme", ["light", "dark"])
+def test_manual_input_during_bootstrap_initialization_is_preserved(token_server, ui_browser, width, theme):
+    """Manual entry also wins after bootstrap has already started loading the Agent."""
+    url, _ = token_server
+    context = ui_browser.new_context(viewport={"width": width, "height": 1000})
+    try:
+        context.add_init_script(f"localStorage.setItem('omni_theme','{theme}')")
+        page = context.new_page()
+        held = []
+        page.route("**/api/v1/agents/*/settings", lambda route: held.append(route))
+        with page.expect_request("**/api/v1/agents/*/settings"):
+            page.goto(url)
+        expect(page.locator("#agents option")).to_have_count(1)
+        with page.expect_event("requestfailed", predicate=lambda request: request.url.endswith("/settings")):
+            page.locator("#token").fill("manually entered draft")
+        assert len(held) == 1
+        held.pop().continue_()
+        # A later manual connection must be able to complete after the cancelled bootstrap.
+        page.unroute("**/api/v1/agents/*/settings")
+        expect(page.locator("#connect")).not_to_have_attribute("data-connected", "true")
+        expect(page.locator("#token")).to_have_value("manually entered draft")
+        expect(page.locator("#connect-hint")).to_have_text("请填入所有者令牌后连接。")
+        expect(page.locator("nav")).to_have_attribute("inert", "")
+        expect(page.locator("#send")).to_have_attribute("inert", "")
+        screenshot = Path(__file__).resolve().parents[2] / "temp/build/v2-ui-connection" / f"manual-{theme}-{width}.png"
+        screenshot.parent.mkdir(parents=True, exist_ok=True)
+        page.screenshot(path=str(screenshot), full_page=True)
+        page.locator("#token").fill(token_server[1])
+        page.get_by_role("button", name="连接实例", exact=True).click()
+        expect(page.locator("#connect")).to_have_attribute("data-connected", "true")
+        expect(page.locator("nav")).not_to_have_attribute("inert", "")
+        expect(page.locator("#send")).not_to_have_attribute("inert", "")
+        expect(page.locator("#error")).to_be_hidden()
+        assert not page.evaluate("document.documentElement.scrollWidth > innerWidth")
+    finally:
+        context.close()
+
+
+def test_superseded_bootstrap_cannot_unlock_manual_connection(token_server, ui_browser):
+    """The old Agent load cannot expose controls while the new connection is pending."""
+    url, token = token_server
+    context = ui_browser.new_context(viewport={"width": 1440, "height": 1000})
+    try:
+        page = context.new_page()
+        settings, versions = [], []
+        page.route("**/api/v1/agents/*/settings", lambda route: settings.append(route))
+        with page.expect_request("**/api/v1/agents/*/settings"):
+            page.goto(url)
+        expect(page.locator("#agents option")).to_have_count(1)
+        page.route("**/api/v1/version", lambda route: versions.append(route))
+        page.locator("#token").fill(token)
+        with page.expect_request("**/api/v1/version"):
+            page.get_by_role("button", name="连接实例", exact=True).click()
+        assert len(settings) == 1 and len(versions) == 1
+        settings.pop().continue_()
+        page.unroute("**/api/v1/agents/*/settings")
+        expect(page.locator("nav")).to_have_attribute("inert", "")
+        expect(page.locator("#send")).to_have_attribute("inert", "")
+        versions.pop().continue_()
+        page.unroute("**/api/v1/version")
+        expect(page.locator("#connect")).to_have_attribute("data-connected", "true")
+        expect(page.locator("nav")).not_to_have_attribute("inert", "")
+        expect(page.locator("#send")).not_to_have_attribute("inert", "")
+        expect(page.locator("#error")).to_be_hidden()
     finally:
         context.close()
