@@ -122,6 +122,17 @@ class LiteLLMModel:
             kwargs["api_key"] = secret
         if settings.get("base_url"):
             kwargs["api_base"] = settings["base_url"]
+        headers: dict[str, str] = {"User-Agent": "omni-operator/2.0"}
+        # OpenCode Go 要求每个会话携带稳定 x-opencode-session 以便路由与提示缓存。
+        # 以 model_profile_id 作为稳定会话标识（同一配置=同一会话）。
+        if "opencode.ai" in str(settings.get("base_url", "")):
+            headers["x-opencode-session"] = str(settings.get("model_profile_id") or "omni-operator")
+        custom = settings.get("extra_headers")
+        if isinstance(custom, dict):
+            for key, value in custom.items():
+                if isinstance(key, str) and isinstance(value, str) and key.lower() not in {"authorization", "x-api-key"}:
+                    headers[key] = value
+        kwargs["extra_headers"] = headers
         if tools:
             kwargs["tools"] = wire_tools(tools)
         os.environ.setdefault("LITELLM_LOCAL_MODEL_COST_MAP", "True")
