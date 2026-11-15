@@ -296,7 +296,7 @@
     }
   },
   "full_run": {
-    "status": "running",
+    "status": "interrupted_internal_error",
     "checkpoint": 80,
     "artifact_id": 220,
     "strict_checkpoint": 214,
@@ -306,7 +306,93 @@
     "strict_files": 332,
     "report": "temp/build/v2-full-220.xml",
     "workers": 2,
-    "uninterrupted_default_run": true
+    "uninterrupted_default_run": false,
+    "report_sha256": "19f03ed83ca02dd664fbe9e6a9be3486ad317c97679ec2abff492bf6f6f2ee64",
+    "tests": 4516,
+    "passed": 4512,
+    "failed": 2,
+    "errors": 2,
+    "skipped": 0,
+    "duration_s": 2842.6,
+    "portal_service_and_ui": {
+      "tests": 15,
+      "all_passed": true
+    },
+    "collected_tests": 4686,
+    "junit_testcase_records": 4517,
+    "unique_test_nodes_reported": 4514,
+    "returncode": 3,
+    "source_unchanged": true,
+    "working_source_version": "4e753776a8316f0e7072b2fcd114d5863da35acf8d46dab820686cd43c02bb3f",
+    "wall_duration_s": 2843.527,
+    "junit_duration_s": 2842.254,
+    "snapshot": {
+      "path": "temp/build/v2-full-220-snapshot.json",
+      "sha256": "0e297a4c7cabfb774be26dc318d9058bb25c26d6e0daf2bfc3642bfc846f80bb"
+    },
+    "command": "uv run --no-sync python temp/build/_full_checkpoint.py run 220 (frozen interpreter: python -m pytest -q -n 2)",
+    "all_collected_nodes_reported": false,
+    "worker_exit_count": 0,
+    "environment": "Committed source archive; disposable interpreter metadata reuses existing dependencies. Standard project scheduler, original assertions/timeouts/offline gates, no runtime intervention, uv sync or user-service stop.",
+    "pytest_cli_summary": "2 failed, 4512 passed, 12 warnings in 2842.60s (0:47:22)",
+    "failed_cases": [
+      {
+        "classname": "agent.tests.test_v2_service_runtime",
+        "name": "test_identity_tracks_real_boot_and_drains_before_releasing_lock",
+        "message": "omni.domain.contracts.BusinessError: Runtime identity changed during inspection"
+      },
+      {
+        "classname": "agent.tests.test_ui_facts_delete",
+        "name": "test_fact_delete_removes_that_row",
+        "message": "playwright._impl._errors.TimeoutError: Locator.click: Timeout 30000ms exceeded.\nCall log:\n  - waiting for locator(\".ui-dialog\").locator(\"button\").filter(has_text=\"删除\")\n    - locator resolved to <button value=\"confirm\" class=\"ui-danger\">删除</button>\n  - attempting click action\n    - waiting for element to be visible, enabled and stable"
+      }
+    ],
+    "reruns": [
+      {
+        "report": "temp/build/v2-full-220-serial.xml",
+        "report_sha256": "7f7bf4b3f104c87a604ea457361018f78150cf0d5f21604d67bd3b483ed201a6",
+        "tests": 0,
+        "passed": 0,
+        "failed": 0,
+        "errors": 0,
+        "skipped": 0,
+        "duration_s": 0.004,
+        "source_head": "5c5402c85e8e6c13c9c913551834f5c30bc36d38",
+        "returncode": 4
+      }
+    ],
+    "execution_attempted": true,
+    "completed": false,
+    "named_test_records": 4514,
+    "named_test_errors": 0,
+    "framework_error_events": 2,
+    "runtime_intervention": false,
+    "raw_junit_suite": {
+      "name": "pytest",
+      "errors": "2",
+      "failures": "2",
+      "skipped": "0",
+      "tests": "4516",
+      "time": "2842.254",
+      "timestamp": "2026-11-15T16:01:59.412072+08:00",
+      "hostname": "cy"
+    },
+    "nonstandard_junit_records": [
+      {
+        "time": "4.995"
+      },
+      {
+        "time": "1.224"
+      },
+      {
+        "classname": "pytest",
+        "name": "internal",
+        "time": "0.000"
+      }
+    ],
+    "interrupted_node": "agent/tests/test_ui_market.py::test_persona_market_imports_into_presets_and_form",
+    "original_missing_nodes": 172,
+    "reporting_failure": "Worker MemoryError while pytest joined source lines for failure rendering; controller then rejected an unfinished crashitem. Original market exception was not rendered. Process memory at failure was not measured."
   },
   "not_verified": [
     "Actual Linux Portal/PipeWire and other native platform acceptance",
@@ -396,7 +482,7 @@
     "next_full": {
       "artifact_id": 220,
       "checkpoint": 80,
-      "state": "running"
+      "state": "completed_with_failures_preserved"
     },
     "source_tests_dependencies_configuration_changed": false
   },
@@ -406,5 +492,120 @@
     "source_tests_dependencies_configuration_byte_identical": true,
     "documentation_revision": "5c5402c85e8e6c13c9c913551834f5c30bc36d38",
     "note": "Second full verifies the corrected documentation gate. The original 4685/1 result and failed serial replay remain preserved; no production/test/dependency/configuration changes were made."
-  }
+  },
+  "supplemental_validation": {
+    "original_full_result_replaced": false,
+    "plan": "temp/build/v2-full-220-recovery-plan.json",
+    "raw_named_nodes": 4514,
+    "original_missing_nodes": 172,
+    "exact_failure_and_interrupted_replay": {
+      "report": "temp/build/v2-full-220-serial-corrected.xml",
+      "sha256": "53d94ffb58ade4b3478d8a2b4c991e74ea958d610e507976d238bca8acd918fc",
+      "tests": 3,
+      "passed": 3,
+      "failed_or_errors": 0,
+      "skipped": 0
+    },
+    "remaining_supplement": {
+      "report": "temp/build/v2-full-220-supplement.xml",
+      "sha256": "422b3503ea438d201276dab4c94412646d1936fccf1b2adbd577e922a4d2d27d",
+      "tests": 171,
+      "passed": 171,
+      "failed_or_errors": 0,
+      "skipped": 0
+    },
+    "unique_nodes_observed_passing_across_original_and_supplements": 4686,
+    "all_collected_nodes_observed_passing": true,
+    "source_unchanged": true,
+    "scope": "Coverage was completed in separate serial processes; this does not turn the interrupted original run into a full pass. Original serial exit4 from the synthetic pytest.internal node is retained. --tb=native only changes diagnostic rendering."
+  },
+  "unrelated_failure_controls": {
+    "metadata": {
+      "earlier_source_head": "92fbf78a06237414febec90915bae6067dc64c99",
+      "earlier_code_version": "355d503e2aef412d78a9afab57852024a296719ea11b0e96b2f74f59340f5a3e",
+      "current_source_head": "5c5402c85e8e6c13c9c913551834f5c30bc36d38",
+      "three_test_files_byte_identical": true,
+      "production_python_changes": [
+        "agent/src/omni/application/desktop_portal.py"
+      ],
+      "nodes": [
+        "agent/tests/test_v2_service_runtime.py::test_identity_tracks_real_boot_and_drains_before_releasing_lock",
+        "agent/tests/test_ui_facts_delete.py::test_fact_delete_removes_that_row",
+        "agent/tests/test_ui_market.py::test_persona_market_imports_into_presets_and_form"
+      ],
+      "runs": [
+        {
+          "path": "temp/build/v2-full-220-prior-control-1.xml",
+          "returncode": 0
+        },
+        {
+          "path": "temp/build/v2-full-220-prior-control-2.xml",
+          "returncode": 0
+        }
+      ],
+      "note": "Two cold serial controls on the earlier fixed snapshot, with --tb=native for the same diagnostic format as the corrected current-source replay. No causal conclusion follows merely from a pass.",
+      "old_source_unchanged": true
+    },
+    "reports": [
+      {
+        "report": "temp/build/v2-full-220-prior-control-1.xml",
+        "sha256": "cca5507efa9462b1560760cf88ea3d7724b96bbce38071eb4db0b0279a4d109b",
+        "tests": 3,
+        "passed": 3,
+        "failed_or_errors": 0,
+        "skipped": 0
+      },
+      {
+        "report": "temp/build/v2-full-220-prior-control-2.xml",
+        "sha256": "74f1420fb01e735c3ee2fe814614dfc909a471ce2ca9a06b1b0659f082f9b874",
+        "tests": 3,
+        "passed": 3,
+        "failed_or_errors": 0,
+        "skipped": 0
+      }
+    ],
+    "conclusion": "The current three-node cold replay passed. Earlier-HEAD outcomes are recorded individually; successful replays do not establish a cause or erase the raw failures. MemoryError was not reproduced in these small runs."
+  },
+  "local_harvest_correction": "The ignored local runner now excludes synthetic pytest.internal records from nodeid replay selection. Original serial XML/log exit4 remain; no project source, test, timeout or assertion changed.",
+  "new_open_observations": [
+    {
+      "id": "test.runtime_identity_read_changed_during_full",
+      "state": "open",
+      "owner": "runtime validation",
+      "classification": "identity_snapshot_timing_cause_unconfirmed",
+      "detail": "Full220 test_identity_tracks_real_boot_and_drains_before_releasing_lock raised Runtime identity changed during inspection. Exact cold replay passed; test file is byte-identical to earlier full218. Do not relax the identity check or attribute this to Portal without evidence.",
+      "evidence": [
+        "temp/build/v2-full-220.xml",
+        "temp/build/v2-full-220-serial-corrected.xml",
+        "temp/build/v2-full-220-prior-control-1.xml",
+        "temp/build/v2-full-220-prior-control-2.xml"
+      ]
+    },
+    {
+      "id": "test.v1_fact_delete_dialog_click_timeout",
+      "state": "open",
+      "owner": "V1 UI validation",
+      "classification": "dialog_click_timing_cause_unconfirmed",
+      "detail": "Full220 test_fact_delete_removes_that_row timed out after30s clicking the visible danger-dialog confirmation button. Exact cold replay passed; source test and V1 UI code are unchanged from earlier full218. This symptom is tracked separately from other browser failures.",
+      "evidence": [
+        "temp/build/v2-full-220.xml",
+        "temp/build/v2-full-220-serial-corrected.xml",
+        "temp/build/v2-full-220-prior-control-1.xml",
+        "temp/build/v2-full-220-prior-control-2.xml"
+      ]
+    },
+    {
+      "id": "test.full_report_memory_error_abort",
+      "state": "open",
+      "owner": "test infrastructure",
+      "classification": "report_generation_memory_error_cause_unconfirmed",
+      "detail": "Full220 worker hit MemoryError in pytest Source.__str__ during failure reporting for the persona-market case; xdist then aborted with an unfinished crashitem. Only4514/4686 named nodes were reported; two unnamed records and synthetic pytest.internal records are not real test identities. Cold market replay and171 remaining cases passed; the original exception and memory-growth cause remain unknown.",
+      "evidence": [
+        "temp/build/v2-full-220.xml",
+        "temp/build/v2-full-220.log",
+        "temp/build/v2-full-220-serial-corrected.xml",
+        "temp/build/v2-full-220-supplement.xml"
+      ]
+    }
+  ]
 }

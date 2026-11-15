@@ -23,6 +23,8 @@ uv run --no-sync pytest -q -n 8
 
 V2 文档维护的开发反馈先选 `test_v2_maintenance.py`、`test_v2_maintenance_http.py`；所有权、迁移或恢复发生变化时再增加对应的 `ownership`、`crash`、`migration` 文件。界面改动先选 `test_v2_maintenance_ui.py` 和受影响的具体 nodeid，整份 `test_v2_ui.py` 的多视口/主题业务矩阵留到跨界面验收。该矩阵保留完整场景、独立上下文与超时，不用缩短业务等待换取提速；开发反馈通过减少无关重复范围获得。
 
+修改 `docs/V2_PACKAGING.md` 的安装/更新交付状态或构建检查入口时，先运行 `uv run --no-sync pytest -q -n 0 agent/tests/test_v2_packaging_contract.py`。该专项检查已验证构建链与未交付平台/安装器边界，通常不需要等完整套件才能发现文档合同回归。源码链已实现和独立安装器已完成交付验收应分别表述。
+
 记忆整理开发使用 `test_v2_memory_organization.py`、`test_v2_memory_organization_http.py`；关系/召回变更加入 `repository`，迁移/恢复加入 `migration`，事务中断加入 `crash`，界面仅先跑 `test_v2_memory_organization_ui.py`。必须验证逐字原文与规范化相同的差别、同作用域、审批不改记忆真值、可撤销召回、真实来源删除传播、恢复后旧核查不可复用，以及所有者CAS和迟到界面隔离。默认不调用模型或创建费用账；不得通过遗忘重复项实现普通整理。
 
 可信插件开发先跑 `test_v2_extensions.py`、`test_v2_extensions_http.py`；清单使用 `test_v2_extensions_contract.py`，仓储/中断使用 `test_v2_extension_repository.py` 与 `test_v2_extension_crash.py`，迁移/恢复使用 `test_v2_extensions_migration.py`。包和进程变更加入 `test_v2_extension_packages.py`、`test_v2_extension_hosts.py` 及已有worker调用方；界面先选新增 `test_v2_extensions_ui.py`，不每次运行旧工作台全矩阵。所有源码、进程、模型和写文件夹具隔离；插件必须先保持登记/授权零执行，再验证真实审批后代码、派发中断unknown及取消回收，不能通过模拟结果宣称实机能力。

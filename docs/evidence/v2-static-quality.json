@@ -793,7 +793,7 @@
     "evidence": "docs/evidence/v2-portal-authorization.json",
     "source_head": "5c5402c85e8e6c13c9c913551834f5c30bc36d38",
     "full_artifact": 220,
-    "status": "running",
+    "status": "interrupted_internal_error",
     "note": "Later source validation only; frozen historical reports remain unchanged."
   }
 }

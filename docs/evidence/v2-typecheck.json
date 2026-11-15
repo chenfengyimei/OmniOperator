@@ -2292,66 +2292,103 @@
    ]
   },
   "full_run": {
-   "status": "completed_with_failures_preserved",
-   "checkpoint": 79,
-   "artifact_id": 219,
+   "status": "interrupted_internal_error",
+   "checkpoint": 80,
+   "artifact_id": 220,
    "strict_checkpoint": 214,
-   "source_head": "a8c0048f94dee9010381e60e12c2eb9f1d4fc2e7",
+   "source_head": "5c5402c85e8e6c13c9c913551834f5c30bc36d38",
    "code_version": "d0a6803c32e4d0bdb5deca00ac4b4f261201050dd056761458f24b821252356e",
    "fixed_source_files": 1210,
    "strict_files": 332,
-   "report": "temp/build/v2-full-219.xml",
+   "report": "temp/build/v2-full-220.xml",
    "workers": 2,
-   "uninterrupted_default_run": true,
-   "report_sha256": "167569528c4b4f2b468af3c621bb2a77022f22c1464f15bc0c010dc5f6a7cccf",
-   "tests": 4686,
-   "passed": 4685,
-   "failed": 1,
-   "errors": 0,
+   "uninterrupted_default_run": false,
+   "report_sha256": "19f03ed83ca02dd664fbe9e6a9be3486ad317c97679ec2abff492bf6f6f2ee64",
+   "tests": 4516,
+   "passed": 4512,
+   "failed": 2,
+   "errors": 2,
    "skipped": 0,
-   "duration_s": 3110.88,
+   "duration_s": 2842.6,
    "portal_service_and_ui": {
     "tests": 15,
     "all_passed": true
    },
    "collected_tests": 4686,
-   "junit_testcase_records": 4686,
-   "unique_test_nodes_reported": 4686,
-   "returncode": 1,
+   "junit_testcase_records": 4517,
+   "unique_test_nodes_reported": 4514,
+   "returncode": 3,
    "source_unchanged": true,
    "working_source_version": "4e753776a8316f0e7072b2fcd114d5863da35acf8d46dab820686cd43c02bb3f",
-   "wall_duration_s": 3111.818,
-   "junit_duration_s": 3110.73,
+   "wall_duration_s": 2843.527,
+   "junit_duration_s": 2842.254,
    "snapshot": {
-    "path": "temp/build/v2-full-219-snapshot.json",
-    "sha256": "b26e8c22d6ea0d6d8f21a3d00b3222fcc0abdcd3e56c9b838849a56524ef7b24"
+    "path": "temp/build/v2-full-220-snapshot.json",
+    "sha256": "0e297a4c7cabfb774be26dc318d9058bb25c26d6e0daf2bfc3642bfc846f80bb"
    },
-   "command": "uv run --no-sync python temp/build/_full_checkpoint.py run 219 (frozen interpreter: python -m pytest -q -n 2)",
-   "all_collected_nodes_reported": true,
+   "command": "uv run --no-sync python temp/build/_full_checkpoint.py run 220 (frozen interpreter: python -m pytest -q -n 2)",
+   "all_collected_nodes_reported": false,
    "worker_exit_count": 0,
    "environment": "Committed source archive; disposable interpreter metadata reuses existing dependencies. Standard project scheduler, original assertions/timeouts/offline gates, no runtime intervention, uv sync or user-service stop.",
-   "pytest_cli_summary": "1 failed, 4685 passed, 6 warnings in 3110.88s (0:51:50)",
+   "pytest_cli_summary": "2 failed, 4512 passed, 12 warnings in 2842.60s (0:47:22)",
    "failed_cases": [
     {
-     "classname": "agent.tests.test_v2_packaging_contract",
-     "name": "test_packaging_document_lists_verified_chain_and_unfinished_platforms",
-     "message": "AssertionError: packaging document hides gap: V2 尚无独立安装器\nassert 'V2 尚无独立安装器' in '# V2 打包、安装、更新与恢复（D7）\\n\\n> **默认正式入口仍是 V1。** 本文件只记录 V2 已实际验证的构建/安装/更新/恢复链与仍未验收的部分，不把“能构建 wheel”写成“三平台已交付”。\\n\\n> **当前接续（...据目录清理与卸载保留为显式人工步骤。\\n2. 生成容器镜像与三平台构建矩阵；macOS/Linux 无环境时只记录“待真实验收”。\\n3. 干净机器端到端演练：安装→启动→升级→回滚→备份恢复→卸载，全部留证据后才评估正式入口切换。\\n'"
+     "classname": "agent.tests.test_v2_service_runtime",
+     "name": "test_identity_tracks_real_boot_and_drains_before_releasing_lock",
+     "message": "omni.domain.contracts.BusinessError: Runtime identity changed during inspection"
+    },
+    {
+     "classname": "agent.tests.test_ui_facts_delete",
+     "name": "test_fact_delete_removes_that_row",
+     "message": "playwright._impl._errors.TimeoutError: Locator.click: Timeout 30000ms exceeded.\nCall log:\n  - waiting for locator(\".ui-dialog\").locator(\"button\").filter(has_text=\"删除\")\n    - locator resolved to <button value=\"confirm\" class=\"ui-danger\">删除</button>\n  - attempting click action\n    - waiting for element to be visible, enabled and stable"
     }
    ],
    "reruns": [
     {
-     "report": "temp/build/v2-full-219-serial.xml",
-     "report_sha256": "7b5278a29309892006e50cab03ab97dda95bf228c485ef6b49b86725ced82214",
-     "tests": 1,
+     "report": "temp/build/v2-full-220-serial.xml",
+     "report_sha256": "7f7bf4b3f104c87a604ea457361018f78150cf0d5f21604d67bd3b483ed201a6",
+     "tests": 0,
      "passed": 0,
-     "failed": 1,
+     "failed": 0,
      "errors": 0,
      "skipped": 0,
-     "duration_s": 0.542,
-     "source_head": "a8c0048f94dee9010381e60e12c2eb9f1d4fc2e7",
-     "returncode": 1
+     "duration_s": 0.004,
+     "source_head": "5c5402c85e8e6c13c9c913551834f5c30bc36d38",
+     "returncode": 4
     }
-   ]
+   ],
+   "execution_attempted": true,
+   "completed": false,
+   "named_test_records": 4514,
+   "named_test_errors": 0,
+   "framework_error_events": 2,
+   "runtime_intervention": false,
+   "raw_junit_suite": {
+    "name": "pytest",
+    "errors": "2",
+    "failures": "2",
+    "skipped": "0",
+    "tests": "4516",
+    "time": "2842.254",
+    "timestamp": "2026-11-15T16:01:59.412072+08:00",
+    "hostname": "cy"
+   },
+   "nonstandard_junit_records": [
+    {
+     "time": "4.995"
+    },
+    {
+     "time": "1.224"
+    },
+    {
+     "classname": "pytest",
+     "name": "internal",
+     "time": "0.000"
+    }
+   ],
+   "interrupted_node": "agent/tests/test_ui_market.py::test_persona_market_imports_into_presets_and_form",
+   "original_missing_nodes": 172,
+   "reporting_failure": "Worker MemoryError while pytest joined source lines for failure rendering; controller then rejected an unfinished crashitem. Original market exception was not rendered. Process memory at failure was not measured."
   },
   "open_findings": [
    {
@@ -2583,11 +2620,50 @@
      "temp/build/v2-full-216-prior-control-1.xml",
      "temp/build/v2-full-216-prior-control-2.xml"
     ]
+   },
+   {
+    "id": "test.runtime_identity_read_changed_during_full",
+    "state": "open",
+    "owner": "runtime validation",
+    "classification": "identity_snapshot_timing_cause_unconfirmed",
+    "detail": "Full220 test_identity_tracks_real_boot_and_drains_before_releasing_lock raised Runtime identity changed during inspection. Exact cold replay passed; test file is byte-identical to earlier full218. Do not relax the identity check or attribute this to Portal without evidence.",
+    "evidence": [
+     "temp/build/v2-full-220.xml",
+     "temp/build/v2-full-220-serial-corrected.xml",
+     "temp/build/v2-full-220-prior-control-1.xml",
+     "temp/build/v2-full-220-prior-control-2.xml"
+    ]
+   },
+   {
+    "id": "test.v1_fact_delete_dialog_click_timeout",
+    "state": "open",
+    "owner": "V1 UI validation",
+    "classification": "dialog_click_timing_cause_unconfirmed",
+    "detail": "Full220 test_fact_delete_removes_that_row timed out after30s clicking the visible danger-dialog confirmation button. Exact cold replay passed; source test and V1 UI code are unchanged from earlier full218. This symptom is tracked separately from other browser failures.",
+    "evidence": [
+     "temp/build/v2-full-220.xml",
+     "temp/build/v2-full-220-serial-corrected.xml",
+     "temp/build/v2-full-220-prior-control-1.xml",
+     "temp/build/v2-full-220-prior-control-2.xml"
+    ]
+   },
+   {
+    "id": "test.full_report_memory_error_abort",
+    "state": "open",
+    "owner": "test infrastructure",
+    "classification": "report_generation_memory_error_cause_unconfirmed",
+    "detail": "Full220 worker hit MemoryError in pytest Source.__str__ during failure reporting for the persona-market case; xdist then aborted with an unfinished crashitem. Only4514/4686 named nodes were reported; two unnamed records and synthetic pytest.internal records are not real test identities. Cold market replay and171 remaining cases passed; the original exception and memory-growth cause remain unknown.",
+    "evidence": [
+     "temp/build/v2-full-220.xml",
+     "temp/build/v2-full-220.log",
+     "temp/build/v2-full-220-serial-corrected.xml",
+     "temp/build/v2-full-220-supplement.xml"
+    ]
    }
   ],
   "next": {
    "id": "D7.stability_and_acceptance",
-   "scope": "Harvest full220; continue separately recorded UI/process/environment observations and actual platform/deployment acceptance. Defined strict332 and recorded style debt remain complete; defaultV1."
+   "scope": "Continue12 separately recorded UI/process/environment observations and actual platform/deployment acceptance. Raw full220 interrupted; missing-node supplementation is separate. Defined strict332 and style debt complete;defaultV1."
   },
   "full_run_history": [
    {
@@ -3634,6 +3710,68 @@
     "pytest_cli_summary": "4680 passed, 6 warnings in 2768.05s (0:46:08)",
     "failed_cases": [],
     "reruns": []
+   },
+   {
+    "status": "completed_with_failures_preserved",
+    "checkpoint": 79,
+    "artifact_id": 219,
+    "strict_checkpoint": 214,
+    "source_head": "a8c0048f94dee9010381e60e12c2eb9f1d4fc2e7",
+    "code_version": "d0a6803c32e4d0bdb5deca00ac4b4f261201050dd056761458f24b821252356e",
+    "fixed_source_files": 1210,
+    "strict_files": 332,
+    "report": "temp/build/v2-full-219.xml",
+    "workers": 2,
+    "uninterrupted_default_run": true,
+    "report_sha256": "167569528c4b4f2b468af3c621bb2a77022f22c1464f15bc0c010dc5f6a7cccf",
+    "tests": 4686,
+    "passed": 4685,
+    "failed": 1,
+    "errors": 0,
+    "skipped": 0,
+    "duration_s": 3110.88,
+    "portal_service_and_ui": {
+     "tests": 15,
+     "all_passed": true
+    },
+    "collected_tests": 4686,
+    "junit_testcase_records": 4686,
+    "unique_test_nodes_reported": 4686,
+    "returncode": 1,
+    "source_unchanged": true,
+    "working_source_version": "4e753776a8316f0e7072b2fcd114d5863da35acf8d46dab820686cd43c02bb3f",
+    "wall_duration_s": 3111.818,
+    "junit_duration_s": 3110.73,
+    "snapshot": {
+     "path": "temp/build/v2-full-219-snapshot.json",
+     "sha256": "b26e8c22d6ea0d6d8f21a3d00b3222fcc0abdcd3e56c9b838849a56524ef7b24"
+    },
+    "command": "uv run --no-sync python temp/build/_full_checkpoint.py run 219 (frozen interpreter: python -m pytest -q -n 2)",
+    "all_collected_nodes_reported": true,
+    "worker_exit_count": 0,
+    "environment": "Committed source archive; disposable interpreter metadata reuses existing dependencies. Standard project scheduler, original assertions/timeouts/offline gates, no runtime intervention, uv sync or user-service stop.",
+    "pytest_cli_summary": "1 failed, 4685 passed, 6 warnings in 3110.88s (0:51:50)",
+    "failed_cases": [
+     {
+      "classname": "agent.tests.test_v2_packaging_contract",
+      "name": "test_packaging_document_lists_verified_chain_and_unfinished_platforms",
+      "message": "AssertionError: packaging document hides gap: V2 尚无独立安装器\nassert 'V2 尚无独立安装器' in '# V2 打包、安装、更新与恢复（D7）\\n\\n> **默认正式入口仍是 V1。** 本文件只记录 V2 已实际验证的构建/安装/更新/恢复链与仍未验收的部分，不把“能构建 wheel”写成“三平台已交付”。\\n\\n> **当前接续（...据目录清理与卸载保留为显式人工步骤。\\n2. 生成容器镜像与三平台构建矩阵；macOS/Linux 无环境时只记录“待真实验收”。\\n3. 干净机器端到端演练：安装→启动→升级→回滚→备份恢复→卸载，全部留证据后才评估正式入口切换。\\n'"
+     }
+    ],
+    "reruns": [
+     {
+      "report": "temp/build/v2-full-219-serial.xml",
+      "report_sha256": "7b5278a29309892006e50cab03ab97dda95bf228c485ef6b49b86725ced82214",
+      "tests": 1,
+      "passed": 0,
+      "failed": 1,
+      "errors": 0,
+      "skipped": 0,
+      "duration_s": 0.542,
+      "source_head": "a8c0048f94dee9010381e60e12c2eb9f1d4fc2e7",
+      "returncode": 1
+     }
+    ]
    }
   ],
   "scope": [
@@ -3692,7 +3830,7 @@
    "Batch 213: strict 331 files (53 domain, 44 application, 221/222 adapters, 13 composition); MCP HTTP与SSE类型化，未知写入不重放",
    "Batch 214: strict 332 files (53 domain, 44 application, 222/222 adapters, 13 composition); MCP OAuth类型收官，V2四层合同范围332文件，真实验收仍待"
   ],
-  "next_full_checkpoint": 80,
+  "next_full_checkpoint": null,
   "full_checkpoints_frozen": [
    {
     "batch": 194,
@@ -3777,17 +3915,14 @@
     "strict_checkpoint": 214,
     "head": "5c5402c85e8e6c13c9c913551834f5c30bc36d38",
     "snapshot": "temp/build/v2-full-220-snapshot.json",
-    "state": "running"
+    "state": "harvested_interrupted",
+    "original_named_nodes": 4514,
+    "collected_nodes": 4686,
+    "supplemental_coverage_completed": true
    }
   ],
-  "full_checkpoints_pending": [
-   {
-    "checkpoint": 80,
-    "artifact_id": 220,
-    "source_head": "5c5402c85e8e6c13c9c913551834f5c30bc36d38"
-   }
-  ],
-  "next_full_checkpoint_to_harvest": 80,
+  "full_checkpoints_pending": [],
+  "next_full_checkpoint_to_harvest": null,
   "current_source_full_executed": false,
   "final_typing_checkpoint_harvested": true,
   "ui_connection_followup": {
@@ -3917,7 +4052,35 @@
    "source_head": "5c5402c85e8e6c13c9c913551834f5c30bc36d38",
    "checkpoint": 80,
    "artifact_id": 220,
-   "status": "running"
+   "status": "interrupted_internal_error"
+  },
+  "current_source_full_attempted": true,
+  "current_source_full_completed": false,
+  "supplemental_validation": {
+   "original_full_result_replaced": false,
+   "plan": "temp/build/v2-full-220-recovery-plan.json",
+   "raw_named_nodes": 4514,
+   "original_missing_nodes": 172,
+   "exact_failure_and_interrupted_replay": {
+    "report": "temp/build/v2-full-220-serial-corrected.xml",
+    "sha256": "53d94ffb58ade4b3478d8a2b4c991e74ea958d610e507976d238bca8acd918fc",
+    "tests": 3,
+    "passed": 3,
+    "failed_or_errors": 0,
+    "skipped": 0
+   },
+   "remaining_supplement": {
+    "report": "temp/build/v2-full-220-supplement.xml",
+    "sha256": "422b3503ea438d201276dab4c94412646d1936fccf1b2adbd577e922a4d2d27d",
+    "tests": 171,
+    "passed": 171,
+    "failed_or_errors": 0,
+    "skipped": 0
+   },
+   "unique_nodes_observed_passing_across_original_and_supplements": 4686,
+   "all_collected_nodes_observed_passing": true,
+   "source_unchanged": true,
+   "scope": "Coverage was completed in separate serial processes; this does not turn the interrupted original run into a full pass. Original serial exit4 from the synthetic pytest.internal node is retained. --tb=native only changes diagnostic rendering."
   }
  },
  "source_recovery": {
