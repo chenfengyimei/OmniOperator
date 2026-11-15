@@ -1,12 +1,18 @@
 """默认套件离线。真实设备/账号验收使用 scripts/manual_*，不由 pytest 偷跑。"""
 
+from __future__ import annotations
+
 import os
-from pathlib import Path
 import tempfile
+from pathlib import Path
+from typing import TYPE_CHECKING
 
 import pytest
-
 from offline_guard import deny, install
+
+if TYPE_CHECKING:
+    from crash_safe_scheduler import CrashSafeLoadFileScheduling
+    from xdist.remote import Producer
 
 _directory = tempfile.TemporaryDirectory(prefix="omni-offline-")
 _violations = Path(_directory.name) / "violations.txt"
@@ -33,9 +39,18 @@ def pytest_xdist_auto_num_workers(config):
     return min(4, os.cpu_count() or 1)
 
 
+@pytest.hookimpl(optionalhook=True)
+def pytest_xdist_make_scheduler(config: pytest.Config, log: Producer | None) -> CrashSafeLoadFileScheduling | None:
+    if config.getoption("dist") != "loadfile":
+        return None
+    from crash_safe_scheduler import CrashSafeLoadFileScheduling
+
+    return CrashSafeLoadFileScheduling(config, log)
+
+
 @pytest.fixture(autouse=True)
 def offline_model_gate(monkeypatch):
-    from omni.llm import gateway, embedding
+    from omni.llm import embedding, gateway
 
     transports = {"local": embedding._local_request, "api": embedding._api_request}
     before = _violations.stat().st_size if _violations.exists() else 0

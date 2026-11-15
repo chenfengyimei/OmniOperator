@@ -35,6 +35,8 @@ V2 文档维护的开发反馈先选 `test_v2_maintenance.py`、`test_v2_mainten
 
 `loadfile` 保证同一文件在同一个 worker 中执行，复用模块级 fixture。`ui_browser` 在一个 UI 测试文件内仅启动一次 Chromium；每个用例仍创建独立 BrowserContext、页面、localStorage、cookie 和临时数据库。该 fixture 不跨模块存活，防止同步 Playwright 的运行中事件循环干扰其他 asyncio 测试。需要特别启动参数或浏览器生命周期断言的测试保留自己的浏览器。
 
+`conftest.py` 仅为 `loadfile` 装配 `CrashSafeLoadFileScheduling`：worker 崩溃重排后清除队列中已完成的空工作单元，并为替换 worker 补足执行当前用例所需的下一项或正常关闭标记。全部未完成用例及文件归属保留，原崩溃仍记失败；其他显式调度模式继续使用 xdist 默认实现。回归见 `test_pytest_scheduler.py`，不调整 worker 数、断言、超时或离线闸门。
+
 Python 网络/模型闸门仍在每个 worker 启用；子进程继承离线环境。并行不改变测试数量、断言、业务超时或真实设备验收边界。
 
 ## 环境与 CI
