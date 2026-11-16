@@ -7127,6 +7127,18 @@
    "integration_full_run_pending": true,
    "validated_committed_scope_only": true,
    "historical_observations_closed": false
+  },
+  "media_queue_followup": {
+   "evidence": "docs/evidence/v2-media-queue.json",
+   "source_head": "c7adf42755b1a1714a88be0b3c709b7289680148",
+   "status": "scoped_passed_full_deferred",
+   "scoped_passed": 128,
+   "new_cases": 14,
+   "strict_files": 1,
+   "full_run_covers_current_source": false,
+   "integration_full_run_pending": true,
+   "validated_committed_scope_only": true,
+   "historical_observations_closed": false
   }
  },
  "source_recovery": {
