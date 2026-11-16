@@ -77,7 +77,7 @@ def capture(payload: bytes, format: str) -> SkillPackage:
         if format == "markdown":
             files = [("SKILL.md", payload)]
         else:
-            with zipfile.ZipFile(io.BytesIO(payload)) as archive:
+            with io.BytesIO(payload) as buffer, zipfile.ZipFile(buffer) as archive:
                 entries = archive.infolist()
                 if not 1 <= len(entries) <= MAX_FILES or sum(i.file_size for i in entries) > MAX_BYTES:
                     raise invalid()
@@ -141,13 +141,13 @@ class SkillPackages:
     async def archive(self, package: SkillPackage) -> bytes:
         def perform() -> bytes:
             package.validate()
-            output = io.BytesIO()
-            with zipfile.ZipFile(output, "w", compression=zipfile.ZIP_DEFLATED) as archive:
-                for name, content in package.files:
-                    entry = zipfile.ZipInfo(name, date_time=(1980, 1, 1, 0, 0, 0))
-                    entry.external_attr = (stat.S_IFREG | 0o600) << 16
-                    archive.writestr(entry, content, compress_type=zipfile.ZIP_DEFLATED)
-            return output.getvalue()
+            with io.BytesIO() as output:
+                with zipfile.ZipFile(output, "w", compression=zipfile.ZIP_DEFLATED) as archive:
+                    for name, content in package.files:
+                        entry = zipfile.ZipInfo(name, date_time=(1980, 1, 1, 0, 0, 0))
+                        entry.external_attr = (stat.S_IFREG | 0o600) << 16
+                        archive.writestr(entry, content, compress_type=zipfile.ZIP_DEFLATED)
+                return output.getvalue()
 
         return await self._execute(perform)
 
