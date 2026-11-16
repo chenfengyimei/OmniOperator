@@ -1,0 +1,543 @@
+{
+ "schema": 1,
+ "date": "2026-11-16",
+ "branch": "v2",
+ "whole_v2_complete": false,
+ "default_entrypoint": "v1",
+ "source": {
+  "head": "bcc52a15956617270781b241ea7c7b0e0ddab0d4",
+  "base": "665ef2ff84f661e986a240ddc7a67a8b147fbd7c",
+  "code_version": "3fc0e9b3f4bcf07bc1251ad7e76536612e513669d6a908c00c9be39eebe5a7e0",
+  "code_files": 1231,
+  "version_artifact": {
+   "path": "temp/build/v2-media-anchors-source-version.json",
+   "sha256": "d6a6f72afad3266c1d747763a4fda0357f92dafd6341cd5f11ec5e1e3e67fc61"
+  },
+  "planned": {
+   "agent/src/omni/adapters/workers/media.py": {
+    "sha256": "a1b64f0e48ea4d8b6e193cee8ea826f5f76c54c5c2243a9437392dfcb0c7211b",
+    "git_blob": "37546a4102ee59b016b1f7a6d8873b46b061e47a"
+   },
+   "agent/tests/test_v2_media_anchors.py": {
+    "sha256": "faf8b68010d850211a5648cf3fa84735def0dc592c3d89c2262a5ff5feeccada",
+    "git_blob": "8a2004e4d9535b978c5d3acba069d17dbee15680"
+   },
+   "docs/V2_MEDIA.md": {
+    "sha256": "9027c57929a8950b5163ce3856622ad3116cb5f798e9f634c29dfff548e1b371",
+    "git_blob": "222dc66c6e6f0f9136777de7ebb9747593563365"
+   },
+   "docs/TESTING.md": {
+    "sha256": "b91eadb5c466296315d4890eb3e332002bd1af540da610bdd95dd2cff849aba4",
+    "git_blob": "d61ef7ad69b445e0d917f61c7edfa19e6249cd2e"
+   },
+   "docs/index/MODULES.md": {
+    "sha256": "c5484f98b0660dbc6353e064a3e8c625d337de14fd19ea630bc88b074c154bd0",
+    "git_blob": "0c96aad75256e745e61c105f0bb7cc012200e5c5"
+   },
+   "docs/index/project.json": {
+    "sha256": "e76445bd2e21bcd6ce458bf198d5a9be6cf2407f51170d612f7dcb12c42536db",
+    "git_blob": "1fca95fb78dd7ca8d051b9bdc45355c531d486e0"
+   }
+  },
+  "candidate": "D:\\xm\\OmniOperator\\temp\\build\\media-anchors-index-precommit",
+  "parallel_working_bodies_preserved": true
+ },
+ "root_cause": "The nearest-frame search treated missing decoded timestamps as zero, and generation replaced them with the requested sampling target or zero. Nonfinite or out-of-range timestamps could reach conversion or produce generic failures rather than a precise unusable-anchor outcome.",
+ "changes": [
+  "Validate real decoded frame timestamps as finite numeric values within zero to 7200 seconds",
+  "Reject missing, boolean, nonnumeric, nonfinite and out-of-range timestamps with media_frame_timestamp_unusable; huge integer conversion does not leak OverflowError",
+  "Use the same validation in nearest-frame search and before image conversion for both metadata paths",
+  "Remove target-time and zero fallbacks while preserving true zero, exact duration boundary and nearest-frame selection",
+  "Keep known worker business failure reusable; no frame artifact or replay of the failed job"
+ ],
+ "proof": {
+  "changed_existing_functions": [
+   "_frame_at",
+   "_frames",
+   "_handle"
+  ],
+  "new_function": "_frame_time",
+  "all_existing_function_signatures_unchanged": true,
+  "handler_only_adds_anchor_error_mapping": true,
+  "frame_search_only_changes_decoded_time_validation": true,
+  "generation_only_changes_time_validation_and_removes_fallback": true,
+  "all_other_existing_functions_byte_identical": true,
+  "asr_audio_image_budgets_and_other_globals_unchanged_except_declared_limit_and_math_import": true,
+  "host_domain_transport_lifecycle_repository_database_files_byte_identical": [
+   "agent/src/omni/application/media.py",
+   "agent/src/omni/domain/media.py",
+   "agent/src/omni/adapters/media.py",
+   "agent/src/omni/composition/lifecycle.py",
+   "agent/src/omni/adapters/persistence/media_repository.py",
+   "agent/src/omni/adapters/persistence/database.py"
+  ],
+  "regressions_identical_between_clean_before_and_candidate": true,
+  "strict_files": 1
+ },
+ "regressions": {
+  "new_cases": 28,
+  "clean_before": {
+   "report": "temp/build/v2-media-anchors-clean-before.xml",
+   "report_sha256": "94f3e0491d1c810dd984c2449a86ee8852b29a5c7bb6ec539d90d282c0b707e7",
+   "raw_suites": [
+    {
+     "name": "pytest",
+     "errors": "0",
+     "failures": "23",
+     "skipped": "0",
+     "tests": "28",
+     "time": "7.792",
+     "timestamp": "2026-11-16T17:30:06.027587+08:00",
+     "hostname": "cy"
+    }
+   ],
+   "junit_testcase_records": 28,
+   "unique_test_nodes_reported": 28,
+   "failure_events": 23,
+   "error_events": 0,
+   "skipped": 0,
+   "unique_failed_or_errored_nodes": 23,
+   "unique_nodes_without_failure_or_error": 5,
+   "duplicate_nodes": {},
+   "failed_nodes": [
+    {
+     "nodeid": "agent/tests/test_v2_media_anchors.py::test_sampling_rejects_unusable_timestamp_without_decoding_another_frame[None]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: Decoded beyond the first unusable anchor"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_anchors.py::test_sampling_rejects_unusable_timestamp_without_decoding_another_frame[True]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "Failed: DID NOT RAISE ValueError"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_anchors.py::test_sampling_rejects_unusable_timestamp_without_decoding_another_frame[1]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "Failed: DID NOT RAISE ValueError"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_anchors.py::test_sampling_rejects_unusable_timestamp_without_decoding_another_frame[nan]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: Decoded beyond the first unusable anchor"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_anchors.py::test_sampling_rejects_unusable_timestamp_without_decoding_another_frame[inf]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "Failed: DID NOT RAISE ValueError"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_anchors.py::test_sampling_rejects_unusable_timestamp_without_decoding_another_frame[-inf]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: Decoded beyond the first unusable anchor"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_anchors.py::test_sampling_rejects_unusable_timestamp_without_decoding_another_frame[-0.001]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: Decoded beyond the first unusable anchor"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_anchors.py::test_sampling_rejects_unusable_timestamp_without_decoding_another_frame[7200.001]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "Failed: DID NOT RAISE ValueError"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_anchors.py::test_sampling_rejects_unusable_timestamp_without_decoding_another_frame[10000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "OverflowError: int too large to convert to float"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_anchors.py::test_generation_rejects_bad_anchor_before_conversion_and_closes_prior_images[None-False]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "Failed: DID NOT RAISE ValueError"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_anchors.py::test_generation_rejects_bad_anchor_before_conversion_and_closes_prior_images[None-True]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "Failed: DID NOT RAISE ValueError"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_anchors.py::test_generation_rejects_bad_anchor_before_conversion_and_closes_prior_images[nan-False]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: \n- cannot convert float NaN to integer\n+ frame_timestamp_unusable"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_anchors.py::test_generation_rejects_bad_anchor_before_conversion_and_closes_prior_images[nan-True]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: \n- cannot convert float NaN to integer\n+ frame_timestamp_unusable"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_anchors.py::test_generation_rejects_bad_anchor_before_conversion_and_closes_prior_images[inf-False]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "OverflowError: cannot convert float infinity to integer"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_anchors.py::test_generation_rejects_bad_anchor_before_conversion_and_closes_prior_images[inf-True]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "OverflowError: cannot convert float infinity to integer"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_anchors.py::test_generation_rejects_bad_anchor_before_conversion_and_closes_prior_images[-0.001-False]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "Failed: DID NOT RAISE ValueError"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_anchors.py::test_generation_rejects_bad_anchor_before_conversion_and_closes_prior_images[-0.001-True]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "Failed: DID NOT RAISE ValueError"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_anchors.py::test_generation_rejects_bad_anchor_before_conversion_and_closes_prior_images[7200.001-False]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "Failed: DID NOT RAISE ValueError"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_anchors.py::test_generation_rejects_bad_anchor_before_conversion_and_closes_prior_images[7200.001-True]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "Failed: DID NOT RAISE ValueError"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_anchors.py::test_worker_reports_missing_anchor_as_precise_business_failure[False]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "assert True is False"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_anchors.py::test_worker_reports_missing_anchor_as_precise_business_failure[True]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "assert True is False"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_anchors.py::test_real_stdio_missing_pts_is_not_replaced_by_sample_target_and_worker_stays_usable",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "Failed: DID NOT RAISE BusinessError"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_anchors.py::test_real_job_missing_pts_publishes_no_frame_artifact_and_explicit_new_job_succeeds",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: assert ('done' == 'failed'\n  \n  - failed\n  + done)"
+      }
+     ]
+    }
+   ]
+  },
+  "clean_before_metadata": {
+   "path": "temp/build/v2-media-anchors-clean-before.json",
+   "sha256": "c53ec74c5bd7283d3f2ebf938a969958e55d7609dce5ed228844e1fa928b7fde"
+  },
+  "clean_before_log": {
+   "path": "temp/build/v2-media-anchors-clean-before.log",
+   "sha256": "581bde9c7a0fe48df7dcc1df5e069ec2a1987b70d286861eaaeafeb0c9d21937"
+  },
+  "callers": {
+   "report": "temp/build/v2-media-anchors-callers.xml",
+   "report_sha256": "39c854f8727cc477139bed15a487aaa093aa777585b455f7afb01401c1188ee2",
+   "raw_suites": [
+    {
+     "name": "pytest",
+     "errors": "0",
+     "failures": "0",
+     "skipped": "0",
+     "tests": "198",
+     "time": "46.222",
+     "timestamp": "2026-11-16T17:32:19.633077+08:00",
+     "hostname": "cy"
+    }
+   ],
+   "junit_testcase_records": 198,
+   "unique_test_nodes_reported": 198,
+   "failure_events": 0,
+   "error_events": 0,
+   "skipped": 0,
+   "unique_failed_or_errored_nodes": 0,
+   "unique_nodes_without_failure_or_error": 198,
+   "duplicate_nodes": {},
+   "failed_nodes": []
+  },
+  "callers_log": {
+   "path": "temp/build/v2-media-anchors-callers.log",
+   "sha256": "6232b92a1c2794d6ccd6221b3f1a908a38e0d2e6d9589e7a8c2d09decf88168a"
+  },
+  "cli_summary": "198 passed in 46.51s",
+  "coverage": [
+   "Nearest-frame search stops on the first unusable timestamp before another decode; rejects missing/boolean/nonnumeric, nonfinite, negative, excess duration and huge integer values",
+   "True zero, exact two-hour boundary and nearest-frame choice remain valid controls",
+   "Metadata and streaming-fallback generation reject invalid timestamps before the next conversion, close earlier images and create no file",
+   "Both generation paths retain real zero and 7200-second anchors",
+   "Protocol exposes the precise media_frame_timestamp_unusable business error",
+   "Real stdio/PyAV path clears first-request PTS in an isolated worker, rejects target-time substitution and reuses the same owned process for a later real-anchor PNG",
+   "Real database first job fails without a frame artifact and clears staging; a new explicit job succeeds while the old terminal state stays failed"
+  ],
+  "total_unique_scoped_passed": 198
+ },
+ "scoped_validation": {
+  "scope": "Frame timestamp validation without fabricated anchors; generation budgets and resource retirement; ASR/audio, host output, transport protocol, HTTP, lifecycle and architecture callers",
+  "base": "665ef2ff84f661e986a240ddc7a67a8b147fbd7c",
+  "planned": {
+   "agent/src/omni/adapters/workers/media.py": {
+    "sha256": "a1b64f0e48ea4d8b6e193cee8ea826f5f76c54c5c2243a9437392dfcb0c7211b",
+    "git_blob": "37546a4102ee59b016b1f7a6d8873b46b061e47a"
+   },
+   "agent/tests/test_v2_media_anchors.py": {
+    "sha256": "faf8b68010d850211a5648cf3fa84735def0dc592c3d89c2262a5ff5feeccada",
+    "git_blob": "8a2004e4d9535b978c5d3acba069d17dbee15680"
+   },
+   "docs/V2_MEDIA.md": {
+    "sha256": "9027c57929a8950b5163ce3856622ad3116cb5f798e9f634c29dfff548e1b371",
+    "git_blob": "222dc66c6e6f0f9136777de7ebb9747593563365"
+   },
+   "docs/TESTING.md": {
+    "sha256": "b91eadb5c466296315d4890eb3e332002bd1af540da610bdd95dd2cff849aba4",
+    "git_blob": "d61ef7ad69b445e0d917f61c7edfa19e6249cd2e"
+   },
+   "docs/index/MODULES.md": {
+    "sha256": "c5484f98b0660dbc6353e064a3e8c625d337de14fd19ea630bc88b074c154bd0",
+    "git_blob": "0c96aad75256e745e61c105f0bb7cc012200e5c5"
+   },
+   "docs/index/project.json": {
+    "sha256": "e76445bd2e21bcd6ce458bf198d5a9be6cf2407f51170d612f7dcb12c42536db",
+    "git_blob": "1fca95fb78dd7ca8d051b9bdc45355c531d486e0"
+   }
+  },
+  "full_suite_run": false,
+  "gates": [
+   {
+    "command": [
+     "D:\\xm\\OmniOperator\\temp\\build\\checkpoint-interpreter-media-anchors\\Scripts\\python.exe",
+     "-m",
+     "ruff",
+     "check",
+     "agent/src/omni/adapters/workers/media.py",
+     "agent/tests/test_v2_media_anchors.py"
+    ],
+    "returncode": 0,
+    "duration_s": 0.219,
+    "stdout": "All checks passed!\n",
+    "stderr": ""
+   },
+   {
+    "command": [
+     "D:\\xm\\OmniOperator\\temp\\build\\checkpoint-interpreter-media-anchors\\Scripts\\python.exe",
+     "-m",
+     "ruff",
+     "format",
+     "--check",
+     "agent/src/omni/adapters/workers/media.py",
+     "agent/tests/test_v2_media_anchors.py"
+    ],
+    "returncode": 0,
+    "duration_s": 0.219,
+    "stdout": "2 files already formatted\n",
+    "stderr": ""
+   },
+   {
+    "command": [
+     "D:\\xm\\OmniOperator\\temp\\build\\checkpoint-interpreter-media-anchors\\Scripts\\python.exe",
+     "-m",
+     "pyright",
+     "--project",
+     "D:\\xm\\OmniOperator\\temp\\build\\media-anchors-index-precommit\\pyrightconfig.media-anchors.json",
+     "--outputjson"
+    ],
+    "returncode": 0,
+    "duration_s": 1.781,
+    "stdout": "{\n    \"version\": \"1.1.414\",\n    \"time\": \"1794821538902\",\n    \"generalDiagnostics\": [],\n    \"summary\": {\n        \"filesAnalyzed\": 1,\n        \"errorCount\": 0,\n        \"warningCount\": 0,\n        \"informationCount\": 0,\n        \"timeInSec\": 0.89\n    }\n}\n\n",
+    "stderr": ""
+   }
+  ],
+  "strict_summary": {
+   "filesAnalyzed": 1,
+   "errorCount": 0,
+   "warningCount": 0,
+   "informationCount": 0,
+   "timeInSec": 0.89
+  },
+  "callers": {
+   "command": [
+    "D:\\xm\\OmniOperator\\temp\\build\\checkpoint-interpreter-media-anchors\\Scripts\\python.exe",
+    "-m",
+    "pytest",
+    "-q",
+    "-n",
+    "0",
+    "agent/tests/test_v2_media_anchors.py",
+    "agent/tests/test_v2_media_frames.py",
+    "agent/tests/test_v2_media_worker.py",
+    "agent/tests/test_v2_media_audio.py",
+    "agent/tests/test_v2_media_output.py",
+    "agent/tests/test_v2_media_protocol.py",
+    "agent/tests/test_v2_media.py",
+    "agent/tests/test_v2_lifecycle.py",
+    "agent/tests/test_v2_architecture.py",
+    "agent/tests/test_v2_typecheck_scope.py",
+    "agent/tests/test_arch.py",
+    "--junitxml=D:\\xm\\OmniOperator\\temp\\build\\v2-media-anchors-callers.xml"
+   ],
+   "targets": [
+    "test_v2_media_anchors",
+    "test_v2_media_frames",
+    "test_v2_media_worker",
+    "test_v2_media_audio",
+    "test_v2_media_output",
+    "test_v2_media_protocol",
+    "test_v2_media",
+    "test_v2_lifecycle",
+    "test_v2_architecture",
+    "test_v2_typecheck_scope",
+    "test_arch"
+   ],
+   "returncode": 0,
+   "duration_s": 47.672,
+   "cases": 198,
+   "failures": 0,
+   "errors": 0,
+   "skipped": 0
+  },
+  "source_unchanged": true
+ },
+ "scoped_validation_artifact": {
+  "path": "temp/build/v2-media-anchors-scoped.json",
+  "sha256": "270fe76afe5c1ade7759cddfb4d3302e2bcdeb7201dabb010f35cbd5edfb372e"
+ },
+ "ownership_artifact": {
+  "path": "temp/build/v2-media-anchors-source.json",
+  "sha256": "7f9229ac8cc16d9c3ad0f0155d22a4f05aacdd7d49e3b6d35d421825dc14b1f1"
+ },
+ "exploratory_reports": {
+  "working_after": {
+   "report": "temp/build/v2-media-anchors-working-after.xml",
+   "report_sha256": "947f3e556a737793c126b38388134f670a04d46b32f0e4059fd103d1c6a584c1",
+   "raw_suites": [
+    {
+     "name": "pytest",
+     "errors": "0",
+     "failures": "0",
+     "skipped": "0",
+     "tests": "28",
+     "time": "4.190",
+     "timestamp": "2026-11-16T17:28:22.085833+08:00",
+     "hostname": "cy"
+    }
+   ],
+   "junit_testcase_records": 28,
+   "unique_test_nodes_reported": 28,
+   "failure_events": 0,
+   "error_events": 0,
+   "skipped": 0,
+   "unique_failed_or_errored_nodes": 0,
+   "unique_nodes_without_failure_or_error": 28,
+   "duplicate_nodes": {},
+   "failed_nodes": []
+  },
+  "scope": "Working-tree probe may include concurrent WIP; the final identical tests on the clean baseline and immutable candidate define the delivered scope."
+ },
+ "full_run": {
+  "status": "deferred_per_owner",
+  "run_for_this_change": false,
+  "covers_this_source": false,
+  "reason": "Owner prioritizes implementation and scoped tests; full suite at multi-module integration",
+  "last_completed_source": "42a4b8b29d7c80daa4cb212d49dd40d07c189079",
+  "last_completed_summary": "4800 passed, 12 warnings in 3025.48s (0:50:25)",
+  "last_completed_report": {
+   "path": "temp/build/v2-full-226.xml",
+   "sha256": "ecab05764ea535042e7e4dde6ea0e0f6969030b4ae74056a1ce9fd20352549e4"
+  },
+  "last_full_does_not_cover_this_change": true
+ },
+ "not_verified": [
+  "Full integration suite for this new source",
+  "Timestamp correctness of arbitrary real media and decoder internals; controlled missing PTS is injected in an isolated worker",
+  "Total worker or native decoder memory bounds and in-process cleanup after native crashes",
+  "Actual model/device behavior",
+  "Historical system commit/native/UI causes",
+  "Concurrent uncommitted configuration/schema/UI bodies"
+ ]
+}
