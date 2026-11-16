@@ -253,7 +253,7 @@
    "id": "R7",
    "title": "稳定性验收",
    "status": "待开始",
-   "notes": "运行身份读取先等待实际发布，原用例两轮复现/修复两轮通过；报告MemoryError有界兜底及即时失败节点，9报告回归、96项不同当前专项通过。第81次全量：4 failed, 4666 passed, 12 warnings, 28 errors in 3028.18s (0:50:28)；JUnit 3 failure / 29 error，4696/4696个唯一节点。31个失败节点串行复跑全过，原始失败保留；实测系统提交额度触顶，报告兜底在真实MemoryError下保留原始异常并完成套件。12项观察仍开放，内存增长根因未定；跨平台、真实部署与72小时尚未整体验收。本机worker诊断接续：固定源码e731e079，11项新增回归及123项不同专项通过；第82次全量11-16已收割，22 failed, 4685 passed, 10 warnings, 1 error in 2764.82s (0:46:04)，23个失败节点串行复跑全过，原始结果保留；捕获0xc00000fd及PyAV编码调用时Python栈，提交余量476KiB。仅验证提交副本，冻结时其他会话未提交UI/迁移不在范围；退出/提交额度归属仍开放。合成媒体清理接续：固定源码59cd85f2，5个PyAV输出点的Python异常关闭已补齐；40项新增回归和固定副本183专项通过；第83次全量已收割，4747 passed, 6 warnings in 2703.00s (0:45:03)，原始结果保留。冻结时其他会话UI/迁移未纳入；系统提交额度与旧原生退出观察继续开放。",
+   "notes": "运行身份读取先等待实际发布，原用例两轮复现/修复两轮通过；报告MemoryError有界兜底及即时失败节点，9报告回归、96项不同当前专项通过。第81次全量：4 failed, 4666 passed, 12 warnings, 28 errors in 3028.18s (0:50:28)；JUnit 3 failure / 29 error，4696/4696个唯一节点。31个失败节点串行复跑全过，原始失败保留；实测系统提交额度触顶，报告兜底在真实MemoryError下保留原始异常并完成套件。12项观察仍开放，内存增长根因未定；跨平台、真实部署与72小时尚未整体验收。本机worker诊断接续：固定源码e731e079，11项新增回归及123项不同专项通过；第82次全量11-16已收割，22 failed, 4685 passed, 10 warnings, 1 error in 2764.82s (0:46:04)，23个失败节点串行复跑全过，原始结果保留；捕获0xc00000fd及PyAV编码调用时Python栈，提交余量476KiB。仅验证提交副本，冻结时其他会话未提交UI/迁移不在范围；退出/提交额度归属仍开放。合成媒体清理接续：固定源码59cd85f2，5个PyAV输出点的Python异常关闭已补齐；40项新增回归和固定副本183专项通过；第83次全量已收割，4747 passed, 6 warnings in 2703.00s (0:45:03)，原始结果保留。冻结时其他会话UI/迁移未纳入；系统提交额度与旧原生退出观察继续开放。ASR逐段预算接续：固定源码9a7bd4c1，ASR两条迭代路径超限即停、关闭迭代器且不写部分产物；19项新增回归、固定副本81专项和两条打包链通过，strict332零错误。第84次全量已收割，1 failed, 4765 passed, 12 warnings in 2728.03s (0:45:28)，原始结果保留。本次投递归档列表1项原始失败继续开放，精确串行与两次旧源码对照独立留档。排除并发UI/迁移；不据此关闭整机提交额度或旧原生退出观察。",
    "evidence": [
     "docs/evidence/v2-offline.json",
     "docs/evidence/v2-objects.json",
@@ -289,7 +289,8 @@
     "docs/evidence/v2-portal-authorization.json",
     "docs/evidence/v2-runtime-reporting.json",
     "docs/evidence/v2-worker-diagnostics.json",
-    "docs/evidence/v2-av-fixture-cleanup.json"
+    "docs/evidence/v2-av-fixture-cleanup.json",
+    "docs/evidence/v2-asr-bounds.json"
    ]
   }
  ],
@@ -515,7 +516,102 @@
      "temp/build/v2-full-216-serial.xml",
      "temp/build/v2-full-216-prior-control-1.xml",
      "temp/build/v2-full-216-prior-control-2.xml"
-    ]
+    ],
+    "asr_output_bounds_ui_observation": {
+     "checkpoint": 84,
+     "artifact_id": 224,
+     "evidence": "docs/evidence/v2-asr-bounds.json",
+     "source_head": "9a7bd4c1806d5c5444e98672fdee00d4ebe7624a",
+     "state": "open",
+     "classification": "delivery_archive_list_count_cause_unconfirmed",
+     "detail": "Full224 dark-1440 delivery UI expected1 remaining option after archive;2 remained through the original5000ms assertion. Exact serial replay and two earlier committed-source controls are recorded separately; UI/test blobs are equal across the controls. The same archive-count symptom is documented in earlier project evidence, but no shared cause or causal attribution to the ASR worker repair is established.",
+     "raw_failed_nodes": [
+      "agent/tests/test_v2_ui.py::test_delivery_draft_approval_preview_receipt_and_archive[dark-1440-delivery]"
+     ],
+     "current_reruns": [
+      {
+       "report": "temp/build/v2-full-224-serial.xml",
+       "report_sha256": "ce2ccde6c15b0ec31c4acd6df0558e284c9ef4c90926f35dce0b0638b5e6132d",
+       "raw_suites": [
+        {
+         "name": "pytest",
+         "errors": "0",
+         "failures": "0",
+         "skipped": "0",
+         "tests": "1",
+         "time": "14.952",
+         "timestamp": "2026-11-16T09:43:04.743933+08:00",
+         "hostname": "cy"
+        }
+       ],
+       "junit_testcase_records": 1,
+       "unique_test_nodes_reported": 1,
+       "failure_events": 0,
+       "error_events": 0,
+       "skipped": 0,
+       "unique_failed_or_errored_nodes": 0,
+       "unique_nodes_without_failure_or_error": 1,
+       "duplicate_nodes": {},
+       "failed_nodes": [],
+       "returncode": 0
+      }
+     ],
+     "baseline_source_head": "59cd85f29b634aa09bbdc9c0bb7ff829365953a4",
+     "baseline_reports": [
+      {
+       "report": "temp/build/v2-asr-budget-baseline-delivery-1.xml",
+       "report_sha256": "62e91c168430859c6925bd4fb6c1512c40d1e748ca647d19e067801fe00b6758",
+       "raw_suites": [
+        {
+         "name": "pytest",
+         "errors": "0",
+         "failures": "0",
+         "skipped": "0",
+         "tests": "1",
+         "time": "15.118",
+         "timestamp": "2026-11-16T09:43:49.134617+08:00",
+         "hostname": "cy"
+        }
+       ],
+       "junit_testcase_records": 1,
+       "unique_test_nodes_reported": 1,
+       "failure_events": 0,
+       "error_events": 0,
+       "skipped": 0,
+       "unique_failed_or_errored_nodes": 0,
+       "unique_nodes_without_failure_or_error": 1,
+       "duplicate_nodes": {},
+       "failed_nodes": []
+      },
+      {
+       "report": "temp/build/v2-asr-budget-baseline-delivery-2.xml",
+       "report_sha256": "32019c395893b9d4088c9c664c7bb767214b0fa7153ea32f77b4f89ece8cdd6e",
+       "raw_suites": [
+        {
+         "name": "pytest",
+         "errors": "0",
+         "failures": "0",
+         "skipped": "0",
+         "tests": "1",
+         "time": "13.672",
+         "timestamp": "2026-11-16T09:44:05.694577+08:00",
+         "hostname": "cy"
+        }
+       ],
+       "junit_testcase_records": 1,
+       "unique_test_nodes_reported": 1,
+       "failure_events": 0,
+       "error_events": 0,
+       "skipped": 0,
+       "unique_failed_or_errored_nodes": 0,
+       "unique_nodes_without_failure_or_error": 1,
+       "duplicate_nodes": {},
+       "failed_nodes": []
+      }
+     ],
+     "raw_failure_preserved": true,
+     "cause_confirmed": false
+    }
    },
    {
     "id": "test.v1_fact_delete_dialog_click_timeout",
@@ -935,6 +1031,17 @@
    "validated_committed_scope_only": true,
    "concurrent_uncommitted_work_validated": false,
    "fixture_cleanup_repaired": true,
+   "global_commit_or_native_exit_root_cause_resolved": false
+  },
+  "asr_output_bounds_followup": {
+   "evidence": "docs/evidence/v2-asr-bounds.json",
+   "source_head": "9a7bd4c1806d5c5444e98672fdee00d4ebe7624a",
+   "checkpoint": 84,
+   "artifact_id": 224,
+   "status": "completed_with_failures_preserved",
+   "validated_committed_scope_only": true,
+   "concurrent_uncommitted_work_validated": false,
+   "incremental_asr_output_bounds_repaired": true,
    "global_commit_or_native_exit_root_cause_resolved": false
   }
  },
