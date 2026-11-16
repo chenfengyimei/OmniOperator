@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "61825ba3dff9dcce7c78a454455d0b98bae257a74e5d48d7b53bd78cf55b7c36",
+  "source_sha256": "7684e69aa3820b0eaedb53983624f1174f6238c0fbc2c37d55821f5d6c5c035e",
   "modules": [
     {
       "id": "v2-domain",
@@ -404,7 +404,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 54460,
+      "lines": 54466,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -34245,12 +34245,12 @@
       "path": "agent/src/omni/adapters/workers/media.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.workers.media",
-      "lines": 367,
+      "lines": 373,
       "imports": [],
       "symbols": [
         {
           "name": "_fail",
-          "line": 38,
+          "line": 39,
           "kind": "function",
           "parameters": [
             "operation_id",
@@ -34265,7 +34265,7 @@
         },
         {
           "name": "_ok",
-          "line": 48,
+          "line": 49,
           "kind": "function",
           "parameters": [
             "operation_id",
@@ -34278,7 +34278,7 @@
         },
         {
           "name": "_bounded_path",
-          "line": 57,
+          "line": 58,
           "kind": "function",
           "parameters": [
             "value"
@@ -34289,14 +34289,14 @@
         },
         {
           "name": "_probe",
-          "line": 66,
+          "line": 67,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "_decode_audio_16k_mono",
-          "line": 94,
+          "line": 95,
           "kind": "function",
           "parameters": [
             "path"
@@ -34306,8 +34306,19 @@
           }
         },
         {
+          "name": "_transcript_rows",
+          "line": 121,
+          "kind": "function",
+          "parameters": [
+            "segments"
+          ],
+          "annotations": {
+            "segments": "Iterable[object]"
+          }
+        },
+        {
           "name": "_transcribe",
-          "line": 120,
+          "line": 148,
           "kind": "function",
           "parameters": [
             "request"
@@ -34318,7 +34329,7 @@
         },
         {
           "name": "_format_time",
-          "line": 192,
+          "line": 198,
           "kind": "function",
           "parameters": [
             "seconds"
@@ -34329,7 +34340,7 @@
         },
         {
           "name": "_target_times",
-          "line": 197,
+          "line": 203,
           "kind": "function",
           "parameters": [
             "duration_s",
@@ -34342,7 +34353,7 @@
         },
         {
           "name": "_frame_at",
-          "line": 206,
+          "line": 212,
           "kind": "function",
           "parameters": [
             "container",
@@ -34357,7 +34368,7 @@
         },
         {
           "name": "_frames",
-          "line": 221,
+          "line": 227,
           "kind": "function",
           "parameters": [
             "request"
@@ -34368,7 +34379,7 @@
         },
         {
           "name": "_asr_model_missing",
-          "line": 290,
+          "line": 296,
           "kind": "function",
           "parameters": [
             "exc"
@@ -34379,7 +34390,7 @@
         },
         {
           "name": "_handle",
-          "line": 306,
+          "line": 312,
           "kind": "function",
           "parameters": [
             "line"
@@ -34390,7 +34401,7 @@
         },
         {
           "name": "main",
-          "line": 348,
+          "line": 354,
           "kind": "function",
           "parameters": [],
           "annotations": {}

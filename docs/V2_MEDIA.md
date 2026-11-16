@@ -37,6 +37,7 @@ Bilibili 视频读取（复用 bilibili_read_authorized 凭据/配置/修订授�
 - `python -m omni.adapters.workers.media`，一行 JSON 请求/一行 JSON 响应，单请求串行；`MediaProcessor`（adapters/media.py）经 `OwnedProcess` 持有，首请求才拉起，取消/断连/崩溃即终止进程，下一请求重新拉起。
 - 重型库（av/faster-whisper/PIL/numpy）懒加载；缺组件返回 `media_component_missing`（工作台明确提示安装 `asr` extra），不静默降级、不隐式安装。
 - ASR 只从本地离线缓存加载模型（`HF_HUB_OFFLINE=1`）；模型缺失返回 `media_asr_model_missing`。
+- ASR 收集每个非空段时立即检查4000段/24000字符上限，超限即停止读取并返回 `media_transcript_unusable`，不写部分产物，也不触发无VAD重试；仅空结果保留原无VAD回退。支持 `close()` 的转写迭代器在正常或异常退出时显式关闭，关闭失败继续暴露。该边界限制已收集转写，不证明模型内部或音频解码内存的上界。
 - 超时：probe 20s、抽帧 180s、转写 900s；超时归类 `unknown`（in-flight 请求随进程销毁，结果不可知）。
 
 ## 5. 服务与生命周期（application/media.py）

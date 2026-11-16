@@ -15,6 +15,7 @@ import json
 import re
 import sys
 import uuid
+from collections.abc import Iterable
 from importlib import import_module
 from pathlib import Path
 from typing import Any, cast
@@ -117,6 +118,33 @@ def _decode_audio_16k_mono(path: Path) -> Any:
     return samples.astype(np.float32) / 32768.0
 
 
+def _transcript_rows(segments: Iterable[object]) -> list[list[float | str]]:
+    """Reject excess output before retaining it and release an owned ASR generator."""
+    rows: list[list[float | str]] = []
+    total_chars = 0
+    try:
+        for seg in segments:
+            text = str(getattr(seg, "text", "") or "").strip()
+            if not text:
+                continue
+            total_chars += len(text)
+            if len(rows) >= MAX_SEGMENTS or total_chars > MAX_TRANSCRIPT_CHARS:
+                raise ValueError("transcript_unusable")
+            rows.append(
+                [
+                    float(getattr(seg, "start", 0.0) or 0.0),
+                    float(getattr(seg, "end", 0.0) or 0.0),
+                    text,
+                ]
+            )
+    finally:
+        # faster-whisper yields lazily; exhaustion is no longer guaranteed on failure.
+        close = getattr(segments, "close", None)
+        if callable(close):
+            close()
+    return rows
+
+
 def _transcribe(request: Payload) -> Payload:
     faster_whisper = import_module("faster_whisper")
 
@@ -144,33 +172,11 @@ def _transcribe(request: Payload) -> Payload:
     )
     audio_array = _decode_audio_16k_mono(audio)
     segments_iter, info = model.transcribe(audio_array, vad_filter=True, beam_size=5)
-    rows: list[list[float | str]] = []
-    for seg in segments_iter:
-        text = str(getattr(seg, "text", "") or "").strip()
-        if not text:
-            continue
-        rows.append(
-            [
-                float(getattr(seg, "start", 0.0) or 0.0),
-                float(getattr(seg, "end", 0.0) or 0.0),
-                text,
-            ]
-        )
+    rows = _transcript_rows(segments_iter)
     if not rows:
         segments_iter, info = model.transcribe(audio_array, vad_filter=False, beam_size=5)
-        rows = []
-        for seg in segments_iter:
-            text = str(getattr(seg, "text", "") or "").strip()
-            if not text:
-                continue
-            rows.append(
-                [
-                    float(getattr(seg, "start", 0.0) or 0.0),
-                    float(getattr(seg, "end", 0.0) or 0.0),
-                    text,
-                ]
-            )
-    if not rows or len(rows) > MAX_SEGMENTS or sum(len(cast(str, r[2])) for r in rows) > MAX_TRANSCRIPT_CHARS:
+        rows = _transcript_rows(segments_iter)
+    if not rows:
         raise ValueError("transcript_unusable")
     payload = {
         "version": 1,
