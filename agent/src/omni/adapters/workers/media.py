@@ -28,6 +28,7 @@ MAX_FRAME = 8 * 1024 * 1024
 MAX_SEGMENTS = 4000
 MAX_TRANSCRIPT_CHARS = 24000
 MAX_AUDIO_SAMPLES = 7200 * 16000
+MAX_ASR_SECONDS = 7200
 WINDOW_SECONDS = 60
 MAX_FRAMES = 12
 MIN_FRAME_WIDTH = 320
@@ -135,10 +136,24 @@ def _decode_audio_16k_mono(path: Path) -> Any:
     return samples
 
 
+def _asr_time(value: object) -> float:
+    """Keep real numeric times; absent or textual values cannot supply an anchor."""
+    if value is None or isinstance(value, (bool, str, bytes, bytearray)):
+        raise ValueError("transcript_unusable")
+    try:
+        timestamp = float(cast(Any, value))
+    except OverflowError as exc:
+        raise ValueError("transcript_unusable") from exc
+    if not math.isfinite(timestamp) or not 0 <= timestamp <= MAX_ASR_SECONDS:
+        raise ValueError("transcript_unusable")
+    return timestamp
+
+
 def _transcript_rows(segments: Iterable[object]) -> list[list[float | str]]:
     """Reject excess output before retaining it and release an owned ASR generator."""
     rows: list[list[float | str]] = []
     total_chars = 0
+    previous_end = 0.0
     try:
         for seg in segments:
             text = str(getattr(seg, "text", "") or "").strip()
@@ -147,13 +162,12 @@ def _transcript_rows(segments: Iterable[object]) -> list[list[float | str]]:
             total_chars += len(text)
             if len(rows) >= MAX_SEGMENTS or total_chars > MAX_TRANSCRIPT_CHARS:
                 raise ValueError("transcript_unusable")
-            rows.append(
-                [
-                    float(getattr(seg, "start", 0.0) or 0.0),
-                    float(getattr(seg, "end", 0.0) or 0.0),
-                    text,
-                ]
-            )
+            start = _asr_time(getattr(seg, "start", None))
+            end = _asr_time(getattr(seg, "end", None))
+            if start > end or start < previous_end - 0.001:
+                raise ValueError("transcript_unusable")
+            previous_end = end
+            rows.append([start, end, text])
     finally:
         # faster-whisper yields lazily; exhaustion is no longer guaranteed on failure.
         close = getattr(segments, "close", None)
