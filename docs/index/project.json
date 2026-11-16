@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "4e170d4ff41bc77302e828297f8b9036bf8f7890454a0d1f1d9565b3d7e6d6f2",
+  "source_sha256": "890fa177c74a48daa4abd33de38c8789981891549144b44069b286baf59c7cc4",
   "modules": [
     {
       "id": "v2-domain",
@@ -404,7 +404,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 54684,
+      "lines": 54749,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -2584,7 +2584,7 @@
       "path": "agent/src/omni/adapters/bilibili.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.bilibili",
-      "lines": 554,
+      "lines": 619,
       "imports": [
         "omni.adapters.diagnostics",
         "omni.adapters.workers.client",
@@ -2595,13 +2595,26 @@
       ],
       "symbols": [
         {
-          "name": "BilibiliGateway",
+          "name": "_download_lengths",
           "line": 26,
+          "kind": "function",
+          "parameters": [
+            "response",
+            "offset"
+          ],
+          "annotations": {
+            "response": "httpx.Response",
+            "offset": "int"
+          }
+        },
+        {
+          "name": "BilibiliGateway",
+          "line": 57,
           "kind": "class"
         },
         {
           "name": "BilibiliGateway.__init__",
-          "line": 29,
+          "line": 60,
           "kind": "function",
           "parameters": [
             "self",
@@ -2621,7 +2634,7 @@
         },
         {
           "name": "BilibiliGateway.account_key",
-          "line": 45,
+          "line": 76,
           "kind": "function",
           "parameters": [
             "self",
@@ -2633,7 +2646,7 @@
         },
         {
           "name": "BilibiliGateway._cookies",
-          "line": 48,
+          "line": 79,
           "kind": "function",
           "parameters": [
             "self",
@@ -2645,7 +2658,7 @@
         },
         {
           "name": "BilibiliGateway._client",
-          "line": 80,
+          "line": 111,
           "kind": "function",
           "parameters": [
             "self",
@@ -2657,7 +2670,7 @@
         },
         {
           "name": "BilibiliGateway._get",
-          "line": 93,
+          "line": 124,
           "kind": "function",
           "parameters": [
             "client",
@@ -2672,7 +2685,7 @@
         },
         {
           "name": "BilibiliGateway._login_nav",
-          "line": 123,
+          "line": 154,
           "kind": "function",
           "parameters": [
             "self",
@@ -2686,7 +2699,7 @@
         },
         {
           "name": "BilibiliGateway._login",
-          "line": 129,
+          "line": 160,
           "kind": "function",
           "parameters": [
             "self",
@@ -2700,7 +2713,7 @@
         },
         {
           "name": "BilibiliGateway._subtitle",
-          "line": 133,
+          "line": 164,
           "kind": "function",
           "parameters": [
             "self",
@@ -2716,7 +2729,7 @@
         },
         {
           "name": "BilibiliGateway._streams",
-          "line": 173,
+          "line": 204,
           "kind": "function",
           "parameters": [
             "self",
@@ -2730,7 +2743,7 @@
         },
         {
           "name": "BilibiliGateway.read",
-          "line": 235,
+          "line": 266,
           "kind": "function",
           "parameters": [
             "self",
@@ -2748,7 +2761,7 @@
         },
         {
           "name": "BilibiliGateway.download",
-          "line": 335,
+          "line": 366,
           "kind": "function",
           "parameters": [
             "self",
@@ -2770,7 +2783,7 @@
         },
         {
           "name": "BilibiliGateway.send",
-          "line": 428,
+          "line": 493,
           "kind": "function",
           "parameters": [
             "self",
@@ -2782,7 +2795,7 @@
         },
         {
           "name": "BilibiliGateway.close",
-          "line": 550,
+          "line": 615,
           "kind": "function",
           "parameters": [
             "self",

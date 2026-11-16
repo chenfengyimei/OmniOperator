@@ -23,6 +23,37 @@ from .workers.client import WorkerClient
 Payload = dict[str, object]
 
 
+def _download_lengths(response: httpx.Response, offset: int) -> tuple[int | None, int | None]:
+    """Validate one identity-encoded full response or contiguous single byte range."""
+    invalid = BusinessError("media_download_failed", "Media response range or length is invalid", status=502)
+    if response.headers.get("content-encoding", "identity").strip().lower() != "identity":
+        raise invalid
+    raw_length = response.headers.get("content-length")
+    length = None
+    if raw_length is not None:
+        if not re.fullmatch(r"[0-9]{1,20}", raw_length):
+            raise invalid
+        length = int(raw_length)
+    if response.status_code == 200:
+        return length, length
+    if (
+        response.status_code != 206
+        or response.headers.get("content-type", "").split(";")[0].strip().lower() == "multipart/byteranges"
+    ):
+        raise invalid
+    match = re.fullmatch(
+        r"bytes ([0-9]{1,20})-([0-9]{1,20})/([0-9]{1,20})",
+        response.headers.get("content-range", "").strip(),
+        flags=re.IGNORECASE,
+    )
+    if match is None:
+        raise invalid
+    start, end, total = map(int, match.groups())
+    if start != offset or end < start or end >= total or (length is not None and length != end - start + 1):
+        raise invalid
+    return end - start + 1, total
+
+
 class BilibiliGateway:
     identity = ADAPTER
 
@@ -356,10 +387,12 @@ class BilibiliGateway:
         owner = asyncio.current_task()
         assert owner is not None
         self._reads.add(owner)
-        destination = Path(destination)
-        destination.parent.mkdir(parents=True, exist_ok=True)
         last_error: Exception | None = None
+        total_size: int | None = None
+        validator: str | None = None
         try:
+            destination = Path(destination)
+            destination.parent.mkdir(parents=True, exist_ok=True)
             async with self._slots, asyncio.timeout(budget_s):
                 checked = stream_url(url)
                 value = connection(cast(Payload, configuration))
@@ -374,38 +407,70 @@ class BilibiliGateway:
                     headers={
                         "User-Agent": "Mozilla/5.0 OmniOperator/2",
                         "Referer": "https://www.bilibili.com/",
+                        "Accept-Encoding": "identity",
                     },
                     limits=httpx.Limits(max_connections=2, max_keepalive_connections=0),
                 ) as client:
                     for _attempt in range(3):
                         try:
                             have = destination.stat().st_size if destination.exists() else 0
+                            if have > max_bytes:
+                                raise BusinessError(
+                                    "media_download_too_large", "Media partial exceeds its size bound", status=413
+                                )
                             headers = {"Range": f"bytes={have}-"} if have else {}
+                            if have and validator is not None:
+                                headers["If-Range"] = validator
                             if before_dispatch is not None:
                                 await before_dispatch()
                             async with client.stream("GET", checked, headers=headers) as response:
                                 response.raise_for_status()
                                 resumed = response.status_code == 206
-                                if not resumed and have:
-                                    have = 0
-                                    destination.unlink(missing_ok=True)
-                                declared = int(response.headers.get("content-length") or 0)
-                                if declared and have + declared > max_bytes:
+                                expected, total = _download_lengths(response, have if resumed else 0)
+                                if resumed and (
+                                    (total_size is not None and total != total_size)
+                                    or (validator is not None and response.headers.get("etag") != validator)
+                                ):
+                                    raise BusinessError(
+                                        "media_download_failed",
+                                        "Media representation changed during resume",
+                                        status=502,
+                                    )
+                                if total is not None and total > max_bytes:
                                     raise BusinessError(
                                         "media_download_too_large",
                                         "Media stream exceeds its declared size bound",
                                         status=413,
                                     )
+                                if not resumed:
+                                    have = 0
+                                    validator = None
+                                if validator is None:
+                                    tag = response.headers.get("etag", "").strip()
+                                    validator = tag if re.fullmatch(r'"[\x21\x23-\x7e\x80-\xff]*"', tag) else None
+                                total_size = total
+                                received = 0
                                 with destination.open("ab" if resumed else "wb") as handle:
                                     async for chunk in response.aiter_bytes(1 << 20):
-                                        handle.write(chunk)
-                                        have += len(chunk)
-                                        if have > max_bytes:
+                                        if have + len(chunk) > max_bytes:
                                             raise BusinessError(
                                                 "media_download_too_large",
                                                 "Media stream exceeds its size bound",
                                                 status=413,
                                             )
+                                        if expected is not None and received + len(chunk) > expected:
+                                            raise BusinessError(
+                                                "media_download_failed",
+                                                "Media response exceeds its declared length",
+                                                status=502,
+                                            )
+                                        handle.write(chunk)
+                                        have += len(chunk)
+                                        received += len(chunk)
+                                if expected is not None and received != expected:
+                                    raise httpx.RemoteProtocolError("Incomplete media response")
+                            if total_size is not None and have < total_size:
+                                continue
                             if not destination.exists() or destination.stat().st_size == 0:
                                 raise BusinessError(
                                     "media_download_failed", "Media download produced an empty file", status=502
