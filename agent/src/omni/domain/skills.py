@@ -96,6 +96,11 @@ def document(metadata: object, body: str) -> dict[str, object]:
         or any(len(re.findall(r"(?m)^## " + re.escape(section) + r"\s*$", body)) != 1 for section in SECTIONS)
     ):
         raise invalid()
+    try:
+        for text in (description, body, cast(str, fields.get("version", ""))):
+            text.encode("utf-8")
+    except UnicodeError as exc:
+        raise invalid() from exc
     return {"name": name, "description": description.strip(), **{p: p in platforms for p in PLATFORMS}}
 
 

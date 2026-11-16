@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "41ac6c179c2efb79aeaff5863c51b1ac22e611fb8d75c5d521783253f223e3fe",
+  "source_sha256": "de48b5273b2f12b7af65ec8044a91228c6111decf76da1d13b1cba61cdda459a",
   "modules": [
     {
       "id": "v2-domain",
@@ -72,7 +72,7 @@
         "agent/src/omni/domain/terminal_review.py",
         "agent/src/omni/domain/terminals.py"
       ],
-      "lines": 9669,
+      "lines": 9674,
       "dependencies": []
     },
     {
@@ -70195,7 +70195,7 @@
       "path": "agent/src/omni/domain/skills.py",
       "module": "v2-domain",
       "python_module": "omni.domain.skills",
-      "lines": 246,
+      "lines": 251,
       "imports": [
         "omni.domain.contracts"
       ],
@@ -70248,7 +70248,7 @@
         },
         {
           "name": "patch_section",
-          "line": 102,
+          "line": 107,
           "kind": "function",
           "parameters": [
             "content",
@@ -70263,7 +70263,7 @@
         },
         {
           "name": "manifest",
-          "line": 116,
+          "line": 121,
           "kind": "function",
           "parameters": [
             "files"
@@ -70274,12 +70274,12 @@
         },
         {
           "name": "SkillPackage",
-          "line": 128,
+          "line": 133,
           "kind": "class"
         },
         {
           "name": "SkillPackage.validate",
-          "line": 132,
+          "line": 137,
           "kind": "function",
           "parameters": [
             "self"
@@ -70288,7 +70288,7 @@
         },
         {
           "name": "_spec",
-          "line": 152,
+          "line": 157,
           "kind": "function",
           "parameters": [
             "name",
