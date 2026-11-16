@@ -175,16 +175,25 @@ class BilibiliGateway:
             "/x/player/wbi/v2",
             sign_wbi({"bvid": video["bvid"], "cid": video["cid"]}, img, sub, int(time.time())),
         )
-        subtitles: list[Payload] = cast(
-            list[Payload], cast(Payload, player.get("subtitle") or {}).get("subtitles") or []
-        )
-        if not isinstance(cast(object, subtitles), list) or len(subtitles) > 32:
+        subtitle = player.get("subtitle")
+        if subtitle is not None and not isinstance(subtitle, dict):
+            raise BusinessError("bilibili_response_invalid", "Subtitle list changed format", status=502)
+        items = cast(Payload, subtitle if subtitle is not None else {}).get("subtitles")
+        if items is not None and not isinstance(items, list):
+            raise BusinessError("bilibili_response_invalid", "Subtitle list changed format", status=502)
+        subtitles = cast(list[Payload], items if items is not None else [])
+        if len(subtitles) > 32 or any(
+            not isinstance(cast(object, item), dict) or not isinstance(item.get("lan", ""), str) for item in subtitles
+        ):
             raise BusinessError("bilibili_response_invalid", "Subtitle list changed format", status=502)
         picked = next(
-            (s for s in subtitles if str(s.get("lan", "")).startswith("zh")), subtitles[0] if subtitles else None
+            (s for s in subtitles if cast(str, s.get("lan", "")).startswith("zh")),
+            subtitles[0] if subtitles else None,
         )
-        if not isinstance(picked, dict) or not picked.get("subtitle_url"):
+        if picked is None:
             return {"language": "", "text": ""}
+        if not isinstance(picked.get("subtitle_url"), str) or not picked["subtitle_url"]:
+            raise BusinessError("bilibili_response_invalid", "Subtitle URL field is missing or invalid", status=502)
         url = subtitle_url(picked.get("subtitle_url"))
         async with client.stream("GET", url) as response:
             if response.status_code != 200 or "json" not in response.headers.get("content-type", "").lower():
@@ -201,10 +210,18 @@ class BilibiliGateway:
         lines = cast(list[Payload] | None, cast(Payload, body).get("body") if isinstance(body, dict) else None)
         if not isinstance(lines, list) or len(lines) > 20000:
             raise BusinessError("bilibili_response_invalid", "Subtitle body changed format", status=502)
-        text = "\n".join(str(line.get("content", "")) for line in lines if isinstance(cast(object, line), dict)).strip()
+        if any(not isinstance(cast(object, line), dict) or not isinstance(line.get("content"), str) for line in lines):
+            raise BusinessError("bilibili_response_invalid", "Subtitle body changed format", status=502)
+        text = "\n".join(cast(str, line["content"]) for line in lines).strip()
         if not text or len(text) > 60000:
             raise BusinessError("bilibili_response_invalid", "Subtitle body is empty or exceeds its bound", status=502)
-        return {"language": str(picked.get("lan", ""))[:16], "text": text[:60000]}
+        language = cast(str, picked.get("lan", ""))[:16]
+        try:
+            text.encode("utf-8")
+            language.encode("utf-8")
+        except UnicodeError as exc:
+            raise BusinessError("bilibili_response_invalid", "Subtitle text is not valid Unicode", status=502) from exc
+        return {"language": language, "text": text}
 
     async def _streams(self, client: Any, video: Payload) -> Payload:
         """Lowest-bitrate audio and decodable video direct URLs with bounded sizes."""
