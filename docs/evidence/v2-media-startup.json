@@ -1,0 +1,384 @@
+{
+ "schema": 1,
+ "date": "2026-11-16",
+ "branch": "v2",
+ "whole_v2_complete": false,
+ "default_entrypoint": "v1",
+ "source": {
+  "head": "f08cba0df7a9fc27bb5d8042f8e80d9e93815508",
+  "base": "ac91c26d694ef226509457ae7a02cdfbe3c94f36",
+  "planned": {
+   "agent/src/omni/adapters/media.py": {
+    "sha256": "3e6b798b732a4ba55d282799de7acc968d1e7db5919e5616e0965a43697568f1",
+    "git_blob": "4bc601e2dc26ab7f6f0c37ababd9fe042576a630"
+   },
+   "agent/tests/test_v2_media_startup.py": {
+    "sha256": "f62d95e1b461865fe7f723f54b18ea1d89c0a7554d65b880609fe0db4fddba6c",
+    "git_blob": "f49201eb748eddd552fadf2513fd6cbbe587ec10"
+   },
+   "docs/V2_MEDIA.md": {
+    "sha256": "6178f82d2d6aedb1000f9231bedd2b240ae73f515a6c89649f32c6c77314baaa",
+    "git_blob": "0de0f0cd5bd6c31a3be9a8b49b0891527b76edc2"
+   },
+   "docs/TESTING.md": {
+    "sha256": "afd4c0d8929f0b6e55424ad31eb63b3118ba75665fb551d584996bab75b9a20d",
+    "git_blob": "26fdeb9b0e7ab9b9eb7faef1453250fbcb1dad56"
+   },
+   "docs/index/MODULES.md": {
+    "sha256": "46f51376660c3d677a11dc2bc3f23553570f2564fcfdd9cea6241c7626a48951",
+    "git_blob": "654da9aa25ca1d513e9531ecf3ca8f65f46b5954"
+   },
+   "docs/index/project.json": {
+    "sha256": "394bd87d905abb8c3d2c0ff59d3b91dada5a191913fba4df355663d71c2e20ce",
+    "git_blob": "d1b077a828599e106ec79ad52ec89219d8865509"
+   }
+  },
+  "candidate": "D:\\xm\\OmniOperator\\temp\\build\\media-startup-index-precommit",
+  "parallel_working_bodies_preserved": true
+ },
+ "changes": [
+  "Own actual process creation in a retained media-spawn task with an empty request context",
+  "Shield actual creation from caller cancellation and retain pending cleanup",
+  "Join late startup results within the existing cleanup budget, then reclaim using only remaining time",
+  "Keep original startup exceptions for live callers; consume and log only a fixed event for late failures",
+  "Expose starting without changing the native spawn implementation or processing budgets"
+ ],
+ "proof": {
+  "changed_existing_methods": [
+   "__init__",
+   "status",
+   "_terminate",
+   "_request"
+  ],
+  "new_methods": [
+   "_start"
+  ],
+  "native_spawn_method_byte_identical": true,
+  "close_method_byte_identical": true,
+  "protocol_codec_functions_byte_identical": true,
+  "request_only_changes_spawn_wait": true,
+  "frame_and_processing_budget_constants_unchanged": true,
+  "regressions_identical_between_clean_before_and_candidate": true,
+  "strict_files": 1
+ },
+ "regressions": {
+  "new_cases": 10,
+  "clean_before": {
+   "report": "temp/build/v2-media-startup-clean-before.xml",
+   "report_sha256": "10504c5cd46eaa66da6697923d727675a1dee4d036248746ac453169c54e8c26",
+   "raw_suites": [
+    {
+     "name": "pytest",
+     "errors": "0",
+     "failures": "8",
+     "skipped": "0",
+     "tests": "10",
+     "time": "1.613",
+     "timestamp": "2026-11-16T14:15:19.218404+08:00",
+     "hostname": "cy"
+    }
+   ],
+   "junit_testcase_records": 10,
+   "unique_test_nodes_reported": 10,
+   "failure_events": 8,
+   "error_events": 0,
+   "skipped": 0,
+   "unique_failed_or_errored_nodes": 8,
+   "unique_nodes_without_failure_or_error": 2,
+   "duplicate_nodes": {},
+   "failed_nodes": [
+    {
+     "nodeid": "agent/tests/test_v2_media_startup.py::test_cancelled_request_keeps_native_creation_until_close_observes_its_result[False]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "assert not [True]"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_startup.py::test_cancelled_request_keeps_native_creation_until_close_observes_its_result[True]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "assert not [True]"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_startup.py::test_next_request_reclaims_late_start_before_launching_and_dispatching_new_worker",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "assert (False)\n +  where False = <test_v2_media_transport.Worker object at 0x000001BEAE3CB890>.reclaimed"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_startup.py::test_cancelled_close_does_not_cancel_or_forget_pending_creation",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "Failed: DID NOT RAISE CancelledError"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_startup.py::test_pending_start_rejects_followup_without_cancelling_creation_or_launching_twice",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "Failed: DID NOT RAISE BusinessError"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_startup.py::test_reclamation_uses_budget_remaining_after_waiting_for_creation",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "assert (0 == 1)\n +  where 0 = len([])"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_startup.py::test_process_creation_task_does_not_keep_cancelled_request_context",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: assert ['request-private-value'] == ['']\n  \n  At index 0 diff: 'request-private-value' != ''\n  Use -v to get more diff"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_startup.py::test_real_late_spawn_is_not_misreported_closed_and_is_eventually_reclaimed",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "assert not True"
+      }
+     ]
+    }
+   ]
+  },
+  "clean_before_metadata": {
+   "path": "temp/build/v2-media-startup-clean-before.json",
+   "sha256": "fb286116fc89d18842be7dab88e918f21d9348f384e3fdc794bac74ca76fd0ef"
+  },
+  "clean_before_log": {
+   "path": "temp/build/v2-media-startup-clean-before.log",
+   "sha256": "6a37209e79030e988ea64b40c0fad76038d61435fec978260b74566e3ece56b1"
+  },
+  "working_after": {
+   "report": "temp/build/v2-media-startup-final-regressions.xml",
+   "report_sha256": "ed4828e9d740049b49488bba83db6aa88e397f84bfa65c9bda1591f5f5a5f8be",
+   "raw_suites": [
+    {
+     "name": "pytest",
+     "errors": "0",
+     "failures": "0",
+     "skipped": "0",
+     "tests": "10",
+     "time": "0.327",
+     "timestamp": "2026-11-16T14:12:40.366619+08:00",
+     "hostname": "cy"
+    }
+   ],
+   "junit_testcase_records": 10,
+   "unique_test_nodes_reported": 10,
+   "failure_events": 0,
+   "error_events": 0,
+   "skipped": 0,
+   "unique_failed_or_errored_nodes": 0,
+   "unique_nodes_without_failure_or_error": 10,
+   "duplicate_nodes": {},
+   "failed_nodes": []
+  },
+  "callers": {
+   "report": "temp/build/v2-media-startup-callers.xml",
+   "report_sha256": "73c74db5696594df84226c99047e4329df0fc0a7461499c6d4ba30db116d978e",
+   "raw_suites": [
+    {
+     "name": "pytest",
+     "errors": "0",
+     "failures": "0",
+     "skipped": "0",
+     "tests": "130",
+     "time": "29.646",
+     "timestamp": "2026-11-16T14:15:46.667537+08:00",
+     "hostname": "cy"
+    }
+   ],
+   "junit_testcase_records": 130,
+   "unique_test_nodes_reported": 130,
+   "failure_events": 0,
+   "error_events": 0,
+   "skipped": 0,
+   "unique_failed_or_errored_nodes": 0,
+   "unique_nodes_without_failure_or_error": 130,
+   "duplicate_nodes": {},
+   "failed_nodes": []
+  },
+  "callers_log": {
+   "path": "temp/build/v2-media-startup-callers.log",
+   "sha256": "6f3cf20f9037d5c1fd1f26830093b835de4b99fbffae470c96ef306e23077ea1"
+  },
+  "cli_summary": "130 passed in 29.70s",
+  "coverage": [
+   "Caller and closer cancellation retain actual creation",
+   "Late success/failure and zero-budget close cannot claim unobserved work complete",
+   "Pending startup blocks duplicate launch or dispatch",
+   "Remaining cleanup budget after creation wait, via isolated injected clock",
+   "Normal live-worker reuse and explicit retry after original startup failure",
+   "Background creation uses empty context",
+   "Real native process is created before delayed handoff; cancellation and later close still reap its actual group"
+  ]
+ },
+ "scoped_validation": {
+  "scope": "Changed IPC module plus media/ASR/audio/ownership/lifecycle callers",
+  "base": "ac91c26d694ef226509457ae7a02cdfbe3c94f36",
+  "planned": {
+   "agent/src/omni/adapters/media.py": {
+    "sha256": "3e6b798b732a4ba55d282799de7acc968d1e7db5919e5616e0965a43697568f1",
+    "git_blob": "4bc601e2dc26ab7f6f0c37ababd9fe042576a630"
+   },
+   "agent/tests/test_v2_media_startup.py": {
+    "sha256": "f62d95e1b461865fe7f723f54b18ea1d89c0a7554d65b880609fe0db4fddba6c",
+    "git_blob": "f49201eb748eddd552fadf2513fd6cbbe587ec10"
+   },
+   "docs/V2_MEDIA.md": {
+    "sha256": "6178f82d2d6aedb1000f9231bedd2b240ae73f515a6c89649f32c6c77314baaa",
+    "git_blob": "0de0f0cd5bd6c31a3be9a8b49b0891527b76edc2"
+   },
+   "docs/TESTING.md": {
+    "sha256": "afd4c0d8929f0b6e55424ad31eb63b3118ba75665fb551d584996bab75b9a20d",
+    "git_blob": "26fdeb9b0e7ab9b9eb7faef1453250fbcb1dad56"
+   },
+   "docs/index/MODULES.md": {
+    "sha256": "46f51376660c3d677a11dc2bc3f23553570f2564fcfdd9cea6241c7626a48951",
+    "git_blob": "654da9aa25ca1d513e9531ecf3ca8f65f46b5954"
+   },
+   "docs/index/project.json": {
+    "sha256": "394bd87d905abb8c3d2c0ff59d3b91dada5a191913fba4df355663d71c2e20ce",
+    "git_blob": "d1b077a828599e106ec79ad52ec89219d8865509"
+   }
+  },
+  "full_suite_run": false,
+  "gates": [
+   {
+    "command": [
+     "D:\\xm\\OmniOperator\\temp\\build\\checkpoint-interpreter-media-startup\\Scripts\\python.exe",
+     "-m",
+     "ruff",
+     "check",
+     "agent/src/omni/adapters/media.py",
+     "agent/tests/test_v2_media_startup.py"
+    ],
+    "returncode": 0,
+    "duration_s": 0.172,
+    "stdout": "All checks passed!\n",
+    "stderr": ""
+   },
+   {
+    "command": [
+     "D:\\xm\\OmniOperator\\temp\\build\\checkpoint-interpreter-media-startup\\Scripts\\python.exe",
+     "-m",
+     "ruff",
+     "format",
+     "--check",
+     "agent/src/omni/adapters/media.py",
+     "agent/tests/test_v2_media_startup.py"
+    ],
+    "returncode": 0,
+    "duration_s": 0.172,
+    "stdout": "2 files already formatted\n",
+    "stderr": ""
+   },
+   {
+    "command": [
+     "D:\\xm\\OmniOperator\\temp\\build\\checkpoint-interpreter-media-startup\\Scripts\\python.exe",
+     "-m",
+     "pyright",
+     "--project",
+     "D:\\xm\\OmniOperator\\temp\\build\\media-startup-index-precommit\\pyrightconfig.media-startup.json",
+     "--outputjson"
+    ],
+    "returncode": 0,
+    "duration_s": 1.297,
+    "stdout": "{\n    \"version\": \"1.1.414\",\n    \"time\": \"1794809745965\",\n    \"generalDiagnostics\": [],\n    \"summary\": {\n        \"filesAnalyzed\": 1,\n        \"errorCount\": 0,\n        \"warningCount\": 0,\n        \"informationCount\": 0,\n        \"timeInSec\": 0.506\n    }\n}\n\n",
+    "stderr": ""
+   }
+  ],
+  "strict_summary": {
+   "filesAnalyzed": 1,
+   "errorCount": 0,
+   "warningCount": 0,
+   "informationCount": 0,
+   "timeInSec": 0.506
+  },
+  "callers": {
+   "command": [
+    "D:\\xm\\OmniOperator\\temp\\build\\checkpoint-interpreter-media-startup\\Scripts\\python.exe",
+    "-m",
+    "pytest",
+    "-q",
+    "-n",
+    "0",
+    "agent/tests/test_v2_media_startup.py",
+    "agent/tests/test_v2_media_protocol.py",
+    "agent/tests/test_v2_media_transport.py",
+    "agent/tests/test_v2_media.py",
+    "agent/tests/test_v2_media_worker.py",
+    "agent/tests/test_v2_media_audio.py",
+    "agent/tests/test_v2_lifecycle.py",
+    "agent/tests/test_v2_architecture.py",
+    "--junitxml=D:\\xm\\OmniOperator\\temp\\build\\v2-media-startup-callers.xml"
+   ],
+   "targets": [
+    "test_v2_media_startup",
+    "test_v2_media_protocol",
+    "test_v2_media_transport",
+    "test_v2_media",
+    "test_v2_media_worker",
+    "test_v2_media_audio",
+    "test_v2_lifecycle",
+    "test_v2_architecture"
+   ],
+   "returncode": 0,
+   "duration_s": 30.828,
+   "cases": 130,
+   "failures": 0,
+   "errors": 0,
+   "skipped": 0
+  },
+  "source_unchanged": true
+ },
+ "scoped_validation_artifact": {
+  "path": "temp/build/v2-media-startup-scoped.json",
+  "sha256": "dfffa57f05e4201409f943a703da3f0d805bfc68e3fd02c504863914daec6a77"
+ },
+ "ownership_artifact": {
+  "path": "temp/build/v2-media-startup-source.json",
+  "sha256": "57049eb1ea9baddb78308fb403f39f4612e44c3e592334a786d74e80a98c853e"
+ },
+ "full_run": {
+  "status": "deferred_per_owner",
+  "run_for_this_change": false,
+  "covers_this_source": false,
+  "reason": "Owner prioritizes implementation and scoped tests; full suite at multi-module integration",
+  "last_completed_source": "42a4b8b29d7c80daa4cb212d49dd40d07c189079",
+  "last_completed_summary": "4800 passed, 12 warnings in 3025.48s (0:50:25)",
+  "last_completed_report": {
+   "path": "temp/build/v2-full-226.xml",
+   "sha256": "ecab05764ea535042e7e4dde6ea0e0f6969030b4ae74056a1ce9fd20352549e4"
+  },
+  "last_full_does_not_cover_this_change": true
+ },
+ "not_verified": [
+  "Full integration suite for this new source",
+  "Changes to the native process creation implementation or stderr lifecycle",
+  "Real models, devices/platforms and long-running acceptance",
+  "Historical system commit/native/UI causes",
+  "Concurrent uncommitted configuration/schema/UI bodies"
+ ]
+}
