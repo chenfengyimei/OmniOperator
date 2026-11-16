@@ -139,6 +139,7 @@ class MediaService:
         self._staging = staging_root
         self._slots = asyncio.Semaphore(MAX_ACTIVE_JOBS)
         self._tasks: set[asyncio.Task[object]] = set()
+        self._queued_jobs: set[asyncio.Task[object]] = set()
         self._closing = False
 
     # ---------- sources ----------
@@ -189,12 +190,20 @@ class MediaService:
 
         async def create() -> Record:
             job = await self._db.write(lambda u: u.media_job_create(agent_id, source_id, operation, cast(Record, plan)))
+            waiting = True
 
             async def perform() -> None:
+                nonlocal waiting
                 async with self._slots:
+                    waiting = False
+                    owner = asyncio.current_task()
+                    if owner is not None:
+                        self._queued_jobs.discard(owner)
                     await self._execute(str(job["id"]))
 
             task = asyncio.create_task(perform(), name=f"media-job-{job['id']}")
+            if waiting and not task.done():
+                self._queued_jobs.add(task)
             self._tasks.add(task)
             task.add_done_callback(lambda done: self._retire(cast(asyncio.Task[object], done)))
             return job
@@ -203,6 +212,7 @@ class MediaService:
 
     def _retire(self, task: asyncio.Task[object]) -> None:
         self._tasks.discard(task)
+        self._queued_jobs.discard(task)
         if not task.cancelled():
             task.exception()
 
@@ -391,24 +401,39 @@ class MediaService:
         job = await self._db.read(lambda u: u.media_job_get(job_id))
         if str(job["agent_id"]) != agent_id:
             raise BusinessError("media_job_not_found", "No such media job in this Agent", status=404)
-        if job["state"] == "queued":
-            job = await self._db.write(lambda u: u.media_job_cancel(job_id))
-        if job["state"] != "running":
-            return job
-        for task in tuple(self._tasks):
-            if task.get_name() == f"media-job-{job_id}":
-                if not task.cancelling():
-                    task.cancel()
-                try:
-                    await asyncio.shield(task)
-                except asyncio.CancelledError:
-                    caller = asyncio.current_task()
-                    if caller is not None and caller.cancelling():
-                        raise
-                except BusinessError:
-                    pass
-                break
-        return await self._db.read(lambda u: u.media_job_get(job_id))
+
+        async def perform() -> Record:
+            current = job
+            if current["state"] == "queued":
+                current = await self._db.write(lambda u: u.media_job_cancel(job_id))
+            if current["state"] == "cancelled":
+                owners = self._queued_jobs
+            elif current["state"] == "running":
+                owners = self._tasks
+            else:
+                return current
+            for task in tuple(owners):
+                if task.get_name() == f"media-job-{job_id}":
+                    if not task.cancelling():
+                        task.cancel()
+                    try:
+                        await asyncio.shield(task)
+                    except asyncio.CancelledError:
+                        caller = asyncio.current_task()
+                        if caller is not None and caller.cancelling():
+                            raise
+                    except BusinessError:
+                        pass
+                    break
+            return await self._db.read(lambda u: u.media_job_get(job_id))
+
+        if job["state"] == "queued" and any(owner.get_name() == f"media-job-{job_id}" for owner in self._queued_jobs):
+            # The still-owned queue waiter protects shutdown while this commit finishes.
+            task = asyncio.create_task(perform(), name=f"media-cancel-{job_id}")
+            self._tasks.add(task)
+            task.add_done_callback(lambda done: self._retire(cast(asyncio.Task[object], done)))
+            return await asyncio.shield(task)
+        return await perform()
 
     async def job(self, agent_id: str, job_id: str) -> Record:
         job = await self._db.read(lambda u: u.media_job_get(job_id))
@@ -538,6 +563,7 @@ class MediaService:
         return {
             "closing": self._closing,
             "pending": len(self._tasks),
+            "queued_jobs": len(self._queued_jobs),
             "staging_root": str(self._staging),
             "processor": self._processor.status(),
         }
