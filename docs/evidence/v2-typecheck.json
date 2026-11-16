@@ -7041,6 +7041,20 @@
    "integration_full_run_pending": true,
    "validated_committed_scope_only": true,
    "historical_observations_closed": false
+  },
+  "media_stderr_followup": {
+   "evidence": "docs/evidence/v2-media-stderr.json",
+   "source_head": "9da4def3a0e70efe0b28da62bbc059505fdd748e",
+   "status": "scoped_passed_full_deferred",
+   "scoped_passed": 140,
+   "architecture_and_scope_passed": 31,
+   "total_unique_scoped_passed": 171,
+   "new_cases": 10,
+   "strict_files": 1,
+   "full_run_covers_current_source": false,
+   "integration_full_run_pending": true,
+   "validated_committed_scope_only": true,
+   "historical_observations_closed": false
   }
  },
  "source_recovery": {
