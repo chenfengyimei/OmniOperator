@@ -30,6 +30,8 @@ Bilibili 视频读取（复用 bilibili_read_authorized 凭据/配置/修订授�
 
 下载 ≤256MiB、下载预算 180s；转写 ≤4MiB/24000 字/4000 段/每段非空且时间有序；抽帧 1..12 帧、帧宽 320..1280、拼图 ≤8MiB；ASR 计划 model/device(cpu|auto)/compute_type 白名单；工具单窗 ≤12000 字符；同时活跃作业 2（服务信号量），排队 8（数据库准入）。
 
+宿主读取worker产物时也执行字节边界：转写单次最多读取4MiB加1字节，超限在解析和对象发布前以`media_transcript_unreadable`拒绝；ASR产物的kind必须为asr，不能以字幕正文发布成ASR记录。拼图先校验计数/尺寸/时间戳/指纹/字节元数据，再按已验证的声明大小（≤8MiB）加1字节读取，超出声明、长度或SHA256不符均以`media_sheet_invalid`拒绝且不发布对象/图像。合法文件不截断、不重新编码，读取句柄在成功或异常时关闭。此处限制的是产物读取缓冲，不是原生解码、模型或整进程内存峰值证明。
+
 字幕没有可靠时间轴：载荷为单行 `[0.0, 0.0, 全文]`，读取不伪造锚点；ASR 每段 `[start, end, text]`，正文行格式 `[MM:SS-MM:SS] text`。
 
 ## 4. 受管子进程（adapters/workers/media.py）

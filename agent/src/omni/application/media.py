@@ -22,6 +22,7 @@ from ..domain.media import (
     MAX_ACTIVE_JOBS,
     MAX_DOWNLOAD_BYTES,
     MAX_TOOL_TEXT_CHARS,
+    MAX_TRANSCRIPT_BYTES,
     OPERATIONS,
     asr_plan,
     frames_plan,
@@ -101,6 +102,15 @@ class BilibiliMediaPort(Protocol):
 
 def _processing_error(exc: BaseException) -> str:
     return exc.code if isinstance(exc, BusinessError) else "media_processing_failed"
+
+
+def _output_bytes(path: Path, maximum: int, code: str) -> bytes:
+    """Read at most one byte beyond the accepted output bound, before publication."""
+    with path.open("rb") as stream:
+        content = stream.read(maximum + 1)
+    if len(content) > maximum:
+        raise BusinessError(code, "Media output exceeds its byte bound", status=503)
+    return content
 
 
 class MediaService:
@@ -250,10 +260,15 @@ class MediaService:
                 output = staging / "transcript.json"
                 await self._processor.transcribe(destination, output, cast(Record, job["params"]))
                 # The worker writes the exact bounded payload that is published.
-                body = output.read_bytes()
+                body = _output_bytes(output, MAX_TRANSCRIPT_BYTES, "media_transcript_unreadable")
+                parsed = parse_transcript(body)
+                if parsed["kind"] != "asr":
+                    raise BusinessError(
+                        "media_transcript_unreadable", "ASR output has an unexpected transcript kind", status=503
+                    )
                 info = {
                     "kind": "asr",
-                    "language": str(parse_transcript(body).get("language") or "")[:16],
+                    "language": str(parsed.get("language") or "")[:16],
                 }
             obj = await self._objects.publish(agent_id, body, "application/json")
             await self._db.write(
@@ -296,7 +311,6 @@ class MediaService:
         """Publish the frame sheet and register it as a verified image object."""
         from ..domain.media import sheet_result
 
-        content = sheet.read_bytes()
         info = sheet_result(
             result.get("frame_count"),
             result.get("width"),
@@ -305,6 +319,7 @@ class MediaService:
             result.get("sha256"),
             result.get("bytes"),
         )
+        content = _output_bytes(sheet, cast(int, info["bytes"]), "media_sheet_invalid")
         if info["sha256"] != hashlib.sha256(content).hexdigest() or info["bytes"] != len(content):
             raise BusinessError("media_sheet_invalid", "Frame sheet content changed during processing", status=503)
         obj = await self._objects.publish(agent_id, content, "image/png")
