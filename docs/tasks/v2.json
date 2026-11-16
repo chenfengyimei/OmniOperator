@@ -2,7 +2,7 @@
  "schema": 1,
  "plan": "OmniOperator V2",
  "status": "开发中",
- "branch": "codex/architecture-v2",
+ "branch": "v2",
  "baseline_commit": "076c0c22fa8ecb90d3ce9a64562c90a23a129e00",
  "baseline": {
   "manifest": "temp/private/v2-baseline-20261102T082736Z/manifest.json",
