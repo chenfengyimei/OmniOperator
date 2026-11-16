@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "3ceee49d3a78c618a9a86eaf8035c1b6a48d54c81006610a4eaa91dc19ffb6bb",
+  "source_sha256": "0f98cbd1b0e4f4bb10a3f841955dbd5340ba4a5b40beb3a37f0e41fed243fbe4",
   "modules": [
     {
       "id": "v2-domain",
@@ -404,7 +404,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 54777,
+      "lines": 54782,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -2584,7 +2584,7 @@
       "path": "agent/src/omni/adapters/bilibili.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.bilibili",
-      "lines": 647,
+      "lines": 652,
       "imports": [
         "omni.adapters.diagnostics",
         "omni.adapters.workers.client",
@@ -2595,8 +2595,23 @@
       ],
       "symbols": [
         {
-          "name": "_download_lengths",
+          "name": "_response_body",
           "line": 26,
+          "kind": "function",
+          "parameters": [
+            "response",
+            "limit",
+            "label"
+          ],
+          "annotations": {
+            "response": "httpx.Response",
+            "limit": "int",
+            "label": "str"
+          }
+        },
+        {
+          "name": "_download_lengths",
+          "line": 36,
           "kind": "function",
           "parameters": [
             "response",
@@ -2609,12 +2624,12 @@
         },
         {
           "name": "BilibiliGateway",
-          "line": 57,
+          "line": 67,
           "kind": "class"
         },
         {
           "name": "BilibiliGateway.__init__",
-          "line": 60,
+          "line": 70,
           "kind": "function",
           "parameters": [
             "self",
@@ -2634,7 +2649,7 @@
         },
         {
           "name": "BilibiliGateway.account_key",
-          "line": 76,
+          "line": 86,
           "kind": "function",
           "parameters": [
             "self",
@@ -2646,7 +2661,7 @@
         },
         {
           "name": "BilibiliGateway._cookies",
-          "line": 79,
+          "line": 89,
           "kind": "function",
           "parameters": [
             "self",
@@ -2658,7 +2673,7 @@
         },
         {
           "name": "BilibiliGateway._client",
-          "line": 111,
+          "line": 121,
           "kind": "function",
           "parameters": [
             "self",
@@ -2670,7 +2685,7 @@
         },
         {
           "name": "BilibiliGateway._get",
-          "line": 124,
+          "line": 134,
           "kind": "function",
           "parameters": [
             "client",
@@ -2685,7 +2700,7 @@
         },
         {
           "name": "BilibiliGateway._login_nav",
-          "line": 154,
+          "line": 158,
           "kind": "function",
           "parameters": [
             "self",
@@ -2699,7 +2714,7 @@
         },
         {
           "name": "BilibiliGateway._login",
-          "line": 160,
+          "line": 164,
           "kind": "function",
           "parameters": [
             "self",
@@ -2713,7 +2728,7 @@
         },
         {
           "name": "BilibiliGateway._subtitle",
-          "line": 164,
+          "line": 168,
           "kind": "function",
           "parameters": [
             "self",
@@ -2729,7 +2744,7 @@
         },
         {
           "name": "BilibiliGateway._streams",
-          "line": 204,
+          "line": 209,
           "kind": "function",
           "parameters": [
             "self",
@@ -2743,7 +2758,7 @@
         },
         {
           "name": "BilibiliGateway.read",
-          "line": 266,
+          "line": 271,
           "kind": "function",
           "parameters": [
             "self",
@@ -2761,7 +2776,7 @@
         },
         {
           "name": "BilibiliGateway.read_source",
-          "line": 269,
+          "line": 274,
           "kind": "function",
           "parameters": [
             "self",
@@ -2777,7 +2792,7 @@
         },
         {
           "name": "BilibiliGateway._read",
-          "line": 280,
+          "line": 285,
           "kind": "function",
           "parameters": [
             "self",
@@ -2797,7 +2812,7 @@
         },
         {
           "name": "BilibiliGateway.download",
-          "line": 394,
+          "line": 399,
           "kind": "function",
           "parameters": [
             "self",
@@ -2819,7 +2834,7 @@
         },
         {
           "name": "BilibiliGateway.send",
-          "line": 521,
+          "line": 526,
           "kind": "function",
           "parameters": [
             "self",
@@ -2831,7 +2846,7 @@
         },
         {
           "name": "BilibiliGateway.close",
-          "line": 643,
+          "line": 648,
           "kind": "function",
           "parameters": [
             "self",

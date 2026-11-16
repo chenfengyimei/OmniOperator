@@ -23,6 +23,16 @@ from .workers.client import WorkerClient
 Payload = dict[str, object]
 
 
+async def _response_body(response: httpx.Response, limit: int, label: str) -> bytearray:
+    """Bound retained decoded bytes before appending; the response context owns closing."""
+    body = bytearray()
+    async for part in response.aiter_bytes():
+        if len(part) > limit - len(body):
+            raise BusinessError("bilibili_response_too_large", f"{label} exceeded its bounded read limit", status=502)
+        body.extend(part)
+    return body
+
+
 def _download_lengths(response: httpx.Response, offset: int) -> tuple[int | None, int | None]:
     """Validate one identity-encoded full response or contiguous single byte range."""
     invalid = BusinessError("media_download_failed", "Media response range or length is invalid", status=502)
@@ -127,13 +137,7 @@ class BilibiliGateway:
                 raise BusinessError(
                     "bilibili_read_unavailable", "Bilibili read was denied, redirected or unavailable", status=503
                 )
-            body = bytearray()
-            async for part in response.aiter_bytes():
-                body.extend(part)
-                if len(body) > 524288:
-                    raise BusinessError(
-                        "bilibili_response_too_large", "Bilibili response exceeded its bounded read limit", status=502
-                    )
+            body = await _response_body(response, 524288, "Bilibili response")
             try:
                 value: dict[str, Any] = json.loads(body)
             except (ValueError, RecursionError) as exc:
@@ -182,13 +186,14 @@ class BilibiliGateway:
         if not isinstance(picked, dict) or not picked.get("subtitle_url"):
             return {"language": "", "text": ""}
         url = subtitle_url(picked.get("subtitle_url"))
-        response = await client.get(url)
-        if response.status_code != 200 or "json" not in response.headers.get("content-type", "").lower():
-            raise BusinessError("bilibili_read_unavailable", "Subtitle download was denied or unavailable", status=503)
-        if len(response.content) > 2 * 1024 * 1024:
-            raise BusinessError("bilibili_response_too_large", "Subtitle exceeded its bounded read limit", status=502)
+        async with client.stream("GET", url) as response:
+            if response.status_code != 200 or "json" not in response.headers.get("content-type", "").lower():
+                raise BusinessError(
+                    "bilibili_read_unavailable", "Subtitle download was denied or unavailable", status=503
+                )
+            content = await _response_body(response, 2 * 1024 * 1024, "Subtitle")
         try:
-            body = json.loads(response.content)
+            body = json.loads(content)
         except (ValueError, RecursionError) as exc:
             raise BusinessError(
                 "bilibili_response_invalid", "Subtitle response was not valid JSON", status=502
