@@ -7067,6 +7067,18 @@
    "integration_full_run_pending": true,
    "validated_committed_scope_only": true,
    "historical_observations_closed": false
+  },
+  "media_staging_followup": {
+   "evidence": "docs/evidence/v2-media-staging.json",
+   "source_head": "558b731422c51a7634225f947acb28a34ae4ddf7",
+   "status": "scoped_passed_full_deferred",
+   "scoped_passed": 200,
+   "new_cases": 14,
+   "strict_files": 1,
+   "full_run_covers_current_source": false,
+   "integration_full_run_pending": true,
+   "validated_committed_scope_only": true,
+   "historical_observations_closed": false
   }
  },
  "source_recovery": {
