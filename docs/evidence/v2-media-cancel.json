@@ -1,0 +1,532 @@
+{
+ "schema": 1,
+ "date": "2026-11-16",
+ "branch": "v2",
+ "whole_v2_complete": false,
+ "default_entrypoint": "v1",
+ "source": {
+  "head": "1f1afeaedd6b5aa24595c277c9136a6f50f86a33",
+  "base": "03d24052bd2604eb8ba034616329f6c7849c5b13",
+  "code_version": "a4b0bb5d4660882e796345aeb7f9d8c8e6ce418487ea7c212778bdaacdefe90d",
+  "code_files": 1228,
+  "version_artifact": {
+   "path": "temp/build/v2-media-cancel-source-version.json",
+   "sha256": "8e45e1b28434a5fcd83b4cd7293df7b0ae226fccc5e37c88c7843cb13656d01f"
+  },
+  "planned": {
+   "agent/src/omni/application/media.py": {
+    "sha256": "1b610eaec1736ac8ab949c571e418b439d7a1f0b67e0c81127290bb358972f3c",
+    "git_blob": "c3262a3d04d35dfe9fdbb89ce720d9aa84cb133f"
+   },
+   "agent/tests/test_v2_media_cancel.py": {
+    "sha256": "5801ac92cab550658d5f92ccbf7418aeb73e273da133b8fa41fe25d877f2e698",
+    "git_blob": "3b3c303ed7121a8b33e36812359833e678d3c2f3"
+   },
+   "docs/V2_MEDIA.md": {
+    "sha256": "9ae94fbd231e14e2ad018fbc0b906db08608858ff0d5655a30e8eec001ebf77d",
+    "git_blob": "d9c10cdc05407aba3d5640a675c50ce744ceb951"
+   },
+   "docs/TESTING.md": {
+    "sha256": "a87038b23ce1217020019a33b51a368513fbf4aac91462700c54178920a9a354",
+    "git_blob": "06e6eda0a05e59b9deb37afe3e0752c66e104d94"
+   },
+   "docs/index/MODULES.md": {
+    "sha256": "8202490e537face1d8070f3b082adf7dad7640c5dc24ef3ac044046c5541a4a7",
+    "git_blob": "facbefe4e782ba71183b1213d02c54b8c22940e5"
+   },
+   "docs/index/project.json": {
+    "sha256": "9a5b333eb21e303e390a85b208efa6a2f7a9b5a4edd3b54137345b6b3be3c4bc",
+    "git_blob": "40583216340b9cecc78407f54b4540093d1e81c5"
+   }
+  },
+  "candidate": "D:\\xm\\OmniOperator\\temp\\build\\media-cancel-index-precommit",
+  "parallel_working_bodies_preserved": true
+ },
+ "root_cause": "Cancel returned after a queued CAS even when the job had started, repeatedly cancelled an already cancelling owner task, cancelled terminal job finalizers and swallowed cancellation of its own waiter as if only the child had been cancelled.",
+ "changes": [
+  "Inspect queued cancellation result and fall through to the running owner when the job won the start race",
+  "Return terminal job state without interrupting its still-owned finalizer",
+  "Send cancellation only when the owner has no outstanding cancellation request; otherwise join the same cleanup",
+  "Propagate cancellation of the waiting caller while preserving the shielded owned job task",
+  "Keep agent scope checks and retain running truth when no actual owner can be found"
+ ],
+ "proof": {
+  "changed_existing_methods": [
+   "cancel"
+  ],
+  "public_cancel_signature_unchanged": true,
+  "agent_scope_check_and_final_state_read_ast_identical": true,
+  "all_other_existing_methods_byte_identical": true,
+  "imports_globals_and_policy_constants_ast_identical": true,
+  "domain_processor_worker_lifecycle_repository_database_files_byte_identical": [
+   "agent/src/omni/domain/media.py",
+   "agent/src/omni/adapters/media.py",
+   "agent/src/omni/adapters/workers/media.py",
+   "agent/src/omni/composition/lifecycle.py",
+   "agent/src/omni/adapters/persistence/media_repository.py",
+   "agent/src/omni/adapters/persistence/database.py"
+  ],
+  "regressions_identical_between_clean_before_and_candidate": true,
+  "strict_files": 1
+ },
+ "regressions": {
+  "new_cases": 13,
+  "clean_before": {
+   "report": "temp/build/v2-media-cancel-clean-before.xml",
+   "report_sha256": "30ca696994f57ae076c1ea51632b3fe47631f6f68508c321d3eb13e923a6e8bb",
+   "raw_suites": [
+    {
+     "name": "pytest",
+     "errors": "0",
+     "failures": "10",
+     "skipped": "0",
+     "tests": "13",
+     "time": "10.686",
+     "timestamp": "2026-11-16T16:33:06.559820+08:00",
+     "hostname": "cy"
+    }
+   ],
+   "junit_testcase_records": 13,
+   "unique_test_nodes_reported": 13,
+   "failure_events": 10,
+   "error_events": 0,
+   "skipped": 0,
+   "unique_failed_or_errored_nodes": 10,
+   "unique_nodes_without_failure_or_error": 3,
+   "duplicate_nodes": {},
+   "failed_nodes": [
+    {
+     "nodeid": "agent/tests/test_v2_media_cancel.py::test_repeated_cancel_joins_one_cleanup_instead_of_interrupting_it",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: assert (2 == 1)\n +  where 2 = <built-in method cancelling of _asyncio.Task object at 0x000001E55A02E140>()\n +    where <built-in method cancelling of _asyncio.Task object at 0x000001E55A02E140> = <Task cancelling name='media-job-job' coro=<fixture.<locals>.worker() running at D:\\xm\\OmniOperator\\temp\\build\\media-c...er_done_callback() at C:\\Users\\cy\\AppData\\Roaming\\uv\\python\\cpython-3.12-windows-x86_64-none\\Lib\\asyncio\\tasks.py:905]>.cancelling"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_cancel.py::test_cancelled_waiter_propagates_cancellation_while_job_stays_owned",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "Failed: DID NOT RAISE CancelledError"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_cancel.py::test_terminal_job_does_not_interrupt_a_still_owned_task[done]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: assert (1 == 0)\n +  where 1 = <built-in method cancelling of _asyncio.Task object at 0x000001E55A02F880>()\n +    where <built-in method cancelling of _asyncio.Task object at 0x000001E55A02F880> = <Task cancelling name='media-job-job' coro=<fixture.<locals>.worker() running at D:\\xm\\OmniOperator\\temp\\build\\media-c...er_done_callback() at C:\\Users\\cy\\AppData\\Roaming\\uv\\python\\cpython-3.12-windows-x86_64-none\\Lib\\asyncio\\tasks.py:905]>.cancelling"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_cancel.py::test_terminal_job_does_not_interrupt_a_still_owned_task[failed]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: assert (1 == 0)\n +  where 1 = <built-in method cancelling of _asyncio.Task object at 0x000001E55A02F280>()\n +    where <built-in method cancelling of _asyncio.Task object at 0x000001E55A02F280> = <Task cancelling name='media-job-job' coro=<fixture.<locals>.worker() running at D:\\xm\\OmniOperator\\temp\\build\\media-c...er_done_callback() at C:\\Users\\cy\\AppData\\Roaming\\uv\\python\\cpython-3.12-windows-x86_64-none\\Lib\\asyncio\\tasks.py:905]>.cancelling"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_cancel.py::test_terminal_job_does_not_interrupt_a_still_owned_task[cancelled]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: assert (1 == 0)\n +  where 1 = <built-in method cancelling of _asyncio.Task object at 0x000001E55A02EE00>()\n +    where <built-in method cancelling of _asyncio.Task object at 0x000001E55A02EE00> = <Task cancelling name='media-job-job' coro=<fixture.<locals>.worker() running at D:\\xm\\OmniOperator\\temp\\build\\media-c...er_done_callback() at C:\\Users\\cy\\AppData\\Roaming\\uv\\python\\cpython-3.12-windows-x86_64-none\\Lib\\asyncio\\tasks.py:905]>.cancelling"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_cancel.py::test_terminal_job_does_not_interrupt_a_still_owned_task[unknown]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: assert (1 == 0)\n +  where 1 = <built-in method cancelling of _asyncio.Task object at 0x000001E55A02E500>()\n +    where <built-in method cancelling of _asyncio.Task object at 0x000001E55A02E500> = <Task cancelling name='media-job-job' coro=<fixture.<locals>.worker() running at D:\\xm\\OmniOperator\\temp\\build\\media-c...er_done_callback() at C:\\Users\\cy\\AppData\\Roaming\\uv\\python\\cpython-3.12-windows-x86_64-none\\Lib\\asyncio\\tasks.py:905]>.cancelling"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_cancel.py::test_queued_to_running_race_continues_with_cancellation_of_the_owner",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: assert (1 == 1 and 0 == 1)\n +  where 1 = <test_v2_media_cancel.Database object at 0x000001E558F6E180>.cancel_calls\n +  and   0 = <built-in method cancelling of _asyncio.Task object at 0x000001E55A19C340>()\n +    where <built-in method cancelling of _asyncio.Task object at 0x000001E55A19C340> = <Task pending name='media-job-job' coro=<fixture.<locals>.worker() running at D:\\xm\\OmniOperator\\temp\\build\\media-canc...\\agent\\tests\\test_v2_media_cancel.py:49> wait_for=<Future pending cb=[Task.task_wakeup()]> cb=[MediaService._retire()]>.cancelling"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_cancel.py::test_real_job_repeated_cancel_preserves_processor_cleanup_until_it_finishes[transcribe]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: assert (2 == 1)\n +  where 2 = <built-in method cancelling of _asyncio.Task object at 0x000001E55C2E7640>()\n +    where <built-in method cancelling of _asyncio.Task object at 0x000001E55C2E7640> = <Task cancelling name='media-job-6d3b8108-94b5-459e-bf65-49124c98093b' coro=<MediaService.submit.<locals>.create.<loca...er_done_callback() at C:\\Users\\cy\\AppData\\Roaming\\uv\\python\\cpython-3.12-windows-x86_64-none\\Lib\\asyncio\\tasks.py:905]>.cancelling"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_cancel.py::test_real_job_repeated_cancel_preserves_processor_cleanup_until_it_finishes[frames]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: assert (2 == 1)\n +  where 2 = <built-in method cancelling of _asyncio.Task object at 0x000001E55C2E68C0>()\n +    where <built-in method cancelling of _asyncio.Task object at 0x000001E55C2E68C0> = <Task cancelling name='media-job-d140c40a-577c-4a30-a2f0-e47a638b2acb' coro=<MediaService.submit.<locals>.create.<loca...er_done_callback() at C:\\Users\\cy\\AppData\\Roaming\\uv\\python\\cpython-3.12-windows-x86_64-none\\Lib\\asyncio\\tasks.py:905]>.cancelling"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_cancel.py::test_real_queue_promotion_before_cancel_write_still_cancels_the_started_job",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: assert 'running' == 'cancelled'\n  \n  - cancelled\n  + running"
+      }
+     ]
+    }
+   ]
+  },
+  "clean_before_metadata": {
+   "path": "temp/build/v2-media-cancel-clean-before.json",
+   "sha256": "8b097560f4b22e254893fe22fafd977b577715e9434ad6109aa2da4164adf790"
+  },
+  "clean_before_log": {
+   "path": "temp/build/v2-media-cancel-clean-before.log",
+   "sha256": "5a0f24b2f3d9667143490fae71c77048ec15b51fd2962bc53d31de0d413cf206"
+  },
+  "callers": {
+   "report": "temp/build/v2-media-cancel-callers.xml",
+   "report_sha256": "9df2f94a8ff27f56ae601eff8412b45945331541ebf5502d53102b308e615b26",
+   "raw_suites": [
+    {
+     "name": "pytest",
+     "errors": "0",
+     "failures": "0",
+     "skipped": "0",
+     "tests": "114",
+     "time": "43.592",
+     "timestamp": "2026-11-16T16:35:17.297484+08:00",
+     "hostname": "cy"
+    }
+   ],
+   "junit_testcase_records": 114,
+   "unique_test_nodes_reported": 114,
+   "failure_events": 0,
+   "error_events": 0,
+   "skipped": 0,
+   "unique_failed_or_errored_nodes": 0,
+   "unique_nodes_without_failure_or_error": 114,
+   "duplicate_nodes": {},
+   "failed_nodes": []
+  },
+  "callers_log": {
+   "path": "temp/build/v2-media-cancel-callers.log",
+   "sha256": "74bc7ca9864eeece2999016fae116eec7d9d6f6c8f724b5a5906d67668ff56f2"
+  },
+  "cli_summary": "114 passed in 43.65s",
+  "coverage": [
+   "Repeated owner cancel joins one pending cleanup without another interruption",
+   "Waiter cancellation propagates while actual job remains charged and short close returns false",
+   "All four terminal states leave a still-owned finalizer untouched",
+   "Queued CAS promotion continues to cancel the running owner; ordinary queued cancel remains correct",
+   "Cross-agent request is rejected and missing running owner never fabricates cancelled",
+   "Two real database ASR/frame cleanup barriers retain the same task, database and staging ownership until terminal persistence",
+   "Real two-slot queue releases a job into processing before the cancel write; the same request still finishes cancelled with no artifact"
+  ],
+  "total_unique_scoped_passed": 114
+ },
+ "scoped_validation": {
+  "scope": "Changed media cancellation method plus job admission/staging/processor cancellation/HTTP/lifecycle/architecture callers; gateway/codec/native processing unchanged",
+  "base": "03d24052bd2604eb8ba034616329f6c7849c5b13",
+  "planned": {
+   "agent/src/omni/application/media.py": {
+    "sha256": "1b610eaec1736ac8ab949c571e418b439d7a1f0b67e0c81127290bb358972f3c",
+    "git_blob": "c3262a3d04d35dfe9fdbb89ce720d9aa84cb133f"
+   },
+   "agent/tests/test_v2_media_cancel.py": {
+    "sha256": "5801ac92cab550658d5f92ccbf7418aeb73e273da133b8fa41fe25d877f2e698",
+    "git_blob": "3b3c303ed7121a8b33e36812359833e678d3c2f3"
+   },
+   "docs/V2_MEDIA.md": {
+    "sha256": "9ae94fbd231e14e2ad018fbc0b906db08608858ff0d5655a30e8eec001ebf77d",
+    "git_blob": "d9c10cdc05407aba3d5640a675c50ce744ceb951"
+   },
+   "docs/TESTING.md": {
+    "sha256": "a87038b23ce1217020019a33b51a368513fbf4aac91462700c54178920a9a354",
+    "git_blob": "06e6eda0a05e59b9deb37afe3e0752c66e104d94"
+   },
+   "docs/index/MODULES.md": {
+    "sha256": "8202490e537face1d8070f3b082adf7dad7640c5dc24ef3ac044046c5541a4a7",
+    "git_blob": "facbefe4e782ba71183b1213d02c54b8c22940e5"
+   },
+   "docs/index/project.json": {
+    "sha256": "9a5b333eb21e303e390a85b208efa6a2f7a9b5a4edd3b54137345b6b3be3c4bc",
+    "git_blob": "40583216340b9cecc78407f54b4540093d1e81c5"
+   }
+  },
+  "full_suite_run": false,
+  "gates": [
+   {
+    "command": [
+     "D:\\xm\\OmniOperator\\temp\\build\\checkpoint-interpreter-media-cancel\\Scripts\\python.exe",
+     "-m",
+     "ruff",
+     "check",
+     "agent/src/omni/application/media.py",
+     "agent/tests/test_v2_media_cancel.py"
+    ],
+    "returncode": 0,
+    "duration_s": 0.172,
+    "stdout": "All checks passed!\n",
+    "stderr": ""
+   },
+   {
+    "command": [
+     "D:\\xm\\OmniOperator\\temp\\build\\checkpoint-interpreter-media-cancel\\Scripts\\python.exe",
+     "-m",
+     "ruff",
+     "format",
+     "--check",
+     "agent/src/omni/application/media.py",
+     "agent/tests/test_v2_media_cancel.py"
+    ],
+    "returncode": 0,
+    "duration_s": 0.203,
+    "stdout": "2 files already formatted\n",
+    "stderr": ""
+   },
+   {
+    "command": [
+     "D:\\xm\\OmniOperator\\temp\\build\\checkpoint-interpreter-media-cancel\\Scripts\\python.exe",
+     "-m",
+     "pyright",
+     "--project",
+     "D:\\xm\\OmniOperator\\temp\\build\\media-cancel-index-precommit\\pyrightconfig.media-cancel.json",
+     "--outputjson"
+    ],
+    "returncode": 0,
+    "duration_s": 1.547,
+    "stdout": "{\n    \"version\": \"1.1.414\",\n    \"time\": \"1794818116575\",\n    \"generalDiagnostics\": [],\n    \"summary\": {\n        \"filesAnalyzed\": 1,\n        \"errorCount\": 0,\n        \"warningCount\": 0,\n        \"informationCount\": 0,\n        \"timeInSec\": 0.723\n    }\n}\n\n",
+    "stderr": ""
+   }
+  ],
+  "strict_summary": {
+   "filesAnalyzed": 1,
+   "errorCount": 0,
+   "warningCount": 0,
+   "informationCount": 0,
+   "timeInSec": 0.723
+  },
+  "callers": {
+   "command": [
+    "D:\\xm\\OmniOperator\\temp\\build\\checkpoint-interpreter-media-cancel\\Scripts\\python.exe",
+    "-m",
+    "pytest",
+    "-q",
+    "-n",
+    "0",
+    "agent/tests/test_v2_media_cancel.py",
+    "agent/tests/test_v2_media_admission.py",
+    "agent/tests/test_v2_media_staging.py",
+    "agent/tests/test_v2_media_transport.py",
+    "agent/tests/test_v2_media.py",
+    "agent/tests/test_v2_lifecycle.py",
+    "agent/tests/test_v2_architecture.py",
+    "agent/tests/test_v2_typecheck_scope.py",
+    "agent/tests/test_arch.py",
+    "--junitxml=D:\\xm\\OmniOperator\\temp\\build\\v2-media-cancel-callers.xml"
+   ],
+   "targets": [
+    "test_v2_media_cancel",
+    "test_v2_media_admission",
+    "test_v2_media_staging",
+    "test_v2_media_transport",
+    "test_v2_media",
+    "test_v2_lifecycle",
+    "test_v2_architecture",
+    "test_v2_typecheck_scope",
+    "test_arch"
+   ],
+   "returncode": 0,
+   "duration_s": 44.797,
+   "cases": 114,
+   "failures": 0,
+   "errors": 0,
+   "skipped": 0
+  },
+  "source_unchanged": true
+ },
+ "scoped_validation_artifact": {
+  "path": "temp/build/v2-media-cancel-scoped.json",
+  "sha256": "94db929efe2dd37fdbc48eea6a911eeee2e1130e0b2bd546b91b00c6942eab21"
+ },
+ "ownership_artifact": {
+  "path": "temp/build/v2-media-cancel-source.json",
+  "sha256": "7c6a1bb7bef427370c7742f03865701f061b1da410c3a0fd23a23c6e2ba6dc60"
+ },
+ "exploratory_reports": {
+  "working_before": {
+   "report": "temp/build/v2-media-cancel-before.xml",
+   "report_sha256": "a348b2de21b083f934f8d086044165399274948c48847c0f2365fd66c05681d8",
+   "raw_suites": [
+    {
+     "name": "pytest",
+     "errors": "0",
+     "failures": "10",
+     "skipped": "0",
+     "tests": "13",
+     "time": "6.703",
+     "timestamp": "2026-11-16T16:30:14.839859+08:00",
+     "hostname": "cy"
+    }
+   ],
+   "junit_testcase_records": 13,
+   "unique_test_nodes_reported": 13,
+   "failure_events": 10,
+   "error_events": 0,
+   "skipped": 0,
+   "unique_failed_or_errored_nodes": 10,
+   "unique_nodes_without_failure_or_error": 3,
+   "duplicate_nodes": {},
+   "failed_nodes": [
+    {
+     "nodeid": "agent/tests/test_v2_media_cancel.py::test_repeated_cancel_joins_one_cleanup_instead_of_interrupting_it",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: assert (2 == 1)\n +  where 2 = <built-in method cancelling of _asyncio.Task object at 0x000001C26C3C81C0>()\n +    where <built-in method cancelling of _asyncio.Task object at 0x000001C26C3C81C0> = <Task cancelling name='media-job-job' coro=<fixture.<locals>.worker() running at D:\\xm\\OmniOperator\\agent\\tests\\test_v...er_done_callback() at C:\\Users\\cy\\AppData\\Roaming\\uv\\python\\cpython-3.12-windows-x86_64-none\\Lib\\asyncio\\tasks.py:905]>.cancelling"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_cancel.py::test_cancelled_waiter_propagates_cancellation_while_job_stays_owned",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "Failed: DID NOT RAISE CancelledError"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_cancel.py::test_terminal_job_does_not_interrupt_a_still_owned_task[done]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: assert (1 == 0)\n +  where 1 = <built-in method cancelling of _asyncio.Task object at 0x000001C26C3C9A80>()\n +    where <built-in method cancelling of _asyncio.Task object at 0x000001C26C3C9A80> = <Task cancelling name='media-job-job' coro=<fixture.<locals>.worker() running at D:\\xm\\OmniOperator\\agent\\tests\\test_v...er_done_callback() at C:\\Users\\cy\\AppData\\Roaming\\uv\\python\\cpython-3.12-windows-x86_64-none\\Lib\\asyncio\\tasks.py:905]>.cancelling"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_cancel.py::test_terminal_job_does_not_interrupt_a_still_owned_task[failed]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: assert (1 == 0)\n +  where 1 = <built-in method cancelling of _asyncio.Task object at 0x000001C26C3C93C0>()\n +    where <built-in method cancelling of _asyncio.Task object at 0x000001C26C3C93C0> = <Task cancelling name='media-job-job' coro=<fixture.<locals>.worker() running at D:\\xm\\OmniOperator\\agent\\tests\\test_v...er_done_callback() at C:\\Users\\cy\\AppData\\Roaming\\uv\\python\\cpython-3.12-windows-x86_64-none\\Lib\\asyncio\\tasks.py:905]>.cancelling"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_cancel.py::test_terminal_job_does_not_interrupt_a_still_owned_task[cancelled]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: assert (1 == 0)\n +  where 1 = <built-in method cancelling of _asyncio.Task object at 0x000001C26C3C8F40>()\n +    where <built-in method cancelling of _asyncio.Task object at 0x000001C26C3C8F40> = <Task cancelling name='media-job-job' coro=<fixture.<locals>.worker() running at D:\\xm\\OmniOperator\\agent\\tests\\test_v...er_done_callback() at C:\\Users\\cy\\AppData\\Roaming\\uv\\python\\cpython-3.12-windows-x86_64-none\\Lib\\asyncio\\tasks.py:905]>.cancelling"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_cancel.py::test_terminal_job_does_not_interrupt_a_still_owned_task[unknown]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: assert (1 == 0)\n +  where 1 = <built-in method cancelling of _asyncio.Task object at 0x000001C26C3C81C0>()\n +    where <built-in method cancelling of _asyncio.Task object at 0x000001C26C3C81C0> = <Task cancelling name='media-job-job' coro=<fixture.<locals>.worker() running at D:\\xm\\OmniOperator\\agent\\tests\\test_v...er_done_callback() at C:\\Users\\cy\\AppData\\Roaming\\uv\\python\\cpython-3.12-windows-x86_64-none\\Lib\\asyncio\\tasks.py:905]>.cancelling"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_cancel.py::test_queued_to_running_race_continues_with_cancellation_of_the_owner",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: assert (1 == 1 and 0 == 1)\n +  where 1 = <test_v2_media_cancel.Database object at 0x000001C26C53F020>.cancel_calls\n +  and   0 = <built-in method cancelling of _asyncio.Task object at 0x000001C26C3CA200>()\n +    where <built-in method cancelling of _asyncio.Task object at 0x000001C26C3CA200> = <Task pending name='media-job-job' coro=<fixture.<locals>.worker() running at D:\\xm\\OmniOperator\\agent\\tests\\test_v2_media_cancel.py:49> wait_for=<Future pending cb=[Task.task_wakeup()]> cb=[MediaService._retire()]>.cancelling"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_cancel.py::test_real_job_repeated_cancel_preserves_processor_cleanup_until_it_finishes[transcribe]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: assert (2 == 1)\n +  where 2 = <built-in method cancelling of _asyncio.Task object at 0x000001C26E7393C0>()\n +    where <built-in method cancelling of _asyncio.Task object at 0x000001C26E7393C0> = <Task cancelling name='media-job-d2f1af7f-cc45-436e-96a6-45908f7e293b' coro=<MediaService.submit.<locals>.create.<loca...er_done_callback() at C:\\Users\\cy\\AppData\\Roaming\\uv\\python\\cpython-3.12-windows-x86_64-none\\Lib\\asyncio\\tasks.py:905]>.cancelling"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_cancel.py::test_real_job_repeated_cancel_preserves_processor_cleanup_until_it_finishes[frames]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: assert (2 == 1)\n +  where 2 = <built-in method cancelling of _asyncio.Task object at 0x000001C271635180>()\n +    where <built-in method cancelling of _asyncio.Task object at 0x000001C271635180> = <Task cancelling name='media-job-b99e1697-110a-48be-9e41-7ef44143ca0c' coro=<MediaService.submit.<locals>.create.<loca...er_done_callback() at C:\\Users\\cy\\AppData\\Roaming\\uv\\python\\cpython-3.12-windows-x86_64-none\\Lib\\asyncio\\tasks.py:905]>.cancelling"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_cancel.py::test_real_queue_promotion_before_cancel_write_still_cancels_the_started_job",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: assert 'running' == 'cancelled'\n  \n  - cancelled\n  + running"
+      }
+     ]
+    }
+   ]
+  },
+  "working_after": {
+   "report": "temp/build/v2-media-cancel-after.xml",
+   "report_sha256": "6243d92346d74e9b823253bf1603c5dc4486a0042c4dab74d4574a752f2aad47",
+   "raw_suites": [
+    {
+     "name": "pytest",
+     "errors": "0",
+     "failures": "0",
+     "skipped": "0",
+     "tests": "13",
+     "time": "5.737",
+     "timestamp": "2026-11-16T16:31:24.904121+08:00",
+     "hostname": "cy"
+    }
+   ],
+   "junit_testcase_records": 13,
+   "unique_test_nodes_reported": 13,
+   "failure_events": 0,
+   "error_events": 0,
+   "skipped": 0,
+   "unique_failed_or_errored_nodes": 0,
+   "unique_nodes_without_failure_or_error": 13,
+   "duplicate_nodes": {},
+   "failed_nodes": []
+  },
+  "scope": "Working-tree probes may include concurrent WIP; final clean baseline and immutable candidate are authoritative."
+ },
+ "full_run": {
+  "status": "deferred_per_owner",
+  "run_for_this_change": false,
+  "covers_this_source": false,
+  "reason": "Owner prioritizes implementation and scoped tests; full suite at multi-module integration",
+  "last_completed_source": "42a4b8b29d7c80daa4cb212d49dd40d07c189079",
+  "last_completed_summary": "4800 passed, 12 warnings in 3025.48s (0:50:25)",
+  "last_completed_report": {
+   "path": "temp/build/v2-full-226.xml",
+   "sha256": "ecab05764ea535042e7e4dde6ea0e0f6969030b4ae74056a1ce9fd20352549e4"
+  },
+  "last_full_does_not_cover_this_change": true
+ },
+ "not_verified": [
+  "Full integration suite for this new source",
+  "Actual ASR/decoder/model/device cancellation latency; processor gates here are isolated ports",
+  "Unchanged gateway/codec/native processing was not rerun in this batch",
+  "Historical system commit/native/UI causes",
+  "Concurrent uncommitted configuration/schema/UI bodies"
+ ]
+}
