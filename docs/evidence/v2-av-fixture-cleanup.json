@@ -1,0 +1,1170 @@
+{
+ "schema": 1,
+ "date": "2026-11-16",
+ "batch": "synthetic-media-output-cleanup",
+ "whole_v2_complete": false,
+ "default_entrypoint": "v1",
+ "source": {
+  "head": "59cd85f29b634aa09bbdc9c0bb7ff829365953a4",
+  "code_version": "c0de1caf38a4f84868ae22051340c2f72035fa5cfd9a8848b65b9ed2075458f2",
+  "fixed_source_files": 1215,
+  "strict_files": 332
+ },
+ "committed_scope": {
+  "production_and_dependencies_blob_identical_to": "dc88815c27889ff193a587a22aec21f311613f72",
+  "paths": [
+   "agent/src/omni/",
+   "web/",
+   "scripts/",
+   "agent/scripts/",
+   "agent/hatch_build.py",
+   "pyproject.toml",
+   "uv.lock",
+   "pyrightconfig.strict.json",
+   "ruff.toml"
+  ],
+  "excluded_working_tree_paths": [
+   "agent/src/omni/adapters/persistence/schema.py",
+   "agent/src/omni/domain/configuration.py",
+   "agent/tests/test_v2_action_review_migration.py",
+   "agent/tests/test_v2_android_migration.py",
+   "agent/tests/test_v2_audit_plan_migration.py",
+   "agent/tests/test_v2_capabilities.py",
+   "agent/tests/test_v2_credential_authority.py",
+   "agent/tests/test_v2_event_plan_migration.py",
+   "agent/tests/test_v2_execution_pruning.py",
+   "agent/tests/test_v2_extensions_migration.py",
+   "agent/tests/test_v2_history_migration.py",
+   "agent/tests/test_v2_images_migration.py",
+   "agent/tests/test_v2_maintenance_migration.py",
+   "agent/tests/test_v2_media.py",
+   "agent/tests/test_v2_memory_organization_migration.py",
+   "agent/tests/test_v2_memory_semantics_migration.py",
+   "agent/tests/test_v2_models_ui.py",
+   "agent/tests/test_v2_owner_command_migration.py",
+   "agent/tests/test_v2_reference_migration.py",
+   "agent/tests/test_v2_routing_migration.py",
+   "agent/tests/test_v2_schema_release.py",
+   "agent/tests/test_v2_skills_migration.py",
+   "agent/tests/test_v2_terminal_review_migration.py",
+   "agent/tests/test_v2_terminals_migration.py",
+   "agent/tests/v2_configuration_helpers.py",
+   "docs/V2_AI_CONTINUATION_PROMPT.md",
+   "docs/V2_UI_PROMPT.md",
+   "docs/index/MODULES.md",
+   "docs/index/project.json",
+   "web/ui/v2/android.js",
+   "web/ui/v2/desktop.js",
+   "web/ui/v2/documents.js",
+   "web/ui/v2/index.html",
+   "web/ui/v2/main.js",
+   "web/ui/v2/models.js",
+   "web/ui/v2/operations.js",
+   "web/ui/v2/terminals.js",
+   "web/ui/v2/workbench.css"
+  ],
+  "excluded_untracked_source_paths": [
+   "agent/src/omni/adapters/persistence/migrations/versions/v0038.py"
+  ],
+  "note": "Frozen production remains schema136/v2_0037 and assetsv130. Concurrent UI/schema v0038 work was excluded and is not validated here."
+ },
+ "root_cause": "Five synthetic PyAV output producers closed only on successful completion. Python exceptions skipped explicit close, allowing the still-owned container to remain reachable through exception frames or other references. Strongly held real native containers show zero close calls at the failure boundary in the old helpers. Regression teardown itself always releases them.",
+ "changes": [
+  "Put container.close in finally at all5 output sites without catch/suppression or successful return on failed cleanup",
+  "Retain original exception when close succeeds; expose close failure and preserve the original exception as context",
+  "Keep codecs, fps, dimensions, frame counts, AAC odd samples, long-video duration and existing assertions; prove the5 normalized successful AST paths are identical",
+  "Minor preexisting import-style/unused-name cleanup limited to touched test files"
+ ],
+ "limits": [
+  "Python finally cannot guarantee cleanup after abrupt native process termination",
+  "This does not identify the owner of system commit allocations or establish causes of older retrieval/ASR worker exits",
+  "No user service stopped, pagefile changed, production runtime/dependency/schema or foreground input changed"
+ ],
+ "regressions": {
+  "new_parent_cases": 40,
+  "real_native_outputs": 5,
+  "stage_faults": [
+   "stream creation",
+   "frame conversion",
+   "encode",
+   "mux after native write",
+   "drain"
+  ],
+  "checks": [
+   "one owned close",
+   "original exception identity",
+   "close error visibility with body context",
+   "normal real video/audio decodes"
+  ],
+  "storyboard_before": {
+   "report": "temp/build/v2-video-fixture-before.xml",
+   "report_sha256": "51e0aea873b234761f5313c9c3a0d48c1e99408759905cbe9fd6308066deeb4f",
+   "raw_suites": [
+    {
+     "name": "pytest",
+     "errors": "0",
+     "failures": "6",
+     "skipped": "0",
+     "tests": "8",
+     "time": "0.788",
+     "timestamp": "2026-11-16T07:14:47.558899+08:00",
+     "hostname": "cy"
+    }
+   ],
+   "junit_testcase_records": 8,
+   "unique_test_nodes_reported": 8,
+   "failure_events": 6,
+   "error_events": 0,
+   "skipped": 0,
+   "unique_failed_or_errored_nodes": 6,
+   "unique_nodes_without_failure_or_error": 2,
+   "duplicate_nodes": {},
+   "failed_nodes": [
+    {
+     "nodeid": "agent/tests/test_storyboard_fixture.py::test_synthetic_video_failure_closes_owned_container_once_and_keeps_original_error[stream]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: assert (1 == 1 and 0 == 1)\n +  where 1 = len([<test_storyboard_fixture.native_output.<locals>.Output object at 0x00000200AD3B8E90>])\n +    where [<test_storyboard_fixture.native_output.<locals>.Output object at 0x00000200AD3B8E90>] = namespace(path=WindowsPath('C:/Users/cy/AppData/Local/Temp/pytest-of-cy/pytest-2576/test_synthetic_video_failure_c0/sy...('injected video fixture failure'), cleanup=OSError('injected container close failure'), open=<built-in function open>).outputs\n +  and   0 = <test_storyboard_fixture.native_output.<locals>.Output object at 0x00000200AD3B8E90>.close_calls"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_storyboard_fixture.py::test_synthetic_video_failure_closes_owned_container_once_and_keeps_original_error[frame]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: assert (1 == 1 and 0 == 1)\n +  where 1 = len([<test_storyboard_fixture.native_output.<locals>.Output object at 0x00000200AD407530>])\n +    where [<test_storyboard_fixture.native_output.<locals>.Output object at 0x00000200AD407530>] = namespace(path=WindowsPath('C:/Users/cy/AppData/Local/Temp/pytest-of-cy/pytest-2576/test_synthetic_video_failure_c1/sy...('injected video fixture failure'), cleanup=OSError('injected container close failure'), open=<built-in function open>).outputs\n +  and   0 = <test_storyboard_fixture.native_output.<locals>.Output object at 0x00000200AD407530>.close_calls"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_storyboard_fixture.py::test_synthetic_video_failure_closes_owned_container_once_and_keeps_original_error[encode]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: assert (1 == 1 and 0 == 1)\n +  where 1 = len([<test_storyboard_fixture.native_output.<locals>.Output object at 0x00000200AD59C500>])\n +    where [<test_storyboard_fixture.native_output.<locals>.Output object at 0x00000200AD59C500>] = namespace(path=WindowsPath('C:/Users/cy/AppData/Local/Temp/pytest-of-cy/pytest-2576/test_synthetic_video_failure_c2/sy...('injected video fixture failure'), cleanup=OSError('injected container close failure'), open=<built-in function open>).outputs\n +  and   0 = <test_storyboard_fixture.native_output.<locals>.Output object at 0x00000200AD59C500>.close_calls"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_storyboard_fixture.py::test_synthetic_video_failure_closes_owned_container_once_and_keeps_original_error[mux]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: assert (1 == 1 and 0 == 1)\n +  where 1 = len([<test_storyboard_fixture.native_output.<locals>.Output object at 0x00000200AD59EED0>])\n +    where [<test_storyboard_fixture.native_output.<locals>.Output object at 0x00000200AD59EED0>] = namespace(path=WindowsPath('C:/Users/cy/AppData/Local/Temp/pytest-of-cy/pytest-2576/test_synthetic_video_failure_c3/sy...('injected video fixture failure'), cleanup=OSError('injected container close failure'), open=<built-in function open>).outputs\n +  and   0 = <test_storyboard_fixture.native_output.<locals>.Output object at 0x00000200AD59EED0>.close_calls"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_storyboard_fixture.py::test_synthetic_video_failure_closes_owned_container_once_and_keeps_original_error[drain]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: assert (1 == 1 and 0 == 1)\n +  where 1 = len([<test_storyboard_fixture.native_output.<locals>.Output object at 0x00000200AD59FD10>])\n +    where [<test_storyboard_fixture.native_output.<locals>.Output object at 0x00000200AD59FD10>] = namespace(path=WindowsPath('C:/Users/cy/AppData/Local/Temp/pytest-of-cy/pytest-2576/test_synthetic_video_failure_c4/sy...('injected video fixture failure'), cleanup=OSError('injected container close failure'), open=<built-in function open>).outputs\n +  and   0 = <test_storyboard_fixture.native_output.<locals>.Output object at 0x00000200AD59FD10>.close_calls"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_storyboard_fixture.py::test_container_close_failure_is_visible_and_retains_body_error_context[True]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "MemoryError: injected video fixture failure"
+      }
+     ]
+    }
+   ]
+  },
+  "remaining_before": {
+   "report": "temp/build/v2-av-fixture-before-remaining-corrected.xml",
+   "report_sha256": "26361056de559cf2b397ee7d2f817e259bf857ea2c9cb744a1c586d51ccf727a",
+   "raw_suites": [
+    {
+     "name": "pytest",
+     "errors": "0",
+     "failures": "24",
+     "skipped": "0",
+     "tests": "40",
+     "time": "5.404",
+     "timestamp": "2026-11-16T07:19:38.253905+08:00",
+     "hostname": "cy"
+    }
+   ],
+   "junit_testcase_records": 40,
+   "unique_test_nodes_reported": 40,
+   "failure_events": 24,
+   "error_events": 0,
+   "skipped": 0,
+   "unique_failed_or_errored_nodes": 24,
+   "unique_nodes_without_failure_or_error": 16,
+   "duplicate_nodes": {},
+   "failed_nodes": [
+    {
+     "nodeid": "agent/tests/test_storyboard_fixture.py::test_synthetic_video_failure_closes_owned_container_once_and_keeps_original_error[bilibili_frames-stream]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: assert (1 == 1 and 0 == 1)\n +  where 1 = len([<test_storyboard_fixture.native_output.<locals>.Output object at 0x00000296802540E0>])\n +    where [<test_storyboard_fixture.native_output.<locals>.Output object at 0x00000296802540E0>] = namespace(path=WindowsPath('C:/Users/cy/AppData/Local/Temp/pytest-of-cy/pytest-2580/test_synthetic_video_failure_c5/sy...en=<built-in function open>, make=<function native_output.<locals>.make at 0x000002968023F2E0>, case='bilibili_frames').outputs\n +  and   0 = <test_storyboard_fixture.native_output.<locals>.Output object at 0x00000296802540E0>.close_calls"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_storyboard_fixture.py::test_synthetic_video_failure_closes_owned_container_once_and_keeps_original_error[bilibili_frames-frame]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: assert (1 == 1 and 0 == 1)\n +  where 1 = len([<test_storyboard_fixture.native_output.<locals>.Output object at 0x00000296800ECBF0>])\n +    where [<test_storyboard_fixture.native_output.<locals>.Output object at 0x00000296800ECBF0>] = namespace(path=WindowsPath('C:/Users/cy/AppData/Local/Temp/pytest-of-cy/pytest-2580/test_synthetic_video_failure_c6/sy...en=<built-in function open>, make=<function native_output.<locals>.make at 0x0000029680265440>, case='bilibili_frames').outputs\n +  and   0 = <test_storyboard_fixture.native_output.<locals>.Output object at 0x00000296800ECBF0>.close_calls"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_storyboard_fixture.py::test_synthetic_video_failure_closes_owned_container_once_and_keeps_original_error[bilibili_frames-encode]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: assert (1 == 1 and 0 == 1)\n +  where 1 = len([<test_storyboard_fixture.native_output.<locals>.Output object at 0x0000029680255610>])\n +    where [<test_storyboard_fixture.native_output.<locals>.Output object at 0x0000029680255610>] = namespace(path=WindowsPath('C:/Users/cy/AppData/Local/Temp/pytest-of-cy/pytest-2580/test_synthetic_video_failure_c7/sy...en=<built-in function open>, make=<function native_output.<locals>.make at 0x0000029680265EE0>, case='bilibili_frames').outputs\n +  and   0 = <test_storyboard_fixture.native_output.<locals>.Output object at 0x0000029680255610>.close_calls"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_storyboard_fixture.py::test_synthetic_video_failure_closes_owned_container_once_and_keeps_original_error[bilibili_frames-mux]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: assert (1 == 1 and 0 == 1)\n +  where 1 = len([<test_storyboard_fixture.native_output.<locals>.Output object at 0x00000296802562D0>])\n +    where [<test_storyboard_fixture.native_output.<locals>.Output object at 0x00000296802562D0>] = namespace(path=WindowsPath('C:/Users/cy/AppData/Local/Temp/pytest-of-cy/pytest-2580/test_synthetic_video_failure_c8/sy...en=<built-in function open>, make=<function native_output.<locals>.make at 0x00000296802668E0>, case='bilibili_frames').outputs\n +  and   0 = <test_storyboard_fixture.native_output.<locals>.Output object at 0x00000296802562D0>.close_calls"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_storyboard_fixture.py::test_synthetic_video_failure_closes_owned_container_once_and_keeps_original_error[bilibili_frames-drain]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: assert (1 == 1 and 0 == 1)\n +  where 1 = len([<test_storyboard_fixture.native_output.<locals>.Output object at 0x0000029680257170>])\n +    where [<test_storyboard_fixture.native_output.<locals>.Output object at 0x0000029680257170>] = namespace(path=WindowsPath('C:/Users/cy/AppData/Local/Temp/pytest-of-cy/pytest-2580/test_synthetic_video_failure_c9/sy...en=<built-in function open>, make=<function native_output.<locals>.make at 0x0000029680267380>, case='bilibili_frames').outputs\n +  and   0 = <test_storyboard_fixture.native_output.<locals>.Output object at 0x0000029680257170>.close_calls"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_storyboard_fixture.py::test_synthetic_video_failure_closes_owned_container_once_and_keeps_original_error[bilibili_tools-stream]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: assert (1 == 1 and 0 == 1)\n +  where 1 = len([<test_storyboard_fixture.native_output.<locals>.Output object at 0x00000296802A0290>])\n +    where [<test_storyboard_fixture.native_output.<locals>.Output object at 0x00000296802A0290>] = namespace(path=WindowsPath('C:/Users/cy/AppData/Local/Temp/pytest-of-cy/pytest-2580/test_synthetic_video_failure_c10/s...pen=<built-in function open>, make=<function native_output.<locals>.make at 0x0000029680267EC0>, case='bilibili_tools').outputs\n +  and   0 = <test_storyboard_fixture.native_output.<locals>.Output object at 0x00000296802A0290>.close_calls"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_storyboard_fixture.py::test_synthetic_video_failure_closes_owned_container_once_and_keeps_original_error[bilibili_tools-frame]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: assert (1 == 1 and 0 == 1)\n +  where 1 = len([<test_storyboard_fixture.native_output.<locals>.Output object at 0x00000296807F8E90>])\n +    where [<test_storyboard_fixture.native_output.<locals>.Output object at 0x00000296807F8E90>] = namespace(path=WindowsPath('C:/Users/cy/AppData/Local/Temp/pytest-of-cy/pytest-2580/test_synthetic_video_failure_c11/s...pen=<built-in function open>, make=<function native_output.<locals>.make at 0x0000029680809440>, case='bilibili_tools').outputs\n +  and   0 = <test_storyboard_fixture.native_output.<locals>.Output object at 0x00000296807F8E90>.close_calls"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_storyboard_fixture.py::test_synthetic_video_failure_closes_owned_container_once_and_keeps_original_error[bilibili_tools-encode]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: assert (1 == 1 and 0 == 1)\n +  where 1 = len([<test_storyboard_fixture.native_output.<locals>.Output object at 0x00000296807F9A60>])\n +    where [<test_storyboard_fixture.native_output.<locals>.Output object at 0x00000296807F9A60>] = namespace(path=WindowsPath('C:/Users/cy/AppData/Local/Temp/pytest-of-cy/pytest-2580/test_synthetic_video_failure_c12/s...pen=<built-in function open>, make=<function native_output.<locals>.make at 0x0000029680809F80>, case='bilibili_tools').outputs\n +  and   0 = <test_storyboard_fixture.native_output.<locals>.Output object at 0x00000296807F9A60>.close_calls"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_storyboard_fixture.py::test_synthetic_video_failure_closes_owned_container_once_and_keeps_original_error[bilibili_tools-mux]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: assert (1 == 1 and 0 == 1)\n +  where 1 = len([<test_storyboard_fixture.native_output.<locals>.Output object at 0x00000296807FA690>])\n +    where [<test_storyboard_fixture.native_output.<locals>.Output object at 0x00000296807FA690>] = namespace(path=WindowsPath('C:/Users/cy/AppData/Local/Temp/pytest-of-cy/pytest-2580/test_synthetic_video_failure_c13/s...pen=<built-in function open>, make=<function native_output.<locals>.make at 0x000002968080A980>, case='bilibili_tools').outputs\n +  and   0 = <test_storyboard_fixture.native_output.<locals>.Output object at 0x00000296807FA690>.close_calls"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_storyboard_fixture.py::test_synthetic_video_failure_closes_owned_container_once_and_keeps_original_error[bilibili_tools-drain]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: assert (1 == 1 and 0 == 1)\n +  where 1 = len([<test_storyboard_fixture.native_output.<locals>.Output object at 0x00000296807FB560>])\n +    where [<test_storyboard_fixture.native_output.<locals>.Output object at 0x00000296807FB560>] = namespace(path=WindowsPath('C:/Users/cy/AppData/Local/Temp/pytest-of-cy/pytest-2580/test_synthetic_video_failure_c14/s...pen=<built-in function open>, make=<function native_output.<locals>.make at 0x000002968080B2E0>, case='bilibili_tools').outputs\n +  and   0 = <test_storyboard_fixture.native_output.<locals>.Output object at 0x00000296807FB560>.close_calls"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_storyboard_fixture.py::test_synthetic_video_failure_closes_owned_container_once_and_keeps_original_error[aac-stream]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: assert (1 == 1 and 0 == 1)\n +  where 1 = len([<test_storyboard_fixture.native_output.<locals>.Output object at 0x00000296807FB320>])\n +    where [<test_storyboard_fixture.native_output.<locals>.Output object at 0x00000296807FB320>] = namespace(path=WindowsPath('C:/Users/cy/AppData/Local/Temp/pytest-of-cy/pytest-2580/test_synthetic_video_failure_c15/s...ailure'), open=<built-in function open>, make=<function native_output.<locals>.make at 0x000002968080AA20>, case='aac').outputs\n +  and   0 = <test_storyboard_fixture.native_output.<locals>.Output object at 0x00000296807FB320>.close_calls"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_storyboard_fixture.py::test_synthetic_video_failure_closes_owned_container_once_and_keeps_original_error[aac-frame]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: assert (1 == 1 and 0 == 1)\n +  where 1 = len([<test_storyboard_fixture.native_output.<locals>.Output object at 0x0000029680819D00>])\n +    where [<test_storyboard_fixture.native_output.<locals>.Output object at 0x0000029680819D00>] = namespace(path=WindowsPath('C:/Users/cy/AppData/Local/Temp/pytest-of-cy/pytest-2580/test_synthetic_video_failure_c16/s...ailure'), open=<built-in function open>, make=<function native_output.<locals>.make at 0x0000029681826C00>, case='aac').outputs\n +  and   0 = <test_storyboard_fixture.native_output.<locals>.Output object at 0x0000029680819D00>.close_calls"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_storyboard_fixture.py::test_synthetic_video_failure_closes_owned_container_once_and_keeps_original_error[aac-encode]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: assert (1 == 1 and 0 == 1)\n +  where 1 = len([<test_storyboard_fixture.native_output.<locals>.Output object at 0x00000296B0720230>])\n +    where [<test_storyboard_fixture.native_output.<locals>.Output object at 0x00000296B0720230>] = namespace(path=WindowsPath('C:/Users/cy/AppData/Local/Temp/pytest-of-cy/pytest-2580/test_synthetic_video_failure_c17/s...ailure'), open=<built-in function open>, make=<function native_output.<locals>.make at 0x00000296B0716520>, case='aac').outputs\n +  and   0 = <test_storyboard_fixture.native_output.<locals>.Output object at 0x00000296B0720230>.close_calls"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_storyboard_fixture.py::test_synthetic_video_failure_closes_owned_container_once_and_keeps_original_error[aac-mux]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: assert (1 == 1 and 0 == 1)\n +  where 1 = len([<test_storyboard_fixture.native_output.<locals>.Output object at 0x00000296B07210D0>])\n +    where [<test_storyboard_fixture.native_output.<locals>.Output object at 0x00000296B07210D0>] = namespace(path=WindowsPath('C:/Users/cy/AppData/Local/Temp/pytest-of-cy/pytest-2580/test_synthetic_video_failure_c18/s...ailure'), open=<built-in function open>, make=<function native_output.<locals>.make at 0x00000296B07171A0>, case='aac').outputs\n +  and   0 = <test_storyboard_fixture.native_output.<locals>.Output object at 0x00000296B07210D0>.close_calls"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_storyboard_fixture.py::test_synthetic_video_failure_closes_owned_container_once_and_keeps_original_error[aac-drain]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: assert (1 == 1 and 0 == 1)\n +  where 1 = len([<test_storyboard_fixture.native_output.<locals>.Output object at 0x00000296B0721EE0>])\n +    where [<test_storyboard_fixture.native_output.<locals>.Output object at 0x00000296B0721EE0>] = namespace(path=WindowsPath('C:/Users/cy/AppData/Local/Temp/pytest-of-cy/pytest-2580/test_synthetic_video_failure_c19/s...ailure'), open=<built-in function open>, make=<function native_output.<locals>.make at 0x00000296B0717E20>, case='aac').outputs\n +  and   0 = <test_storyboard_fixture.native_output.<locals>.Output object at 0x00000296B0721EE0>.close_calls"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_storyboard_fixture.py::test_synthetic_video_failure_closes_owned_container_once_and_keeps_original_error[long_video-stream]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: assert (1 == 1 and 0 == 1)\n +  where 1 = len([<test_storyboard_fixture.native_output.<locals>.Output object at 0x00000296B0722E70>])\n +    where [<test_storyboard_fixture.native_output.<locals>.Output object at 0x00000296B0722E70>] = namespace(path=WindowsPath('C:/Users/cy/AppData/Local/Temp/pytest-of-cy/pytest-2580/test_synthetic_video_failure_c20/l...), open=<built-in function open>, make=<function native_output.<locals>.make at 0x00000296B0770860>, case='long_video').outputs\n +  and   0 = <test_storyboard_fixture.native_output.<locals>.Output object at 0x00000296B0722E70>.close_calls"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_storyboard_fixture.py::test_synthetic_video_failure_closes_owned_container_once_and_keeps_original_error[long_video-frame]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: assert (1 == 1 and 0 == 1)\n +  where 1 = len([<test_storyboard_fixture.native_output.<locals>.Output object at 0x00000296B0707380>])\n +    where [<test_storyboard_fixture.native_output.<locals>.Output object at 0x00000296B0707380>] = namespace(path=WindowsPath('C:/Users/cy/AppData/Local/Temp/pytest-of-cy/pytest-2580/test_synthetic_video_failure_c21/l...), open=<built-in function open>, make=<function native_output.<locals>.make at 0x00000296B07711C0>, case='long_video').outputs\n +  and   0 = <test_storyboard_fixture.native_output.<locals>.Output object at 0x00000296B0707380>.close_calls"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_storyboard_fixture.py::test_synthetic_video_failure_closes_owned_container_once_and_keeps_original_error[long_video-encode]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: assert (1 == 1 and 0 == 1)\n +  where 1 = len([<test_storyboard_fixture.native_output.<locals>.Output object at 0x00000296B0723110>])\n +    where [<test_storyboard_fixture.native_output.<locals>.Output object at 0x00000296B0723110>] = namespace(path=WindowsPath('C:/Users/cy/AppData/Local/Temp/pytest-of-cy/pytest-2580/test_synthetic_video_failure_c22/l...), open=<built-in function open>, make=<function native_output.<locals>.make at 0x00000296B0716E80>, case='long_video').outputs\n +  and   0 = <test_storyboard_fixture.native_output.<locals>.Output object at 0x00000296B0723110>.close_calls"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_storyboard_fixture.py::test_synthetic_video_failure_closes_owned_container_once_and_keeps_original_error[long_video-mux]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: assert (1 == 1 and 0 == 1)\n +  where 1 = len([<test_storyboard_fixture.native_output.<locals>.Output object at 0x00000296B07225A0>])\n +    where [<test_storyboard_fixture.native_output.<locals>.Output object at 0x00000296B07225A0>] = namespace(path=WindowsPath('C:/Users/cy/AppData/Local/Temp/pytest-of-cy/pytest-2580/test_synthetic_video_failure_c23/l...), open=<built-in function open>, make=<function native_output.<locals>.make at 0x00000296B0770720>, case='long_video').outputs\n +  and   0 = <test_storyboard_fixture.native_output.<locals>.Output object at 0x00000296B07225A0>.close_calls"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_storyboard_fixture.py::test_synthetic_video_failure_closes_owned_container_once_and_keeps_original_error[long_video-drain]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: assert (1 == 1 and 0 == 1)\n +  where 1 = len([<test_storyboard_fixture.native_output.<locals>.Output object at 0x00000296B07201D0>])\n +    where [<test_storyboard_fixture.native_output.<locals>.Output object at 0x00000296B07201D0>] = namespace(path=WindowsPath('C:/Users/cy/AppData/Local/Temp/pytest-of-cy/pytest-2580/test_synthetic_video_failure_c24/l...), open=<built-in function open>, make=<function native_output.<locals>.make at 0x00000296B0770860>, case='long_video').outputs\n +  and   0 = <test_storyboard_fixture.native_output.<locals>.Output object at 0x00000296B07201D0>.close_calls"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_storyboard_fixture.py::test_container_close_failure_is_visible_and_retains_body_error_context[bilibili_frames-True]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "MemoryError: injected video fixture failure"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_storyboard_fixture.py::test_container_close_failure_is_visible_and_retains_body_error_context[bilibili_tools-True]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "MemoryError: injected video fixture failure"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_storyboard_fixture.py::test_container_close_failure_is_visible_and_retains_body_error_context[aac-True]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "MemoryError: injected video fixture failure"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_storyboard_fixture.py::test_container_close_failure_is_visible_and_retains_body_error_context[long_video-True]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "MemoryError: injected video fixture failure"
+      }
+     ]
+    }
+   ]
+  },
+  "frozen_callers": {
+   "report": "temp/build/v2-av-fixture-frozen-callers.xml",
+   "report_sha256": "055ed87ac0e5fafe31f7f6a69b2bafed34e118311f5f8b87fbd280c543d525b2",
+   "raw_suites": [
+    {
+     "name": "pytest",
+     "errors": "0",
+     "failures": "0",
+     "skipped": "0",
+     "tests": "183",
+     "time": "23.626",
+     "timestamp": "2026-11-16T07:27:45.895658+08:00",
+     "hostname": "cy"
+    }
+   ],
+   "junit_testcase_records": 183,
+   "unique_test_nodes_reported": 183,
+   "failure_events": 0,
+   "error_events": 0,
+   "skipped": 0,
+   "unique_failed_or_errored_nodes": 0,
+   "unique_nodes_without_failure_or_error": 183,
+   "duplicate_nodes": {},
+   "failed_nodes": []
+  },
+  "targeted_unique_passed": 183,
+  "normal_path_proof": {
+   "source_head": "59cd85f29b634aa09bbdc9c0bb7ff829365953a4",
+   "base_head": "dc88815c27889ff193a587a22aec21f311613f72",
+   "method": "Flatten the inserted try body followed by its single container.close finally; normalize only unused scores binding. No codec/frame/duration/assertion changes accepted.",
+   "functions": [
+    {
+     "path": "agent/tests/test_storyboard.py",
+     "class": null,
+     "function": "_make_video",
+     "normal_path_ast_identical": true,
+     "normal_path_ast_sha256": "33b30b28e3526614e8ae48a3ca3366ae4dd7829214a6f17082f29a79a3722cb6"
+    },
+    {
+     "path": "agent/tests/test_bilibili_frames.py",
+     "class": null,
+     "function": "_make_video",
+     "normal_path_ast_identical": true,
+     "normal_path_ast_sha256": "2911de211da0313d19e84a0ee12f4468926121ac8b31d86dc8adacfbdfc8913d"
+    },
+    {
+     "path": "agent/tests/test_bilibili_tools.py",
+     "class": "VideoAPI",
+     "function": "download_binary",
+     "normal_path_ast_identical": true,
+     "normal_path_ast_sha256": "65d05489bb97e89c0cd5eaf66964ec8c3b930b9b8fd2c8a6f3afa2f55a8bd7f3"
+    },
+    {
+     "path": "agent/tests/test_video_realworld.py",
+     "class": null,
+     "function": "_make_aac_audio",
+     "normal_path_ast_identical": true,
+     "normal_path_ast_sha256": "426e6ce1d252e61e5615981d33a01951ce565820962c841fb802aaeee1633473"
+    },
+    {
+     "path": "agent/tests/test_video_realworld.py",
+     "class": null,
+     "function": "test_scan_cut_scores_covers_whole_long_video",
+     "normal_path_ast_identical": true,
+     "normal_path_ast_sha256": "ab58ab86377c8bf7bd0f576c8cf9257c586a6239fb3721ce709e317cd1b3024e"
+    }
+   ]
+  },
+  "normal_path_proof_artifact": {
+   "path": "temp/build/v2-av-fixture-ast-proof.json",
+   "sha256": "68ae1743590aab7fc00db2e500619b3595e63aa3504b63738318518eff13605f"
+  }
+ },
+ "probe_corrections": {
+  "initial_remaining_report": {
+   "report": "temp/build/v2-av-fixture-before-remaining.xml",
+   "report_sha256": "9e85cb6a609ad529fc7a1588f610e5b0429f42125e98e97c9716a5fc8e4d07e4",
+   "raw_suites": [
+    {
+     "name": "pytest",
+     "errors": "0",
+     "failures": "25",
+     "skipped": "0",
+     "tests": "40",
+     "time": "4.325",
+     "timestamp": "2026-11-16T07:18:45.744043+08:00",
+     "hostname": "cy"
+    }
+   ],
+   "junit_testcase_records": 40,
+   "unique_test_nodes_reported": 40,
+   "failure_events": 25,
+   "error_events": 0,
+   "skipped": 0,
+   "unique_failed_or_errored_nodes": 25,
+   "unique_nodes_without_failure_or_error": 15,
+   "duplicate_nodes": {},
+   "failed_nodes": [
+    {
+     "nodeid": "agent/tests/test_storyboard_fixture.py::test_synthetic_video_failure_closes_owned_container_once_and_keeps_original_error[bilibili_frames-stream]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: assert (1 == 1 and 0 == 1)\n +  where 1 = len([<test_storyboard_fixture.native_output.<locals>.Output object at 0x000001EFB9F009B0>])\n +    where [<test_storyboard_fixture.native_output.<locals>.Output object at 0x000001EFB9F009B0>] = namespace(path=WindowsPath('C:/Users/cy/AppData/Local/Temp/pytest-of-cy/pytest-2578/test_synthetic_video_failure_c5/sy...en=<built-in function open>, make=<function native_output.<locals>.make at 0x000001EFB9EEB100>, case='bilibili_frames').outputs\n +  and   0 = <test_storyboard_fixture.native_output.<locals>.Output object at 0x000001EFB9F009B0>.close_calls"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_storyboard_fixture.py::test_synthetic_video_failure_closes_owned_container_once_and_keeps_original_error[bilibili_frames-frame]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: assert (1 == 1 and 0 == 1)\n +  where 1 = len([<test_storyboard_fixture.native_output.<locals>.Output object at 0x000001EFB9F002F0>])\n +    where [<test_storyboard_fixture.native_output.<locals>.Output object at 0x000001EFB9F002F0>] = namespace(path=WindowsPath('C:/Users/cy/AppData/Local/Temp/pytest-of-cy/pytest-2578/test_synthetic_video_failure_c6/sy...en=<built-in function open>, make=<function native_output.<locals>.make at 0x000001EFB9F15260>, case='bilibili_frames').outputs\n +  and   0 = <test_storyboard_fixture.native_output.<locals>.Output object at 0x000001EFB9F002F0>.close_calls"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_storyboard_fixture.py::test_synthetic_video_failure_closes_owned_container_once_and_keeps_original_error[bilibili_frames-encode]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: assert (1 == 1 and 0 == 1)\n +  where 1 = len([<test_storyboard_fixture.native_output.<locals>.Output object at 0x000001EFB9D45C10>])\n +    where [<test_storyboard_fixture.native_output.<locals>.Output object at 0x000001EFB9D45C10>] = namespace(path=WindowsPath('C:/Users/cy/AppData/Local/Temp/pytest-of-cy/pytest-2578/test_synthetic_video_failure_c7/sy...en=<built-in function open>, make=<function native_output.<locals>.make at 0x000001EFB9F14A40>, case='bilibili_frames').outputs\n +  and   0 = <test_storyboard_fixture.native_output.<locals>.Output object at 0x000001EFB9D45C10>.close_calls"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_storyboard_fixture.py::test_synthetic_video_failure_closes_owned_container_once_and_keeps_original_error[bilibili_frames-mux]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: assert (1 == 1 and 0 == 1)\n +  where 1 = len([<test_storyboard_fixture.native_output.<locals>.Output object at 0x000001EFB9F019D0>])\n +    where [<test_storyboard_fixture.native_output.<locals>.Output object at 0x000001EFB9F019D0>] = namespace(path=WindowsPath('C:/Users/cy/AppData/Local/Temp/pytest-of-cy/pytest-2578/test_synthetic_video_failure_c8/sy...en=<built-in function open>, make=<function native_output.<locals>.make at 0x000001EFB9F15B20>, case='bilibili_frames').outputs\n +  and   0 = <test_storyboard_fixture.native_output.<locals>.Output object at 0x000001EFB9F019D0>.close_calls"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_storyboard_fixture.py::test_synthetic_video_failure_closes_owned_container_once_and_keeps_original_error[bilibili_frames-drain]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: assert (1 == 1 and 0 == 1)\n +  where 1 = len([<test_storyboard_fixture.native_output.<locals>.Output object at 0x000001EFB9F02660>])\n +    where [<test_storyboard_fixture.native_output.<locals>.Output object at 0x000001EFB9F02660>] = namespace(path=WindowsPath('C:/Users/cy/AppData/Local/Temp/pytest-of-cy/pytest-2578/test_synthetic_video_failure_c9/sy...en=<built-in function open>, make=<function native_output.<locals>.make at 0x000001EFB9F165C0>, case='bilibili_frames').outputs\n +  and   0 = <test_storyboard_fixture.native_output.<locals>.Output object at 0x000001EFB9F02660>.close_calls"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_storyboard_fixture.py::test_synthetic_video_failure_closes_owned_container_once_and_keeps_original_error[bilibili_tools-stream]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: assert (1 == 1 and 0 == 1)\n +  where 1 = len([<test_storyboard_fixture.native_output.<locals>.Output object at 0x000001EFB9F03770>])\n +    where [<test_storyboard_fixture.native_output.<locals>.Output object at 0x000001EFB9F03770>] = namespace(path=WindowsPath('C:/Users/cy/AppData/Local/Temp/pytest-of-cy/pytest-2578/test_synthetic_video_failure_c10/s...pen=<built-in function open>, make=<function native_output.<locals>.make at 0x000001EFB9F17100>, case='bilibili_tools').outputs\n +  and   0 = <test_storyboard_fixture.native_output.<locals>.Output object at 0x000001EFB9F03770>.close_calls"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_storyboard_fixture.py::test_synthetic_video_failure_closes_owned_container_once_and_keeps_original_error[bilibili_tools-frame]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: assert (1 == 1 and 0 == 1)\n +  where 1 = len([<test_storyboard_fixture.native_output.<locals>.Output object at 0x000001EFBA4B1BB0>])\n +    where [<test_storyboard_fixture.native_output.<locals>.Output object at 0x000001EFBA4B1BB0>] = namespace(path=WindowsPath('C:/Users/cy/AppData/Local/Temp/pytest-of-cy/pytest-2578/test_synthetic_video_failure_c11/s...pen=<built-in function open>, make=<function native_output.<locals>.make at 0x000001EFBA4C5940>, case='bilibili_tools').outputs\n +  and   0 = <test_storyboard_fixture.native_output.<locals>.Output object at 0x000001EFBA4B1BB0>.close_calls"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_storyboard_fixture.py::test_synthetic_video_failure_closes_owned_container_once_and_keeps_original_error[bilibili_tools-encode]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: assert (1 == 1 and 0 == 1)\n +  where 1 = len([<test_storyboard_fixture.native_output.<locals>.Output object at 0x000001EFBA4B2870>])\n +    where [<test_storyboard_fixture.native_output.<locals>.Output object at 0x000001EFBA4B2870>] = namespace(path=WindowsPath('C:/Users/cy/AppData/Local/Temp/pytest-of-cy/pytest-2578/test_synthetic_video_failure_c12/s...pen=<built-in function open>, make=<function native_output.<locals>.make at 0x000001EFBA4C6480>, case='bilibili_tools').outputs\n +  and   0 = <test_storyboard_fixture.native_output.<locals>.Output object at 0x000001EFBA4B2870>.close_calls"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_storyboard_fixture.py::test_synthetic_video_failure_closes_owned_container_once_and_keeps_original_error[bilibili_tools-mux]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: assert (1 == 1 and 0 == 1)\n +  where 1 = len([<test_storyboard_fixture.native_output.<locals>.Output object at 0x000001EFBA4B35C0>])\n +    where [<test_storyboard_fixture.native_output.<locals>.Output object at 0x000001EFBA4B35C0>] = namespace(path=WindowsPath('C:/Users/cy/AppData/Local/Temp/pytest-of-cy/pytest-2578/test_synthetic_video_failure_c13/s...pen=<built-in function open>, make=<function native_output.<locals>.make at 0x000001EFBA4C6E80>, case='bilibili_tools').outputs\n +  and   0 = <test_storyboard_fixture.native_output.<locals>.Output object at 0x000001EFBA4B35C0>.close_calls"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_storyboard_fixture.py::test_synthetic_video_failure_closes_owned_container_once_and_keeps_original_error[bilibili_tools-drain]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: assert (1 == 1 and 0 == 1)\n +  where 1 = len([<test_storyboard_fixture.native_output.<locals>.Output object at 0x000001EFBA4E0470>])\n +    where [<test_storyboard_fixture.native_output.<locals>.Output object at 0x000001EFBA4E0470>] = namespace(path=WindowsPath('C:/Users/cy/AppData/Local/Temp/pytest-of-cy/pytest-2578/test_synthetic_video_failure_c14/s...pen=<built-in function open>, make=<function native_output.<locals>.make at 0x000001EFBA4C77E0>, case='bilibili_tools').outputs\n +  and   0 = <test_storyboard_fixture.native_output.<locals>.Output object at 0x000001EFBA4E0470>.close_calls"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_storyboard_fixture.py::test_synthetic_video_failure_closes_owned_container_once_and_keeps_original_error[aac-stream]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: assert (1 == 1 and 0 == 1)\n +  where 1 = len([<test_storyboard_fixture.native_output.<locals>.Output object at 0x000001EFBA4E1160>])\n +    where [<test_storyboard_fixture.native_output.<locals>.Output object at 0x000001EFBA4E1160>] = namespace(path=WindowsPath('C:/Users/cy/AppData/Local/Temp/pytest-of-cy/pytest-2578/test_synthetic_video_failure_c15/s...ailure'), open=<built-in function open>, make=<function native_output.<locals>.make at 0x000001EFBA4D4180>, case='aac').outputs\n +  and   0 = <test_storyboard_fixture.native_output.<locals>.Output object at 0x000001EFBA4E1160>.close_calls"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_storyboard_fixture.py::test_synthetic_video_failure_closes_owned_container_once_and_keeps_original_error[aac-frame]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: assert (1 == 1 and 0 == 1)\n +  where 1 = len([<test_storyboard_fixture.native_output.<locals>.Output object at 0x000001EFBB4D0B60>])\n +    where [<test_storyboard_fixture.native_output.<locals>.Output object at 0x000001EFBB4D0B60>] = namespace(path=WindowsPath('C:/Users/cy/AppData/Local/Temp/pytest-of-cy/pytest-2578/test_synthetic_video_failure_c16/s...ailure'), open=<built-in function open>, make=<function native_output.<locals>.make at 0x000001EFBB5044A0>, case='aac').outputs\n +  and   0 = <test_storyboard_fixture.native_output.<locals>.Output object at 0x000001EFBB4D0B60>.close_calls"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_storyboard_fixture.py::test_synthetic_video_failure_closes_owned_container_once_and_keeps_original_error[aac-encode]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: assert (1 == 1 and 0 == 1)\n +  where 1 = len([<test_storyboard_fixture.native_output.<locals>.Output object at 0x000001EFEA3BF500>])\n +    where [<test_storyboard_fixture.native_output.<locals>.Output object at 0x000001EFEA3BF500>] = namespace(path=WindowsPath('C:/Users/cy/AppData/Local/Temp/pytest-of-cy/pytest-2578/test_synthetic_video_failure_c17/s...ailure'), open=<built-in function open>, make=<function native_output.<locals>.make at 0x000001EFEA3D23E0>, case='aac').outputs\n +  and   0 = <test_storyboard_fixture.native_output.<locals>.Output object at 0x000001EFEA3BF500>.close_calls"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_storyboard_fixture.py::test_synthetic_video_failure_closes_owned_container_once_and_keeps_original_error[aac-mux]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: assert (1 == 1 and 0 == 1)\n +  where 1 = len([<test_storyboard_fixture.native_output.<locals>.Output object at 0x000001EFEA3EC290>])\n +    where [<test_storyboard_fixture.native_output.<locals>.Output object at 0x000001EFEA3EC290>] = namespace(path=WindowsPath('C:/Users/cy/AppData/Local/Temp/pytest-of-cy/pytest-2578/test_synthetic_video_failure_c18/s...ailure'), open=<built-in function open>, make=<function native_output.<locals>.make at 0x000001EFEA3D3060>, case='aac').outputs\n +  and   0 = <test_storyboard_fixture.native_output.<locals>.Output object at 0x000001EFEA3EC290>.close_calls"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_storyboard_fixture.py::test_synthetic_video_failure_closes_owned_container_once_and_keeps_original_error[aac-drain]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: assert (1 == 1 and 0 == 1)\n +  where 1 = len([<test_storyboard_fixture.native_output.<locals>.Output object at 0x000001EFEA3ECE90>])\n +    where [<test_storyboard_fixture.native_output.<locals>.Output object at 0x000001EFEA3ECE90>] = namespace(path=WindowsPath('C:/Users/cy/AppData/Local/Temp/pytest-of-cy/pytest-2578/test_synthetic_video_failure_c19/s...ailure'), open=<built-in function open>, make=<function native_output.<locals>.make at 0x000001EFEA3D3CE0>, case='aac').outputs\n +  and   0 = <test_storyboard_fixture.native_output.<locals>.Output object at 0x000001EFEA3ECE90>.close_calls"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_storyboard_fixture.py::test_synthetic_video_failure_closes_owned_container_once_and_keeps_original_error[long_video-stream]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: assert (1 == 1 and 0 == 1)\n +  where 1 = len([<test_storyboard_fixture.native_output.<locals>.Output object at 0x000001EFEA3EDD90>])\n +    where [<test_storyboard_fixture.native_output.<locals>.Output object at 0x000001EFEA3EDD90>] = namespace(path=WindowsPath('C:/Users/cy/AppData/Local/Temp/pytest-of-cy/pytest-2578/test_synthetic_video_failure_c20/l...), open=<built-in function open>, make=<function native_output.<locals>.make at 0x000001EFEA45C720>, case='long_video').outputs\n +  and   0 = <test_storyboard_fixture.native_output.<locals>.Output object at 0x000001EFEA3EDD90>.close_calls"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_storyboard_fixture.py::test_synthetic_video_failure_closes_owned_container_once_and_keeps_original_error[long_video-frame]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: assert (1 == 1 and 0 == 1)\n +  where 1 = len([<test_storyboard_fixture.native_output.<locals>.Output object at 0x000001EFEA3EEC90>])\n +    where [<test_storyboard_fixture.native_output.<locals>.Output object at 0x000001EFEA3EEC90>] = namespace(path=WindowsPath('C:/Users/cy/AppData/Local/Temp/pytest-of-cy/pytest-2578/test_synthetic_video_failure_c21/l...), open=<built-in function open>, make=<function native_output.<locals>.make at 0x000001EFEA45D080>, case='long_video').outputs\n +  and   0 = <test_storyboard_fixture.native_output.<locals>.Output object at 0x000001EFEA3EEC90>.close_calls"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_storyboard_fixture.py::test_synthetic_video_failure_closes_owned_container_once_and_keeps_original_error[long_video-encode]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: assert (1 == 1 and 0 == 1)\n +  where 1 = len([<test_storyboard_fixture.native_output.<locals>.Output object at 0x000001EFEA3EFD10>])\n +    where [<test_storyboard_fixture.native_output.<locals>.Output object at 0x000001EFEA3EFD10>] = namespace(path=WindowsPath('C:/Users/cy/AppData/Local/Temp/pytest-of-cy/pytest-2578/test_synthetic_video_failure_c22/l...), open=<built-in function open>, make=<function native_output.<locals>.make at 0x000001EFEA45DA80>, case='long_video').outputs\n +  and   0 = <test_storyboard_fixture.native_output.<locals>.Output object at 0x000001EFEA3EFD10>.close_calls"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_storyboard_fixture.py::test_synthetic_video_failure_closes_owned_container_once_and_keeps_original_error[long_video-mux]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: assert (1 == 1 and 0 == 1)\n +  where 1 = len([<test_storyboard_fixture.native_output.<locals>.Output object at 0x000001EFEA41CA70>])\n +    where [<test_storyboard_fixture.native_output.<locals>.Output object at 0x000001EFEA41CA70>] = namespace(path=WindowsPath('C:/Users/cy/AppData/Local/Temp/pytest-of-cy/pytest-2578/test_synthetic_video_failure_c23/l...), open=<built-in function open>, make=<function native_output.<locals>.make at 0x000001EFEA45E3E0>, case='long_video').outputs\n +  and   0 = <test_storyboard_fixture.native_output.<locals>.Output object at 0x000001EFEA41CA70>.close_calls"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_storyboard_fixture.py::test_synthetic_video_failure_closes_owned_container_once_and_keeps_original_error[long_video-drain]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: assert (1 == 1 and 0 == 1)\n +  where 1 = len([<test_storyboard_fixture.native_output.<locals>.Output object at 0x000001EFEA41D850>])\n +    where [<test_storyboard_fixture.native_output.<locals>.Output object at 0x000001EFEA41D850>] = namespace(path=WindowsPath('C:/Users/cy/AppData/Local/Temp/pytest-of-cy/pytest-2578/test_synthetic_video_failure_c24/l...), open=<built-in function open>, make=<function native_output.<locals>.make at 0x000001EFEA45ED40>, case='long_video').outputs\n +  and   0 = <test_storyboard_fixture.native_output.<locals>.Output object at 0x000001EFEA41D850>.close_calls"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_storyboard_fixture.py::test_synthetic_video_success_closes_once_and_keeps_real_decodable_frame[long_video]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "omni.tools.storyboard.decode.VideoDecodeError: 视频解码失败：'Output' object does not support the context manager protocol"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_storyboard_fixture.py::test_container_close_failure_is_visible_and_retains_body_error_context[bilibili_frames-True]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "MemoryError: injected video fixture failure"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_storyboard_fixture.py::test_container_close_failure_is_visible_and_retains_body_error_context[bilibili_tools-True]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "MemoryError: injected video fixture failure"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_storyboard_fixture.py::test_container_close_failure_is_visible_and_retains_body_error_context[aac-True]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "MemoryError: injected video fixture failure"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_storyboard_fixture.py::test_container_close_failure_is_visible_and_retains_body_error_context[long_video-True]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "MemoryError: injected video fixture failure"
+      }
+     ]
+    }
+   ]
+  },
+  "detail": "Initial fault wrapper also intercepted input reads in the long-video success case. Restricted it to mode=w; exact success replay passed before the remaining helpers were repaired. Preserve that25/15 diagnostic probe separately from the corrected24/16 negative control.",
+  "exact_reader_replay": {
+   "report": "temp/build/v2-av-fixture-reader-correction.xml",
+   "report_sha256": "6d1feaacd53b807410faf1c7e91f4b9612e9ac2f1748f32259120d721e09f3ca",
+   "raw_suites": [
+    {
+     "name": "pytest",
+     "errors": "0",
+     "failures": "0",
+     "skipped": "0",
+     "tests": "1",
+     "time": "2.953",
+     "timestamp": "2026-11-16T07:19:34.441289+08:00",
+     "hostname": "cy"
+    }
+   ],
+   "junit_testcase_records": 1,
+   "unique_test_nodes_reported": 1,
+   "failure_events": 0,
+   "error_events": 0,
+   "skipped": 0,
+   "unique_failed_or_errored_nodes": 0,
+   "unique_nodes_without_failure_or_error": 1,
+   "duplicate_nodes": {},
+   "failed_nodes": []
+  }
+ },
+ "static_gates": [
+  {
+   "command": [
+    "D:\\xm\\OmniOperator\\temp\\build\\checkpoint-interpreter-223\\Scripts\\python.exe",
+    "-m",
+    "ruff",
+    "check",
+    "agent/src/omni",
+    "agent/tests/test_storyboard.py",
+    "agent/tests/test_storyboard_fixture.py",
+    "agent/tests/test_bilibili_frames.py",
+    "agent/tests/test_bilibili_tools.py",
+    "agent/tests/test_video_realworld.py"
+   ],
+   "returncode": 0,
+   "stdout": "All checks passed!\n",
+   "stderr": ""
+  },
+  {
+   "command": [
+    "D:\\xm\\OmniOperator\\temp\\build\\checkpoint-interpreter-223\\Scripts\\python.exe",
+    "-m",
+    "ruff",
+    "format",
+    "--check",
+    "agent/src/omni",
+    "agent/tests",
+    "agent/scripts",
+    "agent/hatch_build.py"
+   ],
+   "returncode": 0,
+   "stdout": "1022 files already formatted\n",
+   "stderr": ""
+  },
+  {
+   "command": [
+    "D:\\xm\\OmniOperator\\temp\\build\\checkpoint-interpreter-223\\Scripts\\python.exe",
+    "scripts/project_index.py",
+    "--check"
+   ],
+   "returncode": 0,
+   "stdout": "modules=65 files=736 routes=434 declared_tools=94\nstale=\n",
+   "stderr": ""
+  },
+  {
+   "command": [
+    "D:\\xm\\OmniOperator\\temp\\build\\checkpoint-interpreter-223\\Scripts\\python.exe",
+    "scripts/task_status.py",
+    "--check"
+   ],
+   "returncode": 0,
+   "stdout": "",
+   "stderr": ""
+  }
+ ],
+ "reused_strict": {
+  "files": 332,
+  "errors": 0,
+  "warnings": 0,
+  "basis": "Frozen production/configuration blobs unchanged",
+  "log": {
+   "path": "temp/build/v2-portal-strict.log",
+   "sha256": "c584b21ee012de391dc2799d5455db619d3fefbb192ab07ea4ba83fb0d704c14"
+  }
+ },
+ "full_run": {
+  "status": "passed",
+  "checkpoint": 83,
+  "artifact_id": 223,
+  "source_head": "59cd85f29b634aa09bbdc9c0bb7ff829365953a4",
+  "code_version": "c0de1caf38a4f84868ae22051340c2f72035fa5cfd9a8848b65b9ed2075458f2",
+  "fixed_source_files": 1215,
+  "strict_files": 332,
+  "expected_collected_tests": 4747,
+  "workers": 2,
+  "report": "temp/build/v2-full-223.xml",
+  "snapshot": {
+   "path": "temp/build/v2-full-223-snapshot.json",
+   "sha256": "9243961b69e46967f8e554194f800b5e1c5f4518321753d6005def31528d8910"
+  },
+  "scope": "Committed Git archive only. Concurrent uncommitted source/UI/migration work was not copied, staged, discarded or validated by this checkpoint.",
+  "completed": true,
+  "command": "uv run --no-sync python temp/build/_media_fixture_checkpoint.py run (frozen python -m pytest -q -n2 --worker-diagnostics=... --junitxml=...)",
+  "report_sha256": "c3e33822dddb6c6d4c7cfcd8412848a9fa1394ced64237a0254d0ec5929dc01c",
+  "raw_suites": [
+   {
+    "name": "pytest",
+    "errors": "0",
+    "failures": "0",
+    "skipped": "0",
+    "tests": "4747",
+    "time": "2702.789",
+    "timestamp": "2026-11-16T07:34:26.878234+08:00",
+    "hostname": "cy"
+   }
+  ],
+  "junit_testcase_records": 4747,
+  "unique_test_nodes_reported": 4747,
+  "failure_events": 0,
+  "error_events": 0,
+  "skipped": 0,
+  "unique_failed_or_errored_nodes": 0,
+  "unique_nodes_without_failure_or_error": 4747,
+  "duplicate_nodes": {},
+  "failed_nodes": [],
+  "returncode": 0,
+  "wall_duration_s": 2703.838,
+  "pytest_cli_summary": "4747 passed, 6 warnings in 2703.00s (0:45:03)",
+  "pytest_cli_counts": {
+   "passed": 4747,
+   "warnings": 6
+  },
+  "source_unchanged": true,
+  "source_unchanged_after_reruns": true,
+  "log": {
+   "path": "temp/build/v2-full-223.log",
+   "sha256": "bad75fa0fe502d92037eac4f8ec366f3538473c18bad5a9f19684fb5daa73f96"
+  },
+  "all_collected_nodes_reported": true,
+  "reruns": [],
+  "diagnostics": {
+   "directory": "temp/build/v2-full-223-diagnostics",
+   "processes": [
+    {
+     "file": "controller-52272.jsonl",
+     "events": {
+      "configured": 1,
+      "worker_spawn": 2,
+      "report": 14241,
+      "worker_exit": 4,
+      "session_finish": 1
+     },
+     "malformed_lines": 0,
+     "last_phase": null,
+     "last_report": {
+      "time_ns": 1794788364165538400,
+      "nodeid": "agent/tests/test_v2_qq_http.py::test_qq_http_grants_are_owner_only_scoped_and_revisioned",
+      "when": "teardown",
+      "outcome": "passed"
+     },
+     "journal_capped": false,
+     "min_commit_headroom_bytes": 6689255424,
+     "pid": 52272,
+     "worker": "controller",
+     "tightest_commit_sample": {
+      "time_ns": 1794788270425805000,
+      "CommitTotal": 99263717376,
+      "CommitLimit": 105952972800,
+      "CommitPeak": 105952972800,
+      "PhysicalTotal": 50700185600,
+      "PhysicalAvailable": 16849952768
+     },
+     "session_finish": {
+      "time_ns": 1794788369868322900,
+      "pid": 52272,
+      "worker": "controller",
+      "event": "session_finish",
+      "exitstatus": 0,
+      "diagnostic_errors": 0,
+      "journal_capped": false,
+      "system_commit": {
+       "CommitTotal": 95296798720,
+       "CommitLimit": 105952972800,
+       "CommitPeak": 105952972800,
+       "PhysicalTotal": 50700185600,
+       "PhysicalAvailable": 19076423680
+      }
+     }
+    },
+    {
+     "file": "gw0-77568.jsonl",
+     "events": {
+      "configured": 1,
+      "phase_start": 10263,
+      "report": 10263,
+      "session_finish": 1
+     },
+     "malformed_lines": 0,
+     "last_phase": {
+      "time_ns": 1794788363794538500,
+      "nodeid": "agent/tests/test_workbench_ui.py::test_desktop_and_publication_tabs_are_reachable",
+      "when": "teardown"
+     },
+     "last_report": {
+      "time_ns": 1794788363799408100,
+      "nodeid": "agent/tests/test_workbench_ui.py::test_desktop_and_publication_tabs_are_reachable",
+      "when": "teardown",
+      "outcome": "passed"
+     },
+     "journal_capped": false,
+     "min_commit_headroom_bytes": 6766669824,
+     "pid": 77568,
+     "worker": "gw0",
+     "tightest_commit_sample": {
+      "time_ns": 1794788278412730900,
+      "CommitTotal": 99186302976,
+      "CommitLimit": 105952972800,
+      "CommitPeak": 105952972800,
+      "PhysicalTotal": 50700185600,
+      "PhysicalAvailable": 16873336832
+     },
+     "session_finish": {
+      "time_ns": 1794788363835155500,
+      "pid": 77568,
+      "worker": "gw0",
+      "event": "session_finish",
+      "exitstatus": 0,
+      "diagnostic_errors": 0,
+      "journal_capped": false,
+      "system_commit": {
+       "CommitTotal": 98670309376,
+       "CommitLimit": 105952972800,
+       "CommitPeak": 105952972800,
+       "PhysicalTotal": 50700185600,
+       "PhysicalAvailable": 17288216576
+      }
+     }
+    },
+    {
+     "file": "gw1-74444.jsonl",
+     "events": {
+      "configured": 1,
+      "phase_start": 3978,
+      "report": 3978,
+      "session_finish": 1
+     },
+     "malformed_lines": 0,
+     "last_phase": {
+      "time_ns": 1794788364161908300,
+      "nodeid": "agent/tests/test_v2_qq_http.py::test_qq_http_grants_are_owner_only_scoped_and_revisioned",
+      "when": "teardown"
+     },
+     "last_report": {
+      "time_ns": 1794788364165538400,
+      "nodeid": "agent/tests/test_v2_qq_http.py::test_qq_http_grants_are_owner_only_scoped_and_revisioned",
+      "when": "teardown",
+      "outcome": "passed"
+     },
+     "journal_capped": false,
+     "min_commit_headroom_bytes": 6686662656,
+     "pid": 74444,
+     "worker": "gw1",
+     "tightest_commit_sample": {
+      "time_ns": 1794788270425805000,
+      "CommitTotal": 99266310144,
+      "CommitLimit": 105952972800,
+      "CommitPeak": 105952972800,
+      "PhysicalTotal": 50700185600,
+      "PhysicalAvailable": 16848199680
+     },
+     "session_finish": {
+      "time_ns": 1794788364185841500,
+      "pid": 74444,
+      "worker": "gw1",
+      "event": "session_finish",
+      "exitstatus": 0,
+      "diagnostic_errors": 0,
+      "journal_capped": false,
+      "system_commit": {
+       "CommitTotal": 98664361984,
+       "CommitLimit": 105952972800,
+       "CommitPeak": 105952972800,
+       "PhysicalTotal": 50700185600,
+       "PhysicalAvailable": 17300680704
+      }
+     }
+    }
+   ],
+   "exit_polls": [
+    {
+     "time_ns": 1794788363836155100,
+     "pid": 52272,
+     "worker": "controller",
+     "event": "worker_exit",
+     "worker_id": "gw0",
+     "stage": "channel_down_poll",
+     "launcher_pid": 50460,
+     "returncode": null,
+     "windows_status_hex": null,
+     "error_type": null,
+     "error": null,
+     "worker_diagnostic_errors": 0,
+     "system_commit": {
+      "CommitTotal": 98670309376,
+      "CommitLimit": 105952972800,
+      "CommitPeak": 105952972800,
+      "PhysicalTotal": 50700185600,
+      "PhysicalAvailable": 17288216576
+     }
+    },
+    {
+     "time_ns": 1794788364186838400,
+     "pid": 52272,
+     "worker": "controller",
+     "event": "worker_exit",
+     "worker_id": "gw1",
+     "stage": "channel_down_poll",
+     "launcher_pid": 63224,
+     "returncode": null,
+     "windows_status_hex": null,
+     "error_type": null,
+     "error": null,
+     "worker_diagnostic_errors": 0,
+     "system_commit": {
+      "CommitTotal": 98664361984,
+      "CommitLimit": 105952972800,
+      "CommitPeak": 105952972800,
+      "PhysicalTotal": 50700185600,
+      "PhysicalAvailable": 17300676608
+     }
+    },
+    {
+     "time_ns": 1794788369867323000,
+     "pid": 52272,
+     "worker": "controller",
+     "event": "worker_exit",
+     "worker_id": "gw0",
+     "stage": "after_xdist_teardown",
+     "launcher_pid": 50460,
+     "returncode": 0,
+     "windows_status_hex": "0x00000000",
+     "error_type": null,
+     "error": null,
+     "worker_diagnostic_errors": 0,
+     "system_commit": {
+      "CommitTotal": 95296798720,
+      "CommitLimit": 105952972800,
+      "CommitPeak": 105952972800,
+      "PhysicalTotal": 50700185600,
+      "PhysicalAvailable": 19076456448
+     }
+    },
+    {
+     "time_ns": 1794788369868322900,
+     "pid": 52272,
+     "worker": "controller",
+     "event": "worker_exit",
+     "worker_id": "gw1",
+     "stage": "after_xdist_teardown",
+     "launcher_pid": 63224,
+     "returncode": 0,
+     "windows_status_hex": "0x00000000",
+     "error_type": null,
+     "error": null,
+     "worker_diagnostic_errors": 0,
+     "system_commit": {
+      "CommitTotal": 95296798720,
+      "CommitLimit": 105952972800,
+      "CommitPeak": 105952972800,
+      "PhysicalTotal": 50700185600,
+      "PhysicalAvailable": 19076435968
+     }
+    }
+   ],
+   "artifacts": [
+    {
+     "path": "temp/build/v2-full-223-diagnostics/controller-52272.jsonl",
+     "sha256": "71c6530e7526ce0cfb0fca45f3e2bdf71f5d2d552bb7a082cbc1f4d2f94b3971",
+     "bytes": 6361912
+    },
+    {
+     "path": "temp/build/v2-full-223-diagnostics/gw0-77568.jsonl",
+     "sha256": "3ea94b0af9269a1c982fabad1fb0d7df9553814dda91dec9ad841894842eb80b",
+     "bytes": 8531170
+    },
+    {
+     "path": "temp/build/v2-full-223-diagnostics/gw1-74444.jsonl",
+     "sha256": "75fcb8dd780a88704567e68725d5389b12d31138c676f27a9c8b6a207726c065",
+     "bytes": 3272865
+    },
+    {
+     "path": "temp/build/v2-full-223-diagnostics/controller-52272.fault.txt",
+     "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+     "bytes": 0
+    },
+    {
+     "path": "temp/build/v2-full-223-diagnostics/gw0-77568.fault.txt",
+     "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+     "bytes": 0
+    },
+    {
+     "path": "temp/build/v2-full-223-diagnostics/gw1-74444.fault.txt",
+     "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+     "bytes": 0
+    }
+   ],
+   "scope": "Phase/exit snapshots, not continuous allocation tracing. Final exit polls occur after ordinary xdist teardown and may reflect its cleanup. Fault files contain stack locations, not local values."
+  },
+  "main_worker_error_callbacks": []
+ },
+ "not_verified": [
+  "System commit allocation ownership",
+  "Other UI/process/environment observations",
+  "Concurrent uncommitted feature work",
+  "Actual models/devices/deployment and72-hour acceptance",
+  "V2 default-entrypoint switch"
+ ]
+}
