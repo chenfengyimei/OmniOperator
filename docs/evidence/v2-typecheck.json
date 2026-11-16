@@ -7223,6 +7223,18 @@
    "integration_full_run_pending": true,
    "validated_committed_scope_only": true,
    "historical_observations_closed": false
+  },
+  "bilibili_response_bounds_followup": {
+   "evidence": "docs/evidence/v2-bilibili-response-bounds.json",
+   "source_head": "c11e03750bf0b2bfe6c9ced050dcc5cc07a55339",
+   "status": "scoped_passed_full_deferred",
+   "scoped_passed": 187,
+   "new_cases": 25,
+   "strict_files": 1,
+   "full_run_covers_current_source": false,
+   "integration_full_run_pending": true,
+   "validated_committed_scope_only": true,
+   "historical_observations_closed": false
   }
  },
  "source_recovery": {
