@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "dd9e57dd0fed1794f54fce59161e9d16e0379cd2f8ece34fd482ea24e69225c3",
+  "source_sha256": "3f1407779b0e267da06fc268a2450a1b8b2d0a9889cc649678af1fe46293bbe2",
   "modules": [
     {
       "id": "v2-domain",
@@ -72,7 +72,7 @@
         "agent/src/omni/domain/terminal_review.py",
         "agent/src/omni/domain/terminals.py"
       ],
-      "lines": 9621,
+      "lines": 9669,
       "dependencies": []
     },
     {
@@ -67062,7 +67062,7 @@
       "path": "agent/src/omni/domain/media.py",
       "module": "v2-domain",
       "python_module": "omni.domain.media",
-      "lines": 207,
+      "lines": 255,
       "imports": [
         "omni.domain.bilibili",
         "omni.domain.contracts"
@@ -67070,7 +67070,7 @@
       "symbols": [
         {
           "name": "invalid",
-          "line": 32,
+          "line": 33,
           "kind": "function",
           "parameters": [
             "code"
@@ -67081,7 +67081,7 @@
         },
         {
           "name": "bvid",
-          "line": 36,
+          "line": 37,
           "kind": "function",
           "parameters": [
             "value"
@@ -67092,7 +67092,7 @@
         },
         {
           "name": "duration",
-          "line": 42,
+          "line": 43,
           "kind": "function",
           "parameters": [
             "value"
@@ -67103,7 +67103,7 @@
         },
         {
           "name": "frames_plan",
-          "line": 48,
+          "line": 49,
           "kind": "function",
           "parameters": [
             "count",
@@ -67116,7 +67116,7 @@
         },
         {
           "name": "asr_plan",
-          "line": 56,
+          "line": 57,
           "kind": "function",
           "parameters": [
             "model",
@@ -67130,8 +67130,54 @@
           }
         },
         {
+          "name": "_finite_seconds",
+          "line": 65,
+          "kind": "function",
+          "parameters": [
+            "value",
+            "code"
+          ],
+          "annotations": {
+            "value": "float",
+            "code": "str"
+          }
+        },
+        {
+          "name": "_reject_json_constant",
+          "line": 75,
+          "kind": "function",
+          "parameters": [
+            "_"
+          ],
+          "annotations": {
+            "_": "str"
+          }
+        },
+        {
+          "name": "_json_float",
+          "line": 79,
+          "kind": "function",
+          "parameters": [
+            "value"
+          ],
+          "annotations": {
+            "value": "str"
+          }
+        },
+        {
+          "name": "_json_object",
+          "line": 86,
+          "kind": "function",
+          "parameters": [
+            "pairs"
+          ],
+          "annotations": {
+            "pairs": "list[tuple[str, object]]"
+          }
+        },
+        {
           "name": "segment_rows",
-          "line": 64,
+          "line": 95,
           "kind": "function",
           "parameters": [
             "segments"
@@ -67142,7 +67188,7 @@
         },
         {
           "name": "subtitle_text",
-          "line": 94,
+          "line": 126,
           "kind": "function",
           "parameters": [
             "value"
@@ -67153,7 +67199,7 @@
         },
         {
           "name": "transcript_payload",
-          "line": 100,
+          "line": 132,
           "kind": "function",
           "parameters": [
             "kind",
@@ -67168,7 +67214,7 @@
         },
         {
           "name": "parse_transcript",
-          "line": 111,
+          "line": 143,
           "kind": "function",
           "parameters": [
             "payload"
@@ -67179,7 +67225,7 @@
         },
         {
           "name": "_stamp",
-          "line": 144,
+          "line": 192,
           "kind": "function",
           "parameters": [
             "seconds"
@@ -67190,7 +67236,7 @@
         },
         {
           "name": "transcript_body",
-          "line": 148,
+          "line": 196,
           "kind": "function",
           "parameters": [
             "kind",
@@ -67203,7 +67249,7 @@
         },
         {
           "name": "transcript_text",
-          "line": 155,
+          "line": 203,
           "kind": "function",
           "parameters": [
             "kind",
@@ -67220,7 +67266,7 @@
         },
         {
           "name": "sheet_result",
-          "line": 167,
+          "line": 215,
           "kind": "function",
           "parameters": [
             "count",
@@ -67241,7 +67287,7 @@
         },
         {
           "name": "source_row",
-          "line": 196,
+          "line": 244,
           "kind": "function",
           "parameters": [
             "config_id",

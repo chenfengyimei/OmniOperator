@@ -3,9 +3,10 @@
 from __future__ import annotations
 
 import json
+import math
 import re
 from collections.abc import Mapping, Sequence
-from typing import cast
+from typing import NoReturn, cast
 
 from .bilibili import uid
 from .contracts import BusinessError
@@ -61,6 +62,36 @@ def asr_plan(model: object, device: object, compute_type: object) -> dict[str, o
     return {"model": model, "device": device, "compute_type": compute_type}
 
 
+def _finite_seconds(value: float, code: str) -> float:
+    try:
+        number = float(value)
+    except OverflowError as exc:
+        raise invalid(code) from exc
+    if not math.isfinite(number):
+        raise invalid(code)
+    return number
+
+
+def _reject_json_constant(_: str) -> NoReturn:
+    raise ValueError("Non-finite transcript value")
+
+
+def _json_float(value: str) -> float:
+    number = float(value)
+    if not math.isfinite(number):
+        raise ValueError("Non-finite transcript value")
+    return number
+
+
+def _json_object(pairs: list[tuple[str, object]]) -> dict[str, object]:
+    result: dict[str, object] = {}
+    for key, value in pairs:
+        if key in result:
+            raise ValueError("Duplicate transcript field")
+        result[key] = value
+    return result
+
+
 def segment_rows(segments: object) -> list[list[object]]:
     """Validated [(start_s, end_s, text)] rows; ordered, bounded, anchored to the source timeline."""
     if not isinstance(segments, list):
@@ -80,7 +111,8 @@ def segment_rows(segments: object) -> list[list[object]]:
         start, end, text = parts[0], parts[1], parts[2]
         if type(start) not in (int, float) or type(end) not in (int, float) or not isinstance(text, str):
             raise invalid("media_transcript_invalid")
-        start_s, end_s = float(cast(float, start)), float(cast(float, end))
+        start_s = _finite_seconds(cast(float, start), "media_transcript_invalid")
+        end_s = _finite_seconds(cast(float, end), "media_transcript_invalid")
         if not 0 <= start_s <= end_s or end_s > MAX_DURATION_S or start_s < previous_end - 0.001 or not text.strip():
             raise invalid("media_transcript_invalid")
         previous_end = end_s
@@ -109,18 +141,28 @@ def transcript_payload(kind: str, language: str, rows: list[list[object]]) -> by
 
 
 def parse_transcript(payload: bytes) -> dict[str, object]:
+    if not payload or len(payload) > MAX_TRANSCRIPT_BYTES:
+        raise invalid("media_transcript_unreadable")
     try:
-        decoded = json.loads(payload)
-    except (ValueError, UnicodeError) as exc:
+        decoded: object = json.loads(
+            payload.decode("utf-8"),
+            parse_constant=_reject_json_constant,
+            parse_float=_json_float,
+            object_pairs_hook=_json_object,
+        )
+    except (ValueError, UnicodeError, RecursionError) as exc:
         raise invalid("media_transcript_unreadable") from exc
     if not isinstance(decoded, dict):
         raise invalid("media_transcript_unreadable")
     value = cast(dict[str, object], decoded)
+    language = value.get("language")
     if (
         set(value) != {"version", "kind", "language", "segments"}
+        or type(value["version"]) is not int
         or value["version"] != 1
         or value["kind"] not in TRANSCRIPT_KINDS
-        or not isinstance(value["language"], str)
+        or not isinstance(language, str)
+        or len(language) > 16
     ):
         raise invalid("media_transcript_unreadable")
     rows = value["segments"]
@@ -133,11 +175,17 @@ def parse_transcript(payload: bytes) -> dict[str, object]:
         if len(entries) != 1 or not isinstance(entries[0], list):
             raise invalid("media_transcript_unreadable")
         cells = cast(list[object], entries[0])
-        if len(cells) != 3 or cells[0] != 0.0 or cells[1] != 0.0:
+        if len(cells) != 3 or any(type(anchor) not in (int, float) or anchor != 0.0 for anchor in cells[:2]):
             raise invalid("media_transcript_unreadable")
         segments: list[list[object]] = [[0.0, 0.0, subtitle_text(cells[2])]]
     else:
         segments = segment_rows(rows)
+    try:
+        language.encode("utf-8")
+        for row in segments:
+            cast(str, row[2]).encode("utf-8")
+    except UnicodeError as exc:
+        raise invalid("media_transcript_unreadable") from exc
     return {**value, "segments": segments}
 
 
@@ -176,7 +224,7 @@ def sheet_result(
     stamps = cast(list[object], timestamps)
     if len(stamps) != count or any(type(t) not in (int, float) for t in stamps):
         raise invalid("media_frames_invalid")
-    values = [float(cast(float, t)) for t in stamps]
+    values = [_finite_seconds(cast(float, t), "media_frames_invalid") for t in stamps]
     if any(not 0 <= t <= MAX_DURATION_S for t in values):
         raise invalid("media_frames_invalid")
     if not isinstance(sha256, str) or not re.fullmatch(r"[0-9a-f]{64}", sha256):
