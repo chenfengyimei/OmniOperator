@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`84d348117751d467e6a02f3666db412c07e345a0d7ab56de70b3070634cf6a7f`。包含 65 个职责模块、736 个源码/界面文件。
+源码指纹：`26703d09c8421279be74896b4c8da2c863659d84f0ede423760dc7140c6f0cc7`。包含 65 个职责模块、736 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -99,7 +99,7 @@
 | [agent/src/omni/application/local_vectors.py](../../agent/src/omni/application/local_vectors.py) | 40 | Shared local-vector preflight and computation; ownership stays with the composing lifecycle. |
 | [agent/src/omni/application/maintenance.py](../../agent/src/omni/application/maintenance.py) | 252 | Own bounded durable maintenance executions; never runs exclusive offline cleanup or remote model/device actions. |
 | [agent/src/omni/application/mcp.py](../../agent/src/omni/application/mcp.py) | 335 | Owner MCP servers: explicit connect, bounded catalog, per-tool authorization and run-scoped calls. |
-| [agent/src/omni/application/media.py](../../agent/src/omni/application/media.py) | 596 | Owner media sources, bounded processing jobs and model-visible anchored transcripts. |
+| [agent/src/omni/application/media.py](../../agent/src/omni/application/media.py) | 604 | Owner media sources, bounded processing jobs and model-visible anchored transcripts. |
 | [agent/src/omni/application/memory_organization.py](../../agent/src/omni/application/memory_organization.py) | 144 | Own bounded exact-fact proposals and explicit owner decisions; never calls a model or erases facts. |
 | [agent/src/omni/application/memory_semantics.py](../../agent/src/omni/application/memory_semantics.py) | 222 | Owned local memory indexing, hybrid recall and explicit related-fact reviews; no automatic merge or deletion. |
 | [agent/src/omni/application/memory_tools.py](../../agent/src/omni/application/memory_tools.py) | 107 | Memory capabilities share application transactions and verified source rules. |

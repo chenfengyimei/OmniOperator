@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "84d348117751d467e6a02f3666db412c07e345a0d7ab56de70b3070634cf6a7f",
+  "source_sha256": "26703d09c8421279be74896b4c8da2c863659d84f0ede423760dc7140c6f0cc7",
   "modules": [
     {
       "id": "v2-domain",
@@ -136,7 +136,7 @@
         "agent/src/omni/application/terminal_review.py",
         "agent/src/omni/application/terminals.py"
       ],
-      "lines": 11307,
+      "lines": 11315,
       "dependencies": [
         "v2-domain"
       ]
@@ -41389,7 +41389,7 @@
       "path": "agent/src/omni/application/media.py",
       "module": "v2-application",
       "python_module": "omni.application.media",
-      "lines": 596,
+      "lines": 604,
       "imports": [
         "omni.application.images",
         "omni.application.objects",
@@ -41781,7 +41781,7 @@
         },
         {
           "name": "MediaService._cleanup",
-          "line": 391,
+          "line": 399,
           "kind": "function",
           "parameters": [
             "self",
@@ -41793,7 +41793,7 @@
         },
         {
           "name": "MediaService.cancel",
-          "line": 402,
+          "line": 410,
           "kind": "function",
           "parameters": [
             "self",
@@ -41807,14 +41807,14 @@
         },
         {
           "name": "MediaService.cancel.perform",
-          "line": 407,
+          "line": 415,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "MediaService.job",
-          "line": 440,
+          "line": 448,
           "kind": "function",
           "parameters": [
             "self",
@@ -41828,7 +41828,7 @@
         },
         {
           "name": "MediaService.jobs",
-          "line": 446,
+          "line": 454,
           "kind": "function",
           "parameters": [
             "self",
@@ -41846,7 +41846,7 @@
         },
         {
           "name": "MediaService.transcript",
-          "line": 455,
+          "line": 463,
           "kind": "function",
           "parameters": [
             "self",
@@ -41860,7 +41860,7 @@
         },
         {
           "name": "MediaService._read_transcript",
-          "line": 458,
+          "line": 466,
           "kind": "function",
           "parameters": [
             "self",
@@ -41874,7 +41874,7 @@
         },
         {
           "name": "MediaService.transcript_window",
-          "line": 471,
+          "line": 479,
           "kind": "function",
           "parameters": [
             "self",
@@ -41894,7 +41894,7 @@
         },
         {
           "name": "MediaService._transcript_window",
-          "line": 476,
+          "line": 484,
           "kind": "function",
           "parameters": [
             "self",
@@ -41914,7 +41914,7 @@
         },
         {
           "name": "MediaService.transcript_window_for",
-          "line": 504,
+          "line": 512,
           "kind": "function",
           "parameters": [
             "self",
@@ -41932,14 +41932,14 @@
         },
         {
           "name": "MediaService.transcript_window_for.perform",
-          "line": 507,
+          "line": 515,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "MediaService.frames",
-          "line": 513,
+          "line": 521,
           "kind": "function",
           "parameters": [
             "self",
@@ -41953,7 +41953,7 @@
         },
         {
           "name": "MediaService._run_bounded",
-          "line": 516,
+          "line": 524,
           "kind": "function",
           "parameters": [
             "self",
@@ -41967,7 +41967,7 @@
         },
         {
           "name": "MediaService.invoke",
-          "line": 527,
+          "line": 535,
           "kind": "function",
           "parameters": [
             "self",
@@ -41985,24 +41985,6 @@
         },
         {
           "name": "MediaService.processor_probe",
-          "line": 566,
-          "kind": "function",
-          "parameters": [
-            "self"
-          ],
-          "annotations": {}
-        },
-        {
-          "name": "MediaService.recover",
-          "line": 570,
-          "kind": "function",
-          "parameters": [
-            "self"
-          ],
-          "annotations": {}
-        },
-        {
-          "name": "MediaService.health",
           "line": 574,
           "kind": "function",
           "parameters": [
@@ -42011,8 +41993,26 @@
           "annotations": {}
         },
         {
+          "name": "MediaService.recover",
+          "line": 578,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "MediaService.health",
+          "line": 582,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
           "name": "MediaService.stop_accepting",
-          "line": 583,
+          "line": 591,
           "kind": "function",
           "parameters": [
             "self"
@@ -42021,7 +42021,7 @@
         },
         {
           "name": "MediaService.close",
-          "line": 586,
+          "line": 594,
           "kind": "function",
           "parameters": [
             "self",

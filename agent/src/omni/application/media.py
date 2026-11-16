@@ -383,6 +383,14 @@ class MediaService:
         if before_publish is not None:
             await before_publish()
         prepared = await self._images.prepare(agent_id, str(obj["id"]))
+        if (
+            prepared.get("width") != info["width"]
+            or prepared.get("height") != info["height"]
+            or prepared.get("media_type") != "image/png"
+        ):
+            raise BusinessError(
+                "media_sheet_invalid", "Frame sheet dimensions or format differ from the verified image", status=503
+            )
         return cast(
             Record,
             {**info, "object_id": str(obj["id"]), "image_state": prepared.get("state", "registered_not_attached")},

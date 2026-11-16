@@ -141,7 +141,13 @@ def fixture(tmp_path, operation, phase="none", change="revision"):
             changed("after_image")
             if phase == "before_artifact_commit":
                 database.deferred = change
-            return {"state": "registered_not_attached"}
+            width = database.job["params"]["width"]
+            return {
+                "state": "registered_not_attached",
+                "width": width,
+                "height": width * 9 // 16,
+                "media_type": "image/png",
+            }
 
     gateway, processor = Gateway(), Processor()
     service = MediaService(database, Objects(), Images(), gateway, processor, None, tmp_path / "staging")

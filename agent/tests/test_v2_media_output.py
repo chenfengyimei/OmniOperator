@@ -55,7 +55,7 @@ class Images:
 
     async def prepare(self, agent_id, object_id):
         self.calls.append((agent_id, object_id))
-        return {"state": "registered_not_attached"}
+        return {"state": "registered_not_attached", "width": 320, "height": 180, "media_type": "image/png"}
 
 
 def fixture(tmp_path, content):
