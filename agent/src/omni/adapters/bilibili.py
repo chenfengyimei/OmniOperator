@@ -23,6 +23,55 @@ from .workers.client import WorkerClient
 Payload = dict[str, object]
 
 
+def _stream_number(value: object) -> int:
+    """Preserve unknown zero and nonnegative decimal values without lossy coercion."""
+    invalid = BusinessError("bilibili_response_invalid", "Media stream number changed format", status=502)
+    if value is None:
+        return 0
+    if type(value) is int and value >= 0:
+        return value
+    if isinstance(value, str) and re.fullmatch(r"[0-9]+", value):
+        try:
+            return int(value)
+        except ValueError as exc:
+            raise invalid from exc
+    raise invalid
+
+
+def _merged_stream(play: Payload) -> tuple[Payload, bool]:
+    """Return a verified single-part candidate or an explicit multi-part marker."""
+    from ..domain.bilibili import stream_url
+
+    invalid = BusinessError("bilibili_response_invalid", "Merged stream fields changed format", status=502)
+    parts = play.get("durl")
+    if parts is None:
+        return {}, False
+    if not isinstance(parts, list):
+        raise invalid
+    entries = cast(list[object], parts)
+    if any(not isinstance(item, dict) for item in entries):
+        raise invalid
+    if len(entries) != 1:
+        return {}, len(entries) > 1
+    item = cast(Payload, entries[0])
+    size = _stream_number(item.get("size"))
+    primary = item.get("url")
+    if primary is not None and not isinstance(primary, str):
+        raise invalid
+    url = primary or ""
+    if not url:
+        for field in ("backup_url", "backupUrl"):
+            backups = item.get(field)
+            if backups is None:
+                continue
+            if not isinstance(backups, list) or any(not isinstance(v, str) for v in cast(list[object], backups)):
+                raise invalid
+            url = next((v for v in cast(list[str], backups) if v), "")
+            if url:
+                break
+    return ({"url": stream_url(url), "bytes": size} if url else {}), False
+
+
 def _dash_stream(play: Payload, kind: str) -> Payload:
     """Choose the lowest-bitrate usable DASH record without coercing changed field types."""
     from ..domain.bilibili import stream_url
@@ -39,25 +88,13 @@ def _dash_stream(play: Payload, kind: str) -> Payload:
     if not isinstance(tracks, list):
         raise invalid
 
-    def number(value: object) -> int:
-        if value is None:
-            return 0
-        if type(value) is int and value >= 0:
-            return value
-        if isinstance(value, str) and re.fullmatch(r"[0-9]+", value):
-            try:
-                return int(value)
-            except ValueError as exc:
-                raise invalid from exc
-        raise invalid
-
     selected: Payload = {}
     priority: int | None = None
     for item in cast(list[object], tracks):
         if not isinstance(item, dict):
             raise invalid
         track = cast(Payload, item)
-        bandwidth, size = number(track.get("bandwidth")) or 10**9, number(track.get("size"))
+        bandwidth, size = _stream_number(track.get("bandwidth")) or 10**9, _stream_number(track.get("size"))
         url = ""
         for field in ("baseUrl", "base_url"):
             value = track.get(field)
@@ -288,8 +325,6 @@ class BilibiliGateway:
 
     async def _streams(self, client: Any, video: Payload) -> Payload:
         """Lowest-bitrate audio and decodable video direct URLs with bounded sizes."""
-        from ..domain.bilibili import stream_url
-
         bvid, cid = video["bvid"], video["cid"]
         audio: Payload = {}
         multipart = False
@@ -298,26 +333,12 @@ class BilibiliGateway:
         )
         audio = _dash_stream(play, "audio")
         if not audio:
-            merged: list[Payload] = cast(list[Payload], play.get("durl") or [])
-            multipart = isinstance(cast(object, merged), list) and len(merged) > 1
-            if (
-                isinstance(cast(object, merged), list)
-                and len(merged) == 1
-                and isinstance(cast(object, merged[0]), dict)
-            ):
-                url = str(merged[0].get("url") or "")
-                if url:
-                    audio = {"url": stream_url(url), "bytes": int(cast(int, merged[0].get("size") or 0))}
-        video_stream: Payload = {}
+            audio, multipart = _merged_stream(play)
         merged_play = await self._get(
             client, "/x/player/playurl", {"bvid": bvid, "cid": cid, "qn": 32, "fnval": 0, "fnver": 0, "fourk": 0}
         )
-        merged = cast(list[Payload], merged_play.get("durl") or [])
-        multipart = multipart or (isinstance(cast(object, merged), list) and len(merged) > 1)
-        if isinstance(cast(object, merged), list) and len(merged) == 1 and isinstance(cast(object, merged[0]), dict):
-            url = str(merged[0].get("url") or "")
-            if url:
-                video_stream = {"url": stream_url(url), "bytes": int(cast(int, merged[0].get("size") or 0))}
+        video_stream, split_video = _merged_stream(merged_play)
+        multipart = multipart or split_video
         if not video_stream:
             video_stream = _dash_stream(play, "video")
         if not audio and not video_stream:
