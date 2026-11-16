@@ -7,6 +7,7 @@ import base64
 import hashlib
 import io
 import warnings
+from contextlib import ExitStack, closing
 from typing import cast
 
 from PIL import Image, ImageOps
@@ -20,23 +21,26 @@ def inspect_image(content: bytes, wire: bool = False) -> ImageInfo | str:
         raise BusinessError("image_too_large", "Images must contain at most 16 MiB", status=413)
     with warnings.catch_warnings():
         warnings.simplefilter("error", Image.DecompressionBombWarning)
-        with Image.open(io.BytesIO(content)) as image:
+        with io.BytesIO(content) as source, closing(Image.open(source)) as image:
             mime = {"PNG": "image/png", "JPEG": "image/jpeg", "WEBP": "image/webp"}.get(image.format or "")
             if mime is None or getattr(image, "n_frames", 1) != 1:
                 raise ValueError("Unsupported or animated image")
             metadata = ImageInfo(mime, image.width, image.height, hashlib.sha256(content).hexdigest(), len(content))
             metadata.validate()
             image.verify()
-        with Image.open(io.BytesIO(content)) as image:
-            image.load()
-            if not wire:
-                return metadata
-            normalized = ImageOps.exif_transpose(image).convert("RGB")
+        with ExitStack() as resources:
+            with io.BytesIO(content) as source, closing(Image.open(source)) as image:
+                image.load()
+                if not wire:
+                    return metadata
+                with closing(ImageOps.exif_transpose(image)) as oriented:
+                    normalized = resources.enter_context(closing(oriented.convert("RGB")))
+            # Release decoded/oriented cores before building the bounded request image.
             normalized.thumbnail((512, 512), Image.Resampling.LANCZOS)
-            pixels = Image.frombytes("RGB", normalized.size, normalized.tobytes())
-            output = io.BytesIO()
-            pixels.save(output, format="PNG")
-            return "data:image/png;base64," + base64.b64encode(output.getvalue()).decode("ascii")
+            pixels = resources.enter_context(closing(Image.frombytes("RGB", normalized.size, normalized.tobytes())))
+            with io.BytesIO() as output:
+                pixels.save(output, format="PNG")
+                return "data:image/png;base64," + base64.b64encode(output.getvalue()).decode("ascii")
 
 
 class ImageCodec:

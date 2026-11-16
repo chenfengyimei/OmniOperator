@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`26703d09c8421279be74896b4c8da2c863659d84f0ede423760dc7140c6f0cc7`。包含 65 个职责模块、736 个源码/界面文件。
+源码指纹：`ea05459413418396ba4149009ea1006403ee84a4a93b306e477931a62f4f7733`。包含 65 个职责模块、736 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -148,7 +148,7 @@
 | [agent/src/omni/adapters/extensions/packages.py](../../agent/src/omni/adapters/extensions/packages.py) | 564 | Bounded zero-execution package capture and immutable verified snapshots; never opens a database. |
 | [agent/src/omni/adapters/extensions/worker.py](../../agent/src/omni/adapters/extensions/worker.py) | 326 | Static extension handshake and trusted Python invocation in an owned child; never opens the main database. |
 | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py) | 2283 | Versioned HTTP contract for the V2 kernel; business access goes through use cases. |
-| [agent/src/omni/adapters/images.py](../../agent/src/omni/adapters/images.py) | 79 | Bounded image verification and metadata-free low-detail PNG encoding; no database or remote URLs. |
+| [agent/src/omni/adapters/images.py](../../agent/src/omni/adapters/images.py) | 83 | Bounded image verification and metadata-free low-detail PNG encoding; no database or remote URLs. |
 | [agent/src/omni/adapters/local_vectors.py](../../agent/src/omni/adapters/local_vectors.py) | 287 | One bounded, supervised local embedding process; no native ML imports in the application process. |
 | [agent/src/omni/adapters/log_query.py](../../agent/src/omni/adapters/log_query.py) | 320 | Bounded diagnostic pages with cursors that survive rename and process restart. |
 | [agent/src/omni/adapters/mcp/__init__.py](../../agent/src/omni/adapters/mcp/__init__.py) | 1 | Bounded MCP transports: stdio JSON-RPC, Streamable HTTP and later explicit OAuth. |

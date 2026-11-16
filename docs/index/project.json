@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "26703d09c8421279be74896b4c8da2c863659d84f0ede423760dc7140c6f0cc7",
+  "source_sha256": "ea05459413418396ba4149009ea1006403ee84a4a93b306e477931a62f4f7733",
   "modules": [
     {
       "id": "v2-domain",
@@ -404,7 +404,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 54889,
+      "lines": 54893,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -8472,7 +8472,7 @@
       "path": "agent/src/omni/adapters/images.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.images",
-      "lines": 79,
+      "lines": 83,
       "imports": [
         "omni.domain.contracts",
         "omni.domain.images"
@@ -8480,7 +8480,7 @@
       "symbols": [
         {
           "name": "inspect_image",
-          "line": 18,
+          "line": 19,
           "kind": "function",
           "parameters": [
             "content",
@@ -8493,12 +8493,12 @@
         },
         {
           "name": "ImageCodec",
-          "line": 42,
+          "line": 46,
           "kind": "class"
         },
         {
           "name": "ImageCodec.__init__",
-          "line": 43,
+          "line": 47,
           "kind": "function",
           "parameters": [
             "self"
@@ -8507,7 +8507,7 @@
         },
         {
           "name": "ImageCodec.execute",
-          "line": 48,
+          "line": 52,
           "kind": "function",
           "parameters": [
             "self",
@@ -8521,14 +8521,14 @@
         },
         {
           "name": "ImageCodec.execute.perform",
-          "line": 52,
+          "line": 56,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "ImageCodec.execute.done",
-          "line": 64,
+          "line": 68,
           "kind": "function",
           "parameters": [
             "future"
@@ -8539,7 +8539,7 @@
         },
         {
           "name": "ImageCodec.stop_accepting",
-          "line": 72,
+          "line": 76,
           "kind": "function",
           "parameters": [
             "self"
@@ -8548,7 +8548,7 @@
         },
         {
           "name": "ImageCodec.close",
-          "line": 75,
+          "line": 79,
           "kind": "function",
           "parameters": [
             "self",
