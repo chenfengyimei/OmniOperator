@@ -1,0 +1,361 @@
+{
+ "schema": 1,
+ "date": "2026-11-16",
+ "branch": "v2",
+ "whole_v2_complete": false,
+ "default_entrypoint": "v1",
+ "source": {
+  "head": "f62e6f9accbba2313bdee5fb05d9575bbea5539a",
+  "base": "3fc1d5ee405921e1d4f09c65dbfa8bfa41b3fe34",
+  "code_version": "5cfe66ac3692153546f8d132b04b957ddbe998dfe295b2e91bf8bfbb2e27f650",
+  "code_files": 1241,
+  "planned": {
+   "agent/src/omni/adapters/bilibili.py": {
+    "sha256": "d453ae55487ab20e1c9f4156c69cf448a58bf40e014e5dc5b5e699f920081f5a",
+    "git_blob": "f030851a0da32cb30f63738adb4f50b0ad6bb02e"
+   },
+   "agent/tests/test_v2_bilibili_merged.py": {
+    "sha256": "4ea47ce8d9dbe624cb754cf19c919c55a099944af48fddd67db77dc755502f9c",
+    "git_blob": "fd760c8acfe0790ed2afefb1683c0ffef923857a"
+   },
+   "docs/V2_MEDIA.md": {
+    "sha256": "34e1da4724d73fdf9c684eb9ba7fbc1686d27fee25d46d3c6bf320cd6c22f088",
+    "git_blob": "b234c5956d44f61c599c33854a88ddc682995822"
+   },
+   "docs/TESTING.md": {
+    "sha256": "ac6b239dc8299750fe8abbb71a0e9f1ac8ddfa21a9196fff5c622c1705456b93",
+    "git_blob": "a14bce60af73b86bfcf40a8497582f434cbc233f"
+   },
+   "docs/index/MODULES.md": {
+    "sha256": "b89384b6258065784f8cab84eadf4e576bed8ae04884635f1bb0829098a30be4",
+    "git_blob": "44aeb230af7ab64875f2f1d466032e176599725d"
+   },
+   "docs/index/project.json": {
+    "sha256": "2f5a1236093b73c1097be76bc8fc7b0b76d1805e9f360b995533ea1950bfa383",
+    "git_blob": "7032b745f48124c1946ee189407c5bcfc27b2e1c"
+   }
+  },
+  "candidate": "D:\\xm\\OmniOperator\\temp\\build\\bili-merged-candidate",
+  "parallel_working_bodies_preserved": true
+ },
+ "root_cause": "Single merged durl records ignored backup URLs and used unchecked str/int conversions, causing usable merged candidates to be lost and malformed sizes to become accepted metadata or unknown job failures.",
+ "changes": [
+  "Validate merged durl list and record types; select only a single complete candidate",
+  "Use backup_url/backupUrl when the primary URL is absent or empty; apply the existing CDN policy",
+  "Extract the existing DASH nonnegative integer parsing for merged sizes, keeping numeric behavior and error codes/status",
+  "Preserve multipart rejection, DASH fallback, merged preference, source identity, download budgets and retry count"
+ ],
+ "proof": {
+  "changed_existing_gateway_methods": [
+   "_streams"
+  ],
+  "new_helpers": [
+   "_stream_number",
+   "_merged_stream"
+  ],
+  "all_existing_method_signatures_unchanged": true,
+  "all_other_existing_method_sources_identical": true,
+  "dash_ast_identical_after_restoring_extracted_number_and_calls": true,
+  "extracted_numeric_body_ast_identical": true,
+  "numeric_business_error_code_status_unchanged_message_generalized": true,
+  "imports_constants_and_other_global_helpers_ast_identical_after_normalization": true,
+  "unchanged_files": [
+   "agent/src/omni/application/media.py",
+   "agent/src/omni/domain/media.py",
+   "agent/src/omni/domain/bilibili.py",
+   "agent/src/omni/adapters/media.py",
+   "agent/src/omni/adapters/workers/media.py",
+   "agent/src/omni/composition/instance.py",
+   "agent/tests/test_v2_media.py"
+  ],
+  "identical_final_tests_in_clean_negative_and_candidate": true
+ },
+ "regressions": {
+  "new_cases": 40,
+  "before": {
+   "command": [
+    "D:\\xm\\OmniOperator\\temp\\build\\checkpoint-interpreter-bili-merged-before\\Scripts\\python.exe",
+    "-m",
+    "pytest",
+    "-q",
+    "-n",
+    "0",
+    "agent/tests/test_v2_bilibili_merged.py",
+    "--junitxml=D:\\xm\\OmniOperator\\temp\\build\\v2-bili-merged-before.xml",
+    "--tb=short"
+   ],
+   "returncode": 1,
+   "duration_s": 16.25,
+   "cases": 40,
+   "failures": 34,
+   "errors": 0,
+   "skipped": 0,
+   "report": "temp\\build\\v2-bili-merged-before.xml",
+   "report_sha256": "3efa11a30d7328cd55506b0a151861cb4f5b070d4491ba532c2936bd203a76d9",
+   "log": "temp\\build\\v2-bili-merged-before.log",
+   "log_sha256": "5198655050e1a6ba540b5e35e42f2c7f88f77d270b5448cbd567b25d887ac51c"
+  },
+  "failed_before_nodes": [
+   {
+    "nodeid": "tests.test_v2_bilibili_merged::test_single_part_url_aliases_and_size_defaults_preserve_exact_payload[backup_snake-audio]",
+    "message": "AssertionError: assert None == {'url': 'https://cdn.bilivideo.com/complete-merged.mp4', 'bytes': 16}"
+   },
+   {
+    "nodeid": "tests.test_v2_bilibili_merged::test_single_part_url_aliases_and_size_defaults_preserve_exact_payload[backup_snake-video]",
+    "message": "AssertionError: assert {'url': 'http..., 'bytes': 16} == {'url': 'http..., 'bytes': 16}\n  \n  Omitting 1 identical items, use -vv to show\n  Differing items:\n  {'url': 'https://cdn.bilivideo.com/complete-video.m4s'} != {'url': 'https://cdn.bilivideo.com/complete-merged.mp4'}\n  Use -v to get more diff"
+   },
+   {
+    "nodeid": "tests.test_v2_bilibili_merged::test_single_part_url_aliases_and_size_defaults_preserve_exact_payload[backup_camel-audio]",
+    "message": "AssertionError: assert None == {'url': 'https://cdn.bilivideo.com/complete-merged.mp4', 'bytes': 16}"
+   },
+   {
+    "nodeid": "tests.test_v2_bilibili_merged::test_single_part_url_aliases_and_size_defaults_preserve_exact_payload[backup_camel-video]",
+    "message": "AssertionError: assert {'url': 'http..., 'bytes': 16} == {'url': 'http..., 'bytes': 16}\n  \n  Omitting 1 identical items, use -vv to show\n  Differing items:\n  {'url': 'https://cdn.bilivideo.com/complete-video.m4s'} != {'url': 'https://cdn.bilivideo.com/complete-merged.mp4'}\n  Use -v to get more diff"
+   },
+   {
+    "nodeid": "tests.test_v2_bilibili_merged::test_single_part_url_aliases_and_size_defaults_preserve_exact_payload[empty_backup-audio]",
+    "message": "AssertionError: assert None == {'url': 'https://cdn.bilivideo.com/complete-merged.mp4', 'bytes': 16}"
+   },
+   {
+    "nodeid": "tests.test_v2_bilibili_merged::test_single_part_url_aliases_and_size_defaults_preserve_exact_payload[empty_backup-video]",
+    "message": "AssertionError: assert {'url': 'http..., 'bytes': 16} == {'url': 'http..., 'bytes': 16}\n  \n  Omitting 1 identical items, use -vv to show\n  Differing items:\n  {'url': 'https://cdn.bilivideo.com/complete-video.m4s'} != {'url': 'https://cdn.bilivideo.com/complete-merged.mp4'}\n  Use -v to get more diff"
+   },
+   {
+    "nodeid": "tests.test_v2_bilibili_merged::test_malformed_merged_fields_are_known_format_failures_before_download[list_string-audio]",
+    "message": "Failed: DID NOT RAISE BusinessError"
+   },
+   {
+    "nodeid": "tests.test_v2_bilibili_merged::test_malformed_merged_fields_are_known_format_failures_before_download[list_string-video]",
+    "message": "Failed: DID NOT RAISE BusinessError"
+   },
+   {
+    "nodeid": "tests.test_v2_bilibili_merged::test_malformed_merged_fields_are_known_format_failures_before_download[list_object-audio]",
+    "message": "Failed: DID NOT RAISE BusinessError"
+   },
+   {
+    "nodeid": "tests.test_v2_bilibili_merged::test_malformed_merged_fields_are_known_format_failures_before_download[list_object-video]",
+    "message": "Failed: DID NOT RAISE BusinessError"
+   },
+   {
+    "nodeid": "tests.test_v2_bilibili_merged::test_malformed_merged_fields_are_known_format_failures_before_download[list_bool-audio]",
+    "message": "Failed: DID NOT RAISE BusinessError"
+   },
+   {
+    "nodeid": "tests.test_v2_bilibili_merged::test_malformed_merged_fields_are_known_format_failures_before_download[list_bool-video]",
+    "message": "Failed: DID NOT RAISE BusinessError"
+   },
+   {
+    "nodeid": "tests.test_v2_bilibili_merged::test_malformed_merged_fields_are_known_format_failures_before_download[record-audio]",
+    "message": "Failed: DID NOT RAISE BusinessError"
+   },
+   {
+    "nodeid": "tests.test_v2_bilibili_merged::test_malformed_merged_fields_are_known_format_failures_before_download[record-video]",
+    "message": "Failed: DID NOT RAISE BusinessError"
+   },
+   {
+    "nodeid": "tests.test_v2_bilibili_merged::test_malformed_merged_fields_are_known_format_failures_before_download[size_bool-audio]",
+    "message": "Failed: DID NOT RAISE BusinessError"
+   },
+   {
+    "nodeid": "tests.test_v2_bilibili_merged::test_malformed_merged_fields_are_known_format_failures_before_download[size_bool-video]",
+    "message": "Failed: DID NOT RAISE BusinessError"
+   },
+   {
+    "nodeid": "tests.test_v2_bilibili_merged::test_malformed_merged_fields_are_known_format_failures_before_download[size_float-audio]",
+    "message": "Failed: DID NOT RAISE BusinessError"
+   },
+   {
+    "nodeid": "tests.test_v2_bilibili_merged::test_malformed_merged_fields_are_known_format_failures_before_download[size_float-video]",
+    "message": "Failed: DID NOT RAISE BusinessError"
+   },
+   {
+    "nodeid": "tests.test_v2_bilibili_merged::test_malformed_merged_fields_are_known_format_failures_before_download[size_negative-audio]",
+    "message": "Failed: DID NOT RAISE BusinessError"
+   },
+   {
+    "nodeid": "tests.test_v2_bilibili_merged::test_malformed_merged_fields_are_known_format_failures_before_download[size_negative-video]",
+    "message": "Failed: DID NOT RAISE BusinessError"
+   },
+   {
+    "nodeid": "tests.test_v2_bilibili_merged::test_malformed_merged_fields_are_known_format_failures_before_download[size_text-audio]",
+    "message": "ValueError: invalid literal for int() with base 10: 'changed'"
+   },
+   {
+    "nodeid": "tests.test_v2_bilibili_merged::test_malformed_merged_fields_are_known_format_failures_before_download[size_text-video]",
+    "message": "ValueError: invalid literal for int() with base 10: 'changed'"
+   },
+   {
+    "nodeid": "tests.test_v2_bilibili_merged::test_malformed_merged_fields_are_known_format_failures_before_download[url_type-audio]",
+    "message": "AssertionError: assert ('bilibili_read_rejected' == 'bilibili_response_invalid'\n  \n  - bilibili_response_invalid\n  + bilibili_read_rejected)"
+   },
+   {
+    "nodeid": "tests.test_v2_bilibili_merged::test_malformed_merged_fields_are_known_format_failures_before_download[url_type-video]",
+    "message": "AssertionError: assert ('bilibili_read_rejected' == 'bilibili_response_invalid'\n  \n  - bilibili_response_invalid\n  + bilibili_read_rejected)"
+   },
+   {
+    "nodeid": "tests.test_v2_bilibili_merged::test_malformed_merged_fields_are_known_format_failures_before_download[backup_type-audio]",
+    "message": "Failed: DID NOT RAISE BusinessError"
+   },
+   {
+    "nodeid": "tests.test_v2_bilibili_merged::test_malformed_merged_fields_are_known_format_failures_before_download[backup_type-video]",
+    "message": "Failed: DID NOT RAISE BusinessError"
+   },
+   {
+    "nodeid": "tests.test_v2_bilibili_merged::test_malformed_merged_fields_are_known_format_failures_before_download[backup_record-audio]",
+    "message": "Failed: DID NOT RAISE BusinessError"
+   },
+   {
+    "nodeid": "tests.test_v2_bilibili_merged::test_malformed_merged_fields_are_known_format_failures_before_download[backup_record-video]",
+    "message": "Failed: DID NOT RAISE BusinessError"
+   },
+   {
+    "nodeid": "tests.test_v2_bilibili_merged::test_backup_url_keeps_existing_cdn_policy[audio]",
+    "message": "Failed: DID NOT RAISE BusinessError"
+   },
+   {
+    "nodeid": "tests.test_v2_bilibili_merged::test_backup_url_keeps_existing_cdn_policy[video]",
+    "message": "Failed: DID NOT RAISE BusinessError"
+   },
+   {
+    "nodeid": "tests.test_v2_bilibili_merged::test_real_job_rejects_bad_merged_size_and_allows_explicit_new_work[transcribe]",
+    "message": "AssertionError: assert ('done' == 'failed'\n  \n  - failed\n  + done)"
+   },
+   {
+    "nodeid": "tests.test_v2_bilibili_merged::test_real_job_rejects_bad_merged_size_and_allows_explicit_new_work[frames]",
+    "message": "AssertionError: assert ('unknown' == 'failed'\n  \n  - failed\n  + unknown)"
+   },
+   {
+    "nodeid": "tests.test_v2_bilibili_merged::test_real_job_uses_merged_backup_with_full_bytes_and_original_source[transcribe]",
+    "message": "AssertionError: assert 'failed' == 'done'\n  \n  - done\n  + failed"
+   },
+   {
+    "nodeid": "tests.test_v2_bilibili_merged::test_real_job_uses_merged_backup_with_full_bytes_and_original_source[frames]",
+    "message": "AssertionError: assert (1 == 1 and 'https://cdn....ete-video.m4s' == 'https://cdn....te-merged.mp4'\n +  where 1 = len([<Request('GET', 'https://cdn.bilivideo.com/complete-video.m4s')>])\n  \n  - https://cdn.bilivideo.com/complete-merged.mp4\n  ?                                    ^ ^^^^  -\n  + https://cdn.bilivideo.com/complete-video.m4s\n  ?                                    ^^^ ^   +)"
+   }
+  ],
+  "callers": {
+   "command": [
+    "D:\\xm\\OmniOperator\\temp\\build\\checkpoint-interpreter-bili-merged\\Scripts\\python.exe",
+    "-m",
+    "pytest",
+    "-q",
+    "-n",
+    "0",
+    "agent/tests/test_v2_bilibili_merged.py",
+    "agent/tests/test_v2_bilibili_dash.py",
+    "agent/tests/test_v2_bilibili_streams.py",
+    "agent/tests/test_v2_media_download.py",
+    "agent/tests/test_v2_media_source_identity.py",
+    "agent/tests/test_v2_media.py",
+    "agent/tests/test_v2_lifecycle.py",
+    "agent/tests/test_v2_architecture.py",
+    "agent/tests/test_v2_typecheck_scope.py",
+    "agent/tests/test_v2_media_authority.py::test_real_database_revocation_blocks_later_work_and_allows_explicit_rebind[after_streams]",
+    "agent/tests/test_arch.py",
+    "--junitxml=D:\\xm\\OmniOperator\\temp\\build\\v2-bili-merged-callers.xml",
+    "--tb=short"
+   ],
+   "returncode": 0,
+   "duration_s": 80.532,
+   "cases": 209,
+   "failures": 0,
+   "errors": 0,
+   "skipped": 0,
+   "report": "temp\\build\\v2-bili-merged-callers.xml",
+   "report_sha256": "eb9325c8918c902983357ad6109ac1a36415997ff50fd72dc07c267facf5c3fe",
+   "log": "temp\\build\\v2-bili-merged-callers.log",
+   "log_sha256": "e3adff3828fa186da6a5b1883ec79d343967ac40b1be7d83b18116f1f950c9e5"
+  },
+  "cli_summary": "209 passed in 79.33s (0:01:19)",
+  "coverage": [
+   "Single merged primary/backup URLs and aliases, empty primary/backups, absent size and decimal strings preserve exact selected payload",
+   "Malformed durl hierarchy, records, selected size/URL/backup types fail explicitly before content dispatch",
+   "Backup URLs retain the existing CDN whitelist",
+   "Two real DB jobs reject bad merged sizes before download, processor and object publication, remove staging, then allow explicit fresh work while retaining failed rows",
+   "Two real jobs download exact complete merged backup bytes with original source identity and merged preference",
+   "DASH extraction, multipart rules, download, source identity, media HTTP, one real after-streams authority revocation node, lifecycle and architecture callers are covered"
+  ]
+ },
+ "gates": [
+  {
+   "command": [
+    "-m",
+    "ruff",
+    "check",
+    "agent/src/omni/adapters/bilibili.py",
+    "agent/tests/test_v2_bilibili_merged.py"
+   ],
+   "returncode": 0,
+   "duration_s": 0.156,
+   "stdout": "All checks passed!\n",
+   "stderr": ""
+  },
+  {
+   "command": [
+    "-m",
+    "ruff",
+    "format",
+    "--check",
+    "agent/src/omni/adapters/bilibili.py",
+    "agent/tests/test_v2_bilibili_merged.py"
+   ],
+   "returncode": 0,
+   "duration_s": 0.172,
+   "stdout": "2 files already formatted\n",
+   "stderr": ""
+  },
+  {
+   "command": [
+    "-m",
+    "pyright",
+    "--project",
+    "D:\\xm\\OmniOperator\\temp\\build\\bili-merged-candidate\\pyrightconfig.bili-merged.json",
+    "--outputjson"
+   ],
+   "returncode": 0,
+   "duration_s": 1.906,
+   "stdout": "{\n    \"version\": \"1.1.414\",\n    \"time\": \"1794830143891\",\n    \"generalDiagnostics\": [],\n    \"summary\": {\n        \"filesAnalyzed\": 1,\n        \"errorCount\": 0,\n        \"warningCount\": 0,\n        \"informationCount\": 0,\n        \"timeInSec\": 0.93\n    }\n}\n\n",
+   "stderr": ""
+  }
+ ],
+ "artifacts": [
+  {
+   "path": "temp/build/v2-bili-merged-source.json",
+   "sha256": "2cb2a6df8ab10381a4762fbf8d079a4e24242d9a127a537b02ea994f59cecb9b"
+  },
+  {
+   "path": "temp/build/v2-bili-merged-before-source.json",
+   "sha256": "d0a9ba9819fa31057976198bd65e72285a827238b2e442537bc7490ee108ab01"
+  },
+  {
+   "path": "temp/build/v2-bili-merged-gates.json",
+   "sha256": "f76b067e757ca52c454a705e968f61fcedb9fb519ad8605c67ef3abe1327f399"
+  },
+  {
+   "path": "temp/build/v2-bili-merged-working.xml",
+   "sha256": "20aa6fc39b884cc5f99ef6d83762bdf18fb631a3b0784902ad97d5c3572531f1"
+  }
+ ],
+ "exploratory_reports": {
+  "working": {
+   "path": "temp/build/v2-bili-merged-working.xml",
+   "sha256": "20aa6fc39b884cc5f99ef6d83762bdf18fb631a3b0784902ad97d5c3572531f1"
+  },
+  "note": "Working 40-case pass includes concurrent WIP. Final clean candidate overlays only owned files on committed base. The same final tests are used in the negative control and candidate. Caller scope was narrowed to relevant media/DASH/stream/download/source/lifecycle and one exact after-streams revocation node; no full suite or unrelated publication/browser scope."
+ },
+ "full_run": {
+  "status": "deferred_per_owner",
+  "run_for_this_change": false,
+  "covers_this_source": false,
+  "last_completed_source": "42a4b8b29d7c80daa4cb212d49dd40d07c189079",
+  "last_completed_summary": "4800 passed, 12 warnings in 3025.48s (0:50:25)",
+  "last_full_does_not_cover_this_change": true
+ },
+ "not_verified": [
+  "Full integration of this source",
+  "Multi-segment concatenation or remote truth of a single complete URL",
+  "Actual Bilibili account/CDN requests and real ASR models",
+  "Concurrent uncommitted migration/configuration/UI bodies",
+  "Historical native/system-commit/UI observations"
+ ]
+}
