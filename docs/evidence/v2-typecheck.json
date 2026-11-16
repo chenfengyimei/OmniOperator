@@ -7235,6 +7235,18 @@
    "integration_full_run_pending": true,
    "validated_committed_scope_only": true,
    "historical_observations_closed": false
+  },
+  "bilibili_subtitles_followup": {
+   "evidence": "docs/evidence/v2-bilibili-subtitles.json",
+   "source_head": "497ce95e5e8315d0e39d62d170031bbf0f08e499",
+   "status": "scoped_passed_full_deferred",
+   "scoped_passed": 186,
+   "new_cases": 38,
+   "strict_files": 1,
+   "full_run_covers_current_source": false,
+   "integration_full_run_pending": true,
+   "validated_committed_scope_only": true,
+   "historical_observations_closed": false
   }
  },
  "source_recovery": {
