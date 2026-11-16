@@ -10,11 +10,12 @@ from collections.abc import Callable
 from typing import Protocol, TypeVar, cast
 
 import yaml
-from yaml.nodes import MappingNode, Node
+from yaml.nodes import MappingNode, Node, SequenceNode
 
 from ..domain.skills import MAX_BYTES, MAX_FILES, MAX_ZIP, SkillPackage, document, file_path, invalid
 
 T = TypeVar("T")
+_MAX_METADATA_NODES = 128
 
 
 class _MetadataLoader(Protocol):
@@ -25,12 +26,31 @@ class _MetadataLoader(Protocol):
     def dispose(self) -> None: ...
 
 
+def _metadata_budget(node: Node) -> None:
+    pending: list[Node] = [node]
+    examined = 0
+    while pending:
+        current = pending.pop()
+        examined += 1
+        if isinstance(current, MappingNode):
+            children = [item for pair in current.value for item in pair]
+        elif isinstance(current, SequenceNode):
+            children = current.value
+        else:
+            continue
+        # Count repeated aliases again; a short source can describe a much larger expansion.
+        if examined + len(pending) + len(children) > _MAX_METADATA_NODES:
+            raise invalid()
+        pending.extend(children)
+
+
 def _metadata(header: str) -> object:
     loader = cast(_MetadataLoader, yaml.SafeLoader(header))
     try:
         node = loader.get_single_node()
         if not isinstance(node, MappingNode):
             raise invalid()
+        _metadata_budget(node)
         # Inspect resolved merge fields before constructing a dict that would overwrite them.
         loader.flatten_mapping(node)
         names: set[str] = set()
