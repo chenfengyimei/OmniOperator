@@ -1,0 +1,1053 @@
+{
+ "schema": 1,
+ "date": "2026-11-16",
+ "batch": "delivery-refresh-readiness",
+ "branch": "v2",
+ "whole_v2_complete": false,
+ "default_entrypoint": "v1",
+ "source": {
+  "head": "e5815df87c021e62147d9096cda0244dce5245a7",
+  "code_version": "73f41b8d74576a4df8140d4533f62364ad9b228466aaecb1eec947495d4f9ce0",
+  "fixed_source_files": 1217,
+  "strict_files": 332
+ },
+ "asset_version": "20261116v132",
+ "committed_scope": {
+  "baseline": "eccc1e1e503ebcbb6299b0dbee9c7a018f653280",
+  "semantic_production_file": "web/ui/v2/deliveries.js",
+  "behavioral_lines_added": 4,
+  "excluded_working_tree_paths": [
+   "agent/src/omni/adapters/persistence/schema.py",
+   "agent/src/omni/domain/configuration.py",
+   "agent/tests/test_v2_action_review_migration.py",
+   "agent/tests/test_v2_android_migration.py",
+   "agent/tests/test_v2_audit_plan_migration.py",
+   "agent/tests/test_v2_capabilities.py",
+   "agent/tests/test_v2_credential_authority.py",
+   "agent/tests/test_v2_event_plan_migration.py",
+   "agent/tests/test_v2_execution_pruning.py",
+   "agent/tests/test_v2_extensions_migration.py",
+   "agent/tests/test_v2_history_migration.py",
+   "agent/tests/test_v2_images_migration.py",
+   "agent/tests/test_v2_maintenance_migration.py",
+   "agent/tests/test_v2_media.py",
+   "agent/tests/test_v2_memory_organization_migration.py",
+   "agent/tests/test_v2_memory_semantics_migration.py",
+   "agent/tests/test_v2_models_ui.py",
+   "agent/tests/test_v2_owner_command_migration.py",
+   "agent/tests/test_v2_reference_migration.py",
+   "agent/tests/test_v2_routing_migration.py",
+   "agent/tests/test_v2_schema_release.py",
+   "agent/tests/test_v2_skills_migration.py",
+   "agent/tests/test_v2_terminal_review_migration.py",
+   "agent/tests/test_v2_terminals_migration.py",
+   "agent/tests/v2_configuration_helpers.py",
+   "docs/index/MODULES.md",
+   "docs/index/project.json",
+   "web/ui/v2/index.html",
+   "web/ui/v2/models.js",
+   "web/ui/v2/workbench.css"
+  ],
+  "excluded_untracked_source_paths": [
+   "agent/src/omni/adapters/persistence/migrations/versions/v0038.py"
+  ],
+  "note": "Frozen schema remains136/v2_0037. Parallel UI/schema bodies were excluded; cache-only metadata was derived from HEAD."
+ },
+ "root_cause": "A list refresh advanced the view epoch while retaining old detail/actions. A user could open archive confirmation against that old detail; the pending refresh then advanced the epoch again and the existing safety guard rejected confirmation. Two controlled runs kept the original assertion of1 option but observed2, current-record-changed and zero DELETE requests. A separate archived-detail branch cleared selection without removing the now-known archived row from cached choices.",
+ "changes": [
+  "Clear old row/preview/actions/attempts at list-read start, keeping the existing view/revision checks",
+  "Remove a detail-confirmed archived choice when the current filter excludes archives",
+  "Keep the original delivery scenario byte-identical, including assertions and timeouts",
+  "Update all current cache imports to20261116v132 and current guide branch metadata to v2; stage only HEAD-derived metadata and owned changes"
+ ],
+ "limits": [
+  "Controlled reproduction establishes one concrete path to the same symptom; it does not prove every historical parallel failure had this cause",
+  "Do not close earlier UI/process/commit observations from this batch alone",
+  "No backend migration, production Python, dependency, cancellation budget, approval rule or real external send changed"
+ ],
+ "regressions": {
+  "new_parent_cases": 8,
+  "clean_baseline_before": {
+   "report": "temp/build/v2-delivery-read-baseline-before-corrected.xml",
+   "report_sha256": "350d6e79b9ea5799020d21283a9884e7a08681323c02847fec2fe0d54addfac5",
+   "raw_suites": [
+    {
+     "name": "pytest",
+     "errors": "0",
+     "failures": "6",
+     "skipped": "0",
+     "tests": "8",
+     "time": "88.224",
+     "timestamp": "2026-11-16T11:02:30.025859+08:00",
+     "hostname": "cy"
+    }
+   ],
+   "junit_testcase_records": 8,
+   "unique_test_nodes_reported": 8,
+   "failure_events": 6,
+   "error_events": 0,
+   "skipped": 0,
+   "unique_failed_or_errored_nodes": 6,
+   "unique_nodes_without_failure_or_error": 2,
+   "duplicate_nodes": {},
+   "failed_nodes": [
+    {
+     "nodeid": "agent/tests/test_v2_delivery_ui.py::test_refresh_completion_cannot_invalidate_archive_confirmation[1-delivery]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: Locator expected to have count '1'\nActual value: 2 \nCall log:\n  - Expect \"to_have_count\" locator(\"#delivery-list option\") with timeout 5000ms\n  - waiting for locator(\"#delivery-list option\")\n    14 × locator resolved to 2 elements\n       - unexpected value \"2\""
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_delivery_ui.py::test_refresh_completion_cannot_invalidate_archive_confirmation[2-delivery]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: Locator expected to have count '1'\nActual value: 2 \nCall log:\n  - Expect \"to_have_count\" locator(\"#delivery-list option\") with timeout 5000ms\n  - waiting for locator(\"#delivery-list option\")\n    14 × locator resolved to 2 elements\n       - unexpected value \"2\""
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_delivery_ui.py::test_delivery_refresh_clears_old_detail_and_actions_until_actual_response_finishes[390-delivery]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: Locator expected to be empty\nActual value: notEmpty \nCall log:\n  - Expect \"to_be_empty\" locator(\"#delivery-status\") with timeout 5000ms\n  - waiting for locator(\"#delivery-status\")\n    14 × locator resolved to <p role=\"status\" id=\"delivery-status\">等待审批 · 修订 1</p>\n       - unexpected value \"notEmpty\"\n\nAria snapshot:\n- status: 等待审批 · 修订 1"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_delivery_ui.py::test_delivery_refresh_clears_old_detail_and_actions_until_actual_response_finishes[1440-delivery]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: Locator expected to be empty\nActual value: notEmpty \nCall log:\n  - Expect \"to_be_empty\" locator(\"#delivery-status\") with timeout 5000ms\n  - waiting for locator(\"#delivery-status\")\n    14 × locator resolved to <p role=\"status\" id=\"delivery-status\">等待审批 · 修订 1</p>\n       - unexpected value \"notEmpty\"\n\nAria snapshot:\n- status: 等待审批 · 修订 1"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_delivery_ui.py::test_detail_confirmed_archived_is_removed_from_stale_unarchived_page[390-delivery]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: Locator expected to have count '1'\nActual value: 2 \nCall log:\n  - Expect \"to_have_count\" locator(\"#delivery-list option\") with timeout 5000ms\n  - waiting for locator(\"#delivery-list option\")\n    14 × locator resolved to 2 elements\n       - unexpected value \"2\""
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_delivery_ui.py::test_detail_confirmed_archived_is_removed_from_stale_unarchived_page[1440-delivery]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: Locator expected to have count '1'\nActual value: 2 \nCall log:\n  - Expect \"to_have_count\" locator(\"#delivery-list option\") with timeout 5000ms\n  - waiting for locator(\"#delivery-list option\")\n    14 × locator resolved to 2 elements\n       - unexpected value \"2\""
+      }
+     ]
+    }
+   ]
+  },
+  "baseline_metadata": {
+   "head": "eccc1e1e503ebcbb6299b0dbee9c7a018f653280",
+   "overlay_sha256": "26372af701cba4f5abc6298efb1928a7daad9361661db48e06a872c35d2b4908",
+   "source_unchanged": true,
+   "report": "temp/build/v2-delivery-read-baseline-before-corrected.xml"
+  },
+  "baseline_artifact": {
+   "path": "temp/build/v2-delivery-read-baseline-corrected.json",
+   "sha256": "ffff5462d19c7380ac008fed6995aef3a290d9c739047eaaea864048f1d5c9b3"
+  },
+  "baseline_log": {
+   "path": "temp/build/v2-delivery-read-baseline-before-corrected.log",
+   "sha256": "3d14ed0bf4fdd819d0ccfffa5140ec6848a8d5bc279429b04c537954f37574ed"
+  },
+  "original_scenario_traces": [
+   {
+    "controlled_delivery_trace": [
+     {
+      "control": {
+       "enabled": true,
+       "armed": false,
+       "held": false,
+       "releasedBy": "archive-dialog",
+       "dialogWhileHeld": true,
+       "resume": null
+      },
+      "error": "当前记录已变化",
+      "options": 2
+     }
+    ],
+    "archive_requests": 0
+   },
+   {
+    "controlled_delivery_trace": [
+     {
+      "control": {
+       "enabled": true,
+       "armed": false,
+       "held": false,
+       "releasedBy": "archive-dialog",
+       "dialogWhileHeld": true,
+       "resume": null
+      },
+      "error": "当前记录已变化",
+      "options": 2
+     }
+    ],
+    "archive_requests": 0
+   }
+  ],
+  "regression_test_bytes_identical_between_clean_before_and_after": true,
+  "working_after": {
+   "report": "temp/build/v2-delivery-read-final-regressions.xml",
+   "report_sha256": "a7193c7a2a1dee551528ee1cae2722b5b60bb66a86cd09baaf67ecb5ea6da5d0",
+   "raw_suites": [
+    {
+     "name": "pytest",
+     "errors": "0",
+     "failures": "0",
+     "skipped": "0",
+     "tests": "8",
+     "time": "58.520",
+     "timestamp": "2026-11-16T11:01:29.359659+08:00",
+     "hostname": "cy"
+    }
+   ],
+   "junit_testcase_records": 8,
+   "unique_test_nodes_reported": 8,
+   "failure_events": 0,
+   "error_events": 0,
+   "skipped": 0,
+   "unique_failed_or_errored_nodes": 0,
+   "unique_nodes_without_failure_or_error": 8,
+   "duplicate_nodes": {},
+   "failed_nodes": []
+  },
+  "precommit_api": {
+   "report": "temp/build/v2-delivery-read-precommit-api.xml",
+   "report_sha256": "383aec78e5e7d33b70f5e8cb5cacbe8992b71aefb4f2054558bd02898607579d",
+   "raw_suites": [
+    {
+     "name": "pytest",
+     "errors": "0",
+     "failures": "0",
+     "skipped": "0",
+     "tests": "25",
+     "time": "49.986",
+     "timestamp": "2026-11-16T11:12:32.833445+08:00",
+     "hostname": "cy"
+    }
+   ],
+   "junit_testcase_records": 25,
+   "unique_test_nodes_reported": 25,
+   "failure_events": 0,
+   "error_events": 0,
+   "skipped": 0,
+   "unique_failed_or_errored_nodes": 0,
+   "unique_nodes_without_failure_or_error": 25,
+   "duplicate_nodes": {},
+   "failed_nodes": []
+  },
+  "frozen_callers": {
+   "report": "temp/build/v2-delivery-read-frozen-callers.xml",
+   "report_sha256": "20d9c1cddc95fe9f18a24f53cbcb5732ca32fef525e08124326259713b82442e",
+   "raw_suites": [
+    {
+     "name": "pytest",
+     "errors": "0",
+     "failures": "0",
+     "skipped": "0",
+     "tests": "114",
+     "time": "243.640",
+     "timestamp": "2026-11-16T11:17:46.974806+08:00",
+     "hostname": "cy"
+    }
+   ],
+   "junit_testcase_records": 114,
+   "unique_test_nodes_reported": 114,
+   "failure_events": 0,
+   "error_events": 0,
+   "skipped": 0,
+   "unique_failed_or_errored_nodes": 0,
+   "unique_nodes_without_failure_or_error": 114,
+   "duplicate_nodes": {},
+   "failed_nodes": []
+  },
+  "frozen_passed": 114,
+  "screenshots_inspected": [
+   {
+    "path": "temp/build/v2-delivery-read-frozen-callers-tmp/test_delivery_refresh_clears_o0/delivery-refresh-pending.png",
+    "sha256": "177b2c9e5ddba92e4593575edba627f7808783f2c2b666cf086026df2d8f4ffc"
+   },
+   {
+    "path": "temp/build/v2-delivery-read-frozen-callers-tmp/test_refresh_completion_cannot0/delivery-archive.png",
+    "sha256": "63a66dc51f15d7bf4a5b1b4fc280e9b954491e451853fa81d95517db18744196"
+   }
+  ],
+  "coverage": [
+   "Two controlled original archive scenarios and complete unmodified8 viewport/theme cases in the caller run",
+   "390/1440: pending-read detail/actions and real fieldset/child disabled state",
+   "390/1440: external archive after real list snapshot, removal of stale hidden choices",
+   "390/1440: later include-archived selection survives an earlier held response"
+  ]
+ },
+ "semantic_proof": {
+  "source_head": "e5815df87c021e62147d9096cda0244dce5245a7",
+  "base_head": "eccc1e1e503ebcbb6299b0dbee9c7a018f653280",
+  "semantic_file": "web/ui/v2/deliveries.js",
+  "added_behavior_lines": 4,
+  "all_other_delivery_code_byte_identical": true,
+  "original_ui_scenario_byte_identical": true,
+  "cache_only": [
+   {
+    "path": "docs/V2_AI_CONTINUATION_PROMPT.md",
+    "only_cache_or_current_branch_metadata": true,
+    "sha256": "50ea179535ed9d5000d18bbcef2e758374acbf381aea8aad3fa03d0ea09a9db7"
+   },
+   {
+    "path": "docs/V2_UI_PROMPT.md",
+    "only_cache_or_current_branch_metadata": true,
+    "sha256": "1889b6be5d2f3aff74d6b779de8bbe8bed9c948bb7aa460d4273cffe0623fa5a"
+   },
+   {
+    "path": "web/ui/v2/android.js",
+    "only_cache_or_current_branch_metadata": true,
+    "sha256": "676871d1e5b33fdeed2b51b575fa9bb831a0ebf34a41f684b5e28843711e0b96"
+   },
+   {
+    "path": "web/ui/v2/desktop.js",
+    "only_cache_or_current_branch_metadata": true,
+    "sha256": "d582550da66a14524d13c257e60c2d64ae9bbb46c6b39c1e591c589738a1fdf0"
+   },
+   {
+    "path": "web/ui/v2/documents.js",
+    "only_cache_or_current_branch_metadata": true,
+    "sha256": "ea22c93850d6f0ba5ab54faba4702f6d8fc4a38dd362e65f8dcc0631cfcdf433"
+   },
+   {
+    "path": "web/ui/v2/index.html",
+    "only_cache_or_current_branch_metadata": true,
+    "sha256": "736ba14d178e8b0c8c5348b32aad515abec0981a050ed60c2e7f3789f3a13b09"
+   },
+   {
+    "path": "web/ui/v2/main.js",
+    "only_cache_or_current_branch_metadata": true,
+    "sha256": "1e224583c262d8d3e8517392eeddcfdd2e3d9024b4e92f615463b93383937299"
+   },
+   {
+    "path": "web/ui/v2/operations.js",
+    "only_cache_or_current_branch_metadata": true,
+    "sha256": "52fc02a3c24473bafb054568120f00ca04d0f69d8b450349722e1013ccd24fc4"
+   },
+   {
+    "path": "web/ui/v2/terminals.js",
+    "only_cache_or_current_branch_metadata": true,
+    "sha256": "a2f3faa460694d15d6eee75fb7600f01ec81abfd170050510eccd27f8028b733"
+   }
+  ],
+  "strict_reuse": {
+   "files": 332,
+   "errors": 0,
+   "warnings": 0,
+   "basis_source": "9a7bd4c1806d5c5444e98672fdee00d4ebe7624a",
+   "scope": [
+    "agent/src/omni/",
+    "agent/scripts/",
+    "scripts/",
+    "agent/hatch_build.py",
+    "pyproject.toml",
+    "uv.lock",
+    "pyrightconfig.strict.json",
+    "ruff.toml"
+   ],
+   "all_scope_blobs_equal": true
+  },
+  "staged_paths": [
+   "agent/tests/test_v2_delivery_ui.py",
+   "docs/TESTING.md",
+   "docs/UI_DESIGN_SYSTEM.md",
+   "docs/V2_AI_CONTINUATION_PROMPT.md",
+   "docs/V2_UI_PROMPT.md",
+   "docs/index/MODULES.md",
+   "docs/index/project.json",
+   "web/ui/v2/android.js",
+   "web/ui/v2/deliveries.js",
+   "web/ui/v2/desktop.js",
+   "web/ui/v2/documents.js",
+   "web/ui/v2/index.html",
+   "web/ui/v2/main.js",
+   "web/ui/v2/operations.js",
+   "web/ui/v2/terminals.js"
+  ],
+  "parallel_working_bodies_preserved": true
+ },
+ "semantic_proof_artifact": {
+  "path": "temp/build/v2-delivery-read-semantic-proof.json",
+  "sha256": "dc605e51d32d56bde692e7735ef5548c1f5212cf675b9f621670b7ef1c58d532"
+ },
+ "staging_ownership_artifact": {
+  "path": "temp/build/v2-delivery-read-package-source.json",
+  "sha256": "ad3a50db9b0bb0dedd9a39a9eb27afd84f2e114a3a691739ce3405d4626c57e3"
+ },
+ "static_gates": [
+  {
+   "command": [
+    "D:\\xm\\OmniOperator\\temp\\build\\checkpoint-interpreter-225\\Scripts\\python.exe",
+    "-m",
+    "ruff",
+    "check",
+    "agent/src/omni",
+    "agent/tests/test_v2_delivery_ui.py"
+   ],
+   "returncode": 0,
+   "stdout": "All checks passed!\n",
+   "stderr": ""
+  },
+  {
+   "command": [
+    "D:\\xm\\OmniOperator\\temp\\build\\checkpoint-interpreter-225\\Scripts\\python.exe",
+    "-m",
+    "ruff",
+    "format",
+    "--check",
+    "agent/src/omni",
+    "agent/tests",
+    "agent/scripts",
+    "agent/hatch_build.py"
+   ],
+   "returncode": 0,
+   "stdout": "1024 files already formatted\n",
+   "stderr": ""
+  },
+  {
+   "command": [
+    "D:\\xm\\OmniOperator\\temp\\build\\checkpoint-interpreter-225\\Scripts\\python.exe",
+    "scripts/project_index.py",
+    "--check"
+   ],
+   "returncode": 0,
+   "stdout": "modules=65 files=736 routes=434 declared_tools=94\nstale=\n",
+   "stderr": ""
+  },
+  {
+   "command": [
+    "D:\\xm\\OmniOperator\\temp\\build\\checkpoint-interpreter-225\\Scripts\\python.exe",
+    "scripts/task_status.py",
+    "--check"
+   ],
+   "returncode": 0,
+   "stdout": "",
+   "stderr": ""
+  },
+  {
+   "command": [
+    "D:\\xm\\OmniOperator\\temp\\build\\checkpoint-interpreter-225\\Scripts\\python.exe",
+    "scripts/check_frontend.py"
+   ],
+   "returncode": 0,
+   "stdout": "ES modules: 85 syntax checks passed\n",
+   "stderr": ""
+  }
+ ],
+ "frontend_format": {
+  "command": [
+   "node",
+   "D:\\xm\\OmniOperator\\web\\node_modules\\prettier\\bin\\prettier.cjs",
+   "--check",
+   "."
+  ],
+  "cwd": "D:\\xm\\OmniOperator\\temp\\build\\full-snapshot-225\\web",
+  "returncode": 0,
+  "stdout": "Checking formatting...\nAll matched files use Prettier code style!\n",
+  "stderr": "",
+  "source_unchanged": true,
+  "correction": "Use web/.prettierignore as the package format:check script does; initial root invocation included unchanged vendored xterm files."
+ },
+ "frontend_format_artifact": {
+  "path": "temp/build/v2-delivery-read-frontend-format.json",
+  "sha256": "5fffd10a9e2b075ef87cd98908e0e9c2efcdd621995b29bab682df464ab86953"
+ },
+ "reused_strict": {
+  "files": 332,
+  "errors": 0,
+  "warnings": 0,
+  "basis_source": "9a7bd4c1806d5c5444e98672fdee00d4ebe7624a",
+  "scope": [
+   "agent/src/omni/",
+   "agent/scripts/",
+   "scripts/",
+   "agent/hatch_build.py",
+   "pyproject.toml",
+   "uv.lock",
+   "pyrightconfig.strict.json",
+   "ruff.toml"
+  ],
+  "all_scope_blobs_equal": true,
+  "evidence": {
+   "path": "temp/build/v2-asr-budget-strict-layout.json",
+   "sha256": "7bf4f3072c782a7f53178e08df48d20df83dd4f20f6751a4496ce31c9a96e815"
+  },
+  "note": "332 strict source/configuration/dependency blobs equal; this is reused evidence, not a new whole-repository typecheck."
+ },
+ "packaging": {
+  "metadata": {
+   "returncode": 0,
+   "source_unchanged": true,
+   "command": [
+    "D:\\xm\\OmniOperator\\temp\\build\\checkpoint-interpreter-225\\Scripts\\python.exe",
+    "scripts/check_package.py",
+    "--build-dir",
+    "D:\\xm\\OmniOperator\\temp\\build\\v2-delivery-read-package"
+   ],
+   "evidence": "D:\\xm\\OmniOperator\\temp\\build\\v2-delivery-read-package\\evidence.json",
+   "log": "D:\\xm\\OmniOperator\\temp\\build\\v2-delivery-read-package.log"
+  },
+  "metadata_artifact": {
+   "path": "temp/build/v2-delivery-read-package.json",
+   "sha256": "f41f65c168c0a375d6eb9e554b5736531968277b9db41f81e361eaf3741f9de3"
+  },
+  "result": {
+   "assets": 123,
+   "sha256": "db61fc6c5874f7e4b33371a9801666715da00fc5f67f29b6e7ae637799817248",
+   "chains": [
+    "direct wheel",
+    "sdist to wheel",
+    "isolated import"
+   ],
+   "v2": [
+    "packaged assets",
+    "isolated fresh schema",
+    "no V1 imports",
+    "clean shutdown"
+   ],
+   "v2_kernel_sha256": "c2dbf3c4ac0e7b376d5c521f0d0dff50db978966d42c647a0747065e4e864358"
+  },
+  "result_artifact": {
+   "path": "temp/build/v2-delivery-read-package/evidence.json",
+   "sha256": "9b7e6e5afb9db5b88203a981322d6d813405bff4664d59260fcc38a8e74b7ab9"
+  },
+  "log": {
+   "path": "temp/build/v2-delivery-read-package.log",
+   "sha256": "1743f5bc9063acb554038feb801af42fecbe358e00e261042396e4844250785c"
+  }
+ },
+ "probe_corrections": {
+  "detached_button": {
+   "report": "temp/build/v2-delivery-read-before-initial.xml",
+   "report_sha256": "e56f0a1a899d9244aa712b8e33250f38c8ce46735606cabb2230d8c4787f1e74",
+   "raw_suites": [
+    {
+     "name": "pytest",
+     "errors": "0",
+     "failures": "2",
+     "skipped": "0",
+     "tests": "2",
+     "time": "74.946",
+     "timestamp": "2026-11-16T10:47:04.141318+08:00",
+     "hostname": "cy"
+    }
+   ],
+   "junit_testcase_records": 2,
+   "unique_test_nodes_reported": 2,
+   "failure_events": 2,
+   "error_events": 0,
+   "skipped": 0,
+   "unique_failed_or_errored_nodes": 2,
+   "unique_nodes_without_failure_or_error": 0,
+   "duplicate_nodes": {},
+   "failed_nodes": [
+    {
+     "nodeid": "agent/tests/test_v2_delivery_ui.py::test_refresh_completion_cannot_invalidate_archive_confirmation[1-delivery]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "playwright._impl._errors.TimeoutError: Locator.text_content: Timeout 30000ms exceeded.\nCall log:\n  - waiting for get_by_role(\"button\", name=\"建立投递草稿\", exact=True)"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_delivery_ui.py::test_refresh_completion_cannot_invalidate_archive_confirmation[2-delivery]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "playwright._impl._errors.TimeoutError: Locator.text_content: Timeout 30000ms exceeded.\nCall log:\n  - waiting for get_by_role(\"button\", name=\"建立投递草稿\", exact=True)"
+      }
+     ]
+    }
+   ]
+  },
+  "csp_string_predicate": {
+   "report": "temp/build/v2-delivery-read-before.xml",
+   "report_sha256": "5999eebde26c1117d88b6223a391a762817b4243b2eeab6cbb7108bed76b9cc1",
+   "raw_suites": [
+    {
+     "name": "pytest",
+     "errors": "0",
+     "failures": "2",
+     "skipped": "0",
+     "tests": "2",
+     "time": "24.219",
+     "timestamp": "2026-11-16T10:48:48.300559+08:00",
+     "hostname": "cy"
+    }
+   ],
+   "junit_testcase_records": 2,
+   "unique_test_nodes_reported": 2,
+   "failure_events": 2,
+   "error_events": 0,
+   "skipped": 0,
+   "unique_failed_or_errored_nodes": 2,
+   "unique_nodes_without_failure_or_error": 0,
+   "duplicate_nodes": {},
+   "failed_nodes": [
+    {
+     "nodeid": "agent/tests/test_v2_delivery_ui.py::test_refresh_completion_cannot_invalidate_archive_confirmation[1-delivery]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "playwright._impl._errors.Error: Page.wait_for_function: EvalError: Evaluating a string as JavaScript violates the following Content Security Policy directive because 'unsafe-eval' is not an allowed source of script: script-src 'self'\".\n\n    at eval (<anonymous>)\n    at predicate (eval at evaluate (:370:30), <anonymous>:4:60)\n    at next (eval at evaluate (:370:30), <anonymous>:29:33)"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_delivery_ui.py::test_refresh_completion_cannot_invalidate_archive_confirmation[2-delivery]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "playwright._impl._errors.Error: Page.wait_for_function: EvalError: Evaluating a string as JavaScript violates the following Content Security Policy directive because 'unsafe-eval' is not an allowed source of script: script-src 'self'\".\n\n    at eval (<anonymous>)\n    at predicate (eval at evaluate (:370:30), <anonymous>:4:60)\n    at next (eval at evaluate (:370:30), <anonymous>:29:33)"
+      }
+     ]
+    }
+   ]
+  },
+  "corrected_original_reproducer": {
+   "report": "temp/build/v2-delivery-read-before-corrected.xml",
+   "report_sha256": "078b982867a687b6769e1fb4ebd8197800fd868f15a2aa0ebe25827a7bd67a7f",
+   "raw_suites": [
+    {
+     "name": "pytest",
+     "errors": "0",
+     "failures": "2",
+     "skipped": "0",
+     "tests": "2",
+     "time": "40.249",
+     "timestamp": "2026-11-16T10:50:14.026790+08:00",
+     "hostname": "cy"
+    }
+   ],
+   "junit_testcase_records": 2,
+   "unique_test_nodes_reported": 2,
+   "failure_events": 2,
+   "error_events": 0,
+   "skipped": 0,
+   "unique_failed_or_errored_nodes": 2,
+   "unique_nodes_without_failure_or_error": 0,
+   "duplicate_nodes": {},
+   "failed_nodes": [
+    {
+     "nodeid": "agent/tests/test_v2_delivery_ui.py::test_refresh_completion_cannot_invalidate_archive_confirmation[1-delivery]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: Locator expected to have count '1'\nActual value: 2 \nCall log:\n  - Expect \"to_have_count\" locator(\"#delivery-list option\") with timeout 5000ms\n  - waiting for locator(\"#delivery-list option\")\n    14 × locator resolved to 2 elements\n       - unexpected value \"2\""
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_delivery_ui.py::test_refresh_completion_cannot_invalidate_archive_confirmation[2-delivery]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: Locator expected to have count '1'\nActual value: 2 \nCall log:\n  - Expect \"to_have_count\" locator(\"#delivery-list option\") with timeout 5000ms\n  - waiting for locator(\"#delivery-list option\")\n    14 × locator resolved to 2 elements\n       - unexpected value \"2\""
+      }
+     ]
+    }
+   ]
+  },
+  "fieldset_predicate": {
+   "report": "temp/build/v2-delivery-read-after.xml",
+   "report_sha256": "c610e26457bc5c91ab5a463b812216505a387eb30a437cf50a1f090548e37c6a",
+   "raw_suites": [
+    {
+     "name": "pytest",
+     "errors": "0",
+     "failures": "2",
+     "skipped": "0",
+     "tests": "8",
+     "time": "73.472",
+     "timestamp": "2026-11-16T10:58:34.200566+08:00",
+     "hostname": "cy"
+    }
+   ],
+   "junit_testcase_records": 8,
+   "unique_test_nodes_reported": 8,
+   "failure_events": 2,
+   "error_events": 0,
+   "skipped": 0,
+   "unique_failed_or_errored_nodes": 2,
+   "unique_nodes_without_failure_or_error": 6,
+   "duplicate_nodes": {},
+   "failed_nodes": [
+    {
+     "nodeid": "agent/tests/test_v2_delivery_ui.py::test_delivery_refresh_clears_old_detail_and_actions_until_actual_response_finishes[390-delivery]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: Locator expected to be disabled\nActual value: enabled \nCall log:\n  - Expect \"to_be_disabled\" locator(\"#delivery-fields\") with timeout 5000ms\n  - waiting for locator(\"#delivery-fields\")\n    14 × locator resolved to <fieldset disabled id=\"delivery-fields\">…</fieldset>\n       - unexpected value \"enabled\"\n\nAria snapshot:\n- group:\n  - text: 已保存的助手消息 ID\n  - textbox \"已保存的助手消息 ID\" [disabled]\n  - text: 发送通道配置\n  - combobox \"发送通道配置\" [disabled]\n  - text: 目标标识\n  - textbox \"目标标识\" [disabled]\n  - status\n  - button \"建立待审批投递\" [disabled]\n  - button \"清空草稿\" [disabled]"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_delivery_ui.py::test_delivery_refresh_clears_old_detail_and_actions_until_actual_response_finishes[1440-delivery]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: Locator expected to be disabled\nActual value: enabled \nCall log:\n  - Expect \"to_be_disabled\" locator(\"#delivery-fields\") with timeout 5000ms\n  - waiting for locator(\"#delivery-fields\")\n    14 × locator resolved to <fieldset disabled id=\"delivery-fields\">…</fieldset>\n       - unexpected value \"enabled\"\n\nAria snapshot:\n- group:\n  - text: 已保存的助手消息 ID\n  - textbox \"已保存的助手消息 ID\" [disabled]\n  - text: 发送通道配置\n  - combobox \"发送通道配置\" [disabled]\n  - text: 目标标识\n  - textbox \"目标标识\" [disabled]\n  - status\n  - button \"建立待审批投递\" [disabled]\n  - button \"清空草稿\" [disabled]"
+      }
+     ]
+    }
+   ]
+  },
+  "initial_clean_before": {
+   "path": "temp/build/v2-delivery-read-baseline.json",
+   "sha256": "37628254d0c990d8396dcf90b74502ac25dde4c46c023e72592b26547f71469d"
+  },
+  "initial_format_root": {
+   "path": "temp/build/v2-delivery-read-frontend-format-initial-root.json",
+   "sha256": "9315423b24a921a4d67ba74ef8e8d8b245ebb0808d8b9ca98d723b2202196843"
+  },
+  "detail": "Retain invalid fixture probes separately: capture button label before it becomes hidden; use function predicates without relaxing CSP; assert real fieldset.disabled and child controls rather than Playwright fieldset enabled semantics; run Prettier from web with its existing vendor ignore. Only the corrected clean6-failure/2-pass control establishes the before result."
+ },
+ "full_run": {
+  "status": "passed",
+  "checkpoint": 85,
+  "artifact_id": 225,
+  "source_head": "e5815df87c021e62147d9096cda0244dce5245a7",
+  "code_version": "73f41b8d74576a4df8140d4533f62364ad9b228466aaecb1eec947495d4f9ce0",
+  "fixed_source_files": 1217,
+  "strict_files": 332,
+  "expected_collected_tests": 4774,
+  "workers": 2,
+  "report": "temp/build/v2-full-225.xml",
+  "snapshot": {
+   "path": "temp/build/v2-full-225-snapshot.json",
+   "sha256": "7e4eec24da5f0792ac4047375b85cba70da567599305dd6c6302d1f318febb9c"
+  },
+  "scope": "Committed Git archive only. Concurrent uncommitted source/UI/migration work was not copied, staged, discarded or validated by this checkpoint.",
+  "completed": true,
+  "command": "uv run --no-sync python temp/build/_delivery_read_checkpoint.py run (frozen python -m pytest -q -n2 --worker-diagnostics=... --junitxml=...)",
+  "report_sha256": "7c77b6c26557d96277aae6903d6c89a60602b522f11f051c21a9dd73568aabb3",
+  "raw_suites": [
+   {
+    "name": "pytest",
+    "errors": "0",
+    "failures": "0",
+    "skipped": "0",
+    "tests": "4774",
+    "time": "2814.474",
+    "timestamp": "2026-11-16T11:24:38.731204+08:00",
+    "hostname": "cy"
+   }
+  ],
+  "junit_testcase_records": 4774,
+  "unique_test_nodes_reported": 4774,
+  "failure_events": 0,
+  "error_events": 0,
+  "skipped": 0,
+  "unique_failed_or_errored_nodes": 0,
+  "unique_nodes_without_failure_or_error": 4774,
+  "duplicate_nodes": {},
+  "failed_nodes": [],
+  "returncode": 0,
+  "wall_duration_s": 2815.553,
+  "pytest_cli_summary": "4774 passed, 12 warnings in 2814.64s (0:46:54)",
+  "pytest_cli_counts": {
+   "passed": 4774,
+   "warnings": 12
+  },
+  "source_unchanged": true,
+  "source_unchanged_after_reruns": true,
+  "log": {
+   "path": "temp/build/v2-full-225.log",
+   "sha256": "e499c747aa92b0bfb14a30647a0e831894b3f1f5f487d0672ac1f3f99597b652"
+  },
+  "all_collected_nodes_reported": true,
+  "reruns": [],
+  "diagnostics": {
+   "directory": "temp/build/v2-full-225-diagnostics",
+   "processes": [
+    {
+     "file": "controller-63668.jsonl",
+     "events": {
+      "configured": 1,
+      "worker_spawn": 2,
+      "report": 14322,
+      "worker_exit": 4,
+      "session_finish": 1
+     },
+     "malformed_lines": 0,
+     "last_phase": null,
+     "last_report": {
+      "time_ns": 1794802288864687300,
+      "nodeid": "agent/tests/test_workbench_ui.py::test_desktop_and_publication_tabs_are_reachable",
+      "when": "teardown",
+      "outcome": "passed"
+     },
+     "journal_capped": false,
+     "min_commit_headroom_bytes": 3207315456,
+     "pid": 63668,
+     "worker": "controller",
+     "tightest_commit_sample": {
+      "time_ns": 1794802147021799900,
+      "CommitTotal": 102745657344,
+      "CommitLimit": 105952972800,
+      "CommitPeak": 105952972800,
+      "PhysicalTotal": 50700185600,
+      "PhysicalAvailable": 17200267264
+     },
+     "session_finish": {
+      "time_ns": 1794802293361898900,
+      "pid": 63668,
+      "worker": "controller",
+      "event": "session_finish",
+      "exitstatus": 0,
+      "diagnostic_errors": 0,
+      "journal_capped": false,
+      "system_commit": {
+       "CommitTotal": 98772205568,
+       "CommitLimit": 105952972800,
+       "CommitPeak": 105952972800,
+       "PhysicalTotal": 50700185600,
+       "PhysicalAvailable": 19452289024
+      }
+     }
+    },
+    {
+     "file": "gw0-43380.jsonl",
+     "events": {
+      "configured": 1,
+      "phase_start": 9432,
+      "report": 9432,
+      "session_finish": 1
+     },
+     "malformed_lines": 0,
+     "last_phase": {
+      "time_ns": 1794802285501210100,
+      "nodeid": "agent/tests/test_v2_skills_http.py::test_skill_api_revision_review_history_exports_and_scope",
+      "when": "teardown"
+     },
+     "last_report": {
+      "time_ns": 1794802285505208900,
+      "nodeid": "agent/tests/test_v2_skills_http.py::test_skill_api_revision_review_history_exports_and_scope",
+      "when": "teardown",
+      "outcome": "passed"
+     },
+     "journal_capped": false,
+     "min_commit_headroom_bytes": 3204300800,
+     "pid": 43380,
+     "worker": "gw0",
+     "tightest_commit_sample": {
+      "time_ns": 1794802147020799500,
+      "CommitTotal": 102748672000,
+      "CommitLimit": 105952972800,
+      "CommitPeak": 105952972800,
+      "PhysicalTotal": 50700185600,
+      "PhysicalAvailable": 17199964160
+     },
+     "session_finish": {
+      "time_ns": 1794802285533738600,
+      "pid": 43380,
+      "worker": "gw0",
+      "event": "session_finish",
+      "exitstatus": 0,
+      "diagnostic_errors": 0,
+      "journal_capped": false,
+      "system_commit": {
+       "CommitTotal": 102172266496,
+       "CommitLimit": 105952972800,
+       "CommitPeak": 105952972800,
+       "PhysicalTotal": 50700185600,
+       "PhysicalAvailable": 17605521408
+      }
+     }
+    },
+    {
+     "file": "gw1-36936.jsonl",
+     "events": {
+      "configured": 1,
+      "phase_start": 4890,
+      "report": 4890,
+      "session_finish": 1
+     },
+     "malformed_lines": 0,
+     "last_phase": {
+      "time_ns": 1794802288860687100,
+      "nodeid": "agent/tests/test_workbench_ui.py::test_desktop_and_publication_tabs_are_reachable",
+      "when": "teardown"
+     },
+     "last_report": {
+      "time_ns": 1794802288864687300,
+      "nodeid": "agent/tests/test_workbench_ui.py::test_desktop_and_publication_tabs_are_reachable",
+      "when": "teardown",
+      "outcome": "passed"
+     },
+     "journal_capped": false,
+     "min_commit_headroom_bytes": 3223760896,
+     "pid": 36936,
+     "worker": "gw1",
+     "tightest_commit_sample": {
+      "time_ns": 1794802139647963800,
+      "CommitTotal": 102729211904,
+      "CommitLimit": 105952972800,
+      "CommitPeak": 105952972800,
+      "PhysicalTotal": 50700185600,
+      "PhysicalAvailable": 17214853120
+     },
+     "session_finish": {
+      "time_ns": 1794802288882199900,
+      "pid": 36936,
+      "worker": "gw1",
+      "event": "session_finish",
+      "exitstatus": 0,
+      "diagnostic_errors": 0,
+      "journal_capped": false,
+      "system_commit": {
+       "CommitTotal": 102176104448,
+       "CommitLimit": 105952972800,
+       "CommitPeak": 105952972800,
+       "PhysicalTotal": 50700185600,
+       "PhysicalAvailable": 17600122880
+      }
+     }
+    }
+   ],
+   "exit_polls": [
+    {
+     "time_ns": 1794802285534737900,
+     "pid": 63668,
+     "worker": "controller",
+     "event": "worker_exit",
+     "worker_id": "gw0",
+     "stage": "channel_down_poll",
+     "launcher_pid": 4976,
+     "returncode": null,
+     "windows_status_hex": null,
+     "error_type": null,
+     "error": null,
+     "worker_diagnostic_errors": 0,
+     "system_commit": {
+      "CommitTotal": 102172266496,
+      "CommitLimit": 105952972800,
+      "CommitPeak": 105952972800,
+      "PhysicalTotal": 50700185600,
+      "PhysicalAvailable": 17605476352
+     }
+    },
+    {
+     "time_ns": 1794802288884035500,
+     "pid": 63668,
+     "worker": "controller",
+     "event": "worker_exit",
+     "worker_id": "gw1",
+     "stage": "channel_down_poll",
+     "launcher_pid": 6504,
+     "returncode": null,
+     "windows_status_hex": null,
+     "error_type": null,
+     "error": null,
+     "worker_diagnostic_errors": 0,
+     "system_commit": {
+      "CommitTotal": 102176104448,
+      "CommitLimit": 105952972800,
+      "CommitPeak": 105952972800,
+      "PhysicalTotal": 50700185600,
+      "PhysicalAvailable": 17600094208
+     }
+    },
+    {
+     "time_ns": 1794802293360897800,
+     "pid": 63668,
+     "worker": "controller",
+     "event": "worker_exit",
+     "worker_id": "gw0",
+     "stage": "after_xdist_teardown",
+     "launcher_pid": 4976,
+     "returncode": 0,
+     "windows_status_hex": "0x00000000",
+     "error_type": null,
+     "error": null,
+     "worker_diagnostic_errors": 0,
+     "system_commit": {
+      "CommitTotal": 98772205568,
+      "CommitLimit": 105952972800,
+      "CommitPeak": 105952972800,
+      "PhysicalTotal": 50700185600,
+      "PhysicalAvailable": 19452289024
+     }
+    },
+    {
+     "time_ns": 1794802293361898900,
+     "pid": 63668,
+     "worker": "controller",
+     "event": "worker_exit",
+     "worker_id": "gw1",
+     "stage": "after_xdist_teardown",
+     "launcher_pid": 6504,
+     "returncode": 0,
+     "windows_status_hex": "0x00000000",
+     "error_type": null,
+     "error": null,
+     "worker_diagnostic_errors": 0,
+     "system_commit": {
+      "CommitTotal": 98772205568,
+      "CommitLimit": 105952972800,
+      "CommitPeak": 105952972800,
+      "PhysicalTotal": 50700185600,
+      "PhysicalAvailable": 19452289024
+     }
+    }
+   ],
+   "artifacts": [
+    {
+     "path": "temp/build/v2-full-225-diagnostics/controller-63668.jsonl",
+     "sha256": "77529f178e2b94fdf1320e44ca499a34f2ba780aeb1df8eafa227ffac5492584",
+     "bytes": 6409646
+    },
+    {
+     "path": "temp/build/v2-full-225-diagnostics/gw0-43380.jsonl",
+     "sha256": "ac624720d55e637abbe311e760c428ad46212f0c7ccdc938689916094c600dfb",
+     "bytes": 7860023
+    },
+    {
+     "path": "temp/build/v2-full-225-diagnostics/gw1-36936.jsonl",
+     "sha256": "14d026639f8ce2f05f1a6cf89e752d4462c58bdca2482f89923d72d84f2a541d",
+     "bytes": 4034299
+    },
+    {
+     "path": "temp/build/v2-full-225-diagnostics/controller-63668.fault.txt",
+     "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+     "bytes": 0
+    },
+    {
+     "path": "temp/build/v2-full-225-diagnostics/gw0-43380.fault.txt",
+     "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+     "bytes": 0
+    },
+    {
+     "path": "temp/build/v2-full-225-diagnostics/gw1-36936.fault.txt",
+     "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+     "bytes": 0
+    }
+   ],
+   "scope": "Phase/exit snapshots, not continuous allocation tracing. Final exit polls occur after ordinary xdist teardown and may reflect its cleanup. Fault files contain stack locations, not local values."
+  },
+  "main_worker_error_callbacks": []
+ },
+ "not_verified": [
+  "Cause of all historical UI failures",
+  "System commit allocation owner and old native exits",
+  "Concurrent uncommitted feature work",
+  "Real external messages/models/devices/platform deployment/long-running acceptance",
+  "V2 default-entrypoint switch"
+ ]
+}
