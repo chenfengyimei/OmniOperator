@@ -72,18 +72,24 @@ class SkillService:
         }
 
     async def page(self, agent_id: str, after: str = "", limit: int = 50) -> Record:
-        rows = await self._db.read(lambda u: u.skill_page(agent_id, after, limit))
-        return {
-            "items": cast(JSON, rows),
-            "next_after": rows[-1]["id"] if len(rows) == limit else None,
-            "platform": self.platform,
-        }
+        async def perform() -> Record:
+            rows = await self._db.read(lambda u: u.skill_page(agent_id, after, limit))
+            return {
+                "items": cast(JSON, rows),
+                "next_after": rows[-1]["id"] if len(rows) == limit else None,
+                "platform": self.platform,
+            }
+
+        return await self._execute(perform)
 
     async def available(self, agent_id: str) -> Record:
-        return {
-            "items": cast(JSON, await self._db.read(lambda u: u.skill_available(agent_id, self.platform))),
-            "platform": self.platform,
-        }
+        async def perform() -> Record:
+            return {
+                "items": cast(JSON, await self._db.read(lambda u: u.skill_available(agent_id, self.platform))),
+                "platform": self.platform,
+            }
+
+        return await self._execute(perform)
 
     async def export(self, agent_id: str, skill_id: str, revision_id: str | None = None) -> Record:
         async def perform() -> Record:
@@ -236,6 +242,10 @@ class SkillService:
         return await self._install(agent_id, package, skill_id, revision, guard)
 
     async def history(self, agent_id: str, skill_id: str, after: int = 0, limit: int = 50) -> Record:
+        return await self._execute(lambda: self._history(agent_id, skill_id, after, limit))
+
+    async def _history(self, agent_id: str, skill_id: str, after: int = 0, limit: int = 50) -> Record:
+        """Read revision metadata inside an already admitted operation."""
         rows = await self._db.read(lambda u: u.skill_history(agent_id, skill_id, after, limit))
         return {
             "items": cast(JSON, rows),
@@ -274,7 +284,7 @@ class SkillService:
         return await self._execute(perform)
 
     async def run_report(self, agent_id: str, run_id: str) -> Record:
-        return await self._db.read(lambda u: u.skill_run_report(agent_id, run_id, self.platform))
+        return await self._execute(lambda: self._db.read(lambda u: u.skill_run_report(agent_id, run_id, self.platform)))
 
     async def _read_tool(
         self, name: str, arguments: Mapping[str, JSON], operation_id: str, context: InvocationContext
@@ -291,7 +301,7 @@ class SkillService:
         if captured is None or (name != "skill_history" and arguments.get("revision_id") != captured["revision_id"]):
             raise invalid("skill_not_captured")
         if name == "skill_history":
-            rows = cast(list[Record], (await self.history(agent, skill_id))["items"])
+            rows = cast(list[Record], (await self._history(agent, skill_id))["items"])
             history_payload: dict[str, JSON] = {"items": cast(JSON, rows)}
             return ActionResult(Outcome.OK, json.dumps(rows, ensure_ascii=False), data=history_payload)
         row = await self._get(agent, skill_id, str(captured["revision_id"]), str(arguments.get("path", "SKILL.md")))
