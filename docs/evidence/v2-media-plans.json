@@ -1,0 +1,312 @@
+{
+ "schema": 1,
+ "date": "2026-11-16",
+ "branch": "v2",
+ "whole_v2_complete": false,
+ "default_entrypoint": "v1",
+ "source": {
+  "head": "f91112561ae9174671aa9d0939774de4bf3c6bbf",
+  "base": "5a18fc01d21565fa75a36e7ebdb4910620efc10b",
+  "code_version": "1aafd7d7111747ff7ba88aa96a4cf1de21247d66969f2871fd6a55a1f48b984c",
+  "code_files": 1242,
+  "planned": {
+   "agent/src/omni/application/media.py": {
+    "sha256": "51213d4ed4d0a5dbad83d48c9e30a134395cdff3eef1809b80139005be0cbb26",
+    "git_blob": "f2e82065b6204734f5385d2493bcc901c7b3a70d"
+   },
+   "agent/tests/test_v2_media_plans.py": {
+    "sha256": "3c9b70e1865f6f7cb0f18dac770f70231005a5ab1e043bf553f22b54dcb46857",
+    "git_blob": "944eb98a693604be3b8a8bcc4ead4d4bbf636fda"
+   },
+   "docs/V2_MEDIA.md": {
+    "sha256": "d263dda5e03ac44b7152fab98692777d75f76f24c4cbc11410b88420272f368e",
+    "git_blob": "74227114bba62d76363d508680eb634a160d60e3"
+   },
+   "docs/TESTING.md": {
+    "sha256": "91d1d4de5bdf1ab5723f01efb926b69cb8d73cb14ad2068b6b33ec44fc562903",
+    "git_blob": "6c8b6277df78703b89d5fc9514bbbf35b9eb75f0"
+   },
+   "docs/index/MODULES.md": {
+    "sha256": "c853304036999cad76c9c841db40e4e1d1bd8baa538f17b0d8f660fd35d9cc4d",
+    "git_blob": "eb9bfc5da923a35807cfa6192cc3f233b51da499"
+   },
+   "docs/index/project.json": {
+    "sha256": "e810ac804ac184390f7d2b2f0dca4276ce61fb5fe61a59175e0a1ca918fec5db",
+    "git_blob": "078103b573197d25e40240240b499a5b88072c08"
+   }
+  },
+  "candidate": "D:\\xm\\OmniOperator\\temp\\build\\media-plans-candidate",
+  "parallel_working_bodies_preserved": true
+ },
+ "root_cause": "MediaService.submit coerced ASR fields to str and applied defaults through truthiness, allowing explicit null/false/zero/empty fields to enqueue default work and numeric model values to become valid model-name strings. HTTP was already strict, but service admission did not preserve the domain contract.",
+ "changes": [
+  "Pass original model/device/compute_type values to existing domain validation",
+  "Use small/cpu/int8 defaults only when a field is absent",
+  "Reject known invalid values before I/O, task admission and job creation with existing 422 domain codes",
+  "Preserve valid partial plans, numeric string model names, existing HTTP input validation and worker processing"
+ ],
+ "proof": {
+  "changed_existing_application_methods": [
+   "submit"
+  ],
+  "new_helpers": [],
+  "all_existing_method_signatures_unchanged": true,
+  "all_other_existing_method_sources_identical": true,
+  "whole_application_ast_identical_after_restoring_three_asr_arguments": true,
+  "imports_constants_and_other_global_helpers_ast_identical": true,
+  "unchanged_files": [
+   "agent/src/omni/domain/media.py",
+   "agent/src/omni/adapters/media.py",
+   "agent/src/omni/adapters/workers/media.py",
+   "agent/src/omni/adapters/bilibili.py",
+   "agent/src/omni/adapters/http.py",
+   "agent/src/omni/composition/instance.py",
+   "agent/tests/test_v2_media.py"
+  ],
+  "identical_final_tests_in_clean_negative_and_candidate": true
+ },
+ "regressions": {
+  "new_cases": 30,
+  "before": {
+   "command": [
+    "D:\\xm\\OmniOperator\\temp\\build\\checkpoint-interpreter-media-plans-before\\Scripts\\python.exe",
+    "-m",
+    "pytest",
+    "-q",
+    "-n",
+    "0",
+    "agent/tests/test_v2_media_plans.py",
+    "--junitxml=D:\\xm\\OmniOperator\\temp\\build\\v2-media-plans-before.xml",
+    "--tb=short"
+   ],
+   "returncode": 1,
+   "duration_s": 13.328,
+   "cases": 30,
+   "failures": 24,
+   "errors": 0,
+   "skipped": 0,
+   "report": "temp\\build\\v2-media-plans-before.xml",
+   "report_sha256": "5a00bdb6780fae8e88622ae2da1bdc902391cb0f9b48a97fcd2db7a3974ab974",
+   "log": "temp\\build\\v2-media-plans-before.log",
+   "log_sha256": "3c7e11c95ba4be93bb8d4ccc16c80d80f8fafa94e73be607406a26e885d0477f"
+  },
+  "failed_before_nodes": [
+   {
+    "nodeid": "tests.test_v2_media_plans::test_explicit_falsey_plan_fields_are_not_missing_defaults[None-model]",
+    "message": "Failed: DID NOT RAISE BusinessError"
+   },
+   {
+    "nodeid": "tests.test_v2_media_plans::test_explicit_falsey_plan_fields_are_not_missing_defaults[None-device]",
+    "message": "Failed: DID NOT RAISE BusinessError"
+   },
+   {
+    "nodeid": "tests.test_v2_media_plans::test_explicit_falsey_plan_fields_are_not_missing_defaults[None-compute_type]",
+    "message": "Failed: DID NOT RAISE BusinessError"
+   },
+   {
+    "nodeid": "tests.test_v2_media_plans::test_explicit_falsey_plan_fields_are_not_missing_defaults[False-model]",
+    "message": "Failed: DID NOT RAISE BusinessError"
+   },
+   {
+    "nodeid": "tests.test_v2_media_plans::test_explicit_falsey_plan_fields_are_not_missing_defaults[False-device]",
+    "message": "Failed: DID NOT RAISE BusinessError"
+   },
+   {
+    "nodeid": "tests.test_v2_media_plans::test_explicit_falsey_plan_fields_are_not_missing_defaults[False-compute_type]",
+    "message": "Failed: DID NOT RAISE BusinessError"
+   },
+   {
+    "nodeid": "tests.test_v2_media_plans::test_explicit_falsey_plan_fields_are_not_missing_defaults[0-model]",
+    "message": "Failed: DID NOT RAISE BusinessError"
+   },
+   {
+    "nodeid": "tests.test_v2_media_plans::test_explicit_falsey_plan_fields_are_not_missing_defaults[0-device]",
+    "message": "Failed: DID NOT RAISE BusinessError"
+   },
+   {
+    "nodeid": "tests.test_v2_media_plans::test_explicit_falsey_plan_fields_are_not_missing_defaults[0-compute_type]",
+    "message": "Failed: DID NOT RAISE BusinessError"
+   },
+   {
+    "nodeid": "tests.test_v2_media_plans::test_explicit_falsey_plan_fields_are_not_missing_defaults[-model]",
+    "message": "Failed: DID NOT RAISE BusinessError"
+   },
+   {
+    "nodeid": "tests.test_v2_media_plans::test_explicit_falsey_plan_fields_are_not_missing_defaults[-device]",
+    "message": "Failed: DID NOT RAISE BusinessError"
+   },
+   {
+    "nodeid": "tests.test_v2_media_plans::test_explicit_falsey_plan_fields_are_not_missing_defaults[-compute_type]",
+    "message": "Failed: DID NOT RAISE BusinessError"
+   },
+   {
+    "nodeid": "tests.test_v2_media_plans::test_explicit_falsey_plan_fields_are_not_missing_defaults[value4-model]",
+    "message": "Failed: DID NOT RAISE BusinessError"
+   },
+   {
+    "nodeid": "tests.test_v2_media_plans::test_explicit_falsey_plan_fields_are_not_missing_defaults[value4-device]",
+    "message": "Failed: DID NOT RAISE BusinessError"
+   },
+   {
+    "nodeid": "tests.test_v2_media_plans::test_explicit_falsey_plan_fields_are_not_missing_defaults[value4-compute_type]",
+    "message": "Failed: DID NOT RAISE BusinessError"
+   },
+   {
+    "nodeid": "tests.test_v2_media_plans::test_explicit_falsey_plan_fields_are_not_missing_defaults[value5-model]",
+    "message": "Failed: DID NOT RAISE BusinessError"
+   },
+   {
+    "nodeid": "tests.test_v2_media_plans::test_explicit_falsey_plan_fields_are_not_missing_defaults[value5-device]",
+    "message": "Failed: DID NOT RAISE BusinessError"
+   },
+   {
+    "nodeid": "tests.test_v2_media_plans::test_explicit_falsey_plan_fields_are_not_missing_defaults[value5-compute_type]",
+    "message": "Failed: DID NOT RAISE BusinessError"
+   },
+   {
+    "nodeid": "tests.test_v2_media_plans::test_numeric_model_names_are_not_coerced_to_valid_strings[1]",
+    "message": "Failed: DID NOT RAISE BusinessError"
+   },
+   {
+    "nodeid": "tests.test_v2_media_plans::test_numeric_model_names_are_not_coerced_to_valid_strings[123]",
+    "message": "Failed: DID NOT RAISE BusinessError"
+   },
+   {
+    "nodeid": "tests.test_v2_media_plans::test_numeric_model_names_are_not_coerced_to_valid_strings[1.5]",
+    "message": "Failed: DID NOT RAISE BusinessError"
+   },
+   {
+    "nodeid": "tests.test_v2_media_plans::test_real_database_rejects_bad_plan_without_job_and_allows_explicit_valid_work[model]",
+    "message": "Failed: DID NOT RAISE BusinessError"
+   },
+   {
+    "nodeid": "tests.test_v2_media_plans::test_real_database_rejects_bad_plan_without_job_and_allows_explicit_valid_work[device]",
+    "message": "Failed: DID NOT RAISE BusinessError"
+   },
+   {
+    "nodeid": "tests.test_v2_media_plans::test_real_database_rejects_bad_plan_without_job_and_allows_explicit_valid_work[compute_type]",
+    "message": "Failed: DID NOT RAISE BusinessError"
+   }
+  ],
+  "callers": {
+   "command": [
+    "D:\\xm\\OmniOperator\\temp\\build\\checkpoint-interpreter-media-plans\\Scripts\\python.exe",
+    "-m",
+    "pytest",
+    "-q",
+    "-n",
+    "0",
+    "agent/tests/test_v2_media_plans.py",
+    "agent/tests/test_v2_media.py",
+    "agent/tests/test_v2_media_admission.py",
+    "agent/tests/test_v2_lifecycle.py",
+    "agent/tests/test_v2_architecture.py",
+    "agent/tests/test_v2_typecheck_scope.py",
+    "agent/tests/test_arch.py",
+    "--junitxml=D:\\xm\\OmniOperator\\temp\\build\\v2-media-plans-callers.xml",
+    "--tb=short"
+   ],
+   "returncode": 0,
+   "duration_s": 43.172,
+   "cases": 96,
+   "failures": 0,
+   "errors": 0,
+   "skipped": 0,
+   "report": "temp\\build\\v2-media-plans-callers.xml",
+   "report_sha256": "844145be6886bb42dbc15ba85b8bdf41fc36205d922439f230f6f54dfd6eb2cd",
+   "log": "temp\\build\\v2-media-plans-callers.log",
+   "log_sha256": "b5609d6b535c412ac7b454e8424d65f9efee8092015f193628d28059f7c37764"
+  },
+  "cli_summary": "96 passed in 42.12s",
+  "coverage": [
+   "Explicit null/false/zero/empty text/list/object is rejected rather than selecting a default plan",
+   "Numeric model values are not coerced to legal strings",
+   "Invalid plans call no database/gateway/processor, allocate no task or staging, and consume no admission",
+   "Absent fields and six legal partial/complete plans preserve the exact plan",
+   "Three real database cases reject each null field without a job/stream/download/processor, then admit one valid explicit job and forward its exact plan",
+   "Media service HTTP, admission, lifecycle, strict scope and architecture callers remain covered"
+  ]
+ },
+ "gates": [
+  {
+   "command": [
+    "-m",
+    "ruff",
+    "check",
+    "agent/src/omni/application/media.py",
+    "agent/tests/test_v2_media_plans.py"
+   ],
+   "returncode": 0,
+   "duration_s": 0.219,
+   "stdout": "All checks passed!\n",
+   "stderr": ""
+  },
+  {
+   "command": [
+    "-m",
+    "ruff",
+    "format",
+    "--check",
+    "agent/src/omni/application/media.py",
+    "agent/tests/test_v2_media_plans.py"
+   ],
+   "returncode": 0,
+   "duration_s": 0.172,
+   "stdout": "2 files already formatted\n",
+   "stderr": ""
+  },
+  {
+   "command": [
+    "-m",
+    "pyright",
+    "--project",
+    "D:\\xm\\OmniOperator\\temp\\build\\media-plans-candidate\\pyrightconfig.media-plans.json",
+    "--outputjson"
+   ],
+   "returncode": 0,
+   "duration_s": 1.453,
+   "stdout": "{\n    \"version\": \"1.1.414\",\n    \"time\": \"1794830689502\",\n    \"generalDiagnostics\": [],\n    \"summary\": {\n        \"filesAnalyzed\": 1,\n        \"errorCount\": 0,\n        \"warningCount\": 0,\n        \"informationCount\": 0,\n        \"timeInSec\": 0.674\n    }\n}\n\n",
+   "stderr": ""
+  }
+ ],
+ "artifacts": [
+  {
+   "path": "temp/build/v2-media-plans-source.json",
+   "sha256": "65dc85f31b69f8df023e54dcb7707577894f17ecbc62bb6923f21f04cc2f3591"
+  },
+  {
+   "path": "temp/build/v2-media-plans-before-source.json",
+   "sha256": "6b4601291715dcf0981936ae8f2abe143871a93beffb8c780e04fb4ffb742378"
+  },
+  {
+   "path": "temp/build/v2-media-plans-gates.json",
+   "sha256": "a208a1fb6f095df9d1ee6bec204507f54d670e379c949ecedbb5d53b6ffcfe29"
+  },
+  {
+   "path": "temp/build/v2-media-plans-working.xml",
+   "sha256": "dc484e551d10303a14964222be34c5a2dc85a5bb6f701ea73ac861bfd665700c"
+  }
+ ],
+ "exploratory_reports": {
+  "working": {
+   "path": "temp/build/v2-media-plans-working.xml",
+   "sha256": "dc484e551d10303a14964222be34c5a2dc85a5bb6f701ea73ac861bfd665700c"
+  },
+  "note": "Working 30-case probe contains concurrent WIP. Final negative and clean candidate use identical new tests; candidate overlays only owned files on committed base. The existing shared media fixture is not edited or staged, and original in-flight migration/schema/UI bodies remain outside the committed scope."
+ },
+ "full_run": {
+  "status": "deferred_per_owner",
+  "run_for_this_change": false,
+  "covers_this_source": false,
+  "last_completed_source": "42a4b8b29d7c80daa4cb212d49dd40d07c189079",
+  "last_completed_summary": "4800 passed, 12 warnings in 3025.48s (0:50:25)",
+  "last_full_does_not_cover_this_change": true
+ },
+ "not_verified": [
+  "Full integration of this source",
+  "Real ASR model loading, compute compatibility and inference quality",
+  "Actual Bilibili account/CDN requests and real ASR models",
+  "Concurrent uncommitted migration/configuration/UI bodies",
+  "Historical native/system-commit/UI observations"
+ ]
+}
