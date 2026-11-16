@@ -7379,6 +7379,18 @@
    "integration_full_run_pending": true,
    "validated_committed_scope_only": true,
    "historical_observations_closed": false
+  },
+  "skill_unicode_followup": {
+   "evidence": "docs/evidence/v2-skill-unicode.json",
+   "source_head": "d0c3f4ffee1a194b7f9e76c70059e27d3ffcb88a",
+   "status": "scoped_passed_full_deferred",
+   "scoped_passed": 153,
+   "new_cases": 40,
+   "strict_files": 1,
+   "full_run_covers_current_source": false,
+   "integration_full_run_pending": true,
+   "validated_committed_scope_only": true,
+   "historical_observations_closed": false
   }
  },
  "source_recovery": {
