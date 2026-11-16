@@ -7005,6 +7005,18 @@
    "concurrent_uncommitted_work_validated": false,
    "actual_pcm_sample_bound_and_resampler_tail_repaired": true,
    "global_commit_or_native_exit_root_cause_resolved": false
+  },
+  "media_transport_followup": {
+   "evidence": "docs/evidence/v2-media-transport.json",
+   "source_head": "b533161af08a6dc5bcda04b4f823d8fdf0f9f6ea",
+   "status": "scoped_passed_full_deferred",
+   "scoped_passed": 86,
+   "new_cases": 21,
+   "strict_files": 1,
+   "full_run_covers_current_source": false,
+   "integration_full_run_pending": true,
+   "validated_committed_scope_only": true,
+   "historical_observations_closed": false
   }
  },
  "source_recovery": {
