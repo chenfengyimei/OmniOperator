@@ -229,6 +229,7 @@ class BilibiliGateway:
 
         bvid, cid = video["bvid"], video["cid"]
         audio: Payload = {}
+        multipart = False
         play = await self._get(
             client, "/x/player/playurl", {"bvid": bvid, "cid": cid, "qn": 64, "fnval": 16, "fnver": 0, "fourk": 0}
         )
@@ -251,7 +252,12 @@ class BilibiliGateway:
                     }
         if not audio:
             merged: list[Payload] = cast(list[Payload], play.get("durl") or [])
-            if isinstance(cast(object, merged), list) and merged and isinstance(cast(object, merged[0]), dict):
+            multipart = isinstance(cast(object, merged), list) and len(merged) > 1
+            if (
+                isinstance(cast(object, merged), list)
+                and len(merged) == 1
+                and isinstance(cast(object, merged[0]), dict)
+            ):
                 url = str(merged[0].get("url") or "")
                 if url:
                     audio = {"url": stream_url(url), "bytes": int(cast(int, merged[0].get("size") or 0))}
@@ -260,7 +266,8 @@ class BilibiliGateway:
             client, "/x/player/playurl", {"bvid": bvid, "cid": cid, "qn": 32, "fnval": 0, "fnver": 0, "fourk": 0}
         )
         merged = cast(list[Payload], merged_play.get("durl") or [])
-        if isinstance(cast(object, merged), list) and merged and isinstance(cast(object, merged[0]), dict):
+        multipart = multipart or (isinstance(cast(object, merged), list) and len(merged) > 1)
+        if isinstance(cast(object, merged), list) and len(merged) == 1 and isinstance(cast(object, merged[0]), dict):
             url = str(merged[0].get("url") or "")
             if url:
                 video_stream = {"url": stream_url(url), "bytes": int(cast(int, merged[0].get("size") or 0))}
@@ -280,6 +287,12 @@ class BilibiliGateway:
                     if url:
                         video_stream = {"url": stream_url(url), "bytes": int(cast(int, best.get("size") or 0))}
         if not audio and not video_stream:
+            if multipart:
+                raise BusinessError(
+                    "bilibili_stream_unsupported",
+                    "Only multi-part streams are available; no complete stream was selected",
+                    status=422,
+                )
             raise BusinessError(
                 "bilibili_read_rejected", "This video exposes no decodable audio or video stream", status=502
             )

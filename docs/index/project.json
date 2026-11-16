@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "c1c9b46302c5784deca1eb209e84ae3788910f94d1eb5b87b775db18c4ca5324",
+  "source_sha256": "aa5585acf91c77741ab205c4aaafd7a4b3e213b74aa2d0f1a92ed66c8efba681",
   "modules": [
     {
       "id": "v2-domain",
@@ -404,7 +404,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 54799,
+      "lines": 54812,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -2584,7 +2584,7 @@
       "path": "agent/src/omni/adapters/bilibili.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.bilibili",
-      "lines": 669,
+      "lines": 682,
       "imports": [
         "omni.adapters.diagnostics",
         "omni.adapters.workers.client",
@@ -2758,7 +2758,7 @@
         },
         {
           "name": "BilibiliGateway.read",
-          "line": 288,
+          "line": 301,
           "kind": "function",
           "parameters": [
             "self",
@@ -2776,7 +2776,7 @@
         },
         {
           "name": "BilibiliGateway.read_source",
-          "line": 291,
+          "line": 304,
           "kind": "function",
           "parameters": [
             "self",
@@ -2792,7 +2792,7 @@
         },
         {
           "name": "BilibiliGateway._read",
-          "line": 302,
+          "line": 315,
           "kind": "function",
           "parameters": [
             "self",
@@ -2812,7 +2812,7 @@
         },
         {
           "name": "BilibiliGateway.download",
-          "line": 416,
+          "line": 429,
           "kind": "function",
           "parameters": [
             "self",
@@ -2834,7 +2834,7 @@
         },
         {
           "name": "BilibiliGateway.send",
-          "line": 543,
+          "line": 556,
           "kind": "function",
           "parameters": [
             "self",
@@ -2846,7 +2846,7 @@
         },
         {
           "name": "BilibiliGateway.close",
-          "line": 665,
+          "line": 678,
           "kind": "function",
           "parameters": [
             "self",

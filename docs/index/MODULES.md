@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`c1c9b46302c5784deca1eb209e84ae3788910f94d1eb5b87b775db18c4ca5324`。包含 65 个职责模块、736 个源码/界面文件。
+源码指纹：`aa5585acf91c77741ab205c4aaafd7a4b3e213b74aa2d0f1a92ed66c8efba681`。包含 65 个职责模块、736 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -138,7 +138,7 @@
 | [agent/src/omni/adapters/__init__.py](../../agent/src/omni/adapters/__init__.py) | 1 | V2 infrastructure and channel adapters; no import-time external activity. |
 | [agent/src/omni/adapters/android.py](../../agent/src/omni/adapters/android.py) | 197 | Managed Android workers and bounded PNG loading; no main-process device API or application database. |
 | [agent/src/omni/adapters/android_unicode.py](../../agent/src/omni/adapters/android_unicode.py) | 160 | Owned Unicode/IME transaction over managed workers; secrets stay in private IPC. |
-| [agent/src/omni/adapters/bilibili.py](../../agent/src/omni/adapters/bilibili.py) | 669 | Bounded Bilibili reads and a single approved UI publication; credentials never enter diagnostics. |
+| [agent/src/omni/adapters/bilibili.py](../../agent/src/omni/adapters/bilibili.py) | 682 | Bounded Bilibili reads and a single approved UI publication; credentials never enter diagnostics. |
 | [agent/src/omni/adapters/build_identity.py](../../agent/src/omni/adapters/build_identity.py) | 5 | Shared inventory of executable V2 resources for runtime and deployment identities. |
 | [agent/src/omni/adapters/credentials.py](../../agent/src/omni/adapters/credentials.py) | 179 | One bounded, serial credential executor; actual work outlives cancelled request waiters. |
 | [agent/src/omni/adapters/diagnostic_bundle.py](../../agent/src/omni/adapters/diagnostic_bundle.py) | 341 | Bounded metadata and structured correlations; never opens business bodies or credential stores. |
