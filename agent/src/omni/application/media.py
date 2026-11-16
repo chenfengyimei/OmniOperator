@@ -88,6 +88,8 @@ class MediaProcessingPort(Protocol):
 class BilibiliMediaPort(Protocol):
     async def read(self, configuration: Record, operation: str, target: str, limit: int = 10) -> Record: ...
 
+    async def read_source(self, configuration: Record, operation: str, source: Record) -> Record: ...
+
     async def download(
         self,
         configuration: Record,
@@ -257,7 +259,7 @@ class MediaService:
                 return await self._db.write(commit)
 
             if operation == "subtitle":
-                result = await self._bilibili.read(cast(Record, config["value"]), "subtitle", str(source["bvid"]))
+                result = await self._bilibili.read_source(cast(Record, config["value"]), "subtitle", source)
                 await authorize()
                 if not result.get("text"):
                     raise BusinessError("media_subtitle_missing", "This video exposes no readable subtitle", status=422)
@@ -269,7 +271,7 @@ class MediaService:
                     "language": str(result.get("language") or "")[:16],
                 }
             else:
-                streams = await self._bilibili.read(cast(Record, config["value"]), "streams", str(source["bvid"]))
+                streams = await self._bilibili.read_source(cast(Record, config["value"]), "streams", source)
                 await authorize()
                 media = cast(Record, streams.get("audio" if operation == "transcribe" else "video"))
                 if not media:

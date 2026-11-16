@@ -264,6 +264,28 @@ class BilibiliGateway:
         return {"audio": audio or None, "video": video_stream or None}
 
     async def read(self, configuration: Mapping[str, object], operation: str, target: str, limit: int = 10) -> Payload:
+        return await self._read(configuration, operation, target, limit)
+
+    async def read_source(
+        self, configuration: Mapping[str, object], operation: str, source: Mapping[str, object]
+    ) -> Payload:
+        if operation not in {"subtitle", "streams"}:
+            raise BusinessError("bilibili_read_invalid", "Source reads require subtitle or streams", status=422)
+        target = source.get("bvid")
+        if not isinstance(target, str) or not re.fullmatch(r"BV[0-9A-Za-z]{10}", target):
+            raise BusinessError("bilibili_read_invalid", "Source reads require a registered BV identity", status=422)
+        expected: Payload = {"aid": uid(source.get("aid")), "cid": uid(source.get("cid"))}
+        return await self._read(configuration, operation, target, expected_source=expected)
+
+    async def _read(
+        self,
+        configuration: Mapping[str, object],
+        operation: str,
+        target: str,
+        limit: int = 10,
+        *,
+        expected_source: Payload | None = None,
+    ) -> Payload:
         if self._closing or len(self._reads) >= 8:
             raise BusinessError("bilibili_busy", "Bilibili reader is draining or busy", status=503)
         owner = asyncio.current_task()
@@ -302,6 +324,12 @@ class BilibiliGateway:
                     video = await self._get(client, "/x/web-interface/view", {"bvid": target})
                     if video.get("bvid") != target:
                         raise BusinessError("bilibili_source_changed", "Video identity changed")
+                    if expected_source is not None and any(
+                        str(video.get(key, "")) != expected_source[key] for key in ("aid", "cid")
+                    ):
+                        raise BusinessError(
+                            "bilibili_source_changed", "Registered video content identity changed", status=409
+                        )
                     if operation == "video":
                         return {
                             "bvid": target,

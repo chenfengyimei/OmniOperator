@@ -306,6 +306,9 @@ class FakeGateway:
             }
         raise AssertionError(operation)
 
+    async def read_source(self, configuration, operation, source):
+        return await self.read(configuration, operation, str(source["bvid"]))
+
     async def download(self, configuration, url, destination, *, max_bytes, budget_s, before_dispatch=None):
         self.downloads.append((url, max_bytes))
         destination.write_bytes(b"fixture media bytes")

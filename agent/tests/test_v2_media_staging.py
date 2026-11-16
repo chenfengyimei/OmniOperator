@@ -60,6 +60,9 @@ class Gateway:
         self.calls.append(operation)
         return {"text": ""}
 
+    async def read_source(self, configuration, operation, source):
+        return await self.read(configuration, operation, str(source["bvid"]))
+
 
 def fixture(tmp_path, **options):
     database, gateway = Database(**options), Gateway()

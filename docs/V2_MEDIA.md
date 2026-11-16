@@ -67,6 +67,7 @@ Bilibili 视频读取（复用 bilibili_read_authorized 凭据/配置/修订授�
 - 重启恢复：实例启动 `media.recover()` 把上一进程的 queued→cancelled(`media_restart_interrupted`)、running→unknown(`media_restart_unknown`)；恢复只写状态机合法转移，不重放任何处理。
 - 配置漂移：作业执行前核对来源绑定的 `config_revision_id`；配置被修订后作业失败（`bilibili_configuration_revoked`），重新登记来源即重绑新修订。
 - 登记来源的最终写事务重新核对原配置修订与凭据authority；处理中在字幕/流地址返回后、下载派发及重试前、下载和worker返回后、对象/图像登记前复核，并核对来源仍绑定同一配置修订。凭据代次改变保留`bilibili_credential_changed`，配置撤销或来源重绑保留`bilibili_configuration_revoked`；不重试旧作业。媒体产物完成与最后一次授权检查在同一数据库写事务，不能用事务前的异步检查替代。已发出的读请求、已完成的对象/图像登记不回滚；晚到撤销只阻止后续阶段及媒体产物行提交，既有对象/图像按原引用与GC规则管理。恢复后须显式重新登记来源和提交新作业。
+- 字幕和流地址通过独立`read_source`端口读取登记来源，网关在首次I/O前复制BV/AID/CID身份；登录及视频元数据返回后，在字幕或playurl请求前核对三者。换稿或身份不匹配以`bilibili_source_changed`结束作业，不派发字幕/流地址、下载或处理器，也不向旧来源发布新内容；原来源记录和旧作业不自动改写或重放。普通所有者视频查询仍返回当前元数据。该检查绑定所请求的内容坐标，不替代远端API/CDN本身的真实性证明。
 
 ## 6. HTTP 契约（/api/v1，Bearer 所有者）
 

@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`890fa177c74a48daa4abd33de38c8789981891549144b44069b286baf59c7cc4`。包含 65 个职责模块、736 个源码/界面文件。
+源码指纹：`3ceee49d3a78c618a9a86eaf8035c1b6a48d54c81006610a4eaa91dc19ffb6bb`。包含 65 个职责模块、736 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -99,7 +99,7 @@
 | [agent/src/omni/application/local_vectors.py](../../agent/src/omni/application/local_vectors.py) | 40 | Shared local-vector preflight and computation; ownership stays with the composing lifecycle. |
 | [agent/src/omni/application/maintenance.py](../../agent/src/omni/application/maintenance.py) | 252 | Own bounded durable maintenance executions; never runs exclusive offline cleanup or remote model/device actions. |
 | [agent/src/omni/application/mcp.py](../../agent/src/omni/application/mcp.py) | 335 | Owner MCP servers: explicit connect, bounded catalog, per-tool authorization and run-scoped calls. |
-| [agent/src/omni/application/media.py](../../agent/src/omni/application/media.py) | 594 | Owner media sources, bounded processing jobs and model-visible anchored transcripts. |
+| [agent/src/omni/application/media.py](../../agent/src/omni/application/media.py) | 596 | Owner media sources, bounded processing jobs and model-visible anchored transcripts. |
 | [agent/src/omni/application/memory_organization.py](../../agent/src/omni/application/memory_organization.py) | 144 | Own bounded exact-fact proposals and explicit owner decisions; never calls a model or erases facts. |
 | [agent/src/omni/application/memory_semantics.py](../../agent/src/omni/application/memory_semantics.py) | 222 | Owned local memory indexing, hybrid recall and explicit related-fact reviews; no automatic merge or deletion. |
 | [agent/src/omni/application/memory_tools.py](../../agent/src/omni/application/memory_tools.py) | 107 | Memory capabilities share application transactions and verified source rules. |
@@ -138,7 +138,7 @@
 | [agent/src/omni/adapters/__init__.py](../../agent/src/omni/adapters/__init__.py) | 1 | V2 infrastructure and channel adapters; no import-time external activity. |
 | [agent/src/omni/adapters/android.py](../../agent/src/omni/adapters/android.py) | 197 | Managed Android workers and bounded PNG loading; no main-process device API or application database. |
 | [agent/src/omni/adapters/android_unicode.py](../../agent/src/omni/adapters/android_unicode.py) | 160 | Owned Unicode/IME transaction over managed workers; secrets stay in private IPC. |
-| [agent/src/omni/adapters/bilibili.py](../../agent/src/omni/adapters/bilibili.py) | 619 | Bounded Bilibili reads and a single approved UI publication; credentials never enter diagnostics. |
+| [agent/src/omni/adapters/bilibili.py](../../agent/src/omni/adapters/bilibili.py) | 647 | Bounded Bilibili reads and a single approved UI publication; credentials never enter diagnostics. |
 | [agent/src/omni/adapters/build_identity.py](../../agent/src/omni/adapters/build_identity.py) | 5 | Shared inventory of executable V2 resources for runtime and deployment identities. |
 | [agent/src/omni/adapters/credentials.py](../../agent/src/omni/adapters/credentials.py) | 179 | One bounded, serial credential executor; actual work outlives cancelled request waiters. |
 | [agent/src/omni/adapters/diagnostic_bundle.py](../../agent/src/omni/adapters/diagnostic_bundle.py) | 341 | Bounded metadata and structured correlations; never opens business bodies or credential stores. |
