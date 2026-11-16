@@ -5919,6 +5919,331 @@
      "scope": "Phase/exit snapshots, not continuous allocation tracing. Final exit polls occur after ordinary xdist teardown and may reflect its cleanup. Fault files contain stack locations, not local values."
     },
     "main_worker_error_callbacks": []
+   },
+   {
+    "status": "passed",
+    "checkpoint": 86,
+    "artifact_id": 226,
+    "source_head": "42a4b8b29d7c80daa4cb212d49dd40d07c189079",
+    "code_version": "79c6628b24ed5c71fc9db05386a96362e4b80134813dc089b1727fcc2027a4ac",
+    "fixed_source_files": 1218,
+    "strict_files": 332,
+    "expected_collected_tests": 4800,
+    "workers": 2,
+    "report": "temp/build/v2-full-226.xml",
+    "snapshot": {
+     "path": "temp/build/v2-full-226-snapshot.json",
+     "sha256": "43fd55b73eb34b7803a9c89ca712e54f1559add1a9bd6553ebfd47515a987f0a"
+    },
+    "scope": "Committed Git archive only. Concurrent uncommitted source/UI/migration work was not copied, staged, discarded or validated by this checkpoint.",
+    "completed": true,
+    "command": "uv run --no-sync python temp/build/_audio_input_checkpoint.py run (frozen python -m pytest -q -n2 --worker-diagnostics=... --junitxml=...)",
+    "report_sha256": "ecab05764ea535042e7e4dde6ea0e0f6969030b4ae74056a1ce9fd20352549e4",
+    "raw_suites": [
+     {
+      "name": "pytest",
+      "errors": "0",
+      "failures": "0",
+      "skipped": "0",
+      "tests": "4800",
+      "time": "3025.328",
+      "timestamp": "2026-11-16T12:27:30.761197+08:00",
+      "hostname": "cy"
+     }
+    ],
+    "junit_testcase_records": 4800,
+    "unique_test_nodes_reported": 4800,
+    "failure_events": 0,
+    "error_events": 0,
+    "skipped": 0,
+    "unique_failed_or_errored_nodes": 0,
+    "unique_nodes_without_failure_or_error": 4800,
+    "duplicate_nodes": {},
+    "failed_nodes": [],
+    "returncode": 0,
+    "wall_duration_s": 3026.378,
+    "pytest_cli_summary": "4800 passed, 12 warnings in 3025.48s (0:50:25)",
+    "pytest_cli_counts": {
+     "passed": 4800,
+     "warnings": 12
+    },
+    "source_unchanged": true,
+    "source_unchanged_after_reruns": true,
+    "log": {
+     "path": "temp/build/v2-full-226.log",
+     "sha256": "89cef071d92be559dc55493734dd97464b265e7fcca85074d7824a69edde2cd9"
+    },
+    "all_collected_nodes_reported": true,
+    "reruns": [],
+    "diagnostics": {
+     "directory": "temp/build/v2-full-226-diagnostics",
+     "processes": [
+      {
+       "file": "controller-23124.jsonl",
+       "events": {
+        "configured": 1,
+        "worker_spawn": 2,
+        "report": 14400,
+        "worker_exit": 4,
+        "session_finish": 1
+       },
+       "malformed_lines": 0,
+       "last_phase": null,
+       "last_report": {
+        "time_ns": 1794806271651829900,
+        "nodeid": "agent/tests/test_v2_skills_http.py::test_skill_api_revision_review_history_exports_and_scope",
+        "when": "teardown",
+        "outcome": "passed"
+       },
+       "journal_capped": false,
+       "min_commit_headroom_bytes": 2500874240,
+       "pid": 23124,
+       "worker": "controller",
+       "tightest_commit_sample": {
+        "time_ns": 1794805385308341000,
+        "CommitTotal": 103452098560,
+        "CommitLimit": 105952972800,
+        "CommitPeak": 105952972800,
+        "PhysicalTotal": 50700185600,
+        "PhysicalAvailable": 17289592832
+       },
+       "session_finish": {
+        "time_ns": 1794806276236466700,
+        "pid": 23124,
+        "worker": "controller",
+        "event": "session_finish",
+        "exitstatus": 0,
+        "diagnostic_errors": 0,
+        "journal_capped": false,
+        "system_commit": {
+         "CommitTotal": 99337322496,
+         "CommitLimit": 105952972800,
+         "CommitPeak": 105952972800,
+         "PhysicalTotal": 50700185600,
+         "PhysicalAvailable": 19980627968
+        }
+       }
+      },
+      {
+       "file": "gw0-53624.jsonl",
+       "events": {
+        "configured": 1,
+        "phase_start": 9969,
+        "report": 9969,
+        "session_finish": 1
+       },
+       "malformed_lines": 0,
+       "last_phase": {
+        "time_ns": 1794806269736334000,
+        "nodeid": "agent/tests/test_workbench_ui.py::test_desktop_and_publication_tabs_are_reachable",
+        "when": "teardown"
+       },
+       "last_report": {
+        "time_ns": 1794806269741769700,
+        "nodeid": "agent/tests/test_workbench_ui.py::test_desktop_and_publication_tabs_are_reachable",
+        "when": "teardown",
+        "outcome": "passed"
+       },
+       "journal_capped": false,
+       "min_commit_headroom_bytes": 2658185216,
+       "pid": 53624,
+       "worker": "gw0",
+       "tightest_commit_sample": {
+        "time_ns": 1794806026597200300,
+        "CommitTotal": 103294787584,
+        "CommitLimit": 105952972800,
+        "CommitPeak": 105952972800,
+        "PhysicalTotal": 50700185600,
+        "PhysicalAvailable": 17722183680
+       },
+       "session_finish": {
+        "time_ns": 1794806269773289600,
+        "pid": 53624,
+        "worker": "gw0",
+        "event": "session_finish",
+        "exitstatus": 0,
+        "diagnostic_errors": 0,
+        "journal_capped": false,
+        "system_commit": {
+         "CommitTotal": 102684909568,
+         "CommitLimit": 105952972800,
+         "CommitPeak": 105952972800,
+         "PhysicalTotal": 50700185600,
+         "PhysicalAvailable": 18213105664
+        }
+       }
+      },
+      {
+       "file": "gw1-71976.jsonl",
+       "events": {
+        "configured": 1,
+        "phase_start": 4431,
+        "report": 4431,
+        "session_finish": 1
+       },
+       "malformed_lines": 0,
+       "last_phase": {
+        "time_ns": 1794806271648140900,
+        "nodeid": "agent/tests/test_v2_skills_http.py::test_skill_api_revision_review_history_exports_and_scope",
+        "when": "teardown"
+       },
+       "last_report": {
+        "time_ns": 1794806271651829900,
+        "nodeid": "agent/tests/test_v2_skills_http.py::test_skill_api_revision_review_history_exports_and_scope",
+        "when": "teardown",
+        "outcome": "passed"
+       },
+       "journal_capped": false,
+       "min_commit_headroom_bytes": 2498191360,
+       "pid": 71976,
+       "worker": "gw1",
+       "tightest_commit_sample": {
+        "time_ns": 1794805385308341000,
+        "CommitTotal": 103454781440,
+        "CommitLimit": 105952972800,
+        "CommitPeak": 105952972800,
+        "PhysicalTotal": 50700185600,
+        "PhysicalAvailable": 17287352320
+       },
+       "session_finish": {
+        "time_ns": 1794806271669399100,
+        "pid": 71976,
+        "worker": "gw1",
+        "event": "session_finish",
+        "exitstatus": 0,
+        "diagnostic_errors": 0,
+        "journal_capped": false,
+        "system_commit": {
+         "CommitTotal": 102676000768,
+         "CommitLimit": 105952972800,
+         "CommitPeak": 105952972800,
+         "PhysicalTotal": 50700185600,
+         "PhysicalAvailable": 18149019648
+        }
+       }
+      }
+     ],
+     "exit_polls": [
+      {
+       "time_ns": 1794806269774288000,
+       "pid": 23124,
+       "worker": "controller",
+       "event": "worker_exit",
+       "worker_id": "gw0",
+       "stage": "channel_down_poll",
+       "launcher_pid": 72496,
+       "returncode": null,
+       "windows_status_hex": null,
+       "error_type": null,
+       "error": null,
+       "worker_diagnostic_errors": 0,
+       "system_commit": {
+        "CommitTotal": 102684909568,
+        "CommitLimit": 105952972800,
+        "CommitPeak": 105952972800,
+        "PhysicalTotal": 50700185600,
+        "PhysicalAvailable": 18213093376
+       }
+      },
+      {
+       "time_ns": 1794806271669399100,
+       "pid": 23124,
+       "worker": "controller",
+       "event": "worker_exit",
+       "worker_id": "gw1",
+       "stage": "channel_down_poll",
+       "launcher_pid": 23372,
+       "returncode": null,
+       "windows_status_hex": null,
+       "error_type": null,
+       "error": null,
+       "worker_diagnostic_errors": 0,
+       "system_commit": {
+        "CommitTotal": 102676000768,
+        "CommitLimit": 105952972800,
+        "CommitPeak": 105952972800,
+        "PhysicalTotal": 50700185600,
+        "PhysicalAvailable": 18149175296
+       }
+      },
+      {
+       "time_ns": 1794806276236466700,
+       "pid": 23124,
+       "worker": "controller",
+       "event": "worker_exit",
+       "worker_id": "gw0",
+       "stage": "after_xdist_teardown",
+       "launcher_pid": 72496,
+       "returncode": 0,
+       "windows_status_hex": "0x00000000",
+       "error_type": null,
+       "error": null,
+       "worker_diagnostic_errors": 0,
+       "system_commit": {
+        "CommitTotal": 99337322496,
+        "CommitLimit": 105952972800,
+        "CommitPeak": 105952972800,
+        "PhysicalTotal": 50700185600,
+        "PhysicalAvailable": 19980627968
+       }
+      },
+      {
+       "time_ns": 1794806276236466700,
+       "pid": 23124,
+       "worker": "controller",
+       "event": "worker_exit",
+       "worker_id": "gw1",
+       "stage": "after_xdist_teardown",
+       "launcher_pid": 23372,
+       "returncode": 0,
+       "windows_status_hex": "0x00000000",
+       "error_type": null,
+       "error": null,
+       "worker_diagnostic_errors": 0,
+       "system_commit": {
+        "CommitTotal": 99337322496,
+        "CommitLimit": 105952972800,
+        "CommitPeak": 105952972800,
+        "PhysicalTotal": 50700185600,
+        "PhysicalAvailable": 19980627968
+       }
+      }
+     ],
+     "artifacts": [
+      {
+       "path": "temp/build/v2-full-226-diagnostics/controller-23124.jsonl",
+       "sha256": "72c2fa1bfc89bbba286447067f8c1cfb19b0e91b1e37fe8054dbaf2296b962bf",
+       "bytes": 6449770
+      },
+      {
+       "path": "temp/build/v2-full-226-diagnostics/gw0-53624.jsonl",
+       "sha256": "ccb8ba3b752a352f122f91c26bda020e8e4bb1bfa6e27eea9f1afb5dba54cba7",
+       "bytes": 8324417
+      },
+      {
+       "path": "temp/build/v2-full-226-diagnostics/gw1-71976.jsonl",
+       "sha256": "c1ed9792293b15fda8ad560a1d6f4ca10bb977cb4bd9e83dd8f58d5ac816894b",
+       "bytes": 3645193
+      },
+      {
+       "path": "temp/build/v2-full-226-diagnostics/controller-23124.fault.txt",
+       "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+       "bytes": 0
+      },
+      {
+       "path": "temp/build/v2-full-226-diagnostics/gw0-53624.fault.txt",
+       "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+       "bytes": 0
+      },
+      {
+       "path": "temp/build/v2-full-226-diagnostics/gw1-71976.fault.txt",
+       "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+       "bytes": 0
+      }
+     ],
+     "scope": "Phase/exit snapshots, not continuous allocation tracing. Final exit polls occur after ordinary xdist teardown and may reflect its cleanup. Fault files contain stack locations, not local values."
+    },
+    "main_worker_error_callbacks": []
    }
   ],
   "scope": [
@@ -6106,6 +6431,14 @@
     "snapshot": "temp/build/v2-full-225-snapshot.json",
     "state": "harvested",
     "scope": "Committed delivery refresh barrier plus cache metadata; parallel WIP bodies excluded"
+   },
+   {
+    "checkpoint": 86,
+    "artifact_id": 226,
+    "head": "42a4b8b29d7c80daa4cb212d49dd40d07c189079",
+    "snapshot": "temp/build/v2-full-226-snapshot.json",
+    "state": "harvested",
+    "scope": "Committed ASR audio sample budget/tail and tests; all parallel WIP bodies excluded"
    }
   ],
   "full_checkpoints_pending": [],
@@ -6305,321 +6638,321 @@
   },
   "latest_scoped_full_run": {
    "status": "passed",
-   "checkpoint": 85,
-   "artifact_id": 225,
-   "source_head": "e5815df87c021e62147d9096cda0244dce5245a7",
-   "code_version": "73f41b8d74576a4df8140d4533f62364ad9b228466aaecb1eec947495d4f9ce0",
-   "fixed_source_files": 1217,
+   "checkpoint": 86,
+   "artifact_id": 226,
+   "source_head": "42a4b8b29d7c80daa4cb212d49dd40d07c189079",
+   "code_version": "79c6628b24ed5c71fc9db05386a96362e4b80134813dc089b1727fcc2027a4ac",
+   "fixed_source_files": 1218,
    "strict_files": 332,
-   "expected_collected_tests": 4774,
+   "expected_collected_tests": 4800,
    "workers": 2,
-   "report": "temp/build/v2-full-225.xml",
+   "report": "temp/build/v2-full-226.xml",
    "snapshot": {
-    "path": "temp/build/v2-full-225-snapshot.json",
-    "sha256": "7e4eec24da5f0792ac4047375b85cba70da567599305dd6c6302d1f318febb9c"
+    "path": "temp/build/v2-full-226-snapshot.json",
+    "sha256": "43fd55b73eb34b7803a9c89ca712e54f1559add1a9bd6553ebfd47515a987f0a"
    },
    "scope": "Committed Git archive only. Concurrent uncommitted source/UI/migration work was not copied, staged, discarded or validated by this checkpoint.",
    "completed": true,
-   "command": "uv run --no-sync python temp/build/_delivery_read_checkpoint.py run (frozen python -m pytest -q -n2 --worker-diagnostics=... --junitxml=...)",
-   "report_sha256": "7c77b6c26557d96277aae6903d6c89a60602b522f11f051c21a9dd73568aabb3",
+   "command": "uv run --no-sync python temp/build/_audio_input_checkpoint.py run (frozen python -m pytest -q -n2 --worker-diagnostics=... --junitxml=...)",
+   "report_sha256": "ecab05764ea535042e7e4dde6ea0e0f6969030b4ae74056a1ce9fd20352549e4",
    "raw_suites": [
     {
      "name": "pytest",
      "errors": "0",
      "failures": "0",
      "skipped": "0",
-     "tests": "4774",
-     "time": "2814.474",
-     "timestamp": "2026-11-16T11:24:38.731204+08:00",
+     "tests": "4800",
+     "time": "3025.328",
+     "timestamp": "2026-11-16T12:27:30.761197+08:00",
      "hostname": "cy"
     }
    ],
-   "junit_testcase_records": 4774,
-   "unique_test_nodes_reported": 4774,
+   "junit_testcase_records": 4800,
+   "unique_test_nodes_reported": 4800,
    "failure_events": 0,
    "error_events": 0,
    "skipped": 0,
    "unique_failed_or_errored_nodes": 0,
-   "unique_nodes_without_failure_or_error": 4774,
+   "unique_nodes_without_failure_or_error": 4800,
    "duplicate_nodes": {},
    "failed_nodes": [],
    "returncode": 0,
-   "wall_duration_s": 2815.553,
-   "pytest_cli_summary": "4774 passed, 12 warnings in 2814.64s (0:46:54)",
+   "wall_duration_s": 3026.378,
+   "pytest_cli_summary": "4800 passed, 12 warnings in 3025.48s (0:50:25)",
    "pytest_cli_counts": {
-    "passed": 4774,
+    "passed": 4800,
     "warnings": 12
    },
    "source_unchanged": true,
    "source_unchanged_after_reruns": true,
    "log": {
-    "path": "temp/build/v2-full-225.log",
-    "sha256": "e499c747aa92b0bfb14a30647a0e831894b3f1f5f487d0672ac1f3f99597b652"
+    "path": "temp/build/v2-full-226.log",
+    "sha256": "89cef071d92be559dc55493734dd97464b265e7fcca85074d7824a69edde2cd9"
    },
    "all_collected_nodes_reported": true,
    "reruns": [],
    "diagnostics": {
-    "directory": "temp/build/v2-full-225-diagnostics",
+    "directory": "temp/build/v2-full-226-diagnostics",
     "processes": [
      {
-      "file": "controller-63668.jsonl",
+      "file": "controller-23124.jsonl",
       "events": {
        "configured": 1,
        "worker_spawn": 2,
-       "report": 14322,
+       "report": 14400,
        "worker_exit": 4,
        "session_finish": 1
       },
       "malformed_lines": 0,
       "last_phase": null,
       "last_report": {
-       "time_ns": 1794802288864687300,
-       "nodeid": "agent/tests/test_workbench_ui.py::test_desktop_and_publication_tabs_are_reachable",
+       "time_ns": 1794806271651829900,
+       "nodeid": "agent/tests/test_v2_skills_http.py::test_skill_api_revision_review_history_exports_and_scope",
        "when": "teardown",
        "outcome": "passed"
       },
       "journal_capped": false,
-      "min_commit_headroom_bytes": 3207315456,
-      "pid": 63668,
+      "min_commit_headroom_bytes": 2500874240,
+      "pid": 23124,
       "worker": "controller",
       "tightest_commit_sample": {
-       "time_ns": 1794802147021799900,
-       "CommitTotal": 102745657344,
+       "time_ns": 1794805385308341000,
+       "CommitTotal": 103452098560,
        "CommitLimit": 105952972800,
        "CommitPeak": 105952972800,
        "PhysicalTotal": 50700185600,
-       "PhysicalAvailable": 17200267264
+       "PhysicalAvailable": 17289592832
       },
       "session_finish": {
-       "time_ns": 1794802293361898900,
-       "pid": 63668,
+       "time_ns": 1794806276236466700,
+       "pid": 23124,
        "worker": "controller",
        "event": "session_finish",
        "exitstatus": 0,
        "diagnostic_errors": 0,
        "journal_capped": false,
        "system_commit": {
-        "CommitTotal": 98772205568,
+        "CommitTotal": 99337322496,
         "CommitLimit": 105952972800,
         "CommitPeak": 105952972800,
         "PhysicalTotal": 50700185600,
-        "PhysicalAvailable": 19452289024
+        "PhysicalAvailable": 19980627968
        }
       }
      },
      {
-      "file": "gw0-43380.jsonl",
+      "file": "gw0-53624.jsonl",
       "events": {
        "configured": 1,
-       "phase_start": 9432,
-       "report": 9432,
+       "phase_start": 9969,
+       "report": 9969,
        "session_finish": 1
       },
       "malformed_lines": 0,
       "last_phase": {
-       "time_ns": 1794802285501210100,
-       "nodeid": "agent/tests/test_v2_skills_http.py::test_skill_api_revision_review_history_exports_and_scope",
+       "time_ns": 1794806269736334000,
+       "nodeid": "agent/tests/test_workbench_ui.py::test_desktop_and_publication_tabs_are_reachable",
        "when": "teardown"
       },
       "last_report": {
-       "time_ns": 1794802285505208900,
-       "nodeid": "agent/tests/test_v2_skills_http.py::test_skill_api_revision_review_history_exports_and_scope",
+       "time_ns": 1794806269741769700,
+       "nodeid": "agent/tests/test_workbench_ui.py::test_desktop_and_publication_tabs_are_reachable",
        "when": "teardown",
        "outcome": "passed"
       },
       "journal_capped": false,
-      "min_commit_headroom_bytes": 3204300800,
-      "pid": 43380,
+      "min_commit_headroom_bytes": 2658185216,
+      "pid": 53624,
       "worker": "gw0",
       "tightest_commit_sample": {
-       "time_ns": 1794802147020799500,
-       "CommitTotal": 102748672000,
+       "time_ns": 1794806026597200300,
+       "CommitTotal": 103294787584,
        "CommitLimit": 105952972800,
        "CommitPeak": 105952972800,
        "PhysicalTotal": 50700185600,
-       "PhysicalAvailable": 17199964160
+       "PhysicalAvailable": 17722183680
       },
       "session_finish": {
-       "time_ns": 1794802285533738600,
-       "pid": 43380,
+       "time_ns": 1794806269773289600,
+       "pid": 53624,
        "worker": "gw0",
        "event": "session_finish",
        "exitstatus": 0,
        "diagnostic_errors": 0,
        "journal_capped": false,
        "system_commit": {
-        "CommitTotal": 102172266496,
+        "CommitTotal": 102684909568,
         "CommitLimit": 105952972800,
         "CommitPeak": 105952972800,
         "PhysicalTotal": 50700185600,
-        "PhysicalAvailable": 17605521408
+        "PhysicalAvailable": 18213105664
        }
       }
      },
      {
-      "file": "gw1-36936.jsonl",
+      "file": "gw1-71976.jsonl",
       "events": {
        "configured": 1,
-       "phase_start": 4890,
-       "report": 4890,
+       "phase_start": 4431,
+       "report": 4431,
        "session_finish": 1
       },
       "malformed_lines": 0,
       "last_phase": {
-       "time_ns": 1794802288860687100,
-       "nodeid": "agent/tests/test_workbench_ui.py::test_desktop_and_publication_tabs_are_reachable",
+       "time_ns": 1794806271648140900,
+       "nodeid": "agent/tests/test_v2_skills_http.py::test_skill_api_revision_review_history_exports_and_scope",
        "when": "teardown"
       },
       "last_report": {
-       "time_ns": 1794802288864687300,
-       "nodeid": "agent/tests/test_workbench_ui.py::test_desktop_and_publication_tabs_are_reachable",
+       "time_ns": 1794806271651829900,
+       "nodeid": "agent/tests/test_v2_skills_http.py::test_skill_api_revision_review_history_exports_and_scope",
        "when": "teardown",
        "outcome": "passed"
       },
       "journal_capped": false,
-      "min_commit_headroom_bytes": 3223760896,
-      "pid": 36936,
+      "min_commit_headroom_bytes": 2498191360,
+      "pid": 71976,
       "worker": "gw1",
       "tightest_commit_sample": {
-       "time_ns": 1794802139647963800,
-       "CommitTotal": 102729211904,
+       "time_ns": 1794805385308341000,
+       "CommitTotal": 103454781440,
        "CommitLimit": 105952972800,
        "CommitPeak": 105952972800,
        "PhysicalTotal": 50700185600,
-       "PhysicalAvailable": 17214853120
+       "PhysicalAvailable": 17287352320
       },
       "session_finish": {
-       "time_ns": 1794802288882199900,
-       "pid": 36936,
+       "time_ns": 1794806271669399100,
+       "pid": 71976,
        "worker": "gw1",
        "event": "session_finish",
        "exitstatus": 0,
        "diagnostic_errors": 0,
        "journal_capped": false,
        "system_commit": {
-        "CommitTotal": 102176104448,
+        "CommitTotal": 102676000768,
         "CommitLimit": 105952972800,
         "CommitPeak": 105952972800,
         "PhysicalTotal": 50700185600,
-        "PhysicalAvailable": 17600122880
+        "PhysicalAvailable": 18149019648
        }
       }
      }
     ],
     "exit_polls": [
      {
-      "time_ns": 1794802285534737900,
-      "pid": 63668,
+      "time_ns": 1794806269774288000,
+      "pid": 23124,
       "worker": "controller",
       "event": "worker_exit",
       "worker_id": "gw0",
       "stage": "channel_down_poll",
-      "launcher_pid": 4976,
+      "launcher_pid": 72496,
       "returncode": null,
       "windows_status_hex": null,
       "error_type": null,
       "error": null,
       "worker_diagnostic_errors": 0,
       "system_commit": {
-       "CommitTotal": 102172266496,
+       "CommitTotal": 102684909568,
        "CommitLimit": 105952972800,
        "CommitPeak": 105952972800,
        "PhysicalTotal": 50700185600,
-       "PhysicalAvailable": 17605476352
+       "PhysicalAvailable": 18213093376
       }
      },
      {
-      "time_ns": 1794802288884035500,
-      "pid": 63668,
+      "time_ns": 1794806271669399100,
+      "pid": 23124,
       "worker": "controller",
       "event": "worker_exit",
       "worker_id": "gw1",
       "stage": "channel_down_poll",
-      "launcher_pid": 6504,
+      "launcher_pid": 23372,
       "returncode": null,
       "windows_status_hex": null,
       "error_type": null,
       "error": null,
       "worker_diagnostic_errors": 0,
       "system_commit": {
-       "CommitTotal": 102176104448,
+       "CommitTotal": 102676000768,
        "CommitLimit": 105952972800,
        "CommitPeak": 105952972800,
        "PhysicalTotal": 50700185600,
-       "PhysicalAvailable": 17600094208
+       "PhysicalAvailable": 18149175296
       }
      },
      {
-      "time_ns": 1794802293360897800,
-      "pid": 63668,
+      "time_ns": 1794806276236466700,
+      "pid": 23124,
       "worker": "controller",
       "event": "worker_exit",
       "worker_id": "gw0",
       "stage": "after_xdist_teardown",
-      "launcher_pid": 4976,
+      "launcher_pid": 72496,
       "returncode": 0,
       "windows_status_hex": "0x00000000",
       "error_type": null,
       "error": null,
       "worker_diagnostic_errors": 0,
       "system_commit": {
-       "CommitTotal": 98772205568,
+       "CommitTotal": 99337322496,
        "CommitLimit": 105952972800,
        "CommitPeak": 105952972800,
        "PhysicalTotal": 50700185600,
-       "PhysicalAvailable": 19452289024
+       "PhysicalAvailable": 19980627968
       }
      },
      {
-      "time_ns": 1794802293361898900,
-      "pid": 63668,
+      "time_ns": 1794806276236466700,
+      "pid": 23124,
       "worker": "controller",
       "event": "worker_exit",
       "worker_id": "gw1",
       "stage": "after_xdist_teardown",
-      "launcher_pid": 6504,
+      "launcher_pid": 23372,
       "returncode": 0,
       "windows_status_hex": "0x00000000",
       "error_type": null,
       "error": null,
       "worker_diagnostic_errors": 0,
       "system_commit": {
-       "CommitTotal": 98772205568,
+       "CommitTotal": 99337322496,
        "CommitLimit": 105952972800,
        "CommitPeak": 105952972800,
        "PhysicalTotal": 50700185600,
-       "PhysicalAvailable": 19452289024
+       "PhysicalAvailable": 19980627968
       }
      }
     ],
     "artifacts": [
      {
-      "path": "temp/build/v2-full-225-diagnostics/controller-63668.jsonl",
-      "sha256": "77529f178e2b94fdf1320e44ca499a34f2ba780aeb1df8eafa227ffac5492584",
-      "bytes": 6409646
+      "path": "temp/build/v2-full-226-diagnostics/controller-23124.jsonl",
+      "sha256": "72c2fa1bfc89bbba286447067f8c1cfb19b0e91b1e37fe8054dbaf2296b962bf",
+      "bytes": 6449770
      },
      {
-      "path": "temp/build/v2-full-225-diagnostics/gw0-43380.jsonl",
-      "sha256": "ac624720d55e637abbe311e760c428ad46212f0c7ccdc938689916094c600dfb",
-      "bytes": 7860023
+      "path": "temp/build/v2-full-226-diagnostics/gw0-53624.jsonl",
+      "sha256": "ccb8ba3b752a352f122f91c26bda020e8e4bb1bfa6e27eea9f1afb5dba54cba7",
+      "bytes": 8324417
      },
      {
-      "path": "temp/build/v2-full-225-diagnostics/gw1-36936.jsonl",
-      "sha256": "14d026639f8ce2f05f1a6cf89e752d4462c58bdca2482f89923d72d84f2a541d",
-      "bytes": 4034299
+      "path": "temp/build/v2-full-226-diagnostics/gw1-71976.jsonl",
+      "sha256": "c1ed9792293b15fda8ad560a1d6f4ca10bb977cb4bd9e83dd8f58d5ac816894b",
+      "bytes": 3645193
      },
      {
-      "path": "temp/build/v2-full-225-diagnostics/controller-63668.fault.txt",
+      "path": "temp/build/v2-full-226-diagnostics/controller-23124.fault.txt",
       "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "bytes": 0
      },
      {
-      "path": "temp/build/v2-full-225-diagnostics/gw0-43380.fault.txt",
+      "path": "temp/build/v2-full-226-diagnostics/gw0-53624.fault.txt",
       "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "bytes": 0
      },
      {
-      "path": "temp/build/v2-full-225-diagnostics/gw1-36936.fault.txt",
+      "path": "temp/build/v2-full-226-diagnostics/gw1-71976.fault.txt",
       "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "bytes": 0
      }
@@ -6660,6 +6993,17 @@
    "concurrent_uncommitted_work_validated": false,
    "controlled_refresh_and_archive_paths_repaired": true,
    "all_historical_ui_failure_causes_resolved": false,
+   "global_commit_or_native_exit_root_cause_resolved": false
+  },
+  "audio_input_followup": {
+   "evidence": "docs/evidence/v2-audio-input.json",
+   "source_head": "42a4b8b29d7c80daa4cb212d49dd40d07c189079",
+   "checkpoint": 86,
+   "artifact_id": 226,
+   "status": "passed",
+   "validated_committed_scope_only": true,
+   "concurrent_uncommitted_work_validated": false,
+   "actual_pcm_sample_bound_and_resampler_tail_repaired": true,
    "global_commit_or_native_exit_root_cause_resolved": false
   }
  },
