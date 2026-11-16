@@ -7,13 +7,41 @@ import io
 import stat
 import zipfile
 from collections.abc import Callable
-from typing import TypeVar, cast
+from typing import Protocol, TypeVar, cast
 
 import yaml
+from yaml.nodes import MappingNode, Node
 
 from ..domain.skills import MAX_BYTES, MAX_FILES, MAX_ZIP, SkillPackage, document, file_path, invalid
 
 T = TypeVar("T")
+
+
+class _MetadataLoader(Protocol):
+    def get_single_node(self) -> Node | None: ...
+    def flatten_mapping(self, node: MappingNode) -> None: ...
+    def construct_object(self, node: Node) -> object: ...
+    def construct_document(self, node: Node) -> object: ...
+    def dispose(self) -> None: ...
+
+
+def _metadata(header: str) -> object:
+    loader = cast(_MetadataLoader, yaml.SafeLoader(header))
+    try:
+        node = loader.get_single_node()
+        if not isinstance(node, MappingNode):
+            raise invalid()
+        # Inspect resolved merge fields before constructing a dict that would overwrite them.
+        loader.flatten_mapping(node)
+        names: set[str] = set()
+        for key, _ in node.value:
+            name: object = loader.construct_object(key)
+            if not isinstance(name, str) or name in names:
+                raise invalid()
+            names.add(name)
+        return loader.construct_document(node)
+    finally:
+        loader.dispose()
 
 
 def capture(payload: bytes, format: str) -> SkillPackage:
@@ -61,7 +89,7 @@ def capture(payload: bytes, format: str) -> SkillPackage:
         header = "".join(lines[1:end])
         if len(header.encode()) > 4096:
             raise invalid()
-        metadata = document(yaml.safe_load(header), "".join(lines[end + 1 :]).strip())
+        metadata = document(_metadata(header), "".join(lines[end + 1 :]).strip())
         result = SkillPackage(metadata, tuple(sorted(files)))
         result.validate()
         return result
