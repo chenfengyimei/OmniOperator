@@ -48,6 +48,7 @@ Bilibili 视频读取（复用 bilibili_read_authorized 凭据/配置/修订授�
 ## 5. 服务与生命周期（application/media.py）
 
 - 并发：`asyncio.Semaphore(2)` 限制活跃处理；作业任务进 `_tasks`，关闭时先 `stop_accepting` 拒绝新收，再等待收尾（默认 30s），处理器进程最后关闭。
+- 登记来源、创建作业与组件探测也在首次I/O前纳入实际任务归属；调用方取消只结束等待，不取消已准入的事务/网络处理，也不自动重放。关闭后上述入口统一以`media_closing`拒绝且不调用端口。作业创建结果交付前仍持有提交任务，交付后新增的后台作业也须排空；不能只等关闭开始时的一份任务快照。关闭超时或调用方取消不取消这些任务，数据库、对象与实例锁仍由生命周期协调器保留。任务排空与处理器回收共用一次关闭预算，回收只获剩余时间，后续关闭可继续核查实际结果。
 - 取消：queued 作业由数据库状态机直接 cancelled；running 作业取消 asyncio 任务，终态写入 cancelled；终态幂等（取消与完成竞态时后到方观察到已完成状态，不报错）。
 - 失败分类：`media_processing_timeout/media_processing_failed/media_worker_crashed` → `unknown`；其余业务错误 → `failed` + 精确错误码。
 - 重启恢复：实例启动 `media.recover()` 把上一进程的 queued→cancelled(`media_restart_interrupted`)、running→unknown(`media_restart_unknown`)；恢复只写状态机合法转移，不重放任何处理。

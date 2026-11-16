@@ -124,12 +124,13 @@ class MediaService:
     # ---------- sources ----------
 
     async def register(self, agent_id: str, config_id: str, target: str) -> Record:
-        if self._closing:
-            raise BusinessError("media_closing", "Media admission is draining", status=503)
-        config = await self._db.read(lambda u: u.bilibili_read_authorized(agent_id, config_id))
-        video = await self._bilibili.read(cast(Record, config["value"]), "video", target)
-        row = source_row(config_id, str(config["revision_id"]), video)
-        return await self._db.write(lambda u: u.media_source_register(agent_id, cast(Record, row)))
+        async def perform() -> Record:
+            config = await self._db.read(lambda u: u.bilibili_read_authorized(agent_id, config_id))
+            video = await self._bilibili.read(cast(Record, config["value"]), "video", target)
+            row = source_row(config_id, str(config["revision_id"]), video)
+            return await self._db.write(lambda u: u.media_source_register(agent_id, cast(Record, row)))
+
+        return await self._run_bounded(perform(), task_name="media-register")
 
     async def sources(self, agent_id: str, after: str = "", limit: int = 50) -> Record:
         rows = await self._db.read(lambda u: u.media_source_page(agent_id, after, limit))
@@ -160,16 +161,20 @@ class MediaService:
                 str(params.get("device") or ASR_DEFAULT["device"]),
                 str(params.get("compute_type") or ASR_DEFAULT["compute_type"]),
             )
-        job = await self._db.write(lambda u: u.media_job_create(agent_id, source_id, operation, cast(Record, plan)))
 
-        async def perform() -> None:
-            async with self._slots:
-                await self._execute(str(job["id"]))
+        async def create() -> Record:
+            job = await self._db.write(lambda u: u.media_job_create(agent_id, source_id, operation, cast(Record, plan)))
 
-        task = asyncio.create_task(perform(), name=f"media-job-{job['id']}")
-        self._tasks.add(task)
-        task.add_done_callback(lambda done: self._retire(cast(asyncio.Task[object], done)))
-        return job
+            async def perform() -> None:
+                async with self._slots:
+                    await self._execute(str(job["id"]))
+
+            task = asyncio.create_task(perform(), name=f"media-job-{job['id']}")
+            self._tasks.add(task)
+            task.add_done_callback(lambda done: self._retire(cast(asyncio.Task[object], done)))
+            return job
+
+        return await self._run_bounded(create(), task_name="media-submit")
 
     def _retire(self, task: asyncio.Task[object]) -> None:
         self._tasks.discard(task)
@@ -391,11 +396,11 @@ class MediaService:
     async def frames(self, agent_id: str, frames_id: str) -> Record:
         return await self._db.read(lambda u: u.media_frames_get(agent_id, frames_id))
 
-    async def _run_bounded(self, coroutine: Coroutine[Any, Any, Record]) -> Record:
+    async def _run_bounded(self, coroutine: Coroutine[Any, Any, Record], *, task_name: str = "media-read") -> Record:
         if self._closing:
             coroutine.close()
             raise BusinessError("media_closing", "Media admission is draining", status=503)
-        task = asyncio.create_task(coroutine, name="media-read")
+        task = asyncio.create_task(coroutine, name=task_name)
         self._tasks.add(task)
         task.add_done_callback(lambda done: self._retire(cast(asyncio.Task[object], done)))
         return await asyncio.shield(task)
@@ -443,7 +448,7 @@ class MediaService:
 
     async def processor_probe(self) -> Record:
         """One bounded worker probe; the cached result keeps the workbench honest."""
-        return await self._processor.probe()
+        return await self._run_bounded(self._processor.probe(), task_name="media-probe")
 
     async def recover(self) -> Record:
         """Startup reconciliation: jobs owned by the previous process end unknown or interrupted."""
@@ -462,8 +467,12 @@ class MediaService:
 
     async def close(self, timeout_s: float = 30) -> bool:
         self.stop_accepting()
-        if self._tasks:
-            _, pending = await asyncio.wait(tuple(self._tasks), timeout=max(0, timeout_s))
+        deadline = asyncio.get_running_loop().time() + max(0, timeout_s)
+        # An admitted submit may add its job after this wait's snapshot was taken.
+        while self._tasks:
+            _, pending = await asyncio.wait(
+                tuple(self._tasks), timeout=max(0, deadline - asyncio.get_running_loop().time())
+            )
             if pending:
                 return False
-        return await self._processor.close(timeout_s)
+        return await self._processor.close(max(0, deadline - asyncio.get_running_loop().time()))
