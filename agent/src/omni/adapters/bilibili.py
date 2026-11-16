@@ -23,6 +23,69 @@ from .workers.client import WorkerClient
 Payload = dict[str, object]
 
 
+def _dash_stream(play: Payload, kind: str) -> Payload:
+    """Choose the lowest-bitrate usable DASH record without coercing changed field types."""
+    from ..domain.bilibili import stream_url
+
+    invalid = BusinessError("bilibili_response_invalid", "DASH stream fields changed format", status=502)
+    dash = play.get("dash")
+    if dash is None:
+        return {}
+    if not isinstance(dash, dict):
+        raise invalid
+    tracks = cast(Payload, dash).get(kind)
+    if tracks is None:
+        return {}
+    if not isinstance(tracks, list):
+        raise invalid
+
+    def number(value: object) -> int:
+        if value is None:
+            return 0
+        if type(value) is int and value >= 0:
+            return value
+        if isinstance(value, str) and re.fullmatch(r"[0-9]+", value):
+            try:
+                return int(value)
+            except ValueError as exc:
+                raise invalid from exc
+        raise invalid
+
+    selected: Payload = {}
+    priority: int | None = None
+    for item in cast(list[object], tracks):
+        if not isinstance(item, dict):
+            raise invalid
+        track = cast(Payload, item)
+        bandwidth, size = number(track.get("bandwidth")) or 10**9, number(track.get("size"))
+        url = ""
+        for field in ("baseUrl", "base_url"):
+            value = track.get(field)
+            if value is None:
+                continue
+            if not isinstance(value, str):
+                raise invalid
+            if value:
+                url = value
+                break
+        if not url:
+            for field in ("backupUrl", "backup_url"):
+                backups = track.get(field)
+                if backups is None:
+                    continue
+                if not isinstance(backups, list) or any(not isinstance(v, str) for v in cast(list[object], backups)):
+                    raise invalid
+                url = next((v for v in cast(list[str], backups) if v), "")
+                if url:
+                    break
+        if not url:
+            continue
+        candidate: Payload = {"url": stream_url(url), "bytes": size}
+        if priority is None or bandwidth < priority:
+            selected, priority = candidate, bandwidth
+    return selected
+
+
 async def _response_body(response: httpx.Response, limit: int, label: str) -> bytearray:
     """Bound retained decoded bytes before appending; the response context owns closing."""
     body = bytearray()
@@ -233,23 +296,7 @@ class BilibiliGateway:
         play = await self._get(
             client, "/x/player/playurl", {"bvid": bvid, "cid": cid, "qn": 64, "fnval": 16, "fnver": 0, "fourk": 0}
         )
-        tracks: list[Payload] = cast(list[Payload], cast(Payload, play.get("dash") or {}).get("audio") or [])
-        if isinstance(cast(object, tracks), list) and tracks:
-            best = min(
-                (t for t in tracks if isinstance(cast(object, t), dict)),
-                key=lambda t: int(cast(int, t.get("bandwidth") or 10**9)),
-                default=None,
-            )
-            if best is not None:
-                url = str(best.get("baseUrl") or best.get("base_url") or "")
-                if not url:
-                    backups: list[object] = cast(list[object], best.get("backupUrl") or best.get("backup_url") or [])
-                    url = str(backups[0]) if isinstance(cast(object, backups), list) and backups else ""
-                if url:
-                    audio = {
-                        "url": stream_url(url),
-                        "bytes": int(cast(int, best.get("size") or 0)),
-                    }
+        audio = _dash_stream(play, "audio")
         if not audio:
             merged: list[Payload] = cast(list[Payload], play.get("durl") or [])
             multipart = isinstance(cast(object, merged), list) and len(merged) > 1
@@ -272,20 +319,7 @@ class BilibiliGateway:
             if url:
                 video_stream = {"url": stream_url(url), "bytes": int(cast(int, merged[0].get("size") or 0))}
         if not video_stream:
-            tracks = cast(list[Payload], cast(Payload, play.get("dash") or {}).get("video") or [])
-            if isinstance(cast(object, tracks), list) and tracks:
-                best = min(
-                    (t for t in tracks if isinstance(cast(object, t), dict)),
-                    key=lambda t: int(cast(int, t.get("bandwidth") or 10**9)),
-                    default=None,
-                )
-                if best is not None:
-                    url = str(best.get("baseUrl") or best.get("base_url") or "")
-                    if not url:
-                        backups = cast(list[object], best.get("backupUrl") or best.get("backup_url") or [])
-                        url = str(backups[0]) if isinstance(cast(object, backups), list) and backups else ""
-                    if url:
-                        video_stream = {"url": stream_url(url), "bytes": int(cast(int, best.get("size") or 0))}
+            video_stream = _dash_stream(play, "video")
         if not audio and not video_stream:
             if multipart:
                 raise BusinessError(
