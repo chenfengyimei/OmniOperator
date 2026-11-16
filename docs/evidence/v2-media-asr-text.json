@@ -1,0 +1,360 @@
+{
+ "schema": 1,
+ "date": "2026-11-16",
+ "branch": "v2",
+ "whole_v2_complete": false,
+ "default_entrypoint": "v1",
+ "source": {
+  "head": "2ea36ce4808032dfdf51f380ec28a8606a705e10",
+  "base": "1c7a3ffd0849327f1fc0cc9116a9369ed3128d4f",
+  "code_version": "561c5cb7096bc8814b7592631f58ea9705db994f9daa23679b03f8d5c7671f6b",
+  "code_files": 1244,
+  "planned": {
+   "agent/src/omni/adapters/workers/media.py": {
+    "sha256": "8f4285626d233e35eb140c669781a89eaaa7820f63ffead4a86b42c44dad4bdc",
+    "git_blob": "1353379da6e1726e9941807b18c7d38c0e6f50a9"
+   },
+   "agent/tests/test_v2_media_asr_text.py": {
+    "sha256": "1e0f88f02f1be1e18a6a825841978f6fc4c16cbc8a0d7e228e042cb99f77a46c",
+    "git_blob": "38e0068ac28b49145af895e8e62e758af815d7d1"
+   },
+   "docs/V2_MEDIA.md": {
+    "sha256": "990b230d3338a75584c0281c59714c68df01f3299e8c1af26e3558a83137cafe",
+    "git_blob": "5c6035b62029e7f13895c21a697e0150e123e41d"
+   },
+   "docs/TESTING.md": {
+    "sha256": "84699cd4ea3bc685a106124d89ce26b0d53a6c10c8007578b94d2ce51b47c29f",
+    "git_blob": "27d7ffb735c9cd44df9cf91dda9862a76a9437c7"
+   },
+   "docs/index/MODULES.md": {
+    "sha256": "f05b0b2c7efc3080562739532bf40d2276332998ef1928a9a7996bb6672bfc49",
+    "git_blob": "73414e1c0542d9814b8836ed98133cf7ce5c3091"
+   },
+   "docs/index/project.json": {
+    "sha256": "572f28ac264d5291d137a1fd75bd42eeff6d2e48f4bb7269a49807cae97fe1c1",
+    "git_blob": "70ff1eec8059a6521eebc9260a84674964f7c5cc"
+   }
+  },
+  "candidate": "D:\\xm\\OmniOperator\\temp\\build\\media-asr-text-candidate",
+  "parallel_working_bodies_preserved": true
+ },
+ "root_cause": "ASR segment collection stringified non-text model values into transcripts and deferred Unicode failures to file serialization; language metadata was also coerced into strings instead of reporting unusable model output.",
+ "changes": [
+  "Require actual string segment text; missing/null/boolean/numeric/container/byte values are unusable",
+  "Check bounded nonblank text for UTF-8 before append, stop at the first bad row and close the iterator without fallback or partial output",
+  "Keep missing/null language unknown, require other language values to be strings and validate the sliced output before creating artifact directories",
+  "Reuse the existing media_transcript_unusable mapping; preserve blank strings, trimming, Unicode, language truncation, budgets and same-worker explicit new work"
+ ],
+ "proof": {
+  "changed_existing_worker_functions": [
+   "_transcribe",
+   "_transcript_rows"
+  ],
+  "new_helpers": [],
+  "all_existing_function_signatures_unchanged": true,
+  "all_other_existing_function_sources_identical": true,
+  "whole_worker_ast_identical_after_restoring_text_and_language_validation_changes": true,
+  "imports_constants_and_all_other_functions_ast_identical": true,
+  "unchanged_files": [
+   "agent/src/omni/application/media.py",
+   "agent/src/omni/domain/media.py",
+   "agent/src/omni/adapters/media.py",
+   "agent/src/omni/adapters/bilibili.py",
+   "agent/src/omni/adapters/http.py",
+   "agent/src/omni/composition/instance.py",
+   "agent/tests/test_v2_media.py"
+  ],
+  "identical_final_tests_in_clean_negative_and_candidate": true
+ },
+ "regressions": {
+  "new_cases": 41,
+  "before": {
+   "command": [
+    "D:\\xm\\OmniOperator\\temp\\build\\checkpoint-interpreter-media-asr-text-before\\Scripts\\python.exe",
+    "-m",
+    "pytest",
+    "-q",
+    "-n",
+    "0",
+    "agent/tests/test_v2_media_asr_text.py",
+    "--junitxml=D:\\xm\\OmniOperator\\temp\\build\\v2-media-asr-text-before.xml",
+    "--tb=short"
+   ],
+   "returncode": 1,
+   "duration_s": 13.453,
+   "cases": 41,
+   "failures": 35,
+   "errors": 0,
+   "skipped": 0,
+   "report": "temp\\build\\v2-media-asr-text-before.xml",
+   "report_sha256": "a6afb93ec5effccc9375ab56fdd3f8b3c9310c5045c8ff0de263d3bd3026b2aa",
+   "log": "temp\\build\\v2-media-asr-text-before.log",
+   "log_sha256": "befc37cf496f0d893f9eb04805e125e6412c7bf6a4156e7537eba2a0d4b5b136"
+  },
+  "failed_before_nodes": [
+   {
+    "nodeid": "tests.test_v2_media_asr_text::test_first_bad_text_stops_collection_closes_iterator_and_never_falls_back_or_writes[missing-False]",
+    "message": "AssertionError: ASR consumed text after the first unusable row"
+   },
+   {
+    "nodeid": "tests.test_v2_media_asr_text::test_first_bad_text_stops_collection_closes_iterator_and_never_falls_back_or_writes[missing-True]",
+    "message": "AssertionError: ASR consumed text after the first unusable row"
+   },
+   {
+    "nodeid": "tests.test_v2_media_asr_text::test_first_bad_text_stops_collection_closes_iterator_and_never_falls_back_or_writes[null-False]",
+    "message": "AssertionError: ASR consumed text after the first unusable row"
+   },
+   {
+    "nodeid": "tests.test_v2_media_asr_text::test_first_bad_text_stops_collection_closes_iterator_and_never_falls_back_or_writes[null-True]",
+    "message": "AssertionError: ASR consumed text after the first unusable row"
+   },
+   {
+    "nodeid": "tests.test_v2_media_asr_text::test_first_bad_text_stops_collection_closes_iterator_and_never_falls_back_or_writes[boolean-False]",
+    "message": "AssertionError: ASR consumed text after the first unusable row"
+   },
+   {
+    "nodeid": "tests.test_v2_media_asr_text::test_first_bad_text_stops_collection_closes_iterator_and_never_falls_back_or_writes[boolean-True]",
+    "message": "AssertionError: ASR consumed text after the first unusable row"
+   },
+   {
+    "nodeid": "tests.test_v2_media_asr_text::test_first_bad_text_stops_collection_closes_iterator_and_never_falls_back_or_writes[zero-False]",
+    "message": "AssertionError: ASR consumed text after the first unusable row"
+   },
+   {
+    "nodeid": "tests.test_v2_media_asr_text::test_first_bad_text_stops_collection_closes_iterator_and_never_falls_back_or_writes[zero-True]",
+    "message": "AssertionError: ASR consumed text after the first unusable row"
+   },
+   {
+    "nodeid": "tests.test_v2_media_asr_text::test_first_bad_text_stops_collection_closes_iterator_and_never_falls_back_or_writes[integer-False]",
+    "message": "AssertionError: ASR consumed text after the first unusable row"
+   },
+   {
+    "nodeid": "tests.test_v2_media_asr_text::test_first_bad_text_stops_collection_closes_iterator_and_never_falls_back_or_writes[integer-True]",
+    "message": "AssertionError: ASR consumed text after the first unusable row"
+   },
+   {
+    "nodeid": "tests.test_v2_media_asr_text::test_first_bad_text_stops_collection_closes_iterator_and_never_falls_back_or_writes[float-False]",
+    "message": "AssertionError: ASR consumed text after the first unusable row"
+   },
+   {
+    "nodeid": "tests.test_v2_media_asr_text::test_first_bad_text_stops_collection_closes_iterator_and_never_falls_back_or_writes[float-True]",
+    "message": "AssertionError: ASR consumed text after the first unusable row"
+   },
+   {
+    "nodeid": "tests.test_v2_media_asr_text::test_first_bad_text_stops_collection_closes_iterator_and_never_falls_back_or_writes[array-False]",
+    "message": "AssertionError: ASR consumed text after the first unusable row"
+   },
+   {
+    "nodeid": "tests.test_v2_media_asr_text::test_first_bad_text_stops_collection_closes_iterator_and_never_falls_back_or_writes[array-True]",
+    "message": "AssertionError: ASR consumed text after the first unusable row"
+   },
+   {
+    "nodeid": "tests.test_v2_media_asr_text::test_first_bad_text_stops_collection_closes_iterator_and_never_falls_back_or_writes[object-False]",
+    "message": "AssertionError: ASR consumed text after the first unusable row"
+   },
+   {
+    "nodeid": "tests.test_v2_media_asr_text::test_first_bad_text_stops_collection_closes_iterator_and_never_falls_back_or_writes[object-True]",
+    "message": "AssertionError: ASR consumed text after the first unusable row"
+   },
+   {
+    "nodeid": "tests.test_v2_media_asr_text::test_first_bad_text_stops_collection_closes_iterator_and_never_falls_back_or_writes[bytes-False]",
+    "message": "AssertionError: ASR consumed text after the first unusable row"
+   },
+   {
+    "nodeid": "tests.test_v2_media_asr_text::test_first_bad_text_stops_collection_closes_iterator_and_never_falls_back_or_writes[bytes-True]",
+    "message": "AssertionError: ASR consumed text after the first unusable row"
+   },
+   {
+    "nodeid": "tests.test_v2_media_asr_text::test_first_bad_text_stops_collection_closes_iterator_and_never_falls_back_or_writes[bytearray-False]",
+    "message": "AssertionError: ASR consumed text after the first unusable row"
+   },
+   {
+    "nodeid": "tests.test_v2_media_asr_text::test_first_bad_text_stops_collection_closes_iterator_and_never_falls_back_or_writes[bytearray-True]",
+    "message": "AssertionError: ASR consumed text after the first unusable row"
+   },
+   {
+    "nodeid": "tests.test_v2_media_asr_text::test_first_bad_text_stops_collection_closes_iterator_and_never_falls_back_or_writes[unicode-False]",
+    "message": "AssertionError: ASR consumed text after the first unusable row"
+   },
+   {
+    "nodeid": "tests.test_v2_media_asr_text::test_first_bad_text_stops_collection_closes_iterator_and_never_falls_back_or_writes[unicode-True]",
+    "message": "AssertionError: ASR consumed text after the first unusable row"
+   },
+   {
+    "nodeid": "tests.test_v2_media_asr_text::test_first_bad_text_stops_collection_closes_iterator_and_never_falls_back_or_writes[stringify-False]",
+    "message": "AssertionError: ASR must not stringify an object into transcript text"
+   },
+   {
+    "nodeid": "tests.test_v2_media_asr_text::test_first_bad_text_stops_collection_closes_iterator_and_never_falls_back_or_writes[stringify-True]",
+    "message": "AssertionError: ASR must not stringify an object into transcript text"
+   },
+   {
+    "nodeid": "tests.test_v2_media_asr_text::test_bad_language_cannot_be_coerced_or_fail_late_while_writing[False]",
+    "message": "Failed: DID NOT RAISE ValueError"
+   },
+   {
+    "nodeid": "tests.test_v2_media_asr_text::test_bad_language_cannot_be_coerced_or_fail_late_while_writing[0]",
+    "message": "Failed: DID NOT RAISE ValueError"
+   },
+   {
+    "nodeid": "tests.test_v2_media_asr_text::test_bad_language_cannot_be_coerced_or_fail_late_while_writing[7]",
+    "message": "Failed: DID NOT RAISE ValueError"
+   },
+   {
+    "nodeid": "tests.test_v2_media_asr_text::test_bad_language_cannot_be_coerced_or_fail_late_while_writing[zh]",
+    "message": "Failed: DID NOT RAISE ValueError"
+   },
+   {
+    "nodeid": "tests.test_v2_media_asr_text::test_bad_language_cannot_be_coerced_or_fail_late_while_writing[value4]",
+    "message": "Failed: DID NOT RAISE ValueError"
+   },
+   {
+    "nodeid": "tests.test_v2_media_asr_text::test_bad_language_cannot_be_coerced_or_fail_late_while_writing[value5]",
+    "message": "Failed: DID NOT RAISE ValueError"
+   },
+   {
+    "nodeid": "tests.test_v2_media_asr_text::test_bad_language_cannot_be_coerced_or_fail_late_while_writing[\\ud800]",
+    "message": "AssertionError: \n- 'utf-8' codec can't encode character '\\ud800' in position 38: surrogates not allowed\n+ transcript_unusable"
+   },
+   {
+    "nodeid": "tests.test_v2_media_asr_text::test_close_failure_retains_invalid_text_as_exception_context",
+    "message": "AssertionError: assert (False)\n +  where False = isinstance(AssertionError('ASR must not stringify an object into transcript text'), ValueError)\n +    where AssertionError('ASR must not stringify an object into transcript text') = OSError('fixture iterator close failure').__context__"
+   },
+   {
+    "nodeid": "tests.test_v2_media_asr_text::test_real_stdio_database_rejects_unusable_text_and_explicit_new_job_reuses_healthy_worker[number]",
+    "message": "AssertionError: assert ('done' == 'failed'\n  \n  - failed\n  + done)"
+   },
+   {
+    "nodeid": "tests.test_v2_media_asr_text::test_real_stdio_database_rejects_unusable_text_and_explicit_new_job_reuses_healthy_worker[unicode]",
+    "message": "AssertionError: assert ('failed' == 'failed'\n  \n    failed and 'media_processing_error' == 'media_transcript_unusable'\n  \n  - media_transcript_unusable\n  + media_processing_error)"
+   },
+   {
+    "nodeid": "tests.test_v2_media_asr_text::test_real_stdio_database_rejects_unusable_text_and_explicit_new_job_reuses_healthy_worker[language]",
+    "message": "AssertionError: assert ('done' == 'failed'\n  \n  - failed\n  + done)"
+   }
+  ],
+  "callers": {
+   "command": [
+    "D:\\xm\\OmniOperator\\temp\\build\\checkpoint-interpreter-media-asr-text\\Scripts\\python.exe",
+    "-m",
+    "pytest",
+    "-q",
+    "-n",
+    "0",
+    "agent/tests/test_v2_media_asr_text.py",
+    "agent/tests/test_v2_media_asr_anchors.py",
+    "agent/tests/test_v2_media_worker.py",
+    "agent/tests/test_v2_media_error_codes.py",
+    "agent/tests/test_v2_media.py",
+    "agent/tests/test_v2_lifecycle.py",
+    "agent/tests/test_v2_architecture.py",
+    "agent/tests/test_v2_typecheck_scope.py",
+    "agent/tests/test_arch.py",
+    "--junitxml=D:\\xm\\OmniOperator\\temp\\build\\v2-media-asr-text-callers.xml",
+    "--tb=short"
+   ],
+   "returncode": 0,
+   "duration_s": 44.453,
+   "cases": 175,
+   "failures": 0,
+   "errors": 0,
+   "skipped": 0,
+   "report": "temp\\build\\v2-media-asr-text-callers.xml",
+   "report_sha256": "b10df40e237574b7ba45fd6b29eff2b2e9ced3fcb615d75119164dc9bf526c5d",
+   "log": "temp\\build\\v2-media-asr-text-callers.log",
+   "log_sha256": "5e357b4ee27f6b8d32088ed98c1c0329241dfe96a587d4c8684601f4578684b0"
+  },
+  "cli_summary": "175 passed in 43.23s",
+  "coverage": [
+   "Twelve invalid segment text cases on both VAD paths stop at the first bad row, close, and never publish a prefix or infer another segment",
+   "Seven bad language values fail before output directory/file creation",
+   "Six controls preserve blank row skipping, Unicode/trimming, missing/null/empty language, 16-character output and truncation",
+   "Iterator cleanup failure retains the unusable-text exception context",
+   "Three real stdio/database jobs reject numeric text, surrogate text and bad language with precise failed code, no object/transcript, and removed staging",
+   "Explicit fresh jobs reuse the same healthy worker and prove generator closure while old failed rows stay immutable",
+   "ASR anchor/budget, error-code, media HTTP, lifecycle and architecture callers are covered"
+  ]
+ },
+ "gates": [
+  {
+   "command": [
+    "-m",
+    "ruff",
+    "check",
+    "agent/src/omni/adapters/workers/media.py",
+    "agent/tests/test_v2_media_asr_text.py"
+   ],
+   "returncode": 0,
+   "duration_s": 0.234,
+   "stdout": "All checks passed!\n",
+   "stderr": ""
+  },
+  {
+   "command": [
+    "-m",
+    "ruff",
+    "format",
+    "--check",
+    "agent/src/omni/adapters/workers/media.py",
+    "agent/tests/test_v2_media_asr_text.py"
+   ],
+   "returncode": 0,
+   "duration_s": 0.281,
+   "stdout": "2 files already formatted\n",
+   "stderr": ""
+  },
+  {
+   "command": [
+    "-m",
+    "pyright",
+    "--project",
+    "D:\\xm\\OmniOperator\\temp\\build\\media-asr-text-candidate\\pyrightconfig.media-asr-text.json",
+    "--outputjson"
+   ],
+   "returncode": 0,
+   "duration_s": 1.703,
+   "stdout": "{\n    \"version\": \"1.1.414\",\n    \"time\": \"1794831874817\",\n    \"generalDiagnostics\": [],\n    \"summary\": {\n        \"filesAnalyzed\": 1,\n        \"errorCount\": 0,\n        \"warningCount\": 0,\n        \"informationCount\": 0,\n        \"timeInSec\": 0.877\n    }\n}\n\n",
+   "stderr": ""
+  }
+ ],
+ "artifacts": [
+  {
+   "path": "temp/build/v2-media-asr-text-source.json",
+   "sha256": "2fa9c4e738e25b48698551eec35c5ea6982413ae763554f12b1e39eb14e699cc"
+  },
+  {
+   "path": "temp/build/v2-media-asr-text-before-source.json",
+   "sha256": "e4d4d59e9f1802721e97956f55b7b2f099f92ffb3e024f7870355e6deacd86de"
+  },
+  {
+   "path": "temp/build/v2-media-asr-text-gates.json",
+   "sha256": "03b1464bed0aa063fda34a06b9da919d353283fae24730f103ff46da237d7428"
+  },
+  {
+   "path": "temp/build/v2-media-asr-text-working.xml",
+   "sha256": "9af495bc52479e1aff41b7af2fd6f043aa63bc962dc63f78fe83589104e99f69"
+  }
+ ],
+ "exploratory_reports": {
+  "working": {
+   "path": "temp/build/v2-media-asr-text-working.xml",
+   "sha256": "9af495bc52479e1aff41b7af2fd6f043aa63bc962dc63f78fe83589104e99f69"
+  },
+  "note": "Working 41-case pass contains concurrent WIP. Final clean negative and candidate use identical new tests, and the candidate overlays only owned files on committed base. Model/audio are isolated fixture ports; real stdio/database tests do not load a real ASR model."
+ },
+ "full_run": {
+  "status": "deferred_per_owner",
+  "run_for_this_change": false,
+  "covers_this_source": false,
+  "last_completed_source": "42a4b8b29d7c80daa4cb212d49dd40d07c189079",
+  "last_completed_summary": "4800 passed, 12 warnings in 3025.48s (0:50:25)",
+  "last_full_does_not_cover_this_change": true
+ },
+ "not_verified": [
+  "Full integration of this source",
+  "Real ASR model text/language quality and native/whole-process peak memory",
+  "Actual Bilibili account/CDN requests and real ASR models",
+  "Concurrent uncommitted migration/configuration/UI bodies",
+  "Historical native/system-commit/UI observations"
+ ]
+}
