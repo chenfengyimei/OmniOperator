@@ -51,6 +51,8 @@ V2 文档维护的开发反馈先选 `test_v2_maintenance.py`、`test_v2_mainten
 
 V2 ASR worker的收集预算由`test_v2_media_worker.py`验证：首次超出4000段/24000字符即停止读取，正常与无VAD回退路径均覆盖；精确上限、Unicode、空白段和时间锚点保持。强引用生成器验证异常时真实关闭，关闭失败保留上下文；隔离子进程通过真实`MediaProcessor`帧协议回传`media_transcript_unusable`，随后在同一worker完成正常请求。模型与音频解码均注入，不访问真实模型缓存、设备或网络；媒体应用、UI与打包调用方另验。
 
+投递刷新与归档交错由`test_v2_delivery_ui.py`控制真实列表响应的交付顺序，不伪造HTTP成功或业务数据。两轮复用原始投递场景的全部断言与超时，验证列表刷新不再让旧详情开启归档确认；另在390/1440视口覆盖刷新时清空详情/禁用实际控件、其他所有者请求归档后移除旧列表项，以及较早响应不能覆盖新的包含归档选择。`fieldset`检查真实`disabled`属性与内部控件，不以Playwright对fieldset本体的enabled判断代替完成屏障。每例仍有独立数据库和BrowserContext，模型与投递端口均隔离，默认不产生真实外发。
+
 Python 网络/模型闸门仍在每个 worker 启用；子进程继承离线环境。并行不改变测试数量、断言、业务超时或真实设备验收边界。
 
 Portal 的原生共享状态与应用授权审计分两步完成。`test_v2_portal_service.py` 的就绪帮助函数要求 active 且 authorized；`test_v2_portal_ui.py` 通过真实作用域 API 观察同一 grant 的授权完成，最多等待5秒，再点击显式查询按钮；原界面断言的超时、截图、像素及回收检查保持不变。新增受控审计夹具覆盖确认中、提交后刷新和失败回收；在应用异步边界暂停，不阻塞数据库线程、不伪造 HTTP 成功，也不要求生产界面增加轮询。每例仍独立数据库和 BrowserContext。

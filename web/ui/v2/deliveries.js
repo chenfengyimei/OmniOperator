@@ -112,6 +112,7 @@ export function mountDeliveries({ api, wrap, getAgent, getGeneration }) {
     const value = await api(`${root(t.agent)}/${t.selected}`);
     if (!current(t)) return;
     if (value.archived_at && !$('delivery-archived').checked) {
+      choices.delete(t.selected);
       selected = '';
       row = null;
       renderChoices();
@@ -135,6 +136,9 @@ export function mountDeliveries({ api, wrap, getAgent, getGeneration }) {
   async function load(more = false) {
     $('delivery-fields').disabled = true;
     epoch++;
+    row = null;
+    render();
+    $('delivery-attempts').textContent = '';
     const t = target();
     await Promise.allSettled([...writes]);
     if (!current(t)) return;

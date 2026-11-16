@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`7684e69aa3820b0eaedb53983624f1174f6238c0fbc2c37d55821f5d6c5c035e`。包含 65 个职责模块、736 个源码/界面文件。
+源码指纹：`6808a864fb28f9a0e526169c3541900d1ef1f850bfa64aeb70e912585e835ec3`。包含 65 个职责模块、736 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -426,7 +426,7 @@
 | [web/ui/v2/chat-images.js](../../web/ui/v2/chat-images.js) | 174 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/configuration.js](../../web/ui/v2/configuration.js) | 544 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/credentials.js](../../web/ui/v2/credentials.js) | 182 | 原生源码、平台脚本或界面资源 |
-| [web/ui/v2/deliveries.js](../../web/ui/v2/deliveries.js) | 367 | 原生源码、平台脚本或界面资源 |
+| [web/ui/v2/deliveries.js](../../web/ui/v2/deliveries.js) | 371 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/desktop-actions.js](../../web/ui/v2/desktop-actions.js) | 148 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/desktop.js](../../web/ui/v2/desktop.js) | 572 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/documents.js](../../web/ui/v2/documents.js) | 487 | 原生源码、平台脚本或界面资源 |

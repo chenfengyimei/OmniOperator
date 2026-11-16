@@ -19,7 +19,7 @@
 | 项 | 值 |
 |---|---|
 | 工作区 | `D:\xm\OmniOperator`（Windows / PowerShell） |
-| 分支 | `codex/architecture-v2`（远端 gitee，已推送） |
+| 分支 | `v2`（远端 gitee，已推送） |
 | UI 源码 | `web/ui/v2/`（`index.html` / `main.js` / `workbench.css` / 约 30 个页面模块） |
 | 设计 token | `web/ui/tokens.css`（唯一颜色/字号/圆角来源）、`web/ui/base.css` |
 | 图标 | `web/ui/icons.css` + `web/ui/MaterialIcons.woff2`（字体已外置，勿改回 data URI，CSP 会拦） |
@@ -54,7 +54,7 @@ section.page[id]                  ← 23 个页面分区，id 与 data-page 一�
 
 - 页面切换只允许通过 `[data-page]` 按钮点击触发；`test_v2_navigation_ui.py` 会在 390/1024 两个宽度逐项点击并断言目标分区可见。
 - 任何新增可见按钮，如果文案与既有页面名相同（如"设置"），必须换名或用 `title/aria-label` 区分，避免 `get_by_role(..., exact=True)` 命中两个元素。
-- 资源版本串：`index.html` 与所有模块 import 当前为 `?v=20261115v130`。**任何 HTML/CSS/JS 改动都要整体升级版本号**（v58、v59…），并同步：
+- 资源版本串：`index.html` 与所有模块 import 当前为 `?v=20261116v132`。**任何 HTML/CSS/JS 改动都要整体升级版本号**（v58、v59…），并同步：
   - `agent/tests/test_v2_mcp_ui.py` 里的 `assert "main.js?v=..." in page.content()`
   - `docs/V2_AI_CONTINUATION_PROMPT.md` 的版本说明
   - 本文第 3 节这里的版本号
@@ -66,7 +66,7 @@ section.page[id]                  ← 23 个页面分区，id 与 data-page 一�
 
 Portal共享的系统同意与业务授权审计独立完成。`authorization_pending=true` 时显示“正在确认共享授权，请稍后查询共享状态”，保存按钮保持不可用；审计完成后由所有者点击查询更新，不增加后台轮询或自动截图。该字段仅描述确认状态，不能替代 `authorized`、截图许可或来源检查；审计失败继续显示不可用并回收辅助进程。
 
-**直接复用 V1 界面**（2026-11-13/14，资源版本 `20261115v130`）：按所有者要求，不再自创视觉，
+**直接复用 V1 界面**（2026-11-13/14，资源版本 `20261116v132`）：按所有者要求，不再自创视觉，
 把 V1 的 `components.css` / `frame.css` / `workbench.css` **原样复制**到 `web/ui/v2/v1/`。
 **声明内容一字未改**，只做三类必要映射：
 
@@ -244,7 +244,7 @@ uv run --no-sync python scripts/project_index.py --check
 
 - 本仓库可能有**并行会话**在改 Python 领域代码。提交前 `git status`，只 `git add` 你自己的文件（`web/ui/v2/**`、相关测试、相关文档），**绝不 `git add -A`**。
 - 不要 `git push --force`、不要 reset/clean、不要删除未跟踪文件。
-- 每个节点一次提交，信息写清"做了什么 + 影响面"；提交后推送 `codex/architecture-v2`。
+- 每个节点一次提交，信息写清"做了什么 + 影响面"；提交后推送 `v2`。
 - 不修改 V1 的 `web/index.html`、`web/ui/frame.css` 等；V2 只读参考。
 - 不把"能构建/能截图"写成"已验收"；真实平台、真实账号、72 小时仍属未验收。
 
@@ -284,4 +284,4 @@ uv run --no-sync python scripts/project_index.py --check
 3. 深浅主题都可读，对比度不低于 AA；
 4. 资源版本号已升级并被测试覆盖；
 5. 截图存放在 `temp/build/`，证据写入 `docs/evidence/v2-ui.json`；
-6. 提交推送到 `codex/architecture-v2`，不包含他人未提交改动。
+6. 提交推送到 `v2`，不包含他人未提交改动。
