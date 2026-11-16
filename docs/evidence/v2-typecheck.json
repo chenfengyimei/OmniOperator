@@ -7451,6 +7451,18 @@
    "integration_full_run_pending": true,
    "validated_committed_scope_only": true,
    "historical_observations_closed": false
+  },
+  "skill_zip_resources_followup": {
+   "evidence": "docs/evidence/v2-skill-zip-resources.json",
+   "source_head": "7068b1a7656f244f5f292d15497f366c26084891",
+   "status": "scoped_passed_full_deferred",
+   "scoped_passed": 104,
+   "new_cases": 22,
+   "strict_files": 1,
+   "full_run_covers_current_source": false,
+   "integration_full_run_pending": true,
+   "validated_committed_scope_only": true,
+   "historical_observations_closed": false
   }
  },
  "source_recovery": {
