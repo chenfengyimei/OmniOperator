@@ -34,7 +34,7 @@ from ..domain.media import (
 )
 from .images import ImageService
 from .objects import ObjectService
-from .ports import Clock, DatabasePort, Record
+from .ports import Clock, DatabasePort, Record, UnitOfWork
 
 log = logging.getLogger("omni.v2.media")
 
@@ -113,6 +113,16 @@ def _output_bytes(path: Path, maximum: int, code: str) -> bytes:
     return content
 
 
+def _authorized(unit: UnitOfWork, agent_id: str, config_id: str, snapshot: Record, source_id: str = "") -> None:
+    current = unit.bilibili_read_authorized(agent_id, config_id, str(snapshot["revision_id"]))
+    if current["authority"] != snapshot["authority"]:
+        raise BusinessError("bilibili_credential_changed", "Credential authority changed during media processing")
+    if source_id:
+        source = unit.media_source_get(agent_id, source_id)
+        if source["config_id"] != config_id or source["config_revision_id"] != snapshot["revision_id"]:
+            raise BusinessError("bilibili_configuration_revoked", "Media source binding changed during processing")
+
+
 class MediaService:
     def __init__(
         self,
@@ -138,7 +148,12 @@ class MediaService:
             config = await self._db.read(lambda u: u.bilibili_read_authorized(agent_id, config_id))
             video = await self._bilibili.read(cast(Record, config["value"]), "video", target)
             row = source_row(config_id, str(config["revision_id"]), video)
-            return await self._db.write(lambda u: u.media_source_register(agent_id, cast(Record, row)))
+
+            def save(unit: UnitOfWork) -> Record:
+                _authorized(unit, agent_id, config_id, config)
+                return unit.media_source_register(agent_id, cast(Record, row))
+
+            return await self._db.write(save)
 
         return await self._run_bounded(perform(), task_name="media-register")
 
@@ -217,8 +232,23 @@ class MediaService:
             # row is read after start so failures land in a legal transition.
             source = await self._db.read(lambda u: u.media_source_get(agent_id, str(job["source_id"])))
             config = await self._configuration(agent_id, str(source["config_id"]), str(source["config_revision_id"]))
+
+            def authorized(unit: UnitOfWork) -> None:
+                _authorized(unit, agent_id, str(source["config_id"]), config, str(job["source_id"]))
+
+            async def authorize() -> None:
+                await self._db.read(authorized)
+
+            async def commit_artifact(operation: Callable[[UnitOfWork], Record]) -> Record:
+                def commit(unit: UnitOfWork) -> Record:
+                    authorized(unit)
+                    return operation(unit)
+
+                return await self._db.write(commit)
+
             if operation == "subtitle":
                 result = await self._bilibili.read(cast(Record, config["value"]), "subtitle", str(source["bvid"]))
+                await authorize()
                 if not result.get("text"):
                     raise BusinessError("media_subtitle_missing", "This video exposes no readable subtitle", status=422)
                 body = transcript_payload(
@@ -230,6 +260,7 @@ class MediaService:
                 }
             else:
                 streams = await self._bilibili.read(cast(Record, config["value"]), "streams", str(source["bvid"]))
+                await authorize()
                 media = cast(Record, streams.get("audio" if operation == "transcribe" else "video"))
                 if not media:
                     raise BusinessError(
@@ -246,19 +277,23 @@ class MediaService:
                     destination,
                     max_bytes=MAX_DOWNLOAD_BYTES,
                     budget_s=DOWNLOAD_BUDGET_S,
+                    before_dispatch=authorize,
                 )
+                await authorize()
                 if operation == "frames":
                     plan = cast(Record, job["params"])
                     sheet = staging / "sheet.png"
                     result = await self._processor.frames(
                         destination, sheet, int(cast(int, plan["count"])), int(cast(int, plan["width"]))
                     )
-                    sheet_info = await self._register_sheet(agent_id, sheet, result)
-                    await self._db.write(lambda u: u.media_job_complete_frames(job_id, sheet_info))
+                    await authorize()
+                    sheet_info = await self._register_sheet(agent_id, sheet, result, before_publish=authorize)
+                    await commit_artifact(lambda u: u.media_job_complete_frames(job_id, sheet_info))
                     state, code = "done", ""
                     return
                 output = staging / "transcript.json"
                 await self._processor.transcribe(destination, output, cast(Record, job["params"]))
+                await authorize()
                 # The worker writes the exact bounded payload that is published.
                 body = _output_bytes(output, MAX_TRANSCRIPT_BYTES, "media_transcript_unreadable")
                 parsed = parse_transcript(body)
@@ -270,8 +305,9 @@ class MediaService:
                     "kind": "asr",
                     "language": str(parsed.get("language") or "")[:16],
                 }
+            await authorize()
             obj = await self._objects.publish(agent_id, body, "application/json")
-            await self._db.write(
+            await commit_artifact(
                 lambda u: u.media_job_complete_transcript(
                     job_id,
                     cast(
@@ -307,7 +343,14 @@ class MediaService:
             finally:
                 self._cleanup(staging)
 
-    async def _register_sheet(self, agent_id: str, sheet: Path, result: Record) -> Record:
+    async def _register_sheet(
+        self,
+        agent_id: str,
+        sheet: Path,
+        result: Record,
+        *,
+        before_publish: Callable[[], Awaitable[None]] | None = None,
+    ) -> Record:
         """Publish the frame sheet and register it as a verified image object."""
         from ..domain.media import sheet_result
 
@@ -322,7 +365,11 @@ class MediaService:
         content = _output_bytes(sheet, cast(int, info["bytes"]), "media_sheet_invalid")
         if info["sha256"] != hashlib.sha256(content).hexdigest() or info["bytes"] != len(content):
             raise BusinessError("media_sheet_invalid", "Frame sheet content changed during processing", status=503)
+        if before_publish is not None:
+            await before_publish()
         obj = await self._objects.publish(agent_id, content, "image/png")
+        if before_publish is not None:
+            await before_publish()
         prepared = await self._images.prepare(agent_id, str(obj["id"]))
         return cast(
             Record,

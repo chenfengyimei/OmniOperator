@@ -41,7 +41,7 @@ class Database:
         return {"config_id": "config", "config_revision_id": "revision", "bvid": "BV1xx411c7mD"}
 
     def bilibili_read_authorized(self, agent_id, config_id, revision_id):
-        return {"revision_id": revision_id, "value": {}}
+        return {"revision_id": revision_id, "value": {}, "authority": "fixture-authority"}
 
     def media_job_finish(self, job_id, state, code):
         self.finishes.append((state, code))

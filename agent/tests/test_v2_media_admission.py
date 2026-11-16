@@ -42,8 +42,8 @@ class Database:
             await self.gate.wait()
         return row
 
-    def bilibili_read_authorized(self, agent_id, config_id):
-        return {"value": {}, "revision_id": "revision"}
+    def bilibili_read_authorized(self, agent_id, config_id, revision_id=""):
+        return {"value": {}, "revision_id": "revision", "authority": "fixture-authority"}
 
     def media_source_register(self, agent_id, row):
         self.created.append(row)
