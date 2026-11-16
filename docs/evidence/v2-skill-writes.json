@@ -1,0 +1,317 @@
+{
+ "schema": 1,
+ "date": "2026-11-16",
+ "branch": "v2",
+ "whole_v2_complete": false,
+ "default_entrypoint": "v1",
+ "source": {
+  "head": "020a645c81cb98442f0ac7938f4145e2e69062e8",
+  "base": "7d5f37d1546133bdf8a2cc5e55dae1b1e77a7f1f",
+  "code_version": "86689b17ab6523bb49abadd3d25fa9339851ff9420148137410277c19f2896b7",
+  "code_files": 1254,
+  "planned": {
+   "agent/src/omni/application/skills.py": {
+    "sha256": "1416cb1dae5b2743aa89245b3c0ab3f794ecb73a878a6afad920f8c740550b52",
+    "git_blob": "13d1e035f057c9483c718647d1af9df84456a172"
+   },
+   "agent/tests/test_v2_skill_writes.py": {
+    "sha256": "2ca3d06c15b7d6b8c46bf98982a43d705c768ee59d7e72a4c28e51d33725babb",
+    "git_blob": "6fc544efb5854e5cbcd3f84338903568342d41f6"
+   },
+   "docs/V2_SKILLS.md": {
+    "sha256": "fb5dc5af3b3e0af5688fa10f9fbee3487b3c9ffa4c3dda18750f59df94c6651a",
+    "git_blob": "97ee723282d56aed858709b8ed82d7c6da71cd36"
+   },
+   "docs/TESTING.md": {
+    "sha256": "b7adf2044d35af07472aeb7d405c6244e1e0cc60053905f3014962b4703e548d",
+    "git_blob": "7164f3cb1e4d213a252828daae7269e50c8cc54e"
+   },
+   "docs/index/MODULES.md": {
+    "sha256": "a1a8c20ed980531f45b1111b4b19cada1814a521571da4371d48b2a001780f4a",
+    "git_blob": "987dcf311b1e163d4f515b49bb9ac3a0023ba88f"
+   },
+   "docs/index/project.json": {
+    "sha256": "8b987e8759e1ed4b6144603bfe329b60bcd8ac55a4e9dba8014577c9e2e605ff",
+    "git_blob": "5cdd456a0781bf1405fddef4e131263c5b588d30"
+   }
+  },
+  "candidate": "D:\\xm\\OmniOperator\\temp\\build\\skill-writes-candidate",
+  "parallel_working_bodies_preserved": true
+ },
+ "root_cause": "Model skill writes owned only individual public save/get/state/rollback operations. Patch and state transitions could lose the handoff between these stages on waiter cancellation, while archive/restore initial head queries bypassed service admission. The final model receipt was outside the owned operation.",
+ "changes": [
+  "Own each of six model write tools from first preparation/head lookup through final guarded commit and receipt, under the existing eight admissions/two slots",
+  "Extract unchanged public mutation operation bodies into already-admitted internal save/state/rollback helpers; public entry points keep independent admission",
+  "Use internal verified get/save/state/rollback within model writes to avoid nested slot acquisition or re-admission during draining",
+  "Keep final approved_dispatch callback, revision/CAS and revocation checks, object publication/reference handling, disabled-review state and exact receipt",
+  "Preserve caller/close cancellation shielding without replay; remove one now-unnecessary str cast after scope extraction"
+ ],
+ "proof": {
+  "changed_existing_methods": [
+   "invoke",
+   "rollback",
+   "save",
+   "state"
+  ],
+  "new_helpers": [
+   "_rollback",
+   "_save",
+   "_state",
+   "_write_tool"
+  ],
+  "all_public_signatures_unchanged": true,
+  "public_mutation_bodies_ast_identical_except_one_redundant_cast_removed": true,
+  "write_dispatch_final_guard_and_receipt_ast_identical_after_restoring_public_calls_and_default_get_arguments": true,
+  "read_dispatch_and_error_handlers_ast_identical": true,
+  "remaining_module_imports_constants_methods_ast_identical": true,
+  "install_transaction_admission_shield_and_close_implementations_unchanged": true,
+  "unchanged_files": [
+   "agent/src/omni/domain/skills.py",
+   "agent/src/omni/adapters/skill_packages.py",
+   "agent/src/omni/adapters/persistence/skill_repository.py",
+   "agent/src/omni/application/engine.py",
+   "agent/src/omni/composition/lifecycle.py",
+   "agent/src/omni/composition/instance.py",
+   "agent/tests/test_v2_skills.py",
+   "agent/tests/test_v2_skills_migration.py"
+  ],
+  "identical_final_tests_in_clean_negative_and_candidate": true
+ },
+ "regressions": {
+  "new_cases": 37,
+  "before": {
+   "command": [
+    "D:\\xm\\OmniOperator\\temp\\build\\checkpoint-interpreter-skill-writes-before\\Scripts\\python.exe",
+    "-m",
+    "pytest",
+    "-q",
+    "-n",
+    "0",
+    "agent/tests/test_v2_skill_writes.py",
+    "--junitxml=D:\\xm\\OmniOperator\\temp\\build\\v2-skill-writes-before.xml",
+    "--tb=short"
+   ],
+   "returncode": 1,
+   "duration_s": 6.89,
+   "cases": 37,
+   "failures": 23,
+   "errors": 0,
+   "skipped": 0,
+   "report": "temp\\build\\v2-skill-writes-before.xml",
+   "report_sha256": "c953c796b06e0324b833ffbd58ab50b6307ca6c62b8d99047f89672a28fa552b",
+   "log": "temp\\build\\v2-skill-writes-before.log",
+   "log_sha256": "e2c7dab74bbd867d341db5700f82936b9f24d4efe41f0a64df2ee7fbe964faf0"
+  },
+  "failed_before_nodes": [
+   {
+    "nodeid": "tests.test_v2_skill_writes::test_closed_write_tools_refuse_before_any_preparation_or_head_query[skill_archive]",
+    "message": "AssertionError: assert (not ['row'])\n +  where ['row'] = namespace(calls=['row'], cancelled=[], commits=[], guards=[], published=[], arrivals=0, error=None).calls"
+   },
+   {
+    "nodeid": "tests.test_v2_skill_writes::test_closed_write_tools_refuse_before_any_preparation_or_head_query[skill_restore]",
+    "message": "AssertionError: assert (not ['row'])\n +  where ['row'] = namespace(calls=['row'], cancelled=[], commits=[], guards=[], published=[], arrivals=0, error=None).calls"
+   },
+   {
+    "nodeid": "tests.test_v2_skill_writes::test_write_tools_share_eight_admissions_and_two_execution_slots_from_first_stage[skill_archive]",
+    "message": "assert (0 == 8)\n +  where 0 = len(set())\n +    where set() = <omni.application.skills.SkillService object at 0x000001DD3EDA83B0>._pending"
+   },
+   {
+    "nodeid": "tests.test_v2_skill_writes::test_write_tools_share_eight_admissions_and_two_execution_slots_from_first_stage[skill_restore]",
+    "message": "assert (0 == 8)\n +  where 0 = len(set())\n +    where set() = <omni.application.skills.SkillService object at 0x000001DD3EDAA5D0>._pending"
+   },
+   {
+    "nodeid": "tests.test_v2_skill_writes::test_cancelled_write_waiter_retains_preparation_guard_commit_and_receipt_without_replay[skill_create-parse]",
+    "message": "AttributeError: 'dict' object has no attribute 'status'"
+   },
+   {
+    "nodeid": "tests.test_v2_skill_writes::test_cancelled_write_waiter_retains_preparation_guard_commit_and_receipt_without_replay[skill_create-publish]",
+    "message": "AttributeError: 'dict' object has no attribute 'status'"
+   },
+   {
+    "nodeid": "tests.test_v2_skill_writes::test_cancelled_write_waiter_retains_preparation_guard_commit_and_receipt_without_replay[skill_create-commit]",
+    "message": "AttributeError: 'dict' object has no attribute 'status'"
+   },
+   {
+    "nodeid": "tests.test_v2_skill_writes::test_cancelled_write_waiter_retains_preparation_guard_commit_and_receipt_without_replay[skill_rewrite-parse]",
+    "message": "AttributeError: 'dict' object has no attribute 'status'"
+   },
+   {
+    "nodeid": "tests.test_v2_skill_writes::test_cancelled_write_waiter_retains_preparation_guard_commit_and_receipt_without_replay[skill_rewrite-row]",
+    "message": "AttributeError: 'dict' object has no attribute 'status'"
+   },
+   {
+    "nodeid": "tests.test_v2_skill_writes::test_cancelled_write_waiter_retains_preparation_guard_commit_and_receipt_without_replay[skill_rewrite-package]",
+    "message": "AttributeError: 'dict' object has no attribute 'status'"
+   },
+   {
+    "nodeid": "tests.test_v2_skill_writes::test_cancelled_write_waiter_retains_preparation_guard_commit_and_receipt_without_replay[skill_rewrite-commit]",
+    "message": "AttributeError: 'dict' object has no attribute 'status'"
+   },
+   {
+    "nodeid": "tests.test_v2_skill_writes::test_cancelled_write_waiter_retains_preparation_guard_commit_and_receipt_without_replay[skill_patch-row]",
+    "message": "AttributeError: 'dict' object has no attribute 'status'"
+   },
+   {
+    "nodeid": "tests.test_v2_skill_writes::test_cancelled_write_waiter_retains_preparation_guard_commit_and_receipt_without_replay[skill_patch-parse]",
+    "message": "AttributeError: 'dict' object has no attribute 'status'"
+   },
+   {
+    "nodeid": "tests.test_v2_skill_writes::test_cancelled_write_waiter_retains_preparation_guard_commit_and_receipt_without_replay[skill_patch-commit]",
+    "message": "AttributeError: 'dict' object has no attribute 'status'"
+   },
+   {
+    "nodeid": "tests.test_v2_skill_writes::test_cancelled_write_waiter_retains_preparation_guard_commit_and_receipt_without_replay[skill_rollback-row]",
+    "message": "AttributeError: 'dict' object has no attribute 'status'"
+   },
+   {
+    "nodeid": "tests.test_v2_skill_writes::test_cancelled_write_waiter_retains_preparation_guard_commit_and_receipt_without_replay[skill_rollback-package]",
+    "message": "AttributeError: 'dict' object has no attribute 'status'"
+   },
+   {
+    "nodeid": "tests.test_v2_skill_writes::test_cancelled_write_waiter_retains_preparation_guard_commit_and_receipt_without_replay[skill_rollback-commit]",
+    "message": "AttributeError: 'dict' object has no attribute 'status'"
+   },
+   {
+    "nodeid": "tests.test_v2_skill_writes::test_cancelled_write_waiter_retains_preparation_guard_commit_and_receipt_without_replay[skill_archive-row]",
+    "message": "assert (None is not None)"
+   },
+   {
+    "nodeid": "tests.test_v2_skill_writes::test_cancelled_write_waiter_retains_preparation_guard_commit_and_receipt_without_replay[skill_archive-commit]",
+    "message": "AttributeError: 'dict' object has no attribute 'status'"
+   },
+   {
+    "nodeid": "tests.test_v2_skill_writes::test_cancelled_write_waiter_retains_preparation_guard_commit_and_receipt_without_replay[skill_restore-row]",
+    "message": "assert (None is not None)"
+   },
+   {
+    "nodeid": "tests.test_v2_skill_writes::test_cancelled_write_waiter_retains_preparation_guard_commit_and_receipt_without_replay[skill_restore-commit]",
+    "message": "AttributeError: 'dict' object has no attribute 'status'"
+   },
+   {
+    "nodeid": "tests.test_v2_skill_writes::test_cancelling_close_keeps_the_admitted_write_and_allows_later_steps[skill_patch]",
+    "message": "AssertionError: assert (<Outcome.ERROR: 'error'> == <Outcome.OK: 'ok'>\n  \n  - ok\n  + error)"
+   },
+   {
+    "nodeid": "tests.test_v2_skill_writes::test_cancelling_close_keeps_the_admitted_write_and_allows_later_steps[skill_archive]",
+    "message": "Failed: DID NOT RAISE CancelledError"
+   }
+  ],
+  "callers": {
+   "command": [
+    "D:\\xm\\OmniOperator\\temp\\build\\checkpoint-interpreter-skill-writes\\Scripts\\python.exe",
+    "-m",
+    "pytest",
+    "-q",
+    "-n",
+    "0",
+    "agent/tests/test_v2_skill_writes.py",
+    "agent/tests/test_v2_skill_reads.py",
+    "agent/tests/test_v2_skill_notice.py",
+    "agent/tests/test_v2_skills.py",
+    "agent/tests/test_v2_skills_http.py",
+    "agent/tests/test_v2_lifecycle.py",
+    "agent/tests/test_v2_architecture.py",
+    "agent/tests/test_v2_typecheck_scope.py",
+    "agent/tests/test_arch.py",
+    "--junitxml=D:\\xm\\OmniOperator\\temp\\build\\v2-skill-writes-callers.xml",
+    "--tb=short"
+   ],
+   "returncode": 0,
+   "duration_s": 66.906,
+   "cases": 152,
+   "failures": 0,
+   "errors": 0,
+   "skipped": 0,
+   "report": "temp\\build\\v2-skill-writes-callers.xml",
+   "report_sha256": "5602603ca5c22087836d66770a46611f654cf70af1b5b60fafddea5d628e4d6f",
+   "log": "temp\\build\\v2-skill-writes-callers.log",
+   "log_sha256": "38cd107434850ae0c9e4df1fa653c0def06fac6060397fa96e55b7cd8d1d2630"
+  },
+  "cli_summary": "152 passed in 65.62s (0:01:05)",
+  "coverage": [
+   "Six closed-tool and six queue cases retain early refusal and two executing/eight admitted requests",
+   "17 cancellation stage cases span parse, prior row/package, publication and commit delivery; retain one owner through final guard, exactly one successful commit and complete model receipt",
+   "Two close-cancellation cases continue admitted patch/archive work without later re-admission",
+   "Two concurrent rewrite/patch cases prove no nested-admission deadlock",
+   "Final policy/revocation/revision-code port failures prevent commit; unknown tool remains not_found without I/O",
+   "Rewrite/patch/rollback preserve reference bytes; actual patch text and disabled/archive result states remain",
+   "Existing real SQLite skill revisions/CAS/object review, approved model create/patch, revoke/error, public HTTP state/get/import/export and read/notice/lifecycle/architecture callers"
+  ]
+ },
+ "gates": [
+  {
+   "command": [
+    "-m",
+    "ruff",
+    "check",
+    "agent/src/omni/application/skills.py",
+    "agent/tests/test_v2_skill_writes.py"
+   ],
+   "returncode": 0,
+   "duration_s": 0.188,
+   "stdout": "All checks passed!\n",
+   "stderr": ""
+  },
+  {
+   "command": [
+    "-m",
+    "ruff",
+    "format",
+    "--check",
+    "agent/src/omni/application/skills.py",
+    "agent/tests/test_v2_skill_writes.py"
+   ],
+   "returncode": 0,
+   "duration_s": 0.172,
+   "stdout": "2 files already formatted\n",
+   "stderr": ""
+  },
+  {
+   "command": [
+    "-m",
+    "pyright",
+    "--project",
+    "D:\\xm\\OmniOperator\\temp\\build\\skill-writes-candidate\\pyrightconfig.skill-writes.json",
+    "--outputjson"
+   ],
+   "returncode": 0,
+   "duration_s": 1.344,
+   "stdout": "{\n    \"version\": \"1.1.414\",\n    \"time\": \"1794839032348\",\n    \"generalDiagnostics\": [],\n    \"summary\": {\n        \"filesAnalyzed\": 1,\n        \"errorCount\": 0,\n        \"warningCount\": 0,\n        \"informationCount\": 0,\n        \"timeInSec\": 0.543\n    }\n}\n\n",
+   "stderr": ""
+  }
+ ],
+ "artifacts": [
+  {
+   "path": "temp/build/v2-skill-writes-source.json",
+   "sha256": "9771a1be6bdd52123fdab4a14865364f66d8e179f0b48a26df110bccc5b66b8d"
+  },
+  {
+   "path": "temp/build/v2-skill-writes-before-source.json",
+   "sha256": "92211ba292adc61146fa0a0874595fd747c9aa8de194be6ae2598512189a396e"
+  },
+  {
+   "path": "temp/build/v2-skill-writes-gates.json",
+   "sha256": "3a439400e80744824f62ca2d83b2fc90502f5872384426457734ebba268014e0"
+  },
+  {
+   "path": "temp/build/v2-skill-writes-initial-gates.json",
+   "sha256": "b48193ff53b9c251de5f6834e96148a72b696dfbcd7ce4dae9704aad5c179fbf"
+  }
+ ],
+ "isolation": "Clean base archive plus only owned files and existing dependencies via isolated interpreter. New tests use isolated deterministic ports and event barriers to inspect orchestration/guard/commit counts; concurrent fixtures do not simulate real competing database CAS. Actual SQLite approval/revision/object behavior is covered by existing full skill/HTTP modules using fake providers. No real account/model/device/network; concurrent uncommitted bodies excluded.",
+ "initial_gate_observation": "Strict check found one unnecessary cast after extracting a closure body. Removed that cast while preserving its runtime value; original strict artifact retained. No caller pytest run was started by the failed gate.",
+ "full_run": {
+  "status": "deferred_per_owner",
+  "run_for_this_change": false,
+  "covers_this_source": false,
+  "last_completed_source": "42a4b8b29d7c80daa4cb212d49dd40d07c189079",
+  "last_completed_summary": "4800 passed, 12 warnings in 3025.48s (0:50:25)",
+  "last_full_does_not_cover_this_change": true
+ },
+ "not_verified": [
+  "Full integration of this source",
+  "Real model skill quality, platform deployment and long-running V2 acceptance",
+  "Historical allocator/system-commit/UI observations",
+  "Concurrent uncommitted migration/configuration/UI bodies"
+ ]
+}
