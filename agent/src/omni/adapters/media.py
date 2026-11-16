@@ -41,7 +41,7 @@ class MediaProcessor:
 
     def status(self) -> dict[str, object]:
         return {
-            "available": not self._closing,
+            "available": not self._closing and not self._cleanup_pending,
             "probed": self._probed is not None,
             "components": self._probed or {},
             "running": self._owned is not None and self._owned.process.returncode is None,
@@ -74,14 +74,14 @@ class MediaProcessor:
 
     async def _terminate(self, timeout_s: float = 5) -> bool:
         owned = self._owned
-        self._owned = None
         if owned is None:
+            self._cleanup_pending = False
             return True
+        # Keep the actual owner reachable even if reclamation is cancelled or raises.
+        self._cleanup_pending = True
         if not await owned.terminate(timeout_s):
-            # The unclaimed process stays reachable for the next close attempt.
-            self._owned = owned
-            self._cleanup_pending = True
             return False
+        self._owned = None
         self._cleanup_pending = False
         return True
 
@@ -95,9 +95,23 @@ class MediaProcessor:
         if len(frame) > FRAME_LIMIT:
             raise BusinessError("media_request_invalid", "Media request exceeds its transport bound", status=422)
         async with self._lock:
+            if self._closing:
+                raise BusinessError("media_processor_closing", "Media processing is closing", status=503)
             owned = self._owned
-            if owned is None or owned.process.returncode is not None or owned.reclaimed:
+            if self._cleanup_pending or (
+                owned is not None and (owned.process.returncode is not None or owned.reclaimed)
+            ):
+                if not await self._terminate():
+                    raise BusinessError(
+                        "media_cleanup_pending", "Previous media worker cleanup is still pending", status=503
+                    )
+                owned = None
+                if self._closing:
+                    raise BusinessError("media_processor_closing", "Media processing is closing", status=503)
+            if owned is None:
                 owned = await self._spawn()
+            if self._closing:
+                raise BusinessError("media_processor_closing", "Media processing is closing", status=503)
             assert owned.process.stdin is not None and owned.process.stdout is not None
             try:
                 owned.process.stdin.write(frame)
@@ -175,18 +189,16 @@ class MediaProcessor:
     async def close(self, timeout_s: float = 30) -> bool:
         self.stop_accepting()
         deadline = asyncio.get_running_loop().time() + max(0, timeout_s)
-        if self._lock.locked():
-            try:
-                async with asyncio.timeout(max(0, deadline - asyncio.get_running_loop().time())):
-                    async with self._lock:
-                        pass
-            except TimeoutError:
-                return False
-        while not await self._terminate(max(0, deadline - asyncio.get_running_loop().time())):
-            if asyncio.get_running_loop().time() >= deadline:
-                return False
-            await asyncio.sleep(0.05)
-        return True
+        try:
+            async with asyncio.timeout(max(0, deadline - asyncio.get_running_loop().time())):
+                async with self._lock:
+                    while not await self._terminate(max(0, deadline - asyncio.get_running_loop().time())):
+                        if asyncio.get_running_loop().time() >= deadline:
+                            return False
+                        await asyncio.sleep(0.05)
+                    return True
+        except TimeoutError:
+            return False
 
 
 __all__ = ["MediaProcessor", "MAX_DOWNLOAD_BYTES", "FRAMES_BUDGET_S", "TRANSCRIBE_BUDGET_S"]

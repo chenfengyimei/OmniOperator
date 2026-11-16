@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "23e20572ab4c80dd3b841e72fca36fdf9fa5757fe90a256012fa9400ba613c18",
+  "source_sha256": "24dc6f5f115f24565c4908b3b808e5ab810a73be0179476dfa543226a5319852",
   "modules": [
     {
       "id": "v2-domain",
@@ -404,7 +404,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 54478,
+      "lines": 54490,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -9781,7 +9781,7 @@
       "path": "agent/src/omni/adapters/media.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.media",
-      "lines": 192,
+      "lines": 204,
       "imports": [
         "omni.adapters.platform.processes",
         "omni.domain.contracts",
@@ -9853,7 +9853,7 @@
         },
         {
           "name": "MediaProcessor.probe",
-          "line": 146,
+          "line": 160,
           "kind": "function",
           "parameters": [
             "self"
@@ -9862,7 +9862,7 @@
         },
         {
           "name": "MediaProcessor.transcribe",
-          "line": 151,
+          "line": 165,
           "kind": "function",
           "parameters": [
             "self",
@@ -9878,7 +9878,7 @@
         },
         {
           "name": "MediaProcessor.frames",
-          "line": 164,
+          "line": 178,
           "kind": "function",
           "parameters": [
             "self",
@@ -9896,7 +9896,7 @@
         },
         {
           "name": "MediaProcessor.stop_accepting",
-          "line": 172,
+          "line": 186,
           "kind": "function",
           "parameters": [
             "self"
@@ -9905,7 +9905,7 @@
         },
         {
           "name": "MediaProcessor.close",
-          "line": 175,
+          "line": 189,
           "kind": "function",
           "parameters": [
             "self",
