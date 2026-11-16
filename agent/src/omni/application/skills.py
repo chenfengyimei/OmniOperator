@@ -101,15 +101,16 @@ class SkillService:
         return await self._execute(perform)
 
     async def get(self, agent_id: str, skill_id: str, revision_id: str | None = None, path: str = "SKILL.md") -> Record:
-        async def perform() -> Record:
-            row = await self._db.read(lambda u: u.skill_get(agent_id, skill_id, revision_id))
-            package = await self._package(row)
-            content = dict(package.files).get(file_path(path))
-            if content is None:
-                raise BusinessError("not_found", "Reference is not declared in this skill revision", status=404)
-            return {**self._public(row), "path": path, "content": content.decode("utf-8-sig")}
+        return await self._execute(lambda: self._get(agent_id, skill_id, revision_id, path))
 
-        return await self._execute(perform)
+    async def _get(self, agent_id: str, skill_id: str, revision_id: str | None, path: str) -> Record:
+        """Read verified content inside an already admitted operation."""
+        row = await self._db.read(lambda u: u.skill_get(agent_id, skill_id, revision_id))
+        package = await self._package(row)
+        content = dict(package.files).get(file_path(path))
+        if content is None:
+            raise BusinessError("not_found", "Reference is not declared in this skill revision", status=404)
+        return {**self._public(row), "path": path, "content": content.decode("utf-8-sig")}
 
     async def _install(
         self,
@@ -249,6 +250,40 @@ class SkillService:
     async def run_report(self, agent_id: str, run_id: str) -> Record:
         return await self._db.read(lambda u: u.skill_run_report(agent_id, run_id, self.platform))
 
+    async def _read_tool(
+        self, name: str, arguments: Mapping[str, JSON], operation_id: str, context: InvocationContext
+    ) -> ActionResult:
+        """Complete one already admitted model read, including actual usage registration."""
+        agent, run = context.agent_id, context.run_id
+        if name == "skills_list":
+            rows = await self._db.read(lambda u: u.skill_catalog(agent, run, self.platform))
+            payload: dict[str, JSON] = {"items": cast(JSON, rows)}
+            return ActionResult(Outcome.OK, json.dumps(rows, ensure_ascii=False), data=payload)
+        skill_id = str(arguments.get("skill_id", ""))
+        catalog = await self._db.read(lambda u: u.skill_catalog(agent, run, self.platform))
+        captured = next((r for r in catalog if r["skill_id"] == skill_id), None)
+        if captured is None or (name != "skill_history" and arguments.get("revision_id") != captured["revision_id"]):
+            raise invalid("skill_not_captured")
+        if name == "skill_history":
+            rows = cast(list[Record], (await self.history(agent, skill_id))["items"])
+            history_payload: dict[str, JSON] = {"items": cast(JSON, rows)}
+            return ActionResult(Outcome.OK, json.dumps(rows, ensure_ascii=False), data=history_payload)
+        row = await self._get(agent, skill_id, str(captured["revision_id"]), str(arguments.get("path", "SKILL.md")))
+        await self._db.write(lambda u: u.skill_activate_run(agent, run, skill_id, self.platform, operation_id))
+        metadata: Record = {
+            "skill_id": skill_id,
+            "revision_id": captured["revision_id"],
+            "revision": row["revision"],
+            "content_revision": row["content_revision"],
+            "path": row["path"],
+            "files": row["files"],
+        }
+        return ActionResult(
+            Outcome.OK,
+            json.dumps({**metadata, "content": row["content"]}, ensure_ascii=False),
+            data=metadata,
+        )
+
     async def invoke(
         self, name: str, arguments: Mapping[str, JSON], *, operation_id: str, context: InvocationContext
     ) -> ActionResult:
@@ -258,39 +293,9 @@ class SkillService:
             u.approved_dispatch(agent, run, operation_id, dict(arguments), name)
 
         try:
-            if name == "skills_list":
-                rows = await self._db.read(lambda u: u.skill_catalog(agent, run, self.platform))
-                payload: dict[str, JSON] = {"items": cast(JSON, rows)}
-                return ActionResult(Outcome.OK, json.dumps(rows, ensure_ascii=False), data=payload)
+            if name in {"skills_list", "skill_activate", "skill_view", "skill_history"}:
+                return await self._execute(lambda: self._read_tool(name, arguments, operation_id, context))
             skill_id = str(arguments.get("skill_id", ""))
-            if name in {"skill_activate", "skill_view", "skill_history"}:
-                catalog = await self._db.read(lambda u: u.skill_catalog(agent, run, self.platform))
-                captured = next((r for r in catalog if r["skill_id"] == skill_id), None)
-                if captured is None or (
-                    name != "skill_history" and arguments.get("revision_id") != captured["revision_id"]
-                ):
-                    raise invalid("skill_not_captured")
-                if name == "skill_history":
-                    rows = cast(list[Record], (await self.history(agent, skill_id))["items"])
-                    history_payload: dict[str, JSON] = {"items": cast(JSON, rows)}
-                    return ActionResult(Outcome.OK, json.dumps(rows, ensure_ascii=False), data=history_payload)
-                row = await self.get(
-                    agent, skill_id, str(captured["revision_id"]), str(arguments.get("path", "SKILL.md"))
-                )
-                await self._db.write(lambda u: u.skill_activate_run(agent, run, skill_id, self.platform, operation_id))
-                metadata: Record = {
-                    "skill_id": skill_id,
-                    "revision_id": captured["revision_id"],
-                    "revision": row["revision"],
-                    "content_revision": row["content_revision"],
-                    "path": row["path"],
-                    "files": row["files"],
-                }
-                return ActionResult(
-                    Outcome.OK,
-                    json.dumps({**metadata, "content": row["content"]}, ensure_ascii=False),
-                    data=metadata,
-                )
             revision = cast(int, arguments.get("revision", 0))
             if name in {"skill_create", "skill_rewrite"}:
                 row = await self.save(
