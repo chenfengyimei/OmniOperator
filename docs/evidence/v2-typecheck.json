@@ -7331,6 +7331,18 @@
    "integration_full_run_pending": true,
    "validated_committed_scope_only": true,
    "historical_observations_closed": false
+  },
+  "image_resources_followup": {
+   "evidence": "docs/evidence/v2-image-resources.json",
+   "source_head": "40259f87391ac309a557371d6efe7bb38a94c2c8",
+   "status": "scoped_passed_full_deferred",
+   "scoped_passed": 91,
+   "new_cases": 21,
+   "strict_files": 1,
+   "full_run_covers_current_source": false,
+   "integration_full_run_pending": true,
+   "validated_committed_scope_only": true,
+   "historical_observations_closed": false
   }
  },
  "source_recovery": {
