@@ -152,21 +152,29 @@ class SkillService:
         *,
         guard: Callable[[UnitOfWork], None] | None = None,
     ) -> Record:
-        async def perform() -> Record:
-            try:
-                payload = content.encode("utf-8")
-            except (AttributeError, UnicodeError):
-                raise invalid() from None
-            package = await self._packages.parse(payload, "markdown")
-            if skill_id:
-                old = await self._db.read(lambda u: u.skill_get(agent_id, cast(str, skill_id)))
-                previous = await self._package(old)
-                package = SkillPackage(
-                    package.metadata, (*package.files, *[(p, b) for p, b in previous.files if p != "SKILL.md"])
-                )
-            return await self._install(agent_id, package, skill_id, revision, guard)
+        return await self._execute(lambda: self._save(agent_id, content, skill_id, revision, guard))
 
-        return await self._execute(perform)
+    async def _save(
+        self,
+        agent_id: str,
+        content: str,
+        skill_id: str | None,
+        revision: int,
+        guard: Callable[[UnitOfWork], None] | None,
+    ) -> Record:
+        """Prepare and install a revision inside an already admitted operation."""
+        try:
+            payload = content.encode("utf-8")
+        except (AttributeError, UnicodeError):
+            raise invalid() from None
+        package = await self._packages.parse(payload, "markdown")
+        if skill_id:
+            old = await self._db.read(lambda u: u.skill_get(agent_id, skill_id))
+            previous = await self._package(old)
+            package = SkillPackage(
+                package.metadata, (*package.files, *[(p, b) for p, b in previous.files if p != "SKILL.md"])
+            )
+        return await self._install(agent_id, package, skill_id, revision, guard)
 
     async def state(
         self,
@@ -179,19 +187,29 @@ class SkillService:
         *,
         guard: Callable[[UnitOfWork], None] | None = None,
     ) -> Record:
-        async def perform() -> Record:
-            if state == "enabled":
-                row = await self._db.read(lambda u: u.skill_get(agent_id, skill_id))
-                await self._package(row)
+        return await self._execute(lambda: self._state(agent_id, skill_id, revision, state, revision_id, sha256, guard))
 
-            def commit(u: UnitOfWork) -> Record:
-                if guard:
-                    guard(u)
-                return u.skill_state(agent_id, skill_id, revision, state, revision_id, sha256)
+    async def _state(
+        self,
+        agent_id: str,
+        skill_id: str,
+        revision: int,
+        state: str,
+        revision_id: str,
+        sha256: str,
+        guard: Callable[[UnitOfWork], None] | None,
+    ) -> Record:
+        """Change reviewed state inside an already admitted operation."""
+        if state == "enabled":
+            row = await self._db.read(lambda u: u.skill_get(agent_id, skill_id))
+            await self._package(row)
 
-            return self._public(await self._db.write(commit))
+        def commit(u: UnitOfWork) -> Record:
+            if guard:
+                guard(u)
+            return u.skill_state(agent_id, skill_id, revision, state, revision_id, sha256)
 
-        return await self._execute(perform)
+        return self._public(await self._db.write(commit))
 
     async def rollback(
         self,
@@ -202,12 +220,20 @@ class SkillService:
         *,
         guard: Callable[[UnitOfWork], None] | None = None,
     ) -> Record:
-        async def perform() -> Record:
-            row = await self._db.read(lambda u: u.skill_get(agent_id, skill_id, revision_id))
-            package = await self._package(row)
-            return await self._install(agent_id, package, skill_id, revision, guard)
+        return await self._execute(lambda: self._rollback(agent_id, skill_id, revision_id, revision, guard))
 
-        return await self._execute(perform)
+    async def _rollback(
+        self,
+        agent_id: str,
+        skill_id: str,
+        revision_id: str,
+        revision: int,
+        guard: Callable[[UnitOfWork], None] | None,
+    ) -> Record:
+        """Copy historical content inside an already admitted operation."""
+        row = await self._db.read(lambda u: u.skill_get(agent_id, skill_id, revision_id))
+        package = await self._package(row)
+        return await self._install(agent_id, package, skill_id, revision, guard)
 
     async def history(self, agent_id: str, skill_id: str, after: int = 0, limit: int = 50) -> Record:
         rows = await self._db.read(lambda u: u.skill_history(agent_id, skill_id, after, limit))
@@ -284,65 +310,80 @@ class SkillService:
             data=metadata,
         )
 
-    async def invoke(
-        self, name: str, arguments: Mapping[str, JSON], *, operation_id: str, context: InvocationContext
+    async def _write_tool(
+        self, name: str, arguments: Mapping[str, JSON], operation_id: str, context: InvocationContext
     ) -> ActionResult:
+        """Complete one already admitted model write, keeping its final approval guard."""
         agent, run = context.agent_id, context.run_id
 
         def guard(u: UnitOfWork) -> None:
             u.approved_dispatch(agent, run, operation_id, dict(arguments), name)
 
+        skill_id = str(arguments.get("skill_id", ""))
+        revision = cast(int, arguments.get("revision", 0))
+        if name in {"skill_create", "skill_rewrite"}:
+            row = await self._save(
+                agent,
+                str(arguments["content"]),
+                skill_id if name == "skill_rewrite" else None,
+                revision,
+                guard=guard,
+            )
+        elif name == "skill_patch":
+            previous = await self._get(agent, skill_id, None, "SKILL.md")
+            row = await self._save(
+                agent,
+                patch_section(str(previous["content"]), str(arguments["section"]), str(arguments["text"])),
+                skill_id,
+                revision,
+                guard=guard,
+            )
+        elif name == "skill_rollback":
+            row = await self._rollback(agent, skill_id, str(arguments["revision_id"]), revision, guard=guard)
+        elif name in {"skill_archive", "skill_restore"}:
+            current = await self._db.read(lambda u: u.skill_get(agent, skill_id))
+            row = await self._state(
+                agent,
+                skill_id,
+                revision,
+                "archived" if name == "skill_archive" else "disabled",
+                str(current["revision_id"]),
+                str(current["manifest_sha256"]),
+                guard=guard,
+            )
+        else:
+            return ActionResult(Outcome.ERROR, "Unknown skill capability", error_code="tool_not_found")
+        receipt: Record = {
+            "skill_id": row["id"],
+            "revision_id": row["revision_id"],
+            "revision": row["revision"],
+            "content_revision": row["content_revision"],
+            "state": row["state"],
+            "message": "Skill saved. New or restored revisions require owner review before enabling.",
+        }
+        return ActionResult(
+            Outcome.OK,
+            json.dumps(receipt, ensure_ascii=False),
+            Effect.APPLIED,
+            data=receipt,
+        )
+
+    async def invoke(
+        self, name: str, arguments: Mapping[str, JSON], *, operation_id: str, context: InvocationContext
+    ) -> ActionResult:
         try:
             if name in {"skills_list", "skill_activate", "skill_view", "skill_history"}:
                 return await self._execute(lambda: self._read_tool(name, arguments, operation_id, context))
-            skill_id = str(arguments.get("skill_id", ""))
-            revision = cast(int, arguments.get("revision", 0))
-            if name in {"skill_create", "skill_rewrite"}:
-                row = await self.save(
-                    agent,
-                    str(arguments["content"]),
-                    skill_id if name == "skill_rewrite" else None,
-                    revision,
-                    guard=guard,
-                )
-            elif name == "skill_patch":
-                previous = await self.get(agent, skill_id)
-                row = await self.save(
-                    agent,
-                    patch_section(str(previous["content"]), str(arguments["section"]), str(arguments["text"])),
-                    skill_id,
-                    revision,
-                    guard=guard,
-                )
-            elif name == "skill_rollback":
-                row = await self.rollback(agent, skill_id, str(arguments["revision_id"]), revision, guard=guard)
-            elif name in {"skill_archive", "skill_restore"}:
-                current = await self._db.read(lambda u: u.skill_get(agent, skill_id))
-                row = await self.state(
-                    agent,
-                    skill_id,
-                    revision,
-                    "archived" if name == "skill_archive" else "disabled",
-                    str(current["revision_id"]),
-                    str(current["manifest_sha256"]),
-                    guard=guard,
-                )
-            else:
-                return ActionResult(Outcome.ERROR, "Unknown skill capability", error_code="tool_not_found")
-            receipt: Record = {
-                "skill_id": row["id"],
-                "revision_id": row["revision_id"],
-                "revision": row["revision"],
-                "content_revision": row["content_revision"],
-                "state": row["state"],
-                "message": "Skill saved. New or restored revisions require owner review before enabling.",
-            }
-            return ActionResult(
-                Outcome.OK,
-                json.dumps(receipt, ensure_ascii=False),
-                Effect.APPLIED,
-                data=receipt,
-            )
+            if name in {
+                "skill_create",
+                "skill_rewrite",
+                "skill_patch",
+                "skill_rollback",
+                "skill_archive",
+                "skill_restore",
+            }:
+                return await self._execute(lambda: self._write_tool(name, arguments, operation_id, context))
+            return ActionResult(Outcome.ERROR, "Unknown skill capability", error_code="tool_not_found")
         except BusinessError as exc:
             if exc.code in {
                 "skill_authority_revoked",
