@@ -392,13 +392,20 @@ class MediaService:
         if str(job["agent_id"]) != agent_id:
             raise BusinessError("media_job_not_found", "No such media job in this Agent", status=404)
         if job["state"] == "queued":
-            return await self._db.write(lambda u: u.media_job_cancel(job_id))
+            job = await self._db.write(lambda u: u.media_job_cancel(job_id))
+        if job["state"] != "running":
+            return job
         for task in tuple(self._tasks):
             if task.get_name() == f"media-job-{job_id}":
-                task.cancel()
+                if not task.cancelling():
+                    task.cancel()
                 try:
                     await asyncio.shield(task)
-                except (asyncio.CancelledError, BusinessError):
+                except asyncio.CancelledError:
+                    caller = asyncio.current_task()
+                    if caller is not None and caller.cancelling():
+                        raise
+                except BusinessError:
                     pass
                 break
         return await self._db.read(lambda u: u.media_job_get(job_id))
