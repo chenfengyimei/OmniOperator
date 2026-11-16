@@ -7403,6 +7403,18 @@
    "integration_full_run_pending": true,
    "validated_committed_scope_only": true,
    "historical_observations_closed": false
+  },
+  "skill_notice_followup": {
+   "evidence": "docs/evidence/v2-skill-notice.json",
+   "source_head": "a10f5d589f1da1a326946fdd17ccaa92276d27d3",
+   "status": "scoped_passed_full_deferred",
+   "scoped_passed": 87,
+   "new_cases": 19,
+   "strict_files": 1,
+   "full_run_covers_current_source": false,
+   "integration_full_run_pending": true,
+   "validated_committed_scope_only": true,
+   "historical_observations_closed": false
   }
  },
  "source_recovery": {
