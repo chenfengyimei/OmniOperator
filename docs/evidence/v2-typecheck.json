@@ -7367,6 +7367,18 @@
    "integration_full_run_pending": true,
    "validated_committed_scope_only": true,
    "historical_observations_closed": false
+  },
+  "skill_metadata_followup": {
+   "evidence": "docs/evidence/v2-skill-metadata.json",
+   "source_head": "12640962a07e33c550c493748b6cbd215fb8ee42",
+   "status": "scoped_passed_full_deferred",
+   "scoped_passed": 113,
+   "new_cases": 45,
+   "strict_files": 1,
+   "full_run_covers_current_source": false,
+   "integration_full_run_pending": true,
+   "validated_committed_scope_only": true,
+   "historical_observations_closed": false
   }
  },
  "source_recovery": {
