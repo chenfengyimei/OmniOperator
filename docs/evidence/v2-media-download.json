@@ -1,0 +1,722 @@
+{
+ "schema": 1,
+ "date": "2026-11-16",
+ "branch": "v2",
+ "whole_v2_complete": false,
+ "default_entrypoint": "v1",
+ "source": {
+  "head": "05f84a1cf162031dbed291179740e97aa373da4c",
+  "base": "3f5016a78f60dc84222cc1d5112dc6ff4eeb6593",
+  "code_version": "7f7ec6d7b9fdd49d1124ea9eebad8cecf2b36d4cdee67ac1b175a89095dc3a9c",
+  "code_files": 1235,
+  "version_artifact": {
+   "path": "temp/build/v2-media-download-source-version.json",
+   "sha256": "33891157f9e932e918d02baa199a0a6bc3c0bb466120002515889a865dc8f71e"
+  },
+  "planned": {
+   "agent/src/omni/adapters/bilibili.py": {
+    "sha256": "d0860d9d969dcda94e27a627e9f7cf8b368497b39a613dd188e1163486f84155",
+    "git_blob": "8c41a202c0d6d113413350a69718218c157c8359"
+   },
+   "agent/tests/test_v2_media_download.py": {
+    "sha256": "5263bc5263a6ad9ba1246d370dad994a2548f93ce794f771997badc59734581c",
+    "git_blob": "8bd70651855f266ea18b93575d00a9d86851d3d1"
+   },
+   "docs/V2_MEDIA.md": {
+    "sha256": "b90527f811478de420fdd1792d99451078053f1195a04e2cd800f91be5e70021",
+    "git_blob": "43327d0576107ba8890c9c289132d2a1eb63891e"
+   },
+   "docs/TESTING.md": {
+    "sha256": "a476a40812569e554fad3a2fb70195001710545c97339c3c5007c13ff3d21386",
+    "git_blob": "3c92f84eaac1a6a6afa3d7243f2c150e25661fb8"
+   },
+   "docs/index/MODULES.md": {
+    "sha256": "5efcdf595f2eb82851781a5dd69aa1262877737de459a9ea40862c2e7956c1f9",
+    "git_blob": "6602cfa469d7e3bad05d10cb7c58a9b89b8fb61b"
+   },
+   "docs/index/project.json": {
+    "sha256": "0312048b5ae6d608d177cca8f619f6ed89f1969970d030eee01f7a4f5b8a0367",
+    "git_blob": "a3214f3e865e6c2104e84ebcd9a31ddceec8be01"
+   }
+  },
+  "candidate": "D:\\xm\\OmniOperator\\temp\\build\\media-download-index-precommit",
+  "parallel_working_bodies_preserved": true
+ },
+ "root_cause": "Download appended 206 bodies without checking offsets or completeness, accepted short responses as complete, wrote an oversized chunk before enforcing its disk bound, and registered ownership before an unguarded directory preparation.",
+ "changes": [
+  "Accept identity-encoded 200 full responses or validated single 206 ranges with known total length; reject invalid/unsupported range metadata before reading or appending",
+  "Validate each body length and continue incomplete prefixes within the original three-request/shared-time budget rather than reporting partial success",
+  "Bind known totals and strong ETags across partial responses; use If-Range and retain 200 restart behavior; weak or invalid ETags are not sent as validators",
+  "Enforce declared and actual byte budgets before writing the offending chunk; reject an already oversized prefix before HTTP without truncating it",
+  "Guard path preparation with the same finally retirement; preserve per-request authorization, cookies/Referer, closing behavior and sanitized errors"
+ ],
+ "proof": {
+  "changed_existing_methods": [
+   "download"
+  ],
+  "new_helper": "_download_lengths",
+  "all_existing_method_signatures_unchanged": true,
+  "admission_checks_exception_mapping_and_owner_finally_ast_identical": true,
+  "retry_count_and_shared_budget_ast_identical": true,
+  "per_request_authorization_guard_ast_identical": true,
+  "client_options_unchanged_except_identity_encoding_request": true,
+  "all_other_existing_methods_byte_identical": true,
+  "imports_globals_and_policy_constants_ast_identical": true,
+  "host_domain_worker_transport_lifecycle_repository_database_files_byte_identical": [
+   "agent/src/omni/application/media.py",
+   "agent/src/omni/domain/media.py",
+   "agent/src/omni/domain/bilibili.py",
+   "agent/src/omni/adapters/media.py",
+   "agent/src/omni/adapters/workers/media.py",
+   "agent/src/omni/composition/lifecycle.py",
+   "agent/src/omni/adapters/persistence/media_repository.py",
+   "agent/src/omni/adapters/persistence/database.py"
+  ],
+  "regressions_identical_between_clean_before_and_candidate": true,
+  "strict_files": 1
+ },
+ "regressions": {
+  "new_cases": 39,
+  "clean_before": {
+   "report": "temp/build/v2-media-download-clean-before.xml",
+   "report_sha256": "8464bf44f0a0cd7877eb6af6a331ffd93b0aa27255c49f2b7e8eec6d0d19ccef",
+   "raw_suites": [
+    {
+     "name": "pytest",
+     "errors": "0",
+     "failures": "37",
+     "skipped": "0",
+     "tests": "39",
+     "time": "8.284",
+     "timestamp": "2026-11-16T18:31:16.642299+08:00",
+     "hostname": "cy"
+    }
+   ],
+   "junit_testcase_records": 39,
+   "unique_test_nodes_reported": 39,
+   "failure_events": 37,
+   "error_events": 0,
+   "skipped": 0,
+   "unique_failed_or_errored_nodes": 37,
+   "unique_nodes_without_failure_or_error": 2,
+   "duplicate_nodes": {},
+   "failed_nodes": [
+    {
+     "nodeid": "agent/tests/test_v2_media_download.py::test_bad_partial_response_is_rejected_before_reading_or_appending[headers0]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "Failed: DID NOT RAISE BusinessError"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_download.py::test_bad_partial_response_is_rejected_before_reading_or_appending[headers1]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "Failed: DID NOT RAISE BusinessError"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_download.py::test_bad_partial_response_is_rejected_before_reading_or_appending[headers2]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "Failed: DID NOT RAISE BusinessError"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_download.py::test_bad_partial_response_is_rejected_before_reading_or_appending[headers3]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "Failed: DID NOT RAISE BusinessError"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_download.py::test_bad_partial_response_is_rejected_before_reading_or_appending[headers4]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "Failed: DID NOT RAISE BusinessError"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_download.py::test_bad_partial_response_is_rejected_before_reading_or_appending[headers5]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "Failed: DID NOT RAISE BusinessError"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_download.py::test_bad_partial_response_is_rejected_before_reading_or_appending[headers6]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "Failed: DID NOT RAISE BusinessError"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_download.py::test_bad_partial_response_is_rejected_before_reading_or_appending[headers7]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "Failed: DID NOT RAISE BusinessError"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_download.py::test_bad_partial_response_is_rejected_before_reading_or_appending[headers8]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "Failed: DID NOT RAISE BusinessError"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_download.py::test_bad_partial_response_is_rejected_before_reading_or_appending[headers9]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: assert (b'abc' == b'abc'\n  \n  Use -v to get more diff and 1 == 0)\n +  where 1 = <test_v2_media_download.Body object at 0x0000024F22189B20>.reads"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_download.py::test_bad_partial_response_is_rejected_before_reading_or_appending[headers10]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "Failed: DID NOT RAISE BusinessError"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_download.py::test_valid_downloads_preserve_exact_bytes_and_complete_all_ranges[full]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "assert False\n +  where False = all(<generator object test_valid_downloads_preserve_exact_bytes_and_complete_all_ranges.<locals>.scenario.<locals>.<genexpr> at 0x0000024F222D24D0>)"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_download.py::test_valid_downloads_preserve_exact_bytes_and_complete_all_ranges[resume]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "assert False\n +  where False = all(<generator object test_valid_downloads_preserve_exact_bytes_and_complete_all_ranges.<locals>.scenario.<locals>.<genexpr> at 0x0000024F222D29B0>)"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_download.py::test_valid_downloads_preserve_exact_bytes_and_complete_all_ranges[restart]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "assert False\n +  where False = all(<generator object test_valid_downloads_preserve_exact_bytes_and_complete_all_ranges.<locals>.scenario.<locals>.<genexpr> at 0x0000024F222D18A0>)"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_download.py::test_valid_downloads_preserve_exact_bytes_and_complete_all_ranges[segmented]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: assert (b'abc' == b'abcdef'\n  \n  Use -v to get more diff)"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_download.py::test_valid_downloads_preserve_exact_bytes_and_complete_all_ranges[short_full]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: assert (b'abc' == b'abcdef'\n  \n  Use -v to get more diff)"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_download.py::test_valid_downloads_preserve_exact_bytes_and_complete_all_ranges[short_partial]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: assert (b'abc' == b'abcdef'\n  \n  Use -v to get more diff)"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_download.py::test_resume_uses_strong_validator_and_refuses_changed_partial_representation[200-none]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: assert b'abc' == b'abcdef'\n  \n  Use -v to get more diff"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_download.py::test_resume_uses_strong_validator_and_refuses_changed_partial_representation[200-etag]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "Failed: DID NOT RAISE BusinessError"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_download.py::test_resume_uses_strong_validator_and_refuses_changed_partial_representation[200-missing_etag]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "Failed: DID NOT RAISE BusinessError"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_download.py::test_resume_uses_strong_validator_and_refuses_changed_partial_representation[200-size]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "Failed: DID NOT RAISE BusinessError"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_download.py::test_resume_uses_strong_validator_and_refuses_changed_partial_representation[200-restart]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: assert b'abc' == b'new'\n  \n  At index 0 diff: b'a' != b'n'\n  Use -v to get more diff"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_download.py::test_resume_uses_strong_validator_and_refuses_changed_partial_representation[206-none]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: assert b'abc' == b'abcdef'\n  \n  Use -v to get more diff"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_download.py::test_resume_uses_strong_validator_and_refuses_changed_partial_representation[206-etag]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "Failed: DID NOT RAISE BusinessError"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_download.py::test_resume_uses_strong_validator_and_refuses_changed_partial_representation[206-missing_etag]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "Failed: DID NOT RAISE BusinessError"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_download.py::test_resume_uses_strong_validator_and_refuses_changed_partial_representation[206-size]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "Failed: DID NOT RAISE BusinessError"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_download.py::test_resume_uses_strong_validator_and_refuses_changed_partial_representation[206-restart]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: assert b'abc' == b'new'\n  \n  At index 0 diff: b'a' != b'n'\n  Use -v to get more diff"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_download.py::test_weak_or_invalid_etag_is_not_sent_as_if_range[W/\"v1\"]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "assert 3 == 6"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_download.py::test_weak_or_invalid_etag_is_not_sent_as_if_range[invalid]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "assert 3 == 6"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_download.py::test_weak_or_invalid_etag_is_not_sent_as_if_range[\"space tag\"]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "assert 3 == 6"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_download.py::test_weak_or_invalid_etag_is_not_sent_as_if_range[\"tab\\ttag\"]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "assert 3 == 6"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_download.py::test_existing_partial_over_budget_is_rejected_without_http_or_truncation",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: assert 'media_download_failed' == 'media_download_too_large'\n  \n  - media_download_too_large\n  ?                ^^^^ ---\n  + media_download_failed\n  ?                ^^^  +"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_download.py::test_oversized_chunk_is_not_written_to_disk[False]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "assert 1048584 == 1048576"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_download.py::test_bad_declared_body_length_never_reports_success",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "Failed: DID NOT RAISE BusinessError"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_download.py::test_three_incomplete_ranges_exhaust_original_retry_budget_without_success",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "Failed: DID NOT RAISE BusinessError"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_download.py::test_failed_directory_creation_releases_download_ownership",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "assert False"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_download.py::test_real_media_job_rejects_bad_range_before_processing_and_allows_explicit_new_work",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: assert ('done' == 'failed'\n  \n  - failed\n  + done)"
+      }
+     ]
+    }
+   ]
+  },
+  "clean_before_note": "Three valid full/resume/restart controls also require the new identity request header; their old-source failure does not imply those original byte paths were corrupt.",
+  "clean_before_metadata": {
+   "path": "temp/build/v2-media-download-clean-before.json",
+   "sha256": "6acdc39f914db300fa0d896f2f2ea0e863abb9d88ba901b02be053ddfb1a563e"
+  },
+  "clean_before_log": {
+   "path": "temp/build/v2-media-download-clean-before.log",
+   "sha256": "3c92cafbbc0829055ccfaccbc94c7da4cd80ae30c169ff917036a88a863ca06b"
+  },
+  "callers": {
+   "report": "temp/build/v2-media-download-callers.xml",
+   "report_sha256": "571cbf8df866822ce454ec97a1c4ace8a34bbb7c1169c274d7c97eb15fad60e0",
+   "raw_suites": [
+    {
+     "name": "pytest",
+     "errors": "0",
+     "failures": "0",
+     "skipped": "0",
+     "tests": "139",
+     "time": "45.213",
+     "timestamp": "2026-11-16T18:34:40.584796+08:00",
+     "hostname": "cy"
+    }
+   ],
+   "junit_testcase_records": 139,
+   "unique_test_nodes_reported": 139,
+   "failure_events": 0,
+   "error_events": 0,
+   "skipped": 0,
+   "unique_failed_or_errored_nodes": 0,
+   "unique_nodes_without_failure_or_error": 139,
+   "duplicate_nodes": {},
+   "failed_nodes": []
+  },
+  "callers_log": {
+   "path": "temp/build/v2-media-download-callers.log",
+   "sha256": "a33756d8bdd1f6397ded7a97fe45c35604867861d66eab110f327951b522f112"
+  },
+  "cli_summary": "139 passed in 45.29s",
+  "coverage": [
+   "Eleven malformed or unsupported partial response cases reject before body consumption and leave the original prefix untouched",
+   "Full, resume, restart, segmented and short full/partial responses produce exact complete bytes and execute authorization before every request",
+   "Strong ETags are captured on initial 200 and 206 responses, sent as If-Range and checked with total size before appending; changed/missing validators reject while 200 can restart",
+   "Weak and malformed entity tags are not used as If-Range",
+   "Declared and chunked oversized output never writes the offending bytes; existing oversized prefixes make no HTTP request and are preserved",
+   "Declared body overflow and three still-incomplete ranges never report success",
+   "Directory failure and cancellation release read ownership; response bodies close",
+   "Real database media job refuses a bad range before worker/artifact publication, cleans staging and allows explicit new work"
+  ],
+  "total_unique_scoped_passed": 139
+ },
+ "scoped_validation": {
+  "scope": "Media download range/length integrity and disk budget/ownership; Bilibili gateway/HTTP, media authorization retry, media HTTP/tool, lifecycle and architecture callers; worker processing unchanged",
+  "base": "3f5016a78f60dc84222cc1d5112dc6ff4eeb6593",
+  "planned": {
+   "agent/src/omni/adapters/bilibili.py": {
+    "sha256": "d0860d9d969dcda94e27a627e9f7cf8b368497b39a613dd188e1163486f84155",
+    "git_blob": "8c41a202c0d6d113413350a69718218c157c8359"
+   },
+   "agent/tests/test_v2_media_download.py": {
+    "sha256": "5263bc5263a6ad9ba1246d370dad994a2548f93ce794f771997badc59734581c",
+    "git_blob": "8bd70651855f266ea18b93575d00a9d86851d3d1"
+   },
+   "docs/V2_MEDIA.md": {
+    "sha256": "b90527f811478de420fdd1792d99451078053f1195a04e2cd800f91be5e70021",
+    "git_blob": "43327d0576107ba8890c9c289132d2a1eb63891e"
+   },
+   "docs/TESTING.md": {
+    "sha256": "a476a40812569e554fad3a2fb70195001710545c97339c3c5007c13ff3d21386",
+    "git_blob": "3c92f84eaac1a6a6afa3d7243f2c150e25661fb8"
+   },
+   "docs/index/MODULES.md": {
+    "sha256": "5efcdf595f2eb82851781a5dd69aa1262877737de459a9ea40862c2e7956c1f9",
+    "git_blob": "6602cfa469d7e3bad05d10cb7c58a9b89b8fb61b"
+   },
+   "docs/index/project.json": {
+    "sha256": "0312048b5ae6d608d177cca8f619f6ed89f1969970d030eee01f7a4f5b8a0367",
+    "git_blob": "a3214f3e865e6c2104e84ebcd9a31ddceec8be01"
+   }
+  },
+  "full_suite_run": false,
+  "gates": [
+   {
+    "command": [
+     "D:\\xm\\OmniOperator\\temp\\build\\checkpoint-interpreter-media-download\\Scripts\\python.exe",
+     "-m",
+     "ruff",
+     "check",
+     "agent/src/omni/adapters/bilibili.py",
+     "agent/tests/test_v2_media_download.py"
+    ],
+    "returncode": 0,
+    "duration_s": 0.172,
+    "stdout": "All checks passed!\n",
+    "stderr": ""
+   },
+   {
+    "command": [
+     "D:\\xm\\OmniOperator\\temp\\build\\checkpoint-interpreter-media-download\\Scripts\\python.exe",
+     "-m",
+     "ruff",
+     "format",
+     "--check",
+     "agent/src/omni/adapters/bilibili.py",
+     "agent/tests/test_v2_media_download.py"
+    ],
+    "returncode": 0,
+    "duration_s": 0.171,
+    "stdout": "2 files already formatted\n",
+    "stderr": ""
+   },
+   {
+    "command": [
+     "D:\\xm\\OmniOperator\\temp\\build\\checkpoint-interpreter-media-download\\Scripts\\python.exe",
+     "-m",
+     "pyright",
+     "--project",
+     "D:\\xm\\OmniOperator\\temp\\build\\media-download-index-precommit\\pyrightconfig.media-download.json",
+     "--outputjson"
+    ],
+    "returncode": 0,
+    "duration_s": 1.688,
+    "stdout": "{\n    \"version\": \"1.1.414\",\n    \"time\": \"1794825279824\",\n    \"generalDiagnostics\": [],\n    \"summary\": {\n        \"filesAnalyzed\": 1,\n        \"errorCount\": 0,\n        \"warningCount\": 0,\n        \"informationCount\": 0,\n        \"timeInSec\": 0.905\n    }\n}\n\n",
+    "stderr": ""
+   }
+  ],
+  "strict_summary": {
+   "filesAnalyzed": 1,
+   "errorCount": 0,
+   "warningCount": 0,
+   "informationCount": 0,
+   "timeInSec": 0.905
+  },
+  "callers": {
+   "command": [
+    "D:\\xm\\OmniOperator\\temp\\build\\checkpoint-interpreter-media-download\\Scripts\\python.exe",
+    "-m",
+    "pytest",
+    "-q",
+    "-n",
+    "0",
+    "agent/tests/test_v2_media_download.py",
+    "agent/tests/test_v2_bilibili_gateway.py",
+    "agent/tests/test_v2_media_authority.py",
+    "agent/tests/test_v2_media.py",
+    "agent/tests/test_v2_bilibili_http.py",
+    "agent/tests/test_v2_lifecycle.py",
+    "agent/tests/test_v2_architecture.py",
+    "agent/tests/test_v2_typecheck_scope.py",
+    "agent/tests/test_arch.py",
+    "--junitxml=D:\\xm\\OmniOperator\\temp\\build\\v2-media-download-callers.xml"
+   ],
+   "targets": [
+    "test_v2_media_download",
+    "test_v2_bilibili_gateway",
+    "test_v2_media_authority",
+    "test_v2_media",
+    "test_v2_bilibili_http",
+    "test_v2_lifecycle",
+    "test_v2_architecture",
+    "test_v2_typecheck_scope",
+    "test_arch"
+   ],
+   "returncode": 0,
+   "duration_s": 46.5,
+   "cases": 139,
+   "failures": 0,
+   "errors": 0,
+   "skipped": 0
+  },
+  "source_unchanged": true
+ },
+ "scoped_validation_artifact": {
+  "path": "temp/build/v2-media-download-scoped.json",
+  "sha256": "89d395effd2370d9243552fe43d54f76f3646e92d6d8ac30ec5f794b99f26542"
+ },
+ "ownership_artifact": {
+  "path": "temp/build/v2-media-download-source.json",
+  "sha256": "7bba2c637276711f096921394707484be27093db840789b1bb5f6a87dbe8a3fe"
+ },
+ "exploratory_reports": {
+  "initial_working_after": {
+   "report": "temp/build/v2-media-download-working-after.xml",
+   "report_sha256": "431cc5827d99e68295a29f74778737d15c172cc6420295638beb35abd40ffccf",
+   "raw_suites": [
+    {
+     "name": "pytest",
+     "errors": "0",
+     "failures": "0",
+     "skipped": "0",
+     "tests": "29",
+     "time": "3.634",
+     "timestamp": "2026-11-16T18:26:02.066344+08:00",
+     "hostname": "cy"
+    }
+   ],
+   "junit_testcase_records": 29,
+   "unique_test_nodes_reported": 29,
+   "failure_events": 0,
+   "error_events": 0,
+   "skipped": 0,
+   "unique_failed_or_errored_nodes": 0,
+   "unique_nodes_without_failure_or_error": 29,
+   "duplicate_nodes": {},
+   "failed_nodes": []
+  },
+  "validator_nodes_after": {
+   "report": "temp/build/v2-media-download-validator-nodes.xml",
+   "report_sha256": "eb64884de023a67956bb655b3eafa24fcf75366d94791e6849a08e579f0b89f3",
+   "raw_suites": [
+    {
+     "name": "pytest",
+     "errors": "0",
+     "failures": "0",
+     "skipped": "0",
+     "tests": "13",
+     "time": "1.267",
+     "timestamp": "2026-11-16T18:28:17.947798+08:00",
+     "hostname": "cy"
+    }
+   ],
+   "junit_testcase_records": 13,
+   "unique_test_nodes_reported": 13,
+   "failure_events": 0,
+   "error_events": 0,
+   "skipped": 0,
+   "unique_failed_or_errored_nodes": 0,
+   "unique_nodes_without_failure_or_error": 13,
+   "duplicate_nodes": {},
+   "failed_nodes": []
+  },
+  "validator_command_error": {
+   "returncode": 4,
+   "report": {
+    "report": "temp/build/v2-media-download-validator-after.xml",
+    "report_sha256": "86a7acb1e07cb9718ab68ff95c58250fa41c0bd740b52a3181185374d00f7105",
+    "raw_suites": [
+     {
+      "name": "pytest",
+      "errors": "0",
+      "failures": "0",
+      "skipped": "0",
+      "tests": "0",
+      "time": "0.004",
+      "timestamp": "2026-11-16T18:27:54.321260+08:00",
+      "hostname": "cy"
+     }
+    ],
+    "junit_testcase_records": 0,
+    "unique_test_nodes_reported": 0,
+    "failure_events": 0,
+    "error_events": 0,
+    "skipped": 0,
+    "unique_failed_or_errored_nodes": 0,
+    "unique_nodes_without_failure_or_error": 0,
+    "duplicate_nodes": {},
+    "failed_nodes": []
+   },
+   "reason": "CMD split the pytest -k expression into file arguments; no tests ran. Corrected with explicit node IDs."
+  },
+  "scope": "Initial/partial working probes are not summed; final identical 39 tests on clean baseline and immutable candidate define the delivered scope."
+ },
+ "full_run": {
+  "status": "deferred_per_owner",
+  "run_for_this_change": false,
+  "covers_this_source": false,
+  "reason": "Owner prioritizes implementation and scoped tests; full suite at multi-module integration",
+  "last_completed_source": "42a4b8b29d7c80daa4cb212d49dd40d07c189079",
+  "last_completed_summary": "4800 passed, 12 warnings in 3025.48s (0:50:25)",
+  "last_completed_report": {
+   "path": "temp/build/v2-full-226.xml",
+   "sha256": "ecab05764ea535042e7e4dde6ea0e0f6969030b4ae74056a1ce9fd20352549e4"
+  },
+  "last_full_does_not_cover_this_change": true
+ },
+ "not_verified": [
+  "Full integration suite for this new source",
+  "Actual CDN compatibility; known-length single-part identity responses are a conservative supported subset",
+  "Remote representation identity when a strong validator is absent",
+  "Unchanged worker/model/audio processing was not rerun in this batch",
+  "Historical system commit/native/UI causes",
+  "Concurrent uncommitted configuration/schema/UI bodies"
+ ]
+}
