@@ -7103,6 +7103,18 @@
    "integration_full_run_pending": true,
    "validated_committed_scope_only": true,
    "historical_observations_closed": false
+  },
+  "media_authority_followup": {
+   "evidence": "docs/evidence/v2-media-authority.json",
+   "source_head": "c373b431915448ba274aa40edf5794b3e0d0a187",
+   "status": "scoped_passed_full_deferred",
+   "scoped_passed": 162,
+   "new_cases": 36,
+   "strict_files": 1,
+   "full_run_covers_current_source": false,
+   "integration_full_run_pending": true,
+   "validated_committed_scope_only": true,
+   "historical_observations_closed": false
   }
  },
  "source_recovery": {

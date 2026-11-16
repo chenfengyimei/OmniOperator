@@ -1,0 +1,688 @@
+{
+ "schema": 1,
+ "date": "2026-11-16",
+ "branch": "v2",
+ "whole_v2_complete": false,
+ "default_entrypoint": "v1",
+ "source": {
+  "head": "c373b431915448ba274aa40edf5794b3e0d0a187",
+  "base": "307e2c6dcc57753418d326e006d0fb4466cf1dec",
+  "code_version": "62408b02dc013324480f66db6dd79b205868cfe6e9a78d1b4beee997092bdf58",
+  "code_files": 1227,
+  "version_artifact": {
+   "path": "temp/build/v2-media-authority-source-version.json",
+   "sha256": "353291607de2051e9a8cd7cb8e12f4019cdb13a2b5c1114df60524c2c4d3371d"
+  },
+  "planned": {
+   "agent/src/omni/application/media.py": {
+    "sha256": "6be31e5a886873e3fa52aec90c882e404e7f249e8267acd51b912941138e2eb7",
+    "git_blob": "51984036ef524db1bf08aa836cfbfd8f3c1e1117"
+   },
+   "agent/tests/test_v2_media_authority.py": {
+    "sha256": "8b80c1cf6f9d55307be6d88cbdb4f04a8d91e521f189de25ed7189634e6a4bee",
+    "git_blob": "c557c4f8ae1800de0ba49c98a40e999aaa85f888"
+   },
+   "agent/tests/test_v2_media_admission.py": {
+    "sha256": "a4100f0fed6b84c7bac8ad3d84c9ffec04cd9b6e123b14113d25de75b4af0062",
+    "git_blob": "c1317723c7d19104a300484cb7a8b10820496942"
+   },
+   "agent/tests/test_v2_media_staging.py": {
+    "sha256": "9eba4b56f609e386b0f81d2e56ec384fac770149f3a2631f1b3a4a68737030e3",
+    "git_blob": "950cfc69458cb3e8f2d4acf2b44c2c8785471ac3"
+   },
+   "docs/V2_MEDIA.md": {
+    "sha256": "e7caf6942bd3dc991b71eaa6466bbb5f9a13cbd8e576bf2455177ae85059b413",
+    "git_blob": "89bc7ec99fcefe41e1c9f32413592a9e48c79c6d"
+   },
+   "docs/TESTING.md": {
+    "sha256": "a8b5091f5077f6f2a7a66e7971b5ce9d2c8adf00769fbdb56df40cb83ec773c1",
+    "git_blob": "e9a71b4f0f8caee510b13c8bf1f57232b34c58b7"
+   },
+   "docs/index/MODULES.md": {
+    "sha256": "0187722186e793224c89da7fe216d6282b3be24b832baa06daecd42f6e5f469b",
+    "git_blob": "1f1e6a4354b1357b32daf9b248787618f0d1e5af"
+   },
+   "docs/index/project.json": {
+    "sha256": "78cc09d23f9d2dcc480208babc1e0f6f2bd05dec40632948f7a91e0da1f02cc5",
+    "git_blob": "d5d6718d87e9eeee47b5fef54c45064036cd720e"
+   }
+  },
+  "candidate": "D:\\xm\\OmniOperator\\temp\\build\\media-authority-index-precommit",
+  "parallel_working_bodies_preserved": true
+ },
+ "root_cause": "Media checked configuration only when starting. Configuration or credential authority could change while reading streams/downloading/processing or waiting for a final write, yet source registration or media artifact completion still committed using the old snapshot.",
+ "changes": [
+  "Capture authority and recheck it plus the current source binding at media stage boundaries",
+  "Bind the existing Bilibili download before_dispatch callback so every retry rechecks authority",
+  "Recheck source registration and media artifact completion inside the same database write transaction",
+  "Gate frame object/image registration while retaining already completed object ownership and ordinary GC policy",
+  "Keep exact revoked/changed codes and do not replay old work"
+ ],
+ "proof": {
+  "changed_existing_methods": [
+   "_execute",
+   "_register_sheet",
+   "register"
+  ],
+  "new_private_function": "_authorized",
+  "execution_ast_identical_after_removing_authority_wrappers": true,
+  "registration_write_only_adds_authority_guard": true,
+  "sheet_logic_only_adds_optional_authority_guards": true,
+  "admission_cancellation_cleanup_close_and_existing_output_reader_byte_identical": true,
+  "all_policy_constants_ast_identical": true,
+  "shared_fixture_test_bodies_byte_identical_only_authorized_mock_contract_updated": true,
+  "domain_processor_gateway_worker_lifecycle_repository_files_byte_identical": [
+   "agent/src/omni/domain/media.py",
+   "agent/src/omni/adapters/media.py",
+   "agent/src/omni/adapters/bilibili.py",
+   "agent/src/omni/adapters/workers/media.py",
+   "agent/src/omni/composition/lifecycle.py",
+   "agent/src/omni/adapters/persistence/media_repository.py",
+   "agent/src/omni/adapters/persistence/bilibili_authority.py"
+  ],
+  "regressions_and_shared_helpers_identical_between_clean_before_and_candidate": true,
+  "strict_files": 1
+ },
+ "regressions": {
+  "new_cases": 36,
+  "clean_before": {
+   "report": "temp/build/v2-media-authority-clean-before.xml",
+   "report_sha256": "d1a3af5db4cfa7316e1fe893e8b5d7e1b5d682975a4ecbe758f34f189c034d19",
+   "raw_suites": [
+    {
+     "name": "pytest",
+     "errors": "0",
+     "failures": "33",
+     "skipped": "0",
+     "tests": "36",
+     "time": "11.355",
+     "timestamp": "2026-11-16T16:07:36.738400+08:00",
+     "hostname": "cy"
+    }
+   ],
+   "junit_testcase_records": 36,
+   "unique_test_nodes_reported": 36,
+   "failure_events": 33,
+   "error_events": 0,
+   "skipped": 0,
+   "unique_failed_or_errored_nodes": 33,
+   "unique_nodes_without_failure_or_error": 3,
+   "duplicate_nodes": {},
+   "failed_nodes": [
+    {
+     "nodeid": "agent/tests/test_v2_media_authority.py::test_registration_rechecks_authority_inside_its_write_transaction[revision-after_video]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "Failed: DID NOT RAISE BusinessError"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_authority.py::test_registration_rechecks_authority_inside_its_write_transaction[revision-before_registration_commit]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "Failed: DID NOT RAISE BusinessError"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_authority.py::test_registration_rechecks_authority_inside_its_write_transaction[authority-after_video]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "Failed: DID NOT RAISE BusinessError"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_authority.py::test_registration_rechecks_authority_inside_its_write_transaction[authority-before_registration_commit]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "Failed: DID NOT RAISE BusinessError"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_authority.py::test_registration_rechecks_authority_inside_its_write_transaction[disabled-after_video]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "Failed: DID NOT RAISE BusinessError"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_authority.py::test_registration_rechecks_authority_inside_its_write_transaction[disabled-before_registration_commit]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "Failed: DID NOT RAISE BusinessError"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_authority.py::test_job_stops_at_revoked_stage_and_never_commits_an_artifact[revision-subtitle-after_subtitle-0-0-0-0]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: assert 'done' == 'failed'\n  \n  - failed\n  + done"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_authority.py::test_job_stops_at_revoked_stage_and_never_commits_an_artifact[revision-transcribe-after_streams-0-0-0-0]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: assert 'done' == 'failed'\n  \n  - failed\n  + done"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_authority.py::test_job_stops_at_revoked_stage_and_never_commits_an_artifact[revision-transcribe-before_download_dispatch-0-0-0-0]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: assert 'done' == 'failed'\n  \n  - failed\n  + done"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_authority.py::test_job_stops_at_revoked_stage_and_never_commits_an_artifact[revision-transcribe-after_download-1-0-0-0]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: assert 'done' == 'failed'\n  \n  - failed\n  + done"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_authority.py::test_job_stops_at_revoked_stage_and_never_commits_an_artifact[revision-transcribe-after_worker-1-1-0-0]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: assert 'done' == 'failed'\n  \n  - failed\n  + done"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_authority.py::test_job_stops_at_revoked_stage_and_never_commits_an_artifact[revision-transcribe-after_object-1-1-1-0]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: assert 'done' == 'failed'\n  \n  - failed\n  + done"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_authority.py::test_job_stops_at_revoked_stage_and_never_commits_an_artifact[revision-transcribe-before_artifact_commit-1-1-1-0]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: assert 'done' == 'failed'\n  \n  - failed\n  + done"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_authority.py::test_job_stops_at_revoked_stage_and_never_commits_an_artifact[revision-frames-after_worker-1-1-0-0]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: assert 'done' == 'failed'\n  \n  - failed\n  + done"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_authority.py::test_job_stops_at_revoked_stage_and_never_commits_an_artifact[revision-frames-after_object-1-1-1-0]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: assert 'done' == 'failed'\n  \n  - failed\n  + done"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_authority.py::test_job_stops_at_revoked_stage_and_never_commits_an_artifact[revision-frames-after_image-1-1-1-1]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: assert 'done' == 'failed'\n  \n  - failed\n  + done"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_authority.py::test_job_stops_at_revoked_stage_and_never_commits_an_artifact[revision-frames-before_artifact_commit-1-1-1-1]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: assert 'done' == 'failed'\n  \n  - failed\n  + done"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_authority.py::test_job_stops_at_revoked_stage_and_never_commits_an_artifact[authority-subtitle-after_subtitle-0-0-0-0]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: assert 'done' == 'failed'\n  \n  - failed\n  + done"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_authority.py::test_job_stops_at_revoked_stage_and_never_commits_an_artifact[authority-transcribe-after_streams-0-0-0-0]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: assert 'done' == 'failed'\n  \n  - failed\n  + done"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_authority.py::test_job_stops_at_revoked_stage_and_never_commits_an_artifact[authority-transcribe-before_download_dispatch-0-0-0-0]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: assert 'done' == 'failed'\n  \n  - failed\n  + done"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_authority.py::test_job_stops_at_revoked_stage_and_never_commits_an_artifact[authority-transcribe-after_download-1-0-0-0]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: assert 'done' == 'failed'\n  \n  - failed\n  + done"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_authority.py::test_job_stops_at_revoked_stage_and_never_commits_an_artifact[authority-transcribe-after_worker-1-1-0-0]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: assert 'done' == 'failed'\n  \n  - failed\n  + done"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_authority.py::test_job_stops_at_revoked_stage_and_never_commits_an_artifact[authority-transcribe-after_object-1-1-1-0]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: assert 'done' == 'failed'\n  \n  - failed\n  + done"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_authority.py::test_job_stops_at_revoked_stage_and_never_commits_an_artifact[authority-transcribe-before_artifact_commit-1-1-1-0]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: assert 'done' == 'failed'\n  \n  - failed\n  + done"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_authority.py::test_job_stops_at_revoked_stage_and_never_commits_an_artifact[authority-frames-after_worker-1-1-0-0]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: assert 'done' == 'failed'\n  \n  - failed\n  + done"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_authority.py::test_job_stops_at_revoked_stage_and_never_commits_an_artifact[authority-frames-after_object-1-1-1-0]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: assert 'done' == 'failed'\n  \n  - failed\n  + done"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_authority.py::test_job_stops_at_revoked_stage_and_never_commits_an_artifact[authority-frames-after_image-1-1-1-1]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: assert 'done' == 'failed'\n  \n  - failed\n  + done"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_authority.py::test_job_stops_at_revoked_stage_and_never_commits_an_artifact[authority-frames-before_artifact_commit-1-1-1-1]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: assert 'done' == 'failed'\n  \n  - failed\n  + done"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_authority.py::test_rebound_source_blocks_old_configuration_before_download",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: assert ('done' == 'failed'\n  \n  - failed\n  + done)"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_authority.py::test_real_gateway_download_retry_uses_media_authority_guard",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: assert ('done' == 'failed'\n  \n  - failed\n  + done)"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_authority.py::test_real_database_revocation_blocks_later_work_and_allows_explicit_rebind[after_streams]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: assert ('done' == 'failed'\n  \n  - failed\n  + done)"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_authority.py::test_real_database_revocation_blocks_later_work_and_allows_explicit_rebind[after_worker]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: assert ('done' == 'failed'\n  \n  - failed\n  + done)"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_authority.py::test_real_database_revocation_blocks_later_work_and_allows_explicit_rebind[before_artifact_commit]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: assert ('done' == 'failed'\n  \n  - failed\n  + done)"
+      }
+     ]
+    }
+   ]
+  },
+  "clean_before_metadata": {
+   "path": "temp/build/v2-media-authority-clean-before.json",
+   "sha256": "373216c6ccff21b7b89169c41334d91829d013766a1495997f9d244584f1838c"
+  },
+  "clean_before_log": {
+   "path": "temp/build/v2-media-authority-clean-before.log",
+   "sha256": "a00eac71482d195249222718ef70261cbce60ccc7c0bb736034541714a496a91"
+  },
+  "callers": {
+   "report": "temp/build/v2-media-authority-callers.xml",
+   "report_sha256": "7ff7b5cb4e6d015f6466c3af5bfd20ef67568c8abb7f6da73ac1ea8b8eb6755b",
+   "raw_suites": [
+    {
+     "name": "pytest",
+     "errors": "0",
+     "failures": "0",
+     "skipped": "0",
+     "tests": "162",
+     "time": "58.568",
+     "timestamp": "2026-11-16T16:09:41.746125+08:00",
+     "hostname": "cy"
+    }
+   ],
+   "junit_testcase_records": 162,
+   "unique_test_nodes_reported": 162,
+   "failure_events": 0,
+   "error_events": 0,
+   "skipped": 0,
+   "unique_failed_or_errored_nodes": 0,
+   "unique_nodes_without_failure_or_error": 162,
+   "duplicate_nodes": {},
+   "failed_nodes": []
+  },
+  "callers_log": {
+   "path": "temp/build/v2-media-authority-callers.log",
+   "sha256": "abb6a59dd2b5c263a0573bdabe53af534a8972e6e0d3e518115a5fe1baa9c064"
+  },
+  "cli_summary": "162 passed in 58.68s",
+  "coverage": [
+   "Six registration cases change revision/authority/enabled state before return or queued write execution",
+   "22 stage/authority cases stop later I/O, preserve exact codes, clean staging and commit no media artifact",
+   "Source rebind blocks old configuration before download; all three unchanged operations still succeed",
+   "Real Bilibili download adapter with MockTransport: first503 changes authority, so second network request is refused",
+   "Three real database cases include queued artifact commit after object publication; failed old job and zero media artifact, followed by explicit source rebind and new successful subtitle work"
+  ],
+  "total_unique_scoped_passed": 162
+ },
+ "scoped_validation": {
+  "scope": "Changed media service authority plus registration/download/publication/HTTP/lifecycle and shared fixture callers; native ASR/codec/protocol unchanged",
+  "base": "307e2c6dcc57753418d326e006d0fb4466cf1dec",
+  "planned": {
+   "agent/src/omni/application/media.py": {
+    "sha256": "6be31e5a886873e3fa52aec90c882e404e7f249e8267acd51b912941138e2eb7",
+    "git_blob": "51984036ef524db1bf08aa836cfbfd8f3c1e1117"
+   },
+   "agent/tests/test_v2_media_authority.py": {
+    "sha256": "8b80c1cf6f9d55307be6d88cbdb4f04a8d91e521f189de25ed7189634e6a4bee",
+    "git_blob": "c557c4f8ae1800de0ba49c98a40e999aaa85f888"
+   },
+   "agent/tests/test_v2_media_admission.py": {
+    "sha256": "a4100f0fed6b84c7bac8ad3d84c9ffec04cd9b6e123b14113d25de75b4af0062",
+    "git_blob": "c1317723c7d19104a300484cb7a8b10820496942"
+   },
+   "agent/tests/test_v2_media_staging.py": {
+    "sha256": "9eba4b56f609e386b0f81d2e56ec384fac770149f3a2631f1b3a4a68737030e3",
+    "git_blob": "950cfc69458cb3e8f2d4acf2b44c2c8785471ac3"
+   },
+   "docs/V2_MEDIA.md": {
+    "sha256": "e7caf6942bd3dc991b71eaa6466bbb5f9a13cbd8e576bf2455177ae85059b413",
+    "git_blob": "89bc7ec99fcefe41e1c9f32413592a9e48c79c6d"
+   },
+   "docs/TESTING.md": {
+    "sha256": "a8b5091f5077f6f2a7a66e7971b5ce9d2c8adf00769fbdb56df40cb83ec773c1",
+    "git_blob": "e9a71b4f0f8caee510b13c8bf1f57232b34c58b7"
+   },
+   "docs/index/MODULES.md": {
+    "sha256": "0187722186e793224c89da7fe216d6282b3be24b832baa06daecd42f6e5f469b",
+    "git_blob": "1f1e6a4354b1357b32daf9b248787618f0d1e5af"
+   },
+   "docs/index/project.json": {
+    "sha256": "78cc09d23f9d2dcc480208babc1e0f6f2bd05dec40632948f7a91e0da1f02cc5",
+    "git_blob": "d5d6718d87e9eeee47b5fef54c45064036cd720e"
+   }
+  },
+  "full_suite_run": false,
+  "gates": [
+   {
+    "command": [
+     "D:\\xm\\OmniOperator\\temp\\build\\checkpoint-interpreter-media-authority\\Scripts\\python.exe",
+     "-m",
+     "ruff",
+     "check",
+     "agent/src/omni/application/media.py",
+     "agent/tests/test_v2_media_authority.py",
+     "agent/tests/test_v2_media_admission.py",
+     "agent/tests/test_v2_media_staging.py"
+    ],
+    "returncode": 0,
+    "duration_s": 0.171,
+    "stdout": "All checks passed!\n",
+    "stderr": ""
+   },
+   {
+    "command": [
+     "D:\\xm\\OmniOperator\\temp\\build\\checkpoint-interpreter-media-authority\\Scripts\\python.exe",
+     "-m",
+     "ruff",
+     "format",
+     "--check",
+     "agent/src/omni/application/media.py",
+     "agent/tests/test_v2_media_authority.py",
+     "agent/tests/test_v2_media_admission.py",
+     "agent/tests/test_v2_media_staging.py"
+    ],
+    "returncode": 0,
+    "duration_s": 0.172,
+    "stdout": "4 files already formatted\n",
+    "stderr": ""
+   },
+   {
+    "command": [
+     "D:\\xm\\OmniOperator\\temp\\build\\checkpoint-interpreter-media-authority\\Scripts\\python.exe",
+     "-m",
+     "pyright",
+     "--project",
+     "D:\\xm\\OmniOperator\\temp\\build\\media-authority-index-precommit\\pyrightconfig.media-authority.json",
+     "--outputjson"
+    ],
+    "returncode": 0,
+    "duration_s": 1.61,
+    "stdout": "{\n    \"version\": \"1.1.414\",\n    \"time\": \"1794816581056\",\n    \"generalDiagnostics\": [],\n    \"summary\": {\n        \"filesAnalyzed\": 1,\n        \"errorCount\": 0,\n        \"warningCount\": 0,\n        \"informationCount\": 0,\n        \"timeInSec\": 0.694\n    }\n}\n\n",
+    "stderr": ""
+   }
+  ],
+  "strict_summary": {
+   "filesAnalyzed": 1,
+   "errorCount": 0,
+   "warningCount": 0,
+   "informationCount": 0,
+   "timeInSec": 0.694
+  },
+  "callers": {
+   "command": [
+    "D:\\xm\\OmniOperator\\temp\\build\\checkpoint-interpreter-media-authority\\Scripts\\python.exe",
+    "-m",
+    "pytest",
+    "-q",
+    "-n",
+    "0",
+    "agent/tests/test_v2_media_authority.py",
+    "agent/tests/test_v2_media_admission.py",
+    "agent/tests/test_v2_media_staging.py",
+    "agent/tests/test_v2_media_output.py",
+    "agent/tests/test_v2_media_transport.py",
+    "agent/tests/test_v2_media.py",
+    "agent/tests/test_v2_bilibili_gateway.py",
+    "agent/tests/test_v2_lifecycle.py",
+    "agent/tests/test_v2_architecture.py",
+    "agent/tests/test_v2_typecheck_scope.py",
+    "agent/tests/test_arch.py",
+    "--junitxml=D:\\xm\\OmniOperator\\temp\\build\\v2-media-authority-callers.xml"
+   ],
+   "targets": [
+    "test_v2_media_authority",
+    "test_v2_media_admission",
+    "test_v2_media_staging",
+    "test_v2_media_output",
+    "test_v2_media_transport",
+    "test_v2_media",
+    "test_v2_bilibili_gateway",
+    "test_v2_lifecycle",
+    "test_v2_architecture",
+    "test_v2_typecheck_scope",
+    "test_arch"
+   ],
+   "returncode": 0,
+   "duration_s": 59.812,
+   "cases": 162,
+   "failures": 0,
+   "errors": 0,
+   "skipped": 0
+  },
+  "source_unchanged": true
+ },
+ "scoped_validation_artifact": {
+  "path": "temp/build/v2-media-authority-scoped.json",
+  "sha256": "4ec0ccc0b1e374d1e1fc526a05b46c19c99eb354484a9b68ec56c64ddb00c298"
+ },
+ "ownership_artifact": {
+  "path": "temp/build/v2-media-authority-source.json",
+  "sha256": "735ab81925a9d434d0b5f1d74d87d8fa77bb6952fdb7c611cb5db3beec07ef43"
+ },
+ "exploratory_reports": {
+  "initial_working_after": {
+   "report": "temp/build/v2-media-authority-after.xml",
+   "report_sha256": "d3f3b37a8e19849c1b548966ed68d2feaf7a7382826808cdf2a72ea5551fe8bf",
+   "raw_suites": [
+    {
+     "name": "pytest",
+     "errors": "0",
+     "failures": "1",
+     "skipped": "0",
+     "tests": "36",
+     "time": "8.260",
+     "timestamp": "2026-11-16T16:05:19.528054+08:00",
+     "hostname": "cy"
+    }
+   ],
+   "junit_testcase_records": 36,
+   "unique_test_nodes_reported": 36,
+   "failure_events": 1,
+   "error_events": 0,
+   "skipped": 0,
+   "unique_failed_or_errored_nodes": 1,
+   "unique_nodes_without_failure_or_error": 35,
+   "duplicate_nodes": {},
+   "failed_nodes": [
+    {
+     "nodeid": "agent/tests/test_v2_media_authority.py::test_real_gateway_download_retry_uses_media_authority_guard",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: assert ('failed' == 'failed'\n  \n    failed and 'bilibili_con...ation_invalid' == 'bilibili_credential_changed'\n  \n  - bilibili_credential_changed\n  + bilibili_configuration_invalid)"
+      }
+     ]
+    }
+   ]
+  },
+  "corrected_exact_retry": {
+   "report": "temp/build/v2-media-authority-retry.xml",
+   "report_sha256": "9aaa8ab7b0078301c0825dbaeed89784acdbe61505c8cfce0a6b530545fa5db3",
+   "raw_suites": [
+    {
+     "name": "pytest",
+     "errors": "0",
+     "failures": "0",
+     "skipped": "0",
+     "tests": "1",
+     "time": "1.435",
+     "timestamp": "2026-11-16T16:05:46.846686+08:00",
+     "hostname": "cy"
+    }
+   ],
+   "junit_testcase_records": 1,
+   "unique_test_nodes_reported": 1,
+   "failure_events": 0,
+   "error_events": 0,
+   "skipped": 0,
+   "unique_failed_or_errored_nodes": 0,
+   "unique_nodes_without_failure_or_error": 1,
+   "duplicate_nodes": {},
+   "failed_nodes": []
+  },
+  "correction": "The real gateway fixture initially supplied pre-normalization CHANNEL without its canonical endpoint field, so it failed configuration validation before retry. Added the endpoint only to the fake authorized record; exact retry then passed. Final clean baseline and candidate use those same corrected bytes.",
+  "scope": "Working-tree probes may include concurrent WIP; immutable candidate is authoritative."
+ },
+ "full_run": {
+  "status": "deferred_per_owner",
+  "run_for_this_change": false,
+  "covers_this_source": false,
+  "reason": "Owner prioritizes implementation and scoped tests; full suite at multi-module integration",
+  "last_completed_source": "42a4b8b29d7c80daa4cb212d49dd40d07c189079",
+  "last_completed_summary": "4800 passed, 12 warnings in 3025.48s (0:50:25)",
+  "last_completed_report": {
+   "path": "temp/build/v2-full-226.xml",
+   "sha256": "ecab05764ea535042e7e4dde6ea0e0f6969030b4ae74056a1ce9fd20352549e4"
+  },
+  "last_full_does_not_cover_this_change": true
+ },
+ "not_verified": [
+  "Full integration suite for this new source",
+  "Already dispatched reads/worker calls and completed objects/images are not rolled back by revocation; existing ownership and GC rules remain",
+  "No new native decoder/ASR/codec/protocol test run in this batch; those files remain byte-identical",
+  "Actual Bilibili accounts/credential platforms/models/devices and long-running acceptance",
+  "Historical system commit/native/UI causes",
+  "Concurrent uncommitted configuration/schema/UI bodies"
+ ]
+}
