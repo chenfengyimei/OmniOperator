@@ -185,9 +185,9 @@ class MediaService:
             plan = frames_plan(params.get("count", 6), params.get("width", 640))
         if operation == "transcribe":
             plan = asr_plan(
-                str(params.get("model") or ASR_DEFAULT["model"]),
-                str(params.get("device") or ASR_DEFAULT["device"]),
-                str(params.get("compute_type") or ASR_DEFAULT["compute_type"]),
+                params.get("model", ASR_DEFAULT["model"]),
+                params.get("device", ASR_DEFAULT["device"]),
+                params.get("compute_type", ASR_DEFAULT["compute_type"]),
             )
 
         async def create() -> Record:
