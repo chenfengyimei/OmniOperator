@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "21473631694ccc0c039d01f1ff5323f1530206e789901e71031800252eb03f06",
+  "source_sha256": "01aa5390d3e6c8193f217e022f192d45f666c8057715999240c44f1b2b83880d",
   "modules": [
     {
       "id": "v2-domain",
@@ -404,7 +404,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 54532,
+      "lines": 54567,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -9781,7 +9781,7 @@
       "path": "agent/src/omni/adapters/media.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.media",
-      "lines": 246,
+      "lines": 281,
       "imports": [
         "omni.adapters.platform.processes",
         "omni.domain.contracts",
@@ -9790,7 +9790,7 @@
       "symbols": [
         {
           "name": "_reject_json_constant",
-          "line": 27,
+          "line": 28,
           "kind": "function",
           "parameters": [
             "_"
@@ -9801,7 +9801,7 @@
         },
         {
           "name": "_finite_json_float",
-          "line": 31,
+          "line": 32,
           "kind": "function",
           "parameters": [
             "value"
@@ -9812,7 +9812,7 @@
         },
         {
           "name": "_unique_json_object",
-          "line": 38,
+          "line": 39,
           "kind": "function",
           "parameters": [
             "pairs"
@@ -9823,7 +9823,7 @@
         },
         {
           "name": "_response",
-          "line": 47,
+          "line": 48,
           "kind": "function",
           "parameters": [
             "line",
@@ -9836,12 +9836,12 @@
         },
         {
           "name": "MediaProcessor",
-          "line": 73,
+          "line": 74,
           "kind": "class"
         },
         {
           "name": "MediaProcessor.__init__",
-          "line": 81,
+          "line": 82,
           "kind": "function",
           "parameters": [
             "self",
@@ -9853,7 +9853,7 @@
         },
         {
           "name": "MediaProcessor.status",
-          "line": 89,
+          "line": 91,
           "kind": "function",
           "parameters": [
             "self"
@@ -9862,7 +9862,16 @@
         },
         {
           "name": "MediaProcessor._spawn",
-          "line": 99,
+          "line": 102,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "MediaProcessor._start",
+          "line": 125,
           "kind": "function",
           "parameters": [
             "self"
@@ -9871,7 +9880,7 @@
         },
         {
           "name": "MediaProcessor._terminate",
-          "line": 122,
+          "line": 144,
           "kind": "function",
           "parameters": [
             "self",
@@ -9883,7 +9892,7 @@
         },
         {
           "name": "MediaProcessor._request",
-          "line": 135,
+          "line": 170,
           "kind": "function",
           "parameters": [
             "self",
@@ -9899,7 +9908,7 @@
         },
         {
           "name": "MediaProcessor.probe",
-          "line": 202,
+          "line": 237,
           "kind": "function",
           "parameters": [
             "self"
@@ -9908,7 +9917,7 @@
         },
         {
           "name": "MediaProcessor.transcribe",
-          "line": 207,
+          "line": 242,
           "kind": "function",
           "parameters": [
             "self",
@@ -9924,7 +9933,7 @@
         },
         {
           "name": "MediaProcessor.frames",
-          "line": 220,
+          "line": 255,
           "kind": "function",
           "parameters": [
             "self",
@@ -9942,7 +9951,7 @@
         },
         {
           "name": "MediaProcessor.stop_accepting",
-          "line": 228,
+          "line": 263,
           "kind": "function",
           "parameters": [
             "self"
@@ -9951,7 +9960,7 @@
         },
         {
           "name": "MediaProcessor.close",
-          "line": 231,
+          "line": 266,
           "kind": "function",
           "parameters": [
             "self",

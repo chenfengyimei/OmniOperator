@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import contextvars
 import json
 import logging
 import math
@@ -81,6 +82,7 @@ class MediaProcessor:
     def __init__(self, argv: list[str] | None = None) -> None:
         self._argv = argv or [sys.executable, "-m", "omni.adapters.workers.media"]
         self._owned: OwnedProcess | None = None
+        self._starting: asyncio.Task[OwnedProcess] | None = None
         self._lock = asyncio.Lock()
         self._probed: dict[str, object] | None = None
         self._closing = False
@@ -92,6 +94,7 @@ class MediaProcessor:
             "probed": self._probed is not None,
             "components": self._probed or {},
             "running": self._owned is not None and self._owned.process.returncode is None,
+            "starting": self._starting is not None and not self._starting.done(),
             "cleanup_pending": self._cleanup_pending,
             "recovery": "Install the optional asr dependency for av and faster-whisper; frames need av and Pillow",
         }
@@ -119,14 +122,46 @@ class MediaProcessor:
         self._owned = owned
         return owned
 
+    async def _start(self) -> OwnedProcess:
+        if self._starting is None:
+            self._starting = asyncio.create_task(self._spawn(), name="media-spawn", context=contextvars.Context())
+            self._starting.add_done_callback(
+                lambda task: task.exception() if not task.cancelled() else None, context=contextvars.Context()
+            )
+        try:
+            owned = await asyncio.shield(self._starting)
+        except asyncio.CancelledError:
+            # Native creation can finish after the caller leaves; retain its actual result.
+            self._cleanup_pending = True
+            raise
+        except Exception:
+            self._starting = None
+            self._cleanup_pending = self._owned is not None
+            raise
+        self._starting = None
+        return owned
+
     async def _terminate(self, timeout_s: float = 5) -> bool:
+        deadline = asyncio.get_running_loop().time() + max(0, timeout_s)
+        if self._starting is not None:
+            self._cleanup_pending = True
+            starting = self._starting
+            done, _ = await asyncio.wait((starting,), timeout=max(0, deadline - asyncio.get_running_loop().time()))
+            if not done or starting.cancelled():
+                return False
+            if starting.exception() is None:
+                self._owned = starting.result()
+            else:
+                # Keep any owner published before failure; do not log native error text.
+                log.warning("Media worker creation failed", extra={"event": "media.spawn_failed"})
+            self._starting = None
         owned = self._owned
         if owned is None:
             self._cleanup_pending = False
             return True
         # Keep the actual owner reachable even if reclamation is cancelled or raises.
         self._cleanup_pending = True
-        if not await owned.terminate(timeout_s):
+        if not await owned.terminate(max(0, deadline - asyncio.get_running_loop().time())):
             return False
         self._owned = None
         self._cleanup_pending = False
@@ -156,7 +191,7 @@ class MediaProcessor:
                 if self._closing:
                     raise BusinessError("media_processor_closing", "Media processing is closing", status=503)
             if owned is None:
-                owned = await self._spawn()
+                owned = await self._start()
             if self._closing:
                 raise BusinessError("media_processor_closing", "Media processing is closing", status=503)
             assert owned.process.stdin is not None and owned.process.stdout is not None
