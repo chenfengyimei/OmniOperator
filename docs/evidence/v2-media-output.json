@@ -1,0 +1,613 @@
+{
+ "schema": 1,
+ "date": "2026-11-16",
+ "branch": "v2",
+ "whole_v2_complete": false,
+ "default_entrypoint": "v1",
+ "source": {
+  "head": "a4c21c24cd25765d84e0f399d0cb9ac09ae0c7aa",
+  "base": "d1c39ed37657da8762cd80810b96edc65428ed8a",
+  "code_version": "7f7ef50fdb5ee02fd73353832035f447546ae488d6683a21d7b535ad9fe7b052",
+  "code_files": 1225,
+  "version_artifact": {
+   "path": "temp/build/v2-media-output-source-version.json",
+   "sha256": "095b805ef21df21da6a22ae7774ff1a195e7f1c8ad67f7e063771799f3266e20"
+  },
+  "planned": {
+   "agent/src/omni/application/media.py": {
+    "sha256": "0068b4af62e011c52f8e4b42b02c4184dc3f0ee6917a6d9c498b1c78823b476b",
+    "git_blob": "e1859aad48a292e76e0409d4e769f82de1bb85a0"
+   },
+   "agent/tests/test_v2_media_output.py": {
+    "sha256": "93f056613362887f6d40ad4ee02690911bb0b7dd964c55371eb5584f365fdb72",
+    "git_blob": "30693a93a22803899ea0370d11c2e0d180b86462"
+   },
+   "docs/V2_MEDIA.md": {
+    "sha256": "627133ec5d6fde98b88875acd59f2eaa6db20cae54571f4ffafe7cf44c647c35",
+    "git_blob": "67c96dfb51a7ab249dc07e42053267bc1e458f6a"
+   },
+   "docs/TESTING.md": {
+    "sha256": "960f9a16c454b8b0e7b8b3d4acf232b1d255f8b95fdd753add6965b58edd0960",
+    "git_blob": "728b59682e31b299589306920f9ddd6832935fa3"
+   },
+   "docs/index/MODULES.md": {
+    "sha256": "f5fa49ec85bc8a1490c272d79d0900e197bd10e37ebfe96eb6631afa3de6cf9d",
+    "git_blob": "be6825b472176e6f59813f02a6dd25cd37ac967a"
+   },
+   "docs/index/project.json": {
+    "sha256": "9b1f9e6ab10ae8adf05e413d97379e4f5500f577dacfe2d700e91e666a82a075",
+    "git_blob": "1db9bf5baa90718da1d3b5169aae77cc93029b3d"
+   }
+  },
+  "candidate": "D:\\xm\\OmniOperator\\temp\\build\\media-output-index-precommit",
+  "parallel_working_bodies_preserved": true
+ },
+ "root_cause": "Worker output was loaded with unbounded Path.read_bytes before metadata/size checks. ASR accepted a valid subtitle object under an ASR row, and an oversized valid JSON output could publish an object before its durable transcript row was rejected.",
+ "changes": [
+  "Read worker output once at most accepted bytes plus one, closing streams on success/error",
+  "Validate sheet metadata before opening the file, then use its verified <=8MiB size as the read bound",
+  "Reject ASR output beyond4MiB or with non-ASR kind before any object publication",
+  "Keep valid bytes, SHA/length guards, normal job state handling and explicit later-job behavior"
+ ],
+ "proof": {
+  "changed_existing_methods": [
+   "_execute",
+   "_register_sheet"
+  ],
+  "new_function": "_output_bytes",
+  "execute_ast_identical_except_bounded_output_read_parse_cache_and_kind_guard": true,
+  "sheet_metadata_and_publication_ast_identical_with_validation_moved_before_read": true,
+  "admission_cleanup_and_close_methods_byte_identical": true,
+  "domain_processor_worker_lifecycle_repository_files_byte_identical": [
+   "agent/src/omni/domain/media.py",
+   "agent/src/omni/adapters/media.py",
+   "agent/src/omni/adapters/workers/media.py",
+   "agent/src/omni/composition/lifecycle.py",
+   "agent/src/omni/adapters/persistence/media_repository.py"
+  ],
+  "frame_and_processing_budget_constants_unchanged": true,
+  "regressions_identical_between_clean_before_and_candidate": true,
+  "strict_files": 1
+ },
+ "regressions": {
+  "new_cases": 14,
+  "clean_before": {
+   "report": "temp/build/v2-media-output-clean-before.xml",
+   "report_sha256": "95f30d7224e7ce227b9d7158617bbb68aaee4c7cf45386d023e42a83e74dd946",
+   "raw_suites": [
+    {
+     "name": "pytest",
+     "errors": "0",
+     "failures": "14",
+     "skipped": "0",
+     "tests": "14",
+     "time": "11.151",
+     "timestamp": "2026-11-16T15:28:09.663191+08:00",
+     "hostname": "cy"
+    }
+   ],
+   "junit_testcase_records": 14,
+   "unique_test_nodes_reported": 14,
+   "failure_events": 14,
+   "error_events": 0,
+   "skipped": 0,
+   "unique_failed_or_errored_nodes": 14,
+   "unique_nodes_without_failure_or_error": 0,
+   "duplicate_nodes": {},
+   "failed_nodes": [
+    {
+     "nodeid": "agent/tests/test_v2_media_output.py::test_sheet_reads_only_declared_size_plus_one_and_preserves_integrity_checks[normal]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "assert ([-1] == [18]\n  \n  At index 0 diff: -1 != 18\n  Use -v to get more diff)"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_output.py::test_sheet_reads_only_declared_size_plus_one_and_preserves_integrity_checks[extra]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "assert ([-1] == [18]\n  \n  At index 0 diff: -1 != 18\n  Use -v to get more diff)"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_output.py::test_sheet_reads_only_declared_size_plus_one_and_preserves_integrity_checks[truncated]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "assert ([-1] == [18]\n  \n  At index 0 diff: -1 != 18\n  Use -v to get more diff)"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_output.py::test_sheet_reads_only_declared_size_plus_one_and_preserves_integrity_checks[empty]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "assert ([-1] == [18]\n  \n  At index 0 diff: -1 != 18\n  Use -v to get more diff)"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_output.py::test_sheet_reads_only_declared_size_plus_one_and_preserves_integrity_checks[bad_hash]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "assert ([-1] == [18]\n  \n  At index 0 diff: -1 != 18\n  Use -v to get more diff)"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_output.py::test_invalid_sheet_metadata_is_rejected_before_any_file_read[bytes-0]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "assert (not [-1])\n +  where [-1] = <test_v2_media_output.Output object at 0x00000298360E5CD0>.reads"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_output.py::test_invalid_sheet_metadata_is_rejected_before_any_file_read[bytes-8388609]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "assert (not [-1])\n +  where [-1] = <test_v2_media_output.Output object at 0x00000298360E7530>.reads"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_output.py::test_invalid_sheet_metadata_is_rejected_before_any_file_read[width-8193]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "assert (not [-1])\n +  where [-1] = <test_v2_media_output.Output object at 0x00000298360EB0B0>.reads"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_output.py::test_sheet_at_exact_eight_mib_limit_is_preserved",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "assert ([-1] == [8388609]\n  \n  At index 0 diff: -1 != 8388609\n  Use -v to get more diff)"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_output.py::test_sheet_read_error_closes_stream_without_publishing",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "assert ([-1] == [18]\n  \n  At index 0 diff: -1 != 18\n  Use -v to get more diff)"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_output.py::test_real_asr_jobs_bound_output_before_publication_and_allow_explicit_new_work[normal]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "assert ([-1] == [4194305]\n  \n  At index 0 diff: -1 != 4194305\n  Use -v to get more diff)"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_output.py::test_real_asr_jobs_bound_output_before_publication_and_allow_explicit_new_work[exact_limit]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "assert ([-1] == [4194305]\n  \n  At index 0 diff: -1 != 4194305\n  Use -v to get more diff)"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_output.py::test_real_asr_jobs_bound_output_before_publication_and_allow_explicit_new_work[over_limit]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: assert ('failed' == 'failed'\n  \n    failed and 'data_constraint' == 'media_transcript_unreadable'\n  \n  - media_transcript_unreadable\n  + data_constraint)"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_output.py::test_real_asr_jobs_bound_output_before_publication_and_allow_explicit_new_work[wrong_kind]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: assert ('done' == 'failed'\n  \n  - failed\n  + done)"
+      }
+     ]
+    }
+   ]
+  },
+  "clean_before_metadata": {
+   "path": "temp/build/v2-media-output-clean-before.json",
+   "sha256": "fd97db37dcb150750bc0992eec206d2155d73959a64876b8a4ff2ad8011cddd6"
+  },
+  "clean_before_log": {
+   "path": "temp/build/v2-media-output-clean-before.log",
+   "sha256": "6b6175ae75a44ba35c94a14a2945ab9132e574474c125bfefda135f675f46768"
+  },
+  "callers": {
+   "report": "temp/build/v2-media-output-callers.xml",
+   "report_sha256": "f9806763fe6373092e6ef0806a7fc03c2575d3d6fad7d8e8299d909094c65468",
+   "raw_suites": [
+    {
+     "name": "pytest",
+     "errors": "0",
+     "failures": "0",
+     "skipped": "0",
+     "tests": "214",
+     "time": "47.276",
+     "timestamp": "2026-11-16T15:30:11.051268+08:00",
+     "hostname": "cy"
+    }
+   ],
+   "junit_testcase_records": 214,
+   "unique_test_nodes_reported": 214,
+   "failure_events": 0,
+   "error_events": 0,
+   "skipped": 0,
+   "unique_failed_or_errored_nodes": 0,
+   "unique_nodes_without_failure_or_error": 214,
+   "duplicate_nodes": {},
+   "failed_nodes": []
+  },
+  "callers_log": {
+   "path": "temp/build/v2-media-output-callers.log",
+   "sha256": "dda4bf57cd7cadb583f421fa91684cd90e96b544dd68669b07f0dee09be22baf"
+  },
+  "cli_summary": "214 passed in 47.34s",
+  "coverage": [
+   "Sheet reads only declared bytes plus one for valid/extra/truncated/empty/bad-hash content; invalid content never publishes",
+   "Invalid size/dimensions metadata makes zero reads and zero object/image calls",
+   "Exact8MiB sheet remains byte-identical",
+   "Read errors retain original exception and close stream without publication",
+   "Four real database ASR paths: normal/exact4MiB/oversized/wrong-kind; inspect actual read bound, closure, exact valid body, zero publication for invalid output, staging cleanup and explicit new subtitle work"
+  ],
+  "total_unique_scoped_passed": 214
+ },
+ "scoped_validation": {
+  "scope": "Changed media service plus processor/job/HTTP/audio/lifecycle/architecture/type-scope callers",
+  "base": "d1c39ed37657da8762cd80810b96edc65428ed8a",
+  "planned": {
+   "agent/src/omni/application/media.py": {
+    "sha256": "0068b4af62e011c52f8e4b42b02c4184dc3f0ee6917a6d9c498b1c78823b476b",
+    "git_blob": "e1859aad48a292e76e0409d4e769f82de1bb85a0"
+   },
+   "agent/tests/test_v2_media_output.py": {
+    "sha256": "93f056613362887f6d40ad4ee02690911bb0b7dd964c55371eb5584f365fdb72",
+    "git_blob": "30693a93a22803899ea0370d11c2e0d180b86462"
+   },
+   "docs/V2_MEDIA.md": {
+    "sha256": "627133ec5d6fde98b88875acd59f2eaa6db20cae54571f4ffafe7cf44c647c35",
+    "git_blob": "67c96dfb51a7ab249dc07e42053267bc1e458f6a"
+   },
+   "docs/TESTING.md": {
+    "sha256": "960f9a16c454b8b0e7b8b3d4acf232b1d255f8b95fdd753add6965b58edd0960",
+    "git_blob": "728b59682e31b299589306920f9ddd6832935fa3"
+   },
+   "docs/index/MODULES.md": {
+    "sha256": "f5fa49ec85bc8a1490c272d79d0900e197bd10e37ebfe96eb6631afa3de6cf9d",
+    "git_blob": "be6825b472176e6f59813f02a6dd25cd37ac967a"
+   },
+   "docs/index/project.json": {
+    "sha256": "9b1f9e6ab10ae8adf05e413d97379e4f5500f577dacfe2d700e91e666a82a075",
+    "git_blob": "1db9bf5baa90718da1d3b5169aae77cc93029b3d"
+   }
+  },
+  "full_suite_run": false,
+  "gates": [
+   {
+    "command": [
+     "D:\\xm\\OmniOperator\\temp\\build\\checkpoint-interpreter-media-output\\Scripts\\python.exe",
+     "-m",
+     "ruff",
+     "check",
+     "agent/src/omni/application/media.py",
+     "agent/tests/test_v2_media_output.py"
+    ],
+    "returncode": 0,
+    "duration_s": 0.172,
+    "stdout": "All checks passed!\n",
+    "stderr": ""
+   },
+   {
+    "command": [
+     "D:\\xm\\OmniOperator\\temp\\build\\checkpoint-interpreter-media-output\\Scripts\\python.exe",
+     "-m",
+     "ruff",
+     "format",
+     "--check",
+     "agent/src/omni/application/media.py",
+     "agent/tests/test_v2_media_output.py"
+    ],
+    "returncode": 0,
+    "duration_s": 0.187,
+    "stdout": "2 files already formatted\n",
+    "stderr": ""
+   },
+   {
+    "command": [
+     "D:\\xm\\OmniOperator\\temp\\build\\checkpoint-interpreter-media-output\\Scripts\\python.exe",
+     "-m",
+     "pyright",
+     "--project",
+     "D:\\xm\\OmniOperator\\temp\\build\\media-output-index-precommit\\pyrightconfig.media-output.json",
+     "--outputjson"
+    ],
+    "returncode": 0,
+    "duration_s": 1.516,
+    "stdout": "{\n    \"version\": \"1.1.414\",\n    \"time\": \"1794814210338\",\n    \"generalDiagnostics\": [],\n    \"summary\": {\n        \"filesAnalyzed\": 1,\n        \"errorCount\": 0,\n        \"warningCount\": 0,\n        \"informationCount\": 0,\n        \"timeInSec\": 0.661\n    }\n}\n\n",
+    "stderr": ""
+   }
+  ],
+  "strict_summary": {
+   "filesAnalyzed": 1,
+   "errorCount": 0,
+   "warningCount": 0,
+   "informationCount": 0,
+   "timeInSec": 0.661
+  },
+  "callers": {
+   "command": [
+    "D:\\xm\\OmniOperator\\temp\\build\\checkpoint-interpreter-media-output\\Scripts\\python.exe",
+    "-m",
+    "pytest",
+    "-q",
+    "-n",
+    "0",
+    "agent/tests/test_v2_media_output.py",
+    "agent/tests/test_v2_media_staging.py",
+    "agent/tests/test_v2_media_admission.py",
+    "agent/tests/test_v2_media_stderr.py",
+    "agent/tests/test_v2_media_startup.py",
+    "agent/tests/test_v2_media_protocol.py",
+    "agent/tests/test_v2_media_transport.py",
+    "agent/tests/test_v2_media.py",
+    "agent/tests/test_v2_media_worker.py",
+    "agent/tests/test_v2_media_audio.py",
+    "agent/tests/test_v2_lifecycle.py",
+    "agent/tests/test_v2_architecture.py",
+    "agent/tests/test_v2_typecheck_scope.py",
+    "agent/tests/test_arch.py",
+    "--junitxml=D:\\xm\\OmniOperator\\temp\\build\\v2-media-output-callers.xml"
+   ],
+   "targets": [
+    "test_v2_media_output",
+    "test_v2_media_staging",
+    "test_v2_media_admission",
+    "test_v2_media_stderr",
+    "test_v2_media_startup",
+    "test_v2_media_protocol",
+    "test_v2_media_transport",
+    "test_v2_media",
+    "test_v2_media_worker",
+    "test_v2_media_audio",
+    "test_v2_lifecycle",
+    "test_v2_architecture",
+    "test_v2_typecheck_scope",
+    "test_arch"
+   ],
+   "returncode": 0,
+   "duration_s": 48.484,
+   "cases": 214,
+   "failures": 0,
+   "errors": 0,
+   "skipped": 0
+  },
+  "source_unchanged": true
+ },
+ "scoped_validation_artifact": {
+  "path": "temp/build/v2-media-output-scoped.json",
+  "sha256": "5bfc850291463ea8da36ee8924dd03a43f7336ef5b001cede45adc1e0f66c13e"
+ },
+ "ownership_artifact": {
+  "path": "temp/build/v2-media-output-source.json",
+  "sha256": "882c3566d13745d3333d40d4adb58d279ba560756f96bb43f1919c2071a3010a"
+ },
+ "exploratory_reports": {
+  "working_before": {
+   "report": "temp/build/v2-media-output-before.xml",
+   "report_sha256": "b45bd6dcc78de1a15d5e3c324b96af9daac211592866f2bb45a1298ea29108ea",
+   "raw_suites": [
+    {
+     "name": "pytest",
+     "errors": "0",
+     "failures": "14",
+     "skipped": "0",
+     "tests": "14",
+     "time": "8.207",
+     "timestamp": "2026-11-16T15:25:59.929609+08:00",
+     "hostname": "cy"
+    }
+   ],
+   "junit_testcase_records": 14,
+   "unique_test_nodes_reported": 14,
+   "failure_events": 14,
+   "error_events": 0,
+   "skipped": 0,
+   "unique_failed_or_errored_nodes": 14,
+   "unique_nodes_without_failure_or_error": 0,
+   "duplicate_nodes": {},
+   "failed_nodes": [
+    {
+     "nodeid": "agent/tests/test_v2_media_output.py::test_sheet_reads_only_declared_size_plus_one_and_preserves_integrity_checks[normal]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "assert ([-1] == [18]\n  \n  At index 0 diff: -1 != 18\n  Use -v to get more diff)"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_output.py::test_sheet_reads_only_declared_size_plus_one_and_preserves_integrity_checks[extra]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "assert ([-1] == [18]\n  \n  At index 0 diff: -1 != 18\n  Use -v to get more diff)"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_output.py::test_sheet_reads_only_declared_size_plus_one_and_preserves_integrity_checks[truncated]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "assert ([-1] == [18]\n  \n  At index 0 diff: -1 != 18\n  Use -v to get more diff)"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_output.py::test_sheet_reads_only_declared_size_plus_one_and_preserves_integrity_checks[empty]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "assert ([-1] == [18]\n  \n  At index 0 diff: -1 != 18\n  Use -v to get more diff)"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_output.py::test_sheet_reads_only_declared_size_plus_one_and_preserves_integrity_checks[bad_hash]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "assert ([-1] == [18]\n  \n  At index 0 diff: -1 != 18\n  Use -v to get more diff)"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_output.py::test_invalid_sheet_metadata_is_rejected_before_any_file_read[bytes-0]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "assert (not [-1])\n +  where [-1] = <test_v2_media_output.Output object at 0x000001A2F457EC00>.reads"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_output.py::test_invalid_sheet_metadata_is_rejected_before_any_file_read[bytes-8388609]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "assert (not [-1])\n +  where [-1] = <test_v2_media_output.Output object at 0x000001A2F45F2810>.reads"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_output.py::test_invalid_sheet_metadata_is_rejected_before_any_file_read[width-8193]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "assert (not [-1])\n +  where [-1] = <test_v2_media_output.Output object at 0x000001A2F45F09B0>.reads"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_output.py::test_sheet_at_exact_eight_mib_limit_is_preserved",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "assert ([-1] == [8388609]\n  \n  At index 0 diff: -1 != 8388609\n  Use -v to get more diff)"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_output.py::test_sheet_read_error_closes_stream_without_publishing",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "assert ([-1] == [18]\n  \n  At index 0 diff: -1 != 18\n  Use -v to get more diff)"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_output.py::test_real_asr_jobs_bound_output_before_publication_and_allow_explicit_new_work[normal]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "assert ([-1] == [4194305]\n  \n  At index 0 diff: -1 != 4194305\n  Use -v to get more diff)"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_output.py::test_real_asr_jobs_bound_output_before_publication_and_allow_explicit_new_work[exact_limit]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "assert ([-1] == [4194305]\n  \n  At index 0 diff: -1 != 4194305\n  Use -v to get more diff)"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_output.py::test_real_asr_jobs_bound_output_before_publication_and_allow_explicit_new_work[over_limit]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: assert ('failed' == 'failed'\n  \n    failed and 'data_constraint' == 'media_transcript_unreadable'\n  \n  - media_transcript_unreadable\n  + data_constraint)"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_output.py::test_real_asr_jobs_bound_output_before_publication_and_allow_explicit_new_work[wrong_kind]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: assert ('done' == 'failed'\n  \n  - failed\n  + done)"
+      }
+     ]
+    }
+   ]
+  },
+  "working_after": {
+   "report": "temp/build/v2-media-output-after.xml",
+   "report_sha256": "3750ee9d44a84a3c99b963ca42058309d058ae66555fd422152cafbe0a2ff438",
+   "raw_suites": [
+    {
+     "name": "pytest",
+     "errors": "0",
+     "failures": "0",
+     "skipped": "0",
+     "tests": "14",
+     "time": "7.551",
+     "timestamp": "2026-11-16T15:26:50.531492+08:00",
+     "hostname": "cy"
+    }
+   ],
+   "junit_testcase_records": 14,
+   "unique_test_nodes_reported": 14,
+   "failure_events": 0,
+   "error_events": 0,
+   "skipped": 0,
+   "unique_failed_or_errored_nodes": 0,
+   "unique_nodes_without_failure_or_error": 14,
+   "duplicate_nodes": {},
+   "failed_nodes": []
+  },
+  "scope": "Working-tree probes may include concurrent WIP; final clean baseline and immutable candidate are authoritative."
+ },
+ "full_run": {
+  "status": "deferred_per_owner",
+  "run_for_this_change": false,
+  "covers_this_source": false,
+  "reason": "Owner prioritizes implementation and scoped tests; full suite at multi-module integration",
+  "last_completed_source": "42a4b8b29d7c80daa4cb212d49dd40d07c189079",
+  "last_completed_summary": "4800 passed, 12 warnings in 3025.48s (0:50:25)",
+  "last_completed_report": {
+   "path": "temp/build/v2-full-226.xml",
+   "sha256": "ecab05764ea535042e7e4dde6ea0e0f6969030b4ae74056a1ce9fd20352549e4"
+  },
+  "last_full_does_not_cover_this_change": true
+ },
+ "not_verified": [
+  "Full integration suite for this new source",
+  "Stricter transcript JSON parsing or hostile special-file identity semantics; the domain codec is unchanged",
+  "Decoder/model/native internal memory or whole-process peak; only output read buffers are bounded here",
+  "Actual Bilibili accounts/models/devices and long-running acceptance",
+  "Historical system commit/native/UI causes",
+  "Concurrent uncommitted configuration/schema/UI bodies"
+ ]
+}
