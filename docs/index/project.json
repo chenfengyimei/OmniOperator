@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "9cee70134d6e0673cbd1b3c010ea3d0c254bba73ab77f68912169dc5c36bab8e",
+  "source_sha256": "4670fc70232679fdf279e733cdd7925b7f2a6454e57402a622629ebbc02f24f3",
   "modules": [
     {
       "id": "v2-domain",
@@ -404,7 +404,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 54960,
+      "lines": 54962,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -32531,19 +32531,19 @@
       "path": "agent/src/omni/adapters/skill_packages.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.skill_packages",
-      "lines": 175,
+      "lines": 177,
       "imports": [
         "omni.domain.skills"
       ],
       "symbols": [
         {
           "name": "_MetadataLoader",
-          "line": 21,
+          "line": 22,
           "kind": "class"
         },
         {
           "name": "_MetadataLoader.get_single_node",
-          "line": 22,
+          "line": 23,
           "kind": "function",
           "parameters": [
             "self"
@@ -32552,7 +32552,7 @@
         },
         {
           "name": "_MetadataLoader.flatten_mapping",
-          "line": 23,
+          "line": 24,
           "kind": "function",
           "parameters": [
             "self",
@@ -32564,18 +32564,6 @@
         },
         {
           "name": "_MetadataLoader.construct_object",
-          "line": 24,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "node"
-          ],
-          "annotations": {
-            "node": "Node"
-          }
-        },
-        {
-          "name": "_MetadataLoader.construct_document",
           "line": 25,
           "kind": "function",
           "parameters": [
@@ -32587,8 +32575,20 @@
           }
         },
         {
-          "name": "_MetadataLoader.dispose",
+          "name": "_MetadataLoader.construct_document",
           "line": 26,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "node"
+          ],
+          "annotations": {
+            "node": "Node"
+          }
+        },
+        {
+          "name": "_MetadataLoader.dispose",
+          "line": 27,
           "kind": "function",
           "parameters": [
             "self"
@@ -32597,7 +32597,7 @@
         },
         {
           "name": "_metadata_budget",
-          "line": 29,
+          "line": 30,
           "kind": "function",
           "parameters": [
             "node"
@@ -32608,7 +32608,7 @@
         },
         {
           "name": "_metadata",
-          "line": 47,
+          "line": 48,
           "kind": "function",
           "parameters": [
             "header"
@@ -32619,7 +32619,7 @@
         },
         {
           "name": "capture",
-          "line": 67,
+          "line": 68,
           "kind": "function",
           "parameters": [
             "payload",
@@ -32632,12 +32632,12 @@
         },
         {
           "name": "SkillPackages",
-          "line": 130,
+          "line": 132,
           "kind": "class"
         },
         {
           "name": "SkillPackages.__init__",
-          "line": 131,
+          "line": 133,
           "kind": "function",
           "parameters": [
             "self"
@@ -32646,7 +32646,7 @@
         },
         {
           "name": "SkillPackages.parse",
-          "line": 136,
+          "line": 138,
           "kind": "function",
           "parameters": [
             "self",
@@ -32660,7 +32660,7 @@
         },
         {
           "name": "SkillPackages.archive",
-          "line": 139,
+          "line": 141,
           "kind": "function",
           "parameters": [
             "self",
@@ -32672,14 +32672,14 @@
         },
         {
           "name": "SkillPackages.archive.perform",
-          "line": 140,
+          "line": 142,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "SkillPackages._execute",
-          "line": 152,
+          "line": 154,
           "kind": "function",
           "parameters": [
             "self",
@@ -32691,14 +32691,14 @@
         },
         {
           "name": "SkillPackages._execute.perform",
-          "line": 156,
+          "line": 158,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "SkillPackages._execute.done",
-          "line": 163,
+          "line": 165,
           "kind": "function",
           "parameters": [
             "future"
@@ -32709,7 +32709,7 @@
         },
         {
           "name": "SkillPackages.close",
-          "line": 171,
+          "line": 173,
           "kind": "function",
           "parameters": [
             "self",

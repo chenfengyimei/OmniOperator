@@ -6,6 +6,7 @@ import asyncio
 import io
 import stat
 import zipfile
+import zlib
 from collections.abc import Callable
 from typing import Protocol, TypeVar, cast
 
@@ -121,6 +122,7 @@ def capture(payload: bytes, format: str) -> SkillPackage:
         RecursionError,
         yaml.YAMLError,
         zipfile.BadZipFile,
+        zlib.error,
         NotImplementedError,
         OSError,
     ):
