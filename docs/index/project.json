@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "534a2c9a01433805234cfcb49a39ea9fed69f8b0e9cb0de0263d3a6649044f98",
+  "source_sha256": "770a1c177cd73013950e3dc5bbcd822adcc9b033573e8ebcb828a9e309eea37b",
   "modules": [
     {
       "id": "v2-domain",
@@ -404,7 +404,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 54962,
+      "lines": 54968,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -3890,7 +3890,7 @@
       "path": "agent/src/omni/adapters/extensions/packages.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.extensions.packages",
-      "lines": 564,
+      "lines": 570,
       "imports": [
         "omni.adapters.object_store",
         "omni.application.ports",
@@ -3949,14 +3949,16 @@
           "line": 116,
           "kind": "function",
           "parameters": [
-            "path"
+            "path",
+            "maximum"
           ],
           "annotations": {
-            "path": "Path"
+            "path": "Path",
+            "maximum": "int"
           }
         },
         {
-          "name": "_directory_files",
+          "name": "_market_entries",
           "line": 139,
           "kind": "function",
           "parameters": [
@@ -3967,8 +3969,19 @@
           }
         },
         {
+          "name": "_directory_files",
+          "line": 149,
+          "kind": "function",
+          "parameters": [
+            "root"
+          ],
+          "annotations": {
+            "root": "Path"
+          }
+        },
+        {
           "name": "_pairs",
-          "line": 183,
+          "line": 193,
           "kind": "function",
           "parameters": [
             "items"
@@ -3979,7 +3992,7 @@
         },
         {
           "name": "_manifest",
-          "line": 192,
+          "line": 202,
           "kind": "function",
           "parameters": [
             "data"
@@ -3990,7 +4003,7 @@
         },
         {
           "name": "_archive",
-          "line": 202,
+          "line": 212,
           "kind": "function",
           "parameters": [
             "files"
@@ -4001,7 +4014,7 @@
         },
         {
           "name": "_captured",
-          "line": 214,
+          "line": 224,
           "kind": "function",
           "parameters": [
             "files"
@@ -4012,7 +4025,7 @@
         },
         {
           "name": "capture_directory",
-          "line": 228,
+          "line": 238,
           "kind": "function",
           "parameters": [
             "root"
@@ -4023,7 +4036,7 @@
         },
         {
           "name": "verify_snapshot",
-          "line": 233,
+          "line": 243,
           "kind": "function",
           "parameters": [
             "location",
@@ -4038,7 +4051,7 @@
         },
         {
           "name": "_check_revision",
-          "line": 243,
+          "line": 253,
           "kind": "function",
           "parameters": [
             "revision"
@@ -4049,7 +4062,7 @@
         },
         {
           "name": "_decode_package",
-          "line": 285,
+          "line": 295,
           "kind": "function",
           "parameters": [
             "payload",
@@ -4062,7 +4075,7 @@
         },
         {
           "name": "_publish_directory",
-          "line": 331,
+          "line": 341,
           "kind": "function",
           "parameters": [
             "source",
@@ -4075,12 +4088,12 @@
         },
         {
           "name": "ExtensionPackages",
-          "line": 360,
+          "line": 370,
           "kind": "class"
         },
         {
           "name": "ExtensionPackages.__init__",
-          "line": 361,
+          "line": 371,
           "kind": "function",
           "parameters": [
             "self",
@@ -4092,7 +4105,7 @@
         },
         {
           "name": "ExtensionPackages._execute",
-          "line": 369,
+          "line": 379,
           "kind": "function",
           "parameters": [
             "self",
@@ -4104,7 +4117,7 @@
         },
         {
           "name": "ExtensionPackages._execute.complete",
-          "line": 380,
+          "line": 390,
           "kind": "function",
           "parameters": [
             "future"
@@ -4115,7 +4128,7 @@
         },
         {
           "name": "ExtensionPackages.capture",
-          "line": 389,
+          "line": 399,
           "kind": "function",
           "parameters": [
             "self",
@@ -4127,14 +4140,14 @@
         },
         {
           "name": "ExtensionPackages.capture.perform",
-          "line": 390,
+          "line": 400,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "ExtensionPackages.market",
-          "line": 402,
+          "line": 412,
           "kind": "function",
           "parameters": [
             "self",
@@ -4146,14 +4159,14 @@
         },
         {
           "name": "ExtensionPackages.market.perform",
-          "line": 405,
+          "line": 415,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "ExtensionPackages._location",
-          "line": 450,
+          "line": 456,
           "kind": "function",
           "parameters": [
             "self",
@@ -4167,7 +4180,7 @@
         },
         {
           "name": "ExtensionPackages._verify",
-          "line": 464,
+          "line": 470,
           "kind": "function",
           "parameters": [
             "self",
@@ -4181,7 +4194,7 @@
         },
         {
           "name": "ExtensionPackages.verify",
-          "line": 482,
+          "line": 488,
           "kind": "function",
           "parameters": [
             "self",
@@ -4195,14 +4208,14 @@
         },
         {
           "name": "ExtensionPackages.verify.perform",
-          "line": 483,
+          "line": 489,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "ExtensionPackages._prepare",
-          "line": 489,
+          "line": 495,
           "kind": "function",
           "parameters": [
             "self",
@@ -4218,7 +4231,7 @@
         },
         {
           "name": "ExtensionPackages.prepare",
-          "line": 541,
+          "line": 547,
           "kind": "function",
           "parameters": [
             "self",
@@ -4234,14 +4247,14 @@
         },
         {
           "name": "ExtensionPackages.prepare.perform",
-          "line": 542,
+          "line": 548,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "ExtensionPackages.close",
-          "line": 548,
+          "line": 554,
           "kind": "function",
           "parameters": [
             "self",

@@ -92,6 +92,7 @@
 - 新增 `GET /agents/{id}/extensions/{extension_id}/actions?after=&limit=`：按扩展返回最近动作证据，只含 `id/tool/state/effect/ended_at` 与产物 `{id,media_type,bytes}`，**不回传参数、结果正文或异常**；游标与 limit（1..50）有界，跨 Agent 404。
 - 工作台新增“最近调用/产物”：逐条显示时间、工具、终态与产物类型/大小；`text/*` 与 `application/json` 可显式预览前 4000 字符，其他类型只提示已保存为对象（可通过既有对象接口读取）。切换插件/刷新/换 Agent 会清空旧预览，避免迟到响应覆盖新目标。
 - 新增 `POST /agents/{id}/extensions/market`（body 只接受 `{source}`）：所有者给定**本机绝对目录**，只读扫描其直接子目录的 `extension.json`（有界读取、拒绝符号链接/junction、最多 64 项/32 个有效候选、损坏候选跳过），返回 `name/version/entry/source/catalog_sha256` 并与已安装槽位比对给出 `installed/installed_version/extension_id/revision/is_current_version/update_available`；扫描不捕获、不执行、不写库。
+- 目录通过可关闭的原生迭代器枚举，最多保留64个直接目录项（普通文件也计数）；观察到第65项即以`extension_invalid`（422）拒绝整次扫描，避免先枚举并排序任意大目录。范围内保持原排序和32个有效候选上限。清单复用描述符读取：读取前拒绝超过64 KiB的声明大小，实际最多读取64 KiB加1字节，并复核文件身份/大小/修改时间；非普通文件、硬链接、变动或坏清单跳过，所有已打开流与目录迭代器显式关闭。调用等待取消后实际线程仍按既有任务归属排空，不执行插件或自动登记候选；不据此声明整个进程内存峰值已验证。
 - 安装仍走既有 `POST /extensions`：显式确认后由 `ExtensionPackages.capture` 封存、新版本撤销旧授权并要求重新授权；失败不自动重试。真实网络市场源与自动下载不在本轮范围。
 - 工作台「可信插件」新增本地市场目录检查：候选逐条显示名称/版本/当前版本/可更新状态，已是当前版本禁用登记；登记按钮先弹确认（名称、版本、目录、更新会撤销旧授权），确认后才走既有 `POST /extensions` 捕获固定包，成功后刷新详情并重新扫描；失败只提示、不自动重试。
 - 尚未做：进程外宿主回调、真实网络市场源与真实第三方插件验收。

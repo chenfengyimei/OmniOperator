@@ -113,15 +113,15 @@ def _names(paths: list[str]) -> None:
             seen[key] = current, kind
 
 
-def _read_file(path: Path) -> bytes:
+def _read_file(path: Path, maximum: int = MAX_FILE_BYTES) -> bytes:
     no_links(path)
     flags = os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0) | getattr(os, "O_BINARY", 0) | getattr(os, "O_NONBLOCK", 0)
     descriptor = os.open(path, flags)
     with os.fdopen(descriptor, "rb") as stream:
         before = os.fstat(stream.fileno())
-        if not stat.S_ISREG(before.st_mode) or before.st_nlink != 1 or before.st_size > MAX_FILE_BYTES:
+        if not stat.S_ISREG(before.st_mode) or before.st_nlink != 1 or before.st_size > maximum:
             raise _invalid()
-        data = stream.read(MAX_FILE_BYTES + 1)
+        data = stream.read(maximum + 1)
         after = os.fstat(stream.fileno())
     no_links(path)
     current = path.stat(follow_symlinks=False)
@@ -134,6 +134,16 @@ def _read_file(path: Path) -> bytes:
     if len(data) != before.st_size or identity(before) != identity(after) or identity(before) != identity(current):
         raise _invalid("extension_source_changed", status=409)
     return data
+
+
+def _market_entries(root: Path) -> list[Path]:
+    entries: list[Path] = []
+    with os.scandir(root) as children:
+        for child in children:
+            if len(entries) >= 64:
+                raise _invalid()
+            entries.append(Path(child.path))
+    return sorted(entries)
 
 
 def _directory_files(root: Path) -> dict[str, bytes]:
@@ -411,10 +421,8 @@ class ExtensionPackages:
                     raise _invalid()
                 no_links(root)
                 candidates: list[Record] = []
-                entries = 0
-                for entry in sorted(root.iterdir()):
-                    entries += 1
-                    if entries > 64 or len(candidates) >= 32:
+                for entry in _market_entries(root):
+                    if len(candidates) >= 32:
                         break
                     if entry.is_symlink() or entry.is_junction():
                         raise _invalid()
@@ -424,9 +432,7 @@ class ExtensionPackages:
                     if manifest_path.is_symlink() or not manifest_path.is_file():
                         continue
                     try:
-                        data = manifest_path.read_bytes()
-                        if len(data) > MAX_MANIFEST_BYTES:
-                            continue
+                        data = _read_file(manifest_path, MAX_MANIFEST_BYTES)
                         manifest = _manifest(data)
                     except (BusinessError, OSError):
                         continue
