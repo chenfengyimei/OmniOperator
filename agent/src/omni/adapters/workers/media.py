@@ -16,9 +16,10 @@ import math
 import re
 import sys
 import uuid
-from collections.abc import Buffer, Iterable
-from contextlib import ExitStack, closing
+from collections.abc import Buffer, Generator, Iterable, Iterator
+from contextlib import ExitStack, closing, contextmanager
 from importlib import import_module
+from itertools import islice
 from pathlib import Path
 from typing import Any, cast
 
@@ -271,18 +272,31 @@ def _frame_time(frame: Any) -> float:
     return timestamp
 
 
+@contextmanager
+def _video_frames(container: Any, stream: Any) -> Generator[Iterator[Any], None, None]:
+    """Own a decode iterator even when sampling stops before exhaustion."""
+    decoded = container.decode(stream)
+    try:
+        yield decoded
+    finally:
+        close = getattr(decoded, "close", None)
+        if callable(close):
+            close()
+
+
 def _frame_at(container: Any, stream: Any, target: float) -> Any:
     try:
         container.seek(int(target / float(stream.time_base)), stream=stream, backward=True)
     except Exception:  # noqa: BLE001 - some containers cannot seek; that frame is absent
         return None
     best, best_time = None, 0.0
-    for frame in container.decode(stream):
-        current = _frame_time(frame)
-        if best is None or abs(current - target) < abs(best_time - target):
-            best, best_time = frame, current
-        if current >= target:
-            break
+    with _video_frames(container, stream) as frames:
+        for frame in frames:
+            current = _frame_time(frame)
+            if best is None or abs(current - target) < abs(best_time - target):
+                best, best_time = frame, current
+            if current >= target:
+                break
     return best
 
 
@@ -355,10 +369,9 @@ def _frames(request: Payload) -> Payload:
                         pick(frame)
             else:
                 # Live or metadata-less containers degrade to the first decoded frames.
-                for index, frame in enumerate(container.decode(stream)):
-                    if index >= count:
-                        break
-                    pick(frame)
+                with _video_frames(container, stream) as frames:
+                    for frame in islice(frames, count):
+                        pick(frame)
         if not picked:
             raise ValueError("no_frames_extracted")
         columns = 2 if len(picked) > 1 else 1
