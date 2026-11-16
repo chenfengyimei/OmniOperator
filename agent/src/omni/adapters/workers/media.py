@@ -15,7 +15,8 @@ import json
 import re
 import sys
 import uuid
-from collections.abc import Iterable
+from collections.abc import Buffer, Iterable
+from contextlib import ExitStack, closing
 from importlib import import_module
 from pathlib import Path
 from typing import Any, cast
@@ -30,6 +31,9 @@ WINDOW_SECONDS = 60
 MAX_FRAMES = 12
 MIN_FRAME_WIDTH = 320
 MAX_FRAME_WIDTH = 1280
+MAX_SHEET_SIDE = 8192
+MAX_SHEET_PIXELS = 16000000
+MAX_SHEET_BYTES = 8 * 1024 * 1024
 LABEL_HEIGHT = 20
 BACKGROUND = (255, 255, 255)
 INK = (24, 24, 24)
@@ -235,6 +239,28 @@ def _frame_at(container: Any, stream: Any, target: float) -> Any:
     return best
 
 
+def _sheet_size(width: int, height: int, count: int) -> tuple[int, int]:
+    columns = 2 if count > 1 else 1
+    size = width * columns, (height + LABEL_HEIGHT) * ((count + columns - 1) // columns)
+    if (
+        width <= 0
+        or height <= 0
+        or not 1 <= count <= MAX_FRAMES
+        or max(size) > MAX_SHEET_SIDE
+        or size[0] * size[1] > MAX_SHEET_PIXELS
+    ):
+        raise ValueError("sheet_invalid")
+    return size
+
+
+class _SheetBuffer(io.BytesIO):
+    def write(self, b: Buffer, /) -> int:
+        with memoryview(b) as view:
+            if self.tell() + view.nbytes > MAX_SHEET_BYTES:
+                raise ValueError("sheet_invalid")
+            return super().write(view)
+
+
 def _frames(request: Payload) -> Payload:
     import av
 
@@ -246,62 +272,72 @@ def _frames(request: Payload) -> Payload:
         raise ValueError("Invalid frame plan")
     from PIL import Image, ImageDraw
 
-    picked: list[tuple[float, Image.Image]] = []
-    with av.open(str(video)) as container:
-        if not container.streams.video:
-            raise ValueError("no_video_track")
-        stream = container.streams.video[0]
-        duration = 0.0
-        if stream.duration and stream.time_base:
-            duration = float(stream.duration * stream.time_base)
-        elif container.duration:
-            duration = float(container.duration / av.time_base)
-        if duration > 0:
-            for target in _target_times(duration, count):
-                frame = _frame_at(container, stream, target)
-                if frame is None:
-                    continue
-                image: Image.Image = frame.to_image()
-                if image.width != width:
-                    ratio = width / max(1, image.width)
-                    image = image.resize((width, max(1, int(image.height * ratio))))
-                picked.append((float(frame.time if frame.time is not None else target), image))
-        else:
-            # Live or metadata-less containers degrade to the first decoded frames.
-            for index, frame in enumerate(container.decode(stream)):
-                if index >= count:
-                    break
-                image = cast(Image.Image, cast(Any, frame).to_image())
-                if image.width != width:
-                    ratio = width / max(1, image.width)
-                    image = image.resize((width, max(1, int(image.height * ratio))))
-                picked.append((float(frame.time or 0.0), image))
-    if not picked:
-        raise ValueError("no_frames_extracted")
-    columns = 2 if len(picked) > 1 else 1
-    cell_width = max(image.width for _, image in picked)
-    cell_height = max(image.height for _, image in picked)
-    rows = (len(picked) + columns - 1) // columns
-    sheet = Image.new("RGB", (cell_width * columns, (cell_height + LABEL_HEIGHT) * rows), BACKGROUND)
-    draw = ImageDraw.Draw(sheet)
-    for index, (timestamp, image) in enumerate(picked):
-        left = (index % columns) * cell_width
-        top = (index // columns) * (cell_height + LABEL_HEIGHT)
-        sheet.paste(image, (left, top + LABEL_HEIGHT))
-        draw.text((left + 6, top + 4), _format_time(timestamp), fill=INK)
-    buffer = io.BytesIO()
-    sheet.save(buffer, format="PNG")
-    content = buffer.getvalue()
-    output.parent.mkdir(parents=True, exist_ok=True)
-    output.write_bytes(content)
-    return {
-        "frame_count": len(picked),
-        "timestamps": [round(t, 3) for t, _ in picked],
-        "width": sheet.width,
-        "height": sheet.height,
-        "sha256": hashlib.sha256(content).hexdigest(),
-        "bytes": len(content),
-    }
+    with ExitStack() as resources:
+        picked: list[tuple[float, Image.Image]] = []
+
+        def pick(frame: Any, target: float) -> None:
+            if frame.width <= 0 or frame.height <= 0:
+                raise ValueError("sheet_invalid")
+            height = max(1, frame.height * width // frame.width)
+            cell_height = max(height, max((image.height for _, image in picked), default=0))
+            # Reject the prospective canvas before allocating a conversion or resize.
+            _sheet_size(width, cell_height, len(picked) + 1)
+            image: Image.Image = frame.to_image()
+            if image.width != width:
+                with closing(image):
+                    image = image.resize((width, height))
+                    resources.callback(image.close)
+            else:
+                resources.callback(image.close)
+            picked.append((float(frame.time if frame.time is not None else target), image))
+
+        with av.open(str(video)) as container:
+            if not container.streams.video:
+                raise ValueError("no_video_track")
+            stream = container.streams.video[0]
+            duration = 0.0
+            if stream.duration and stream.time_base:
+                duration = float(stream.duration * stream.time_base)
+            elif container.duration:
+                duration = float(container.duration / av.time_base)
+            if duration > 0:
+                for target in _target_times(duration, count):
+                    frame = _frame_at(container, stream, target)
+                    if frame is not None:
+                        pick(frame, target)
+            else:
+                # Live or metadata-less containers degrade to the first decoded frames.
+                for index, frame in enumerate(container.decode(stream)):
+                    if index >= count:
+                        break
+                    pick(frame, 0.0)
+        if not picked:
+            raise ValueError("no_frames_extracted")
+        columns = 2 if len(picked) > 1 else 1
+        cell_width = max(image.width for _, image in picked)
+        cell_height = max(image.height for _, image in picked)
+        size = _sheet_size(cell_width, cell_height, len(picked))
+        sheet = Image.new("RGB", size, BACKGROUND)
+        resources.callback(sheet.close)
+        draw = ImageDraw.Draw(sheet)
+        for index, (timestamp, image) in enumerate(picked):
+            left = (index % columns) * cell_width
+            top = (index // columns) * (cell_height + LABEL_HEIGHT)
+            sheet.paste(image, (left, top + LABEL_HEIGHT))
+            draw.text((left + 6, top + 4), _format_time(timestamp), fill=INK)
+        with _SheetBuffer() as buffer:
+            sheet.save(buffer, format="PNG")
+            content = buffer.getvalue()
+        output.parent.mkdir(parents=True, exist_ok=True)
+        output.write_bytes(content)
+        return {
+            "frame_count": len(picked),
+            "timestamps": [round(t, 3) for t, _ in picked],
+            "width": sheet.width,
+            "height": sheet.height,
+            "sha256": hashlib.sha256(content).hexdigest(),
+            "bytes": len(content),
+        }
 
 
 def _asr_model_missing(exc: BaseException) -> bool:
@@ -353,6 +389,7 @@ def _handle(line: str) -> None:
             "no_video_track": "media_video_missing",
             "no_frames_extracted": "media_video_missing",
             "transcript_unusable": "media_transcript_unusable",
+            "sheet_invalid": "media_sheet_invalid",
             "response_oversized": "media_processing_error",
         }.get(str(exc), _ERROR_CODE)
         _fail(operation_id, code, str(exc))

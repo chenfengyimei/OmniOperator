@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "e34bf195dafc4c3a8bf3791f8317225ccbd8f08a659ec24c85a450db6d9a414e",
+  "source_sha256": "0ee9261bd133c0ecb3c49618f59fe1b6c3b2e97336edfbd18aa7ccbebea2829f",
   "modules": [
     {
       "id": "v2-domain",
@@ -404,7 +404,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 54611,
+      "lines": 54648,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -34333,12 +34333,12 @@
       "path": "agent/src/omni/adapters/workers/media.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.workers.media",
-      "lines": 385,
+      "lines": 422,
       "imports": [],
       "symbols": [
         {
           "name": "_fail",
-          "line": 40,
+          "line": 44,
           "kind": "function",
           "parameters": [
             "operation_id",
@@ -34353,7 +34353,7 @@
         },
         {
           "name": "_ok",
-          "line": 50,
+          "line": 54,
           "kind": "function",
           "parameters": [
             "operation_id",
@@ -34366,7 +34366,7 @@
         },
         {
           "name": "_bounded_path",
-          "line": 59,
+          "line": 63,
           "kind": "function",
           "parameters": [
             "value"
@@ -34377,14 +34377,14 @@
         },
         {
           "name": "_probe",
-          "line": 68,
+          "line": 72,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "_decode_audio_16k_mono",
-          "line": 96,
+          "line": 100,
           "kind": "function",
           "parameters": [
             "path"
@@ -34395,7 +34395,7 @@
         },
         {
           "name": "_transcript_rows",
-          "line": 132,
+          "line": 136,
           "kind": "function",
           "parameters": [
             "segments"
@@ -34406,7 +34406,7 @@
         },
         {
           "name": "_transcribe",
-          "line": 159,
+          "line": 163,
           "kind": "function",
           "parameters": [
             "request"
@@ -34417,7 +34417,7 @@
         },
         {
           "name": "_format_time",
-          "line": 209,
+          "line": 213,
           "kind": "function",
           "parameters": [
             "seconds"
@@ -34428,7 +34428,7 @@
         },
         {
           "name": "_target_times",
-          "line": 214,
+          "line": 218,
           "kind": "function",
           "parameters": [
             "duration_s",
@@ -34441,7 +34441,7 @@
         },
         {
           "name": "_frame_at",
-          "line": 223,
+          "line": 227,
           "kind": "function",
           "parameters": [
             "container",
@@ -34455,8 +34455,40 @@
           }
         },
         {
+          "name": "_sheet_size",
+          "line": 242,
+          "kind": "function",
+          "parameters": [
+            "width",
+            "height",
+            "count"
+          ],
+          "annotations": {
+            "width": "int",
+            "height": "int",
+            "count": "int"
+          }
+        },
+        {
+          "name": "_SheetBuffer",
+          "line": 256,
+          "kind": "class"
+        },
+        {
+          "name": "_SheetBuffer.write",
+          "line": 257,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "b"
+          ],
+          "annotations": {
+            "b": "Buffer"
+          }
+        },
+        {
           "name": "_frames",
-          "line": 238,
+          "line": 264,
           "kind": "function",
           "parameters": [
             "request"
@@ -34467,7 +34499,7 @@
         },
         {
           "name": "_asr_model_missing",
-          "line": 307,
+          "line": 343,
           "kind": "function",
           "parameters": [
             "exc"
@@ -34478,7 +34510,7 @@
         },
         {
           "name": "_handle",
-          "line": 323,
+          "line": 359,
           "kind": "function",
           "parameters": [
             "line"
@@ -34489,7 +34521,7 @@
         },
         {
           "name": "main",
-          "line": 366,
+          "line": 403,
           "kind": "function",
           "parameters": [],
           "annotations": {}
