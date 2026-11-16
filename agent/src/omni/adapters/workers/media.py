@@ -156,7 +156,10 @@ def _transcript_rows(segments: Iterable[object]) -> list[list[float | str]]:
     previous_end = 0.0
     try:
         for seg in segments:
-            text = str(getattr(seg, "text", "") or "").strip()
+            value = getattr(seg, "text", None)
+            if not isinstance(value, str):
+                raise ValueError("transcript_unusable")
+            text = value.strip()
             if not text:
                 continue
             total_chars += len(text)
@@ -166,6 +169,10 @@ def _transcript_rows(segments: Iterable[object]) -> list[list[float | str]]:
             end = _asr_time(getattr(seg, "end", None))
             if start > end or start < previous_end - 0.001:
                 raise ValueError("transcript_unusable")
+            try:
+                text.encode("utf-8")
+            except UnicodeError as exc:
+                raise ValueError("transcript_unusable") from exc
             previous_end = end
             rows.append([start, end, text])
     finally:
@@ -209,10 +216,20 @@ def _transcribe(request: Payload) -> Payload:
         rows = _transcript_rows(segments_iter)
     if not rows:
         raise ValueError("transcript_unusable")
+    language = getattr(info, "language", None)
+    if language is None:
+        language = ""
+    if not isinstance(language, str):
+        raise ValueError("transcript_unusable")
+    language = language[:16]
+    try:
+        language.encode("utf-8")
+    except UnicodeError as exc:
+        raise ValueError("transcript_unusable") from exc
     payload = {
         "version": 1,
         "kind": "asr",
-        "language": str(getattr(info, "language", "") or "")[:16],
+        "language": language,
         "segments": rows,
     }
     body = json.dumps(payload, ensure_ascii=False, separators=(",", ":")).encode("utf-8")

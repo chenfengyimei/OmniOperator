@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "55d8d4b604e523083c3f419eea69d5b67b56d2f719bebf0c3f51cb55345ca48e",
+  "source_sha256": "84d348117751d467e6a02f3666db412c07e345a0d7ab56de70b3070634cf6a7f",
   "modules": [
     {
       "id": "v2-domain",
@@ -404,7 +404,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 54872,
+      "lines": 54889,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -34432,7 +34432,7 @@
       "path": "agent/src/omni/adapters/workers/media.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.workers.media",
-      "lines": 458,
+      "lines": 475,
       "imports": [],
       "symbols": [
         {
@@ -34516,7 +34516,7 @@
         },
         {
           "name": "_transcribe",
-          "line": 179,
+          "line": 186,
           "kind": "function",
           "parameters": [
             "request"
@@ -34527,7 +34527,7 @@
         },
         {
           "name": "_format_time",
-          "line": 229,
+          "line": 246,
           "kind": "function",
           "parameters": [
             "seconds"
@@ -34538,7 +34538,7 @@
         },
         {
           "name": "_target_times",
-          "line": 234,
+          "line": 251,
           "kind": "function",
           "parameters": [
             "duration_s",
@@ -34551,7 +34551,7 @@
         },
         {
           "name": "_frame_time",
-          "line": 243,
+          "line": 260,
           "kind": "function",
           "parameters": [
             "frame"
@@ -34562,7 +34562,7 @@
         },
         {
           "name": "_frame_at",
-          "line": 257,
+          "line": 274,
           "kind": "function",
           "parameters": [
             "container",
@@ -34577,7 +34577,7 @@
         },
         {
           "name": "_sheet_size",
-          "line": 272,
+          "line": 289,
           "kind": "function",
           "parameters": [
             "width",
@@ -34592,12 +34592,12 @@
         },
         {
           "name": "_SheetBuffer",
-          "line": 286,
+          "line": 303,
           "kind": "class"
         },
         {
           "name": "_SheetBuffer.write",
-          "line": 287,
+          "line": 304,
           "kind": "function",
           "parameters": [
             "self",
@@ -34609,7 +34609,7 @@
         },
         {
           "name": "_frames",
-          "line": 294,
+          "line": 311,
           "kind": "function",
           "parameters": [
             "request"
@@ -34620,7 +34620,7 @@
         },
         {
           "name": "_asr_model_missing",
-          "line": 374,
+          "line": 391,
           "kind": "function",
           "parameters": [
             "exc"
@@ -34631,7 +34631,7 @@
         },
         {
           "name": "_handle",
-          "line": 392,
+          "line": 409,
           "kind": "function",
           "parameters": [
             "line"
@@ -34642,7 +34642,7 @@
         },
         {
           "name": "main",
-          "line": 439,
+          "line": 456,
           "kind": "function",
           "parameters": [],
           "annotations": {}
