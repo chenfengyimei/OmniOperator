@@ -12,6 +12,7 @@ from __future__ import annotations
 import hashlib
 import io
 import json
+import math
 import re
 import sys
 import uuid
@@ -34,6 +35,7 @@ MAX_FRAME_WIDTH = 1280
 MAX_SHEET_SIDE = 8192
 MAX_SHEET_PIXELS = 16000000
 MAX_SHEET_BYTES = 8 * 1024 * 1024
+MAX_VIDEO_SECONDS = 7200
 LABEL_HEIGHT = 20
 BACKGROUND = (255, 255, 255)
 INK = (24, 24, 24)
@@ -224,6 +226,20 @@ def _target_times(duration_s: float, count: int) -> list[float]:
     return [min(start + span * (index + 0.5) / count, max(0.0, duration_s - 0.05)) for index in range(count)]
 
 
+def _frame_time(frame: Any) -> float:
+    """Validate decoded time; a sample target cannot supply a missing anchor."""
+    value = frame.time
+    if type(value) not in (int, float):
+        raise ValueError("frame_timestamp_unusable")
+    try:
+        timestamp = float(value)
+    except OverflowError as exc:
+        raise ValueError("frame_timestamp_unusable") from exc
+    if not math.isfinite(timestamp) or not 0 <= timestamp <= MAX_VIDEO_SECONDS:
+        raise ValueError("frame_timestamp_unusable")
+    return timestamp
+
+
 def _frame_at(container: Any, stream: Any, target: float) -> Any:
     try:
         container.seek(int(target / float(stream.time_base)), stream=stream, backward=True)
@@ -231,7 +247,7 @@ def _frame_at(container: Any, stream: Any, target: float) -> Any:
         return None
     best, best_time = None, 0.0
     for frame in container.decode(stream):
-        current = float(frame.time or 0.0)
+        current = _frame_time(frame)
         if best is None or abs(current - target) < abs(best_time - target):
             best, best_time = frame, current
         if current >= target:
@@ -275,7 +291,8 @@ def _frames(request: Payload) -> Payload:
     with ExitStack() as resources:
         picked: list[tuple[float, Image.Image]] = []
 
-        def pick(frame: Any, target: float) -> None:
+        def pick(frame: Any) -> None:
+            timestamp = _frame_time(frame)
             if frame.width <= 0 or frame.height <= 0:
                 raise ValueError("sheet_invalid")
             height = max(1, frame.height * width // frame.width)
@@ -289,7 +306,7 @@ def _frames(request: Payload) -> Payload:
                     resources.callback(image.close)
             else:
                 resources.callback(image.close)
-            picked.append((float(frame.time if frame.time is not None else target), image))
+            picked.append((timestamp, image))
 
         with av.open(str(video)) as container:
             if not container.streams.video:
@@ -304,13 +321,13 @@ def _frames(request: Payload) -> Payload:
                 for target in _target_times(duration, count):
                     frame = _frame_at(container, stream, target)
                     if frame is not None:
-                        pick(frame, target)
+                        pick(frame)
             else:
                 # Live or metadata-less containers degrade to the first decoded frames.
                 for index, frame in enumerate(container.decode(stream)):
                     if index >= count:
                         break
-                    pick(frame, 0.0)
+                    pick(frame)
         if not picked:
             raise ValueError("no_frames_extracted")
         columns = 2 if len(picked) > 1 else 1
@@ -390,6 +407,7 @@ def _handle(line: str) -> None:
             "no_frames_extracted": "media_video_missing",
             "transcript_unusable": "media_transcript_unusable",
             "sheet_invalid": "media_sheet_invalid",
+            "frame_timestamp_unusable": "media_frame_timestamp_unusable",
             "response_oversized": "media_processing_error",
         }.get(str(exc), _ERROR_CODE)
         _fail(operation_id, code, str(exc))
