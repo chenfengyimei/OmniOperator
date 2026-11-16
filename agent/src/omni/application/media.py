@@ -193,10 +193,16 @@ class MediaService:
         job = await self._db.read(lambda u: u.media_job_get(job_id))
         agent_id, operation = str(job["agent_id"]), str(job["operation"])
         staging = self._staging / job_id
-        staging.mkdir(parents=True, exist_ok=True)
         state, code = "failed", "media_processing_failed"
+        finish_job = True
         try:
             await self._db.write(lambda u: u.media_job_start(job_id))
+            try:
+                staging.mkdir(parents=True, exist_ok=True)
+            except OSError as exc:
+                raise BusinessError(
+                    "media_staging_unavailable", "Media staging directory is unavailable", status=503
+                ) from exc
             # The job row carries only source coordinates; the bound source
             # row is read after start so failures land in a legal transition.
             source = await self._db.read(lambda u: u.media_source_get(agent_id, str(job["source_id"])))
@@ -266,6 +272,7 @@ class MediaService:
         except BusinessError as exc:
             if exc.code == "media_job_cancelled":
                 # The owner cancelled while this task waited for its slot.
+                finish_job = False
                 return
             state, code = ("unknown" if exc.code in UNKNOWN_CODES else "failed"), exc.code
         except BaseException as exc:  # noqa: BLE001 - bounded job failure, no provider text
@@ -275,13 +282,15 @@ class MediaService:
                 extra={"event": "media.job_unexpected", "job_id": job_id},
             )
         finally:
-            if state != "done":
-                try:
-                    await self._db.write(lambda u: u.media_job_finish(job_id, state, code))
-                except BusinessError:
-                    if state != "cancelled":
-                        raise
-            self._cleanup(staging)
+            try:
+                if finish_job and state != "done":
+                    try:
+                        await self._db.write(lambda u: u.media_job_finish(job_id, state, code))
+                    except BusinessError:
+                        if state != "cancelled":
+                            raise
+            finally:
+                self._cleanup(staging)
 
     async def _register_sheet(self, agent_id: str, sheet: Path, result: Record) -> Record:
         """Publish the frame sheet and register it as a verified image object."""
@@ -307,8 +316,10 @@ class MediaService:
 
     def _cleanup(self, staging: Path) -> None:
         try:
-            shutil.rmtree(staging, ignore_errors=True)
-        except OSError:
+            shutil.rmtree(staging)
+        except OSError as exc:
+            if isinstance(exc, FileNotFoundError) and exc.filename == str(staging):
+                return
             log.warning(
                 "Media staging directory could not be removed",
                 extra={"event": "media.staging_left", "path": str(staging)},
