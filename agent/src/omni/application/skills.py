@@ -216,11 +216,10 @@ class SkillService:
         }
 
     async def notice(self, agent_id: str, run_id: str) -> str:
-        rows = await self._db.read(lambda u: u.skill_catalog(agent_id, run_id, self.platform, active=True))
-        if not rows:
-            return ""
-
         async def perform() -> str:
+            rows = await self._db.read(lambda u: u.skill_catalog(agent_id, run_id, self.platform, active=True))
+            if not rows:
+                return ""
             active: list[Record] = []
             for row in rows:
                 version = await self._db.read(

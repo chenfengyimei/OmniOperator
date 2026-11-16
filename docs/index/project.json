@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "75d32f8b09b61e12bb3346b10b3344ac07d2b449b99dd0344324079b8dae1e42",
+  "source_sha256": "a97f7794742a5d0e9ac3c6913f6e643bf84cbdbc626c2c600fde4cd7d1f4cfad",
   "modules": [
     {
       "id": "v2-domain",
@@ -136,7 +136,7 @@
         "agent/src/omni/application/terminal_review.py",
         "agent/src/omni/application/terminals.py"
       ],
-      "lines": 11315,
+      "lines": 11314,
       "dependencies": [
         "v2-domain"
       ]
@@ -53420,7 +53420,7 @@
       "path": "agent/src/omni/application/skills.py",
       "module": "v2-application",
       "python_module": "omni.application.skills",
-      "lines": 371,
+      "lines": 370,
       "imports": [
         "omni.application.objects",
         "omni.application.ports",
@@ -53768,14 +53768,14 @@
         },
         {
           "name": "SkillService.notice.perform",
-          "line": 223,
+          "line": 219,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "SkillService.run_report",
-          "line": 250,
+          "line": 249,
           "kind": "function",
           "parameters": [
             "self",
@@ -53789,7 +53789,7 @@
         },
         {
           "name": "SkillService.invoke",
-          "line": 253,
+          "line": 252,
           "kind": "function",
           "parameters": [
             "self",
@@ -53807,7 +53807,7 @@
         },
         {
           "name": "SkillService.invoke.guard",
-          "line": 258,
+          "line": 257,
           "kind": "function",
           "parameters": [
             "u"
@@ -53818,7 +53818,7 @@
         },
         {
           "name": "SkillService.health",
-          "line": 356,
+          "line": 355,
           "kind": "function",
           "parameters": [
             "self"
@@ -53827,7 +53827,7 @@
         },
         {
           "name": "SkillService.stop_accepting",
-          "line": 364,
+          "line": 363,
           "kind": "function",
           "parameters": [
             "self"
@@ -53836,7 +53836,7 @@
         },
         {
           "name": "SkillService.close",
-          "line": 367,
+          "line": 366,
           "kind": "function",
           "parameters": [
             "self",
