@@ -358,10 +358,15 @@ def _frames(request: Payload) -> Payload:
                 raise ValueError("no_video_track")
             stream = container.streams.video[0]
             duration = 0.0
-            if stream.duration and stream.time_base:
-                duration = float(stream.duration * stream.time_base)
-            elif container.duration:
-                duration = float(container.duration / av.time_base)
+            try:
+                if stream.duration and stream.time_base:
+                    duration = float(stream.duration * stream.time_base)
+                elif container.duration:
+                    duration = float(container.duration / av.time_base)
+            except (OverflowError, TypeError, ValueError) as exc:
+                raise ValueError("video_duration_out_of_range") from exc
+            if not math.isfinite(duration) or not 0 <= duration <= MAX_VIDEO_SECONDS:
+                raise ValueError("video_duration_out_of_range")
             if duration > 0:
                 for target in _target_times(duration, count):
                     frame = _frame_at(container, stream, target)
@@ -449,6 +454,7 @@ def _handle(line: str) -> None:
             "no_audio_track": "media_audio_missing",
             "empty_audio": "media_audio_missing",
             "audio_duration_out_of_range": "media_audio_duration_out_of_range",
+            "video_duration_out_of_range": "media_video_duration_out_of_range",
             "no_video_track": "media_video_missing",
             "no_frames_extracted": "media_video_missing",
             "transcript_unusable": "media_transcript_unusable",

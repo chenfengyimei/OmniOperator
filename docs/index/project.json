@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "ab1923ae4c5043cc72c70064a4670faf1433b05056463285b1c5395499048125",
+  "source_sha256": "8d725508f78744797b9e85f9730817e0c9a5b9c7d0e74117859deccdf7ab0451",
   "modules": [
     {
       "id": "v2-domain",
@@ -404,7 +404,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 54906,
+      "lines": 54912,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -34432,7 +34432,7 @@
       "path": "agent/src/omni/adapters/workers/media.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.workers.media",
-      "lines": 488,
+      "lines": 494,
       "imports": [],
       "symbols": [
         {
@@ -34633,7 +34633,7 @@
         },
         {
           "name": "_asr_model_missing",
-          "line": 404,
+          "line": 409,
           "kind": "function",
           "parameters": [
             "exc"
@@ -34644,7 +34644,7 @@
         },
         {
           "name": "_handle",
-          "line": 422,
+          "line": 427,
           "kind": "function",
           "parameters": [
             "line"
@@ -34655,7 +34655,7 @@
         },
         {
           "name": "main",
-          "line": 469,
+          "line": 475,
           "kind": "function",
           "parameters": [],
           "annotations": {}
