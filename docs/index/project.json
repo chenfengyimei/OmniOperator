@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "d13e7c23f4329131d725296fada0a2c36ef52de802dfd248ce04d51facc83f61",
+  "source_sha256": "55d8d4b604e523083c3f419eea69d5b67b56d2f719bebf0c3f51cb55345ca48e",
   "modules": [
     {
       "id": "v2-domain",
@@ -404,7 +404,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 54867,
+      "lines": 54872,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -9880,7 +9880,7 @@
       "path": "agent/src/omni/adapters/media.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.media",
-      "lines": 325,
+      "lines": 330,
       "imports": [
         "omni.adapters.platform.processes",
         "omni.domain.contracts",
@@ -9889,7 +9889,7 @@
       "symbols": [
         {
           "name": "_reject_json_constant",
-          "line": 30,
+          "line": 31,
           "kind": "function",
           "parameters": [
             "_"
@@ -9900,7 +9900,7 @@
         },
         {
           "name": "_finite_json_float",
-          "line": 34,
+          "line": 35,
           "kind": "function",
           "parameters": [
             "value"
@@ -9911,7 +9911,7 @@
         },
         {
           "name": "_unique_json_object",
-          "line": 41,
+          "line": 42,
           "kind": "function",
           "parameters": [
             "pairs"
@@ -9922,7 +9922,7 @@
         },
         {
           "name": "_response",
-          "line": 50,
+          "line": 51,
           "kind": "function",
           "parameters": [
             "line",
@@ -9935,12 +9935,12 @@
         },
         {
           "name": "MediaProcessor",
-          "line": 76,
+          "line": 81,
           "kind": "class"
         },
         {
           "name": "MediaProcessor.__init__",
-          "line": 84,
+          "line": 89,
           "kind": "function",
           "parameters": [
             "self",
@@ -9952,7 +9952,7 @@
         },
         {
           "name": "MediaProcessor.status",
-          "line": 96,
+          "line": 101,
           "kind": "function",
           "parameters": [
             "self"
@@ -9961,7 +9961,7 @@
         },
         {
           "name": "MediaProcessor._drain_stderr",
-          "line": 111,
+          "line": 116,
           "kind": "function",
           "parameters": [
             "self",
@@ -9973,7 +9973,7 @@
         },
         {
           "name": "MediaProcessor._stderr_finished",
-          "line": 119,
+          "line": 124,
           "kind": "function",
           "parameters": [
             "self",
@@ -9985,7 +9985,7 @@
         },
         {
           "name": "MediaProcessor._refresh_stderr",
-          "line": 125,
+          "line": 130,
           "kind": "function",
           "parameters": [
             "self"
@@ -9994,7 +9994,7 @@
         },
         {
           "name": "MediaProcessor._spawn",
-          "line": 129,
+          "line": 134,
           "kind": "function",
           "parameters": [
             "self"
@@ -10003,7 +10003,7 @@
         },
         {
           "name": "MediaProcessor._start",
-          "line": 158,
+          "line": 163,
           "kind": "function",
           "parameters": [
             "self"
@@ -10012,7 +10012,7 @@
         },
         {
           "name": "MediaProcessor._terminate",
-          "line": 177,
+          "line": 182,
           "kind": "function",
           "parameters": [
             "self",
@@ -10024,7 +10024,7 @@
         },
         {
           "name": "MediaProcessor._request",
-          "line": 210,
+          "line": 215,
           "kind": "function",
           "parameters": [
             "self",
@@ -10040,7 +10040,7 @@
         },
         {
           "name": "MediaProcessor.probe",
-          "line": 281,
+          "line": 286,
           "kind": "function",
           "parameters": [
             "self"
@@ -10049,7 +10049,7 @@
         },
         {
           "name": "MediaProcessor.transcribe",
-          "line": 286,
+          "line": 291,
           "kind": "function",
           "parameters": [
             "self",
@@ -10065,7 +10065,7 @@
         },
         {
           "name": "MediaProcessor.frames",
-          "line": 299,
+          "line": 304,
           "kind": "function",
           "parameters": [
             "self",
@@ -10083,7 +10083,7 @@
         },
         {
           "name": "MediaProcessor.stop_accepting",
-          "line": 307,
+          "line": 312,
           "kind": "function",
           "parameters": [
             "self"
@@ -10092,7 +10092,7 @@
         },
         {
           "name": "MediaProcessor.close",
-          "line": 310,
+          "line": 315,
           "kind": "function",
           "parameters": [
             "self",

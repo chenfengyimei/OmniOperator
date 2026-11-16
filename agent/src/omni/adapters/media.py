@@ -8,6 +8,7 @@ import json
 import logging
 import math
 import os
+import re
 import sys
 import uuid
 from pathlib import Path
@@ -70,6 +71,10 @@ def _response(line: bytes, identity: str) -> dict[str, object]:
     outcome = cast(dict[str, object], result)
     if type(outcome.get("ok")) is not bool:
         raise ValueError("Invalid media response outcome")
+    if outcome["ok"] is False:
+        code = outcome.get("code")
+        if not isinstance(code, str) or re.fullmatch(r"[a-z][a-z0-9_]{0,79}", code) is None:
+            raise ValueError("Invalid media response error code")
     return outcome
 
 
@@ -266,7 +271,7 @@ class MediaProcessor:
                 await self._terminate()
                 raise BusinessError("media_processing_failed", "Media worker response was invalid", status=503) from exc
             if not outcome.get("ok"):
-                code = str(outcome.get("code") or "media_processing_error")
+                code = cast(str, outcome["code"])
                 if code == "media_component_missing":
                     raise BusinessError(code, "A media processing component is not installed", status=503)
                 if code == "media_asr_model_missing":
