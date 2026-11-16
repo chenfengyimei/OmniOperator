@@ -25,6 +25,7 @@ Payload = dict[str, object]
 MAX_FRAME = 8 * 1024 * 1024
 MAX_SEGMENTS = 4000
 MAX_TRANSCRIPT_CHARS = 24000
+MAX_AUDIO_SAMPLES = 7200 * 16000
 WINDOW_SECONDS = 60
 MAX_FRAMES = 12
 MIN_FRAME_WIDTH = 320
@@ -103,19 +104,29 @@ def _decode_audio_16k_mono(path: Path) -> Any:
     import numpy as np
 
     resampler = av.AudioResampler(format="s16", layout="mono", rate=16000)
-    buffer = io.BytesIO()
-    with av.open(str(path)) as container:
-        if not container.streams.audio:
-            raise ValueError("no_audio_track")
-        for frame in container.decode(audio=0):
-            out = resampler.resample(frame)
-            for af in cast("list[av.AudioFrame]", out if isinstance(cast(object, out), (list, tuple)) else [out]):
+    with io.BytesIO() as buffer:
+
+        def append(frames: Iterable[av.AudioFrame | None]) -> None:
+            for af in frames:
+                # PyAV's passthrough resampler may return [None] when flushed.
+                if af is None:
+                    continue
                 need = int(af.samples) * 2
-                buffer.write(bytes(af.planes[0])[:need])
-    if buffer.tell() == 0:
-        raise ValueError("empty_audio")
-    samples = np.frombuffer(buffer.getvalue(), dtype=np.int16)
-    return samples.astype(np.float32) / 32768.0
+                if buffer.tell() + need > MAX_AUDIO_SAMPLES * 2:
+                    raise ValueError("audio_duration_out_of_range")
+                buffer.write(memoryview(af.planes[0])[:need])
+
+        with av.open(str(path)) as container:
+            if not container.streams.audio:
+                raise ValueError("no_audio_track")
+            for frame in container.decode(audio=0):
+                append(resampler.resample(frame))
+            append(resampler.resample(None))
+        if buffer.tell() == 0:
+            raise ValueError("empty_audio")
+        samples = np.frombuffer(buffer.getbuffer(), dtype=np.int16).astype(np.float32)
+    samples /= 32768.0
+    return samples
 
 
 def _transcript_rows(segments: Iterable[object]) -> list[list[float | str]]:
@@ -338,6 +349,7 @@ def _handle(line: str) -> None:
         code = {
             "no_audio_track": "media_audio_missing",
             "empty_audio": "media_audio_missing",
+            "audio_duration_out_of_range": "media_audio_duration_out_of_range",
             "no_video_track": "media_video_missing",
             "no_frames_extracted": "media_video_missing",
             "transcript_unusable": "media_transcript_unusable",

@@ -37,6 +37,7 @@ Bilibili 视频读取（复用 bilibili_read_authorized 凭据/配置/修订授�
 - `python -m omni.adapters.workers.media`，一行 JSON 请求/一行 JSON 响应，单请求串行；`MediaProcessor`（adapters/media.py）经 `OwnedProcess` 持有，首请求才拉起，取消/断连/崩溃即终止进程，下一请求重新拉起。
 - 重型库（av/faster-whisper/PIL/numpy）懒加载；缺组件返回 `media_component_missing`（工作台明确提示安装 `asr` extra），不静默降级、不隐式安装。
 - ASR 只从本地离线缓存加载模型（`HF_HUB_OFFLINE=1`）；模型缺失返回 `media_asr_model_missing`。
+- ASR解码按实际16kHz单声道输出累计样本，最多115200000样本（7200秒、s16 PCM 230400000字节），不信任来源或容器的时长元数据。普通重采样输出与排空尾部共用预算；首次超限在读取该PCM平面前报 `media_audio_duration_out_of_range`，不调用转写推理、不发布部分产物，作业为failed；后续显式新作业仍可运行。输入容器和PCM缓冲区在正常/异常退出时关闭，浮点转换后原地归一化，避免额外的浮点结果副本。正常结束以[PyAV的resample(None)](https://pyav.org/docs/stable/api/audio.html#audio-resamplers)排空延迟样本，并兼容直通模式返回的空尾项。该限制只约束已累计PCM与返回数组，不证明解码器/重采样器内部、单个原生帧、模型或整个worker的峰值内存上界，也不为旧系统提交额度故障定因。
 - ASR 收集每个非空段时立即检查4000段/24000字符上限，超限即停止读取并返回 `media_transcript_unusable`，不写部分产物，也不触发无VAD重试；仅空结果保留原无VAD回退。支持 `close()` 的转写迭代器在正常或异常退出时显式关闭，关闭失败继续暴露。该边界限制已收集转写，不证明模型内部或音频解码内存的上界。
 - 超时：probe 20s、抽帧 180s、转写 900s；超时归类 `unknown`（in-flight 请求随进程销毁，结果不可知）。
 
