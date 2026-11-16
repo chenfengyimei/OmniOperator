@@ -5,11 +5,12 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+import math
 import os
 import sys
 import uuid
 from pathlib import Path
-from typing import cast
+from typing import NoReturn, cast
 
 from ..domain.contracts import BusinessError
 from ..domain.media import MAX_DOWNLOAD_BYTES, frames_plan
@@ -21,6 +22,52 @@ FRAME_LIMIT = 8 * 1024 * 1024
 PROBE_BUDGET_S = 20
 FRAMES_BUDGET_S = 180
 TRANSCRIBE_BUDGET_S = 900
+
+
+def _reject_json_constant(_: str) -> NoReturn:
+    raise ValueError("Non-finite media response")
+
+
+def _finite_json_float(value: str) -> float:
+    parsed = float(value)
+    if not math.isfinite(parsed):
+        raise ValueError("Non-finite media response")
+    return parsed
+
+
+def _unique_json_object(pairs: list[tuple[str, object]]) -> dict[str, object]:
+    result: dict[str, object] = {}
+    for key, value in pairs:
+        if key in result:
+            raise ValueError("Duplicate media response field")
+        result[key] = value
+    return result
+
+
+def _response(line: bytes, identity: str) -> dict[str, object]:
+    if len(line) > FRAME_LIMIT or not line.endswith(b"\n"):
+        raise ValueError("Incomplete or oversized media response")
+    value: object = json.loads(
+        line,
+        parse_constant=_reject_json_constant,
+        parse_float=_finite_json_float,
+        object_pairs_hook=_unique_json_object,
+    )
+    if not isinstance(value, dict):
+        raise ValueError("Invalid media response")
+    reply = cast(dict[str, object], value)
+    result = reply.get("result")
+    if (
+        type(reply.get("version")) is not int
+        or reply["version"] != 1
+        or reply.get("id") != identity
+        or not isinstance(result, dict)
+    ):
+        raise ValueError("Media response identity or version mismatch")
+    outcome = cast(dict[str, object], result)
+    if type(outcome.get("ok")) is not bool:
+        raise ValueError("Invalid media response outcome")
+    return outcome
 
 
 class MediaProcessor:
@@ -114,10 +161,11 @@ class MediaProcessor:
                 raise BusinessError("media_processor_closing", "Media processing is closing", status=503)
             assert owned.process.stdin is not None and owned.process.stdout is not None
             try:
-                owned.process.stdin.write(frame)
-                await owned.process.stdin.drain()
-                line = await asyncio.wait_for(owned.process.stdout.readline(), timeout=budget_s)
-            except (BrokenPipeError, ConnectionResetError, TimeoutError) as exc:
+                async with asyncio.timeout(budget_s):
+                    owned.process.stdin.write(frame)
+                    await owned.process.stdin.drain()
+                    line = await owned.process.stdout.readline()
+            except (OSError, ValueError) as exc:
                 # The in-flight request is unknown; destroy the process and respawn later.
                 await self._terminate()
                 if isinstance(exc, TimeoutError):
@@ -125,7 +173,7 @@ class MediaProcessor:
                         "media_processing_timeout", "Media processing exceeded its time budget", status=504
                     ) from exc
                 raise BusinessError(
-                    "media_processing_failed", "Media processing worker disconnected", status=503
+                    "media_processing_failed", "Media processing worker communication failed", status=503
                 ) from exc
             except asyncio.CancelledError:
                 await self._terminate()
@@ -134,16 +182,10 @@ class MediaProcessor:
                 await self._terminate()
                 raise BusinessError("media_processing_failed", "Media processing worker exited", status=503)
             try:
-                response = json.loads(line)
-            except ValueError as exc:
+                outcome = _response(line, identity)
+            except (ValueError, RecursionError) as exc:
                 await self._terminate()
                 raise BusinessError("media_processing_failed", "Media worker response was invalid", status=503) from exc
-            reply = cast(dict[str, object], response) if isinstance(response, dict) else None
-            result = reply.get("result") if reply is not None else None
-            if reply is None or reply.get("id") != identity or not isinstance(result, dict):
-                await self._terminate()
-                raise BusinessError("media_processing_failed", "Media worker response identity mismatch", status=503)
-            outcome = cast(dict[str, object], result)
             if not outcome.get("ok"):
                 code = str(outcome.get("code") or "media_processing_error")
                 if code == "media_component_missing":
