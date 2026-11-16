@@ -7259,6 +7259,18 @@
    "integration_full_run_pending": true,
    "validated_committed_scope_only": true,
    "historical_observations_closed": false
+  },
+  "bilibili_dash_followup": {
+   "evidence": "docs/evidence/v2-bilibili-dash.json",
+   "source_head": "9b362c9ae6bb7dde08c49aae2bca7d8e66c77d1c",
+   "status": "scoped_passed_full_deferred",
+   "scoped_passed": 242,
+   "new_cases": 42,
+   "strict_files": 1,
+   "full_run_covers_current_source": false,
+   "integration_full_run_pending": true,
+   "validated_committed_scope_only": true,
+   "historical_observations_closed": false
   }
  },
  "source_recovery": {

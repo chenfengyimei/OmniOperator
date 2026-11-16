@@ -1,0 +1,356 @@
+{
+ "schema": 1,
+ "date": "2026-11-16",
+ "branch": "v2",
+ "whole_v2_complete": false,
+ "default_entrypoint": "v1",
+ "source": {
+  "head": "9b362c9ae6bb7dde08c49aae2bca7d8e66c77d1c",
+  "base": "f864e48ad45858db95ebb0aed4a451f50457e64f",
+  "code_version": "2a9de8727bb8f14ae6592dd28a709e20f71825a68fc913aac2116d64962f4473",
+  "code_files": 1240,
+  "planned": {
+   "agent/src/omni/adapters/bilibili.py": {
+    "sha256": "650b0ad0901e517feab08f641bf428719d03d18ad1685ed4017e4aa633242516",
+    "git_blob": "fc356dda9c0436393da3e5ab5ff35237cf09f04d"
+   },
+   "agent/tests/test_v2_bilibili_dash.py": {
+    "sha256": "7acae7f54e611d789d0e18354257dac5710cf70cdaa236b3755fdeb090b41983",
+    "git_blob": "526e96cb8aa6c48437b927ee3c8f7e0e01503160"
+   },
+   "docs/V2_MEDIA.md": {
+    "sha256": "1a40f6dd6b2ceb4e2cd5a5eae8c3511171974734a8ff47be16bcebaf38efe6b5",
+    "git_blob": "e1551c7dcaf45cb827b277dde4d465fb28b0526c"
+   },
+   "docs/TESTING.md": {
+    "sha256": "e48e880cfae5cef8dd5183378b37d0fccc0ba91156d572d7db148ad07e536d62",
+    "git_blob": "ac24a8872fc84a10cd161956154610117cd3ae30"
+   },
+   "docs/index/MODULES.md": {
+    "sha256": "b0ff4edb938a470ee3e8f214a37b8e3b9b74f634e9a9145fc2aff11798d5ccea",
+    "git_blob": "b290aaafac21ffa64dc94ef54121e32467c3843c"
+   },
+   "docs/index/project.json": {
+    "sha256": "abcf3d9a958993532d886d5b0f9389477f8390d3dcf68e0e2aa2641e19bec171",
+    "git_blob": "c01386b920478cc813ab2c16617ef86da24c12f6"
+   }
+  },
+  "candidate": "D:\\xm\\OmniOperator\\temp\\build\\bili-dash-candidate",
+  "parallel_working_bodies_preserved": true
+ },
+ "root_cause": "DASH selection minimized bandwidth before checking that the record had a URL, blocking later usable candidates; unchecked nested types and numeric coercion also turned known response format errors into unknown jobs or accepted invalid metadata.",
+ "changes": [
+  "Select minimum bandwidth among usable complete DASH candidates, skipping URL-absent or empty records",
+  "Validate DASH container/list/record, used URL/backup fields and nonnegative integer metadata with a precise format error",
+  "Preserve URL aliases, unknown-size defaults, missing/zero-bandwidth priority, decimal strings and the CDN URL policy",
+  "Reuse one selector for audio/video while keeping merged fallback, source identity, download budgets and worker processing unchanged"
+ ],
+ "proof": {
+  "changed_existing_gateway_methods": [
+   "_streams"
+  ],
+  "new_helpers": [
+   "_dash_stream"
+  ],
+  "all_existing_method_signatures_unchanged": true,
+  "all_other_existing_method_sources_identical": true,
+  "imports_constants_and_other_global_helpers_ast_identical": true,
+  "unchanged_files": [
+   "agent/src/omni/application/media.py",
+   "agent/src/omni/domain/media.py",
+   "agent/src/omni/domain/bilibili.py",
+   "agent/src/omni/adapters/media.py",
+   "agent/src/omni/adapters/workers/media.py",
+   "agent/src/omni/composition/instance.py",
+   "agent/tests/test_v2_media.py"
+  ],
+  "identical_final_tests_in_clean_negative_and_candidate": true
+ },
+ "regressions": {
+  "new_cases": 42,
+  "before": {
+   "command": [
+    "D:\\xm\\OmniOperator\\temp\\build\\checkpoint-interpreter-bili-dash-before\\Scripts\\python.exe",
+    "-m",
+    "pytest",
+    "-q",
+    "-n",
+    "0",
+    "agent/tests/test_v2_bilibili_dash.py",
+    "--junitxml=D:\\xm\\OmniOperator\\temp\\build\\v2-bili-dash-before.xml",
+    "--tb=short"
+   ],
+   "returncode": 1,
+   "duration_s": 15.75,
+   "cases": 42,
+   "failures": 32,
+   "errors": 0,
+   "skipped": 0,
+   "report": "temp\\build\\v2-bili-dash-before.xml",
+   "report_sha256": "c52cd68bb51f4b3a764d2c6af5fd4d5e9a406bed6ba86eeeb364d4c3efc6ae05",
+   "log": "temp\\build\\v2-bili-dash-before.log",
+   "log_sha256": "e3f9e2866deeb07394680a98cce4358ef6c9e2f9b6b1d023763d899ce8d4f778"
+  },
+  "failed_before_nodes": [
+   {
+    "nodeid": "tests.test_v2_bilibili_dash::test_lowest_usable_candidate_and_supported_aliases_preserve_exact_stream[missing_url-audio]",
+    "message": "AssertionError: assert None == {'url': 'https://cdn.bilivideo.com/complete-audio.m4s', 'bytes': 16}"
+   },
+   {
+    "nodeid": "tests.test_v2_bilibili_dash::test_lowest_usable_candidate_and_supported_aliases_preserve_exact_stream[missing_url-video]",
+    "message": "AssertionError: assert None == {'url': 'https://cdn.bilivideo.com/complete-video.m4s', 'bytes': 16}"
+   },
+   {
+    "nodeid": "tests.test_v2_bilibili_dash::test_lowest_usable_candidate_and_supported_aliases_preserve_exact_stream[empty_url-audio]",
+    "message": "AssertionError: assert None == {'url': 'https://cdn.bilivideo.com/complete-audio.m4s', 'bytes': 16}"
+   },
+   {
+    "nodeid": "tests.test_v2_bilibili_dash::test_lowest_usable_candidate_and_supported_aliases_preserve_exact_stream[empty_url-video]",
+    "message": "AssertionError: assert None == {'url': 'https://cdn.bilivideo.com/complete-video.m4s', 'bytes': 16}"
+   },
+   {
+    "nodeid": "tests.test_v2_bilibili_dash::test_known_bad_dash_fields_raise_format_error_without_content_dispatch[dash-audio]",
+    "message": "AttributeError: 'str' object has no attribute 'get'"
+   },
+   {
+    "nodeid": "tests.test_v2_bilibili_dash::test_known_bad_dash_fields_raise_format_error_without_content_dispatch[dash-video]",
+    "message": "AttributeError: 'str' object has no attribute 'get'"
+   },
+   {
+    "nodeid": "tests.test_v2_bilibili_dash::test_known_bad_dash_fields_raise_format_error_without_content_dispatch[tracks-audio]",
+    "message": "Failed: DID NOT RAISE BusinessError"
+   },
+   {
+    "nodeid": "tests.test_v2_bilibili_dash::test_known_bad_dash_fields_raise_format_error_without_content_dispatch[tracks-video]",
+    "message": "Failed: DID NOT RAISE BusinessError"
+   },
+   {
+    "nodeid": "tests.test_v2_bilibili_dash::test_known_bad_dash_fields_raise_format_error_without_content_dispatch[record-audio]",
+    "message": "Failed: DID NOT RAISE BusinessError"
+   },
+   {
+    "nodeid": "tests.test_v2_bilibili_dash::test_known_bad_dash_fields_raise_format_error_without_content_dispatch[record-video]",
+    "message": "Failed: DID NOT RAISE BusinessError"
+   },
+   {
+    "nodeid": "tests.test_v2_bilibili_dash::test_known_bad_dash_fields_raise_format_error_without_content_dispatch[bandwidth_bool-audio]",
+    "message": "Failed: DID NOT RAISE BusinessError"
+   },
+   {
+    "nodeid": "tests.test_v2_bilibili_dash::test_known_bad_dash_fields_raise_format_error_without_content_dispatch[bandwidth_bool-video]",
+    "message": "Failed: DID NOT RAISE BusinessError"
+   },
+   {
+    "nodeid": "tests.test_v2_bilibili_dash::test_known_bad_dash_fields_raise_format_error_without_content_dispatch[bandwidth_float-audio]",
+    "message": "Failed: DID NOT RAISE BusinessError"
+   },
+   {
+    "nodeid": "tests.test_v2_bilibili_dash::test_known_bad_dash_fields_raise_format_error_without_content_dispatch[bandwidth_float-video]",
+    "message": "Failed: DID NOT RAISE BusinessError"
+   },
+   {
+    "nodeid": "tests.test_v2_bilibili_dash::test_known_bad_dash_fields_raise_format_error_without_content_dispatch[bandwidth_negative-audio]",
+    "message": "Failed: DID NOT RAISE BusinessError"
+   },
+   {
+    "nodeid": "tests.test_v2_bilibili_dash::test_known_bad_dash_fields_raise_format_error_without_content_dispatch[bandwidth_negative-video]",
+    "message": "Failed: DID NOT RAISE BusinessError"
+   },
+   {
+    "nodeid": "tests.test_v2_bilibili_dash::test_known_bad_dash_fields_raise_format_error_without_content_dispatch[bandwidth_text-audio]",
+    "message": "ValueError: invalid literal for int() with base 10: 'changed'"
+   },
+   {
+    "nodeid": "tests.test_v2_bilibili_dash::test_known_bad_dash_fields_raise_format_error_without_content_dispatch[bandwidth_text-video]",
+    "message": "ValueError: invalid literal for int() with base 10: 'changed'"
+   },
+   {
+    "nodeid": "tests.test_v2_bilibili_dash::test_known_bad_dash_fields_raise_format_error_without_content_dispatch[size_bool-audio]",
+    "message": "Failed: DID NOT RAISE BusinessError"
+   },
+   {
+    "nodeid": "tests.test_v2_bilibili_dash::test_known_bad_dash_fields_raise_format_error_without_content_dispatch[size_bool-video]",
+    "message": "Failed: DID NOT RAISE BusinessError"
+   },
+   {
+    "nodeid": "tests.test_v2_bilibili_dash::test_known_bad_dash_fields_raise_format_error_without_content_dispatch[size_negative-audio]",
+    "message": "Failed: DID NOT RAISE BusinessError"
+   },
+   {
+    "nodeid": "tests.test_v2_bilibili_dash::test_known_bad_dash_fields_raise_format_error_without_content_dispatch[size_negative-video]",
+    "message": "Failed: DID NOT RAISE BusinessError"
+   },
+   {
+    "nodeid": "tests.test_v2_bilibili_dash::test_known_bad_dash_fields_raise_format_error_without_content_dispatch[url_type-audio]",
+    "message": "AssertionError: assert ('bilibili_read_rejected' == 'bilibili_response_invalid'\n  \n  - bilibili_response_invalid\n  + bilibili_read_rejected)"
+   },
+   {
+    "nodeid": "tests.test_v2_bilibili_dash::test_known_bad_dash_fields_raise_format_error_without_content_dispatch[url_type-video]",
+    "message": "AssertionError: assert ('bilibili_read_rejected' == 'bilibili_response_invalid'\n  \n  - bilibili_response_invalid\n  + bilibili_read_rejected)"
+   },
+   {
+    "nodeid": "tests.test_v2_bilibili_dash::test_known_bad_dash_fields_raise_format_error_without_content_dispatch[backup_type-audio]",
+    "message": "Failed: DID NOT RAISE BusinessError"
+   },
+   {
+    "nodeid": "tests.test_v2_bilibili_dash::test_known_bad_dash_fields_raise_format_error_without_content_dispatch[backup_type-video]",
+    "message": "Failed: DID NOT RAISE BusinessError"
+   },
+   {
+    "nodeid": "tests.test_v2_bilibili_dash::test_known_bad_dash_fields_raise_format_error_without_content_dispatch[backup_record-audio]",
+    "message": "AssertionError: assert ('bilibili_read_rejected' == 'bilibili_response_invalid'\n  \n  - bilibili_response_invalid\n  + bilibili_read_rejected)"
+   },
+   {
+    "nodeid": "tests.test_v2_bilibili_dash::test_known_bad_dash_fields_raise_format_error_without_content_dispatch[backup_record-video]",
+    "message": "AssertionError: assert ('bilibili_read_rejected' == 'bilibili_response_invalid'\n  \n  - bilibili_response_invalid\n  + bilibili_read_rejected)"
+   },
+   {
+    "nodeid": "tests.test_v2_bilibili_dash::test_real_job_rejects_bad_dash_before_download_and_allows_explicit_new_work[transcribe]",
+    "message": "AssertionError: assert ('done' == 'failed'\n  \n  - failed\n  + done)"
+   },
+   {
+    "nodeid": "tests.test_v2_bilibili_dash::test_real_job_rejects_bad_dash_before_download_and_allows_explicit_new_work[frames]",
+    "message": "AssertionError: assert ('unknown' == 'failed'\n  \n  - failed\n  + unknown)"
+   },
+   {
+    "nodeid": "tests.test_v2_bilibili_dash::test_real_job_downloads_next_usable_dash_candidate_without_relabeling_source[transcribe]",
+    "message": "AssertionError: assert 'failed' == 'done'\n  \n  - done\n  + failed"
+   },
+   {
+    "nodeid": "tests.test_v2_bilibili_dash::test_real_job_downloads_next_usable_dash_candidate_without_relabeling_source[frames]",
+    "message": "AssertionError: assert 'failed' == 'done'\n  \n  - done\n  + failed"
+   }
+  ],
+  "callers": {
+   "command": [
+    "D:\\xm\\OmniOperator\\temp\\build\\checkpoint-interpreter-bili-dash\\Scripts\\python.exe",
+    "-m",
+    "pytest",
+    "-q",
+    "-n",
+    "0",
+    "agent/tests/test_v2_bilibili_dash.py",
+    "agent/tests/test_v2_bilibili_streams.py",
+    "agent/tests/test_v2_media_download.py",
+    "agent/tests/test_v2_bilibili_response_bounds.py",
+    "agent/tests/test_v2_media_source_identity.py",
+    "agent/tests/test_v2_bilibili_gateway.py",
+    "agent/tests/test_v2_bilibili_http.py",
+    "agent/tests/test_v2_media.py",
+    "agent/tests/test_v2_media_authority.py",
+    "agent/tests/test_v2_lifecycle.py",
+    "agent/tests/test_v2_architecture.py",
+    "agent/tests/test_v2_typecheck_scope.py",
+    "agent/tests/test_arch.py",
+    "--junitxml=D:\\xm\\OmniOperator\\temp\\build\\v2-bili-dash-callers.xml",
+    "--tb=short"
+   ],
+   "returncode": 0,
+   "duration_s": 89.891,
+   "cases": 242,
+   "failures": 0,
+   "errors": 0,
+   "skipped": 0,
+   "report": "temp\\build\\v2-bili-dash-callers.xml",
+   "report_sha256": "d4c27df9c6088e9088d9e5f6015bb3dc6a92c3232dec80f27a865e57d621385e",
+   "log": "temp\\build\\v2-bili-dash-callers.log",
+   "log_sha256": "fd220525ca346f9d06ebf7be81356aeb6ee3f84ba1df4591be41c572348920c6"
+  },
+  "cli_summary": "242 passed in 88.69s (0:01:28)",
+  "coverage": [
+   "Missing/empty URLs on the lowest bitrate audio/video record do not block later usable tracks",
+   "Primary and backup URL aliases, absent metadata and decimal string values preserve exact results",
+   "Malformed DASH hierarchy, records, numeric/URL/backup types fail before content dispatch without exposing raw conversion failures",
+   "CDN whitelist remains enforced",
+   "Two real DB cases reject known bad DASH metadata before download/processing/object publication, clear staging and allow explicit fresh work while retaining failed rows",
+   "Two real jobs download the next usable track with exact full input bytes and unchanged source identity",
+   "Complete-stream, download, source identity, response bounds, authority, HTTP and lifecycle callers remain covered"
+  ]
+ },
+ "gates": [
+  {
+   "command": [
+    "-m",
+    "ruff",
+    "check",
+    "agent/src/omni/adapters/bilibili.py",
+    "agent/tests/test_v2_bilibili_dash.py"
+   ],
+   "returncode": 0,
+   "duration_s": 0.172,
+   "stdout": "All checks passed!\n",
+   "stderr": ""
+  },
+  {
+   "command": [
+    "-m",
+    "ruff",
+    "format",
+    "--check",
+    "agent/src/omni/adapters/bilibili.py",
+    "agent/tests/test_v2_bilibili_dash.py"
+   ],
+   "returncode": 0,
+   "duration_s": 0.172,
+   "stdout": "2 files already formatted\n",
+   "stderr": ""
+  },
+  {
+   "command": [
+    "-m",
+    "pyright",
+    "--project",
+    "D:\\xm\\OmniOperator\\temp\\build\\bili-dash-candidate\\pyrightconfig.bili-dash.json",
+    "--outputjson"
+   ],
+   "returncode": 0,
+   "duration_s": 1.562,
+   "stdout": "{\n    \"version\": \"1.1.414\",\n    \"time\": \"1794829650163\",\n    \"generalDiagnostics\": [],\n    \"summary\": {\n        \"filesAnalyzed\": 1,\n        \"errorCount\": 0,\n        \"warningCount\": 0,\n        \"informationCount\": 0,\n        \"timeInSec\": 0.884\n    }\n}\n\n",
+   "stderr": ""
+  }
+ ],
+ "artifacts": [
+  {
+   "path": "temp/build/v2-bili-dash-source.json",
+   "sha256": "72e7e213626e62e988594c08f62259a2948d63570f3398edd36fa10134ecfc11"
+  },
+  {
+   "path": "temp/build/v2-bili-dash-before-source.json",
+   "sha256": "b1622b128d933a8f820283416ac9001a8d83ac840504c94e0c7a96830950757b"
+  },
+  {
+   "path": "temp/build/v2-bili-dash-gates.json",
+   "sha256": "7d136b80787ff28fb17349584f066c1b025ce27eaf9219c9629a996b4e94eae8"
+  },
+  {
+   "path": "temp/build/v2-bili-dash-working.xml",
+   "sha256": "0a6f487e14b1740add788956fb5f618a422ecf2bd81c8513ba276a6ae0578f3f"
+  }
+ ],
+ "exploratory_reports": {
+  "working": {
+   "path": "temp/build/v2-bili-dash-working.xml",
+   "sha256": "0a6f487e14b1740add788956fb5f618a422ecf2bd81c8513ba276a6ae0578f3f"
+  },
+  "initial_gates": {
+   "path": "temp/build/v2-bili-dash-gates-initial.json",
+   "sha256": "12098ad181e15d6e675490b4e776f159a7c0b171d0cf73f48f9ca0819db044f6"
+  },
+  "note": "Working probe passed all 42 cases with concurrent WIP. Initial clean gate found two unnecessary int casts; removed only the casts before any caller pytest run. Original strict diagnostics remain. Final candidate is the committed scope, tests unchanged from the clean negative control."
+ },
+ "full_run": {
+  "status": "deferred_per_owner",
+  "run_for_this_change": false,
+  "covers_this_source": false,
+  "last_completed_source": "42a4b8b29d7c80daa4cb212d49dd40d07c189079",
+  "last_completed_summary": "4800 passed, 12 warnings in 3025.48s (0:50:25)",
+  "last_full_does_not_cover_this_change": true
+ },
+ "not_verified": [
+  "Full integration of this source",
+  "Multi-segment concatenation or remote truth of a single complete URL",
+  "Actual Bilibili account/CDN requests and real ASR models",
+  "Concurrent uncommitted migration/configuration/UI bodies",
+  "Historical native/system-commit/UI observations"
+ ]
+}
