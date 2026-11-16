@@ -373,17 +373,19 @@ def _frames(request: Payload) -> Payload:
 
 def _asr_model_missing(exc: BaseException) -> bool:
     """Offline-only loading raises hub lookup errors when the model is absent."""
-    seen = exc
+    seen: BaseException | None = exc
+    visited: set[int] = set()
     for _ in range(6):
+        if seen is None or id(seen) in visited:
+            break
+        visited.add(id(seen))
         name = type(seen).__name__
         if "LocalEntryNotFound" in name or "LocalEntryNotFoundError" in name:
             return True
         text = str(seen)
         if "local_files_only" in text or "not a local folder" in text or "Cannot find the requested files" in text:
             return True
-        seen = exc.__cause__ or exc.__context__
-        if seen is None or seen is exc:
-            break
+        seen = seen.__cause__ if seen.__cause__ is not None else seen.__context__
     return False
 
 
@@ -423,7 +425,9 @@ def _handle(line: str) -> None:
             "sheet_invalid": "media_sheet_invalid",
             "frame_timestamp_unusable": "media_frame_timestamp_unusable",
             "response_oversized": "media_processing_error",
-        }.get(str(exc), _ERROR_CODE)
+        }.get(str(exc), "")
+        if not code:
+            code = "media_asr_model_missing" if operation == "transcribe" and _asr_model_missing(exc) else _ERROR_CODE
         _fail(operation_id, code, str(exc))
     except Exception as exc:  # noqa: BLE001 - bounded, single-line failure detail
         if _asr_model_missing(exc):

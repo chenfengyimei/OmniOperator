@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`6452b8a7a5682bcf28cd787e60dc5d606106e4e030be3abf38d288ae258b5d35`。包含 65 个职责模块、736 个源码/界面文件。
+源码指纹：`4e170d4ff41bc77302e828297f8b9036bf8f7890454a0d1f1d9565b3d7e6d6f2`。包含 65 个职责模块、736 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -369,7 +369,7 @@
 | [agent/src/omni/adapters/workers/macos/Sources/OmniDesktopHelper/ServiceQuery.swift](../../agent/src/omni/adapters/workers/macos/Sources/OmniDesktopHelper/ServiceQuery.swift) | 139 | 原生源码、平台脚本或界面资源 |
 | [agent/src/omni/adapters/workers/macos/Tests/NativeIdentityTests/RegistrationPaths.swift](../../agent/src/omni/adapters/workers/macos/Tests/NativeIdentityTests/RegistrationPaths.swift) | 97 | 原生源码、平台脚本或界面资源 |
 | [agent/src/omni/adapters/workers/main.py](../../agent/src/omni/adapters/workers/main.py) | 281 | Capability subprocess. Requests carry scope; no database or Runtime is imported. |
-| [agent/src/omni/adapters/workers/media.py](../../agent/src/omni/adapters/workers/media.py) | 454 | Bounded media worker: audio decode + local ASR and frame extraction in an owned subprocess. |
+| [agent/src/omni/adapters/workers/media.py](../../agent/src/omni/adapters/workers/media.py) | 458 | Bounded media worker: audio decode + local ASR and frame extraction in an owned subprocess. |
 | [agent/src/omni/adapters/workers/portal.py](../../agent/src/omni/adapters/workers/portal.py) | 255 | Owned Wayland window-share helper with explicit one-frame requests; no database, restore token or input capability. |
 | [agent/src/omni/adapters/workers/protocol.py](../../agent/src/omni/adapters/workers/protocol.py) | 169 | Strict, bounded IPC records shared by the host and capability worker; no dispatch or I/O. |
 | [agent/src/omni/adapters/workers/service_admin_boot.py](../../agent/src/omni/adapters/workers/service_admin_boot.py) | 211 | Standalone administrator entry. Invoke a reviewed root-owned bundle with Python -I -S. |

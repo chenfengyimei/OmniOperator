@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "6452b8a7a5682bcf28cd787e60dc5d606106e4e030be3abf38d288ae258b5d35",
+  "source_sha256": "4e170d4ff41bc77302e828297f8b9036bf8f7890454a0d1f1d9565b3d7e6d6f2",
   "modules": [
     {
       "id": "v2-domain",
@@ -404,7 +404,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 54680,
+      "lines": 54684,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -34333,7 +34333,7 @@
       "path": "agent/src/omni/adapters/workers/media.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.workers.media",
-      "lines": 454,
+      "lines": 458,
       "imports": [],
       "symbols": [
         {
@@ -34532,7 +34532,7 @@
         },
         {
           "name": "_handle",
-          "line": 390,
+          "line": 392,
           "kind": "function",
           "parameters": [
             "line"
@@ -34543,7 +34543,7 @@
         },
         {
           "name": "main",
-          "line": 435,
+          "line": 439,
           "kind": "function",
           "parameters": [],
           "annotations": {}
