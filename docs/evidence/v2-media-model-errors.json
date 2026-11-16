@@ -1,0 +1,519 @@
+{
+ "schema": 1,
+ "date": "2026-11-16",
+ "branch": "v2",
+ "whole_v2_complete": false,
+ "default_entrypoint": "v1",
+ "source": {
+  "head": "660a35ba951ed7d4a462ff5d34cd1fab0e91b6ce",
+  "base": "e2c269088301c89ca224ebf9cd28cb41e428c0ef",
+  "code_version": "c7753ec8fc131239cbf9180f963d9585d1eda55ab68cd3f32ab4f5cc21d972e8",
+  "code_files": 1234,
+  "version_artifact": {
+   "path": "temp/build/v2-media-model-errors-source-version.json",
+   "sha256": "900e2e532cc6cfdc5f6710051923d6cb35723bf877aa4ddd757b8604c8db88ba"
+  },
+  "planned": {
+   "agent/src/omni/adapters/workers/media.py": {
+    "sha256": "64e83d0f2545e8927dfc6ac428f0efdcd7823614f083f6c5446ec34c5905ba7d",
+    "git_blob": "b2676f296b2e90461ce1fd5afb05f7be9dfe851f"
+   },
+   "agent/tests/test_v2_media_model_errors.py": {
+    "sha256": "5c8d3f945f32f4d0c7c7b59def3659ff8fed7d24b95341e1d61eb7d547592322",
+    "git_blob": "3255f89ab5a6be3922d34aa3b53f87cf7dde1d2d"
+   },
+   "docs/V2_MEDIA.md": {
+    "sha256": "fad34b99b573d41ed28d0cae3f6e1cfad1160d235cba6b93c1b3029468de99c0",
+    "git_blob": "03fe39d2ae255e7baa541c5a7da449ca007caff7"
+   },
+   "docs/TESTING.md": {
+    "sha256": "d88b983bb1915f6ddc636d1819370566457d57f57f62741666efa7d0ecfe3f68",
+    "git_blob": "8151ab052f279a8b667aa094bf5589ca10e7c976"
+   },
+   "docs/index/MODULES.md": {
+    "sha256": "545d113d05d8684d4e8c1087b045a474cbe30d07c28372aea91750445e551820",
+    "git_blob": "1090b859f92177815fdafd3733e7698af1821b0b"
+   },
+   "docs/index/project.json": {
+    "sha256": "f9503e68b9dd8953dff18d82bfcb1dffb7cd52e85c0753b78b3233ee73f93cb5",
+    "git_blob": "ddcda3934418f249e178f0c8b5c9a92f8c60600d"
+   }
+  },
+  "candidate": "D:\\xm\\OmniOperator\\temp\\build\\media-model-errors-index-precommit",
+  "parallel_working_bodies_preserved": true
+ },
+ "root_cause": "The model-missing classifier repeatedly followed the root exception cause/context instead of the current node, so deeper wrappers lost the offline-cache diagnosis. Unmapped ASR ValueError wrappers bypassed that classifier entirely.",
+ "changes": [
+  "Follow the current exception cause or context, preferring an explicit cause even when its truth value is false",
+  "Track visited identities so cycles do not repeat nodes; retain the existing six-total-node inspection limit",
+  "Keep existing missing-class and message recognizers unchanged",
+  "Classify unmapped ASR ValueError wrappers while preserving all mapped business errors, missing-component priority and non-ASR ValueError behavior",
+  "Report media_asr_model_missing with the existing offline-cache guidance; do not download models or replay failed work"
+ ],
+ "proof": {
+  "changed_existing_functions": [
+   "_asr_model_missing",
+   "_handle"
+  ],
+  "all_existing_function_signatures_unchanged": true,
+  "recognizers_and_six_node_limit_ast_identical": true,
+  "handler_dispatch_import_error_and_generic_exception_branches_ast_identical": true,
+  "known_value_error_mapping_ast_identical": true,
+  "all_other_existing_functions_byte_identical": true,
+  "imports_globals_and_policy_constants_ast_identical": true,
+  "host_domain_transport_lifecycle_repository_database_files_byte_identical": [
+   "agent/src/omni/application/media.py",
+   "agent/src/omni/domain/media.py",
+   "agent/src/omni/adapters/media.py",
+   "agent/src/omni/composition/lifecycle.py",
+   "agent/src/omni/adapters/persistence/media_repository.py",
+   "agent/src/omni/adapters/persistence/database.py"
+  ],
+  "regressions_identical_between_clean_before_and_candidate": true,
+  "strict_files": 1
+ },
+ "regressions": {
+  "new_cases": 37,
+  "clean_before": {
+   "report": "temp/build/v2-media-model-errors-clean-before.xml",
+   "report_sha256": "5a641823570fe7fe007e4b869b5708da0e1432b73795e4938d714a605acf888f",
+   "raw_suites": [
+    {
+     "name": "pytest",
+     "errors": "0",
+     "failures": "21",
+     "skipped": "0",
+     "tests": "37",
+     "time": "8.390",
+     "timestamp": "2026-11-16T18:06:56.441129+08:00",
+     "hostname": "cy"
+    }
+   ],
+   "junit_testcase_records": 37,
+   "unique_test_nodes_reported": 37,
+   "failure_events": 21,
+   "error_events": 0,
+   "skipped": 0,
+   "unique_failed_or_errored_nodes": 21,
+   "unique_nodes_without_failure_or_error": 16,
+   "duplicate_nodes": {},
+   "failed_nodes": [
+    {
+     "nodeid": "agent/tests/test_v2_media_model_errors.py::test_missing_model_class_is_found_only_within_six_total_exception_nodes[2-True-cause]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: assert False is True\n +  where False = <function _asr_model_missing at 0x000002AF284F11C0>(RuntimeError('model loader failed'))\n +    where <function _asr_model_missing at 0x000002AF284F11C0> = worker._asr_model_missing"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_model_errors.py::test_missing_model_class_is_found_only_within_six_total_exception_nodes[2-True-context]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: assert False is True\n +  where False = <function _asr_model_missing at 0x000002AF284F11C0>(RuntimeError('model loader failed'))\n +    where <function _asr_model_missing at 0x000002AF284F11C0> = worker._asr_model_missing"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_model_errors.py::test_missing_model_class_is_found_only_within_six_total_exception_nodes[5-True-cause]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: assert False is True\n +  where False = <function _asr_model_missing at 0x000002AF284F11C0>(RuntimeError('model loader failed'))\n +    where <function _asr_model_missing at 0x000002AF284F11C0> = worker._asr_model_missing"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_model_errors.py::test_missing_model_class_is_found_only_within_six_total_exception_nodes[5-True-context]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: assert False is True\n +  where False = <function _asr_model_missing at 0x000002AF284F11C0>(RuntimeError('model loader failed'))\n +    where <function _asr_model_missing at 0x000002AF284F11C0> = worker._asr_model_missing"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_model_errors.py::test_nested_existing_message_hints_are_still_recognized[local_files_only-cause]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: assert False\n +  where False = <function _asr_model_missing at 0x000002AF284F11C0>(RuntimeError('model loader failed'))\n +    where <function _asr_model_missing at 0x000002AF284F11C0> = worker._asr_model_missing\n +    and   RuntimeError('model loader failed') = wrap(OSError('local_files_only'), 2, 'cause')\n +      where OSError('local_files_only') = OSError('local_files_only')"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_model_errors.py::test_nested_existing_message_hints_are_still_recognized[local_files_only-context]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: assert False\n +  where False = <function _asr_model_missing at 0x000002AF284F11C0>(RuntimeError('model loader failed'))\n +    where <function _asr_model_missing at 0x000002AF284F11C0> = worker._asr_model_missing\n +    and   RuntimeError('model loader failed') = wrap(OSError('local_files_only'), 2, 'context')\n +      where OSError('local_files_only') = OSError('local_files_only')"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_model_errors.py::test_nested_existing_message_hints_are_still_recognized[not a local folder-cause]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: assert False\n +  where False = <function _asr_model_missing at 0x000002AF284F11C0>(RuntimeError('model loader failed'))\n +    where <function _asr_model_missing at 0x000002AF284F11C0> = worker._asr_model_missing\n +    and   RuntimeError('model loader failed') = wrap(OSError('not a local folder'), 2, 'cause')\n +      where OSError('not a local folder') = OSError('not a local folder')"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_model_errors.py::test_nested_existing_message_hints_are_still_recognized[not a local folder-context]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: assert False\n +  where False = <function _asr_model_missing at 0x000002AF284F11C0>(RuntimeError('model loader failed'))\n +    where <function _asr_model_missing at 0x000002AF284F11C0> = worker._asr_model_missing\n +    and   RuntimeError('model loader failed') = wrap(OSError('not a local folder'), 2, 'context')\n +      where OSError('not a local folder') = OSError('not a local folder')"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_model_errors.py::test_nested_existing_message_hints_are_still_recognized[Cannot find the requested files-cause]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: assert False\n +  where False = <function _asr_model_missing at 0x000002AF284F11C0>(RuntimeError('model loader failed'))\n +    where <function _asr_model_missing at 0x000002AF284F11C0> = worker._asr_model_missing\n +    and   RuntimeError('model loader failed') = wrap(OSError('Cannot find the requested files'), 2, 'cause')\n +      where OSError('Cannot find the requested files') = OSError('Cannot find the requested files')"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_model_errors.py::test_nested_existing_message_hints_are_still_recognized[Cannot find the requested files-context]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: assert False\n +  where False = <function _asr_model_missing at 0x000002AF284F11C0>(RuntimeError('model loader failed'))\n +    where <function _asr_model_missing at 0x000002AF284F11C0> = worker._asr_model_missing\n +    and   RuntimeError('model loader failed') = wrap(OSError('Cannot find the requested files'), 2, 'context')\n +      where OSError('Cannot find the requested files') = OSError('Cannot find the requested files')"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_model_errors.py::test_exception_cycles_visit_each_node_once[2]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "assert [Observed(), ...), Observed()] == [Observed(), Observed()]\n  \n  Left contains 4 more items, first extra item: Observed()\n  Use -v to get more diff"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_model_errors.py::test_deep_negative_chain_reads_only_the_first_six_distinct_nodes",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "assert [Observed(), ...), Observed()] == [Observed(), ...), Observed()]\n  \n  At index 2 diff: Observed() != Observed()\n  Use -v to get more diff"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_model_errors.py::test_explicit_cause_takes_precedence_over_a_missing_model_context[True]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: assert not True\n +  where True = <function _asr_model_missing at 0x000002AF284F11C0>(RuntimeError('top failure'))\n +    where <function _asr_model_missing at 0x000002AF284F11C0> = worker._asr_model_missing"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_model_errors.py::test_worker_handles_nested_loader_wrappers_as_model_missing[cause-RuntimeError]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: assert 'media_processing_error' == 'media_asr_model_missing'\n  \n  - media_asr_model_missing\n  + media_processing_error"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_model_errors.py::test_worker_handles_nested_loader_wrappers_as_model_missing[cause-ValueError]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: assert 'media_processing_error' == 'media_asr_model_missing'\n  \n  - media_asr_model_missing\n  + media_processing_error"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_model_errors.py::test_worker_handles_nested_loader_wrappers_as_model_missing[context-RuntimeError]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: assert 'media_processing_error' == 'media_asr_model_missing'\n  \n  - media_asr_model_missing\n  + media_processing_error"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_model_errors.py::test_worker_handles_nested_loader_wrappers_as_model_missing[context-ValueError]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: assert 'media_processing_error' == 'media_asr_model_missing'\n  \n  - media_asr_model_missing\n  + media_processing_error"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_model_errors.py::test_real_stdio_preserves_model_missing_guidance_and_reuses_worker_for_new_request[value]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: assert ('media_processing_error' == 'media_asr_model_missing'\n  \n  - media_asr_model_missing\n  + media_processing_error)"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_model_errors.py::test_real_stdio_preserves_model_missing_guidance_and_reuses_worker_for_new_request[runtime]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: assert ('media_processing_error' == 'media_asr_model_missing'\n  \n  - media_asr_model_missing\n  + media_processing_error)"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_model_errors.py::test_real_job_records_model_missing_and_does_not_publish_until_explicit_new_work[value]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: assert ('failed' == 'failed'\n  \n    failed and 'media_processing_error' == 'media_asr_model_missing'\n  \n  - media_asr_model_missing\n  + media_processing_error)"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_model_errors.py::test_real_job_records_model_missing_and_does_not_publish_until_explicit_new_work[runtime]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "AssertionError: assert ('failed' == 'failed'\n  \n    failed and 'media_processing_error' == 'media_asr_model_missing'\n  \n  - media_asr_model_missing\n  + media_processing_error)"
+      }
+     ]
+    }
+   ]
+  },
+  "clean_before_metadata": {
+   "path": "temp/build/v2-media-model-errors-clean-before.json",
+   "sha256": "23450f4d3433f15e5b2f00818b9f9551e4c3297007c2ad05c8df05a929f1228a"
+  },
+  "clean_before_log": {
+   "path": "temp/build/v2-media-model-errors-clean-before.log",
+   "sha256": "7cc7683f8d27b85081986c5c05373b02ebea094659d2a11d6f579a309aef0d8e"
+  },
+  "callers": {
+   "report": "temp/build/v2-media-model-errors-callers.xml",
+   "report_sha256": "58d578df6bc48d1a277938c42b54c0115cfacb988042a506ec9eb283c74a6ec5",
+   "raw_suites": [
+    {
+     "name": "pytest",
+     "errors": "0",
+     "failures": "0",
+     "skipped": "0",
+     "tests": "182",
+     "time": "38.170",
+     "timestamp": "2026-11-16T18:08:45.970644+08:00",
+     "hostname": "cy"
+    }
+   ],
+   "junit_testcase_records": 182,
+   "unique_test_nodes_reported": 182,
+   "failure_events": 0,
+   "error_events": 0,
+   "skipped": 0,
+   "unique_failed_or_errored_nodes": 0,
+   "unique_nodes_without_failure_or_error": 182,
+   "duplicate_nodes": {},
+   "failed_nodes": []
+  },
+  "callers_log": {
+   "path": "temp/build/v2-media-model-errors-callers.log",
+   "sha256": "a2f808f503d943e8ad0bdb41d9d8286e9e28b6517925b5eb02a6f529a8ed71ac"
+  },
+  "cli_summary": "182 passed in 38.41s",
+  "coverage": [
+   "Class and existing message recognizers work across cause and context wrappers within six total nodes",
+   "Self/two-node cycles visit once and a deep negative chain stops after six distinct nodes",
+   "Explicit cause takes priority over context, including a falsey exception",
+   "RuntimeError and unmapped ASR ValueError wrappers retain the precise model-missing outcome",
+   "Mapped business failures, missing components, unrelated failures and non-ASR ValueErrors keep their existing classification",
+   "Two real stdio tests preserve existing offline-cache guidance, create no partial output and reuse the same owned worker for a later valid request",
+   "Two real database tests persist failed/media_asr_model_missing without transcript artifacts, clear staging and allow explicit subsequent work without changing the old failure"
+  ],
+  "total_unique_scoped_passed": 182
+ },
+ "scoped_validation": {
+  "scope": "Offline model failure cause-chain classification; ASR worker/time guards, transport protocol, media/HTTP/tool, lifecycle and architecture callers; decoding and frame generation unchanged",
+  "base": "e2c269088301c89ca224ebf9cd28cb41e428c0ef",
+  "planned": {
+   "agent/src/omni/adapters/workers/media.py": {
+    "sha256": "64e83d0f2545e8927dfc6ac428f0efdcd7823614f083f6c5446ec34c5905ba7d",
+    "git_blob": "b2676f296b2e90461ce1fd5afb05f7be9dfe851f"
+   },
+   "agent/tests/test_v2_media_model_errors.py": {
+    "sha256": "5c8d3f945f32f4d0c7c7b59def3659ff8fed7d24b95341e1d61eb7d547592322",
+    "git_blob": "3255f89ab5a6be3922d34aa3b53f87cf7dde1d2d"
+   },
+   "docs/V2_MEDIA.md": {
+    "sha256": "fad34b99b573d41ed28d0cae3f6e1cfad1160d235cba6b93c1b3029468de99c0",
+    "git_blob": "03fe39d2ae255e7baa541c5a7da449ca007caff7"
+   },
+   "docs/TESTING.md": {
+    "sha256": "d88b983bb1915f6ddc636d1819370566457d57f57f62741666efa7d0ecfe3f68",
+    "git_blob": "8151ab052f279a8b667aa094bf5589ca10e7c976"
+   },
+   "docs/index/MODULES.md": {
+    "sha256": "545d113d05d8684d4e8c1087b045a474cbe30d07c28372aea91750445e551820",
+    "git_blob": "1090b859f92177815fdafd3733e7698af1821b0b"
+   },
+   "docs/index/project.json": {
+    "sha256": "f9503e68b9dd8953dff18d82bfcb1dffb7cd52e85c0753b78b3233ee73f93cb5",
+    "git_blob": "ddcda3934418f249e178f0c8b5c9a92f8c60600d"
+   }
+  },
+  "full_suite_run": false,
+  "gates": [
+   {
+    "command": [
+     "D:\\xm\\OmniOperator\\temp\\build\\checkpoint-interpreter-media-model-errors\\Scripts\\python.exe",
+     "-m",
+     "ruff",
+     "check",
+     "agent/src/omni/adapters/workers/media.py",
+     "agent/tests/test_v2_media_model_errors.py"
+    ],
+    "returncode": 0,
+    "duration_s": 0.172,
+    "stdout": "All checks passed!\n",
+    "stderr": ""
+   },
+   {
+    "command": [
+     "D:\\xm\\OmniOperator\\temp\\build\\checkpoint-interpreter-media-model-errors\\Scripts\\python.exe",
+     "-m",
+     "ruff",
+     "format",
+     "--check",
+     "agent/src/omni/adapters/workers/media.py",
+     "agent/tests/test_v2_media_model_errors.py"
+    ],
+    "returncode": 0,
+    "duration_s": 0.156,
+    "stdout": "2 files already formatted\n",
+    "stderr": ""
+   },
+   {
+    "command": [
+     "D:\\xm\\OmniOperator\\temp\\build\\checkpoint-interpreter-media-model-errors\\Scripts\\python.exe",
+     "-m",
+     "pyright",
+     "--project",
+     "D:\\xm\\OmniOperator\\temp\\build\\media-model-errors-index-precommit\\pyrightconfig.media-model-errors.json",
+     "--outputjson"
+    ],
+    "returncode": 0,
+    "duration_s": 1.672,
+    "stdout": "{\n    \"version\": \"1.1.414\",\n    \"time\": \"1794823725297\",\n    \"generalDiagnostics\": [],\n    \"summary\": {\n        \"filesAnalyzed\": 1,\n        \"errorCount\": 0,\n        \"warningCount\": 0,\n        \"informationCount\": 0,\n        \"timeInSec\": 0.799\n    }\n}\n\n",
+    "stderr": ""
+   }
+  ],
+  "strict_summary": {
+   "filesAnalyzed": 1,
+   "errorCount": 0,
+   "warningCount": 0,
+   "informationCount": 0,
+   "timeInSec": 0.799
+  },
+  "callers": {
+   "command": [
+    "D:\\xm\\OmniOperator\\temp\\build\\checkpoint-interpreter-media-model-errors\\Scripts\\python.exe",
+    "-m",
+    "pytest",
+    "-q",
+    "-n",
+    "0",
+    "agent/tests/test_v2_media_model_errors.py",
+    "agent/tests/test_v2_media_worker.py",
+    "agent/tests/test_v2_media_asr_anchors.py",
+    "agent/tests/test_v2_media_protocol.py",
+    "agent/tests/test_v2_media.py",
+    "agent/tests/test_v2_lifecycle.py",
+    "agent/tests/test_v2_architecture.py",
+    "agent/tests/test_v2_typecheck_scope.py",
+    "agent/tests/test_arch.py",
+    "--junitxml=D:\\xm\\OmniOperator\\temp\\build\\v2-media-model-errors-callers.xml"
+   ],
+   "targets": [
+    "test_v2_media_model_errors",
+    "test_v2_media_worker",
+    "test_v2_media_asr_anchors",
+    "test_v2_media_protocol",
+    "test_v2_media",
+    "test_v2_lifecycle",
+    "test_v2_architecture",
+    "test_v2_typecheck_scope",
+    "test_arch"
+   ],
+   "returncode": 0,
+   "duration_s": 39.453,
+   "cases": 182,
+   "failures": 0,
+   "errors": 0,
+   "skipped": 0
+  },
+  "source_unchanged": true
+ },
+ "scoped_validation_artifact": {
+  "path": "temp/build/v2-media-model-errors-scoped.json",
+  "sha256": "c65ca2c1c90c18f31a5e743e701c182ad59f790b83e93f4b1e5e6f627ca0affd"
+ },
+ "ownership_artifact": {
+  "path": "temp/build/v2-media-model-errors-source.json",
+  "sha256": "a629860bd4017a60ca2f003df0a9f0cddaf2791dd25760af391e7917b3e4c8ac"
+ },
+ "exploratory_reports": {
+  "working_after": {
+   "report": "temp/build/v2-media-model-errors-working-after.xml",
+   "report_sha256": "8c5bee936d00b946981d78464b1a7ff55d60377cc83923d4c05edc5f5a969b63",
+   "raw_suites": [
+    {
+     "name": "pytest",
+     "errors": "0",
+     "failures": "0",
+     "skipped": "0",
+     "tests": "37",
+     "time": "5.667",
+     "timestamp": "2026-11-16T18:05:17.775324+08:00",
+     "hostname": "cy"
+    }
+   ],
+   "junit_testcase_records": 37,
+   "unique_test_nodes_reported": 37,
+   "failure_events": 0,
+   "error_events": 0,
+   "skipped": 0,
+   "unique_failed_or_errored_nodes": 0,
+   "unique_nodes_without_failure_or_error": 37,
+   "duplicate_nodes": {},
+   "failed_nodes": []
+  },
+  "scope": "Working-tree probe may include concurrent WIP; final identical tests on clean baseline and immutable candidate define the delivered scope."
+ },
+ "full_run": {
+  "status": "deferred_per_owner",
+  "run_for_this_change": false,
+  "covers_this_source": false,
+  "reason": "Owner prioritizes implementation and scoped tests; full suite at multi-module integration",
+  "last_completed_source": "42a4b8b29d7c80daa4cb212d49dd40d07c189079",
+  "last_completed_summary": "4800 passed, 12 warnings in 3025.48s (0:50:25)",
+  "last_completed_report": {
+   "path": "temp/build/v2-full-226.xml",
+   "sha256": "ecab05764ea535042e7e4dde6ea0e0f6969030b4ae74056a1ce9fd20352549e4"
+  },
+  "last_full_does_not_cover_this_change": true
+ },
+ "not_verified": [
+  "Full integration suite for this new source",
+  "Real model installation/cache preparation and real ASR inference; model and audio computation in new tests is isolated injection",
+  "Unchanged audio decoding/frame generation implementation was not rerun in this batch",
+  "Native/model memory and arbitrary exception text size bounds",
+  "Historical system commit/native/UI causes",
+  "Concurrent uncommitted configuration/schema/UI bodies"
+ ]
+}
