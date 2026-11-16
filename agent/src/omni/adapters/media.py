@@ -20,6 +20,8 @@ from .platform.processes import OwnedProcess
 log = logging.getLogger("omni.v2.media")
 
 FRAME_LIMIT = 8 * 1024 * 1024
+STDERR_READ_BYTES = 4096
+STDERR_COUNTER_LIMIT = (1 << 53) - 1
 PROBE_BUDGET_S = 20
 FRAMES_BUDGET_S = 180
 TRANSCRIBE_BUDGET_S = 900
@@ -83,21 +85,46 @@ class MediaProcessor:
         self._argv = argv or [sys.executable, "-m", "omni.adapters.workers.media"]
         self._owned: OwnedProcess | None = None
         self._starting: asyncio.Task[OwnedProcess] | None = None
+        self._stderr: asyncio.Task[None] | None = None
+        self._stderr_bytes = 0
+        self._stderr_failed = False
         self._lock = asyncio.Lock()
         self._probed: dict[str, object] | None = None
         self._closing = False
         self._cleanup_pending = False
 
     def status(self) -> dict[str, object]:
+        self._refresh_stderr()
         return {
             "available": not self._closing and not self._cleanup_pending,
             "probed": self._probed is not None,
             "components": self._probed or {},
             "running": self._owned is not None and self._owned.process.returncode is None,
             "starting": self._starting is not None and not self._starting.done(),
+            "stderr_draining": self._stderr is not None and not self._stderr.done(),
+            "stderr_bytes": self._stderr_bytes,
+            "stderr_failed": self._stderr_failed,
             "cleanup_pending": self._cleanup_pending,
             "recovery": "Install the optional asr dependency for av and faster-whisper; frames need av and Pillow",
         }
+
+    async def _drain_stderr(self, stream: asyncio.StreamReader) -> None:
+        total = 0
+        while size := len(await stream.read(STDERR_READ_BYTES)):
+            self._stderr_bytes = min(STDERR_COUNTER_LIMIT, self._stderr_bytes + size)
+            total = min(STDERR_COUNTER_LIMIT, total + size)
+        if total:
+            log.warning("Media worker stderr bytes observed", extra={"event": "media.stderr", "bytes": total})
+
+    def _stderr_finished(self, task: asyncio.Task[None]) -> None:
+        failed = task.cancelled() or task.exception() is not None
+        if task is self._stderr and failed:
+            self._stderr_failed = True
+            self._cleanup_pending = True
+
+    def _refresh_stderr(self) -> None:
+        if self._stderr is not None and self._stderr.done():
+            self._stderr_finished(self._stderr)
 
     async def _spawn(self) -> OwnedProcess:
         env = {
@@ -120,6 +147,12 @@ class MediaProcessor:
             env=env,
         )
         self._owned = owned
+        assert owned.process.stderr is not None
+        self._stderr_failed = False
+        self._stderr = asyncio.create_task(
+            self._drain_stderr(owned.process.stderr), name="media-stderr", context=contextvars.Context()
+        )
+        self._stderr.add_done_callback(self._stderr_finished, context=contextvars.Context())
         return owned
 
     async def _start(self) -> OwnedProcess:
@@ -156,14 +189,21 @@ class MediaProcessor:
                 log.warning("Media worker creation failed", extra={"event": "media.spawn_failed"})
             self._starting = None
         owned = self._owned
-        if owned is None:
-            self._cleanup_pending = False
-            return True
         # Keep the actual owner reachable even if reclamation is cancelled or raises.
-        self._cleanup_pending = True
-        if not await owned.terminate(max(0, deadline - asyncio.get_running_loop().time())):
-            return False
+        if owned is not None:
+            self._cleanup_pending = True
+            if not await owned.terminate(max(0, deadline - asyncio.get_running_loop().time())):
+                return False
+        stderr = self._stderr
+        if stderr is not None:
+            self._cleanup_pending = True
+            done, _ = await asyncio.wait((stderr,), timeout=max(0, deadline - asyncio.get_running_loop().time()))
+            if not done:
+                return False
+            self._stderr_finished(stderr)
         self._owned = None
+        self._stderr = None
+        self._stderr_failed = False
         self._cleanup_pending = False
         return True
 
@@ -179,6 +219,7 @@ class MediaProcessor:
         async with self._lock:
             if self._closing:
                 raise BusinessError("media_processor_closing", "Media processing is closing", status=503)
+            self._refresh_stderr()
             owned = self._owned
             if self._cleanup_pending or (
                 owned is not None and (owned.process.returncode is not None or owned.reclaimed)
@@ -194,6 +235,9 @@ class MediaProcessor:
                 owned = await self._start()
             if self._closing:
                 raise BusinessError("media_processor_closing", "Media processing is closing", status=503)
+            self._refresh_stderr()
+            if self._cleanup_pending:
+                raise BusinessError("media_cleanup_pending", "Media worker cleanup is still pending", status=503)
             assert owned.process.stdin is not None and owned.process.stdout is not None
             try:
                 async with asyncio.timeout(budget_s):

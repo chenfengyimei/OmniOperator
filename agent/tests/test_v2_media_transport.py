@@ -15,6 +15,10 @@ from omni.adapters.platform.processes import OwnedProcess
 from omni.domain.contracts import BusinessError
 
 
+async def empty_stderr(size):
+    return b""
+
+
 class Worker:
     def __init__(
         self, name="old", *, exited=False, reclaim=True, read_gate=None, cleanup_gate=None, cleanup_error=None
@@ -23,7 +27,9 @@ class Worker:
         self.read_gate, self.cleanup_gate, self.cleanup_error = read_gate, cleanup_gate, cleanup_error
         self.read_started, self.cleanup_started = asyncio.Event(), asyncio.Event()
         self.frames, self.terminate_calls = [], 0
-        self.process = SimpleNamespace(returncode=0 if exited else None, stdin=self, stdout=self)
+        self.process = SimpleNamespace(
+            returncode=0 if exited else None, stdin=self, stdout=self, stderr=SimpleNamespace(read=empty_stderr)
+        )
 
     def write(self, frame):
         self.frames.append(json.loads(frame))
