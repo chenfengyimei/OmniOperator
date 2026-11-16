@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "68f1eab46f5c99b2d22757100f5c46c5ead5bf83033ee1c59168f801b46c4520",
+  "source_sha256": "6452b8a7a5682bcf28cd787e60dc5d606106e4e030be3abf38d288ae258b5d35",
   "modules": [
     {
       "id": "v2-domain",
@@ -136,7 +136,7 @@
         "agent/src/omni/application/terminal_review.py",
         "agent/src/omni/application/terminals.py"
       ],
-      "lines": 11295,
+      "lines": 11305,
       "dependencies": [
         "v2-domain"
       ]
@@ -41290,7 +41290,7 @@
       "path": "agent/src/omni/application/media.py",
       "module": "v2-application",
       "python_module": "omni.application.media",
-      "lines": 584,
+      "lines": 594,
       "imports": [
         "omni.application.images",
         "omni.application.objects",
@@ -41744,11 +41744,18 @@
           }
         },
         {
-          "name": "MediaService.transcript.perform",
-          "line": 454,
+          "name": "MediaService._read_transcript",
+          "line": 456,
           "kind": "function",
-          "parameters": [],
-          "annotations": {}
+          "parameters": [
+            "self",
+            "agent_id",
+            "transcript_id"
+          ],
+          "annotations": {
+            "agent_id": "str",
+            "transcript_id": "str"
+          }
         },
         {
           "name": "MediaService.transcript_window",
@@ -41771,8 +41778,28 @@
           }
         },
         {
+          "name": "MediaService._transcript_window",
+          "line": 474,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "agent_id",
+            "source_id",
+            "transcript_id",
+            "start",
+            "length"
+          ],
+          "annotations": {
+            "agent_id": "str",
+            "source_id": "str",
+            "transcript_id": "str | None",
+            "start": "int",
+            "length": "int"
+          }
+        },
+        {
           "name": "MediaService.transcript_window_for",
-          "line": 496,
+          "line": 502,
           "kind": "function",
           "parameters": [
             "self",
@@ -41789,8 +41816,15 @@
           }
         },
         {
+          "name": "MediaService.transcript_window_for.perform",
+          "line": 505,
+          "kind": "function",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
           "name": "MediaService.frames",
-          "line": 501,
+          "line": 511,
           "kind": "function",
           "parameters": [
             "self",
@@ -41804,7 +41838,7 @@
         },
         {
           "name": "MediaService._run_bounded",
-          "line": 504,
+          "line": 514,
           "kind": "function",
           "parameters": [
             "self",
@@ -41818,7 +41852,7 @@
         },
         {
           "name": "MediaService.invoke",
-          "line": 515,
+          "line": 525,
           "kind": "function",
           "parameters": [
             "self",
@@ -41836,7 +41870,7 @@
         },
         {
           "name": "MediaService.processor_probe",
-          "line": 554,
+          "line": 564,
           "kind": "function",
           "parameters": [
             "self"
@@ -41845,7 +41879,7 @@
         },
         {
           "name": "MediaService.recover",
-          "line": 558,
+          "line": 568,
           "kind": "function",
           "parameters": [
             "self"
@@ -41854,7 +41888,7 @@
         },
         {
           "name": "MediaService.health",
-          "line": 562,
+          "line": 572,
           "kind": "function",
           "parameters": [
             "self"
@@ -41863,7 +41897,7 @@
         },
         {
           "name": "MediaService.stop_accepting",
-          "line": 571,
+          "line": 581,
           "kind": "function",
           "parameters": [
             "self"
@@ -41872,7 +41906,7 @@
         },
         {
           "name": "MediaService.close",
-          "line": 574,
+          "line": 584,
           "kind": "function",
           "parameters": [
             "self",

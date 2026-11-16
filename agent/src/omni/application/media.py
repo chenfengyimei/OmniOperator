@@ -451,22 +451,27 @@ class MediaService:
     # ---------- artifacts ----------
 
     async def transcript(self, agent_id: str, transcript_id: str) -> Record:
-        async def perform() -> Record:
-            row = await self._db.read(lambda u: u.media_transcript_get(agent_id, transcript_id))
-            _, payload = await self._objects.get(agent_id, str(row["object_id"]))
-            parsed = parse_transcript(payload)
-            # A concurrent source deletion must not publish a previously loaded row.
-            await self._db.read(lambda u: u.media_transcript_get(agent_id, transcript_id))
-            return {
-                **row,
-                "segments": cast(JSON, parsed["segments"]),
-                "kind": cast(JSON, parsed["kind"]),
-                "language": cast(JSON, parsed["language"]),
-            }
+        return await self._run_bounded(self._read_transcript(agent_id, transcript_id))
 
-        return await self._run_bounded(perform())
+    async def _read_transcript(self, agent_id: str, transcript_id: str) -> Record:
+        row = await self._db.read(lambda u: u.media_transcript_get(agent_id, transcript_id))
+        _, payload = await self._objects.get(agent_id, str(row["object_id"]))
+        parsed = parse_transcript(payload)
+        # A concurrent source deletion must not publish a previously loaded row.
+        await self._db.read(lambda u: u.media_transcript_get(agent_id, transcript_id))
+        return {
+            **row,
+            "segments": cast(JSON, parsed["segments"]),
+            "kind": cast(JSON, parsed["kind"]),
+            "language": cast(JSON, parsed["language"]),
+        }
 
     async def transcript_window(
+        self, agent_id: str, source_id: str, transcript_id: str | None, start: int, length: int
+    ) -> Record:
+        return await self._run_bounded(self._transcript_window(agent_id, source_id, transcript_id, start, length))
+
+    async def _transcript_window(
         self, agent_id: str, source_id: str, transcript_id: str | None, start: int, length: int
     ) -> Record:
         row = (
@@ -476,7 +481,8 @@ class MediaService:
         )
         if str(row["source_id"]) != source_id:
             raise BusinessError("media_transcript_not_found", "Transcript does not belong to this source", status=404)
-        full = await self.transcript(agent_id, str(row["id"]))
+        # This workflow was admitted before its first lookup; draining cannot reject its later read.
+        full = await self._read_transcript(agent_id, str(row["id"]))
         from ..domain.media import transcript_body
 
         segments = cast(list[list[object]], full["segments"])
@@ -495,8 +501,12 @@ class MediaService:
 
     async def transcript_window_for(self, agent_id: str, transcript_id: str, start: int, length: int) -> Record:
         """Window a transcript identified by its own id; the owner UI has no source pairing."""
-        row = await self._db.read(lambda u: u.media_transcript_get(agent_id, transcript_id))
-        return await self.transcript_window(agent_id, str(row["source_id"]), transcript_id, start, length)
+
+        async def perform() -> Record:
+            row = await self._db.read(lambda u: u.media_transcript_get(agent_id, transcript_id))
+            return await self._transcript_window(agent_id, str(row["source_id"]), transcript_id, start, length)
+
+        return await self._run_bounded(perform())
 
     async def frames(self, agent_id: str, frames_id: str) -> Record:
         return await self._db.read(lambda u: u.media_frames_get(agent_id, frames_id))
