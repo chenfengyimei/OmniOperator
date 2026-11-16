@@ -1,0 +1,285 @@
+{
+ "schema": 1,
+ "date": "2026-11-16",
+ "branch": "v2",
+ "whole_v2_complete": false,
+ "default_entrypoint": "v1",
+ "source": {
+  "head": "51a44613204aac5925d15a10c9aadafd7c4bfddb",
+  "base": "9cf541a8781f788c031390f0ea9d0fbe3df5b417",
+  "code_version": "48fec55f6c8d02babbb91c4efd602ccb479926019fb1809759296a14470e5135",
+  "code_files": 1248,
+  "planned": {
+   "agent/src/omni/adapters/workers/media.py": {
+    "sha256": "2916216d0d2e9b7a234a0e5f97842c4a23a95cce4eb329f1ca7629d929973a84",
+    "git_blob": "5b445feaed467386294fe6eafda14266dca2ad0f"
+   },
+   "agent/tests/test_v2_media_duration.py": {
+    "sha256": "85f198d8c1dd58b6425fc4355e59218845fd7fed73ffd13999a8590ca3710a12",
+    "git_blob": "d4b0a20543e8ec4f971c53d96aeb7c3e1dcc8d4f"
+   },
+   "docs/V2_MEDIA.md": {
+    "sha256": "e6f6babe9076f0d34026e00c33ae6526fbe3ec171f6b637c59d7bbfa4e93f894",
+    "git_blob": "d6776603de8400122cb8e223c424e31021fe221f"
+   },
+   "docs/TESTING.md": {
+    "sha256": "69d016657a456605414668e016c3499ac4a7d1ccb2c13a57ef104e2a2fa76507",
+    "git_blob": "e3f07d1d60fa1de8e469257b2fe96022a5b5a9d4"
+   },
+   "docs/index/MODULES.md": {
+    "sha256": "4753ffc5867c60653a2ea34040c56cd708a9ced04b0827329d1fb1b396edadda",
+    "git_blob": "8f9cd1327f2935f48655d94d2182f80b1cc8b17e"
+   },
+   "docs/index/project.json": {
+    "sha256": "0604691a3bae1315c80c2008c32b91d32e6a641e1a884fffb4663fe18fc9fed7",
+    "git_blob": "ebf32361918b9db3ac0539da07b4ad135f0d0db6"
+   }
+  },
+  "candidate": "D:\\xm\\OmniOperator\\temp\\build\\media-duration-candidate",
+  "parallel_working_bodies_preserved": true
+ },
+ "root_cause": "Frame sampling used the selected declared stream/container duration without finite or 0..7200 validation. Negative/NaN durations could enter metadata-less fallback; excessive/infinite durations could reach target seeking, and numeric conversion overflow escaped as generic processing errors.",
+ "changes": [
+  "Validate the existing selected duration before seek, decode, image conversion or output allocation",
+  "Reject negative, non-finite or over-two-hour declarations with media_video_duration_out_of_range; convert overflow/type/value failures to the same precise known error",
+  "Preserve stream/time-base precedence, container microsecond fallback, unknown/zero fallback, positive fractional durations and exact 7200-second acceptance",
+  "Keep actual frame timestamp validation, nearest-frame algorithm, decode iterator ownership and all processing/image budgets unchanged",
+  "No database schema or source identity changes; known worker error yields failed, and explicit fresh jobs remain available"
+ ],
+ "proof": {
+  "changed_existing_functions": [
+   "_frames",
+   "_handle"
+  ],
+  "new_helpers": [],
+  "existing_signatures_and_annotations_unchanged": true,
+  "frame_generation_ast_identical_after_removing_only_duration_conversion_guard": true,
+  "worker_dispatch_ast_identical_after_removing_only_precise_error_mapping": true,
+  "remaining_module_ast_identical": true,
+  "imports_and_constants_unchanged": true,
+  "unchanged_files": [
+   "agent/src/omni/application/media.py",
+   "agent/src/omni/domain/media.py",
+   "agent/src/omni/adapters/media.py",
+   "agent/src/omni/adapters/images.py",
+   "agent/src/omni/composition/instance.py",
+   "agent/tests/test_v2_media.py"
+  ],
+  "identical_final_tests_in_clean_negative_and_candidate": true
+ },
+ "regressions": {
+  "new_cases": 29,
+  "before": {
+   "command": [
+    "D:\\xm\\OmniOperator\\temp\\build\\checkpoint-interpreter-media-duration-before\\Scripts\\python.exe",
+    "-m",
+    "pytest",
+    "-q",
+    "-n",
+    "0",
+    "agent/tests/test_v2_media_duration.py",
+    "--junitxml=D:\\xm\\OmniOperator\\temp\\build\\v2-media-duration-before.xml",
+    "--tb=short"
+   ],
+   "returncode": 1,
+   "duration_s": 13.281,
+   "cases": 29,
+   "failures": 18,
+   "errors": 0,
+   "skipped": 0,
+   "report": "temp\\build\\v2-media-duration-before.xml",
+   "report_sha256": "2b5aac56e3adb460ee2e8861e2ab1850407afeb08914bc05894b3dc0bd73faa5",
+   "log": "temp\\build\\v2-media-duration-before.log",
+   "log_sha256": "bbf186e4bf3b9c2035e296761ff503d6ee8515fe7e877093ff78a4ef2261bb50"
+  },
+  "failed_before_nodes": [
+   {
+    "nodeid": "tests.test_v2_media_duration::test_bad_declared_duration_fails_before_seek_decode_or_image_allocation[-1-stream]",
+    "message": "Failed: DID NOT RAISE ValueError"
+   },
+   {
+    "nodeid": "tests.test_v2_media_duration::test_bad_declared_duration_fails_before_seek_decode_or_image_allocation[-1-container]",
+    "message": "Failed: DID NOT RAISE ValueError"
+   },
+   {
+    "nodeid": "tests.test_v2_media_duration::test_bad_declared_duration_fails_before_seek_decode_or_image_allocation[7200.001-stream]",
+    "message": "Failed: DID NOT RAISE ValueError"
+   },
+   {
+    "nodeid": "tests.test_v2_media_duration::test_bad_declared_duration_fails_before_seek_decode_or_image_allocation[7200.001-container]",
+    "message": "Failed: DID NOT RAISE ValueError"
+   },
+   {
+    "nodeid": "tests.test_v2_media_duration::test_bad_declared_duration_fails_before_seek_decode_or_image_allocation[inf-stream]",
+    "message": "Failed: DID NOT RAISE ValueError"
+   },
+   {
+    "nodeid": "tests.test_v2_media_duration::test_bad_declared_duration_fails_before_seek_decode_or_image_allocation[inf-container]",
+    "message": "Failed: DID NOT RAISE ValueError"
+   },
+   {
+    "nodeid": "tests.test_v2_media_duration::test_bad_declared_duration_fails_before_seek_decode_or_image_allocation[-inf-stream]",
+    "message": "Failed: DID NOT RAISE ValueError"
+   },
+   {
+    "nodeid": "tests.test_v2_media_duration::test_bad_declared_duration_fails_before_seek_decode_or_image_allocation[-inf-container]",
+    "message": "Failed: DID NOT RAISE ValueError"
+   },
+   {
+    "nodeid": "tests.test_v2_media_duration::test_bad_declared_duration_fails_before_seek_decode_or_image_allocation[nan-stream]",
+    "message": "Failed: DID NOT RAISE ValueError"
+   },
+   {
+    "nodeid": "tests.test_v2_media_duration::test_bad_declared_duration_fails_before_seek_decode_or_image_allocation[nan-container]",
+    "message": "Failed: DID NOT RAISE ValueError"
+   },
+   {
+    "nodeid": "tests.test_v2_media_duration::test_bad_declared_duration_fails_before_seek_decode_or_image_allocation[10000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000-stream]",
+    "message": "OverflowError: int too large to convert to float"
+   },
+   {
+    "nodeid": "tests.test_v2_media_duration::test_bad_declared_duration_fails_before_seek_decode_or_image_allocation[10000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000-container]",
+    "message": "OverflowError: integer division result too large for a float"
+   },
+   {
+    "nodeid": "tests.test_v2_media_duration::test_worker_protocol_reports_precise_duration_error_without_output[stream]",
+    "message": "AssertionError: assert ('12345678-123...-123456789abc' == '12345678-123...-123456789abc'\n  \n    12345678-1234-1234-1234-123456789abc and True is False)"
+   },
+   {
+    "nodeid": "tests.test_v2_media_duration::test_worker_protocol_reports_precise_duration_error_without_output[container]",
+    "message": "AssertionError: assert ('12345678-123...-123456789abc' == '12345678-123...-123456789abc'\n  \n    12345678-1234-1234-1234-123456789abc and True is False)"
+   },
+   {
+    "nodeid": "tests.test_v2_media_duration::test_real_stdio_rejects_bad_metadata_without_decode_then_reuses_worker_for_real_video[stream]",
+    "message": "Failed: DID NOT RAISE BusinessError"
+   },
+   {
+    "nodeid": "tests.test_v2_media_duration::test_real_stdio_rejects_bad_metadata_without_decode_then_reuses_worker_for_real_video[container]",
+    "message": "Failed: DID NOT RAISE BusinessError"
+   },
+   {
+    "nodeid": "tests.test_v2_media_duration::test_real_job_duration_failure_has_no_frame_artifact_and_explicit_new_job_succeeds[stream]",
+    "message": "AssertionError: assert ('done' == 'failed'\n  \n  - failed\n  + done)"
+   },
+   {
+    "nodeid": "tests.test_v2_media_duration::test_real_job_duration_failure_has_no_frame_artifact_and_explicit_new_job_succeeds[container]",
+    "message": "AssertionError: assert ('done' == 'failed'\n  \n  - failed\n  + done)"
+   }
+  ],
+  "callers": {
+   "command": [
+    "D:\\xm\\OmniOperator\\temp\\build\\checkpoint-interpreter-media-duration\\Scripts\\python.exe",
+    "-m",
+    "pytest",
+    "-q",
+    "-n",
+    "0",
+    "agent/tests/test_v2_media_duration.py",
+    "agent/tests/test_v2_media_decoding.py",
+    "agent/tests/test_v2_media_anchors.py",
+    "agent/tests/test_v2_media_frames.py",
+    "agent/tests/test_v2_media_worker.py",
+    "agent/tests/test_v2_media.py",
+    "agent/tests/test_v2_media_sheet_identity.py",
+    "agent/tests/test_v2_lifecycle.py",
+    "agent/tests/test_v2_architecture.py",
+    "agent/tests/test_v2_typecheck_scope.py",
+    "agent/tests/test_arch.py",
+    "--junitxml=D:\\xm\\OmniOperator\\temp\\build\\v2-media-duration-callers.xml",
+    "--tb=short"
+   ],
+   "returncode": 0,
+   "duration_s": 50.188,
+   "cases": 182,
+   "failures": 0,
+   "errors": 0,
+   "skipped": 0,
+   "report": "temp\\build\\v2-media-duration-callers.xml",
+   "report_sha256": "abefa334dd2285f00d56098fb25339539d554dcdccaa9ea42efb1b50c5818860",
+   "log": "temp\\build\\v2-media-duration-callers.log",
+   "log_sha256": "8288d8fe237bf86cdd23b6979e166d14f4b68ff67328135f5dbda6b74bee8ebc"
+  },
+  "cli_summary": "182 passed in 48.93s",
+  "coverage": [
+   "12 invalid selected stream/container duration cases reject before sampling/decode/conversion/output, including negative, fractional over-limit, infinities, NaN and huge integer overflow",
+   "Eight unknown/zero/fractional/exact-two-hour controls retain fallback or sampling; three precedence/rational-time-base/container-fallback controls retain target points",
+   "Two worker protocol tests return the exact new known failure code without output",
+   "Two real PyAV stdio worker cases inject only first-request metadata, prove zero seek/decode on rejection, close containers and handle actual valid video on the same PID afterward",
+   "Two real SQLite cases prove failed/exact code, no frame artifact, staging cleanup and a successful explicit fresh job; the old failed state remains",
+   "Existing decoder ownership, frame anchors/budgets, worker/media/sheet identity/lifecycle/architecture callers"
+  ]
+ },
+ "gates": [
+  {
+   "command": [
+    "-m",
+    "ruff",
+    "check",
+    "agent/src/omni/adapters/workers/media.py",
+    "agent/tests/test_v2_media_duration.py"
+   ],
+   "returncode": 0,
+   "duration_s": 0.172,
+   "stdout": "All checks passed!\n",
+   "stderr": ""
+  },
+  {
+   "command": [
+    "-m",
+    "ruff",
+    "format",
+    "--check",
+    "agent/src/omni/adapters/workers/media.py",
+    "agent/tests/test_v2_media_duration.py"
+   ],
+   "returncode": 0,
+   "duration_s": 0.172,
+   "stdout": "2 files already formatted\n",
+   "stderr": ""
+  },
+  {
+   "command": [
+    "-m",
+    "pyright",
+    "--project",
+    "D:\\xm\\OmniOperator\\temp\\build\\media-duration-candidate\\pyrightconfig.media-duration.json",
+    "--outputjson"
+   ],
+   "returncode": 0,
+   "duration_s": 1.703,
+   "stdout": "{\n    \"version\": \"1.1.414\",\n    \"time\": \"1794834454188\",\n    \"generalDiagnostics\": [],\n    \"summary\": {\n        \"filesAnalyzed\": 1,\n        \"errorCount\": 0,\n        \"warningCount\": 0,\n        \"informationCount\": 0,\n        \"timeInSec\": 0.862\n    }\n}\n\n",
+   "stderr": ""
+  }
+ ],
+ "artifacts": [
+  {
+   "path": "temp/build/v2-media-duration-source.json",
+   "sha256": "f79213af7d5da188a43fd3e870a095e7a7142d03302f61622171b4329de54431"
+  },
+  {
+   "path": "temp/build/v2-media-duration-before-source.json",
+   "sha256": "0c330f7409e215c90ea29d9a235c4de163df1d168cb1560eba633af268c38995"
+  },
+  {
+   "path": "temp/build/v2-media-duration-gates.json",
+   "sha256": "7852ad5ab4a16729f14d2e09d427dfd3c4276e0b3d4062e2d05cf4a73c817534"
+  }
+ ],
+ "isolation": "Clean base archive plus only owned files and existing dependencies via isolated interpreter. Real isolated generated short PyAV video/PNG, stdio worker and SQLite; only first-request duration metadata is injected, actual follow-up decode is retained. Fake gateway, no real account/model/device/network. Concurrent uncommitted bodies excluded.",
+ "full_run": {
+  "status": "deferred_per_owner",
+  "run_for_this_change": false,
+  "covers_this_source": false,
+  "last_completed_source": "42a4b8b29d7c80daa4cb212d49dd40d07c189079",
+  "last_completed_summary": "4800 passed, 12 warnings in 3025.48s (0:50:25)",
+  "last_full_does_not_cover_this_change": true
+ },
+ "not_verified": [
+  "Full integration of this source",
+  "Actual total duration when metadata is missing or inaccurate; this validates the selected declaration only",
+  "Whole-process/native peak memory",
+  "Historical allocator/system-commit/UI observations",
+  "Concurrent uncommitted migration/configuration/UI bodies",
+  "Real supplier image quality, platform deployment and long-running V2 acceptance"
+ ]
+}
