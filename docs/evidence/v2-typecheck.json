@@ -7391,6 +7391,18 @@
    "integration_full_run_pending": true,
    "validated_committed_scope_only": true,
    "historical_observations_closed": false
+  },
+  "skill_complexity_followup": {
+   "evidence": "docs/evidence/v2-skill-complexity.json",
+   "source_head": "6039916c3da0df83bf3e9beedf7eafc768c34d48",
+   "status": "scoped_passed_full_deferred",
+   "scoped_passed": 178,
+   "new_cases": 25,
+   "strict_files": 1,
+   "full_run_covers_current_source": false,
+   "integration_full_run_pending": true,
+   "validated_committed_scope_only": true,
+   "historical_observations_closed": false
   }
  },
  "source_recovery": {
