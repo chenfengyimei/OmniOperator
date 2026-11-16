@@ -7478,6 +7478,18 @@
    "integration_full_run_pending": true,
    "validated_committed_scope_only": true,
    "historical_observations_closed": false
+  },
+  "extension_market_bounds_followup": {
+   "evidence": "docs/evidence/v2-extension-market-bounds.json",
+   "source_head": "b36863034a4a3c1a3ea6435a51d1ba5aab96609a",
+   "status": "scoped_passed_full_deferred",
+   "scoped_passed": 155,
+   "new_cases": 23,
+   "strict_files": 1,
+   "full_run_covers_current_source": false,
+   "integration_full_run_pending": true,
+   "validated_committed_scope_only": true,
+   "historical_observations_closed": false
   }
  },
  "source_recovery": {
