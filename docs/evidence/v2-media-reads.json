@@ -1,0 +1,478 @@
+{
+ "schema": 1,
+ "date": "2026-11-16",
+ "branch": "v2",
+ "whole_v2_complete": false,
+ "default_entrypoint": "v1",
+ "source": {
+  "head": "648ed5c7e20f59fc29dd55fa27235bc833a972cf",
+  "base": "4652a9adafc45d367ce951691c44274b4eeae36c",
+  "code_version": "18cd5bd410e0c84982e3333eb05e2f7ff1144b293b9e038bdcbea04016ab2428",
+  "code_files": 1233,
+  "version_artifact": {
+   "path": "temp/build/v2-media-reads-source-version.json",
+   "sha256": "a39eb0c5c613f3f7f724618d1c962ef74f4fe7772d70b27fb175318445d76a41"
+  },
+  "planned": {
+   "agent/src/omni/application/media.py": {
+    "sha256": "6d3f8a0ec6613d267f06c555aebd3e3f71408615a3ba7f751e6e9ec4d52acd07",
+    "git_blob": "aefc74af1224ee9c2344da96c55b0e3ce989b6f5"
+   },
+   "agent/tests/test_v2_media_reads.py": {
+    "sha256": "73852f59b358729b9e3e54eae00822d6a32cff6a54244a172f11fd7b651fbbcf",
+    "git_blob": "0b26727dce73497220c5bac47663461502105b97"
+   },
+   "docs/V2_MEDIA.md": {
+    "sha256": "2d428b9bd73b11fa0aa3462f8242e2a7813cc18169204092dfe5f52639106217",
+    "git_blob": "a2cbca573ff2f1b43b82a6a7f0ca3a0a36bb0038"
+   },
+   "docs/TESTING.md": {
+    "sha256": "bddeb49bea8dceea33b571649c1cdf7e084fd62fa1c3c63b5ea701d169212da6",
+    "git_blob": "dfeda58884091c76566e09e7a2355a3a10aea13f"
+   },
+   "docs/index/MODULES.md": {
+    "sha256": "b838c505925249663b699caf6df318b76e62a05666929d4c307a2ece410bc74b",
+    "git_blob": "82d2510dc3a8ba551668e86e5872e985f1d1e62d"
+   },
+   "docs/index/project.json": {
+    "sha256": "123b05b0789163ed2167c7a563d78266d500681dd725e7dee313ed80dbe9a052",
+    "git_blob": "bf5ec380c142326b41551c320f8fa171b7dc913f"
+   }
+  },
+  "candidate": "D:\\xm\\OmniOperator\\temp\\build\\media-reads-index-precommit",
+  "parallel_working_bodies_preserved": true
+ },
+ "root_cause": "Window entry points performed their initial database lookups before ownership registration. Close could complete early or a disconnected caller could lose the workflow. Admitted windows then re-entered public transcript admission, allowing shutdown to reject their later read.",
+ "changes": [
+  "Own full, explicit/latest-source window and transcript-ID window reads before the first I/O",
+  "Keep one owned workflow through metadata, object read, parsing and the final existence check",
+  "Use private read steps inside admitted workflows so closing cannot reject a later internal read as fresh admission",
+  "Reject new read entry points before any database or object call once draining starts",
+  "Preserve source/Agent checks, concurrent deletion guard, window formatting/ranges and read-only behavior"
+ ],
+ "proof": {
+  "changed_existing_methods": [
+   "transcript",
+   "transcript_window",
+   "transcript_window_for"
+  ],
+  "new_private_methods": [
+   "_read_transcript",
+   "_transcript_window"
+  ],
+  "all_existing_method_signatures_unchanged": true,
+  "full_read_body_ast_identical_after_extraction": true,
+  "window_body_ast_identical_except_internal_read_target": true,
+  "id_window_body_ast_identical_except_internal_window_target": true,
+  "public_entry_points_have_one_ownership_wrapper": true,
+  "all_other_existing_methods_byte_identical": true,
+  "imports_globals_and_policy_constants_ast_identical": true,
+  "domain_worker_objects_transport_lifecycle_repository_database_files_byte_identical": [
+   "agent/src/omni/domain/media.py",
+   "agent/src/omni/adapters/media.py",
+   "agent/src/omni/adapters/workers/media.py",
+   "agent/src/omni/application/objects.py",
+   "agent/src/omni/composition/lifecycle.py",
+   "agent/src/omni/adapters/persistence/media_repository.py",
+   "agent/src/omni/adapters/persistence/database.py"
+  ],
+  "regressions_identical_between_clean_before_and_candidate": true,
+  "strict_files": 1
+ },
+ "regressions": {
+  "new_cases": 37,
+  "clean_before": {
+   "report": "temp/build/v2-media-reads-clean-before.xml",
+   "report_sha256": "ec1a770e7458ff3be4ed31bd005733952769e6a1a8c5bb830d506b2e6d3b6ba8",
+   "raw_suites": [
+    {
+     "name": "pytest",
+     "errors": "0",
+     "failures": "16",
+     "skipped": "0",
+     "tests": "37",
+     "time": "11.102",
+     "timestamp": "2026-11-16T17:55:11.622084+08:00",
+     "hostname": "cy"
+    }
+   ],
+   "junit_testcase_records": 37,
+   "unique_test_nodes_reported": 37,
+   "failure_events": 16,
+   "error_events": 0,
+   "skipped": 0,
+   "unique_failed_or_errored_nodes": 16,
+   "unique_nodes_without_failure_or_error": 21,
+   "duplicate_nodes": {},
+   "failed_nodes": [
+    {
+     "nodeid": "agent/tests/test_v2_media_reads.py::test_read_is_owned_from_first_lookup_through_final_check_and_finishes_after_close[first-window]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "assert 0 == 1"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_reads.py::test_read_is_owned_from_first_lookup_through_final_check_and_finishes_after_close[first-latest]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "assert 0 == 1"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_reads.py::test_read_is_owned_from_first_lookup_through_final_check_and_finishes_after_close[first-window_for]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "assert 0 == 1"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_reads.py::test_closed_read_entry_rejects_before_any_database_or_object_call[window]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "assert (1 == 0)\n +  where 1 = <test_v2_media_reads.Database object at 0x00000285B301EF00>.calls\n +  and   0 = <test_v2_media_reads.Objects object at 0x00000285B301D1F0>.calls"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_reads.py::test_closed_read_entry_rejects_before_any_database_or_object_call[latest]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "assert (1 == 0)\n +  where 1 = <test_v2_media_reads.Database object at 0x00000285B301C2C0>.calls\n +  and   0 = <test_v2_media_reads.Objects object at 0x00000285B301C470>.calls"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_reads.py::test_closed_read_entry_rejects_before_any_database_or_object_call[window_for]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "assert (2 == 0)\n +  where 2 = <test_v2_media_reads.Database object at 0x00000285B301EF30>.calls\n +  and   0 = <test_v2_media_reads.Objects object at 0x00000285B301EF90>.calls"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_reads.py::test_cancelled_initial_lookup_waiter_keeps_the_complete_read_owned[window]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "assert (not True)\n +  where True = <test_v2_media_reads.Gate object at 0x00000285B302AB40>.cancelled"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_reads.py::test_cancelled_initial_lookup_waiter_keeps_the_complete_read_owned[latest]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "assert (not True)\n +  where True = <test_v2_media_reads.Gate object at 0x00000285B301FC20>.cancelled"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_reads.py::test_cancelled_initial_lookup_waiter_keeps_the_complete_read_owned[window_for]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "assert (not True)\n +  where True = <test_v2_media_reads.Gate object at 0x00000285B301DB20>.cancelled"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_reads.py::test_cancelled_close_waiter_cannot_cancel_or_reject_the_already_admitted_read[window]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "Failed: DID NOT RAISE CancelledError"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_reads.py::test_cancelled_close_waiter_cannot_cancel_or_reject_the_already_admitted_read[latest]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "Failed: DID NOT RAISE CancelledError"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_reads.py::test_cancelled_close_waiter_cannot_cancel_or_reject_the_already_admitted_read[window_for]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "Failed: DID NOT RAISE CancelledError"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_reads.py::test_real_window_lookup_keeps_database_and_objects_until_admitted_read_finishes[False-window]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "assert (not False and 0 == 1)\n +  where False = <test_v2_media_reads.Gate object at 0x00000285B775FEF0>.cancelled"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_reads.py::test_real_window_lookup_keeps_database_and_objects_until_admitted_read_finishes[False-window_for]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "assert (not False and 0 == 1)\n +  where False = <test_v2_media_reads.Gate object at 0x00000285B7F4F440>.cancelled"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_reads.py::test_real_window_lookup_keeps_database_and_objects_until_admitted_read_finishes[True-window]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "assert (not True)\n +  where True = <test_v2_media_reads.Gate object at 0x00000285B84F0C20>.cancelled"
+      }
+     ]
+    },
+    {
+     "nodeid": "agent/tests/test_v2_media_reads.py::test_real_window_lookup_keeps_database_and_objects_until_admitted_read_finishes[True-window_for]",
+     "issues": [
+      {
+       "type": "failure",
+       "message": "assert (not True)\n +  where True = <test_v2_media_reads.Gate object at 0x00000285B65E7320>.cancelled"
+      }
+     ]
+    }
+   ]
+  },
+  "clean_before_metadata": {
+   "path": "temp/build/v2-media-reads-clean-before.json",
+   "sha256": "cb25cf843fe00c114baba950bf898f4a2418d742495d752b54280fe51ad2f845"
+  },
+  "clean_before_log": {
+   "path": "temp/build/v2-media-reads-clean-before.log",
+   "sha256": "3de574b1f28beaa72d1b1594f3cba1daeef284952dae63a3857b646a0a40b7d8"
+  },
+  "callers": {
+   "report": "temp/build/v2-media-reads-callers.xml",
+   "report_sha256": "c0dba98b46bc72eedce97c6e64968df17b34b527ad0a3489c9634585832f64bf",
+   "raw_suites": [
+    {
+     "name": "pytest",
+     "errors": "0",
+     "failures": "0",
+     "skipped": "0",
+     "tests": "140",
+     "time": "41.077",
+     "timestamp": "2026-11-16T17:56:34.587540+08:00",
+     "hostname": "cy"
+    }
+   ],
+   "junit_testcase_records": 140,
+   "unique_test_nodes_reported": 140,
+   "failure_events": 0,
+   "error_events": 0,
+   "skipped": 0,
+   "unique_failed_or_errored_nodes": 0,
+   "unique_nodes_without_failure_or_error": 140,
+   "duplicate_nodes": {},
+   "failed_nodes": []
+  },
+  "callers_log": {
+   "path": "temp/build/v2-media-reads-callers.log",
+   "sha256": "908955b53fd5db0f637d8f1df17d8563bd2d1565633a64c7564588c85b258c8d"
+  },
+  "cli_summary": "140 passed in 41.44s",
+  "coverage": [
+   "Four read paths remain owned at initial lookup, object I/O and final metadata check; short close retains the actual read and does not reach processor cleanup",
+   "All closed entry points reject before database or object calls",
+   "Cancellation of an initial lookup waiter propagates while the complete read remains owned and can finish after admission stops",
+   "Cancelled close waiters never cancel or reject already admitted reads",
+   "Concurrent source deletion, cross-Agent access and wrong source pairing still reject content",
+   "Four real database tests block initial lookups of both window APIs, with and without caller disconnection; shutdown retains media, database and object access until the owned read finishes",
+   "Real read workflows preserve existing done job state and return original subtitle text"
+  ],
+  "total_unique_scoped_passed": 140
+ },
+ "scoped_validation": {
+  "scope": "Complete transcript read admission, cancellation and shutdown ownership; media/codec/HTTP/tool, admission, lifecycle and architecture callers; workers and processing transport unchanged",
+  "base": "4652a9adafc45d367ce951691c44274b4eeae36c",
+  "planned": {
+   "agent/src/omni/application/media.py": {
+    "sha256": "6d3f8a0ec6613d267f06c555aebd3e3f71408615a3ba7f751e6e9ec4d52acd07",
+    "git_blob": "aefc74af1224ee9c2344da96c55b0e3ce989b6f5"
+   },
+   "agent/tests/test_v2_media_reads.py": {
+    "sha256": "73852f59b358729b9e3e54eae00822d6a32cff6a54244a172f11fd7b651fbbcf",
+    "git_blob": "0b26727dce73497220c5bac47663461502105b97"
+   },
+   "docs/V2_MEDIA.md": {
+    "sha256": "2d428b9bd73b11fa0aa3462f8242e2a7813cc18169204092dfe5f52639106217",
+    "git_blob": "a2cbca573ff2f1b43b82a6a7f0ca3a0a36bb0038"
+   },
+   "docs/TESTING.md": {
+    "sha256": "bddeb49bea8dceea33b571649c1cdf7e084fd62fa1c3c63b5ea701d169212da6",
+    "git_blob": "dfeda58884091c76566e09e7a2355a3a10aea13f"
+   },
+   "docs/index/MODULES.md": {
+    "sha256": "b838c505925249663b699caf6df318b76e62a05666929d4c307a2ece410bc74b",
+    "git_blob": "82d2510dc3a8ba551668e86e5872e985f1d1e62d"
+   },
+   "docs/index/project.json": {
+    "sha256": "123b05b0789163ed2167c7a563d78266d500681dd725e7dee313ed80dbe9a052",
+    "git_blob": "bf5ec380c142326b41551c320f8fa171b7dc913f"
+   }
+  },
+  "full_suite_run": false,
+  "gates": [
+   {
+    "command": [
+     "D:\\xm\\OmniOperator\\temp\\build\\checkpoint-interpreter-media-reads\\Scripts\\python.exe",
+     "-m",
+     "ruff",
+     "check",
+     "agent/src/omni/application/media.py",
+     "agent/tests/test_v2_media_reads.py"
+    ],
+    "returncode": 0,
+    "duration_s": 0.188,
+    "stdout": "All checks passed!\n",
+    "stderr": ""
+   },
+   {
+    "command": [
+     "D:\\xm\\OmniOperator\\temp\\build\\checkpoint-interpreter-media-reads\\Scripts\\python.exe",
+     "-m",
+     "ruff",
+     "format",
+     "--check",
+     "agent/src/omni/application/media.py",
+     "agent/tests/test_v2_media_reads.py"
+    ],
+    "returncode": 0,
+    "duration_s": 0.156,
+    "stdout": "2 files already formatted\n",
+    "stderr": ""
+   },
+   {
+    "command": [
+     "D:\\xm\\OmniOperator\\temp\\build\\checkpoint-interpreter-media-reads\\Scripts\\python.exe",
+     "-m",
+     "pyright",
+     "--project",
+     "D:\\xm\\OmniOperator\\temp\\build\\media-reads-index-precommit\\pyrightconfig.media-reads.json",
+     "--outputjson"
+    ],
+    "returncode": 0,
+    "duration_s": 1.469,
+    "stdout": "{\n    \"version\": \"1.1.414\",\n    \"time\": \"1794822993853\",\n    \"generalDiagnostics\": [],\n    \"summary\": {\n        \"filesAnalyzed\": 1,\n        \"errorCount\": 0,\n        \"warningCount\": 0,\n        \"informationCount\": 0,\n        \"timeInSec\": 0.656\n    }\n}\n\n",
+    "stderr": ""
+   }
+  ],
+  "strict_summary": {
+   "filesAnalyzed": 1,
+   "errorCount": 0,
+   "warningCount": 0,
+   "informationCount": 0,
+   "timeInSec": 0.656
+  },
+  "callers": {
+   "command": [
+    "D:\\xm\\OmniOperator\\temp\\build\\checkpoint-interpreter-media-reads\\Scripts\\python.exe",
+    "-m",
+    "pytest",
+    "-q",
+    "-n",
+    "0",
+    "agent/tests/test_v2_media_reads.py",
+    "agent/tests/test_v2_media.py",
+    "agent/tests/test_v2_media_codec.py",
+    "agent/tests/test_v2_media_admission.py",
+    "agent/tests/test_v2_lifecycle.py",
+    "agent/tests/test_v2_architecture.py",
+    "agent/tests/test_v2_typecheck_scope.py",
+    "agent/tests/test_arch.py",
+    "--junitxml=D:\\xm\\OmniOperator\\temp\\build\\v2-media-reads-callers.xml"
+   ],
+   "targets": [
+    "test_v2_media_reads",
+    "test_v2_media",
+    "test_v2_media_codec",
+    "test_v2_media_admission",
+    "test_v2_lifecycle",
+    "test_v2_architecture",
+    "test_v2_typecheck_scope",
+    "test_arch"
+   ],
+   "returncode": 0,
+   "duration_s": 42.687,
+   "cases": 140,
+   "failures": 0,
+   "errors": 0,
+   "skipped": 0
+  },
+  "source_unchanged": true
+ },
+ "scoped_validation_artifact": {
+  "path": "temp/build/v2-media-reads-scoped.json",
+  "sha256": "a32f1ff41c31a666bc38b548e08346f4731354d09f60a19e46e686f8479522d8"
+ },
+ "ownership_artifact": {
+  "path": "temp/build/v2-media-reads-source.json",
+  "sha256": "461ca08c8df684766bc2618e524d11aa8665ebb9d833cbe0e38d5bb210558811"
+ },
+ "exploratory_reports": {
+  "working_after": {
+   "report": "temp/build/v2-media-reads-working-after.xml",
+   "report_sha256": "293b03b3c5413b04c57d8a3451fbe55a1baace272262a6b673c3c750f8986c8e",
+   "raw_suites": [
+    {
+     "name": "pytest",
+     "errors": "0",
+     "failures": "0",
+     "skipped": "0",
+     "tests": "37",
+     "time": "7.279",
+     "timestamp": "2026-11-16T17:53:20.681941+08:00",
+     "hostname": "cy"
+    }
+   ],
+   "junit_testcase_records": 37,
+   "unique_test_nodes_reported": 37,
+   "failure_events": 0,
+   "error_events": 0,
+   "skipped": 0,
+   "unique_failed_or_errored_nodes": 0,
+   "unique_nodes_without_failure_or_error": 37,
+   "duplicate_nodes": {},
+   "failed_nodes": []
+  },
+  "scope": "Working-tree probe may include concurrent WIP; the clean baseline and immutable candidate define the delivered scope."
+ },
+ "full_run": {
+  "status": "deferred_per_owner",
+  "run_for_this_change": false,
+  "covers_this_source": false,
+  "reason": "Owner prioritizes implementation and scoped tests; full suite at multi-module integration",
+  "last_completed_source": "42a4b8b29d7c80daa4cb212d49dd40d07c189079",
+  "last_completed_summary": "4800 passed, 12 warnings in 3025.48s (0:50:25)",
+  "last_completed_report": {
+   "path": "temp/build/v2-full-226.xml",
+   "sha256": "ecab05764ea535042e7e4dde6ea0e0f6969030b4ae74056a1ce9fd20352549e4"
+  },
+  "last_full_does_not_cover_this_change": true
+ },
+ "not_verified": [
+  "Full integration suite for this new source",
+  "Unchanged worker/ASR/audio/transport implementation was not rerun in this batch",
+  "Actual media/model/device behavior",
+  "Historical system commit/native/UI causes",
+  "Concurrent uncommitted configuration/schema/UI bodies"
+ ]
+}
