@@ -160,6 +160,7 @@
     "agent/src/omni/adapters/platform/linux_semantic.py",
     "agent/src/omni/adapters/platform/linux_session.py",
     "agent/src/omni/adapters/platform/linux_signals.py",
+    "agent/src/omni/adapters/platform/linux_text.py",
     "agent/src/omni/adapters/platform/linux_window_leases.py",
     "agent/src/omni/adapters/platform/linux_x11.py",
     "agent/src/omni/adapters/platform/linux_x11_socket.py",

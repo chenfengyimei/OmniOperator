@@ -69,6 +69,19 @@ class Semantics:
                 raise failure("desktop_bus_response_invalid")
         return {"role": role, "flags": flags, "name": name, "text": text, "interfaces": interfaces}
 
+    async def typing_context(self, ref: tuple[str, str], facts: Payload) -> Payload | None:
+        """Optional append context; unsupported providers keep their original semantic actions."""
+        if not {EDITABLE, TEXT} <= set(cast(list[str], facts["interfaces"])) or 7 not in cast(set[int], facts["flags"]):
+            return None
+        try:
+            caret = number(await self.desktop.property(ref, TEXT, "CaretOffset", "i"), 512)
+            selections = number(await self.desktop.call(ref, TEXT, "GetNSelections", returns="i"), 16)
+            if caret > len(cast(str, facts["text"])) or selections:
+                return None
+            return {"caret": caret, "selections": 0}
+        except (BusinessError, RemoteError):
+            return None
+
     async def catalogue(self, ref: tuple[str, str], parent: tuple[str, str] | None, facts: Payload) -> Payload:
         entries: Payload = {}
         if not {8, 24, 25, 30} <= cast(set[int], facts["flags"]):
@@ -79,6 +92,9 @@ class Semantics:
             and 7 in cast(set[int], facts["flags"])
         ):
             entries["set_text"] = True
+            context = await self.typing_context(ref, facts)
+            if context is not None and context["caret"] == len(cast(str, facts["text"])) < 512:
+                entries["type_text"] = context
         if ACTION in cast(list[str], facts["interfaces"]):
             count = number(await self.desktop.property(ref, ACTION, "NActions", "i"), 16)
             names: list[str] = [

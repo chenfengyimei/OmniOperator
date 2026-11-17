@@ -1,4 +1,4 @@
-"""One Linux read-only request in the owned helper. No service activation, settings, input or database access."""
+"""One bounded Linux desktop request; addressed writes need a fresh parent permit, with no global input or database access."""
 
 from __future__ import annotations
 
@@ -11,11 +11,13 @@ from typing import Any, cast
 
 from ...domain.contracts import BusinessError
 from ...domain.desktop import LINUX_ERRORS, VERSION
+from ...domain.foreground import TIMEOUT_S as FOREGROUND_TIMEOUT_S
 from ..platform.linux_atspi import AtspiDesktop, report
 from ..platform.linux_bus import LinuxOps, RemoteError, load_types
 from ..platform.linux_input import X11Input
 from ..platform.linux_semantic import Semantics
 from ..platform.linux_session import FactoryPort, LocalFactory, OpsPort, SessionInspector
+from ..platform.linux_text import FocusedText
 from ..platform.linux_x11 import X11Desktop
 from ..platform.linux_x11_wire import XError
 
@@ -41,9 +43,29 @@ def capability_report(
     x11: X11Desktop | None,
     x11_ready: bool,
     x11_error: str | None,
+    input_ready: bool = False,
+    input_error: str | None = None,
 ) -> Payload:
     value = report(session_record(inspector, error), atspi_ready, error, installed)
     for item in cast(list[Payload], value["capabilities"]):
+        if (
+            item["id"] == "foreground_control"
+            and inspector is not None
+            and inspector.session is not None
+            and inspector.session.kind == "x11"
+        ):
+            available = atspi_ready and input_ready and error is None
+            item.update(
+                installed=installed,
+                permission="granted" if available else "unknown",
+                available=available,
+                error_code=None if available else input_error or error or "desktop_input_unverified",
+                limitations=[
+                    "仅在人工聚焦的AT-SPI非密码可编辑控件末尾追加Unicode文本；光标末尾、零选区、完整文本和输入守卫须可核验。",
+                    "每次最多128字符，原文加结果最多512字符；一次审批和逐次permit，插入后完整回读，未知结果不重放。",
+                    "不获取焦点、不发送全局键鼠、不使用剪贴板；不自动映射X11/AT-SPI窗口。Wayland控制需要独立授权。",
+                ],
+            )
         if item["id"] == "window_identity" and x11_ready:
             item.update(
                 installed=True,
@@ -87,10 +109,14 @@ async def perform(
     x11, x11_error, atspi_error = None, None, None
     x11_ready = atspi_ready = False
     monitor = None
+    input_ready, input_error = False, None
     try:
-        if request["operation"] not in {"probe", "targets", "verify", "observe", "capture", "act"}:
+        if request["operation"] not in {"probe", "targets", "verify", "observe", "capture", "act", "foreground"}:
             raise BusinessError("desktop_observation_unavailable", "Linux write adapters are not connected")
-        if request["operation"] == "act" and cast(Payload, request.get("target") or {}).get("backend") != "atspi":
+        if (
+            request["operation"] in {"act", "foreground"}
+            and cast(Payload, request.get("target") or {}).get("backend") != "atspi"
+        ):
             raise BusinessError("desktop_input_unverified", "Only addressed AT-SPI semantic actions are implemented")
         if ops is None:
             load_types()
@@ -101,7 +127,7 @@ async def perform(
         installed = True
         inspector = SessionInspector(ops, factory)
         adapter = AtspiDesktop(inspector)
-        async with asyncio.timeout(4):
+        async with asyncio.timeout(FOREGROUND_TIMEOUT_S - 1 if request["operation"] == "foreground" else 4):
             await inspector.open(accessibility=False)
             operation = request["operation"]
             backend = cast(Payload, request.get("target") or {}).get("backend")
@@ -127,7 +153,16 @@ async def perform(
                 except (BusinessError, RemoteError, XError, OSError) as caught:
                     x11_error = caught.code if isinstance(caught, BusinessError) else "desktop_x11_peer_unverified"
             if operation == "probe":
-                result = capability_report(inspector, atspi_error, installed, atspi_ready, x11, x11_ready, x11_error)
+                if atspi_ready and inspector.session is not None and inspector.session.kind == "x11":
+                    monitor = monitor_factory(inspector)
+                    try:
+                        await monitor.open()
+                        input_ready = True
+                    except (BusinessError, RemoteError, XError, OSError) as caught:
+                        input_error = caught.code if isinstance(caught, BusinessError) else "desktop_input_unverified"
+                result = capability_report(
+                    inspector, atspi_error, installed, atspi_ready, x11, x11_ready, x11_error, input_ready, input_error
+                )
             elif operation == "targets":
                 result = {"items": [], "truncated": False}
                 if x11_ready:
@@ -169,10 +204,10 @@ async def perform(
                 if not atspi_ready:
                     raise BusinessError(atspi_error or "desktop_accessibility_unavailable", "AT-SPI target unavailable")
                 actions = False
-                if operation == "act" and permit is None:
+                if operation in {"act", "foreground"} and permit is None:
                     raise BusinessError("desktop_action_revoked", "Native write requires a fresh parent permit")
                 if (
-                    operation in {"observe", "act"}
+                    operation in {"observe", "act", "foreground"}
                     and inspector.session is not None
                     and inspector.session.kind == "x11"
                 ):
@@ -181,17 +216,22 @@ async def perform(
                         await monitor.open()
                         actions = True
                     except (BusinessError, RemoteError, XError, OSError):
-                        if operation == "act":
+                        if operation in {"act", "foreground"}:
                             raise
                         if not await monitor.close():
                             raise BusinessError("desktop_cleanup_pending", "Input monitor cleanup is pending") from None
                         monitor = None
-                if operation == "act":
+                if operation in {"act", "foreground"}:
                     if monitor is None or not actions:
                         raise BusinessError("desktop_input_unverified", "Reliable input-change guard is not available")
-                    result = await Semantics(adapter).act(
-                        request["target"], request["action"], monitor, cast(Callable[[], Awaitable[bool]], permit)
-                    )
+                    if operation == "foreground":
+                        result = await FocusedText(adapter).append(
+                            request["target"], request["action"], monitor, cast(Callable[[], Awaitable[bool]], permit)
+                        )
+                    else:
+                        result = await Semantics(adapter).act(
+                            request["target"], request["action"], monitor, cast(Callable[[], Awaitable[bool]], permit)
+                        )
                 elif operation == "verify":
                     result = await adapter.verify(request["target"])
                 else:
@@ -249,6 +289,8 @@ async def perform(
             x11,
             x11_ready and error is None,
             x11_error,
+            input_ready and error is None,
+            input_error,
         )
         error = None
     return {

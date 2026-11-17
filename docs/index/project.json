@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "e00966588791dd54da56e49b00487730a1b727508de152adb0179990d8601689",
+  "source_sha256": "e07215c5f8aaa7524be3cd548cf5e58acf73fdf0a53e379945a2c705570d4616",
   "modules": [
     {
       "id": "v2-domain",
@@ -75,7 +75,7 @@
         "agent/src/omni/domain/terminal_review.py",
         "agent/src/omni/domain/terminals.py"
       ],
-      "lines": 9982,
+      "lines": 9986,
       "dependencies": []
     },
     {
@@ -322,6 +322,7 @@
         "agent/src/omni/adapters/platform/linux_semantic.py",
         "agent/src/omni/adapters/platform/linux_session.py",
         "agent/src/omni/adapters/platform/linux_signals.py",
+        "agent/src/omni/adapters/platform/linux_text.py",
         "agent/src/omni/adapters/platform/linux_window_leases.py",
         "agent/src/omni/adapters/platform/linux_x11.py",
         "agent/src/omni/adapters/platform/linux_x11_socket.py",
@@ -417,7 +418,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 57297,
+      "lines": 57464,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -23964,7 +23965,7 @@
       "path": "agent/src/omni/adapters/platform/desktop.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.desktop",
-      "lines": 634,
+      "lines": 637,
       "imports": [
         "omni.adapters.platform",
         "omni.adapters.platform.linux_lease_client",
@@ -24193,7 +24194,7 @@
         },
         {
           "name": "DesktopBackend.quiescent",
-          "line": 218,
+          "line": 221,
           "kind": "function",
           "parameters": [
             "self"
@@ -24202,7 +24203,7 @@
         },
         {
           "name": "DesktopBackend.reclaim",
-          "line": 221,
+          "line": 224,
           "kind": "function",
           "parameters": [
             "self",
@@ -24214,7 +24215,7 @@
         },
         {
           "name": "DesktopBackend._request",
-          "line": 229,
+          "line": 232,
           "kind": "function",
           "parameters": [
             "self",
@@ -24236,14 +24237,14 @@
         },
         {
           "name": "DesktopBackend._request.perform",
-          "line": 260,
+          "line": 263,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "DesktopBackend._request.finished",
-          "line": 296,
+          "line": 299,
           "kind": "function",
           "parameters": [
             "future"
@@ -24254,7 +24255,7 @@
         },
         {
           "name": "DesktopBackend._drain",
-          "line": 304,
+          "line": 307,
           "kind": "function",
           "parameters": [
             "self",
@@ -24270,7 +24271,7 @@
         },
         {
           "name": "DesktopBackend._spawn",
-          "line": 329,
+          "line": 332,
           "kind": "function",
           "parameters": [
             "self",
@@ -24284,14 +24285,14 @@
         },
         {
           "name": "DesktopBackend._spawn.collected",
-          "line": 377,
+          "line": 380,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "DesktopBackend._reclaim_actual",
-          "line": 385,
+          "line": 388,
           "kind": "function",
           "parameters": [
             "self",
@@ -24305,7 +24306,7 @@
         },
         {
           "name": "DesktopBackend._file",
-          "line": 418,
+          "line": 421,
           "kind": "function",
           "parameters": [
             "self",
@@ -24321,14 +24322,14 @@
         },
         {
           "name": "DesktopBackend._file.actual",
-          "line": 422,
+          "line": 425,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "DesktopBackend._reclaim",
-          "line": 431,
+          "line": 434,
           "kind": "function",
           "parameters": [
             "self",
@@ -24342,7 +24343,7 @@
         },
         {
           "name": "DesktopBackend._dispatch_gate",
-          "line": 446,
+          "line": 449,
           "kind": "function",
           "parameters": [
             "self",
@@ -24354,7 +24355,7 @@
         },
         {
           "name": "DesktopBackend._run",
-          "line": 459,
+          "line": 462,
           "kind": "function",
           "parameters": [
             "self",
@@ -24372,7 +24373,7 @@
         },
         {
           "name": "DesktopBackend.close",
-          "line": 623,
+          "line": 626,
           "kind": "function",
           "parameters": [
             "self",
@@ -26712,7 +26713,7 @@
       "path": "agent/src/omni/adapters/platform/linux_semantic.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.linux_semantic",
-      "lines": 235,
+      "lines": 251,
       "imports": [
         "omni.adapters.platform.linux_atspi",
         "omni.adapters.platform.linux_bus",
@@ -26790,8 +26791,22 @@
           }
         },
         {
-          "name": "Semantics.catalogue",
+          "name": "Semantics.typing_context",
           "line": 72,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "ref",
+            "facts"
+          ],
+          "annotations": {
+            "ref": "tuple[str, str]",
+            "facts": "Payload"
+          }
+        },
+        {
+          "name": "Semantics.catalogue",
+          "line": 85,
           "kind": "function",
           "parameters": [
             "self",
@@ -26807,7 +26822,7 @@
         },
         {
           "name": "Semantics.make_proof",
-          "line": 104,
+          "line": 120,
           "kind": "function",
           "parameters": [
             "path",
@@ -26824,7 +26839,7 @@
         },
         {
           "name": "Semantics.observed",
-          "line": 119,
+          "line": 135,
           "kind": "function",
           "parameters": [
             "self",
@@ -26844,7 +26859,7 @@
         },
         {
           "name": "Semantics.resolve",
-          "line": 133,
+          "line": 149,
           "kind": "function",
           "parameters": [
             "self",
@@ -26858,7 +26873,7 @@
         },
         {
           "name": "Semantics.proof",
-          "line": 156,
+          "line": 172,
           "kind": "function",
           "parameters": [
             "self",
@@ -26872,7 +26887,7 @@
         },
         {
           "name": "Semantics.act",
-          "line": 163,
+          "line": 179,
           "kind": "function",
           "parameters": [
             "self",
@@ -27332,6 +27347,76 @@
         }
       ],
       "summary": "Bounded, pinned D-Bus signals on the same pre-authenticated local connection; no service activation or FDs."
+    },
+    {
+      "path": "agent/src/omni/adapters/platform/linux_text.py",
+      "module": "v2-adapters",
+      "python_module": "omni.adapters.platform.linux_text",
+      "lines": 100,
+      "imports": [
+        "omni.adapters.platform.linux_atspi",
+        "omni.adapters.platform.linux_bus",
+        "omni.adapters.platform.linux_input",
+        "omni.adapters.platform.linux_semantic",
+        "omni.domain.contracts",
+        "omni.domain.foreground"
+      ],
+      "symbols": [
+        {
+          "name": "FocusedText",
+          "line": 20,
+          "kind": "class"
+        },
+        {
+          "name": "FocusedText.__init__",
+          "line": 21,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "desktop",
+            "now",
+            "sleep"
+          ],
+          "annotations": {
+            "desktop": "AtspiDesktop",
+            "now": "Callable[[], float] | None",
+            "sleep": "Callable[[float], Awaitable[None]]"
+          }
+        },
+        {
+          "name": "FocusedText._focused",
+          "line": 33,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "target",
+            "facts"
+          ],
+          "annotations": {
+            "target": "Payload",
+            "facts": "Payload"
+          }
+        },
+        {
+          "name": "FocusedText.append",
+          "line": 38,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "target",
+            "value",
+            "monitor",
+            "permit"
+          ],
+          "annotations": {
+            "target": "Payload",
+            "value": "Payload",
+            "monitor": "X11Input",
+            "permit": "Callable[[], Awaitable[bool]]"
+          }
+        }
+      ],
+      "summary": "One addressed Unicode append in a manually focused AT-SPI editor; no key synthesis, clipboard, focus acquisition or retry."
     },
     {
       "path": "agent/src/omni/adapters/platform/linux_window_leases.py",
@@ -35574,17 +35659,18 @@
       "path": "agent/src/omni/adapters/workers/linux_action.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.workers.linux_action",
-      "lines": 79,
+      "lines": 85,
       "imports": [
         "omni.adapters.workers.desktop",
         "omni.adapters.workers.linux_desktop",
         "omni.domain.contracts",
-        "omni.domain.desktop_actions"
+        "omni.domain.desktop_actions",
+        "omni.domain.foreground"
       ],
       "symbols": [
         {
           "name": "run",
-          "line": 18,
+          "line": 20,
           "kind": "function",
           "parameters": [
             "reader",
@@ -35598,21 +35684,21 @@
         },
         {
           "name": "run.authorize",
-          "line": 23,
+          "line": 29,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "pipe_main",
-          "line": 39,
+          "line": 45,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "pipe_main.send",
-          "line": 46,
+          "line": 52,
           "kind": "function",
           "parameters": [
             "data"
@@ -35623,7 +35709,7 @@
         },
         {
           "name": "main",
-          "line": 69,
+          "line": 75,
           "kind": "function",
           "parameters": [],
           "annotations": {}
@@ -35635,22 +35721,24 @@
       "path": "agent/src/omni/adapters/workers/linux_desktop.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.workers.linux_desktop",
-      "lines": 261,
+      "lines": 303,
       "imports": [
         "omni.adapters.platform.linux_atspi",
         "omni.adapters.platform.linux_bus",
         "omni.adapters.platform.linux_input",
         "omni.adapters.platform.linux_semantic",
         "omni.adapters.platform.linux_session",
+        "omni.adapters.platform.linux_text",
         "omni.adapters.platform.linux_x11",
         "omni.adapters.platform.linux_x11_wire",
         "omni.domain.contracts",
-        "omni.domain.desktop"
+        "omni.domain.desktop",
+        "omni.domain.foreground"
       ],
       "symbols": [
         {
           "name": "session_record",
-          "line": 25,
+          "line": 27,
           "kind": "function",
           "parameters": [
             "inspector",
@@ -35663,7 +35751,7 @@
         },
         {
           "name": "capability_report",
-          "line": 36,
+          "line": 38,
           "kind": "function",
           "parameters": [
             "inspector",
@@ -35672,7 +35760,9 @@
             "atspi_ready",
             "x11",
             "x11_ready",
-            "x11_error"
+            "x11_error",
+            "input_ready",
+            "input_error"
           ],
           "annotations": {
             "inspector": "SessionInspector | None",
@@ -35681,12 +35771,14 @@
             "atspi_ready": "bool",
             "x11": "X11Desktop | None",
             "x11_ready": "bool",
-            "x11_error": "str | None"
+            "x11_error": "str | None",
+            "input_ready": "bool",
+            "input_error": "str | None"
           }
         },
         {
           "name": "perform",
-          "line": 74,
+          "line": 96,
           "kind": "function",
           "parameters": [
             "request",
@@ -35706,7 +35798,7 @@
           }
         }
       ],
-      "summary": "One Linux read-only request in the owned helper. No service activation, settings, input or database access."
+      "summary": "One bounded Linux desktop request; addressed writes need a fresh parent permit, with no global input or database access."
     },
     {
       "path": "agent/src/omni/adapters/workers/linux_window_lease.py",
@@ -67257,7 +67349,7 @@
       "path": "agent/src/omni/domain/desktop.py",
       "module": "v2-domain",
       "python_module": "omni.domain.desktop",
-      "lines": 616,
+      "lines": 620,
       "imports": [
         "omni.domain.contracts",
         "omni.domain.desktop_actions",
@@ -67497,7 +67589,7 @@
         },
         {
           "name": "validate_capture",
-          "line": 274,
+          "line": 278,
           "kind": "function",
           "parameters": [
             "data",
@@ -67510,12 +67602,12 @@
         },
         {
           "name": "CapturedFrame",
-          "line": 302,
+          "line": 306,
           "kind": "class"
         },
         {
           "name": "CapturedFrame.validate",
-          "line": 309,
+          "line": 313,
           "kind": "function",
           "parameters": [
             "self"
@@ -67524,7 +67616,7 @@
         },
         {
           "name": "_hints",
-          "line": 326,
+          "line": 330,
           "kind": "function",
           "parameters": [
             "value"
@@ -67535,7 +67627,7 @@
         },
         {
           "name": "validate_capabilities",
-          "line": 340,
+          "line": 344,
           "kind": "function",
           "parameters": [
             "data"
@@ -67546,7 +67638,7 @@
         },
         {
           "name": "validate_targets",
-          "line": 396,
+          "line": 400,
           "kind": "function",
           "parameters": [
             "data",
@@ -67559,7 +67651,7 @@
         },
         {
           "name": "validate_verification",
-          "line": 413,
+          "line": 417,
           "kind": "function",
           "parameters": [
             "data",
@@ -67572,7 +67664,7 @@
         },
         {
           "name": "validate_observation",
-          "line": 426,
+          "line": 430,
           "kind": "function",
           "parameters": [
             "data",
@@ -67585,7 +67677,7 @@
         },
         {
           "name": "parse_response",
-          "line": 534,
+          "line": 538,
           "kind": "function",
           "parameters": [
             "data",
@@ -67598,7 +67690,7 @@
         },
         {
           "name": "parse_owner",
-          "line": 589,
+          "line": 593,
           "kind": "function",
           "parameters": [
             "operation",

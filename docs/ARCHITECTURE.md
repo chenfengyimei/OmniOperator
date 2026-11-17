@@ -100,6 +100,8 @@ Linux桌面原生会话由固定辅助进程内的`SessionInspector`核验，`Lo
 
 `linux_foreground.py`拥有独立输入监测连接，对外部持续窗口租约核验XRes实际焦点客户端及有界QueryTree祖先链。`linux_input.py`原焦点监测可一次性补充祖先结构订阅；物理输入、祖先/窗口/进程变化使证明失效，失败不复活。该原生只读基础尚不开放前台业务派发，也不把AT-SPI坐标或PID当作X11窗口映射，见[前台开发合同](V2_LINUX_FOREGROUND.md)。
 
+`linux_text.py`已接独立受限前台文本追加：只寻址人工聚焦的AT-SPI非密码编辑对象，不映射X11窗口或发送全局键鼠。节点证明绑定原文/末尾光标/零选区，固定linux_action worker以原前台UUID ready/permit逐次放行；一次InsertText、完整回读、派发后unknown不重放。DesktopActions共用原审批、观察消费和资源账本；探测核验输入守卫才报告受限能力，通用键鼠及Wayland控制仍在开发。
+
 ## V2 调度与所有权边界
 
 V2依赖方向固定为入口适配器→应用服务→领域端口；`composition/instance.py`构造并关闭调度器，`application/scheduling.py`只编排时钟、时区端口和事务。数字日历计算位于纯领域层，锁定IANA数据读取位于适配器。数据库仓储负责到期唯一约束、进度、savepoint入队、逐条核查和租约，不调用网络或模型。回合分发通过持久原子领取取得会话fence，外部调用不在事务内等待；未知执行不得自动重放。完整合同和当前证据见[V2实施记录](V2_REFACTOR.md)。

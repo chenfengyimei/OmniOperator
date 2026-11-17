@@ -2,7 +2,7 @@
 
 共享内核当前为137表/v2_0038，桌面IPC6/Portal IPC2/凭据IPC1，新增持续窗口证明IPC1。Linux AT-SPI/X11读取、持续X11窗口代次、Portal窗口帧、受控语义、系统凭据helper及D4终端核查源码已接通；Portal授权确认状态按下文明确区分系统同意和业务审计，不扩大Linux输入授权。Linux/GStreamer/Portal、原生凭据与PTY仍未实测，前台/RemoteDesktop控制仍待实现；整个V2未完成，Windows离线候选默认V2并保留显式V1回退。持续窗口读取身份见[专项合同](V2_LINUX_WINDOW_LEASES.md)。
 
-前台控制已补[原生焦点及祖先链只读证明](V2_LINUX_FOREGROUND.md)，它不替代AT-SPI控件与原生窗口关联，也未开放通用前台派发。窗口同PID、标题或坐标均不自动成为映射。
+前台控制已补[原生焦点及祖先链只读证明和受限文本追加](V2_LINUX_FOREGROUND.md)。人工聚焦的AT-SPI非密码编辑器可在末尾单次追加Unicode，沿用逐次审批/permit、原文/光标/选区与完整回读；通用键鼠、AT-SPI控件与原生窗口关联继续开发。窗口同PID、标题或坐标均不自动成为映射。
 
 ## 已实现的生产链路
 

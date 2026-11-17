@@ -31,8 +31,17 @@ def linux_server(linux_backend, v2_server):
     return v2_server
 
 
-def test_linux_semantic_text_passes_owner_approval_and_clears_on_departure(ui_browser, linux_server, linux_backend):
+@pytest.mark.parametrize("kind", ["set_text", "type_text"])
+def test_linux_semantic_text_passes_owner_approval_and_clears_on_departure(
+    ui_browser, linux_server, linux_backend, kind
+):
     model, spawn = linux_backend
+    if kind == "type_text":
+        from v2_linux_desktop_helpers import WINDOW
+
+        model.typing = True
+        model.nodes[WINDOW]["flags"][0] |= 1 << 1
+        model.nodes[EDIT]["flags"][0] |= 1 << 12
     context = ui_browser.new_context(viewport={"width": 760, "height": 1000})
     try:
         page, errors = connect(context, linux_server)
@@ -54,7 +63,9 @@ def test_linux_semantic_text_passes_owner_approval_and_clears_on_departure(ui_br
         # The semantic form has no platform-specific UI or native target identifiers.
         form = row.filter(has=page.locator("p", has_text="atspi-role-61 · fixture-edit")).last
         expect(form.get_by_role("button", name="提交动作审批", exact=True)).to_be_visible()
-        form.get_by_label("语义动作", exact=True).select_option("set_text")
+        form.get_by_label("语义动作", exact=True).select_option(kind)
+        if kind == "type_text":
+            form.get_by_role("checkbox").check()
         form.get_by_label("待设置的文本", exact=True).fill("ONLY-LINUX-UI-FIXTURE")
         with page.expect_response(lambda r: r.url.endswith("/desktop/actions")) as admitted:
             form.get_by_role("button", name="提交动作审批", exact=True).click()
@@ -71,7 +82,7 @@ def test_linux_semantic_text_passes_owner_approval_and_clears_on_departure(ui_br
             assert time.monotonic() < deadline
             form.get_by_role("button", name="刷新动作状态", exact=True).click()
             page.wait_for_timeout(50)
-        assert model.nodes[EDIT]["text"] == "ONLY-LINUX-UI-FIXTURE"
+        assert model.nodes[EDIT]["text"] == ("before" if kind == "type_text" else "") + "ONLY-LINUX-UI-FIXTURE"
         assert len(model.mutations) == 1
         assert all(o.reclaimed for o in spawn.owners)
         with page.expect_response(lambda r: "/desktop/snapshot?" in r.url and r.request.method == "DELETE"):

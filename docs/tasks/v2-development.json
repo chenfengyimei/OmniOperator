@@ -57,10 +57,14 @@
             "production_foreground_dispatch_enabled": false
           },
           "remaining": [
-            "控件与原生窗口可靠关联",
-            "实际worker与业务派发",
-            "Unicode/键映射、鼠标遮挡及派发后确定性"
-          ]
+            "通用键鼠的控件与原生窗口可靠关联",
+            "全局键盘映射、鼠标遮挡及实际派发确定性；不以已接通的直接寻址文本插入替代"
+          ],
+          "addressed_unicode_append": {
+            "status": "implemented_scoped_passed",
+            "evidence": "docs/evidence/v2-linux-text.json",
+            "scope": "Manually focused non-password AT-SPI editable text end, no selection, one addressed Unicode InsertText; no global keys or pointer"
+          }
         }
       ]
     },

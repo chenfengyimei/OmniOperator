@@ -204,7 +204,10 @@ class DesktopBackend:
     async def _write(self, operation: str, target: Record, action: Record, before_dispatch: BeforeDispatch) -> Record:
         sent = [False]
         try:
-            if sys.platform not in {"win32", "darwin"} and not (sys.platform == "linux" and operation == "act"):
+            if sys.platform not in {"win32", "darwin"} and not (
+                sys.platform == "linux"
+                and (operation == "act" or operation == "foreground" and action.get("kind") == "type_text")
+            ):
                 raise _error("desktop_action_unavailable")
             return await self._request(operation, target, 1, before_dispatch, action=action, sent=sent)
         except BusinessError as error:
@@ -334,7 +337,7 @@ class DesktopBackend:
             "-m",
             "omni.adapters.workers.desktop",
         ]
-        if sys.platform == "linux" and operation == "act":
+        if sys.platform == "linux" and operation in {"act", "foreground"}:
             argv[-1] = "omni.adapters.workers.linux_action"
         if sys.platform == "darwin":
             executable = await self._file(host, macos_helper.resolve)

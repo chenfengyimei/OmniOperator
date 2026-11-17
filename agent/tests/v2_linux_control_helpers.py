@@ -6,7 +6,7 @@ import json
 
 from v2_linux_desktop_helpers import APP, ROOT, WINDOW, Bus, Factory, node, variant
 
-from omni.adapters.platform.linux_atspi import COMPONENT
+from omni.adapters.platform.linux_atspi import COMPONENT, TEXT
 from omni.adapters.platform.linux_bus import RemoteError, failure
 from omni.adapters.platform.linux_semantic import ACTION, EDITABLE, SELECTION
 from omni.adapters.platform.linux_session import ACCESSIBLE, PROPERTIES
@@ -38,6 +38,10 @@ class Model:
         self.reply = "normal"
         self.hook = None
         self.monitors = []
+        self.typing = False
+        self.caret = None
+        self.selections = 0
+        self.advance_caret = True
 
 
 class ControlBus(Bus):
@@ -45,19 +49,34 @@ class ControlBus(Bus):
         f = self.factory
         model = f.model
         if self.kind == "a11y" and destination == APP:
+            if interface == PROPERTIES and body == [TEXT, "CaretOffset"]:
+                if not model.typing:
+                    raise RemoteError("fixture_optional_text_not_supported")
+                return [variant("i", len(model.nodes[path]["text"]) if model.caret is None else model.caret)]
+            if interface == TEXT and member == "GetNSelections":
+                if not model.typing:
+                    raise RemoteError("fixture_optional_text_not_supported")
+                return [model.selections]
             if interface == PROPERTIES and member == "Get" and body == [ACCESSIBLE, "Parent"]:
                 return [variant("(so)", [APP, model.parents[path]])]
             if interface == PROPERTIES and member == "Get" and body == [ACTION, "NActions"]:
                 return [variant("i", len(model.actions))]
             if interface == ACTION and member == "GetName":
                 return [model.actions[body[0]]]
-            if member in {"SetTextContents", "SelectChild", "DoAction"}:
+            if member in {"SetTextContents", "SelectChild", "DoAction", "InsertText"}:
                 self.check()
                 model.mutations.append((member, copy.deepcopy(body)))
                 if model.hook:
                     model.hook(member)
                 if member == "SetTextContents" and model.reply != "unchanged":
                     model.nodes[path]["text"] = body[0]
+                if member == "InsertText":
+                    position, text, length = body
+                    assert model.typing and signature == "isi" and length == len(text.encode("utf-8"))
+                    if model.reply != "unchanged":
+                        original = model.nodes[path]["text"]
+                        model.nodes[path]["text"] = original[:position] + text + original[position:]
+                    model.caret = position + len(text) if model.advance_caret else position
                 if member == "SelectChild":
                     assert path == LIST and body == [0]
                     model.selected = True
@@ -126,7 +145,7 @@ class Process:
             try:
                 initial = await self.input.readline()
                 request = decode(initial)
-                if request["operation"] == "act":
+                if request["operation"] in {"act", "foreground"}:
                     replay = asyncio.StreamReader(limit=65536)
                     replay.feed_data(initial)
 

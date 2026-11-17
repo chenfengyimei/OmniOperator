@@ -1,0 +1,71 @@
+{
+  "source_base": "ce9eaa9792c051b5eada59e2ac756f60a6bee4df",
+  "scope": "Production addressed Unicode append in manually focused AT-SPI editor, existing owner approval/UUID permit/observation consumption and cleanup ledger; no global input",
+  "source_files": {
+    "agent/src/omni/adapters/platform/linux_text.py": "8204880a21758804ee1fc8cf0bf0f13555a44d0b0dd15a04226b839d025bf883",
+    "agent/src/omni/adapters/platform/linux_semantic.py": "d294317ec22a616c0df87bba97f99a110e8f212ee14cd045130615177036e8e7",
+    "agent/src/omni/adapters/platform/desktop.py": "4f8ed7d61918067bbc283bc237727fcc3513f0e98d3f3b32271e72e59d3f01ab",
+    "agent/src/omni/domain/desktop.py": "76bae2c1e633de0fc522a4d95651ec1c13426309090eb98af3fe77feea81cfa3",
+    "agent/src/omni/adapters/workers/linux_action.py": "30bce71e0484044a6f2d6bfd94bbb7f046ed48619f34b5c25073f12fdf651a65",
+    "agent/src/omni/adapters/workers/linux_desktop.py": "fa384afb5a877fc1ca5ae5d61448cf14bc4432d7f793d47e1dd80c30b63a2dc4",
+    "agent/tests/test_v2_linux_text.py": "8294a4445a770ad48a2acc8111a533b8ca0b47594926e954e0bc4937a99c4477",
+    "agent/tests/v2_linux_control_helpers.py": "736fe2f4339aee69b11c099242904d0cdd3854b9199fe9047b1dca401ea70dcb",
+    "agent/tests/test_v2_linux_control_ui.py": "f27f8fd9086d3c4ddeb9ce32337264b4895455efb00149b22467b79ce12a2712",
+    "pyrightconfig.strict.json": "e0c75e47772ed78bc4ed50eb789b080869101a2c0fae1f2305e01423e8700f5e",
+    "docs/TYPE_CHECKING.md": "3f756c22f2d7389315346d50bfa676a2f755b7517852c0eaacab16d16ea5cf22",
+    "docs/V2_LINUX_FOREGROUND.md": "069350884f391d2bf3dbe305e45221085ce2f59ba10702c901f09f8f72fce1b7",
+    "docs/V2_LINUX_HANDOFF.md": "50fec171c6df564f3bd6f468acc6c11087c3bb16c31c399988350da0d44e8965"
+  },
+  "scoped_tests": {
+    "distinct_current_nodes_passed": 143,
+    "new_core_passed": 25,
+    "browser_scenarios_passed": 2,
+    "other_current_callers_passed": 114,
+    "type_contract_guard_passed": 2,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0,
+    "reports": [
+      {
+        "path": "temp/build/v2-linux-text-initial.xml",
+        "sha256": "e1f7225753d51719ae6b624670067a366e7e622b692419d607140c3904e5db21"
+      },
+      {
+        "path": "temp/build/v2-linux-text-callers-initial.xml",
+        "sha256": "f50248ef7f31335ac9f628b2c8523a4d55d47631fa4230ce895283225c1f065f"
+      },
+      {
+        "path": "temp/build/v2-linux-text-probe-ui.xml",
+        "sha256": "bc7e464b087c517498c9f00ee28f4e27018c44c3edcd328f52c46e5b4c0e7a0f"
+      },
+      {
+        "path": "temp/build/v2-linux-text-protocol-supplement.xml",
+        "sha256": "ae09075e1f0bb8578ed7be8c0e16db1f49a74578e7cc4a7ae004b52039aeebfa"
+      }
+    ],
+    "obsolete_unparameterized_browser_node_excluded_from_count": true,
+    "probe_modified_after_first_callers_report": "New probe and both browser callers plus the old read-only probe node verified after capability-report update; original action bodies unchanged"
+  },
+  "strict_modified_files": {
+    "files": 6,
+    "errors": 0,
+    "warnings": 0,
+    "report": {
+      "path": "temp/build/v2-linux-text-pyright-initial.json",
+      "sha256": "65e504a460a774cb7391621ae8390b1f11c782df9620f8a20dbd9977f218fcd8"
+    }
+  },
+  "unicode_position_is_character_offset_and_length_is_utf8_bytes": true,
+  "single_addressed_insert_full_content_readback": true,
+  "native_focus_wait_seconds": 10,
+  "native_focus_wait_test_uses_injected_clock_not_shortened_timeout": true,
+  "owner_approval_sqlite_single_use_and_actual_host_worker_protocol_tested": true,
+  "write_unknown_replayed": false,
+  "global_keyboard_pointer_clipboard_or_focus_acquisition_enabled": false,
+  "x11_capture_target_or_wayland_controls_enabled": false,
+  "real_linux_or_native_input_executed": false,
+  "full_suite_run": false,
+  "whole_v2_development_complete": false,
+  "whole_v2_accepted": false,
+  "next": "Continue whole-V2 development: native global keyboard/pointer association and independently granted Wayland control; defer unified full suite until all development complete"
+}

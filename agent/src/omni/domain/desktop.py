@@ -265,7 +265,11 @@ def parse_request(data: object) -> dict[str, object]:
         proof_backend = cast(dict[str, object], node).get("backend")
         if proof_backend != {"win32": None, "darwin": "ax", "linux": "atspi"}[cast(str, target["platform"])]:
             raise invalid()
-        if target["platform"] == "linux" and (operation != "act" or target["backend"] != "atspi"):
+        if target["platform"] == "linux" and (
+            target["backend"] != "atspi"
+            or operation == "foreground"
+            and cast(dict[str, object], action)["kind"] != "type_text"
+        ):
             raise invalid()
     _canonical(result)
     return result
@@ -519,7 +523,7 @@ def validate_observation(data: object, target: object) -> dict[str, object]:
                 != {"win32": None, "darwin": "ax", "linux": "atspi"}[cast(str, actual["platform"])]
             ):
                 raise invalid()
-            if linux and (actual["backend"] != "atspi" or any(a not in KINDS for a in actions)):
+            if linux and (actual["backend"] != "atspi" or any(a not in KINDS + ("type_text",) for a in actions)):
                 raise invalid()
             if actions and (reference is None or password or not entry["enabled"] or entry["offscreen"]):
                 raise invalid()

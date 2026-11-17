@@ -11,6 +11,8 @@ from typing import Any
 
 from ...domain.contracts import BusinessError
 from ...domain.desktop_actions import linux_ready
+from ...domain.foreground import permit as foreground_permit
+from ...domain.foreground import ready as foreground_ready
 from .desktop import MAX_FRAME, decode, encode, frame_data
 from .linux_desktop import perform
 
@@ -18,16 +20,20 @@ from .linux_desktop import perform
 async def run(reader: asyncio.StreamReader, send: Callable[[bytes], Awaitable[None]], **injected: Any) -> int:
     initial = await reader.readline()
     request = decode(initial)
-    linux_ready(request)
+    control = foreground_ready if request["operation"] == "foreground" else linux_ready
+    expected = (
+        foreground_permit(request) if request["operation"] == "foreground" else linux_ready(request, permitted=True)
+    )
+    control(request)
 
     async def authorize() -> bool:
-        await send(json.dumps(linux_ready(request), separators=(",", ":")).encode() + b"\n")
+        await send(json.dumps(control(request), separators=(",", ":")).encode() + b"\n")
         try:
             async with asyncio.timeout(1):
                 permission = await reader.readline()
             if len(initial) + len(permission) > MAX_FRAME:
                 return False
-            return frame_data(permission) == linux_ready(request, permitted=True)
+            return frame_data(permission) == expected
         except (BusinessError, ValueError, UnicodeError, TimeoutError):
             return False
 
