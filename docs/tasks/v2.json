@@ -10,7 +10,7 @@
   "sqlite_snapshots": 13,
   "zip_sha256": "ecf3dc0221a2d721a4e65ec864b7654dc55c952b3b043c95aaa158c9727f902c"
  },
- "default_entrypoints": "V1 until R6 parity gate",
+ "default_entrypoints": "V2 Windows offline candidate; explicit V1 fallback retained",
  "legacy_data_imported": false,
  "tasks": [
   {
@@ -2734,5 +2734,12 @@
    "recheck_report": "temp/build/v2-strict-isolation.xml"
   }
  ],
- "typing_final_checkpoint_commit": "73faa51a"
+ "typing_final_checkpoint_commit": "73faa51a",
+ "windows_offline_candidate": {
+  "status": "complete",
+  "source_head": "7e64d3488c2074a977deeba6561dba5b914f1b86",
+  "evidence": "docs/evidence/v2-windows-acceptance.json",
+  "whole_v2_complete": false,
+  "real_platform_acceptance": "pending"
+ }
 }

@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "goal": "Windows V2 开发完成后统一离线验收并收尾",
-  "status": "active",
+  "status": "completed_windows_offline_candidate",
   "decisions": {
     "platform": "windows",
     "completion": "development_and_offline_candidate",
@@ -61,27 +61,41 @@
     {
       "id": "W6",
       "title": "冻结候选：严格类型、静态检查、界面与打包验证",
-      "status": "pending",
-      "evidence": []
+      "status": "completed",
+      "evidence": [
+        "docs/evidence/v2-windows-acceptance.json"
+      ]
     },
     {
       "id": "W7",
       "title": "同一候选源码统一全量离线验收，保留原始失败报告",
-      "status": "pending",
-      "evidence": []
+      "status": "completed",
+      "evidence": [
+        "docs/evidence/v2-windows-acceptance.json"
+      ]
     },
     {
       "id": "W8",
       "title": "验收通过后切换默认入口、提交推送与交接收尾",
-      "status": "pending",
-      "evidence": []
+      "status": "completed",
+      "evidence": [
+        "docs/evidence/v2-windows-acceptance.json"
+      ]
     }
   ],
   "acceptance": {
-    "candidate_source": null,
-    "full_suite": null,
-    "windows_offline_complete": false,
+    "candidate_source": "7e64d3488c2074a977deeba6561dba5b914f1b86",
+    "full_suite": {
+      "passed": 5998,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 0,
+      "duration_s": 1791.23
+    },
+    "windows_offline_complete": true,
     "whole_v2_complete": false,
-    "default_entrypoint": "v1"
+    "default_entrypoint": "v2",
+    "source_sha256": "aa0ddb88ff27af9c41820abeecb21c5e87b498bf40e0b06fad261e21db7a72cc",
+    "evidence": "docs/evidence/v2-windows-acceptance.json"
   }
 }

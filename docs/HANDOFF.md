@@ -1,6 +1,8 @@
 # OmniOperator 当前交接入口
 
-> 当前开发分支为 `v2`，跟踪 `origin/v2`。默认正式入口仍为V1。
+> 当前开发分支为 `v2`，跟踪 `origin/v2`。Windows离线候选默认入口为V2，显式V1回退保留。
+
+> Windows离线候选完成（2026-11-17）：固定源码`7e64d348`，指纹`aa0ddb88ff27af9c`；全量5998通过、0失败/错误/跳过，1791.23秒，源码与依赖前后一致，5998个收集节点逐项核对。首轮5997通过/1旧四命令守卫失败及当时完整源码ZIP留档；测试合同改为八命令精确映射后55专项通过，再对当前固定候选完整复验，未以补跑替代全量。此前参数/worker根目录收集错误（未执行用例）亦保留。strict335零错误/警告、静态/前端/两条打包链通过；应用wheel字节保持相同，安装态默认命令与HTTP认证、同schema更新/回滚/对象恢复及卸载续跑证明按相同输入复用，原文件访问失败/续跑分别保留。已将项目omni/omni-web/python -m omni及start.bat切换到V2，保留omni-v1/omni-web-v1/start-v1.bat；不自动导入V1数据。仅提交已验收候选，其他会话WIP保留未纳入，现有用户服务/venv控制台EXE未重建，旧环境使用start-v2.ps1或python -m omni直接启动。Windows开发与离线候选已收尾；真实账号、设备、原生桌面、72小时及其他平台仍待正式验收，整个V2未整体验收。见[最终证据](evidence/v2-windows-acceptance.json)、[交付说明](V2_WINDOWS_CANDIDATE.md)和[任务](tasks/v2-windows-candidate.json)。
 
 > Windows业务与界面接续（2026-11-17）：23个业务入口已核对导航/模块/测试映射；54项专项通过（222.59秒），覆盖能力、令牌引导、四视口双主题模型预览及历史插件/记忆整理/Portal/桌面路径，未声称逐页全业务复验。历史观察保持open，当前系统提交额度只读采样约26.2/101.4GB，不作历史定因。候选门禁增量20回归通过，纳入README/合同/类型文档身份并兼容保留原生退出诊断的完整pytest。未启动全量；继续W6准备待验收的V2默认入口并冻结候选，正式工作区保持V1至通过后W8应用。见[业务证据](evidence/v2-windows-business.json)和[候选任务](tasks/v2-windows-candidate.json)。
 

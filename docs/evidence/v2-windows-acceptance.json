@@ -1,0 +1,177 @@
+{
+  "source_head": "7e64d3488c2074a977deeba6561dba5b914f1b86",
+  "source_sha256": "aa0ddb88ff27af9c41820abeecb21c5e87b498bf40e0b06fad261e21db7a72cc",
+  "frozen_source_files": 1332,
+  "committed_git_clean_form_matches_frozen_source": true,
+  "git_attribute_line_ending_normalizations": [
+    ".gitattributes",
+    ".gitignore",
+    "agent/scripts/_pyright_findings.txt",
+    "agent/scripts/ci.ps1",
+    "agent/src/omni/adapters/platform/android_input_helper/AndroidManifest.xml",
+    "agent/src/omni/adapters/platform/android_input_helper/res/xml/method.xml",
+    "agent/src/omni/adapters/platform/android_input_helper/src/org/omnioperator/inputhelper/ConsentActivity.java",
+    "agent/src/omni/adapters/platform/android_input_helper/src/org/omnioperator/inputhelper/HelperIme.java",
+    "agent/src/omni/adapters/platform/android_input_helper/src/org/omnioperator/inputhelper/Pairing.java",
+    "agent/src/omni/adapters/platform/android_input_helper/src/org/omnioperator/inputhelper/SessionCore.java",
+    "agent/src/omni/adapters/platform/android_input_helper/src/org/omnioperator/inputhelper/Wire.java",
+    "agent/src/omni/adapters/workers/macos/Core/Package.swift",
+    "agent/src/omni/adapters/workers/macos/Core/Sources/ForegroundCore/Takeover.swift",
+    "agent/src/omni/adapters/workers/macos/Core/Tests/ForegroundCoreTests/TakeoverTests.swift",
+    "agent/src/omni/adapters/workers/macos/Package.swift",
+    "agent/src/omni/adapters/workers/macos/Sources/NativeIdentity/identity.c",
+    "agent/src/omni/adapters/workers/macos/Sources/NativeIdentity/include/NativeIdentity.h",
+    "agent/src/omni/adapters/workers/macos/Sources/OmniDesktopFixture/Fixture.swift",
+    "agent/src/omni/adapters/workers/macos/Sources/OmniDesktopHelper/Accessibility.swift",
+    "agent/src/omni/adapters/workers/macos/Sources/OmniDesktopHelper/Actions.swift",
+    "agent/src/omni/adapters/workers/macos/Sources/OmniDesktopHelper/Capture.swift",
+    "agent/src/omni/adapters/workers/macos/Sources/OmniDesktopHelper/FocusWatch.swift",
+    "agent/src/omni/adapters/workers/macos/Sources/OmniDesktopHelper/Foreground.swift",
+    "agent/src/omni/adapters/workers/macos/Sources/OmniDesktopHelper/HelperMain.swift",
+    "agent/src/omni/adapters/workers/macos/Sources/OmniDesktopHelper/Identity.swift",
+    "agent/src/omni/adapters/workers/macos/Sources/OmniDesktopHelper/InputWatch.swift",
+    "agent/src/omni/adapters/workers/macos/Sources/OmniDesktopHelper/Protocol.swift",
+    "agent/src/omni/adapters/workers/macos/Sources/OmniDesktopHelper/ServiceQuery.swift",
+    "agent/src/omni/adapters/workers/macos/Tests/NativeIdentityTests/RegistrationPaths.swift",
+    "agent/src/omni/adapters/workers/windows_foreground.cs",
+    "agent/src/omni/adapters/workers/windows_services.ps1",
+    "agent/src/omni/adapters/workers/windows_uia.cs",
+    "agent/src/omni/adapters/workers/windows_uia.ps1",
+    "agent/src/omni/tools/desktop/uia.ps1",
+    "agent/tests/native/android_input/SessionCoreChecks.java",
+    "deploy/v2/Dockerfile",
+    "scripts/ci.ps1",
+    "scripts/install-v2.ps1",
+    "scripts/install.ps1",
+    "scripts/start-v2.ps1",
+    "scripts/update.ps1",
+    "uv.lock",
+    "web/.prettierignore",
+    "web/ui/brand-mark.svg"
+  ],
+  "tested_source_archive": {
+    "path": "temp/build/windows-v2-final-evidence-final/tested-source.zip",
+    "sha256": "2f8490105d6276a8e416e36125eb45df85325c88268e6cda8bf0d706461087bc",
+    "byte_exact_frozen_files": 1332
+  },
+  "archive_export_changes_windows_script_line_endings": true,
+  "parallel_working_files_preserved": true,
+  "parallel_work_preservation_scope": "Latest pre-publication dirty files; shared progress docs merge only owned fields and stage canonical candidate records. Other sessions may have updated original session hashes.",
+  "capabilities_test_parallel_schema_work_preserved": true,
+  "whole_v2_complete": false,
+  "windows_offline_complete": true,
+  "default_entrypoint": "v2",
+  "existing_workspace_venv_console_stubs_refreshed": false,
+  "source_module_and_start_bat_select_v2": true,
+  "scope": "Owner-selected Windows development and offline candidate; real accounts/devices/native desktop/72h and other platforms remain unverified",
+  "gate": {
+    "path": "temp/build/windows-v2-final-evidence-final/assessment.json",
+    "sha256": "a3841e6f77715d38f98d8eec04fe4f32aa95b93f10b4c0ae314673b118d32346"
+  },
+  "manifest": {
+    "path": "temp/build/windows-v2-final-evidence-final/manifest.json",
+    "sha256": "42423e6b1b0f29388de46c879cb6f5dcec5d66f6919719aaaf64eac51b5b06cc"
+  },
+  "full_suite": {
+    "collected": 5998,
+    "cases": 5998,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0,
+    "duration_s": 1791.23,
+    "source_unchanged": true,
+    "dependencies_unchanged": true,
+    "report": {
+      "path": "temp/build/windows-v2-final-evidence-final/full.xml",
+      "sha256": "23b7db3d2b06a84fc1d5aad7b5eca0775fedd6c9bcde6261a5422729f361f2ed"
+    },
+    "evidence": {
+      "path": "temp/build/windows-v2-final-evidence-final/full_pytest.sealed.json",
+      "sha256": "ba21f35bb5c8ee9f2ac598cbcc3373e93720c42e61ba6313211be053b0b72d1e"
+    },
+    "original_log": {
+      "path": "temp/build/windows-v2-final-evidence-final/full.stdout",
+      "sha256": "95304800be2878a5bff95fbdab68bf2e84f275597d5edb5849d34987cdd8d80a"
+    },
+    "startup_attempts_preserved": [
+      {
+        "path": "temp\\build\\windows-v2-final-evidence\\startup-error\\full_pytest.json",
+        "sha256": "be1e851ae948fdee2611e380e14e6e32594fed5130bb8dfbb63ce013a808e893",
+        "returncode": 4,
+        "executed_tests": 0,
+        "source_unchanged": true,
+        "reason": "The option was parsed before nested conftest loaded the diagnostic plugin. Early-load that same project plugin via PYTEST_PLUGINS."
+      },
+      {
+        "path": "temp\\build\\windows-v2-final-evidence\\collection-error\\full_pytest.json",
+        "sha256": "df52c41b1fc6031e1fc122c21a5d70b64ef340cdb53fbda6e615fa2ef3c0da35",
+        "returncode": 1,
+        "executed_tests": 0,
+        "worker_collection_errors": 4,
+        "source_unchanged": true,
+        "reason": "Absolute diagnostic directory argument affected automatic root discovery in xdist workers. Pin the original frozen config and root explicitly through PYTEST_ADDOPTS; no selection or timeout override."
+      }
+    ],
+    "prior_full_runs_preserved": [
+      {
+        "evidence_folder": "D:\\xm\\OmniOperator\\temp\\build\\windows-v2-final-evidence",
+        "source_sha256": "f124bf994a26313f85062fa8527267bd006b38f9880d2aa00b80a5d4d60faf81",
+        "returncode": 1,
+        "passed": 5997,
+        "failed": 1,
+        "errors": 0,
+        "skipped": 0,
+        "duration_s": 2313.97,
+        "failure_node": "agent/tests/test_repository_layout.py::test_workspace_resolves_product_and_keeps_four_entrypoints",
+        "full_report_sha256": "52733e4b84aea717bd3132455f673dc9540002d5d18ab0e2f02f976f68f49ee1",
+        "source_archive": "D:\\xm\\OmniOperator\\temp\\build\\windows-v2-final-evidence\\source-before-entrypoint-guard-fix.zip",
+        "source_archive_sha256": "c2ac7d54d75ca99fb9946504703bc5788b9233a888ab0d6e776acbae86acf531"
+      }
+    ]
+  },
+  "strict_types": {
+    "files": 335,
+    "errors": 0,
+    "warnings": 0,
+    "evidence": {
+      "path": "temp/build/windows-v2-final-evidence-final/strict_types.json",
+      "sha256": "df2a47c8c7e1db4b0bf1e0fe22b80d6c4e2a5c9dfb31767bd1da106e99d82fa2"
+    }
+  },
+  "package": {
+    "path": "temp/build/windows-v2-final-evidence-final/package.json",
+    "sha256": "c48abcad340cd48c7bc8d6dfb49b44075648e444f28c6ff26ad3639bc66f03b9"
+  },
+  "windows_lifecycle": {
+    "path": "temp/build/windows-v2-final-evidence-final/windows_lifecycle.json",
+    "sha256": "5109d1cd6e6de48b072c6537e90a362071bf8cba1c1767eac768df9cc685286f"
+  },
+  "candidate_wheel_sha256": "071e59cbe81ee37779edcd26c04f5b0db94fd5f9e1a1cd2ecdedf0b3d2c889d4",
+  "activation_patch": {
+    "path": "temp/build/windows-v2-final-evidence-final/default-v2-activation.patch",
+    "sha256": "1e5ffa19cdd552c4f952e8bfb70314af1b0856f738606695c5217f0fe704258b"
+  },
+  "existing_user_services_stopped_or_venv_rebuilt": false,
+  "unreviewed_parallel_work_validated": false,
+  "unverified_release_gates": [
+    "real_accounts",
+    "real_devices",
+    "native_desktop",
+    "72h",
+    "other_platforms"
+  ],
+  "historical_observations_automatically_closed": false,
+  "entrypoint_guard_followup": {
+    "file": "agent/tests/test_repository_layout.py",
+    "old_node": "test_workspace_resolves_product_and_keeps_four_entrypoints",
+    "new_node": "test_workspace_resolves_product_and_keeps_default_and_explicit_entrypoints",
+    "changed_files": [
+      "agent/tests/test_repository_layout.py"
+    ],
+    "application_code_changed": false,
+    "old_source_sha256": "f124bf994a26313f85062fa8527267bd006b38f9880d2aa00b80a5d4d60faf81",
+    "new_source_sha256": "aa0ddb88ff27af9c41820abeecb21c5e87b498bf40e0b06fad261e21db7a72cc",
+    "assertion": "Exact full eight-command mapping, including both defaults and explicit V1/V2 aliases; workspace/index guards remain."
+  },
+  "product_proof_reused_only_for_identical_wheel": true
+}
