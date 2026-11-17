@@ -3,6 +3,22 @@ on:
   push:
   pull_request:
 jobs:
+  container-core:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Build core image
+        run: docker build -f deploy/v2/Dockerfile -t omnioperator:v2-ci .
+      - name: Check non-root offline volume persistence and graceful stop
+        run: python scripts/check_v2_container.py --image omnioperator:v2-ci --output temp/build/v2-container-ci.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: v2-container-core-proof
+          path: temp/build/v2-container-ci.json
   offline-kernel:
     strategy:
       fail-fast: false

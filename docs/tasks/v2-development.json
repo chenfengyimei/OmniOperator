@@ -89,8 +89,20 @@
     {
       "id": "G5",
       "title": "macOS、Linux、无桌面及容器交付实现收口",
-      "status": "code_audit_pending",
-      "note": "已有实现和交接不重做；编译/平台证据缺失与实际代码缺失分别记录"
+      "status": "development_in_progress",
+      "note": "已有实现和交接不重做；编译/平台证据缺失与实际代码缺失分别记录",
+      "subdeliverables": [
+        {
+          "id": "G5.container",
+          "title": "非root无桌面镜像、显式反代部署及隔离核验工具",
+          "status": "implemented_scoped_passed",
+          "contract": "docs/V2_CONTAINER.md",
+          "evidence": [
+            "docs/evidence/v2-container-delivery.json"
+          ],
+          "actual_image_build_or_run": false
+        }
+      ]
     },
     {
       "id": "G6",

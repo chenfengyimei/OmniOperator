@@ -2,6 +2,8 @@
 
 > 当前开发分支为 `v2`，跟踪 `origin/v2`。Windows离线候选默认入口为V2，显式V1回退保留。
 
+> 全V2容器交付接续（2026-11-17）：补非root私有数据卷预建归属、明确HOME、最小构建上下文、默认容器回环及显式HTTPS反代Compose；只读根、init和45秒停止宽限保持应用排空。新增预构建镜像核验工具：固定image ID、新断网容器/卷、内部HTTP鉴权、数据保持/新boot、正常退出与实际清理，未知create先行收据保留未结清身份；不构建/拉取/启动Docker。15新增专项及2打包调用方通过，包含真实隔离SQLite/HTTP探针（Linux UID/mode注入），控制器1文件默认类型零错误/警告；Compose实际静态解析通过。原3失败保留后指定修复通过。Docker引擎仍不可连接，未构建/运行镜像或启动用户服务；CI仅接源码，不代表运行通过。未全量，整个V2继续开发，下一继续核对平台交付与业务缺口，Linux通用键鼠/Wayland实际输入仍开放。见[容器合同](V2_CONTAINER.md)、[证据](evidence/v2-container-delivery.json)和[持续任务](tasks/v2-development.json)。
+
 > 全V2控制许可业务接续（2026-11-17）：独立RemoteDesktop已接父进程、业务审计、所有者HTTP和工作台显式设备/同意入口，仍不授予键鼠输入。原两进程名额共用，迟到创建/坏帧/超量管道保留实际归属，修复stderr超量后停止排空导致Windows回收滞留；请求审计先行、系统许可另记、离页与审计并行时503待结清，实际关闭及关闭审计完成才移除旧记录。固定副本93不同专项通过，修改8文件strict零错误/警告；原管道故障、HTTP接线遗漏及离页回执用例首轮失败均留档后修复。手机深色/桌面浅色已检查，UI先随并行提交49899757落地，未卷入其他会话CSS。未跑全量、真实Wayland许可或输入；当前源码不受旧5998覆盖，整个V2继续开发。下一核对跨平台交付代码缺口，保留Linux全局键鼠与Wayland介入守卫/实际派发开发项。见[合同](V2_WAYLAND_CONTROL.md)、[证据](evidence/v2-control-owner.json)和[持续任务](tasks/v2-development.json)。
 
 > 全V2 Wayland独立控制许可接续（2026-11-17）：补独立控制协议、RemoteDesktop原生会话和固定worker，不复用ScreenCast权限；显式设备种类、临时Session、禁恢复/剪贴板/屏幕流，prepared后同绑定permit才打开系统许可。撤回/锁屏/owner变化/到期不复活，取消选择器关闭预定Request/Session，实际清理后才确认clean；input_authorized始终false，不执行键鼠。41新回归、原共享39及类型合同2共82不同专项通过；新增用例漏导入失败保留，指定节点修复通过，修改4文件strict零错误/警告。未跑全量/Wayland实机，当前只完成原生许可与worker基础，继续父进程归属、业务审计和显式入口，再补物理介入守卫/派发；整个V2仍开发中。见[控制合同](V2_WAYLAND_CONTROL.md)、[证据](evidence/v2-remote-desktop.json)和[持续任务](tasks/v2-development.json)。

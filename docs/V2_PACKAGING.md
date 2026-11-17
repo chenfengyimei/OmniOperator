@@ -94,7 +94,7 @@ python -m omni.composition.cli --home <home> installation seal
 ## 4. 明确未完成
 
 - **三平台**：仅在 Windows 主机验证纯 Python wheel 构建与隔离导入；macOS/Linux 未构建、未安装、未恢复，不得写“三平台已交付”。
-- **容器镜像**：已有 [`deploy/v2/Dockerfile`](../deploy/v2/Dockerfile) 和构建说明，镜像构建、健康检查及运行仍未验收。2026-11-15 本机只读探测确认 Docker CLI 存在、Docker 引擎不可连接，未执行镜像构建，也未代为启动 Docker Desktop；配方存在不等于容器已交付。
+- **容器镜像**：已有 [`deploy/v2/Dockerfile`](../deploy/v2/Dockerfile)、非root私有卷/只读Compose和独立断网核验工具，见[容器合同](V2_CONTAINER.md)。2026-11-17 本机复核 Docker CLI 存在、Docker 引擎仍不可连接，仅做静态解析和隔离控制器/HTTP专项；未构建或运行镜像，也未启动 Docker Desktop，配方存在不等于容器已交付。
 - **Windows候选独立安装**：已有固定依赖、独立维护解释器、新装/同schema更新/回滚/快照恢复/保留数据卸载与故障续跑的离线证据；真实系统服务与干净机器仍待验收。跨schema/服务链继续遵循release/exchange合同。`scripts/install.ps1`、`update.ps1`、`installer_lib.ps1` 仍是显式V1组件，不能代替V2证据。
 - **代码签名/公证**：未做 Windows 签名、macOS notarization。
 - **真实机器验收**：未在干净 Windows/macOS/Linux 机器执行“安装→升级→回滚→恢复→卸载”。
