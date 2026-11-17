@@ -30,6 +30,10 @@ class PointerEvents(Protocol):
     def accept(self, header: bytes, payload: bytes) -> bool: ...
 
 
+class ButtonReceipts(PointerEvents, Protocol):
+    def keyboard(self, header: bytes) -> bool: ...
+
+
 class KeyTransition(Protocol):
     @property
     def complete(self) -> bool: ...
@@ -208,6 +212,9 @@ class InputWire(Wire):
         self.motion_events: PointerEvents | None = None
         self.motion_lease: KeyLease | None = None
         self._motion_query = False
+        self.button_events: ButtonReceipts | None = None
+        self.button_lease: KeyLease | None = None
+        self._button_query: tuple[int, bytes, int] | None = None
 
     async def send(self, opcode: int, data: bytes = b"", minor: int = 0) -> None:
         if self.key_lease is not None and not (self._key_query and opcode == 44 and not data and minor == 0):
@@ -220,8 +227,11 @@ class InputWire(Wire):
             and minor == 0
         ):
             raise failure("desktop_input_unverified")
+        if self.button_lease is not None and self._button_query != (opcode, data, minor):
+            raise failure("desktop_input_unverified")
         self._key_query = False
         self._motion_query = False
+        self._button_query = None
         await super().send(opcode, data, minor)
 
     async def key_barrier(self, lease: KeyLease) -> bytes:
@@ -242,6 +252,16 @@ class InputWire(Wire):
         finally:
             self._motion_query = False
 
+    async def button_barrier(self, lease: KeyLease, *, devices: bool = False) -> bytes:
+        if self.button_lease is not lease or self.setup is None or self.opcode is None:
+            raise failure("desktop_input_unverified")
+        request = (self.opcode, struct.pack("<Hxx", 0), 48) if devices else (38, struct.pack("<I", self.setup.root), 0)
+        self._button_query = request
+        try:
+            return await self.request(*request, maximum=32768 if devices else 0)
+        finally:
+            self._button_query = None
+
     async def read(self, length: int) -> bytes:
         if self.received + length > 1024 * 1024:
             raise failure("desktop_input_unverified")
@@ -253,6 +273,8 @@ class InputWire(Wire):
             raise failure("desktop_input_unverified")
         if self.xkb_event is not None and header[0] == self.xkb_event:
             if self.key_events is not None and self.key_events.keyboard(header):
+                return
+            if self.button_events is not None and self.button_events.keyboard(header):
                 return
             if header[1] == 11:
                 if header[8] not in self.xkb_pointer_devices:
@@ -280,6 +302,10 @@ class InputWire(Wire):
             if category == 1 and self.motion_events is not None and self.motion_events.device(header, payload):
                 return
             if category in RAW and self.motion_events is not None and self.motion_events.accept(header, payload):
+                return
+            if category == 1 and self.button_events is not None and self.button_events.device(header, payload):
+                return
+            if category in RAW and self.button_events is not None and self.button_events.accept(header, payload):
                 return
         elif header[0] in {9, 10}:
             if self.focus is None or unpack("I", header, 4)[0] != self.focus:
@@ -421,5 +447,7 @@ class X11Input:
         if self.wire is not None and self.wire.key_lease is not None and not await self.wire.key_lease.settle():
             return False
         if self.wire is not None and self.wire.motion_lease is not None and not await self.wire.motion_lease.settle():
+            return False
+        if self.wire is not None and self.wire.button_lease is not None and not await self.wire.button_lease.settle():
             return False
         return self.connection is None or await self.connection.close()

@@ -34,6 +34,8 @@ class MotionPacket:
             or wire.key_events is not None
             or wire.motion_lease is not None
             or wire.motion_events is not None
+            or wire.button_lease is not None
+            or wire.button_events is not None
             or not 128 <= opcode <= 255
             or opcode == wire.opcode
             or not 2 <= sources.pointer <= 65535
@@ -95,6 +97,8 @@ class MotionPacket:
             or wire.key_events is not None
             or wire.motion_lease is not None
             or wire.motion_events is not None
+            or wire.button_lease is not None
+            or wire.button_events is not None
         ):
             raise failure("desktop_input_unverified")
         wire.check()

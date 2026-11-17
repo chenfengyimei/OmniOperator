@@ -7,6 +7,7 @@ from typing import cast
 
 from .linux_bus import failure
 from .linux_button_mapping import ButtonMapping, ButtonPlan
+from .linux_button_packet import ButtonPacket
 from .linux_input import X11Input
 from .linux_keyboard import KeyboardMapping
 from .linux_keystroke import KeyPacket
@@ -374,19 +375,50 @@ class WindowFocus:
             if self._sources is None or self._pointer_configuration is None or self._motion is None:
                 raise failure("desktop_input_unverified")
             sources = await self._sources.read_current()
-            wire = self.monitor.wire
-            if wire is None or wire.opcode is None:
-                raise failure("desktop_input_unverified")
-            data = await wire.request(wire.opcode, struct.pack("<Hxx", 0), 48, maximum=32768)
-
-            def adopt(after: PointerState) -> None:
-                assert self._pointer_configuration is not None and self._motion is not None
-                self._pointer_configuration.adopt_copied(state, after)
-                self._motion.adopt_copied(state, after)
-
-            transition = PointerSwitch(self.monitor, state, data, self._verify_motion_copy, adopt)
+            transition = await self._pointer_switch(state)
             await self.check()
             return MotionPacket(self.monitor, self._sources.opcode, sources, plan, transition)
+        except BaseException:
+            self._ready = False
+            raise
+
+    async def _pointer_switch(self, state: PointerState) -> PointerSwitch:
+        wire = self.monitor.wire
+        if wire is None or wire.opcode is None:
+            raise failure("desktop_input_unverified")
+        data = await wire.request(wire.opcode, struct.pack("<Hxx", 0), 48, maximum=32768)
+
+        def adopt(after: PointerState) -> None:
+            assert self._pointer_configuration is not None and self._motion is not None
+            self._pointer_configuration.adopt_copied(state, after)
+            self._motion.adopt_copied(state, after)
+
+        return PointerSwitch(self.monitor, state, data, self._verify_motion_copy, adopt)
+
+    async def button_packet(self) -> ButtonPacket:
+        """Prepare one internal pair at the actual proven cursor point; no semantic click permit."""
+        try:
+            motion = await self.verify_motion()
+            state = await self.verify_pointer_configuration()
+            if self._sources is None:
+                raise failure("desktop_input_unverified")
+            sources = await self._sources.read_current()
+            transition = await self._pointer_switch(state)
+            await self.check()
+            wire = self.monitor.wire
+            if wire is None:
+                raise failure("desktop_input_unverified")
+            pointer = await wire.request(38, struct.pack("<I", motion.point.root), maximum=0)
+            if (
+                len(pointer) != 32
+                or pointer[1] != 1
+                or unpack("I", pointer, 8)[0] != motion.point.root
+                or unpack("hh", pointer, 16) != (motion.point.x, motion.point.y)
+                or unpack("H", pointer, 24)[0]
+                or wire.changed
+            ):
+                raise failure("desktop_user_intervened")
+            return ButtonPacket(self.monitor, self._sources.opcode, sources, state.plan, motion.point, transition)
         except BaseException:
             self._ready = False
             raise

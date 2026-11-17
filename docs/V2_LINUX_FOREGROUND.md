@@ -98,6 +98,18 @@ Xorg的XTEST绝对移动使用桌面坐标，但仍经过轴范围缩放、变�
 
 同时更正历史额度说明：专用InputWire原有`read`覆盖限制累计1MiB，普通Wire基类为66MB；历史[动作证据](evidence/v2-linux-pointer-actions.json)保留原值并添加明确纠正，本批没有提高或重置任何额度。协议依据：[原生DeviceChanged/Raw编码](https://raw.githubusercontent.com/XQuartz/xorg-server/master/dix/eventconvert.c)、[指针类别复制](https://raw.githubusercontent.com/XQuartz/xorg-server/master/Xi/exevents.c)、[QueryDevice类描述](https://raw.githubusercontent.com/XQuartz/xorg-server/master/Xi/xiquerydevice.c)与[slave/master事件复制](https://raw.githubusercontent.com/XQuartz/xorg-server/master/mi/mieq.c)。成对点击释放、AT-SPI物理点和逐次业务许可/应用后验继续开发，整个V2未完成。
 
+## 内部成对按钮派发与真实释放
+
+`WindowFocus.button_packet()`先重读原生点/来源/完整按钮表/XKB/轴反馈矩阵/RandR，准备已有的预计算来源复制，再读取当前QueryPointer。root、same-screen、原像素和零逻辑掩码均成立才创建单次内部`ButtonPacket`。请求只含实际物理按钮码的按下/抬起各36字节、零延迟/root/坐标/core device，不附带移动，不写映射。准备对象不等于业务点击许可，控件物理点与逐次业务后验仍待接续。
+
+原生Xorg普通按钮在Raw slave/master对之后，分别经source/master指针处理产生两条配对键盘侧XKB StateNotify。`ButtonEvents`核对八步顺序、对应请求序号和源/主设备；RawButton15/16两条均保留物理码，flags与所有valuator位为零、配对时间相同。XKB只接受配对键盘、changed=PointerButtonMask、无修饰/组/兼容/lookup/grab变化、零请求cause和原事件4/5。source掩码取实际从映射（中间码大于5时为零），master为逻辑1；通常通知恢复输入physical/intermediate码，按下触发passive grab的原生早退还可能保留对应mapped码，均由已有两级表精确预测。没有一般键盘通知豁免；额外事件即使出现在自身八条回执齐全后也使整体失败。
+
+首字节前登记租约并保留两个序号，键/移动/按钮租约互斥。未完整36字节按下的流关闭丢弃；完整按下之后只补剩余抬起后缀至72字节，发送故障和取消仍由原监测连接拥有。QueryPointer屏障先证明五个核心逻辑按钮均释放，再读取实际XIQueryDevice，证明全部启用设备的物理按钮释放，且原source/master身份/种类/挂接/按钮类成立。用户其他修饰键或位置/root变化使动作结果未验证，不能把已知按钮释放误记成业务成功。物理/逻辑仍按住时保留连接并允许后续只读结清；原任一屏障超时/读帧未完成时保留同一任务，不另起查询、不重放按下，不假报关闭。取消emit或close等待不会取消实际释放，外部窗口/会话仍归原所有者。
+
+八条回执齐全、逻辑/物理释放与像素回读成立后，继续已有完整窗口/焦点/来源/映射/XKB/配置/RandR复制后验，全部成立才采用预计算配置/拓扑；变化标志不清空。移动与按钮分别重新准备、沿同一原生流组合已有专项，但没有因此开放AT-SPI业务`click`或声称应用已处理输入。
+
+本批46新与591调用方/合同共637不同专项通过（153.83秒），6修改运行文件strict通过；370仅登记，未整范围/全量。首轮39过/1测试断言错误及源码保留，原失败和新增7节点通过，当前运行源码不变。全程原生协议/连接注入，没有Linux或真实鼠标结论。见[按钮证据](evidence/v2-linux-button-packet.json)。原生依据：[XTEST按钮生成](https://raw.githubusercontent.com/XQuartz/xorg-server/master/Xext/xtest.c)、[Raw及master映射](https://raw.githubusercontent.com/XQuartz/xorg-server/master/mi/mieq.c)、[指针XKB状态处理](https://raw.githubusercontent.com/XQuartz/xorg-server/master/xkb/xkbAccessX.c)、[XKB通知编码](https://raw.githubusercontent.com/XQuartz/xorg-server/master/xkb/xkbEvents.c)和[设备事件/物理释放](https://raw.githubusercontent.com/XQuartz/xorg-server/master/Xi/exevents.c)。
+
 ## 已接通的受限文本追加
 
 `linux_text.py` 只向选定 AT-SPI 非密码可编辑对象执行一次 `EditableText.InsertText`。观察时须能完整读取最多 511 字符原文、核验 CaretOffset 位于末尾及 GetNSelections 为零；上下文进入原节点 actions 指纹，支持的节点才提供 `type_text`。不支持这些可选方法的提供者继续保留原语义动作。

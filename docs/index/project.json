@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "f4ec81e3f911a8e1a1a104eab26018aff97a3217b5e301db121993f08be9c52f",
+  "source_sha256": "219a14d85373a3cf0d2014b1fc79beedf93424dabb07635ba3abed06fe2a7c33",
   "modules": [
     {
       "id": "v2-domain",
@@ -316,7 +316,9 @@
         "agent/src/omni/adapters/platform/exchange_files.py",
         "agent/src/omni/adapters/platform/linux_atspi.py",
         "agent/src/omni/adapters/platform/linux_bus.py",
+        "agent/src/omni/adapters/platform/linux_button_events.py",
         "agent/src/omni/adapters/platform/linux_button_mapping.py",
+        "agent/src/omni/adapters/platform/linux_button_packet.py",
         "agent/src/omni/adapters/platform/linux_fds.py",
         "agent/src/omni/adapters/platform/linux_foreground.py",
         "agent/src/omni/adapters/platform/linux_input.py",
@@ -441,7 +443,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 61949,
+      "lines": 62285,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -26095,6 +26097,92 @@
       "summary": "Verified local D-Bus transport for desktop helpers; no environment-selected or network buses."
     },
     {
+      "path": "agent/src/omni/adapters/platform/linux_button_events.py",
+      "module": "v2-adapters",
+      "python_module": "omni.adapters.platform.linux_button_events",
+      "lines": 70,
+      "imports": [
+        "omni.adapters.platform.linux_button_mapping",
+        "omni.adapters.platform.linux_motion_events",
+        "omni.adapters.platform.linux_x11_wire"
+      ],
+      "symbols": [
+        {
+          "name": "ButtonEvents",
+          "line": 10,
+          "kind": "class"
+        },
+        {
+          "name": "ButtonEvents.__init__",
+          "line": 11,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "sequence",
+            "plan",
+            "keyboard",
+            "transition"
+          ],
+          "annotations": {
+            "sequence": "int",
+            "plan": "ButtonPlan",
+            "keyboard": "int",
+            "transition": "MotionTransition"
+          }
+        },
+        {
+          "name": "ButtonEvents.device",
+          "line": 16,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "header",
+            "payload"
+          ],
+          "annotations": {
+            "header": "bytes",
+            "payload": "bytes"
+          }
+        },
+        {
+          "name": "ButtonEvents.accept",
+          "line": 19,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "header",
+            "payload"
+          ],
+          "annotations": {
+            "header": "bytes",
+            "payload": "bytes"
+          }
+        },
+        {
+          "name": "ButtonEvents.keyboard",
+          "line": 43,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "header"
+          ],
+          "annotations": {
+            "header": "bytes"
+          }
+        },
+        {
+          "name": "ButtonEvents.complete",
+          "line": 69,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        }
+      ],
+      "summary": "Exact RawButton pairs and their ordinary XKB pointer-state notifications; no blanket input exemptions."
+    },
+    {
       "path": "agent/src/omni/adapters/platform/linux_button_mapping.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.linux_button_mapping",
@@ -26275,6 +26363,114 @@
       "summary": "Read primary-button composition on a proven Xorg point/source pair; never changes maps, moves, clicks or grants dispatch."
     },
     {
+      "path": "agent/src/omni/adapters/platform/linux_button_packet.py",
+      "module": "v2-adapters",
+      "python_module": "omni.adapters.platform.linux_button_packet",
+      "lines": 198,
+      "imports": [
+        "omni.adapters.platform.linux_bus",
+        "omni.adapters.platform.linux_button_events",
+        "omni.adapters.platform.linux_button_mapping",
+        "omni.adapters.platform.linux_input",
+        "omni.adapters.platform.linux_motion_events",
+        "omni.adapters.platform.linux_pointer_target",
+        "omni.adapters.platform.linux_x11_wire",
+        "omni.adapters.platform.linux_xtest",
+        "omni.domain.contracts"
+      ],
+      "symbols": [
+        {
+          "name": "ButtonPacket",
+          "line": 21,
+          "kind": "class"
+        },
+        {
+          "name": "ButtonPacket.__init__",
+          "line": 22,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "monitor",
+            "opcode",
+            "sources",
+            "plan",
+            "point",
+            "transition"
+          ],
+          "annotations": {
+            "monitor": "X11Input",
+            "opcode": "int",
+            "sources": "Sources",
+            "plan": "ButtonPlan",
+            "point": "PointerPoint",
+            "transition": "MotionTransition"
+          }
+        },
+        {
+          "name": "ButtonPacket.release_pending",
+          "line": 71,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "ButtonPacket._writable",
+          "line": 74,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "ButtonPacket._writable.wake",
+          "line": 79,
+          "kind": "function",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "ButtonPacket._write",
+          "line": 89,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "ButtonPacket.emit",
+          "line": 102,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "ButtonPacket._finish",
+          "line": 145,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "ButtonPacket.settle",
+          "line": 191,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        }
+      ],
+      "summary": "Own one paired XTEST button request and retained release on the proven stream; no application-success claim."
+    },
+    {
       "path": "agent/src/omni/adapters/platform/linux_fds.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.linux_fds",
@@ -26394,10 +26590,11 @@
       "path": "agent/src/omni/adapters/platform/linux_foreground.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.linux_foreground",
-      "lines": 392,
+      "lines": 424,
       "imports": [
         "omni.adapters.platform.linux_bus",
         "omni.adapters.platform.linux_button_mapping",
+        "omni.adapters.platform.linux_button_packet",
         "omni.adapters.platform.linux_input",
         "omni.adapters.platform.linux_keyboard",
         "omni.adapters.platform.linux_keystroke",
@@ -26416,12 +26613,12 @@
       "symbols": [
         {
           "name": "WindowFocus",
-          "line": 30,
+          "line": 31,
           "kind": "class"
         },
         {
           "name": "WindowFocus.__init__",
-          "line": 33,
+          "line": 34,
           "kind": "function",
           "parameters": [
             "self",
@@ -26435,7 +26632,7 @@
         },
         {
           "name": "WindowFocus._same_server",
-          "line": 50,
+          "line": 51,
           "kind": "function",
           "parameters": [
             "self"
@@ -26444,7 +26641,7 @@
         },
         {
           "name": "WindowFocus._read_lineage",
-          "line": 70,
+          "line": 71,
           "kind": "function",
           "parameters": [
             "self"
@@ -26453,7 +26650,7 @@
         },
         {
           "name": "WindowFocus.prepare",
-          "line": 108,
+          "line": 109,
           "kind": "function",
           "parameters": [
             "self",
@@ -26465,7 +26662,7 @@
         },
         {
           "name": "WindowFocus._validate",
-          "line": 130,
+          "line": 131,
           "kind": "function",
           "parameters": [
             "self",
@@ -26477,7 +26674,7 @@
         },
         {
           "name": "WindowFocus.check",
-          "line": 147,
+          "line": 148,
           "kind": "function",
           "parameters": [
             "self"
@@ -26486,7 +26683,7 @@
         },
         {
           "name": "WindowFocus.close",
-          "line": 156,
+          "line": 157,
           "kind": "function",
           "parameters": [
             "self"
@@ -26495,7 +26692,7 @@
         },
         {
           "name": "WindowFocus.selected_window",
-          "line": 161,
+          "line": 162,
           "kind": "function",
           "parameters": [
             "self"
@@ -26504,7 +26701,7 @@
         },
         {
           "name": "WindowFocus.prepare_pointer",
-          "line": 166,
+          "line": 167,
           "kind": "function",
           "parameters": [
             "self",
@@ -26516,7 +26713,7 @@
         },
         {
           "name": "WindowFocus.verify_pointer",
-          "line": 177,
+          "line": 178,
           "kind": "function",
           "parameters": [
             "self"
@@ -26525,7 +26722,7 @@
         },
         {
           "name": "WindowFocus.prepare_key",
-          "line": 186,
+          "line": 187,
           "kind": "function",
           "parameters": [
             "self",
@@ -26537,7 +26734,7 @@
         },
         {
           "name": "WindowFocus.prepare_button",
-          "line": 197,
+          "line": 198,
           "kind": "function",
           "parameters": [
             "self"
@@ -26546,7 +26743,7 @@
         },
         {
           "name": "WindowFocus.verify_button",
-          "line": 208,
+          "line": 209,
           "kind": "function",
           "parameters": [
             "self"
@@ -26555,7 +26752,7 @@
         },
         {
           "name": "WindowFocus.verify_key",
-          "line": 217,
+          "line": 218,
           "kind": "function",
           "parameters": [
             "self"
@@ -26564,7 +26761,7 @@
         },
         {
           "name": "WindowFocus.prepare_pointer_actions",
-          "line": 226,
+          "line": 227,
           "kind": "function",
           "parameters": [
             "self"
@@ -26573,7 +26770,7 @@
         },
         {
           "name": "WindowFocus.verify_pointer_actions",
-          "line": 237,
+          "line": 238,
           "kind": "function",
           "parameters": [
             "self"
@@ -26582,7 +26779,7 @@
         },
         {
           "name": "WindowFocus.prepare_sources",
-          "line": 246,
+          "line": 247,
           "kind": "function",
           "parameters": [
             "self"
@@ -26591,7 +26788,7 @@
         },
         {
           "name": "WindowFocus.prepare_pointer_configuration",
-          "line": 260,
+          "line": 261,
           "kind": "function",
           "parameters": [
             "self"
@@ -26600,7 +26797,7 @@
         },
         {
           "name": "WindowFocus.verify_pointer_configuration",
-          "line": 271,
+          "line": 272,
           "kind": "function",
           "parameters": [
             "self"
@@ -26609,7 +26806,7 @@
         },
         {
           "name": "WindowFocus.verify_sources",
-          "line": 296,
+          "line": 297,
           "kind": "function",
           "parameters": [
             "self"
@@ -26618,7 +26815,7 @@
         },
         {
           "name": "WindowFocus.prepare_motion",
-          "line": 308,
+          "line": 309,
           "kind": "function",
           "parameters": [
             "self"
@@ -26627,7 +26824,7 @@
         },
         {
           "name": "WindowFocus.verify_motion",
-          "line": 319,
+          "line": 320,
           "kind": "function",
           "parameters": [
             "self"
@@ -26636,7 +26833,7 @@
         },
         {
           "name": "WindowFocus.key_packet",
-          "line": 328,
+          "line": 329,
           "kind": "function",
           "parameters": [
             "self"
@@ -26645,7 +26842,7 @@
         },
         {
           "name": "WindowFocus._verify_motion_copy",
-          "line": 344,
+          "line": 345,
           "kind": "function",
           "parameters": [
             "self",
@@ -26659,7 +26856,39 @@
         },
         {
           "name": "WindowFocus.motion_packet",
-          "line": 369,
+          "line": 370,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "WindowFocus._pointer_switch",
+          "line": 385,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "state"
+          ],
+          "annotations": {
+            "state": "PointerState"
+          }
+        },
+        {
+          "name": "WindowFocus._pointer_switch.adopt",
+          "line": 391,
+          "kind": "function",
+          "parameters": [
+            "after"
+          ],
+          "annotations": {
+            "after": "PointerState"
+          }
+        },
+        {
+          "name": "WindowFocus.button_packet",
+          "line": 398,
           "kind": "function",
           "parameters": [
             "self"
@@ -26673,7 +26902,7 @@
       "path": "agent/src/omni/adapters/platform/linux_input.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.linux_input",
-      "lines": 425,
+      "lines": 453,
       "imports": [
         "omni.adapters.platform.linux_bus",
         "omni.adapters.platform.linux_session",
@@ -26729,13 +26958,30 @@
           }
         },
         {
-          "name": "KeyTransition",
+          "name": "ButtonReceipts",
           "line": 33,
           "kind": "class"
         },
         {
+          "name": "ButtonReceipts.keyboard",
+          "line": 34,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "header"
+          ],
+          "annotations": {
+            "header": "bytes"
+          }
+        },
+        {
+          "name": "KeyTransition",
+          "line": 37,
+          "kind": "class"
+        },
+        {
           "name": "KeyTransition.complete",
-          "line": 35,
+          "line": 39,
           "kind": "function",
           "parameters": [
             "self"
@@ -26744,7 +26990,7 @@
         },
         {
           "name": "KeyTransition.keyboard",
-          "line": 37,
+          "line": 41,
           "kind": "function",
           "parameters": [
             "self",
@@ -26758,7 +27004,7 @@
         },
         {
           "name": "KeyTransition.device",
-          "line": 39,
+          "line": 43,
           "kind": "function",
           "parameters": [
             "self",
@@ -26774,7 +27020,7 @@
         },
         {
           "name": "KeyTransition.verify_after",
-          "line": 41,
+          "line": 45,
           "kind": "function",
           "parameters": [
             "self"
@@ -26783,12 +27029,12 @@
         },
         {
           "name": "KeyEvents",
-          "line": 44,
+          "line": 48,
           "kind": "class"
         },
         {
           "name": "KeyEvents.__init__",
-          "line": 47,
+          "line": 51,
           "kind": "function",
           "parameters": [
             "self",
@@ -26808,7 +27054,7 @@
         },
         {
           "name": "KeyEvents.keyboard",
-          "line": 60,
+          "line": 64,
           "kind": "function",
           "parameters": [
             "self",
@@ -26820,7 +27066,7 @@
         },
         {
           "name": "KeyEvents.device",
-          "line": 63,
+          "line": 67,
           "kind": "function",
           "parameters": [
             "self",
@@ -26834,7 +27080,7 @@
         },
         {
           "name": "KeyEvents.accept",
-          "line": 70,
+          "line": 74,
           "kind": "function",
           "parameters": [
             "self",
@@ -26848,7 +27094,7 @@
         },
         {
           "name": "KeyEvents.complete",
-          "line": 94,
+          "line": 98,
           "kind": "function",
           "parameters": [
             "self"
@@ -26857,17 +27103,17 @@
         },
         {
           "name": "Device",
-          "line": 99,
+          "line": 103,
           "kind": "class"
         },
         {
           "name": "Topology",
-          "line": 108,
+          "line": 112,
           "kind": "class"
         },
         {
           "name": "device_topology",
-          "line": 113,
+          "line": 117,
           "kind": "function",
           "parameters": [
             "data"
@@ -26878,7 +27124,7 @@
         },
         {
           "name": "devices",
-          "line": 181,
+          "line": 185,
           "kind": "function",
           "parameters": [
             "data"
@@ -26889,12 +27135,12 @@
         },
         {
           "name": "InputWire",
-          "line": 185,
+          "line": 189,
           "kind": "class"
         },
         {
           "name": "InputWire.__init__",
-          "line": 192,
+          "line": 196,
           "kind": "function",
           "parameters": [
             "self",
@@ -26908,7 +27154,7 @@
         },
         {
           "name": "InputWire.send",
-          "line": 212,
+          "line": 219,
           "kind": "function",
           "parameters": [
             "self",
@@ -26924,7 +27170,7 @@
         },
         {
           "name": "InputWire.key_barrier",
-          "line": 227,
+          "line": 237,
           "kind": "function",
           "parameters": [
             "self",
@@ -26936,7 +27182,7 @@
         },
         {
           "name": "InputWire.motion_barrier",
-          "line": 236,
+          "line": 246,
           "kind": "function",
           "parameters": [
             "self",
@@ -26947,8 +27193,22 @@
           }
         },
         {
+          "name": "InputWire.button_barrier",
+          "line": 255,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "lease",
+            "devices"
+          ],
+          "annotations": {
+            "lease": "KeyLease",
+            "devices": "bool"
+          }
+        },
+        {
           "name": "InputWire.read",
-          "line": 245,
+          "line": 265,
           "kind": "function",
           "parameters": [
             "self",
@@ -26960,7 +27220,7 @@
         },
         {
           "name": "InputWire.event",
-          "line": 250,
+          "line": 270,
           "kind": "function",
           "parameters": [
             "self",
@@ -26972,12 +27232,12 @@
         },
         {
           "name": "X11Input",
-          "line": 300,
+          "line": 326,
           "kind": "class"
         },
         {
           "name": "X11Input.__init__",
-          "line": 301,
+          "line": 327,
           "kind": "function",
           "parameters": [
             "self",
@@ -26993,7 +27253,7 @@
         },
         {
           "name": "X11Input.open",
-          "line": 315,
+          "line": 341,
           "kind": "function",
           "parameters": [
             "self"
@@ -27002,7 +27262,7 @@
         },
         {
           "name": "X11Input.released",
-          "line": 328,
+          "line": 354,
           "kind": "function",
           "parameters": [
             "self",
@@ -27014,7 +27274,7 @@
         },
         {
           "name": "X11Input.arm",
-          "line": 341,
+          "line": 367,
           "kind": "function",
           "parameters": [
             "self"
@@ -27023,7 +27283,7 @@
         },
         {
           "name": "X11Input.check",
-          "line": 359,
+          "line": 385,
           "kind": "function",
           "parameters": [
             "self"
@@ -27032,7 +27292,7 @@
         },
         {
           "name": "X11Input.check_expected",
-          "line": 362,
+          "line": 388,
           "kind": "function",
           "parameters": [
             "self",
@@ -27044,7 +27304,7 @@
         },
         {
           "name": "X11Input.watch_lineage",
-          "line": 371,
+          "line": 397,
           "kind": "function",
           "parameters": [
             "self",
@@ -27056,7 +27316,7 @@
         },
         {
           "name": "X11Input.watch_pointer_lineage",
-          "line": 394,
+          "line": 420,
           "kind": "function",
           "parameters": [
             "self",
@@ -27068,7 +27328,7 @@
         },
         {
           "name": "X11Input.close",
-          "line": 420,
+          "line": 446,
           "kind": "function",
           "parameters": [
             "self"
@@ -27398,7 +27658,7 @@
       "path": "agent/src/omni/adapters/platform/linux_keystroke.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.linux_keystroke",
-      "lines": 153,
+      "lines": 157,
       "imports": [
         "omni.adapters.platform.linux_bus",
         "omni.adapters.platform.linux_input",
@@ -27432,7 +27692,7 @@
         },
         {
           "name": "KeyPacket.release_pending",
-          "line": 55,
+          "line": 57,
           "kind": "function",
           "parameters": [
             "self"
@@ -27441,7 +27701,7 @@
         },
         {
           "name": "KeyPacket._writable",
-          "line": 58,
+          "line": 60,
           "kind": "function",
           "parameters": [
             "self"
@@ -27450,14 +27710,14 @@
         },
         {
           "name": "KeyPacket._writable.wake",
-          "line": 63,
+          "line": 65,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "KeyPacket._write",
-          "line": 73,
+          "line": 75,
           "kind": "function",
           "parameters": [
             "self"
@@ -27466,7 +27726,7 @@
         },
         {
           "name": "KeyPacket.emit",
-          "line": 86,
+          "line": 88,
           "kind": "function",
           "parameters": [
             "self"
@@ -27475,7 +27735,7 @@
         },
         {
           "name": "KeyPacket._finish",
-          "line": 121,
+          "line": 125,
           "kind": "function",
           "parameters": [
             "self"
@@ -27484,7 +27744,7 @@
         },
         {
           "name": "KeyPacket.settle",
-          "line": 144,
+          "line": 148,
           "kind": "function",
           "parameters": [
             "self"
@@ -27977,7 +28237,7 @@
       "path": "agent/src/omni/adapters/platform/linux_motion_packet.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.linux_motion_packet",
-      "lines": 158,
+      "lines": 162,
       "imports": [
         "omni.adapters.platform.linux_bus",
         "omni.adapters.platform.linux_input",
@@ -28014,7 +28274,7 @@
         },
         {
           "name": "MotionPacket._writable",
-          "line": 58,
+          "line": 60,
           "kind": "function",
           "parameters": [
             "self"
@@ -28023,14 +28283,14 @@
         },
         {
           "name": "MotionPacket._writable.wake",
-          "line": 63,
+          "line": 65,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "MotionPacket._write",
-          "line": 73,
+          "line": 75,
           "kind": "function",
           "parameters": [
             "self"
@@ -28039,7 +28299,7 @@
         },
         {
           "name": "MotionPacket.emit",
-          "line": 86,
+          "line": 88,
           "kind": "function",
           "parameters": [
             "self"
@@ -28048,7 +28308,7 @@
         },
         {
           "name": "MotionPacket._finish",
-          "line": 127,
+          "line": 131,
           "kind": "function",
           "parameters": [
             "self"
@@ -28057,7 +28317,7 @@
         },
         {
           "name": "MotionPacket.settle",
-          "line": 151,
+          "line": 155,
           "kind": "function",
           "parameters": [
             "self"

@@ -118,6 +118,8 @@ Linux桌面原生会话由固定辅助进程内的`SessionInspector`核验，`Lo
 
 `linux_motion_packet.py`拥有同连接单次移动字节和原屏障查询，未完整请求丢弃、完整请求保留实际结清责任；`linux_motion_events.py`核对两条同序号source/master RawMotion及原计划的processed/raw固定点值。`linux_pointer_switch.py`预计算来源类复制，保留master按钮数/尾配置/映射/CTM；通知只比对source描述，完整窗口/焦点/来源/按钮/XKB/反馈/矩阵/RandR后验全部成立后才采用预期配置/拓扑，不清空变化。InputWire读回上限原为1MiB，普通Wire为66MB，本批只更正文档、未改额度。内部回执不授权业务点击；成对释放及控件物理点/业务接线继续开发，详见[前台合同](V2_LINUX_FOREGROUND.md)。
 
+`linux_button_packet.py`在原像素/配置成立后拥有按下/抬起字节及实际释放，完整按下后只补抬起后缀；QueryPointer逻辑掩码和XIQueryDevice物理按钮共同结清，不明回读保留实际连接/任务。`linux_button_events.py`精确核对两对RawButton及source/master普通XKB指针状态通知，按已有两级映射预测码/掩码，不给其他输入一般豁免；完整原生复制后验成立才采用配置，内部回执不授权控件业务点击。
+
 `linux_window_binding.py`组合已验证AT-SPI窗口明确提供的XID、XRes实际进程及其自己的连续窗口/焦点连接；只接受已核对的提供方字段（当前Avalonia），不推断GTK/Qt通用关联。描述重读夹住焦点/窗口代次检查，任何失败锁存；关闭先结清输入监测的实际释放，再关闭自己的原生窗口连接，外部SessionInspector继续由worker拥有。`linux_key_action.py`现将该绑定、完整映射/来源/复制预检及成对派发接入原linux_action worker的UUID ready/permit；原语义目录将窗口/光标上下文计入动作指纹，未提供明确窗口身份不产生按键候选。
 
 `linux_xtest.py`借用上述已arm的连接，读取全部XI2设备的服务器虚拟键鼠属性与挂接身份；双读及使用前复核，不创建属性、改设备或发送输入。`linux_input`只导出设备元数据及拓扑指纹，原始内容不落盘，新增属性通知同样锁存变化。XTEST来源由所有客户端共享，来源预检本身不授予业务派发或自身事件豁免。
