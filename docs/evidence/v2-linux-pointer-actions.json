@@ -1,0 +1,148 @@
+{
+  "source_base": "c0831a6c63beec0df43e1c52a3e16485d1fb9740",
+  "scope": "Read-only XKB actions for both mapped pointer devices and released paired-core-keyboard state/controls; shared client subscriptions, NoAction canonicalization and bounded dedicated input-monitor lifetime. No pointer motion/button packet or business click.",
+  "source_files": {
+    "agent/src/omni/adapters/platform/linux_pointer_actions.py": "9c373e662e764c1b93309b0697665b685f026dfa71b6a928d2757e638d08b5b0",
+    "agent/src/omni/adapters/platform/linux_foreground.py": "9eda65344654bca1380fc62ecbf12985b532a808d08b59774b09f47368ea4e07",
+    "agent/src/omni/adapters/platform/linux_input.py": "8a1f760cd4c77cf171d7c73ee80fe04c583b880e7c68386fe9a76bab79faaa13",
+    "agent/src/omni/adapters/platform/linux_button_mapping.py": "688a3bd96bd53b5d50d481aecc31e9abb98d6021df486a6b313811f588a265e2",
+    "agent/src/omni/adapters/platform/linux_xkb.py": "0305a9fae4bc9f765d88b7d0869bf16445fa54e6b795df51be3f6a64a6ba0dbe",
+    "agent/tests/test_v2_linux_pointer_actions.py": "3c45afd931dbe8e4aec9405696d8f79c6bd5c858b7726ac706d534cab49f0133",
+    "agent/tests/v2_linux_pointer_action_helpers.py": "924c146b94b34983fa9a005c5a6551a90eb965728c193e30d47b9a3a86bfb05a",
+    "pyrightconfig.strict.json": "004284e8bd859968e01581d9332f2041a017a7a4b175f9a949e2692693155a96",
+    "docs/TYPE_CHECKING.md": "524a1db08dec64ffda131d1c89d2779889daa5a7e0d661dd87381ba13a644c96",
+    "agent/src/omni/adapters/platform/linux_x11_wire.py": "1a685ca5651f49093f11122cadff91b970d61552bce6f9bf536b7f9d390a41f7"
+  },
+  "fixed_source_manifest": {
+    "path": "temp/build/v2-linux-pointer-actions-source.json",
+    "sha256": "459e691db0cc8fd1adc935733e23158dd5e8416e37e92a1731ef3058147b54a1"
+  },
+  "scoped_tests": {
+    "distinct_current_nodes_passed": 600,
+    "new_pointer_action_nodes": 42,
+    "existing_callers_and_contracts": 558,
+    "per_module": {
+      "tests.test_v2_linux_pointer_actions": 42,
+      "tests.test_v2_linux_x11": 31,
+      "tests.test_v2_linux_input": 15,
+      "tests.test_v2_linux_foreground": 18,
+      "tests.test_v2_linux_pointer_target": 60,
+      "tests.test_v2_linux_button_mapping": 43,
+      "tests.test_v2_linux_xtest": 24,
+      "tests.test_v2_linux_keyboard": 31,
+      "tests.test_v2_linux_xkb": 30,
+      "tests.test_v2_linux_xkb_map": 37,
+      "tests.test_v2_linux_xkb_copy": 45,
+      "tests.test_v2_linux_key_switch": 33,
+      "tests.test_v2_linux_keystroke": 29,
+      "tests.test_v2_linux_key_action": 29,
+      "tests.test_v2_linux_window_binding": 43,
+      "tests.test_v2_linux_text": 25,
+      "tests.test_v2_linux_semantic": 21,
+      "tests.test_v2_linux_desktop": 36,
+      "tests.test_v2_architecture": 6,
+      "tests.test_v2_typecheck_scope": 2
+    },
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0,
+    "repaired_node_seconds": 0.84,
+    "other_scoped_seconds": 113.35,
+    "reports": [
+      {
+        "path": "temp/build/v2-linux-pointer-actions-repaired.xml",
+        "sha256": "185cf42919233b4c071063e02658e16aac7619891c45a0a2260977b4e444e685"
+      },
+      {
+        "path": "temp/build/v2-linux-pointer-actions-scoped.xml",
+        "sha256": "fcb5bb2959f25db5298bda429a4488281ccc4a72d0a105bf651123fde8b46483"
+      }
+    ]
+  },
+  "strict_modified_files": {
+    "files": 6,
+    "errors": 0,
+    "warnings": 0,
+    "report": {
+      "path": "temp/build/v2-linux-pointer-actions-pyright.json",
+      "sha256": "9fd6c040fae6352126b5e1048caa1541a2f91e51b7b74fc1a433d564f6c64ca2"
+    }
+  },
+  "initial_results": [
+    {
+      "passed": 26,
+      "failed": 14,
+      "report": {
+        "path": "temp/build/v2-linux-pointer-actions-initial.xml",
+        "sha256": "4e146078b9166ff3892d52ae2c031adfcd7747f1ad251ac5826847e1bf88780a"
+      },
+      "source_manifest": {
+        "path": "temp/build/v2-linux-pointer-actions-initial-source.json",
+        "sha256": "22318ce717cbbc5d8dc8d00aa24733c4603143d6f5725d5e09ba953e94b6feeb"
+      },
+      "source_delta_archive": {
+        "path": "temp/build/v2-linux-pointer-actions-initial-source.zip",
+        "sha256": "fa79734bae0d82368bae16bdb24078e01b42117906eb9a2d02dcb11dc7873e1f"
+      },
+      "finding": "Actual integrated proof exhausted the previous input-monitor 1024-request lifetime. Kept ordinary Wire at1024/2048 and assigned dedicated InputWire8192 requests/8448 messages, with original cumulative bytes/event cap/timeouts. Added real request-boundary/no-extra-packet regressions; no sequence reset or test assertion relaxation."
+    },
+    {
+      "type_errors": 1,
+      "report": {
+        "path": "temp/build/v2-linux-pointer-actions-pyright-initial.json",
+        "sha256": "4a29030fa7cfdbc19bd77eb41480fad1b640c5e5ad6759e6501f1399c08a988c"
+      },
+      "finding": "Explicit int cast for the bounded protocol name-length field removes Unknown propagation; no type-ignore."
+    }
+  ],
+  "pointer_action_contract": {
+    "prerequisites": "Same existing native point, XTEST sources and full slave/master button maps. ButtonPlan retains both actual verified counts.",
+    "xkb_environment": "Actual core keyboard must match verified pointer-master pair. Existing state/control reader rejects latch/lock/group/modifier or unsupported MouseKeys-like controls. Environment read before and after both action replies.",
+    "device_info": "GetDeviceInfo ButtonActions only, all buttons. Exact device, supported/present feature, total/wanted/returned range, zero LED payload and no independent keyboard state. Name1..1024 and exact bounded counted-string/action payload.",
+    "canonical_identity": "All button types must be NoAction. Omitted leading/trailing records, absent vs allocated all-NoAction and unused record/alignment padding normalize alike. Device metadata, name, feature/feedback/type identity remain bound.",
+    "observation": "Publish both real device IDs before SelectEvents ExtensionDeviceNotify for each; keep keyboard original masks. Notification/failure/cancellation invalidates old proof; no own pointer exemption. Keyboard and pointer readers can prepare in either order without replacing subscriptions.",
+    "snapshot": "Double-read and verify before use bracketed by complete old window/point/source/map guards; old preparation cannot rebind after visible restoration."
+  },
+  "wire_lifetime_limits": {
+    "ordinary_requests": 1024,
+    "ordinary_messages": 2048,
+    "dedicated_input_requests": 8192,
+    "dedicated_input_messages": 8448,
+    "cumulative_received_bytes": 66000000,
+    "input_events": 256,
+    "reply_timeout_seconds": 0.5,
+    "per_request_payload_bytes": 4096,
+    "sequence_wrap_or_per_action_reset": false,
+    "key_packet_existing_lower_limit_changed": false
+  },
+  "protocol_sources": [
+    {
+      "url": "https://github.com/XQuartz/xorg-server/blob/master/xkb/xkb.c",
+      "scope": "Client initialization, per-family/per-device SelectEvents, GetDeviceInfo trims NoAction and writes counted name before action records; device action updates notify subscribers"
+    },
+    {
+      "url": "https://xcb.freedesktop.org/manual/xkb_8h_source.html",
+      "scope": "GetDeviceInfo24 and ExtensionDeviceNotify11 exact binary structures"
+    },
+    {
+      "url": "https://github.com/XQuartz/xorg-server/blob/master/Xi/exevents.c",
+      "scope": "Pointer feedback/valuator/button actions may copy on source switch; that transition remains a separate unfinished proof"
+    }
+  ],
+  "business_or_mouse_dispatch_enabled": false,
+  "native_pointer_motion_or_click_executed": false,
+  "pointer_transform_axis_feedback_or_source_copy_proven": false,
+  "atspi_physical_coordinate_binding_implemented": false,
+  "native_grab_routing_or_application_postcondition_proven": false,
+  "native_configuration": "All native connections and replies injected; actual complete binary reader plus existing X11/XKB/point/map/paired-key/text/semantic business callers. Fixed runtime imported and hashes checked before/after. Default offline gate kept. Windows asyncio approved outside sandbox; no real display/input, account or model, no user service stop or environment rebuild.",
+  "native_linux_executed": false,
+  "real_account_model_device_native_desktop_or_72h_executed": false,
+  "registered_strict_scope": 362,
+  "registered_scope_fully_rechecked": false,
+  "ruff_and_format_modified_files_passed": true,
+  "full_suite_run": false,
+  "whole_v2_development_complete": false,
+  "whole_v2_accepted": false,
+  "publication": "Local commit only while specific remote push approval remains pending; no retry or indirect external transfer.",
+  "next": "Native pointer transform/axis/feedback and source-switch copy, then move/press/release ownership and release lease, AT-SPI physical-point binding and per-action permit/application readback. Generic provider association/navigation outcomes, Wayland input and broad original-requirement audit remain open. Full suite after whole V2 development freeze."
+}

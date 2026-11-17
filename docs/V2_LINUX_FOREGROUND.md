@@ -38,6 +38,20 @@ Xorg先将slave物理按钮码通过slave表映射为master事件的detail，再
 
 协议依据：[Xorg slave→master事件构造](https://github.com/XQuartz/xorg-server/blob/master/mi/mieq.c)、[master事件处理](https://github.com/XQuartz/xorg-server/blob/master/Xi/exevents.c)、[实际按钮表回复](https://github.com/XQuartz/xorg-server/blob/master/Xi/getbmap.c)、[映射变化投递](https://github.com/XQuartz/xorg-server/blob/master/dix/inpututils.c)、[ClientPointer选择](https://github.com/XQuartz/xorg-server/blob/master/dix/events.c)和[XCB XI协议结构](https://xcb.freedesktop.org/manual/xinput_8h_source.html)。
 
+## 同连接XKB按钮动作与环境预检
+
+`WindowFocus.prepare_pointer_actions/verify_pointer_actions`只接受已准备的原生点、XTEST来源和两级按钮计划；计划同时保留从XI2与实际映射核对得到的两个按钮数。XKB协商复用同一连接，不改变布局、设备或已有订阅。键盘与指针读取可任意先后准备；后续协商须仍是同一事件族，不能与XI1按钮映射通知重叠。
+
+先核对实际核心键盘属于已验证pointer master的配对键盘，复用既有XKB释放状态及控制检查；锁存/组/修饰状态、MouseKeys等不支持控制不能成为普通鼠标准备。再为具体master和XTEST slave分别订阅ExtensionDeviceNotify，解析设备集合在两个void请求前登记；保留键盘的原状态/控制/映射等订阅。通知到达后只锁存变化，没有自身鼠标事件豁免。
+
+对两个设备分别使用GetDeviceInfo，要求完整ButtonActions能力、正确设备、完整请求范围和实际总按钮数、无额外LED负载及独立键盘状态。计数字符串和返回范围均有界，回复长度精确；完整按钮集合只接受NoAction。Xorg会裁去前后NoAction，空动作数组与已分配但全为NoAction的数组可能分别返回起始0或按钮总数、长度0；二者及显式NoAction规范化为同一效果，填充与无动作的未使用字节不进入指纹。设备名称、类型、能力和反馈身份仍进入身份；其他实际动作、配置变化或同效果之外的元数据变化不能重绑旧准备。
+
+动作准备双读，使用前重读，原窗口/物理点/设备/映射和XKB状态/控制在其前后复核。失败和取消均使旧准备失效，外部窗口连接/Session归属不改变。组合链实际暴露旧InputWire的1024请求上限不足；专用监测现保留固定8192请求及8448消息的连接寿命额度，原66MB累计接收、单回复/请求上界、500ms回复超时和独立256事件上界不变。普通窗口读取Wire仍保持1024请求/2048消息；不按每次操作重置或回绕序号。
+
+本批42项新回归与558项X11/XKB/输入/窗口/按键/文本/语义及架构/类型调用方，共600不同专项通过（先修复的正向节点0.84秒，其余113.35秒）；6修改运行文件strict零错误/警告，362仅登记，未整范围或全量。首轮26通过/14旧请求额度失败及1条名称长度Unknown类型诊断、原源码均留档；当前专项固定源码前后核对SHA，默认离线闸门保留。没有真实Linux/鼠标输入。见[本批证据](evidence/v2-linux-pointer-actions.json)。
+
+当前实现仍不证明指针变换、轴/反馈、来源切换复制、输入抓取、AT-SPI物理点关联或应用后验，不派发移动/点击。随后继续这些开发项；全量留整个V2开发冻结后。协议依据：[Xorg GetDeviceInfo及设备动作更新](https://github.com/XQuartz/xorg-server/blob/master/xkb/xkb.c)、[XCB XKB二进制结构](https://xcb.freedesktop.org/manual/xkb_8h_source.html)及[Xorg指针类别复制](https://github.com/XQuartz/xorg-server/blob/master/Xi/exevents.c)。
+
 ## 已接通的受限文本追加
 
 `linux_text.py` 只向选定 AT-SPI 非密码可编辑对象执行一次 `EditableText.InsertText`。观察时须能完整读取最多 511 字符原文、核验 CaretOffset 位于末尾及 GetNSelections 为零；上下文进入原节点 actions 指纹，支持的节点才提供 `type_text`。不支持这些可选方法的提供者继续保留原语义动作。

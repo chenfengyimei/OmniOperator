@@ -10,6 +10,7 @@ from .linux_button_mapping import ButtonMapping, ButtonPlan
 from .linux_input import X11Input
 from .linux_keyboard import KeyboardMapping
 from .linux_keystroke import KeyPacket
+from .linux_pointer_actions import PointerActions
 from .linux_pointer_target import PointerPoint, PointerTarget
 from .linux_window_leases import WindowLeases
 from .linux_x11 import X11Desktop
@@ -37,6 +38,7 @@ class WindowFocus:
         self._sources: XTestSources | None = None
         self._pointer: PointerTarget | None = None
         self._buttons: ButtonMapping | None = None
+        self._pointer_actions: PointerActions | None = None
 
     def _same_server(self) -> None:
         desktop = self.leases.desktop
@@ -204,6 +206,26 @@ class WindowFocus:
             raise failure("desktop_input_unverified")
         try:
             return await self._keyboard.verify()
+        except BaseException:
+            self._ready = False
+            raise
+
+    async def prepare_pointer_actions(self) -> ButtonPlan:
+        """Read XKB button actions/state for an existing mapped point; no mouse dispatch permission."""
+        if self._pointer_actions is not None:
+            raise failure("desktop_input_unverified")
+        self._pointer_actions = PointerActions(self)
+        try:
+            return await self._pointer_actions.prepare()
+        except BaseException:
+            self._ready = False
+            raise
+
+    async def verify_pointer_actions(self) -> ButtonPlan:
+        if self._pointer_actions is None:
+            raise failure("desktop_input_unverified")
+        try:
+            return await self._pointer_actions.verify()
         except BaseException:
             self._ready = False
             raise

@@ -19,6 +19,29 @@ MAX_SYMBOLS = 64
 UNSUPPORTED_CONTROLS = 2 | 4 | 8 | 16 | 1024 | 2048
 
 
+async def connection(wire: InputWire) -> int:
+    """Negotiate this connection without replacing existing device subscriptions or clearing changes."""
+    name = b"XKEYBOARD"
+    extension = await wire.request(98, struct.pack("<Hxx", len(name)) + padded(name))
+    if (
+        len(extension) != 32
+        or extension[8] != 1
+        or extension[9] < 128
+        or extension[9] == wire.opcode
+        or not 64 <= extension[10] < 128
+        or wire.xkb_event is not None
+        and wire.xkb_event != extension[10]
+        or extension[10] == wire.button_mapping_event
+    ):
+        raise failure("desktop_input_unverified")
+    opcode = extension[9]
+    version = await wire.request(opcode, struct.pack("<HH", 1, 0))
+    if len(version) != 32 or version[1] != 1 or unpack("HH", version, 8) != (1, 0):
+        raise failure("desktop_input_unverified")
+    wire.xkb_event = extension[10]
+    return opcode
+
+
 class XkbKeyboard:
     def __init__(self, wire: InputWire) -> None:
         self.wire = wire
@@ -50,31 +73,30 @@ class XkbKeyboard:
             self._device = data[1]
 
     async def open(self) -> None:
-        if self._attempted or self.wire.xkb_event is not None:
+        if self._attempted:
             raise failure("desktop_input_unverified")
         self._attempted = True
-        name = b"XKEYBOARD"
-        extension = await self.wire.request(98, struct.pack("<Hxx", len(name)) + padded(name))
-        if (
-            len(extension) != 32
-            or extension[8] != 1
-            or extension[9] < 128
-            or extension[9] == self.wire.opcode
-            or not 64 <= extension[10] < 128
-        ):
-            raise failure("desktop_input_unverified")
-        self._opcode = extension[9]
-        version = await self.wire.request(self._opcode, struct.pack("<HH", 1, 0))
-        if len(version) != 32 or version[1] != 1 or unpack("HH", version, 8) != (1, 0):
-            raise failure("desktop_input_unverified")
+        self._opcode = await connection(self.wire)
         # Install the event parser before subscribing. SelectAll includes every
         # detail of these event families, without optional trailing masks.
-        self.wire.xkb_event = extension[10]
         await self.wire.send(self._opcode, struct.pack("<6H", CORE_KEYBOARD, EVENTS, 0, EVENTS, 0xFF, 0xFF), 1)
         await self._state()
         if self.wire.changed:
             raise failure("desktop_user_intervened")
         self._ready = True
+
+    async def pointer_environment(self, keyboard: int) -> tuple[int, bytes]:
+        """Read released core XKB state/controls for a verified pointer pair; no key mapping is implied."""
+        if not self._ready or self._opcode is None or self._device != keyboard:
+            raise failure("desktop_input_unverified")
+        try:
+            state, controls = await self._state(), await self._controls()
+            if await self._state() != state or await self._controls() != controls or self.wire.changed:
+                raise failure("desktop_user_intervened")
+            return self._opcode, hashlib.sha256(state + controls).digest()
+        except BaseException:
+            self._ready = False
+            raise
 
     async def _state(self, device: int = CORE_KEYBOARD) -> bytes:
         if self._opcode is None:

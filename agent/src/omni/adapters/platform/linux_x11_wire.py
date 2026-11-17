@@ -89,6 +89,9 @@ def setup_reply(data: bytes, screen: int) -> Setup:
 
 
 class Wire:
+    request_limit = 1024
+    message_limit = 2048
+
     def __init__(self, connection: socket.socket, check: Callable[[], None]) -> None:
         self.connection, self.check = connection, check
         self.loop = asyncio.get_running_loop()
@@ -126,7 +129,7 @@ class Wire:
     async def send(self, opcode: int, data: bytes = b"", minor: int = 0) -> None:
         self.check()
         self.sequence += 1
-        if self.sequence > 1024 or len(data) % 4 or len(data) > 4096:
+        if self.sequence > self.request_limit or len(data) % 4 or len(data) > 4096:
             raise failure("desktop_x11_protocol_limit")
         await self.loop.sock_sendall(self.connection, struct.pack("<BBH", opcode, minor, len(data) // 4 + 1) + data)
 
@@ -136,7 +139,7 @@ class Wire:
             while True:
                 header = await self.read(32)
                 self.messages += 1
-                if self.messages > 2048:
+                if self.messages > self.message_limit:
                     raise failure("desktop_x11_protocol_limit")
                 kind, detail, sequence = unpack("BBH", header)
                 if kind == 0:

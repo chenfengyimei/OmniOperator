@@ -31,6 +31,8 @@ class ButtonPlan:
     logical: int
     source: int
     master: int
+    source_buttons: int
+    master_buttons: int
 
 
 def primary(source: bytes, master: bytes, sources: Sources) -> ButtonPlan:
@@ -42,7 +44,7 @@ def primary(source: bytes, master: bytes, sources: Sources) -> ButtonPlan:
     # lowest actual code deterministically, with both complete maps bound.
     for code, intermediate in enumerate(source, 1):
         if 1 <= intermediate <= len(master) and master[intermediate - 1] == 1:
-            return ButtonPlan(code, intermediate, 1, sources.pointer, sources.pointer_master)
+            return ButtonPlan(code, intermediate, 1, sources.pointer, sources.pointer_master, len(source), len(master))
     raise failure("desktop_input_unverified")
 
 

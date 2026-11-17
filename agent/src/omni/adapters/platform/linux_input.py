@@ -177,10 +177,17 @@ def devices(data: bytes) -> str:
 
 
 class InputWire(Wire):
+    # A single continuous point/source/map/XKB proof needs more requests than
+    # a capture connection. Keep a fixed lifetime budget, no sequence wrap,
+    # the original byte cap and the independent 256-event intervention cap.
+    request_limit = 8192
+    message_limit = 8448
+
     def __init__(self, connection: socket.socket, check: Callable[[], None]) -> None:
         super().__init__(connection, check)
         self.opcode: int | None = None
         self.xkb_event: int | None = None
+        self.xkb_pointer_devices: frozenset[int] = frozenset()
         self.changed = False
         self.focus: int | None = None
         self.structures: set[int] = set()
@@ -219,7 +226,10 @@ class InputWire(Wire):
         if self.xkb_event is not None and header[0] == self.xkb_event:
             if self.key_events is not None and self.key_events.keyboard(header):
                 return
-            if header[1] not in {0, 1, 2, 3, 5, 6, 7}:
+            if header[1] == 11:
+                if header[8] not in self.xkb_pointer_devices:
+                    raise failure("desktop_input_unverified")
+            elif header[1] not in {0, 1, 2, 3, 5, 6, 7}:
                 raise failure("desktop_input_unverified")
         elif self.button_mapping_event is not None and header[0] == self.button_mapping_event:
             if header[1] not in self.button_mapping_devices or header[4] not in {0, 1, 2}:
