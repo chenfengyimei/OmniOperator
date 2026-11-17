@@ -9,11 +9,12 @@ from typing import cast
 from .linux_bus import failure
 from .linux_input import InputWire
 from .linux_x11_wire import padded, unpack
+from .linux_xkb_copy import compatibility, geometry, indicators, names
 from .linux_xkb_map import map_identity
 
 CORE_KEYBOARD = 0x100
 MAP_PARTS = 0xBE  # symbols, actions, behaviors, explicit, real/virtual modifier maps
-EVENTS = 0x8F  # new keyboard, map, state, controls, compatibility map
+EVENTS = 0xEF  # new keyboard, map, state, controls, indicator map, names, compatibility
 MAX_SYMBOLS = 64
 UNSUPPORTED_CONTROLS = 2 | 4 | 8 | 16 | 1024 | 2048
 
@@ -26,6 +27,13 @@ class XkbKeyboard:
         self._opcode: int | None = None
         self._device: int | None = None
         self._source: int | None = None
+        self._geometry: bool | None = None
+
+    @property
+    def transition_info(self) -> tuple[int, int, int]:
+        if not self._ready or self._opcode is None or self._device is None or self._geometry is None:
+            raise failure("desktop_input_unverified")
+        return self._opcode, self._device, 3 if self._geometry else 1
 
     def _reply(self, data: bytes, size: int | None = None, *, device: int | None = None) -> None:
         expected = self._device if device is None else device
@@ -200,15 +208,33 @@ class XkbKeyboard:
                 identity = map_identity(
                     mapping, actual, self.wire.setup.minimum_keycode, self.wire.setup.maximum_keycode
                 )
+                compat = compatibility(
+                    await self.wire.request(self._opcode, struct.pack("<HBBHH", selected, 15, 1, 0, 0), 10), actual
+                )
+                leds = indicators(
+                    await self.wire.request(self._opcode, struct.pack("<HxxI", selected, 0xFFFFFFFF), 13), actual
+                )
+                label_reply = await self.wire.request(self._opcode, struct.pack("<HxxI", selected, 0x3FFF), 17)
+                labels = names(
+                    label_reply,
+                    actual,
+                    self.wire.setup.minimum_keycode,
+                    self.wire.setup.maximum_keycode,
+                )
+                if unpack("I", label_reply, 8)[0] & 63 != 63:
+                    raise failure("desktop_input_unverified")
+                shape_reply = await self.wire.request(self._opcode, struct.pack("<HxxI", selected, 0), 19)
+                shape = geometry(shape_reply, actual)
                 if (
                     await self._state(selected) != state
                     or await self._controls(selected) != controls
                     or self.wire.changed
                 ):
                     raise failure("desktop_user_intervened")
-                identities.append(hashlib.sha256(state + controls + identity).digest())
+                identities.append(hashlib.sha256(state + controls + identity + compat + leds + labels + shape).digest())
             if any(identity != identities[0] for identity in identities):
                 raise failure("desktop_input_unverified")
+            self._geometry = bool(shape_reply[12])
             return identities[0]
         except BaseException:
             self._ready = False

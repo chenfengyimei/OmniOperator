@@ -108,7 +108,9 @@ Linux桌面原生会话由固定辅助进程内的`SessionInspector`核验，`Lo
 
 内部`linux_keystroke.py`现拥有单键成对请求的发送字节、释放后缀与同连接QueryKeymap屏障，`linux_input`只在其实际租约存在时匹配精确请求序号和slave/master通知，未结清流禁止其他请求。`WindowFocus.key_packet`组合已有窗口/键映射/虚拟来源复核；业务worker仍未使用该派发器，目标关联、逐次permit及应用结果接线待完成。取消后的释放/原查询任务由监测连接持有，未证明释放不能关闭成功；不创建持久业务状态或另一套审批真值。
 
-`linux_xkb_map.py`只解析完整GetMap八部件并输出规范化SHA，不持有输入内容或打开连接。`linux_xkb`在现有连接订阅来源键盘并核验主/从映射、状态和控制；`KeyboardMapping`绑定其身份，`WindowFocus.key_packet`必须先通过该预检。此为Xorg映射复制前置，未放行合法切换通知或完成业务输入授权。
+`linux_xkb_map.py`解析完整GetMap八部件，`linux_xkb_copy.py`解析兼容表、名称、指示器定义和当前几何，均有界输出规范化SHA。`linux_xkb`在现有连接订阅来源键盘并交替四读主/从的完整复制配置、状态和控制；`KeyboardMapping`绑定原身份，`WindowFocus.key_packet`先通过预检。
+
+`linux_key_switch.py`以既有设备拓扑预计算唯一允许的主KeyClass来源ID变化。实际按键租约只在首个Raw事件前接受同按下序号的精确一次NKN→XI SlaveSwitch，旧/新设备、键码范围、XKB请求、changed位及来源KeyClass完整匹配。四条Raw和释放结清后，拓扑双读夹住原复制配置再验，焦点、释放与独立变化锁存均成立才采用该指纹；未发生切换时仍核对原拓扑，绝不清空changed。派发后核验失败或取消锁存失效；业务worker、节点关联、逐次permit与应用结果仍待接线。
 
 `linux_keyboard.py`在该焦点证明下只读当前核心键盘/修饰键映射，以真实setup键码范围、双读/完整指纹及逻辑释放状态预检领域特殊键；不猜键码、不改布局、不合成输入。核心映射不能代替应用XKB行为或实际派发证明，通用按键仍未开放。
 

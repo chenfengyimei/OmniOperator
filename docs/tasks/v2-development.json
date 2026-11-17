@@ -58,7 +58,7 @@
           },
           "remaining": [
             "通用键鼠的控件与原生窗口可靠关联及逐次业务permit接线",
-            "本次输入的合法slave/NKN切换、兼容/命名等其他复制信息及应用结果核验；GetMap八部件/控制预检和内部成对派发不等于通用按键完成",
+            "实际业务worker按键派发及应用结果核验；完整复制配置/精确切换/内部成对派发不等于通用按键完成",
             "鼠标点击与Wayland实际输入仍待继续开发"
           ],
           "addressed_unicode_append": {
@@ -87,15 +87,23 @@
             "status": "implemented_scoped_passed",
             "evidence": "docs/evidence/v2-linux-keypair.json",
             "production_business_worker_enabled": false,
-            "expected_native_class_transition_complete": false,
-            "application_postcondition_proven": false
+            "expected_native_class_transition_complete": true,
+            "application_postcondition_proven": false,
+            "transition_followup_evidence": "docs/evidence/v2-linux-key-switch.json"
           },
           "source_getmap_clone_preflight": {
             "status": "implemented_scoped_passed",
             "evidence": "docs/evidence/v2-linux-keymap-clone.json",
-            "expected_native_transition_complete": false,
-            "other_copied_configuration_complete": false,
-            "production_business_worker_enabled": false
+            "expected_native_transition_complete": true,
+            "other_copied_configuration_complete": true,
+            "production_business_worker_enabled": false,
+            "followup_evidence": "docs/evidence/v2-linux-key-switch.json"
+          },
+          "source_copy_and_native_transition": {
+            "status": "implemented_scoped_passed",
+            "evidence": "docs/evidence/v2-linux-key-switch.json",
+            "production_business_worker_enabled": false,
+            "application_postcondition_proven": false
           }
         }
       ]

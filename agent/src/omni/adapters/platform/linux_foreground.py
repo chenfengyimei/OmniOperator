@@ -191,11 +191,11 @@ class WindowFocus:
             sources = await self.verify_sources()
             if self._keyboard is None:
                 raise failure("desktop_input_unverified")
-            await self._keyboard.verify_source(sources.keyboard)
+            transition = await self._keyboard.switch_proof(sources)
             await self.check()
             if self._sources is None:
                 raise failure("desktop_input_unverified")
-            return KeyPacket(self.monitor, self._sources.opcode, sources, code)
+            return KeyPacket(self.monitor, self._sources.opcode, sources, code, transition)
         except BaseException:
             self._ready = False
             raise

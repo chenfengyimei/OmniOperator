@@ -8,8 +8,10 @@ from typing import Protocol
 
 from .linux_bus import failure
 from .linux_input import X11Input
+from .linux_key_switch import KeySwitch
 from .linux_x11_wire import unpack
 from .linux_xkb import XkbKeyboard
+from .linux_xtest import Sources
 
 SYMBOLS = {
     "Enter": 0xFF0D,
@@ -142,3 +144,22 @@ class KeyboardMapping:
         except BaseException:
             self._valid = False
             raise
+
+    async def _verify_copied(self, device: int) -> None:
+        if not self._valid or self._xkb is None or self._source is None:
+            raise failure("desktop_input_unverified")
+        try:
+            if (device, await self._xkb.source_identity(device)) != self._source:
+                raise failure("desktop_user_intervened")
+        except BaseException:
+            self._valid = False
+            raise
+
+    async def switch_proof(self, sources: Sources) -> KeySwitch:
+        await self.verify_source(sources.keyboard)
+        assert self._xkb is not None
+
+        async def copied() -> None:
+            await self._verify_copied(sources.keyboard)
+
+        return await KeySwitch.prepare(self.focus.monitor, sources, self._xkb.transition_info, copied)

@@ -72,7 +72,7 @@ Xorg的[XTEST请求处理](https://raw.githubusercontent.com/XQuartz/xorg-server
 
 取消等待保留实际释放/回读任务和同一连接。活跃发送期间关闭返回false，避免两个发送者；回读发送/读取超时或协议位置不明后保留未结清身份，不另建查询掩盖丢失回执。`X11Input.close`先结清该租约，未完成不能声称连接回收成功。内部emit完成只说明传输事件匹配和释放读回，不生成业务ok、也不证明应用处理了按键。
 
-仍需接通语义节点/原生窗口的可靠关联、逐次业务permit和应用结果核验；还需处理本次合法输入引发的slave类切换/XKB通知。当前这些变化仍使原守卫失效，不静默放宽。29新回归及232现有输入/来源/焦点/键映射/XKB、文本/语义/桌面、架构与类型合同，共261不同专项通过；首轮注入流缺少关闭状态的失败及原源码留档后修复。4个修改后端文件strict零错误/警告，354为登记范围，未整范围复验/全量。无真实Xorg连接、真实输入或Linux原生验收，见[成对内核证据](evidence/v2-linux-keypair.json)。
+该次成对内核节点尚未处理合法slave/XKB通知，后续实现见下文。29新回归及232现有输入/来源/焦点/键映射/XKB、文本/语义/桌面、架构与类型合同，共261不同专项通过；首轮注入流缺少关闭状态的失败及原源码留档后修复。4个修改后端文件strict零错误/警告，354为当时登记范围，未整范围复验/全量。无真实Xorg连接、真实输入或Linux原生验收，见[成对内核证据](evidence/v2-linux-keypair.json)。
 
 ## Xorg切换前的完整映射比对
 
@@ -82,4 +82,16 @@ Xorg在slave切换时通过[CopyKeyClass/DeepCopyKeyboardClasses](https://raw.gi
 
 同一XKB连接先订阅来源键盘，再依次读取主/从/主/从，期间分别夹住无锁存状态与完整GetControls，任何通知或不一致都拒绝；来源回复不覆盖原核心设备ID。`KeyboardMapping`绑定完整身份，主从后来共同变化也不能更新旧计划；最后再复核原候选、窗口与输入守卫。读取取消/失败使证明锁存失效，尚无派发/释放租约或按键字节。原受限AT-SPI文本路径不新增这些要求。
 
-本步只补齐切换前的GetMap/状态/控制核验。合法slave/NKN通知及兼容/命名等其他复制信息、原生/语义目标关联、逐次permit与应用结果仍待继续，不能按设备名或序号直接忽略通知；生产worker仍未开放通用按键。37项新回归、29项原成对派发及232项受影响调用方/合同，共298不同专项通过，修改4后端文件strict零错误/警告；没有整范围类型、全量、真实输入或Linux原生验收，见[专项证据](evidence/v2-linux-keymap-clone.json)。
+该次仅补齐GetMap/状态/控制核验；其余复制配置与合法通知由下一节接续，生产worker仍未开放通用按键。37项新回归、29项原成对派发及232项受影响调用方/合同，共298不同专项通过，修改4后端文件strict零错误/警告；没有整范围类型、全量、真实输入或Linux原生验收，见[专项证据](evidence/v2-linux-keymap-clone.json)。
+
+## 完整复制配置与本次键盘切换
+
+`linux_xkb_copy.py`补GetCompatMap的全部符号解释/组修饰、GetIndicatorMap的定义/物理掩码、GetNames的组件/类型/级别/键/别名/组等，以及GetGeometry的当前完整几何。几何包含字符串、属性、颜色、形状/轮廓/点、section/row/key、overlay及五种doodad，不以整块带填充的内存生成身份。所有解析均受原64KiB回复限制，精确计数、引用与尾部；仅排除协议填充和NoAction未用字节。没有KeyNames时忽略响应保留的请求范围，不能误读为实际负载。几何只请求当前描述（atom=0），不查找命名几何或加载配置；先证明组件名称存在。无当前几何的明确空响应可用。
+
+上述身份与GetMap、状态、控制一同主/从/主/从四读并绑定旧证明。新增IndicatorMap/Names通知订阅；共同变化、不完整名称、损坏几何和来源不一致均拒绝。依据[Xorg配置复制](https://raw.githubusercontent.com/XQuartz/xorg-server/master/xkb/xkbUtils.c)、[原生回复写出](https://raw.githubusercontent.com/XQuartz/xorg-server/master/xkb/xkb.c)及[XKB结构定义](https://sources.debian.org/src/x11proto-kb/1.0.3-2/XKBproto.h)。
+
+`linux_key_switch.py`读取现有完整设备拓扑，要求主/来源键盘均只有一个相同KeyClass（除sourceid），来源指向实际XTEST设备；预计算只将主KeyClass.sourceid改为该来源的唯一允许指纹。Xorg内部last.slave与lastSlave不同，不能由QueryDevice断言必有通知。若发生切换，必须在首条RawKeyPress前按顺序收到同一按下请求序号的NewKeyboardNotify和XI_DeviceChanged：旧新主设备、旧新键码范围、XKB major/SetMap minor、Keycodes及存在几何时的Geometry位、SlaveSwitch原因、单一来源KeyClass完整负载均须精确一致。重复、缺失、逆序、迟到和其他来源保持介入，未派发时没有通知豁免。原始事件仍精确四条。
+
+释放屏障结清后，再以两次拓扑读取夹住原完整配置身份核对，随后检查全部键释放、已核验连接和原焦点。只有这些检查全部通过，才采用预计算指纹；没有切换时仍要求原指纹。其他设备/名称/挂接/类别变化不能随主键盘来源一并被接受，独立changed永不重置。派发后核验失败或取消使计划锁存失效，不重放按下；实际释放与外部窗口租约的归属保持原规则。依据[Xorg复制与通知顺序](https://raw.githubusercontent.com/XQuartz/xorg-server/master/Xi/exevents.c)和[NKN字段](https://raw.githubusercontent.com/XQuartz/xorg-server/master/xkb/xkbUtils.c)。
+
+内部emit仍只说明传输、释放及复制配置核验，不能报告应用成功。业务worker/domain IPC尚未接通；原生窗口与语义节点关联、逐次permit、应用结果及鼠标/Wayland输入仍继续开发。固定副本相关专项及修改7后端文件strict结果见[本批证据](evidence/v2-linux-key-switch.json)，当前没有Linux原生、真实输入、全范围类型或全量结论。

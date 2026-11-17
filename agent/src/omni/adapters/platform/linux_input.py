@@ -24,10 +24,23 @@ class KeyLease(Protocol):
     async def settle(self) -> bool: ...
 
 
+class KeyTransition(Protocol):
+    @property
+    def complete(self) -> bool: ...
+
+    def keyboard(self, header: bytes, sequence: int) -> bool: ...
+
+    def device(self, header: bytes, payload: bytes, sequence: int) -> bool: ...
+
+    async def verify_after(self) -> None: ...
+
+
 class KeyEvents:
     """Consume exactly the slave/master raw pair for each of two same-connection requests."""
 
-    def __init__(self, sequence: int, code: int, source: int, master: int) -> None:
+    def __init__(
+        self, sequence: int, code: int, source: int, master: int, transition: KeyTransition | None = None
+    ) -> None:
         self.expected = (
             (sequence, 13, source),
             (sequence, 13, master),
@@ -36,9 +49,20 @@ class KeyEvents:
         )
         self.code, self.source, self.seen = code, source, 0
         self.time: int | None = None
+        self.transition = transition
+
+    def keyboard(self, header: bytes) -> bool:
+        return self.seen == 0 and self.transition is not None and self.transition.keyboard(header, self.expected[0][0])
+
+    def device(self, header: bytes, payload: bytes) -> bool:
+        return (
+            self.seen == 0
+            and self.transition is not None
+            and self.transition.device(header, payload, self.expected[0][0])
+        )
 
     def accept(self, header: bytes, payload: bytes) -> bool:
-        if self.seen >= 4:
+        if self.seen >= 4 or self.transition is not None and not self.transition.complete:
             return False
         sequence, category, device = self.expected[self.seen]
         words = unpack("H", header, 22)[0]
@@ -62,7 +86,7 @@ class KeyEvents:
 
     @property
     def complete(self) -> bool:
-        return self.seen == 4
+        return self.seen == 4 and (self.transition is None or self.transition.complete)
 
 
 @dataclass(frozen=True)
@@ -190,7 +214,9 @@ class InputWire(Wire):
         if self.events > 256 or header[0] & 0x80:
             raise failure("desktop_input_unverified")
         if self.xkb_event is not None and header[0] == self.xkb_event:
-            if header[1] not in {0, 1, 2, 3, 7}:
+            if self.key_events is not None and self.key_events.keyboard(header):
+                return
+            if header[1] not in {0, 1, 2, 3, 5, 6, 7}:
                 raise failure("desktop_input_unverified")
         elif header[0] == 35 and header[1] == self.opcode:
             length = unpack("I", header, 4)[0] * 4
@@ -198,6 +224,8 @@ class InputWire(Wire):
             if category not in RAW | DEVICE or length > 4096:
                 raise failure("desktop_input_unverified")
             payload = await self.read(length)
+            if category == 1 and self.key_events is not None and self.key_events.device(header, payload):
+                return
             if category in RAW and self.key_events is not None and self.key_events.accept(header, payload):
                 return
         elif header[0] in {9, 10}:

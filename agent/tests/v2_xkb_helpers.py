@@ -21,6 +21,10 @@ class XkbFixture:
         self.clone_version = 0
         self.full_hook = None
         self.full_reads = []
+        self.copy_fault = None
+        self.copy_reads = []
+        self.copy_common = None
+        self.geometry_present = True
 
     async def respond(self, peer, packet):
         peer.sequence += 1
@@ -35,7 +39,7 @@ class XkbFixture:
             result = reply(peer.sequence, detail=int(self.supported), fields=struct.pack("<HH", 1, 0))
         elif minor == 1:
             selected, *masks = struct.unpack("<6H", body)
-            assert selected in {256, 5} and masks == [143, 0, 143, 255, 255]
+            assert selected in {256, 5} and masks == [239, 0, 239, 255, 255]
             return
         elif minor in {4, 6}:
             selected = struct.unpack("<Hxx", body)[0]
@@ -64,6 +68,32 @@ class XkbFixture:
                 if self.fault == "controls_length":
                     result += b"four"
                     struct.pack_into("<I", result, 4, 16)
+        elif minor in {10, 13, 17, 19}:
+            from v2_xkb_copy_helpers import copied_reply
+
+            selected = struct.unpack_from("<H", body)[0]
+            assert selected in {256, 5}
+            expected = (
+                struct.pack("<HBBHH", selected, 15, 1, 0, 0)
+                if minor == 10
+                else struct.pack("<HxxI", selected, {13: 0xFFFFFFFF, 17: 0x3FFF, 19: 0}[minor])
+            )
+            assert body == expected
+            self.reads += 1
+            self.copy_reads.append((selected, minor))
+            result = bytearray(
+                copied_reply(
+                    minor,
+                    peer.sequence,
+                    self.device if selected == 256 else selected,
+                    padding=self.reads % 256,
+                    found=self.geometry_present,
+                )
+            )
+            if selected == 5 and self.copy_fault == minor:
+                result[32] ^= 1
+            if self.copy_common == minor:
+                result[8 if minor == 19 else 32] ^= 2
         elif minor == 8 and struct.unpack_from("<H", body, 2)[0] == 255:
             from v2_xkb_map_helpers import complete_map
 

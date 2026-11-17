@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "04f31c305262f967a29a7cd8322832fb2c35615fcc71e7fae95f3603ae304014",
+  "source_sha256": "d66c09a5f66870c85c7e7fd870ee60d341eefc17dd05a6f0f5b197058dd3c72d",
   "modules": [
     {
       "id": "v2-domain",
@@ -319,6 +319,7 @@
         "agent/src/omni/adapters/platform/linux_fds.py",
         "agent/src/omni/adapters/platform/linux_foreground.py",
         "agent/src/omni/adapters/platform/linux_input.py",
+        "agent/src/omni/adapters/platform/linux_key_switch.py",
         "agent/src/omni/adapters/platform/linux_keyboard.py",
         "agent/src/omni/adapters/platform/linux_keystroke.py",
         "agent/src/omni/adapters/platform/linux_lease_client.py",
@@ -334,6 +335,7 @@
         "agent/src/omni/adapters/platform/linux_x11_socket.py",
         "agent/src/omni/adapters/platform/linux_x11_wire.py",
         "agent/src/omni/adapters/platform/linux_xkb.py",
+        "agent/src/omni/adapters/platform/linux_xkb_copy.py",
         "agent/src/omni/adapters/platform/linux_xkb_map.py",
         "agent/src/omni/adapters/platform/linux_xtest.py",
         "agent/src/omni/adapters/platform/macos_helper.py",
@@ -428,7 +430,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 59144,
+      "lines": 59528,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -26344,7 +26346,7 @@
       "path": "agent/src/omni/adapters/platform/linux_input.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.linux_input",
-      "lines": 304,
+      "lines": 332,
       "imports": [
         "omni.adapters.platform.linux_bus",
         "omni.adapters.platform.linux_session",
@@ -26367,31 +26369,112 @@
           "annotations": {}
         },
         {
-          "name": "KeyEvents",
+          "name": "KeyTransition",
           "line": 27,
           "kind": "class"
         },
         {
+          "name": "KeyTransition.complete",
+          "line": 29,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "KeyTransition.keyboard",
+          "line": 31,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "header",
+            "sequence"
+          ],
+          "annotations": {
+            "header": "bytes",
+            "sequence": "int"
+          }
+        },
+        {
+          "name": "KeyTransition.device",
+          "line": 33,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "header",
+            "payload",
+            "sequence"
+          ],
+          "annotations": {
+            "header": "bytes",
+            "payload": "bytes",
+            "sequence": "int"
+          }
+        },
+        {
+          "name": "KeyTransition.verify_after",
+          "line": 35,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "KeyEvents",
+          "line": 38,
+          "kind": "class"
+        },
+        {
           "name": "KeyEvents.__init__",
-          "line": 30,
+          "line": 41,
           "kind": "function",
           "parameters": [
             "self",
             "sequence",
             "code",
             "source",
-            "master"
+            "master",
+            "transition"
           ],
           "annotations": {
             "sequence": "int",
             "code": "int",
             "source": "int",
-            "master": "int"
+            "master": "int",
+            "transition": "KeyTransition | None"
+          }
+        },
+        {
+          "name": "KeyEvents.keyboard",
+          "line": 54,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "header"
+          ],
+          "annotations": {
+            "header": "bytes"
+          }
+        },
+        {
+          "name": "KeyEvents.device",
+          "line": 57,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "header",
+            "payload"
+          ],
+          "annotations": {
+            "header": "bytes",
+            "payload": "bytes"
           }
         },
         {
           "name": "KeyEvents.accept",
-          "line": 40,
+          "line": 64,
           "kind": "function",
           "parameters": [
             "self",
@@ -26405,7 +26488,7 @@
         },
         {
           "name": "KeyEvents.complete",
-          "line": 64,
+          "line": 88,
           "kind": "function",
           "parameters": [
             "self"
@@ -26414,17 +26497,17 @@
         },
         {
           "name": "Device",
-          "line": 69,
+          "line": 93,
           "kind": "class"
         },
         {
           "name": "Topology",
-          "line": 78,
+          "line": 102,
           "kind": "class"
         },
         {
           "name": "device_topology",
-          "line": 83,
+          "line": 107,
           "kind": "function",
           "parameters": [
             "data"
@@ -26435,7 +26518,7 @@
         },
         {
           "name": "devices",
-          "line": 151,
+          "line": 175,
           "kind": "function",
           "parameters": [
             "data"
@@ -26446,12 +26529,12 @@
         },
         {
           "name": "InputWire",
-          "line": 155,
+          "line": 179,
           "kind": "class"
         },
         {
           "name": "InputWire.__init__",
-          "line": 156,
+          "line": 180,
           "kind": "function",
           "parameters": [
             "self",
@@ -26465,7 +26548,7 @@
         },
         {
           "name": "InputWire.send",
-          "line": 168,
+          "line": 192,
           "kind": "function",
           "parameters": [
             "self",
@@ -26481,7 +26564,7 @@
         },
         {
           "name": "InputWire.key_barrier",
-          "line": 174,
+          "line": 198,
           "kind": "function",
           "parameters": [
             "self",
@@ -26493,7 +26576,7 @@
         },
         {
           "name": "InputWire.read",
-          "line": 183,
+          "line": 207,
           "kind": "function",
           "parameters": [
             "self",
@@ -26505,7 +26588,7 @@
         },
         {
           "name": "InputWire.event",
-          "line": 188,
+          "line": 212,
           "kind": "function",
           "parameters": [
             "self",
@@ -26517,12 +26600,12 @@
         },
         {
           "name": "X11Input",
-          "line": 214,
+          "line": 242,
           "kind": "class"
         },
         {
           "name": "X11Input.__init__",
-          "line": 215,
+          "line": 243,
           "kind": "function",
           "parameters": [
             "self",
@@ -26538,7 +26621,7 @@
         },
         {
           "name": "X11Input.open",
-          "line": 228,
+          "line": 256,
           "kind": "function",
           "parameters": [
             "self"
@@ -26547,7 +26630,7 @@
         },
         {
           "name": "X11Input.released",
-          "line": 241,
+          "line": 269,
           "kind": "function",
           "parameters": [
             "self"
@@ -26556,7 +26639,7 @@
         },
         {
           "name": "X11Input.arm",
-          "line": 252,
+          "line": 280,
           "kind": "function",
           "parameters": [
             "self"
@@ -26565,7 +26648,7 @@
         },
         {
           "name": "X11Input.check",
-          "line": 270,
+          "line": 298,
           "kind": "function",
           "parameters": [
             "self"
@@ -26574,7 +26657,7 @@
         },
         {
           "name": "X11Input.watch_lineage",
-          "line": 278,
+          "line": 306,
           "kind": "function",
           "parameters": [
             "self",
@@ -26586,7 +26669,7 @@
         },
         {
           "name": "X11Input.close",
-          "line": 301,
+          "line": 329,
           "kind": "function",
           "parameters": [
             "self"
@@ -26597,25 +26680,133 @@
       "summary": "Verified Xorg input-change guard for addressed semantic actions; never grabs, synthesizes or stores input content."
     },
     {
-      "path": "agent/src/omni/adapters/platform/linux_keyboard.py",
+      "path": "agent/src/omni/adapters/platform/linux_key_switch.py",
       "module": "v2-adapters",
-      "python_module": "omni.adapters.platform.linux_keyboard",
-      "lines": 144,
+      "python_module": "omni.adapters.platform.linux_key_switch",
+      "lines": 125,
       "imports": [
         "omni.adapters.platform.linux_bus",
         "omni.adapters.platform.linux_input",
         "omni.adapters.platform.linux_x11_wire",
-        "omni.adapters.platform.linux_xkb"
+        "omni.adapters.platform.linux_xtest"
+      ],
+      "symbols": [
+        {
+          "name": "KeySwitch",
+          "line": 15,
+          "kind": "class"
+        },
+        {
+          "name": "KeySwitch.__init__",
+          "line": 16,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "monitor",
+            "sources",
+            "xkb",
+            "data",
+            "check_copied"
+          ],
+          "annotations": {
+            "monitor": "X11Input",
+            "sources": "Sources",
+            "xkb": "tuple[int, int, int]",
+            "data": "bytes",
+            "check_copied": "Callable[[], Awaitable[None]]"
+          }
+        },
+        {
+          "name": "KeySwitch.prepare",
+          "line": 59,
+          "kind": "function",
+          "parameters": [
+            "cls",
+            "monitor",
+            "sources",
+            "xkb",
+            "check_copied"
+          ],
+          "annotations": {
+            "monitor": "X11Input",
+            "sources": "Sources",
+            "xkb": "tuple[int, int, int]",
+            "check_copied": "Callable[[], Awaitable[None]]"
+          }
+        },
+        {
+          "name": "KeySwitch.complete",
+          "line": 73,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "KeySwitch.keyboard",
+          "line": 78,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "header",
+            "sequence"
+          ],
+          "annotations": {
+            "header": "bytes",
+            "sequence": "int"
+          }
+        },
+        {
+          "name": "KeySwitch.device",
+          "line": 91,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "header",
+            "payload",
+            "sequence"
+          ],
+          "annotations": {
+            "header": "bytes",
+            "payload": "bytes",
+            "sequence": "int"
+          }
+        },
+        {
+          "name": "KeySwitch.verify_after",
+          "line": 103,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        }
+      ],
+      "summary": "Prove the single Xorg keyboard slave switch surrounding an owned key pair; no input or configuration writes."
+    },
+    {
+      "path": "agent/src/omni/adapters/platform/linux_keyboard.py",
+      "module": "v2-adapters",
+      "python_module": "omni.adapters.platform.linux_keyboard",
+      "lines": 165,
+      "imports": [
+        "omni.adapters.platform.linux_bus",
+        "omni.adapters.platform.linux_input",
+        "omni.adapters.platform.linux_key_switch",
+        "omni.adapters.platform.linux_x11_wire",
+        "omni.adapters.platform.linux_xkb",
+        "omni.adapters.platform.linux_xtest"
       ],
       "symbols": [
         {
           "name": "FocusPort",
-          "line": 30,
+          "line": 32,
           "kind": "class"
         },
         {
           "name": "FocusPort.check",
-          "line": 33,
+          "line": 35,
           "kind": "function",
           "parameters": [
             "self"
@@ -26624,12 +26815,12 @@
         },
         {
           "name": "KeyboardMapping",
-          "line": 36,
+          "line": 38,
           "kind": "class"
         },
         {
           "name": "KeyboardMapping.__init__",
-          "line": 37,
+          "line": 39,
           "kind": "function",
           "parameters": [
             "self",
@@ -26641,7 +26832,7 @@
         },
         {
           "name": "KeyboardMapping._read",
-          "line": 47,
+          "line": 49,
           "kind": "function",
           "parameters": [
             "self",
@@ -26653,7 +26844,7 @@
         },
         {
           "name": "KeyboardMapping.prepare",
-          "line": 94,
+          "line": 96,
           "kind": "function",
           "parameters": [
             "self",
@@ -26665,7 +26856,7 @@
         },
         {
           "name": "KeyboardMapping.verify",
-          "line": 119,
+          "line": 121,
           "kind": "function",
           "parameters": [
             "self"
@@ -26674,7 +26865,7 @@
         },
         {
           "name": "KeyboardMapping.verify_source",
-          "line": 132,
+          "line": 134,
           "kind": "function",
           "parameters": [
             "self",
@@ -26683,6 +26874,37 @@
           "annotations": {
             "device": "int"
           }
+        },
+        {
+          "name": "KeyboardMapping._verify_copied",
+          "line": 148,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "device"
+          ],
+          "annotations": {
+            "device": "int"
+          }
+        },
+        {
+          "name": "KeyboardMapping.switch_proof",
+          "line": 158,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "sources"
+          ],
+          "annotations": {
+            "sources": "Sources"
+          }
+        },
+        {
+          "name": "KeyboardMapping.switch_proof.copied",
+          "line": 162,
+          "kind": "function",
+          "parameters": [],
+          "annotations": {}
         }
       ],
       "summary": "Bounded read-only core keymap preflight on an existing focus proof; never translates Unicode, changes layouts or sends input."
@@ -26691,7 +26913,7 @@
       "path": "agent/src/omni/adapters/platform/linux_keystroke.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.linux_keystroke",
-      "lines": 136,
+      "lines": 144,
       "imports": [
         "omni.adapters.platform.linux_bus",
         "omni.adapters.platform.linux_input",
@@ -26712,18 +26934,20 @@
             "monitor",
             "opcode",
             "sources",
-            "code"
+            "code",
+            "transition"
           ],
           "annotations": {
             "monitor": "X11Input",
             "opcode": "int",
             "sources": "Sources",
-            "code": "int"
+            "code": "int",
+            "transition": "KeyTransition | None"
           }
         },
         {
           "name": "KeyPacket.release_pending",
-          "line": 51,
+          "line": 53,
           "kind": "function",
           "parameters": [
             "self"
@@ -26732,7 +26956,7 @@
         },
         {
           "name": "KeyPacket._writable",
-          "line": 54,
+          "line": 56,
           "kind": "function",
           "parameters": [
             "self"
@@ -26741,14 +26965,14 @@
         },
         {
           "name": "KeyPacket._writable.wake",
-          "line": 59,
+          "line": 61,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "KeyPacket._write",
-          "line": 69,
+          "line": 71,
           "kind": "function",
           "parameters": [
             "self"
@@ -26757,7 +26981,7 @@
         },
         {
           "name": "KeyPacket.emit",
-          "line": 82,
+          "line": 84,
           "kind": "function",
           "parameters": [
             "self"
@@ -26766,7 +26990,7 @@
         },
         {
           "name": "KeyPacket._finish",
-          "line": 104,
+          "line": 112,
           "kind": "function",
           "parameters": [
             "self"
@@ -26775,7 +26999,7 @@
         },
         {
           "name": "KeyPacket.settle",
-          "line": 127,
+          "line": 135,
           "kind": "function",
           "parameters": [
             "self"
@@ -28972,22 +29196,23 @@
       "path": "agent/src/omni/adapters/platform/linux_xkb.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.linux_xkb",
-      "lines": 215,
+      "lines": 241,
       "imports": [
         "omni.adapters.platform.linux_bus",
         "omni.adapters.platform.linux_input",
         "omni.adapters.platform.linux_x11_wire",
+        "omni.adapters.platform.linux_xkb_copy",
         "omni.adapters.platform.linux_xkb_map"
       ],
       "symbols": [
         {
           "name": "XkbKeyboard",
-          "line": 21,
+          "line": 22,
           "kind": "class"
         },
         {
           "name": "XkbKeyboard.__init__",
-          "line": 22,
+          "line": 23,
           "kind": "function",
           "parameters": [
             "self",
@@ -28998,8 +29223,17 @@
           }
         },
         {
+          "name": "XkbKeyboard.transition_info",
+          "line": 33,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
           "name": "XkbKeyboard._reply",
-          "line": 30,
+          "line": 38,
           "kind": "function",
           "parameters": [
             "self",
@@ -29015,7 +29249,7 @@
         },
         {
           "name": "XkbKeyboard.open",
-          "line": 44,
+          "line": 52,
           "kind": "function",
           "parameters": [
             "self"
@@ -29024,7 +29258,7 @@
         },
         {
           "name": "XkbKeyboard._state",
-          "line": 71,
+          "line": 79,
           "kind": "function",
           "parameters": [
             "self",
@@ -29036,7 +29270,7 @@
         },
         {
           "name": "XkbKeyboard._controls",
-          "line": 82,
+          "line": 90,
           "kind": "function",
           "parameters": [
             "self",
@@ -29048,7 +29282,7 @@
         },
         {
           "name": "XkbKeyboard._map",
-          "line": 97,
+          "line": 105,
           "kind": "function",
           "parameters": [
             "self",
@@ -29062,7 +29296,7 @@
         },
         {
           "name": "XkbKeyboard.read_key",
-          "line": 158,
+          "line": 166,
           "kind": "function",
           "parameters": [
             "self",
@@ -29076,7 +29310,7 @@
         },
         {
           "name": "XkbKeyboard.source_identity",
-          "line": 176,
+          "line": 184,
           "kind": "function",
           "parameters": [
             "self",
@@ -29088,6 +29322,152 @@
         }
       ],
       "summary": "Read-only XKB server state/actions on the existing input connection; no layout mutation, device acquisition or event dispatch."
+    },
+    {
+      "path": "agent/src/omni/adapters/platform/linux_xkb_copy.py",
+      "module": "v2-adapters",
+      "python_module": "omni.adapters.platform.linux_xkb_copy",
+      "lines": 176,
+      "imports": [
+        "omni.adapters.platform.linux_bus",
+        "omni.adapters.platform.linux_x11_wire"
+      ],
+      "symbols": [
+        {
+          "name": "Reader",
+          "line": 11,
+          "kind": "class"
+        },
+        {
+          "name": "Reader.__init__",
+          "line": 12,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "data",
+            "device",
+            "header"
+          ],
+          "annotations": {
+            "data": "bytes",
+            "device": "int",
+            "header": "bytes"
+          }
+        },
+        {
+          "name": "Reader.take",
+          "line": 22,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "size",
+            "meaningful"
+          ],
+          "annotations": {
+            "size": "int",
+            "meaningful": "int | None"
+          }
+        },
+        {
+          "name": "Reader.string",
+          "line": 30,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "Reader.finish",
+          "line": 35,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "compatibility",
+          "line": 41,
+          "kind": "function",
+          "parameters": [
+            "data",
+            "device"
+          ],
+          "annotations": {
+            "data": "bytes",
+            "device": "int"
+          }
+        },
+        {
+          "name": "indicators",
+          "line": 53,
+          "kind": "function",
+          "parameters": [
+            "data",
+            "device"
+          ],
+          "annotations": {
+            "data": "bytes",
+            "device": "int"
+          }
+        },
+        {
+          "name": "names",
+          "line": 62,
+          "kind": "function",
+          "parameters": [
+            "data",
+            "device",
+            "minimum",
+            "maximum"
+          ],
+          "annotations": {
+            "data": "bytes",
+            "device": "int",
+            "minimum": "int",
+            "maximum": "int"
+          }
+        },
+        {
+          "name": "geometry",
+          "line": 99,
+          "kind": "function",
+          "parameters": [
+            "data",
+            "device"
+          ],
+          "annotations": {
+            "data": "bytes",
+            "device": "int"
+          }
+        },
+        {
+          "name": "geometry.index",
+          "line": 111,
+          "kind": "function",
+          "parameters": [
+            "value",
+            "count"
+          ],
+          "annotations": {
+            "value": "int",
+            "count": "int"
+          }
+        },
+        {
+          "name": "geometry.doodads",
+          "line": 133,
+          "kind": "function",
+          "parameters": [
+            "count"
+          ],
+          "annotations": {
+            "count": "int"
+          }
+        }
+      ],
+      "summary": "Canonical bounded identities for XKB copied compatibility, names, indicator maps and current geometry; no writes."
     },
     {
       "path": "agent/src/omni/adapters/platform/linux_xkb_map.py",

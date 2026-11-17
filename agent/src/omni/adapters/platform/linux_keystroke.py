@@ -7,14 +7,16 @@ import struct
 from collections.abc import Awaitable, Callable
 
 from .linux_bus import failure
-from .linux_input import KeyEvents, X11Input
+from .linux_input import KeyEvents, KeyTransition, X11Input
 from .linux_xtest import Sources
 
 
 class KeyPacket:
     """Own exact bytes on one proven connection; completion proves transport/release, not application handling."""
 
-    def __init__(self, monitor: X11Input, opcode: int, sources: Sources, code: int) -> None:
+    def __init__(
+        self, monitor: X11Input, opcode: int, sources: Sources, code: int, transition: KeyTransition | None = None
+    ) -> None:
         wire = monitor.wire
         if (
             not monitor.armed
@@ -41,7 +43,7 @@ class KeyPacket:
             struct.pack("<BBH", opcode, 2, 9) + struct.pack("<BBHIIIIhh8x", kind, code, 0, 0, 0, 0, 0, 0, 0)
             for kind in (2, 3)
         )
-        self.events = KeyEvents(wire.sequence + 1, code, sources.keyboard, sources.keyboard_master)
+        self.events = KeyEvents(wire.sequence + 1, code, sources.keyboard, sources.keyboard_master, transition)
         self.position = 0
         self.attempted = self.settled = self.sending = self.read_started = self.read_complete = False
         self._settlement: asyncio.Task[bool] | None = None
@@ -100,6 +102,12 @@ class KeyPacket:
             raise failure("desktop_input_unverified")
         if wire.changed or not self.events.complete:
             raise failure("desktop_user_intervened")
+        if self.events.transition is not None:
+            try:
+                await self.events.transition.verify_after()
+            except BaseException:
+                wire.changed = True
+                raise
 
     async def _finish(self) -> bool:
         try:
