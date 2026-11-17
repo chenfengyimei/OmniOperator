@@ -69,9 +69,9 @@ def test_capability_page_reports_live_areas_and_explicit_limits(ui_browser, capa
         expect(page.locator('#capabilities-list [data-area="database"]')).to_contain_text("数据库")
         expect(page.locator('#capabilities-list [data-area="mcp"]')).to_contain_text("MCP 运行适配器")
         expect(page.locator('#capabilities-list [data-area="extensions"]')).to_contain_text("可信插件")
-        expect(page.locator("#capabilities-notes")).to_contain_text("默认正式入口仍是 V1")
+        expect(page.locator("#capabilities-notes")).to_contain_text("默认入口为 V2")
         expect(page.locator("#capabilities-notes")).to_contain_text("unknown 结果不自动重放")
-        expect(page.locator("#capabilities-status")).to_contain_text("默认入口 V1")
+        expect(page.locator("#capabilities-status")).to_contain_text("默认入口 V2")
 
         assert page.evaluate("document.documentElement.scrollWidth <= window.innerWidth")
         screenshot = Path(__file__).resolve().parents[2] / "temp/build/v2-capabilities-ui" / f"capabilities-{width}.png"

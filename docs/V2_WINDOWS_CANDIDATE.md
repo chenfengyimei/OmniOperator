@@ -1,6 +1,6 @@
 # Windows V2 离线候选交付
 
-当前目标由所有者限定为Windows开发与离线候选；真实账号、设备、原生桌面操作、72小时和其他系统另作发布门槛。默认仍为V1；候选代码冻结并统一验收后才切换默认入口，保留显式V1回退。当前状态以[候选任务](tasks/v2-windows-candidate.json)为准。
+当前目标由所有者限定为Windows开发与离线候选；真实账号、设备、原生桌面操作、72小时和其他系统另作发布门槛。Windows离线候选默认入口为V2，保留显式V1回退；真实环境和整个V2仍未整体验收。当前状态以[候选任务](tasks/v2-windows-candidate.json)为准。
 
 ## 安装与维护
 
@@ -40,4 +40,4 @@ source快照覆盖运行代码、测试、脚本、界面、部署配方、依�
 
 必须提供`full_pytest`、`strict_types`、`ruff`、`python_format`、`frontend`、`package`、`windows_lifecycle`、`business_ui`八份`omni-v2-candidate-check-1`报告。每份包含kind、source_sha256、真实command、returncode和至少一个固定artifact；必须同一源码、退出码为0。全量另含无选择器的collection_command、collection_returncode、collected节点JSON和junit；拒绝专项、`-k`、`--lf`、遗漏/重复节点、失败或跳过。strict要求pyright JSON零错误/警告且文件数等于候选配置，其他检查保留执行日志/证明。
 
-通过仅得到`ready_for_windows_offline_review=true`；`production_release_ready`和`whole_v2_complete`仍为false，真实账号/设备、桌面、72小时和其他平台始终列为未验证。当前尚未生成最终冻结候选的八项全绿报告，不能用工具回归的合成材料代替产品验收。
+通过仅得到`ready_for_windows_offline_review=true`；`production_release_ready`和`whole_v2_complete`仍为false，真实账号/设备、桌面、72小时和其他平台始终列为未验证。只有同一冻结候选的八项检查材料通过才可合入；工具回归的合成材料不能代替产品验收。

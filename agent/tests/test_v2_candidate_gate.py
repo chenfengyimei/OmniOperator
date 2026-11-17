@@ -181,8 +181,10 @@ def test_full_suite_can_keep_native_exit_and_commit_diagnostics_enabled(candidat
     assert GATE["assess"](root, manifest)["ready_for_windows_offline_review"]
 
 
-def test_guard_document_changes_invalidate_a_source_snapshot(candidate):
+@pytest.mark.parametrize("name", ["docs/TYPE_CHECKING.md", "README.md", "start.bat"])
+def test_guard_document_changes_invalidate_a_source_snapshot(candidate, name):
     root, _, manifest, _, _, _ = candidate
-    (root / "docs").mkdir()
-    (root / "docs/TYPE_CHECKING.md").write_text("updated contract\n", encoding="utf-8")
+    path = root / name
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text("updated contract\n", encoding="utf-8")
     assert "candidate_source_changed" in GATE["assess"](root, manifest)["blockers"]

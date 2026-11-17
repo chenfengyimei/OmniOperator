@@ -21,7 +21,7 @@ def test_report_is_bounded_and_marks_attention_without_guessing_missing_areas():
         "unknown_area": {"secret": "must-not-cross"},
     }
     report = capability_report(health)
-    assert report["format"] == FORMAT and report["entrypoint"] == "v1" and report["v2_accepted"] is False
+    assert report["format"] == FORMAT and report["entrypoint"] == "v2" and report["v2_accepted"] is False
     assert report["ready"] is True and report["platform_acceptance"] == "pending"
     areas = {area["id"]: area for area in report["areas"]}
     assert "unknown_area" not in areas
@@ -33,7 +33,7 @@ def test_report_is_bounded_and_marks_attention_without_guessing_missing_areas():
     assert areas["qq"]["state"] == "attention"
     assert report["counts"]["attention"] == 3
     assert all("private" not in str(area) for area in report["areas"])
-    assert "默认正式入口仍是 V1" in report["notes"][0]
+    assert "默认入口为 V2" in report["notes"][0]
 
 
 def test_capability_endpoint_requires_owner_and_exposes_no_secrets(tmp_path):
@@ -45,7 +45,7 @@ def test_capability_endpoint_requires_owner_and_exposes_no_secrets(tmp_path):
         response = client.get("/api/v1/capabilities", headers=headers)
         assert response.status_code == 200, response.text
         body = response.json()
-        assert body["format"] == FORMAT and body["entrypoint"] == "v1" and body["v2_accepted"] is False
+        assert body["format"] == FORMAT and body["entrypoint"] == "v2" and body["v2_accepted"] is False
         ids = {area["id"] for area in body["areas"]}
         assert {"database", "mcp", "extensions", "terminals", "desktop"} <= ids
         assert token not in response.text and "owner.token" not in response.text

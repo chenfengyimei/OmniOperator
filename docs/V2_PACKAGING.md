@@ -1,12 +1,12 @@
 # V2 打包、安装、更新与恢复（D7）
 
-> **默认正式入口仍是 V1。** 本文件只记录 V2 已实际验证的构建/安装/更新/恢复链与仍未验收的部分，不把“能构建 wheel”写成“三平台已交付”。
+> **默认入口为 V2（Windows离线候选）。** 真实平台与其他系统仍待验收。 本文件只记录 V2 已实际验证的构建/安装/更新/恢复链与仍未验收的部分，不把“能构建 wheel”写成“三平台已交付”。
 
 > **当前接续（2026-11-15）**：源码 `92fbf78a` 的 direct wheel、sdist→wheel、隔离导入、新实例建库及正常关闭已离线复验，123 份资源一致；报告见[静态质量证据](evidence/v2-static-quality.json)。下面 2026-11-11 的资源数量和 `installation` 命令限制属于对应历史记录。
 
 当前另有已接源码的不可变部署链：`service capture/materialize` 捕获并物化固定安装，`release prepare` 在新目录恢复一致快照；单独批准的 `release prepare-online` 可正常排空已证明身份的旧 boot，`exchange apply/resume` 串联源注册移除、目录选择、目标注册及本次启动就绪核验。隔离救援保留未知回执和最新数据，跨 schema 与分阶段管理员交接也有独立合同。因此，“没有停服/启动或数据恢复源码”已不代表当前项目。命令与边界以[版本准备](V2_RELEASES.md)、[服务交换](V2_SERVICE_EXCHANGE.md)、[恢复](V2_EXCHANGE_RECOVERY.md)、[结构升级](V2_SCHEMA_UPGRADE.md)及[管理员交接](V2_ADMIN_HANDOVER.md)为准；旧 `installation` 命令仍保持下文所列范围。
 
-这些源码与离线注入结果尚不证明干净机器 install→update→rollback→uninstall、真实系统服务、macOS/Linux 构建、容器、签名或长跑完成。本轮没有安装、切换或启停用户服务，正式入口继续保持 V1。
+这些源码与离线注入结果尚不证明干净机器 install→update→rollback→uninstall、真实系统服务、macOS/Linux 构建、容器、签名或长跑完成。本轮没有安装、切换或启停用户服务，V1保留显式回退，Windows候选默认入口为V2。
 
 ## Windows候选独立依赖环境（2026-11-17 开发接续）
 
@@ -95,10 +95,10 @@ python -m omni.composition.cli --home <home> installation seal
 
 - **三平台**：仅在 Windows 主机验证纯 Python wheel 构建与隔离导入；macOS/Linux 未构建、未安装、未恢复，不得写“三平台已交付”。
 - **容器镜像**：已有 [`deploy/v2/Dockerfile`](../deploy/v2/Dockerfile) 和构建说明，镜像构建、健康检查及运行仍未验收。2026-11-15 本机只读探测确认 Docker CLI 存在、Docker 引擎不可连接，未执行镜像构建，也未代为启动 Docker Desktop；配方存在不等于容器已交付。
-- **V2 尚无独立安装器/更新器的完整交付与验收**：旧 `installation` 命令包含本地 wheel、运行指针和代码级回滚，保持其原有限制；当前另有上述 `service/release/exchange` 源码链及恢复合同，不能将旧链的限制当成新链缺失。完整安装、更新、数据恢复、卸载与故障场景仍待固定安装和真实服务验收；`scripts/install.ps1`、`update.ps1`、`installer_lib.ps1` 仍是 V1 组件安装，不能作为 V2 已交付的证据。
+- **Windows候选独立安装**：已有固定依赖、独立维护解释器、新装/同schema更新/回滚/快照恢复/保留数据卸载与故障续跑的离线证据；真实系统服务与干净机器仍待验收。跨schema/服务链继续遵循release/exchange合同。`scripts/install.ps1`、`update.ps1`、`installer_lib.ps1` 仍是显式V1组件，不能代替V2证据。
 - **代码签名/公证**：未做 Windows 签名、macOS notarization。
 - **真实机器验收**：未在干净 Windows/macOS/Linux 机器执行“安装→升级→回滚→恢复→卸载”。
-- **正式入口切换**：未满足 D7 门槛，`omni` 仍指向 V1。
+- **默认入口**：Windows离线候选的`omni`、`omni-web`和`python -m omni`指向V2；`omni-v1`、`omni-web-v1`与`start-v1.bat`保留显式旧入口。
 
 ## 4. 复现与门禁
 

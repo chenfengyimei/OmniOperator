@@ -8,7 +8,11 @@
 agent/
   pyproject.toml       产品依赖、打包、omni/omni-web/omni-qq/omni-heartbeat
   src/omni/
-    bootstrap.py       唯一组装根
+    domain/            V2纯领域合同
+    application/       V2应用用例与端口
+    adapters/          V2数据/平台/通道适配
+    composition/       V2独立实例、CLI/Web组装根
+    bootstrap.py       V1兼容组装根
     core/              Agent 内核、上下文、review、调度
     channels/          CLI/QQ/心跳/Web、终端与可视化界面
     tools/             文件、命令、浏览器、安卓、MCP 等能力域
@@ -26,6 +30,6 @@ agent/
 从仓库根执行 `uv run pytest`、`uv run omni-web` 等原命令仍然有效；也可
 `cd agent` 后执行。锁文件与虚拟环境由根 uv 工作区统一管理，无须建立第二套环境。
 
-用户配置、`.env`、记忆/资料/日志和运行技能仍由仓库根及已配置的 RuntimePaths 管理；
+默认`omni`/`omni-web`/`python -m omni`进入V2独立实例；显式V1回退使用`omni-v1`、`omni-web-v1`。V1用户配置、`.env`、记忆/资料/日志和运行技能仍由仓库根及已配置的 RuntimePaths 管理；
 `agent/config/` 只有模板。代码目录重排不会迁移真实数据。安装/启动脚本在根 `scripts/`，
 其中旧开发命令只有转发器；开发新能力修改这里的正式实现。

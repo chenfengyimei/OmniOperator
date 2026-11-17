@@ -47,8 +47,8 @@ desktop-linux = ["dbus-next==0.2.3; sys_platform == 'linux'", "python-xlib>=0.33
 desktop-wayland = ["PyGObject==3.48.2; sys_platform == 'linux'"]
 
 [project.scripts]
-omni = "omni.channels.cli:main"
-omni-web = "omni.channels.web:main"
+omni = "omni.composition.cli:main"
+omni-web = "omni.composition.cli:web_main"
 omni-qq = "omni.channels.qq:main"
 omni-heartbeat = "omni.channels.heartbeat:main"
 omni-v1 = "omni.channels.cli:main"

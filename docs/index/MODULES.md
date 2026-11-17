@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`1dcbf670e75321c9190112990d068d923adb7e9f77630b6b23a87ed9fb552055`。包含 65 个职责模块、739 个源码/界面文件。
+源码指纹：`d7631ca92913ead296985c3a0762f1792ae71651b8123e3da996a09cfa151f4b`。包含 65 个职责模块、739 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -1136,14 +1136,14 @@
 
 | 文件 | 行数 | 职责 |
 |---|---:|---|
-| [agent/src/omni/__main__.py](../../agent/src/omni/__main__.py) | 5 | python -m omni 入口。 |
+| [agent/src/omni/__main__.py](../../agent/src/omni/__main__.py) | 5 | Run the V2 CLI; explicit V1 commands retain the legacy runtime. |
 | [agent/src/omni/channels/cli.py](../../agent/src/omni/channels/cli.py) | 147 | 本地终端 REPL 入口：uv run omni。 |
 
 文档：[docs/HANDOFF.md](../../docs/HANDOFF.md)
 
 测试：关联模块集成验证
 
-直接静态依赖：`assembly`、`config`、`models`、`safety`
+直接静态依赖：`assembly`、`config`、`models`、`safety`、`v2-composition`
 
 ## QQ 入口 · qq-channel
 

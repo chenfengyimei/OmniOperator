@@ -24,7 +24,7 @@ def test_build_gate_keeps_its_v2_checks():
 def test_packaging_document_lists_verified_chain_and_unfinished_platforms():
     text = DOC.read_text(encoding="utf-8")
     assert "uv run --no-sync python scripts/check_package.py" in text
-    assert "默认正式入口仍是 V1" in text
+    assert "默认入口为 V2" in text
     for case in (
         "test_v2_releases.py",
         "test_v2_release_drain.py",
@@ -32,7 +32,7 @@ def test_packaging_document_lists_verified_chain_and_unfinished_platforms():
         "test_v2_schema_release.py",
     ):
         assert case in text
-    for gap in ("macOS/Linux", "容器镜像", "V2 尚无独立安装器", "代码签名", "干净机器"):
+    for gap in ("macOS/Linux", "容器镜像", "Windows候选独立安装", "代码签名", "干净机器"):
         assert gap in text, f"packaging document hides gap: {gap}"
     assert "不得写“三平台已交付”" in text
     assert "| 三平台已交付 |" not in text

@@ -282,20 +282,19 @@ uv run python -m playwright install chromium
 ### 启动
 
 ```powershell
-uv run omni-web        # Web 工作台：控制台打印配对链接，点开即完成本机配对
-uv run omni            # CLI（REPL）
-uv run omni-qq         # QQ 通道（需先部署 NapCat，见 docs/QQ_SETUP.md）
-uv run omni-heartbeat  # 定时调度（无人值守 fail-closed；写操作仍受审批约束）
+uv run --no-sync omni-web --open-browser  # V2 工作台，默认回环端口8766
+uv run --no-sync python -m omni --home D:\omni-v2 init
+uv run --no-sync omni-v1                   # 显式V1 CLI回退
+uv run --no-sync omni-web-v1               # 显式V1工作台回退
 ```
 
-也可以双击 `start.bat`：它启动工作台，并自动打开尚未过期的配对链接
-（逻辑在 `scripts/start.ps1` → `scripts/installer_lib.ps1`）。
+也可以双击`start.bat`启动V2工作台（`scripts/start-v2.ps1`）；`start-v1.bat`保留旧配对入口。V2使用独立实例，不导入现有V1数据。已有常驻环境不在本任务中重建，开发启动可直接用`./scripts/start-v2.ps1`；新安装包使用新的默认命令。V1专用`omni-qq`、`omni-heartbeat`兼容命令继续保留。Windows离线安装与维护见[候选交付](docs/V2_WINDOWS_CANDIDATE.md)。
 
 ### 装完先自检
 
 ```powershell
-uv run --no-sync python -m omni.channels.doctor    # 只读体检：配置 / 依赖 / 数据库 / 设备
-uv run --no-sync pytest -q                          # 全量离线测试（1515 项，约 3 分钟）
+uv run --no-sync python -m omni --home D:\omni-v2 doctor  # V2离线数据库/实例自检
+uv run --no-sync pytest -q  # 开发完成后统一离线验收；开发中使用受影响模块专项
 ```
 
 ### 常见问题
@@ -387,7 +386,7 @@ Python产品工程位于 [agent/](agent/README.md)，单一界面源码位于 `w
 
 ---
 
-V2底层重构正在开发，默认入口尚未切换；进度与限制见 [V2重构记录](docs/V2_REFACTOR.md)。
+Windows离线候选默认入口为V2，23个业务入口与独立安装链已接线；真实账号、设备、桌面、72小时和其他系统仍待验收，整个V2未整体验收。进度见[Windows候选任务](docs/tasks/v2-windows-candidate.json)，历史记录见[V2重构记录](docs/V2_REFACTOR.md)。
 
 ## 模块地图
 
@@ -412,7 +411,7 @@ V2底层重构正在开发，默认入口尚未切换；进度与限制见 [V2�
 
 | 模块 | 职责 | 文档 |
 |---|---|---|
-| `v2-workbench` | **V2 开发工作台** — 新API的最小验证界面，尚未完成业务迁移 | [V2_REFACTOR](docs/V2_REFACTOR.md) |
+| `v2-workbench` | **V2 Windows候选工作台** — 23个业务入口，真实环境验收另行记录 | [V2_REFACTOR](docs/V2_REFACTOR.md) |
 | `http-storage` | **项目目录与文件管理** — 全局与 Agent 目录设置、运行与待重启路径、用途索引及当前空间公开文件区的有界浏览和人工上传 | [STORAGE, AGENT_STORAGE](docs/STORAGE.md) |
 | `http-updates` | **关于与更新 API** — 版本、通道、人工安装确认和持久进度 | [UPDATES](docs/UPDATES.md) |
 | `http-context` | **上下文设置与统计** — 设置中心的只读窗口统计、供应商缓存样本和带版本检查的配置保存 | [CONTEXT_SETTINGS, PROMPT_CONTEXT](docs/CONTEXT_SETTINGS.md) |

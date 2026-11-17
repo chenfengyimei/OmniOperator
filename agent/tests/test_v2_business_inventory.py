@@ -36,7 +36,7 @@ def inventory_rows():
 def test_every_page_is_documented_and_every_documented_page_exists():
     nav, sections = page_sets()
     rows = inventory_rows()
-    assert "默认正式入口仍是 V1" in DOC.read_text(encoding="utf-8")
+    assert "默认入口为 V2" in DOC.read_text(encoding="utf-8")
     assert nav == sections, f"navigation/section drift: {nav ^ sections}"
     assert set(rows) == nav, f"inventory/navigation drift: {set(rows) ^ nav}"
     assert len(rows) == len(nav)

@@ -4,7 +4,7 @@
 
 .DESCRIPTION
   共享逻辑在 scripts/installer_lib.ps1 的 Start-Workbench：
-  1) 工作台未运行 → 新开一个 PowerShell 窗口执行 `uv run --no-sync omni-web`
+  1) 工作台未运行 → 新开一个 PowerShell 窗口执行 `uv run --no-sync python -m omni.channels.web`
      （HANDOFF 纪律：常驻运行必须 --no-sync，避免运行时 uv 重建 venv 失败）；
   2) 轮询 data/run/pair_url.json（服务启动时写入），校验 expires_at 未过期后
      自动用默认浏览器打开配对链接；

@@ -6,7 +6,7 @@ from collections.abc import Mapping
 from typing import cast
 
 FORMAT = "omni-capability-report-1"
-DEFAULT_ENTRYPOINT = "v1"
+DEFAULT_ENTRYPOINT = "v2"
 ACCEPTED = False
 
 # Bounded, owner-facing facts only. Paths, identifiers, credentials and free text never cross.
@@ -38,7 +38,7 @@ AREAS: tuple[tuple[str, str, tuple[str, ...], str], ...] = (
 )
 
 NOTES = (
-    "默认正式入口仍是 V1；本报告不表示 V2 已切换或已验收。",
+    "默认入口为 V2；Windows 离线候选不代替真实平台与整个 V2 的验收。",
     "真实 MCP/OAuth、真实市场源与第三方插件、真实账号/设备与三平台原生仍未验收。",
     "unknown 结果不自动重放；能力状态只反映当前实例快照。",
 )

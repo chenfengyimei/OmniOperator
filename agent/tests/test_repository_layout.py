@@ -33,14 +33,23 @@ def test_product_and_runtime_roots_are_separate():
     assert (APP_ROOT / "LICENSE").read_bytes() == (PROJECT_ROOT / "LICENSE").read_bytes()
 
 
-def test_workspace_resolves_product_and_keeps_four_entrypoints():
+def test_workspace_resolves_product_and_keeps_default_and_explicit_entrypoints():
     workspace = tomllib.loads((PROJECT_ROOT / "pyproject.toml").read_text(encoding="utf-8"))
     product = tomllib.loads((APP_ROOT / "pyproject.toml").read_text(encoding="utf-8"))
     assert workspace["tool"]["uv"]["workspace"]["members"] == ["agent"]
     assert workspace["tool"]["uv"]["sources"]["omnioperator"] == {"workspace": True}
     assert workspace["tool"]["pytest"]["ini_options"]["testpaths"] == ["agent/tests"]
     assert product["tool"]["hatch"]["build"]["targets"]["wheel"]["packages"] == ["src/omni"]
-    assert set(product["project"]["scripts"]) == {"omni", "omni-web", "omni-qq", "omni-heartbeat"}
+    assert product["project"]["scripts"] == {
+        "omni": "omni.composition.cli:main",
+        "omni-web": "omni.composition.cli:web_main",
+        "omni-qq": "omni.channels.qq:main",
+        "omni-heartbeat": "omni.channels.heartbeat:main",
+        "omni-v1": "omni.channels.cli:main",
+        "omni-web-v1": "omni.channels.web:main",
+        "omni-v2": "omni.composition.cli:main",
+        "omni-web-v2": "omni.composition.cli:web_main",
+    }
     index = build_index(PROJECT_ROOT)
     assert not index["warnings"] and index["entrypoints"] == product["project"]["scripts"]
     assert all(row["path"].startswith(("agent/src/omni/", "web/")) for row in index["files"])

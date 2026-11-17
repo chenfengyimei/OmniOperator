@@ -1,5 +1,5 @@
-"""python -m omni 入口。"""
+"""Run the V2 CLI; explicit V1 commands retain the legacy runtime."""
 
-from omni.channels.cli import main
+from omni.composition.cli import main
 
-main()
+raise SystemExit(main())

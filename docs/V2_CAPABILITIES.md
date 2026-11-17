@@ -1,6 +1,6 @@
 # V2 能力报告（D7 首节点）
 
-> 只读投影当前实例健康快照；**不表示 V2 已验收或已切换正式入口**。真值仍以任务台账、源码与对应证据为准。
+> 只读投影当前实例健康快照；**不表示 V2 已整体验收**。真值仍以任务台账、源码与对应证据为准。
 
 ## 1. 范围
 
@@ -19,7 +19,7 @@
   "ready": true,
   "closing": false,
   "platform_acceptance": "pending",
-  "entrypoint": "v1",
+  "entrypoint": "v2",
   "v2_accepted": false,
   "areas": [
     {"id": "database", "name": "数据库", "state": "available",
@@ -27,7 +27,7 @@
      "limits": "单 SQLite 实例"}
   ],
   "counts": {"areas": 24, "attention": 0},
-  "notes": ["默认正式入口仍是 V1；本报告不表示 V2 已切换或已验收。", "…"]
+  "notes": ["默认入口为 V2；Windows 离线候选不代替真实平台与整个 V2 的验收。", "…"]
 }
 ```
 

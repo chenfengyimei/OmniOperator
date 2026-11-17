@@ -15,13 +15,13 @@
 
 from __future__ import annotations
 
-from pathlib import Path
 import json
 import os
 import subprocess
 import threading
 import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from pathlib import Path
 
 import pytest
 
@@ -77,21 +77,23 @@ def test_shared_lib_preflights_running_services():
 def test_workbench_start_follows_no_sync_and_pair_url_contract():
     text = _read_script("scripts/installer_lib.ps1")
     # HANDOFF 纪律：常驻运行必须 --no-sync
-    assert "uv run --no-sync omni-web" in text
+    assert "uv run --no-sync python -m omni.channels.web" in text
     # 配对码从 pair_url.json 读取且必须校验 expires_at（滞后文件不能递给用户）
     assert "pair_url.json" in text
     assert "expires_at" in text
 
 
 def test_bat_wrappers_are_ascii_only_and_start_the_workbench():
-    """cmd 代码页随机器变化：包装器只允许 ASCII；start.bat 必须指向 start.ps1（启动链）。
+    """cmd 代码页随机器变化：包装器只允许 ASCII；start.bat 指向 V2，start-v1.bat 保留显式旧启动链。
 
     图形安装器已废弃：install.bat 不再存在，若有人误加回来会被这条断言提醒更新台账。
     """
     assert not (ROOT / "install.bat").exists(), "install.bat 已废弃（temp/retired-installer-2026-11-01/）"
     start_bat = ROOT / "start.bat"
     start_bat.read_bytes().decode("ascii")
-    assert "start.ps1" in start_bat.read_text(encoding="ascii")
+    assert "start-v2.ps1" in start_bat.read_text(encoding="ascii")
+    legacy = ROOT / "start-v1.bat"
+    assert "start.ps1" in legacy.read_text(encoding="ascii")
 
 
 def test_gitignore_excludes_installer_downloads():

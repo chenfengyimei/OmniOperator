@@ -501,7 +501,7 @@ function Start-Workbench {
     $banner = $banner + "Write-Host ' 保持此窗口开启——关闭本窗口 = 停止工作台' -ForegroundColor Yellow; "
     $banner = $banner + "Write-Host ' 下方的配对链接用于进入工作台（正常会自动打开浏览器）' -ForegroundColor Yellow; "
     $banner = $banner + "Write-Host '====================================================' -ForegroundColor Yellow; "
-    $inner = $banner + "Set-Location -LiteralPath '$Root'; `$env:PYTHONUTF8='1'; uv run --no-sync omni-web"
+    $inner = $banner + "Set-Location -LiteralPath '$Root'; `$env:PYTHONUTF8='1'; uv run --no-sync python -m omni.channels.web"
     Start-Process powershell.exe -ArgumentList ('-NoExit -ExecutionPolicy Bypass -Command "' + $inner + '"')
 
     Send-Say $Sink '等待配对链接生成（最多 90 秒）…' 'info'
