@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`2d280ea18ca793b8829f5b28f8affd55c668b092601874bba014f4cf4e9dc07e`。包含 65 个职责模块、749 个源码/界面文件。
+源码指纹：`e00966588791dd54da56e49b00487730a1b727508de152adb0179990d8601689`。包含 65 个职责模块、750 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -290,7 +290,8 @@
 | [agent/src/omni/adapters/platform/linux_atspi.py](../../agent/src/omni/adapters/platform/linux_atspi.py) | 365 | Read-only AT-SPI windows in a proven logind session. No X11/Portal capture or input fallback. |
 | [agent/src/omni/adapters/platform/linux_bus.py](../../agent/src/omni/adapters/platform/linux_bus.py) | 436 | Verified local D-Bus transport for desktop helpers; no environment-selected or network buses. |
 | [agent/src/omni/adapters/platform/linux_fds.py](../../agent/src/omni/adapters/platform/linux_fds.py) | 95 | Owned received descriptors and bounded SCM_RIGHTS; no bus or desktop policy. |
-| [agent/src/omni/adapters/platform/linux_input.py](../../agent/src/omni/adapters/platform/linux_input.py) | 184 | Verified Xorg input-change guard for addressed semantic actions; never grabs, synthesizes or stores input content. |
+| [agent/src/omni/adapters/platform/linux_foreground.py](../../agent/src/omni/adapters/platform/linux_foreground.py) | 134 | Read-only X11 focus ancestry proof for future explicit foreground delivery; never maps AT-SPI nodes or sends input. |
+| [agent/src/omni/adapters/platform/linux_input.py](../../agent/src/omni/adapters/platform/linux_input.py) | 209 | Verified Xorg input-change guard for addressed semantic actions; never grabs, synthesizes or stores input content. |
 | [agent/src/omni/adapters/platform/linux_lease_client.py](../../agent/src/omni/adapters/platform/linux_lease_client.py) | 335 | Owned persistent X11 guardian transport; no native APIs, target rebinding from verify, unbounded queues or input. |
 | [agent/src/omni/adapters/platform/linux_pipewire.py](../../agent/src/omni/adapters/platform/linux_pipewire.py) | 256 | One serial-targeted GStreamer PipeWire frame inside an owned helper, never the default remote or display. |
 | [agent/src/omni/adapters/platform/linux_portal.py](../../agent/src/omni/adapters/platform/linux_portal.py) | 218 | Explicit ephemeral window selection on a pinned Wayland portal; never opens PipeWire FDs or dispatches input. |

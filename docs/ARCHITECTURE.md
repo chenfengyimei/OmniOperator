@@ -98,6 +98,8 @@ Linux桌面原生会话由固定辅助进程内的`SessionInspector`核验，`Lo
 
 `domain/linux_window_leases.py`定义持续只读窗口证明IPC，`linux_lease_client.py`只拥有受管辅助进程和精确通信，固定`workers/linux_window_lease.py`才打开原生会话。`linux_window_leases.py`在同一X11连接订阅窗口结构通知，将随机别名绑定连续代次；旧别名不因XID复用或重连恢复。DesktopBackend发现后绑定，核验/截图前后再次核对，失败不发布对象；共用原2进程/4请求额度，真实回收前保留归属。健康空闲只读订阅与活动业务租约分别结清；不自动映射AT-SPI身份，不授予输入权，见[持续身份合同](V2_LINUX_WINDOW_LEASES.md)。
 
+`linux_foreground.py`拥有独立输入监测连接，对外部持续窗口租约核验XRes实际焦点客户端及有界QueryTree祖先链。`linux_input.py`原焦点监测可一次性补充祖先结构订阅；物理输入、祖先/窗口/进程变化使证明失效，失败不复活。该原生只读基础尚不开放前台业务派发，也不把AT-SPI坐标或PID当作X11窗口映射，见[前台开发合同](V2_LINUX_FOREGROUND.md)。
+
 ## V2 调度与所有权边界
 
 V2依赖方向固定为入口适配器→应用服务→领域端口；`composition/instance.py`构造并关闭调度器，`application/scheduling.py`只编排时钟、时区端口和事务。数字日历计算位于纯领域层，锁定IANA数据读取位于适配器。数据库仓储负责到期唯一约束、进度、savepoint入队、逐条核查和租约，不调用网络或模型。回合分发通过持久原子领取取得会话fence，外部调用不在事务内等待；未知执行不得自动重放。完整合同和当前证据见[V2实施记录](V2_REFACTOR.md)。

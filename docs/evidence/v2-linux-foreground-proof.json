@@ -1,0 +1,55 @@
+{
+  "source_base": "20991e6d83e334b5eeeecd3aea9dd5cdbaadee72",
+  "scope": "Native read-only X11 focus receiving-client and ancestry proof; foreground dispatch remains disabled",
+  "source_files": {
+    "agent/src/omni/adapters/platform/linux_foreground.py": "9731027bfe630157fadb8007b5867a8d69d061e9a0d0a1f9e1bc3d6ea0169b3d",
+    "agent/src/omni/adapters/platform/linux_input.py": "aa0da7b81bcf489d0a99cec2f0748fa801e2e7f130012f839424809c19aeb531",
+    "agent/tests/test_v2_linux_foreground.py": "e29b0475a299e1fc9ab62450071593a80b174342ac998d8b6ee73b9180a6766e",
+    "pyrightconfig.strict.json": "058bb67c4cb413e4085c92e7f604c12d52652684f0a50327dd67bc003e19a88b",
+    "docs/TYPE_CHECKING.md": "0369c6240883e7f089144f9dd3618cf5317dfeec2b60d0ec62c3a1e265b145eb",
+    "docs/V2_LINUX_FOREGROUND.md": "09ca25e21248fc97a66351f5b373fef5b710827b204c62c93d5899bede622a3e",
+    "docs/V2_LINUX_HANDOFF.md": "734437984394f77059dffd2bbd3b851e928caa8176c4641893c11fb2f8c62762"
+  },
+  "scoped_tests": {
+    "distinct_passed": 104,
+    "new_passed": 18,
+    "callers_passed": 84,
+    "type_contract_passed": 2,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0,
+    "reports": [
+      {
+        "path": "temp/build/v2-linux-foreground-proof-initial.xml",
+        "sha256": "8d6a2fcea189ff1bc3b117ebb908e8fc0ad63e6308d40b33a4f5d24aceaa4ccd"
+      },
+      {
+        "path": "temp/build/v2-linux-foreground-proof-callers.xml",
+        "sha256": "516f7c5f683cf17d9924fecd366e0767cf228ce4e7cc14e047821507d19cd975"
+      },
+      {
+        "path": "temp/build/v2-linux-foreground-proof-supplement.xml",
+        "sha256": "7a41400c2f1dc6ef6df46476e1f092298c985524b2ac5455d9394616cb9e5426"
+      }
+    ]
+  },
+  "strict_modified_files": {
+    "files": 2,
+    "errors": 0,
+    "warnings": 0,
+    "report": {
+      "path": "temp/build/v2-linux-foreground-proof-pyright-initial.json",
+      "sha256": "bb86523fcd05bb4a06d8088b1eb6ec600885705cb6df725475058b4e3b661897"
+    }
+  },
+  "same_pid_outside_selected_window_denied": true,
+  "ancestor_events_during_subscription_latched": true,
+  "failed_prepare_or_check_can_revive": false,
+  "input_or_focus_synthesis_executed": false,
+  "production_foreground_dispatch_enabled": false,
+  "real_linux_native_executed": false,
+  "full_suite_run": false,
+  "whole_v2_development_complete": false,
+  "whole_v2_accepted": false,
+  "next": "Continue actual foreground delivery and reliable control/window association; independent Wayland control grant afterward"
+}

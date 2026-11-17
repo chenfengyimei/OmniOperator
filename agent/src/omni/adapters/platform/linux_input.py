@@ -89,6 +89,7 @@ class InputWire(Wire):
         self.opcode: int | None = None
         self.changed = False
         self.focus: int | None = None
+        self.structures: set[int] = set()
         self.events = 0
 
     async def read(self, length: int) -> bytes:
@@ -110,7 +111,7 @@ class InputWire(Wire):
             if self.focus is None or unpack("I", header, 4)[0] != self.focus:
                 raise failure("desktop_input_unverified")
         elif header[0] in range(16, 28):
-            if self.focus is None or unpack("I", header, 8)[0] != self.focus:
+            if self.focus is None or unpack("I", header, 8)[0] not in self.structures | {self.focus}:
                 raise failure("desktop_input_unverified")
         else:
             raise failure("desktop_input_unverified")
@@ -129,6 +130,7 @@ class X11Input:
         self.connection = self.wire = None
         self.topology: str | None = None
         self.armed = False
+        self.lineage_watched = False
 
     async def open(self) -> None:
         self.connection = await self._connect(self.inspector)
@@ -179,6 +181,29 @@ class X11Input:
         focus = await self.wire.request(43)
         if len(focus) != 32 or unpack("I", focus, 8)[0] != self.wire.focus or self.wire.changed:
             raise failure("desktop_user_intervened")
+
+    async def watch_lineage(self, windows: tuple[int, ...]) -> None:
+        """Extend one armed guard to a bounded native ancestry; never acquires focus or changes input."""
+        assert self.wire is not None and self.wire.setup is not None
+        if (
+            not self.armed
+            or self.lineage_watched
+            or not 1 <= len(windows) <= 16
+            or len(set(windows)) != len(windows)
+            or windows[0] != self.wire.focus
+            or any(
+                type(window) is not int or not 2 <= window <= 0xFFFFFFFF or window == self.wire.setup.root
+                for window in windows
+            )
+        ):
+            raise failure("desktop_input_unverified")
+        self.lineage_watched = True
+        # Register before the first subscription's reply barrier so an event
+        # arriving while later ancestors are subscribed is already understood.
+        self.wire.structures.update(windows)
+        for window in windows[1:]:
+            await self.wire.send(2, struct.pack("<III", window, 1 << 11, 1 << 17))
+        await self.check()
 
     async def close(self) -> bool:
         return self.connection is None or await self.connection.close()

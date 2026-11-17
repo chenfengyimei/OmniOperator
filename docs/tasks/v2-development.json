@@ -49,7 +49,18 @@
         {
           "id": "G3.L2",
           "title": "显式前台输入、独立节点与窗口关联及逐次授权",
-          "status": "next_development"
+          "status": "development_in_progress",
+          "contract": "docs/V2_LINUX_FOREGROUND.md",
+          "native_focus_proof": {
+            "status": "implemented_scoped_passed",
+            "evidence": "docs/evidence/v2-linux-foreground-proof.json",
+            "production_foreground_dispatch_enabled": false
+          },
+          "remaining": [
+            "控件与原生窗口可靠关联",
+            "实际worker与业务派发",
+            "Unicode/键映射、鼠标遮挡及派发后确定性"
+          ]
         }
       ]
     },

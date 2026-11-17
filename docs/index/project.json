@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "2d280ea18ca793b8829f5b28f8affd55c668b092601874bba014f4cf4e9dc07e",
+  "source_sha256": "e00966588791dd54da56e49b00487730a1b727508de152adb0179990d8601689",
   "modules": [
     {
       "id": "v2-domain",
@@ -314,6 +314,7 @@
         "agent/src/omni/adapters/platform/linux_atspi.py",
         "agent/src/omni/adapters/platform/linux_bus.py",
         "agent/src/omni/adapters/platform/linux_fds.py",
+        "agent/src/omni/adapters/platform/linux_foreground.py",
         "agent/src/omni/adapters/platform/linux_input.py",
         "agent/src/omni/adapters/platform/linux_lease_client.py",
         "agent/src/omni/adapters/platform/linux_pipewire.py",
@@ -416,7 +417,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 57138,
+      "lines": 57297,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -25816,10 +25817,102 @@
       "summary": "Owned received descriptors and bounded SCM_RIGHTS; no bus or desktop policy."
     },
     {
+      "path": "agent/src/omni/adapters/platform/linux_foreground.py",
+      "module": "v2-adapters",
+      "python_module": "omni.adapters.platform.linux_foreground",
+      "lines": 134,
+      "imports": [
+        "omni.adapters.platform.linux_bus",
+        "omni.adapters.platform.linux_input",
+        "omni.adapters.platform.linux_window_leases",
+        "omni.adapters.platform.linux_x11",
+        "omni.adapters.platform.linux_x11_wire"
+      ],
+      "symbols": [
+        {
+          "name": "WindowFocus",
+          "line": 19,
+          "kind": "class"
+        },
+        {
+          "name": "WindowFocus.__init__",
+          "line": 22,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "leases",
+            "monitor"
+          ],
+          "annotations": {
+            "leases": "WindowLeases",
+            "monitor": "X11Input"
+          }
+        },
+        {
+          "name": "WindowFocus._same_server",
+          "line": 32,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "WindowFocus._read_lineage",
+          "line": 52,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "WindowFocus.prepare",
+          "line": 90,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "target"
+          ],
+          "annotations": {
+            "target": "Payload"
+          }
+        },
+        {
+          "name": "WindowFocus._validate",
+          "line": 112,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "WindowFocus.check",
+          "line": 123,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "WindowFocus.close",
+          "line": 132,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        }
+      ],
+      "summary": "Read-only X11 focus ancestry proof for future explicit foreground delivery; never maps AT-SPI nodes or sends input."
+    },
+    {
       "path": "agent/src/omni/adapters/platform/linux_input.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.linux_input",
-      "lines": 184,
+      "lines": 209,
       "imports": [
         "omni.adapters.platform.linux_bus",
         "omni.adapters.platform.linux_session",
@@ -25859,7 +25952,7 @@
         },
         {
           "name": "InputWire.read",
-          "line": 94,
+          "line": 95,
           "kind": "function",
           "parameters": [
             "self",
@@ -25871,7 +25964,7 @@
         },
         {
           "name": "InputWire.event",
-          "line": 99,
+          "line": 100,
           "kind": "function",
           "parameters": [
             "self",
@@ -25883,12 +25976,12 @@
         },
         {
           "name": "X11Input",
-          "line": 120,
+          "line": 121,
           "kind": "class"
         },
         {
           "name": "X11Input.__init__",
-          "line": 121,
+          "line": 122,
           "kind": "function",
           "parameters": [
             "self",
@@ -25904,7 +25997,7 @@
         },
         {
           "name": "X11Input.open",
-          "line": 133,
+          "line": 135,
           "kind": "function",
           "parameters": [
             "self"
@@ -25913,7 +26006,7 @@
         },
         {
           "name": "X11Input.released",
-          "line": 146,
+          "line": 148,
           "kind": "function",
           "parameters": [
             "self"
@@ -25922,7 +26015,7 @@
         },
         {
           "name": "X11Input.arm",
-          "line": 157,
+          "line": 159,
           "kind": "function",
           "parameters": [
             "self"
@@ -25931,7 +26024,7 @@
         },
         {
           "name": "X11Input.check",
-          "line": 175,
+          "line": 177,
           "kind": "function",
           "parameters": [
             "self"
@@ -25939,8 +26032,20 @@
           "annotations": {}
         },
         {
+          "name": "X11Input.watch_lineage",
+          "line": 185,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "windows"
+          ],
+          "annotations": {
+            "windows": "tuple[int, ...]"
+          }
+        },
+        {
           "name": "X11Input.close",
-          "line": 183,
+          "line": 208,
           "kind": "function",
           "parameters": [
             "self"
