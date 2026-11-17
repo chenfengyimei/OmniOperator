@@ -1,4 +1,4 @@
-import { renderDesktopActions } from './desktop-actions.js?v=20261117v134';
+import { renderDesktopActions } from './desktop-actions.js?v=20261117v135';
 
 export function mountDesktop({ api, wrap, getAgent, getGeneration, getSession }) {
   const $ = (id) => document.getElementById(id);
@@ -24,6 +24,7 @@ export function mountDesktop({ api, wrap, getAgent, getGeneration, getSession })
     captureCursor = null;
   const previews = new Set();
   let portalGrant = null;
+  let controlGrant = null;
   const root = (agent = owner) => `/agents/${agent}/desktop`;
   const target = () => ({ agent: owner, generation: getGeneration(), session: getSession(), view, viewId });
   const current = (captured) =>
@@ -52,6 +53,38 @@ export function mountDesktop({ api, wrap, getAgent, getGeneration, getSession })
     $('desktop-portal-open').disabled = !active || busy || !established;
     $('desktop-portal-query').disabled = $('desktop-portal-close').disabled = !active || busy || !portalGrant;
     $('desktop-portal-capture').disabled = !active || busy || !getSession() || !portalGrant?.capture_available;
+    $('desktop-control-consent').disabled = $('desktop-control-devices').disabled = !active || busy || !established;
+    $('desktop-control-open').disabled = !active || busy || !established || !$('desktop-control-consent').checked;
+    $('desktop-control-query').disabled = $('desktop-control-close').disabled = !active || busy || !controlGrant;
+  }
+
+  function clearControl() {
+    controlGrant = null;
+    $('desktop-control-status').textContent = '';
+    $('desktop-control-consent').checked = false;
+    $('desktop-control-devices').value = '1';
+    $('desktop-control').hidden = true;
+  }
+
+  function renderControl(grant) {
+    controlGrant = grant;
+    const phases = {
+      starting: '正在准备许可申请',
+      prepared: '准备请求系统许可',
+      creating: '正在建立控制会话',
+      selecting: '正在选择设备',
+      authorizing: '等待你确认系统许可',
+      system_authorized: '系统许可已记录，尚未启用键鼠输入',
+      closing: '正在结束控制许可',
+      closed: '控制许可已结束',
+      denied: '你未同意系统许可',
+      failed: '控制许可不可用',
+    };
+    const label = grant?.authorization_pending ? '系统已同意，正在确认记录' : phases[grant?.phase] || '状态待核查';
+    $('desktop-control-status').textContent = grant
+      ? `${label}。${grant.cleanup_pending ? '会话仍在关闭，请查询状态。' : ''}${grant.error_code ? ' 原因：' + grant.error_code : ''}`
+      : '本次视图暂无独立控制许可。';
+    controls();
   }
 
   function clearPortal() {
@@ -175,7 +208,9 @@ export function mountDesktop({ api, wrap, getAgent, getGeneration, getSession })
 
   function render(report, checkedAt) {
     clearPortal();
+    clearControl();
     $('desktop-portal').hidden = report?.platform !== 'linux' || report?.session?.kind !== 'interactive';
+    $('desktop-control').hidden = report?.platform !== 'linux' || report?.session?.kind !== 'interactive';
     available = Boolean(report?.capabilities?.find((item) => item.id === 'window_identity')?.available);
     observationAvailable = Boolean(report?.capabilities?.find((item) => item.id === 'accessibility')?.available);
     captureAvailable = Boolean(report?.capabilities?.find((item) => item.id === 'screen_capture')?.available);
@@ -269,6 +304,59 @@ export function mountDesktop({ api, wrap, getAgent, getGeneration, getSession })
       }
     }
   }
+
+  $('desktop-control-consent').addEventListener('change', controls);
+  $('desktop-control-devices').addEventListener('change', () => {
+    $('desktop-control-consent').checked = false;
+    controls();
+  });
+  $('desktop-control-open').addEventListener(
+    'click',
+    wrap(() =>
+      perform(async (captured) => {
+        if (!$('desktop-control-consent').checked) return;
+        const devices = Number($('desktop-control-devices').value);
+        $('desktop-control-consent').checked = false;
+        const grant = await api(root(captured.agent) + '/control', {
+          method: 'POST',
+          body: { consent: true, purpose: 'interactive-input', view_id: captured.viewId, devices },
+        });
+        if (!current(captured)) return;
+        renderControl(grant);
+        $('desktop-status').textContent = '请在系统窗口确认所选设备，再查询控制许可。窗口共享不会授予此许可。';
+      }),
+    ),
+  );
+  $('desktop-control-query').addEventListener(
+    'click',
+    wrap(() =>
+      perform(async (captured) => {
+        const value = await api(root(captured.agent) + '/control?view_id=' + encodeURIComponent(captured.viewId));
+        if (current(captured)) renderControl(value.grant);
+      }),
+    ),
+  );
+  $('desktop-control-close').addEventListener(
+    'click',
+    wrap(() =>
+      perform(async (captured) => {
+        const grant = controlGrant;
+        if (!grant) return;
+        await api(
+          root(captured.agent) +
+            '/control?view_id=' +
+            encodeURIComponent(captured.viewId) +
+            '&grant_id=' +
+            encodeURIComponent(grant.grant_id),
+          { method: 'DELETE' },
+        );
+        if (!current(captured)) return;
+        renderControl(null);
+        $('desktop-control-consent').checked = false;
+        controls();
+      }),
+    ),
+  );
 
   $('desktop-portal-open').addEventListener(
     'click',
@@ -513,6 +601,7 @@ export function mountDesktop({ api, wrap, getAgent, getGeneration, getSession })
     clearTargets();
     clearCaptures();
     clearPortal();
+    clearControl();
     renderRuntime(null);
     controls();
     if (wasActive) forget(previous.agent, previous.viewId);

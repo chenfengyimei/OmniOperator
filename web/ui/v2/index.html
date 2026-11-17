@@ -8,11 +8,11 @@
     <link rel="stylesheet" href="/assets/ui/tokens.css?v=20261115u1" />
     <link rel="stylesheet" href="/assets/ui/base.css?v=20261103v7" />
     <link rel="stylesheet" href="/assets/ui/icons.css?v=20261115u1" />
-    <link rel="stylesheet" href="/assets/ui/v2/v1/components.css?v=20261117v134" />
-    <link rel="stylesheet" href="/assets/ui/v2/v1/frame.css?v=20261117v134" />
-    <link rel="stylesheet" href="/assets/ui/v2/v1/workbench.css?v=20261117v134" />
-    <link rel="stylesheet" href="/assets/ui/v2/workbench.css?v=20261117v134" />
-    <link rel="stylesheet" href="/assets/vendor/xterm.min.css?v=20261117v134" />
+    <link rel="stylesheet" href="/assets/ui/v2/v1/components.css?v=20261117v135" />
+    <link rel="stylesheet" href="/assets/ui/v2/v1/frame.css?v=20261117v135" />
+    <link rel="stylesheet" href="/assets/ui/v2/v1/workbench.css?v=20261117v135" />
+    <link rel="stylesheet" href="/assets/ui/v2/workbench.css?v=20261117v135" />
+    <link rel="stylesheet" href="/assets/vendor/xterm.min.css?v=20261117v135" />
   </head>
   <body class="chat-mode" data-ui-page="workbench-v2">
     <header class="app-header">
@@ -812,6 +812,30 @@
                 <button id="desktop-portal-capture" type="button" disabled>保存共享窗口单帧</button>
                 <button id="desktop-portal-close" type="button" disabled>结束共享</button>
                 <p id="desktop-portal-status" role="status" aria-live="polite"></p>
+              </div>
+              <div id="desktop-control" hidden>
+                <h2>Wayland 控制许可</h2>
+                <p class="muted">
+                  与窗口共享分开申请，由你在系统窗口确认请求的设备，最多保持 150
+                  秒。当前只记录系统许可，尚未启用键鼠输入。 离开本页会结束本次许可。
+                </p>
+                <label
+                  >请求设备<select id="desktop-control-devices">
+                    <option value="1">仅键盘</option>
+                    <option value="2">仅鼠标</option>
+                    <option value="3">键盘和鼠标</option>
+                  </select></label
+                >
+                <label
+                  ><input
+                    id="desktop-control-consent"
+                    type="checkbox"
+                  />我同意为本次视图申请上述设备的系统控制许可</label
+                >
+                <button id="desktop-control-open" type="button" disabled>申请独立控制许可</button>
+                <button id="desktop-control-query" type="button" disabled>查询控制许可</button>
+                <button id="desktop-control-close" type="button" disabled>结束控制许可</button>
+                <p id="desktop-control-status" role="status" aria-live="polite"></p>
               </div>
               <h2>本次窗口观察</h2>
               <div id="desktop-targets"></div>
@@ -1872,8 +1896,8 @@
       </aside>
     </main>
     <div id="tip-layer"></div>
-    <script src="/assets/vendor/xterm.js?v=20261117v134"></script>
-    <script src="/assets/vendor/xterm-addon-fit.js?v=20261117v134"></script>
-    <script type="module" src="/assets/ui/v2/main.js?v=20261117v134"></script>
+    <script src="/assets/vendor/xterm.js?v=20261117v135"></script>
+    <script src="/assets/vendor/xterm-addon-fit.js?v=20261117v135"></script>
+    <script type="module" src="/assets/ui/v2/main.js?v=20261117v135"></script>
   </body>
 </html>

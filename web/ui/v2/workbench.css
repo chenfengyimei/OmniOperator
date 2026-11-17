@@ -2770,3 +2770,178 @@ body[data-ui-page="workbench-v2"] #models .mo-mini:hover {
     flex-wrap: wrap;
   }
 }
+
+/* ==========================================================================
+   控件精修（所有者反馈：主题键是原生灰按钮、Agent 下拉弹出原生浅蓝列表、
+   技能弹层是裸黑块）。逐控件扫描后统一补齐壳层控件语言：
+   ① 顶栏主题键与健康徽标；② 全部 select 的 option 深色化与自绘箭头；
+   ③ 技能多选弹层的玻璃面板语言；④ 返回对话按钮。
+   ========================================================================== */
+
+/* ① 主题切换键：此前无任何规则，是浏览器默认灰底凸边框小方块。
+   改为与顶栏同语言的玻璃圆钮，字符图标（☀/☾/◐ 由 JS 写入）居中。 */
+body[data-ui-page="workbench-v2"] #theme {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 1px solid var(--glass-weak-line);
+  border-radius: var(--r-md);
+  background: var(--glass-weak-bg);
+  color: var(--text-2);
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    border-color 0.15s,
+    color 0.15s,
+    background 0.15s;
+}
+body[data-ui-page="workbench-v2"] #theme:hover {
+  border-color: var(--line-accent);
+  color: var(--text-1);
+  background: var(--surface-accent);
+}
+body[data-ui-page="workbench-v2"] #theme:focus-visible {
+  outline: 2px solid var(--line-accent);
+  outline-offset: 1px;
+}
+
+/* 健康徽标：此前是裸文本，与「实例已就绪」语义不匹配。
+   改为带状态点的胶囊徽标，ok/warn/error 三态配色走既有语义 token。 */
+body[data-ui-page="workbench-v2"] #health {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex: 0 1 auto;
+  min-width: 0;
+  height: 26px;
+  padding: 0 11px;
+  border: 1px solid var(--line-3);
+  border-radius: var(--r-full);
+  background: var(--glass-weak-bg);
+  color: var(--text-3);
+  font-size: var(--fs-caption);
+  font-weight: 600;
+  white-space: nowrap;
+}
+body[data-ui-page="workbench-v2"] #health::before {
+  content: "";
+  flex: 0 0 auto;
+  width: 7px;
+  height: 7px;
+  border-radius: var(--r-full);
+  background: var(--text-4);
+}
+body[data-ui-page="workbench-v2"] #health[data-state="ok"] {
+  border-color: var(--ok-bd);
+  background: var(--ok-bg);
+  color: var(--ok);
+}
+body[data-ui-page="workbench-v2"] #health[data-state="ok"]::before {
+  background: var(--ok);
+  box-shadow: 0 0 7px -1px var(--ok);
+}
+body[data-ui-page="workbench-v2"] #health[data-state="warn"] {
+  border-color: var(--warn-bd);
+  background: var(--warn-bg);
+  color: var(--warn);
+}
+body[data-ui-page="workbench-v2"] #health[data-state="warn"]::before {
+  background: var(--warn);
+}
+body[data-ui-page="workbench-v2"] #health[data-state="error"] {
+  border-color: var(--danger-bd);
+  background: var(--danger-bg);
+  color: var(--danger);
+}
+body[data-ui-page="workbench-v2"] #health[data-state="error"]::before {
+  background: var(--danger);
+}
+
+/* ② 下拉选项深色化：此前只有 .page 作用域有 option 规则，
+   左栏 #agents、工具条 #chat-mode/#image-capture 的弹出列表仍是
+   系统浅蓝高亮 + 白底（所有者截图取证）。option 规则全站统一。 */
+body[data-ui-page="workbench-v2"] select option {
+  background: var(--surface-1);
+  color: var(--text-1);
+}
+body[data-ui-page="workbench-v2"] select option:checked {
+  background: var(--surface-accent);
+  color: var(--text-1);
+}
+/* 左栏与工具条 select：appearance:none 去掉系统箭头后自绘青色小箭头，
+   与分区页表单同一语言。.page 已有同款规则，这里补壳层两处。 */
+body[data-ui-page="workbench-v2"] .agent-field select,
+body[data-ui-page="workbench-v2"] .dock-bar .mode-pick select:not([multiple]) {
+  appearance: none;
+  padding-right: 24px;
+  background-image:
+    linear-gradient(45deg, transparent 50%, currentColor 50%),
+    linear-gradient(135deg, currentColor 50%, transparent 50%);
+  background-position:
+    calc(100% - 14px) calc(50% + 1px),
+    calc(100% - 9px) calc(50% + 1px);
+  background-size:
+    5px 5px,
+    5px 5px;
+  background-repeat: no-repeat;
+}
+body[data-ui-page="workbench-v2"] .agent-field select:hover,
+body[data-ui-page="workbench-v2"] .dock-bar .mode-pick select:hover:not(:disabled) {
+  border-color: var(--line-1);
+}
+
+/* ③ 技能多选弹层：展开态此前是 1px 灰边直角黑块，选项无间距无选中态。
+   升级为玻璃面板语言：圆角卡片 + 中玻璃底 + 选项行内边距与选中高亮。 */
+body[data-ui-page="workbench-v2"] #skill-turn[data-expanded="true"] {
+  padding: 6px;
+  border: 1px solid var(--glass-mid-line);
+  border-radius: var(--r-md);
+  background: var(--surface-1);
+  box-shadow: var(--sh-2), var(--glass-mid-sheen);
+}
+body[data-ui-page="workbench-v2"] #skill-turn[data-expanded="true"] option {
+  padding: 6px 9px;
+  border-radius: var(--r-sm);
+  font-size: var(--fs-small);
+  line-height: 1.5;
+}
+body[data-ui-page="workbench-v2"] #skill-turn[data-expanded="true"] option:checked {
+  background: var(--surface-accent);
+  color: var(--accent);
+  font-weight: 600;
+}
+body[data-ui-page="workbench-v2"] #skill-turn[data-expanded="true"] option:hover {
+  background: var(--surface-2);
+}
+
+/* ④ 返回对话按钮：页头里此前是浏览器默认灰按钮（.page button 规则
+   管不到 .page-head）。补齐与分区页按钮同语言。 */
+body[data-ui-page="workbench-v2"] .page-head > button {
+  box-sizing: border-box;
+  flex: 0 0 auto;
+  min-height: 30px;
+  padding: 0 14px;
+  border: 1px solid var(--line-2);
+  border-radius: var(--r-md);
+  background: var(--glass-weak-bg);
+  color: var(--text-2);
+  font-family: inherit;
+  font-size: var(--fs-small);
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    border-color 0.14s,
+    background 0.14s,
+    color 0.14s;
+}
+body[data-ui-page="workbench-v2"] .page-head > button:hover:not(:disabled) {
+  border-color: var(--line-accent);
+  background: var(--surface-accent);
+  color: var(--text-1);
+}
+

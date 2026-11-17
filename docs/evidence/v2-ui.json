@@ -1,7 +1,7 @@
 {
   "batch": "v2-ui-connection-stability-v128",
   "recorded_at": "2026-11-15",
-  "resource_version_final": "20261117v134",
+  "resource_version_final": "20261117v135",
   "v1_alignment": {
     "summary": "用户提供 V1 正式工作台截图后，直接精读 web/ui/workbench.css 的 V1 实现并逐项移植，使 V2 结构与 V1 一致（而非自创风格）。",
     "ported_from_v1": [
@@ -1066,5 +1066,27 @@
     },
     "测量教训": "内容整宽判据应对比 main 的内容盒（扣 padding），不是 border 盒——main 自身 16px 留白是骨架设计。",
     "版本": "资源串整体 v133→v134（43处）。"
+  },
+  "control_polish_v135": {
+    "需求": "所有者指出主题切换键是原生灰按钮、Agent 下拉弹出原生浅蓝列表、技能弹层是裸黑块，要求逐个 UI 严谨检查优化。",
+    "交付": [
+      "主题键 #theme：此前零规则（UA 灰底凸边框），改玻璃圆钮 30x30 + hover 青色 + focus-visible",
+      "健康徽标 #health：裸文本改状态胶囊（ok/warn/error 三态点+语义配色）",
+      "全部 select option 底色/文字接管（此前仅 .page 作用域），:checked 走 surface-accent 高亮；左栏与工具条 select appearance:none+自绘箭头",
+      "技能多选弹层：直角黑块改玻璃卡片（圆角+中玻璃边+阴影+选项行内边距与选中高亮）",
+      "返回对话按钮：页头内 UA 灰按钮补齐分区页按钮语言"
+    ],
+    "验证": {
+      "逐控件精修核查(_polish_audit)": "40/40 PASS（双主题×1440/390：23页+设置22分类全部可见控件零裸样式、主题键点击生效、选项主题底色、技能弹层、返回按钮）",
+      "既有核查": "全站76/76、设置56/56、全屏54/54、模型39/39",
+      "守卫": "33 passed",
+      "专项回归": "100 passed（v2_ui/navigation/models/history/portal/owner_token）"
+    },
+    "测量教训": [
+      "option 底色判定须排除选中项：单选下拉唯一选项必为 :checked，Chromium 对选中项渲染强制高亮，CSS 无法完全接管——豁免或注入临时第二选项判定",
+      "颜色比较须 canvas 归一化：同色可能返回 rgb() 或 #hex 或 oklab()，字符串直比会虚警",
+      "浅色主题 surface-1 本来就是 #ffffff，白底判据必须主题感知（与面板底色一致），不能一律禁白"
+    ],
+    "版本": "资源串整体 v134→v135（43处）。"
   }
 }
