@@ -2903,12 +2903,18 @@ body[data-ui-page="workbench-v2"] #skill-turn[data-expanded="true"] {
   border-radius: var(--r-md);
   background: var(--surface-1);
   box-shadow: var(--sh-2), var(--glass-mid-sheen);
+  /* multiple select 在展开列表上方还会渲染浏览器英文摘要「N selected」，
+     无法用 CSS 改写文本；收起态靠 color:transparent 隐藏，展开态此前
+     恢复了文字色导致英文露出（所有者截图取证）。控件自身文字保持透明，
+     选项文字由下方 option 规则显式着色，中文摘要按钮已承接语义。 */
+  color: transparent;
 }
 body[data-ui-page="workbench-v2"] #skill-turn[data-expanded="true"] option {
   padding: 6px 9px;
   border-radius: var(--r-sm);
   font-size: var(--fs-small);
   line-height: 1.5;
+  color: var(--text-1);
 }
 body[data-ui-page="workbench-v2"] #skill-turn[data-expanded="true"] option:checked {
   background: var(--surface-accent);

@@ -1,7 +1,7 @@
 {
   "batch": "v2-ui-connection-stability-v128",
   "recorded_at": "2026-11-15",
-  "resource_version_final": "20261117v135",
+  "resource_version_final": "20261117v136",
   "v1_alignment": {
     "summary": "用户提供 V1 正式工作台截图后，直接精读 web/ui/workbench.css 的 V1 实现并逐项移植，使 V2 结构与 V1 一致（而非自创风格）。",
     "ported_from_v1": [
@@ -1087,6 +1087,7 @@
       "颜色比较须 canvas 归一化：同色可能返回 rgb() 或 #hex 或 oklab()，字符串直比会虚警",
       "浅色主题 surface-1 本来就是 #ffffff，白底判据必须主题感知（与面板底色一致），不能一律禁白"
     ],
-    "版本": "资源串整体 v134→v135（43处）。"
+    "版本": "资源串整体 v134→v135（43处）。",
+    "追加修复_v136": "技能弹层展开态露出浏览器英文摘要「N selected」（multiple select 固有渲染，展开态此前恢复文字色）。修复：展开态控件文字保持透明、option 显式着色。真实 focus 展开路径双主题取证通过、技能 UI 专项 8 passed、精修核查 40/40、守卫 33 passed。"
   }
 }
