@@ -170,6 +170,10 @@ def parser() -> argparse.ArgumentParser:
     installation.add_argument("artifact", nargs="?", type=Path, help="Wheel to verify for the artifact operation")
     installation.add_argument("--sha256", default="", help="Expected wheel SHA256 for the artifact operation")
     installation.add_argument(
+        "--dependency-bundle", type=Path, help="Local pinned dependency wheels for an isolated environment"
+    )
+    installation.add_argument("--dependency-sha256", default="", help="SHA256 of the dependency manifest.json")
+    installation.add_argument(
         "--purge-data", action="store_true", help="Explicitly remove local data/objects/receipts during uninstall"
     )
     vector = commands.add_parser("vectors", help="Select or disable a reviewed local ONNX bundle for the next startup")
@@ -709,6 +713,8 @@ def _run(args: argparse.Namespace) -> int:
 
             print(json.dumps(asyncio.run(initialize())))
         elif args.command == "installation":
+            if args.operation != "environment" and (args.dependency_bundle is not None or args.dependency_sha256):
+                raise BusinessError("environment_invalid", "Dependency options apply only to installation environment")
             if args.operation == "seal":
                 print(json.dumps(seal_installation(paths)))
             elif args.operation == "artifact":
@@ -766,7 +772,16 @@ def _run(args: argparse.Namespace) -> int:
                     raise BusinessError("artifact_missing", "Provide the staged wheel SHA256")
                 from ..adapters.platform.wheel_environment import create_environment
 
-                print(json.dumps(create_environment(paths, args.sha256)))
+                print(
+                    json.dumps(
+                        create_environment(
+                            paths,
+                            args.sha256,
+                            dependency_bundle=args.dependency_bundle,
+                            dependency_sha256=args.dependency_sha256,
+                        )
+                    )
+                )
             elif args.operation == "rollback":
                 from ..adapters.platform.wheel_install import rollback_candidate
 

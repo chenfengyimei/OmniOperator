@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import subprocess
@@ -13,6 +14,8 @@ from ...domain.contracts import BusinessError
 from ..persistence.maintenance import durable_json
 from .paths import InstancePaths
 from .permissions import private_path
+from .runtime_identity import read_private
+from .wheel_environment import installed_environment
 from .wheel_prepare import FORMAT as PREPARED_FORMAT
 
 FORMAT = "omni-candidate-smoke-1"
@@ -24,6 +27,15 @@ CODE = (
     "path = Path(omni.__file__).resolve()\n"
     "assert root in path.parents or path == root / 'omni' / '__init__.py', (root, path)\n"
     "assert (root / 'omni/web_assets/ui/v2/index.html').is_file()\n"
+)
+ENVIRONMENT_CODE = (
+    "import sys\n"
+    "from pathlib import Path\n"
+    "root = Path(sys.argv[1]).resolve()\n"
+    "import omni\n"
+    "path = Path(omni.__file__).resolve()\n"
+    "assert path.is_relative_to(root) and Path(sys.prefix).resolve() == root\n"
+    "assert (path.parent / 'web_assets/ui/v2/index.html').is_file()\n"
 )
 
 
@@ -48,6 +60,11 @@ def smoke_candidate(paths: InstancePaths, sha256: str) -> Record:
     ):
         raise invalid("smoke_receipt_invalid")
     result_path = stage / "smoke.json"
+    installed = installed_environment(stage, sha256)
+    mode = "venv" if installed is not None else "tree"
+    environment_sha256 = (
+        hashlib.sha256(read_private(stage / "environment.json")).hexdigest() if installed is not None else ""
+    )
     if result_path.is_file():
         try:
             existing = json.loads(result_path.read_text(encoding="utf-8"))
@@ -62,11 +79,17 @@ def smoke_candidate(paths: InstancePaths, sha256: str) -> Record:
             or receipt.get("verified") is not True
         ):
             raise invalid("smoke_receipt_invalid")
-        return {"format": FORMAT, "written": False, **receipt}
+        if receipt.get("mode", "tree") == mode and receipt.get("environment_sha256", "") == environment_sha256:
+            return {"format": FORMAT, "written": False, **receipt}
     environment = {**os.environ, "PYTHONPATH": str(tree), "PYTHONDONTWRITEBYTECODE": "1"}
     try:
+        command = (
+            [str(installed["python"]), "-I", "-c", ENVIRONMENT_CODE, str(installed["venv"])]
+            if installed is not None
+            else [sys.executable, "-c", CODE, str(tree)]
+        )
         completed = subprocess.run(
-            [sys.executable, "-c", CODE, str(tree)],
+            command,
             cwd=tree,
             env=environment,
             capture_output=True,
@@ -83,6 +106,9 @@ def smoke_candidate(paths: InstancePaths, sha256: str) -> Record:
         "wheel_sha256": sha256,
         "python": sys.version.split()[0],
         "verified": True,
+        "mode": mode,
+        "environment_sha256": environment_sha256,
+        "executable": str(installed["python"]) if installed is not None else sys.executable,
     }
     durable_json(result_path, result)
     private_path(result_path)

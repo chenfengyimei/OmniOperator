@@ -139,6 +139,8 @@
     "agent/src/omni/adapters/platform/darwin_admin_policy.py",
     "agent/src/omni/adapters/platform/darwin_admin_probe.py",
     "agent/src/omni/adapters/platform/darwin_service_admin.py",
+    "agent/src/omni/adapters/platform/dependency_bundle.py",
+    "agent/src/omni/adapters/platform/candidate_installer.py",
     "agent/src/omni/adapters/platform/deployment_files.py",
     "agent/src/omni/adapters/platform/desktop.py",
     "agent/src/omni/adapters/platform/desktop_capture.py",

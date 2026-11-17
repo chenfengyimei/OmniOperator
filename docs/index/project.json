@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "8425d4c896c6ceae55c6ec3615f4b6627e4b2c71ff62b7b0910614702218eb11",
+  "source_sha256": "1dcbf670e75321c9190112990d068d923adb7e9f77630b6b23a87ed9fb552055",
   "modules": [
     {
       "id": "v2-domain",
@@ -291,12 +291,14 @@
         "agent/src/omni/adapters/persistence/terminal_repository.py",
         "agent/src/omni/adapters/persistence/terminal_review_repository.py",
         "agent/src/omni/adapters/platform/__init__.py",
+        "agent/src/omni/adapters/platform/candidate_installer.py",
         "agent/src/omni/adapters/platform/darwin_admin_commands.py",
         "agent/src/omni/adapters/platform/darwin_admin_files.py",
         "agent/src/omni/adapters/platform/darwin_admin_peer.py",
         "agent/src/omni/adapters/platform/darwin_admin_policy.py",
         "agent/src/omni/adapters/platform/darwin_admin_probe.py",
         "agent/src/omni/adapters/platform/darwin_service_admin.py",
+        "agent/src/omni/adapters/platform/dependency_bundle.py",
         "agent/src/omni/adapters/platform/deployment_files.py",
         "agent/src/omni/adapters/platform/desktop.py",
         "agent/src/omni/adapters/platform/desktop_capture.py",
@@ -405,7 +407,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 55088,
+      "lines": 55720,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -440,7 +442,7 @@
         "agent/src/omni/composition/service_runner.py",
         "agent/src/omni/composition/serving.py"
       ],
-      "lines": 3067,
+      "lines": 3082,
       "dependencies": [
         "v2-adapters",
         "v2-application",
@@ -22492,6 +22494,76 @@
       "summary": "Portable paths, ownership, credentials and platform capability implementations."
     },
     {
+      "path": "agent/src/omni/adapters/platform/candidate_installer.py",
+      "module": "v2-adapters",
+      "python_module": "omni.adapters.platform.candidate_installer",
+      "lines": 131,
+      "imports": [
+        "omni.adapters.platform.dependency_bundle",
+        "omni.adapters.platform.permissions",
+        "omni.domain.contracts"
+      ],
+      "symbols": [
+        {
+          "name": "_invalid",
+          "line": 18,
+          "kind": "function",
+          "parameters": [
+            "code"
+          ],
+          "annotations": {
+            "code": "str"
+          }
+        },
+        {
+          "name": "_run",
+          "line": 22,
+          "kind": "function",
+          "parameters": [
+            "command",
+            "cwd"
+          ],
+          "annotations": {
+            "command": "list[str]",
+            "cwd": "Path"
+          }
+        },
+        {
+          "name": "_wheel_hash",
+          "line": 34,
+          "kind": "function",
+          "parameters": [
+            "path"
+          ],
+          "annotations": {
+            "path": "Path"
+          }
+        },
+        {
+          "name": "install_candidate",
+          "line": 45,
+          "kind": "function",
+          "parameters": [
+            "wheel",
+            "sha256",
+            "bundle",
+            "bundle_sha256",
+            "manager",
+            "home"
+          ],
+          "annotations": {
+            "wheel": "Path",
+            "sha256": "str",
+            "bundle": "Path",
+            "bundle_sha256": "str",
+            "manager": "Path",
+            "home": "Path"
+          }
+        }
+      ],
+      "summary": "Bootstrap a fresh offline V2 candidate with a separate maintenance interpreter; never registers services."
+    },
+    {
       "path": "agent/src/omni/adapters/platform/darwin_admin_commands.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.darwin_admin_commands",
@@ -23050,6 +23122,132 @@
         }
       ],
       "summary": "Darwin registration and single-start root backend; fixed launchctl operations, no GUI, database or force."
+    },
+    {
+      "path": "agent/src/omni/adapters/platform/dependency_bundle.py",
+      "module": "v2-adapters",
+      "python_module": "omni.adapters.platform.dependency_bundle",
+      "lines": 252,
+      "imports": [
+        "omni.adapters.platform.permissions",
+        "omni.domain.contracts"
+      ],
+      "symbols": [
+        {
+          "name": "invalid",
+          "line": 29,
+          "kind": "function",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "no_links",
+          "line": 35,
+          "kind": "function",
+          "parameters": [
+            "path"
+          ],
+          "annotations": {
+            "path": "Path"
+          }
+        },
+        {
+          "name": "_open",
+          "line": 40,
+          "kind": "function",
+          "parameters": [
+            "path"
+          ],
+          "annotations": {
+            "path": "Path"
+          }
+        },
+        {
+          "name": "_pairs",
+          "line": 45,
+          "kind": "function",
+          "parameters": [
+            "items"
+          ],
+          "annotations": {
+            "items": "list[tuple[str, object]]"
+          }
+        },
+        {
+          "name": "_manifest",
+          "line": 54,
+          "kind": "function",
+          "parameters": [
+            "root",
+            "expected"
+          ],
+          "annotations": {
+            "root": "Path",
+            "expected": "str"
+          }
+        },
+        {
+          "name": "_copy_wheel",
+          "line": 113,
+          "kind": "function",
+          "parameters": [
+            "source",
+            "expected_bytes",
+            "expected_sha256",
+            "target"
+          ],
+          "annotations": {
+            "source": "Path",
+            "expected_bytes": "int",
+            "expected_sha256": "str",
+            "target": "Path | None"
+          }
+        },
+        {
+          "name": "capture_bundle",
+          "line": 136,
+          "kind": "function",
+          "parameters": [
+            "source",
+            "expected_sha256",
+            "stage"
+          ],
+          "annotations": {
+            "source": "Path",
+            "expected_sha256": "str",
+            "stage": "Path"
+          }
+        },
+        {
+          "name": "_capture_bundle",
+          "line": 144,
+          "kind": "function",
+          "parameters": [
+            "source",
+            "expected_sha256",
+            "stage"
+          ],
+          "annotations": {
+            "source": "Path",
+            "expected_sha256": "str",
+            "stage": "Path"
+          }
+        },
+        {
+          "name": "build_bundle",
+          "line": 183,
+          "kind": "function",
+          "parameters": [
+            "source",
+            "destination"
+          ],
+          "annotations": {
+            "source": "Path",
+            "destination": "Path"
+          }
+        }
+      ],
+      "summary": "Capture a hash-pinned local wheel bundle for an isolated environment; never downloads or executes wheels."
     },
     {
       "path": "agent/src/omni/adapters/platform/deployment_files.py",
@@ -31714,11 +31912,14 @@
       "path": "agent/src/omni/adapters/platform/wheel_environment.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.wheel_environment",
-      "lines": 136,
+      "lines": 245,
       "imports": [
         "omni.adapters.persistence.maintenance",
+        "omni.adapters.platform.dependency_bundle",
         "omni.adapters.platform.paths",
         "omni.adapters.platform.permissions",
+        "omni.adapters.platform.runtime_identity",
+        "omni.adapters.platform.wheel_artifact",
         "omni.adapters.platform.wheel_stage",
         "omni.application.ports",
         "omni.domain.contracts"
@@ -31726,7 +31927,7 @@
       "symbols": [
         {
           "name": "invalid",
-          "line": 23,
+          "line": 27,
           "kind": "function",
           "parameters": [
             "code"
@@ -31737,7 +31938,7 @@
         },
         {
           "name": "_python",
-          "line": 27,
+          "line": 31,
           "kind": "function",
           "parameters": [
             "venv"
@@ -31748,7 +31949,7 @@
         },
         {
           "name": "_run",
-          "line": 31,
+          "line": 35,
           "kind": "function",
           "parameters": [
             "command",
@@ -31761,28 +31962,77 @@
         },
         {
           "name": "_installable",
-          "line": 38,
+          "line": 42,
           "kind": "function",
           "parameters": [
             "artifact",
-            "stage"
+            "stage",
+            "sha256"
           ],
           "annotations": {
             "artifact": "Path",
-            "stage": "Path"
+            "stage": "Path",
+            "sha256": "str"
           }
         },
         {
           "name": "create_environment",
-          "line": 61,
+          "line": 76,
           "kind": "function",
           "parameters": [
             "paths",
-            "sha256"
+            "sha256",
+            "dependency_bundle",
+            "dependency_sha256"
           ],
           "annotations": {
             "paths": "InstancePaths",
+            "sha256": "str",
+            "dependency_bundle": "Path | None",
+            "dependency_sha256": "str"
+          }
+        },
+        {
+          "name": "_remove_environment",
+          "line": 97,
+          "kind": "function",
+          "parameters": [
+            "venv",
+            "stage"
+          ],
+          "annotations": {
+            "venv": "Path",
+            "stage": "Path"
+          }
+        },
+        {
+          "name": "installed_environment",
+          "line": 105,
+          "kind": "function",
+          "parameters": [
+            "stage",
+            "sha256"
+          ],
+          "annotations": {
+            "stage": "Path",
             "sha256": "str"
+          }
+        },
+        {
+          "name": "_create",
+          "line": 138,
+          "kind": "function",
+          "parameters": [
+            "stage",
+            "sha256",
+            "dependency_bundle",
+            "dependency_sha256"
+          ],
+          "annotations": {
+            "stage": "Path",
+            "sha256": "str",
+            "dependency_bundle": "Path | None",
+            "dependency_sha256": "str"
           }
         }
       ],
@@ -31792,14 +32042,16 @@
       "path": "agent/src/omni/adapters/platform/wheel_install.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.wheel_install",
-      "lines": 366,
+      "lines": 395,
       "imports": [
         "omni.adapters.persistence.maintenance",
         "omni.adapters.persistence.migration_config",
         "omni.adapters.platform.paths",
         "omni.adapters.platform.permissions",
+        "omni.adapters.platform.runtime_identity",
         "omni.adapters.platform.wheel_artifact",
         "omni.adapters.platform.wheel_backup",
+        "omni.adapters.platform.wheel_environment",
         "omni.adapters.platform.wheel_prepare",
         "omni.adapters.platform.wheel_rollback",
         "omni.adapters.platform.wheel_smoke",
@@ -31812,7 +32064,7 @@
       "symbols": [
         {
           "name": "invalid",
-          "line": 44,
+          "line": 69,
           "kind": "function",
           "parameters": [
             "code"
@@ -31823,7 +32075,7 @@
         },
         {
           "name": "_receipt",
-          "line": 48,
+          "line": 73,
           "kind": "function",
           "parameters": [
             "stage",
@@ -31840,7 +32092,7 @@
         },
         {
           "name": "_wrapper",
-          "line": 64,
+          "line": 89,
           "kind": "function",
           "parameters": [
             "home",
@@ -31853,18 +32105,20 @@
         },
         {
           "name": "_environment",
-          "line": 75,
+          "line": 100,
           "kind": "function",
           "parameters": [
-            "stage"
+            "stage",
+            "sha256"
           ],
           "annotations": {
-            "stage": "Path"
+            "stage": "Path",
+            "sha256": "str"
           }
         },
         {
           "name": "migrate_candidate",
-          "line": 92,
+          "line": 105,
           "kind": "function",
           "parameters": [
             "paths",
@@ -31876,8 +32130,34 @@
           }
         },
         {
+          "name": "_locked",
+          "line": 159,
+          "kind": "function",
+          "parameters": [
+            "paths",
+            "operation"
+          ],
+          "annotations": {
+            "paths": "InstancePaths",
+            "operation": "Callable[[], Record]"
+          }
+        },
+        {
           "name": "switch_candidate",
-          "line": 146,
+          "line": 173,
+          "kind": "function",
+          "parameters": [
+            "paths",
+            "sha256"
+          ],
+          "annotations": {
+            "paths": "InstancePaths",
+            "sha256": "str"
+          }
+        },
+        {
+          "name": "_switch_candidate",
+          "line": 180,
           "kind": "function",
           "parameters": [
             "paths",
@@ -31890,7 +32170,18 @@
         },
         {
           "name": "rollback_candidate",
-          "line": 236,
+          "line": 267,
+          "kind": "function",
+          "parameters": [
+            "paths"
+          ],
+          "annotations": {
+            "paths": "InstancePaths"
+          }
+        },
+        {
+          "name": "_rollback_candidate",
+          "line": 274,
           "kind": "function",
           "parameters": [
             "paths"
@@ -31901,7 +32192,7 @@
         },
         {
           "name": "runtime_current",
-          "line": 308,
+          "line": 337,
           "kind": "function",
           "parameters": [
             "paths"
@@ -31912,7 +32203,7 @@
         },
         {
           "name": "install_candidate",
-          "line": 335,
+          "line": 364,
           "kind": "function",
           "parameters": [
             "paths",
@@ -32038,11 +32329,13 @@
       "path": "agent/src/omni/adapters/platform/wheel_smoke.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.wheel_smoke",
-      "lines": 89,
+      "lines": 115,
       "imports": [
         "omni.adapters.persistence.maintenance",
         "omni.adapters.platform.paths",
         "omni.adapters.platform.permissions",
+        "omni.adapters.platform.runtime_identity",
+        "omni.adapters.platform.wheel_environment",
         "omni.adapters.platform.wheel_prepare",
         "omni.application.ports",
         "omni.domain.contracts"
@@ -32050,7 +32343,7 @@
       "symbols": [
         {
           "name": "invalid",
-          "line": 30,
+          "line": 42,
           "kind": "function",
           "parameters": [
             "code"
@@ -32061,7 +32354,7 @@
         },
         {
           "name": "smoke_candidate",
-          "line": 34,
+          "line": 46,
           "kind": "function",
           "parameters": [
             "paths",
@@ -32121,7 +32414,7 @@
       "path": "agent/src/omni/adapters/platform/wheel_status.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.wheel_status",
-      "lines": 113,
+      "lines": 119,
       "imports": [
         "omni.adapters.persistence.maintenance",
         "omni.adapters.persistence.migration_config",
@@ -32167,7 +32460,7 @@
         },
         {
           "name": "installation_status",
-          "line": 55,
+          "line": 59,
           "kind": "function",
           "parameters": [
             "paths"
@@ -32236,9 +32529,13 @@
       "path": "agent/src/omni/adapters/platform/wheel_uninstall.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.wheel_uninstall",
-      "lines": 139,
+      "lines": 218,
       "imports": [
+        "omni.adapters.persistence.maintenance",
+        "omni.adapters.platform.dependency_bundle",
         "omni.adapters.platform.paths",
+        "omni.adapters.platform.permissions",
+        "omni.adapters.platform.runtime_identity",
         "omni.adapters.platform.wheel_install",
         "omni.application.ports",
         "omni.domain.contracts"
@@ -32246,7 +32543,7 @@
       "symbols": [
         {
           "name": "invalid",
-          "line": 21,
+          "line": 28,
           "kind": "function",
           "parameters": [
             "code"
@@ -32257,7 +32554,7 @@
         },
         {
           "name": "_inside",
-          "line": 25,
+          "line": 32,
           "kind": "function",
           "parameters": [
             "path",
@@ -32270,7 +32567,7 @@
         },
         {
           "name": "_remove_stage",
-          "line": 30,
+          "line": 37,
           "kind": "function",
           "parameters": [
             "stage",
@@ -32282,8 +32579,38 @@
           }
         },
         {
+          "name": "_removal_receipt",
+          "line": 58,
+          "kind": "function",
+          "parameters": [
+            "runtime",
+            "sha256"
+          ],
+          "annotations": {
+            "runtime": "Path",
+            "sha256": "str"
+          }
+        },
+        {
+          "name": "_record_removal",
+          "line": 75,
+          "kind": "function",
+          "parameters": [
+            "runtime",
+            "sha256",
+            "phase",
+            "backup_kept"
+          ],
+          "annotations": {
+            "runtime": "Path",
+            "sha256": "str",
+            "phase": "str",
+            "backup_kept": "str | None"
+          }
+        },
+        {
           "name": "_active_sha",
-          "line": 36,
+          "line": 85,
           "kind": "function",
           "parameters": [
             "runtime"
@@ -32294,7 +32621,7 @@
         },
         {
           "name": "uninstall_candidate",
-          "line": 49,
+          "line": 100,
           "kind": "function",
           "parameters": [
             "paths",
@@ -59746,7 +60073,7 @@
       "path": "agent/src/omni/composition/cli.py",
       "module": "v2-composition",
       "python_module": "omni.composition.cli",
-      "lines": 1031,
+      "lines": 1046,
       "imports": [
         "omni.adapters.diagnostic_bundle",
         "omni.adapters.persistence.audit_pruning",
@@ -59843,7 +60170,7 @@
         },
         {
           "name": "local_origin",
-          "line": 431,
+          "line": 435,
           "kind": "function",
           "parameters": [
             "value"
@@ -59854,7 +60181,7 @@
         },
         {
           "name": "diagnostic_download",
-          "line": 450,
+          "line": 454,
           "kind": "function",
           "parameters": [
             "paths",
@@ -59867,17 +60194,6 @@
         },
         {
           "name": "main",
-          "line": 492,
-          "kind": "function",
-          "parameters": [
-            "argv"
-          ],
-          "annotations": {
-            "argv": "list[str] | None"
-          }
-        },
-        {
-          "name": "web_main",
           "line": 496,
           "kind": "function",
           "parameters": [
@@ -59888,8 +60204,19 @@
           }
         },
         {
+          "name": "web_main",
+          "line": 500,
+          "kind": "function",
+          "parameters": [
+            "argv"
+          ],
+          "annotations": {
+            "argv": "list[str] | None"
+          }
+        },
+        {
           "name": "_run",
-          "line": 504,
+          "line": 508,
           "kind": "function",
           "parameters": [
             "args"

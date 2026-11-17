@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`8425d4c896c6ceae55c6ec3615f4b6627e4b2c71ff62b7b0910614702218eb11`。包含 65 个职责模块、737 个源码/界面文件。
+源码指纹：`1dcbf670e75321c9190112990d068d923adb7e9f77630b6b23a87ed9fb552055`。包含 65 个职责模块、739 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -267,12 +267,14 @@
 | [agent/src/omni/adapters/persistence/terminal_repository.py](../../agent/src/omni/adapters/persistence/terminal_repository.py) | 328 | Terminal intent transactions and immutable metadata receipts; never opens a native process or stores terminal bodies. |
 | [agent/src/omni/adapters/persistence/terminal_review_repository.py](../../agent/src/omni/adapters/persistence/terminal_review_repository.py) | 238 | Append owner observations and erasable evidence; terminal receipts and native lifecycle remain unchanged. |
 | [agent/src/omni/adapters/platform/__init__.py](../../agent/src/omni/adapters/platform/__init__.py) | 1 | Portable paths, ownership, credentials and platform capability implementations. |
+| [agent/src/omni/adapters/platform/candidate_installer.py](../../agent/src/omni/adapters/platform/candidate_installer.py) | 131 | Bootstrap a fresh offline V2 candidate with a separate maintenance interpreter; never registers services. |
 | [agent/src/omni/adapters/platform/darwin_admin_commands.py](../../agent/src/omni/adapters/platform/darwin_admin_commands.py) | 276 | Single-threaded Darwin command ownership; pre-exec permit, kqueue no-fork proof and unreaped group anchor. |
 | [agent/src/omni/adapters/platform/darwin_admin_files.py](../../agent/src/omni/adapters/platform/darwin_admin_files.py) | 184 | Darwin local-volume ACL and root file proofs; no application storage or arbitrary library lookup. |
 | [agent/src/omni/adapters/platform/darwin_admin_peer.py](../../agent/src/omni/adapters/platform/darwin_admin_peer.py) | 30 | Kernel Unix peer UID/GID and PID; never accepts a TCP credential result or an empty native option. |
 | [agent/src/omni/adapters/platform/darwin_admin_policy.py](../../agent/src/omni/adapters/platform/darwin_admin_policy.py) | 181 | Exact local-account Darwin administrator policy, protected root artifacts and shared audit bytes. |
 | [agent/src/omni/adapters/platform/darwin_admin_probe.py](../../agent/src/omni/adapters/platform/darwin_admin_probe.py) | 154 | Bounded public CoreFoundation/ServiceManagement reads for a separately owned root worker; no mutation or GUI. |
 | [agent/src/omni/adapters/platform/darwin_service_admin.py](../../agent/src/omni/adapters/platform/darwin_service_admin.py) | 147 | Darwin registration and single-start root backend; fixed launchctl operations, no GUI, database or force. |
+| [agent/src/omni/adapters/platform/dependency_bundle.py](../../agent/src/omni/adapters/platform/dependency_bundle.py) | 252 | Capture a hash-pinned local wheel bundle for an isolated environment; never downloads or executes wheels. |
 | [agent/src/omni/adapters/platform/deployment_files.py](../../agent/src/omni/adapters/platform/deployment_files.py) | 631 | Capture installation identity and publish reviewed deployment bundles; never registers services or opens business storage. |
 | [agent/src/omni/adapters/platform/desktop.py](../../agent/src/omni/adapters/platform/desktop.py) | 580 | Bounded, one-shot desktop metadata helpers; construction never probes a native desktop. |
 | [agent/src/omni/adapters/platform/desktop_capture.py](../../agent/src/omni/adapters/platform/desktop_capture.py) | 83 | Host-owned screenshot staging. File decoding runs only on the desktop I/O worker. |
@@ -321,15 +323,15 @@
 | [agent/src/omni/adapters/platform/terminal.py](../../agent/src/omni/adapters/platform/terminal.py) | 588 | Owned terminal IPC. Native PTY libraries run only in the fixed helper process. |
 | [agent/src/omni/adapters/platform/wheel_artifact.py](../../agent/src/omni/adapters/platform/wheel_artifact.py) | 61 | Read-only wheel artifact verification: hash, archive safety and V2 asset presence; never installs. |
 | [agent/src/omni/adapters/platform/wheel_backup.py](../../agent/src/omni/adapters/platform/wheel_backup.py) | 68 | Execute only the backup step of a reviewed switch plan; no stop, switch, migration or rollback. |
-| [agent/src/omni/adapters/platform/wheel_environment.py](../../agent/src/omni/adapters/platform/wheel_environment.py) | 136 | Create an offline candidate environment: a venv that installs the staged wheel without a network. |
-| [agent/src/omni/adapters/platform/wheel_install.py](../../agent/src/omni/adapters/platform/wheel_install.py) | 366 | Execute the switch step: point the runtime at a prepared candidate; no stop, migrate or start. |
+| [agent/src/omni/adapters/platform/wheel_environment.py](../../agent/src/omni/adapters/platform/wheel_environment.py) | 245 | Create an offline candidate environment: a venv that installs the staged wheel without a network. |
+| [agent/src/omni/adapters/platform/wheel_install.py](../../agent/src/omni/adapters/platform/wheel_install.py) | 395 | Execute the switch step: point the runtime at a prepared candidate; no stop, migrate or start. |
 | [agent/src/omni/adapters/platform/wheel_prepare.py](../../agent/src/omni/adapters/platform/wheel_prepare.py) | 120 | Safely unpack one staged wheel into a candidate tree; never creates a venv, switches or migrates. |
 | [agent/src/omni/adapters/platform/wheel_rollback.py](../../agent/src/omni/adapters/platform/wheel_rollback.py) | 71 | Rollback drill: restore the update backup into a new sibling directory and verify it; never touches live home. |
-| [agent/src/omni/adapters/platform/wheel_smoke.py](../../agent/src/omni/adapters/platform/wheel_smoke.py) | 89 | Smoke-test a prepared candidate tree in a child interpreter; no install, switch or migration. |
+| [agent/src/omni/adapters/platform/wheel_smoke.py](../../agent/src/omni/adapters/platform/wheel_smoke.py) | 115 | Smoke-test a prepared candidate tree in a child interpreter; no install, switch or migration. |
 | [agent/src/omni/adapters/platform/wheel_stage.py](../../agent/src/omni/adapters/platform/wheel_stage.py) | 76 | Atomic local staging of a verified wheel; never extracts, switches directories or runs migrations. |
-| [agent/src/omni/adapters/platform/wheel_status.py](../../agent/src/omni/adapters/platform/wheel_status.py) | 113 | Read-only installation/update status projection; never mutates, plans, switches or migrates. |
+| [agent/src/omni/adapters/platform/wheel_status.py](../../agent/src/omni/adapters/platform/wheel_status.py) | 119 | Read-only installation/update status projection; never mutates, plans, switches or migrates. |
 | [agent/src/omni/adapters/platform/wheel_switch.py](../../agent/src/omni/adapters/platform/wheel_switch.py) | 85 | Read-only switch plan for a prepared candidate; never stops, switches, migrates or rolls back. |
-| [agent/src/omni/adapters/platform/wheel_uninstall.py](../../agent/src/omni/adapters/platform/wheel_uninstall.py) | 139 | Remove one staged candidate or deactivate the runtime pointer; data and installation receipts stay. |
+| [agent/src/omni/adapters/platform/wheel_uninstall.py](../../agent/src/omni/adapters/platform/wheel_uninstall.py) | 218 | Remove one staged candidate or deactivate the runtime pointer; data and installation receipts stay. |
 | [agent/src/omni/adapters/platform/workbench.py](../../agent/src/omni/adapters/platform/workbench.py) | 120 | Open an explicitly requested local workbench after proving this process's ready boot; never reads owner tokens. |
 | [agent/src/omni/adapters/platform/workspaces.py](../../agent/src/omni/adapters/platform/workspaces.py) | 27 | Workspace admission keeps instance control, secrets and installed code private. |
 | [agent/src/omni/adapters/primitives.py](../../agent/src/omni/adapters/primitives.py) | 20 | Real clocks and full UUID identities, injected by the composition root. |
@@ -395,7 +397,7 @@
 |---|---:|---|
 | [agent/src/omni/composition/__init__.py](../../agent/src/omni/composition/__init__.py) | 1 | V2 composition root. Constructors and lifecycle ownership are explicit here. |
 | [agent/src/omni/composition/capabilities.py](../../agent/src/omni/composition/capabilities.py) | 166 | Explicit builtin capability registration; capabilities never construct the kernel. |
-| [agent/src/omni/composition/cli.py](../../agent/src/omni/composition/cli.py) | 1031 | V2 development entrypoint. Online commands use the authenticated HTTP facade. |
+| [agent/src/omni/composition/cli.py](../../agent/src/omni/composition/cli.py) | 1046 | V2 development entrypoint. Online commands use the authenticated HTTP facade. |
 | [agent/src/omni/composition/http.py](../../agent/src/omni/composition/http.py) | 238 | HTTP composition and owner bootstrap; tokens never appear in diagnostic output. |
 | [agent/src/omni/composition/instance.py](../../agent/src/omni/composition/instance.py) | 799 | Build one isolated instance; never imports or opens the V1 runtime. |
 | [agent/src/omni/composition/lifecycle.py](../../agent/src/omni/composition/lifecycle.py) | 164 | Own startup rollback and one shared shutdown budget; never dispatches business work. |

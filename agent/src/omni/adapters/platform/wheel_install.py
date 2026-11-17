@@ -3,9 +3,11 @@
 from __future__ import annotations
 
 import datetime as dt
+import hashlib
 import json
 import os
 import sys
+from collections.abc import Callable
 from pathlib import Path
 from typing import cast
 
@@ -17,7 +19,10 @@ from ..persistence.migration_config import head as migration_head
 from ..primitives import SystemClock
 from .paths import InstanceLock, InstancePaths
 from .permissions import private_path
+from .runtime_identity import read_private
+from .wheel_artifact import SHA
 from .wheel_backup import FORMAT as BACKUP_FORMAT
+from .wheel_environment import installed_environment
 from .wheel_prepare import FORMAT as PREPARED_FORMAT
 from .wheel_rollback import FORMAT as ROLLBACK_FORMAT
 from .wheel_smoke import FORMAT as SMOKE_FORMAT
@@ -26,12 +31,32 @@ FORMAT = "omni-runtime-1"
 LAUNCHER = '''"""Run the active V2 candidate selected by the installation runtime pointer."""
 
 import json
+import os
 import sys
 from pathlib import Path
 
 runtime = Path(__file__).resolve().parent
 home = runtime.parent
 pointer = json.loads((runtime / "current.json").read_text(encoding="utf-8"))
+if pointer.get("format") != "omni-runtime-1" or pointer.get("mode") not in ("venv", "tree"):
+    raise SystemExit("Invalid runtime pointer")
+python = pointer.get("python")
+if not isinstance(python, str) or not Path(python).is_absolute() or not Path(python).is_file():
+    raise SystemExit("Invalid runtime interpreter")
+if os.path.normcase(os.path.abspath(sys.executable)) != os.path.normcase(os.path.abspath(python)):
+    arguments = [python, "-I", str(Path(__file__).resolve()), *sys.argv[1:]]
+    if os.name == "nt":
+        import subprocess
+
+        # Windows execv loses quoting and cannot report the replacement's exit status.
+        # Console interrupts reach both processes; retain ownership while V2 drains.
+        child = subprocess.Popen(arguments)
+        while True:
+            try:
+                raise SystemExit(child.wait())
+            except KeyboardInterrupt:
+                continue
+    os.execv(python, arguments)
 if pointer.get("mode") != "venv":
     sys.path.insert(0, str(Path(pointer["tree"])))
 from omni.composition.cli import main
@@ -72,21 +97,9 @@ def _wrapper(home: Path, python: str) -> None:
         script.chmod(0o755)
 
 
-def _environment(stage: Path) -> tuple[str, str] | None:
-    path = stage / "environment.json"
-    if not path.is_file():
-        return None
-    try:
-        record = json.loads(path.read_text(encoding="utf-8"))
-    except (ValueError, OSError, UnicodeError):
-        return None
-    if not isinstance(record, dict):
-        return None
-    receipt = cast(Record, record)
-    if receipt.get("installed") is not True:
-        return None
-    python = Path(str(receipt.get("python", "")))
-    return (str(python), "venv") if python.is_file() else None
+def _environment(stage: Path, sha256: str) -> tuple[str, str] | None:
+    receipt = installed_environment(stage, sha256)
+    return (str(receipt["python"]), "venv") if receipt is not None else None
 
 
 def migrate_candidate(paths: InstancePaths, sha256: str) -> Record:
@@ -143,7 +156,28 @@ def migrate_candidate(paths: InstancePaths, sha256: str) -> Record:
     return record
 
 
+def _locked(paths: InstancePaths, operation: Callable[[], Record]) -> Record:
+    lock = InstanceLock(paths)
+    try:
+        try:
+            lock.acquire()
+        except BusinessError as exc:
+            if exc.code == "instance_busy":
+                raise invalid("instance_running") from None
+            raise
+        return operation()
+    finally:
+        lock.close()
+
+
 def switch_candidate(paths: InstancePaths, sha256: str) -> Record:
+    if SHA.fullmatch(sha256) is None:
+        raise invalid()
+    _receipt(paths.home / "updates" / sha256[:16], "prepared.json", PREPARED_FORMAT, sha256)
+    return _locked(paths, lambda: _switch_candidate(paths, sha256))
+
+
+def _switch_candidate(paths: InstancePaths, sha256: str) -> Record:
     stage = paths.home / "updates" / sha256[:16]
     tree = stage / "tree"
     prepared = _receipt(stage, "prepared.json", PREPARED_FORMAT, sha256)
@@ -171,19 +205,15 @@ def switch_candidate(paths: InstancePaths, sha256: str) -> Record:
         raise BusinessError(
             "switch_migration_required", "Apply schema migrations before switching this candidate", status=422
         )
-    lock = InstanceLock(paths)
-    try:
-        lock.acquire()
-    except BusinessError as exc:
-        if exc.code == "instance_busy":
-            raise invalid("instance_running") from None
-        raise
-    finally:
-        lock.close()
     runtime = paths.home / "runtime"
     runtime.mkdir(parents=True, exist_ok=True)
     current_path = runtime / "current.json"
-    environment = _environment(stage)
+    environment = _environment(stage, sha256)
+    if environment is not None and (
+        smoke.get("mode") != "venv"
+        or smoke.get("environment_sha256") != hashlib.sha256(read_private(stage / "environment.json")).hexdigest()
+    ):
+        raise invalid("switch_environment_unverified")
     python, mode = environment if environment is not None else (sys.executable, "tree")
     previous: str | None = None
     if current_path.is_file():
@@ -194,8 +224,6 @@ def switch_candidate(paths: InstancePaths, sha256: str) -> Record:
         pointer = cast(Record, old) if isinstance(old, dict) else None
         if pointer is not None and pointer.get("format") == FORMAT:
             previous = str(pointer.get("wheel_sha256", "")) or None
-            durable_json(runtime / "previous.json", pointer)
-            private_path(runtime / "previous.json")
             if (
                 pointer.get("wheel_sha256") == sha256
                 and Path(str(pointer.get("tree", ""))) == tree
@@ -213,6 +241,9 @@ def switch_candidate(paths: InstancePaths, sha256: str) -> Record:
                     "previous": previous,
                     "launcher": str(runtime / "launch.py"),
                 }
+            # Replaying the current selection must preserve the actual rollback target.
+            durable_json(runtime / "previous.json", pointer)
+            private_path(runtime / "previous.json")
     record = {
         "format": FORMAT,
         "wheel_sha256": sha256,
@@ -234,6 +265,13 @@ def switch_candidate(paths: InstancePaths, sha256: str) -> Record:
 
 
 def rollback_candidate(paths: InstancePaths) -> Record:
+    runtime = paths.home / "runtime"
+    if not (runtime / "current.json").is_file() or not (runtime / "previous.json").is_file():
+        raise invalid("rollback_missing")
+    return _locked(paths, lambda: _rollback_candidate(paths))
+
+
+def _rollback_candidate(paths: InstancePaths) -> Record:
     """Point the runtime back at previous.json; code-only, no database restore."""
     runtime = paths.home / "runtime"
     current_path = runtime / "current.json"
@@ -277,15 +315,6 @@ def rollback_candidate(paths: InstancePaths) -> Record:
             or (live.get("from") == target and live.get("to") == source)
         ):
             return {"format": "omni-live-rollback-1", "written": False, "from": source, "to": target}
-    lock = InstanceLock(paths)
-    try:
-        lock.acquire()
-    except BusinessError as exc:
-        if exc.code == "instance_busy":
-            raise invalid("instance_running") from None
-        raise
-    finally:
-        lock.close()
     durable_json(previous_path, current_pointer)
     private_path(previous_path)
     durable_json(current_path, previous_pointer)

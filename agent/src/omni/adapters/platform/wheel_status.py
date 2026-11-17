@@ -41,6 +41,8 @@ def _runtime(paths: InstancePaths) -> dict[str, object]:
     record = _read(paths.home / "runtime" / "current.json") or {}
     previous = _read(paths.home / "runtime" / "previous.json") or {}
     rollback = _read(paths.home / "runtime" / "rollback-live.json") or {}
+    removal = _read(paths.home / "runtime" / "uninstall.json") or {}
+    cleanup_pending = removal.get("format") == "omni-uninstall-1" and removal.get("phase") == "deactivated"
     return {
         "active": bool(record.get("wheel_sha256")),
         "wheel_sha256": record.get("wheel_sha256"),
@@ -49,6 +51,8 @@ def _runtime(paths: InstancePaths) -> dict[str, object]:
         "tree": record.get("tree"),
         "previous": previous.get("wheel_sha256"),
         "rollback_live": rollback.get("written") is True,
+        "cleanup_pending": cleanup_pending,
+        "cleanup_candidate": removal.get("wheel_sha256") if cleanup_pending else None,
     }
 
 
@@ -96,7 +100,9 @@ def installation_status(paths: InstancePaths) -> dict[str, object]:
                     "rollback": (stage / "rollback.json").is_file(),
                     "migrate": (stage / "migrate.json").is_file(),
                     "active": stage.name == str(runtime.get("wheel_sha256", ""))[:16],
-                    "next_step": _next_step(stage, pending),
+                    "next_step": "uninstall"
+                    if stage.name == str(runtime.get("cleanup_candidate", ""))[:16]
+                    else _next_step(stage, pending),
                 }
             )
     return {
