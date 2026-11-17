@@ -26,6 +26,13 @@ class XTestSources:
         self._attempted = self._valid = False
         self._atom: int | None = None
         self._sources: Sources | None = None
+        self._opcode: int | None = None
+
+    @property
+    def opcode(self) -> int:
+        if not self._valid or self._opcode is None:
+            raise failure("desktop_input_unverified")
+        return self._opcode
 
     async def _read(self) -> Sources:
         wire = self.monitor.wire
@@ -91,7 +98,7 @@ class XTestSources:
             if await self._read() != original:
                 raise failure("desktop_user_intervened")
             await self.monitor.check()
-            self._sources, self._valid = original, True
+            self._sources, self._opcode, self._valid = original, opcode, True
             return original
         except BaseException:
             self._valid = False

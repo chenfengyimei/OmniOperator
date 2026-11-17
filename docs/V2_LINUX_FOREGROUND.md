@@ -58,6 +58,18 @@ GetMap 只请求该候选 keycode 的 symbols/actions/behaviors/explicit/真实�
 
 依据Xorg的[虚拟设备实现](https://raw.githubusercontent.com/XQuartz/xorg-server/master/Xext/xtest.c)，真正XTEST设备具有不可删除/改写标记，核心虚拟对不可删除；读取全部设备并拒绝重复，避免把另一个伪标记设备选作真实候选。协议格式来自[XCB XIGetProperty布局](https://xcb.freedesktop.org/manual/xinput_8h_source.html)。准备时双读并夹住原守卫，使用前再次重验；XI_PropertyEvent现在也被订阅并锁存失效，恢复旧值不能复活旧证明。协议填充不参与候选判断。
 
-全部XTEST客户端共享同一虚拟设备对。因此本批只证明服务器候选设备身份，未证明原始事件由本动作产生。原始输入仍全部使守卫失效，没有白名单、按名称排除、共享来源豁免或实际派发。需要继续开发逐事件归属、节点/窗口关联、实际派发及释放；也不能借本批证明应用已处理按键。
+全部XTEST客户端共享同一虚拟设备对。因此来源身份本身不能证明原始事件由本动作产生。未安排本连接动作时，原始输入仍全部使守卫失效；没有按名称或共享来源豁免。下一节的内部派发器另外约束实际请求序号、方向和精确事件数量，不把这层身份预检当作应用已处理按键的证明。
 
 24项新增回归及207项现有输入、焦点、键映射/XKB、文本/语义/桌面与架构/类型合同专项，共231不同节点通过；3个修改后端文件strict零错误/警告。结果来自固定源码及注入Xorg/logind，不代表Linux原生、真实输入或全量通过，见[来源专项证据](evidence/v2-linux-xtest.json)。
+
+## 内部成对按键派发与释放责任
+
+`WindowFocus.key_packet`在已准备的特殊键与虚拟来源上重新核验窗口、完整键映射和来源身份，创建`linux_keystroke.KeyPacket`。派发前序号必须保持不变、无旧租约或变化；同连接一次性安排两个36字节XTEST FakeInput请求，仅含既有特殊键code，按下后抬起、零延迟/坐标/core device，不写布局或修饰键。一次对象只能派发一次。当前业务worker、domain/IPC及UI未接入这一路，不因此获得通用按键能力。
+
+Xorg的[XTEST请求处理](https://raw.githubusercontent.com/XQuartz/xorg-server/master/Xext/xtest.c)同步处理生成事件；[事件写出](https://raw.githubusercontent.com/XQuartz/xorg-server/master/dix/events.c)按接收客户端当前请求序号标记。结合[slave先于master的事件路径](https://raw.githubusercontent.com/XQuartz/xorg-server/master/mi/mieq.c)和[RawEvent布局](https://raw.githubusercontent.com/XQuartz/xorg-server/master/dix/eventconvert.c)，内部守卫只消费准确四条：按下请求的slave/master RawKeyPress、抬起请求的slave/master RawKeyRelease。同一审批code、来源ID、设备ID、序号、方向和顺序必须完全一致；每对时间相同，flags为零，最多8字mask且全零，不允许额外valuator内容。共享来源、额外/缺失/乱序、物理来源、不同键或SendEvent不能通过；其余原守卫保持锁存失效。通知内容不落盘。
+
+实际发送采用非阻塞socket.send返回的字节数，派发前登记连接所有的租约；未结清流禁止普通查询插入。回收时，按下请求不足36字节则关闭流丢弃该未完整请求；已经发满按下时，只补72字节中尚未发送的抬起后缀，不能重复按下或重新发送完整包。发送及释放回读各保留0.5秒上界。QueryKeymap精确回读40字节且全部键释放才结清，仍按住可在同一已对齐流再读，绝不再次派发。
+
+取消等待保留实际释放/回读任务和同一连接。活跃发送期间关闭返回false，避免两个发送者；回读发送/读取超时或协议位置不明后保留未结清身份，不另建查询掩盖丢失回执。`X11Input.close`先结清该租约，未完成不能声称连接回收成功。内部emit完成只说明传输事件匹配和释放读回，不生成业务ok、也不证明应用处理了按键。
+
+仍需接通语义节点/原生窗口的可靠关联、逐次业务permit和应用结果核验；还需处理本次合法输入引发的slave类切换/XKB通知。当前这些变化仍使原守卫失效，不静默放宽。29新回归及232现有输入/来源/焦点/键映射/XKB、文本/语义/桌面、架构与类型合同，共261不同专项通过；首轮注入流缺少关闭状态的失败及原源码留档后修复。4个修改后端文件strict零错误/警告，354为登记范围，未整范围复验/全量。无真实Xorg连接、真实输入或Linux原生验收，见[成对内核证据](evidence/v2-linux-keypair.json)。

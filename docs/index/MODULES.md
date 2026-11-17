@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`da07ad0c363ba64c6ef3038aa094da7e1b6d0bf0029412cab5a7b1b8e7980d4c`。包含 65 个职责模块、760 个源码/界面文件。
+源码指纹：`e3a4d244baf1e38eb1e05099fd7c8e25640f3c08ef243b55fb77aef44fcf5de5`。包含 65 个职责模块、760 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -296,7 +296,7 @@
 | [agent/src/omni/adapters/platform/linux_foreground.py](../../agent/src/omni/adapters/platform/linux_foreground.py) | 194 | Read-only X11 focus ancestry proof for future explicit foreground delivery; never maps AT-SPI nodes or sends input. |
 | [agent/src/omni/adapters/platform/linux_input.py](../../agent/src/omni/adapters/platform/linux_input.py) | 304 | Verified Xorg input-change guard for addressed semantic actions; never grabs, synthesizes or stores input content. |
 | [agent/src/omni/adapters/platform/linux_keyboard.py](../../agent/src/omni/adapters/platform/linux_keyboard.py) | 129 | Bounded read-only core keymap preflight on an existing focus proof; never translates Unicode, changes layouts or sends input. |
-| [agent/src/omni/adapters/platform/linux_keystroke.py](../../agent/src/omni/adapters/platform/linux_keystroke.py) | 135 | Single paired XTEST wire delivery and retained release; business target/permit integration remains external. |
+| [agent/src/omni/adapters/platform/linux_keystroke.py](../../agent/src/omni/adapters/platform/linux_keystroke.py) | 136 | Single paired XTEST wire delivery and retained release; business target/permit integration remains external. |
 | [agent/src/omni/adapters/platform/linux_lease_client.py](../../agent/src/omni/adapters/platform/linux_lease_client.py) | 335 | Owned persistent X11 guardian transport; no native APIs, target rebinding from verify, unbounded queues or input. |
 | [agent/src/omni/adapters/platform/linux_pipewire.py](../../agent/src/omni/adapters/platform/linux_pipewire.py) | 256 | One serial-targeted GStreamer PipeWire frame inside an owned helper, never the default remote or display. |
 | [agent/src/omni/adapters/platform/linux_portal.py](../../agent/src/omni/adapters/platform/linux_portal.py) | 220 | Explicit ephemeral window selection on a pinned Wayland portal; never opens PipeWire FDs or dispatches input. |

@@ -57,8 +57,9 @@
             "production_foreground_dispatch_enabled": false
           },
           "remaining": [
-            "通用键鼠的控件与原生窗口可靠关联",
-            "逐事件自身输入归属、实际派发/释放及应用结果核验；共享XTEST设备身份、只读核心/XKB预检和直接文本均不能替代"
+            "通用键鼠的控件与原生窗口可靠关联及逐次业务permit接线",
+            "本次输入的合法slave/XKB切换与应用结果核验；内部成对派发/释放不等于通用按键功能完成",
+            "鼠标点击与Wayland实际输入仍待继续开发"
           ],
           "addressed_unicode_append": {
             "status": "implemented_scoped_passed",
@@ -81,6 +82,13 @@
             "evidence": "docs/evidence/v2-linux-xtest.json",
             "shared_source_is_not_own_event_proof": true,
             "native_dispatch_enabled": false
+          },
+          "internal_paired_key_delivery": {
+            "status": "implemented_scoped_passed",
+            "evidence": "docs/evidence/v2-linux-keypair.json",
+            "production_business_worker_enabled": false,
+            "expected_native_class_transition_complete": false,
+            "application_postcondition_proven": false
           }
         }
       ]

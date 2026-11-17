@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "da07ad0c363ba64c6ef3038aa094da7e1b6d0bf0029412cab5a7b1b8e7980d4c",
+  "source_sha256": "e3a4d244baf1e38eb1e05099fd7c8e25640f3c08ef243b55fb77aef44fcf5de5",
   "modules": [
     {
       "id": "v2-domain",
@@ -427,7 +427,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 58969,
+      "lines": 58970,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -26678,7 +26678,7 @@
       "path": "agent/src/omni/adapters/platform/linux_keystroke.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.linux_keystroke",
-      "lines": 135,
+      "lines": 136,
       "imports": [
         "omni.adapters.platform.linux_bus",
         "omni.adapters.platform.linux_input",
@@ -26762,7 +26762,7 @@
         },
         {
           "name": "KeyPacket.settle",
-          "line": 126,
+          "line": 127,
           "kind": "function",
           "parameters": [
             "self"

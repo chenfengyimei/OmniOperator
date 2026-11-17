@@ -9,6 +9,7 @@ import socket
 import struct
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
+from typing import Protocol
 
 from .linux_bus import failure
 from .linux_session import SessionInspector
@@ -17,6 +18,51 @@ from .linux_x11_wire import Wire, unpack
 
 RAW = frozenset({13, 14, 15, 16, 17, 22, 23, 24})
 DEVICE = frozenset({1, 11, 12})
+
+
+class KeyLease(Protocol):
+    async def settle(self) -> bool: ...
+
+
+class KeyEvents:
+    """Consume exactly the slave/master raw pair for each of two same-connection requests."""
+
+    def __init__(self, sequence: int, code: int, source: int, master: int) -> None:
+        self.expected = (
+            (sequence, 13, source),
+            (sequence, 13, master),
+            (sequence + 1, 14, source),
+            (sequence + 1, 14, master),
+        )
+        self.code, self.source, self.seen = code, source, 0
+        self.time: int | None = None
+
+    def accept(self, header: bytes, payload: bytes) -> bool:
+        if self.seen >= 4:
+            return False
+        sequence, category, device = self.expected[self.seen]
+        words = unpack("H", header, 22)[0]
+        if (
+            unpack("H", header, 2)[0] != sequence
+            or unpack("HH", header, 8) != (category, device)
+            or unpack("I", header, 16)[0] != self.code
+            or unpack("H", header, 20)[0] != self.source
+            or unpack("I", header, 24)[0]
+            or words > 8
+            or len(payload) != words * 4
+            or any(payload)
+        ):
+            return False
+        timestamp = unpack("I", header, 12)[0]
+        if self.seen % 2 and timestamp != self.time:
+            return False
+        self.time = timestamp if not self.seen % 2 else None
+        self.seen += 1
+        return True
+
+    @property
+    def complete(self) -> bool:
+        return self.seen == 4
 
 
 @dataclass(frozen=True)
@@ -115,6 +161,24 @@ class InputWire(Wire):
         self.focus: int | None = None
         self.structures: set[int] = set()
         self.events = 0
+        self.key_events: KeyEvents | None = None
+        self.key_lease: KeyLease | None = None
+        self._key_query = False
+
+    async def send(self, opcode: int, data: bytes = b"", minor: int = 0) -> None:
+        if self.key_lease is not None and not (self._key_query and opcode == 44 and not data and minor == 0):
+            raise failure("desktop_input_unverified")
+        self._key_query = False
+        await super().send(opcode, data, minor)
+
+    async def key_barrier(self, lease: KeyLease) -> bytes:
+        if self.key_lease is not lease:
+            raise failure("desktop_input_unverified")
+        self._key_query = True
+        try:
+            return await self.request(44, maximum=8)
+        finally:
+            self._key_query = False
 
     async def read(self, length: int) -> bytes:
         if self.received + length > 1024 * 1024:
@@ -133,7 +197,9 @@ class InputWire(Wire):
             category = unpack("H", header, 8)[0]
             if category not in RAW | DEVICE or length > 4096:
                 raise failure("desktop_input_unverified")
-            await self.read(length)  # discard keycodes, coordinates and valuators
+            payload = await self.read(length)
+            if category in RAW and self.key_events is not None and self.key_events.accept(header, payload):
+                return
         elif header[0] in {9, 10}:
             if self.focus is None or unpack("I", header, 4)[0] != self.focus:
                 raise failure("desktop_input_unverified")
@@ -233,4 +299,6 @@ class X11Input:
         await self.check()
 
     async def close(self) -> bool:
+        if self.wire is not None and self.wire.key_lease is not None and not await self.wire.key_lease.settle():
+            return False
         return self.connection is None or await self.connection.close()

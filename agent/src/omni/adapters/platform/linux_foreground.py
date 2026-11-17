@@ -8,6 +8,7 @@ from typing import cast
 from .linux_bus import failure
 from .linux_input import X11Input
 from .linux_keyboard import KeyboardMapping
+from .linux_keystroke import KeyPacket
 from .linux_window_leases import WindowLeases
 from .linux_x11 import X11Desktop
 from .linux_x11_wire import unpack
@@ -182,3 +183,12 @@ class WindowFocus:
         except BaseException:
             self._ready = False
             raise
+
+    async def key_packet(self) -> KeyPacket:
+        """Prepare one internal wire pair; workers still require target association and business permit."""
+        code = await self.verify_key()
+        sources = await self.verify_sources()
+        await self.check()
+        if self._sources is None:
+            raise failure("desktop_input_unverified")
+        return KeyPacket(self.monitor, self._sources.opcode, sources, code)
