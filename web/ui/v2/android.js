@@ -1,4 +1,4 @@
-import { mountAndroidUnicode } from './android-unicode.js?v=20261117v141';
+import { mountAndroidUnicode } from './android-unicode.js?v=20261117v142';
 // Device content is ephemeral. Input preparation uses the shared approval/run ledger.
 export function mountAndroid({ api, wrap, getAgent, getGeneration, getSession }) {
   const $ = (id) => document.getElementById(id),

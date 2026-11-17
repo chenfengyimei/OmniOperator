@@ -1,7 +1,7 @@
 {
   "batch": "v2-ui-connection-stability-v128",
   "recorded_at": "2026-11-15",
-  "resource_version_final": "20261117v141",
+  "resource_version_final": "20261117v142",
   "v1_alignment": {
     "summary": "用户提供 V1 正式工作台截图后，直接精读 web/ui/workbench.css 的 V1 实现并逐项移植，使 V2 结构与 V1 一致（而非自创风格）。",
     "ported_from_v1": [
@@ -1143,5 +1143,16 @@
     },
     "测量教训": "分类链接加图标后 textContent 含图标名，联动断言须读 .settings-rail-label 文字元素。",
     "版本": "资源串整体 v140→v141。"
+  },
+  "theme_dots_v142": {
+    "需求": "所有者提供参照图（prototype-workbench-redesign.html 三圆点），要求主题界面改为三个小圆点点击直接切换。",
+    "交付": [
+      "顶栏单循环键 #theme 移除，改 .themes 胶囊容器+三个 .theme-dot（dark/auto/light），role=radiogroup",
+      "点击各圆点 OmniTheme.set(对应偏好) 直接切换（不再循环）；选中项 .active 白描边+外圈+aria-checked",
+      "圆点为固定样本渐变不随当前主题翻面：dark=#0b1220+青、auto=青+紫、light=#fff+深青（#0b1220/#fff 在颜色守卫豁免清单）",
+      "themeLabel 改为同步三圆点选中态；omni:theme-change 与刷新后保持"
+    ],
+    "验证": "三圆点核查7/7（直接切换/选中态/持久化/圆形渐变）、守卫33、全站76/76、V1主题回归8 passed。",
+    "版本": "资源串整体 v141→v142。"
   }
 }

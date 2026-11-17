@@ -1,32 +1,32 @@
-import { mountSkills } from './skills.js?v=20261117v141';
-import { mountCredentials } from './credentials.js?v=20261117v141';
-import { mountAuditHistory, mountOperations } from './operations.js?v=20261117v141';
-import { mountCapabilities } from './capabilities.js?v=20261117v141';
-import { mountTokens } from './tokens.js?v=20261117v141';
-import { mountDocuments } from './documents.js?v=20261117v141';
-import { mountConfiguration } from './configuration.js?v=20261117v141';
-import { mountModels } from './models.js?v=20261117v141';
+import { mountSkills } from './skills.js?v=20261117v142';
+import { mountCredentials } from './credentials.js?v=20261117v142';
+import { mountAuditHistory, mountOperations } from './operations.js?v=20261117v142';
+import { mountCapabilities } from './capabilities.js?v=20261117v142';
+import { mountTokens } from './tokens.js?v=20261117v142';
+import { mountDocuments } from './documents.js?v=20261117v142';
+import { mountConfiguration } from './configuration.js?v=20261117v142';
+import { mountModels } from './models.js?v=20261117v142';
 import { ask } from '../dialog.js?v=20261103v7';
-import { mountPeople } from './people.js?v=20261117v141';
-import { mountDeliveries } from './deliveries.js?v=20261117v141';
-import { mountSchedules } from './schedules.js?v=20261117v141';
-import { mountMemorySemantics } from './memory-semantics.js?v=20261117v141';
-import { mountMemoryOrganization } from './memory-organization.js?v=20261117v141';
-import { mountExtensions } from './extensions.js?v=20261117v141';
-import { mountActionReviews } from './action-reviews.js?v=20261117v141';
-import { mountTerminals } from './terminals.js?v=20261117v141';
-import { mountDesktop } from './desktop.js?v=20261117v141';
-import { mountQQ } from './qq.js?v=20261117v141';
-import { mountBilibili } from './bilibili.js?v=20261117v141';
-import { mountMedia } from './media.js?v=20261117v141';
-import { mountMcp } from './mcp.js?v=20261117v141';
-import { mountAndroid } from './android.js?v=20261117v141';
-import { mountModelOutput } from './model-output.js?v=20261117v141';
-import { mountRouting } from './routing.js?v=20261117v141';
-import { mountChatImages } from './chat-images.js?v=20261117v141';
-import { mountInspector } from './inspector.js?v=20261117v141';
-import { mountSettingsRail } from './settings-rail.js?v=20261117v141';
-import { mountEventStream } from './event-stream.js?v=20261117v141';
+import { mountPeople } from './people.js?v=20261117v142';
+import { mountDeliveries } from './deliveries.js?v=20261117v142';
+import { mountSchedules } from './schedules.js?v=20261117v142';
+import { mountMemorySemantics } from './memory-semantics.js?v=20261117v142';
+import { mountMemoryOrganization } from './memory-organization.js?v=20261117v142';
+import { mountExtensions } from './extensions.js?v=20261117v142';
+import { mountActionReviews } from './action-reviews.js?v=20261117v142';
+import { mountTerminals } from './terminals.js?v=20261117v142';
+import { mountDesktop } from './desktop.js?v=20261117v142';
+import { mountQQ } from './qq.js?v=20261117v142';
+import { mountBilibili } from './bilibili.js?v=20261117v142';
+import { mountMedia } from './media.js?v=20261117v142';
+import { mountMcp } from './mcp.js?v=20261117v142';
+import { mountAndroid } from './android.js?v=20261117v142';
+import { mountModelOutput } from './model-output.js?v=20261117v142';
+import { mountRouting } from './routing.js?v=20261117v142';
+import { mountChatImages } from './chat-images.js?v=20261117v142';
+import { mountInspector } from './inspector.js?v=20261117v142';
+import { mountSettingsRail } from './settings-rail.js?v=20261117v142';
+import { mountEventStream } from './event-stream.js?v=20261117v142';
 // 直接复用 V1 的 rail 提示浮层模块（data-tip → #tip-layer），不自创实现
 import '../app/tips.js?v=20261103u5';
 
@@ -307,11 +307,13 @@ function syncPageChrome(next) {
   if (aside && next === 'chat') aside.scrollTop = 0;
 }
 function themeLabel() {
+  // 三圆点直接切换（对齐 prototype-workbench-redesign）：选中项加 .active + aria-checked
   const pref = window.OmniTheme?.pref?.() || 'auto';
-  const button = $('theme');
-  if (!button) return;
-  button.textContent = pref === 'light' ? '☀' : pref === 'dark' ? '☾' : '◐';
-  button.title = `切换主题（当前：${{ auto: '跟随系统', light: '浅色', dark: '深色' }[pref] || pref}）`;
+  for (const dot of document.querySelectorAll('.theme-dot')) {
+    const on = dot.dataset.t === pref;
+    dot.classList.toggle('active', on);
+    dot.setAttribute('aria-checked', String(on));
+  }
 }
 const runToolsCache = new Map();
 // 一轮运行即使没有工具调用，也有档位选择与模型调用的输入输出，这些都要能查看
@@ -1451,10 +1453,12 @@ $('message').addEventListener('keydown', (event) => {
   const form = $('send');
   if (form.requestSubmit) form.requestSubmit();
 });
-$('theme').addEventListener('click', () => {
-  window.OmniTheme.cycle();
-  themeLabel();
-});
+for (const dot of document.querySelectorAll('.theme-dot')) {
+  dot.addEventListener('click', () => {
+    window.OmniTheme.set(dot.dataset.t);
+    themeLabel();
+  });
+}
 document.addEventListener('omni:theme-change', themeLabel);
 $('new-session').addEventListener('click', () => {
   session = null;

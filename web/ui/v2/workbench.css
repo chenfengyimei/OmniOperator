@@ -2891,36 +2891,53 @@ body[data-ui-page="workbench-v2"] #models .mo-mini:hover {
    ③ 技能多选弹层的玻璃面板语言；④ 返回对话按钮。
    ========================================================================== */
 
-/* ① 主题切换键：此前无任何规则，是浏览器默认灰底凸边框小方块。
-   改为与顶栏同语言的玻璃圆钮，字符图标（☀/☾/◐ 由 JS 写入）居中。 */
-body[data-ui-page="workbench-v2"] #theme {
+/* ① 主题切换：对齐 prototype-workbench-redesign 的三圆点直接切换。
+   胶囊容器内三个渐变圆点（深色/跟随/浅色），点哪个切哪个，
+   选中项白描边+外圈。渐变成员全部走种子令牌，不引第二强调色。 */
+body[data-ui-page="workbench-v2"] .themes {
   flex: 0 0 auto;
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  justify-content: center;
-  width: 30px;
-  height: 30px;
+  gap: 4px;
+  padding: 4px 6px;
+  border: 1px solid var(--line-2);
+  border-radius: var(--r-full);
+  background: var(--surface-inset);
+}
+body[data-ui-page="workbench-v2"] .theme-dot {
+  width: 16px;
+  height: 16px;
   padding: 0;
-  border: 1px solid var(--glass-weak-line);
-  border-radius: var(--r-md);
-  background: var(--glass-weak-bg);
-  color: var(--text-2);
-  font-size: 15px;
-  line-height: 1;
+  border: 1.5px solid transparent;
+  border-radius: var(--r-full);
   cursor: pointer;
   transition:
-    border-color 0.15s,
-    color 0.15s,
-    background 0.15s;
+    transform 0.12s,
+    border-color 0.12s,
+    box-shadow 0.12s;
 }
-body[data-ui-page="workbench-v2"] #theme:hover {
-  border-color: var(--line-accent);
-  color: var(--text-1);
-  background: var(--surface-accent);
+body[data-ui-page="workbench-v2"] .theme-dot:hover {
+  transform: scale(1.15);
 }
-body[data-ui-page="workbench-v2"] #theme:focus-visible {
+/* 圆点是主题的「固定样本」，不随当前主题翻面：深色点=深底+青、
+   跟随点=青+紫、浅色点=白+深青（否则深色主题下浅色点会变暗看不出）。
+   #0b1220/#fff 均在颜色守卫豁免清单（阴影基色/纯白），非第二强调色。 */
+body[data-ui-page="workbench-v2"] .theme-dot[data-t="dark"] {
+  background: linear-gradient(135deg, #0b1220, var(--seed-accent));
+}
+body[data-ui-page="workbench-v2"] .theme-dot[data-t="auto"] {
+  background: linear-gradient(135deg, var(--seed-accent), var(--seed-accent2));
+}
+body[data-ui-page="workbench-v2"] .theme-dot[data-t="light"] {
+  background: linear-gradient(135deg, #fff, var(--seed-accent2));
+}
+body[data-ui-page="workbench-v2"] .theme-dot.active {
+  border-color: var(--text-1);
+  box-shadow: 0 0 0 2px var(--surface-0);
+}
+body[data-ui-page="workbench-v2"] .theme-dot:focus-visible {
   outline: 2px solid var(--line-accent);
-  outline-offset: 1px;
+  outline-offset: 2px;
 }
 
 /* 健康徽标：此前是裸文本，与「实例已就绪」语义不匹配。

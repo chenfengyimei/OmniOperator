@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "3ed7875dce1304fc488340b93ea4d5df7bbf3f71d6234020f1f72666c95c8f21",
+  "source_sha256": "da07ad0c363ba64c6ef3038aa094da7e1b6d0bf0029412cab5a7b1b8e7980d4c",
   "modules": [
     {
       "id": "v2-domain",
@@ -320,6 +320,7 @@
         "agent/src/omni/adapters/platform/linux_foreground.py",
         "agent/src/omni/adapters/platform/linux_input.py",
         "agent/src/omni/adapters/platform/linux_keyboard.py",
+        "agent/src/omni/adapters/platform/linux_keystroke.py",
         "agent/src/omni/adapters/platform/linux_lease_client.py",
         "agent/src/omni/adapters/platform/linux_pipewire.py",
         "agent/src/omni/adapters/platform/linux_portal.py",
@@ -426,7 +427,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 58749,
+      "lines": 58969,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -522,7 +523,7 @@
         "web/ui/v2/v1/workbench.css",
         "web/ui/v2/workbench.css"
       ],
-      "lines": 22803,
+      "lines": 22828,
       "dependencies": []
     },
     {
@@ -26199,11 +26200,12 @@
       "path": "agent/src/omni/adapters/platform/linux_foreground.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.linux_foreground",
-      "lines": 184,
+      "lines": 194,
       "imports": [
         "omni.adapters.platform.linux_bus",
         "omni.adapters.platform.linux_input",
         "omni.adapters.platform.linux_keyboard",
+        "omni.adapters.platform.linux_keystroke",
         "omni.adapters.platform.linux_window_leases",
         "omni.adapters.platform.linux_x11",
         "omni.adapters.platform.linux_x11_wire",
@@ -26212,12 +26214,12 @@
       "symbols": [
         {
           "name": "WindowFocus",
-          "line": 21,
+          "line": 22,
           "kind": "class"
         },
         {
           "name": "WindowFocus.__init__",
-          "line": 24,
+          "line": 25,
           "kind": "function",
           "parameters": [
             "self",
@@ -26231,7 +26233,7 @@
         },
         {
           "name": "WindowFocus._same_server",
-          "line": 36,
+          "line": 37,
           "kind": "function",
           "parameters": [
             "self"
@@ -26240,7 +26242,7 @@
         },
         {
           "name": "WindowFocus._read_lineage",
-          "line": 56,
+          "line": 57,
           "kind": "function",
           "parameters": [
             "self"
@@ -26249,7 +26251,7 @@
         },
         {
           "name": "WindowFocus.prepare",
-          "line": 94,
+          "line": 95,
           "kind": "function",
           "parameters": [
             "self",
@@ -26261,7 +26263,7 @@
         },
         {
           "name": "WindowFocus._validate",
-          "line": 116,
+          "line": 117,
           "kind": "function",
           "parameters": [
             "self"
@@ -26270,7 +26272,7 @@
         },
         {
           "name": "WindowFocus.check",
-          "line": 127,
+          "line": 128,
           "kind": "function",
           "parameters": [
             "self"
@@ -26279,7 +26281,7 @@
         },
         {
           "name": "WindowFocus.close",
-          "line": 136,
+          "line": 137,
           "kind": "function",
           "parameters": [
             "self"
@@ -26288,7 +26290,7 @@
         },
         {
           "name": "WindowFocus.prepare_key",
-          "line": 140,
+          "line": 141,
           "kind": "function",
           "parameters": [
             "self",
@@ -26300,7 +26302,7 @@
         },
         {
           "name": "WindowFocus.verify_key",
-          "line": 151,
+          "line": 152,
           "kind": "function",
           "parameters": [
             "self"
@@ -26309,7 +26311,7 @@
         },
         {
           "name": "WindowFocus.prepare_sources",
-          "line": 160,
+          "line": 161,
           "kind": "function",
           "parameters": [
             "self"
@@ -26318,7 +26320,16 @@
         },
         {
           "name": "WindowFocus.verify_sources",
-          "line": 174,
+          "line": 175,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "WindowFocus.key_packet",
+          "line": 187,
           "kind": "function",
           "parameters": [
             "self"
@@ -26332,7 +26343,7 @@
       "path": "agent/src/omni/adapters/platform/linux_input.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.linux_input",
-      "lines": 236,
+      "lines": 304,
       "imports": [
         "omni.adapters.platform.linux_bus",
         "omni.adapters.platform.linux_session",
@@ -26341,18 +26352,78 @@
       ],
       "symbols": [
         {
-          "name": "Device",
+          "name": "KeyLease",
           "line": 23,
           "kind": "class"
         },
         {
+          "name": "KeyLease.settle",
+          "line": 24,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "KeyEvents",
+          "line": 27,
+          "kind": "class"
+        },
+        {
+          "name": "KeyEvents.__init__",
+          "line": 30,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "sequence",
+            "code",
+            "source",
+            "master"
+          ],
+          "annotations": {
+            "sequence": "int",
+            "code": "int",
+            "source": "int",
+            "master": "int"
+          }
+        },
+        {
+          "name": "KeyEvents.accept",
+          "line": 40,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "header",
+            "payload"
+          ],
+          "annotations": {
+            "header": "bytes",
+            "payload": "bytes"
+          }
+        },
+        {
+          "name": "KeyEvents.complete",
+          "line": 64,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "Device",
+          "line": 69,
+          "kind": "class"
+        },
+        {
           "name": "Topology",
-          "line": 32,
+          "line": 78,
           "kind": "class"
         },
         {
           "name": "device_topology",
-          "line": 37,
+          "line": 83,
           "kind": "function",
           "parameters": [
             "data"
@@ -26363,7 +26434,7 @@
         },
         {
           "name": "devices",
-          "line": 105,
+          "line": 151,
           "kind": "function",
           "parameters": [
             "data"
@@ -26374,12 +26445,12 @@
         },
         {
           "name": "InputWire",
-          "line": 109,
+          "line": 155,
           "kind": "class"
         },
         {
           "name": "InputWire.__init__",
-          "line": 110,
+          "line": 156,
           "kind": "function",
           "parameters": [
             "self",
@@ -26392,8 +26463,36 @@
           }
         },
         {
+          "name": "InputWire.send",
+          "line": 168,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "opcode",
+            "data",
+            "minor"
+          ],
+          "annotations": {
+            "opcode": "int",
+            "data": "bytes",
+            "minor": "int"
+          }
+        },
+        {
+          "name": "InputWire.key_barrier",
+          "line": 174,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "lease"
+          ],
+          "annotations": {
+            "lease": "KeyLease"
+          }
+        },
+        {
           "name": "InputWire.read",
-          "line": 119,
+          "line": 183,
           "kind": "function",
           "parameters": [
             "self",
@@ -26405,7 +26504,7 @@
         },
         {
           "name": "InputWire.event",
-          "line": 124,
+          "line": 188,
           "kind": "function",
           "parameters": [
             "self",
@@ -26417,12 +26516,12 @@
         },
         {
           "name": "X11Input",
-          "line": 148,
+          "line": 214,
           "kind": "class"
         },
         {
           "name": "X11Input.__init__",
-          "line": 149,
+          "line": 215,
           "kind": "function",
           "parameters": [
             "self",
@@ -26438,7 +26537,7 @@
         },
         {
           "name": "X11Input.open",
-          "line": 162,
+          "line": 228,
           "kind": "function",
           "parameters": [
             "self"
@@ -26447,7 +26546,7 @@
         },
         {
           "name": "X11Input.released",
-          "line": 175,
+          "line": 241,
           "kind": "function",
           "parameters": [
             "self"
@@ -26456,7 +26555,7 @@
         },
         {
           "name": "X11Input.arm",
-          "line": 186,
+          "line": 252,
           "kind": "function",
           "parameters": [
             "self"
@@ -26465,7 +26564,7 @@
         },
         {
           "name": "X11Input.check",
-          "line": 204,
+          "line": 270,
           "kind": "function",
           "parameters": [
             "self"
@@ -26474,7 +26573,7 @@
         },
         {
           "name": "X11Input.watch_lineage",
-          "line": 212,
+          "line": 278,
           "kind": "function",
           "parameters": [
             "self",
@@ -26486,7 +26585,7 @@
         },
         {
           "name": "X11Input.close",
-          "line": 235,
+          "line": 301,
           "kind": "function",
           "parameters": [
             "self"
@@ -26574,6 +26673,104 @@
         }
       ],
       "summary": "Bounded read-only core keymap preflight on an existing focus proof; never translates Unicode, changes layouts or sends input."
+    },
+    {
+      "path": "agent/src/omni/adapters/platform/linux_keystroke.py",
+      "module": "v2-adapters",
+      "python_module": "omni.adapters.platform.linux_keystroke",
+      "lines": 135,
+      "imports": [
+        "omni.adapters.platform.linux_bus",
+        "omni.adapters.platform.linux_input",
+        "omni.adapters.platform.linux_xtest"
+      ],
+      "symbols": [
+        {
+          "name": "KeyPacket",
+          "line": 14,
+          "kind": "class"
+        },
+        {
+          "name": "KeyPacket.__init__",
+          "line": 17,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "monitor",
+            "opcode",
+            "sources",
+            "code"
+          ],
+          "annotations": {
+            "monitor": "X11Input",
+            "opcode": "int",
+            "sources": "Sources",
+            "code": "int"
+          }
+        },
+        {
+          "name": "KeyPacket.release_pending",
+          "line": 51,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "KeyPacket._writable",
+          "line": 54,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "KeyPacket._writable.wake",
+          "line": 59,
+          "kind": "function",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "KeyPacket._write",
+          "line": 69,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "KeyPacket.emit",
+          "line": 82,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "KeyPacket._finish",
+          "line": 104,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "KeyPacket.settle",
+          "line": 126,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        }
+      ],
+      "summary": "Single paired XTEST wire delivery and retained release; business target/permit integration remains external."
     },
     {
       "path": "agent/src/omni/adapters/platform/linux_lease_client.py",
@@ -28862,7 +29059,7 @@
       "path": "agent/src/omni/adapters/platform/linux_xtest.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.linux_xtest",
-      "lines": 111,
+      "lines": 118,
       "imports": [
         "omni.adapters.platform.linux_bus",
         "omni.adapters.platform.linux_input",
@@ -28892,8 +29089,17 @@
           }
         },
         {
+          "name": "XTestSources.opcode",
+          "line": 32,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
           "name": "XTestSources._read",
-          "line": 30,
+          "line": 37,
           "kind": "function",
           "parameters": [
             "self"
@@ -28902,7 +29108,7 @@
         },
         {
           "name": "XTestSources.prepare",
-          "line": 67,
+          "line": 74,
           "kind": "function",
           "parameters": [
             "self"
@@ -28911,7 +29117,7 @@
         },
         {
           "name": "XTestSources.verify",
-          "line": 100,
+          "line": 107,
           "kind": "function",
           "parameters": [
             "self"
@@ -100041,7 +100247,7 @@
       "path": "web/ui/v2/index.html",
       "module": "v2-workbench",
       "python_module": null,
-      "lines": 1903,
+      "lines": 1907,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -100061,7 +100267,7 @@
       "path": "web/ui/v2/main.js",
       "module": "v2-workbench",
       "python_module": null,
-      "lines": 1801,
+      "lines": 1805,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -100271,7 +100477,7 @@
       "path": "web/ui/v2/workbench.css",
       "module": "v2-workbench",
       "python_module": null,
-      "lines": 3066,
+      "lines": 3083,
       "imports": [],
       "symbols": [],
       "kind": "asset",
