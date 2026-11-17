@@ -2668,11 +2668,11 @@
      "development": "完成",
      "offline_validation": "MCP专项20项、浏览器2例（390/1024）、调用方54项、守卫74项最新全过；全量另跑（16 failed/10 errors 均为基线遗留）",
      "platform_acceptance": "待真实验收：真实外部MCP服务与真实OAuth供应商；Windows/本机假服务不等于真实服务",
-     "scope": "配置修订即服务身份、stdio/Streamable HTTP、显式OAuth+PKCE/state、目录与工具指纹、逐工具授权与漂移撤权、每run封存、超时/取消/unknown分类、调用记录与工作台；64项完整业务准入、取消/关闭任务及原失败会话保留，派发前授权/事务和最终提交归属",
+     "scope": "配置修订即服务身份、stdio/Streamable HTTP、显式OAuth+PKCE/state、目录与工具指纹、逐工具授权与漂移撤权、每run封存、超时/取消/unknown分类、调用记录与工作台；64项完整业务准入、取消/关闭任务及原失败会话保留，派发前授权/事务和最终提交归属；HTTP缺响应头/stdio排空失败的可能送达unknown，审批后写入及人工核查不重发",
      "evidence": "docs/evidence/v2-mcp.json",
      "limits": "无自动退避重连与跨进程会话共享；真实服务/供应商未验收；完整D6与D7未完成",
      "code_version": "474c67827a9fe8a0eef1136db59685bf305838d9d89c93a18b8922fa9c61cced",
-     "latest_evidence": "docs/evidence/v2-mcp-ownership.json"
+     "latest_evidence": "docs/evidence/v2-mcp-delivery.json"
     },
     "extension_artifacts": {
      "development": "完成",
@@ -2758,6 +2758,6 @@
   "priority": "implementation_first",
   "tracker": "docs/tasks/v2-development.json",
   "full_suite_timing": "after_whole_v2_development_complete",
-  "latest_scoped_evidence": "docs/evidence/v2-mcp-ownership.json"
+  "latest_scoped_evidence": "docs/evidence/v2-mcp-delivery.json"
  }
 }

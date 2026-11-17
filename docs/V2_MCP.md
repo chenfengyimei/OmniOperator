@@ -117,3 +117,15 @@ Windows离线候选默认入口为V2，显式V1回退保留。MCP及整个V2后�
 关闭先拒绝新业务并排空完整任务，再启动原transport-close任务；取消等待或预算耗尽不取消/复制实际close。原close真正结束为false/异常后，下次显式close才可再试。quiescent同时核对业务任务、传输调用、会话busy/starting/retiring及关闭结果；数据库和人工动作核查不能因传输计数暂为零而提前释放。
 
 37新增及65调用方/合同，分阶段102不同专项通过：主组101（56.44秒），末次仅HTTP关闭与模型满队列2项（4.58秒）。运行2文件与主组字节相同，strict零错误/警告；386仅登记。原所有者用例正文14项AST一致，最终其他新测试正文与主组一致。保留旧源码3失败、测试随机目标导致停滞、字段误用2失败及1类型诊断；未缩短期限、放宽断言或以补跑冒充全量。实际隔离SQLite/HTTP及既有stdio/回环HTTP/OAuth链已验，新增时序端口为注入；真实外部服务/供应商、平台/账号/设备/72h仍待。见[归属证据](evidence/v2-mcp-ownership.json)。
+
+## 12. 缺失响应与可能送达分类（2026-11-18）
+
+stdio的write可能已经把帧交给管道，drain只是流控等待；在write成功返回后就标记可能送达。之后BrokenPipe/ConnectionReset、drain取消及原有超时/断连的tools/call保持unknown；write本身在成功返回前抛连接异常仍为未发送。沿原回收路径，不重放帧。依据：[Python StreamWriter](https://docs.python.org/3.12/library/asyncio-stream.html#asyncio.StreamWriter.drain)。
+
+HTTP stream上下文进入前等待的是响应头，外部可能已经收到完整请求。tools/call移交客户端后读写/协议/关闭失败及取消，即使没有响应头也保守记unknown。没有收到响应时，ConnectError/ConnectTimeout/PoolTimeout分别证明连接建立或连接池获取失败，仍保留未发送分类；响应后不使用该例外。授权头准备和before_send仍在此移交边界之前，取消预检不发送请求。401/403/其他4xx及握手/发现合同保持。依据：[HTTPX异常定义](https://www.python-httpx.org/exceptions/)。
+
+sent=true表示可能离开本进程，不证明操作成功。新增20项验证含真实回环断连/坏状态行、注入异常/取消、写入前失败及授权预检取消；两种完整SQLite/HTTP/模型脚本写动作要求逐次审批，批准前无文件，批准后只追加一次，然后故意丢失响应头。调用及动作unknown，人工确认applied仍保留原unknown，重复回合键不重发。原期限、错误码、权限与费用链不放宽。
+
+旧源码12失败/3兼容通过，首修15通过，扩展20新增及102调用方/合同共122专项通过（72.20秒）；2运行文件strict零错误/警告，386仅登记，主组与类型检查运行字节相同。无全量/重新打包；真实外部MCP/OAuth供应商及账号/设备/平台/72h尚未验收。见[派发证据](evidence/v2-mcp-delivery.json)。
+
+并行UI提交`41f71e44`仅调整顶栏按钮位置及UI证据；在该新固定基线上补10通过（32.13秒）：390/1024 MCP连接授权调用撤权断开、六项V2架构及两种已批准写入/unknown/人工核查。MCP运行及新测试字节与主组相同，分阶段124不同节点；原122报告仍绑定`79f25d90`，不冒充当前整仓全量。后续其他会话UI/安装器在途修改保留未纳入。

@@ -359,7 +359,8 @@
         "现有扩展/MCP业务、仓储与实例生命周期接线存在，本轮只读核对，未重做或声明整范围复验。",
         "跨平台安装器已有实现；本批补独立安装矩阵检查及实际暴露的Unicode/特殊字符启动缺陷，仍不证明三平台交付完成。",
         "原媒体仅接B站来源；本批补上传对象→原ASR/抽帧→产物/模型只读工具与HTTP/工作台，见G6.media_upload。真实素材/ASR质量单列验收。",
-        "实际MCP业务任务未持有首次数据库准备至最终提交，且失败/旧代次会话在真实回收前被移除；本批补齐完整准入/取消/关闭/原会话保留，见G6.mcp_ownership，不重做原业务。"
+        "实际MCP业务任务未持有首次数据库准备至最终提交，且失败/旧代次会话在真实回收前被移除；本批补齐完整准入/取消/关闭/原会话保留，见G6.mcp_ownership，不重做原业务。",
+        "真实回环复现HTTP服务端已收完整写调用但缺响应头时被归未执行；stdio排空失败也有同类缺口。本批保留可能送达unknown和明确未发送例外，实测审批/写一次/人工核查不重发，见G6.mcp_delivery。"
       ],
       "subdeliverables": [
         {
@@ -391,6 +392,17 @@
             "docs/evidence/v2-mcp-ownership.json"
           ],
           "real_external_service_or_oauth_provider": false
+        },
+        {
+          "id": "G6.mcp_delivery",
+          "title": "MCP缺响应头与管道排空失败的可能送达分类及写入核查",
+          "status": "implemented_scoped_passed",
+          "contract": "docs/V2_MCP.md",
+          "evidence": [
+            "docs/evidence/v2-mcp-delivery.json"
+          ],
+          "actual_isolated_sqlite_http_approval_and_review": true,
+          "real_external_service": false
         }
       ],
       "partial_code_audit": {
@@ -412,11 +424,13 @@
           "agent/src/omni/adapters/workers/media.py",
           "web/ui/v2/media.js",
           "agent/src/omni/adapters/mcp/hosts.py",
-          "agent/src/omni/application/engine.py"
+          "agent/src/omni/application/engine.py",
+          "agent/src/omni/adapters/mcp/http.py",
+          "agent/src/omni/adapters/mcp/stdio.py"
         ],
         "resulting_development_evidence": "docs/evidence/v2-portable-installation.json",
         "existing_extension_mcp_chains_tested_in_this_batch": false,
-        "latest_resulting_development_evidence": "docs/evidence/v2-mcp-ownership.json"
+        "latest_resulting_development_evidence": "docs/evidence/v2-mcp-delivery.json"
       }
     },
     {

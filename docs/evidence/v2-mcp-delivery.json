@@ -1,0 +1,169 @@
+{
+  "schema": 1,
+  "date": "2026-11-18",
+  "base_commit": "79f25d90c8b5283d7e9de3d1283ab77b523e9242",
+  "status": "mcp_missing_response_delivery_classification_implemented_scoped_passed",
+  "source_files": {
+    "agent/src/omni/adapters/mcp/http.py": "67c3659e7814e587509c9fddbe9d8b263e42aaec9e46f3c0a3e66276194f5ca4",
+    "agent/src/omni/adapters/mcp/stdio.py": "a2d24ed65d0ad85f98d2be734e481f97b93e222c60568db5f72630b85b4da874",
+    "agent/tests/test_v2_mcp_delivery.py": "df00fb3be540f3488a7de0b29749f5a5d14c2f93ee837192109b47daa883ec52"
+  },
+  "source_manifests": [
+    {
+      "path": "temp/build/v2-mcp-delivery-source-r1.json",
+      "sha256": "4c8125d7a85ee03373c93f4c94fda228dca799c6d06c1b67f12d71708aebbe32"
+    },
+    {
+      "path": "temp/build/v2-mcp-delivery-source-r2.json",
+      "sha256": "47b629a4bb3cc9b0be26a17b4ac2352437ed1abbf32e8e9356b05364b3e4ac20"
+    },
+    {
+      "path": "temp/build/v2-mcp-delivery-source-r3.json",
+      "sha256": "3301e227ba94f24bd1f187f8993cf8543179b2e630792d05e6eceb1ea3eabfa8"
+    },
+    {
+      "path": "temp/build/v2-mcp-delivery-source-r4.json",
+      "sha256": "9d2224c1a8f5f76a2626f50a31ae774baa179d16ba8e2e09d8928debe63979d6"
+    }
+  ],
+  "retained_source_deltas": [
+    {
+      "path": "temp/build/v2-mcp-delivery-r1-source-delta.zip",
+      "sha256": "580211f776bca9a9f83140139378f50017cdb54be179baa338f1dac7cb7acee0"
+    },
+    {
+      "path": "temp/build/v2-mcp-delivery-r2-source-delta.zip",
+      "sha256": "d93ce482f000cc0955ee886abfdaf0ce57bef577e7cf7fb121e443f96355fd9c"
+    },
+    {
+      "path": "temp/build/v2-mcp-delivery-r3-source-delta.zip",
+      "sha256": "ced944e89c3402edbbb0222db4d0a56ff6de6cadaf4b8958706f0c0bf0d9dd01"
+    },
+    {
+      "path": "temp/build/v2-mcp-delivery-r4-source-delta.zip",
+      "sha256": "aafa0e48606f7df8333947e0d47a5eb15e66c29a114f57f3e709725ffd02f28e"
+    }
+  ],
+  "baseline": {
+    "revision": 1,
+    "unmodified_head_runtime": true,
+    "failed": 12,
+    "passed_compatibility": 3,
+    "report": {
+      "path": "temp/build/v2-mcp-delivery-before.xml",
+      "sha256": "243509d5bd859323b43fa9ec0a41ee60c6ba2b3fb5c7ebddf4848da4445d4d44"
+    },
+    "log": {
+      "path": "temp/build/v2-mcp-delivery-before.log",
+      "sha256": "9070c3d6e8499ce58aa13a4fd5fafd3736a0c81e342bcdf3e5b22ff06703160d"
+    },
+    "failures": "stdio write accepted then drain BrokenPipe/Reset/Cancelled; HTTP handoff Read/Write/protocol/close failures before headers and cancellation; two real loopback endpoints read the complete request before disconnecting or writing an invalid status line. Old transport classified these as definite failures/cancellation."
+  },
+  "first_fix": {
+    "revision": 2,
+    "passed": 15,
+    "report": {
+      "path": "temp/build/v2-mcp-delivery-fix-r2.xml",
+      "sha256": "6628149b4d118b9febff0a36db32ef4695ad00a6fa3ee60be459364aa555faf8"
+    },
+    "log": {
+      "path": "temp/build/v2-mcp-delivery-fix-r2.log",
+      "sha256": "07bdf7362ebe46405853a2d87820b481126c7c9f7cda38daa457e446878fddc3"
+    }
+  },
+  "validation": {
+    "revision": 3,
+    "distinct_scoped_passed": 122,
+    "new_nodes": 20,
+    "elapsed_seconds": 72.144,
+    "report": {
+      "path": "temp/build/v2-mcp-delivery-callers-r3.xml",
+      "sha256": "b24c50bc8a64852a5c44cdb494cbe1e8afc8312564786e1d03d54d0171172233"
+    },
+    "log": {
+      "path": "temp/build/v2-mcp-delivery-callers-r3.log",
+      "sha256": "bb670465cfcf3a1a25741bd110c98c1913424674e2f07c35b01f7ba643904cd8"
+    },
+    "scope": [
+      "delivery failure classification",
+      "complete business/session ownership",
+      "MCP stdio/HTTP transports",
+      "owner/model flow and explicit OAuth",
+      "lifecycle",
+      "action review and owned workers",
+      "V1/V2 architecture",
+      "strict scope contract"
+    ]
+  },
+  "strict_types": {
+    "files": 2,
+    "errors": 0,
+    "warnings": 0,
+    "report": {
+      "path": "temp/build/v2-mcp-delivery-pyright-r2.json",
+      "sha256": "2c7846aa44f54b37165d23e2851a82c4d1fcaf237253e5e4ad0f29a2fe739756"
+    },
+    "runtime_bytes_identical_in_revisions": [
+      2,
+      3,
+      4
+    ],
+    "registered_files": 386,
+    "registered_scope_fully_rechecked": false
+  },
+  "quality": {
+    "ruff_and_format_passed": true,
+    "report": {
+      "path": "temp/build/v2-mcp-delivery-quality.json",
+      "sha256": "bc5f56f22e35f8726c4349665ab614b98758cdda3d9c43954cdbb5f892d02f7a"
+    }
+  },
+  "contract": {
+    "stdio": "Mark possible delivery immediately after successful StreamWriter.write(), before drain. BrokenPipe/Reset after that boundary, drain cancellation and existing timeout/response-loss cases raise MCPUncertain for tools/call, while initial write raising before successful return stays not sent. Reclaim remains original5s/ownership flow; no retransmission.",
+    "http": "Waiting for stream context entry is waiting for response headers, not proof that no outgoing request left. Read/write/protocol/close failures or cancellation after handing off a tools/call are conservatively MCPUncertain even without headers. Before any response, ConnectError/ConnectTimeout/PoolTimeout retain documented no-send classification; after a response even such an exception is uncertain. Authorization/header preparation and before_send remain before the handoff exception scope. Known401/403/other4xx and discovery/handshake contracts unchanged.",
+    "uncertainty": "sent=true means a request may have left, not proof that a remote operation succeeded. Missing headers never prove nonexecution. Actual complete server receipt is independently demonstrated only in the native loopback tests; injected exceptions only validate failure classification.",
+    "business": "Two isolated real SQLite/HTTP/model-scripted write flows require owner approval before any file write. Local MCP fixture appends once then disconnects or sends an invalid status line. mcp_calls and action persist unknown/Effect.UNKNOWN; owner inspection records applied without rewriting original unknown outcome. Same turn key remains duplicate and no additional tools/call occurs.",
+    "unchanged": "No changed transport deadlines, automatic retries, credential gates, authorization bypass, result payload disclosure, schema or public error codes."
+  },
+  "primary_sources": [
+    "https://www.python-httpx.org/exceptions/",
+    "https://docs.python.org/3.12/library/asyncio-stream.html#asyncio.StreamWriter.drain"
+  ],
+  "real_loopback_http_and_isolated_sqlite_approval_review_executed": true,
+  "real_external_mcp_or_oauth_provider": false,
+  "real_accounts_models_devices_native_desktop_or_72h": false,
+  "full_suite_run": false,
+  "wheel_or_platform_package_rebuilt": false,
+  "whole_v2_development_complete": false,
+  "whole_v2_accepted": false,
+  "publication": {
+    "destination": "https://gitee.com/chenfengloveyuri/OmniOperator.git",
+    "branch": "v2",
+    "owner_continuous_push_authorized": true,
+    "force": false,
+    "preflight_observation": "First publication guard stopped on unrelated UI index/evidence modifications. The other session committed41f71e44, changing only the topbar settings-button position and UI evidence. Reconciled onto that HEAD and passed10 current-source MCP UI/business/architecture nodes. Later dirty UI work and installer test remain excluded, untouched and unstaged. Original122 report is not presented as a whole-current-source result.",
+    "excluded_parallel_tracked_paths": [
+      "agent/tests/test_v2_installation_launchers.py",
+      "web/ui/v2/index.html",
+      "web/ui/v2/workbench.css"
+    ]
+  },
+  "next": "Continue the actual unfinished whole V2 feature/platform/delivery implementation. Preserve concurrent Windows acceptance and defer full suite to whole V2 development freeze.",
+  "publication_base_commit": "41f71e44f8ffac406183b18b471fa2a4a992916d",
+  "current_source_followup": {
+    "base_commit": "41f71e44f8ffac406183b18b471fa2a4a992916d",
+    "passed": 10,
+    "elapsed_seconds": 32.095,
+    "report": {
+      "path": "temp/build/v2-mcp-delivery-current-r4.xml",
+      "sha256": "065aa66b6679212cbea69289abdc31bd33287c73f17d34d90e055cb3631675dc"
+    },
+    "log": {
+      "path": "temp/build/v2-mcp-delivery-current-r4.log",
+      "sha256": "e6664282d8fabb221f99491dcd209e7f8691e17e62b7c85832b7aff06c37a8ae"
+    },
+    "scope": "Two MCP workbench viewports390/1024, six V2 architecture guards and both approved native loopback write/unknown/review flows. Original122 result remains tied to79f25d90 frozen source; unrelated subsequent dirty UI changes excluded.",
+    "distinct_nodes_across_phases": 124,
+    "mcp_runtime_and_new_test_bytes_identical_to_revision3": true
+  }
+}

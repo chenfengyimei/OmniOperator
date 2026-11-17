@@ -158,7 +158,7 @@ class HttpSession:
             raise MCPDispatchError("mcp_not_connected", "MCP session is closed")
         client = self._session()
         headers = await self._headers()
-        sent = False
+        response_received = False
         try:
             async with asyncio.timeout(timeout_s + CONNECT_TIMEOUT_S):
                 async with client.stream(
@@ -168,7 +168,7 @@ class HttpSession:
                     headers=headers,
                     timeout=httpx.Timeout(timeout_s, connect=CONNECT_TIMEOUT_S, write=CONNECT_TIMEOUT_S),
                 ) as response:
-                    sent = True
+                    response_received = True
                     session_id = response.headers.get("mcp-session-id", "")
                     if session_id:
                         self._session_id = session_id[:128]
@@ -210,18 +210,27 @@ class HttpSession:
                                 return {}
                             raise MCPUncertain("mcp_protocol_error", "MCP response identity did not match its request")
         except TimeoutError as exc:
-            if sent and uncertain_on_loss:
-                raise MCPUncertain("mcp_call_timeout", "The MCP request timed out after it was sent") from exc
+            if uncertain_on_loss:
+                raise MCPUncertain(
+                    "mcp_call_timeout", "The dispatched MCP request timed out; delivery is unknown"
+                ) from exc
             raise MCPDispatchError("mcp_timeout", "The MCP request exceeded its time budget") from exc
         except (httpx.TimeoutException, httpx.TransportError) as exc:
-            if sent and uncertain_on_loss:
+            # Entering a stream waits for response headers, after the outgoing
+            # request. Only connection/pool failures prove it could not send.
+            not_sent = not response_received and isinstance(
+                exc, (httpx.ConnectError, httpx.ConnectTimeout, httpx.PoolTimeout)
+            )
+            if uncertain_on_loss and not not_sent:
                 raise MCPUncertain(
-                    "mcp_connection_lost", "The MCP connection failed after the request was sent"
+                    "mcp_connection_lost", "The dispatched MCP request lost its response; delivery is unknown"
                 ) from exc
             raise MCPDispatchError("mcp_connection_lost", "The MCP endpoint is unreachable") from exc
         except asyncio.CancelledError:
-            if sent and uncertain_on_loss:
-                raise MCPUncertain("mcp_cancelled", "The MCP request was cancelled after it was sent") from None
+            if uncertain_on_loss:
+                raise MCPUncertain(
+                    "mcp_cancelled", "The dispatched MCP request was cancelled; delivery is unknown"
+                ) from None
             raise
         if "error" in matched:
             error = matched["error"]

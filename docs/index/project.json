@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "b8e9d49ae62e1172c0ac53456e1f57728796105b252b08a5f5019157c17c3a8d",
+  "source_sha256": "07571f4662664655992d85b18a2542c0d85fb94e862f9c8f69c7ad1341430608",
   "modules": [
     {
       "id": "v2-domain",
@@ -459,7 +459,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 65533,
+      "lines": 65548,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -9599,7 +9599,7 @@
       "path": "agent/src/omni/adapters/mcp/http.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.mcp.http",
-      "lines": 316,
+      "lines": 325,
       "imports": [
         "omni.domain.mcp"
       ],
@@ -9713,7 +9713,7 @@
         },
         {
           "name": "HttpSession._request",
-          "line": 235,
+          "line": 244,
           "kind": "function",
           "parameters": [
             "self",
@@ -9731,7 +9731,7 @@
         },
         {
           "name": "HttpSession._notify",
-          "line": 246,
+          "line": 255,
           "kind": "function",
           "parameters": [
             "self",
@@ -9745,7 +9745,7 @@
         },
         {
           "name": "HttpSession.start",
-          "line": 258,
+          "line": 267,
           "kind": "function",
           "parameters": [
             "self"
@@ -9754,7 +9754,7 @@
         },
         {
           "name": "HttpSession.catalog",
-          "line": 279,
+          "line": 288,
           "kind": "function",
           "parameters": [
             "self"
@@ -9763,7 +9763,7 @@
         },
         {
           "name": "HttpSession.call",
-          "line": 301,
+          "line": 310,
           "kind": "function",
           "parameters": [
             "self",
@@ -10065,7 +10065,7 @@
       "path": "agent/src/omni/adapters/mcp/stdio.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.mcp.stdio",
-      "lines": 315,
+      "lines": 321,
       "imports": [
         "omni.adapters.platform.processes",
         "omni.domain.mcp"
@@ -10209,7 +10209,7 @@
         },
         {
           "name": "StdioSession.catalog",
-          "line": 278,
+          "line": 284,
           "kind": "function",
           "parameters": [
             "self"
@@ -10218,7 +10218,7 @@
         },
         {
           "name": "StdioSession.call",
-          "line": 300,
+          "line": 306,
           "kind": "function",
           "parameters": [
             "self",

@@ -215,11 +215,17 @@ class StdioSession:
             sent = False
             try:
                 process.stdin.write(frame)
-                await process.stdin.drain()
+                # write() may already hand bytes to the pipe. drain() only
+                # waits for flow control and cannot prove no external delivery.
                 sent = True
+                await process.stdin.drain()
                 line = await asyncio.wait_for(process.stdout.readline(), timeout=timeout_s)
             except (BrokenPipeError, ConnectionResetError) as exc:
                 await self._reclaim(5)
+                if sent and uncertain_on_loss:
+                    raise MCPUncertain(
+                        "mcp_connection_lost", "MCP process disconnected after the request was queued"
+                    ) from exc
                 raise MCPDispatchError("mcp_connection_lost", "MCP process disconnected") from exc
             except TimeoutError as exc:
                 await self._reclaim(5)
