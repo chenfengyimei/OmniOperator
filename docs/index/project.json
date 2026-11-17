@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "3875d4d3f71cc31e74ccef1730d07491446ed6526bf8fe0e7c29063f10d37d39",
+  "source_sha256": "8425d4c896c6ceae55c6ec3615f4b6627e4b2c71ff62b7b0910614702218eb11",
   "modules": [
     {
       "id": "v2-domain",
@@ -354,6 +354,7 @@
         "agent/src/omni/adapters/platform/wheel_status.py",
         "agent/src/omni/adapters/platform/wheel_switch.py",
         "agent/src/omni/adapters/platform/wheel_uninstall.py",
+        "agent/src/omni/adapters/platform/workbench.py",
         "agent/src/omni/adapters/platform/workspaces.py",
         "agent/src/omni/adapters/primitives.py",
         "agent/src/omni/adapters/process_diagnostics.py",
@@ -404,7 +405,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 54968,
+      "lines": 55088,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -439,7 +440,7 @@
         "agent/src/omni/composition/service_runner.py",
         "agent/src/omni/composition/serving.py"
       ],
-      "lines": 3059,
+      "lines": 3067,
       "dependencies": [
         "v2-adapters",
         "v2-application",
@@ -32310,6 +32311,91 @@
       "summary": "Remove one staged candidate or deactivate the runtime pointer; data and installation receipts stay."
     },
     {
+      "path": "agent/src/omni/adapters/platform/workbench.py",
+      "module": "v2-adapters",
+      "python_module": "omni.adapters.platform.workbench",
+      "lines": 120,
+      "imports": [
+        "omni.adapters.platform.runtime_identity",
+        "omni.adapters.platform.service_readiness",
+        "omni.domain.contracts"
+      ],
+      "symbols": [
+        {
+          "name": "WorkbenchBrowser",
+          "line": 28,
+          "kind": "class"
+        },
+        {
+          "name": "WorkbenchBrowser.__init__",
+          "line": 29,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "home",
+            "host",
+            "port",
+            "open_url"
+          ],
+          "annotations": {
+            "home": "Path",
+            "host": "str",
+            "port": "int",
+            "open_url": "Callable[[str], object] | None"
+          }
+        },
+        {
+          "name": "WorkbenchBrowser.__enter__",
+          "line": 49,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "WorkbenchBrowser.__exit__",
+          "line": 56,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "_kind",
+            "_error",
+            "_traceback"
+          ],
+          "annotations": {
+            "_kind": "type[BaseException] | None",
+            "_error": "BaseException | None",
+            "_traceback": "TracebackType | None"
+          }
+        },
+        {
+          "name": "WorkbenchBrowser._ready",
+          "line": 63,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "client",
+            "deadline"
+          ],
+          "annotations": {
+            "client": "httpx.Client",
+            "deadline": "float | None"
+          }
+        },
+        {
+          "name": "WorkbenchBrowser._wait",
+          "line": 106,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        }
+      ],
+      "summary": "Open an explicitly requested local workbench after proving this process's ready boot; never reads owner tokens."
+    },
+    {
       "path": "agent/src/omni/adapters/platform/workspaces.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.workspaces",
@@ -59660,7 +59746,7 @@
       "path": "agent/src/omni/composition/cli.py",
       "module": "v2-composition",
       "python_module": "omni.composition.cli",
-      "lines": 1023,
+      "lines": 1031,
       "imports": [
         "omni.adapters.diagnostic_bundle",
         "omni.adapters.persistence.audit_pruning",
@@ -59688,6 +59774,7 @@
         "omni.adapters.platform.wheel_status",
         "omni.adapters.platform.wheel_switch",
         "omni.adapters.platform.wheel_uninstall",
+        "omni.adapters.platform.workbench",
         "omni.adapters.primitives",
         "omni.adapters.vector_files",
         "omni.application.ports",
@@ -59705,7 +59792,7 @@
       "symbols": [
         {
           "name": "_database_schema",
-          "line": 54,
+          "line": 55,
           "kind": "function",
           "parameters": [
             "database"
@@ -59716,7 +59803,7 @@
         },
         {
           "name": "installation_report",
-          "line": 58,
+          "line": 59,
           "kind": "function",
           "parameters": [
             "paths"
@@ -59727,7 +59814,7 @@
         },
         {
           "name": "seal_installation",
-          "line": 99,
+          "line": 100,
           "kind": "function",
           "parameters": [
             "paths"
@@ -59738,7 +59825,7 @@
         },
         {
           "name": "_serve_arguments",
-          "line": 126,
+          "line": 127,
           "kind": "function",
           "parameters": [
             "command"
@@ -59749,14 +59836,14 @@
         },
         {
           "name": "parser",
-          "line": 134,
+          "line": 138,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "local_origin",
-          "line": 427,
+          "line": 431,
           "kind": "function",
           "parameters": [
             "value"
@@ -59767,7 +59854,7 @@
         },
         {
           "name": "diagnostic_download",
-          "line": 446,
+          "line": 450,
           "kind": "function",
           "parameters": [
             "paths",
@@ -59780,17 +59867,6 @@
         },
         {
           "name": "main",
-          "line": 488,
-          "kind": "function",
-          "parameters": [
-            "argv"
-          ],
-          "annotations": {
-            "argv": "list[str] | None"
-          }
-        },
-        {
-          "name": "web_main",
           "line": 492,
           "kind": "function",
           "parameters": [
@@ -59801,8 +59877,19 @@
           }
         },
         {
+          "name": "web_main",
+          "line": 496,
+          "kind": "function",
+          "parameters": [
+            "argv"
+          ],
+          "annotations": {
+            "argv": "list[str] | None"
+          }
+        },
+        {
           "name": "_run",
-          "line": 500,
+          "line": 504,
           "kind": "function",
           "parameters": [
             "args"

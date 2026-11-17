@@ -196,6 +196,7 @@
     "agent/src/omni/adapters/platform/wheel_status.py",
     "agent/src/omni/adapters/platform/wheel_switch.py",
     "agent/src/omni/adapters/platform/wheel_uninstall.py",
+    "agent/src/omni/adapters/platform/workbench.py",
     "agent/src/omni/adapters/platform/workspaces.py",
     "agent/src/omni/adapters/primitives.py",
     "agent/src/omni/adapters/process_diagnostics.py",

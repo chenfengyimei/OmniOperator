@@ -14,6 +14,7 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 
 | 文件 | 纳入原因 |
 | --- | --- |
+| `agent/src/omni/adapters/platform/workbench.py` | 仅显式浏览器启动、本次进程与HMAC就绪证明、探测线程归属 |
 | `agent/src/omni/domain/action_review.py` | 未知写动作的观察复核/证据指纹纯规则 |
 | `agent/src/omni/domain/android.py` | Android 身份/观察/输入/权限请求纯校验 |
 | `agent/src/omni/domain/android_unicode.py` | 输入助手配置/认证报文纯校验 |
@@ -385,7 +386,7 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 
 ### 3.1 adapters 类型收口（第 214 批）
 
-全部 **222 个 adapters 已纳入 strict**；合同范围为 **332 文件**（domain 53、application 44、adapters 222、composition 13）。原 P4/P5/P6 的 24 个待办模块已完成，不再是当前施工清单。
+全部 **223 个 adapters 已纳入 strict**；合同范围为 **333 文件**（domain 53、application 44、adapters 223、composition 13）。新增工作台启动适配器后，历史332文件结论仅代表原固定源码；当前门禁结果按候选证据记录。原 P4/P5/P6 的 24 个待办模块已完成，不再是当前施工清单。
 
 统计以本页逐文件表为准；domain/application 各一个仅含说明文字的包初始化文件未列入该合同范围。V1 与 tests 尚未纳入，因此**全仓严格类型尚未完成**。
 

@@ -6,6 +6,7 @@ import argparse
 import asyncio
 import json
 import sys
+from contextlib import nullcontext
 from pathlib import Path
 from typing import cast
 from urllib.parse import urlsplit
@@ -129,6 +130,9 @@ def _serve_arguments(command: argparse.ArgumentParser) -> None:
     command.add_argument("--external-url", help="Explicit trusted HTTPS origin when binding remotely")
     command.add_argument("--master-key-file", type=Path)
     command.add_argument("--stdout-logs", action="store_true")
+    command.add_argument(
+        "--open-browser", action="store_true", help="Open the local workbench after this boot is ready"
+    )
 
 
 def parser() -> argparse.ArgumentParser:
@@ -501,14 +505,18 @@ def _run(args: argparse.Namespace) -> int:
     paths = InstancePaths.resolve(args.home)
     try:
         if args.command == "serve":
-            serve_instance(
-                paths.home,
-                host=args.host,
-                port=args.port,
-                external_url=args.external_url,
-                master_key_file=args.master_key_file,
-                stdout_logs=args.stdout_logs,
-            )
+            from ..adapters.platform.workbench import WorkbenchBrowser
+
+            browser = WorkbenchBrowser(paths.home, args.host, args.port) if args.open_browser else nullcontext()
+            with browser:
+                serve_instance(
+                    paths.home,
+                    host=args.host,
+                    port=args.port,
+                    external_url=args.external_url,
+                    master_key_file=args.master_key_file,
+                    stdout_logs=args.stdout_logs,
+                )
         elif args.command == "vectors":
             from ..adapters.vector_files import configure, identity, inspect_bundle
 

@@ -11,6 +11,7 @@ from pathlib import Path
 import pytest
 
 from omni.composition import cli
+from omni.domain.contracts import BusinessError
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -60,6 +61,31 @@ def test_web_keeps_remote_binding_policy_and_standard_business_error(tmp_path, c
     assert cli.web_main(["--home", str(home), "--host", "0.0.0.0"]) == 1
     result = json.loads(capsys.readouterr().err)
     assert result["error"] == "https_origin_required" and not home.exists()
+
+
+def test_explicit_browser_scope_is_closed_if_server_startup_fails(tmp_path, monkeypatch, capsys):
+    from omni.adapters.platform import workbench
+
+    calls = []
+
+    class Browser:
+        def __init__(self, home, host, port):
+            assert (home, host, port) == (tmp_path, "127.0.0.1", 8766)
+
+        def __enter__(self):
+            calls.append("start")
+
+        def __exit__(self, *args):
+            calls.append("close")
+
+    def serve(*args, **kwargs):
+        raise BusinessError("fixture_startup_failure", "Fixture error")
+
+    monkeypatch.setattr(workbench, "WorkbenchBrowser", Browser)
+    monkeypatch.setattr(cli, "serve_instance", serve)
+    assert cli.web_main(["--home", str(tmp_path), "--open-browser"]) == 1
+    assert calls == ["start", "close"]
+    assert json.loads(capsys.readouterr().err)["error"] == "fixture_startup_failure"
 
 
 def test_explicit_cli_arguments_keep_init_doctor_and_legacy_home_rejection(tmp_path, capsys):
