@@ -51,6 +51,10 @@ omni = "omni.channels.cli:main"
 omni-web = "omni.channels.web:main"
 omni-qq = "omni.channels.qq:main"
 omni-heartbeat = "omni.channels.heartbeat:main"
+omni-v1 = "omni.channels.cli:main"
+omni-web-v1 = "omni.channels.web:main"
+omni-v2 = "omni.composition.cli:main"
+omni-web-v2 = "omni.composition.cli:web_main"
 
 [project.urls]
 Homepage = "https://gitee.com/chenfengloveyuri/OmniOperator"

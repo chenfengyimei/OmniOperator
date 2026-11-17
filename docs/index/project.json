@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "770a1c177cd73013950e3dc5bbcd822adcc9b033573e8ebcb828a9e309eea37b",
+  "source_sha256": "3875d4d3f71cc31e74ccef1730d07491446ed6526bf8fe0e7c29063f10d37d39",
   "modules": [
     {
       "id": "v2-domain",
@@ -439,7 +439,7 @@
         "agent/src/omni/composition/service_runner.py",
         "agent/src/omni/composition/serving.py"
       ],
-      "lines": 3044,
+      "lines": 3059,
       "dependencies": [
         "v2-adapters",
         "v2-application",
@@ -59660,7 +59660,7 @@
       "path": "agent/src/omni/composition/cli.py",
       "module": "v2-composition",
       "python_module": "omni.composition.cli",
-      "lines": 1008,
+      "lines": 1023,
       "imports": [
         "omni.adapters.diagnostic_bundle",
         "omni.adapters.persistence.audit_pruning",
@@ -59737,15 +59737,26 @@
           }
         },
         {
-          "name": "parser",
+          "name": "_serve_arguments",
           "line": 126,
+          "kind": "function",
+          "parameters": [
+            "command"
+          ],
+          "annotations": {
+            "command": "argparse.ArgumentParser"
+          }
+        },
+        {
+          "name": "parser",
+          "line": 134,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "local_origin",
-          "line": 423,
+          "line": 427,
           "kind": "function",
           "parameters": [
             "value"
@@ -59756,7 +59767,7 @@
         },
         {
           "name": "diagnostic_download",
-          "line": 442,
+          "line": 446,
           "kind": "function",
           "parameters": [
             "paths",
@@ -59769,10 +59780,36 @@
         },
         {
           "name": "main",
-          "line": 484,
+          "line": 488,
           "kind": "function",
-          "parameters": [],
-          "annotations": {}
+          "parameters": [
+            "argv"
+          ],
+          "annotations": {
+            "argv": "list[str] | None"
+          }
+        },
+        {
+          "name": "web_main",
+          "line": 492,
+          "kind": "function",
+          "parameters": [
+            "argv"
+          ],
+          "annotations": {
+            "argv": "list[str] | None"
+          }
+        },
+        {
+          "name": "_run",
+          "line": 500,
+          "kind": "function",
+          "parameters": [
+            "args"
+          ],
+          "annotations": {
+            "args": "argparse.Namespace"
+          }
         }
       ],
       "summary": "V2 development entrypoint. Online commands use the authenticated HTTP facade."
@@ -107886,7 +107923,11 @@
     "omni": "omni.channels.cli:main",
     "omni-web": "omni.channels.web:main",
     "omni-qq": "omni.channels.qq:main",
-    "omni-heartbeat": "omni.channels.heartbeat:main"
+    "omni-heartbeat": "omni.channels.heartbeat:main",
+    "omni-v1": "omni.channels.cli:main",
+    "omni-web-v1": "omni.channels.web:main",
+    "omni-v2": "omni.composition.cli:main",
+    "omni-web-v2": "omni.composition.cli:web_main"
   },
   "warnings": [],
   "notes": [

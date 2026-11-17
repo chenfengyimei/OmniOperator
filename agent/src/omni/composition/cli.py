@@ -123,6 +123,14 @@ def seal_installation(paths: InstancePaths) -> dict[str, object]:
     return {"written": True, "manifest": receipt}
 
 
+def _serve_arguments(command: argparse.ArgumentParser) -> None:
+    command.add_argument("--host", default="127.0.0.1")
+    command.add_argument("--port", type=int, default=8766)
+    command.add_argument("--external-url", help="Explicit trusted HTTPS origin when binding remotely")
+    command.add_argument("--master-key-file", type=Path)
+    command.add_argument("--stdout-logs", action="store_true")
+
+
 def parser() -> argparse.ArgumentParser:
     result = argparse.ArgumentParser(
         prog="python -m omni.composition.cli", description="OmniOperator V2 development runtime"
@@ -397,11 +405,7 @@ def parser() -> argparse.ArgumentParser:
     )
     diagnostics.add_argument("--url", default="http://127.0.0.1:8766")
     serve = commands.add_parser("serve")
-    serve.add_argument("--host", default="127.0.0.1")
-    serve.add_argument("--port", type=int, default=8766)
-    serve.add_argument("--external-url", help="Explicit trusted HTTPS origin when binding remotely")
-    serve.add_argument("--master-key-file", type=Path)
-    serve.add_argument("--stdout-logs", action="store_true")
+    _serve_arguments(serve)
     snapshot = commands.add_parser("backup")
     snapshot.add_argument("destination", type=Path)
     recover = commands.add_parser("restore")
@@ -481,8 +485,19 @@ def diagnostic_download(paths: InstancePaths, url: str) -> bytes:
         ) from exc
 
 
-def main() -> int:
-    args = parser().parse_args()
+def main(argv: list[str] | None = None) -> int:
+    return _run(parser().parse_args(argv))
+
+
+def web_main(argv: list[str] | None = None) -> int:
+    command = argparse.ArgumentParser(prog="omni-web-v2", description="OmniOperator V2 workbench")
+    command.add_argument("--home", type=Path, help="Independent V2 instance directory")
+    _serve_arguments(command)
+    command.set_defaults(command="serve")
+    return _run(command.parse_args(argv))
+
+
+def _run(args: argparse.Namespace) -> int:
     paths = InstancePaths.resolve(args.home)
     try:
         if args.command == "serve":
