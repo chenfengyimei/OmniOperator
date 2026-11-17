@@ -35,6 +35,7 @@ def frames(tmp_path, monkeypatch):
     )
     output = tmp_path / "artifacts" / "sheet.png"
     request = {"video": str(tmp_path / "owned.mp4"), "sheet_output": str(output), "count": 3, "width": 320}
+    (tmp_path / "owned.mp4").write_bytes(b"injected decoder input")
 
     def check(phase):
         if state.phase == phase:
@@ -128,7 +129,12 @@ def frames(tmp_path, monkeypatch):
         return original_write(path, content)
 
     av = ModuleType("av")
-    av.open = lambda path: Container()
+
+    def opened(path, *, mode, options):
+        assert mode == "r" and options == {"protocol_whitelist": ""} and not path.closed
+        return Container()
+
+    av.open = opened
     monkeypatch.setitem(sys.modules, "av", av)
     monkeypatch.setattr(worker, "_frame_at", sample)
     monkeypatch.setattr(Image, "new", canvas)

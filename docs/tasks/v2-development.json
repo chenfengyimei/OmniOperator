@@ -357,7 +357,8 @@
       "findings": [
         "独立V2长跑观察器已实现，见G6.soak；实际72小时仍留开发完成后验收。",
         "现有扩展/MCP业务、仓储与实例生命周期接线存在，本轮只读核对，未重做或声明整范围复验。",
-        "跨平台安装器已有实现；本批补独立安装矩阵检查及实际暴露的Unicode/特殊字符启动缺陷，仍不证明三平台交付完成。"
+        "跨平台安装器已有实现；本批补独立安装矩阵检查及实际暴露的Unicode/特殊字符启动缺陷，仍不证明三平台交付完成。",
+        "原媒体仅接B站来源；本批补上传对象→原ASR/抽帧→产物/模型只读工具与HTTP/工作台，见G6.media_upload。真实素材/ASR质量单列验收。"
       ],
       "subdeliverables": [
         {
@@ -369,6 +370,16 @@
             "docs/evidence/v2-soak.json"
           ],
           "actual_72h_run": "not_executed_deferred_until_development_complete"
+        },
+        {
+          "id": "G6.media_upload",
+          "title": "上传音视频复用原对象、作业、锚点产物及所有者入口",
+          "status": "implemented_scoped_passed",
+          "contract": "docs/V2_MEDIA.md",
+          "evidence": [
+            "docs/evidence/v2-media-upload.json"
+          ],
+          "actual_asr_model_quality_or_user_media": false
         }
       ],
       "partial_code_audit": {
@@ -379,10 +390,20 @@
           "agent/src/omni/composition/instance.py",
           "agent/src/omni/adapters/platform/candidate_installer.py",
           "agent/src/omni/adapters/platform/wheel_install.py",
-          ".github/workflows/v2.yml"
+          ".github/workflows/v2.yml",
+          "agent/src/omni/domain/media.py",
+          "agent/src/omni/application/media.py",
+          "agent/src/omni/application/ports.py",
+          "agent/src/omni/adapters/persistence/schema.py",
+          "agent/src/omni/adapters/persistence/media_repository.py",
+          "agent/src/omni/adapters/persistence/migrations/versions/v0039.py",
+          "agent/src/omni/adapters/http.py",
+          "agent/src/omni/adapters/workers/media.py",
+          "web/ui/v2/media.js"
         ],
         "resulting_development_evidence": "docs/evidence/v2-portable-installation.json",
-        "existing_extension_mcp_chains_tested_in_this_batch": false
+        "existing_extension_mcp_chains_tested_in_this_batch": false,
+        "latest_resulting_development_evidence": "docs/evidence/v2-media-upload.json"
       }
     },
     {
@@ -396,5 +417,11 @@
     "不为测试重建用户环境或停止用户服务，不重复已完成的Windows候选开发。",
     "不以离线注入替代真实账号、模型、设备、原生平台或72小时运行结果。",
     "缺失真实环境时继续可独立推进的开发，不提前宣布整个V2完成。"
-  ]
+  ],
+  "remote_publication": {
+    "url": "https://gitee.com/chenfengloveyuri/OmniOperator.git",
+    "branch": "v2",
+    "owner_continuous_push_authorized": true,
+    "authorization_received": "2026-11-18"
+  }
 }

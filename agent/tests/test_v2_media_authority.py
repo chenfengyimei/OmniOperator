@@ -72,7 +72,7 @@ class Database:
         return {"id": "source", **row}
 
     def media_source_get(self, agent_id, source_id):
-        return {"config_id": self.binding, "config_revision_id": "revision", "bvid": BV}
+        return {"kind": "bilibili_video", "config_id": self.binding, "config_revision_id": "revision", "bvid": BV}
 
     def media_job_get(self, job_id):
         return dict(self.job)

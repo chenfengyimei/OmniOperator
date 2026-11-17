@@ -19,7 +19,7 @@ Bilibili 视频读取（复用 bilibili_read_authorized 凭据/配置/修订授�
 - 转写/帧拼图正文以对象发布（`ObjectService.publish`），行表只存 `object_id` 与度量；对象 GC 由既有引用/固定保护。
 - 删除传播：`media_source_delete` 级联该来源的作业与产物行；已发布对象按对象合同回收（所有者驱动）。
 
-## 2. 数据模型（schema v2_0036）
+## 2. 数据模型（schema v2_0039；原始图为v2_0036）
 
 - `media_sources`：`kind='bilibili_video'`、`UniqueConstraint(agent_id, bvid)`、`CHECK` 钉死 BV 格式与时长 1..7200；身份列不可变（触发器），`config_id/config_revision_id` 外键绑定登记时的配置修订。
 - `media_jobs`：`operation IN (subtitle, transcribe, frames)`、`state IN (queued, running, done, failed, cancelled, unknown)`；准入触发器限制每来源活跃（queued+running）作业 ≤ 8；转移触发器只允许 queued→running/cancelled、running→done/failed/cancelled/unknown；终态不可变；`done` 必须已有产物行（`media_jobs_done_has_artifact`）；终态必须带 `finished_at`。
@@ -115,3 +115,19 @@ DASH从实际可用的URL候选中选择最低码率，缺少或为空的主/备
 - 不信任模型提供的任意下载地址或本机路径；来源只经 B站配置读取授权。
 - 未做：上传媒体文件作为来源（V2 对象上传已存在，接入处理管线属后续）、真实 ASR 模型质量与真实 B站视频端到端验收、视频内容理解（帧拼图只是模型输入材料，理解质量取决于模型）。
 - 真实供应商/B站/平台编解码验收另记；本批仅隔离假网关与假处理器。
+
+## 8. 上传音视频来源与原作业复用（2026-11-18）
+
+所有者先经原`POST /agents/{id}/objects?pinned=false`上传最多16MiB对象，再以`POST /agents/{id}/media/uploads`仅提交`object_id/title`登记。对象必须属于当前Agent、正文可验证、非空且为支持的audio/video MIME；MIME只分类，不证明编解码可用。标题非空且最多300字符；同对象同标题幂等，不同标题冲突。模型没有登记/处理上传的工具，只通过原`media_list/media_transcript`读取已发布材料。
+
+原`media_sources`新增可空对象外键，kind分为`bilibili_video/object_audio/object_video`；上传来源的B站/配置字段及未知时长为NULL，不伪造账号或时长。对象引用由原外键清单自动纳入GC、备份与恢复；有来源引用时原文件保持，删除来源后只释放引用，不删除用户对象或改变固定状态。B站仍要求原配置/修订/凭据权限；上传不调用B站网关或下载。
+
+复用原作业准入、并发、取消、重启unknown、产物及清理：音频只能transcribe，视频可transcribe/frames，在线字幕只限B站；仓储与触发器均在入队前拒绝不适用操作。读取已验证不可变正文后复制至原job暂存，开始/处理后及产物事务内重验来源；ASR/帧产物继续落原对象和媒体证据行。调用者取消登记等待不取消实际对象读取/事务，关闭继续保留其所有权。
+
+`v2_0039`为冻结事务升级：原四表先改名，创建新图，按原ID/状态/时间复制，再按子到父顺序移除旧表并恢复原守卫及上传约束；全程保持foreign_keys=ON，不关闭约束或改写旧迁移。已完成转写图与中途DDL异常的完整回滚、再次升级均有实际SQLite专项。业务表数136保持，不增加第二套作业表。
+
+解码改为只读Python文件流交给PyAV，显式`mode=r`及空`protocol_whitelist`；当前文件不借本机路径协议扩展读取外部资源。生成WAV已实际解码；隔离回环HLS正向对照显式允许file/http/tcp后产生请求，实际worker空白名单拒绝且无请求，不将旧默认路径未经证明地称为可下载。现有样本数、时长、帧/画布/锚点预算不变。依据：[FFmpeg协议选项](https://ffmpeg.org/ffmpeg-protocols.html)、[PyAV文件流接口](https://pyav.basswood.io/docs/stable/api/_globals.html)。
+
+工作台可选择音视频/标题，登记后显示来源种类和未知时长，音频不可选字幕/抽帧；处理仍须显式提交，不上传即自动执行。清空文件同时刷新文件按钮显示，换Agent清空上传草稿，迟到回包由原代次守卫拒绝。资源v143；390/1024已跑上传→登记→转写→读窗且检查截图/无页面错误/无横向溢出。
+
+本批13新增及298调用方/合同，分阶段311不同专项通过。主284过/27旧权限夹具缺kind失败，补齐真实B站kind后36权限及2界面通过；最后仅复验两宽UI。8修改运行文件strict零错误/警告，386仅登记；原类型/夹具失败、磁盘耗尽中断、OPTION检测差异与源码留档，专项不等于全量。真实ASR模型质量、用户素材、完整编解码/其他平台及整个V2尚未验收。见[上传证据](evidence/v2-media-upload.json)。

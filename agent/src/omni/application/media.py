@@ -1,6 +1,6 @@
 """Owner media sources, bounded processing jobs and model-visible anchored transcripts.
 
-The production path is: a verified Bilibili video becomes a scoped media source;
+The production path is: a verified Bilibili video or owner-uploaded object becomes a scoped media source;
 jobs run online subtitles or a supervised ASR/frame worker outside any database
 transaction; transcripts and frame sheets are published as objects with exact
 anchors; the model only ever sees what a tool result actually returned.
@@ -31,6 +31,7 @@ from ..domain.media import (
     subtitle_text,
     transcript_payload,
     transcript_text,
+    upload_source_row,
 )
 from .images import ImageService
 from .objects import ObjectService
@@ -167,6 +168,14 @@ class MediaService:
             "next_after": rows[-1]["id"] if len(rows) == limit else None,
         }
 
+    async def register_upload(self, agent_id: str, object_id: str, title: str) -> Record:
+        async def perform() -> Record:
+            obj, _content = await self._objects.get(agent_id, object_id)
+            upload_source_row(object_id, str(obj["media_type"]), cast(int, obj["bytes"]), title)
+            return await self._db.write(lambda unit: unit.media_source_register_upload(agent_id, object_id, title))
+
+        return await self._run_bounded(perform(), task_name="media-register-upload")
+
     async def source(self, agent_id: str, source_id: str) -> Record:
         return await self._db.read(lambda u: u.media_source_get(agent_id, source_id))
 
@@ -243,10 +252,23 @@ class MediaService:
             # The job row carries only source coordinates; the bound source
             # row is read after start so failures land in a legal transition.
             source = await self._db.read(lambda u: u.media_source_get(agent_id, str(job["source_id"])))
-            config = await self._configuration(agent_id, str(source["config_id"]), str(source["config_revision_id"]))
+            uploaded = source["kind"] in {"object_audio", "object_video"}
+            config = (
+                {}
+                if uploaded
+                else await self._configuration(agent_id, str(source["config_id"]), str(source["config_revision_id"]))
+            )
 
             def authorized(unit: UnitOfWork) -> None:
-                _authorized(unit, agent_id, str(source["config_id"]), config, str(job["source_id"]))
+                if uploaded:
+                    current = unit.media_source_get(agent_id, str(job["source_id"]))
+                    if any(current[key] != source[key] for key in ("object_id", "kind", "title")):
+                        raise BusinessError(
+                            "media_source_changed", "Uploaded media source changed during processing", status=409
+                        )
+                    unit.object_get(agent_id, str(source["object_id"]))
+                else:
+                    _authorized(unit, agent_id, str(source["config_id"]), config, str(job["source_id"]))
 
             async def authorize() -> None:
                 await self._db.read(authorized)
@@ -271,26 +293,35 @@ class MediaService:
                     "language": str(result.get("language") or "")[:16],
                 }
             else:
-                streams = await self._bilibili.read_source(cast(Record, config["value"]), "streams", source)
-                await authorize()
-                media = cast(Record, streams.get("audio" if operation == "transcribe" else "video"))
-                if not media:
-                    raise BusinessError(
-                        "media_stream_missing",
-                        "This video exposes no decodable audio stream"
-                        if operation == "transcribe"
-                        else "This video exposes no decodable video stream",
-                        status=422,
-                    )
                 destination = staging / ("audio.bin" if operation == "transcribe" else "video.bin")
-                await self._bilibili.download(
-                    cast(Record, config["value"]),
-                    str(media["url"]),
-                    destination,
-                    max_bytes=MAX_DOWNLOAD_BYTES,
-                    budget_s=DOWNLOAD_BUDGET_S,
-                    before_dispatch=authorize,
-                )
+                if uploaded:
+                    obj, content = await self._objects.get(agent_id, str(source["object_id"]))
+                    upload_source_row(
+                        str(obj["id"]), str(obj["media_type"]), cast(int, obj["bytes"]), str(source["title"])
+                    )
+                    await authorize()
+                    destination.write_bytes(content)
+                    del content
+                else:
+                    streams = await self._bilibili.read_source(cast(Record, config["value"]), "streams", source)
+                    await authorize()
+                    media = cast(Record, streams.get("audio" if operation == "transcribe" else "video"))
+                    if not media:
+                        raise BusinessError(
+                            "media_stream_missing",
+                            "This video exposes no decodable audio stream"
+                            if operation == "transcribe"
+                            else "This video exposes no decodable video stream",
+                            status=422,
+                        )
+                    await self._bilibili.download(
+                        cast(Record, config["value"]),
+                        str(media["url"]),
+                        destination,
+                        max_bytes=MAX_DOWNLOAD_BYTES,
+                        budget_s=DOWNLOAD_BUDGET_S,
+                        before_dispatch=authorize,
+                    )
                 await authorize()
                 if operation == "frames":
                     plan = cast(Record, job["params"])
@@ -541,8 +572,8 @@ class MediaService:
                 text = "\n".join(
                     "{} · {} · {}s · transcript={} frames={}".format(
                         r["id"],
-                        r["bvid"],
-                        r["duration_s"],
+                        r["bvid"] or r["title"],
+                        r["duration_s"] if r["duration_s"] is not None else "unknown",
                         r.get("latest_transcript_id") or "none",
                         r.get("latest_frames_id") or "none",
                     )

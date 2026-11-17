@@ -124,7 +124,7 @@ def _decode_audio_16k_mono(path: Path) -> Any:
                     raise ValueError("audio_duration_out_of_range")
                 buffer.write(memoryview(af.planes[0])[:need])
 
-        with av.open(str(path)) as container:
+        with path.open("rb") as source, av.open(source, mode="r", options={"protocol_whitelist": ""}) as container:
             if not container.streams.audio:
                 raise ValueError("no_audio_track")
             for frame in container.decode(audio=0):
@@ -353,7 +353,7 @@ def _frames(request: Payload) -> Payload:
                 resources.callback(image.close)
             picked.append((timestamp, image))
 
-        with av.open(str(video)) as container:
+        with video.open("rb") as source, av.open(source, mode="r", options={"protocol_whitelist": ""}) as container:
             if not container.streams.video:
                 raise ValueError("no_video_track")
             stream = container.streams.video[0]

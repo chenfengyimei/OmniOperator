@@ -130,7 +130,7 @@ def install_decoder(frames, monkeypatch, *, error_at=None, close_fault=False, sh
             retained.append(decoder)  # Prevent refcount/GC cleanup from masking missing ownership.
             return decoder
 
-    monkeypatch.setattr(sys.modules["av"], "open", lambda path: Container(original_open(path)))
+    monkeypatch.setattr(sys.modules["av"], "open", lambda *args, **kwargs: Container(original_open(*args, **kwargs)))
     return retained, events
 
 

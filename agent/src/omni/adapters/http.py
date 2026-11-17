@@ -236,6 +236,11 @@ class MediaJobInput(StrictInput):
     width: int = Field(default=640, ge=320, le=1280, strict=True)
 
 
+class MediaUploadSourceInput(StrictInput):
+    object_id: uuid.UUID
+    title: str = Field(min_length=1, max_length=300)
+
+
 class MCPConnectInput(StrictInput):
     revision: int = Field(ge=1, strict=True)
 
@@ -803,6 +808,11 @@ def create_app(factory: Callable[[], Awaitable[HttpRuntime]], *, allowed_origins
         limit: int = Query(default=50, ge=1, le=100),
     ):
         return await media_service(request).sources(str(agent_id), str(after) if after else "", limit)
+
+    @router.post("/agents/{agent_id}/media/uploads", status_code=201)
+    async def media_upload_source(agent_id: uuid.UUID, request: Request):
+        data = configuration_input(MediaUploadSourceInput, await bounded_configuration(request, 4096, strict=True))
+        return await media_service(request).register_upload(str(agent_id), str(data.object_id), data.title)
 
     @router.get("/agents/{agent_id}/media/sources/{source_id}")
     async def media_source(agent_id: uuid.UUID, source_id: uuid.UUID, request: Request):

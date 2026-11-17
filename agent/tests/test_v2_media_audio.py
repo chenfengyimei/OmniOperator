@@ -51,7 +51,9 @@ def test_real_decode_rejects_the_first_sample_over_budget_including_the_tail(tmp
 
 
 @pytest.fixture
-def controlled_decode(monkeypatch):
+def controlled_decode(monkeypatch, tmp_path):
+    monkeypatch.chdir(tmp_path)
+    (tmp_path / "owned.wav").write_bytes(b"injected decoder input")
     events = []
 
     def configure(batches, *, tail=(), failure=None, missing=False):
@@ -68,7 +70,8 @@ def controlled_decode(monkeypatch):
                 events.append(("exhausted",))
 
         @contextmanager
-        def open_audio(path):
+        def open_audio(path, *, mode, options):
+            assert mode == "r" and options == {"protocol_whitelist": ""} and not path.closed
             events.append(("open",))
             try:
                 yield Container()

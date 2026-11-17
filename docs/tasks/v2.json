@@ -2658,10 +2658,11 @@
      "development": "完成",
      "offline_validation": "完成",
      "platform_acceptance": "待真实B站视频端到端、真实ASR模型质量与平台编解码验收；本批仅隔离假网关与假处理器",
-     "scope": "B站来源登记绑定配置修订、在线字幕/受管子进程ASR转写/等距抽帧、数据库触发器状态机与准入上限、时间锚点转写对象与只读模型工具、取消/失败分类/重启恢复/删除传播、HTTP契约与工作台媒体分区",
+     "scope": "B站来源登记绑定配置修订、在线字幕/受管子进程ASR转写/等距抽帧、数据库触发器状态机与准入上限、时间锚点转写对象与只读模型工具、取消/失败分类/重启恢复/删除传播、HTTP契约与工作台媒体分区；上传对象来源复用原ASR/抽帧及所有者HTTP/工作台，原对象外键保护/验证备份恢复",
      "evidence": "docs/evidence/v2-media.json",
-     "limits": "上传媒体来源未接处理管线；帧拼图只是模型输入材料，理解质量取决于模型；不做任意下载地址或本机路径；非MCP或完整D6",
-     "code_version": "b505d4b2a9a251c57cf357cbdc0b3731ff0e109165e15f59e001f71490d51b21"
+     "limits": "帧拼图只是模型输入材料，理解质量取决于模型；真实ASR质量、素材与完整编解码/其他平台待验；不接任意下载地址或本机路径；非MCP或完整D6",
+     "code_version": "b505d4b2a9a251c57cf357cbdc0b3731ff0e109165e15f59e001f71490d51b21",
+     "latest_evidence": "docs/evidence/v2-media-upload.json"
     },
     "mcp": {
      "development": "完成",
@@ -2756,6 +2757,6 @@
   "priority": "implementation_first",
   "tracker": "docs/tasks/v2-development.json",
   "full_suite_timing": "after_whole_v2_development_complete",
-  "latest_scoped_evidence": "docs/evidence/v2-wayland-window-view.json"
+  "latest_scoped_evidence": "docs/evidence/v2-media-upload.json"
  }
 }

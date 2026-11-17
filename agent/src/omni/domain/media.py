@@ -253,3 +253,46 @@ def source_row(config_id: str, config_revision_id: str, video: Mapping[str, obje
         "config_id": config_id,
         "config_revision_id": config_revision_id,
     }
+
+
+UPLOAD_TYPES = {
+    "audio/wav",
+    "audio/x-wav",
+    "audio/mpeg",
+    "audio/mp4",
+    "audio/aac",
+    "audio/ogg",
+    "audio/flac",
+    "audio/webm",
+    "video/mp4",
+    "video/webm",
+    "video/ogg",
+    "video/x-matroska",
+}
+
+
+def upload_source_row(object_id: str, mime: str, size: int, title: object) -> dict[str, object]:
+    """Owner-registered immutable object; duration/streams remain unproven until decoding."""
+    from .objects import MAX_OBJECT_BYTES, agent_identity
+
+    agent_identity(object_id)
+    if mime not in UPLOAD_TYPES or type(size) is not int or not 1 <= size <= MAX_OBJECT_BYTES:
+        raise invalid("media_upload_invalid")
+    if (
+        not isinstance(title, str)
+        or not title.strip()
+        or len(title) > 300
+        or any(ord(c) < 32 or ord(c) == 127 for c in title)
+    ):
+        raise invalid("media_upload_title_invalid")
+    return {
+        "kind": "object_video" if mime.startswith("video/") else "object_audio",
+        "object_id": object_id,
+        "title": title,
+        "bvid": None,
+        "aid": None,
+        "cid": None,
+        "duration_s": None,
+        "config_id": None,
+        "config_revision_id": None,
+    }

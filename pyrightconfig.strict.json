@@ -108,6 +108,7 @@
     "agent/src/omni/adapters/persistence/migrations/versions/v0035.py",
     "agent/src/omni/adapters/persistence/migrations/versions/v0036.py",
     "agent/src/omni/adapters/persistence/migrations/versions/v0037.py",
+    "agent/src/omni/adapters/persistence/migrations/versions/v0039.py",
     "agent/src/omni/adapters/persistence/object_gc.py",
     "agent/src/omni/adapters/persistence/object_inventory.py",
     "agent/src/omni/adapters/persistence/object_repository.py",

@@ -1,4 +1,4 @@
-import { mountMaintenance } from './maintenance.js?v=20261117v142';
+import { mountMaintenance } from './maintenance.js?v=20261118v143';
 
 export function mountAuditHistory({
   api,

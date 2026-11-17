@@ -44,7 +44,7 @@ def metadata(frames, monkeypatch, stream_seconds, container_seconds=0, time_base
         state.targets.append(args[2])
         return original_sample(*args)
 
-    monkeypatch.setattr(sys.modules["av"], "open", lambda path: Container(original_open(path)))
+    monkeypatch.setattr(sys.modules["av"], "open", lambda *args, **kwargs: Container(original_open(*args, **kwargs)))
     monkeypatch.setattr(worker, "_frame_at", sample)
     return state
 

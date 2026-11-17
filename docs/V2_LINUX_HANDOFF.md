@@ -1,6 +1,6 @@
 # Linux 原生接入与验收交接
 
-共享内核当前为137表/v2_0038，桌面IPC6/Portal IPC2/凭据IPC1，新增持续窗口证明IPC1。Linux AT-SPI/X11读取、持续X11窗口代次、Portal窗口帧、受控语义、系统凭据helper及D4终端核查源码已接通；Portal授权确认状态按下文明确区分系统同意和业务审计，不扩大Linux输入授权。Linux/GStreamer/Portal、原生凭据与PTY仍未实测，前台/RemoteDesktop控制仍待实现；整个V2未完成，Windows离线候选默认V2并保留显式V1回退。持续窗口读取身份见[专项合同](V2_LINUX_WINDOW_LEASES.md)。
+共享内核当前为137表/v2_0039，桌面IPC6/Portal IPC2/凭据IPC1，新增持续窗口证明IPC1。Linux AT-SPI/X11读取、持续X11窗口代次、Portal窗口帧、受控语义、系统凭据helper及D4终端核查源码已接通；Portal授权确认状态按下文明确区分系统同意和业务审计，不扩大Linux输入授权。Linux/GStreamer/Portal、原生凭据与PTY仍未实测，前台/RemoteDesktop控制仍待实现；整个V2未完成，Windows离线候选默认V2并保留显式V1回退。持续窗口读取身份见[专项合同](V2_LINUX_WINDOW_LEASES.md)。
 
 最新接续：已接内部只读wlroots窗口观察：显式规范Wayland端点与原获准EI的内核peer PID/UID/创建身份相等后才发协议请求；私有dup只核验peer，不读写EI。绑定真实输出及v3窗口对象，done批次、父关系、活动状态与逐事件代次核验；原目标离开后恢复也失效，不以app_id推PID。原prepare/check读任务、部分帧及关闭归属保留；EI按键释放未结清时不关窗口/监测/Portal。53新增与211调用方/合同分阶段264不同专项通过（主252约43秒，后53直接与6架构）；4运行文件strict零错误/警告，385仅登记。原1闭窗夹具失败、1类型诊断、并发选择原失败及1缓存WinError5警告留档；并发选择现先占位，不能两次成功。当前Windows原生端口全注入，未Wayland/真实输入；活动状态不证明EI座席接收端，AT-SPI/PID、区域/共享来源和非evdev介入/业务后验仍开发，生产输入保持false。整个V2继续开发，无真实账号/模型/设备/72h或全量；远程授权待答，仅本地提交，全量留整个开发冻结后。见[窗口证据](evidence/v2-wayland-window-view.json)。
 

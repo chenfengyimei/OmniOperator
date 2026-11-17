@@ -55,8 +55,8 @@ def stamped_frames(frames, monkeypatch):
         calls.append(frame.time)
         return frame
 
-    def opened(*args):
-        container = original_open(*args)
+    def opened(*args, **kwargs):
+        container = original_open(*args, **kwargs)
         original_decode = container.decode
 
         def decode(stream):

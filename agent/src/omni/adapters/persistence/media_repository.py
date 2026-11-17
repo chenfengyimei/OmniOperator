@@ -9,7 +9,7 @@ from sqlalchemy.engine import Connection
 
 from ...application.ports import Record
 from ...domain.contracts import BusinessError
-from ...domain.media import JOB_STATES, OPERATIONS
+from ...domain.media import JOB_STATES, OPERATIONS, upload_source_row
 from . import schema as s
 from .bilibili_repository import BilibiliRepositories
 
@@ -81,6 +81,31 @@ class MediaRepositories(BilibiliRepositories):
             "media.source_registered",
             str(created["id"]),
             {"bvid": row["bvid"], "duration_s": row["duration_s"], "config_id": row["config_id"]},
+        )
+        return self._source(agent_id, str(created["id"]))
+
+    def media_source_register_upload(self, agent_id: str, object_id: str, title: str) -> Record:
+        obj = self._one(s.objects, agent_id, object_id)
+        row = upload_source_row(object_id, str(obj["media_type"]), cast(int, obj["bytes"]), title)
+        existing = (
+            self.connection.execute(
+                select(s.media_sources).where(
+                    s.media_sources.c.agent_id == agent_id,
+                    s.media_sources.c.object_id == object_id,
+                )
+            )
+            .mappings()
+            .first()
+        )
+        if existing:
+            if any(existing[key] != value for key, value in row.items()):
+                raise BusinessError(
+                    "media_source_changed", "This uploaded object already has a different source title", status=409
+                )
+            return self._source(agent_id, str(existing["id"]))
+        created = self._record(s.media_sources, row, agent_id)
+        self.audit(
+            agent_id, "media.source_registered", str(created["id"]), {"kind": str(row["kind"]), "object_id": object_id}
         )
         return self._source(agent_id, str(created["id"]))
 
@@ -164,7 +189,13 @@ class MediaRepositories(BilibiliRepositories):
     def media_job_create(self, agent_id: str, source_id: str, operation: str, plan: Record) -> Record:
         if operation not in OPERATIONS:
             raise BusinessError("media_operation_invalid", "Choose subtitle, transcribe or frames", status=422)
-        self._source(agent_id, source_id)
+        source = self._source(agent_id, source_id)
+        if source["kind"] != "bilibili_video" and (
+            operation == "subtitle" or source["kind"] == "object_audio" and operation == "frames"
+        ):
+            raise BusinessError(
+                "media_operation_invalid", "This operation is unavailable for this media source", status=422
+            )
         created = self._record(
             s.media_jobs,
             {

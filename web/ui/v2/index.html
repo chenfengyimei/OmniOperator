@@ -8,11 +8,11 @@
     <link rel="stylesheet" href="/assets/ui/tokens.css?v=20261115u1" />
     <link rel="stylesheet" href="/assets/ui/base.css?v=20261103v7" />
     <link rel="stylesheet" href="/assets/ui/icons.css?v=20261115u1" />
-    <link rel="stylesheet" href="/assets/ui/v2/v1/components.css?v=20261117v142" />
-    <link rel="stylesheet" href="/assets/ui/v2/v1/frame.css?v=20261117v142" />
-    <link rel="stylesheet" href="/assets/ui/v2/v1/workbench.css?v=20261117v142" />
-    <link rel="stylesheet" href="/assets/ui/v2/workbench.css?v=20261117v142" />
-    <link rel="stylesheet" href="/assets/vendor/xterm.min.css?v=20261117v142" />
+    <link rel="stylesheet" href="/assets/ui/v2/v1/components.css?v=20261118v143" />
+    <link rel="stylesheet" href="/assets/ui/v2/v1/frame.css?v=20261118v143" />
+    <link rel="stylesheet" href="/assets/ui/v2/v1/workbench.css?v=20261118v143" />
+    <link rel="stylesheet" href="/assets/ui/v2/workbench.css?v=20261118v143" />
+    <link rel="stylesheet" href="/assets/vendor/xterm.min.css?v=20261118v143" />
   </head>
   <body class="chat-mode" data-ui-page="workbench-v2">
     <header class="app-header">
@@ -22,9 +22,33 @@
       <button id="open-settings" type="button" class="btn">设置中心</button>
       <span id="health" role="status" data-state="idle">尚未连接</span>
       <div class="themes" role="radiogroup" aria-label="主题">
-        <button type="button" class="theme-dot" data-t="dark" role="radio" aria-checked="false" title="深色" aria-label="深色主题"></button>
-        <button type="button" class="theme-dot" data-t="auto" role="radio" aria-checked="false" title="跟随系统" aria-label="跟随系统主题"></button>
-        <button type="button" class="theme-dot" data-t="light" role="radio" aria-checked="false" title="浅色" aria-label="浅色主题"></button>
+        <button
+          type="button"
+          class="theme-dot"
+          data-t="dark"
+          role="radio"
+          aria-checked="false"
+          title="深色"
+          aria-label="深色主题"
+        ></button>
+        <button
+          type="button"
+          class="theme-dot"
+          data-t="auto"
+          role="radio"
+          aria-checked="false"
+          title="跟随系统"
+          aria-label="跟随系统主题"
+        ></button>
+        <button
+          type="button"
+          class="theme-dot"
+          data-t="light"
+          role="radio"
+          aria-checked="false"
+          title="浅色"
+          aria-label="浅色主题"
+        ></button>
       </div>
     </header>
     <nav aria-label="工作台" inert>
@@ -534,8 +558,8 @@
             <section id="media" class="page" hidden>
               <h2>媒体</h2>
               <p>
-                把 B站视频登记为媒体来源后，可以拉取在线字幕、用本地受管进程转写音频或抽取等距帧拼图。转写文本带
-                [MM:SS-MM:SS] 时间锚点；模型只能通过工具读取实际落库的内容，不接触原始视频。
+                登记 B站视频或上传音视频后，可以转写音频或抽取视频帧；B站视频还可拉取在线字幕。转写文本带 [MM:SS-MM:SS]
+                时间锚点；模型只能通过工具读取实际落库的内容，不接触原始视频。
               </p>
               <form id="media-register-form">
                 <label>通道配置 UUID<input id="media-config" maxlength="36" required /></label>
@@ -543,6 +567,16 @@
                 <button type="submit">登记媒体来源</button>
               </form>
               <p id="media-register-status" role="status"></p>
+              <form id="media-upload-form">
+                <h3>上传音视频</h3>
+                <p class="hint">文件不超过 16 MiB。上传后可转写音频或抽取视频帧；处理需本机媒体组件及已有 ASR 模型。</p>
+                <label
+                  >音频或视频文件<input id="media-upload-file" type="file" accept="audio/*,video/*" required
+                /></label>
+                <label>来源标题<input id="media-upload-title" maxlength="300" required /></label>
+                <button type="submit">上传并登记</button>
+              </form>
+              <p id="media-upload-status" role="status"></p>
               <div class="actions">
                 <button id="media-refresh" type="button">刷新来源</button
                 ><button id="media-more" type="button" disabled>更多来源</button>
@@ -1900,8 +1934,8 @@
       </aside>
     </main>
     <div id="tip-layer"></div>
-    <script src="/assets/vendor/xterm.js?v=20261117v142"></script>
-    <script src="/assets/vendor/xterm-addon-fit.js?v=20261117v142"></script>
-    <script type="module" src="/assets/ui/v2/main.js?v=20261117v142"></script>
+    <script src="/assets/vendor/xterm.js?v=20261118v143"></script>
+    <script src="/assets/vendor/xterm-addon-fit.js?v=20261118v143"></script>
+    <script type="module" src="/assets/ui/v2/main.js?v=20261118v143"></script>
   </body>
 </html>

@@ -1,0 +1,273 @@
+{
+  "schema": 1,
+  "date": "2026-11-18",
+  "base_commit": "c87451579589e164940b8d51752f08806e6a1880",
+  "status": "uploaded_media_production_chain_implemented_scoped_passed_real_model_quality_pending",
+  "source_files": {
+    "agent/src/omni/domain/media.py": "ff11d621747a0f4bb18c0ad32999ac0946625df5aae04be1d678ff3102145afc",
+    "agent/src/omni/application/media.py": "d5d9e1c2714dcee8c30386a291b17ffdae769abbd9d58479669231ecdc6c268f",
+    "agent/src/omni/application/ports.py": "29e3c29593c89e3c4a5bae06cf57bb1b809d3e1fe1d5680ed8db4625b112ce37",
+    "agent/src/omni/adapters/persistence/schema.py": "381d5985af3f006ad81a88c3dde0238ab8e96eb1674c15a22f3944ed1344d6ff",
+    "agent/src/omni/adapters/persistence/media_repository.py": "b1bef29a70dc7cb36681935fc3d92ead6f9afe069d8295e67429319a67ef69f7",
+    "agent/src/omni/adapters/persistence/migrations/versions/v0039.py": "085ba9c914ee72ce1cac778902e3193450da5274ee72cb13fedd52d78dffb109",
+    "agent/src/omni/adapters/http.py": "deae1d0331bf78efe6bd54c36e80489db7bc780cc0246442abdeea40eded1ecb",
+    "agent/src/omni/adapters/workers/media.py": "99432e9d2e48dcccaeb1d53ed98e8d379e708b8e76db22f63eaa7c068dbd60da",
+    "agent/tests/test_v2_media_uploads.py": "5918eabc8fa9291457aa9331daf59b7b44d4de5876f037e59f41c66b722c2710",
+    "pyrightconfig.strict.json": "29ace0d48f935d9965c8e7fd78f09e543fec8c072d7cdefe827468cc84c6aa64",
+    "docs/TYPE_CHECKING.md": "120bac9350f45b99b1652f0fa90b78093ff2da4a1538ab81038cc9539bbab856",
+    "agent/tests/test_v2_images_migration.py": "1a5ded9a779713f5da54eed3c896408810a078145aa8a802e79aa3b35c3c4bc3",
+    "agent/tests/test_v2_media.py": "ec5e14499d66270c442564e03327aa888f4ea229b7dd69146961e25464b5c468",
+    "agent/tests/test_v2_media_anchors.py": "0162d6787fc54319ffa25338eb444746408cb18d6fa8633f089952d1d48fe10f",
+    "agent/tests/test_v2_media_audio.py": "968c4711e50c3125b6e6008530606523981c8f6a7a344338719f7978f81babc6",
+    "agent/tests/test_v2_media_authority.py": "ad0e13fbe8fe0edf81619f8da19db073ae7fc0a7fbb5fdd4ef738b9c96bad4e6",
+    "agent/tests/test_v2_media_decoding.py": "d9c53b309bd449ed0395931d1e694eb255365a2275d46d3104844b23523e091c",
+    "agent/tests/test_v2_media_duration.py": "17a9ac1aceeabc3ca476a36624e36f143c5c5d5681ad2d2509caa3baba795e1b",
+    "agent/tests/test_v2_media_frames.py": "5ceff1686e4ff4017fedbcc3d27b032bb4ade4b3fe83af8c2c2c073c4013d765",
+    "agent/tests/test_v2_media_local_decode.py": "5194d06fa6119647e79ac389faf84c623ebf4e54bafb18b8e0951d45cf70ebdd",
+    "agent/tests/test_v2_media_upload_migration.py": "c662ad78cf64d3544078f78a733190df7c6fee9f45277c1614d90eb9fed504c1",
+    "agent/tests/test_v2_media_upload_ui.py": "88e15bea069a739ee3479ff199963547381e7f7d38d04d587ca84289580579dd",
+    "agent/tests/test_v2_memory_semantics_migration.py": "9609c00362077387e1146adc405f1a200fc51630380f8952648fdafafa847874",
+    "agent/tests/test_v2_routing_migration.py": "63b1fca8339d7f7dd85d02e7610a026b5f534d4df66c6934c6fd9b19ea0d9a37",
+    "agent/tests/test_v2_skills_migration.py": "ef23c5f861f45a96d36535596b113d18dd9678e7451fdbe109dae534ad36563e",
+    "docs/V2_AI_CONTINUATION_PROMPT.md": "2b9a498857fce4973530f802da5c5f48deca0717decbc2c68306f5e7371f8bd9",
+    "docs/V2_UI_PROMPT.md": "8341ab9f00d76ae6c0e2629bc93664c65c9931131a5e270496a619558226cad1",
+    "web/ui/v2/android.js": "a8186a0b6aa01d0e5ea29c73abc3607f149cc3b725f600a93678db9c5255fb9a",
+    "web/ui/v2/desktop.js": "396c8d3f39f1f0973ecbe28b8a3b3aeb170b00e205d40d2498882adc17a025ea",
+    "web/ui/v2/documents.js": "1fcc7376944b0f10d89c6d65cbe94231b33d09fc1d378436f1293710c21e6047",
+    "web/ui/v2/index.html": "cde598ae7be6a5e9449e37861e43189ebfd40b135d03d03e071dbd0a7dee9be7",
+    "web/ui/v2/main.js": "0461ea6da0bb0297fe4be760a0f44c4fa14fa4d0b47969daab801942738fa485",
+    "web/ui/v2/media.js": "d3dfc8015157eefda28b1041f30afa03dc48f0b9ef9a2fbcf9e568fb2b047437",
+    "web/ui/v2/operations.js": "abfe2448b048a30cece550f29b644dd1096f3cf0662817bd8dbfe41bc3c5002a",
+    "web/ui/v2/terminals.js": "00bacf2e1ecf6a8d70303184f02a86419de8a6dff1d8ebf7c1dc7758ed6fd060"
+  },
+  "fixed_source_manifest": {
+    "path": "temp\\build\\v2-media-upload-source-r9.json",
+    "sha256": "6493abdacde42b816900112623854f5a1ece52a7fc6dd64903aa4afd9ba031ef",
+    "bytes": 4528
+  },
+  "prior_source_archives": [
+    {
+      "path": "temp\\build\\v2-media-upload-r1-source-delta.zip",
+      "sha256": "0708d78f795ce195542ee821cb04bcca492f9f0641ab1007a71bae83e36374c9",
+      "bytes": 87672
+    },
+    {
+      "path": "temp\\build\\v2-media-upload-r2-source-delta.zip",
+      "sha256": "e4fe6ad5c4420ae7769f0486828a65b96126d28d724d13e3ad13325a2b3b4aaf",
+      "bytes": 87776
+    },
+    {
+      "path": "temp\\build\\v2-media-upload-r3-source-delta.zip",
+      "sha256": "445d9c9ef4610600ab9efc19ec632edda779117fc3f679fddbbe97f1e9eb7a9b",
+      "bytes": 226421
+    },
+    {
+      "path": "temp\\build\\v2-media-upload-r4-source-delta.zip",
+      "sha256": "94d5185cee963d53432ccb7c2d5fcec2aa66e2488f56233d18d277b997f16957",
+      "bytes": 226453
+    },
+    {
+      "path": "temp\\build\\v2-media-upload-r5-source-delta.zip",
+      "sha256": "05f5416bb8ec05f118dcc1e1efdc802e34784e0cd430f6bb8c38320feeb7275d",
+      "bytes": 226478
+    },
+    {
+      "path": "temp\\build\\v2-media-upload-r6-source-delta.zip",
+      "sha256": "77b70022e8624fe860769fc9bb842a42dcc1bd0998ca90660425d8cb0e7f4a49",
+      "bytes": 227240
+    },
+    {
+      "path": "temp\\build\\v2-media-upload-r7-source-delta.zip",
+      "sha256": "139669cd426eaa1857379c1cf379cad187726253ff111e4fa5efe8598996e53c",
+      "bytes": 230769
+    },
+    {
+      "path": "temp\\build\\v2-media-upload-r8-source-delta.zip",
+      "sha256": "3359511d50e91f05077d5c5f469033fe589b01c5b03004ce7ab85c1bfed85868",
+      "bytes": 230563
+    }
+  ],
+  "scoped_tests": {
+    "distinct_nodes_passed": 311,
+    "new_nodes": 13,
+    "existing_affected_nodes": 298,
+    "per_module": {
+      "tests.test_v2_media_uploads": 7,
+      "tests.test_v2_media_upload_migration": 2,
+      "tests.test_v2_media_local_decode": 2,
+      "tests.test_v2_media_upload_ui": 2,
+      "tests.test_v2_media": 9,
+      "tests.test_v2_media_audio": 26,
+      "tests.test_v2_media_frames": 26,
+      "tests.test_v2_media_duration": 29,
+      "tests.test_v2_media_decoding": 19,
+      "tests.test_v2_media_anchors": 28,
+      "tests.test_v2_media_admission": 15,
+      "tests.test_v2_media_authority": 36,
+      "tests.test_v2_media_cancel": 13,
+      "tests.test_v2_media_reads": 37,
+      "tests.test_v2_images_migration": 1,
+      "tests.test_v2_routing_migration": 1,
+      "tests.test_v2_skills_migration": 2,
+      "tests.test_v2_memory_semantics_migration": 2,
+      "tests.test_v2_objects": 17,
+      "tests.test_v2_architecture": 6,
+      "tests.test_arch": 29,
+      "tests.test_v2_typecheck_scope": 2
+    },
+    "phases": [
+      {
+        "revision": 6,
+        "nodes": 311,
+        "passed": 284,
+        "failed": 27,
+        "elapsed_seconds": 134.306,
+        "report": {
+          "path": "temp\\build\\v2-media-upload-r6.xml",
+          "sha256": "128b53eae394c920225ccf5c1936c6e64ba5029c5b1ddd9fe5c95cc42c642801",
+          "bytes": 118689
+        }
+      },
+      {
+        "revision": 7,
+        "nodes": 38,
+        "passed": 38,
+        "failed": 0,
+        "elapsed_seconds": 18.627,
+        "report": {
+          "path": "temp\\build\\v2-media-upload-final-r7.xml",
+          "sha256": "129641451fa96b682f18f0160b38599a43f637ead815a01ec234428e4cd357ce",
+          "bytes": 6727
+        }
+      },
+      {
+        "revision": 9,
+        "nodes": 2,
+        "passed": 2,
+        "failed": 0,
+        "elapsed_seconds": 11.358,
+        "report": {
+          "path": "temp\\build\\v2-media-upload-ui-r9.xml",
+          "sha256": "a7bd7dbc81c052eacca2d5ecff2df833865253909d9a00577dfade9c78651126",
+          "bytes": 552
+        }
+      }
+    ],
+    "coverage": "Mainr6:284 pass/27 failures in old authority fixture missing mandatory source.kind. Add exact bilibili_video kind, keep every permission assertion; r7 authority36 and UI2 pass. After main all8 runtime bytes identical; current final UI2 passed onr9. Other6 UI modules only asset version and formatting, verified against formatted HEAD after exact version substitution. No full-suite coverage of current source."
+  },
+  "strict_modified_files": {
+    "files": 8,
+    "errors": 0,
+    "warnings": 0,
+    "report": {
+      "path": "temp\\build\\v2-media-upload-pyright-r4.json",
+      "sha256": "c95b2c716aca56305d1d197d325b8307359497d66346937a969d0162e2d79f62",
+      "bytes": 251
+    },
+    "runtime_bytes_equal_final": true
+  },
+  "registered_strict_scope": 386,
+  "registered_scope_fully_rechecked": false,
+  "quality": {
+    "ruff_modified_python_files": 23,
+    "ruff_and_format_passed": true,
+    "prettier_modified_ui_files": 8,
+    "prettier_passed": true,
+    "frontend_syntax_modules": 86,
+    "frontend_syntax_passed": true,
+    "cache_only_verification": {
+      "path": "temp\\build\\v2-media-upload-cache-verification.json",
+      "sha256": "0c79f5258ec52f51e7697644cd68efc3245c2b5733c24c71b996e2999737a1cb",
+      "bytes": 305
+    },
+    "screenshots": [
+      {
+        "path": "temp\\build\\v2-media-upload-ui-390.png",
+        "sha256": "6a34f397646a883211e0ef2da3305177fba91126d6bd3555d1136b3d789bba3a",
+        "bytes": 90910
+      },
+      {
+        "path": "temp\\build\\v2-media-upload-ui-1024.png",
+        "sha256": "0915499ac9d6c011ff1c01d9ab244ffbf78271ae7b6d59fabb6bf023973f3202",
+        "bytes": 163436
+      }
+    ],
+    "screenshot_review": "390 and1024 layout reviewed; final r9 includes current source description and file input visual reset, no page errors/horizontal overflow in UI tests."
+  },
+  "development_reports": {
+    "first_fixture_report": {
+      "path": "temp\\build\\v2-media-upload-first.xml",
+      "sha256": "eb65b5f225248c7abe59e12cf3833c629a074090ec138247a521d4e7ec1fe307",
+      "bytes": 12148
+    },
+    "first_fixture_issue": "3 unawaited open_instance fixture calls, before database/runtime construction; corrected to actual awaited instance and complete close. r2 two transcript-window fixture calls lacked required arguments; corrected; runtime not relaxed.",
+    "second_fixture_report": {
+      "path": "temp\\build\\v2-media-upload-fix-r2.xml",
+      "sha256": "19b1468f33690802ac7ebd537cb5c78d9f1fda47c5ca03d33abab7bb3fa1aea6",
+      "bytes": 10709
+    },
+    "initial_type_report": {
+      "path": "temp\\build\\v2-media-upload-pyright-r1.json",
+      "sha256": "08653762c5b0d8aff123599ca6cefaedca0e36ce009adb1daddc15e745e3959f",
+      "bytes": 10354
+    },
+    "initial_type_errors": 15,
+    "type_corrections": "Use existing repository primitive for object metadata; explicit audit str and domain raw title type; av.open mode=r selects native input-container overload. No ignores or removed checks.",
+    "interrupted_report": {
+      "path": "temp\\build\\v2-media-upload-r3.xml",
+      "sha256": "86e0a4d4f900f574d917587d8767680fdedc64da8e542a31f08b5a06c3fe389b",
+      "bytes": 38
+    },
+    "interrupted_run": "D volume exhausted;7 failure markers and JUnit write OSError28, report incomplete. Do not claim pass or assign every marker to disk. Isolated test temporary files then moved to authorized C workspace; six original nodes passed, one HLS positive-control assumption failed.",
+    "recovery_report": {
+      "path": "temp\\build\\v2-media-upload-recovery-r3.xml",
+      "sha256": "f5e6858f5df2e5081a3b2a030fa88ac7d8279cd76b375da6a96fe7173e10572c",
+      "bytes": 2940
+    },
+    "hls_fixture_correction": "Installed FFmpeg default file nesting did not fetch HTTP. Positive control now explicitly permits file,http,tcp against an isolated loopback404 server; actual worker empty whitelist refuses without requests. This is not evidence that the prior production default made HTTP requests.",
+    "initial_ui_report": {
+      "path": "temp\\build\\v2-media-upload-ui-r4.xml",
+      "sha256": "45d06543e10156a61449a78eedd86b8ba1b2ab9a9b10ed9da4675c7e89491fec",
+      "bytes": 7465
+    },
+    "ui_diagnostic_report": {
+      "path": "temp\\build\\v2-media-upload-ui-diagnostic-r5.xml",
+      "sha256": "459ad022e57ecee27b4e157197af62df8b77cbf9f330416952820f68980cbb1d",
+      "bytes": 4698
+    },
+    "ui_fixture_correction": "Current Playwright is_disabled returned false for native OPTION despite disabled attribute. Original DOM saved in failure. Assert exact native disabled attribute AND true DOM property; keep server operation refusal and end-to-end UI checks. No product restriction removed.",
+    "ui_r8_report": {
+      "path": "temp\\build\\v2-media-upload-ui-r8.xml",
+      "sha256": "ce2acdd5e72e8c24a0f1e262e4ae022c28b44e2868512ccebbff2073e628f5ad",
+      "bytes": 552
+    }
+  },
+  "contract": {
+    "source": "Existing owner object upload16MiB maximum, exact scoped object identity and verified bytes before registration. Immutable object_audio/object_video source in original media_sources; separate Bilibili fields null, duration unknown until decode. Canonical object UUID, nonempty bounded title and supported audio/video MIME; MIME is classification only, never decoding proof. Same object+title idempotent; retitle conflict, foreign Agent/unknown/empty/nonmedia object refused.",
+    "storage": "Original object FK participates in common reference inventory/GC/backup/restore. Source registration and audit atomic; source deletion refuses active jobs and releases input/output references through existing graph. No original blob deletion or owner pin changes. Input copied from verified immutable object to exact existing job staging; normal cancellation/cleanup, bounded worker and unknown recovery preserved.",
+    "jobs": "Same queued/running/done/failed/cancelled/unknown state machine, per-source8 admission and2 processing slots. Upload audio transcribe only; upload video transcribe/frames; subtitle only verified Bilibili source. Repository and admission trigger refuse invalid source-operation pair before work. No Bilibili credential/read/download for uploads; independent source recheck before/after processing and in artifact transaction. Existing anchored transcript/frame/image objects and model read tools reused.",
+    "decoder": "Both actual PyAV inputs are explicitly read-only Python file streams; input container opened with empty protocol_whitelist, all resources owned through exit. Generated real WAV decodes; isolated HLS explicit native positive control requests loopback HTTP while production worker refuses without request. Existing audio sample/frame/duration/anchor/resource budgets unchanged. Does not prove every codec/container or platform.",
+    "migration": "Frozen v2_0039 transaction renames original four media tables, creates exact new graph, copies original sources/jobs/artifacts with IDs/states/times unchanged, drops old children before parents, recreates original guards plus upload contract. Foreign keys stay enabled throughout. Populated completed transcript graph and deliberate mid-DDL interruption/rollback then upgrade verified. No legacy migration import/current metadata or connection creation in runtime migration. Business table count remains136.",
+    "entrypoints": "Owner POST /agents/{agent_id}/media/uploads accepts only object_id/title after existing authenticated object upload; original media jobs/transcript/frame routes reused. Workbench upload/title form and source kinds, unavailable operations disabled, no auto job execution; file/Agent generation guards and visible file reset. No arbitrary URL or local path input, model cannot register/run uploads; it only reads actual registered transcript tool output."
+  },
+  "protocol_sources": [
+    "https://ffmpeg.org/ffmpeg-protocols.html",
+    "https://pyav.basswood.io/docs/stable/api/_globals.html"
+  ],
+  "real_pyav_generated_wav_and_isolated_hls_executed": true,
+  "actual_asr_model_or_real_user_media_executed": false,
+  "real_bilibili_account_or_paid_model_executed": false,
+  "macos_linux_or_native_desktop_executed": false,
+  "full_suite_run": false,
+  "wheel_or_platform_package_rebuilt": false,
+  "whole_v2_development_complete": false,
+  "whole_v2_accepted": false,
+  "publication": {
+    "destination": "https://gitee.com/chenfengloveyuri/OmniOperator.git",
+    "branch": "v2",
+    "owner_continuous_push_authorized": true,
+    "authorization_received": "2026-11-18",
+    "policy": "Commit scoped development checkpoint then push exact existing origin/v2 without force; actual remote HEAD verified separately."
+  },
+  "next": "Continue whole V2 development and requirement code audit, Linux generic target association/Wayland input business and remaining platform delivery; defer full suite until whole development freeze. Real ASR/media quality and accounts/devices/platform/72h acceptance remain separate."
+}

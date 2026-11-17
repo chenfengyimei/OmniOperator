@@ -1,4 +1,4 @@
-// Media sources are verified Bilibili videos; jobs are bounded, cancellable and reconciled on restart.
+// Media sources are verified Bilibili videos or owner-uploaded immutable objects.
 import { ask } from '../dialog.js?v=20261103v7';
 
 export function mountMedia({ api, wrap, getAgent, getGeneration }) {
@@ -10,7 +10,8 @@ export function mountMedia({ api, wrap, getAgent, getGeneration }) {
     selectedJob = '',
     transcript = null,
     frameURL = null,
-    displayedAgent = '';
+    displayedAgent = '',
+    selectedKind = '';
   const path = (agent = getAgent()) => `/agents/${agent}/media`;
   const capture = () => ({ agent: getAgent(), generation: getGeneration(), epoch });
   const current = (t) => t.agent === getAgent() && t.generation === getGeneration() && t.epoch === epoch;
@@ -19,6 +20,11 @@ export function mountMedia({ api, wrap, getAgent, getGeneration }) {
   const FRAME_FIELDS = ['media-frame-count', 'media-frame-width'];
 
   function renderOperations() {
+    for (const option of $('media-operation').options)
+      option.disabled =
+        (selectedKind.startsWith('object_') && option.value === 'subtitle') ||
+        (selectedKind === 'object_audio' && option.value === 'frames');
+    if ($('media-operation').selectedOptions[0]?.disabled) $('media-operation').value = 'transcribe';
     const operation = $('media-operation').value;
     for (const id of ASR_FIELDS) $(id).disabled = operation !== 'transcribe';
     for (const id of FRAME_FIELDS) $(id).disabled = operation !== 'frames';
@@ -29,17 +35,27 @@ export function mountMedia({ api, wrap, getAgent, getGeneration }) {
   function renderSources(items, appended) {
     const list = $('media-source-list');
     if (!appended) list.replaceChildren();
-    for (const row of items) list.append(new Option(`${row.title || row.bvid} · ${row.bvid}`, row.id));
+    for (const row of items)
+      list.append(
+        new Option(
+          `${row.title || row.bvid} · ${row.bvid || (row.kind === 'object_audio' ? '上传音频' : '上传视频')}`,
+          row.id,
+        ),
+      );
     $('media-more').disabled = !sourceCursor;
     if (selectedSource && [...list.options].some((o) => o.value === selectedSource)) list.value = selectedSource;
   }
 
   function renderSourceDetail(row) {
+    selectedKind = row.kind || '';
+    renderOperations();
     const lines = [
       `来源 ${row.id}`,
       `标题 ${row.title}`,
-      `BV ${row.bvid} · aid ${row.aid} · cid ${row.cid}`,
-      `时长 ${row.duration_s}s · 活跃作业 ${row.active_jobs}`,
+      row.object_id
+        ? `上传${row.kind === 'object_audio' ? '音频' : '视频'} · 对象 ${row.object_id}`
+        : `BV ${row.bvid} · aid ${row.aid} · cid ${row.cid}`,
+      `时长 ${row.duration_s == null ? '解码时核验' : row.duration_s + 's'} · 活跃作业 ${row.active_jobs}`,
       `最新转写 ${row.latest_transcript_id || '尚无'}`,
       `最新帧拼图 ${row.latest_frames_id || '尚无'}`,
     ];
@@ -184,6 +200,46 @@ export function mountMedia({ api, wrap, getAgent, getGeneration }) {
       if (!current(t)) return;
       $('media-register-status').textContent = `已登记来源 ${row.id}`;
       selectedSource = row.id;
+      await loadSources(t, false);
+      await loadSourceDetail(t);
+      await loadJobs(t, false);
+    }),
+  );
+  $('media-upload-form').addEventListener(
+    'submit',
+    wrap(async () => {
+      const file = $('media-upload-file').files[0],
+        title = $('media-upload-title').value.trim();
+      if (!file || file.size < 1 || file.size > 16 * 1024 * 1024) throw new Error('请选择不超过 16 MiB 的音视频文件');
+      const types = new Set([
+        'audio/wav',
+        'audio/x-wav',
+        'audio/mpeg',
+        'audio/mp4',
+        'audio/aac',
+        'audio/ogg',
+        'audio/flac',
+        'audio/webm',
+        'video/mp4',
+        'video/webm',
+        'video/ogg',
+        'video/x-matroska',
+      ]);
+      if (!types.has(file.type)) throw new Error('请选择 WAV、MP3、MP4、WebM、Ogg、FLAC 或 AAC 音视频文件');
+      if (!title || title.length > 300) throw new Error('请填写媒体来源标题');
+      const t = capture();
+      const object = await api(`/agents/${t.agent}/objects?pinned=false`, { method: 'POST', body: file, raw: true });
+      if (!current(t)) return;
+      $('media-upload-status').textContent = `文件已保存为对象 ${object.id}，正在登记来源`;
+      const row = await api(`${path(t.agent)}/uploads`, { method: 'POST', body: { object_id: object.id, title } });
+      if (!current(t)) return;
+      $('media-upload-status').textContent = `已登记上传来源 ${row.id}`;
+      $('media-upload-file').value = '';
+      $('media-upload-file').dispatchEvent(new Event('change', { bubbles: true }));
+      selectedSource = row.id;
+      selectedJob = '';
+      clearTranscript();
+      releaseFrame();
       await loadSources(t, false);
       await loadSourceDetail(t);
       await loadJobs(t, false);
@@ -350,6 +406,11 @@ export function mountMedia({ api, wrap, getAgent, getGeneration }) {
         selectedJob = '';
         sourceCursor = null;
         jobCursor = null;
+        selectedKind = '';
+        $('media-upload-file').value = '';
+        $('media-upload-file').dispatchEvent(new Event('change', { bubbles: true }));
+        $('media-upload-title').value = '';
+        $('media-upload-status').textContent = '';
         clearTranscript();
         releaseFrame();
       }
