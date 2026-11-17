@@ -11,6 +11,7 @@ from typing import cast
 
 from jsonschema import Draft202012Validator
 
+from ..domain.agents import MAX_AGENTS, name_value, revision_value
 from ..domain.contracts import JSON, ActionResult, BusinessError, Effect, InvocationContext, Outcome, ToolSpec
 from ..domain.metering import memory_system
 from ..domain.routing import REQUEST_MODE, select_tools
@@ -477,6 +478,31 @@ class Application:
 
     async def settings(self, agent_id: str) -> Record:
         return await self._db.read(lambda u: u.settings(agent_id))
+
+    async def get_agent(self, agent_id: str) -> Record:
+        return await self._db.read(lambda u: u.get_agent(agent_id))
+
+    async def create_agent(self, name: str) -> Record:
+        if self._closing or not self._ready:
+            raise BusinessError("not_ready", "Application is not accepting work", status=503)
+        checked = name_value(name)
+
+        def create(uow: UnitOfWork) -> Record:
+            # Admission and initialization share the writer transaction: two
+            # owner clients cannot race past the bounded space inventory.
+            if len(uow.query("agents", "", limit=MAX_AGENTS)) >= MAX_AGENTS:
+                raise BusinessError("agent_capacity", "This instance has reached its 64 Agent spaces", status=409)
+            record = uow.create_agent(checked)
+            uow.audit(str(record["id"]), "agent.created", None, {"revision": 1})
+            return record
+
+        return await self._db.write(create)
+
+    async def rename_agent(self, agent_id: str, name: str, revision: int) -> Record:
+        if self._closing or not self._ready:
+            raise BusinessError("not_ready", "Application is not accepting work", status=503)
+        checked, expected = name_value(name), revision_value(revision)
+        return await self._db.write(lambda u: u.rename_agent(agent_id, checked, expected))
 
     async def history(
         self, kind: str, agent_id: str, *, cursor: str = "", limit: int = 100, run_id: str = ""

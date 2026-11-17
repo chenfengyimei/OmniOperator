@@ -47,6 +47,7 @@ from ..application.scheduling import SchedulingService
 from ..application.skills import SkillService
 from ..application.terminal_review import TerminalReviewService
 from ..application.terminals import TerminalService
+from ..domain.agents import MAX_NAME, MAX_REVISION
 from ..domain.capabilities import capability_report
 from ..domain.contracts import BusinessError
 from ..domain.objects import MAX_OBJECT_BYTES
@@ -107,6 +108,14 @@ class HttpRuntime:
 
 class StrictInput(BaseModel):
     model_config = ConfigDict(extra="forbid")
+
+
+class AgentInput(StrictInput):
+    name: str = Field(min_length=1, max_length=MAX_NAME)
+
+
+class AgentRenameInput(AgentInput):
+    revision: int = Field(ge=1, le=MAX_REVISION, strict=True)
 
 
 class TurnInput(StrictInput):
@@ -973,6 +982,20 @@ def create_app(factory: Callable[[], Awaitable[HttpRuntime]], *, allowed_origins
     @router.get("/agents")
     async def agents(request: Request):
         return {"items": await runtime(request).application.query("agents", "")}
+
+    @router.post("/agents", status_code=201)
+    async def create_agent(request: Request):
+        data = configuration_input(AgentInput, await bounded_configuration(request, 2048, strict=True))
+        return await runtime(request).application.create_agent(data.name)
+
+    @router.get("/agents/{agent_id}")
+    async def get_agent(agent_id: uuid.UUID, request: Request):
+        return await runtime(request).application.get_agent(str(agent_id))
+
+    @router.put("/agents/{agent_id}")
+    async def rename_agent(agent_id: uuid.UUID, request: Request):
+        data = configuration_input(AgentRenameInput, await bounded_configuration(request, 2048, strict=True))
+        return await runtime(request).application.rename_agent(str(agent_id), data.name, data.revision)
 
     @router.get("/agents/{agent_id}/deliveries/channels")
     async def delivery_channels(

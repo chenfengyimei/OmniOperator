@@ -41,6 +41,9 @@ let generation = 0,
   pendingKey = null,
   build = null;
 const inflight = new Set();
+let agentMutation = null,
+  newAgentDraft = '';
+const agentNameDrafts = new Map();
 let connecting = null,
   initializingAgent = null;
 const modelOutput = mountModelOutput({ api, getAgent: () => agent, getGeneration: () => generation });
@@ -1228,7 +1231,7 @@ async function connectWith(value, { automatic = false } = {}) {
     build = version.build_id;
     const data = await api('/agents');
     if (connecting !== attempt) return;
-    $('agents').replaceChildren(...data.items.map((item) => new Option(item.name, item.id)));
+    renderAgents(data.items);
     await selectAgent();
     if (connecting !== attempt) return;
     document.body.dataset.connected = 'true';
@@ -1329,6 +1332,71 @@ async function bootstrapLocal() {
   }
 }
 $('agents').addEventListener('change', wrap(selectAgent));
+function renderAgents(items, selected = '') {
+  $('agents').replaceChildren(...items.map((item) => new Option(item.name, item.id)));
+  if (selected && items.some((item) => item.id === selected)) $('agents').value = selected;
+}
+for (const [id, rename] of [
+  ['new-agent', false],
+  ['rename-agent', true],
+]) {
+  $(id).addEventListener(
+    'click',
+    wrap(async () => {
+      if (agentMutation) return;
+      if (!token || !agent || initializingAgent) throw new Error('请先连接实例并等待空间载入完成');
+      const current = { generation, agent, token };
+      const valid = () => current.generation === generation && current.agent === agent && current.token === token;
+      agentMutation = current;
+      $('new-agent').disabled = $('rename-agent').disabled = true;
+      let created = null;
+      try {
+        const record = rename ? await api(`/agents/${current.agent}`) : null;
+        if (!valid()) return;
+        const name = await ask({
+          title: rename ? '重命名空间' : '新建 Agent 空间',
+          message: rename
+            ? `当前名称：${record.name}。只修改显示名称，会话、配置和权限保持原归属。`
+            : '创建并切换到独立空间，使用新的默认配置，不复制当前空间的消息、记忆、模型凭据或权限。',
+          input: rename ? (agentNameDrafts.get(current.agent) ?? record.name) : newAgentDraft,
+          inputLabel: '空间名称',
+          confirmLabel: rename ? '保存名称' : '创建并切换',
+        });
+        if (name === null || !valid()) return;
+        if (rename) {
+          agentNameDrafts.set(current.agent, name);
+          const updated = await api(`/agents/${current.agent}`, {
+            method: 'PUT',
+            body: { name, revision: record.revision },
+          });
+          if (!valid()) return;
+          agentNameDrafts.delete(current.agent);
+          const option = [...$('agents').options].find((item) => item.value === current.agent);
+          if (option) option.textContent = updated.name;
+        } else {
+          newAgentDraft = name;
+          created = await api('/agents', { method: 'POST', body: { name } });
+          if (!valid()) return;
+          newAgentDraft = '';
+          const inventory = await api('/agents');
+          if (!valid()) return;
+          renderAgents(inventory.items, created.id);
+          await selectAgent();
+        }
+      } catch (failure) {
+        if (!valid()) return;
+        if (created) throw new Error('空间已创建，列表刷新未完成；请重新连接后选择新空间。');
+        if (!failure.status) throw new Error('空间变更结果尚未确认；请先重新连接并核对空间列表，再决定是否重试。');
+        throw failure;
+      } finally {
+        if (agentMutation === current) {
+          agentMutation = null;
+          $('new-agent').disabled = $('rename-agent').disabled = false;
+        }
+      }
+    }),
+  );
+}
 $('back-to-chat').addEventListener('click', () =>
   document.querySelector('nav[aria-label="工作台"] [data-page="chat"]')?.click(),
 );

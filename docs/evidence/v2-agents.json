@@ -1,0 +1,59 @@
+{
+  "source_base": "136790447a56eea4714aa824bb4a8f7abc9c23a7",
+  "scope": "Owner Agent creation, metadata lookup and CAS rename; existing independent initialization and shared database transaction",
+  "source_files": {
+    "agent/src/omni/domain/agents.py": "ce5cec98a0a6ab62312321a710837d0cd3bdada9b1c3fb96a5b8e9038dd63081",
+    "agent/src/omni/application/engine.py": "f6cf4c856233283b6ae702cfed624cb367f5ae369292140c1e66c597d6c9afea",
+    "agent/src/omni/application/ports.py": "675543a7c46eec919b3ac024286af206e9b92f92ae233ed8eccb59a6acb99e37",
+    "agent/src/omni/adapters/persistence/repository.py": "5e180246d427607cf1d0afc9ff5e2608255981334dae851959b0fbe3db74bc8b",
+    "agent/src/omni/adapters/http.py": "571f1d8e0ee6c2e2f9149e74d2a5cba6e251891cec176b630eba9a4555629ed9",
+    "agent/tests/test_v2_agents.py": "ffbd39ee4318bfc276b1e1afd95d6e958e87830865209a9d3af2aa266e38128e",
+    "agent/tests/test_v2_agents_ui.py": "78407c088a3a18f2fc878aac7dd4b11d2aa6c1c90f5739303ea53febf57aeeae",
+    "web/ui/v2/main.js": "712ccd361505eff57a3cf600ffa98f824da9c2396238d5e4f98c528e5be10052",
+    "web/ui/v2/index.html": "54ae56837c917aadb1d5158bcb4125096598e23cc25c6c712d75339393a805f7",
+    "pyrightconfig.strict.json": "a563df668ca64bc7ed36fa27d0916b86f235210db9d5abd6c928cc073da0147b",
+    "docs/TYPE_CHECKING.md": "db69a5978c6fb317fbd2955bfed222af644d5673a0a8d573d712915d0dc7510a",
+    "docs/V2_AGENTS.md": "61bf634add4b598ab9e57bbcce940102f58aeece91f5872e8cc9d318730fe300"
+  },
+  "scoped_tests": {
+    "distinct_passed": 45,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0,
+    "reports": [
+      {
+        "passed": 15,
+        "report": {
+          "path": "temp/build/v2-agents-initial.xml",
+          "sha256": "0ba26b59d9a3fab71102f5b5a8f90e5dacb15ecf48b588a0919180d963cb2100"
+        }
+      },
+      {
+        "passed": 30,
+        "report": {
+          "path": "temp/build/v2-agents-callers.xml",
+          "sha256": "cde1d844842e099aebb84c4cfba768403f18c24111bf3c2a1c415b01468c94e4"
+        }
+      }
+    ],
+    "browser_cases": 2,
+    "includes_kernel_http_configuration_event_stream_architecture_and_typing_scope": true
+  },
+  "strict_modified_files": {
+    "files": 5,
+    "errors": 0,
+    "warnings": 0,
+    "report": {
+      "path": "temp/build/v2-agents-pyright-root.json",
+      "sha256": "64984bd47b99fab2e3d8f93df45decba5c01317d358316ff07052d37ecc3610f"
+    }
+  },
+  "typechecker_configuration_followup": "A temporary configuration outside the project root caused excessive inference and was terminated. The same five-file scope and rules at the repository root passed in 3.287 seconds. No product or test timeout was changed.",
+  "full_suite_run": false,
+  "whole_v2_development_complete": false,
+  "whole_v2_accepted": false,
+  "real_accounts_models_devices_or_native_input_executed": false,
+  "new_spaces_copy_private_data_or_authority": false,
+  "capacity_admission_and_creation_share_one_writer_transaction": true,
+  "next": "Continue full V2 development; replace V1-only soak tooling with V2 proof-bound tooling, then native Linux identity and control"
+}

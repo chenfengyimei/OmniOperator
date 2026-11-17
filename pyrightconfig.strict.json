@@ -285,6 +285,7 @@
     "agent/src/omni/composition/service_runner.py",
     "agent/src/omni/composition/serving.py",
     "agent/src/omni/domain/action_review.py",
+    "agent/src/omni/domain/agents.py",
     "agent/src/omni/domain/android.py",
     "agent/src/omni/domain/android_unicode.py",
     "agent/src/omni/domain/audit_retention.py",

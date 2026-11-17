@@ -194,6 +194,10 @@
         </form>
         <p id="connect-hint" class="connect-hint" role="status"></p>
         <label class="agent-field">Agent 空间<select id="agents" aria-label="Agent 空间"></select></label>
+        <div class="panel-title">
+          <button id="new-agent" type="button">新建空间</button>
+          <button id="rename-agent" type="button">重命名空间</button>
+        </div>
         <div class="panel session-panel">
           <div class="panel-title">
             <span>会话</span>
@@ -1190,7 +1194,8 @@
                         ></textarea>
                       </label>
                       <p class="mo-hint">
-                        随请求发送的额外头；不可覆盖 Authorization / x-api-key / Cookie / Host。OpenCode Go 的会话头由适配器自动附加，无需手填。
+                        随请求发送的额外头；不可覆盖 Authorization / x-api-key / Cookie / Host。OpenCode Go
+                        的会话头由适配器自动附加，无需手填。
                       </p>
                     </details>
 
@@ -1869,6 +1874,6 @@
     <div id="tip-layer"></div>
     <script src="/assets/vendor/xterm.js?v=20261116v132"></script>
     <script src="/assets/vendor/xterm-addon-fit.js?v=20261116v132"></script>
-    <script type="module" src="/assets/ui/v2/main.js?v=20261117v133"></script>
+    <script type="module" src="/assets/ui/v2/main.js?v=20261117v134"></script>
   </body>
 </html>

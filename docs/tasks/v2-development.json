@@ -24,8 +24,11 @@
     {
       "id": "G2",
       "title": "核对并补齐多Agent空间的实际用户入口",
-      "status": "code_audit_pending",
-      "finding": "仓储已有create_agent，HTTP当前只有空间列表；先核对原需求与初始化/授权再补生产链"
+      "status": "implemented_scoped_passed",
+      "evidence": [
+        "docs/evidence/v2-agents.json"
+      ],
+      "contract": "docs/V2_AGENTS.md"
     },
     {
       "id": "G3",
@@ -49,7 +52,10 @@
       "id": "G6",
       "title": "按原V2需求逐项核对剩余业务、扩展与运维生产链",
       "status": "code_audit_pending",
-      "note": "只开发有代码证据的缺口，不把历史文案或真实环境待验当成未实现"
+      "note": "只开发有代码证据的缺口，不把历史文案或真实环境待验当成未实现",
+      "findings": [
+        "现有soak_monitor.py仍导入V1路径/状态和监测器；需补独立V2长跑采样与证据，实际72小时留最终验收。"
+      ]
     },
     {
       "id": "G7",

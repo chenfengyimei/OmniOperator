@@ -109,6 +109,36 @@ class Repositories(
         self.ensure_owner(cast(str, agent["id"]))
         return agent
 
+    def get_agent(self, agent_id: str) -> Record:
+        row = self.connection.execute(select(s.agents).where(s.agents.c.id == agent_id)).mappings().first()
+        if row is None:
+            raise BusinessError("not_found", "Agent space does not exist", status=404)
+        return cast(Record, dict(row))
+
+    def rename_agent(self, agent_id: str, name: str, revision: int) -> Record:
+        from ...domain.agents import name_value, revision_value
+
+        name, revision = name_value(name), revision_value(revision)
+        current = self.get_agent(agent_id)
+        if current["revision"] != revision:
+            raise BusinessError("revision_conflict", "Agent space changed; reload before renaming", status=409)
+        if current["name"] == name:
+            return current
+        row = (
+            self.connection.execute(
+                update(s.agents)
+                .where(s.agents.c.id == agent_id, s.agents.c.revision == revision)
+                .values(name=name, revision=revision + 1)
+                .returning(s.agents)
+            )
+            .mappings()
+            .first()
+        )
+        if row is None:
+            raise BusinessError("revision_conflict", "Agent space changed; reload before renaming", status=409)
+        self.audit(agent_id, "agent.renamed", None, {"revision": revision + 1})
+        return cast(Record, dict(row))
+
     def issue_token(self, token_hash: str, expires_at: str) -> None:
         self.connection.execute(
             insert(s.auth_sessions).values(token_hash=token_hash, created_at=self.clock.now(), expires_at=expires_at)

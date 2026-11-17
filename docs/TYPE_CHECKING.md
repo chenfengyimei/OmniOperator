@@ -18,6 +18,7 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 | `agent/src/omni/adapters/platform/dependency_bundle.py` | 本机依赖包清单/哈希与平台核验、有界流式捕获和仅本地安装输入 |
 | `agent/src/omni/adapters/platform/candidate_installer.py` | 独立离线候选安装、分离维护解释器与实例、逐步核验和失败保留 |
 | `agent/src/omni/domain/action_review.py` | 未知写动作的观察复核/证据指纹纯规则 |
+| `agent/src/omni/domain/agents.py` | 所有者空间的名称、UTF-8、容量和修订上界纯规则 |
 | `agent/src/omni/domain/android.py` | Android 身份/观察/输入/权限请求纯校验 |
 | `agent/src/omni/domain/android_unicode.py` | 输入助手配置/认证报文纯校验 |
 | `agent/src/omni/domain/audit_retention.py` | 审计保留主体/冻结预览/计划纯校验 |
@@ -389,7 +390,7 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 
 ### 3.1 adapters 类型收口（第 214 批）
 
-全部 **226 个 adapters 已纳入 strict**；合同范围为 **336 文件**（domain 53、application 44、adapters 226、composition 13）。新增事件通知适配器后，历史335文件结论仅代表原固定候选；开发中只复核修改范围，整范围复验留整个V2开发完成后的验收。原 P4/P5/P6 的 24 个待办模块已完成，不再是当前施工清单。
+全部 **226 个 adapters 已纳入 strict**；合同范围为 **337 文件**（domain 54、application 44、adapters 226、composition 13）。新增事件通知及空间管理规则后，历史335文件结论仅代表原固定候选；开发中只复核修改范围，整范围复验留整个V2开发完成后的验收。原 P4/P5/P6 的 24 个待办模块已完成，不再是当前施工清单。
 
 统计以本页逐文件表为准；domain/application 各一个仅含说明文字的包初始化文件未列入该合同范围。V1 与 tests 尚未纳入，因此**全仓严格类型尚未完成**。
 
