@@ -2,6 +2,8 @@
 
 > 当前开发分支为 `v2`，跟踪 `origin/v2`。默认正式入口仍为V1。
 
+> Windows业务与界面接续（2026-11-17）：23个业务入口已核对导航/模块/测试映射；54项专项通过（222.59秒），覆盖能力、令牌引导、四视口双主题模型预览及历史插件/记忆整理/Portal/桌面路径，未声称逐页全业务复验。历史观察保持open，当前系统提交额度只读采样约26.2/101.4GB，不作历史定因。候选门禁增量20回归通过，纳入README/合同/类型文档身份并兼容保留原生退出诊断的完整pytest。未启动全量；继续W6准备待验收的V2默认入口并冻结候选，正式工作区保持V1至通过后W8应用。见[业务证据](evidence/v2-windows-business.json)和[候选任务](tasks/v2-windows-candidate.json)。
+
 > Windows独立交付接续（2026-11-17）：源码`06f7e4c6`补固定本机依赖包、独立候选环境及不依赖现有Omni的安装入口；维护解释器与实例分开。修复Windows解释器交接的路径引号/退出码、重复切换覆盖回滚指针及指针发布前释放锁。卸载先记精确私有收据，文件访问失败后可续跑且状态明确，禁止自删解释器和越过新候选删除旧候选。100项集成专项+清理状态调用方26通过，修改8模块strict零错误/警告；范围335整复验待W6。实际基础Python安装164.61秒、110个固定依赖、命令/HTTP认证、同schema开发wheel更新回滚、对象快照恢复已有证据；实际卸载原3次失败保留，后续从维护解释器续跑成功并保留数据/备份，环境原因观察开放。V2专用候选门禁18回归通过，拒绝专项冒充全量、源码漂移、失败/跳过/遗漏；最终候选门禁尚待。全量未启动，默认V1，Windows离线候选与整个V2均未完成。继续W4业务/UI与历史观察核对，再W6冻结、W7一次全量、W8默认切换收尾。见[交付说明](V2_WINDOWS_CANDIDATE.md)、[安装证据](evidence/v2-windows-installation.json)、[候选门禁证据](evidence/v2-windows-candidate-gate.json)和[任务](tasks/v2-windows-candidate.json)。
 
 > Windows启动接续（2026-11-17）：源码`b0902fbc`加入start-v2.ps1及serve/omni-web-v2的--open-browser。前台服务器继续由调用者拥有；浏览器探测只接受本进程创建身份、私有readiness.key和本boot HMAC就绪证明，关闭时排空探测线程。只打开回环无令牌URL，不读取V1配对文件或owner.token；可禁用自动打开。22新增回归及调用方114 passed in 45.39s，目标2文件strict零错误/警告，PowerShell语法通过；真实回环HTTP/独立SQLite验证启动证明、401、现有本机令牌引导与授权API、完整关闭，浏览器打开为注入验证、未声称真实GUI验收。新模块纳入strict范围333，整范围复验留最终收尾。未跑全量，安装/更新/恢复/门禁及默认入口切换仍待，默认V1。接续[Windows候选任务](tasks/v2-windows-candidate.json)，见[启动证据](evidence/v2-windows-workbench.json)。

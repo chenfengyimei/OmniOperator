@@ -172,3 +172,17 @@ def test_report_paths_cannot_escape_the_evidence_folder(candidate):
     write_json(evidence / manifest_path.name, manifest)
     with pytest.raises(ValueError, match="unsafe_artifact"):
         GATE["assess"](root, manifest_path)
+
+
+def test_full_suite_can_keep_native_exit_and_commit_diagnostics_enabled(candidate):
+    root, _, manifest, _, reports, update = candidate
+    reports["full_pytest"]["command"].extend(["--worker-diagnostics", "isolated-diagnostics"])
+    update("full_pytest")
+    assert GATE["assess"](root, manifest)["ready_for_windows_offline_review"]
+
+
+def test_guard_document_changes_invalidate_a_source_snapshot(candidate):
+    root, _, manifest, _, _, _ = candidate
+    (root / "docs").mkdir()
+    (root / "docs/TYPE_CHECKING.md").write_text("updated contract\n", encoding="utf-8")
+    assert "candidate_source_changed" in GATE["assess"](root, manifest)["blockers"]

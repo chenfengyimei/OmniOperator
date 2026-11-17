@@ -17,5 +17,18 @@
   "final_candidate_assessment_pending": true,
   "windows_offline_complete": false,
   "whole_v2_complete": false,
-  "default_entrypoint": "v1"
+  "default_entrypoint": "v1",
+  "freeze_followup": {
+    "passed": 20,
+    "duration_s": 4.52,
+    "report": "temp/build/windows-v2-candidate-gate-freeze.xml",
+    "report_sha256": "80d9b88e33a26836f87677da338c713656285b97dcaea2952ddb635478039186",
+    "source_files": {
+      "agent/scripts/v2_candidate_gate.py": "f84c3698bb374cb3ac333418064094318a65ad72b3bc942f427e02edb8e497e0",
+      "agent/tests/test_v2_candidate_gate.py": "034870ed5742dfa0d73314fa01d2f8c0a7286c006a8e0ffb2d15347d89dffe31"
+    },
+    "added": "Guard docs and README included in code identity; complete pytest may retain bounded native-exit/commit diagnostics",
+    "full_suite": false,
+    "synthetic_gate_inputs": true
+  }
 }

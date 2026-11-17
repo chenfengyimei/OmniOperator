@@ -42,9 +42,11 @@
     {
       "id": "W4",
       "title": "Windows 功能清单与已知稳定性阻断项收口",
-      "status": "pending",
-      "next": "按当前业务清单逐项核对V2入口与UI，不以源码数量代替可用；核查历史UI竞态和系统提交额度观察，仅对与本候选有关且有复现/修复证据的项销账。",
-      "evidence": []
+      "status": "implemented_scoped_passed",
+      "next": "23业务入口/模块/专项映射及54项界面核对通过；历史UI/原生/提交额度观察不自动销账，W7保留完整原始结果。",
+      "evidence": [
+        "docs/evidence/v2-windows-business.json"
+      ]
     },
     {
       "id": "W5",

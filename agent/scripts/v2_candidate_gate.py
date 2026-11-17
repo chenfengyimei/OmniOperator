@@ -30,6 +30,11 @@ CONFIGS = (
     "ruff.toml",
     "pyrightconfig.json",
     "pyrightconfig.strict.json",
+    "README.md",
+    "CONTRIBUTING.md",
+    "docs/ARCHITECTURE.md",
+    "docs/TYPE_CHECKING.md",
+    "docs/UI_DESIGN_SYSTEM.md",
 )
 IGNORED = frozenset({"__pycache__", "node_modules", ".pytest_cache", ".ruff_cache", ".build", ".swiftpm"})
 SHA = re.compile(r"[a-f0-9]{64}")
@@ -128,6 +133,9 @@ def _pytest_command(command: object, *, collect: bool = False) -> None:
         if argument == "-n":
             if next(arguments, "") not in {"0", "1", "2", "3", "4", "auto"}:
                 raise ValueError("invalid_pytest_workers")
+        elif argument == "--worker-diagnostics":
+            if not next(arguments, ""):
+                raise ValueError("invalid_diagnostics_path")
         elif argument == "--collect-only":
             seen_collect = True
         elif argument not in {"-q", "--tb=short", "--dist=loadfile"} and not argument.startswith("--junitxml="):
