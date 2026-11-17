@@ -52,7 +52,9 @@ def main() -> int:
             except BusinessError as exc:
                 print(json.dumps({"error": exc.code}), file=sys.stderr)
                 return 1
-            print(json.dumps(result, ensure_ascii=False))
+            # -I ignores PYTHONUTF8; ASCII JSON preserves every path even on a
+            # Windows pipe using a legacy code page, without changing encoding.
+            print(json.dumps(result))
         return 0
     except (OSError, ValueError, ImportError):
         print(json.dumps({"error": "candidate_install_failed"}), file=sys.stderr)

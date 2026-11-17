@@ -8,6 +8,22 @@
 
 这些源码与离线注入结果尚不证明干净机器 install→update→rollback→uninstall、真实系统服务、macOS/Linux 构建、容器、签名或长跑完成。本轮没有安装、切换或启停用户服务，V1保留显式回退，Windows候选默认入口为V2。
 
+## 跨平台新装检查入口（2026-11-17 开发接续）
+
+`scripts/check_v2_installation.py`接收固定应用wheel、固定本地依赖包、未使用的绝对输出目录及可选基础Python。控制器使用当前开发环境，实际安装器由`-I`基础解释器执行，先确认其不能导入Omni；随后创建独立维护环境和候选环境，核对解释器/包路径与隔离状态，执行生成的启动脚本、读取当前候选，再从外部维护解释器卸载。全程不注册服务、不下载依赖或访问账号/模型/设备。示例：
+
+```powershell
+uv run --no-sync python scripts/check_v2_installation.py --wheel D:\release\omnioperator-0.1.0-py3-none-any.whl --sha256 <wheel的SHA256> --dependency-bundle D:\release\dependencies --dependency-sha256 <manifest.json的SHA256> --output D:\release\fresh-install-proof
+```
+
+检查目录主动包含空格、中文、emoji、百分号、感叹号和shell字符。POSIX启动脚本使用完整引用，Windows使用脚本相对的候选路径并关闭延迟展开；两个入口均显式使用`-I -X utf8`，安装/环境子命令也显式UTF-8，避免`-I`忽略`PYTHONUTF8`后回落旧代码页。启动时另注入私有`sitecustomize`探针，任何探针执行都失败。卸载前后比较本次停止实例的数据库SHA与备份清单SHA；这不是运行中数据库的备份实现。
+
+控制器记录有界管道的长度/SHA、退出码、实际子进程组回收及各阶段状态，不把原始输出写入报告；输出超量、超时或取消均等待实际回收，迟到spawn仍由控制器持有。失败目录与报告保留，不能覆盖重试，也不能从残留安装自动推断成功。该入口覆盖新装、启动、状态及保留数据卸载；更新/回滚/恢复沿已有独立交付合同继续核验。
+
+`.github/workflows/v2.yml`新增Windows/macOS/Linux新装矩阵：构建应用wheel，按`uv.lock`导出hash并取得本平台依赖wheel，生成固定本地包，再由基础Python执行上述离线安装检查，保存阶段报告。CI中依赖获取是显式联网步骤，检查本身不联网。接入CI不代表三平台原生运行通过，当前专项与实际Windows尝试分别见[本批证据](evidence/v2-portable-installation.json)。整个V2仍在开发，统一全量与整体验收留开发冻结后。
+
+本批实际Windows新目录已通过独立安装、双环境隔离、真实cmd启动和当前指针核对。首次Unicode导入失败已修复，第二次检查器在大环境卸载时达到30秒观察上限；修正阶段上限后的新装检查仍在卸载返回`uninstall_cleanup_pending`，原报告保持失败。随后由外部维护器按原SHA续跑完成清理，卸载前记录的数据库/备份清单SHA保持，候选目录和启动入口均移除。该续跑有单独报告，不能将它与此前阶段拼成首次新装检查全绿。受影响103个不同专项节点已通过（首轮99过/4项临时树重命名拒绝，原节点重跑4过）；检查器最后独改后23项另过，未重跑整批或全量。Windows文件访问拒绝的系统原因未定。
+
 ## Windows候选独立依赖环境（2026-11-17 开发接续）
 
 新增本机依赖包生成和安装路径，默认离线测试不下载依赖、不访问真实模型或账号：

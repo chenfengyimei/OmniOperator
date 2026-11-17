@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "9f077986c9764907a56d21f452c04d0161574e7e8f5f7dde5fd5567524359aad",
+  "source_sha256": "315b2e7afd6b727a4f31361d66302874a354c28002a4306d88531199a5ea9335",
   "modules": [
     {
       "id": "v2-domain",
@@ -432,7 +432,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 59908,
+      "lines": 59928,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -34627,7 +34627,7 @@
       "path": "agent/src/omni/adapters/platform/wheel_environment.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.wheel_environment",
-      "lines": 245,
+      "lines": 249,
       "imports": [
         "omni.adapters.persistence.maintenance",
         "omni.adapters.platform.dependency_bundle",
@@ -34677,7 +34677,7 @@
         },
         {
           "name": "_installable",
-          "line": 42,
+          "line": 44,
           "kind": "function",
           "parameters": [
             "artifact",
@@ -34692,7 +34692,7 @@
         },
         {
           "name": "create_environment",
-          "line": 76,
+          "line": 78,
           "kind": "function",
           "parameters": [
             "paths",
@@ -34709,7 +34709,7 @@
         },
         {
           "name": "_remove_environment",
-          "line": 97,
+          "line": 99,
           "kind": "function",
           "parameters": [
             "venv",
@@ -34722,7 +34722,7 @@
         },
         {
           "name": "installed_environment",
-          "line": 105,
+          "line": 107,
           "kind": "function",
           "parameters": [
             "stage",
@@ -34735,7 +34735,7 @@
         },
         {
           "name": "_create",
-          "line": 138,
+          "line": 140,
           "kind": "function",
           "parameters": [
             "stage",
@@ -34757,7 +34757,7 @@
       "path": "agent/src/omni/adapters/platform/wheel_install.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.wheel_install",
-      "lines": 395,
+      "lines": 411,
       "imports": [
         "omni.adapters.persistence.maintenance",
         "omni.adapters.persistence.migration_config",
@@ -34779,7 +34779,7 @@
       "symbols": [
         {
           "name": "invalid",
-          "line": 69,
+          "line": 70,
           "kind": "function",
           "parameters": [
             "code"
@@ -34790,7 +34790,7 @@
         },
         {
           "name": "_receipt",
-          "line": 73,
+          "line": 74,
           "kind": "function",
           "parameters": [
             "stage",
@@ -34807,7 +34807,7 @@
         },
         {
           "name": "_wrapper",
-          "line": 89,
+          "line": 90,
           "kind": "function",
           "parameters": [
             "home",
@@ -34820,7 +34820,7 @@
         },
         {
           "name": "_environment",
-          "line": 100,
+          "line": 116,
           "kind": "function",
           "parameters": [
             "stage",
@@ -34833,7 +34833,7 @@
         },
         {
           "name": "migrate_candidate",
-          "line": 105,
+          "line": 121,
           "kind": "function",
           "parameters": [
             "paths",
@@ -34846,7 +34846,7 @@
         },
         {
           "name": "_locked",
-          "line": 159,
+          "line": 175,
           "kind": "function",
           "parameters": [
             "paths",
@@ -34859,7 +34859,7 @@
         },
         {
           "name": "switch_candidate",
-          "line": 173,
+          "line": 189,
           "kind": "function",
           "parameters": [
             "paths",
@@ -34872,7 +34872,7 @@
         },
         {
           "name": "_switch_candidate",
-          "line": 180,
+          "line": 196,
           "kind": "function",
           "parameters": [
             "paths",
@@ -34885,7 +34885,7 @@
         },
         {
           "name": "rollback_candidate",
-          "line": 267,
+          "line": 283,
           "kind": "function",
           "parameters": [
             "paths"
@@ -34896,7 +34896,7 @@
         },
         {
           "name": "_rollback_candidate",
-          "line": 274,
+          "line": 290,
           "kind": "function",
           "parameters": [
             "paths"
@@ -34907,7 +34907,7 @@
         },
         {
           "name": "runtime_current",
-          "line": 337,
+          "line": 353,
           "kind": "function",
           "parameters": [
             "paths"
@@ -34918,7 +34918,7 @@
         },
         {
           "name": "install_candidate",
-          "line": 364,
+          "line": 380,
           "kind": "function",
           "parameters": [
             "paths",

@@ -5,6 +5,7 @@ import hashlib
 import json
 import sys
 import zipfile
+from pathlib import Path
 
 import pytest
 
@@ -107,7 +108,16 @@ def test_switch_prefers_the_installed_environment(tmp_path):
     rollback_check(paths, sha256)
     switched = switch_candidate(paths, sha256)
     assert switched["mode"] == "venv" and switched["python"] == environment["python"]
-    assert environment["python"] in (paths.home / "omni.cmd").read_text(encoding="utf-8")
+    relative = Path(environment["python"]).relative_to(paths.home)
+    assert f'"%~dp0{relative}" -I -X utf8 ' in (paths.home / "omni.cmd").read_text(encoding="utf-8")
     assert environment["python"] in (paths.home / "omni").read_text(encoding="utf-8")
     launch = (paths.home / "runtime" / "launch.py").read_text(encoding="utf-8")
     assert environment["python"] not in launch and 'pointer.get("mode") != "venv"' in launch
+
+
+def test_environment_import_proof_preserves_non_legacy_unicode_path(tmp_path):
+    paths, sha256 = staged(tmp_path / "用户🙂")
+    result = create_environment(paths, sha256)
+    assert result["installed"] is True
+    assert Path(result["import_path"]).is_relative_to(paths.home / "updates" / sha256[:16] / "venv")
+    assert "🙂" in result["import_path"]

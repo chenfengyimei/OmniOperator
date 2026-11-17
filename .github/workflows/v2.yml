@@ -3,6 +3,46 @@ on:
   push:
   pull_request:
 jobs:
+  candidate-installation:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install uv==0.13.5
+      - run: uv sync --frozen
+      - name: Build candidate and acquire locked native dependency wheels
+        shell: python
+        run: |
+          import pathlib, subprocess, sys
+          root = pathlib.Path.cwd()
+          work = root / 'temp/build/installation-ci'
+          work.mkdir(parents=True)
+          subprocess.run(['uv', 'build', '--package', 'omnioperator', '--wheel', '--out-dir', str(work / 'app')], check=True)
+          requirements = work / 'requirements.txt'
+          subprocess.run(['uv', 'export', '--frozen', '--no-dev', '--no-emit-workspace', '--no-annotate', '--no-header', '--output-file', str(requirements)], check=True)
+          subprocess.run([sys.executable, '-m', 'pip', 'download', '--require-hashes', '--only-binary=:all:', '--no-deps', '--dest', str(work / 'dependencies'), '-r', str(requirements)], check=True)
+          subprocess.run(['uv', 'run', '--no-sync', 'python', 'scripts/build_v2_dependencies.py', '--wheels', str(work / 'dependencies'), '--output', str(work / 'bundle')], check=True)
+      - name: Independently install and verify launcher and data-preserving uninstall
+        shell: python
+        run: |
+          import hashlib, pathlib, subprocess, sys
+          work = pathlib.Path.cwd() / 'temp/build/installation-ci'
+          wheels = list((work / 'app').glob('*.whl'))
+          assert len(wheels) == 1
+          wheel = wheels[0]
+          bundle = work / 'bundle'
+          subprocess.run(['uv', 'run', '--no-sync', 'python', 'scripts/check_v2_installation.py', '--wheel', str(wheel), '--sha256', hashlib.sha256(wheel.read_bytes()).hexdigest(), '--dependency-bundle', str(bundle), '--dependency-sha256', hashlib.sha256((bundle / 'manifest.json').read_bytes()).hexdigest(), '--base-python', sys.executable, '--output', str(work / 'result')], check=True)
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: v2-independent-installation-${{ matrix.os }}
+          path: temp/build/installation-ci/result/report.json
   container-core:
     runs-on: ubuntu-latest
     steps:

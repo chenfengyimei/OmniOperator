@@ -69,11 +69,11 @@ def install_candidate(
         raise _invalid()
     private_path(captured)
     venv = manager / "venv"
-    _run([sys.executable, "-I", "-m", "venv", "--copies", str(venv)], manager)
+    _run([sys.executable, "-I", "-X", "utf8", "-m", "venv", "--copies", str(venv)], manager)
     private_path(venv, directory=True)
     private_path(venv / "pyvenv.cfg")
     python = venv / ("Scripts/python.exe" if sys.platform == "win32" else "bin/python")
-    pip = [str(python), "-I", "-m", "pip", "--isolated", "--disable-pip-version-check"]
+    pip = [str(python), "-I", "-X", "utf8", "-m", "pip", "--isolated", "--disable-pip-version-check"]
     _run(
         [
             *pip,
@@ -89,7 +89,7 @@ def install_candidate(
     )
     _run([*pip, "install", "--no-index", "--no-deps", str(captured)], manager)
     _run([*pip, "check"], manager)
-    cli = [str(python), "-I", "-m", "omni.composition.cli", "--home", str(home)]
+    cli = [str(python), "-I", "-X", "utf8", "-m", "omni.composition.cli", "--home", str(home)]
     results: dict[str, object] = {}
     for name, arguments in (
         ("init", ["init"]),
@@ -111,7 +111,7 @@ def install_candidate(
         ("install", ["installation", "install", str(captured), "--sha256", sha256]),
     ):
         results[name] = json.loads(_run([*cli, *arguments], manager))
-    doctor = json.loads(_run([str(python), "-I", str(home / "runtime/launch.py"), "doctor"], manager))
+    doctor = json.loads(_run([str(python), "-I", "-X", "utf8", str(home / "runtime/launch.py"), "doctor"], manager))
     if not isinstance(doctor, dict) or cast(dict[str, object], doctor).get("integrity") != "ok":
         raise _invalid("candidate_install_failed")
     record: dict[str, object] = {

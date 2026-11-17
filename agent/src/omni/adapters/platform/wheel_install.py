@@ -6,6 +6,7 @@ import datetime as dt
 import hashlib
 import json
 import os
+import shlex
 import sys
 from collections.abc import Callable
 from pathlib import Path
@@ -44,7 +45,7 @@ python = pointer.get("python")
 if not isinstance(python, str) or not Path(python).is_absolute() or not Path(python).is_file():
     raise SystemExit("Invalid runtime interpreter")
 if os.path.normcase(os.path.abspath(sys.executable)) != os.path.normcase(os.path.abspath(python)):
-    arguments = [python, "-I", str(Path(__file__).resolve()), *sys.argv[1:]]
+    arguments = [python, "-I", "-X", "utf8", str(Path(__file__).resolve()), *sys.argv[1:]]
     if os.name == "nt":
         import subprocess
 
@@ -87,12 +88,27 @@ def _receipt(stage: Path, name: str, fmt: str, sha256: str) -> Record:
 
 
 def _wrapper(home: Path, python: str) -> None:
+    try:
+        relative = Path(python).relative_to(home)
+    except ValueError:
+        command_python = python.replace("%", "%%")
+    else:
+        # Keep the installed candidate path ASCII and let cmd expand its own
+        # Unicode script directory once; embedded %names% must stay literal.
+        command_python = "%~dp0" + str(relative).replace("%", "%%")
     (home / "omni.cmd").write_text(
-        '@echo off\r\nsetlocal\r\n"' + python + '" "%~dp0runtime\\launch.py" %*\r\n',
+        '@echo off\r\nsetlocal DisableDelayedExpansion\r\n"'
+        + command_python
+        + '" -I -X utf8 "%~dp0runtime\\launch.py" %*\r\nexit /b %errorlevel%\r\n',
         encoding="utf-8",
+        newline="",
     )
     script = home / "omni"
-    script.write_text(f'#!/bin/sh\nexec "{python}" "$(dirname "$0")/runtime/launch.py" "$@"\n', encoding="utf-8")
+    script.write_text(
+        f'#!/bin/sh\nexec {shlex.quote(python)} -I -X utf8 {shlex.quote(str(home / "runtime/launch.py"))} "$@"\n',
+        encoding="utf-8",
+        newline="\n",
+    )
     if os.name != "nt":
         script.chmod(0o755)
 

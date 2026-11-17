@@ -162,16 +162,32 @@
             "docs/evidence/v2-container-delivery.json"
           ],
           "actual_image_build_or_run": false
+        },
+        {
+          "id": "G5.installation",
+          "title": "跨平台独立新装检查、合法路径启动与三平台CI接线",
+          "status": "implemented_scoped_passed",
+          "contract": "docs/V2_PACKAGING.md",
+          "evidence": [
+            "docs/evidence/v2-portable-installation.json"
+          ],
+          "windows_private_install_and_launcher_verified": true,
+          "fresh_check_first_attempt_passed": false,
+          "uninstall_explicit_continuation_verified": true,
+          "native_macos_linux_run": false,
+          "whole_delivery_accepted": false
         }
       ]
     },
     {
       "id": "G6",
       "title": "按原V2需求逐项核对剩余业务、扩展与运维生产链",
-      "status": "code_audit_pending",
+      "status": "code_audit_in_progress",
       "note": "只开发有代码证据的缺口，不把历史文案或真实环境待验当成未实现",
       "findings": [
-        "现有soak_monitor.py仍导入V1路径/状态和监测器；需补独立V2长跑采样与证据，实际72小时留最终验收。"
+        "独立V2长跑观察器已实现，见G6.soak；实际72小时仍留开发完成后验收。",
+        "现有扩展/MCP业务、仓储与实例生命周期接线存在，本轮只读核对，未重做或声明整范围复验。",
+        "跨平台安装器已有实现；本批补独立安装矩阵检查及实际暴露的Unicode/特殊字符启动缺陷，仍不证明三平台交付完成。"
       ],
       "subdeliverables": [
         {
@@ -184,7 +200,20 @@
           ],
           "actual_72h_run": "not_executed_deferred_until_development_complete"
         }
-      ]
+      ],
+      "partial_code_audit": {
+        "complete": false,
+        "reviewed_paths": [
+          "agent/src/omni/application/extensions.py",
+          "agent/src/omni/application/mcp.py",
+          "agent/src/omni/composition/instance.py",
+          "agent/src/omni/adapters/platform/candidate_installer.py",
+          "agent/src/omni/adapters/platform/wheel_install.py",
+          ".github/workflows/v2.yml"
+        ],
+        "resulting_development_evidence": "docs/evidence/v2-portable-installation.json",
+        "existing_extension_mcp_chains_tested_in_this_batch": false
+      }
     },
     {
       "id": "G7",

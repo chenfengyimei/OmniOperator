@@ -34,7 +34,9 @@ def _python(venv: Path) -> Path:
 
 def _run(command: list[str], cwd: Path) -> subprocess.CompletedProcess[str]:
     try:
-        return subprocess.run(command, cwd=cwd, capture_output=True, text=True, timeout=300, check=False)
+        return subprocess.run(
+            command, cwd=cwd, capture_output=True, text=True, encoding="utf-8", timeout=300, check=False
+        )
     except (OSError, subprocess.TimeoutExpired) as exc:
         raise invalid("environment_failed") from exc
 
@@ -181,6 +183,8 @@ def _create(stage: Path, sha256: str, dependency_bundle: Path | None, dependency
             [
                 sys.executable,
                 "-I",
+                "-X",
+                "utf8",
                 "-m",
                 "venv",
                 "--copies",
@@ -192,7 +196,7 @@ def _create(stage: Path, sha256: str, dependency_bundle: Path | None, dependency
         if made.returncode != 0:
             raise invalid("environment_failed")
         private_path(venv / "pyvenv.cfg")
-        pip = [str(python), "-I", "-m", "pip", "--isolated", "--disable-pip-version-check"]
+        pip = [str(python), "-I", "-X", "utf8", "-m", "pip", "--isolated", "--disable-pip-version-check"]
         if requirements is not None:
             dependencies = _run(
                 [
@@ -223,7 +227,7 @@ def _create(stage: Path, sha256: str, dependency_bundle: Path | None, dependency
                 "assert all(Path(p).resolve().is_relative_to(root) for p in sys.path if Path(p).name=='site-packages'); "
                 "print(omni.__file__)"
             )
-        imported = _run([str(python), "-I", "-c", check], stage)
+        imported = _run([str(python), "-I", "-X", "utf8", "-c", check], stage)
         if imported.returncode != 0 or not Path(imported.stdout.strip()).resolve().is_relative_to(venv.resolve()):
             raise invalid("environment_import_failed")
     except BaseException:

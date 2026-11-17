@@ -2,6 +2,8 @@
 
 > 当前开发分支为 `v2`，跟踪 `origin/v2`。Windows离线候选默认入口为V2，显式V1回退保留。
 
+> 全V2跨平台安装交付接续（2026-11-17）：补固定wheel/本地依赖包的新目录检查，基础Python无Omni、维护/候选双隔离、生成启动器、当前指针及保留数据卸载；有界管道/取消/迟到创建保留实际进程归属。POSIX完整引用、Windows相对脚本目录与关闭延迟展开，受管命令显式隔离+UTF-8，修复实际emoji路径导入失败。Windows现有110依赖完成新私有安装/真实cmd；卸载首次cleanup_pending，外部维护器同SHA另次续跑完成，数据库/备份SHA保持，原新装检查仍记失败。初次Unicode失败、旧wheel、检查器30秒卸载观察窗不足及后续原始报告均保留。103不同专项已通过（首轮99过/4个临时树rename WinError5，指定原节点重跑4过；检查器末次独改23节点另过；未认定系统原因），3后端strict及2脚本默认类型零错误/警告；359仅登记，未全范围/全量。三平台CI仅接源码，未macOS/Linux原生或真实服务/账号/设备/72h验收。G6只读部分核对，扩展/MCP已有链不重做；整个V2仍开发，下一继续Linux通用关联/焦点后验、鼠标/Wayland及原需求核对。见[打包合同](V2_PACKAGING.md)、[证据](evidence/v2-portable-installation.json)与[任务](tasks/v2-development.json)。
+
 > 全V2 Linux按键业务接续（2026-11-17）：明确提供原生窗口身份的AT-SPI节点现接11特殊键候选及逐次UUID ready/permit；窗口/节点/光标/映射/复制重新核验后派发一对，文本/光标明确后验才key_verified，其余unknown不重放。原SetText/追加兼容动态目录上下文；许可后父进程不强杀持有释放责任的worker，原生退出后也等业务消费回执再回收。29新回归和350调用方/传输/审批/合同共379不同专项通过，修改8后端strict零错误/警告；首轮24过/1取消夹具失败、378过/1真实关闭回执竞态及源码均留档，指定修复后同组当前379通过。359仅登记，未全范围/全量，无真实Linux/输入验收。当前限明确XID提供方（Avalonia），通用关联、Tab/Escape/焦点变化专门后验、鼠标和Wayland继续开发，整个V2未完成。见[合同](V2_LINUX_FOREGROUND.md)、[证据](evidence/v2-linux-key-business.json)及[任务](tasks/v2-development.json)。
 
 > 全V2显式提供方窗口关联接续（2026-11-17）：新增WindowBinding，核对AT-SPI窗口明确的原生XID，XRes实际进程须与已验证总线进程/创建身份/程序一致，再持有独立连续窗口代次与实际焦点祖先链；描述前后重读，变化/取消锁存失效，未结清按键释放保留两条原生连接，关闭不释放外部会话。当前仅接受已核对Avalonia原生XID属性，未知提供方/GTK/Qt不猜测，通用关联及逐次业务按键/应用结果仍待接续；没有开放业务press_key。43新回归及202依赖/调用方/合同共245不同专项通过，新增1后端strict零错误/警告；首项字典Unknown类型报告、初轮42通过及原源码留档后收窄并补实际异进程所有者回归。358仅登记，未全范围/全量，无真实Linux/输入验收。整个V2继续开发；见[前台合同](V2_LINUX_FOREGROUND.md)、[证据](evidence/v2-linux-window-binding.json)及[持续任务](tasks/v2-development.json)。
