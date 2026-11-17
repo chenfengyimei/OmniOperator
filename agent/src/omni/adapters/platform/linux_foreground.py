@@ -11,6 +11,7 @@ from .linux_keyboard import KeyboardMapping
 from .linux_window_leases import WindowLeases
 from .linux_x11 import X11Desktop
 from .linux_x11_wire import unpack
+from .linux_xtest import Sources, XTestSources
 
 Payload = dict[str, object]
 MAX_LINEAGE = 16
@@ -30,6 +31,7 @@ class WindowFocus:
         self._closed = False
         self._ready = False
         self._keyboard: KeyboardMapping | None = None
+        self._sources: XTestSources | None = None
 
     def _same_server(self) -> None:
         desktop = self.leases.desktop
@@ -151,6 +153,32 @@ class WindowFocus:
             raise failure("desktop_input_unverified")
         try:
             return await self._keyboard.verify()
+        except BaseException:
+            self._ready = False
+            raise
+
+    async def prepare_sources(self) -> Sources:
+        """Read the server's virtual pair on the proven connection; never grants input permission."""
+        if self._sources is not None:
+            raise failure("desktop_input_unverified")
+        self._sources = XTestSources(self.monitor)
+        try:
+            await self.check()
+            sources = await self._sources.prepare()
+            await self.check()
+            return sources
+        except BaseException:
+            self._ready = False
+            raise
+
+    async def verify_sources(self) -> Sources:
+        if self._sources is None:
+            raise failure("desktop_input_unverified")
+        try:
+            await self.check()
+            sources = await self._sources.verify()
+            await self.check()
+            return sources
         except BaseException:
             self._ready = False
             raise

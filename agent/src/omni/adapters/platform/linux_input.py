@@ -8,6 +8,7 @@ import json
 import socket
 import struct
 from collections.abc import Awaitable, Callable
+from dataclasses import dataclass
 
 from .linux_bus import failure
 from .linux_session import SessionInspector
@@ -15,10 +16,25 @@ from .linux_x11_socket import Connection
 from .linux_x11_wire import Wire, unpack
 
 RAW = frozenset({13, 14, 15, 16, 17, 22, 23, 24})
-DEVICE = frozenset({1, 11})
+DEVICE = frozenset({1, 11, 12})
 
 
-def devices(data: bytes) -> str:
+@dataclass(frozen=True)
+class Device:
+    identity: int
+    kind: int
+    attachment: int
+    enabled: bool
+    classes: frozenset[int]
+
+
+@dataclass(frozen=True)
+class Topology:
+    fingerprint: str
+    entries: tuple[Device, ...]
+
+
+def device_topology(data: bytes) -> Topology:
     """Prove one master pair and released buttons; unsupported held-state sources deny control."""
     if len(data) < 32 or not 1 <= unpack("H", data, 8)[0] <= 64:
         raise failure("desktop_input_unverified")
@@ -26,6 +42,7 @@ def devices(data: bytes) -> str:
     ids: set[int] = set()
     masters: dict[int, tuple[int, int]] = {}
     topology: list[object] = []
+    entries: list[Device] = []
     for _ in range(count):
         identity, kind, attachment, classes, name_length, enabled = unpack("HHHHHB", data, position)
         if (
@@ -77,10 +94,16 @@ def devices(data: bytes) -> str:
         if kind == 1 and 1 not in seen or kind == 2 and 0 not in seen:
             raise failure("desktop_input_unverified")
         topology.append((identity, kind, attachment, enabled, name_digest, described))
+        entries.append(Device(identity, kind, attachment, bool(enabled), frozenset(seen)))
     if position != len(data) or set(masters) != {1, 2} or masters[1] != masters[2][::-1]:
         raise failure("desktop_input_unverified")
-    # Device names, button masks and key identifiers never leave this helper.
-    return hashlib.sha256(json.dumps(topology, separators=(",", ":")).encode()).hexdigest()
+    # Only native device identities/classes and the digest leave this helper;
+    # names, button masks and key identifiers are not retained.
+    return Topology(hashlib.sha256(json.dumps(topology, separators=(",", ":")).encode()).hexdigest(), tuple(entries))
+
+
+def devices(data: bytes) -> str:
+    return device_topology(data).fingerprint
 
 
 class InputWire(Wire):

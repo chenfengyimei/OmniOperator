@@ -58,7 +58,7 @@
           },
           "remaining": [
             "通用键鼠的控件与原生窗口可靠关联",
-            "自身输入区分、实际派发/释放及应用结果核验；只读核心/XKB服务器预检和直接文本插入均不能替代"
+            "逐事件自身输入归属、实际派发/释放及应用结果核验；共享XTEST设备身份、只读核心/XKB预检和直接文本均不能替代"
           ],
           "addressed_unicode_append": {
             "status": "implemented_scoped_passed",
@@ -74,6 +74,12 @@
           "server_xkb_preflight": {
             "status": "implemented_scoped_passed",
             "evidence": "docs/evidence/v2-linux-xkb.json",
+            "native_dispatch_enabled": false
+          },
+          "virtual_input_source_preflight": {
+            "status": "implemented_scoped_passed",
+            "evidence": "docs/evidence/v2-linux-xtest.json",
+            "shared_source_is_not_own_event_proof": true,
             "native_dispatch_enabled": false
           }
         }

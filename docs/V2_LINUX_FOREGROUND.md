@@ -49,3 +49,15 @@ GetMap 只请求该候选 keycode 的 symbols/actions/behaviors/explicit/真实�
 这补齐服务器侧检查，仍不证明某应用如何处理按键，也不发送 XTest。窗口/节点关联、自身输入区分、实际派发与释放仍在开发。专项和类型结果见[XKB证据](evidence/v2-linux-xkb.json)，没有真实 Linux、原生输入或全量结论。
 
 协议依据：[X11 Protocol](https://xorg.freedesktop.org/archive/X11R7.7/doc/xproto/x11protocol.html) 的 GetInputFocus、QueryTree、ChangeWindowAttributes、GetKeyboardMapping、GetModifierMapping、QueryPointer 和 MappingNotify；[XKB协议](https://xorg.freedesktop.org/releases/X11R7.7/doc/kbproto/xkbproto.html)与[XCB生成布局](https://xcb.freedesktop.org/manual/xkb_8h_source.html)；[AT-SPI Accessible](https://gnome.pages.gitlab.gnome.org/at-spi2-core/devel-docs/doc-org.a11y.atspi.Accessible.html) 与 [Component](https://raw.githubusercontent.com/GNOME/at-spi2-core/main/xml/Component.xml)。
+
+## 服务器虚拟输入设备身份
+
+`linux_xtest.py`的`XTestSources`借用已arm的X11Input连接，由`WindowFocus.prepare_sources/verify_sources`夹在持续窗口/焦点核验中。只协商XTEST>=2.2、读取已存在的`XTEST Device`原子和XIGetProperty，不创建属性、禁用设备、修改挂接或发送FakeInput。仅有版本协商不会取得业务输入权。
+
+原有有界设备解析现可返回设备ID、类别、挂接、启用和类别集，另保留原摘要接口；名字、按键/坐标内容仍不外传或存储。逐一查询全部最多64设备，包括禁用、浮动及主设备。属性缺失只表示该设备不是候选；属性存在时必须是完整INTEGER/8位/单项真值，不允许剩余字节、额外数据或类型猜测。两项候选必须为唯一启用slave pointer/keyboard，正确挂接唯一主设备对，且具备相应Button/Key类别。名称不能取代属性；额外伪标记、主设备标记、禁用/脱离候选、缺少类别均拒绝。
+
+依据Xorg的[虚拟设备实现](https://raw.githubusercontent.com/XQuartz/xorg-server/master/Xext/xtest.c)，真正XTEST设备具有不可删除/改写标记，核心虚拟对不可删除；读取全部设备并拒绝重复，避免把另一个伪标记设备选作真实候选。协议格式来自[XCB XIGetProperty布局](https://xcb.freedesktop.org/manual/xinput_8h_source.html)。准备时双读并夹住原守卫，使用前再次重验；XI_PropertyEvent现在也被订阅并锁存失效，恢复旧值不能复活旧证明。协议填充不参与候选判断。
+
+全部XTEST客户端共享同一虚拟设备对。因此本批只证明服务器候选设备身份，未证明原始事件由本动作产生。原始输入仍全部使守卫失效，没有白名单、按名称排除、共享来源豁免或实际派发。需要继续开发逐事件归属、节点/窗口关联、实际派发及释放；也不能借本批证明应用已处理按键。
+
+24项新增回归及207项现有输入、焦点、键映射/XKB、文本/语义/桌面与架构/类型合同专项，共231不同节点通过；3个修改后端文件strict零错误/警告。结果来自固定源码及注入Xorg/logind，不代表Linux原生、真实输入或全量通过，见[来源专项证据](evidence/v2-linux-xtest.json)。

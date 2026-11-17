@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "92f59fe574ee61650182a3e1779708be26d180c6f877e2092f28805e02fe09cd",
+  "source_sha256": "863bd85f4b95235bdea0add6323e477a26ba5eea844488a9570c9f3d0b880dea",
   "modules": [
     {
       "id": "v2-domain",
@@ -333,6 +333,7 @@
         "agent/src/omni/adapters/platform/linux_x11_socket.py",
         "agent/src/omni/adapters/platform/linux_x11_wire.py",
         "agent/src/omni/adapters/platform/linux_xkb.py",
+        "agent/src/omni/adapters/platform/linux_xtest.py",
         "agent/src/omni/adapters/platform/macos_helper.py",
         "agent/src/omni/adapters/platform/macos_service.py",
         "agent/src/omni/adapters/platform/macos_service_state.py",
@@ -425,7 +426,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 58587,
+      "lines": 58749,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -26198,24 +26199,25 @@
       "path": "agent/src/omni/adapters/platform/linux_foreground.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.linux_foreground",
-      "lines": 156,
+      "lines": 184,
       "imports": [
         "omni.adapters.platform.linux_bus",
         "omni.adapters.platform.linux_input",
         "omni.adapters.platform.linux_keyboard",
         "omni.adapters.platform.linux_window_leases",
         "omni.adapters.platform.linux_x11",
-        "omni.adapters.platform.linux_x11_wire"
+        "omni.adapters.platform.linux_x11_wire",
+        "omni.adapters.platform.linux_xtest"
       ],
       "symbols": [
         {
           "name": "WindowFocus",
-          "line": 20,
+          "line": 21,
           "kind": "class"
         },
         {
           "name": "WindowFocus.__init__",
-          "line": 23,
+          "line": 24,
           "kind": "function",
           "parameters": [
             "self",
@@ -26229,7 +26231,7 @@
         },
         {
           "name": "WindowFocus._same_server",
-          "line": 34,
+          "line": 36,
           "kind": "function",
           "parameters": [
             "self"
@@ -26238,7 +26240,7 @@
         },
         {
           "name": "WindowFocus._read_lineage",
-          "line": 54,
+          "line": 56,
           "kind": "function",
           "parameters": [
             "self"
@@ -26247,7 +26249,7 @@
         },
         {
           "name": "WindowFocus.prepare",
-          "line": 92,
+          "line": 94,
           "kind": "function",
           "parameters": [
             "self",
@@ -26259,7 +26261,7 @@
         },
         {
           "name": "WindowFocus._validate",
-          "line": 114,
+          "line": 116,
           "kind": "function",
           "parameters": [
             "self"
@@ -26268,7 +26270,7 @@
         },
         {
           "name": "WindowFocus.check",
-          "line": 125,
+          "line": 127,
           "kind": "function",
           "parameters": [
             "self"
@@ -26277,7 +26279,7 @@
         },
         {
           "name": "WindowFocus.close",
-          "line": 134,
+          "line": 136,
           "kind": "function",
           "parameters": [
             "self"
@@ -26286,7 +26288,7 @@
         },
         {
           "name": "WindowFocus.prepare_key",
-          "line": 138,
+          "line": 140,
           "kind": "function",
           "parameters": [
             "self",
@@ -26298,7 +26300,25 @@
         },
         {
           "name": "WindowFocus.verify_key",
-          "line": 149,
+          "line": 151,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "WindowFocus.prepare_sources",
+          "line": 160,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "WindowFocus.verify_sources",
+          "line": 174,
           "kind": "function",
           "parameters": [
             "self"
@@ -26312,7 +26332,7 @@
       "path": "agent/src/omni/adapters/platform/linux_input.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.linux_input",
-      "lines": 213,
+      "lines": 236,
       "imports": [
         "omni.adapters.platform.linux_bus",
         "omni.adapters.platform.linux_session",
@@ -26321,8 +26341,29 @@
       ],
       "symbols": [
         {
+          "name": "Device",
+          "line": 23,
+          "kind": "class"
+        },
+        {
+          "name": "Topology",
+          "line": 32,
+          "kind": "class"
+        },
+        {
+          "name": "device_topology",
+          "line": 37,
+          "kind": "function",
+          "parameters": [
+            "data"
+          ],
+          "annotations": {
+            "data": "bytes"
+          }
+        },
+        {
           "name": "devices",
-          "line": 21,
+          "line": 105,
           "kind": "function",
           "parameters": [
             "data"
@@ -26333,12 +26374,12 @@
         },
         {
           "name": "InputWire",
-          "line": 86,
+          "line": 109,
           "kind": "class"
         },
         {
           "name": "InputWire.__init__",
-          "line": 87,
+          "line": 110,
           "kind": "function",
           "parameters": [
             "self",
@@ -26352,7 +26393,7 @@
         },
         {
           "name": "InputWire.read",
-          "line": 96,
+          "line": 119,
           "kind": "function",
           "parameters": [
             "self",
@@ -26364,7 +26405,7 @@
         },
         {
           "name": "InputWire.event",
-          "line": 101,
+          "line": 124,
           "kind": "function",
           "parameters": [
             "self",
@@ -26376,12 +26417,12 @@
         },
         {
           "name": "X11Input",
-          "line": 125,
+          "line": 148,
           "kind": "class"
         },
         {
           "name": "X11Input.__init__",
-          "line": 126,
+          "line": 149,
           "kind": "function",
           "parameters": [
             "self",
@@ -26397,7 +26438,7 @@
         },
         {
           "name": "X11Input.open",
-          "line": 139,
+          "line": 162,
           "kind": "function",
           "parameters": [
             "self"
@@ -26406,7 +26447,7 @@
         },
         {
           "name": "X11Input.released",
-          "line": 152,
+          "line": 175,
           "kind": "function",
           "parameters": [
             "self"
@@ -26415,7 +26456,7 @@
         },
         {
           "name": "X11Input.arm",
-          "line": 163,
+          "line": 186,
           "kind": "function",
           "parameters": [
             "self"
@@ -26424,7 +26465,7 @@
         },
         {
           "name": "X11Input.check",
-          "line": 181,
+          "line": 204,
           "kind": "function",
           "parameters": [
             "self"
@@ -26433,7 +26474,7 @@
         },
         {
           "name": "X11Input.watch_lineage",
-          "line": 189,
+          "line": 212,
           "kind": "function",
           "parameters": [
             "self",
@@ -26445,7 +26486,7 @@
         },
         {
           "name": "X11Input.close",
-          "line": 212,
+          "line": 235,
           "kind": "function",
           "parameters": [
             "self"
@@ -28816,6 +28857,69 @@
         }
       ],
       "summary": "Read-only XKB server state/actions on the existing input connection; no layout mutation, device acquisition or event dispatch."
+    },
+    {
+      "path": "agent/src/omni/adapters/platform/linux_xtest.py",
+      "module": "v2-adapters",
+      "python_module": "omni.adapters.platform.linux_xtest",
+      "lines": 111,
+      "imports": [
+        "omni.adapters.platform.linux_bus",
+        "omni.adapters.platform.linux_input",
+        "omni.adapters.platform.linux_x11_wire"
+      ],
+      "symbols": [
+        {
+          "name": "Sources",
+          "line": 14,
+          "kind": "class"
+        },
+        {
+          "name": "XTestSources",
+          "line": 21,
+          "kind": "class"
+        },
+        {
+          "name": "XTestSources.__init__",
+          "line": 24,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "monitor"
+          ],
+          "annotations": {
+            "monitor": "X11Input"
+          }
+        },
+        {
+          "name": "XTestSources._read",
+          "line": 30,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "XTestSources.prepare",
+          "line": 67,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "XTestSources.verify",
+          "line": 100,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        }
+      ],
+      "summary": "Read-only Xorg XTEST device identity proof; no input dispatch or own-event exemption."
     },
     {
       "path": "agent/src/omni/adapters/platform/macos_helper.py",
