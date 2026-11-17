@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "295a44e20332ae10cc52cda00ba274aee23268c6c678f201d07e5dfa36080382",
+  "source_sha256": "16c0fcb9df234fbf69da392cf280fde74243b9cbc81f65ba90cd061db70f4d65",
   "modules": [
     {
       "id": "v2-domain",
@@ -322,6 +322,7 @@
         "agent/src/omni/adapters/platform/linux_click_action.py",
         "agent/src/omni/adapters/platform/linux_eis.py",
         "agent/src/omni/adapters/platform/linux_eis_devices.py",
+        "agent/src/omni/adapters/platform/linux_eis_keyboard.py",
         "agent/src/omni/adapters/platform/linux_eis_keymap.py",
         "agent/src/omni/adapters/platform/linux_fds.py",
         "agent/src/omni/adapters/platform/linux_focus_navigation.py",
@@ -356,6 +357,7 @@
         "agent/src/omni/adapters/platform/linux_xkb.py",
         "agent/src/omni/adapters/platform/linux_xkb_copy.py",
         "agent/src/omni/adapters/platform/linux_xkb_map.py",
+        "agent/src/omni/adapters/platform/linux_xkbcommon.py",
         "agent/src/omni/adapters/platform/linux_xtest.py",
         "agent/src/omni/adapters/platform/macos_helper.py",
         "agent/src/omni/adapters/platform/macos_service.py",
@@ -449,7 +451,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 63546,
+      "lines": 63860,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -26799,18 +26801,20 @@
       "path": "agent/src/omni/adapters/platform/linux_eis_devices.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.linux_eis_devices",
-      "lines": 384,
+      "lines": 430,
       "imports": [
         "omni.adapters.platform.linux_bus",
         "omni.adapters.platform.linux_eis",
+        "omni.adapters.platform.linux_eis_keyboard",
         "omni.adapters.platform.linux_eis_keymap",
         "omni.adapters.platform.linux_fds",
+        "omni.adapters.platform.linux_xkbcommon",
         "omni.domain.desktop_control"
       ],
       "symbols": [
         {
           "name": "text",
-          "line": 24,
+          "line": 30,
           "kind": "function",
           "parameters": [
             "payload",
@@ -26823,7 +26827,7 @@
         },
         {
           "name": "name",
-          "line": 42,
+          "line": 48,
           "kind": "function",
           "parameters": [
             "payload"
@@ -26834,27 +26838,27 @@
         },
         {
           "name": "SeatInfo",
-          "line": 50,
+          "line": 56,
           "kind": "class"
         },
         {
           "name": "DeviceInfo",
-          "line": 59,
+          "line": 65,
           "kind": "class"
         },
         {
           "name": "Inventory",
-          "line": 75,
+          "line": 81,
           "kind": "class"
         },
         {
           "name": "Seat",
-          "line": 82,
+          "line": 88,
           "kind": "class"
         },
         {
           "name": "Seat.__init__",
-          "line": 83,
+          "line": 89,
           "kind": "function",
           "parameters": [
             "self"
@@ -26863,12 +26867,12 @@
         },
         {
           "name": "Device",
-          "line": 89,
+          "line": 95,
           "kind": "class"
         },
         {
           "name": "Device.__init__",
-          "line": 90,
+          "line": 96,
           "kind": "function",
           "parameters": [
             "self",
@@ -26882,12 +26886,12 @@
         },
         {
           "name": "EisDevices",
-          "line": 104,
+          "line": 111,
           "kind": "class"
         },
         {
           "name": "EisDevices.__init__",
-          "line": 105,
+          "line": 112,
           "kind": "function",
           "parameters": [
             "self",
@@ -26905,7 +26909,7 @@
         },
         {
           "name": "EisDevices._accept_rights",
-          "line": 133,
+          "line": 141,
           "kind": "function",
           "parameters": [
             "self"
@@ -26914,7 +26918,7 @@
         },
         {
           "name": "EisDevices._serial",
-          "line": 136,
+          "line": 144,
           "kind": "function",
           "parameters": [
             "self",
@@ -26926,7 +26930,7 @@
         },
         {
           "name": "EisDevices._event",
-          "line": 144,
+          "line": 152,
           "kind": "function",
           "parameters": [
             "self",
@@ -26942,7 +26946,7 @@
         },
         {
           "name": "EisDevices._seat",
-          "line": 160,
+          "line": 168,
           "kind": "function",
           "parameters": [
             "self",
@@ -26958,7 +26962,7 @@
         },
         {
           "name": "EisDevices._device",
-          "line": 197,
+          "line": 205,
           "kind": "function",
           "parameters": [
             "self",
@@ -26974,7 +26978,7 @@
         },
         {
           "name": "EisDevices._subinterface",
-          "line": 255,
+          "line": 263,
           "kind": "function",
           "parameters": [
             "self",
@@ -26990,7 +26994,7 @@
         },
         {
           "name": "EisDevices.seats",
-          "line": 293,
+          "line": 302,
           "kind": "function",
           "parameters": [
             "self"
@@ -26999,7 +27003,7 @@
         },
         {
           "name": "EisDevices._inventory",
-          "line": 299,
+          "line": 308,
           "kind": "function",
           "parameters": [
             "self"
@@ -27008,7 +27012,7 @@
         },
         {
           "name": "EisDevices._complete",
-          "line": 321,
+          "line": 330,
           "kind": "function",
           "parameters": [
             "self"
@@ -27017,7 +27021,7 @@
         },
         {
           "name": "EisDevices.bind",
-          "line": 333,
+          "line": 342,
           "kind": "function",
           "parameters": [
             "self",
@@ -27029,7 +27033,7 @@
         },
         {
           "name": "EisDevices.inventory",
-          "line": 371,
+          "line": 380,
           "kind": "function",
           "parameters": [
             "self",
@@ -27040,8 +27044,45 @@
           }
         },
         {
+          "name": "EisDevices.keymap_data",
+          "line": 388,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "device"
+          ],
+          "annotations": {
+            "device": "DeviceInfo"
+          }
+        },
+        {
+          "name": "EisDevices.prepare_key",
+          "line": 408,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "device_id",
+            "key",
+            "compiler_factory"
+          ],
+          "annotations": {
+            "device_id": "int",
+            "key": "str",
+            "compiler_factory": "Callable[[], XkbCompiler] | None"
+          }
+        },
+        {
+          "name": "EisDevices.verify_key",
+          "line": 418,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
           "name": "EisDevices.close",
-          "line": 379,
+          "line": 423,
           "kind": "function",
           "parameters": [
             "self"
@@ -27050,6 +27091,77 @@
         }
       ],
       "summary": "EI seat/device inventory and guarded binding on a granted connection; no emulation, coordinate inference or input."
+    },
+    {
+      "path": "agent/src/omni/adapters/platform/linux_eis_keyboard.py",
+      "module": "v2-adapters",
+      "python_module": "omni.adapters.platform.linux_eis_keyboard",
+      "lines": 84,
+      "imports": [
+        "omni.adapters.platform.linux_bus",
+        "omni.adapters.platform.linux_eis_devices",
+        "omni.adapters.platform.linux_xkbcommon",
+        "omni.domain.foreground"
+      ],
+      "symbols": [
+        {
+          "name": "KeyboardPlan",
+          "line": 19,
+          "kind": "class"
+        },
+        {
+          "name": "KeyboardPlanner",
+          "line": 26,
+          "kind": "class"
+        },
+        {
+          "name": "KeyboardPlanner.__init__",
+          "line": 27,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "wire",
+            "factory"
+          ],
+          "annotations": {
+            "wire": "EisDevices",
+            "factory": "Callable[[], XkbCompiler]"
+          }
+        },
+        {
+          "name": "KeyboardPlanner.prepare",
+          "line": 32,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "device_id",
+            "key"
+          ],
+          "annotations": {
+            "device_id": "int",
+            "key": "str"
+          }
+        },
+        {
+          "name": "KeyboardPlanner.verify",
+          "line": 68,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "KeyboardPlanner.close",
+          "line": 82,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        }
+      ],
+      "summary": "Bind interpreted special keys to exact live EI inventory/map; planning only, no physical-input proof or dispatch."
     },
     {
       "path": "agent/src/omni/adapters/platform/linux_eis_keymap.py",
@@ -32510,6 +32622,143 @@
         }
       ],
       "summary": "Bounded canonical identity of a full native XKB map; no key translation, mutation or input dispatch."
+    },
+    {
+      "path": "agent/src/omni/adapters/platform/linux_xkbcommon.py",
+      "module": "v2-adapters",
+      "python_module": "omni.adapters.platform.linux_xkbcommon",
+      "lines": 184,
+      "imports": [
+        "omni.adapters.platform.linux_bus",
+        "omni.adapters.platform.linux_eis_keymap",
+        "omni.domain.contracts",
+        "omni.domain.foreground"
+      ],
+      "symbols": [
+        {
+          "name": "KeyMeaning",
+          "line": 20,
+          "kind": "class"
+        },
+        {
+          "name": "NativeXkb",
+          "line": 28,
+          "kind": "class"
+        },
+        {
+          "name": "NativeXkb.__init__",
+          "line": 29,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "loader"
+          ],
+          "annotations": {
+            "loader": "Callable[[str], Any] | None"
+          }
+        },
+        {
+          "name": "NativeXkb._neutral",
+          "line": 64,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "state"
+          ],
+          "annotations": {
+            "state": "int"
+          }
+        },
+        {
+          "name": "NativeXkb._symbols",
+          "line": 70,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "state",
+            "code"
+          ],
+          "annotations": {
+            "state": "int",
+            "code": "int"
+          }
+        },
+        {
+          "name": "NativeXkb.interpret",
+          "line": 77,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "data",
+            "info",
+            "key"
+          ],
+          "annotations": {
+            "data": "bytes",
+            "info": "KeymapInfo",
+            "key": "str"
+          }
+        },
+        {
+          "name": "XkbCompiler",
+          "line": 145,
+          "kind": "class"
+        },
+        {
+          "name": "XkbCompiler.__init__",
+          "line": 146,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "factory"
+          ],
+          "annotations": {
+            "factory": "Callable[[], NativeXkb]"
+          }
+        },
+        {
+          "name": "XkbCompiler._compile",
+          "line": 151,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "data",
+            "info",
+            "key"
+          ],
+          "annotations": {
+            "data": "bytes",
+            "info": "KeymapInfo",
+            "key": "str"
+          }
+        },
+        {
+          "name": "XkbCompiler.compile",
+          "line": 166,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "data",
+            "info",
+            "key"
+          ],
+          "annotations": {
+            "data": "bytes",
+            "info": "KeymapInfo",
+            "key": "str"
+          }
+        },
+        {
+          "name": "XkbCompiler.close",
+          "line": 173,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        }
+      ],
+      "summary": "Owned libxkbcommon buffer compilation and special-key interpretation; no default layout, includes or native input."
     },
     {
       "path": "agent/src/omni/adapters/platform/linux_xtest.py",

@@ -3,17 +3,23 @@
 from __future__ import annotations
 
 import asyncio
+import hashlib
 import math
 import socket
 import struct
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
 
 from ...domain.desktop_control import devices
 from .linux_bus import failure
 from .linux_eis import ORDER, EisConnection, interface, native_socket
 from .linux_eis_keymap import MAX_KEYMAP, Keymap, KeymapInfo
 from .linux_fds import OwnedFd, ReceivedFds
+
+if TYPE_CHECKING:
+    from .linux_eis_keyboard import KeyboardPlan, KeyboardPlanner
+    from .linux_xkbcommon import XkbCompiler
 
 POINTER = ("ei_pointer", "ei_pointer_absolute", "ei_button", "ei_scroll")
 MAX_SEATS, MAX_DEVICES, MAX_REGIONS = 4, 4, 16
@@ -97,6 +103,7 @@ class Device:
         self.regions: list[Region] = []
         self.pending_mapping: str | None = None
         self.keymap: KeymapInfo | None = None
+        self.keymap_reader: Keymap | None = None
         self.modifiers: tuple[int, int, int, int] | None = None
         self.epoch = 0
 
@@ -129,6 +136,7 @@ class EisDevices(EisConnection):
         self._selected: int | None = None
         self._mask = 0
         self._bound: tuple[str, ...] = ()
+        self._keyboard: KeyboardPlanner | None = None
 
     def _accept_rights(self) -> bool:
         return self._binding and "ei_keyboard" in self._bound
@@ -273,6 +281,7 @@ class EisDevices(EisConnection):
                 raise failure("portal_eis_keymap_invalid")
             keymap = Keymap(self._rights.claim_next(), size)
             self._keymaps.append(keymap)
+            device.keymap_reader = keymap
             device.keymap = await keymap.load()
             device.modifiers = (0, 0, 0, 0)
         elif (
@@ -376,9 +385,46 @@ class EisDevices(EisConnection):
             raise failure("portal_eis_observation_changed")
         return value
 
+    def keymap_data(self, device: DeviceInfo) -> bytes:
+        self._check()
+        current = self._devices.get(device.identity)
+        if (
+            current is None
+            or current.keymap != device.keymap
+            or current.keymap_reader is None
+            or current.keymap_reader.closed
+            or current.keymap_reader.data is None
+        ):
+            raise failure("portal_eis_keymap_invalid")
+        data = current.keymap_reader.data
+        if (
+            current.keymap is None
+            or len(data) != current.keymap.size
+            or hashlib.sha256(data).hexdigest() != current.keymap.sha256
+        ):
+            raise failure("portal_eis_keymap_invalid")
+        return data
+
+    async def prepare_key(
+        self, device_id: int, key: str, *, compiler_factory: Callable[[], XkbCompiler] | None = None
+    ) -> KeyboardPlan:
+        from .linux_eis_keyboard import KeyboardPlanner
+
+        if self._keyboard is not None:
+            raise failure("portal_state_invalid")
+        self._keyboard = KeyboardPlanner(self) if compiler_factory is None else KeyboardPlanner(self, compiler_factory)
+        return await self._keyboard.prepare(device_id, key)
+
+    async def verify_key(self) -> KeyboardPlan:
+        if self._keyboard is None:
+            raise failure("portal_state_invalid")
+        return await self._keyboard.verify()
+
     async def close(self) -> bool:
         self._closed, self._ready = True, False
         clean = True
+        if self._keyboard is not None:
+            clean = await self._keyboard.close() and clean
         for keymap in self._keymaps:
             clean = await keymap.close() and clean
         return await super().close() if clean else False

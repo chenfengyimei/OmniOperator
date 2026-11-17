@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`295a44e20332ae10cc52cda00ba274aee23268c6c678f201d07e5dfa36080382`。包含 65 个职责模块、782 个源码/界面文件。
+源码指纹：`16c0fcb9df234fbf69da392cf280fde74243b9cbc81f65ba90cd061db70f4d65`。包含 65 个职责模块、784 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -297,7 +297,8 @@
 | [agent/src/omni/adapters/platform/linux_button_packet.py](../../agent/src/omni/adapters/platform/linux_button_packet.py) | 198 | Own one paired XTEST button request and retained release on the proven stream; no application-success claim. |
 | [agent/src/omni/adapters/platform/linux_click_action.py](../../agent/src/omni/adapters/platform/linux_click_action.py) | 119 | One approved component-bound native move/click with concrete application state readback; no replay or focus acquisition. |
 | [agent/src/omni/adapters/platform/linux_eis.py](../../agent/src/omni/adapters/platform/linux_eis.py) | 263 | Bounded EI core handshake and roundtrips on an owned portal FD; no seat binding, devices or input requests. |
-| [agent/src/omni/adapters/platform/linux_eis_devices.py](../../agent/src/omni/adapters/platform/linux_eis_devices.py) | 384 | EI seat/device inventory and guarded binding on a granted connection; no emulation, coordinate inference or input. |
+| [agent/src/omni/adapters/platform/linux_eis_devices.py](../../agent/src/omni/adapters/platform/linux_eis_devices.py) | 430 | EI seat/device inventory and guarded binding on a granted connection; no emulation, coordinate inference or input. |
+| [agent/src/omni/adapters/platform/linux_eis_keyboard.py](../../agent/src/omni/adapters/platform/linux_eis_keyboard.py) | 84 | Bind interpreted special keys to exact live EI inventory/map; planning only, no physical-input proof or dispatch. |
 | [agent/src/omni/adapters/platform/linux_eis_keymap.py](../../agent/src/omni/adapters/platform/linux_eis_keymap.py) | 95 | Bounded EI keymap copy with original FD/thread lifetime; no keymap execution, layout inference or input. |
 | [agent/src/omni/adapters/platform/linux_fds.py](../../agent/src/omni/adapters/platform/linux_fds.py) | 109 | Owned received descriptors and bounded SCM_RIGHTS; no bus or desktop policy. |
 | [agent/src/omni/adapters/platform/linux_focus_navigation.py](../../agent/src/omni/adapters/platform/linux_focus_navigation.py) | 126 | Bounded complete AT-SPI focus readback in one native-bound window; never predicts tab order or sends input. |
@@ -332,6 +333,7 @@
 | [agent/src/omni/adapters/platform/linux_xkb.py](../../agent/src/omni/adapters/platform/linux_xkb.py) | 263 | Read-only XKB server state/actions on the existing input connection; no layout mutation, device acquisition or event dispatch. |
 | [agent/src/omni/adapters/platform/linux_xkb_copy.py](../../agent/src/omni/adapters/platform/linux_xkb_copy.py) | 176 | Canonical bounded identities for XKB copied compatibility, names, indicator maps and current geometry; no writes. |
 | [agent/src/omni/adapters/platform/linux_xkb_map.py](../../agent/src/omni/adapters/platform/linux_xkb_map.py) | 107 | Bounded canonical identity of a full native XKB map; no key translation, mutation or input dispatch. |
+| [agent/src/omni/adapters/platform/linux_xkbcommon.py](../../agent/src/omni/adapters/platform/linux_xkbcommon.py) | 184 | Owned libxkbcommon buffer compilation and special-key interpretation; no default layout, includes or native input. |
 | [agent/src/omni/adapters/platform/linux_xtest.py](../../agent/src/omni/adapters/platform/linux_xtest.py) | 130 | Read-only Xorg XTEST device identity proof; no input dispatch or own-event exemption. |
 | [agent/src/omni/adapters/platform/macos_helper.py](../../agent/src/omni/adapters/platform/macos_helper.py) | 114 | Resolve the fixed, owner-installed Swift bundle; never build, install or request TCC permissions. |
 | [agent/src/omni/adapters/platform/macos_service.py](../../agent/src/omni/adapters/platform/macos_service.py) | 109 | Inspect loaded launchd descriptions via the fixed Swift helper; never parses launchctl print as authority. |

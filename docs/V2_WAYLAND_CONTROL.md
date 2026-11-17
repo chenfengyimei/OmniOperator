@@ -55,3 +55,17 @@ seat v1和虚拟device v1/v2元数据均有界核验，服务端对象ID递增�
 59新增设备/键图与182原核心/总线/Portal/宿主/业务/架构合同分阶段241不同节点通过；主237节点后运行源码未变，仅加强不同键图FIFO与新增4节点，补查5节点通过，没有重复整组。精确1MiB、四份不同键图批次、16区域、部分读取、截断/变更/失败、原线程/FD取消及孤立FD真实3秒已验。5修改运行文件strict零错误/警告，376只为登记范围；首37通过与1项bytearray类型诊断、原源码保留，未放宽断言或缩短期限。全部EI/输入注入，真实隔离文件/FD与SQLite；Windows的pread端口明确注入，不是Linux原生证据。见[设备专项](evidence/v2-wayland-eis-devices.json)。
 
 仍需实现实际XKB解释、分帧按下/抬起与释放结算、合成器物理介入合同、目标/区域关联及逐次业务许可/应用后验。EI设备pause不是通用物理事件监听保证，逻辑区域/相同mapping ID也不能单独证明某个原生窗口；本批没有发start_emulating、key/button/motion/frame。整个V2仍开发，真实平台/账号/模型/设备/72h和全量验收均待完成。协议依据：[seat能力](https://libinput.pages.freedesktop.org/libei/interfaces/ei_seat/index.html)、[设备/区域/生命周期](https://libinput.pages.freedesktop.org/libei/interfaces/ei_device/index.html)、[键图与修饰](https://libinput.pages.freedesktop.org/libei/interfaces/ei_keyboard/index.html)。
+
+## XKB编译源码与特殊键计划（2026-11-18）
+
+`linux_xkbcommon.py`仅在需要时加载Linux系统`libxkbcommon.so.0`，缺库/符号报`portal_xkb_unavailable`，不安装库、不回退默认布局。声明不透明指针、size_t缓冲区长度、uint32与符号二级指针C ABI；context禁默认include和环境布局并清空include路径，只按XKB text v1编译原键图缓冲区，不调用RMLVO/names/file构造。先核对原字节/尺寸/SHA/NUL，编译后有界读取实际键码/布局/修饰。
+
+现有11个特殊键通过keysym名字查询（Enter对应Return），当前零逻辑状态只接受唯一单符号候选，不固定美式键码；私有xkb_state模拟一次按下/抬起，组件变化与所有修饰/组序列化均必须保持0，键义保持。evdev兼容XKB采用文档的8偏移，计划保存XKB和evdev码，不将此惯例当任意提供方已经证明的映射。此结果是库的键义与逻辑状态解释，不证明完整服务器动作、合成器快捷键/抓取、物理释放、目标焦点或应用已处理。
+
+`EisDevices.prepare_key`在内部选择一次精确device，须属于所选seat、done/resumed、键盘接口仍在、原键图存在及修饰元组全0。实际键图reader按device保存，每次取正文核对尺寸/SHA。`KeyboardPlan`绑定完整不可变观察、接口、键图及代次，编译后重验观察/正文，`verify_key`使用前再验；pause/resume、修饰/身份/正文变化及失败使旧计划失效。仅一次内部计划，没有新增EI输入、逐次许可字段或生产worker/业务调用。
+
+原executor Future和屏蔽取消的任务保留真实C编译直至返回；state/keymap/context逐项清理，不因一个失败漏掉其他对象。调用者或实际任务取消不等于线程停止；关闭待原编译完成才可释放EI连接，C清理不明时保留原失败任务/回执，避免再次unref双重释放，由外层实际进程归属处理。
+
+49新增与180直接调用方/合同分阶段229不同节点通过；首46过/2夹具失败（x替换成原x）留档，修正有效字节后原2节点过；180调用方过后只改close及导入，AST核对其他运行正文相同，补5项关闭/取消节点过，未重复整组。3修改运行文件strict零错误/警告，378仅登记。Windows测试注入库函数、使用真实ctypes符号缓冲区和隔离EI/文件，原生可用性节点明确记录`native_xkb_executed=false`，不是Linux解析/ABI实跑证据，见[XKB专项](evidence/v2-wayland-eis-xkb.json)。
+
+仍需Linux实际编译和evdev/提供方合同核验、特殊键以外输入、EI分帧派发/释放结算、合成器物理介入与目标/区域关联，再接逐次业务许可和应用后验。整个V2继续开发，无真实账号/模型/设备/原生平台/72h或全量验收。依据：[编译接口](https://xkbcommon.org/doc/1.13.0/group__keymap.html)、[上下文](https://xkbcommon.org/doc/current/group__context.html)、[状态](https://xkbcommon.org/doc/1.13.0/group__state.html)、[键码约定](https://xkbcommon.org/doc/1.13.0/xkbcommon_8h.html)与[兼容边界](https://xkbcommon.org/doc/current/xkbcommon-compatibility.html)。

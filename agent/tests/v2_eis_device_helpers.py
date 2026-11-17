@@ -184,7 +184,7 @@ class DevicePeer(Peer):
                 self.emit(device, 5, struct.pack(ORDER + "Q", child) + string(key) + word(1))
                 if self.fault == "duplicate_interface":
                     self.emit(device, 5, struct.pack(ORDER + "Q", self.allocate()) + string(key) + word(1))
-                if key == "ei_keyboard":
+                if key == "ei_keyboard" and self.fault != "no_keymap":
                     data = b"bad\xff\0" if self.fault == "keymap_utf8" else KEYMAP
                     if self.keyboards > 1:
                         data = ("distinct-keymap-" + str(len(self.files))).encode() + b"\0"
