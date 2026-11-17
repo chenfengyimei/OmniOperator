@@ -114,7 +114,9 @@ Linux桌面原生会话由固定辅助进程内的`SessionInspector`核验，`Lo
 
 `linux_pointer_config.py`接着读取真实master/XTEST指针的完整按钮标签、轴与滚动元数据、XI1反馈及FLOAT变换矩阵，保存有界不可变配置；不猜固定范围、相对模式、加速或单位矩阵。协议填充和瞬时轴位置不进入配置，固定点范围保持精度；准备双读与使用前重读夹在既有窗口/来源/动作守卫中，属性或类别变化、失败和取消锁存失效。完整配置复核现由WindowFocus一次前后原生守卫夹住点、来源、按钮、XKB和配置的各项实际读取；结果在最终守卫成立后才返回，不递归重复验证同一祖先，也不缓存略过实际读取。
 
-`linux_pointer_layout.py`将已证明的物理点/配置接到实际单root RandR资源、模式及CRTC扫描输出；保留真实setup根数，根几何不能单独替代桌面布局证明。RandR通知在选择前登记并锁存，双读和使用前复核拒绝配置/覆盖变化。`linux_pointer_motion.py`从真实轴/矩阵计算有理逆映射，搜索有符号16位整数请求，经原生双精度缩放/变换/裁剪模型确认落在原目标像素，给出预计raw与processed FP32.32值；找不到候选则拒绝，不舍入到邻接像素。此层不发送输入；旧Xinerama/多root布局、来源复制、事件归属/释放及业务控件关联仍继续开发，详见[前台合同](V2_LINUX_FOREGROUND.md)。
+`linux_pointer_layout.py`将已证明的物理点/配置接到实际单root RandR资源、模式及CRTC扫描输出；保留真实setup根数，根几何不能单独替代桌面布局证明。RandR通知在选择前登记并锁存，双读和使用前复核拒绝配置/覆盖变化。`linux_pointer_motion.py`从真实轴/矩阵计算有理逆映射，搜索有符号16位整数请求，经原生双精度缩放/变换/裁剪模型确认落在原目标像素，给出预计raw与processed FP32.32值；找不到候选则拒绝，不舍入到邻接像素。此层只生成计划，内部移动派发见下一段；旧Xinerama/多root布局仍继续开发。
+
+`linux_motion_packet.py`拥有同连接单次移动字节和原屏障查询，未完整请求丢弃、完整请求保留实际结清责任；`linux_motion_events.py`核对两条同序号source/master RawMotion及原计划的processed/raw固定点值。`linux_pointer_switch.py`预计算来源类复制，保留master按钮数/尾配置/映射/CTM；通知只比对source描述，完整窗口/焦点/来源/按钮/XKB/反馈/矩阵/RandR后验全部成立后才采用预期配置/拓扑，不清空变化。InputWire读回上限原为1MiB，普通Wire为66MB，本批只更正文档、未改额度。内部回执不授权业务点击；成对释放及控件物理点/业务接线继续开发，详见[前台合同](V2_LINUX_FOREGROUND.md)。
 
 `linux_window_binding.py`组合已验证AT-SPI窗口明确提供的XID、XRes实际进程及其自己的连续窗口/焦点连接；只接受已核对的提供方字段（当前Avalonia），不推断GTK/Qt通用关联。描述重读夹住焦点/窗口代次检查，任何失败锁存；关闭先结清输入监测的实际释放，再关闭自己的原生窗口连接，外部SessionInspector继续由worker拥有。`linux_key_action.py`现将该绑定、完整映射/来源/复制预检及成对派发接入原linux_action worker的UUID ready/permit；原语义目录将窗口/光标上下文计入动作指纹，未提供明确窗口身份不产生按键候选。
 

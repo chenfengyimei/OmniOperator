@@ -60,7 +60,7 @@
           "remaining": [
             "通用提供方/控件的原生窗口关联；当前仅明确XID提供方节点已接业务按键",
             "Tab/Escape/焦点导航/关闭与其他应用结果的专门后验；无法证明的已派发结果保持unknown",
-            "鼠标已补单root RandR布局、实际变换坐标计划及组合复核；来源复制/Raw归属、移动/成对点击释放、AT-SPI物理点与逐次业务接线继续开发",
+            "鼠标内部移动派发、RawMotion归属和预计算来源复制后验已接；成对点击释放、RawButton精确归属、AT-SPI物理点与逐次业务接线继续开发",
             "旧Xinerama及多root输入布局仍待明确原生坐标证明；不将普通窗口读取受限",
             "Wayland输入释放/物理介入、目标关联和实际派发仍待继续开发"
           ],
@@ -168,6 +168,16 @@
             "aggregate_native_reads_without_recursive_duplicates": true,
             "actual_motion_or_business_dispatch_enabled": false,
             "legacy_or_multiple_root_layout_complete": false
+          },
+          "internal_pointer_motion_and_source_copy": {
+            "status": "implemented_scoped_passed",
+            "evidence": "docs/evidence/v2-linux-motion-packet.json",
+            "exact_motion_byte_ownership_and_acknowledgment": true,
+            "rawmotion_source_master_receipts": true,
+            "precomputed_pointer_copy_and_complete_postchecks": true,
+            "paired_pointer_release_implemented": false,
+            "mouse_business_dispatch_enabled": false,
+            "real_native_execution": false
           }
         }
       ]

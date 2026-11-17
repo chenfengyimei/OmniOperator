@@ -2756,6 +2756,6 @@
   "priority": "implementation_first",
   "tracker": "docs/tasks/v2-development.json",
   "full_suite_timing": "after_whole_v2_development_complete",
-  "latest_scoped_evidence": "docs/evidence/v2-linux-pointer-motion.json"
+  "latest_scoped_evidence": "docs/evidence/v2-linux-motion-packet.json"
  }
 }

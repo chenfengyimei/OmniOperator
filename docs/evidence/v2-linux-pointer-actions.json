@@ -113,7 +113,14 @@
     "reply_timeout_seconds": 0.5,
     "per_request_payload_bytes": 4096,
     "sequence_wrap_or_per_action_reset": false,
-    "key_packet_existing_lower_limit_changed": false
+    "key_packet_existing_lower_limit_changed": false,
+    "correction_2026_11_18": {
+      "original_cumulative_received_bytes_field_describes": "Base Wire cap only, incorrectly reported as effective InputWire cap in this historical record.",
+      "effective_input_cumulative_received_bytes_at_that_source": 1048576,
+      "ordinary_wire_cumulative_received_bytes": 66000000,
+      "runtime_limit_changed": false,
+      "followup_evidence": "docs/evidence/v2-linux-motion-packet.json"
+    }
   },
   "protocol_sources": [
     {

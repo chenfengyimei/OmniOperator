@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "1272fe80ac96d07a2dc53e75444d2735a983c6a634c1da9952067aa2c9b43898",
+  "source_sha256": "f4ec81e3f911a8e1a1a104eab26018aff97a3217b5e301db121993f08be9c52f",
   "modules": [
     {
       "id": "v2-domain",
@@ -325,11 +325,14 @@
         "agent/src/omni/adapters/platform/linux_keyboard.py",
         "agent/src/omni/adapters/platform/linux_keystroke.py",
         "agent/src/omni/adapters/platform/linux_lease_client.py",
+        "agent/src/omni/adapters/platform/linux_motion_events.py",
+        "agent/src/omni/adapters/platform/linux_motion_packet.py",
         "agent/src/omni/adapters/platform/linux_pipewire.py",
         "agent/src/omni/adapters/platform/linux_pointer_actions.py",
         "agent/src/omni/adapters/platform/linux_pointer_config.py",
         "agent/src/omni/adapters/platform/linux_pointer_layout.py",
         "agent/src/omni/adapters/platform/linux_pointer_motion.py",
+        "agent/src/omni/adapters/platform/linux_pointer_switch.py",
         "agent/src/omni/adapters/platform/linux_pointer_target.py",
         "agent/src/omni/adapters/platform/linux_portal.py",
         "agent/src/omni/adapters/platform/linux_remote_desktop.py",
@@ -438,7 +441,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 61434,
+      "lines": 61949,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -26205,9 +26208,12 @@
           "line": 112,
           "kind": "function",
           "parameters": [
-            "self"
+            "self",
+            "expected_topology"
           ],
-          "annotations": {}
+          "annotations": {
+            "expected_topology": "str | None"
+          }
         },
         {
           "name": "ButtonMapping._map",
@@ -26228,9 +26234,12 @@
           "line": 155,
           "kind": "function",
           "parameters": [
-            "self"
+            "self",
+            "expected_topology"
           ],
-          "annotations": {}
+          "annotations": {
+            "expected_topology": "str | None"
+          }
         },
         {
           "name": "ButtonMapping.prepare",
@@ -26255,9 +26264,12 @@
           "line": 211,
           "kind": "function",
           "parameters": [
-            "self"
+            "self",
+            "expected_topology"
           ],
-          "annotations": {}
+          "annotations": {
+            "expected_topology": "str | None"
+          }
         }
       ],
       "summary": "Read primary-button composition on a proven Xorg point/source pair; never changes maps, moves, clicks or grants dispatch."
@@ -26382,17 +26394,19 @@
       "path": "agent/src/omni/adapters/platform/linux_foreground.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.linux_foreground",
-      "lines": 334,
+      "lines": 392,
       "imports": [
         "omni.adapters.platform.linux_bus",
         "omni.adapters.platform.linux_button_mapping",
         "omni.adapters.platform.linux_input",
         "omni.adapters.platform.linux_keyboard",
         "omni.adapters.platform.linux_keystroke",
+        "omni.adapters.platform.linux_motion_packet",
         "omni.adapters.platform.linux_pointer_actions",
         "omni.adapters.platform.linux_pointer_config",
         "omni.adapters.platform.linux_pointer_layout",
         "omni.adapters.platform.linux_pointer_motion",
+        "omni.adapters.platform.linux_pointer_switch",
         "omni.adapters.platform.linux_pointer_target",
         "omni.adapters.platform.linux_window_leases",
         "omni.adapters.platform.linux_x11",
@@ -26402,12 +26416,12 @@
       "symbols": [
         {
           "name": "WindowFocus",
-          "line": 28,
+          "line": 30,
           "kind": "class"
         },
         {
           "name": "WindowFocus.__init__",
-          "line": 31,
+          "line": 33,
           "kind": "function",
           "parameters": [
             "self",
@@ -26421,7 +26435,7 @@
         },
         {
           "name": "WindowFocus._same_server",
-          "line": 48,
+          "line": 50,
           "kind": "function",
           "parameters": [
             "self"
@@ -26430,7 +26444,7 @@
         },
         {
           "name": "WindowFocus._read_lineage",
-          "line": 68,
+          "line": 70,
           "kind": "function",
           "parameters": [
             "self"
@@ -26439,7 +26453,7 @@
         },
         {
           "name": "WindowFocus.prepare",
-          "line": 106,
+          "line": 108,
           "kind": "function",
           "parameters": [
             "self",
@@ -26451,16 +26465,19 @@
         },
         {
           "name": "WindowFocus._validate",
-          "line": 128,
+          "line": 130,
           "kind": "function",
           "parameters": [
-            "self"
+            "self",
+            "expected_topology"
           ],
-          "annotations": {}
+          "annotations": {
+            "expected_topology": "str | None"
+          }
         },
         {
           "name": "WindowFocus.check",
-          "line": 139,
+          "line": 147,
           "kind": "function",
           "parameters": [
             "self"
@@ -26469,7 +26486,7 @@
         },
         {
           "name": "WindowFocus.close",
-          "line": 148,
+          "line": 156,
           "kind": "function",
           "parameters": [
             "self"
@@ -26478,7 +26495,7 @@
         },
         {
           "name": "WindowFocus.selected_window",
-          "line": 153,
+          "line": 161,
           "kind": "function",
           "parameters": [
             "self"
@@ -26487,7 +26504,7 @@
         },
         {
           "name": "WindowFocus.prepare_pointer",
-          "line": 158,
+          "line": 166,
           "kind": "function",
           "parameters": [
             "self",
@@ -26499,7 +26516,7 @@
         },
         {
           "name": "WindowFocus.verify_pointer",
-          "line": 169,
+          "line": 177,
           "kind": "function",
           "parameters": [
             "self"
@@ -26508,7 +26525,7 @@
         },
         {
           "name": "WindowFocus.prepare_key",
-          "line": 178,
+          "line": 186,
           "kind": "function",
           "parameters": [
             "self",
@@ -26520,7 +26537,7 @@
         },
         {
           "name": "WindowFocus.prepare_button",
-          "line": 189,
+          "line": 197,
           "kind": "function",
           "parameters": [
             "self"
@@ -26529,7 +26546,7 @@
         },
         {
           "name": "WindowFocus.verify_button",
-          "line": 200,
+          "line": 208,
           "kind": "function",
           "parameters": [
             "self"
@@ -26538,7 +26555,7 @@
         },
         {
           "name": "WindowFocus.verify_key",
-          "line": 209,
+          "line": 217,
           "kind": "function",
           "parameters": [
             "self"
@@ -26547,7 +26564,7 @@
         },
         {
           "name": "WindowFocus.prepare_pointer_actions",
-          "line": 218,
+          "line": 226,
           "kind": "function",
           "parameters": [
             "self"
@@ -26556,7 +26573,7 @@
         },
         {
           "name": "WindowFocus.verify_pointer_actions",
-          "line": 229,
+          "line": 237,
           "kind": "function",
           "parameters": [
             "self"
@@ -26565,7 +26582,7 @@
         },
         {
           "name": "WindowFocus.prepare_sources",
-          "line": 238,
+          "line": 246,
           "kind": "function",
           "parameters": [
             "self"
@@ -26574,7 +26591,7 @@
         },
         {
           "name": "WindowFocus.prepare_pointer_configuration",
-          "line": 252,
+          "line": 260,
           "kind": "function",
           "parameters": [
             "self"
@@ -26583,7 +26600,7 @@
         },
         {
           "name": "WindowFocus.verify_pointer_configuration",
-          "line": 263,
+          "line": 271,
           "kind": "function",
           "parameters": [
             "self"
@@ -26592,7 +26609,7 @@
         },
         {
           "name": "WindowFocus.verify_sources",
-          "line": 288,
+          "line": 296,
           "kind": "function",
           "parameters": [
             "self"
@@ -26601,7 +26618,7 @@
         },
         {
           "name": "WindowFocus.prepare_motion",
-          "line": 300,
+          "line": 308,
           "kind": "function",
           "parameters": [
             "self"
@@ -26610,7 +26627,7 @@
         },
         {
           "name": "WindowFocus.verify_motion",
-          "line": 311,
+          "line": 319,
           "kind": "function",
           "parameters": [
             "self"
@@ -26619,7 +26636,30 @@
         },
         {
           "name": "WindowFocus.key_packet",
-          "line": 320,
+          "line": 328,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "WindowFocus._verify_motion_copy",
+          "line": 344,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "state",
+            "topology"
+          ],
+          "annotations": {
+            "state": "PointerState",
+            "topology": "str"
+          }
+        },
+        {
+          "name": "WindowFocus.motion_packet",
+          "line": 369,
           "kind": "function",
           "parameters": [
             "self"
@@ -26633,7 +26673,7 @@
       "path": "agent/src/omni/adapters/platform/linux_input.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.linux_input",
-      "lines": 386,
+      "lines": 425,
       "imports": [
         "omni.adapters.platform.linux_bus",
         "omni.adapters.platform.linux_session",
@@ -26656,13 +26696,46 @@
           "annotations": {}
         },
         {
-          "name": "KeyTransition",
+          "name": "PointerEvents",
           "line": 27,
           "kind": "class"
         },
         {
+          "name": "PointerEvents.device",
+          "line": 28,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "header",
+            "payload"
+          ],
+          "annotations": {
+            "header": "bytes",
+            "payload": "bytes"
+          }
+        },
+        {
+          "name": "PointerEvents.accept",
+          "line": 30,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "header",
+            "payload"
+          ],
+          "annotations": {
+            "header": "bytes",
+            "payload": "bytes"
+          }
+        },
+        {
+          "name": "KeyTransition",
+          "line": 33,
+          "kind": "class"
+        },
+        {
           "name": "KeyTransition.complete",
-          "line": 29,
+          "line": 35,
           "kind": "function",
           "parameters": [
             "self"
@@ -26671,7 +26744,7 @@
         },
         {
           "name": "KeyTransition.keyboard",
-          "line": 31,
+          "line": 37,
           "kind": "function",
           "parameters": [
             "self",
@@ -26685,7 +26758,7 @@
         },
         {
           "name": "KeyTransition.device",
-          "line": 33,
+          "line": 39,
           "kind": "function",
           "parameters": [
             "self",
@@ -26701,7 +26774,7 @@
         },
         {
           "name": "KeyTransition.verify_after",
-          "line": 35,
+          "line": 41,
           "kind": "function",
           "parameters": [
             "self"
@@ -26710,12 +26783,12 @@
         },
         {
           "name": "KeyEvents",
-          "line": 38,
+          "line": 44,
           "kind": "class"
         },
         {
           "name": "KeyEvents.__init__",
-          "line": 41,
+          "line": 47,
           "kind": "function",
           "parameters": [
             "self",
@@ -26735,7 +26808,7 @@
         },
         {
           "name": "KeyEvents.keyboard",
-          "line": 54,
+          "line": 60,
           "kind": "function",
           "parameters": [
             "self",
@@ -26747,7 +26820,7 @@
         },
         {
           "name": "KeyEvents.device",
-          "line": 57,
+          "line": 63,
           "kind": "function",
           "parameters": [
             "self",
@@ -26761,7 +26834,7 @@
         },
         {
           "name": "KeyEvents.accept",
-          "line": 64,
+          "line": 70,
           "kind": "function",
           "parameters": [
             "self",
@@ -26775,7 +26848,7 @@
         },
         {
           "name": "KeyEvents.complete",
-          "line": 88,
+          "line": 94,
           "kind": "function",
           "parameters": [
             "self"
@@ -26784,17 +26857,17 @@
         },
         {
           "name": "Device",
-          "line": 93,
+          "line": 99,
           "kind": "class"
         },
         {
           "name": "Topology",
-          "line": 102,
+          "line": 108,
           "kind": "class"
         },
         {
           "name": "device_topology",
-          "line": 107,
+          "line": 113,
           "kind": "function",
           "parameters": [
             "data"
@@ -26805,7 +26878,7 @@
         },
         {
           "name": "devices",
-          "line": 175,
+          "line": 181,
           "kind": "function",
           "parameters": [
             "data"
@@ -26816,12 +26889,12 @@
         },
         {
           "name": "InputWire",
-          "line": 179,
+          "line": 185,
           "kind": "class"
         },
         {
           "name": "InputWire.__init__",
-          "line": 186,
+          "line": 192,
           "kind": "function",
           "parameters": [
             "self",
@@ -26835,7 +26908,7 @@
         },
         {
           "name": "InputWire.send",
-          "line": 203,
+          "line": 212,
           "kind": "function",
           "parameters": [
             "self",
@@ -26851,7 +26924,19 @@
         },
         {
           "name": "InputWire.key_barrier",
-          "line": 209,
+          "line": 227,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "lease"
+          ],
+          "annotations": {
+            "lease": "KeyLease"
+          }
+        },
+        {
+          "name": "InputWire.motion_barrier",
+          "line": 236,
           "kind": "function",
           "parameters": [
             "self",
@@ -26863,7 +26948,7 @@
         },
         {
           "name": "InputWire.read",
-          "line": 218,
+          "line": 245,
           "kind": "function",
           "parameters": [
             "self",
@@ -26875,7 +26960,7 @@
         },
         {
           "name": "InputWire.event",
-          "line": 223,
+          "line": 250,
           "kind": "function",
           "parameters": [
             "self",
@@ -26887,12 +26972,12 @@
         },
         {
           "name": "X11Input",
-          "line": 269,
+          "line": 300,
           "kind": "class"
         },
         {
           "name": "X11Input.__init__",
-          "line": 270,
+          "line": 301,
           "kind": "function",
           "parameters": [
             "self",
@@ -26908,7 +26993,7 @@
         },
         {
           "name": "X11Input.open",
-          "line": 284,
+          "line": 315,
           "kind": "function",
           "parameters": [
             "self"
@@ -26917,16 +27002,19 @@
         },
         {
           "name": "X11Input.released",
-          "line": 297,
+          "line": 328,
           "kind": "function",
           "parameters": [
-            "self"
+            "self",
+            "expected_topology"
           ],
-          "annotations": {}
+          "annotations": {
+            "expected_topology": "str | None"
+          }
         },
         {
           "name": "X11Input.arm",
-          "line": 308,
+          "line": 341,
           "kind": "function",
           "parameters": [
             "self"
@@ -26935,7 +27023,7 @@
         },
         {
           "name": "X11Input.check",
-          "line": 326,
+          "line": 359,
           "kind": "function",
           "parameters": [
             "self"
@@ -26943,8 +27031,20 @@
           "annotations": {}
         },
         {
+          "name": "X11Input.check_expected",
+          "line": 362,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "topology"
+          ],
+          "annotations": {
+            "topology": "str | None"
+          }
+        },
+        {
           "name": "X11Input.watch_lineage",
-          "line": 334,
+          "line": 371,
           "kind": "function",
           "parameters": [
             "self",
@@ -26956,7 +27056,7 @@
         },
         {
           "name": "X11Input.watch_pointer_lineage",
-          "line": 357,
+          "line": 394,
           "kind": "function",
           "parameters": [
             "self",
@@ -26968,7 +27068,7 @@
         },
         {
           "name": "X11Input.close",
-          "line": 383,
+          "line": 420,
           "kind": "function",
           "parameters": [
             "self"
@@ -27298,7 +27398,7 @@
       "path": "agent/src/omni/adapters/platform/linux_keystroke.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.linux_keystroke",
-      "lines": 144,
+      "lines": 153,
       "imports": [
         "omni.adapters.platform.linux_bus",
         "omni.adapters.platform.linux_input",
@@ -27332,7 +27432,7 @@
         },
         {
           "name": "KeyPacket.release_pending",
-          "line": 53,
+          "line": 55,
           "kind": "function",
           "parameters": [
             "self"
@@ -27341,7 +27441,7 @@
         },
         {
           "name": "KeyPacket._writable",
-          "line": 56,
+          "line": 58,
           "kind": "function",
           "parameters": [
             "self"
@@ -27350,14 +27450,14 @@
         },
         {
           "name": "KeyPacket._writable.wake",
-          "line": 61,
+          "line": 63,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "KeyPacket._write",
-          "line": 71,
+          "line": 73,
           "kind": "function",
           "parameters": [
             "self"
@@ -27366,7 +27466,7 @@
         },
         {
           "name": "KeyPacket.emit",
-          "line": 84,
+          "line": 86,
           "kind": "function",
           "parameters": [
             "self"
@@ -27375,7 +27475,7 @@
         },
         {
           "name": "KeyPacket._finish",
-          "line": 112,
+          "line": 121,
           "kind": "function",
           "parameters": [
             "self"
@@ -27384,7 +27484,7 @@
         },
         {
           "name": "KeyPacket.settle",
-          "line": 135,
+          "line": 144,
           "kind": "function",
           "parameters": [
             "self"
@@ -27759,6 +27859,215 @@
       "summary": "Owned persistent X11 guardian transport; no native APIs, target rebinding from verify, unbounded queues or input."
     },
     {
+      "path": "agent/src/omni/adapters/platform/linux_motion_events.py",
+      "module": "v2-adapters",
+      "python_module": "omni.adapters.platform.linux_motion_events",
+      "lines": 68,
+      "imports": [
+        "omni.adapters.platform.linux_pointer_config",
+        "omni.adapters.platform.linux_pointer_motion",
+        "omni.adapters.platform.linux_x11_wire"
+      ],
+      "symbols": [
+        {
+          "name": "MotionTransition",
+          "line": 12,
+          "kind": "class"
+        },
+        {
+          "name": "MotionTransition.complete",
+          "line": 14,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "MotionTransition.device",
+          "line": 16,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "header",
+            "payload",
+            "sequence"
+          ],
+          "annotations": {
+            "header": "bytes",
+            "payload": "bytes",
+            "sequence": "int"
+          }
+        },
+        {
+          "name": "MotionTransition.verify_after",
+          "line": 18,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "MotionEvents",
+          "line": 21,
+          "kind": "class"
+        },
+        {
+          "name": "MotionEvents.__init__",
+          "line": 22,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "sequence",
+            "source",
+            "master",
+            "plan",
+            "transition"
+          ],
+          "annotations": {
+            "sequence": "int",
+            "source": "int",
+            "master": "int",
+            "plan": "MotionPlan",
+            "transition": "MotionTransition"
+          }
+        },
+        {
+          "name": "MotionEvents.device",
+          "line": 35,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "header",
+            "payload"
+          ],
+          "annotations": {
+            "header": "bytes",
+            "payload": "bytes"
+          }
+        },
+        {
+          "name": "MotionEvents.accept",
+          "line": 38,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "header",
+            "payload"
+          ],
+          "annotations": {
+            "header": "bytes",
+            "payload": "bytes"
+          }
+        },
+        {
+          "name": "MotionEvents.complete",
+          "line": 67,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        }
+      ],
+      "summary": "Exact two-axis RawMotion receipts belonging to one reserved XTEST request."
+    },
+    {
+      "path": "agent/src/omni/adapters/platform/linux_motion_packet.py",
+      "module": "v2-adapters",
+      "python_module": "omni.adapters.platform.linux_motion_packet",
+      "lines": 158,
+      "imports": [
+        "omni.adapters.platform.linux_bus",
+        "omni.adapters.platform.linux_input",
+        "omni.adapters.platform.linux_motion_events",
+        "omni.adapters.platform.linux_pointer_motion",
+        "omni.adapters.platform.linux_x11_wire",
+        "omni.adapters.platform.linux_xtest"
+      ],
+      "symbols": [
+        {
+          "name": "MotionPacket",
+          "line": 17,
+          "kind": "class"
+        },
+        {
+          "name": "MotionPacket.__init__",
+          "line": 18,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "monitor",
+            "opcode",
+            "sources",
+            "plan",
+            "transition"
+          ],
+          "annotations": {
+            "monitor": "X11Input",
+            "opcode": "int",
+            "sources": "Sources",
+            "plan": "MotionPlan",
+            "transition": "MotionTransition"
+          }
+        },
+        {
+          "name": "MotionPacket._writable",
+          "line": 58,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "MotionPacket._writable.wake",
+          "line": 63,
+          "kind": "function",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "MotionPacket._write",
+          "line": 73,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "MotionPacket.emit",
+          "line": 86,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "MotionPacket._finish",
+          "line": 127,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "MotionPacket.settle",
+          "line": 151,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        }
+      ],
+      "summary": "Own one XTEST absolute move and its acknowledgment; no business click or automatic retry."
+    },
+    {
       "path": "agent/src/omni/adapters/platform/linux_pipewire.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.linux_pipewire",
@@ -28040,7 +28349,7 @@
       "path": "agent/src/omni/adapters/platform/linux_pointer_config.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.linux_pointer_config",
-      "lines": 250,
+      "lines": 281,
       "imports": [
         "omni.adapters.platform.linux_bus",
         "omni.adapters.platform.linux_button_mapping",
@@ -28100,8 +28409,29 @@
           }
         },
         {
-          "name": "pointer_devices",
+          "name": "pointer_classes",
           "line": 60,
+          "kind": "function",
+          "parameters": [
+            "data",
+            "position",
+            "count",
+            "identity",
+            "buttons",
+            "allowed"
+          ],
+          "annotations": {
+            "data": "bytes",
+            "position": "int",
+            "count": "int",
+            "identity": "int",
+            "buttons": "int",
+            "allowed": "set[int]"
+          }
+        },
+        {
+          "name": "pointer_devices",
+          "line": 117,
           "kind": "function",
           "parameters": [
             "data",
@@ -28116,7 +28446,7 @@
         },
         {
           "name": "feedback",
-          "line": 131,
+          "line": 146,
           "kind": "function",
           "parameters": [
             "data"
@@ -28127,7 +28457,7 @@
         },
         {
           "name": "transform",
-          "line": 149,
+          "line": 164,
           "kind": "function",
           "parameters": [
             "data",
@@ -28140,12 +28470,12 @@
         },
         {
           "name": "PointerConfiguration",
-          "line": 168,
+          "line": 183,
           "kind": "class"
         },
         {
           "name": "PointerConfiguration.__init__",
-          "line": 169,
+          "line": 184,
           "kind": "function",
           "parameters": [
             "self",
@@ -28157,7 +28487,7 @@
         },
         {
           "name": "PointerConfiguration._guard",
-          "line": 176,
+          "line": 191,
           "kind": "function",
           "parameters": [
             "self"
@@ -28166,16 +28496,19 @@
         },
         {
           "name": "PointerConfiguration._read",
-          "line": 180,
+          "line": 195,
           "kind": "function",
           "parameters": [
-            "self"
+            "self",
+            "expected_topology"
           ],
-          "annotations": {}
+          "annotations": {
+            "expected_topology": "str | None"
+          }
         },
         {
           "name": "PointerConfiguration.prepare",
-          "line": 197,
+          "line": 212,
           "kind": "function",
           "parameters": [
             "self"
@@ -28184,7 +28517,7 @@
         },
         {
           "name": "PointerConfiguration.verify",
-          "line": 227,
+          "line": 242,
           "kind": "function",
           "parameters": [
             "self"
@@ -28193,12 +28526,40 @@
         },
         {
           "name": "PointerConfiguration.read_current",
-          "line": 240,
+          "line": 255,
           "kind": "function",
           "parameters": [
             "self"
           ],
           "annotations": {}
+        },
+        {
+          "name": "PointerConfiguration.read_copied",
+          "line": 267,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "expected",
+            "topology"
+          ],
+          "annotations": {
+            "expected": "PointerState",
+            "topology": "str"
+          }
+        },
+        {
+          "name": "PointerConfiguration.adopt_copied",
+          "line": 278,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "before",
+            "after"
+          ],
+          "annotations": {
+            "before": "PointerState",
+            "after": "PointerState"
+          }
         }
       ],
       "summary": "Read canonical pointer axes, feedback and transforms on an existing XKB/point proof; no device writes or mouse dispatch."
@@ -28207,7 +28568,7 @@
       "path": "agent/src/omni/adapters/platform/linux_pointer_layout.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.linux_pointer_layout",
-      "lines": 224,
+      "lines": 240,
       "imports": [
         "omni.adapters.platform.linux_bus",
         "omni.adapters.platform.linux_input",
@@ -28351,6 +28712,29 @@
             "self"
           ],
           "annotations": {}
+        },
+        {
+          "name": "PointerMotion.read_current",
+          "line": 226,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "PointerMotion.adopt_copied",
+          "line": 237,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "before",
+            "after"
+          ],
+          "annotations": {
+            "before": "PointerState",
+            "after": "PointerState"
+          }
         }
       ],
       "summary": "Bind a planned pointer move to live single-root RandR resources and active scanouts; no input or layout mutation."
@@ -28523,6 +28907,102 @@
         }
       ],
       "summary": "Plan signed core XTEST coordinates and raw valuators from proven native geometry/configuration; never sends input."
+    },
+    {
+      "path": "agent/src/omni/adapters/platform/linux_pointer_switch.py",
+      "module": "v2-adapters",
+      "python_module": "omni.adapters.platform.linux_pointer_switch",
+      "lines": 136,
+      "imports": [
+        "omni.adapters.platform.linux_bus",
+        "omni.adapters.platform.linux_input",
+        "omni.adapters.platform.linux_pointer_config",
+        "omni.adapters.platform.linux_x11_wire"
+      ],
+      "symbols": [
+        {
+          "name": "encoded_classes",
+          "line": 15,
+          "kind": "function",
+          "parameters": [
+            "device"
+          ],
+          "annotations": {
+            "device": "PointerDevice"
+          }
+        },
+        {
+          "name": "encoded_classes.fixed",
+          "line": 20,
+          "kind": "function",
+          "parameters": [
+            "value"
+          ],
+          "annotations": {
+            "value": "int"
+          }
+        },
+        {
+          "name": "PointerSwitch",
+          "line": 35,
+          "kind": "class"
+        },
+        {
+          "name": "PointerSwitch.__init__",
+          "line": 36,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "monitor",
+            "state",
+            "data",
+            "check_copied",
+            "adopt"
+          ],
+          "annotations": {
+            "monitor": "X11Input",
+            "state": "PointerState",
+            "data": "bytes",
+            "check_copied": "Callable[[PointerState, str], Awaitable[None]]",
+            "adopt": "Callable[[PointerState], None]"
+          }
+        },
+        {
+          "name": "PointerSwitch.complete",
+          "line": 84,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "PointerSwitch.device",
+          "line": 89,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "header",
+            "payload",
+            "sequence"
+          ],
+          "annotations": {
+            "header": "bytes",
+            "payload": "bytes",
+            "sequence": "int"
+          }
+        },
+        {
+          "name": "PointerSwitch.verify_after",
+          "line": 109,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        }
+      ],
+      "summary": "Precompute and verify one owned pointer slave-class copy; never writes device configuration."
     },
     {
       "path": "agent/src/omni/adapters/platform/linux_pointer_target.py",
@@ -30891,9 +31371,12 @@
           "line": 37,
           "kind": "function",
           "parameters": [
-            "self"
+            "self",
+            "expected_topology"
           ],
-          "annotations": {}
+          "annotations": {
+            "expected_topology": "str | None"
+          }
         },
         {
           "name": "XTestSources.prepare",
@@ -30918,9 +31401,12 @@
           "line": 120,
           "kind": "function",
           "parameters": [
-            "self"
+            "self",
+            "expected_topology"
           ],
-          "annotations": {}
+          "annotations": {
+            "expected_topology": "str | None"
+          }
         }
       ],
       "summary": "Read-only Xorg XTEST device identity proof; no input dispatch or own-event exemption."

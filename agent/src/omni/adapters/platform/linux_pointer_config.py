@@ -57,6 +57,63 @@ def fixed(data: bytes, position: int) -> int:
     return integral * (1 << 32) + fraction
 
 
+def pointer_classes(
+    data: bytes, position: int, count: int, identity: int, buttons: int, allowed: set[int]
+) -> tuple[PointerDevice, int]:
+    """Canonical classes shared by QueryDevice and a source-class SlaveSwitch receipt."""
+    if not 1 <= count <= 32 or not 1 <= buttons <= 256:
+        raise failure("desktop_input_unverified")
+    axes: dict[int, Axis] = {}
+    scrolls: dict[int, bytes] = {}
+    labels: tuple[int, ...] | None = None
+    button_source = 0
+    for _ in range(count):
+        category, words, source = cast(tuple[int, int, int], unpack("HHH", data, position))
+        end = position + words * 4
+        if words < 2 or end > len(data) or source not in allowed:
+            raise failure("desktop_input_unverified")
+        if category == 1:
+            size = cast(int, unpack("H", data, position + 6)[0])
+            start = position + 8 + (buttons + 31) // 32 * 4
+            if labels is not None or size != buttons or end != start + buttons * 4:
+                raise failure("desktop_input_unverified")
+            if any(data[position + 8 : start]):
+                raise failure("desktop_input_held")
+            labels = cast(tuple[int, ...], unpack("I" * buttons, data, start))
+            button_source = source
+        elif category == 2:
+            if words != 11:
+                raise failure("desktop_input_unverified")
+            number, label = cast(tuple[int, int], unpack("HI", data, position + 6))
+            resolution = cast(int, unpack("I", data, position + 36)[0])
+            mode = data[position + 40]
+            if number >= 32 or number in axes or mode not in {0, 1}:
+                raise failure("desktop_input_unverified")
+            axes[number] = Axis(
+                number, source, label, fixed(data, position + 12), fixed(data, position + 20), resolution, mode
+            )
+        elif category == 3:
+            if words != 6:
+                raise failure("desktop_input_unverified")
+            number, kind = cast(tuple[int, int], unpack("HH", data, position + 6))
+            flags = cast(int, unpack("I", data, position + 12)[0])
+            if number in scrolls or kind not in {1, 2} or flags & ~3 or not fixed(data, position + 16):
+                raise failure("desktop_input_unverified")
+            scrolls[number] = data[position : position + 10] + data[position + 12 : end]
+        else:
+            raise failure("desktop_input_unverified")
+        position = end
+    if labels is None or not {0, 1} <= axes.keys() or not scrolls.keys() <= axes.keys():
+        raise failure("desktop_input_unverified")
+    return PointerDevice(
+        identity,
+        button_source,
+        labels,
+        tuple(axes[number] for number in sorted(axes)),
+        tuple(scrolls[number] for number in sorted(scrolls)),
+    ), position
+
+
 def pointer_devices(data: bytes, plan: ButtonPlan, expected: str | None) -> tuple[PointerDevice, PointerDevice]:
     topology = device_topology(data)
     if topology.fingerprint != expected:
@@ -74,55 +131,13 @@ def pointer_devices(data: bytes, plan: ButtonPlan, expected: str | None) -> tupl
             tuple[int, int, int, int, int], unpack("HHHHH", data, position)
         )
         position += 12 + (size + 3) // 4 * 4
-        axes: dict[int, Axis] = {}
-        scrolls: dict[int, bytes] = {}
-        labels: tuple[int, ...] | None = None
-        button_source = 0
-        for _ in range(count):
-            category, words, source = cast(tuple[int, int, int], unpack("HHH", data, position))
-            end = position + words * 4
-            if identity in counts:
-                if source not in allowed or identity == plan.source and source != identity:
-                    raise failure("desktop_input_unverified")
-                if category == 1:
-                    buttons = cast(int, unpack("H", data, position + 6)[0])
-                    if labels is not None or buttons != counts[identity]:
-                        raise failure("desktop_input_unverified")
-                    start = position + 8 + (buttons + 31) // 32 * 4
-                    labels = cast(tuple[int, ...], unpack("I" * buttons, data, start))
-                    button_source = source
-                elif category == 2:
-                    if words != 11:
-                        raise failure("desktop_input_unverified")
-                    number, label = cast(tuple[int, int], unpack("HI", data, position + 6))
-                    resolution = cast(int, unpack("I", data, position + 36)[0])
-                    mode = data[position + 40]
-                    if number >= 32 or number in axes or mode not in {0, 1}:
-                        raise failure("desktop_input_unverified")
-                    axes[number] = Axis(
-                        number, source, label, fixed(data, position + 12), fixed(data, position + 20), resolution, mode
-                    )
-                elif category == 3:
-                    if words != 6:
-                        raise failure("desktop_input_unverified")
-                    number, kind = cast(tuple[int, int], unpack("HH", data, position + 6))
-                    flags = cast(int, unpack("I", data, position + 12)[0])
-                    if number in scrolls or kind not in {1, 2} or flags & ~3 or not fixed(data, position + 16):
-                        raise failure("desktop_input_unverified")
-                    scrolls[number] = data[position : position + 10] + data[position + 12 : end]
-                else:
-                    raise failure("desktop_input_unverified")
-            position = end
         if identity in counts:
-            if labels is None or not {0, 1} <= axes.keys() or not scrolls.keys() <= axes.keys():
-                raise failure("desktop_input_unverified")
-            devices[identity] = PointerDevice(
-                identity,
-                button_source,
-                labels,
-                tuple(axes[number] for number in sorted(axes)),
-                tuple(scrolls[number] for number in sorted(scrolls)),
+            devices[identity], position = pointer_classes(
+                data, position, count, identity, counts[identity], {identity} if identity == plan.source else allowed
             )
+        else:
+            for _ in range(count):
+                position += cast(int, unpack("H", data, position + 2)[0]) * 4
     if set(devices) != set(counts):
         raise failure("desktop_input_unverified")
     return devices[plan.master], devices[plan.source]
@@ -177,12 +192,12 @@ class PointerConfiguration:
         if await self.focus.verify_pointer_actions() != self._plan:
             raise failure("desktop_user_intervened")
 
-    async def _read(self) -> PointerState:
+    async def _read(self, expected_topology: str | None = None) -> PointerState:
         wire, plan, atoms = self.focus.monitor.wire, self._plan, self._atoms
         if wire is None or wire.opcode is None or plan is None or atoms is None:
             raise failure("desktop_input_unverified")
         data = await wire.request(wire.opcode, struct.pack("<Hxx", 0), 48, maximum=32768)
-        master, source = pointer_devices(data, plan, self.focus.monitor.topology)
+        master, source = pointer_devices(data, plan, expected_topology or self.focus.monitor.topology)
         controls: list[tuple[tuple[int, int, int, int], ...]] = []
         matrices: list[tuple[float, ...]] = []
         for identity in (plan.master, plan.source):
@@ -248,3 +263,19 @@ class PointerConfiguration:
         except BaseException:
             self._valid = False
             raise
+
+    async def read_copied(self, expected: PointerState, topology: str) -> None:
+        """Check a precomputed source copy inside the owner's native transition bracket; do not adopt."""
+        if not self._valid or self._state is None or expected.plan != self._state.plan:
+            raise failure("desktop_input_unverified")
+        try:
+            if await self._read(topology) != expected:
+                raise failure("desktop_user_intervened")
+        except BaseException:
+            self._valid = False
+            raise
+
+    def adopt_copied(self, before: PointerState, after: PointerState) -> None:
+        if not self._valid or self._state != before or before.plan != after.plan:
+            raise failure("desktop_input_unverified")
+        self._state = after

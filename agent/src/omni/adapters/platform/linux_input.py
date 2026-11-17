@@ -24,6 +24,12 @@ class KeyLease(Protocol):
     async def settle(self) -> bool: ...
 
 
+class PointerEvents(Protocol):
+    def device(self, header: bytes, payload: bytes) -> bool: ...
+
+    def accept(self, header: bytes, payload: bytes) -> bool: ...
+
+
 class KeyTransition(Protocol):
     @property
     def complete(self) -> bool: ...
@@ -199,11 +205,23 @@ class InputWire(Wire):
         self.key_events: KeyEvents | None = None
         self.key_lease: KeyLease | None = None
         self._key_query = False
+        self.motion_events: PointerEvents | None = None
+        self.motion_lease: KeyLease | None = None
+        self._motion_query = False
 
     async def send(self, opcode: int, data: bytes = b"", minor: int = 0) -> None:
         if self.key_lease is not None and not (self._key_query and opcode == 44 and not data and minor == 0):
             raise failure("desktop_input_unverified")
+        if self.motion_lease is not None and not (
+            self._motion_query
+            and opcode == 38
+            and self.setup is not None
+            and data == struct.pack("<I", self.setup.root)
+            and minor == 0
+        ):
+            raise failure("desktop_input_unverified")
         self._key_query = False
+        self._motion_query = False
         await super().send(opcode, data, minor)
 
     async def key_barrier(self, lease: KeyLease) -> bytes:
@@ -214,6 +232,15 @@ class InputWire(Wire):
             return await self.request(44, maximum=8)
         finally:
             self._key_query = False
+
+    async def motion_barrier(self, lease: KeyLease) -> bytes:
+        if self.motion_lease is not lease or self.setup is None:
+            raise failure("desktop_input_unverified")
+        self._motion_query = True
+        try:
+            return await self.request(38, struct.pack("<I", self.setup.root), maximum=0)
+        finally:
+            self._motion_query = False
 
     async def read(self, length: int) -> bytes:
         if self.received + length > 1024 * 1024:
@@ -249,6 +276,10 @@ class InputWire(Wire):
             if category == 1 and self.key_events is not None and self.key_events.device(header, payload):
                 return
             if category in RAW and self.key_events is not None and self.key_events.accept(header, payload):
+                return
+            if category == 1 and self.motion_events is not None and self.motion_events.device(header, payload):
+                return
+            if category in RAW and self.motion_events is not None and self.motion_events.accept(header, payload):
                 return
         elif header[0] in {9, 10}:
             if self.focus is None or unpack("I", header, 4)[0] != self.focus:
@@ -294,13 +325,15 @@ class X11Input:
         await self.released()
         await self.connection.verify()
 
-    async def released(self) -> None:
+    async def released(self, expected_topology: str | None = None) -> None:
         assert self.wire is not None and self.wire.opcode is not None
         data = await self.wire.request(self.wire.opcode, struct.pack("<Hxx", 0), 48, maximum=32768)
         topology = devices(data)
-        if self.topology is not None and self.topology != topology:
+        expected = expected_topology or self.topology
+        if expected is not None and expected != topology:
             raise failure("desktop_input_unverified")
-        self.topology = topology
+        if expected_topology is None:
+            self.topology = topology
         keys = await self.wire.request(44)
         if len(keys) != 40 or any(keys[8:40]):
             raise failure("desktop_input_held")
@@ -324,9 +357,13 @@ class X11Input:
         await self.check()
 
     async def check(self) -> None:
+        await self.check_expected(None)
+
+    async def check_expected(self, topology: str | None) -> None:
+        """Read-only guard during a precomputed owned transition; no topology adoption or latch reset."""
         assert self.connection is not None and self.wire is not None
         await self.connection.verify()
-        await self.released()
+        await self.released(topology)
         focus = await self.wire.request(43)
         if len(focus) != 32 or unpack("I", focus, 8)[0] != self.wire.focus or self.wire.changed:
             raise failure("desktop_user_intervened")
@@ -382,5 +419,7 @@ class X11Input:
 
     async def close(self) -> bool:
         if self.wire is not None and self.wire.key_lease is not None and not await self.wire.key_lease.settle():
+            return False
+        if self.wire is not None and self.wire.motion_lease is not None and not await self.wire.motion_lease.settle():
             return False
         return self.connection is None or await self.connection.close()

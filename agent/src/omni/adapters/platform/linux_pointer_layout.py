@@ -222,3 +222,19 @@ class PointerMotion:
         except BaseException:
             self._valid = False
             raise
+
+    async def read_current(self) -> None:
+        """Actual layout read within an owned native transition bracket; no input permission."""
+        if not self._valid or self._plan is None:
+            raise failure("desktop_input_unverified")
+        try:
+            if await self._read() != self._layout:
+                raise failure("desktop_user_intervened")
+        except BaseException:
+            self._valid = False
+            raise
+
+    def adopt_copied(self, before: PointerState, after: PointerState) -> None:
+        if not self._valid or self._state != before or before.source != after.source:
+            raise failure("desktop_input_unverified")
+        self._state = after

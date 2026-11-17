@@ -1,0 +1,167 @@
+{
+  "source_base": "92b4863ba49564462a1fd04464531ac6e7bb930f",
+  "scope": "Internal single absolute XTEST motion packet, exact source/master RawMotion receipt ownership and precomputed pointer source-class copy with full native postchecks; no mouse business or click integration.",
+  "source_files": {
+    "agent/src/omni/adapters/platform/linux_motion_events.py": "1fc7694a9acf5245769755c2be82c206ada18ae1d48384f4c0a4845bf1a4a75e",
+    "agent/src/omni/adapters/platform/linux_motion_packet.py": "6d2f1f90cf2a371282ade7c40eb7d9eb9ff9e4c7a8fab98163f8f2e886062bc4",
+    "agent/src/omni/adapters/platform/linux_pointer_switch.py": "9862355a2b19f07e52b5b4bda60078214c05a0332a155940c74b8cfe9ce684c3",
+    "agent/src/omni/adapters/platform/linux_pointer_config.py": "19857f942bac7ce7ef362200ec87d2331d5aa298a853a105db7199375cd0e8ca",
+    "agent/src/omni/adapters/platform/linux_foreground.py": "0e94d2505a82ba8241948eba3c0b1c67fa6a35ba81ee1dc1d089c6d1da85ea28",
+    "agent/src/omni/adapters/platform/linux_input.py": "54d32d283e1b7a05df20739e660bbed62439ea06e0b59c52f909ba79a91294ec",
+    "agent/src/omni/adapters/platform/linux_keystroke.py": "2046a426651b31583a89fb5af8252eabc5556b0ecfa99db5ac7b3b3abc40da3f",
+    "agent/src/omni/adapters/platform/linux_xtest.py": "9eda11d9bb49bb985efde699cb571c94b0fc57c0ec9c73aa373893ec2f5e851c",
+    "agent/src/omni/adapters/platform/linux_button_mapping.py": "3018db5dfe7c7b8bbabbce9fc3fe1d196081d3e2141939b89a75be1567c1af38",
+    "agent/src/omni/adapters/platform/linux_pointer_layout.py": "18ddc07aff5431bf9e4af614a5f7d44d222d89fea024958a4873c5f98ebe3d23",
+    "agent/tests/v2_linux_motion_packet_helpers.py": "f500dccf1fba0d5b017c12de64083dbff0de84dcd43e28390d038402ae5d3f6d",
+    "agent/tests/test_v2_linux_motion_packet.py": "62dea99361b9d538633664c4f15a98087ef50d1b51a2a67d9b56b62cdc924a56",
+    "pyrightconfig.strict.json": "433db67240ea8863ca4f052fb8fdd6c53a90c360cd422e58aad102dc895e3f8a",
+    "docs/TYPE_CHECKING.md": "d60910e74ac4b5a2a6bf64fe5bce18ff4b8b80ceff48a4cb5eed8a388c8b8779"
+  },
+  "fixed_source_manifest": {
+    "path": "temp/build/v2-linux-motion-packet-source-r3.json",
+    "sha256": "cce692c0b27ae0b371489363f61f7ca7d9756fd538f3daf446e80331aea8dfdc"
+  },
+  "scoped_tests": {
+    "distinct_current_nodes_passed": 591,
+    "new_motion_packet_and_copy_nodes": 51,
+    "existing_callers_and_contracts": 540,
+    "per_module": {
+      "tests.test_v2_architecture": 6,
+      "tests.test_v2_linux_button_mapping": 43,
+      "tests.test_v2_linux_desktop": 36,
+      "tests.test_v2_linux_foreground": 18,
+      "tests.test_v2_linux_input": 15,
+      "tests.test_v2_linux_key_action": 29,
+      "tests.test_v2_linux_key_switch": 33,
+      "tests.test_v2_linux_keystroke": 29,
+      "tests.test_v2_linux_pointer_actions": 42,
+      "tests.test_v2_linux_pointer_config": 43,
+      "tests.test_v2_linux_pointer_target": 60,
+      "tests.test_v2_linux_semantic": 21,
+      "tests.test_v2_linux_text": 25,
+      "tests.test_v2_linux_window_binding": 43,
+      "tests.test_v2_linux_x11": 31,
+      "tests.test_v2_linux_xtest": 24,
+      "tests.test_v2_typecheck_scope": 2,
+      "tests.test_v2_linux_pointer_motion": 40,
+      "tests.test_v2_linux_motion_packet": 51
+    },
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0,
+    "seconds": 135.74,
+    "reports": [
+      {
+        "path": "temp/build/v2-linux-motion-packet-final.xml",
+        "sha256": "5bdde84d706e6cfddd67d89cf084809d30aed70347ef8aa4369ce0a854ff31a6"
+      }
+    ]
+  },
+  "initial_results": [
+    {
+      "passed": 43,
+      "failed": 1,
+      "seconds": 16.87,
+      "report": {
+        "path": "temp/build/v2-linux-motion-packet-r1.xml",
+        "sha256": "541cdf176f5cbf4922c6f6cc03ce3551e026d627ee1eef8710500117deeed518"
+      },
+      "source_manifest": {
+        "path": "temp/build/v2-linux-motion-packet-source-r1.json",
+        "sha256": "85b05fb62a41c8b3105bfebb991c77577eb2eaa3f16a4128a3aebaff30160d6e"
+      },
+      "source_delta_archive": {
+        "path": "temp/build/v2-linux-motion-packet-initial-source-delta.zip",
+        "sha256": "5503973f0f8063ac665c6c9985ca8d95cbb2e0bfaea98c6739254a416f2818df"
+      },
+      "finding": "The XKB-drift test changed a fixture field not returned by its QueryPointer override. Changed the fixture to return an actual non-NoAction master button. Runtime bytes unchanged; no assertion weakened."
+    },
+    {
+      "targeted_failed_node_and_new_copy_cases_passed": 4,
+      "seconds": 2.46,
+      "report": {
+        "path": "temp/build/v2-linux-motion-packet-r2-targeted.xml",
+        "sha256": "32b92663afc134d797c95ec847048b1a3059a1970049cee45b5708347b759b60"
+      }
+    }
+  ],
+  "strict_modified_files": {
+    "files": 10,
+    "errors": 0,
+    "warnings": 0,
+    "report": {
+      "path": "temp/build/v2-linux-motion-packet-pyright-r1.json",
+      "sha256": "cca57367522f1c8582ca604e5dfe358ef33ca13aef7086fcb70332602e11b73a"
+    },
+    "runtime_hashes_identical_in_all_three_revisions": true
+  },
+  "motion_packet": {
+    "layout": "Exactly one 36-byte XTEST FakeInput, absolute core MotionNotify6, CurrentTime, explicit proven root, signed16 request coordinates, no button or device/configuration write.",
+    "attribution": "Exactly two same-reserved-sequence RawMotion17 receipts, source then paired master, source identity/detail0/flags0 and shared timestamp. Bounded1..8 mask words, exactly axes0/1, all other mask bits zero. Processed FP32.32 values then unprocessed values must equal the original plan; integral/fraction parsed separately.",
+    "partial_write": "Before first byte reserve one request sequence and attach the actual monitor lease/events. Track exact sends through blocking/zero/error/cancel. An incomplete request is dropped with its stream; settlement never completes new motion. No automatic replay.",
+    "acknowledgment": "Full request is followed only by the same-owner QueryPointer barrier. Valid protocol reply settles transport even when cursor/root/screen/mask/receipts make outcome unverified; motion has no held-button release suffix. emit additionally requires original root pixel, released logical mask, exact receipts, unchanged latch and complete post-copy guard.",
+    "uncertainty": "Waiter cancellation cannot cancel the retained barrier task. Invalid/missing/timed-out acknowledgment keeps exact connection/lease/task, rejects other queries and does not start a replacement query or claim clean close. External window/session connection remains owned by its original owner."
+  },
+  "pointer_copy": {
+    "precompute": "Fresh complete QueryDevice must match prepared PointerState and topology. Precompute master button-source/leading labels, all source axis/scroll classes and feedback head; retain actual master button count, tail labels/feedback, button maps and CTM. Duplicate feedback IDs or unsupported copy shape refuse before input.",
+    "notification": "At most one exact same-request XI SlaveSwitch before first RawMotion. Its payload describes SOURCE classes, not full master; canonical metadata compared exactly, only dynamic axis values and documented padding ignored. Missing notification is allowed only if actual before-state remains unchanged.",
+    "postcheck": "Actual topology/classes before/after full native focus/session/released/window/lineage, hit path, XTEST properties, complete button maps, XKB actions/environment, double actual feedback/CTM and RandR layout reads. Expected topology used only for read-only comparison until all proofs pass, then synchronously adopt precomputed topology/configuration. Never reset changed or rebind arbitrary current state.",
+    "covered": "Unequal source/master button counts and retained tails, unequal axis counts, scroll metadata on an unsupplied axis, nondefault feedback, unchanged master CTM, wrong/late/duplicate/missing class notifications, nondefault fractional raw/processed receipts, unnotified configuration/layout/focus drift and postcheck cancellation."
+  },
+  "wire_lifetime_limits": {
+    "dedicated_input_requests": 8192,
+    "dedicated_input_messages": 8448,
+    "dedicated_input_cumulative_received_bytes": 1048576,
+    "ordinary_wire_cumulative_received_bytes": 66000000,
+    "input_events": 256,
+    "reply_timeout_seconds": 0.5,
+    "per_request_payload_bytes": 4096,
+    "limit_changes_this_batch": false,
+    "key_packet_existing_lower_limit_changed": false
+  },
+  "historical_limit_correction": "Earlier pointer-actions evidence recorded the base Wire 66MB as an input effective cap. InputWire.read already enforces 1MiB before base Wire.read. Added explicit correction to historical evidence and current contract; no runtime limit changed.",
+  "protocol_sources": [
+    {
+      "url": "https://raw.githubusercontent.com/XQuartz/xorg-server/master/dix/eventconvert.c",
+      "local_copy": "temp/build/v2-linux-pointer-mapping-research/dix/eventconvert.c",
+      "sha256": "60a80198a80c5eb47703124bfde4309692cfd98a1e0cb6ae6de1724e5ffded24"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/XQuartz/xorg-server/master/dix/getevents.c",
+      "local_copy": "temp/build/v2-linux-pointer-mapping-research/dix/getevents.c",
+      "sha256": "6a8b81659f274d05aad6fe5ced2436f3533def9e5ee556e85fd65004ccf9d0e3"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/XQuartz/xorg-server/master/Xi/exevents.c",
+      "local_copy": "temp/build/v2-linux-pointer-mapping-research/Xi/exevents.c",
+      "sha256": "ceb8fd965021d6b16213d85ff84fc13569824e3b6a34d6b80165280095eb7978"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/XQuartz/xorg-server/master/Xi/xiquerydevice.c",
+      "local_copy": "temp/build/v2-linux-pointer-mapping-research/Xi/xiquerydevice.c",
+      "sha256": "f8d8b3e4c31038f133ee18c57621d96fb7be4fae16056ba652a577432cd9918b"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/XQuartz/xorg-server/master/mi/mieq.c",
+      "local_copy": "temp/build/v2-linux-pointer-mapping-research/mi/mieq.c",
+      "sha256": "4e27bc2cf2ceec086d801f6bd82862a5a68d1cc456a827d04784acf903b375aa"
+    }
+  ],
+  "native_configuration": "All native connections/replies/stream writes injected. Actual complete WindowFocus preparation/postcheck and InputWire event readers exercised. Frozen HEAD plus own files, imported runtime path and before/after root/shadow SHA checked. Offline gate retained; Windows asyncio approved outside sandbox, no actual X11 server/input, user service stop or environment rebuild.",
+  "native_linux_executed": false,
+  "native_pointer_motion_or_click_executed": false,
+  "internal_motion_delivery_and_ownership_implemented": true,
+  "internal_pointer_copy_transition_implemented": true,
+  "mouse_business_dispatch_enabled": false,
+  "pointer_press_release_lease_implemented": false,
+  "atspi_physical_point_or_application_result_implemented": false,
+  "real_account_model_device_native_desktop_or_72h_executed": false,
+  "registered_strict_scope": 368,
+  "registered_scope_fully_rechecked": false,
+  "ruff_and_format_modified_files_passed": true,
+  "full_suite_run": false,
+  "whole_v2_development_complete": false,
+  "whole_v2_accepted": false,
+  "publication": "Local-only commit. Specific remote transfer authorization still pending; no push retry.",
+  "next": "Separately guarded paired pointer press/release with RawButton ownership and actual retained release, AT-SPI physical-point association and per-action business permit/application outcome. Generic-provider/native navigation, legacy/multiple-root geometry, Wayland input and original requirement audit remain open. Full suite after whole V2 development freeze."
+}

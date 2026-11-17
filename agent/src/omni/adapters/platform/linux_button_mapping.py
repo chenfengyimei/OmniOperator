@@ -109,13 +109,13 @@ class ButtonMapping:
         )
         await self._client()  # barrier acknowledges the void subscription
 
-    async def _counts(self) -> dict[int, int]:
+    async def _counts(self, expected_topology: str | None = None) -> dict[int, int]:
         wire, sources = self.focus.monitor.wire, self._sources
         if wire is None or wire.opcode is None or sources is None:
             raise failure("desktop_input_unverified")
         data = await wire.request(wire.opcode, struct.pack("<Hxx", 0), 48, maximum=32768)
         topology = device_topology(data)
-        if topology.fingerprint != self.focus.monitor.topology:
+        if topology.fingerprint != (expected_topology or self.focus.monitor.topology):
             raise failure("desktop_user_intervened")
         selected = {sources.pointer_master, sources.pointer}
         counts: dict[int, int] = {}
@@ -152,12 +152,12 @@ class ButtonMapping:
             raise failure("desktop_input_unverified")
         return data[32 : 32 + size]  # protocol padding is not mapping data
 
-    async def _read(self) -> tuple[ButtonPlan, bytes]:
+    async def _read(self, expected_topology: str | None = None) -> tuple[ButtonPlan, bytes]:
         wire, sources = self.focus.monitor.wire, self._sources
         if wire is None or wire.setup is None or sources is None:
             raise failure("desktop_input_unverified")
         await self._client()
-        counts = await self._counts()
+        counts = await self._counts(expected_topology)
         master = await self._map(sources.pointer_master, counts[sources.pointer_master])
         source = await self._map(sources.pointer, counts[sources.pointer])
         if await self._map(None, counts[sources.pointer_master]) != master:
@@ -208,12 +208,12 @@ class ButtonMapping:
             self._valid = False
             raise
 
-    async def read_current(self) -> ButtonPlan:
+    async def read_current(self, expected_topology: str | None = None) -> ButtonPlan:
         """Leaf comparison within WindowFocus's complete bracket; never a dispatch permit."""
         if not self._valid or self._snapshot is None:
             raise failure("desktop_input_unverified")
         try:
-            if await self._read() != self._snapshot:
+            if await self._read(expected_topology) != self._snapshot:
                 raise failure("desktop_user_intervened")
             return self._snapshot[0]
         except BaseException:

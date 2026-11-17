@@ -10,10 +10,12 @@ from .linux_button_mapping import ButtonMapping, ButtonPlan
 from .linux_input import X11Input
 from .linux_keyboard import KeyboardMapping
 from .linux_keystroke import KeyPacket
+from .linux_motion_packet import MotionPacket
 from .linux_pointer_actions import PointerActions
 from .linux_pointer_config import PointerConfiguration, PointerState
 from .linux_pointer_layout import PointerMotion
 from .linux_pointer_motion import MotionPlan
+from .linux_pointer_switch import PointerSwitch
 from .linux_pointer_target import PointerPoint, PointerTarget
 from .linux_window_leases import WindowLeases
 from .linux_x11 import X11Desktop
@@ -125,16 +127,22 @@ class WindowFocus:
         await self._validate()
         self._ready = True
 
-    async def _validate(self) -> None:
+    async def _validate(self, expected_topology: str | None = None) -> None:
         if self._closed or self._target is None or self._original is None or self._lineage is None:
             raise failure("desktop_input_unverified")
         if await self.leases.verify(self._target) != self._original:
             raise failure("desktop_target_changed")
-        await self.monitor.check()
+        if expected_topology is None:
+            await self.monitor.check()
+        else:
+            await self.monitor.check_expected(expected_topology)
         self._same_server()
         if await self._read_lineage() != self._lineage:
             raise failure("desktop_target_changed")
-        await self.monitor.check()
+        if expected_topology is None:
+            await self.monitor.check()
+        else:
+            await self.monitor.check_expected(expected_topology)
 
     async def check(self) -> None:
         if not self._ready:
@@ -329,6 +337,56 @@ class WindowFocus:
             if self._sources is None:
                 raise failure("desktop_input_unverified")
             return KeyPacket(self.monitor, self._sources.opcode, sources, code, transition)
+        except BaseException:
+            self._ready = False
+            raise
+
+    async def _verify_motion_copy(self, state: PointerState, topology: str) -> None:
+        if (
+            not self._ready
+            or self._pointer is None
+            or self._sources is None
+            or self._buttons is None
+            or self._pointer_actions is None
+            or self._pointer_configuration is None
+            or self._motion is None
+        ):
+            raise failure("desktop_input_unverified")
+        try:
+            await self._validate(topology)
+            await self._pointer.read_current()
+            await self._sources.read_current(topology)
+            await self._buttons.read_current(topology)
+            await self._pointer_actions.read_current()
+            await self._pointer_configuration.read_copied(state, topology)
+            await self._motion.read_current()
+            await self._pointer_configuration.read_copied(state, topology)
+            await self._validate(topology)
+        except BaseException:
+            self._ready = False
+            raise
+
+    async def motion_packet(self) -> MotionPacket:
+        """Prepare internal native delivery; semantic target, per-action permit and clicks remain external."""
+        try:
+            plan = await self.verify_motion()
+            state = await self.verify_pointer_configuration()
+            if self._sources is None or self._pointer_configuration is None or self._motion is None:
+                raise failure("desktop_input_unverified")
+            sources = await self._sources.read_current()
+            wire = self.monitor.wire
+            if wire is None or wire.opcode is None:
+                raise failure("desktop_input_unverified")
+            data = await wire.request(wire.opcode, struct.pack("<Hxx", 0), 48, maximum=32768)
+
+            def adopt(after: PointerState) -> None:
+                assert self._pointer_configuration is not None and self._motion is not None
+                self._pointer_configuration.adopt_copied(state, after)
+                self._motion.adopt_copied(state, after)
+
+            transition = PointerSwitch(self.monitor, state, data, self._verify_motion_copy, adopt)
+            await self.check()
+            return MotionPacket(self.monitor, self._sources.opcode, sources, plan, transition)
         except BaseException:
             self._ready = False
             raise

@@ -34,13 +34,13 @@ class XTestSources:
             raise failure("desktop_input_unverified")
         return self._opcode
 
-    async def _read(self) -> Sources:
+    async def _read(self, expected_topology: str | None = None) -> Sources:
         wire = self.monitor.wire
         if wire is None or wire.opcode is None or self._atom is None:
             raise failure("desktop_input_unverified")
         data = await wire.request(wire.opcode, struct.pack("<Hxx", 0), 48, maximum=32768)
         topology = device_topology(data)
-        if topology.fingerprint != self.monitor.topology:
+        if topology.fingerprint != (expected_topology or self.monitor.topology):
             raise failure("desktop_user_intervened")
         masters = {device.kind: device.identity for device in topology.entries if device.kind in {1, 2}}
         found: dict[int, int] = {}
@@ -117,12 +117,12 @@ class XTestSources:
             self._valid = False
             raise
 
-    async def read_current(self) -> Sources:
+    async def read_current(self, expected_topology: str | None = None) -> Sources:
         """Leaf comparison for a caller holding the complete native read-only guard."""
         if not self._valid or self._sources is None:
             raise failure("desktop_input_unverified")
         try:
-            if await self._read() != self._sources:
+            if await self._read(expected_topology) != self._sources:
                 raise failure("desktop_user_intervened")
             return self._sources
         except BaseException:

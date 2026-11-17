@@ -46,7 +46,7 @@ Xorg先将slave物理按钮码通过slave表映射为master事件的detail，再
 
 对两个设备分别使用GetDeviceInfo，要求完整ButtonActions能力、正确设备、完整请求范围和实际总按钮数、无额外LED负载及独立键盘状态。计数字符串和返回范围均有界，回复长度精确；完整按钮集合只接受NoAction。Xorg会裁去前后NoAction，空动作数组与已分配但全为NoAction的数组可能分别返回起始0或按钮总数、长度0；二者及显式NoAction规范化为同一效果，填充与无动作的未使用字节不进入指纹。设备名称、类型、能力和反馈身份仍进入身份；其他实际动作、配置变化或同效果之外的元数据变化不能重绑旧准备。
 
-动作准备双读，使用前重读，原窗口/物理点/设备/映射和XKB状态/控制在其前后复核。失败和取消均使旧准备失效，外部窗口连接/Session归属不改变。组合链实际暴露旧InputWire的1024请求上限不足；专用监测现保留固定8192请求及8448消息的连接寿命额度，原66MB累计接收、单回复/请求上界、500ms回复超时和独立256事件上界不变。普通窗口读取Wire仍保持1024请求/2048消息；不按每次操作重置或回绕序号。
+动作准备双读，使用前重读，原窗口/物理点/设备/映射和XKB状态/控制在其前后复核。失败和取消均使旧准备失效，外部窗口连接/Session归属不改变。组合链实际暴露旧InputWire的1024请求上限不足；专用监测现保留固定8192请求及8448消息的连接寿命额度，InputWire原1MiB累计接收（普通Wire为66MB）、单回复/请求上界、500ms回复超时和独立256事件上界不变。普通窗口读取Wire仍保持1024请求/2048消息；不按每次操作重置或回绕序号。
 
 本批42项新回归与558项X11/XKB/输入/窗口/按键/文本/语义及架构/类型调用方，共600不同专项通过（先修复的正向节点0.84秒，其余113.35秒）；6修改运行文件strict零错误/警告，362仅登记，未整范围或全量。首轮26通过/14旧请求额度失败及1条名称长度Unknown类型诊断、原源码均留档；当前专项固定源码前后核对SHA，默认离线闸门保留。没有真实Linux/鼠标输入。见[本批证据](evidence/v2-linux-pointer-actions.json)。
 
@@ -81,6 +81,22 @@ Xorg的XTEST绝对移动使用桌面坐标，但仍经过轴范围缩放、变�
 本批40项新回归与500项直接X11/输入/窗口/配置/XKB/成对按键/文本/语义及架构/类型调用方，共540不同专项通过（9.42秒+106.47秒）；10修改运行文件strict零错误/警告，365仅登记，未整范围/全量。首轮测试参数名与pytest保留名冲突、其后排版导致冻结哈希拦截，旧源码/清单/原报告均留档修正；运行实现一致，未放宽校验或断言。默认离线闸门保留，没有真实Linux、鼠标或全量结论。见[本批证据](evidence/v2-linux-pointer-motion.json)。
 
 协议依据：[XTEST绝对请求](https://www.x.org/archive/X11R7.5/doc/Xext/xtest.pdf)、[Xorg坐标缩放与raw生成](https://github.com/XQuartz/xorg-server/blob/master/dix/getevents.c)、[原生屏幕原点归一化](https://github.com/XQuartz/xorg-server/blob/master/hw/xfree86/common/xf86Cursor.c)、[旧Xinerama与xf86 RandR资源边界](https://github.com/XQuartz/xorg-server/blob/master/hw/xfree86/modes/xf86RandR12.c)和[XCB RandR结构](https://xcb.freedesktop.org/manual/randr_8h_source.html)。业务`click`仍未开放；继续来源复制、逐事件归属/释放、控件物理点绑定与逐次许可/应用后验，整个V2尚未完成。
+
+## 内部移动派发、RawMotion归属及指针复制
+
+`WindowFocus.motion_packet()`把已准备的原生点、RandR布局与完整指针配置接到单次内部`MotionPacket`。同一XTEST连接上只发送一个36字节绝对移动请求，明确原root、零延迟及既有有符号16位坐标。对象不可重放；发送前序号须仍是准备时的序号，键盘/移动租约互斥。业务`click`尚未接入，不将内部移动回执当作应用操作成功。
+
+首字节前登记真实连接租约并保留请求序号。每次非阻塞发送都累计实际字节；不完整请求取消后关闭该流丢弃，不能补齐一次新移动。完整请求只允许原所有者发QueryPointer屏障。结构有效的回复证明请求已处理，可结清移动传输；即使位置、root、same-screen、逻辑掩码或原始事件不符，也不能据此报告移动验证成功。移动没有本动作按住的按钮，不发送按键式抬起后缀。坏回复、超时或回读不明时保留原连接/租约/任务，不重查、不重放、不假报关闭；取消等待不取消原屏障任务，外部窗口连接继续归原所有者。
+
+`MotionEvents`只接受该移动请求序号下、source再master的两条RawMotion17；设备/来源、detail0、flags0和配对时间均须精确。掩码长度1至8个word，仅0/1轴有效，其余全零；先读取processed再读取raw的两组FP32.32，按有符号整数部分与无符号小数部分解码，分别匹配原计划，不把坐标当小端int64。缺失、额外、乱序、其他客户端共用来源、非零标志或错误值都使本次结果未验证并锁存变化。
+
+`PointerSwitch`在发送前预计算唯一的来源类复制。DeviceChanged携带的是source按钮/轴/滚动描述，不能用它替代完整master配置。预测保留master实际按钮数、尾标签/反馈、完整映射及CTM，仅复制原生会复制的来源、前部标签、轴/滚动和反馈头；不支持的复制形状或重复反馈ID在输入前拒绝。最多一条同请求SlaveSwitch可出现在首RawMotion前，规范化后须精确等于原source，只有瞬时轴值和协议填充忽略；没有通知时实际旧状态必须仍成立。
+
+完整Raw回执后，两次真实拓扑/类读取包住原生窗口/焦点/会话/释放/祖先链、命中路径、XTEST属性、完整按钮表、XKB动作/环境、两次反馈/矩阵及实际RandR布局核验。预期新拓扑只用于只读比较；全部成立后才同步采用预计算拓扑和配置。变化标志不清空，失败或取消不能采用暂态配置或重绑旧证明。
+
+本批51新增及540输入/窗口/配置/按键/文本/语义/桌面与架构/类型调用方，共591不同专项通过（135.74秒）；10修改运行文件strict零错误/警告，368仅登记，未整范围/全量。首轮43过/1个XKB变化夹具失败及源码保留，修正实际返回的动作后原失败节点与新增复制用例4过；运行源码三轮SHA相同。全程注入，未真实Linux/鼠标/账号/设备/72h验收。见[移动派发证据](evidence/v2-linux-motion-packet.json)。
+
+同时更正历史额度说明：专用InputWire原有`read`覆盖限制累计1MiB，普通Wire基类为66MB；历史[动作证据](evidence/v2-linux-pointer-actions.json)保留原值并添加明确纠正，本批没有提高或重置任何额度。协议依据：[原生DeviceChanged/Raw编码](https://raw.githubusercontent.com/XQuartz/xorg-server/master/dix/eventconvert.c)、[指针类别复制](https://raw.githubusercontent.com/XQuartz/xorg-server/master/Xi/exevents.c)、[QueryDevice类描述](https://raw.githubusercontent.com/XQuartz/xorg-server/master/Xi/xiquerydevice.c)与[slave/master事件复制](https://raw.githubusercontent.com/XQuartz/xorg-server/master/mi/mieq.c)。成对点击释放、AT-SPI物理点和逐次业务许可/应用后验继续开发，整个V2未完成。
 
 ## 已接通的受限文本追加
 
