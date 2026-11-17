@@ -51,5 +51,17 @@
   "whole_v2_accepted": false,
   "next": "Multi-Agent owner entrypoints, then Linux persistent window identity and explicit control",
   "parallel_uncommitted_schema_ui_work_included": false,
-  "network_models_real_accounts_devices_or_native_input_executed": false
+  "network_models_real_accounts_devices_or_native_input_executed": false,
+  "fixture_import_followup": {
+    "change": "Explicit pytest fixture re-export; no runtime code change",
+    "source_file": "agent/tests/test_v2_event_stream_frontend.py",
+    "source_sha256": "4961b47bca5e7d35e5df792531c0c77e6545843400d06778d4b5e4c7bf25c2da",
+    "scoped_passed": 2,
+    "report": {
+      "path": "temp/build/v2-event-stream-fixture-import.xml",
+      "sha256": "9d6c95afa89d581944d3487d4cea3ec967aada4571b1d87bd66c944ca4ed3d74"
+    },
+    "ruff_modified_files_passed": true,
+    "full_suite_run": false
+  }
 }

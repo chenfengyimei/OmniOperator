@@ -7,7 +7,7 @@ from pathlib import Path
 
 import httpx
 from playwright.sync_api import expect
-from test_v2_ui import v2_server  # noqa: F401 -- shared server factory, per-test home and lifespan
+from test_v2_ui import v2_server as v2_server
 
 
 def test_event_stream_frontend_protocol_and_connection_ownership():
