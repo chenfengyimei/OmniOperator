@@ -34,15 +34,13 @@ def read_keymap(descriptor: int, size: int) -> bytes:
         data.extend(block)
     after = os.fstat(descriptor)
     fields = ("st_dev", "st_ino", "st_mode", "st_size", "st_mtime_ns", "st_ctime_ns")
-    if (
-        any(getattr(before, field) != getattr(after, field) for field in fields)
-        or not data
-        or data[-1] != 0
-        or 0 in data[:-1]
-    ):
+    if any(getattr(before, field) != getattr(after, field) for field in fields) or not data or 0 in data[:-1]:
         raise failure("portal_eis_keymap_invalid")
     try:
-        data[:-1].decode("utf-8")
+        # EI declares a byte length, not a C-string size. Mutter sends strlen
+        # bytes without NUL; retain exact raw bytes and only omit an optional
+        # terminal NUL from text validation, never from the stored hash/size.
+        (data[:-1] if data[-1] == 0 else data).decode("utf-8")
     except UnicodeError:
         raise failure("portal_eis_keymap_invalid") from None
     return bytes(data)

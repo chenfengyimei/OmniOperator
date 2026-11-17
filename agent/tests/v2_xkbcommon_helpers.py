@@ -38,6 +38,7 @@ class Library:
 
     def __init__(self, *, key="Return", code=38, fault=None):
         self.calls, self.buffers = [], []
+        self.compiled_buffers = []
         self.rows = {code: [SYMBOLS[key]]}
         self.fault, self.direction = fault, None
         self.minimum, self.maximum, self.layouts, self.mods = 8, 255, 1, 0
@@ -58,6 +59,7 @@ class Library:
             context, buffer, size, format, flags = args
             assert context == self.context and format == 1 and flags == 0
             assert ctypes.string_at(buffer, size + 1)[-1:] == b"\0"
+            self.compiled_buffers.append(ctypes.string_at(buffer, size))
             assert [entry[0] for entry in self.calls].index("xkb_context_include_path_clear") < len(self.calls) - 1
             return None if self.fault == "parse" else self.keymap
         if name == "xkb_keymap_min_keycode":

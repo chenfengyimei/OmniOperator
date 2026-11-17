@@ -280,6 +280,16 @@
         "production_worker_or_business_connected": false,
         "input_authorized": false,
         "real_wayland_native_executed": false
+      },
+      "provider_keymap_lengths": {
+        "status": "source_verified_format_fix_scoped_passed_native_pending",
+        "evidence": "docs/evidence/v2-wayland-keymap-formats.json",
+        "mutter_source_revision": "fe9693a72c782e4c149dff58f706863d022f590e",
+        "optional_terminal_nul_raw_identity_preserved": true,
+        "complete_native_buffer_content_length": true,
+        "native_parser_executed": false,
+        "physical_intervention_or_target_proven": false,
+        "input_authorized": false
       }
     },
     {

@@ -75,15 +75,20 @@ class NativeXkb:
         return tuple(values[index] for index in range(count))
 
     def interpret(self, data: bytes, info: KeymapInfo, key: str) -> KeyMeaning:
+        body = data.removesuffix(b"\0")
         if (
             key not in KEYS
             or not 1 <= len(data) <= MAX_KEYMAP
             or len(data) != info.size
             or hashlib.sha256(data).hexdigest() != info.sha256
-            or data[-1:] != b"\0"
-            or b"\0" in data[:-1]
+            or not body
+            or b"\0" in body
         ):
             raise failure("portal_xkb_keymap_invalid")
+        try:
+            body.decode("utf-8")
+        except UnicodeError:
+            raise failure("portal_xkb_keymap_invalid") from None
         context = keymap = state = None
         try:
             # Compile the received self-contained map only. Never consult
@@ -93,8 +98,10 @@ class NativeXkb:
                 raise failure("portal_xkb_unavailable")
             self.library.xkb_context_include_path_clear(context)
             self.library.xkb_context_set_log_level(context, 10)
-            buffer = ctypes.create_string_buffer(data, len(data))
-            keymap = self.library.xkb_keymap_new_from_buffer(context, buffer, len(data) - 1, 1, 0)
+            # The C buffer gets its own sentinel; the explicit parse length is
+            # all original text bytes. Keep raw info bound to the received map.
+            buffer = ctypes.create_string_buffer(body)
+            keymap = self.library.xkb_keymap_new_from_buffer(context, buffer, len(body), 1, 0)
             if not keymap:
                 raise failure("portal_xkb_keymap_invalid")
             minimum, maximum = self.library.xkb_keymap_min_keycode(keymap), self.library.xkb_keymap_max_keycode(keymap)

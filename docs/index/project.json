@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "e19020be406e875143e3ff4140114af1106e6e35d7084183e180a9335d3ef5c0",
+  "source_sha256": "1e53f53c1ddd2990bd4a0c93d99f25f66becbaf00d11fb26ce8931e9a8dd83b8",
   "modules": [
     {
       "id": "v2-domain",
@@ -452,7 +452,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 64140,
+      "lines": 64145,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -27459,7 +27459,7 @@
       "path": "agent/src/omni/adapters/platform/linux_eis_keymap.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.linux_eis_keymap",
-      "lines": 95,
+      "lines": 93,
       "imports": [
         "omni.adapters.platform.linux_bus",
         "omni.adapters.platform.linux_fds"
@@ -27485,12 +27485,12 @@
         },
         {
           "name": "Keymap",
-          "line": 51,
+          "line": 49,
           "kind": "class"
         },
         {
           "name": "Keymap.__init__",
-          "line": 52,
+          "line": 50,
           "kind": "function",
           "parameters": [
             "self",
@@ -27504,7 +27504,7 @@
         },
         {
           "name": "Keymap._load",
-          "line": 58,
+          "line": 56,
           "kind": "function",
           "parameters": [
             "self"
@@ -27513,7 +27513,7 @@
         },
         {
           "name": "Keymap.load",
-          "line": 79,
+          "line": 77,
           "kind": "function",
           "parameters": [
             "self"
@@ -27522,7 +27522,7 @@
         },
         {
           "name": "Keymap.close",
-          "line": 86,
+          "line": 84,
           "kind": "function",
           "parameters": [
             "self"
@@ -32919,7 +32919,7 @@
       "path": "agent/src/omni/adapters/platform/linux_xkbcommon.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.linux_xkbcommon",
-      "lines": 184,
+      "lines": 191,
       "imports": [
         "omni.adapters.platform.linux_bus",
         "omni.adapters.platform.linux_eis_keymap",
@@ -32993,12 +32993,12 @@
         },
         {
           "name": "XkbCompiler",
-          "line": 145,
+          "line": 152,
           "kind": "class"
         },
         {
           "name": "XkbCompiler.__init__",
-          "line": 146,
+          "line": 153,
           "kind": "function",
           "parameters": [
             "self",
@@ -33010,7 +33010,7 @@
         },
         {
           "name": "XkbCompiler._compile",
-          "line": 151,
+          "line": 158,
           "kind": "function",
           "parameters": [
             "self",
@@ -33026,7 +33026,7 @@
         },
         {
           "name": "XkbCompiler.compile",
-          "line": 166,
+          "line": 173,
           "kind": "function",
           "parameters": [
             "self",
@@ -33042,7 +33042,7 @@
         },
         {
           "name": "XkbCompiler.close",
-          "line": 173,
+          "line": 180,
           "kind": "function",
           "parameters": [
             "self"

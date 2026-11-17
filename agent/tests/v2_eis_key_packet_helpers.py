@@ -12,8 +12,8 @@ from omni.adapters.platform.linux_xkbcommon import NativeXkb, XkbCompiler
 
 
 class KeyPeer(DevicePeer):
-    def __init__(self, folder, *, partial=4096):
-        super().__init__(folder, requested=1, partial=partial)
+    def __init__(self, folder, *, partial=4096, **kwargs):
+        super().__init__(folder, requested=1, partial=partial, **kwargs)
         self.armed = self.started = self.emulating = False
         self.stream = bytearray()
         self.keys, self.frames, self.effects = [], [], []

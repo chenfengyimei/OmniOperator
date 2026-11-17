@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`e19020be406e875143e3ff4140114af1106e6e35d7084183e180a9335d3ef5c0`。包含 65 个职责模块、785 个源码/界面文件。
+源码指纹：`1e53f53c1ddd2990bd4a0c93d99f25f66becbaf00d11fb26ce8931e9a8dd83b8`。包含 65 个职责模块、785 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -300,7 +300,7 @@
 | [agent/src/omni/adapters/platform/linux_eis_devices.py](../../agent/src/omni/adapters/platform/linux_eis_devices.py) | 528 | EI device inventory, key plans and owned transport; no business authority, physical-input or application proof. |
 | [agent/src/omni/adapters/platform/linux_eis_key_packet.py](../../agent/src/omni/adapters/platform/linux_eis_key_packet.py) | 159 | Single EI key pair with separate frames, exact partial writes and retained release/barrier; no business permission or app proof. |
 | [agent/src/omni/adapters/platform/linux_eis_keyboard.py](../../agent/src/omni/adapters/platform/linux_eis_keyboard.py) | 84 | Bind interpreted special keys to exact live EI inventory/map; planning only, no physical-input proof or dispatch. |
-| [agent/src/omni/adapters/platform/linux_eis_keymap.py](../../agent/src/omni/adapters/platform/linux_eis_keymap.py) | 95 | Bounded EI keymap copy with original FD/thread lifetime; no keymap execution, layout inference or input. |
+| [agent/src/omni/adapters/platform/linux_eis_keymap.py](../../agent/src/omni/adapters/platform/linux_eis_keymap.py) | 93 | Bounded EI keymap copy with original FD/thread lifetime; no keymap execution, layout inference or input. |
 | [agent/src/omni/adapters/platform/linux_fds.py](../../agent/src/omni/adapters/platform/linux_fds.py) | 109 | Owned received descriptors and bounded SCM_RIGHTS; no bus or desktop policy. |
 | [agent/src/omni/adapters/platform/linux_focus_navigation.py](../../agent/src/omni/adapters/platform/linux_focus_navigation.py) | 126 | Bounded complete AT-SPI focus readback in one native-bound window; never predicts tab order or sends input. |
 | [agent/src/omni/adapters/platform/linux_foreground.py](../../agent/src/omni/adapters/platform/linux_foreground.py) | 424 | Read-only X11 focus ancestry proof for future explicit foreground delivery; never maps AT-SPI nodes or sends input. |
@@ -334,7 +334,7 @@
 | [agent/src/omni/adapters/platform/linux_xkb.py](../../agent/src/omni/adapters/platform/linux_xkb.py) | 263 | Read-only XKB server state/actions on the existing input connection; no layout mutation, device acquisition or event dispatch. |
 | [agent/src/omni/adapters/platform/linux_xkb_copy.py](../../agent/src/omni/adapters/platform/linux_xkb_copy.py) | 176 | Canonical bounded identities for XKB copied compatibility, names, indicator maps and current geometry; no writes. |
 | [agent/src/omni/adapters/platform/linux_xkb_map.py](../../agent/src/omni/adapters/platform/linux_xkb_map.py) | 107 | Bounded canonical identity of a full native XKB map; no key translation, mutation or input dispatch. |
-| [agent/src/omni/adapters/platform/linux_xkbcommon.py](../../agent/src/omni/adapters/platform/linux_xkbcommon.py) | 184 | Owned libxkbcommon buffer compilation and special-key interpretation; no default layout, includes or native input. |
+| [agent/src/omni/adapters/platform/linux_xkbcommon.py](../../agent/src/omni/adapters/platform/linux_xkbcommon.py) | 191 | Owned libxkbcommon buffer compilation and special-key interpretation; no default layout, includes or native input. |
 | [agent/src/omni/adapters/platform/linux_xtest.py](../../agent/src/omni/adapters/platform/linux_xtest.py) | 130 | Read-only Xorg XTEST device identity proof; no input dispatch or own-event exemption. |
 | [agent/src/omni/adapters/platform/macos_helper.py](../../agent/src/omni/adapters/platform/macos_helper.py) | 114 | Resolve the fixed, owner-installed Swift bundle; never build, install or request TCC permissions. |
 | [agent/src/omni/adapters/platform/macos_service.py](../../agent/src/omni/adapters/platform/macos_service.py) | 109 | Inspect loaded launchd descriptions via the fixed Swift helper; never parses launchctl print as authority. |

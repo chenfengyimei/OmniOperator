@@ -50,7 +50,7 @@ seat v1和虚拟device v1/v2元数据均有界核验，服务端对象ID递增�
 
 `ReceivedFds`旧默认队列/单次仍为1，EI绑定键盘窗口才允许最多4个FIFO描述符批次，原寿命总数4不变。支持批次中先到rights、后到设备/键图帧；每份键图只按FD顺序领取。非键盘窗口额外FD拒绝关闭，孤立FD不用于其他对象，原3秒预算结束后拒绝观察并关闭。原核心4096帧、64KiB双向累计、128消息预算不变，不重置。
 
-`linux_eis_keymap.py`将实际读取移到原executor Future，单键图声明/真实文件均不超过1MiB；使用有界pread保持共享offset，读取前后复核文件身份/尺寸/时间戳，核验NUL尾、无内部NUL及UTF-8，再保留原字节/哈希。没有mmap截断SIGBUS路径，但这只是字节复制/校验，不证明XKB语法或键码语义。调用者或实际任务取消仍等待原读取完成，FD不能在线程下被提前关闭；待结清close保留键图、EI连接及原Session，实际完成后才关闭并清正文。
+`linux_eis_keymap.py`将实际读取移到原executor Future，单键图声明/真实文件均不超过1MiB；使用有界pread保持共享offset，读取前后复核文件身份/尺寸/时间戳，按EI声明尺寸保留实际字节，尾NUL可选、内部NUL/无效UTF-8拒绝，再保留原字节/哈希。没有mmap截断SIGBUS路径，但这只是字节复制/校验，不证明XKB语法或键码语义。调用者或实际任务取消仍等待原读取完成，FD不能在线程下被提前关闭；待结清close保留键图、EI连接及原Session，实际完成后才关闭并清正文。
 
 59新增设备/键图与182原核心/总线/Portal/宿主/业务/架构合同分阶段241不同节点通过；主237节点后运行源码未变，仅加强不同键图FIFO与新增4节点，补查5节点通过，没有重复整组。精确1MiB、四份不同键图批次、16区域、部分读取、截断/变更/失败、原线程/FD取消及孤立FD真实3秒已验。5修改运行文件strict零错误/警告，376只为登记范围；首37通过与1项bytearray类型诊断、原源码保留，未放宽断言或缩短期限。全部EI/输入注入，真实隔离文件/FD与SQLite；Windows的pread端口明确注入，不是Linux原生证据。见[设备专项](evidence/v2-wayland-eis-devices.json)。
 
@@ -85,3 +85,13 @@ seat v1和虚拟device v1/v2元数据均有界核验，服务端对象ID递增�
 43新增与196调用方/架构/类型合同共239不同专项分阶段通过，主237约34秒、补2原Session归属节点约3秒；3修改运行文件strict零错误/警告，379仅登记。主组后运行AST仅更正模块职责docstring，原41新节点AST及夹具保持，补2仅新增节点/清理夹具，未重跑全量。首1键图FD夹具误解、28私有访问类型诊断（改明确内部方法，未放宽规则）、2清理夹具在inspector关闭后再关总线的失败及源码留档。Windows仅注入EI/库/时钟端口并使用隔离真实FD，未真实Wayland/键鼠/原生XKB/账号/模型/72h验收，见[分帧专项](evidence/v2-wayland-eis-key-packet.json)。
 
 下一继续合成器物理介入合同、所选目标/区域身份、实际Linux XKB/提供方与通用输入，再接逐次业务许可/应用后验；整个V2仍开发，全量留整个开发完成冻结后。依据：[设备分帧/暂停](https://libinput.pages.freedesktop.org/libei/interfaces/ei_device/index.html)、[键盘](https://libinput.pages.freedesktop.org/libei/interfaces/ei_keyboard/index.html)和[同步回调](https://libinput.pages.freedesktop.org/libei/interfaces/ei_connection/index.html)。
+
+## 实际提供方的键图字节长度（2026-11-18）
+
+固定[Mutter提供方源码](https://raw.githubusercontent.com/GNOME/mutter/fe9693a72c782e4c149dff58f706863d022f590e/src/backends/meta-eis-client.c)确认`configure_keyboard`按`strlen`结果建立匿名文件并传入libeis，EI声明尺寸不含C尾NUL。[EI键图事件](https://libinput.pages.freedesktop.org/libei/interfaces/ei_keyboard/index.html)只规定字节尺寸；旧强制尾NUL假设会在实际FD复制阶段拒绝合法提供方，原节点已重现。源码快照/commit/SHA见[格式证据](evidence/v2-wayland-keymap-formats.json)，源码核对不等于真实Mutter运行。
+
+读取器现接受无NUL或一份可选终止NUL，仍拒绝内部NUL与完整无效UTF-8。原1MiB声明/实际文件上限、前后身份/大小/时间核对、有界pread、共享offset及实际executor/FD归属保持。存储正文、声明尺寸、SHA和计划身份始终是原字节，不因解析语义相同而互换。NativeXkb先核对原尺寸/哈希，再仅去掉可选尾NUL、拒绝空正文/内部NUL/无效UTF-8；私有C缓冲区单独补终止字节，`new_from_buffer`长度包含完整正文，禁默认布局/include等原规则保持。
+
+25新增与182受影响节点共207不同专项通过：主206约17秒、补1原生可用性节点；原失败先精确重验通过，但仍在主组重复执行，未重复计数。两份旧否定夹具中的“缺尾NUL即非法”按实际协议修正为内部NUL/尾垃圾，文件复制仍不声称语法解析。两种格式在1/1024/精确1MiB、声明外后缀、完整末尾多字节字符、不同raw身份、实际临时FD至原键义计划/单次分帧释放均覆盖。主组后仅新增可用性节点及sys导入，原测试AST/运行/夹具字节核对保持；2修改运行文件strict零错误/警告，379仅登记。
+
+当前Windows明确记录`native_xkb_executed=false`，EI/库端口注入；Linux可用库时新增节点会编译两种固定离线正文及拒绝两种坏语法，不安装库或执行输入。无真实Mutter/Wayland/设备/账号/模型/72h或全量证据，业务输入和物理介入/目标合同仍未接通，整个V2继续开发。

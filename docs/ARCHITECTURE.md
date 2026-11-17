@@ -126,7 +126,7 @@ Linux桌面原生会话由固定辅助进程内的`SessionInspector`核验，`Lo
 
 `linux_xkbcommon.py`延迟加载固定系统libxkbcommon并声明C ABI，只编译原键图缓冲区，禁默认include/环境布局；真实executor/Future拥有C编译及对象清理，清理不明保留原任务不重复unref。`linux_eis_keyboard.py`把特殊键义绑定到原EI完整观察/键图正文及代次，前后/使用前重验；仅内部计划，不证明全部服务器动作/物理输入或应用结果，不接业务派发。Windows注入ABI通过不代表原生编译验收。
 
-`linux_eis_devices.py`提供内部显式seat/实际稀疏能力绑定与设备v1/v2、逻辑区域/映射ID、键图/修饰及生命周期代次快照。`linux_eis_keymap.py`以原executor Future/任务/FD拥有有界实际读取，取消或关闭不抢先释放线程；只复制/校验字节，不解析XKB或派发输入。默认核心档和公开input_authorized=false保持；设备档独立按原系统许可选择，未接生产worker/业务，不把pause视作物理介入证明或把逻辑区域视作截图像素。
+`linux_eis_devices.py`提供内部显式seat/实际稀疏能力绑定与设备v1/v2、逻辑区域/映射ID、键图/修饰及生命周期代次快照。`linux_eis_keymap.py`以原executor Future/任务/FD拥有有界实际读取，取消或关闭不抢先释放线程；EI声明尺寸与原始SHA保持，尾NUL可选；XKB仅在私有C缓冲区补终止字节并使用完整正文长度。只复制/校验字节，不解析XKB或派发输入。默认核心档和公开input_authorized=false保持；设备档独立按原系统许可选择，未接生产worker/业务，不把pause视作物理介入证明或把逻辑区域视作截图像素。
 
 `linux_eis.py`拥有独立Portal授权所交付FD的EI核心sender握手、同步/ping和累计预算，不声明设备或输入接口。`ControlSession.prepare_eis`只允许原系统许可后一次调用，取消保留实际任务/迟到FD，失败撤回许可；未结清/包装器detach失败保留原归属供再次关闭。`linux_bus.py`只扩固定ConnectToEIS描述符操作，原PipeWire精确回包逻辑保持；当前为内部API，生产worker/业务未调用，不代表输入许可或Wayland完整控制。
 

@@ -41,12 +41,22 @@ def test_exact_declared_keymap_bytes_hash_and_maximum_preserve_shared_file_offse
 
 @pytest.mark.parametrize(
     "fault",
-    ["empty", "short", "unterminated", "internal_null", "invalid_utf8", "zero", "too_large", "file_too_large", "pipe"],
+    [
+        "empty",
+        "short",
+        "terminal_suffix",
+        "internal_null",
+        "invalid_utf8",
+        "zero",
+        "too_large",
+        "file_too_large",
+        "pipe",
+    ],
 )
 def test_invalid_keymap_closes_its_actual_descriptor_and_never_publishes_data(monkeypatch, tmp_path, fault):
     async def scenario():
         ports(monkeypatch)
-        body = {"empty": b"", "unterminated": b"bad", "internal_null": b"a\0b\0", "invalid_utf8": b"\xff\0"}.get(
+        body = {"empty": b"", "terminal_suffix": b"a\0b", "internal_null": b"a\0b\0", "invalid_utf8": b"\xff\0"}.get(
             fault, b"valid\0"
         )
         path = tmp_path / "map"

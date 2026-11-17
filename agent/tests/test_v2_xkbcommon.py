@@ -72,7 +72,7 @@ def test_parse_pointer_and_state_failures_do_not_publish_a_meaning_or_abandon_ot
 
 
 @pytest.mark.parametrize(
-    "fault", ["duplicate", "missing", "multi", "range", "layouts", "mods", "hash", "terminator", "key"]
+    "fault", ["duplicate", "missing", "multi", "range", "layouts", "mods", "hash", "internal_null", "key"]
 )
 def test_ambiguous_maps_bad_bounds_or_input_identity_are_never_accepted(fault):
     library = Library()
@@ -91,8 +91,8 @@ def test_ambiguous_maps_bad_bounds_or_input_identity_are_never_accepted(fault):
         library.mods = 33
     elif fault == "hash":
         identity = KeymapInfo(len(data), "0" * 64)
-    elif fault == "terminator":
-        data = data[:-1] + b"x"
+    elif fault == "internal_null":
+        data = data[:-1] + b"\0x"
         identity = info(data)
     else:
         key = "Ctrl+Enter"

@@ -50,11 +50,13 @@ class DevicePeer(Peer):
         keyboards=1,
         device_version=2,
         regions=1,
+        keymap_bytes=KEYMAP,
     ):
         super().__init__(partial=partial)
         self.folder, self.requested, self.fault = folder, requested, fault
         self.split, self.seat_count, self.keyboards, self.device_version = split, seats, keyboards, device_version
         self.region_count = regions
+        self.keymap_bytes = keymap_bytes
         self.next_id = CONNECTION
         self.offers, self.seat_ids, self.device_ids, self.child_ids, self.bindings = {}, [], [], {}, []
         self.pending_rights, self.delivered, self.files = [], [], []
@@ -185,7 +187,7 @@ class DevicePeer(Peer):
                 if self.fault == "duplicate_interface":
                     self.emit(device, 5, struct.pack(ORDER + "Q", self.allocate()) + string(key) + word(1))
                 if key == "ei_keyboard" and self.fault != "no_keymap":
-                    data = b"bad\xff\0" if self.fault == "keymap_utf8" else KEYMAP
+                    data = b"bad\xff\0" if self.fault == "keymap_utf8" else self.keymap_bytes
                     if self.keyboards > 1:
                         data = ("distinct-keymap-" + str(len(self.files))).encode() + b"\0"
                     if self.fault != "missing_fd":
