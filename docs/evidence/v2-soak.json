@@ -1,0 +1,60 @@
+{
+  "source_base": "11f1d0b775775a41782d44182402c8fe1e7affed",
+  "scope": "V2-only read-only local HMAC-boot observational soak collector, bounded hash-chain evidence and CLI; not real long-running acceptance",
+  "source_files": {
+    "agent/src/omni/domain/soak.py": "5cfb2775579ca9e351df357d1f82d93d2c5d21ebe0ae5134a1003eeb791e792c",
+    "agent/src/omni/adapters/soak.py": "dd393a705e5395700c893a7b897afb0591736d761c2fad2dddf29725776e303d",
+    "agent/scripts/v2_soak.py": "8f66da1c45987d97244fccf98cc9a376df09d20e17d46a151df65c6b209a6fec",
+    "scripts/v2_soak.py": "68dffd2202677ea9610e3aa4ac21fccefe1e6124706a63d834ec08e3f65d3c07",
+    "agent/tests/test_v2_soak.py": "e1b46694eef726b5be1ca4d03484aece0192ab0638eb9b17c6e9c1060d64ee18",
+    "pyrightconfig.strict.json": "ac5c43120275b784d7b6e8389f8a9e22a8ef713c34d559f049408ad1f0a4704c",
+    "docs/TYPE_CHECKING.md": "12bb6fb74247a60115cf562fd40f7d43234cad4b4235864569c6daeccb6e99cf",
+    "docs/V2_SOAK.md": "909a56eb319bfdaf0bd637350ca8572aaf7ba985e2abb904a007b42e76925630",
+    "docs/V2_BUSINESS_INVENTORY.md": "1c651ab19a03eff25bdeff5a986c6fc02f3e7e73ec5ba9958f0dec6ed0450d78"
+  },
+  "scoped_tests": {
+    "distinct_passed": 38,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0,
+    "report": {
+      "path": "temp/build/v2-soak-callers.xml",
+      "sha256": "adbc575f3e3e8055d8d1be8ca63c1f3e12a4e5cd91e6909620c5a7203dbbb8f2"
+    },
+    "cli_short_run_supplemental_node_passed": 1,
+    "supplemental_report": {
+      "path": "temp/build/v2-soak-cli-short-run.xml",
+      "sha256": "19dd2ef9b0a91899442ae8c68f8fae786512697a0f2cc8a124d4cc86d5ed5db3"
+    },
+    "supplemental_node_already_counted_in_38": true
+  },
+  "strict_modified_files": {
+    "files": 2,
+    "errors": 0,
+    "warnings": 0,
+    "report": {
+      "path": "temp/build/v2-soak-pyright-final.json",
+      "sha256": "55247e2ca441688dba25f06df669590ec47403ecd580dc8842a1a78561bcca5d"
+    }
+  },
+  "real_isolated_loopback_hmac_proof_and_native_process_metadata_observed": true,
+  "real_short_cli_run_rejected_as_insufficient": true,
+  "actual_72h_run_executed": false,
+  "synthetic_clock_or_sampler_can_pass_native_gate": false,
+  "resume_retains_failed_samples_gaps_and_partial_raw_lines": true,
+  "first_fixture_failure_report_preserved": {
+    "path": "temp/build/v2-soak-initial.xml",
+    "sha256": "17df904b9e5e112e5620bbf4ba6d7b2fcc62f260374e0e8130ac452267a31214"
+  },
+  "first_typecheck_diagnostics_preserved": {
+    "path": "temp/build/v2-soak-pyright.json",
+    "sha256": "5e02f0e40fbebab7b2a617f73f0e39407c682ef2240a47ba16f2ec8f9a824ae1"
+  },
+  "source_services_started_or_stopped_by_monitor": false,
+  "real_models_paid_accounts_devices_or_native_input_executed": false,
+  "legacy_v1_soak_reused_for_v2": false,
+  "full_suite_run": false,
+  "whole_v2_development_complete": false,
+  "whole_v2_accepted": false,
+  "next": "Linux persistent window identity and explicit foreground/independent Portal control development; actual soak and full suite after whole-V2 development freeze"
+}

@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "53cb00a990f7ed422ca403b2878b33ca480e84d6339746a6b4a86487768594be",
+  "source_sha256": "b4295571fa3b88e9db6677d70dc13eb94bb6593479c64c4d284eb4c11fc797d9",
   "modules": [
     {
       "id": "v2-domain",
@@ -70,10 +70,11 @@
         "agent/src/omni/domain/service_operations.py",
         "agent/src/omni/domain/settings.py",
         "agent/src/omni/domain/skills.py",
+        "agent/src/omni/domain/soak.py",
         "agent/src/omni/domain/terminal_review.py",
         "agent/src/omni/domain/terminals.py"
       ],
-      "lines": 9714,
+      "lines": 9833,
       "dependencies": []
     },
     {
@@ -364,6 +365,7 @@
         "agent/src/omni/adapters/primitives.py",
         "agent/src/omni/adapters/process_diagnostics.py",
         "agent/src/omni/adapters/skill_packages.py",
+        "agent/src/omni/adapters/soak.py",
         "agent/src/omni/adapters/temporary_debug.py",
         "agent/src/omni/adapters/timezones.py",
         "agent/src/omni/adapters/token_counter.py",
@@ -410,7 +412,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 56009,
+      "lines": 56409,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -33432,6 +33434,257 @@
         }
       ],
       "summary": "Bounded in-memory Markdown/ZIP parsing; never extracts files or executes package content."
+    },
+    {
+      "path": "agent/src/omni/adapters/soak.py",
+      "module": "v2-adapters",
+      "python_module": "omni.adapters.soak",
+      "lines": 400,
+      "imports": [
+        "omni.adapters.platform.dependency_bundle",
+        "omni.adapters.platform.paths",
+        "omni.adapters.platform.permissions",
+        "omni.adapters.platform.runtime_identity",
+        "omni.adapters.platform.service_readiness",
+        "omni.domain",
+        "omni.domain.contracts",
+        "omni.domain.soak"
+      ],
+      "symbols": [
+        {
+          "name": "canonical",
+          "line": 38,
+          "kind": "function",
+          "parameters": [
+            "value"
+          ],
+          "annotations": {
+            "value": "object"
+          }
+        },
+        {
+          "name": "digest",
+          "line": 42,
+          "kind": "function",
+          "parameters": [
+            "value"
+          ],
+          "annotations": {
+            "value": "object"
+          }
+        },
+        {
+          "name": "collector_identity",
+          "line": 46,
+          "kind": "function",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "fixed_path",
+          "line": 53,
+          "kind": "function",
+          "parameters": [
+            "value"
+          ],
+          "annotations": {
+            "value": "Path"
+          }
+        },
+        {
+          "name": "origin",
+          "line": 61,
+          "kind": "function",
+          "parameters": [
+            "value"
+          ],
+          "annotations": {
+            "value": "str"
+          }
+        },
+        {
+          "name": "process_resources",
+          "line": 84,
+          "kind": "function",
+          "parameters": [
+            "identity"
+          ],
+          "annotations": {
+            "identity": "Mapping[str, object]"
+          }
+        },
+        {
+          "name": "LocalSampler",
+          "line": 110,
+          "kind": "class"
+        },
+        {
+          "name": "LocalSampler.__init__",
+          "line": 111,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "home",
+            "url",
+            "client",
+            "resources"
+          ],
+          "annotations": {
+            "home": "Path",
+            "url": "str",
+            "client": "httpx.Client | None",
+            "resources": "Callable[[Mapping[str, object]], dict[str, int]]"
+          }
+        },
+        {
+          "name": "LocalSampler.close",
+          "line": 126,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "LocalSampler._get",
+          "line": 130,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "path",
+            "token",
+            "query"
+          ],
+          "annotations": {
+            "path": "str",
+            "token": "str | None",
+            "query": "dict[str, str] | None"
+          }
+        },
+        {
+          "name": "LocalSampler.sample",
+          "line": 148,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "SoakFiles",
+          "line": 211,
+          "kind": "class"
+        },
+        {
+          "name": "SoakFiles.__init__",
+          "line": 212,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "folder",
+            "clock",
+            "wall"
+          ],
+          "annotations": {
+            "folder": "Path",
+            "clock": "Callable[[], float]",
+            "wall": "Callable[[], float]"
+          }
+        },
+        {
+          "name": "SoakFiles._locked",
+          "line": 225,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "SoakFiles._fingerprint",
+          "line": 235,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "SoakFiles._read_json",
+          "line": 244,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "name"
+          ],
+          "annotations": {
+            "name": "str"
+          }
+        },
+        {
+          "name": "SoakFiles.create",
+          "line": 250,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "home",
+            "sampler",
+            "policy",
+            "interval_s"
+          ],
+          "annotations": {
+            "home": "Path",
+            "sampler": "LocalSampler",
+            "policy": "object",
+            "interval_s": "int"
+          }
+        },
+        {
+          "name": "SoakFiles.manifest",
+          "line": 287,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "SoakFiles.rows",
+          "line": 295,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "manifest"
+          ],
+          "annotations": {
+            "manifest": "Payload"
+          }
+        },
+        {
+          "name": "SoakFiles.append",
+          "line": 338,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "manifest",
+            "sample"
+          ],
+          "annotations": {
+            "manifest": "Payload",
+            "sample": "Payload"
+          }
+        },
+        {
+          "name": "SoakFiles.report",
+          "line": 397,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        }
+      ],
+      "summary": "Proof-bound read-only V2 observation and append-only evidence; no V1, service control, models or database opens."
     },
     {
       "path": "agent/src/omni/adapters/temporary_debug.py",
@@ -71303,6 +71556,62 @@
         }
       ],
       "summary": "Versioned textual skills, bounded disclosure and edit rules; skills confer no authority."
+    },
+    {
+      "path": "agent/src/omni/domain/soak.py",
+      "module": "v2-domain",
+      "python_module": "omni.domain.soak",
+      "lines": 119,
+      "imports": [
+        "omni.domain.contracts"
+      ],
+      "symbols": [
+        {
+          "name": "invalid",
+          "line": 25,
+          "kind": "function",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "number",
+          "line": 31,
+          "kind": "function",
+          "parameters": [
+            "value",
+            "integer"
+          ],
+          "annotations": {
+            "value": "object",
+            "integer": "bool"
+          }
+        },
+        {
+          "name": "limits",
+          "line": 40,
+          "kind": "function",
+          "parameters": [
+            "value"
+          ],
+          "annotations": {
+            "value": "object"
+          }
+        },
+        {
+          "name": "assess",
+          "line": 46,
+          "kind": "function",
+          "parameters": [
+            "manifest",
+            "rows"
+          ],
+          "annotations": {
+            "manifest": "Mapping[str, object]",
+            "rows": "Iterable[Mapping[str, object]]"
+          }
+        }
+      ],
+      "summary": "V2 observational soak coverage and owner limits; no sampling, clocks, files or acceptance execution."
     },
     {
       "path": "agent/src/omni/domain/terminal_review.py",

@@ -33,7 +33,7 @@
     {
       "id": "G3",
       "title": "Linux持续窗口身份与显式前台控制",
-      "status": "development_pending",
+      "status": "next_development",
       "contract": "docs/V2_LINUX_HANDOFF.md"
     },
     {
@@ -55,6 +55,18 @@
       "note": "只开发有代码证据的缺口，不把历史文案或真实环境待验当成未实现",
       "findings": [
         "现有soak_monitor.py仍导入V1路径/状态和监测器；需补独立V2长跑采样与证据，实际72小时留最终验收。"
+      ],
+      "subdeliverables": [
+        {
+          "id": "G6.soak",
+          "title": "独立V2只读长跑采样及可续采证据",
+          "status": "implemented_scoped_passed",
+          "contract": "docs/V2_SOAK.md",
+          "evidence": [
+            "docs/evidence/v2-soak.json"
+          ],
+          "actual_72h_run": "not_executed_deferred_until_development_complete"
+        }
       ]
     },
     {

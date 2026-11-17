@@ -19,6 +19,7 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 | `agent/src/omni/adapters/platform/candidate_installer.py` | 独立离线候选安装、分离维护解释器与实例、逐步核验和失败保留 |
 | `agent/src/omni/domain/action_review.py` | 未知写动作的观察复核/证据指纹纯规则 |
 | `agent/src/omni/domain/agents.py` | 所有者空间的名称、UTF-8、容量和修订上界纯规则 |
+| `agent/src/omni/domain/soak.py` | V2连续采样覆盖、所有者资源上限、注入/短跑拒绝与不可自动关闭的失败 |
 | `agent/src/omni/domain/android.py` | Android 身份/观察/输入/权限请求纯校验 |
 | `agent/src/omni/domain/android_unicode.py` | 输入助手配置/认证报文纯校验 |
 | `agent/src/omni/domain/audit_retention.py` | 审计保留主体/冻结预览/计划纯校验 |
@@ -347,6 +348,7 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 
 | `agent/src/omni/adapters/http.py` | HTTP 适配器：Record 端口、原 Pydantic schema 的 Payload、泛型输入工厂及路由边界 |
 | `agent/src/omni/adapters/http_events.py` | 有界 SSE 历史通知、游标续接、持续鉴权与连接回收；不推送事件正文 |
+| `agent/src/omni/adapters/soak.py` | 本机签名boot采样、受限HTTP读取和私有连续证据，不调用V1或模型 |
 
 | `agent/src/omni/adapters/platform/linux_atspi.py` | AT-SPI 只读适配器：native 引用、状态、节点与语义证明回调；原生调用守卫不变 |
 
@@ -390,7 +392,7 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 
 ### 3.1 adapters 类型收口（第 214 批）
 
-全部 **226 个 adapters 已纳入 strict**；合同范围为 **337 文件**（domain 54、application 44、adapters 226、composition 13）。新增事件通知及空间管理规则后，历史335文件结论仅代表原固定候选；开发中只复核修改范围，整范围复验留整个V2开发完成后的验收。原 P4/P5/P6 的 24 个待办模块已完成，不再是当前施工清单。
+全部 **227 个 adapters 已纳入 strict**；合同范围为 **339 文件**（domain 55、application 44、adapters 227、composition 13）。新增事件通知、空间管理及V2独立长跑工具后，历史335文件结论仅代表原固定候选；开发中只复核修改范围，整范围复验留整个V2开发完成后的验收。原 P4/P5/P6 的 24 个待办模块已完成，不再是当前施工清单。
 
 统计以本页逐文件表为准；domain/application 各一个仅含说明文字的包初始化文件未列入该合同范围。V1 与 tests 尚未纳入，因此**全仓严格类型尚未完成**。
 

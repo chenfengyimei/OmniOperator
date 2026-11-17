@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`53cb00a990f7ed422ca403b2878b33ca480e84d6339746a6b4a86487768594be`。包含 65 个职责模块、743 个源码/界面文件。
+源码指纹：`b4295571fa3b88e9db6677d70dc13eb94bb6593479c64c4d284eb4c11fc797d9`。包含 65 个职责模块、745 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -63,6 +63,7 @@
 | [agent/src/omni/domain/service_operations.py](../../agent/src/omni/domain/service_operations.py) | 140 | Fingerprint offline service changes; registration never implies a healthy running service. |
 | [agent/src/omni/domain/settings.py](../../agent/src/omni/domain/settings.py) | 98 | Editable Agent settings and immutable resolved run configuration; no I/O. |
 | [agent/src/omni/domain/skills.py](../../agent/src/omni/domain/skills.py) | 251 | Versioned textual skills, bounded disclosure and edit rules; skills confer no authority. |
+| [agent/src/omni/domain/soak.py](../../agent/src/omni/domain/soak.py) | 119 | V2 observational soak coverage and owner limits; no sampling, clocks, files or acceptance execution. |
 | [agent/src/omni/domain/terminal_review.py](../../agent/src/omni/domain/terminal_review.py) | 87 | Owner observations of unknown terminal effects; never a receipt correction or replay authority. |
 | [agent/src/omni/domain/terminals.py](../../agent/src/omni/domain/terminals.py) | 124 | Explicit owner terminal requests and metadata identities; no model tools, shell execution or transcript storage. |
 
@@ -340,6 +341,7 @@
 | [agent/src/omni/adapters/primitives.py](../../agent/src/omni/adapters/primitives.py) | 20 | Real clocks and full UUID identities, injected by the composition root. |
 | [agent/src/omni/adapters/process_diagnostics.py](../../agent/src/omni/adapters/process_diagnostics.py) | 112 | Process-owned logging and exception hooks; installed only by the executable host. |
 | [agent/src/omni/adapters/skill_packages.py](../../agent/src/omni/adapters/skill_packages.py) | 177 | Bounded in-memory Markdown/ZIP parsing; never extracts files or executes package content. |
+| [agent/src/omni/adapters/soak.py](../../agent/src/omni/adapters/soak.py) | 400 | Proof-bound read-only V2 observation and append-only evidence; no V1, service control, models or database opens. |
 | [agent/src/omni/adapters/temporary_debug.py](../../agent/src/omni/adapters/temporary_debug.py) | 321 | Boot-bound, owner-enabled metadata capture; never opens business storage or records free text. |
 | [agent/src/omni/adapters/timezones.py](../../agent/src/omni/adapters/timezones.py) | 29 | Pinned tzdata resolver; avoids OS-dependent timezone database drift. |
 | [agent/src/omni/adapters/token_counter.py](../../agent/src/omni/adapters/token_counter.py) | 34 | Local conservative token estimate; it never fetches model metadata or credentials. |

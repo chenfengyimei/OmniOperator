@@ -23,6 +23,7 @@
     "agent/src/omni/adapters/mcp/http.py",
     "agent/src/omni/adapters/mcp/oauth.py",
     "agent/src/omni/adapters/mcp/stdio.py",
+    "agent/src/omni/adapters/soak.py",
     "agent/src/omni/adapters/media.py",
     "agent/src/omni/adapters/metrics.py",
     "agent/src/omni/adapters/model_stream.py",
@@ -336,6 +337,7 @@
     "agent/src/omni/domain/service_operations.py",
     "agent/src/omni/domain/settings.py",
     "agent/src/omni/domain/skills.py",
+    "agent/src/omni/domain/soak.py",
     "agent/src/omni/domain/terminal_review.py",
     "agent/src/omni/domain/terminals.py"
   ],
