@@ -1,7 +1,7 @@
 {
   "batch": "v2-ui-connection-stability-v128",
   "recorded_at": "2026-11-15",
-  "resource_version_final": "20261116v133",
+  "resource_version_final": "20261117v134",
   "v1_alignment": {
     "summary": "用户提供 V1 正式工作台截图后，直接精读 web/ui/workbench.css 的 V1 实现并逐项移植，使 V2 结构与 V1 一致（而非自创风格）。",
     "ported_from_v1": [
@@ -1046,5 +1046,25 @@
     ],
     "版本": "资源串整体 v132→v133（43处：前端7文件+两份文档+本批证据），mcp测试动态读版本无需改。",
     "未验收": "真实供应商端到端、真实平台账号、72小时长稳仍基于离线实例，未销账。"
+  },
+  "fullwidth_nonchat_v134": {
+    "需求": "所有者指出左栏（连接状态/会话列表/服务状态/上下文用量）属于会话界面，切到其他页面不应显示，且其他页面应全屏铺开。",
+    "交付": [
+      "非对话页（宽窄屏统一）：左栏 display:contents 让位不占列，连接卡/会话/服务/上下文全部隐藏，内容区占满可用整宽",
+      "#agents 保留为顶部独立一行（grid-row:1，不遮挡内容），任意页面仍可切换 Agent 空间（two_agents 测试契约）",
+      "已连接态 #connect 的 body[data-connected] 高特异性 display:flex 须显式覆盖隐藏（通用 :not(.agent-field) 压不过）",
+      ".page>* 去掉 980px 上限（--v2-page-max 令牌已删），非对话页内容全屏铺开",
+      "回对话页左栏完整恢复（会话列表可见）"
+    ],
+    "验证": {
+      "全屏布局核查(_fullwidth_check)": "54/54 PASS（双主题×1440/1024/390：左栏让位/整宽/Agent顶栏可见可点可切换/设置页同样全宽/回对话页恢复/零报错）",
+      "设置中心": "56/56 PASS",
+      "模型接入": "39/39 PASS",
+      "全站": "76/76 PASS",
+      "守卫": "33 passed",
+      "专项回归": "导航+模型+草稿隔离第一批 51 passed；第二批 104 passed/2 failed（memory_organization 两项隔离复跑 2 passed，并行抖动）"
+    },
+    "测量教训": "内容整宽判据应对比 main 的内容盒（扣 padding），不是 border 盒——main 自身 16px 留白是骨架设计。",
+    "版本": "资源串整体 v133→v134（43处）。"
   }
 }

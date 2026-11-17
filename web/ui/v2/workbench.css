@@ -11,10 +11,6 @@
      6. 窄屏会话抽屉。
    ========================================================================== */
 
-body[data-ui-page="workbench-v2"] {
-  --v2-page-max: 980px;
-}
-
 /* ==========================================================================
    分区页表单设计系统
    --------------------------------------------------------------------------
@@ -1112,21 +1108,52 @@ body[data-ui-page="workbench-v2"] .thinking-dots i:nth-child(3) {
    内容区没有独立滚动。这里改为骨架内的正常 grid 布局 + 内部独立滚动。
    ========================================================================== */
 body[data-ui-page="workbench-v2"]:not(.chat-mode) > main {
-  /* 保留左栏：#agents 在左栏里，two_agents 草稿隔离测试会在任意页面切换 Agent，
-     隐藏左栏会让 #agents 不可见、select_option 超时（曾致 14 项回归）。
-     只隐藏右栏，左栏 + 内容两列。 */
-  grid-template-columns: 196px minmax(0, 1fr);
+  /* 所有者要求：左栏（连接卡/会话/服务状态/上下文）属于会话界面，
+     非对话页不显示，内容占满整宽。但 #agents 在左栏里，two_agents
+     草稿隔离测试会在任意页面切换 Agent —— 左栏 display:contents 让位，
+     其余子级隐藏，#agents 用 grid-row 排成顶部独立一行（不遮挡内容）。 */
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr);
   min-height: 0;
   overflow: hidden;
 }
 body[data-ui-page="workbench-v2"]:not(.chat-mode) > main > aside.inspector {
   display: none;
 }
+/* display:contents 让左栏不产生盒子/不占列，但子级仍渲染。
+   不能用 display:none——它会连带隐藏 #agents。 */
 body[data-ui-page="workbench-v2"]:not(.chat-mode) > main > aside.workbench-side {
-  min-height: 0;
-  overflow-y: auto;
+  display: contents;
+}
+body[data-ui-page="workbench-v2"]:not(.chat-mode) > main > aside.workbench-side > :not(.agent-field) {
+  display: none;
+}
+/* 已连接态 #connect 有 body[data-connected] 的更高特异性 display:flex，
+   上面的通用隐藏压不过它，这里显式覆盖（连接卡也属于会话界面）。 */
+body[data-ui-page="workbench-v2"]:not(.chat-mode)[data-connected="true"] #connect.panel {
+  display: none;
+}
+body[data-ui-page="workbench-v2"]:not(.chat-mode) .agent-field {
+  grid-column: 1;
+  grid-row: 1;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--line-3);
+  background: color-mix(in oklab, var(--surface-1) 70%, transparent);
+  font-size: var(--fs-caption);
+}
+body[data-ui-page="workbench-v2"]:not(.chat-mode) .agent-field select {
+  width: auto;
+  max-width: 200px;
+  padding: 3px 6px;
+  font-size: var(--fs-caption);
 }
 body[data-ui-page="workbench-v2"]:not(.chat-mode) main > section[aria-label="工作区"] {
+  grid-column: 1;
+  grid-row: 2;
   position: static;
   display: flex;
   flex-direction: column;
@@ -1159,8 +1186,9 @@ body[data-ui-page="workbench-v2"]:not(.chat-mode) .settings-content {
 body[data-ui-page="workbench-v2"]:not(.chat-mode) .page {
   padding: 16px 22px 28px;
 }
+/* 所有者要求非对话页全屏铺开：去掉 980px 上限，内容占满工作区整宽。 */
 body[data-ui-page="workbench-v2"]:not(.chat-mode) .page > * {
-  max-width: var(--v2-page-max);
+  max-width: none;
 }
 body[data-ui-page="workbench-v2"] #settings-rail {
   display: none;
