@@ -170,6 +170,7 @@
     "agent/src/omni/adapters/platform/linux_x11_socket.py",
     "agent/src/omni/adapters/platform/linux_x11_wire.py",
     "agent/src/omni/adapters/platform/linux_xkb.py",
+    "agent/src/omni/adapters/platform/linux_xkb_map.py",
     "agent/src/omni/adapters/platform/linux_xtest.py",
     "agent/src/omni/adapters/platform/macos_helper.py",
     "agent/src/omni/adapters/platform/macos_service.py",

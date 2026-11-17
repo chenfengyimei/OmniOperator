@@ -73,3 +73,13 @@ Xorg的[XTEST请求处理](https://raw.githubusercontent.com/XQuartz/xorg-server
 取消等待保留实际释放/回读任务和同一连接。活跃发送期间关闭返回false，避免两个发送者；回读发送/读取超时或协议位置不明后保留未结清身份，不另建查询掩盖丢失回执。`X11Input.close`先结清该租约，未完成不能声称连接回收成功。内部emit完成只说明传输事件匹配和释放读回，不生成业务ok、也不证明应用处理了按键。
 
 仍需接通语义节点/原生窗口的可靠关联、逐次业务permit和应用结果核验；还需处理本次合法输入引发的slave类切换/XKB通知。当前这些变化仍使原守卫失效，不静默放宽。29新回归及232现有输入/来源/焦点/键映射/XKB、文本/语义/桌面、架构与类型合同，共261不同专项通过；首轮注入流缺少关闭状态的失败及原源码留档后修复。4个修改后端文件strict零错误/警告，354为登记范围，未整范围复验/全量。无真实Xorg连接、真实输入或Linux原生验收，见[成对内核证据](evidence/v2-linux-keypair.json)。
+
+## Xorg切换前的完整映射比对
+
+Xorg在slave切换时通过[CopyKeyClass/DeepCopyKeyboardClasses](https://raw.githubusercontent.com/XQuartz/xorg-server/master/Xi/exevents.c)复制键盘映射，随后发送NewKeyboardNotify和DeviceChanged。仅核对候选单键不能约束其他按键、类型和修饰映射。`WindowFocus.key_packet`现要求主键盘与已核验XTEST来源的完整GetMap八部件、控制和释放状态相同，才创建内部按键包。
+
+`linux_xkb_map.py`解析最多65536字节返回数据，精确验证真实setup范围、设备、full部件、类型与各按键范围、符号/动作总数、稀疏项唯一递增键码和尾部完整性。规范化类型、KTMap/Preserve、全部符号及动作、非默认行为、16个虚拟修饰绑定、显式/真实/虚拟修饰项；仅排除响应序号/设备身份、文档填充和NoAction的未使用字节。其他动作描述保持完整，未见部件不能推断为空。该解析器只输出SHA，不解释键类型、不改布局或发送输入。格式与顺序依据[XKB GetMap服务器实现](https://raw.githubusercontent.com/XQuartz/xorg-server/master/xkb/xkb.c)和[XCB布局](https://xcb.freedesktop.org/manual/xkb_8h_source.html)。
+
+同一XKB连接先订阅来源键盘，再依次读取主/从/主/从，期间分别夹住无锁存状态与完整GetControls，任何通知或不一致都拒绝；来源回复不覆盖原核心设备ID。`KeyboardMapping`绑定完整身份，主从后来共同变化也不能更新旧计划；最后再复核原候选、窗口与输入守卫。读取取消/失败使证明锁存失效，尚无派发/释放租约或按键字节。原受限AT-SPI文本路径不新增这些要求。
+
+本步只补齐切换前的GetMap/状态/控制核验。合法slave/NKN通知及兼容/命名等其他复制信息、原生/语义目标关联、逐次permit与应用结果仍待继续，不能按设备名或序号直接忽略通知；生产worker仍未开放通用按键。37项新回归、29项原成对派发及232项受影响调用方/合同，共298不同专项通过，修改4后端文件strict零错误/警告；没有整范围类型、全量、真实输入或Linux原生验收，见[专项证据](evidence/v2-linux-keymap-clone.json)。

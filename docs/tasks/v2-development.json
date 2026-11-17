@@ -58,7 +58,7 @@
           },
           "remaining": [
             "通用键鼠的控件与原生窗口可靠关联及逐次业务permit接线",
-            "本次输入的合法slave/XKB切换与应用结果核验；内部成对派发/释放不等于通用按键功能完成",
+            "本次输入的合法slave/NKN切换、兼容/命名等其他复制信息及应用结果核验；GetMap八部件/控制预检和内部成对派发不等于通用按键完成",
             "鼠标点击与Wayland实际输入仍待继续开发"
           ],
           "addressed_unicode_append": {
@@ -89,6 +89,13 @@
             "production_business_worker_enabled": false,
             "expected_native_class_transition_complete": false,
             "application_postcondition_proven": false
+          },
+          "source_getmap_clone_preflight": {
+            "status": "implemented_scoped_passed",
+            "evidence": "docs/evidence/v2-linux-keymap-clone.json",
+            "expected_native_transition_complete": false,
+            "other_copied_configuration_complete": false,
+            "production_business_worker_enabled": false
           }
         }
       ]

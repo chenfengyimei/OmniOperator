@@ -9,6 +9,7 @@ from typing import cast
 from .linux_bus import failure
 from .linux_input import InputWire
 from .linux_x11_wire import padded, unpack
+from .linux_xkb_map import map_identity
 
 CORE_KEYBOARD = 0x100
 MAP_PARTS = 0xBE  # symbols, actions, behaviors, explicit, real/virtual modifier maps
@@ -24,18 +25,21 @@ class XkbKeyboard:
         self._ready = False
         self._opcode: int | None = None
         self._device: int | None = None
+        self._source: int | None = None
 
-    def _reply(self, data: bytes, size: int | None = None) -> None:
+    def _reply(self, data: bytes, size: int | None = None, *, device: int | None = None) -> None:
+        expected = self._device if device is None else device
         if (
             len(data) < 32
             or size is not None
             and len(data) != size
             or not 2 <= data[1] <= 255
-            or self._device is not None
-            and data[1] != self._device
+            or expected is not None
+            and data[1] != expected
         ):
             raise failure("desktop_input_unverified")
-        self._device = data[1]
+        if device is None:
+            self._device = data[1]
 
     async def open(self) -> None:
         if self._attempted or self.wire.xkb_event is not None:
@@ -64,21 +68,21 @@ class XkbKeyboard:
             raise failure("desktop_user_intervened")
         self._ready = True
 
-    async def _state(self) -> bytes:
+    async def _state(self, device: int = CORE_KEYBOARD) -> bytes:
         if self._opcode is None:
             raise failure("desktop_input_unverified")
-        state = await self.wire.request(self._opcode, struct.pack("<Hxx", CORE_KEYBOARD), 4)
-        self._reply(state, 32)
+        state = await self.wire.request(self._opcode, struct.pack("<Hxx", device), 4)
+        self._reply(state, 32, device=None if device == CORE_KEYBOARD else device)
         # Physical release alone does not prove the effective XKB state. No
         # latched/locked groups, real/compatibility/lookup modifiers or buttons.
         if any(state[8:23]) or any(state[24:26]):
             raise failure("desktop_input_held")
         return state[8:23] + state[24:26]
 
-    async def _controls(self) -> bytes:
+    async def _controls(self, device: int = CORE_KEYBOARD) -> bytes:
         assert self._opcode is not None
-        value = await self.wire.request(self._opcode, struct.pack("<Hxx", CORE_KEYBOARD), 6, maximum=60)
-        self._reply(value, 92)
+        value = await self.wire.request(self._opcode, struct.pack("<Hxx", device), 6, maximum=60)
+        self._reply(value, 92, device=None if device == CORE_KEYBOARD else device)
         enabled = unpack("I", value, 56)[0]
         if (
             not 1 <= value[9] <= 4
@@ -165,6 +169,47 @@ class XkbKeyboard:
             if await self._state() != state or await self._controls() != controls or self.wire.changed:
                 raise failure("desktop_user_intervened")
             return hashlib.sha256(state + controls + mapping).digest()
+        except BaseException:
+            self._ready = False
+            raise
+
+    async def source_identity(self, device: int) -> bytes:
+        """Prove a source's full map and controls equal the core keyboard before Xorg can pivot to it."""
+        if (
+            not self._ready
+            or self._opcode is None
+            or self._device is None
+            or self.wire.setup is None
+            or not 2 <= device <= 255
+            or device == self._device
+            or self._source is not None
+            and self._source != device
+        ):
+            raise failure("desktop_input_unverified")
+        try:
+            if self._source is None:
+                self._source = device
+                await self.wire.send(self._opcode, struct.pack("<6H", device, EVENTS, 0, EVENTS, 0xFF, 0xFF), 1)
+            identities: list[bytes] = []
+            for selected in (CORE_KEYBOARD, device, CORE_KEYBOARD, device):
+                state = await self._state(selected)
+                controls = await self._controls(selected)
+                request = struct.pack("<HHH8BH6Bxx", selected, 0xFF, 0, *([0] * 15))
+                mapping = await self.wire.request(self._opcode, request, 8, maximum=65536)
+                actual = self._device if selected == CORE_KEYBOARD else device
+                identity = map_identity(
+                    mapping, actual, self.wire.setup.minimum_keycode, self.wire.setup.maximum_keycode
+                )
+                if (
+                    await self._state(selected) != state
+                    or await self._controls(selected) != controls
+                    or self.wire.changed
+                ):
+                    raise failure("desktop_user_intervened")
+                identities.append(hashlib.sha256(state + controls + identity).digest())
+            if any(identity != identities[0] for identity in identities):
+                raise failure("desktop_input_unverified")
+            return identities[0]
         except BaseException:
             self._ready = False
             raise

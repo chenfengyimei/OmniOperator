@@ -186,9 +186,16 @@ class WindowFocus:
 
     async def key_packet(self) -> KeyPacket:
         """Prepare one internal wire pair; workers still require target association and business permit."""
-        code = await self.verify_key()
-        sources = await self.verify_sources()
-        await self.check()
-        if self._sources is None:
-            raise failure("desktop_input_unverified")
-        return KeyPacket(self.monitor, self._sources.opcode, sources, code)
+        try:
+            code = await self.verify_key()
+            sources = await self.verify_sources()
+            if self._keyboard is None:
+                raise failure("desktop_input_unverified")
+            await self._keyboard.verify_source(sources.keyboard)
+            await self.check()
+            if self._sources is None:
+                raise failure("desktop_input_unverified")
+            return KeyPacket(self.monitor, self._sources.opcode, sources, code)
+        except BaseException:
+            self._ready = False
+            raise

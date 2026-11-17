@@ -37,6 +37,7 @@ class KeyboardMapping:
     def __init__(self, focus: FocusPort) -> None:
         self.focus = focus
         self._attempted = False
+        self._source: tuple[int, bytes] | None = None
         self._valid = False
         self._key: str | None = None
         self._code: int | None = None
@@ -124,6 +125,20 @@ class KeyboardMapping:
                 raise failure("desktop_user_intervened")
             await self.focus.check()
             return self._code
+        except BaseException:
+            self._valid = False
+            raise
+
+    async def verify_source(self, device: int) -> None:
+        if not self._valid or self._xkb is None:
+            raise failure("desktop_input_unverified")
+        try:
+            await self.focus.check()
+            identity = (device, await self._xkb.source_identity(device))
+            if self._source is not None and identity != self._source:
+                raise failure("desktop_user_intervened")
+            await self.verify()
+            self._source = identity
         except BaseException:
             self._valid = False
             raise

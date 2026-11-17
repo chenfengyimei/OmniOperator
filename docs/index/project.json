@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "e3a4d244baf1e38eb1e05099fd7c8e25640f3c08ef243b55fb77aef44fcf5de5",
+  "source_sha256": "04f31c305262f967a29a7cd8322832fb2c35615fcc71e7fae95f3603ae304014",
   "modules": [
     {
       "id": "v2-domain",
@@ -334,6 +334,7 @@
         "agent/src/omni/adapters/platform/linux_x11_socket.py",
         "agent/src/omni/adapters/platform/linux_x11_wire.py",
         "agent/src/omni/adapters/platform/linux_xkb.py",
+        "agent/src/omni/adapters/platform/linux_xkb_map.py",
         "agent/src/omni/adapters/platform/linux_xtest.py",
         "agent/src/omni/adapters/platform/macos_helper.py",
         "agent/src/omni/adapters/platform/macos_service.py",
@@ -427,7 +428,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 58970,
+      "lines": 59144,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -26200,7 +26201,7 @@
       "path": "agent/src/omni/adapters/platform/linux_foreground.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.linux_foreground",
-      "lines": 194,
+      "lines": 201,
       "imports": [
         "omni.adapters.platform.linux_bus",
         "omni.adapters.platform.linux_input",
@@ -26599,7 +26600,7 @@
       "path": "agent/src/omni/adapters/platform/linux_keyboard.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.linux_keyboard",
-      "lines": 129,
+      "lines": 144,
       "imports": [
         "omni.adapters.platform.linux_bus",
         "omni.adapters.platform.linux_input",
@@ -26640,7 +26641,7 @@
         },
         {
           "name": "KeyboardMapping._read",
-          "line": 46,
+          "line": 47,
           "kind": "function",
           "parameters": [
             "self",
@@ -26652,7 +26653,7 @@
         },
         {
           "name": "KeyboardMapping.prepare",
-          "line": 93,
+          "line": 94,
           "kind": "function",
           "parameters": [
             "self",
@@ -26664,12 +26665,24 @@
         },
         {
           "name": "KeyboardMapping.verify",
-          "line": 118,
+          "line": 119,
           "kind": "function",
           "parameters": [
             "self"
           ],
           "annotations": {}
+        },
+        {
+          "name": "KeyboardMapping.verify_source",
+          "line": 132,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "device"
+          ],
+          "annotations": {
+            "device": "int"
+          }
         }
       ],
       "summary": "Bounded read-only core keymap preflight on an existing focus proof; never translates Unicode, changes layouts or sends input."
@@ -28959,21 +28972,22 @@
       "path": "agent/src/omni/adapters/platform/linux_xkb.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.linux_xkb",
-      "lines": 170,
+      "lines": 215,
       "imports": [
         "omni.adapters.platform.linux_bus",
         "omni.adapters.platform.linux_input",
-        "omni.adapters.platform.linux_x11_wire"
+        "omni.adapters.platform.linux_x11_wire",
+        "omni.adapters.platform.linux_xkb_map"
       ],
       "symbols": [
         {
           "name": "XkbKeyboard",
-          "line": 20,
+          "line": 21,
           "kind": "class"
         },
         {
           "name": "XkbKeyboard.__init__",
-          "line": 21,
+          "line": 22,
           "kind": "function",
           "parameters": [
             "self",
@@ -28985,21 +28999,23 @@
         },
         {
           "name": "XkbKeyboard._reply",
-          "line": 28,
+          "line": 30,
           "kind": "function",
           "parameters": [
             "self",
             "data",
-            "size"
+            "size",
+            "device"
           ],
           "annotations": {
             "data": "bytes",
-            "size": "int | None"
+            "size": "int | None",
+            "device": "int | None"
           }
         },
         {
           "name": "XkbKeyboard.open",
-          "line": 40,
+          "line": 44,
           "kind": "function",
           "parameters": [
             "self"
@@ -29008,25 +29024,31 @@
         },
         {
           "name": "XkbKeyboard._state",
-          "line": 67,
+          "line": 71,
           "kind": "function",
           "parameters": [
-            "self"
+            "self",
+            "device"
           ],
-          "annotations": {}
+          "annotations": {
+            "device": "int"
+          }
         },
         {
           "name": "XkbKeyboard._controls",
-          "line": 78,
+          "line": 82,
           "kind": "function",
           "parameters": [
-            "self"
+            "self",
+            "device"
           ],
-          "annotations": {}
+          "annotations": {
+            "device": "int"
+          }
         },
         {
           "name": "XkbKeyboard._map",
-          "line": 93,
+          "line": 97,
           "kind": "function",
           "parameters": [
             "self",
@@ -29040,7 +29062,7 @@
         },
         {
           "name": "XkbKeyboard.read_key",
-          "line": 154,
+          "line": 158,
           "kind": "function",
           "parameters": [
             "self",
@@ -29051,9 +29073,81 @@
             "code": "int",
             "symbol": "int"
           }
+        },
+        {
+          "name": "XkbKeyboard.source_identity",
+          "line": 176,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "device"
+          ],
+          "annotations": {
+            "device": "int"
+          }
         }
       ],
       "summary": "Read-only XKB server state/actions on the existing input connection; no layout mutation, device acquisition or event dispatch."
+    },
+    {
+      "path": "agent/src/omni/adapters/platform/linux_xkb_map.py",
+      "module": "v2-adapters",
+      "python_module": "omni.adapters.platform.linux_xkb_map",
+      "lines": 107,
+      "imports": [
+        "omni.adapters.platform.linux_bus",
+        "omni.adapters.platform.linux_x11_wire"
+      ],
+      "symbols": [
+        {
+          "name": "map_identity",
+          "line": 11,
+          "kind": "function",
+          "parameters": [
+            "data",
+            "device",
+            "minimum",
+            "maximum"
+          ],
+          "annotations": {
+            "data": "bytes",
+            "device": "int",
+            "minimum": "int",
+            "maximum": "int"
+          }
+        },
+        {
+          "name": "map_identity.take",
+          "line": 34,
+          "kind": "function",
+          "parameters": [
+            "size",
+            "meaningful"
+          ],
+          "annotations": {
+            "size": "int",
+            "meaningful": "int | None"
+          }
+        },
+        {
+          "name": "map_identity.sparse",
+          "line": 87,
+          "kind": "function",
+          "parameters": [
+            "total",
+            "stride",
+            "meaningful",
+            "virtual"
+          ],
+          "annotations": {
+            "total": "int",
+            "stride": "int",
+            "meaningful": "int",
+            "virtual": "bool"
+          }
+        }
+      ],
+      "summary": "Bounded canonical identity of a full native XKB map; no key translation, mutation or input dispatch."
     },
     {
       "path": "agent/src/omni/adapters/platform/linux_xtest.py",
