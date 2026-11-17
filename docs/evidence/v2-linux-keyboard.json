@@ -1,0 +1,66 @@
+{
+  "source_base": "02a7bd126721c89fefe22c216d6fcde0e7643a68",
+  "callers_fixed_source_base": "02a7bd126721c89fefe22c216d6fcde0e7643a68",
+  "scope": "Read-only core special-key mapping preflight bound to continuous X11 native focus; no application XKB or event-dispatch claim",
+  "source_files": {
+    "agent/src/omni/adapters/platform/linux_keyboard.py": "d9c10521c75b0271c71c555cd84e481977286c568dd0a746b67cacf0e7478ef7",
+    "agent/src/omni/adapters/platform/linux_foreground.py": "f93d1d8f79322180b90d9799d78bae680686264e4254d104eca06332d9ec67aa",
+    "agent/src/omni/adapters/platform/linux_x11_wire.py": "f830f30ab6a07b87e969a2aad1db245e1e620cc34214a83d9ceee9ae1b4b902a",
+    "agent/tests/test_v2_linux_keyboard.py": "d6d1fe9a11874399c7cd040101a88d19debec7f3f49ec82d6f654734c02cbcbc",
+    "agent/tests/v2_x11_helpers.py": "482935eb42edc2088024f8a22196a0537f1d0a9450ce143d3aef6722b8031b19",
+    "pyrightconfig.strict.json": "184800505e35f1199dbb620c9492b59bb4d6d66f6fbff14ab5fb5dc902d8ac98",
+    "docs/TYPE_CHECKING.md": "2ead55b5e13a3209d88974ef771a26986910b1610987f6820abcbe16611091de"
+  },
+  "fixed_source_manifest": {
+    "path": "temp/build/v2-linux-keyboard-source.json",
+    "sha256": "25e09697e5909f2812f02904323c80ff31e2b4828f1202ba003dc50a385938ac"
+  },
+  "scoped_tests": {
+    "distinct_current_nodes_passed": 181,
+    "new_nodes": 31,
+    "existing_callers_and_guards": 150,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0,
+    "reports": [
+      {
+        "path": "temp/build/v2-linux-keyboard-unsandboxed.xml",
+        "sha256": "9137a22c8e05f614434c9c289a2e7b7f16d09157daad179bba556a26a1c3df74"
+      },
+      {
+        "path": "temp/build/v2-linux-keyboard-callers.xml",
+        "sha256": "066d4d55a1bc8eb0ec57452a5b2fc701b2d088f1e36b90e4a69ba6ebe5858030"
+      }
+    ]
+  },
+  "strict_modified_files": {
+    "files": 3,
+    "errors": 0,
+    "warnings": 0,
+    "report": {
+      "path": "temp/build/v2-linux-keyboard-pyright.json",
+      "sha256": "19063b7328337fab160e8c24258fd8cdcbe01321f723479bff6a1c947c10d166"
+    }
+  },
+  "sandbox_attempt": {
+    "status": "interrupted_before_tested_code",
+    "reason": "Windows asyncio _fallback_socketpair blocked in socket.accept under restricted environment",
+    "diagnostic": {
+      "path": "temp/build/v2-keyboard-diagnostic.txt",
+      "sha256": "b2749625093ee062aa6b4c6bcd058419f8708a4d7cc3c3ce4f7866d00b737113"
+    },
+    "uv_cache_failure_workaround": "Task-specific writable UV_CACHE_DIR; no environment synchronization"
+  },
+  "validation_environment": "Offline suite with original guard; native Windows asyncio and owned test pipes executed outside sandbox after automatic approval; all Xorg/logind/device peers injected",
+  "native_linux_executed": false,
+  "native_input_executed": false,
+  "global_keyboard_or_pointer_enabled": false,
+  "application_xkb_actions_or_event_routing_proven": false,
+  "layout_changes_or_fixed_us_keycodes_used": false,
+  "registered_strict_scope": 351,
+  "registered_scope_fully_rechecked": false,
+  "full_suite_run": false,
+  "whole_v2_development_complete": false,
+  "whole_v2_accepted": false,
+  "next": "Continue native/semantic association, application XKB and actual input dispatch/intervention; independently continue Wayland input and remaining platform/business delivery work"
+}

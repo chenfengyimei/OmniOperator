@@ -40,6 +40,8 @@ class Setup:
     order: int
     formats: dict[int, tuple[int, int]]
     visuals: dict[int, tuple[int, int, int, int, int]]
+    minimum_keycode: int
+    maximum_keycode: int
 
 
 def setup_reply(data: bytes, screen: int) -> Setup:
@@ -48,7 +50,10 @@ def setup_reply(data: bytes, screen: int) -> Setup:
     release, base, mask = unpack("III", data)
     vendor, _max_request = unpack("HH", data, 16)
     screens, formats, order = unpack("BBB", data, 20)
+    minimum_keycode, maximum_keycode = unpack("BB", data, 26)
     if not 1 <= screens <= 16 or screen >= screens or formats > 32 or order not in {0, 1} or not mask or base & mask:
+        raise failure("desktop_x11_protocol_invalid")
+    if not 8 <= minimum_keycode <= maximum_keycode <= 255:
         raise failure("desktop_x11_protocol_invalid")
     position = 32 + (vendor + 3) // 4 * 4
     pixels: dict[int, tuple[int, int]] = {}
@@ -80,7 +85,7 @@ def setup_reply(data: bytes, screen: int) -> Setup:
             selected_root, selected_visuals = root, visuals
     if position != len(data) or not selected_root:
         raise failure("desktop_x11_protocol_invalid")
-    return Setup(release, base, mask, selected_root, order, pixels, selected_visuals)
+    return Setup(release, base, mask, selected_root, order, pixels, selected_visuals, minimum_keycode, maximum_keycode)
 
 
 class Wire:

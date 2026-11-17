@@ -2,6 +2,8 @@
 
 > 当前开发分支为 `v2`，跟踪 `origin/v2`。Windows离线候选默认入口为V2，显式V1回退保留。
 
+> 全V2按键映射接续（2026-11-17）：Linux前台焦点证明新增当前Xorg核心键盘/修饰键预检，保留真实setup键码范围；11特殊键只接受唯一同符号行，不猜美式键码/组合键，不改布局。双读/使用前完整指纹、逻辑释放掩码和原窗口/输入守卫共同核验，变化后旧计划不能复活。31新增专项与固定副本150调用方通过，修改3文件strict零错误/警告；351仅为登记范围，未整范围重跑。沙箱曾在Windows asyncio内部socketpair accept停住，保留诊断后同一离线专项获准执行通过，未缩短超时或改断言。核心映射不证明应用XKB行为，未开放press_key或全局输入；AT-SPI/原生关联、XKB及实际派发/介入继续开发。未Linux实机/全量，整个V2仍开发中。见[前台合同](V2_LINUX_FOREGROUND.md)、[证据](evidence/v2-linux-keyboard.json)和[持续任务](tasks/v2-development.json)。
+
 > 全V2容器交付接续（2026-11-17）：补非root私有数据卷预建归属、明确HOME、最小构建上下文、默认容器回环及显式HTTPS反代Compose；只读根、init和45秒停止宽限保持应用排空。新增预构建镜像核验工具：固定image ID、新断网容器/卷、内部HTTP鉴权、数据保持/新boot、正常退出与实际清理，未知create先行收据保留未结清身份；不构建/拉取/启动Docker。15新增专项及2打包调用方通过，包含真实隔离SQLite/HTTP探针（Linux UID/mode注入），控制器1文件默认类型零错误/警告；Compose实际静态解析通过。原3失败保留后指定修复通过。Docker引擎仍不可连接，未构建/运行镜像或启动用户服务；CI仅接源码，不代表运行通过。未全量，整个V2继续开发，下一继续核对平台交付与业务缺口，Linux通用键鼠/Wayland实际输入仍开放。见[容器合同](V2_CONTAINER.md)、[证据](evidence/v2-container-delivery.json)和[持续任务](tasks/v2-development.json)。
 
 > 全V2控制许可业务接续（2026-11-17）：独立RemoteDesktop已接父进程、业务审计、所有者HTTP和工作台显式设备/同意入口，仍不授予键鼠输入。原两进程名额共用，迟到创建/坏帧/超量管道保留实际归属，修复stderr超量后停止排空导致Windows回收滞留；请求审计先行、系统许可另记、离页与审计并行时503待结清，实际关闭及关闭审计完成才移除旧记录。固定副本93不同专项通过，修改8文件strict零错误/警告；原管道故障、HTTP接线遗漏及离页回执用例首轮失败均留档后修复。手机深色/桌面浅色已检查，UI先随并行提交49899757落地，未卷入其他会话CSS。未跑全量、真实Wayland许可或输入；当前源码不受旧5998覆盖，整个V2继续开发。下一核对跨平台交付代码缺口，保留Linux全局键鼠与Wayland介入守卫/实际派发开发项。见[合同](V2_WAYLAND_CONTROL.md)、[证据](evidence/v2-control-owner.json)和[持续任务](tasks/v2-development.json)。

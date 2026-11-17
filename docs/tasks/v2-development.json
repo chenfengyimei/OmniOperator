@@ -58,12 +58,18 @@
           },
           "remaining": [
             "通用键鼠的控件与原生窗口可靠关联",
-            "全局键盘映射、鼠标遮挡及实际派发确定性；不以已接通的直接寻址文本插入替代"
+            "应用XKB行为、事件路由与实际派发/介入证明；只读核心键盘映射预检和已接通的直接文本插入均不能替代"
           ],
           "addressed_unicode_append": {
             "status": "implemented_scoped_passed",
             "evidence": "docs/evidence/v2-linux-text.json",
             "scope": "Manually focused non-password AT-SPI editable text end, no selection, one addressed Unicode InsertText; no global keys or pointer"
+          },
+          "core_keyboard_preflight": {
+            "status": "implemented_scoped_passed",
+            "evidence": "docs/evidence/v2-linux-keyboard.json",
+            "application_xkb_or_dispatch_proven": false,
+            "global_keyboard_enabled": false
           }
         }
       ]

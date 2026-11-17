@@ -4,7 +4,9 @@
 
 前台控制已补[原生焦点及祖先链只读证明和受限文本追加](V2_LINUX_FOREGROUND.md)。人工聚焦的AT-SPI非密码编辑器可在末尾单次追加Unicode，沿用逐次审批/permit、原文/光标/选区与完整回读；通用键鼠、AT-SPI控件与原生窗口关联继续开发。窗口同PID、标题或坐标均不自动成为映射。
 
-[Wayland独立控制许可](V2_WAYLAND_CONTROL.md)已补原生RemoteDesktop及固定worker基础，系统设备许可不等于业务输入权。父进程归属、业务入口和真实输入暂停/派发仍在开发；所有回执保持input_authorized=false。
+[Wayland独立控制许可](V2_WAYLAND_CONTROL.md)已接原生RemoteDesktop、固定worker、父进程归属、持久业务审计及显式所有者入口；系统设备许可不等于业务输入权。真实输入暂停/目标证明/派发仍在开发，所有回执保持input_authorized=false。
+
+X11前台原生焦点证明另接只读核心按键映射预检，读取当前服务器真实keycode范围、完整键盘/修饰键表和逻辑释放状态，变化使计划失效；不猜美式键码、不改布局、不注入事件。该层不证明应用XKB行为，通用键鼠仍未开放，详见[前台合同](V2_LINUX_FOREGROUND.md)。
 
 ## 已实现的生产链路
 

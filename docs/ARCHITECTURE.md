@@ -104,6 +104,8 @@ Linux桌面原生会话由固定辅助进程内的`SessionInspector`核验，`Lo
 
 `linux_foreground.py`拥有独立输入监测连接，对外部持续窗口租约核验XRes实际焦点客户端及有界QueryTree祖先链。`linux_input.py`原焦点监测可一次性补充祖先结构订阅；物理输入、祖先/窗口/进程变化使证明失效，失败不复活。该原生只读基础尚不开放前台业务派发，也不把AT-SPI坐标或PID当作X11窗口映射，见[前台开发合同](V2_LINUX_FOREGROUND.md)。
 
+`linux_keyboard.py`在该焦点证明下只读当前核心键盘/修饰键映射，以真实setup键码范围、双读/完整指纹及逻辑释放状态预检领域特殊键；不猜键码、不改布局、不合成输入。核心映射不能代替应用XKB行为或实际派发证明，通用按键仍未开放。
+
 `linux_text.py`已接独立受限前台文本追加：只寻址人工聚焦的AT-SPI非密码编辑对象，不映射X11窗口或发送全局键鼠。节点证明绑定原文/末尾光标/零选区，固定linux_action worker以原前台UUID ready/permit逐次放行；一次InsertText、完整回读、派发后unknown不重放。DesktopActions共用原审批、观察消费和资源账本；探测核验输入守卫才报告受限能力，通用键鼠及Wayland控制仍在开发。
 
 `domain/desktop_control.py`与固定`workers/desktop_control.py`提供独立Wayland控制许可协议；`linux_remote_desktop.py`只获取单独RemoteDesktop临时设备许可，不能调用Notify*/EIS/剪贴板或读取共享帧。prepared后同绑定permit才请求系统同意，撤回与实际关闭独立核验，input_authorized始终false。`platform/desktop_control.py`拥有有界辅助进程及实际回收，与原桌面共用两进程名额；`application/desktop_control.py`拥有视图绑定、请求/系统许可/关闭审计和待结清归属，HTTP/工作台仅提供显式设备许可入口。原ScreenCast不借用共享授权；实际输入暂停、目标证明和派发仍在开发，见[控制合同](V2_WAYLAND_CONTROL.md)。

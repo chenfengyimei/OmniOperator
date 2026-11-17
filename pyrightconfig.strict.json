@@ -155,6 +155,7 @@
     "agent/src/omni/adapters/platform/linux_fds.py",
     "agent/src/omni/adapters/platform/linux_foreground.py",
     "agent/src/omni/adapters/platform/linux_input.py",
+    "agent/src/omni/adapters/platform/linux_keyboard.py",
     "agent/src/omni/adapters/platform/linux_lease_client.py",
     "agent/src/omni/adapters/platform/linux_pipewire.py",
     "agent/src/omni/adapters/platform/linux_portal.py",

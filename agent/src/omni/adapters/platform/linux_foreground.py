@@ -7,6 +7,7 @@ from typing import cast
 
 from .linux_bus import failure
 from .linux_input import X11Input
+from .linux_keyboard import KeyboardMapping
 from .linux_window_leases import WindowLeases
 from .linux_x11 import X11Desktop
 from .linux_x11_wire import unpack
@@ -28,6 +29,7 @@ class WindowFocus:
         self._resource: int | None = None
         self._closed = False
         self._ready = False
+        self._keyboard: KeyboardMapping | None = None
 
     def _same_server(self) -> None:
         desktop = self.leases.desktop
@@ -132,3 +134,23 @@ class WindowFocus:
     async def close(self) -> bool:
         self._closed = True
         return await self.monitor.close()
+
+    async def prepare_key(self, key: object) -> int:
+        """Read one key's mapping while the native window/focus proof remains held; no input permission."""
+        if self._keyboard is not None:
+            raise failure("desktop_input_unverified")
+        self._keyboard = KeyboardMapping(self)
+        try:
+            return await self._keyboard.prepare(key)
+        except BaseException:
+            self._ready = False
+            raise
+
+    async def verify_key(self) -> int:
+        if self._keyboard is None:
+            raise failure("desktop_input_unverified")
+        try:
+            return await self._keyboard.verify()
+        except BaseException:
+            self._ready = False
+            raise

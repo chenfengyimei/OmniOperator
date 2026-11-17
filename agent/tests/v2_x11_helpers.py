@@ -17,6 +17,7 @@ def setup_bytes(order=0, bits=32):
     data = bytearray(32)
     struct.pack_into("<III", data, 0, 123, 0x2000000, 0x1FFFFF)
     struct.pack_into("<HHBBBB", data, 16, 0, 4096, 1, 1, order, 0)
+    data[26:28] = bytes([8, 255])
     data += bytes([24, bits, 32, 0, 0, 0, 0, 0])
     screen = bytearray(40)
     struct.pack_into("<I", screen, 0, ROOT)

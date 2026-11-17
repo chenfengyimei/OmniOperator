@@ -26,4 +26,16 @@ Linux 桌面协议只放行 AT-SPI 的这一前台动作；`press_key`、`click`
 
 文本协议依据：[EditableText.InsertText](https://raw.githubusercontent.com/GNOME/at-spi2-core/main/xml/EditableText.xml) 和 [Text](https://raw.githubusercontent.com/GNOME/at-spi2-core/main/xml/Text.xml) 的 CaretOffset/GetNSelections。真实 GTK/Qt 的焦点标志、Unicode 位置和插入后光标行为仍需 Linux 正式验收。
 
-协议依据：[X11 Protocol](https://xorg.freedesktop.org/archive/X11R7.7/doc/xproto/x11protocol.html) 的 GetInputFocus、QueryTree、ChangeWindowAttributes；[AT-SPI Accessible](https://gnome.pages.gitlab.gnome.org/at-spi2-core/devel-docs/doc-org.a11y.atspi.Accessible.html) 与 [Component](https://raw.githubusercontent.com/GNOME/at-spi2-core/main/xml/Component.xml)。
+## 当前服务器的核心按键映射预检
+
+`linux_keyboard.py` 已接到 `WindowFocus.prepare_key/verify_key`：在同一持续窗口、实际焦点客户端及输入守卫成立时，才从监测连接读取本次 Xorg 的完整核心键盘/修饰键映射。连接 setup 保留并验证真实 min/max keycode，GetKeyboardMapping 每键最多 16 个符号、GetModifierMapping 每组最多 32 个条目；只接受领域既有 11 个特殊键，不使用固定美式 keycode、字符猜测、组合键或布局改写。
+
+目标符号须只出现在一个物理 keycode 行，首项匹配，其余项只能为同符号或 NoSymbol；仅修饰层出现、行内混合符号、多个候选或该 keycode 本身作为修饰键均拒绝。修饰键表须完全有界且有效，QueryPointer 只检查逻辑修饰键/按键掩码为零和同一 root，不保存坐标。物理释放不能替代 CapsLock 等逻辑锁存状态。
+
+准备时以焦点/输入屏障夹住两次完整读取，之后使用前再次核对全表指纹。其他键或修饰键的变化、MappingNotify、物理输入、焦点或连续窗口身份变化都会使本次证明锁存失效；恢复成旧元数据不能恢复旧计划。映射对象不拥有外部连接，关闭仍由原 WindowFocus 回收自己的监测连接，并保留外部窗口租约。
+
+这是只读核心映射预检。X11 核心规范明确映射由客户端解释，不能据此证明应用的 XKB action、实际事件路由或按键已处理。因此本批没有开放 press_key、Unicode 键盘生成或 XTest，不把这层预检当作通用输入完成。控件与原生窗口的可靠关联、XKB 及派发/介入证明仍需继续实现。
+
+31 项新回归和固定副本 150 项受影响调用方通过，修改 3 后端文件 strict 零错误/警告。受限环境曾在 Windows asyncio 建立内部 socketpair 的 accept 阶段停住，尚未进入被测逻辑；保留诊断栈后同一离线专项在获准环境执行通过，未改测试/生产超时、网络闸门或断言。没有真实 Linux 输入或全量，见[映射证据](evidence/v2-linux-keyboard.json)。
+
+协议依据：[X11 Protocol](https://xorg.freedesktop.org/archive/X11R7.7/doc/xproto/x11protocol.html) 的 GetInputFocus、QueryTree、ChangeWindowAttributes、GetKeyboardMapping、GetModifierMapping、QueryPointer 和 MappingNotify；[AT-SPI Accessible](https://gnome.pages.gitlab.gnome.org/at-spi2-core/devel-docs/doc-org.a11y.atspi.Accessible.html) 与 [Component](https://raw.githubusercontent.com/GNOME/at-spi2-core/main/xml/Component.xml)。
