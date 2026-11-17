@@ -342,6 +342,7 @@ class AtspiDesktop:
                         path,
                         chain,
                         {"role": role, "flags": flags, "name": raw_name, "text": raw_text, "interfaces": interfaces},
+                        ref,
                     )
                 nodes[-1].update(reference=proof, actions=kinds)
             if password:

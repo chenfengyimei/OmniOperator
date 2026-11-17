@@ -11,7 +11,7 @@ from ...domain.foreground import action as foreground_action
 from .linux_atspi import AtspiDesktop
 from .linux_bus import failure
 from .linux_input import X11Input
-from .linux_semantic import EDITABLE, Semantics, digest, result
+from .linux_semantic import EDITABLE, Semantics, digest, result, stable_catalog
 
 Payload = dict[str, object]
 WAIT_SECONDS = 10.0
@@ -73,8 +73,8 @@ class FocusedText:
             after = await self.semantics.resolve(target, path)
             context = await self.semantics.typing_context(ref, after[2])
             expected = before + text
-            expected_catalog = {key: item for key, item in catalog.items() if key != "type_text"}
-            actual_catalog = {key: item for key, item in after[3].items() if key != "type_text"}
+            expected_catalog = stable_catalog(catalog)
+            actual_catalog = stable_catalog(after[3])
             # Providers can retain the original caret or advance it after
             # InsertText. Full prefix/suffix content and control identity are
             # verified independently; no SetCaretOffset write is added.

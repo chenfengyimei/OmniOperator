@@ -15,9 +15,11 @@ from ...domain.foreground import TIMEOUT_S as FOREGROUND_TIMEOUT_S
 from ..platform.linux_atspi import AtspiDesktop, report
 from ..platform.linux_bus import LinuxOps, RemoteError, load_types
 from ..platform.linux_input import X11Input
+from ..platform.linux_key_action import FocusedKey
 from ..platform.linux_semantic import Semantics
 from ..platform.linux_session import FactoryPort, LocalFactory, OpsPort, SessionInspector
 from ..platform.linux_text import FocusedText
+from ..platform.linux_window_binding import WindowBinding
 from ..platform.linux_x11 import X11Desktop
 from ..platform.linux_x11_wire import XError
 
@@ -61,9 +63,9 @@ def capability_report(
                 available=available,
                 error_code=None if available else input_error or error or "desktop_input_unverified",
                 limitations=[
-                    "仅在人工聚焦的AT-SPI非密码可编辑控件末尾追加Unicode文本；光标末尾、零选区、完整文本和输入守卫须可核验。",
+                    "人工聚焦的AT-SPI非密码编辑器可追加Unicode；明确提供原生窗口身份的节点可申请一次特殊按键，均须原生守卫核验。",
                     "每次最多128字符，原文加结果最多512字符；一次审批和逐次permit，插入后完整回读，未知结果不重放。",
-                    "不获取焦点、不发送全局键鼠、不使用剪贴板；不自动映射X11/AT-SPI窗口。Wayland控制需要独立授权。",
+                    "不获取焦点、不使用剪贴板或鼠标；按键逐次核验窗口/节点/映射与许可，仅文本或光标后验匹配才成功，其余记未知。通用提供方及Wayland输入仍在开发。",
                 ],
             )
         if item["id"] == "window_identity" and x11_ready:
@@ -100,6 +102,7 @@ async def perform(
     factory: FactoryPort | None = None,
     x11_factory: Callable[[SessionInspector], X11Desktop] = X11Desktop,
     monitor_factory: Callable[[SessionInspector], X11Input] = X11Input,
+    binding_factory: Callable[[AtspiDesktop, X11Input], WindowBinding] = WindowBinding,
     permit: Callable[[], Awaitable[bool]] | None = None,
 ) -> dict[str, Any]:
     inspector: SessionInspector | None = None
@@ -109,6 +112,7 @@ async def perform(
     x11, x11_error, atspi_error = None, None, None
     x11_ready = atspi_ready = False
     monitor = None
+    binding: WindowBinding | None = None
     input_ready, input_error = False, None
     try:
         if request["operation"] not in {"probe", "targets", "verify", "observe", "capture", "act", "foreground"}:
@@ -213,7 +217,8 @@ async def perform(
                 ):
                     monitor = monitor_factory(inspector)
                     try:
-                        await monitor.open()
+                        if operation != "foreground" or request["action"]["kind"] != "press_key":
+                            await monitor.open()
                         actions = True
                     except (BusinessError, RemoteError, XError, OSError):
                         if operation in {"act", "foreground"}:
@@ -225,9 +230,18 @@ async def perform(
                     if monitor is None or not actions:
                         raise BusinessError("desktop_input_unverified", "Reliable input-change guard is not available")
                     if operation == "foreground":
-                        result = await FocusedText(adapter).append(
-                            request["target"], request["action"], monitor, cast(Callable[[], Awaitable[bool]], permit)
-                        )
+                        if request["action"]["kind"] == "press_key":
+                            binding = binding_factory(adapter, monitor)
+                            result = await FocusedKey(adapter, binding).press(
+                                request["target"], request["action"], cast(Callable[[], Awaitable[bool]], permit)
+                            )
+                        else:
+                            result = await FocusedText(adapter).append(
+                                request["target"],
+                                request["action"],
+                                monitor,
+                                cast(Callable[[], Awaitable[bool]], permit),
+                            )
                     else:
                         result = await Semantics(adapter).act(
                             request["target"], request["action"], monitor, cast(Callable[[], Awaitable[bool]], permit)
@@ -262,7 +276,19 @@ async def perform(
     except Exception:  # noqa: BLE001 -- native/provider error text must never cross the helper boundary
         error = "desktop_native_unavailable"
     finally:
-        if monitor is not None:
+        if binding is not None:
+            # Outside the business timeout: the permitted helper may still own
+            # the release suffix or its original uncertain readback. Parent
+            # retains this process and its slot until native cleanup completes.
+            while True:
+                try:
+                    if await binding.close():
+                        break
+                except Exception:  # noqa: BLE001 -- keep the actual binding alive for cleanup, with no replay
+                    error = "desktop_cleanup_pending"
+                error = "desktop_cleanup_pending"
+                await asyncio.sleep(0.1)
+        if monitor is not None and binding is None:
             try:
                 if not await monitor.close():
                     error = "desktop_cleanup_pending"

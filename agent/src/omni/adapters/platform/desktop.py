@@ -113,6 +113,9 @@ class _Host:
     owned: OwnedProcess | None = None
     readers: list[asyncio.Task[None]] = field(default_factory=lambda: list[asyncio.Task[None]]())
     collected: asyncio.Task[int] | None = None
+    exited: asyncio.Task[int] | None = None
+    native_key_permitted: bool = False
+    using: bool = False
     cleanup: asyncio.Task[bool] | None = None
     output: bytearray = field(default_factory=bytearray)
     stdout_bytes: int = 0
@@ -206,7 +209,9 @@ class DesktopBackend:
         try:
             if sys.platform not in {"win32", "darwin"} and not (
                 sys.platform == "linux"
-                and (operation == "act" or operation == "foreground" and action.get("kind") == "type_text")
+                and (
+                    operation == "act" or operation == "foreground" and action.get("kind") in {"type_text", "press_key"}
+                )
             ):
                 raise _error("desktop_action_unavailable")
             return await self._request(operation, target, 1, before_dispatch, action=action, sent=sent)
@@ -395,6 +400,21 @@ class DesktopBackend:
         if host.owned is not None:
             if host.owned.process.stdin is not None:
                 host.owned.process.stdin.close()
+            if host.native_key_permitted:
+                # An authorized XTEST press can leave a release/query owned by
+                # this exact helper. Closing stdin revokes future work; killing
+                # it would drop that native responsibility. Keep pipes/slot.
+                if host.exited is None:
+                    host.exited = asyncio.create_task(host.owned.process.wait(), name="desktop-native-release")
+                    host.exited.add_done_callback(lambda task: task.exception() if not task.cancelled() else None)
+                done, _ = await asyncio.wait((host.exited,), timeout=max(0, timeout_s))
+                if not done or host.exited.cancelled() or host.exited.exception() is not None:
+                    return False
+                if host.using:
+                    # Exit settles native release, but the request consumer
+                    # still owns its final receipt. External close must not
+                    # cancel its collector or clear the bytes underneath it.
+                    return False
             if not await host.owned.terminate(timeout_s):
                 return False
         tasks: list[asyncio.Task[Any]] = [*host.readers, *((host.collected,) if host.collected else ())]
@@ -479,7 +499,7 @@ class DesktopBackend:
                 if self._closing:
                     self._slots.release()
                     raise _error("desktop_closing")
-                host = _Host()
+                host = _Host(using=True)
                 if two_phase:
                     host.ready_frame = linux_ready(request) if linux_action else ready(request)
                 self._hosts.add(host)
@@ -546,6 +566,12 @@ class DesktopBackend:
                         grant = json.dumps(permission, separators=(",", ":")).encode("utf-8") + b"\n"
                         if sent is not None:
                             sent[0] = True
+                        if (
+                            request["operation"] == "foreground"
+                            and request["target"]["platform"] == "linux"
+                            and request["action"]["kind"] == "press_key"
+                        ):
+                            host.native_key_permitted = True
                         host.owned.process.stdin.write(grant)
                         await host.owned.process.stdin.drain()
                 host.owned.process.stdin.close()
@@ -610,6 +636,8 @@ class DesktopBackend:
             failed = True
             raise _error("desktop_transport_failed") from None
         finally:
+            if host is not None:
+                host.using = False
             if armed is not None:
                 armed.cancel()
                 await asyncio.gather(armed, return_exceptions=True)

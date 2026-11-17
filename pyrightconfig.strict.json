@@ -157,6 +157,7 @@
     "agent/src/omni/adapters/platform/linux_input.py",
     "agent/src/omni/adapters/platform/linux_keyboard.py",
     "agent/src/omni/adapters/platform/linux_key_switch.py",
+    "agent/src/omni/adapters/platform/linux_key_action.py",
     "agent/src/omni/adapters/platform/linux_keystroke.py",
     "agent/src/omni/adapters/platform/linux_lease_client.py",
     "agent/src/omni/adapters/platform/linux_pipewire.py",

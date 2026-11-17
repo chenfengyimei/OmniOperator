@@ -37,6 +37,15 @@ def result(status: str, code: str = "", verification: str = "not_verified") -> P
     }
 
 
+def stable_catalog(catalog: Payload) -> Payload:
+    entries = {key: value for key, value in catalog.items() if key != "type_text"}
+    if "press_key" in entries:
+        entries["press_key"] = {
+            key: value for key, value in cast(Payload, entries["press_key"]).items() if key != "text"
+        }
+    return entries
+
+
 class Semantics:
     def __init__(self, desktop: AtspiDesktop) -> None:
         self.desktop = desktop
@@ -82,8 +91,26 @@ class Semantics:
         except (BusinessError, RemoteError):
             return None
 
-    async def catalogue(self, ref: tuple[str, str], parent: tuple[str, str] | None, facts: Payload) -> Payload:
+    async def keyboard_context(self, window: tuple[str, str], context: Payload | None) -> Payload | None:
+        from .linux_window_binding import declared_window
+
+        if self.desktop.inspector.session is None or self.desktop.inspector.session.kind != "x11":
+            return None
+        try:
+            attributes = await self.desktop.call(window, ACCESSIBLE, "GetAttributes", returns="a{ss}")
+            return {"window": declared_window(attributes), "text": context}
+        except (BusinessError, RemoteError):
+            return None
+
+    async def catalogue(
+        self,
+        ref: tuple[str, str],
+        parent: tuple[str, str] | None,
+        facts: Payload,
+        window: tuple[str, str] | None = None,
+    ) -> Payload:
         entries: Payload = {}
+        context: Payload | None = None
         if not {8, 24, 25, 30} <= cast(set[int], facts["flags"]):
             return entries
         if (
@@ -95,6 +122,10 @@ class Semantics:
             context = await self.typing_context(ref, facts)
             if context is not None and context["caret"] == len(cast(str, facts["text"])) < 512:
                 entries["type_text"] = context
+        if window is not None and 11 in cast(set[int], facts["flags"]):
+            keyboard = await self.keyboard_context(window, context)
+            if keyboard is not None:
+                entries["press_key"] = keyboard
         if ACTION in cast(list[str], facts["interfaces"]):
             count = number(await self.desktop.property(ref, ACTION, "NActions", "i"), 16)
             names: list[str] = [
@@ -139,9 +170,10 @@ class Semantics:
         path: list[int],
         trail: Sequence[tuple[list[str], int, str]],
         facts: Payload,
+        window: tuple[str, str] | None = None,
     ) -> tuple[Payload | None, list[str]]:
         try:
-            catalog = await self.catalogue(ref, parent, facts)
+            catalog = await self.catalogue(ref, parent, facts, window)
             return (self.make_proof(path, trail, facts, catalog), list(catalog)) if catalog else (None, [])
         except (BusinessError, RemoteError):
             return None, []
@@ -150,6 +182,7 @@ class Semantics:
         self, target: Payload, path: list[int]
     ) -> tuple[tuple[str, str], tuple[str, str] | None, Payload, Payload, Payload]:
         ref = await self.desktop.verified(target)
+        window = ref
         trail: list[tuple[list[str], int, str]]
         parent: tuple[str, str] | None
         trail, parent = [], None
@@ -157,7 +190,7 @@ class Semantics:
             facts = await self.facts(ref)
             trail.append((list(ref), cast(int, facts["role"]), digest(facts["name"])))
             if position == len(path):
-                catalog = await self.catalogue(ref, parent, facts)
+                catalog = await self.catalogue(ref, parent, facts, window)
                 proof = self.make_proof(path, trail, facts, catalog)
                 return ref, parent, facts, catalog, proof
             index = path[position]
@@ -219,7 +252,11 @@ class Semantics:
             if type(applied) is not bool or not applied:
                 raise failure("desktop_action_unverified")
             current = await self.resolve(target, cast(list[int], proof["path"]))
-            expected = {**proof, "value_sha256": digest(action["text"])} if kind == "set_text" else proof
+            expected = proof
+            if kind == "set_text":
+                if stable_catalog(catalog) != stable_catalog(current[3]):
+                    raise failure("desktop_observation_changed")
+                expected = {**proof, "value_sha256": digest(action["text"]), "actions_sha256": digest(current[3])}
             if current[-1] != expected:
                 raise failure("desktop_observation_changed")
             if kind == "set_text" and current[2]["text"] == action["text"]:

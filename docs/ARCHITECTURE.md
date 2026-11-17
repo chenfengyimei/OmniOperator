@@ -104,15 +104,17 @@ Linux桌面原生会话由固定辅助进程内的`SessionInspector`核验，`Lo
 
 `linux_foreground.py`拥有独立输入监测连接，对外部持续窗口租约核验XRes实际焦点客户端及有界QueryTree祖先链。`linux_input.py`原焦点监测可一次性补充祖先结构订阅；物理输入、祖先/窗口/进程变化使证明失效，失败不复活。该原生只读基础尚不开放前台业务派发，也不把AT-SPI坐标或PID当作X11窗口映射，见[前台开发合同](V2_LINUX_FOREGROUND.md)。
 
-`linux_window_binding.py`另组合已验证AT-SPI窗口明确提供的XID、XRes实际进程及其自己的连续窗口/焦点连接；只接受已核对的提供方字段（当前Avalonia），不推断GTK/Qt通用关联。描述重读夹住焦点/窗口代次检查，任何失败锁存；关闭先结清输入监测的实际释放，再关闭自己的原生窗口连接，外部SessionInspector继续由worker拥有。该关联基础尚未接入业务worker、逐次按键许可或应用结果，不创建新的持久授权真值。
+`linux_window_binding.py`组合已验证AT-SPI窗口明确提供的XID、XRes实际进程及其自己的连续窗口/焦点连接；只接受已核对的提供方字段（当前Avalonia），不推断GTK/Qt通用关联。描述重读夹住焦点/窗口代次检查，任何失败锁存；关闭先结清输入监测的实际释放，再关闭自己的原生窗口连接，外部SessionInspector继续由worker拥有。`linux_key_action.py`现将该绑定、完整映射/来源/复制预检及成对派发接入原linux_action worker的UUID ready/permit；原语义目录将窗口/光标上下文计入动作指纹，未提供明确窗口身份不产生按键候选。
 
 `linux_xtest.py`借用上述已arm的连接，读取全部XI2设备的服务器虚拟键鼠属性与挂接身份；双读及使用前复核，不创建属性、改设备或发送输入。`linux_input`只导出设备元数据及拓扑指纹，原始内容不落盘，新增属性通知同样锁存变化。XTEST来源由所有客户端共享，来源预检本身不授予业务派发或自身事件豁免。
 
-内部`linux_keystroke.py`现拥有单键成对请求的发送字节、释放后缀与同连接QueryKeymap屏障，`linux_input`只在其实际租约存在时匹配精确请求序号和slave/master通知，未结清流禁止其他请求。`WindowFocus.key_packet`组合已有窗口/键映射/虚拟来源复核；业务worker仍未使用该派发器，目标关联、逐次permit及应用结果接线待完成。取消后的释放/原查询任务由监测连接持有，未证明释放不能关闭成功；不创建持久业务状态或另一套审批真值。
+内部`linux_keystroke.py`拥有单键成对请求的发送字节、释放后缀与同连接QueryKeymap屏障，`linux_input`只在其实际租约存在时匹配精确请求序号和slave/master通知，未结清流禁止其他请求。`WindowFocus.key_packet`组合已有窗口/键映射/虚拟来源复核，已由显式提供方节点的业务按键调用；逐次permit后重新准备当前序号，不重放。取消后的释放/原查询任务由监测连接持有，未证明释放不能关闭成功；不创建持久业务状态或另一套审批真值。
 
 `linux_xkb_map.py`解析完整GetMap八部件，`linux_xkb_copy.py`解析兼容表、名称、指示器定义和当前几何，均有界输出规范化SHA。`linux_xkb`在现有连接订阅来源键盘并交替四读主/从的完整复制配置、状态和控制；`KeyboardMapping`绑定原身份，`WindowFocus.key_packet`先通过预检。
 
-`linux_key_switch.py`以既有设备拓扑预计算唯一允许的主KeyClass来源ID变化。实际按键租约只在首个Raw事件前接受同按下序号的精确一次NKN→XI SlaveSwitch，旧/新设备、键码范围、XKB请求、changed位及来源KeyClass完整匹配。四条Raw和释放结清后，拓扑双读夹住原复制配置再验，焦点、释放与独立变化锁存均成立才采用该指纹；未发生切换时仍核对原拓扑，绝不清空changed。派发后核验失败或取消锁存失效；业务worker、节点关联、逐次permit与应用结果仍待接线。
+`linux_key_switch.py`以既有设备拓扑预计算唯一允许的主KeyClass来源ID变化。实际按键租约只在首个Raw事件前接受同按下序号的精确一次NKN→XI SlaveSwitch，旧/新设备、键码范围、XKB请求、changed位及来源KeyClass完整匹配。四条Raw和释放结清后，拓扑双读夹住原复制配置再验，焦点、释放与独立变化锁存均成立才采用该指纹；未发生切换时仍核对原拓扑，绝不清空changed。业务按键成功另需具体文本/光标后验，Tab/Escape、提交或不符行为保持unknown，传输完成不能代替应用证明。
+
+平台桌面宿主在Linux按键permit发出前登记原生释放责任。超时/关闭只关闭输入管道撤销后续工作，保留进程、管道和共享名额直到实际退出；不能直接kill持有释放后缀/原查询的worker。worker在业务期限外继续结清WindowBinding，之后才关闭外部会话并回传。实际退出也不允许外部close先取消业务仍在读取的collector或清空回执，消费者离开后才完成原进程回收；现有元数据/语义/文本回收行为保持。
 
 `linux_keyboard.py`在该焦点证明下只读当前核心键盘/修饰键映射，以真实setup键码范围、双读/完整指纹及逻辑释放状态预检领域特殊键；不猜键码、不改布局、不合成输入。核心映射不能代替应用XKB行为或实际派发证明，通用按键仍未开放。
 

@@ -54,11 +54,12 @@
           "native_focus_proof": {
             "status": "implemented_scoped_passed",
             "evidence": "docs/evidence/v2-linux-foreground-proof.json",
-            "production_foreground_dispatch_enabled": false
+            "production_foreground_dispatch_enabled": true,
+            "business_scope": "Explicit-provider AT-SPI node keys only; other input remains in development"
           },
           "remaining": [
-            "通用提供方/具体语义控件与原生窗口关联及逐次业务permit接线；当前仅完成显式Avalonia XID绑定基础",
-            "实际业务worker按键派发及应用结果核验；内部按键包和窗口绑定基础不等于通用按键完成",
+            "通用提供方/控件的原生窗口关联；当前仅明确XID提供方节点已接业务按键",
+            "Tab/Escape/焦点导航/关闭与其他应用结果的专门后验；无法证明的已派发结果保持unknown",
             "鼠标点击与Wayland实际输入仍待继续开发"
           ],
           "addressed_unicode_append": {
@@ -86,31 +87,44 @@
           "internal_paired_key_delivery": {
             "status": "implemented_scoped_passed",
             "evidence": "docs/evidence/v2-linux-keypair.json",
-            "production_business_worker_enabled": false,
+            "production_business_worker_enabled": true,
             "expected_native_class_transition_complete": true,
             "application_postcondition_proven": false,
-            "transition_followup_evidence": "docs/evidence/v2-linux-key-switch.json"
+            "transition_followup_evidence": "docs/evidence/v2-linux-key-switch.json",
+            "business_followup_evidence": "docs/evidence/v2-linux-key-business.json"
           },
           "source_getmap_clone_preflight": {
             "status": "implemented_scoped_passed",
             "evidence": "docs/evidence/v2-linux-keymap-clone.json",
             "expected_native_transition_complete": true,
             "other_copied_configuration_complete": true,
-            "production_business_worker_enabled": false,
-            "followup_evidence": "docs/evidence/v2-linux-key-switch.json"
+            "production_business_worker_enabled": true,
+            "followup_evidence": "docs/evidence/v2-linux-key-switch.json",
+            "business_followup_evidence": "docs/evidence/v2-linux-key-business.json"
           },
           "source_copy_and_native_transition": {
             "status": "implemented_scoped_passed",
             "evidence": "docs/evidence/v2-linux-key-switch.json",
-            "production_business_worker_enabled": false,
-            "application_postcondition_proven": false
+            "production_business_worker_enabled": true,
+            "application_postcondition_proven": false,
+            "business_followup_evidence": "docs/evidence/v2-linux-key-business.json"
           },
           "explicit_provider_window_binding": {
             "status": "implemented_scoped_passed",
             "evidence": "docs/evidence/v2-linux-window-binding.json",
             "provider_scope": "Only verified explicit Avalonia native-XID attribute; generic GTK/Qt binding remains open",
-            "production_business_worker_enabled": false,
-            "specific_node_and_application_postcondition_complete": false
+            "production_business_worker_enabled": true,
+            "specific_node_and_application_postcondition_complete": false,
+            "business_followup_evidence": "docs/evidence/v2-linux-key-business.json"
+          },
+          "explicit_provider_key_business": {
+            "status": "implemented_scoped_passed",
+            "evidence": "docs/evidence/v2-linux-key-business.json",
+            "provider_scope": "Explicit native-XID provider, currently Avalonia",
+            "all_eleven_keys_dispatch": true,
+            "text_caret_postconditions_implemented": true,
+            "unproven_outcomes_remain_unknown": true,
+            "full_generic_foreground_complete": false
           }
         }
       ]

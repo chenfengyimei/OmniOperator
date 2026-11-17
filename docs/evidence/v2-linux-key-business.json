@@ -1,0 +1,153 @@
+{
+  "source_base": "03508e63b4ec7e020956cf0bb8e3bf1d868515a3",
+  "fixed_source_base": "03508e63b4ec7e020956cf0bb8e3bf1d868515a3",
+  "scope": "Explicit provider XID AT-SPI node key business dispatch, UUID-bound parent permit, native mapping/copy/event/release proof and concrete text/caret application verification; protected post-permit worker and final-receipt ownership",
+  "source_files": {
+    "agent/src/omni/adapters/platform/linux_semantic.py": "638e9265e611e9c30961fe85ddf2549129d033244daa9190680ee6826a4f1933",
+    "agent/src/omni/adapters/platform/linux_atspi.py": "0943ea1bacc50d9515e6741cc2be069b1cc9cd321ee88634b36588a45c517890",
+    "agent/src/omni/adapters/platform/linux_key_action.py": "360af0d655622f68c7a75122f8e69cd38b94a2393cd089aca38fb755e331d450",
+    "agent/src/omni/adapters/platform/linux_text.py": "426adb8d4288b1d5e08cc4f8de6886548c5fdaf49b7344cfb1eb32ae18f7a5d3",
+    "agent/src/omni/adapters/platform/desktop.py": "06ef23d82d5952381a2008388e37f5a40f557b9999c2779cc0de9b6b667004e4",
+    "agent/src/omni/adapters/workers/linux_desktop.py": "537684cf20aab585763960a7a29157b51e739771c977a1b79e8a282ce225d070",
+    "agent/src/omni/domain/desktop.py": "0bc4ad949216bcf1264ba111ac12b63982deaabd202e2115d07594b365febbd5",
+    "agent/src/omni/domain/desktop_actions.py": "67910afdb4b4cff29fc0c00e5cf7ffce3d3fefc19176a6186e899ac1731fe01d",
+    "agent/tests/test_v2_linux_key_action.py": "29032945bd30d2e94e8aa5e2435b0b662afd336a9a0f1cffd5dbde5dc5e82ad4",
+    "agent/tests/v2_linux_key_helpers.py": "92649b84dd3615ebc374aed3aa3b4da898cd316a5027fa62174e222a910a576f",
+    "pyrightconfig.strict.json": "3c9c65e24c1ddb2f23f70a0ab3e0528da3869fd847975ed20a491f733fb7d2aa",
+    "docs/TYPE_CHECKING.md": "383337183231477b20b5be663bf27c0829eac9543013aea4c58b666c066c834c",
+    "agent/tests/test_v2_linux_text.py": "5e5d0e5ee874766af8c0e5684a90ff6878867720fa84d113489d61ade2c53a3e"
+  },
+  "fixed_source_manifest": {
+    "path": "temp/build/v2-linux-key-business-source-refined.json",
+    "sha256": "a8e940e8fbb13a72c56a34bfef0ddfecc6f820af5b4ce0c97edca81d5db494c6"
+  },
+  "scoped_tests": {
+    "distinct_current_nodes_passed": 379,
+    "new_key_business_nodes": 29,
+    "existing_callers_and_contracts": 350,
+    "per_module": {
+      "tests.test_v2_linux_key_action": 29,
+      "tests.test_v2_linux_text": 25,
+      "tests.test_v2_linux_semantic": 21,
+      "tests.test_v2_linux_window_binding": 43,
+      "tests.test_v2_linux_keystroke": 29,
+      "tests.test_v2_linux_key_switch": 33,
+      "tests.test_v2_linux_xkb_copy": 45,
+      "tests.test_v2_linux_desktop": 36,
+      "tests.test_v2_foreground": 12,
+      "tests.test_v2_foreground_transport": 14,
+      "tests.test_v2_desktop_actions": 14,
+      "tests.test_v2_desktop_action_transport": 3,
+      "tests.test_v2_desktop_backend": 28,
+      "tests.test_v2_desktop_contracts": 10,
+      "tests.test_v2_typecheck_scope": 2,
+      "tests.test_v2_architecture": 6,
+      "tests.test_arch": 29
+    },
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0,
+    "seconds": 90.91,
+    "reports": [
+      {
+        "path": "temp/build/v2-linux-key-business-final.xml",
+        "sha256": "78f67cfac60fe4da1060e691ec513d5ed7c274b3d1131da3a5ecc2ec4dd7359f"
+      }
+    ]
+  },
+  "strict_modified_files": {
+    "files": 8,
+    "errors": 0,
+    "warnings": 0,
+    "report": {
+      "path": "temp/build/v2-linux-key-business-pyright.json",
+      "sha256": "e4417d76200d5c983ec891beaab834dab8d219eb60fc4a7d85b9b6f391d6e0d5"
+    }
+  },
+  "initial_results": [
+    {
+      "passed": 24,
+      "failed": 1,
+      "report": {
+        "path": "temp/build/v2-linux-key-business-initial.xml",
+        "sha256": "d9db74e96f7d4c75aa675f9498554c1045937fa4d82f7b4d6058102ad151bf35"
+      },
+      "source_manifest": {
+        "path": "temp/build/v2-linux-key-business-source.json",
+        "sha256": "cdc132d8b718da0c3fcbd99f276d2747f4f1e7cf58d40bf03fe97f29c9c737e9"
+      },
+      "source_delta_archive": {
+        "path": "temp/build/v2-linux-key-business-initial-source.zip",
+        "sha256": "b50037c3613951bf1b4142d8aac88d0a771dce4cfb8b0ed9a27ff55bc1a002c9"
+      },
+      "finding": "Cancellation fixture blocked an earlier read-only QueryKeymap, not the post-press release. Moved injected blocking to after actual press and retained explicit cleanup; assertion preserved."
+    },
+    {
+      "passed": 3,
+      "failed": 0,
+      "report": {
+        "path": "temp/build/v2-linux-key-business-refined.xml",
+        "sha256": "49abcd333a14bff1624b75c29df35abc3bb5982058b9f3364cf5d461489573ad"
+      },
+      "scope": "Original cancelled-release node plus new real SQLite approval and unchanged text-host boundary"
+    },
+    {
+      "passed": 378,
+      "failed": 1,
+      "report": {
+        "path": "temp/build/v2-linux-key-business-attempt1.xml",
+        "sha256": "8f8e4cf796a4c9b804ddb897f47ecca3a3e87fbbba5fd9c51eeea407216f95d2"
+      },
+      "source_manifest": {
+        "path": "temp/build/v2-linux-key-business-attempt1-source.json",
+        "sha256": "3a664ef39b6eaa9334ea40322e17595da98d2a53def367273b6afa9f49905a18"
+      },
+      "source_delta_archive": {
+        "path": "temp/build/v2-linux-key-business-attempt1-source.zip",
+        "sha256": "5bbea531da4d0dc452141190c0caa97aae1d5aa449832d4563671d097690887b"
+      },
+      "finding": "Actual parent close raced a still-active request consumer after native exit and cleared/cancelled its final receipt. Added explicit consumer ownership so external cleanup waits; no weakened assertion."
+    },
+    {
+      "passed": 1,
+      "failed": 0,
+      "report": {
+        "path": "temp/build/v2-linux-key-business-close-fixed.xml",
+        "sha256": "7262730ce592419e966928011285d6aad7419125f103850a9e2d2d1b4044f18c"
+      },
+      "scope": "Exact formerly failing parent-close native-release/receipt node; then full affected scoped set revalidated"
+    }
+  ],
+  "collection_note": "An attempted scoped command named nonexistent test_v2_desktop_transport.py and ran zero tests. Correct existing backend/action/foreground transport files used for the saved reports; no claim of executed collection-error cases.",
+  "explicit_provider_business_worker_and_domain_ipc_enabled": true,
+  "provider_scope": "Only verified explicit native-XID provider attribute, currently Avalonia. Unknown providers, GTK/Qt generic mapping, mouse and Wayland remain unfinished.",
+  "candidate_context": "Existing node actions digest binds declared native window and optional zero-selection text/caret; approved observed node must remain enabled/visible and manually focused.",
+  "keys_dispatched": [
+    "Enter",
+    "Tab",
+    "Escape",
+    "Backspace",
+    "Delete",
+    "Home",
+    "End",
+    "Left",
+    "Right",
+    "Up",
+    "Down"
+  ],
+  "concrete_application_postconditions": "Exact changed text/caret for character/logical-line movement, deletion and newline; static node ancestry/name/other actions, window/focus/config/input guard remain unchanged. Up/Down logical calculations tested; no real toolkit layout acceptance.",
+  "unproven_application_outcomes": "Tab/Escape, non-text target, wrapping/grapheme/layout behavior, Enter submission, unchanged edge, drift, timeout or unrelated result stay unknown and are never replayed.",
+  "approval_and_ledger": "Real isolated SQLite owner approval, actual two-phase pipe permit and single-use run ledger verified with native/model/device peers injected. No second authorization or persistence state.",
+  "native_release_ownership": "Parent marks Linux key worker before writing permit. After permit no forced termination of a live release owner; stdin closure revokes future work, pipes and shared slot retained until process exits and active request consumes its receipt. Worker drains owned binding outside business deadline before borrowed session closes.",
+  "legacy_semantic_and_append_preserved": true,
+  "native_linux_executed": false,
+  "native_input_executed": false,
+  "real_account_model_device_or_72h_executed": false,
+  "native_configuration": "AT-SPI/logind, XRes/XKB/XTEST binary peers and native sends are injected, default offline guard kept. Frozen runtime imports/hashes checked before/after. Approved Windows asyncio internal socketpair execution; no user service stopped or environment rebuilt.",
+  "registered_strict_scope": 359,
+  "registered_scope_fully_rechecked": false,
+  "full_suite_run": false,
+  "whole_v2_development_complete": false,
+  "whole_v2_accepted": false,
+  "next": "Complete generic provider/control association and expected focus-navigation/dismissal postconditions, mouse and Wayland actual input, other platform delivery and original requirement audit. Entire V2 freeze precedes full suite/acceptance."
+}

@@ -2,6 +2,8 @@
 
 共享内核当前为137表/v2_0038，桌面IPC6/Portal IPC2/凭据IPC1，新增持续窗口证明IPC1。Linux AT-SPI/X11读取、持续X11窗口代次、Portal窗口帧、受控语义、系统凭据helper及D4终端核查源码已接通；Portal授权确认状态按下文明确区分系统同意和业务审计，不扩大Linux输入授权。Linux/GStreamer/Portal、原生凭据与PTY仍未实测，前台/RemoteDesktop控制仍待实现；整个V2未完成，Windows离线候选默认V2并保留显式V1回退。持续窗口读取身份见[专项合同](V2_LINUX_WINDOW_LEASES.md)。
 
+最新接续：显式XID提供方的AT-SPI节点已接11特殊键的实际业务派发，复用单次审批、UUID ready/permit、窗口/节点/映射/复制重验与内部成对释放；明确文本/光标后验匹配才报告key_verified，其余unknown不重放。许可后的父进程关闭保留实际释放worker/管道/名额，并等业务读取回执后才结清；首轮发现的回执竞态已保留并修复。当前仅Avalonia明确属性，通用提供方、Tab/Escape/焦点变化专门后验、鼠标及Wayland仍在开发，无真实Linux/输入或全量，详见[前台合同](V2_LINUX_FOREGROUND.md)与[业务证据](evidence/v2-linux-key-business.json)。
+
 前台控制已补[原生焦点及祖先链只读证明和受限文本追加](V2_LINUX_FOREGROUND.md)。人工聚焦的AT-SPI非密码编辑器可在末尾单次追加Unicode，沿用逐次审批/permit、原文/光标/选区与完整回读；通用键鼠、AT-SPI控件与原生窗口关联继续开发。窗口同PID、标题或坐标均不自动成为映射。
 
 新增显式提供方窗口关联基础：当前仅接受已核对的Avalonia原生XID属性，另核对XRes实际进程/创建身份/程序，再组合自己持有的连续窗口与原生焦点祖先链；描述变化、窗口重建、取消均不能恢复旧绑定，释放未结清保留两条连接。GTK/Qt通用关联仍未解决，业务press_key、逐次许可及应用结果尚未接入。43新回归及202依赖/调用方/合同共245不同专项通过，新增1后端strict通过；未真实Linux/输入或全量，见[绑定证据](evidence/v2-linux-window-binding.json)。

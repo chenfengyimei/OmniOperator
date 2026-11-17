@@ -180,7 +180,7 @@ def test_manual_focus_wait_keeps_the_actual_ten_second_budget_without_dispatch_o
     asyncio.run(scenario())
 
 
-def test_linux_foreground_host_uses_uuid_bound_permit_and_denies_global_keys_or_x11_capture_target(monkeypatch):
+def test_linux_foreground_host_uses_uuid_bound_permit_and_denies_unbound_keys_or_x11_capture_target(monkeypatch):
     async def scenario():
         monkeypatch.setattr(host, "sys", SimpleNamespace(platform="linux", executable=sys.executable))
         value = model()
@@ -201,13 +201,13 @@ def test_linux_foreground_host_uses_uuid_bound_permit_and_denies_global_keys_or_
             denied = await backend.foreground(
                 query["target"], {**query["action"], "kind": "press_key", "text": "Enter"}, before_dispatch=permit
             )
-            assert denied["status"] == "denied" and len(spawn.calls) == 1 and len(value.mutations) == 1
+            assert denied["status"] == "denied" and len(spawn.calls) == 2 and len(value.mutations) == 1
             denied = await backend.foreground(
                 {**query["target"], "backend": "x11", "native_id": "x11:00400001:" + "a" * 64},
                 query["action"],
                 before_dispatch=permit,
             )
-            assert denied["status"] == "denied" and len(spawn.calls) == 1
+            assert denied["status"] == "denied" and len(spawn.calls) == 2
         finally:
             assert await backend.close(5)
 
@@ -275,7 +275,7 @@ def test_capability_probe_reports_only_verified_x11_text_append_and_never_arms_o
             assert result["ok"], result
             capability = next(item for item in result["result"]["capabilities"] if item["id"] == "foreground_control")
             assert capability["installed"] and capability["available"] is (fault is None)
-            assert "128" in str(capability["limitations"]) and "不发送全局键鼠" in str(capability["limitations"])
+            assert "128" in str(capability["limitations"]) and "不使用剪贴板" in str(capability["limitations"])
         assert not value.mutations and all(guard.closed and not guard.armed for guard in value.monitors)
 
     asyncio.run(scenario())

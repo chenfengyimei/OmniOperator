@@ -168,6 +168,7 @@ def action_result(value: object, kind: str | None = None) -> ActionResult:
         ("ok", "applied", "value_matches"),
         ("ok", "applied", "selected"),
         ("ok", "applied", "text_appended"),
+        ("ok", "applied", "key_verified"),
         ("denied", "none", "not_dispatched"),
         ("unknown", "unknown", "not_verified"),
     } or ((status == "ok") != (not code)):
@@ -175,7 +176,13 @@ def action_result(value: object, kind: str | None = None) -> ActionResult:
     if (
         kind is not None
         and status == "ok"
-        and verification != {"set_text": "value_matches", "select": "selected", "type_text": "text_appended"}.get(kind)
+        and verification
+        != {
+            "set_text": "value_matches",
+            "select": "selected",
+            "type_text": "text_appended",
+            "press_key": "key_verified",
+        }.get(kind)
     ):
         raise invalid()
     return ActionResult(
