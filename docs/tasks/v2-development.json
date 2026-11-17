@@ -231,7 +231,7 @@
         "business_parent_backend_or_endpoint_connected": true,
         "input_authorized": false
       },
-      "next": "EI设备/区域/键图与pause/remove；输入释放/物理介入证明、目标关联、逐次业务许可和实际派发，缺失证明保持输入不可用",
+      "next": "实际XKB解释/校验、EI分帧派发与释放、合成器物理介入证明、目标/区域关联及逐次业务许可；缺失证明保持输入不可用",
       "owner_business_entrypoint": {
         "status": "implemented_scoped_passed",
         "evidence": "docs/evidence/v2-control-owner.json",
@@ -244,6 +244,18 @@
         "core_sender_handshake_sync_ping": true,
         "production_worker_or_business_connected": false,
         "device_or_input_interface_advertised": false,
+        "input_authorized": false,
+        "real_wayland_native_executed": false
+      },
+      "eis_device_inventory": {
+        "status": "internal_api_implemented_scoped_passed",
+        "evidence": "docs/evidence/v2-wayland-eis-devices.json",
+        "explicit_seat_actual_sparse_masks": true,
+        "virtual_devices_regions_keymap_modifier_and_epochs": true,
+        "original_keymap_fd_executor_owned": true,
+        "xkb_layout_semantics_or_input_dispatch_implemented": false,
+        "physical_intervention_or_native_target_proven": false,
+        "production_worker_or_business_connected": false,
         "input_authorized": false,
         "real_wayland_native_executed": false
       }

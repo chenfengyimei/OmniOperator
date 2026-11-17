@@ -11,6 +11,7 @@ from ...domain.desktop_control import devices
 from ...domain.desktop_portal import CHOICE_SECONDS, LIFETIME_SECONDS
 from .linux_bus import BusPort, Endpoint, failure
 from .linux_eis import EisConnection
+from .linux_eis_devices import EisDevices
 from .linux_fds import OwnedFd
 from .linux_portal import PATH, PORTAL, SESSION, PortalSession
 from .linux_session import PROPERTIES, SessionInspector, number, object_path, one, variant
@@ -29,6 +30,7 @@ class ControlSession(PortalSession):
         *,
         signal_factory: Callable[[BusPort], SignalBus] = SignalBus,
         eis_factory: Callable[[OwnedFd, Callable[[], Awaitable[None]]], EisConnection] = EisConnection,
+        device_factory: Callable[[OwnedFd, Callable[[], Awaitable[None]], int], EisConnection] = EisDevices,
     ) -> None:
         super().__init__(inspector, signal_factory=signal_factory)
         self.requested = devices(requested)
@@ -36,6 +38,7 @@ class ControlSession(PortalSession):
         self._granted = 0
         self._deadline: float | None = None
         self._eis_factory = eis_factory
+        self._device_factory = device_factory
         self._eis_attempted = False
         self._eis_task: asyncio.Task[EisConnection] | None = None
         self._eis: EisConnection | None = None
@@ -155,17 +158,17 @@ class ControlSession(PortalSession):
     async def open_pipewire(self) -> OwnedFd:
         raise failure("portal_control_scope_changed")
 
-    async def prepare_eis(self) -> EisConnection:
+    async def prepare_eis(self, *, with_devices: bool = False) -> EisConnection:
         if self._eis_attempted or self._closed or not self.started or self._granted != self.requested:
             raise failure("portal_state_invalid")
         self._eis_attempted = True
-        self._eis_task = asyncio.create_task(self._prepare_eis(), name="portal-owned-eis")
+        self._eis_task = asyncio.create_task(self._prepare_eis(with_devices), name="portal-owned-eis")
         self._eis_task.add_done_callback(lambda task: task.exception() if not task.cancelled() else None)
         # A disconnected caller does not abandon a late SCM_RIGHTS reply or
         # start a second ConnectToEIS. close retains this exact operation.
         return await asyncio.shield(self._eis_task)
 
-    async def _prepare_eis(self) -> EisConnection:
+    async def _prepare_eis(self, with_devices: bool) -> EisConnection:
         try:
             await self.check()
             bus = cast(BusPort | None, self.bus)
@@ -173,7 +176,11 @@ class ControlSession(PortalSession):
                 raise failure("portal_state_invalid")
             remote = await getattr(bus, "connect_eis")(self.owner.name, self.session)
             self._eis_descriptor = remote
-            self._eis = self._eis_factory(remote, self.check)
+            self._eis = (
+                self._device_factory(remote, self.check, self.requested)
+                if with_devices
+                else self._eis_factory(remote, self.check)
+            )
             await self._eis.prepare()
             await self.check()
             return self._eis

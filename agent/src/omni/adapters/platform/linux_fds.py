@@ -45,7 +45,10 @@ class OwnedFd:
 
 
 class ReceivedFds:
-    def __init__(self) -> None:
+    def __init__(self, *, maximum: int = 1) -> None:
+        if type(maximum) is not int or not 1 <= maximum <= 4:
+            raise ValueError("Invalid descriptor queue limit")
+        self.maximum = maximum
         self.owned: dict[int, OwnedFd] = {}
         self.received = 0
 
@@ -56,7 +59,7 @@ class ReceivedFds:
         # recvmsg/CMSG_SPACE/AF_UNIX are absent from the Windows stub set; the
         # platform guard lives in the caller, so read them through getattr.
         received = getattr(connection, "recvmsg")(
-            length, getattr(socket, "CMSG_SPACE")(2 * size), getattr(socket, "MSG_CMSG_CLOEXEC", 0)
+            length, getattr(socket, "CMSG_SPACE")((self.maximum + 1) * size), getattr(socket, "MSG_CMSG_CLOEXEC", 0)
         )
         data, ancillary, flags, address = received
         descriptors: list[int] = []
@@ -74,7 +77,13 @@ class ReceivedFds:
                 # Register every delivered fd before any validation can fail.
                 self.owned[descriptor] = OwnedFd(descriptor)
             self.received += len(descriptors)
-            if invalid or len(descriptors) > 1 or len(self.owned) > 1 or self.received > 4:
+            if (
+                invalid
+                or len(set(descriptors)) != len(descriptors)
+                or len(descriptors) > self.maximum
+                or len(self.owned) > self.maximum
+                or self.received > 4
+            ):
                 raise failure("portal_fd_invalid")
             for descriptor in descriptors:
                 os.set_inheritable(descriptor, False)
@@ -89,6 +98,11 @@ class ReceivedFds:
         if set(self.owned) != {descriptor}:
             raise failure("portal_fd_invalid")
         return self.owned.pop(descriptor)
+
+    def claim_next(self) -> OwnedFd:
+        if not self.owned:
+            raise failure("portal_fd_invalid")
+        return self.owned.pop(next(iter(self.owned)))
 
     def close(self) -> None:
         for descriptor in list(self.owned):

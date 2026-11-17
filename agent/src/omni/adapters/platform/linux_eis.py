@@ -46,6 +46,8 @@ def interface(payload: bytes) -> tuple[str, int]:
 
 
 class EisConnection:
+    supported = tuple((name, 1) for name in INTERFACES)
+
     def __init__(
         self,
         descriptor: OwnedFd,
@@ -114,11 +116,19 @@ class EisConnection:
                 await self._wait(False)
                 continue
             self._received += len(data)
-            if ancillary or self._rights.owned or not data or self._received > MAX_TOTAL:
+            if (
+                (ancillary or self._rights.owned)
+                and not self._accept_rights()
+                or not data
+                or self._received > MAX_TOTAL
+            ):
                 self._rights.close()
                 raise failure("portal_eis_protocol_invalid")
             value.extend(data)
         return bytes(value)
+
+    def _accept_rights(self) -> bool:
+        return False
 
     async def _message(self) -> tuple[int, int, bytes]:
         self._messages += 1
@@ -148,10 +158,17 @@ class EisConnection:
                 raise failure("portal_eis_unavailable")
             position += count
 
-    def _new_server(self, identity: int, version: int) -> None:
-        if identity <= self._server_id or identity > 0xFFFFFFFFFFFFFFFF or version != 1:
+    def _new_server(self, identity: int, version: int, maximum: int = 1) -> None:
+        if identity <= self._server_id or identity > 0xFFFFFFFFFFFFFFFF or not 1 <= version <= maximum:
             raise failure("portal_eis_protocol_invalid")
         self._server_id = identity
+
+    async def _event(self, identity: int, opcode: int, payload: bytes) -> None:
+        if identity != self._object or opcode != 3 or len(payload) != 12:
+            raise failure("portal_eis_protocol_invalid")
+        ping, version = struct.unpack(ORDER + "QI", payload)
+        self._new_server(ping, version)
+        await self._send(ping, 0, bytes(8))
 
     async def _sync(self) -> None:
         assert self._object is not None
@@ -164,11 +181,7 @@ class EisConnection:
             identity, opcode, payload = await self._message()
             if identity == callback and opcode == 0 and payload == bytes(8):
                 return
-            if identity != self._object or opcode != 3 or len(payload) != 12:
-                raise failure("portal_eis_protocol_invalid")
-            ping, version = struct.unpack(ORDER + "QI", payload)
-            self._new_server(ping, version)
-            await self._send(ping, 0, bytes(8))
+            await self._event(identity, opcode, payload)
 
     async def prepare(self) -> None:
         if self._attempted or self._closed or self._busy:
@@ -183,8 +196,8 @@ class EisConnection:
                 await self._send(0, 0, struct.pack(ORDER + "I", 1))
                 await self._send(0, 2, struct.pack(ORDER + "I", 2))  # explicit sender context
                 await self._send(0, 3, string("OmniOperator V2"))
-                for name in INTERFACES:
-                    await self._send(0, 4, string(name) + struct.pack(ORDER + "I", 1))
+                for name, version in self.supported:
+                    await self._send(0, 4, string(name) + struct.pack(ORDER + "I", version))
                 await self._send(0, 1)
                 while True:
                     identity, opcode, payload = await self._message()

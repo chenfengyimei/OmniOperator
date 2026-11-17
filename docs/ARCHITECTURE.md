@@ -122,6 +122,8 @@ Linux桌面原生会话由固定辅助进程内的`SessionInspector`核验，`Lo
 
 `linux_node_point.py`以明确提供方物理像素、真实组件命中后代/Parent链和持续X11实际几何/原点建立控件点，不用尺寸比例猜缩放；已核对Avalonia窗口自身命中实现不提供子控件click。`linux_click_action.py`复用现有单次审批/ready-permit/worker，许可后重验并一次移动、再重验和成对按钮；具体checked/selected/expanded/focus变化与完整身份/点后验成立才click_verified，其余unknown不重放。父进程将click纳入原生释放归属，实际结清及业务消费后才回收；注入正向不代表已安装提供方或Linux实机支持。
 
+`linux_eis_devices.py`提供内部显式seat/实际稀疏能力绑定与设备v1/v2、逻辑区域/映射ID、键图/修饰及生命周期代次快照。`linux_eis_keymap.py`以原executor Future/任务/FD拥有有界实际读取，取消或关闭不抢先释放线程；只复制/校验字节，不解析XKB或派发输入。默认核心档和公开input_authorized=false保持；设备档独立按原系统许可选择，未接生产worker/业务，不把pause视作物理介入证明或把逻辑区域视作截图像素。
+
 `linux_eis.py`拥有独立Portal授权所交付FD的EI核心sender握手、同步/ping和累计预算，不声明设备或输入接口。`ControlSession.prepare_eis`只允许原系统许可后一次调用，取消保留实际任务/迟到FD，失败撤回许可；未结清/包装器detach失败保留原归属供再次关闭。`linux_bus.py`只扩固定ConnectToEIS描述符操作，原PipeWire精确回包逻辑保持；当前为内部API，生产worker/业务未调用，不代表输入许可或Wayland完整控制。
 
 `linux_focus_navigation.py`只在明确窗口绑定内双读完整有界AT-SPI树，以实际Parent、节点/正文/静态状态与唯一FOCUSED转移证明Tab/Escape的同窗口可观察结果；不预测顺序或关闭。准备/许可后完整复核发生在最终按键包创建前，保留原X11序号守卫。原生接收端、原节点静态目录保持，其他变化unknown，不重放；密码/不完整树不建证明，取消仍沿原实际释放归属。

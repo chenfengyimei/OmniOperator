@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "060812e6242e32ea352b3f690ca57fd56d8891bd7df4a8da4e271371e5d07906",
+  "source_sha256": "295a44e20332ae10cc52cda00ba274aee23268c6c678f201d07e5dfa36080382",
   "modules": [
     {
       "id": "v2-domain",
@@ -321,6 +321,8 @@
         "agent/src/omni/adapters/platform/linux_button_packet.py",
         "agent/src/omni/adapters/platform/linux_click_action.py",
         "agent/src/omni/adapters/platform/linux_eis.py",
+        "agent/src/omni/adapters/platform/linux_eis_devices.py",
+        "agent/src/omni/adapters/platform/linux_eis_keymap.py",
         "agent/src/omni/adapters/platform/linux_fds.py",
         "agent/src/omni/adapters/platform/linux_focus_navigation.py",
         "agent/src/omni/adapters/platform/linux_foreground.py",
@@ -447,7 +449,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 63033,
+      "lines": 63546,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -26579,7 +26581,7 @@
       "path": "agent/src/omni/adapters/platform/linux_eis.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.linux_eis",
-      "lines": 250,
+      "lines": 263,
       "imports": [
         "omni.adapters.platform.linux_bus",
         "omni.adapters.platform.linux_fds"
@@ -26625,7 +26627,7 @@
         },
         {
           "name": "EisConnection.__init__",
-          "line": 49,
+          "line": 51,
           "kind": "function",
           "parameters": [
             "self",
@@ -26641,7 +26643,7 @@
         },
         {
           "name": "EisConnection.alive",
-          "line": 77,
+          "line": 79,
           "kind": "function",
           "parameters": [
             "self"
@@ -26650,7 +26652,7 @@
         },
         {
           "name": "EisConnection._check",
-          "line": 80,
+          "line": 82,
           "kind": "function",
           "parameters": [
             "self"
@@ -26659,7 +26661,7 @@
         },
         {
           "name": "EisConnection._wait",
-          "line": 84,
+          "line": 86,
           "kind": "function",
           "parameters": [
             "self",
@@ -26671,14 +26673,14 @@
         },
         {
           "name": "EisConnection._wait.wake",
-          "line": 90,
+          "line": 92,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "EisConnection._read",
-          "line": 106,
+          "line": 108,
           "kind": "function",
           "parameters": [
             "self",
@@ -26689,8 +26691,17 @@
           }
         },
         {
+          "name": "EisConnection._accept_rights",
+          "line": 130,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
           "name": "EisConnection._message",
-          "line": 123,
+          "line": 133,
           "kind": "function",
           "parameters": [
             "self"
@@ -26699,7 +26710,7 @@
         },
         {
           "name": "EisConnection._send",
-          "line": 133,
+          "line": 143,
           "kind": "function",
           "parameters": [
             "self",
@@ -26715,29 +26726,38 @@
         },
         {
           "name": "EisConnection._new_server",
-          "line": 151,
+          "line": 161,
           "kind": "function",
           "parameters": [
             "self",
             "identity",
-            "version"
+            "version",
+            "maximum"
           ],
           "annotations": {
             "identity": "int",
-            "version": "int"
+            "version": "int",
+            "maximum": "int"
+          }
+        },
+        {
+          "name": "EisConnection._event",
+          "line": 166,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "identity",
+            "opcode",
+            "payload"
+          ],
+          "annotations": {
+            "identity": "int",
+            "opcode": "int",
+            "payload": "bytes"
           }
         },
         {
           "name": "EisConnection._sync",
-          "line": 156,
-          "kind": "function",
-          "parameters": [
-            "self"
-          ],
-          "annotations": {}
-        },
-        {
-          "name": "EisConnection.prepare",
           "line": 173,
           "kind": "function",
           "parameters": [
@@ -26746,8 +26766,17 @@
           "annotations": {}
         },
         {
+          "name": "EisConnection.prepare",
+          "line": 186,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
           "name": "EisConnection.check",
-          "line": 215,
+          "line": 228,
           "kind": "function",
           "parameters": [
             "self"
@@ -26756,7 +26785,7 @@
         },
         {
           "name": "EisConnection.close",
-          "line": 232,
+          "line": 245,
           "kind": "function",
           "parameters": [
             "self"
@@ -26767,10 +26796,343 @@
       "summary": "Bounded EI core handshake and roundtrips on an owned portal FD; no seat binding, devices or input requests."
     },
     {
+      "path": "agent/src/omni/adapters/platform/linux_eis_devices.py",
+      "module": "v2-adapters",
+      "python_module": "omni.adapters.platform.linux_eis_devices",
+      "lines": 384,
+      "imports": [
+        "omni.adapters.platform.linux_bus",
+        "omni.adapters.platform.linux_eis",
+        "omni.adapters.platform.linux_eis_keymap",
+        "omni.adapters.platform.linux_fds",
+        "omni.domain.desktop_control"
+      ],
+      "symbols": [
+        {
+          "name": "text",
+          "line": 24,
+          "kind": "function",
+          "parameters": [
+            "payload",
+            "maximum"
+          ],
+          "annotations": {
+            "payload": "bytes",
+            "maximum": "int"
+          }
+        },
+        {
+          "name": "name",
+          "line": 42,
+          "kind": "function",
+          "parameters": [
+            "payload"
+          ],
+          "annotations": {
+            "payload": "bytes"
+          }
+        },
+        {
+          "name": "SeatInfo",
+          "line": 50,
+          "kind": "class"
+        },
+        {
+          "name": "DeviceInfo",
+          "line": 59,
+          "kind": "class"
+        },
+        {
+          "name": "Inventory",
+          "line": 75,
+          "kind": "class"
+        },
+        {
+          "name": "Seat",
+          "line": 82,
+          "kind": "class"
+        },
+        {
+          "name": "Seat.__init__",
+          "line": 83,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "Device",
+          "line": 89,
+          "kind": "class"
+        },
+        {
+          "name": "Device.__init__",
+          "line": 90,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "seat",
+            "version"
+          ],
+          "annotations": {
+            "seat": "int",
+            "version": "int"
+          }
+        },
+        {
+          "name": "EisDevices",
+          "line": 104,
+          "kind": "class"
+        },
+        {
+          "name": "EisDevices.__init__",
+          "line": 105,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "descriptor",
+            "guard",
+            "requested",
+            "socket_factory"
+          ],
+          "annotations": {
+            "descriptor": "OwnedFd",
+            "guard": "Callable[[], Awaitable[None]]",
+            "requested": "int",
+            "socket_factory": "Callable[[int], socket.socket]"
+          }
+        },
+        {
+          "name": "EisDevices._accept_rights",
+          "line": 133,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "EisDevices._serial",
+          "line": 136,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "payload"
+          ],
+          "annotations": {
+            "payload": "bytes"
+          }
+        },
+        {
+          "name": "EisDevices._event",
+          "line": 144,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "identity",
+            "opcode",
+            "payload"
+          ],
+          "annotations": {
+            "identity": "int",
+            "opcode": "int",
+            "payload": "bytes"
+          }
+        },
+        {
+          "name": "EisDevices._seat",
+          "line": 160,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "identity",
+            "opcode",
+            "payload"
+          ],
+          "annotations": {
+            "identity": "int",
+            "opcode": "int",
+            "payload": "bytes"
+          }
+        },
+        {
+          "name": "EisDevices._device",
+          "line": 197,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "identity",
+            "opcode",
+            "payload"
+          ],
+          "annotations": {
+            "identity": "int",
+            "opcode": "int",
+            "payload": "bytes"
+          }
+        },
+        {
+          "name": "EisDevices._subinterface",
+          "line": 255,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "identity",
+            "opcode",
+            "payload"
+          ],
+          "annotations": {
+            "identity": "int",
+            "opcode": "int",
+            "payload": "bytes"
+          }
+        },
+        {
+          "name": "EisDevices.seats",
+          "line": 293,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "EisDevices._inventory",
+          "line": 299,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "EisDevices._complete",
+          "line": 321,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "EisDevices.bind",
+          "line": 333,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "seat_id"
+          ],
+          "annotations": {
+            "seat_id": "int"
+          }
+        },
+        {
+          "name": "EisDevices.inventory",
+          "line": 371,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "expected"
+          ],
+          "annotations": {
+            "expected": "Inventory | None"
+          }
+        },
+        {
+          "name": "EisDevices.close",
+          "line": 379,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        }
+      ],
+      "summary": "EI seat/device inventory and guarded binding on a granted connection; no emulation, coordinate inference or input."
+    },
+    {
+      "path": "agent/src/omni/adapters/platform/linux_eis_keymap.py",
+      "module": "v2-adapters",
+      "python_module": "omni.adapters.platform.linux_eis_keymap",
+      "lines": 95,
+      "imports": [
+        "omni.adapters.platform.linux_bus",
+        "omni.adapters.platform.linux_fds"
+      ],
+      "symbols": [
+        {
+          "name": "KeymapInfo",
+          "line": 18,
+          "kind": "class"
+        },
+        {
+          "name": "read_keymap",
+          "line": 23,
+          "kind": "function",
+          "parameters": [
+            "descriptor",
+            "size"
+          ],
+          "annotations": {
+            "descriptor": "int",
+            "size": "int"
+          }
+        },
+        {
+          "name": "Keymap",
+          "line": 51,
+          "kind": "class"
+        },
+        {
+          "name": "Keymap.__init__",
+          "line": 52,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "descriptor",
+            "size"
+          ],
+          "annotations": {
+            "descriptor": "OwnedFd",
+            "size": "int"
+          }
+        },
+        {
+          "name": "Keymap._load",
+          "line": 58,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "Keymap.load",
+          "line": 79,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "Keymap.close",
+          "line": 86,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        }
+      ],
+      "summary": "Bounded EI keymap copy with original FD/thread lifetime; no keymap execution, layout inference or input."
+    },
+    {
       "path": "agent/src/omni/adapters/platform/linux_fds.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.linux_fds",
-      "lines": 95,
+      "lines": 109,
       "imports": [
         "omni.domain.contracts"
       ],
@@ -26840,13 +27202,16 @@
           "line": 48,
           "kind": "function",
           "parameters": [
-            "self"
+            "self",
+            "maximum"
           ],
-          "annotations": {}
+          "annotations": {
+            "maximum": "int"
+          }
         },
         {
           "name": "ReceivedFds.receive",
-          "line": 52,
+          "line": 55,
           "kind": "function",
           "parameters": [
             "self",
@@ -26860,7 +27225,7 @@
         },
         {
           "name": "ReceivedFds.claim",
-          "line": 88,
+          "line": 97,
           "kind": "function",
           "parameters": [
             "self",
@@ -26871,8 +27236,17 @@
           }
         },
         {
+          "name": "ReceivedFds.claim_next",
+          "line": 102,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
           "name": "ReceivedFds.close",
-          "line": 93,
+          "line": 107,
           "kind": "function",
           "parameters": [
             "self"
@@ -30080,10 +30454,11 @@
       "path": "agent/src/omni/adapters/platform/linux_remote_desktop.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.linux_remote_desktop",
-      "lines": 195,
+      "lines": 202,
       "imports": [
         "omni.adapters.platform.linux_bus",
         "omni.adapters.platform.linux_eis",
+        "omni.adapters.platform.linux_eis_devices",
         "omni.adapters.platform.linux_fds",
         "omni.adapters.platform.linux_portal",
         "omni.adapters.platform.linux_session",
@@ -30094,30 +30469,32 @@
       "symbols": [
         {
           "name": "ControlSession",
-          "line": 22,
+          "line": 23,
           "kind": "class"
         },
         {
           "name": "ControlSession.__init__",
-          "line": 25,
+          "line": 26,
           "kind": "function",
           "parameters": [
             "self",
             "inspector",
             "requested",
             "signal_factory",
-            "eis_factory"
+            "eis_factory",
+            "device_factory"
           ],
           "annotations": {
             "inspector": "SessionInspector",
             "requested": "int",
             "signal_factory": "Callable[[BusPort], SignalBus]",
-            "eis_factory": "Callable[[OwnedFd, Callable[[], Awaitable[None]]], EisConnection]"
+            "eis_factory": "Callable[[OwnedFd, Callable[[], Awaitable[None]]], EisConnection]",
+            "device_factory": "Callable[[OwnedFd, Callable[[], Awaitable[None]], int], EisConnection]"
           }
         },
         {
           "name": "ControlSession.prepare",
-          "line": 44,
+          "line": 47,
           "kind": "function",
           "parameters": [
             "self"
@@ -30126,7 +30503,7 @@
         },
         {
           "name": "ControlSession.check",
-          "line": 75,
+          "line": 78,
           "kind": "function",
           "parameters": [
             "self"
@@ -30135,7 +30512,7 @@
         },
         {
           "name": "ControlSession.request",
-          "line": 92,
+          "line": 95,
           "kind": "function",
           "parameters": [
             "self",
@@ -30153,7 +30530,7 @@
         },
         {
           "name": "ControlSession.authorize",
-          "line": 102,
+          "line": 105,
           "kind": "function",
           "parameters": [
             "self",
@@ -30165,7 +30542,7 @@
         },
         {
           "name": "ControlSession.granted_devices",
-          "line": 151,
+          "line": 154,
           "kind": "function",
           "parameters": [
             "self"
@@ -30174,15 +30551,6 @@
         },
         {
           "name": "ControlSession.open_pipewire",
-          "line": 155,
-          "kind": "function",
-          "parameters": [
-            "self"
-          ],
-          "annotations": {}
-        },
-        {
-          "name": "ControlSession.prepare_eis",
           "line": 158,
           "kind": "function",
           "parameters": [
@@ -30191,17 +30559,32 @@
           "annotations": {}
         },
         {
-          "name": "ControlSession._prepare_eis",
-          "line": 168,
+          "name": "ControlSession.prepare_eis",
+          "line": 161,
           "kind": "function",
           "parameters": [
-            "self"
+            "self",
+            "with_devices"
           ],
-          "annotations": {}
+          "annotations": {
+            "with_devices": "bool"
+          }
+        },
+        {
+          "name": "ControlSession._prepare_eis",
+          "line": 171,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "with_devices"
+          ],
+          "annotations": {
+            "with_devices": "bool"
+          }
         },
         {
           "name": "ControlSession.close",
-          "line": 188,
+          "line": 195,
           "kind": "function",
           "parameters": [
             "self"

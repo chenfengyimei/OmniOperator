@@ -36,8 +36,22 @@ ScreenCast 与 RemoteDesktop 各自持有新会话、匹配订阅和关闭义务
 
 真实握手3秒、活跃同步1秒，所有预算均由当前任务持有；close不抢先释放仍忙的任务/连接。socket包装器detach失败保留原FD，成功后再关闭额外rights与原描述符，失败回执不等同clean。系统会话关闭先结清同一EI任务和实际FD，再清原Session/订阅；EI失效清除设备许可，外部SessionInspector仍由原所有者关闭。
 
-当前是内部原生连接API，固定生产控制worker尚未调用；没有声明seat/device、绑定能力、创建设备或发送输入。它不证明输入释放、物理介入、目标关联、映射区域、应用结果或业务动作授权，所有公开`input_authorized`仍为false。下一继续设备/区域/键图、pause/remove、释放与人工介入证明，再接原逐次业务许可；不能把核心握手完成等同Wayland控制完成。
+默认核心档为内部原生连接API，固定生产控制worker尚未调用；该核心档没有声明seat/device或发送输入，后续设备档见下一节。它不证明输入释放、物理介入、目标关联、映射区域、应用结果或业务动作授权，所有公开`input_authorized`仍为false。下一继续设备/区域/键图、pause/remove、释放与人工介入证明，再接原逐次业务许可；不能把核心握手完成等同Wayland控制完成。
 
 54新与128直接调用方/合同共182专项通过（22.09秒）；3修改运行文件strict零错误/警告，374只为登记范围。初次冻结入口和调用方路径错误均未执行测试，原日志保留；46初始新用例通过伴随缓存rename警告，关闭复核后新增8项，最终组无警告。所有EI/Portal/输入为注入，使用真实隔离FD与业务SQLite；无真实Wayland/EIS/设备/账号/模型/72h或全量验收。见[本批证据](evidence/v2-wayland-eis.json)。
 
 协议依据：[RemoteDesktop连接生命周期](https://flatpak.github.io/xdg-desktop-portal/docs/doc-org.freedesktop.portal.RemoteDesktop.html)、[EI线格式](https://libinput.pages.freedesktop.org/libei/doc/overview/index.html)、[类型/对象ID](https://libinput.pages.freedesktop.org/libei/doc/types/index.html)、[握手](https://libinput.pages.freedesktop.org/libei/interfaces/ei_handshake/index.html)和[核心同步](https://libinput.pages.freedesktop.org/libei/interfaces/ei_connection/index.html)。
+
+## 显式EI设备档、键图与生命周期观察（2026-11-18）
+
+`ControlSession.prepare_eis(with_devices=True)`沿原独立设备许可、单次连接和实际归属选择`EisDevices`。它先只读列出当前EI seat，不按第一个、名称或logind标签猜测选择；调用方须显式提供当前连接内准确seat ID。仅声明系统原请求允许的键盘/指针接口，以实际服务器分配的非零、不重叠稀疏能力掩码做一次bind，不把1/2业务位当作EI能力位。默认核心档及所有公开IPC/HTTP/业务许可保持，生产worker尚未调用设备档。
+
+seat v1和虚拟device v1/v2元数据均有界核验，服务端对象ID递增不重用；最多4个生命周期seat/设备、每设备16区域。区域逻辑边界、有限正scale及v2 mapping ID按原值保留，不推断屏幕像素/原生窗口。键盘、相对/绝对指针、按钮和滚动接口只可来自已绑定能力；未声明/重复接口、物理receiver设备、无区域绝对设备和done后元数据均拒绝。新设备默认暂停，实际resume/pause、设备/接口/seat移除、修饰通知更新不可变观察及代次，旧观察即使在pause/resume后状态看似恢复也不能复活。只读观察允许记录暂停或缺可选键图的设备，不因此允许输入。
+
+`ReceivedFds`旧默认队列/单次仍为1，EI绑定键盘窗口才允许最多4个FIFO描述符批次，原寿命总数4不变。支持批次中先到rights、后到设备/键图帧；每份键图只按FD顺序领取。非键盘窗口额外FD拒绝关闭，孤立FD不用于其他对象，原3秒预算结束后拒绝观察并关闭。原核心4096帧、64KiB双向累计、128消息预算不变，不重置。
+
+`linux_eis_keymap.py`将实际读取移到原executor Future，单键图声明/真实文件均不超过1MiB；使用有界pread保持共享offset，读取前后复核文件身份/尺寸/时间戳，核验NUL尾、无内部NUL及UTF-8，再保留原字节/哈希。没有mmap截断SIGBUS路径，但这只是字节复制/校验，不证明XKB语法或键码语义。调用者或实际任务取消仍等待原读取完成，FD不能在线程下被提前关闭；待结清close保留键图、EI连接及原Session，实际完成后才关闭并清正文。
+
+59新增设备/键图与182原核心/总线/Portal/宿主/业务/架构合同分阶段241不同节点通过；主237节点后运行源码未变，仅加强不同键图FIFO与新增4节点，补查5节点通过，没有重复整组。精确1MiB、四份不同键图批次、16区域、部分读取、截断/变更/失败、原线程/FD取消及孤立FD真实3秒已验。5修改运行文件strict零错误/警告，376只为登记范围；首37通过与1项bytearray类型诊断、原源码保留，未放宽断言或缩短期限。全部EI/输入注入，真实隔离文件/FD与SQLite；Windows的pread端口明确注入，不是Linux原生证据。见[设备专项](evidence/v2-wayland-eis-devices.json)。
+
+仍需实现实际XKB解释、分帧按下/抬起与释放结算、合成器物理介入合同、目标/区域关联及逐次业务许可/应用后验。EI设备pause不是通用物理事件监听保证，逻辑区域/相同mapping ID也不能单独证明某个原生窗口；本批没有发start_emulating、key/button/motion/frame。整个V2仍开发，真实平台/账号/模型/设备/72h和全量验收均待完成。协议依据：[seat能力](https://libinput.pages.freedesktop.org/libei/interfaces/ei_seat/index.html)、[设备/区域/生命周期](https://libinput.pages.freedesktop.org/libei/interfaces/ei_device/index.html)、[键图与修饰](https://libinput.pages.freedesktop.org/libei/interfaces/ei_keyboard/index.html)。
