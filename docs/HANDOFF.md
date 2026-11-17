@@ -2,6 +2,8 @@
 
 > 当前开发分支为 `v2`，跟踪 `origin/v2`。Windows离线候选默认入口为V2，显式V1回退保留。
 
+> 全V2 Wayland独立控制许可接续（2026-11-17）：补独立控制协议、RemoteDesktop原生会话和固定worker，不复用ScreenCast权限；显式设备种类、临时Session、禁恢复/剪贴板/屏幕流，prepared后同绑定permit才打开系统许可。撤回/锁屏/owner变化/到期不复活，取消选择器关闭预定Request/Session，实际清理后才确认clean；input_authorized始终false，不执行键鼠。41新回归、原共享39及类型合同2共82不同专项通过；新增用例漏导入失败保留，指定节点修复通过，修改4文件strict零错误/警告。未跑全量/Wayland实机，当前只完成原生许可与worker基础，继续父进程归属、业务审计和显式入口，再补物理介入守卫/派发；整个V2仍开发中。见[控制合同](V2_WAYLAND_CONTROL.md)、[证据](evidence/v2-remote-desktop.json)和[持续任务](tasks/v2-development.json)。
+
 > 全V2 Linux文本输入接续（2026-11-17）：人工聚焦AT-SPI非密码编辑器可在末尾追加Unicode，支持节点才提供type_text；原文/光标/零选区进入证明，最多10秒人工聚焦，X11输入守卫/静默后UUID绑定ready/permit，单次InsertText按字符位置/UTF-8字节长度，完整回读才成功。128字符/结果512上界、撤回/介入/坏许可拒绝、派发后丢失/不符记unknown且不重放，复用审批/单次消费/资源账本；不使用全局键鼠、剪贴板或窗口映射。25新专项、2浏览器、114当前调用方、2类型合同共143不同节点通过；修改6后端文件strict零错误/警告。原调用方未参数化浏览器节点由当前两场景替代，不重复计数；能力探测只报告实际核验的受限能力。未跑全量、未做Linux原生实测；通用键鼠、独立Wayland控制及整个V2仍开发中。见[前台合同](V2_LINUX_FOREGROUND.md)、[文本证据](evidence/v2-linux-text.json)和[持续任务](tasks/v2-development.json)。
 
 > 全V2原生焦点证明接续（2026-11-17）：补所选连续X11窗口与实际键盘焦点的只读原生关系，XRes核对接收客户端，QueryTree最多16层验证真实祖先链；同PID/坐标不替代窗口关系。原输入守卫新增一次性祖先结构订阅，订阅中重挂载、焦点/物理输入/进程/窗口变化锁存失效，准备失败不能变成已准备。18新增及输入/语义/租约/架构调用方84、类型合同2项通过，共104不同专项；修改2文件strict零错误/警告，无真实输入、Linux实机或全量。此为前台控制原生证明基础，业务派发仍待接线；整个V2仍开发中。见[前台开发合同](V2_LINUX_FOREGROUND.md)、[证据](evidence/v2-linux-foreground-proof.json)和[持续任务](tasks/v2-development.json)。

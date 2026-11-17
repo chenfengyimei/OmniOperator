@@ -71,8 +71,15 @@
     {
       "id": "G4",
       "title": "Wayland独立控制授权、撤回与用户输入暂停",
-      "status": "development_pending",
-      "contract": "docs/V2_LINUX_HANDOFF.md"
+      "status": "development_in_progress",
+      "contract": "docs/V2_WAYLAND_CONTROL.md",
+      "native_system_consent": {
+        "status": "implemented_scoped_passed",
+        "evidence": "docs/evidence/v2-remote-desktop.json",
+        "business_parent_backend_or_endpoint_connected": false,
+        "input_authorized": false
+      },
+      "next": "父进程受管归属、业务审计和显式入口；随后输入释放/介入证明与实际派发"
     },
     {
       "id": "G5",

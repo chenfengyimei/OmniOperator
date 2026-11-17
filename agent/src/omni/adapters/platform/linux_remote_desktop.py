@@ -1,0 +1,148 @@
+"""Separately selected ephemeral Wayland device permission; no ScreenCast reuse, EIS, clipboard, restore token or input dispatch."""
+
+from __future__ import annotations
+
+import asyncio
+import uuid
+from collections.abc import Awaitable, Callable
+from typing import Any, cast
+
+from ...domain.desktop_control import devices
+from ...domain.desktop_portal import CHOICE_SECONDS, LIFETIME_SECONDS
+from .linux_bus import BusPort, Endpoint, failure
+from .linux_fds import OwnedFd
+from .linux_portal import PATH, PORTAL, SESSION, PortalSession
+from .linux_session import PROPERTIES, SessionInspector, number, object_path, one, variant
+from .linux_signals import SignalBus
+
+REMOTE_DESKTOP = "org.freedesktop.portal.RemoteDesktop"
+
+
+class ControlSession(PortalSession):
+    interface = REMOTE_DESKTOP
+
+    def __init__(
+        self, inspector: SessionInspector, requested: int, *, signal_factory: Callable[[BusPort], SignalBus] = SignalBus
+    ) -> None:
+        super().__init__(inspector, signal_factory=signal_factory)
+        self.requested = devices(requested)
+        self._attempted = self._invalidated = self._closed = False
+        self._granted = 0
+        self._deadline: float | None = None
+
+    async def prepare(self) -> None:
+        if self._attempted or self._closed or self._invalidated:
+            raise failure("portal_state_invalid")
+        self._attempted = True
+        self._deadline = asyncio.get_running_loop().time() + LIFETIME_SECONDS
+        try:
+            await self.inspector.open(accessibility=False)
+            if self.inspector.session is None or self.inspector.session.kind != "wayland":
+                raise failure("portal_session_unavailable")
+            self.bus = await self.inspector.open_bus(
+                Endpoint(f"/run/user/{self.inspector.ops.uid}/bus", self.inspector.ops.uid)
+            )
+            self.owner = await self.inspector.owner(self.bus, PORTAL, self.inspector.ops.uid)
+            self.signals = self._signals(self.bus)
+            raw = one(
+                await self.bus.call(self.owner.name, PATH, PROPERTIES, "GetAll", "s", [REMOTE_DESKTOP], returns="a{sv}")
+            )
+            if not isinstance(raw, dict) or len(cast(dict[str, object], raw)) > 32:
+                raise failure("portal_response_invalid")
+            row = cast(dict[str, Any], raw)
+            if number(variant(row.get("version"), "u")) < 2:
+                raise failure("portal_version_unavailable")
+            available = number(variant(row.get("AvailableDeviceTypes"), "u"))
+            if available & self.requested != self.requested:
+                raise failure("portal_control_devices_unavailable")
+            self.prepared = True
+            await self.check()
+        except BaseException:
+            self._invalidated = True
+            raise
+
+    async def check(self) -> None:
+        try:
+            if (
+                self._invalidated
+                or self._closed
+                or self._deadline is None
+                or asyncio.get_running_loop().time() >= self._deadline
+            ):
+                raise failure("portal_revoked")
+            await super().check()
+        except BaseException:
+            self._invalidated = True
+            self._granted = 0
+            raise
+
+    async def request(
+        self, member: str, signature: str, arguments: list[object], options: dict[str, object]
+    ) -> dict[str, Any]:
+        # Keep this reusable request mechanism incapable of reaching Notify*
+        # methods even if a future caller passes an untrusted member name.
+        allowed = {"CreateSession": "a{sv}", "SelectDevices": "oa{sv}", "Start": "osa{sv}"}
+        if member not in allowed or signature != allowed[member]:
+            raise failure("portal_control_invalid")
+        return await super().request(member, signature, arguments, options)
+
+    async def authorize(self, phase: Callable[[str], Awaitable[None]]) -> None:
+        if not self.prepared or self.started or self._closed:
+            raise failure("portal_state_invalid")
+        self.started = True
+        try:
+            await self.check()
+            assert self.signals is not None and self.owner is not None
+            sender = self.signals.name[1:].replace(".", "_")
+            token = "omni_" + uuid.uuid4().hex
+            self.session = f"{PATH}/session/{sender}/{token}"
+            self.closed_subscription = await self.signals.listen(
+                self.owner.name, self.session, SESSION, "Closed", "a{sv}"
+            )
+            async with asyncio.timeout(CHOICE_SECONDS):
+                await phase("creating")
+                value = await self.request(
+                    "CreateSession", "a{sv}", [], {"session_handle_token": self.signals.variant("s", token)}
+                )
+                if object_path(variant(value.get("session_handle"), "s")) != self.session:
+                    raise failure("portal_response_invalid")
+                await phase("selecting")
+                await self.request(
+                    "SelectDevices",
+                    "oa{sv}",
+                    [self.session],
+                    {"types": self.signals.variant("u", self.requested), "persist_mode": self.signals.variant("u", 0)},
+                )
+                await phase("authorizing")
+                value = await self.request("Start", "osa{sv}", [self.session, ""], {})
+                if set(value) - {"devices", "clipboard_enabled", "streams"}:
+                    raise failure("portal_control_scope_changed")
+                if number(variant(value.get("devices"), "u")) != self.requested:
+                    raise failure("portal_control_devices_denied")
+                if (
+                    "restore_token" in value
+                    or "clipboard_enabled" in value
+                    and variant(value["clipboard_enabled"], "b") is not False
+                ):
+                    raise failure("portal_control_scope_changed")
+                if "streams" in value and variant(value["streams"], "a(ua{sv})") != []:
+                    raise failure("portal_control_scope_changed")
+                await self.check()
+                self._granted = self.requested
+                await phase("system_authorized")
+        except BaseException:
+            self._granted = 0
+            self._invalidated = True
+            raise
+
+    async def granted_devices(self) -> int:
+        await self.check()
+        return self._granted
+
+    async def open_pipewire(self) -> OwnedFd:
+        raise failure("portal_control_scope_changed")
+
+    async def close(self) -> bool:
+        self._granted = 0
+        self._closed = True
+        return await super().close()

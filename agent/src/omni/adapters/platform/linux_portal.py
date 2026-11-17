@@ -26,6 +26,8 @@ class PortalFactory(LocalFactory):
 
 
 class PortalSession:
+    interface = SCREENCAST
+
     def __init__(
         self, inspector: SessionInspector, *, signal_factory: Callable[[BusPort], SignalBus] = SignalBus
     ) -> None:
@@ -98,7 +100,7 @@ class PortalSession:
             options = {**options, "handle_token": self.signals.variant("s", token)}
             returned = one(
                 await self.bus.call(
-                    self.owner.name, PATH, SCREENCAST, member, signature, [*arguments, options], returns="o"
+                    self.owner.name, PATH, self.interface, member, signature, [*arguments, options], returns="o"
                 )
             )
             if returned != path:

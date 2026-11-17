@@ -1,0 +1,81 @@
+{
+  "source_base": "a608b625e415805fdc52133780a7388b3601eda6",
+  "scope": "Independent ephemeral RemoteDesktop system device consent and fixed worker; parent business backend, UI and input remain pending",
+  "source_files": {
+    "agent/src/omni/domain/desktop_control.py": "d4725e817997d9d41bc635b6fc8949bc24570132d74606c20121a636e7d93380",
+    "agent/src/omni/adapters/platform/linux_remote_desktop.py": "bbe9e38e6619ea77cfe0fe40adae0bf9e5be7186bad2a68f666306484bbf51ae",
+    "agent/src/omni/adapters/workers/desktop_control.py": "de6f6d53fb18070175bb7c7f5f4ba66da22c1f45c8840f9c1a4e80bb79dbaa56",
+    "agent/src/omni/adapters/platform/linux_portal.py": "667c1c33ecd0c73e941b9baae141f3cf6be44222d95b3e0d855e2c7a7e940cb3",
+    "agent/tests/test_v2_remote_desktop.py": "53b91d6d3e758f0e445101a8dba274dc774b2d59f2e0bd80bf9300f759588194",
+    "pyrightconfig.strict.json": "3d2c9e06c384bb3320cdea7bb2551d2e0238228d4e06a8ca916cc55352b7078f",
+    "docs/TYPE_CHECKING.md": "0fe938ab660be35852e5291031095e8e7ac6aa1a325385f9ea9a529c594506b2",
+    "docs/V2_WAYLAND_CONTROL.md": "cb75e677cf84d69a3a027b45a70adb131392905ad03107e151e5889f12d5a190",
+    "docs/V2_LINUX_HANDOFF.md": "0ffd1982f09f58d67487b7d3d3f242e1db76d43bad625f0abb6844b623efd8b4"
+  },
+  "scoped_tests": {
+    "distinct_passed": 82,
+    "new_native_worker_protocol_passed": 41,
+    "existing_share_callers_passed": 39,
+    "type_contract_passed": 2,
+    "unresolved_failed_nodes": 0,
+    "reports": [
+      {
+        "path": "temp/build/v2-remote-desktop-worker-initial.xml",
+        "sha256": "0013229dda254910c9b491a573932ffb1ddd476da081aebb458a7a3de35a0541"
+      },
+      {
+        "path": "temp/build/v2-remote-desktop-share-callers.xml",
+        "sha256": "9d326c10ccb47298c4829197b812c72a09bee1aca130685343b0dbec252af678"
+      },
+      {
+        "path": "temp/build/v2-remote-desktop-contract-supplement.xml",
+        "sha256": "a2f26d175d498e3bf00fac34d1165bfb4c8ad56c395adec47418c9ed8fe1faed"
+      },
+      {
+        "path": "temp/build/v2-remote-desktop-share-separation-fix.xml",
+        "sha256": "2b5191436411a2ecfbddcdefec63e6a3bb571ce5605d0afc0b8b07fa86c6b226"
+      }
+    ],
+    "first_test_fixture_missing_import_report_preserved": {
+      "path": "temp/build/v2-remote-desktop-contract-supplement.xml",
+      "sha256": "a2f26d175d498e3bf00fac34d1165bfb4c8ad56c395adec47418c9ed8fe1faed"
+    }
+  },
+  "strict_modified_files": {
+    "files": 4,
+    "errors": 0,
+    "warnings": 0,
+    "report": {
+      "path": "temp/build/v2-remote-desktop-pyright-fixed.json",
+      "sha256": "f3a0ec90ce8abd539ca2137f2f161a26325f6a736f3299c5f6c2e2f0508fda27"
+    },
+    "initial_diagnostics": {
+      "path": "temp/build/v2-remote-desktop-pyright-initial.json",
+      "sha256": "7dcf2f2aeeab7f31218eb7fd529e5848b9d2d8f1ff2adf5e7de0d57fe6381c0e"
+    }
+  },
+  "input_authorized_in_any_event": false,
+  "share_session_or_permission_reused": false,
+  "clipboard_restore_token_or_eis_enabled": false,
+  "notify_input_commands_enabled": false,
+  "production_parent_backend_or_endpoint_connected": false,
+  "real_wayland_or_input_executed": false,
+  "full_suite_run": false,
+  "whole_v2_development_complete": false,
+  "whole_v2_accepted": false,
+  "next": "Implement owned parent process backend and audited explicit owner entry; then physical-input pause proof and bounded per-action dispatch",
+  "supplemental_architecture_guard": {
+    "passed": 1,
+    "separate_from_82_grouped_nodes": true,
+    "report": {
+      "path": "temp/build/v2-remote-desktop-architecture.xml",
+      "sha256": "f64099b1c2368e07a58c1dcc3c882368bfd259201104ec95afa5b2b033abd330"
+    }
+  },
+  "parallel_css_wip": {
+    "path": "web/ui/v2/workbench.css",
+    "sha256_when_excluded": "493dd99e19ab1f01a8ab99c3c87b3fbbfea903e898483990c2ee4d3a04fdc920",
+    "committed": false,
+    "used_by_this_native_scoped_suite": false
+  }
+}

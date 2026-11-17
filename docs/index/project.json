@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "e07215c5f8aaa7524be3cd548cf5e58acf73fdf0a53e379945a2c705570d4616",
+  "source_sha256": "2e621e7e010c7bab74f271ba2594cfe960b39de87c17ff907e6f4ba64513ef07",
   "modules": [
     {
       "id": "v2-domain",
@@ -33,6 +33,7 @@
         "agent/src/omni/domain/delivery.py",
         "agent/src/omni/domain/desktop.py",
         "agent/src/omni/domain/desktop_actions.py",
+        "agent/src/omni/domain/desktop_control.py",
         "agent/src/omni/domain/desktop_portal.py",
         "agent/src/omni/domain/documents.py",
         "agent/src/omni/domain/event_retention.py",
@@ -75,7 +76,7 @@
         "agent/src/omni/domain/terminal_review.py",
         "agent/src/omni/domain/terminals.py"
       ],
-      "lines": 9986,
+      "lines": 10115,
       "dependencies": []
     },
     {
@@ -319,6 +320,7 @@
         "agent/src/omni/adapters/platform/linux_lease_client.py",
         "agent/src/omni/adapters/platform/linux_pipewire.py",
         "agent/src/omni/adapters/platform/linux_portal.py",
+        "agent/src/omni/adapters/platform/linux_remote_desktop.py",
         "agent/src/omni/adapters/platform/linux_semantic.py",
         "agent/src/omni/adapters/platform/linux_session.py",
         "agent/src/omni/adapters/platform/linux_signals.py",
@@ -384,6 +386,7 @@
         "agent/src/omni/adapters/workers/credentials.py",
         "agent/src/omni/adapters/workers/darwin_admin_probe.py",
         "agent/src/omni/adapters/workers/desktop.py",
+        "agent/src/omni/adapters/workers/desktop_control.py",
         "agent/src/omni/adapters/workers/linux_action.py",
         "agent/src/omni/adapters/workers/linux_desktop.py",
         "agent/src/omni/adapters/workers/linux_window_lease.py",
@@ -418,7 +421,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 57464,
+      "lines": 57835,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -26595,7 +26598,7 @@
       "path": "agent/src/omni/adapters/platform/linux_portal.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.linux_portal",
-      "lines": 218,
+      "lines": 220,
       "imports": [
         "omni.adapters.platform.linux_bus",
         "omni.adapters.platform.linux_fds",
@@ -26628,7 +26631,7 @@
         },
         {
           "name": "PortalSession.__init__",
-          "line": 29,
+          "line": 31,
           "kind": "function",
           "parameters": [
             "self",
@@ -26642,7 +26645,7 @@
         },
         {
           "name": "PortalSession.prepare",
-          "line": 44,
+          "line": 46,
           "kind": "function",
           "parameters": [
             "self"
@@ -26651,7 +26654,7 @@
         },
         {
           "name": "PortalSession.check",
-          "line": 73,
+          "line": 75,
           "kind": "function",
           "parameters": [
             "self"
@@ -26660,7 +26663,7 @@
         },
         {
           "name": "PortalSession.request",
-          "line": 87,
+          "line": 89,
           "kind": "function",
           "parameters": [
             "self",
@@ -26678,7 +26681,7 @@
         },
         {
           "name": "PortalSession.authorize",
-          "line": 124,
+          "line": 126,
           "kind": "function",
           "parameters": [
             "self",
@@ -26690,7 +26693,7 @@
         },
         {
           "name": "PortalSession.close",
-          "line": 180,
+          "line": 182,
           "kind": "function",
           "parameters": [
             "self"
@@ -26699,7 +26702,7 @@
         },
         {
           "name": "PortalSession.open_pipewire",
-          "line": 207,
+          "line": 209,
           "kind": "function",
           "parameters": [
             "self"
@@ -26708,6 +26711,120 @@
         }
       ],
       "summary": "Explicit ephemeral window selection on a pinned Wayland portal; never opens PipeWire FDs or dispatches input."
+    },
+    {
+      "path": "agent/src/omni/adapters/platform/linux_remote_desktop.py",
+      "module": "v2-adapters",
+      "python_module": "omni.adapters.platform.linux_remote_desktop",
+      "lines": 148,
+      "imports": [
+        "omni.adapters.platform.linux_bus",
+        "omni.adapters.platform.linux_fds",
+        "omni.adapters.platform.linux_portal",
+        "omni.adapters.platform.linux_session",
+        "omni.adapters.platform.linux_signals",
+        "omni.domain.desktop_control",
+        "omni.domain.desktop_portal"
+      ],
+      "symbols": [
+        {
+          "name": "ControlSession",
+          "line": 21,
+          "kind": "class"
+        },
+        {
+          "name": "ControlSession.__init__",
+          "line": 24,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "inspector",
+            "requested",
+            "signal_factory"
+          ],
+          "annotations": {
+            "inspector": "SessionInspector",
+            "requested": "int",
+            "signal_factory": "Callable[[BusPort], SignalBus]"
+          }
+        },
+        {
+          "name": "ControlSession.prepare",
+          "line": 33,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "ControlSession.check",
+          "line": 64,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "ControlSession.request",
+          "line": 79,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "member",
+            "signature",
+            "arguments",
+            "options"
+          ],
+          "annotations": {
+            "member": "str",
+            "signature": "str",
+            "arguments": "list[object]",
+            "options": "dict[str, object]"
+          }
+        },
+        {
+          "name": "ControlSession.authorize",
+          "line": 89,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "phase"
+          ],
+          "annotations": {
+            "phase": "Callable[[str], Awaitable[None]]"
+          }
+        },
+        {
+          "name": "ControlSession.granted_devices",
+          "line": 138,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "ControlSession.open_pipewire",
+          "line": 142,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "ControlSession.close",
+          "line": 145,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        }
+      ],
+      "summary": "Separately selected ephemeral Wayland device permission; no ScreenCast reuse, EIS, clipboard, restore token or input dispatch."
     },
     {
       "path": "agent/src/omni/adapters/platform/linux_semantic.py",
@@ -35654,6 +35771,106 @@
         }
       ],
       "summary": "One bounded read-only desktop request per helper; stdout is IPC and never contains diagnostics."
+    },
+    {
+      "path": "agent/src/omni/adapters/workers/desktop_control.py",
+      "module": "v2-adapters",
+      "python_module": "omni.adapters.workers.desktop_control",
+      "lines": 221,
+      "imports": [
+        "omni.adapters.platform.linux_bus",
+        "omni.adapters.platform.linux_portal",
+        "omni.adapters.platform.linux_remote_desktop",
+        "omni.adapters.platform.linux_session",
+        "omni.domain.contracts",
+        "omni.domain.desktop_control",
+        "omni.domain.desktop_portal"
+      ],
+      "symbols": [
+        {
+          "name": "run",
+          "line": 23,
+          "kind": "function",
+          "parameters": [
+            "reader",
+            "send",
+            "session_factory"
+          ],
+          "annotations": {
+            "reader": "asyncio.StreamReader",
+            "send": "Callable[[bytes], Awaitable[None]]",
+            "session_factory": "Callable[[int], ControlSession] | None"
+          }
+        },
+        {
+          "name": "run.emit",
+          "line": 47,
+          "kind": "function",
+          "parameters": [
+            "next_phase",
+            "kind",
+            "code",
+            "cleaned"
+          ],
+          "annotations": {
+            "next_phase": "str",
+            "kind": "str",
+            "code": "str | None",
+            "cleaned": "bool"
+          }
+        },
+        {
+          "name": "run.controls",
+          "line": 71,
+          "kind": "function",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "run.monitor",
+          "line": 96,
+          "kind": "function",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "run.until_stop",
+          "line": 108,
+          "kind": "function",
+          "parameters": [
+            "work"
+          ],
+          "annotations": {
+            "work": "Coroutine[Any, Any, object]"
+          }
+        },
+        {
+          "name": "pipe_main",
+          "line": 181,
+          "kind": "function",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "pipe_main.send",
+          "line": 188,
+          "kind": "function",
+          "parameters": [
+            "data"
+          ],
+          "annotations": {
+            "data": "bytes"
+          }
+        },
+        {
+          "name": "main",
+          "line": 211,
+          "kind": "function",
+          "parameters": [],
+          "annotations": {}
+        }
+      ],
+      "summary": "Owned independent Wayland control-consent helper; no input commands, EIS/clipboard descriptors, database or restored authority."
     },
     {
       "path": "agent/src/omni/adapters/workers/linux_action.py",
@@ -67787,6 +68004,65 @@
         }
       ],
       "summary": "Exact semantic action contracts; observations never grant write authority."
+    },
+    {
+      "path": "agent/src/omni/domain/desktop_control.py",
+      "module": "v2-domain",
+      "python_module": "omni.domain.desktop_control",
+      "lines": 129,
+      "imports": [
+        "omni.domain.contracts",
+        "omni.domain.desktop_portal"
+      ],
+      "symbols": [
+        {
+          "name": "invalid",
+          "line": 43,
+          "kind": "function",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "devices",
+          "line": 49,
+          "kind": "function",
+          "parameters": [
+            "value"
+          ],
+          "annotations": {
+            "value": "object"
+          }
+        },
+        {
+          "name": "command",
+          "line": 55,
+          "kind": "function",
+          "parameters": [
+            "value",
+            "expected"
+          ],
+          "annotations": {
+            "value": "object",
+            "expected": "dict[str, str] | None"
+          }
+        },
+        {
+          "name": "event",
+          "line": 79,
+          "kind": "function",
+          "parameters": [
+            "value",
+            "expected",
+            "previous"
+          ],
+          "annotations": {
+            "value": "object",
+            "expected": "dict[str, str]",
+            "previous": "str | None"
+          }
+        }
+      ],
+      "summary": "Independent ephemeral remote-control consent protocol; system device selection never authorizes a business input action."
     },
     {
       "path": "agent/src/omni/domain/desktop_portal.py",

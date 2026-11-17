@@ -4,6 +4,8 @@
 
 前台控制已补[原生焦点及祖先链只读证明和受限文本追加](V2_LINUX_FOREGROUND.md)。人工聚焦的AT-SPI非密码编辑器可在末尾单次追加Unicode，沿用逐次审批/permit、原文/光标/选区与完整回读；通用键鼠、AT-SPI控件与原生窗口关联继续开发。窗口同PID、标题或坐标均不自动成为映射。
 
+[Wayland独立控制许可](V2_WAYLAND_CONTROL.md)已补原生RemoteDesktop及固定worker基础，系统设备许可不等于业务输入权。父进程归属、业务入口和真实输入暂停/派发仍在开发；所有回执保持input_authorized=false。
+
 ## 已实现的生产链路
 
 `DesktopBackend → 固定 Python 辅助进程 → SessionInspector → LocalBus / AtspiDesktop`；Linux语义写入使用独立固定`omni.adapters.workers.linux_action`，按ready/permit逐次放行。主进程不加载 D-Bus、AT-SPI 或平台 API；核心不安装桌面依赖也可启动。请求总期限仍为 5 秒，辅助进程内部操作预算 4 秒；宿主最多 4 个实际操作、2 个常驻辅助进程。取消等待不会丢弃实际宿主，失败回收继续保留健康状态。
