@@ -25,6 +25,7 @@ function collectGroups() {
     current.items.push({
       page: node.dataset.page,
       label: node.getAttribute('aria-label') || node.title || node.dataset.page,
+      icon: node.querySelector('.material-icons')?.textContent.trim() || 'settings',
     });
   }
   return groups.filter((group) => group.items.length);
@@ -56,7 +57,14 @@ export function mountSettingsRail({ getPage }) {
           link.className = 'settings-rail-link';
           link.href = '#settings';
           link.dataset.settingsPage = item.page;
-          link.textContent = item.label;
+          const glyph = document.createElement('span');
+          glyph.className = 'material-icons';
+          glyph.setAttribute('aria-hidden', 'true');
+          glyph.textContent = item.icon;
+          const label = document.createElement('span');
+          label.className = 'settings-rail-label';
+          label.textContent = item.label;
+          link.append(glyph, label);
           link.addEventListener('click', (event) => {
             event.preventDefault();
             go(item.page);
@@ -74,8 +82,13 @@ export function mountSettingsRail({ getPage }) {
   return {
     sync(page) {
       const next = page || getPage?.() || 'chat';
-      for (const link of host.querySelectorAll('[data-settings-page]'))
-        link.setAttribute('aria-current', String(link.dataset.settingsPage === next));
+      for (const link of host.querySelectorAll('[data-settings-page]')) {
+        const on = link.dataset.settingsPage === next;
+        link.setAttribute('aria-current', String(on));
+        // 侧边栏独立滚动：选中项可能在可见区外，滚入最近可见位置
+        // （block:'nearest' 只滚侧边栏自身，不带动整页）。
+        if (on) link.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+      }
     },
     reset() {
       links = [];

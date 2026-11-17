@@ -1216,10 +1216,11 @@ body[data-ui-page="workbench-v2"]:not(.chat-mode) main > section[aria-label="工
   background: transparent;
   box-shadow: none;
 }
-/* 设置层：分类导航固定在顶部，内容区独占剩余高度并内滚 */
+/* 设置层：对齐参照图的左侧分组边栏 + 右侧内容流。
+   宽屏两列（196px 边栏 + 内容），窄屏在媒体查询里退化为顶部横滑条。 */
 body[data-ui-page="workbench-v2"]:not(.chat-mode) .settings-layout {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: 196px minmax(0, 1fr);
   flex: 1 1 auto;
   min-height: 0;
   height: 100%;
@@ -1244,21 +1245,31 @@ body[data-ui-page="workbench-v2"]:not(.chat-mode) .page > * {
 body[data-ui-page="workbench-v2"] #settings-rail {
   display: none;
 }
-/* 分类导航：此前 flex-wrap:nowrap + overflow-x:auto + 隐藏滚动条，
-   实测 scrollWidth 1360 > clientWidth 1131，「记忆」之后的分类既看不见也点不到。
-   改为可换行的分组流，22 个分类在任何宽度都完整可见可点。 */
+/* 分类侧边栏（对齐参照图）：竖排分组列表，组标题小字、图标+文字项、
+   选中项青色底+左侧渐变指示条。独立滚动，不随内容滚走。 */
 body[data-ui-page="workbench-v2"]:not(.chat-mode) #settings-rail {
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 6px 10px;
-  flex: 0 0 auto;
-  padding: 10px 14px;
-  overflow: visible;
-  border-bottom: 1px solid var(--line-3);
-  background: color-mix(in oklab, var(--surface-1) 88%, transparent);
-  /* 模糊值走 token 单源，不写字面 px（守卫只许 tokens.css 定义） */
-  backdrop-filter: blur(var(--glass-mid-blur)) saturate(1.1);
+  flex-direction: column;
+  align-items: stretch;
+  gap: 1px;
+  min-height: 0;
+  padding: 10px 10px 14px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  border-right: 1px solid var(--line-2);
+  background: color-mix(in oklab, var(--surface-1) 44%, transparent);
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--seed-accent) 35%, transparent) transparent;
+}
+body[data-ui-page="workbench-v2"]:not(.chat-mode) #settings-rail::-webkit-scrollbar {
+  width: 6px;
+}
+body[data-ui-page="workbench-v2"]:not(.chat-mode) #settings-rail::-webkit-scrollbar-track {
+  background: transparent;
+}
+body[data-ui-page="workbench-v2"]:not(.chat-mode) #settings-rail::-webkit-scrollbar-thumb {
+  border-radius: var(--r-full);
+  background: color-mix(in srgb, var(--seed-accent) 30%, transparent);
 }
 /* 设置内容区滚动条走面板语言，不用浏览器默认 */
 body[data-ui-page="workbench-v2"]:not(.chat-mode) .settings-content::-webkit-scrollbar {
@@ -1283,41 +1294,67 @@ body[data-ui-page="workbench-v2"]:not(.chat-mode) .settings-content {
 }
 body[data-ui-page="workbench-v2"] .settings-rail-group {
   display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 4px;
-  flex: 0 1 auto;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 1px;
   min-width: 0;
-  padding-right: 10px;
-  border-right: 1px solid var(--line-3);
-}
-body[data-ui-page="workbench-v2"] .settings-rail-group:last-child {
-  padding-right: 0;
-  border-right: none;
 }
 body[data-ui-page="workbench-v2"] .settings-rail-title {
-  display: none;
+  margin: 14px 0 4px;
+  padding: 0 9px;
+  font-size: var(--fs-caption);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--text-4);
+}
+body[data-ui-page="workbench-v2"] .settings-rail-group:first-child .settings-rail-title {
+  margin-top: 2px;
 }
 body[data-ui-page="workbench-v2"] .settings-rail-link {
-  flex: 0 0 auto;
-  padding: 4px 10px;
-  border: 1px solid transparent;
-  border-radius: var(--r-full);
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 7px 9px;
+  border-radius: var(--r-md);
   color: var(--text-3);
   font-size: var(--fs-small);
+  font-weight: 540;
   white-space: nowrap;
   text-decoration: none;
+  transition:
+    color 0.12s,
+    background 0.12s;
+}
+body[data-ui-page="workbench-v2"] .settings-rail-link .material-icons {
+  font-size: 15px;
+  opacity: 0.75;
 }
 body[data-ui-page="workbench-v2"] .settings-rail-link:hover {
-  border-color: var(--line-2);
-  background: var(--glass-weak-bg);
   color: var(--text-1);
+  background: color-mix(in oklab, var(--surface-2) 58%, transparent);
 }
 body[data-ui-page="workbench-v2"] .settings-rail-link[aria-current="true"] {
-  border-color: var(--line-accent);
-  background: var(--surface-accent);
-  color: var(--accent);
-  font-weight: 650;
+  color: var(--text-1);
+  font-weight: 700;
+  background: color-mix(in srgb, var(--seed-accent) 11%, transparent);
+}
+body[data-ui-page="workbench-v2"] .settings-rail-link[aria-current="true"] .material-icons {
+  color: var(--seed-accent);
+  opacity: 1;
+}
+/* 选中项左侧渐变指示条（对齐参照图） */
+body[data-ui-page="workbench-v2"] .settings-rail-link[aria-current="true"]::before {
+  content: "";
+  position: absolute;
+  left: -10px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 2.5px;
+  height: 16px;
+  border-radius: 0 99px 99px 0;
+  background: var(--grad);
+  box-shadow: 0 0 9px color-mix(in srgb, var(--seed-accent) 76%, transparent);
 }
 
 /* 窄屏 */
@@ -1330,19 +1367,29 @@ body[data-ui-page="workbench-v2"] .drawer-toggle {
     border-left: 0;
     box-shadow: none;
   }
-  /* 窄屏分类导航改单行横滑：换行堆叠曾占 248px，把内容区挤到 482px。
+  /* 窄屏设置层退化单列：分类栏变顶部横滑条，内容独占剩余高度。 */
+  body[data-ui-page="workbench-v2"]:not(.chat-mode) .settings-layout {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
+  }
+  /* 窄屏分类导航改单行横滑：竖排边栏在 390 宽会挤占内容，
      横滑只占约 46px，滚动条可见、分类仍全部可达。 */
   body[data-ui-page="workbench-v2"]:not(.chat-mode) #settings-rail {
+    flex-direction: row;
     flex-wrap: nowrap;
+    align-items: center;
     overflow-x: auto;
     overflow-y: hidden;
     gap: 6px;
     padding: 8px 10px;
+    border-right: none;
+    border-bottom: 1px solid var(--line-3);
     scrollbar-width: thin;
     scrollbar-color: color-mix(in srgb, var(--seed-accent) 45%, transparent) transparent;
   }
   body[data-ui-page="workbench-v2"]:not(.chat-mode) #settings-rail::-webkit-scrollbar {
     height: 6px;
+    width: 6px;
   }
   body[data-ui-page="workbench-v2"]:not(.chat-mode) #settings-rail::-webkit-scrollbar-track {
     background: transparent;
@@ -1352,9 +1399,23 @@ body[data-ui-page="workbench-v2"] .drawer-toggle {
     background: color-mix(in srgb, var(--seed-accent) 40%, transparent);
   }
   body[data-ui-page="workbench-v2"]:not(.chat-mode) .settings-rail-group {
+    flex-direction: row;
     flex: 0 0 auto;
     flex-wrap: nowrap;
+    align-items: center;
+    gap: 4px;
     padding-right: 8px;
+  }
+  body[data-ui-page="workbench-v2"]:not(.chat-mode) .settings-rail-title {
+    display: none;
+  }
+  body[data-ui-page="workbench-v2"]:not(.chat-mode) .settings-rail-link {
+    flex: 0 0 auto;
+    padding: 4px 10px;
+    border-radius: var(--r-full);
+  }
+  body[data-ui-page="workbench-v2"]:not(.chat-mode) .settings-rail-link[aria-current="true"]::before {
+    display: none;
   }
   /* 窄屏非对话模式：左栏整体让位给内容（否则内容被挤到 151px 横向溢出），
      但 #agents 必须保持可见可切换（two_agents 草稿隔离测试在任意页面切 Agent）。

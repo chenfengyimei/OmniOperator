@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`863bd85f4b95235bdea0add6323e477a26ba5eea844488a9570c9f3d0b880dea`。包含 65 个职责模块、759 个源码/界面文件。
+源码指纹：`3ed7875dce1304fc488340b93ea4d5df7bbf3f71d6234020f1f72666c95c8f21`。包含 65 个职责模块、759 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -469,7 +469,7 @@
 | [web/ui/v2/qq.js](../../web/ui/v2/qq.js) | 181 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/routing.js](../../web/ui/v2/routing.js) | 185 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/schedules.js](../../web/ui/v2/schedules.js) | 374 | 原生源码、平台脚本或界面资源 |
-| [web/ui/v2/settings-rail.js](../../web/ui/v2/settings-rail.js) | 84 | 原生源码、平台脚本或界面资源 |
+| [web/ui/v2/settings-rail.js](../../web/ui/v2/settings-rail.js) | 97 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/skills.js](../../web/ui/v2/skills.js) | 458 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/terminal-reviews.js](../../web/ui/v2/terminal-reviews.js) | 254 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/terminals.js](../../web/ui/v2/terminals.js) | 564 | 原生源码、平台脚本或界面资源 |
@@ -477,7 +477,7 @@
 | [web/ui/v2/v1/components.css](../../web/ui/v2/v1/components.css) | 655 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/v1/frame.css](../../web/ui/v2/v1/frame.css) | 938 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/v1/workbench.css](../../web/ui/v2/v1/workbench.css) | 4451 | 原生源码、平台脚本或界面资源 |
-| [web/ui/v2/workbench.css](../../web/ui/v2/workbench.css) | 3005 | 原生源码、平台脚本或界面资源 |
+| [web/ui/v2/workbench.css](../../web/ui/v2/workbench.css) | 3066 | 原生源码、平台脚本或界面资源 |
 
 文档：[docs/V2_REFACTOR.md](../../docs/V2_REFACTOR.md)
 
