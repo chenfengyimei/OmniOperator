@@ -1,0 +1,177 @@
+{
+  "schema": 1,
+  "date": "2026-11-18",
+  "base_commit": "55f1707e44064cfeb8f1e49afc8401de48f87e0d",
+  "status": "internal_kernel_seat_input_guard_source_connected_scoped_passed_native_pending",
+  "source_files": {
+    "agent/src/omni/adapters/platform/linux_udev_input.py": "96be42e15a6c158fe9ba55cbd976bfc93df7337566cc42642ef9cd018b732fb4",
+    "agent/src/omni/adapters/platform/linux_evdev_input.py": "705f3502044169b8127987f8ac7f613f87f4bab737099d0e6facecb3a12960b8",
+    "agent/src/omni/adapters/platform/linux_seat_input.py": "f4d541a8388d3fc80da9f1cd595468609721fa0960aa535b40d42c86aa93667a",
+    "agent/src/omni/adapters/platform/linux_remote_desktop.py": "8a5ee3522ac6133f4d38f09494ea8d106a888478cfba46becc076a6a6ecd96f8",
+    "agent/tests/test_v2_udev_input.py": "97ec18d6b309cce71be3d7860eaee3493f80bc5728a1f6c204d4a07cc8c4b0be",
+    "agent/tests/test_v2_evdev_input.py": "779f2ba4a33c9989e757d8495c593fcd0823861e092464876ba8f9d8a6e09db5",
+    "agent/tests/test_v2_seat_input.py": "76a86cd3bb0e1d1709b1bb5886ea9a6fe4c04765f2a174dd24831217beb4c65f",
+    "agent/tests/v2_seat_input_helpers.py": "fce897b3ca0e300e35549fbc969489ff43f56db46155b67cf6a664a573f81837",
+    "pyrightconfig.strict.json": "f58941ad34bdf3b006557ac927de5ea51c908503f74e6b83f73765a0a4aa03dd",
+    "docs/TYPE_CHECKING.md": "c39fe6f36a0bc0de1eb4d60473543f9238dc7c884a5acc0ef86cc5e49c3ca080"
+  },
+  "fixed_source_manifest": {
+    "path": "temp/build/v2-wayland-seat-input-source-r6.json",
+    "sha256": "e61d4336a06ba9735c5a591c1cd6c6e219a00e07df7e31ce591c44c8dd6527d4"
+  },
+  "scoped_tests": {
+    "distinct_nodes_passed": 245,
+    "new_nodes": 58,
+    "existing_affected_nodes": 187,
+    "per_module": {
+      "tests.test_v2_udev_input": 19,
+      "tests.test_v2_evdev_input": 21,
+      "tests.test_v2_seat_input": 18,
+      "tests.test_v2_remote_desktop": 41,
+      "tests.test_v2_linux_eis": 54,
+      "tests.test_v2_eis_key_packet": 43,
+      "tests.test_v2_desktop_control_backend": 13,
+      "tests.test_v2_desktop_control_service": 5,
+      "tests.test_arch": 29,
+      "tests.test_v2_typecheck_scope": 2
+    },
+    "phases": [
+      {
+        "source_revision": 2,
+        "nodes_passed": 242,
+        "elapsed_xml_seconds": 38.323,
+        "report": {
+          "path": "temp/build/v2-wayland-seat-input-r2.xml",
+          "sha256": "d87c7faa81c91d7094a2eb7bf036e219e358db360218c4b12722a1cb83eb247d"
+        }
+      },
+      {
+        "source_revision": 6,
+        "nodes_passed": 21,
+        "elapsed_xml_seconds": 0.363,
+        "report": {
+          "path": "temp/build/v2-wayland-seat-input-evdev-r6.xml",
+          "sha256": "59968d172b03f10bcc137f20c3d02d2c8d15138c3ba8093b0ff773a74d13f57d"
+        }
+      }
+    ],
+    "current_source_coverage": "242 nodes on r2, then21 direct evdev nodes on r6 including3 additional nodes, union245. After r2 only linux_evdev_input.py runtime and its direct test file change; all other runtime/helper/tests/config bytes equal. Current4 runtime strict pass. No rerun of unchanged187 callers or full suite."
+  },
+  "initial_verification": {
+    "report": {
+      "path": "temp/build/v2-wayland-seat-input-r1.xml",
+      "sha256": "19ae57a705cdd7c614793df6ddbb36cb7b66c2e5b0429ce069a9dec1f246401a"
+    },
+    "nodes_passed": 46,
+    "warning": "1 PytestCacheWarning WinError5 on cache directory rename; original result retained, cause not assigned. Later revision uses precreated isolated cache directory.",
+    "initial_type_report": {
+      "path": "temp/build/v2-wayland-seat-input-pyright-r1.json",
+      "sha256": "e1919788c5707e4ce9e5d7c5490674ea3b4227c8182c2aae619a14bd32253329"
+    },
+    "initial_type_errors": 2,
+    "type_correction": "Windows stat st_rdev stub is absent; use the same already captured getattr-based typed identity tuple. No ignored type rule or runtime identity check removed."
+  },
+  "kernel_query_followup": {
+    "upstream": {
+      "revision": "63fdb511c27afcebce797e3db580b3534ddfa639",
+      "files": [
+        {
+          "path": "drivers/input/evdev.c",
+          "url": "https://raw.githubusercontent.com/torvalds/linux/63fdb511c27afcebce797e3db580b3534ddfa639/drivers/input/evdev.c",
+          "snapshot": "temp/build/v2-wayland-seat-input-upstream/evdev.c",
+          "sha256": "20368803465fee51558552a68e67da108d9f716b289c80b7e239bbae9c772c5c",
+          "bytes": 33417
+        },
+        {
+          "path": "include/uapi/linux/input.h",
+          "url": "https://raw.githubusercontent.com/torvalds/linux/63fdb511c27afcebce797e3db580b3534ddfa639/include/uapi/linux/input.h",
+          "snapshot": "temp/build/v2-wayland-seat-input-upstream/input.h",
+          "sha256": "7223b820de8034c827c3fc817b6740a5c51ca8332480b86d6a0c142730fb239e",
+          "bytes": 16961
+        },
+        {
+          "path": "include/uapi/asm-generic/ioctl.h",
+          "url": "https://raw.githubusercontent.com/torvalds/linux/63fdb511c27afcebce797e3db580b3534ddfa639/include/uapi/asm-generic/ioctl.h",
+          "snapshot": "temp/build/v2-wayland-seat-input-upstream/ioctl.h",
+          "sha256": "8629514cdd724a7100fc6eea84d93db5fbc3285431a1631a77c7f8006b70bce0",
+          "bytes": 3559
+        }
+      ],
+      "public_read_only": true
+    },
+    "original_regression": {
+      "path": "temp/build/v2-wayland-seat-input-flush-before.xml",
+      "sha256": "ea4a7e32b205c302d10f95ae057757f622a2a3b881d04b3265b4629e52e31438"
+    },
+    "corrected_direct_report": {
+      "path": "temp/build/v2-wayland-seat-input-evdev-r4.xml",
+      "sha256": "4e1f217d0ce6c1b6db6d7f9f3f7c9bd5debf17b09a47ed1eef27daea10f74c9f"
+    },
+    "cause": "Kernel evdev_handle_get_val flushes only the calling evdev client EV_KEY queue. Same-client state query could erase a complete press/release between pre/post readiness polls while reporting neutral.",
+    "fix": "Independent read-only os.open calls per device create watch and query clients; dup is not used in runtime. Only query client gets ioctls, only untouched watch client gets readiness watches/polls. Original exact metadata before/after both fds. Second-open failure retains first actual fd until owner cleanup. No raw event read, device configuration or grab.",
+    "original_sandbox_fixture_cleanup": "The one before-fix standalone sandbox run also printed WinError5 in its isolated default TemporaryDirectory cleanup after pytest. Original failure was DID NOT RAISE on the reproduced query-flush behavior, independent of cleanup. No deletion of external temporary state attempted."
+  },
+  "strict_modified_files": {
+    "files": 4,
+    "errors": 0,
+    "warnings": 0,
+    "report": {
+      "path": "temp/build/v2-wayland-seat-input-pyright-r6.json",
+      "sha256": "f253ad93f6bd42ebdf0243c9cbaf79fbb6bb3e66390ca66b980ae52e11d00d19"
+    }
+  },
+  "registered_strict_scope": 382,
+  "registered_scope_fully_rechecked": false,
+  "ruff_and_format_modified_files_passed": true,
+  "prior_source_archives": [
+    {
+      "path": "temp/build/v2-wayland-seat-input-r1-source-delta.zip",
+      "sha256": "5698ac49f94004a0bca39b13a09dc732f3c315b8750852782c85d5bc520f0078"
+    },
+    {
+      "path": "temp/build/v2-wayland-seat-input-r2-source-delta.zip",
+      "sha256": "12bd1019847f17a46257854b9b48574df9ad9b164fc3d9caf1bfa2f4755ef59e"
+    },
+    {
+      "path": "temp/build/v2-wayland-seat-input-r3-source-delta.zip",
+      "sha256": "20b8326720685e040a24c4986f4b6879fa96d9a343ed7aa7f6d0d9c88d293bfa"
+    },
+    {
+      "path": "temp/build/v2-wayland-seat-input-r4-source-delta.zip",
+      "sha256": "5a58342a05c7a4f73f6547390c1b7d7f58aad357e398cee2bd64ea376ca032f3"
+    },
+    {
+      "path": "temp/build/v2-wayland-seat-input-r5-source-delta.zip",
+      "sha256": "704f9ea8d6a5566f0df4de8440946fdbe5f79349dd4ed14db508376ec0f4bae1"
+    }
+  ],
+  "contract": {
+    "catalog": "Fixed optional libudev.so.1, explicit pointer-sized C ABI and64-bit dev_t on supported Linux64. Kernel and udev input change monitors precede complete enumeration. ID_INPUT=1 event interfaces assigned exact logind physical seat, documented missing ID_SEAT=seat0. Ignore only parent/no-node and alternative mouse/js interfaces; unknown/uninitialized/duplicate/missing catalog fails. <=256 total entries and64 selected event devices; no truncation. Any input change notification, even another seat, conservatively invalidates.",
+    "permissions": "Same non-root real/effective UID as verified active local Wayland SessionInspector. Only existing read permissions; no chmod, ACL/udev rules, input group changes, root helper, TakeControl or permission request. Root-owned non-writable /dev and /dev/input; canonical no-follow event nodes, character type/devnum/current inode/owner/group/mode/ctime and current read access checked on both actual opens.",
+    "state": "Linux little-endian64 x86_64/aarch64/riscv64 generic read ioctl ABI only. Actual EV_VERSION, full uint16-domain8192-byte bitmaps and all held keys/buttons; Type-B tracking IDs of every slot up to64 must be-1. Unknown/type-A/incomplete contact state rejected; single-contact tagged devices require supported touch/tool state. No event-content read or input write/grab/mask/routing change.",
+    "watch": "Kernel/udev plus untouched evdev watch fds readiness and POLLERR/HUP/NVAL cause irreversible invalidation. Snapshot/readiness bracket catalog/state/identity checks; after latch watches are removed to avoid a level-triggered hot loop, while actual fds remain owned. At most66 watched fds and130 total native fds for64 devices. Initial actual250ms quiet window, prepare3s/check1s observation bounds.",
+    "ownership": "Original shielded operation retains actual executor until return even on waiter/actual-task cancellation or observation timeout. Concurrent checks share one operation. Failed unwatch keeps fd; original thread close task persists across timeout/caller cancellation. Ambiguous close/unref never retried against recycled fd/C pointer and never reports clean.",
+    "control": "Internal one-time ControlSession.prepare_input_monitor only after independent exact system grant. system_check retains original Portal/logind proof without recursion; normal control/EI guards additionally check prepared kernel monitor. Monitor failure revokes granted devices. Close settles original EI key release first, then original monitor/thread/fds, then actual Portal Session/subscriptions. Late prepare keeps original task and Session.",
+    "scope": "Only kernel/udev seat devices covered by this optional source. It is not proof of arbitrary non-evdev compositor/remote inputs, native focus/selected window/region identity or app results. Production worker/business input is not enabled; missing read permissions make source unavailable. No standard Portal/InputCapture/idle/EI sync is substituted for these facts."
+  },
+  "protocol_sources": [
+    "https://docs.kernel.org/input/event-codes.html",
+    "https://docs.kernel.org/input/multi-touch-protocol.html",
+    "https://www.freedesktop.org/software/systemd/man/latest/udev_monitor_receive_device.html",
+    "https://www.freedesktop.org/software/systemd/man/latest/udev_enumerate_scan_devices.html",
+    "https://wayland.freedesktop.org/libinput/doc/latest/device-configuration-via-udev.html",
+    "https://raw.githubusercontent.com/torvalds/linux/63fdb511c27afcebce797e3db580b3534ddfa639/drivers/input/evdev.c",
+    "https://raw.githubusercontent.com/torvalds/linux/63fdb511c27afcebce797e3db580b3534ddfa639/include/uapi/linux/input.h",
+    "https://raw.githubusercontent.com/torvalds/linux/63fdb511c27afcebce797e3db580b3534ddfa639/include/uapi/asm-generic/ioctl.h"
+  ],
+  "native_libudev_or_evdev_executed": false,
+  "real_wayland_or_physical_device_executed": false,
+  "input_authorized": false,
+  "production_worker_or_business_input_connected": false,
+  "all_compositor_inputs_target_or_app_proven": false,
+  "full_suite_run": false,
+  "whole_v2_development_complete": false,
+  "whole_v2_accepted": false,
+  "publication": "Local-only checkpoint. Remote-specific transmission authorization remains pending; no push or alternative upload.",
+  "next": "Native kernel-monitor permission/device coverage and compositor non-evdev contract; actual selected target/region/window association, business single-use permit and app readback; generic GTK/Qt X11 association and remaining V2 audit. Keep full V2 goal active, full suite after whole development freeze."
+}

@@ -14,6 +14,7 @@ from .linux_eis import EisConnection
 from .linux_eis_devices import EisDevices
 from .linux_fds import OwnedFd
 from .linux_portal import PATH, PORTAL, SESSION, PortalSession
+from .linux_seat_input import SeatInput
 from .linux_session import PROPERTIES, SessionInspector, number, object_path, one, variant
 from .linux_signals import SignalBus
 
@@ -31,6 +32,7 @@ class ControlSession(PortalSession):
         signal_factory: Callable[[BusPort], SignalBus] = SignalBus,
         eis_factory: Callable[[OwnedFd, Callable[[], Awaitable[None]]], EisConnection] = EisConnection,
         device_factory: Callable[[OwnedFd, Callable[[], Awaitable[None]], int], EisConnection] = EisDevices,
+        input_factory: Callable[[SessionInspector, Callable[[], Awaitable[None]]], SeatInput] = SeatInput,
     ) -> None:
         super().__init__(inspector, signal_factory=signal_factory)
         self.requested = devices(requested)
@@ -43,6 +45,10 @@ class ControlSession(PortalSession):
         self._eis_task: asyncio.Task[EisConnection] | None = None
         self._eis: EisConnection | None = None
         self._eis_descriptor: OwnedFd | None = None
+        self._input_factory = input_factory
+        self._input_attempted = False
+        self._input: SeatInput | None = None
+        self._input_task: asyncio.Task[SeatInput] | None = None
 
     async def prepare(self) -> None:
         if self._attempted or self._closed or self._invalidated:
@@ -75,7 +81,7 @@ class ControlSession(PortalSession):
             self._invalidated = True
             raise
 
-    async def check(self) -> None:
+    async def system_check(self) -> None:
         try:
             if (
                 self._invalidated
@@ -90,6 +96,36 @@ class ControlSession(PortalSession):
         except BaseException:
             self._invalidated = True
             self._granted = 0
+            raise
+
+    async def check(self) -> None:
+        await self.system_check()
+        if self._input is not None:
+            try:
+                await self._input.check()
+            except BaseException:
+                self._invalidated, self._granted = True, 0
+                raise
+
+    async def prepare_input_monitor(self) -> SeatInput:
+        if self._input_attempted or self._closed or not self.started or self._granted != self.requested:
+            raise failure("portal_state_invalid")
+        self._input_attempted = True
+        self._input_task = asyncio.create_task(self._prepare_input(), name="portal-owned-seat-input")
+        self._input_task.add_done_callback(lambda task: task.exception() if not task.cancelled() else None)
+        return await asyncio.shield(self._input_task)
+
+    async def _prepare_input(self) -> SeatInput:
+        try:
+            await self.system_check()
+            self._input = self._input_factory(self.inspector, self.system_check)
+            await self._input.prepare()
+            await self.check()
+            return self._input
+        except BaseException:
+            self._invalidated, self._granted = True, 0
+            if self._input is not None:
+                await self._input.close()
             raise
 
     async def request(
@@ -198,5 +234,9 @@ class ControlSession(PortalSession):
         if self._eis_task is not None and not self._eis_task.done():
             return False
         if self._eis is not None and not await self._eis.close():
+            return False
+        if self._input_task is not None and not self._input_task.done():
+            return False
+        if self._input is not None and not await self._input.close():
             return False
         return await super().close()

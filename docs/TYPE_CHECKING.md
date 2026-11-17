@@ -21,6 +21,9 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 | `agent/src/omni/adapters/platform/linux_eis_key_packet.py` | EI分帧成对按键与原部分写入/同步/释放归属 |
 | `agent/src/omni/adapters/platform/linux_eis_keyboard.py` | EI原观察/键图/修饰代次绑定的内部特殊键计划 |
 | `agent/src/omni/adapters/platform/linux_eis_devices.py` | 显式EI seat绑定、设备/区域/修饰与代次后验 |
+| `agent/src/omni/adapters/platform/linux_udev_input.py` | libudev当前seat完整设备目录及原内核/udev通知FD归属 |
+| `agent/src/omni/adapters/platform/linux_evdev_input.py` | 原只读evdev FD身份、全键域/触点释放及非消费就绪核验 |
+| `agent/src/omni/adapters/platform/linux_seat_input.py` | 内部seat输入守卫、原executor/监听/关闭任务归属 |
 | `agent/src/omni/adapters/platform/linux_eis_keymap.py` | EI键图有界复制及实际线程/描述符归属 |
 | `agent/src/omni/adapters/platform/linux_eis.py` | Portal独立EI核心握手、同步回读和实际描述符归属 |
 | `agent/src/omni/adapters/platform/linux_remote_desktop.py` | 独立RemoteDesktop临时设备许可、会话身份/撤回和读取共享权限隔离 |
@@ -432,7 +435,7 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 
 ### 3.1 adapters 类型收口（第 214 批）
 
-全部 **264 个 adapters 已纳入 strict**；合同范围为 **379 文件**（domain 57、application 45、adapters 264、composition 13）。新增事件通知、空间管理、V2独立长跑工具、Linux持续窗口/焦点/显式提供方窗口绑定/物理点命中预检/按键映射、XKB服务器/XTEST来源、完整映射与其余复制配置比对、精确设备切换后验及成对派发内核、受限前台文本及独立控制许可worker/父进程/业务用例后，历史335文件结论仅代表原固定候选；开发中只复核修改范围，整范围复验留整个V2开发完成后的验收。原 P4/P5/P6 的 24 个待办模块已完成，不再是当前施工清单。
+全部 **267 个 adapters 已纳入 strict**；合同范围为 **382 文件**（domain 57、application 45、adapters 267、composition 13）。新增事件通知、空间管理、V2独立长跑工具、Linux持续窗口/焦点/显式提供方窗口绑定/物理点命中预检/按键映射、XKB服务器/XTEST来源、完整映射与其余复制配置比对、精确设备切换后验及成对派发内核、受限前台文本及独立控制许可worker/父进程/业务用例后，历史335文件结论仅代表原固定候选；开发中只复核修改范围，整范围复验留整个V2开发完成后的验收。原 P4/P5/P6 的 24 个待办模块已完成，不再是当前施工清单。
 
 统计以本页逐文件表为准；domain/application 各一个仅含说明文字的包初始化文件未列入该合同范围。V1 与 tests 尚未纳入，因此**全仓严格类型尚未完成**。
 

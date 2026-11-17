@@ -231,7 +231,7 @@
         "business_parent_backend_or_endpoint_connected": true,
         "input_authorized": false
       },
-      "next": "合成器物理介入合同与所选目标/区域身份，Linux原生XKB/evdev提供方和通用输入，再接逐次业务许可/应用后验；整个V2仍开发",
+      "next": "真实内核设备/权限和合成器非evdev来源合同，所选原生窗口/区域身份，再接逐次业务许可及应用后验；通用X11提供方与整个V2继续开发",
       "owner_business_entrypoint": {
         "status": "implemented_scoped_passed",
         "evidence": "docs/evidence/v2-control-owner.json",
@@ -290,6 +290,19 @@
         "native_parser_executed": false,
         "physical_intervention_or_target_proven": false,
         "input_authorized": false
+      },
+      "kernel_seat_input_guard": {
+        "status": "internal_source_connected_injected_scoped_passed_native_pending",
+        "evidence": "docs/evidence/v2-wayland-seat-input.json",
+        "udev_exact_seat_kernel_devices_and_hotplug": true,
+        "independent_watch_and_query_evdev_clients": true,
+        "original_executor_fd_and_close_owned": true,
+        "requires_existing_read_access_all_selected_devices": true,
+        "changes_permissions_or_input_routing": false,
+        "all_compositor_non_evdev_inputs_or_target_proven": false,
+        "production_worker_or_business_connected": false,
+        "input_authorized": false,
+        "real_linux_native_executed": false
       }
     },
     {

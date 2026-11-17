@@ -95,3 +95,21 @@ seat v1和虚拟device v1/v2元数据均有界核验，服务端对象ID递增�
 25新增与182受影响节点共207不同专项通过：主206约17秒、补1原生可用性节点；原失败先精确重验通过，但仍在主组重复执行，未重复计数。两份旧否定夹具中的“缺尾NUL即非法”按实际协议修正为内部NUL/尾垃圾，文件复制仍不声称语法解析。两种格式在1/1024/精确1MiB、声明外后缀、完整末尾多字节字符、不同raw身份、实际临时FD至原键义计划/单次分帧释放均覆盖。主组后仅新增可用性节点及sys导入，原测试AST/运行/夹具字节核对保持；2修改运行文件strict零错误/警告，379仅登记。
 
 当前Windows明确记录`native_xkb_executed=false`，EI/库端口注入；Linux可用库时新增节点会编译两种固定离线正文及拒绝两种坏语法，不安装库或执行输入。无真实Mutter/Wayland/设备/账号/模型/72h或全量证据，业务输入和物理介入/目标合同仍未接通，整个V2继续开发。
+
+## 内核seat输入监测与独立evdev客户端（2026-11-18）
+
+内部`ControlSession.prepare_input_monitor`只在当前独立系统许可成功且设备种类仍精确相等后一次创建`SeatInput`；默认生产worker尚未调用，不新增IPC/HTTP输入命令。原Portal owner/logind持续证明由`system_check`保留，正常control/EI守卫在已有监测器时再核验它；介入、取消或失败使旧监测锁存失效并撤销设备许可，不恢复旧授权。
+
+`UdevInput`只按需加载固定系统libudev并声明C ABI；内核与udev input通知FD先于目录扫描，选择已验证logind物理seat。使用文档规定的ID_INPUT及缺失ID_SEAT默认seat0，不按环境变量或第一个设备猜测。完整目录最多256项、所选64个event节点，未知/未初始化/重复/缺失或超限拒绝，不截断；其他seat通知也保守失效。无节点父对象及mouse/js替代接口不代替event接口。
+
+`EvdevInput`仅在同一非root真实/有效UID及已有读取权限下打开根所有、非可写父目录内的规范event字符节点；不修改权限、ACL、组、udev规则、输入路由或设备配置。实际fd和当前路径的devnum、inode、owner/group/mode/ctime、当前读取访问均复核。支持当前明确的Linux小端64位x86_64/aarch64/riscv64通用ioctl ABI；未知架构不猜布局。全uint16键码域位图检查按键/按钮释放，Type-B逐槽tracking ID须全-1（最多64），未知/旧Type-A或不完整触点状态拒绝。
+
+[固定内核源码](https://raw.githubusercontent.com/torvalds/linux/63fdb511c27afcebce797e3db580b3534ddfa639/drivers/input/evdev.c)揭示EVIOCGKEY会清调用客户端的键队列；单FD先后poll不能避免中间短按/抬起被查询清掉。该竞态已在独立内核端口模型重现。现在每设备两次独立`open`建立不同evdev客户端，绝不用dup：监测FD只poll/监听就绪，不读取事件或发状态查询；另一个FD只查询状态，即使其私有队列被清也不清监测来源。全部实际FD登记后再验，第二次open失败保留第一个供原所有者关闭。最多66个监听FD、130个原生FD。
+
+目录、状态及双FD身份读取前后检查就绪；input变更、事件就绪或ERR/HUP/NVAL均锁存介入。不会读取/保存事件正文；锁存后移除监听避免持续就绪造成空转，真实FD仍由原对象保留。初始实际250ms静止，prepare观察3秒、check1秒；超时或调用者/实际任务取消不关闭仍在原executor中的FD。并发check共享原操作，监听移除失败保留FD，关闭使用原线程任务；不明close/unref不重试或声称clean。
+
+ControlSession关闭先结清原EI按键释放，再结清实际监测prepare/check/close与FD，最后原Portal Session/订阅；监测介入不抢先终止已有抬起义务。迟到prepare、取消和关闭都保留同一任务和Session。内核/udev设备范围之外的合成器/远程输入尚无证明；目标窗口/区域关联、逐次业务permit及应用后验继续开发，不能把这份可选内核守卫等同Wayland控制完成。缺任何所选设备读取权限时明确不可用，不自动申请额外权限。
+
+58新增与187调用方/架构/类型合同共245不同专项分阶段通过：主242约38秒，内核清队列修复与双FD权限失败/字节序门槛后仅复验直接模块21节点，其他3运行文件及夹具SHA相等；4修改运行文件strict零错误/警告，382仅登记。初46过伴1缓存rename WinError5警告、2项Windows stat stub类型诊断及清队列原失败/源码保留。当前libudev/evdev/监测/权限和Wayland均注入，只用真实隔离管道/线程；未执行原生libudev/ioctl/真实输入或全量，见[本批证据](evidence/v2-wayland-seat-input.json)。
+
+依据：[内核状态查询](https://docs.kernel.org/input/event-codes.html)、[多点触控](https://docs.kernel.org/input/multi-touch-protocol.html)、[udev通知](https://www.freedesktop.org/software/systemd/man/latest/udev_monitor_receive_device.html)、[目录枚举](https://www.freedesktop.org/software/systemd/man/latest/udev_enumerate_scan_devices.html)及[seat规则](https://wayland.freedesktop.org/libinput/doc/latest/device-configuration-via-udev.html)。
