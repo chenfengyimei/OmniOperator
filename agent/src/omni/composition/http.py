@@ -22,6 +22,7 @@ from ..application.media import MediaProcessingPort
 from ..application.ports import (
     DeliveryPort,
     DesktopBackendPort,
+    DesktopControlPort,
     DesktopPortalPort,
     LocalVectorizer,
     ModelPort,
@@ -65,6 +66,7 @@ def http_app(
     terminal_backend: TerminalBackendPort | None = None,
     desktop_backend: DesktopBackendPort | None = None,
     portal_backend: DesktopPortalPort | None = None,
+    control_backend: DesktopControlPort | None = None,
     deployment: Record | None = None,
     shutdown: Callable[[], None] | None = None,
 ):
@@ -89,6 +91,7 @@ def http_app(
             terminal_backend=terminal_backend,
             desktop_backend=desktop_backend,
             portal_backend=portal_backend,
+            control_backend=control_backend,
             deployment=deployment,
         )
         try:
@@ -223,6 +226,7 @@ def http_app(
                 terminal_reviews=instance.terminal_reviews,
                 desktop=instance.desktop,
                 desktop_portal=instance.desktop_portal,
+                desktop_control=instance.desktop_control,
                 desktop_actions=instance.desktop_actions,
                 identity_proof=instance.identity_proof,
                 drain=drain if shutdown is not None else None,

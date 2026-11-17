@@ -102,7 +102,7 @@ Linux桌面原生会话由固定辅助进程内的`SessionInspector`核验，`Lo
 
 `linux_text.py`已接独立受限前台文本追加：只寻址人工聚焦的AT-SPI非密码编辑对象，不映射X11窗口或发送全局键鼠。节点证明绑定原文/末尾光标/零选区，固定linux_action worker以原前台UUID ready/permit逐次放行；一次InsertText、完整回读、派发后unknown不重放。DesktopActions共用原审批、观察消费和资源账本；探测核验输入守卫才报告受限能力，通用键鼠及Wayland控制仍在开发。
 
-`domain/desktop_control.py`与固定`workers/desktop_control.py`提供独立Wayland控制许可协议；`linux_remote_desktop.py`只获取单独RemoteDesktop临时设备许可，不能调用Notify*/EIS/剪贴板或读取共享帧。prepared后同绑定permit才请求系统同意，撤回与实际关闭独立核验，input_authorized始终false。原ScreenCast仅新增固定子类接口选择，不借用共享授权；父进程/业务入口及输入暂停和派发仍在开发，见[控制合同](V2_WAYLAND_CONTROL.md)。
+`domain/desktop_control.py`与固定`workers/desktop_control.py`提供独立Wayland控制许可协议；`linux_remote_desktop.py`只获取单独RemoteDesktop临时设备许可，不能调用Notify*/EIS/剪贴板或读取共享帧。prepared后同绑定permit才请求系统同意，撤回与实际关闭独立核验，input_authorized始终false。`platform/desktop_control.py`拥有有界辅助进程及实际回收，与原桌面共用两进程名额；`application/desktop_control.py`拥有视图绑定、请求/系统许可/关闭审计和待结清归属，HTTP/工作台仅提供显式设备许可入口。原ScreenCast不借用共享授权；实际输入暂停、目标证明和派发仍在开发，见[控制合同](V2_WAYLAND_CONTROL.md)。
 
 ## V2 调度与所有权边界
 

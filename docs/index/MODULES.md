@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`2e621e7e010c7bab74f271ba2594cfe960b39de87c17ff907e6f4ba64513ef07`。包含 65 个职责模块、754 个源码/界面文件。
+源码指纹：`6f5ff78c782a2b48d47e3891ee93476c124b00d7cb1e7864c3f91bfe4ff543ac`。包含 65 个职责模块、756 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -26,7 +26,7 @@
 | [agent/src/omni/domain/delivery.py](../../agent/src/omni/domain/delivery.py) | 89 | Outbound intent identities and trusted transport results; no I/O or credentials. |
 | [agent/src/omni/domain/desktop.py](../../agent/src/omni/domain/desktop.py) | 620 | Bounded desktop discovery and read-only UI contracts; no native I/O or action authorization. |
 | [agent/src/omni/domain/desktop_actions.py](../../agent/src/omni/domain/desktop_actions.py) | 224 | Exact semantic action contracts; observations never grant write authority. |
-| [agent/src/omni/domain/desktop_control.py](../../agent/src/omni/domain/desktop_control.py) | 129 | Independent ephemeral remote-control consent protocol; system device selection never authorizes a business input action. |
+| [agent/src/omni/domain/desktop_control.py](../../agent/src/omni/domain/desktop_control.py) | 197 | Independent ephemeral remote-control consent protocol; system device selection never authorizes a business input action. |
 | [agent/src/omni/domain/desktop_portal.py](../../agent/src/omni/domain/desktop_portal.py) | 236 | Ephemeral window-share consent and helper protocol; grants never identify a native PID or authorize input. |
 | [agent/src/omni/domain/documents.py](../../agent/src/omni/domain/documents.py) | 100 | Bounded source text, deterministic chunks and local vector math; contains no I/O. |
 | [agent/src/omni/domain/event_retention.py](../../agent/src/omni/domain/event_retention.py) | 289 | Bounded event-retention previews and explicit plans; performs no I/O, deletion or sequence reconstruction. |
@@ -92,6 +92,7 @@
 | [agent/src/omni/application/delivery.py](../../agent/src/omni/application/delivery.py) | 428 | Supervised, bounded outbound execution; never supplies a real transport by default. |
 | [agent/src/omni/application/desktop.py](../../agent/src/omni/application/desktop.py) | 531 | Owner desktop observations with short-lived scoped identities; never authorizes or dispatches desktop writes. |
 | [agent/src/omni/application/desktop_actions.py](../../agent/src/omni/application/desktop_actions.py) | 224 | Owner-selected semantic commands using the shared run, approval and action ledger. |
+| [agent/src/omni/application/desktop_control.py](../../agent/src/omni/application/desktop_control.py) | 383 | Owner/view-bound independent system-device consent and durable audit; never authorizes or dispatches an input action. |
 | [agent/src/omni/application/desktop_portal.py](../../agent/src/omni/application/desktop_portal.py) | 326 | Owner/view-scoped temporary share sessions with durable consent metadata; no image, native identity or input authorization. |
 | [agent/src/omni/application/documents.py](../../agent/src/omni/application/documents.py) | 360 | Source documents, explicitly requested local indexes and registered retrieval dependencies. |
 | [agent/src/omni/application/engine.py](../../agent/src/omni/application/engine.py) | 669 | One supervised runtime: admission, session FIFO, model/tool execution and shutdown. |
@@ -112,7 +113,7 @@
 | [agent/src/omni/application/objects.py](../../agent/src/omni/application/objects.py) | 140 | Object publication and access use cases; no filesystem paths or ORM objects. |
 | [agent/src/omni/application/operations.py](../../agent/src/omni/application/operations.py) | 127 | Bounded operational queries and privacy-preserving diagnostic export; no model or device actions. |
 | [agent/src/omni/application/people.py](../../agent/src/omni/application/people.py) | 69 | Owner-facing people and personal-document use cases; no ORM or filesystem access. |
-| [agent/src/omni/application/ports.py](../../agent/src/omni/application/ports.py) | 981 | Application boundaries. Implementations belong to adapters. |
+| [agent/src/omni/application/ports.py](../../agent/src/omni/application/ports.py) | 993 | Application boundaries. Implementations belong to adapters. |
 | [agent/src/omni/application/qq.py](../../agent/src/omni/application/qq.py) | 227 | Own bounded QQ listeners and owner conversation grants; turns use the shared V2 kernel. |
 | [agent/src/omni/application/release_drain.py](../../agent/src/omni/application/release_drain.py) | 30 | Bind release draining to the existing once-only boot control; reconciliation never sends another request. |
 | [agent/src/omni/application/releases.py](../../agent/src/omni/application/releases.py) | 337 | Offline release preparation and single-directory selection; never elevates, registers or starts a service. |
@@ -151,7 +152,7 @@
 | [agent/src/omni/adapters/extensions/hosts.py](../../agent/src/omni/adapters/extensions/hosts.py) | 208 | Bounded trusted Python worker ownership; no database, model, credential or arbitrary command access. |
 | [agent/src/omni/adapters/extensions/packages.py](../../agent/src/omni/adapters/extensions/packages.py) | 570 | Bounded zero-execution package capture and immutable verified snapshots; never opens a database. |
 | [agent/src/omni/adapters/extensions/worker.py](../../agent/src/omni/adapters/extensions/worker.py) | 326 | Static extension handshake and trusted Python invocation in an owned child; never opens the main database. |
-| [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py) | 2336 | Versioned HTTP contract for the V2 kernel; business access goes through use cases. |
+| [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py) | 2350 | Versioned HTTP contract for the V2 kernel; business access goes through use cases. |
 | [agent/src/omni/adapters/http_events.py](../../agent/src/omni/adapters/http_events.py) | 177 | Bounded authenticated history notifications over SSE; no event bodies, replay queue or database ownership. |
 | [agent/src/omni/adapters/images.py](../../agent/src/omni/adapters/images.py) | 83 | Bounded image verification and metadata-free low-detail PNG encoding; no database or remote URLs. |
 | [agent/src/omni/adapters/local_vectors.py](../../agent/src/omni/adapters/local_vectors.py) | 287 | One bounded, supervised local embedding process; no native ML imports in the application process. |
@@ -284,6 +285,7 @@
 | [agent/src/omni/adapters/platform/deployment_files.py](../../agent/src/omni/adapters/platform/deployment_files.py) | 631 | Capture installation identity and publish reviewed deployment bundles; never registers services or opens business storage. |
 | [agent/src/omni/adapters/platform/desktop.py](../../agent/src/omni/adapters/platform/desktop.py) | 637 | Bounded, one-shot desktop metadata helpers; construction never probes a native desktop. |
 | [agent/src/omni/adapters/platform/desktop_capture.py](../../agent/src/omni/adapters/platform/desktop_capture.py) | 83 | Host-owned screenshot staging. File decoding runs only on the desktop I/O worker. |
+| [agent/src/omni/adapters/platform/desktop_control.py](../../agent/src/omni/adapters/platform/desktop_control.py) | 407 | Owned parent transport for independent control consent; no input dispatch, capture grants or unowned process termination. |
 | [agent/src/omni/adapters/platform/desktop_native.py](../../agent/src/omni/adapters/platform/desktop_native.py) | 493 | Read-only desktop diagnostics and process/window identities; never reads UI contents or performs input. |
 | [agent/src/omni/adapters/platform/event_loop.py](../../agent/src/omni/adapters/platform/event_loop.py) | 105 | Own the Windows TCP reset workaround without patching global asyncio classes. |
 | [agent/src/omni/adapters/platform/exchange_deployments.py](../../agent/src/omni/adapters/platform/exchange_deployments.py) | 27 | Verify a reviewed source for removal or signed boot draining; never execute or import the source installation. |
@@ -348,7 +350,7 @@
 | [agent/src/omni/adapters/primitives.py](../../agent/src/omni/adapters/primitives.py) | 20 | Real clocks and full UUID identities, injected by the composition root. |
 | [agent/src/omni/adapters/process_diagnostics.py](../../agent/src/omni/adapters/process_diagnostics.py) | 112 | Process-owned logging and exception hooks; installed only by the executable host. |
 | [agent/src/omni/adapters/skill_packages.py](../../agent/src/omni/adapters/skill_packages.py) | 177 | Bounded in-memory Markdown/ZIP parsing; never extracts files or executes package content. |
-| [agent/src/omni/adapters/soak.py](../../agent/src/omni/adapters/soak.py) | 400 | Proof-bound read-only V2 observation and append-only evidence; no V1, service control, models or database opens. |
+| [agent/src/omni/adapters/soak.py](../../agent/src/omni/adapters/soak.py) | 401 | Proof-bound read-only V2 observation and append-only evidence; no V1, service control, models or database opens. |
 | [agent/src/omni/adapters/temporary_debug.py](../../agent/src/omni/adapters/temporary_debug.py) | 321 | Boot-bound, owner-enabled metadata capture; never opens business storage or records free text. |
 | [agent/src/omni/adapters/timezones.py](../../agent/src/omni/adapters/timezones.py) | 29 | Pinned tzdata resolver; avoids OS-dependent timezone database drift. |
 | [agent/src/omni/adapters/token_counter.py](../../agent/src/omni/adapters/token_counter.py) | 34 | Local conservative token estimate; it never fetches model metadata or credentials. |
@@ -412,8 +414,8 @@
 | [agent/src/omni/composition/__init__.py](../../agent/src/omni/composition/__init__.py) | 1 | V2 composition root. Constructors and lifecycle ownership are explicit here. |
 | [agent/src/omni/composition/capabilities.py](../../agent/src/omni/composition/capabilities.py) | 166 | Explicit builtin capability registration; capabilities never construct the kernel. |
 | [agent/src/omni/composition/cli.py](../../agent/src/omni/composition/cli.py) | 1046 | V2 development entrypoint. Online commands use the authenticated HTTP facade. |
-| [agent/src/omni/composition/http.py](../../agent/src/omni/composition/http.py) | 238 | HTTP composition and owner bootstrap; tokens never appear in diagnostic output. |
-| [agent/src/omni/composition/instance.py](../../agent/src/omni/composition/instance.py) | 799 | Build one isolated instance; never imports or opens the V1 runtime. |
+| [agent/src/omni/composition/http.py](../../agent/src/omni/composition/http.py) | 242 | HTTP composition and owner bootstrap; tokens never appear in diagnostic output. |
+| [agent/src/omni/composition/instance.py](../../agent/src/omni/composition/instance.py) | 827 | Build one isolated instance; never imports or opens the V1 runtime. |
 | [agent/src/omni/composition/lifecycle.py](../../agent/src/omni/composition/lifecycle.py) | 164 | Own startup rollback and one shared shutdown budget; never dispatches business work. |
 | [agent/src/omni/composition/releases.py](../../agent/src/omni/composition/releases.py) | 123 | Assemble explicit offline release commands. No service install, stop, model or default-entry switch. |
 | [agent/src/omni/composition/service_cleanup.py](../../agent/src/omni/composition/service_cleanup.py) | 79 | Assemble quarantined registration cleanup, with an explicit root route for system definitions. |
@@ -445,11 +447,11 @@
 | [web/ui/v2/credentials.js](../../web/ui/v2/credentials.js) | 182 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/deliveries.js](../../web/ui/v2/deliveries.js) | 371 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/desktop-actions.js](../../web/ui/v2/desktop-actions.js) | 148 | 原生源码、平台脚本或界面资源 |
-| [web/ui/v2/desktop.js](../../web/ui/v2/desktop.js) | 572 | 原生源码、平台脚本或界面资源 |
+| [web/ui/v2/desktop.js](../../web/ui/v2/desktop.js) | 661 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/documents.js](../../web/ui/v2/documents.js) | 487 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/event-stream.js](../../web/ui/v2/event-stream.js) | 168 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/extensions.js](../../web/ui/v2/extensions.js) | 656 | 原生源码、平台脚本或界面资源 |
-| [web/ui/v2/index.html](../../web/ui/v2/index.html) | 1879 | 原生源码、平台脚本或界面资源 |
+| [web/ui/v2/index.html](../../web/ui/v2/index.html) | 1903 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/inspector.js](../../web/ui/v2/inspector.js) | 266 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/main.js](../../web/ui/v2/main.js) | 1801 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/maintenance.js](../../web/ui/v2/maintenance.js) | 126 | 原生源码、平台脚本或界面资源 |
@@ -472,7 +474,7 @@
 | [web/ui/v2/v1/components.css](../../web/ui/v2/v1/components.css) | 655 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/v1/frame.css](../../web/ui/v2/v1/frame.css) | 938 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/v1/workbench.css](../../web/ui/v2/v1/workbench.css) | 4451 | 原生源码、平台脚本或界面资源 |
-| [web/ui/v2/workbench.css](../../web/ui/v2/workbench.css) | 2744 | 原生源码、平台脚本或界面资源 |
+| [web/ui/v2/workbench.css](../../web/ui/v2/workbench.css) | 2953 | 原生源码、平台脚本或界面资源 |
 
 文档：[docs/V2_REFACTOR.md](../../docs/V2_REFACTOR.md)
 

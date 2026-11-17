@@ -6,7 +6,7 @@ import re
 from typing import cast
 
 from .contracts import BusinessError
-from .desktop_portal import binding
+from .desktop_portal import binding, uuid_value
 
 VERSION = "omni-desktop-control-1"
 PURPOSE = "interactive-input"
@@ -126,4 +126,72 @@ def event(value: object, expected: dict[str, str], previous: str | None = None) 
             raise invalid()
         if kind == "heartbeat" and phase != previous or kind == "state" and phase not in TRANSITIONS[previous]:
             raise invalid()
+    return dict(raw)
+
+
+def owner(value: object) -> dict[str, object]:
+    if not isinstance(value, dict):
+        raise invalid()
+    raw = cast(dict[str, object], value)
+    if (
+        set(raw) != {"view_id", "purpose", "consent", "devices"}
+        or raw["purpose"] != PURPOSE
+        or raw["consent"] is not True
+    ):
+        raise invalid()
+    return {
+        "view_id": uuid_value(raw["view_id"]),
+        "purpose": PURPOSE,
+        "consent": True,
+        "devices": devices(raw["devices"]),
+    }
+
+
+def backend_status(value: object, grant_id: str, requested: int) -> dict[str, object]:
+    if not isinstance(value, dict):
+        raise invalid()
+    raw = cast(dict[str, object], value)
+    if set(raw) != {
+        "grant_id",
+        "phase",
+        "devices",
+        "granted_devices",
+        "input_authorized",
+        "revision",
+        "error_code",
+        "clean",
+        "cleanup_pending",
+    }:
+        raise invalid()
+    phase, code, revision = raw["phase"], raw["error_code"], raw["revision"]
+    if (
+        uuid_value(raw["grant_id"]) != uuid_value(grant_id)
+        or devices(raw["devices"]) != devices(requested)
+        or not isinstance(phase, str)
+        or phase not in PHASES
+        or raw["input_authorized"] is not False
+        or type(revision) is not int
+        or not 0 <= revision < 1 << 63
+        or type(raw["clean"]) is not bool
+        or type(raw["cleanup_pending"]) is not bool
+        or raw["clean"]
+        and raw["cleanup_pending"]
+    ):
+        raise invalid()
+    granted = raw["granted_devices"]
+    if type(granted) is not int or granted != (
+        requested if phase == "system_authorized" and not raw["cleanup_pending"] else 0
+    ):
+        raise invalid()
+    if (
+        code is not None
+        and (not isinstance(code, str) or re.fullmatch(r"(?:portal|desktop)_[a-z0-9_]{1,100}", code) is None)
+        or phase == "closed"
+        and (not raw["clean"] or code is not None)
+        or phase in {"failed", "denied"}
+        and code is None
+        or phase not in TERMINAL | {"closing"}
+        and code is not None
+    ):
+        raise invalid()
     return dict(raw)

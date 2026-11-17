@@ -37,6 +37,7 @@ from ..adapters.onebot import OneBotTransport
 from ..adapters.persistence.database import Database
 from ..adapters.persistence.deployed_instance import verify_deployed_instance
 from ..adapters.platform.desktop import DesktopBackend
+from ..adapters.platform.desktop_control import DesktopControlBackend
 from ..adapters.platform.paths import InstanceLock, InstancePaths
 from ..adapters.platform.portal import PortalBackend
 from ..adapters.platform.runtime_identity import RuntimeIdentityFiles, canonical_proof, process_identity
@@ -61,6 +62,7 @@ from ..application.debugging import DebugService
 from ..application.delivery import DeliveryService
 from ..application.desktop import DesktopService
 from ..application.desktop_actions import DesktopActions
+from ..application.desktop_control import DesktopControlService
 from ..application.desktop_portal import DesktopPortalService
 from ..application.documents import DocumentService
 from ..application.engine import Application, Capability
@@ -82,6 +84,7 @@ from ..application.ports import (
     Clock,
     DeliveryPort,
     DesktopBackendPort,
+    DesktopControlPort,
     DesktopPortalPort,
     LocalVectorizer,
     MetricsPort,
@@ -243,6 +246,7 @@ class Instance:
     terminal_reviews: TerminalReviewService
     desktop: DesktopService
     desktop_portal: DesktopPortalService
+    desktop_control: DesktopControlService
     desktop_actions: DesktopActions
     _process_diagnostics: ProcessDiagnostics | None = None
     _closed: bool = False
@@ -278,6 +282,7 @@ class Instance:
             "terminal_reviews": self.terminal_reviews.health(),
             "desktop": self.desktop.health(),
             "desktop_portal": self.desktop_portal.health(),
+            "desktop_control": self.desktop_control.health(),
             "desktop_actions": self.desktop_actions.health(),
             "maintenance": self.maintenance.health(),
             "memory_organization": self.memory_organization.health(),
@@ -331,6 +336,7 @@ async def open_instance(
     terminal_backend: TerminalBackendPort | None = None,
     desktop_backend: DesktopBackendPort | None = None,
     portal_backend: DesktopPortalPort | None = None,
+    control_backend: DesktopControlPort | None = None,
     deployment: Record | None = None,
 ) -> Instance:
     paths = InstancePaths.resolve(home)
@@ -438,10 +444,18 @@ async def open_instance(
         lifetime.own("desktop_io", 1, desktop_io.close, desktop_io.stop_accepting)
 
         desktop_portal: DesktopPortalService | None = None
+        desktop_control: DesktopControlService | None = None
 
         async def detach_portal(agent_id: str, view_id: str) -> None:
-            if desktop_portal is not None:
-                await desktop_portal.detach(agent_id, view_id)
+            failures: list[Exception] = []
+            for service in (desktop_portal, desktop_control):
+                if service is not None:
+                    try:
+                        await service.detach(agent_id, view_id)
+                    except Exception as caught:  # noqa: BLE001 -- one pending release cannot prevent another from being requested
+                        failures.append(caught)
+            if failures:
+                raise failures[0]
 
         desktop = DesktopService(
             database, desktop_io, clock, ids, boot_id, observation, objects, on_detach=detach_portal
@@ -457,6 +471,14 @@ async def open_instance(
             database, portal_io, ids, boot_id, observation, objects, authorize=desktop.require_view
         )
         lifetime.own("desktop_portal", 0, desktop_portal.close, desktop_portal.stop_accepting)
+        control_io = (
+            control_backend if control_backend is not None else DesktopControlBackend(capacity=desktop_capacity)
+        )
+        lifetime.own("desktop_control_io", 1, control_io.close, control_io.stop_accepting)
+        desktop_control = DesktopControlService(
+            database, control_io, ids, boot_id, observation, authorize=desktop.require_view
+        )
+        lifetime.own("desktop_control", 0, desktop_control.close, desktop_control.stop_accepting)
         desktop_actions = DesktopActions(
             database, desktop, desktop_io, clock, ids, accepting=lambda: bool(application.health()["ready"])
         )
@@ -659,6 +681,8 @@ async def open_instance(
             desktop_backend = _record(desktop["backend"])
             portal = _record(health["desktop_portal"])
             portal_backend = _record(portal["backend"])
+            control = _record(health["desktop_control"])
+            control_backend_health = _record(control["backend"])
             terminal_reviews = _record(health["terminal_reviews"])
             schedules = _record(health["schedules"])
             documents = _record(health["documents"])
@@ -685,6 +709,9 @@ async def open_instance(
                 "desktop_portal_pending": portal["pending"],
                 "desktop_portal_resident": portal_backend["resident"],
                 "desktop_portal_cleanup_pending": portal_backend["cleanup_pending"],
+                "desktop_control_pending": control["pending"],
+                "desktop_control_resident": control_backend_health["resident"],
+                "desktop_control_cleanup_pending": control_backend_health["cleanup_pending"],
                 "desktop_cleanup_pending": desktop_backend.get("cleanup_pending", 0),
                 "desktop_capture_staging": desktop_backend.get("capture_staging"),
                 "terminal_cleanup_pending": terminals["cleanup_pending"],
@@ -781,6 +808,7 @@ async def open_instance(
             terminal_reviews=terminal_reviews,
             desktop=desktop,
             desktop_portal=desktop_portal,
+            desktop_control=desktop_control,
             desktop_actions=desktop_actions,
             _process_diagnostics=host_diagnostics,
             model_port=active_model,

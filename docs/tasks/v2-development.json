@@ -76,10 +76,15 @@
       "native_system_consent": {
         "status": "implemented_scoped_passed",
         "evidence": "docs/evidence/v2-remote-desktop.json",
-        "business_parent_backend_or_endpoint_connected": false,
+        "business_parent_backend_or_endpoint_connected": true,
         "input_authorized": false
       },
-      "next": "父进程受管归属、业务审计和显式入口；随后输入释放/介入证明与实际派发"
+      "next": "输入释放/物理介入证明、逐次业务许可、目标关联与实际派发；缺失证明保持输入不可用",
+      "owner_business_entrypoint": {
+        "status": "implemented_scoped_passed",
+        "evidence": "docs/evidence/v2-control-owner.json",
+        "input_authorized": false
+      }
     },
     {
       "id": "G5",

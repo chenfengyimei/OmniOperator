@@ -108,6 +108,7 @@ def test_sampler_uses_only_get_headers_and_hmac_bound_metadata_and_rejects_resta
                     "extension_cleanup_pending",
                     "mcp_cleanup_pending",
                     "desktop_portal_cleanup_pending",
+                    "desktop_control_cleanup_pending",
                     "desktop_cleanup_pending",
                     "terminal_cleanup_pending",
                     "shutdown_residual_count",
@@ -145,6 +146,8 @@ def test_sampler_uses_only_get_headers_and_hmac_bound_metadata_and_rejects_resta
         observed = sampler.sample()
         assert observed["ok"] and len(seen) == 2 and sampler.mode == "injected"
         assert observed["counters"] == {"failed_runs": 2, "unknown_model_calls": 1}
+        metrics["runtime"]["desktop_control_cleanup_pending"] = 2
+        assert sampler.sample()["resources"]["cleanup_pending"] == 2
         assert token not in json.dumps(observed) and "not-exported" not in json.dumps(observed)
         current["boot_id"] = str(uuid.uuid4())
         protected(

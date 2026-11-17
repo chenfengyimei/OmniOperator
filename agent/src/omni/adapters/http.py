@@ -27,6 +27,7 @@ from ..application.credentials import CredentialService
 from ..application.delivery import DeliveryService
 from ..application.desktop import DesktopService
 from ..application.desktop_actions import DesktopActions
+from ..application.desktop_control import DesktopControlService
 from ..application.desktop_portal import DesktopPortalService
 from ..application.documents import DocumentService
 from ..application.engine import Application
@@ -85,6 +86,7 @@ class HttpRuntime:
     terminal_reviews: TerminalReviewService
     desktop: DesktopService
     desktop_portal: DesktopPortalService
+    desktop_control: DesktopControlService
     desktop_actions: DesktopActions
     identity_proof: Callable[[str], Record] | None = None
     drain: Callable[[Record], Awaitable[Record]] | None = None
@@ -1789,6 +1791,18 @@ def create_app(factory: Callable[[], Awaitable[HttpRuntime]], *, allowed_origins
     @router.delete("/agents/{agent_id}/desktop/portal")
     async def desktop_portal_close(agent_id: uuid.UUID, view_id: uuid.UUID, grant_id: uuid.UUID, request: Request):
         return await runtime(request).desktop_portal.close_grant(str(agent_id), str(view_id), str(grant_id))
+
+    @router.post("/agents/{agent_id}/desktop/control", status_code=202)
+    async def desktop_control_open(agent_id: uuid.UUID, request: Request):
+        return await runtime(request).desktop_control.open(str(agent_id), await bounded_configuration(request, 512))
+
+    @router.get("/agents/{agent_id}/desktop/control")
+    async def desktop_control_status(agent_id: uuid.UUID, view_id: uuid.UUID, request: Request):
+        return await runtime(request).desktop_control.status(str(agent_id), str(view_id))
+
+    @router.delete("/agents/{agent_id}/desktop/control")
+    async def desktop_control_close(agent_id: uuid.UUID, view_id: uuid.UUID, grant_id: uuid.UUID, request: Request):
+        return await runtime(request).desktop_control.close_grant(str(agent_id), str(view_id), str(grant_id))
 
     @router.post("/agents/{agent_id}/desktop/actions", status_code=202)
     async def desktop_action(agent_id: uuid.UUID, request: Request):

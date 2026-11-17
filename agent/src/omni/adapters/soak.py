@@ -187,6 +187,7 @@ class LocalSampler:
                     "extension_cleanup_pending",
                     "mcp_cleanup_pending",
                     "desktop_portal_cleanup_pending",
+                    "desktop_control_cleanup_pending",
                     "desktop_cleanup_pending",
                     "terminal_cleanup_pending",
                     "shutdown_residual_count",
