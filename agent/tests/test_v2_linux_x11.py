@@ -234,8 +234,10 @@ def test_x11_receipt_crosses_owned_host_staging_and_publishes_one_session_refere
 
     from test_v2_desktop import begin, listed, verification
     from test_v2_desktop_backend import Owner, encoded
+    from test_v2_linux_window_leases import PROGRAM
 
     from omni.adapters.platform import desktop as host_module
+    from omni.adapters.platform.processes import OwnedProcess
     from omni.composition.instance import open_instance
 
     async def scenario():
@@ -255,9 +257,14 @@ def test_x11_receipt_crosses_owned_host_staging_and_publishes_one_session_refere
             Path(request["output_path"]).write_bytes(content)
             return encoded(request, receipt)
 
-        owners = []
+        owners, guardians = [], []
 
         async def spawn(*args, **kwargs):
+            if args[0][-1] == "omni.adapters.workers.linux_window_lease":
+                # Actual owned IPC with injected native proofs; no Linux desktop.
+                owned = await OwnedProcess.spawn([sys.executable, "-u", "-c", PROGRAM], **kwargs)
+                guardians.append(owned)
+                return owned
             owned = Owner(builder=response)
             owners.append(owned)
             return owned
@@ -278,7 +285,9 @@ def test_x11_receipt_crosses_owned_host_staging_and_publishes_one_session_refere
             metadata, stored = await instance.objects.get(agent, published["object_id"])
             assert stored == content and metadata["references"] == 1
             assert all(owned.reclaimed for owned in owners) and not list((tmp_path / "staging").iterdir())
+            assert len(guardians) == 1 and backend.health()["resident"] == 1
         finally:
             assert (await instance.close())["complete"]
+        assert all(owned.reclaimed for owned in guardians)
 
     asyncio.run(scenario())

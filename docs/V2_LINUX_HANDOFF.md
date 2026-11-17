@@ -1,6 +1,6 @@
 # Linux 原生接入与验收交接
 
-共享内核当前为136表/v2_0037、工作台v130，桌面IPC6/Portal IPC2/凭据IPC1。Linux AT-SPI/X11读取、Portal窗口帧、受控语义、系统凭据helper及D4终端核查源码已接通；Portal授权确认状态按下文明确区分系统同意和业务审计，不扩大Linux输入授权。Linux/GStreamer/Portal、原生凭据与PTY仍未实测，持续窗口身份和前台/RemoteDesktop控制仍待实现；整个V2未完成，默认V1。
+共享内核当前为137表/v2_0038，桌面IPC6/Portal IPC2/凭据IPC1，新增持续窗口证明IPC1。Linux AT-SPI/X11读取、持续X11窗口代次、Portal窗口帧、受控语义、系统凭据helper及D4终端核查源码已接通；Portal授权确认状态按下文明确区分系统同意和业务审计，不扩大Linux输入授权。Linux/GStreamer/Portal、原生凭据与PTY仍未实测，前台/RemoteDesktop控制仍待实现；整个V2未完成，Windows离线候选默认V2并保留显式V1回退。持续窗口读取身份见[专项合同](V2_LINUX_WINDOW_LEASES.md)。
 
 ## 已实现的生产链路
 
@@ -103,7 +103,7 @@ PTY、Secret Service 与服务部署还需分别完成本机闭环。Linux 容�
 
 ## 在 Linux 运行的步骤
 
-使用已登录、非 root 的隔离测试账号及独立工作目录。正式入口仍是 V1；通过当前 V2 开发入口或下列独立原生检查工具验证。依赖安装在新验收环境中完成，不能修改正在运行实例的环境：
+使用已登录、非 root 的隔离测试账号及独立工作目录。默认入口为 V2，显式 V1 回退保留；下列独立原生检查工具不代表 Linux 正式支持。依赖安装在新验收环境中完成，不能修改正在运行实例的环境：
 
 ```sh
 uv sync --frozen --extra desktop-linux

@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "54502d5c590cfc6aad71149e074c5504730cf8f490651c05452f1b65d8bc7f22",
+  "source_sha256": "2d280ea18ca793b8829f5b28f8affd55c668b092601874bba014f4cf4e9dc07e",
   "modules": [
     {
       "id": "v2-domain",
@@ -41,6 +41,7 @@
         "agent/src/omni/domain/history.py",
         "agent/src/omni/domain/images.py",
         "agent/src/omni/domain/installation.py",
+        "agent/src/omni/domain/linux_window_leases.py",
         "agent/src/omni/domain/local_vectors.py",
         "agent/src/omni/domain/maintenance.py",
         "agent/src/omni/domain/mcp.py",
@@ -74,7 +75,7 @@
         "agent/src/omni/domain/terminal_review.py",
         "agent/src/omni/domain/terminals.py"
       ],
-      "lines": 9833,
+      "lines": 9982,
       "dependencies": []
     },
     {
@@ -314,11 +315,13 @@
         "agent/src/omni/adapters/platform/linux_bus.py",
         "agent/src/omni/adapters/platform/linux_fds.py",
         "agent/src/omni/adapters/platform/linux_input.py",
+        "agent/src/omni/adapters/platform/linux_lease_client.py",
         "agent/src/omni/adapters/platform/linux_pipewire.py",
         "agent/src/omni/adapters/platform/linux_portal.py",
         "agent/src/omni/adapters/platform/linux_semantic.py",
         "agent/src/omni/adapters/platform/linux_session.py",
         "agent/src/omni/adapters/platform/linux_signals.py",
+        "agent/src/omni/adapters/platform/linux_window_leases.py",
         "agent/src/omni/adapters/platform/linux_x11.py",
         "agent/src/omni/adapters/platform/linux_x11_socket.py",
         "agent/src/omni/adapters/platform/linux_x11_wire.py",
@@ -381,6 +384,7 @@
         "agent/src/omni/adapters/workers/desktop.py",
         "agent/src/omni/adapters/workers/linux_action.py",
         "agent/src/omni/adapters/workers/linux_desktop.py",
+        "agent/src/omni/adapters/workers/linux_window_lease.py",
         "agent/src/omni/adapters/workers/local_vectors.py",
         "agent/src/omni/adapters/workers/macos/Core/Package.swift",
         "agent/src/omni/adapters/workers/macos/Core/Sources/ForegroundCore/Takeover.swift",
@@ -412,7 +416,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 56409,
+      "lines": 57138,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -23959,9 +23963,10 @@
       "path": "agent/src/omni/adapters/platform/desktop.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.desktop",
-      "lines": 580,
+      "lines": 634,
       "imports": [
         "omni.adapters.platform",
+        "omni.adapters.platform.linux_lease_client",
         "omni.adapters.platform.processes",
         "omni.application.ports",
         "omni.domain.contracts",
@@ -23972,7 +23977,7 @@
       "symbols": [
         {
           "name": "_error",
-          "line": 42,
+          "line": 43,
           "kind": "function",
           "parameters": [
             "code"
@@ -23983,7 +23988,7 @@
         },
         {
           "name": "_decode",
-          "line": 46,
+          "line": 47,
           "kind": "function",
           "parameters": [
             "frame"
@@ -23994,7 +23999,7 @@
         },
         {
           "name": "_decode.pairs",
-          "line": 50,
+          "line": 51,
           "kind": "function",
           "parameters": [
             "items"
@@ -24005,7 +24010,7 @@
         },
         {
           "name": "_decode.constant",
-          "line": 58,
+          "line": 59,
           "kind": "function",
           "parameters": [
             "_value"
@@ -24016,40 +24021,42 @@
         },
         {
           "name": "helper_environment",
-          "line": 67,
+          "line": 68,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "_Host",
-          "line": 110,
+          "line": 111,
           "kind": "class"
         },
         {
           "name": "DesktopBackend",
-          "line": 130,
+          "line": 131,
           "kind": "class"
         },
         {
           "name": "DesktopBackend.__init__",
-          "line": 131,
+          "line": 132,
           "kind": "function",
           "parameters": [
             "self",
             "process_factory",
             "capture_root",
-            "capacity"
+            "capacity",
+            "lease_backend"
           ],
           "annotations": {
             "process_factory": "Spawn | None",
             "capture_root": "Path | None",
-            "capacity": "asyncio.Semaphore | None"
+            "capacity": "asyncio.Semaphore | None",
+            "lease_backend": "LeaseClientPort | None"
           }
         },
         {
           "name": "DesktopBackend.health",
-          "line": 147,
+          "line": 154,
           "kind": "function",
           "parameters": [
             "self"
@@ -24058,7 +24065,7 @@
         },
         {
           "name": "DesktopBackend.stop_accepting",
-          "line": 158,
+          "line": 167,
           "kind": "function",
           "parameters": [
             "self"
@@ -24067,7 +24074,7 @@
         },
         {
           "name": "DesktopBackend.probe",
-          "line": 161,
+          "line": 171,
           "kind": "function",
           "parameters": [
             "self",
@@ -24079,7 +24086,7 @@
         },
         {
           "name": "DesktopBackend.targets",
-          "line": 164,
+          "line": 174,
           "kind": "function",
           "parameters": [
             "self",
@@ -24093,7 +24100,7 @@
         },
         {
           "name": "DesktopBackend.verify",
-          "line": 167,
+          "line": 177,
           "kind": "function",
           "parameters": [
             "self",
@@ -24107,7 +24114,7 @@
         },
         {
           "name": "DesktopBackend.observe",
-          "line": 170,
+          "line": 188,
           "kind": "function",
           "parameters": [
             "self",
@@ -24121,7 +24128,7 @@
         },
         {
           "name": "DesktopBackend.capture",
-          "line": 175,
+          "line": 193,
           "kind": "function",
           "parameters": [
             "self",
@@ -24135,7 +24142,7 @@
         },
         {
           "name": "DesktopBackend.act",
-          "line": 180,
+          "line": 198,
           "kind": "function",
           "parameters": [
             "self",
@@ -24151,7 +24158,7 @@
         },
         {
           "name": "DesktopBackend.foreground",
-          "line": 183,
+          "line": 201,
           "kind": "function",
           "parameters": [
             "self",
@@ -24167,7 +24174,7 @@
         },
         {
           "name": "DesktopBackend._write",
-          "line": 186,
+          "line": 204,
           "kind": "function",
           "parameters": [
             "self",
@@ -24185,7 +24192,7 @@
         },
         {
           "name": "DesktopBackend.quiescent",
-          "line": 200,
+          "line": 218,
           "kind": "function",
           "parameters": [
             "self"
@@ -24194,7 +24201,7 @@
         },
         {
           "name": "DesktopBackend.reclaim",
-          "line": 203,
+          "line": 221,
           "kind": "function",
           "parameters": [
             "self",
@@ -24206,7 +24213,7 @@
         },
         {
           "name": "DesktopBackend._request",
-          "line": 210,
+          "line": 229,
           "kind": "function",
           "parameters": [
             "self",
@@ -24227,8 +24234,15 @@
           }
         },
         {
+          "name": "DesktopBackend._request.perform",
+          "line": 260,
+          "kind": "function",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
           "name": "DesktopBackend._request.finished",
-          "line": 243,
+          "line": 296,
           "kind": "function",
           "parameters": [
             "future"
@@ -24239,7 +24253,7 @@
         },
         {
           "name": "DesktopBackend._drain",
-          "line": 251,
+          "line": 304,
           "kind": "function",
           "parameters": [
             "self",
@@ -24255,7 +24269,7 @@
         },
         {
           "name": "DesktopBackend._spawn",
-          "line": 276,
+          "line": 329,
           "kind": "function",
           "parameters": [
             "self",
@@ -24269,14 +24283,14 @@
         },
         {
           "name": "DesktopBackend._spawn.collected",
-          "line": 324,
+          "line": 377,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "DesktopBackend._reclaim_actual",
-          "line": 332,
+          "line": 385,
           "kind": "function",
           "parameters": [
             "self",
@@ -24290,7 +24304,7 @@
         },
         {
           "name": "DesktopBackend._file",
-          "line": 365,
+          "line": 418,
           "kind": "function",
           "parameters": [
             "self",
@@ -24306,14 +24320,14 @@
         },
         {
           "name": "DesktopBackend._file.actual",
-          "line": 369,
+          "line": 422,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "DesktopBackend._reclaim",
-          "line": 378,
+          "line": 431,
           "kind": "function",
           "parameters": [
             "self",
@@ -24327,7 +24341,7 @@
         },
         {
           "name": "DesktopBackend._dispatch_gate",
-          "line": 393,
+          "line": 446,
           "kind": "function",
           "parameters": [
             "self",
@@ -24339,7 +24353,7 @@
         },
         {
           "name": "DesktopBackend._run",
-          "line": 406,
+          "line": 459,
           "kind": "function",
           "parameters": [
             "self",
@@ -24357,7 +24371,7 @@
         },
         {
           "name": "DesktopBackend.close",
-          "line": 570,
+          "line": 623,
           "kind": "function",
           "parameters": [
             "self",
@@ -25937,6 +25951,370 @@
       "summary": "Verified Xorg input-change guard for addressed semantic actions; never grabs, synthesizes or stores input content."
     },
     {
+      "path": "agent/src/omni/adapters/platform/linux_lease_client.py",
+      "module": "v2-adapters",
+      "python_module": "omni.adapters.platform.linux_lease_client",
+      "lines": 335,
+      "imports": [
+        "omni.adapters.platform.processes",
+        "omni.domain.contracts",
+        "omni.domain.desktop",
+        "omni.domain.linux_window_leases"
+      ],
+      "symbols": [
+        {
+          "name": "LeaseClientPort",
+          "line": 36,
+          "kind": "class"
+        },
+        {
+          "name": "LeaseClientPort.health",
+          "line": 37,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "LeaseClientPort.quiescent",
+          "line": 38,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "LeaseClientPort.stop_accepting",
+          "line": 39,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "LeaseClientPort.is_leased",
+          "line": 40,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "target"
+          ],
+          "annotations": {
+            "target": "Payload"
+          }
+        },
+        {
+          "name": "LeaseClientPort.bind",
+          "line": 41,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "targets",
+            "deadline",
+            "before_dispatch"
+          ],
+          "annotations": {
+            "targets": "list[Payload]",
+            "deadline": "float",
+            "before_dispatch": "Guard | None"
+          }
+        },
+        {
+          "name": "LeaseClientPort.guard",
+          "line": 44,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "target",
+            "deadline",
+            "before_dispatch"
+          ],
+          "annotations": {
+            "target": "Payload",
+            "deadline": "float",
+            "before_dispatch": "Guard | None"
+          }
+        },
+        {
+          "name": "LeaseClientPort.reclaim",
+          "line": 45,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "timeout_s"
+          ],
+          "annotations": {
+            "timeout_s": "float"
+          }
+        },
+        {
+          "name": "LeaseClientPort.close",
+          "line": 46,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "timeout_s"
+          ],
+          "annotations": {
+            "timeout_s": "float"
+          }
+        },
+        {
+          "name": "error",
+          "line": 49,
+          "kind": "function",
+          "parameters": [
+            "code"
+          ],
+          "annotations": {
+            "code": "str"
+          }
+        },
+        {
+          "name": "Host",
+          "line": 54,
+          "kind": "class"
+        },
+        {
+          "name": "LinuxLeaseClient",
+          "line": 72,
+          "kind": "class"
+        },
+        {
+          "name": "LinuxLeaseClient.__init__",
+          "line": 73,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "factory",
+            "capacity",
+            "environment"
+          ],
+          "annotations": {
+            "factory": "Spawn",
+            "capacity": "asyncio.Semaphore",
+            "environment": "Callable[[], Mapping[str, str]]"
+          }
+        },
+        {
+          "name": "LinuxLeaseClient.health",
+          "line": 84,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "LinuxLeaseClient.quiescent",
+          "line": 91,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "LinuxLeaseClient.stop_accepting",
+          "line": 104,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "LinuxLeaseClient.is_leased",
+          "line": 107,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "target"
+          ],
+          "annotations": {
+            "target": "Payload"
+          }
+        },
+        {
+          "name": "LinuxLeaseClient._forget",
+          "line": 114,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "host"
+          ],
+          "annotations": {
+            "host": "Host"
+          }
+        },
+        {
+          "name": "LinuxLeaseClient._schedule_cleanup",
+          "line": 122,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "host"
+          ],
+          "annotations": {
+            "host": "Host"
+          }
+        },
+        {
+          "name": "LinuxLeaseClient._cleanup",
+          "line": 135,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "host"
+          ],
+          "annotations": {
+            "host": "Host"
+          }
+        },
+        {
+          "name": "LinuxLeaseClient._retire",
+          "line": 158,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "host",
+            "deadline"
+          ],
+          "annotations": {
+            "host": "Host",
+            "deadline": "float"
+          }
+        },
+        {
+          "name": "LinuxLeaseClient._stdout",
+          "line": 166,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "host"
+          ],
+          "annotations": {
+            "host": "Host"
+          }
+        },
+        {
+          "name": "LinuxLeaseClient._stderr",
+          "line": 184,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "host"
+          ],
+          "annotations": {
+            "host": "Host"
+          }
+        },
+        {
+          "name": "LinuxLeaseClient._start",
+          "line": 196,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "host"
+          ],
+          "annotations": {
+            "host": "Host"
+          }
+        },
+        {
+          "name": "LinuxLeaseClient._admit",
+          "line": 222,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "deadline"
+          ],
+          "annotations": {
+            "deadline": "float"
+          }
+        },
+        {
+          "name": "LinuxLeaseClient._query",
+          "line": 251,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "host",
+            "operation",
+            "deadline",
+            "before_dispatch",
+            "**fields"
+          ],
+          "annotations": {
+            "host": "Host",
+            "operation": "str",
+            "deadline": "float",
+            "before_dispatch": "Guard | None"
+          }
+        },
+        {
+          "name": "LinuxLeaseClient.bind",
+          "line": 291,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "targets",
+            "deadline",
+            "before_dispatch"
+          ],
+          "annotations": {
+            "targets": "list[Payload]",
+            "deadline": "float",
+            "before_dispatch": "Guard | None"
+          }
+        },
+        {
+          "name": "LinuxLeaseClient.guard",
+          "line": 309,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "target",
+            "deadline",
+            "before_dispatch"
+          ],
+          "annotations": {
+            "target": "Payload",
+            "deadline": "float",
+            "before_dispatch": "Guard | None"
+          }
+        },
+        {
+          "name": "LinuxLeaseClient.reclaim",
+          "line": 323,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "timeout_s"
+          ],
+          "annotations": {
+            "timeout_s": "float"
+          }
+        },
+        {
+          "name": "LinuxLeaseClient.close",
+          "line": 330,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "timeout_s"
+          ],
+          "annotations": {
+            "timeout_s": "float"
+          }
+        }
+      ],
+      "summary": "Owned persistent X11 guardian transport; no native APIs, target rebinding from verify, unbounded queues or input."
+    },
+    {
       "path": "agent/src/omni/adapters/platform/linux_pipewire.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.linux_pipewire",
@@ -26849,6 +27227,162 @@
         }
       ],
       "summary": "Bounded, pinned D-Bus signals on the same pre-authenticated local connection; no service activation or FDs."
+    },
+    {
+      "path": "agent/src/omni/adapters/platform/linux_window_leases.py",
+      "module": "v2-adapters",
+      "python_module": "omni.adapters.platform.linux_window_leases",
+      "lines": 137,
+      "imports": [
+        "omni.adapters.platform.linux_bus",
+        "omni.adapters.platform.linux_x11",
+        "omni.adapters.platform.linux_x11_wire",
+        "omni.domain.desktop",
+        "omni.domain.linux_window_leases"
+      ],
+      "symbols": [
+        {
+          "name": "LeaseWire",
+          "line": 23,
+          "kind": "class"
+        },
+        {
+          "name": "LeaseWire.__init__",
+          "line": 24,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "connection",
+            "check"
+          ],
+          "annotations": {
+            "connection": "socket.socket",
+            "check": "Callable[[], None]"
+          }
+        },
+        {
+          "name": "LeaseWire.read",
+          "line": 28,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "length"
+          ],
+          "annotations": {
+            "length": "int"
+          }
+        },
+        {
+          "name": "LeaseWire.event",
+          "line": 33,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "header"
+          ],
+          "annotations": {
+            "header": "bytes"
+          }
+        },
+        {
+          "name": "LeaseWire.subscribe",
+          "line": 44,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "window"
+          ],
+          "annotations": {
+            "window": "int"
+          }
+        },
+        {
+          "name": "LeaseWire.unsubscribe",
+          "line": 53,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "window"
+          ],
+          "annotations": {
+            "window": "int"
+          }
+        },
+        {
+          "name": "Lease",
+          "line": 62,
+          "kind": "class"
+        },
+        {
+          "name": "WindowLeases",
+          "line": 69,
+          "kind": "class"
+        },
+        {
+          "name": "WindowLeases.__init__",
+          "line": 70,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "desktop"
+          ],
+          "annotations": {
+            "desktop": "X11Desktop"
+          }
+        },
+        {
+          "name": "WindowLeases.wire",
+          "line": 75,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "WindowLeases.tick",
+          "line": 80,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "WindowLeases._prune",
+          "line": 88,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "WindowLeases.bind",
+          "line": 93,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "targets"
+          ],
+          "annotations": {
+            "targets": "list[Payload]"
+          }
+        },
+        {
+          "name": "WindowLeases.verify",
+          "line": 125,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "supplied"
+          ],
+          "annotations": {
+            "supplied": "Payload"
+          }
+        }
+      ],
+      "summary": "Continuous X11 window generations on one proven connection; no input, AT-SPI mapping or database access."
     },
     {
       "path": "agent/src/omni/adapters/platform/linux_x11.py",
@@ -35068,6 +35602,211 @@
         }
       ],
       "summary": "One Linux read-only request in the owned helper. No service activation, settings, input or database access."
+    },
+    {
+      "path": "agent/src/omni/adapters/workers/linux_window_lease.py",
+      "module": "v2-adapters",
+      "python_module": "omni.adapters.workers.linux_window_lease",
+      "lines": 203,
+      "imports": [
+        "omni.adapters.platform.linux_bus",
+        "omni.adapters.platform.linux_session",
+        "omni.adapters.platform.linux_window_leases",
+        "omni.adapters.platform.linux_x11",
+        "omni.domain.contracts",
+        "omni.domain.desktop",
+        "omni.domain.linux_window_leases"
+      ],
+      "symbols": [
+        {
+          "name": "parse",
+          "line": 28,
+          "kind": "function",
+          "parameters": [
+            "frame"
+          ],
+          "annotations": {
+            "frame": "bytes"
+          }
+        },
+        {
+          "name": "response",
+          "line": 32,
+          "kind": "function",
+          "parameters": [
+            "request",
+            "result",
+            "error"
+          ],
+          "annotations": {
+            "request": "Payload",
+            "result": "object",
+            "error": "str | None"
+          }
+        },
+        {
+          "name": "LeaseSession",
+          "line": 42,
+          "kind": "class"
+        },
+        {
+          "name": "LeaseSession.open",
+          "line": 43,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "LeaseSession.bind",
+          "line": 44,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "targets"
+          ],
+          "annotations": {
+            "targets": "list[Payload]"
+          }
+        },
+        {
+          "name": "LeaseSession.verify",
+          "line": 45,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "target"
+          ],
+          "annotations": {
+            "target": "Payload"
+          }
+        },
+        {
+          "name": "LeaseSession.tick",
+          "line": 46,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "LeaseSession.close",
+          "line": 47,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "NativeSession",
+          "line": 50,
+          "kind": "class"
+        },
+        {
+          "name": "NativeSession.__init__",
+          "line": 51,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "NativeSession.open",
+          "line": 56,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "NativeSession.bind",
+          "line": 67,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "targets"
+          ],
+          "annotations": {
+            "targets": "list[Payload]"
+          }
+        },
+        {
+          "name": "NativeSession.verify",
+          "line": 72,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "target"
+          ],
+          "annotations": {
+            "target": "Payload"
+          }
+        },
+        {
+          "name": "NativeSession.tick",
+          "line": 77,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "NativeSession.close",
+          "line": 82,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "run",
+          "line": 94,
+          "kind": "function",
+          "parameters": [
+            "reader",
+            "send",
+            "session_factory"
+          ],
+          "annotations": {
+            "reader": "asyncio.StreamReader",
+            "send": "Callable[[bytes], Awaitable[None]]",
+            "session_factory": "Callable[[], LeaseSession]"
+          }
+        },
+        {
+          "name": "pipe_main",
+          "line": 163,
+          "kind": "function",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "pipe_main.send",
+          "line": 170,
+          "kind": "function",
+          "parameters": [
+            "data"
+          ],
+          "annotations": {
+            "data": "bytes"
+          }
+        },
+        {
+          "name": "main",
+          "line": 193,
+          "kind": "function",
+          "parameters": [],
+          "annotations": {}
+        }
+      ],
+      "summary": "Bounded read-only X11 lease helper; one owned connection carries window lifetime notifications across requests."
     },
     {
       "path": "agent/src/omni/adapters/workers/local_vectors.py",
@@ -68096,6 +68835,118 @@
         }
       ],
       "summary": "Immutable local installation receipt written once per home; no I/O and no upgrade execution."
+    },
+    {
+      "path": "agent/src/omni/domain/linux_window_leases.py",
+      "module": "v2-domain",
+      "python_module": "omni.domain.linux_window_leases",
+      "lines": 149,
+      "imports": [
+        "omni.domain.contracts",
+        "omni.domain.desktop"
+      ],
+      "symbols": [
+        {
+          "name": "invalid",
+          "line": 21,
+          "kind": "function",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "_uuid",
+          "line": 25,
+          "kind": "function",
+          "parameters": [
+            "value"
+          ],
+          "annotations": {
+            "value": "object"
+          }
+        },
+        {
+          "name": "_pairs",
+          "line": 36,
+          "kind": "function",
+          "parameters": [
+            "values"
+          ],
+          "annotations": {
+            "values": "list[tuple[str, object]]"
+          }
+        },
+        {
+          "name": "_constant",
+          "line": 45,
+          "kind": "function",
+          "parameters": [
+            "_value"
+          ],
+          "annotations": {
+            "_value": "str"
+          }
+        },
+        {
+          "name": "decode",
+          "line": 49,
+          "kind": "function",
+          "parameters": [
+            "frame"
+          ],
+          "annotations": {
+            "frame": "bytes"
+          }
+        },
+        {
+          "name": "encode",
+          "line": 61,
+          "kind": "function",
+          "parameters": [
+            "value"
+          ],
+          "annotations": {
+            "value": "Payload"
+          }
+        },
+        {
+          "name": "_target",
+          "line": 71,
+          "kind": "function",
+          "parameters": [
+            "value",
+            "leased"
+          ],
+          "annotations": {
+            "value": "object",
+            "leased": "bool"
+          }
+        },
+        {
+          "name": "parse_request",
+          "line": 85,
+          "kind": "function",
+          "parameters": [
+            "value"
+          ],
+          "annotations": {
+            "value": "object"
+          }
+        },
+        {
+          "name": "parse_response",
+          "line": 113,
+          "kind": "function",
+          "parameters": [
+            "value",
+            "request"
+          ],
+          "annotations": {
+            "value": "object",
+            "request": "Payload"
+          }
+        }
+      ],
+      "summary": "Exact private read-only X11 lease IPC; opaque aliases never authorize a desktop action."
     },
     {
       "path": "agent/src/omni/domain/local_vectors.py",

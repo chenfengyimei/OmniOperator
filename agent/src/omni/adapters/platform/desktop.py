@@ -16,7 +16,7 @@ from pathlib import Path
 from typing import Any, cast
 
 from ...application.ports import Record
-from ...domain.contracts import BusinessError
+from ...domain.contracts import JSON, BusinessError
 from ...domain.desktop import (
     LINUX_ERRORS,
     MAX_FRAME,
@@ -30,6 +30,7 @@ from ...domain.desktop_actions import linux_ready
 from ...domain.foreground import TIMEOUT_S as FOREGROUND_TIMEOUT_S
 from ...domain.foreground import permit, ready
 from . import desktop_capture, macos_helper
+from .linux_lease_client import LeaseClientPort, LinuxLeaseClient
 from .processes import OwnedProcess
 
 MAX_PENDING = 4
@@ -134,29 +135,38 @@ class DesktopBackend:
         process_factory: Spawn | None = None,
         capture_root: Path | None = None,
         capacity: asyncio.Semaphore | None = None,
+        lease_backend: LeaseClientPort | None = None,
     ) -> None:
         self._factory: Spawn = process_factory or OwnedProcess.spawn
         self._pending: set[asyncio.Task[Any]] = set()
         self._hosts: set[_Host] = set()
         self._slots = capacity if capacity is not None else asyncio.Semaphore(MAX_RESIDENT)
+        self._window_leases = (
+            lease_backend
+            if lease_backend is not None
+            else LinuxLeaseClient(self._factory, self._slots, helper_environment)
+        )
         self._closing = False
         self._capture_root = capture_root.absolute() if capture_root else None
         self._files = ThreadPoolExecutor(max_workers=1, thread_name_prefix="omni-desktop-files")
         self._staging: Record | None = None
 
     def health(self) -> Record:
+        leases = self._window_leases.health()
         return {
             "closing": self._closing,
             "pending": len(self._pending),
-            "resident": len(self._hosts),
-            "cleanup_pending": sum(host.closing for host in self._hosts),
+            "resident": len(self._hosts) + int(leases["resident"]),
+            "cleanup_pending": sum(host.closing for host in self._hosts) + int(leases["cleanup_pending"]),
             "max_pending": MAX_PENDING,
             "max_resident": MAX_RESIDENT,
             "capture_staging": dict(self._staging) if self._staging else None,
+            "window_leases": cast(JSON, leases),
         }
 
     def stop_accepting(self) -> None:
         self._closing = True
+        self._window_leases.stop_accepting()
 
     async def probe(self, *, before_dispatch: BeforeDispatch | None = None) -> Record:
         return await self._request("probe", None, 1, before_dispatch)
@@ -165,7 +175,15 @@ class DesktopBackend:
         return await self._request("targets", None, limit, before_dispatch)
 
     async def verify(self, target: Record, *, before_dispatch: BeforeDispatch | None = None) -> Record:
-        return await self._request("verify", target, 1, before_dispatch)
+        try:
+            return await self._request("verify", target, 1, before_dispatch)
+        except BusinessError as caught:
+            if (
+                self._window_leases.is_leased(cast(dict[str, object], target))
+                and caught.code == "desktop_target_changed"
+            ):
+                return {"matches": False, "target": None, "reason": "desktop_target_changed"}
+            raise
 
     async def observe(self, target: Record, *, before_dispatch: BeforeDispatch | None = None) -> Record:
         if sys.platform not in {"win32", "darwin", "linux"}:
@@ -198,13 +216,14 @@ class DesktopBackend:
             }
 
     def quiescent(self) -> bool:
-        return not self._hosts and not self._pending
+        return not self._hosts and not self._pending and self._window_leases.quiescent()
 
     async def reclaim(self, timeout_s: float) -> bool:
         deadline = asyncio.get_running_loop().time() + max(0, timeout_s)
         for host in list(self._hosts):
             if host.closing:
                 await self._reclaim(host, max(0, deadline - asyncio.get_running_loop().time()))
+        await self._window_leases.reclaim(max(0, deadline - asyncio.get_running_loop().time()))
         return self.quiescent()
 
     async def _request(
@@ -237,7 +256,41 @@ class DesktopBackend:
         deadline = asyncio.get_running_loop().time() + (
             FOREGROUND_TIMEOUT_S if operation == "foreground" else TIMEOUT_S
         )
-        task = asyncio.create_task(self._run(request, deadline, before_dispatch, sent), name="desktop-discovery")
+
+        async def perform() -> Any:
+            try:
+                async with asyncio.timeout_at(deadline):
+                    leased = target is not None and self._window_leases.is_leased(cast(dict[str, object], target))
+                    native = dict(request)
+                    if leased:
+                        native["target"] = await self._window_leases.guard(
+                            cast(dict[str, object], target), deadline, before_dispatch
+                        )
+                    result = await self._run(native, deadline, before_dispatch, sent)
+                    if leased:
+                        await self._window_leases.guard(cast(dict[str, object], target), deadline, before_dispatch)
+                        await self._dispatch_gate(before_dispatch)
+                        if operation == "verify":
+                            result = {**result, "target": target if result["matches"] else None}
+                    elif operation == "targets" and sys.platform == "linux":
+                        items = cast(list[dict[str, object]], result["items"])
+                        originals = [item for item in items if item["backend"] == "x11"]
+                        if originals:
+                            aliases = iter(await self._window_leases.bind(originals, deadline, before_dispatch))
+                            result = {
+                                **result,
+                                "items": [next(aliases) if item["backend"] == "x11" else item for item in items],
+                            }
+                            await self._dispatch_gate(before_dispatch)
+                    return result
+            except TimeoutError:
+                raise _error("desktop_timeout") from None
+            except BusinessError:
+                raise
+            except Exception:  # noqa: BLE001 -- guardian transport faults are bounded native metadata too
+                raise _error("desktop_transport_failed") from None
+
+        task = asyncio.create_task(perform(), name="desktop-discovery")
         self._pending.add(task)
 
         def finished(future: asyncio.Task[Any]) -> None:
@@ -572,9 +625,10 @@ class DesktopBackend:
         deadline = asyncio.get_running_loop().time() + max(0, timeout_s)
         for host in list(self._hosts):
             await self._reclaim(host, max(0, deadline - asyncio.get_running_loop().time()))
+        leases_closed = await self._window_leases.close(max(0, deadline - asyncio.get_running_loop().time()))
         if self._pending:
             await asyncio.wait(self._pending, timeout=max(0, deadline - asyncio.get_running_loop().time()))
-        complete = not self._hosts and not any(not task.done() for task in self._pending)
+        complete = leases_closed and not self._hosts and not any(not task.done() for task in self._pending)
         if complete:
             self._files.shutdown(wait=False)
         return complete

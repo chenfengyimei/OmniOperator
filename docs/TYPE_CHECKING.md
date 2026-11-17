@@ -14,6 +14,10 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 
 | 文件 | 纳入原因 |
 | --- | --- |
+| `agent/src/omni/domain/linux_window_leases.py` | 持续窗口身份的精确有界私有 IPC 与目标字段绑定 |
+| `agent/src/omni/adapters/platform/linux_window_leases.py` | 同连接生命周期订阅、窗口代次及读取前后屏障 |
+| `agent/src/omni/adapters/platform/linux_lease_client.py` | 持续只读辅助进程、串行 RPC、有界通信及真实回收归属 |
+| `agent/src/omni/adapters/workers/linux_window_lease.py` | Linux 持续窗口证明的固定原生辅助进程与限额 |
 | `agent/src/omni/adapters/platform/workbench.py` | 仅显式浏览器启动、本次进程与HMAC就绪证明、探测线程归属 |
 | `agent/src/omni/adapters/platform/dependency_bundle.py` | 本机依赖包清单/哈希与平台核验、有界流式捕获和仅本地安装输入 |
 | `agent/src/omni/adapters/platform/candidate_installer.py` | 独立离线候选安装、分离维护解释器与实例、逐步核验和失败保留 |
@@ -392,7 +396,7 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 
 ### 3.1 adapters 类型收口（第 214 批）
 
-全部 **227 个 adapters 已纳入 strict**；合同范围为 **339 文件**（domain 55、application 44、adapters 227、composition 13）。新增事件通知、空间管理及V2独立长跑工具后，历史335文件结论仅代表原固定候选；开发中只复核修改范围，整范围复验留整个V2开发完成后的验收。原 P4/P5/P6 的 24 个待办模块已完成，不再是当前施工清单。
+全部 **230 个 adapters 已纳入 strict**；合同范围为 **343 文件**（domain 56、application 44、adapters 230、composition 13）。新增事件通知、空间管理、V2独立长跑工具和Linux持续窗口证明后，历史335文件结论仅代表原固定候选；开发中只复核修改范围，整范围复验留整个V2开发完成后的验收。原 P4/P5/P6 的 24 个待办模块已完成，不再是当前施工清单。
 
 统计以本页逐文件表为准；domain/application 各一个仅含说明文字的包初始化文件未列入该合同范围。V1 与 tests 尚未纳入，因此**全仓严格类型尚未完成**。
 

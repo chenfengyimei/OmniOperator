@@ -33,8 +33,25 @@
     {
       "id": "G3",
       "title": "Linux持续窗口身份与显式前台控制",
-      "status": "next_development",
-      "contract": "docs/V2_LINUX_HANDOFF.md"
+      "status": "development_in_progress",
+      "contract": "docs/V2_LINUX_HANDOFF.md",
+      "subdeliverables": [
+        {
+          "id": "G3.L1",
+          "title": "X11同连接持续窗口代次及读取前后核验",
+          "status": "implemented_scoped_passed",
+          "contract": "docs/V2_LINUX_WINDOW_LEASES.md",
+          "evidence": [
+            "docs/evidence/v2-linux-window-leases.json"
+          ],
+          "real_linux_native_executed": false
+        },
+        {
+          "id": "G3.L2",
+          "title": "显式前台输入、独立节点与窗口关联及逐次授权",
+          "status": "next_development"
+        }
+      ]
     },
     {
       "id": "G4",

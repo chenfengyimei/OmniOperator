@@ -1,0 +1,74 @@
+{
+  "source_base": "50490d6ac9b60c14da38404789c6e1e71672a4dd",
+  "scope": "Continuous read-only X11 window generation proofs, retained guardian ownership and desktop discovery/verify/capture integration; not foreground input",
+  "source_files": {
+    "agent/src/omni/domain/linux_window_leases.py": "1977273b4eca88f79f18b7b567092304d30921d2dab4287b84f940ad173404b4",
+    "agent/src/omni/adapters/platform/linux_window_leases.py": "86368c510ab2a7078d474de77b475bfc834b374fc5202797e33268ec262442aa",
+    "agent/src/omni/adapters/platform/linux_lease_client.py": "b808905363f98da77b0d64b160099f949177d50f3f73b4947fc2c4100cf3047a",
+    "agent/src/omni/adapters/workers/linux_window_lease.py": "138fb53eca88874efea345d5b467cda64778ffd419fbba591eed138660c02eb5",
+    "agent/src/omni/adapters/platform/desktop.py": "4fa66a83c12580cbe056307b1d7f55c4774e2b267db1d4647e63c977af95db72",
+    "agent/tests/test_v2_linux_window_leases.py": "f03662a565b728dcec8299a2a8ad6e9af97bf4d366aa86fe7c771eb2cd0c33ed",
+    "agent/tests/test_v2_linux_x11.py": "a3ef75aea8bebf16256fccf2966b14a9fd358f6bf875c2de51a08d5eed2aa7b9",
+    "pyrightconfig.strict.json": "e3f1c59d52d10c17255bcf3fd5efea62a3bbe2c835a976aebf052e48573485be",
+    "docs/TYPE_CHECKING.md": "58ee533dac6f73dd534798bf6ac55ad5140134048eb6153c6e0e450666b92faf",
+    "docs/V2_LINUX_WINDOW_LEASES.md": "ae18d02486c028f8ae5d12cc74b0884c68ea7f8bcab83ed5d5fd7390b4c0d49e",
+    "docs/V2_LINUX_HANDOFF.md": "d4285718b216e70b223ce9ec6fad3dab8336891cafd9c5fff2daac76f3fcba5e"
+  },
+  "scoped_tests": {
+    "distinct_passed": 177,
+    "new_passed": 19,
+    "caller_distinct_passed": 156,
+    "type_scope_guard_passed": 2,
+    "unresolved_failed_nodes": 0,
+    "reports": [
+      {
+        "path": "temp/build/v2-linux-window-leases-callers.xml",
+        "sha256": "5df88d6926ea0f1d5a24dc4ef83e1792dc60acafd14c68954fcf0c3567d8350d"
+      },
+      {
+        "path": "temp/build/v2-linux-window-leases-capture-fix.xml",
+        "sha256": "68434818ff9b7ba212389baf8b2f93ad67256c9f48b75398daa95f5f393dc17f"
+      },
+      {
+        "path": "temp/build/v2-linux-window-leases-complete.xml",
+        "sha256": "5763e767e5704df647773cc41eb17693e55dd890dc9ace127f4b3c392754cf90"
+      },
+      {
+        "path": "temp/build/v2-linux-window-leases-type-scope.xml",
+        "sha256": "a940b2ac24d9f254441cfade13002d0811f499d61eb87ba7fd883940a154f16b"
+      }
+    ],
+    "initial_caller_report_contains_one_failure_resolved_by_exact_node": true,
+    "failure_reason": "Old one-shot-only injected process fixture lacked the new resident lease helper; integration now uses actual owned IPC with injected native identity",
+    "no_full_suite_executed": true
+  },
+  "strict_modified_files": {
+    "files": 5,
+    "errors": 0,
+    "warnings": 0,
+    "report": {
+      "path": "temp/build/v2-linux-window-leases-pyright-fixed.json",
+      "sha256": "ec4e86b7d16a2e3a32349346a732252ca403059e818e76ecdd1aca2d1639b274"
+    }
+  },
+  "initial_reports_preserved": [
+    {
+      "path": "temp/build/v2-linux-window-leases-initial.xml",
+      "sha256": "9f1a47b4895d2b91036ba90bf30a7dbde36d86fc55ff502fae1e836a6526a7a0"
+    },
+    {
+      "path": "temp/build/v2-linux-window-leases-pyright-initial.json",
+      "sha256": "1afa5000ab3d585b376c2b188c7164170f6e51d13f30aee45855aa2ab75e7b54"
+    }
+  ],
+  "initial_new_test_failure_reason": "Injected Windows child used text print CRLF; fixture changed to binary LF without weakening the private codec",
+  "real_owned_pipe_and_windows_job_reclamation_executed": true,
+  "real_sqlite_capture_object_publication_with_injected_native_receipt_executed": true,
+  "real_x11_or_linux_native_executed": false,
+  "new_input_authority_enabled": false,
+  "paid_model_real_accounts_devices_or_native_input_executed": false,
+  "full_suite_run": false,
+  "whole_v2_development_complete": false,
+  "whole_v2_accepted": false,
+  "next": "G3.L2 explicit foreground control with window/node association, focus/physical-input guards and per-action permit; independent Wayland RemoteDesktop afterward"
+}

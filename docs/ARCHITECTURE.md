@@ -96,6 +96,8 @@ Linux桌面原生会话由固定辅助进程内的`SessionInspector`核验，`Lo
 
 `linux_x11_socket.py`在认证前核验logind Display、实际socket对端、Xorg进程/会话与受保护二进制，再读取私有Xauthority；`linux_x11_wire.py`只实现有界XRes、窗口元数据、结构事件及现有Composite pixmap读取。`linux_x11.py`将这些证明组合成单独X11目标，发布受控PNG，不将PID或几何匹配用于AT-SPI窗口映射。语义与截图目标各自报告可用操作。截图沿同一宿主/对象服务事务发布；没有根窗口、普通窗口帧缓冲、重定向或输入回退。新v2_0024仅扩充截图来源约束，保持引用、不可变和删除传播；原生Linux运行仍未验证。
 
+`domain/linux_window_leases.py`定义持续只读窗口证明IPC，`linux_lease_client.py`只拥有受管辅助进程和精确通信，固定`workers/linux_window_lease.py`才打开原生会话。`linux_window_leases.py`在同一X11连接订阅窗口结构通知，将随机别名绑定连续代次；旧别名不因XID复用或重连恢复。DesktopBackend发现后绑定，核验/截图前后再次核对，失败不发布对象；共用原2进程/4请求额度，真实回收前保留归属。健康空闲只读订阅与活动业务租约分别结清；不自动映射AT-SPI身份，不授予输入权，见[持续身份合同](V2_LINUX_WINDOW_LEASES.md)。
+
 ## V2 调度与所有权边界
 
 V2依赖方向固定为入口适配器→应用服务→领域端口；`composition/instance.py`构造并关闭调度器，`application/scheduling.py`只编排时钟、时区端口和事务。数字日历计算位于纯领域层，锁定IANA数据读取位于适配器。数据库仓储负责到期唯一约束、进度、savepoint入队、逐条核查和租约，不调用网络或模型。回合分发通过持久原子领取取得会话fence，外部调用不在事务内等待；未知执行不得自动重放。完整合同和当前证据见[V2实施记录](V2_REFACTOR.md)。
