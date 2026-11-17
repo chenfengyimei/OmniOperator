@@ -2,7 +2,9 @@
 
 共享内核当前为137表/v2_0038，桌面IPC6/Portal IPC2/凭据IPC1，新增持续窗口证明IPC1。Linux AT-SPI/X11读取、持续X11窗口代次、Portal窗口帧、受控语义、系统凭据helper及D4终端核查源码已接通；Portal授权确认状态按下文明确区分系统同意和业务审计，不扩大Linux输入授权。Linux/GStreamer/Portal、原生凭据与PTY仍未实测，前台/RemoteDesktop控制仍待实现；整个V2未完成，Windows离线候选默认V2并保留显式V1回退。持续窗口读取身份见[专项合同](V2_LINUX_WINDOW_LEASES.md)。
 
-最新接续：原生鼠标物理点预检已接WindowFocus，使用Xorg实际形状/堆叠命中、QueryTree路径和接收客户端XRes，允许本进程InputOnly子窗口，拒绝同PID链外窗口；结构/子结构订阅保留原焦点监测，失败/取消锁存。60新增及252调用方/合同共312不同专项通过，修改3运行文件strict通过；360仅登记，未整范围/全量。当前只读准备，不移动或点击；AT-SPI物理坐标、按钮映射、逐事件派发/释放及业务后验继续开发，无真实Linux/输入结论，见[前台合同](V2_LINUX_FOREGROUND.md)与[命中证据](evidence/v2-linux-pointer-target.json)。
+最新接续：同连接按钮预检已接WindowFocus；真实ClientPointer、XI2按钮数、slave/master两级完整映射与核心映射交叉核验，实际计算主按钮的物理码。XI1两设备映射通知与核心通知接原变化锁存，订阅中变化、双读不符、取消及恢复映射都不能重绑旧计划；不改映射或发送输入。43新增及341调用方/合同共384不同专项通过（77.33秒），修改3运行文件strict通过；361仅登记，未整范围/全量。原38通过、后续收集参数命名错误及源码均留档。XKB按钮动作、指针变换/轴/反馈与切换复制，移动/点击释放、AT-SPI物理点关联及业务后验继续开发，无真实Linux/鼠标验收，见[前台合同](V2_LINUX_FOREGROUND.md)与[映射证据](evidence/v2-linux-button-mapping.json)。
+
+上一原生鼠标物理点预检已接WindowFocus，使用Xorg实际形状/堆叠命中、QueryTree路径和接收客户端XRes，允许本进程InputOnly子窗口，拒绝同PID链外窗口；结构/子结构订阅保留原焦点监测，失败/取消锁存。60新增及252调用方/合同共312不同专项通过，修改3运行文件strict通过；360仅登记，未整范围/全量。当前只读准备，不移动或点击；AT-SPI物理坐标、按钮映射、逐事件派发/释放及业务后验继续开发，无真实Linux/输入结论，见[前台合同](V2_LINUX_FOREGROUND.md)与[命中证据](evidence/v2-linux-pointer-target.json)。
 
 已完成的显式XID提供方AT-SPI节点按键仍保留：11特殊键复用单次审批、UUID ready/permit、窗口/节点/映射/复制重验与内部成对释放；明确文本/光标后验匹配才报告key_verified，其余unknown不重放。许可后的父进程关闭保留实际释放worker/管道/名额，并等业务读取回执后才结清；首轮发现的回执竞态已保留并修复。当前仅Avalonia明确属性，通用提供方、Tab/Escape/焦点变化专门后验及Wayland仍在开发，详见[按键业务证据](evidence/v2-linux-key-business.json)。
 

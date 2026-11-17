@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "cf08c30f14f7b15770b5dfa7c8b0a3a72eeb48728d7e7982759ad3583cbdcd63",
+  "source_sha256": "32b7a29fe58dcffb2d1eae72bf935071f280801aea92c4f201f650d608cfef8f",
   "modules": [
     {
       "id": "v2-domain",
@@ -316,6 +316,7 @@
         "agent/src/omni/adapters/platform/exchange_files.py",
         "agent/src/omni/adapters/platform/linux_atspi.py",
         "agent/src/omni/adapters/platform/linux_bus.py",
+        "agent/src/omni/adapters/platform/linux_button_mapping.py",
         "agent/src/omni/adapters/platform/linux_fds.py",
         "agent/src/omni/adapters/platform/linux_foreground.py",
         "agent/src/omni/adapters/platform/linux_input.py",
@@ -433,7 +434,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 60192,
+      "lines": 60429,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -26087,6 +26088,168 @@
       "summary": "Verified local D-Bus transport for desktop helpers; no environment-selected or network buses."
     },
     {
+      "path": "agent/src/omni/adapters/platform/linux_button_mapping.py",
+      "module": "v2-adapters",
+      "python_module": "omni.adapters.platform.linux_button_mapping",
+      "lines": 207,
+      "imports": [
+        "omni.adapters.platform.linux_bus",
+        "omni.adapters.platform.linux_input",
+        "omni.adapters.platform.linux_pointer_target",
+        "omni.adapters.platform.linux_x11_wire",
+        "omni.adapters.platform.linux_xtest"
+      ],
+      "symbols": [
+        {
+          "name": "ButtonFocus",
+          "line": 17,
+          "kind": "class"
+        },
+        {
+          "name": "ButtonFocus.check",
+          "line": 20,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "ButtonFocus.verify_pointer",
+          "line": 22,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "ButtonFocus.verify_sources",
+          "line": 24,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "ButtonPlan",
+          "line": 28,
+          "kind": "class"
+        },
+        {
+          "name": "primary",
+          "line": 36,
+          "kind": "function",
+          "parameters": [
+            "source",
+            "master",
+            "sources"
+          ],
+          "annotations": {
+            "source": "bytes",
+            "master": "bytes",
+            "sources": "Sources"
+          }
+        },
+        {
+          "name": "ButtonMapping",
+          "line": 49,
+          "kind": "class"
+        },
+        {
+          "name": "ButtonMapping.__init__",
+          "line": 52,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "focus"
+          ],
+          "annotations": {
+            "focus": "ButtonFocus"
+          }
+        },
+        {
+          "name": "ButtonMapping._guard",
+          "line": 58,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "ButtonMapping._client",
+          "line": 64,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "ButtonMapping._subscribe",
+          "line": 74,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "ButtonMapping._counts",
+          "line": 110,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "ButtonMapping._map",
+          "line": 137,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "identity",
+            "count"
+          ],
+          "annotations": {
+            "identity": "int | None",
+            "count": "int"
+          }
+        },
+        {
+          "name": "ButtonMapping._read",
+          "line": 153,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "ButtonMapping.prepare",
+          "line": 175,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "ButtonMapping.verify",
+          "line": 196,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        }
+      ],
+      "summary": "Read primary-button composition on a proven Xorg point/source pair; never changes maps, moves, clicks or grants dispatch."
+    },
+    {
       "path": "agent/src/omni/adapters/platform/linux_fds.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.linux_fds",
@@ -26206,9 +26369,10 @@
       "path": "agent/src/omni/adapters/platform/linux_foreground.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.linux_foreground",
-      "lines": 229,
+      "lines": 251,
       "imports": [
         "omni.adapters.platform.linux_bus",
+        "omni.adapters.platform.linux_button_mapping",
         "omni.adapters.platform.linux_input",
         "omni.adapters.platform.linux_keyboard",
         "omni.adapters.platform.linux_keystroke",
@@ -26221,12 +26385,12 @@
       "symbols": [
         {
           "name": "WindowFocus",
-          "line": 23,
+          "line": 24,
           "kind": "class"
         },
         {
           "name": "WindowFocus.__init__",
-          "line": 26,
+          "line": 27,
           "kind": "function",
           "parameters": [
             "self",
@@ -26240,7 +26404,7 @@
         },
         {
           "name": "WindowFocus._same_server",
-          "line": 39,
+          "line": 41,
           "kind": "function",
           "parameters": [
             "self"
@@ -26249,7 +26413,7 @@
         },
         {
           "name": "WindowFocus._read_lineage",
-          "line": 59,
+          "line": 61,
           "kind": "function",
           "parameters": [
             "self"
@@ -26258,7 +26422,7 @@
         },
         {
           "name": "WindowFocus.prepare",
-          "line": 97,
+          "line": 99,
           "kind": "function",
           "parameters": [
             "self",
@@ -26270,7 +26434,7 @@
         },
         {
           "name": "WindowFocus._validate",
-          "line": 119,
+          "line": 121,
           "kind": "function",
           "parameters": [
             "self"
@@ -26279,7 +26443,7 @@
         },
         {
           "name": "WindowFocus.check",
-          "line": 130,
+          "line": 132,
           "kind": "function",
           "parameters": [
             "self"
@@ -26288,7 +26452,7 @@
         },
         {
           "name": "WindowFocus.close",
-          "line": 139,
+          "line": 141,
           "kind": "function",
           "parameters": [
             "self"
@@ -26297,7 +26461,7 @@
         },
         {
           "name": "WindowFocus.selected_window",
-          "line": 144,
+          "line": 146,
           "kind": "function",
           "parameters": [
             "self"
@@ -26306,7 +26470,7 @@
         },
         {
           "name": "WindowFocus.prepare_pointer",
-          "line": 149,
+          "line": 151,
           "kind": "function",
           "parameters": [
             "self",
@@ -26318,7 +26482,7 @@
         },
         {
           "name": "WindowFocus.verify_pointer",
-          "line": 160,
+          "line": 162,
           "kind": "function",
           "parameters": [
             "self"
@@ -26327,7 +26491,7 @@
         },
         {
           "name": "WindowFocus.prepare_key",
-          "line": 169,
+          "line": 171,
           "kind": "function",
           "parameters": [
             "self",
@@ -26338,8 +26502,26 @@
           }
         },
         {
+          "name": "WindowFocus.prepare_button",
+          "line": 182,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "WindowFocus.verify_button",
+          "line": 193,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
           "name": "WindowFocus.verify_key",
-          "line": 180,
+          "line": 202,
           "kind": "function",
           "parameters": [
             "self"
@@ -26348,7 +26530,7 @@
         },
         {
           "name": "WindowFocus.prepare_sources",
-          "line": 189,
+          "line": 211,
           "kind": "function",
           "parameters": [
             "self"
@@ -26357,7 +26539,7 @@
         },
         {
           "name": "WindowFocus.verify_sources",
-          "line": 203,
+          "line": 225,
           "kind": "function",
           "parameters": [
             "self"
@@ -26366,7 +26548,7 @@
         },
         {
           "name": "WindowFocus.key_packet",
-          "line": 215,
+          "line": 237,
           "kind": "function",
           "parameters": [
             "self"
@@ -26380,7 +26562,7 @@
       "path": "agent/src/omni/adapters/platform/linux_input.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.linux_input",
-      "lines": 365,
+      "lines": 373,
       "imports": [
         "omni.adapters.platform.linux_bus",
         "omni.adapters.platform.linux_session",
@@ -26582,7 +26764,7 @@
         },
         {
           "name": "InputWire.send",
-          "line": 193,
+          "line": 195,
           "kind": "function",
           "parameters": [
             "self",
@@ -26598,7 +26780,7 @@
         },
         {
           "name": "InputWire.key_barrier",
-          "line": 199,
+          "line": 201,
           "kind": "function",
           "parameters": [
             "self",
@@ -26610,7 +26792,7 @@
         },
         {
           "name": "InputWire.read",
-          "line": 208,
+          "line": 210,
           "kind": "function",
           "parameters": [
             "self",
@@ -26622,7 +26804,7 @@
         },
         {
           "name": "InputWire.event",
-          "line": 213,
+          "line": 215,
           "kind": "function",
           "parameters": [
             "self",
@@ -26634,12 +26816,12 @@
         },
         {
           "name": "X11Input",
-          "line": 248,
+          "line": 256,
           "kind": "class"
         },
         {
           "name": "X11Input.__init__",
-          "line": 249,
+          "line": 257,
           "kind": "function",
           "parameters": [
             "self",
@@ -26655,7 +26837,7 @@
         },
         {
           "name": "X11Input.open",
-          "line": 263,
+          "line": 271,
           "kind": "function",
           "parameters": [
             "self"
@@ -26664,7 +26846,7 @@
         },
         {
           "name": "X11Input.released",
-          "line": 276,
+          "line": 284,
           "kind": "function",
           "parameters": [
             "self"
@@ -26673,7 +26855,7 @@
         },
         {
           "name": "X11Input.arm",
-          "line": 287,
+          "line": 295,
           "kind": "function",
           "parameters": [
             "self"
@@ -26682,7 +26864,7 @@
         },
         {
           "name": "X11Input.check",
-          "line": 305,
+          "line": 313,
           "kind": "function",
           "parameters": [
             "self"
@@ -26691,7 +26873,7 @@
         },
         {
           "name": "X11Input.watch_lineage",
-          "line": 313,
+          "line": 321,
           "kind": "function",
           "parameters": [
             "self",
@@ -26703,7 +26885,7 @@
         },
         {
           "name": "X11Input.watch_pointer_lineage",
-          "line": 336,
+          "line": 344,
           "kind": "function",
           "parameters": [
             "self",
@@ -26715,7 +26897,7 @@
         },
         {
           "name": "X11Input.close",
-          "line": 362,
+          "line": 370,
           "kind": "function",
           "parameters": [
             "self"

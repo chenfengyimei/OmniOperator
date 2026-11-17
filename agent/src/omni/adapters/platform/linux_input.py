@@ -185,6 +185,8 @@ class InputWire(Wire):
         self.focus: int | None = None
         self.structures: set[int] = set()
         self.pointer_parents: set[int] = set()
+        self.button_mapping_event: int | None = None
+        self.button_mapping_devices: frozenset[int] = frozenset()
         self.events = 0
         self.key_events: KeyEvents | None = None
         self.key_lease: KeyLease | None = None
@@ -218,6 +220,12 @@ class InputWire(Wire):
             if self.key_events is not None and self.key_events.keyboard(header):
                 return
             if header[1] not in {0, 1, 2, 3, 5, 6, 7}:
+                raise failure("desktop_input_unverified")
+        elif self.button_mapping_event is not None and header[0] == self.button_mapping_event:
+            if header[1] not in self.button_mapping_devices or header[4] not in {0, 1, 2}:
+                raise failure("desktop_input_unverified")
+        elif header[0] == 34 and self.button_mapping_event is not None:
+            if header[4] not in {0, 1, 2}:
                 raise failure("desktop_input_unverified")
         elif header[0] == 35 and header[1] == self.opcode:
             length = unpack("I", header, 4)[0] * 4

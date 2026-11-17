@@ -22,9 +22,21 @@
 
 原输入守卫新增一次性的命中路径订阅，保留已有FocusChange；在根及路径父节点订阅SubstructureNotify，在路径上订阅StructureNotify，先登记允许的父节点再发订阅。新建/重排/映射的未知兄弟窗口也会锁存变化，不把它误当本次输入或静默忽略。订阅只影响本连接；关闭沿原WindowFocus回收监测连接，外部窗口租约与会话仍由原所有者持有。
 
-这完成当前物理点的原生读取链，不证明AT-SPI控件与物理坐标的换算、主动/被动输入抓取、按钮映射、事件归属或应用处理结果。业务`click`仍未开放；后续须接鼠标映射与逐次许可、移动/按下/抬起的真实归属和释放、控件命中及应用后验，不能把预检通过当成允许派发。
+这完成当前物理点的原生读取链，不证明AT-SPI控件与物理坐标的换算、主动/被动输入抓取、事件归属或应用处理结果。按钮映射现接下节的独立只读预检。业务`click`仍未开放；后续须接指针配置与逐次许可、移动/按下/抬起的真实归属和释放、控件命中及应用后验，不能把预检通过当成允许派发。
 
 60项新离线二进制协议/完整窗口绑定回归与252项原输入、窗口、按键、文本、语义worker及架构/类型合同，共312不同专项通过；修改3运行文件strict零错误/警告，360仅登记，未整范围或全量。初轮50专项通过，唯一冗余cast类型诊断及原源码留档后修正并扩充边界用例。没有真实Linux或鼠标输入。见[本批证据](evidence/v2-linux-pointer-target.json)。协议依据：[X11 TranslateCoordinates](https://xorg.freedesktop.org/archive/X11R7.5/doc/man/man3/XTranslateCoordinates.3.html)、[Xorg实际命中实现](https://github.com/XQuartz/xorg-server/blob/master/dix/dispatch.c)的`ProcTranslateCoords`。
+
+## 同连接两级主按钮映射预检
+
+`WindowFocus.prepare_button/verify_button`在原生物理点和XTEST来源已经准备后，读取监测连接实际ClientPointer，要求它仍为已核验的pointer master；不选择或修改ClientPointer。XI2设备完整拓扑必须保持，所选slave/master各有唯一ButtonClass，实际按钮数均为1至255。分别使用XI1 GetDeviceButtonMapping读取两个完整表，再以核心GetPointerMapping交叉核对master。核心QueryPointer还需同屏、正确根窗口且逻辑修饰/按钮掩码为零。之前的输入守卫仍逐次核验所有设备的释放状态。
+
+Xorg先将slave物理按钮码通过slave表映射为master事件的detail，再应用master自己的表。准备计算最终逻辑主按钮1的真实物理候选，不硬编码物理1。零表示禁用，超出master表的中间码不成为候选；多个物理别名映到主按钮时固定选择最小实际码。完整两表、长度及设备ID均进入指纹，未使用按钮变化和两表同时变化但效果相同也使旧准备失效；协议填充不进入身份。
+
+双读之前，在同一根窗口订阅两个具体设备的XI1 DeviceMappingNotify。其事件号从QueryExtension首事件加11计算，事件类携带真实设备ID；解析器先于void订阅发布，随后ClientPointer查询作为屏障。核心MappingNotify也纳入原`changed`锁存。不能仅依赖核心通知：Xorg对其他slave的映射变化可能只投递XI1通知。订阅途中、读取之后或映射恢复后的通知都使旧计划失效；未绑定设备、坏请求类别、读取失败和取消均不能恢复旧准备。没有增加自身鼠标事件豁免，也没有改变外部窗口连接归属。
+
+这是按钮表预检，不证明XKB按钮动作、指针变换/轴/反馈及来源切换复制，也未派发移动或点击。接下来补这些状态，再接逐事件归属、按下/抬起释放、AT-SPI物理点关联与应用后验。43项新离线专项和341项输入/焦点/物理点/来源/按键/文本/语义/桌面及架构/类型调用方，共384不同节点通过；3修改运行文件strict零错误/警告，361仅为登记范围，未整范围或全量。首轮38项通过及之后1项测试收集错误（参数名与pytest保留名冲突）的原源码/报告均留档；更名修正没有改变运行实现或放宽断言。没有真实Linux或鼠标输入，见[本批证据](evidence/v2-linux-button-mapping.json)。
+
+协议依据：[Xorg slave→master事件构造](https://github.com/XQuartz/xorg-server/blob/master/mi/mieq.c)、[master事件处理](https://github.com/XQuartz/xorg-server/blob/master/Xi/exevents.c)、[实际按钮表回复](https://github.com/XQuartz/xorg-server/blob/master/Xi/getbmap.c)、[映射变化投递](https://github.com/XQuartz/xorg-server/blob/master/dix/inpututils.c)、[ClientPointer选择](https://github.com/XQuartz/xorg-server/blob/master/dix/events.c)和[XCB XI协议结构](https://xcb.freedesktop.org/manual/xinput_8h_source.html)。
 
 ## 已接通的受限文本追加
 

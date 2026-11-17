@@ -6,6 +6,7 @@ import struct
 from typing import cast
 
 from .linux_bus import failure
+from .linux_button_mapping import ButtonMapping, ButtonPlan
 from .linux_input import X11Input
 from .linux_keyboard import KeyboardMapping
 from .linux_keystroke import KeyPacket
@@ -35,6 +36,7 @@ class WindowFocus:
         self._keyboard: KeyboardMapping | None = None
         self._sources: XTestSources | None = None
         self._pointer: PointerTarget | None = None
+        self._buttons: ButtonMapping | None = None
 
     def _same_server(self) -> None:
         desktop = self.leases.desktop
@@ -173,6 +175,26 @@ class WindowFocus:
         self._keyboard = KeyboardMapping(self)
         try:
             return await self._keyboard.prepare(key)
+        except BaseException:
+            self._ready = False
+            raise
+
+    async def prepare_button(self) -> ButtonPlan:
+        """Read a primary-button plan for the prepared point/source pair; never permits mouse input."""
+        if self._buttons is not None:
+            raise failure("desktop_input_unverified")
+        self._buttons = ButtonMapping(self)
+        try:
+            return await self._buttons.prepare()
+        except BaseException:
+            self._ready = False
+            raise
+
+    async def verify_button(self) -> ButtonPlan:
+        if self._buttons is None:
+            raise failure("desktop_input_unverified")
+        try:
+            return await self._buttons.verify()
         except BaseException:
             self._ready = False
             raise

@@ -108,7 +108,7 @@ Linux桌面原生会话由固定辅助进程内的`SessionInspector`核验，`Lo
 
 `linux_foreground.py`拥有独立输入监测连接，对外部持续窗口租约核验XRes实际焦点客户端及有界QueryTree祖先链。`linux_input.py`原焦点监测可一次性补充祖先结构订阅；物理输入、祖先/窗口/进程变化使证明失效，失败不复活。该原生只读基础尚不开放前台业务派发，也不把AT-SPI坐标或PID当作X11窗口映射，见[前台开发合同](V2_LINUX_FOREGROUND.md)。
 
-`linux_pointer_target.py`借用WindowFocus已核验的监测连接，把明确的物理窗口点沿Xorg实际形状/堆叠命中路径核到接收客户端；有界QueryTree、几何与双读指纹夹在原窗口/焦点守卫中。命中路径的结构与父节点子结构订阅保留原FocusChange；新兄弟或原生变化使旧准备失效。它不从AT-SPI坐标猜缩放、不移动指针或发按键；按钮映射、派发/释放和业务控件命中仍另行开发，详见[前台合同](V2_LINUX_FOREGROUND.md)。
+`linux_pointer_target.py`借用WindowFocus已核验的监测连接，把明确的物理窗口点沿Xorg实际形状/堆叠命中路径核到接收客户端；有界QueryTree、几何与双读指纹夹在原窗口/焦点守卫中。命中路径的结构与父节点子结构订阅保留原FocusChange；新兄弟或原生变化使旧准备失效。它不从AT-SPI坐标猜缩放、不移动指针或发按键。`linux_button_mapping.py`继续在同连接核验ClientPointer、XI2按钮数及实际slave→master两级按钮表，交叉检查核心映射，订阅两设备XI1映射通知并锁存变化；完整表的双读/使用前指纹不允许旧映射重新绑定。只读准备不授予鼠标输入；指针配置/复制、派发/释放和业务控件命中仍继续开发，详见[前台合同](V2_LINUX_FOREGROUND.md)。
 
 `linux_window_binding.py`组合已验证AT-SPI窗口明确提供的XID、XRes实际进程及其自己的连续窗口/焦点连接；只接受已核对的提供方字段（当前Avalonia），不推断GTK/Qt通用关联。描述重读夹住焦点/窗口代次检查，任何失败锁存；关闭先结清输入监测的实际释放，再关闭自己的原生窗口连接，外部SessionInspector继续由worker拥有。`linux_key_action.py`现将该绑定、完整映射/来源/复制预检及成对派发接入原linux_action worker的UUID ready/permit；原语义目录将窗口/光标上下文计入动作指纹，未提供明确窗口身份不产生按键候选。
 

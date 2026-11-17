@@ -60,7 +60,7 @@
           "remaining": [
             "通用提供方/控件的原生窗口关联；当前仅明确XID提供方节点已接业务按键",
             "Tab/Escape/焦点导航/关闭与其他应用结果的专门后验；无法证明的已派发结果保持unknown",
-            "鼠标已补原生物理点命中预检；按钮映射/来源、移动与成对点击释放、AT-SPI物理点关联及逐次业务接线继续开发",
+            "鼠标已补原生物理点与两级按钮映射预检；XKB按钮动作/指针配置和复制、移动与成对点击释放、AT-SPI物理点关联及逐次业务接线继续开发",
             "Wayland输入释放/物理介入、目标关联和实际派发仍待继续开发"
           ],
           "addressed_unicode_append": {
@@ -134,6 +134,14 @@
             "receiver_xres_and_ancestor_subscription": true,
             "mouse_business_dispatch_enabled": false,
             "atspi_physical_coordinates_or_button_mapping_complete": false
+          },
+          "native_button_mapping_preflight": {
+            "status": "implemented_scoped_passed",
+            "evidence": "docs/evidence/v2-linux-button-mapping.json",
+            "actual_slave_master_mapping_and_notifications": true,
+            "client_pointer_and_logical_release_checked": true,
+            "pointer_configuration_or_copy_complete": false,
+            "mouse_business_dispatch_enabled": false
           }
         }
       ]
