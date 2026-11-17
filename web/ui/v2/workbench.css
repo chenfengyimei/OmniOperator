@@ -20,7 +20,10 @@
    在深色主题下就是一片刺眼白块。这里补齐完整表单语言，作用域限定 .page，
    不影响对话区 dock 与右栏（它们各有自己的规则且特异性更高）。
    ========================================================================== */
-body[data-ui-page="workbench-v2"] .page :is(input, select, textarea) {
+/* 作用域必须排除对话区 #chat：对话页也是 section.page，但 dock 工具条
+   有自己的紧凑控件语言（V1 副本）。不排除会让 width:100%/min-height:32px
+   泄漏进工具条——技能多选被撑成流内高黑块、图标被挤到上一行（所有者截图取证）。 */
+body[data-ui-page="workbench-v2"] .page:not(#chat) :is(input, select, textarea) {
   box-sizing: border-box;
   width: 100%;
   min-height: 32px;
@@ -38,32 +41,32 @@ body[data-ui-page="workbench-v2"] .page :is(input, select, textarea) {
     box-shadow 0.14s,
     background 0.14s;
 }
-body[data-ui-page="workbench-v2"] .page textarea {
+body[data-ui-page="workbench-v2"] .page:not(#chat) textarea {
   min-height: 92px;
   resize: vertical;
   font-family: var(--font-mono);
   font-size: var(--fs-caption);
   line-height: 1.66;
 }
-body[data-ui-page="workbench-v2"] .page :is(input, select, textarea)::placeholder {
+body[data-ui-page="workbench-v2"] .page:not(#chat) :is(input, select, textarea)::placeholder {
   color: var(--text-3);
   opacity: 1;
 }
-body[data-ui-page="workbench-v2"] .page :is(input, select, textarea):hover:not(:disabled) {
+body[data-ui-page="workbench-v2"] .page:not(#chat) :is(input, select, textarea):hover:not(:disabled) {
   border-color: var(--line-1);
 }
-body[data-ui-page="workbench-v2"] .page :is(input, select, textarea):focus {
+body[data-ui-page="workbench-v2"] .page:not(#chat) :is(input, select, textarea):focus {
   outline: none;
   border-color: var(--line-accent);
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--seed-accent) 16%, transparent);
 }
-body[data-ui-page="workbench-v2"] .page :is(input, select, textarea):disabled {
+body[data-ui-page="workbench-v2"] .page:not(#chat) :is(input, select, textarea):disabled {
   background: color-mix(in oklab, var(--surface-2) 55%, transparent);
   color: var(--text-3);
   cursor: not-allowed;
 }
 /* 下拉箭头：appearance:none 后必须自绘，否则失去可展开的视觉提示 */
-body[data-ui-page="workbench-v2"] .page select {
+body[data-ui-page="workbench-v2"] .page:not(#chat) select {
   padding-right: 28px;
   background-image:
     linear-gradient(45deg, transparent 50%, currentColor 50%),
@@ -77,26 +80,26 @@ body[data-ui-page="workbench-v2"] .page select {
   background-repeat: no-repeat;
   cursor: pointer;
 }
-body[data-ui-page="workbench-v2"] .page select[multiple] {
+body[data-ui-page="workbench-v2"] .page:not(#chat) select[multiple] {
   min-height: 96px;
   padding-right: 10px;
   background-image: none;
 }
-body[data-ui-page="workbench-v2"] .page select option {
+body[data-ui-page="workbench-v2"] .page:not(#chat) select option {
   background: var(--surface-1);
   color: var(--text-1);
 }
 /* 数字输入的步进器在深色下是白块，统一隐藏，靠键盘与输入交互 */
-body[data-ui-page="workbench-v2"] .page input[type="number"] {
+body[data-ui-page="workbench-v2"] .page:not(#chat) input[type="number"] {
   appearance: textfield;
 }
-body[data-ui-page="workbench-v2"] .page input[type="number"]::-webkit-outer-spin-button,
-body[data-ui-page="workbench-v2"] .page input[type="number"]::-webkit-inner-spin-button {
+body[data-ui-page="workbench-v2"] .page:not(#chat) input[type="number"]::-webkit-outer-spin-button,
+body[data-ui-page="workbench-v2"] .page:not(#chat) input[type="number"]::-webkit-inner-spin-button {
   appearance: none;
   margin: 0;
 }
 /* 复选与单选：默认外观在深色下同样是白块，自绘为强调色勾选 */
-body[data-ui-page="workbench-v2"] .page :is(input[type="checkbox"], input[type="radio"]) {
+body[data-ui-page="workbench-v2"] .page:not(#chat) :is(input[type="checkbox"], input[type="radio"]) {
   flex: 0 0 auto;
   width: 16px;
   height: 16px;
@@ -107,18 +110,18 @@ body[data-ui-page="workbench-v2"] .page :is(input[type="checkbox"], input[type="
   cursor: pointer;
   position: relative;
 }
-body[data-ui-page="workbench-v2"] .page input[type="checkbox"] {
+body[data-ui-page="workbench-v2"] .page:not(#chat) input[type="checkbox"] {
   /* --r-xs 未登记，会触发悬空变量守卫；复选框用最小已登记圆角 */
   border-radius: var(--r-sm);
 }
-body[data-ui-page="workbench-v2"] .page input[type="radio"] {
+body[data-ui-page="workbench-v2"] .page:not(#chat) input[type="radio"] {
   border-radius: var(--r-full);
 }
-body[data-ui-page="workbench-v2"] .page :is(input[type="checkbox"], input[type="radio"]):checked {
+body[data-ui-page="workbench-v2"] .page:not(#chat) :is(input[type="checkbox"], input[type="radio"]):checked {
   border-color: transparent;
   background: var(--grad);
 }
-body[data-ui-page="workbench-v2"] .page input[type="checkbox"]:checked::after {
+body[data-ui-page="workbench-v2"] .page:not(#chat) input[type="checkbox"]:checked::after {
   content: "";
   position: absolute;
   left: 4px;
@@ -129,7 +132,7 @@ body[data-ui-page="workbench-v2"] .page input[type="checkbox"]:checked::after {
   border-width: 0 2px 2px 0;
   transform: rotate(42deg);
 }
-body[data-ui-page="workbench-v2"] .page input[type="radio"]:checked::after {
+body[data-ui-page="workbench-v2"] .page:not(#chat) input[type="radio"]:checked::after {
   content: "";
   position: absolute;
   inset: 4px;
@@ -137,12 +140,12 @@ body[data-ui-page="workbench-v2"] .page input[type="radio"]:checked::after {
   background: var(--on-accent);
 }
 /* 文件选择：原生按钮在深色下是灰白块，改成与主按钮同语言 */
-body[data-ui-page="workbench-v2"] .page input[type="file"] {
+body[data-ui-page="workbench-v2"] .page:not(#chat) input[type="file"] {
   padding: 5px 8px;
   font-size: var(--fs-caption);
   cursor: pointer;
 }
-body[data-ui-page="workbench-v2"] .page input[type="file"]::file-selector-button {
+body[data-ui-page="workbench-v2"] .page:not(#chat) input[type="file"]::file-selector-button {
   margin-right: 9px;
   padding: 4px 11px;
   border: 1px solid var(--line-accent);
@@ -154,12 +157,12 @@ body[data-ui-page="workbench-v2"] .page input[type="file"]::file-selector-button
   font-weight: 600;
   cursor: pointer;
 }
-body[data-ui-page="workbench-v2"] .page input[type="file"]::file-selector-button:hover {
+body[data-ui-page="workbench-v2"] .page:not(#chat) input[type="file"]::file-selector-button:hover {
   background: color-mix(in srgb, var(--seed-accent) 24%, transparent);
 }
 /* 标签：说明文字在上、控件在下，间距统一。
    10.5px 的中文标签在整页缩图时会产生摩尔纹且偏小，提到 11px 改善可读性。 */
-body[data-ui-page="workbench-v2"] .page label {
+body[data-ui-page="workbench-v2"] .page:not(#chat) label {
   display: grid;
   gap: 5px;
   margin-bottom: 12px;
@@ -168,9 +171,9 @@ body[data-ui-page="workbench-v2"] .page label {
   font-weight: 560;
   line-height: 1.5;
 }
-body[data-ui-page="workbench-v2"] .page label.checkbox,
-body[data-ui-page="workbench-v2"] .page label:has(> input[type="checkbox"]),
-body[data-ui-page="workbench-v2"] .page label:has(> input[type="radio"]) {
+body[data-ui-page="workbench-v2"] .page:not(#chat) label.checkbox,
+body[data-ui-page="workbench-v2"] .page:not(#chat) label:has(> input[type="checkbox"]),
+body[data-ui-page="workbench-v2"] .page:not(#chat) label:has(> input[type="radio"]) {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -179,7 +182,7 @@ body[data-ui-page="workbench-v2"] .page label:has(> input[type="radio"]) {
   cursor: pointer;
 }
 /* fieldset：默认浏览器边框去掉，改为分组卡片 */
-body[data-ui-page="workbench-v2"] .page fieldset {
+body[data-ui-page="workbench-v2"] .page:not(#chat) fieldset {
   min-width: 0;
   margin: 0 0 16px;
   padding: 14px 16px 6px;
@@ -187,27 +190,27 @@ body[data-ui-page="workbench-v2"] .page fieldset {
   border-radius: var(--r-card);
   background: color-mix(in oklab, var(--surface-2) 42%, transparent);
 }
-body[data-ui-page="workbench-v2"] .page fieldset:disabled {
+body[data-ui-page="workbench-v2"] .page:not(#chat) fieldset:disabled {
   opacity: 0.72;
 }
-body[data-ui-page="workbench-v2"] .page legend {
+body[data-ui-page="workbench-v2"] .page:not(#chat) legend {
   padding: 0 7px;
   color: var(--text-2);
   font-size: var(--fs-caption);
   font-weight: 680;
 }
 /* 并排字段行 */
-body[data-ui-page="workbench-v2"] .page :is(.form-row, .log-filters) {
+body[data-ui-page="workbench-v2"] .page:not(#chat) :is(.form-row, .log-filters) {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
   gap: 10px 12px;
   margin-bottom: 4px;
 }
-body[data-ui-page="workbench-v2"] .page :is(.form-row, .log-filters) > label {
+body[data-ui-page="workbench-v2"] .page:not(#chat) :is(.form-row, .log-filters) > label {
   margin-bottom: 8px;
 }
 /* 按钮：分区页此前也是浏览器默认灰底凸边框 */
-body[data-ui-page="workbench-v2"] .page button {
+body[data-ui-page="workbench-v2"] .page:not(#chat) button {
   box-sizing: border-box;
   min-height: 30px;
   padding: 0 14px;
@@ -226,37 +229,37 @@ body[data-ui-page="workbench-v2"] .page button {
     color 0.14s,
     transform 0.1s;
 }
-body[data-ui-page="workbench-v2"] .page button:hover:not(:disabled) {
+body[data-ui-page="workbench-v2"] .page:not(#chat) button:hover:not(:disabled) {
   border-color: var(--line-accent);
   background: var(--surface-accent);
 }
-body[data-ui-page="workbench-v2"] .page button:active:not(:disabled) {
+body[data-ui-page="workbench-v2"] .page:not(#chat) button:active:not(:disabled) {
   transform: translateY(1px);
 }
-body[data-ui-page="workbench-v2"] .page button:disabled {
+body[data-ui-page="workbench-v2"] .page:not(#chat) button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
 /* 主操作：表单提交键用渐变实心，一屏内的视觉落点 */
-body[data-ui-page="workbench-v2"] .page button[type="submit"] {
+body[data-ui-page="workbench-v2"] .page:not(#chat) button[type="submit"] {
   border-color: transparent;
   background: var(--grad);
   color: var(--on-accent);
   font-weight: 700;
 }
-body[data-ui-page="workbench-v2"] .page button[type="submit"]:hover:not(:disabled) {
+body[data-ui-page="workbench-v2"] .page:not(#chat) button[type="submit"]:hover:not(:disabled) {
   filter: brightness(1.08);
   background: var(--grad);
 }
-body[data-ui-page="workbench-v2"] .page button.danger {
+body[data-ui-page="workbench-v2"] .page:not(#chat) button.danger {
   border-color: var(--danger-bd);
   color: var(--danger);
 }
-body[data-ui-page="workbench-v2"] .page button.danger:hover:not(:disabled) {
+body[data-ui-page="workbench-v2"] .page:not(#chat) button.danger:hover:not(:disabled) {
   background: color-mix(in srgb, var(--danger) 14%, transparent);
   border-color: var(--danger);
 }
-body[data-ui-page="workbench-v2"] .page .actions {
+body[data-ui-page="workbench-v2"] .page:not(#chat) .actions {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -264,29 +267,29 @@ body[data-ui-page="workbench-v2"] .page .actions {
   margin: 12px 0 6px;
 }
 /* 分区页滚动条走面板语言，不用浏览器默认 */
-body[data-ui-page="workbench-v2"] .page::-webkit-scrollbar,
-body[data-ui-page="workbench-v2"] .page :is(pre, textarea, select[multiple])::-webkit-scrollbar {
+body[data-ui-page="workbench-v2"] .page:not(#chat)::-webkit-scrollbar,
+body[data-ui-page="workbench-v2"] .page:not(#chat) :is(pre, textarea, select[multiple])::-webkit-scrollbar {
   width: 9px;
   height: 9px;
 }
-body[data-ui-page="workbench-v2"] .page::-webkit-scrollbar-track,
-body[data-ui-page="workbench-v2"] .page :is(pre, textarea, select[multiple])::-webkit-scrollbar-track {
+body[data-ui-page="workbench-v2"] .page:not(#chat)::-webkit-scrollbar-track,
+body[data-ui-page="workbench-v2"] .page:not(#chat) :is(pre, textarea, select[multiple])::-webkit-scrollbar-track {
   background: transparent;
 }
-body[data-ui-page="workbench-v2"] .page::-webkit-scrollbar-thumb,
-body[data-ui-page="workbench-v2"] .page :is(pre, textarea, select[multiple])::-webkit-scrollbar-thumb {
+body[data-ui-page="workbench-v2"] .page:not(#chat)::-webkit-scrollbar-thumb,
+body[data-ui-page="workbench-v2"] .page:not(#chat) :is(pre, textarea, select[multiple])::-webkit-scrollbar-thumb {
   border: 2px solid transparent;
   border-radius: var(--r-full);
   background: color-mix(in srgb, var(--seed-fg) 20%, transparent);
   background-clip: content-box;
 }
-body[data-ui-page="workbench-v2"] .page::-webkit-scrollbar-thumb:hover,
-body[data-ui-page="workbench-v2"] .page :is(pre, textarea, select[multiple])::-webkit-scrollbar-thumb:hover {
+body[data-ui-page="workbench-v2"] .page:not(#chat)::-webkit-scrollbar-thumb:hover,
+body[data-ui-page="workbench-v2"] .page:not(#chat) :is(pre, textarea, select[multiple])::-webkit-scrollbar-thumb:hover {
   background: color-mix(in srgb, var(--seed-accent) 50%, transparent);
   background-clip: content-box;
 }
 /* 代码/日志块 */
-body[data-ui-page="workbench-v2"] .page pre {
+body[data-ui-page="workbench-v2"] .page:not(#chat) pre {
   margin: 0 0 12px;
   padding: 11px 13px;
   border: 1px solid var(--line-3);
@@ -301,31 +304,31 @@ body[data-ui-page="workbench-v2"] .page pre {
   overflow: auto;
   max-height: 340px;
 }
-body[data-ui-page="workbench-v2"] .page pre:empty {
+body[data-ui-page="workbench-v2"] .page:not(#chat) pre:empty {
   display: none;
 }
 /* 表格：默认无边框无间距，补成可读的数据表 */
-body[data-ui-page="workbench-v2"] .page table {
+body[data-ui-page="workbench-v2"] .page:not(#chat) table {
   width: 100%;
   border-collapse: collapse;
   margin-bottom: 12px;
   font-size: var(--fs-caption);
 }
-body[data-ui-page="workbench-v2"] .page :is(th, td) {
+body[data-ui-page="workbench-v2"] .page:not(#chat) :is(th, td) {
   padding: 8px 10px;
   border-bottom: 1px solid var(--line-3);
   text-align: left;
   vertical-align: top;
 }
-body[data-ui-page="workbench-v2"] .page th {
+body[data-ui-page="workbench-v2"] .page:not(#chat) th {
   color: var(--text-2);
   font-weight: 680;
   white-space: nowrap;
 }
-body[data-ui-page="workbench-v2"] .page td {
+body[data-ui-page="workbench-v2"] .page:not(#chat) td {
   color: var(--text-1);
 }
-body[data-ui-page="workbench-v2"] .page tbody tr:hover {
+body[data-ui-page="workbench-v2"] .page:not(#chat) tbody tr:hover {
   background: color-mix(in oklab, var(--surface-2) 45%, transparent);
 }
 
@@ -405,7 +408,7 @@ body[data-ui-page="workbench-v2"].chat-mode #chat {
   padding: 0;
   overflow: hidden;
 }
-body[data-ui-page="workbench-v2"] .page > form {
+body[data-ui-page="workbench-v2"] .page:not(#chat) > form {
   display: grid;
   gap: 10px;
 }
@@ -1896,7 +1899,7 @@ body[data-ui-page="workbench-v2"] input.file-native {
   border: 0;
 }
 /* 表单里的文件选择器占满一行；dock 内联展示 */
-body[data-ui-page="workbench-v2"] .page .file-picker {
+body[data-ui-page="workbench-v2"] .page:not(#chat) .file-picker {
   width: 100%;
 }
 body[data-ui-page="workbench-v2"] .dock-bar .file-picker {
@@ -1994,21 +1997,22 @@ body[data-ui-page="workbench-v2"] .file-picker[data-disabled="true"] .file-picke
     position: relative;
     z-index: 1;
   }
-  /* V1 的 .rail-btn 尺寸只属于 rail；页面内按钮不得被压成 0 */
-  body[data-ui-page="workbench-v2"] .page button,
-  body[data-ui-page="workbench-v2"] .page .btn {
+  /* V1 的 .rail-btn 尺寸只属于 rail；页面内按钮不得被压成 0。
+     排除 #chat：dock 工具条按钮有自己的紧凑尺寸，不能被撑到 28px。 */
+  body[data-ui-page="workbench-v2"] .page:not(#chat) button,
+  body[data-ui-page="workbench-v2"] .page:not(#chat) .btn {
     width: auto;
     min-width: 0;
     min-height: 28px;
     height: auto;
     padding: 4px 11px;
   }
-  body[data-ui-page="workbench-v2"] .page .actions {
+  body[data-ui-page="workbench-v2"] .page:not(#chat) .actions {
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
   }
-  body[data-ui-page="workbench-v2"] .page .actions > button {
+  body[data-ui-page="workbench-v2"] .page:not(#chat) .actions > button {
     flex: 0 1 auto;
   }
 }

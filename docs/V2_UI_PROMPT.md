@@ -54,7 +54,7 @@ section.page[id]                  ← 23 个页面分区，id 与 data-page 一�
 
 - 页面切换只允许通过 `[data-page]` 按钮点击触发；`test_v2_navigation_ui.py` 会在 390/1024 两个宽度逐项点击并断言目标分区可见。
 - 任何新增可见按钮，如果文案与既有页面名相同（如"设置"），必须换名或用 `title/aria-label` 区分，避免 `get_by_role(..., exact=True)` 命中两个元素。
-- 资源版本串：`index.html` 与所有模块 import 当前为 `?v=20261117v136`。**任何 HTML/CSS/JS 改动都要整体升级版本号**（v58、v59…），并同步：
+- 资源版本串：`index.html` 与所有模块 import 当前为 `?v=20261117v137`。**任何 HTML/CSS/JS 改动都要整体升级版本号**（v58、v59…），并同步：
   - `agent/tests/test_v2_mcp_ui.py` 里的 `assert "main.js?v=..." in page.content()`
   - `docs/V2_AI_CONTINUATION_PROMPT.md` 的版本说明
   - 本文第 3 节这里的版本号
@@ -66,7 +66,7 @@ section.page[id]                  ← 23 个页面分区，id 与 data-page 一�
 
 Portal共享的系统同意与业务授权审计独立完成。`authorization_pending=true` 时显示“正在确认共享授权，请稍后查询共享状态”，保存按钮保持不可用；审计完成后由所有者点击查询更新，不增加后台轮询或自动截图。该字段仅描述确认状态，不能替代 `authorized`、截图许可或来源检查；审计失败继续显示不可用并回收辅助进程。
 
-**直接复用 V1 界面**（2026-11-13/14，资源版本 `20261117v136`）：按所有者要求，不再自创视觉，
+**直接复用 V1 界面**（2026-11-13/14，资源版本 `20261117v137`）：按所有者要求，不再自创视觉，
 把 V1 的 `components.css` / `frame.css` / `workbench.css` **原样复制**到 `web/ui/v2/v1/`。
 **声明内容一字未改**，只做三类必要映射：
 
@@ -133,10 +133,11 @@ V2 结构已改用 V1 类名，让复制来的样式真正命中：
 14. **切页入口不要用裸 `[data-page="x"]` 选择器**：`body` 也带 `data-page`，`querySelector` 会先匹配到 body，点它不触发切页。必须写成 `nav[aria-label="工作台"] [data-page="x"]`。
 15. **程序化跳转要走导航同一条路径**：只改 `page` 变量与 `.page.hidden` 会漏掉页头标题、导航选中态、`body.dataset.page`，出现半切换状态。直接 `.click()` 对应导航按钮。
 16. **剪贴板写入必须 try/catch**：`navigator.clipboard.writeText` 在非安全上下文、用户拒绝、无头环境会 reject，不兜底就是未捕获异常。兜底做法：选中正文 + 明确提示按 Ctrl+C。
-17. **设置层布局必须两种模式都定义**：`.settings-layout` / `.settings-content` 此前只在 `.chat-mode` 下有布局，进设置（非 chat-mode）后完全缺失——工作区还是 `position:fixed` 且 `left` 写死 `rail+230+24`，与 grid 骨架（左栏实际 196px）错位，整页被拉长到 3395px、页头与分类导航滚走。正确做法：非对话模式工作区 `position:static` + flex 列满高、`settings-content` 独立内滚、分类导航吸顶。**不要再用 fixed 覆盖层**。
-18. **守卫三件套别踩**：注释里写字面色值（`#767676`）会被颜色守卫扫到；`var(--r-xs, 3px)` 的 `--r-xs` 未登记算悬空变量；`blur(10px)` 字面模糊值只准 `tokens.css` 定义，组件层用 `blur(var(--glass-mid-blur))`。
-19. **非对话模式不要 `display:none` 左栏**：`#agents` 在左栏里，`two_agents` 草稿隔离测试会在**任意页面** `select_option(#agents)`，隐藏左栏即 14 项回归。~~宽屏保留左栏~~ **2026-11-17 所有者要求改全屏**：左栏（连接卡/会话/服务/上下文）属于会话界面，非对话页一律 display:contents 让位、内容占满整宽（.page>* 不再限 980px），宽窄屏同一方案；已连接态 #connect 有 body[data-connected] 更高特异性 display:flex，须显式覆盖隐藏。窄屏左栏 `display:contents` 不占列、其余子级隐藏、`#agents` 用 `grid-row:1` 排成顶部独立行、工作区 `grid-row:2`。**`display:none` 会连带隐藏子级，必须用 `display:contents`**。**也不要给 `#agents` 用 `position:fixed` 浮在内容上**——它会拦截 portal 等页面按钮的点击（曾致回归），顶栏行内布局才不遮挡。
-20. **给 `model_options` 加列会波及全部冻结基线迁移测试**：仓库读回走 `select(model_options)`（全列），当前 `ModelOptions` 载荷始终带 `extra_headers`，所以 v13–v37 各冻结基线在用当前仓库种子时会因缺列报错。统一做法：迁移脚本 `v0038` 的 `upgrade()` **幂等**（先 `PRAGMA table_info` 判断列是否存在再加），并在每个冻结基线 `command.upgrade(...)` 之后调用 `v2_configuration_helpers.add_model_headers_column(connection)` 补列——**不要紧跟 `connection.commit()`**（多数测试在 `engine.begin()` 上下文内，显式 commit 会关闭事务报 `Can't operate on closed transaction`；SQLite DDL 本身自动提交）。补列导入须放在 `from __future__` **之后**。
+17. **分区页表单系统作用域必须排除 #chat**：对话页也是 section.page，.page 作用域的表单规则（width:100%/min-height:32px/label display:grid）会泄漏进 dock 工具条——技能多选被撑成流内高黑块、图标与控件拆成上下两行、文件选择露原生控件（所有者截图取证）。统一用 .page:not(#chat)；.page>form、.file-picker、窄屏按钮尺寸同样要排除。
+18. **设置层布局必须两种模式都定义**：`.settings-layout` / `.settings-content` 此前只在 `.chat-mode` 下有布局，进设置（非 chat-mode）后完全缺失——工作区还是 `position:fixed` 且 `left` 写死 `rail+230+24`，与 grid 骨架（左栏实际 196px）错位，整页被拉长到 3395px、页头与分类导航滚走。正确做法：非对话模式工作区 `position:static` + flex 列满高、`settings-content` 独立内滚、分类导航吸顶。**不要再用 fixed 覆盖层**。
+19. **守卫三件套别踩**：注释里写字面色值（`#767676`）会被颜色守卫扫到；`var(--r-xs, 3px)` 的 `--r-xs` 未登记算悬空变量；`blur(10px)` 字面模糊值只准 `tokens.css` 定义，组件层用 `blur(var(--glass-mid-blur))`。
+20. **非对话模式不要 `display:none` 左栏**：`#agents` 在左栏里，`two_agents` 草稿隔离测试会在**任意页面** `select_option(#agents)`，隐藏左栏即 14 项回归。~~宽屏保留左栏~~ **2026-11-17 所有者要求改全屏**：左栏（连接卡/会话/服务/上下文）属于会话界面，非对话页一律 display:contents 让位、内容占满整宽（.page>* 不再限 980px），宽窄屏同一方案；已连接态 #connect 有 body[data-connected] 更高特异性 display:flex，须显式覆盖隐藏。窄屏左栏 `display:contents` 不占列、其余子级隐藏、`#agents` 用 `grid-row:1` 排成顶部独立行、工作区 `grid-row:2`。**`display:none` 会连带隐藏子级，必须用 `display:contents`**。**也不要给 `#agents` 用 `position:fixed` 浮在内容上**——它会拦截 portal 等页面按钮的点击（曾致回归），顶栏行内布局才不遮挡。
+21. **给 `model_options` 加列会波及全部冻结基线迁移测试**：仓库读回走 `select(model_options)`（全列），当前 `ModelOptions` 载荷始终带 `extra_headers`，所以 v13–v37 各冻结基线在用当前仓库种子时会因缺列报错。统一做法：迁移脚本 `v0038` 的 `upgrade()` **幂等**（先 `PRAGMA table_info` 判断列是否存在再加），并在每个冻结基线 `command.upgrade(...)` 之后调用 `v2_configuration_helpers.add_model_headers_column(connection)` 补列——**不要紧跟 `connection.commit()`**（多数测试在 `engine.begin()` 上下文内，显式 commit 会关闭事务报 `Can't operate on closed transaction`；SQLite DDL 本身自动提交）。补列导入须放在 `from __future__` **之后**。
 
 **量取方法教训（虚警都由此而来）**：
 
@@ -290,7 +291,7 @@ uv run --no-sync python scripts/project_index.py --check
 验收：离线本地兼容端点端到端 17/17；UI 25/25；离线闸门明确拒绝。**真实外部供应商已验收**：
 OpenCode Go（qwen3.8-flash）端到端 8/8——UI 填 Key→服务端凭据库→真实适配器→真实端点→流式对话回复渲染。
 **72 小时长稳仍未验收**。迁移契约：加列后所有冻结基线种子测试需经 `add_model_headers_column`
-补列（v0038 幂等，见 §4 第 20 条）。
+补列（v0038 幂等，见 §4 第 21 条）。
 
 ## 11. 交付标准
 

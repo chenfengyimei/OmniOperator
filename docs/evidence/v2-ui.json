@@ -1,7 +1,7 @@
 {
   "batch": "v2-ui-connection-stability-v128",
   "recorded_at": "2026-11-15",
-  "resource_version_final": "20261117v136",
+  "resource_version_final": "20261117v137",
   "v1_alignment": {
     "summary": "用户提供 V1 正式工作台截图后，直接精读 web/ui/workbench.css 的 V1 实现并逐项移植，使 V2 结构与 V1 一致（而非自创风格）。",
     "ported_from_v1": [
@@ -1089,5 +1089,18 @@
     ],
     "版本": "资源串整体 v134→v135（43处）。",
     "追加修复_v136": "技能弹层展开态露出浏览器英文摘要「N selected」（multiple select 固有渲染，展开态此前恢复文字色）。修复：展开态控件文字保持透明、option 显式着色。真实 focus 展开路径双主题取证通过、技能 UI 专项 8 passed、精修核查 40/40、守卫 33 passed。"
+  },
+  "dock_layout_fix_v137": {
+    "需求": "所有者截图指出对话框布局问题很大：技能选择变成流内高黑块、图标跑到控件上方、文件选择露原生「未选择」。",
+    "根因": "分区页表单设计系统作用域是 .page，而对话页 #chat 也是 section.page——width:100%/min-height:32px/label display:grid 泄漏进 dock 工具条，把紧凑控件撑成大块、图标与控件拆成上下两行。",
+    "修复": "表单系统段 54 处选择器统一 .page:not(#chat)；另修 .page>form 网格、.file-picker 占满行、窄屏按钮尺寸三处泄漏。分区页样式不变。",
+    "验证": {
+      "对话区布局核查(_dock_layout_check)": "56/56 PASS（双主题×1440/1024/760/390：图标与控件同行、技能收起26px紧凑、展开为浮层不撑dock、文件自定义包装、无流内高块、无溢出）",
+      "全站": "76/76 PASS",
+      "设置": "56/56 PASS",
+      "守卫": "33 passed",
+      "专项回归": "89 passed（v2_ui/skills_ui/images_ui）"
+    },
+    "版本": "资源串整体 v136→v137。"
   }
 }
