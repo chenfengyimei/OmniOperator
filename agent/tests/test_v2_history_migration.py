@@ -1,6 +1,7 @@
 """Real v14 migration crashes roll back DDL and seeds while preserving source history and restart identity."""
 
 from __future__ import annotations
+from v2_configuration_helpers import add_model_headers_column
 
 import asyncio
 import subprocess
@@ -63,6 +64,7 @@ def legacy_baseline(paths, *, empty=False):
                 cfg = configuration()
                 cfg.attributes["connection"] = connection
                 command.upgrade(cfg, "v2_0013")
+                add_model_headers_column(connection)
                 # Use the pre-v14 SQLite allocation only while constructing the old database.
                 legacy_history.setattr(repository_base, "allocate_history", lambda *args, **kwargs: None)
                 legacy_history.setattr(repository, "allocate_history", lambda *args, **kwargs: None)

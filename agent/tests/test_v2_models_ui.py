@@ -58,13 +58,19 @@ def test_models_page_renders_providers_and_masks_key(ui_browser, models_server, 
 
         page.get_by_role("button", name="模型接入", exact=True).click()
         expect(page.locator("#models")).to_be_visible()
-        expect(page.locator(".mo-provider")).to_have_count(8)
+        expect(page.locator(".mo-provider")).to_have_count(9)
         expect(page.locator("#mo-api-key")).to_have_attribute("type", "password")
 
         # 选供应商自动预填端点与凭据引用
         page.locator('.mo-provider[data-provider="deepseek"]').click()
         expect(page.locator("#mo-base-url")).to_have_value("https://api.deepseek.com/v1")
         expect(page.locator("#mo-cred-ref")).to_have_value("deepseek-key")
+
+        # OpenCode Go 预设：自动填好端点与模型建议
+        page.locator('.mo-provider[data-provider="opencode-go"]').click()
+        expect(page.locator("#mo-base-url")).to_have_value("https://opencode.ai/zen/go/v1")
+        expect(page.locator("#mo-cred-ref")).to_have_value("opencode-go")
+        expect(page.locator("#mo-model")).to_have_value("openai/qwen3.8-flash")
 
         # 显隐切换
         page.locator("#mo-key-toggle").click()
@@ -110,6 +116,48 @@ def test_models_save_stores_key_server_side_and_offline_probe_refuses(ui_browser
         # 离线实例：连接测试必须明确拒绝，而非静默或假装成功
         page.locator(".mo-model-card", has_text="gpt-4o-mini").first.locator(".mo-mini", has_text="测试").click()
         expect(page.locator("#mo-test-result")).to_contain_text("离线", timeout=15000)
+        assert errors == []
+    finally:
+        context.close()
+
+
+def test_models_custom_headers_roundtrip_and_auth_guard(ui_browser, models_server):
+    url, token = models_server
+    context = ui_browser.new_context(viewport={"width": 1440, "height": 1000})
+    try:
+        page = context.new_page()
+        errors = []
+        page.on("pageerror", lambda exc: errors.append(str(exc)))
+        page.goto(url)
+        page.locator("#token").fill(token)
+        page.get_by_role("button", name="连接实例").click()
+        expect(page.locator("#agents option")).to_have_count(1)
+        page.get_by_role("button", name="模型接入", exact=True).click()
+        expect(page.locator("#models")).to_be_visible()
+
+        page.locator('.mo-provider[data-provider="custom"]').click()
+        page.locator("#mo-base-url").fill("http://127.0.0.1:9/v1")
+        page.locator("#mo-model").fill("openai/gpt-4o-mini")
+        page.locator("#mo-cred-ref").fill("hdr-key")
+        page.locator("#mo-api-key").fill("sk-hdr-canary")
+        page.locator(".mo-advanced summary").click()
+        page.locator("#mo-headers").fill("x-route-tag: blue\nx-team: omni")
+        page.locator("#mo-save").click()
+        expect(page.locator(".mo-model-card", has_text="gpt-4o-mini").first).to_be_visible(timeout=15000)
+
+        # 重载后自定义头应回填（证明已随配置持久化）
+        page.get_by_role("button", name="模型接入", exact=True).click()
+        page.wait_for_timeout(1200)
+        headers = page.locator("#mo-headers").input_value()
+        assert "x-route-tag: blue" in headers and "x-team: omni" in headers, headers
+
+        # 覆盖鉴权头必须被服务端拒绝（错误展示在全局 #error 条）
+        page.locator("#mo-api-key").fill("sk-hdr-canary")
+        page.locator("#mo-headers").fill("authorization: Bearer evil")
+        page.locator("#mo-save").click()
+        expect(page.locator("#error")).to_be_visible(timeout=15000)
+        err = page.locator("#error").inner_text()
+        assert "invalid" in err.lower() or "header" in err.lower(), err
         assert errors == []
     finally:
         context.close()

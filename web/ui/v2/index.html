@@ -1179,6 +1179,19 @@
                       <p class="mo-hint">
                         容量须按目标模型声明填写；输出上限 + 安全余量必须小于上下文容量。计量默认本地保守估计。
                       </p>
+                      <label class="mo-field mo-field-wide"
+                        ><span class="mo-label">自定义请求头（可选，每行一个 Name: Value）</span
+                        ><textarea
+                          id="mo-headers"
+                          rows="3"
+                          placeholder="x-custom-header: value"
+                          autocomplete="off"
+                          spellcheck="false"
+                        ></textarea>
+                      </label>
+                      <p class="mo-hint">
+                        随请求发送的额外头；不可覆盖 Authorization / x-api-key / Cookie / Host。OpenCode Go 的会话头由适配器自动附加，无需手填。
+                      </p>
                     </details>
 
                     <label class="mo-check"

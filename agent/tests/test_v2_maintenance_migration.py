@@ -1,6 +1,7 @@
 """Real v17 migration crashes, immutable attempt evidence and restored maintenance isolation; local fixtures only."""
 
 from __future__ import annotations
+from v2_configuration_helpers import add_model_headers_column
 
 import asyncio
 import json
@@ -74,6 +75,7 @@ def baseline(paths):
                 cfg = configuration()
                 cfg.attributes["connection"] = connection
                 command.upgrade(cfg, "v2_0016")
+                add_model_headers_column(connection)
                 unit = LegacySeedRepositories(connection, SystemClock(), UUIDs())
                 unit.initialize()
                 agent = unit.query("agents", "")[0]["id"]

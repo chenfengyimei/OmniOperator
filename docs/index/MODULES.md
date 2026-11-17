@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`d7631ca92913ead296985c3a0762f1792ae71651b8123e3da996a09cfa151f4b`。包含 65 个职责模块、739 个源码/界面文件。
+源码指纹：`f72fdf846543262aa047bd4f309e966af75f05d72ec4d2a37893752b45aa9211`。包含 65 个职责模块、740 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -17,7 +17,7 @@
 | [agent/src/omni/domain/audit_retention.py](../../agent/src/omni/domain/audit_retention.py) | 291 | Agent audit-retention subjects, frozen previews and explicit plans; performs no I/O or deletion. |
 | [agent/src/omni/domain/bilibili.py](../../agent/src/omni/domain/bilibili.py) | 346 | Explicit Bilibili form profiles, targets and mention ranges; no browser, network or storage. |
 | [agent/src/omni/domain/capabilities.py](../../agent/src/omni/domain/capabilities.py) | 116 | Read-only capability projection over the instance health snapshot; no I/O and no acceptance claims. |
-| [agent/src/omni/domain/configuration.py](../../agent/src/omni/domain/configuration.py) | 154 | Typed configuration payloads and fingerprints; contains no I/O or credential values. |
+| [agent/src/omni/domain/configuration.py](../../agent/src/omni/domain/configuration.py) | 164 | Typed configuration payloads and fingerprints; contains no I/O or credential values. |
 | [agent/src/omni/domain/context.py](../../agent/src/omni/domain/context.py) | 56 | Bounded conversation policy; whole turns are the smallest compression unit. |
 | [agent/src/omni/domain/contracts.py](../../agent/src/omni/domain/contracts.py) | 161 | Typed execution contracts and state transitions; performs no I/O. |
 | [agent/src/omni/domain/credential_ipc.py](../../agent/src/omni/domain/credential_ipc.py) | 109 | Bounded native credential messages; no platform selection, imports or diagnostics payloads. |
@@ -241,6 +241,7 @@
 | [agent/src/omni/adapters/persistence/migrations/versions/v0035.py](../../agent/src/omni/adapters/persistence/migrations/versions/v0035.py) | 52 | Reviewed textual skills and immutable run disclosure; frozen SQL. |
 | [agent/src/omni/adapters/persistence/migrations/versions/v0036.py](../../agent/src/omni/adapters/persistence/migrations/versions/v0036.py) | 37 | Scoped media sources, bounded jobs and immutable anchored artifacts; frozen SQL. |
 | [agent/src/omni/adapters/persistence/migrations/versions/v0037.py](../../agent/src/omni/adapters/persistence/migrations/versions/v0037.py) | 53 | MCP runtime generations, catalog fingerprints, per-tool grants, run captures and calls; frozen SQL. |
+| [agent/src/omni/adapters/persistence/migrations/versions/v0038.py](../../agent/src/omni/adapters/persistence/migrations/versions/v0038.py) | 26 | Model custom request headers (e.g. OpenCode Go session routing); frozen SQL, no current schema imports. |
 | [agent/src/omni/adapters/persistence/object_gc.py](../../agent/src/omni/adapters/persistence/object_gc.py) | 247 | Exclusive plan/apply collection; commit unreferenced metadata before unlinking files. |
 | [agent/src/omni/adapters/persistence/object_inventory.py](../../agent/src/omni/adapters/persistence/object_inventory.py) | 129 | Offline object registry snapshots and bounded physical inventory validation. |
 | [agent/src/omni/adapters/persistence/object_repository.py](../../agent/src/omni/adapters/persistence/object_repository.py) | 211 | Object metadata, pins and real foreign-key references; never touches files. |
@@ -258,7 +259,7 @@
 | [agent/src/omni/adapters/persistence/retention_repository.py](../../agent/src/omni/adapters/persistence/retention_repository.py) | 135 | Context barriers invalidate derived views without deleting original conversations. |
 | [agent/src/omni/adapters/persistence/routing_repository.py](../../agent/src/omni/adapters/persistence/routing_repository.py) | 300 | Scoped immutable tier policies, run choices, promotions and actual tool manifests; no model calls or I/O. |
 | [agent/src/omni/adapters/persistence/schedule_repository.py](../../agent/src/omni/adapters/persistence/schedule_repository.py) | 434 | Immutable schedule definitions, durable due cursors and atomic occurrence admission. |
-| [agent/src/omni/adapters/persistence/schema.py](../../agent/src/omni/adapters/persistence/schema.py) | 3277 | V2 relational schema. Repositories never issue DDL; migrations use frozen SQL snapshots. |
+| [agent/src/omni/adapters/persistence/schema.py](../../agent/src/omni/adapters/persistence/schema.py) | 3280 | V2 relational schema. Repositories never issue DDL; migrations use frozen SQL snapshots. |
 | [agent/src/omni/adapters/persistence/schema_upgrade.py](../../agent/src/omni/adapters/persistence/schema_upgrade.py) | 154 | Reviewed migration catalog and transactional upgrades only in a locked, fenced release target. |
 | [agent/src/omni/adapters/persistence/search_schema.py](../../agent/src/omni/adapters/persistence/search_schema.py) | 8 | Derived FTS definitions. Applied only by versioned migrations. |
 | [agent/src/omni/adapters/persistence/skill_repository.py](../../agent/src/omni/adapters/persistence/skill_repository.py) | 476 | Immutable skill versions, review state and per-run bindings; no package or filesystem access. |
@@ -434,7 +435,7 @@
 | [web/ui/v2/desktop.js](../../web/ui/v2/desktop.js) | 572 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/documents.js](../../web/ui/v2/documents.js) | 487 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/extensions.js](../../web/ui/v2/extensions.js) | 656 | 原生源码、平台脚本或界面资源 |
-| [web/ui/v2/index.html](../../web/ui/v2/index.html) | 1861 | 原生源码、平台脚本或界面资源 |
+| [web/ui/v2/index.html](../../web/ui/v2/index.html) | 1874 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/inspector.js](../../web/ui/v2/inspector.js) | 266 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/main.js](../../web/ui/v2/main.js) | 1696 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/maintenance.js](../../web/ui/v2/maintenance.js) | 126 | 原生源码、平台脚本或界面资源 |
@@ -443,7 +444,7 @@
 | [web/ui/v2/memory-organization.js](../../web/ui/v2/memory-organization.js) | 465 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/memory-semantics.js](../../web/ui/v2/memory-semantics.js) | 252 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/model-output.js](../../web/ui/v2/model-output.js) | 30 | 原生源码、平台脚本或界面资源 |
-| [web/ui/v2/models.js](../../web/ui/v2/models.js) | 495 | 原生源码、平台脚本或界面资源 |
+| [web/ui/v2/models.js](../../web/ui/v2/models.js) | 529 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/operations.js](../../web/ui/v2/operations.js) | 352 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/people.js](../../web/ui/v2/people.js) | 319 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/qq.js](../../web/ui/v2/qq.js) | 181 | 原生源码、平台脚本或界面资源 |
@@ -457,7 +458,7 @@
 | [web/ui/v2/v1/components.css](../../web/ui/v2/v1/components.css) | 655 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/v1/frame.css](../../web/ui/v2/v1/frame.css) | 938 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/v1/workbench.css](../../web/ui/v2/v1/workbench.css) | 4451 | 原生源码、平台脚本或界面资源 |
-| [web/ui/v2/workbench.css](../../web/ui/v2/workbench.css) | 2727 | 原生源码、平台脚本或界面资源 |
+| [web/ui/v2/workbench.css](../../web/ui/v2/workbench.css) | 2744 | 原生源码、平台脚本或界面资源 |
 
 文档：[docs/V2_REFACTOR.md](../../docs/V2_REFACTOR.md)
 

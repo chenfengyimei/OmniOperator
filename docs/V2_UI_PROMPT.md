@@ -136,6 +136,7 @@ V2 结构已改用 V1 类名，让复制来的样式真正命中：
 17. **设置层布局必须两种模式都定义**：`.settings-layout` / `.settings-content` 此前只在 `.chat-mode` 下有布局，进设置（非 chat-mode）后完全缺失——工作区还是 `position:fixed` 且 `left` 写死 `rail+230+24`，与 grid 骨架（左栏实际 196px）错位，整页被拉长到 3395px、页头与分类导航滚走。正确做法：非对话模式工作区 `position:static` + flex 列满高、`settings-content` 独立内滚、分类导航吸顶。**不要再用 fixed 覆盖层**。
 18. **守卫三件套别踩**：注释里写字面色值（`#767676`）会被颜色守卫扫到；`var(--r-xs, 3px)` 的 `--r-xs` 未登记算悬空变量；`blur(10px)` 字面模糊值只准 `tokens.css` 定义，组件层用 `blur(var(--glass-mid-blur))`。
 19. **非对话模式不要 `display:none` 左栏**：`#agents` 在左栏里，`two_agents` 草稿隔离测试会在**任意页面** `select_option(#agents)`，隐藏左栏即 14 项回归。宽屏保留左栏(196px)+内容两列、只隐藏右栏；窄屏左栏 `display:contents` 不占列、其余子级隐藏、`#agents` 用 `grid-row:1` 排成顶部独立行、工作区 `grid-row:2`。**`display:none` 会连带隐藏子级，必须用 `display:contents`**。**也不要给 `#agents` 用 `position:fixed` 浮在内容上**——它会拦截 portal 等页面按钮的点击（曾致回归），顶栏行内布局才不遮挡。
+20. **给 `model_options` 加列会波及全部冻结基线迁移测试**：仓库读回走 `select(model_options)`（全列），当前 `ModelOptions` 载荷始终带 `extra_headers`，所以 v13–v37 各冻结基线在用当前仓库种子时会因缺列报错。统一做法：迁移脚本 `v0038` 的 `upgrade()` **幂等**（先 `PRAGMA table_info` 判断列是否存在再加），并在每个冻结基线 `command.upgrade(...)` 之后调用 `v2_configuration_helpers.add_model_headers_column(connection)` 补列——**不要紧跟 `connection.commit()`**（多数测试在 `engine.begin()` 上下文内，显式 commit 会关闭事务报 `Can't operate on closed transaction`；SQLite DDL 本身自动提交）。补列导入须放在 `from __future__` **之后**。
 
 **量取方法教训（虚警都由此而来）**：
 
@@ -269,13 +270,22 @@ uv run --no-sync python scripts/project_index.py --check
 ## 10.5 模型接入页（models，v126 新增）
 
 设置中心新增「模型接入」页（系统与运维组首位，导航/分区/清单/契约同步为 23 页）：
-8 供应商卡片自动预填端点/模型/凭据引用；API Key 密码输入+显隐切换；一键保存并启用、
-可选设为默认；已配置列表带诊断/启停/设默认/测试连接。密钥只经 `PUT /credentials` 写服务端
-凭据库，配置只存引用名，前端保存即清空、不落浏览器存储。新增 `POST /configurations/{id}/probe`
+**9** 供应商卡片（含 **OpenCode Go** 预设：端点 `https://opencode.ai/zen/go/v1`、
+模型建议 `openai/qwen3.8-flash` 等）自动预填端点/模型/凭据引用；API Key 密码输入+显隐切换；
+一键保存并启用、可选设为默认；已配置列表带诊断/启停/设默认/测试连接。密钥只经 `PUT /credentials`
+写服务端凭据库，配置只存引用名，前端保存即清空、不落浏览器存储。新增 `POST /configurations/{id}/probe`
 复用真实适配器做最小调用（输出压到 16 token），先经 diagnose 校验授权与启用。
 `load()` 只按空间+连接代次守卫（并发刷新不互相取消），并并行读详情补全列表 value。
-验收：端到端 17/17（本地 OpenAI 兼容端点验证适配链路）、UI 25/25、离线闸门明确拒绝。
-**真实外部供应商与 72 小时稳定性仍未验收**。
+
+**自定义请求头**（v132）：高级折叠区可逐行填 `Name: Value`，随配置存入 `model_options.extra_headers`
+（schema v0038 新增 JSON 列，默认 `{}`）。`ModelOptions` 校验：≤20 个、名为 token 字符、
+**禁止覆盖 `authorization`/`x-api-key`/`cookie`/`host`**、值≤2000 且无可打印控制字符。适配器据此
+附加头；OpenCode Go 的 `x-opencode-session` 由适配器自动加，无需手填。
+
+验收：离线本地兼容端点端到端 17/17；UI 25/25；离线闸门明确拒绝。**真实外部供应商已验收**：
+OpenCode Go（qwen3.8-flash）端到端 8/8——UI 填 Key→服务端凭据库→真实适配器→真实端点→流式对话回复渲染。
+**72 小时长稳仍未验收**。迁移契约：加列后所有冻结基线种子测试需经 `add_model_headers_column`
+补列（v0038 幂等，见 §4 第 20 条）。
 
 ## 11. 交付标准
 

@@ -4,7 +4,7 @@ import asyncio
 
 from alembic import command
 from sqlalchemy import select
-from v2_configuration_helpers import model_uow
+from v2_configuration_helpers import add_model_headers_column, model_uow
 from v2_legacy_seed import PreRoutingSeedRepositories
 
 from omni.adapters.persistence import schema as s
@@ -22,7 +22,7 @@ def test_populated_v32_upgrade_backfills_honest_baseline_and_preserves_unknown(t
             config = configuration()
             config.attributes["connection"] = connection
             command.upgrade(config, "v2_0032")
-            connection.commit()
+            add_model_headers_column(connection)
             unit = PreRoutingSeedRepositories(connection, clock, ids, ids.new())
             unit.initialize()
             agent = connection.execute(select(s.agents.c.id)).scalar_one()
@@ -40,7 +40,7 @@ def test_populated_v32_upgrade_backfills_honest_baseline_and_preserves_unknown(t
         try:
             await db.write(lambda u: u.recover())
             report = await db.read(lambda u: u.route_report(agent, receipt["run_id"]))
-            assert db.schema_version == "v2_0037" and len(s.metadata.tables) == 136
+            assert db.schema_version == "v2_0038" and len(s.metadata.tables) == 136
             assert report["route"]["model_revision_id"] == before and report["route"]["source"] == "baseline"
             assert not report["calls"] and report["byte_delta"] == 0 and report["unsettled_calls"] == 1
             assert (await db.read(lambda u: u._one(s.model_calls, agent, call)))["state"] == "unknown"

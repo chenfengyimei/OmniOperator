@@ -5,7 +5,7 @@ import asyncio
 import pytest
 from alembic import command
 from sqlalchemy import select
-from v2_configuration_helpers import model_uow
+from v2_configuration_helpers import add_model_headers_column, model_uow
 from v2_legacy_seed import PreSkillSeedRepositories
 
 from omni.adapters.persistence import schema as s
@@ -25,7 +25,7 @@ def test_v33_upgrade_keeps_memory_models_and_unknown_cost_without_inventing_vect
             cfg = configuration()
             cfg.attributes["connection"] = connection
             command.upgrade(cfg, "v2_0033")
-            connection.commit()
+            add_model_headers_column(connection)
             unit = PreSkillSeedRepositories(connection, clock, ids, ids.new())
             unit.initialize()
             agent = connection.execute(select(s.agents.c.id)).scalar_one()
@@ -51,7 +51,7 @@ def test_v33_upgrade_keeps_memory_models_and_unknown_cost_without_inventing_vect
         database = Database(path, clock, ids)
         try:
             await database.write(lambda u: u.recover())
-            assert database.schema_version == "v2_0037" and len(s.metadata.tables) == 136
+            assert database.schema_version == "v2_0038" and len(s.metadata.tables) == 136
             assert (await database.read(lambda u: u.search_memory(agent, "Persistent")))[0]["id"] == memory["id"]
             assert (await database.read(lambda u: u._one(s.model_calls, agent, call)))["state"] == "unknown"
             assert not await database.read(lambda u: u.connection.execute(select(s.memory_embeddings)).all())

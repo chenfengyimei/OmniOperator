@@ -8,6 +8,7 @@ import pytest
 from alembic import command
 from sqlalchemy import create_engine, event, update
 from test_v2_desktop import prepared
+from v2_configuration_helpers import add_model_headers_column
 from v2_desktop_helpers import captured_frame
 from v2_legacy_seed import LegacySeedRepositories
 
@@ -71,6 +72,7 @@ def test_capture_rebuild_interruption_preserves_rows_and_guards(tmp_path, baseli
         with engine.begin() as connection:
             cfg.attributes["connection"] = connection
             command.upgrade(cfg, baseline)
+            add_model_headers_column(connection)
             unit = LegacySeedRepositories(connection, SystemClock(), UUIDs())
             unit.initialize()
             agent = unit.query("agents", "")[0]["id"]

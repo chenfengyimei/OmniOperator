@@ -1,5 +1,6 @@
 """V23 migration is atomic; existing model runs cannot acquire owner execution authority."""
 
+from v2_configuration_helpers import add_model_headers_column
 import asyncio
 
 import pytest
@@ -34,6 +35,7 @@ def test_v23_interrupted_ddl_rolls_back_then_preserves_model_run_with_new_kind(t
             cfg = configuration()
             cfg.attributes["connection"] = connection
             command.upgrade(cfg, "v2_0022")
+            add_model_headers_column(connection)
             unit = Repositories(connection, SystemClock(), UUIDs())
             unit.initialize()
             agent = unit.query("agents", "")[0]["id"]

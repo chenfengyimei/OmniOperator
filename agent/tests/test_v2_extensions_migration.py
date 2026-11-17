@@ -1,6 +1,7 @@
 """V19 frozen DDL, empty captures, referenced source archives and restore revocation; never executes plugin code."""
 
 from __future__ import annotations
+from v2_configuration_helpers import add_model_headers_column
 
 import asyncio
 import json
@@ -97,6 +98,7 @@ def baseline(paths, *, placeholder=None):
                 cfg = configuration()
                 cfg.attributes["connection"] = connection
                 command.upgrade(cfg, "v2_0018")
+                add_model_headers_column(connection)
                 unit = LegacySeedRepositories(connection, SystemClock(), UUIDs())
                 unit.initialize()
                 agent = unit.query("agents", "")[0]["id"]

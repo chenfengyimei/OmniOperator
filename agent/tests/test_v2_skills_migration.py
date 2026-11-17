@@ -5,7 +5,7 @@ import asyncio
 import pytest
 from alembic import command
 from sqlalchemy import select
-from v2_configuration_helpers import model_uow
+from v2_configuration_helpers import add_model_headers_column, model_uow
 from v2_legacy_seed import PreSkillSeedRepositories
 
 from omni.adapters.persistence import schema as s
@@ -25,7 +25,7 @@ def test_v34_upgrade_does_not_invent_skill_grants_or_lose_unknown_cost(tmp_path,
             cfg = configuration()
             cfg.attributes["connection"] = connection
             command.upgrade(cfg, "v2_0034")
-            connection.commit()
+            add_model_headers_column(connection)
             unit = PreSkillSeedRepositories(connection, clock, ids, ids.new())
             unit.initialize()
             agent = connection.execute(select(s.agents.c.id)).scalar_one()
@@ -51,7 +51,7 @@ def test_v34_upgrade_does_not_invent_skill_grants_or_lose_unknown_cost(tmp_path,
         db = Database(path, clock, ids)
         try:
             await db.write(lambda u: u.recover())
-            assert db.schema_version == "v2_0037" and len(s.metadata.tables) == 136
+            assert db.schema_version == "v2_0038" and len(s.metadata.tables) == 136
             assert (await db.read(lambda u: u._one(s.model_calls, agent, call)))["state"] == "unknown"
             report = await db.read(lambda u: u.skill_run_report(agent, turn["run_id"], "windows"))
             assert not report["captured"] and not report["items"]

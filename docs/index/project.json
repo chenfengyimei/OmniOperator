@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "d7631ca92913ead296985c3a0762f1792ae71651b8123e3da996a09cfa151f4b",
+  "source_sha256": "f72fdf846543262aa047bd4f309e966af75f05d72ec4d2a37893752b45aa9211",
   "modules": [
     {
       "id": "v2-domain",
@@ -72,7 +72,7 @@
         "agent/src/omni/domain/terminal_review.py",
         "agent/src/omni/domain/terminals.py"
       ],
-      "lines": 9674,
+      "lines": 9684,
       "dependencies": []
     },
     {
@@ -265,6 +265,7 @@
         "agent/src/omni/adapters/persistence/migrations/versions/v0035.py",
         "agent/src/omni/adapters/persistence/migrations/versions/v0036.py",
         "agent/src/omni/adapters/persistence/migrations/versions/v0037.py",
+        "agent/src/omni/adapters/persistence/migrations/versions/v0038.py",
         "agent/src/omni/adapters/persistence/object_gc.py",
         "agent/src/omni/adapters/persistence/object_inventory.py",
         "agent/src/omni/adapters/persistence/object_repository.py",
@@ -407,7 +408,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 55720,
+      "lines": 55749,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -502,7 +503,7 @@
         "web/ui/v2/v1/workbench.css",
         "web/ui/v2/workbench.css"
       ],
-      "lines": 22012,
+      "lines": 22076,
       "dependencies": []
     },
     {
@@ -18956,6 +18957,30 @@
       "summary": "MCP runtime generations, catalog fingerprints, per-tool grants, run captures and calls; frozen SQL."
     },
     {
+      "path": "agent/src/omni/adapters/persistence/migrations/versions/v0038.py",
+      "module": "v2-adapters",
+      "python_module": "omni.adapters.persistence.migrations.versions.v0038",
+      "lines": 26,
+      "imports": [],
+      "symbols": [
+        {
+          "name": "upgrade",
+          "line": 16,
+          "kind": "function",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "downgrade",
+          "line": 25,
+          "kind": "function",
+          "parameters": [],
+          "annotations": {}
+        }
+      ],
+      "summary": "Model custom request headers (e.g. OpenCode Go session routing); frozen SQL, no current schema imports."
+    },
+    {
       "path": "agent/src/omni/adapters/persistence/object_gc.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.persistence.object_gc",
@@ -21609,33 +21634,33 @@
       "path": "agent/src/omni/adapters/persistence/schema.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.persistence.schema",
-      "lines": 3277,
+      "lines": 3280,
       "imports": [],
       "symbols": [
         {
           "name": "ident",
-          "line": 36,
+          "line": 37,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "scope",
-          "line": 40,
+          "line": 41,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "stamp",
-          "line": 44,
+          "line": 45,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "scoped_fk",
-          "line": 48,
+          "line": 49,
           "kind": "function",
           "parameters": [
             "column",
@@ -21648,7 +21673,7 @@
         },
         {
           "name": "scoped",
-          "line": 52,
+          "line": 53,
           "kind": "function",
           "parameters": [
             "name",
@@ -21660,14 +21685,14 @@
         },
         {
           "name": "preference_columns",
-          "line": 201,
+          "line": 202,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "option_columns",
-          "line": 295,
+          "line": 296,
           "kind": "function",
           "parameters": [
             "kind"
@@ -21678,7 +21703,7 @@
         },
         {
           "name": "history_retention_batches",
-          "line": 1737,
+          "line": 1740,
           "kind": "function",
           "parameters": [
             "name",
@@ -65149,7 +65174,7 @@
       "path": "agent/src/omni/domain/configuration.py",
       "module": "v2-domain",
       "python_module": "omni.domain.configuration",
-      "lines": 154,
+      "lines": 164,
       "imports": [
         "omni.domain.contracts"
       ],
@@ -65190,7 +65215,7 @@
         },
         {
           "name": "ModelOptions.valid",
-          "line": 62,
+          "line": 63,
           "kind": "function",
           "parameters": [
             "self"
@@ -65199,12 +65224,12 @@
         },
         {
           "name": "ChannelOptions",
-          "line": 72,
+          "line": 82,
           "kind": "class"
         },
         {
           "name": "ChannelOptions.valid",
-          "line": 79,
+          "line": 89,
           "kind": "function",
           "parameters": [
             "self"
@@ -65213,12 +65238,12 @@
         },
         {
           "name": "MCPOptions",
-          "line": 85,
+          "line": 95,
           "kind": "class"
         },
         {
           "name": "MCPOptions.valid",
-          "line": 94,
+          "line": 104,
           "kind": "function",
           "parameters": [
             "self"
@@ -65227,12 +65252,12 @@
         },
         {
           "name": "PresetOptions",
-          "line": 113,
+          "line": 123,
           "kind": "class"
         },
         {
           "name": "config_value",
-          "line": 120,
+          "line": 130,
           "kind": "function",
           "parameters": [
             "kind",
@@ -65245,7 +65270,7 @@
         },
         {
           "name": "config_name",
-          "line": 144,
+          "line": 154,
           "kind": "function",
           "parameters": [
             "name"
@@ -65256,7 +65281,7 @@
         },
         {
           "name": "fingerprint",
-          "line": 151,
+          "line": 161,
           "kind": "function",
           "parameters": [
             "kind",
@@ -96910,7 +96935,7 @@
       "path": "web/ui/v2/index.html",
       "module": "v2-workbench",
       "python_module": null,
-      "lines": 1861,
+      "lines": 1874,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -97000,7 +97025,7 @@
       "path": "web/ui/v2/models.js",
       "module": "v2-workbench",
       "python_module": null,
-      "lines": 495,
+      "lines": 529,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -97140,7 +97165,7 @@
       "path": "web/ui/v2/workbench.css",
       "module": "v2-workbench",
       "python_module": null,
-      "lines": 2727,
+      "lines": 2744,
       "imports": [],
       "symbols": [],
       "kind": "asset",

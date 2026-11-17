@@ -1,5 +1,6 @@
 """Real populated V28 upgrade preserves owner commands and enforces the new grant baseline."""
 
+from v2_configuration_helpers import add_model_headers_column
 import asyncio
 import uuid
 
@@ -26,6 +27,7 @@ def test_populated_v28_upgrade_retains_owner_command_body_and_scoped_schema(tmp_
             cfg = configuration()
             cfg.attributes["connection"] = connection
             command.upgrade(cfg, "v2_0028")
+            add_model_headers_column(connection)
             connection.commit()
             u = PreSkillSeedRepositories(connection, clock, ids, str(uuid.uuid4()))
             u.initialize()
@@ -81,6 +83,7 @@ def test_v29_revoked_device_grant_survives_upgrade_without_model_access(tmp_path
             cfg = configuration()
             cfg.attributes["connection"] = connection
             command.upgrade(cfg, "v2_0029")
+            add_model_headers_column(connection)
             connection.commit()
             u = PreSkillSeedRepositories(connection, clock, ids, ids.new())
             u.initialize()

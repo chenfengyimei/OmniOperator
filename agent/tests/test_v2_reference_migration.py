@@ -1,5 +1,6 @@
 """Real process exits during v13 DDL preserve the v12 instance and its verified upgrade snapshots."""
 
+from v2_configuration_helpers import add_model_headers_column
 import asyncio
 import subprocess
 import sys
@@ -54,6 +55,7 @@ def baseline(paths):
                 legacy_history.setattr(repository_base, "allocate_history", lambda *args, **kwargs: None)
                 cfg.attributes["connection"] = connection
                 command.upgrade(cfg, "v2_0012")
+                add_model_headers_column(connection)
                 unit = LegacySeedRepositories(connection, SystemClock(), UUIDs())
                 unit.initialize()
                 agents = [

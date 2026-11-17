@@ -2410,6 +2410,23 @@ body[data-ui-page="workbench-v2"] #models input:focus {
   border-color: var(--line-accent);
   box-shadow: 0 0 0 2px color-mix(in srgb, var(--seed-accent) 22%, transparent);
 }
+body[data-ui-page="workbench-v2"] #models textarea {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--line-2);
+  border-radius: var(--r-sm);
+  background: var(--surface-inset);
+  color: var(--text-1);
+  font-size: var(--fs-caption);
+  font-family: var(--font-mono);
+  line-height: 1.6;
+  resize: vertical;
+}
+body[data-ui-page="workbench-v2"] #models textarea:focus {
+  outline: none;
+  border-color: var(--line-accent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--seed-accent) 22%, transparent);
+}
 body[data-ui-page="workbench-v2"] #models .mo-key-row {
   display: flex;
   gap: 6px;

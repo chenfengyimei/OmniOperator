@@ -4,7 +4,7 @@ import asyncio
 
 from alembic import command
 from sqlalchemy import select
-from v2_configuration_helpers import model_uow
+from v2_configuration_helpers import add_model_headers_column, model_uow
 from v2_legacy_seed import PreRoutingSeedRepositories
 
 from omni.adapters.persistence import schema as s
@@ -23,7 +23,7 @@ def test_populated_v31_upgrade_preserves_old_running_call_without_fabricating_im
             cfg = configuration()
             cfg.attributes["connection"] = connection
             command.upgrade(cfg, "v2_0031")
-            connection.commit()
+            add_model_headers_column(connection)
             u = PreRoutingSeedRepositories(connection, clock, ids, ids.new())
             u.initialize()
             agent = connection.execute(select(s.agents.c.id)).scalar_one()
@@ -39,7 +39,7 @@ def test_populated_v31_upgrade_preserves_old_running_call_without_fabricating_im
         db = Database(path, clock, ids)
         try:
             await db.write(lambda u: u.recover())
-            assert db.schema_version == "v2_0037"
+            assert db.schema_version == "v2_0038"
             assert (await db.read(lambda u: u.messages(agent, receipt["session_id"])))[0]["content"] == "Original text"
             row = await db.read(lambda u: u._one(s.model_calls, agent, call))
             assert row["state"] == "unknown" and row["cost_micro"] is None

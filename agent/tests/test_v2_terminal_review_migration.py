@@ -10,6 +10,7 @@ import pytest
 from alembic import command
 from sqlalchemy import create_engine, inspect
 from test_v2_objects import Clock, opened
+from v2_configuration_helpers import add_model_headers_column
 from v2_terminal_helpers import configure_workspace, open_request
 from v2_terminal_review_helpers import request, unknown
 
@@ -35,6 +36,7 @@ def test_v25_to_v26_preserves_terminal_rows_and_adds_scoped_immutable_review_sch
         config = configuration()
         config.attributes["connection"] = connection
         command.upgrade(config, "v2_0025")
+        add_model_headers_column(connection)
         u = Repositories(connection, Clock(), UUIDs(), str(uuid.uuid4()))
         u.initialize()
         agent = u.query("agents", "")[0]["id"]
@@ -124,6 +126,7 @@ def test_interrupted_v26_schema_transaction_rolls_back_before_retry(tmp_path):
         config = configuration()
         config.attributes["connection"] = connection
         command.upgrade(config, "v2_0025")
+        add_model_headers_column(connection)
         Repositories(connection, Clock(), UUIDs()).initialize()
     engine.dispose()
     with sqlite_connection(paths.database) as connection:

@@ -12,7 +12,7 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine, delete, update
 from test_v2_credentials import Backend, entered
-from v2_configuration_helpers import model_instance
+from v2_configuration_helpers import add_model_headers_column, model_instance
 from v2_delivery_helpers import output, setup
 from v2_legacy_seed import LegacySeedRepositories
 
@@ -497,6 +497,7 @@ def test_v9_adoption_quarantines_config_and_hash_only_intents_preserving_audit_c
         legacy_history.setattr(repository_base, "allocate_history", lambda *args, **kwargs: None)
         cfg.attributes["connection"] = connection
         command.upgrade(cfg, "v2_0009")
+        add_model_headers_column(connection)
         u = LegacySeedRepositories(connection, clock, ids, ids.new())
         u.initialize()
         agent = u.query("agents", "")[0]["id"]

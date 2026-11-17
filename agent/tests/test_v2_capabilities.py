@@ -10,7 +10,7 @@ def test_report_is_bounded_and_marks_attention_without_guessing_missing_areas():
     health = {
         "ready": True,
         "api_version": 1,
-        "schema_version": "v2_0037",
+        "schema_version": "v2_0038",
         "build_id": "build",
         "platform_acceptance": "pending",
         "database": {"closed": False, "pending_reads": 1, "pending_writes": 0, "path": "C:/private/omni.db"},

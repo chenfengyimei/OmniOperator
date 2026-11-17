@@ -19,6 +19,7 @@ from sqlalchemy import (
     Table,
     Text,
     UniqueConstraint,
+    text,
 )
 from sqlalchemy.sql.schema import SchemaItem
 
@@ -318,11 +319,13 @@ model_options = Table(
     Column("margin_tokens", Integer, nullable=False),
     Column("counter_mode", String(30), nullable=False),
     Column("counter_ref", String(100), nullable=False),
+    Column("extra_headers", JSON, nullable=False, server_default=text("'{}'")),
     CheckConstraint(
         "context_tokens BETWEEN 1024 AND 2000000 AND output_tokens>0 AND summary_tokens>0 AND margin_tokens>=128 AND output_tokens+margin_tokens<context_tokens AND summary_tokens+margin_tokens<context_tokens",
         name="capacity",
     ),
     CheckConstraint("counter_mode IN ('utf8_upper_bound','required') AND length(counter_ref)>0", name="counter"),
+    CheckConstraint("json_valid(extra_headers) AND json_type(extra_headers)='object'", name="headers"),
 )
 channel_options = Table(
     "channel_options",

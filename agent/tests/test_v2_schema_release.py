@@ -1,6 +1,7 @@
 """Real V25 snapshot/new-home migration, holds/objects and crash fences; immutable installations/native manager isolated."""
 
 from __future__ import annotations
+from v2_configuration_helpers import add_model_headers_column
 
 import asyncio
 import copy
@@ -83,6 +84,7 @@ def upgrading(installation, tmp_path, monkeypatch):
                 cfg = configuration()
                 cfg.attributes["connection"] = connection
                 command.upgrade(cfg, "v2_0025")
+                add_model_headers_column(connection)
                 unit = LegacySeedRepositories(connection, clock, ids, ids.new())
                 identity = unit.initialize()["id"]
                 agent = unit.query("agents", "")[0]["id"]

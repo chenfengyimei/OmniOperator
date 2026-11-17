@@ -77,6 +77,23 @@ const PROVIDERS = [
     note: '使用 gemini/ 前缀与 AI Studio Key。',
   },
   {
+    id: 'opencode-go',
+    name: 'OpenCode Go',
+    glyph: 'Go',
+    tint: 'accent',
+    base: 'https://opencode.ai/zen/go/v1',
+    models: [
+      'openai/qwen3.8-flash',
+      'openai/qwen3.8-max',
+      'openai/deepseek-v4-flash',
+      'openai/glm-5.2',
+      'openai/kimi-k2.7-code',
+      'openai/minimax-m3',
+    ],
+    ref: 'opencode-go',
+    note: 'OpenAI 兼容；适配器自动附加 x-opencode-session 会话头。',
+  },
+  {
     id: 'custom',
     name: '自定义 / 兼容端点',
     glyph: '…',
@@ -179,6 +196,18 @@ export function mountModels({ api, wrap, getAgent, getGeneration }) {
     setStatus(`已选择 ${p.name}，填入 API Key 后保存。`, 'idle');
   }
 
+  function parseHeaders(text) {
+    const headers = {};
+    for (const line of String(text || '').split('\n')) {
+      const idx = line.indexOf(':');
+      if (idx <= 0) continue;
+      const name = line.slice(0, idx).trim();
+      const value = line.slice(idx + 1).trim();
+      if (name && value) headers[name] = value;
+    }
+    return headers;
+  }
+
   function readForm() {
     const value = {
       model: $('mo-model').value.trim(),
@@ -190,6 +219,7 @@ export function mountModels({ api, wrap, getAgent, getGeneration }) {
       margin_tokens: Number($('mo-margin').value),
       counter_mode: 'utf8_upper_bound',
       counter_ref: 'utf8-envelope-v1',
+      extra_headers: parseHeaders($('mo-headers').value),
     };
     return { value, key: $('mo-api-key').value, ref: value.credential_ref };
   }
@@ -355,6 +385,9 @@ export function mountModels({ api, wrap, getAgent, getGeneration }) {
         $('mo-model').value = def.value.model;
         $('mo-base-url').value = def.value.base_url;
         $('mo-cred-ref').value = def.value.credential_ref;
+        $('mo-headers').value = Object.entries(def.value.extra_headers || {})
+          .map(([k, v]) => `${k}: ${v}`)
+          .join('\n');
         setStatus('已有默认模型。如需更换密钥，填入新 Key 后保存即可覆盖。', 'ok');
         steps(3);
       }
@@ -366,6 +399,7 @@ export function mountModels({ api, wrap, getAgent, getGeneration }) {
     rows = [];
     settings = null;
     $('mo-api-key').value = '';
+    $('mo-headers').value = '';
     $('mo-list').replaceChildren();
     setStatus('', 'idle');
     $('mo-test-result').hidden = true;

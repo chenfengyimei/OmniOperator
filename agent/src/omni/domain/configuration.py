@@ -57,6 +57,7 @@ class ModelOptions(Payload):
     margin_tokens: int = Field(default=1024, ge=128, le=16000)
     counter_mode: Literal["utf8_upper_bound", "required"] = "utf8_upper_bound"
     counter_ref: str = Field(default="utf8-envelope-v1", min_length=1, max_length=100)
+    extra_headers: dict[str, str] = Field(default_factory=dict)
 
     @model_validator(mode="after")
     def valid(self):
@@ -66,6 +67,15 @@ class ModelOptions(Payload):
             raise ValueError("Input capacity must remain after output and margin reservations")
         if self.counter_mode == "utf8_upper_bound" and self.counter_ref != "utf8-envelope-v1":
             raise ValueError("The conservative counter has a fixed versioned identity")
+        if len(self.extra_headers) > 20:
+            raise ValueError("At most 20 custom headers are allowed")
+        for name, value in self.extra_headers.items():
+            if not re.fullmatch(r"[A-Za-z0-9-]{1,100}", name):
+                raise ValueError("Custom header names must be token characters")
+            if name.lower() in {"authorization", "x-api-key", "cookie", "host"}:
+                raise ValueError("Custom headers cannot override authentication or routing headers")
+            if len(value) > 2000 or any(ord(c) < 32 or ord(c) == 127 for c in value):
+                raise ValueError("Custom header values must be printable and bounded")
         return self
 
 

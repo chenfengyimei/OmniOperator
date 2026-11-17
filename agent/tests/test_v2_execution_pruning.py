@@ -1,5 +1,6 @@
 """Reviewed pruning rechecks provenance, preserves ledgers and restores original bodies from verified snapshots."""
 
+from v2_configuration_helpers import add_model_headers_column
 import asyncio
 import copy
 import datetime as dt
@@ -454,6 +455,7 @@ def test_pruning_schema_upgrade_backup_and_interrupted_ddl_rollback(tmp_path, in
         legacy_history.setattr(repository_base, "allocate_history", lambda *args, **kwargs: None)
         cfg.attributes["connection"] = connection
         command.upgrade(cfg, "v2_0011")
+        add_model_headers_column(connection)
         u = LegacySeedRepositories(connection, clock, ids)
         u.initialize()
         agent = u.query("agents", "")[0]["id"]

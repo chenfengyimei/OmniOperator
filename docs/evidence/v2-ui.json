@@ -1,7 +1,7 @@
 {
   "batch": "v2-ui-connection-stability-v128",
   "recorded_at": "2026-11-15",
-  "resource_version_final": "20261115v128",
+  "resource_version_final": "20261116v132",
   "v1_alignment": {
     "summary": "用户提供 V1 正式工作台截图后，直接精读 web/ui/workbench.css 的 V1 实现并逐项移植，使 V2 结构与 V1 一致（而非自创风格）。",
     "ported_from_v1": [
@@ -1003,5 +1003,32 @@
     "checkpoint": 81,
     "artifact_id": 221,
     "status": "completed_with_failures_preserved"
+  },
+  "model_onboarding_v132": {
+    "需求": "所有者要求把 OpenCode Go 加为预设供应商卡片并继续完善优化。",
+    "交付": [
+      "OpenCode Go 成为第 9 个预设卡片：自动填端点 https://opencode.ai/zen/go/v1、6 个真实模型建议（qwen3.8-flash/qwen3.8-max/deepseek-v4-flash/glm-5.2/kimi-k2.7-code/minimax-m3）、凭据引用 opencode-go",
+      "高级折叠区新增「自定义请求头」textarea：逐行 Name: Value，随配置持久化并在加载默认模型时回填；重置时清空",
+      "后端 ModelOptions 新增 extra_headers（默认空 dict）并校验：≤20 个、名为 token 字符、禁止覆盖 authorization/x-api-key/cookie/host、值≤2000 且无控制字符",
+      "schema v0038 给 model_options 加 extra_headers JSON 列（默认 {}，含 json_type=object 约束）；v0038 upgrade 幂等",
+      "适配器据 extra_headers 附加请求头（沿用上一轮 OpenCode Go 会话头与 UA 逻辑）"
+    ],
+    "迁移契约修复": "加列后 20 个冻结基线迁移测试（v13–v37）在用当前仓库种子时因读回 select(model_options) 缺列报错。统一做法：各测试在 command.upgrade 之后调用 add_model_headers_column(connection) 补列；v0038 幂等故后续升级不重复加列。两个踩坑：① 补列后不要紧跟 connection.commit()（engine.begin() 上下文内会报 closed transaction，SQLite DDL 自动提交）；② 补列导入必须放在 from __future__ 之后，否则 SyntaxError。修复后迁移套件 165 passed / 0 failed / 0 error。",
+    "验证": {
+      "迁移套件": "165 passed（migration/schema_release/wheel_install/credential_authority/execution_pruning 全绿）",
+      "守卫与模型页": "glass_tokens+design_tokens+business_inventory+models_ui+navigation_ui 共 25 passed",
+      "模型页测试": "4 项含新增 test_models_custom_headers_roundtrip_and_auth_guard：自定义头保存→重载回填→覆盖鉴权头被服务端拒绝（#error 显示 invalid）"
+    },
+    "未验收": "72 小时长稳仍未验收（需长时间运行，非本轮范围）。"
+  },
+  "full_regression_v132": {
+    "命令": "uv run --no-sync pytest -q -n 4（temp/build/_fullreg9.log）",
+    "结果": "5990 passed / 3 failed / 0 errors，2172.78s（36分12秒）",
+    "失败定性": [
+      "test_v2_capture_provenance[v2_0023/v2_0024] 2项：本批 model_options 加列波及冻结基线（INSERT 缺 extra_headers 列）。已在 command.upgrade(baseline) 后补 add_model_headers_column，capture 全文件隔离复跑 6 passed。",
+      "test_repository_layout::test_workspace_resolves_product_and_keeps_four_entrypoints 1项：该函数已被其他会话改名为 ..._keeps_default_and_explicit_entrypoints（提交 7e64d348 统一入口改动），全量收集到旧名。现名隔离复跑 1 passed，非本批文件、不修改。"
+    ],
+    "覆盖口径": "全量运行于 capture 补列修复之前；修复仅 2 行测试补列，受影响面（capture 全文件 6 项）已专项复跑通过，其余 5990 项与该改动无关，按专项验证纪律不重复全量。",
+    "扫描": "全部含 command.upgrade 的 test_v2_* 已扫描：仅 media/wheel_install 未补列，二者不经当前仓库写 model_options（全量中通过），无需补列。"
   }
 }

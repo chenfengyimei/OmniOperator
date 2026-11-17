@@ -1,6 +1,7 @@
 """V20 review ledgers, erasable evidence, frozen execution observations and verified restore fencing."""
 
 from __future__ import annotations
+from v2_configuration_helpers import add_model_headers_column
 
 import asyncio
 import json
@@ -65,6 +66,7 @@ def baseline(paths):
                 cfg = configuration()
                 cfg.attributes["connection"] = connection
                 command.upgrade(cfg, "v2_0019")
+                add_model_headers_column(connection)
                 unit = Repositories(connection, SystemClock(), UUIDs())
                 unit.initialize()
                 agent = unit.query("agents", "")[0]["id"]

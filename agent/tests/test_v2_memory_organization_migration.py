@@ -1,6 +1,7 @@
 """V18 organization schema, source invalidation and restore isolation; no models, background workers or fact merging."""
 
 from __future__ import annotations
+from v2_configuration_helpers import add_model_headers_column
 
 import asyncio
 import hashlib
@@ -86,6 +87,7 @@ def baseline(paths):
                 cfg = configuration()
                 cfg.attributes["connection"] = connection
                 command.upgrade(cfg, "v2_0017")
+                add_model_headers_column(connection)
                 unit = LegacySeedRepositories(connection, SystemClock(), UUIDs())
                 unit.initialize()
                 agent = unit.query("agents", "")[0]["id"]

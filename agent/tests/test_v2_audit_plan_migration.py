@@ -1,6 +1,7 @@
 """Real v15 DDL crash recovery and immutable maintenance evidence; isolated databases, no external actions."""
 
 from __future__ import annotations
+from v2_configuration_helpers import add_model_headers_column
 
 import asyncio
 import subprocess
@@ -73,6 +74,7 @@ def baseline(paths):
                 cfg = configuration()
                 cfg.attributes["connection"] = connection
                 command.upgrade(cfg, "v2_0014")
+                add_model_headers_column(connection)
                 unit = LegacySeedRepositories(connection, SystemClock(), UUIDs())
                 unit.initialize()
                 agent = unit.query("agents", "")[0]["id"]
