@@ -16,45 +16,47 @@
     {
       "id": "W1",
       "title": "独立 V2 CLI/Web 入口与显式 V1 回退",
-      "status": "implemented_scoped_passed",
+      "status": "completed",
       "evidence": [
-        "docs/evidence/v2-windows-entrypoints.json"
+        "docs/evidence/v2-windows-entrypoints.json",
+        "docs/evidence/v2-windows-acceptance.json"
       ]
     },
     {
       "id": "W2",
       "title": "Windows 启动器：V2 实例、身份、健康与所有者认证",
-      "status": "implemented_scoped_passed",
+      "status": "completed",
       "evidence": [
-        "docs/evidence/v2-windows-workbench.json"
+        "docs/evidence/v2-windows-workbench.json",
+        "docs/evidence/v2-windows-acceptance.json"
       ]
     },
     {
       "id": "W3",
       "title": "可复现候选安装、更新、备份恢复和保留数据的卸载",
-      "status": "implemented_scoped_passed",
-      "next": "最终固定候选打包和整体验收留W6/W7；实际卸载原始文件访问失败及续跑成功分别保留，环境原因观察开放。",
+      "status": "completed",
       "evidence": [
-        "docs/evidence/v2-windows-installation.json"
+        "docs/evidence/v2-windows-installation.json",
+        "docs/evidence/v2-windows-acceptance.json"
       ],
       "source_head": "06f7e4c61abca68a34d543c981ffeb209229cc28"
     },
     {
       "id": "W4",
       "title": "Windows 功能清单与已知稳定性阻断项收口",
-      "status": "implemented_scoped_passed",
-      "next": "23业务入口/模块/专项映射及54项界面核对通过；历史UI/原生/提交额度观察不自动销账，W7保留完整原始结果。",
+      "status": "completed",
       "evidence": [
-        "docs/evidence/v2-windows-business.json"
+        "docs/evidence/v2-windows-business.json",
+        "docs/evidence/v2-windows-acceptance.json"
       ]
     },
     {
       "id": "W5",
       "title": "V2 独立候选证据与发布门禁，不使用 V1 验收替代",
-      "status": "implemented_scoped_passed",
-      "next": "门禁实现18回归已过；最终同版八项检查材料仍待W4/W6/W7，当前未宣称候选门禁通过。",
+      "status": "completed",
       "evidence": [
-        "docs/evidence/v2-windows-candidate-gate.json"
+        "docs/evidence/v2-windows-candidate-gate.json",
+        "docs/evidence/v2-windows-acceptance.json"
       ],
       "source_head": "06f7e4c61abca68a34d543c981ffeb209229cc28"
     },
@@ -97,5 +99,10 @@
     "default_entrypoint": "v2",
     "source_sha256": "aa0ddb88ff27af9c41820abeecb21c5e87b498bf40e0b06fad261e21db7a72cc",
     "evidence": "docs/evidence/v2-windows-acceptance.json"
-  }
+  },
+  "release_followups": [
+    "真实账号、模型质量、设备、原生桌面、72小时及其他平台另行正式验收。",
+    "Windows原文件访问失败和收据续跑成功分别保留；历史UI/原生/提交额度观察不自动关闭。",
+    "其他会话未提交修改未纳入此候选或本次全量。"
+  ]
 }
