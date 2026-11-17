@@ -9,6 +9,7 @@ from .linux_bus import failure
 from .linux_input import X11Input
 from .linux_keyboard import KeyboardMapping
 from .linux_keystroke import KeyPacket
+from .linux_pointer_target import PointerPoint, PointerTarget
 from .linux_window_leases import WindowLeases
 from .linux_x11 import X11Desktop
 from .linux_x11_wire import unpack
@@ -33,6 +34,7 @@ class WindowFocus:
         self._ready = False
         self._keyboard: KeyboardMapping | None = None
         self._sources: XTestSources | None = None
+        self._pointer: PointerTarget | None = None
 
     def _same_server(self) -> None:
         desktop = self.leases.desktop
@@ -137,6 +139,32 @@ class WindowFocus:
     async def close(self) -> bool:
         self._closed = True
         return await self.monitor.close()
+
+    @property
+    def selected_window(self) -> int:
+        if not self._ready or self._closed or self._original is None:
+            raise failure("desktop_input_unverified")
+        return X11Desktop.window(self._original)
+
+    async def prepare_pointer(self, point: tuple[int, int]) -> PointerPoint:
+        """Resolve physical window coordinates to a native recipient; this is not an input permit."""
+        if self._pointer is not None or self._original is None or self._resource is None:
+            raise failure("desktop_input_unverified")
+        try:
+            self._pointer = PointerTarget(self, self._original, self._resource, point)
+            return await self._pointer.prepare()
+        except BaseException:
+            self._ready = False
+            raise
+
+    async def verify_pointer(self) -> PointerPoint:
+        if self._pointer is None:
+            raise failure("desktop_input_unverified")
+        try:
+            return await self._pointer.verify()
+        except BaseException:
+            self._ready = False
+            raise
 
     async def prepare_key(self, key: object) -> int:
         """Read one key's mapping while the native window/focus proof remains held; no input permission."""

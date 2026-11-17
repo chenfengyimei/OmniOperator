@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "315b2e7afd6b727a4f31361d66302874a354c28002a4306d88531199a5ea9335",
+  "source_sha256": "cf08c30f14f7b15770b5dfa7c8b0a3a72eeb48728d7e7982759ad3583cbdcd63",
   "modules": [
     {
       "id": "v2-domain",
@@ -325,6 +325,7 @@
         "agent/src/omni/adapters/platform/linux_keystroke.py",
         "agent/src/omni/adapters/platform/linux_lease_client.py",
         "agent/src/omni/adapters/platform/linux_pipewire.py",
+        "agent/src/omni/adapters/platform/linux_pointer_target.py",
         "agent/src/omni/adapters/platform/linux_portal.py",
         "agent/src/omni/adapters/platform/linux_remote_desktop.py",
         "agent/src/omni/adapters/platform/linux_semantic.py",
@@ -432,7 +433,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 59928,
+      "lines": 60192,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -26205,12 +26206,13 @@
       "path": "agent/src/omni/adapters/platform/linux_foreground.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.linux_foreground",
-      "lines": 201,
+      "lines": 229,
       "imports": [
         "omni.adapters.platform.linux_bus",
         "omni.adapters.platform.linux_input",
         "omni.adapters.platform.linux_keyboard",
         "omni.adapters.platform.linux_keystroke",
+        "omni.adapters.platform.linux_pointer_target",
         "omni.adapters.platform.linux_window_leases",
         "omni.adapters.platform.linux_x11",
         "omni.adapters.platform.linux_x11_wire",
@@ -26219,12 +26221,12 @@
       "symbols": [
         {
           "name": "WindowFocus",
-          "line": 22,
+          "line": 23,
           "kind": "class"
         },
         {
           "name": "WindowFocus.__init__",
-          "line": 25,
+          "line": 26,
           "kind": "function",
           "parameters": [
             "self",
@@ -26238,7 +26240,7 @@
         },
         {
           "name": "WindowFocus._same_server",
-          "line": 37,
+          "line": 39,
           "kind": "function",
           "parameters": [
             "self"
@@ -26247,7 +26249,7 @@
         },
         {
           "name": "WindowFocus._read_lineage",
-          "line": 57,
+          "line": 59,
           "kind": "function",
           "parameters": [
             "self"
@@ -26256,7 +26258,7 @@
         },
         {
           "name": "WindowFocus.prepare",
-          "line": 95,
+          "line": 97,
           "kind": "function",
           "parameters": [
             "self",
@@ -26268,7 +26270,7 @@
         },
         {
           "name": "WindowFocus._validate",
-          "line": 117,
+          "line": 119,
           "kind": "function",
           "parameters": [
             "self"
@@ -26277,7 +26279,7 @@
         },
         {
           "name": "WindowFocus.check",
-          "line": 128,
+          "line": 130,
           "kind": "function",
           "parameters": [
             "self"
@@ -26286,7 +26288,37 @@
         },
         {
           "name": "WindowFocus.close",
-          "line": 137,
+          "line": 139,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "WindowFocus.selected_window",
+          "line": 144,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "WindowFocus.prepare_pointer",
+          "line": 149,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "point"
+          ],
+          "annotations": {
+            "point": "tuple[int, int]"
+          }
+        },
+        {
+          "name": "WindowFocus.verify_pointer",
+          "line": 160,
           "kind": "function",
           "parameters": [
             "self"
@@ -26295,7 +26327,7 @@
         },
         {
           "name": "WindowFocus.prepare_key",
-          "line": 141,
+          "line": 169,
           "kind": "function",
           "parameters": [
             "self",
@@ -26307,7 +26339,7 @@
         },
         {
           "name": "WindowFocus.verify_key",
-          "line": 152,
+          "line": 180,
           "kind": "function",
           "parameters": [
             "self"
@@ -26316,7 +26348,7 @@
         },
         {
           "name": "WindowFocus.prepare_sources",
-          "line": 161,
+          "line": 189,
           "kind": "function",
           "parameters": [
             "self"
@@ -26325,7 +26357,7 @@
         },
         {
           "name": "WindowFocus.verify_sources",
-          "line": 175,
+          "line": 203,
           "kind": "function",
           "parameters": [
             "self"
@@ -26334,7 +26366,7 @@
         },
         {
           "name": "WindowFocus.key_packet",
-          "line": 187,
+          "line": 215,
           "kind": "function",
           "parameters": [
             "self"
@@ -26348,7 +26380,7 @@
       "path": "agent/src/omni/adapters/platform/linux_input.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.linux_input",
-      "lines": 332,
+      "lines": 365,
       "imports": [
         "omni.adapters.platform.linux_bus",
         "omni.adapters.platform.linux_session",
@@ -26550,7 +26582,7 @@
         },
         {
           "name": "InputWire.send",
-          "line": 192,
+          "line": 193,
           "kind": "function",
           "parameters": [
             "self",
@@ -26566,7 +26598,7 @@
         },
         {
           "name": "InputWire.key_barrier",
-          "line": 198,
+          "line": 199,
           "kind": "function",
           "parameters": [
             "self",
@@ -26578,7 +26610,7 @@
         },
         {
           "name": "InputWire.read",
-          "line": 207,
+          "line": 208,
           "kind": "function",
           "parameters": [
             "self",
@@ -26590,7 +26622,7 @@
         },
         {
           "name": "InputWire.event",
-          "line": 212,
+          "line": 213,
           "kind": "function",
           "parameters": [
             "self",
@@ -26602,12 +26634,12 @@
         },
         {
           "name": "X11Input",
-          "line": 242,
+          "line": 248,
           "kind": "class"
         },
         {
           "name": "X11Input.__init__",
-          "line": 243,
+          "line": 249,
           "kind": "function",
           "parameters": [
             "self",
@@ -26623,7 +26655,7 @@
         },
         {
           "name": "X11Input.open",
-          "line": 256,
+          "line": 263,
           "kind": "function",
           "parameters": [
             "self"
@@ -26632,7 +26664,7 @@
         },
         {
           "name": "X11Input.released",
-          "line": 269,
+          "line": 276,
           "kind": "function",
           "parameters": [
             "self"
@@ -26641,7 +26673,7 @@
         },
         {
           "name": "X11Input.arm",
-          "line": 280,
+          "line": 287,
           "kind": "function",
           "parameters": [
             "self"
@@ -26650,7 +26682,7 @@
         },
         {
           "name": "X11Input.check",
-          "line": 298,
+          "line": 305,
           "kind": "function",
           "parameters": [
             "self"
@@ -26659,7 +26691,19 @@
         },
         {
           "name": "X11Input.watch_lineage",
-          "line": 306,
+          "line": 313,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "windows"
+          ],
+          "annotations": {
+            "windows": "tuple[int, ...]"
+          }
+        },
+        {
+          "name": "X11Input.watch_pointer_lineage",
+          "line": 336,
           "kind": "function",
           "parameters": [
             "self",
@@ -26671,7 +26715,7 @@
         },
         {
           "name": "X11Input.close",
-          "line": 329,
+          "line": 362,
           "kind": "function",
           "parameters": [
             "self"
@@ -27631,6 +27675,169 @@
         }
       ],
       "summary": "One serial-targeted GStreamer PipeWire frame inside an owned helper, never the default remote or display."
+    },
+    {
+      "path": "agent/src/omni/adapters/platform/linux_pointer_target.py",
+      "module": "v2-adapters",
+      "python_module": "omni.adapters.platform.linux_pointer_target",
+      "lines": 203,
+      "imports": [
+        "omni.adapters.platform.linux_bus",
+        "omni.adapters.platform.linux_foreground",
+        "omni.adapters.platform.linux_x11",
+        "omni.adapters.platform.linux_x11_wire",
+        "omni.domain.desktop"
+      ],
+      "symbols": [
+        {
+          "name": "PointerPoint",
+          "line": 22,
+          "kind": "class"
+        },
+        {
+          "name": "Snapshot",
+          "line": 31,
+          "kind": "class"
+        },
+        {
+          "name": "physical_point",
+          "line": 36,
+          "kind": "function",
+          "parameters": [
+            "value"
+          ],
+          "annotations": {
+            "value": "object"
+          }
+        },
+        {
+          "name": "PointerTarget",
+          "line": 45,
+          "kind": "class"
+        },
+        {
+          "name": "PointerTarget.__init__",
+          "line": 48,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "focus",
+            "original",
+            "resource",
+            "point"
+          ],
+          "annotations": {
+            "focus": "WindowFocus",
+            "original": "dict[str, object]",
+            "resource": "int",
+            "point": "object"
+          }
+        },
+        {
+          "name": "PointerTarget._geometry",
+          "line": 56,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "window",
+            "trace"
+          ],
+          "annotations": {
+            "window": "int",
+            "trace": "bytearray"
+          }
+        },
+        {
+          "name": "PointerTarget._attributes",
+          "line": 74,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "window",
+            "trace"
+          ],
+          "annotations": {
+            "window": "int",
+            "trace": "bytearray"
+          }
+        },
+        {
+          "name": "PointerTarget._translate",
+          "line": 88,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "source",
+            "destination",
+            "x",
+            "y"
+          ],
+          "annotations": {
+            "source": "int",
+            "destination": "int",
+            "x": "int",
+            "y": "int"
+          }
+        },
+        {
+          "name": "PointerTarget._children",
+          "line": 100,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "window",
+            "parent",
+            "trace"
+          ],
+          "annotations": {
+            "window": "int",
+            "parent": "int",
+            "trace": "bytearray"
+          }
+        },
+        {
+          "name": "PointerTarget._owner",
+          "line": 114,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "window",
+            "trace"
+          ],
+          "annotations": {
+            "window": "int",
+            "trace": "bytearray"
+          }
+        },
+        {
+          "name": "PointerTarget._read",
+          "line": 130,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "PointerTarget.prepare",
+          "line": 173,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "PointerTarget.verify",
+          "line": 191,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        }
+      ],
+      "summary": "Read a bounded Xorg hit path for one physical window point; no pointer motion, button input or AT-SPI coordinate inference."
     },
     {
       "path": "agent/src/omni/adapters/platform/linux_portal.py",

@@ -1,0 +1,126 @@
+{
+  "source_base": "9d1445c888561ebb54a5813be68e4be63b38d6b6",
+  "scope": "Read-only native physical-window point, Xorg shape/stack hit path and XRes receiver ownership, bounded metadata and retained focus/substructure observation; no mouse dispatch or AT-SPI coordinate inference",
+  "source_files": {
+    "agent/src/omni/adapters/platform/linux_pointer_target.py": "c7722620be97126c22f03bb65aaaee4c1b7c76ab44413757ae2d52143496b98b",
+    "agent/src/omni/adapters/platform/linux_foreground.py": "781d2d4103621d4b0b9e4e7fa3265895006d3ad1410fbe9eb651d431928d3b53",
+    "agent/src/omni/adapters/platform/linux_input.py": "defcb849ff973bd5f0d4692b7b0e884ae5bd33de37eafda85a78f87be0066b2b",
+    "agent/tests/test_v2_linux_pointer_target.py": "9c9dd0b70b8d12d63a387029018fe6af9cc3c5842f1f33529df91cbab6117f91",
+    "agent/tests/v2_linux_pointer_helpers.py": "74ed304b1031c7be7d56f951d2189608bd6f00762c2bc9b4ecbac8332680d6b6",
+    "pyrightconfig.strict.json": "fc0bed6ccc5ab2a774c0da70e16aed81bf5a429fbdd89ba78fa215d693f6014d",
+    "docs/TYPE_CHECKING.md": "3668e9d563ba1092b5ef1ac737d5fe8bfb9c7cdbe21b43d87bdd86424983285b"
+  },
+  "fixed_source_manifest": {
+    "path": "temp/build/v2-linux-pointer-target-source.json",
+    "sha256": "39e9f3731062b89cd1f3415fb730755d914fac9cda1548315a9e129f9d9e5789"
+  },
+  "scoped_tests": {
+    "distinct_current_nodes_passed": 312,
+    "new_pointer_target_nodes": 60,
+    "existing_callers_and_contracts": 252,
+    "per_module": {
+      "tests.test_v2_linux_pointer_target": 60,
+      "tests.test_v2_linux_input": 15,
+      "tests.test_v2_linux_foreground": 18,
+      "tests.test_v2_linux_window_binding": 43,
+      "tests.test_v2_linux_key_action": 29,
+      "tests.test_v2_linux_keystroke": 29,
+      "tests.test_v2_linux_key_switch": 33,
+      "tests.test_v2_linux_text": 25,
+      "tests.test_v2_linux_semantic": 21,
+      "tests.test_v2_linux_desktop": 36,
+      "tests.test_v2_typecheck_scope": 2,
+      "tests.test_v2_architecture": 1
+    },
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0,
+    "new_nodes_seconds": 13.78,
+    "caller_seconds": 66.28,
+    "reports": [
+      {
+        "path": "temp/build/v2-linux-pointer-target-refined.xml",
+        "sha256": "bb745d24963ffad0899b26f6bdb78cd403e99aac6d268f6e86ebbcc7cb51800e"
+      },
+      {
+        "path": "temp/build/v2-linux-pointer-target-callers.xml",
+        "sha256": "4df26ae68627c5aea4506d228c849babfbd518c6fddc9a94579d90ffbfc331ae"
+      }
+    ]
+  },
+  "strict_modified_files": {
+    "files": 3,
+    "errors": 0,
+    "warnings": 0,
+    "report": {
+      "path": "temp/build/v2-linux-pointer-target-pyright.json",
+      "sha256": "20b66ba27ea3430e293898dd8e6ef8d42efdf8d82086f6565fbba37624b7eeea"
+    }
+  },
+  "initial_results": [
+    {
+      "passed": 50,
+      "failed": 0,
+      "report": {
+        "path": "temp/build/v2-linux-pointer-target-initial.xml",
+        "sha256": "0f05cb1103545c343e42b4b4d2f0a8bd6488fd91b492f4611e1fd71a4c45d80c"
+      },
+      "source_manifest": {
+        "path": "temp/build/v2-linux-pointer-target-initial-source.json",
+        "sha256": "8164d8d16860f71e8d5b3fc55996c035604bbb01cc9138b3fec1d788c0c2421f"
+      },
+      "source_delta_archive": {
+        "path": "temp/build/v2-linux-pointer-target-initial-source.zip",
+        "sha256": "a8e77791c25cf970f8c2d087e2cf701e96f484834956110e73d9394bb05e0478"
+      }
+    },
+    {
+      "type_errors": 1,
+      "report": {
+        "path": "temp/build/v2-linux-pointer-target-pyright-initial.json",
+        "sha256": "adffdbc96a2bd6c6d166a182c05a21393c41d4d6891a59f52be8baf19f9c3aba"
+      },
+      "finding": "Redundant cast after exact int type guard removed; also bound the point reader to the already-selected native window and added actual binding, geometry and depth regressions. No type-ignore or relaxed runtime guard."
+    }
+  ],
+  "physical_point_contract": {
+    "coordinates": "Physical pixels relative to the currently selected X11 window; no AT-SPI conversion or user global point input",
+    "point_components": [
+      0,
+      8191
+    ],
+    "root_maximum_edge": 32767,
+    "maximum_hit_lineage_including_root": 16,
+    "maximum_children_per_window": 256,
+    "selected_window_cannot_be_replaced_by_same_pid_window": true,
+    "selected_window_border_zero": true
+  },
+  "native_hit_contract": "TranslateCoordinates from selected window to root then root to every actual mapped hit child. QueryTree validates direct parents, roots, exact bounded children/stack order; native geometry and roundtrip coordinates must agree. Xorg chooses shape-aware first-child hit; no client-side rectangular winner inference.",
+  "receiver_contract": "WM ancestors may be another process. Path must include original selected native window; every node from it to the leaf is matched by actual XRes PID, process creation identity, executable and UID. Viewable same-process InputOnly descendants are accepted; foreign descendants and same-PID unrelated top-level windows rejected.",
+  "observation_contract": "Existing continuous window/focus/physical-release proof brackets each read. Preparation double-reads hit/geometry/client fingerprint around per-connection StructureNotify/SubstructureNotify; root/path parent subscriptions latch new or reordered siblings. Original FocusChange retained, masks excluded from identity. Cancellation/failure cannot revive the old point. External native window connection/session remain owned externally.",
+  "business_or_mouse_dispatch_enabled": false,
+  "native_pointer_motion_or_click_executed": false,
+  "atspi_physical_coordinate_binding_implemented": false,
+  "button_mapping_or_native_mouse_event_ownership_implemented": false,
+  "native_grab_routing_or_application_postcondition_proven": false,
+  "protocol_sources": [
+    {
+      "url": "https://xorg.freedesktop.org/archive/X11R7.5/doc/man/man3/XTranslateCoordinates.3.html",
+      "scope": "Same-screen coordinates and mapped child response"
+    },
+    {
+      "url": "https://github.com/XQuartz/xorg-server/blob/master/dix/dispatch.c",
+      "scope": "ProcTranslateCoords traverses actual child order and tests bounding/input shapes; reviewed upstream source during development, not native runtime validation"
+    }
+  ],
+  "native_configuration": "All Xorg/logind/AT-SPI connections and replies injected; actual binary reader and complete existing WindowBinding exercised. Default offline guard unchanged. Frozen runtime import and hashes checked before/after. Approved Windows asyncio execution, no user services stopped or environment rebuilt.",
+  "native_linux_executed": false,
+  "real_account_model_device_native_desktop_or_72h_executed": false,
+  "registered_strict_scope": 360,
+  "registered_scope_fully_rechecked": false,
+  "ruff_and_format_modified_files_passed": true,
+  "full_suite_run": false,
+  "whole_v2_development_complete": false,
+  "whole_v2_accepted": false,
+  "next": "Complete native pointer mapping/source state, move/press/release packet ownership, semantic-control physical-point binding, per-action business permit and concrete application readback; generic provider association, Tab/Escape/focus outcomes and Wayland input remain open. Full suite follows whole V2 development freeze."
+}

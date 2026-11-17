@@ -184,6 +184,7 @@ class InputWire(Wire):
         self.changed = False
         self.focus: int | None = None
         self.structures: set[int] = set()
+        self.pointer_parents: set[int] = set()
         self.events = 0
         self.key_events: KeyEvents | None = None
         self.key_lease: KeyLease | None = None
@@ -232,7 +233,12 @@ class InputWire(Wire):
             if self.focus is None or unpack("I", header, 4)[0] != self.focus:
                 raise failure("desktop_input_unverified")
         elif header[0] in range(16, 28):
-            if self.focus is None or unpack("I", header, 8)[0] not in self.structures | {self.focus}:
+            if self.focus is None or (
+                unpack("I", header, 8)[0] not in self.structures | {self.focus}
+                and not (
+                    header[0] in {16, 17, 18, 19, 21, 22, 24, 26} and unpack("I", header, 4)[0] in self.pointer_parents
+                )
+            ):
                 raise failure("desktop_input_unverified")
         else:
             raise failure("desktop_input_unverified")
@@ -252,6 +258,7 @@ class X11Input:
         self.topology: str | None = None
         self.armed = False
         self.lineage_watched = False
+        self.pointer_watched = False
 
     async def open(self) -> None:
         self.connection = await self._connect(self.inspector)
@@ -324,6 +331,32 @@ class X11Input:
         self.wire.structures.update(windows)
         for window in windows[1:]:
             await self.wire.send(2, struct.pack("<III", window, 1 << 11, 1 << 17))
+        await self.check()
+
+    async def watch_pointer_lineage(self, windows: tuple[int, ...]) -> None:
+        """Watch one hit path and new/reordered siblings; no redirection, pointer motion or external connection."""
+        wire = self.wire
+        if (
+            wire is None
+            or wire.setup is None
+            or not self.armed
+            or self.pointer_watched
+            or not 2 <= len(windows) <= 16
+            or len(set(windows)) != len(windows)
+            or windows[0] != wire.setup.root
+            or any(type(window) is not int or not 2 <= window <= 0xFFFFFFFF for window in windows)
+        ):
+            raise failure("desktop_input_unverified")
+        self.pointer_watched = True
+        wire.structures.update(windows)
+        wire.pointer_parents.update(windows[:-1])
+        for window in windows:
+            mask = 1 << 17
+            if window == wire.focus:
+                mask |= 1 << 21
+            if window in wire.pointer_parents:
+                mask |= 1 << 19
+            await wire.send(2, struct.pack("<III", window, 1 << 11, mask))
         await self.check()
 
     async def close(self) -> bool:

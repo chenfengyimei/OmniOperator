@@ -12,6 +12,20 @@
 
 后续仍需把控件身份与所选窗口的关联、逐次业务授权、Unicode/键映射、鼠标遮挡和派发确定性接入实际 worker。AT-SPI 的对象树与 Component 坐标接口不能单独证明 X11 窗口句柄，不能因为本批焦点证明通过而启用通用输入。Wayland 控制另走独立 RemoteDesktop 系统许可，不能复用 ScreenCast 读取授权。
 
+## 物理窗口点的原生命中预检（2026-11-17）
+
+`WindowFocus.prepare_pointer/verify_pointer`借用已核验焦点和连续窗口的同一输入监测连接，`linux_pointer_target.py`只接收选定原生窗口内的物理像素点，不接收任意屏幕坐标、不从AT-SPI边界推测缩放，也不移动或点击。输入点限窗口内且小于8192；根屏幕必须可用、零偏移/边框且能以有符号16位坐标表示。准备时和使用前均以原焦点/物理输入/窗口代次检查夹住读取，失败或取消使旧准备失效。
+
+通过Xorg `TranslateCoordinates`把所选窗口的点变成根坐标，再沿服务器实际返回的命中子窗口向下读取，最多16层、每层256子项。`QueryTree`核对根、真实直接父子关系和堆叠清单；长度、重复、循环、链外子项、越界和不同screen均拒绝。不是按矩形选一个同PID窗口：Xorg实现会按真实堆叠顺序结合bounding/input shape返回命中子窗口，因此透明输入区域可穿透，实际覆盖所选窗口的其他窗口拒绝。
+
+窗口管理器外框可属于另一进程，但命中路径必须经过原先选定窗口；从该窗口到实际接收子窗口的每一级都通过XRes核对真实客户端PID、进程创建身份、可执行文件与UID。支持本进程的可见InputOnly接收子窗口，不因它不是键盘焦点而改换焦点。双读核对点、窗口/子项、几何和客户端指纹，观察订阅的事件掩码不参与指纹；准备后的再次读取仍必须相同。
+
+原输入守卫新增一次性的命中路径订阅，保留已有FocusChange；在根及路径父节点订阅SubstructureNotify，在路径上订阅StructureNotify，先登记允许的父节点再发订阅。新建/重排/映射的未知兄弟窗口也会锁存变化，不把它误当本次输入或静默忽略。订阅只影响本连接；关闭沿原WindowFocus回收监测连接，外部窗口租约与会话仍由原所有者持有。
+
+这完成当前物理点的原生读取链，不证明AT-SPI控件与物理坐标的换算、主动/被动输入抓取、按钮映射、事件归属或应用处理结果。业务`click`仍未开放；后续须接鼠标映射与逐次许可、移动/按下/抬起的真实归属和释放、控件命中及应用后验，不能把预检通过当成允许派发。
+
+60项新离线二进制协议/完整窗口绑定回归与252项原输入、窗口、按键、文本、语义worker及架构/类型合同，共312不同专项通过；修改3运行文件strict零错误/警告，360仅登记，未整范围或全量。初轮50专项通过，唯一冗余cast类型诊断及原源码留档后修正并扩充边界用例。没有真实Linux或鼠标输入。见[本批证据](evidence/v2-linux-pointer-target.json)。协议依据：[X11 TranslateCoordinates](https://xorg.freedesktop.org/archive/X11R7.5/doc/man/man3/XTranslateCoordinates.3.html)、[Xorg实际命中实现](https://github.com/XQuartz/xorg-server/blob/master/dix/dispatch.c)的`ProcTranslateCoords`。
+
 ## 已接通的受限文本追加
 
 `linux_text.py` 只向选定 AT-SPI 非密码可编辑对象执行一次 `EditableText.InsertText`。观察时须能完整读取最多 511 字符原文、核验 CaretOffset 位于末尾及 GetNSelections 为零；上下文进入原节点 actions 指纹，支持的节点才提供 `type_text`。不支持这些可选方法的提供者继续保留原语义动作。
