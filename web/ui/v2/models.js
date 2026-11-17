@@ -507,6 +507,7 @@ export function mountModels({ api, wrap, getAgent, getGeneration }) {
 
   $('mo-reset').addEventListener('click', () => {
     $('mo-api-key').value = '';
+    $('mo-headers').value = '';
     selectProvider(provider);
     setStatus('表单已清空。', 'idle');
     steps(1);

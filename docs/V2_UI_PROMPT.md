@@ -54,7 +54,7 @@ section.page[id]                  ← 23 个页面分区，id 与 data-page 一�
 
 - 页面切换只允许通过 `[data-page]` 按钮点击触发；`test_v2_navigation_ui.py` 会在 390/1024 两个宽度逐项点击并断言目标分区可见。
 - 任何新增可见按钮，如果文案与既有页面名相同（如"设置"），必须换名或用 `title/aria-label` 区分，避免 `get_by_role(..., exact=True)` 命中两个元素。
-- 资源版本串：`index.html` 与所有模块 import 当前为 `?v=20261116v132`。**任何 HTML/CSS/JS 改动都要整体升级版本号**（v58、v59…），并同步：
+- 资源版本串：`index.html` 与所有模块 import 当前为 `?v=20261116v133`。**任何 HTML/CSS/JS 改动都要整体升级版本号**（v58、v59…），并同步：
   - `agent/tests/test_v2_mcp_ui.py` 里的 `assert "main.js?v=..." in page.content()`
   - `docs/V2_AI_CONTINUATION_PROMPT.md` 的版本说明
   - 本文第 3 节这里的版本号
@@ -66,7 +66,7 @@ section.page[id]                  ← 23 个页面分区，id 与 data-page 一�
 
 Portal共享的系统同意与业务授权审计独立完成。`authorization_pending=true` 时显示“正在确认共享授权，请稍后查询共享状态”，保存按钮保持不可用；审计完成后由所有者点击查询更新，不增加后台轮询或自动截图。该字段仅描述确认状态，不能替代 `authorized`、截图许可或来源检查；审计失败继续显示不可用并回收辅助进程。
 
-**直接复用 V1 界面**（2026-11-13/14，资源版本 `20261116v132`）：按所有者要求，不再自创视觉，
+**直接复用 V1 界面**（2026-11-13/14，资源版本 `20261116v133`）：按所有者要求，不再自创视觉，
 把 V1 的 `components.css` / `frame.css` / `workbench.css` **原样复制**到 `web/ui/v2/v1/`。
 **声明内容一字未改**，只做三类必要映射：
 
@@ -146,6 +146,8 @@ V2 结构已改用 V1 类名，让复制来的样式真正命中：
 - **选择器先读源码再写**：`#objects-list`（实际 `#object-list`）、`[data-settings="persona"]`（实际 `[data-settings-page="settings"]`）都是猜错导致的假失败。
 - **整页缩图里小字号中文的「删除线」是摩尔纹**：设置页标签/按钮曾看似被横线穿过，1:1 裁剪确认文字干净、全祖先链 `text-decoration:none`。判定文字装饰请用原始分辨率裁剪或计算样式，不要看缩略整页图。
 - **`backdrop-filter` 会让 Playwright 稳定性判定误报元素不可见**：分类导航吸顶加玻璃模糊后 `.click()` 超时，但元素实际可见可点。核查脚本改用 DOM `element.click()` 更可靠。
+- **像素对比度按「固定阈值选离背景最远色」会误选装饰色**：小字号等宽文字（如请求头 textarea，10.5px mono）笔画像素仅 40~50 个，被高频的边框/抗锯齿色（数百~上千像素）压过。曾把 dark 边框 (30,31,31)、light 抗锯齿 (230,230,231) 当文字，算出 1.19/1.24 虚警；真实文字色 dark (225,222,217) 对比 14.7、light (28,32,41) 对比 16.17。正确判据：取**出现频次前 20 的非背景色**中离背景最远者（文字笔画色必在其中）。采样前先 `blur()` 避开焦点环青色边缘。
+- **双主题共享同一实例 home 会撞唯一约束**：dark 先建了 opencode-go 配置，light 的 `findConfigByRef` 异步竞态未找到就走 POST 新建 → 409 `data_constraint`。这是测试设计缺陷不是产品缺陷（产品正确拒绝重复）。保存类核查**每主题用独立实例**。另：`#error` 全局共享且 `wrap` 只设 `hidden=true` 不清文本，读错误须查 `hidden` 而非 `inner_text()`，否则读到先前操作的残留。
 
 **已知遗留问题**：
 

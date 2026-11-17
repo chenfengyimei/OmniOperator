@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`b4295571fa3b88e9db6677d70dc13eb94bb6593479c64c4d284eb4c11fc797d9`。包含 65 个职责模块、745 个源码/界面文件。
+源码指纹：`54502d5c590cfc6aad71149e074c5504730cf8f490651c05452f1b65d8bc7f22`。包含 65 个职责模块、745 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -449,7 +449,7 @@
 | [web/ui/v2/memory-organization.js](../../web/ui/v2/memory-organization.js) | 465 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/memory-semantics.js](../../web/ui/v2/memory-semantics.js) | 252 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/model-output.js](../../web/ui/v2/model-output.js) | 30 | 原生源码、平台脚本或界面资源 |
-| [web/ui/v2/models.js](../../web/ui/v2/models.js) | 529 | 原生源码、平台脚本或界面资源 |
+| [web/ui/v2/models.js](../../web/ui/v2/models.js) | 530 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/operations.js](../../web/ui/v2/operations.js) | 352 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/people.js](../../web/ui/v2/people.js) | 319 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/qq.js](../../web/ui/v2/qq.js) | 181 | 原生源码、平台脚本或界面资源 |

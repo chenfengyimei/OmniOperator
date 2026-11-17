@@ -1,7 +1,7 @@
 {
   "batch": "v2-ui-connection-stability-v128",
   "recorded_at": "2026-11-15",
-  "resource_version_final": "20261116v132",
+  "resource_version_final": "20261116v133",
   "v1_alignment": {
     "summary": "用户提供 V1 正式工作台截图后，直接精读 web/ui/workbench.css 的 V1 实现并逐项移植，使 V2 结构与 V1 一致（而非自创风格）。",
     "ported_from_v1": [
@@ -1030,5 +1030,21 @@
     ],
     "覆盖口径": "全量运行于 capture 补列修复之前；修复仅 2 行测试补列，受影响面（capture 全文件 6 项）已专项复跑通过，其余 5990 项与该改动无关，按专项验证纪律不重复全量。",
     "扫描": "全部含 command.upgrade 的 test_v2_* 已扫描：仅 media/wheel_install 未补列，二者不经当前仓库写 model_options（全量中通过），无需补列。"
+  },
+  "ui_audit_v133": {
+    "需求": "所有者要求核实 UI 样式与 CSS 是否正常。",
+    "核查范围与结果": {
+      "全站(_audit_all)": "76/76 PASS（输入区/工具条/右栏页签/调用链/消息操作/对比度/焦点/CSP/窄屏抽屉，双主题+390/760）",
+      "设置中心(_settings_audit)": "56/56 PASS（22分类×3视口×2主题，布局/溢出/控件外观/对比度/可达性）",
+      "模型接入(_models_ui_check)": "39/39 PASS（9供应商含OpenCodeGo×3视口×2主题、预设填充、请求头样式/保存/回填/重置、离线闸门）",
+      "守卫+模型页pytest": "37 passed（glass/design/inventory/embed 33 + models_ui 4）"
+    },
+    "发现并修复的真缺陷": "清空表单按钮(mo-reset)只清 API Key 与 selectProvider，遗漏清空自定义请求头 #mo-headers。已补一行清空，模型页 pytest 4 passed、浏览器重置判据双主题通过。",
+    "证伪的测量虚警": [
+      "请求头对比度 1.19/1.24：像素法按固定阈值选离背景最远色，误选边框/抗锯齿装饰色(dark(30,31,31)1216px、light(230,230,231)689px)而非文字。小字号等宽文字笔画仅40~50px被压过。改取高频前20非背景色中离bg最远者=真实文字色(dark(225,222,217)对比14.7、light(28,32,41)对比16.17)，远超4.5。",
+      "light保存约束错误：dark/light共享同一实例home，dark已建opencode-go配置，light的findConfigByRef异步竞态未找到走POST新建撞唯一约束409。产品行为正确(拒重复)，改每主题独立实例后通过。#error全局共享且wrap只设hidden不清文本，读错误须查hidden而非inner_text。"
+    ],
+    "版本": "资源串整体 v132→v133（43处：前端7文件+两份文档+本批证据），mcp测试动态读版本无需改。",
+    "未验收": "真实供应商端到端、真实平台账号、72小时长稳仍基于离线实例，未销账。"
   }
 }
