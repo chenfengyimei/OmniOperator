@@ -9,6 +9,7 @@ from typing import Protocol
 from .linux_bus import failure
 from .linux_input import X11Input
 from .linux_x11_wire import unpack
+from .linux_xkb import XkbKeyboard
 
 SYMBOLS = {
     "Enter": 0xFF0D,
@@ -40,6 +41,7 @@ class KeyboardMapping:
         self._key: str | None = None
         self._code: int | None = None
         self._fingerprint: bytes | None = None
+        self._xkb: XkbKeyboard | None = None
 
     async def _read(self, key: str) -> tuple[int, bytes]:
         wire = self.focus.monitor.wire
@@ -80,7 +82,12 @@ class KeyboardMapping:
         # Only the mask is inspected; pointer coordinates are not retained.
         if unpack("H", pointer, 24)[0]:
             raise failure("desktop_input_held")
-        fingerprint = hashlib.sha256(bytes([minimum, maximum, stride, slots]) + mapping[32:] + modifiers[32:]).digest()
+        if self._xkb is None:
+            raise failure("desktop_input_unverified")
+        server = await self._xkb.read_key(code, symbol)
+        fingerprint = hashlib.sha256(
+            bytes([minimum, maximum, stride, slots]) + mapping[32:] + modifiers[32:] + server
+        ).digest()
         return code, fingerprint
 
     async def prepare(self, key: object) -> int:
@@ -92,6 +99,10 @@ class KeyboardMapping:
         self._key = key
         try:
             await self.focus.check()
+            if self.focus.monitor.wire is None:
+                raise failure("desktop_input_unverified")
+            self._xkb = XkbKeyboard(self.focus.monitor.wire)
+            await self._xkb.open()
             original = await self._read(key)
             await self.focus.check()
             if await self._read(key) != original:

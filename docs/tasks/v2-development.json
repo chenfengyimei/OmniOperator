@@ -58,7 +58,7 @@
           },
           "remaining": [
             "通用键鼠的控件与原生窗口可靠关联",
-            "应用XKB行为、事件路由与实际派发/介入证明；只读核心键盘映射预检和已接通的直接文本插入均不能替代"
+            "自身输入区分、实际派发/释放及应用结果核验；只读核心/XKB服务器预检和直接文本插入均不能替代"
           ],
           "addressed_unicode_append": {
             "status": "implemented_scoped_passed",
@@ -70,6 +70,11 @@
             "evidence": "docs/evidence/v2-linux-keyboard.json",
             "application_xkb_or_dispatch_proven": false,
             "global_keyboard_enabled": false
+          },
+          "server_xkb_preflight": {
+            "status": "implemented_scoped_passed",
+            "evidence": "docs/evidence/v2-linux-xkb.json",
+            "native_dispatch_enabled": false
           }
         }
       ]

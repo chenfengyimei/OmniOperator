@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "b5d50aa2ccc0e0b033e4901a66ec0d505bb8b2d806e73923cbc2bce5724b6128",
+  "source_sha256": "92f59fe574ee61650182a3e1779708be26d180c6f877e2092f28805e02fe09cd",
   "modules": [
     {
       "id": "v2-domain",
@@ -332,6 +332,7 @@
         "agent/src/omni/adapters/platform/linux_x11.py",
         "agent/src/omni/adapters/platform/linux_x11_socket.py",
         "agent/src/omni/adapters/platform/linux_x11_wire.py",
+        "agent/src/omni/adapters/platform/linux_xkb.py",
         "agent/src/omni/adapters/platform/macos_helper.py",
         "agent/src/omni/adapters/platform/macos_service.py",
         "agent/src/omni/adapters/platform/macos_service_state.py",
@@ -424,7 +425,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 58402,
+      "lines": 58587,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -26311,7 +26312,7 @@
       "path": "agent/src/omni/adapters/platform/linux_input.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.linux_input",
-      "lines": 209,
+      "lines": 213,
       "imports": [
         "omni.adapters.platform.linux_bus",
         "omni.adapters.platform.linux_session",
@@ -26351,7 +26352,7 @@
         },
         {
           "name": "InputWire.read",
-          "line": 95,
+          "line": 96,
           "kind": "function",
           "parameters": [
             "self",
@@ -26363,7 +26364,7 @@
         },
         {
           "name": "InputWire.event",
-          "line": 100,
+          "line": 101,
           "kind": "function",
           "parameters": [
             "self",
@@ -26375,12 +26376,12 @@
         },
         {
           "name": "X11Input",
-          "line": 121,
+          "line": 125,
           "kind": "class"
         },
         {
           "name": "X11Input.__init__",
-          "line": 122,
+          "line": 126,
           "kind": "function",
           "parameters": [
             "self",
@@ -26396,7 +26397,7 @@
         },
         {
           "name": "X11Input.open",
-          "line": 135,
+          "line": 139,
           "kind": "function",
           "parameters": [
             "self"
@@ -26405,7 +26406,7 @@
         },
         {
           "name": "X11Input.released",
-          "line": 148,
+          "line": 152,
           "kind": "function",
           "parameters": [
             "self"
@@ -26414,7 +26415,7 @@
         },
         {
           "name": "X11Input.arm",
-          "line": 159,
+          "line": 163,
           "kind": "function",
           "parameters": [
             "self"
@@ -26423,7 +26424,7 @@
         },
         {
           "name": "X11Input.check",
-          "line": 177,
+          "line": 181,
           "kind": "function",
           "parameters": [
             "self"
@@ -26432,7 +26433,7 @@
         },
         {
           "name": "X11Input.watch_lineage",
-          "line": 185,
+          "line": 189,
           "kind": "function",
           "parameters": [
             "self",
@@ -26444,7 +26445,7 @@
         },
         {
           "name": "X11Input.close",
-          "line": 208,
+          "line": 212,
           "kind": "function",
           "parameters": [
             "self"
@@ -26458,21 +26459,22 @@
       "path": "agent/src/omni/adapters/platform/linux_keyboard.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.linux_keyboard",
-      "lines": 118,
+      "lines": 129,
       "imports": [
         "omni.adapters.platform.linux_bus",
         "omni.adapters.platform.linux_input",
-        "omni.adapters.platform.linux_x11_wire"
+        "omni.adapters.platform.linux_x11_wire",
+        "omni.adapters.platform.linux_xkb"
       ],
       "symbols": [
         {
           "name": "FocusPort",
-          "line": 29,
+          "line": 30,
           "kind": "class"
         },
         {
           "name": "FocusPort.check",
-          "line": 32,
+          "line": 33,
           "kind": "function",
           "parameters": [
             "self"
@@ -26481,12 +26483,12 @@
         },
         {
           "name": "KeyboardMapping",
-          "line": 35,
+          "line": 36,
           "kind": "class"
         },
         {
           "name": "KeyboardMapping.__init__",
-          "line": 36,
+          "line": 37,
           "kind": "function",
           "parameters": [
             "self",
@@ -26498,7 +26500,7 @@
         },
         {
           "name": "KeyboardMapping._read",
-          "line": 44,
+          "line": 46,
           "kind": "function",
           "parameters": [
             "self",
@@ -26510,7 +26512,7 @@
         },
         {
           "name": "KeyboardMapping.prepare",
-          "line": 86,
+          "line": 93,
           "kind": "function",
           "parameters": [
             "self",
@@ -26522,7 +26524,7 @@
         },
         {
           "name": "KeyboardMapping.verify",
-          "line": 107,
+          "line": 118,
           "kind": "function",
           "parameters": [
             "self"
@@ -28714,6 +28716,106 @@
         }
       ],
       "summary": "Small bounded X11 read protocol on an already verified socket; no discovery, input or reconnect."
+    },
+    {
+      "path": "agent/src/omni/adapters/platform/linux_xkb.py",
+      "module": "v2-adapters",
+      "python_module": "omni.adapters.platform.linux_xkb",
+      "lines": 170,
+      "imports": [
+        "omni.adapters.platform.linux_bus",
+        "omni.adapters.platform.linux_input",
+        "omni.adapters.platform.linux_x11_wire"
+      ],
+      "symbols": [
+        {
+          "name": "XkbKeyboard",
+          "line": 20,
+          "kind": "class"
+        },
+        {
+          "name": "XkbKeyboard.__init__",
+          "line": 21,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "wire"
+          ],
+          "annotations": {
+            "wire": "InputWire"
+          }
+        },
+        {
+          "name": "XkbKeyboard._reply",
+          "line": 28,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "data",
+            "size"
+          ],
+          "annotations": {
+            "data": "bytes",
+            "size": "int | None"
+          }
+        },
+        {
+          "name": "XkbKeyboard.open",
+          "line": 40,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "XkbKeyboard._state",
+          "line": 67,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "XkbKeyboard._controls",
+          "line": 78,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "XkbKeyboard._map",
+          "line": 93,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "code",
+            "symbol"
+          ],
+          "annotations": {
+            "code": "int",
+            "symbol": "int"
+          }
+        },
+        {
+          "name": "XkbKeyboard.read_key",
+          "line": 154,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "code",
+            "symbol"
+          ],
+          "annotations": {
+            "code": "int",
+            "symbol": "int"
+          }
+        }
+      ],
+      "summary": "Read-only XKB server state/actions on the existing input connection; no layout mutation, device acquisition or event dispatch."
     },
     {
       "path": "agent/src/omni/adapters/platform/macos_helper.py",

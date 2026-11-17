@@ -38,4 +38,14 @@ Linux 桌面协议只放行 AT-SPI 的这一前台动作；`press_key`、`click`
 
 31 项新回归和固定副本 150 项受影响调用方通过，修改 3 后端文件 strict 零错误/警告。受限环境曾在 Windows asyncio 建立内部 socketpair 的 accept 阶段停住，尚未进入被测逻辑；保留诊断栈后同一离线专项在获准环境执行通过，未改测试/生产超时、网络闸门或断言。没有真实 Linux 输入或全量，见[映射证据](evidence/v2-linux-keyboard.json)。
 
-协议依据：[X11 Protocol](https://xorg.freedesktop.org/archive/X11R7.7/doc/xproto/x11protocol.html) 的 GetInputFocus、QueryTree、ChangeWindowAttributes、GetKeyboardMapping、GetModifierMapping、QueryPointer 和 MappingNotify；[AT-SPI Accessible](https://gnome.pages.gitlab.gnome.org/at-spi2-core/devel-docs/doc-org.a11y.atspi.Accessible.html) 与 [Component](https://raw.githubusercontent.com/GNOME/at-spi2-core/main/xml/Component.xml)。
+## 同连接 XKB 服务器预检
+
+核心按键预检现要求同一已核验输入连接上的 XKB 1.0。`linux_xkb.py` 协商 XKEYBOARD，固定使用核心键盘，不创建/切换设备；先安装事件解析器，再订阅键盘更换、映射、状态、控制和兼容映射的完整变化。任何这些通知都会使原证明失效，既有 256 事件/1 MiB 总接收上界保持，不记录输入内容。
+
+服务器状态、控制及按键描述的 device ID 必须一致。读取 effective/base/latched/locked、compatibility/lookup/grab 修饰状态、组状态与按钮，要求均释放/无变换；不能仅凭核心 QueryKeymap 的物理释放推断。拒绝 SlowKeys、BounceKeys、StickyKeys、MouseKeys、Overlay 及未知控制，原设置不改动。控制读取精确 92 字节，前后重新核对有意义字段，协议填充不进指纹。
+
+GetMap 只请求该候选 keycode 的 symbols/actions/behaviors/explicit/真实与虚拟修饰映射，最多 1024 字节、64 个符号。精确核对设备、键码范围、请求部件、各返回范围和长度；所有实际 XKB 符号位置必须为同一已审批特殊键，不推测客户端的键类型或组翻译。只接受隐式零动作或显式 SA_NoAction；重定向、切组、控制变化等动作、非默认行为及修饰绑定均拒绝。读取前后再次核对状态/控制，并与原双读完整指纹和焦点/输入屏障组合；恢复旧值不能复活旧计划。
+
+这补齐服务器侧检查，仍不证明某应用如何处理按键，也不发送 XTest。窗口/节点关联、自身输入区分、实际派发与释放仍在开发。专项和类型结果见[XKB证据](evidence/v2-linux-xkb.json)，没有真实 Linux、原生输入或全量结论。
+
+协议依据：[X11 Protocol](https://xorg.freedesktop.org/archive/X11R7.7/doc/xproto/x11protocol.html) 的 GetInputFocus、QueryTree、ChangeWindowAttributes、GetKeyboardMapping、GetModifierMapping、QueryPointer 和 MappingNotify；[XKB协议](https://xorg.freedesktop.org/releases/X11R7.7/doc/kbproto/xkbproto.html)与[XCB生成布局](https://xcb.freedesktop.org/manual/xkb_8h_source.html)；[AT-SPI Accessible](https://gnome.pages.gitlab.gnome.org/at-spi2-core/devel-docs/doc-org.a11y.atspi.Accessible.html) 与 [Component](https://raw.githubusercontent.com/GNOME/at-spi2-core/main/xml/Component.xml)。

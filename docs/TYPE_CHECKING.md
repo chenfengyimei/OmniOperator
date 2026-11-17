@@ -22,6 +22,7 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 | `agent/src/omni/adapters/platform/linux_text.py` | 人工聚焦AT-SPI文本末尾的单次Unicode插入、逐次许可和完整回读 |
 | `agent/src/omni/adapters/platform/linux_foreground.py` | 连续窗口与原生焦点祖先链、服务器及实际接收客户端的只读证明 |
 | `agent/src/omni/adapters/platform/linux_keyboard.py` | 当前服务器核心键盘/修饰键映射的有界读取与焦点绑定复核，不授予输入权 |
+| `agent/src/omni/adapters/platform/linux_xkb.py` | 同连接XKB状态、控制、按键动作/行为预检及配置变化订阅，不派发输入 |
 | `agent/src/omni/domain/linux_window_leases.py` | 持续窗口身份的精确有界私有 IPC 与目标字段绑定 |
 | `agent/src/omni/adapters/platform/linux_window_leases.py` | 同连接生命周期订阅、窗口代次及读取前后屏障 |
 | `agent/src/omni/adapters/platform/linux_lease_client.py` | 持续只读辅助进程、串行 RPC、有界通信及真实回收归属 |
@@ -404,7 +405,7 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 
 ### 3.1 adapters 类型收口（第 214 批）
 
-全部 **236 个 adapters 已纳入 strict**；合同范围为 **351 文件**（domain 57、application 45、adapters 236、composition 13）。新增事件通知、空间管理、V2独立长跑工具、Linux持续窗口/焦点/按键映射证明、受限前台文本及独立控制许可worker/父进程/业务用例后，历史335文件结论仅代表原固定候选；开发中只复核修改范围，整范围复验留整个V2开发完成后的验收。原 P4/P5/P6 的 24 个待办模块已完成，不再是当前施工清单。
+全部 **237 个 adapters 已纳入 strict**；合同范围为 **352 文件**（domain 57、application 45、adapters 237、composition 13）。新增事件通知、空间管理、V2独立长跑工具、Linux持续窗口/焦点/按键映射及XKB服务器预检、受限前台文本及独立控制许可worker/父进程/业务用例后，历史335文件结论仅代表原固定候选；开发中只复核修改范围，整范围复验留整个V2开发完成后的验收。原 P4/P5/P6 的 24 个待办模块已完成，不再是当前施工清单。
 
 统计以本页逐文件表为准；domain/application 各一个仅含说明文字的包初始化文件未列入该合同范围。V1 与 tests 尚未纳入，因此**全仓严格类型尚未完成**。
 

@@ -87,6 +87,7 @@ class InputWire(Wire):
     def __init__(self, connection: socket.socket, check: Callable[[], None]) -> None:
         super().__init__(connection, check)
         self.opcode: int | None = None
+        self.xkb_event: int | None = None
         self.changed = False
         self.focus: int | None = None
         self.structures: set[int] = set()
@@ -101,7 +102,10 @@ class InputWire(Wire):
         self.events += 1
         if self.events > 256 or header[0] & 0x80:
             raise failure("desktop_input_unverified")
-        if header[0] == 35 and header[1] == self.opcode:
+        if self.xkb_event is not None and header[0] == self.xkb_event:
+            if header[1] not in {0, 1, 2, 3, 7}:
+                raise failure("desktop_input_unverified")
+        elif header[0] == 35 and header[1] == self.opcode:
             length = unpack("I", header, 4)[0] * 4
             category = unpack("H", header, 8)[0]
             if category not in RAW | DEVICE or length > 4096:

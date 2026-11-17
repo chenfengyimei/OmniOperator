@@ -6,6 +6,7 @@ import struct
 import pytest
 from test_v2_linux_foreground import FocusPeer, prepared
 from v2_x11_helpers import ROOT, reply, setup_bytes
+from v2_xkb_helpers import XkbFixture
 
 from omni.adapters.platform.linux_keyboard import SYMBOLS
 from omni.adapters.platform.linux_x11_wire import setup_reply
@@ -25,8 +26,11 @@ class KeyboardPeer(FocusPeer):
         self.same_screen = 1
         self.map_extra = b""
         self.on_read = None
+        self.xkb = XkbFixture()
 
     async def sock_sendall(self, connection, packet):
+        if self.authenticated and (packet[0] == 131 or packet[0] == 98 and b"XKEYBOARD" in packet):
+            return await self.xkb.respond(self, packet)
         if not self.authenticated or packet[0] not in {38, 101, 119}:
             return await super().sock_sendall(connection, packet)
         self.sequence += 1
@@ -71,8 +75,9 @@ def test_one_exact_native_special_key_is_read_twice_bound_to_focus_and_never_syn
             expected = 40 + list(SYMBOLS).index(key)
             assert await focus.prepare_key(key) == expected and await focus.verify_key() == expected
             assert len([row for row in peer.sent if row[0] == 101]) == 3
-            assert all(row[0] in {2, 15, 38, 43, 44, 98, 101, 119, 128, 130} for row in peer.sent)
+            assert all(row[0] in {2, 15, 38, 43, 44, 98, 101, 119, 128, 130, 131} for row in peer.sent)
             assert not any(opcode == 130 and minor not in {46, 47, 48} for opcode, minor, _ in peer.sent)
+            assert not any(opcode == 131 and minor not in {0, 1, 4, 6, 8} for opcode, minor, _ in peer.sent)
             before = len(peer.sent)
             with pytest.raises(BusinessError):
                 await focus.prepare_key(key)
