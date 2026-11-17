@@ -52,6 +52,7 @@ class MCPHosts:
         self._oauth = oauth
         self._sessions: dict[tuple[str, str, int], MCPSessionPort] = {}
         self._handshakes: dict[tuple[str, str, int], dict[str, Any]] = {}
+        self._retiring: set[tuple[str, str, int]] = set()
         self._pending = 0
         self._lock = asyncio.Lock()
         self._closing = False
@@ -77,16 +78,23 @@ class MCPHosts:
             raise BusinessError("mcp_closing", "MCP sessions are draining", status=503)
         key = self._key(target)
         async with self._lock:
+            if self._closing:
+                raise BusinessError("mcp_closing", "MCP sessions are draining", status=503)
             for stale in self._server_keys(target.agent_id, target.server_id):
-                if stale != key:
-                    session = self._sessions.pop(stale)
-                    self._handshakes.pop(stale, None)
+                if stale != key or stale not in self._handshakes or stale in self._retiring:
+                    session = self._sessions[stale]
+                    self._retiring.add(stale)
                     if not await session.close(5):
                         raise BusinessError(
                             "mcp_cleanup_pending",
                             "The previous MCP process or connection was not reclaimed; reset this server",
                             status=503,
                         )
+                    self._sessions.pop(stale, None)
+                    self._handshakes.pop(stale, None)
+                    self._retiring.discard(stale)
+            if self._closing:
+                raise BusinessError("mcp_closing", "MCP sessions are draining", status=503)
             session = self._sessions.get(key)
             if session is None:
                 if len(self._sessions) >= MAX_SESSIONS:
@@ -96,15 +104,21 @@ class MCPHosts:
                 try:
                     handshake = await session.start()
                 except BaseException:
-                    self._sessions.pop(key, None)
-                    await session.close(5)
+                    self._retiring.add(key)
+                    if await session.close(5):
+                        self._sessions.pop(key, None)
+                        self._handshakes.pop(key, None)
+                        self._retiring.discard(key)
                     raise
                 self._handshakes[key] = dict(handshake)
             return {**self._handshakes.get(key, {}), **session.health()}
 
     def _require(self, target: ServerTarget) -> MCPSessionPort:
-        session = self._sessions.get(self._key(target))
-        if session is None:
+        key = self._key(target)
+        session = self._sessions.get(key)
+        if key in self._retiring:
+            raise BusinessError("mcp_cleanup_pending", "The original MCP session is still being reclaimed", status=503)
+        if session is None or self._key(target) not in self._handshakes:
             raise BusinessError(
                 "mcp_not_connected", "This MCP server is not connected; connect it explicitly first", status=503
             )
@@ -149,14 +163,29 @@ class MCPHosts:
             complete = True
             for key in self._server_keys(agent_id, server_id):
                 session = self._sessions[key]
+                self._retiring.add(key)
                 if await session.close(timeout_s):
                     self._sessions.pop(key, None)
                     self._handshakes.pop(key, None)
+                    self._retiring.discard(key)
                 else:
                     complete = False
             return complete
 
     def health(self) -> dict[str, Any]:
+        sessions: list[dict[str, Any]] = []
+        for key, session in self._sessions.items():
+            snapshot = session.health()
+            sessions.append(
+                {
+                    **snapshot,
+                    "agent_id": key[0],
+                    "server_id": key[1],
+                    "authority_epoch": key[2],
+                    "ready": key in self._handshakes and key not in self._retiring,
+                    "cleanup_pending": key in self._retiring or bool(snapshot.get("cleanup_pending")),
+                }
+            )
         return {
             "closing": self._closing,
             "resident": len(self._sessions),
@@ -164,15 +193,7 @@ class MCPHosts:
             "max_sessions": MAX_SESSIONS,
             "max_pending": MAX_PENDING,
             "oauth": self._oauth.health() if self._oauth is not None else {"available": False},
-            "sessions": [
-                {
-                    "agent_id": key[0],
-                    "server_id": key[1],
-                    "authority_epoch": key[2],
-                    **session.health(),
-                }
-                for key, session in self._sessions.items()
-            ],
+            "sessions": sessions,
         }
 
     def stop_accepting(self) -> None:
@@ -185,9 +206,11 @@ class MCPHosts:
             complete = True
             for key, session in list(self._sessions.items()):
                 remaining = max(0, deadline - asyncio.get_running_loop().time())
+                self._retiring.add(key)
                 if await session.close(remaining):
                     self._sessions.pop(key, None)
                     self._handshakes.pop(key, None)
+                    self._retiring.discard(key)
                 else:
                     complete = False
             return complete

@@ -1,0 +1,220 @@
+{
+  "schema": 1,
+  "date": "2026-11-18",
+  "base_commit": "1e62fe08055492e819ee7cfaeabdbc6b77604dd3",
+  "status": "mcp_business_and_original_session_ownership_implemented_scoped_passed",
+  "source_files": {
+    "agent/src/omni/application/mcp.py": "31c81965dd52c53baa65e188325f05902a77aa4c5c0bd1b3ae2eb24966116cad",
+    "agent/src/omni/adapters/mcp/hosts.py": "6627d523a5e3bf2c58c5283d1556fb55fc14ced88c4d3579c09424b8e6ef1a5a",
+    "agent/tests/test_v2_mcp_ownership.py": "4f64580b72a730febb184ca19a20b0812df5d532f69f6d60160f7d570f073c2c"
+  },
+  "source_manifests": [
+    {
+      "path": "temp/build/v2-mcp-ownership-source-r1.json",
+      "sha256": "bb275b95d9d108d30e91f819b6062fb2a363dc05adf9d1f10bd474eabf1d5492"
+    },
+    {
+      "path": "temp/build/v2-mcp-ownership-source-r2.json",
+      "sha256": "c878260707995bffb3f7bee7fd35c79486904b61805d65d04b2dea32b38690c6"
+    },
+    {
+      "path": "temp/build/v2-mcp-ownership-source-r3.json",
+      "sha256": "0ef296540602327cfe36078fbd74814902c234ca97b86a54bf20748b6c6deff1"
+    },
+    {
+      "path": "temp/build/v2-mcp-ownership-source-r4.json",
+      "sha256": "17ebfabc63b4ecbfe05460a149085e21bb3530bf34b0b84efbf8be91ebfa65b3"
+    },
+    {
+      "path": "temp/build/v2-mcp-ownership-source-r5.json",
+      "sha256": "e8e7406e390fc65dc42c33b9b470a7a646337d36e884a15e79cb55b41c88ea22"
+    },
+    {
+      "path": "temp/build/v2-mcp-ownership-source-r6.json",
+      "sha256": "95051fb5fe772b00aece1b896851a728e7eda66dbcf56eb171451d943390f025"
+    },
+    {
+      "path": "temp/build/v2-mcp-ownership-source-r7.json",
+      "sha256": "82a16797642797c1c5eac9903d245db3abc37b19fe24a1e25be3245fbc2cbeee"
+    }
+  ],
+  "retained_source_deltas": [
+    {
+      "path": "temp/build/v2-mcp-ownership-r1-source-delta.zip",
+      "sha256": "cd6539fdde56593db7acab2f643bbc6572f6da81516f77d048b2a9b39e4c49fd"
+    },
+    {
+      "path": "temp/build/v2-mcp-ownership-r2-source-delta.zip",
+      "sha256": "eea9b89ea0bae41c8c108391b5a5c5a356a0403ac5d140a73086af4d75851c81"
+    },
+    {
+      "path": "temp/build/v2-mcp-ownership-r3-source-delta.zip",
+      "sha256": "eb0b5a793924d2f0e60e00ebaae0aed3af4ae05560cd9c71ba494ba35b522e52"
+    },
+    {
+      "path": "temp/build/v2-mcp-ownership-r4-source-delta.zip",
+      "sha256": "5e2fed0288b4f2c4fd02eb20b33b235c397edcdc23abc8bb48061fb1bf77426a"
+    },
+    {
+      "path": "temp/build/v2-mcp-ownership-r5-source-delta.zip",
+      "sha256": "f844f2e202e0aaab910c13862a899674c5c7c80cd1a8b8b9dd6ede90bb0d6e0a"
+    },
+    {
+      "path": "temp/build/v2-mcp-ownership-r6-source-delta.zip",
+      "sha256": "e9d06ed6ee4c29956e4bc0b8d77061ce291987b0fd85970dbe9d25ffea51d349"
+    },
+    {
+      "path": "temp/build/v2-mcp-ownership-r7-source-delta.zip",
+      "sha256": "2494810567ac29bf9ff6c79ec4f99f72467e7494b4fa14768231264f36f0e491"
+    }
+  ],
+  "validation": {
+    "distinct_scoped_passed": 102,
+    "new_nodes": 37,
+    "phases": [
+      {
+        "revision": 6,
+        "passed": 101,
+        "elapsed_seconds": 56.397,
+        "report": {
+          "path": "temp/build/v2-mcp-ownership-callers-r6.xml",
+          "sha256": "b8965390873cc43044457d2fd36a4512495013a0a4d2a7544012caa2160f947e"
+        },
+        "log": {
+          "path": "temp/build/v2-mcp-ownership-callers-r6.log",
+          "sha256": "64e5fdc3138df3a87735e262df634dff2377ca9cbe1a24ab60d95bbff5aa2855"
+        }
+      },
+      {
+        "revision": 7,
+        "passed": 2,
+        "elapsed_seconds": 4.568,
+        "report": {
+          "path": "temp/build/v2-mcp-ownership-http-r7.xml",
+          "sha256": "feb7394b80e3fc3b6c3ea100f13b230f862f1652f807f1af91a7b55a822c2794"
+        },
+        "log": {
+          "path": "temp/build/v2-mcp-ownership-http-r7.log",
+          "sha256": "22947cf88af8c76dc943e4e58b337386d8c63f2bf8c2aed1caf22766559e3c9e"
+        }
+      }
+    ],
+    "scope": [
+      "MCP business ownership",
+      "stdio/HTTP transport",
+      "MCP owner/model production flow",
+      "explicit OAuth",
+      "instance lifecycle",
+      "action-review execution and owned workers",
+      "V1/V2 architecture",
+      "strict scope contract"
+    ],
+    "final_test_delta": [
+      "test_exact_business_capacity_survives_cancelled_waiters_until_original_reads_finish",
+      "test_owner_http_closing_responses_are_503_no_store_without_mcp_database_io"
+    ],
+    "final_other_test_bodies_ast_equal_to_revision6": true,
+    "original_owner_use_case_bodies_ast_preserved": [
+      "servers",
+      "server",
+      "connect",
+      "disconnect",
+      "reset",
+      "catalog",
+      "authorize",
+      "authorize_tool",
+      "revoke",
+      "calls",
+      "oauth_start",
+      "oauth_callback",
+      "tools_for_run",
+      "recover"
+    ]
+  },
+  "strict_types": {
+    "files": 2,
+    "errors": 0,
+    "warnings": 0,
+    "report": {
+      "path": "temp/build/v2-mcp-ownership-pyright-r5.json",
+      "sha256": "e13aa5568f68edcaa05b9c569b0668ee7c34b35991f15166c14d954bd43c6190"
+    },
+    "runtime_bytes_identical_in_revisions": [
+      5,
+      6,
+      7
+    ],
+    "registered_files": 386,
+    "registered_scope_fully_rechecked": false
+  },
+  "quality": {
+    "ruff_and_format_passed": true,
+    "report": {
+      "path": "temp/build/v2-mcp-ownership-quality.json",
+      "sha256": "26462cc25218ca5b466f3c0e8a333e34eaf5254bd35902fbbcf2ccf7336a9d3b"
+    }
+  },
+  "development_failures": {
+    "unmodified_runtime_before": {
+      "path": "temp/build/v2-mcp-ownership-before.xml",
+      "sha256": "fc595a25a0dba44b6eb41321fa941197d08c1b6bd1a2f64a605b12f90cb05ae4"
+    },
+    "unmodified_runtime_failed": 3,
+    "reproduction": "Connect close falsely completed before transport pending was visible; failed start/stale generation removed an unreclaimed original session.",
+    "first_fix": {
+      "path": "temp/build/v2-mcp-ownership-r2.xml",
+      "sha256": "3a3d4db70b95a78ab16287a0209a9ece4cbb8f24372a2a2b5d0237176d8d320b"
+    },
+    "expanded_first_fix": {
+      "path": "temp/build/v2-mcp-ownership-r3.xml",
+      "sha256": "5c45dfcb7e9bda651a5095b8b56249df5a9efbeb337be9b662e4d2bff9f1d79a"
+    },
+    "r4_interruption": "33 progress markers then a new fixture waited forever: target() generated a different random server, so no stale-session close gate was reached. Verified exact own Python PID64572/parent27824 and command line before stopping only that process. No completed JUnit/pass claim. Corrected fixture reuses the original target and changes only epoch; production timeouts unchanged.",
+    "r4_type_report": {
+      "path": "temp/build/v2-mcp-ownership-pyright-r4.json",
+      "sha256": "c45c7dc06aa64ab8546d99aeede17152e1f15741e6b65ba24fa32a3017723908"
+    },
+    "r4_type_error_count": 1,
+    "r4_type_fix": "Explicit list[dict[str,Any]] health snapshot type; no ignored diagnostics.",
+    "r5_report": {
+      "path": "temp/build/v2-mcp-ownership-r5.xml",
+      "sha256": "bac4af2ae93c7ee207538ff1c31888c465b5eaf8c2b3ab30e155cb312a78c9f8"
+    },
+    "r5_log": {
+      "path": "temp/build/v2-mcp-ownership-r5.log",
+      "sha256": "f4e5159258679c582f0fa4933f59005155fcc231398b8475a371f21d9ca419f8"
+    },
+    "r5_failed": 2,
+    "r5_passed": 34,
+    "r5_fixture_fix": "Two new tests read ActionResult.outcome, which does not exist. Corrected to actual status field and retained exact UNKNOWN/ERROR, effect, call-state and error-code assertions.",
+    "invalid_first_type_attempt": "Revision2 absolute include paths were ignored and caused unintended enumeration. Empty output is not a valid type report. Verified exact own Node process before stopping it, then used a scoped relative include config inside the frozen source. Corrected report follows.",
+    "corrected_r2_type_report": {
+      "path": "temp/build/v2-mcp-ownership-pyright-scoped-r2.json",
+      "sha256": "3b5c6694936ab1e041ef0e7df798715b38b2dd6e09ae5df14d18d3ad0ea35abd"
+    },
+    "shell_read_attempt": "A read-only PowerShell command used unsupported brace expansion and did not run; corrected to explicit file arguments. No tests or mutations executed by that failed command."
+  },
+  "contract": {
+    "admission": "All14 public business/use-case entries and model invocation share64 admitted complete tasks; closed/full admission refuses before database/transport I/O. Original per-session8 and transport-call32 bounds remain. HTTP closing reads return503/no-store; model closing/busy returns ActionResult.ERROR.",
+    "owner_operations": "Admitted original connect/catalog/authorization/read/reset/recovery/OAuth operation is owned from first DB request to final delivery. Cancelled caller abandons only its waiter; original operation can complete once. Actual isolated SQLite connect retains DB and session, including cancellation of its caller.",
+    "invocation": "Cancellation is requested once only during interruptible transport work. Database prepare/delivery, before-send authority check/dispatched commit, cleanup and final result commit remain owned. No second cancellation cuts cleanup; original known call ID is retained. A cancelled before-send read cannot send; committed dispatched intent remains conservatively unknown. A delivered valid response still commits its actual result. Post-response processing failure is unknown, never an assertion of no execution.",
+    "session": "Failed start/stale/explicit stop/close mark original session retiring before cleanup. False/error retains exact old object, generation and handshake but denies catalog/call/replacement until original close actually succeeds. Health exposes cleanup_pending even if native port omits it. Closing rechecked after lock acquisition and stale cleanup; no late new session.",
+    "shutdown": "Stop admission then drain original business tasks before transport close. Original transport-close Task survives timeout/cancelled close waiter; active close is reused. Only explicit later close retries an actually completed false/error close. Quiescence includes business tasks, transport pending/busy/starting/retiring and original close receipt, protecting manual action review and instance database release.",
+    "unchanged": "No new DB schema, protocol timeout reduction, authorization bypass, retry of external writes, model payload disclosure, automatic reconnect or cross-process sharing."
+  },
+  "real_sqlite_and_isolated_http_executed": true,
+  "external_ports_in_new_timing_tests": "Isolated injected transport/session/DB delivery gates; existing actual subprocess and loopback HTTP/OAuth production flow tested separately.",
+  "real_external_mcp_service_or_oauth_provider": false,
+  "real_paid_models_accounts_devices_native_desktop_or_72h": false,
+  "full_suite_run": false,
+  "wheel_or_platform_package_rebuilt": false,
+  "whole_v2_development_complete": false,
+  "whole_v2_accepted": false,
+  "publication": {
+    "destination": "https://gitee.com/chenfengloveyuri/OmniOperator.git",
+    "branch": "v2",
+    "owner_continuous_push_authorized": true,
+    "force": false
+  },
+  "next": "Continue whole V2 G3/G4/G5/G6 code implementation and audits. Windows specialist acceptance runs separately; full suite only after whole V2 development freeze."
+}

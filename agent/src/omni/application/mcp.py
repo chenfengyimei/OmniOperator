@@ -10,7 +10,8 @@ from __future__ import annotations
 import asyncio
 import logging
 from collections.abc import Awaitable, Callable, Mapping, Sequence
-from typing import Protocol, cast
+from dataclasses import dataclass
+from typing import Protocol, TypeVar, cast
 
 from ..domain.contracts import JSON, ActionResult, BusinessError, Effect, InvocationContext, Outcome, ToolSpec
 from ..domain.mcp import (
@@ -28,6 +29,24 @@ from ..domain.mcp import (
 from .ports import Clock, DatabasePort, Record
 
 log = logging.getLogger("omni.v2.mcp")
+T = TypeVar("T")
+MAX_PENDING_OPERATIONS = 64
+
+
+@dataclass
+class _Invocation:
+    task: asyncio.Task[object] | None = None
+    cancelled: bool = False
+    interruptible: bool = False
+
+    def cancel(self) -> None:
+        self.cancelled = True
+        if self.interruptible and self.task is not None and not self.task.done() and not self.task.cancelling():
+            self.task.cancel()
+
+    def check(self) -> None:
+        if self.cancelled:
+            raise asyncio.CancelledError
 
 
 class MCPTransportPort(Protocol):
@@ -69,19 +88,67 @@ class MCPService:
     def __init__(self, database: DatabasePort, transports: MCPTransportPort, clock: Clock) -> None:
         self._db, self._transports, self._clock = database, transports, clock
         self._closing = False
+        self._pending: set[asyncio.Task[object]] = set()
+        self._invocations: dict[asyncio.Task[object], _Invocation] = {}
+        self._transport_close: asyncio.Task[bool] | None = None
+
+    def _admit(self, operation: Callable[[], Awaitable[T]], invocation: _Invocation | None = None) -> asyncio.Task[T]:
+        if self._closing:
+            raise BusinessError("mcp_closing", "MCP admission is draining", status=503)
+        if len(self._pending) >= MAX_PENDING_OPERATIONS:
+            raise BusinessError("mcp_busy", "MCP business operations are bounded", retryable=True, status=503)
+
+        async def perform() -> T:
+            return await operation()
+
+        task = asyncio.create_task(perform(), name="mcp-business-operation")
+        owned = cast(asyncio.Task[object], task)
+        self._pending.add(owned)
+        if invocation is not None:
+            invocation.task = owned
+            self._invocations[owned] = invocation
+
+        def complete(future: asyncio.Task[T]) -> None:
+            self._pending.discard(owned)
+            self._invocations.pop(owned, None)
+            if not future.cancelled():
+                future.exception()
+
+        task.add_done_callback(complete)
+        return task
+
+    async def _wait(self, task: asyncio.Task[T], invocation: _Invocation | None = None) -> T:
+        try:
+            return await asyncio.shield(task)
+        except asyncio.CancelledError:
+            if invocation is not None:
+                invocation.cancel()
+            raise
+
+    async def _execute(self, operation: Callable[[], Awaitable[T]]) -> T:
+        return await self._wait(self._admit(operation))
 
     # ---------- owner surfaces ----------
 
     async def servers(self, agent_id: str) -> Record:
+        return await self._execute(lambda: self._servers(agent_id))
+
+    async def _servers(self, agent_id: str) -> Record:
         return {
             "items": cast(JSON, await self._db.read(lambda u: u.mcp_server_overview(agent_id))),
             "runtime": cast(JSON, self._transports.health()),
         }
 
     async def server(self, agent_id: str, config_id: str) -> Record:
+        return await self._execute(lambda: self._server(agent_id, config_id))
+
+    async def _server(self, agent_id: str, config_id: str) -> Record:
         return await self._db.read(lambda u: u.mcp_server_get(agent_id, config_id))
 
     async def connect(self, agent_id: str, config_id: str, revision: int) -> Record:
+        return await self._execute(lambda: self._connect(agent_id, config_id, revision))
+
+    async def _connect(self, agent_id: str, config_id: str, revision: int) -> Record:
         if self._closing:
             raise BusinessError("mcp_closing", "MCP admission is draining", status=503)
         begin = await self._db.write(lambda u: u.mcp_server_begin(agent_id, config_id, revision))
@@ -117,6 +184,9 @@ class MCPService:
         }
 
     async def disconnect(self, agent_id: str, config_id: str) -> Record:
+        return await self._execute(lambda: self._disconnect(agent_id, config_id))
+
+    async def _disconnect(self, agent_id: str, config_id: str) -> Record:
         await self._db.read(lambda u: u.mcp_server_get(agent_id, config_id))
         reclaimed = await self._transports.stop(agent_id, config_id, 5)
         view = await self._db.write(
@@ -125,18 +195,50 @@ class MCPService:
         return {**view, "reclaimed": reclaimed}
 
     async def reset(self, agent_id: str, config_id: str) -> Record:
+        return await self._execute(lambda: self._reset(agent_id, config_id))
+
+    async def _reset(self, agent_id: str, config_id: str) -> Record:
         await self._db.read(lambda u: u.mcp_server_get(agent_id, config_id))
         reclaimed = await self._transports.stop(agent_id, config_id, 5)
         view = await self._db.write(lambda u: u.mcp_server_reset(agent_id, config_id))
         return {**view, "reclaimed": reclaimed}
 
     async def catalog(self, agent_id: str, config_id: str, after: int = -1, limit: int = 20) -> Record:
+        return await self._execute(lambda: self._catalog(agent_id, config_id, after, limit))
+
+    async def _catalog(self, agent_id: str, config_id: str, after: int = -1, limit: int = 20) -> Record:
         return await self._db.read(lambda u: u.mcp_catalog_page(agent_id, config_id, after, limit))
 
     async def authorize(self, agent_id: str, config_id: str, request: Record) -> Record:
+        return await self._execute(lambda: self._authorize(agent_id, config_id, request))
+
+    async def _authorize(self, agent_id: str, config_id: str, request: Record) -> Record:
         return await self._db.write(lambda u: u.mcp_authorize(agent_id, config_id, request))
 
     async def authorize_tool(
+        self,
+        agent_id: str,
+        config_id: str,
+        tool_id: str,
+        *,
+        authorized: bool,
+        read_only: bool,
+        catalog_fingerprint: str,
+        evidence: str,
+    ) -> Record:
+        return await self._execute(
+            lambda: self._authorize_tool(
+                agent_id,
+                config_id,
+                tool_id,
+                authorized=authorized,
+                read_only=read_only,
+                catalog_fingerprint=catalog_fingerprint,
+                evidence=evidence,
+            )
+        )
+
+    async def _authorize_tool(
         self,
         agent_id: str,
         config_id: str,
@@ -160,12 +262,21 @@ class MCPService:
         )
 
     async def revoke(self, agent_id: str, config_id: str) -> Record:
+        return await self._execute(lambda: self._revoke(agent_id, config_id))
+
+    async def _revoke(self, agent_id: str, config_id: str) -> Record:
         return await self._db.write(lambda u: u.mcp_revoke_grants(agent_id, config_id, "owner_revoked"))
 
     async def calls(self, agent_id: str, config_id: str, after: str = "", limit: int = 50) -> Record:
+        return await self._execute(lambda: self._calls(agent_id, config_id, after, limit))
+
+    async def _calls(self, agent_id: str, config_id: str, after: str = "", limit: int = 50) -> Record:
         return await self._db.read(lambda u: u.mcp_call_page(agent_id, config_id, after, limit))
 
     async def oauth_start(self, agent_id: str, config_id: str, redirect_uri: str) -> Record:
+        return await self._execute(lambda: self._oauth_start(agent_id, config_id, redirect_uri))
+
+    async def _oauth_start(self, agent_id: str, config_id: str, redirect_uri: str) -> Record:
         config = await self._db.read(lambda u: u.mcp_configuration(agent_id, config_id))
         value = cast(dict[str, object], config["value"])
         if value["auth_mode"] != "oauth":
@@ -180,6 +291,9 @@ class MCPService:
         return {**started, "server": config["name"]}
 
     async def oauth_callback(self, state: str, code: str) -> Record:
+        return await self._execute(lambda: self._oauth_callback(state, code))
+
+    async def _oauth_callback(self, state: str, code: str) -> Record:
         completed = await self._transports.oauth_callback(state, code)
         view = await self._db.write(
             lambda u: u.mcp_oauth_authorized(str(completed["agent_id"]), str(completed["config_id"]))
@@ -195,6 +309,9 @@ class MCPService:
     # ---------- run-scoped tools ----------
 
     async def tools_for_run(self, agent_id: str, run_id: str) -> Sequence[ToolSpec]:
+        return await self._execute(lambda: self._tools_for_run(agent_id, run_id))
+
+    async def _tools_for_run(self, agent_id: str, run_id: str) -> Sequence[ToolSpec]:
         try:
             await self._db.write(lambda u: u.mcp_run_capture(agent_id, run_id))
         except BusinessError as exc:
@@ -207,12 +324,44 @@ class MCPService:
         return tuple(tool_spec(row) for row in rows)
 
     def quiescent(self) -> bool:
-        return not self._transports.health().get("pending", 0)
+        health = self._transports.health()
+        sessions = health.get("sessions", [])
+        dirty = isinstance(sessions, list) and any(
+            isinstance(row, dict) and (row.get("busy") or row.get("starting") or row.get("cleanup_pending"))
+            for row in sessions
+        )
+        return (
+            not self._pending
+            and not health.get("pending", 0)
+            and not dirty
+            and (self._transport_close is None or self._clean_close(self._transport_close))
+        )
 
     # ---------- model invocation ----------
 
     async def invoke(
         self, name: str, arguments: Mapping[str, JSON], *, operation_id: str, context: InvocationContext
+    ) -> ActionResult:
+        invocation = _Invocation()
+        try:
+            task = self._admit(
+                lambda: self._invoke(
+                    name, arguments, operation_id=operation_id, context=context, cancellation=invocation
+                ),
+                invocation,
+            )
+        except BusinessError as exc:
+            return ActionResult(Outcome.ERROR, exc.message, error_code=exc.code)
+        return await self._wait(task, invocation)
+
+    async def _invoke(
+        self,
+        name: str,
+        arguments: Mapping[str, JSON],
+        *,
+        operation_id: str,
+        context: InvocationContext,
+        cancellation: _Invocation,
     ) -> ActionResult:
         if self._closing:
             return ActionResult(Outcome.ERROR, "MCP admission is draining", error_code="mcp_closing")
@@ -221,14 +370,17 @@ class MCPService:
         except BusinessError as exc:
             return ActionResult(Outcome.DENIED, exc.message, error_code=exc.code)
         try:
+            cancellation.check()
             binding = await self._db.read(
                 lambda u: u.mcp_dispatch(context.agent_id, context.run_id, operation_id, name)
             )
+            cancellation.check()
             if binding["arguments_sha256"] != digest:
                 return ActionResult(
                     Outcome.DENIED, "MCP arguments differ from the approved intent", error_code="mcp_arguments_changed"
                 )
             config = await self._db.read(lambda u: u.mcp_configuration(context.agent_id, str(binding["config_id"])))
+            cancellation.check()
             call = await self._db.write(
                 lambda u: u.mcp_call_begin(context.agent_id, context.run_id, operation_id, binding)
             )
@@ -236,24 +388,44 @@ class MCPService:
             return ActionResult(Outcome.DENIED, exc.message, error_code=exc.code)
         call_id = str(call["id"])
         started = self._clock.monotonic()
+        responded = False
 
         async def before_send() -> None:
-            latest = await self._db.read(lambda u: u.mcp_dispatch(context.agent_id, context.run_id, operation_id, name))
-            if latest["arguments_sha256"] != digest:
-                raise BusinessError("mcp_arguments_changed", "MCP arguments differ from the approved intent")
-            await self._db.write(lambda u: u.mcp_call_dispatched(context.agent_id, call_id))
+            # Cancellation must retain the original transaction's delivery. In
+            # particular, a dispatched commit may finish after its waiter leaves.
+            cancellation.interruptible = False
+            try:
+                cancellation.check()
+                latest = await self._db.read(
+                    lambda u: u.mcp_dispatch(context.agent_id, context.run_id, operation_id, name)
+                )
+                cancellation.check()
+                if latest["arguments_sha256"] != digest:
+                    raise BusinessError("mcp_arguments_changed", "MCP arguments differ from the approved intent")
+                await self._db.write(lambda u: u.mcp_call_dispatched(context.agent_id, call_id))
+                cancellation.check()
+            finally:
+                cancellation.interruptible = True
 
         try:
+            cancellation.check()
             target = _target(config, binding)
-            payload = await self._transports.call(
-                target,
-                str(binding["tool_name"]),
-                dict(arguments),
-                DEFAULT_CALL_TIMEOUT_S,
-                before_send=before_send,
-            )
+            cancellation.interruptible = True
+            try:
+                payload = await self._transports.call(
+                    target,
+                    str(binding["tool_name"]),
+                    dict(arguments),
+                    DEFAULT_CALL_TIMEOUT_S,
+                    before_send=before_send,
+                )
+                responded = True
+            finally:
+                cancellation.interruptible = False
+            text, data = result_text(str(config["name"]), str(binding["tool_name"]), payload)
+            is_error = call_state(payload) == "failed"
         except BusinessError as exc:
-            unknown = isinstance(exc, MCPUncertain) or bool(getattr(exc, "sent", False))
+            unknown = responded or isinstance(exc, MCPUncertain) or bool(getattr(exc, "sent", False))
             state = "unknown" if unknown else "failed"
             await self._finish(context.agent_id, call_id, state, exc.code, started)
             if unknown:
@@ -278,8 +450,6 @@ class MCPService:
         except BaseException:
             await self._finish(context.agent_id, call_id, "unknown", "mcp_outcome_unknown", started)
             raise
-        text, data = result_text(str(config["name"]), str(binding["tool_name"]), payload)
-        is_error = call_state(payload) == "failed"
         await self._db.write(
             lambda u: u.mcp_call_finish(
                 context.agent_id,
@@ -318,18 +488,56 @@ class MCPService:
     # ---------- lifecycle ----------
 
     async def recover(self) -> Record:
+        return await self._execute(lambda: self._recover())
+
+    async def _recover(self) -> Record:
         return await self._db.write(lambda u: u.mcp_calls_recover())
 
     def health(self) -> Record:
-        return {"closing": self._closing, "transports": self._transports.health()}
+        return {
+            "closing": self._closing,
+            "pending": len(self._pending),
+            "max_pending": MAX_PENDING_OPERATIONS,
+            "cleanup_pending": self._transport_close is not None and not self._clean_close(self._transport_close),
+            "transports": self._transports.health(),
+        }
 
     def stop_accepting(self) -> None:
         self._closing = True
         self._transports.stop_accepting()
 
+    @staticmethod
+    def _clean_close(task: asyncio.Task[bool]) -> bool:
+        return task.done() and not task.cancelled() and task.exception() is None and task.result() is True
+
     async def close(self, timeout_s: float = 30) -> bool:
         self.stop_accepting()
-        return await self._transports.close(timeout_s)
+        deadline = asyncio.get_running_loop().time() + max(0, timeout_s)
+        for invocation in tuple(self._invocations.values()):
+            invocation.cancel()
+        while self._pending:
+            _, pending = await asyncio.wait(
+                tuple(self._pending), timeout=max(0, deadline - asyncio.get_running_loop().time())
+            )
+            if pending:
+                return False
+        if self._transport_close is None or (
+            self._transport_close.done() and not self._clean_close(self._transport_close)
+        ):
+            self._transport_close = asyncio.create_task(
+                self._transports.close(max(0, deadline - asyncio.get_running_loop().time())),
+                name="mcp-owned-transport-close",
+            )
+            self._transport_close.add_done_callback(lambda task: task.exception() if not task.cancelled() else None)
+        _, pending = await asyncio.wait(
+            (self._transport_close,), timeout=max(0, deadline - asyncio.get_running_loop().time())
+        )
+        return (
+            not pending
+            and not self._transport_close.cancelled()
+            and self._transport_close.exception() is None
+            and self._transport_close.result() is True
+        )
 
 
 __all__ = ["MCPService", "MCPTransportPort"]

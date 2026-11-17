@@ -358,7 +358,8 @@
         "独立V2长跑观察器已实现，见G6.soak；实际72小时仍留开发完成后验收。",
         "现有扩展/MCP业务、仓储与实例生命周期接线存在，本轮只读核对，未重做或声明整范围复验。",
         "跨平台安装器已有实现；本批补独立安装矩阵检查及实际暴露的Unicode/特殊字符启动缺陷，仍不证明三平台交付完成。",
-        "原媒体仅接B站来源；本批补上传对象→原ASR/抽帧→产物/模型只读工具与HTTP/工作台，见G6.media_upload。真实素材/ASR质量单列验收。"
+        "原媒体仅接B站来源；本批补上传对象→原ASR/抽帧→产物/模型只读工具与HTTP/工作台，见G6.media_upload。真实素材/ASR质量单列验收。",
+        "实际MCP业务任务未持有首次数据库准备至最终提交，且失败/旧代次会话在真实回收前被移除；本批补齐完整准入/取消/关闭/原会话保留，见G6.mcp_ownership，不重做原业务。"
       ],
       "subdeliverables": [
         {
@@ -380,6 +381,16 @@
             "docs/evidence/v2-media-upload.json"
           ],
           "actual_asr_model_quality_or_user_media": false
+        },
+        {
+          "id": "G6.mcp_ownership",
+          "title": "MCP完整业务任务、派发前事务与原会话清理归属",
+          "status": "implemented_scoped_passed",
+          "contract": "docs/V2_MCP.md",
+          "evidence": [
+            "docs/evidence/v2-mcp-ownership.json"
+          ],
+          "real_external_service_or_oauth_provider": false
         }
       ],
       "partial_code_audit": {
@@ -399,11 +410,13 @@
           "agent/src/omni/adapters/persistence/migrations/versions/v0039.py",
           "agent/src/omni/adapters/http.py",
           "agent/src/omni/adapters/workers/media.py",
-          "web/ui/v2/media.js"
+          "web/ui/v2/media.js",
+          "agent/src/omni/adapters/mcp/hosts.py",
+          "agent/src/omni/application/engine.py"
         ],
         "resulting_development_evidence": "docs/evidence/v2-portable-installation.json",
         "existing_extension_mcp_chains_tested_in_this_batch": false,
-        "latest_resulting_development_evidence": "docs/evidence/v2-media-upload.json"
+        "latest_resulting_development_evidence": "docs/evidence/v2-mcp-ownership.json"
       }
     },
     {

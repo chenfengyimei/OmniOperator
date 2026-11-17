@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "3d0003cdd02a00573087b6ea3d6d0a3e44eb3e60e6194351d42f5895e52ede65",
+  "source_sha256": "b8e9d49ae62e1172c0ac53456e1f57728796105b252b08a5f5019157c17c3a8d",
   "modules": [
     {
       "id": "v2-domain",
@@ -141,7 +141,7 @@
         "agent/src/omni/application/terminal_review.py",
         "agent/src/omni/application/terminals.py"
       ],
-      "lines": 11825,
+      "lines": 12033,
       "dependencies": [
         "v2-domain"
       ]
@@ -459,7 +459,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 65510,
+      "lines": 65533,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -9324,7 +9324,7 @@
       "path": "agent/src/omni/adapters/mcp/hosts.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.mcp.hosts",
-      "lines": 196,
+      "lines": 219,
       "imports": [
         "omni.adapters.mcp.http",
         "omni.adapters.mcp.oauth",
@@ -9420,7 +9420,7 @@
         },
         {
           "name": "MCPHosts._default_session",
-          "line": 59,
+          "line": 60,
           "kind": "function",
           "parameters": [
             "self",
@@ -9432,14 +9432,14 @@
         },
         {
           "name": "MCPHosts._default_session.authorization",
-          "line": 63,
+          "line": 64,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "MCPHosts._key",
-          "line": 69,
+          "line": 70,
           "kind": "function",
           "parameters": [
             "target"
@@ -9450,7 +9450,7 @@
         },
         {
           "name": "MCPHosts._server_keys",
-          "line": 72,
+          "line": 73,
           "kind": "function",
           "parameters": [
             "self",
@@ -9464,7 +9464,7 @@
         },
         {
           "name": "MCPHosts.connect",
-          "line": 75,
+          "line": 76,
           "kind": "function",
           "parameters": [
             "self",
@@ -9476,7 +9476,7 @@
         },
         {
           "name": "MCPHosts._require",
-          "line": 105,
+          "line": 116,
           "kind": "function",
           "parameters": [
             "self",
@@ -9488,7 +9488,7 @@
         },
         {
           "name": "MCPHosts.catalog",
-          "line": 113,
+          "line": 127,
           "kind": "function",
           "parameters": [
             "self",
@@ -9500,7 +9500,7 @@
         },
         {
           "name": "MCPHosts.call",
-          "line": 118,
+          "line": 132,
           "kind": "function",
           "parameters": [
             "self",
@@ -9520,7 +9520,7 @@
         },
         {
           "name": "MCPHosts.oauth_start",
-          "line": 137,
+          "line": 151,
           "kind": "function",
           "parameters": [
             "self",
@@ -9534,7 +9534,7 @@
         },
         {
           "name": "MCPHosts.oauth_callback",
-          "line": 142,
+          "line": 156,
           "kind": "function",
           "parameters": [
             "self",
@@ -9548,7 +9548,7 @@
         },
         {
           "name": "MCPHosts.stop",
-          "line": 147,
+          "line": 161,
           "kind": "function",
           "parameters": [
             "self",
@@ -9564,7 +9564,7 @@
         },
         {
           "name": "MCPHosts.health",
-          "line": 159,
+          "line": 175,
           "kind": "function",
           "parameters": [
             "self"
@@ -9573,7 +9573,7 @@
         },
         {
           "name": "MCPHosts.stop_accepting",
-          "line": 178,
+          "line": 199,
           "kind": "function",
           "parameters": [
             "self"
@@ -9582,7 +9582,7 @@
         },
         {
           "name": "MCPHosts.close",
-          "line": 181,
+          "line": 202,
           "kind": "function",
           "parameters": [
             "self",
@@ -49512,7 +49512,7 @@
       "path": "agent/src/omni/application/mcp.py",
       "module": "v2-application",
       "python_module": "omni.application.mcp",
-      "lines": 335,
+      "lines": 543,
       "imports": [
         "omni.application.ports",
         "omni.domain.contracts",
@@ -49520,13 +49520,36 @@
       ],
       "symbols": [
         {
+          "name": "_Invocation",
+          "line": 37,
+          "kind": "class"
+        },
+        {
+          "name": "_Invocation.cancel",
+          "line": 42,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "_Invocation.check",
+          "line": 47,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
           "name": "MCPTransportPort",
-          "line": 33,
+          "line": 52,
           "kind": "class"
         },
         {
           "name": "MCPTransportPort.connect",
-          "line": 34,
+          "line": 53,
           "kind": "function",
           "parameters": [
             "self",
@@ -49538,7 +49561,7 @@
         },
         {
           "name": "MCPTransportPort.catalog",
-          "line": 36,
+          "line": 55,
           "kind": "function",
           "parameters": [
             "self",
@@ -49550,7 +49573,7 @@
         },
         {
           "name": "MCPTransportPort.call",
-          "line": 38,
+          "line": 57,
           "kind": "function",
           "parameters": [
             "self",
@@ -49570,7 +49593,7 @@
         },
         {
           "name": "MCPTransportPort.stop",
-          "line": 48,
+          "line": 67,
           "kind": "function",
           "parameters": [
             "self",
@@ -49586,7 +49609,7 @@
         },
         {
           "name": "MCPTransportPort.oauth_start",
-          "line": 50,
+          "line": 69,
           "kind": "function",
           "parameters": [
             "self",
@@ -49600,7 +49623,7 @@
         },
         {
           "name": "MCPTransportPort.oauth_callback",
-          "line": 52,
+          "line": 71,
           "kind": "function",
           "parameters": [
             "self",
@@ -49614,7 +49637,7 @@
         },
         {
           "name": "MCPTransportPort.health",
-          "line": 54,
+          "line": 73,
           "kind": "function",
           "parameters": [
             "self"
@@ -49623,7 +49646,7 @@
         },
         {
           "name": "MCPTransportPort.stop_accepting",
-          "line": 56,
+          "line": 75,
           "kind": "function",
           "parameters": [
             "self"
@@ -49632,7 +49655,7 @@
         },
         {
           "name": "MCPTransportPort.close",
-          "line": 58,
+          "line": 77,
           "kind": "function",
           "parameters": [
             "self",
@@ -49644,7 +49667,7 @@
         },
         {
           "name": "_target",
-          "line": 61,
+          "line": 80,
           "kind": "function",
           "parameters": [
             "record",
@@ -49657,12 +49680,12 @@
         },
         {
           "name": "MCPService",
-          "line": 68,
+          "line": 87,
           "kind": "class"
         },
         {
           "name": "MCPService.__init__",
-          "line": 69,
+          "line": 88,
           "kind": "function",
           "parameters": [
             "self",
@@ -49677,8 +49700,78 @@
           }
         },
         {
+          "name": "MCPService._admit",
+          "line": 95,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "operation",
+            "invocation"
+          ],
+          "annotations": {
+            "operation": "Callable[[], Awaitable[T]]",
+            "invocation": "_Invocation | None"
+          }
+        },
+        {
+          "name": "MCPService._admit.perform",
+          "line": 101,
+          "kind": "function",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "MCPService._admit.complete",
+          "line": 111,
+          "kind": "function",
+          "parameters": [
+            "future"
+          ],
+          "annotations": {
+            "future": "asyncio.Task[T]"
+          }
+        },
+        {
+          "name": "MCPService._wait",
+          "line": 120,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "task",
+            "invocation"
+          ],
+          "annotations": {
+            "task": "asyncio.Task[T]",
+            "invocation": "_Invocation | None"
+          }
+        },
+        {
+          "name": "MCPService._execute",
+          "line": 128,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "operation"
+          ],
+          "annotations": {
+            "operation": "Callable[[], Awaitable[T]]"
+          }
+        },
+        {
           "name": "MCPService.servers",
-          "line": 75,
+          "line": 133,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "agent_id"
+          ],
+          "annotations": {
+            "agent_id": "str"
+          }
+        },
+        {
+          "name": "MCPService._servers",
+          "line": 136,
           "kind": "function",
           "parameters": [
             "self",
@@ -49690,7 +49783,21 @@
         },
         {
           "name": "MCPService.server",
-          "line": 81,
+          "line": 142,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "agent_id",
+            "config_id"
+          ],
+          "annotations": {
+            "agent_id": "str",
+            "config_id": "str"
+          }
+        },
+        {
+          "name": "MCPService._server",
+          "line": 145,
           "kind": "function",
           "parameters": [
             "self",
@@ -49704,7 +49811,23 @@
         },
         {
           "name": "MCPService.connect",
-          "line": 84,
+          "line": 148,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "agent_id",
+            "config_id",
+            "revision"
+          ],
+          "annotations": {
+            "agent_id": "str",
+            "config_id": "str",
+            "revision": "int"
+          }
+        },
+        {
+          "name": "MCPService._connect",
+          "line": 151,
           "kind": "function",
           "parameters": [
             "self",
@@ -49720,7 +49843,21 @@
         },
         {
           "name": "MCPService.disconnect",
-          "line": 119,
+          "line": 186,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "agent_id",
+            "config_id"
+          ],
+          "annotations": {
+            "agent_id": "str",
+            "config_id": "str"
+          }
+        },
+        {
+          "name": "MCPService._disconnect",
+          "line": 189,
           "kind": "function",
           "parameters": [
             "self",
@@ -49734,7 +49871,21 @@
         },
         {
           "name": "MCPService.reset",
-          "line": 127,
+          "line": 197,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "agent_id",
+            "config_id"
+          ],
+          "annotations": {
+            "agent_id": "str",
+            "config_id": "str"
+          }
+        },
+        {
+          "name": "MCPService._reset",
+          "line": 200,
           "kind": "function",
           "parameters": [
             "self",
@@ -49748,7 +49899,25 @@
         },
         {
           "name": "MCPService.catalog",
-          "line": 133,
+          "line": 206,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "agent_id",
+            "config_id",
+            "after",
+            "limit"
+          ],
+          "annotations": {
+            "agent_id": "str",
+            "config_id": "str",
+            "after": "int",
+            "limit": "int"
+          }
+        },
+        {
+          "name": "MCPService._catalog",
+          "line": 209,
           "kind": "function",
           "parameters": [
             "self",
@@ -49766,7 +49935,23 @@
         },
         {
           "name": "MCPService.authorize",
-          "line": 136,
+          "line": 212,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "agent_id",
+            "config_id",
+            "request"
+          ],
+          "annotations": {
+            "agent_id": "str",
+            "config_id": "str",
+            "request": "Record"
+          }
+        },
+        {
+          "name": "MCPService._authorize",
+          "line": 215,
           "kind": "function",
           "parameters": [
             "self",
@@ -49782,7 +49967,31 @@
         },
         {
           "name": "MCPService.authorize_tool",
-          "line": 139,
+          "line": 218,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "agent_id",
+            "config_id",
+            "tool_id",
+            "authorized",
+            "read_only",
+            "catalog_fingerprint",
+            "evidence"
+          ],
+          "annotations": {
+            "agent_id": "str",
+            "config_id": "str",
+            "tool_id": "str",
+            "authorized": "bool",
+            "read_only": "bool",
+            "catalog_fingerprint": "str",
+            "evidence": "str"
+          }
+        },
+        {
+          "name": "MCPService._authorize_tool",
+          "line": 241,
           "kind": "function",
           "parameters": [
             "self",
@@ -49806,7 +50015,21 @@
         },
         {
           "name": "MCPService.revoke",
-          "line": 162,
+          "line": 264,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "agent_id",
+            "config_id"
+          ],
+          "annotations": {
+            "agent_id": "str",
+            "config_id": "str"
+          }
+        },
+        {
+          "name": "MCPService._revoke",
+          "line": 267,
           "kind": "function",
           "parameters": [
             "self",
@@ -49820,7 +50043,25 @@
         },
         {
           "name": "MCPService.calls",
-          "line": 165,
+          "line": 270,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "agent_id",
+            "config_id",
+            "after",
+            "limit"
+          ],
+          "annotations": {
+            "agent_id": "str",
+            "config_id": "str",
+            "after": "str",
+            "limit": "int"
+          }
+        },
+        {
+          "name": "MCPService._calls",
+          "line": 273,
           "kind": "function",
           "parameters": [
             "self",
@@ -49838,7 +50079,23 @@
         },
         {
           "name": "MCPService.oauth_start",
-          "line": 168,
+          "line": 276,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "agent_id",
+            "config_id",
+            "redirect_uri"
+          ],
+          "annotations": {
+            "agent_id": "str",
+            "config_id": "str",
+            "redirect_uri": "str"
+          }
+        },
+        {
+          "name": "MCPService._oauth_start",
+          "line": 279,
           "kind": "function",
           "parameters": [
             "self",
@@ -49854,7 +50111,21 @@
         },
         {
           "name": "MCPService.oauth_callback",
-          "line": 182,
+          "line": 293,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "state",
+            "code"
+          ],
+          "annotations": {
+            "state": "str",
+            "code": "str"
+          }
+        },
+        {
+          "name": "MCPService._oauth_callback",
+          "line": 296,
           "kind": "function",
           "parameters": [
             "self",
@@ -49868,7 +50139,21 @@
         },
         {
           "name": "MCPService.tools_for_run",
-          "line": 197,
+          "line": 311,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "agent_id",
+            "run_id"
+          ],
+          "annotations": {
+            "agent_id": "str",
+            "run_id": "str"
+          }
+        },
+        {
+          "name": "MCPService._tools_for_run",
+          "line": 314,
           "kind": "function",
           "parameters": [
             "self",
@@ -49882,7 +50167,7 @@
         },
         {
           "name": "MCPService.quiescent",
-          "line": 209,
+          "line": 326,
           "kind": "function",
           "parameters": [
             "self"
@@ -49891,7 +50176,7 @@
         },
         {
           "name": "MCPService.invoke",
-          "line": 214,
+          "line": 342,
           "kind": "function",
           "parameters": [
             "self",
@@ -49908,15 +50193,35 @@
           }
         },
         {
-          "name": "MCPService.invoke.before_send",
-          "line": 240,
+          "name": "MCPService._invoke",
+          "line": 357,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "name",
+            "arguments",
+            "operation_id",
+            "context",
+            "cancellation"
+          ],
+          "annotations": {
+            "name": "str",
+            "arguments": "Mapping[str, JSON]",
+            "operation_id": "str",
+            "context": "InvocationContext",
+            "cancellation": "_Invocation"
+          }
+        },
+        {
+          "name": "MCPService._invoke.before_send",
+          "line": 393,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "MCPService._finish",
-          "line": 302,
+          "line": 472,
           "kind": "function",
           "parameters": [
             "self",
@@ -49936,7 +50241,16 @@
         },
         {
           "name": "MCPService.recover",
-          "line": 320,
+          "line": 490,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "MCPService._recover",
+          "line": 493,
           "kind": "function",
           "parameters": [
             "self"
@@ -49945,7 +50259,7 @@
         },
         {
           "name": "MCPService.health",
-          "line": 323,
+          "line": 496,
           "kind": "function",
           "parameters": [
             "self"
@@ -49954,7 +50268,7 @@
         },
         {
           "name": "MCPService.stop_accepting",
-          "line": 326,
+          "line": 505,
           "kind": "function",
           "parameters": [
             "self"
@@ -49962,8 +50276,19 @@
           "annotations": {}
         },
         {
+          "name": "MCPService._clean_close",
+          "line": 510,
+          "kind": "function",
+          "parameters": [
+            "task"
+          ],
+          "annotations": {
+            "task": "asyncio.Task[bool]"
+          }
+        },
+        {
           "name": "MCPService.close",
-          "line": 330,
+          "line": 513,
           "kind": "function",
           "parameters": [
             "self",
