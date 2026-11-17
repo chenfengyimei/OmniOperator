@@ -3,6 +3,18 @@
 > 目的：在 Windows 上用最短路径把 V2 底座跑起来给评审看，并如实说明已验证/未验证边界。
 > 默认正式入口仍是 **V1**；本手册只描述 V2 开发入口（`python -m omni.composition.cli`）。
 
+> Windows首发接续（2026-11-17）：候选已增加`omni-v2 / omni-web-v2`及`omni-v1 / omni-web-v1`命令元数据；安装候选后可用，现有运行环境不为更新命令而执行uv sync。源码开发可继续使用下述模块入口。统一全量验收和默认入口切换尚未执行，进度见[候选任务](tasks/v2-windows-candidate.json)。
+
+显式启动并在本次进程就绪后打开工作台：
+
+```powershell
+powershell -NoProfile -File scripts/start-v2.ps1 -InstanceHome D:\omni-v2-test -Port 8799
+# 不打开浏览器：增加 -NoBrowser；指定候选解释器：增加 -Python <候选python.exe>
+uv run --no-sync python -m omni.composition.cli --home D:\omni-v2-test serve --port 8799 --open-browser
+```
+
+启动器在当前控制台运行，Ctrl+C正常排空；省略实例目录时沿用`OMNI_HOME`或V2独立默认目录，不读取或迁移V1数据。浏览器仅在本进程创建身份及私有HMAC就绪证明通过后打开回环地址，URL不包含令牌。页面沿已有本机认证接口取得令牌，不依赖V1的`pair_url.json`；真实浏览器GUI与真实设备交互仍待验收。
+
 ## 1. 前置
 
 - 仓库根：`D:\xm\OmniOperator`（PowerShell）
@@ -45,7 +57,7 @@ Invoke-WebRequest http://127.0.0.1:8799/                    -UseBasicParsing   #
 ## 4. 停止
 
 - 前台 `serve`：该窗口 `Ctrl+C`
-- 后台进程：按 PID 结束（`Get-Process -Id <pid>` → `Stop-Process -Id <pid>`），**不要**用 `Get-Process python | Stop-Process` 一把杀
+- 受管部署：使用对应固定部署的服务控制计划正常排空；不能仅凭历史PID结束进程，不能批量结束Python或用户现有服务。
 
 ## 5. 演示时可讲 / 不可讲
 

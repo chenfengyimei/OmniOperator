@@ -7490,6 +7490,17 @@
    "integration_full_run_pending": true,
    "validated_committed_scope_only": true,
    "historical_observations_closed": false
+  },
+  "windows_candidate_workbench": {
+   "source_head": "b0902fbce369b82f71c388b2718ef9fb3340a0a7",
+   "evidence": "docs/evidence/v2-windows-workbench.json",
+   "task": "docs/tasks/v2-windows-candidate.json",
+   "targeted_strict_files": 2,
+   "configured_strict_scope": 333,
+   "whole_scope_run_pending": true,
+   "full_run_for_this_source": false,
+   "default_entrypoint": "v1",
+   "whole_v2_complete": false
   }
  },
  "source_recovery": {

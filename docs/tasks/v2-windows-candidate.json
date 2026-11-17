@@ -33,18 +33,21 @@
       "id": "W3",
       "title": "可复现候选安装、更新、备份恢复和保留数据的卸载",
       "status": "pending",
+      "next": "现有wheel_environment仍用system-site-packages，补可验证的独立依赖环境与候选安装；复用既有release/exchange恢复合同，验证安装到卸载全链而非只生成计划。",
       "evidence": []
     },
     {
       "id": "W4",
       "title": "Windows 功能清单与已知稳定性阻断项收口",
       "status": "pending",
+      "next": "按当前业务清单逐项核对V2入口与UI，不以源码数量代替可用；核查历史UI竞态和系统提交额度观察，仅对与本候选有关且有复现/修复证据的项销账。",
       "evidence": []
     },
     {
       "id": "W5",
       "title": "V2 独立候选证据与发布门禁，不使用 V1 验收替代",
       "status": "pending",
+      "next": "现有scripts/soak_monitor.py和release_gate.py调用V1 omni.system实现；为Windows离线候选提供独立证据校验，真实账号/设备及72小时门槛保持未验收。",
       "evidence": []
     },
     {
