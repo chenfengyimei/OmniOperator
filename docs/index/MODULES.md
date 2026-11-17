@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`79bc61149b41ef28cd1078fdb42061604c9631bc6428dd21eb87cbfa78caa37f`。包含 65 个职责模块、757 个源码/界面文件。
+源码指纹：`b5d50aa2ccc0e0b033e4901a66ec0d505bb8b2d806e73923cbc2bce5724b6128`。包含 65 个职责模块、757 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -295,7 +295,7 @@
 | [agent/src/omni/adapters/platform/linux_fds.py](../../agent/src/omni/adapters/platform/linux_fds.py) | 95 | Owned received descriptors and bounded SCM_RIGHTS; no bus or desktop policy. |
 | [agent/src/omni/adapters/platform/linux_foreground.py](../../agent/src/omni/adapters/platform/linux_foreground.py) | 156 | Read-only X11 focus ancestry proof for future explicit foreground delivery; never maps AT-SPI nodes or sends input. |
 | [agent/src/omni/adapters/platform/linux_input.py](../../agent/src/omni/adapters/platform/linux_input.py) | 209 | Verified Xorg input-change guard for addressed semantic actions; never grabs, synthesizes or stores input content. |
-| [agent/src/omni/adapters/platform/linux_keyboard.py](../../agent/src/omni/adapters/platform/linux_keyboard.py) | 120 | Bounded read-only core keymap preflight on an existing focus proof; never translates Unicode, changes layouts or sends input. |
+| [agent/src/omni/adapters/platform/linux_keyboard.py](../../agent/src/omni/adapters/platform/linux_keyboard.py) | 118 | Bounded read-only core keymap preflight on an existing focus proof; never translates Unicode, changes layouts or sends input. |
 | [agent/src/omni/adapters/platform/linux_lease_client.py](../../agent/src/omni/adapters/platform/linux_lease_client.py) | 335 | Owned persistent X11 guardian transport; no native APIs, target rebinding from verify, unbounded queues or input. |
 | [agent/src/omni/adapters/platform/linux_pipewire.py](../../agent/src/omni/adapters/platform/linux_pipewire.py) | 256 | One serial-targeted GStreamer PipeWire frame inside an owned helper, never the default remote or display. |
 | [agent/src/omni/adapters/platform/linux_portal.py](../../agent/src/omni/adapters/platform/linux_portal.py) | 220 | Explicit ephemeral window selection on a pinned Wayland portal; never opens PipeWire FDs or dispatches input. |
@@ -475,7 +475,7 @@
 | [web/ui/v2/v1/components.css](../../web/ui/v2/v1/components.css) | 655 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/v1/frame.css](../../web/ui/v2/v1/frame.css) | 938 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/v1/workbench.css](../../web/ui/v2/v1/workbench.css) | 4451 | 原生源码、平台脚本或界面资源 |
-| [web/ui/v2/workbench.css](../../web/ui/v2/workbench.css) | 2975 | 原生源码、平台脚本或界面资源 |
+| [web/ui/v2/workbench.css](../../web/ui/v2/workbench.css) | 3005 | 原生源码、平台脚本或界面资源 |
 
 文档：[docs/V2_REFACTOR.md](../../docs/V2_REFACTOR.md)
 

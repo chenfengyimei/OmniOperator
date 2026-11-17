@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "79bc61149b41ef28cd1078fdb42061604c9631bc6428dd21eb87cbfa78caa37f",
+  "source_sha256": "b5d50aa2ccc0e0b033e4901a66ec0d505bb8b2d806e73923cbc2bce5724b6128",
   "modules": [
     {
       "id": "v2-domain",
@@ -424,7 +424,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 58404,
+      "lines": 58402,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -520,7 +520,7 @@
         "web/ui/v2/v1/workbench.css",
         "web/ui/v2/workbench.css"
       ],
-      "lines": 22699,
+      "lines": 22729,
       "dependencies": []
     },
     {
@@ -26458,7 +26458,7 @@
       "path": "agent/src/omni/adapters/platform/linux_keyboard.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.linux_keyboard",
-      "lines": 120,
+      "lines": 118,
       "imports": [
         "omni.adapters.platform.linux_bus",
         "omni.adapters.platform.linux_input",
@@ -26510,7 +26510,7 @@
         },
         {
           "name": "KeyboardMapping.prepare",
-          "line": 88,
+          "line": 86,
           "kind": "function",
           "parameters": [
             "self",
@@ -26522,7 +26522,7 @@
         },
         {
           "name": "KeyboardMapping.verify",
-          "line": 109,
+          "line": 107,
           "kind": "function",
           "parameters": [
             "self"
@@ -100065,7 +100065,7 @@
       "path": "web/ui/v2/workbench.css",
       "module": "v2-workbench",
       "python_module": null,
-      "lines": 2975,
+      "lines": 3005,
       "imports": [],
       "symbols": [],
       "kind": "asset",

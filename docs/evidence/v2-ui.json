@@ -1,7 +1,7 @@
 {
   "batch": "v2-ui-connection-stability-v128",
   "recorded_at": "2026-11-15",
-  "resource_version_final": "20261117v139",
+  "resource_version_final": "20261117v140",
   "v1_alignment": {
     "summary": "用户提供 V1 正式工作台截图后，直接精读 web/ui/workbench.css 的 V1 实现并逐项移植，使 V2 结构与 V1 一致（而非自创风格）。",
     "ported_from_v1": [
@@ -1116,5 +1116,12 @@
     "修复": "页签按钮显式 justify-content:center + align-items:center + text-align:center。",
     "验证": "量取五页签文字左右留白均等（12/13px）、截图确认、守卫33 passed、全站76/76（含页签可点断言）。",
     "版本": "资源串整体 v138→v139。"
+  },
+  "inspector_empty_btn_v140": {
+    "需求": "所有者截图指出右栏空态「打开桌面能力」是浏览器原生灰按钮，要求优化。",
+    "根因": ".inspector-empty 内动作按钮零样式规则（分区页 .page button 管不到右栏）。",
+    "修复": "补渐变实心主按钮语言（空态唯一视觉落点）：圆角+悬停提亮+按压位移+focus-visible 描边。",
+    "验证": "双主题量取 PASS（渐变/圆角/30px/可点/点击跳转桌面页）、截图确认、守卫33 passed、全站76/76。",
+    "版本": "资源串整体 v139→v140。"
   }
 }

@@ -693,6 +693,36 @@ body[data-ui-page="workbench-v2"] .inspector-empty-todo span {
   font-size: var(--fs-caption);
   line-height: 1.55;
 }
+/* 空态动作按钮（如「打开桌面能力」）此前零规则，是浏览器默认灰底凸边框
+   （所有者截图取证）。补齐与分区页/对话空态同一按钮语言：玻璃底+描边+
+   悬停转青，作为空态唯一视觉落点用渐变实心。 */
+body[data-ui-page="workbench-v2"] .inspector-empty button {
+  box-sizing: border-box;
+  min-height: 30px;
+  margin-top: 6px;
+  padding: 0 16px;
+  border: 1px solid transparent;
+  border-radius: var(--r-md);
+  background: var(--grad);
+  color: var(--on-accent);
+  font-family: inherit;
+  font-size: var(--fs-small);
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    filter 0.14s,
+    transform 0.1s;
+}
+body[data-ui-page="workbench-v2"] .inspector-empty button:hover {
+  filter: brightness(1.08);
+}
+body[data-ui-page="workbench-v2"] .inspector-empty button:active {
+  transform: translateY(1px);
+}
+body[data-ui-page="workbench-v2"] .inspector-empty button:focus-visible {
+  outline: 2px solid var(--line-accent);
+  outline-offset: 2px;
+}
 body[data-ui-page="workbench-v2"] .inspector-list {
   display: flex;
   flex-direction: column;
