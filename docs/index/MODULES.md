@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`f72fdf846543262aa047bd4f309e966af75f05d72ec4d2a37893752b45aa9211`。包含 65 个职责模块、740 个源码/界面文件。
+源码指纹：`a95cac8ea9f0b1b3dff8a1466873872e18c75e9b36ed0a0916523a67d98e3476`。包含 65 个职责模块、742 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -147,7 +147,8 @@
 | [agent/src/omni/adapters/extensions/hosts.py](../../agent/src/omni/adapters/extensions/hosts.py) | 208 | Bounded trusted Python worker ownership; no database, model, credential or arbitrary command access. |
 | [agent/src/omni/adapters/extensions/packages.py](../../agent/src/omni/adapters/extensions/packages.py) | 570 | Bounded zero-execution package capture and immutable verified snapshots; never opens a database. |
 | [agent/src/omni/adapters/extensions/worker.py](../../agent/src/omni/adapters/extensions/worker.py) | 326 | Static extension handshake and trusted Python invocation in an owned child; never opens the main database. |
-| [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py) | 2283 | Versioned HTTP contract for the V2 kernel; business access goes through use cases. |
+| [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py) | 2313 | Versioned HTTP contract for the V2 kernel; business access goes through use cases. |
+| [agent/src/omni/adapters/http_events.py](../../agent/src/omni/adapters/http_events.py) | 177 | Bounded authenticated history notifications over SSE; no event bodies, replay queue or database ownership. |
 | [agent/src/omni/adapters/images.py](../../agent/src/omni/adapters/images.py) | 83 | Bounded image verification and metadata-free low-detail PNG encoding; no database or remote URLs. |
 | [agent/src/omni/adapters/local_vectors.py](../../agent/src/omni/adapters/local_vectors.py) | 287 | One bounded, supervised local embedding process; no native ML imports in the application process. |
 | [agent/src/omni/adapters/log_query.py](../../agent/src/omni/adapters/log_query.py) | 320 | Bounded diagnostic pages with cursors that survive rename and process restart. |
@@ -434,10 +435,11 @@
 | [web/ui/v2/desktop-actions.js](../../web/ui/v2/desktop-actions.js) | 148 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/desktop.js](../../web/ui/v2/desktop.js) | 572 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/documents.js](../../web/ui/v2/documents.js) | 487 | 原生源码、平台脚本或界面资源 |
+| [web/ui/v2/event-stream.js](../../web/ui/v2/event-stream.js) | 168 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/extensions.js](../../web/ui/v2/extensions.js) | 656 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/index.html](../../web/ui/v2/index.html) | 1874 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/inspector.js](../../web/ui/v2/inspector.js) | 266 | 原生源码、平台脚本或界面资源 |
-| [web/ui/v2/main.js](../../web/ui/v2/main.js) | 1696 | 原生源码、平台脚本或界面资源 |
+| [web/ui/v2/main.js](../../web/ui/v2/main.js) | 1733 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/maintenance.js](../../web/ui/v2/maintenance.js) | 126 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/mcp.js](../../web/ui/v2/mcp.js) | 362 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/media.js](../../web/ui/v2/media.js) | 365 | 原生源码、平台脚本或界面资源 |

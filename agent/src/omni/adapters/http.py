@@ -51,6 +51,8 @@ from ..domain.capabilities import capability_report
 from ..domain.contracts import BusinessError
 from ..domain.objects import MAX_OBJECT_BYTES
 from .diagnostics import bind_context
+from .http_events import PAGE_SIZE as EVENT_PAGE_SIZE
+from .http_events import EventStreams, continuation
 from .log_query import LogQuery
 
 log = logging.getLogger("omni.v2.http")
@@ -405,6 +407,7 @@ class DocumentImport(DocumentVersion):
 
 def create_app(factory: Callable[[], Awaitable[HttpRuntime]], *, allowed_origins: tuple[str, ...] = ()) -> FastAPI:
     upload_slots = asyncio.Semaphore(4)
+    event_streams = EventStreams()
 
     @asynccontextmanager
     async def lifespan(app: FastAPI):
@@ -418,6 +421,7 @@ def create_app(factory: Callable[[], Awaitable[HttpRuntime]], *, allowed_origins
                 log.error("Shutdown has residual components", extra={"event": "runtime.shutdown_incomplete"})
 
     app = FastAPI(title="OmniOperator V2", version="2.0.0-alpha", lifespan=lifespan)
+    app.state.event_streams = event_streams
 
     def runtime(request: Request) -> HttpRuntime:
         return request.app.state.runtime
@@ -1656,6 +1660,32 @@ def create_app(factory: Callable[[], Awaitable[HttpRuntime]], *, allowed_origins
     @router.get("/agents/{agent_id}/runs/{run_id}/live-output")
     async def model_live_output(agent_id: uuid.UUID, run_id: uuid.UUID, request: Request):
         return await runtime(request).application.live_output(str(agent_id), str(run_id))
+
+    @router.get("/agents/{agent_id}/events/stream")
+    async def event_stream(
+        agent_id: uuid.UUID,
+        request: Request,
+        run_id: uuid.UUID | None = None,
+        cursor: str = Query(default="", max_length=1024),
+    ):
+        if "after" in request.query_params:
+            raise BusinessError("invalid_history_query", "Use a history cursor instead of after", status=422)
+        position = continuation(cursor, request.headers.get("last-event-id", ""))
+        current = runtime(request)
+        token = request.headers.get("authorization", "")[7:]
+
+        async def history(value: str) -> Record:
+            return await current.application.history(
+                "events", str(agent_id), run_id=str(run_id) if run_id else "", cursor=value, limit=EVENT_PAGE_SIZE
+            )
+
+        return await event_streams.open(
+            history,
+            lambda: current.authenticate(token),
+            lambda: current.describe().get("closing") is True,
+            request.is_disconnected,
+            position,
+        )
 
     @router.get("/agents/{agent_id}/runs/{run_id}/events")
     async def events(

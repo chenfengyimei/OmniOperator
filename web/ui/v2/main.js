@@ -26,6 +26,7 @@ import { mountRouting } from './routing.js?v=20261116v132';
 import { mountChatImages } from './chat-images.js?v=20261116v132';
 import { mountInspector } from './inspector.js?v=20261116v132';
 import { mountSettingsRail } from './settings-rail.js?v=20261116v132';
+import { mountEventStream } from './event-stream.js?v=20261117v133';
 // 直接复用 V1 的 rail 提示浮层模块（data-tip → #tip-layer），不自创实现
 import '../app/tips.js?v=20261103u5';
 
@@ -73,6 +74,29 @@ const inspectorPanel = mountInspector({
   getRun: () => run,
 });
 const settingsRail = mountSettingsRail({ getPage: () => page });
+const eventStream = mountEventStream({
+  getConnection: () => ({ agent, token, generation }),
+  onEvents: async ({ run_ids, has_more, reset = false }) => {
+    for (const identity of run_ids) runToolsCache.delete(identity);
+    if (reset) runToolsCache.clear();
+    if (has_more) return;
+    const current = generation,
+      selected = session;
+    await poll();
+    if (current !== generation) return;
+    await refreshSessions();
+    if (current !== generation || selected !== session || !selected || run || page !== 'chat') return;
+    const messages = await api(scope(`/sessions/${selected}/messages`));
+    if (current === generation && selected === session && !run) renderMessages(messages.items);
+  },
+  onAuthLost: () => {
+    stop();
+    token = '';
+    setHealth('所有者令牌已失效，请重新连接', 'error');
+    document.body.removeAttribute('data-connected');
+    setConnectedChrome(false);
+  },
+});
 let summaryTarget = null;
 let retentionTarget = null;
 let memoryRead = 0;
@@ -899,7 +923,17 @@ async function refreshSessions() {
     }),
   );
 }
-async function poll() {
+let polling = null;
+function poll() {
+  if (polling?.generation === generation) return polling.promise;
+  const current = { generation, promise: null };
+  current.promise = pollBody().finally(() => {
+    if (polling === current) polling = null;
+  });
+  polling = current;
+  return current.promise;
+}
+async function pollBody() {
   const current = generation;
   if (!agent || document.hidden) return;
   const version = await api('/version');
@@ -1032,6 +1066,7 @@ async function poll() {
   if (page === 'qq') await qqPanel.poll();
 }
 function stop() {
+  eventStream.stop();
   modelOutput.clear();
   chatImages.deactivate();
   setThinking(false);
@@ -1174,6 +1209,7 @@ async function selectAgentBody(selectedGeneration) {
   if (page === 'schedules') await schedulesPanel.load();
   if (page === 'deliveries') await deliveriesPanel.load();
   if (selectedGeneration !== generation) return;
+  eventStream.start();
   schedule();
 }
 // 连接流程抽成函数，手动提交与本机自动引导共用同一条路径
@@ -1691,6 +1727,7 @@ document.addEventListener('visibilitychange', () => {
     if (page === 'action-reviews') actionReviewsPanel.resume();
     if (page === 'desktop') desktopPanel.load().catch(error);
     if (page === 'settings') routingPanel.load().catch(error);
+    eventStream.start();
     schedule();
   }
 });

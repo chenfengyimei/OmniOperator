@@ -1,0 +1,66 @@
+{
+  "schema": 1,
+  "goal": "持续开发直到整个V2开发完成，随后统一全量验收并收尾",
+  "status": "development_in_progress",
+  "owner_direction_date": "2026-11-17",
+  "priority": "implementation_first",
+  "test_policy": "开发期间仅必要的受影响模块与调用方局部验证；整个V2开发完成后统一全量，不逐模块全量",
+  "baseline": {
+    "commit": "314ce917ee1030b349bbf15be5d32f12a284665a",
+    "windows_offline_candidate_complete": true,
+    "default_entrypoint": "v2",
+    "prior_full_suite": "5998通过，仅覆盖7e64d348固定候选及其封存源码，不覆盖本轮后续开发和其他会话WIP"
+  },
+  "requirements": [
+    {
+      "id": "G1",
+      "title": "持久事件通知及工作台断线续接",
+      "status": "implemented_scoped_passed",
+      "contract": "docs/V2_EVENT_STREAM.md",
+      "evidence": [
+        "docs/evidence/v2-event-stream.json"
+      ]
+    },
+    {
+      "id": "G2",
+      "title": "核对并补齐多Agent空间的实际用户入口",
+      "status": "code_audit_pending",
+      "finding": "仓储已有create_agent，HTTP当前只有空间列表；先核对原需求与初始化/授权再补生产链"
+    },
+    {
+      "id": "G3",
+      "title": "Linux持续窗口身份与显式前台控制",
+      "status": "development_pending",
+      "contract": "docs/V2_LINUX_HANDOFF.md"
+    },
+    {
+      "id": "G4",
+      "title": "Wayland独立控制授权、撤回与用户输入暂停",
+      "status": "development_pending",
+      "contract": "docs/V2_LINUX_HANDOFF.md"
+    },
+    {
+      "id": "G5",
+      "title": "macOS、Linux、无桌面及容器交付实现收口",
+      "status": "code_audit_pending",
+      "note": "已有实现和交接不重做；编译/平台证据缺失与实际代码缺失分别记录"
+    },
+    {
+      "id": "G6",
+      "title": "按原V2需求逐项核对剩余业务、扩展与运维生产链",
+      "status": "code_audit_pending",
+      "note": "只开发有代码证据的缺口，不把历史文案或真实环境待验当成未实现"
+    },
+    {
+      "id": "G7",
+      "title": "整个V2开发冻结后统一全量、缺陷修复和最终交接",
+      "status": "waiting_for_development_completion"
+    }
+  ],
+  "constraints": [
+    "保留其他会话未提交修改，局部验证使用已提交源码加本任务改动的独立副本。",
+    "不为测试重建用户环境或停止用户服务，不重复已完成的Windows候选开发。",
+    "不以离线注入替代真实账号、模型、设备、原生平台或72小时运行结果。",
+    "缺失真实环境时继续可独立推进的开发，不提前宣布整个V2完成。"
+  ]
+}

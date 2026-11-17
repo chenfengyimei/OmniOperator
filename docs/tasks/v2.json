@@ -2750,5 +2750,12 @@
   "evidence": "docs/evidence/v2-windows-acceptance.json",
   "whole_v2_complete": false,
   "real_platform_acceptance": "pending"
+ },
+ "whole_v2_development": {
+  "status": "in_progress",
+  "priority": "implementation_first",
+  "tracker": "docs/tasks/v2-development.json",
+  "full_suite_timing": "after_whole_v2_development_complete",
+  "latest_scoped_evidence": "docs/evidence/v2-event-stream.json"
  }
 }
