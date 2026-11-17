@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`0aa77df36ea1ee6ec140010e6bbebfc9b86ece14c03a0a359d8ce440ea3078d7`。包含 65 个职责模块、779 个源码/界面文件。
+源码指纹：`060812e6242e32ea352b3f690ca57fd56d8891bd7df4a8da4e271371e5d07906`。包含 65 个职责模块、780 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -291,11 +291,12 @@
 | [agent/src/omni/adapters/platform/exchange_deployments.py](../../agent/src/omni/adapters/platform/exchange_deployments.py) | 27 | Verify a reviewed source for removal or signed boot draining; never execute or import the source installation. |
 | [agent/src/omni/adapters/platform/exchange_files.py](../../agent/src/omni/adapters/platform/exchange_files.py) | 278 | Private bounded exchange witnesses and maintenance reservations; no database, native calls or rollback. |
 | [agent/src/omni/adapters/platform/linux_atspi.py](../../agent/src/omni/adapters/platform/linux_atspi.py) | 366 | Read-only AT-SPI windows in a proven logind session. No X11/Portal capture or input fallback. |
-| [agent/src/omni/adapters/platform/linux_bus.py](../../agent/src/omni/adapters/platform/linux_bus.py) | 436 | Verified local D-Bus transport for desktop helpers; no environment-selected or network buses. |
+| [agent/src/omni/adapters/platform/linux_bus.py](../../agent/src/omni/adapters/platform/linux_bus.py) | 447 | Verified local D-Bus transport for desktop helpers; no environment-selected or network buses. |
 | [agent/src/omni/adapters/platform/linux_button_events.py](../../agent/src/omni/adapters/platform/linux_button_events.py) | 70 | Exact RawButton pairs and their ordinary XKB pointer-state notifications; no blanket input exemptions. |
 | [agent/src/omni/adapters/platform/linux_button_mapping.py](../../agent/src/omni/adapters/platform/linux_button_mapping.py) | 221 | Read primary-button composition on a proven Xorg point/source pair; never changes maps, moves, clicks or grants dispatch. |
 | [agent/src/omni/adapters/platform/linux_button_packet.py](../../agent/src/omni/adapters/platform/linux_button_packet.py) | 198 | Own one paired XTEST button request and retained release on the proven stream; no application-success claim. |
 | [agent/src/omni/adapters/platform/linux_click_action.py](../../agent/src/omni/adapters/platform/linux_click_action.py) | 119 | One approved component-bound native move/click with concrete application state readback; no replay or focus acquisition. |
+| [agent/src/omni/adapters/platform/linux_eis.py](../../agent/src/omni/adapters/platform/linux_eis.py) | 250 | Bounded EI core handshake and roundtrips on an owned portal FD; no seat binding, devices or input requests. |
 | [agent/src/omni/adapters/platform/linux_fds.py](../../agent/src/omni/adapters/platform/linux_fds.py) | 95 | Owned received descriptors and bounded SCM_RIGHTS; no bus or desktop policy. |
 | [agent/src/omni/adapters/platform/linux_focus_navigation.py](../../agent/src/omni/adapters/platform/linux_focus_navigation.py) | 126 | Bounded complete AT-SPI focus readback in one native-bound window; never predicts tab order or sends input. |
 | [agent/src/omni/adapters/platform/linux_foreground.py](../../agent/src/omni/adapters/platform/linux_foreground.py) | 424 | Read-only X11 focus ancestry proof for future explicit foreground delivery; never maps AT-SPI nodes or sends input. |
@@ -316,7 +317,7 @@
 | [agent/src/omni/adapters/platform/linux_pointer_switch.py](../../agent/src/omni/adapters/platform/linux_pointer_switch.py) | 136 | Precompute and verify one owned pointer slave-class copy; never writes device configuration. |
 | [agent/src/omni/adapters/platform/linux_pointer_target.py](../../agent/src/omni/adapters/platform/linux_pointer_target.py) | 215 | Read a bounded Xorg hit path for one physical window point; no pointer motion, button input or AT-SPI coordinate inference. |
 | [agent/src/omni/adapters/platform/linux_portal.py](../../agent/src/omni/adapters/platform/linux_portal.py) | 220 | Explicit ephemeral window selection on a pinned Wayland portal; never opens PipeWire FDs or dispatches input. |
-| [agent/src/omni/adapters/platform/linux_remote_desktop.py](../../agent/src/omni/adapters/platform/linux_remote_desktop.py) | 148 | Separately selected ephemeral Wayland device permission; no ScreenCast reuse, EIS, clipboard, restore token or input dispatch. |
+| [agent/src/omni/adapters/platform/linux_remote_desktop.py](../../agent/src/omni/adapters/platform/linux_remote_desktop.py) | 195 | Separate Wayland device consent and owned EI core negotiation; no ScreenCast reuse, clipboard, restored authority or input. |
 | [agent/src/omni/adapters/platform/linux_semantic.py](../../agent/src/omni/adapters/platform/linux_semantic.py) | 302 | Addressed AT-SPI semantic proof and single mutation; no global input, focus acquisition or retry. |
 | [agent/src/omni/adapters/platform/linux_session.py](../../agent/src/omni/adapters/platform/linux_session.py) | 348 | logind display-session and accessibility bus ownership; never trusts desktop environment variables. |
 | [agent/src/omni/adapters/platform/linux_signals.py](../../agent/src/omni/adapters/platform/linux_signals.py) | 103 | Bounded, pinned D-Bus signals on the same pre-authenticated local connection; no service activation or FDs. |

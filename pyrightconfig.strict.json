@@ -156,6 +156,7 @@
     "agent/src/omni/adapters/platform/linux_button_mapping.py",
     "agent/src/omni/adapters/platform/linux_button_packet.py",
     "agent/src/omni/adapters/platform/linux_click_action.py",
+    "agent/src/omni/adapters/platform/linux_eis.py",
     "agent/src/omni/adapters/platform/linux_fds.py",
     "agent/src/omni/adapters/platform/linux_focus_navigation.py",
     "agent/src/omni/adapters/platform/linux_foreground.py",

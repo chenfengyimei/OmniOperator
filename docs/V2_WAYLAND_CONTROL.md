@@ -4,7 +4,7 @@
 
 `domain/desktop_control.py` 使用独立 `omni-desktop-control-1` 协议。打开请求必须带交互输入目的、显式同意、键盘/鼠标位图及 Agent/view/boot/grant 的精确 UUID 绑定。仅接受 open/permit/close；窗口共享协议、恢复令牌和任何输入命令都不能作为控制请求。系统许可阶段名为 `system_authorized`，不使用共享会话的 `active` 冒充动作权限。
 
-`linux_remote_desktop.py` 在独立的当前 UID 用户总线连接核验 Portal 唯一服务进程、活动未锁屏的本地 Wayland 会话及 RemoteDesktop>=2。明确请求键盘、鼠标或两者，不依赖“默认全部设备”。新建自己的随机 Session，经 RemoteDesktop.CreateSession/SelectDevices/Start 获取系统同意；persist_mode=0，不使用恢复令牌、剪贴板、屏幕源或 EIS。返回设备种类必须与请求相同，部分/额外设备、剪贴板开启、非空屏幕流、恢复令牌或未知扩大字段均拒绝。
+`linux_remote_desktop.py` 在独立的当前 UID 用户总线连接核验 Portal 唯一服务进程、活动未锁屏的本地 Wayland 会话及 RemoteDesktop>=2。明确请求键盘、鼠标或两者，不依赖“默认全部设备”。新建自己的随机 Session，经 RemoteDesktop.CreateSession/SelectDevices/Start 获取系统同意；persist_mode=0，系统许可路径不使用恢复令牌、剪贴板或屏幕源，也不自动打开EIS；内部按需EI连接接续见下节。返回设备种类必须与请求相同，部分/额外设备、剪贴板开启、非空屏幕流、恢复令牌或未知扩大字段均拒绝。
 
 ScreenCast 与 RemoteDesktop 各自持有新会话、匹配订阅和关闭义务。共享方法只新增固定子类接口选择，原 ScreenCast 路径不改变。控制适配器允许的请求方法只有三个许可方法，不能通过通用请求机制调用 Notify*；打开 PipeWire 被明确拒绝。系统许可本身无法发送按键、鼠标或像素。
 
@@ -27,3 +27,17 @@ ScreenCast 与 RemoteDesktop 各自持有新会话、匹配订阅和关闭义务
 后续实际输入必须另有逐次业务许可、输入释放/人工介入证明、目标关联和不确定结果结算。InputCapture 是由合成器触发并改变输入路由的捕获机制，不能当成通用被动物理输入监听器。缺失暂停证明时保持输入不可用；窗口帧共享不能提供这份证明。
 
 协议依据：[RemoteDesktop](https://flatpak.github.io/xdg-desktop-portal/docs/doc-org.freedesktop.portal.RemoteDesktop.html)、[Request](https://flatpak.github.io/xdg-desktop-portal/docs/doc-org.freedesktop.portal.Request.html)、[Session](https://flatpak.github.io/xdg-desktop-portal/docs/doc-org.freedesktop.portal.Session.html) 和 [InputCapture](https://flatpak.github.io/xdg-desktop-portal/docs/doc-org.freedesktop.portal.InputCapture.html)。
+
+## 独立EIS描述符与EI核心握手（2026-11-18）
+
+`ControlSession.prepare_eis`仅在原独立系统许可成功、设备种类仍精确相等后允许一次ConnectToEIS。固定总线FD方法复用原serial/owner/返回签名及唯一SCM_RIGHTS关联、非继承Unix流验证和累计额度；只扩RemoteDesktop/ConnectToEIS固定方法，不开放Notify*。旧ScreenCast/OpenPipeWireRemote正文按固定参数代换的AST相同，读取调用方另验。调用者取消不会丢失原任务或再连接，迟到FD先登记，再验证同一Portal/logind会话。
+
+`linux_eis.py`按EI原生字节序处理16字节头、有界对齐帧和部分收发，单帧4096字节、双向各累计64KiB、接收128消息不重置。额外SCM_RIGHTS全部关闭拒绝，不把未来键图FD偷偷接受到核心阶段。首次事件必须是有效handshake_version；选v1、显式sender2、固定产品名，仅声明connection/callback/pingpong三个v1接口后finish。新connection对象必须处于递增server ID空间且版本1，初始serial不猜固定值；实际sync要求递增client回调及done0，server ping须新ID/版本1，回pong0。握手前后复核原Portal，失败/取消/到期锁存，不重连或切回Notify。
+
+真实握手3秒、活跃同步1秒，所有预算均由当前任务持有；close不抢先释放仍忙的任务/连接。socket包装器detach失败保留原FD，成功后再关闭额外rights与原描述符，失败回执不等同clean。系统会话关闭先结清同一EI任务和实际FD，再清原Session/订阅；EI失效清除设备许可，外部SessionInspector仍由原所有者关闭。
+
+当前是内部原生连接API，固定生产控制worker尚未调用；没有声明seat/device、绑定能力、创建设备或发送输入。它不证明输入释放、物理介入、目标关联、映射区域、应用结果或业务动作授权，所有公开`input_authorized`仍为false。下一继续设备/区域/键图、pause/remove、释放与人工介入证明，再接原逐次业务许可；不能把核心握手完成等同Wayland控制完成。
+
+54新与128直接调用方/合同共182专项通过（22.09秒）；3修改运行文件strict零错误/警告，374只为登记范围。初次冻结入口和调用方路径错误均未执行测试，原日志保留；46初始新用例通过伴随缓存rename警告，关闭复核后新增8项，最终组无警告。所有EI/Portal/输入为注入，使用真实隔离FD与业务SQLite；无真实Wayland/EIS/设备/账号/模型/72h或全量验收。见[本批证据](evidence/v2-wayland-eis.json)。
+
+协议依据：[RemoteDesktop连接生命周期](https://flatpak.github.io/xdg-desktop-portal/docs/doc-org.freedesktop.portal.RemoteDesktop.html)、[EI线格式](https://libinput.pages.freedesktop.org/libei/doc/overview/index.html)、[类型/对象ID](https://libinput.pages.freedesktop.org/libei/doc/types/index.html)、[握手](https://libinput.pages.freedesktop.org/libei/interfaces/ei_handshake/index.html)和[核心同步](https://libinput.pages.freedesktop.org/libei/interfaces/ei_connection/index.html)。

@@ -122,6 +122,8 @@ Linux桌面原生会话由固定辅助进程内的`SessionInspector`核验，`Lo
 
 `linux_node_point.py`以明确提供方物理像素、真实组件命中后代/Parent链和持续X11实际几何/原点建立控件点，不用尺寸比例猜缩放；已核对Avalonia窗口自身命中实现不提供子控件click。`linux_click_action.py`复用现有单次审批/ready-permit/worker，许可后重验并一次移动、再重验和成对按钮；具体checked/selected/expanded/focus变化与完整身份/点后验成立才click_verified，其余unknown不重放。父进程将click纳入原生释放归属，实际结清及业务消费后才回收；注入正向不代表已安装提供方或Linux实机支持。
 
+`linux_eis.py`拥有独立Portal授权所交付FD的EI核心sender握手、同步/ping和累计预算，不声明设备或输入接口。`ControlSession.prepare_eis`只允许原系统许可后一次调用，取消保留实际任务/迟到FD，失败撤回许可；未结清/包装器detach失败保留原归属供再次关闭。`linux_bus.py`只扩固定ConnectToEIS描述符操作，原PipeWire精确回包逻辑保持；当前为内部API，生产worker/业务未调用，不代表输入许可或Wayland完整控制。
+
 `linux_focus_navigation.py`只在明确窗口绑定内双读完整有界AT-SPI树，以实际Parent、节点/正文/静态状态与唯一FOCUSED转移证明Tab/Escape的同窗口可观察结果；不预测顺序或关闭。准备/许可后完整复核发生在最终按键包创建前，保留原X11序号守卫。原生接收端、原节点静态目录保持，其他变化unknown，不重放；密码/不完整树不建证明，取消仍沿原实际释放归属。
 
 `linux_window_binding.py`组合已验证AT-SPI窗口明确提供的XID、XRes实际进程及其自己的连续窗口/焦点连接；只接受已核对的提供方字段（当前Avalonia），不推断GTK/Qt通用关联。描述重读夹住焦点/窗口代次检查，任何失败锁存；关闭先结清输入监测的实际释放，再关闭自己的原生窗口连接，外部SessionInspector继续由worker拥有。`linux_key_action.py`现将该绑定、完整映射/来源/复制预检及成对派发接入原linux_action worker的UUID ready/permit；原语义目录将窗口/光标上下文计入动作指纹，未提供明确窗口身份不产生按键候选。

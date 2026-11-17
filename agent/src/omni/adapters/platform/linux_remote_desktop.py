@@ -1,4 +1,4 @@
-"""Separately selected ephemeral Wayland device permission; no ScreenCast reuse, EIS, clipboard, restore token or input dispatch."""
+"""Separate Wayland device consent and owned EI core negotiation; no ScreenCast reuse, clipboard, restored authority or input."""
 
 from __future__ import annotations
 
@@ -10,6 +10,7 @@ from typing import Any, cast
 from ...domain.desktop_control import devices
 from ...domain.desktop_portal import CHOICE_SECONDS, LIFETIME_SECONDS
 from .linux_bus import BusPort, Endpoint, failure
+from .linux_eis import EisConnection
 from .linux_fds import OwnedFd
 from .linux_portal import PATH, PORTAL, SESSION, PortalSession
 from .linux_session import PROPERTIES, SessionInspector, number, object_path, one, variant
@@ -22,13 +23,23 @@ class ControlSession(PortalSession):
     interface = REMOTE_DESKTOP
 
     def __init__(
-        self, inspector: SessionInspector, requested: int, *, signal_factory: Callable[[BusPort], SignalBus] = SignalBus
+        self,
+        inspector: SessionInspector,
+        requested: int,
+        *,
+        signal_factory: Callable[[BusPort], SignalBus] = SignalBus,
+        eis_factory: Callable[[OwnedFd, Callable[[], Awaitable[None]]], EisConnection] = EisConnection,
     ) -> None:
         super().__init__(inspector, signal_factory=signal_factory)
         self.requested = devices(requested)
         self._attempted = self._invalidated = self._closed = False
         self._granted = 0
         self._deadline: float | None = None
+        self._eis_factory = eis_factory
+        self._eis_attempted = False
+        self._eis_task: asyncio.Task[EisConnection] | None = None
+        self._eis: EisConnection | None = None
+        self._eis_descriptor: OwnedFd | None = None
 
     async def prepare(self) -> None:
         if self._attempted or self._closed or self._invalidated:
@@ -68,6 +79,8 @@ class ControlSession(PortalSession):
                 or self._closed
                 or self._deadline is None
                 or asyncio.get_running_loop().time() >= self._deadline
+                or self._eis is not None
+                and not self._eis.alive
             ):
                 raise failure("portal_revoked")
             await super().check()
@@ -142,7 +155,41 @@ class ControlSession(PortalSession):
     async def open_pipewire(self) -> OwnedFd:
         raise failure("portal_control_scope_changed")
 
+    async def prepare_eis(self) -> EisConnection:
+        if self._eis_attempted or self._closed or not self.started or self._granted != self.requested:
+            raise failure("portal_state_invalid")
+        self._eis_attempted = True
+        self._eis_task = asyncio.create_task(self._prepare_eis(), name="portal-owned-eis")
+        self._eis_task.add_done_callback(lambda task: task.exception() if not task.cancelled() else None)
+        # A disconnected caller does not abandon a late SCM_RIGHTS reply or
+        # start a second ConnectToEIS. close retains this exact operation.
+        return await asyncio.shield(self._eis_task)
+
+    async def _prepare_eis(self) -> EisConnection:
+        try:
+            await self.check()
+            bus = cast(BusPort | None, self.bus)
+            if bus is None or self.owner is None or self.session is None:
+                raise failure("portal_state_invalid")
+            remote = await getattr(bus, "connect_eis")(self.owner.name, self.session)
+            self._eis_descriptor = remote
+            self._eis = self._eis_factory(remote, self.check)
+            await self._eis.prepare()
+            await self.check()
+            return self._eis
+        except BaseException:
+            self._invalidated, self._granted = True, 0
+            if self._eis is not None:
+                await self._eis.close()
+            elif self._eis_descriptor is not None:
+                self._eis_descriptor.close()
+            raise
+
     async def close(self) -> bool:
         self._granted = 0
         self._closed = True
+        if self._eis_task is not None and not self._eis_task.done():
+            return False
+        if self._eis is not None and not await self._eis.close():
+            return False
         return await super().close()

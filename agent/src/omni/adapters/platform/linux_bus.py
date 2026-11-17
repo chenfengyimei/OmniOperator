@@ -367,8 +367,19 @@ class LocalBus:
         return reply.body
 
     async def open_pipewire(self, destination: str, session: str) -> OwnedFd:
-        """Only this method can claim one correlated Unix descriptor; never retries."""
+        return await self._portal_fd(destination, session, "org.freedesktop.portal.ScreenCast", "OpenPipeWireRemote")
+
+    async def connect_eis(self, destination: str, session: str) -> OwnedFd:
+        return await self._portal_fd(destination, session, "org.freedesktop.portal.RemoteDesktop", "ConnectToEIS")
+
+    async def _portal_fd(self, destination: str, session: str, interface: str, member: str) -> OwnedFd:
+        """Claim one correlated descriptor for a fixed portal operation; never retries or dispatches input."""
         self.check()
+        if (interface, member) not in {
+            ("org.freedesktop.portal.ScreenCast", "OpenPipeWireRemote"),
+            ("org.freedesktop.portal.RemoteDesktop", "ConnectToEIS"),
+        }:
+            raise failure("portal_fd_unavailable")
         if not self.unix_fds or self._fd_expected is not None:
             raise failure("portal_fd_unavailable")
         self.calls += 1
@@ -377,8 +388,8 @@ class LocalBus:
         message = self.package.Message(
             destination=destination,
             path="/org/freedesktop/portal/desktop",
-            interface="org.freedesktop.portal.ScreenCast",
-            member="OpenPipeWireRemote",
+            interface=interface,
+            member=member,
             signature="oa{sv}",
             body=[session, {}],
             flags=self.package.MessageFlag.NO_AUTO_START,

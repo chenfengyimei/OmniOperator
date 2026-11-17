@@ -231,11 +231,21 @@
         "business_parent_backend_or_endpoint_connected": true,
         "input_authorized": false
       },
-      "next": "输入释放/物理介入证明、逐次业务许可、目标关联与实际派发；缺失证明保持输入不可用",
+      "next": "EI设备/区域/键图与pause/remove；输入释放/物理介入证明、目标关联、逐次业务许可和实际派发，缺失证明保持输入不可用",
       "owner_business_entrypoint": {
         "status": "implemented_scoped_passed",
         "evidence": "docs/evidence/v2-control-owner.json",
         "input_authorized": false
+      },
+      "eis_core_connection": {
+        "status": "internal_api_implemented_scoped_passed",
+        "evidence": "docs/evidence/v2-wayland-eis.json",
+        "single_use_fd_and_original_task_owned": true,
+        "core_sender_handshake_sync_ping": true,
+        "production_worker_or_business_connected": false,
+        "device_or_input_interface_advertised": false,
+        "input_authorized": false,
+        "real_wayland_native_executed": false
       }
     },
     {
