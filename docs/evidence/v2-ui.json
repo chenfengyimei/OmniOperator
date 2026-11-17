@@ -1,7 +1,7 @@
 {
   "batch": "v2-ui-connection-stability-v128",
   "recorded_at": "2026-11-15",
-  "resource_version_final": "20261117v137",
+  "resource_version_final": "20261117v138",
   "v1_alignment": {
     "summary": "用户提供 V1 正式工作台截图后，直接精读 web/ui/workbench.css 的 V1 实现并逐项移植，使 V2 结构与 V1 一致（而非自创风格）。",
     "ported_from_v1": [
@@ -1102,5 +1102,12 @@
       "专项回归": "89 passed（v2_ui/skills_ui/images_ui）"
     },
     "版本": "资源串整体 v136→v137。"
+  },
+  "agent_focus_fix_v138": {
+    "需求": "所有者截图指出 Agent 空间选择框点击聚焦时焦点圈左右被遮挡。",
+    "根因": "base.css 通用 :focus-visible outline 向外扩 5px，选择框占满左栏且 aside overflow:hidden，圈左右越界被裁。",
+    "修复": "#agents 焦点改完全在控件盒内的反馈：outline:none + border 转青 + inset 2px 光环，任何裁剪下完整。",
+    "验证": "双主题键盘聚焦取证 PASS（outline none + inset 光环）、守卫+导航 35 passed、全屏 54/54、全站 76/76。",
+    "版本": "资源串整体 v137→v138。"
   }
 }

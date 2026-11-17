@@ -533,6 +533,18 @@ body[data-ui-page="workbench-v2"] .agent-field select {
   color: var(--text-1);
   font-size: var(--fs-small);
 }
+/* 焦点反馈：base.css 通用 outline 向外扩 5px，而选择框占满左栏、
+   aside overflow:hidden 会把圈的左右两边裁掉（所有者截图取证）。
+   改为完全在控件盒内的反馈：border 转青 + inset 光环，
+   不越出边界，任何裁剪下都完整可见。 */
+body[data-ui-page="workbench-v2"] .agent-field select:focus {
+  outline: none;
+}
+body[data-ui-page="workbench-v2"] .agent-field select:focus-visible {
+  outline: none;
+  border-color: var(--line-accent);
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--seed-accent) 35%, transparent);
+}
 body[data-ui-page="workbench-v2"] #sessions .s-meta .material-icons {
   font-size: 10px;
 }
