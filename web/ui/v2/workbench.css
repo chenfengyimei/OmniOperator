@@ -573,6 +573,12 @@ body[data-ui-page="workbench-v2"] .inspector-panel > .tabs {
 body[data-ui-page="workbench-v2"] .inspector-panel > .tabs button {
   padding: 5px 2px;
   font-size: var(--fs-caption);
+  /* 按钮是 display:flex，text-align:center 对 flex 子项无效，
+     justify-content:normal 等同左对齐——文字贴左（实测左3px右22px）。
+     显式水平+垂直居中。 */
+  justify-content: center;
+  align-items: center;
+  text-align: center;
 }
 body[data-ui-page="workbench-v2"] .inspector-body {
   flex: 1 1 auto;

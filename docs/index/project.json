@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "b0e2d08ac66192e7a02936a71f0c848ca8ae80189c7ad079d1cf44bcf2b06541",
+  "source_sha256": "79bc61149b41ef28cd1078fdb42061604c9631bc6428dd21eb87cbfa78caa37f",
   "modules": [
     {
       "id": "v2-domain",
@@ -319,6 +319,7 @@
         "agent/src/omni/adapters/platform/linux_fds.py",
         "agent/src/omni/adapters/platform/linux_foreground.py",
         "agent/src/omni/adapters/platform/linux_input.py",
+        "agent/src/omni/adapters/platform/linux_keyboard.py",
         "agent/src/omni/adapters/platform/linux_lease_client.py",
         "agent/src/omni/adapters/platform/linux_pipewire.py",
         "agent/src/omni/adapters/platform/linux_portal.py",
@@ -423,7 +424,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 58257,
+      "lines": 58404,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -519,7 +520,7 @@
         "web/ui/v2/v1/workbench.css",
         "web/ui/v2/workbench.css"
       ],
-      "lines": 22693,
+      "lines": 22699,
       "dependencies": []
     },
     {
@@ -26196,10 +26197,11 @@
       "path": "agent/src/omni/adapters/platform/linux_foreground.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.linux_foreground",
-      "lines": 134,
+      "lines": 156,
       "imports": [
         "omni.adapters.platform.linux_bus",
         "omni.adapters.platform.linux_input",
+        "omni.adapters.platform.linux_keyboard",
         "omni.adapters.platform.linux_window_leases",
         "omni.adapters.platform.linux_x11",
         "omni.adapters.platform.linux_x11_wire"
@@ -26207,12 +26209,12 @@
       "symbols": [
         {
           "name": "WindowFocus",
-          "line": 19,
+          "line": 20,
           "kind": "class"
         },
         {
           "name": "WindowFocus.__init__",
-          "line": 22,
+          "line": 23,
           "kind": "function",
           "parameters": [
             "self",
@@ -26226,7 +26228,7 @@
         },
         {
           "name": "WindowFocus._same_server",
-          "line": 32,
+          "line": 34,
           "kind": "function",
           "parameters": [
             "self"
@@ -26235,7 +26237,7 @@
         },
         {
           "name": "WindowFocus._read_lineage",
-          "line": 52,
+          "line": 54,
           "kind": "function",
           "parameters": [
             "self"
@@ -26244,7 +26246,7 @@
         },
         {
           "name": "WindowFocus.prepare",
-          "line": 90,
+          "line": 92,
           "kind": "function",
           "parameters": [
             "self",
@@ -26256,7 +26258,7 @@
         },
         {
           "name": "WindowFocus._validate",
-          "line": 112,
+          "line": 114,
           "kind": "function",
           "parameters": [
             "self"
@@ -26265,7 +26267,7 @@
         },
         {
           "name": "WindowFocus.check",
-          "line": 123,
+          "line": 125,
           "kind": "function",
           "parameters": [
             "self"
@@ -26274,7 +26276,28 @@
         },
         {
           "name": "WindowFocus.close",
-          "line": 132,
+          "line": 134,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "WindowFocus.prepare_key",
+          "line": 138,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "key"
+          ],
+          "annotations": {
+            "key": "object"
+          }
+        },
+        {
+          "name": "WindowFocus.verify_key",
+          "line": 149,
           "kind": "function",
           "parameters": [
             "self"
@@ -26430,6 +26453,84 @@
         }
       ],
       "summary": "Verified Xorg input-change guard for addressed semantic actions; never grabs, synthesizes or stores input content."
+    },
+    {
+      "path": "agent/src/omni/adapters/platform/linux_keyboard.py",
+      "module": "v2-adapters",
+      "python_module": "omni.adapters.platform.linux_keyboard",
+      "lines": 120,
+      "imports": [
+        "omni.adapters.platform.linux_bus",
+        "omni.adapters.platform.linux_input",
+        "omni.adapters.platform.linux_x11_wire"
+      ],
+      "symbols": [
+        {
+          "name": "FocusPort",
+          "line": 29,
+          "kind": "class"
+        },
+        {
+          "name": "FocusPort.check",
+          "line": 32,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "KeyboardMapping",
+          "line": 35,
+          "kind": "class"
+        },
+        {
+          "name": "KeyboardMapping.__init__",
+          "line": 36,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "focus"
+          ],
+          "annotations": {
+            "focus": "FocusPort"
+          }
+        },
+        {
+          "name": "KeyboardMapping._read",
+          "line": 44,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "key"
+          ],
+          "annotations": {
+            "key": "str"
+          }
+        },
+        {
+          "name": "KeyboardMapping.prepare",
+          "line": 88,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "key"
+          ],
+          "annotations": {
+            "key": "object"
+          }
+        },
+        {
+          "name": "KeyboardMapping.verify",
+          "line": 109,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        }
+      ],
+      "summary": "Bounded read-only core keymap preflight on an existing focus proof; never translates Unicode, changes layouts or sends input."
     },
     {
       "path": "agent/src/omni/adapters/platform/linux_lease_client.py",
@@ -28353,7 +28454,7 @@
       "path": "agent/src/omni/adapters/platform/linux_x11_wire.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.linux_x11_wire",
-      "lines": 242,
+      "lines": 247,
       "imports": [
         "omni.adapters.platform.linux_bus"
       ],
@@ -28408,7 +28509,7 @@
         },
         {
           "name": "setup_reply",
-          "line": 45,
+          "line": 47,
           "kind": "function",
           "parameters": [
             "data",
@@ -28421,12 +28522,12 @@
         },
         {
           "name": "Wire",
-          "line": 86,
+          "line": 91,
           "kind": "class"
         },
         {
           "name": "Wire.__init__",
-          "line": 87,
+          "line": 92,
           "kind": "function",
           "parameters": [
             "self",
@@ -28440,7 +28541,7 @@
         },
         {
           "name": "Wire.read",
-          "line": 94,
+          "line": 99,
           "kind": "function",
           "parameters": [
             "self",
@@ -28452,7 +28553,7 @@
         },
         {
           "name": "Wire.authenticate",
-          "line": 106,
+          "line": 111,
           "kind": "function",
           "parameters": [
             "self",
@@ -28466,7 +28567,7 @@
         },
         {
           "name": "Wire.send",
-          "line": 121,
+          "line": 126,
           "kind": "function",
           "parameters": [
             "self",
@@ -28482,7 +28583,7 @@
         },
         {
           "name": "Wire.request",
-          "line": 128,
+          "line": 133,
           "kind": "function",
           "parameters": [
             "self",
@@ -28500,7 +28601,7 @@
         },
         {
           "name": "Wire.event",
-          "line": 148,
+          "line": 153,
           "kind": "function",
           "parameters": [
             "self",
@@ -28512,7 +28613,7 @@
         },
         {
           "name": "Wire.extension",
-          "line": 157,
+          "line": 162,
           "kind": "function",
           "parameters": [
             "self",
@@ -28524,7 +28625,7 @@
         },
         {
           "name": "Wire.atom",
-          "line": 163,
+          "line": 168,
           "kind": "function",
           "parameters": [
             "self",
@@ -28536,7 +28637,7 @@
         },
         {
           "name": "Wire.windows",
-          "line": 167,
+          "line": 172,
           "kind": "function",
           "parameters": [
             "self"
@@ -28545,7 +28646,7 @@
         },
         {
           "name": "Wire.client",
-          "line": 181,
+          "line": 186,
           "kind": "function",
           "parameters": [
             "self",
@@ -28559,7 +28660,7 @@
         },
         {
           "name": "Wire.geometry",
-          "line": 202,
+          "line": 207,
           "kind": "function",
           "parameters": [
             "self",
@@ -28571,7 +28672,7 @@
         },
         {
           "name": "Wire.attributes",
-          "line": 209,
+          "line": 214,
           "kind": "function",
           "parameters": [
             "self",
@@ -28583,7 +28684,7 @@
         },
         {
           "name": "Wire.watch",
-          "line": 216,
+          "line": 221,
           "kind": "function",
           "parameters": [
             "self",
@@ -28595,7 +28696,7 @@
         },
         {
           "name": "Wire.image",
-          "line": 221,
+          "line": 226,
           "kind": "function",
           "parameters": [
             "self",
@@ -99964,7 +100065,7 @@
       "path": "web/ui/v2/workbench.css",
       "module": "v2-workbench",
       "python_module": null,
-      "lines": 2969,
+      "lines": 2975,
       "imports": [],
       "symbols": [],
       "kind": "asset",
