@@ -1,4 +1,4 @@
-"""EI seat/device inventory and guarded binding on a granted connection; no emulation, coordinate inference or input."""
+"""EI device inventory, key plans and owned transport; no business authority, physical-input or application proof."""
 
 from __future__ import annotations
 
@@ -13,11 +13,12 @@ from typing import TYPE_CHECKING
 
 from ...domain.desktop_control import devices
 from .linux_bus import failure
-from .linux_eis import ORDER, EisConnection, interface, native_socket
+from .linux_eis import MAX_TOTAL, ORDER, SERVER_ID, EisConnection, interface, native_socket
 from .linux_eis_keymap import MAX_KEYMAP, Keymap, KeymapInfo
 from .linux_fds import OwnedFd, ReceivedFds
 
 if TYPE_CHECKING:
+    from .linux_eis_key_packet import EisKeyPacket
     from .linux_eis_keyboard import KeyboardPlan, KeyboardPlanner
     from .linux_xkbcommon import XkbCompiler
 
@@ -137,6 +138,7 @@ class EisDevices(EisConnection):
         self._mask = 0
         self._bound: tuple[str, ...] = ()
         self._keyboard: KeyboardPlanner | None = None
+        self._packet_created = False
 
     def _accept_rights(self) -> bool:
         return self._binding and "ei_keyboard" in self._bound
@@ -217,6 +219,8 @@ class EisDevices(EisConnection):
             device.resumed = opcode == 7
             if opcode == 8 and device.keymap is not None:
                 device.modifiers = (0, 0, 0, 0)
+            if opcode == 8 and self._input_lease is not None:
+                self._input_lease.paused(identity)
             device.epoch += 1
         elif device.done:
             raise failure("portal_eis_protocol_invalid")
@@ -420,8 +424,102 @@ class EisDevices(EisConnection):
             raise failure("portal_state_invalid")
         return await self._keyboard.verify()
 
+    async def key_packet(self, *, clock: Callable[[], int] | None = None) -> EisKeyPacket:
+        from .linux_eis_key_packet import EisKeyPacket
+
+        if self._packet_created:
+            raise failure("portal_state_invalid")
+        plan = await self.verify_key()
+        self._packet_created = True
+        return EisKeyPacket(self, plan) if clock is None else EisKeyPacket(self, plan, clock=clock)
+
+    def key_context(self) -> tuple[int, int, int]:
+        self._check()
+        if not self._ready or self._busy or self.serial is None or self._object is None:
+            raise failure("portal_state_invalid")
+        callback = self._client_id + 1
+        if callback >= SERVER_ID:
+            raise failure("portal_eis_protocol_limit")
+        return self.serial, self._object, callback
+
+    def claim_key(self, packet: EisKeyPacket) -> None:
+        _serial, _core, callback = self.key_context()
+        if packet.wire is not self or packet.callback != callback or self._sent + len(packet.packet) > MAX_TOTAL:
+            raise failure("portal_eis_protocol_limit")
+        self._sent += len(packet.packet)
+        self._client_id = callback
+        self._input_lease, self._busy = packet, True
+
+    def owns_key(self, packet: EisKeyPacket) -> bool:
+        return self._input_lease is packet
+
+    def key_owner(self, packet: EisKeyPacket, active: bool) -> None:
+        task = asyncio.current_task()
+        if not self.owns_key(packet) or self._input_task is not None and self._input_task is not task:
+            raise failure("portal_eis_input_pending")
+        self._input_task = task if active else None
+
+    def send_key(self, packet: EisKeyPacket, data: bytes) -> int:
+        self._check()
+        if not self.owns_key(packet) or self.connection is None:
+            raise failure("portal_eis_input_pending")
+        return self.connection.send(data)
+
+    async def wait_key(self, packet: EisKeyPacket) -> None:
+        self._check()
+        if not self.owns_key(packet):
+            raise failure("portal_eis_input_pending")
+        await self._wait(True)
+
+    async def key_barrier(self, packet: EisKeyPacket, callback: int | None) -> bool:
+        self.key_owner(packet, True)
+        try:
+            if callback is None:
+                await self._sync()
+                return True
+            while True:
+                identity, opcode, payload = await self._message()
+                if identity == callback and opcode == 0 and payload == bytes(8):
+                    return True
+                await self._event(identity, opcode, payload)
+        finally:
+            self.key_owner(packet, False)
+
+    def key_released(self, packet: EisKeyPacket) -> bool:
+        if not self.owns_key(packet):
+            return False
+        if packet.pause_seen:
+            # EI pause explicitly resets logical source state, never app effects.
+            return True
+        plan = packet.plan
+        device = self._devices.get(plan.device)
+        return (
+            device is not None
+            and not device.destroyed
+            and device.done
+            and device.resumed
+            and "ei_keyboard" not in device.removed
+            and device.interfaces.get("ei_keyboard") == plan.keyboard
+            and device.keymap == plan.meaning.keymap
+            and device.modifiers == (0, 0, 0, 0)
+        )
+
+    def settle_key(self, packet: EisKeyPacket) -> bool:
+        if not self.owns_key(packet) or self._input_task is not None:
+            return False
+        if packet.dropped:
+            self._closed, self._ready = True, False
+            if not self._close_handles():
+                return False
+        self._input_lease, self._busy = None, False
+        return True
+
     async def close(self) -> bool:
         self._closed, self._ready = True, False
+        if self._input_lease is not None:
+            self._input_lease.abort = True
+            if not await self._input_lease.settle():
+                return False
         clean = True
         if self._keyboard is not None:
             clean = await self._keyboard.close() and clean

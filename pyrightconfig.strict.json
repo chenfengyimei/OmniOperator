@@ -158,6 +158,7 @@
     "agent/src/omni/adapters/platform/linux_click_action.py",
     "agent/src/omni/adapters/platform/linux_eis.py",
     "agent/src/omni/adapters/platform/linux_eis_devices.py",
+    "agent/src/omni/adapters/platform/linux_eis_key_packet.py",
     "agent/src/omni/adapters/platform/linux_eis_keyboard.py",
     "agent/src/omni/adapters/platform/linux_eis_keymap.py",
     "agent/src/omni/adapters/platform/linux_fds.py",

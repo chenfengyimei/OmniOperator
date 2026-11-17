@@ -231,7 +231,7 @@
         "business_parent_backend_or_endpoint_connected": true,
         "input_authorized": false
       },
-      "next": "Linux原生XKB/evdev提供方合同与通用输入、EI分帧派发及释放、合成器物理介入和目标/区域关联，再接逐次业务许可/应用结果",
+      "next": "合成器物理介入合同与所选目标/区域身份，Linux原生XKB/evdev提供方和通用输入，再接逐次业务许可/应用后验；整个V2仍开发",
       "owner_business_entrypoint": {
         "status": "implemented_scoped_passed",
         "evidence": "docs/evidence/v2-control-owner.json",
@@ -269,6 +269,17 @@
         "full_server_actions_physical_input_or_app_result_proven": false,
         "production_worker_or_business_connected": false,
         "input_authorized": false
+      },
+      "framed_key_transport": {
+        "status": "internal_source_injected_scoped_passed_native_pending",
+        "evidence": "docs/evidence/v2-wayland-eis-key-packet.json",
+        "separate_frames_and_exact_original_suffix": true,
+        "original_partial_barrier_and_release_owned": true,
+        "pending_close_retains_original_portal": true,
+        "physical_intervention_target_or_app_proven": false,
+        "production_worker_or_business_connected": false,
+        "input_authorized": false,
+        "real_wayland_native_executed": false
       }
     },
     {

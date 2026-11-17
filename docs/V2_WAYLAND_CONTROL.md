@@ -69,3 +69,19 @@ seat v1和虚拟device v1/v2元数据均有界核验，服务端对象ID递增�
 49新增与180直接调用方/合同分阶段229不同节点通过；首46过/2夹具失败（x替换成原x）留档，修正有效字节后原2节点过；180调用方过后只改close及导入，AST核对其他运行正文相同，补5项关闭/取消节点过，未重复整组。3修改运行文件strict零错误/警告，378仅登记。Windows测试注入库函数、使用真实ctypes符号缓冲区和隔离EI/文件，原生可用性节点明确记录`native_xkb_executed=false`，不是Linux解析/ABI实跑证据，见[XKB专项](evidence/v2-wayland-eis-xkb.json)。
 
 仍需Linux实际编译和evdev/提供方合同核验、特殊键以外输入、EI分帧派发/释放结算、合成器物理介入与目标/区域关联，再接逐次业务许可和应用后验。整个V2继续开发，无真实账号/模型/设备/原生平台/72h或全量验收。依据：[编译接口](https://xkbcommon.org/doc/1.13.0/group__keymap.html)、[上下文](https://xkbcommon.org/doc/current/group__context.html)、[状态](https://xkbcommon.org/doc/1.13.0/group__state.html)、[键码约定](https://xkbcommon.org/doc/1.13.0/xkbcommon_8h.html)与[兼容边界](https://xkbcommon.org/doc/current/xkbcommon-compatibility.html)。
+
+## EI分帧特殊键与原释放归属（2026-11-18）
+
+`EisDevices.key_packet`只为原一次特殊键计划创建内部包，`emit`须提供调用方派发前回调，并重验原完整观察/键图/代次。使用原实际evdev码、最新已知serial、单次sequence1和Linux CLOCK_MONOTONIC微秒；176字节依次start_emulating、down、frame、up、另一个frame、stop_emulating、core sync。两个键状态不能放入同一frame；stop本身不是释放证明。整个包只预留一次累计发送额度，原4096单帧/双向64KiB/128消息额度不重置。当前包只有11特殊键计划，不承诺文本/组合键或指针输入。
+
+精确实际写入位置由原writer持有。48字节以前尚无完整down，取消/写失败只丢弃实际连接，不补成一次新按下；完整down后视为已有释放义务，仅续原packet剩余字节，包含up及frame，不重发旧前缀。实际写窗口1秒，到期保留原游标，后续close/settle可续释放；非法返回计数保持未知，不猜位置、不重放。detach失败保留原描述符，实际同一detach成功才关闭。
+
+原屏蔽取消的结算任务保留writer及实际回调读取。1秒观察到期不会取消部分header/body读取，迟到回执交回同一query，多个等待者也只复用一份。原回调错误、断开或格式不明不能新造sync替代；只有原有效回调已完成而修饰仍非零时，可新增只读同步继续核验，不能再发键。close立即撤销新输入，未完整按下标记abort；已完整按下的原I/O任务仍可完成释放，其他任务不能抢连接。
+
+完成up/frame/sync且原设备/键盘接口/键图仍在、逻辑修饰中立才结清普通来源释放；EI pause按协议重置本来源键/按钮状态，可作为来源释放但始终使动作结果未知。destroy/remove没有已观察pause时不代替中立证明。协议sync只说明前序协议处理，不能证明应用收到或完成；`transport_verified`仍需原完整观察最终相等。物理介入、真实焦点/目标及业务后验继续单独实现，不能用pause或sync冒充。
+
+原释放待结清时，`EisDevices.close`保留连接及键图正文/计划；实际`ControlSession.close`同样保留原Session/订阅，未发布clean。键图FD本来在有界读取实际完成后关闭，保留的是正文/原reader，不因派发再打开旧FD。原生worker/业务/HTTP仍没有输入命令或新动作许可，`input_authorized=false`保持。
+
+43新增与196调用方/架构/类型合同共239不同专项分阶段通过，主237约34秒、补2原Session归属节点约3秒；3修改运行文件strict零错误/警告，379仅登记。主组后运行AST仅更正模块职责docstring，原41新节点AST及夹具保持，补2仅新增节点/清理夹具，未重跑全量。首1键图FD夹具误解、28私有访问类型诊断（改明确内部方法，未放宽规则）、2清理夹具在inspector关闭后再关总线的失败及源码留档。Windows仅注入EI/库/时钟端口并使用隔离真实FD，未真实Wayland/键鼠/原生XKB/账号/模型/72h验收，见[分帧专项](evidence/v2-wayland-eis-key-packet.json)。
+
+下一继续合成器物理介入合同、所选目标/区域身份、实际Linux XKB/提供方与通用输入，再接逐次业务许可/应用后验；整个V2仍开发，全量留整个开发完成冻结后。依据：[设备分帧/暂停](https://libinput.pages.freedesktop.org/libei/interfaces/ei_device/index.html)、[键盘](https://libinput.pages.freedesktop.org/libei/interfaces/ei_keyboard/index.html)和[同步回调](https://libinput.pages.freedesktop.org/libei/interfaces/ei_connection/index.html)。

@@ -122,6 +122,8 @@ Linux桌面原生会话由固定辅助进程内的`SessionInspector`核验，`Lo
 
 `linux_node_point.py`以明确提供方物理像素、真实组件命中后代/Parent链和持续X11实际几何/原点建立控件点，不用尺寸比例猜缩放；已核对Avalonia窗口自身命中实现不提供子控件click。`linux_click_action.py`复用现有单次审批/ready-permit/worker，许可后重验并一次移动、再重验和成对按钮；具体checked/selected/expanded/focus变化与完整身份/点后验成立才click_verified，其余unknown不重放。父进程将click纳入原生释放归属，实际结清及业务消费后才回收；注入正向不代表已安装提供方或Linux实机支持。
 
+`linux_eis_key_packet.py`提供内部一次成对特殊键传输，原evdev码分属两个frame；原部分写入、writer/回调与释放任务持续拥有EI连接。`EisDevices`以明确传输方法保留单一I/O归属，close只撤销新动作，已有完整按下仅续原抬起后缀；未结清保留原Portal Session/订阅。sync/暂停只给协议来源释放依据，不证明物理输入或应用处理，生产业务输入仍未接通。
+
 `linux_xkbcommon.py`延迟加载固定系统libxkbcommon并声明C ABI，只编译原键图缓冲区，禁默认include/环境布局；真实executor/Future拥有C编译及对象清理，清理不明保留原任务不重复unref。`linux_eis_keyboard.py`把特殊键义绑定到原EI完整观察/键图正文及代次，前后/使用前重验；仅内部计划，不证明全部服务器动作/物理输入或应用结果，不接业务派发。Windows注入ABI通过不代表原生编译验收。
 
 `linux_eis_devices.py`提供内部显式seat/实际稀疏能力绑定与设备v1/v2、逻辑区域/映射ID、键图/修饰及生命周期代次快照。`linux_eis_keymap.py`以原executor Future/任务/FD拥有有界实际读取，取消或关闭不抢先释放线程；只复制/校验字节，不解析XKB或派发输入。默认核心档和公开input_authorized=false保持；设备档独立按原系统许可选择，未接生产worker/业务，不把pause视作物理介入证明或把逻辑区域视作截图像素。

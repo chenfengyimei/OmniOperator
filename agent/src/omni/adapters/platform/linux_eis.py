@@ -1,4 +1,4 @@
-"""Bounded EI core handshake and roundtrips on an owned portal FD; no seat binding, devices or input requests."""
+"""Bounded EI handshake/roundtrips and owned release lifetime; no business input authority or application proof."""
 
 from __future__ import annotations
 
@@ -8,9 +8,13 @@ import socket
 import struct
 import sys
 from collections.abc import Awaitable, Callable
+from typing import TYPE_CHECKING
 
 from .linux_bus import failure
 from .linux_fds import OwnedFd, ReceivedFds
+
+if TYPE_CHECKING:
+    from .linux_eis_key_packet import EisKeyPacket
 
 ORDER = "<" if sys.byteorder == "little" else ">"
 HEADER, MAX_FRAME, MAX_TOTAL, MAX_MESSAGES = 16, 4096, 65536, 128
@@ -65,6 +69,8 @@ class EisConnection:
         self._received = self._sent = self._messages = 0
         self.versions: dict[str, int] = {}
         self.serial: int | None = None
+        self._input_lease: EisKeyPacket | None = None
+        self._input_task: asyncio.Task[object] | None = None
         try:
             descriptor.verify_socket()
             self.connection = socket_factory(descriptor.fileno())
@@ -80,7 +86,17 @@ class EisConnection:
         return not self._closed and not self._failed and self.descriptor.descriptor >= 0
 
     def _check(self) -> None:
-        if not self.alive or self.connection is None or self.connection.fileno() != self.descriptor.fileno():
+        owned = self._input_lease is not None and asyncio.current_task() is self._input_task
+        if self._input_lease is not None and not owned:
+            raise failure("portal_eis_input_pending")
+        if (
+            self._failed
+            or self._closed
+            and not owned
+            or self.descriptor.descriptor < 0
+            or self.connection is None
+            or self.connection.fileno() != self.descriptor.fileno()
+        ):
             raise failure("portal_eis_unavailable")
 
     async def _wait(self, write: bool) -> None:
@@ -244,8 +260,15 @@ class EisConnection:
 
     async def close(self) -> bool:
         self._closed, self._ready = True, False
+        if self._input_lease is not None:
+            self._input_lease.abort = True
+            if not await self._input_lease.settle():
+                return False
         if self._busy:
             return False
+        return self._close_handles()
+
+    def _close_handles(self) -> bool:
         try:
             if self.connection is not None and self.connection.fileno() >= 0:
                 self.connection.detach()

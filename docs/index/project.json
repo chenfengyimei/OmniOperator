@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "16c0fcb9df234fbf69da392cf280fde74243b9cbc81f65ba90cd061db70f4d65",
+  "source_sha256": "e19020be406e875143e3ff4140114af1106e6e35d7084183e180a9335d3ef5c0",
   "modules": [
     {
       "id": "v2-domain",
@@ -322,6 +322,7 @@
         "agent/src/omni/adapters/platform/linux_click_action.py",
         "agent/src/omni/adapters/platform/linux_eis.py",
         "agent/src/omni/adapters/platform/linux_eis_devices.py",
+        "agent/src/omni/adapters/platform/linux_eis_key_packet.py",
         "agent/src/omni/adapters/platform/linux_eis_keyboard.py",
         "agent/src/omni/adapters/platform/linux_eis_keymap.py",
         "agent/src/omni/adapters/platform/linux_fds.py",
@@ -451,7 +452,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 63860,
+      "lines": 64140,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -26583,15 +26584,16 @@
       "path": "agent/src/omni/adapters/platform/linux_eis.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.linux_eis",
-      "lines": 263,
+      "lines": 286,
       "imports": [
         "omni.adapters.platform.linux_bus",
+        "omni.adapters.platform.linux_eis_key_packet",
         "omni.adapters.platform.linux_fds"
       ],
       "symbols": [
         {
           "name": "native_socket",
-          "line": 21,
+          "line": 25,
           "kind": "function",
           "parameters": [
             "descriptor"
@@ -26602,7 +26604,7 @@
         },
         {
           "name": "string",
-          "line": 25,
+          "line": 29,
           "kind": "function",
           "parameters": [
             "value"
@@ -26613,7 +26615,7 @@
         },
         {
           "name": "interface",
-          "line": 30,
+          "line": 34,
           "kind": "function",
           "parameters": [
             "payload"
@@ -26624,12 +26626,12 @@
         },
         {
           "name": "EisConnection",
-          "line": 48,
+          "line": 52,
           "kind": "class"
         },
         {
           "name": "EisConnection.__init__",
-          "line": 51,
+          "line": 55,
           "kind": "function",
           "parameters": [
             "self",
@@ -26645,7 +26647,7 @@
         },
         {
           "name": "EisConnection.alive",
-          "line": 79,
+          "line": 85,
           "kind": "function",
           "parameters": [
             "self"
@@ -26654,7 +26656,7 @@
         },
         {
           "name": "EisConnection._check",
-          "line": 82,
+          "line": 88,
           "kind": "function",
           "parameters": [
             "self"
@@ -26663,7 +26665,7 @@
         },
         {
           "name": "EisConnection._wait",
-          "line": 86,
+          "line": 102,
           "kind": "function",
           "parameters": [
             "self",
@@ -26675,14 +26677,14 @@
         },
         {
           "name": "EisConnection._wait.wake",
-          "line": 92,
+          "line": 108,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "EisConnection._read",
-          "line": 108,
+          "line": 124,
           "kind": "function",
           "parameters": [
             "self",
@@ -26694,7 +26696,7 @@
         },
         {
           "name": "EisConnection._accept_rights",
-          "line": 130,
+          "line": 146,
           "kind": "function",
           "parameters": [
             "self"
@@ -26703,7 +26705,7 @@
         },
         {
           "name": "EisConnection._message",
-          "line": 133,
+          "line": 149,
           "kind": "function",
           "parameters": [
             "self"
@@ -26712,7 +26714,7 @@
         },
         {
           "name": "EisConnection._send",
-          "line": 143,
+          "line": 159,
           "kind": "function",
           "parameters": [
             "self",
@@ -26728,7 +26730,7 @@
         },
         {
           "name": "EisConnection._new_server",
-          "line": 161,
+          "line": 177,
           "kind": "function",
           "parameters": [
             "self",
@@ -26744,7 +26746,7 @@
         },
         {
           "name": "EisConnection._event",
-          "line": 166,
+          "line": 182,
           "kind": "function",
           "parameters": [
             "self",
@@ -26760,7 +26762,7 @@
         },
         {
           "name": "EisConnection._sync",
-          "line": 173,
+          "line": 189,
           "kind": "function",
           "parameters": [
             "self"
@@ -26769,7 +26771,7 @@
         },
         {
           "name": "EisConnection.prepare",
-          "line": 186,
+          "line": 202,
           "kind": "function",
           "parameters": [
             "self"
@@ -26778,7 +26780,7 @@
         },
         {
           "name": "EisConnection.check",
-          "line": 228,
+          "line": 244,
           "kind": "function",
           "parameters": [
             "self"
@@ -26787,7 +26789,16 @@
         },
         {
           "name": "EisConnection.close",
-          "line": 245,
+          "line": 261,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "EisConnection._close_handles",
+          "line": 271,
           "kind": "function",
           "parameters": [
             "self"
@@ -26795,16 +26806,17 @@
           "annotations": {}
         }
       ],
-      "summary": "Bounded EI core handshake and roundtrips on an owned portal FD; no seat binding, devices or input requests."
+      "summary": "Bounded EI handshake/roundtrips and owned release lifetime; no business input authority or application proof."
     },
     {
       "path": "agent/src/omni/adapters/platform/linux_eis_devices.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.linux_eis_devices",
-      "lines": 430,
+      "lines": 528,
       "imports": [
         "omni.adapters.platform.linux_bus",
         "omni.adapters.platform.linux_eis",
+        "omni.adapters.platform.linux_eis_key_packet",
         "omni.adapters.platform.linux_eis_keyboard",
         "omni.adapters.platform.linux_eis_keymap",
         "omni.adapters.platform.linux_fds",
@@ -26814,7 +26826,7 @@
       "symbols": [
         {
           "name": "text",
-          "line": 30,
+          "line": 31,
           "kind": "function",
           "parameters": [
             "payload",
@@ -26827,7 +26839,7 @@
         },
         {
           "name": "name",
-          "line": 48,
+          "line": 49,
           "kind": "function",
           "parameters": [
             "payload"
@@ -26838,27 +26850,27 @@
         },
         {
           "name": "SeatInfo",
-          "line": 56,
+          "line": 57,
           "kind": "class"
         },
         {
           "name": "DeviceInfo",
-          "line": 65,
+          "line": 66,
           "kind": "class"
         },
         {
           "name": "Inventory",
-          "line": 81,
+          "line": 82,
           "kind": "class"
         },
         {
           "name": "Seat",
-          "line": 88,
+          "line": 89,
           "kind": "class"
         },
         {
           "name": "Seat.__init__",
-          "line": 89,
+          "line": 90,
           "kind": "function",
           "parameters": [
             "self"
@@ -26867,12 +26879,12 @@
         },
         {
           "name": "Device",
-          "line": 95,
+          "line": 96,
           "kind": "class"
         },
         {
           "name": "Device.__init__",
-          "line": 96,
+          "line": 97,
           "kind": "function",
           "parameters": [
             "self",
@@ -26886,12 +26898,12 @@
         },
         {
           "name": "EisDevices",
-          "line": 111,
+          "line": 112,
           "kind": "class"
         },
         {
           "name": "EisDevices.__init__",
-          "line": 112,
+          "line": 113,
           "kind": "function",
           "parameters": [
             "self",
@@ -26909,7 +26921,7 @@
         },
         {
           "name": "EisDevices._accept_rights",
-          "line": 141,
+          "line": 143,
           "kind": "function",
           "parameters": [
             "self"
@@ -26918,7 +26930,7 @@
         },
         {
           "name": "EisDevices._serial",
-          "line": 144,
+          "line": 146,
           "kind": "function",
           "parameters": [
             "self",
@@ -26930,7 +26942,7 @@
         },
         {
           "name": "EisDevices._event",
-          "line": 152,
+          "line": 154,
           "kind": "function",
           "parameters": [
             "self",
@@ -26946,7 +26958,7 @@
         },
         {
           "name": "EisDevices._seat",
-          "line": 168,
+          "line": 170,
           "kind": "function",
           "parameters": [
             "self",
@@ -26962,7 +26974,7 @@
         },
         {
           "name": "EisDevices._device",
-          "line": 205,
+          "line": 207,
           "kind": "function",
           "parameters": [
             "self",
@@ -26978,7 +26990,7 @@
         },
         {
           "name": "EisDevices._subinterface",
-          "line": 263,
+          "line": 267,
           "kind": "function",
           "parameters": [
             "self",
@@ -26994,7 +27006,7 @@
         },
         {
           "name": "EisDevices.seats",
-          "line": 302,
+          "line": 306,
           "kind": "function",
           "parameters": [
             "self"
@@ -27003,7 +27015,7 @@
         },
         {
           "name": "EisDevices._inventory",
-          "line": 308,
+          "line": 312,
           "kind": "function",
           "parameters": [
             "self"
@@ -27012,7 +27024,7 @@
         },
         {
           "name": "EisDevices._complete",
-          "line": 330,
+          "line": 334,
           "kind": "function",
           "parameters": [
             "self"
@@ -27021,7 +27033,7 @@
         },
         {
           "name": "EisDevices.bind",
-          "line": 342,
+          "line": 346,
           "kind": "function",
           "parameters": [
             "self",
@@ -27033,7 +27045,7 @@
         },
         {
           "name": "EisDevices.inventory",
-          "line": 380,
+          "line": 384,
           "kind": "function",
           "parameters": [
             "self",
@@ -27045,7 +27057,7 @@
         },
         {
           "name": "EisDevices.keymap_data",
-          "line": 388,
+          "line": 392,
           "kind": "function",
           "parameters": [
             "self",
@@ -27057,7 +27069,7 @@
         },
         {
           "name": "EisDevices.prepare_key",
-          "line": 408,
+          "line": 412,
           "kind": "function",
           "parameters": [
             "self",
@@ -27073,7 +27085,7 @@
         },
         {
           "name": "EisDevices.verify_key",
-          "line": 418,
+          "line": 422,
           "kind": "function",
           "parameters": [
             "self"
@@ -27081,8 +27093,131 @@
           "annotations": {}
         },
         {
+          "name": "EisDevices.key_packet",
+          "line": 427,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "clock"
+          ],
+          "annotations": {
+            "clock": "Callable[[], int] | None"
+          }
+        },
+        {
+          "name": "EisDevices.key_context",
+          "line": 436,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "EisDevices.claim_key",
+          "line": 445,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "packet"
+          ],
+          "annotations": {
+            "packet": "EisKeyPacket"
+          }
+        },
+        {
+          "name": "EisDevices.owns_key",
+          "line": 453,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "packet"
+          ],
+          "annotations": {
+            "packet": "EisKeyPacket"
+          }
+        },
+        {
+          "name": "EisDevices.key_owner",
+          "line": 456,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "packet",
+            "active"
+          ],
+          "annotations": {
+            "packet": "EisKeyPacket",
+            "active": "bool"
+          }
+        },
+        {
+          "name": "EisDevices.send_key",
+          "line": 462,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "packet",
+            "data"
+          ],
+          "annotations": {
+            "packet": "EisKeyPacket",
+            "data": "bytes"
+          }
+        },
+        {
+          "name": "EisDevices.wait_key",
+          "line": 468,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "packet"
+          ],
+          "annotations": {
+            "packet": "EisKeyPacket"
+          }
+        },
+        {
+          "name": "EisDevices.key_barrier",
+          "line": 474,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "packet",
+            "callback"
+          ],
+          "annotations": {
+            "packet": "EisKeyPacket",
+            "callback": "int | None"
+          }
+        },
+        {
+          "name": "EisDevices.key_released",
+          "line": 488,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "packet"
+          ],
+          "annotations": {
+            "packet": "EisKeyPacket"
+          }
+        },
+        {
+          "name": "EisDevices.settle_key",
+          "line": 507,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "packet"
+          ],
+          "annotations": {
+            "packet": "EisKeyPacket"
+          }
+        },
+        {
           "name": "EisDevices.close",
-          "line": 423,
+          "line": 517,
           "kind": "function",
           "parameters": [
             "self"
@@ -27090,7 +27225,164 @@
           "annotations": {}
         }
       ],
-      "summary": "EI seat/device inventory and guarded binding on a granted connection; no emulation, coordinate inference or input."
+      "summary": "EI device inventory, key plans and owned transport; no business authority, physical-input or application proof."
+    },
+    {
+      "path": "agent/src/omni/adapters/platform/linux_eis_key_packet.py",
+      "module": "v2-adapters",
+      "python_module": "omni.adapters.platform.linux_eis_key_packet",
+      "lines": 159,
+      "imports": [
+        "omni.adapters.platform.linux_bus",
+        "omni.adapters.platform.linux_eis",
+        "omni.adapters.platform.linux_eis_devices",
+        "omni.adapters.platform.linux_eis_keyboard"
+      ],
+      "symbols": [
+        {
+          "name": "monotonic_us",
+          "line": 21,
+          "kind": "function",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "frame",
+          "line": 25,
+          "kind": "function",
+          "parameters": [
+            "identity",
+            "opcode",
+            "payload"
+          ],
+          "annotations": {
+            "identity": "int",
+            "opcode": "int",
+            "payload": "bytes"
+          }
+        },
+        {
+          "name": "EisKeyPacket",
+          "line": 29,
+          "kind": "class"
+        },
+        {
+          "name": "EisKeyPacket.__init__",
+          "line": 30,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "wire",
+            "plan",
+            "clock"
+          ],
+          "annotations": {
+            "wire": "EisDevices",
+            "plan": "KeyboardPlan",
+            "clock": "Callable[[], int]"
+          }
+        },
+        {
+          "name": "EisKeyPacket.release_pending",
+          "line": 41,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "EisKeyPacket.paused",
+          "line": 44,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "device"
+          ],
+          "annotations": {
+            "device": "int"
+          }
+        },
+        {
+          "name": "EisKeyPacket._build",
+          "line": 48,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "EisKeyPacket.emit",
+          "line": 63,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "before_dispatch"
+          ],
+          "annotations": {
+            "before_dispatch": "Callable[[], Awaitable[None]]"
+          }
+        },
+        {
+          "name": "EisKeyPacket._write",
+          "line": 83,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "EisKeyPacket._read",
+          "line": 110,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "first"
+          ],
+          "annotations": {
+            "first": "bool"
+          }
+        },
+        {
+          "name": "EisKeyPacket._released",
+          "line": 113,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "EisKeyPacket._finish",
+          "line": 116,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "EisKeyPacket._settle",
+          "line": 120,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "EisKeyPacket.settle",
+          "line": 152,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        }
+      ],
+      "summary": "Single EI key pair with separate frames, exact partial writes and retained release/barrier; no business permission or app proof."
     },
     {
       "path": "agent/src/omni/adapters/platform/linux_eis_keyboard.py",
