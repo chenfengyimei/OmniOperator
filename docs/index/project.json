@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "f7f9cfa43cf1b52aef0da065b8d927bbd6c302d1f858d2fb0295e99f4323450a",
+  "source_sha256": "52aa0dd5181a9c3d8498e4b2b6a1e907481a5634665fb1f1b9c64e3b7285dafc",
   "modules": [
     {
       "id": "v2-domain",
@@ -327,6 +327,7 @@
         "agent/src/omni/adapters/platform/linux_lease_client.py",
         "agent/src/omni/adapters/platform/linux_pipewire.py",
         "agent/src/omni/adapters/platform/linux_pointer_actions.py",
+        "agent/src/omni/adapters/platform/linux_pointer_config.py",
         "agent/src/omni/adapters/platform/linux_pointer_target.py",
         "agent/src/omni/adapters/platform/linux_portal.py",
         "agent/src/omni/adapters/platform/linux_remote_desktop.py",
@@ -435,7 +436,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 60616,
+      "lines": 60876,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -26370,7 +26371,7 @@
       "path": "agent/src/omni/adapters/platform/linux_foreground.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.linux_foreground",
-      "lines": 273,
+      "lines": 295,
       "imports": [
         "omni.adapters.platform.linux_bus",
         "omni.adapters.platform.linux_button_mapping",
@@ -26378,6 +26379,7 @@
         "omni.adapters.platform.linux_keyboard",
         "omni.adapters.platform.linux_keystroke",
         "omni.adapters.platform.linux_pointer_actions",
+        "omni.adapters.platform.linux_pointer_config",
         "omni.adapters.platform.linux_pointer_target",
         "omni.adapters.platform.linux_window_leases",
         "omni.adapters.platform.linux_x11",
@@ -26387,12 +26389,12 @@
       "symbols": [
         {
           "name": "WindowFocus",
-          "line": 25,
+          "line": 26,
           "kind": "class"
         },
         {
           "name": "WindowFocus.__init__",
-          "line": 28,
+          "line": 29,
           "kind": "function",
           "parameters": [
             "self",
@@ -26406,7 +26408,7 @@
         },
         {
           "name": "WindowFocus._same_server",
-          "line": 43,
+          "line": 45,
           "kind": "function",
           "parameters": [
             "self"
@@ -26415,7 +26417,7 @@
         },
         {
           "name": "WindowFocus._read_lineage",
-          "line": 63,
+          "line": 65,
           "kind": "function",
           "parameters": [
             "self"
@@ -26424,7 +26426,7 @@
         },
         {
           "name": "WindowFocus.prepare",
-          "line": 101,
+          "line": 103,
           "kind": "function",
           "parameters": [
             "self",
@@ -26436,7 +26438,7 @@
         },
         {
           "name": "WindowFocus._validate",
-          "line": 123,
+          "line": 125,
           "kind": "function",
           "parameters": [
             "self"
@@ -26445,7 +26447,7 @@
         },
         {
           "name": "WindowFocus.check",
-          "line": 134,
+          "line": 136,
           "kind": "function",
           "parameters": [
             "self"
@@ -26454,7 +26456,7 @@
         },
         {
           "name": "WindowFocus.close",
-          "line": 143,
+          "line": 145,
           "kind": "function",
           "parameters": [
             "self"
@@ -26463,7 +26465,7 @@
         },
         {
           "name": "WindowFocus.selected_window",
-          "line": 148,
+          "line": 150,
           "kind": "function",
           "parameters": [
             "self"
@@ -26472,7 +26474,7 @@
         },
         {
           "name": "WindowFocus.prepare_pointer",
-          "line": 153,
+          "line": 155,
           "kind": "function",
           "parameters": [
             "self",
@@ -26484,7 +26486,7 @@
         },
         {
           "name": "WindowFocus.verify_pointer",
-          "line": 164,
+          "line": 166,
           "kind": "function",
           "parameters": [
             "self"
@@ -26493,7 +26495,7 @@
         },
         {
           "name": "WindowFocus.prepare_key",
-          "line": 173,
+          "line": 175,
           "kind": "function",
           "parameters": [
             "self",
@@ -26505,7 +26507,7 @@
         },
         {
           "name": "WindowFocus.prepare_button",
-          "line": 184,
+          "line": 186,
           "kind": "function",
           "parameters": [
             "self"
@@ -26514,7 +26516,7 @@
         },
         {
           "name": "WindowFocus.verify_button",
-          "line": 195,
+          "line": 197,
           "kind": "function",
           "parameters": [
             "self"
@@ -26523,7 +26525,7 @@
         },
         {
           "name": "WindowFocus.verify_key",
-          "line": 204,
+          "line": 206,
           "kind": "function",
           "parameters": [
             "self"
@@ -26532,7 +26534,7 @@
         },
         {
           "name": "WindowFocus.prepare_pointer_actions",
-          "line": 213,
+          "line": 215,
           "kind": "function",
           "parameters": [
             "self"
@@ -26541,7 +26543,7 @@
         },
         {
           "name": "WindowFocus.verify_pointer_actions",
-          "line": 224,
+          "line": 226,
           "kind": "function",
           "parameters": [
             "self"
@@ -26550,7 +26552,25 @@
         },
         {
           "name": "WindowFocus.prepare_sources",
-          "line": 233,
+          "line": 235,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "WindowFocus.prepare_pointer_configuration",
+          "line": 249,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "WindowFocus.verify_pointer_configuration",
+          "line": 260,
           "kind": "function",
           "parameters": [
             "self"
@@ -26559,7 +26579,7 @@
         },
         {
           "name": "WindowFocus.verify_sources",
-          "line": 247,
+          "line": 269,
           "kind": "function",
           "parameters": [
             "self"
@@ -26568,7 +26588,7 @@
         },
         {
           "name": "WindowFocus.key_packet",
-          "line": 259,
+          "line": 281,
           "kind": "function",
           "parameters": [
             "self"
@@ -27975,6 +27995,164 @@
         }
       ],
       "summary": "Read XKB pointer actions and released keyboard state on a mapped native point; never moves, clicks or grants input."
+    },
+    {
+      "path": "agent/src/omni/adapters/platform/linux_pointer_config.py",
+      "module": "v2-adapters",
+      "python_module": "omni.adapters.platform.linux_pointer_config",
+      "lines": 238,
+      "imports": [
+        "omni.adapters.platform.linux_bus",
+        "omni.adapters.platform.linux_button_mapping",
+        "omni.adapters.platform.linux_input",
+        "omni.adapters.platform.linux_x11_wire"
+      ],
+      "symbols": [
+        {
+          "name": "Axis",
+          "line": 17,
+          "kind": "class"
+        },
+        {
+          "name": "PointerDevice",
+          "line": 28,
+          "kind": "class"
+        },
+        {
+          "name": "PointerState",
+          "line": 37,
+          "kind": "class"
+        },
+        {
+          "name": "ConfigurationFocus",
+          "line": 47,
+          "kind": "class"
+        },
+        {
+          "name": "ConfigurationFocus.check",
+          "line": 50,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "ConfigurationFocus.verify_pointer_actions",
+          "line": 52,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "fixed",
+          "line": 55,
+          "kind": "function",
+          "parameters": [
+            "data",
+            "position"
+          ],
+          "annotations": {
+            "data": "bytes",
+            "position": "int"
+          }
+        },
+        {
+          "name": "pointer_devices",
+          "line": 60,
+          "kind": "function",
+          "parameters": [
+            "data",
+            "plan",
+            "expected"
+          ],
+          "annotations": {
+            "data": "bytes",
+            "plan": "ButtonPlan",
+            "expected": "str | None"
+          }
+        },
+        {
+          "name": "feedback",
+          "line": 131,
+          "kind": "function",
+          "parameters": [
+            "data"
+          ],
+          "annotations": {
+            "data": "bytes"
+          }
+        },
+        {
+          "name": "transform",
+          "line": 149,
+          "kind": "function",
+          "parameters": [
+            "data",
+            "atom"
+          ],
+          "annotations": {
+            "data": "bytes",
+            "atom": "int"
+          }
+        },
+        {
+          "name": "PointerConfiguration",
+          "line": 168,
+          "kind": "class"
+        },
+        {
+          "name": "PointerConfiguration.__init__",
+          "line": 169,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "focus"
+          ],
+          "annotations": {
+            "focus": "ConfigurationFocus"
+          }
+        },
+        {
+          "name": "PointerConfiguration._guard",
+          "line": 176,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "PointerConfiguration._read",
+          "line": 180,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "PointerConfiguration.prepare",
+          "line": 197,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "PointerConfiguration.verify",
+          "line": 227,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        }
+      ],
+      "summary": "Read canonical pointer axes, feedback and transforms on an existing XKB/point proof; no device writes or mouse dispatch."
     },
     {
       "path": "agent/src/omni/adapters/platform/linux_pointer_target.py",

@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`f7f9cfa43cf1b52aef0da065b8d927bbd6c302d1f858d2fb0295e99f4323450a`。包含 65 个职责模块、768 个源码/界面文件。
+源码指纹：`52aa0dd5181a9c3d8498e4b2b6a1e907481a5634665fb1f1b9c64e3b7285dafc`。包含 65 个职责模块、769 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -294,7 +294,7 @@
 | [agent/src/omni/adapters/platform/linux_bus.py](../../agent/src/omni/adapters/platform/linux_bus.py) | 436 | Verified local D-Bus transport for desktop helpers; no environment-selected or network buses. |
 | [agent/src/omni/adapters/platform/linux_button_mapping.py](../../agent/src/omni/adapters/platform/linux_button_mapping.py) | 209 | Read primary-button composition on a proven Xorg point/source pair; never changes maps, moves, clicks or grants dispatch. |
 | [agent/src/omni/adapters/platform/linux_fds.py](../../agent/src/omni/adapters/platform/linux_fds.py) | 95 | Owned received descriptors and bounded SCM_RIGHTS; no bus or desktop policy. |
-| [agent/src/omni/adapters/platform/linux_foreground.py](../../agent/src/omni/adapters/platform/linux_foreground.py) | 273 | Read-only X11 focus ancestry proof for future explicit foreground delivery; never maps AT-SPI nodes or sends input. |
+| [agent/src/omni/adapters/platform/linux_foreground.py](../../agent/src/omni/adapters/platform/linux_foreground.py) | 295 | Read-only X11 focus ancestry proof for future explicit foreground delivery; never maps AT-SPI nodes or sends input. |
 | [agent/src/omni/adapters/platform/linux_input.py](../../agent/src/omni/adapters/platform/linux_input.py) | 383 | Verified Xorg input-change guard for addressed semantic actions; never grabs, synthesizes or stores input content. |
 | [agent/src/omni/adapters/platform/linux_key_action.py](../../agent/src/omni/adapters/platform/linux_key_action.py) | 147 | One approved native key pair for an explicitly bound focused semantic node; no focus acquisition or replay. |
 | [agent/src/omni/adapters/platform/linux_key_switch.py](../../agent/src/omni/adapters/platform/linux_key_switch.py) | 125 | Prove the single Xorg keyboard slave switch surrounding an owned key pair; no input or configuration writes. |
@@ -303,6 +303,7 @@
 | [agent/src/omni/adapters/platform/linux_lease_client.py](../../agent/src/omni/adapters/platform/linux_lease_client.py) | 335 | Owned persistent X11 guardian transport; no native APIs, target rebinding from verify, unbounded queues or input. |
 | [agent/src/omni/adapters/platform/linux_pipewire.py](../../agent/src/omni/adapters/platform/linux_pipewire.py) | 256 | One serial-targeted GStreamer PipeWire frame inside an owned helper, never the default remote or display. |
 | [agent/src/omni/adapters/platform/linux_pointer_actions.py](../../agent/src/omni/adapters/platform/linux_pointer_actions.py) | 128 | Read XKB pointer actions and released keyboard state on a mapped native point; never moves, clicks or grants input. |
+| [agent/src/omni/adapters/platform/linux_pointer_config.py](../../agent/src/omni/adapters/platform/linux_pointer_config.py) | 238 | Read canonical pointer axes, feedback and transforms on an existing XKB/point proof; no device writes or mouse dispatch. |
 | [agent/src/omni/adapters/platform/linux_pointer_target.py](../../agent/src/omni/adapters/platform/linux_pointer_target.py) | 203 | Read a bounded Xorg hit path for one physical window point; no pointer motion, button input or AT-SPI coordinate inference. |
 | [agent/src/omni/adapters/platform/linux_portal.py](../../agent/src/omni/adapters/platform/linux_portal.py) | 220 | Explicit ephemeral window selection on a pinned Wayland portal; never opens PipeWire FDs or dispatches input. |
 | [agent/src/omni/adapters/platform/linux_remote_desktop.py](../../agent/src/omni/adapters/platform/linux_remote_desktop.py) | 148 | Separately selected ephemeral Wayland device permission; no ScreenCast reuse, EIS, clipboard, restore token or input dispatch. |

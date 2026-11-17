@@ -11,6 +11,7 @@ from .linux_input import X11Input
 from .linux_keyboard import KeyboardMapping
 from .linux_keystroke import KeyPacket
 from .linux_pointer_actions import PointerActions
+from .linux_pointer_config import PointerConfiguration, PointerState
 from .linux_pointer_target import PointerPoint, PointerTarget
 from .linux_window_leases import WindowLeases
 from .linux_x11 import X11Desktop
@@ -39,6 +40,7 @@ class WindowFocus:
         self._pointer: PointerTarget | None = None
         self._buttons: ButtonMapping | None = None
         self._pointer_actions: PointerActions | None = None
+        self._pointer_configuration: PointerConfiguration | None = None
 
     def _same_server(self) -> None:
         desktop = self.leases.desktop
@@ -240,6 +242,26 @@ class WindowFocus:
             sources = await self._sources.prepare()
             await self.check()
             return sources
+        except BaseException:
+            self._ready = False
+            raise
+
+    async def prepare_pointer_configuration(self) -> PointerState:
+        """Read axes, feedback and transforms for the prepared native pointer; never grants dispatch."""
+        if self._pointer_configuration is not None:
+            raise failure("desktop_input_unverified")
+        self._pointer_configuration = PointerConfiguration(self)
+        try:
+            return await self._pointer_configuration.prepare()
+        except BaseException:
+            self._ready = False
+            raise
+
+    async def verify_pointer_configuration(self) -> PointerState:
+        if self._pointer_configuration is None:
+            raise failure("desktop_input_unverified")
+        try:
+            return await self._pointer_configuration.verify()
         except BaseException:
             self._ready = False
             raise

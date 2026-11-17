@@ -52,6 +52,20 @@ Xorg先将slave物理按钮码通过slave表映射为master事件的detail，再
 
 当前实现仍不证明指针变换、轴/反馈、来源切换复制、输入抓取、AT-SPI物理点关联或应用后验，不派发移动/点击。随后继续这些开发项；全量留整个V2开发冻结后。协议依据：[Xorg GetDeviceInfo及设备动作更新](https://github.com/XQuartz/xorg-server/blob/master/xkb/xkb.c)、[XCB XKB二进制结构](https://xcb.freedesktop.org/manual/xkb_8h_source.html)及[Xorg指针类别复制](https://github.com/XQuartz/xorg-server/blob/master/Xi/exevents.c)。
 
+## 原生指针变换、轴和反馈配置
+
+`WindowFocus.prepare_pointer_configuration/verify_pointer_configuration`在已有物理点、来源、两级按钮和XKB动作证明之后，继续读取同连接的真实指针配置。`PointerState`保存master与XTEST来源各自的按钮来源/标签、轴、滚动元数据、反馈及矩阵；两个设备保持独立，不把当前master状态等同于下一次来源切换后的状态。
+
+XIQueryDevice完整拓扑仍须匹配原守卫，按钮数与已核对的完整表一致。两个指针都须有唯一按钮类和真实0/1轴；轴号唯一且小于32，模式明确为相对或绝对，类别长度精确。XTEST来源各类必须明确指向自身，master各类来源须是当前master或启用且挂接该master的实际slave pointer。标签、源ID、分辨率、模式与完整FP32.32上下限均进入不可变配置；整数表示保留分数精度，允许服务器的无范围标记。滚动轴要求已存在的唯一轴、明确方向、受支持标志及非零增量，完整有效字段保留。瞬时轴位置和文档填充不进入配置。
+
+XI1 GetFeedbackControl最多读取8个明确的PtrFeedback，要求独立ID、精确12字节条目及非零分母；完整加速分子/分母/阈值保留，不预设默认值，不修改反馈或启用相对移动。已有Coordinate Transformation Matrix及FLOAT原子只查询，不创建；两设备的属性须完整FLOAT/32、9项、无剩余数据。所有值有限且矩阵可逆，负零规范化；合法非默认范围、模式及矩阵均可被读取，不以单位矩阵替代实际配置。
+
+准备时完整双读，使用前完整重读，前后继续核验原窗口/物理点/完整映射/XKB状态。既有XI2类别、属性及XKB设备动作变化继续锁存，不新增自身输入豁免。反馈通过实际重读核对；此层不承诺移动结果，也不授予派发权。读取失败或取消后，旧配置不能因恢复可见值复活，关闭保持外部原生会话的所有权。
+
+本批43项新回归与364项直接窗口、来源、按钮/XKB、按键、文本、语义/桌面及架构/类型调用方，共407不同专项通过（89.12秒）；修改2运行文件strict零错误/警告，363仅登记，未整范围/全量。初轮39项通过与缓存rename WinError5警告、源码均留档；扩充真实master/source属性通知和8反馈上限后当前组无警告。固定源码前后核对SHA，默认离线闸门保留，没有真实Linux或鼠标输入。见[本批证据](evidence/v2-linux-pointer-config.json)。
+
+Xorg的XTEST绝对移动使用桌面坐标，但仍经过轴范围缩放、变换和裁剪。当前配置读取为随后坐标换算、预期slave切换与RawMotion值核对提供真实输入；尚未计算派发坐标、执行移动/按下/抬起或证明抓取路由、AT-SPI控件物理点及应用结果。业务`click`继续关闭，整个V2仍在开发。协议依据：[XTEST实现](https://github.com/XQuartz/xorg-server/blob/master/Xext/xtest.c)、[坐标缩放与变换](https://github.com/XQuartz/xorg-server/blob/master/dix/getevents.c)、[XI2真实轴回复](https://github.com/XQuartz/xorg-server/blob/master/Xi/xiquerydevice.c)、[反馈回复](https://github.com/XQuartz/xorg-server/blob/master/Xi/getfctl.c)与[XCB XI结构](https://xcb.freedesktop.org/manual/xinput_8h_source.html)。
+
 ## 已接通的受限文本追加
 
 `linux_text.py` 只向选定 AT-SPI 非密码可编辑对象执行一次 `EditableText.InsertText`。观察时须能完整读取最多 511 字符原文、核验 CaretOffset 位于末尾及 GetNSelections 为零；上下文进入原节点 actions 指纹，支持的节点才提供 `type_text`。不支持这些可选方法的提供者继续保留原语义动作。
