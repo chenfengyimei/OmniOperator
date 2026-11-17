@@ -1,0 +1,135 @@
+{
+  "source_base": "9e2358a1dafdfc47ebce03529b380b930c8fde8f",
+  "scope": "Tab/Escape observable unique focus transfer inside one explicitly bound window with unchanged complete AT-SPI tree and native recipient. No predicted traversal order, popup-close or general-provider completion.",
+  "source_files": {
+    "agent/src/omni/adapters/platform/linux_focus_navigation.py": "50e024158a9bc2d9de3678e4384bb2e853dbe40b26119b73a8d2dbc9db69fe4d",
+    "agent/src/omni/adapters/platform/linux_key_action.py": "b86568ee0c51bb407fe44bd7ca94eb77e5fd81189d067624dd8427264d271607",
+    "agent/tests/test_v2_linux_focus_navigation.py": "88a3be07d1682120a3be76b161599002715b0fefa0a767ce8e8be67adbbbbb71",
+    "pyrightconfig.strict.json": "f1a1e0bac84d94fdb5b6df91ca830d303f93e64378849e8b60ddbf69ab6dee99",
+    "docs/TYPE_CHECKING.md": "37ba2096628f9baaacd6e80335a503c3d94ede65b6248a31d21122408c23c5a2"
+  },
+  "fixed_source_manifest": {
+    "path": "temp/build/v2-linux-focus-navigation-source-r4.json",
+    "sha256": "e8844e6a9abf5c32f0942805c68f215baf820a48f30b9fa0d8f798680f314ce0"
+  },
+  "scoped_tests": {
+    "passed": 208,
+    "new_navigation_nodes": 45,
+    "existing_callers_and_contracts": 163,
+    "seconds": 81.018,
+    "per_module": {
+      "tests.test_v2_linux_focus_navigation": 45,
+      "tests.test_v2_linux_key_action": 29,
+      "tests.test_v2_linux_text": 25,
+      "tests.test_v2_linux_semantic": 21,
+      "tests.test_v2_linux_click_action": 36,
+      "tests.test_v2_foreground": 12,
+      "tests.test_v2_foreground_worker": 8,
+      "tests.test_v2_foreground_transport": 14,
+      "tests.test_v2_desktop_contracts": 10,
+      "tests.test_v2_architecture": 6,
+      "tests.test_v2_typecheck_scope": 2
+    },
+    "report": {
+      "path": "temp/build/v2-linux-focus-navigation-final.xml",
+      "sha256": "878bf0466e4c9b854e8ea2d68303303110d8ae429b83abb38db5e7f52b1be9ed"
+    },
+    "full_suite": false,
+    "skipped": 0
+  },
+  "initial_failure": {
+    "passed": 21,
+    "failed": 18,
+    "seconds": 9.83,
+    "report": {
+      "path": "temp/build/v2-linux-focus-navigation-r1.xml",
+      "sha256": "b0a70b24a1fbdb2c8b8320c94d1a33cd6520f4006fa0663262d43b41423f85b6"
+    },
+    "source_manifest": {
+      "path": "temp/build/v2-linux-focus-navigation-source-r1.json",
+      "sha256": "e353d180760a8544f2dc8fbe063d1e826ca2d05b2bcde24a5a72e8f769cba8e4"
+    },
+    "source_archive": {
+      "path": "temp/build/v2-linux-focus-navigation-r1-source-delta.zip",
+      "sha256": "d42b05c4f2efb9e6ffd0de7d513fd7f09cebdf640e4e0038d6d1c9bb81ee13b2"
+    },
+    "cause": "Integration placed new native focus recheck after KeyPacket construction, changing the X11 request sequence. Existing packet freshness protection correctly refused dispatch. No permissive fallback was added.",
+    "fix": "Moved the full navigation precheck before constructing the current packet. Original sequence checks, limits and guards unchanged.",
+    "failed_nodes_recheck": {
+      "passed": 18,
+      "seconds": 7.39,
+      "report": {
+        "path": "temp/build/v2-linux-focus-navigation-r2-failed.xml",
+        "sha256": "c316e617a1e8375073169888702c0a62502cfa4b81cd3fdc984b3f40e093af23"
+      }
+    },
+    "runtime_unchanged_between_failed_nodes_recheck_and_final_group": true
+  },
+  "strict_modified_files": {
+    "files": 2,
+    "errors": 0,
+    "warnings": 0,
+    "report": {
+      "path": "temp/build/v2-linux-focus-navigation-pyright-r4.json",
+      "sha256": "e997e7ce07318bdd64cedec1855c8c35060ff6a057ede516469f98fb5a9f2d47"
+    }
+  },
+  "registered_strict_scope": 373,
+  "registered_scope_fully_rechecked": false,
+  "ruff_and_format_modified_files_passed": true,
+  "navigation_contract": {
+    "read": "Complete same-bus child-index/actual Parent tree, at most128 nodes, depth8 and16KiB cumulative UTF-8 names/text/interfaces; exact bounds remain usable. Facts reject password before name/text/interfaces/descendants. Cycle, foreign, duplicate, private, truncated or ambiguous tree refuses proof.",
+    "baseline": "Two identical complete reads bracketed by continuous native WindowBinding guards. Original approved path/ref is the unique enabled, sensitive, showing, visible, focusable focused descendant; root remains active. Store immutable refs, paths, hashes of role/name/text/interfaces and all state bits except FOCUSED.",
+    "permit": "Prepare before ready, recheck original complete baseline after exact UUID permit and before current native key packet construction. Original selected-node semantic proof/catalog remains required. No native request can be inserted between final packet construction and emit.",
+    "post": "One real key pair only. Original selected node proof/static catalog retained, complete tree double-read again, same identities/text/structure/all other state bits and actual native recipient. Only old focus gone plus one new interactive focus counts as key_verified. Zero focus may wait within original750ms; unchanged, ambiguous, drift or unknown remains unknown without replay.",
+    "not_proven": "Observed same-window focus transfer does not prove tab ordering, application-specific next target, popup/window close, submission or arbitrary native child-focus changes. Dynamic/popup-changing trees remain unknown; unsupported/private preflight denies before input.",
+    "lifecycle": "Existing worker cleanup and actual key release settlement retained. Cancellation after full press keeps both native connections and original barrier until actual release settles; approvals and SQLite single-use receipts verified for both Tab and Escape."
+  },
+  "provider_research": {
+    "pinned_primary_sources": [
+      {
+        "url": "https://raw.githubusercontent.com/qt/qtbase/72e75f4c4a92b383cc7d6473b7b627a64baee26b/src/gui/accessible/linux/atspiadaptor.cpp",
+        "path": "temp/build/v2-linux-provider-research/qt_qtbase/dev/src/gui/accessible/linux/atspiadaptor.cpp",
+        "bytes": 153796,
+        "sha256": "5117d071f7cdf0ce142dba66678f57054f3c4a371360bc1f736ef62fafae42cb"
+      },
+      {
+        "url": "https://raw.githubusercontent.com/GNOME/gtk/98bf2f052a0491a885de63e926f0335b9e75c275/gtk/a11y/gtkatspicontext.c",
+        "path": "temp/build/v2-linux-provider-research/GNOME_gtk/main/gtk/a11y/gtkatspicontext.c",
+        "bytes": 77563,
+        "sha256": "0447c80e9cf37acfe7fa944c9ec1da6921dbd01d9cf0c4efada356669354a3ed"
+      },
+      {
+        "url": "https://raw.githubusercontent.com/GNOME/gtk/98bf2f052a0491a885de63e926f0335b9e75c275/gtk/a11y/gtkatspicomponent.c",
+        "path": "temp/build/v2-linux-provider-research/GNOME_gtk/main/gtk/a11y/gtkatspicomponent.c",
+        "bytes": 7769,
+        "sha256": "4cb928561f8b19c88c4c3b8d373424ab88f8d6b944e53304859138a35dcbc551"
+      },
+      {
+        "url": "https://raw.githubusercontent.com/GNOME/gtk/bac4a949b151eedada8bc60a97429d2176b0b28b/gtk/a11y/gtkwindowaccessible.c",
+        "path": "temp/build/v2-linux-provider-research/GNOME_gtk/gtk-3-24/gtk/a11y/gtkwindowaccessible.c",
+        "bytes": 13868,
+        "sha256": "fb2a724378bf39f759e3329d7de0d3a153028d60e6e1c3a18d3b3b5d761286cd"
+      },
+      {
+        "url": "https://raw.githubusercontent.com/GNOME/gtk/bac4a949b151eedada8bc60a97429d2176b0b28b/gtk/a11y/gtkwidgetaccessible.c",
+        "path": "temp/build/v2-linux-provider-research/GNOME_gtk/gtk-3-24/gtk/a11y/gtkwidgetaccessible.c",
+        "bytes": 25321,
+        "sha256": "b8d4c1e452a3ae39f090cbb365693c3d3d56442d02251ba1a87f27850b3953d0"
+      }
+    ],
+    "conclusion": "Inspected default GTK3/GTK4/Qt AT-SPI attribute implementations do not directly expose a usable native XID. Qt custom attributes are application-specific, not a default profile. No toolkit/PID/title/geometry heuristic or whitelist expansion added.",
+    "generic_binding_status": "Still open; explicit owner-selected native binding or a proven provider contract needs separate product/authorization work."
+  },
+  "protocol_docs": [
+    "https://gnome.pages.gitlab.gnome.org/at-spi2-core/devel-docs/doc-org.a11y.atspi.Accessible.html",
+    "https://gnome.pages.gitlab.gnome.org/at-spi2-core/libatspi/enum.StateType.html"
+  ],
+  "native_linux_or_real_input_executed": false,
+  "real_account_model_device_native_desktop_or_72h_executed": false,
+  "full_suite_run": false,
+  "whole_v2_development_complete": false,
+  "whole_v2_accepted": false,
+  "publication": "Local-only checkpoint. Specific remote transfer authorization is still pending; no push or alternative upload.",
+  "next": "General native/semantic provider association, accurate provider hit availability, application close/submission outcomes, legacy/multiple-root input layouts and Wayland input. Keep entire V2 goal active; full suite after entire implementation freeze."
+}

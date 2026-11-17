@@ -10,6 +10,7 @@ from ...domain.contracts import BusinessError
 from ...domain.foreground import action as foreground_action
 from .linux_atspi import AtspiDesktop
 from .linux_bus import failure
+from .linux_focus_navigation import FocusNavigation
 from .linux_semantic import Semantics, digest, result, stable_catalog
 from .linux_text import WAIT_SECONDS
 from .linux_window_binding import WindowBinding
@@ -100,9 +101,14 @@ class FocusedKey:
             await focus.prepare_key(key)
             await focus.prepare_sources()
             await focus.key_packet()  # all copied configuration proved BEFORE ready
+            navigation = FocusNavigation(self.desktop, self.binding) if key in {"Tab", "Escape"} else None
+            if navigation is not None:
+                await navigation.prepare(target, path, ref)
             if not await permit():
                 raise failure("desktop_action_revoked")
             await self.binding.check()
+            if navigation is not None:
+                await navigation.check()
             packet = await focus.key_packet()  # new current request sequence after permit/readbacks
             current = await self.semantics.resolve(target, path)
             if current[0] != ref or current[-1] != proof or not await self._focused(target, current[2]):
@@ -113,6 +119,20 @@ class FocusedKey:
             await packet.emit()
             stop = self.now() + 0.75
             while True:
+                if navigation is not None:
+                    after = await self.semantics.resolve(target, path)
+                    if (
+                        after[0] != ref
+                        or stable_catalog(catalog) != stable_catalog(after[3])
+                        or after[-1] != {**proof, "actions_sha256": digest(after[3])}
+                    ):
+                        raise failure("desktop_observation_changed")
+                    if await navigation.changed():
+                        return result("ok", verification="key_verified")
+                    if self.now() >= stop:
+                        raise failure("desktop_action_unverified")
+                    await self.sleep(0.05)
+                    continue
                 await self.binding.check()
                 after = await self.semantics.resolve(target, path)
                 if after[0] != ref or not await self._focused(target, after[2]):

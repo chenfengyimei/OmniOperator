@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "189acd0ec276f73aad407bed8267ee67e3ab02feba8ba8e13f53ecc1a03f3c17",
+  "source_sha256": "0aa77df36ea1ee6ec140010e6bbebfc9b86ece14c03a0a359d8ce440ea3078d7",
   "modules": [
     {
       "id": "v2-domain",
@@ -321,6 +321,7 @@
         "agent/src/omni/adapters/platform/linux_button_packet.py",
         "agent/src/omni/adapters/platform/linux_click_action.py",
         "agent/src/omni/adapters/platform/linux_fds.py",
+        "agent/src/omni/adapters/platform/linux_focus_navigation.py",
         "agent/src/omni/adapters/platform/linux_foreground.py",
         "agent/src/omni/adapters/platform/linux_input.py",
         "agent/src/omni/adapters/platform/linux_key_action.py",
@@ -445,7 +446,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 62579,
+      "lines": 62725,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -26658,6 +26659,117 @@
       "summary": "Owned received descriptors and bounded SCM_RIGHTS; no bus or desktop policy."
     },
     {
+      "path": "agent/src/omni/adapters/platform/linux_focus_navigation.py",
+      "module": "v2-adapters",
+      "python_module": "omni.adapters.platform.linux_focus_navigation",
+      "lines": 126,
+      "imports": [
+        "omni.adapters.platform.linux_atspi",
+        "omni.adapters.platform.linux_bus",
+        "omni.adapters.platform.linux_semantic",
+        "omni.adapters.platform.linux_window_binding"
+      ],
+      "symbols": [
+        {
+          "name": "FocusNode",
+          "line": 20,
+          "kind": "class"
+        },
+        {
+          "name": "FocusTree",
+          "line": 28,
+          "kind": "class"
+        },
+        {
+          "name": "FocusNavigation",
+          "line": 33,
+          "kind": "class"
+        },
+        {
+          "name": "FocusNavigation.__init__",
+          "line": 34,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "desktop",
+            "binding"
+          ],
+          "annotations": {
+            "desktop": "AtspiDesktop",
+            "binding": "WindowBinding"
+          }
+        },
+        {
+          "name": "FocusNavigation._read",
+          "line": 41,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "FocusNavigation._read.visit",
+          "line": 49,
+          "kind": "function",
+          "parameters": [
+            "ref",
+            "parent",
+            "path"
+          ],
+          "annotations": {
+            "ref": "Ref",
+            "parent": "Ref | None",
+            "path": "tuple[int, ...]"
+          }
+        },
+        {
+          "name": "FocusNavigation._stable",
+          "line": 86,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "FocusNavigation.prepare",
+          "line": 100,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "target",
+            "path",
+            "ref"
+          ],
+          "annotations": {
+            "target": "Payload",
+            "path": "list[int]",
+            "ref": "Ref"
+          }
+        },
+        {
+          "name": "FocusNavigation.check",
+          "line": 111,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "FocusNavigation.changed",
+          "line": 116,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        }
+      ],
+      "summary": "Bounded complete AT-SPI focus readback in one native-bound window; never predicts tab order or sends input."
+    },
+    {
       "path": "agent/src/omni/adapters/platform/linux_foreground.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.linux_foreground",
@@ -27413,10 +27525,11 @@
       "path": "agent/src/omni/adapters/platform/linux_key_action.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.linux_key_action",
-      "lines": 147,
+      "lines": 167,
       "imports": [
         "omni.adapters.platform.linux_atspi",
         "omni.adapters.platform.linux_bus",
+        "omni.adapters.platform.linux_focus_navigation",
         "omni.adapters.platform.linux_semantic",
         "omni.adapters.platform.linux_text",
         "omni.adapters.platform.linux_window_binding",
@@ -27426,7 +27539,7 @@
       "symbols": [
         {
           "name": "expected_edit",
-          "line": 20,
+          "line": 21,
           "kind": "function",
           "parameters": [
             "text",
@@ -27441,12 +27554,12 @@
         },
         {
           "name": "FocusedKey",
-          "line": 55,
+          "line": 56,
           "kind": "class"
         },
         {
           "name": "FocusedKey.__init__",
-          "line": 56,
+          "line": 57,
           "kind": "function",
           "parameters": [
             "self",
@@ -27464,7 +27577,7 @@
         },
         {
           "name": "FocusedKey._focused",
-          "line": 70,
+          "line": 71,
           "kind": "function",
           "parameters": [
             "self",
@@ -27478,7 +27591,7 @@
         },
         {
           "name": "FocusedKey.press",
-          "line": 75,
+          "line": 76,
           "kind": "function",
           "parameters": [
             "self",

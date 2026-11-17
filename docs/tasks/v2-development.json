@@ -59,7 +59,7 @@
           },
           "remaining": [
             "通用提供方/控件的原生窗口关联；当前仅明确XID提供方节点已接业务按键",
-            "Tab/Escape/焦点导航/关闭与其他应用结果的专门后验；无法证明的已派发结果保持unknown",
+            "Tab/Escape已接同窗口唯一焦点转移后验；Tab顺序/明确目的控件、弹窗或窗口关闭、提交与其他应用结果仍需专门合同，不能证明的已派发结果保持unknown",
             "控件物理点/逐次鼠标业务及明确状态后验源码已接；已核对Avalonia窗口自身命中不提供子控件候选，通用提供方准确命中/原生窗口关联、其他应用结果仍继续开发",
             "旧Xinerama及多root输入布局仍待明确原生坐标证明；不将普通窗口读取受限",
             "Wayland输入释放/物理介入、目标关联和实际派发仍待继续开发"
@@ -205,6 +205,17 @@
             "known_pinned_avalonia_child_hit_available": false,
             "positive_accurate_hit_provider_is_injected": true,
             "generic_provider_or_real_native_accepted": false
+          },
+          "same_window_focus_navigation": {
+            "status": "source_connected_scoped_passed",
+            "evidence": "docs/evidence/v2-linux-focus-navigation.json",
+            "keys": [
+              "Tab",
+              "Escape"
+            ],
+            "complete_tree_and_native_recipient_required": true,
+            "predicted_order_close_submission_or_generic_provider_proven": false,
+            "real_linux_native_executed": false
           }
         }
       ]

@@ -40,6 +40,7 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 | `agent/src/omni/adapters/platform/linux_pointer_actions.py` | 同连接主从XKB按钮动作与释放状态/控制预检、规范化无动作和变化订阅，不派发输入 |
 | `agent/src/omni/adapters/platform/linux_button_mapping.py` | 原生虚拟鼠标/主设备两级按钮映射与变化订阅，只读且不授予点击 |
 | `agent/src/omni/adapters/platform/linux_pointer_target.py` | 同连接物理窗口点的Xorg形状命中/遮挡路径、接收客户端与结构变化预检，不移动或点击 |
+| `agent/src/omni/adapters/platform/linux_focus_navigation.py` | 完整有界AT-SPI焦点树双读与同窗口导航后验 |
 | `agent/src/omni/adapters/platform/linux_key_action.py` | 手工聚焦节点的逐次许可、原生按键包与明确文本/光标后验，不重放或假报成功 |
 | `agent/src/omni/adapters/platform/linux_xtest.py` | Xorg虚拟输入设备的同连接只读身份预检，不豁免事件或派发输入 |
 | `agent/src/omni/adapters/platform/linux_keystroke.py` | 同连接单键成对字节派发与实际释放责任；业务目标/许可接线待完成 |
@@ -425,7 +426,7 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 
 ### 3.1 adapters 类型收口（第 214 批）
 
-全部 **257 个 adapters 已纳入 strict**；合同范围为 **372 文件**（domain 57、application 45、adapters 257、composition 13）。新增事件通知、空间管理、V2独立长跑工具、Linux持续窗口/焦点/显式提供方窗口绑定/物理点命中预检/按键映射、XKB服务器/XTEST来源、完整映射与其余复制配置比对、精确设备切换后验及成对派发内核、受限前台文本及独立控制许可worker/父进程/业务用例后，历史335文件结论仅代表原固定候选；开发中只复核修改范围，整范围复验留整个V2开发完成后的验收。原 P4/P5/P6 的 24 个待办模块已完成，不再是当前施工清单。
+全部 **258 个 adapters 已纳入 strict**；合同范围为 **373 文件**（domain 57、application 45、adapters 258、composition 13）。新增事件通知、空间管理、V2独立长跑工具、Linux持续窗口/焦点/显式提供方窗口绑定/物理点命中预检/按键映射、XKB服务器/XTEST来源、完整映射与其余复制配置比对、精确设备切换后验及成对派发内核、受限前台文本及独立控制许可worker/父进程/业务用例后，历史335文件结论仅代表原固定候选；开发中只复核修改范围，整范围复验留整个V2开发完成后的验收。原 P4/P5/P6 的 24 个待办模块已完成，不再是当前施工清单。
 
 统计以本页逐文件表为准；domain/application 各一个仅含说明文字的包初始化文件未列入该合同范围。V1 与 tests 尚未纳入，因此**全仓严格类型尚未完成**。
 
