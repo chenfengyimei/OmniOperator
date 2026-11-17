@@ -1,0 +1,21 @@
+{
+  "source_head": "06f7e4c61abca68a34d543c981ffeb209229cc28",
+  "source_files": {
+    "agent/scripts/v2_candidate_gate.py": "c9d8c1d8144e17c0bd680796e5b06b2eb8a560ba7847951bf9a7b4b74afc441a",
+    "scripts/v2_candidate_gate.py": "23e6a58bfb7cae06a9c123ebc69a78cff5f8d6a97bb8627541859187293b1325",
+    "agent/tests/test_v2_candidate_gate.py": "84c758c559b3206e5e957ec8673d78d40068a6ef34ec538927ef764c482f083b"
+  },
+  "passed": 18,
+  "duration_s": 4.71,
+  "full_suite": false,
+  "synthetic_gate_inputs": true,
+  "report": {
+    "path": "temp/build/windows-v2-candidate-gate.xml",
+    "sha256": "b6ec762e73f6c9a5926bf0975c8be99415232e32df76e8eb98bc7fb4d8296708"
+  },
+  "v1_imported_by_gate": false,
+  "final_candidate_assessment_pending": true,
+  "windows_offline_complete": false,
+  "whole_v2_complete": false,
+  "default_entrypoint": "v1"
+}

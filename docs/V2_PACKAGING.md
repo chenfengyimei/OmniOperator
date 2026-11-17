@@ -8,6 +8,27 @@
 
 这些源码与离线注入结果尚不证明干净机器 install→update→rollback→uninstall、真实系统服务、macOS/Linux 构建、容器、签名或长跑完成。本轮没有安装、切换或启停用户服务，正式入口继续保持 V1。
 
+## Windows候选独立依赖环境（2026-11-17 开发接续）
+
+新增本机依赖包生成和安装路径，默认离线测试不下载依赖、不访问真实模型或账号：
+
+```powershell
+uv run --no-sync python scripts/build_v2_dependencies.py --wheels D:\release\wheelhouse --output D:\release\dependencies
+uv run --no-sync python -m omni.composition.cli --home D:\omni-v2-test installation environment --sha256 <应用wheel的SHA256> --dependency-bundle D:\release\dependencies --dependency-sha256 <manifest.json的SHA256>
+```
+
+生成工具只接收平面本机wheel目录，输出平台/Python/架构绑定的`omni-dependency-bundle-1`清单和固定wheel字节；不安装或导入输入wheel，不自动下载。每包最多512个wheel、单wheel最多512 MiB、总量最多2 GiB；使用前重新核对清单SHA、文件大小和SHA。依赖闭包由安装后的`pip check`验证，不能用生成成功代替安装通过。
+
+传入依赖包时创建`isolated-wheelhouse`环境，不继承宿主或用户site-packages；pip使用隔离配置、仅本地wheel和逐项hash，不接受外部requirements指令或URL。候选wheel及安装缓存副本均重验应用SHA。整个创建流程持有实例锁，运行实例不能被替换；venv使用最终固定路径，避免重命名后控制台命令仍指向旧解释器。失败只清理本次新建环境，不发布成功收据；崩溃留下的不完整环境拒绝自动覆盖。Windows的pyvenv.cfg显式收紧DACL，原私密文件校验保持。
+
+已有环境收据必须匹配候选SHA、模式和固定解释器；有坏收据时不能静默退回宿主。冒烟优先使用候选解释器并将收据SHA绑定到结果，切换拒绝过期冒烟证明。启动脚本直接运行时也会先选择指针指定的解释器，再导入程序。未提供依赖包的原`system-site-packages`模式仅保留为开发兼容路径，不能作为独立候选交付的证据。
+
+源码`06f7e4c6`已加入独立安装入口：`scripts/install-v2.ps1`或可单独分发的`agent/scripts/install_v2.py`，只要求Python 3.12+、应用wheel及固定依赖包。入口先捕获并验证应用SHA才导入其中的安装代码；维护环境与实例目录分开，后续可从维护解释器卸载候选，避免删除正在执行的Windows解释器。新装拒绝覆盖既有home/manager，失败保留诊断目录而不发布成功收据。操作示例见[Windows候选交付](V2_WINDOWS_CANDIDATE.md)。
+
+实际产品与110个锁定依赖wheel已经通过基础Python独立安装（该解释器不能导入Omni、SQLAlchemy或platformdirs，164.61秒），安装态命令、同schema开发wheel切换/重放/回滚、SQLite与对象快照恢复已有证据。卸载首次三次遇到文件访问拒绝，私有卸载收据保留精确SHA及清理权限；之后从外部维护解释器续跑成功，数据库字节和备份保持。当前源码以`uninstall_cleanup_pending`/409明确提示重试，`installation status`显示待清理状态；有新候选被选择时旧卸载不能续跑。原始失败保留，文件访问拒绝的环境原因未定，不能称首次卸载全绿。
+
+相关集成专项100通过，清理状态调用方另26通过；修改的8个运行模块strict零错误/警告。测试和实际产品包分别绑定各自SHA，后续路径规范化、流式hash与状态提示由增量回归覆盖；最终固定候选的打包、整范围strict和全量尚待，不能把阶段证据拼成一次完整候选全绿。未改变用户服务、未做干净Windows机器/真实服务/72小时验收。见[安装证据](evidence/v2-windows-installation.json)及[Windows候选任务](tasks/v2-windows-candidate.json)。
+
 ## 1. 已实际验证（2026-11-11，Windows 主机）
 
 命令：

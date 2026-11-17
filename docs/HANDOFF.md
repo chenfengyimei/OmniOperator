@@ -2,6 +2,8 @@
 
 > 当前开发分支为 `v2`，跟踪 `origin/v2`。默认正式入口仍为V1。
 
+> Windows独立交付接续（2026-11-17）：源码`06f7e4c6`补固定本机依赖包、独立候选环境及不依赖现有Omni的安装入口；维护解释器与实例分开。修复Windows解释器交接的路径引号/退出码、重复切换覆盖回滚指针及指针发布前释放锁。卸载先记精确私有收据，文件访问失败后可续跑且状态明确，禁止自删解释器和越过新候选删除旧候选。100项集成专项+清理状态调用方26通过，修改8模块strict零错误/警告；范围335整复验待W6。实际基础Python安装164.61秒、110个固定依赖、命令/HTTP认证、同schema开发wheel更新回滚、对象快照恢复已有证据；实际卸载原3次失败保留，后续从维护解释器续跑成功并保留数据/备份，环境原因观察开放。V2专用候选门禁18回归通过，拒绝专项冒充全量、源码漂移、失败/跳过/遗漏；最终候选门禁尚待。全量未启动，默认V1，Windows离线候选与整个V2均未完成。继续W4业务/UI与历史观察核对，再W6冻结、W7一次全量、W8默认切换收尾。见[交付说明](V2_WINDOWS_CANDIDATE.md)、[安装证据](evidence/v2-windows-installation.json)、[候选门禁证据](evidence/v2-windows-candidate-gate.json)和[任务](tasks/v2-windows-candidate.json)。
+
 > Windows启动接续（2026-11-17）：源码`b0902fbc`加入start-v2.ps1及serve/omni-web-v2的--open-browser。前台服务器继续由调用者拥有；浏览器探测只接受本进程创建身份、私有readiness.key和本boot HMAC就绪证明，关闭时排空探测线程。只打开回环无令牌URL，不读取V1配对文件或owner.token；可禁用自动打开。22新增回归及调用方114 passed in 45.39s，目标2文件strict零错误/警告，PowerShell语法通过；真实回环HTTP/独立SQLite验证启动证明、401、现有本机令牌引导与授权API、完整关闭，浏览器打开为注入验证、未声称真实GUI验收。新模块纳入strict范围333，整范围复验留最终收尾。未跑全量，安装/更新/恢复/门禁及默认入口切换仍待，默认V1。接续[Windows候选任务](tasks/v2-windows-candidate.json)，见[启动证据](evidence/v2-windows-workbench.json)。
 
 > Windows首发收尾（2026-11-17）：已按所有者选择冻结为Windows开发及离线候选，开发冻结后统一全量，通过后再切换默认V2；显式V1回退保留，真实账号/设备/桌面与72小时另作正式发布门槛。源码`150d8d77`增加omni-v2/omni-web-v2和omni-v1/omni-web-v1元数据；V2 Web与serve共用参数和实际执行路径，旧main()调用保持。16新增回归及调用方92 passed in 52.90s，CLI目标1文件strict零错误/警告。已验证独立实例、旧数据拒绝、无V1引导及远程绑定限制；安装后命令和Windows启动/安装/恢复/门禁仍待后续验证。未跑全量、默认仍V1，整个V2未完成。接续[Windows候选任务](tasks/v2-windows-candidate.json)，证据见[入口专项](evidence/v2-windows-entrypoints.json)。
