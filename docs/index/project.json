@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "d66c09a5f66870c85c7e7fd870ee60d341eefc17dd05a6f0f5b197058dd3c72d",
+  "source_sha256": "a1d26448f7f6357faeb82cb52d9b2d803a13900c03ed35eb8b4d32f95342169f",
   "modules": [
     {
       "id": "v2-domain",
@@ -330,6 +330,7 @@
         "agent/src/omni/adapters/platform/linux_session.py",
         "agent/src/omni/adapters/platform/linux_signals.py",
         "agent/src/omni/adapters/platform/linux_text.py",
+        "agent/src/omni/adapters/platform/linux_window_binding.py",
         "agent/src/omni/adapters/platform/linux_window_leases.py",
         "agent/src/omni/adapters/platform/linux_x11.py",
         "agent/src/omni/adapters/platform/linux_x11_socket.py",
@@ -430,7 +431,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 59528,
+      "lines": 59669,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -28484,6 +28485,116 @@
         }
       ],
       "summary": "One addressed Unicode append in a manually focused AT-SPI editor; no key synthesis, clipboard, focus acquisition or retry."
+    },
+    {
+      "path": "agent/src/omni/adapters/platform/linux_window_binding.py",
+      "module": "v2-adapters",
+      "python_module": "omni.adapters.platform.linux_window_binding",
+      "lines": 141,
+      "imports": [
+        "omni.adapters.platform.linux_atspi",
+        "omni.adapters.platform.linux_bus",
+        "omni.adapters.platform.linux_foreground",
+        "omni.adapters.platform.linux_input",
+        "omni.adapters.platform.linux_session",
+        "omni.adapters.platform.linux_window_leases",
+        "omni.adapters.platform.linux_x11",
+        "omni.domain.desktop"
+      ],
+      "symbols": [
+        {
+          "name": "declared_window",
+          "line": 20,
+          "kind": "function",
+          "parameters": [
+            "value"
+          ],
+          "annotations": {
+            "value": "object"
+          }
+        },
+        {
+          "name": "native_desktop",
+          "line": 48,
+          "kind": "function",
+          "parameters": [
+            "inspector"
+          ],
+          "annotations": {
+            "inspector": "SessionInspector"
+          }
+        },
+        {
+          "name": "WindowBinding",
+          "line": 52,
+          "kind": "class"
+        },
+        {
+          "name": "WindowBinding.__init__",
+          "line": 55,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "desktop",
+            "monitor",
+            "native_factory"
+          ],
+          "annotations": {
+            "desktop": "AtspiDesktop",
+            "monitor": "X11Input",
+            "native_factory": "Callable[[SessionInspector], X11Desktop]"
+          }
+        },
+        {
+          "name": "WindowBinding._descriptor",
+          "line": 70,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "WindowBinding.prepare",
+          "line": 76,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "target"
+          ],
+          "annotations": {
+            "target": "Payload"
+          }
+        },
+        {
+          "name": "WindowBinding._validate",
+          "line": 116,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "WindowBinding.check",
+          "line": 126,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "WindowBinding.close",
+          "line": 135,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        }
+      ],
+      "summary": "Bind an explicit AT-SPI provider XID to continuous native ownership/focus; no guessed mapping, focus acquisition or input."
     },
     {
       "path": "agent/src/omni/adapters/platform/linux_window_leases.py",

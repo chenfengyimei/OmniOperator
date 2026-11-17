@@ -95,3 +95,15 @@ Xorg在slave切换时通过[CopyKeyClass/DeepCopyKeyboardClasses](https://raw.gi
 释放屏障结清后，再以两次拓扑读取夹住原完整配置身份核对，随后检查全部键释放、已核验连接和原焦点。只有这些检查全部通过，才采用预计算指纹；没有切换时仍要求原指纹。其他设备/名称/挂接/类别变化不能随主键盘来源一并被接受，独立changed永不重置。派发后核验失败或取消使计划锁存失效，不重放按下；实际释放与外部窗口租约的归属保持原规则。依据[Xorg复制与通知顺序](https://raw.githubusercontent.com/XQuartz/xorg-server/master/Xi/exevents.c)和[NKN字段](https://raw.githubusercontent.com/XQuartz/xorg-server/master/xkb/xkbUtils.c)。
 
 内部emit仍只说明传输、释放及复制配置核验，不能报告应用成功。业务worker/domain IPC尚未接通；原生窗口与语义节点关联、逐次permit、应用结果及鼠标/Wayland输入仍继续开发。固定副本相关专项及修改7后端文件strict结果见[本批证据](evidence/v2-linux-key-switch.json)，当前没有Linux原生、真实输入、全范围类型或全量结论。
+
+## 显式提供方窗口绑定基础
+
+`linux_window_binding.py`的`WindowBinding`从已经验证的AT-SPI顶层对象读取`Accessible.GetAttributes`，只接受有源码依据的原生窗口字段。当前配置为`toolkit=Avalonia`及`avalonia-window-handle`的规范十进制XID；属性表最多128项/16KiB，单值512字符，拒绝十六进制、符号、前导零、Unicode数字、root、溢出和未知提供方字段。该属性在[Avalonia原生实现PR](https://github.com/AvaloniaUI/Avalonia/pull/22687)中只由`RootAtSpiNode`且平台`HandleDescriptor=XID`时提供，已核对合并源码；未证明任意稳定版本或现有应用已提供。
+
+提供方声明不单独授权。模块在同一已核验X11 SessionInspector下建立自己的`X11Desktop/LeaseWire`，对明确XID读取XRes实际客户端；PID、创建时间和可执行程序必须与AT-SPI总线进程证明全部一致，再创建独立连续窗口代次和`WindowFocus`。原生焦点须确在该窗口或其有界子孙内；另一应用句柄、同PID链外焦点、窗口管理器代理和Wayland均拒绝。描述的双读夹住连续窗口/焦点核验，变更后恢复原值不能复活旧绑定，调用方修改原target也不改变已捕获身份。没有标题、几何、任意`window-id`或ACTIVE位猜测。
+
+绑定只拥有新建原生窗口连接及输入监测，不拥有外部AT-SPI/logind会话。准备失败或取消仍保留实际对象供关闭；关闭立即撤销自身和焦点证明，先结清原输入释放责任，失败时两条原生连接都保留，成功才关闭自己的窗口连接。原SessionInspector继续由外层worker关闭。
+
+43项新回归以实际二进制XRes/QueryTree/结构事件和注入AT-SPI组合验证，另202项依赖、原文本/语义/桌面及架构/类型合同通过，共245不同专项；新增1文件strict零错误/警告。初轮字典Unknown类型和42通过报告/源码均保留，显式收窄并新增异进程所有者回归后验证当前源码。没有真实Linux、真实输入、全范围类型或全量，见[绑定证据](evidence/v2-linux-window-binding.json)。
+
+这是显式提供方的关联基础，尚未接入业务press_key或语义节点结果核验。GTK、Qt的通用AT-SPI Component/Accessible接口当前不能由这些证据推导出原生句柄；保留现有直接寻址语义/文本能力，通用关联继续开发。后续将已验证的窗口与具体节点、逐次业务permit和真实应用后置条件接通，不能把本节或按键传输通过当作整个前台控制完成。

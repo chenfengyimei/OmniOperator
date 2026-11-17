@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`d66c09a5f66870c85c7e7fd870ee60d341eefc17dd05a6f0f5b197058dd3c72d`。包含 65 个职责模块、763 个源码/界面文件。
+源码指纹：`a1d26448f7f6357faeb82cb52d9b2d803a13900c03ed35eb8b4d32f95342169f`。包含 65 个职责模块、764 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -306,6 +306,7 @@
 | [agent/src/omni/adapters/platform/linux_session.py](../../agent/src/omni/adapters/platform/linux_session.py) | 348 | logind display-session and accessibility bus ownership; never trusts desktop environment variables. |
 | [agent/src/omni/adapters/platform/linux_signals.py](../../agent/src/omni/adapters/platform/linux_signals.py) | 103 | Bounded, pinned D-Bus signals on the same pre-authenticated local connection; no service activation or FDs. |
 | [agent/src/omni/adapters/platform/linux_text.py](../../agent/src/omni/adapters/platform/linux_text.py) | 100 | One addressed Unicode append in a manually focused AT-SPI editor; no key synthesis, clipboard, focus acquisition or retry. |
+| [agent/src/omni/adapters/platform/linux_window_binding.py](../../agent/src/omni/adapters/platform/linux_window_binding.py) | 141 | Bind an explicit AT-SPI provider XID to continuous native ownership/focus; no guessed mapping, focus acquisition or input. |
 | [agent/src/omni/adapters/platform/linux_window_leases.py](../../agent/src/omni/adapters/platform/linux_window_leases.py) | 137 | Continuous X11 window generations on one proven connection; no input, AT-SPI mapping or database access. |
 | [agent/src/omni/adapters/platform/linux_x11.py](../../agent/src/omni/adapters/platform/linux_x11.py) | 248 | XRes-bound local X11 targets and existing Composite pixmaps; never captures the root or sends input. |
 | [agent/src/omni/adapters/platform/linux_x11_socket.py](../../agent/src/omni/adapters/platform/linux_x11_socket.py) | 219 | Canonical local X11 sockets and private Xauthority; verify peers before sending credentials. |

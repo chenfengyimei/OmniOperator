@@ -104,6 +104,8 @@ Linux桌面原生会话由固定辅助进程内的`SessionInspector`核验，`Lo
 
 `linux_foreground.py`拥有独立输入监测连接，对外部持续窗口租约核验XRes实际焦点客户端及有界QueryTree祖先链。`linux_input.py`原焦点监测可一次性补充祖先结构订阅；物理输入、祖先/窗口/进程变化使证明失效，失败不复活。该原生只读基础尚不开放前台业务派发，也不把AT-SPI坐标或PID当作X11窗口映射，见[前台开发合同](V2_LINUX_FOREGROUND.md)。
 
+`linux_window_binding.py`另组合已验证AT-SPI窗口明确提供的XID、XRes实际进程及其自己的连续窗口/焦点连接；只接受已核对的提供方字段（当前Avalonia），不推断GTK/Qt通用关联。描述重读夹住焦点/窗口代次检查，任何失败锁存；关闭先结清输入监测的实际释放，再关闭自己的原生窗口连接，外部SessionInspector继续由worker拥有。该关联基础尚未接入业务worker、逐次按键许可或应用结果，不创建新的持久授权真值。
+
 `linux_xtest.py`借用上述已arm的连接，读取全部XI2设备的服务器虚拟键鼠属性与挂接身份；双读及使用前复核，不创建属性、改设备或发送输入。`linux_input`只导出设备元数据及拓扑指纹，原始内容不落盘，新增属性通知同样锁存变化。XTEST来源由所有客户端共享，来源预检本身不授予业务派发或自身事件豁免。
 
 内部`linux_keystroke.py`现拥有单键成对请求的发送字节、释放后缀与同连接QueryKeymap屏障，`linux_input`只在其实际租约存在时匹配精确请求序号和slave/master通知，未结清流禁止其他请求。`WindowFocus.key_packet`组合已有窗口/键映射/虚拟来源复核；业务worker仍未使用该派发器，目标关联、逐次permit及应用结果接线待完成。取消后的释放/原查询任务由监测连接持有，未证明释放不能关闭成功；不创建持久业务状态或另一套审批真值。

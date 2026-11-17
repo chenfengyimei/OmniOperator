@@ -1,0 +1,113 @@
+{
+  "source_base": "4c87e6074269fefd3ffa10d7098c6fedc2c84931",
+  "fixed_source_base": "4c87e6074269fefd3ffa10d7098c6fedc2c84931",
+  "scope": "Explicit provider-declared AT-SPI XID binding to actual XRes process identity, private continuous X11 lease and focus ancestry. Current documented provider profile is Avalonia only; generic GTK/Qt mapping and business key dispatch remain unfinished.",
+  "source_files": {
+    "agent/src/omni/adapters/platform/linux_window_binding.py": "85ca5ce3ff4721e60a4cd8976b674f3813251a629457ab56b82e99440348c081",
+    "agent/tests/test_v2_linux_window_binding.py": "6ac0aa4b3033fe6765bfa3168928473e628d0eec545c9fa9da3cfa8935199465",
+    "pyrightconfig.strict.json": "43416e6c818f7f33b69cf5cbc2e289ed71870f94eda103b99fb29667a3a149e8",
+    "docs/TYPE_CHECKING.md": "b80ef68821ee5784ad62489a8c87e2ceac6b777f96412f5da4427290c54b34ec"
+  },
+  "fixed_source_manifest": {
+    "path": "temp/build/v2-linux-window-binding-source-refined.json",
+    "sha256": "49606c6d61f47777fec775e23c945b85bee3095ec6a684a6fc0682d84b01b232"
+  },
+  "scoped_tests": {
+    "distinct_current_nodes_passed": 245,
+    "new_binding_nodes": 43,
+    "existing_callers_and_contracts": 202,
+    "per_module": {
+      "tests.test_v2_linux_window_binding": 43,
+      "tests.test_v2_linux_foreground": 18,
+      "tests.test_v2_linux_window_leases": 19,
+      "tests.test_v2_linux_x11": 31,
+      "tests.test_v2_linux_input": 15,
+      "tests.test_v2_linux_semantic": 21,
+      "tests.test_v2_linux_text": 25,
+      "tests.test_v2_linux_desktop": 36,
+      "tests.test_v2_typecheck_scope": 2,
+      "tests.test_v2_architecture": 6,
+      "tests.test_arch": 29
+    },
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0,
+    "seconds": 29.79,
+    "reports": [
+      {
+        "path": "temp/build/v2-linux-window-binding-final.xml",
+        "sha256": "345a910640f56ca1a105f822ca324d337346f0f83ec38de6ea0fd4460e8077c1"
+      }
+    ]
+  },
+  "strict_modified_files": {
+    "files": 1,
+    "errors": 0,
+    "warnings": 0,
+    "report": {
+      "path": "temp/build/v2-linux-window-binding-pyright.json",
+      "sha256": "b85031bb624e6a827634c9ae462de5973b314125685596d1ed3c47f968708806"
+    }
+  },
+  "initial_results": {
+    "nodes": 42,
+    "test_report": {
+      "path": "temp/build/v2-linux-window-binding-initial.xml",
+      "sha256": "cca571219ffde2a683bb04d24ae7c782b7984a3d8b10ce1af82f90525e873ff0"
+    },
+    "source_delta_archive": {
+      "path": "temp/build/v2-linux-window-binding-initial-source.zip",
+      "sha256": "064e4b3e3c2650f6078ca7ecbf64e9192bf4cd7953ce7a9f7fc4c5fa88dbbec5"
+    },
+    "source_manifest": {
+      "path": "temp/build/v2-linux-window-binding-source.json",
+      "sha256": "4b352764196291790f0e90618e1a2779b21a1d26bde4f2e78d36c846df52625f"
+    },
+    "type_report": {
+      "path": "temp/build/v2-linux-window-binding-pyright-initial.json",
+      "sha256": "e94b5c4e73b7e41403243835ec0b3a97b7a23a6db54fc2dcdac4928f84b90333"
+    },
+    "type_errors": 1,
+    "resolution": "Explicit dictionary cast before len narrows Unknown; one regression added for a claimed window whose actual XRes owner is a different verified same-user application process. No assertions or timeouts relaxed."
+  },
+  "upstream_profile": {
+    "url": "https://github.com/AvaloniaUI/Avalonia/pull/22687",
+    "head": "1c7e80b4cd0f6dd417e9214d477fb664d0288081",
+    "merged_at": "2026-11-03T13:14:41Z",
+    "descriptor": "Avalonia RootAtSpiNode with native HandleDescriptor XID exposes toolkit=Avalonia and canonical decimal avalonia-window-handle",
+    "all_stable_or_installed_versions_proven": false,
+    "public_patch": {
+      "path": "temp/build/v2-linux-window-link-upstream.json",
+      "sha256": "35f84efecd584631db10e2977a1fda411eefa1427b656687797a5d87bac15010"
+    },
+    "metadata": {
+      "path": "temp/build/v2-linux-window-binding-upstream-pr.json",
+      "sha256": "4223cc04629c188832f30699ab965fe2a851c324efe985fbb107196176bed4c0"
+    },
+    "access": "GitHub connector403 account suspended; cached public web unavailable; approved anonymous read-only public API used, no credentials or upstream code execution"
+  },
+  "implemented": {
+    "bounded_explicit_provider_attribute": true,
+    "actual_xres_process_created_and_executable_match": true,
+    "separate_owned_continuous_native_lease": true,
+    "same_verified_session_and_actual_focus_ancestry": true,
+    "descriptor_recheck_and_failure_latch": true,
+    "cancelled_prepare_keeps_cleanup_ownership": true,
+    "pending_key_release_retains_both_connections": true,
+    "borrowed_inspector_not_closed": true
+  },
+  "generic_gtk_qt_window_binding_complete": false,
+  "specific_semantic_node_native_binding_and_business_permit_complete": false,
+  "production_business_worker_or_domain_ipc_enabled": false,
+  "application_postcondition_proven": false,
+  "native_linux_executed": false,
+  "native_input_executed": false,
+  "input_authorized": false,
+  "native_configuration": "AT-SPI/logind and Xorg binary peers injected; no native socket or device. Runtime imports and hashes under frozen source checked before/after. Offline guard unchanged; approved Windows asyncio internal-loopback execution. No user service stopped.",
+  "registered_strict_scope": 358,
+  "registered_scope_fully_rechecked": false,
+  "full_suite_run": false,
+  "whole_v2_development_complete": false,
+  "whole_v2_accepted": false,
+  "next": "Integrate concrete approved semantic nodes, fresh UUID-bound business permit, existing key mapping/source/copy/pair engine, actual application postcondition and lifecycle-owned binding into worker. Generic provider binding, full key/mouse behavior, Wayland and platform delivery remain open. Details saved in temp/build/v2-linux-window-binding-next.md."
+}
