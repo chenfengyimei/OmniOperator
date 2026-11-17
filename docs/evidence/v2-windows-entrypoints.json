@@ -1,0 +1,64 @@
+{
+ "source_files": {
+  "agent/src/omni/composition/cli.py": "5fbbc4295efedc0009d95be9abaa6882b925237bc19b5724da9399d48e45dc49",
+  "agent/pyproject.toml": "09efe69efce5f184af918ef61893820ac1f27feb4c0c7dba4d72919208bcc9c4",
+  "agent/tests/test_v2_entrypoints.py": "f522f3ef1934c87e1092892eff2e4bf43f695a540c6c1d4b197b2e188bbc39de",
+  "docs/tasks/v2-windows-candidate.json": "f169d1c40926bf41b299a6ca95f52e32d834fdccc6d810c4614525ab6b3418e3"
+ },
+ "gates": [
+  {
+   "command": [
+    "-m",
+    "ruff",
+    "check",
+    "agent/src/omni/composition/cli.py",
+    "agent/tests/test_v2_entrypoints.py"
+   ],
+   "returncode": 0,
+   "stdout": "All checks passed!\n",
+   "stderr": ""
+  },
+  {
+   "command": [
+    "-m",
+    "ruff",
+    "format",
+    "--check",
+    "agent/src/omni/composition/cli.py",
+    "agent/tests/test_v2_entrypoints.py"
+   ],
+   "returncode": 0,
+   "stdout": "2 files already formatted\n",
+   "stderr": ""
+  },
+  {
+   "command": [
+    "-m",
+    "pyright",
+    "--project",
+    "pyrightconfig.windows-entrypoints.json",
+    "--outputjson"
+   ],
+   "returncode": 0,
+   "stdout": "{\n    \"version\": \"1.1.414\",\n    \"time\": \"1794874249812\",\n    \"generalDiagnostics\": [],\n    \"summary\": {\n        \"filesAnalyzed\": 1,\n        \"errorCount\": 0,\n        \"warningCount\": 0,\n        \"informationCount\": 0,\n        \"timeInSec\": 1.163\n    }\n}\n\n",
+   "stderr": ""
+  }
+ ],
+ "cases": 92,
+ "failures": 0,
+ "errors": 0,
+ "skipped": 0,
+ "returncode": 0,
+ "duration_s": 54.17,
+ "report": "temp\\build\\windows-v2-entrypoints.xml",
+ "report_sha256": "a741e19f320eae5b92e8453e192dc5671a9f9a2f9bfae1dcb2d77983b627c797",
+ "log": "temp\\build\\windows-v2-entrypoints.log",
+ "log_sha256": "6ae65730cf7680b3d3a65b08a826f2ae2a33d4b718640c1756679cd29f9db0de",
+ "full_suite": false,
+ "source_head": "150d8d77f99b771bec93bea48c4a1039b2395c60",
+ "whole_v2_complete": false,
+ "windows_offline_complete": false,
+ "default_entrypoint": "v1",
+ "candidate_gate_pending": true,
+ "packaged_alias_execution_pending": true
+}

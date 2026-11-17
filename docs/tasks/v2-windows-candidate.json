@@ -13,14 +13,56 @@
     "other_platforms": "remain_unverified"
   },
   "requirements": [
-    {"id": "W1", "title": "独立 V2 CLI/Web 入口与显式 V1 回退", "status": "pending", "evidence": []},
-    {"id": "W2", "title": "Windows 启动器：V2 实例、身份、健康与所有者认证", "status": "pending", "evidence": []},
-    {"id": "W3", "title": "可复现候选安装、更新、备份恢复和保留数据的卸载", "status": "pending", "evidence": []},
-    {"id": "W4", "title": "Windows 功能清单与已知稳定性阻断项收口", "status": "pending", "evidence": []},
-    {"id": "W5", "title": "V2 独立候选证据与发布门禁，不使用 V1 验收替代", "status": "pending", "evidence": []},
-    {"id": "W6", "title": "冻结候选：严格类型、静态检查、界面与打包验证", "status": "pending", "evidence": []},
-    {"id": "W7", "title": "同一候选源码统一全量离线验收，保留原始失败报告", "status": "pending", "evidence": []},
-    {"id": "W8", "title": "验收通过后切换默认入口、提交推送与交接收尾", "status": "pending", "evidence": []}
+    {
+      "id": "W1",
+      "title": "独立 V2 CLI/Web 入口与显式 V1 回退",
+      "status": "implemented_scoped_passed",
+      "evidence": [
+        "docs/evidence/v2-windows-entrypoints.json"
+      ]
+    },
+    {
+      "id": "W2",
+      "title": "Windows 启动器：V2 实例、身份、健康与所有者认证",
+      "status": "pending",
+      "evidence": []
+    },
+    {
+      "id": "W3",
+      "title": "可复现候选安装、更新、备份恢复和保留数据的卸载",
+      "status": "pending",
+      "evidence": []
+    },
+    {
+      "id": "W4",
+      "title": "Windows 功能清单与已知稳定性阻断项收口",
+      "status": "pending",
+      "evidence": []
+    },
+    {
+      "id": "W5",
+      "title": "V2 独立候选证据与发布门禁，不使用 V1 验收替代",
+      "status": "pending",
+      "evidence": []
+    },
+    {
+      "id": "W6",
+      "title": "冻结候选：严格类型、静态检查、界面与打包验证",
+      "status": "pending",
+      "evidence": []
+    },
+    {
+      "id": "W7",
+      "title": "同一候选源码统一全量离线验收，保留原始失败报告",
+      "status": "pending",
+      "evidence": []
+    },
+    {
+      "id": "W8",
+      "title": "验收通过后切换默认入口、提交推送与交接收尾",
+      "status": "pending",
+      "evidence": []
+    }
   ],
   "acceptance": {
     "candidate_source": null,
