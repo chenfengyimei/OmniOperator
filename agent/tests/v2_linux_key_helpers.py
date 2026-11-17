@@ -9,8 +9,8 @@ from v2_linux_desktop_helpers import APP, SESSION, WINDOW
 from v2_x11_helpers import WINDOW as XWINDOW
 from v2_x11_helpers import OwnedConnection
 
-from omni.adapters.platform.linux_atspi import AtspiDesktop
-from omni.adapters.platform.linux_bus import Process
+from omni.adapters.platform.linux_atspi import COMPONENT, AtspiDesktop
+from omni.adapters.platform.linux_bus import Process, RemoteError
 from omni.adapters.platform.linux_input import InputWire, X11Input
 from omni.adapters.platform.linux_keyboard import SYMBOLS
 from omni.adapters.platform.linux_semantic import Semantics
@@ -33,6 +33,8 @@ def model():
 
 class ProfileBus(ControlBus):
     async def call(self, destination, path, interface, member, signature="", body=None, *, returns):
+        if interface == COMPONENT and member == "GetExtents" and body == [0]:
+            raise RemoteError("fixture_screen_geometry_not_implemented")
         if (destination, path, interface, member) == (APP, WINDOW, ACCESSIBLE, "GetAttributes"):
             self.check()
             return [dict(self.factory.attributes)]

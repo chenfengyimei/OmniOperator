@@ -120,6 +120,8 @@ Linux桌面原生会话由固定辅助进程内的`SessionInspector`核验，`Lo
 
 `linux_button_packet.py`在原像素/配置成立后拥有按下/抬起字节及实际释放，完整按下后只补抬起后缀；QueryPointer逻辑掩码和XIQueryDevice物理按钮共同结清，不明回读保留实际连接/任务。`linux_button_events.py`精确核对两对RawButton及source/master普通XKB指针状态通知，按已有两级映射预测码/掩码，不给其他输入一般豁免；完整原生复制后验成立才采用配置，内部回执不授权控件业务点击。
 
+`linux_node_point.py`以明确提供方物理像素、真实组件命中后代/Parent链和持续X11实际几何/原点建立控件点，不用尺寸比例猜缩放；已核对Avalonia窗口自身命中实现不提供子控件click。`linux_click_action.py`复用现有单次审批/ready-permit/worker，许可后重验并一次移动、再重验和成对按钮；具体checked/selected/expanded/focus变化与完整身份/点后验成立才click_verified，其余unknown不重放。父进程将click纳入原生释放归属，实际结清及业务消费后才回收；注入正向不代表已安装提供方或Linux实机支持。
+
 `linux_window_binding.py`组合已验证AT-SPI窗口明确提供的XID、XRes实际进程及其自己的连续窗口/焦点连接；只接受已核对的提供方字段（当前Avalonia），不推断GTK/Qt通用关联。描述重读夹住焦点/窗口代次检查，任何失败锁存；关闭先结清输入监测的实际释放，再关闭自己的原生窗口连接，外部SessionInspector继续由worker拥有。`linux_key_action.py`现将该绑定、完整映射/来源/复制预检及成对派发接入原linux_action worker的UUID ready/permit；原语义目录将窗口/光标上下文计入动作指纹，未提供明确窗口身份不产生按键候选。
 
 `linux_xtest.py`借用上述已arm的连接，读取全部XI2设备的服务器虚拟键鼠属性与挂接身份；双读及使用前复核，不创建属性、改设备或发送输入。`linux_input`只导出设备元数据及拓扑指纹，原始内容不落盘，新增属性通知同样锁存变化。XTEST来源由所有客户端共享，来源预检本身不授予业务派发或自身事件豁免。

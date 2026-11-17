@@ -14,6 +14,7 @@ from ...domain.desktop import LINUX_ERRORS, VERSION
 from ...domain.foreground import TIMEOUT_S as FOREGROUND_TIMEOUT_S
 from ..platform.linux_atspi import AtspiDesktop, report
 from ..platform.linux_bus import LinuxOps, RemoteError, load_types
+from ..platform.linux_click_action import FocusedClick
 from ..platform.linux_input import X11Input
 from ..platform.linux_key_action import FocusedKey
 from ..platform.linux_semantic import Semantics
@@ -65,7 +66,7 @@ def capability_report(
                 limitations=[
                     "人工聚焦的AT-SPI非密码编辑器可追加Unicode；明确提供原生窗口身份的节点可申请一次特殊按键，均须原生守卫核验。",
                     "每次最多128字符，原文加结果最多512字符；一次审批和逐次permit，插入后完整回读，未知结果不重放。",
-                    "不获取焦点、不使用剪贴板或鼠标；按键逐次核验窗口/节点/映射与许可，仅文本或光标后验匹配才成功，其余记未知。通用提供方及Wayland输入仍在开发。",
+                    "不获取焦点、不使用剪贴板；明确窗口身份且可核对控件命中的提供方可申请一次点击，不会猜测坐标缩放。按键或点击须逐次许可及应用状态回读，未知结果不重放。通用提供方与Wayland输入仍在开发。",
                 ],
             )
         if item["id"] == "window_identity" and x11_ready:
@@ -217,7 +218,7 @@ async def perform(
                 ):
                     monitor = monitor_factory(inspector)
                     try:
-                        if operation != "foreground" or request["action"]["kind"] != "press_key":
+                        if operation != "foreground" or request["action"]["kind"] not in {"press_key", "click"}:
                             await monitor.open()
                         actions = True
                     except (BusinessError, RemoteError, XError, OSError):
@@ -230,11 +231,16 @@ async def perform(
                     if monitor is None or not actions:
                         raise BusinessError("desktop_input_unverified", "Reliable input-change guard is not available")
                     if operation == "foreground":
-                        if request["action"]["kind"] == "press_key":
+                        if request["action"]["kind"] in {"press_key", "click"}:
                             binding = binding_factory(adapter, monitor)
-                            result = await FocusedKey(adapter, binding).press(
-                                request["target"], request["action"], cast(Callable[[], Awaitable[bool]], permit)
-                            )
+                            if request["action"]["kind"] == "click":
+                                result = await FocusedClick(adapter, binding).click(
+                                    request["target"], request["action"], cast(Callable[[], Awaitable[bool]], permit)
+                                )
+                            else:
+                                result = await FocusedKey(adapter, binding).press(
+                                    request["target"], request["action"], cast(Callable[[], Awaitable[bool]], permit)
+                                )
                         else:
                             result = await FocusedText(adapter).append(
                                 request["target"],

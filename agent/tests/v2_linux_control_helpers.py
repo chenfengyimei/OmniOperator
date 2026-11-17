@@ -49,6 +49,8 @@ class ControlBus(Bus):
         f = self.factory
         model = f.model
         if self.kind == "a11y" and destination == APP:
+            if interface == ACCESSIBLE and member == "GetAttributes":
+                raise RemoteError("fixture_native_window_attributes_not_implemented")
             if interface == PROPERTIES and body == [TEXT, "CaretOffset"]:
                 if not model.typing:
                     raise RemoteError("fixture_optional_text_not_supported")

@@ -1,0 +1,174 @@
+{
+  "source_base": "5d23d464b1947e61e7fc0f671de4d3b8f7d3f2a3",
+  "scope": "Capability-proven AT-SPI component physical-point binding, approved native move/click business path and exact observable state readback. Accurate provider hit is required; the known pinned Avalonia root-self implementation is refused, generic providers remain open.",
+  "source_files": {
+    "agent/src/omni/adapters/platform/linux_node_point.py": "a9a65597f83ea9e9f79a7797a5b83be4166e52d2bf4f5d0d084fe6bed0216530",
+    "agent/src/omni/adapters/platform/linux_click_action.py": "2de1d67497b5c030068aa3f8881edb1dcbbd64bc9d7bbe695cd25d55b09ad80c",
+    "agent/src/omni/adapters/platform/linux_semantic.py": "db0191f16899c8286c29835e654efc7f690c07abac900be0ea7d0559458a44f7",
+    "agent/src/omni/adapters/platform/desktop.py": "cd10f35dd11697945ee9c301d5fcfdb8fca72f641ef3ec228d112c2210b6ce31",
+    "agent/src/omni/adapters/workers/linux_desktop.py": "e4c59853e00b440e1d415ed4561dd7009b0a1ddfc7d41164a7a652bef6113144",
+    "agent/src/omni/domain/desktop.py": "52888697173cb0dd2e4cb3a072ab0499ddd265d89b314d5170cfffdbffbb2ea8",
+    "agent/src/omni/domain/desktop_actions.py": "ae7c5a966a013caddb9e884099740257d08e416c11d85d2d71da63d9f7a61a25",
+    "agent/tests/v2_linux_control_helpers.py": "524999124eb567a74c0efb314f547a5437aa12913aa5a65b1074238859d50d78",
+    "agent/tests/v2_linux_key_helpers.py": "c4b79a5c2715562243c3f788df6ad718682da309d0666cfbf7f0a1b392d2f4de",
+    "agent/tests/v2_linux_click_helpers.py": "e70599876ce33bf85b4e64f7599da13fb1382bb74ef0af2026425fb12c005748",
+    "agent/tests/test_v2_linux_click_action.py": "0836d1f56181d723aff733fafbd4c7a7ea502f477e41a15ee73189c685803442",
+    "pyrightconfig.strict.json": "f6d88ad64480a440dec5fbbdd677729401fc2637bac74b657f9b048c4f9d05bb",
+    "docs/TYPE_CHECKING.md": "f49ab8e8c801efd0cd9d322cde068e4ac27921199e748d5b63757cb46ebc75dc"
+  },
+  "fixed_source_manifest": {
+    "path": "temp/build/v2-linux-click-business-source-r6.json",
+    "sha256": "f745bda4274f1489fb6c825cf257739272dc115b80b1f41776f313a5692ad924"
+  },
+  "scoped_tests": {
+    "distinct_nodes_passed_across_documented_phases": 247,
+    "new_click_nodes": 36,
+    "existing_callers_and_contracts": 211,
+    "per_module": {
+      "tests.test_v2_linux_semantic": 21,
+      "tests.test_v2_linux_text": 25,
+      "tests.test_v2_linux_desktop": 36,
+      "tests.test_v2_desktop_backend": 28,
+      "tests.test_v2_linux_click_action": 36,
+      "tests.test_v2_linux_key_action": 29,
+      "tests.test_v2_foreground_transport": 14,
+      "tests.test_v2_desktop_actions": 14,
+      "tests.test_v2_desktop_http": 3,
+      "tests.test_v2_typecheck_scope": 2,
+      "tests.test_v2_foreground": 12,
+      "tests.test_v2_desktop_contracts": 10,
+      "tests.test_v2_foreground_worker": 8,
+      "tests.test_v2_architecture": 6,
+      "tests.test_v2_desktop_action_transport": 3
+    },
+    "main_group": {
+      "passed": 241,
+      "failed": 2,
+      "seconds": 104.99,
+      "report": {
+        "path": "temp/build/v2-linux-click-business-final.xml",
+        "sha256": "8fc00d13c512eeabdf61fae264d2b18d287d832cb96ac080eed1057e2b47d08e"
+      }
+    },
+    "failed_probe_function_recheck": {
+      "passed": 3,
+      "seconds": 3.24,
+      "report": {
+        "path": "temp/build/v2-linux-click-business-probe-r5.xml",
+        "sha256": "fa34f37896dc700fbea8d278247cbb3af557a6e6b40d1c18909ed129f456113e"
+      }
+    },
+    "additional_state_postconditions": {
+      "passed": 4,
+      "seconds": 5.31,
+      "report": {
+        "path": "temp/build/v2-linux-click-business-states-r6.xml",
+        "sha256": "fd2b9fbf07aa9025127f5061ca5ee0eb9710719b54ed487e5602f1bd857780f3"
+      }
+    },
+    "current_source_coverage": "No whole-group rerun after the capability-description-only fix. Other6 runtime files identical to main group, seventh differs by precisely one capability text literal, AST comparison retained; original failed probe function rechecked. Final additional state cases changed only test fixtures/new tests. No full suite claimed."
+  },
+  "strict_modified_files": {
+    "files": 7,
+    "errors": 0,
+    "warnings": 0,
+    "report": {
+      "path": "temp/build/v2-linux-click-business-pyright-r5.json",
+      "sha256": "b07e38cc0b50070a43a0a264d9ce19aba3b98bbe0f102ccfa67295972a62d359"
+    },
+    "runtime_identical_to_current_manifest": true
+  },
+  "initial_results": [
+    {
+      "passed": 7,
+      "report": {
+        "path": "temp/build/v2-linux-click-business-r2.xml",
+        "sha256": "e6dccccbb9e0235e4c350c489a5eecbe77ab0af2999bc07be90aa8f49409029d"
+      },
+      "type_errors": 3,
+      "type_report": {
+        "path": "temp/build/v2-linux-click-business-pyright-r2.json",
+        "sha256": "8bb7061f521d2f4ccef56d31f695135e726c8c4365bcfed95241f7fbda5f8b1f"
+      },
+      "source_manifest": {
+        "path": "temp/build/v2-linux-click-business-source-r2.json",
+        "sha256": "835024b8ca3dff830215df689d543bf230d83f91cc4bb355a0dbb872aef4c0ac"
+      },
+      "source_archive": {
+        "path": "temp/build/v2-linux-click-business-r2-source-delta.zip",
+        "sha256": "0ff5c711659090a08df581d0fb41d7cf2174e1b433f7e1fd649c130d9a524c79"
+      },
+      "resolution": "Explicit list[object] cast narrows provider rectangle items; later phase adds active/enabled checks and bounded actual parent paths for intermediate/deep hit results. No input guard relaxed."
+    },
+    {
+      "passed": 23,
+      "seconds": 14.96,
+      "report": {
+        "path": "temp/build/v2-linux-click-business-r3.xml",
+        "sha256": "d1fd576f7a25f0f9d7f90faed6c8668b9bdd75b66d92ba29301a33ef694772c2"
+      }
+    },
+    {
+      "passed": 241,
+      "failed": 2,
+      "source_manifest": {
+        "path": "temp/build/v2-linux-click-business-source-r4.json",
+        "sha256": "af8d658e446a6839d5e34a78523be0d86ec469429dd30587f433c54cacb376bf"
+      },
+      "source_archive": {
+        "path": "temp/build/v2-linux-click-business-r4-source-delta.zip",
+        "sha256": "181cbc14a45e3cae0178f5a7f6d5c29d706fe11c96686f242ea73645401bef6d"
+      },
+      "resolution": "Restored unchanged no-focus/no-clipboard product disclosure accidentally removed from capability text; original assertions retained. Only that exact literal changed after main group, original three-node probe function passed."
+    }
+  ],
+  "point_contract": {
+    "provider": "Existing explicit canonical Avalonia XID profile only, whose RootAtSpiNode.ToScreen uses native PixelPoint conversion. No geometry/PID/title inference or ratio-based scaling.",
+    "component": "Bounded integer SCREEN/WINDOW extents for root and selected node must agree by exact translation, not arbitrary scale. Choose one integer pixel inside root/node intersection, require strict Contains in both spaces and actual root hit returning target or a bounded actual same-bus child/descendant path. Root self-hit, unrelated/foreign/cyclic/password/disabled paths refused.",
+    "native": "Continuous WindowBinding first; double actual component proof and X11 client geometry/TranslateCoordinates origin must match exact physical root extent. Before use repeat original AT-SPI active/enabled identity/hit and native window/focus/session checks. Native shape/stacking point, maps, XKB, full configuration/RandR remain existing proofs.",
+    "known_profile_limit": "The pinned Avalonia AtSpiComponentHandler.GetAccessibleAtPoint returns its queried node when within rectangle, including root itself. That implementation does not offer a child click here. Positive fixtures implement accurate component hit contract; they are not evidence that installed Avalonia/GTK/Qt or native Linux supports this path."
+  },
+  "business_contract": {
+    "approval": "Existing observer proof/catalog hash includes geometry, target pixel and supported dynamic state. Owner approval, single-use run/action/grant UUID and ready/permit reused; initial frame never writes. All native preflight before ready, node/point/configuration revalidated after permit.",
+    "dispatch": "One planned move then separately freshly prepared button pair on same proven stream, with exact existing Raw/source-copy/XKB and actual release ownership. Recheck semantic/native point between move and button; failure after move remains unknown, never another guessed pixel or replay.",
+    "outcome": "click_verified requires a concrete predicted checked/selected/expanded/focus transition, same semantic proof except updated actions hash, static catalog/geometry unchanged, and native point proof again. No applicable state, unchanged state, unrelated text or mismatch remains unknown.",
+    "lifecycle": "Linux click parent sets existing native release owner flag before permit. Closing owner keeps exact worker/pipes/shared slot until real release/exit and result consumer complete; no terminate of live permitted pointer owner. Business cancellation retains both actual X11 connections until barrier settles. Existing Unicode/semantic/key paths retained."
+  },
+  "caller_fixtures": "Existing key/text fixture buses now explicitly return unsupported attributes/SCREEN geometry instead of assertion for newly optional pointer queries; new accurate-hit fixture is separate, not a product fallback.",
+  "protocol_sources": [
+    {
+      "url": "https://raw.githubusercontent.com/AvaloniaUI/Avalonia/1c7e80b4cd0f6dd417e9214d477fb664d0288081/src/Avalonia.FreeDesktop.AtSpi/Handlers/AtSpiComponentHandler.cs",
+      "local_copy": "temp/build/v2-linux-atspi-point-research/Handlers/AtSpiComponentHandler.cs",
+      "sha256": "b2fe9ed3e316fd1015e7d6e0715406874a1de6405020721ff2ea1c1fb1e40dd1"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/AvaloniaUI/Avalonia/1c7e80b4cd0f6dd417e9214d477fb664d0288081/src/Avalonia.FreeDesktop.AtSpi/Handlers/AtSpiCoordinateHelper.cs",
+      "local_copy": "temp/build/v2-linux-atspi-point-research/Handlers/AtSpiCoordinateHelper.cs",
+      "sha256": "57415849b9f6e7833c0cfa1d407a35af81e518e75cb980c0c236eb18478bf11e"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/AvaloniaUI/Avalonia/1c7e80b4cd0f6dd417e9214d477fb664d0288081/src/Avalonia.FreeDesktop.AtSpi/RootAtSpiNode.cs",
+      "local_copy": "temp/build/v2-linux-atspi-point-research/RootAtSpiNode.cs",
+      "sha256": "73f2c2df2555c74bc62a5c9104f48da6283381761591c76380b7e65a551415f4"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/AvaloniaUI/Avalonia/1c7e80b4cd0f6dd417e9214d477fb664d0288081/src/Avalonia.FreeDesktop.AtSpi/AtSpiNode.cs",
+      "local_copy": "temp/build/v2-linux-atspi-point-research/AtSpiNode.cs",
+      "sha256": "c1e3e1583837c9baf6e76d9ee14e050428f6bb21be9ca8aa4d48eb713f7d1564"
+    }
+  ],
+  "registered_strict_scope": 372,
+  "registered_scope_fully_rechecked": false,
+  "ruff_and_format_modified_files_passed": true,
+  "mouse_business_dispatch_source_connected": true,
+  "generic_provider_binding_or_native_navigation_complete": false,
+  "known_pinned_provider_precise_child_hit_available": false,
+  "positive_accurate_hit_provider_is_injected": true,
+  "native_linux_pointer_or_platform_executed": false,
+  "real_account_model_device_native_desktop_or_72h_executed": false,
+  "full_suite_run": false,
+  "whole_v2_development_complete": false,
+  "whole_v2_accepted": false,
+  "publication": "Local-only commit; specific remote transfer authorization remains pending, no push retry.",
+  "next": "Accurate native provider hit/window association for general applications; application navigation/close/submission outcomes, legacy/multiple-root coordinates, Wayland input and whole-V2 requirements audit. Full suite only after whole V2 implementation freeze."
+}

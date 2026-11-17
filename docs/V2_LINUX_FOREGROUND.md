@@ -110,6 +110,18 @@ Xorg的XTEST绝对移动使用桌面坐标，但仍经过轴范围缩放、变�
 
 本批46新与591调用方/合同共637不同专项通过（153.83秒），6修改运行文件strict通过；370仅登记，未整范围/全量。首轮39过/1测试断言错误及源码保留，原失败和新增7节点通过，当前运行源码不变。全程原生协议/连接注入，没有Linux或真实鼠标结论。见[按钮证据](evidence/v2-linux-button-packet.json)。原生依据：[XTEST按钮生成](https://raw.githubusercontent.com/XQuartz/xorg-server/master/Xext/xtest.c)、[Raw及master映射](https://raw.githubusercontent.com/XQuartz/xorg-server/master/mi/mieq.c)、[指针XKB状态处理](https://raw.githubusercontent.com/XQuartz/xorg-server/master/xkb/xkbAccessX.c)、[XKB通知编码](https://raw.githubusercontent.com/XQuartz/xorg-server/master/xkb/xkbEvents.c)和[设备事件/物理释放](https://raw.githubusercontent.com/XQuartz/xorg-server/master/Xi/exevents.c)。
 
+## 控件物理点、逐次点击许可与应用后验
+
+`linux_node_point.py`只使用已有明确XID提供方的物理像素合同，不从窗口标题、PID或尺寸比例推断关联。根/控件SCREEN和WINDOW整数边界须精确平移一致；在根与控件交集选一个整数像素，两空间Contains都必须为true，窗口GetAccessibleAtPoint须精确命中所选节点，或沿最多8步实际同总线后代命中/Parent路径到达。自身返回、外来/循环/密码/不可用路径不产生候选。持续WindowBinding成立后，组件证明与X11实际客户端几何/TranslateCoordinates原点双读精确相等；失败/取消锁存，随后使用前还会实际重读。原生shape/堆叠/接收客户端、完整映射/XKB/配置/RandR证明继续使用。
+
+提供方限制是实际代码结论：已核对的[Avalonia坐标](https://raw.githubusercontent.com/AvaloniaUI/Avalonia/1c7e80b4cd0f6dd417e9214d477fb664d0288081/src/Avalonia.FreeDesktop.AtSpi/RootAtSpiNode.cs)经过原生PixelPoint，但其[Component命中](https://raw.githubusercontent.com/AvaloniaUI/Avalonia/1c7e80b4cd0f6dd417e9214d477fb664d0288081/src/Avalonia.FreeDesktop.AtSpi/Handlers/AtSpiComponentHandler.cs)在窗口内返回被查询节点自身。它不能证明子控件命中，因此当前该固定实现不会产生子控件click候选。正向专项是准确命中提供方的隔离合同，不是已安装Avalonia/GTK/Qt或Linux原生运行证据；通用提供方仍待开发。
+
+`linux_click_action.py`接原观察指纹/单次审批/UUID ready-permit和固定worker。准备完整原生点/映射/XKB/配置/移动计划后才ready，许可后重新核对节点/命中，再发一次移动；移动后重新核对控件与原生点，最后重新准备并发送一对按钮。派发前的变化拒绝，移动之后失败保持unknown，不选择第二个点或重放。原生父进程在click permit前登记既有释放责任，取消/关闭保留实际worker、管道和共享名额，原查询和释放结清且消费回执后才回收。
+
+领域/IPC沿已有click种类接Linux白名单，增加现有verification字段的`click_verified`，没有新增授权或业务真值。只有所选节点的明确勾选、选中、展开或聚焦状态按预测变化，静态目录/几何与节点身份保持且末次原生点证明成立，才报告成功；无适用状态、原值未变、无关文本或其他变化保持unknown。原Unicode追加/SetText/按键目录规范化继续兼容可选点击动态状态。工作台沿已有click入口接候选，不开放任意坐标输入。
+
+36新增与211直接业务/宿主/领域/HTTP/架构调用方，分阶段247不同节点通过；主组241过/2旧能力说明失败保留，补回不使用剪贴板后原探测函数3节点通过，额外4状态用例通过。主组后仅能力文案变更和测试补充，未重复整组；原始报告/源码及精确AST文案对照见[点击证据](evidence/v2-linux-click-business.json)。7修改运行文件strict零错误/警告，372仅登记，未整范围/全量。默认离线闸门保留，真实账号/模型/设备、Linux桌面和72h均未执行。整个V2继续开发。
+
 ## 已接通的受限文本追加
 
 `linux_text.py` 只向选定 AT-SPI 非密码可编辑对象执行一次 `EditableText.InsertText`。观察时须能完整读取最多 511 字符原文、核验 CaretOffset 位于末尾及 GetNSelections 为零；上下文进入原节点 actions 指纹，支持的节点才提供 `type_text`。不支持这些可选方法的提供者继续保留原语义动作。

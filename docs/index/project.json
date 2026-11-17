@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "219a14d85373a3cf0d2014b1fc79beedf93424dabb07635ba3abed06fe2a7c33",
+  "source_sha256": "189acd0ec276f73aad407bed8267ee67e3ab02feba8ba8e13f53ecc1a03f3c17",
   "modules": [
     {
       "id": "v2-domain",
@@ -76,7 +76,7 @@
         "agent/src/omni/domain/terminal_review.py",
         "agent/src/omni/domain/terminals.py"
       ],
-      "lines": 10192,
+      "lines": 10195,
       "dependencies": []
     },
     {
@@ -319,6 +319,7 @@
         "agent/src/omni/adapters/platform/linux_button_events.py",
         "agent/src/omni/adapters/platform/linux_button_mapping.py",
         "agent/src/omni/adapters/platform/linux_button_packet.py",
+        "agent/src/omni/adapters/platform/linux_click_action.py",
         "agent/src/omni/adapters/platform/linux_fds.py",
         "agent/src/omni/adapters/platform/linux_foreground.py",
         "agent/src/omni/adapters/platform/linux_input.py",
@@ -329,6 +330,7 @@
         "agent/src/omni/adapters/platform/linux_lease_client.py",
         "agent/src/omni/adapters/platform/linux_motion_events.py",
         "agent/src/omni/adapters/platform/linux_motion_packet.py",
+        "agent/src/omni/adapters/platform/linux_node_point.py",
         "agent/src/omni/adapters/platform/linux_pipewire.py",
         "agent/src/omni/adapters/platform/linux_pointer_actions.py",
         "agent/src/omni/adapters/platform/linux_pointer_config.py",
@@ -443,7 +445,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 62285,
+      "lines": 62579,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -24036,7 +24038,7 @@
       "path": "agent/src/omni/adapters/platform/desktop.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.desktop",
-      "lines": 665,
+      "lines": 667,
       "imports": [
         "omni.adapters.platform",
         "omni.adapters.platform.linux_lease_client",
@@ -24265,7 +24267,7 @@
         },
         {
           "name": "DesktopBackend.quiescent",
-          "line": 226,
+          "line": 228,
           "kind": "function",
           "parameters": [
             "self"
@@ -24274,7 +24276,7 @@
         },
         {
           "name": "DesktopBackend.reclaim",
-          "line": 229,
+          "line": 231,
           "kind": "function",
           "parameters": [
             "self",
@@ -24286,7 +24288,7 @@
         },
         {
           "name": "DesktopBackend._request",
-          "line": 237,
+          "line": 239,
           "kind": "function",
           "parameters": [
             "self",
@@ -24308,14 +24310,14 @@
         },
         {
           "name": "DesktopBackend._request.perform",
-          "line": 268,
+          "line": 270,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "DesktopBackend._request.finished",
-          "line": 304,
+          "line": 306,
           "kind": "function",
           "parameters": [
             "future"
@@ -24326,7 +24328,7 @@
         },
         {
           "name": "DesktopBackend._drain",
-          "line": 312,
+          "line": 314,
           "kind": "function",
           "parameters": [
             "self",
@@ -24342,7 +24344,7 @@
         },
         {
           "name": "DesktopBackend._spawn",
-          "line": 337,
+          "line": 339,
           "kind": "function",
           "parameters": [
             "self",
@@ -24356,14 +24358,14 @@
         },
         {
           "name": "DesktopBackend._spawn.collected",
-          "line": 385,
+          "line": 387,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "DesktopBackend._reclaim_actual",
-          "line": 393,
+          "line": 395,
           "kind": "function",
           "parameters": [
             "self",
@@ -24377,7 +24379,7 @@
         },
         {
           "name": "DesktopBackend._file",
-          "line": 441,
+          "line": 443,
           "kind": "function",
           "parameters": [
             "self",
@@ -24393,14 +24395,14 @@
         },
         {
           "name": "DesktopBackend._file.actual",
-          "line": 445,
+          "line": 447,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "DesktopBackend._reclaim",
-          "line": 454,
+          "line": 456,
           "kind": "function",
           "parameters": [
             "self",
@@ -24414,7 +24416,7 @@
         },
         {
           "name": "DesktopBackend._dispatch_gate",
-          "line": 469,
+          "line": 471,
           "kind": "function",
           "parameters": [
             "self",
@@ -24426,7 +24428,7 @@
         },
         {
           "name": "DesktopBackend._run",
-          "line": 482,
+          "line": 484,
           "kind": "function",
           "parameters": [
             "self",
@@ -24444,7 +24446,7 @@
         },
         {
           "name": "DesktopBackend.close",
-          "line": 654,
+          "line": 656,
           "kind": "function",
           "parameters": [
             "self",
@@ -26471,6 +26473,75 @@
       "summary": "Own one paired XTEST button request and retained release on the proven stream; no application-success claim."
     },
     {
+      "path": "agent/src/omni/adapters/platform/linux_click_action.py",
+      "module": "v2-adapters",
+      "python_module": "omni.adapters.platform.linux_click_action",
+      "lines": 119,
+      "imports": [
+        "omni.adapters.platform.linux_atspi",
+        "omni.adapters.platform.linux_bus",
+        "omni.adapters.platform.linux_node_point",
+        "omni.adapters.platform.linux_semantic",
+        "omni.adapters.platform.linux_text",
+        "omni.adapters.platform.linux_window_binding",
+        "omni.domain.contracts",
+        "omni.domain.foreground"
+      ],
+      "symbols": [
+        {
+          "name": "expected_state",
+          "line": 21,
+          "kind": "function",
+          "parameters": [
+            "context"
+          ],
+          "annotations": {
+            "context": "Payload"
+          }
+        },
+        {
+          "name": "FocusedClick",
+          "line": 29,
+          "kind": "class"
+        },
+        {
+          "name": "FocusedClick.__init__",
+          "line": 30,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "desktop",
+            "binding",
+            "now",
+            "sleep"
+          ],
+          "annotations": {
+            "desktop": "AtspiDesktop",
+            "binding": "WindowBinding",
+            "now": "Callable[[], float] | None",
+            "sleep": "Callable[[float], Awaitable[None]]"
+          }
+        },
+        {
+          "name": "FocusedClick.click",
+          "line": 44,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "target",
+            "value",
+            "permit"
+          ],
+          "annotations": {
+            "target": "Payload",
+            "value": "Payload",
+            "permit": "Callable[[], Awaitable[bool]]"
+          }
+        }
+      ],
+      "summary": "One approved component-bound native move/click with concrete application state readback; no replay or focus acquisition."
+    },
+    {
       "path": "agent/src/omni/adapters/platform/linux_fds.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.linux_fds",
@@ -28328,6 +28399,120 @@
       "summary": "Own one XTEST absolute move and its acknowledgment; no business click or automatic retry."
     },
     {
+      "path": "agent/src/omni/adapters/platform/linux_node_point.py",
+      "module": "v2-adapters",
+      "python_module": "omni.adapters.platform.linux_node_point",
+      "lines": 153,
+      "imports": [
+        "omni.adapters.platform.linux_atspi",
+        "omni.adapters.platform.linux_bus",
+        "omni.adapters.platform.linux_window_binding",
+        "omni.adapters.platform.linux_x11_wire",
+        "omni.domain.contracts",
+        "omni.domain.desktop"
+      ],
+      "symbols": [
+        {
+          "name": "rectangle",
+          "line": 19,
+          "kind": "function",
+          "parameters": [
+            "value"
+          ],
+          "annotations": {
+            "value": "object"
+          }
+        },
+        {
+          "name": "hit",
+          "line": 31,
+          "kind": "function",
+          "parameters": [
+            "desktop",
+            "root",
+            "target",
+            "point",
+            "coordinates"
+          ],
+          "annotations": {
+            "desktop": "AtspiDesktop",
+            "root": "Ref",
+            "target": "Ref",
+            "point": "tuple[int, int]",
+            "coordinates": "int"
+          }
+        },
+        {
+          "name": "point_context",
+          "line": 61,
+          "kind": "function",
+          "parameters": [
+            "desktop",
+            "root",
+            "ref"
+          ],
+          "annotations": {
+            "desktop": "AtspiDesktop",
+            "root": "Ref",
+            "ref": "Ref"
+          }
+        },
+        {
+          "name": "NodePoint",
+          "line": 98,
+          "kind": "class"
+        },
+        {
+          "name": "NodePoint.__init__",
+          "line": 99,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "desktop",
+            "binding",
+            "target",
+            "ref",
+            "context"
+          ],
+          "annotations": {
+            "desktop": "AtspiDesktop",
+            "binding": "WindowBinding",
+            "target": "Payload",
+            "ref": "Ref",
+            "context": "Payload"
+          }
+        },
+        {
+          "name": "NodePoint._read",
+          "line": 106,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "NodePoint.prepare",
+          "line": 132,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "NodePoint.check",
+          "line": 146,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        }
+      ],
+      "summary": "Bind actual AT-SPI component hit/physical extents to a continuous X11 window; no scaling guesses or input."
+    },
+    {
       "path": "agent/src/omni/adapters/platform/linux_pipewire.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.linux_pipewire",
@@ -29672,11 +29857,12 @@
       "path": "agent/src/omni/adapters/platform/linux_semantic.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.linux_semantic",
-      "lines": 288,
+      "lines": 302,
       "imports": [
         "omni.adapters.platform.linux_atspi",
         "omni.adapters.platform.linux_bus",
         "omni.adapters.platform.linux_input",
+        "omni.adapters.platform.linux_node_point",
         "omni.adapters.platform.linux_session",
         "omni.adapters.platform.linux_window_binding",
         "omni.domain.contracts",
@@ -29722,12 +29908,12 @@
         },
         {
           "name": "Semantics",
-          "line": 49,
+          "line": 51,
           "kind": "class"
         },
         {
           "name": "Semantics.__init__",
-          "line": 50,
+          "line": 52,
           "kind": "function",
           "parameters": [
             "self",
@@ -29739,7 +29925,7 @@
         },
         {
           "name": "Semantics.interfaces",
-          "line": 53,
+          "line": 55,
           "kind": "function",
           "parameters": [
             "self",
@@ -29751,7 +29937,7 @@
         },
         {
           "name": "Semantics.facts",
-          "line": 63,
+          "line": 65,
           "kind": "function",
           "parameters": [
             "self",
@@ -29763,7 +29949,7 @@
         },
         {
           "name": "Semantics.typing_context",
-          "line": 81,
+          "line": 83,
           "kind": "function",
           "parameters": [
             "self",
@@ -29777,7 +29963,7 @@
         },
         {
           "name": "Semantics.keyboard_context",
-          "line": 94,
+          "line": 96,
           "kind": "function",
           "parameters": [
             "self",
@@ -29791,7 +29977,7 @@
         },
         {
           "name": "Semantics.catalogue",
-          "line": 105,
+          "line": 107,
           "kind": "function",
           "parameters": [
             "self",
@@ -29809,7 +29995,7 @@
         },
         {
           "name": "Semantics.make_proof",
-          "line": 151,
+          "line": 165,
           "kind": "function",
           "parameters": [
             "path",
@@ -29826,7 +30012,7 @@
         },
         {
           "name": "Semantics.observed",
-          "line": 166,
+          "line": 180,
           "kind": "function",
           "parameters": [
             "self",
@@ -29848,7 +30034,7 @@
         },
         {
           "name": "Semantics.resolve",
-          "line": 181,
+          "line": 195,
           "kind": "function",
           "parameters": [
             "self",
@@ -29862,7 +30048,7 @@
         },
         {
           "name": "Semantics.proof",
-          "line": 205,
+          "line": 219,
           "kind": "function",
           "parameters": [
             "self",
@@ -29876,7 +30062,7 @@
         },
         {
           "name": "Semantics.act",
-          "line": 212,
+          "line": 226,
           "kind": "function",
           "parameters": [
             "self",
@@ -39367,10 +39553,11 @@
       "path": "agent/src/omni/adapters/workers/linux_desktop.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.workers.linux_desktop",
-      "lines": 329,
+      "lines": 335,
       "imports": [
         "omni.adapters.platform.linux_atspi",
         "omni.adapters.platform.linux_bus",
+        "omni.adapters.platform.linux_click_action",
         "omni.adapters.platform.linux_input",
         "omni.adapters.platform.linux_key_action",
         "omni.adapters.platform.linux_semantic",
@@ -39386,7 +39573,7 @@
       "symbols": [
         {
           "name": "session_record",
-          "line": 29,
+          "line": 30,
           "kind": "function",
           "parameters": [
             "inspector",
@@ -39399,7 +39586,7 @@
         },
         {
           "name": "capability_report",
-          "line": 40,
+          "line": 41,
           "kind": "function",
           "parameters": [
             "inspector",
@@ -39426,7 +39613,7 @@
         },
         {
           "name": "perform",
-          "line": 98,
+          "line": 99,
           "kind": "function",
           "parameters": [
             "request",
@@ -71384,7 +71571,7 @@
       "path": "agent/src/omni/domain/desktop.py",
       "module": "v2-domain",
       "python_module": "omni.domain.desktop",
-      "lines": 622,
+      "lines": 623,
       "imports": [
         "omni.domain.contracts",
         "omni.domain.desktop_actions",
@@ -71712,7 +71899,7 @@
         },
         {
           "name": "parse_response",
-          "line": 540,
+          "line": 541,
           "kind": "function",
           "parameters": [
             "data",
@@ -71725,7 +71912,7 @@
         },
         {
           "name": "parse_owner",
-          "line": 595,
+          "line": 596,
           "kind": "function",
           "parameters": [
             "operation",
@@ -71743,7 +71930,7 @@
       "path": "agent/src/omni/domain/desktop_actions.py",
       "module": "v2-domain",
       "python_module": "omni.domain.desktop_actions",
-      "lines": 231,
+      "lines": 233,
       "imports": [
         "omni.domain.contracts",
         "omni.domain.desktop",

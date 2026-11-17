@@ -268,7 +268,7 @@ def parse_request(data: object) -> dict[str, object]:
         if target["platform"] == "linux" and (
             target["backend"] != "atspi"
             or operation == "foreground"
-            and cast(dict[str, object], action)["kind"] not in {"type_text", "press_key"}
+            and cast(dict[str, object], action)["kind"] not in {"type_text", "press_key", "click"}
         ):
             raise invalid()
     _canonical(result)
@@ -524,7 +524,8 @@ def validate_observation(data: object, target: object) -> dict[str, object]:
             ):
                 raise invalid()
             if linux and (
-                actual["backend"] != "atspi" or any(a not in KINDS + ("type_text", "press_key") for a in actions)
+                actual["backend"] != "atspi"
+                or any(a not in KINDS + ("type_text", "press_key", "click") for a in actions)
             ):
                 raise invalid()
             if actions and (reference is None or password or not entry["enabled"] or entry["offscreen"]):

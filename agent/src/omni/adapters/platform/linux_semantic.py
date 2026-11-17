@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING, cast
 
 from ...domain.contracts import BusinessError
 from ...domain.desktop_actions import node_proof, semantic
-from .linux_atspi import ACCESSIBLE, PASSWORD_ROLE, TEXT, AtspiDesktop, reference
+from .linux_atspi import ACCESSIBLE, COMPONENT, PASSWORD_ROLE, TEXT, AtspiDesktop, reference
 from .linux_bus import RemoteError, failure
 
 if TYPE_CHECKING:
@@ -43,6 +43,8 @@ def stable_catalog(catalog: Payload) -> Payload:
         entries["press_key"] = {
             key: value for key, value in cast(Payload, entries["press_key"]).items() if key != "text"
         }
+    if "click" in entries:
+        entries["click"] = {key: value for key, value in cast(Payload, entries["click"]).items() if key != "state"}
     return entries
 
 
@@ -126,6 +128,18 @@ class Semantics:
             keyboard = await self.keyboard_context(window, context)
             if keyboard is not None:
                 entries["press_key"] = keyboard
+        if parent is not None and window is not None and COMPONENT in cast(list[str], facts["interfaces"]):
+            from .linux_node_point import point_context
+
+            pointer = await point_context(self.desktop, window, ref)
+            if pointer is not None:
+                flags = cast(set[int], facts["flags"])
+                pointer["state"] = {
+                    str(bit): bit in flags
+                    for capability, bit in ((41, 4), (22, 23), (9, 10), (11, 12))
+                    if capability in flags
+                }
+                entries["click"] = pointer
         if ACTION in cast(list[str], facts["interfaces"]):
             count = number(await self.desktop.property(ref, ACTION, "NActions", "i"), 16)
             names: list[str] = [

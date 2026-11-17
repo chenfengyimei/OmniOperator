@@ -60,7 +60,7 @@
           "remaining": [
             "通用提供方/控件的原生窗口关联；当前仅明确XID提供方节点已接业务按键",
             "Tab/Escape/焦点导航/关闭与其他应用结果的专门后验；无法证明的已派发结果保持unknown",
-            "鼠标内部移动/成对按钮、Raw/XKB精确归属、来源复制后验及实际释放已接；AT-SPI控件物理点、逐次业务许可与应用后验继续开发",
+            "控件物理点/逐次鼠标业务及明确状态后验源码已接；已核对Avalonia窗口自身命中不提供子控件候选，通用提供方准确命中/原生窗口关联、其他应用结果仍继续开发",
             "旧Xinerama及多root输入布局仍待明确原生坐标证明；不将普通窗口读取受限",
             "Wayland输入释放/物理介入、目标关联和实际派发仍待继续开发"
           ],
@@ -176,17 +176,35 @@
             "rawmotion_source_master_receipts": true,
             "precomputed_pointer_copy_and_complete_postchecks": true,
             "paired_pointer_release_implemented": true,
-            "mouse_business_dispatch_enabled": false,
+            "mouse_business_dispatch_enabled": true,
             "real_native_execution": false,
-            "paired_release_followup_evidence": "docs/evidence/v2-linux-button-packet.json"
+            "paired_release_followup_evidence": "docs/evidence/v2-linux-button-packet.json",
+            "business_followup_evidence": "docs/evidence/v2-linux-click-business.json"
           },
           "internal_paired_pointer_delivery": {
             "status": "implemented_scoped_passed",
             "evidence": "docs/evidence/v2-linux-button-packet.json",
             "exact_rawbutton_and_mapped_xkb_receipts": true,
             "logical_and_physical_release_lease": true,
-            "mouse_business_dispatch_enabled": false,
-            "real_native_execution": false
+            "mouse_business_dispatch_enabled": true,
+            "real_native_execution": false,
+            "business_followup_evidence": "docs/evidence/v2-linux-click-business.json"
+          },
+          "component_physical_point_and_click_business": {
+            "status": "source_connected_scoped_passed_provider_availability_open",
+            "evidence": "docs/evidence/v2-linux-click-business.json",
+            "accurate_provider_hit_required": true,
+            "owner_approval_and_single_use_permit_connected": true,
+            "native_release_parent_owned": true,
+            "observable_state_postconditions": [
+              "checked",
+              "selected",
+              "expanded",
+              "focused"
+            ],
+            "known_pinned_avalonia_child_hit_available": false,
+            "positive_accurate_hit_provider_is_injected": true,
+            "generic_provider_or_real_native_accepted": false
           }
         }
       ]

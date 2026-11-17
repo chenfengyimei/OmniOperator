@@ -114,7 +114,7 @@ class _Host:
     readers: list[asyncio.Task[None]] = field(default_factory=lambda: list[asyncio.Task[None]]())
     collected: asyncio.Task[int] | None = None
     exited: asyncio.Task[int] | None = None
-    native_key_permitted: bool = False
+    native_key_permitted: bool = False  # retained native release owner, including paired pointer buttons
     using: bool = False
     cleanup: asyncio.Task[bool] | None = None
     output: bytearray = field(default_factory=bytearray)
@@ -210,7 +210,9 @@ class DesktopBackend:
             if sys.platform not in {"win32", "darwin"} and not (
                 sys.platform == "linux"
                 and (
-                    operation == "act" or operation == "foreground" and action.get("kind") in {"type_text", "press_key"}
+                    operation == "act"
+                    or operation == "foreground"
+                    and action.get("kind") in {"type_text", "press_key", "click"}
                 )
             ):
                 raise _error("desktop_action_unavailable")
@@ -569,7 +571,7 @@ class DesktopBackend:
                         if (
                             request["operation"] == "foreground"
                             and request["target"]["platform"] == "linux"
-                            and request["action"]["kind"] == "press_key"
+                            and request["action"]["kind"] in {"press_key", "click"}
                         ):
                             host.native_key_permitted = True
                         host.owned.process.stdin.write(grant)

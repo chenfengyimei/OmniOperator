@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`219a14d85373a3cf0d2014b1fc79beedf93424dabb07635ba3abed06fe2a7c33`。包含 65 个职责模块、776 个源码/界面文件。
+源码指纹：`189acd0ec276f73aad407bed8267ee67e3ab02feba8ba8e13f53ecc1a03f3c17`。包含 65 个职责模块、778 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -24,8 +24,8 @@
 | [agent/src/omni/domain/credential_ipc.py](../../agent/src/omni/domain/credential_ipc.py) | 109 | Bounded native credential messages; no platform selection, imports or diagnostics payloads. |
 | [agent/src/omni/domain/credentials.py](../../agent/src/omni/domain/credentials.py) | 79 | Credential reference and payload bounds; contains no secret store or platform dependency. |
 | [agent/src/omni/domain/delivery.py](../../agent/src/omni/domain/delivery.py) | 89 | Outbound intent identities and trusted transport results; no I/O or credentials. |
-| [agent/src/omni/domain/desktop.py](../../agent/src/omni/domain/desktop.py) | 622 | Bounded desktop discovery and read-only UI contracts; no native I/O or action authorization. |
-| [agent/src/omni/domain/desktop_actions.py](../../agent/src/omni/domain/desktop_actions.py) | 231 | Exact semantic action contracts; observations never grant write authority. |
+| [agent/src/omni/domain/desktop.py](../../agent/src/omni/domain/desktop.py) | 623 | Bounded desktop discovery and read-only UI contracts; no native I/O or action authorization. |
+| [agent/src/omni/domain/desktop_actions.py](../../agent/src/omni/domain/desktop_actions.py) | 233 | Exact semantic action contracts; observations never grant write authority. |
 | [agent/src/omni/domain/desktop_control.py](../../agent/src/omni/domain/desktop_control.py) | 197 | Independent ephemeral remote-control consent protocol; system device selection never authorizes a business input action. |
 | [agent/src/omni/domain/desktop_portal.py](../../agent/src/omni/domain/desktop_portal.py) | 236 | Ephemeral window-share consent and helper protocol; grants never identify a native PID or authorize input. |
 | [agent/src/omni/domain/documents.py](../../agent/src/omni/domain/documents.py) | 100 | Bounded source text, deterministic chunks and local vector math; contains no I/O. |
@@ -283,7 +283,7 @@
 | [agent/src/omni/adapters/platform/darwin_service_admin.py](../../agent/src/omni/adapters/platform/darwin_service_admin.py) | 147 | Darwin registration and single-start root backend; fixed launchctl operations, no GUI, database or force. |
 | [agent/src/omni/adapters/platform/dependency_bundle.py](../../agent/src/omni/adapters/platform/dependency_bundle.py) | 252 | Capture a hash-pinned local wheel bundle for an isolated environment; never downloads or executes wheels. |
 | [agent/src/omni/adapters/platform/deployment_files.py](../../agent/src/omni/adapters/platform/deployment_files.py) | 631 | Capture installation identity and publish reviewed deployment bundles; never registers services or opens business storage. |
-| [agent/src/omni/adapters/platform/desktop.py](../../agent/src/omni/adapters/platform/desktop.py) | 665 | Bounded, one-shot desktop metadata helpers; construction never probes a native desktop. |
+| [agent/src/omni/adapters/platform/desktop.py](../../agent/src/omni/adapters/platform/desktop.py) | 667 | Bounded, one-shot desktop metadata helpers; construction never probes a native desktop. |
 | [agent/src/omni/adapters/platform/desktop_capture.py](../../agent/src/omni/adapters/platform/desktop_capture.py) | 83 | Host-owned screenshot staging. File decoding runs only on the desktop I/O worker. |
 | [agent/src/omni/adapters/platform/desktop_control.py](../../agent/src/omni/adapters/platform/desktop_control.py) | 407 | Owned parent transport for independent control consent; no input dispatch, capture grants or unowned process termination. |
 | [agent/src/omni/adapters/platform/desktop_native.py](../../agent/src/omni/adapters/platform/desktop_native.py) | 493 | Read-only desktop diagnostics and process/window identities; never reads UI contents or performs input. |
@@ -295,6 +295,7 @@
 | [agent/src/omni/adapters/platform/linux_button_events.py](../../agent/src/omni/adapters/platform/linux_button_events.py) | 70 | Exact RawButton pairs and their ordinary XKB pointer-state notifications; no blanket input exemptions. |
 | [agent/src/omni/adapters/platform/linux_button_mapping.py](../../agent/src/omni/adapters/platform/linux_button_mapping.py) | 221 | Read primary-button composition on a proven Xorg point/source pair; never changes maps, moves, clicks or grants dispatch. |
 | [agent/src/omni/adapters/platform/linux_button_packet.py](../../agent/src/omni/adapters/platform/linux_button_packet.py) | 198 | Own one paired XTEST button request and retained release on the proven stream; no application-success claim. |
+| [agent/src/omni/adapters/platform/linux_click_action.py](../../agent/src/omni/adapters/platform/linux_click_action.py) | 119 | One approved component-bound native move/click with concrete application state readback; no replay or focus acquisition. |
 | [agent/src/omni/adapters/platform/linux_fds.py](../../agent/src/omni/adapters/platform/linux_fds.py) | 95 | Owned received descriptors and bounded SCM_RIGHTS; no bus or desktop policy. |
 | [agent/src/omni/adapters/platform/linux_foreground.py](../../agent/src/omni/adapters/platform/linux_foreground.py) | 424 | Read-only X11 focus ancestry proof for future explicit foreground delivery; never maps AT-SPI nodes or sends input. |
 | [agent/src/omni/adapters/platform/linux_input.py](../../agent/src/omni/adapters/platform/linux_input.py) | 453 | Verified Xorg input-change guard for addressed semantic actions; never grabs, synthesizes or stores input content. |
@@ -305,6 +306,7 @@
 | [agent/src/omni/adapters/platform/linux_lease_client.py](../../agent/src/omni/adapters/platform/linux_lease_client.py) | 335 | Owned persistent X11 guardian transport; no native APIs, target rebinding from verify, unbounded queues or input. |
 | [agent/src/omni/adapters/platform/linux_motion_events.py](../../agent/src/omni/adapters/platform/linux_motion_events.py) | 68 | Exact two-axis RawMotion receipts belonging to one reserved XTEST request. |
 | [agent/src/omni/adapters/platform/linux_motion_packet.py](../../agent/src/omni/adapters/platform/linux_motion_packet.py) | 162 | Own one XTEST absolute move and its acknowledgment; no business click or automatic retry. |
+| [agent/src/omni/adapters/platform/linux_node_point.py](../../agent/src/omni/adapters/platform/linux_node_point.py) | 153 | Bind actual AT-SPI component hit/physical extents to a continuous X11 window; no scaling guesses or input. |
 | [agent/src/omni/adapters/platform/linux_pipewire.py](../../agent/src/omni/adapters/platform/linux_pipewire.py) | 256 | One serial-targeted GStreamer PipeWire frame inside an owned helper, never the default remote or display. |
 | [agent/src/omni/adapters/platform/linux_pointer_actions.py](../../agent/src/omni/adapters/platform/linux_pointer_actions.py) | 140 | Read XKB pointer actions and released keyboard state on a mapped native point; never moves, clicks or grants input. |
 | [agent/src/omni/adapters/platform/linux_pointer_config.py](../../agent/src/omni/adapters/platform/linux_pointer_config.py) | 281 | Read canonical pointer axes, feedback and transforms on an existing XKB/point proof; no device writes or mouse dispatch. |
@@ -314,7 +316,7 @@
 | [agent/src/omni/adapters/platform/linux_pointer_target.py](../../agent/src/omni/adapters/platform/linux_pointer_target.py) | 215 | Read a bounded Xorg hit path for one physical window point; no pointer motion, button input or AT-SPI coordinate inference. |
 | [agent/src/omni/adapters/platform/linux_portal.py](../../agent/src/omni/adapters/platform/linux_portal.py) | 220 | Explicit ephemeral window selection on a pinned Wayland portal; never opens PipeWire FDs or dispatches input. |
 | [agent/src/omni/adapters/platform/linux_remote_desktop.py](../../agent/src/omni/adapters/platform/linux_remote_desktop.py) | 148 | Separately selected ephemeral Wayland device permission; no ScreenCast reuse, EIS, clipboard, restore token or input dispatch. |
-| [agent/src/omni/adapters/platform/linux_semantic.py](../../agent/src/omni/adapters/platform/linux_semantic.py) | 288 | Addressed AT-SPI semantic proof and single mutation; no global input, focus acquisition or retry. |
+| [agent/src/omni/adapters/platform/linux_semantic.py](../../agent/src/omni/adapters/platform/linux_semantic.py) | 302 | Addressed AT-SPI semantic proof and single mutation; no global input, focus acquisition or retry. |
 | [agent/src/omni/adapters/platform/linux_session.py](../../agent/src/omni/adapters/platform/linux_session.py) | 348 | logind display-session and accessibility bus ownership; never trusts desktop environment variables. |
 | [agent/src/omni/adapters/platform/linux_signals.py](../../agent/src/omni/adapters/platform/linux_signals.py) | 103 | Bounded, pinned D-Bus signals on the same pre-authenticated local connection; no service activation or FDs. |
 | [agent/src/omni/adapters/platform/linux_text.py](../../agent/src/omni/adapters/platform/linux_text.py) | 100 | One addressed Unicode append in a manually focused AT-SPI editor; no key synthesis, clipboard, focus acquisition or retry. |
@@ -386,7 +388,7 @@
 | [agent/src/omni/adapters/workers/desktop.py](../../agent/src/omni/adapters/workers/desktop.py) | 132 | One bounded read-only desktop request per helper; stdout is IPC and never contains diagnostics. |
 | [agent/src/omni/adapters/workers/desktop_control.py](../../agent/src/omni/adapters/workers/desktop_control.py) | 221 | Owned independent Wayland control-consent helper; no input commands, EIS/clipboard descriptors, database or restored authority. |
 | [agent/src/omni/adapters/workers/linux_action.py](../../agent/src/omni/adapters/workers/linux_action.py) | 85 | One prepared Linux semantic action; the initial frame never permits a write, and no provider text is logged. |
-| [agent/src/omni/adapters/workers/linux_desktop.py](../../agent/src/omni/adapters/workers/linux_desktop.py) | 329 | One bounded Linux desktop request; addressed writes need a fresh parent permit, with no global input or database access. |
+| [agent/src/omni/adapters/workers/linux_desktop.py](../../agent/src/omni/adapters/workers/linux_desktop.py) | 335 | One bounded Linux desktop request; addressed writes need a fresh parent permit, with no global input or database access. |
 | [agent/src/omni/adapters/workers/linux_window_lease.py](../../agent/src/omni/adapters/workers/linux_window_lease.py) | 203 | Bounded read-only X11 lease helper; one owned connection carries window lifetime notifications across requests. |
 | [agent/src/omni/adapters/workers/local_vectors.py](../../agent/src/omni/adapters/workers/local_vectors.py) | 204 | CPU ONNX/tokenizers subprocess. No database, credentials, model downloads or arbitrary Python imports. |
 | [agent/src/omni/adapters/workers/macos/Core/Package.swift](../../agent/src/omni/adapters/workers/macos/Core/Package.swift) | 12 | 原生源码、平台脚本或界面资源 |
