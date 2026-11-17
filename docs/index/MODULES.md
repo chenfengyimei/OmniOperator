@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`c94021d016f3caa7d5e526f8c275f8d626b5fe783ffbf3ad929c01ed5cc06062`。包含 65 个职责模块、788 个源码/界面文件。
+源码指纹：`64909d5c13d7b9fd287888b77548413fe007b263da7c77087e045b9b111a145a`。包含 65 个职责模块、791 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -322,13 +322,16 @@
 | [agent/src/omni/adapters/platform/linux_pointer_switch.py](../../agent/src/omni/adapters/platform/linux_pointer_switch.py) | 136 | Precompute and verify one owned pointer slave-class copy; never writes device configuration. |
 | [agent/src/omni/adapters/platform/linux_pointer_target.py](../../agent/src/omni/adapters/platform/linux_pointer_target.py) | 215 | Read a bounded Xorg hit path for one physical window point; no pointer motion, button input or AT-SPI coordinate inference. |
 | [agent/src/omni/adapters/platform/linux_portal.py](../../agent/src/omni/adapters/platform/linux_portal.py) | 220 | Explicit ephemeral window selection on a pinned Wayland portal; never opens PipeWire FDs or dispatches input. |
-| [agent/src/omni/adapters/platform/linux_remote_desktop.py](../../agent/src/omni/adapters/platform/linux_remote_desktop.py) | 242 | Separate Wayland device consent and owned EI core negotiation; no ScreenCast reuse, clipboard, restored authority or input. |
+| [agent/src/omni/adapters/platform/linux_remote_desktop.py](../../agent/src/omni/adapters/platform/linux_remote_desktop.py) | 291 | Separate Wayland device consent and owned EI core negotiation; no ScreenCast reuse, clipboard, restored authority or input. |
 | [agent/src/omni/adapters/platform/linux_seat_input.py](../../agent/src/omni/adapters/platform/linux_seat_input.py) | 182 | One seat's kernel-input guard with owned executor/FD watches; no authority, input data capture or compositor-target proof. |
 | [agent/src/omni/adapters/platform/linux_semantic.py](../../agent/src/omni/adapters/platform/linux_semantic.py) | 302 | Addressed AT-SPI semantic proof and single mutation; no global input, focus acquisition or retry. |
 | [agent/src/omni/adapters/platform/linux_session.py](../../agent/src/omni/adapters/platform/linux_session.py) | 348 | logind display-session and accessibility bus ownership; never trusts desktop environment variables. |
 | [agent/src/omni/adapters/platform/linux_signals.py](../../agent/src/omni/adapters/platform/linux_signals.py) | 103 | Bounded, pinned D-Bus signals on the same pre-authenticated local connection; no service activation or FDs. |
 | [agent/src/omni/adapters/platform/linux_text.py](../../agent/src/omni/adapters/platform/linux_text.py) | 100 | One addressed Unicode append in a manually focused AT-SPI editor; no key synthesis, clipboard, focus acquisition or retry. |
 | [agent/src/omni/adapters/platform/linux_udev_input.py](../../agent/src/omni/adapters/platform/linux_udev_input.py) | 210 | Read-only seat input catalog with kernel/udev change FDs; no input reads, grants or device configuration. |
+| [agent/src/omni/adapters/platform/linux_wayland_peer.py](../../agent/src/omni/adapters/platform/linux_wayland_peer.py) | 119 | Bind a canonical Wayland socket to the actual granted EI peer; no environment discovery, authority or protocol requests. |
+| [agent/src/omni/adapters/platform/linux_wayland_windows.py](../../agent/src/omni/adapters/platform/linux_wayland_windows.py) | 346 | Read-only wlroots toplevel generations on the granted EI compositor; no app PID inference, focus acquisition or input authority. |
+| [agent/src/omni/adapters/platform/linux_wayland_wire.py](../../agent/src/omni/adapters/platform/linux_wayland_wire.py) | 131 | Bounded read-only Wayland display/registry/output transport; no surfaces, grabs, pixel capture or input commands. |
 | [agent/src/omni/adapters/platform/linux_window_binding.py](../../agent/src/omni/adapters/platform/linux_window_binding.py) | 141 | Bind an explicit AT-SPI provider XID to continuous native ownership/focus; no guessed mapping, focus acquisition or input. |
 | [agent/src/omni/adapters/platform/linux_window_leases.py](../../agent/src/omni/adapters/platform/linux_window_leases.py) | 137 | Continuous X11 window generations on one proven connection; no input, AT-SPI mapping or database access. |
 | [agent/src/omni/adapters/platform/linux_x11.py](../../agent/src/omni/adapters/platform/linux_x11.py) | 248 | XRes-bound local X11 targets and existing Composite pixmaps; never captures the root or sends input. |

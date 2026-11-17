@@ -1,0 +1,164 @@
+{
+  "schema": 1,
+  "date": "2026-11-18",
+  "base_commit": "55f352084e78ff23f0eecc4a29c8ee15f5ca3ec8",
+  "status": "internal_readonly_wayland_compositor_window_view_scoped_passed_native_pending",
+  "source_files": {
+    "agent/src/omni/adapters/platform/linux_wayland_peer.py": "88d5a7c8ebaddaafbe7cac6de27314e5e783f24748499b9bed6cbac0826e8762",
+    "agent/src/omni/adapters/platform/linux_wayland_wire.py": "d52686f0cb4b06e004ac9e40f65e130a47cd4386db883e6141c50cea8075b404",
+    "agent/src/omni/adapters/platform/linux_wayland_windows.py": "5cd4b1add77a51b8b538cdbfc46c64df2ec17a65f1a0dda3c479821fac0e1f09",
+    "agent/src/omni/adapters/platform/linux_remote_desktop.py": "f30a3e7639da53262253f7ce2f096e285dd96b8f2e2e6208ea40dfd0cf90ac10",
+    "agent/tests/test_v2_wayland_peer.py": "bb491f2bf97ec64146538d4b6c56ad42117ec8f1dadd1951808ec7c300d4be42",
+    "agent/tests/test_v2_wayland_windows.py": "80ebdcfb0feb8a90f71c39b6efdb3fbb4b9ad28df9d56950facfc149fbbf991f",
+    "agent/tests/test_v2_wayland_window_control.py": "3a4a13078f3bc16baeb2158d815c12dcd1d8bdca5ac7df272ec7d578aaf28e3d",
+    "agent/tests/v2_wayland_helpers.py": "bccfa7f4d267fb28afbfe94776623f463f6788c3e47de61de05df706b3205cfc",
+    "pyrightconfig.strict.json": "74ff53a16ddc815065de38432449c18c11abfc180f4a63d654d2aa0fbee5f8b2",
+    "docs/TYPE_CHECKING.md": "44d6888b5ef03d2d9a9a00201b00d396398892e78248e3cbac959f80e1627daf"
+  },
+  "fixed_source_manifest": {
+    "path": "temp/build/v2-wayland-window-view-source-r4.json",
+    "sha256": "17b06b06e4888f0ac1e93adc27ee0db7d48f31dab1b20250bbd0352769b833cb"
+  },
+  "scoped_tests": {
+    "distinct_nodes_passed": 264,
+    "new_nodes": 53,
+    "existing_affected_nodes": 211,
+    "per_module": {
+      "tests.test_v2_wayland_peer": 15,
+      "tests.test_v2_wayland_windows": 34,
+      "tests.test_v2_wayland_window_control": 4,
+      "tests.test_v2_remote_desktop": 41,
+      "tests.test_v2_linux_eis": 54,
+      "tests.test_v2_eis_key_packet": 43,
+      "tests.test_v2_seat_input": 18,
+      "tests.test_v2_desktop_control_backend": 13,
+      "tests.test_v2_desktop_control_service": 5,
+      "tests.test_arch": 29,
+      "tests.test_v2_typecheck_scope": 2,
+      "tests.test_v2_architecture": 6
+    },
+    "phases": [
+      {
+        "source_revision": 2,
+        "nodes_passed": 252,
+        "elapsed_xml_seconds": 43.131,
+        "report": {
+          "path": "temp/build/v2-wayland-window-view-r2.xml",
+          "sha256": "a6fdd5701c056030355f81d1866bb2c082f526d2024f5e0c5797d8ae4932efab"
+        }
+      },
+      {
+        "source_revision": 4,
+        "nodes_passed": 53,
+        "elapsed_xml_seconds": 5.018,
+        "report": {
+          "path": "temp/build/v2-wayland-window-view-direct-r4.xml",
+          "sha256": "5f440b8b66b72c9a1bf5daeaa2f7ea81a100fb3ed4ca9589567762b26e2b4500"
+        }
+      },
+      {
+        "source_revision": 4,
+        "nodes_passed": 6,
+        "elapsed_xml_seconds": 4.104,
+        "report": {
+          "path": "temp/build/v2-wayland-window-view-v2-arch-r4.xml",
+          "sha256": "ea094ed9a9d9a5545b03f2f6649dc2cfc54ce3dcb1d8f4c5c95d754409388baf"
+        }
+      }
+    ],
+    "current_source_coverage": "Main252 onr2, then53 direct window/peer/control nodes onr4, plus6 V2 architecture contracts. After main only select method and its pre-await reservation field changed in runtime; AST of all other code equal, other3 runtime/helper/config bytes equal. Direct selection callers rerun, unchanged callers not repeated. Final sources not covered by full suite.",
+    "warning": "Directr4:1 PytestCacheWarning WinError5 on cache directory rename; original report retained, cause not assigned. No test failure or full-suite claim."
+  },
+  "initial_verification": {
+    "report": {
+      "path": "temp/build/v2-wayland-window-view-first.xml",
+      "sha256": "f3659bc08dfa965f467aa79f3ad66a3ba37a8d6fb6edfd8675648c626644c5ee"
+    },
+    "passed": 46,
+    "failed": 1,
+    "cause": "Closed-window fixture sent a new parent reference to an already closed parent. Fix fixture to legal null parent, then precise ambiguity nodes2 pass; no runtime guard removed.",
+    "correction_report": {
+      "path": "temp/build/v2-wayland-window-view-fix-r2.xml",
+      "sha256": "32a8db4b8c50e9603afdf0aa197cf31ee0ff3f9834361cd9286b15fdbab04aa0"
+    },
+    "initial_type_report": {
+      "path": "temp/build/v2-wayland-window-view-pyright-r1.json",
+      "sha256": "2b7f8eea01921481b4238f71a4f26d123023b00660a0e7733b9a0da27aacff5d"
+    },
+    "initial_type_errors": 1,
+    "type_fix": "Explicit set[int] factory removes unknown generic default-factory type; no ignore rule."
+  },
+  "concurrency_regression": {
+    "before_report": {
+      "path": "temp/build/v2-wayland-window-view-selection-before.xml",
+      "sha256": "ead54e0db474acc395a859879b6f45d71c048b289ae0595f3bb1768ff872ec03"
+    },
+    "failed": 1,
+    "cause": "Two select waiters shared one pending snapshot and both returned success. Reserve selection before await; release reservation on cancellation/refusal; successful selection immutable.",
+    "corrected_direct_report": {
+      "path": "temp/build/v2-wayland-window-view-direct-r4.xml",
+      "sha256": "5f440b8b66b72c9a1bf5daeaa2f7ea81a100fb3ed4ca9589567762b26e2b4500"
+    }
+  },
+  "strict_modified_files": {
+    "files": 4,
+    "errors": 0,
+    "warnings": 0,
+    "report": {
+      "path": "temp/build/v2-wayland-window-view-pyright-r4.json",
+      "sha256": "2b903d8d744102c8f90f70fb95570e6a9b80fb0d6527ae048ecac523f8c4f4b8"
+    }
+  },
+  "registered_strict_scope": 385,
+  "registered_scope_fully_rechecked": false,
+  "ruff_and_format_modified_files_passed": true,
+  "prior_source_archives": [
+    {
+      "path": "temp/build/v2-wayland-window-view-r1-source-delta.zip",
+      "sha256": "4b08bf9114ee441cbd65b9565ae11c29666b5cb708d1b27bea3dbdd11303f9d6"
+    },
+    {
+      "path": "temp/build/v2-wayland-window-view-r2-source-delta.zip",
+      "sha256": "84d4e2344dee5548517875d9791c9ccca501426bf855a0c4fb7dbbbe56df1db7"
+    },
+    {
+      "path": "temp/build/v2-wayland-window-view-r3-source-delta.zip",
+      "sha256": "980a0b9c915b974f3309848410f283fbac90fa8949786242a714d053ad6bdf46"
+    }
+  ],
+  "protocol_snapshot": {
+    "revision": "b010a03648b88d143236de193bddbfea0c08bc84",
+    "files": [
+      {
+        "path": "unstable/wlr-foreign-toplevel-management-unstable-v1.xml",
+        "url": "https://raw.githubusercontent.com/swaywm/wlr-protocols/b010a03648b88d143236de193bddbfea0c08bc84/unstable/wlr-foreign-toplevel-management-unstable-v1.xml",
+        "snapshot": "temp/build/v2-wayland-window-view-upstream/wlr-foreign-toplevel-management-unstable-v1.xml",
+        "sha256": "ea1008781ec4af7a5ceb131914081405c71336fdd7e600103bcc940c15fc741f",
+        "bytes": 11538
+      }
+    ],
+    "exact_opcode_and_state_schema_checked": true,
+    "public_read_only": true
+  },
+  "contract": {
+    "peer": "Explicit canonical wayland-N name under verified private /run/user/currentUID; no environment/default/absolute path discovery. EI descriptor duplicated only for getsockopt peer verification, never read/written. Kernel peer UID/PID/current executable/start identity must match actual Wayland socket peer before first protocol request; canonical socket inode/process rechecked. Proxy/relay mismatches refused. Original EI owner unchanged; duplicate remains owned until read-only task and close settle.",
+    "wire": "Native byte order and8byte/32bit-aligned header; exact UTF8 mandatory NUL and undefined padding, string limits. Display/registry/output bindings and sync only; no activation/surface/grab/input requests. Sequential nonreused client IDs and server-range window handles; exact callback/delete lifecycle.65532 frame,4MiB cumulative each direction,2048 incoming message lifetime budget, max128 globals/16 outputs/64 lifetime windows; no truncation/reset. Unexpected ancillaryFD closed/refused.",
+    "windows": "Single actual zwlr_foreign_toplevel_manager_v1 >=3 boundv3; known outputs boundv2..4 before manager. Actual server handles, app_id, states/output refs/parent/closed and per-event epoch. Atomic done batches, known acyclic live parents, immutable selection requires unique activated and not minimized. Current selected handle+full snapshot+unique active rechecked across sync and native guard; away-return/title/parent/layout/global changes invalidate. Titles/output text parsed then discarded, not exposed in view/logs.",
+    "ownership": "Prepare3s/check1s actual limits; original shielded read-only task shared by concurrent checks. Cancelled waiter keeps original reader and FD; owning close can cancel this read-only original, removes wait before socket close. Ambiguous descriptor/socket close stays nonclean. ControlSession normal EI guard checks optional window source; native_check avoids recursion. Invalid view revokes grant. Close must settle original EI key release before closing window view/private duplicate, then kernel monitor and original Portal Session; failed release retains all.",
+    "scope": "Internal optional API only; activated is compositor-wide state, no proof of EI seat keyboard recipient. app_id is client metadata, never PID proof. No AT-SPI process/node, selected capture-source, output-coordinate/region, compositor non-evdev intervention or app-result proof; GNOME/KDE/generic Wayland providers not covered. Public worker/HTTP/business input remains disabled. Correct transport does not grant input."
+  },
+  "protocol_sources": [
+    "https://wayland.freedesktop.org/docs/book/Protocol.html",
+    "https://raw.githubusercontent.com/swaywm/wlr-protocols/b010a03648b88d143236de193bddbfea0c08bc84/unstable/wlr-foreign-toplevel-management-unstable-v1.xml"
+  ],
+  "native_wayland_eis_peer_credentials_or_compositor_executed": false,
+  "real_device_or_input_executed": false,
+  "input_authorized": false,
+  "production_worker_or_business_input_connected": false,
+  "atspi_native_process_seat_or_region_mapping_proven": false,
+  "full_suite_run": false,
+  "whole_v2_development_complete": false,
+  "whole_v2_accepted": false,
+  "publication": "Local-only checkpoint. Remote-specific transmission authorization remains pending; no push or alternative upload.",
+  "next": "Develop authoritative compositor-native PID/window/seat/region mapping (including supported compositor contract), AT-SPI target association and non-evdev intervention; connect business single-use permits and application readback only with complete proof. Continue generic X11 and remaining V2 audit. Full suite after whole V2 development freeze."
+}

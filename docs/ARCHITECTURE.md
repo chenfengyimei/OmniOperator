@@ -122,6 +122,8 @@ Linux桌面原生会话由固定辅助进程内的`SessionInspector`核验，`Lo
 
 `linux_node_point.py`以明确提供方物理像素、真实组件命中后代/Parent链和持续X11实际几何/原点建立控件点，不用尺寸比例猜缩放；已核对Avalonia窗口自身命中实现不提供子控件click。`linux_click_action.py`复用现有单次审批/ready-permit/worker，许可后重验并一次移动、再重验和成对按钮；具体checked/selected/expanded/focus变化与完整身份/点后验成立才click_verified，其余unknown不重放。父进程将click纳入原生释放归属，实际结清及业务消费后才回收；注入正向不代表已安装提供方或Linux实机支持。
 
+`linux_wayland_peer.py`以原EI内核peer身份核验显式规范Wayland端点，私有dup不读写EI；`linux_wayland_wire.py`拥有只读display/registry/output分帧及寿命预算。`linux_wayland_windows.py`拥有wlroots实际窗口对象、done批次、活动快照/代次与原读任务；仅内部ControlSession按需接线，EI释放先于窗口/监测/Portal关闭。app_id不推PID，活动状态不证明EI座席/AT-SPI/区域或业务输入；生产worker不调用该接口。
+
 `linux_udev_input.py`以双通知及实际seat列完整内核event设备，`linux_evdev_input.py`拥有各设备独立监测/状态查询FD，避免EVIOCGKEY清队列漏介入。`linux_seat_input.py`在原executor/监听/关闭任务下提供静止/释放和不可逆介入守卫；`ControlSession`仅内部按需单次接入，EI释放先于监测及原Session关闭。使用已有设备读取权限，不授予权限或改变路由；不能据此证明所有合成器来源、原生目标或业务输入许可。
 
 `linux_eis_key_packet.py`提供内部一次成对特殊键传输，原evdev码分属两个frame；原部分写入、writer/回调与释放任务持续拥有EI连接。`EisDevices`以明确传输方法保留单一I/O归属，close只撤销新动作，已有完整按下仅续原抬起后缀；未结清保留原Portal Session/订阅。sync/暂停只给协议来源释放依据，不证明物理输入或应用处理，生产业务输入仍未接通。

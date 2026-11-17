@@ -113,3 +113,19 @@ ControlSession关闭先结清原EI按键释放，再结清实际监测prepare/ch
 58新增与187调用方/架构/类型合同共245不同专项分阶段通过：主242约38秒，内核清队列修复与双FD权限失败/字节序门槛后仅复验直接模块21节点，其他3运行文件及夹具SHA相等；4修改运行文件strict零错误/警告，382仅登记。初46过伴1缓存rename WinError5警告、2项Windows stat stub类型诊断及清队列原失败/源码保留。当前libudev/evdev/监测/权限和Wayland均注入，只用真实隔离管道/线程；未执行原生libudev/ioctl/真实输入或全量，见[本批证据](evidence/v2-wayland-seat-input.json)。
 
 依据：[内核状态查询](https://docs.kernel.org/input/event-codes.html)、[多点触控](https://docs.kernel.org/input/multi-touch-protocol.html)、[udev通知](https://www.freedesktop.org/software/systemd/man/latest/udev_monitor_receive_device.html)、[目录枚举](https://www.freedesktop.org/software/systemd/man/latest/udev_enumerate_scan_devices.html)及[seat规则](https://wayland.freedesktop.org/libinput/doc/latest/device-configuration-via-udev.html)。
+
+## 同EI合成器只读窗口对象与活动代次（2026-11-18）
+
+内部`ControlSession.prepare_windows(name)`须原独立许可及原EI已准备，单次创建`WaylandWindows`；不增加生产worker/HTTP/IPC输入命令。调用者显式给规范`wayland-N`，只连接已核验UID的私有`/run/user/UID`，不读环境定位或猜默认端点。`WaylandPeer`先私有dup原EI FD，仅核验其Unix流SO_PEERCRED与当前进程UID/PID/创建身份/可执行文件，再连接Wayland；两者实际peer必须相等且socket inode/路径/进程持续有效，才发送首个Wayland请求。代理或提供方不匹配明确拒绝。dup不读写EI，也不替代原EI所有者；窗口关闭仍须实际关闭该私有引用。
+
+`WaylandWire`按本机字节序、8字节头和32位对齐处理部分收发，UTF-8含必需终止NUL但允许未定义padding；客户端ID递增不复用，真实server句柄只接受server区间。只发get_registry、bind和sync，不激活/关闭窗口、不创建surface或发输入。单帧65532字节、双向各寿命累计4MiB、2048接收消息；最多128全局对象、16输出、64寿命窗口，不截断或重置。额外FD关闭拒绝，display error文本不外泄。
+
+只绑定唯一实际`zwlr_foreign_toplevel_manager_v1`且版本至少3，使用v3；输出v2..4先于manager绑定，保证窗口输出引用来自已知对象。保留实际句柄、app_id、状态、输出、父关系、关闭及逐事件代次，未知/重复对象或状态、坏引用/父环、缺done批次均拒绝。标题与输出说明解析后丢弃，不能进入返回值/日志。选择只在唯一活动且非最小化时捕获不可变原快照；并发选择先占位，避免两个等待者共享快照后两次成功。后续sync跨原native守卫，离开后恢复、标题/父关系/应用ID/关闭、额外活动、输出或全局对象变更均使原选择失效。
+
+prepare真实3秒、check1秒；等待者取消保留原读任务，多个check共享它。所有者关闭可取消该只读任务并移除等待后关闭原连接，模糊关闭锁存nonclean。ControlSession正常EI守卫附加窗口复核，`native_check`保留Portal/seat守卫而不递归；失败撤销设备许可。关闭先结清原EI按键抬起，再关窗口私有连接/dup、内核监测，最后原Portal Session/订阅，不能为窗口失效放弃原释放。
+
+这只是内部原生窗口观察，**全局activated不是EI seat接收端证明**；app_id不能作为PID或AT-SPI节点映射。窗口与业务目标/共享来源、逻辑输出/区域、非evdev介入和应用后验仍开发；缺协议的GNOME/KDE或其他合成器不声称支持，不开放生产输入。
+
+53新增与211调用方/架构/类型合同共264不同专项分阶段通过：主252约43秒，后仅53直接节点及6个V2架构合同。主组后运行代码仅选择函数及其占位字段变化，其他AST/三个运行文件/夹具相同；未重复未变调用方。4运行文件strict零错误/警告，385仅登记。首闭窗夹具错误、类型诊断、并发选择修复前失败及后1缓存rename WinError5警告/源码都保留。当前Windows真实隔离FD/dup/任务用于离线验证，SO_PEERCRED/Unixsocket/原生Wayland及输入端口全注入，没有Linux/真实输入/全量结论。见[窗口证据](evidence/v2-wayland-window-view.json)。
+
+依据：[Wayland核心线协议](https://wayland.freedesktop.org/docs/book/Protocol.html)、[固定wlroots v3 XML](https://raw.githubusercontent.com/swaywm/wlr-protocols/b010a03648b88d143236de193bddbfea0c08bc84/unstable/wlr-foreign-toplevel-management-unstable-v1.xml)（已核对事件opcode/状态schema并保存SHA）。

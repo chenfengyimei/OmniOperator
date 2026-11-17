@@ -17,6 +17,7 @@ from .linux_portal import PATH, PORTAL, SESSION, PortalSession
 from .linux_seat_input import SeatInput
 from .linux_session import PROPERTIES, SessionInspector, number, object_path, one, variant
 from .linux_signals import SignalBus
+from .linux_wayland_windows import WaylandWindows
 
 REMOTE_DESKTOP = "org.freedesktop.portal.RemoteDesktop"
 
@@ -33,6 +34,9 @@ class ControlSession(PortalSession):
         eis_factory: Callable[[OwnedFd, Callable[[], Awaitable[None]]], EisConnection] = EisConnection,
         device_factory: Callable[[OwnedFd, Callable[[], Awaitable[None]], int], EisConnection] = EisDevices,
         input_factory: Callable[[SessionInspector, Callable[[], Awaitable[None]]], SeatInput] = SeatInput,
+        window_factory: Callable[
+            [SessionInspector, OwnedFd, str, Callable[[], Awaitable[None]]], WaylandWindows
+        ] = WaylandWindows,
     ) -> None:
         super().__init__(inspector, signal_factory=signal_factory)
         self.requested = devices(requested)
@@ -49,6 +53,10 @@ class ControlSession(PortalSession):
         self._input_attempted = False
         self._input: SeatInput | None = None
         self._input_task: asyncio.Task[SeatInput] | None = None
+        self._window_factory = window_factory
+        self._window_attempted = False
+        self._windows: WaylandWindows | None = None
+        self._window_task: asyncio.Task[WaylandWindows] | None = None
 
     async def prepare(self) -> None:
         if self._attempted or self._closed or self._invalidated:
@@ -98,7 +106,7 @@ class ControlSession(PortalSession):
             self._granted = 0
             raise
 
-    async def check(self) -> None:
+    async def native_check(self) -> None:
         await self.system_check()
         if self._input is not None:
             try:
@@ -106,6 +114,43 @@ class ControlSession(PortalSession):
             except BaseException:
                 self._invalidated, self._granted = True, 0
                 raise
+
+    async def check(self) -> None:
+        await self.native_check()
+        if self._windows is not None:
+            try:
+                await self._windows.check()
+            except BaseException:
+                self._invalidated, self._granted = True, 0
+                raise
+
+    async def prepare_windows(self, name: str) -> WaylandWindows:
+        if (
+            self._window_attempted
+            or self._closed
+            or self._eis_descriptor is None
+            or self._eis is None
+            or self._granted != self.requested
+        ):
+            raise failure("portal_state_invalid")
+        self._window_attempted = True
+        self._window_task = asyncio.create_task(self._prepare_windows(name), name="portal-owned-wayland-windows")
+        self._window_task.add_done_callback(lambda task: task.exception() if not task.cancelled() else None)
+        return await asyncio.shield(self._window_task)
+
+    async def _prepare_windows(self, name: str) -> WaylandWindows:
+        try:
+            await self.native_check()
+            assert self._eis_descriptor is not None
+            self._windows = self._window_factory(self.inspector, self._eis_descriptor, name, self.native_check)
+            await self._windows.prepare()
+            await self.check()
+            return self._windows
+        except BaseException:
+            self._invalidated, self._granted = True, 0
+            if self._windows is not None:
+                await self._windows.close()
+            raise
 
     async def prepare_input_monitor(self) -> SeatInput:
         if self._input_attempted or self._closed or not self.started or self._granted != self.requested:
@@ -234,6 +279,10 @@ class ControlSession(PortalSession):
         if self._eis_task is not None and not self._eis_task.done():
             return False
         if self._eis is not None and not await self._eis.close():
+            return False
+        if self._windows is not None and not await self._windows.close():
+            return False
+        if self._window_task is not None and not self._window_task.done():
             return False
         if self._input_task is not None and not self._input_task.done():
             return False

@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "c94021d016f3caa7d5e526f8c275f8d626b5fe783ffbf3ad929c01ed5cc06062",
+  "source_sha256": "64909d5c13d7b9fd287888b77548413fe007b263da7c77087e045b9b111a145a",
   "modules": [
     {
       "id": "v2-domain",
@@ -353,6 +353,9 @@
         "agent/src/omni/adapters/platform/linux_signals.py",
         "agent/src/omni/adapters/platform/linux_text.py",
         "agent/src/omni/adapters/platform/linux_udev_input.py",
+        "agent/src/omni/adapters/platform/linux_wayland_peer.py",
+        "agent/src/omni/adapters/platform/linux_wayland_windows.py",
+        "agent/src/omni/adapters/platform/linux_wayland_wire.py",
         "agent/src/omni/adapters/platform/linux_window_binding.py",
         "agent/src/omni/adapters/platform/linux_window_leases.py",
         "agent/src/omni/adapters/platform/linux_x11.py",
@@ -455,7 +458,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 64772,
+      "lines": 65417,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -31046,7 +31049,7 @@
       "path": "agent/src/omni/adapters/platform/linux_remote_desktop.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.linux_remote_desktop",
-      "lines": 242,
+      "lines": 291,
       "imports": [
         "omni.adapters.platform.linux_bus",
         "omni.adapters.platform.linux_eis",
@@ -31056,18 +31059,19 @@
         "omni.adapters.platform.linux_seat_input",
         "omni.adapters.platform.linux_session",
         "omni.adapters.platform.linux_signals",
+        "omni.adapters.platform.linux_wayland_windows",
         "omni.domain.desktop_control",
         "omni.domain.desktop_portal"
       ],
       "symbols": [
         {
           "name": "ControlSession",
-          "line": 24,
+          "line": 25,
           "kind": "class"
         },
         {
           "name": "ControlSession.__init__",
-          "line": 27,
+          "line": 28,
           "kind": "function",
           "parameters": [
             "self",
@@ -31076,7 +31080,8 @@
             "signal_factory",
             "eis_factory",
             "device_factory",
-            "input_factory"
+            "input_factory",
+            "window_factory"
           ],
           "annotations": {
             "inspector": "SessionInspector",
@@ -31084,12 +31089,13 @@
             "signal_factory": "Callable[[BusPort], SignalBus]",
             "eis_factory": "Callable[[OwnedFd, Callable[[], Awaitable[None]]], EisConnection]",
             "device_factory": "Callable[[OwnedFd, Callable[[], Awaitable[None]], int], EisConnection]",
-            "input_factory": "Callable[[SessionInspector, Callable[[], Awaitable[None]]], SeatInput]"
+            "input_factory": "Callable[[SessionInspector, Callable[[], Awaitable[None]]], SeatInput]",
+            "window_factory": "Callable[[SessionInspector, OwnedFd, str, Callable[[], Awaitable[None]]], WaylandWindows]"
           }
         },
         {
           "name": "ControlSession.prepare",
-          "line": 53,
+          "line": 61,
           "kind": "function",
           "parameters": [
             "self"
@@ -31098,7 +31104,16 @@
         },
         {
           "name": "ControlSession.system_check",
-          "line": 84,
+          "line": 92,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "ControlSession.native_check",
+          "line": 109,
           "kind": "function",
           "parameters": [
             "self"
@@ -31107,24 +31122,6 @@
         },
         {
           "name": "ControlSession.check",
-          "line": 101,
-          "kind": "function",
-          "parameters": [
-            "self"
-          ],
-          "annotations": {}
-        },
-        {
-          "name": "ControlSession.prepare_input_monitor",
-          "line": 110,
-          "kind": "function",
-          "parameters": [
-            "self"
-          ],
-          "annotations": {}
-        },
-        {
-          "name": "ControlSession._prepare_input",
           "line": 118,
           "kind": "function",
           "parameters": [
@@ -31133,8 +31130,50 @@
           "annotations": {}
         },
         {
+          "name": "ControlSession.prepare_windows",
+          "line": 127,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "name"
+          ],
+          "annotations": {
+            "name": "str"
+          }
+        },
+        {
+          "name": "ControlSession._prepare_windows",
+          "line": 141,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "name"
+          ],
+          "annotations": {
+            "name": "str"
+          }
+        },
+        {
+          "name": "ControlSession.prepare_input_monitor",
+          "line": 155,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "ControlSession._prepare_input",
+          "line": 163,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
           "name": "ControlSession.request",
-          "line": 131,
+          "line": 176,
           "kind": "function",
           "parameters": [
             "self",
@@ -31152,7 +31191,7 @@
         },
         {
           "name": "ControlSession.authorize",
-          "line": 141,
+          "line": 186,
           "kind": "function",
           "parameters": [
             "self",
@@ -31164,7 +31203,7 @@
         },
         {
           "name": "ControlSession.granted_devices",
-          "line": 190,
+          "line": 235,
           "kind": "function",
           "parameters": [
             "self"
@@ -31173,7 +31212,7 @@
         },
         {
           "name": "ControlSession.open_pipewire",
-          "line": 194,
+          "line": 239,
           "kind": "function",
           "parameters": [
             "self"
@@ -31182,7 +31221,7 @@
         },
         {
           "name": "ControlSession.prepare_eis",
-          "line": 197,
+          "line": 242,
           "kind": "function",
           "parameters": [
             "self",
@@ -31194,7 +31233,7 @@
         },
         {
           "name": "ControlSession._prepare_eis",
-          "line": 207,
+          "line": 252,
           "kind": "function",
           "parameters": [
             "self",
@@ -31206,7 +31245,7 @@
         },
         {
           "name": "ControlSession.close",
-          "line": 231,
+          "line": 276,
           "kind": "function",
           "parameters": [
             "self"
@@ -32302,6 +32341,481 @@
         }
       ],
       "summary": "Read-only seat input catalog with kernel/udev change FDs; no input reads, grants or device configuration."
+    },
+    {
+      "path": "agent/src/omni/adapters/platform/linux_wayland_peer.py",
+      "module": "v2-adapters",
+      "python_module": "omni.adapters.platform.linux_wayland_peer",
+      "lines": 119,
+      "imports": [
+        "omni.adapters.platform.linux_bus",
+        "omni.adapters.platform.linux_fds",
+        "omni.adapters.platform.linux_session"
+      ],
+      "symbols": [
+        {
+          "name": "PeerOps",
+          "line": 17,
+          "kind": "class"
+        },
+        {
+          "name": "PeerOps.process",
+          "line": 20,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "pid",
+            "executable"
+          ],
+          "annotations": {
+            "pid": "int",
+            "executable": "bool"
+          }
+        },
+        {
+          "name": "PeerOps.connect",
+          "line": 21,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "endpoint"
+          ],
+          "annotations": {
+            "endpoint": "Endpoint"
+          }
+        },
+        {
+          "name": "PeerOps.peer",
+          "line": 22,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "endpoint",
+            "connection",
+            "expected",
+            "inode"
+          ],
+          "annotations": {
+            "endpoint": "Endpoint",
+            "connection": "socket.socket",
+            "expected": "Process",
+            "inode": "tuple[int, int] | None"
+          }
+        },
+        {
+          "name": "eis_peer",
+          "line": 27,
+          "kind": "function",
+          "parameters": [
+            "descriptor",
+            "ops"
+          ],
+          "annotations": {
+            "descriptor": "OwnedFd",
+            "ops": "PeerOps"
+          }
+        },
+        {
+          "name": "WaylandPeer",
+          "line": 40,
+          "kind": "class"
+        },
+        {
+          "name": "WaylandPeer.__init__",
+          "line": 41,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "inspector",
+            "source",
+            "name",
+            "ops",
+            "read_peer"
+          ],
+          "annotations": {
+            "inspector": "SessionInspector",
+            "source": "OwnedFd",
+            "name": "str",
+            "ops": "PeerOps | None",
+            "read_peer": "Callable[[OwnedFd, PeerOps], Process]"
+          }
+        },
+        {
+          "name": "WaylandPeer.open",
+          "line": 61,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "WaylandPeer.check",
+          "line": 96,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "WaylandPeer.close",
+          "line": 111,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        }
+      ],
+      "summary": "Bind a canonical Wayland socket to the actual granted EI peer; no environment discovery, authority or protocol requests."
+    },
+    {
+      "path": "agent/src/omni/adapters/platform/linux_wayland_windows.py",
+      "module": "v2-adapters",
+      "python_module": "omni.adapters.platform.linux_wayland_windows",
+      "lines": 346,
+      "imports": [
+        "omni.adapters.platform.linux_bus",
+        "omni.adapters.platform.linux_fds",
+        "omni.adapters.platform.linux_session",
+        "omni.adapters.platform.linux_wayland_peer",
+        "omni.adapters.platform.linux_wayland_wire",
+        "omni.domain.contracts"
+      ],
+      "symbols": [
+        {
+          "name": "WaylandWindow",
+          "line": 22,
+          "kind": "class"
+        },
+        {
+          "name": "_Window",
+          "line": 33,
+          "kind": "class"
+        },
+        {
+          "name": "_Window.snapshot",
+          "line": 44,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "WaylandWindows",
+          "line": 50,
+          "kind": "class"
+        },
+        {
+          "name": "WaylandWindows.__init__",
+          "line": 51,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "inspector",
+            "descriptor",
+            "name",
+            "guard",
+            "peer_factory",
+            "wire_factory"
+          ],
+          "annotations": {
+            "inspector": "SessionInspector",
+            "descriptor": "OwnedFd",
+            "name": "str",
+            "guard": "Callable[[], Awaitable[None]]",
+            "peer_factory": "Callable[[SessionInspector, OwnedFd, str], WaylandPeer]",
+            "wire_factory": "Callable[[socket.socket, Callable[[], None]], WaylandWire]"
+          }
+        },
+        {
+          "name": "WaylandWindows._valid",
+          "line": 78,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "WaylandWindows._sync",
+          "line": 82,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "WaylandWindows._event",
+          "line": 95,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "identity",
+            "opcode",
+            "payload"
+          ],
+          "annotations": {
+            "identity": "int",
+            "opcode": "int",
+            "payload": "bytes"
+          }
+        },
+        {
+          "name": "WaylandWindows._output",
+          "line": 185,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "identity",
+            "opcode",
+            "payload"
+          ],
+          "annotations": {
+            "identity": "int",
+            "opcode": "int",
+            "payload": "bytes"
+          }
+        },
+        {
+          "name": "WaylandWindows._snapshot",
+          "line": 213,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "WaylandWindows._prepare",
+          "line": 236,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "WaylandWindows._observe",
+          "line": 277,
+          "kind": "function",
+          "parameters": [
+            "task"
+          ],
+          "annotations": {
+            "task": "asyncio.Task[None]"
+          }
+        },
+        {
+          "name": "WaylandWindows.prepare",
+          "line": 281,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "WaylandWindows.windows_view",
+          "line": 289,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "WaylandWindows._check",
+          "line": 295,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "WaylandWindows.check",
+          "line": 306,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "WaylandWindows.select",
+          "line": 315,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "identity"
+          ],
+          "annotations": {
+            "identity": "int"
+          }
+        },
+        {
+          "name": "WaylandWindows.close",
+          "line": 336,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        }
+      ],
+      "summary": "Read-only wlroots toplevel generations on the granted EI compositor; no app PID inference, focus acquisition or input authority."
+    },
+    {
+      "path": "agent/src/omni/adapters/platform/linux_wayland_wire.py",
+      "module": "v2-adapters",
+      "python_module": "omni.adapters.platform.linux_wayland_wire",
+      "lines": 131,
+      "imports": [
+        "omni.adapters.platform.linux_bus",
+        "omni.adapters.platform.linux_fds"
+      ],
+      "symbols": [
+        {
+          "name": "word",
+          "line": 19,
+          "kind": "function",
+          "parameters": [
+            "value"
+          ],
+          "annotations": {
+            "value": "int"
+          }
+        },
+        {
+          "name": "string",
+          "line": 23,
+          "kind": "function",
+          "parameters": [
+            "value"
+          ],
+          "annotations": {
+            "value": "str"
+          }
+        },
+        {
+          "name": "read_string",
+          "line": 28,
+          "kind": "function",
+          "parameters": [
+            "data",
+            "offset",
+            "maximum"
+          ],
+          "annotations": {
+            "data": "bytes",
+            "offset": "int",
+            "maximum": "int"
+          }
+        },
+        {
+          "name": "WaylandWire",
+          "line": 45,
+          "kind": "class"
+        },
+        {
+          "name": "WaylandWire.__init__",
+          "line": 46,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "connection",
+            "check"
+          ],
+          "annotations": {
+            "connection": "socket.socket",
+            "check": "Callable[[], None]"
+          }
+        },
+        {
+          "name": "WaylandWire.allocate",
+          "line": 54,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "WaylandWire.wait",
+          "line": 60,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "write"
+          ],
+          "annotations": {
+            "write": "bool"
+          }
+        },
+        {
+          "name": "WaylandWire.wait.wake",
+          "line": 65,
+          "kind": "function",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "WaylandWire.send",
+          "line": 81,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "identity",
+            "opcode",
+            "payload"
+          ],
+          "annotations": {
+            "identity": "int",
+            "opcode": "int",
+            "payload": "bytes"
+          }
+        },
+        {
+          "name": "WaylandWire.read",
+          "line": 98,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "size"
+          ],
+          "annotations": {
+            "size": "int"
+          }
+        },
+        {
+          "name": "WaylandWire.message",
+          "line": 114,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "WaylandWire.display",
+          "line": 124,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "opcode",
+            "payload"
+          ],
+          "annotations": {
+            "opcode": "int",
+            "payload": "bytes"
+          }
+        }
+      ],
+      "summary": "Bounded read-only Wayland display/registry/output transport; no surfaces, grabs, pixel capture or input commands."
     },
     {
       "path": "agent/src/omni/adapters/platform/linux_window_binding.py",
