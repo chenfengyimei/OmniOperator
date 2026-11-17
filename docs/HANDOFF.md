@@ -2,6 +2,8 @@
 
 > 当前开发分支为 `v2`，跟踪 `origin/v2`。默认正式入口仍为V1。
 
+> Windows启动接续（2026-11-17）：源码`b0902fbc`加入start-v2.ps1及serve/omni-web-v2的--open-browser。前台服务器继续由调用者拥有；浏览器探测只接受本进程创建身份、私有readiness.key和本boot HMAC就绪证明，关闭时排空探测线程。只打开回环无令牌URL，不读取V1配对文件或owner.token；可禁用自动打开。22新增回归及调用方114 passed in 45.39s，目标2文件strict零错误/警告，PowerShell语法通过；真实回环HTTP/独立SQLite验证启动证明、401、现有本机令牌引导与授权API、完整关闭，浏览器打开为注入验证、未声称真实GUI验收。新模块纳入strict范围333，整范围复验留最终收尾。未跑全量，安装/更新/恢复/门禁及默认入口切换仍待，默认V1。接续[Windows候选任务](tasks/v2-windows-candidate.json)，见[启动证据](evidence/v2-windows-workbench.json)。
+
 > Windows首发收尾（2026-11-17）：已按所有者选择冻结为Windows开发及离线候选，开发冻结后统一全量，通过后再切换默认V2；显式V1回退保留，真实账号/设备/桌面与72小时另作正式发布门槛。源码`150d8d77`增加omni-v2/omni-web-v2和omni-v1/omni-web-v1元数据；V2 Web与serve共用参数和实际执行路径，旧main()调用保持。16新增回归及调用方92 passed in 52.90s，CLI目标1文件strict零错误/警告。已验证独立实例、旧数据拒绝、无V1引导及远程绑定限制；安装后命令和Windows启动/安装/恢复/门禁仍待后续验证。未跑全量、默认仍V1，整个V2未完成。接续[Windows候选任务](tasks/v2-windows-candidate.json)，证据见[入口专项](evidence/v2-windows-entrypoints.json)。
 
 > 扩展市场限额专项（2026-11-16）：源码`b3686303`：本地插件市场最多保留64个目录项，第65项422拒绝，原生迭代器关闭；清单声明超64KiB不读正文，实际最多65537字节并复核身份/大小/修改时间，变动/硬链接/坏清单跳过。23新增回归，干净旧提交18失败5兼容通过；155 passed in 99.53s (0:01:39)（市场限额/包/扩展应用HTTP/合同/仓储/宿主/生命周期/架构），目标1文件strict零错误/警告。范围内原排序与32候选保持，取消等待后仍排空线程；HTTP/SQLite旧200现422/no-store，原安装保持且后续合法扫描成功，不导入插件。共享读取器默认1MiB与捕获/快照/授权行为保持。按所有者要求未跑全量，上一4800通过仅代表`42a4b8b2`、不覆盖本批；真实市场/第三方插件/平台和进程峰值未验，历史观察开放。V2未整体验收、默认V1。见[扩展市场限额证据](evidence/v2-extension-market-bounds.json)。

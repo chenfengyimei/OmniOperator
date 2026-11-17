@@ -1,0 +1,88 @@
+{
+ "source_files": {
+  "agent/src/omni/composition/cli.py": "013e4a5c86baa3b330288596871042a0cf57e58fa9c1024dca8583f7e4d57bae",
+  "agent/pyproject.toml": "09efe69efce5f184af918ef61893820ac1f27feb4c0c7dba4d72919208bcc9c4",
+  "agent/tests/test_v2_entrypoints.py": "303e3264985cc517788465653e1cd992be7dabd919202af7b7d64145a0e338b1",
+  "docs/tasks/v2-windows-candidate.json": "5428395153bcc4fffe890dcfe2eb9f38f02bf93db33720dac0e1386e6878d8fe",
+  "agent/src/omni/adapters/platform/workbench.py": "df9d61045573b1433bf010c984773c7050ce665f5d679c8855e51eb13b364835",
+  "agent/tests/test_v2_workbench.py": "f94012c4cf02476e1113a2e8139764bd8756f7fe27ef9b9a1f98e62fda4c8ea8",
+  "scripts/start-v2.ps1": "884bd5e2bc7e03d6b3dc791664eba90aeed3376aea30cd74b2c846051f9c8646",
+  "pyrightconfig.strict.json": "0c8c96e43b4ee025441b21a5d362b6a44dd67311cee7917c3b89afb31a214d8b",
+  "docs/TYPE_CHECKING.md": "6fce003851d503554b1d298e33325c9f6269d767c14bd0327a5069e8666bba49"
+ },
+ "gates": [
+  {
+   "command": [
+    "-m",
+    "ruff",
+    "check",
+    "agent/src/omni/composition/cli.py",
+    "agent/tests/test_v2_entrypoints.py",
+    "agent/src/omni/adapters/platform/workbench.py",
+    "agent/tests/test_v2_workbench.py"
+   ],
+   "returncode": 0,
+   "stdout": "All checks passed!\n",
+   "stderr": ""
+  },
+  {
+   "command": [
+    "-m",
+    "ruff",
+    "format",
+    "--check",
+    "agent/src/omni/composition/cli.py",
+    "agent/tests/test_v2_entrypoints.py",
+    "agent/src/omni/adapters/platform/workbench.py",
+    "agent/tests/test_v2_workbench.py"
+   ],
+   "returncode": 0,
+   "stdout": "4 files already formatted\n",
+   "stderr": ""
+  },
+  {
+   "command": [
+    "-m",
+    "pyright",
+    "--project",
+    "pyrightconfig.windows-workbench.json",
+    "--outputjson"
+   ],
+   "returncode": 0,
+   "stdout": "{\n    \"version\": \"1.1.414\",\n    \"time\": \"1794874795802\",\n    \"generalDiagnostics\": [],\n    \"summary\": {\n        \"filesAnalyzed\": 2,\n        \"errorCount\": 0,\n        \"warningCount\": 0,\n        \"informationCount\": 0,\n        \"timeInSec\": 1.03\n    }\n}\n\n",
+   "stderr": ""
+  }
+ ],
+ "cases": 114,
+ "failures": 0,
+ "errors": 0,
+ "skipped": 0,
+ "returncode": 0,
+ "duration_s": 46.44,
+ "report": "temp\\build\\windows-v2-workbench.xml",
+ "report_sha256": "e7c21a73ac633dcd66c2d6af8ba5156e579c28ea28c22cf03eccf42d7fa81cf1",
+ "log": "temp\\build\\windows-v2-workbench.log",
+ "log_sha256": "cc9b5b8ffbe51872f8a8880129c8839f3d92a540187b20837d12a70cb7f403e8",
+ "full_suite": false,
+ "source_head": "b0902fbce369b82f71c388b2718ef9fb3340a0a7",
+ "whole_v2_complete": false,
+ "windows_offline_complete": false,
+ "default_entrypoint": "v1",
+ "candidate_gate_pending": true,
+ "packaged_alias_execution_pending": true,
+ "new_cases": 22,
+ "strict_files": 2,
+ "configured_strict_scope": 333,
+ "whole_strict_scope_run_pending": true,
+ "powershell_syntax": {
+  "returncode": 0,
+  "stderr": "",
+  "source_sha256": "884bd5e2bc7e03d6b3dc791664eba90aeed3376aea30cd74b2c846051f9c8646"
+ },
+ "actual_loopback": {
+  "real_server_boot_proof_and_local_owner_authentication": true,
+  "isolated_sqlite_home": true,
+  "browser_open_injected": true,
+  "actual_gui_not_claimed": true
+ }
+}

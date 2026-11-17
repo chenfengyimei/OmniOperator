@@ -24,8 +24,10 @@
     {
       "id": "W2",
       "title": "Windows 启动器：V2 实例、身份、健康与所有者认证",
-      "status": "pending",
-      "evidence": []
+      "status": "implemented_scoped_passed",
+      "evidence": [
+        "docs/evidence/v2-windows-workbench.json"
+      ]
     },
     {
       "id": "W3",
