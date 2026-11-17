@@ -201,3 +201,15 @@ class PointerTarget:
         except BaseException:
             self._invalidated, self._ready = True, False
             raise
+
+    async def read_current(self) -> PointerPoint:
+        """Leaf comparison for WindowFocus's bracketed read-only aggregate; no input permission."""
+        if not self._ready or self._invalidated or self._snapshot is None:
+            raise failure("desktop_input_unverified")
+        try:
+            if await self._read() != self._snapshot:
+                raise failure("desktop_target_changed")
+            return self._snapshot.point
+        except BaseException:
+            self._invalidated, self._ready = True, False
+            raise

@@ -236,3 +236,15 @@ class PointerConfiguration:
         except BaseException:
             self._valid = False
             raise
+
+    async def read_current(self) -> PointerState:
+        """Leaf comparison inside a complete point/source/map/XKB bracket; no permission is produced."""
+        if not self._valid or self._state is None:
+            raise failure("desktop_input_unverified")
+        try:
+            if await self._read() != self._state:
+                raise failure("desktop_user_intervened")
+            return self._state
+        except BaseException:
+            self._valid = False
+            raise

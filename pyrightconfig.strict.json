@@ -164,6 +164,8 @@
     "agent/src/omni/adapters/platform/linux_pipewire.py",
     "agent/src/omni/adapters/platform/linux_pointer_actions.py",
     "agent/src/omni/adapters/platform/linux_pointer_config.py",
+    "agent/src/omni/adapters/platform/linux_pointer_layout.py",
+    "agent/src/omni/adapters/platform/linux_pointer_motion.py",
     "agent/src/omni/adapters/platform/linux_pointer_target.py",
     "agent/src/omni/adapters/platform/linux_portal.py",
     "agent/src/omni/adapters/platform/linux_remote_desktop.py",

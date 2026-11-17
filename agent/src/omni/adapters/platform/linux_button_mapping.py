@@ -207,3 +207,15 @@ class ButtonMapping:
         except BaseException:
             self._valid = False
             raise
+
+    async def read_current(self) -> ButtonPlan:
+        """Leaf comparison within WindowFocus's complete bracket; never a dispatch permit."""
+        if not self._valid or self._snapshot is None:
+            raise failure("desktop_input_unverified")
+        try:
+            if await self._read() != self._snapshot:
+                raise failure("desktop_user_intervened")
+            return self._snapshot[0]
+        except BaseException:
+            self._valid = False
+            raise

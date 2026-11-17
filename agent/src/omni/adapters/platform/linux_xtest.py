@@ -116,3 +116,15 @@ class XTestSources:
         except BaseException:
             self._valid = False
             raise
+
+    async def read_current(self) -> Sources:
+        """Leaf comparison for a caller holding the complete native read-only guard."""
+        if not self._valid or self._sources is None:
+            raise failure("desktop_input_unverified")
+        try:
+            if await self._read() != self._sources:
+                raise failure("desktop_user_intervened")
+            return self._sources
+        except BaseException:
+            self._valid = False
+            raise

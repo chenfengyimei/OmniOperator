@@ -126,3 +126,15 @@ class PointerActions:
         except BaseException:
             self._valid = False
             raise
+
+    async def read_current(self) -> ButtonPlan:
+        """Leaf comparison under the complete native point/source/map guard; no dispatch."""
+        if not self._valid or self._snapshot is None or self._plan is None:
+            raise failure("desktop_input_unverified")
+        try:
+            if await self._read() != self._snapshot:
+                raise failure("desktop_user_intervened")
+            return self._plan
+        except BaseException:
+            self._valid = False
+            raise

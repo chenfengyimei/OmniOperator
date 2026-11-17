@@ -188,6 +188,7 @@ class InputWire(Wire):
         self.opcode: int | None = None
         self.xkb_event: int | None = None
         self.xkb_pointer_devices: frozenset[int] = frozenset()
+        self.randr_event: int | None = None
         self.changed = False
         self.focus: int | None = None
         self.structures: set[int] = set()
@@ -231,6 +232,8 @@ class InputWire(Wire):
                     raise failure("desktop_input_unverified")
             elif header[1] not in {0, 1, 2, 3, 5, 6, 7}:
                 raise failure("desktop_input_unverified")
+        elif self.randr_event is not None and header[0] in {self.randr_event, self.randr_event + 1}:
+            pass  # Every selected RandR notification invalidates the whole native proof.
         elif self.button_mapping_event is not None and header[0] == self.button_mapping_event:
             if header[1] not in self.button_mapping_devices or header[4] not in {0, 1, 2}:
                 raise failure("desktop_input_unverified")

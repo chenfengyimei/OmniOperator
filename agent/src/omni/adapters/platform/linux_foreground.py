@@ -12,6 +12,8 @@ from .linux_keyboard import KeyboardMapping
 from .linux_keystroke import KeyPacket
 from .linux_pointer_actions import PointerActions
 from .linux_pointer_config import PointerConfiguration, PointerState
+from .linux_pointer_layout import PointerMotion
+from .linux_pointer_motion import MotionPlan
 from .linux_pointer_target import PointerPoint, PointerTarget
 from .linux_window_leases import WindowLeases
 from .linux_x11 import X11Desktop
@@ -41,6 +43,7 @@ class WindowFocus:
         self._buttons: ButtonMapping | None = None
         self._pointer_actions: PointerActions | None = None
         self._pointer_configuration: PointerConfiguration | None = None
+        self._motion: PointerMotion | None = None
 
     def _same_server(self) -> None:
         desktop = self.leases.desktop
@@ -258,10 +261,26 @@ class WindowFocus:
             raise
 
     async def verify_pointer_configuration(self) -> PointerState:
-        if self._pointer_configuration is None:
+        if (
+            self._pointer_configuration is None
+            or self._pointer is None
+            or self._sources is None
+            or self._buttons is None
+            or self._pointer_actions is None
+        ):
             raise failure("desktop_input_unverified")
         try:
-            return await self._pointer_configuration.verify()
+            # One outer native guard brackets every real leaf read, rather
+            # than recursively re-querying the same ancestors at each level.
+            # No result leaves this aggregate before the final guard succeeds.
+            await self.check()
+            await self._pointer.read_current()
+            await self._sources.read_current()
+            await self._buttons.read_current()
+            await self._pointer_actions.read_current()
+            state = await self._pointer_configuration.read_current()
+            await self.check()
+            return state
         except BaseException:
             self._ready = False
             raise
@@ -274,6 +293,26 @@ class WindowFocus:
             sources = await self._sources.verify()
             await self.check()
             return sources
+        except BaseException:
+            self._ready = False
+            raise
+
+    async def prepare_motion(self) -> MotionPlan:
+        """Plan on the proven RandR/configuration/point chain; no input is sent or permitted."""
+        if self._motion is not None:
+            raise failure("desktop_input_unverified")
+        self._motion = PointerMotion(self)
+        try:
+            return await self._motion.prepare()
+        except BaseException:
+            self._ready = False
+            raise
+
+    async def verify_motion(self) -> MotionPlan:
+        if self._motion is None:
+            raise failure("desktop_input_unverified")
+        try:
+            return await self._motion.verify()
         except BaseException:
             self._ready = False
             raise

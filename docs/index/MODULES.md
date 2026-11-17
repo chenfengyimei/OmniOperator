@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`52aa0dd5181a9c3d8498e4b2b6a1e907481a5634665fb1f1b9c64e3b7285dafc`。包含 65 个职责模块、769 个源码/界面文件。
+源码指纹：`1272fe80ac96d07a2dc53e75444d2735a983c6a634c1da9952067aa2c9b43898`。包含 65 个职责模块、771 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -292,19 +292,21 @@
 | [agent/src/omni/adapters/platform/exchange_files.py](../../agent/src/omni/adapters/platform/exchange_files.py) | 278 | Private bounded exchange witnesses and maintenance reservations; no database, native calls or rollback. |
 | [agent/src/omni/adapters/platform/linux_atspi.py](../../agent/src/omni/adapters/platform/linux_atspi.py) | 366 | Read-only AT-SPI windows in a proven logind session. No X11/Portal capture or input fallback. |
 | [agent/src/omni/adapters/platform/linux_bus.py](../../agent/src/omni/adapters/platform/linux_bus.py) | 436 | Verified local D-Bus transport for desktop helpers; no environment-selected or network buses. |
-| [agent/src/omni/adapters/platform/linux_button_mapping.py](../../agent/src/omni/adapters/platform/linux_button_mapping.py) | 209 | Read primary-button composition on a proven Xorg point/source pair; never changes maps, moves, clicks or grants dispatch. |
+| [agent/src/omni/adapters/platform/linux_button_mapping.py](../../agent/src/omni/adapters/platform/linux_button_mapping.py) | 221 | Read primary-button composition on a proven Xorg point/source pair; never changes maps, moves, clicks or grants dispatch. |
 | [agent/src/omni/adapters/platform/linux_fds.py](../../agent/src/omni/adapters/platform/linux_fds.py) | 95 | Owned received descriptors and bounded SCM_RIGHTS; no bus or desktop policy. |
-| [agent/src/omni/adapters/platform/linux_foreground.py](../../agent/src/omni/adapters/platform/linux_foreground.py) | 295 | Read-only X11 focus ancestry proof for future explicit foreground delivery; never maps AT-SPI nodes or sends input. |
-| [agent/src/omni/adapters/platform/linux_input.py](../../agent/src/omni/adapters/platform/linux_input.py) | 383 | Verified Xorg input-change guard for addressed semantic actions; never grabs, synthesizes or stores input content. |
+| [agent/src/omni/adapters/platform/linux_foreground.py](../../agent/src/omni/adapters/platform/linux_foreground.py) | 334 | Read-only X11 focus ancestry proof for future explicit foreground delivery; never maps AT-SPI nodes or sends input. |
+| [agent/src/omni/adapters/platform/linux_input.py](../../agent/src/omni/adapters/platform/linux_input.py) | 386 | Verified Xorg input-change guard for addressed semantic actions; never grabs, synthesizes or stores input content. |
 | [agent/src/omni/adapters/platform/linux_key_action.py](../../agent/src/omni/adapters/platform/linux_key_action.py) | 147 | One approved native key pair for an explicitly bound focused semantic node; no focus acquisition or replay. |
 | [agent/src/omni/adapters/platform/linux_key_switch.py](../../agent/src/omni/adapters/platform/linux_key_switch.py) | 125 | Prove the single Xorg keyboard slave switch surrounding an owned key pair; no input or configuration writes. |
 | [agent/src/omni/adapters/platform/linux_keyboard.py](../../agent/src/omni/adapters/platform/linux_keyboard.py) | 165 | Bounded read-only core keymap preflight on an existing focus proof; never translates Unicode, changes layouts or sends input. |
 | [agent/src/omni/adapters/platform/linux_keystroke.py](../../agent/src/omni/adapters/platform/linux_keystroke.py) | 144 | Single paired XTEST wire delivery and retained release; business target/permit integration remains external. |
 | [agent/src/omni/adapters/platform/linux_lease_client.py](../../agent/src/omni/adapters/platform/linux_lease_client.py) | 335 | Owned persistent X11 guardian transport; no native APIs, target rebinding from verify, unbounded queues or input. |
 | [agent/src/omni/adapters/platform/linux_pipewire.py](../../agent/src/omni/adapters/platform/linux_pipewire.py) | 256 | One serial-targeted GStreamer PipeWire frame inside an owned helper, never the default remote or display. |
-| [agent/src/omni/adapters/platform/linux_pointer_actions.py](../../agent/src/omni/adapters/platform/linux_pointer_actions.py) | 128 | Read XKB pointer actions and released keyboard state on a mapped native point; never moves, clicks or grants input. |
-| [agent/src/omni/adapters/platform/linux_pointer_config.py](../../agent/src/omni/adapters/platform/linux_pointer_config.py) | 238 | Read canonical pointer axes, feedback and transforms on an existing XKB/point proof; no device writes or mouse dispatch. |
-| [agent/src/omni/adapters/platform/linux_pointer_target.py](../../agent/src/omni/adapters/platform/linux_pointer_target.py) | 203 | Read a bounded Xorg hit path for one physical window point; no pointer motion, button input or AT-SPI coordinate inference. |
+| [agent/src/omni/adapters/platform/linux_pointer_actions.py](../../agent/src/omni/adapters/platform/linux_pointer_actions.py) | 140 | Read XKB pointer actions and released keyboard state on a mapped native point; never moves, clicks or grants input. |
+| [agent/src/omni/adapters/platform/linux_pointer_config.py](../../agent/src/omni/adapters/platform/linux_pointer_config.py) | 250 | Read canonical pointer axes, feedback and transforms on an existing XKB/point proof; no device writes or mouse dispatch. |
+| [agent/src/omni/adapters/platform/linux_pointer_layout.py](../../agent/src/omni/adapters/platform/linux_pointer_layout.py) | 224 | Bind a planned pointer move to live single-root RandR resources and active scanouts; no input or layout mutation. |
+| [agent/src/omni/adapters/platform/linux_pointer_motion.py](../../agent/src/omni/adapters/platform/linux_pointer_motion.py) | 229 | Plan signed core XTEST coordinates and raw valuators from proven native geometry/configuration; never sends input. |
+| [agent/src/omni/adapters/platform/linux_pointer_target.py](../../agent/src/omni/adapters/platform/linux_pointer_target.py) | 215 | Read a bounded Xorg hit path for one physical window point; no pointer motion, button input or AT-SPI coordinate inference. |
 | [agent/src/omni/adapters/platform/linux_portal.py](../../agent/src/omni/adapters/platform/linux_portal.py) | 220 | Explicit ephemeral window selection on a pinned Wayland portal; never opens PipeWire FDs or dispatches input. |
 | [agent/src/omni/adapters/platform/linux_remote_desktop.py](../../agent/src/omni/adapters/platform/linux_remote_desktop.py) | 148 | Separately selected ephemeral Wayland device permission; no ScreenCast reuse, EIS, clipboard, restore token or input dispatch. |
 | [agent/src/omni/adapters/platform/linux_semantic.py](../../agent/src/omni/adapters/platform/linux_semantic.py) | 288 | Addressed AT-SPI semantic proof and single mutation; no global input, focus acquisition or retry. |
@@ -315,11 +317,11 @@
 | [agent/src/omni/adapters/platform/linux_window_leases.py](../../agent/src/omni/adapters/platform/linux_window_leases.py) | 137 | Continuous X11 window generations on one proven connection; no input, AT-SPI mapping or database access. |
 | [agent/src/omni/adapters/platform/linux_x11.py](../../agent/src/omni/adapters/platform/linux_x11.py) | 248 | XRes-bound local X11 targets and existing Composite pixmaps; never captures the root or sends input. |
 | [agent/src/omni/adapters/platform/linux_x11_socket.py](../../agent/src/omni/adapters/platform/linux_x11_socket.py) | 219 | Canonical local X11 sockets and private Xauthority; verify peers before sending credentials. |
-| [agent/src/omni/adapters/platform/linux_x11_wire.py](../../agent/src/omni/adapters/platform/linux_x11_wire.py) | 250 | Small bounded X11 read protocol on an already verified socket; no discovery, input or reconnect. |
+| [agent/src/omni/adapters/platform/linux_x11_wire.py](../../agent/src/omni/adapters/platform/linux_x11_wire.py) | 253 | Small bounded X11 read protocol on an already verified socket; no discovery, input or reconnect. |
 | [agent/src/omni/adapters/platform/linux_xkb.py](../../agent/src/omni/adapters/platform/linux_xkb.py) | 263 | Read-only XKB server state/actions on the existing input connection; no layout mutation, device acquisition or event dispatch. |
 | [agent/src/omni/adapters/platform/linux_xkb_copy.py](../../agent/src/omni/adapters/platform/linux_xkb_copy.py) | 176 | Canonical bounded identities for XKB copied compatibility, names, indicator maps and current geometry; no writes. |
 | [agent/src/omni/adapters/platform/linux_xkb_map.py](../../agent/src/omni/adapters/platform/linux_xkb_map.py) | 107 | Bounded canonical identity of a full native XKB map; no key translation, mutation or input dispatch. |
-| [agent/src/omni/adapters/platform/linux_xtest.py](../../agent/src/omni/adapters/platform/linux_xtest.py) | 118 | Read-only Xorg XTEST device identity proof; no input dispatch or own-event exemption. |
+| [agent/src/omni/adapters/platform/linux_xtest.py](../../agent/src/omni/adapters/platform/linux_xtest.py) | 130 | Read-only Xorg XTEST device identity proof; no input dispatch or own-event exemption. |
 | [agent/src/omni/adapters/platform/macos_helper.py](../../agent/src/omni/adapters/platform/macos_helper.py) | 114 | Resolve the fixed, owner-installed Swift bundle; never build, install or request TCC permissions. |
 | [agent/src/omni/adapters/platform/macos_service.py](../../agent/src/omni/adapters/platform/macos_service.py) | 109 | Inspect loaded launchd descriptions via the fixed Swift helper; never parses launchctl print as authority. |
 | [agent/src/omni/adapters/platform/macos_service_state.py](../../agent/src/omni/adapters/platform/macos_service_state.py) | 101 | Pure bounded launchd definition and override comparison shared by owner and administrator ports. |

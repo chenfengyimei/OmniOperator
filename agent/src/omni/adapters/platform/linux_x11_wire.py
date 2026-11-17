@@ -42,6 +42,7 @@ class Setup:
     visuals: dict[int, tuple[int, int, int, int, int]]
     minimum_keycode: int
     maximum_keycode: int
+    screens: int
 
 
 def setup_reply(data: bytes, screen: int) -> Setup:
@@ -85,7 +86,9 @@ def setup_reply(data: bytes, screen: int) -> Setup:
             selected_root, selected_visuals = root, visuals
     if position != len(data) or not selected_root:
         raise failure("desktop_x11_protocol_invalid")
-    return Setup(release, base, mask, selected_root, order, pixels, selected_visuals, minimum_keycode, maximum_keycode)
+    return Setup(
+        release, base, mask, selected_root, order, pixels, selected_visuals, minimum_keycode, maximum_keycode, screens
+    )
 
 
 class Wire:

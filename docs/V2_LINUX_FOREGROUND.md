@@ -66,6 +66,22 @@ XI1 GetFeedbackControl最多读取8个明确的PtrFeedback，要求独立ID、�
 
 Xorg的XTEST绝对移动使用桌面坐标，但仍经过轴范围缩放、变换和裁剪。当前配置读取为随后坐标换算、预期slave切换与RawMotion值核对提供真实输入；尚未计算派发坐标、执行移动/按下/抬起或证明抓取路由、AT-SPI控件物理点及应用结果。业务`click`继续关闭，整个V2仍在开发。协议依据：[XTEST实现](https://github.com/XQuartz/xorg-server/blob/master/Xext/xtest.c)、[坐标缩放与变换](https://github.com/XQuartz/xorg-server/blob/master/dix/getevents.c)、[XI2真实轴回复](https://github.com/XQuartz/xorg-server/blob/master/Xi/xiquerydevice.c)、[反馈回复](https://github.com/XQuartz/xorg-server/blob/master/Xi/getfctl.c)与[XCB XI结构](https://xcb.freedesktop.org/manual/xinput_8h_source.html)。
 
+## 原生布局与鼠标移动坐标计划
+
+`WindowFocus.prepare_motion/verify_motion`在已有原生点与完整指针配置上准备只读`MotionPlan`。实际X11 setup现在保留根屏幕数；当前移动计划要求一个真实可核验的root，以及该root上可用的RandR 1.3以上资源。不是只凭根窗口大小或广告root数推断桌面：旧Xinerama可能隐藏多个实际屏幕，Xorg的xf86 RandR初始化明确不为这种布局建立原生资源。普通RandR多输出仍可使用，同一root上多个活动CRTC的回归已覆盖；旧Xinerama与多root输入布局继续开发，不影响原有窗口读取。
+
+准备读取当前根几何、GetScreenResourcesCurrent和每个实际CRTC。资源/模式/名称及ID集合均有界、长度精确且无重复，CRTC回复必须成功，模式/输出关系和旋转明确；目标物理点须由活动扫描输出覆盖，不能落在输出间隙。模式、时间、名称及完整CRTC有效字段进入布局身份，回复序号与填充排除。先绑定RandR事件族再选择根窗口通知；所有通知均使旧计划失效，没有初始通知或自身输入豁免。准备双读、使用前重读夹在完整配置/点守卫中，失败或取消锁存。
+
+坐标计算使用实际source轴上下限与完整FLOAT变换。精确有理矩阵提供逆投影及整数像素约束，再按Xorg原生双精度顺序模拟桌面→设备范围、归一化变换、裁剪及设备→桌面；FP32.32预计值按向下取整编码。候选必须是两个有符号16位整数，预测截断后的根像素必须仍为原点；包括负请求、旋转、镜像、非单位/投影矩阵以及有界/无界轴，不将raw和processed误作同一数值。
+
+先查逆投影中心附近候选，再按整数不等式逐行搜索至多两个65536行域，避免二维穷举或无限浮点试探。中心附近舍入找不到时仍搜索边界候选；不可达整数网格、溢出、奇异/零归一化、X/Y滚动混入或无法预测的值拒绝，不把相邻像素当作成功。实际输入包、来源切换及RawMotion匹配尚未接入，预计值不等于观察到原生事件，也不授予派发许可。
+
+为后续移动与成对点击保留连接额度，完整配置使用前复核现一次执行原窗口/焦点/释放守卫，再分别实际重读物理点、XTEST来源、两级按钮表、XKB动作/状态和完整配置，最后再次执行原守卫。各读取仍比较自己的旧快照，任何失败或取消使旧证明失效；没有缓存跳过叶读取、清空变化标志、扩大连接额度或减少原生通知。结果只在末次守卫通过后返回；完整夹具的单次复核不超过256请求，三次移动计划重验仍在原8192请求寿命内。
+
+本批40项新回归与500项直接X11/输入/窗口/配置/XKB/成对按键/文本/语义及架构/类型调用方，共540不同专项通过（9.42秒+106.47秒）；10修改运行文件strict零错误/警告，365仅登记，未整范围/全量。首轮测试参数名与pytest保留名冲突、其后排版导致冻结哈希拦截，旧源码/清单/原报告均留档修正；运行实现一致，未放宽校验或断言。默认离线闸门保留，没有真实Linux、鼠标或全量结论。见[本批证据](evidence/v2-linux-pointer-motion.json)。
+
+协议依据：[XTEST绝对请求](https://www.x.org/archive/X11R7.5/doc/Xext/xtest.pdf)、[Xorg坐标缩放与raw生成](https://github.com/XQuartz/xorg-server/blob/master/dix/getevents.c)、[原生屏幕原点归一化](https://github.com/XQuartz/xorg-server/blob/master/hw/xfree86/common/xf86Cursor.c)、[旧Xinerama与xf86 RandR资源边界](https://github.com/XQuartz/xorg-server/blob/master/hw/xfree86/modes/xf86RandR12.c)和[XCB RandR结构](https://xcb.freedesktop.org/manual/randr_8h_source.html)。业务`click`仍未开放；继续来源复制、逐事件归属/释放、控件物理点绑定与逐次许可/应用后验，整个V2尚未完成。
+
 ## 已接通的受限文本追加
 
 `linux_text.py` 只向选定 AT-SPI 非密码可编辑对象执行一次 `EditableText.InsertText`。观察时须能完整读取最多 511 字符原文、核验 CaretOffset 位于末尾及 GetNSelections 为零；上下文进入原节点 actions 指纹，支持的节点才提供 `type_text`。不支持这些可选方法的提供者继续保留原语义动作。
