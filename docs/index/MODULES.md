@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`d3318adb2ba3c82b7aace1808e38a74ef8824660a89d8062ab669d15e7af35de`。包含 65 个职责模块、792 个源码/界面文件。
+源码指纹：`a624ef8562fabf767e18542e1b644086d34b5af84382a2e206118f8d9aa91c2a`。包含 65 个职责模块、792 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -855,7 +855,7 @@
 | [web/ui/dialog.js](../../web/ui/dialog.js) | 65 | 原生源码、平台脚本或界面资源 |
 | [web/ui/embed-height.js](../../web/ui/embed-height.js) | 27 | 原生源码、平台脚本或界面资源 |
 | [web/ui/frame.css](../../web/ui/frame.css) | 956 | 原生源码、平台脚本或界面资源 |
-| [web/ui/icons.css](../../web/ui/icons.css) | 24 | 原生源码、平台脚本或界面资源 |
+| [web/ui/icons.css](../../web/ui/icons.css) | 33 | 原生源码、平台脚本或界面资源 |
 | [web/ui/markdown.js](../../web/ui/markdown.js) | 152 | 原生源码、平台脚本或界面资源 |
 | [web/ui/sections.js](../../web/ui/sections.js) | 144 | 原生源码、平台脚本或界面资源 |
 | [web/ui/shared.js](../../web/ui/shared.js) | 341 | 原生源码、平台脚本或界面资源 |

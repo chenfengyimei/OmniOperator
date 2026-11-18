@@ -1,7 +1,7 @@
 {
   "batch": "v2-ui-connection-stability-v128",
   "recorded_at": "2026-11-15",
-  "resource_version_final": "20261118v147",
+  "resource_version_final": "20261118v148",
   "v1_alignment": {
     "summary": "用户提供 V1 正式工作台截图后，直接精读 web/ui/workbench.css 的 V1 实现并逐项移植，使 V2 结构与 V1 一致（而非自创风格）。",
     "ported_from_v1": [
@@ -1193,5 +1193,12 @@
     "交付": "index.html 移除 header 内 brand-mark img，副标题「V2 开发工作台」改「开发工作台」；workbench.css 删除失效的 header>img 渐变底规则。",
     "验证": "守卫+导航35 passed、全站76/76（品牌断言改为左侧唯一图标+顶栏纯文字）、双主题截图确认。",
     "版本": "资源串整体 v146→v147。"
+  },
+  "icon_synth_guard_v148": {
+    "需求": "所有者截图指出设置中心按钮图标向右偏斜，要求修复。",
+    "取证": "计算样式全 normal/字体已加载/transform none；canvas 与 DOM 96px 字形轮廓斜率 0（字体本身端正）；按码点 U+E875 渲染同样端正。结论：字形无缺陷，倾斜来自浏览器对图标字体的合成假斜体/假粗体（图标字体仅 regular 字形，继承 italic/粗体时被合成拉歪，font-synthesis 默认允许）。",
+    "修复": "icons.css .material-icons 加 font-synthesis:none（含 weight/style 分项）+ font-stretch:100% + font-variant:normal + transform:none 护栏，任何继承环境下图标都以原始字形渲染。",
+    "验证": "抗斜体注入测试 PASS（祖先 italic+800 下图标斜率仍 0）、守卫33 passed、全站76/76、精修40/40。",
+    "版本": "资源串整体 v147→v148。"
   }
 }

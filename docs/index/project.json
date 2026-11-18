@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "d3318adb2ba3c82b7aace1808e38a74ef8824660a89d8062ab669d15e7af35de",
+  "source_sha256": "a624ef8562fabf767e18542e1b644086d34b5af84382a2e206118f8d9aa91c2a",
   "modules": [
     {
       "id": "v2-domain",
@@ -1097,7 +1097,7 @@
         "web/ui/tokens.css",
         "web/ui/workbench.css"
       ],
-      "lines": 12654,
+      "lines": 12663,
       "dependencies": []
     },
     {
@@ -105604,7 +105604,7 @@
       "path": "web/ui/icons.css",
       "module": "ui-shared",
       "python_module": null,
-      "lines": 24,
+      "lines": 33,
       "imports": [],
       "symbols": [],
       "kind": "asset",

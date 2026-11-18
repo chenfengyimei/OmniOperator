@@ -21,4 +21,13 @@
   -webkit-font-feature-settings: "liga";
   font-feature-settings: "liga";
   -webkit-font-smoothing: antialiased;
+  /* 图标字体只有 regular 字形：任何继承来的 italic/粗体都会被浏览器
+     合成假斜体/假粗体，把图标拉歪（所有者截图取证）。显式禁止合成，
+     并复位 stretch/variant，保证图标永远以原始字形渲染。 */
+  font-synthesis: none;
+  font-synthesis-weight: none;
+  font-synthesis-style: none;
+  font-stretch: 100%;
+  font-variant: normal;
+  transform: none;
 }
