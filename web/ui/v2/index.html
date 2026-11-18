@@ -8,11 +8,11 @@
     <link rel="stylesheet" href="/assets/ui/tokens.css?v=20261115u1" />
     <link rel="stylesheet" href="/assets/ui/base.css?v=20261103v7" />
     <link rel="stylesheet" href="/assets/ui/icons.css?v=20261115u1" />
-    <link rel="stylesheet" href="/assets/ui/v2/v1/components.css?v=20261118v143" />
-    <link rel="stylesheet" href="/assets/ui/v2/v1/frame.css?v=20261118v143" />
-    <link rel="stylesheet" href="/assets/ui/v2/v1/workbench.css?v=20261118v143" />
-    <link rel="stylesheet" href="/assets/ui/v2/workbench.css?v=20261118v143" />
-    <link rel="stylesheet" href="/assets/vendor/xterm.min.css?v=20261118v143" />
+    <link rel="stylesheet" href="/assets/ui/v2/v1/components.css?v=20261118v144" />
+    <link rel="stylesheet" href="/assets/ui/v2/v1/frame.css?v=20261118v144" />
+    <link rel="stylesheet" href="/assets/ui/v2/v1/workbench.css?v=20261118v144" />
+    <link rel="stylesheet" href="/assets/ui/v2/workbench.css?v=20261118v144" />
+    <link rel="stylesheet" href="/assets/vendor/xterm.min.css?v=20261118v144" />
   </head>
   <body class="chat-mode" data-ui-page="workbench-v2">
     <header class="app-header">
@@ -216,15 +216,17 @@
     </nav>
     <main>
       <aside class="workbench-side sessions-panel" id="sessions-panel">
-        <form id="connect" class="panel">
-          <label>所有者令牌<input id="token" type="password" autocomplete="off" /></label>
-          <button type="submit">连接实例</button>
-        </form>
-        <p id="connect-hint" class="connect-hint" role="status"></p>
-        <label class="agent-field">Agent 空间<select id="agents" aria-label="Agent 空间"></select></label>
-        <div class="panel-title">
-          <button id="new-agent" type="button">新建空间</button>
-          <button id="rename-agent" type="button">重命名空间</button>
+        <div class="panel instance-panel">
+          <form id="connect" class="panel">
+            <label>所有者令牌<input id="token" type="password" autocomplete="off" /></label>
+            <button type="submit">连接实例</button>
+          </form>
+          <p id="connect-hint" class="connect-hint" role="status"></p>
+          <label class="agent-field">Agent 空间<select id="agents" aria-label="Agent 空间"></select></label>
+          <div class="panel-title instance-acts">
+            <button id="new-agent" type="button">新建空间</button>
+            <button id="rename-agent" type="button">重命名空间</button>
+          </div>
         </div>
         <div class="panel session-panel">
           <div class="panel-title">
@@ -1934,8 +1936,8 @@
       </aside>
     </main>
     <div id="tip-layer"></div>
-    <script src="/assets/vendor/xterm.js?v=20261118v143"></script>
-    <script src="/assets/vendor/xterm-addon-fit.js?v=20261118v143"></script>
-    <script type="module" src="/assets/ui/v2/main.js?v=20261118v143"></script>
+    <script src="/assets/vendor/xterm.js?v=20261118v144"></script>
+    <script src="/assets/vendor/xterm-addon-fit.js?v=20261118v144"></script>
+    <script type="module" src="/assets/ui/v2/main.js?v=20261118v144"></script>
   </body>
 </html>

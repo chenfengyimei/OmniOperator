@@ -1,7 +1,7 @@
 {
   "batch": "v2-ui-connection-stability-v128",
   "recorded_at": "2026-11-15",
-  "resource_version_final": "20261118v143",
+  "resource_version_final": "20261118v144",
   "v1_alignment": {
     "summary": "用户提供 V1 正式工作台截图后，直接精读 web/ui/workbench.css 的 V1 实现并逐项移植，使 V2 结构与 V1 一致（而非自创风格）。",
     "ported_from_v1": [
@@ -1160,5 +1160,15 @@
     "交付": "index.html 顶栏顺序调整为 健康徽标→主题圆点→设置中心（最右），仅改标记顺序不改功能。",
     "验证": "位置核查双视口 PASS（最右/可点/跳转设置）、守卫+导航35 passed、全站76/76。",
     "版本": "资源串整体 v142→v143（日期串随当前日期 20261118）。"
+  },
+  "instance_panel_v144": {
+    "需求": "所有者要求把实例连接状态与 Agent 空间合成一个单独面板。",
+    "交付": [
+      "左栏新增 .instance-panel 单卡片包裹 连接卡/提示/Agent选择/新建重命名；内部连接卡去嵌套边框底色",
+      "非对话页与窄屏：实例面板排顶部独立横条（grid-row:1），隐藏提示与新建重命名，#agents 仍可见可切换",
+      "左栏让位规则由 :not(.agent-field) 改 :not(.instance-panel)"
+    ],
+    "验证": "实例面板核查双主题 PASS（单卡片/无嵌套边框）、全屏54/54、守卫33、草稿隔离+导航81 passed、全站76/76。",
+    "版本": "资源串整体 v143→v144。"
   }
 }

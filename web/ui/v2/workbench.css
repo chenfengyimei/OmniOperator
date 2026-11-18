@@ -516,6 +516,36 @@ body[data-ui-page="workbench-v2"] .connect-hint {
 body[data-ui-page="workbench-v2"] .connect-hint:empty {
   display: none;
 }
+/* 实例面板：所有者要求把「实例连接 + Agent 空间」合成一个独立面板。
+   外层单卡片包裹连接卡/提示/Agent 选择/新建重命名，内部连接卡去掉
+   嵌套边框与底色，避免双重卡片。 */
+body[data-ui-page="workbench-v2"] .instance-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 12px;
+}
+body[data-ui-page="workbench-v2"] .instance-panel #connect.panel {
+  padding: 0;
+  border: none;
+  background: none;
+  box-shadow: none;
+}
+body[data-ui-page="workbench-v2"] .instance-panel .connect-hint {
+  margin: 0;
+}
+body[data-ui-page="workbench-v2"] .instance-panel .agent-field {
+  padding: 0;
+}
+body[data-ui-page="workbench-v2"] .instance-panel .instance-acts {
+  display: flex;
+  gap: 6px;
+  padding: 0;
+  border-bottom: none;
+}
+body[data-ui-page="workbench-v2"] .instance-panel .instance-acts button {
+  flex: 1 1 auto;
+}
 body[data-ui-page="workbench-v2"] .agent-field {
   flex: 0 0 auto;
   display: grid;
@@ -1176,27 +1206,39 @@ body[data-ui-page="workbench-v2"]:not(.chat-mode) > main > aside.inspector {
 body[data-ui-page="workbench-v2"]:not(.chat-mode) > main > aside.workbench-side {
   display: contents;
 }
-body[data-ui-page="workbench-v2"]:not(.chat-mode) > main > aside.workbench-side > :not(.agent-field) {
+body[data-ui-page="workbench-v2"]:not(.chat-mode) > main > aside.workbench-side > :not(.instance-panel) {
   display: none;
 }
-/* 已连接态 #connect 有 body[data-connected] 的更高特异性 display:flex，
-   上面的通用隐藏压不过它，这里显式覆盖（连接卡也属于会话界面）。 */
-body[data-ui-page="workbench-v2"]:not(.chat-mode)[data-connected="true"] #connect.panel {
-  display: none;
-}
-body[data-ui-page="workbench-v2"]:not(.chat-mode) .agent-field {
+/* 实例面板（连接状态+Agent 空间）在非对话页排成顶部独立一行，
+   横向紧凑条，不遮挡内容；#agents 仍可见可切换。 */
+body[data-ui-page="workbench-v2"]:not(.chat-mode) .instance-panel {
   grid-column: 1;
   grid-row: 1;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  padding: 6px 10px;
+  border: none;
+  border-bottom: 1px solid var(--line-3);
+  border-radius: 0;
+  background: color-mix(in oklab, var(--surface-1) 70%, transparent);
+  box-shadow: none;
+}
+body[data-ui-page="workbench-v2"]:not(.chat-mode) .instance-panel .connect-hint,
+body[data-ui-page="workbench-v2"]:not(.chat-mode) .instance-panel .instance-acts {
+  display: none;
+}
+body[data-ui-page="workbench-v2"]:not(.chat-mode) .instance-panel .agent-field {
   display: flex;
   align-items: center;
   gap: 6px;
   margin: 0;
-  padding: 6px 10px;
-  border-bottom: 1px solid var(--line-3);
-  background: color-mix(in oklab, var(--surface-1) 70%, transparent);
+  padding: 0;
   font-size: var(--fs-caption);
 }
-body[data-ui-page="workbench-v2"]:not(.chat-mode) .agent-field select {
+body[data-ui-page="workbench-v2"]:not(.chat-mode) .instance-panel .agent-field select {
   width: auto;
   max-width: 200px;
   padding: 3px 6px;
@@ -1431,22 +1473,33 @@ body[data-ui-page="workbench-v2"] .drawer-toggle {
   body[data-ui-page="workbench-v2"]:not(.chat-mode) > main > aside.workbench-side {
     display: contents;
   }
-  body[data-ui-page="workbench-v2"]:not(.chat-mode) > main > aside.workbench-side > :not(.agent-field) {
+  body[data-ui-page="workbench-v2"]:not(.chat-mode) > main > aside.workbench-side > :not(.instance-panel) {
     display: none;
   }
-  body[data-ui-page="workbench-v2"]:not(.chat-mode) .agent-field {
+  body[data-ui-page="workbench-v2"]:not(.chat-mode) .instance-panel {
     grid-column: 1;
     grid-row: 1;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    padding: 6px 10px;
+    border: none;
+    border-bottom: 1px solid var(--line-3);
+    border-radius: 0;
+    background: color-mix(in oklab, var(--surface-1) 70%, transparent);
+    box-shadow: none;
+  }
+  body[data-ui-page="workbench-v2"]:not(.chat-mode) .instance-panel .agent-field {
     display: flex;
     align-items: center;
     gap: 6px;
     margin: 0;
-    padding: 6px 10px;
-    border-bottom: 1px solid var(--line-3);
-    background: color-mix(in oklab, var(--surface-1) 70%, transparent);
+    padding: 0;
     font-size: var(--fs-caption);
   }
-  body[data-ui-page="workbench-v2"]:not(.chat-mode) .agent-field select {
+  body[data-ui-page="workbench-v2"]:not(.chat-mode) .instance-panel .agent-field select {
     width: auto;
     max-width: 160px;
     padding: 3px 6px;
