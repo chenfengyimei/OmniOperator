@@ -111,7 +111,7 @@
     "acceptance_source": "1e62fe08055492e819ee7cfaeabdbc6b77604dd3",
     "source_sha256": "0cca300342ed5ac07a4b583c15a7db17b903184a3c268b6b212aa1284ab97a81",
     "wheel_sha256": "a43eadd3652f1cd347cac864f63c01a15d7d86cb3abdbff8f2a5cae74eeae3d0",
-    "report": "docs/WINDOWS_V2_ACCEPTANCE_2026-11-18.md",
+    "report": "docs/v2/platforms/windows/WINDOWS_V2_ACCEPTANCE_2026-11-18.md",
     "evidence": "docs/evidence/v2-windows-acceptance-2026-11-18.json",
     "full_artifacts": "C:/v2-acceptance/win-accept-20261118",
     "real_machine_passed": [

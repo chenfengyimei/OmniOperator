@@ -39,6 +39,7 @@ uv run --no-sync pytest -q          # 多模块集成收尾或所有者明确要
 
 ## 3. 架构纪律
 
+- V2 采用 `domain → application → adapters → composition` 四层允许依赖集合，组装根在 composition，禁止导入 V1 运行时；目录与现行合同见 [V2 导航](docs/v2/README.md)。下列旧分层及 bootstrap 规则只适用于保留的 V1。
 - 依赖方向自上而下：`channels`/`bootstrap` → `core` → `tools`/`llm`/`memory`/`safety` → 叶子层；
   改坏会直接测试红，不靠自觉；
 - Gateway/MemoryStore/ToolRegistry/Agent 等组装根对象**只能在 `bootstrap.py` 构造**；

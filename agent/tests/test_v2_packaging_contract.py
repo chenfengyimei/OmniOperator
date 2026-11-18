@@ -4,7 +4,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 CHECK = ROOT / "agent/scripts/check_package.py"
-DOC = ROOT / "docs/V2_PACKAGING.md"
+DOC = ROOT / "docs/v2/operations/V2_PACKAGING.md"
 
 
 def test_build_gate_keeps_its_v2_checks():

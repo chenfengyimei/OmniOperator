@@ -1,6 +1,6 @@
 # Mac mini 开发环境迁移交接（2026-11-18）
 
-本次迁移接续整个 V2 开发。Windows 主体开发与离线候选已完成，实机专项记录见 [Windows 报告](WINDOWS_V2_ACCEPTANCE_2026-11-18.md)。前台点击样例的后续核查见 [核查证据](evidence/v2-windows-click-fixture.json)：修正 STATIC 顶层样例后，原生产点击点与真实遮挡拒绝通过；用户配合聚焦后的完整前台回归通过，最终文本为 `PREFIX-ONLY-OWNED-TEXT`，按钮计数为 1。四次生产动作回执均为 `unknown`，保持原回执、不重发；样例实际效果通过不等于生产后验已确认。首次聚焦超时的失败另行保留。当前源码没有统一全量覆盖，真实账号、模型质量、设备、干净机器与 72 小时证据仍分别待验，整个 V2 未完成。
+本次迁移接续整个 V2 开发。Windows 主体开发与离线候选已完成，实机专项记录见 [Windows 报告](v2/platforms/windows/WINDOWS_V2_ACCEPTANCE_2026-11-18.md)。前台点击样例的后续核查见 [核查证据](evidence/v2-windows-click-fixture.json)：修正 STATIC 顶层样例后，原生产点击点与真实遮挡拒绝通过；用户配合聚焦后的完整前台回归通过，最终文本为 `PREFIX-ONLY-OWNED-TEXT`，按钮计数为 1。四次生产动作回执均为 `unknown`，保持原回执、不重发；样例实际效果通过不等于生产后验已确认。首次聚焦超时的失败另行保留。当前源码没有统一全量覆盖，真实账号、模型质量、设备、干净机器与 72 小时证据仍分别待验，整个 V2 未完成。
 
 Mac 作为下一开发主机；Windows 工作区、服务和现有实例保留。迁移准备不表示已在 Mac 安装、编译或验收。
 
@@ -89,11 +89,11 @@ uv run --no-sync python -m omni.composition.cli --home "$OMNI_MAC_DEV_HOME" serv
 
 首次 serve 后沿现有本机令牌引导进入工作台。令牌、主密钥、真实账号及 Windows 路径配置分别在 Mac 显式重新配置，不把 Windows 凭据文件当作可用的 Keychain 条目。默认入口已经是 V2，显式 V1 回退保留，不导入 V1 数据。
 
-默认使用新的开发实例。如果需要已有业务数据，先从 Windows 生产 CLI 导出含 WAL 一致快照与完整引用对象的验证备份，再在 Mac 恢复到另一新目录；按 [备份与升级合同](V2_SCHEMA_UPGRADE.md) 核对版本、对象、外键及 unknown 账目。不要裸复制运行中的 SQLite，也不要删除 Windows 原实例。
+默认使用新的开发实例。如果需要已有业务数据，先从 Windows 生产 CLI 导出含 WAL 一致快照与完整引用对象的验证备份，再在 Mac 恢复到另一新目录；按 [备份与升级合同](v2/operations/V2_SCHEMA_UPGRADE.md) 核对版本、对象、外键及 unknown 账目。不要裸复制运行中的 SQLite，也不要删除 Windows 原实例。
 
 ## 5. 接续 Mac 原生开发
 
-先读 [架构](ARCHITECTURE.md)、[Mac 原生交接](V2_MACOS_HANDOFF.md)、[系统服务合同](V2_MACOS_SYSTEM_SERVICES.md)。先编译 Swift/C，修复真实 ABI/SDK 问题；不要先用 Windows 注入测试结果宣称 Mac 支持完成。
+先读 [架构](ARCHITECTURE.md)、[Mac 原生交接](v2/platforms/macos/V2_MACOS_HANDOFF.md)、[系统服务合同](v2/platforms/macos/V2_MACOS_SYSTEM_SERVICES.md)。先编译 Swift/C，修复真实 ABI/SDK 问题；不要先用 Windows 注入测试结果宣称 Mac 支持完成。
 
 在本机图形账号上明确构建并安装新的开发签名 helper：
 

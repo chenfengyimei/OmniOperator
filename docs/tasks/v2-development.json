@@ -30,7 +30,7 @@
       "id": "G1",
       "title": "持久事件通知及工作台断线续接",
       "status": "implemented_scoped_passed",
-      "contract": "docs/V2_EVENT_STREAM.md",
+      "contract": "docs/v2/contracts/V2_EVENT_STREAM.md",
       "evidence": [
         "docs/evidence/v2-event-stream.json"
       ]
@@ -42,19 +42,19 @@
       "evidence": [
         "docs/evidence/v2-agents.json"
       ],
-      "contract": "docs/V2_AGENTS.md"
+      "contract": "docs/v2/contracts/V2_AGENTS.md"
     },
     {
       "id": "G3",
       "title": "Linux持续窗口身份与显式前台控制",
       "status": "development_in_progress",
-      "contract": "docs/V2_LINUX_HANDOFF.md",
+      "contract": "docs/v2/platforms/linux/V2_LINUX_HANDOFF.md",
       "subdeliverables": [
         {
           "id": "G3.L1",
           "title": "X11同连接持续窗口代次及读取前后核验",
           "status": "implemented_scoped_passed",
-          "contract": "docs/V2_LINUX_WINDOW_LEASES.md",
+          "contract": "docs/v2/platforms/linux/V2_LINUX_WINDOW_LEASES.md",
           "evidence": [
             "docs/evidence/v2-linux-window-leases.json"
           ],
@@ -64,7 +64,7 @@
           "id": "G3.L2",
           "title": "显式前台输入、独立节点与窗口关联及逐次授权",
           "status": "development_in_progress",
-          "contract": "docs/V2_LINUX_FOREGROUND.md",
+          "contract": "docs/v2/platforms/linux/V2_LINUX_FOREGROUND.md",
           "native_focus_proof": {
             "status": "implemented_scoped_passed",
             "evidence": "docs/evidence/v2-linux-foreground-proof.json",
@@ -251,7 +251,7 @@
       "id": "G4",
       "title": "Wayland独立控制授权、撤回与用户输入暂停",
       "status": "development_in_progress",
-      "contract": "docs/V2_WAYLAND_CONTROL.md",
+      "contract": "docs/v2/platforms/linux/V2_WAYLAND_CONTROL.md",
       "native_system_consent": {
         "status": "implemented_scoped_passed",
         "evidence": "docs/evidence/v2-remote-desktop.json",
@@ -360,7 +360,7 @@
           "id": "G5.container",
           "title": "非root无桌面镜像、显式反代部署及隔离核验工具",
           "status": "implemented_scoped_passed",
-          "contract": "docs/V2_CONTAINER.md",
+          "contract": "docs/v2/operations/V2_CONTAINER.md",
           "evidence": [
             "docs/evidence/v2-container-delivery.json"
           ],
@@ -370,7 +370,7 @@
           "id": "G5.installation",
           "title": "跨平台独立新装检查、合法路径启动与三平台CI接线",
           "status": "implemented_scoped_passed",
-          "contract": "docs/V2_PACKAGING.md",
+          "contract": "docs/v2/operations/V2_PACKAGING.md",
           "evidence": [
             "docs/evidence/v2-portable-installation.json"
           ],
@@ -400,7 +400,7 @@
           "id": "G6.soak",
           "title": "独立V2只读长跑采样及可续采证据",
           "status": "implemented_scoped_passed",
-          "contract": "docs/V2_SOAK.md",
+          "contract": "docs/v2/operations/V2_SOAK.md",
           "evidence": [
             "docs/evidence/v2-soak.json"
           ],
@@ -410,7 +410,7 @@
           "id": "G6.media_upload",
           "title": "上传音视频复用原对象、作业、锚点产物及所有者入口",
           "status": "implemented_scoped_passed",
-          "contract": "docs/V2_MEDIA.md",
+          "contract": "docs/v2/contracts/V2_MEDIA.md",
           "evidence": [
             "docs/evidence/v2-media-upload.json"
           ],
@@ -420,7 +420,7 @@
           "id": "G6.mcp_ownership",
           "title": "MCP完整业务任务、派发前事务与原会话清理归属",
           "status": "implemented_scoped_passed",
-          "contract": "docs/V2_MCP.md",
+          "contract": "docs/v2/contracts/V2_MCP.md",
           "evidence": [
             "docs/evidence/v2-mcp-ownership.json"
           ],
@@ -430,7 +430,7 @@
           "id": "G6.mcp_delivery",
           "title": "MCP缺响应头与管道排空失败的可能送达分类及写入核查",
           "status": "implemented_scoped_passed",
-          "contract": "docs/V2_MCP.md",
+          "contract": "docs/v2/contracts/V2_MCP.md",
           "evidence": [
             "docs/evidence/v2-mcp-delivery.json"
           ],

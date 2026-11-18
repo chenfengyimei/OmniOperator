@@ -9,7 +9,7 @@
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.12%2B-3776AB)](https://www.python.org/)
 [![Platform](https://img.shields.io/badge/platform-Windows-0078D6)](#六环境要求与安装)
-[![tests](https://img.shields.io/badge/tests-1515%20offline-brightgreen)](docs/DEVELOPMENT_STATUS.md)
+[![tests](https://img.shields.io/badge/tests-offline-blue)](docs/DEVELOPMENT_STATUS.md)
 [![Status](https://img.shields.io/badge/status-alpha-orange)](docs/ACCEPTANCE.md)
 
 </div>
@@ -288,7 +288,7 @@ uv run --no-sync omni-v1                   # 显式V1 CLI回退
 uv run --no-sync omni-web-v1               # 显式V1工作台回退
 ```
 
-也可以双击`start.bat`启动V2工作台（`scripts/start-v2.ps1`）；`start-v1.bat`保留旧配对入口。V2使用独立实例，不导入现有V1数据。已有常驻环境不在本任务中重建，开发启动可直接用`./scripts/start-v2.ps1`；新安装包使用新的默认命令。V1专用`omni-qq`、`omni-heartbeat`兼容命令继续保留。Windows离线安装与维护见[候选交付](docs/V2_WINDOWS_CANDIDATE.md)。
+也可以双击`start.bat`启动V2工作台（`scripts/start-v2.ps1`）；`start-v1.bat`保留旧配对入口。V2使用独立实例，不导入现有V1数据。已有常驻环境不在本任务中重建，开发启动可直接用`./scripts/start-v2.ps1`；新安装包使用新的默认命令。V1专用`omni-qq`、`omni-heartbeat`兼容命令继续保留。Windows离线安装与维护见[候选交付](docs/v2/platforms/windows/V2_WINDOWS_CANDIDATE.md)。
 
 ### 装完先自检
 
@@ -352,7 +352,7 @@ uv run --no-sync python -m omni.system.backup --to data/backups/<日期>   # 升
 
 开源不等于发布稳定版。当前状态是**受控内测（alpha）**：
 
-- ✅ **已验证**：1515 项离线测试全绿、架构守卫、桌面记事本首个真实闭环、备份恢复、只读体检
+- ✅ **历史验证**：V1 的 1515 项离线测试、架构守卫、桌面记事本首个真实闭环、备份恢复、只读体检；仅对应当时版本。V2 当前验证范围见 [开发状态](docs/DEVELOPMENT_STATUS.md)。
 - ⏳ **待真实验收**：QQ 实站完整闭环、安卓真机（多设备/旋转/断连）、真实模型混合检索收益对比、
   72 小时常驻、夜间整理→早报链路
 - ⚠️ **不属于已验证交付**：macOS/Linux 全功能、通用桌面接管（不承诺 SendInput 对所有软件后台不抢焦点）、

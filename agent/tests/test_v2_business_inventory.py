@@ -5,7 +5,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 INDEX = ROOT / "web/ui/v2/index.html"
-DOC = ROOT / "docs/V2_BUSINESS_INVENTORY.md"
+DOC = ROOT / "docs/v2/contracts/V2_BUSINESS_INVENTORY.md"
 STATUSES = {"可用（离线）", "需配置"}
 GROUPS = ("对话与记忆", "知识与技能", "工具与扩展", "设备与平台", "资料与媒体", "自动化", "系统与运维")
 

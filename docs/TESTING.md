@@ -49,7 +49,7 @@ uv run --no-sync pytest -q -n 8
 
 V2 文档维护的开发反馈先选 `test_v2_maintenance.py`、`test_v2_maintenance_http.py`；所有权、迁移或恢复发生变化时再增加对应的 `ownership`、`crash`、`migration` 文件。界面改动先选 `test_v2_maintenance_ui.py` 和受影响的具体 nodeid，整份 `test_v2_ui.py` 的多视口/主题业务矩阵留到跨界面验收。该矩阵保留完整场景、独立上下文与超时，不用缩短业务等待换取提速；开发反馈通过减少无关重复范围获得。
 
-修改 `docs/V2_PACKAGING.md` 的安装/更新交付状态或构建检查入口时，先运行 `uv run --no-sync pytest -q -n 0 agent/tests/test_v2_packaging_contract.py`。该专项检查已验证构建链与未交付平台/安装器边界，通常不需要等完整套件才能发现文档合同回归。源码链已实现和独立安装器已完成交付验收应分别表述。
+修改 `docs/v2/operations/V2_PACKAGING.md` 的安装/更新交付状态或构建检查入口时，先运行 `uv run --no-sync pytest -q -n 0 agent/tests/test_v2_packaging_contract.py`。该专项检查已验证构建链与未交付平台/安装器边界，通常不需要等完整套件才能发现文档合同回归。源码链已实现和独立安装器已完成交付验收应分别表述。
 
 记忆整理开发使用 `test_v2_memory_organization.py`、`test_v2_memory_organization_http.py`；关系/召回变更加入 `repository`，迁移/恢复加入 `migration`，事务中断加入 `crash`，界面仅先跑 `test_v2_memory_organization_ui.py`。必须验证逐字原文与规范化相同的差别、同作用域、审批不改记忆真值、可撤销召回、真实来源删除传播、恢复后旧核查不可复用，以及所有者CAS和迟到界面隔离。默认不调用模型或创建费用账；不得通过遗忘重复项实现普通整理。
 
@@ -172,7 +172,7 @@ R3.retention_audit.cursors 的专项分为领域游标校验、持久分配/清�
 
 开发中按改动范围选择 `test_v2_history_contract.py`、历史仓储/迁移测试及 `test_v2_history_ui.py`，使用 `-n 0`；跨模块变动还须覆盖普通事件/审计、凭据实例审计、维护直接SQL和恢复调用方。删除尾部/全部行后仍保持分配高水位，中间缺口使原游标明确失效；事务回滚同时撤销删除和清理修订。HTTP覆盖错作用域/筛选、未来位置、旧after拒绝及恢复epoch变化，不跳过断言或缩短被测超时。
 
-本批游标基础的测试不证明180天候选、计划、备份执行与取消已经实现，也不证明三平台运行或72小时验收。上述清理门槛仍按[审计保留设计](V2_AUDIT_RETENTION_DESIGN.md)独立推进；专项结果和最终固定源码全量结果分别记录，不互相替代。
+本批游标基础的测试不证明180天候选、计划、备份执行与取消已经实现，也不证明三平台运行或72小时验收。上述清理门槛仍按[审计保留设计](v2/contracts/V2_AUDIT_RETENTION_DESIGN.md)独立推进；专项结果和最终固定源码全量结果分别记录，不互相替代。
 
 R3.retention_audit.preview 新增领域、仓储保护、HTTP/CLI 与 UI 专项（`test_v2_audit_retention*.py`）。仓储用一次真实关闭后的裁剪模板复制到各例独立目录，避免重复创建同样的验证备份；每例仍独占数据库与锁，绝不复制活跃数据库。SQL 观察断言预览不读取审计/动作/事件正文，页内相同运行只判定一次。覆盖完整/部分/取消批次、作者 FK、遗忘后的实际关系释放、晚到费用/审批/租约/来源、人工核查后的 unknown 投递、固定时间/上界、180 天微秒边界与410。共享保护抽取需连同正文/引用/历史调用方验证。
 

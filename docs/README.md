@@ -1,10 +1,17 @@
-# 文档导航（docs/README.md）
+# 文档导航
 
-本目录的文档分三层：**用户手册**（怎么用）、**开发者文档**（怎么改）、**内部开发台账**
-（如实记录开发过程与证据，不代表发布状态）。根 [README](../README.md) 是项目门面；
-英文访客另见 [README.en](../README.en.md)。文档文件按此分层导航，物理位置不变。
+当前默认入口为 V2，整个 V2 尚未整体验收。先按版本和用途选择资料。
 
-## 用户手册（怎么用）
+## V2 当前入口
+
+- [当前交接](HANDOFF.md)、[开发任务](tasks/v2-development.json)、[生成的当前状态](DEVELOPMENT_STATUS.md)。
+- [V2 合同、平台与交付导航](v2/README.md)。
+- [架构权威](ARCHITECTURE.md)、[仓库目录](REPOSITORY_STRUCTURE.md)、[测试纪律](TESTING.md)。
+- [Mac 接续提示词](V2_MACMINI_RESUME_PROMPT.md)、[迁移说明](V2_MACMINI_MIGRATION.md)。
+
+下列旧功能手册适用于 V1 或明确注明的共用能力；V2 以对应现行合同为准。历史台账不作为当前状态真值。
+
+## V1 兼容用户手册
 
 | 文档 | 内容 |
 |---|---|
@@ -24,7 +31,7 @@
 | [AGENT_STORAGE.md](AGENT_STORAGE.md) | Agent 独立空间：九类业务目录、路径策略与 API 说明 |
 | [PLUGIN_SYSTEM.md](PLUGIN_SYSTEM.md) | 插件系统与社区：manifest、隔离激活、信任模型、部署指南 |
 
-## 开发者文档（怎么改）
+## 通用与 V1 开发资料
 
 | 文档 | 内容 |
 |---|---|
@@ -42,7 +49,7 @@
 贡献流程见根目录 [CONTRIBUTING](../CONTRIBUTING.md)；安全报告见
 [SECURITY](../SECURITY.md)。
 
-## 内部开发台账（如实记录，不代表发布状态）
+## 历史过程与追溯资料
 
 | 文档 | 内容 |
 |---|---|
@@ -53,9 +60,9 @@
 | [CAPABILITIES_PLAN.md](CAPABILITIES_PLAN.md) | C01–C06 能力完善路线与验证记录 |
 | [UI_QA.md](UI_QA.md) | UI 操作验证与浏览器回归记录 |
 | [UI_REDESIGN_MIGRATION_PLAN.md](UI_REDESIGN_MIGRATION_PLAN.md) | UI 统一改造历史档案（现行规范已由 UI_DESIGN_SYSTEM.md 接管） |
-| [index/](index/) | 自动生成的源码/API/机器索引（`scripts/project_index.py` 产出，勿手改） |
-| [evidence/](evidence/) | 可提交的脱敏验证证据（JSON） |
+| [index/](index) | 自动生成的源码/API/机器索引（`scripts/project_index.py` 产出，勿手改） |
+| [evidence/](evidence) | 可提交的脱敏验证证据（JSON） |
 
 另有两份示例文件被验收手册引用：[acceptance-manifest.example.json](acceptance-manifest.example.json)、
 [soak-limits.example.json](soak-limits.example.json)；素材与回滚源在
-[ui-migration/](ui-migration/)（工作台旧版快照，仅供追溯）。
+[ui-migration/](ui-migration)（工作台旧版快照，仅供追溯）。

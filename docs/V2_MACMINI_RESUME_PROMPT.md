@@ -1,6 +1,6 @@
 # Mac mini 新会话接续提示词
 
-所有者自行复制项目或通过 Git 的 `v2` 分支迁移后，将下方完整文本粘贴给 Mac mini 上的新会话。项目目录和系统版本由接手会话在本机读取。迁移步骤见 [开发环境交接](V2_MACMINI_MIGRATION.md)，原生实现断点见 [macOS 交接](V2_MACOS_HANDOFF.md)。
+所有者自行复制项目或通过 Git 的 `v2` 分支迁移后，将下方完整文本粘贴给 Mac mini 上的新会话。项目目录和系统版本由接手会话在本机读取。迁移步骤见 [开发环境交接](V2_MACMINI_MIGRATION.md)，原生实现断点见 [macOS 交接](v2/platforms/macos/V2_MACOS_HANDOFF.md)。
 
 ```text
 你接手 OmniOperator V2 的持续开发，请实际阅读代码并接着实现，完成一个可交付的开发批次，不要只回复计划，也不要重做已有成果。
@@ -14,7 +14,7 @@
 先按顺序读取：
 1. AGENTS.md、docs/HANDOFF.md、docs/ARCHITECTURE.md、CONTRIBUTING.md。
 2. docs/tasks/v2-development.json 和 docs/tasks/v2-windows-candidate.json。
-3. docs/V2_MACMINI_MIGRATION.md、docs/V2_MACOS_HANDOFF.md、docs/V2_MACOS_SYSTEM_SERVICES.md。
+3. docs/V2_MACMINI_MIGRATION.md、docs/v2/platforms/macos/V2_MACOS_HANDOFF.md、docs/v2/platforms/macos/V2_MACOS_SYSTEM_SERVICES.md。
 4. 本批实际改动涉及的合同、实现、调用方和现有测试。
 
 已完成的断点与证据：
@@ -31,7 +31,7 @@
 2. 优先用现有 agent/scripts/build_macos_helper.py 实际编译 Swift/C，运行构建器已有的 ForegroundCore 与 NativeIdentityTests，并保存原始日志。先构建到新的输出目录，例如：
    uv run --no-sync python agent/scripts/build_macos_helper.py --arch arm64 --output "temp/build/mac-native-arm64-$(date +%Y%m%dT%H%M%S)"
 3. 修复真实编译、ABI、SDK、签名或文件身份问题，做必要的相关 Python/Swift 专项。Swift/C 在 Windows 尚未编译，注入测试通过不证明 Mac 支持完成。
-4. 按 docs/V2_MACOS_HANDOFF.md 接续原生观察、截图、语义动作、前台输入、PTY、Keychain、服务注册/查询/交换等隔离验证和开发。helper 安装、TCC 权限与需要所有者配合的前台样例按现有步骤分别处理；已有应用不覆盖，unknown 不重放。
+4. 按 docs/v2/platforms/macos/V2_MACOS_HANDOFF.md 接续原生观察、截图、语义动作、前台输入、PTY、Keychain、服务注册/查询/交换等隔离验证和开发。helper 安装、TCC 权限与需要所有者配合的前台样例按现有步骤分别处理；已有应用不覆盖，unknown 不重放。
 5. 持续推进任务中的 G5 macOS/交付与 G6 业务、扩展、运维核对。G3 Linux 和 G4 Wayland 仍有明确缺口；适合在当前环境实现的源码可继续，真实平台结果分别登记。G7 等整个 V2 开发冻结后执行。
 
 开发与验证纪律：

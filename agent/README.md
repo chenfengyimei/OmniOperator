@@ -22,7 +22,9 @@ agent/
     plugins/           插件宿主和扩展注册
     system/            平台原语、服务、目录与索引
     config.py          声明配置与路径锚点
-  tests/               产品全部测试及隔离 fixtures
+  tests/v2/            V2 按 core/http/ui/platforms/operations/integrations 分组的测试
+  tests/omni_test_support/v2/  V2 共享样例与路径助手
+  tests/test_*.py      保留的 V1 与通用守卫；conftest/离线插件仍在 tests 根
   config/              可提交的配置模板
   scripts/             产品校验、评测、诊断与开发脚本的正式实现
 ```
@@ -33,3 +35,5 @@ agent/
 默认`omni`/`omni-web`/`python -m omni`进入V2独立实例；显式V1回退使用`omni-v1`、`omni-web-v1`。V1用户配置、`.env`、记忆/资料/日志和运行技能仍由仓库根及已配置的 RuntimePaths 管理；
 `agent/config/` 只有模板。代码目录重排不会迁移真实数据。安装/启动脚本在根 `scripts/`，
 其中旧开发命令只有转发器；开发新能力修改这里的正式实现。
+
+V2 平台适配实现按 `adapters/platform/{desktop,services,releases,runtime}` 归组，Linux 桌面实现位于 `desktop/linux`。原生资源仍位于固定 workers 目录。完整新旧路径见仓库目录说明中的迁移清单。

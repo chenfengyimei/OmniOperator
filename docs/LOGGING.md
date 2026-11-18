@@ -4,7 +4,7 @@
 
 ## 记录归属
 
-桌面发现只审计操作、数量、截断和匹配结论，不记录应用路径、原生句柄、会话身份、窗口标题或正文。`desktop.probe/targets/verify/observe/capture` 通过固定 desktop 类别关联 request_id、operation_id 和 trace_id；辅助进程 stderr 仅有界计数后丢弃。截图发布/释放引用记录尺寸、对象及会话身份，不写图片或UI文本；诊断包只导出待处理/缓存/回收及暂存残留汇总，不包含短时窗口快照或图片。详见[桌面合同](V2_DESKTOP.md)。
+桌面发现只审计操作、数量、截断和匹配结论，不记录应用路径、原生句柄、会话身份、窗口标题或正文。`desktop.probe/targets/verify/observe/capture` 通过固定 desktop 类别关联 request_id、operation_id 和 trace_id；辅助进程 stderr 仅有界计数后丢弃。截图发布/释放引用记录尺寸、对象及会话身份，不写图片或UI文本；诊断包只导出待处理/缓存/回收及暂存残留汇总，不包含短时窗口快照或图片。详见[桌面合同](v2/contracts/V2_DESKTOP.md)。
 
 所有者终端的输入、输出和原生stderr不得进入诊断日志；操作审计只保存身份、意图指纹、字节数和状态。在线诊断只输出实例汇总，不输出终端目录、命令或屏幕。PTY接收输入的回执与命令执行结果分开；`unknown`不作成功统计，也不自动重放。原生回收、持久结算失败和输出缺口必须可见，不能仅因为辅助进程退出而声称清理完成。
 
@@ -87,15 +87,15 @@ uv run --no-sync python -m omni.composition.cli --home <独立V2目录> diagnost
 
 30 天执行正文与180天 Agent 审计/事件明细分别采用独立的 plan/apply/cancel、验证备份与断点续跑合同。正文清理裁剪旧终态运行的动作参数/结果与事件载荷；审计和事件只按精确白名单、来源及业务保护清理。事件删除保留运行身份、原运行内序号和last_seq，不重建费用或去重状态。聊天不按此策略删除。
 
-必须保护活跃/未终态运行、unknown 副作用、reserved/unknown 模型费用、待执行工作、未完成及 unknown 投递、持有的资源、来源锚点、文档上下文引用及人工固定。对象与运行已有固定入口；正文裁剪与持久标记已接线，备份核验失败或审计写入失败不能宣称裁剪成功。v2_0014 已建立游标分配及清理水位基础；180 天预览另外核验审计作者外键、完整正文批次及正在进行的引用释放。人工允许后续调度的 unknown 投递仍受保护。工作台“诊断日志”提供只读入口；固定时间与记录上界的分页不授权删行。完整合同见[审计保留设计](V2_AUDIT_RETENTION_DESIGN.md)。
+必须保护活跃/未终态运行、unknown 副作用、reserved/unknown 模型费用、待执行工作、未完成及 unknown 投递、持有的资源、来源锚点、文档上下文引用及人工固定。对象与运行已有固定入口；正文裁剪与持久标记已接线，备份核验失败或审计写入失败不能宣称裁剪成功。v2_0014 已建立游标分配及清理水位基础；180 天预览另外核验审计作者外键、完整正文批次及正在进行的引用释放。人工允许后续调度的 unknown 投递仍受保护。工作台“诊断日志”提供只读入口；固定时间与记录上界的分页不授权删行。完整合同见[审计保留设计](v2/contracts/V2_AUDIT_RETENTION_DESIGN.md)。
 
 R3.retention_references 为已裁剪动作增加独立的引用 plan/apply/cancel。准备、精确关系释放与取消写入 reference_release.* 业务审计；每条引用的删除、进度与释放审计共同提交，失败共同回滚。计划保存对象版本、SHA-256、大小及原正文批次，来源/费用/资源等保护须再次查询，不能只信正文指纹。历史目标不建立对象外键；已释放目标在对象被后续 GC 删除后仍可凭历史续跑，不能重复写释放审计。
 
-工作台与默认诊断只展示引用批次状态计数，doctor 对 prepared 批次报告需要关注；不导出备份路径、取消理由、执行正文或完整计划。取消只撤销未提交目标，不把已释放关系、文件或正文记作恢复。释放不写“对象已删除”结果；文件回收必须另审现有 GC 新计划，物理失败继续报告残留。释放前备份可恢复引用及对象，裁剪前备份才可恢复原正文。完整合同见[执行正文保留合同](V2_EXECUTION_RETENTION.md)。
+工作台与默认诊断只展示引用批次状态计数，doctor 对 prepared 批次报告需要关注；不导出备份路径、取消理由、执行正文或完整计划。取消只撤销未提交目标，不把已释放关系、文件或正文记作恢复。释放不写“对象已删除”结果；文件回收必须另审现有 GC 新计划，物理失败继续报告残留。释放前备份可恢复引用及对象，裁剪前备份才可恢复原正文。完整合同见[执行正文保留合同](v2/contracts/V2_EXECUTION_RETENTION.md)。
 
 现有用户“遗忘”会使摘要与派生记忆失效，不可用于时间保留清理。诊断日志轮转、调试清理和对象 GC 通过，也不代表完整业务保留已完成。当前证据与未完成项见 [运行诊断记录](evidence/v2-operations.json) 与 [V2 台账](tasks/v2.json)。
 
-审计删除的准备、逐目标删除、完成、取消及恢复撤销记录为 audit_retention.*，默认不属于可清理种类。每次删行与目标状态、触发器水位及维护审计同事务，日志故障不能代替审计持久证据。运维计数 audit_retention 只包含状态数量，doctor 的 audit_retention_attention 统计 prepared 批次；全部目标已提交但未完成收尾也报告。恢复转入新 epoch 并取消 pending，不自动续删。详见[审计保留合同](V2_AUDIT_RETENTION_DESIGN.md)。
+审计删除的准备、逐目标删除、完成、取消及恢复撤销记录为 audit_retention.*，默认不属于可清理种类。每次删行与目标状态、触发器水位及维护审计同事务，日志故障不能代替审计持久证据。运维计数 audit_retention 只包含状态数量，doctor 的 audit_retention_attention 统计 prepared 批次；全部目标已提交但未完成收尾也报告。恢复转入新 epoch 并取消 pending，不自动续删。详见[审计保留合同](v2/contracts/V2_AUDIT_RETENTION_DESIGN.md)。
 
 事件维护记录为 event_retention.*，同样写入audit并默认保留；事件删除只推进events清理修订，不推进audit删除修订。事件裁剪后追加的未裁剪行、恢复interrupted与未知种类、unknown动作结果和未结费用保护。事件/审计共用执行核心，来源及维护保护共用查询；运维 event_retention/doctor event_retention_attention 只报批次状态计数，工作台不显示事件原载荷。恢复同时撤销旧事件计划，正常重启允许原备份续跑。
 
@@ -107,11 +107,11 @@ R3.retention_references 为已裁剪动作增加独立的引用 plan/apply/cance
 
 ## 凭据授权记录补充（v2_0010）
 
-凭据引用、操作、核查是业务真值，instance_audit 是同事务的解释记录。未结束意图需查询业务状态，活跃操作与未知结果分别显示；核查只解除或撤销未来权限，不改历史观察。普通日志只通过 operation_id/request_id 关联，不写密钥、引用名和人工证据。默认诊断包不包含凭据核查正文。核查与恢复业务合同见[V2 凭据记录](V2_CREDENTIAL_AUTHORITY.md)，平台系统存储仍需实机验证。
+凭据引用、操作、核查是业务真值，instance_audit 是同事务的解释记录。未结束意图需查询业务状态，活跃操作与未知结果分别显示；核查只解除或撤销未来权限，不改历史观察。普通日志只通过 operation_id/request_id 关联，不写密钥、引用名和人工证据。默认诊断包不包含凭据核查正文。核查与恢复业务合同见[V2 凭据记录](v2/contracts/V2_CREDENTIAL_AUTHORITY.md)，平台系统存储仍需实机验证。
 
 ## 运行保留预览（R3.retention_preview）
 
-工作台可固定/取消固定本次运行；retention_revision 独立 CAS，编辑及审计同事务。CLI 的 retention-preview 要求独占实例，只读检查当前结构，不自动启动或升级。每页最多50个旧终态运行，输出指纹、大小与保护原因，不含执行正文。预览明确 can_apply=false，不能直接用于删除；R3.retention_apply 增加备份后复核、断点执行、正文裁剪标记与显式取消；R3.retention_references 独立释放已裁剪动作的精确对象引用，180天摘要/审计仍待推进。详见[执行正文保留合同](V2_EXECUTION_RETENTION.md)。用户遗忘不参与此流程。
+工作台可固定/取消固定本次运行；retention_revision 独立 CAS，编辑及审计同事务。CLI 的 retention-preview 要求独占实例，只读检查当前结构，不自动启动或升级。每页最多50个旧终态运行，输出指纹、大小与保护原因，不含执行正文。预览明确 can_apply=false，不能直接用于删除；R3.retention_apply 增加备份后复核、断点执行、正文裁剪标记与显式取消；R3.retention_references 独立释放已裁剪动作的精确对象引用，180天摘要/审计仍待推进。详见[执行正文保留合同](v2/contracts/V2_EXECUTION_RETENTION.md)。用户遗忘不参与此流程。
 
 ## 在线维护的记录与归属（R4.maintenance）
 

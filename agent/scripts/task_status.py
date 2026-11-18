@@ -10,10 +10,73 @@ ROOT = Path(__file__).resolve().parents[2]
 STATES = {"待开始", "开发中", "待真实验收", "完成", "阻塞"}
 
 
+def render_current(development: dict, windows: dict) -> str:
+    """当前 G 任务和固定 Windows 阶段分别展示，不从旧 R/D 台账推导状态。"""
+    labels = {
+        "implemented_scoped_passed": "已实现／专项通过",
+        "development_in_progress": "开发中",
+        "code_audit_in_progress": "代码核对中",
+        "waiting_for_development_completion": "等待开发完成",
+    }
+    lines = [
+        "# 当前开发状态",
+        "",
+        "> 由 docs/tasks/v2-development.json 与 docs/tasks/v2-windows-candidate.json 生成；历史证据只属于其固定源码。",
+        "",
+        "整个 V2 仍在开发，当前源码未统一全量。默认入口为 V2，显式 V1 回退保留。",
+        "",
+        "| 任务 | 内容 | 当前状态 | 合同与证据 |",
+        "|---|---|---|---|",
+    ]
+    ids = set()
+    for item in development["requirements"]:
+        identity, status = item["id"], item["status"]
+        if identity in ids or status not in labels:
+            raise ValueError("Duplicate task or unknown current status")
+        ids.add(identity)
+        if status == "implemented_scoped_passed" and not item.get("evidence"):
+            raise ValueError("Scoped completion requires evidence")
+        references = ([item["contract"]] if item.get("contract") else []) + item.get("evidence", [])
+        links = "、".join(f"[{Path(name).stem}]({name.removeprefix('docs/')})" for name in references)
+        values = [identity, item["title"], labels[status], links or "见持续开发任务"]
+        lines.append("| " + " | ".join(str(v).replace("|", "\\|").replace("\n", " ") for v in values) + " |")
+    if windows["status"] != "completed_windows_offline_candidate":
+        raise ValueError("Windows stage needs explicit reclassification")
+    lines.extend(
+        [
+            "",
+            "## Windows 阶段与后续验收",
+            "",
+            "Windows 主体开发与旧离线候选完成。历史 5998 全量只覆盖 7e64d348；不代表目录迁移后的当前源码。",
+            "",
+            "自有窗口前台复验已通过，生产 unknown 回执保留。真实账号、模型质量、设备、干净机器及 72 小时仍待验。",
+            "",
+            "Mac mini 主开发，现有 Windows 保留运行和原生验收环境。开发中执行受影响专项，整个 V2 开发冻结后统一全量。",
+            "",
+            "当前真值：[持续开发任务](tasks/v2-development.json)、[Windows 阶段](tasks/v2-windows-candidate.json)。",
+            "",
+            "历史交付范围：[旧 R/D 台账](tasks/v2.json)。目录与接手：[HANDOFF](HANDOFF.md)、[V2 导航](v2/README.md)。",
+            "",
+        ]
+    )
+    return "\n".join(lines)
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--check", action="store_true")
     args = parser.parse_args()
+    current = ROOT / "docs/tasks/v2-development.json"
+    if current.is_file():
+        output = render_current(
+            json.loads(current.read_text(encoding="utf-8")),
+            json.loads((ROOT / "docs/tasks/v2-windows-candidate.json").read_text(encoding="utf-8")),
+        )
+        target = ROOT / "docs/DEVELOPMENT_STATUS.md"
+        if args.check:
+            return 0 if target.read_text(encoding="utf-8") == output else 1
+        target.write_text(output, encoding="utf-8")
+        return 0
     selected = "v2.json" if (ROOT / "docs/tasks/v2.json").is_file() else "unification.json"
     tasks = json.loads((ROOT / "docs/tasks" / selected).read_text(encoding="utf-8"))
     lines = [

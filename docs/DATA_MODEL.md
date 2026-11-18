@@ -4,23 +4,23 @@
 
 ## V2 技能修订与一次封存目录
 
-当前 **125张业务表，迁移头`v2_0035`**。复用`skill_revisions`主文档对象，新增`skills/skill_manifests/skill_files/run_skill_catalog/run_skill_activations`，目录与实际使用分离，内容和参考文件只保存在现有对象。`runs.skill_capture_epoch`一次封存，历史运行不补造授权；启用审阅同时由技能头和捕获目录的真实审计外键保留。更新/归档/停用提升代次并取消待派发审批，恢复停用已启用项并记录审计；未知动作和费用不改写。详见[技能合同](V2_SKILLS.md)。
+当前 **125张业务表，迁移头`v2_0035`**。复用`skill_revisions`主文档对象，新增`skills/skill_manifests/skill_files/run_skill_catalog/run_skill_activations`，目录与实际使用分离，内容和参考文件只保存在现有对象。`runs.skill_capture_epoch`一次封存，历史运行不补造授权；启用审阅同时由技能头和捕获目录的真实审计外键保留。更新/归档/停用提升代次并取消待派发审批，恢复停用已启用项并记录审计；未知动作和费用不改写。详见[技能合同](v2/contracts/V2_SKILLS.md)。
 
 ## V2 记忆派生向量与相关关系
 
-记忆语义批次基线为120张业务表/v2_0034，当前版本见文首。`memory_embeddings`保存源修订/指纹、模型版本/维度、启动所有者及可清空向量；`memory_semantic_batches/sources/links`规范化固定选择、作用域、恢复代次及可逆人工关系，首次核查/撤销分别通过真实审计外键保护。正文和来源仍在原记忆模型，恢复只失效派生记录而不重写真值；SQL约束和失效触发器阻止旧计算再发布。语义关系不参与精确重复抑制谓词，详见[记忆语义合同](V2_MEMORY_SEMANTICS.md)。
+记忆语义批次基线为120张业务表/v2_0034，当前版本见文首。`memory_embeddings`保存源修订/指纹、模型版本/维度、启动所有者及可清空向量；`memory_semantic_batches/sources/links`规范化固定选择、作用域、恢复代次及可逆人工关系，首次核查/撤销分别通过真实审计外键保护。正文和来源仍在原记忆模型，恢复只失效派生记录而不重写真值；SQL约束和失效触发器阻止旧计算再发布。语义关系不参与精确重复抑制谓词，详见[记忆语义合同](v2/contracts/V2_MEMORY_SEMANTICS.md)。
 
 ## V2 档位修订与调用清单
 
-档位批次基线为116张业务表/v2_0033，当前版本见文首。新增`model_route_policies`、`run_routes`、`route_changes`、`model_call_routes`和`model_call_route_tools`，分别保存不可变策略、初始选择、唯一升档、调用顺序/规格指纹和具体工具。组合外键及触发器核验Agent、捕获模型、预留、运行状态及真实提供控制工具的来源；旧V2仅回填原模型的完整档基线。费用仍在原账本，摘要/历史无快照明确显示，不复制消息、工具参数/结果或另建费用真值。详见[档位合同](V2_ROUTING.md)。
+档位批次基线为116张业务表/v2_0033，当前版本见文首。新增`model_route_policies`、`run_routes`、`route_changes`、`model_call_routes`和`model_call_route_tools`，分别保存不可变策略、初始选择、唯一升档、调用顺序/规格指纹和具体工具。组合外键及触发器核验Agent、捕获模型、预留、运行状态及真实提供控制工具的来源；旧V2仅回填原模型的完整档基线。费用仍在原账本，摘要/历史无快照明确显示，不复制消息、工具参数/结果或另建费用真值。详见[档位合同](v2/contracts/V2_ROUTING.md)。
 
 ## V2 本地向量身份与派生索引
 
-向量批次未新增表，其基线为111表/v2_0032，当前版本见文首。真实本地向量继续使用document_index_builds/document_vectors及来源修订的活动指针，版本包含包指纹、池化/前缀/分窗、CPU及固定运行时，维度沿原约束。查询只比较相同版本/维度，来源修改或删除使在途构建invalidated；错误不能发布新的活动索引。模型包与本机选择是安装材料，不属于第二套业务数据库；启动审计记录实际选择版本和状态，原文只保存在现有对象来源。详见[向量合同](V2_LOCAL_VECTORS.md)。
+向量批次未新增表，其基线为111表/v2_0032，当前版本见文首。真实本地向量继续使用document_index_builds/document_vectors及来源修订的活动指针，版本包含包指纹、池化/前缀/分窗、CPU及固定运行时，维度沿原约束。查询只比较相同版本/维度，来源修改或删除使在途构建invalidated；错误不能发布新的活动索引。模型包与本机选择是安装材料，不属于第二套业务数据库；启动审计记录实际选择版本和状态，原文只保存在现有对象来源。详见[向量合同](v2/contracts/V2_LOCAL_VECTORS.md)。
 
 ## V2 图片引用与非拥有元数据
 
-图片批次基线为111表/v2_0032，当前版本见文首。`message_parts.kind=image`与原始用户消息、运行和入站去重原子登记；原消息入队后不能补写图片。`image_objects`只保存实际格式和尺寸，为唯一不构成保留拥有权的对象外键，采用ON DELETE CASCADE；消息与调用引用仍阻止回收。`model_image_policies`固定模型配置修订、协议、单次与累计上限及指纹，不能在已捕获运行之后追加或改写。`model_call_images`绑定调用、上下文快照、原消息/分块、策略及对象指纹；状态与模型调用统一结算。删除来源清空对象指针和登记删除时间，保留预算事实；调用记录不可删除来重置额度。组合外键、范围/状态/预算触发器约束跨Agent及生命周期。详见[图片合同](V2_IMAGES.md)。
+图片批次基线为111表/v2_0032，当前版本见文首。`message_parts.kind=image`与原始用户消息、运行和入站去重原子登记；原消息入队后不能补写图片。`image_objects`只保存实际格式和尺寸，为唯一不构成保留拥有权的对象外键，采用ON DELETE CASCADE；消息与调用引用仍阻止回收。`model_image_policies`固定模型配置修订、协议、单次与累计上限及指纹，不能在已捕获运行之后追加或改写。`model_call_images`绑定调用、上下文快照、原消息/分块、策略及对象指纹；状态与模型调用统一结算。删除来源清空对象指针和登记删除时间，保留预算事实；调用记录不可删除来重置额度。组合外键、范围/状态/预算触发器约束跨Agent及生命周期。详见[图片合同](v2/contracts/V2_IMAGES.md)。
 
 ```mermaid
 erDiagram
@@ -35,19 +35,19 @@ erDiagram
 
 ## V2 模型流式记录
 
-流式模型继续使用`model_calls/budget_accounts`预留和一次结算，最终消息/运行/投递仍沿原事务提交。片段为活跃运行的有界内存预览，不进入messages、run_events或诊断存储；缺少供应商原始用量保留unknown，SDK补算不释放预留。模型调用捕获并重查配置及凭据revision/authority_epoch。流式批次本身未增加迁移；图片消息与实际附图来源现已沿本文模型并入单库。详见[流式合同](V2_MODEL_STREAMING.md)。
+流式模型继续使用`model_calls/budget_accounts`预留和一次结算，最终消息/运行/投递仍沿原事务提交。片段为活跃运行的有界内存预览，不进入messages、run_events或诊断存储；缺少供应商原始用量保留unknown，SDK补算不释放预留。模型调用捕获并重查配置及凭据revision/authority_epoch。流式批次本身未增加迁移；图片消息与实际附图来源现已沿本文模型并入单库。详见[流式合同](v2/contracts/V2_MODEL_STREAMING.md)。
 
 ## V2 安卓输入法恢复
 
-`android_unicode_profiles`按根设备授权追加配置，revision单步递增且不可修改/删除，只保存凭据引用和组件指纹。`android_unicode_environments`以唯一action_id记录原IME/subtype、启用集合指纹、原设备/端点及恢复观察；组合外键、来源与状态触发器约束同Agent、同设备和实际批准动作。原捕获不可改写，pending义务阻止相同设备新输入；恢复不修改原输入unknown。正文和输入结果仍在共享actions，不产生第二套真值。详见[Unicode合同](V2_ANDROID_UNICODE.md)。
+`android_unicode_profiles`按根设备授权追加配置，revision单步递增且不可修改/删除，只保存凭据引用和组件指纹。`android_unicode_environments`以唯一action_id记录原IME/subtype、启用集合指纹、原设备/端点及恢复观察；组合外键、来源与状态触发器约束同Agent、同设备和实际批准动作。原捕获不可改写，pending义务阻止相同设备新输入；恢复不修改原输入unknown。正文和输入结果仍在共享actions，不产生第二套真值。详见[Unicode合同](v2/contracts/V2_ANDROID_UNICODE.md)。
 
 ## V2 安卓模型运行范围
 
-`android_access`固定运行、批准动作、设备授权、会话代次、策略和期限；`android_access_packages/kinds`以不可改写的关系行保存范围、唯一约束和Agent外键，不以JSON作为权限判定真值。使用时重算范围指纹，并要求来源动作完成；unknown来源、撤权、恢复/会话代次及到期均拒绝。审批、动作结果、费用和核查仍沿共享账本，详见[模型范围合同](V2_ANDROID_MODEL.md)。
+`android_access`固定运行、批准动作、设备授权、会话代次、策略和期限；`android_access_packages/kinds`以不可改写的关系行保存范围、唯一约束和Agent外键，不以JSON作为权限判定真值。使用时重算范围指纹，并要求来源动作完成；unknown来源、撤权、恢复/会话代次及到期均拒绝。审批、动作结果、费用和核查仍沿共享账本，详见[模型范围合同](v2/contracts/V2_ANDROID_MODEL.md)。
 
 ## V2 安卓设备授权
 
-`android_grants`固定Agent、配置修订、序列号/transport/boot/Android用户/构建指纹及历史代次，具有作用域外键、指纹与revision约束；触发器只允许撤销，恢复历史代次变化要求重新授权。所有者安卓动作继续使用`owner_commands → actions`单向移交，不复制正文或新建审批/结果真值。`session_captures`增加`adb_screencap`来源，沿统一会话对象引用及删除传播。详见[安卓合同](V2_ANDROID.md)。
+`android_grants`固定Agent、配置修订、序列号/transport/boot/Android用户/构建指纹及历史代次，具有作用域外键、指纹与revision约束；触发器只允许撤销，恢复历史代次变化要求重新授权。所有者安卓动作继续使用`owner_commands → actions`单向移交，不复制正文或新建审批/结果真值。`session_captures`增加`adb_screencap`来源，沿统一会话对象引用及删除传播。详见[安卓合同](v2/contracts/V2_ANDROID.md)。
 
 ## V2 会话截图对象
 
@@ -63,19 +63,19 @@ erDiagram
 
 ## V2 B站发布与规则修订
 
-`bilibili_profiles`绑定通道配置和当前规则修订，`bilibili_profile_revisions`保存不可变的选择器/浏览器模式；`bilibili_publications`引用原消息、配置及规则修订，固定目标、内容指纹和mention字符锚点，禁止相同语义绕过请求key重复准备。`bilibili_deliveries`把发布与共享outbox关联，不新增发送状态真值。正文仅在messages，显示名从原文导出，权限撤销与删除传播复用统一来源/上下文判定。详见[B站合同](V2_BILIBILI.md)。
+`bilibili_profiles`绑定通道配置和当前规则修订，`bilibili_profile_revisions`保存不可变的选择器/浏览器模式；`bilibili_publications`引用原消息、配置及规则修订，固定目标、内容指纹和mention字符锚点，禁止相同语义绕过请求key重复准备。`bilibili_deliveries`把发布与共享outbox关联，不新增发送状态真值。正文仅在messages，显示名从原文导出，权限撤销与删除传播复用统一来源/上下文判定。详见[B站合同](v2/contracts/V2_BILIBILI.md)。
 
 ## V2 QQ通道与人物归属
 
 `qq_bindings`为Agent内人工创建的会话授权，绑定统一通道配置、独立会话、私聊/群聊目标、独立人设、修订和持久入站冷却；更换目标须新建授权。`qq_runs`关联统一运行、配置及授权修订、发送者人物与人工账号绑定，固定事件去重键和内容指纹，不重复消息正文，来源不可改写。账号绑定ID保留为历史身份而不建立阻止解绑的外键，授权时仍核验其存在和人物归属。跨Agent关系使用作用域外键。
 
-正文、上下文、费用和投递沿用统一账本。QQ输出与待审批outbox原子提交，发送冷却复用投递尝试时间；不另建QQ费用库或消息真值。QQ会话不捕获所有者记忆或全局工具，关闭和取消沿统一生命周期。详见[QQ合同](V2_QQ.md)。
+正文、上下文、费用和投递沿用统一账本。QQ输出与待审批outbox原子提交，发送冷却复用投递尝试时间；不另建QQ费用库或消息真值。QQ会话不捕获所有者记忆或全局工具，关闭和取消沿统一生命周期。详见[QQ合同](v2/contracts/V2_QQ.md)。
 
 ## V2 所有者终端模型
 
 终端批次基线为95张声明业务表、`v2_0024`，当前以文首为准。`terminal_sessions`固定Agent、启动身份、Shell、目录指纹、权限代次、原生创建身份与生命周期；`terminal_operations`固定每个操作的ID、种类、意图指纹、字节数、状态与审计外键。输入和输出正文不写入两表。操作结果从`prepared`一次结算为`accepted/not_sent/unknown`，同ID回查不再次派发，终态回执不能改写；`accepted`不表示命令成功。已退出或未知会话不能复活，已知退出码不可覆盖。
 
-清理回收必须有当前启动持有的真实进程证明，辅助进程退出和历史PID都不足以作证。恢复和重启保留原身份，将未完成操作隔离为未知；`doctor`分别统计活跃终端、待核查会话与未知操作。终端意图审计使用真实外键纳入保护，关闭并不删除证据。详见[终端合同](V2_TERMINALS.md)。
+清理回收必须有当前启动持有的真实进程证明，辅助进程退出和历史PID都不足以作证。恢复和重启保留原身份，将未完成操作隔离为未知；`doctor`分别统计活跃终端、待核查会话与未知操作。终端意图审计使用真实外键纳入保护，关闭并不删除证据。详见[终端合同](v2/contracts/V2_TERMINALS.md)。
 
 ## V2 未知动作核查模型
 
@@ -342,13 +342,13 @@ instance_audit以全局所有者为归属，保存完整操作UUID、序号、re
 
 新增 credential_references、credential_operations、credential_reviews，合计 67 张声明表，基线 v2_0010。引用归全局所有者，唯一名称及 SHA-256 指纹；ready/changing/unknown/revoked 是未来使用权限，不能据此断言密钥有效。操作保存启动身份、执行令牌、prepared/running 及不可逆终态；核查绑定引用修订、授权代次与策略指纹，通过组合外键约束所属引用/操作/所有者。核查记录不可改写；旧 unknown 仍是 unknown。执行令牌不会返回工作台。
 
-修改前，意图、引用 changing、模型及投递撤权、审计在同一事务提交；原生 I/O 在事务外。缺失结算不会宣称成功。正常重启只回收其他 boot 的操作，prepared→not_applied、running→unknown；备份恢复提升全部引用代次、置 unknown，并撤销原所有者令牌。v9 开发库历史来源仅隔离登记，不读取/导入系统密钥或 V1 数据。审计游标高水位保留，迁移前一致快照，迁移中断可原子重试。具体合同与测试位置见[V2 凭据记录](V2_CREDENTIAL_AUTHORITY.md)。
+修改前，意图、引用 changing、模型及投递撤权、审计在同一事务提交；原生 I/O 在事务外。缺失结算不会宣称成功。正常重启只回收其他 boot 的操作，prepared→not_applied、running→unknown；备份恢复提升全部引用代次、置 unknown，并撤销原所有者令牌。v9 开发库历史来源仅隔离登记，不读取/导入系统密钥或 V1 数据。审计游标高水位保留，迁移前一致快照，迁移中断可原子重试。具体合同与测试位置见[V2 凭据记录](v2/contracts/V2_CREDENTIAL_AUTHORITY.md)。
 
 ## V2 运行保留基础（R3.retention_preview）
 
 runs 新增 retention_pinned 和独立 retention_revision（v2_0011），不改变执行、配置或权限版本。固定修改与审计同事务、CAS 防覆盖；数据库禁止保留版本倒退。预览只扫描至少30天前结束的运行，按完整UUID分页（最多50条），返回摘要元数据、保护原因及有长度分隔的内容指纹，不返回聊天、参数或结果正文。
 
-保护谓词覆盖非终态/近期/固定运行、未完成动作或未知副作用、未结模型费用、未完成工作、持有资源、未完成及未知投递、记忆来源、文档上下文与固定产物。预览可以通过独占离线CLI运行，使用与诊断相同的只读存储生命周期；不升级数据库、不调用模型/设备。预览维持 can_apply=false，执行必须另生成计划。v2_0012 新增 retention_batches/retention_targets 与运行/动作/事件裁剪标记，备份后复核、逐运行提交、断点续跑和显式取消见[执行正文保留合同](V2_EXECUTION_RETENTION.md)。
+保护谓词覆盖非终态/近期/固定运行、未完成动作或未知副作用、未结模型费用、未完成工作、持有资源、未完成及未知投递、记忆来源、文档上下文与固定产物。预览可以通过独占离线CLI运行，使用与诊断相同的只读存储生命周期；不升级数据库、不调用模型/设备。预览维持 can_apply=false，执行必须另生成计划。v2_0012 新增 retention_batches/retention_targets 与运行/动作/事件裁剪标记，备份后复核、逐运行提交、断点续跑和显式取消见[执行正文保留合同](v2/contracts/V2_EXECUTION_RETENTION.md)。
 
 ## V2 已裁剪动作的产物引用释放（R3.retention_references）
 
@@ -381,7 +381,7 @@ v2_0014 新增三张表，提供未来保留清理所需的持久分页基础，
 
 游标固定 epoch、流、作用域、清理修订、最后全局序号及运行筛选，不能跨 Agent、流或运行混用。每页在一个读事务读取水位与行，允许稀疏保留；新记录追加不使游标失效，下一页可读取新提交记录，并不承诺跨页固定数据库快照。事件作用域为整个 Agent，单运行查询也会在该 Agent 的事件删除后失效。恢复更换 epoch，保留分配器与清理进度；不能让旧游标进入恢复后的历史。
 
-180 天普通审计候选、计划和删除尚未实现；`runs`、会话摘要/父链、聊天、来源快照、去重、调度、审批、动作、投递、费用及维护证据不因该游标批次删除。完整合同及后续设计见[审计保留设计](V2_AUDIT_RETENTION_DESIGN.md)。
+180 天普通审计候选、计划和删除尚未实现；`runs`、会话摘要/父链、聊天、来源快照、去重、调度、审批、动作、投递、费用及维护证据不因该游标批次删除。完整合同及后续设计见[审计保留设计](v2/contracts/V2_AUDIT_RETENTION_DESIGN.md)。
 
 ## V2 180 天审计只读预览（R3.retention_audit.preview）
 
@@ -395,13 +395,13 @@ v2_0015 新增两表，总声明76表。`audit_retention_batches` 绑定实例�
 
 目标到批次及运行的外键包含Agent；原裁剪计划继续使用真实外键。审计ID和动作主体ID仅保存历史身份，不对待删audit/actions建活外键。精确审计删行、目标进度、v14触发器水位与维护审计在同一事务；已删凭证才能幂等跳过缺失行。其他清理改变水位会使活动计划冲突，完整回执可在后续合法清理后重读。
 
-恢复同事务轮换历史epoch、取消prepared批次与pending目标，保留deleted证据；重复恢复核验报告隔离标志、文件及epoch。预览仍不能直接apply，正文、运行事件、消息、去重、费用和来源身份不因此删除。操作合同见[审计保留设计](V2_AUDIT_RETENTION_DESIGN.md)。
+恢复同事务轮换历史epoch、取消prepared批次与pending目标，保留deleted证据；重复恢复核验报告隔离标志、文件及epoch。预览仍不能直接apply，正文、运行事件、消息、去重、费用和来源身份不因此删除。操作合同见[审计保留设计](v2/contracts/V2_AUDIT_RETENTION_DESIGN.md)。
 
 ## V2 事件删除证据（R3.retention_audit.events）
 
 v2_0016 增加 event_retention_batches/targets，共78表。批次字段通过共同声明函数复用审计约束形状，政策独立；目标历史身份是全局整数 sequence，主键 `(batch_id, sequence)`，并在批次内约束 `(run_id,seq)` 唯一、全局 pending sequence 唯一。批次/运行均通过含Agent的组合外键关联，原裁剪计划继续保留，不对run_events建活外键。全部目标字段、指纹和进度证据不可改写或删除。
 
-事件及运行须均超过180天、均有匹配的正文裁剪证据；动作事件核验实际动作归属与结算状态。删除只改变选定事件、不可变维护进度和events清理修订，维护审计另写audit。runs.last_seq及原body_sha256、其他现存事件seq、聊天/来源/入站/调度/费用身份保留；删空后继续分配原last_seq+1。恢复取消pending事件目标和prepared批次并更换epoch，deleted证明保持。恢复/未知事件种类及仍有效会话摘要继续保留，完整合同见[审计保留设计](V2_AUDIT_RETENTION_DESIGN.md)。
+事件及运行须均超过180天、均有匹配的正文裁剪证据；动作事件核验实际动作归属与结算状态。删除只改变选定事件、不可变维护进度和events清理修订，维护审计另写audit。runs.last_seq及原body_sha256、其他现存事件seq、聊天/来源/入站/调度/费用身份保留；删空后继续分配原last_seq+1。恢复取消pending事件目标和prepared批次并更换epoch，deleted证明保持。恢复/未知事件种类及仍有效会话摘要继续保留，完整合同见[审计保留设计](v2/contracts/V2_AUDIT_RETENTION_DESIGN.md)。
 
 ## V2 持久维护任务（R4.maintenance）
 
@@ -456,4 +456,4 @@ V2当前截图来源约束由v2_0025扩充pipewire_window，95张业务表不变
 
 ## V2终端独立观察（v2_0026，96表）
 
-terminal_reviews为terminal_operations的追加观察，不是另一个执行账本。完整UUID、Agent/操作/会话组合外键、唯一递增核查revision、history_epoch和来源指纹限制范围与并发；版本化proof保存当时元数据，输入/输出原文不进入此表。说明上限2000字符/8000字节，可单独清除；原观察、请求与说明SHA、审计FK保留且不可改写。既有AUDIT_REFERENCES自动保护所引用审计。恢复更换history_epoch，旧观察保留而当前匹配失效；核查不改变原回执、会话清理、费用或投递。细节见[终端合同](V2_TERMINALS.md)。
+terminal_reviews为terminal_operations的追加观察，不是另一个执行账本。完整UUID、Agent/操作/会话组合外键、唯一递增核查revision、history_epoch和来源指纹限制范围与并发；版本化proof保存当时元数据，输入/输出原文不进入此表。说明上限2000字符/8000字节，可单独清除；原观察、请求与说明SHA、审计FK保留且不可改写。既有AUDIT_REFERENCES自动保护所引用审计。恢复更换history_epoch，旧观察保留而当前匹配失效；核查不改变原回执、会话清理、费用或投递。细节见[终端合同](v2/contracts/V2_TERMINALS.md)。
