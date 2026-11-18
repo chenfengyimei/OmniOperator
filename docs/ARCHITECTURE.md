@@ -142,6 +142,8 @@ Linux桌面原生会话由固定辅助进程内的`SessionInspector`核验，`Lo
 
 `linux_eis.py`拥有独立Portal授权所交付FD的EI核心sender握手、同步/ping和累计预算，不声明设备或输入接口。`ControlSession.prepare_eis`只允许原系统许可后一次调用，取消保留实际任务/迟到FD，失败撤回许可；未结清/包装器detach失败保留原归属供再次关闭。`linux_bus.py`只扩固定ConnectToEIS描述符操作，原PipeWire精确回包逻辑保持；当前为内部API，生产worker/业务未调用，不代表输入许可或Wayland完整控制。
 
+`linux_focus_navigation.py`的`KeyState`复用完整树，为非可编辑控件Enter核验同焦点目标仅一个已声明勾选/选择/展开状态翻转；原`linux_semantic`观察将当前状态封存进动作SHA，许可后重验，标签正文仍参与身份。其他变化unknown、不重发。
+
 `linux_focus_navigation.py`只在明确窗口绑定内双读完整有界AT-SPI树，以实际Parent、节点/正文/静态状态与唯一FOCUSED转移证明Tab/Escape的同窗口可观察结果；不预测顺序或关闭。准备/许可后完整复核发生在最终按键包创建前，保留原X11序号守卫。原生接收端、原节点静态目录保持，其他变化unknown，不重放；密码/不完整树不建证明，取消仍沿原实际释放归属。
 
 `linux_window_binding.py`组合已验证AT-SPI窗口明确提供的XID、XRes实际进程及其自己的连续窗口/焦点连接；只接受已核对的提供方字段（当前Avalonia），不推断GTK/Qt通用关联。描述重读夹住焦点/窗口代次检查，任何失败锁存；关闭先结清输入监测的实际释放，再关闭自己的原生窗口连接，外部SessionInspector继续由worker拥有。`linux_key_action.py`现将该绑定、完整映射/来源/复制预检及成对派发接入原linux_action worker的UUID ready/permit；原语义目录将窗口/光标上下文计入动作指纹，未提供明确窗口身份不产生按键候选。
@@ -152,7 +154,7 @@ Linux桌面原生会话由固定辅助进程内的`SessionInspector`核验，`Lo
 
 `linux_xkb_map.py`解析完整GetMap八部件，`linux_xkb_copy.py`解析兼容表、名称、指示器定义和当前几何，均有界输出规范化SHA。`linux_xkb`在现有连接订阅来源键盘并交替四读主/从的完整复制配置、状态和控制；`KeyboardMapping`绑定原身份，`WindowFocus.key_packet`先通过预检。
 
-`linux_key_switch.py`以既有设备拓扑预计算唯一允许的主KeyClass来源ID变化。实际按键租约只在首个Raw事件前接受同按下序号的精确一次NKN→XI SlaveSwitch，旧/新设备、键码范围、XKB请求、changed位及来源KeyClass完整匹配。四条Raw和释放结清后，拓扑双读夹住原复制配置再验，焦点、释放与独立变化锁存均成立才采用该指纹；未发生切换时仍核对原拓扑，绝不清空changed。业务按键成功另需具体文本/光标后验，Tab/Escape、提交或不符行为保持unknown，传输完成不能代替应用证明。
+`linux_key_switch.py`以既有设备拓扑预计算唯一允许的主KeyClass来源ID变化。实际按键租约只在首个Raw事件前接受同按下序号的精确一次NKN→XI SlaveSwitch，旧/新设备、键码范围、XKB请求、changed位及来源KeyClass完整匹配。四条Raw和释放结清后，拓扑双读夹住原复制配置再验，焦点、释放与独立变化锁存均成立才采用该指纹；未发生切换时仍核对原拓扑，绝不清空changed。业务按键成功另需具体文本/光标、完整树焦点转移或单一声明状态翻转后验；提交、关闭或不符行为保持unknown，传输完成不能代替应用证明。
 
 平台桌面宿主在Linux按键permit发出前登记原生释放责任。超时/关闭只关闭输入管道撤销后续工作，保留进程、管道和共享名额直到实际退出；不能直接kill持有释放后缀/原查询的worker。worker在业务期限外继续结清WindowBinding，之后才关闭外部会话并回传。实际退出也不允许外部close先取消业务仍在读取的collector或清空回执，消费者离开后才完成原进程回收；现有元数据/语义/文本回收行为保持。
 

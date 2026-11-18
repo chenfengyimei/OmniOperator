@@ -243,3 +243,13 @@ X11语义观察对可聚焦、启用/可见的非密码节点读取顶层明确�
 核对的[GTK3默认属性](https://raw.githubusercontent.com/GNOME/gtk/bac4a949b151eedada8bc60a97429d2176b0b28b/gtk/a11y/gtkwidgetaccessible.c)、[GTK4默认属性](https://raw.githubusercontent.com/GNOME/gtk/98bf2f052a0491a885de63e926f0335b9e75c275/gtk/a11y/gtkatspicontext.c)和[Qt默认属性](https://raw.githubusercontent.com/qt/qtbase/72e75f4c4a92b383cc7d6473b7b627a64baee26b/src/gui/accessible/linux/atspiadaptor.cpp)没有直接提供可用原生XID；Qt自定义属性是应用合同，不能当通用窗口关联。不扩工具包白名单，不用同PID/标题/几何推断绑定。公开源码版本/字节SHA留档，通用关联仍是开发项。
 
 45新增与163调用方/合同共208专项通过（81.02秒），两项修改运行文件strict零错误/警告，373只为登记范围。首轮18失败/21通过揭示接线顺序错误，修复后18原节点及最终组通过，原报告/源码保留；没有放宽序号、超时或断言。真实隔离SQLite验证两种键的所有者审批、原UUID许可、回执与重复请求单次消费，原生全部是注入。没有全量或真实Linux/账号/模型/设备/72h验收，整个V2继续开发，见[本批证据](evidence/v2-linux-focus-navigation.json)。
+
+## 非可编辑控件Enter的单一状态后验（2026-11-18）
+
+原`press_key`/Enter接入`KeyState`，不新增输入种类或放宽窗口提供方。只有非可编辑控件且已声明CHECKABLE/CHECKED、SELECTABLE/SELECTED或EXPANDABLE/EXPANDED时，语义目录才把当前布尔状态加入原press_key上下文并纳入actions_sha256。Text接口可用于按钮标签，不把“可读文本”误判成“可编辑文本”；标签的完整有界正文继续参与节点身份。EditableText且EDITABLE的输入控件保留原全文/光标后验，不能用勾选状态替代文字输入结果。
+
+沿原明确XID、实际XRes进程、焦点接收端、映射/来源/复制及成对释放合同。KeyState复用FocusNavigation的完整同总线/实际Parent树：128节点、8层、16KiB及密码/唯一焦点保护不变。ready前双读完整基线；原UUID许可后再验基线，之后才创建当前序号键包并发送一次按下/抬起。审批等待期间目标状态或任何其他节点变化均在派发前拒绝。
+
+后验仍双读完整树并保持原生接收端、同一唯一焦点、所有引用/路径、角色/名称/正文/接口及其他节点状态。只有目标恰一个已声明CHECKED/SELECTED/EXPANDED位翻转（两个方向均可）才key_verified；两位变化、未声明状态、焦点转移、其他节点/正文/结构变化或能力丢失均unknown，不重放。无变化沿既有750ms只读等待；其他键不能借此路径把偶发状态变化当成功。展开导致子树/可见性改变、应用提交和弹窗/窗口关闭仍需各自合同，不能仅以状态位推断。
+
+26新增与168调用方/合同共194专项通过（93.81秒）；3修改运行文件strict零错误/警告，386仅登记。原6节点在旧源码返回unknown；初实现错误排除所有Text接口，实际按钮可读标签仍失败，已修正为真正EditableText+EDITABLE判定，保留原夹具/正文/断言及两个失败版本。三个真实隔离SQLite审批链分别验证勾选/选择/展开，批准前零输入、原grant/run/operation精确permit、单次回执与重复请求不再执行；取消保留原释放和两条连接。XRes/XKB/XTEST/AT-SPI为注入，未实际Linux输入或全量验收。见[状态证据](evidence/v2-linux-key-state.json)。

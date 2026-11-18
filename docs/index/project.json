@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "07571f4662664655992d85b18a2542c0d85fb94e862f9c8f69c7ad1341430608",
+  "source_sha256": "fa3f5826f7592735cf44375949cdd65911ba82d20a4c6e9766742478cf3010c7",
   "modules": [
     {
       "id": "v2-domain",
@@ -459,7 +459,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 65548,
+      "lines": 65601,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -555,7 +555,7 @@
         "web/ui/v2/v1/workbench.css",
         "web/ui/v2/workbench.css"
       ],
-      "lines": 22923,
+      "lines": 23092,
       "dependencies": []
     },
     {
@@ -27914,7 +27914,7 @@
       "path": "agent/src/omni/adapters/platform/linux_focus_navigation.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.linux_focus_navigation",
-      "lines": 126,
+      "lines": 164,
       "imports": [
         "omni.adapters.platform.linux_atspi",
         "omni.adapters.platform.linux_bus",
@@ -28012,6 +28012,36 @@
         {
           "name": "FocusNavigation.changed",
           "line": 116,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "KeyState",
+          "line": 129,
+          "kind": "class"
+        },
+        {
+          "name": "KeyState.prepare",
+          "line": 132,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "target",
+            "path",
+            "ref"
+          ],
+          "annotations": {
+            "target": "Payload",
+            "path": "list[int]",
+            "ref": "Ref"
+          }
+        },
+        {
+          "name": "KeyState.changed",
+          "line": 140,
           "kind": "function",
           "parameters": [
             "self"
@@ -28777,7 +28807,7 @@
       "path": "agent/src/omni/adapters/platform/linux_key_action.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.linux_key_action",
-      "lines": 167,
+      "lines": 171,
       "imports": [
         "omni.adapters.platform.linux_atspi",
         "omni.adapters.platform.linux_bus",
@@ -31559,7 +31589,7 @@
       "path": "agent/src/omni/adapters/platform/linux_semantic.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.linux_semantic",
-      "lines": 302,
+      "lines": 313,
       "imports": [
         "omni.adapters.platform.linux_atspi",
         "omni.adapters.platform.linux_bus",
@@ -31697,7 +31727,7 @@
         },
         {
           "name": "Semantics.make_proof",
-          "line": 165,
+          "line": 176,
           "kind": "function",
           "parameters": [
             "path",
@@ -31714,7 +31744,7 @@
         },
         {
           "name": "Semantics.observed",
-          "line": 180,
+          "line": 191,
           "kind": "function",
           "parameters": [
             "self",
@@ -31736,7 +31766,7 @@
         },
         {
           "name": "Semantics.resolve",
-          "line": 195,
+          "line": 206,
           "kind": "function",
           "parameters": [
             "self",
@@ -31750,7 +31780,7 @@
         },
         {
           "name": "Semantics.proof",
-          "line": 219,
+          "line": 230,
           "kind": "function",
           "parameters": [
             "self",
@@ -31764,7 +31794,7 @@
         },
         {
           "name": "Semantics.act",
-          "line": 226,
+          "line": 237,
           "kind": "function",
           "parameters": [
             "self",
@@ -105784,7 +105814,7 @@
       "path": "web/ui/v2/index.html",
       "module": "v2-workbench",
       "python_module": null,
-      "lines": 1941,
+      "lines": 1951,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -105804,7 +105834,7 @@
       "path": "web/ui/v2/main.js",
       "module": "v2-workbench",
       "python_module": null,
-      "lines": 1805,
+      "lines": 1812,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -106014,7 +106044,7 @@
       "path": "web/ui/v2/workbench.css",
       "module": "v2-workbench",
       "python_module": null,
-      "lines": 3083,
+      "lines": 3235,
       "imports": [],
       "symbols": [],
       "kind": "asset",

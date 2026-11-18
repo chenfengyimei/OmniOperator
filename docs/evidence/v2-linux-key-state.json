@@ -1,0 +1,178 @@
+{
+  "schema": 1,
+  "date": "2026-11-18",
+  "base_commit": "a9fa9ef2c72f5bf3febe09eb9936008dde40603d",
+  "status": "noneditable_enter_single_state_postcondition_implemented_scoped_passed",
+  "source_files": {
+    "agent/src/omni/adapters/platform/linux_key_action.py": "1506319158dfb1bc1fe90bf44feb4d63868f9eb9f246479b272b9a81216b63c2",
+    "agent/src/omni/adapters/platform/linux_focus_navigation.py": "939a2ff2c738142cc10815d37122d35801665af9de278607e1d52198a91489d1",
+    "agent/src/omni/adapters/platform/linux_semantic.py": "6bc701900677bdd6429dfb02e2f3bc0150dae5a3dabb992124c9855610400831",
+    "agent/tests/test_v2_linux_key_state.py": "a0fc726e9a8ca28bf8d702bbde876b68803d6581942688fd7cdf21bb14741ec2"
+  },
+  "source_manifests": [
+    {
+      "path": "temp/build/v2-linux-key-state-source-r1.json",
+      "sha256": "5a438b751f26aa7e6162de2951678069f6a7ddc1e7e55e77ec2a4652f1b13cb9"
+    },
+    {
+      "path": "temp/build/v2-linux-key-state-source-r2.json",
+      "sha256": "d616dcfc5e19e56282062b81bc0547856c84b5319a3a77ae43ee01a642b4dfda"
+    },
+    {
+      "path": "temp/build/v2-linux-key-state-source-r3.json",
+      "sha256": "e376613a35d913b759e032b5b7a3efe1efea70f13b06b1e792760df6e489632d"
+    },
+    {
+      "path": "temp/build/v2-linux-key-state-source-r4.json",
+      "sha256": "b91ce96882baba201ac440c53fd932a90c6f0f6066f02939bef045e3165d323f"
+    }
+  ],
+  "retained_source_deltas": [
+    {
+      "path": "temp/build/v2-linux-key-state-r1-source-delta.zip",
+      "sha256": "af517e9ee349fb6a1389c952b78c567f80457da741c8ff1f355b4a45c11c2e42"
+    },
+    {
+      "path": "temp/build/v2-linux-key-state-r2-source-delta.zip",
+      "sha256": "ea958cae3db11d056ecd061b0f544b326263b78d08e65b8563c9bdf794bbaca1"
+    },
+    {
+      "path": "temp/build/v2-linux-key-state-r3-source-delta.zip",
+      "sha256": "9348607efdf78016797d33515271247992cb2087442451f73901e799f65378ab"
+    },
+    {
+      "path": "temp/build/v2-linux-key-state-r4-source-delta.zip",
+      "sha256": "302e6ad7c87a9f2009130a0aa7b4d75a43295fea49c2513c6195132e9cdd4351"
+    }
+  ],
+  "validation": {
+    "passed": 194,
+    "new_nodes": 26,
+    "elapsed_seconds": 93.772,
+    "report": {
+      "path": "temp/build/v2-linux-key-state-callers-r4.xml",
+      "sha256": "54ef28605dc0af906ef53fb1398aafd533467c700f2e7a10136dab4f34717c2c"
+    },
+    "log": {
+      "path": "temp/build/v2-linux-key-state-callers-r4.log",
+      "sha256": "96ee1a5f6325bb47897a00da6169befa4bbcf93e63c48b394f902624a2bccaba"
+    },
+    "scope": [
+      "noneditable Enter state result",
+      "original native key business",
+      "same-window Tab/Escape",
+      "AT-SPI semantic and Unicode text actions",
+      "component click business",
+      "Linux owner application/approval",
+      "V2 architecture and frozen migration",
+      "strict scope contract"
+    ]
+  },
+  "strict_types": {
+    "files": 3,
+    "errors": 0,
+    "warnings": 0,
+    "report": {
+      "path": "temp/build/v2-linux-key-state-pyright-r4.json",
+      "sha256": "0129654827368acb0494a261a5a00da19232bfb3ba417c305c632919f1907803"
+    },
+    "registered_files": 386,
+    "registered_scope_fully_rechecked": false
+  },
+  "quality": {
+    "ruff_and_format_passed": true,
+    "report": {
+      "path": "temp/build/v2-linux-key-state-quality.json",
+      "sha256": "ad0f0d332aa44a16010a29d7485c986a683157511777df4343bc0e46c03a4964"
+    }
+  },
+  "development_history": {
+    "unmodified_runtime_base": "0d4b8dc0f54360970fcfd41c1067a2ab25aee835",
+    "unmodified_runtime_report": {
+      "path": "temp/build/v2-linux-key-state-before.xml",
+      "sha256": "2781f1348780eaef951aff0f0d508bf20aa10234ff391bfa2e7329abe223fdaf"
+    },
+    "unmodified_runtime_log": {
+      "path": "temp/build/v2-linux-key-state-before.log",
+      "sha256": "da609c628849e9ac3b7d9331890846f0ac741ec4edc955d7f159314841b721c2"
+    },
+    "unmodified_runtime_failed": 6,
+    "initial_implementation_report": {
+      "path": "temp/build/v2-linux-key-state-fix-r2.xml",
+      "sha256": "b9dcad69051ba95a2594cc42d4d2ff18649687ad3de4cd1d065ef25af539aef3"
+    },
+    "initial_implementation_log": {
+      "path": "temp/build/v2-linux-key-state-fix-r2.log",
+      "sha256": "6756df67672d6624503ddb0c48b608e61939d41d5332272b119e505b05d3b7b9"
+    },
+    "initial_implementation_failed": 6,
+    "implementation_correction": "Initial predicate excluded every Text interface, incorrectly excluding noneditable controls that expose readable label text. Changed to actual EditableText plus EDITABLE state; all label text remains in full-tree identity. Fixture interface/text and exact positive assertions preserved.",
+    "first_corrected_report": {
+      "path": "temp/build/v2-linux-key-state-fix-r3.xml",
+      "sha256": "f41c513c69bf526161e25bc4efd524508106a213f89d9ea9b24ade9915a767a2"
+    },
+    "first_corrected_log": {
+      "path": "temp/build/v2-linux-key-state-fix-r3.log",
+      "sha256": "aa6e43011e3dc89c4ccd279de32e4165c506e922b53e75752ee83ae12119e380"
+    },
+    "first_corrected_passed": 6,
+    "earlier_type_report": {
+      "path": "temp/build/v2-linux-key-state-pyright-r2.json",
+      "sha256": "3f4513b9bee15b22f1cdb99771a8ea3269a4cab007e0f18df7fa20c6517cdf1e"
+    }
+  },
+  "contract": {
+    "admission": "Reuse original press_key/Enter kind, explicit native-XID provider binding, single approved observation, UUID ready/permit and exact XRes/focus/source/XKB/release guards. No new global input operation or widened toolkit binding.",
+    "sealed_observation": "Only noneditable controls advertising CHECKABLE/CHECKED, SELECTABLE/SELECTED or EXPANDABLE/EXPANDED add current boolean state to press_key context, hence original actions_sha256. Readable label Text interface is permitted and its complete bounded text remains hashed; EditableText plus EDITABLE keeps text/caret contract. A changed state during owner approval invalidates original proof before dispatch.",
+    "window_proof": "KeyState reuses the original complete, bounded, double-read AT-SPI tree, actual Parent/ref/path, role/name/text/interfaces identity, unique focused interactive node, and native binding. Full baseline rechecked before final key packet creation after permit. Password, incomplete/foreign/ambiguous tree and original budgets remain unchanged.",
+    "postcondition": "Enter only: same focused node and same complete tree, exactly one of the node advertised CHECKED/SELECTED/EXPANDED bits flips, in either direction. Every other node/state, reference/path and identity remains equal. Unchanged state waits only existing750ms readback budget; other changes, two flips, focus movement, new/removed children, missing capability or wrong-key state flip remain unknown without another input.",
+    "lifecycle": "Original cancellation and key-release ownership remains: cancellation waits for original release/query and both native connections. No second key pair, reset of input changes, timeout reduction or skipped assertion.",
+    "application": "Three real isolated SQLite owner flows exercise each state family: zero input before approval, exact grant/run/operation permit, one actual injected pair, key_verified receipt and succeeded run, duplicate owner request reuses original intent. These are native binary/AT-SPI injected ports on Windows, not actual Linux devices."
+  },
+  "platform_audit": {
+    "gtk_qt_generic_native_window_binding": "Still not proven; no title/PID/geometry inference added. Existing explicit native-XID provider scope remains.",
+    "kde_protocol_review": {
+      "source": "https://raw.githubusercontent.com/KDE/plasma-wayland-protocols/master/src/protocols/plasma-window-management.xml",
+      "observed_date": "2026-11-18",
+      "result": "Current XML requires minimum17 and explicitly restricts the interface to desktop environment internals, warning regular clients not to use it and of incompatible changes. Not adopted as a production target-association API; future compositor/seat/target proof still required.",
+      "runtime_implementation_added": false
+    },
+    "docker_probe": {
+      "client_version": "29.6.1",
+      "server_available": false,
+      "server_started": false,
+      "image_build_or_linux_native_execution": false
+    }
+  },
+  "real_isolated_sqlite_owner_approval_executed": true,
+  "real_linux_xorg_atspi_or_device_input_executed": false,
+  "real_wayland_kde_or_paid_model_accounts_devices_72h_executed": false,
+  "full_suite_run": false,
+  "wheel_or_platform_package_rebuilt": false,
+  "whole_v2_development_complete": false,
+  "whole_v2_accepted": false,
+  "publication": {
+    "destination": "https://gitee.com/chenfengloveyuri/OmniOperator.git",
+    "branch": "v2",
+    "owner_continuous_push_authorized": true,
+    "force": false,
+    "excluded_parallel_tracked_paths": [
+      "agent/tests/test_v2_installation_launchers.py",
+      "docs/V2_AI_CONTINUATION_PROMPT.md",
+      "docs/V2_UI_PROMPT.md",
+      "docs/evidence/v2-ui.json",
+      "docs/tasks/v2-windows-candidate.json",
+      "web/ui/v2/android.js",
+      "web/ui/v2/desktop.js",
+      "web/ui/v2/documents.js",
+      "web/ui/v2/index.html",
+      "web/ui/v2/main.js",
+      "web/ui/v2/operations.js",
+      "web/ui/v2/terminals.js",
+      "web/ui/v2/workbench.css"
+    ],
+    "resume": "Owner resumed after pause. All four tested source files retain exact revision4 hashes; intervening commits change unrelated UI and independent Windows acceptance/test-only records. The194 report remains tied to frozen a9fa9ef2, not a full-current-source result. Windows acceptance committed separately in b2f05f56 is preserved; root HANDOFF differs from current HEAD only by this owned Linux paragraph."
+  },
+  "next": "Continue generic native target association, independent Wayland seat/intervention/region/business proof and remaining whole V2 delivery/code gaps. Form submission, popup/window closure and arbitrary application postconditions remain separate; full suite after whole V2 development freeze.",
+  "publication_base_commit": "b2f05f5613b7ecb410f281842590742a49171d52"
+}

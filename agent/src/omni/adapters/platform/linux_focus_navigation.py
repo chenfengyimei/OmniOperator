@@ -124,3 +124,41 @@ class FocusNavigation:
             self._failed = True
             raise failure("desktop_observation_changed")
         return after.focused is not None and after.focused != self._before.focused
+
+
+class KeyState(FocusNavigation):
+    """Verify one advertised state flip on the same focused node and complete window tree."""
+
+    async def prepare(self, target: Payload, path: list[int], ref: Ref) -> None:
+        await super().prepare(target, path, ref)
+        assert self._before is not None
+        node = next(item for item in self._before.nodes if item.ref == ref)
+        if not {41, 22, 9} & node.flags:
+            self._failed = True
+            raise failure("desktop_input_unverified")
+
+    async def changed(self) -> bool:
+        if self._before is None:
+            raise failure("desktop_input_unverified")
+        after = await self._stable()
+        if after.focused != self._before.focused or len(after.nodes) != len(self._before.nodes):
+            self._failed = True
+            raise failure("desktop_observation_changed")
+        changed = False
+        for before_node, after_node in zip(self._before.nodes, after.nodes, strict=True):
+            if before_node.ref != self._before.focused:
+                valid = before_node == after_node
+            else:
+                allowed = {bit for capability, bit in ((41, 4), (22, 23), (9, 10)) if capability in before_node.flags}
+                delta = before_node.flags ^ after_node.flags
+                valid = (
+                    before_node.ref == after_node.ref
+                    and before_node.path == after_node.path
+                    and before_node.identity == after_node.identity
+                    and (not delta or len(delta) == 1 and delta <= allowed)
+                )
+                changed = bool(delta)
+            if not valid:
+                self._failed = True
+                raise failure("desktop_observation_changed")
+        return changed

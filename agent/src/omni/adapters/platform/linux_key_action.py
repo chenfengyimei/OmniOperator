@@ -10,7 +10,7 @@ from ...domain.contracts import BusinessError
 from ...domain.foreground import action as foreground_action
 from .linux_atspi import AtspiDesktop
 from .linux_bus import failure
-from .linux_focus_navigation import FocusNavigation
+from .linux_focus_navigation import FocusNavigation, KeyState
 from .linux_semantic import Semantics, digest, result, stable_catalog
 from .linux_text import WAIT_SECONDS
 from .linux_window_binding import WindowBinding
@@ -101,7 +101,12 @@ class FocusedKey:
             await focus.prepare_key(key)
             await focus.prepare_sources()
             await focus.key_packet()  # all copied configuration proved BEFORE ready
-            navigation = FocusNavigation(self.desktop, self.binding) if key in {"Tab", "Escape"} else None
+            keyboard = cast(Payload, catalog["press_key"])
+            navigation: FocusNavigation | None = None
+            if key in {"Tab", "Escape"}:
+                navigation = FocusNavigation(self.desktop, self.binding)
+            elif key == "Enter" and keyboard.get("state"):
+                navigation = KeyState(self.desktop, self.binding)
             if navigation is not None:
                 await navigation.prepare(target, path, ref)
             if not await permit():
@@ -113,7 +118,6 @@ class FocusedKey:
             current = await self.semantics.resolve(target, path)
             if current[0] != ref or current[-1] != proof or not await self._focused(target, current[2]):
                 raise failure("desktop_observation_changed")
-            keyboard = cast(Payload, catalog["press_key"])
             expected = expected_edit(cast(str, facts["text"]), cast(Payload | None, keyboard["text"]), key)
             sent = True
             await packet.emit()

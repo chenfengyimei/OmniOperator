@@ -41,7 +41,7 @@ def stable_catalog(catalog: Payload) -> Payload:
     entries = {key: value for key, value in catalog.items() if key != "type_text"}
     if "press_key" in entries:
         entries["press_key"] = {
-            key: value for key, value in cast(Payload, entries["press_key"]).items() if key != "text"
+            key: value for key, value in cast(Payload, entries["press_key"]).items() if key not in {"text", "state"}
         }
     if "click" in entries:
         entries["click"] = {key: value for key, value in cast(Payload, entries["click"]).items() if key != "state"}
@@ -127,6 +127,17 @@ class Semantics:
         if window is not None and 11 in cast(set[int], facts["flags"]):
             keyboard = await self.keyboard_context(window, context)
             if keyboard is not None:
+                # Buttons may expose readable label text. Only editable text
+                # needs the separate text/caret postcondition contract.
+                if not (EDITABLE in cast(list[str], facts["interfaces"]) and 7 in cast(set[int], facts["flags"])):
+                    flags = cast(set[int], facts["flags"])
+                    state = {
+                        str(bit): bit in flags
+                        for capability, bit in ((41, 4), (22, 23), (9, 10))
+                        if capability in flags
+                    }
+                    if state:
+                        keyboard["state"] = state
                 entries["press_key"] = keyboard
         if parent is not None and window is not None and COMPONENT in cast(list[str], facts["interfaces"]):
             from .linux_node_point import point_context

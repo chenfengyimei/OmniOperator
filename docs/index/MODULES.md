@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`07571f4662664655992d85b18a2542c0d85fb94e862f9c8f69c7ad1341430608`。包含 65 个职责模块、792 个源码/界面文件。
+源码指纹：`fa3f5826f7592735cf44375949cdd65911ba82d20a4c6e9766742478cf3010c7`。包含 65 个职责模块、792 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -304,10 +304,10 @@
 | [agent/src/omni/adapters/platform/linux_eis_keymap.py](../../agent/src/omni/adapters/platform/linux_eis_keymap.py) | 93 | Bounded EI keymap copy with original FD/thread lifetime; no keymap execution, layout inference or input. |
 | [agent/src/omni/adapters/platform/linux_evdev_input.py](../../agent/src/omni/adapters/platform/linux_evdev_input.py) | 195 | Owned read-only evdev neutral-state/readiness checks; no event contents, grabs, writes, permission or routing changes. |
 | [agent/src/omni/adapters/platform/linux_fds.py](../../agent/src/omni/adapters/platform/linux_fds.py) | 109 | Owned received descriptors and bounded SCM_RIGHTS; no bus or desktop policy. |
-| [agent/src/omni/adapters/platform/linux_focus_navigation.py](../../agent/src/omni/adapters/platform/linux_focus_navigation.py) | 126 | Bounded complete AT-SPI focus readback in one native-bound window; never predicts tab order or sends input. |
+| [agent/src/omni/adapters/platform/linux_focus_navigation.py](../../agent/src/omni/adapters/platform/linux_focus_navigation.py) | 164 | Bounded complete AT-SPI focus readback in one native-bound window; never predicts tab order or sends input. |
 | [agent/src/omni/adapters/platform/linux_foreground.py](../../agent/src/omni/adapters/platform/linux_foreground.py) | 424 | Read-only X11 focus ancestry proof for future explicit foreground delivery; never maps AT-SPI nodes or sends input. |
 | [agent/src/omni/adapters/platform/linux_input.py](../../agent/src/omni/adapters/platform/linux_input.py) | 453 | Verified Xorg input-change guard for addressed semantic actions; never grabs, synthesizes or stores input content. |
-| [agent/src/omni/adapters/platform/linux_key_action.py](../../agent/src/omni/adapters/platform/linux_key_action.py) | 167 | One approved native key pair for an explicitly bound focused semantic node; no focus acquisition or replay. |
+| [agent/src/omni/adapters/platform/linux_key_action.py](../../agent/src/omni/adapters/platform/linux_key_action.py) | 171 | One approved native key pair for an explicitly bound focused semantic node; no focus acquisition or replay. |
 | [agent/src/omni/adapters/platform/linux_key_switch.py](../../agent/src/omni/adapters/platform/linux_key_switch.py) | 125 | Prove the single Xorg keyboard slave switch surrounding an owned key pair; no input or configuration writes. |
 | [agent/src/omni/adapters/platform/linux_keyboard.py](../../agent/src/omni/adapters/platform/linux_keyboard.py) | 165 | Bounded read-only core keymap preflight on an existing focus proof; never translates Unicode, changes layouts or sends input. |
 | [agent/src/omni/adapters/platform/linux_keystroke.py](../../agent/src/omni/adapters/platform/linux_keystroke.py) | 157 | Single paired XTEST wire delivery and retained release; business target/permit integration remains external. |
@@ -325,7 +325,7 @@
 | [agent/src/omni/adapters/platform/linux_portal.py](../../agent/src/omni/adapters/platform/linux_portal.py) | 220 | Explicit ephemeral window selection on a pinned Wayland portal; never opens PipeWire FDs or dispatches input. |
 | [agent/src/omni/adapters/platform/linux_remote_desktop.py](../../agent/src/omni/adapters/platform/linux_remote_desktop.py) | 291 | Separate Wayland device consent and owned EI core negotiation; no ScreenCast reuse, clipboard, restored authority or input. |
 | [agent/src/omni/adapters/platform/linux_seat_input.py](../../agent/src/omni/adapters/platform/linux_seat_input.py) | 182 | One seat's kernel-input guard with owned executor/FD watches; no authority, input data capture or compositor-target proof. |
-| [agent/src/omni/adapters/platform/linux_semantic.py](../../agent/src/omni/adapters/platform/linux_semantic.py) | 302 | Addressed AT-SPI semantic proof and single mutation; no global input, focus acquisition or retry. |
+| [agent/src/omni/adapters/platform/linux_semantic.py](../../agent/src/omni/adapters/platform/linux_semantic.py) | 313 | Addressed AT-SPI semantic proof and single mutation; no global input, focus acquisition or retry. |
 | [agent/src/omni/adapters/platform/linux_session.py](../../agent/src/omni/adapters/platform/linux_session.py) | 348 | logind display-session and accessibility bus ownership; never trusts desktop environment variables. |
 | [agent/src/omni/adapters/platform/linux_signals.py](../../agent/src/omni/adapters/platform/linux_signals.py) | 103 | Bounded, pinned D-Bus signals on the same pre-authenticated local connection; no service activation or FDs. |
 | [agent/src/omni/adapters/platform/linux_text.py](../../agent/src/omni/adapters/platform/linux_text.py) | 100 | One addressed Unicode append in a manually focused AT-SPI editor; no key synthesis, clipboard, focus acquisition or retry. |
@@ -487,9 +487,9 @@
 | [web/ui/v2/documents.js](../../web/ui/v2/documents.js) | 487 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/event-stream.js](../../web/ui/v2/event-stream.js) | 168 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/extensions.js](../../web/ui/v2/extensions.js) | 656 | 原生源码、平台脚本或界面资源 |
-| [web/ui/v2/index.html](../../web/ui/v2/index.html) | 1941 | 原生源码、平台脚本或界面资源 |
+| [web/ui/v2/index.html](../../web/ui/v2/index.html) | 1951 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/inspector.js](../../web/ui/v2/inspector.js) | 266 | 原生源码、平台脚本或界面资源 |
-| [web/ui/v2/main.js](../../web/ui/v2/main.js) | 1805 | 原生源码、平台脚本或界面资源 |
+| [web/ui/v2/main.js](../../web/ui/v2/main.js) | 1812 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/maintenance.js](../../web/ui/v2/maintenance.js) | 126 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/mcp.js](../../web/ui/v2/mcp.js) | 362 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/media.js](../../web/ui/v2/media.js) | 426 | 原生源码、平台脚本或界面资源 |
@@ -510,7 +510,7 @@
 | [web/ui/v2/v1/components.css](../../web/ui/v2/v1/components.css) | 655 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/v1/frame.css](../../web/ui/v2/v1/frame.css) | 938 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/v1/workbench.css](../../web/ui/v2/v1/workbench.css) | 4451 | 原生源码、平台脚本或界面资源 |
-| [web/ui/v2/workbench.css](../../web/ui/v2/workbench.css) | 3083 | 原生源码、平台脚本或界面资源 |
+| [web/ui/v2/workbench.css](../../web/ui/v2/workbench.css) | 3235 | 原生源码、平台脚本或界面资源 |
 
 文档：[docs/V2_REFACTOR.md](../../docs/V2_REFACTOR.md)
 
