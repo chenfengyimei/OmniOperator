@@ -175,6 +175,8 @@
     "mac_architecture": "arm64",
     "actual_mac_transfer_or_execution": false,
     "owner_confirmed_apple_silicon": true,
+    "owner_reported_macos_version": "27",
+    "macos_version_verified_on_host": false,
     "macos_version_and_directory": "successor_session_checks_on_mac_not_a_local_blocker",
     "transfer_responsibility": "owner_copy_or_git",
     "local_development_and_documentation_closeout_complete": true,

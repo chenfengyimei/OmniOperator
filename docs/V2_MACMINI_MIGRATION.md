@@ -37,7 +37,7 @@ python3.12 --version
 uv --version
 ```
 
-所有者已确认目标是 Apple Silicon（M 系列），本次构建目标为 `arm64`。`uname -m` 应为 `arm64`，Python 也须原生运行；若为 `x86_64`，先退出 Rosetta 终端并改用 arm64 解释器，再安装依赖。macOS 版本和目标目录仍需在主机核对。
+所有者已确认目标是 Apple Silicon（M 系列），并告知系统版本为 macOS 27；本地 Windows 会话未读取 Mac 主机，接手后用 `sw_vers` 核对实际版本及 SDK。本次构建目标为 `arm64`。`uname -m` 应为 `arm64`，Python 也须原生运行；若为 `x86_64`，先退出 Rosetta 终端并改用 arm64 解释器，再安装依赖。目标目录由接手会话在本机读取。
 
 ## 3. 导入源码并创建新环境
 

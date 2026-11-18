@@ -8,7 +8,7 @@
 目标与当前阶段：
 - 所有者已完成 Windows 会话的本地收尾，源码、证据、任务记录和本提示词通过项目一起交接。项目迁移由所有者自行完成；macOS 版本、项目路径、工具链和环境状态由你在 Mac 本机读取。
 - 当前主线是 v2，远程为 https://gitee.com/chenfengloveyuri/OmniOperator.git。先核对 pwd、git status、当前分支和 HEAD，使用实际导入的源码，不假定 Windows 的绝对路径在 Mac 存在。
-- Mac mini 已确认是 Apple Silicon（M 系列），使用原生 arm64 终端、Python 和 helper。
+- Mac mini 已确认是 Apple Silicon（M 系列），所有者告知系统版本为 macOS 27；接手后用 sw_vers 核对实际版本及 SDK。使用原生 arm64 终端、Python 和 helper。
 - 优先完成整个 V2 的开发，再统一全量测试、修复与最终验收。Windows 主体开发和旧离线候选已完成；整个 V2 仍在开发，不能将 Windows 阶段完成当作全项目完成。
 
 先按顺序读取：

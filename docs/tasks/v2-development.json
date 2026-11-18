@@ -12,6 +12,8 @@
     "runbook": "docs/V2_MACMINI_MIGRATION.md",
     "resume_prompt": "docs/V2_MACMINI_RESUME_PROMPT.md",
     "mac_architecture": "arm64",
+    "owner_reported_macos_version": "27",
+    "macos_version_verified_on_host": false,
     "actual_mac_transfer_or_execution": false,
     "local_session_waiting_for_mac_connection": false,
     "whole_v2_complete": false,
