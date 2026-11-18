@@ -13,7 +13,7 @@ from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import Any
 
-from ...domain.contracts import BusinessError
+from omni.domain.contracts import BusinessError
 
 
 def failed(code: str) -> BusinessError:

@@ -141,7 +141,7 @@ class InstanceLock(PrivateFileLock):
     def _admit(self, release: tuple[str, str] | None) -> None:
         from omni.domain.contracts import BusinessError
         from omni.domain.release_fence import validate_fence
-        from omni.adapters.platform.deployment_files import decode, read_file
+        from omni.adapters.platform.services.deployment_files import decode, read_file
         from omni.adapters.platform.runtime.permissions import assert_private
 
         fence_path = self.path.parent / "release-fence.json"

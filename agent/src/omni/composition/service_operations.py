@@ -5,9 +5,9 @@ from __future__ import annotations
 from pathlib import Path
 from typing import cast
 
-from ..adapters.platform.deployment_files import CurrentDeploymentFiles
-from ..adapters.platform.service_operation_files import ServiceOperationFiles
-from ..adapters.platform.service_registration import ServiceRegistration
+from omni.adapters.platform.services.deployment_files import CurrentDeploymentFiles
+from omni.adapters.platform.services.service_operation_files import ServiceOperationFiles
+from omni.adapters.platform.services.service_registration import ServiceRegistration
 from ..adapters.primitives import SystemClock, UUIDs
 from ..application.ports import Record, ServiceRegistrationPort
 from ..application.service_operations import ServiceOperations
@@ -38,7 +38,7 @@ async def run_operation(
             "Supply the exact administrator socket and reviewed bundle SHA together",
         )
     if admin_socket is not None and admin_bundle_sha256 is not None:
-        from ..adapters.platform.service_admin_client import PrivilegedServiceClient
+        from omni.adapters.platform.services.service_admin_client import PrivilegedServiceClient
 
         if operation is None:
             raise BusinessError(

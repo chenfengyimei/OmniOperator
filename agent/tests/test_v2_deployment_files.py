@@ -14,7 +14,7 @@ from pathlib import Path
 import pytest
 from test_v2_private_permissions import _windows_acl
 
-from omni.adapters.platform import deployment_files as d
+from omni.adapters.platform.services import deployment_files as d
 from omni.domain.contracts import BusinessError
 from omni.domain.service_deployment import make_plan, validate_runtime
 

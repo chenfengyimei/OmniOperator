@@ -71,7 +71,7 @@ uv run --no-sync python scripts/check_package.py
 | 合同 | 实现位置 | 调用方测试 |
 | --- | --- | --- |
 | 不可变发布记录、来源/目标操作证明 | `adapters/persistence/releases.py`、`domain/releases.py` | `test_v2_releases.py` |
-| 部署文件校验、路径/权限/链接约束 | `adapters/platform/deployment_files.py` | `test_v2_deployment_files.py` |
+| 部署文件校验、路径/权限/链接约束 | `adapters/platform/services/deployment_files.py` | `test_v2_deployment_files.py` |
 | 优雅 drain、发布状态机、快照发布 | `domain/service_*`、`application/service_*` | `test_v2_release_drain.py` |
 | schema 升级/中断回滚/恢复来源快照 | `adapters/persistence/schema_upgrade.py`、迁移 v2_00NN | `test_v2_schema_release.py` |
 | 数据备份/恢复（含 WAL 一致快照） | CLI `backup` / `restore`、`maintenance.py` | 相关恢复测试与 schema release 调用方 |

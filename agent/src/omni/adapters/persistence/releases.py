@@ -11,7 +11,7 @@ from typing import Any, cast
 from ...application.ports import Record
 from ...domain.contracts import BusinessError
 from ...domain.releases import ReleasePlan, ReleasePrepared, ReleaseSnapshot, digest
-from ..platform.deployment_files import no_links
+from omni.adapters.platform.services.deployment_files import no_links
 from omni.adapters.platform.releases.release_files import ReleaseFiles
 from .deployed_instance import verify_deployed_instance
 from .maintenance import create_snapshot, fingerprint, restore_verified, safe_child, verify_snapshot

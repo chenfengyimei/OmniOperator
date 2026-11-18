@@ -11,8 +11,8 @@ import uuid
 from pathlib import Path
 from typing import Any, cast
 
-from ...domain.contracts import BusinessError
-from ...domain.service_admin import (
+from omni.domain.contracts import BusinessError
+from omni.domain.service_admin import (
     AUDIT_DIRECTORY,
     SOCKET_DIRECTORY,
     admin_scope,
@@ -21,8 +21,8 @@ from ...domain.service_admin import (
     socket_path,
     verify_broker,
 )
-from ...domain.service_deployment import manager_identity
-from .service_templates import render
+from omni.domain.service_deployment import manager_identity
+from omni.adapters.platform.services.service_templates import render
 
 
 def error(code: str = "service_admin_path_unsafe") -> BusinessError:

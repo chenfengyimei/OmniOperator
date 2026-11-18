@@ -10,8 +10,8 @@ from xml.etree import ElementTree as ET
 
 import pytest
 
-from omni.adapters.platform import service_query as q
-from omni.adapters.platform.service_templates import render
+from omni.adapters.platform.services import service_query as q
+from omni.adapters.platform.services.service_templates import render
 from omni.domain.service_deployment import make_plan, manager_identity
 
 

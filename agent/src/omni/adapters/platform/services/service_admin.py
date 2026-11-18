@@ -12,14 +12,14 @@ import sys
 import time
 from typing import Any, Protocol, cast
 
-from ...domain.contracts import BusinessError
-from ...domain.service_admin import MAX_FRAME, MAX_REQUESTS, decode, encode, response, validate_request
-from ...domain.service_control import start_precondition
-from ...domain.service_operations import registration_goal, registration_precondition
-from .service_admin_commands import RootCommands
-from .service_admin_policy import RootServicePolicy, error, root_path, sync
-from .service_templates import render
-from .systemd_state import PROPERTIES, systemd_state
+from omni.domain.contracts import BusinessError
+from omni.domain.service_admin import MAX_FRAME, MAX_REQUESTS, decode, encode, response, validate_request
+from omni.domain.service_control import start_precondition
+from omni.domain.service_operations import registration_goal, registration_precondition
+from omni.adapters.platform.services.service_admin_commands import RootCommands
+from omni.adapters.platform.services.service_admin_policy import RootServicePolicy, error, root_path, sync
+from omni.adapters.platform.services.service_templates import render
+from omni.adapters.platform.services.systemd_state import PROPERTIES, systemd_state
 
 
 def unknown(code: str) -> dict[str, Any]:
@@ -199,7 +199,7 @@ class SystemServiceAdministrator:
 
 def peer_identity(connection: socket.socket) -> tuple[int, int, int]:
     if sys.platform == "darwin":
-        from .darwin_admin_peer import peer_identity as darwin_peer
+        from omni.adapters.platform.services.darwin_admin_peer import peer_identity as darwin_peer
 
         return darwin_peer(connection)
     if sys.platform != "linux":
@@ -285,10 +285,10 @@ def serve(policy: RootServicePolicy) -> int:
     administrator: Administrator | None = None
     darwin_commands = None
     if sys.platform == "darwin":
-        from .darwin_admin_files import protected
-        from .darwin_admin_files import sync as darwin_sync
-        from .darwin_admin_policy import DarwinPolicy
-        from .darwin_service_admin import DarwinAdministrator
+        from omni.adapters.platform.services.darwin_admin_files import protected
+        from omni.adapters.platform.services.darwin_admin_files import sync as darwin_sync
+        from omni.adapters.platform.services.darwin_admin_policy import DarwinPolicy
+        from omni.adapters.platform.services.darwin_service_admin import DarwinAdministrator
 
         if not isinstance(policy, DarwinPolicy):
             raise error("service_admin_target_unsupported")

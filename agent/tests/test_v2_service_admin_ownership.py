@@ -7,8 +7,8 @@ from types import SimpleNamespace
 import pytest
 from test_v2_service_admin import SHA, Commands, Policy, operation
 
-from omni.adapters.platform import service_admin as server
-from omni.adapters.platform import service_admin_commands as c
+from omni.adapters.platform.services import service_admin as server
+from omni.adapters.platform.services import service_admin_commands as c
 from omni.domain.contracts import BusinessError
 from omni.domain.service_admin import decode, encode, request, validate_response
 

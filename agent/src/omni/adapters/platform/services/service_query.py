@@ -16,13 +16,13 @@ from functools import partial
 from pathlib import Path
 from typing import Any, TypeVar, cast
 
-from ...application.ports import Record
-from ...domain.contracts import BusinessError
-from ...domain.service_deployment import manager_identity, validate_plan
+from omni.application.ports import Record
+from omni.domain.contracts import BusinessError
+from omni.domain.service_deployment import manager_identity, validate_plan
 from omni.adapters.platform.runtime.processes import OwnedProcess
-from .service_templates import render
-from .systemd_state import PROPERTIES, systemd_state
-from .systemd_state import manager_report as _report
+from omni.adapters.platform.services.service_templates import render
+from omni.adapters.platform.services.systemd_state import PROPERTIES, systemd_state
+from omni.adapters.platform.services.systemd_state import manager_report as _report
 
 MAX_OUTPUT = 1_048_576
 QUERY_SECONDS = 5.0
@@ -402,7 +402,7 @@ class ServiceQuery:
             return _report(code="service_manager_query_unavailable")
 
     async def _macos_native(self, plan: Record) -> Record:
-        from .macos_service import MacOSServiceInspection
+        from omni.adapters.platform.services.macos_service import MacOSServiceInspection
 
         request = cast(Record, plan["request"])
         if str(getattr(os, "geteuid", lambda: None)()) != cast(Record, request["principal"])["id"]:

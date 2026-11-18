@@ -10,7 +10,7 @@ import subprocess
 from typing import Any, cast
 from xml.etree import ElementTree as ET
 
-from ...domain.service_deployment import manager_identity, service_argv, startup, validate_plan
+from omni.domain.service_deployment import manager_identity, service_argv, startup, validate_plan
 
 Payload = dict[str, object]
 

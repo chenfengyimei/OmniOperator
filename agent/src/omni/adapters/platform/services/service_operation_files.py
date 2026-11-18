@@ -9,12 +9,19 @@ from contextlib import contextmanager
 from pathlib import Path
 from typing import cast
 
-from ...application.ports import Record
-from ...domain.contracts import BusinessError
-from ...domain.service_operations import validate_operation
-from ..object_store import sync_directory
-from ..persistence.deployed_instance import verify_deployed_instance
-from .deployment_files import CurrentDeploymentFiles, decode, destination, json_bytes, no_links, read_file
+from omni.application.ports import Record
+from omni.domain.contracts import BusinessError
+from omni.domain.service_operations import validate_operation
+from omni.adapters.object_store import sync_directory
+from omni.adapters.persistence.deployed_instance import verify_deployed_instance
+from omni.adapters.platform.services.deployment_files import (
+    CurrentDeploymentFiles,
+    decode,
+    destination,
+    json_bytes,
+    no_links,
+    read_file,
+)
 from omni.adapters.platform.runtime.paths import InstanceLock, InstancePaths, PrivateFileLock
 from omni.adapters.platform.runtime.permissions import assert_private, private_path
 

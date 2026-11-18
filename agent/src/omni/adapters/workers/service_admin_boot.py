@@ -178,8 +178,8 @@ def main(argv: list[str] | None = None) -> int:
         manifest = validate_bundle(root)
         sys.dont_write_bytecode = True
         sys.path.insert(0, str(root / "lib"))
-        from omni.adapters.platform.service_admin import serve
-        from omni.adapters.platform.service_admin_policy import RootServicePolicy
+        from omni.adapters.platform.services.service_admin import serve
+        from omni.adapters.platform.services.service_admin_policy import RootServicePolicy
         from omni.domain.service_admin import admin_scope, scoped_operations
 
         operation = admin_scope(strict_json(read_owner_file(args.operation, args.owner_uid)))
@@ -190,9 +190,9 @@ def main(argv: list[str] | None = None) -> int:
             raise ValueError("review mismatch")
         validate_sources(manifest, operation)
         if sys.platform == "darwin":
-            from omni.adapters.platform.darwin_admin_commands import DarwinCommands
-            from omni.adapters.platform.darwin_admin_files import protected
-            from omni.adapters.platform.darwin_admin_policy import DarwinPolicy
+            from omni.adapters.platform.services.darwin_admin_commands import DarwinCommands
+            from omni.adapters.platform.services.darwin_admin_files import protected
+            from omni.adapters.platform.services.darwin_admin_policy import DarwinPolicy
 
             # The administrator has already reviewed and protected the entire
             # bootstrap artifact. Check extended ACLs again before native work.

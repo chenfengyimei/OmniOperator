@@ -11,9 +11,9 @@ from pathlib import Path
 import pytest
 from test_v2_service_deployment import plan
 
-from omni.adapters.platform import service_query as q
-from omni.adapters.platform import service_registration as r
-from omni.adapters.platform.macos_service import VERSION, MacOSServiceInspection, disabled_override, loaded_definition
+from omni.adapters.platform.services import service_query as q
+from omni.adapters.platform.services import service_registration as r
+from omni.adapters.platform.services.macos_service import VERSION, MacOSServiceInspection, disabled_override, loaded_definition
 from omni.domain.contracts import BusinessError
 from omni.domain.service_deployment import manager_identity
 

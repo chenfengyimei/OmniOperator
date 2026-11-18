@@ -609,9 +609,9 @@ def _run(args: argparse.Namespace) -> int:
             if args.release_command == "prepare-online" and result.get("state") != "prepared":
                 return 1
         elif args.command == "service":
-            from ..adapters.platform.deployment_files import CurrentDeploymentFiles
-            from ..adapters.platform.service_query import ServiceQuery
-            from ..adapters.platform.service_readiness import ServiceReadiness
+            from omni.adapters.platform.services.deployment_files import CurrentDeploymentFiles
+            from omni.adapters.platform.services.service_query import ServiceQuery
+            from omni.adapters.platform.services.service_readiness import ServiceReadiness
             from ..application.service_deployment import ServiceDeployment
 
             deployment = ServiceDeployment(CurrentDeploymentFiles(), SystemClock(), UUIDs())
@@ -631,7 +631,7 @@ def _run(args: argparse.Namespace) -> int:
                     )
                 )
             elif operation == "admin-bundle":
-                from ..adapters.platform.service_admin_bundle import materialize_admin_bundle
+                from omni.adapters.platform.services.service_admin_bundle import materialize_admin_bundle
 
                 result = materialize_admin_bundle(args.destination.absolute())
             elif operation in {

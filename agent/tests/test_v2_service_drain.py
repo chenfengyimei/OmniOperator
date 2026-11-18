@@ -15,9 +15,9 @@ from test_v2_service_deployment import plan
 from test_v2_service_runtime import boot_identity
 
 from omni.adapters.http import HttpRuntime, create_app
-from omni.adapters.platform import service_readiness as readiness
+from omni.adapters.platform.services import service_readiness as readiness
 from omni.adapters.platform.runtime.runtime_identity import RuntimeIdentityFiles, canonical_proof
-from omni.adapters.platform.service_registration import ServiceRegistration
+from omni.adapters.platform.services.service_registration import ServiceRegistration
 from omni.adapters.primitives import SystemClock, UUIDs
 from omni.domain.contracts import BusinessError
 from omni.domain.service_control import drain_receipt, drain_request, make_control, verify_drain, verify_receipt

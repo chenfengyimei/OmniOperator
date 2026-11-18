@@ -14,9 +14,9 @@ from test_v2_service_control import Clock
 from test_v2_service_deployment import plan
 from test_v2_service_query import systemd
 
-from omni.adapters.platform import service_admin as backend
-from omni.adapters.platform import service_admin_client, service_admin_policy
-from omni.adapters.platform.service_admin_client import PrivilegedServiceClient
+from omni.adapters.platform.services import service_admin as backend
+from omni.adapters.platform.services import service_admin_client, service_admin_policy
+from omni.adapters.platform.services.service_admin_client import PrivilegedServiceClient
 from omni.adapters.primitives import SystemClock, UUIDs
 from omni.application.service_control import ServiceControl
 from omni.composition import service_control as composition

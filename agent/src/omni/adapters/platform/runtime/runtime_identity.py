@@ -150,12 +150,7 @@ class RuntimeIdentityFiles:
             raise BusinessError("service_drain_unavailable", "Boot control writer is unavailable")
 
         def persist() -> Record:
-            from omni.adapters.platform.deployment_files import (
-                CurrentDeploymentFiles,
-                json_bytes,
-                no_links,
-                publish_json,
-            )
+            from omni.adapters.platform.services.deployment_files import CurrentDeploymentFiles, json_bytes, no_links, publish_json
 
             folder = self.path.parent / "service-drains"
             no_links(folder)

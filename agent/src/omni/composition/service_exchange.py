@@ -6,14 +6,14 @@ from pathlib import Path
 from typing import cast
 
 from ..adapters.persistence.releases import ReleaseData
-from ..adapters.platform.deployment_files import CurrentDeploymentFiles
-from ..adapters.platform.exchange_deployments import ExchangeSourceDeployment
-from ..adapters.platform.exchange_files import ExchangeFiles
+from omni.adapters.platform.services.deployment_files import CurrentDeploymentFiles
+from omni.adapters.platform.services.exchange_deployments import ExchangeSourceDeployment
+from omni.adapters.platform.services.exchange_files import ExchangeFiles
 from omni.adapters.platform.releases.release_files import ReleaseFiles
-from ..adapters.platform.service_control_files import ServiceControlFiles
-from ..adapters.platform.service_operation_files import ServiceOperationFiles
-from ..adapters.platform.service_readiness import ServiceReadiness
-from ..adapters.platform.service_registration import ServiceRegistration
+from omni.adapters.platform.services.service_control_files import ServiceControlFiles
+from omni.adapters.platform.services.service_operation_files import ServiceOperationFiles
+from omni.adapters.platform.services.service_readiness import ServiceReadiness
+from omni.adapters.platform.services.service_registration import ServiceRegistration
 from ..adapters.primitives import SystemClock, UUIDs
 from ..application.exchange_recovery import ExchangeRecovery
 from ..application.exchange_recovery_steps import ExchangeRecoverySteps
@@ -74,7 +74,7 @@ async def run_exchange(
                 "service_exchange_admin_configuration_invalid",
                 "Staged execution uses only its reviewed participant endpoints and bundle hashes",
             )
-        from ..adapters.platform.service_handover import AdministratorHandover
+        from omni.adapters.platform.services.service_handover import AdministratorHandover
 
         handover = AdministratorHandover(cast(Record, dict(plan)))
         administrator = handover
@@ -94,7 +94,7 @@ async def run_exchange(
                 "service_exchange_admin_configuration_invalid",
                 "Root routing applies only to execution of the exact system exchange",
             )
-        from ..adapters.platform.service_admin_client import ExchangeAdministrator
+        from omni.adapters.platform.services.service_admin_client import ExchangeAdministrator
 
         single_administrator = ExchangeAdministrator(
             cast(Record, dict(plan)), str(admin_socket.absolute()), admin_bundle_sha256

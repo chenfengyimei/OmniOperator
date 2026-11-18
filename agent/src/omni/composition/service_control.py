@@ -5,10 +5,10 @@ from __future__ import annotations
 from pathlib import Path
 from typing import cast
 
-from ..adapters.platform.deployment_files import CurrentDeploymentFiles
-from ..adapters.platform.service_control_files import ServiceControlFiles
-from ..adapters.platform.service_readiness import ServiceReadiness
-from ..adapters.platform.service_registration import ServiceRegistration
+from omni.adapters.platform.services.deployment_files import CurrentDeploymentFiles
+from omni.adapters.platform.services.service_control_files import ServiceControlFiles
+from omni.adapters.platform.services.service_readiness import ServiceReadiness
+from omni.adapters.platform.services.service_registration import ServiceRegistration
 from ..adapters.primitives import SystemClock, UUIDs
 from ..application.ports import Record, ServiceStarterPort
 from ..application.service_control import ServiceControl
@@ -42,7 +42,7 @@ async def run_control(
         operation = admin_operation(deployments.read(path.absolute()))
         if operation["action"] != "start":
             raise BusinessError("service_admin_action_unsupported", "Only a reviewed system start may use this route")
-        from ..adapters.platform.service_admin_client import PrivilegedServiceClient
+        from omni.adapters.platform.services.service_admin_client import PrivilegedServiceClient
 
         native = PrivilegedServiceClient(cast(Record, operation), str(admin_socket.absolute()), admin_bundle_sha256)
     else:

@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "70f6ee8d60638cb683739915d3ab3da86cfa983653d0c09ac0e4233352461ba5",
+  "source_sha256": "4eb3f0fb7970f652c2a5e1893efa1edab6454227fc849382397fc5e61caa918f",
   "modules": [
     {
       "id": "v2-domain",
@@ -299,13 +299,6 @@
         "agent/src/omni/adapters/persistence/terminal_repository.py",
         "agent/src/omni/adapters/persistence/terminal_review_repository.py",
         "agent/src/omni/adapters/platform/__init__.py",
-        "agent/src/omni/adapters/platform/darwin_admin_commands.py",
-        "agent/src/omni/adapters/platform/darwin_admin_files.py",
-        "agent/src/omni/adapters/platform/darwin_admin_peer.py",
-        "agent/src/omni/adapters/platform/darwin_admin_policy.py",
-        "agent/src/omni/adapters/platform/darwin_admin_probe.py",
-        "agent/src/omni/adapters/platform/darwin_service_admin.py",
-        "agent/src/omni/adapters/platform/deployment_files.py",
         "agent/src/omni/adapters/platform/desktop/__init__.py",
         "agent/src/omni/adapters/platform/desktop/backend.py",
         "agent/src/omni/adapters/platform/desktop/desktop_capture.py",
@@ -366,10 +359,6 @@
         "agent/src/omni/adapters/platform/desktop/linux/linux_xtest.py",
         "agent/src/omni/adapters/platform/desktop/macos_helper.py",
         "agent/src/omni/adapters/platform/desktop/portal.py",
-        "agent/src/omni/adapters/platform/exchange_deployments.py",
-        "agent/src/omni/adapters/platform/exchange_files.py",
-        "agent/src/omni/adapters/platform/macos_service.py",
-        "agent/src/omni/adapters/platform/macos_service_state.py",
         "agent/src/omni/adapters/platform/releases/__init__.py",
         "agent/src/omni/adapters/platform/releases/candidate_installer.py",
         "agent/src/omni/adapters/platform/releases/dependency_bundle.py",
@@ -396,21 +385,33 @@
         "agent/src/omni/adapters/platform/runtime/terminal.py",
         "agent/src/omni/adapters/platform/runtime/workbench.py",
         "agent/src/omni/adapters/platform/runtime/workspaces.py",
-        "agent/src/omni/adapters/platform/service_admin.py",
-        "agent/src/omni/adapters/platform/service_admin_bundle.py",
-        "agent/src/omni/adapters/platform/service_admin_client.py",
-        "agent/src/omni/adapters/platform/service_admin_commands.py",
-        "agent/src/omni/adapters/platform/service_admin_policy.py",
-        "agent/src/omni/adapters/platform/service_cleanup_files.py",
-        "agent/src/omni/adapters/platform/service_control_files.py",
-        "agent/src/omni/adapters/platform/service_handover.py",
-        "agent/src/omni/adapters/platform/service_launch.py",
-        "agent/src/omni/adapters/platform/service_operation_files.py",
-        "agent/src/omni/adapters/platform/service_query.py",
-        "agent/src/omni/adapters/platform/service_readiness.py",
-        "agent/src/omni/adapters/platform/service_registration.py",
-        "agent/src/omni/adapters/platform/service_templates.py",
-        "agent/src/omni/adapters/platform/systemd_state.py",
+        "agent/src/omni/adapters/platform/services/__init__.py",
+        "agent/src/omni/adapters/platform/services/darwin_admin_commands.py",
+        "agent/src/omni/adapters/platform/services/darwin_admin_files.py",
+        "agent/src/omni/adapters/platform/services/darwin_admin_peer.py",
+        "agent/src/omni/adapters/platform/services/darwin_admin_policy.py",
+        "agent/src/omni/adapters/platform/services/darwin_admin_probe.py",
+        "agent/src/omni/adapters/platform/services/darwin_service_admin.py",
+        "agent/src/omni/adapters/platform/services/deployment_files.py",
+        "agent/src/omni/adapters/platform/services/exchange_deployments.py",
+        "agent/src/omni/adapters/platform/services/exchange_files.py",
+        "agent/src/omni/adapters/platform/services/macos_service.py",
+        "agent/src/omni/adapters/platform/services/macos_service_state.py",
+        "agent/src/omni/adapters/platform/services/service_admin.py",
+        "agent/src/omni/adapters/platform/services/service_admin_bundle.py",
+        "agent/src/omni/adapters/platform/services/service_admin_client.py",
+        "agent/src/omni/adapters/platform/services/service_admin_commands.py",
+        "agent/src/omni/adapters/platform/services/service_admin_policy.py",
+        "agent/src/omni/adapters/platform/services/service_cleanup_files.py",
+        "agent/src/omni/adapters/platform/services/service_control_files.py",
+        "agent/src/omni/adapters/platform/services/service_handover.py",
+        "agent/src/omni/adapters/platform/services/service_launch.py",
+        "agent/src/omni/adapters/platform/services/service_operation_files.py",
+        "agent/src/omni/adapters/platform/services/service_query.py",
+        "agent/src/omni/adapters/platform/services/service_readiness.py",
+        "agent/src/omni/adapters/platform/services/service_registration.py",
+        "agent/src/omni/adapters/platform/services/service_templates.py",
+        "agent/src/omni/adapters/platform/services/systemd_state.py",
         "agent/src/omni/adapters/primitives.py",
         "agent/src/omni/adapters/process_diagnostics.py",
         "agent/src/omni/adapters/skill_packages.py",
@@ -463,7 +464,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 65683,
+      "lines": 65694,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -20644,8 +20645,8 @@
         "omni.adapters.persistence.maintenance",
         "omni.adapters.persistence.object_inventory",
         "omni.adapters.persistence.schema_upgrade",
-        "omni.adapters.platform.deployment_files",
         "omni.adapters.platform.releases.release_files",
+        "omni.adapters.platform.services.deployment_files",
         "omni.application.ports",
         "omni.domain.contracts",
         "omni.domain.releases"
@@ -22145,8 +22146,8 @@
         "omni.adapters.persistence.migration_config",
         "omni.adapters.persistence.object_inventory",
         "omni.adapters.persistence.sqlalchemy_access",
-        "omni.adapters.platform.deployment_files",
         "omni.adapters.platform.runtime.paths",
+        "omni.adapters.platform.services.deployment_files",
         "omni.domain.contracts",
         "omni.domain.releases",
         "omni.domain.schema_upgrade"
@@ -22934,985 +22935,6 @@
       "imports": [],
       "symbols": [],
       "summary": "Portable paths, ownership, credentials and platform capability implementations."
-    },
-    {
-      "path": "agent/src/omni/adapters/platform/darwin_admin_commands.py",
-      "module": "v2-adapters",
-      "python_module": "omni.adapters.platform.darwin_admin_commands",
-      "lines": 276,
-      "imports": [
-        "omni.domain.contracts"
-      ],
-      "symbols": [
-        {
-          "name": "failed",
-          "line": 19,
-          "kind": "function",
-          "parameters": [
-            "code"
-          ],
-          "annotations": {
-            "code": "str"
-          }
-        },
-        {
-          "name": "Command",
-          "line": 24,
-          "kind": "class"
-        },
-        {
-          "name": "DarwinCommands",
-          "line": 43,
-          "kind": "class"
-        },
-        {
-          "name": "DarwinCommands.__init__",
-          "line": 44,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "connected"
-          ],
-          "annotations": {
-            "connected": "Callable[[], bool]"
-          }
-        },
-        {
-          "name": "DarwinCommands._spawn",
-          "line": 48,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "argv"
-          ],
-          "annotations": {
-            "argv": "list[str]"
-          }
-        },
-        {
-          "name": "DarwinCommands._close_fd",
-          "line": 117,
-          "kind": "function",
-          "parameters": [
-            "owned",
-            "descriptor"
-          ],
-          "annotations": {
-            "owned": "Command",
-            "descriptor": "int"
-          }
-        },
-        {
-          "name": "DarwinCommands._observe",
-          "line": 127,
-          "kind": "function",
-          "parameters": [
-            "owned"
-          ],
-          "annotations": {
-            "owned": "Command"
-          }
-        },
-        {
-          "name": "DarwinCommands._events",
-          "line": 138,
-          "kind": "function",
-          "parameters": [
-            "owned"
-          ],
-          "annotations": {
-            "owned": "Command"
-          }
-        },
-        {
-          "name": "DarwinCommands._drain",
-          "line": 149,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "owned",
-            "timeout"
-          ],
-          "annotations": {
-            "owned": "Command",
-            "timeout": "float"
-          }
-        },
-        {
-          "name": "DarwinCommands.run",
-          "line": 178,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "argv"
-          ],
-          "annotations": {
-            "argv": "list[str]"
-          }
-        },
-        {
-          "name": "DarwinCommands.close",
-          "line": 200,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "timeout_s"
-          ],
-          "annotations": {
-            "timeout_s": "float"
-          }
-        }
-      ],
-      "summary": "Single-threaded Darwin command ownership; pre-exec permit, kqueue no-fork proof and unreaped group anchor."
-    },
-    {
-      "path": "agent/src/omni/adapters/platform/darwin_admin_files.py",
-      "module": "v2-adapters",
-      "python_module": "omni.adapters.platform.darwin_admin_files",
-      "lines": 184,
-      "imports": [
-        "omni.domain.contracts"
-      ],
-      "symbols": [
-        {
-          "name": "unsafe",
-          "line": 17,
-          "kind": "function",
-          "parameters": [],
-          "annotations": {}
-        },
-        {
-          "name": "Attributes",
-          "line": 21,
-          "kind": "class"
-        },
-        {
-          "name": "identity",
-          "line": 25,
-          "kind": "function",
-          "parameters": [
-            "info"
-          ],
-          "annotations": {
-            "info": "os.stat_result"
-          }
-        },
-        {
-          "name": "acl_safe",
-          "line": 39,
-          "kind": "function",
-          "parameters": [
-            "path"
-          ],
-          "annotations": {
-            "path": "Path"
-          }
-        },
-        {
-          "name": "protected",
-          "line": 120,
-          "kind": "function",
-          "parameters": [
-            "path",
-            "owner",
-            "missing"
-          ],
-          "annotations": {
-            "path": "Path",
-            "owner": "int",
-            "missing": "bool"
-          }
-        },
-        {
-          "name": "read",
-          "line": 138,
-          "kind": "function",
-          "parameters": [
-            "path",
-            "maximum"
-          ],
-          "annotations": {
-            "path": "Path",
-            "maximum": "int"
-          }
-        },
-        {
-          "name": "sync",
-          "line": 154,
-          "kind": "function",
-          "parameters": [
-            "path"
-          ],
-          "annotations": {
-            "path": "Path"
-          }
-        },
-        {
-          "name": "publish",
-          "line": 164,
-          "kind": "function",
-          "parameters": [
-            "path",
-            "data",
-            "mode"
-          ],
-          "annotations": {
-            "path": "Path",
-            "data": "bytes",
-            "mode": "int"
-          }
-        }
-      ],
-      "summary": "Darwin local-volume ACL and root file proofs; no application storage or arbitrary library lookup."
-    },
-    {
-      "path": "agent/src/omni/adapters/platform/darwin_admin_peer.py",
-      "module": "v2-adapters",
-      "python_module": "omni.adapters.platform.darwin_admin_peer",
-      "lines": 30,
-      "imports": [
-        "omni.domain.contracts"
-      ],
-      "symbols": [
-        {
-          "name": "peer_identity",
-          "line": 13,
-          "kind": "function",
-          "parameters": [
-            "connection"
-          ],
-          "annotations": {
-            "connection": "socket.socket"
-          }
-        }
-      ],
-      "summary": "Kernel Unix peer UID/GID and PID; never accepts a TCP credential result or an empty native option."
-    },
-    {
-      "path": "agent/src/omni/adapters/platform/darwin_admin_policy.py",
-      "module": "v2-adapters",
-      "python_module": "omni.adapters.platform.darwin_admin_policy",
-      "lines": 181,
-      "imports": [
-        "omni.adapters.platform.darwin_admin_commands",
-        "omni.adapters.platform.darwin_admin_files",
-        "omni.adapters.platform.service_admin_policy",
-        "omni.adapters.platform.service_templates",
-        "omni.domain.service_admin",
-        "omni.domain.service_deployment"
-      ],
-      "symbols": [
-        {
-          "name": "DarwinPolicy",
-          "line": 28,
-          "kind": "class"
-        },
-        {
-          "name": "DarwinPolicy.__init__",
-          "line": 29,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "operation",
-            "broker_sha256",
-            "commands",
-            "root"
-          ],
-          "annotations": {
-            "operation": "object",
-            "broker_sha256": "str",
-            "commands": "DarwinCommands",
-            "root": "Path"
-          }
-        },
-        {
-          "name": "DarwinPolicy.authorize",
-          "line": 41,
-          "kind": "function",
-          "parameters": [
-            "self"
-          ],
-          "annotations": {}
-        },
-        {
-          "name": "DarwinPolicy.audit",
-          "line": 87,
-          "kind": "function",
-          "parameters": [
-            "self"
-          ],
-          "annotations": {}
-        },
-        {
-          "name": "DarwinPolicy.initialize",
-          "line": 90,
-          "kind": "function",
-          "parameters": [
-            "self"
-          ],
-          "annotations": {}
-        },
-        {
-          "name": "DarwinPolicy.program",
-          "line": 133,
-          "kind": "function",
-          "parameters": [
-            "self"
-          ],
-          "annotations": {}
-        },
-        {
-          "name": "DarwinPolicy.probe_argv",
-          "line": 141,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "nonce"
-          ],
-          "annotations": {
-            "nonce": "str"
-          }
-        },
-        {
-          "name": "DarwinPolicy.definition",
-          "line": 148,
-          "kind": "function",
-          "parameters": [
-            "self"
-          ],
-          "annotations": {}
-        },
-        {
-          "name": "DarwinPolicy.publish_definition",
-          "line": 154,
-          "kind": "function",
-          "parameters": [
-            "self"
-          ],
-          "annotations": {}
-        },
-        {
-          "name": "DarwinPolicy.remove_definition",
-          "line": 158,
-          "kind": "function",
-          "parameters": [
-            "self"
-          ],
-          "annotations": {}
-        },
-        {
-          "name": "DarwinPolicy.dispatched",
-          "line": 166,
-          "kind": "function",
-          "parameters": [
-            "self"
-          ],
-          "annotations": {}
-        },
-        {
-          "name": "DarwinPolicy.record",
-          "line": 180,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "phase",
-            "result"
-          ],
-          "annotations": {
-            "phase": "str",
-            "result": "dict[str, Any]"
-          }
-        }
-      ],
-      "summary": "Exact local-account Darwin administrator policy, protected root artifacts and shared audit bytes."
-    },
-    {
-      "path": "agent/src/omni/adapters/platform/darwin_admin_probe.py",
-      "module": "v2-adapters",
-      "python_module": "omni.adapters.platform.darwin_admin_probe",
-      "lines": 154,
-      "imports": [],
-      "symbols": [
-        {
-          "name": "NativeJobs",
-          "line": 11,
-          "kind": "class"
-        },
-        {
-          "name": "NativeJobs.__init__",
-          "line": 12,
-          "kind": "function",
-          "parameters": [
-            "self"
-          ],
-          "annotations": {}
-        },
-        {
-          "name": "NativeJobs.string",
-          "line": 44,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "value"
-          ],
-          "annotations": {
-            "value": "str"
-          }
-        },
-        {
-          "name": "NativeJobs.text",
-          "line": 50,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "value",
-            "maximum"
-          ],
-          "annotations": {
-            "value": "int",
-            "maximum": "int"
-          }
-        },
-        {
-          "name": "NativeJobs.value",
-          "line": 64,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "pointer",
-            "depth",
-            "budget"
-          ],
-          "annotations": {
-            "pointer": "int",
-            "depth": "int",
-            "budget": "list[int] | None"
-          }
-        },
-        {
-          "name": "NativeJobs.copy",
-          "line": 108,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "label"
-          ],
-          "annotations": {
-            "label": "int"
-          }
-        },
-        {
-          "name": "NativeJobs.query",
-          "line": 120,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "label"
-          ],
-          "annotations": {
-            "label": "str"
-          }
-        }
-      ],
-      "summary": "Bounded public CoreFoundation/ServiceManagement reads for a separately owned root worker; no mutation or GUI."
-    },
-    {
-      "path": "agent/src/omni/adapters/platform/darwin_service_admin.py",
-      "module": "v2-adapters",
-      "python_module": "omni.adapters.platform.darwin_service_admin",
-      "lines": 147,
-      "imports": [
-        "omni.adapters.platform.darwin_admin_commands",
-        "omni.adapters.platform.darwin_admin_policy",
-        "omni.adapters.platform.macos_service_state",
-        "omni.adapters.platform.service_admin",
-        "omni.adapters.platform.service_admin_policy",
-        "omni.adapters.platform.service_templates",
-        "omni.domain.contracts",
-        "omni.domain.service_admin",
-        "omni.domain.service_control",
-        "omni.domain.service_operations"
-      ],
-      "symbols": [
-        {
-          "name": "DarwinAdministrator",
-          "line": 20,
-          "kind": "class"
-        },
-        {
-          "name": "DarwinAdministrator.__init__",
-          "line": 21,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "policy",
-            "commands"
-          ],
-          "annotations": {
-            "policy": "DarwinPolicy",
-            "commands": "DarwinCommands"
-          }
-        },
-        {
-          "name": "DarwinAdministrator.snapshot",
-          "line": 24,
-          "kind": "function",
-          "parameters": [
-            "self"
-          ],
-          "annotations": {}
-        },
-        {
-          "name": "DarwinAdministrator.inspect",
-          "line": 65,
-          "kind": "function",
-          "parameters": [
-            "self"
-          ],
-          "annotations": {}
-        },
-        {
-          "name": "DarwinAdministrator.change",
-          "line": 71,
-          "kind": "function",
-          "parameters": [
-            "self"
-          ],
-          "annotations": {}
-        },
-        {
-          "name": "DarwinAdministrator.close",
-          "line": 146,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "timeout_s"
-          ],
-          "annotations": {
-            "timeout_s": "float"
-          }
-        }
-      ],
-      "summary": "Darwin registration and single-start root backend; fixed launchctl operations, no GUI, database or force."
-    },
-    {
-      "path": "agent/src/omni/adapters/platform/deployment_files.py",
-      "module": "v2-adapters",
-      "python_module": "omni.adapters.platform.deployment_files",
-      "lines": 631,
-      "imports": [
-        "omni.adapters.build_identity",
-        "omni.adapters.object_store",
-        "omni.adapters.persistence.migration_config",
-        "omni.adapters.platform.runtime.permissions",
-        "omni.adapters.platform.runtime.publication",
-        "omni.adapters.platform.service_templates",
-        "omni.domain.contracts",
-        "omni.domain.service_deployment"
-      ],
-      "symbols": [
-        {
-          "name": "_error",
-          "line": 38,
-          "kind": "function",
-          "parameters": [
-            "code",
-            "status"
-          ],
-          "annotations": {
-            "code": "str",
-            "status": "int"
-          }
-        },
-        {
-          "name": "_json",
-          "line": 42,
-          "kind": "function",
-          "parameters": [
-            "value"
-          ],
-          "annotations": {
-            "value": "object"
-          }
-        },
-        {
-          "name": "_sha",
-          "line": 46,
-          "kind": "function",
-          "parameters": [
-            "data"
-          ],
-          "annotations": {
-            "data": "bytes"
-          }
-        },
-        {
-          "name": "_path",
-          "line": 50,
-          "kind": "function",
-          "parameters": [
-            "value"
-          ],
-          "annotations": {
-            "value": "str | Path"
-          }
-        },
-        {
-          "name": "_no_links",
-          "line": 62,
-          "kind": "function",
-          "parameters": [
-            "path",
-            "final"
-          ],
-          "annotations": {
-            "path": "Path",
-            "final": "bool"
-          }
-        },
-        {
-          "name": "_identity",
-          "line": 68,
-          "kind": "function",
-          "parameters": [
-            "info"
-          ],
-          "annotations": {
-            "info": "os.stat_result"
-          }
-        },
-        {
-          "name": "_read",
-          "line": 74,
-          "kind": "function",
-          "parameters": [
-            "path",
-            "limit",
-            "single"
-          ],
-          "annotations": {
-            "path": "str | Path",
-            "limit": "int",
-            "single": "bool"
-          }
-        },
-        {
-          "name": "_decode",
-          "line": 95,
-          "kind": "function",
-          "parameters": [
-            "data"
-          ],
-          "annotations": {
-            "data": "bytes"
-          }
-        },
-        {
-          "name": "_decode.pairs",
-          "line": 96,
-          "kind": "function",
-          "parameters": [
-            "items"
-          ],
-          "annotations": {
-            "items": "list[tuple[str, Any]]"
-          }
-        },
-        {
-          "name": "_decode.constant",
-          "line": 104,
-          "kind": "function",
-          "parameters": [
-            "_value"
-          ],
-          "annotations": {
-            "_value": "object"
-          }
-        },
-        {
-          "name": "_relative",
-          "line": 118,
-          "kind": "function",
-          "parameters": [
-            "value"
-          ],
-          "annotations": {
-            "value": "str"
-          }
-        },
-        {
-          "name": "_walk",
-          "line": 134,
-          "kind": "function",
-          "parameters": [
-            "root",
-            "python_only",
-            "source_assets"
-          ],
-          "annotations": {
-            "root": "Path",
-            "python_only": "bool",
-            "source_assets": "bool"
-          }
-        },
-        {
-          "name": "_principal",
-          "line": 174,
-          "kind": "function",
-          "parameters": [],
-          "annotations": {}
-        },
-        {
-          "name": "_python",
-          "line": 221,
-          "kind": "function",
-          "parameters": [],
-          "annotations": {}
-        },
-        {
-          "name": "python_files",
-          "line": 230,
-          "kind": "function",
-          "parameters": [
-            "executable",
-            "prefix",
-            "process_executable"
-          ],
-          "annotations": {
-            "executable": "Path",
-            "prefix": "Path",
-            "process_executable": "Path | None"
-          }
-        },
-        {
-          "name": "_installation",
-          "line": 272,
-          "kind": "function",
-          "parameters": [],
-          "annotations": {}
-        },
-        {
-          "name": "_proof",
-          "line": 300,
-          "kind": "function",
-          "parameters": [
-            "name",
-            "content"
-          ],
-          "annotations": {
-            "name": "str",
-            "content": "bytes"
-          }
-        },
-        {
-          "name": "_startup_locations",
-          "line": 304,
-          "kind": "function",
-          "parameters": [],
-          "annotations": {}
-        },
-        {
-          "name": "_overlap",
-          "line": 334,
-          "kind": "function",
-          "parameters": [
-            "left",
-            "right"
-          ],
-          "annotations": {
-            "left": "Path",
-            "right": "Path"
-          }
-        },
-        {
-          "name": "_destination",
-          "line": 338,
-          "kind": "function",
-          "parameters": [
-            "path",
-            "plan"
-          ],
-          "annotations": {
-            "path": "str | Path",
-            "plan": "Record"
-          }
-        },
-        {
-          "name": "CurrentDeploymentFiles",
-          "line": 349,
-          "kind": "class"
-        },
-        {
-          "name": "CurrentDeploymentFiles.capture",
-          "line": 350,
-          "kind": "function",
-          "parameters": [
-            "self"
-          ],
-          "annotations": {}
-        },
-        {
-          "name": "CurrentDeploymentFiles.read",
-          "line": 417,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "path"
-          ],
-          "annotations": {
-            "path": "str | Path"
-          }
-        },
-        {
-          "name": "CurrentDeploymentFiles.write_capture",
-          "line": 420,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "runtime",
-            "path"
-          ],
-          "annotations": {
-            "runtime": "Record",
-            "path": "str | Path"
-          }
-        },
-        {
-          "name": "CurrentDeploymentFiles.write_plan",
-          "line": 439,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "plan",
-            "path"
-          ],
-          "annotations": {
-            "plan": "Record",
-            "path": "str | Path"
-          }
-        },
-        {
-          "name": "CurrentDeploymentFiles._publish_json",
-          "line": 448,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "target",
-            "data"
-          ],
-          "annotations": {
-            "target": "Path",
-            "data": "bytes"
-          }
-        },
-        {
-          "name": "CurrentDeploymentFiles._write",
-          "line": 469,
-          "kind": "function",
-          "parameters": [
-            "path",
-            "data"
-          ],
-          "annotations": {
-            "path": "Path",
-            "data": "bytes"
-          }
-        },
-        {
-          "name": "CurrentDeploymentFiles.write_file",
-          "line": 478,
-          "kind": "function",
-          "parameters": [
-            "path",
-            "data"
-          ],
-          "annotations": {
-            "path": "Path",
-            "data": "bytes"
-          }
-        },
-        {
-          "name": "CurrentDeploymentFiles.publish_json",
-          "line": 481,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "target",
-            "data"
-          ],
-          "annotations": {
-            "target": "Path",
-            "data": "bytes"
-          }
-        },
-        {
-          "name": "CurrentDeploymentFiles.materialize",
-          "line": 484,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "plan",
-            "destination"
-          ],
-          "annotations": {
-            "plan": "Record",
-            "destination": "str | Path"
-          }
-        },
-        {
-          "name": "CurrentDeploymentFiles.verify",
-          "line": 536,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "bundle"
-          ],
-          "annotations": {
-            "bundle": "str | Path"
-          }
-        },
-        {
-          "name": "CurrentDeploymentFiles.artifact_plan",
-          "line": 581,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "bundle"
-          ],
-          "annotations": {
-            "bundle": "str | Path"
-          }
-        },
-        {
-          "name": "write_file",
-          "line": 623,
-          "kind": "function",
-          "parameters": [
-            "path",
-            "data"
-          ],
-          "annotations": {
-            "path": "Path",
-            "data": "bytes"
-          }
-        },
-        {
-          "name": "publish_json",
-          "line": 630,
-          "kind": "function",
-          "parameters": [
-            "files",
-            "target",
-            "data"
-          ],
-          "annotations": {
-            "files": "CurrentDeploymentFiles",
-            "target": "Path",
-            "data": "bytes"
-          }
-        }
-      ],
-      "summary": "Capture installation identity and publish reviewed deployment bundles; never registers services or opens business storage."
     },
     {
       "path": "agent/src/omni/adapters/platform/desktop/__init__.py",
@@ -34175,404 +33197,6 @@
       "summary": "Owned long-lived Portal helper sessions with shared desktop capacity and bounded metadata pipes; no pixel or input dispatch."
     },
     {
-      "path": "agent/src/omni/adapters/platform/exchange_deployments.py",
-      "module": "v2-adapters",
-      "python_module": "omni.adapters.platform.exchange_deployments",
-      "lines": 27,
-      "imports": [
-        "omni.adapters.platform.deployment_files",
-        "omni.adapters.platform.releases.release_files",
-        "omni.application.ports",
-        "omni.domain.contracts",
-        "omni.domain.releases"
-      ],
-      "symbols": [
-        {
-          "name": "ExchangeSourceDeployment",
-          "line": 14,
-          "kind": "class"
-        },
-        {
-          "name": "ExchangeSourceDeployment.__init__",
-          "line": 15,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "plan",
-            "files"
-          ],
-          "annotations": {
-            "plan": "ReleasePlan",
-            "files": "ReleaseFiles"
-          }
-        },
-        {
-          "name": "ExchangeSourceDeployment.verify",
-          "line": 18,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "bundle"
-          ],
-          "annotations": {
-            "bundle": "str | Path"
-          }
-        }
-      ],
-      "summary": "Verify a reviewed source for removal or signed boot draining; never execute or import the source installation."
-    },
-    {
-      "path": "agent/src/omni/adapters/platform/exchange_files.py",
-      "module": "v2-adapters",
-      "python_module": "omni.adapters.platform.exchange_files",
-      "lines": 278,
-      "imports": [
-        "omni.adapters.object_store",
-        "omni.adapters.platform.deployment_files",
-        "omni.adapters.platform.runtime.paths",
-        "omni.adapters.platform.runtime.permissions",
-        "omni.application.ports",
-        "omni.domain.contracts",
-        "omni.domain.releases",
-        "omni.domain.service_admin",
-        "omni.domain.service_exchange",
-        "omni.domain.service_isolation"
-      ],
-      "symbols": [
-        {
-          "name": "invalid",
-          "line": 24,
-          "kind": "function",
-          "parameters": [
-            "code"
-          ],
-          "annotations": {
-            "code": "str"
-          }
-        },
-        {
-          "name": "ExchangeFiles",
-          "line": 28,
-          "kind": "class"
-        },
-        {
-          "name": "ExchangeFiles.__init__",
-          "line": 29,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "deployments"
-          ],
-          "annotations": {
-            "deployments": "CurrentDeploymentFiles"
-          }
-        },
-        {
-          "name": "ExchangeFiles.homes",
-          "line": 34,
-          "kind": "function",
-          "parameters": [
-            "plan"
-          ],
-          "annotations": {
-            "plan": "ExchangePlan"
-          }
-        },
-        {
-          "name": "ExchangeFiles._root",
-          "line": 44,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "plan"
-          ],
-          "annotations": {
-            "plan": "ExchangePlan"
-          }
-        },
-        {
-          "name": "ExchangeFiles._read",
-          "line": 51,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "path"
-          ],
-          "annotations": {
-            "path": "Path"
-          }
-        },
-        {
-          "name": "ExchangeFiles.read",
-          "line": 56,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "path"
-          ],
-          "annotations": {
-            "path": "Path"
-          }
-        },
-        {
-          "name": "ExchangeFiles._require_owned",
-          "line": 60,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "plan"
-          ],
-          "annotations": {
-            "plan": "ExchangePlan"
-          }
-        },
-        {
-          "name": "ExchangeFiles.publish",
-          "line": 64,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "plan",
-            "output"
-          ],
-          "annotations": {
-            "plan": "ExchangePlan",
-            "output": "str"
-          }
-        },
-        {
-          "name": "ExchangeFiles.publish_isolation",
-          "line": 78,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "plan",
-            "output"
-          ],
-          "annotations": {
-            "plan": "IsolationPlan",
-            "output": "str"
-          }
-        },
-        {
-          "name": "ExchangeFiles.publish_administrator",
-          "line": 91,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "plan",
-            "role",
-            "output"
-          ],
-          "annotations": {
-            "plan": "ExchangePlan",
-            "role": "str",
-            "output": "str"
-          }
-        },
-        {
-          "name": "ExchangeFiles._publish",
-          "line": 111,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "checked",
-            "document",
-            "output"
-          ],
-          "annotations": {
-            "checked": "ExchangePlan",
-            "document": "Mapping[str, object]",
-            "output": "str"
-          }
-        },
-        {
-          "name": "ExchangeFiles.exclusive",
-          "line": 132,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "plan"
-          ],
-          "annotations": {
-            "plan": "ExchangePlan"
-          }
-        },
-        {
-          "name": "ExchangeFiles.history",
-          "line": 148,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "plan"
-          ],
-          "annotations": {
-            "plan": "ExchangePlan"
-          }
-        },
-        {
-          "name": "ExchangeFiles.maintenance",
-          "line": 183,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "plan"
-          ],
-          "annotations": {
-            "plan": "ExchangePlan"
-          }
-        },
-        {
-          "name": "ExchangeFiles.claim",
-          "line": 195,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "plan"
-          ],
-          "annotations": {
-            "plan": "ExchangePlan"
-          }
-        },
-        {
-          "name": "ExchangeFiles.append",
-          "line": 237,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "plan",
-            "record"
-          ],
-          "annotations": {
-            "plan": "ExchangePlan",
-            "record": "Record"
-          }
-        },
-        {
-          "name": "ExchangeFiles.check_idle",
-          "line": 252,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "plan"
-          ],
-          "annotations": {
-            "plan": "ExchangePlan"
-          }
-        },
-        {
-          "name": "ExchangeFiles.settled",
-          "line": 261,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "plan"
-          ],
-          "annotations": {
-            "plan": "ExchangePlan"
-          }
-        }
-      ],
-      "summary": "Private bounded exchange witnesses and maintenance reservations; no database, native calls or rollback."
-    },
-    {
-      "path": "agent/src/omni/adapters/platform/macos_service.py",
-      "module": "v2-adapters",
-      "python_module": "omni.adapters.platform.macos_service",
-      "lines": 109,
-      "imports": [
-        "omni.adapters.platform.deployment_files",
-        "omni.adapters.platform.macos_service_state",
-        "omni.application.ports",
-        "omni.domain.contracts",
-        "omni.domain.service_deployment"
-      ],
-      "symbols": [
-        {
-          "name": "MacOSServiceInspection",
-          "line": 32,
-          "kind": "class"
-        },
-        {
-          "name": "MacOSServiceInspection.__init__",
-          "line": 33,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "command",
-            "helper"
-          ],
-          "annotations": {
-            "command": "Callable[[list[str]], Awaitable[tuple[int, bytes]]]",
-            "helper": "Callable[[], Awaitable[Path | None]]"
-          }
-        },
-        {
-          "name": "MacOSServiceInspection.probe",
-          "line": 38,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "plan"
-          ],
-          "annotations": {
-            "plan": "Record"
-          }
-        }
-      ],
-      "summary": "Inspect loaded launchd descriptions via the fixed Swift helper; never parses launchctl print as authority."
-    },
-    {
-      "path": "agent/src/omni/adapters/platform/macos_service_state.py",
-      "module": "v2-adapters",
-      "python_module": "omni.adapters.platform.macos_service_state",
-      "lines": 101,
-      "imports": [
-        "omni.adapters.platform.service_templates",
-        "omni.domain.service_deployment"
-      ],
-      "symbols": [
-        {
-          "name": "_bounded_job",
-          "line": 17,
-          "kind": "function",
-          "parameters": [
-            "value"
-          ],
-          "annotations": {
-            "value": "object"
-          }
-        },
-        {
-          "name": "loaded_definition",
-          "line": 45,
-          "kind": "function",
-          "parameters": [
-            "plan",
-            "job"
-          ],
-          "annotations": {
-            "plan": "Mapping[str, object]",
-            "job": "object"
-          }
-        },
-        {
-          "name": "disabled_override",
-          "line": 77,
-          "kind": "function",
-          "parameters": [
-            "output",
-            "label"
-          ],
-          "annotations": {
-            "output": "bytes",
-            "label": "str"
-          }
-        }
-      ],
-      "summary": "Pure bounded launchd definition and override comparison shared by owner and administrator ports."
-    },
-    {
       "path": "agent/src/omni/adapters/platform/releases/__init__.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.releases",
@@ -34781,13 +33405,13 @@
       "path": "agent/src/omni/adapters/platform/releases/release_files.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.releases.release_files",
-      "lines": 411,
+      "lines": 399,
       "imports": [
         "omni.adapters.object_store",
-        "omni.adapters.platform.deployment_files",
-        "omni.adapters.platform.exchange_files",
         "omni.adapters.platform.runtime.paths",
         "omni.adapters.platform.runtime.permissions",
+        "omni.adapters.platform.services.deployment_files",
+        "omni.adapters.platform.services.exchange_files",
         "omni.application.ports",
         "omni.domain.contracts",
         "omni.domain.recovery_authority",
@@ -34799,7 +33423,7 @@
       "symbols": [
         {
           "name": "failed",
-          "line": 52,
+          "line": 40,
           "kind": "function",
           "parameters": [
             "code"
@@ -34810,12 +33434,12 @@
         },
         {
           "name": "ReleaseFiles",
-          "line": 56,
+          "line": 44,
           "kind": "class"
         },
         {
           "name": "ReleaseFiles.__init__",
-          "line": 57,
+          "line": 45,
           "kind": "function",
           "parameters": [
             "self",
@@ -34829,7 +33453,7 @@
         },
         {
           "name": "ReleaseFiles.homes",
-          "line": 63,
+          "line": 51,
           "kind": "function",
           "parameters": [
             "plan"
@@ -34840,7 +33464,7 @@
         },
         {
           "name": "ReleaseFiles.publish",
-          "line": 69,
+          "line": 57,
           "kind": "function",
           "parameters": [
             "self",
@@ -34854,7 +33478,7 @@
         },
         {
           "name": "ReleaseFiles.installations",
-          "line": 93,
+          "line": 81,
           "kind": "function",
           "parameters": [
             "self",
@@ -34866,7 +33490,7 @@
         },
         {
           "name": "ReleaseFiles.reviewed_installation",
-          "line": 100,
+          "line": 88,
           "kind": "function",
           "parameters": [
             "self",
@@ -34878,7 +33502,7 @@
         },
         {
           "name": "ReleaseFiles.isolation_authority",
-          "line": 132,
+          "line": 120,
           "kind": "function",
           "parameters": [
             "self",
@@ -34890,7 +33514,7 @@
         },
         {
           "name": "ReleaseFiles.isolation_exchange",
-          "line": 137,
+          "line": 125,
           "kind": "function",
           "parameters": [
             "self",
@@ -34902,7 +33526,7 @@
         },
         {
           "name": "ReleaseFiles._fence_path",
-          "line": 173,
+          "line": 161,
           "kind": "function",
           "parameters": [
             "home"
@@ -34913,7 +33537,7 @@
         },
         {
           "name": "ReleaseFiles.require_fence",
-          "line": 176,
+          "line": 164,
           "kind": "function",
           "parameters": [
             "self",
@@ -34929,7 +33553,7 @@
         },
         {
           "name": "ReleaseFiles._publish_fence",
-          "line": 195,
+          "line": 183,
           "kind": "function",
           "parameters": [
             "self",
@@ -34943,7 +33567,7 @@
         },
         {
           "name": "ReleaseFiles.preparation",
-          "line": 204,
+          "line": 192,
           "kind": "function",
           "parameters": [
             "self",
@@ -34955,7 +33579,7 @@
         },
         {
           "name": "ReleaseFiles.exclusive",
-          "line": 217,
+          "line": 205,
           "kind": "function",
           "parameters": [
             "self",
@@ -34969,7 +33593,7 @@
         },
         {
           "name": "ReleaseFiles._journal",
-          "line": 264,
+          "line": 252,
           "kind": "function",
           "parameters": [
             "self",
@@ -34981,7 +33605,7 @@
         },
         {
           "name": "ReleaseFiles.history",
-          "line": 271,
+          "line": 259,
           "kind": "function",
           "parameters": [
             "self",
@@ -34993,7 +33617,7 @@
         },
         {
           "name": "ReleaseFiles.begin",
-          "line": 335,
+          "line": 323,
           "kind": "function",
           "parameters": [
             "self",
@@ -35005,7 +33629,7 @@
         },
         {
           "name": "ReleaseFiles.append",
-          "line": 344,
+          "line": 332,
           "kind": "function",
           "parameters": [
             "self",
@@ -35023,7 +33647,7 @@
         },
         {
           "name": "ReleaseFiles.retire_source",
-          "line": 368,
+          "line": 356,
           "kind": "function",
           "parameters": [
             "self",
@@ -35035,7 +33659,7 @@
         },
         {
           "name": "ReleaseFiles._rescue_selection",
-          "line": 376,
+          "line": 364,
           "kind": "function",
           "parameters": [
             "self",
@@ -35051,7 +33675,7 @@
         },
         {
           "name": "ReleaseFiles.isolate",
-          "line": 394,
+          "line": 382,
           "kind": "function",
           "parameters": [
             "self",
@@ -35063,7 +33687,7 @@
         },
         {
           "name": "ReleaseFiles.owned",
-          "line": 399,
+          "line": 387,
           "kind": "function",
           "parameters": [
             "self",
@@ -35075,7 +33699,7 @@
         },
         {
           "name": "ReleaseFiles.activate_target",
-          "line": 403,
+          "line": 391,
           "kind": "function",
           "parameters": [
             "self",
@@ -35976,8 +34600,8 @@
       "python_module": "omni.adapters.platform.runtime.paths",
       "lines": 157,
       "imports": [
-        "omni.adapters.platform.deployment_files",
         "omni.adapters.platform.runtime.permissions",
+        "omni.adapters.platform.services.deployment_files",
         "omni.domain.contracts",
         "omni.domain.release_fence"
       ],
@@ -36341,11 +34965,11 @@
       "path": "agent/src/omni/adapters/platform/runtime/runtime_identity.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.runtime.runtime_identity",
-      "lines": 242,
+      "lines": 237,
       "imports": [
         "omni.adapters.object_store",
-        "omni.adapters.platform.deployment_files",
         "omni.adapters.platform.runtime.permissions",
+        "omni.adapters.platform.services.deployment_files",
         "omni.application.ports",
         "omni.domain.contracts",
         "omni.domain.service_control"
@@ -36496,7 +35120,7 @@
         },
         {
           "name": "RuntimeIdentityFiles.request_drain",
-          "line": 184,
+          "line": 179,
           "kind": "function",
           "parameters": [
             "self",
@@ -36512,7 +35136,7 @@
         },
         {
           "name": "RuntimeIdentityFiles.stop_accepting",
-          "line": 203,
+          "line": 198,
           "kind": "function",
           "parameters": [
             "self"
@@ -36521,7 +35145,7 @@
         },
         {
           "name": "RuntimeIdentityFiles.close",
-          "line": 209,
+          "line": 204,
           "kind": "function",
           "parameters": [
             "self",
@@ -37217,7 +35841,7 @@
       "lines": 120,
       "imports": [
         "omni.adapters.platform.runtime.runtime_identity",
-        "omni.adapters.platform.service_readiness",
+        "omni.adapters.platform.services.service_readiness",
         "omni.domain.contracts"
       ],
       "symbols": [
@@ -37339,19 +35963,1405 @@
       "summary": "Workspace admission keeps instance control, secrets and installed code private."
     },
     {
-      "path": "agent/src/omni/adapters/platform/service_admin.py",
+      "path": "agent/src/omni/adapters/platform/services/__init__.py",
       "module": "v2-adapters",
-      "python_module": "omni.adapters.platform.service_admin",
+      "python_module": "omni.adapters.platform.services",
+      "lines": 1,
+      "imports": [],
+      "symbols": [],
+      "summary": "V2 services adapters; importing never probes the platform."
+    },
+    {
+      "path": "agent/src/omni/adapters/platform/services/darwin_admin_commands.py",
+      "module": "v2-adapters",
+      "python_module": "omni.adapters.platform.services.darwin_admin_commands",
+      "lines": 276,
+      "imports": [
+        "omni.domain.contracts"
+      ],
+      "symbols": [
+        {
+          "name": "failed",
+          "line": 19,
+          "kind": "function",
+          "parameters": [
+            "code"
+          ],
+          "annotations": {
+            "code": "str"
+          }
+        },
+        {
+          "name": "Command",
+          "line": 24,
+          "kind": "class"
+        },
+        {
+          "name": "DarwinCommands",
+          "line": 43,
+          "kind": "class"
+        },
+        {
+          "name": "DarwinCommands.__init__",
+          "line": 44,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "connected"
+          ],
+          "annotations": {
+            "connected": "Callable[[], bool]"
+          }
+        },
+        {
+          "name": "DarwinCommands._spawn",
+          "line": 48,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "argv"
+          ],
+          "annotations": {
+            "argv": "list[str]"
+          }
+        },
+        {
+          "name": "DarwinCommands._close_fd",
+          "line": 117,
+          "kind": "function",
+          "parameters": [
+            "owned",
+            "descriptor"
+          ],
+          "annotations": {
+            "owned": "Command",
+            "descriptor": "int"
+          }
+        },
+        {
+          "name": "DarwinCommands._observe",
+          "line": 127,
+          "kind": "function",
+          "parameters": [
+            "owned"
+          ],
+          "annotations": {
+            "owned": "Command"
+          }
+        },
+        {
+          "name": "DarwinCommands._events",
+          "line": 138,
+          "kind": "function",
+          "parameters": [
+            "owned"
+          ],
+          "annotations": {
+            "owned": "Command"
+          }
+        },
+        {
+          "name": "DarwinCommands._drain",
+          "line": 149,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "owned",
+            "timeout"
+          ],
+          "annotations": {
+            "owned": "Command",
+            "timeout": "float"
+          }
+        },
+        {
+          "name": "DarwinCommands.run",
+          "line": 178,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "argv"
+          ],
+          "annotations": {
+            "argv": "list[str]"
+          }
+        },
+        {
+          "name": "DarwinCommands.close",
+          "line": 200,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "timeout_s"
+          ],
+          "annotations": {
+            "timeout_s": "float"
+          }
+        }
+      ],
+      "summary": "Single-threaded Darwin command ownership; pre-exec permit, kqueue no-fork proof and unreaped group anchor."
+    },
+    {
+      "path": "agent/src/omni/adapters/platform/services/darwin_admin_files.py",
+      "module": "v2-adapters",
+      "python_module": "omni.adapters.platform.services.darwin_admin_files",
+      "lines": 184,
+      "imports": [
+        "omni.domain.contracts"
+      ],
+      "symbols": [
+        {
+          "name": "unsafe",
+          "line": 17,
+          "kind": "function",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "Attributes",
+          "line": 21,
+          "kind": "class"
+        },
+        {
+          "name": "identity",
+          "line": 25,
+          "kind": "function",
+          "parameters": [
+            "info"
+          ],
+          "annotations": {
+            "info": "os.stat_result"
+          }
+        },
+        {
+          "name": "acl_safe",
+          "line": 39,
+          "kind": "function",
+          "parameters": [
+            "path"
+          ],
+          "annotations": {
+            "path": "Path"
+          }
+        },
+        {
+          "name": "protected",
+          "line": 120,
+          "kind": "function",
+          "parameters": [
+            "path",
+            "owner",
+            "missing"
+          ],
+          "annotations": {
+            "path": "Path",
+            "owner": "int",
+            "missing": "bool"
+          }
+        },
+        {
+          "name": "read",
+          "line": 138,
+          "kind": "function",
+          "parameters": [
+            "path",
+            "maximum"
+          ],
+          "annotations": {
+            "path": "Path",
+            "maximum": "int"
+          }
+        },
+        {
+          "name": "sync",
+          "line": 154,
+          "kind": "function",
+          "parameters": [
+            "path"
+          ],
+          "annotations": {
+            "path": "Path"
+          }
+        },
+        {
+          "name": "publish",
+          "line": 164,
+          "kind": "function",
+          "parameters": [
+            "path",
+            "data",
+            "mode"
+          ],
+          "annotations": {
+            "path": "Path",
+            "data": "bytes",
+            "mode": "int"
+          }
+        }
+      ],
+      "summary": "Darwin local-volume ACL and root file proofs; no application storage or arbitrary library lookup."
+    },
+    {
+      "path": "agent/src/omni/adapters/platform/services/darwin_admin_peer.py",
+      "module": "v2-adapters",
+      "python_module": "omni.adapters.platform.services.darwin_admin_peer",
+      "lines": 30,
+      "imports": [
+        "omni.domain.contracts"
+      ],
+      "symbols": [
+        {
+          "name": "peer_identity",
+          "line": 13,
+          "kind": "function",
+          "parameters": [
+            "connection"
+          ],
+          "annotations": {
+            "connection": "socket.socket"
+          }
+        }
+      ],
+      "summary": "Kernel Unix peer UID/GID and PID; never accepts a TCP credential result or an empty native option."
+    },
+    {
+      "path": "agent/src/omni/adapters/platform/services/darwin_admin_policy.py",
+      "module": "v2-adapters",
+      "python_module": "omni.adapters.platform.services.darwin_admin_policy",
+      "lines": 181,
+      "imports": [
+        "omni.adapters.platform.services.darwin_admin_commands",
+        "omni.adapters.platform.services.darwin_admin_files",
+        "omni.adapters.platform.services.service_admin_policy",
+        "omni.adapters.platform.services.service_templates",
+        "omni.domain.service_admin",
+        "omni.domain.service_deployment"
+      ],
+      "symbols": [
+        {
+          "name": "DarwinPolicy",
+          "line": 28,
+          "kind": "class"
+        },
+        {
+          "name": "DarwinPolicy.__init__",
+          "line": 29,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "operation",
+            "broker_sha256",
+            "commands",
+            "root"
+          ],
+          "annotations": {
+            "operation": "object",
+            "broker_sha256": "str",
+            "commands": "DarwinCommands",
+            "root": "Path"
+          }
+        },
+        {
+          "name": "DarwinPolicy.authorize",
+          "line": 41,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "DarwinPolicy.audit",
+          "line": 87,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "DarwinPolicy.initialize",
+          "line": 90,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "DarwinPolicy.program",
+          "line": 133,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "DarwinPolicy.probe_argv",
+          "line": 141,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "nonce"
+          ],
+          "annotations": {
+            "nonce": "str"
+          }
+        },
+        {
+          "name": "DarwinPolicy.definition",
+          "line": 148,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "DarwinPolicy.publish_definition",
+          "line": 154,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "DarwinPolicy.remove_definition",
+          "line": 158,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "DarwinPolicy.dispatched",
+          "line": 166,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "DarwinPolicy.record",
+          "line": 180,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "phase",
+            "result"
+          ],
+          "annotations": {
+            "phase": "str",
+            "result": "dict[str, Any]"
+          }
+        }
+      ],
+      "summary": "Exact local-account Darwin administrator policy, protected root artifacts and shared audit bytes."
+    },
+    {
+      "path": "agent/src/omni/adapters/platform/services/darwin_admin_probe.py",
+      "module": "v2-adapters",
+      "python_module": "omni.adapters.platform.services.darwin_admin_probe",
+      "lines": 154,
+      "imports": [],
+      "symbols": [
+        {
+          "name": "NativeJobs",
+          "line": 11,
+          "kind": "class"
+        },
+        {
+          "name": "NativeJobs.__init__",
+          "line": 12,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "NativeJobs.string",
+          "line": 44,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "value"
+          ],
+          "annotations": {
+            "value": "str"
+          }
+        },
+        {
+          "name": "NativeJobs.text",
+          "line": 50,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "value",
+            "maximum"
+          ],
+          "annotations": {
+            "value": "int",
+            "maximum": "int"
+          }
+        },
+        {
+          "name": "NativeJobs.value",
+          "line": 64,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "pointer",
+            "depth",
+            "budget"
+          ],
+          "annotations": {
+            "pointer": "int",
+            "depth": "int",
+            "budget": "list[int] | None"
+          }
+        },
+        {
+          "name": "NativeJobs.copy",
+          "line": 108,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "label"
+          ],
+          "annotations": {
+            "label": "int"
+          }
+        },
+        {
+          "name": "NativeJobs.query",
+          "line": 120,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "label"
+          ],
+          "annotations": {
+            "label": "str"
+          }
+        }
+      ],
+      "summary": "Bounded public CoreFoundation/ServiceManagement reads for a separately owned root worker; no mutation or GUI."
+    },
+    {
+      "path": "agent/src/omni/adapters/platform/services/darwin_service_admin.py",
+      "module": "v2-adapters",
+      "python_module": "omni.adapters.platform.services.darwin_service_admin",
+      "lines": 147,
+      "imports": [
+        "omni.adapters.platform.services.darwin_admin_commands",
+        "omni.adapters.platform.services.darwin_admin_policy",
+        "omni.adapters.platform.services.macos_service_state",
+        "omni.adapters.platform.services.service_admin",
+        "omni.adapters.platform.services.service_admin_policy",
+        "omni.adapters.platform.services.service_templates",
+        "omni.domain.contracts",
+        "omni.domain.service_admin",
+        "omni.domain.service_control",
+        "omni.domain.service_operations"
+      ],
+      "symbols": [
+        {
+          "name": "DarwinAdministrator",
+          "line": 20,
+          "kind": "class"
+        },
+        {
+          "name": "DarwinAdministrator.__init__",
+          "line": 21,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "policy",
+            "commands"
+          ],
+          "annotations": {
+            "policy": "DarwinPolicy",
+            "commands": "DarwinCommands"
+          }
+        },
+        {
+          "name": "DarwinAdministrator.snapshot",
+          "line": 24,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "DarwinAdministrator.inspect",
+          "line": 65,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "DarwinAdministrator.change",
+          "line": 71,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "DarwinAdministrator.close",
+          "line": 146,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "timeout_s"
+          ],
+          "annotations": {
+            "timeout_s": "float"
+          }
+        }
+      ],
+      "summary": "Darwin registration and single-start root backend; fixed launchctl operations, no GUI, database or force."
+    },
+    {
+      "path": "agent/src/omni/adapters/platform/services/deployment_files.py",
+      "module": "v2-adapters",
+      "python_module": "omni.adapters.platform.services.deployment_files",
+      "lines": 631,
+      "imports": [
+        "omni.adapters.build_identity",
+        "omni.adapters.object_store",
+        "omni.adapters.persistence.migration_config",
+        "omni.adapters.platform.runtime.permissions",
+        "omni.adapters.platform.runtime.publication",
+        "omni.adapters.platform.services.service_templates",
+        "omni.domain.contracts",
+        "omni.domain.service_deployment"
+      ],
+      "symbols": [
+        {
+          "name": "_error",
+          "line": 38,
+          "kind": "function",
+          "parameters": [
+            "code",
+            "status"
+          ],
+          "annotations": {
+            "code": "str",
+            "status": "int"
+          }
+        },
+        {
+          "name": "_json",
+          "line": 42,
+          "kind": "function",
+          "parameters": [
+            "value"
+          ],
+          "annotations": {
+            "value": "object"
+          }
+        },
+        {
+          "name": "_sha",
+          "line": 46,
+          "kind": "function",
+          "parameters": [
+            "data"
+          ],
+          "annotations": {
+            "data": "bytes"
+          }
+        },
+        {
+          "name": "_path",
+          "line": 50,
+          "kind": "function",
+          "parameters": [
+            "value"
+          ],
+          "annotations": {
+            "value": "str | Path"
+          }
+        },
+        {
+          "name": "_no_links",
+          "line": 62,
+          "kind": "function",
+          "parameters": [
+            "path",
+            "final"
+          ],
+          "annotations": {
+            "path": "Path",
+            "final": "bool"
+          }
+        },
+        {
+          "name": "_identity",
+          "line": 68,
+          "kind": "function",
+          "parameters": [
+            "info"
+          ],
+          "annotations": {
+            "info": "os.stat_result"
+          }
+        },
+        {
+          "name": "_read",
+          "line": 74,
+          "kind": "function",
+          "parameters": [
+            "path",
+            "limit",
+            "single"
+          ],
+          "annotations": {
+            "path": "str | Path",
+            "limit": "int",
+            "single": "bool"
+          }
+        },
+        {
+          "name": "_decode",
+          "line": 95,
+          "kind": "function",
+          "parameters": [
+            "data"
+          ],
+          "annotations": {
+            "data": "bytes"
+          }
+        },
+        {
+          "name": "_decode.pairs",
+          "line": 96,
+          "kind": "function",
+          "parameters": [
+            "items"
+          ],
+          "annotations": {
+            "items": "list[tuple[str, Any]]"
+          }
+        },
+        {
+          "name": "_decode.constant",
+          "line": 104,
+          "kind": "function",
+          "parameters": [
+            "_value"
+          ],
+          "annotations": {
+            "_value": "object"
+          }
+        },
+        {
+          "name": "_relative",
+          "line": 118,
+          "kind": "function",
+          "parameters": [
+            "value"
+          ],
+          "annotations": {
+            "value": "str"
+          }
+        },
+        {
+          "name": "_walk",
+          "line": 134,
+          "kind": "function",
+          "parameters": [
+            "root",
+            "python_only",
+            "source_assets"
+          ],
+          "annotations": {
+            "root": "Path",
+            "python_only": "bool",
+            "source_assets": "bool"
+          }
+        },
+        {
+          "name": "_principal",
+          "line": 174,
+          "kind": "function",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "_python",
+          "line": 221,
+          "kind": "function",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "python_files",
+          "line": 230,
+          "kind": "function",
+          "parameters": [
+            "executable",
+            "prefix",
+            "process_executable"
+          ],
+          "annotations": {
+            "executable": "Path",
+            "prefix": "Path",
+            "process_executable": "Path | None"
+          }
+        },
+        {
+          "name": "_installation",
+          "line": 272,
+          "kind": "function",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "_proof",
+          "line": 300,
+          "kind": "function",
+          "parameters": [
+            "name",
+            "content"
+          ],
+          "annotations": {
+            "name": "str",
+            "content": "bytes"
+          }
+        },
+        {
+          "name": "_startup_locations",
+          "line": 304,
+          "kind": "function",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "_overlap",
+          "line": 334,
+          "kind": "function",
+          "parameters": [
+            "left",
+            "right"
+          ],
+          "annotations": {
+            "left": "Path",
+            "right": "Path"
+          }
+        },
+        {
+          "name": "_destination",
+          "line": 338,
+          "kind": "function",
+          "parameters": [
+            "path",
+            "plan"
+          ],
+          "annotations": {
+            "path": "str | Path",
+            "plan": "Record"
+          }
+        },
+        {
+          "name": "CurrentDeploymentFiles",
+          "line": 349,
+          "kind": "class"
+        },
+        {
+          "name": "CurrentDeploymentFiles.capture",
+          "line": 350,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "CurrentDeploymentFiles.read",
+          "line": 417,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "path"
+          ],
+          "annotations": {
+            "path": "str | Path"
+          }
+        },
+        {
+          "name": "CurrentDeploymentFiles.write_capture",
+          "line": 420,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "runtime",
+            "path"
+          ],
+          "annotations": {
+            "runtime": "Record",
+            "path": "str | Path"
+          }
+        },
+        {
+          "name": "CurrentDeploymentFiles.write_plan",
+          "line": 439,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "plan",
+            "path"
+          ],
+          "annotations": {
+            "plan": "Record",
+            "path": "str | Path"
+          }
+        },
+        {
+          "name": "CurrentDeploymentFiles._publish_json",
+          "line": 448,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "target",
+            "data"
+          ],
+          "annotations": {
+            "target": "Path",
+            "data": "bytes"
+          }
+        },
+        {
+          "name": "CurrentDeploymentFiles._write",
+          "line": 469,
+          "kind": "function",
+          "parameters": [
+            "path",
+            "data"
+          ],
+          "annotations": {
+            "path": "Path",
+            "data": "bytes"
+          }
+        },
+        {
+          "name": "CurrentDeploymentFiles.write_file",
+          "line": 478,
+          "kind": "function",
+          "parameters": [
+            "path",
+            "data"
+          ],
+          "annotations": {
+            "path": "Path",
+            "data": "bytes"
+          }
+        },
+        {
+          "name": "CurrentDeploymentFiles.publish_json",
+          "line": 481,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "target",
+            "data"
+          ],
+          "annotations": {
+            "target": "Path",
+            "data": "bytes"
+          }
+        },
+        {
+          "name": "CurrentDeploymentFiles.materialize",
+          "line": 484,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "plan",
+            "destination"
+          ],
+          "annotations": {
+            "plan": "Record",
+            "destination": "str | Path"
+          }
+        },
+        {
+          "name": "CurrentDeploymentFiles.verify",
+          "line": 536,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "bundle"
+          ],
+          "annotations": {
+            "bundle": "str | Path"
+          }
+        },
+        {
+          "name": "CurrentDeploymentFiles.artifact_plan",
+          "line": 581,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "bundle"
+          ],
+          "annotations": {
+            "bundle": "str | Path"
+          }
+        },
+        {
+          "name": "write_file",
+          "line": 623,
+          "kind": "function",
+          "parameters": [
+            "path",
+            "data"
+          ],
+          "annotations": {
+            "path": "Path",
+            "data": "bytes"
+          }
+        },
+        {
+          "name": "publish_json",
+          "line": 630,
+          "kind": "function",
+          "parameters": [
+            "files",
+            "target",
+            "data"
+          ],
+          "annotations": {
+            "files": "CurrentDeploymentFiles",
+            "target": "Path",
+            "data": "bytes"
+          }
+        }
+      ],
+      "summary": "Capture installation identity and publish reviewed deployment bundles; never registers services or opens business storage."
+    },
+    {
+      "path": "agent/src/omni/adapters/platform/services/exchange_deployments.py",
+      "module": "v2-adapters",
+      "python_module": "omni.adapters.platform.services.exchange_deployments",
+      "lines": 27,
+      "imports": [
+        "omni.adapters.platform.releases.release_files",
+        "omni.adapters.platform.services.deployment_files",
+        "omni.application.ports",
+        "omni.domain.contracts",
+        "omni.domain.releases"
+      ],
+      "symbols": [
+        {
+          "name": "ExchangeSourceDeployment",
+          "line": 14,
+          "kind": "class"
+        },
+        {
+          "name": "ExchangeSourceDeployment.__init__",
+          "line": 15,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "plan",
+            "files"
+          ],
+          "annotations": {
+            "plan": "ReleasePlan",
+            "files": "ReleaseFiles"
+          }
+        },
+        {
+          "name": "ExchangeSourceDeployment.verify",
+          "line": 18,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "bundle"
+          ],
+          "annotations": {
+            "bundle": "str | Path"
+          }
+        }
+      ],
+      "summary": "Verify a reviewed source for removal or signed boot draining; never execute or import the source installation."
+    },
+    {
+      "path": "agent/src/omni/adapters/platform/services/exchange_files.py",
+      "module": "v2-adapters",
+      "python_module": "omni.adapters.platform.services.exchange_files",
+      "lines": 284,
+      "imports": [
+        "omni.adapters.object_store",
+        "omni.adapters.platform.runtime.paths",
+        "omni.adapters.platform.runtime.permissions",
+        "omni.adapters.platform.services.deployment_files",
+        "omni.application.ports",
+        "omni.domain.contracts",
+        "omni.domain.releases",
+        "omni.domain.service_admin",
+        "omni.domain.service_exchange",
+        "omni.domain.service_isolation"
+      ],
+      "symbols": [
+        {
+          "name": "invalid",
+          "line": 30,
+          "kind": "function",
+          "parameters": [
+            "code"
+          ],
+          "annotations": {
+            "code": "str"
+          }
+        },
+        {
+          "name": "ExchangeFiles",
+          "line": 34,
+          "kind": "class"
+        },
+        {
+          "name": "ExchangeFiles.__init__",
+          "line": 35,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "deployments"
+          ],
+          "annotations": {
+            "deployments": "CurrentDeploymentFiles"
+          }
+        },
+        {
+          "name": "ExchangeFiles.homes",
+          "line": 40,
+          "kind": "function",
+          "parameters": [
+            "plan"
+          ],
+          "annotations": {
+            "plan": "ExchangePlan"
+          }
+        },
+        {
+          "name": "ExchangeFiles._root",
+          "line": 50,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "plan"
+          ],
+          "annotations": {
+            "plan": "ExchangePlan"
+          }
+        },
+        {
+          "name": "ExchangeFiles._read",
+          "line": 57,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "path"
+          ],
+          "annotations": {
+            "path": "Path"
+          }
+        },
+        {
+          "name": "ExchangeFiles.read",
+          "line": 62,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "path"
+          ],
+          "annotations": {
+            "path": "Path"
+          }
+        },
+        {
+          "name": "ExchangeFiles._require_owned",
+          "line": 66,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "plan"
+          ],
+          "annotations": {
+            "plan": "ExchangePlan"
+          }
+        },
+        {
+          "name": "ExchangeFiles.publish",
+          "line": 70,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "plan",
+            "output"
+          ],
+          "annotations": {
+            "plan": "ExchangePlan",
+            "output": "str"
+          }
+        },
+        {
+          "name": "ExchangeFiles.publish_isolation",
+          "line": 84,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "plan",
+            "output"
+          ],
+          "annotations": {
+            "plan": "IsolationPlan",
+            "output": "str"
+          }
+        },
+        {
+          "name": "ExchangeFiles.publish_administrator",
+          "line": 97,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "plan",
+            "role",
+            "output"
+          ],
+          "annotations": {
+            "plan": "ExchangePlan",
+            "role": "str",
+            "output": "str"
+          }
+        },
+        {
+          "name": "ExchangeFiles._publish",
+          "line": 117,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "checked",
+            "document",
+            "output"
+          ],
+          "annotations": {
+            "checked": "ExchangePlan",
+            "document": "Mapping[str, object]",
+            "output": "str"
+          }
+        },
+        {
+          "name": "ExchangeFiles.exclusive",
+          "line": 138,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "plan"
+          ],
+          "annotations": {
+            "plan": "ExchangePlan"
+          }
+        },
+        {
+          "name": "ExchangeFiles.history",
+          "line": 154,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "plan"
+          ],
+          "annotations": {
+            "plan": "ExchangePlan"
+          }
+        },
+        {
+          "name": "ExchangeFiles.maintenance",
+          "line": 189,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "plan"
+          ],
+          "annotations": {
+            "plan": "ExchangePlan"
+          }
+        },
+        {
+          "name": "ExchangeFiles.claim",
+          "line": 201,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "plan"
+          ],
+          "annotations": {
+            "plan": "ExchangePlan"
+          }
+        },
+        {
+          "name": "ExchangeFiles.append",
+          "line": 243,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "plan",
+            "record"
+          ],
+          "annotations": {
+            "plan": "ExchangePlan",
+            "record": "Record"
+          }
+        },
+        {
+          "name": "ExchangeFiles.check_idle",
+          "line": 258,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "plan"
+          ],
+          "annotations": {
+            "plan": "ExchangePlan"
+          }
+        },
+        {
+          "name": "ExchangeFiles.settled",
+          "line": 267,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "plan"
+          ],
+          "annotations": {
+            "plan": "ExchangePlan"
+          }
+        }
+      ],
+      "summary": "Private bounded exchange witnesses and maintenance reservations; no database, native calls or rollback."
+    },
+    {
+      "path": "agent/src/omni/adapters/platform/services/macos_service.py",
+      "module": "v2-adapters",
+      "python_module": "omni.adapters.platform.services.macos_service",
+      "lines": 109,
+      "imports": [
+        "omni.adapters.platform.services.deployment_files",
+        "omni.adapters.platform.services.macos_service_state",
+        "omni.application.ports",
+        "omni.domain.contracts",
+        "omni.domain.service_deployment"
+      ],
+      "symbols": [
+        {
+          "name": "MacOSServiceInspection",
+          "line": 32,
+          "kind": "class"
+        },
+        {
+          "name": "MacOSServiceInspection.__init__",
+          "line": 33,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "command",
+            "helper"
+          ],
+          "annotations": {
+            "command": "Callable[[list[str]], Awaitable[tuple[int, bytes]]]",
+            "helper": "Callable[[], Awaitable[Path | None]]"
+          }
+        },
+        {
+          "name": "MacOSServiceInspection.probe",
+          "line": 38,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "plan"
+          ],
+          "annotations": {
+            "plan": "Record"
+          }
+        }
+      ],
+      "summary": "Inspect loaded launchd descriptions via the fixed Swift helper; never parses launchctl print as authority."
+    },
+    {
+      "path": "agent/src/omni/adapters/platform/services/macos_service_state.py",
+      "module": "v2-adapters",
+      "python_module": "omni.adapters.platform.services.macos_service_state",
+      "lines": 101,
+      "imports": [
+        "omni.adapters.platform.services.service_templates",
+        "omni.domain.service_deployment"
+      ],
+      "symbols": [
+        {
+          "name": "_bounded_job",
+          "line": 17,
+          "kind": "function",
+          "parameters": [
+            "value"
+          ],
+          "annotations": {
+            "value": "object"
+          }
+        },
+        {
+          "name": "loaded_definition",
+          "line": 45,
+          "kind": "function",
+          "parameters": [
+            "plan",
+            "job"
+          ],
+          "annotations": {
+            "plan": "Mapping[str, object]",
+            "job": "object"
+          }
+        },
+        {
+          "name": "disabled_override",
+          "line": 77,
+          "kind": "function",
+          "parameters": [
+            "output",
+            "label"
+          ],
+          "annotations": {
+            "output": "bytes",
+            "label": "str"
+          }
+        }
+      ],
+      "summary": "Pure bounded launchd definition and override comparison shared by owner and administrator ports."
+    },
+    {
+      "path": "agent/src/omni/adapters/platform/services/service_admin.py",
+      "module": "v2-adapters",
+      "python_module": "omni.adapters.platform.services.service_admin",
       "lines": 364,
       "imports": [
-        "omni.adapters.platform.darwin_admin_files",
-        "omni.adapters.platform.darwin_admin_peer",
-        "omni.adapters.platform.darwin_admin_policy",
-        "omni.adapters.platform.darwin_service_admin",
-        "omni.adapters.platform.service_admin_commands",
-        "omni.adapters.platform.service_admin_policy",
-        "omni.adapters.platform.service_templates",
-        "omni.adapters.platform.systemd_state",
+        "omni.adapters.platform.services.darwin_admin_files",
+        "omni.adapters.platform.services.darwin_admin_peer",
+        "omni.adapters.platform.services.darwin_admin_policy",
+        "omni.adapters.platform.services.darwin_service_admin",
+        "omni.adapters.platform.services.service_admin_commands",
+        "omni.adapters.platform.services.service_admin_policy",
+        "omni.adapters.platform.services.service_templates",
+        "omni.adapters.platform.services.systemd_state",
         "omni.domain.contracts",
         "omni.domain.service_admin",
         "omni.domain.service_control",
@@ -37536,22 +37546,22 @@
       "summary": "Fixed Linux system-service registration/start broker; no owner code execution, business DB, stop or shell."
     },
     {
-      "path": "agent/src/omni/adapters/platform/service_admin_bundle.py",
+      "path": "agent/src/omni/adapters/platform/services/service_admin_bundle.py",
       "module": "v2-adapters",
-      "python_module": "omni.adapters.platform.service_admin_bundle",
-      "lines": 143,
+      "python_module": "omni.adapters.platform.services.service_admin_bundle",
+      "lines": 144,
       "imports": [
         "omni.adapters.object_store",
-        "omni.adapters.platform.deployment_files",
         "omni.adapters.platform.runtime.permissions",
         "omni.adapters.platform.runtime.publication",
+        "omni.adapters.platform.services.deployment_files",
         "omni.application.ports",
         "omni.domain.contracts"
       ],
       "symbols": [
         {
           "name": "materialize_admin_bundle",
-          "line": 49,
+          "line": 50,
           "kind": "function",
           "parameters": [
             "destination"
@@ -37564,13 +37574,13 @@
       "summary": "Publish a reviewable stdlib-only administrator artifact; never installs it or elevates privileges."
     },
     {
-      "path": "agent/src/omni/adapters/platform/service_admin_client.py",
+      "path": "agent/src/omni/adapters/platform/services/service_admin_client.py",
       "module": "v2-adapters",
-      "python_module": "omni.adapters.platform.service_admin_client",
+      "python_module": "omni.adapters.platform.services.service_admin_client",
       "lines": 446,
       "imports": [
-        "omni.adapters.platform.darwin_admin_files",
-        "omni.adapters.platform.darwin_admin_peer",
+        "omni.adapters.platform.services.darwin_admin_files",
+        "omni.adapters.platform.services.darwin_admin_peer",
         "omni.application.ports",
         "omni.domain.contracts",
         "omni.domain.service_admin",
@@ -38027,9 +38037,9 @@
       "summary": "Owner-side pinned root broker connection; no elevation, root code launch or automatic request retry."
     },
     {
-      "path": "agent/src/omni/adapters/platform/service_admin_commands.py",
+      "path": "agent/src/omni/adapters/platform/services/service_admin_commands.py",
       "module": "v2-adapters",
-      "python_module": "omni.adapters.platform.service_admin_commands",
+      "python_module": "omni.adapters.platform.services.service_admin_commands",
       "lines": 220,
       "imports": [
         "omni.domain.contracts"
@@ -38157,12 +38167,12 @@
       "summary": "Single-threaded root manager process ownership using pidfds and subreaping; never uses historical PIDs."
     },
     {
-      "path": "agent/src/omni/adapters/platform/service_admin_policy.py",
+      "path": "agent/src/omni/adapters/platform/services/service_admin_policy.py",
       "module": "v2-adapters",
-      "python_module": "omni.adapters.platform.service_admin_policy",
+      "python_module": "omni.adapters.platform.services.service_admin_policy",
       "lines": 329,
       "imports": [
-        "omni.adapters.platform.service_templates",
+        "omni.adapters.platform.services.service_templates",
         "omni.domain.contracts",
         "omni.domain.service_admin",
         "omni.domain.service_deployment"
@@ -38414,18 +38424,18 @@
       "summary": "Root-only fixed Linux paths and append-only dispatch evidence; never opens owner business storage."
     },
     {
-      "path": "agent/src/omni/adapters/platform/service_cleanup_files.py",
+      "path": "agent/src/omni/adapters/platform/services/service_cleanup_files.py",
       "module": "v2-adapters",
-      "python_module": "omni.adapters.platform.service_cleanup_files",
-      "lines": 259,
+      "python_module": "omni.adapters.platform.services.service_cleanup_files",
+      "lines": 265,
       "imports": [
         "omni.adapters.object_store",
-        "omni.adapters.platform.deployment_files",
-        "omni.adapters.platform.exchange_files",
         "omni.adapters.platform.releases.release_files",
         "omni.adapters.platform.runtime.paths",
         "omni.adapters.platform.runtime.permissions",
-        "omni.adapters.platform.service_operation_files",
+        "omni.adapters.platform.services.deployment_files",
+        "omni.adapters.platform.services.exchange_files",
+        "omni.adapters.platform.services.service_operation_files",
         "omni.application.ports",
         "omni.domain.contracts",
         "omni.domain.release_fence",
@@ -38436,7 +38446,7 @@
       "symbols": [
         {
           "name": "invalid",
-          "line": 33,
+          "line": 39,
           "kind": "function",
           "parameters": [
             "code"
@@ -38447,12 +38457,12 @@
         },
         {
           "name": "CleanupPlanFiles",
-          "line": 37,
+          "line": 43,
           "kind": "class"
         },
         {
           "name": "CleanupPlanFiles.__init__",
-          "line": 38,
+          "line": 44,
           "kind": "function",
           "parameters": [
             "self",
@@ -38464,7 +38474,7 @@
         },
         {
           "name": "CleanupPlanFiles.publish",
-          "line": 41,
+          "line": 47,
           "kind": "function",
           "parameters": [
             "self",
@@ -38478,12 +38488,12 @@
         },
         {
           "name": "CleanupFiles",
-          "line": 63,
+          "line": 69,
           "kind": "class"
         },
         {
           "name": "CleanupFiles.__init__",
-          "line": 64,
+          "line": 70,
           "kind": "function",
           "parameters": [
             "self",
@@ -38497,7 +38507,7 @@
         },
         {
           "name": "CleanupFiles._operation",
-          "line": 71,
+          "line": 77,
           "kind": "function",
           "parameters": [
             "self",
@@ -38509,7 +38519,7 @@
         },
         {
           "name": "CleanupFiles._paths",
-          "line": 76,
+          "line": 82,
           "kind": "function",
           "parameters": [
             "self",
@@ -38521,7 +38531,7 @@
         },
         {
           "name": "CleanupFiles.homes",
-          "line": 98,
+          "line": 104,
           "kind": "function",
           "parameters": [
             "self"
@@ -38530,7 +38540,7 @@
         },
         {
           "name": "CleanupFiles.reservation_path",
-          "line": 103,
+          "line": 109,
           "kind": "function",
           "parameters": [
             "self",
@@ -38542,7 +38552,7 @@
         },
         {
           "name": "CleanupFiles.reservation",
-          "line": 106,
+          "line": 112,
           "kind": "function",
           "parameters": [
             "self"
@@ -38551,7 +38561,7 @@
         },
         {
           "name": "CleanupFiles._reservations",
-          "line": 114,
+          "line": 120,
           "kind": "function",
           "parameters": [
             "self"
@@ -38560,7 +38570,7 @@
         },
         {
           "name": "CleanupFiles.scope",
-          "line": 129,
+          "line": 135,
           "kind": "function",
           "parameters": [
             "self"
@@ -38569,7 +38579,7 @@
         },
         {
           "name": "CleanupFiles.exclusive",
-          "line": 148,
+          "line": 154,
           "kind": "function",
           "parameters": [
             "self",
@@ -38581,7 +38591,7 @@
         },
         {
           "name": "CleanupFiles._require_owned",
-          "line": 176,
+          "line": 182,
           "kind": "function",
           "parameters": [
             "self"
@@ -38590,7 +38600,7 @@
         },
         {
           "name": "CleanupFiles._directory",
-          "line": 181,
+          "line": 187,
           "kind": "function",
           "parameters": [
             "path"
@@ -38601,7 +38611,7 @@
         },
         {
           "name": "CleanupFiles._prepare",
-          "line": 191,
+          "line": 197,
           "kind": "function",
           "parameters": [
             "self"
@@ -38610,7 +38620,7 @@
         },
         {
           "name": "CleanupFiles.latest",
-          "line": 202,
+          "line": 208,
           "kind": "function",
           "parameters": [
             "self",
@@ -38622,7 +38632,7 @@
         },
         {
           "name": "CleanupFiles.activate",
-          "line": 214,
+          "line": 220,
           "kind": "function",
           "parameters": [
             "self",
@@ -38634,7 +38644,7 @@
         },
         {
           "name": "CleanupFiles.append",
-          "line": 224,
+          "line": 230,
           "kind": "function",
           "parameters": [
             "self",
@@ -38648,7 +38658,7 @@
         },
         {
           "name": "CleanupFiles.settled",
-          "line": 230,
+          "line": 236,
           "kind": "function",
           "parameters": [
             "self",
@@ -38660,12 +38670,12 @@
         },
         {
           "name": "CleanupDeployment",
-          "line": 244,
+          "line": 250,
           "kind": "class"
         },
         {
           "name": "CleanupDeployment.__init__",
-          "line": 245,
+          "line": 251,
           "kind": "function",
           "parameters": [
             "self",
@@ -38677,7 +38687,7 @@
         },
         {
           "name": "CleanupDeployment.verify",
-          "line": 248,
+          "line": 254,
           "kind": "function",
           "parameters": [
             "self",
@@ -38691,19 +38701,19 @@
       "summary": "Separate cleanup journals and two-home reservations; preserves old unknown records, fences and business data."
     },
     {
-      "path": "agent/src/omni/adapters/platform/service_control_files.py",
+      "path": "agent/src/omni/adapters/platform/services/service_control_files.py",
       "module": "v2-adapters",
-      "python_module": "omni.adapters.platform.service_control_files",
+      "python_module": "omni.adapters.platform.services.service_control_files",
       "lines": 126,
       "imports": [
         "omni.adapters.object_store",
         "omni.adapters.persistence.deployed_instance",
-        "omni.adapters.platform.deployment_files",
         "omni.adapters.platform.runtime.paths",
         "omni.adapters.platform.runtime.runtime_identity",
-        "omni.adapters.platform.service_launch",
-        "omni.adapters.platform.service_operation_files",
-        "omni.adapters.platform.service_readiness",
+        "omni.adapters.platform.services.deployment_files",
+        "omni.adapters.platform.services.service_launch",
+        "omni.adapters.platform.services.service_operation_files",
+        "omni.adapters.platform.services.service_readiness",
         "omni.application.ports",
         "omni.domain.contracts",
         "omni.domain.service_control"
@@ -38804,12 +38814,12 @@
       "summary": "Service lifecycle journal and once-only startup reservation; reuses registration audit and file-lock ownership."
     },
     {
-      "path": "agent/src/omni/adapters/platform/service_handover.py",
+      "path": "agent/src/omni/adapters/platform/services/service_handover.py",
       "module": "v2-adapters",
-      "python_module": "omni.adapters.platform.service_handover",
+      "python_module": "omni.adapters.platform.services.service_handover",
       "lines": 77,
       "imports": [
-        "omni.adapters.platform.service_admin_client",
+        "omni.adapters.platform.services.service_admin_client",
         "omni.application.ports",
         "omni.domain.contracts",
         "omni.domain.service_admin",
@@ -38897,13 +38907,13 @@
       "summary": "Two pinned root phases, opened in order and owned until native lock release; never elevates or spawns a broker."
     },
     {
-      "path": "agent/src/omni/adapters/platform/service_launch.py",
+      "path": "agent/src/omni/adapters/platform/services/service_launch.py",
       "module": "v2-adapters",
-      "python_module": "omni.adapters.platform.service_launch",
-      "lines": 88,
+      "python_module": "omni.adapters.platform.services.service_launch",
+      "lines": 95,
       "imports": [
-        "omni.adapters.platform.deployment_files",
         "omni.adapters.platform.runtime.permissions",
+        "omni.adapters.platform.services.deployment_files",
         "omni.application.ports",
         "omni.domain.contracts",
         "omni.domain.service_activation",
@@ -38912,7 +38922,7 @@
       "symbols": [
         {
           "name": "_activation",
-          "line": 17,
+          "line": 24,
           "kind": "function",
           "parameters": [
             "control"
@@ -38923,7 +38933,7 @@
         },
         {
           "name": "_require_activation",
-          "line": 30,
+          "line": 37,
           "kind": "function",
           "parameters": [
             "control",
@@ -38936,7 +38946,7 @@
         },
         {
           "name": "consume_launch",
-          "line": 36,
+          "line": 43,
           "kind": "function",
           "parameters": [
             "control",
@@ -38949,7 +38959,7 @@
         },
         {
           "name": "reserve_launch",
-          "line": 83,
+          "line": 90,
           "kind": "function",
           "parameters": [
             "control",
@@ -38964,16 +38974,16 @@
       "summary": "Once-only reviewed boot reservations under the instance lock; never starts a process or reads credentials."
     },
     {
-      "path": "agent/src/omni/adapters/platform/service_operation_files.py",
+      "path": "agent/src/omni/adapters/platform/services/service_operation_files.py",
       "module": "v2-adapters",
-      "python_module": "omni.adapters.platform.service_operation_files",
-      "lines": 267,
+      "python_module": "omni.adapters.platform.services.service_operation_files",
+      "lines": 274,
       "imports": [
         "omni.adapters.object_store",
         "omni.adapters.persistence.deployed_instance",
-        "omni.adapters.platform.deployment_files",
         "omni.adapters.platform.runtime.paths",
         "omni.adapters.platform.runtime.permissions",
+        "omni.adapters.platform.services.deployment_files",
         "omni.application.ports",
         "omni.domain.contracts",
         "omni.domain.service_operations"
@@ -38981,7 +38991,7 @@
       "symbols": [
         {
           "name": "_digest",
-          "line": 24,
+          "line": 31,
           "kind": "function",
           "parameters": [
             "value"
@@ -38992,12 +39002,12 @@
         },
         {
           "name": "ServiceOperationFiles",
-          "line": 28,
+          "line": 35,
           "kind": "class"
         },
         {
           "name": "ServiceOperationFiles.__init__",
-          "line": 29,
+          "line": 36,
           "kind": "function",
           "parameters": [
             "self",
@@ -39013,7 +39023,7 @@
         },
         {
           "name": "ServiceOperationFiles.publish",
-          "line": 42,
+          "line": 49,
           "kind": "function",
           "parameters": [
             "self",
@@ -39027,7 +39037,7 @@
         },
         {
           "name": "ServiceOperationFiles._paths",
-          "line": 62,
+          "line": 69,
           "kind": "function",
           "parameters": [
             "self",
@@ -39039,7 +39049,7 @@
         },
         {
           "name": "ServiceOperationFiles.exclusive",
-          "line": 74,
+          "line": 81,
           "kind": "function",
           "parameters": [
             "self",
@@ -39051,7 +39061,7 @@
         },
         {
           "name": "ServiceOperationFiles.maintenance",
-          "line": 110,
+          "line": 117,
           "kind": "function",
           "parameters": [
             "self",
@@ -39063,7 +39073,7 @@
         },
         {
           "name": "ServiceOperationFiles._private_json",
-          "line": 134,
+          "line": 141,
           "kind": "function",
           "parameters": [
             "path",
@@ -39076,7 +39086,7 @@
         },
         {
           "name": "ServiceOperationFiles._marker",
-          "line": 139,
+          "line": 146,
           "kind": "function",
           "parameters": [
             "operation"
@@ -39087,7 +39097,7 @@
         },
         {
           "name": "ServiceOperationFiles.latest",
-          "line": 142,
+          "line": 149,
           "kind": "function",
           "parameters": [
             "self",
@@ -39099,7 +39109,7 @@
         },
         {
           "name": "ServiceOperationFiles.activate",
-          "line": 200,
+          "line": 207,
           "kind": "function",
           "parameters": [
             "self",
@@ -39111,7 +39121,7 @@
         },
         {
           "name": "ServiceOperationFiles.dispatched",
-          "line": 218,
+          "line": 225,
           "kind": "function",
           "parameters": [
             "self",
@@ -39123,7 +39133,7 @@
         },
         {
           "name": "ServiceOperationFiles.append",
-          "line": 233,
+          "line": 240,
           "kind": "function",
           "parameters": [
             "self",
@@ -39137,7 +39147,7 @@
         },
         {
           "name": "ServiceOperationFiles.settled",
-          "line": 255,
+          "line": 262,
           "kind": "function",
           "parameters": [
             "self",
@@ -39151,16 +39161,16 @@
       "summary": "Private offline maintenance journal; never migrates, replays or removes instance data."
     },
     {
-      "path": "agent/src/omni/adapters/platform/service_query.py",
+      "path": "agent/src/omni/adapters/platform/services/service_query.py",
       "module": "v2-adapters",
-      "python_module": "omni.adapters.platform.service_query",
+      "python_module": "omni.adapters.platform.services.service_query",
       "lines": 472,
       "imports": [
         "omni.adapters.platform.desktop.macos_helper",
-        "omni.adapters.platform.macos_service",
         "omni.adapters.platform.runtime.processes",
-        "omni.adapters.platform.service_templates",
-        "omni.adapters.platform.systemd_state",
+        "omni.adapters.platform.services.macos_service",
+        "omni.adapters.platform.services.service_templates",
+        "omni.adapters.platform.services.systemd_state",
         "omni.application.ports",
         "omni.domain.contracts",
         "omni.domain.service_deployment"
@@ -39447,9 +39457,9 @@
       "summary": "Read-only OS service inspection with bounded output and retained process ownership."
     },
     {
-      "path": "agent/src/omni/adapters/platform/service_readiness.py",
+      "path": "agent/src/omni/adapters/platform/services/service_readiness.py",
       "module": "v2-adapters",
-      "python_module": "omni.adapters.platform.service_readiness",
+      "python_module": "omni.adapters.platform.services.service_readiness",
       "lines": 307,
       "imports": [
         "omni.adapters.platform.runtime.runtime_identity",
@@ -39629,16 +39639,16 @@
       "summary": "Bounded, per-boot HMAC readiness proof. Never reads or sends an owner credential."
     },
     {
-      "path": "agent/src/omni/adapters/platform/service_registration.py",
+      "path": "agent/src/omni/adapters/platform/services/service_registration.py",
       "module": "v2-adapters",
-      "python_module": "omni.adapters.platform.service_registration",
+      "python_module": "omni.adapters.platform.services.service_registration",
       "lines": 420,
       "imports": [
         "omni.adapters.object_store",
-        "omni.adapters.platform.deployment_files",
-        "omni.adapters.platform.macos_service",
-        "omni.adapters.platform.service_query",
-        "omni.adapters.platform.service_templates",
+        "omni.adapters.platform.services.deployment_files",
+        "omni.adapters.platform.services.macos_service",
+        "omni.adapters.platform.services.service_query",
+        "omni.adapters.platform.services.service_templates",
         "omni.application.ports",
         "omni.domain.contracts",
         "omni.domain.service_control",
@@ -39843,9 +39853,9 @@
       "summary": "Native user-service registration with fixed commands and scoped macOS unload; no elevation or data deletion."
     },
     {
-      "path": "agent/src/omni/adapters/platform/service_templates.py",
+      "path": "agent/src/omni/adapters/platform/services/service_templates.py",
       "module": "v2-adapters",
-      "python_module": "omni.adapters.platform.service_templates",
+      "python_module": "omni.adapters.platform.services.service_templates",
       "lines": 219,
       "imports": [
         "omni.domain.service_deployment"
@@ -39950,9 +39960,9 @@
       "summary": "Deterministic service artifacts. Rendering never installs or controls a service."
     },
     {
-      "path": "agent/src/omni/adapters/platform/systemd_state.py",
+      "path": "agent/src/omni/adapters/platform/services/systemd_state.py",
       "module": "v2-adapters",
-      "python_module": "omni.adapters.platform.systemd_state",
+      "python_module": "omni.adapters.platform.services.systemd_state",
       "lines": 101,
       "imports": [],
       "symbols": [
@@ -40393,7 +40403,7 @@
         "omni.adapters.platform.runtime.paths",
         "omni.adapters.platform.runtime.permissions",
         "omni.adapters.platform.runtime.runtime_identity",
-        "omni.adapters.platform.service_readiness",
+        "omni.adapters.platform.services.service_readiness",
         "omni.domain",
         "omni.domain.contracts",
         "omni.domain.soak"
@@ -41764,8 +41774,8 @@
       "python_module": "omni.adapters.workers.darwin_admin_probe",
       "lines": 45,
       "imports": [
-        "omni.adapters.platform.darwin_admin_files",
-        "omni.adapters.platform.darwin_admin_probe"
+        "omni.adapters.platform.services.darwin_admin_files",
+        "omni.adapters.platform.services.darwin_admin_probe"
       ],
       "symbols": [
         {
@@ -43238,11 +43248,11 @@
       "python_module": "omni.adapters.workers.service_admin_boot",
       "lines": 211,
       "imports": [
-        "omni.adapters.platform.darwin_admin_commands",
-        "omni.adapters.platform.darwin_admin_files",
-        "omni.adapters.platform.darwin_admin_policy",
-        "omni.adapters.platform.service_admin",
-        "omni.adapters.platform.service_admin_policy",
+        "omni.adapters.platform.services.darwin_admin_commands",
+        "omni.adapters.platform.services.darwin_admin_files",
+        "omni.adapters.platform.services.darwin_admin_policy",
+        "omni.adapters.platform.services.service_admin",
+        "omni.adapters.platform.services.service_admin_policy",
         "omni.domain.service_admin"
       ],
       "symbols": [
@@ -68710,7 +68720,6 @@
         "omni.adapters.persistence.object_gc",
         "omni.adapters.persistence.operations_read",
         "omni.adapters.persistence.reference_release",
-        "omni.adapters.platform.deployment_files",
         "omni.adapters.platform.releases.wheel_artifact",
         "omni.adapters.platform.releases.wheel_backup",
         "omni.adapters.platform.releases.wheel_environment",
@@ -68725,9 +68734,10 @@
         "omni.adapters.platform.runtime.paths",
         "omni.adapters.platform.runtime.permissions",
         "omni.adapters.platform.runtime.workbench",
-        "omni.adapters.platform.service_admin_bundle",
-        "omni.adapters.platform.service_query",
-        "omni.adapters.platform.service_readiness",
+        "omni.adapters.platform.services.deployment_files",
+        "omni.adapters.platform.services.service_admin_bundle",
+        "omni.adapters.platform.services.service_query",
+        "omni.adapters.platform.services.service_readiness",
         "omni.adapters.primitives",
         "omni.adapters.vector_files",
         "omni.application.ports",
@@ -68977,7 +68987,7 @@
         "omni.adapters.platform.runtime.secrets",
         "omni.adapters.platform.runtime.terminal",
         "omni.adapters.platform.runtime.workspaces",
-        "omni.adapters.platform.service_launch",
+        "omni.adapters.platform.services.service_launch",
         "omni.adapters.primitives",
         "omni.adapters.process_diagnostics",
         "omni.adapters.skill_packages",
@@ -69363,13 +69373,13 @@
       "lines": 123,
       "imports": [
         "omni.adapters.persistence.releases",
-        "omni.adapters.platform.deployment_files",
-        "omni.adapters.platform.exchange_deployments",
         "omni.adapters.platform.releases.release_files",
-        "omni.adapters.platform.service_admin_client",
-        "omni.adapters.platform.service_control_files",
-        "omni.adapters.platform.service_readiness",
-        "omni.adapters.platform.service_registration",
+        "omni.adapters.platform.services.deployment_files",
+        "omni.adapters.platform.services.exchange_deployments",
+        "omni.adapters.platform.services.service_admin_client",
+        "omni.adapters.platform.services.service_control_files",
+        "omni.adapters.platform.services.service_readiness",
+        "omni.adapters.platform.services.service_registration",
         "omni.adapters.primitives",
         "omni.application.ports",
         "omni.application.release_drain",
@@ -69416,11 +69426,11 @@
       "python_module": "omni.composition.service_cleanup",
       "lines": 79,
       "imports": [
-        "omni.adapters.platform.deployment_files",
-        "omni.adapters.platform.exchange_files",
-        "omni.adapters.platform.service_admin_client",
-        "omni.adapters.platform.service_cleanup_files",
-        "omni.adapters.platform.service_registration",
+        "omni.adapters.platform.services.deployment_files",
+        "omni.adapters.platform.services.exchange_files",
+        "omni.adapters.platform.services.service_admin_client",
+        "omni.adapters.platform.services.service_cleanup_files",
+        "omni.adapters.platform.services.service_registration",
         "omni.adapters.primitives",
         "omni.application.ports",
         "omni.application.service_cleanup",
@@ -69462,11 +69472,11 @@
       "python_module": "omni.composition.service_control",
       "lines": 69,
       "imports": [
-        "omni.adapters.platform.deployment_files",
-        "omni.adapters.platform.service_admin_client",
-        "omni.adapters.platform.service_control_files",
-        "omni.adapters.platform.service_readiness",
-        "omni.adapters.platform.service_registration",
+        "omni.adapters.platform.services.deployment_files",
+        "omni.adapters.platform.services.service_admin_client",
+        "omni.adapters.platform.services.service_control_files",
+        "omni.adapters.platform.services.service_readiness",
+        "omni.adapters.platform.services.service_registration",
         "omni.adapters.primitives",
         "omni.application.ports",
         "omni.application.service_control",
@@ -69508,16 +69518,16 @@
       "lines": 186,
       "imports": [
         "omni.adapters.persistence.releases",
-        "omni.adapters.platform.deployment_files",
-        "omni.adapters.platform.exchange_deployments",
-        "omni.adapters.platform.exchange_files",
         "omni.adapters.platform.releases.release_files",
-        "omni.adapters.platform.service_admin_client",
-        "omni.adapters.platform.service_control_files",
-        "omni.adapters.platform.service_handover",
-        "omni.adapters.platform.service_operation_files",
-        "omni.adapters.platform.service_readiness",
-        "omni.adapters.platform.service_registration",
+        "omni.adapters.platform.services.deployment_files",
+        "omni.adapters.platform.services.exchange_deployments",
+        "omni.adapters.platform.services.exchange_files",
+        "omni.adapters.platform.services.service_admin_client",
+        "omni.adapters.platform.services.service_control_files",
+        "omni.adapters.platform.services.service_handover",
+        "omni.adapters.platform.services.service_operation_files",
+        "omni.adapters.platform.services.service_readiness",
+        "omni.adapters.platform.services.service_registration",
         "omni.adapters.primitives",
         "omni.application.exchange_recovery",
         "omni.application.exchange_recovery_steps",
@@ -69574,10 +69584,10 @@
       "python_module": "omni.composition.service_operations",
       "lines": 76,
       "imports": [
-        "omni.adapters.platform.deployment_files",
-        "omni.adapters.platform.service_admin_client",
-        "omni.adapters.platform.service_operation_files",
-        "omni.adapters.platform.service_registration",
+        "omni.adapters.platform.services.deployment_files",
+        "omni.adapters.platform.services.service_admin_client",
+        "omni.adapters.platform.services.service_operation_files",
+        "omni.adapters.platform.services.service_registration",
         "omni.adapters.primitives",
         "omni.application.ports",
         "omni.application.service_operations",
@@ -69617,7 +69627,7 @@
       "python_module": "omni.composition.service_runner",
       "lines": 67,
       "imports": [
-        "omni.adapters.platform.deployment_files",
+        "omni.adapters.platform.services.deployment_files",
         "omni.composition.serving",
         "omni.domain.contracts",
         "omni.domain.service_deployment"

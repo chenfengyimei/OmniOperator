@@ -10,11 +10,11 @@ import sys
 from pathlib import Path
 from typing import cast
 
-from omni.adapters.platform.deployment_files import CurrentDeploymentFiles, _destination, _json
-from omni.adapters.platform.exchange_files import ExchangeFiles
-from omni.adapters.platform.service_query import ServiceQuery
-from omni.adapters.platform.service_readiness import ServiceReadiness
-from omni.adapters.platform.service_registration import ServiceRegistration
+from omni.adapters.platform.services.deployment_files import CurrentDeploymentFiles, _destination, _json
+from omni.adapters.platform.services.exchange_files import ExchangeFiles
+from omni.adapters.platform.services.service_query import ServiceQuery
+from omni.adapters.platform.services.service_readiness import ServiceReadiness
+from omni.adapters.platform.services.service_registration import ServiceRegistration
 from omni.adapters.primitives import SystemClock, UUIDs
 from omni.application.ports import Record
 from omni.application.service_deployment import ServiceDeployment

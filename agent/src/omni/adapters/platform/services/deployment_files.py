@@ -18,10 +18,10 @@ from typing import Any, NoReturn, cast
 
 import psutil
 
-from ...domain.contracts import BusinessError
-from ..build_identity import CODE_CACHE_DIRS, CODE_SUFFIXES, LAYERS
-from ..object_store import publish_file, sync_directory
-from ..persistence.migration_config import head as migration_head
+from omni.domain.contracts import BusinessError
+from omni.adapters.build_identity import CODE_CACHE_DIRS, CODE_SUFFIXES, LAYERS
+from omni.adapters.object_store import publish_file, sync_directory
+from omni.adapters.persistence.migration_config import head as migration_head
 from omni.adapters.platform.runtime.permissions import assert_private, private_path
 from omni.adapters.platform.runtime.publication import publish_directory
 
@@ -410,7 +410,7 @@ class CurrentDeploymentFiles:
             "files": files,
             "distributions": [{"name": name, "version": version} for name, version in sorted(distributions.items())],
         }
-        from ...domain.service_deployment import validate_runtime
+        from omni.domain.service_deployment import validate_runtime
 
         return validate_runtime(result)
 
@@ -418,7 +418,7 @@ class CurrentDeploymentFiles:
         return _decode(_read(path, MAX_JSON, single=True))
 
     def write_capture(self, runtime: Record, path: str | Path) -> Record:
-        from ...domain.service_deployment import validate_runtime
+        from omni.domain.service_deployment import validate_runtime
 
         checked = validate_runtime(runtime)
         target = _path(path)
@@ -437,7 +437,7 @@ class CurrentDeploymentFiles:
         return {"path": str(target), "sha256": _sha(data), "captured": True}
 
     def write_plan(self, plan: Record, path: str | Path) -> Record:
-        from ...domain.service_deployment import validate_plan
+        from omni.domain.service_deployment import validate_plan
 
         checked = validate_plan(plan)
         target = _destination(path, checked)
@@ -482,8 +482,8 @@ class CurrentDeploymentFiles:
         self._publish_json(target, data)
 
     def materialize(self, plan: Record, destination: str | Path) -> Record:
-        from ...domain.service_deployment import plan_fingerprint, validate_plan
-        from .service_templates import render
+        from omni.domain.service_deployment import plan_fingerprint, validate_plan
+        from omni.adapters.platform.services.service_templates import render
 
         checked = validate_plan(plan)
         target = _destination(destination, checked)
@@ -534,7 +534,7 @@ class CurrentDeploymentFiles:
         }
 
     def verify(self, bundle: str | Path) -> Record:
-        from .service_templates import render
+        from omni.adapters.platform.services.service_templates import render
 
         issues: list[str] = []
         plan: Record = {}
@@ -580,8 +580,8 @@ class CurrentDeploymentFiles:
 
     def artifact_plan(self, bundle: str | Path) -> Record:
         """Verify artifact bytes only; never grants foreign installation execution eligibility."""
-        from ...domain.service_deployment import plan_fingerprint, validate_plan
-        from .service_templates import render
+        from omni.domain.service_deployment import plan_fingerprint, validate_plan
+        from omni.adapters.platform.services.service_templates import render
 
         root = _path(bundle)
         _no_links(root)

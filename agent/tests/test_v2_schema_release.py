@@ -27,7 +27,7 @@ from omni.adapters.persistence.migration_config import head as migration_head
 from omni.adapters.persistence.releases import ReleaseData, database_witness
 from omni.adapters.persistence.sqlalchemy_access import database_engine
 from omni.adapters.persistence.sqlite_access import sqlite_connection
-from omni.adapters.platform import deployment_files as d
+from omni.adapters.platform.services import deployment_files as d
 from omni.adapters.platform.runtime.paths import InstanceLock, InstancePaths
 from omni.adapters.platform.releases.release_files import ReleaseFiles
 from omni.adapters.primitives import SystemClock, UUIDs
@@ -341,11 +341,11 @@ def test_cross_schema_user_exchange_requires_full_route_and_retains_upgrade_proo
 
 
 def test_real_cross_schema_user_exchange_reuses_prepared_data_and_once_only_launch(upgrading):
-    from omni.adapters.platform import service_launch
-    from omni.adapters.platform.exchange_deployments import ExchangeSourceDeployment
-    from omni.adapters.platform.exchange_files import ExchangeFiles
-    from omni.adapters.platform.service_control_files import ServiceControlFiles
-    from omni.adapters.platform.service_operation_files import ServiceOperationFiles
+    from omni.adapters.platform.services import service_launch
+    from omni.adapters.platform.services.exchange_deployments import ExchangeSourceDeployment
+    from omni.adapters.platform.services.exchange_files import ExchangeFiles
+    from omni.adapters.platform.services.service_control_files import ServiceControlFiles
+    from omni.adapters.platform.services.service_operation_files import ServiceOperationFiles
     from omni.application.exchange_steps import ExchangeSteps
     from omni.application.service_control import ServiceControl
     from omni.application.service_exchange import ServiceExchange

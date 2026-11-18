@@ -14,11 +14,11 @@ from test_v2_system_service_exchange import Policy as BasePolicy
 from test_v2_system_service_exchange import Writer, kernel
 from test_v2_system_service_exchange import plan as base_plan
 
-from omni.adapters.platform import service_admin_client as transport
-from omni.adapters.platform import service_handover as module
-from omni.adapters.platform.darwin_service_admin import DarwinAdministrator
-from omni.adapters.platform.service_admin import SystemServiceAdministrator
-from omni.adapters.platform.service_templates import render
+from omni.adapters.platform.services import service_admin_client as transport
+from omni.adapters.platform.services import service_handover as module
+from omni.adapters.platform.services.darwin_service_admin import DarwinAdministrator
+from omni.adapters.platform.services.service_admin import SystemServiceAdministrator
+from omni.adapters.platform.services.service_templates import render
 from omni.adapters.primitives import SystemClock, UUIDs
 from omni.adapters.workers.service_admin_boot import validate_sources
 from omni.domain.contracts import BusinessError
@@ -373,7 +373,7 @@ def test_new_root_session_cannot_replace_missing_original_cleanup_or_close_proof
 def test_phase_export_is_private_read_only_and_cli_uses_reviewed_participant_file(tmp_path, monkeypatch):
     import json
 
-    from omni.adapters.platform.deployment_files import CurrentDeploymentFiles
+    from omni.adapters.platform.services.deployment_files import CurrentDeploymentFiles
     from omni.adapters.platform.runtime.permissions import assert_private
     from omni.composition.cli import parser
     from omni.composition.service_exchange import run_exchange
@@ -404,7 +404,7 @@ def test_protocol4_close_ack_requires_command_cleanup_and_native_lock_release(mo
     from test_v2_service_admin import Commands, Policy
     from test_v2_service_admin_ownership import Connection
 
-    from omni.adapters.platform import service_admin as server
+    from omni.adapters.platform.services import service_admin as server
     from omni.domain.service_admin import encode
 
     policy = Policy()

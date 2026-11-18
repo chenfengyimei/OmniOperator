@@ -12,8 +12,8 @@ import pytest
 from test_v2_macos_services import acceptance_script, job, native_response
 from test_v2_service_deployment import plan
 
-from omni.adapters.platform import service_query as q
-from omni.adapters.platform.macos_service import MacOSServiceInspection
+from omni.adapters.platform.services import service_query as q
+from omni.adapters.platform.services.macos_service import MacOSServiceInspection
 from omni.domain.contracts import BusinessError
 from omni.domain.service_deployment import manager_identity
 

@@ -26,7 +26,7 @@ from omni.adapters.platform.releases.dependency_bundle import no_links
 from omni.adapters.platform.runtime.paths import PrivateFileLock
 from omni.adapters.platform.runtime.permissions import assert_private, private_path
 from omni.adapters.platform.runtime.runtime_identity import READINESS_FIELDS, read_private
-from .platform.service_readiness import verify_proof
+from omni.adapters.platform.services.service_readiness import verify_proof
 
 MAX_HTTP_BYTES = 256 * 1024
 MAX_LINE_BYTES = 8192

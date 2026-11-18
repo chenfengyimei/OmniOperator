@@ -50,7 +50,7 @@ def test_remote_client_cannot_request_local_proof(tmp_path):
 
 def test_cli_service_preparation_never_opens_instance_or_queries_manager(installation, tmp_path, monkeypatch, capsys):
     files, _, _, _, _ = installation
-    monkeypatch.setattr("omni.adapters.platform.deployment_files.CurrentDeploymentFiles", lambda: files)
+    monkeypatch.setattr("omni.adapters.platform.services.deployment_files.CurrentDeploymentFiles", lambda: files)
     calls = []
     monkeypatch.setattr(cli, "open_instance", lambda *_a, **_k: calls.append(True))
     output = tmp_path / "runtime.json"

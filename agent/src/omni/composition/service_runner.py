@@ -9,7 +9,7 @@ import sys
 from pathlib import Path
 from typing import cast
 
-from ..adapters.platform.deployment_files import CurrentDeploymentFiles
+from omni.adapters.platform.services.deployment_files import CurrentDeploymentFiles
 from ..domain.contracts import BusinessError
 from ..domain.service_deployment import parse_startup, startup
 from .serving import serve_instance

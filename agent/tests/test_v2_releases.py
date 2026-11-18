@@ -16,7 +16,7 @@ from test_v2_deployment_files import installation as installation
 from test_v2_service_operations import prepared
 
 from omni.adapters.persistence.releases import ReleaseData
-from omni.adapters.platform import deployment_files as d
+from omni.adapters.platform.services import deployment_files as d
 from omni.adapters.platform.runtime.paths import InstanceLock, InstancePaths
 from omni.adapters.platform.runtime.permissions import assert_private
 from omni.adapters.platform.releases.release_files import ReleaseFiles
@@ -353,7 +353,7 @@ def test_cli_composition_plans_prepares_selects_and_builds_a_separate_recovery_p
 
 @pytest.mark.parametrize("bad_role", [[], False, "other"])
 def test_malformed_or_foreign_startup_fence_never_opens_the_instance(tmp_path, bad_role):
-    from omni.adapters.platform.deployment_files import CurrentDeploymentFiles, _json
+    from omni.adapters.platform.services.deployment_files import CurrentDeploymentFiles, _json
 
     paths = InstancePaths(tmp_path / "fenced")
     paths.initialize()
@@ -420,7 +420,7 @@ def test_source_root_inspection_routing_is_explicit_and_bound_without_calling_ch
             return await self.manager.close(timeout)
 
     monkeypatch.setattr(composition, "Releases", Application)
-    from omni.adapters.platform import service_admin_client
+    from omni.adapters.platform.services import service_admin_client
 
     monkeypatch.setattr(service_admin_client, "PrivilegedServiceClient", client)
     with pytest.raises(BusinessError, match="together"):

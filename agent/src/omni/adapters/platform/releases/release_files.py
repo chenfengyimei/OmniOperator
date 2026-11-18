@@ -16,19 +16,7 @@ from omni.domain.releases import ReleaseEvent, ReleasePlan, digest, validate_rel
 from omni.domain.service_deployment import created
 from omni.domain.service_exchange import ExchangePlan, marker
 from omni.adapters.object_store import sync_directory
-from omni.adapters.platform.deployment_files import (
-    LAYERS,
-    MAX_BYTES,
-    CurrentDeploymentFiles,
-    json_bytes,
-    no_links,
-    path_of,
-    proof,
-    publish_json,
-    python_files,
-    read_file,
-    walk,
-)
+from omni.adapters.platform.services.deployment_files import LAYERS, MAX_BYTES, CurrentDeploymentFiles, json_bytes, no_links, path_of, proof, publish_json, python_files, read_file, walk
 from omni.adapters.platform.runtime.paths import InstanceLock, InstancePaths, PrivateFileLock
 from omni.adapters.platform.runtime.permissions import assert_private, private_path
 
@@ -139,7 +127,7 @@ class ReleaseFiles:
         if recovery is None or recovery["isolation"] is None:
             return None
         from omni.domain.service_exchange import validate_exchange
-        from omni.adapters.platform.exchange_files import ExchangeFiles
+        from omni.adapters.platform.services.exchange_files import ExchangeFiles
 
         authority = recovery["isolation"]
         original = validate_exchange(

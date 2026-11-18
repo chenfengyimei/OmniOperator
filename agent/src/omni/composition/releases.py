@@ -6,12 +6,12 @@ from pathlib import Path
 from typing import cast
 
 from ..adapters.persistence.releases import ReleaseData
-from ..adapters.platform.deployment_files import CurrentDeploymentFiles
-from ..adapters.platform.exchange_deployments import ExchangeSourceDeployment
+from omni.adapters.platform.services.deployment_files import CurrentDeploymentFiles
+from omni.adapters.platform.services.exchange_deployments import ExchangeSourceDeployment
 from omni.adapters.platform.releases.release_files import ReleaseFiles
-from ..adapters.platform.service_control_files import ServiceControlFiles
-from ..adapters.platform.service_readiness import ServiceReadiness
-from ..adapters.platform.service_registration import ServiceRegistration
+from omni.adapters.platform.services.service_control_files import ServiceControlFiles
+from omni.adapters.platform.services.service_readiness import ServiceReadiness
+from omni.adapters.platform.services.service_registration import ServiceRegistration
 from ..adapters.primitives import SystemClock, UUIDs
 from ..application.ports import Record, ServiceRegistrationPort
 from ..application.release_drain import ReleaseDrain
@@ -45,7 +45,7 @@ async def run_release(
                 "release_admin_configuration_invalid",
                 "Supply the source uninstall operation, root socket and bundle SHA together for selection",
             )
-        from ..adapters.platform.service_admin_client import PrivilegedServiceClient
+        from omni.adapters.platform.services.service_admin_client import PrivilegedServiceClient
 
         assert source_operation is not None and admin_socket is not None and admin_bundle_sha256 is not None
         release = validate_release(deployments.read(path.absolute()))

@@ -4,10 +4,10 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from ..adapters.platform.deployment_files import CurrentDeploymentFiles
-from ..adapters.platform.exchange_files import ExchangeFiles
-from ..adapters.platform.service_cleanup_files import CleanupDeployment, CleanupFiles, CleanupPlanFiles
-from ..adapters.platform.service_registration import ServiceRegistration
+from omni.adapters.platform.services.deployment_files import CurrentDeploymentFiles
+from omni.adapters.platform.services.exchange_files import ExchangeFiles
+from omni.adapters.platform.services.service_cleanup_files import CleanupDeployment, CleanupFiles, CleanupPlanFiles
+from omni.adapters.platform.services.service_registration import ServiceRegistration
 from ..adapters.primitives import SystemClock, UUIDs
 from ..application.ports import Record, ServiceRegistrationPort
 from ..application.service_cleanup import CleanupReview, ServiceCleanup
@@ -50,7 +50,7 @@ async def run_cleanup(
             raise BusinessError(
                 "service_cleanup_admin_configuration_invalid", "Root cleanup binds only a reviewed system definition"
             )
-        from ..adapters.platform.service_admin_client import PrivilegedServiceClient
+        from omni.adapters.platform.services.service_admin_client import PrivilegedServiceClient
 
         native = PrivilegedServiceClient(plan["operation"], str(admin_socket.absolute()), admin_bundle_sha256)
     else:

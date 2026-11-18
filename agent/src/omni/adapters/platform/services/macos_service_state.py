@@ -8,8 +8,8 @@ import re
 from collections.abc import Mapping
 from typing import cast
 
-from ...domain.service_deployment import manager_identity
-from .service_templates import render
+from omni.domain.service_deployment import manager_identity
+from omni.adapters.platform.services.service_templates import render
 
 MAX_OUTPUT = 65536
 

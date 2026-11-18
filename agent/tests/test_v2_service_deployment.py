@@ -10,7 +10,7 @@ from xml.etree import ElementTree as ET
 
 import pytest
 
-from omni.adapters.platform.service_templates import TASK_NAMESPACE, render
+from omni.adapters.platform.services.service_templates import TASK_NAMESPACE, render
 from omni.domain.contracts import BusinessError
 from omni.domain.service_deployment import (
     TARGETS,

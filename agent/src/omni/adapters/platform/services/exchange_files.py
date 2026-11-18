@@ -8,13 +8,19 @@ from contextlib import ExitStack, contextmanager
 from pathlib import Path
 from typing import cast
 
-from ...application.ports import Record
-from ...domain.contracts import BusinessError
-from ...domain.releases import digest
-from ...domain.service_exchange import ExchangePlan, administrator_approval, marker, progress, validate_exchange
-from ...domain.service_isolation import IsolationPlan, validate_isolation
-from ..object_store import sync_directory
-from .deployment_files import CurrentDeploymentFiles, json_bytes, no_links, path_of, publish_json
+from omni.application.ports import Record
+from omni.domain.contracts import BusinessError
+from omni.domain.releases import digest
+from omni.domain.service_exchange import ExchangePlan, administrator_approval, marker, progress, validate_exchange
+from omni.domain.service_isolation import IsolationPlan, validate_isolation
+from omni.adapters.object_store import sync_directory
+from omni.adapters.platform.services.deployment_files import (
+    CurrentDeploymentFiles,
+    json_bytes,
+    no_links,
+    path_of,
+    publish_json,
+)
 from omni.adapters.platform.runtime.paths import InstancePaths, PrivateFileLock
 from omni.adapters.platform.runtime.permissions import assert_private, private_path
 
@@ -89,7 +95,7 @@ class ExchangeFiles:
         }
 
     def publish_administrator(self, plan: ExchangePlan, role: str, output: str) -> Record:
-        from ...domain.service_admin import socket_path
+        from omni.domain.service_admin import socket_path
 
         checked = validate_exchange(plan)
         approval = administrator_approval(checked, role)

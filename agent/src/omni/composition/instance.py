@@ -42,7 +42,7 @@ from omni.adapters.platform.runtime.paths import InstanceLock, InstancePaths
 from omni.adapters.platform.desktop.portal import PortalBackend
 from omni.adapters.platform.runtime.runtime_identity import RuntimeIdentityFiles, canonical_proof, process_identity
 from omni.adapters.platform.runtime.secrets import FileVault
-from ..adapters.platform.service_launch import consume_launch
+from omni.adapters.platform.services.service_launch import consume_launch
 from omni.adapters.platform.runtime.terminal import TerminalBackend
 from omni.adapters.platform.runtime.workspaces import WorkspacePolicy
 from ..adapters.primitives import SystemClock, UUIDs

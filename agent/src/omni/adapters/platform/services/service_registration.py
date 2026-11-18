@@ -11,17 +11,17 @@ import uuid
 from pathlib import Path
 from typing import cast
 
-from ...application.ports import Record
-from ...domain.contracts import BusinessError
-from ...domain.service_control import start_precondition
-from ...domain.service_deployment import manager_identity, validate_plan
-from ..object_store import sync_directory
-from .deployment_files import decode as _decode
-from .deployment_files import no_links as _no_links
-from .deployment_files import read_file as _read
-from .macos_service import MacOSServiceInspection, disabled_override
-from .service_query import ServiceQuery
-from .service_templates import render
+from omni.application.ports import Record
+from omni.domain.contracts import BusinessError
+from omni.domain.service_control import start_precondition
+from omni.domain.service_deployment import manager_identity, validate_plan
+from omni.adapters.object_store import sync_directory
+from omni.adapters.platform.services.deployment_files import decode as _decode
+from omni.adapters.platform.services.deployment_files import no_links as _no_links
+from omni.adapters.platform.services.deployment_files import read_file as _read
+from omni.adapters.platform.services.macos_service import MacOSServiceInspection, disabled_override
+from omni.adapters.platform.services.service_query import ServiceQuery
+from omni.adapters.platform.services.service_templates import render
 
 Payload = dict[str, object]
 
@@ -150,7 +150,7 @@ class ServiceRegistration(ServiceQuery):
         }
 
     async def _inspect_linux(self, plan: Record) -> Record:
-        from .service_query import PROPERTIES
+        from omni.adapters.platform.services.service_query import PROPERTIES
 
         manager = cast(dict[str, str], manager_identity(plan))
         program = self._program("linux-user")
@@ -263,7 +263,7 @@ class ServiceRegistration(ServiceQuery):
             self._changing = False
 
     async def _change_macos(self, plan: Record, action: str) -> Record:
-        from ...domain.service_operations import registration_precondition
+        from omni.domain.service_operations import registration_precondition
 
         program = self._program("macos-user")
         if program is None:
@@ -307,7 +307,7 @@ class ServiceRegistration(ServiceQuery):
             return {"effect": "none", "error_code": "service_manager_missing"}
         manager = cast(dict[str, str], manager_identity(plan))
         # Recheck after the durable dispatch record; never write over a foreign unit.
-        from ...domain.service_operations import registration_precondition
+        from omni.domain.service_operations import registration_precondition
 
         if not registration_precondition(action, cast(Payload, await self.inspect(plan))):
             return {"effect": "none", "error_code": "service_registration_changed"}
@@ -342,7 +342,7 @@ class ServiceRegistration(ServiceQuery):
             if not 0 < size < len(directory):
                 raise OSError("System executable unavailable")
             program = Path(directory.value) / "WindowsPowerShell/v1.0/powershell.exe"
-            script = Path(__file__).resolve().parents[1] / "workers/windows_services.ps1"
+            script = Path(__file__).resolve().parents[2] / "workers/windows_services.ps1"
             _no_links(script)
             _read(script, 65536, single=True)
             manager = cast(dict[str, str], manager_identity(plan))

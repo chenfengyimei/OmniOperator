@@ -13,11 +13,11 @@ from test_v2_service_admin_ownership import Connection
 from test_v2_system_service_exchange import Policy as BasePolicy
 from test_v2_system_service_exchange import Writer, kernel, plan
 
-from omni.adapters.platform import service_admin as root
-from omni.adapters.platform import service_admin_client as transport
-from omni.adapters.platform.darwin_admin_policy import DarwinPolicy
-from omni.adapters.platform.darwin_service_admin import DarwinAdministrator
-from omni.adapters.platform.service_templates import render
+from omni.adapters.platform.services import service_admin as root
+from omni.adapters.platform.services import service_admin_client as transport
+from omni.adapters.platform.services.darwin_admin_policy import DarwinPolicy
+from omni.adapters.platform.services.darwin_service_admin import DarwinAdministrator
+from omni.adapters.platform.services.service_templates import render
 from omni.adapters.primitives import UUIDs
 from omni.domain.contracts import BusinessError
 from omni.domain.service_admin import (

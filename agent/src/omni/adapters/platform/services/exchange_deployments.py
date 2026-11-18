@@ -4,10 +4,10 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from ...application.ports import Record
-from ...domain.contracts import BusinessError
-from ...domain.releases import ReleasePlan
-from .deployment_files import CurrentDeploymentFiles
+from omni.application.ports import Record
+from omni.domain.contracts import BusinessError
+from omni.domain.releases import ReleasePlan
+from omni.adapters.platform.services.deployment_files import CurrentDeploymentFiles
 from omni.adapters.platform.releases.release_files import ReleaseFiles
 
 

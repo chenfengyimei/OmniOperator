@@ -20,12 +20,12 @@ from v2_configuration_helpers import model_uow
 from omni.adapters.persistence.database import Database
 from omni.adapters.persistence.releases import ReleaseData
 from omni.adapters.persistence.sqlite_access import sqlite_connection
-from omni.adapters.platform.exchange_deployments import ExchangeSourceDeployment
-from omni.adapters.platform.exchange_files import ExchangeFiles
+from omni.adapters.platform.services.exchange_deployments import ExchangeSourceDeployment
+from omni.adapters.platform.services.exchange_files import ExchangeFiles
 from omni.adapters.platform.runtime.paths import InstanceLock
 from omni.adapters.platform.releases.release_files import ReleaseFiles
-from omni.adapters.platform.service_control_files import ServiceControlFiles
-from omni.adapters.platform.service_operation_files import ServiceOperationFiles
+from omni.adapters.platform.services.service_control_files import ServiceControlFiles
+from omni.adapters.platform.services.service_operation_files import ServiceOperationFiles
 from omni.adapters.primitives import SystemClock, UUIDs
 from omni.application.exchange_recovery import ExchangeRecovery
 from omni.application.exchange_recovery_steps import ExchangeRecoverySteps

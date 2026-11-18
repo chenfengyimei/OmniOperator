@@ -11,7 +11,7 @@ import sys
 import uuid
 from pathlib import Path
 
-from ...domain.contracts import BusinessError
+from omni.domain.contracts import BusinessError
 
 
 def unsafe() -> BusinessError:

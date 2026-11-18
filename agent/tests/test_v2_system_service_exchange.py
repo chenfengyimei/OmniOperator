@@ -17,12 +17,12 @@ from test_v2_service_deployment import runtime
 from test_v2_service_query import systemd
 from test_v2_system_service_start import Files
 
-from omni.adapters.platform import service_admin as root
-from omni.adapters.platform import service_admin_client as transport
-from omni.adapters.platform import service_launch as launch
-from omni.adapters.platform.deployment_files import CurrentDeploymentFiles
+from omni.adapters.platform.services import service_admin as root
+from omni.adapters.platform.services import service_admin_client as transport
+from omni.adapters.platform.services import service_launch as launch
+from omni.adapters.platform.services.deployment_files import CurrentDeploymentFiles
 from omni.adapters.platform.runtime.paths import InstanceLock, InstancePaths
-from omni.adapters.platform.service_templates import render
+from omni.adapters.platform.services.service_templates import render
 from omni.adapters.primitives import SystemClock, UUIDs
 from omni.adapters.workers import service_admin_boot as boot
 from omni.application.exchange_steps import ExchangeSteps

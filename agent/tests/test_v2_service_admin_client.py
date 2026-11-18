@@ -8,7 +8,7 @@ import json
 import pytest
 from test_v2_service_admin import SHA, operation
 
-from omni.adapters.platform.service_admin_client import PrivilegedServiceClient
+from omni.adapters.platform.services.service_admin_client import PrivilegedServiceClient
 from omni.domain.contracts import BusinessError
 from omni.domain.service_admin import decode, encode, response, socket_path
 

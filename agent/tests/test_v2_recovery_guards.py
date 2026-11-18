@@ -16,7 +16,7 @@ from test_v2_service_exchange import release as release
 
 from omni.adapters.persistence.releases import ReleaseData
 from omni.adapters.persistence.sqlite_access import sqlite_connection
-from omni.adapters.platform.exchange_files import ExchangeFiles
+from omni.adapters.platform.services.exchange_files import ExchangeFiles
 from omni.adapters.platform.runtime.paths import InstanceLock
 from omni.adapters.platform.releases.release_files import ReleaseFiles
 from omni.adapters.primitives import SystemClock, UUIDs
@@ -139,7 +139,7 @@ def test_windows_broker_scope_accepts_exactly_one_optional_recovery_uuid():
 
 
 def test_exchange_journal_keeps_capacity_for_offline_isolation(exchange, monkeypatch):
-    from omni.adapters.platform import exchange_files
+    from omni.adapters.platform.services import exchange_files
 
     # Exercise the actual file and state protocol with a small injected capacity,
     # rather than repeatedly rereading 64 private Windows files for this guard.

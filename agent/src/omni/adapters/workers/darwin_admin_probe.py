@@ -25,8 +25,8 @@ def main(argv: list[str]) -> int:
         root = Path(__file__).resolve().parent
         sys.dont_write_bytecode = True
         sys.path.insert(0, str(root / "lib"))
-        from omni.adapters.platform.darwin_admin_files import protected
-        from omni.adapters.platform.darwin_admin_probe import NativeJobs
+        from omni.adapters.platform.services.darwin_admin_files import protected
+        from omni.adapters.platform.services.darwin_admin_probe import NativeJobs
 
         protected(Path(__file__).resolve())
         result = NativeJobs().query(argv[0])

@@ -28,7 +28,7 @@ FENCE_FILES = (
     "domain/release_fence.py",
     "adapters/platform/runtime/paths.py",
     "domain/service_activation.py",
-    "adapters/platform/service_launch.py",
+    "adapters/platform/services/service_launch.py",
 )
 
 

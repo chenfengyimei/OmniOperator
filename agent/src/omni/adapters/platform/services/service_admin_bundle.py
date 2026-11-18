@@ -7,10 +7,10 @@ import sys
 import uuid
 from pathlib import Path
 
-from ...application.ports import Record
-from ...domain.contracts import BusinessError
-from ..object_store import sync_directory
-from .deployment_files import json_bytes, no_links, path_of, read_file, write_file
+from omni.application.ports import Record
+from omni.domain.contracts import BusinessError
+from omni.adapters.object_store import sync_directory
+from omni.adapters.platform.services.deployment_files import json_bytes, no_links, path_of, read_file, write_file
 from omni.adapters.platform.runtime.permissions import private_path
 from omni.adapters.platform.runtime.publication import publish_directory
 
@@ -29,18 +29,19 @@ SOURCES = (
     "domain/service_admin.py",
     "adapters/__init__.py",
     "adapters/platform/__init__.py",
-    "adapters/platform/service_templates.py",
-    "adapters/platform/systemd_state.py",
-    "adapters/platform/service_admin_policy.py",
-    "adapters/platform/service_admin_commands.py",
-    "adapters/platform/service_admin.py",
-    "adapters/platform/macos_service_state.py",
-    "adapters/platform/darwin_admin_files.py",
-    "adapters/platform/darwin_admin_commands.py",
-    "adapters/platform/darwin_admin_probe.py",
-    "adapters/platform/darwin_admin_peer.py",
-    "adapters/platform/darwin_admin_policy.py",
-    "adapters/platform/darwin_service_admin.py",
+    "adapters/platform/services/__init__.py",
+    "adapters/platform/services/service_templates.py",
+    "adapters/platform/services/systemd_state.py",
+    "adapters/platform/services/service_admin_policy.py",
+    "adapters/platform/services/service_admin_commands.py",
+    "adapters/platform/services/service_admin.py",
+    "adapters/platform/services/macos_service_state.py",
+    "adapters/platform/services/darwin_admin_files.py",
+    "adapters/platform/services/darwin_admin_commands.py",
+    "adapters/platform/services/darwin_admin_probe.py",
+    "adapters/platform/services/darwin_admin_peer.py",
+    "adapters/platform/services/darwin_admin_policy.py",
+    "adapters/platform/services/darwin_service_admin.py",
 )
 BOOT = "adapters/workers/service_admin_boot.py"
 PROBE = "adapters/workers/darwin_admin_probe.py"
@@ -49,7 +50,7 @@ PROBE = "adapters/workers/darwin_admin_probe.py"
 def materialize_admin_bundle(destination: str | Path) -> Record:
     target = path_of(destination)
     no_links(target)
-    source = Path(__file__).resolve().parents[2]
+    source = Path(__file__).resolve().parents[3]
     if (
         target.exists()
         or not target.parent.is_dir()

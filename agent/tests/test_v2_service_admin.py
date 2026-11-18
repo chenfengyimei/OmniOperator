@@ -11,11 +11,11 @@ import pytest
 from test_v2_service_deployment import plan
 from test_v2_service_query import systemd
 
-from omni.adapters.platform import service_admin as backend
-from omni.adapters.platform.service_admin_bundle import materialize_admin_bundle
-from omni.adapters.platform.service_admin_policy import RootServicePolicy
-from omni.adapters.platform.service_templates import render
-from omni.adapters.platform.systemd_state import systemd_state
+from omni.adapters.platform.services import service_admin as backend
+from omni.adapters.platform.services.service_admin_bundle import materialize_admin_bundle
+from omni.adapters.platform.services.service_admin_policy import RootServicePolicy
+from omni.adapters.platform.services.service_templates import render
+from omni.adapters.platform.services.systemd_state import systemd_state
 from omni.adapters.workers import service_admin_boot as boot
 from omni.composition.cli import parser
 from omni.domain.contracts import BusinessError
@@ -105,7 +105,8 @@ def test_root_bundle_is_stdlib_only_and_tampering_is_rejected_without_any_root_e
     result = materialize_admin_bundle(target)
     assert result["installed"] is False and result["elevated"] is False
     manifest = json.loads((target / "manifest.json").read_bytes())
-    assert manifest["sha256"] == result["sha256"] and len(manifest["files"]) == 29
+    assert manifest["sha256"] == result["sha256"] and len(manifest["files"]) == 30
+    assert any(row["path"] == "lib/omni/adapters/platform/services/__init__.py" for row in manifest["files"])
     for entry in manifest["files"]:
         assert hashlib.sha256((target / entry["path"]).read_bytes()).hexdigest() == entry["sha256"]
     with pytest.raises(BusinessError):
@@ -118,9 +119,9 @@ def test_root_bundle_is_stdlib_only_and_tampering_is_rejected_without_any_root_e
             "-B",
             "-c",
             "import sys;sys.path.insert(0,sys.argv[1]);"
-            "import omni.adapters.platform.service_admin;"
-            "import omni.adapters.platform.darwin_service_admin;"
-            "import omni.adapters.platform.darwin_admin_probe;"
+            "import omni.adapters.platform.services.service_admin;"
+            "import omni.adapters.platform.services.darwin_service_admin;"
+            "import omni.adapters.platform.services.darwin_admin_probe;"
             "assert 'site' not in sys.modules;assert 'psutil' not in sys.modules;"
             "assert not any(k.startswith(('omni.composition','omni.application','omni.adapters.persistence')) for k in sys.modules)",
             str(target / "lib"),
@@ -325,7 +326,7 @@ def test_privileged_failure_never_replays_or_reports_false_success(failure, monk
 
 
 def test_root_policy_rejects_non_root_or_non_linux_before_any_io(monkeypatch):
-    from omni.adapters.platform import service_admin_policy as module
+    from omni.adapters.platform.services import service_admin_policy as module
 
     monkeypatch.setattr(module.sys, "platform", "win32")
     monkeypatch.setattr(module, "root_read", lambda *args: (_ for _ in ()).throw(AssertionError("No privileged IO")))

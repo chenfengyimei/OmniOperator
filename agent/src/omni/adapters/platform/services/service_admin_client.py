@@ -12,9 +12,9 @@ import uuid
 from pathlib import Path
 from typing import Any, cast
 
-from ...application.ports import Record
-from ...domain.contracts import BusinessError
-from ...domain.service_admin import (
+from omni.application.ports import Record
+from omni.domain.contracts import BusinessError
+from omni.domain.service_admin import (
     MAX_FRAME,
     MAX_REQUESTS,
     admin_operation,
@@ -28,9 +28,9 @@ from ...domain.service_admin import (
     validate_response,
     verify_broker,
 )
-from ...domain.service_deployment import sha
-from ...domain.service_exchange import FORMAT as EXCHANGE_FORMAT
-from ...domain.service_exchange import PHASE_FORMAT
+from omni.domain.service_deployment import sha
+from omni.domain.service_exchange import FORMAT as EXCHANGE_FORMAT
+from omni.domain.service_exchange import PHASE_FORMAT
 
 
 def unavailable(code: str) -> Record:
@@ -90,7 +90,7 @@ class PrivilegedServiceClient:
                 "service_admin_endpoint_invalid", "The administrator socket is not private to this owner"
             )
         if platform == "darwin":
-            from .darwin_admin_files import protected
+            from omni.adapters.platform.services.darwin_admin_files import protected
 
             protected(self.endpoint, owner=owner)
         return info.st_dev, info.st_ino
@@ -104,7 +104,7 @@ class PrivilegedServiceClient:
         try:
             await asyncio.get_running_loop().sock_connect(connection, str(self.endpoint))
             if sys.platform == "darwin":
-                from .darwin_admin_peer import peer_identity
+                from omni.adapters.platform.services.darwin_admin_peer import peer_identity
 
                 pid, uid, _ = peer_identity(connection)
             else:

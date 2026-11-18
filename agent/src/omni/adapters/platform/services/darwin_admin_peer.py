@@ -7,7 +7,7 @@ import socket
 import struct
 import sys
 
-from ...domain.contracts import BusinessError
+from omni.domain.contracts import BusinessError
 
 
 def peer_identity(connection: socket.socket) -> tuple[int, int, int]:

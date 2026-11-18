@@ -12,11 +12,11 @@ from test_v2_macos_services import acceptance_script
 from test_v2_service_control import Clock
 from test_v2_service_deployment import request, runtime
 
-from omni.adapters.platform import service_control_files, service_operation_files
-from omni.adapters.platform import service_launch as launch
-from omni.adapters.platform import service_registration as native
-from omni.adapters.platform.deployment_files import CurrentDeploymentFiles
-from omni.adapters.platform.exchange_files import ExchangeFiles
+from omni.adapters.platform.services import service_control_files, service_operation_files
+from omni.adapters.platform.services import service_launch as launch
+from omni.adapters.platform.services import service_registration as native
+from omni.adapters.platform.services.deployment_files import CurrentDeploymentFiles
+from omni.adapters.platform.services.exchange_files import ExchangeFiles
 from omni.adapters.platform.runtime.paths import InstanceLock, InstancePaths
 from omni.adapters.platform.releases.release_files import ReleaseFiles
 from omni.adapters.primitives import SystemClock, UUIDs

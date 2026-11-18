@@ -14,15 +14,15 @@ from types import SimpleNamespace
 import pytest
 from test_v2_service_deployment import plan
 
-from omni.adapters.platform import darwin_admin_commands as processes
-from omni.adapters.platform import darwin_admin_files as files
-from omni.adapters.platform import darwin_admin_peer as peers
-from omni.adapters.platform import darwin_admin_policy as policy_module
-from omni.adapters.platform.darwin_admin_policy import DarwinPolicy
-from omni.adapters.platform.darwin_service_admin import DarwinAdministrator
-from omni.adapters.platform.service_admin_client import PrivilegedServiceClient
-from omni.adapters.platform.service_admin_policy import RootServicePolicy
-from omni.adapters.platform.service_templates import render
+from omni.adapters.platform.services import darwin_admin_commands as processes
+from omni.adapters.platform.services import darwin_admin_files as files
+from omni.adapters.platform.services import darwin_admin_peer as peers
+from omni.adapters.platform.services import darwin_admin_policy as policy_module
+from omni.adapters.platform.services.darwin_admin_policy import DarwinPolicy
+from omni.adapters.platform.services.darwin_service_admin import DarwinAdministrator
+from omni.adapters.platform.services.service_admin_client import PrivilegedServiceClient
+from omni.adapters.platform.services.service_admin_policy import RootServicePolicy
+from omni.adapters.platform.services.service_templates import render
 from omni.adapters.primitives import SystemClock, UUIDs
 from omni.domain.contracts import BusinessError
 from omni.domain.service_admin import MACOS_SOCKET_DIRECTORY, admin_operation, socket_path
@@ -522,7 +522,7 @@ def test_acl_absence_requires_a_stable_descriptor_and_local_security_capability(
 
 @pytest.mark.parametrize("fault", ["absent", "enumeration_failed", "found", "changed", "typed_change"])
 def test_root_native_probe_never_uses_nil_or_changed_native_data_as_absence(fault):
-    from omni.adapters.platform.darwin_admin_probe import NativeJobs
+    from omni.adapters.platform.services.darwin_admin_probe import NativeJobs
 
     native = object.__new__(NativeJobs)
 
@@ -563,7 +563,7 @@ def test_root_native_probe_never_uses_nil_or_changed_native_data_as_absence(faul
 
 @pytest.mark.parametrize("value", [None, True, "not-a-job", {"Label": "target"}])
 def test_nonnull_native_job_pointer_requires_a_dictionary_and_always_releases(value):
-    from omni.adapters.platform.darwin_admin_probe import NativeJobs
+    from omni.adapters.platform.services.darwin_admin_probe import NativeJobs
 
     native, released = object.__new__(NativeJobs), []
     native.domain = 1
@@ -580,7 +580,7 @@ def test_nonnull_native_job_pointer_requires_a_dictionary_and_always_releases(va
 
 @pytest.mark.parametrize("text", ["normal", "😀", "prefix\x00suffix"])
 def test_native_string_conversion_preserves_utf16_length_and_rejects_nul_truncation(text):
-    from omni.adapters.platform.darwin_admin_probe import NativeJobs
+    from omni.adapters.platform.services.darwin_admin_probe import NativeJobs
 
     native = object.__new__(NativeJobs)
     native.types = {"String": 1}

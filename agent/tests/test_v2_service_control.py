@@ -15,9 +15,9 @@ from test_v2_service_runtime import boot_identity
 
 from omni.adapters.platform.runtime.paths import InstanceLock, InstancePaths, PrivateFileLock
 from omni.adapters.platform.runtime.runtime_identity import RuntimeIdentityFiles
-from omni.adapters.platform.service_control_files import ServiceControlFiles
-from omni.adapters.platform.service_launch import consume_launch
-from omni.adapters.platform.service_operation_files import ServiceOperationFiles
+from omni.adapters.platform.services.service_control_files import ServiceControlFiles
+from omni.adapters.platform.services.service_launch import consume_launch
+from omni.adapters.platform.services.service_operation_files import ServiceOperationFiles
 from omni.adapters.primitives import SystemClock, UUIDs
 from omni.application.service_control import ServiceControl
 from omni.composition.cli import parser
