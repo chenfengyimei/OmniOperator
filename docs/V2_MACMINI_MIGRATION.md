@@ -1,6 +1,6 @@
 # Mac mini 开发环境迁移交接（2026-11-18）
 
-本次迁移接续整个 V2 开发。Windows 开发与离线候选已完成，实机专项记录见 [Windows 报告](WINDOWS_V2_ACCEPTANCE_2026-11-18.md)。前台点击样例的后续核查见 [核查证据](evidence/v2-windows-click-fixture.json)：标准窗口类下原生产点击点与遮挡拒绝通过；完整前台回归仍需人工给予样例焦点。当前源码没有统一全量覆盖，真实账号、模型质量、设备、干净机器与 72 小时证据仍分别待验，整个 V2 未完成。
+本次迁移接续整个 V2 开发。Windows 主体开发与离线候选已完成，实机专项记录见 [Windows 报告](WINDOWS_V2_ACCEPTANCE_2026-11-18.md)。前台点击样例的后续核查见 [核查证据](evidence/v2-windows-click-fixture.json)：修正 STATIC 顶层样例后，原生产点击点与真实遮挡拒绝通过；用户配合聚焦后的完整前台回归通过，最终文本为 `PREFIX-ONLY-OWNED-TEXT`，按钮计数为 1。四次生产动作回执均为 `unknown`，保持原回执、不重发；样例实际效果通过不等于生产后验已确认。首次聚焦超时的失败另行保留。当前源码没有统一全量覆盖，真实账号、模型质量、设备、干净机器与 72 小时证据仍分别待验，整个 V2 未完成。
 
 Mac 作为下一开发主机；Windows 工作区、服务和现有实例保留。迁移准备不表示已在 Mac 安装、编译或验收。
 
@@ -26,7 +26,7 @@ python3.12 --version
 uv --version
 ```
 
-芯片未预设：`arm64` 对应 M 系列，`x86_64` 对应 Intel。使用与实际芯片一致的原生 Python，避免把 Rosetta 环境误记为 arm64 验收。
+所有者已确认目标是 Apple Silicon（M 系列），本次构建目标为 `arm64`。`uname -m` 应为 `arm64`，Python 也须原生运行；若为 `x86_64`，先退出 Rosetta 终端并改用 arm64 解释器，再安装依赖。macOS 版本和目标目录仍需在主机核对。
 
 ## 3. 导入源码并创建新环境
 
@@ -40,9 +40,11 @@ git status --short
 git rev-parse HEAD
 ```
 
-离线导入时，在已有 Git 仓库中运行 `git bundle verify /绝对路径/OmniOperator-v2.bundle`，或直接从 bundle 克隆到一个尚不存在的新目录：
+离线导入时，先在解压目录核对包内所有文件，再从 bundle 克隆到一个尚不存在的新目录；`migration.json` 记录原始 Windows 证据的实际附带范围：
 
 ```sh
+cd /绝对路径/迁移包解压目录
+shasum -a 256 -c SHA256SUMS || exit 1
 git clone --branch v2 /绝对路径/OmniOperator-v2.bundle "$HOME/Developer/OmniOperator"
 cd "$HOME/Developer/OmniOperator"
 git remote set-url origin https://gitee.com/chenfengloveyuri/OmniOperator.git
@@ -52,12 +54,13 @@ git rev-parse HEAD
 比较输出与 `migration.json` 的 `source_commit`。离线包不包含 Python 依赖；下列新环境安装需要取得锁定依赖，联网安装与默认离线测试分开：
 
 ```sh
+test "$(uname -m)" = arm64 || exit 1
 if [ -e .venv ]; then
   printf '已有环境保持不变；后续使用 --no-sync。\n'
 else
   uv sync --frozen --package omnioperator --extra terminal --extra asr --extra vectors
 fi
-uv run --no-sync python -c 'import platform,sys; print(sys.executable, platform.machine(), sys.platform); assert sys.platform == "darwin"'
+uv run --no-sync python -c 'import platform,sys; print(sys.executable, platform.machine(), sys.platform); assert sys.platform == "darwin" and platform.machine() == "arm64"'
 uv run --no-sync python -m playwright install chromium
 ```
 
@@ -67,7 +70,7 @@ uv run --no-sync python -m playwright install chromium
 
 ```sh
 OMNI_MAC_DEV_HOME="$HOME/Library/Application Support/OmniOperator Mac Dev"
-test ! -e "$OMNI_MAC_DEV_HOME"
+test ! -e "$OMNI_MAC_DEV_HOME" || exit 1
 uv run --no-sync python -m omni.composition.cli --home "$OMNI_MAC_DEV_HOME" init
 uv run --no-sync python -m omni.composition.cli --home "$OMNI_MAC_DEV_HOME" doctor
 uv run --no-sync python -m omni.composition.cli --home "$OMNI_MAC_DEV_HOME" serve --port 8876 --open-browser
@@ -84,9 +87,8 @@ uv run --no-sync python -m omni.composition.cli --home "$OMNI_MAC_DEV_HOME" serv
 在本机图形账号上明确构建并安装新的开发签名 helper：
 
 ```sh
-OMNI_MAC_ARCH="$(uname -m)"
-case "$OMNI_MAC_ARCH" in arm64|x86_64) ;; *) exit 1 ;; esac
-uv run --no-sync python agent/scripts/build_macos_helper.py --arch "$OMNI_MAC_ARCH" --output "$PWD/temp/build/mac-native-$(date +%Y%m%dT%H%M%S)" --install
+test "$(uname -m)" = arm64 || exit 1
+uv run --no-sync python agent/scripts/build_macos_helper.py --arch arm64 --output "$PWD/temp/build/mac-native-arm64-$(date +%Y%m%dT%H%M%S)" --install
 ```
 
 构建器先运行现有纯核心与原生路径测试，再编译、签名及核对来源。固定安装已有应用时会拒绝覆盖；保留原签名与恢复副本，按原交接处理。AX、屏幕、输入监听和投递权限分别由所有者运行显式请求命令，不能把 Python 或终端权限当作 helper 权限。
@@ -103,4 +105,4 @@ uv run --no-sync pytest -q -n 0 agent/tests/test_v2_macos_helper.py agent/tests/
 
 Mac 成功导入指定提交，依赖和独立实例启动通过，Swift/C 构建结果已保存，专项原始日志和下一代码缺口已记录；能在 Mac 继续提交并同步授权的 origin/v2。未提交工作已核对处理范围，Windows 原实例与原始验收材料仍可回查。
 
-实际复制/远程启动尚未执行。需要 Mac 的架构、macOS 版本和目标目录；若使用远程连接，另提供已有 SSH 配置名或地址，不提供密码、令牌或私钥正文。
+实际复制/远程启动尚未执行。Apple Silicon 架构已确认；仍需 Mac 的 macOS 版本和目标目录，若使用远程连接，另提供已有 SSH 配置名或地址，不提供密码、令牌或私钥正文。

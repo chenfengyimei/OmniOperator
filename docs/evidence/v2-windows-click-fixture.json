@@ -2,7 +2,7 @@
   "schema": 1,
   "date": "2026-11-18",
   "base_commit": "0b853d8788a8d1cb894fccf39b5ee6a68146e0c0",
-  "status": "acceptance_fixture_corrected_native_point_verified_interactive_focus_pending",
+  "status": "acceptance_fixture_corrected_owned_window_native_round_passed_receipts_unknown",
   "source_files": {
     "agent/src/omni/adapters/workers/windows_foreground.cs": "c0f18ac081d4607a85069be7611461d59b9fc44bae5f5cc49156e42f2f453093",
     "agent/tests/test_v2_windows_click_point.py": "9d5cc1363f48ddb919fbcee190782dd017e5327d930eb4746f9aa0f9de1c6e3c",
@@ -198,14 +198,14 @@
       "path": "temp\\build\\v2-windows-click-native-r8.log",
       "sha256": "43ec075ed8acceedec08ec32017cce9812ac492e97e7e144fb2a5f2becdc4294"
     },
-    "result": "Timed out waiting for manual fixture focus before the first action; no text or click was sent. Keep failure. Await user availability to repeat in a new directory; no success claim.",
+    "result": "Historical failure retained: timed out waiting for manual fixture focus before the first action; no text or click sent. The separate manual_native_recheck below passed in a new directory.",
     "text": "",
     "clicks": 0,
     "manual_focus_required": true
   },
   "windows_assessment": {
     "development": "Windows main feature implementation and prior offline candidate are complete; no additional production defect established by this fixture investigation.",
-    "native_followup": "Corrected native point and obstruction verified; complete foreground round remains pending manual focus.",
+    "native_followup": "Corrected native point and real obstruction verified; full owned-window foreground round passed with owner focus. Text PREFIX-ONLY-OWNED-TEXT and one button click independently observed; all four production receipts remain unknown without replay.",
     "whole_current_source_full_suite": false,
     "clean_machine_and_72h": "Deferred to development freeze; not claimed passed.",
     "real_accounts_models_devices_and_external_mcp": "Separately pending",
@@ -213,7 +213,7 @@
     "actual_mac_transfer_or_execution": false
   },
   "mac_handoff": "docs/V2_MACMINI_MIGRATION.md",
-  "mac_architecture": "Not yet supplied; handoff supports arm64/x86_64 with explicit host detection.",
+  "mac_architecture": "arm64; owner confirmed Apple Silicon (M series). Native architecture and macOS version still require host preflight.",
   "full_suite_run": false,
   "runtime_wheel_rebuild_required_by_fixture_change": false,
   "whole_v2_complete": false,
@@ -260,5 +260,73 @@
         "error_code": "desktop_permission_denied"
       }
     }
-  ]
+  ],
+  "manual_native_recheck": {
+    "directory": "C:\\v2-acceptance\\windows-click-native-manual-20261118",
+    "result": "passed",
+    "report": {
+      "path": "C:\\v2-acceptance\\windows-click-native-manual-20261118\\acceptance.json",
+      "sha256": "8218f369dc59402d9659f18fd1ddcfc774f3088018281bab345d6c222d1db9cb"
+    },
+    "proof": {
+      "path": "C:\\v2-acceptance\\windows-click-native-manual-20261118\\native-proof.json",
+      "sha256": "fa0a0de704d825f3780ef919946bb47b3efe34f9b74da645ab3a786964445d11"
+    },
+    "state": {
+      "path": "C:\\v2-acceptance\\windows-click-native-manual-20261118\\state.json",
+      "sha256": "1c2c2d7e3df4401df2263bc184027351bee7311ea0a430b633fcec3feb5fa5e8"
+    },
+    "log": {
+      "path": "D:\\xm\\OmniOperator\\temp\\build\\v2-windows-click-native-manual.log",
+      "sha256": "77c50453cd2c9395f451dbab4969fc6a579f3f45f4a2302bef0c1269c682dccb"
+    },
+    "started_at": "2026-11-18T03:05:37.207712+00:00",
+    "finished_at": "2026-11-18T03:05:48.827241+00:00",
+    "source_commit_runtime_matches": "fbfc16b8e734db09f51c3ef2d54e487dd2eb0029",
+    "frozen_runtime_files_checked": 679,
+    "source_comparison": "All tracked agent/src plus acceptance and fixture scripts match frozen r9 and commit after CRLF/LF normalization; report sources retain exact raw-byte SHA256.",
+    "sources": {
+      "agent\\scripts\\accept_foreground.py": "5e59d2310666e7bce44da6d74af09099a93bf9c8d62205f06eda56799d31e597",
+      "agent\\scripts\\foreground_fixture.py": "b787d2d6336a8bcd439ab311d4189c50e87bd04943e0155a344e7b2a02cc1c67",
+      "agent\\src\\omni\\adapters\\workers\\windows_foreground.cs": "c0f18ac081d4607a85069be7611461d59b9fc44bae5f5cc49156e42f2f453093",
+      "agent\\src\\omni\\adapters\\workers\\windows_services.ps1": "db621659cc291c96b0e4d8456a5fa9de877fb897748613942cc4779bc51c7d68",
+      "agent\\src\\omni\\adapters\\workers\\windows_uia.cs": "12660f2147f11e05be1b3005e330600cd7bf306ed4b32b3c1acd2af21917e37b",
+      "agent\\src\\omni\\adapters\\workers\\windows_uia.ps1": "47da83cb34fb7e8f80c8c8acd4d1a957312e076f1220f2b6e7ace2cbfe3c29be"
+    },
+    "owner_manual_focus_provided": true,
+    "receipts": [
+      {
+        "status": "unknown",
+        "effect": "unknown",
+        "error_code": "desktop_target_changed",
+        "verification": "not_verified"
+      },
+      {
+        "status": "unknown",
+        "effect": "unknown",
+        "error_code": "desktop_postcondition_unverified",
+        "verification": "not_verified"
+      },
+      {
+        "status": "unknown",
+        "effect": "unknown",
+        "error_code": "desktop_target_changed",
+        "verification": "not_verified"
+      },
+      {
+        "status": "unknown",
+        "effect": "unknown",
+        "error_code": "desktop_input_unverified",
+        "verification": "not_verified"
+      }
+    ],
+    "final_state": {
+      "text": "PREFIX-ONLY-OWNED-TEXT",
+      "clicks": 1,
+      "focus": false
+    },
+    "actions_replayed": false,
+    "scope": "Owned temporary window only. Independent fixture state proves this sequence. All four production receipts remain unknown, not converted to applied or business-confirmed.",
+    "real_application_or_account_acceptance": false
+  }
 }

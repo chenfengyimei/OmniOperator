@@ -2,6 +2,8 @@
 
 当前交付包为 D2，仍在开发中。Windows 主机只验证 Python 宿主、协议、隔离及打包；Swift/C 尚未在 Mac 编译，不能据此标记 macOS 已支持。整个 V2 尚未完成；Windows 离线候选默认入口已经是 V2，显式 V1 回退保留。当前迁移步骤与源码交接见 [Mac mini 开发迁移](V2_MACMINI_MIGRATION.md)。
 
+所有者已确认迁移目标为 Apple Silicon Mac mini；本次使用原生 arm64 Python 与 `--arch arm64`。Windows 自有窗口的前台输入/点击完整回归已在人工聚焦后通过，四次动作的生产回执仍均为 unknown；不据此声明真实应用或 Mac 原生通过。
+
 当前公共桌面协议为`omni-desktop-ipc-6`，Swift协议常量已同步。任何IPC5构建均需使用当前源码重新构建并更新签名后来源清单；Windows打包不能代替Mac编译或原生验收。
 
 D4 服务查询现为 `omni-macos-service-query-2`：用户/系统入口分别读取原生 GUI/system 域，响应显式绑定域；系统查询可在普通所有者的无图形会话运行，不提权。默认 ACL 缺失改用 statx/filesec 正面证明，签名前增加 8 项真实临时文件测试；当前 Windows 尚未编译 Swift/C 或运行这些 XCTest。须重建整个辅助应用，不能标记 Mac 已支持；macOS 管理员单操作源码已接入，同 schema 系统交换已接源码，实际安装/交换验收仍待推进，见[系统服务前置](V2_MACOS_SYSTEM_SERVICES.md)。

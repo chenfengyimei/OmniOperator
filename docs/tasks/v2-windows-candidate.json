@@ -155,19 +155,25 @@
     ]
   },
   "windows_click_followup_2026_11_18": {
-    "status": "fixture_corrected_native_point_verified_interactive_pending",
+    "status": "fixture_corrected_owned_window_native_round_passed_receipts_unknown",
     "evidence": "docs/evidence/v2-windows-click-fixture.json",
     "product_changed": false,
     "old_product_defect_diagnosis": "Narrowed: STATIC top-level test fixture caused cross-process UIA hit. Normal registered window passes original production checks; proposed center fallback was not retained.",
     "scoped_passed": 36,
-    "interactive_focus_required": true,
-    "whole_current_source_full_suite": false
+    "interactive_focus_required": false,
+    "whole_current_source_full_suite": false,
+    "manual_focus_provided": true,
+    "production_receipts": "all_four_unknown_preserved_without_replay",
+    "native_final_text": "PREFIX-ONLY-OWNED-TEXT",
+    "native_click_count": 1
   },
   "mac_development_migration": {
     "status": "handoff_prepared_transfer_pending",
     "runbook": "docs/V2_MACMINI_MIGRATION.md",
     "windows_data_and_services_preserved": true,
-    "mac_architecture": "awaiting_owner_or_detect_on_host",
-    "actual_mac_transfer_or_execution": false
+    "mac_architecture": "arm64",
+    "actual_mac_transfer_or_execution": false,
+    "owner_confirmed_apple_silicon": true,
+    "macos_version_and_directory": "awaiting_owner_or_host_preflight"
   }
 }
