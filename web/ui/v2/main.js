@@ -1,32 +1,32 @@
-import { mountSkills } from './skills.js?v=20261118v150';
-import { mountCredentials } from './credentials.js?v=20261118v150';
-import { mountAuditHistory, mountOperations } from './operations.js?v=20261118v150';
-import { mountCapabilities } from './capabilities.js?v=20261118v150';
-import { mountTokens } from './tokens.js?v=20261118v150';
-import { mountDocuments } from './documents.js?v=20261118v150';
-import { mountConfiguration } from './configuration.js?v=20261118v150';
-import { mountModels } from './models.js?v=20261118v150';
+import { mountSkills } from './skills.js?v=20261118v151';
+import { mountCredentials } from './credentials.js?v=20261118v151';
+import { mountAuditHistory, mountOperations } from './operations.js?v=20261118v151';
+import { mountCapabilities } from './capabilities.js?v=20261118v151';
+import { mountTokens } from './tokens.js?v=20261118v151';
+import { mountDocuments } from './documents.js?v=20261118v151';
+import { mountConfiguration } from './configuration.js?v=20261118v151';
+import { mountModels } from './models.js?v=20261118v151';
 import { ask } from '../dialog.js?v=20261103v7';
-import { mountPeople } from './people.js?v=20261118v150';
-import { mountDeliveries } from './deliveries.js?v=20261118v150';
-import { mountSchedules } from './schedules.js?v=20261118v150';
-import { mountMemorySemantics } from './memory-semantics.js?v=20261118v150';
-import { mountMemoryOrganization } from './memory-organization.js?v=20261118v150';
-import { mountExtensions } from './extensions.js?v=20261118v150';
-import { mountActionReviews } from './action-reviews.js?v=20261118v150';
-import { mountTerminals } from './terminals.js?v=20261118v150';
-import { mountDesktop } from './desktop.js?v=20261118v150';
-import { mountQQ } from './qq.js?v=20261118v150';
-import { mountBilibili } from './bilibili.js?v=20261118v150';
-import { mountMedia } from './media.js?v=20261118v150';
-import { mountMcp } from './mcp.js?v=20261118v150';
-import { mountAndroid } from './android.js?v=20261118v150';
-import { mountModelOutput } from './model-output.js?v=20261118v150';
-import { mountRouting } from './routing.js?v=20261118v150';
-import { mountChatImages } from './chat-images.js?v=20261118v150';
-import { mountInspector } from './inspector.js?v=20261118v150';
-import { mountSettingsRail } from './settings-rail.js?v=20261118v150';
-import { mountEventStream } from './event-stream.js?v=20261118v150';
+import { mountPeople } from './people.js?v=20261118v151';
+import { mountDeliveries } from './deliveries.js?v=20261118v151';
+import { mountSchedules } from './schedules.js?v=20261118v151';
+import { mountMemorySemantics } from './memory-semantics.js?v=20261118v151';
+import { mountMemoryOrganization } from './memory-organization.js?v=20261118v151';
+import { mountExtensions } from './extensions.js?v=20261118v151';
+import { mountActionReviews } from './action-reviews.js?v=20261118v151';
+import { mountTerminals } from './terminals.js?v=20261118v151';
+import { mountDesktop } from './desktop.js?v=20261118v151';
+import { mountQQ } from './qq.js?v=20261118v151';
+import { mountBilibili } from './bilibili.js?v=20261118v151';
+import { mountMedia } from './media.js?v=20261118v151';
+import { mountMcp } from './mcp.js?v=20261118v151';
+import { mountAndroid } from './android.js?v=20261118v151';
+import { mountModelOutput } from './model-output.js?v=20261118v151';
+import { mountRouting } from './routing.js?v=20261118v151';
+import { mountChatImages } from './chat-images.js?v=20261118v151';
+import { mountInspector } from './inspector.js?v=20261118v151';
+import { mountSettingsRail } from './settings-rail.js?v=20261118v151';
+import { mountEventStream } from './event-stream.js?v=20261118v151';
 // 直接复用 V1 的 rail 提示浮层模块（data-tip → #tip-layer），不自创实现
 import '../app/tips.js?v=20261103u5';
 
@@ -260,6 +260,7 @@ function setHealth(text, state = 'idle') {
 }
 const PAGE_META = {
   chat: ['对话', '与当前 Agent 空间对话、发起运行并审批动作。'],
+  context: ['上下文系统', '历史窗口、压缩与记忆配额的只读统计。'],
   memory: ['记忆', '事实、档案与常驻记忆，含语义整理。'],
   skills: ['技能', '文本技能的导入、修订、审阅与启用。'],
   documents: ['来源文档', '上传、索引、检索与删除传播。'],
@@ -632,6 +633,115 @@ function renderContext(report, snapshot) {
     }),
   );
   $('ctx-note').textContent = snap.reason ? `原因：${snap.reason}` : `计数方式：${snap.counting_method || '未计量'}`;
+}
+// 上下文系统页：整合窗口用量、提示词结构、压缩边界与运行配置（只读，对齐 V1 分区）。
+async function loadContextPage() {
+  const stamp = generation;
+  const stale = () => stamp !== generation;
+  const metrics = $('context-page-metrics'),
+    breakdown = $('context-page-breakdown'),
+    attempts = $('context-page-attempts'),
+    settingsBox = $('context-page-settings');
+  // 固定压缩边界（后端只读常量）
+  try {
+    const consts = await api(scope('/context/constants'));
+    if (!stale()) {
+      $('ctx-const-chars').textContent = consts.context_chars;
+      $('ctx-const-trigger').textContent = consts.summary_trigger_messages;
+      $('ctx-const-calls').textContent = consts.summary_calls_per_turn;
+    }
+  } catch {
+    /* 常量读取失败不阻断页面 */
+  }
+  // 运行配置（当前空间）
+  try {
+    const st = await api(scope('/settings'));
+    if (!stale()) {
+      const v = st.value || {};
+      settingsBox.replaceChildren(
+        ...[
+          ['每回合步数上限', v.max_steps],
+          ['当日预算（微美元）', v.daily_budget_micro],
+          ['单次预留（微美元）', v.call_reservation_micro],
+          ['停用工具数', (v.disabled_tools || []).length],
+        ].map(([label, value]) => {
+          const row = document.createElement('div');
+          row.className = 'ctx-setting-row';
+          const l = document.createElement('span');
+          l.textContent = label;
+          const b = document.createElement('b');
+          b.textContent = value ?? '—';
+          row.append(l, b);
+          return row;
+        }),
+      );
+    }
+  } catch {
+    settingsBox.replaceChildren();
+  }
+  // 最近一次运行的窗口用量
+  const history = session ? (await api(scope(`/sessions/${session}/messages`))).items : [];
+  if (stale()) return;
+  const lastRun = [...history].reverse().find((m) => m.run_id)?.run_id || null;
+  if (!lastRun) {
+    $('context-page-status').textContent = '当前会话还没有运行记录；发一条消息后这里显示窗口用量。';
+    metrics.replaceChildren();
+    breakdown.replaceChildren();
+    attempts.replaceChildren();
+    $('context-page-note').textContent = '';
+    return;
+  }
+  const report = await api(scope(`/runs/${lastRun}/context`));
+  if (stale()) return;
+  const snap = (report.snapshots || []).at(-1);
+  $('context-page-status').textContent = `最近运行 ${lastRun.slice(0, 8)} · 登记 ${report.items.length} 条上下文记录。`;
+  if (!snap) {
+    metrics.replaceChildren();
+    breakdown.replaceChildren();
+    attempts.replaceChildren();
+    return;
+  }
+  const modes = { complete: '完整历史', summary: '摘要', truncated: '已省略', redacted: '已遗忘', blocked: '受阻' };
+  metrics.replaceChildren(
+    ...[
+      ['输入估算', snap.input_token_estimate != null ? `${snap.input_token_estimate} tok` : `${snap.input_chars || 0} 字符`],
+      ['历史处理', modes[snap.mode] || snap.mode || '—'],
+      ['省略条数', snap.omitted_count ?? 0],
+      ['输出上限', snap.output_token_limit ?? '—'],
+    ].map(([label, value]) => {
+      const cell = document.createElement('div');
+      cell.className = 'ctx-metric';
+      const l = document.createElement('span');
+      l.textContent = label;
+      const b = document.createElement('b');
+      b.textContent = value;
+      cell.append(l, b);
+      return cell;
+    }),
+  );
+  const segs = [
+    ['消息', (snap.message_ids || []).length],
+    ['摘要', (snap.summaries || []).length],
+    ['文档', (snap.documents || []).length],
+  ];
+  breakdown.replaceChildren(
+    ...segs.map(([name, n]) => {
+      const row = document.createElement('span');
+      row.className = 'ctx-legend-item';
+      row.textContent = `${name} ${n}`;
+      return row;
+    }),
+  );
+  $('context-page-note').textContent = snap.reason ? `原因：${snap.reason}` : `计数方式：${snap.counting_method || '未计量'}`;
+  attempts.replaceChildren(
+    ...(report.attempts || []).map((a) => {
+      const row = document.createElement('div');
+      row.className = 'ctx-attempt';
+      row.textContent = `摘要 ${String(a.id).slice(0, 8)} · ${a.state}${a.error_code ? ' · ' + a.error_code : ''}`;
+      return row;
+    }),
+  );
+  if (!(report.attempts || []).length) attempts.textContent = '本运行未触发摘要压缩。';
 }
 function relTime(value) {
   if (!value) return '';
@@ -1516,6 +1626,7 @@ $('services-dialog').addEventListener('click', (event) => {
   // 点击遮罩（dialog 自身）关闭
   if (event.target === $('services-dialog')) $('services-dialog').close();
 });
+$('context-refresh').addEventListener('click', wrap(loadContextPage));
 $('new-session').addEventListener('click', () => {
   session = null;
   clearContext();
@@ -1756,6 +1867,7 @@ for (const button of document.querySelectorAll('[data-page]'))
       for (const node of document.querySelectorAll('.page')) node.hidden = node.id !== selectedPage;
       if (selectedPage === 'memory')
         await Promise.all([loadMemory(), memoryOrganizationPanel.load(), memorySemanticPanel.load()]);
+      if (selectedPage === 'context') await loadContextPage();
       if (selectedPage === 'skills') await skillsPanel.load();
       if (selectedPage === 'extensions') await extensionsPanel.load();
       if (selectedPage === 'action-reviews') await actionReviewsPanel.load();

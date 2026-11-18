@@ -50,6 +50,7 @@ from ..application.terminal_review import TerminalReviewService
 from ..application.terminals import TerminalService
 from ..domain.agents import MAX_NAME, MAX_REVISION
 from ..domain.capabilities import capability_report
+from ..domain.context import CONTEXT_CHARS, SUMMARY_CALLS_PER_TURN, SUMMARY_TRIGGER_MESSAGES
 from ..domain.contracts import BusinessError
 from ..domain.objects import MAX_OBJECT_BYTES
 from .diagnostics import bind_context
@@ -1748,6 +1749,15 @@ def create_app(factory: Callable[[], Awaitable[HttpRuntime]], *, allowed_origins
     async def save_settings(agent_id: uuid.UUID, request: Request):
         data = configuration_input(SettingsInput, await bounded_configuration(request))
         return await runtime(request).application.save_settings(str(agent_id), cast(Record, data.value), data.revision)
+
+    @router.get("/agents/{agent_id}/context/constants")
+    async def context_constants(agent_id: uuid.UUID, request: Request):
+        """只读暴露 token 驱动压缩的固定边界，供上下文系统页展示；不调用模型。"""
+        return {
+            "context_chars": CONTEXT_CHARS,
+            "summary_trigger_messages": SUMMARY_TRIGGER_MESSAGES,
+            "summary_calls_per_turn": SUMMARY_CALLS_PER_TURN,
+        }
 
     @router.get("/agents/{agent_id}/approvals")
     async def approvals(agent_id: uuid.UUID, request: Request):

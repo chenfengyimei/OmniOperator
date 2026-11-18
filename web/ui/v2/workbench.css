@@ -3244,3 +3244,89 @@ body[data-ui-page="workbench-v2"] .services-dialog .svc-list {
   margin: 0;
 }
 
+/* ==========================================================================
+   上下文系统页（核心系统分组）：整合窗口用量/提示词结构/压缩边界/运行配置。
+   只读统计，对齐 V1 分区结构；颜色走令牌、字号不低于 10px 下限。
+   ========================================================================== */
+body[data-ui-page="workbench-v2"] #context .ctx-metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 8px;
+  margin: 10px 0;
+}
+body[data-ui-page="workbench-v2"] #context .ctx-metric {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 9px 11px;
+  border: 1px solid var(--line-3);
+  border-radius: var(--r-md);
+  background: color-mix(in oklab, var(--surface-2) 55%, transparent);
+}
+body[data-ui-page="workbench-v2"] #context .ctx-metric span {
+  color: var(--text-3);
+  font-size: var(--fs-caption);
+}
+body[data-ui-page="workbench-v2"] #context .ctx-metric b {
+  color: var(--text-1);
+  font-size: var(--fs-secondary);
+  font-weight: 650;
+}
+body[data-ui-page="workbench-v2"] #context .ctx-breakdown {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  margin: 6px 0;
+}
+body[data-ui-page="workbench-v2"] #context .ctx-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--text-2);
+  font-size: var(--fs-small);
+}
+body[data-ui-page="workbench-v2"] #context .context-pipeline {
+  margin: 8px 0;
+  padding-left: 20px;
+  color: var(--text-2);
+  font-size: var(--fs-small);
+  line-height: 1.8;
+}
+body[data-ui-page="workbench-v2"] #context .ctx-attempts {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin: 8px 0;
+  color: var(--text-3);
+  font-size: var(--fs-small);
+}
+body[data-ui-page="workbench-v2"] #context .ctx-attempt {
+  padding: 6px 9px;
+  border: 1px solid var(--line-3);
+  border-radius: var(--r-sm);
+  background: var(--surface-inset);
+}
+body[data-ui-page="workbench-v2"] #context .ctx-settings {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 6px 14px;
+  margin: 8px 0;
+}
+body[data-ui-page="workbench-v2"] #context .ctx-setting-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 9px;
+  border: 1px solid var(--line-3);
+  border-radius: var(--r-sm);
+  font-size: var(--fs-small);
+}
+body[data-ui-page="workbench-v2"] #context .ctx-setting-row span {
+  color: var(--text-3);
+}
+body[data-ui-page="workbench-v2"] #context .ctx-setting-row b {
+  color: var(--text-1);
+  font-weight: 650;
+}
+

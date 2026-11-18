@@ -8,11 +8,11 @@
     <link rel="stylesheet" href="/assets/ui/tokens.css?v=20261115u1" />
     <link rel="stylesheet" href="/assets/ui/base.css?v=20261103v7" />
     <link rel="stylesheet" href="/assets/ui/icons.css?v=20261115u1" />
-    <link rel="stylesheet" href="/assets/ui/v2/v1/components.css?v=20261118v150" />
-    <link rel="stylesheet" href="/assets/ui/v2/v1/frame.css?v=20261118v150" />
-    <link rel="stylesheet" href="/assets/ui/v2/v1/workbench.css?v=20261118v150" />
-    <link rel="stylesheet" href="/assets/ui/v2/workbench.css?v=20261118v150" />
-    <link rel="stylesheet" href="/assets/vendor/xterm.min.css?v=20261118v150" />
+    <link rel="stylesheet" href="/assets/ui/v2/v1/components.css?v=20261118v151" />
+    <link rel="stylesheet" href="/assets/ui/v2/v1/frame.css?v=20261118v151" />
+    <link rel="stylesheet" href="/assets/ui/v2/v1/workbench.css?v=20261118v151" />
+    <link rel="stylesheet" href="/assets/ui/v2/workbench.css?v=20261118v151" />
+    <link rel="stylesheet" href="/assets/vendor/xterm.min.css?v=20261118v151" />
   </head>
   <body class="chat-mode" data-ui-page="workbench-v2">
     <header class="app-header">
@@ -52,6 +52,37 @@
     </header>
     <nav aria-label="工作台" inert>
       <div class="rail-brand" data-tip="OmniOperator" role="img" aria-label="OmniOperator"></div>
+      <p class="nav-group">核心系统</p>
+      <button
+        type="button"
+        class="rail-btn"
+        data-page="context"
+        data-tip="上下文系统"
+        aria-label="上下文系统"
+        title="上下文系统"
+      >
+        <span class="material-icons">segment</span>
+      </button>
+      <button
+        type="button"
+        class="rail-btn"
+        data-page="skills"
+        data-tip="技能系统"
+        aria-label="技能系统"
+        title="技能系统"
+      >
+        <span class="material-icons">auto_awesome</span>
+      </button>
+      <button
+        type="button"
+        class="rail-btn"
+        data-page="memory"
+        data-tip="记忆系统"
+        aria-label="记忆系统"
+        title="记忆系统"
+      >
+        <span class="material-icons">database</span>
+      </button>
       <p class="nav-group">对话与记忆</p>
       <button type="button" class="rail-btn" data-page="chat" data-tip="对话" aria-label="对话" title="对话">
         <span class="material-icons">forum</span>
@@ -977,6 +1008,43 @@
                 <div id="terminal-review-history"></div>
                 <button id="terminal-review-history-more" type="button" disabled>更多核查记录</button>
               </details>
+            </section>
+            <section id="context" class="page" hidden>
+              <h1>上下文系统</h1>
+              <p class="muted">
+                查看模型实际保留的历史窗口、压缩与记忆配额。本页只读统计，不会调用模型；技能与记忆系统在「核心系统」分组另行管理。
+              </p>
+              <div class="actions">
+                <button id="context-refresh" type="button">刷新统计</button>
+              </div>
+              <p id="context-page-status" role="status">选择会话后读取最近一次运行的上下文窗口。</p>
+              <h3>窗口用量</h3>
+              <div id="context-page-metrics" class="ctx-metrics"></div>
+              <div id="context-page-breakdown" class="ctx-breakdown"></div>
+              <p id="context-page-note" class="muted"></p>
+              <h3>提示词结构</h3>
+              <ol class="context-pipeline">
+                <li>固定人设与规则</li>
+                <li>历史消息与摘要</li>
+                <li>本轮用户输入</li>
+                <li>动态资料与时间</li>
+              </ol>
+              <p class="muted">旧轮快照不改写，工具目录在回合内固定。摘要、窗口滑动、工具或人设变化会形成新的缓存边界。</p>
+              <h3>历史与压缩</h3>
+              <p class="muted">
+                V2 采用 token 驱动的有界压缩：字符安全上限 <b id="ctx-const-chars">—</b>，摘要触发阈值
+                <b id="ctx-const-trigger">—</b> 条，每回合最多 <b id="ctx-const-calls">—</b> 次摘要调用。超出窗口时按整回合滑动并登记摘要，不丢当前请求与完整工具调用。
+              </p>
+              <div id="context-page-attempts" class="ctx-attempts"></div>
+              <h3>运行配置（当前空间）</h3>
+              <div id="context-page-settings" class="ctx-settings"></div>
+              <p class="muted">步数与预算在「设置」页修改；模型容量（上下文/输出/摘要/余量）在「模型接入」页按模型声明。</p>
+              <div class="actions">
+                <button type="button" data-page="memory">记忆系统</button>
+                <button type="button" data-page="skills">技能系统</button>
+                <button type="button" data-page="settings">运行设置</button>
+                <button type="button" data-page="models">模型接入</button>
+              </div>
             </section>
             <section id="memory" class="page" hidden>
               <h1>记忆</h1>
@@ -1943,8 +2011,8 @@
       </div>
       <div id="service-list" class="svc-list"></div>
     </dialog>
-    <script src="/assets/vendor/xterm.js?v=20261118v150"></script>
-    <script src="/assets/vendor/xterm-addon-fit.js?v=20261118v150"></script>
-    <script type="module" src="/assets/ui/v2/main.js?v=20261118v150"></script>
+    <script src="/assets/vendor/xterm.js?v=20261118v151"></script>
+    <script src="/assets/vendor/xterm-addon-fit.js?v=20261118v151"></script>
+    <script type="module" src="/assets/ui/v2/main.js?v=20261118v151"></script>
   </body>
 </html>
