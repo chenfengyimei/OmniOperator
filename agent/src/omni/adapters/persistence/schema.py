@@ -495,6 +495,39 @@ runs = scoped(
         name="state",
     ),
 )
+run_delegations = scoped(
+    "run_delegations",
+    Column("parent_run_id", String(36), nullable=False),
+    Column("child_run_id", String(36), nullable=False),
+    Column("parent_session_id", String(36), nullable=False),
+    Column("child_session_id", String(36), nullable=False),
+    Column("parent_epoch", Integer, nullable=False),
+    Column("parent_snapshot_id", String(36), nullable=False),
+    Column("source_snapshot_id", String(36), nullable=False),
+    Column("max_calls", Integer, nullable=False),
+    Column("budget_micro", Integer, nullable=False),
+    Column("tree_budget_micro", Integer, nullable=False),
+    Column("tools", JSON, nullable=False),
+    Column("boot_id", String(36), nullable=False),
+    *(
+        scoped_fk(column, target)
+        for column, target in (
+            ("parent_run_id", "runs"),
+            ("child_run_id", "runs"),
+            ("parent_session_id", "sessions"),
+            ("child_session_id", "sessions"),
+            ("parent_snapshot_id", "context_snapshots"),
+            ("source_snapshot_id", "model_call_routes"),
+        )
+    ),
+    UniqueConstraint("child_run_id"),
+    UniqueConstraint("child_session_id"),
+    CheckConstraint(
+        "parent_run_id!=child_run_id AND parent_session_id!=child_session_id AND typeof(parent_epoch)='integer' AND parent_epoch>0 AND typeof(max_calls)='integer' AND max_calls BETWEEN 1 AND 8 AND typeof(budget_micro)='integer' AND budget_micro BETWEEN 1 AND 1000000 AND typeof(tree_budget_micro)='integer' AND tree_budget_micro BETWEEN 1 AND 1000000 AND json_valid(tools) AND json_type(tools)='object' AND length(CAST(tools AS BLOB))<=131072 AND length(boot_id)=36",
+        name="bounds",
+    ),
+)
+Index("ix_run_delegations_parent", run_delegations.c.agent_id, run_delegations.c.parent_run_id)
 run_events = Table(
     "run_events",
     metadata,

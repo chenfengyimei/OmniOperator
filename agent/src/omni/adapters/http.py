@@ -1626,6 +1626,10 @@ def create_app(factory: Callable[[], Awaitable[HttpRuntime]], *, allowed_origins
     async def session_todos(agent_id: uuid.UUID, session_id: uuid.UUID, request: Request):
         return await runtime(request).application.session_todos(str(agent_id), str(session_id))
 
+    @router.get("/agents/{agent_id}/runs/{run_id}/delegations")
+    async def run_delegations(agent_id: uuid.UUID, run_id: uuid.UUID, request: Request):
+        return {"items": await runtime(request).application.delegations(str(agent_id), str(run_id))}
+
     @router.get("/agents/{agent_id}/runs")
     async def runs(agent_id: uuid.UUID, request: Request):
         return {"items": await runtime(request).application.query("runs", str(agent_id))}

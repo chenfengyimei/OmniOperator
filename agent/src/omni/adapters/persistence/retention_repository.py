@@ -6,8 +6,10 @@ from typing import cast
 
 from sqlalchemy import delete, or_, select, update
 
+from ...application.ports import UnitOfWork
 from ...domain.contracts import BusinessError
 from . import schema as s
+from .delegation_authority import authorize as authorize_delegation
 from .delivery_repository import DeliveryRepositories
 
 
@@ -47,10 +49,11 @@ class RetentionRepositories(DeliveryRepositories):
         )
         if row and row["session_epoch"] != session["content_epoch"]:
             raise BusinessError("context_invalidated", "Source content was erased; submit a new turn")
+        authorize_delegation(self, agent_id, run_id)
 
     def _invalidate_sessions(self, agent_id: str, sessions: set[str]) -> set[str]:
         derived: set[str] = set()
-        for session_id in sessions:
+        for session_id in cast(UnitOfWork, self).delegation_related_sessions(agent_id, sessions):
             session = self._one(s.sessions, agent_id, session_id)
             self.connection.execute(
                 update(s.sessions)

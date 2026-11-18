@@ -365,15 +365,27 @@ def test_frozen_v40_database_upgrades_without_changing_existing_messages(tmp_pat
                 u = Repositories(connection, clock, ids, ids.new())
                 u.initialize()
                 agent = u.query("agents", "")[0]["id"]
-                run, _ = seed(u, agent, 0)
-                u.finish(agent, run["run_id"], "old-v40-answer")
+                # Seed only existing v40 tables; current execution authority now
+                # also reads delegation tables that are intentionally absent here.
+                from omni_test_support.v2.v2_configuration_helpers import model_uow
+
+                model_uow(u, agent)
+                run = u.accept_turn(agent, None, "old", "old-v40-request", {})
+                u.transition(agent, run["run_id"], "running")
+                answer = u._message(agent, run["session_id"], "assistant", "old-v40-answer")
+                connection.execute(
+                    update(s.messages).where(s.messages.c.id == answer["id"]).values(run_id=run["run_id"])
+                )
+                u.transition(agent, run["run_id"], "succeeded")
                 old = u.messages(agent, run["session_id"])
                 connection.commit()
         finally:
             engine.dispose()
         db = Database(paths.database, clock, ids, objects_root=paths.objects)
         try:
-            assert db.schema_version == "v2_0041"
+            from omni.adapters.persistence.migration_config import head
+
+            assert db.schema_version == head()
             assert await db.read(lambda u: u.messages(agent, run["session_id"])) == old
             assert (await db.read(lambda u: u.todo_get(agent, run["session_id"])))["revision"] == 0
             assert list((paths.database.parent / "schema-backups").iterdir())

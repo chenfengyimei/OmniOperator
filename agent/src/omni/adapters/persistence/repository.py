@@ -19,6 +19,7 @@ from .android_unicode_repository import AndroidUnicodeRepositories
 from .audit_pruning_repository import AuditPruningRepositories
 from .bilibili_repository import BilibiliRepositories
 from .context_repository import ContextRepositories
+from .delegation_repository import DelegationRepositories
 from .event_retention_repository import EventRetentionRepositories
 from .extension_repository import ExtensionRepositories
 from .history_repository import HistoryRepositories
@@ -41,6 +42,7 @@ from .todo_repository import TodoRepositories
 
 
 class Repositories(
+    DelegationRepositories,
     TodoRepositories,
     SkillRepositories,
     MemorySemanticRepositories,
@@ -567,6 +569,7 @@ class Repositories(
         self, agent_id: str, run_id: str, amount: int, limit: int, model: str, *, purpose: str = "turn"
     ) -> str:
         self.get_run(agent_id, run_id)
+        self.delegation_check_budget(agent_id, run_id, amount)
         if amount < 0 or limit < 0:
             raise BusinessError("invalid_budget", "Budget cannot be negative", status=422)
         day = self.clock.now()[:10]
@@ -891,6 +894,8 @@ class Repositories(
         return dict(row)
 
     def cancel(self, agent_id: str, run_id: str) -> None:
+        for child_id in self.delegation_children(agent_id, run_id):
+            self.cancel(agent_id, child_id)
         run = self.get_run(agent_id, run_id)
         if run["state"] in {"succeeded", "failed", "cancelled", "interrupted", "cancelling"}:
             return
@@ -968,6 +973,7 @@ class Repositories(
         return len(unresolved)
 
     def recover(self) -> Record:
+        self.delegation_recover()
         self.memory_semantic_recover()
         self.terminal_recover()
         recovered_credentials = self.credential_recover()

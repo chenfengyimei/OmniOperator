@@ -17,6 +17,7 @@ Mac 主开发，Windows 保留运行及原生验收环境。开发中只跑受�
 - [V2_CAPABILITIES](contracts/V2_CAPABILITIES.md)
 - [V2_CREDENTIAL_AUTHORITY](contracts/V2_CREDENTIAL_AUTHORITY.md)
 - [V2_DESKTOP](contracts/V2_DESKTOP.md)
+- [V2_DELEGATION：单层父子 run、批次与真实汇合](contracts/V2_DELEGATION.md)
 - [V2_EVENT_STREAM](contracts/V2_EVENT_STREAM.md)
 - [V2_EXECUTION_RETENTION](contracts/V2_EXECUTION_RETENTION.md)
 - [V2_EXTENSIONS](contracts/V2_EXTENSIONS.md)

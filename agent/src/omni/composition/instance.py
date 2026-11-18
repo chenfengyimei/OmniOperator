@@ -330,6 +330,7 @@ async def open_instance(
     mcp_transport: MCPTransportPort | None = None,
     android_backend: AndroidPort | None = None,
     capabilities: tuple[Capability, ...] | None = None,
+    delegation_enabled: bool | None = None,
     master_key_file: Path | None = None,
     stderr_only: bool = False,
     process_diagnostics: bool = False,
@@ -651,6 +652,7 @@ async def open_instance(
             memory_semantics=memory_semantics,
             skills=skills,
             todos=TodoService(database) if capabilities is None else None,
+            delegation_enabled=capabilities is None if delegation_enabled is None else delegation_enabled,
             owner_capabilities=(
                 Capability(DESKTOP_ACTION, desktop_actions, desktop_actions.quiescent),
                 Capability(ANDROID_ACTION, android, android.quiescent),

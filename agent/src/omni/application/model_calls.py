@@ -275,6 +275,9 @@ class ModelCalls:
             if streaming is not None and not dispatched:
                 await streaming.close()
         await self._db.write(lambda u: u.settle_call(agent_id, identity, reply))
+        # Keep the provider's actual charge committed even if it overran a
+        # delegated reservation; only further execution is refused.
+        await self._db.read(lambda u: u.delegation_check_budget(agent_id, run_id, 0))
         if reply.completion_reason in {"length", "content_filter"}:
             raise BusinessError(
                 "model_response_incomplete",

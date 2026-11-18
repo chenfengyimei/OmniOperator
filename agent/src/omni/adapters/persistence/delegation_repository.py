@@ -1,0 +1,326 @@
+"""Persist child admission, inherited authority, bounded budgets and recovery in the shared database."""
+
+from __future__ import annotations
+
+from typing import cast
+
+from sqlalchemy import case, func, select, update
+
+from ...application.ports import Record, UnitOfWork
+from ...domain.contracts import JSON, BusinessError
+from ...domain.delegation import (
+    CHILD_CONCURRENCY,
+    DELEGATE_TASK,
+    MAX_CHILDREN,
+    SUMMARY_CHARS,
+    TREE_BUDGET,
+    child_message,
+    request,
+)
+from . import schema as s
+from .context_repository import ContextRepositories
+from .delegation_authority import authorize, link, related_sessions
+
+
+class DelegationRepositories(ContextRepositories):
+    def delegation_related_sessions(self, agent_id: str, sessions: set[str]) -> set[str]:
+        return related_sessions(self, agent_id, sessions)
+
+    def delegation_link(self, agent_id: str, child_id: str) -> Record | None:
+        return link(self, agent_id, child_id)
+
+    def delegation_children(self, agent_id: str, parent_id: str) -> list[str]:
+        self._one(s.runs, agent_id, parent_id)
+        return list(
+            self.connection.execute(
+                select(s.run_delegations.c.child_run_id)
+                .where(s.run_delegations.c.agent_id == agent_id, s.run_delegations.c.parent_run_id == parent_id)
+                .order_by(s.run_delegations.c.created_at, s.run_delegations.c.id)
+            ).scalars()
+        )
+
+    def delegation_create(self, agent_id: str, parent_id: str, value: Record) -> Record:
+        unit = cast(UnitOfWork, self)
+        unit.assert_run_authorized(agent_id, parent_id)
+        parent = unit.get_run(agent_id, parent_id)
+        enabled = self.connection.execute(
+            select(s.agents.c.enabled).where(s.agents.c.id == agent_id)
+        ).scalar_one_or_none()
+        if (
+            not enabled
+            or parent["state"] != "running"
+            or parent.get("execution_kind") == "owner"
+            or unit.qq_run(agent_id, parent_id)
+        ):
+            raise BusinessError("delegation_not_available", "Delegation requires an active owner model run")
+        if self.delegation_link(agent_id, parent_id):
+            raise BusinessError("delegation_depth_exceeded", "Nested delegation is not available")
+        current = unit.settings(agent_id)
+        if parent["policy_epoch"] != current["policy_revision"] or DELEGATE_TASK.name in cast(
+            list[JSON], cast(Record, current["value"])["disabled_tools"]
+        ):
+            raise BusinessError("policy_changed", "Delegation policy changed")
+        if len(self.delegation_children(agent_id, parent_id)) >= MAX_CHILDREN:
+            raise BusinessError("delegation_child_limit", "This parent has reached its child limit")
+        settings = unit.run_settings(agent_id, parent_id)
+        parsed = request(value, cast(int, settings["call_reservation_micro"]))
+        epoch = self.connection.execute(select(s.history_identity.c.epoch)).scalar_one()
+        if parent["skill_capture_epoch"] != epoch:
+            raise BusinessError("skill_authority_revoked", "Parent skill capture is stale; submit a new run")
+        if parent["extension_capture_epoch"] != epoch:
+            raise BusinessError("extension_history_changed", "Parent extension capture is stale; submit a new run")
+        source = self.connection.execute(
+            select(s.model_call_routes.c.id)
+            .join(s.model_calls, s.model_calls.c.id == s.model_call_routes.c.call_id)
+            .where(
+                s.model_call_routes.c.agent_id == agent_id,
+                s.model_calls.c.run_id == parent_id,
+                s.model_calls.c.state.in_(["settled", "unknown"]),
+            )
+            .order_by(s.model_call_routes.c.ordinal.desc())
+            .limit(1)
+        ).scalar_one_or_none()
+        offered = (
+            dict(
+                self.connection.execute(
+                    select(s.model_call_route_tools.c.name, s.model_call_route_tools.c.spec_sha256).where(
+                        s.model_call_route_tools.c.snapshot_id == source
+                    )
+                ).all()
+            )
+            if source
+            else {}
+        )
+        if DELEGATE_TASK.name not in offered or unit.run_route(agent_id, parent_id)["mode"] != "agent":
+            raise BusinessError("delegation_not_offered", "Delegation was not offered to this model call")
+        offered.pop(DELEGATE_TASK.name)
+        offered.pop("request_mode", None)
+        snapshot = self.connection.execute(
+            select(s.context_snapshots.c.id)
+            .where(s.context_snapshots.c.run_id == parent_id, s.context_snapshots.c.agent_id == agent_id)
+            .order_by(s.context_snapshots.c.ordinal.desc())
+            .limit(1)
+        ).scalar_one()
+        parent_session = self._one(s.sessions, agent_id, str(parent["session_id"]))
+        session = self._record(s.sessions, {"title": "Delegated task", "revision": 1, "next_seq": 1}, agent_id)
+        message = self._record(
+            s.messages,
+            {"session_id": session["id"], "seq": 1, "role": "user", "content": child_message(parsed)},
+            agent_id,
+        )
+        captured = {
+            name: parent[name]
+            for name in (
+                "config_revision",
+                "settings_revision_id",
+                "model_revision_id",
+                "model_permission_epoch",
+                "policy_epoch",
+            )
+        }
+        child = self._record(
+            s.runs,
+            {
+                **captured,
+                "session_id": session["id"],
+                "parent_id": parent_id,
+                "input_message_id": message["id"],
+                "state": "queued",
+                "execution_kind": "model",
+                "last_seq": 0,
+                "error_code": "",
+            },
+            agent_id,
+        )
+        child_id = str(child["id"])
+        self.connection.execute(update(s.messages).where(s.messages.c.id == message["id"]).values(run_id=child_id))
+        self._record(
+            s.work_items,
+            {"run_id": child_id, "kind": "turn", "state": "pending", "payload": {}, "attempt": 0},
+            agent_id,
+        )
+        route = unit.run_route(agent_id, parent_id)
+        self._record(
+            s.run_routes,
+            {
+                "run_id": child_id,
+                "policy_id": route.get("policy_id"),
+                "requested_mode": "agent",
+                "initial_mode": "agent",
+                "source": "baseline",
+                "reason": "delegated",
+                "allow_escalation": False,
+                "reservation_micro": settings["call_reservation_micro"],
+            },
+            agent_id,
+        )
+        for table in (s.run_extension_tools, s.mcp_run_tools, s.run_skill_catalog):
+            rows = (
+                self.connection.execute(select(table).where(table.c.agent_id == agent_id, table.c.run_id == parent_id))
+                .mappings()
+                .all()
+            )
+            for row in rows:
+                self._record(
+                    table,
+                    {
+                        **{k: v for k, v in row.items() if k not in {"id", "agent_id", "created_at", "run_id"}},
+                        "run_id": child_id,
+                    },
+                    agent_id,
+                )
+        # Skill catalogs may only be populated before their capture seal is set.
+        # Preserve the parent's seal; never reseal an old capture at a newer epoch.
+        self.connection.execute(
+            update(s.runs)
+            .where(s.runs.c.id == child_id)
+            .values(skill_capture_epoch=epoch, extension_capture_epoch=epoch)
+        )
+        self._record(
+            s.run_delegations,
+            {
+                "parent_run_id": parent_id,
+                "child_run_id": child_id,
+                "parent_session_id": parent_session["id"],
+                "child_session_id": session["id"],
+                "parent_epoch": parent_session["content_epoch"],
+                "parent_snapshot_id": snapshot,
+                "source_snapshot_id": source,
+                "max_calls": parsed["max_calls"],
+                "budget_micro": parsed["budget_micro"],
+                "tree_budget_micro": min(TREE_BUDGET, cast(int, settings["daily_budget_micro"]) or TREE_BUDGET),
+                "tools": offered,
+                "boot_id": self.boot_id,
+            },
+            agent_id,
+        )
+        self.delegation_check_budget(agent_id, child_id, 0)
+        unit.event(agent_id, parent_id, "delegation.created", {"child_run_id": child_id})
+        unit.event(agent_id, child_id, "run.queued", {"parent_run_id": parent_id})
+        self.audit(
+            agent_id,
+            "delegation.created",
+            parent_id,
+            {"child_run_id": child_id, "max_calls": parsed["max_calls"], "budget_micro": parsed["budget_micro"]},
+        )
+        return {"run_id": child_id, "session_id": session["id"]}
+
+    def claim_delegated_runs(self, limit: int) -> list[Record]:
+        rows = (
+            self.connection.execute(
+                select(s.run_delegations)
+                .join(s.runs, s.runs.c.id == s.run_delegations.c.child_run_id)
+                .where(s.runs.c.state == "queued", s.run_delegations.c.boot_id == self.boot_id)
+                .order_by(s.run_delegations.c.created_at, s.run_delegations.c.id)
+                .limit(64)
+            )
+            .mappings()
+            .all()
+        )
+        unit = cast(UnitOfWork, self)
+        result: list[Record] = []
+        for row in rows:
+            if len(result) >= max(0, min(CHILD_CONCURRENCY, limit)):
+                break
+            try:
+                authorize(self, str(row["agent_id"]), str(row["child_run_id"]))
+            except BusinessError:
+                unit.cancel(str(row["agent_id"]), str(row["child_run_id"]))
+                continue
+            claim = self._claim_run(str(row["agent_id"]), str(row["child_run_id"]))
+            if claim:
+                result.append({**claim, "delegated": True})
+        return result
+
+    def delegation_check_budget(self, agent_id: str, run_id: str, amount: int) -> None:
+        binding = self.delegation_link(agent_id, run_id)
+        parent_id = str(binding["parent_run_id"]) if binding else run_id
+        first = (
+            self.connection.execute(
+                select(s.run_delegations)
+                .where(s.run_delegations.c.agent_id == agent_id, s.run_delegations.c.parent_run_id == parent_id)
+                .limit(1)
+            )
+            .mappings()
+            .first()
+        )
+        if first is None:
+            return
+        children = self.delegation_children(agent_id, parent_id)
+        limits = [([parent_id, *children], cast(int, first["tree_budget_micro"]), 64)]
+        if binding:
+            limits.append(([run_id], cast(int, binding["budget_micro"]), cast(int, binding["max_calls"])))
+        for run_ids, cap, call_limit in limits:
+            count, used = self.connection.execute(
+                select(
+                    func.count(),
+                    func.coalesce(
+                        func.sum(
+                            case(
+                                (s.model_calls.c.state == "settled", s.model_calls.c.cost_micro),
+                                else_=s.model_calls.c.reserved_micro,
+                            )
+                        ),
+                        0,
+                    ),
+                ).where(
+                    s.model_calls.c.agent_id == agent_id,
+                    s.model_calls.c.run_id.in_(run_ids),
+                    s.model_calls.c.state != "not_sent",
+                )
+            ).one()
+            if used + amount > cap or amount and count >= call_limit:
+                raise BusinessError("delegation_budget_exceeded", "Delegated call or shared family budget is exhausted")
+
+    def delegation_result(self, agent_id: str, parent_id: str, child_id: str) -> Record:
+        row = self.delegation_link(agent_id, child_id)
+        if row is None or row["parent_run_id"] != parent_id:
+            raise BusinessError("not_found", "Child does not belong to this parent", status=404)
+        child = cast(UnitOfWork, self).get_run(agent_id, child_id)
+        source = self._one(s.sessions, agent_id, str(row["parent_session_id"]))
+        redacted = source["content_epoch"] != row["parent_epoch"] or bool(source["deleted_at"])
+        known_cost, unknown_calls = self.connection.execute(
+            select(
+                func.coalesce(func.sum(s.model_calls.c.cost_micro), 0),
+                func.count().filter(s.model_calls.c.state.in_(["reserved", "unknown"])),
+            ).where(s.model_calls.c.run_id == child_id, s.model_calls.c.agent_id == agent_id)
+        ).one()
+        unknown = (
+            self.connection.execute(
+                select(s.actions.c.id).where(s.actions.c.run_id == child_id, s.actions.c.effect == "unknown").limit(1)
+            ).first()
+            is not None
+        )
+        text = (
+            self.connection.execute(
+                select(s.messages.c.content)
+                .where(
+                    s.messages.c.run_id == child_id, s.messages.c.role == "assistant", s.messages.c.deleted_at.is_(None)
+                )
+                .order_by(s.messages.c.seq.desc())
+                .limit(1)
+            ).scalar_one_or_none()
+            if child["state"] == "succeeded" and not redacted
+            else None
+        )
+        return {
+            "child_run_id": child_id,
+            "state": child["state"],
+            "error_code": child["error_code"],
+            "summary": str(text or "")[:SUMMARY_CHARS],
+            "summary_truncated": len(str(text or "")) > SUMMARY_CHARS,
+            "summary_redacted": redacted,
+            "unknown_effect": unknown,
+            "known_cost_micro": known_cost,
+            "unknown_model_calls": unknown_calls,
+        }
+
+    def delegation_recover(self) -> None:
+        unit = cast(UnitOfWork, self)
+        rows = self.connection.execute(
+            select(s.run_delegations.c.agent_id, s.run_delegations.c.child_run_id)
+            .join(s.runs, s.runs.c.id == s.run_delegations.c.child_run_id)
+            .where(s.runs.c.state.in_(["queued", "running", "waiting_approval", "cancelling"]))
+        ).all()
+        for agent, child in rows:
+            unit.transition(agent, child, "interrupted", "delegation_process_interrupted")

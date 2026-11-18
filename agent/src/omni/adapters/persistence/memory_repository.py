@@ -7,7 +7,7 @@ from typing import cast
 
 from sqlalchemy import column, delete, literal_column, select, table, text, update
 
-from ...application.ports import Record
+from ...application.ports import Record, UnitOfWork
 from ...domain.contracts import BusinessError
 from ...domain.people import DOCUMENT_KINDS, content_fingerprint, source_fingerprint
 from . import schema as s
@@ -49,6 +49,15 @@ class MemoryRepositories(DocumentRepositories):
             source = self._one(s.messages, agent_id, message_id)
             if source["deleted_at"] or not quote or quote not in cast(str, source["content"]):
                 raise BusinessError("invalid_evidence", "Evidence must quote a live source message", status=422)
+            if model_authored and source["run_id"]:
+                unit = cast(UnitOfWork, self)
+                binding = unit.delegation_link(agent_id, str(source["run_id"]))
+                if binding and unit.get_run(agent_id, str(source["run_id"]))["input_message_id"] == message_id:
+                    raise BusinessError(
+                        "evidence_required",
+                        "A model-generated delegated goal is not independent memory evidence",
+                        status=422,
+                    )
             session = self._one(s.sessions, agent_id, cast(str, source["session_id"]))
             if model_authored and cast(int, source["seq"]) <= cast(int, session["context_floor_seq"]):
                 raise BusinessError("memory_forgotten", "This source was excluded after an explicit erasure")

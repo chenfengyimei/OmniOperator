@@ -1,0 +1,363 @@
+{
+  "schema": 1,
+  "date": "2026-11-18",
+  "base_commit": "03b3983a07a991331aacb95a5215655ee351a648",
+  "status": "single_level_delegation_implemented_scoped_passed",
+  "contract": "docs/v2/contracts/V2_DELEGATION.md",
+  "source_files": {
+    "agent/src/omni/adapters/http.py": "b051d4feca10009d866f384dd9c051dae4500a6a724bbabd6430c593304e7e8b",
+    "agent/src/omni/adapters/persistence/context_repository.py": "3faec8acdd129e5ab12701f295c6a28a9ea9b555ffe736704e9b408a6defdba3",
+    "agent/src/omni/adapters/persistence/delegation_authority.py": "6c6cc4d2f52e975fb69c15523c151e34154879ea3a1166e10e667be1bdb662de",
+    "agent/src/omni/adapters/persistence/delegation_repository.py": "f7133b2c40daf4bcbfe58d022dd21549b6d702c9856c3396abdb91a807967c08",
+    "agent/src/omni/adapters/persistence/lease_repository.py": "af48042f462cba30da98c6bbeae03c8df4317e122b18c4444d36bef13fd12227",
+    "agent/src/omni/adapters/persistence/mcp_repository.py": "bd015c2b806111c90c710adfe5c532067f2b8ae3ae34b8a6c3c67a3251abc541",
+    "agent/src/omni/adapters/persistence/memory_repository.py": "6cc6a9751162d5c5c92c878d7ac415570740e1ddfb28e53b2262fae9c62f2439",
+    "agent/src/omni/adapters/persistence/migrations/versions/v0042.py": "0de03147e5fd093b9bb92cdf0d687935916f4c2cb1278bc22ee2ea44c3b77626",
+    "agent/src/omni/adapters/persistence/repository.py": "7370196929d0e07ac5b89679915241c09bb0db71a44c838012cd62be47edaa20",
+    "agent/src/omni/adapters/persistence/retention_repository.py": "7ddf94ef14255a18874c74a1e0bad158f439db6fe9d7f8fb7566424d3c3fa307",
+    "agent/src/omni/adapters/persistence/schema.py": "ccf9f3b7977739613f57f9804713fe13b4db7e544503eee38ed4396903aa4ac6",
+    "agent/src/omni/application/engine.py": "4e7b9eeaf61347e90504988c83ff8fcf39976aa0aab82aad891767149c0d4e27",
+    "agent/src/omni/application/model_calls.py": "446b0337a2288550ee9d16c67cfad63ff903f5d75d211e5d02db199df46c4893",
+    "agent/src/omni/application/ports.py": "78b353f98fa46ed7e76e8149890330907a237ff0c099a29d1a5977f6fd5493ea",
+    "agent/src/omni/composition/instance.py": "ea0d5fe2be26fb203ece13cb4a343087363a3fb97cf0372039e2ce0dcbb9d35b",
+    "agent/src/omni/domain/delegation.py": "1ec960155c79a707364ec4abf505a7b95404dae93ab42e094f22044b04ce7db2",
+    "agent/tests/omni_test_support/v2/v2_legacy_seed.py": "fa030ddc57b08557f471ba2219520b2b07c71575e0aa0c79dddcb0d2ba81ec5e",
+    "agent/tests/v2/core/test_v2_delegation.py": "a50439de3640e9e54aef3e11c307cfae3cf15a8a57da712a702ada4244be28c0",
+    "agent/tests/v2/core/test_v2_todos.py": "48f200f40792b9397c4f9be8d45b68ce269e90843524dfa07bd2a61faab6d637",
+    "agent/tests/v2/http/test_v2_delegation_http.py": "d4bc63b37a318db94e97124635626bde77fc93367c5cc5790c15ca83389053c4",
+    "docs/TYPE_CHECKING.md": "a0fa88ec46e63fa9ae43adab6a876c50f1eacc4dd08564b88f8230a797bd3725",
+    "pyrightconfig.strict.json": "0787c292b5d01945ae88863206e560b96eec6a125e489e6cf9d6e65f2850ee36"
+  },
+  "reference": {
+    "repository": "xuexi/hermes-agent",
+    "commit": "9976f4857b72439d79016354d7b6e1a3ee952e2f",
+    "files": {
+      "tools/delegate_tool.py": "b8acbae4a414fb85b743d324945466d2176cd8d4a0be54825e62ec898a2038cc",
+      "agent/subagent_lifecycle.py": "dcfb4b79a9bee9a0425d0e65fc2a924d1e156e70004c2ff968df273ca24566c1"
+    },
+    "adaptation": "Behavior studied and independently adapted within V2; no third-party source copied, no remote fetch or real account/model used"
+  },
+  "delivered": [
+    "Production delegate_task single/batch, atomic admission and ordered bounded summaries",
+    "Immutable same-Agent parent-child bindings, own sessions/context/work items/leases and separate 4-child pool",
+    "Fixed model/settings/permission refs and actually offered tool hashes, reviewed skill/extension/MCP captures",
+    "Shared daily and family budget, per-child call/spend guards; actual overrun settled before refusal",
+    "Real Task cancellation/join before parent termination or lease release; unknown writes never replayed",
+    "Source revocation/erasure propagation, generated child input rejected as independent memory evidence",
+    "Owner authenticated read-only delegation HTTP projection, scoped fees and redaction",
+    "Exclusive startup interrupts queued/live children without replay or releasing unknown fees"
+  ],
+  "limits": {
+    "depth": 1,
+    "lifetime_children_per_parent": 4,
+    "child_concurrency": 4,
+    "batch_size": [
+      1,
+      4
+    ],
+    "child_calls": [
+      1,
+      8
+    ],
+    "family_calls": 64,
+    "child_budget_micro_max": 1000000,
+    "family_budget_micro_max": 1000000,
+    "combined_batch_summary_chars": 4000,
+    "nested_delegation": false,
+    "arbitrary_child_model": false,
+    "async_handle_reconnect_steer": false,
+    "new_management_ui": false,
+    "generic_tool_parallelism_K05": false,
+    "android_specific_visual_subagent": false
+  },
+  "database": {
+    "from": "v2_0041",
+    "to": "v2_0042",
+    "new_table": "run_delegations",
+    "frozen_v40_upgrade_to_current_and_old_v3_crash_rebuild_verified": true,
+    "schema_foreign_keys_scope_and_trigger_coverage": true,
+    "real_running_owner_database_upgraded_in_this_batch": false
+  },
+  "validation": {
+    "frozen_source": "C:\\v2-acceptance\\delegation-03b3983a\\source",
+    "scoped_passed": 121,
+    "failed": 0,
+    "seconds": 189.42,
+    "new_nodes": 30,
+    "scope": [
+      "All new delegation core/HTTP nodes including real isolated managed MCP stdio and extension workers",
+      "Existing task-list core/HTTP, execution/FIFO and cancellation/close lifecycle",
+      "Context/history/compression/source erasure and legacy schema recovery",
+      "Routing, captured skill disclosure, model stream cancellation/authority",
+      "Existing default memory evidence/tombstone caller",
+      "Four-layer dependency/schema and documented strict-scope guards"
+    ],
+    "strict": {
+      "files": 394,
+      "errors": 0,
+      "warnings": 0,
+      "seconds": 16.35,
+      "path": "C:\\v2-acceptance\\delegation-03b3983a\\strict-release-r14.json"
+    },
+    "ruff": "20 changed/new Python files lint and format-check passed; new tests additionally checked F821/F401 with isolated rules",
+    "integration_source_manifest": "C:\\v2-acceptance\\delegation-03b3983a\\source-manifest.json",
+    "final_source_manifest": "C:\\v2-acceptance\\delegation-03b3983a\\final-source-manifest.json",
+    "delta_from_frozen_integration": [
+      {
+        "path": "agent/src/omni/application/engine.py",
+        "integration_sha256": "ee5e315d956cab51b5ac22a2486c1a11d85a830e5e445603879b87151e6f67fd",
+        "final_sha256": "4e7b9eeaf61347e90504988c83ff8fcf39976aa0aab82aad891767149c0d4e27",
+        "runtime_ast_equivalent": true,
+        "reason": "explicit local Record annotation; no runtime behavior change"
+      }
+    ],
+    "final_guards": {
+      "passed": 9,
+      "failed": 0,
+      "seconds": 4.95,
+      "scope": [
+        "repository roots/layout/entrypoint forwarding",
+        "generated task state contract"
+      ],
+      "generated_index_and_task_summary_checks_passed": true
+    },
+    "full_suite_executed": false,
+    "real_model_account_device_native_or_72h_executed": false,
+    "distinct_scoped_passed_including_guards": 130
+  },
+  "retained_first_failures": [
+    {
+      "phase": "recovery-r3",
+      "reason": "New count/memory test missing schema import s; test import corrected, exact node rechecked in r4."
+    },
+    {
+      "phase": "lifecycle-r2/recheck-r4",
+      "reason": "Unknown-write fake initially lacked Effect import and fallback could also report unknown. Added explicit return-completed assertion and import; actual intended return rechecked in r4 and frozen r13."
+    },
+    {
+      "phase": "integration-r5",
+      "reason": "Actual child skill catalog insert failed after premature capture sealing. Copy reviewed catalogs while queued/unsealed, then seal parent epochs. Existing immutable triggers unchanged; skill r6, extension r7 and frozen r13 passed."
+    },
+    {
+      "phase": "strict-initial",
+      "reason": "Two strict errors: external protected _one call and JSON numeric-limit typing. Fixed public one and explicit int limits."
+    },
+    {
+      "phase": "strict-final",
+      "reason": "Batch result union inferred too narrowly for mutable JSON dict; explicit Record variable annotation fixed. Final AST runtime equivalent and strict-release-r14 clean."
+    },
+    {
+      "phase": "evidence-r11",
+      "reason": "New evidence test used unsupported generic query memories; corrected to existing memory query, exact r12 and frozen r13 passed."
+    }
+  ],
+  "raw_artifacts": [
+    {
+      "path": "C:/v2-acceptance/delegation-03b3983a/authority-r9.log",
+      "sha256": "6f9d6117e0e923721a651bd695f2d2d74e65cad02b914366fb77b5141a2c07d3"
+    },
+    {
+      "path": "C:/v2-acceptance/delegation-03b3983a/authority-r9.xml",
+      "sha256": "78e0d8670e9d11ac040521468f1065640a6c2b16fa3f42507492cf9c2ebb0159",
+      "tests": "3",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "10.948"
+    },
+    {
+      "path": "C:/v2-acceptance/delegation-03b3983a/batch-r8.log",
+      "sha256": "86e01fb925da48e84946beda1ed92c6a59eedb45e008531b8c5d82d748308dc5"
+    },
+    {
+      "path": "C:/v2-acceptance/delegation-03b3983a/batch-r8.xml",
+      "sha256": "b7a106564821e65b3a01f2812bbce2adb56a91d64b7a79e88ed536ecb2c8dcff",
+      "tests": "2",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "8.542"
+    },
+    {
+      "path": "C:/v2-acceptance/delegation-03b3983a/evidence-r11.log",
+      "sha256": "8f18b54370cd564c35350f1c74d2f22c84b61d8e2ed3a613423f3d7f44637293"
+    },
+    {
+      "path": "C:/v2-acceptance/delegation-03b3983a/evidence-r11.xml",
+      "sha256": "19ccbd33c36cb12c6fb86015e3bf1b44311f85525fd21cca6e290d89b2a04135",
+      "tests": "1",
+      "failures": "1",
+      "errors": "0",
+      "skipped": "0",
+      "time": "2.981"
+    },
+    {
+      "path": "C:/v2-acceptance/delegation-03b3983a/evidence-r12.log",
+      "sha256": "0253be35c93717965e15e290697d7d12a962963306a169a187c19bad8a81d556"
+    },
+    {
+      "path": "C:/v2-acceptance/delegation-03b3983a/evidence-r12.xml",
+      "sha256": "781740d51b358778c46a23da19bcd660f1082043480ef3805761a8f2eb52960e",
+      "tests": "1",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "2.259"
+    },
+    {
+      "path": "C:/v2-acceptance/delegation-03b3983a/extension-r7.log",
+      "sha256": "79a34d8b284b34e401970c951f4557eb551da31b99a8275dd8d8e7ba73bfd0e2"
+    },
+    {
+      "path": "C:/v2-acceptance/delegation-03b3983a/extension-r7.xml",
+      "sha256": "688da47216bad62fab837e9a0afb264d31bcc2f871f92ec676b2eccbbf53314c",
+      "tests": "1",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "7.434"
+    },
+    {
+      "path": "C:/v2-acceptance/delegation-03b3983a/final-source-manifest.json",
+      "sha256": "cb7b1e564312da99704b49b48758e02e945ca71f531473ad7a10c3a952db057f"
+    },
+    {
+      "path": "C:/v2-acceptance/delegation-03b3983a/initial.log",
+      "sha256": "d32eed764fded92cb320deb7502ab77a3efba2617e54e9360a68747e2fe10bcd"
+    },
+    {
+      "path": "C:/v2-acceptance/delegation-03b3983a/initial.xml",
+      "sha256": "5ca17281c87ce31951d5f25b7fd82206b327b8642ae7b71265fdd9712bac5a68",
+      "tests": "10",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "19.021"
+    },
+    {
+      "path": "C:/v2-acceptance/delegation-03b3983a/integration-final-r13.log",
+      "sha256": "55273b040214dc8422fd5b8f8e1efa72d4220f59daccc0ba16199caa34142cbc"
+    },
+    {
+      "path": "C:/v2-acceptance/delegation-03b3983a/integration-final-r13.xml",
+      "sha256": "1a04cb0aa4845d0c99335f4a63e5ff2beff6a523f1f42e6c9c9f7d5bfa10dc6c",
+      "tests": "121",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "189.383"
+    },
+    {
+      "path": "C:/v2-acceptance/delegation-03b3983a/integration-r5.log",
+      "sha256": "99a0423179bd233859a0f5a391110e19a4bda9e52d3bcdea7dee3e4e7333263c"
+    },
+    {
+      "path": "C:/v2-acceptance/delegation-03b3983a/integration-r5.xml",
+      "sha256": "3ecf0751c9ec15070168eda7a04fbda221c113ad5479e04a12d56a0fa2444806",
+      "tests": "3",
+      "failures": "1",
+      "errors": "0",
+      "skipped": "0",
+      "time": "15.031"
+    },
+    {
+      "path": "C:/v2-acceptance/delegation-03b3983a/legacy-r10.log",
+      "sha256": "881d13027430c6703c69c13dd886ede54e2a17d44dd6f476079e87b01dfa4b8b"
+    },
+    {
+      "path": "C:/v2-acceptance/delegation-03b3983a/legacy-r10.xml",
+      "sha256": "a5c96fd3aafa20bde552b9437adb48b484706397d1b3dd3f460f1c6213c6927f",
+      "tests": "1",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "4.194"
+    },
+    {
+      "path": "C:/v2-acceptance/delegation-03b3983a/lifecycle-r2.log",
+      "sha256": "42330439d71ad545a760a4fad2fcb79b17b25836f6138b8eb8437ac1621f9895"
+    },
+    {
+      "path": "C:/v2-acceptance/delegation-03b3983a/lifecycle-r2.xml",
+      "sha256": "f99ed864cadafdcd4eddd2dba0daf8e062e7bba7074c20b2dc842690a166cea4",
+      "tests": "7",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "42.368"
+    },
+    {
+      "path": "C:/v2-acceptance/delegation-03b3983a/recheck-r4.log",
+      "sha256": "fc822e8d290d9a4ab6777677891f353f3ca9662ede4a99ec320b2f6a56b9d902"
+    },
+    {
+      "path": "C:/v2-acceptance/delegation-03b3983a/recheck-r4.xml",
+      "sha256": "d743c07366e2b8a1c7f1747624249d9d586aa8e8aa4fd6f0d0eb5248d05502b0",
+      "tests": "2",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "9.650"
+    },
+    {
+      "path": "C:/v2-acceptance/delegation-03b3983a/recovery-r3.log",
+      "sha256": "f0275e062eb641fd23caf03b69791c12a041e2e1a01fae44d829823f38fe4262"
+    },
+    {
+      "path": "C:/v2-acceptance/delegation-03b3983a/recovery-r3.xml",
+      "sha256": "65128b6c2d8079574d67423be74bcf7d74ab1c1581efe997404478c2cb56a748",
+      "tests": "4",
+      "failures": "1",
+      "errors": "0",
+      "skipped": "0",
+      "time": "7.177"
+    },
+    {
+      "path": "C:/v2-acceptance/delegation-03b3983a/skill-fix-r6.log",
+      "sha256": "1dc90bcb82840fef7e19b541b89bbc70077d57d1bbb16b7e2e2b27f1e3213fa1"
+    },
+    {
+      "path": "C:/v2-acceptance/delegation-03b3983a/skill-fix-r6.xml",
+      "sha256": "6cb4e6f004b82d72b355db335e661280ccc5e8916f230906b4fc4cf4e01ca2c0",
+      "tests": "1",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "6.511"
+    },
+    {
+      "path": "C:/v2-acceptance/delegation-03b3983a/source-manifest.json",
+      "sha256": "666967c2bd003b263fb40b714b94aa92a6fa77f98123f0430f37f25a00b83d69"
+    },
+    {
+      "path": "C:/v2-acceptance/delegation-03b3983a/strict-final.json",
+      "sha256": "c1e28f3a3befed1f00836abd71a80540123f1a16a6719c3acb383bd094f6c898"
+    },
+    {
+      "path": "C:/v2-acceptance/delegation-03b3983a/strict-initial.json",
+      "sha256": "cbd24adb89c78f45c4932ca930c6f5658424d594284e19dad5fb63ca5080fd1a"
+    },
+    {
+      "path": "C:/v2-acceptance/delegation-03b3983a/strict-release-r14.json",
+      "sha256": "4411ea258907df260021622aa424e31e47d4c1c9219dc269299e42b7ab976d9d"
+    },
+    {
+      "path": "C:/v2-acceptance/delegation-03b3983a/guards-r15.xml",
+      "sha256": "68c7ac5849b37ef40cb58fa6915475d6a158bcdc0b015d70476149e7e640c910"
+    },
+    {
+      "path": "C:/v2-acceptance/delegation-03b3983a/guards-r15.log",
+      "sha256": "deb94f1a2e60223801fad16bfb1bfcddf52b9cd82846bc32801a90441b8af222"
+    }
+  ],
+  "whole_core_parity_complete": false,
+  "whole_reference_feature_audit_complete": false,
+  "whole_v2_complete": false,
+  "not_executed": [
+    "Full offline suite for current source",
+    "Real accounts/models/devices/native desktop and 72h soak",
+    "Current Windows service restart/database upgrade",
+    "macOS/Linux actual native build or run"
+  ],
+  "next": "K05 generic model-tool batch scheduling with conflict classification, independent lifetime and stable ordered join; do not redo K03/K04"
+}

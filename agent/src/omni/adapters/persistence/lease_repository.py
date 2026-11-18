@@ -264,7 +264,12 @@ class LeaseRepositories(RepositoryBase):
                 s.agents,
                 s.agents.c.id == s.work_items.c.agent_id,
             )
-            .where(s.work_items.c.kind == "turn", s.work_items.c.state == "pending", s.agents.c.enabled.is_(True))
+            .where(
+                s.work_items.c.kind == "turn",
+                s.work_items.c.state == "pending",
+                s.agents.c.enabled.is_(True),
+                s.work_items.c.run_id.not_in(select(s.run_delegations.c.child_run_id)),
+            )
             .order_by(s.work_items.c.queue_sequence)
             .limit(64)
         ).all()

@@ -16,6 +16,9 @@ strict 配置显式将 `agent/src` 加入导入根，隔离源码副本也解析
 
 | 文件 | 纳入原因 |
 | --- | --- |
+| `agent/src/omni/domain/delegation.py` | 委派请求上限和实际工具快照继承 |
+| `agent/src/omni/adapters/persistence/delegation_authority.py` | 父会话来源、租约和删除闭包 |
+| `agent/src/omni/adapters/persistence/delegation_repository.py` | 子运行准入、家庭预算、持久关系与重启恢复 |
 | `agent/src/omni/domain/todos.py` | 修订化计划数据、层级/字节限制和有界恢复通知 |
 | `agent/src/omni/application/todos.py` | 运行授权内的计划控制，事务和调用方数据边界 |
 | `agent/src/omni/adapters/persistence/todo_repository.py` | 同库计划快照、修订冲突和会话来源隔离 |

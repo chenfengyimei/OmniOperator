@@ -13,6 +13,7 @@ from jsonschema import Draft202012Validator
 
 from ..domain.agents import MAX_AGENTS, name_value, revision_value
 from ..domain.contracts import JSON, ActionResult, BusinessError, Effect, InvocationContext, Outcome, ToolSpec
+from ..domain.delegation import CHILD_CONCURRENCY, DELEGATE_TASK, SUMMARY_CHARS, inherited, record_tools, task_batch
 from ..domain.routing import REQUEST_MODE, select_tools
 from ..domain.routing import notice as route_notice
 from ..domain.settings import agent_settings_value, settings_value
@@ -68,6 +69,7 @@ class Application:
         memory_semantics: MemorySemanticService | None = None,
         skills: SkillService | None = None,
         todos: TodoService | None = None,
+        delegation_enabled: bool = False,
     ) -> None:
         self._db, self._calls, self._contexts, self._clock, self._observer = database, calls, contexts, clock, observer
         self._tools = {cap.spec.name: cap for cap in capabilities}
@@ -85,6 +87,10 @@ class Application:
         self._memory_semantics = memory_semantics
         self._skills = skills
         self._todos = todos
+        self._delegation_enabled = delegation_enabled
+        self._child_ids: set[str] = set()
+        if delegation_enabled and DELEGATE_TASK.name in self._tools:
+            raise ValueError("Delegation control name is reserved")
         if todos is not None and TODO_LIST.name in self._tools:
             raise ValueError("Task-plan control name is reserved")
         self._last_probe = 0.0
@@ -169,9 +175,16 @@ class Application:
                     await self._db.write(lambda u: u.probe_write())
                     self._last_probe = self._clock.monotonic()
                 await self._db.write(lambda u: u.renew_run_leases())
-                claims = await self._db.write(lambda u: u.claim_runs(self._concurrency - len(self._active)))
+                roots = len(self._active) - len(self._child_ids)
+                claims = await self._db.write(lambda u: u.claim_runs(self._concurrency - roots))
+                if self._delegation_enabled:
+                    claims.extend(
+                        await self._db.write(lambda u: u.claim_delegated_runs(CHILD_CONCURRENCY - len(self._child_ids)))
+                    )
                 for run in claims:
                     run_id, session_id = str(run["id"]), str(run["session_id"])
+                    if run.get("delegated"):
+                        self._child_ids.add(run_id)
                     task = asyncio.create_task(
                         self._run(
                             str(run["agent_id"]), run_id, str(run["claim_token"]), self._revision(run["lease_fence"])
@@ -195,6 +208,7 @@ class Application:
             self._wake.clear()
 
     def _completed(self, run_id: str) -> None:
+        self._child_ids.discard(run_id)
         item = self._active.pop(run_id, None)
         if item is not None and not item[1].cancelled():
             error = item[1].exception()
@@ -218,6 +232,7 @@ class Application:
 
                 await self._db.write(start)
                 run = await self._db.read(lambda u: u.get_run(agent_id, run_id))
+                delegated = await self._db.read(lambda u: u.delegation_link(agent_id, run_id))
                 command = await self._db.read(lambda u: u.owner_command(agent_id, run_id))
                 if command is not None:
                     await self._checkpoint(agent_id, run_id)
@@ -241,25 +256,31 @@ class Application:
                         measured.result(Outcome.OK)
                     return
                 settings = settings_value(await self._db.read(lambda u: u.run_settings(agent_id, run_id)))
+                if delegated:
+                    settings["max_steps"] = min(settings["max_steps"], cast(int, delegated["max_calls"]))
                 remote = await self._db.read(lambda u: u.qq_run(agent_id, run_id))
                 registry = {} if remote else dict(self._tools)
                 if self._todos is not None and not remote:
                     registry[TODO_LIST.name] = Capability(TODO_LIST, self._todos)
                 if self._extensions is not None and not remote:
                     for spec in await self._extensions.tools_for_run(agent_id, run_id):
-                        if spec.name in registry or spec.name == "request_mode":
+                        if spec.name in registry or spec.name in {"request_mode", DELEGATE_TASK.name}:
                             raise BusinessError(
                                 "extension_tool_collision", "Extension name conflicts with a registered capability"
                             )
                         registry[spec.name] = Capability(spec, self._extensions)
                 if self._mcp is not None and not remote:
                     for mcp_spec in await self._mcp.tools_for_run(agent_id, run_id):
-                        if mcp_spec.name in registry or mcp_spec.name == "request_mode":
+                        if mcp_spec.name in registry or mcp_spec.name in {"request_mode", DELEGATE_TASK.name}:
                             raise BusinessError(
                                 "mcp_tool_collision", "MCP tool name conflicts with a registered capability"
                             )
                         registry[mcp_spec.name] = Capability(mcp_spec, self._mcp)
                 baseline = tuple(c.spec for c in registry.values() if c.spec.name not in settings["disabled_tools"])
+                if delegated:
+                    baseline = inherited(baseline, record_tools(delegated["tools"]))
+                elif self._delegation_enabled and not remote and DELEGATE_TASK.name not in settings["disabled_tools"]:
+                    baseline = (*baseline, DELEGATE_TASK)
                 route = await self._db.read(lambda u: u.run_route(agent_id, run_id))
                 may_promote = bool(route["allow_escalation"] and not route["promoted"])
                 tools = select_tools(str(route["mode"]), baseline, escalate=may_promote)
@@ -342,6 +363,12 @@ class Application:
                                         f"Tier request rejected: {exc.code}. No model or permission change occurred.",
                                         error_code=exc.code,
                                     )
+                        elif (
+                            call.name == DELEGATE_TASK.name
+                            and self._delegation_enabled
+                            and any(t.name == DELEGATE_TASK.name for t in tools)
+                        ):
+                            result = await self._delegate(agent_id, run_id, call.arguments)
                         elif call.name == TODO_LIST.name and call.name in batch_registry and self._todos is not None:
                             # Planning is an internal control like request_mode: no external
                             # action, human approval or executable capability is created.
@@ -377,16 +404,106 @@ class Application:
             except asyncio.CancelledError:
                 if measured:
                     measured.result(Outcome.CANCELLED)
+                await self._cancel_join_children(agent_id, run_id)
                 await self._end_error(agent_id, run_id, "cancelled", "run_cancelled")
                 raise
             except BusinessError as exc:
                 if measured:
                     measured.result(Outcome.UNKNOWN if exc.code == "action_outcome_unknown" else Outcome.ERROR)
+                await self._cancel_join_children(agent_id, run_id)
                 await self._end_error(agent_id, run_id, "failed", exc.code)
                 log.warning("Run ended", extra={"event": "run.failed", "error_code": exc.code})
             except Exception:
                 log.exception("Run failed", extra={"event": "run.failed", "error_code": "internal_error"})
+                await self._cancel_join_children(agent_id, run_id)
                 await self._end_error(agent_id, run_id, "failed", "internal_error")
+
+    async def _delegate(self, agent_id: str, parent_id: str, arguments: Record) -> ActionResult:
+        try:
+            requests = task_batch(arguments)
+            # One writer transaction admits the complete batch or none of it.
+            children = await self._db.write(
+                lambda u: [u.delegation_create(agent_id, parent_id, value) for value in requests]
+            )
+        except BusinessError as exc:
+            if exc.code in {
+                "invalid_delegation",
+                "delegation_child_limit",
+                "delegation_depth_exceeded",
+                "delegation_budget_exceeded",
+                "delegation_not_offered",
+            }:
+                return ActionResult(Outcome.ERROR, exc.message, error_code=exc.code)
+            raise
+        identities = [str(child["run_id"]) for child in children]
+        self._wake.set()
+        while True:
+            await self._checkpoint(agent_id, parent_id)
+            values = await self._db.read(
+                lambda u: [u.delegation_result(agent_id, parent_id, child_id) for child_id in identities]
+            )
+            complete = [
+                value["state"] in {"succeeded", "failed", "cancelled", "interrupted"}
+                and (identity not in self._active or self._active[identity][1].done())
+                for identity, value in zip(identities, values, strict=True)
+            ]
+            if any(done and value["unknown_effect"] for done, value in zip(complete, values, strict=True)) and not all(
+                complete
+            ):
+                await self._cancel_join_children(agent_id, parent_id)
+                continue
+            if all(complete):
+                unknown = any(bool(value["unknown_effect"]) for value in values)
+                succeeded = all(value["state"] == "succeeded" for value in values)
+                value: Record = values[0]
+                if "tasks" in arguments:
+                    allowance = SUMMARY_CHARS // len(values)
+                    for item in values:
+                        text = str(item["summary"])
+                        item["summary"], item["summary_truncated"] = (
+                            text[:allowance],
+                            bool(item["summary_truncated"]) or len(text) > allowance,
+                        )
+                    value = {"children": cast(list[JSON], values), "unknown_effect": unknown}
+                return ActionResult(
+                    Outcome.UNKNOWN if unknown else Outcome.OK if succeeded else Outcome.ERROR,
+                    json.dumps(value, ensure_ascii=False),
+                    Effect.UNKNOWN if unknown else Effect.NONE,
+                    error_code="delegation_outcome_unknown" if unknown else "" if succeeded else "delegation_failed",
+                    data=value,
+                )
+            await asyncio.sleep(0.03)
+
+    async def _cancel_join_children(self, agent_id: str, parent_id: str) -> None:
+        def cancel(u: UnitOfWork) -> list[str]:
+            children = u.delegation_children(agent_id, parent_id)
+            for child_id in children:
+                u.cancel(agent_id, child_id)
+            return children
+
+        while True:
+            try:
+                children = await self._db.write(cancel)
+                break
+            except asyncio.CancelledError:
+                continue
+        tasks = [self._active[child][1] for child in children if child in self._active]
+        for task in tasks:
+            task.cancel()
+        group = asyncio.gather(*tasks, return_exceptions=True)
+        while not group.done():
+            try:
+                await asyncio.shield(group)
+            except asyncio.CancelledError:
+                continue
+
+    async def delegations(self, agent_id: str, parent_id: str) -> list[Record]:
+        def read(u: UnitOfWork) -> list[Record]:
+            return [
+                u.delegation_result(agent_id, parent_id, child) for child in u.delegation_children(agent_id, parent_id)
+            ]
+
+        return await self._db.read(read)
 
     async def _todo_notice(self, agent_id: str, run_id: str, tools: tuple[ToolSpec, ...]) -> str:
         return (
@@ -588,16 +705,17 @@ class Application:
         await self._db.write(lambda u: u.resolve_approval(agent_id, approval_id, allowed, revision))
 
     async def cancel(self, agent_id: str, run_id: str) -> None:
-        def cancel(u: UnitOfWork) -> list[str]:
+        def cancel(u: UnitOfWork) -> tuple[list[str], list[str]]:
             u.cancel(agent_id, run_id)
-            return u.delivery_cancel_run(agent_id, run_id)
+            return u.delivery_cancel_run(agent_id, run_id), u.delegation_children(agent_id, run_id)
 
-        outbound = await self._db.write(cancel)
+        outbound, children = await self._db.write(cancel)
         if self._delivery_cancellation:
             self._delivery_cancellation(outbound)
-        item = self._active.get(run_id)
-        if item:
-            item[1].cancel()
+        for identity in [run_id, *children]:
+            item = self._active.get(identity)
+            if item:
+                item[1].cancel()
 
     async def remember(
         self,

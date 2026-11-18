@@ -395,7 +395,7 @@
         "实际MCP业务任务未持有首次数据库准备至最终提交，且失败/旧代次会话在真实回收前被移除；本批补齐完整准入/取消/关闭/原会话保留，见G6.mcp_ownership，不重做原业务。",
         "真实回环复现HTTP服务端已收完整写调用但缺响应头时被归未执行；stdio排空失败也有同类缺口。本批保留可能送达unknown和明确未发送例外，实测审批/写一次/人工核查不重发，见G6.mcp_delivery。",
         "所有者要求完整对标xuexi Agent功能；实读主内核及专项参考发现子代理、任务清单、并行调度、回合后学习等缺口，本批先补运行前缀冻结与回包/空回复协议，详见G6.core_parity。",
-        "G6.core_parity的K03已补生产任务清单、同库修订快照及压缩/重启/删除恢复；K04父子run委派仍未实现，不能把清单勾选当成实际动作验证。"
+        "G6.core_parity的K03已补生产任务清单、同库修订快照及压缩/重启/删除恢复；K04已接单层有界父子run委派与独立汇合，下一项K05通用工具批次并行；清单与子摘要不代替实际动作验证。"
       ],
       "subdeliverables": [
         {
@@ -447,11 +447,12 @@
           "task_file": "docs/tasks/v2-agent-core-parity.json",
           "evidence": [
             "docs/evidence/v2-agent-core-parity.json",
-            "docs/evidence/v2-todos.json"
+            "docs/evidence/v2-todos.json",
+            "docs/evidence/v2-delegation.json"
           ],
           "whole_core_parity_complete": false,
           "whole_reference_audit_complete": false,
-          "next": "K03任务清单已实现；下一批K04父子run委派，随后K05批次并行；开发期仅专项"
+          "next": "K04单层有界委派已实现；下一批K05通用工具批次并行，随后K06 run内压缩；开发期仅专项"
         }
       ],
       "partial_code_audit": {

@@ -21,6 +21,23 @@ def preserved_rows(connection, tables, *, excluded_run_columns=("extension_captu
 class PreSkillSeedRepositories(Repositories):
     """Only construct fixtures whose frozen schema predates V35."""
 
+    # These schemas also predate V42: fixture creation has no delegated runs.
+    # After upgrade the Database actor always constructs real Repositories.
+    def delegation_link(self, agent_id, child_id):
+        return None
+
+    def delegation_children(self, agent_id, parent_id):
+        return []
+
+    def delegation_check_budget(self, agent_id, run_id, amount):
+        return None
+
+    def delegation_related_sessions(self, agent_id, sessions):
+        return set(sessions)
+
+    def delegation_recover(self):
+        return None
+
     def skill_capture_run(self, *args, **kwargs):
         return None
 

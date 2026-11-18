@@ -391,7 +391,10 @@
     "agent/src/omni/domain/turn_prompt.py",
     "agent/src/omni/domain/todos.py",
     "agent/src/omni/application/todos.py",
-    "agent/src/omni/adapters/persistence/todo_repository.py"
+    "agent/src/omni/adapters/persistence/todo_repository.py",
+    "agent/src/omni/domain/delegation.py",
+    "agent/src/omni/adapters/persistence/delegation_authority.py",
+    "agent/src/omni/adapters/persistence/delegation_repository.py"
   ],
   "exclude": [
     "**/__pycache__"

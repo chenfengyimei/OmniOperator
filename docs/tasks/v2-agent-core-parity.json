@@ -45,7 +45,7 @@
     {
       "id": "K04",
       "title": "父子run委派与独立上下文",
-      "status": "not_implemented",
+      "status": "implemented_scoped_passed",
       "acceptance": [
         "父子持久关系、独立上下文与有界摘要",
         "深度/子数/并发/费用限额及授权继承",
@@ -54,12 +54,15 @@
         "多父占满默认并发时孩子仍能推进；父子独立会话/租约，父取消/删除传播且持有孩子到清理完成"
       ],
       "reference": "hermes-agent/tools/delegate_tool.py; agent/subagent_lifecycle.py; android-agent/gitd/services/sub_agent.py",
-      "next": true,
       "current_code_findings": [
-        "runs.parent_id已有同Agent外键，尚无实际委派创建/执行/汇合链",
-        "现有会话FIFO和session租约阻止同会话父子并行，不可把孩子直接排回父会话",
-        "dispatcher按全局active_runs限额领取，必须解决父任务占满名额后孩子不能运行的饥饿/死锁"
-      ]
+        "父/子分别持有session/work item/租约，普通FIFO领取排除子任务，由独立子池领取",
+        "默认4个根任务等待时4个子任务仍可推进；不新增第二内核或状态库",
+        "撤权/删除与已发送未知费用保持原账本；先等真实子任务清理，再结束父任务"
+      ],
+      "contract": "docs/v2/contracts/V2_DELEGATION.md",
+      "evidence": "docs/evidence/v2-delegation.json",
+      "delivered": "生产delegate_task单层/批量委派、同库不可变父子绑定、独立session/租约/上下文、固定模型与工具捕获继承、父子费用限额、独立4子池、取消真实汇合、unknown不重放与所有者只读API",
+      "limits": "深度1、每父生命周期最多4子、批内摘要总计4000字符；无跨层嵌套、自选模型、异步handle/reconnect/steer或专用视觉子代理"
     },
     {
       "id": "K05",
@@ -70,7 +73,8 @@
         "每项原观察/审批/预算/生命周期保持",
         "结果按原调用顺序汇合，取消后不释放未结任务"
       ],
-      "reference": "hermes-agent/agent/tool_executor.py"
+      "reference": "hermes-agent/agent/tool_executor.py",
+      "next": true
     },
     {
       "id": "K06",
@@ -177,6 +181,10 @@
     {
       "id": "K03",
       "evidence": "docs/evidence/v2-todos.json"
+    },
+    {
+      "id": "K04",
+      "evidence": "docs/evidence/v2-delegation.json"
     }
   ]
 }

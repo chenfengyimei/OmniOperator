@@ -729,6 +729,12 @@ class MCPRepositories(ContextRepositories):
         }
 
     def mcp_run_capture(self, agent_id: str, run_id: str) -> None:
+        if self.connection.execute(
+            select(s.run_delegations.c.id).where(
+                s.run_delegations.c.child_run_id == run_id, s.run_delegations.c.agent_id == agent_id
+            )
+        ).first():
+            return
         self._one(s.runs, agent_id, run_id)
         captured = self.connection.execute(
             select(func.count())

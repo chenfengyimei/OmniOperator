@@ -15,7 +15,7 @@
 先按顺序读取：
 1. AGENTS.md、docs/HANDOFF.md、docs/ARCHITECTURE.md、CONTRIBUTING.md。
 2. docs/tasks/v2-development.json 和 docs/tasks/v2-windows-candidate.json。
-   所有者新增完整对标 xuexi 要求：读 docs/v2/contracts/V2_AGENT_CORE_PARITY.md 与 docs/tasks/v2-agent-core-parity.json。K03任务清单已接生产、持久化与压缩/重启/删除恢复，不要重做；先读 docs/v2/contracts/V2_TODOS.md 和 docs/evidence/v2-todos.json。V2内核仍未完整对标，下一项是K04父子run委派，随后批次并行、run内压缩和回合后学习；这些通用内核开发可直接在Mac继续。xuexi为忽略目录，不假定Git迁移已带上参考仓库，固定参考版本记录在对标文档。
+   所有者新增完整对标 xuexi 要求：读 docs/v2/contracts/V2_AGENT_CORE_PARITY.md 与 docs/tasks/v2-agent-core-parity.json。K03任务清单已接生产、持久化与压缩/重启/删除恢复，不要重做；先读 docs/v2/contracts/V2_TODOS.md 和 docs/evidence/v2-todos.json。K04单层有界父子run委派已接生产，支持批内并行、固定捕获继承、预算、unknown和真实取消汇合；读 docs/v2/contracts/V2_DELEGATION.md 与 docs/evidence/v2-delegation.json，不重做。V2内核仍未完整对标，下一项是K05通用工具批次并行，随后run内压缩和回合后学习；这些通用内核开发可直接在Mac继续。xuexi为忽略目录，不假定Git迁移已带上参考仓库，固定参考版本记录在对标文档。
 3. docs/V2_MACMINI_MIGRATION.md、docs/v2/platforms/macos/V2_MACOS_HANDOFF.md、docs/v2/platforms/macos/V2_MACOS_SYSTEM_SERVICES.md。
 4. 本批实际改动涉及的合同、实现、调用方和现有测试。
 
