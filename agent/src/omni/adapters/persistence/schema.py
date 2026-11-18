@@ -429,6 +429,20 @@ sessions = scoped(
         server_default="0",
     ),
 )
+session_todos = scoped(
+    "session_todos",
+    Column("session_id", String(36), nullable=False),
+    Column("session_epoch", Integer, nullable=False),
+    Column("revision", Integer, nullable=False),
+    Column("items", JSON, nullable=False),
+    Column("updated_at", String(40), nullable=False),
+    scoped_fk("session_id", "sessions"),
+    UniqueConstraint("session_id"),
+    CheckConstraint(
+        "typeof(revision)='integer' AND revision>0 AND typeof(session_epoch)='integer' AND session_epoch>0 AND json_valid(items) AND json_type(items)='array' AND json_array_length(items)<=256 AND length(CAST(items AS BLOB))<=65536",
+        name="bounds",
+    ),
+)
 messages = scoped(
     "messages",
     Column("session_id", String(36), nullable=False),

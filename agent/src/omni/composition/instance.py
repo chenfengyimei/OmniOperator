@@ -103,6 +103,7 @@ from ..application.scheduling import SchedulingService
 from ..application.skills import SkillService
 from ..application.terminal_review import TerminalReviewService
 from ..application.terminals import TerminalService
+from ..application.todos import TodoService
 from ..domain.android import ACCESS_SPEC as ANDROID_ACCESS
 from ..domain.android import MODEL_SPEC as ANDROID_MODEL
 from ..domain.android import OBSERVE_SPEC as ANDROID_OBSERVE
@@ -649,6 +650,7 @@ async def open_instance(
             images=images,
             memory_semantics=memory_semantics,
             skills=skills,
+            todos=TodoService(database) if capabilities is None else None,
             owner_capabilities=(
                 Capability(DESKTOP_ACTION, desktop_actions, desktop_actions.quiescent),
                 Capability(ANDROID_ACTION, android, android.quiescent),

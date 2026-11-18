@@ -31,6 +31,7 @@ Mac 主开发，Windows 保留运行及原生验收环境。开发中只跑受�
 - [V2_ROUTING](contracts/V2_ROUTING.md)
 - [V2_SKILLS](contracts/V2_SKILLS.md)
 - [V2_TERMINALS](contracts/V2_TERMINALS.md)
+- [V2_TODOS](contracts/V2_TODOS.md)
 
 ## 运维与交付
 

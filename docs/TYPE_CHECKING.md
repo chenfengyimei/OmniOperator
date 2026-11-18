@@ -16,6 +16,9 @@ strict 配置显式将 `agent/src` 加入导入根，隔离源码副本也解析
 
 | 文件 | 纳入原因 |
 | --- | --- |
+| `agent/src/omni/domain/todos.py` | 修订化计划数据、层级/字节限制和有界恢复通知 |
+| `agent/src/omni/application/todos.py` | 运行授权内的计划控制，事务和调用方数据边界 |
+| `agent/src/omni/adapters/persistence/todo_repository.py` | 同库计划快照、修订冲突和会话来源隔离 |
 | `agent/src/omni/domain/turn_prompt.py` | 单个运行的系统前缀冻结与尾部状态/技能通知 |
 | `agent/src/omni/domain/model_reply.py` | 所有普通模型回包在动作前统一核验身份、JSON与大小边界 |
 | `agent/src/omni/application/desktop_control.py` | 独立控制同意的所有者视图、持久审计、后台归属和关闭结算 |

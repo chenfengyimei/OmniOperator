@@ -37,9 +37,11 @@ from .routing_repository import RoutingRepositories
 from .schedule_repository import ScheduleRepositories
 from .skill_repository import SkillRepositories
 from .terminal_review_repository import TerminalReviewRepositories
+from .todo_repository import TodoRepositories
 
 
 class Repositories(
+    TodoRepositories,
     SkillRepositories,
     MemorySemanticRepositories,
     RoutingRepositories,

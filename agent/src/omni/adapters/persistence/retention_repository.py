@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import cast
+
 from sqlalchemy import delete, or_, select, update
 
 from ...domain.contracts import BusinessError
@@ -63,6 +65,16 @@ class RetentionRepositories(DeliveryRepositories):
                 )
             )
             self.delivery_invalidate_session(agent_id, session_id)
+            self.connection.execute(
+                update(s.session_todos)
+                .where(s.session_todos.c.agent_id == agent_id, s.session_todos.c.session_id == session_id)
+                .values(
+                    items=[],
+                    revision=s.session_todos.c.revision + 1,
+                    session_epoch=cast(int, session["content_epoch"]) + 1,
+                    updated_at=self.clock.now(),
+                )
+            )
             self.connection.execute(
                 update(s.owner_commands)
                 .where(s.owner_commands.c.run_id.in_(select(s.runs.c.id).where(s.runs.c.session_id == session_id)))

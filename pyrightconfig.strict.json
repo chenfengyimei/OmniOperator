@@ -388,7 +388,10 @@
     "agent/src/omni/domain/terminal_review.py",
     "agent/src/omni/domain/terminals.py",
     "agent/src/omni/domain/model_reply.py",
-    "agent/src/omni/domain/turn_prompt.py"
+    "agent/src/omni/domain/turn_prompt.py",
+    "agent/src/omni/domain/todos.py",
+    "agent/src/omni/application/todos.py",
+    "agent/src/omni/adapters/persistence/todo_repository.py"
   ],
   "exclude": [
     "**/__pycache__"

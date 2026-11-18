@@ -16,6 +16,7 @@ from ..domain.contracts import JSON, ActionResult, BusinessError, Effect, Invoca
 from ..domain.routing import REQUEST_MODE, select_tools
 from ..domain.routing import notice as route_notice
 from ..domain.settings import agent_settings_value, settings_value
+from ..domain.todos import TODO_LIST
 from ..domain.turn_prompt import TurnPrompt
 from .context import ContextService
 from .images import ImageService
@@ -32,6 +33,7 @@ from .ports import (
     UnitOfWork,
 )
 from .skills import SkillService
+from .todos import TodoService
 
 log = logging.getLogger("omni.v2.engine")
 
@@ -65,6 +67,7 @@ class Application:
         images: ImageService | None = None,
         memory_semantics: MemorySemanticService | None = None,
         skills: SkillService | None = None,
+        todos: TodoService | None = None,
     ) -> None:
         self._db, self._calls, self._contexts, self._clock, self._observer = database, calls, contexts, clock, observer
         self._tools = {cap.spec.name: cap for cap in capabilities}
@@ -81,6 +84,9 @@ class Application:
         self._images = images
         self._memory_semantics = memory_semantics
         self._skills = skills
+        self._todos = todos
+        if todos is not None and TODO_LIST.name in self._tools:
+            raise ValueError("Task-plan control name is reserved")
         self._last_probe = 0.0
         self._active: dict[str, tuple[str, asyncio.Task[None]]] = {}
         self._resources: dict[str, asyncio.Lock] = {}
@@ -237,6 +243,8 @@ class Application:
                 settings = settings_value(await self._db.read(lambda u: u.run_settings(agent_id, run_id)))
                 remote = await self._db.read(lambda u: u.qq_run(agent_id, run_id))
                 registry = {} if remote else dict(self._tools)
+                if self._todos is not None and not remote:
+                    registry[TODO_LIST.name] = Capability(TODO_LIST, self._todos)
                 if self._extensions is not None and not remote:
                     for spec in await self._extensions.tools_for_run(agent_id, run_id):
                         if spec.name in registry or spec.name == "request_mode":
@@ -258,10 +266,13 @@ class Application:
                 initial_notice = route_notice(
                     str(route["mode"]), any(spec.name == "request_mode" for spec in tools)
                 ) + (await self._skills.notice(agent_id, run_id) if self._skills and not remote else "")
-                prepared = await self._contexts.prepare(agent_id, run_id, settings, tools, extra_notice=initial_notice)
+                todo_notice = await self._todo_notice(agent_id, run_id, tools)
+                prepared = await self._contexts.prepare(
+                    agent_id, run_id, settings, tools, extra_notice=initial_notice, tail_notice=todo_notice
+                )
                 messages: list[Record] = cast(list[Record], prepared["request"])
                 notice = str(prepared["notice"])
-                prompt = TurnPrompt.capture(messages, notice + initial_notice)
+                prompt = TurnPrompt.capture(messages, notice + initial_notice + todo_notice)
                 for _step in range(min(32, max(1, int(settings.get("max_steps", 12))))):
                     await self._checkpoint(agent_id, run_id)
                     route = await self._db.read(lambda u: u.run_route(agent_id, run_id))
@@ -273,7 +284,8 @@ class Application:
                         messages,
                         notice
                         + route_notice(str(route["mode"]), any(spec.name == "request_mode" for spec in tools))
-                        + (await self._skills.notice(agent_id, run_id) if self._skills and not remote else ""),
+                        + (await self._skills.notice(agent_id, run_id) if self._skills and not remote else "")
+                        + await self._todo_notice(agent_id, run_id, tools),
                     )
                     reply = await self._calls.invoke(
                         agent_id, run_id, messages, tools, settings, baseline_tools=baseline
@@ -330,6 +342,17 @@ class Application:
                                         f"Tier request rejected: {exc.code}. No model or permission change occurred.",
                                         error_code=exc.code,
                                     )
+                        elif call.name == TODO_LIST.name and call.name in batch_registry and self._todos is not None:
+                            # Planning is an internal control like request_mode: no external
+                            # action, human approval or executable capability is created.
+                            result = await self._todos.invoke(
+                                call.name,
+                                call.arguments,
+                                operation_id=run_id,
+                                context=InvocationContext(
+                                    agent_id, run_id, str(run["session_id"]), self._revision(run["policy_epoch"])
+                                ),
+                            )
                         elif call.name in registry and call.name not in batch_registry:
                             result = ActionResult(
                                 Outcome.DENIED,
@@ -364,6 +387,16 @@ class Application:
             except Exception:
                 log.exception("Run failed", extra={"event": "run.failed", "error_code": "internal_error"})
                 await self._end_error(agent_id, run_id, "failed", "internal_error")
+
+    async def _todo_notice(self, agent_id: str, run_id: str, tools: tuple[ToolSpec, ...]) -> str:
+        return (
+            await self._todos.notice(agent_id, run_id)
+            if self._todos and any(t.name == TODO_LIST.name for t in tools)
+            else ""
+        )
+
+    async def session_todos(self, agent_id: str, session_id: str) -> Record:
+        return await self._db.read(lambda u: u.todo_get(agent_id, session_id))
 
     async def _end_error(self, agent_id: str, run_id: str, target: str, code: str) -> None:
         def end(u: UnitOfWork) -> None:

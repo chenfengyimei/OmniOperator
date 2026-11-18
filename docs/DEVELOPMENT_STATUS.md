@@ -11,7 +11,7 @@
 | G3 | Linux持续窗口身份与显式前台控制 | 开发中 | [V2_LINUX_HANDOFF](v2/platforms/linux/V2_LINUX_HANDOFF.md) |
 | G4 | Wayland独立控制授权、撤回与用户输入暂停 | 开发中 | [V2_WAYLAND_CONTROL](v2/platforms/linux/V2_WAYLAND_CONTROL.md) |
 | G5 | macOS、Linux、无桌面及容器交付实现收口 | 开发中 | 见持续开发任务 |
-| G6 | 按原V2需求逐项核对剩余业务、扩展与运维生产链 | 代码核对中 | [v2-agent-core-parity](evidence/v2-agent-core-parity.json) |
+| G6 | 按原V2需求逐项核对剩余业务、扩展与运维生产链 | 代码核对中 | [v2-agent-core-parity](evidence/v2-agent-core-parity.json)、[v2-todos](evidence/v2-todos.json) |
 | G7 | 整个V2开发冻结后统一全量、缺陷修复和最终交接 | 等待开发完成 | 见持续开发任务 |
 
 ## Windows 阶段与后续验收

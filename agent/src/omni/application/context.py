@@ -11,6 +11,7 @@ from ..domain.context import CONTEXT_CHARS, SUMMARY_CALLS_PER_TURN, SUMMARY_TRIG
 from ..domain.contracts import BusinessError, ToolSpec
 from ..domain.metering import context_notice, history_request, serialized_request
 from ..domain.settings import Settings
+from ..domain.turn_prompt import append_runtime_notice
 from .images import ImageService
 from .model_calls import ModelCalls
 from .ports import DatabasePort, Record, UnitOfWork
@@ -30,11 +31,14 @@ class ContextService:
         rows: Sequence[Mapping[str, object]],
         parent: Mapping[str, object] | None,
         notice: str = "",
+        tail_notice: str = "",
     ) -> list[dict[str, object]]:
         messages: Sequence[Mapping[str, object]] = rows
         if self._images is not None:
             messages = await self._images.context(agent_id, run_id, cast(list[dict[str, object]], rows), settings)
-        return history_request(settings, memories, messages, parent, notice)
+        request = cast(list[Record], history_request(settings, memories, messages, parent, notice))
+        append_runtime_notice(request, tail_notice)
+        return cast(list[dict[str, object]], request)
 
     async def _summary_sources(self, agent_id: str, rows: list[dict[str, object]]) -> list[dict[str, object]]:
         return await self._images.summary_sources(agent_id, rows) if self._images is not None else rows
@@ -77,7 +81,14 @@ class ContextService:
         return self._calls.fits(estimate, settings, summary=summary)
 
     async def prepare(
-        self, agent_id: str, run_id: str, settings: Settings, tools: tuple[ToolSpec, ...], *, extra_notice: str = ""
+        self,
+        agent_id: str,
+        run_id: str,
+        settings: Settings,
+        tools: tuple[ToolSpec, ...],
+        *,
+        extra_notice: str = "",
+        tail_notice: str = "",
     ) -> Record:
         prepared = await self._db.write(lambda u: u.prepare_context(agent_id, run_id))
         identity = str(prepared["snapshot_id"])
@@ -95,6 +106,7 @@ class ContextService:
                 cast(list[dict[str, object]], plan["messages"]),
                 cast(Mapping[str, object] | None, plan["parent"]),
                 extra_notice,
+                tail_notice,
             )
             if cast(int, plan["remaining_count"]) <= SUMMARY_TRIGGER_MESSAGES and await self._fits(
                 cast(Sequence[Record], proposed), tools, settings
@@ -196,7 +208,9 @@ class ContextService:
                 (reason or "compression_limit") if omitted else "history_erased" if plan["floor_seq"] else ""
             )
             notice = context_notice(omitted, visible_reason, bool(plan["floor_seq"]))
-            request = await self._history(agent_id, run_id, settings, memories, selected, parent, notice + extra_notice)
+            request = await self._history(
+                agent_id, run_id, settings, memories, selected, parent, notice + extra_notice, tail_notice
+            )
             if await self._fits(cast(Sequence[Record], request), tools, settings):
                 break
             reason = "token_budget_exceeded"
