@@ -1,7 +1,7 @@
 {
   "batch": "v2-ui-connection-stability-v128",
   "recorded_at": "2026-11-15",
-  "resource_version_final": "20261118v144",
+  "resource_version_final": "20261118v145",
   "v1_alignment": {
     "summary": "用户提供 V1 正式工作台截图后，直接精读 web/ui/workbench.css 的 V1 实现并逐项移植，使 V2 结构与 V1 一致（而非自创风格）。",
     "ported_from_v1": [
@@ -1170,5 +1170,15 @@
     ],
     "验证": "实例面板核查双主题 PASS（单卡片/无嵌套边框）、全屏54/54、守卫33、草稿隔离+导航81 passed、全站76/76。",
     "版本": "资源串整体 v143→v144。"
+  },
+  "services_dialog_v145": {
+    "需求": "所有者要求服务面板变小、收进设置/弹窗，左栏只留一个按钮点击弹出查看，不占那么多位置。",
+    "交付": [
+      "左栏整块 service-panel 移除，改 .service-compact 单按钮（图标+服务+摘要，高32px）",
+      "新增 <dialog id=services-dialog> 强玻璃弹窗承载 #service-list 8服务行；renderServices 不变仍渲染",
+      "点击按钮 showModal；关闭按钮与遮罩点击均可关闭；非对话页按钮随左栏隐藏"
+    ],
+    "验证": "服务弹窗核查10/10（紧凑按钮/8行/关闭/遮罩/双主题）、守卫33、全站76/76、UI回归75 passed。",
+    "版本": "资源串整体 v144→v145。"
   }
 }

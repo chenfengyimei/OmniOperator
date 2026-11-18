@@ -8,11 +8,11 @@
     <link rel="stylesheet" href="/assets/ui/tokens.css?v=20261115u1" />
     <link rel="stylesheet" href="/assets/ui/base.css?v=20261103v7" />
     <link rel="stylesheet" href="/assets/ui/icons.css?v=20261115u1" />
-    <link rel="stylesheet" href="/assets/ui/v2/v1/components.css?v=20261118v144" />
-    <link rel="stylesheet" href="/assets/ui/v2/v1/frame.css?v=20261118v144" />
-    <link rel="stylesheet" href="/assets/ui/v2/v1/workbench.css?v=20261118v144" />
-    <link rel="stylesheet" href="/assets/ui/v2/workbench.css?v=20261118v144" />
-    <link rel="stylesheet" href="/assets/vendor/xterm.min.css?v=20261118v144" />
+    <link rel="stylesheet" href="/assets/ui/v2/v1/components.css?v=20261118v145" />
+    <link rel="stylesheet" href="/assets/ui/v2/v1/frame.css?v=20261118v145" />
+    <link rel="stylesheet" href="/assets/ui/v2/v1/workbench.css?v=20261118v145" />
+    <link rel="stylesheet" href="/assets/ui/v2/workbench.css?v=20261118v145" />
+    <link rel="stylesheet" href="/assets/vendor/xterm.min.css?v=20261118v145" />
   </head>
   <body class="chat-mode" data-ui-page="workbench-v2">
     <header class="app-header">
@@ -237,10 +237,11 @@
           </div>
           <ul id="sessions" aria-label="历史会话"></ul>
         </div>
-        <div class="panel service-panel">
-          <div class="panel-title"><span>服务</span><span class="panel-meta" id="service-meta">读取中…</span></div>
-          <div id="service-list" class="svc-list"></div>
-        </div>
+        <button id="open-services" type="button" class="service-compact" aria-haspopup="dialog">
+          <span class="material-icons" aria-hidden="true">monitor_heart</span>
+          <span class="service-compact-label">服务</span>
+          <span class="panel-meta" id="service-meta">读取中…</span>
+        </button>
         <div class="panel context-panel">
           <div class="panel-title">
             <span>上下文用量</span><span class="panel-meta" id="context-meta">等待会话</span>
@@ -1936,8 +1937,15 @@
       </aside>
     </main>
     <div id="tip-layer"></div>
-    <script src="/assets/vendor/xterm.js?v=20261118v144"></script>
-    <script src="/assets/vendor/xterm-addon-fit.js?v=20261118v144"></script>
-    <script type="module" src="/assets/ui/v2/main.js?v=20261118v144"></script>
+    <dialog id="services-dialog" class="services-dialog" aria-labelledby="services-dialog-title">
+      <div class="services-dialog-head">
+        <h2 id="services-dialog-title">服务状态</h2>
+        <button id="services-dialog-close" type="button" class="services-dialog-x" aria-label="关闭服务状态">✕</button>
+      </div>
+      <div id="service-list" class="svc-list"></div>
+    </dialog>
+    <script src="/assets/vendor/xterm.js?v=20261118v145"></script>
+    <script src="/assets/vendor/xterm-addon-fit.js?v=20261118v145"></script>
+    <script type="module" src="/assets/ui/v2/main.js?v=20261118v145"></script>
   </body>
 </html>

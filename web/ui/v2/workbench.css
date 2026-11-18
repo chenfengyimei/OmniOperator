@@ -3134,3 +3134,102 @@ body[data-ui-page="workbench-v2"] .page-head > button:hover:not(:disabled) {
   color: var(--text-1);
 }
 
+/* ==========================================================================
+   服务状态收进弹窗：左栏只留一个紧凑按钮（图标+服务+摘要），
+   点击 showModal 查看明细，不再用整块面板占位（所有者要求）。
+   ========================================================================== */
+body[data-ui-page="workbench-v2"] .service-compact {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  width: 100%;
+  min-height: 32px;
+  padding: 0 11px;
+  border: 1px solid var(--line-2);
+  border-radius: var(--r-md);
+  background: var(--glass-weak-bg);
+  color: var(--text-2);
+  font-family: inherit;
+  font-size: var(--fs-small);
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    border-color 0.14s,
+    background 0.14s,
+    color 0.14s;
+}
+body[data-ui-page="workbench-v2"] .service-compact:hover {
+  border-color: var(--line-accent);
+  background: var(--surface-accent);
+  color: var(--text-1);
+}
+body[data-ui-page="workbench-v2"] .service-compact .material-icons {
+  font-size: 15px;
+  color: var(--accent);
+}
+body[data-ui-page="workbench-v2"] .service-compact .panel-meta {
+  margin-left: auto;
+  font-size: var(--fs-caption);
+  font-weight: 500;
+  color: var(--text-3);
+}
+body[data-ui-page="workbench-v2"] .service-compact:focus-visible {
+  outline: 2px solid var(--line-accent);
+  outline-offset: 1px;
+}
+/* 服务弹窗：复用强玻璃语言，居中、限宽、内滚 */
+body[data-ui-page="workbench-v2"] .services-dialog {
+  width: min(440px, calc(100vw - 28px));
+  max-height: min(560px, calc(100vh - 40px));
+  margin: auto;
+  padding: 16px 18px;
+  border: 1px solid var(--glass-strong-line);
+  border-radius: var(--r-lg);
+  background: var(--glass-strong-bg);
+  color: var(--text-1);
+  box-shadow: var(--glass-strong-shadow);
+  overflow: auto;
+  backdrop-filter: blur(var(--glass-strong-blur)) saturate(var(--glass-strong-sat));
+  -webkit-backdrop-filter: blur(var(--glass-strong-blur)) saturate(var(--glass-strong-sat));
+}
+body[data-ui-page="workbench-v2"] .services-dialog::backdrop {
+  background: color-mix(in srgb, var(--seed-bg) 62%, transparent);
+  backdrop-filter: blur(var(--glass-weak-blur));
+}
+body[data-ui-page="workbench-v2"] .services-dialog-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+body[data-ui-page="workbench-v2"] .services-dialog-head h2 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+}
+body[data-ui-page="workbench-v2"] .services-dialog-x {
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: 1px solid var(--line-2);
+  border-radius: var(--r-sm);
+  background: var(--glass-weak-bg);
+  color: var(--text-3);
+  font-size: 12px;
+  cursor: pointer;
+}
+body[data-ui-page="workbench-v2"] .services-dialog-x:hover {
+  border-color: var(--line-accent);
+  color: var(--text-1);
+}
+/* 弹窗内服务点补齐 warn/off 语义色（V1 只定义了 ok） */
+body[data-ui-page="workbench-v2"] .services-dialog .svc-dot.warn {
+  background: var(--warn);
+}
+body[data-ui-page="workbench-v2"] .services-dialog .svc-dot.off {
+  background: var(--text-4);
+}
+body[data-ui-page="workbench-v2"] .services-dialog .svc-list {
+  margin: 0;
+}
+

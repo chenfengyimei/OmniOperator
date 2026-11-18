@@ -1,32 +1,32 @@
-import { mountSkills } from './skills.js?v=20261118v144';
-import { mountCredentials } from './credentials.js?v=20261118v144';
-import { mountAuditHistory, mountOperations } from './operations.js?v=20261118v144';
-import { mountCapabilities } from './capabilities.js?v=20261118v144';
-import { mountTokens } from './tokens.js?v=20261118v144';
-import { mountDocuments } from './documents.js?v=20261118v144';
-import { mountConfiguration } from './configuration.js?v=20261118v144';
-import { mountModels } from './models.js?v=20261118v144';
+import { mountSkills } from './skills.js?v=20261118v145';
+import { mountCredentials } from './credentials.js?v=20261118v145';
+import { mountAuditHistory, mountOperations } from './operations.js?v=20261118v145';
+import { mountCapabilities } from './capabilities.js?v=20261118v145';
+import { mountTokens } from './tokens.js?v=20261118v145';
+import { mountDocuments } from './documents.js?v=20261118v145';
+import { mountConfiguration } from './configuration.js?v=20261118v145';
+import { mountModels } from './models.js?v=20261118v145';
 import { ask } from '../dialog.js?v=20261103v7';
-import { mountPeople } from './people.js?v=20261118v144';
-import { mountDeliveries } from './deliveries.js?v=20261118v144';
-import { mountSchedules } from './schedules.js?v=20261118v144';
-import { mountMemorySemantics } from './memory-semantics.js?v=20261118v144';
-import { mountMemoryOrganization } from './memory-organization.js?v=20261118v144';
-import { mountExtensions } from './extensions.js?v=20261118v144';
-import { mountActionReviews } from './action-reviews.js?v=20261118v144';
-import { mountTerminals } from './terminals.js?v=20261118v144';
-import { mountDesktop } from './desktop.js?v=20261118v144';
-import { mountQQ } from './qq.js?v=20261118v144';
-import { mountBilibili } from './bilibili.js?v=20261118v144';
-import { mountMedia } from './media.js?v=20261118v144';
-import { mountMcp } from './mcp.js?v=20261118v144';
-import { mountAndroid } from './android.js?v=20261118v144';
-import { mountModelOutput } from './model-output.js?v=20261118v144';
-import { mountRouting } from './routing.js?v=20261118v144';
-import { mountChatImages } from './chat-images.js?v=20261118v144';
-import { mountInspector } from './inspector.js?v=20261118v144';
-import { mountSettingsRail } from './settings-rail.js?v=20261118v144';
-import { mountEventStream } from './event-stream.js?v=20261118v144';
+import { mountPeople } from './people.js?v=20261118v145';
+import { mountDeliveries } from './deliveries.js?v=20261118v145';
+import { mountSchedules } from './schedules.js?v=20261118v145';
+import { mountMemorySemantics } from './memory-semantics.js?v=20261118v145';
+import { mountMemoryOrganization } from './memory-organization.js?v=20261118v145';
+import { mountExtensions } from './extensions.js?v=20261118v145';
+import { mountActionReviews } from './action-reviews.js?v=20261118v145';
+import { mountTerminals } from './terminals.js?v=20261118v145';
+import { mountDesktop } from './desktop.js?v=20261118v145';
+import { mountQQ } from './qq.js?v=20261118v145';
+import { mountBilibili } from './bilibili.js?v=20261118v145';
+import { mountMedia } from './media.js?v=20261118v145';
+import { mountMcp } from './mcp.js?v=20261118v145';
+import { mountAndroid } from './android.js?v=20261118v145';
+import { mountModelOutput } from './model-output.js?v=20261118v145';
+import { mountRouting } from './routing.js?v=20261118v145';
+import { mountChatImages } from './chat-images.js?v=20261118v145';
+import { mountInspector } from './inspector.js?v=20261118v145';
+import { mountSettingsRail } from './settings-rail.js?v=20261118v145';
+import { mountEventStream } from './event-stream.js?v=20261118v145';
 // 直接复用 V1 的 rail 提示浮层模块（data-tip → #tip-layer），不自创实现
 import '../app/tips.js?v=20261103u5';
 
@@ -1460,6 +1460,13 @@ for (const dot of document.querySelectorAll('.theme-dot')) {
   });
 }
 document.addEventListener('omni:theme-change', themeLabel);
+// 服务状态收进弹窗：左栏只留紧凑按钮，点击 showModal 查看明细，减少占位。
+$('open-services').addEventListener('click', () => $('services-dialog').showModal());
+$('services-dialog-close').addEventListener('click', () => $('services-dialog').close());
+$('services-dialog').addEventListener('click', (event) => {
+  // 点击遮罩（dialog 自身）关闭
+  if (event.target === $('services-dialog')) $('services-dialog').close();
+});
 $('new-session').addEventListener('click', () => {
   session = null;
   clearContext();
