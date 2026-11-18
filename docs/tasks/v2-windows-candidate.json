@@ -103,6 +103,55 @@
   "release_followups": [
     "真实账号、模型质量、设备、原生桌面、72小时及其他平台另行正式验收。",
     "Windows原文件访问失败和收据续跑成功分别保留；历史UI/原生/提交额度观察不自动关闭。",
-    "其他会话未提交修改未纳入此候选或本次全量。"
-  ]
+    "其他会话未提交修改未纳入此候选或本次全量。",
+    "前台click原生按钮缺陷（foreground-click-native-button）交开发会话作为新候选修复：回退矩形中心保留命中核验，新增legacy按钮click成功+遮挡拒绝回归，重建wheel重验安装/原生。"
+  ],
+  "windows_real_machine_acceptance_2026_11_18": {
+    "status": "completed_windows_real_machine_scoped",
+    "acceptance_source": "1e62fe08055492e819ee7cfaeabdbc6b77604dd3",
+    "source_sha256": "0cca300342ed5ac07a4b583c15a7db17b903184a3c268b6b212aa1284ab97a81",
+    "wheel_sha256": "a43eadd3652f1cd347cac864f63c01a15d7d86cb3abdbff8f2a5cae74eeae3d0",
+    "report": "docs/WINDOWS_V2_ACCEPTANCE_2026-11-18.md",
+    "evidence": "docs/evidence/v2-windows-acceptance-2026-11-18.json",
+    "full_artifacts": "C:/v2-acceptance/win-accept-20261118",
+    "real_machine_passed": [
+      "原生读取(自有窗口)",
+      "终端ConPTY",
+      "安装/备份恢复/续跑卸载(新目录演练)",
+      "用户业务链(真实PyAV抽帧+真实离线ASR)",
+      "前台type_text/press_key"
+    ],
+    "offline_scoped_passed": {
+      "native_read": 106,
+      "foreground": 36,
+      "terminal": 37,
+      "installation": 77,
+      "media": 39,
+      "soak": 9
+    },
+    "discovered_defect": {
+      "id": "foreground-click-native-button",
+      "summary": "原生Win32按钮TryGetClickablePoint=False致foreground click永久desktop_permission_denied；观察advertise click与派发要求不一致",
+      "owner_decision": "交开发会话作为新候选修复，本轮保持当前候选证据完整",
+      "safe_fix": "ClickPoint回退包围矩形中心，保留FromPoint命中同节点+WindowFromPoint祖先同窗口核验",
+      "regression_needed": "legacy按钮click成功+中心被遮挡仍拒绝",
+      "candidate_impact": "改动windows_foreground.cs需重建wheel+重跑安装/原生相关项+重新生成指纹"
+    },
+    "pending": [
+      "真正干净机器完整install→update→rollback→uninstall",
+      "72小时长跑(开发冻结后)",
+      "真实账号/模型质量/设备/MCP供应商",
+      "macOS/Linux/容器",
+      "当前源码全量pytest(开发冻结后)"
+    ],
+    "full_suite_this_round": false,
+    "whole_v2_complete": false,
+    "production_release_ready": false,
+    "test_only_fix": "agent/tests/test_v2_installation_launchers.py shell()沿git祖先查找bin/sh.exe；wheel字节不变",
+    "preserved_parallel_work": [
+      "PPT/",
+      "docs/competition/",
+      "Linux/UI/MCP在途修改"
+    ]
+  }
 }

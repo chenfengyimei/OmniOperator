@@ -1,0 +1,489 @@
+{
+  "format": "omni-v2-windows-real-machine-acceptance-1",
+  "date": "2026-11-18",
+  "scope": "Windows专项实机验收：区分功能实现完成/离线验证通过/原生实机验证通过/仍待验收；不接管Linux/macOS，不宣称整个V2完成",
+  "acceptance_source": {
+    "head": "1e62fe08055492e819ee7cfaeabdbc6b77604dd3",
+    "branch": "v2",
+    "frozen_worktree": "C:\\v2-acceptance\\source",
+    "source_sha256": "0cca300342ed5ac07a4b583c15a7db17b903184a3c268b6b212aa1284ab97a81",
+    "source_sha256_pre_testfix": "e0f31c762dba0563f1179c9117449e03f1feb432360178753fe0ceecae49ef4c",
+    "source_files": 1467,
+    "test_only_fix": "agent/tests/test_v2_installation_launchers.py shell()改为沿git祖先目录查找bin/sh.exe（修复Git布局D:/Git/mingw64/bin/git.EXE导致sh定位错误）；仅测试文件，wheel字节不变(a43eadd3)，源码指纹e0f31c76→0cca3003，文件数1467不变",
+    "current_main_repo_head": "a9fa9ef2c72f5bf3febe09eb9936008dde40603d（其他会话已推进；本验收固定于1e62fe08工作树，不复用旧全量）",
+    "wheel_sha256": "a43eadd3652f1cd347cac864f63c01a15d7d86cb3abdbff8f2a5cae74eeae3d0",
+    "dependency_bundle_manifest_sha256": "ddc242906492a815e1893505f0453f922f2c218dda441ad0088effb9f5e1225f",
+    "dependency_wheel_count": 110,
+    "test_interpreter": "D:\\xm\\OmniOperator\\.venv\\Scripts\\python.exe",
+    "import_override": "PYTHONPATH=C:\\v2-acceptance\\source\\agent\\src（优先于editable D:路径，omni从固定源码导入）",
+    "environment": {
+      "os": "Windows 10.0.26300 x64",
+      "python": "3.12.10",
+      "uv": "0.12.7",
+      "disk_note": "D盘仅剩87MB（100%占用），所有大产物/证据/实例目录置于C盘（105GB可用）；不重建.venv，不停用户服务",
+      "base_python_for_clean_install": "C:\\Users\\cy\\AppData\\Local\\Programs\\Python\\Python312\\python.exe"
+    }
+  },
+  "full_artifacts_location": "C:\\v2-acceptance\\win-accept-20261118（本机大产物：wheel/实例DB/备份/安装报告/采样证据；仓库内仅汇总）",
+  "items": {
+    "item2_native_read": {
+      "state": "原生实机验证通过（自有窗口）+离线注入通过",
+      "native": {
+        "test_v2_desktop_native.py": "2 passed（静态native失败不泄stderr/正文；隔离子窗口身份匹配后销毁/变更证明被拒绝）",
+        "test_v2_desktop_observation_native.py": "10节点：filetime恒等舍入、真实固定MTA PowerShell/UIA辅助进程对自有非激活Win32窗口observe/capture/act",
+        "observe": "passed（真实UIA树，密码控件及子树不采内容，128节点/8层/16KiB截断）",
+        "capture": "passed（真实PrintWindow 640x480 PNG，纯色拒绝，对象引用）",
+        "act_set_text_select_invoke": "passed（重跑）",
+        "rejection_paths_native": [
+          "desktop_target_changed：process_created+1 旧目标拒绝",
+          "destroyed/changed proof：窗口销毁后相同HWND/元数据不能恢复旧身份",
+          "desktop_user_intervened：执行期间真实键鼠输入→未派发拒绝（首次失败即此路径，证明守卫生效）"
+        ]
+      },
+      "first_failure": {
+        "node": "agent/tests/test_v2_desktop_observation_native.py::test_fixed_windows_uia_worker_reads_only_owned_fixture_and_redacts_password[act]",
+        "result": "denied/desktop_user_intervened/not_dispatched",
+        "cause": "环境真实用户输入（交互验收期间键鼠活动）触发GetLastInputInfo前后不一致守卫；非代码缺陷",
+        "rerun": "1 passed in 8.56s（输入静止期间）",
+        "classification": "environmental_input_sensitive_pass_on_idle；fail-closed行为正确"
+      },
+      "offline_total_passed": 106
+    },
+    "item3_foreground": {
+      "state": "离线验证通过；前台type_text/press_key原生实机通过；click缺陷待修（仍待验收）",
+      "offline": {
+        "files": [
+          "test_v2_foreground.py",
+          "test_v2_foreground_transport.py",
+          "test_v2_foreground_worker.py",
+          "test_v2_foreground_ui.py"
+        ],
+        "result": "36 passed in 43.12s",
+        "coverage": [
+          "显式前台同意绑定run/action/boot级grant（ForegroundBackend）",
+          "focus等待期间view被撤销→阻止原生permit",
+          "worker端口分帧/暂停/部分派发/清理（none/before/after/partial/hook_lost/cleanup）",
+          "UI takeover同意+独立审批（390-dark/1440-light视口）"
+        ]
+      },
+      "interactive": {
+        "status": "executed",
+        "script": "agent/scripts/accept_foreground.py",
+        "output_dirs": [
+          "foreground-acceptance-attempt1-intervened",
+          "foreground-acceptance-attempt2-click-defect"
+        ],
+        "real_machine_results": {
+          "type_text_ONLY-OWNED-TEXT": "applied (原生真实输入，TextPattern验证)",
+          "press_key_Home": "unknown (按契约保留unknown，不自动重放)",
+          "type_text_PREFIX-": "applied (state=PREFIX-ONLY-OWNED-TEXT)",
+          "click_Button": "denied desktop_permission_denied — 真实缺陷，见foreground-click-defect.json"
+        },
+        "attempt1": "desktop_user_intervened：用户点击离派发太近，GetLastInputInfo守卫正确fail-closed（环境性，非缺陷，已归档为介入拒绝正面证据）",
+        "attempt2": "前3动作实机成功；第4个click触发观察/派发不一致缺陷",
+        "unknown_policy": "press_key/click效果保留unknown，未改成功"
+      },
+      "discovered_defect": {
+        "format": "omni-windows-foreground-click-defect-1",
+        "severity": "real_defect",
+        "summary": "观察无条件advertise click，但派发要求TryGetClickablePoint==true；原生Win32 BUTTON该API返回False，导致整类原生按钮click永远desktop_permission_denied",
+        "probe": "clickable_ok=False point=180,138 rect=60,120,240,36 virt=0,0,2560,1440 name=Owned foreground button",
+        "observe_line": "agent/src/omni/adapters/workers/windows_uia.cs:52 actions.Add(\"click\") unconditional",
+        "dispatch_line": "agent/src/omni/adapters/workers/windows_foreground.cs:89 ClickPoint TryGetClickablePoint false -> Denied()",
+        "error_code": "desktop_permission_denied",
+        "verification": "not_dispatched",
+        "real_machine_success_before_defect": {
+          "type_text_ONLY-OWNED-TEXT": "applied (verified)",
+          "press_key_Home": "unknown (preserved)",
+          "type_text_PREFIX-": "applied (verified), state=PREFIX-ONLY-OWNED-TEXT",
+          "click_Button": "denied desktop_permission_denied (defect)"
+        },
+        "safe_fix_proposal": "ClickPoint在TryGetClickablePoint失败/NaN时回退包围矩形中心(宽高>=2且有限)，保留FromPoint命中同节点+WindowFromPoint祖先同窗口核验；中心被遮挡仍Changed()拒绝；不放宽身份/焦点/介入/边界闸门",
+        "candidate_impact": "改动windows_foreground.cs→新候选；需重建wheel+重跑安装/原生相关项+重新生成指纹；旧wheel a43eadd3证据属修复前候选",
+        "regression_needed": "新增原生回归：legacy按钮click成功 + 中心被遮挡仍拒绝",
+        "attempts": {
+          "attempt1": "desktop_user_intervened (用户点击离派发太近，守卫正确fail-closed，已归档)",
+          "attempt2": "前3动作成功，click触发本缺陷"
+        }
+      }
+    },
+    "item4_terminal": {
+      "state": "原生ConPTY实机通过+离线生命周期通过",
+      "native": {
+        "test_v2_terminal_native.py": "4 passed",
+        "nodes": [
+          "test_native_terminal_unicode_resize_exit_and_verified_cleanup（真实ConPTY cmd：Unicode输入/resize/退出/Job归属 verified cleanup）",
+          "test_cancelled_native_start_keeps_ownership_until_actual_gate_work_finishes（取消启动保留归属至实际门工作完成）",
+          "test_native_gate_authorization_denied_never_executes_user_shell（授权拒绝 never 执行用户shell）",
+          "test_injected_posix_helper_exit_does_not_prove_native_session_reclaimed（POSIX注入：辅助退出不证明会话回收）"
+        ]
+      },
+      "offline": {
+        "test_v2_terminals_lifecycle.py": "2 passed（输出压力有界/过期写者不能派发新连接；取消输入等待保留真实写与关闭数据库至回执）",
+        "test_v2_terminals_storage.py + test_v2_terminals_http.py + test_v2_terminals_migration.py + test_v2_terminal_review.py + test_v2_terminal_review_http.py + test_v2_terminal_review_migration.py": "31 passed in 46.18s",
+        "covers": [
+          "单写者租约15秒续期/过期/撤权/异boot拒绝启动输入与虚假清理",
+          "部分输入保持unknown，回执查询绝不重发；accepted不声称命令成功",
+          "重启恢复保留PID证据与unknown回执，不重开/不重放/不按历史PID回收（quarantine）",
+          "未知终端操作独立核查需原生静止门，不能重放unknown输入",
+          "v21/v25→v26迁移中断回滚后从验证备份重试，保留terminal行"
+        ]
+      },
+      "total_passed": 37
+    },
+    "item5_installation": {
+      "state": "实机安装/备份恢复/续跑卸载通过；干净机器待验",
+      "fresh_install": {
+        "tool": "agent/scripts/check_v2_installation.py（控制器=开发venv，安装器=基础Python -I）",
+        "base_python": "C:\\Users\\cy\\AppData\\Local\\Programs\\Python\\Python312\\python.exe（确认不能import omni/sqlalchemy）",
+        "output": "C:\\v2-acceptance\\win-accept-20261118\\fresh-install",
+        "report": "C:\\v2-acceptance\\win-accept-20261118\\fresh-install\\report.json",
+        "phases_verified": [
+          "base",
+          "install",
+          "manager",
+          "candidate",
+          "launcher",
+          "current"
+        ],
+        "install_includes": "artifact→stage→prepare→smoke→backup→rollback-check→migrate→switch（同schema v2_0039）",
+        "launcher": "真实cmd启动omni doctor，integrity ok，私有sitecustomize探针未执行，Unicode/空格/emoji/百分号/感叹号/shell字符home",
+        "isolated_environments": "维护venv与候选venv分离，基础Python无Omni",
+        "services_registered": false
+      },
+      "backup_restore": {
+        "backup_dir": "home…-backup-a43eadd3652f1cd3",
+        "rollback_restore_dir": "home…-rollback-a43eadd3652f1cd3",
+        "backup_db": "148表，alembic_version=v2_0039，pragma integrity_check=ok",
+        "rollback_db": "148表，alembic_version=v2_0039，pragma integrity_check=ok（真实restore到新目录）",
+        "before_uninstall_data_sha256": "272b98df22a6f15f45bdf192860908d9275fe9366116a31c5e10a20603524bde",
+        "backup_manifest_sha256": "ba40189d95fa2e8fdd92b6e4370477ed1e6b3ecbab5f74364ce77d873886bd25"
+      },
+      "uninstall": {
+        "first_attempt": "failed/RuntimeError returncode1（150字节stderr）→ installation status: cleanup_pending=true, cleanup_candidate=a43eadd3…, next_step=uninstall",
+        "cause": "Windows文件访问拒绝（候选venv解释器/DLL在launcher/current阶段后短暂占用），与历史已知环境行为一致；非新产品缺陷",
+        "continuation": "外部维护解释器同SHA续跑：removed=true, data_kept=true, backup_kept=<backup>，RC=0",
+        "after": "cleanup_pending=false，candidates=[]，候选树/omni.cmd/runtime/current.json均移除",
+        "data_preserved": "卸载后omni.db SHA=272b98df…（与卸载前一致），backup manifest SHA=ba40189d…（一致）",
+        "first_attempt_clean_uninstall": false
+      },
+      "offline": null,
+      "clean_machine": "pending（本机新目录演练已做；真正干净机器未提供）"
+    },
+    "item6_business": {
+      "state": "原生实机验证通过",
+      "schema_head": "v2_0039",
+      "instance_tables": 148,
+      "real_media_processor": "MediaProcessor (PyAV stdio worker + cached faster-whisper-small)",
+      "asr_model": "Systran/faster-whisper-small (local offline cache, local_files_only=True, no download)",
+      "real_instance_verified": true,
+      "real_asr_verified": true,
+      "workbench_http_verified": true,
+      "chain": {
+        "instance": {
+          "agent": "97743a32-4c46-4795-b1c0-b4abf6b1d8f3",
+          "foreign_keys": 0,
+          "media_processor": "MediaProcessor"
+        },
+        "video_frames": {
+          "state": "done",
+          "frames_id": "b9a227f5-7913-42ee-a9f7-22223496e9f5",
+          "sheet_object": "c4ae88d6-582a-4996-9b53-0833e3cacc30",
+          "sheet_mime": "image/png",
+          "sheet_size": [
+            640,
+            520
+          ],
+          "sheet_bytes": 3099,
+          "frame_count": 4,
+          "real_worker": true
+        },
+        "audio_transcribe": {
+          "state": "done",
+          "job": "f87a4ceb-cdf7-4c36-a184-c4ff773c1681",
+          "transcript_id": "4afcadbc-4799-4dca-9ee7-00eaeaf5d76a",
+          "language": "zh",
+          "total_chars": 30,
+          "text": "[00:00-00:03] 你好世界,这是一个离线语音测试。",
+          "real_asr": true
+        },
+        "backup_restore": {
+          "video_object_refs": 1,
+          "audio_object_refs": 1,
+          "sheet_bytes_match": true,
+          "frames_survive": true,
+          "foreign_keys": 0,
+          "transcript_survive": true,
+          "transcript_text_match": true
+        },
+        "restart_recovery": {
+          "video_jobs": [
+            [
+              "frames",
+              "done"
+            ]
+          ],
+          "audio_jobs": [
+            [
+              "transcribe",
+              "done"
+            ]
+          ],
+          "frames_still": true,
+          "foreign_keys": 0
+        },
+        "native_desktop": {
+          "probe": {
+            "version": "omni-desktop-ipc-6",
+            "platform": "win32",
+            "session": {
+              "kind": "interactive",
+              "identity": "windows:1:WinSta0:Default"
+            },
+            "capabilities": [
+              {
+                "id": "window_identity",
+                "supported": true,
+                "installed": true,
+                "permission": "granted",
+                "available": true,
+                "error_code": null,
+                "limitations": [
+                  "仅列出当前用户在同一已核验交互桌面中的可见顶层窗口。",
+                  "同一进程可能复用窗口标识；元数据匹配不能证明仍是原窗口，也不授予操作权限。",
+                  "本适配器不读取窗口标题或界面内容，不截图，也不执行桌面动作。"
+                ],
+                "recovery": []
+              },
+              {
+                "id": "accessibility",
+                "supported": true,
+                "installed": true,
+                "permission": "not_applicable",
+                "available": true,
+                "error_code": null,
+                "limitations": [
+                  "显式读取所选窗口的有限UIA语义树，不读取密码控件；支持的控件可另行提交语义动作审批。",
+                  "语义动作与单次前台输入均需另行审批，绑定本次观察和运行；用户介入或身份变化时拒绝或转入待核查。",
+                  "目标权限、UIA提供者及组件加载仍在每次观察时核验；失败不会返回空树冒充成功。"
+                ],
+                "recovery": []
+              },
+              {
+                "id": "screen_capture",
+                "supported": true,
+                "installed": true,
+                "permission": "not_applicable",
+                "available": true,
+                "error_code": null,
+                "limitations": [
+                  "仅显式采集所选窗口，保存到当前会话；不会自动发送给模型。",
+                  "使用有期限的PrintWindow辅助进程；最小化、受保护、纯色或无法验证的画面拒绝发布。",
+                  "部分硬件加速窗口不支持此方式；没有全桌面截图回退，内容完整性仍需人工查看。"
+                ],
+                "recovery": []
+              },
+              {
+                "id": "foreground_control",
+                "supported": true,
+                "installed": true,
+                "permission": "not_applicable",
+                "available": true,
+                "error_code": null,
+                "limitations": [
+                  "默认关闭；逐次显式授权与审批，手动切到目标窗口及控件后执行一个动作。",
+                  "输入/焦点监测和当前权限在每次辅助进程内核验；不能核验、用户介入或失焦时暂停。",
+                  "文字最多128字符，仅开放有限按键和控件点击；未知结果须独立核查，不自动重放。"
+                ],
+                "recovery": []
+              }
+            ],
+            "acceptance": "pending"
+          },
+          "targets_count": 5,
+          "targets_truncated": true,
+          "real_native": true
+        }
+      },
+      "http": {
+        "format": "omni-windows-workbench-http-1",
+        "platform": "win32",
+        "unauthenticated_upload_refused": true,
+        "upload_status": 201,
+        "upload_cache_control": "no-store",
+        "video_frames": {
+          "state": "done",
+          "frame_count": 4,
+          "sheet_size": [
+            640,
+            520
+          ],
+          "sheet_png": true,
+          "sheet_content_type": "application/octet-stream"
+        },
+        "audio_transcribe": {
+          "state": "done",
+          "language": "zh",
+          "text": "[00:00-00:03] 你好世界,这是一个离线语音测试。",
+          "real_asr": true
+        },
+        "cancel": {
+          "status": 200,
+          "resulting_state": "cancelled"
+        },
+        "cross_agent_refused": true,
+        "cross_agent_status": 404,
+        "processor_probe_status": 200,
+        "processor_components": {
+          "av": true,
+          "numpy": true,
+          "PIL": true,
+          "faster_whisper": true
+        },
+        "verified": true
+      },
+      "offline": {
+        "media_uploads_migration_graph": "test_v2_media_uploads.py + test_v2_media_upload_migration.py + test_v2_media.py = 18 passed in 37.26s",
+        "media_upload_ui_worker": "test_v2_media_upload_ui.py + test_v2_media_worker.py = 21 passed in 10.56s (390/1024 viewports)",
+        "note": "离线注入FakeProcessor覆盖完整作业图与UI；实机驱动改用真实MediaProcessor证明原生管线"
+      }
+    },
+    "item7_soak_prep": {
+      "state": "准备完成；实际72h待整个V2开发冻结后执行",
+      "native_sampler_mode": "native_v2_hmac_http",
+      "baseline_sample": {
+        "ok": true,
+        "resources": {
+          "main_rss_bytes": 143974400,
+          "descendant_rss_sum_bytes": 0,
+          "threads": 18,
+          "descriptors": 410,
+          "children": 0,
+          "cleanup_pending": 0
+        },
+        "counters": {
+          "failed_runs": 0,
+          "unknown_model_calls": 0
+        },
+        "code": null
+      },
+      "prepared_limits": {
+        "main_rss_bytes": 680845312,
+        "descendant_rss_sum_bytes": 1073741824,
+        "threads": 82,
+        "descriptors": 922,
+        "children": 16,
+        "cleanup_pending": 8,
+        "new_failed_runs": 0,
+        "new_unknown_model_calls": 0
+      },
+      "sampling_plan": {
+        "tool": "agent/scripts/v2_soak.py (V2 observational; NOT V1 soak_monitor.py)",
+        "command": "run",
+        "hours": 72,
+        "interval_s": 60,
+        "expected_samples": 4320,
+        "sampler_mode": "native_v2_hmac_http",
+        "clock_mode": "native_monotonic_wall",
+        "limits_file": "C:\\v2-acceptance\\win-accept-20261118\\soak-prep\\limits.json",
+        "resume": "same origin + sampler + collector_sha256; gaps/backwards clock/failures remain blockers",
+        "pass_criteria": "continuous >=72h, all 8 limits held, no sample failure/gap/clock jump/counter regression",
+        "deferred_until": "whole-V2 development freeze (owner arrangement); not started this session",
+        "limits_rationale": {
+          "memory": "real baseline + 512MB main / +1GB descendant headroom",
+          "threads_descriptors_children": "baseline + bounded headroom (64/512/16)",
+          "cleanup_pending": "hard cap 8 residual cleanup receipts",
+          "new_failed_runs": "0 — any new failed run blocks (owner strict default)",
+          "new_unknown_model_calls": "0 — any new unknown model call blocks; unknown never auto-closed"
+        }
+      },
+      "smoke_report": {
+        "format": "omni-v2-soak-report-1",
+        "samples": 4,
+        "failed_samples": 0,
+        "observed_seconds": 4.23399999999674,
+        "required_seconds": 259200,
+        "resource_maxima": {
+          "main_rss_bytes": 146030592,
+          "descendant_rss_sum_bytes": 0,
+          "threads": 18,
+          "descriptors": 417,
+          "children": 0,
+          "cleanup_pending": 0
+        },
+        "initial_counters": {
+          "failed_runs": 0,
+          "unknown_model_calls": 0
+        },
+        "blockers": [
+          "duration_below_72h"
+        ],
+        "observational_soak_passed": false,
+        "whole_v2_complete": false,
+        "production_release_ready": false,
+        "functional_workloads_and_real_accounts_accepted": false,
+        "prior_unknown_results_automatically_closed": false
+      },
+      "offline": "test_v2_soak.py 9 passed in 4.17s",
+      "actual_72h_started": false
+    }
+  },
+  "scoped_test_totals": {
+    "note": "均为固定源码1e62fe08工作树专项（-n 0串行，离线闸门），非全量；其他会话改动不纳入",
+    "native_read_offline": 106,
+    "foreground_offline": 36,
+    "terminal_total": 37,
+    "installation_offline_after_fix": 77,
+    "media_uploads_graph": 18,
+    "media_upload_ui_worker": 21,
+    "soak": 9
+  },
+  "discovered_defects": [
+    {
+      "format": "omni-windows-foreground-click-defect-1",
+      "severity": "real_defect",
+      "summary": "观察无条件advertise click，但派发要求TryGetClickablePoint==true；原生Win32 BUTTON该API返回False，导致整类原生按钮click永远desktop_permission_denied",
+      "probe": "clickable_ok=False point=180,138 rect=60,120,240,36 virt=0,0,2560,1440 name=Owned foreground button",
+      "observe_line": "agent/src/omni/adapters/workers/windows_uia.cs:52 actions.Add(\"click\") unconditional",
+      "dispatch_line": "agent/src/omni/adapters/workers/windows_foreground.cs:89 ClickPoint TryGetClickablePoint false -> Denied()",
+      "error_code": "desktop_permission_denied",
+      "verification": "not_dispatched",
+      "real_machine_success_before_defect": {
+        "type_text_ONLY-OWNED-TEXT": "applied (verified)",
+        "press_key_Home": "unknown (preserved)",
+        "type_text_PREFIX-": "applied (verified), state=PREFIX-ONLY-OWNED-TEXT",
+        "click_Button": "denied desktop_permission_denied (defect)"
+      },
+      "safe_fix_proposal": "ClickPoint在TryGetClickablePoint失败/NaN时回退包围矩形中心(宽高>=2且有限)，保留FromPoint命中同节点+WindowFromPoint祖先同窗口核验；中心被遮挡仍Changed()拒绝；不放宽身份/焦点/介入/边界闸门",
+      "candidate_impact": "改动windows_foreground.cs→新候选；需重建wheel+重跑安装/原生相关项+重新生成指纹；旧wheel a43eadd3证据属修复前候选",
+      "regression_needed": "新增原生回归：legacy按钮click成功 + 中心被遮挡仍拒绝",
+      "attempts": {
+        "attempt1": "desktop_user_intervened (用户点击离派发太近，守卫正确fail-closed，已归档)",
+        "attempt2": "前3动作成功，click触发本缺陷"
+      }
+    }
+  ],
+  "environmental_observations": [
+    "原生act与前台attempt1的desktop_user_intervened：交互期间真实键鼠输入触发GetLastInputInfo守卫，fail-closed正确，输入静止重跑通过",
+    "卸载首次cleanup_pending：Windows文件短暂占用，外部维护解释器同SHA续跑removed/data_kept/backup_kept，与历史已知环境行为一致"
+  ],
+  "pending_release_gates": [
+    "前台click缺陷修复（开发会话新候选）",
+    "真正干净机器完整install→update→rollback→uninstall",
+    "真实账号/真实市场/真实MCP供应商",
+    "真实模型质量（ASR已用缓存small实机跑通，质量评估仍待）/真实设备",
+    "72小时长跑（整个V2开发冻结后）",
+    "macOS/Linux/容器",
+    "当前源码全量pytest（开发冻结后）"
+  ],
+  "exit_criteria_this_round": "Windows专项本轮退出标准：原生读取/终端ConPTY/安装备份恢复续跑卸载/用户业务链(含真实ASR与抽帧)/前台type_text与press_key均实机通过；前台click发现真实缺陷已诊断并按owner决定交开发会话；72h与干净机器准备就绪待执行。不构成整个V2完成或生产发布就绪。",
+  "whole_v2_complete": false,
+  "production_release_ready": false,
+  "default_entrypoint": "v2",
+  "legacy_fallback": "explicit_v1_commands",
+  "preserved_parallel_work": [
+    "PPT/",
+    "docs/competition/",
+    "其他会话Linux/UI/MCP在途修改"
+  ]
+}

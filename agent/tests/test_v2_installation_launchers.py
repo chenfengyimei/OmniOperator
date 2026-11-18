@@ -18,9 +18,12 @@ def shell():
         return "/bin/sh"
     git = shutil.which("git")
     assert git is not None, "These POSIX launcher protocol checks require the existing Git shell on Windows"
-    candidate = Path(git).resolve().parent.parent / "bin/sh.exe"
-    assert candidate.is_file()
-    return str(candidate)
+    resolved = Path(git).resolve()
+    for ancestor in resolved.parents:
+        candidate = ancestor / "bin/sh.exe"
+        if candidate.is_file():
+            return str(candidate)
+    raise AssertionError("Git for Windows sh.exe not found above " + str(resolved))
 
 
 def fixture(home):
