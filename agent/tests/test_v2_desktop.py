@@ -10,7 +10,7 @@ from contextlib import asynccontextmanager
 import pytest
 from v2_desktop_helpers import DesktopClock, FixtureDesktopBackend, target_identity
 
-from omni.adapters.platform.paths import InstanceLock
+from omni.adapters.platform.runtime.paths import InstanceLock
 from omni.composition.instance import open_instance
 from omni.domain.contracts import BusinessError
 

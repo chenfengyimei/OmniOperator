@@ -16,7 +16,7 @@ from typing import NoReturn, cast
 
 from ..domain.contracts import BusinessError
 from ..domain.media import MAX_DOWNLOAD_BYTES, frames_plan
-from .platform.processes import OwnedProcess
+from omni.adapters.platform.runtime.processes import OwnedProcess
 
 log = logging.getLogger("omni.v2.media")
 

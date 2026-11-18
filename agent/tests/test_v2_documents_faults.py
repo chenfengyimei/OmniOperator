@@ -37,7 +37,7 @@ from omni.adapters.persistence.database import Database
 from omni.adapters.persistence.document_repository import DocumentRepositories
 from omni.adapters.persistence.memory_repository import MemoryRepositories
 from omni.adapters.object_store import ObjectFiles
-from omni.adapters.platform.paths import InstancePaths,InstanceLock
+from omni.adapters.platform.runtime.paths import InstancePaths,InstanceLock
 from omni.adapters.primitives import SystemClock,UUIDs
 from omni.application.objects import ObjectService
 from omni.application.documents import DocumentService
@@ -128,7 +128,7 @@ import os,sys
 from pathlib import Path
 from alembic.ddl.impl import DefaultImpl
 from omni.adapters.persistence.database import Database
-from omni.adapters.platform.paths import InstancePaths,InstanceLock
+from omni.adapters.platform.runtime.paths import InstancePaths,InstanceLock
 from omni.adapters.primitives import SystemClock,UUIDs
 original=DefaultImpl._exec
 def cut(self,statement,*args,**kwargs):
@@ -240,7 +240,7 @@ def test_offline_global_index_rebuild_process_exit_does_not_commit_half_repair(t
 import os,sys
 from pathlib import Path
 from omni.adapters.persistence import maintenance
-from omni.adapters.platform.paths import InstancePaths
+from omni.adapters.platform.runtime.paths import InstancePaths
 original=maintenance._rebuild_fulltext
 def cut(connection,table):
     original(connection,table)

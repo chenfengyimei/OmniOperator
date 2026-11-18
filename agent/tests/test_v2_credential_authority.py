@@ -23,7 +23,7 @@ from omni.adapters.persistence.database import Database
 from omni.adapters.persistence.maintenance import backup, restore
 from omni.adapters.persistence.migration_config import configuration
 from omni.adapters.persistence.migration_config import head as migration_head
-from omni.adapters.platform.paths import InstancePaths
+from omni.adapters.platform.runtime.paths import InstancePaths
 from omni.adapters.primitives import SystemClock, UUIDs
 from omni.composition.http import http_app
 from omni.composition.instance import open_instance

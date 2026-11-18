@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`2dc90ed8ff4074fc330dccad76866d9f0a910f3d974b308414ea20cef6082079`。包含 65 个职责模块、792 个源码/界面文件。
+源码指纹：`2d2a5b4de1d56db54dc6de52a701e9b1c7180625145a3f20ebaaa93253fbc654`。包含 65 个职责模块、793 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -288,7 +288,6 @@
 | [agent/src/omni/adapters/platform/desktop_capture.py](../../agent/src/omni/adapters/platform/desktop_capture.py) | 83 | Host-owned screenshot staging. File decoding runs only on the desktop I/O worker. |
 | [agent/src/omni/adapters/platform/desktop_control.py](../../agent/src/omni/adapters/platform/desktop_control.py) | 407 | Owned parent transport for independent control consent; no input dispatch, capture grants or unowned process termination. |
 | [agent/src/omni/adapters/platform/desktop_native.py](../../agent/src/omni/adapters/platform/desktop_native.py) | 493 | Read-only desktop diagnostics and process/window identities; never reads UI contents or performs input. |
-| [agent/src/omni/adapters/platform/event_loop.py](../../agent/src/omni/adapters/platform/event_loop.py) | 105 | Own the Windows TCP reset workaround without patching global asyncio classes. |
 | [agent/src/omni/adapters/platform/exchange_deployments.py](../../agent/src/omni/adapters/platform/exchange_deployments.py) | 27 | Verify a reviewed source for removal or signed boot draining; never execute or import the source installation. |
 | [agent/src/omni/adapters/platform/exchange_files.py](../../agent/src/omni/adapters/platform/exchange_files.py) | 278 | Private bounded exchange witnesses and maintenance reservations; no database, native calls or rollback. |
 | [agent/src/omni/adapters/platform/linux_atspi.py](../../agent/src/omni/adapters/platform/linux_atspi.py) | 366 | Read-only AT-SPI windows in a proven logind session. No X11/Portal capture or input fallback. |
@@ -346,14 +345,19 @@
 | [agent/src/omni/adapters/platform/macos_helper.py](../../agent/src/omni/adapters/platform/macos_helper.py) | 114 | Resolve the fixed, owner-installed Swift bundle; never build, install or request TCC permissions. |
 | [agent/src/omni/adapters/platform/macos_service.py](../../agent/src/omni/adapters/platform/macos_service.py) | 109 | Inspect loaded launchd descriptions via the fixed Swift helper; never parses launchctl print as authority. |
 | [agent/src/omni/adapters/platform/macos_service_state.py](../../agent/src/omni/adapters/platform/macos_service_state.py) | 101 | Pure bounded launchd definition and override comparison shared by owner and administrator ports. |
-| [agent/src/omni/adapters/platform/paths.py](../../agent/src/omni/adapters/platform/paths.py) | 157 | Resolve writable instance paths independently from installed code and cwd. |
-| [agent/src/omni/adapters/platform/permissions.py](../../agent/src/omni/adapters/platform/permissions.py) | 159 | Current-owner private files on POSIX and NTFS; never changes ancestor ACLs. |
 | [agent/src/omni/adapters/platform/portal.py](../../agent/src/omni/adapters/platform/portal.py) | 506 | Owned long-lived Portal helper sessions with shared desktop capacity and bounded metadata pipes; no pixel or input dispatch. |
-| [agent/src/omni/adapters/platform/processes.py](../../agent/src/omni/adapters/platform/processes.py) | 214 | Owned process groups and Windows Job Objects. Never terminate an unverified PID. |
-| [agent/src/omni/adapters/platform/publication.py](../../agent/src/omni/adapters/platform/publication.py) | 70 | Atomic, exclusive directory publication on the supported hosts; never replaces an existing target. |
 | [agent/src/omni/adapters/platform/release_files.py](../../agent/src/omni/adapters/platform/release_files.py) | 411 | Private release journals, installation bytes and startup fences; no database or native registration. |
-| [agent/src/omni/adapters/platform/runtime_identity.py](../../agent/src/omni/adapters/platform/runtime_identity.py) | 237 | Publish private boot identity while the instance lock is held; never controls another process. |
-| [agent/src/omni/adapters/platform/secrets.py](../../agent/src/omni/adapters/platform/secrets.py) | 159 | Explicit OS credential store or externally keyed encrypted vault; no plaintext fallback. |
+| [agent/src/omni/adapters/platform/runtime/__init__.py](../../agent/src/omni/adapters/platform/runtime/__init__.py) | 1 | V2 runtime adapters; importing never probes the platform. |
+| [agent/src/omni/adapters/platform/runtime/event_loop.py](../../agent/src/omni/adapters/platform/runtime/event_loop.py) | 105 | Own the Windows TCP reset workaround without patching global asyncio classes. |
+| [agent/src/omni/adapters/platform/runtime/paths.py](../../agent/src/omni/adapters/platform/runtime/paths.py) | 157 | Resolve writable instance paths independently from installed code and cwd. |
+| [agent/src/omni/adapters/platform/runtime/permissions.py](../../agent/src/omni/adapters/platform/runtime/permissions.py) | 159 | Current-owner private files on POSIX and NTFS; never changes ancestor ACLs. |
+| [agent/src/omni/adapters/platform/runtime/processes.py](../../agent/src/omni/adapters/platform/runtime/processes.py) | 214 | Owned process groups and Windows Job Objects. Never terminate an unverified PID. |
+| [agent/src/omni/adapters/platform/runtime/publication.py](../../agent/src/omni/adapters/platform/runtime/publication.py) | 70 | Atomic, exclusive directory publication on the supported hosts; never replaces an existing target. |
+| [agent/src/omni/adapters/platform/runtime/runtime_identity.py](../../agent/src/omni/adapters/platform/runtime/runtime_identity.py) | 242 | Publish private boot identity while the instance lock is held; never controls another process. |
+| [agent/src/omni/adapters/platform/runtime/secrets.py](../../agent/src/omni/adapters/platform/runtime/secrets.py) | 159 | Explicit OS credential store or externally keyed encrypted vault; no plaintext fallback. |
+| [agent/src/omni/adapters/platform/runtime/terminal.py](../../agent/src/omni/adapters/platform/runtime/terminal.py) | 588 | Owned terminal IPC. Native PTY libraries run only in the fixed helper process. |
+| [agent/src/omni/adapters/platform/runtime/workbench.py](../../agent/src/omni/adapters/platform/runtime/workbench.py) | 120 | Open an explicitly requested local workbench after proving this process's ready boot; never reads owner tokens. |
+| [agent/src/omni/adapters/platform/runtime/workspaces.py](../../agent/src/omni/adapters/platform/runtime/workspaces.py) | 27 | Workspace admission keeps instance control, secrets and installed code private. |
 | [agent/src/omni/adapters/platform/service_admin.py](../../agent/src/omni/adapters/platform/service_admin.py) | 364 | Fixed Linux system-service registration/start broker; no owner code execution, business DB, stop or shell. |
 | [agent/src/omni/adapters/platform/service_admin_bundle.py](../../agent/src/omni/adapters/platform/service_admin_bundle.py) | 143 | Publish a reviewable stdlib-only administrator artifact; never installs it or elevates privileges. |
 | [agent/src/omni/adapters/platform/service_admin_client.py](../../agent/src/omni/adapters/platform/service_admin_client.py) | 446 | Owner-side pinned root broker connection; no elevation, root code launch or automatic request retry. |
@@ -369,7 +373,6 @@
 | [agent/src/omni/adapters/platform/service_registration.py](../../agent/src/omni/adapters/platform/service_registration.py) | 420 | Native user-service registration with fixed commands and scoped macOS unload; no elevation or data deletion. |
 | [agent/src/omni/adapters/platform/service_templates.py](../../agent/src/omni/adapters/platform/service_templates.py) | 219 | Deterministic service artifacts. Rendering never installs or controls a service. |
 | [agent/src/omni/adapters/platform/systemd_state.py](../../agent/src/omni/adapters/platform/systemd_state.py) | 101 | Shared bounded systemd decoding; no command execution or filesystem access. |
-| [agent/src/omni/adapters/platform/terminal.py](../../agent/src/omni/adapters/platform/terminal.py) | 588 | Owned terminal IPC. Native PTY libraries run only in the fixed helper process. |
 | [agent/src/omni/adapters/platform/wheel_artifact.py](../../agent/src/omni/adapters/platform/wheel_artifact.py) | 61 | Read-only wheel artifact verification: hash, archive safety and V2 asset presence; never installs. |
 | [agent/src/omni/adapters/platform/wheel_backup.py](../../agent/src/omni/adapters/platform/wheel_backup.py) | 68 | Execute only the backup step of a reviewed switch plan; no stop, switch, migration or rollback. |
 | [agent/src/omni/adapters/platform/wheel_environment.py](../../agent/src/omni/adapters/platform/wheel_environment.py) | 249 | Create an offline candidate environment: a venv that installs the staged wheel without a network. |
@@ -381,8 +384,6 @@
 | [agent/src/omni/adapters/platform/wheel_status.py](../../agent/src/omni/adapters/platform/wheel_status.py) | 119 | Read-only installation/update status projection; never mutates, plans, switches or migrates. |
 | [agent/src/omni/adapters/platform/wheel_switch.py](../../agent/src/omni/adapters/platform/wheel_switch.py) | 85 | Read-only switch plan for a prepared candidate; never stops, switches, migrates or rolls back. |
 | [agent/src/omni/adapters/platform/wheel_uninstall.py](../../agent/src/omni/adapters/platform/wheel_uninstall.py) | 218 | Remove one staged candidate or deactivate the runtime pointer; data and installation receipts stay. |
-| [agent/src/omni/adapters/platform/workbench.py](../../agent/src/omni/adapters/platform/workbench.py) | 120 | Open an explicitly requested local workbench after proving this process's ready boot; never reads owner tokens. |
-| [agent/src/omni/adapters/platform/workspaces.py](../../agent/src/omni/adapters/platform/workspaces.py) | 27 | Workspace admission keeps instance control, secrets and installed code private. |
 | [agent/src/omni/adapters/primitives.py](../../agent/src/omni/adapters/primitives.py) | 20 | Real clocks and full UUID identities, injected by the composition root. |
 | [agent/src/omni/adapters/process_diagnostics.py](../../agent/src/omni/adapters/process_diagnostics.py) | 112 | Process-owned logging and exception hooks; installed only by the executable host. |
 | [agent/src/omni/adapters/skill_packages.py](../../agent/src/omni/adapters/skill_packages.py) | 177 | Bounded in-memory Markdown/ZIP parsing; never extracts files or executes package content. |

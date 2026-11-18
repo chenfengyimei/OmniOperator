@@ -17,7 +17,7 @@ from ...domain.contracts import BusinessError
 from ...domain.desktop_control import PURPOSE, TERMINAL, VERSION, command, devices, event
 from ...domain.desktop_portal import LIFETIME_SECONDS, MAX_EVENTS, MAX_FRAME, MAX_TOTAL, binding, decode, encode
 from .desktop import helper_environment
-from .processes import OwnedProcess
+from omni.adapters.platform.runtime.processes import OwnedProcess
 
 Guard = Callable[[], Awaitable[None]]
 Spawn = Callable[..., Awaitable[OwnedProcess]]

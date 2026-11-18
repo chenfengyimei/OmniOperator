@@ -9,7 +9,7 @@ from sqlalchemy import select
 from omni.adapters.persistence import schema as s
 from omni.adapters.persistence.database import Database
 from omni.adapters.persistence.maintenance import backup, restore
-from omni.adapters.platform.paths import InstancePaths
+from omni.adapters.platform.runtime.paths import InstancePaths
 from omni.adapters.primitives import SystemClock, UUIDs
 from omni.composition.instance import open_instance
 from omni.domain.contracts import ActionResult, BusinessError, Effect, Outcome, ToolSpec

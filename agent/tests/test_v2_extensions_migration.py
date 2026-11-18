@@ -27,7 +27,7 @@ from omni.adapters.persistence.migration_config import configuration
 from omni.adapters.persistence.migration_config import head as migration_head
 from omni.adapters.persistence.object_inventory import registry
 from omni.adapters.persistence.sqlite_access import sqlite_connection
-from omni.adapters.platform.paths import InstancePaths
+from omni.adapters.platform.runtime.paths import InstancePaths
 from omni.adapters.primitives import SystemClock, UUIDs
 from omni.domain.contracts import BusinessError
 from omni.domain.extensions import tool_spec
@@ -243,7 +243,7 @@ def test_v19_process_exit_rolls_back_frozen_ddl_then_retries_with_verified_v18_s
 from pathlib import Path
 from sqlalchemy import Engine,event
 from omni.adapters.persistence.database import Database
-from omni.adapters.platform.paths import InstanceLock,InstancePaths
+from omni.adapters.platform.runtime.paths import InstanceLock,InstancePaths
 from omni.adapters.primitives import SystemClock,UUIDs
 paths=InstancePaths.resolve(Path(sys.argv[1]))
 lock=InstanceLock(paths)

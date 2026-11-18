@@ -9,7 +9,7 @@ from pathlib import Path
 
 import pytest
 
-from omni.adapters.platform.paths import InstancePaths
+from omni.adapters.platform.runtime.paths import InstancePaths
 from omni.adapters.platform.wheel_backup import backup_candidate
 from omni.adapters.platform.wheel_environment import create_environment
 from omni.adapters.platform.wheel_install import switch_candidate

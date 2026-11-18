@@ -15,7 +15,7 @@ from test_v2_audit_pruning import prepared as prepared
 
 from omni.adapters.persistence import schema as s
 from omni.adapters.persistence.maintenance import inspect_database
-from omni.adapters.platform.paths import InstanceLock
+from omni.adapters.platform.runtime.paths import InstanceLock
 from omni.composition.cli import parser
 
 CRASH_HELPER = """import os
@@ -26,7 +26,7 @@ from omni.adapters.persistence import offline_plans
 from omni.adapters.persistence.audit_pruning import apply_audit_retention, read_audit_plan
 from omni.adapters.persistence.audit_pruning_repository import AuditPruningRepositories
 from omni.adapters.persistence.repository_base import RepositoryBase
-from omni.adapters.platform.paths import InstancePaths
+from omni.adapters.platform.runtime.paths import InstancePaths
 
 class Clock:
     def now(self):

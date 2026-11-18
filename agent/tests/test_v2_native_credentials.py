@@ -12,7 +12,7 @@ from v2_credential_worker_helpers import Model, Spawn, Store
 from omni.adapters import native_credentials as native
 from omni.adapters.diagnostics import Redactor
 from omni.adapters.native_credentials import NativeCredentials
-from omni.adapters.platform.processes import OwnedProcess
+from omni.adapters.platform.runtime.processes import OwnedProcess
 from omni.adapters.workers.credentials import run
 from omni.domain.contracts import BusinessError
 from omni.domain.credential_ipc import MAX_FRAME, VERSION, control, decode, encode, request

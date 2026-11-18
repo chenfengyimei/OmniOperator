@@ -132,7 +132,7 @@ def test_real_worker_ipc_is_scoped_and_reclaims_bad_results(tmp_path, caplog, mo
 
 
 def test_cancel_retains_actual_spawn_and_cleanup_failure_until_close_succeeds(tmp_path, monkeypatch):
-    from omni.adapters.platform.processes import OwnedProcess
+    from omni.adapters.platform.runtime.processes import OwnedProcess
 
     async def scenario():
         spec = bundle(tmp_path / "bundle")

@@ -8,7 +8,7 @@ import zipfile
 
 import pytest
 
-from omni.adapters.platform.paths import InstancePaths
+from omni.adapters.platform.runtime.paths import InstancePaths
 from omni.adapters.platform.wheel_backup import backup_candidate
 from omni.adapters.platform.wheel_prepare import prepare_wheel
 from omni.adapters.platform.wheel_rollback import rollback_check

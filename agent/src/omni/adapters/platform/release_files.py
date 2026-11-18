@@ -29,8 +29,8 @@ from .deployment_files import (
     read_file,
     walk,
 )
-from .paths import InstanceLock, InstancePaths, PrivateFileLock
-from .permissions import assert_private, private_path
+from omni.adapters.platform.runtime.paths import InstanceLock, InstancePaths, PrivateFileLock
+from omni.adapters.platform.runtime.permissions import assert_private, private_path
 
 MAX_EVENTS = 32
 TRANSITIONS: dict[str, set[str]] = {

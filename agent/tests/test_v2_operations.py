@@ -16,7 +16,7 @@ from omni.adapters.diagnostics import JsonLogSink, Redactor
 from omni.adapters.log_query import MAX_SCAN, LogReader
 from omni.adapters.metrics import BOUNDS, Metrics
 from omni.adapters.persistence.database import Database
-from omni.adapters.platform.paths import InstancePaths
+from omni.adapters.platform.runtime.paths import InstancePaths
 from omni.adapters.primitives import SystemClock, UUIDs
 from omni.composition.instance import open_instance
 from omni.domain.contracts import BusinessError

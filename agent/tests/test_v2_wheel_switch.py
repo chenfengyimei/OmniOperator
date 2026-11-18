@@ -8,7 +8,7 @@ import zipfile
 
 import pytest
 
-from omni.adapters.platform.paths import InstanceLock, InstancePaths
+from omni.adapters.platform.runtime.paths import InstanceLock, InstancePaths
 from omni.adapters.platform.wheel_prepare import prepare_wheel
 from omni.adapters.platform.wheel_stage import stage_wheel
 from omni.adapters.platform.wheel_switch import switch_plan

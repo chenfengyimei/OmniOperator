@@ -18,7 +18,7 @@ from omni.adapters.persistence.maintenance import verify_snapshot
 from omni.adapters.persistence.migration_config import configuration
 from omni.adapters.persistence.migration_config import head as migration_head
 from omni.adapters.persistence.sqlite_access import sqlite_connection
-from omni.adapters.platform.paths import InstanceLock, InstancePaths
+from omni.adapters.platform.runtime.paths import InstanceLock, InstancePaths
 from omni.adapters.primitives import SystemClock, UUIDs
 
 NEW_TABLES = {"reference_release_batches", "reference_release_targets"}
@@ -87,7 +87,7 @@ import os,sys
 from pathlib import Path
 from sqlalchemy import Engine,event
 from omni.adapters.persistence.database import Database
-from omni.adapters.platform.paths import InstanceLock,InstancePaths
+from omni.adapters.platform.runtime.paths import InstanceLock,InstancePaths
 from omni.adapters.primitives import SystemClock,UUIDs
 
 paths=InstancePaths.resolve(Path(sys.argv[1]))

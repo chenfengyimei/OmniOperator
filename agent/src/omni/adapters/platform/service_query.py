@@ -19,7 +19,7 @@ from typing import Any, TypeVar, cast
 from ...application.ports import Record
 from ...domain.contracts import BusinessError
 from ...domain.service_deployment import manager_identity, validate_plan
-from .processes import OwnedProcess
+from omni.adapters.platform.runtime.processes import OwnedProcess
 from .service_templates import render
 from .systemd_state import PROPERTIES, systemd_state
 from .systemd_state import manager_report as _report

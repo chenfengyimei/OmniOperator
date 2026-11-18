@@ -26,7 +26,7 @@ from omni.adapters.persistence.migration_config import head as migration_head
 from omni.adapters.persistence.object_inventory import registry
 from omni.adapters.platform import desktop_capture as files
 from omni.adapters.platform.desktop import DesktopBackend
-from omni.adapters.platform.paths import InstancePaths
+from omni.adapters.platform.runtime.paths import InstancePaths
 from omni.composition.http import http_app
 from omni.domain.contracts import BusinessError
 from omni.domain.desktop import VERSION, parse_owner, parse_request, parse_response

@@ -20,7 +20,7 @@ from omni.adapters.persistence.migration_config import head as migration_head
 from omni.adapters.persistence.migrations.versions.v0001 import SQL
 from omni.adapters.persistence.migrations.versions.v0002 import upgrade as objects_upgrade
 from omni.adapters.persistence.sqlite_access import sqlite_connection
-from omni.adapters.platform.paths import InstancePaths
+from omni.adapters.platform.runtime.paths import InstancePaths
 from omni.adapters.primitives import UUIDs
 from omni.application.engine import Capability
 from omni.application.memory_tools import MemoryCapabilities
@@ -406,7 +406,7 @@ from pathlib import Path
 from alembic.ddl.impl import DefaultImpl
 from omni.adapters.persistence.database import Database
 from omni.adapters.primitives import SystemClock,UUIDs
-from omni.adapters.platform.paths import InstancePaths,InstanceLock
+from omni.adapters.platform.runtime.paths import InstancePaths,InstanceLock
 original=DefaultImpl._exec
 def cut(self,statement,*args,**kwargs):
     if 'uq_people_owner' in str(statement): os._exit(77)

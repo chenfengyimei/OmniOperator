@@ -26,7 +26,7 @@ from omni.adapters.persistence.reference_release import (
     read_reference_plan,
 )
 from omni.adapters.persistence.repository_base import RepositoryBase
-from omni.adapters.platform.paths import InstanceLock, InstancePaths
+from omni.adapters.platform.runtime.paths import InstanceLock, InstancePaths
 from omni.adapters.primitives import UUIDs
 from omni.application.documents import DocumentService
 from omni.domain.contracts import ActionResult, BusinessError, Outcome
@@ -279,7 +279,7 @@ def test_real_exit_reference_release_and_gc_can_resume_without_live_objects(tmp_
 from pathlib import Path
 from omni.adapters.persistence.repository import Repositories
 from omni.adapters.persistence.reference_release import apply_reference_release,read_reference_plan
-from omni.adapters.platform.paths import InstancePaths
+from omni.adapters.platform.runtime.paths import InstancePaths
 if sys.argv[4]=='before_commit':
     original=Repositories.audit
     def cut(self,agent,kind,operation,data):

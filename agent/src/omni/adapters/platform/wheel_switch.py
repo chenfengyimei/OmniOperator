@@ -11,7 +11,7 @@ from ...domain.contracts import BusinessError
 from ...domain.installation import validate_installation
 from ..persistence.maintenance import read_schema
 from ..persistence.migration_config import head as migration_head
-from .paths import InstanceLock, InstancePaths
+from omni.adapters.platform.runtime.paths import InstanceLock, InstancePaths
 from .wheel_prepare import FORMAT as PREPARED_FORMAT
 
 FORMAT = "omni-switch-plan-1"

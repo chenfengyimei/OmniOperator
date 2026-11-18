@@ -19,7 +19,7 @@ from typing import Any
 
 from ..domain.contracts import JSON, BusinessError, Outcome
 from .metrics import OPERATIONS
-from .platform.permissions import private_path
+from omni.adapters.platform.runtime.permissions import private_path
 
 MAX_BYTES = 128 * 1024 * 1024
 MAX_FILES = 1000

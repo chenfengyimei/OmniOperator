@@ -11,7 +11,7 @@ from ...domain.contracts import BusinessError
 from ...domain.service_activation import activation_binding, validate_reservation
 from ...domain.service_control import ControlPlan, validate_control
 from .deployment_files import CurrentDeploymentFiles, decode, json_bytes, no_links, publish_json, read_file
-from .permissions import assert_private, private_path
+from omni.adapters.platform.runtime.permissions import assert_private, private_path
 
 
 def _activation(control: Path) -> Record | None:

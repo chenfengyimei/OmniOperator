@@ -19,8 +19,8 @@ from uuid import uuid4
 
 import psutil
 
-from ...domain.contracts import BusinessError
-from .processes import OwnedProcess, WindowsJob
+from omni.domain.contracts import BusinessError
+from omni.adapters.platform.runtime.processes import OwnedProcess, WindowsJob
 
 Record = dict[str, Any]
 T = TypeVar("T")
@@ -558,7 +558,7 @@ class TerminalProcess:
                     break
                 await asyncio.sleep(0.01)
         if not native_clean and sys.platform != "win32" and self._gate_pid is not None:
-            from ..workers.terminal import reclaim_posix
+            from omni.adapters.workers.terminal import reclaim_posix
 
             gate_pid, gate_created = self._gate_pid, self._gate_created
             native_clean = await self._backend.io(

@@ -22,7 +22,7 @@ from ...domain.mcp import (
     MCPUncertain,
     ServerTarget,
 )
-from ..platform.processes import OwnedProcess
+from omni.adapters.platform.runtime.processes import OwnedProcess
 
 log = logging.getLogger("omni.v2.mcp")
 Packet = dict[str, Any]

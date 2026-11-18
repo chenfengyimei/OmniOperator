@@ -10,7 +10,7 @@ from uuid import uuid4
 import psutil
 import pytest
 
-from omni.adapters.platform import terminal as adapter
+from omni.adapters.platform.runtime import terminal as adapter
 from omni.adapters.workers import terminal as worker
 from omni.domain.contracts import BusinessError
 

@@ -17,7 +17,7 @@ from test_v2_service_exchange import release as release
 from omni.adapters.persistence.releases import ReleaseData
 from omni.adapters.persistence.sqlite_access import sqlite_connection
 from omni.adapters.platform.exchange_files import ExchangeFiles
-from omni.adapters.platform.paths import InstanceLock
+from omni.adapters.platform.runtime.paths import InstanceLock
 from omni.adapters.platform.release_files import ReleaseFiles
 from omni.adapters.primitives import SystemClock, UUIDs
 from omni.application.releases import Releases

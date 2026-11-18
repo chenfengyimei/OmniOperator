@@ -60,7 +60,7 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 | `agent/src/omni/adapters/platform/linux_window_leases.py` | 同连接生命周期订阅、窗口代次及读取前后屏障 |
 | `agent/src/omni/adapters/platform/linux_lease_client.py` | 持续只读辅助进程、串行 RPC、有界通信及真实回收归属 |
 | `agent/src/omni/adapters/workers/linux_window_lease.py` | Linux 持续窗口证明的固定原生辅助进程与限额 |
-| `agent/src/omni/adapters/platform/workbench.py` | 仅显式浏览器启动、本次进程与HMAC就绪证明、探测线程归属 |
+| `agent/src/omni/adapters/platform/runtime/workbench.py` | 仅显式浏览器启动、本次进程与HMAC就绪证明、探测线程归属 |
 | `agent/src/omni/adapters/platform/dependency_bundle.py` | 本机依赖包清单/哈希与平台核验、有界流式捕获和仅本地安装输入 |
 | `agent/src/omni/adapters/platform/candidate_installer.py` | 独立离线候选安装、分离维护解释器与实例、逐步核验和失败保留 |
 | `agent/src/omni/domain/action_review.py` | 未知写动作的观察复核/证据指纹纯规则 |
@@ -169,7 +169,7 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 | `agent/src/omni/adapters/primitives.py` | 时钟/ID 原语 Protocol 与实现 |
 | `agent/src/omni/adapters/timezones.py` | 时区数据库标识读取边界 |
 | `agent/src/omni/adapters/platform/exchange_deployments.py` | 交换部署布局/路径校验（平台适配） |
-| `agent/src/omni/adapters/platform/workspaces.py` | 工作区路径解析/校验（平台适配） |
+| `agent/src/omni/adapters/platform/runtime/workspaces.py` | 工作区路径解析/校验（平台适配） |
 | `agent/src/omni/adapters/persistence/credential_predicates.py` | 凭据谓词 SQL 片段（持久化适配） |
 | `agent/src/omni/adapters/persistence/history_sequence.py` | 历史游标序列持久化辅助 |
 | `agent/src/omni/adapters/persistence/maintenance.py` | 备份/校验/恢复与隔离（清单与报告 Record、条目路径与字节收窄、WAL 与指纹保全不变） |
@@ -184,7 +184,7 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 | `agent/src/omni/adapters/persistence/terminal_review_repository.py` | 终端 unknown 观测复核与可抹证据（对齐端口 Record、来源三元组显式、回执与原生生命周期不变、不授权重放） |
 | `agent/src/omni/adapters/token_counter.py` | 本地保守 token 估算（不取模型元数据） |
 | `agent/src/omni/adapters/images.py` | 图像编解码/校验（有界任务、Pillow 校验） |
-| `agent/src/omni/adapters/platform/secrets.py` | OS 凭据库/外键加密 vault 适配 |
+| `agent/src/omni/adapters/platform/runtime/secrets.py` | OS 凭据库/外键加密 vault 适配 |
 | `agent/src/omni/adapters/platform/macos_service_state.py` | launchd 定义/覆盖纯比较（stdlib-only） |
 | `agent/src/omni/adapters/platform/service_handover.py` | 双阶段管理员交接（按序打开、原生锁释放） |
 | `agent/src/omni/adapters/credentials.py` | 凭据读写线程池/失效与关闭（有界 Future 集） |
@@ -192,7 +192,7 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 | `agent/src/omni/adapters/platform/service_control_files.py` | 服务启停日志/一次性启动预留 |
 | `agent/src/omni/adapters/platform/service_launch.py` | 一次性启动预留（实例锁下，不启动进程） |
 | `agent/src/omni/adapters/persistence/migrations/versions/v0003.py` | 冻结迁移版本 v0003（人物/证据/记忆上下文） |
-| `agent/src/omni/adapters/platform/processes.py` | 受管进程组与 Windows Job Object（不终止未校验 PID） |
+| `agent/src/omni/adapters/platform/runtime/processes.py` | 受管进程组与 Windows Job Object（不终止未校验 PID） |
 | `agent/src/omni/adapters/platform/desktop.py` | 桌面辅助进程（有界单帧、两阶段授权、不探测即构造） |
 | `agent/src/omni/adapters/platform/service_query.py` | 只读系统服务查询（有界输出与保留进程所有权） |
 | `agent/src/omni/adapters/persistence/audit_pruning.py` | 离线审计裁剪绑定（计划/应用/取消，备份校验归共享设施） |
@@ -229,7 +229,7 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 | `agent/src/omni/adapters/platform/wheel_install.py` | 运行时切换/迁移/回滚指针（不停服、不迁移库） |
 | `agent/src/omni/adapters/platform/linux_bus.py` | 已校验本地 D-Bus 传输（无环境选择/网络总线） |
 | `agent/src/omni/adapters/platform/linux_session.py` | logind 会话与无障碍总线归属（不信环境变量） |
-| `agent/src/omni/adapters/platform/terminal.py` | 受管终端 IPC（原生 PTY 仅在固定辅助进程内运行） |
+| `agent/src/omni/adapters/platform/runtime/terminal.py` | 受管终端 IPC（原生 PTY 仅在固定辅助进程内运行） |
 | `agent/src/omni/adapters/temporary_debug.py` | 启动绑定的临时调试捕获（仅元数据、有界配额） |
 | `agent/src/omni/adapters/persistence/migrations/versions/v0010.py` | 冻结迁移版本 v0010（凭据授权状态与不可变审阅） |
 | `agent/src/omni/adapters/platform/service_admin_client.py` | 属主侧固定根代理连接（不提权、不自动重试） |
@@ -277,8 +277,8 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 | `agent/src/omni/adapters/persistence/migrations/versions/v0036.py` | 冻结迁移版本 v0036 |
 | `agent/src/omni/adapters/persistence/migrations/versions/v0037.py` | 冻结迁移版本 v0037 |
 | `agent/src/omni/adapters/platform/darwin_admin_peer.py` | macOS 管理员对端帧校验 |
-| `agent/src/omni/adapters/platform/permissions.py` | 平台权限检查边界 |
-| `agent/src/omni/adapters/platform/publication.py` | 发布文件写入边界 |
+| `agent/src/omni/adapters/platform/runtime/permissions.py` | 平台权限检查边界 |
+| `agent/src/omni/adapters/platform/runtime/publication.py` | 发布文件写入边界 |
 | `agent/src/omni/adapters/platform/service_admin_commands.py` | 服务管理员命令构造 |
 | `agent/src/omni/adapters/platform/wheel_artifact.py` | wheel 产物校验 |
 | `agent/src/omni/adapters/workers/darwin_admin_probe.py` | macOS 管理员探测 worker |
@@ -319,7 +319,7 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 | `agent/src/omni/adapters/platform/desktop_capture.py` | 桌面截图文件身份校验 |
 | `agent/src/omni/adapters/platform/macos_helper.py` | macOS 辅助源指纹与文件校验 |
 | `agent/src/omni/adapters/platform/macos_service.py` | macOS launchd 查询边界（原生身份校验） |
-| `agent/src/omni/adapters/platform/paths.py` | 实例路径与启动栅栏互斥 |
+| `agent/src/omni/adapters/platform/runtime/paths.py` | 实例路径与启动栅栏互斥 |
 | `agent/src/omni/adapters/platform/service_admin_bundle.py` | 管理员工件物化（不安装/不提权） |
 | `agent/src/omni/adapters/persistence/history_protection.py` | 历史保留保护原因（运行/引用/审计） |
 | `agent/src/omni/adapters/workers/terminal.py` | 终端 worker 帧解码/打开校验 |
@@ -341,7 +341,7 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 | `agent/src/omni/adapters/workers/service_admin_boot.py` | 受审管理员工件物的隔离 root 入口（按持有 fd 降层校验） |
 | `agent/src/omni/adapters/workers/linux_action.py` | Linux 语义动作 worker 单帧入口（初始帧不授权写入） |
 | `agent/src/omni/adapters/persistence/operations_read.py` | 离线只读运维快照（只读 URI、schema 校验、不自动升级） |
-| `agent/src/omni/adapters/platform/event_loop.py` | Windows TCP 重置清理事件循环（不改全局 asyncio 类） |
+| `agent/src/omni/adapters/platform/runtime/event_loop.py` | Windows TCP 重置清理事件循环（不改全局 asyncio 类） |
 | `agent/src/omni/adapters/platform/linux_pipewire.py` | 串行目标 GStreamer 取帧（不开默认远程/不读根窗口） |
 | `agent/src/omni/adapters/persistence/database.py` | 单写者数据库 actor（隔离读连接、关闭与完整性检查） |
 | `agent/src/omni/adapters/persistence/qq_authority.py` | QQ 受众/凭据权威（上下文、模型与外发共用检查） |
@@ -405,7 +405,7 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 
 | `agent/src/omni/adapters/platform/service_templates.py` | 服务模板类型化，固定服务命令与产物字节不变 |
 
-| `agent/src/omni/adapters/platform/runtime_identity.py` | 运行身份、Task/Future所有权与受控drain回执类型化 |
+| `agent/src/omni/adapters/platform/runtime/runtime_identity.py` | 运行身份、Task/Future所有权与受控drain回执类型化 |
 
 | `agent/src/omni/adapters/platform/service_operation_files.py` | 离线服务日志类型化，保留连续链、unknown与单所有者文件锁 |
 
@@ -449,7 +449,7 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 2. 新增的 strict 模块必须同时更新 `pyrightconfig.strict.json`、本文件表格与证据；守卫测试会拦截漂移。
 3. 基线例外数字只代表对应源码版本；源码变化后需重测，不沿用旧数字。
 4. 不允许用 `# type: ignore`/`# pyright: ignore` 掩盖真实错误；确需忽略时必须在类型检查文档写明原因与范围。
-   - 目前唯一的忽略：`agent/src/omni/adapters/platform/event_loop.py` 中 `from asyncio.proactor_events import ...` 一行带 `# pyright: ignore[reportPrivateUsage]`。CPython 未公开 proactor 传输类，绕过导入就无法子类化该传输；范围仅限该导入行，同一文件的其余私有成员访问用 `Any` 桥接（协议仍保留形状说明）而不是忽略。
+   - 目前唯一的忽略：`agent/src/omni/adapters/platform/runtime/event_loop.py` 中 `from asyncio.proactor_events import ...` 一行带 `# pyright: ignore[reportPrivateUsage]`。CPython 未公开 proactor 传输类，绕过导入就无法子类化该传输；范围仅限该导入行，同一文件的其余私有成员访问用 `Any` 桥接（协议仍保留形状说明）而不是忽略。
 5. 全仓 strict 完成前，任何报告不得写“全仓严格类型已通过”。
 6. 历史边界与施工注意（当前是否纳入以本页门禁表为准）：
    - 部署文件适配器已使用 find_spec("omni") 定位包，避免绝对 import 的缺失 stub，并保留不执行包初始化的边界；第 201 批已纳入 strict。后续不要重新引入绝对导入或忽略注释。

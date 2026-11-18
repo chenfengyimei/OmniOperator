@@ -11,7 +11,7 @@ from typing import cast
 from ...application.ports import Record
 from ...domain.contracts import BusinessError
 from ..persistence.maintenance import durable_json
-from .permissions import private_path
+from omni.adapters.platform.runtime.permissions import private_path
 from .wheel_artifact import inspect_wheel
 
 FORMAT = "omni-staged-update-1"

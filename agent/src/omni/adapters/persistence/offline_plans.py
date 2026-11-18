@@ -14,8 +14,8 @@ from typing import cast
 from ...application.ports import Record, UnitOfWork
 from ...domain.contracts import JSON, BusinessError
 from ..object_store import publish_file, sync_directory
-from ..platform.paths import InstanceLock, InstancePaths
-from ..platform.permissions import private_path
+from omni.adapters.platform.runtime.paths import InstanceLock, InstancePaths
+from omni.adapters.platform.runtime.permissions import private_path
 from ..primitives import SystemClock, UUIDs
 from .database import Database
 from .maintenance import create_snapshot, fingerprint, verify_snapshot

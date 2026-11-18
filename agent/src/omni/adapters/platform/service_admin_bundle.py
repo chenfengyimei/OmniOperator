@@ -11,8 +11,8 @@ from ...application.ports import Record
 from ...domain.contracts import BusinessError
 from ..object_store import sync_directory
 from .deployment_files import json_bytes, no_links, path_of, read_file, write_file
-from .permissions import private_path
-from .publication import publish_directory
+from omni.adapters.platform.runtime.permissions import private_path
+from omni.adapters.platform.runtime.publication import publish_directory
 
 SOURCES = (
     "__init__.py",

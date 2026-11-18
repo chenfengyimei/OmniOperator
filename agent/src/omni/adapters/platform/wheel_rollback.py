@@ -9,8 +9,8 @@ from typing import cast
 from ...application.ports import Record
 from ...domain.contracts import BusinessError
 from ..persistence.maintenance import durable_json, inspect_database, restore
-from .paths import InstancePaths
-from .permissions import private_path
+from omni.adapters.platform.runtime.paths import InstancePaths
+from omni.adapters.platform.runtime.permissions import private_path
 from .wheel_backup import FORMAT as BACKUP_FORMAT
 
 FORMAT = "omni-rollback-check-1"

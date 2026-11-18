@@ -7,7 +7,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from omni.adapters.platform import publication as p
+from omni.adapters.platform.runtime import publication as p
 
 
 def inject(monkeypatch, callback):

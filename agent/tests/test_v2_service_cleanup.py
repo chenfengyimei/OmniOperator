@@ -15,7 +15,7 @@ from test_v2_service_deployment import request, runtime
 from omni.adapters.platform import service_cleanup_files as storage
 from omni.adapters.platform.deployment_files import CurrentDeploymentFiles
 from omni.adapters.platform.exchange_files import ExchangeFiles
-from omni.adapters.platform.paths import InstanceLock, InstancePaths
+from omni.adapters.platform.runtime.paths import InstanceLock, InstancePaths
 from omni.adapters.platform.release_files import ReleaseFiles
 from omni.adapters.platform.service_cleanup_files import CleanupDeployment, CleanupFiles, CleanupPlanFiles
 from omni.adapters.primitives import SystemClock, UUIDs

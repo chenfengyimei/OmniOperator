@@ -15,8 +15,8 @@ from ...domain.service_exchange import ExchangePlan, administrator_approval, mar
 from ...domain.service_isolation import IsolationPlan, validate_isolation
 from ..object_store import sync_directory
 from .deployment_files import CurrentDeploymentFiles, json_bytes, no_links, path_of, publish_json
-from .paths import InstancePaths, PrivateFileLock
-from .permissions import assert_private, private_path
+from omni.adapters.platform.runtime.paths import InstancePaths, PrivateFileLock
+from omni.adapters.platform.runtime.permissions import assert_private, private_path
 
 MAX_EVENTS = 64
 

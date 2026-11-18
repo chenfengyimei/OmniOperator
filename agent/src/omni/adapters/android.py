@@ -20,7 +20,7 @@ from ..domain.desktop import CapturedFrame
 from .android_unicode import UnicodeFlow
 from .object_store import checked_path
 from .platform.desktop_capture import inventory
-from .platform.permissions import assert_private, private_path
+from omni.adapters.platform.runtime.permissions import assert_private, private_path
 from .workers.client import WorkerClient
 
 # 与 application.android.AndroidPort 协议口径一致（参数逆变，适配器须接受同样宽的载荷）。

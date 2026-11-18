@@ -14,9 +14,9 @@ from ...application.ports import Record
 from ...domain.contracts import BusinessError
 from ..persistence.maintenance import durable_json
 from .dependency_bundle import SHA, no_links
-from .paths import InstanceLock, InstancePaths
-from .permissions import private_path
-from .runtime_identity import read_private
+from omni.adapters.platform.runtime.paths import InstanceLock, InstancePaths
+from omni.adapters.platform.runtime.permissions import private_path
+from omni.adapters.platform.runtime.runtime_identity import read_private
 from .wheel_install import FORMAT as RUNTIME_FORMAT
 
 FORMAT = "omni-uninstall-1"

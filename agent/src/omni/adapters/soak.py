@@ -23,9 +23,9 @@ from ..domain import soak as soak_policy
 from ..domain.contracts import BusinessError
 from ..domain.soak import COUNTERS, MAX_SAMPLES, RESOURCES, assess, invalid, limits, number
 from .platform.dependency_bundle import no_links
-from .platform.paths import PrivateFileLock
-from .platform.permissions import assert_private, private_path
-from .platform.runtime_identity import READINESS_FIELDS, read_private
+from omni.adapters.platform.runtime.paths import PrivateFileLock
+from omni.adapters.platform.runtime.permissions import assert_private, private_path
+from omni.adapters.platform.runtime.runtime_identity import READINESS_FIELDS, read_private
 from .platform.service_readiness import verify_proof
 
 MAX_HTTP_BYTES = 256 * 1024

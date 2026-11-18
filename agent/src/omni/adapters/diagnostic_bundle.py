@@ -27,8 +27,8 @@ from ..domain.contracts import BusinessError
 from .diagnostics import Redactor
 from .log_query import CaptureLogReader, LogQuery, LogReader, LogSource
 from .object_store import sync_directory
-from .platform.paths import InstancePaths
-from .platform.permissions import private_path
+from omni.adapters.platform.runtime.paths import InstancePaths
+from omni.adapters.platform.runtime.permissions import private_path
 
 T = TypeVar("T")
 Payload = dict[str, object]

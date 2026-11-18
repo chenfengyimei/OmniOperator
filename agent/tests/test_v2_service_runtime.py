@@ -15,8 +15,8 @@ from test_v2_deployment_files import installation as installation
 from test_v2_deployment_files import plan_for
 
 from omni.adapters.platform import service_readiness as readiness_module
-from omni.adapters.platform.paths import InstanceLock
-from omni.adapters.platform.runtime_identity import RuntimeIdentityFiles, canonical_proof, read_private
+from omni.adapters.platform.runtime.paths import InstanceLock
+from omni.adapters.platform.runtime.runtime_identity import RuntimeIdentityFiles, canonical_proof, read_private
 from omni.adapters.platform.service_readiness import ServiceReadiness
 from omni.adapters.primitives import SystemClock, UUIDs
 from omni.application.service_deployment import ServiceDeployment

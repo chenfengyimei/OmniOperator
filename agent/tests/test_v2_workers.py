@@ -7,7 +7,7 @@ import uuid
 
 import psutil
 
-from omni.adapters.platform.processes import OwnedProcess
+from omni.adapters.platform.runtime.processes import OwnedProcess
 from omni.adapters.workers.client import WorkerClient
 from omni.domain.contracts import InvocationContext, Outcome
 

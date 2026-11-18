@@ -6,7 +6,7 @@ import json
 import sys
 import zipfile
 
-from omni.adapters.platform.paths import InstancePaths
+from omni.adapters.platform.runtime.paths import InstancePaths
 from omni.adapters.platform.wheel_backup import backup_candidate
 from omni.adapters.platform.wheel_install import switch_candidate
 from omni.adapters.platform.wheel_prepare import prepare_wheel

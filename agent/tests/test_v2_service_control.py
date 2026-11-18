@@ -13,8 +13,8 @@ from test_v2_service_operations import operation as registration_operation
 from test_v2_service_operations import prepared
 from test_v2_service_runtime import boot_identity
 
-from omni.adapters.platform.paths import InstanceLock, InstancePaths, PrivateFileLock
-from omni.adapters.platform.runtime_identity import RuntimeIdentityFiles
+from omni.adapters.platform.runtime.paths import InstanceLock, InstancePaths, PrivateFileLock
+from omni.adapters.platform.runtime.runtime_identity import RuntimeIdentityFiles
 from omni.adapters.platform.service_control_files import ServiceControlFiles
 from omni.adapters.platform.service_launch import consume_launch
 from omni.adapters.platform.service_operation_files import ServiceOperationFiles

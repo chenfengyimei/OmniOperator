@@ -10,8 +10,8 @@ import httpx
 import pytest
 from test_v2_event_stream import server
 
-from omni.adapters.platform.permissions import private_path
-from omni.adapters.platform.runtime_identity import canonical_proof
+from omni.adapters.platform.runtime.permissions import private_path
+from omni.adapters.platform.runtime.runtime_identity import canonical_proof
 from omni.adapters.soak import LocalSampler, SoakFiles, origin
 from omni.domain.contracts import BusinessError
 from omni.domain.soak import COUNTERS, LIMIT_KEYS, MINIMUM_SECONDS, RESOURCES, assess, limits

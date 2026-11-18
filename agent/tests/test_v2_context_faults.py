@@ -103,7 +103,7 @@ def test_process_exit_around_summary_publication_preserves_ledger_and_truth(tmp_
 import asyncio,os,sys
 from pathlib import Path
 from omni.adapters.persistence.database import Database
-from omni.adapters.platform.paths import InstancePaths,InstanceLock
+from omni.adapters.platform.runtime.paths import InstancePaths,InstanceLock
 from omni.adapters.primitives import SystemClock,UUIDs
 from omni.domain.contracts import ModelReply
 async def main():
@@ -162,7 +162,7 @@ import os,sys
 from pathlib import Path
 from alembic.ddl.impl import DefaultImpl
 from omni.adapters.persistence.database import Database
-from omni.adapters.platform.paths import InstancePaths,InstanceLock
+from omni.adapters.platform.runtime.paths import InstancePaths,InstanceLock
 from omni.adapters.primitives import SystemClock,UUIDs
 original=DefaultImpl._exec
 def cut(self,statement,*args,**kwargs):

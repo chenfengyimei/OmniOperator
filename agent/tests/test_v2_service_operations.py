@@ -13,8 +13,8 @@ from test_v2_deployment_files import installation as installation
 from test_v2_deployment_files import plan_for
 from test_v2_service_deployment import plan
 
-from omni.adapters.platform.paths import InstanceLock, InstancePaths
-from omni.adapters.platform.permissions import assert_private
+from omni.adapters.platform.runtime.paths import InstanceLock, InstancePaths
+from omni.adapters.platform.runtime.permissions import assert_private
 from omni.adapters.platform.service_operation_files import ServiceOperationFiles
 from omni.adapters.primitives import SystemClock, UUIDs
 from omni.application.service_operations import ServiceOperations

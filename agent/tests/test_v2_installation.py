@@ -6,7 +6,7 @@ import sys
 
 import pytest
 
-from omni.adapters.platform.paths import InstancePaths
+from omni.adapters.platform.runtime.paths import InstancePaths
 from omni.composition.cli import installation_report, main, seal_installation
 from omni.composition.instance import open_instance
 from omni.domain.contracts import BusinessError

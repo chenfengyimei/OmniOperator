@@ -37,7 +37,7 @@ class InstancePaths:
 
     def initialize(self) -> None:
         if (self.home / "restore-in-progress.json").exists() or (self.home / "restore-in-progress.json").is_symlink():
-            from ...domain.contracts import BusinessError
+            from omni.domain.contracts import BusinessError
 
             raise BusinessError(
                 "restore_incomplete",
@@ -52,7 +52,7 @@ class InstancePaths:
             path.mkdir(parents=True, exist_ok=True, mode=0o700)
             if os.name != "nt":
                 path.chmod(0o700)
-        from .permissions import private_path
+        from omni.adapters.platform.runtime.permissions import private_path
 
         # Children can predate the parent's protected Windows DACL. Set their
         # explicit private boundary too; inheritance alone preserves old ACEs.
@@ -71,7 +71,7 @@ class PrivateFileLock:
         pass
 
     def acquire(self, *, release: tuple[str, str] | None = None) -> None:
-        from ...domain.contracts import BusinessError
+        from omni.domain.contracts import BusinessError
 
         if self._descriptor is not None:
             raise BusinessError("instance_busy", "Instance lock is already held")
@@ -93,7 +93,7 @@ class PrivateFileLock:
                 import fcntl
 
                 fcntl.flock(descriptor, fcntl.LOCK_EX | fcntl.LOCK_NB)
-            from .permissions import private_path
+            from omni.adapters.platform.runtime.permissions import private_path
 
             if any(path.is_symlink() or path.is_junction() for path in (self.path, *self.path.parents)):
                 raise BusinessError("unsafe_lock", "Instance lock path changed")
@@ -139,10 +139,10 @@ class InstanceLock(PrivateFileLock):
         super().__init__(paths.control / "instance.lock")
 
     def _admit(self, release: tuple[str, str] | None) -> None:
-        from ...domain.contracts import BusinessError
-        from ...domain.release_fence import validate_fence
-        from .deployment_files import decode, read_file
-        from .permissions import assert_private
+        from omni.domain.contracts import BusinessError
+        from omni.domain.release_fence import validate_fence
+        from omni.adapters.platform.deployment_files import decode, read_file
+        from omni.adapters.platform.runtime.permissions import assert_private
 
         fence_path = self.path.parent / "release-fence.json"
         if fence_path.exists() or fence_path.is_symlink() or fence_path.is_junction():

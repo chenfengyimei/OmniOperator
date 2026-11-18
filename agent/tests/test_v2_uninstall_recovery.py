@@ -8,7 +8,7 @@ import pytest
 from test_v2_wheel_uninstall import active_candidate
 
 from omni.adapters.platform import wheel_uninstall as uninstall
-from omni.adapters.platform.permissions import private_path
+from omni.adapters.platform.runtime.permissions import private_path
 from omni.adapters.platform.wheel_status import installation_status
 from omni.domain.contracts import BusinessError
 

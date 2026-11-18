@@ -22,7 +22,7 @@ from omni.adapters.persistence.maintenance import (
     restore,
     verify_snapshot,
 )
-from omni.adapters.platform.paths import InstanceLock, InstancePaths
+from omni.adapters.platform.runtime.paths import InstanceLock, InstancePaths
 from omni.adapters.primitives import UUIDs
 from omni.domain.contracts import BusinessError
 

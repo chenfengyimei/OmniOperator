@@ -4,7 +4,7 @@ import asyncio
 
 import pytest
 
-from omni.adapters.platform.paths import InstanceLock
+from omni.adapters.platform.runtime.paths import InstanceLock
 from omni.composition.instance import open_instance
 from omni.composition.lifecycle import Lifetime
 from omni.domain.contracts import BusinessError

@@ -11,10 +11,10 @@ from typing import Any
 from cryptography.fernet import Fernet, InvalidToken
 from keyring.errors import KeyringError, PasswordDeleteError
 
-from ...domain.contracts import BusinessError
-from ...domain.credentials import reference_fingerprint, validate_reference, validate_secret
-from ..object_store import publish_file, sync_directory
-from .permissions import private_path
+from omni.domain.contracts import BusinessError
+from omni.domain.credentials import reference_fingerprint, validate_reference, validate_secret
+from omni.adapters.object_store import publish_file, sync_directory
+from omni.adapters.platform.runtime.permissions import private_path
 
 
 def native_keyring():

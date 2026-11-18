@@ -21,7 +21,7 @@ from omni.adapters.persistence.maintenance import inspect_database, restore
 from omni.adapters.persistence.migration_config import head as migration_head
 from omni.adapters.persistence.operations_read import offline_read
 from omni.adapters.persistence.repository_base import RepositoryBase
-from omni.adapters.platform.paths import InstanceLock, InstancePaths
+from omni.adapters.platform.runtime.paths import InstanceLock, InstancePaths
 from omni.adapters.primitives import UUIDs
 from omni.domain.contracts import BusinessError
 

@@ -31,7 +31,7 @@ from ...domain.foreground import TIMEOUT_S as FOREGROUND_TIMEOUT_S
 from ...domain.foreground import permit, ready
 from . import desktop_capture, macos_helper
 from .linux_lease_client import LeaseClientPort, LinuxLeaseClient
-from .processes import OwnedProcess
+from omni.adapters.platform.runtime.processes import OwnedProcess
 
 MAX_PENDING = 4
 MAX_RESIDENT = 2

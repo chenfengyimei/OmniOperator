@@ -16,8 +16,8 @@ from test_v2_wheel_environment import staged
 
 from omni.adapters.platform import dependency_bundle as bundle
 from omni.adapters.platform import wheel_environment as environment
-from omni.adapters.platform.paths import InstanceLock
-from omni.adapters.platform.permissions import private_path
+from omni.adapters.platform.runtime.paths import InstanceLock
+from omni.adapters.platform.runtime.permissions import private_path
 from omni.adapters.platform.wheel_backup import backup_candidate
 from omni.adapters.platform.wheel_install import switch_candidate
 from omni.adapters.platform.wheel_prepare import prepare_wheel
@@ -151,7 +151,7 @@ def test_captured_bundle_is_local_and_revalidates_cached_bytes_and_requirements(
     ],
 )
 def test_environment_requires_paired_dependency_inputs_without_creating_a_home(tmp_path, options):
-    from omni.adapters.platform.paths import InstancePaths
+    from omni.adapters.platform.runtime.paths import InstancePaths
 
     paths = InstancePaths.resolve(tmp_path / "home")
     with pytest.raises(BusinessError) as caught:

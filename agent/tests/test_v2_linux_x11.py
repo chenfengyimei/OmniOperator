@@ -237,7 +237,7 @@ def test_x11_receipt_crosses_owned_host_staging_and_publishes_one_session_refere
     from test_v2_linux_window_leases import PROGRAM
 
     from omni.adapters.platform import desktop as host_module
-    from omni.adapters.platform.processes import OwnedProcess
+    from omni.adapters.platform.runtime.processes import OwnedProcess
     from omni.composition.instance import open_instance
 
     async def scenario():

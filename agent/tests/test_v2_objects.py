@@ -23,7 +23,7 @@ from omni.adapters.persistence.migration_config import head as migration_head
 from omni.adapters.persistence.migrations.versions.v0001 import SQL
 from omni.adapters.persistence.object_gc import apply_collection, plan_collection
 from omni.adapters.persistence.object_inventory import registry
-from omni.adapters.platform.paths import InstanceLock, InstancePaths
+from omni.adapters.platform.runtime.paths import InstanceLock, InstancePaths
 from omni.adapters.primitives import SystemClock, UUIDs
 from omni.application.objects import ObjectService
 from omni.domain.contracts import ActionResult, BusinessError, Outcome, ToolSpec
@@ -242,7 +242,7 @@ def test_gc_process_crash_after_commit_can_resume(tmp_path):
 import datetime as dt,json,os,sys
 from pathlib import Path
 from omni.adapters.persistence import object_gc
-from omni.adapters.platform.paths import InstancePaths
+from omni.adapters.platform.runtime.paths import InstancePaths
 original=object_gc.durable_json
 def stop_after_commit(path,value):
     if value.get('phase')=='metadata_committed':

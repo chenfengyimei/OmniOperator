@@ -25,7 +25,7 @@ from omni.adapters.persistence.migration_config import head as migration_head
 from omni.adapters.persistence.operations_read import offline_read
 from omni.adapters.persistence.repository_base import RepositoryBase
 from omni.adapters.persistence.sqlite_access import sqlite_connection
-from omni.adapters.platform.paths import InstanceLock, InstancePaths
+from omni.adapters.platform.runtime.paths import InstanceLock, InstancePaths
 from omni.adapters.primitives import SystemClock, UUIDs
 from omni.composition.http import http_app
 from omni.domain.contracts import ActionResult, BusinessError, ModelReply, Outcome

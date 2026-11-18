@@ -27,7 +27,7 @@ from ...domain.linux_window_leases import (
     parse_request,
     parse_response,
 )
-from .processes import OwnedProcess
+from omni.adapters.platform.runtime.processes import OwnedProcess
 
 Spawn = Callable[..., Awaitable[OwnedProcess]]
 Guard = Callable[[], Awaitable[None]]

@@ -16,7 +16,7 @@ from test_v2_service_runtime import boot_identity
 
 from omni.adapters.http import HttpRuntime, create_app
 from omni.adapters.platform import service_readiness as readiness
-from omni.adapters.platform.runtime_identity import RuntimeIdentityFiles, canonical_proof
+from omni.adapters.platform.runtime.runtime_identity import RuntimeIdentityFiles, canonical_proof
 from omni.adapters.platform.service_registration import ServiceRegistration
 from omni.adapters.primitives import SystemClock, UUIDs
 from omni.domain.contracts import BusinessError

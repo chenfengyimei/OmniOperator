@@ -11,7 +11,7 @@ from v2_extension_helpers import PUBLIC_TOOL, plugin_source
 
 from omni.adapters.extensions import hosts as h
 from omni.adapters.extensions.packages import capture_directory
-from omni.adapters.platform.processes import OwnedProcess
+from omni.adapters.platform.runtime.processes import OwnedProcess
 from omni.adapters.workers.client import WorkerClient
 from omni.adapters.workers.protocol import encode_response
 from omni.domain.contracts import ActionResult, BusinessError, Effect, InvocationContext, Outcome

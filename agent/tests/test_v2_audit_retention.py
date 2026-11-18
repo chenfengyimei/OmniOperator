@@ -24,7 +24,7 @@ from omni.adapters.persistence.reference_release import (
     read_reference_plan,
 )
 from omni.adapters.persistence.repository_base import RepositoryBase
-from omni.adapters.platform.paths import InstancePaths
+from omni.adapters.platform.runtime.paths import InstancePaths
 from omni.adapters.primitives import UUIDs
 from omni.application.delivery import DeliveryService
 from omni.domain.contracts import ActionResult, BusinessError, Outcome, ToolSpec

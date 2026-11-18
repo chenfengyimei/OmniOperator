@@ -13,8 +13,8 @@ import psutil
 import pytest
 import uvicorn
 
-from omni.adapters.platform import workbench
-from omni.adapters.platform.runtime_identity import canonical_proof
+from omni.adapters.platform.runtime import workbench
+from omni.adapters.platform.runtime.runtime_identity import canonical_proof
 from omni.composition.http import http_app
 from omni.domain.contracts import BusinessError
 
@@ -155,7 +155,7 @@ def test_real_loopback_workbench_boot_proof_and_local_owner_authentication(tmp_p
             http_app(tmp_path / "home"),
             host="127.0.0.1",
             port=port,
-            loop="omni.adapters.platform.event_loop:create_event_loop",
+            loop="omni.adapters.platform.runtime.event_loop:create_event_loop",
             log_config=None,
             access_log=False,
         )

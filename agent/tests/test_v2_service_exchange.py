@@ -19,8 +19,8 @@ from omni.adapters.persistence.releases import ReleaseData
 from omni.adapters.platform import deployment_files
 from omni.adapters.platform.exchange_deployments import ExchangeSourceDeployment
 from omni.adapters.platform.exchange_files import ExchangeFiles
-from omni.adapters.platform.paths import InstanceLock
-from omni.adapters.platform.permissions import private_path
+from omni.adapters.platform.runtime.paths import InstanceLock
+from omni.adapters.platform.runtime.permissions import private_path
 from omni.adapters.platform.release_files import ReleaseFiles
 from omni.adapters.platform.service_control_files import ServiceControlFiles
 from omni.adapters.platform.service_operation_files import ServiceOperationFiles
@@ -95,7 +95,7 @@ class Manager:
         if getattr(state, "unknown_without_effect", False):
             return {"effect": "unknown"}
         # Registration runs under a real isolated instance lock.
-        from omni.adapters.platform.paths import InstancePaths
+        from omni.adapters.platform.runtime.paths import InstancePaths
 
         with pytest.raises(BusinessError):
             InstanceLock(InstancePaths(Path(deployment["request"]["home"]))).acquire()

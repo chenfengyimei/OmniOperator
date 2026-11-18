@@ -11,7 +11,7 @@ from pathlib import Path
 import pytest
 
 from omni.adapters.persistence import offline_plans as plans
-from omni.adapters.platform.paths import InstanceLock, InstancePaths
+from omni.adapters.platform.runtime.paths import InstanceLock, InstancePaths
 from omni.domain.contracts import BusinessError
 
 

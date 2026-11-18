@@ -6,7 +6,7 @@ import sys
 
 import pytest
 
-from omni.adapters.platform.permissions import assert_private, private_path
+from omni.adapters.platform.runtime.permissions import assert_private, private_path
 
 
 def _windows_acl(path, *, public=False, protected=True):

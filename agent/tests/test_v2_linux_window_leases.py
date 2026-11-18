@@ -15,7 +15,7 @@ from omni.adapters.platform.desktop import DesktopBackend, helper_environment
 from omni.adapters.platform.linux_lease_client import LinuxLeaseClient
 from omni.adapters.platform.linux_window_leases import LeaseWire, WindowLeases
 from omni.adapters.platform.linux_x11 import X11Desktop
-from omni.adapters.platform.processes import OwnedProcess
+from omni.adapters.platform.runtime.processes import OwnedProcess
 from omni.adapters.workers.linux_window_lease import run
 from omni.domain.contracts import BusinessError
 from omni.domain.linux_window_leases import VERSION, decode, encode, parse_request, parse_response

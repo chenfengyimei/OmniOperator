@@ -22,8 +22,8 @@ from ...domain.contracts import BusinessError
 from ..build_identity import CODE_CACHE_DIRS, CODE_SUFFIXES, LAYERS
 from ..object_store import publish_file, sync_directory
 from ..persistence.migration_config import head as migration_head
-from .permissions import assert_private, private_path
-from .publication import publish_directory
+from omni.adapters.platform.runtime.permissions import assert_private, private_path
+from omni.adapters.platform.runtime.publication import publish_directory
 
 Record = dict[str, Any]
 MAX_JSON = 2 * 1024 * 1024

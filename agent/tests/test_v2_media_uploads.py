@@ -191,7 +191,7 @@ def test_cancelled_registration_waiter_keeps_actual_object_read_and_commit_owned
 
 def test_uploaded_object_reference_and_transcript_survive_verified_backup_restore(tmp_path):
     from omni.adapters.persistence.maintenance import backup, restore
-    from omni.adapters.platform.paths import InstancePaths
+    from omni.adapters.platform.runtime.paths import InstancePaths
 
     home = tmp_path / "source"
     snapshot = tmp_path / "snapshot"

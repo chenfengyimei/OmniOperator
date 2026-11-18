@@ -12,7 +12,7 @@ import pytest
 from omni.adapters.persistence import maintenance
 from omni.adapters.persistence.maintenance import backup, fingerprint, restore, verify_snapshot
 from omni.adapters.persistence.sqlite_access import sqlite_connection
-from omni.adapters.platform.paths import InstanceLock, InstancePaths
+from omni.adapters.platform.runtime.paths import InstanceLock, InstancePaths
 from omni.composition.instance import open_instance
 from omni.domain.contracts import BusinessError
 
@@ -106,7 +106,7 @@ def test_uncheckpointed_commit_cannot_pass_main_file_fingerprint_check(tmp_path)
     code = """
 import os,sqlite3,sys
 from pathlib import Path
-from omni.adapters.platform.paths import InstanceLock,InstancePaths
+from omni.adapters.platform.runtime.paths import InstanceLock,InstancePaths
 lock=InstanceLock(InstancePaths.resolve(Path(sys.argv[1])))
 lock.acquire()
 connection=sqlite3.connect(str(Path(sys.argv[1])/'data/omni.db'))

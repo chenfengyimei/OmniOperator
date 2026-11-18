@@ -21,7 +21,7 @@ from omni.adapters.persistence.maintenance import verify_snapshot
 from omni.adapters.persistence.migration_config import configuration
 from omni.adapters.persistence.migration_config import head as migration_head
 from omni.adapters.persistence.sqlite_access import sqlite_connection
-from omni.adapters.platform.paths import InstanceLock, InstancePaths
+from omni.adapters.platform.runtime.paths import InstanceLock, InstancePaths
 from omni.adapters.primitives import SystemClock, UUIDs
 
 NEW_TABLES = {"history_identity", "history_sequences", "history_scopes"}
@@ -137,7 +137,7 @@ def test_v14_process_exit_rolls_back_all_ddl_and_counter_seeds_then_retries(tmp_
 from pathlib import Path
 from sqlalchemy import Engine,event
 from omni.adapters.persistence.database import Database
-from omni.adapters.platform.paths import InstanceLock,InstancePaths
+from omni.adapters.platform.runtime.paths import InstanceLock,InstancePaths
 from omni.adapters.primitives import SystemClock,UUIDs
 
 paths=InstancePaths.resolve(Path(sys.argv[1]))

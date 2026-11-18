@@ -14,7 +14,7 @@ from typing import Any
 
 from ..adapters.http import HttpRuntime, create_app
 from ..adapters.log_query import LogQuery
-from ..adapters.platform.permissions import private_path
+from omni.adapters.platform.runtime.permissions import private_path
 from ..application.android import AndroidPort
 from ..application.bilibili import BilibiliPort
 from ..application.mcp import MCPTransportPort

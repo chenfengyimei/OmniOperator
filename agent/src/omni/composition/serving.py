@@ -55,7 +55,7 @@ def serve_instance(
             deployment=deployment,
             shutdown=request_shutdown,
         ),
-        loop="omni.adapters.platform.event_loop:create_event_loop",
+        loop="omni.adapters.platform.runtime.event_loop:create_event_loop",
         host=host,
         port=port,
         workers=1,

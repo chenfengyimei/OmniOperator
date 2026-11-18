@@ -10,7 +10,7 @@ from ...domain.contracts import BusinessError
 from ...domain.installation import validate_installation
 from ..persistence.maintenance import read_schema
 from ..persistence.migration_config import head as migration_head
-from .paths import InstancePaths
+from omni.adapters.platform.runtime.paths import InstancePaths
 
 FORMAT = "omni-installation-status-1"
 

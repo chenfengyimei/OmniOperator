@@ -21,7 +21,7 @@ from omni.adapters.persistence.maintenance import verify_snapshot
 from omni.adapters.persistence.migration_config import configuration
 from omni.adapters.persistence.migration_config import head as migration_head
 from omni.adapters.persistence.sqlite_access import sqlite_connection
-from omni.adapters.platform.paths import InstancePaths
+from omni.adapters.platform.runtime.paths import InstancePaths
 from omni.adapters.primitives import SystemClock, UUIDs
 from omni.domain.contracts import BusinessError
 from omni.domain.event_retention import validate_event_plan
@@ -173,7 +173,7 @@ def test_v16_process_exit_rolls_back_all_ddl_then_retries_from_verified_v15_snap
 from pathlib import Path
 from sqlalchemy import Engine,event
 from omni.adapters.persistence.database import Database
-from omni.adapters.platform.paths import InstanceLock,InstancePaths
+from omni.adapters.platform.runtime.paths import InstanceLock,InstancePaths
 from omni.adapters.primitives import SystemClock,UUIDs
 
 paths=InstancePaths.resolve(Path(sys.argv[1]))

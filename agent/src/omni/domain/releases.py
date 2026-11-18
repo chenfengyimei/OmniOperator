@@ -26,7 +26,7 @@ from .service_deployment import (
 FORMAT = "omni-release-plan-3"
 FENCE_FILES = (
     "domain/release_fence.py",
-    "adapters/platform/paths.py",
+    "adapters/platform/runtime/paths.py",
     "domain/service_activation.py",
     "adapters/platform/service_launch.py",
 )

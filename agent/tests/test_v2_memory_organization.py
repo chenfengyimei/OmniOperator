@@ -7,7 +7,7 @@ import pytest
 from sqlalchemy import select
 
 from omni.adapters.persistence import schema as s
-from omni.adapters.platform.paths import InstanceLock
+from omni.adapters.platform.runtime.paths import InstanceLock
 from omni.composition.instance import open_instance
 from omni.domain.contracts import BusinessError
 

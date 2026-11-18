@@ -9,7 +9,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from omni.adapters.platform.event_loop import create_event_loop, finish_connection_loss
+from omni.adapters.platform.runtime.event_loop import create_event_loop, finish_connection_loss
 
 
 @pytest.mark.parametrize("scenario", ["reset", "other_error", "protocol_error", "nested_error"])

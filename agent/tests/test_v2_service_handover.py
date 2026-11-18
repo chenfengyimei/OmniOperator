@@ -374,7 +374,7 @@ def test_phase_export_is_private_read_only_and_cli_uses_reviewed_participant_fil
     import json
 
     from omni.adapters.platform.deployment_files import CurrentDeploymentFiles
-    from omni.adapters.platform.permissions import assert_private
+    from omni.adapters.platform.runtime.permissions import assert_private
     from omni.composition.cli import parser
     from omni.composition.service_exchange import run_exchange
 

@@ -33,7 +33,7 @@ from ...domain.desktop_portal import (
 )
 from . import desktop_capture
 from .desktop import helper_environment
-from .processes import OwnedProcess
+from omni.adapters.platform.runtime.processes import OwnedProcess
 
 T = TypeVar("T")
 

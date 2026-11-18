@@ -36,7 +36,7 @@ def media_server(tmp_path):
     port = listener.getsockname()[1]
     server = uvicorn.Server(
         uvicorn.Config(
-            app, loop="omni.adapters.platform.event_loop:create_event_loop", log_config=None, access_log=False
+            app, loop="omni.adapters.platform.runtime.event_loop:create_event_loop", log_config=None, access_log=False
         )
     )
 

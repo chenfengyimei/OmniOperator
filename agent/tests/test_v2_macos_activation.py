@@ -17,7 +17,7 @@ from omni.adapters.platform import service_launch as launch
 from omni.adapters.platform import service_registration as native
 from omni.adapters.platform.deployment_files import CurrentDeploymentFiles
 from omni.adapters.platform.exchange_files import ExchangeFiles
-from omni.adapters.platform.paths import InstanceLock, InstancePaths
+from omni.adapters.platform.runtime.paths import InstanceLock, InstancePaths
 from omni.adapters.platform.release_files import ReleaseFiles
 from omni.adapters.primitives import SystemClock, UUIDs
 from omni.application.exchange_steps import ExchangeSteps

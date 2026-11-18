@@ -24,8 +24,8 @@ from ...domain.service_exchange import marker, progress
 from ..object_store import sync_directory
 from .deployment_files import CurrentDeploymentFiles, json_bytes, no_links, path_of, publish_json
 from .exchange_files import ExchangeFiles
-from .paths import InstanceLock, InstancePaths, PrivateFileLock
-from .permissions import assert_private, private_path
+from omni.adapters.platform.runtime.paths import InstanceLock, InstancePaths, PrivateFileLock
+from omni.adapters.platform.runtime.permissions import assert_private, private_path
 from .release_files import ReleaseFiles
 from .service_operation_files import ServiceOperationFiles
 

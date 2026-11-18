@@ -10,8 +10,8 @@ from typing import cast
 from ...application.ports import Record
 from ...domain.contracts import BusinessError
 from ..persistence.maintenance import backup, durable_json
-from .paths import InstancePaths
-from .permissions import private_path
+from omni.adapters.platform.runtime.paths import InstancePaths
+from omni.adapters.platform.runtime.permissions import private_path
 from .wheel_switch import switch_plan
 
 FORMAT = "omni-update-backup-1"

@@ -17,7 +17,7 @@ from v2_configuration_helpers import model_uow
 from omni.adapters.extensions.packages import capture_directory
 from omni.adapters.persistence import schema as s
 from omni.adapters.persistence.maintenance import backup, restore
-from omni.adapters.platform.paths import InstancePaths
+from omni.adapters.platform.runtime.paths import InstancePaths
 from omni.domain.contracts import ActionResult, BusinessError, Effect, Outcome
 from omni.domain.extensions import request_fingerprint, tool_spec
 

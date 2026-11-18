@@ -8,7 +8,7 @@ from typing import cast
 
 from ...application.ports import Record, UnitOfWork
 from ...domain.audit_retention import validate_audit_plan
-from ..platform.paths import InstancePaths
+from omni.adapters.platform.runtime.paths import InstancePaths
 from .offline_plans import PlanOperations, apply_plan, cancel_plan, create_plan, read_plan
 
 

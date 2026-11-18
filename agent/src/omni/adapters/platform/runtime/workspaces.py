@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from ...domain.contracts import BusinessError
+from omni.domain.contracts import BusinessError
 
 
 class WorkspacePolicy:

@@ -11,7 +11,7 @@ from v2_configuration_helpers import model_instance
 from omni.adapters.credentials import Credentials
 from omni.adapters.diagnostics import Redactor
 from omni.adapters.persistence.credential_repository import CredentialRepositories
-from omni.adapters.platform.paths import InstanceLock
+from omni.adapters.platform.runtime.paths import InstanceLock
 from omni.composition.instance import open_instance
 from omni.domain.contracts import BusinessError
 
@@ -248,7 +248,7 @@ def test_system_store_uses_only_native_backend_and_never_a_configured_plaintext_
 ):
     import keyring
 
-    import omni.adapters.platform.secrets as module
+    import omni.adapters.platform.runtime.secrets as module
 
     values = {}
 
@@ -427,7 +427,7 @@ def test_encrypted_vault_delete_residue_cannot_resurrect_a_lookup_reference(tmp_
 
     from cryptography.fernet import Fernet
 
-    from omni.adapters.platform.secrets import FileVault
+    from omni.adapters.platform.runtime.secrets import FileVault
 
     key = tmp_path / "external.key"
     key.write_bytes(Fernet.generate_key())

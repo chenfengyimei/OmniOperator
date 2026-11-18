@@ -19,9 +19,9 @@ import uuid
 from datetime import datetime, timezone
 from pathlib import Path
 
-from omni.adapters.platform.permissions import private_path
-from omni.adapters.platform.processes import OwnedProcess
-from omni.adapters.platform.secrets import SystemSecrets
+from omni.adapters.platform.runtime.permissions import private_path
+from omni.adapters.platform.runtime.processes import OwnedProcess
+from omni.adapters.platform.runtime.secrets import SystemSecrets
 
 MAX_FRAME = 65536
 
@@ -171,7 +171,7 @@ def main() -> int:
     cleanup_path = output / "cleanup.json"
     cleanup_path.write_text(json.dumps(cleanup, indent=2) + "\n", encoding="utf-8")
     private_path(cleanup_path)
-    source = Path(__file__).resolve().parents[1] / "src/omni/adapters/platform/secrets.py"
+    source = Path(__file__).resolve().parents[1] / "src/omni/adapters/platform/runtime/secrets.py"
     proof = {
         "format": "omni-macos-keychain-acceptance-1",
         "status": "unknown",

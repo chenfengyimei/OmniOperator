@@ -14,7 +14,7 @@ from typing import cast
 
 from ..domain.local_vectors import RUNTIME, canonical, fingerprint, invalid, manifest
 from .object_store import sync_directory
-from .platform.permissions import private_path
+from omni.adapters.platform.runtime.permissions import private_path
 
 
 def runtime_versions() -> dict[str, str]:

@@ -15,7 +15,7 @@ from ...application.ports import Record, UnitOfWork
 from ...domain.contracts import JSON, BusinessError
 from ...domain.objects import Blob
 from ..object_store import checked_path, sync_directory
-from ..platform.paths import InstanceLock, InstancePaths
+from omni.adapters.platform.runtime.paths import InstanceLock, InstancePaths
 from ..primitives import SystemClock, UUIDs
 from .database import Database
 from .maintenance import durable_json

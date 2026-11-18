@@ -21,7 +21,7 @@ from pathlib import Path
 from omni.adapters.diagnostics import Redactor
 from omni.adapters.native_credentials import NativeCredentials
 from omni.adapters.object_store import sync_directory
-from omni.adapters.platform.permissions import private_path
+from omni.adapters.platform.runtime.permissions import private_path
 from omni.application.ports import AsyncSecretPort
 from omni.domain.contracts import BusinessError
 

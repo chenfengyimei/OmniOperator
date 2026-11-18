@@ -48,7 +48,7 @@ def run(reader: BinaryIO, writer: BinaryIO, *, factory: Callable[[str], Any] | N
     if len(initial) + len(permission) > MAX_FRAME or decode(permission) != control(query, "permit"):
         return 2
     if factory is None:
-        from ..platform.secrets import SystemSecrets
+        from omni.adapters.platform.runtime.secrets import SystemSecrets
 
         factory = SystemSecrets
     # Neither importing/constructing a native backend nor prompting happens

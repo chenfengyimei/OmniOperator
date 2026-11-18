@@ -14,8 +14,8 @@ from pathlib import Path
 from typing import Any
 
 from omni.adapters.platform.dependency_bundle import no_links
-from omni.adapters.platform.permissions import private_path
-from omni.adapters.platform.processes import OwnedProcess
+from omni.adapters.platform.runtime.permissions import private_path
+from omni.adapters.platform.runtime.processes import OwnedProcess
 
 MAX_OUTPUT = 2 * 1024 * 1024
 BASE_PROBE = "import importlib.util,json,platform,sys; assert importlib.util.find_spec('omni') is None; print(json.dumps({'platform':sys.platform,'python':list(sys.version_info[:2]),'machine':platform.machine(),'omni_absent':True}))"

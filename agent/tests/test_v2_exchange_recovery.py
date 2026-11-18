@@ -22,7 +22,7 @@ from omni.adapters.persistence.releases import ReleaseData
 from omni.adapters.persistence.sqlite_access import sqlite_connection
 from omni.adapters.platform.exchange_deployments import ExchangeSourceDeployment
 from omni.adapters.platform.exchange_files import ExchangeFiles
-from omni.adapters.platform.paths import InstanceLock
+from omni.adapters.platform.runtime.paths import InstanceLock
 from omni.adapters.platform.release_files import ReleaseFiles
 from omni.adapters.platform.service_control_files import ServiceControlFiles
 from omni.adapters.platform.service_operation_files import ServiceOperationFiles

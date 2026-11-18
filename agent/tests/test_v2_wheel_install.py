@@ -13,7 +13,7 @@ from alembic import command
 from omni.adapters.persistence.maintenance import durable_json
 from omni.adapters.persistence.migration_config import configuration, head
 from omni.adapters.persistence.sqlalchemy_access import database_engine
-from omni.adapters.platform.paths import InstanceLock, InstancePaths
+from omni.adapters.platform.runtime.paths import InstanceLock, InstancePaths
 from omni.adapters.platform.wheel_backup import backup_candidate
 from omni.adapters.platform.wheel_install import (
     install_candidate,

@@ -9,7 +9,7 @@ import sys
 import time
 from pathlib import Path
 
-from ..object_store import sync_directory
+from omni.adapters.object_store import sync_directory
 
 
 def _windows_move(source: Path, destination: Path) -> None:

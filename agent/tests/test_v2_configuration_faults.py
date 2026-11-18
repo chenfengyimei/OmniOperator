@@ -26,7 +26,7 @@ import asyncio,os,sys
 from pathlib import Path
 from omni.adapters.persistence.database import Database
 from omni.adapters.persistence.configuration_repository import ConfigurationRepositories
-from omni.adapters.platform.paths import InstancePaths,InstanceLock
+from omni.adapters.platform.runtime.paths import InstancePaths,InstanceLock
 from omni.adapters.primitives import SystemClock,UUIDs
 original=ConfigurationRepositories._configuration_record
 def cut(self,*args):
@@ -103,7 +103,7 @@ import os,sys
 from pathlib import Path
 from alembic.ddl.impl import DefaultImpl
 from omni.adapters.persistence.database import Database
-from omni.adapters.platform.paths import InstancePaths,InstanceLock
+from omni.adapters.platform.runtime.paths import InstancePaths,InstanceLock
 from omni.adapters.primitives import SystemClock,UUIDs
 original=DefaultImpl._exec
 def cut(self,statement,*args,**kwargs):

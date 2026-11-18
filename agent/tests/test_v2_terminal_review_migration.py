@@ -21,7 +21,7 @@ from omni.adapters.persistence.migration_config import configuration
 from omni.adapters.persistence.migration_config import head as migration_head
 from omni.adapters.persistence.repository import Repositories
 from omni.adapters.persistence.sqlite_access import sqlite_connection
-from omni.adapters.platform.paths import InstanceLock, InstancePaths
+from omni.adapters.platform.runtime.paths import InstanceLock, InstancePaths
 from omni.adapters.primitives import UUIDs
 from omni.domain.contracts import BusinessError
 
@@ -137,7 +137,7 @@ def test_interrupted_v26_schema_transaction_rolls_back_before_retry(tmp_path):
 from pathlib import Path
 from sqlalchemy import Engine,event
 from omni.adapters.persistence.database import Database
-from omni.adapters.platform.paths import InstanceLock,InstancePaths
+from omni.adapters.platform.runtime.paths import InstanceLock,InstancePaths
 from omni.adapters.primitives import SystemClock,UUIDs
 paths=InstancePaths.resolve(Path(sys.argv[1]))
 lock=InstanceLock(paths)

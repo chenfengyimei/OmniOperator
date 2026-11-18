@@ -268,7 +268,7 @@ def test_diagnostic_payload_is_bounded_before_admission_and_invalid_numbers_are_
 
 
 def test_startup_failure_releases_process_hooks_and_instance_lock(tmp_path, monkeypatch):
-    from omni.adapters.platform.paths import InstanceLock, InstancePaths
+    from omni.adapters.platform.runtime.paths import InstanceLock, InstancePaths
     from omni.composition import instance as composition
 
     def fail_database(*args, **kwargs):

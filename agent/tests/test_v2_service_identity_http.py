@@ -10,7 +10,7 @@ from fastapi.testclient import TestClient
 from test_v2_deployment_files import installation as installation
 from test_v2_deployment_files import plan_for
 
-from omni.adapters.platform.runtime_identity import canonical_proof, read_private
+from omni.adapters.platform.runtime.runtime_identity import canonical_proof, read_private
 from omni.composition import cli
 from omni.composition.http import http_app
 from omni.composition.serving import serve_instance

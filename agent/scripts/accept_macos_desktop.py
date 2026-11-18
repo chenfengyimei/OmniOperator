@@ -14,8 +14,8 @@ from pathlib import Path
 
 from omni.adapters.platform.desktop import DesktopBackend
 from omni.adapters.platform.macos_helper import BUNDLE_NAME, resolve
-from omni.adapters.platform.permissions import private_path
-from omni.adapters.platform.processes import OwnedProcess
+from omni.adapters.platform.runtime.permissions import private_path
+from omni.adapters.platform.runtime.processes import OwnedProcess
 from omni.domain.contracts import JSON
 from omni.domain.desktop import validate_observation
 from omni.domain.desktop_actions import POLICY

@@ -42,8 +42,8 @@ from ..adapters.persistence.reference_release import (
     plan_reference_release,
     read_reference_plan,
 )
-from ..adapters.platform.paths import InstanceLock, InstancePaths
-from ..adapters.platform.permissions import private_path
+from omni.adapters.platform.runtime.paths import InstanceLock, InstancePaths
+from omni.adapters.platform.runtime.permissions import private_path
 from ..adapters.primitives import SystemClock, UUIDs
 from ..application.ports import Record
 from ..domain.contracts import BusinessError
@@ -509,7 +509,7 @@ def _run(args: argparse.Namespace) -> int:
     paths = InstancePaths.resolve(args.home)
     try:
         if args.command == "serve":
-            from ..adapters.platform.workbench import WorkbenchBrowser
+            from omni.adapters.platform.runtime.workbench import WorkbenchBrowser
 
             browser = WorkbenchBrowser(paths.home, args.host, args.port) if args.open_browser else nullcontext()
             with browser:

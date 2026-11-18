@@ -24,7 +24,7 @@ from ...application.ports import Record
 from ...domain.contracts import BusinessError
 from ...domain.service_control import ControlPlan, drain_request, verify_receipt
 from ...domain.service_deployment import service_argv, validate_plan
-from .runtime_identity import READINESS_FIELDS, canonical_proof, read_private
+from omni.adapters.platform.runtime.runtime_identity import READINESS_FIELDS, canonical_proof, read_private
 
 PROBE_SECONDS = 5.0
 MAX_PROBES = 4

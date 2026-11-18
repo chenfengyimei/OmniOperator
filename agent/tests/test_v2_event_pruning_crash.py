@@ -16,7 +16,7 @@ from test_v2_event_pruning import prepared as prepared
 from omni.adapters.persistence import event_pruning
 from omni.adapters.persistence import schema as s
 from omni.adapters.persistence.maintenance import backup, fingerprint, inspect_database, restore
-from omni.adapters.platform.paths import InstancePaths
+from omni.adapters.platform.runtime.paths import InstancePaths
 from omni.domain.contracts import BusinessError
 
 CRASH_HELPER = """import os
@@ -27,7 +27,7 @@ from omni.adapters.persistence import offline_plans
 from omni.adapters.persistence.event_pruning import apply_event_retention, read_event_plan
 from omni.adapters.persistence.event_retention_repository import EventRetentionRepositories
 from omni.adapters.persistence.repository_base import RepositoryBase
-from omni.adapters.platform.paths import InstancePaths
+from omni.adapters.platform.runtime.paths import InstancePaths
 
 class Clock:
     def now(self):

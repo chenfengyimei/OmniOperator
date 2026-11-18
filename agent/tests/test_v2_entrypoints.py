@@ -64,7 +64,7 @@ def test_web_keeps_remote_binding_policy_and_standard_business_error(tmp_path, c
 
 
 def test_explicit_browser_scope_is_closed_if_server_startup_fails(tmp_path, monkeypatch, capsys):
-    from omni.adapters.platform import workbench
+    from omni.adapters.platform.runtime import workbench
 
     calls = []
 

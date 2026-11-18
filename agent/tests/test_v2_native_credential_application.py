@@ -6,7 +6,7 @@ import pytest
 from v2_credential_worker_helpers import Model, Spawn
 
 from omni.adapters.native_credentials import NativeCredentials
-from omni.adapters.platform.paths import InstanceLock
+from omni.adapters.platform.runtime.paths import InstanceLock
 from omni.composition import instance as composition
 from omni.domain.contracts import BusinessError
 

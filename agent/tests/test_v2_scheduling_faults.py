@@ -32,7 +32,7 @@ import asyncio,os,sys
 from pathlib import Path
 from omni.adapters.persistence.database import Database
 from omni.adapters.persistence.repository import Repositories
-from omni.adapters.platform.paths import InstancePaths,InstanceLock
+from omni.adapters.platform.runtime.paths import InstancePaths,InstanceLock
 from omni.adapters.primitives import UUIDs
 from omni.adapters.timezones import PinnedTimezones
 from omni.application.scheduling import SchedulingService
@@ -133,7 +133,7 @@ import os,sys
 from pathlib import Path
 from alembic.ddl.impl import DefaultImpl
 from omni.adapters.persistence.database import Database
-from omni.adapters.platform.paths import InstancePaths,InstanceLock
+from omni.adapters.platform.runtime.paths import InstancePaths,InstanceLock
 from omni.adapters.primitives import SystemClock,UUIDs
 original=DefaultImpl._exec
 def cut(self,statement,*args,**kwargs):
@@ -172,7 +172,7 @@ def test_restored_snapshot_quarantines_execution_and_invalidates_old_reviews(tmp
     from test_v2_objects import opened
 
     from omni.adapters.persistence.maintenance import backup, restore
-    from omni.adapters.platform.paths import InstancePaths
+    from omni.adapters.platform.runtime.paths import InstancePaths
     from omni.domain.contracts import BusinessError
 
     clock = Clock()

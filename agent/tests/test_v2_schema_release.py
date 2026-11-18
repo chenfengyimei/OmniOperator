@@ -28,7 +28,7 @@ from omni.adapters.persistence.releases import ReleaseData, database_witness
 from omni.adapters.persistence.sqlalchemy_access import database_engine
 from omni.adapters.persistence.sqlite_access import sqlite_connection
 from omni.adapters.platform import deployment_files as d
-from omni.adapters.platform.paths import InstanceLock, InstancePaths
+from omni.adapters.platform.runtime.paths import InstanceLock, InstancePaths
 from omni.adapters.platform.release_files import ReleaseFiles
 from omni.adapters.primitives import SystemClock, UUIDs
 from omni.application.releases import Releases

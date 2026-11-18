@@ -12,7 +12,7 @@ import pytest
 
 from omni.adapters import diagnostic_bundle
 from omni.adapters.persistence.migration_config import head as migration_head
-from omni.adapters.platform.paths import InstancePaths
+from omni.adapters.platform.runtime.paths import InstancePaths
 from omni.composition.cli import diagnostic_download
 from omni.composition.instance import open_instance
 from omni.domain.contracts import BusinessError

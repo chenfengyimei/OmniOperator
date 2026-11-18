@@ -15,8 +15,8 @@ from ...domain.service_operations import validate_operation
 from ..object_store import sync_directory
 from ..persistence.deployed_instance import verify_deployed_instance
 from .deployment_files import CurrentDeploymentFiles, decode, destination, json_bytes, no_links, read_file
-from .paths import InstanceLock, InstancePaths, PrivateFileLock
-from .permissions import assert_private, private_path
+from omni.adapters.platform.runtime.paths import InstanceLock, InstancePaths, PrivateFileLock
+from omni.adapters.platform.runtime.permissions import assert_private, private_path
 
 MAX_EVENTS = 64
 

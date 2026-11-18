@@ -13,7 +13,7 @@ from test_v2_objects import Clock, opened
 
 from omni.adapters.persistence import schema as s
 from omni.adapters.persistence.migration_config import head as migration_head
-from omni.adapters.platform.paths import InstanceLock, InstancePaths
+from omni.adapters.platform.runtime.paths import InstanceLock, InstancePaths
 from omni.composition.http import http_app
 
 

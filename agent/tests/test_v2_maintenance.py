@@ -188,7 +188,7 @@ def test_resume_only_original_erasure_and_forget_derived_memory_in_same_commit(t
 
 
 def test_instance_drains_maintenance_before_closing_documents_database_and_lock(tmp_path, monkeypatch):
-    from omni.adapters.platform.paths import InstanceLock
+    from omni.adapters.platform.runtime.paths import InstanceLock
     from omni.composition.instance import open_instance
 
     async def scenario():

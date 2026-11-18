@@ -13,8 +13,8 @@ from ...domain.service_control import validate_control
 from ..object_store import sync_directory
 from ..persistence.deployed_instance import verify_deployed_instance
 from .deployment_files import destination, json_bytes, no_links, publish_json
-from .paths import InstanceLock
-from .runtime_identity import read_private
+from omni.adapters.platform.runtime.paths import InstanceLock
+from omni.adapters.platform.runtime.runtime_identity import read_private
 from .service_launch import reserve_launch
 from .service_operation_files import ServiceOperationFiles
 

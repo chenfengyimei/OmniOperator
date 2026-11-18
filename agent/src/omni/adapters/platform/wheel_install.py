@@ -18,9 +18,9 @@ from ...domain.installation import make_installation, validate_installation
 from ..persistence.maintenance import durable_json, migrate_database, read_schema
 from ..persistence.migration_config import head as migration_head
 from ..primitives import SystemClock
-from .paths import InstanceLock, InstancePaths
-from .permissions import private_path
-from .runtime_identity import read_private
+from omni.adapters.platform.runtime.paths import InstanceLock, InstancePaths
+from omni.adapters.platform.runtime.permissions import private_path
+from omni.adapters.platform.runtime.runtime_identity import read_private
 from .wheel_artifact import SHA
 from .wheel_backup import FORMAT as BACKUP_FORMAT
 from .wheel_environment import installed_environment

@@ -17,7 +17,7 @@ from v2_delivery_helpers import FakePort
 from omni.adapters.persistence import schema as s
 from omni.adapters.persistence.operations_read import offline_read
 from omni.adapters.persistence.repository_base import RepositoryBase
-from omni.adapters.platform.paths import InstanceLock, InstancePaths
+from omni.adapters.platform.runtime.paths import InstanceLock, InstancePaths
 from omni.adapters.primitives import SystemClock, UUIDs
 from omni.application.documents import DocumentService
 from omni.composition.http import http_app

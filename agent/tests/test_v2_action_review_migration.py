@@ -28,7 +28,7 @@ from omni.adapters.persistence.migration_config import configuration
 from omni.adapters.persistence.migration_config import head as migration_head
 from omni.adapters.persistence.repository import Repositories
 from omni.adapters.persistence.sqlite_access import sqlite_connection
-from omni.adapters.platform.paths import InstancePaths
+from omni.adapters.platform.runtime.paths import InstancePaths
 from omni.adapters.primitives import SystemClock, UUIDs
 from omni.domain.contracts import ActionResult, BusinessError, Effect, Outcome
 
@@ -196,7 +196,7 @@ def test_v20_process_exit_rolls_back_ddl_without_changing_v19_business_then_retr
 from pathlib import Path
 from sqlalchemy import Engine,event
 from omni.adapters.persistence.database import Database
-from omni.adapters.platform.paths import InstanceLock,InstancePaths
+from omni.adapters.platform.runtime.paths import InstanceLock,InstancePaths
 from omni.adapters.primitives import SystemClock,UUIDs
 paths=InstancePaths.resolve(Path(sys.argv[1]))
 lock=InstanceLock(paths)

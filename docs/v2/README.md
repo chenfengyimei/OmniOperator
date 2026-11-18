@@ -70,4 +70,4 @@ Mac 主开发，Windows 保留运行及原生验收环境。开发中只跑受�
 
 - [Mac 环境迁移](../V2_MACMINI_MIGRATION.md)、[可直接粘贴的接续提示词](../V2_MACMINI_RESUME_PROMPT.md)。
 - [历史交接与计划](../history/README.md)。
-- [原始证据摘要](../evidence/)、[生成的代码索引](../index/MODULES.md)。
+- [原始证据摘要](../evidence)、[生成的代码索引](../index/MODULES.md)。

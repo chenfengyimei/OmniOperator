@@ -18,7 +18,7 @@ from omni.adapters.persistence.event_retention_repository import EventRetentionR
 from omni.adapters.persistence.maintenance import inspect_database, restore
 from omni.adapters.persistence.migration_config import head as migration_head
 from omni.adapters.persistence.repository_base import RepositoryBase
-from omni.adapters.platform.paths import InstancePaths
+from omni.adapters.platform.runtime.paths import InstancePaths
 from omni.domain.contracts import BusinessError
 
 

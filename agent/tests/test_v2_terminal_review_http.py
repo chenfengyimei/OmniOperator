@@ -12,7 +12,7 @@ from v2_terminal_helpers import FixtureTerminalBackend, open_request
 from v2_terminal_review_helpers import request, unknown
 
 from omni.adapters.persistence.terminal_review_repository import TerminalReviewRepositories
-from omni.adapters.platform.paths import InstanceLock
+from omni.adapters.platform.runtime.paths import InstanceLock
 from omni.composition.http import http_app
 from omni.composition.instance import open_instance
 from omni.domain.contracts import BusinessError

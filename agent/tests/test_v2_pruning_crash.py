@@ -80,7 +80,7 @@ def test_pruning_process_exit_can_resume_same_backup_without_duplicate_audit(tmp
 from pathlib import Path
 from omni.adapters.persistence.execution_pruning import apply_pruning, read_pruning_plan
 from omni.adapters.persistence.repository import Repositories
-from omni.adapters.platform.paths import InstancePaths
+from omni.adapters.platform.runtime.paths import InstancePaths
 
 phase = sys.argv[4]
 if phase == 'prune_before_commit':

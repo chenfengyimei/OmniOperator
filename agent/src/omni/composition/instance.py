@@ -38,13 +38,13 @@ from ..adapters.persistence.database import Database
 from ..adapters.persistence.deployed_instance import verify_deployed_instance
 from ..adapters.platform.desktop import DesktopBackend
 from ..adapters.platform.desktop_control import DesktopControlBackend
-from ..adapters.platform.paths import InstanceLock, InstancePaths
+from omni.adapters.platform.runtime.paths import InstanceLock, InstancePaths
 from ..adapters.platform.portal import PortalBackend
-from ..adapters.platform.runtime_identity import RuntimeIdentityFiles, canonical_proof, process_identity
-from ..adapters.platform.secrets import FileVault
+from omni.adapters.platform.runtime.runtime_identity import RuntimeIdentityFiles, canonical_proof, process_identity
+from omni.adapters.platform.runtime.secrets import FileVault
 from ..adapters.platform.service_launch import consume_launch
-from ..adapters.platform.terminal import TerminalBackend
-from ..adapters.platform.workspaces import WorkspacePolicy
+from omni.adapters.platform.runtime.terminal import TerminalBackend
+from omni.adapters.platform.runtime.workspaces import WorkspacePolicy
 from ..adapters.primitives import SystemClock, UUIDs
 from ..adapters.process_diagnostics import ProcessDiagnostics
 from ..adapters.skill_packages import SkillPackages

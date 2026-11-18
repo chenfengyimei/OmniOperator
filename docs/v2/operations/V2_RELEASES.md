@@ -6,7 +6,7 @@
 
 两个程序版本分别安装在独立、非 editable 的目录与 Python 环境中。新版本从旧部署包读取固定计划，核验旧程序、解释器链接链及环境配置文件；新版本自身必须与当前完整 capture 一致。对旧环境的静态文件核验不等于在旧解释器下验证全部依赖；普通 recovery-plan 回到原不可变安装执行，隔离救援则使用重新审阅的独立安装。当前计划为 `omni-release-plan-3`，完整声明 source_stop、恢复策略、源指纹和隔离授权；旧计划需重新生成。
 
-要求相同实例 ID、平台、服务目标和所有者；同 schema 直接准备，跨 schema 必须携带完整迁移路线。当前V25起的前向准备、新目录迁移和严格旧快照恢复已接源码，见[结构升级合同](V2_SCHEMA_UPGRADE.md)。两份安装必须包含内容一致的 `domain/release_fence.py`、`adapters/platform/paths.py`、`domain/service_activation.py` 和 `adapters/platform/service_launch.py`，以证明共同采用目录闸门与交换激活消费者。新增合同后须重新构建并捕获两份固定安装；没有该合同的历史 V2 安装、闸门实现变化或未批准的跨 schema 升级会被拒绝，不能据当前实现宣称任意版本均可升级。完整跨 schema 服务协调、跨管理员版本与闸门协议演进仍待扩展。
+要求相同实例 ID、平台、服务目标和所有者；同 schema 直接准备，跨 schema 必须携带完整迁移路线。当前V25起的前向准备、新目录迁移和严格旧快照恢复已接源码，见[结构升级合同](V2_SCHEMA_UPGRADE.md)。两份安装必须包含内容一致的 `domain/release_fence.py`、`adapters/platform/runtime/paths.py`、`domain/service_activation.py` 和 `adapters/platform/service_launch.py`，以证明共同采用目录闸门与交换激活消费者。新增合同后须重新构建并捕获两份固定安装；没有该合同的历史 V2 安装、闸门实现变化或未批准的跨 schema 升级会被拒绝，不能据当前实现宣称任意版本均可升级。完整跨 schema 服务协调、跨管理员版本与闸门协议演进仍待扩展。
 
 旧 home、新 home、备份、维护日志、部署包、程序与环境目录不得重叠；新 home、备份、日志和目标部署包均不能覆盖既有内容。工作目录和凭据引用仍由已审阅的服务请求显式指定。整个过程保留旧 home 的数据库、对象和凭据，不把数据文件搬入程序目录。
 

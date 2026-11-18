@@ -11,7 +11,7 @@ import pytest
 from test_v2_media_transport import Worker
 
 from omni.adapters.media import MediaProcessor
-from omni.adapters.platform.processes import OwnedProcess
+from omni.adapters.platform.runtime.processes import OwnedProcess
 from omni.domain.contracts import BusinessError
 
 

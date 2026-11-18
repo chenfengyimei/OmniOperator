@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "2dc90ed8ff4074fc330dccad76866d9f0a910f3d974b308414ea20cef6082079",
+  "source_sha256": "2d2a5b4de1d56db54dc6de52a701e9b1c7180625145a3f20ebaaa93253fbc654",
   "modules": [
     {
       "id": "v2-domain",
@@ -312,7 +312,6 @@
         "agent/src/omni/adapters/platform/desktop_capture.py",
         "agent/src/omni/adapters/platform/desktop_control.py",
         "agent/src/omni/adapters/platform/desktop_native.py",
-        "agent/src/omni/adapters/platform/event_loop.py",
         "agent/src/omni/adapters/platform/exchange_deployments.py",
         "agent/src/omni/adapters/platform/exchange_files.py",
         "agent/src/omni/adapters/platform/linux_atspi.py",
@@ -370,14 +369,19 @@
         "agent/src/omni/adapters/platform/macos_helper.py",
         "agent/src/omni/adapters/platform/macos_service.py",
         "agent/src/omni/adapters/platform/macos_service_state.py",
-        "agent/src/omni/adapters/platform/paths.py",
-        "agent/src/omni/adapters/platform/permissions.py",
         "agent/src/omni/adapters/platform/portal.py",
-        "agent/src/omni/adapters/platform/processes.py",
-        "agent/src/omni/adapters/platform/publication.py",
         "agent/src/omni/adapters/platform/release_files.py",
-        "agent/src/omni/adapters/platform/runtime_identity.py",
-        "agent/src/omni/adapters/platform/secrets.py",
+        "agent/src/omni/adapters/platform/runtime/__init__.py",
+        "agent/src/omni/adapters/platform/runtime/event_loop.py",
+        "agent/src/omni/adapters/platform/runtime/paths.py",
+        "agent/src/omni/adapters/platform/runtime/permissions.py",
+        "agent/src/omni/adapters/platform/runtime/processes.py",
+        "agent/src/omni/adapters/platform/runtime/publication.py",
+        "agent/src/omni/adapters/platform/runtime/runtime_identity.py",
+        "agent/src/omni/adapters/platform/runtime/secrets.py",
+        "agent/src/omni/adapters/platform/runtime/terminal.py",
+        "agent/src/omni/adapters/platform/runtime/workbench.py",
+        "agent/src/omni/adapters/platform/runtime/workspaces.py",
         "agent/src/omni/adapters/platform/service_admin.py",
         "agent/src/omni/adapters/platform/service_admin_bundle.py",
         "agent/src/omni/adapters/platform/service_admin_client.py",
@@ -393,7 +397,6 @@
         "agent/src/omni/adapters/platform/service_registration.py",
         "agent/src/omni/adapters/platform/service_templates.py",
         "agent/src/omni/adapters/platform/systemd_state.py",
-        "agent/src/omni/adapters/platform/terminal.py",
         "agent/src/omni/adapters/platform/wheel_artifact.py",
         "agent/src/omni/adapters/platform/wheel_backup.py",
         "agent/src/omni/adapters/platform/wheel_environment.py",
@@ -405,8 +408,6 @@
         "agent/src/omni/adapters/platform/wheel_status.py",
         "agent/src/omni/adapters/platform/wheel_switch.py",
         "agent/src/omni/adapters/platform/wheel_uninstall.py",
-        "agent/src/omni/adapters/platform/workbench.py",
-        "agent/src/omni/adapters/platform/workspaces.py",
         "agent/src/omni/adapters/primitives.py",
         "agent/src/omni/adapters/process_diagnostics.py",
         "agent/src/omni/adapters/skill_packages.py",
@@ -459,7 +460,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 65605,
+      "lines": 65611,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -2410,7 +2411,7 @@
         "omni.adapters.android_unicode",
         "omni.adapters.object_store",
         "omni.adapters.platform.desktop_capture",
-        "omni.adapters.platform.permissions",
+        "omni.adapters.platform.runtime.permissions",
         "omni.adapters.workers.client",
         "omni.application.ports",
         "omni.domain.android",
@@ -3136,8 +3137,8 @@
         "omni.adapters.diagnostics",
         "omni.adapters.log_query",
         "omni.adapters.object_store",
-        "omni.adapters.platform.paths",
-        "omni.adapters.platform.permissions",
+        "omni.adapters.platform.runtime.paths",
+        "omni.adapters.platform.runtime.permissions",
         "omni.application.ports",
         "omni.domain.contracts"
       ],
@@ -8928,7 +8929,7 @@
       "python_module": "omni.adapters.local_vectors",
       "lines": 287,
       "imports": [
-        "omni.adapters.platform.processes",
+        "omni.adapters.platform.runtime.processes",
         "omni.adapters.vector_files",
         "omni.application.ports",
         "omni.domain.contracts",
@@ -10067,7 +10068,7 @@
       "python_module": "omni.adapters.mcp.stdio",
       "lines": 321,
       "imports": [
-        "omni.adapters.platform.processes",
+        "omni.adapters.platform.runtime.processes",
         "omni.domain.mcp"
       ],
       "symbols": [
@@ -10243,7 +10244,7 @@
       "python_module": "omni.adapters.media",
       "lines": 330,
       "imports": [
-        "omni.adapters.platform.processes",
+        "omni.adapters.platform.runtime.processes",
         "omni.domain.contracts",
         "omni.domain.media"
       ],
@@ -10857,7 +10858,7 @@
       "lines": 368,
       "imports": [
         "omni.adapters.diagnostics",
-        "omni.adapters.platform.processes",
+        "omni.adapters.platform.runtime.processes",
         "omni.application.ports",
         "omni.domain.contracts",
         "omni.domain.credential_ipc",
@@ -12036,7 +12037,7 @@
       "lines": 56,
       "imports": [
         "omni.adapters.persistence.offline_plans",
-        "omni.adapters.platform.paths",
+        "omni.adapters.platform.runtime.paths",
         "omni.application.ports",
         "omni.domain.audit_retention"
       ],
@@ -14517,7 +14518,7 @@
       "lines": 56,
       "imports": [
         "omni.adapters.persistence.offline_plans",
-        "omni.adapters.platform.paths",
+        "omni.adapters.platform.runtime.paths",
         "omni.application.ports",
         "omni.domain.event_retention"
       ],
@@ -14828,7 +14829,7 @@
       "lines": 40,
       "imports": [
         "omni.adapters.persistence.offline_plans",
-        "omni.adapters.platform.paths",
+        "omni.adapters.platform.runtime.paths",
         "omni.application.ports",
         "omni.domain.retention"
       ],
@@ -16045,8 +16046,8 @@
         "omni.adapters.persistence.object_inventory",
         "omni.adapters.persistence.sqlalchemy_access",
         "omni.adapters.persistence.sqlite_access",
-        "omni.adapters.platform.paths",
-        "omni.adapters.platform.permissions",
+        "omni.adapters.platform.runtime.paths",
+        "omni.adapters.platform.runtime.permissions",
         "omni.application.ports",
         "omni.domain.contracts"
       ],
@@ -19373,7 +19374,7 @@
         "omni.adapters.persistence.database",
         "omni.adapters.persistence.maintenance",
         "omni.adapters.persistence.object_inventory",
-        "omni.adapters.platform.paths",
+        "omni.adapters.platform.runtime.paths",
         "omni.adapters.primitives",
         "omni.application.ports",
         "omni.domain.contracts",
@@ -19714,8 +19715,8 @@
         "omni.adapters.persistence.database",
         "omni.adapters.persistence.maintenance",
         "omni.adapters.persistence.operations_read",
-        "omni.adapters.platform.paths",
-        "omni.adapters.platform.permissions",
+        "omni.adapters.platform.runtime.paths",
+        "omni.adapters.platform.runtime.permissions",
         "omni.adapters.primitives",
         "omni.application.ports",
         "omni.domain.contracts"
@@ -20402,7 +20403,7 @@
       "lines": 40,
       "imports": [
         "omni.adapters.persistence.offline_plans",
-        "omni.adapters.platform.paths",
+        "omni.adapters.platform.runtime.paths",
         "omni.application.ports",
         "omni.domain.reference_release"
       ],
@@ -22142,7 +22143,7 @@
         "omni.adapters.persistence.object_inventory",
         "omni.adapters.persistence.sqlalchemy_access",
         "omni.adapters.platform.deployment_files",
-        "omni.adapters.platform.paths",
+        "omni.adapters.platform.runtime.paths",
         "omni.domain.contracts",
         "omni.domain.releases",
         "omni.domain.schema_upgrade"
@@ -22938,7 +22939,7 @@
       "lines": 131,
       "imports": [
         "omni.adapters.platform.dependency_bundle",
-        "omni.adapters.platform.permissions",
+        "omni.adapters.platform.runtime.permissions",
         "omni.domain.contracts"
       ],
       "symbols": [
@@ -23567,7 +23568,7 @@
       "python_module": "omni.adapters.platform.dependency_bundle",
       "lines": 252,
       "imports": [
-        "omni.adapters.platform.permissions",
+        "omni.adapters.platform.runtime.permissions",
         "omni.domain.contracts"
       ],
       "symbols": [
@@ -23696,8 +23697,8 @@
         "omni.adapters.build_identity",
         "omni.adapters.object_store",
         "omni.adapters.persistence.migration_config",
-        "omni.adapters.platform.permissions",
-        "omni.adapters.platform.publication",
+        "omni.adapters.platform.runtime.permissions",
+        "omni.adapters.platform.runtime.publication",
         "omni.adapters.platform.service_templates",
         "omni.domain.contracts",
         "omni.domain.service_deployment"
@@ -24114,7 +24115,7 @@
       "imports": [
         "omni.adapters.platform",
         "omni.adapters.platform.linux_lease_client",
-        "omni.adapters.platform.processes",
+        "omni.adapters.platform.runtime.processes",
         "omni.application.ports",
         "omni.domain.contracts",
         "omni.domain.desktop",
@@ -24607,7 +24608,7 @@
       "lines": 407,
       "imports": [
         "omni.adapters.platform.desktop",
-        "omni.adapters.platform.processes",
+        "omni.adapters.platform.runtime.processes",
         "omni.application.ports",
         "omni.domain.contracts",
         "omni.domain.desktop_control",
@@ -25120,73 +25121,6 @@
       "summary": "Read-only desktop diagnostics and process/window identities; never reads UI contents or performs input."
     },
     {
-      "path": "agent/src/omni/adapters/platform/event_loop.py",
-      "module": "v2-adapters",
-      "python_module": "omni.adapters.platform.event_loop",
-      "lines": 105,
-      "imports": [],
-      "symbols": [
-        {
-          "name": "_Socket",
-          "line": 16,
-          "kind": "class"
-        },
-        {
-          "name": "_Socket.close",
-          "line": 17,
-          "kind": "function",
-          "parameters": [
-            "self"
-          ],
-          "annotations": {}
-        },
-        {
-          "name": "_Server",
-          "line": 20,
-          "kind": "class"
-        },
-        {
-          "name": "_Server._detach",
-          "line": 21,
-          "kind": "function",
-          "parameters": [
-            "self"
-          ],
-          "annotations": {}
-        },
-        {
-          "name": "_Connection",
-          "line": 24,
-          "kind": "class"
-        },
-        {
-          "name": "finish_connection_loss",
-          "line": 30,
-          "kind": "function",
-          "parameters": [
-            "connection",
-            "original",
-            "error",
-            "shutdown_code"
-          ],
-          "annotations": {
-            "connection": "_Connection",
-            "original": "Callable[[BaseException | None], None]",
-            "error": "BaseException | None",
-            "shutdown_code": "CodeType"
-          }
-        },
-        {
-          "name": "create_event_loop",
-          "line": 102,
-          "kind": "function",
-          "parameters": [],
-          "annotations": {}
-        }
-      ],
-      "summary": "Own the Windows TCP reset workaround without patching global asyncio classes."
-    },
-    {
       "path": "agent/src/omni/adapters/platform/exchange_deployments.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.exchange_deployments",
@@ -25241,8 +25175,8 @@
       "imports": [
         "omni.adapters.object_store",
         "omni.adapters.platform.deployment_files",
-        "omni.adapters.platform.paths",
-        "omni.adapters.platform.permissions",
+        "omni.adapters.platform.runtime.paths",
+        "omni.adapters.platform.runtime.permissions",
         "omni.application.ports",
         "omni.domain.contracts",
         "omni.domain.releases",
@@ -29226,7 +29160,7 @@
       "python_module": "omni.adapters.platform.linux_lease_client",
       "lines": 335,
       "imports": [
-        "omni.adapters.platform.processes",
+        "omni.adapters.platform.runtime.processes",
         "omni.domain.contracts",
         "omni.domain.desktop",
         "omni.domain.linux_window_leases"
@@ -34463,211 +34397,6 @@
       "summary": "Pure bounded launchd definition and override comparison shared by owner and administrator ports."
     },
     {
-      "path": "agent/src/omni/adapters/platform/paths.py",
-      "module": "v2-adapters",
-      "python_module": "omni.adapters.platform.paths",
-      "lines": 157,
-      "imports": [
-        "omni.adapters.platform.deployment_files",
-        "omni.adapters.platform.permissions",
-        "omni.domain.contracts",
-        "omni.domain.release_fence"
-      ],
-      "symbols": [
-        {
-          "name": "InstancePaths",
-          "line": 14,
-          "kind": "class"
-        },
-        {
-          "name": "InstancePaths.resolve",
-          "line": 18,
-          "kind": "function",
-          "parameters": [
-            "cls",
-            "home"
-          ],
-          "annotations": {
-            "home": "Path | None"
-          }
-        },
-        {
-          "name": "InstancePaths.database",
-          "line": 23,
-          "kind": "function",
-          "parameters": [
-            "self"
-          ],
-          "annotations": {}
-        },
-        {
-          "name": "InstancePaths.logs",
-          "line": 27,
-          "kind": "function",
-          "parameters": [
-            "self"
-          ],
-          "annotations": {}
-        },
-        {
-          "name": "InstancePaths.objects",
-          "line": 31,
-          "kind": "function",
-          "parameters": [
-            "self"
-          ],
-          "annotations": {}
-        },
-        {
-          "name": "InstancePaths.control",
-          "line": 35,
-          "kind": "function",
-          "parameters": [
-            "self"
-          ],
-          "annotations": {}
-        },
-        {
-          "name": "InstancePaths.initialize",
-          "line": 38,
-          "kind": "function",
-          "parameters": [
-            "self"
-          ],
-          "annotations": {}
-        },
-        {
-          "name": "PrivateFileLock",
-          "line": 63,
-          "kind": "class"
-        },
-        {
-          "name": "PrivateFileLock.__init__",
-          "line": 66,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "path"
-          ],
-          "annotations": {
-            "path": "Path"
-          }
-        },
-        {
-          "name": "PrivateFileLock._admit",
-          "line": 70,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "release"
-          ],
-          "annotations": {
-            "release": "tuple[str, str] | None"
-          }
-        },
-        {
-          "name": "PrivateFileLock.acquire",
-          "line": 73,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "release"
-          ],
-          "annotations": {
-            "release": "tuple[str, str] | None"
-          }
-        },
-        {
-          "name": "PrivateFileLock.close",
-          "line": 117,
-          "kind": "function",
-          "parameters": [
-            "self"
-          ],
-          "annotations": {}
-        },
-        {
-          "name": "InstanceLock",
-          "line": 135,
-          "kind": "class"
-        },
-        {
-          "name": "InstanceLock.__init__",
-          "line": 138,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "paths"
-          ],
-          "annotations": {
-            "paths": "InstancePaths"
-          }
-        },
-        {
-          "name": "InstanceLock._admit",
-          "line": 141,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "release"
-          ],
-          "annotations": {
-            "release": "tuple[str, str] | None"
-          }
-        }
-      ],
-      "summary": "Resolve writable instance paths independently from installed code and cwd."
-    },
-    {
-      "path": "agent/src/omni/adapters/platform/permissions.py",
-      "module": "v2-adapters",
-      "python_module": "omni.adapters.platform.permissions",
-      "lines": 159,
-      "imports": [],
-      "symbols": [
-        {
-          "name": "assert_private",
-          "line": 10,
-          "kind": "function",
-          "parameters": [
-            "path"
-          ],
-          "annotations": {
-            "path": "Path"
-          }
-        },
-        {
-          "name": "assert_private.SidAndAttributes",
-          "line": 24,
-          "kind": "class"
-        },
-        {
-          "name": "assert_private.Acl",
-          "line": 27,
-          "kind": "class"
-        },
-        {
-          "name": "assert_private.AceHeader",
-          "line": 36,
-          "kind": "class"
-        },
-        {
-          "name": "private_path",
-          "line": 129,
-          "kind": "function",
-          "parameters": [
-            "path",
-            "directory"
-          ],
-          "annotations": {
-            "path": "Path",
-            "directory": "bool"
-          }
-        }
-      ],
-      "summary": "Current-owner private files on POSIX and NTFS; never changes ancestor ACLs."
-    },
-    {
       "path": "agent/src/omni/adapters/platform/portal.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.portal",
@@ -34675,7 +34404,7 @@
       "imports": [
         "omni.adapters.platform",
         "omni.adapters.platform.desktop",
-        "omni.adapters.platform.processes",
+        "omni.adapters.platform.runtime.processes",
         "omni.application.ports",
         "omni.domain.contracts",
         "omni.domain.desktop",
@@ -35017,168 +34746,6 @@
       "summary": "Owned long-lived Portal helper sessions with shared desktop capacity and bounded metadata pipes; no pixel or input dispatch."
     },
     {
-      "path": "agent/src/omni/adapters/platform/processes.py",
-      "module": "v2-adapters",
-      "python_module": "omni.adapters.platform.processes",
-      "lines": 214,
-      "imports": [],
-      "symbols": [
-        {
-          "name": "WindowsJob",
-          "line": 17,
-          "kind": "class"
-        },
-        {
-          "name": "WindowsJob.__init__",
-          "line": 20,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "pid"
-          ],
-          "annotations": {
-            "pid": "int"
-          }
-        },
-        {
-          "name": "WindowsJob.__init__.Basic",
-          "line": 25,
-          "kind": "class"
-        },
-        {
-          "name": "WindowsJob.__init__.IO",
-          "line": 38,
-          "kind": "class"
-        },
-        {
-          "name": "WindowsJob.__init__.Extended",
-          "line": 44,
-          "kind": "class"
-        },
-        {
-          "name": "WindowsJob.terminate",
-          "line": 86,
-          "kind": "function",
-          "parameters": [
-            "self"
-          ],
-          "annotations": {}
-        },
-        {
-          "name": "WindowsJob.close",
-          "line": 89,
-          "kind": "function",
-          "parameters": [
-            "self"
-          ],
-          "annotations": {}
-        },
-        {
-          "name": "WindowsJob.active_count",
-          "line": 94,
-          "kind": "function",
-          "parameters": [
-            "self"
-          ],
-          "annotations": {}
-        },
-        {
-          "name": "WindowsJob.active_count.Accounting",
-          "line": 95,
-          "kind": "class"
-        },
-        {
-          "name": "OwnedProcess",
-          "line": 116,
-          "kind": "class"
-        },
-        {
-          "name": "OwnedProcess.spawn",
-          "line": 123,
-          "kind": "function",
-          "parameters": [
-            "cls",
-            "argv",
-            "stdin",
-            "stdout",
-            "stderr",
-            "limit",
-            "env",
-            "cwd"
-          ],
-          "annotations": {
-            "argv": "list[str]",
-            "stdin": "int | IO[Any] | None",
-            "stdout": "int | IO[Any] | None",
-            "stderr": "int | IO[Any] | None",
-            "limit": "int",
-            "env": "Mapping[str, str] | None",
-            "cwd": "str | None"
-          }
-        },
-        {
-          "name": "OwnedProcess.terminate",
-          "line": 157,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "timeout_s"
-          ],
-          "annotations": {
-            "timeout_s": "float"
-          }
-        },
-        {
-          "name": "OwnedProcess._group_quiet",
-          "line": 199,
-          "kind": "function",
-          "parameters": [
-            "self"
-          ],
-          "annotations": {}
-        }
-      ],
-      "summary": "Owned process groups and Windows Job Objects. Never terminate an unverified PID."
-    },
-    {
-      "path": "agent/src/omni/adapters/platform/publication.py",
-      "module": "v2-adapters",
-      "python_module": "omni.adapters.platform.publication",
-      "lines": 70,
-      "imports": [
-        "omni.adapters.object_store"
-      ],
-      "symbols": [
-        {
-          "name": "_windows_move",
-          "line": 15,
-          "kind": "function",
-          "parameters": [
-            "source",
-            "destination"
-          ],
-          "annotations": {
-            "source": "Path",
-            "destination": "Path"
-          }
-        },
-        {
-          "name": "publish_directory",
-          "line": 50,
-          "kind": "function",
-          "parameters": [
-            "source",
-            "destination"
-          ],
-          "annotations": {
-            "source": "Path",
-            "destination": "Path"
-          }
-        }
-      ],
-      "summary": "Atomic, exclusive directory publication on the supported hosts; never replaces an existing target."
-    },
-    {
       "path": "agent/src/omni/adapters/platform/release_files.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.release_files",
@@ -35187,8 +34754,8 @@
         "omni.adapters.object_store",
         "omni.adapters.platform.deployment_files",
         "omni.adapters.platform.exchange_files",
-        "omni.adapters.platform.paths",
-        "omni.adapters.platform.permissions",
+        "omni.adapters.platform.runtime.paths",
+        "omni.adapters.platform.runtime.permissions",
         "omni.application.ports",
         "omni.domain.contracts",
         "omni.domain.recovery_authority",
@@ -35490,14 +35057,457 @@
       "summary": "Private release journals, installation bytes and startup fences; no database or native registration."
     },
     {
-      "path": "agent/src/omni/adapters/platform/runtime_identity.py",
+      "path": "agent/src/omni/adapters/platform/runtime/__init__.py",
       "module": "v2-adapters",
-      "python_module": "omni.adapters.platform.runtime_identity",
-      "lines": 237,
+      "python_module": "omni.adapters.platform.runtime",
+      "lines": 1,
+      "imports": [],
+      "symbols": [],
+      "summary": "V2 runtime adapters; importing never probes the platform."
+    },
+    {
+      "path": "agent/src/omni/adapters/platform/runtime/event_loop.py",
+      "module": "v2-adapters",
+      "python_module": "omni.adapters.platform.runtime.event_loop",
+      "lines": 105,
+      "imports": [],
+      "symbols": [
+        {
+          "name": "_Socket",
+          "line": 16,
+          "kind": "class"
+        },
+        {
+          "name": "_Socket.close",
+          "line": 17,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "_Server",
+          "line": 20,
+          "kind": "class"
+        },
+        {
+          "name": "_Server._detach",
+          "line": 21,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "_Connection",
+          "line": 24,
+          "kind": "class"
+        },
+        {
+          "name": "finish_connection_loss",
+          "line": 30,
+          "kind": "function",
+          "parameters": [
+            "connection",
+            "original",
+            "error",
+            "shutdown_code"
+          ],
+          "annotations": {
+            "connection": "_Connection",
+            "original": "Callable[[BaseException | None], None]",
+            "error": "BaseException | None",
+            "shutdown_code": "CodeType"
+          }
+        },
+        {
+          "name": "create_event_loop",
+          "line": 102,
+          "kind": "function",
+          "parameters": [],
+          "annotations": {}
+        }
+      ],
+      "summary": "Own the Windows TCP reset workaround without patching global asyncio classes."
+    },
+    {
+      "path": "agent/src/omni/adapters/platform/runtime/paths.py",
+      "module": "v2-adapters",
+      "python_module": "omni.adapters.platform.runtime.paths",
+      "lines": 157,
+      "imports": [
+        "omni.adapters.platform.deployment_files",
+        "omni.adapters.platform.runtime.permissions",
+        "omni.domain.contracts",
+        "omni.domain.release_fence"
+      ],
+      "symbols": [
+        {
+          "name": "InstancePaths",
+          "line": 14,
+          "kind": "class"
+        },
+        {
+          "name": "InstancePaths.resolve",
+          "line": 18,
+          "kind": "function",
+          "parameters": [
+            "cls",
+            "home"
+          ],
+          "annotations": {
+            "home": "Path | None"
+          }
+        },
+        {
+          "name": "InstancePaths.database",
+          "line": 23,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "InstancePaths.logs",
+          "line": 27,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "InstancePaths.objects",
+          "line": 31,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "InstancePaths.control",
+          "line": 35,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "InstancePaths.initialize",
+          "line": 38,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "PrivateFileLock",
+          "line": 63,
+          "kind": "class"
+        },
+        {
+          "name": "PrivateFileLock.__init__",
+          "line": 66,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "path"
+          ],
+          "annotations": {
+            "path": "Path"
+          }
+        },
+        {
+          "name": "PrivateFileLock._admit",
+          "line": 70,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "release"
+          ],
+          "annotations": {
+            "release": "tuple[str, str] | None"
+          }
+        },
+        {
+          "name": "PrivateFileLock.acquire",
+          "line": 73,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "release"
+          ],
+          "annotations": {
+            "release": "tuple[str, str] | None"
+          }
+        },
+        {
+          "name": "PrivateFileLock.close",
+          "line": 117,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "InstanceLock",
+          "line": 135,
+          "kind": "class"
+        },
+        {
+          "name": "InstanceLock.__init__",
+          "line": 138,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "paths"
+          ],
+          "annotations": {
+            "paths": "InstancePaths"
+          }
+        },
+        {
+          "name": "InstanceLock._admit",
+          "line": 141,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "release"
+          ],
+          "annotations": {
+            "release": "tuple[str, str] | None"
+          }
+        }
+      ],
+      "summary": "Resolve writable instance paths independently from installed code and cwd."
+    },
+    {
+      "path": "agent/src/omni/adapters/platform/runtime/permissions.py",
+      "module": "v2-adapters",
+      "python_module": "omni.adapters.platform.runtime.permissions",
+      "lines": 159,
+      "imports": [],
+      "symbols": [
+        {
+          "name": "assert_private",
+          "line": 10,
+          "kind": "function",
+          "parameters": [
+            "path"
+          ],
+          "annotations": {
+            "path": "Path"
+          }
+        },
+        {
+          "name": "assert_private.SidAndAttributes",
+          "line": 24,
+          "kind": "class"
+        },
+        {
+          "name": "assert_private.Acl",
+          "line": 27,
+          "kind": "class"
+        },
+        {
+          "name": "assert_private.AceHeader",
+          "line": 36,
+          "kind": "class"
+        },
+        {
+          "name": "private_path",
+          "line": 129,
+          "kind": "function",
+          "parameters": [
+            "path",
+            "directory"
+          ],
+          "annotations": {
+            "path": "Path",
+            "directory": "bool"
+          }
+        }
+      ],
+      "summary": "Current-owner private files on POSIX and NTFS; never changes ancestor ACLs."
+    },
+    {
+      "path": "agent/src/omni/adapters/platform/runtime/processes.py",
+      "module": "v2-adapters",
+      "python_module": "omni.adapters.platform.runtime.processes",
+      "lines": 214,
+      "imports": [],
+      "symbols": [
+        {
+          "name": "WindowsJob",
+          "line": 17,
+          "kind": "class"
+        },
+        {
+          "name": "WindowsJob.__init__",
+          "line": 20,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "pid"
+          ],
+          "annotations": {
+            "pid": "int"
+          }
+        },
+        {
+          "name": "WindowsJob.__init__.Basic",
+          "line": 25,
+          "kind": "class"
+        },
+        {
+          "name": "WindowsJob.__init__.IO",
+          "line": 38,
+          "kind": "class"
+        },
+        {
+          "name": "WindowsJob.__init__.Extended",
+          "line": 44,
+          "kind": "class"
+        },
+        {
+          "name": "WindowsJob.terminate",
+          "line": 86,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "WindowsJob.close",
+          "line": 89,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "WindowsJob.active_count",
+          "line": 94,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "WindowsJob.active_count.Accounting",
+          "line": 95,
+          "kind": "class"
+        },
+        {
+          "name": "OwnedProcess",
+          "line": 116,
+          "kind": "class"
+        },
+        {
+          "name": "OwnedProcess.spawn",
+          "line": 123,
+          "kind": "function",
+          "parameters": [
+            "cls",
+            "argv",
+            "stdin",
+            "stdout",
+            "stderr",
+            "limit",
+            "env",
+            "cwd"
+          ],
+          "annotations": {
+            "argv": "list[str]",
+            "stdin": "int | IO[Any] | None",
+            "stdout": "int | IO[Any] | None",
+            "stderr": "int | IO[Any] | None",
+            "limit": "int",
+            "env": "Mapping[str, str] | None",
+            "cwd": "str | None"
+          }
+        },
+        {
+          "name": "OwnedProcess.terminate",
+          "line": 157,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "timeout_s"
+          ],
+          "annotations": {
+            "timeout_s": "float"
+          }
+        },
+        {
+          "name": "OwnedProcess._group_quiet",
+          "line": 199,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        }
+      ],
+      "summary": "Owned process groups and Windows Job Objects. Never terminate an unverified PID."
+    },
+    {
+      "path": "agent/src/omni/adapters/platform/runtime/publication.py",
+      "module": "v2-adapters",
+      "python_module": "omni.adapters.platform.runtime.publication",
+      "lines": 70,
+      "imports": [
+        "omni.adapters.object_store"
+      ],
+      "symbols": [
+        {
+          "name": "_windows_move",
+          "line": 15,
+          "kind": "function",
+          "parameters": [
+            "source",
+            "destination"
+          ],
+          "annotations": {
+            "source": "Path",
+            "destination": "Path"
+          }
+        },
+        {
+          "name": "publish_directory",
+          "line": 50,
+          "kind": "function",
+          "parameters": [
+            "source",
+            "destination"
+          ],
+          "annotations": {
+            "source": "Path",
+            "destination": "Path"
+          }
+        }
+      ],
+      "summary": "Atomic, exclusive directory publication on the supported hosts; never replaces an existing target."
+    },
+    {
+      "path": "agent/src/omni/adapters/platform/runtime/runtime_identity.py",
+      "module": "v2-adapters",
+      "python_module": "omni.adapters.platform.runtime.runtime_identity",
+      "lines": 242,
       "imports": [
         "omni.adapters.object_store",
         "omni.adapters.platform.deployment_files",
-        "omni.adapters.platform.permissions",
+        "omni.adapters.platform.runtime.permissions",
         "omni.application.ports",
         "omni.domain.contracts",
         "omni.domain.service_control"
@@ -35648,7 +35658,7 @@
         },
         {
           "name": "RuntimeIdentityFiles.request_drain",
-          "line": 179,
+          "line": 184,
           "kind": "function",
           "parameters": [
             "self",
@@ -35664,7 +35674,7 @@
         },
         {
           "name": "RuntimeIdentityFiles.stop_accepting",
-          "line": 198,
+          "line": 203,
           "kind": "function",
           "parameters": [
             "self"
@@ -35673,7 +35683,7 @@
         },
         {
           "name": "RuntimeIdentityFiles.close",
-          "line": 204,
+          "line": 209,
           "kind": "function",
           "parameters": [
             "self",
@@ -35687,13 +35697,13 @@
       "summary": "Publish private boot identity while the instance lock is held; never controls another process."
     },
     {
-      "path": "agent/src/omni/adapters/platform/secrets.py",
+      "path": "agent/src/omni/adapters/platform/runtime/secrets.py",
       "module": "v2-adapters",
-      "python_module": "omni.adapters.platform.secrets",
+      "python_module": "omni.adapters.platform.runtime.secrets",
       "lines": 159,
       "imports": [
         "omni.adapters.object_store",
-        "omni.adapters.platform.permissions",
+        "omni.adapters.platform.runtime.permissions",
         "omni.domain.contracts",
         "omni.domain.credentials"
       ],
@@ -35840,6 +35850,655 @@
         }
       ],
       "summary": "Explicit OS credential store or externally keyed encrypted vault; no plaintext fallback."
+    },
+    {
+      "path": "agent/src/omni/adapters/platform/runtime/terminal.py",
+      "module": "v2-adapters",
+      "python_module": "omni.adapters.platform.runtime.terminal",
+      "lines": 588,
+      "imports": [
+        "omni.adapters.platform.runtime.processes",
+        "omni.adapters.workers.terminal",
+        "omni.domain.contracts"
+      ],
+      "symbols": [
+        {
+          "name": "_profiles",
+          "line": 33,
+          "kind": "function",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "_error",
+          "line": 43,
+          "kind": "function",
+          "parameters": [
+            "code",
+            "message"
+          ],
+          "annotations": {
+            "code": "str",
+            "message": "str"
+          }
+        },
+        {
+          "name": "_decode",
+          "line": 47,
+          "kind": "function",
+          "parameters": [
+            "raw"
+          ],
+          "annotations": {
+            "raw": "bytes"
+          }
+        },
+        {
+          "name": "_decode.invalid_constant",
+          "line": 48,
+          "kind": "function",
+          "parameters": [
+            "value"
+          ],
+          "annotations": {
+            "value": "str"
+          }
+        },
+        {
+          "name": "_decode.pairs",
+          "line": 51,
+          "kind": "function",
+          "parameters": [
+            "values"
+          ],
+          "annotations": {
+            "values": "list[tuple[str, Any]]"
+          }
+        },
+        {
+          "name": "_environment",
+          "line": 68,
+          "kind": "function",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "TerminalBackend",
+          "line": 96,
+          "kind": "class"
+        },
+        {
+          "name": "TerminalBackend.__init__",
+          "line": 99,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "workspace_validator",
+            "shell_profiles"
+          ],
+          "annotations": {
+            "workspace_validator": "Callable[[str], Any] | None",
+            "shell_profiles": "dict[str, tuple[str, list[str]]] | None"
+          }
+        },
+        {
+          "name": "TerminalBackend.closing",
+          "line": 126,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "TerminalBackend.closing",
+          "line": 130,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "value"
+          ],
+          "annotations": {
+            "value": "bool"
+          }
+        },
+        {
+          "name": "TerminalBackend.hosts",
+          "line": 134,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "TerminalBackend.capabilities",
+          "line": 137,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "TerminalBackend.health",
+          "line": 152,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "TerminalBackend.io",
+          "line": 160,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "operation",
+            "closing"
+          ],
+          "annotations": {
+            "operation": "Callable[[], T]",
+            "closing": "bool"
+          }
+        },
+        {
+          "name": "TerminalBackend.track",
+          "line": 164,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "task"
+          ],
+          "annotations": {
+            "task": "Awaitable[T]"
+          }
+        },
+        {
+          "name": "TerminalBackend.admit",
+          "line": 168,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "TerminalBackend._admit",
+          "line": 172,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "TerminalBackend._track",
+          "line": 178,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "coroutine"
+          ],
+          "annotations": {
+            "coroutine": "Awaitable[T]"
+          }
+        },
+        {
+          "name": "TerminalBackend._track.done",
+          "line": 182,
+          "kind": "function",
+          "parameters": [
+            "completed"
+          ],
+          "annotations": {
+            "completed": "asyncio.Task[Any]"
+          }
+        },
+        {
+          "name": "TerminalBackend._io",
+          "line": 190,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "function",
+            "closing"
+          ],
+          "annotations": {
+            "function": "Callable[[], T]",
+            "closing": "bool"
+          }
+        },
+        {
+          "name": "TerminalBackend._prepare",
+          "line": 200,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "shell",
+            "cwd"
+          ],
+          "annotations": {
+            "shell": "str",
+            "cwd": "str"
+          }
+        },
+        {
+          "name": "TerminalBackend.prepare",
+          "line": 226,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "shell",
+            "cwd"
+          ],
+          "annotations": {
+            "shell": "str",
+            "cwd": "str"
+          }
+        },
+        {
+          "name": "TerminalBackend.open",
+          "line": 231,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "spec",
+            "before_dispatch"
+          ],
+          "annotations": {
+            "spec": "Record",
+            "before_dispatch": "Callable[[], Awaitable[None]] | None"
+          }
+        },
+        {
+          "name": "TerminalBackend.close",
+          "line": 248,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "timeout_s"
+          ],
+          "annotations": {
+            "timeout_s": "float"
+          }
+        },
+        {
+          "name": "TerminalProcess",
+          "line": 264,
+          "kind": "class"
+        },
+        {
+          "name": "TerminalProcess.__init__",
+          "line": 265,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "backend",
+            "spec"
+          ],
+          "annotations": {
+            "backend": "TerminalBackend",
+            "spec": "Record"
+          }
+        },
+        {
+          "name": "TerminalProcess.closing",
+          "line": 290,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "TerminalProcess.closing",
+          "line": 294,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "value"
+          ],
+          "annotations": {
+            "value": "bool"
+          }
+        },
+        {
+          "name": "TerminalProcess.reclaimed",
+          "line": 298,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "TerminalProcess.starting",
+          "line": 302,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "TerminalProcess.starting",
+          "line": 306,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "value"
+          ],
+          "annotations": {
+            "value": "asyncio.Task[TerminalProcess] | None"
+          }
+        },
+        {
+          "name": "TerminalProcess.start",
+          "line": 309,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "before_dispatch"
+          ],
+          "annotations": {
+            "before_dispatch": "Callable[[], Awaitable[None]] | None"
+          }
+        },
+        {
+          "name": "TerminalProcess.ensure_cleanup",
+          "line": 313,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "timeout_s"
+          ],
+          "annotations": {
+            "timeout_s": "float"
+          }
+        },
+        {
+          "name": "TerminalProcess._start",
+          "line": 317,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "before_dispatch"
+          ],
+          "annotations": {
+            "before_dispatch": "Callable[[], Awaitable[None]] | None"
+          }
+        },
+        {
+          "name": "TerminalProcess._drain_stderr",
+          "line": 364,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "TerminalProcess._read_frames",
+          "line": 369,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "TerminalProcess._exchange",
+          "line": 422,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "kind",
+            "payload",
+            "timeout"
+          ],
+          "annotations": {
+            "kind": "str",
+            "payload": "Record",
+            "timeout": "float"
+          }
+        },
+        {
+          "name": "TerminalProcess.read",
+          "line": 463,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "TerminalProcess._command",
+          "line": 479,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "kind",
+            "payload"
+          ],
+          "annotations": {
+            "kind": "str",
+            "payload": "Record"
+          }
+        },
+        {
+          "name": "TerminalProcess._command.run",
+          "line": 484,
+          "kind": "function",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "TerminalProcess.write",
+          "line": 491,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "data",
+            "operation_id"
+          ],
+          "annotations": {
+            "data": "str",
+            "operation_id": "str"
+          }
+        },
+        {
+          "name": "TerminalProcess.resize",
+          "line": 502,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "cols",
+            "rows",
+            "operation_id"
+          ],
+          "annotations": {
+            "cols": "int",
+            "rows": "int",
+            "operation_id": "str"
+          }
+        },
+        {
+          "name": "TerminalProcess.snapshot",
+          "line": 507,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "TerminalProcess._ensure_cleanup",
+          "line": 517,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "timeout_s"
+          ],
+          "annotations": {
+            "timeout_s": "float"
+          }
+        },
+        {
+          "name": "TerminalProcess.close",
+          "line": 523,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "timeout_s"
+          ],
+          "annotations": {
+            "timeout_s": "float"
+          }
+        },
+        {
+          "name": "TerminalProcess._close_actual",
+          "line": 532,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "timeout_s"
+          ],
+          "annotations": {
+            "timeout_s": "float"
+          }
+        }
+      ],
+      "summary": "Owned terminal IPC. Native PTY libraries run only in the fixed helper process."
+    },
+    {
+      "path": "agent/src/omni/adapters/platform/runtime/workbench.py",
+      "module": "v2-adapters",
+      "python_module": "omni.adapters.platform.runtime.workbench",
+      "lines": 120,
+      "imports": [
+        "omni.adapters.platform.runtime.runtime_identity",
+        "omni.adapters.platform.service_readiness",
+        "omni.domain.contracts"
+      ],
+      "symbols": [
+        {
+          "name": "WorkbenchBrowser",
+          "line": 28,
+          "kind": "class"
+        },
+        {
+          "name": "WorkbenchBrowser.__init__",
+          "line": 29,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "home",
+            "host",
+            "port",
+            "open_url"
+          ],
+          "annotations": {
+            "home": "Path",
+            "host": "str",
+            "port": "int",
+            "open_url": "Callable[[str], object] | None"
+          }
+        },
+        {
+          "name": "WorkbenchBrowser.__enter__",
+          "line": 49,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "WorkbenchBrowser.__exit__",
+          "line": 56,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "_kind",
+            "_error",
+            "_traceback"
+          ],
+          "annotations": {
+            "_kind": "type[BaseException] | None",
+            "_error": "BaseException | None",
+            "_traceback": "TracebackType | None"
+          }
+        },
+        {
+          "name": "WorkbenchBrowser._ready",
+          "line": 63,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "client",
+            "deadline"
+          ],
+          "annotations": {
+            "client": "httpx.Client",
+            "deadline": "float | None"
+          }
+        },
+        {
+          "name": "WorkbenchBrowser._wait",
+          "line": 106,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        }
+      ],
+      "summary": "Open an explicitly requested local workbench after proving this process's ready boot; never reads owner tokens."
+    },
+    {
+      "path": "agent/src/omni/adapters/platform/runtime/workspaces.py",
+      "module": "v2-adapters",
+      "python_module": "omni.adapters.platform.runtime.workspaces",
+      "lines": 27,
+      "imports": [
+        "omni.domain.contracts"
+      ],
+      "symbols": [
+        {
+          "name": "WorkspacePolicy",
+          "line": 10,
+          "kind": "class"
+        },
+        {
+          "name": "WorkspacePolicy.__init__",
+          "line": 11,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "home",
+            "installed_package"
+          ],
+          "annotations": {
+            "home": "Path",
+            "installed_package": "Path"
+          }
+        },
+        {
+          "name": "WorkspacePolicy.validate",
+          "line": 14,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "value"
+          ],
+          "annotations": {
+            "value": "str"
+          }
+        }
+      ],
+      "summary": "Workspace admission keeps instance control, secrets and installed code private."
     },
     {
       "path": "agent/src/omni/adapters/platform/service_admin.py",
@@ -36046,8 +36705,8 @@
       "imports": [
         "omni.adapters.object_store",
         "omni.adapters.platform.deployment_files",
-        "omni.adapters.platform.permissions",
-        "omni.adapters.platform.publication",
+        "omni.adapters.platform.runtime.permissions",
+        "omni.adapters.platform.runtime.publication",
         "omni.application.ports",
         "omni.domain.contracts"
       ],
@@ -36925,9 +37584,9 @@
         "omni.adapters.object_store",
         "omni.adapters.platform.deployment_files",
         "omni.adapters.platform.exchange_files",
-        "omni.adapters.platform.paths",
-        "omni.adapters.platform.permissions",
         "omni.adapters.platform.release_files",
+        "omni.adapters.platform.runtime.paths",
+        "omni.adapters.platform.runtime.permissions",
         "omni.adapters.platform.service_operation_files",
         "omni.application.ports",
         "omni.domain.contracts",
@@ -37202,8 +37861,8 @@
         "omni.adapters.object_store",
         "omni.adapters.persistence.deployed_instance",
         "omni.adapters.platform.deployment_files",
-        "omni.adapters.platform.paths",
-        "omni.adapters.platform.runtime_identity",
+        "omni.adapters.platform.runtime.paths",
+        "omni.adapters.platform.runtime.runtime_identity",
         "omni.adapters.platform.service_launch",
         "omni.adapters.platform.service_operation_files",
         "omni.adapters.platform.service_readiness",
@@ -37406,7 +38065,7 @@
       "lines": 88,
       "imports": [
         "omni.adapters.platform.deployment_files",
-        "omni.adapters.platform.permissions",
+        "omni.adapters.platform.runtime.permissions",
         "omni.application.ports",
         "omni.domain.contracts",
         "omni.domain.service_activation",
@@ -37475,8 +38134,8 @@
         "omni.adapters.object_store",
         "omni.adapters.persistence.deployed_instance",
         "omni.adapters.platform.deployment_files",
-        "omni.adapters.platform.paths",
-        "omni.adapters.platform.permissions",
+        "omni.adapters.platform.runtime.paths",
+        "omni.adapters.platform.runtime.permissions",
         "omni.application.ports",
         "omni.domain.contracts",
         "omni.domain.service_operations"
@@ -37661,7 +38320,7 @@
       "imports": [
         "omni.adapters.platform.macos_helper",
         "omni.adapters.platform.macos_service",
-        "omni.adapters.platform.processes",
+        "omni.adapters.platform.runtime.processes",
         "omni.adapters.platform.service_templates",
         "omni.adapters.platform.systemd_state",
         "omni.application.ports",
@@ -37955,7 +38614,7 @@
       "python_module": "omni.adapters.platform.service_readiness",
       "lines": 307,
       "imports": [
-        "omni.adapters.platform.runtime_identity",
+        "omni.adapters.platform.runtime.runtime_identity",
         "omni.application.ports",
         "omni.domain.contracts",
         "omni.domain.service_control",
@@ -38504,527 +39163,6 @@
       "summary": "Shared bounded systemd decoding; no command execution or filesystem access."
     },
     {
-      "path": "agent/src/omni/adapters/platform/terminal.py",
-      "module": "v2-adapters",
-      "python_module": "omni.adapters.platform.terminal",
-      "lines": 588,
-      "imports": [
-        "omni.adapters.platform.processes",
-        "omni.adapters.workers.terminal",
-        "omni.domain.contracts"
-      ],
-      "symbols": [
-        {
-          "name": "_profiles",
-          "line": 33,
-          "kind": "function",
-          "parameters": [],
-          "annotations": {}
-        },
-        {
-          "name": "_error",
-          "line": 43,
-          "kind": "function",
-          "parameters": [
-            "code",
-            "message"
-          ],
-          "annotations": {
-            "code": "str",
-            "message": "str"
-          }
-        },
-        {
-          "name": "_decode",
-          "line": 47,
-          "kind": "function",
-          "parameters": [
-            "raw"
-          ],
-          "annotations": {
-            "raw": "bytes"
-          }
-        },
-        {
-          "name": "_decode.invalid_constant",
-          "line": 48,
-          "kind": "function",
-          "parameters": [
-            "value"
-          ],
-          "annotations": {
-            "value": "str"
-          }
-        },
-        {
-          "name": "_decode.pairs",
-          "line": 51,
-          "kind": "function",
-          "parameters": [
-            "values"
-          ],
-          "annotations": {
-            "values": "list[tuple[str, Any]]"
-          }
-        },
-        {
-          "name": "_environment",
-          "line": 68,
-          "kind": "function",
-          "parameters": [],
-          "annotations": {}
-        },
-        {
-          "name": "TerminalBackend",
-          "line": 96,
-          "kind": "class"
-        },
-        {
-          "name": "TerminalBackend.__init__",
-          "line": 99,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "workspace_validator",
-            "shell_profiles"
-          ],
-          "annotations": {
-            "workspace_validator": "Callable[[str], Any] | None",
-            "shell_profiles": "dict[str, tuple[str, list[str]]] | None"
-          }
-        },
-        {
-          "name": "TerminalBackend.closing",
-          "line": 126,
-          "kind": "function",
-          "parameters": [
-            "self"
-          ],
-          "annotations": {}
-        },
-        {
-          "name": "TerminalBackend.closing",
-          "line": 130,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "value"
-          ],
-          "annotations": {
-            "value": "bool"
-          }
-        },
-        {
-          "name": "TerminalBackend.hosts",
-          "line": 134,
-          "kind": "function",
-          "parameters": [
-            "self"
-          ],
-          "annotations": {}
-        },
-        {
-          "name": "TerminalBackend.capabilities",
-          "line": 137,
-          "kind": "function",
-          "parameters": [
-            "self"
-          ],
-          "annotations": {}
-        },
-        {
-          "name": "TerminalBackend.health",
-          "line": 152,
-          "kind": "function",
-          "parameters": [
-            "self"
-          ],
-          "annotations": {}
-        },
-        {
-          "name": "TerminalBackend.io",
-          "line": 160,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "operation",
-            "closing"
-          ],
-          "annotations": {
-            "operation": "Callable[[], T]",
-            "closing": "bool"
-          }
-        },
-        {
-          "name": "TerminalBackend.track",
-          "line": 164,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "task"
-          ],
-          "annotations": {
-            "task": "Awaitable[T]"
-          }
-        },
-        {
-          "name": "TerminalBackend.admit",
-          "line": 168,
-          "kind": "function",
-          "parameters": [
-            "self"
-          ],
-          "annotations": {}
-        },
-        {
-          "name": "TerminalBackend._admit",
-          "line": 172,
-          "kind": "function",
-          "parameters": [
-            "self"
-          ],
-          "annotations": {}
-        },
-        {
-          "name": "TerminalBackend._track",
-          "line": 178,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "coroutine"
-          ],
-          "annotations": {
-            "coroutine": "Awaitable[T]"
-          }
-        },
-        {
-          "name": "TerminalBackend._track.done",
-          "line": 182,
-          "kind": "function",
-          "parameters": [
-            "completed"
-          ],
-          "annotations": {
-            "completed": "asyncio.Task[Any]"
-          }
-        },
-        {
-          "name": "TerminalBackend._io",
-          "line": 190,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "function",
-            "closing"
-          ],
-          "annotations": {
-            "function": "Callable[[], T]",
-            "closing": "bool"
-          }
-        },
-        {
-          "name": "TerminalBackend._prepare",
-          "line": 200,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "shell",
-            "cwd"
-          ],
-          "annotations": {
-            "shell": "str",
-            "cwd": "str"
-          }
-        },
-        {
-          "name": "TerminalBackend.prepare",
-          "line": 226,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "shell",
-            "cwd"
-          ],
-          "annotations": {
-            "shell": "str",
-            "cwd": "str"
-          }
-        },
-        {
-          "name": "TerminalBackend.open",
-          "line": 231,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "spec",
-            "before_dispatch"
-          ],
-          "annotations": {
-            "spec": "Record",
-            "before_dispatch": "Callable[[], Awaitable[None]] | None"
-          }
-        },
-        {
-          "name": "TerminalBackend.close",
-          "line": 248,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "timeout_s"
-          ],
-          "annotations": {
-            "timeout_s": "float"
-          }
-        },
-        {
-          "name": "TerminalProcess",
-          "line": 264,
-          "kind": "class"
-        },
-        {
-          "name": "TerminalProcess.__init__",
-          "line": 265,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "backend",
-            "spec"
-          ],
-          "annotations": {
-            "backend": "TerminalBackend",
-            "spec": "Record"
-          }
-        },
-        {
-          "name": "TerminalProcess.closing",
-          "line": 290,
-          "kind": "function",
-          "parameters": [
-            "self"
-          ],
-          "annotations": {}
-        },
-        {
-          "name": "TerminalProcess.closing",
-          "line": 294,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "value"
-          ],
-          "annotations": {
-            "value": "bool"
-          }
-        },
-        {
-          "name": "TerminalProcess.reclaimed",
-          "line": 298,
-          "kind": "function",
-          "parameters": [
-            "self"
-          ],
-          "annotations": {}
-        },
-        {
-          "name": "TerminalProcess.starting",
-          "line": 302,
-          "kind": "function",
-          "parameters": [
-            "self"
-          ],
-          "annotations": {}
-        },
-        {
-          "name": "TerminalProcess.starting",
-          "line": 306,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "value"
-          ],
-          "annotations": {
-            "value": "asyncio.Task[TerminalProcess] | None"
-          }
-        },
-        {
-          "name": "TerminalProcess.start",
-          "line": 309,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "before_dispatch"
-          ],
-          "annotations": {
-            "before_dispatch": "Callable[[], Awaitable[None]] | None"
-          }
-        },
-        {
-          "name": "TerminalProcess.ensure_cleanup",
-          "line": 313,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "timeout_s"
-          ],
-          "annotations": {
-            "timeout_s": "float"
-          }
-        },
-        {
-          "name": "TerminalProcess._start",
-          "line": 317,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "before_dispatch"
-          ],
-          "annotations": {
-            "before_dispatch": "Callable[[], Awaitable[None]] | None"
-          }
-        },
-        {
-          "name": "TerminalProcess._drain_stderr",
-          "line": 364,
-          "kind": "function",
-          "parameters": [
-            "self"
-          ],
-          "annotations": {}
-        },
-        {
-          "name": "TerminalProcess._read_frames",
-          "line": 369,
-          "kind": "function",
-          "parameters": [
-            "self"
-          ],
-          "annotations": {}
-        },
-        {
-          "name": "TerminalProcess._exchange",
-          "line": 422,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "kind",
-            "payload",
-            "timeout"
-          ],
-          "annotations": {
-            "kind": "str",
-            "payload": "Record",
-            "timeout": "float"
-          }
-        },
-        {
-          "name": "TerminalProcess.read",
-          "line": 463,
-          "kind": "function",
-          "parameters": [
-            "self"
-          ],
-          "annotations": {}
-        },
-        {
-          "name": "TerminalProcess._command",
-          "line": 479,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "kind",
-            "payload"
-          ],
-          "annotations": {
-            "kind": "str",
-            "payload": "Record"
-          }
-        },
-        {
-          "name": "TerminalProcess._command.run",
-          "line": 484,
-          "kind": "function",
-          "parameters": [],
-          "annotations": {}
-        },
-        {
-          "name": "TerminalProcess.write",
-          "line": 491,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "data",
-            "operation_id"
-          ],
-          "annotations": {
-            "data": "str",
-            "operation_id": "str"
-          }
-        },
-        {
-          "name": "TerminalProcess.resize",
-          "line": 502,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "cols",
-            "rows",
-            "operation_id"
-          ],
-          "annotations": {
-            "cols": "int",
-            "rows": "int",
-            "operation_id": "str"
-          }
-        },
-        {
-          "name": "TerminalProcess.snapshot",
-          "line": 507,
-          "kind": "function",
-          "parameters": [
-            "self"
-          ],
-          "annotations": {}
-        },
-        {
-          "name": "TerminalProcess._ensure_cleanup",
-          "line": 517,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "timeout_s"
-          ],
-          "annotations": {
-            "timeout_s": "float"
-          }
-        },
-        {
-          "name": "TerminalProcess.close",
-          "line": 523,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "timeout_s"
-          ],
-          "annotations": {
-            "timeout_s": "float"
-          }
-        },
-        {
-          "name": "TerminalProcess._close_actual",
-          "line": 532,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "timeout_s"
-          ],
-          "annotations": {
-            "timeout_s": "float"
-          }
-        }
-      ],
-      "summary": "Owned terminal IPC. Native PTY libraries run only in the fixed helper process."
-    },
-    {
       "path": "agent/src/omni/adapters/platform/wheel_artifact.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.wheel_artifact",
@@ -39067,8 +39205,8 @@
       "lines": 68,
       "imports": [
         "omni.adapters.persistence.maintenance",
-        "omni.adapters.platform.paths",
-        "omni.adapters.platform.permissions",
+        "omni.adapters.platform.runtime.paths",
+        "omni.adapters.platform.runtime.permissions",
         "omni.adapters.platform.wheel_switch",
         "omni.application.ports",
         "omni.domain.contracts"
@@ -39109,9 +39247,9 @@
       "imports": [
         "omni.adapters.persistence.maintenance",
         "omni.adapters.platform.dependency_bundle",
-        "omni.adapters.platform.paths",
-        "omni.adapters.platform.permissions",
-        "omni.adapters.platform.runtime_identity",
+        "omni.adapters.platform.runtime.paths",
+        "omni.adapters.platform.runtime.permissions",
+        "omni.adapters.platform.runtime.runtime_identity",
         "omni.adapters.platform.wheel_artifact",
         "omni.adapters.platform.wheel_stage",
         "omni.application.ports",
@@ -39239,9 +39377,9 @@
       "imports": [
         "omni.adapters.persistence.maintenance",
         "omni.adapters.persistence.migration_config",
-        "omni.adapters.platform.paths",
-        "omni.adapters.platform.permissions",
-        "omni.adapters.platform.runtime_identity",
+        "omni.adapters.platform.runtime.paths",
+        "omni.adapters.platform.runtime.permissions",
+        "omni.adapters.platform.runtime.runtime_identity",
         "omni.adapters.platform.wheel_artifact",
         "omni.adapters.platform.wheel_backup",
         "omni.adapters.platform.wheel_environment",
@@ -39419,7 +39557,7 @@
       "lines": 120,
       "imports": [
         "omni.adapters.persistence.maintenance",
-        "omni.adapters.platform.permissions",
+        "omni.adapters.platform.runtime.permissions",
         "omni.adapters.platform.wheel_artifact",
         "omni.adapters.platform.wheel_stage",
         "omni.application.ports",
@@ -39484,8 +39622,8 @@
       "lines": 71,
       "imports": [
         "omni.adapters.persistence.maintenance",
-        "omni.adapters.platform.paths",
-        "omni.adapters.platform.permissions",
+        "omni.adapters.platform.runtime.paths",
+        "omni.adapters.platform.runtime.permissions",
         "omni.adapters.platform.wheel_backup",
         "omni.application.ports",
         "omni.domain.contracts"
@@ -39525,9 +39663,9 @@
       "lines": 115,
       "imports": [
         "omni.adapters.persistence.maintenance",
-        "omni.adapters.platform.paths",
-        "omni.adapters.platform.permissions",
-        "omni.adapters.platform.runtime_identity",
+        "omni.adapters.platform.runtime.paths",
+        "omni.adapters.platform.runtime.permissions",
+        "omni.adapters.platform.runtime.runtime_identity",
         "omni.adapters.platform.wheel_environment",
         "omni.adapters.platform.wheel_prepare",
         "omni.application.ports",
@@ -39568,7 +39706,7 @@
       "lines": 76,
       "imports": [
         "omni.adapters.persistence.maintenance",
-        "omni.adapters.platform.permissions",
+        "omni.adapters.platform.runtime.permissions",
         "omni.adapters.platform.wheel_artifact",
         "omni.application.ports",
         "omni.domain.contracts"
@@ -39611,7 +39749,7 @@
       "imports": [
         "omni.adapters.persistence.maintenance",
         "omni.adapters.persistence.migration_config",
-        "omni.adapters.platform.paths",
+        "omni.adapters.platform.runtime.paths",
         "omni.domain.contracts",
         "omni.domain.installation"
       ],
@@ -39673,7 +39811,7 @@
       "imports": [
         "omni.adapters.persistence.maintenance",
         "omni.adapters.persistence.migration_config",
-        "omni.adapters.platform.paths",
+        "omni.adapters.platform.runtime.paths",
         "omni.adapters.platform.wheel_prepare",
         "omni.application.ports",
         "omni.domain.contracts",
@@ -39726,9 +39864,9 @@
       "imports": [
         "omni.adapters.persistence.maintenance",
         "omni.adapters.platform.dependency_bundle",
-        "omni.adapters.platform.paths",
-        "omni.adapters.platform.permissions",
-        "omni.adapters.platform.runtime_identity",
+        "omni.adapters.platform.runtime.paths",
+        "omni.adapters.platform.runtime.permissions",
+        "omni.adapters.platform.runtime.runtime_identity",
         "omni.adapters.platform.wheel_install",
         "omni.application.ports",
         "omni.domain.contracts"
@@ -39829,134 +39967,6 @@
         }
       ],
       "summary": "Remove one staged candidate or deactivate the runtime pointer; data and installation receipts stay."
-    },
-    {
-      "path": "agent/src/omni/adapters/platform/workbench.py",
-      "module": "v2-adapters",
-      "python_module": "omni.adapters.platform.workbench",
-      "lines": 120,
-      "imports": [
-        "omni.adapters.platform.runtime_identity",
-        "omni.adapters.platform.service_readiness",
-        "omni.domain.contracts"
-      ],
-      "symbols": [
-        {
-          "name": "WorkbenchBrowser",
-          "line": 28,
-          "kind": "class"
-        },
-        {
-          "name": "WorkbenchBrowser.__init__",
-          "line": 29,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "home",
-            "host",
-            "port",
-            "open_url"
-          ],
-          "annotations": {
-            "home": "Path",
-            "host": "str",
-            "port": "int",
-            "open_url": "Callable[[str], object] | None"
-          }
-        },
-        {
-          "name": "WorkbenchBrowser.__enter__",
-          "line": 49,
-          "kind": "function",
-          "parameters": [
-            "self"
-          ],
-          "annotations": {}
-        },
-        {
-          "name": "WorkbenchBrowser.__exit__",
-          "line": 56,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "_kind",
-            "_error",
-            "_traceback"
-          ],
-          "annotations": {
-            "_kind": "type[BaseException] | None",
-            "_error": "BaseException | None",
-            "_traceback": "TracebackType | None"
-          }
-        },
-        {
-          "name": "WorkbenchBrowser._ready",
-          "line": 63,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "client",
-            "deadline"
-          ],
-          "annotations": {
-            "client": "httpx.Client",
-            "deadline": "float | None"
-          }
-        },
-        {
-          "name": "WorkbenchBrowser._wait",
-          "line": 106,
-          "kind": "function",
-          "parameters": [
-            "self"
-          ],
-          "annotations": {}
-        }
-      ],
-      "summary": "Open an explicitly requested local workbench after proving this process's ready boot; never reads owner tokens."
-    },
-    {
-      "path": "agent/src/omni/adapters/platform/workspaces.py",
-      "module": "v2-adapters",
-      "python_module": "omni.adapters.platform.workspaces",
-      "lines": 27,
-      "imports": [
-        "omni.domain.contracts"
-      ],
-      "symbols": [
-        {
-          "name": "WorkspacePolicy",
-          "line": 10,
-          "kind": "class"
-        },
-        {
-          "name": "WorkspacePolicy.__init__",
-          "line": 11,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "home",
-            "installed_package"
-          ],
-          "annotations": {
-            "home": "Path",
-            "installed_package": "Path"
-          }
-        },
-        {
-          "name": "WorkspacePolicy.validate",
-          "line": 14,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "value"
-          ],
-          "annotations": {
-            "value": "str"
-          }
-        }
-      ],
-      "summary": "Workspace admission keeps instance control, secrets and installed code private."
     },
     {
       "path": "agent/src/omni/adapters/primitives.py",
@@ -40348,9 +40358,9 @@
       "lines": 401,
       "imports": [
         "omni.adapters.platform.dependency_bundle",
-        "omni.adapters.platform.paths",
-        "omni.adapters.platform.permissions",
-        "omni.adapters.platform.runtime_identity",
+        "omni.adapters.platform.runtime.paths",
+        "omni.adapters.platform.runtime.permissions",
+        "omni.adapters.platform.runtime.runtime_identity",
         "omni.adapters.platform.service_readiness",
         "omni.domain",
         "omni.domain.contracts",
@@ -40599,7 +40609,7 @@
       "lines": 321,
       "imports": [
         "omni.adapters.metrics",
-        "omni.adapters.platform.permissions",
+        "omni.adapters.platform.runtime.permissions",
         "omni.domain.contracts"
       ],
       "symbols": [
@@ -40869,7 +40879,7 @@
       "lines": 130,
       "imports": [
         "omni.adapters.object_store",
-        "omni.adapters.platform.permissions",
+        "omni.adapters.platform.runtime.permissions",
         "omni.domain.local_vectors"
       ],
       "symbols": [
@@ -41495,7 +41505,7 @@
       "python_module": "omni.adapters.workers.client",
       "lines": 358,
       "imports": [
-        "omni.adapters.platform.processes",
+        "omni.adapters.platform.runtime.processes",
         "omni.adapters.workers.protocol",
         "omni.domain.contracts"
       ],
@@ -41673,7 +41683,7 @@
       "python_module": "omni.adapters.workers.credentials",
       "lines": 76,
       "imports": [
-        "omni.adapters.platform.secrets",
+        "omni.adapters.platform.runtime.secrets",
         "omni.domain.contracts",
         "omni.domain.credential_ipc"
       ],
@@ -68669,8 +68679,9 @@
         "omni.adapters.persistence.operations_read",
         "omni.adapters.persistence.reference_release",
         "omni.adapters.platform.deployment_files",
-        "omni.adapters.platform.paths",
-        "omni.adapters.platform.permissions",
+        "omni.adapters.platform.runtime.paths",
+        "omni.adapters.platform.runtime.permissions",
+        "omni.adapters.platform.runtime.workbench",
         "omni.adapters.platform.service_admin_bundle",
         "omni.adapters.platform.service_query",
         "omni.adapters.platform.service_readiness",
@@ -68685,7 +68696,6 @@
         "omni.adapters.platform.wheel_status",
         "omni.adapters.platform.wheel_switch",
         "omni.adapters.platform.wheel_uninstall",
-        "omni.adapters.platform.workbench",
         "omni.adapters.primitives",
         "omni.adapters.vector_files",
         "omni.application.ports",
@@ -68820,7 +68830,7 @@
       "imports": [
         "omni.adapters.http",
         "omni.adapters.log_query",
-        "omni.adapters.platform.permissions",
+        "omni.adapters.platform.runtime.permissions",
         "omni.application.android",
         "omni.application.bilibili",
         "omni.application.mcp",
@@ -68929,13 +68939,13 @@
         "omni.adapters.persistence.deployed_instance",
         "omni.adapters.platform.desktop",
         "omni.adapters.platform.desktop_control",
-        "omni.adapters.platform.paths",
         "omni.adapters.platform.portal",
-        "omni.adapters.platform.runtime_identity",
-        "omni.adapters.platform.secrets",
+        "omni.adapters.platform.runtime.paths",
+        "omni.adapters.platform.runtime.runtime_identity",
+        "omni.adapters.platform.runtime.secrets",
+        "omni.adapters.platform.runtime.terminal",
+        "omni.adapters.platform.runtime.workspaces",
         "omni.adapters.platform.service_launch",
-        "omni.adapters.platform.terminal",
-        "omni.adapters.platform.workspaces",
         "omni.adapters.primitives",
         "omni.adapters.process_diagnostics",
         "omni.adapters.skill_packages",

@@ -12,7 +12,7 @@ from typing import cast
 
 from ...domain.contracts import BusinessError
 from .dependency_bundle import SHA, capture_bundle, no_links
-from .permissions import private_path
+from omni.adapters.platform.runtime.permissions import private_path
 
 
 def _invalid(code: str = "candidate_install_invalid") -> BusinessError:
