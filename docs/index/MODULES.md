@@ -69,7 +69,7 @@
 | [agent/src/omni/domain/terminal_review.py](../../agent/src/omni/domain/terminal_review.py) | 87 | Owner observations of unknown terminal effects; never a receipt correction or replay authority. |
 | [agent/src/omni/domain/terminals.py](../../agent/src/omni/domain/terminals.py) | 124 | Explicit owner terminal requests and metadata identities; no model tools, shell execution or transcript storage. |
 
-文档：[docs/V2_REFACTOR.md](../V2_REFACTOR.md)
+文档：[docs/V2_REFACTOR.md](../../docs/V2_REFACTOR.md)
 
 测试：[agent/tests/v2/core/test_v2_architecture.py](../../agent/tests/v2/core/test_v2_architecture.py)
 
@@ -128,7 +128,7 @@
 | [agent/src/omni/application/terminal_review.py](../../agent/src/omni/application/terminal_review.py) | 127 | Owner terminal evidence use cases; no native actions, receipt changes or historical PID operations. |
 | [agent/src/omni/application/terminals.py](../../agent/src/omni/application/terminals.py) | 506 | Bounded owner terminals with durable input receipts, single-writer leases and explicit output gaps. |
 
-文档：[docs/V2_REFACTOR.md](../V2_REFACTOR.md)
+文档：[docs/V2_REFACTOR.md](../../docs/V2_REFACTOR.md)
 
 测试：[agent/tests/v2/core/test_v2_execution.py](../../agent/tests/v2/core/test_v2_execution.py)
 
@@ -440,7 +440,7 @@
 | [agent/src/omni/adapters/workers/windows_uia.cs](../../agent/src/omni/adapters/workers/windows_uia.cs) | 348 | 原生源码、平台脚本或界面资源 |
 | [agent/src/omni/adapters/workers/windows_uia.ps1](../../agent/src/omni/adapters/workers/windows_uia.ps1) | 78 | 原生源码、平台脚本或界面资源 |
 
-文档：[docs/V2_REFACTOR.md](../V2_REFACTOR.md)
+文档：[docs/V2_REFACTOR.md](../../docs/V2_REFACTOR.md)
 
 测试：[agent/tests/v2/core/test_v2_kernel.py](../../agent/tests/v2/core/test_v2_kernel.py)、[agent/tests/v2/core/test_v2_reliability.py](../../agent/tests/v2/core/test_v2_reliability.py)、[agent/tests/v2/core/test_v2_diagnostics.py](../../agent/tests/v2/core/test_v2_diagnostics.py)、[agent/tests/v2/core/test_v2_workers.py](../../agent/tests/v2/core/test_v2_workers.py)
 
@@ -466,7 +466,7 @@
 | [agent/src/omni/composition/service_runner.py](../../agent/src/omni/composition/service_runner.py) | 68 | Start only a verified immutable deployment as its declared account; never registers a native service. |
 | [agent/src/omni/composition/serving.py](../../agent/src/omni/composition/serving.py) | 68 | Compose the single-worker HTTP process for manual and pinned service startup. |
 
-文档：[docs/V2_REFACTOR.md](../V2_REFACTOR.md)
+文档：[docs/V2_REFACTOR.md](../../docs/V2_REFACTOR.md)
 
 测试：[agent/tests/v2/core/test_v2_kernel.py](../../agent/tests/v2/core/test_v2_kernel.py)
 
@@ -517,7 +517,7 @@
 | [web/ui/v2/v1/workbench.css](../../web/ui/v2/v1/workbench.css) | 4451 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/workbench.css](../../web/ui/v2/workbench.css) | 3246 | 原生源码、平台脚本或界面资源 |
 
-文档：[docs/V2_REFACTOR.md](../V2_REFACTOR.md)
+文档：[docs/V2_REFACTOR.md](../../docs/V2_REFACTOR.md)
 
 测试：[agent/tests/v2/http/test_v2_http.py](../../agent/tests/v2/http/test_v2_http.py)
 
@@ -540,7 +540,7 @@
 | [agent/src/omni/system/updates/version.py](../../agent/src/omni/system/updates/version.py) | 104 | 源码身份与 SemVer 比较；不联网、不改变 Git 或安装环境。 |
 | [agent/src/omni/system/updates/worker.py](../../agent/src/omni/system/updates/worker.py) | 314 | 冻结后以基础 Python 独立运行的升级/恢复执行器；只依赖标准库和冻结的平台原语。 |
 
-文档：[docs/UPDATES.md](../UPDATES.md)
+文档：[docs/UPDATES.md](../../docs/UPDATES.md)
 
 测试：[agent/tests/test_updates.py](../../agent/tests/test_updates.py)
 
@@ -555,7 +555,7 @@
 | [agent/src/omni/channels/web_api/updates.py](../../agent/src/omni/channels/web_api/updates.py) | 55 | 版本与更新 HTTP 适配；只消费 Runtime，统一鉴权由工作台负责。 |
 | [web/ui/app/hub-about.js](../../web/ui/app/hub-about.js) | 187 | 原生源码、平台脚本或界面资源 |
 
-文档：[docs/UPDATES.md](../UPDATES.md)
+文档：[docs/UPDATES.md](../../docs/UPDATES.md)
 
 测试：[agent/tests/test_updates_api.py](../../agent/tests/test_updates_api.py)
 
@@ -573,7 +573,7 @@
 | [agent/src/omni/system/agent_spaces/inventory.py](../../agent/src/omni/system/agent_spaces/inventory.py) | 138 | 路径用途索引：纯声明，不扫描磁盘或读取记忆、凭据内容。 |
 | [agent/src/omni/system/agent_spaces/layout.py](../../agent/src/omni/system/agent_spaces/layout.py) | 366 | 本机 Agent 布局的声明与校验，不创建目录或打开数据。 |
 
-文档：[docs/STORAGE.md](../STORAGE.md)、[docs/AGENT_STORAGE.md](../AGENT_STORAGE.md)
+文档：[docs/STORAGE.md](../../docs/STORAGE.md)、[docs/AGENT_STORAGE.md](../../docs/AGENT_STORAGE.md)
 
 测试：[agent/tests/test_agent_storage.py](../../agent/tests/test_agent_storage.py)、[agent/tests/test_storage_cli.py](../../agent/tests/test_storage_cli.py)、[agent/tests/test_application_storage.py](../../agent/tests/test_application_storage.py)
 
@@ -590,7 +590,7 @@
 | [web/storage/storage.css](../../web/storage/storage.css) | 490 | 原生源码、平台脚本或界面资源 |
 | [web/storage/storage.js](../../web/storage/storage.js) | 493 | 原生源码、平台脚本或界面资源 |
 
-文档：[docs/STORAGE.md](../STORAGE.md)、[docs/AGENT_STORAGE.md](../AGENT_STORAGE.md)
+文档：[docs/STORAGE.md](../../docs/STORAGE.md)、[docs/AGENT_STORAGE.md](../../docs/AGENT_STORAGE.md)
 
 测试：[agent/tests/test_storage_settings.py](../../agent/tests/test_storage_settings.py)、[agent/tests/test_agent_storage_ui.py](../../agent/tests/test_agent_storage_ui.py)
 
@@ -605,7 +605,7 @@
 | [agent/src/omni/channels/web_api/context.py](../../agent/src/omni/channels/web_api/context.py) | 106 | 上下文设置与只读统计；不调用模型、不构造服务、不修改运行中的配置。 |
 | [web/ui/app/hub-context.js](../../web/ui/app/hub-context.js) | 267 | 原生源码、平台脚本或界面资源 |
 
-文档：[docs/CONTEXT_SETTINGS.md](../CONTEXT_SETTINGS.md)、[docs/PROMPT_CONTEXT.md](../PROMPT_CONTEXT.md)
+文档：[docs/CONTEXT_SETTINGS.md](../../docs/CONTEXT_SETTINGS.md)、[docs/PROMPT_CONTEXT.md](../../docs/PROMPT_CONTEXT.md)
 
 测试：[agent/tests/test_context_settings.py](../../agent/tests/test_context_settings.py)
 
@@ -619,7 +619,7 @@
 |---|---:|---|
 | [agent/src/omni/bootstrap.py](../../agent/src/omni/bootstrap.py) | 941 | 组装根（Composition Root）：全项目唯一负责装配的地方。 |
 
-文档：[docs/ARCHITECTURE.md](../ARCHITECTURE.md)、[docs/REPOSITORY_STRUCTURE.md](../REPOSITORY_STRUCTURE.md)
+文档：[docs/ARCHITECTURE.md](../../docs/ARCHITECTURE.md)、[docs/REPOSITORY_STRUCTURE.md](../../docs/REPOSITORY_STRUCTURE.md)
 
 测试：[agent/tests/test_paths.py](../../agent/tests/test_paths.py)、[agent/tests/test_repository_layout.py](../../agent/tests/test_repository_layout.py)
 
@@ -633,7 +633,7 @@
 |---|---:|---|
 | [agent/src/omni/config.py](../../agent/src/omni/config.py) | 887 | 配置加载：.env 密钥 + config.yaml 主配置 + 运行期路径表。 |
 
-文档：[docs/ARCHITECTURE.md](../ARCHITECTURE.md)
+文档：[docs/ARCHITECTURE.md](../../docs/ARCHITECTURE.md)
 
 测试：[agent/tests/test_config.py](../../agent/tests/test_config.py)
 
@@ -648,7 +648,7 @@
 | [agent/src/omni/core/compress.py](../../agent/src/omni/core/compress.py) | 328 | 上下文压缩 + 消息不变量（Hermes compression_facade 的最小版，NOTES §1.2）。 |
 | [agent/src/omni/core/context.py](../../agent/src/omni/core/context.py) | 195 | 缓存友好的提示词布局：固定规则在前，每轮快照附于该轮用户正文末尾。 |
 
-文档：[docs/PROMPT_CONTEXT.md](../PROMPT_CONTEXT.md)、[docs/ARCHITECTURE.md](../ARCHITECTURE.md)
+文档：[docs/PROMPT_CONTEXT.md](../../docs/PROMPT_CONTEXT.md)、[docs/ARCHITECTURE.md](../../docs/ARCHITECTURE.md)
 
 测试：[agent/tests/test_prompt_context.py](../../agent/tests/test_prompt_context.py)、[agent/tests/test_context.py](../../agent/tests/test_context.py)、[agent/tests/test_compress.py](../../agent/tests/test_compress.py)
 
@@ -675,7 +675,7 @@
 | [agent/src/omni/core/session.py](../../agent/src/omni/core/session.py) | 142 | 会话作用域：同一会话串行、不同会话并行、排队有界、跨进程有租约。 |
 | [agent/src/omni/core/vision.py](../../agent/src/omni/core/vision.py) | 202 | 工具产物 → 模型图像块（D15/A13）。 |
 
-文档：[docs/ARCHITECTURE.md](../ARCHITECTURE.md)
+文档：[docs/ARCHITECTURE.md](../../docs/ARCHITECTURE.md)
 
 测试：[agent/tests/test_agent.py](../../agent/tests/test_agent.py)、[agent/tests/test_runs.py](../../agent/tests/test_runs.py)、[agent/tests/test_parallel_tools.py](../../agent/tests/test_parallel_tools.py)
 
@@ -695,7 +695,7 @@
 | [agent/src/omni/llm/tiers.py](../../agent/src/omni/llm/tiers.py) | 179 | 费用额度的**口径化判定层**（P5-c，抄 surfcore `token-budget.js` 的判定逻辑）。 |
 | [agent/src/omni/llm/usage.py](../../agent/src/omni/llm/usage.py) | 199 | 用量（tokens）与价格：把"这次调用大概/实际花了多少"变成可记账的数字。（D10） |
 
-文档：[docs/RETRIEVAL.md](../RETRIEVAL.md)
+文档：[docs/RETRIEVAL.md](../../docs/RETRIEVAL.md)
 
 测试：[agent/tests/test_gateway.py](../../agent/tests/test_gateway.py)、[agent/tests/test_usage.py](../../agent/tests/test_usage.py)
 
@@ -715,7 +715,7 @@
 | [agent/src/omni/safety/proactive.py](../../agent/src/omni/safety/proactive.py) | 72 | 主动发言闸门：白名单 + 仅所有者 + 安静时段 + 每日额度上限。 |
 | [agent/src/omni/safety/smart.py](../../agent/src/omni/safety/smart.py) | 78 | smart 审批档（Hermes approval_smart 同款）：辅助 LLM 先判风险，拿不准再问人。 |
 
-文档：[docs/ARCHITECTURE.md](../ARCHITECTURE.md)
+文档：[docs/ARCHITECTURE.md](../../docs/ARCHITECTURE.md)
 
 测试：[agent/tests/test_safety.py](../../agent/tests/test_safety.py)
 
@@ -766,7 +766,7 @@
 | [agent/src/omni/memory/usage.py](../../agent/src/omni/memory/usage.py) | 363 | 模型调用的用量与费用账本（`state.db`，D10）。 |
 | [agent/src/omni/memory/vectors.py](../../agent/src/omni/memory/vectors.py) | 111 | sqlite-vec 派生索引。与事实同库；遗忘/纠错触发器只用普通 SQL，无扩展依赖。 |
 
-文档：[docs/OPERATIONS.md](../OPERATIONS.md)、[docs/RETRIEVAL.md](../RETRIEVAL.md)
+文档：[docs/OPERATIONS.md](../../docs/OPERATIONS.md)、[docs/RETRIEVAL.md](../../docs/RETRIEVAL.md)
 
 测试：[agent/tests/test_state.py](../../agent/tests/test_state.py)、[agent/tests/test_memory.py](../../agent/tests/test_memory.py)
 
@@ -789,7 +789,7 @@
 | [web/terminal/terminal.css](../../web/terminal/terminal.css) | 477 | 原生源码、平台脚本或界面资源 |
 | [web/terminal/terminal.js](../../web/terminal/terminal.js) | 346 | 原生源码、平台脚本或界面资源 |
 
-文档：[docs/ARCHITECTURE.md](../ARCHITECTURE.md)、[docs/TERMINAL.md](../TERMINAL.md)
+文档：[docs/ARCHITECTURE.md](../../docs/ARCHITECTURE.md)、[docs/TERMINAL.md](../../docs/TERMINAL.md)
 
 测试：[agent/tests/test_terminal.py](../../agent/tests/test_terminal.py)、[agent/tests/test_terminal_managed.py](../../agent/tests/test_terminal_managed.py)、[agent/tests/test_doctor_lifecycle.py](../../agent/tests/test_doctor_lifecycle.py)
 
@@ -808,7 +808,7 @@
 | [web/project/project.css](../../web/project/project.css) | 486 | 原生源码、平台脚本或界面资源 |
 | [web/project/project.js](../../web/project/project.js) | 450 | 原生源码、平台脚本或界面资源 |
 
-文档：[docs/PROJECT_INDEX.md](../PROJECT_INDEX.md)
+文档：[docs/PROJECT_INDEX.md](../../docs/PROJECT_INDEX.md)
 
 测试：[agent/tests/test_project_catalog.py](../../agent/tests/test_project_catalog.py)
 
@@ -869,7 +869,7 @@
 | [web/ui/tokens.css](../../web/ui/tokens.css) | 250 | 原生源码、平台脚本或界面资源 |
 | [web/ui/workbench.css](../../web/ui/workbench.css) | 4443 | 原生源码、平台脚本或界面资源 |
 
-文档：[docs/UI_QA.md](../UI_QA.md)
+文档：[docs/UI_QA.md](../../docs/UI_QA.md)
 
 测试：[agent/tests/test_ui_flows.py](../../agent/tests/test_ui_flows.py)
 
@@ -893,7 +893,7 @@
 | [web/vendor/xterm.js](../../web/vendor/xterm.js) | 6 | 原生源码、平台脚本或界面资源 |
 | [web/vendor/xterm.min.css](../../web/vendor/xterm.min.css) | 8 | 原生源码、平台脚本或界面资源 |
 
-文档：[docs/ARCHITECTURE.md](../ARCHITECTURE.md)、[docs/UI_QA.md](../UI_QA.md)
+文档：[docs/ARCHITECTURE.md](../../docs/ARCHITECTURE.md)、[docs/UI_QA.md](../../docs/UI_QA.md)
 
 测试：[agent/tests/test_web.py](../../agent/tests/test_web.py)、[agent/tests/test_web_auth.py](../../agent/tests/test_web_auth.py)、[agent/tests/test_ui_flows.py](../../agent/tests/test_ui_flows.py)
 
@@ -907,7 +907,7 @@
 |---|---:|---|
 | [agent/src/omni/channels/web_api/sessions.py](../../agent/src/omni/channels/web_api/sessions.py) | 99 | 会话与待办 HTTP 适配；使用注入 Runtime，保留既有权限、路径与响应契约。 |
 
-文档：[docs/PROJECT_INDEX.md](../PROJECT_INDEX.md)
+文档：[docs/PROJECT_INDEX.md](../../docs/PROJECT_INDEX.md)
 
 测试：[agent/tests/test_web_api.py](../../agent/tests/test_web_api.py)、[agent/tests/test_sessions.py](../../agent/tests/test_sessions.py)
 
@@ -921,7 +921,7 @@
 |---|---:|---|
 | [agent/src/omni/channels/web_api/conversation.py](../../agent/src/omni/channels/web_api/conversation.py) | 194 | 对话与流式 HTTP 适配；使用注入 Runtime，保留既有权限、路径与响应契约。 |
 
-文档：[docs/PROJECT_INDEX.md](../PROJECT_INDEX.md)
+文档：[docs/PROJECT_INDEX.md](../../docs/PROJECT_INDEX.md)
 
 测试：[agent/tests/test_web_api.py](../../agent/tests/test_web_api.py)、[agent/tests/test_web.py](../../agent/tests/test_web.py)
 
@@ -936,7 +936,7 @@
 | [agent/src/omni/memory/command_schema.py](../../agent/src/omni/memory/command_schema.py) | 7 | 命令账本声明的旧 import 兼容层；真实声明见 `memory/state_schema.py`。 |
 | [agent/src/omni/memory/state_schema.py](../../agent/src/omni/memory/state_schema.py) | 337 | `state.db` 的表结构与迁移声明唯一来源。 |
 
-文档：[docs/TERMINAL.md](../TERMINAL.md)
+文档：[docs/TERMINAL.md](../../docs/TERMINAL.md)
 
 测试：[agent/tests/test_state.py](../../agent/tests/test_state.py)、[agent/tests/test_command_jobs.py](../../agent/tests/test_command_jobs.py)
 
@@ -957,7 +957,7 @@
 | [web/jobs/jobs.js](../../web/jobs/jobs.js) | 254 | 原生源码、平台脚本或界面资源 |
 | [web/jobs/panel.html](../../web/jobs/panel.html) | 50 | 原生源码、平台脚本或界面资源 |
 
-文档：[docs/TERMINAL.md](../TERMINAL.md)
+文档：[docs/TERMINAL.md](../../docs/TERMINAL.md)
 
 测试：[agent/tests/test_command_jobs.py](../../agent/tests/test_command_jobs.py)
 
@@ -971,7 +971,7 @@
 |---|---:|---|
 | [agent/src/omni/channels/web_api/runs.py](../../agent/src/omni/channels/web_api/runs.py) | 96 | 运行与用量 HTTP 适配；使用注入 Runtime，保留既有权限、路径与响应契约。 |
 
-文档：[docs/PROJECT_INDEX.md](../PROJECT_INDEX.md)
+文档：[docs/PROJECT_INDEX.md](../../docs/PROJECT_INDEX.md)
 
 测试：[agent/tests/test_web.py](../../agent/tests/test_web.py)
 
@@ -985,7 +985,7 @@
 |---|---:|---|
 | [agent/src/omni/channels/web_api/memory.py](../../agent/src/omni/channels/web_api/memory.py) | 173 | 记忆与档案 HTTP 适配；使用注入 Runtime，保留既有权限、路径与响应契约。 |
 
-文档：[docs/PROJECT_INDEX.md](../PROJECT_INDEX.md)
+文档：[docs/PROJECT_INDEX.md](../../docs/PROJECT_INDEX.md)
 
 测试：[agent/tests/test_web.py](../../agent/tests/test_web.py)
 
@@ -999,7 +999,7 @@
 |---|---:|---|
 | [agent/src/omni/channels/web_api/skills.py](../../agent/src/omni/channels/web_api/skills.py) | 484 | 技能 HTTP 适配：编辑/审阅/统计/归档/外来包，全部消费注入 Runtime。 |
 
-文档：[docs/PROJECT_INDEX.md](../PROJECT_INDEX.md)
+文档：[docs/PROJECT_INDEX.md](../../docs/PROJECT_INDEX.md)
 
 测试：[agent/tests/test_web_api.py](../../agent/tests/test_web_api.py)、[agent/tests/test_skills_history.py](../../agent/tests/test_skills_history.py)
 
@@ -1013,7 +1013,7 @@
 |---|---:|---|
 | [agent/src/omni/channels/web_api/artifacts.py](../../agent/src/omni/channels/web_api/artifacts.py) | 83 | 产物 HTTP 适配；使用注入 Runtime，保留既有权限、路径与响应契约。 |
 
-文档：[docs/PROJECT_INDEX.md](../PROJECT_INDEX.md)
+文档：[docs/PROJECT_INDEX.md](../../docs/PROJECT_INDEX.md)
 
 测试：[agent/tests/test_artifacts.py](../../agent/tests/test_artifacts.py)
 
@@ -1027,7 +1027,7 @@
 |---|---:|---|
 | [agent/src/omni/channels/web_api/approvals.py](../../agent/src/omni/channels/web_api/approvals.py) | 31 | 人工审批 HTTP 适配；使用注入 Runtime，保留既有权限、路径与响应契约。 |
 
-文档：[docs/ARCHITECTURE.md](../ARCHITECTURE.md)
+文档：[docs/ARCHITECTURE.md](../../docs/ARCHITECTURE.md)
 
 测试：[agent/tests/test_web_auth.py](../../agent/tests/test_web_auth.py)
 
@@ -1045,7 +1045,7 @@
 | [web/mcp/mcp.js](../../web/mcp/mcp.js) | 364 | 原生源码、平台脚本或界面资源 |
 | [web/mcp/panel.html](../../web/mcp/panel.html) | 37 | 原生源码、平台脚本或界面资源 |
 
-文档：[docs/MCP.md](../MCP.md)
+文档：[docs/MCP.md](../../docs/MCP.md)
 
 测试：[agent/tests/test_mcp.py](../../agent/tests/test_mcp.py)
 
@@ -1059,7 +1059,7 @@
 |---|---:|---|
 | [agent/src/omni/channels/web_api/operations.py](../../agent/src/omni/channels/web_api/operations.py) | 133 | 服务与诊断 HTTP 适配；使用注入 Runtime，保留既有权限、路径与响应契约。 |
 
-文档：[docs/OPERATIONS.md](../OPERATIONS.md)
+文档：[docs/OPERATIONS.md](../../docs/OPERATIONS.md)
 
 测试：[agent/tests/test_web.py](../../agent/tests/test_web.py)
 
@@ -1073,7 +1073,7 @@
 |---|---:|---|
 | [agent/src/omni/channels/web_api/automation.py](../../agent/src/omni/channels/web_api/automation.py) | 191 | 调度与可靠投递 HTTP 适配；使用注入 Runtime，保留既有权限、路径与响应契约。 |
 
-文档：[docs/PROJECT_INDEX.md](../PROJECT_INDEX.md)
+文档：[docs/PROJECT_INDEX.md](../../docs/PROJECT_INDEX.md)
 
 测试：[agent/tests/test_cron.py](../../agent/tests/test_cron.py)
 
@@ -1087,7 +1087,7 @@
 |---|---:|---|
 | [agent/src/omni/channels/web_api/publications.py](../../agent/src/omni/channels/web_api/publications.py) | 63 | 发布草稿 HTTP 适配；使用注入 Runtime，保留既有权限、路径与响应契约。 |
 
-文档：[docs/BILIBILI_WRITING.md](../BILIBILI_WRITING.md)
+文档：[docs/BILIBILI_WRITING.md](../../docs/BILIBILI_WRITING.md)
 
 测试：[agent/tests/test_bilibili_publishing.py](../../agent/tests/test_bilibili_publishing.py)
 
@@ -1105,7 +1105,7 @@
 | [web/capabilities/index.html](../../web/capabilities/index.html) | 25 | 原生源码、平台脚本或界面资源 |
 | [web/capabilities/panel.html](../../web/capabilities/panel.html) | 48 | 原生源码、平台脚本或界面资源 |
 
-文档：[docs/OPERATIONS.md](../OPERATIONS.md)
+文档：[docs/OPERATIONS.md](../../docs/OPERATIONS.md)
 
 测试：[agent/tests/test_android_streams.py](../../agent/tests/test_android_streams.py)
 
@@ -1123,7 +1123,7 @@
 | [web/android/android.js](../../web/android/android.js) | 368 | 原生源码、平台脚本或界面资源 |
 | [web/android/index.html](../../web/android/index.html) | 114 | 原生源码、平台脚本或界面资源 |
 
-文档：[docs/ANDROID.md](../ANDROID.md)
+文档：[docs/ANDROID.md](../../docs/ANDROID.md)
 
 测试：[agent/tests/test_android_devices.py](../../agent/tests/test_android_devices.py)
 
@@ -1137,7 +1137,7 @@
 |---|---:|---|
 | [agent/src/omni/channels/web_api/devices.py](../../agent/src/omni/channels/web_api/devices.py) | 141 | 桌面与安卓 HTTP 适配；使用注入 Runtime，保留既有权限、路径与响应契约。 |
 
-文档：[docs/ANDROID.md](../ANDROID.md)、[docs/DESKTOP.md](../DESKTOP.md)
+文档：[docs/ANDROID.md](../../docs/ANDROID.md)、[docs/DESKTOP.md](../../docs/DESKTOP.md)
 
 测试：[agent/tests/test_web.py](../../agent/tests/test_web.py)、[agent/tests/test_web_api.py](../../agent/tests/test_web_api.py)
 
@@ -1151,7 +1151,7 @@
 |---|---:|---|
 | [agent/src/omni/channels/web_api/schemas.py](../../agent/src/omni/channels/web_api/schemas.py) | 240 | 工作台请求契约；路由共用，旧 web.py 继续显式转发公共模型名。 |
 
-文档：[docs/PROJECT_INDEX.md](../PROJECT_INDEX.md)
+文档：[docs/PROJECT_INDEX.md](../../docs/PROJECT_INDEX.md)
 
 测试：[agent/tests/test_web_api.py](../../agent/tests/test_web_api.py)
 
@@ -1165,7 +1165,7 @@
 |---|---:|---|
 | [agent/src/omni/channels/web_api/market.py](../../agent/src/omni/channels/web_api/market.py) | 298 | 市场 HTTP 适配：人设卡与插件列表/安装/激活，全部消费注入 Runtime。 |
 
-文档：[docs/PLUGIN_SYSTEM.md](../PLUGIN_SYSTEM.md)
+文档：[docs/PLUGIN_SYSTEM.md](../../docs/PLUGIN_SYSTEM.md)
 
 测试：[agent/tests/test_market_api.py](../../agent/tests/test_market_api.py)、[agent/tests/test_market_client.py](../../agent/tests/test_market_client.py)
 
@@ -1182,7 +1182,7 @@
 | [agent/src/omni/channels/web_api/memory_system.py](../../agent/src/omni/channels/web_api/memory_system.py) | 287 | 记忆系统 HTTP 适配（M1–M6）：只消费注入 Runtime，路由聚合进既有鉴权闸门。 |
 | [agent/src/omni/channels/web_api/settings.py](../../agent/src/omni/channels/web_api/settings.py) | 422 | 配对与设置HTTP适配；复用注入身份和Runtime，不承担应用生命周期。 |
 
-文档：[docs/PROJECT_INDEX.md](../PROJECT_INDEX.md)、[docs/REFACTORING.md](../REFACTORING.md)
+文档：[docs/PROJECT_INDEX.md](../../docs/PROJECT_INDEX.md)、[docs/REFACTORING.md](../../docs/REFACTORING.md)
 
 测试：[agent/tests/test_web_api.py](../../agent/tests/test_web_api.py)
 
@@ -1197,7 +1197,7 @@
 | [agent/src/omni/__main__.py](../../agent/src/omni/__main__.py) | 5 | Run the V2 CLI; explicit V1 commands retain the legacy runtime. |
 | [agent/src/omni/channels/cli.py](../../agent/src/omni/channels/cli.py) | 147 | 本地终端 REPL 入口：uv run omni。 |
 
-文档：[docs/HANDOFF.md](../HANDOFF.md)
+文档：[docs/HANDOFF.md](../../docs/HANDOFF.md)
 
 测试：关联模块集成验证
 
@@ -1211,7 +1211,7 @@
 |---|---:|---|
 | [agent/src/omni/channels/qq.py](../../agent/src/omni/channels/qq.py) | 367 | QQ 通道入口：uv run omni-qq（需先启动 NapCat 并在 config.yaml 开启 qq）。 |
 
-文档：[docs/QQ_SCENARIOS.md](../QQ_SCENARIOS.md)
+文档：[docs/QQ_SCENARIOS.md](../../docs/QQ_SCENARIOS.md)
 
 测试：[agent/tests/test_qq.py](../../agent/tests/test_qq.py)、[agent/tests/test_qq_scope.py](../../agent/tests/test_qq_scope.py)
 
@@ -1225,7 +1225,7 @@
 |---|---:|---|
 | [agent/src/omni/channels/heartbeat.py](../../agent/src/omni/channels/heartbeat.py) | 117 | 心跳入口：uv run omni-heartbeat（定时任务常驻调度，无人值守 fail-closed）。 |
 
-文档：[docs/OPERATIONS.md](../OPERATIONS.md)
+文档：[docs/OPERATIONS.md](../../docs/OPERATIONS.md)
 
 测试：[agent/tests/test_cron.py](../../agent/tests/test_cron.py)
 
@@ -1242,7 +1242,7 @@
 | [agent/src/omni/channels/eval_retrieval.py](../../agent/src/omni/channels/eval_retrieval.py) | 80 | 在临时数据库评测合成样本；hybrid 模式须显式传配置，默认完全离线。 |
 | [agent/src/omni/channels/lifecycle.py](../../agent/src/omni/channels/lifecycle.py) | 28 | 常驻入口响应本次启动的停止请求；不构造运行态、不自行终止其它进程。 |
 
-文档：[docs/OPERATIONS.md](../OPERATIONS.md)
+文档：[docs/OPERATIONS.md](../../docs/OPERATIONS.md)
 
 测试：关联模块集成验证
 
@@ -1266,7 +1266,7 @@
 | [agent/src/omni/tools/personal/todos.py](../../agent/src/omni/tools/personal/todos.py) | 85 | 个人能力：todos；工具仅使用注入依赖，不构造运行时。 |
 | [agent/src/omni/tools/personal/transcript.py](../../agent/src/omni/tools/personal/transcript.py) | 207 | 记忆系统工具（一）：全量记忆两个模块的检索与精确读取（M1/M2）。 |
 
-文档：[docs/ARCHITECTURE.md](../ARCHITECTURE.md)
+文档：[docs/ARCHITECTURE.md](../../docs/ARCHITECTURE.md)
 
 测试：[agent/tests/test_tools.py](../../agent/tests/test_tools.py)、[agent/tests/test_profile_tools.py](../../agent/tests/test_profile_tools.py)、[agent/tests/test_resident.py](../../agent/tests/test_resident.py)
 
@@ -1281,7 +1281,7 @@
 | [agent/src/omni/tools/skills/__init__.py](../../agent/src/omni/tools/skills/__init__.py) | 5 | skills 能力域注册入口。 |
 | [agent/src/omni/tools/skills/tools.py](../../agent/src/omni/tools/skills/tools.py) | 452 | 技能工具集（toolset=core）：技能的渐进披露与维护。 |
 
-文档：[docs/ARCHITECTURE.md](../ARCHITECTURE.md)
+文档：[docs/ARCHITECTURE.md](../../docs/ARCHITECTURE.md)
 
 测试：[agent/tests/test_skills.py](../../agent/tests/test_skills.py)、[agent/tests/test_skill_inbox.py](../../agent/tests/test_skill_inbox.py)
 
@@ -1296,7 +1296,7 @@
 | [agent/src/omni/tools/scheduling/__init__.py](../../agent/src/omni/tools/scheduling/__init__.py) | 5 | scheduling 能力域注册入口。 |
 | [agent/src/omni/tools/scheduling/tools.py](../../agent/src/omni/tools/scheduling/tools.py) | 314 | 定时任务工具集（toolset=cron）：agent 可自主排程（Hermes cronjob_tools 精神）。 |
 
-文档：[docs/HANDOFF.md](../HANDOFF.md)
+文档：[docs/HANDOFF.md](../../docs/HANDOFF.md)
 
 测试：[agent/tests/test_cron.py](../../agent/tests/test_cron.py)
 
@@ -1311,7 +1311,7 @@
 | [agent/src/omni/tools/delegation/__init__.py](../../agent/src/omni/tools/delegation/__init__.py) | 5 | delegation 能力域注册入口。 |
 | [agent/src/omni/tools/delegation/tools.py](../../agent/src/omni/tools/delegation/tools.py) | 122 | 子任务委派（Hermes delegate_task 同款）：把独立子任务交给一个干净会话去跑。 |
 
-文档：[docs/ARCHITECTURE.md](../ARCHITECTURE.md)
+文档：[docs/ARCHITECTURE.md](../../docs/ARCHITECTURE.md)
 
 测试：[agent/tests/test_delegate.py](../../agent/tests/test_delegate.py)
 
@@ -1326,7 +1326,7 @@
 | [agent/src/omni/tools/system/__init__.py](../../agent/src/omni/tools/system/__init__.py) | 5 | system 能力域注册入口。 |
 | [agent/src/omni/tools/system/tools.py](../../agent/src/omni/tools/system/tools.py) | 121 | 系统工具集（toolset=system）：AI 自查本地服务状态、引导用户处置。 |
 
-文档：[docs/OPERATIONS.md](../OPERATIONS.md)
+文档：[docs/OPERATIONS.md](../../docs/OPERATIONS.md)
 
 测试：[agent/tests/test_system.py](../../agent/tests/test_system.py)
 
@@ -1344,7 +1344,7 @@
 | [agent/src/omni/tools/shell/spec.py](../../agent/src/omni/tools/shell/spec.py) | 539 | SAFE 命令解析：把命令串解析成**受控 argv**，解析不出来就拒绝。 |
 | [agent/src/omni/tools/shell/tools.py](../../agent/src/omni/tools/shell/tools.py) | 264 | shell 工具集（toolset=shell）：peek_command（SAFE 观察）与 run_command（CONFIRM 执行）。 |
 
-文档：[docs/ARCHITECTURE.md](../ARCHITECTURE.md)
+文档：[docs/ARCHITECTURE.md](../../docs/ARCHITECTURE.md)
 
 测试：[agent/tests/test_shell_tools.py](../../agent/tests/test_shell_tools.py)
 
@@ -1363,7 +1363,7 @@
 | [agent/src/omni/tools/files/search.py](../../agent/src/omni/tools/files/search.py) | 169 | 有界目录遍历与内容搜索（D13）。 |
 | [agent/src/omni/tools/files/tools.py](../../agent/src/omni/tools/files/tools.py) | 674 | 结构化文件工具（D13，toolset=files）。 |
 
-文档：[docs/ARCHITECTURE.md](../ARCHITECTURE.md)
+文档：[docs/ARCHITECTURE.md](../../docs/ARCHITECTURE.md)
 
 测试：[agent/tests/test_files.py](../../agent/tests/test_files.py)
 
@@ -1380,7 +1380,7 @@
 | [agent/src/omni/tools/web/net.py](../../agent/src/omni/tools/web/net.py) | 413 | 有界 HTTP 抓取（D14）：协议、目标网络、重定向、大小、超时全部受控。 |
 | [agent/src/omni/tools/web/tools.py](../../agent/src/omni/tools/web/tools.py) | 195 | 网页读取工具（D14，toolset=web）：`web_read`。 |
 
-文档：[docs/ARCHITECTURE.md](../ARCHITECTURE.md)
+文档：[docs/ARCHITECTURE.md](../../docs/ARCHITECTURE.md)
 
 测试：[agent/tests/test_web_fetch.py](../../agent/tests/test_web_fetch.py)
 
@@ -1398,7 +1398,7 @@
 | [agent/src/omni/tools/browser/forms.py](../../agent/src/omni/tools/browser/forms.py) | 273 | 固定配置的 UI 表单观察/提交；所有操作在 BrowserDriver 的所有者线程执行。 |
 | [agent/src/omni/tools/browser/tools.py](../../agent/src/omni/tools/browser/tools.py) | 199 | 浏览器工具集（toolset=browser）：读 SAFE，写 CONFIRM。 |
 
-文档：[docs/BILIBILI_WRITING.md](../BILIBILI_WRITING.md)
+文档：[docs/BILIBILI_WRITING.md](../../docs/BILIBILI_WRITING.md)
 
 测试：[agent/tests/test_browser.py](../../agent/tests/test_browser.py)、[agent/tests/test_browser_owner.py](../../agent/tests/test_browser_owner.py)
 
@@ -1418,7 +1418,7 @@
 | [agent/src/omni/tools/android/tools.py](../../agent/src/omni/tools/android/tools.py) | 317 | 安卓工具集（toolset=android）：观察 SAFE，动作 CONFIRM。 |
 | [agent/src/omni/tools/android/ui.py](../../agent/src/omni/tools/android/ui.py) | 90 | UI 树解析（纯函数）：uiautomator XML → 结构化元素 → 文本树。 |
 
-文档：[docs/ANDROID.md](../ANDROID.md)
+文档：[docs/ANDROID.md](../../docs/ANDROID.md)
 
 测试：[agent/tests/test_android.py](../../agent/tests/test_android.py)、[agent/tests/test_android_observations.py](../../agent/tests/test_android_observations.py)
 
@@ -1436,7 +1436,7 @@
 | [agent/src/omni/tools/desktop/tools.py](../../agent/src/omni/tools/desktop/tools.py) | 115 |  |
 | [agent/src/omni/tools/desktop/uia.ps1](../../agent/src/omni/tools/desktop/uia.ps1) | 198 | 原生源码、平台脚本或界面资源 |
 
-文档：[docs/DESKTOP.md](../DESKTOP.md)
+文档：[docs/DESKTOP.md](../../docs/DESKTOP.md)
 
 测试：[agent/tests/test_desktop.py](../../agent/tests/test_desktop.py)
 
@@ -1458,7 +1458,7 @@
 | [agent/src/omni/tools/bilibili/wbi.py](../../agent/src/omni/tools/bilibili/wbi.py) | 99 | B站 WBI 签名（纯算法，无网络依赖）。 |
 | [agent/src/omni/tools/bilibili/write_tools.py](../../agent/src/omni/tools/bilibili/write_tools.py) | 114 | B站草稿工具及逐次人工发布审批；所有浏览器依赖由组装根注入。 |
 
-文档：[docs/BILIBILI_WRITING.md](../BILIBILI_WRITING.md)
+文档：[docs/BILIBILI_WRITING.md](../../docs/BILIBILI_WRITING.md)
 
 测试：[agent/tests/test_bilibili_tools.py](../../agent/tests/test_bilibili_tools.py)、[agent/tests/test_bilibili_publishing.py](../../agent/tests/test_bilibili_publishing.py)
 
@@ -1478,7 +1478,7 @@
 | [agent/src/omni/tools/storyboard/source.py](../../agent/src/omni/tools/storyboard/source.py) | 45 | 视频来源：把"一个目标"变成"一个本地可解码的视频文件 + 可选的带时间戳台词"。 |
 | [agent/src/omni/tools/storyboard/tools.py](../../agent/src/omni/tools/storyboard/tools.py) | 254 | 分镜工具：把视频变成"能看、能引用、能回看"的画面索引。 |
 
-文档：[docs/VIDEO_UNDERSTANDING.md](../VIDEO_UNDERSTANDING.md)
+文档：[docs/VIDEO_UNDERSTANDING.md](../../docs/VIDEO_UNDERSTANDING.md)
 
 测试：[agent/tests/test_storyboard.py](../../agent/tests/test_storyboard.py)
 
@@ -1494,7 +1494,7 @@
 | [agent/src/omni/tools/qq/client.py](../../agent/src/omni/tools/qq/client.py) | 299 | OneBot v11 正向 WebSocket 客户端（对接 NapCat）。 |
 | [agent/src/omni/tools/qq/tools.py](../../agent/src/omni/tools/qq/tools.py) | 123 | QQ 工具集（toolset=qq）：主动发消息。 |
 
-文档：[docs/QQ_SCENARIOS.md](../QQ_SCENARIOS.md)
+文档：[docs/QQ_SCENARIOS.md](../../docs/QQ_SCENARIOS.md)
 
 测试：[agent/tests/test_outbox.py](../../agent/tests/test_outbox.py)
 
@@ -1511,7 +1511,7 @@
 | [agent/src/omni/tools/mcp/remote.py](../../agent/src/omni/tools/mcp/remote.py) | 178 | 显式配置的远程MCP传输与人工OAuth；不扩大工具授权，不自动打开浏览器。 |
 | [agent/src/omni/tools/mcp/tools.py](../../agent/src/omni/tools/mcp/tools.py) | 107 | MCP 工具适配：渐进发现、用户审核只读调用、人工确认调用；不决定传输细节。 |
 
-文档：[docs/MCP.md](../MCP.md)
+文档：[docs/MCP.md](../../docs/MCP.md)
 
 测试：[agent/tests/test_mcp.py](../../agent/tests/test_mcp.py)
 
@@ -1536,7 +1536,7 @@
 | [agent/src/omni/tools/skill_tools.py](../../agent/src/omni/tools/skill_tools.py) | 5 | 旧导入兼容层；实现位于 tools/skills/。 |
 | [agent/src/omni/tools/system_tools.py](../../agent/src/omni/tools/system_tools.py) | 5 | 旧导入兼容层；实现位于 tools/system/。 |
 
-文档：[docs/ARCHITECTURE.md](../ARCHITECTURE.md)
+文档：[docs/ARCHITECTURE.md](../../docs/ARCHITECTURE.md)
 
 测试：[agent/tests/test_tools.py](../../agent/tests/test_tools.py)
 
@@ -1555,7 +1555,7 @@
 | [agent/src/omni/plugins/community/tools.py](../../agent/src/omni/plugins/community/tools.py) | 138 | 社区工具适配；HTTP/发布逻辑由注入客户端承担。 |
 | [agent/src/omni/plugins/server.py](../../agent/src/omni/plugins/server.py) | 8 | 兼容 python -m omni.plugins.server；实现位于 plugins/community/server.py。 |
 
-文档：[docs/PLUGIN_SYSTEM.md](../PLUGIN_SYSTEM.md)
+文档：[docs/PLUGIN_SYSTEM.md](../../docs/PLUGIN_SYSTEM.md)
 
 测试：[agent/tests/test_plugin_community.py](../../agent/tests/test_plugin_community.py)
 
@@ -1574,7 +1574,7 @@
 | [agent/src/omni/plugins/quarantine.py](../../agent/src/omni/plugins/quarantine.py) | 242 | 插件隔离区与安装状态的文件层：隔离区落盘、清单记录、防篡改复核。 |
 | [agent/src/omni/plugins/tools.py](../../agent/src/omni/plugins/tools.py) | 178 | 插件生命周期工具（面向 agent）：安装 → 审阅 → 激活 → 启停 → 卸载。 |
 
-文档：[docs/PLUGIN_SYSTEM.md](../PLUGIN_SYSTEM.md)
+文档：[docs/PLUGIN_SYSTEM.md](../../docs/PLUGIN_SYSTEM.md)
 
 测试：[agent/tests/test_plugins.py](../../agent/tests/test_plugins.py)
 
@@ -1591,7 +1591,7 @@
 | [agent/src/omni/system/catalog/scan.py](../../agent/src/omni/system/catalog/scan.py) | 309 | 静态源码索引；扫描范围为本地 Agent 的源码包（兼容旧布局），不读取 config/data/.env。 |
 | [agent/src/omni/system/catalog/schema.py](../../agent/src/omni/system/catalog/schema.py) | 692 | 模块分类与关键调用链；分层规则仍以 docs/ARCHITECTURE.md 为准。 |
 
-文档：[docs/PROJECT_INDEX.md](../PROJECT_INDEX.md)
+文档：[docs/PROJECT_INDEX.md](../../docs/PROJECT_INDEX.md)
 
 测试：[agent/tests/test_project_catalog.py](../../agent/tests/test_project_catalog.py)
 
@@ -1626,7 +1626,7 @@
 | [agent/src/omni/system/supervisor.py](../../agent/src/omni/system/supervisor.py) | 384 | 服务守护：让常驻服务在 agent 运行期间保持在线。 |
 | [agent/src/omni/system/text_guard.py](../../agent/src/omni/system/text_guard.py) | 268 | 确定性文本守卫：凭据形态与高危标识的扫描（**单一真源**）。 |
 
-文档：[docs/OPERATIONS.md](../OPERATIONS.md)、[docs/ACCEPTANCE.md](../ACCEPTANCE.md)
+文档：[docs/OPERATIONS.md](../../docs/OPERATIONS.md)、[docs/ACCEPTANCE.md](../../docs/ACCEPTANCE.md)
 
 测试：[agent/tests/test_backup.py](../../agent/tests/test_backup.py)、[agent/tests/test_process_identity.py](../../agent/tests/test_process_identity.py)
 
