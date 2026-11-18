@@ -36,12 +36,12 @@ def test_skill_draft_review_and_explicit_turn_selection(ui_browser, v2_server, w
             ).status
             == 200
         )
-        page.locator('[data-page="skills"]').click()
+        page.locator('nav[aria-label="工作台"] [data-page="skills"]').click()
         page.locator("#skills-new").click()
         text = markdown(text="Follow procedure <script>window.__skillCanary753=1</script> and verify.")
         page.locator("#skills-content").fill(text)
         page.locator('[data-page="people"]').click()
-        page.locator('[data-page="skills"]').click()
+        page.locator('nav[aria-label="工作台"] [data-page="skills"]').click()
         expect(page.locator("#skills-content")).to_have_value(text)
         page.locator("#skills-save").click()
         expect(page.locator("#skills-status")).to_contain_text("disabled")
@@ -55,7 +55,7 @@ def test_skill_draft_review_and_explicit_turn_selection(ui_browser, v2_server, w
         page.get_by_role("button", name="发送", exact=True).click()
         expect(page.locator("#messages")).to_contain_text("V2 test reply")
         expect(page.locator("#skill-run-status")).to_contain_text("已使用")
-        page.locator('[data-page="skills"]').click()
+        page.locator('nav[aria-label="工作台"] [data-page="skills"]').click()
         page.locator("#skills-disable").click()
         confirm(page, "停用此技能")
         expect(page.locator("#skills-status")).to_contain_text("disabled")

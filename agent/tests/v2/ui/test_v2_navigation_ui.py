@@ -1,4 +1,4 @@
-"""Grouped workbench navigation: eight business groups, 25 rail buttons (24 pages), all reachable, 390/1024."""
+"""Grouped workbench navigation: eight business groups, 24 rail buttons (24 pages), all reachable, 390/1024."""
 
 import socket
 import threading
@@ -11,7 +11,7 @@ from playwright.sync_api import expect
 
 from omni.composition.http import http_app
 
-GROUPS = ("核心系统", "对话", "知识与技能", "工具与扩展", "设备与平台", "资料与媒体", "自动化", "系统与运维")
+GROUPS = ("核心系统", "对话", "知识", "工具与扩展", "设备与平台", "资料与媒体", "自动化", "系统与运维")
 
 
 class ServerInfo(tuple):
@@ -69,7 +69,7 @@ def test_grouped_navigation_keeps_every_page_reachable(ui_browser, navigation_se
         expect(labels).to_have_count(len(GROUPS))
         for index, group in enumerate(GROUPS):
             expect(labels.nth(index)).to_have_text(group)
-        expect(page.locator("nav button[data-page]")).to_have_count(25)
+        expect(page.locator("nav button[data-page]")).to_have_count(24)
 
         for target, marker in (
             ("可信插件", "#extensions"),

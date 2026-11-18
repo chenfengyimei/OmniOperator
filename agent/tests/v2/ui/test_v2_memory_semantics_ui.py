@@ -28,11 +28,11 @@ def test_hybrid_recall_and_related_fact_review(ui_browser, semantic_server, widt
         facts = create_facts(
             context, semantic_server, agent, ["I prefer tea <script>window.__memoryCanary753=1</script>", "I drink tea"]
         )
-        page.locator('[data-page="memory"]').click()
+        page.locator('nav[aria-label="工作台"] [data-page="memory"]').click()
         expect(page.locator("#semantic-status")).to_contain_text("本地向量可用")
         page.locator("#semantic-query").fill("茗")
         page.locator('[data-page="people"]').click()
-        page.locator('[data-page="memory"]').click()
+        page.locator('nav[aria-label="工作台"] [data-page="memory"]').click()
         expect(page.locator("#semantic-query")).to_have_value("茗")
         page.locator("#semantic-index").click()
         expect(page.locator("#semantic-index-status")).to_contain_text("已就绪 2 条")

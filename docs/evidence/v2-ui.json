@@ -1,7 +1,7 @@
 {
   "batch": "v2-ui-connection-stability-v128",
   "recorded_at": "2026-11-15",
-  "resource_version_final": "20261118v154",
+  "resource_version_final": "20261118v155",
   "v1_alignment": {
     "summary": "用户提供 V1 正式工作台截图后，直接精读 web/ui/workbench.css 的 V1 实现并逐项移植，使 V2 结构与 V1 一致（而非自创风格）。",
     "ported_from_v1": [
@@ -1258,6 +1258,18 @@
     "验证": {
       "守卫导航": "5 passed",
       "实测": "记忆单入口可达,设置栏7组24项,零报错"
+    }
+  },
+  "nav_skills_dedup": {
+    "需求": "核心系统已有技能系统,删除知识与技能分组重复技能项",
+    "交付": [
+      "rail删skills重复按钮,分组改名知识",
+      "守卫GROUPS/计数24/清单同步",
+      "技能/记忆测试选择器限定nav消除与上下文页跳转按钮二义"
+    ],
+    "验证": {
+      "守卫导航技能记忆": "21 passed",
+      "实测": "技能单入口可达,设置栏7组23项,零报错"
     }
   }
 }
