@@ -1,32 +1,32 @@
-import { mountSkills } from './skills.js?v=20261118v149';
-import { mountCredentials } from './credentials.js?v=20261118v149';
-import { mountAuditHistory, mountOperations } from './operations.js?v=20261118v149';
-import { mountCapabilities } from './capabilities.js?v=20261118v149';
-import { mountTokens } from './tokens.js?v=20261118v149';
-import { mountDocuments } from './documents.js?v=20261118v149';
-import { mountConfiguration } from './configuration.js?v=20261118v149';
-import { mountModels } from './models.js?v=20261118v149';
+import { mountSkills } from './skills.js?v=20261118v150';
+import { mountCredentials } from './credentials.js?v=20261118v150';
+import { mountAuditHistory, mountOperations } from './operations.js?v=20261118v150';
+import { mountCapabilities } from './capabilities.js?v=20261118v150';
+import { mountTokens } from './tokens.js?v=20261118v150';
+import { mountDocuments } from './documents.js?v=20261118v150';
+import { mountConfiguration } from './configuration.js?v=20261118v150';
+import { mountModels } from './models.js?v=20261118v150';
 import { ask } from '../dialog.js?v=20261103v7';
-import { mountPeople } from './people.js?v=20261118v149';
-import { mountDeliveries } from './deliveries.js?v=20261118v149';
-import { mountSchedules } from './schedules.js?v=20261118v149';
-import { mountMemorySemantics } from './memory-semantics.js?v=20261118v149';
-import { mountMemoryOrganization } from './memory-organization.js?v=20261118v149';
-import { mountExtensions } from './extensions.js?v=20261118v149';
-import { mountActionReviews } from './action-reviews.js?v=20261118v149';
-import { mountTerminals } from './terminals.js?v=20261118v149';
-import { mountDesktop } from './desktop.js?v=20261118v149';
-import { mountQQ } from './qq.js?v=20261118v149';
-import { mountBilibili } from './bilibili.js?v=20261118v149';
-import { mountMedia } from './media.js?v=20261118v149';
-import { mountMcp } from './mcp.js?v=20261118v149';
-import { mountAndroid } from './android.js?v=20261118v149';
-import { mountModelOutput } from './model-output.js?v=20261118v149';
-import { mountRouting } from './routing.js?v=20261118v149';
-import { mountChatImages } from './chat-images.js?v=20261118v149';
-import { mountInspector } from './inspector.js?v=20261118v149';
-import { mountSettingsRail } from './settings-rail.js?v=20261118v149';
-import { mountEventStream } from './event-stream.js?v=20261118v149';
+import { mountPeople } from './people.js?v=20261118v150';
+import { mountDeliveries } from './deliveries.js?v=20261118v150';
+import { mountSchedules } from './schedules.js?v=20261118v150';
+import { mountMemorySemantics } from './memory-semantics.js?v=20261118v150';
+import { mountMemoryOrganization } from './memory-organization.js?v=20261118v150';
+import { mountExtensions } from './extensions.js?v=20261118v150';
+import { mountActionReviews } from './action-reviews.js?v=20261118v150';
+import { mountTerminals } from './terminals.js?v=20261118v150';
+import { mountDesktop } from './desktop.js?v=20261118v150';
+import { mountQQ } from './qq.js?v=20261118v150';
+import { mountBilibili } from './bilibili.js?v=20261118v150';
+import { mountMedia } from './media.js?v=20261118v150';
+import { mountMcp } from './mcp.js?v=20261118v150';
+import { mountAndroid } from './android.js?v=20261118v150';
+import { mountModelOutput } from './model-output.js?v=20261118v150';
+import { mountRouting } from './routing.js?v=20261118v150';
+import { mountChatImages } from './chat-images.js?v=20261118v150';
+import { mountInspector } from './inspector.js?v=20261118v150';
+import { mountSettingsRail } from './settings-rail.js?v=20261118v150';
+import { mountEventStream } from './event-stream.js?v=20261118v150';
 // 直接复用 V1 的 rail 提示浮层模块（data-tip → #tip-layer），不自创实现
 import '../app/tips.js?v=20261103u5';
 
@@ -454,9 +454,16 @@ function renderToolBlock(node, trace) {
     const realIn = sum('input_tokens'),
       realOut = sum('output_tokens'),
       estIn = sum('input_token_estimate');
+    // 口径标清：本地估算含「系统提示+历史+全部工具规格」，是完整输入上界；
+    // 供应商上报值可能不含工具规格（离线 stub 固定小值），二者并列标注，
+    // 避免把上报小值误读成完整档的总输入（所有者质疑 180 太小）。
     const inText =
-      realIn !== null ? `输入 ${realIn} token` : estIn !== null ? `输入估算 ${estIn} token` : '输入 未知';
-    const outText = realOut !== null ? `输出 ${realOut} token` : '输出 未知';
+      estIn !== null
+        ? `输入估算 ${estIn} token（含工具）` + (realIn !== null ? ` · 上报 ${realIn}` : '')
+        : realIn !== null
+          ? `输入 ${realIn} token（上报）`
+          : '输入 未知';
+    const outText = realOut !== null ? `输出 ${realOut} token（上报）` : '输出 未知';
     const summary = document.createElement('div');
     summary.className = 'scaf-summary';
     const sIcon = document.createElement('span');
