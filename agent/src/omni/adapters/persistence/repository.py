@@ -522,30 +522,6 @@ class Repositories(
         )
         return [dict(row) for row in reversed(rows)]
 
-    def context_memories(self, agent_id: str, snapshot_id: str) -> list[Record]:
-        self._one(s.context_snapshots, agent_id, snapshot_id)
-        rows = self.connection.execute(
-            select(
-                s.context_memories,
-                s.memory_entries.c.kind,
-                s.memory_entries.c.deleted_at,
-                s.memory_revisions.c.content,
-                s.memory_revisions.c.revision,
-            )
-            .join(s.memory_entries, s.memory_entries.c.id == s.context_memories.c.memory_id)
-            .outerjoin(s.memory_revisions, s.memory_revisions.c.id == s.context_memories.c.memory_revision_id)
-            .where(s.context_memories.c.agent_id == agent_id, s.context_memories.c.snapshot_id == snapshot_id)
-            .order_by(s.memory_entries.c.kind)
-        ).mappings()
-        return [
-            {
-                **dict(row),
-                "content": row["content"] if row["deleted_at"] is None else "",
-                "erased": row["deleted_at"] is not None,
-            }
-            for row in rows
-        ]
-
     def run_context(self, agent_id: str, run_id: str) -> list[Record]:
         self.get_run(agent_id, run_id)
         snapshots = self.connection.execute(

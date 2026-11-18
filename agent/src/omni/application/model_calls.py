@@ -10,6 +10,7 @@ from ..domain.context import CONTEXT_CHARS
 from ..domain.contracts import BusinessError, ModelReply, Outcome, ToolSpec
 from ..domain.images import references
 from ..domain.metering import TokenEstimate, serialized_request
+from ..domain.model_reply import validate_reply
 from ..domain.settings import Settings
 from .images import ImageService
 from .model_output import ModelOutput
@@ -285,4 +286,6 @@ class ModelCalls:
                 "model_output_limit_exceeded",
                 "The provider exceeded the requested output budget; recorded costs remain settled",
             )
+        if reserved_id is None:
+            validate_reply(reply)
         return reply

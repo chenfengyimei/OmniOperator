@@ -274,15 +274,24 @@ def test_model_discovers_and_reads_references_from_actual_skill_tool_text(tmp_pa
     class Reading:
         stage = 0
         target = None
+        system_prefix = None
 
         async def complete(self, messages, tools, settings):
             self.stage += 1
             binding = {"skill_id": self.target["id"], "revision_id": self.target["revision_id"]}
             if self.stage == 1:
+                self.system_prefix = messages[0]["content"]
                 return ModelReply("activate", (Invocation("activate", "skill_activate", binding),), cost_micro=7)
-            payload = json.loads(messages[-1]["content"])
+            assert messages[0]["content"] == self.system_prefix
+            call_id = "activate" if self.stage == 2 else "reference"
+            payload = json.loads(
+                next(m["content"] for m in messages if m.get("role") == "tool" and m.get("tool_call_id") == call_id)
+            )
             assert payload["revision"] == self.target["revision"]
             if self.stage == 2:
+                assert any(
+                    m.get("role") == "user" and "Reviewed procedural skills" in str(m["content"]) for m in messages
+                )
                 reference = next(f["path"] for f in payload["files"] if f["path"].startswith("references/"))
                 return ModelReply(
                     "reference", (Invocation("reference", "skill_view", {**binding, "path": reference}),), cost_micro=7

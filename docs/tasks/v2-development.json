@@ -393,7 +393,8 @@
         "跨平台安装器已有实现；本批补独立安装矩阵检查及实际暴露的Unicode/特殊字符启动缺陷，仍不证明三平台交付完成。",
         "原媒体仅接B站来源；本批补上传对象→原ASR/抽帧→产物/模型只读工具与HTTP/工作台，见G6.media_upload。真实素材/ASR质量单列验收。",
         "实际MCP业务任务未持有首次数据库准备至最终提交，且失败/旧代次会话在真实回收前被移除；本批补齐完整准入/取消/关闭/原会话保留，见G6.mcp_ownership，不重做原业务。",
-        "真实回环复现HTTP服务端已收完整写调用但缺响应头时被归未执行；stdio排空失败也有同类缺口。本批保留可能送达unknown和明确未发送例外，实测审批/写一次/人工核查不重发，见G6.mcp_delivery。"
+        "真实回环复现HTTP服务端已收完整写调用但缺响应头时被归未执行；stdio排空失败也有同类缺口。本批保留可能送达unknown和明确未发送例外，实测审批/写一次/人工核查不重发，见G6.mcp_delivery。",
+        "所有者要求完整对标xuexi Agent功能；实读主内核及专项参考发现子代理、任务清单、并行调度、回合后学习等缺口，本批先补运行前缀冻结与回包/空回复协议，详见G6.core_parity。"
       ],
       "subdeliverables": [
         {
@@ -436,6 +437,19 @@
           ],
           "actual_isolated_sqlite_http_approval_and_review": true,
           "real_external_service": false
+        },
+        {
+          "id": "G6.core_parity",
+          "title": "xuexi Agent内核与专项功能完整对标",
+          "status": "development_in_progress",
+          "contract": "docs/v2/contracts/V2_AGENT_CORE_PARITY.md",
+          "task_file": "docs/tasks/v2-agent-core-parity.json",
+          "evidence": [
+            "docs/evidence/v2-agent-core-parity.json"
+          ],
+          "whole_core_parity_complete": false,
+          "whole_reference_audit_complete": false,
+          "next": "K03修订化任务清单，随后K04父子run委派与K05批次并行；开发期仅专项"
         }
       ],
       "partial_code_audit": {
@@ -464,7 +478,10 @@
         "resulting_development_evidence": "docs/evidence/v2-portable-installation.json",
         "existing_extension_mcp_chains_tested_in_this_batch": false,
         "latest_resulting_development_evidence": "docs/evidence/v2-mcp-delivery.json"
-      }
+      },
+      "evidence": [
+        "docs/evidence/v2-agent-core-parity.json"
+      ]
     },
     {
       "id": "G7",

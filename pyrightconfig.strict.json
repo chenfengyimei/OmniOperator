@@ -386,10 +386,15 @@
     "agent/src/omni/domain/skills.py",
     "agent/src/omni/domain/soak.py",
     "agent/src/omni/domain/terminal_review.py",
-    "agent/src/omni/domain/terminals.py"
+    "agent/src/omni/domain/terminals.py",
+    "agent/src/omni/domain/model_reply.py",
+    "agent/src/omni/domain/turn_prompt.py"
   ],
   "exclude": [
     "**/__pycache__"
   ],
-  "pythonVersion": "3.12"
+  "pythonVersion": "3.12",
+  "extraPaths": [
+    "agent/src"
+  ]
 }

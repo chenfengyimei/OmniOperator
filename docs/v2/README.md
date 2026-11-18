@@ -6,6 +6,7 @@ Mac 主开发，Windows 保留运行及原生验收环境。开发中只跑受�
 
 ## 业务与领域合同
 
+- [Agent 内核与 xuexi 功能对标、缺口和开发顺序](contracts/V2_AGENT_CORE_PARITY.md)
 - [V2_AGENTS](contracts/V2_AGENTS.md)
 - [V2_ANDROID](contracts/V2_ANDROID.md)
 - [V2_ANDROID_MODEL](contracts/V2_ANDROID_MODEL.md)

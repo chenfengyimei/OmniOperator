@@ -13,10 +13,10 @@ from jsonschema import Draft202012Validator
 
 from ..domain.agents import MAX_AGENTS, name_value, revision_value
 from ..domain.contracts import JSON, ActionResult, BusinessError, Effect, InvocationContext, Outcome, ToolSpec
-from ..domain.metering import memory_system
 from ..domain.routing import REQUEST_MODE, select_tools
 from ..domain.routing import notice as route_notice
 from ..domain.settings import agent_settings_value, settings_value
+from ..domain.turn_prompt import TurnPrompt
 from .context import ContextService
 from .images import ImageService
 from .memory_semantics import MemorySemanticService
@@ -255,26 +255,22 @@ class Application:
                 route = await self._db.read(lambda u: u.run_route(agent_id, run_id))
                 may_promote = bool(route["allow_escalation"] and not route["promoted"])
                 tools = select_tools(str(route["mode"]), baseline, escalate=may_promote)
-                prepared = await self._contexts.prepare(
-                    agent_id,
-                    run_id,
-                    settings,
-                    tools,
-                    extra_notice=route_notice(str(route["mode"]), any(spec.name == "request_mode" for spec in tools))
-                    + (await self._skills.notice(agent_id, run_id) if self._skills and not remote else ""),
-                )
+                initial_notice = route_notice(
+                    str(route["mode"]), any(spec.name == "request_mode" for spec in tools)
+                ) + (await self._skills.notice(agent_id, run_id) if self._skills and not remote else "")
+                prepared = await self._contexts.prepare(agent_id, run_id, settings, tools, extra_notice=initial_notice)
                 messages: list[Record] = cast(list[Record], prepared["request"])
                 notice = str(prepared["notice"])
+                prompt = TurnPrompt.capture(messages, notice + initial_notice)
                 for _step in range(min(32, max(1, int(settings.get("max_steps", 12))))):
                     await self._checkpoint(agent_id, run_id)
                     route = await self._db.read(lambda u: u.run_route(agent_id, run_id))
                     may_promote = bool(route["allow_escalation"] and not route["promoted"])
                     tools = select_tools(str(route["mode"]), baseline, escalate=may_promote)
                     batch_registry = {spec.name: registry[spec.name] for spec in tools if spec.name in registry}
-                    captured = await self._db.read(lambda u: u.context_memories(agent_id, str(prepared["snapshot_id"])))
-                    messages[0]["content"] = memory_system(
-                        settings,
-                        captured,
+                    await self._db.read(lambda u: u.context_memories(agent_id, str(prepared["snapshot_id"])))
+                    prompt.update(
+                        messages,
                         notice
                         + route_notice(str(route["mode"]), any(spec.name == "request_mode" for spec in tools))
                         + (await self._skills.notice(agent_id, run_id) if self._skills and not remote else ""),

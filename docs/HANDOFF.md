@@ -3,7 +3,7 @@
 ## 当前状态与工作方式
 
 - 开发分支 `v2`，跟踪 `origin/v2`。默认入口是 V2，显式 V1 回退保留。
-- 当前工作：目录、代码位置与文档整理已完成专项与包验证。平台适配按职责归组，V2 测试独立分组；业务逻辑、大型文件和原生协议保持。
+- 当前工作：目录整理已完成；新增 [Agent 内核与学习项目对标](v2/contracts/V2_AGENT_CORE_PARITY.md)。V2 内核尚未完整对标，已实读定位子代理、任务清单、并行调度、回合后学习等缺口；本批先补单 run 前缀冻结、普通回包协议与空回复结算。
 - Windows 主体开发及旧离线候选已完成；当前源码未统一全量，整个 V2 仍在开发。真实账号/模型质量/设备、干净机器及 72 小时验收分别待办。
 - Mac mini 为 Apple Silicon，所有者提供 macOS 27，实际版本在 Mac 用 `sw_vers` 核对。Mac 做主开发机，现有 Windows 保留运行和原生验收环境，两端同步同一分支。
 - 当前 Windows 服务、实例、凭据和其他会话的 `PPT/`、`docs/competition/` 保留。根 `src`/`tests` 是本机兼容联接，正式代码与测试分别在 `agent/src`、`agent/tests`。
@@ -11,7 +11,7 @@
 ## 接手顺序
 
 1. 读 [目录规则](REPOSITORY_STRUCTURE.md)、[架构](ARCHITECTURE.md) 和 [测试纪律](TESTING.md)。
-2. 当前任务以 [持续开发任务](tasks/v2-development.json) 为准，Windows 阶段见 [候选任务](tasks/v2-windows-candidate.json)；[状态摘要](DEVELOPMENT_STATUS.md)由这两份当前记录生成。
+2. 当前任务以 [持续开发任务](tasks/v2-development.json) 为准，内核对标子任务见 [缺口清单](tasks/v2-agent-core-parity.json)，Windows 阶段见 [候选任务](tasks/v2-windows-candidate.json)；[状态摘要](DEVELOPMENT_STATUS.md)由当前任务记录生成。
 3. 按 [V2 导航](v2/README.md) 找合同与平台断点；迁移到 Mac 后直接粘贴 [接续提示词](V2_MACMINI_RESUME_PROMPT.md)，环境步骤见 [迁移说明](V2_MACMINI_MIGRATION.md)。
 
 ## 已完成断点与证据
@@ -28,7 +28,11 @@ Windows 自有窗口点位与遮挡、ConPTY 原生专项已执行；未重复�
 
 ## 下一开发断点
 
-本次目录迁移、专项和打包已完成。Mac 接手后优先实际编译 Swift/C，再推进 G5 平台/交付和 G6 业务核对；G3 Linux、G4 Wayland 缺口继续按任务推进。G7 统一全量与最终实机验收留整个 V2 开发冻结后。
+所有者新增完整对标要求；跨平台可先推进 G6.core_parity / K03 修订化任务清单，再做 K04 父子 run 委派与 K05 批次并行。多 Agent 空间、显式记忆整理和有限抽帧均不能替代对应缺失功能。会话级缓存稳定、run 内工具压缩、停止前验核和回合后学习也仍待实现。本批证据见 [内核对标](evidence/v2-agent-core-parity.json)，未全量、未真实模型效果验收。
+
+本批新增 28 项回归，当前集成源码 77 项内核/上下文/流式/技能调用方、15 项架构/目录/状态守卫通过，388 文件 strict 零错误/警告。首次旧源码复现、专项调用方失败及类型错误记录均保留；77+15 是本批两个不重叠专项范围，不能写成当前源码全量通过。并行 UI 在途修改保留，提交索引以已提交源码加本批文件的隔离副本生成。
+
+目录迁移、专项和打包已完成；Mac 接手还需实际编译 Swift/C，再推进 G5 平台/交付，G3 Linux、G4 Wayland 缺口继续按任务推进。G7 统一全量与最终实机验收留整个 V2 开发冻结后。
 
 ## 追溯入口
 

@@ -184,15 +184,15 @@ class StreamAssembly:
                     raise invalid("invalid_tool_arguments")
                 invocations.append(Invocation(call["id"], call["name"], cast(dict[str, JSON], decoded)))
         usage = self.usage or {}
-        details = usage.get("prompt_tokens_details") or {}
+        details = _mapping(usage.get("prompt_tokens_details")) or {}
         cached = usage.get("prompt_cache_hit_tokens")
         if cached is None:
-            cached = details.get("cached_tokens") if isinstance(details, dict) else None
+            cached = details.get("cached_tokens")
         if cached is None:
             cached = usage.get("cache_read_input_tokens")
         created = usage.get("cache_creation_input_tokens")
         if created is None:
-            created = details.get("cache_creation_tokens") if isinstance(details, dict) else None
+            created = details.get("cache_creation_tokens")
         return ModelReply(
             "".join(self.fragments),
             tuple(invocations),

@@ -10,10 +10,14 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 
 要求输出 `0 errors, 0 warnings`。该命令只检查已纳入 strict 的文件；普通 `uv run --no-sync pyright` 仍按默认模式检查改动文件。
 
+strict 配置显式将 `agent/src` 加入导入根，隔离源码副本也解析该副本的 V2 模块，避免沿已有环境的 editable 安装误指向另一份源码。
+
 ## 2. 已纳入 strict 的模块
 
 | 文件 | 纳入原因 |
 | --- | --- |
+| `agent/src/omni/domain/turn_prompt.py` | 单个运行的系统前缀冻结与尾部状态/技能通知 |
+| `agent/src/omni/domain/model_reply.py` | 所有普通模型回包在动作前统一核验身份、JSON与大小边界 |
 | `agent/src/omni/application/desktop_control.py` | 独立控制同意的所有者视图、持久审计、后台归属和关闭结算 |
 | `agent/src/omni/adapters/platform/desktop/desktop_control.py` | 独立控制父进程的实际归属、同绑定许可、共享额度和超量管道排空 |
 | `agent/src/omni/domain/desktop_control.py` | 独立控制同意目的/设备种类、精确绑定与不授予输入的状态协议 |

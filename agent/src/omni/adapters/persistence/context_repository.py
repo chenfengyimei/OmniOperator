@@ -17,6 +17,30 @@ from .retention_repository import RetentionRepositories
 
 
 class ContextRepositories(RetentionRepositories):
+    def context_memories(self, agent_id: str, snapshot_id: str) -> list[Record]:
+        self._one(s.context_snapshots, agent_id, snapshot_id)
+        rows = self.connection.execute(
+            select(
+                s.context_memories,
+                s.memory_entries.c.kind,
+                s.memory_entries.c.deleted_at,
+                s.memory_revisions.c.content,
+                s.memory_revisions.c.revision,
+            )
+            .join(s.memory_entries, s.memory_entries.c.id == s.context_memories.c.memory_id)
+            .outerjoin(s.memory_revisions, s.memory_revisions.c.id == s.context_memories.c.memory_revision_id)
+            .where(s.context_memories.c.agent_id == agent_id, s.context_memories.c.snapshot_id == snapshot_id)
+            .order_by(s.memory_entries.c.kind)
+        ).mappings()
+        return [
+            {
+                **dict(row),
+                "content": row["content"] if row["deleted_at"] is None else "",
+                "erased": row["deleted_at"] is not None,
+            }
+            for row in rows
+        ]
+
     def _history(self, agent_id: str, run_id: str) -> tuple[Record, Record, Select[tuple[object, ...]]]:
         run = self._one(s.runs, agent_id, run_id)
         session = self._one(s.sessions, agent_id, cast(str, run["session_id"]))
@@ -506,7 +530,6 @@ class ContextRepositories(RetentionRepositories):
     def session_context_overview(self, agent_id: str, session_id: str) -> Record:
         """会话级上下文总览（对齐 V1 上下文页）：全部数字来自已落库事实，缺数据返回 None。"""
         import hashlib
-        import json
         import math
 
         from ...domain.metering import memory_system
@@ -546,7 +569,7 @@ class ContextRepositories(RetentionRepositories):
             .mappings()
             .first()
         )
-        summary = (
+        summary: Record | None = (
             {
                 "revision": summary_row["revision"],
                 "first_seq": summary_row["first_seq"],
@@ -575,7 +598,7 @@ class ContextRepositories(RetentionRepositories):
         ]
         ratio = [c for c in calls if c["cached_prompt_tokens"] is not None and c["input_tokens"]]
         created = [c["cache_creation_tokens"] for c in calls if c["cache_creation_tokens"] is not None]
-        cache = {
+        cache: Record = {
             "sample_count": len(calls),
             "ratio_sample_count": len(ratio),
             "cached_tokens": sum(c["cached_prompt_tokens"] for c in ratio) if ratio else None,
@@ -631,9 +654,7 @@ class ContextRepositories(RetentionRepositories):
         overview["used_tokens"] = snap["input_token_estimate"]
         overview["omitted_count"] = snap["omitted_count"]
         history_count = self.connection.execute(
-            select(func.count())
-            .select_from(s.context_messages)
-            .where(s.context_messages.c.snapshot_id == snap["id"])
+            select(func.count()).select_from(s.context_messages).where(s.context_messages.c.snapshot_id == snap["id"])
         ).scalar_one()
         overview["history_count"] = history_count
         route = (
