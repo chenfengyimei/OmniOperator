@@ -19,10 +19,10 @@ from ...domain.linux_window_leases import (
     encode,
     parse_request,
 )
-from ..platform.linux_bus import LinuxOps, failure, load_types
-from ..platform.linux_session import LocalFactory, SessionInspector
-from ..platform.linux_window_leases import LeaseWire, WindowLeases
-from ..platform.linux_x11 import X11Desktop
+from omni.adapters.platform.desktop.linux.linux_bus import LinuxOps, failure, load_types
+from omni.adapters.platform.desktop.linux.linux_session import LocalFactory, SessionInspector
+from omni.adapters.platform.desktop.linux.linux_window_leases import LeaseWire, WindowLeases
+from omni.adapters.platform.desktop.linux.linux_x11 import X11Desktop
 
 
 def parse(frame: bytes) -> Payload:

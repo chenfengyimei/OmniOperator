@@ -16,7 +16,7 @@ from v2_desktop_helpers import FixtureDesktopBackend
 from v2_portal_helpers import Spawner
 
 from omni.adapters.persistence.repository import Repositories
-from omni.adapters.platform import portal as host
+from omni.adapters.platform.desktop import portal as host
 from omni.composition.http import http_app
 from omni.composition.instance import open_instance
 from omni.domain.contracts import BusinessError

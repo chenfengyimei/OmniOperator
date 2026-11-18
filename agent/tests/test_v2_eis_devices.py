@@ -11,10 +11,10 @@ from test_v2_remote_desktop import factory
 from v2_eis_device_helpers import KEYMAP, DevicePeer, ports
 from v2_eis_helpers import ORDER, string, word
 
-from omni.adapters.platform import linux_eis_keymap as keymap_module
-from omni.adapters.platform.linux_eis_devices import EisDevices
-from omni.adapters.platform.linux_remote_desktop import ControlSession
-from omni.adapters.platform.linux_session import SessionInspector
+from omni.adapters.platform.desktop.linux import linux_eis_keymap as keymap_module
+from omni.adapters.platform.desktop.linux.linux_eis_devices import EisDevices
+from omni.adapters.platform.desktop.linux.linux_remote_desktop import ControlSession
+from omni.adapters.platform.desktop.linux.linux_session import SessionInspector
 from omni.domain.contracts import BusinessError
 
 

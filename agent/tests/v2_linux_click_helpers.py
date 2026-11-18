@@ -7,9 +7,9 @@ from v2_linux_control_helpers import EDIT, Model
 from v2_linux_desktop_helpers import APP, WINDOW
 from v2_linux_key_helpers import Bundle, ProfileBus, profile_factory
 
-from omni.adapters.platform.linux_atspi import COMPONENT, AtspiDesktop
-from omni.adapters.platform.linux_semantic import Semantics
-from omni.adapters.platform.linux_session import SessionInspector
+from omni.adapters.platform.desktop.linux.linux_atspi import COMPONENT, AtspiDesktop
+from omni.adapters.platform.desktop.linux.linux_semantic import Semantics
+from omni.adapters.platform.desktop.linux.linux_session import SessionInspector
 from omni.domain.desktop import VERSION
 from omni.domain.foreground import POLICY
 

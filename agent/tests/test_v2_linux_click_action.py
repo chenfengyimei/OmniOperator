@@ -15,8 +15,8 @@ from v2_linux_click_helpers import ClickBundle, click_factory, command, model
 from v2_linux_control_helpers import EDIT
 from v2_linux_desktop_helpers import WINDOW
 
-from omni.adapters.platform import desktop as host
-from omni.adapters.platform.linux_node_point import rectangle
+from omni.adapters.platform.desktop import backend as host
+from omni.adapters.platform.desktop.linux.linux_node_point import rectangle
 from omni.adapters.workers.linux_action import run
 from omni.adapters.workers.linux_desktop import perform
 from omni.composition.instance import open_instance

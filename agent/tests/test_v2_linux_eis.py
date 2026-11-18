@@ -12,8 +12,8 @@ from test_v2_linux_bus import transport
 from test_v2_remote_desktop import factory
 from v2_eis_helpers import CONNECTION, ORDER, Peer, frame, injected_fds, word
 
-from omni.adapters.platform.linux_remote_desktop import ControlSession
-from omni.adapters.platform.linux_session import SessionInspector
+from omni.adapters.platform.desktop.linux.linux_remote_desktop import ControlSession
+from omni.adapters.platform.desktop.linux.linux_session import SessionInspector
 from omni.domain.contracts import BusinessError
 
 

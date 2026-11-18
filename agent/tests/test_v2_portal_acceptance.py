@@ -10,7 +10,7 @@ from types import SimpleNamespace
 import pytest
 from v2_portal_helpers import Spawner
 
-from omni.adapters.platform import portal as host
+from omni.adapters.platform.desktop import portal as host
 
 spec = importlib.util.spec_from_file_location(
     "portal_sample", Path(__file__).resolve().parents[1] / "scripts/accept_linux_portal.py"

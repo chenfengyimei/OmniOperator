@@ -9,9 +9,9 @@ import pytest
 from v2_linux_desktop_helpers import SESSION
 from v2_x11_helpers import linux_factory
 
-from omni.adapters.platform import linux_x11_socket as native
-from omni.adapters.platform.linux_bus import Process
-from omni.adapters.platform.linux_session import SessionInspector
+from omni.adapters.platform.desktop.linux import linux_x11_socket as native
+from omni.adapters.platform.desktop.linux.linux_bus import Process
+from omni.adapters.platform.desktop.linux.linux_session import SessionInspector
 from omni.domain.contracts import BusinessError
 
 

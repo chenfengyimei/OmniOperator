@@ -11,7 +11,7 @@ from pathlib import Path
 import pytest
 from test_v2_isolated_environment import wheel
 
-from omni.adapters.platform.dependency_bundle import build_bundle, capture_bundle
+from omni.adapters.platform.releases.dependency_bundle import build_bundle, capture_bundle
 from omni.domain.contracts import BusinessError
 
 ROOT = Path(__file__).resolve().parents[2]

@@ -9,7 +9,7 @@ from v2_linux_motion_helpers import motion_context
 from v2_linux_motion_packet_helpers import PacketPeer, packet_context, resize_buttons
 from v2_linux_pointer_config_helpers import IDENTITY
 
-from omni.adapters.platform.linux_input import devices
+from omni.adapters.platform.desktop.linux.linux_input import devices
 from omni.domain.contracts import BusinessError
 
 

@@ -9,8 +9,8 @@ import pytest
 from test_v2_desktop_backend import Owner, factory
 from test_v2_remote_desktop import opening
 
-from omni.adapters.platform import desktop_control as control
-from omni.adapters.platform.desktop import DesktopBackend
+from omni.adapters.platform.desktop import desktop_control as control
+from omni.adapters.platform.desktop.backend import DesktopBackend
 from omni.adapters.platform.runtime.processes import OwnedProcess
 from omni.domain.contracts import BusinessError
 

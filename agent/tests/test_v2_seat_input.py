@@ -5,7 +5,7 @@ import asyncio
 import pytest
 from v2_seat_input_helpers import Source, Watch, inspector
 
-from omni.adapters.platform.linux_seat_input import SeatInput
+from omni.adapters.platform.desktop.linux.linux_seat_input import SeatInput
 from omni.domain.contracts import BusinessError
 
 
@@ -199,9 +199,9 @@ def test_control_session_gates_actual_framed_key_and_settles_up_before_input_wat
     from v2_eis_key_packet_helpers import KeyPeer
     from v2_xkbcommon_helpers import Library
 
-    from omni.adapters.platform.linux_remote_desktop import ControlSession
-    from omni.adapters.platform.linux_session import SessionInspector
-    from omni.adapters.platform.linux_xkbcommon import NativeXkb, XkbCompiler
+    from omni.adapters.platform.desktop.linux.linux_remote_desktop import ControlSession
+    from omni.adapters.platform.desktop.linux.linux_session import SessionInspector
+    from omni.adapters.platform.desktop.linux.linux_xkbcommon import NativeXkb, XkbCompiler
 
     async def scenario():
         ports(monkeypatch)
@@ -274,8 +274,8 @@ def test_control_session_gates_actual_framed_key_and_settles_up_before_input_wat
 def test_control_cancelled_prepare_retains_original_monitor_thread_and_portal_session():
     from test_v2_remote_desktop import factory
 
-    from omni.adapters.platform.linux_remote_desktop import ControlSession
-    from omni.adapters.platform.linux_session import SessionInspector
+    from omni.adapters.platform.desktop.linux.linux_remote_desktop import ControlSession
+    from omni.adapters.platform.desktop.linux.linux_session import SessionInspector
 
     async def scenario():
         platform, source, watch = factory(), Source(), Watch()

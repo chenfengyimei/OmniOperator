@@ -11,11 +11,11 @@ from v2_linux_desktop_helpers import APP, Bus
 from v2_linux_desktop_helpers import WINDOW as ATSPI_WINDOW
 from v2_x11_helpers import ROOT, WINDOW, OwnedConnection, Peer, linux_factory, reply
 
-from omni.adapters.platform.linux_atspi import AtspiDesktop
-from omni.adapters.platform.linux_session import ACCESSIBLE, SessionInspector
-from omni.adapters.platform.linux_window_binding import WindowBinding, declared_window, native_desktop
-from omni.adapters.platform.linux_window_leases import LeaseWire
-from omni.adapters.platform.linux_x11 import X11Desktop
+from omni.adapters.platform.desktop.linux.linux_atspi import AtspiDesktop
+from omni.adapters.platform.desktop.linux.linux_session import ACCESSIBLE, SessionInspector
+from omni.adapters.platform.desktop.linux.linux_window_binding import WindowBinding, declared_window, native_desktop
+from omni.adapters.platform.desktop.linux.linux_window_leases import LeaseWire
+from omni.adapters.platform.desktop.linux.linux_x11 import X11Desktop
 from omni.domain.contracts import BusinessError
 
 

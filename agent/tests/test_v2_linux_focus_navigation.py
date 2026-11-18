@@ -14,11 +14,11 @@ from v2_linux_control_helpers import BUTTON, EDIT, ITEM, LIST
 from v2_linux_desktop_helpers import APP, WINDOW, node
 from v2_linux_key_helpers import Bundle, command, model, profile_factory
 
-from omni.adapters.platform import desktop as host
-from omni.adapters.platform.linux_atspi import MAX_TEXT, PASSWORD_ROLE, AtspiDesktop
-from omni.adapters.platform.linux_focus_navigation import FocusNavigation
-from omni.adapters.platform.linux_semantic import Semantics
-from omni.adapters.platform.linux_session import SessionInspector
+from omni.adapters.platform.desktop import backend as host
+from omni.adapters.platform.desktop.linux.linux_atspi import MAX_TEXT, PASSWORD_ROLE, AtspiDesktop
+from omni.adapters.platform.desktop.linux.linux_focus_navigation import FocusNavigation
+from omni.adapters.platform.desktop.linux.linux_semantic import Semantics
+from omni.adapters.platform.desktop.linux.linux_session import SessionInspector
 from omni.adapters.workers.linux_action import run
 from omni.adapters.workers.linux_desktop import perform
 from omni.composition.instance import open_instance

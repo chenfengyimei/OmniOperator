@@ -7,13 +7,13 @@ import sys
 import zipfile
 
 from omni.adapters.platform.runtime.paths import InstancePaths
-from omni.adapters.platform.wheel_backup import backup_candidate
-from omni.adapters.platform.wheel_install import switch_candidate
-from omni.adapters.platform.wheel_prepare import prepare_wheel
-from omni.adapters.platform.wheel_rollback import rollback_check
-from omni.adapters.platform.wheel_smoke import smoke_candidate
-from omni.adapters.platform.wheel_stage import stage_wheel
-from omni.adapters.platform.wheel_status import installation_status
+from omni.adapters.platform.releases.wheel_backup import backup_candidate
+from omni.adapters.platform.releases.wheel_install import switch_candidate
+from omni.adapters.platform.releases.wheel_prepare import prepare_wheel
+from omni.adapters.platform.releases.wheel_rollback import rollback_check
+from omni.adapters.platform.releases.wheel_smoke import smoke_candidate
+from omni.adapters.platform.releases.wheel_stage import stage_wheel
+from omni.adapters.platform.releases.wheel_status import installation_status
 from omni.composition.cli import main, seal_installation
 from omni.composition.instance import open_instance
 

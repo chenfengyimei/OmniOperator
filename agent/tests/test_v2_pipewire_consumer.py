@@ -5,7 +5,7 @@ from types import SimpleNamespace as NS
 
 import pytest
 
-from omni.adapters.platform import linux_pipewire as p
+from omni.adapters.platform.desktop.linux import linux_pipewire as p
 from omni.domain.contracts import BusinessError
 
 

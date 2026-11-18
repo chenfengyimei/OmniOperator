@@ -9,7 +9,7 @@ from types import SimpleNamespace
 import pytest
 from test_v2_desktop_contracts import capabilities, response, target
 
-from omni.adapters.platform import desktop as d
+from omni.adapters.platform.desktop import backend as d
 from omni.domain.contracts import BusinessError
 from omni.domain.desktop import parse_request
 
@@ -111,7 +111,7 @@ def test_constructor_is_pure_and_invalid_requests_never_spawn(monkeypatch):
     backend = d.DesktopBackend(process_factory=forbidden)
     assert backend.health()["pending"] == backend.health()["resident"] == 0
     assert not (
-        {"omni.adapters.platform.desktop_native", "omni.adapters.workers.desktop"} & (set(sys.modules) - before)
+        {"omni.adapters.platform.desktop.desktop_native", "omni.adapters.workers.desktop"} & (set(sys.modules) - before)
     )
 
     async def scenario():

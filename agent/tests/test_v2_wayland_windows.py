@@ -7,7 +7,7 @@ import pytest
 from v2_seat_input_helpers import inspector
 from v2_wayland_helpers import BASE, Peer, source, string, view, word
 
-from omni.adapters.platform.linux_wayland_wire import MAX_BYTES, MAX_MESSAGES, read_string
+from omni.adapters.platform.desktop.linux.linux_wayland_wire import MAX_BYTES, MAX_MESSAGES, read_string
 from omni.domain.contracts import BusinessError
 
 

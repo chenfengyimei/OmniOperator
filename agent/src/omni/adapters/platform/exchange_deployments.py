@@ -8,7 +8,7 @@ from ...application.ports import Record
 from ...domain.contracts import BusinessError
 from ...domain.releases import ReleasePlan
 from .deployment_files import CurrentDeploymentFiles
-from .release_files import ReleaseFiles
+from omni.adapters.platform.releases.release_files import ReleaseFiles
 
 
 class ExchangeSourceDeployment(CurrentDeploymentFiles):

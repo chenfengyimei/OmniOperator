@@ -6,10 +6,10 @@ import json
 
 from v2_linux_desktop_helpers import APP, ROOT, WINDOW, Bus, Factory, node, variant
 
-from omni.adapters.platform.linux_atspi import COMPONENT, TEXT
-from omni.adapters.platform.linux_bus import RemoteError, failure
-from omni.adapters.platform.linux_semantic import ACTION, EDITABLE, SELECTION
-from omni.adapters.platform.linux_session import ACCESSIBLE, PROPERTIES
+from omni.adapters.platform.desktop.linux.linux_atspi import COMPONENT, TEXT
+from omni.adapters.platform.desktop.linux.linux_bus import RemoteError, failure
+from omni.adapters.platform.desktop.linux.linux_semantic import ACTION, EDITABLE, SELECTION
+from omni.adapters.platform.desktop.linux.linux_session import ACCESSIBLE, PROPERTIES
 from omni.adapters.workers.desktop import decode, encode
 from omni.adapters.workers.linux_action import run
 from omni.adapters.workers.linux_desktop import perform

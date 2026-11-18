@@ -6,9 +6,9 @@ import pytest
 from v2_linux_desktop_helpers import variant
 from v2_portal_helpers import portal_factory
 
-from omni.adapters.platform.linux_bus import Process
-from omni.adapters.platform.linux_portal import SESSION, PortalSession
-from omni.adapters.platform.linux_session import SessionInspector
+from omni.adapters.platform.desktop.linux.linux_bus import Process
+from omni.adapters.platform.desktop.linux.linux_portal import SESSION, PortalSession
+from omni.adapters.platform.desktop.linux.linux_session import SessionInspector
 from omni.domain.contracts import BusinessError
 
 
@@ -151,8 +151,8 @@ def test_cancellation_closes_pending_request_and_predicted_session_without_repla
 
 
 def test_signal_subscription_ignores_other_senders_and_fails_closed_on_queue_overflow():
-    from omni.adapters.platform.linux_portal import PATH, REQUEST
-    from omni.adapters.platform.linux_signals import SignalBus
+    from omni.adapters.platform.desktop.linux.linux_portal import PATH, REQUEST
+    from omni.adapters.platform.desktop.linux.linux_signals import SignalBus
 
     async def scenario():
         f = portal_factory()

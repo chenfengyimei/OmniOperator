@@ -12,8 +12,8 @@ import uuid
 from datetime import datetime, timezone
 from pathlib import Path
 
-from omni.adapters.platform.desktop import DesktopBackend
-from omni.adapters.platform.macos_helper import BUNDLE_NAME, resolve
+from omni.adapters.platform.desktop.backend import DesktopBackend
+from omni.adapters.platform.desktop.macos_helper import BUNDLE_NAME, resolve
 from omni.adapters.platform.runtime.permissions import private_path
 from omni.adapters.platform.runtime.processes import OwnedProcess
 from omni.domain.contracts import JSON

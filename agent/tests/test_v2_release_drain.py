@@ -15,7 +15,7 @@ from test_v2_service_exchange import release as release
 
 from omni.adapters.persistence.releases import ReleaseData
 from omni.adapters.platform.exchange_deployments import ExchangeSourceDeployment
-from omni.adapters.platform.release_files import ReleaseFiles
+from omni.adapters.platform.releases.release_files import ReleaseFiles
 from omni.adapters.platform.service_control_files import ServiceControlFiles
 from omni.adapters.primitives import SystemClock, UUIDs
 from omni.application.release_drain import ReleaseDrain

@@ -19,9 +19,9 @@ from test_v2_desktop_http import begin, listing, owner
 from v2_desktop_helpers import FixtureDesktopBackend
 from v2_linux_desktop_helpers import APP, SESSION, WINDOW, Factory, node, variant
 
-from omni.adapters.platform.linux_atspi import AtspiDesktop, parse_native_id
-from omni.adapters.platform.linux_bus import Process, RemoteError
-from omni.adapters.platform.linux_session import SessionInspector
+from omni.adapters.platform.desktop.linux.linux_atspi import AtspiDesktop, parse_native_id
+from omni.adapters.platform.desktop.linux.linux_bus import Process, RemoteError
+from omni.adapters.platform.desktop.linux.linux_session import SessionInspector
 from omni.adapters.workers.linux_desktop import perform
 from omni.composition.http import http_app
 from omni.domain.contracts import BusinessError
@@ -366,7 +366,7 @@ def test_linux_coordinate_space_is_mandatory_and_cannot_be_screen():
 
 
 def test_linux_host_observe_uses_owned_python_helper_and_no_inherited_bus(monkeypatch):
-    from omni.adapters.platform import desktop
+    from omni.adapters.platform.desktop import backend as desktop
 
     async def scenario():
         f = Factory()
@@ -420,7 +420,7 @@ def test_fixed_worker_routes_linux_protocol_to_async_adapter(monkeypatch):
 
 
 def test_linux_dependency_denial_is_structured_not_headless_or_fake_ready(monkeypatch):
-    from omni.adapters.platform.linux_bus import failure
+    from omni.adapters.platform.desktop.linux.linux_bus import failure
     from omni.adapters.workers import linux_desktop
 
     def missing():

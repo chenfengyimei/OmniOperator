@@ -36,10 +36,10 @@ from ..adapters.object_store import ObjectFiles
 from ..adapters.onebot import OneBotTransport
 from ..adapters.persistence.database import Database
 from ..adapters.persistence.deployed_instance import verify_deployed_instance
-from ..adapters.platform.desktop import DesktopBackend
-from ..adapters.platform.desktop_control import DesktopControlBackend
+from omni.adapters.platform.desktop.backend import DesktopBackend
+from omni.adapters.platform.desktop.desktop_control import DesktopControlBackend
 from omni.adapters.platform.runtime.paths import InstanceLock, InstancePaths
-from ..adapters.platform.portal import PortalBackend
+from omni.adapters.platform.desktop.portal import PortalBackend
 from omni.adapters.platform.runtime.runtime_identity import RuntimeIdentityFiles, canonical_proof, process_identity
 from omni.adapters.platform.runtime.secrets import FileVault
 from ..adapters.platform.service_launch import consume_launch

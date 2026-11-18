@@ -8,7 +8,7 @@ import tempfile
 
 from v2_eis_helpers import CONNECTION, ORDER, Peer, frame, injected_fds, string, word
 
-from omni.adapters.platform.linux_eis_devices import EisDevices
+from omni.adapters.platform.desktop.linux.linux_eis_devices import EisDevices
 
 MASKS = {
     "ei_keyboard": 1 << 47,

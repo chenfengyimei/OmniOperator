@@ -15,14 +15,7 @@ import xml.etree.ElementTree as ET
 from datetime import datetime, timezone
 from pathlib import Path
 
-from omni.adapters.platform.macos_helper import (
-    BUNDLE_ID,
-    BUNDLE_NAME,
-    EXECUTABLE,
-    bundle_path,
-    resolve,
-    source_fingerprints,
-)
+from omni.adapters.platform.desktop.macos_helper import BUNDLE_ID, BUNDLE_NAME, EXECUTABLE, bundle_path, resolve, source_fingerprints
 from omni.domain.desktop import VERSION
 
 SOURCE = Path(__file__).resolve().parents[1] / "src/omni/adapters/workers/macos"

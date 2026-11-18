@@ -7,7 +7,7 @@ import time
 from ctypes import wintypes as w
 from pathlib import Path
 
-from omni.adapters.platform.desktop_native import WindowsDesktop
+from omni.adapters.platform.desktop.desktop_native import WindowsDesktop
 
 root = Path(sys.argv[1])
 user = ctypes.WinDLL("user32", use_last_error=True)

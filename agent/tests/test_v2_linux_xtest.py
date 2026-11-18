@@ -7,8 +7,8 @@ import pytest
 from test_v2_linux_foreground import FocusPeer, prepared
 from v2_x11_helpers import reply
 
-from omni.adapters.platform.linux_input import device_topology, devices
-from omni.adapters.platform.linux_xtest import Sources, XTestSources
+from omni.adapters.platform.desktop.linux.linux_input import device_topology, devices
+from omni.adapters.platform.desktop.linux.linux_xtest import Sources, XTestSources
 from omni.domain.contracts import BusinessError
 
 

@@ -12,7 +12,7 @@ from test_v2_history_ui import connect
 from test_v2_ui import v2_server as v2_server
 from v2_linux_control_helpers import EDIT, Model, Spawn
 
-from omni.adapters.platform import desktop as host
+from omni.adapters.platform.desktop import backend as host
 
 
 @pytest.fixture

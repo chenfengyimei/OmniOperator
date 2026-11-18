@@ -7,11 +7,11 @@ import sys
 
 from v2_eis_helpers import injected_fds
 
-from omni.adapters.platform.linux_bus import Process
-from omni.adapters.platform.linux_fds import OwnedFd
-from omni.adapters.platform.linux_wayland_peer import WaylandPeer
-from omni.adapters.platform.linux_wayland_windows import WaylandWindows
-from omni.adapters.platform.linux_wayland_wire import WaylandWire
+from omni.adapters.platform.desktop.linux.linux_bus import Process
+from omni.adapters.platform.desktop.linux.linux_fds import OwnedFd
+from omni.adapters.platform.desktop.linux.linux_wayland_peer import WaylandPeer
+from omni.adapters.platform.desktop.linux.linux_wayland_windows import WaylandWindows
+from omni.adapters.platform.desktop.linux.linux_wayland_wire import WaylandWire
 
 ORDER = "<" if sys.byteorder == "little" else ">"
 BASE = 0xFF000000

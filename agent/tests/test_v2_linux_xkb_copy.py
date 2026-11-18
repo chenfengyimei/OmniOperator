@@ -8,7 +8,7 @@ from test_v2_linux_keystroke import KeyPeer, cleanup
 from test_v2_linux_xkb_map import context
 from v2_xkb_copy_helpers import copied_reply, reply
 
-from omni.adapters.platform.linux_xkb_copy import compatibility, geometry, indicators, names
+from omni.adapters.platform.desktop.linux.linux_xkb_copy import compatibility, geometry, indicators, names
 from omni.domain.contracts import BusinessError
 
 

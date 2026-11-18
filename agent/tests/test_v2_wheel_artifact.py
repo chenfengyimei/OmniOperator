@@ -7,7 +7,7 @@ import zipfile
 
 import pytest
 
-from omni.adapters.platform.wheel_artifact import inspect_wheel
+from omni.adapters.platform.releases.wheel_artifact import inspect_wheel
 from omni.composition.cli import main
 from omni.domain.contracts import BusinessError
 

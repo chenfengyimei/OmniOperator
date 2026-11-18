@@ -7,7 +7,7 @@ import pytest
 from test_v2_desktop_backend import Owner, factory
 from v2_desktop_helpers import target_identity
 
-from omni.adapters.platform import desktop as d
+from omni.adapters.platform.desktop import backend as d
 from omni.domain.contracts import BusinessError
 from omni.domain.desktop_actions import POLICY
 

@@ -9,7 +9,7 @@ from types import SimpleNamespace
 import pytest
 from test_v2_linux_bus import transport
 
-from omni.adapters.platform.linux_fds import OwnedFd, ReceivedFds
+from omni.adapters.platform.desktop.linux.linux_fds import OwnedFd, ReceivedFds
 from omni.domain.contracts import BusinessError
 
 

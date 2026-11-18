@@ -8,7 +8,7 @@ from typing import cast
 from ..adapters.persistence.releases import ReleaseData
 from ..adapters.platform.deployment_files import CurrentDeploymentFiles
 from ..adapters.platform.exchange_deployments import ExchangeSourceDeployment
-from ..adapters.platform.release_files import ReleaseFiles
+from omni.adapters.platform.releases.release_files import ReleaseFiles
 from ..adapters.platform.service_control_files import ServiceControlFiles
 from ..adapters.platform.service_readiness import ServiceReadiness
 from ..adapters.platform.service_registration import ServiceRegistration

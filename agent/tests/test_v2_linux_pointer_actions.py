@@ -8,9 +8,9 @@ from test_v2_linux_pointer_target import close
 from v2_linux_button_helpers import button_context
 from v2_linux_pointer_action_helpers import PointerActionPeer, action_context, action_event, device_info
 
-from omni.adapters.platform.linux_input import InputWire
-from omni.adapters.platform.linux_pointer_actions import action_identity
-from omni.adapters.platform.linux_x11_wire import Wire
+from omni.adapters.platform.desktop.linux.linux_input import InputWire
+from omni.adapters.platform.desktop.linux.linux_pointer_actions import action_identity
+from omni.adapters.platform.desktop.linux.linux_x11_wire import Wire
 from omni.domain.contracts import BusinessError
 
 

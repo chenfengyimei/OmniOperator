@@ -8,7 +8,7 @@ from types import SimpleNamespace
 import pytest
 from v2_portal_helpers import Spawner, phase
 
-from omni.adapters.platform import portal as host
+from omni.adapters.platform.desktop import portal as host
 from omni.domain.contracts import BusinessError
 from omni.domain.desktop_portal import VERSION, binding, command, decode, encode, event
 
@@ -142,7 +142,7 @@ def test_duplicate_keys_private_errors_and_false_closed_frames_are_rejected():
 def test_desktop_and_portal_helpers_share_the_actual_resident_budget(monkeypatch):
     from test_v2_desktop_backend import Owner, factory
 
-    from omni.adapters.platform.desktop import DesktopBackend
+    from omni.adapters.platform.desktop.backend import DesktopBackend
 
     async def scenario():
         monkeypatch.setattr(host, "sys", SimpleNamespace(platform="linux", executable=sys.executable))

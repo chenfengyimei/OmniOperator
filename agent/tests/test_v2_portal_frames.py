@@ -17,8 +17,8 @@ from test_v2_portal_service import settled
 from v2_desktop_helpers import FixtureDesktopBackend
 from v2_portal_helpers import Spawner
 
-from omni.adapters.platform import portal as host
-from omni.adapters.platform.linux_pipewire import FrameExecutor, rgb_png
+from omni.adapters.platform.desktop import portal as host
+from omni.adapters.platform.desktop.linux.linux_pipewire import FrameExecutor, rgb_png
 from omni.composition.http import http_app
 from omni.composition.instance import open_instance
 from omni.domain.contracts import BusinessError
@@ -229,8 +229,8 @@ def test_uniform_content_is_explicitly_unverified():
 def test_closing_during_dependency_probe_reaps_actual_thread_without_false_helper_failure():
     from v2_portal_helpers import portal_factory
 
-    from omni.adapters.platform.linux_portal import PortalSession
-    from omni.adapters.platform.linux_session import SessionInspector
+    from omni.adapters.platform.desktop.linux.linux_portal import PortalSession
+    from omni.adapters.platform.desktop.linux.linux_session import SessionInspector
     from omni.adapters.workers.portal import run
     from omni.domain.desktop_portal import VERSION, decode, encode
 

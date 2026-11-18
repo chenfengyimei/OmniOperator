@@ -9,7 +9,7 @@ from typing import Any, cast
 
 from ...domain.contracts import BusinessError
 from ...domain.desktop import VERSION, parse_request, parse_response
-from ..platform import desktop_native
+from omni.adapters.platform.desktop import desktop_native
 
 MAX_FRAME = 65536
 Record = dict[str, Any]

@@ -7,10 +7,10 @@ import pytest
 from v2_linux_desktop_helpers import variant
 from v2_portal_helpers import PortalBus, portal_factory
 
-from omni.adapters.platform.linux_bus import Process
-from omni.adapters.platform.linux_portal import PATH, PORTAL, REQUEST, SESSION, PortalSession
-from omni.adapters.platform.linux_remote_desktop import REMOTE_DESKTOP, ControlSession
-from omni.adapters.platform.linux_session import SessionInspector
+from omni.adapters.platform.desktop.linux.linux_bus import Process
+from omni.adapters.platform.desktop.linux.linux_portal import PATH, PORTAL, REQUEST, SESSION, PortalSession
+from omni.adapters.platform.desktop.linux.linux_remote_desktop import REMOTE_DESKTOP, ControlSession
+from omni.adapters.platform.desktop.linux.linux_session import SessionInspector
 from omni.adapters.workers.desktop_control import run as worker
 from omni.domain.contracts import BusinessError
 from omni.domain.desktop_control import PURPOSE, VERSION, command

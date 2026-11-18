@@ -15,7 +15,7 @@ import time
 import uuid
 from pathlib import Path
 
-from omni.adapters.platform.desktop import DesktopBackend
+from omni.adapters.platform.desktop.backend import DesktopBackend
 from omni.domain.foreground import POLICY
 
 

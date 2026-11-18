@@ -6,8 +6,8 @@ import struct
 import pytest
 from v2_x11_helpers import ROOT, WINDOW, OwnedConnection, Peer, linux_factory, reply
 
-from omni.adapters.platform.linux_input import InputWire, X11Input, devices
-from omni.adapters.platform.linux_session import SessionInspector
+from omni.adapters.platform.desktop.linux.linux_input import InputWire, X11Input, devices
+from omni.adapters.platform.desktop.linux.linux_session import SessionInspector
 from omni.domain.contracts import BusinessError
 
 

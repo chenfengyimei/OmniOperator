@@ -6,7 +6,7 @@ import sys
 import pytest
 
 from omni.adapters.platform.runtime.paths import InstancePaths
-from omni.adapters.platform.wheel_smoke import smoke_candidate
+from omni.adapters.platform.releases.wheel_smoke import smoke_candidate
 from omni.composition.cli import main
 from omni.domain.contracts import BusinessError
 

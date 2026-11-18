@@ -9,15 +9,15 @@ from v2_linux_desktop_helpers import APP, SESSION, WINDOW
 from v2_x11_helpers import WINDOW as XWINDOW
 from v2_x11_helpers import OwnedConnection
 
-from omni.adapters.platform.linux_atspi import COMPONENT, AtspiDesktop
-from omni.adapters.platform.linux_bus import Process, RemoteError
-from omni.adapters.platform.linux_input import InputWire, X11Input
-from omni.adapters.platform.linux_keyboard import SYMBOLS
-from omni.adapters.platform.linux_semantic import Semantics
-from omni.adapters.platform.linux_session import ACCESSIBLE, SessionInspector
-from omni.adapters.platform.linux_window_binding import WindowBinding
-from omni.adapters.platform.linux_window_leases import LeaseWire
-from omni.adapters.platform.linux_x11 import X11Desktop
+from omni.adapters.platform.desktop.linux.linux_atspi import COMPONENT, AtspiDesktop
+from omni.adapters.platform.desktop.linux.linux_bus import Process, RemoteError
+from omni.adapters.platform.desktop.linux.linux_input import InputWire, X11Input
+from omni.adapters.platform.desktop.linux.linux_keyboard import SYMBOLS
+from omni.adapters.platform.desktop.linux.linux_semantic import Semantics
+from omni.adapters.platform.desktop.linux.linux_session import ACCESSIBLE, SessionInspector
+from omni.adapters.platform.desktop.linux.linux_window_binding import WindowBinding
+from omni.adapters.platform.desktop.linux.linux_window_leases import LeaseWire
+from omni.adapters.platform.desktop.linux.linux_x11 import X11Desktop
 from omni.domain.desktop import VERSION
 from omni.domain.foreground import POLICY
 

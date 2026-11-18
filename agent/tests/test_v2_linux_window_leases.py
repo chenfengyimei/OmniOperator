@@ -10,11 +10,11 @@ import pytest
 from v2_desktop_helpers import captured_frame
 from v2_x11_helpers import COOKIE, WINDOW, Peer, reply
 
-from omni.adapters.platform import desktop as transport
-from omni.adapters.platform.desktop import DesktopBackend, helper_environment
-from omni.adapters.platform.linux_lease_client import LinuxLeaseClient
-from omni.adapters.platform.linux_window_leases import LeaseWire, WindowLeases
-from omni.adapters.platform.linux_x11 import X11Desktop
+from omni.adapters.platform.desktop import backend as transport
+from omni.adapters.platform.desktop.backend import DesktopBackend, helper_environment
+from omni.adapters.platform.desktop.linux.linux_lease_client import LinuxLeaseClient
+from omni.adapters.platform.desktop.linux.linux_window_leases import LeaseWire, WindowLeases
+from omni.adapters.platform.desktop.linux.linux_x11 import X11Desktop
 from omni.adapters.platform.runtime.processes import OwnedProcess
 from omni.adapters.workers.linux_window_lease import run
 from omni.domain.contracts import BusinessError

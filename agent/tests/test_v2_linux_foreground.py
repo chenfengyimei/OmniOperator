@@ -9,11 +9,11 @@ from test_v2_linux_input import InputPeer, monitor_factory
 from test_v2_linux_window_leases import Wire, event
 from v2_x11_helpers import ROOT, WINDOW, OwnedConnection, Peer, linux_factory, reply
 
-from omni.adapters.platform.linux_bus import Process, failure
-from omni.adapters.platform.linux_foreground import WindowFocus
-from omni.adapters.platform.linux_session import SessionInspector
-from omni.adapters.platform.linux_window_leases import WindowLeases
-from omni.adapters.platform.linux_x11 import X11Desktop
+from omni.adapters.platform.desktop.linux.linux_bus import Process, failure
+from omni.adapters.platform.desktop.linux.linux_foreground import WindowFocus
+from omni.adapters.platform.desktop.linux.linux_session import SessionInspector
+from omni.adapters.platform.desktop.linux.linux_window_leases import WindowLeases
+from omni.adapters.platform.desktop.linux.linux_x11 import X11Desktop
 from omni.domain.contracts import BusinessError
 
 CHILD = WINDOW + 1

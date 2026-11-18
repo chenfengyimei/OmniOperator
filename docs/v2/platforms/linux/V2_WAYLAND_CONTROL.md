@@ -16,7 +16,7 @@ ScreenCast 与 RemoteDesktop 各自持有新会话、匹配订阅和关闭义务
 
 ## 父进程、业务和显式入口（2026-11-17）
 
-`adapters/platform/desktop_control.py` 只启动固定私有 worker，与原桌面/窗口共享共用两个实际进程名额，最多四项未结清准入。打开在 prepared 后重新核验当前视图才发 permit。迟到创建、调用者取消、坏帧、提前授权和设备变化均停止许可；输出最多 512 帧、262144 字节，超量后继续有界排空管道直至实际回收。停止读 stderr 曾使 Windows 管道无法退出，原始失败与修复验证分别留档。原生 clean 与实际进程/管道/Job 回收同时成立才发布 clean；回收失败保留同一归属及名额，后续 close 重试，不新造清理所有者。
+`adapters/platform/desktop/desktop_control.py` 只启动固定私有 worker，与原桌面/窗口共享共用两个实际进程名额，最多四项未结清准入。打开在 prepared 后重新核验当前视图才发 permit。迟到创建、调用者取消、坏帧、提前授权和设备变化均停止许可；输出最多 512 帧、262144 字节，超量后继续有界排空管道直至实际回收。停止读 stderr 曾使 Windows 管道无法退出，原始失败与修复验证分别留档。原生 clean 与实际进程/管道/Job 回收同时成立才发布 clean；回收失败保留同一归属及名额，后续 close 重试，不新造清理所有者。
 
 `application/desktop_control.py` 将授权绑定 Agent/view/boot/grant，最多四项打开、八个保留空间。复用原诊断审计：请求审计落盘后才打开后端；系统许可审计完成后才显示“许可已记录”。审计/视图失败立即撤回，不把 OS 授权当成业务动作授权。关闭审计未落盘时保留业务任务和数据库；离页与启动审计并行时返回 `portal_cleanup_pending`，后台完成实际关闭及审计后才移除旧视图记录。
 

@@ -12,7 +12,7 @@ from test_v2_linux_desktop import prepared
 from v2_desktop_helpers import captured_frame
 from v2_linux_desktop_helpers import Factory
 
-from omni.adapters.platform.linux_atspi import report
+from omni.adapters.platform.desktop.linux.linux_atspi import report
 
 SOURCE = Path(__file__).resolve().parents[1] / "scripts/accept_linux_desktop.py"
 spec = importlib.util.spec_from_file_location("linux_native_acceptance", SOURCE)

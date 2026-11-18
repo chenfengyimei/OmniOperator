@@ -6,10 +6,10 @@ from types import SimpleNamespace
 
 from v2_linux_desktop_helpers import Bus, Factory, variant
 
-from omni.adapters.platform.linux_bus import DBUS, Process
-from omni.adapters.platform.linux_fds import OwnedFd
-from omni.adapters.platform.linux_portal import PATH, PORTAL, REQUEST, PortalSession
-from omni.adapters.platform.linux_session import SessionInspector
+from omni.adapters.platform.desktop.linux.linux_bus import DBUS, Process
+from omni.adapters.platform.desktop.linux.linux_fds import OwnedFd
+from omni.adapters.platform.desktop.linux.linux_portal import PATH, PORTAL, REQUEST, PortalSession
+from omni.adapters.platform.desktop.linux.linux_session import SessionInspector
 from omni.adapters.workers.portal import run
 from omni.domain.contracts import BusinessError
 

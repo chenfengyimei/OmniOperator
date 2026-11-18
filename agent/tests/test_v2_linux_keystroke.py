@@ -8,7 +8,7 @@ from test_v2_linux_foreground import prepared
 from test_v2_linux_keyboard import KeyboardPeer
 from test_v2_linux_xtest import SourcePeer
 
-from omni.adapters.platform.linux_input import KeyEvents
+from omni.adapters.platform.desktop.linux.linux_input import KeyEvents
 from omni.domain.contracts import BusinessError
 
 

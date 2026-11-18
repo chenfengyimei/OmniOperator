@@ -24,8 +24,8 @@ from omni.adapters.persistence import schema as s
 from omni.adapters.persistence.maintenance import backup, restore
 from omni.adapters.persistence.migration_config import head as migration_head
 from omni.adapters.persistence.object_inventory import registry
-from omni.adapters.platform import desktop_capture as files
-from omni.adapters.platform.desktop import DesktopBackend
+from omni.adapters.platform.desktop import desktop_capture as files
+from omni.adapters.platform.desktop.backend import DesktopBackend
 from omni.adapters.platform.runtime.paths import InstancePaths
 from omni.composition.http import http_app
 from omni.domain.contracts import BusinessError

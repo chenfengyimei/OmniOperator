@@ -14,7 +14,7 @@ from test_v2_execution import wait_state
 from v2_linux_control_helpers import EDIT, Model, Spawn
 
 from omni.adapters.persistence import schema as s
-from omni.adapters.platform import desktop as host
+from omni.adapters.platform.desktop import backend as host
 from omni.composition.instance import open_instance
 
 

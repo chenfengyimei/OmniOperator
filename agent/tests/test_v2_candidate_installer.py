@@ -10,7 +10,7 @@ from pathlib import Path
 import pytest
 from test_v2_isolated_environment import dependency, wheel
 
-from omni.adapters.platform.candidate_installer import install_candidate
+from omni.adapters.platform.releases.candidate_installer import install_candidate
 from omni.domain.contracts import BusinessError
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -20,7 +20,7 @@ ROOT = Path(__file__).resolve().parents[2]
     "conflict", ["existing_home", "existing_manager", "nested_manager", "nested_home", "dot_segments", "bad_hash"]
 )
 def test_invalid_or_overlapping_installation_inputs_never_run_an_installer(tmp_path, conflict, monkeypatch):
-    from omni.adapters.platform import candidate_installer
+    from omni.adapters.platform.releases import candidate_installer
 
     bundle, _, bundle_sha = dependency(tmp_path)
     app = wheel(tmp_path, "omnioperator", "omni", "")

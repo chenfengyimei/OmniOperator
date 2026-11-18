@@ -7,8 +7,8 @@ import pytest
 from test_v2_linux_window_leases import event
 from v2_linux_pointer_helpers import CHILD, FOREIGN, FRAME, HIT, OVERLAY, ROOT, WINDOW, PointerPeer, pointer_context
 
-from omni.adapters.platform.linux_bus import Process
-from omni.adapters.platform.linux_pointer_target import PointerTarget, physical_point
+from omni.adapters.platform.desktop.linux.linux_bus import Process
+from omni.adapters.platform.desktop.linux.linux_pointer_target import PointerTarget, physical_point
 from omni.domain.contracts import BusinessError
 
 

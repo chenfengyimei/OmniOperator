@@ -6,7 +6,7 @@ import os
 import pytest
 from v2_seat_input_helpers import UdevLibrary
 
-from omni.adapters.platform.linux_udev_input import UdevInput
+from omni.adapters.platform.desktop.linux.linux_udev_input import UdevInput
 from omni.domain.contracts import BusinessError
 
 

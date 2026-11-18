@@ -9,7 +9,7 @@ from ..adapters.persistence.releases import ReleaseData
 from ..adapters.platform.deployment_files import CurrentDeploymentFiles
 from ..adapters.platform.exchange_deployments import ExchangeSourceDeployment
 from ..adapters.platform.exchange_files import ExchangeFiles
-from ..adapters.platform.release_files import ReleaseFiles
+from omni.adapters.platform.releases.release_files import ReleaseFiles
 from ..adapters.platform.service_control_files import ServiceControlFiles
 from ..adapters.platform.service_operation_files import ServiceOperationFiles
 from ..adapters.platform.service_readiness import ServiceReadiness

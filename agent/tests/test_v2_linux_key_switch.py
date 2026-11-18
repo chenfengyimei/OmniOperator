@@ -7,7 +7,7 @@ import pytest
 from test_v2_linux_keystroke import KeyPeer, cleanup, packet_context
 from test_v2_linux_xkb_map import context
 
-from omni.adapters.platform.linux_input import devices
+from omni.adapters.platform.desktop.linux.linux_input import devices
 from omni.domain.contracts import BusinessError
 
 

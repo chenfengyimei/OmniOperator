@@ -14,8 +14,8 @@ import pytest
 from test_v2_desktop_backend import Owner, factory
 from test_v2_desktop_contracts import response
 
-from omni.adapters.platform import desktop as host
-from omni.adapters.platform import macos_helper as helper
+from omni.adapters.platform.desktop import backend as host
+from omni.adapters.platform.desktop import macos_helper as helper
 from omni.domain.contracts import BusinessError
 from omni.domain.desktop import VERSION, parse_request, validate_capture, validate_observation
 from omni.domain.desktop_actions import node_proof

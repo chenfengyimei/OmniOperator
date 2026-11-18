@@ -19,7 +19,7 @@ from ..domain.contracts import ActionResult, BusinessError, InvocationContext, O
 from ..domain.desktop import CapturedFrame
 from .android_unicode import UnicodeFlow
 from .object_store import checked_path
-from .platform.desktop_capture import inventory
+from omni.adapters.platform.desktop.desktop_capture import inventory
 from omni.adapters.platform.runtime.permissions import assert_private, private_path
 from .workers.client import WorkerClient
 

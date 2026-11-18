@@ -15,54 +15,54 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 | 文件 | 纳入原因 |
 | --- | --- |
 | `agent/src/omni/application/desktop_control.py` | 独立控制同意的所有者视图、持久审计、后台归属和关闭结算 |
-| `agent/src/omni/adapters/platform/desktop_control.py` | 独立控制父进程的实际归属、同绑定许可、共享额度和超量管道排空 |
+| `agent/src/omni/adapters/platform/desktop/desktop_control.py` | 独立控制父进程的实际归属、同绑定许可、共享额度和超量管道排空 |
 | `agent/src/omni/domain/desktop_control.py` | 独立控制同意目的/设备种类、精确绑定与不授予输入的状态协议 |
-| `agent/src/omni/adapters/platform/linux_xkbcommon.py` | libxkbcommon实际编译/键义与原线程及C对象归属 |
-| `agent/src/omni/adapters/platform/linux_eis_key_packet.py` | EI分帧成对按键与原部分写入/同步/释放归属 |
-| `agent/src/omni/adapters/platform/linux_eis_keyboard.py` | EI原观察/键图/修饰代次绑定的内部特殊键计划 |
-| `agent/src/omni/adapters/platform/linux_eis_devices.py` | 显式EI seat绑定、设备/区域/修饰与代次后验 |
-| `agent/src/omni/adapters/platform/linux_wayland_peer.py` | 原EI与显式Wayland端点同进程/私有FD归属 |
-| `agent/src/omni/adapters/platform/linux_wayland_wire.py` | 只读Wayland分帧、消息/字节寿命预算与FD拒绝 |
-| `agent/src/omni/adapters/platform/linux_wayland_windows.py` | wlroots窗口代次/原活动对象与关闭任务守卫 |
-| `agent/src/omni/adapters/platform/linux_udev_input.py` | libudev当前seat完整设备目录及原内核/udev通知FD归属 |
-| `agent/src/omni/adapters/platform/linux_evdev_input.py` | 原只读evdev FD身份、全键域/触点释放及非消费就绪核验 |
-| `agent/src/omni/adapters/platform/linux_seat_input.py` | 内部seat输入守卫、原executor/监听/关闭任务归属 |
-| `agent/src/omni/adapters/platform/linux_eis_keymap.py` | EI键图有界复制及实际线程/描述符归属 |
-| `agent/src/omni/adapters/platform/linux_eis.py` | Portal独立EI核心握手、同步回读和实际描述符归属 |
-| `agent/src/omni/adapters/platform/linux_remote_desktop.py` | 独立RemoteDesktop临时设备许可、会话身份/撤回和读取共享权限隔离 |
+| `agent/src/omni/adapters/platform/desktop/linux/linux_xkbcommon.py` | libxkbcommon实际编译/键义与原线程及C对象归属 |
+| `agent/src/omni/adapters/platform/desktop/linux/linux_eis_key_packet.py` | EI分帧成对按键与原部分写入/同步/释放归属 |
+| `agent/src/omni/adapters/platform/desktop/linux/linux_eis_keyboard.py` | EI原观察/键图/修饰代次绑定的内部特殊键计划 |
+| `agent/src/omni/adapters/platform/desktop/linux/linux_eis_devices.py` | 显式EI seat绑定、设备/区域/修饰与代次后验 |
+| `agent/src/omni/adapters/platform/desktop/linux/linux_wayland_peer.py` | 原EI与显式Wayland端点同进程/私有FD归属 |
+| `agent/src/omni/adapters/platform/desktop/linux/linux_wayland_wire.py` | 只读Wayland分帧、消息/字节寿命预算与FD拒绝 |
+| `agent/src/omni/adapters/platform/desktop/linux/linux_wayland_windows.py` | wlroots窗口代次/原活动对象与关闭任务守卫 |
+| `agent/src/omni/adapters/platform/desktop/linux/linux_udev_input.py` | libudev当前seat完整设备目录及原内核/udev通知FD归属 |
+| `agent/src/omni/adapters/platform/desktop/linux/linux_evdev_input.py` | 原只读evdev FD身份、全键域/触点释放及非消费就绪核验 |
+| `agent/src/omni/adapters/platform/desktop/linux/linux_seat_input.py` | 内部seat输入守卫、原executor/监听/关闭任务归属 |
+| `agent/src/omni/adapters/platform/desktop/linux/linux_eis_keymap.py` | EI键图有界复制及实际线程/描述符归属 |
+| `agent/src/omni/adapters/platform/desktop/linux/linux_eis.py` | Portal独立EI核心握手、同步回读和实际描述符归属 |
+| `agent/src/omni/adapters/platform/desktop/linux/linux_remote_desktop.py` | 独立RemoteDesktop临时设备许可、会话身份/撤回和读取共享权限隔离 |
 | `agent/src/omni/adapters/workers/desktop_control.py` | 独立控制许可worker、prepared后逐次permit、有界通信和实际关闭回执 |
-| `agent/src/omni/adapters/platform/linux_text.py` | 人工聚焦AT-SPI文本末尾的单次Unicode插入、逐次许可和完整回读 |
-| `agent/src/omni/adapters/platform/linux_foreground.py` | 连续窗口与原生焦点祖先链、服务器及实际接收客户端的只读证明 |
-| `agent/src/omni/adapters/platform/linux_keyboard.py` | 当前服务器核心键盘/修饰键映射的有界读取与焦点绑定复核，不授予输入权 |
-| `agent/src/omni/adapters/platform/linux_xkb.py` | 同连接XKB状态、控制、按键动作/行为预检及配置变化订阅，不派发输入 |
-| `agent/src/omni/adapters/platform/linux_xkb_map.py` | 完整GetMap八部件的有界规范化身份，不解释按键、不改映射或派发 |
-| `agent/src/omni/adapters/platform/linux_xkb_copy.py` | XKB兼容、名称、指示器定义与当前几何的有界身份，不写配置 |
-| `agent/src/omni/adapters/platform/linux_key_switch.py` | 已拥有按键的精确XKB/XI切换证明和复制后验，不派发或修改配置 |
-| `agent/src/omni/adapters/platform/linux_window_binding.py` | 提供方显式XID与实际XRes进程、持续窗口代次及原生焦点的绑定，不猜测或派发 |
-| `agent/src/omni/adapters/platform/linux_node_point.py` | AT-SPI真实命中/物理边界与持续X11几何的双读关联 |
-| `agent/src/omni/adapters/platform/linux_click_action.py` | 控件绑定的逐次鼠标许可、移动/成对按钮与实际状态后验 |
-| `agent/src/omni/adapters/platform/linux_button_events.py` | RawButton与两级映射XKB指针通知的八步精确归属 |
-| `agent/src/omni/adapters/platform/linux_button_packet.py` | 单次成对按钮派发、物理/逻辑释放回读与取消后的实际归属 |
-| `agent/src/omni/adapters/platform/linux_motion_events.py` | 两条同请求RawMotion的源/主顺序、FP32.32及精确归属 |
-| `agent/src/omni/adapters/platform/linux_motion_packet.py` | 单次移动字节账本、原查询归属及取消后实际结清 |
-| `agent/src/omni/adapters/platform/linux_pointer_switch.py` | 指针来源类复制的预计算、通知/完整后验与最终采用 |
-| `agent/src/omni/adapters/platform/linux_pointer_motion.py` | 真实轴/变换的有理逆映射、整数像素搜索及原始/处理后坐标计划，不发输入 |
-| `agent/src/omni/adapters/platform/linux_pointer_layout.py` | 原生单root RandR资源/实际scanout、通知与坐标计划连续复核，不写布局 |
-| `agent/src/omni/adapters/platform/linux_pointer_config.py` | 真实主从指针轴/滚动/标签、反馈与变换矩阵的有界规范化和变化失效，不派发输入 |
-| `agent/src/omni/adapters/platform/linux_pointer_actions.py` | 同连接主从XKB按钮动作与释放状态/控制预检、规范化无动作和变化订阅，不派发输入 |
-| `agent/src/omni/adapters/platform/linux_button_mapping.py` | 原生虚拟鼠标/主设备两级按钮映射与变化订阅，只读且不授予点击 |
-| `agent/src/omni/adapters/platform/linux_pointer_target.py` | 同连接物理窗口点的Xorg形状命中/遮挡路径、接收客户端与结构变化预检，不移动或点击 |
-| `agent/src/omni/adapters/platform/linux_focus_navigation.py` | 完整有界AT-SPI焦点树双读与同窗口导航后验 |
-| `agent/src/omni/adapters/platform/linux_key_action.py` | 手工聚焦节点的逐次许可、原生按键包与明确文本/光标后验，不重放或假报成功 |
-| `agent/src/omni/adapters/platform/linux_xtest.py` | Xorg虚拟输入设备的同连接只读身份预检，不豁免事件或派发输入 |
-| `agent/src/omni/adapters/platform/linux_keystroke.py` | 同连接单键成对字节派发与实际释放责任；业务目标/许可接线待完成 |
+| `agent/src/omni/adapters/platform/desktop/linux/linux_text.py` | 人工聚焦AT-SPI文本末尾的单次Unicode插入、逐次许可和完整回读 |
+| `agent/src/omni/adapters/platform/desktop/linux/linux_foreground.py` | 连续窗口与原生焦点祖先链、服务器及实际接收客户端的只读证明 |
+| `agent/src/omni/adapters/platform/desktop/linux/linux_keyboard.py` | 当前服务器核心键盘/修饰键映射的有界读取与焦点绑定复核，不授予输入权 |
+| `agent/src/omni/adapters/platform/desktop/linux/linux_xkb.py` | 同连接XKB状态、控制、按键动作/行为预检及配置变化订阅，不派发输入 |
+| `agent/src/omni/adapters/platform/desktop/linux/linux_xkb_map.py` | 完整GetMap八部件的有界规范化身份，不解释按键、不改映射或派发 |
+| `agent/src/omni/adapters/platform/desktop/linux/linux_xkb_copy.py` | XKB兼容、名称、指示器定义与当前几何的有界身份，不写配置 |
+| `agent/src/omni/adapters/platform/desktop/linux/linux_key_switch.py` | 已拥有按键的精确XKB/XI切换证明和复制后验，不派发或修改配置 |
+| `agent/src/omni/adapters/platform/desktop/linux/linux_window_binding.py` | 提供方显式XID与实际XRes进程、持续窗口代次及原生焦点的绑定，不猜测或派发 |
+| `agent/src/omni/adapters/platform/desktop/linux/linux_node_point.py` | AT-SPI真实命中/物理边界与持续X11几何的双读关联 |
+| `agent/src/omni/adapters/platform/desktop/linux/linux_click_action.py` | 控件绑定的逐次鼠标许可、移动/成对按钮与实际状态后验 |
+| `agent/src/omni/adapters/platform/desktop/linux/linux_button_events.py` | RawButton与两级映射XKB指针通知的八步精确归属 |
+| `agent/src/omni/adapters/platform/desktop/linux/linux_button_packet.py` | 单次成对按钮派发、物理/逻辑释放回读与取消后的实际归属 |
+| `agent/src/omni/adapters/platform/desktop/linux/linux_motion_events.py` | 两条同请求RawMotion的源/主顺序、FP32.32及精确归属 |
+| `agent/src/omni/adapters/platform/desktop/linux/linux_motion_packet.py` | 单次移动字节账本、原查询归属及取消后实际结清 |
+| `agent/src/omni/adapters/platform/desktop/linux/linux_pointer_switch.py` | 指针来源类复制的预计算、通知/完整后验与最终采用 |
+| `agent/src/omni/adapters/platform/desktop/linux/linux_pointer_motion.py` | 真实轴/变换的有理逆映射、整数像素搜索及原始/处理后坐标计划，不发输入 |
+| `agent/src/omni/adapters/platform/desktop/linux/linux_pointer_layout.py` | 原生单root RandR资源/实际scanout、通知与坐标计划连续复核，不写布局 |
+| `agent/src/omni/adapters/platform/desktop/linux/linux_pointer_config.py` | 真实主从指针轴/滚动/标签、反馈与变换矩阵的有界规范化和变化失效，不派发输入 |
+| `agent/src/omni/adapters/platform/desktop/linux/linux_pointer_actions.py` | 同连接主从XKB按钮动作与释放状态/控制预检、规范化无动作和变化订阅，不派发输入 |
+| `agent/src/omni/adapters/platform/desktop/linux/linux_button_mapping.py` | 原生虚拟鼠标/主设备两级按钮映射与变化订阅，只读且不授予点击 |
+| `agent/src/omni/adapters/platform/desktop/linux/linux_pointer_target.py` | 同连接物理窗口点的Xorg形状命中/遮挡路径、接收客户端与结构变化预检，不移动或点击 |
+| `agent/src/omni/adapters/platform/desktop/linux/linux_focus_navigation.py` | 完整有界AT-SPI焦点树双读与同窗口导航后验 |
+| `agent/src/omni/adapters/platform/desktop/linux/linux_key_action.py` | 手工聚焦节点的逐次许可、原生按键包与明确文本/光标后验，不重放或假报成功 |
+| `agent/src/omni/adapters/platform/desktop/linux/linux_xtest.py` | Xorg虚拟输入设备的同连接只读身份预检，不豁免事件或派发输入 |
+| `agent/src/omni/adapters/platform/desktop/linux/linux_keystroke.py` | 同连接单键成对字节派发与实际释放责任；业务目标/许可接线待完成 |
 | `agent/src/omni/domain/linux_window_leases.py` | 持续窗口身份的精确有界私有 IPC 与目标字段绑定 |
-| `agent/src/omni/adapters/platform/linux_window_leases.py` | 同连接生命周期订阅、窗口代次及读取前后屏障 |
-| `agent/src/omni/adapters/platform/linux_lease_client.py` | 持续只读辅助进程、串行 RPC、有界通信及真实回收归属 |
+| `agent/src/omni/adapters/platform/desktop/linux/linux_window_leases.py` | 同连接生命周期订阅、窗口代次及读取前后屏障 |
+| `agent/src/omni/adapters/platform/desktop/linux/linux_lease_client.py` | 持续只读辅助进程、串行 RPC、有界通信及真实回收归属 |
 | `agent/src/omni/adapters/workers/linux_window_lease.py` | Linux 持续窗口证明的固定原生辅助进程与限额 |
 | `agent/src/omni/adapters/platform/runtime/workbench.py` | 仅显式浏览器启动、本次进程与HMAC就绪证明、探测线程归属 |
-| `agent/src/omni/adapters/platform/dependency_bundle.py` | 本机依赖包清单/哈希与平台核验、有界流式捕获和仅本地安装输入 |
-| `agent/src/omni/adapters/platform/candidate_installer.py` | 独立离线候选安装、分离维护解释器与实例、逐步核验和失败保留 |
+| `agent/src/omni/adapters/platform/releases/dependency_bundle.py` | 本机依赖包清单/哈希与平台核验、有界流式捕获和仅本地安装输入 |
+| `agent/src/omni/adapters/platform/releases/candidate_installer.py` | 独立离线候选安装、分离维护解释器与实例、逐步核验和失败保留 |
 | `agent/src/omni/domain/action_review.py` | 未知写动作的观察复核/证据指纹纯规则 |
 | `agent/src/omni/domain/agents.py` | 所有者空间的名称、UTF-8、容量和修订上界纯规则 |
 | `agent/src/omni/domain/soak.py` | V2连续采样覆盖、所有者资源上限、注入/短跑拒绝与不可自动关闭的失败 |
@@ -193,7 +193,7 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 | `agent/src/omni/adapters/platform/service_launch.py` | 一次性启动预留（实例锁下，不启动进程） |
 | `agent/src/omni/adapters/persistence/migrations/versions/v0003.py` | 冻结迁移版本 v0003（人物/证据/记忆上下文） |
 | `agent/src/omni/adapters/platform/runtime/processes.py` | 受管进程组与 Windows Job Object（不终止未校验 PID） |
-| `agent/src/omni/adapters/platform/desktop.py` | 桌面辅助进程（有界单帧、两阶段授权、不探测即构造） |
+| `agent/src/omni/adapters/platform/desktop/backend.py` | 桌面辅助进程（有界单帧、两阶段授权、不探测即构造） |
 | `agent/src/omni/adapters/platform/service_query.py` | 只读系统服务查询（有界输出与保留进程所有权） |
 | `agent/src/omni/adapters/persistence/audit_pruning.py` | 离线审计裁剪绑定（计划/应用/取消，备份校验归共享设施） |
 | `agent/src/omni/adapters/persistence/event_pruning.py` | 离线事件裁剪绑定（计划/应用/取消，备份校验归共享设施） |
@@ -202,14 +202,14 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 | `agent/src/omni/adapters/platform/exchange_files.py` | 服务交换见证与维护预留（公共桥，不触库/不原生调用） |
 | `agent/src/omni/adapters/platform/service_cleanup_files.py` | 服务清理日志与双家预留（保留旧未知记录与栅栏） |
 | `agent/src/omni/adapters/platform/darwin_admin_policy.py` | macOS 管理员策略（本地账户校验与受保护根工件） |
-| `agent/src/omni/adapters/platform/wheel_smoke.py` | 候选树子进程冒烟（不安装/不切换/不迁移） |
+| `agent/src/omni/adapters/platform/releases/wheel_smoke.py` | 候选树子进程冒烟（不安装/不切换/不迁移） |
 | `agent/src/omni/adapters/vector_files.py` | 本地向量包文件校验与启动选择（不导入模型/不下载） |
 | `agent/src/omni/adapters/persistence/schema_upgrade.py` | 受审迁移目录与锁定栅栏内的库升级（不重放） |
 | `agent/src/omni/adapters/platform/service_admin.py` | Linux 系统服务注册/启动代理（不执行属主代码、不触业务库） |
 | `agent/src/omni/adapters/platform/darwin_admin_probe.py` | macOS 管理员原生只读探测（CoreFoundation/SM 有界读取） |
-| `agent/src/omni/adapters/platform/linux_x11_wire.py` | X11 只读线上协议（已校验套接字，无发现/输入/重连） |
+| `agent/src/omni/adapters/platform/desktop/linux/linux_x11_wire.py` | X11 只读线上协议（已校验套接字，无发现/输入/重连） |
 | `agent/src/omni/adapters/platform/service_readiness.py` | 每次启动的 HMAC 就绪证明（不读不传属主凭据） |
-| `agent/src/omni/adapters/platform/desktop_native.py` | Windows 桌面只读诊断与进程/窗口身份（不读界面内容） |
+| `agent/src/omni/adapters/platform/desktop/desktop_native.py` | Windows 桌面只读诊断与进程/窗口身份（不读界面内容） |
 | `agent/src/omni/adapters/diagnostics.py` | 有界单写 JSON 诊断（脱敏与载荷预算） |
 | `agent/src/omni/adapters/persistence/object_repository.py` | 对象元数据/固定与真实外键引用（不触文件） |
 | `agent/src/omni/adapters/persistence/releases.py` | 发布一致快照与新目录隔离恢复（调用方持实例锁） |
@@ -224,22 +224,22 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 | `agent/src/omni/adapters/workers/android_unicode.py` | 固定 IME 事务与认证 localabstract IPC（显式载荷/连接字段、未知不重放） |
 | `agent/src/omni/adapters/platform/darwin_service_admin.py` | macOS 注册与单次启动根后端（固定 launchctl，不强制重启） |
 | `agent/src/omni/adapters/extensions/hosts.py` | 扩展宿主池（有界进程归属与吊销，不触库/凭据） |
-| `agent/src/omni/adapters/platform/release_files.py` | 发布日志/安装字节与启动栅栏（不触库、不原生注册） |
-| `agent/src/omni/adapters/platform/wheel_environment.py` | 离线候选 venv 环境（无网络安装暂存 wheel） |
-| `agent/src/omni/adapters/platform/wheel_install.py` | 运行时切换/迁移/回滚指针（不停服、不迁移库） |
-| `agent/src/omni/adapters/platform/linux_bus.py` | 已校验本地 D-Bus 传输（无环境选择/网络总线） |
-| `agent/src/omni/adapters/platform/linux_session.py` | logind 会话与无障碍总线归属（不信环境变量） |
+| `agent/src/omni/adapters/platform/releases/release_files.py` | 发布日志/安装字节与启动栅栏（不触库、不原生注册） |
+| `agent/src/omni/adapters/platform/releases/wheel_environment.py` | 离线候选 venv 环境（无网络安装暂存 wheel） |
+| `agent/src/omni/adapters/platform/releases/wheel_install.py` | 运行时切换/迁移/回滚指针（不停服、不迁移库） |
+| `agent/src/omni/adapters/platform/desktop/linux/linux_bus.py` | 已校验本地 D-Bus 传输（无环境选择/网络总线） |
+| `agent/src/omni/adapters/platform/desktop/linux/linux_session.py` | logind 会话与无障碍总线归属（不信环境变量） |
 | `agent/src/omni/adapters/platform/runtime/terminal.py` | 受管终端 IPC（原生 PTY 仅在固定辅助进程内运行） |
 | `agent/src/omni/adapters/temporary_debug.py` | 启动绑定的临时调试捕获（仅元数据、有界配额） |
 | `agent/src/omni/adapters/persistence/migrations/versions/v0010.py` | 冻结迁移版本 v0010（凭据授权状态与不可变审阅） |
 | `agent/src/omni/adapters/platform/service_admin_client.py` | 属主侧固定根代理连接（不提权、不自动重试） |
-| `agent/src/omni/adapters/platform/linux_signals.py` | 已认证本地连接上的有界 D-Bus 信号（无激活/无 fd） |
-| `agent/src/omni/adapters/platform/linux_fds.py` | 受控接收描述符与有界 SCM_RIGHTS（无总线/桌面策略） |
-| `agent/src/omni/adapters/platform/linux_input.py` | Xorg 输入变更守卫（不抓取/不合成/不存内容） |
+| `agent/src/omni/adapters/platform/desktop/linux/linux_signals.py` | 已认证本地连接上的有界 D-Bus 信号（无激活/无 fd） |
+| `agent/src/omni/adapters/platform/desktop/linux/linux_fds.py` | 受控接收描述符与有界 SCM_RIGHTS（无总线/桌面策略） |
+| `agent/src/omni/adapters/platform/desktop/linux/linux_input.py` | Xorg 输入变更守卫（不抓取/不合成/不存内容） |
 | `agent/src/omni/adapters/native_credentials.py` | 固定单次原生凭据宿主（不落明文、不自动重发） |
 | `agent/src/omni/adapters/workers/protocol.py` | 宿主与能力进程共享的有界 IPC 记录（不分发/不 IO） |
 | `agent/src/omni/adapters/extensions/worker.py` | 受信扩展子进程握手与调用（不开主库） |
-| `agent/src/omni/adapters/platform/linux_portal.py` | 固定 Wayland 门户的显式窗口选择（不开 PipeWire fd/不派发输入） |
+| `agent/src/omni/adapters/platform/desktop/linux/linux_portal.py` | 固定 Wayland 门户的显式窗口选择（不开 PipeWire fd/不派发输入） |
 | `agent/src/omni/adapters/object_store.py` | 受控对象文件存储（无链接/越界） |
 | `agent/src/omni/adapters/persistence/migrations/env.py` | Alembic 环境入口（迁移配置） |
 | `agent/src/omni/adapters/persistence/migrations/versions/v0001.py` | 冻结迁移版本 v0001 |
@@ -280,7 +280,7 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 | `agent/src/omni/adapters/platform/runtime/permissions.py` | 平台权限检查边界 |
 | `agent/src/omni/adapters/platform/runtime/publication.py` | 发布文件写入边界 |
 | `agent/src/omni/adapters/platform/service_admin_commands.py` | 服务管理员命令构造 |
-| `agent/src/omni/adapters/platform/wheel_artifact.py` | wheel 产物校验 |
+| `agent/src/omni/adapters/platform/releases/wheel_artifact.py` | wheel 产物校验 |
 | `agent/src/omni/adapters/workers/darwin_admin_probe.py` | macOS 管理员探测 worker |
 | `agent/src/omni/adapters/persistence/action_predicates.py` | 动作复核当前解析谓词（持久化适配） |
 | `agent/src/omni/adapters/persistence/action_review_repository.py` | 所有者观测台账（对齐端口 Record、计算列显式 Column[int]、详情宽字典返回收窄、unknown 保留不改原动作） |
@@ -305,26 +305,26 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 | `agent/src/omni/adapters/platform/darwin_admin_commands.py` | macOS 管理员命令构造 |
 | `agent/src/omni/adapters/platform/darwin_admin_files.py` | macOS 管理员文件身份校验 |
 | `agent/src/omni/adapters/platform/systemd_state.py` | systemd 状态解码边界 |
-| `agent/src/omni/adapters/platform/wheel_stage.py` | wheel 暂存收据 |
-| `agent/src/omni/adapters/platform/wheel_switch.py` | wheel 切换计划 |
-| `agent/src/omni/adapters/platform/wheel_status.py` | 安装状态汇总 |
+| `agent/src/omni/adapters/platform/releases/wheel_stage.py` | wheel 暂存收据 |
+| `agent/src/omni/adapters/platform/releases/wheel_switch.py` | wheel 切换计划 |
+| `agent/src/omni/adapters/platform/releases/wheel_status.py` | 安装状态汇总 |
 | `agent/src/omni/adapters/persistence/repository_base.py` | 仓储基类（审计/记录/游标辅助） |
-| `agent/src/omni/adapters/platform/wheel_backup.py` | wheel 更新备份收据 |
-| `agent/src/omni/adapters/platform/wheel_prepare.py` | wheel 候选解包与准备收据 |
-| `agent/src/omni/adapters/platform/wheel_rollback.py` | wheel 回滚演练收据 |
-| `agent/src/omni/adapters/platform/wheel_uninstall.py` | 候选卸载与显式清理 |
+| `agent/src/omni/adapters/platform/releases/wheel_backup.py` | wheel 更新备份收据 |
+| `agent/src/omni/adapters/platform/releases/wheel_prepare.py` | wheel 候选解包与准备收据 |
+| `agent/src/omni/adapters/platform/releases/wheel_rollback.py` | wheel 回滚演练收据 |
+| `agent/src/omni/adapters/platform/releases/wheel_uninstall.py` | 候选卸载与显式清理 |
 | `agent/src/omni/adapters/persistence/offline_plans.py` | 离线维护计划读取/校验 |
 | `agent/src/omni/adapters/persistence/retention_repository.py` | 保留/擦除会话失效仓储 |
 | `agent/src/omni/adapters/persistence/routing_repository.py` | 不可变档位策略/运行选择/升档/实际工具清单（对齐端口 Record、嵌套设置收窄、升档仅向上一次、不调模型不做 IO） |
-| `agent/src/omni/adapters/platform/desktop_capture.py` | 桌面截图文件身份校验 |
-| `agent/src/omni/adapters/platform/macos_helper.py` | macOS 辅助源指纹与文件校验 |
+| `agent/src/omni/adapters/platform/desktop/desktop_capture.py` | 桌面截图文件身份校验 |
+| `agent/src/omni/adapters/platform/desktop/macos_helper.py` | macOS 辅助源指纹与文件校验 |
 | `agent/src/omni/adapters/platform/macos_service.py` | macOS launchd 查询边界（原生身份校验） |
 | `agent/src/omni/adapters/platform/runtime/paths.py` | 实例路径与启动栅栏互斥 |
 | `agent/src/omni/adapters/platform/service_admin_bundle.py` | 管理员工件物化（不安装/不提权） |
 | `agent/src/omni/adapters/persistence/history_protection.py` | 历史保留保护原因（运行/引用/审计） |
 | `agent/src/omni/adapters/workers/terminal.py` | 终端 worker 帧解码/打开校验 |
 | `agent/src/omni/adapters/persistence/sqlalchemy_access.py` | SQLAlchemy 引擎事务/PRAGMA 设置 |
-| `agent/src/omni/adapters/platform/linux_x11_socket.py` | X11 授权 cookie 解析 |
+| `agent/src/omni/adapters/platform/desktop/linux/linux_x11_socket.py` | X11 授权 cookie 解析 |
 | `agent/src/omni/adapters/workers/desktop.py` | 桌面 worker 帧解码 |
 | `agent/src/omni/adapters/persistence/execution_pruning.py` | 执行正文保留计划（读/建/应用/取消） |
 | `agent/src/omni/adapters/persistence/mcp_repository.py` | MCP 运行代际/目录快照/逐工具授权/调用记录（对齐端口 Record、宽字典授权结果收窄、存活授权查询显式 Select、不开 socket 不启进程不取凭据） |
@@ -342,7 +342,7 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 | `agent/src/omni/adapters/workers/linux_action.py` | Linux 语义动作 worker 单帧入口（初始帧不授权写入） |
 | `agent/src/omni/adapters/persistence/operations_read.py` | 离线只读运维快照（只读 URI、schema 校验、不自动升级） |
 | `agent/src/omni/adapters/platform/runtime/event_loop.py` | Windows TCP 重置清理事件循环（不改全局 asyncio 类） |
-| `agent/src/omni/adapters/platform/linux_pipewire.py` | 串行目标 GStreamer 取帧（不开默认远程/不读根窗口） |
+| `agent/src/omni/adapters/platform/desktop/linux/linux_pipewire.py` | 串行目标 GStreamer 取帧（不开默认远程/不读根窗口） |
 | `agent/src/omni/adapters/persistence/database.py` | 单写者数据库 actor（隔离读连接、关闭与完整性检查） |
 | `agent/src/omni/adapters/persistence/qq_authority.py` | QQ 受众/凭据权威（上下文、模型与外发共用检查） |
 | `agent/src/omni/adapters/persistence/qq_repository.py` | QQ 准入与权威（对齐端口 Record、会话目标不可变、事件幂等与冷却收窄、无网络无额外真值库） |
@@ -397,9 +397,9 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 | `agent/src/omni/adapters/http_events.py` | 有界 SSE 历史通知、游标续接、持续鉴权与连接回收；不推送事件正文 |
 | `agent/src/omni/adapters/soak.py` | 本机签名boot采样、受限HTTP读取和私有连续证据，不调用V1或模型 |
 
-| `agent/src/omni/adapters/platform/linux_atspi.py` | AT-SPI 只读适配器：native 引用、状态、节点与语义证明回调；原生调用守卫不变 |
+| `agent/src/omni/adapters/platform/desktop/linux/linux_atspi.py` | AT-SPI 只读适配器：native 引用、状态、节点与语义证明回调；原生调用守卫不变 |
 
-| `agent/src/omni/adapters/platform/linux_x11.py` | X11 目标核验与采集适配器类型化，原生证明和像素边界不变 |
+| `agent/src/omni/adapters/platform/desktop/linux/linux_x11.py` | X11 目标核验与采集适配器类型化，原生证明和像素边界不变 |
 
 | `agent/src/omni/adapters/platform/deployment_files.py` | 部署文件类型化与公共发布入口，保留私有注入点及原子文件语义 |
 
@@ -413,9 +413,9 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 
 | `agent/src/omni/adapters/workers/portal.py` | Portal worker类型化，显式授权、帧请求与清理时限不变 |
 
-| `agent/src/omni/adapters/platform/linux_semantic.py` | Linux 语义动作类型收官，输入屏障、再证明与unknown语义不变 |
+| `agent/src/omni/adapters/platform/desktop/linux/linux_semantic.py` | Linux 语义动作类型收官，输入屏障、再证明与unknown语义不变 |
 
-| `agent/src/omni/adapters/platform/portal.py` | Portal文件任务、采集与回收类型收官，授权和配额不变 |
+| `agent/src/omni/adapters/platform/desktop/portal.py` | Portal文件任务、采集与回收类型收官，授权和配额不变 |
 
 | `agent/src/omni/adapters/workers/linux_desktop.py` | Linux桌面worker收官，真实工厂签名与语义调用类型贯通 |
 

@@ -4,9 +4,9 @@ from __future__ import annotations
 
 from types import SimpleNamespace
 
-from omni.adapters.platform.linux_atspi import COMPONENT, TEXT
-from omni.adapters.platform.linux_bus import DBUS, Process, RemoteError, failure
-from omni.adapters.platform.linux_session import A11Y, LOGIN, PROPERTIES, REGISTRY, ROOT
+from omni.adapters.platform.desktop.linux.linux_atspi import COMPONENT, TEXT
+from omni.adapters.platform.desktop.linux.linux_bus import DBUS, Process, RemoteError, failure
+from omni.adapters.platform.desktop.linux.linux_session import A11Y, LOGIN, PROPERTIES, REGISTRY, ROOT
 
 SESSION = "/org/freedesktop/login1/session/c1"
 SEAT = "/org/freedesktop/login1/seat/seat0"

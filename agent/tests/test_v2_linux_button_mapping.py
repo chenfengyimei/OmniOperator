@@ -6,8 +6,8 @@ import pytest
 from test_v2_linux_pointer_target import close
 from v2_linux_button_helpers import ButtonPeer, button_context, button_topology, mapping_event
 
-from omni.adapters.platform.linux_button_mapping import primary
-from omni.adapters.platform.linux_xtest import Sources
+from omni.adapters.platform.desktop.linux.linux_button_mapping import primary
+from omni.adapters.platform.desktop.linux.linux_xtest import Sources
 from omni.domain.contracts import BusinessError
 
 

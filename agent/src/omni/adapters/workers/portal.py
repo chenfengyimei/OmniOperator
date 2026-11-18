@@ -12,10 +12,10 @@ from typing import Any, cast
 
 from ...domain.contracts import BusinessError
 from ...domain.desktop_portal import LIFETIME_SECONDS, MAX_FRAME, VERSION, command, decode, encode
-from ..platform.linux_bus import LinuxOps, RemoteError, failure, load_types
-from ..platform.linux_pipewire import FrameExecutor
-from ..platform.linux_portal import PortalFactory, PortalSession
-from ..platform.linux_session import SessionInspector
+from omni.adapters.platform.desktop.linux.linux_bus import LinuxOps, RemoteError, failure, load_types
+from omni.adapters.platform.desktop.linux.linux_pipewire import FrameExecutor
+from omni.adapters.platform.desktop.linux.linux_portal import PortalFactory, PortalSession
+from omni.adapters.platform.desktop.linux.linux_session import SessionInspector
 
 
 async def run(

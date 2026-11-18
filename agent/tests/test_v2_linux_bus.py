@@ -10,7 +10,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from omni.adapters.platform import linux_bus as b
+from omni.adapters.platform.desktop.linux import linux_bus as b
 from omni.domain.contracts import BusinessError
 
 

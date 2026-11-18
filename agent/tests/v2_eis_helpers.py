@@ -5,8 +5,8 @@ import os
 import struct
 import sys
 
-from omni.adapters.platform.linux_eis import EisConnection
-from omni.adapters.platform.linux_fds import OwnedFd
+from omni.adapters.platform.desktop.linux.linux_eis import EisConnection
+from omni.adapters.platform.desktop.linux.linux_fds import OwnedFd
 
 ORDER = "<" if sys.byteorder == "little" else ">"
 CONNECTION = 0xFF00000000000001

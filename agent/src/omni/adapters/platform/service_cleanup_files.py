@@ -26,7 +26,7 @@ from .deployment_files import CurrentDeploymentFiles, json_bytes, no_links, path
 from .exchange_files import ExchangeFiles
 from omni.adapters.platform.runtime.paths import InstanceLock, InstancePaths, PrivateFileLock
 from omni.adapters.platform.runtime.permissions import assert_private, private_path
-from .release_files import ReleaseFiles
+from omni.adapters.platform.releases.release_files import ReleaseFiles
 from .service_operation_files import ServiceOperationFiles
 
 

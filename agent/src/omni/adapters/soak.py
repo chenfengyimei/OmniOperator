@@ -22,7 +22,7 @@ import psutil
 from ..domain import soak as soak_policy
 from ..domain.contracts import BusinessError
 from ..domain.soak import COUNTERS, MAX_SAMPLES, RESOURCES, assess, invalid, limits, number
-from .platform.dependency_bundle import no_links
+from omni.adapters.platform.releases.dependency_bundle import no_links
 from omni.adapters.platform.runtime.paths import PrivateFileLock
 from omni.adapters.platform.runtime.permissions import assert_private, private_path
 from omni.adapters.platform.runtime.runtime_identity import READINESS_FIELDS, read_private

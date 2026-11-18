@@ -8,7 +8,7 @@ from v2_eis_device_helpers import DevicePeer, ports
 from v2_eis_helpers import CONNECTION, ORDER, frame, word
 from v2_xkbcommon_helpers import Library
 
-from omni.adapters.platform.linux_xkbcommon import NativeXkb, XkbCompiler
+from omni.adapters.platform.desktop.linux.linux_xkbcommon import NativeXkb, XkbCompiler
 
 
 class KeyPeer(DevicePeer):

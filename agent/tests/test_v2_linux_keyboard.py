@@ -8,8 +8,8 @@ from test_v2_linux_foreground import FocusPeer, prepared
 from v2_x11_helpers import ROOT, reply, setup_bytes
 from v2_xkb_helpers import XkbFixture
 
-from omni.adapters.platform.linux_keyboard import SYMBOLS
-from omni.adapters.platform.linux_x11_wire import setup_reply
+from omni.adapters.platform.desktop.linux.linux_keyboard import SYMBOLS
+from omni.adapters.platform.desktop.linux.linux_x11_wire import setup_reply
 from omni.domain.contracts import BusinessError
 from omni.domain.foreground import KEYS
 

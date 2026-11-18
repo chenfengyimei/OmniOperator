@@ -720,57 +720,57 @@ def _run(args: argparse.Namespace) -> int:
             elif args.operation == "artifact":
                 if args.artifact is None or not args.sha256:
                     raise BusinessError("artifact_missing", "Provide the wheel path and its recorded SHA256")
-                from ..adapters.platform.wheel_artifact import inspect_wheel
+                from omni.adapters.platform.releases.wheel_artifact import inspect_wheel
 
                 print(json.dumps(inspect_wheel(args.artifact, args.sha256)))
             elif args.operation == "stage":
                 if args.artifact is None or not args.sha256:
                     raise BusinessError("artifact_missing", "Provide the wheel path and its recorded SHA256")
-                from ..adapters.platform.wheel_stage import stage_wheel
+                from omni.adapters.platform.releases.wheel_stage import stage_wheel
 
                 print(json.dumps(stage_wheel(paths.home, args.artifact, args.sha256)))
             elif args.operation == "prepare":
                 if not args.sha256:
                     raise BusinessError("artifact_missing", "Provide the staged wheel SHA256")
-                from ..adapters.platform.wheel_prepare import prepare_wheel
+                from omni.adapters.platform.releases.wheel_prepare import prepare_wheel
 
                 print(json.dumps(prepare_wheel(paths.home, args.sha256)))
             elif args.operation == "switch-plan":
                 if not args.sha256:
                     raise BusinessError("artifact_missing", "Provide the prepared wheel SHA256")
-                from ..adapters.platform.wheel_switch import switch_plan
+                from omni.adapters.platform.releases.wheel_switch import switch_plan
 
                 print(json.dumps(switch_plan(paths, args.sha256)))
             elif args.operation == "switch":
                 if not args.sha256:
                     raise BusinessError("artifact_missing", "Provide the prepared wheel SHA256")
-                from ..adapters.platform.wheel_install import switch_candidate
+                from omni.adapters.platform.releases.wheel_install import switch_candidate
 
                 print(json.dumps(switch_candidate(paths, args.sha256)))
             elif args.operation == "install":
                 if args.artifact is None or not args.sha256:
                     raise BusinessError("artifact_missing", "Provide the wheel path and its recorded SHA256")
-                from ..adapters.platform.wheel_install import install_candidate
+                from omni.adapters.platform.releases.wheel_install import install_candidate
 
                 print(json.dumps(install_candidate(paths, args.artifact, args.sha256)))
             elif args.operation == "migrate":
                 if not args.sha256:
                     raise BusinessError("artifact_missing", "Provide the prepared wheel SHA256")
-                from ..adapters.platform.wheel_install import migrate_candidate
+                from omni.adapters.platform.releases.wheel_install import migrate_candidate
 
                 print(json.dumps(migrate_candidate(paths, args.sha256)))
             elif args.operation == "current":
-                from ..adapters.platform.wheel_install import runtime_current
+                from omni.adapters.platform.releases.wheel_install import runtime_current
 
                 print(json.dumps(runtime_current(paths)))
             elif args.operation == "uninstall":
-                from ..adapters.platform.wheel_uninstall import uninstall_candidate
+                from omni.adapters.platform.releases.wheel_uninstall import uninstall_candidate
 
                 print(json.dumps(uninstall_candidate(paths, args.sha256, purge=args.purge_data)))
             elif args.operation == "environment":
                 if not args.sha256:
                     raise BusinessError("artifact_missing", "Provide the staged wheel SHA256")
-                from ..adapters.platform.wheel_environment import create_environment
+                from omni.adapters.platform.releases.wheel_environment import create_environment
 
                 print(
                     json.dumps(
@@ -783,29 +783,29 @@ def _run(args: argparse.Namespace) -> int:
                     )
                 )
             elif args.operation == "rollback":
-                from ..adapters.platform.wheel_install import rollback_candidate
+                from omni.adapters.platform.releases.wheel_install import rollback_candidate
 
                 print(json.dumps(rollback_candidate(paths)))
             elif args.operation == "backup":
                 if not args.sha256:
                     raise BusinessError("artifact_missing", "Provide the prepared wheel SHA256")
-                from ..adapters.platform.wheel_backup import backup_candidate
+                from omni.adapters.platform.releases.wheel_backup import backup_candidate
 
                 print(json.dumps(backup_candidate(paths, args.sha256)))
             elif args.operation == "rollback-check":
                 if not args.sha256:
                     raise BusinessError("artifact_missing", "Provide the prepared wheel SHA256")
-                from ..adapters.platform.wheel_rollback import rollback_check
+                from omni.adapters.platform.releases.wheel_rollback import rollback_check
 
                 print(json.dumps(rollback_check(paths, args.sha256)))
             elif args.operation == "status":
-                from ..adapters.platform.wheel_status import installation_status
+                from omni.adapters.platform.releases.wheel_status import installation_status
 
                 print(json.dumps(installation_status(paths)))
             elif args.operation == "smoke":
                 if not args.sha256:
                     raise BusinessError("artifact_missing", "Provide the prepared wheel SHA256")
-                from ..adapters.platform.wheel_smoke import smoke_candidate
+                from omni.adapters.platform.releases.wheel_smoke import smoke_candidate
 
                 print(json.dumps(smoke_candidate(paths, args.sha256)))
             else:

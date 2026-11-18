@@ -263,7 +263,7 @@ def test_standalone_installer_json_preserves_non_legacy_unicode_under_isolated_p
         for name in ("omni", "omni/adapters", "omni/adapters/platform", "omni/domain"):
             archive.writestr(name + "/__init__.py", "")
         archive.writestr(
-            "omni/adapters/platform/candidate_installer.py",
+            "omni/adapters/platform/releases/candidate_installer.py",
             "def install_candidate(wheel,sha,bundle,bundle_sha,manager,home):\n return {'home':str(home)}\n",
         )
         archive.writestr("omni/domain/contracts.py", "class BusinessError(Exception): pass\n")

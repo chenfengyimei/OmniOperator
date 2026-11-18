@@ -9,8 +9,8 @@ import threading
 import pytest
 from v2_xkbcommon_helpers import MINIMAL, SYMBOLS, Library
 
-from omni.adapters.platform.linux_eis_keymap import KeymapInfo
-from omni.adapters.platform.linux_xkbcommon import NativeXkb, XkbCompiler
+from omni.adapters.platform.desktop.linux.linux_eis_keymap import KeymapInfo
+from omni.adapters.platform.desktop.linux.linux_xkbcommon import NativeXkb, XkbCompiler
 from omni.domain.contracts import BusinessError
 
 

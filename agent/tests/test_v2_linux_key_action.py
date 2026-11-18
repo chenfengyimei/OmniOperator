@@ -13,8 +13,8 @@ from test_v2_desktop_actions import approve, queued
 from test_v2_execution import wait_state
 from v2_linux_key_helpers import EDIT, Bundle, command, model, profile_factory
 
-from omni.adapters.platform import desktop as host
-from omni.adapters.platform.linux_key_action import expected_edit
+from omni.adapters.platform.desktop import backend as host
+from omni.adapters.platform.desktop.linux.linux_key_action import expected_edit
 from omni.adapters.workers.linux_action import run
 from omni.adapters.workers.linux_desktop import perform
 from omni.composition.instance import open_instance

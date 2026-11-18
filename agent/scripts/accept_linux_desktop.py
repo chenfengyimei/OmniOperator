@@ -10,7 +10,7 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
-from omni.adapters.platform.desktop import DesktopBackend
+from omni.adapters.platform.desktop.backend import DesktopBackend
 from omni.adapters.platform.runtime.permissions import private_path
 from omni.domain.contracts import BusinessError
 from omni.domain.desktop import target_fingerprint, validate_capabilities, validate_observation, validate_targets

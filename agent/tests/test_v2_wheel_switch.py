@@ -9,9 +9,9 @@ import zipfile
 import pytest
 
 from omni.adapters.platform.runtime.paths import InstanceLock, InstancePaths
-from omni.adapters.platform.wheel_prepare import prepare_wheel
-from omni.adapters.platform.wheel_stage import stage_wheel
-from omni.adapters.platform.wheel_switch import switch_plan
+from omni.adapters.platform.releases.wheel_prepare import prepare_wheel
+from omni.adapters.platform.releases.wheel_stage import stage_wheel
+from omni.adapters.platform.releases.wheel_switch import switch_plan
 from omni.composition.cli import main, seal_installation
 from omni.composition.instance import open_instance
 from omni.domain.contracts import BusinessError

@@ -4,10 +4,10 @@ import struct
 
 from v2_linux_desktop_helpers import SESSION, Factory, variant
 
-from omni.adapters.platform.linux_bus import Process, failure
-from omni.adapters.platform.linux_x11 import X11Desktop
-from omni.adapters.platform.linux_x11_socket import Connection
-from omni.adapters.platform.linux_x11_wire import Wire
+from omni.adapters.platform.desktop.linux.linux_bus import Process, failure
+from omni.adapters.platform.desktop.linux.linux_x11 import X11Desktop
+from omni.adapters.platform.desktop.linux.linux_x11_socket import Connection
+from omni.adapters.platform.desktop.linux.linux_x11_wire import Wire
 
 ROOT, WINDOW, VISUAL, CLIENT = 0x100, 0x400001, 0x21, 0x400000
 COOKIE = b"PRIVATE-X-COOKIE"

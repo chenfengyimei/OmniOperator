@@ -7,8 +7,8 @@ import zipfile
 
 import pytest
 
-from omni.adapters.platform.wheel_prepare import prepare_wheel
-from omni.adapters.platform.wheel_stage import stage_wheel
+from omni.adapters.platform.releases.wheel_prepare import prepare_wheel
+from omni.adapters.platform.releases.wheel_stage import stage_wheel
 from omni.composition.cli import main
 from omni.domain.contracts import BusinessError
 

@@ -7,8 +7,8 @@ from types import SimpleNamespace
 
 import pytest
 
-from omni.adapters.platform import linux_evdev_input as native
-from omni.adapters.platform.linux_udev_input import InputDevice
+from omni.adapters.platform.desktop.linux import linux_evdev_input as native
+from omni.adapters.platform.desktop.linux.linux_udev_input import InputDevice
 from omni.domain.contracts import BusinessError
 
 
@@ -215,7 +215,7 @@ def test_native_readiness_polls_every_fd_including_errors_without_consuming_any_
 
 
 def test_independent_readiness_client_survives_key_state_ioctl_flushing_its_own_queue(monkeypatch):
-    from omni.adapters.platform.linux_fds import OwnedFd
+    from omni.adapters.platform.desktop.linux.linux_fds import OwnedFd
 
     pipes = [os.pipe() for _ in range(4)]
     watch_fd, query_fd = pipes[2][0], pipes[3][0]

@@ -12,17 +12,17 @@ from typing import Any, cast
 from ...domain.contracts import BusinessError
 from ...domain.desktop import LINUX_ERRORS, VERSION
 from ...domain.foreground import TIMEOUT_S as FOREGROUND_TIMEOUT_S
-from ..platform.linux_atspi import AtspiDesktop, report
-from ..platform.linux_bus import LinuxOps, RemoteError, load_types
-from ..platform.linux_click_action import FocusedClick
-from ..platform.linux_input import X11Input
-from ..platform.linux_key_action import FocusedKey
-from ..platform.linux_semantic import Semantics
-from ..platform.linux_session import FactoryPort, LocalFactory, OpsPort, SessionInspector
-from ..platform.linux_text import FocusedText
-from ..platform.linux_window_binding import WindowBinding
-from ..platform.linux_x11 import X11Desktop
-from ..platform.linux_x11_wire import XError
+from omni.adapters.platform.desktop.linux.linux_atspi import AtspiDesktop, report
+from omni.adapters.platform.desktop.linux.linux_bus import LinuxOps, RemoteError, load_types
+from omni.adapters.platform.desktop.linux.linux_click_action import FocusedClick
+from omni.adapters.platform.desktop.linux.linux_input import X11Input
+from omni.adapters.platform.desktop.linux.linux_key_action import FocusedKey
+from omni.adapters.platform.desktop.linux.linux_semantic import Semantics
+from omni.adapters.platform.desktop.linux.linux_session import FactoryPort, LocalFactory, OpsPort, SessionInspector
+from omni.adapters.platform.desktop.linux.linux_text import FocusedText
+from omni.adapters.platform.desktop.linux.linux_window_binding import WindowBinding
+from omni.adapters.platform.desktop.linux.linux_x11 import X11Desktop
+from omni.adapters.platform.desktop.linux.linux_x11_wire import XError
 
 Payload = dict[str, object]
 

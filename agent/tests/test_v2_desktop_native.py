@@ -14,7 +14,7 @@ from types import SimpleNamespace
 import psutil
 import pytest
 
-from omni.adapters.platform import desktop_native as native
+from omni.adapters.platform.desktop import desktop_native as native
 from omni.domain.desktop import validate_capabilities, validate_target
 
 
@@ -227,7 +227,7 @@ def test_windows_isolated_child_window_identity_matches_then_destroyed_or_change
         """import ctypes,json,os,sys,time
 from ctypes import wintypes as w
 from pathlib import Path
-from omni.adapters.platform.desktop_native import WindowsDesktop
+from omni.adapters.platform.desktop.desktop_native import WindowsDesktop
 root=Path(sys.argv[1]);user=ctypes.WinDLL('user32',use_last_error=True)
 user.CreateWindowExW.argtypes=[w.DWORD,w.LPCWSTR,w.LPCWSTR,w.DWORD,ctypes.c_int,ctypes.c_int,ctypes.c_int,ctypes.c_int,w.HWND,w.HMENU,w.HINSTANCE,ctypes.c_void_p]
 user.CreateWindowExW.restype=w.HWND

@@ -6,7 +6,7 @@ import argparse
 import json
 from pathlib import Path
 
-from omni.adapters.platform.dependency_bundle import build_bundle
+from omni.adapters.platform.releases.dependency_bundle import build_bundle
 
 
 def main() -> int:

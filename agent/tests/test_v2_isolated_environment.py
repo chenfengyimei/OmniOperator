@@ -14,17 +14,17 @@ from pathlib import Path
 import pytest
 from test_v2_wheel_environment import staged
 
-from omni.adapters.platform import dependency_bundle as bundle
-from omni.adapters.platform import wheel_environment as environment
+from omni.adapters.platform.releases import dependency_bundle as bundle
+from omni.adapters.platform.releases import wheel_environment as environment
 from omni.adapters.platform.runtime.paths import InstanceLock
 from omni.adapters.platform.runtime.permissions import private_path
-from omni.adapters.platform.wheel_backup import backup_candidate
-from omni.adapters.platform.wheel_install import switch_candidate
-from omni.adapters.platform.wheel_prepare import prepare_wheel
-from omni.adapters.platform.wheel_rollback import rollback_check
-from omni.adapters.platform.wheel_smoke import smoke_candidate
-from omni.adapters.platform.wheel_stage import stage_wheel
-from omni.adapters.platform.wheel_uninstall import uninstall_candidate
+from omni.adapters.platform.releases.wheel_backup import backup_candidate
+from omni.adapters.platform.releases.wheel_install import switch_candidate
+from omni.adapters.platform.releases.wheel_prepare import prepare_wheel
+from omni.adapters.platform.releases.wheel_rollback import rollback_check
+from omni.adapters.platform.releases.wheel_smoke import smoke_candidate
+from omni.adapters.platform.releases.wheel_stage import stage_wheel
+from omni.adapters.platform.releases.wheel_uninstall import uninstall_candidate
 from omni.composition.cli import main
 from omni.domain.contracts import BusinessError
 
@@ -229,7 +229,7 @@ def test_failed_dependency_install_cleans_only_its_environment_and_does_not_publ
     ],
 )
 def test_bad_environment_receipt_cannot_fall_back_to_a_host_interpreter(tmp_path, field, value):
-    from omni.adapters.platform.wheel_install import _environment
+    from omni.adapters.platform.releases.wheel_install import _environment
 
     stage = tmp_path / "stage"
     venv = stage / "venv"
@@ -328,7 +328,7 @@ def test_cli_dependency_options_are_not_silently_ignored_for_other_operations(tm
 def test_replayed_switch_preserves_the_actual_previous_candidate_for_rollback(tmp_path):
     from test_v2_wheel_install import _second_candidate, candidate
 
-    from omni.adapters.platform.wheel_install import rollback_candidate
+    from omni.adapters.platform.releases.wheel_install import rollback_candidate
 
     paths, first, _ = candidate(tmp_path)
     switch_candidate(paths, first)
@@ -345,7 +345,7 @@ def test_replayed_switch_preserves_the_actual_previous_candidate_for_rollback(tm
 def test_runtime_pointer_publication_keeps_instance_lock_until_complete(tmp_path, monkeypatch, operation):
     from test_v2_wheel_install import _second_candidate, candidate
 
-    from omni.adapters.platform import wheel_install
+    from omni.adapters.platform.releases import wheel_install
 
     paths, first, _ = candidate(tmp_path)
     if operation == "rollback":

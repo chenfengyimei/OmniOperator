@@ -13,7 +13,7 @@ from collections.abc import Mapping
 from pathlib import Path
 from typing import Any
 
-from omni.adapters.platform.dependency_bundle import no_links
+from omni.adapters.platform.releases.dependency_bundle import no_links
 from omni.adapters.platform.runtime.permissions import private_path
 from omni.adapters.platform.runtime.processes import OwnedProcess
 

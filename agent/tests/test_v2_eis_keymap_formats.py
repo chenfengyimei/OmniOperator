@@ -10,9 +10,9 @@ from v2_eis_device_helpers import ports
 from v2_eis_key_packet_helpers import KeyPeer, guard
 from v2_xkbcommon_helpers import MINIMAL, Library
 
-from omni.adapters.platform.linux_eis_keymap import MAX_KEYMAP, Keymap, KeymapInfo
-from omni.adapters.platform.linux_fds import OwnedFd
-from omni.adapters.platform.linux_xkbcommon import NativeXkb, XkbCompiler
+from omni.adapters.platform.desktop.linux.linux_eis_keymap import MAX_KEYMAP, Keymap, KeymapInfo
+from omni.adapters.platform.desktop.linux.linux_fds import OwnedFd
+from omni.adapters.platform.desktop.linux.linux_xkbcommon import NativeXkb, XkbCompiler
 from omni.domain.contracts import BusinessError
 
 

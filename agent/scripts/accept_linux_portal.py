@@ -11,7 +11,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from omni.adapters.platform.runtime.permissions import private_path
-from omni.adapters.platform.portal import PortalBackend
+from omni.adapters.platform.desktop.portal import PortalBackend
 from omni.domain.contracts import BusinessError
 from omni.domain.desktop_portal import CHOICE_SECONDS, TERMINAL
 

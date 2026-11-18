@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 
-from omni.adapters.platform.wheel_install import LAUNCHER
+from omni.adapters.platform.releases.wheel_install import LAUNCHER
 
 
 @pytest.mark.parametrize("exit_code", [0, 7])

@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "2d2a5b4de1d56db54dc6de52a701e9b1c7180625145a3f20ebaaa93253fbc654",
+  "source_sha256": "70f6ee8d60638cb683739915d3ab3da86cfa983653d0c09ac0e4233352461ba5",
   "modules": [
     {
       "id": "v2-domain",
@@ -299,78 +299,92 @@
         "agent/src/omni/adapters/persistence/terminal_repository.py",
         "agent/src/omni/adapters/persistence/terminal_review_repository.py",
         "agent/src/omni/adapters/platform/__init__.py",
-        "agent/src/omni/adapters/platform/candidate_installer.py",
         "agent/src/omni/adapters/platform/darwin_admin_commands.py",
         "agent/src/omni/adapters/platform/darwin_admin_files.py",
         "agent/src/omni/adapters/platform/darwin_admin_peer.py",
         "agent/src/omni/adapters/platform/darwin_admin_policy.py",
         "agent/src/omni/adapters/platform/darwin_admin_probe.py",
         "agent/src/omni/adapters/platform/darwin_service_admin.py",
-        "agent/src/omni/adapters/platform/dependency_bundle.py",
         "agent/src/omni/adapters/platform/deployment_files.py",
-        "agent/src/omni/adapters/platform/desktop.py",
-        "agent/src/omni/adapters/platform/desktop_capture.py",
-        "agent/src/omni/adapters/platform/desktop_control.py",
-        "agent/src/omni/adapters/platform/desktop_native.py",
+        "agent/src/omni/adapters/platform/desktop/__init__.py",
+        "agent/src/omni/adapters/platform/desktop/backend.py",
+        "agent/src/omni/adapters/platform/desktop/desktop_capture.py",
+        "agent/src/omni/adapters/platform/desktop/desktop_control.py",
+        "agent/src/omni/adapters/platform/desktop/desktop_native.py",
+        "agent/src/omni/adapters/platform/desktop/linux/__init__.py",
+        "agent/src/omni/adapters/platform/desktop/linux/linux_atspi.py",
+        "agent/src/omni/adapters/platform/desktop/linux/linux_bus.py",
+        "agent/src/omni/adapters/platform/desktop/linux/linux_button_events.py",
+        "agent/src/omni/adapters/platform/desktop/linux/linux_button_mapping.py",
+        "agent/src/omni/adapters/platform/desktop/linux/linux_button_packet.py",
+        "agent/src/omni/adapters/platform/desktop/linux/linux_click_action.py",
+        "agent/src/omni/adapters/platform/desktop/linux/linux_eis.py",
+        "agent/src/omni/adapters/platform/desktop/linux/linux_eis_devices.py",
+        "agent/src/omni/adapters/platform/desktop/linux/linux_eis_key_packet.py",
+        "agent/src/omni/adapters/platform/desktop/linux/linux_eis_keyboard.py",
+        "agent/src/omni/adapters/platform/desktop/linux/linux_eis_keymap.py",
+        "agent/src/omni/adapters/platform/desktop/linux/linux_evdev_input.py",
+        "agent/src/omni/adapters/platform/desktop/linux/linux_fds.py",
+        "agent/src/omni/adapters/platform/desktop/linux/linux_focus_navigation.py",
+        "agent/src/omni/adapters/platform/desktop/linux/linux_foreground.py",
+        "agent/src/omni/adapters/platform/desktop/linux/linux_input.py",
+        "agent/src/omni/adapters/platform/desktop/linux/linux_key_action.py",
+        "agent/src/omni/adapters/platform/desktop/linux/linux_key_switch.py",
+        "agent/src/omni/adapters/platform/desktop/linux/linux_keyboard.py",
+        "agent/src/omni/adapters/platform/desktop/linux/linux_keystroke.py",
+        "agent/src/omni/adapters/platform/desktop/linux/linux_lease_client.py",
+        "agent/src/omni/adapters/platform/desktop/linux/linux_motion_events.py",
+        "agent/src/omni/adapters/platform/desktop/linux/linux_motion_packet.py",
+        "agent/src/omni/adapters/platform/desktop/linux/linux_node_point.py",
+        "agent/src/omni/adapters/platform/desktop/linux/linux_pipewire.py",
+        "agent/src/omni/adapters/platform/desktop/linux/linux_pointer_actions.py",
+        "agent/src/omni/adapters/platform/desktop/linux/linux_pointer_config.py",
+        "agent/src/omni/adapters/platform/desktop/linux/linux_pointer_layout.py",
+        "agent/src/omni/adapters/platform/desktop/linux/linux_pointer_motion.py",
+        "agent/src/omni/adapters/platform/desktop/linux/linux_pointer_switch.py",
+        "agent/src/omni/adapters/platform/desktop/linux/linux_pointer_target.py",
+        "agent/src/omni/adapters/platform/desktop/linux/linux_portal.py",
+        "agent/src/omni/adapters/platform/desktop/linux/linux_remote_desktop.py",
+        "agent/src/omni/adapters/platform/desktop/linux/linux_seat_input.py",
+        "agent/src/omni/adapters/platform/desktop/linux/linux_semantic.py",
+        "agent/src/omni/adapters/platform/desktop/linux/linux_session.py",
+        "agent/src/omni/adapters/platform/desktop/linux/linux_signals.py",
+        "agent/src/omni/adapters/platform/desktop/linux/linux_text.py",
+        "agent/src/omni/adapters/platform/desktop/linux/linux_udev_input.py",
+        "agent/src/omni/adapters/platform/desktop/linux/linux_wayland_peer.py",
+        "agent/src/omni/adapters/platform/desktop/linux/linux_wayland_windows.py",
+        "agent/src/omni/adapters/platform/desktop/linux/linux_wayland_wire.py",
+        "agent/src/omni/adapters/platform/desktop/linux/linux_window_binding.py",
+        "agent/src/omni/adapters/platform/desktop/linux/linux_window_leases.py",
+        "agent/src/omni/adapters/platform/desktop/linux/linux_x11.py",
+        "agent/src/omni/adapters/platform/desktop/linux/linux_x11_socket.py",
+        "agent/src/omni/adapters/platform/desktop/linux/linux_x11_wire.py",
+        "agent/src/omni/adapters/platform/desktop/linux/linux_xkb.py",
+        "agent/src/omni/adapters/platform/desktop/linux/linux_xkb_copy.py",
+        "agent/src/omni/adapters/platform/desktop/linux/linux_xkb_map.py",
+        "agent/src/omni/adapters/platform/desktop/linux/linux_xkbcommon.py",
+        "agent/src/omni/adapters/platform/desktop/linux/linux_xtest.py",
+        "agent/src/omni/adapters/platform/desktop/macos_helper.py",
+        "agent/src/omni/adapters/platform/desktop/portal.py",
         "agent/src/omni/adapters/platform/exchange_deployments.py",
         "agent/src/omni/adapters/platform/exchange_files.py",
-        "agent/src/omni/adapters/platform/linux_atspi.py",
-        "agent/src/omni/adapters/platform/linux_bus.py",
-        "agent/src/omni/adapters/platform/linux_button_events.py",
-        "agent/src/omni/adapters/platform/linux_button_mapping.py",
-        "agent/src/omni/adapters/platform/linux_button_packet.py",
-        "agent/src/omni/adapters/platform/linux_click_action.py",
-        "agent/src/omni/adapters/platform/linux_eis.py",
-        "agent/src/omni/adapters/platform/linux_eis_devices.py",
-        "agent/src/omni/adapters/platform/linux_eis_key_packet.py",
-        "agent/src/omni/adapters/platform/linux_eis_keyboard.py",
-        "agent/src/omni/adapters/platform/linux_eis_keymap.py",
-        "agent/src/omni/adapters/platform/linux_evdev_input.py",
-        "agent/src/omni/adapters/platform/linux_fds.py",
-        "agent/src/omni/adapters/platform/linux_focus_navigation.py",
-        "agent/src/omni/adapters/platform/linux_foreground.py",
-        "agent/src/omni/adapters/platform/linux_input.py",
-        "agent/src/omni/adapters/platform/linux_key_action.py",
-        "agent/src/omni/adapters/platform/linux_key_switch.py",
-        "agent/src/omni/adapters/platform/linux_keyboard.py",
-        "agent/src/omni/adapters/platform/linux_keystroke.py",
-        "agent/src/omni/adapters/platform/linux_lease_client.py",
-        "agent/src/omni/adapters/platform/linux_motion_events.py",
-        "agent/src/omni/adapters/platform/linux_motion_packet.py",
-        "agent/src/omni/adapters/platform/linux_node_point.py",
-        "agent/src/omni/adapters/platform/linux_pipewire.py",
-        "agent/src/omni/adapters/platform/linux_pointer_actions.py",
-        "agent/src/omni/adapters/platform/linux_pointer_config.py",
-        "agent/src/omni/adapters/platform/linux_pointer_layout.py",
-        "agent/src/omni/adapters/platform/linux_pointer_motion.py",
-        "agent/src/omni/adapters/platform/linux_pointer_switch.py",
-        "agent/src/omni/adapters/platform/linux_pointer_target.py",
-        "agent/src/omni/adapters/platform/linux_portal.py",
-        "agent/src/omni/adapters/platform/linux_remote_desktop.py",
-        "agent/src/omni/adapters/platform/linux_seat_input.py",
-        "agent/src/omni/adapters/platform/linux_semantic.py",
-        "agent/src/omni/adapters/platform/linux_session.py",
-        "agent/src/omni/adapters/platform/linux_signals.py",
-        "agent/src/omni/adapters/platform/linux_text.py",
-        "agent/src/omni/adapters/platform/linux_udev_input.py",
-        "agent/src/omni/adapters/platform/linux_wayland_peer.py",
-        "agent/src/omni/adapters/platform/linux_wayland_windows.py",
-        "agent/src/omni/adapters/platform/linux_wayland_wire.py",
-        "agent/src/omni/adapters/platform/linux_window_binding.py",
-        "agent/src/omni/adapters/platform/linux_window_leases.py",
-        "agent/src/omni/adapters/platform/linux_x11.py",
-        "agent/src/omni/adapters/platform/linux_x11_socket.py",
-        "agent/src/omni/adapters/platform/linux_x11_wire.py",
-        "agent/src/omni/adapters/platform/linux_xkb.py",
-        "agent/src/omni/adapters/platform/linux_xkb_copy.py",
-        "agent/src/omni/adapters/platform/linux_xkb_map.py",
-        "agent/src/omni/adapters/platform/linux_xkbcommon.py",
-        "agent/src/omni/adapters/platform/linux_xtest.py",
-        "agent/src/omni/adapters/platform/macos_helper.py",
         "agent/src/omni/adapters/platform/macos_service.py",
         "agent/src/omni/adapters/platform/macos_service_state.py",
-        "agent/src/omni/adapters/platform/portal.py",
-        "agent/src/omni/adapters/platform/release_files.py",
+        "agent/src/omni/adapters/platform/releases/__init__.py",
+        "agent/src/omni/adapters/platform/releases/candidate_installer.py",
+        "agent/src/omni/adapters/platform/releases/dependency_bundle.py",
+        "agent/src/omni/adapters/platform/releases/release_files.py",
+        "agent/src/omni/adapters/platform/releases/wheel_artifact.py",
+        "agent/src/omni/adapters/platform/releases/wheel_backup.py",
+        "agent/src/omni/adapters/platform/releases/wheel_environment.py",
+        "agent/src/omni/adapters/platform/releases/wheel_install.py",
+        "agent/src/omni/adapters/platform/releases/wheel_prepare.py",
+        "agent/src/omni/adapters/platform/releases/wheel_rollback.py",
+        "agent/src/omni/adapters/platform/releases/wheel_smoke.py",
+        "agent/src/omni/adapters/platform/releases/wheel_stage.py",
+        "agent/src/omni/adapters/platform/releases/wheel_status.py",
+        "agent/src/omni/adapters/platform/releases/wheel_switch.py",
+        "agent/src/omni/adapters/platform/releases/wheel_uninstall.py",
         "agent/src/omni/adapters/platform/runtime/__init__.py",
         "agent/src/omni/adapters/platform/runtime/event_loop.py",
         "agent/src/omni/adapters/platform/runtime/paths.py",
@@ -397,17 +411,6 @@
         "agent/src/omni/adapters/platform/service_registration.py",
         "agent/src/omni/adapters/platform/service_templates.py",
         "agent/src/omni/adapters/platform/systemd_state.py",
-        "agent/src/omni/adapters/platform/wheel_artifact.py",
-        "agent/src/omni/adapters/platform/wheel_backup.py",
-        "agent/src/omni/adapters/platform/wheel_environment.py",
-        "agent/src/omni/adapters/platform/wheel_install.py",
-        "agent/src/omni/adapters/platform/wheel_prepare.py",
-        "agent/src/omni/adapters/platform/wheel_rollback.py",
-        "agent/src/omni/adapters/platform/wheel_smoke.py",
-        "agent/src/omni/adapters/platform/wheel_stage.py",
-        "agent/src/omni/adapters/platform/wheel_status.py",
-        "agent/src/omni/adapters/platform/wheel_switch.py",
-        "agent/src/omni/adapters/platform/wheel_uninstall.py",
         "agent/src/omni/adapters/primitives.py",
         "agent/src/omni/adapters/process_diagnostics.py",
         "agent/src/omni/adapters/skill_packages.py",
@@ -460,7 +463,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 65611,
+      "lines": 65683,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -2410,7 +2413,7 @@
       "imports": [
         "omni.adapters.android_unicode",
         "omni.adapters.object_store",
-        "omni.adapters.platform.desktop_capture",
+        "omni.adapters.platform.desktop.desktop_capture",
         "omni.adapters.platform.runtime.permissions",
         "omni.adapters.workers.client",
         "omni.application.ports",
@@ -20642,7 +20645,7 @@
         "omni.adapters.persistence.object_inventory",
         "omni.adapters.persistence.schema_upgrade",
         "omni.adapters.platform.deployment_files",
-        "omni.adapters.platform.release_files",
+        "omni.adapters.platform.releases.release_files",
         "omni.application.ports",
         "omni.domain.contracts",
         "omni.domain.releases"
@@ -22933,76 +22936,6 @@
       "summary": "Portable paths, ownership, credentials and platform capability implementations."
     },
     {
-      "path": "agent/src/omni/adapters/platform/candidate_installer.py",
-      "module": "v2-adapters",
-      "python_module": "omni.adapters.platform.candidate_installer",
-      "lines": 131,
-      "imports": [
-        "omni.adapters.platform.dependency_bundle",
-        "omni.adapters.platform.runtime.permissions",
-        "omni.domain.contracts"
-      ],
-      "symbols": [
-        {
-          "name": "_invalid",
-          "line": 18,
-          "kind": "function",
-          "parameters": [
-            "code"
-          ],
-          "annotations": {
-            "code": "str"
-          }
-        },
-        {
-          "name": "_run",
-          "line": 22,
-          "kind": "function",
-          "parameters": [
-            "command",
-            "cwd"
-          ],
-          "annotations": {
-            "command": "list[str]",
-            "cwd": "Path"
-          }
-        },
-        {
-          "name": "_wheel_hash",
-          "line": 34,
-          "kind": "function",
-          "parameters": [
-            "path"
-          ],
-          "annotations": {
-            "path": "Path"
-          }
-        },
-        {
-          "name": "install_candidate",
-          "line": 45,
-          "kind": "function",
-          "parameters": [
-            "wheel",
-            "sha256",
-            "bundle",
-            "bundle_sha256",
-            "manager",
-            "home"
-          ],
-          "annotations": {
-            "wheel": "Path",
-            "sha256": "str",
-            "bundle": "Path",
-            "bundle_sha256": "str",
-            "manager": "Path",
-            "home": "Path"
-          }
-        }
-      ],
-      "summary": "Bootstrap a fresh offline V2 candidate with a separate maintenance interpreter; never registers services."
-    },
-    {
       "path": "agent/src/omni/adapters/platform/darwin_admin_commands.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.darwin_admin_commands",
@@ -23563,132 +23496,6 @@
       "summary": "Darwin registration and single-start root backend; fixed launchctl operations, no GUI, database or force."
     },
     {
-      "path": "agent/src/omni/adapters/platform/dependency_bundle.py",
-      "module": "v2-adapters",
-      "python_module": "omni.adapters.platform.dependency_bundle",
-      "lines": 252,
-      "imports": [
-        "omni.adapters.platform.runtime.permissions",
-        "omni.domain.contracts"
-      ],
-      "symbols": [
-        {
-          "name": "invalid",
-          "line": 29,
-          "kind": "function",
-          "parameters": [],
-          "annotations": {}
-        },
-        {
-          "name": "no_links",
-          "line": 35,
-          "kind": "function",
-          "parameters": [
-            "path"
-          ],
-          "annotations": {
-            "path": "Path"
-          }
-        },
-        {
-          "name": "_open",
-          "line": 40,
-          "kind": "function",
-          "parameters": [
-            "path"
-          ],
-          "annotations": {
-            "path": "Path"
-          }
-        },
-        {
-          "name": "_pairs",
-          "line": 45,
-          "kind": "function",
-          "parameters": [
-            "items"
-          ],
-          "annotations": {
-            "items": "list[tuple[str, object]]"
-          }
-        },
-        {
-          "name": "_manifest",
-          "line": 54,
-          "kind": "function",
-          "parameters": [
-            "root",
-            "expected"
-          ],
-          "annotations": {
-            "root": "Path",
-            "expected": "str"
-          }
-        },
-        {
-          "name": "_copy_wheel",
-          "line": 113,
-          "kind": "function",
-          "parameters": [
-            "source",
-            "expected_bytes",
-            "expected_sha256",
-            "target"
-          ],
-          "annotations": {
-            "source": "Path",
-            "expected_bytes": "int",
-            "expected_sha256": "str",
-            "target": "Path | None"
-          }
-        },
-        {
-          "name": "capture_bundle",
-          "line": 136,
-          "kind": "function",
-          "parameters": [
-            "source",
-            "expected_sha256",
-            "stage"
-          ],
-          "annotations": {
-            "source": "Path",
-            "expected_sha256": "str",
-            "stage": "Path"
-          }
-        },
-        {
-          "name": "_capture_bundle",
-          "line": 144,
-          "kind": "function",
-          "parameters": [
-            "source",
-            "expected_sha256",
-            "stage"
-          ],
-          "annotations": {
-            "source": "Path",
-            "expected_sha256": "str",
-            "stage": "Path"
-          }
-        },
-        {
-          "name": "build_bundle",
-          "line": 183,
-          "kind": "function",
-          "parameters": [
-            "source",
-            "destination"
-          ],
-          "annotations": {
-            "source": "Path",
-            "destination": "Path"
-          }
-        }
-      ],
-      "summary": "Capture a hash-pinned local wheel bundle for an isolated environment; never downloads or executes wheels."
-    },
-    {
       "path": "agent/src/omni/adapters/platform/deployment_files.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.deployment_files",
@@ -24108,13 +23915,24 @@
       "summary": "Capture installation identity and publish reviewed deployment bundles; never registers services or opens business storage."
     },
     {
-      "path": "agent/src/omni/adapters/platform/desktop.py",
+      "path": "agent/src/omni/adapters/platform/desktop/__init__.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.desktop",
+      "lines": 5,
+      "imports": [
+        "omni.adapters.platform.desktop.backend"
+      ],
+      "symbols": [],
+      "summary": "Desktop transport public entry; platform probing only occurs through explicit calls."
+    },
+    {
+      "path": "agent/src/omni/adapters/platform/desktop/backend.py",
+      "module": "v2-adapters",
+      "python_module": "omni.adapters.platform.desktop.backend",
       "lines": 667,
       "imports": [
-        "omni.adapters.platform",
-        "omni.adapters.platform.linux_lease_client",
+        "omni.adapters.platform.desktop",
+        "omni.adapters.platform.desktop.linux.linux_lease_client",
         "omni.adapters.platform.runtime.processes",
         "omni.application.ports",
         "omni.domain.contracts",
@@ -24533,9 +24351,9 @@
       "summary": "Bounded, one-shot desktop metadata helpers; construction never probes a native desktop."
     },
     {
-      "path": "agent/src/omni/adapters/platform/desktop_capture.py",
+      "path": "agent/src/omni/adapters/platform/desktop/desktop_capture.py",
       "module": "v2-adapters",
-      "python_module": "omni.adapters.platform.desktop_capture",
+      "python_module": "omni.adapters.platform.desktop.desktop_capture",
       "lines": 83,
       "imports": [
         "omni.adapters.object_store",
@@ -24602,12 +24420,12 @@
       "summary": "Host-owned screenshot staging. File decoding runs only on the desktop I/O worker."
     },
     {
-      "path": "agent/src/omni/adapters/platform/desktop_control.py",
+      "path": "agent/src/omni/adapters/platform/desktop/desktop_control.py",
       "module": "v2-adapters",
-      "python_module": "omni.adapters.platform.desktop_control",
+      "python_module": "omni.adapters.platform.desktop.desktop_control",
       "lines": 407,
       "imports": [
-        "omni.adapters.platform.desktop",
+        "omni.adapters.platform.desktop.backend",
         "omni.adapters.platform.runtime.processes",
         "omni.application.ports",
         "omni.domain.contracts",
@@ -24926,9 +24744,9 @@
       "summary": "Owned parent transport for independent control consent; no input dispatch, capture grants or unowned process termination."
     },
     {
-      "path": "agent/src/omni/adapters/platform/desktop_native.py",
+      "path": "agent/src/omni/adapters/platform/desktop/desktop_native.py",
       "module": "v2-adapters",
-      "python_module": "omni.adapters.platform.desktop_native",
+      "python_module": "omni.adapters.platform.desktop.desktop_native",
       "lines": 493,
       "imports": [
         "omni.domain.contracts",
@@ -25121,315 +24939,23 @@
       "summary": "Read-only desktop diagnostics and process/window identities; never reads UI contents or performs input."
     },
     {
-      "path": "agent/src/omni/adapters/platform/exchange_deployments.py",
+      "path": "agent/src/omni/adapters/platform/desktop/linux/__init__.py",
       "module": "v2-adapters",
-      "python_module": "omni.adapters.platform.exchange_deployments",
-      "lines": 27,
-      "imports": [
-        "omni.adapters.platform.deployment_files",
-        "omni.adapters.platform.release_files",
-        "omni.application.ports",
-        "omni.domain.contracts",
-        "omni.domain.releases"
-      ],
-      "symbols": [
-        {
-          "name": "ExchangeSourceDeployment",
-          "line": 14,
-          "kind": "class"
-        },
-        {
-          "name": "ExchangeSourceDeployment.__init__",
-          "line": 15,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "plan",
-            "files"
-          ],
-          "annotations": {
-            "plan": "ReleasePlan",
-            "files": "ReleaseFiles"
-          }
-        },
-        {
-          "name": "ExchangeSourceDeployment.verify",
-          "line": 18,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "bundle"
-          ],
-          "annotations": {
-            "bundle": "str | Path"
-          }
-        }
-      ],
-      "summary": "Verify a reviewed source for removal or signed boot draining; never execute or import the source installation."
+      "python_module": "omni.adapters.platform.desktop.linux",
+      "lines": 1,
+      "imports": [],
+      "symbols": [],
+      "summary": "V2 desktop/linux adapters; importing never probes the platform."
     },
     {
-      "path": "agent/src/omni/adapters/platform/exchange_files.py",
+      "path": "agent/src/omni/adapters/platform/desktop/linux/linux_atspi.py",
       "module": "v2-adapters",
-      "python_module": "omni.adapters.platform.exchange_files",
-      "lines": 278,
-      "imports": [
-        "omni.adapters.object_store",
-        "omni.adapters.platform.deployment_files",
-        "omni.adapters.platform.runtime.paths",
-        "omni.adapters.platform.runtime.permissions",
-        "omni.application.ports",
-        "omni.domain.contracts",
-        "omni.domain.releases",
-        "omni.domain.service_admin",
-        "omni.domain.service_exchange",
-        "omni.domain.service_isolation"
-      ],
-      "symbols": [
-        {
-          "name": "invalid",
-          "line": 24,
-          "kind": "function",
-          "parameters": [
-            "code"
-          ],
-          "annotations": {
-            "code": "str"
-          }
-        },
-        {
-          "name": "ExchangeFiles",
-          "line": 28,
-          "kind": "class"
-        },
-        {
-          "name": "ExchangeFiles.__init__",
-          "line": 29,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "deployments"
-          ],
-          "annotations": {
-            "deployments": "CurrentDeploymentFiles"
-          }
-        },
-        {
-          "name": "ExchangeFiles.homes",
-          "line": 34,
-          "kind": "function",
-          "parameters": [
-            "plan"
-          ],
-          "annotations": {
-            "plan": "ExchangePlan"
-          }
-        },
-        {
-          "name": "ExchangeFiles._root",
-          "line": 44,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "plan"
-          ],
-          "annotations": {
-            "plan": "ExchangePlan"
-          }
-        },
-        {
-          "name": "ExchangeFiles._read",
-          "line": 51,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "path"
-          ],
-          "annotations": {
-            "path": "Path"
-          }
-        },
-        {
-          "name": "ExchangeFiles.read",
-          "line": 56,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "path"
-          ],
-          "annotations": {
-            "path": "Path"
-          }
-        },
-        {
-          "name": "ExchangeFiles._require_owned",
-          "line": 60,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "plan"
-          ],
-          "annotations": {
-            "plan": "ExchangePlan"
-          }
-        },
-        {
-          "name": "ExchangeFiles.publish",
-          "line": 64,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "plan",
-            "output"
-          ],
-          "annotations": {
-            "plan": "ExchangePlan",
-            "output": "str"
-          }
-        },
-        {
-          "name": "ExchangeFiles.publish_isolation",
-          "line": 78,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "plan",
-            "output"
-          ],
-          "annotations": {
-            "plan": "IsolationPlan",
-            "output": "str"
-          }
-        },
-        {
-          "name": "ExchangeFiles.publish_administrator",
-          "line": 91,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "plan",
-            "role",
-            "output"
-          ],
-          "annotations": {
-            "plan": "ExchangePlan",
-            "role": "str",
-            "output": "str"
-          }
-        },
-        {
-          "name": "ExchangeFiles._publish",
-          "line": 111,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "checked",
-            "document",
-            "output"
-          ],
-          "annotations": {
-            "checked": "ExchangePlan",
-            "document": "Mapping[str, object]",
-            "output": "str"
-          }
-        },
-        {
-          "name": "ExchangeFiles.exclusive",
-          "line": 132,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "plan"
-          ],
-          "annotations": {
-            "plan": "ExchangePlan"
-          }
-        },
-        {
-          "name": "ExchangeFiles.history",
-          "line": 148,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "plan"
-          ],
-          "annotations": {
-            "plan": "ExchangePlan"
-          }
-        },
-        {
-          "name": "ExchangeFiles.maintenance",
-          "line": 183,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "plan"
-          ],
-          "annotations": {
-            "plan": "ExchangePlan"
-          }
-        },
-        {
-          "name": "ExchangeFiles.claim",
-          "line": 195,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "plan"
-          ],
-          "annotations": {
-            "plan": "ExchangePlan"
-          }
-        },
-        {
-          "name": "ExchangeFiles.append",
-          "line": 237,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "plan",
-            "record"
-          ],
-          "annotations": {
-            "plan": "ExchangePlan",
-            "record": "Record"
-          }
-        },
-        {
-          "name": "ExchangeFiles.check_idle",
-          "line": 252,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "plan"
-          ],
-          "annotations": {
-            "plan": "ExchangePlan"
-          }
-        },
-        {
-          "name": "ExchangeFiles.settled",
-          "line": 261,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "plan"
-          ],
-          "annotations": {
-            "plan": "ExchangePlan"
-          }
-        }
-      ],
-      "summary": "Private bounded exchange witnesses and maintenance reservations; no database, native calls or rollback."
-    },
-    {
-      "path": "agent/src/omni/adapters/platform/linux_atspi.py",
-      "module": "v2-adapters",
-      "python_module": "omni.adapters.platform.linux_atspi",
+      "python_module": "omni.adapters.platform.desktop.linux.linux_atspi",
       "lines": 366,
       "imports": [
-        "omni.adapters.platform.linux_bus",
-        "omni.adapters.platform.linux_semantic",
-        "omni.adapters.platform.linux_session",
+        "omni.adapters.platform.desktop.linux.linux_bus",
+        "omni.adapters.platform.desktop.linux.linux_semantic",
+        "omni.adapters.platform.desktop.linux.linux_session",
         "omni.domain.contracts",
         "omni.domain.desktop"
       ],
@@ -25721,12 +25247,12 @@
       "summary": "Read-only AT-SPI windows in a proven logind session. No X11/Portal capture or input fallback."
     },
     {
-      "path": "agent/src/omni/adapters/platform/linux_bus.py",
+      "path": "agent/src/omni/adapters/platform/desktop/linux/linux_bus.py",
       "module": "v2-adapters",
-      "python_module": "omni.adapters.platform.linux_bus",
+      "python_module": "omni.adapters.platform.desktop.linux.linux_bus",
       "lines": 447,
       "imports": [
-        "omni.adapters.platform.linux_fds",
+        "omni.adapters.platform.desktop.linux.linux_fds",
         "omni.domain.contracts"
       ],
       "symbols": [
@@ -26137,14 +25663,14 @@
       "summary": "Verified local D-Bus transport for desktop helpers; no environment-selected or network buses."
     },
     {
-      "path": "agent/src/omni/adapters/platform/linux_button_events.py",
+      "path": "agent/src/omni/adapters/platform/desktop/linux/linux_button_events.py",
       "module": "v2-adapters",
-      "python_module": "omni.adapters.platform.linux_button_events",
+      "python_module": "omni.adapters.platform.desktop.linux.linux_button_events",
       "lines": 70,
       "imports": [
-        "omni.adapters.platform.linux_button_mapping",
-        "omni.adapters.platform.linux_motion_events",
-        "omni.adapters.platform.linux_x11_wire"
+        "omni.adapters.platform.desktop.linux.linux_button_mapping",
+        "omni.adapters.platform.desktop.linux.linux_motion_events",
+        "omni.adapters.platform.desktop.linux.linux_x11_wire"
       ],
       "symbols": [
         {
@@ -26223,16 +25749,16 @@
       "summary": "Exact RawButton pairs and their ordinary XKB pointer-state notifications; no blanket input exemptions."
     },
     {
-      "path": "agent/src/omni/adapters/platform/linux_button_mapping.py",
+      "path": "agent/src/omni/adapters/platform/desktop/linux/linux_button_mapping.py",
       "module": "v2-adapters",
-      "python_module": "omni.adapters.platform.linux_button_mapping",
+      "python_module": "omni.adapters.platform.desktop.linux.linux_button_mapping",
       "lines": 221,
       "imports": [
-        "omni.adapters.platform.linux_bus",
-        "omni.adapters.platform.linux_input",
-        "omni.adapters.platform.linux_pointer_target",
-        "omni.adapters.platform.linux_x11_wire",
-        "omni.adapters.platform.linux_xtest"
+        "omni.adapters.platform.desktop.linux.linux_bus",
+        "omni.adapters.platform.desktop.linux.linux_input",
+        "omni.adapters.platform.desktop.linux.linux_pointer_target",
+        "omni.adapters.platform.desktop.linux.linux_x11_wire",
+        "omni.adapters.platform.desktop.linux.linux_xtest"
       ],
       "symbols": [
         {
@@ -26403,19 +25929,19 @@
       "summary": "Read primary-button composition on a proven Xorg point/source pair; never changes maps, moves, clicks or grants dispatch."
     },
     {
-      "path": "agent/src/omni/adapters/platform/linux_button_packet.py",
+      "path": "agent/src/omni/adapters/platform/desktop/linux/linux_button_packet.py",
       "module": "v2-adapters",
-      "python_module": "omni.adapters.platform.linux_button_packet",
+      "python_module": "omni.adapters.platform.desktop.linux.linux_button_packet",
       "lines": 198,
       "imports": [
-        "omni.adapters.platform.linux_bus",
-        "omni.adapters.platform.linux_button_events",
-        "omni.adapters.platform.linux_button_mapping",
-        "omni.adapters.platform.linux_input",
-        "omni.adapters.platform.linux_motion_events",
-        "omni.adapters.platform.linux_pointer_target",
-        "omni.adapters.platform.linux_x11_wire",
-        "omni.adapters.platform.linux_xtest",
+        "omni.adapters.platform.desktop.linux.linux_bus",
+        "omni.adapters.platform.desktop.linux.linux_button_events",
+        "omni.adapters.platform.desktop.linux.linux_button_mapping",
+        "omni.adapters.platform.desktop.linux.linux_input",
+        "omni.adapters.platform.desktop.linux.linux_motion_events",
+        "omni.adapters.platform.desktop.linux.linux_pointer_target",
+        "omni.adapters.platform.desktop.linux.linux_x11_wire",
+        "omni.adapters.platform.desktop.linux.linux_xtest",
         "omni.domain.contracts"
       ],
       "symbols": [
@@ -26511,17 +26037,17 @@
       "summary": "Own one paired XTEST button request and retained release on the proven stream; no application-success claim."
     },
     {
-      "path": "agent/src/omni/adapters/platform/linux_click_action.py",
+      "path": "agent/src/omni/adapters/platform/desktop/linux/linux_click_action.py",
       "module": "v2-adapters",
-      "python_module": "omni.adapters.platform.linux_click_action",
+      "python_module": "omni.adapters.platform.desktop.linux.linux_click_action",
       "lines": 119,
       "imports": [
-        "omni.adapters.platform.linux_atspi",
-        "omni.adapters.platform.linux_bus",
-        "omni.adapters.platform.linux_node_point",
-        "omni.adapters.platform.linux_semantic",
-        "omni.adapters.platform.linux_text",
-        "omni.adapters.platform.linux_window_binding",
+        "omni.adapters.platform.desktop.linux.linux_atspi",
+        "omni.adapters.platform.desktop.linux.linux_bus",
+        "omni.adapters.platform.desktop.linux.linux_node_point",
+        "omni.adapters.platform.desktop.linux.linux_semantic",
+        "omni.adapters.platform.desktop.linux.linux_text",
+        "omni.adapters.platform.desktop.linux.linux_window_binding",
         "omni.domain.contracts",
         "omni.domain.foreground"
       ],
@@ -26580,14 +26106,14 @@
       "summary": "One approved component-bound native move/click with concrete application state readback; no replay or focus acquisition."
     },
     {
-      "path": "agent/src/omni/adapters/platform/linux_eis.py",
+      "path": "agent/src/omni/adapters/platform/desktop/linux/linux_eis.py",
       "module": "v2-adapters",
-      "python_module": "omni.adapters.platform.linux_eis",
+      "python_module": "omni.adapters.platform.desktop.linux.linux_eis",
       "lines": 286,
       "imports": [
-        "omni.adapters.platform.linux_bus",
-        "omni.adapters.platform.linux_eis_key_packet",
-        "omni.adapters.platform.linux_fds"
+        "omni.adapters.platform.desktop.linux.linux_bus",
+        "omni.adapters.platform.desktop.linux.linux_eis_key_packet",
+        "omni.adapters.platform.desktop.linux.linux_fds"
       ],
       "symbols": [
         {
@@ -26808,24 +26334,24 @@
       "summary": "Bounded EI handshake/roundtrips and owned release lifetime; no business input authority or application proof."
     },
     {
-      "path": "agent/src/omni/adapters/platform/linux_eis_devices.py",
+      "path": "agent/src/omni/adapters/platform/desktop/linux/linux_eis_devices.py",
       "module": "v2-adapters",
-      "python_module": "omni.adapters.platform.linux_eis_devices",
-      "lines": 528,
+      "python_module": "omni.adapters.platform.desktop.linux.linux_eis_devices",
+      "lines": 535,
       "imports": [
-        "omni.adapters.platform.linux_bus",
-        "omni.adapters.platform.linux_eis",
-        "omni.adapters.platform.linux_eis_key_packet",
-        "omni.adapters.platform.linux_eis_keyboard",
-        "omni.adapters.platform.linux_eis_keymap",
-        "omni.adapters.platform.linux_fds",
-        "omni.adapters.platform.linux_xkbcommon",
+        "omni.adapters.platform.desktop.linux.linux_bus",
+        "omni.adapters.platform.desktop.linux.linux_eis",
+        "omni.adapters.platform.desktop.linux.linux_eis_key_packet",
+        "omni.adapters.platform.desktop.linux.linux_eis_keyboard",
+        "omni.adapters.platform.desktop.linux.linux_eis_keymap",
+        "omni.adapters.platform.desktop.linux.linux_fds",
+        "omni.adapters.platform.desktop.linux.linux_xkbcommon",
         "omni.domain.desktop_control"
       ],
       "symbols": [
         {
           "name": "text",
-          "line": 31,
+          "line": 38,
           "kind": "function",
           "parameters": [
             "payload",
@@ -26838,7 +26364,7 @@
         },
         {
           "name": "name",
-          "line": 49,
+          "line": 56,
           "kind": "function",
           "parameters": [
             "payload"
@@ -26849,27 +26375,27 @@
         },
         {
           "name": "SeatInfo",
-          "line": 57,
+          "line": 64,
           "kind": "class"
         },
         {
           "name": "DeviceInfo",
-          "line": 66,
+          "line": 73,
           "kind": "class"
         },
         {
           "name": "Inventory",
-          "line": 82,
-          "kind": "class"
-        },
-        {
-          "name": "Seat",
           "line": 89,
           "kind": "class"
         },
         {
+          "name": "Seat",
+          "line": 96,
+          "kind": "class"
+        },
+        {
           "name": "Seat.__init__",
-          "line": 90,
+          "line": 97,
           "kind": "function",
           "parameters": [
             "self"
@@ -26878,12 +26404,12 @@
         },
         {
           "name": "Device",
-          "line": 96,
+          "line": 103,
           "kind": "class"
         },
         {
           "name": "Device.__init__",
-          "line": 97,
+          "line": 104,
           "kind": "function",
           "parameters": [
             "self",
@@ -26897,12 +26423,12 @@
         },
         {
           "name": "EisDevices",
-          "line": 112,
+          "line": 119,
           "kind": "class"
         },
         {
           "name": "EisDevices.__init__",
-          "line": 113,
+          "line": 120,
           "kind": "function",
           "parameters": [
             "self",
@@ -26920,7 +26446,7 @@
         },
         {
           "name": "EisDevices._accept_rights",
-          "line": 143,
+          "line": 150,
           "kind": "function",
           "parameters": [
             "self"
@@ -26929,7 +26455,7 @@
         },
         {
           "name": "EisDevices._serial",
-          "line": 146,
+          "line": 153,
           "kind": "function",
           "parameters": [
             "self",
@@ -26941,7 +26467,7 @@
         },
         {
           "name": "EisDevices._event",
-          "line": 154,
+          "line": 161,
           "kind": "function",
           "parameters": [
             "self",
@@ -26957,7 +26483,7 @@
         },
         {
           "name": "EisDevices._seat",
-          "line": 170,
+          "line": 177,
           "kind": "function",
           "parameters": [
             "self",
@@ -26973,7 +26499,7 @@
         },
         {
           "name": "EisDevices._device",
-          "line": 207,
+          "line": 214,
           "kind": "function",
           "parameters": [
             "self",
@@ -26989,7 +26515,7 @@
         },
         {
           "name": "EisDevices._subinterface",
-          "line": 267,
+          "line": 274,
           "kind": "function",
           "parameters": [
             "self",
@@ -27005,7 +26531,7 @@
         },
         {
           "name": "EisDevices.seats",
-          "line": 306,
+          "line": 313,
           "kind": "function",
           "parameters": [
             "self"
@@ -27014,7 +26540,7 @@
         },
         {
           "name": "EisDevices._inventory",
-          "line": 312,
+          "line": 319,
           "kind": "function",
           "parameters": [
             "self"
@@ -27023,7 +26549,7 @@
         },
         {
           "name": "EisDevices._complete",
-          "line": 334,
+          "line": 341,
           "kind": "function",
           "parameters": [
             "self"
@@ -27032,7 +26558,7 @@
         },
         {
           "name": "EisDevices.bind",
-          "line": 346,
+          "line": 353,
           "kind": "function",
           "parameters": [
             "self",
@@ -27044,7 +26570,7 @@
         },
         {
           "name": "EisDevices.inventory",
-          "line": 384,
+          "line": 391,
           "kind": "function",
           "parameters": [
             "self",
@@ -27056,7 +26582,7 @@
         },
         {
           "name": "EisDevices.keymap_data",
-          "line": 392,
+          "line": 399,
           "kind": "function",
           "parameters": [
             "self",
@@ -27068,7 +26594,7 @@
         },
         {
           "name": "EisDevices.prepare_key",
-          "line": 412,
+          "line": 419,
           "kind": "function",
           "parameters": [
             "self",
@@ -27084,7 +26610,7 @@
         },
         {
           "name": "EisDevices.verify_key",
-          "line": 422,
+          "line": 429,
           "kind": "function",
           "parameters": [
             "self"
@@ -27093,7 +26619,7 @@
         },
         {
           "name": "EisDevices.key_packet",
-          "line": 427,
+          "line": 434,
           "kind": "function",
           "parameters": [
             "self",
@@ -27105,7 +26631,7 @@
         },
         {
           "name": "EisDevices.key_context",
-          "line": 436,
+          "line": 443,
           "kind": "function",
           "parameters": [
             "self"
@@ -27114,7 +26640,7 @@
         },
         {
           "name": "EisDevices.claim_key",
-          "line": 445,
+          "line": 452,
           "kind": "function",
           "parameters": [
             "self",
@@ -27126,7 +26652,7 @@
         },
         {
           "name": "EisDevices.owns_key",
-          "line": 453,
+          "line": 460,
           "kind": "function",
           "parameters": [
             "self",
@@ -27138,7 +26664,7 @@
         },
         {
           "name": "EisDevices.key_owner",
-          "line": 456,
+          "line": 463,
           "kind": "function",
           "parameters": [
             "self",
@@ -27152,7 +26678,7 @@
         },
         {
           "name": "EisDevices.send_key",
-          "line": 462,
+          "line": 469,
           "kind": "function",
           "parameters": [
             "self",
@@ -27166,7 +26692,7 @@
         },
         {
           "name": "EisDevices.wait_key",
-          "line": 468,
+          "line": 475,
           "kind": "function",
           "parameters": [
             "self",
@@ -27178,7 +26704,7 @@
         },
         {
           "name": "EisDevices.key_barrier",
-          "line": 474,
+          "line": 481,
           "kind": "function",
           "parameters": [
             "self",
@@ -27192,7 +26718,7 @@
         },
         {
           "name": "EisDevices.key_released",
-          "line": 488,
+          "line": 495,
           "kind": "function",
           "parameters": [
             "self",
@@ -27204,7 +26730,7 @@
         },
         {
           "name": "EisDevices.settle_key",
-          "line": 507,
+          "line": 514,
           "kind": "function",
           "parameters": [
             "self",
@@ -27216,7 +26742,7 @@
         },
         {
           "name": "EisDevices.close",
-          "line": 517,
+          "line": 524,
           "kind": "function",
           "parameters": [
             "self"
@@ -27227,15 +26753,15 @@
       "summary": "EI device inventory, key plans and owned transport; no business authority, physical-input or application proof."
     },
     {
-      "path": "agent/src/omni/adapters/platform/linux_eis_key_packet.py",
+      "path": "agent/src/omni/adapters/platform/desktop/linux/linux_eis_key_packet.py",
       "module": "v2-adapters",
-      "python_module": "omni.adapters.platform.linux_eis_key_packet",
+      "python_module": "omni.adapters.platform.desktop.linux.linux_eis_key_packet",
       "lines": 159,
       "imports": [
-        "omni.adapters.platform.linux_bus",
-        "omni.adapters.platform.linux_eis",
-        "omni.adapters.platform.linux_eis_devices",
-        "omni.adapters.platform.linux_eis_keyboard"
+        "omni.adapters.platform.desktop.linux.linux_bus",
+        "omni.adapters.platform.desktop.linux.linux_eis",
+        "omni.adapters.platform.desktop.linux.linux_eis_devices",
+        "omni.adapters.platform.desktop.linux.linux_eis_keyboard"
       ],
       "symbols": [
         {
@@ -27384,14 +26910,14 @@
       "summary": "Single EI key pair with separate frames, exact partial writes and retained release/barrier; no business permission or app proof."
     },
     {
-      "path": "agent/src/omni/adapters/platform/linux_eis_keyboard.py",
+      "path": "agent/src/omni/adapters/platform/desktop/linux/linux_eis_keyboard.py",
       "module": "v2-adapters",
-      "python_module": "omni.adapters.platform.linux_eis_keyboard",
+      "python_module": "omni.adapters.platform.desktop.linux.linux_eis_keyboard",
       "lines": 84,
       "imports": [
-        "omni.adapters.platform.linux_bus",
-        "omni.adapters.platform.linux_eis_devices",
-        "omni.adapters.platform.linux_xkbcommon",
+        "omni.adapters.platform.desktop.linux.linux_bus",
+        "omni.adapters.platform.desktop.linux.linux_eis_devices",
+        "omni.adapters.platform.desktop.linux.linux_xkbcommon",
         "omni.domain.foreground"
       ],
       "symbols": [
@@ -27455,13 +26981,13 @@
       "summary": "Bind interpreted special keys to exact live EI inventory/map; planning only, no physical-input proof or dispatch."
     },
     {
-      "path": "agent/src/omni/adapters/platform/linux_eis_keymap.py",
+      "path": "agent/src/omni/adapters/platform/desktop/linux/linux_eis_keymap.py",
       "module": "v2-adapters",
-      "python_module": "omni.adapters.platform.linux_eis_keymap",
+      "python_module": "omni.adapters.platform.desktop.linux.linux_eis_keymap",
       "lines": 93,
       "imports": [
-        "omni.adapters.platform.linux_bus",
-        "omni.adapters.platform.linux_fds"
+        "omni.adapters.platform.desktop.linux.linux_bus",
+        "omni.adapters.platform.desktop.linux.linux_fds"
       ],
       "symbols": [
         {
@@ -27532,14 +27058,14 @@
       "summary": "Bounded EI keymap copy with original FD/thread lifetime; no keymap execution, layout inference or input."
     },
     {
-      "path": "agent/src/omni/adapters/platform/linux_evdev_input.py",
+      "path": "agent/src/omni/adapters/platform/desktop/linux/linux_evdev_input.py",
       "module": "v2-adapters",
-      "python_module": "omni.adapters.platform.linux_evdev_input",
+      "python_module": "omni.adapters.platform.desktop.linux.linux_evdev_input",
       "lines": 195,
       "imports": [
-        "omni.adapters.platform.linux_bus",
-        "omni.adapters.platform.linux_fds",
-        "omni.adapters.platform.linux_udev_input"
+        "omni.adapters.platform.desktop.linux.linux_bus",
+        "omni.adapters.platform.desktop.linux.linux_fds",
+        "omni.adapters.platform.desktop.linux.linux_udev_input"
       ],
       "symbols": [
         {
@@ -27717,9 +27243,9 @@
       "summary": "Owned read-only evdev neutral-state/readiness checks; no event contents, grabs, writes, permission or routing changes."
     },
     {
-      "path": "agent/src/omni/adapters/platform/linux_fds.py",
+      "path": "agent/src/omni/adapters/platform/desktop/linux/linux_fds.py",
       "module": "v2-adapters",
-      "python_module": "omni.adapters.platform.linux_fds",
+      "python_module": "omni.adapters.platform.desktop.linux.linux_fds",
       "lines": 109,
       "imports": [
         "omni.domain.contracts"
@@ -27845,35 +27371,35 @@
       "summary": "Owned received descriptors and bounded SCM_RIGHTS; no bus or desktop policy."
     },
     {
-      "path": "agent/src/omni/adapters/platform/linux_focus_navigation.py",
+      "path": "agent/src/omni/adapters/platform/desktop/linux/linux_focus_navigation.py",
       "module": "v2-adapters",
-      "python_module": "omni.adapters.platform.linux_focus_navigation",
-      "lines": 164,
+      "python_module": "omni.adapters.platform.desktop.linux.linux_focus_navigation",
+      "lines": 171,
       "imports": [
-        "omni.adapters.platform.linux_atspi",
-        "omni.adapters.platform.linux_bus",
-        "omni.adapters.platform.linux_semantic",
-        "omni.adapters.platform.linux_window_binding"
+        "omni.adapters.platform.desktop.linux.linux_atspi",
+        "omni.adapters.platform.desktop.linux.linux_bus",
+        "omni.adapters.platform.desktop.linux.linux_semantic",
+        "omni.adapters.platform.desktop.linux.linux_window_binding"
       ],
       "symbols": [
         {
           "name": "FocusNode",
-          "line": 20,
+          "line": 27,
           "kind": "class"
         },
         {
           "name": "FocusTree",
-          "line": 28,
+          "line": 35,
           "kind": "class"
         },
         {
           "name": "FocusNavigation",
-          "line": 33,
+          "line": 40,
           "kind": "class"
         },
         {
           "name": "FocusNavigation.__init__",
-          "line": 34,
+          "line": 41,
           "kind": "function",
           "parameters": [
             "self",
@@ -27887,7 +27413,7 @@
         },
         {
           "name": "FocusNavigation._read",
-          "line": 41,
+          "line": 48,
           "kind": "function",
           "parameters": [
             "self"
@@ -27896,7 +27422,7 @@
         },
         {
           "name": "FocusNavigation._read.visit",
-          "line": 49,
+          "line": 56,
           "kind": "function",
           "parameters": [
             "ref",
@@ -27911,7 +27437,7 @@
         },
         {
           "name": "FocusNavigation._stable",
-          "line": 86,
+          "line": 93,
           "kind": "function",
           "parameters": [
             "self"
@@ -27920,7 +27446,7 @@
         },
         {
           "name": "FocusNavigation.prepare",
-          "line": 100,
+          "line": 107,
           "kind": "function",
           "parameters": [
             "self",
@@ -27936,7 +27462,7 @@
         },
         {
           "name": "FocusNavigation.check",
-          "line": 111,
+          "line": 118,
           "kind": "function",
           "parameters": [
             "self"
@@ -27945,7 +27471,7 @@
         },
         {
           "name": "FocusNavigation.changed",
-          "line": 116,
+          "line": 123,
           "kind": "function",
           "parameters": [
             "self"
@@ -27954,12 +27480,12 @@
         },
         {
           "name": "KeyState",
-          "line": 129,
+          "line": 136,
           "kind": "class"
         },
         {
           "name": "KeyState.prepare",
-          "line": 132,
+          "line": 139,
           "kind": "function",
           "parameters": [
             "self",
@@ -27975,7 +27501,7 @@
         },
         {
           "name": "KeyState.changed",
-          "line": 140,
+          "line": 147,
           "kind": "function",
           "parameters": [
             "self"
@@ -27986,28 +27512,28 @@
       "summary": "Bounded complete AT-SPI focus readback in one native-bound window; never predicts tab order or sends input."
     },
     {
-      "path": "agent/src/omni/adapters/platform/linux_foreground.py",
+      "path": "agent/src/omni/adapters/platform/desktop/linux/linux_foreground.py",
       "module": "v2-adapters",
-      "python_module": "omni.adapters.platform.linux_foreground",
+      "python_module": "omni.adapters.platform.desktop.linux.linux_foreground",
       "lines": 424,
       "imports": [
-        "omni.adapters.platform.linux_bus",
-        "omni.adapters.platform.linux_button_mapping",
-        "omni.adapters.platform.linux_button_packet",
-        "omni.adapters.platform.linux_input",
-        "omni.adapters.platform.linux_keyboard",
-        "omni.adapters.platform.linux_keystroke",
-        "omni.adapters.platform.linux_motion_packet",
-        "omni.adapters.platform.linux_pointer_actions",
-        "omni.adapters.platform.linux_pointer_config",
-        "omni.adapters.platform.linux_pointer_layout",
-        "omni.adapters.platform.linux_pointer_motion",
-        "omni.adapters.platform.linux_pointer_switch",
-        "omni.adapters.platform.linux_pointer_target",
-        "omni.adapters.platform.linux_window_leases",
-        "omni.adapters.platform.linux_x11",
-        "omni.adapters.platform.linux_x11_wire",
-        "omni.adapters.platform.linux_xtest"
+        "omni.adapters.platform.desktop.linux.linux_bus",
+        "omni.adapters.platform.desktop.linux.linux_button_mapping",
+        "omni.adapters.platform.desktop.linux.linux_button_packet",
+        "omni.adapters.platform.desktop.linux.linux_input",
+        "omni.adapters.platform.desktop.linux.linux_keyboard",
+        "omni.adapters.platform.desktop.linux.linux_keystroke",
+        "omni.adapters.platform.desktop.linux.linux_motion_packet",
+        "omni.adapters.platform.desktop.linux.linux_pointer_actions",
+        "omni.adapters.platform.desktop.linux.linux_pointer_config",
+        "omni.adapters.platform.desktop.linux.linux_pointer_layout",
+        "omni.adapters.platform.desktop.linux.linux_pointer_motion",
+        "omni.adapters.platform.desktop.linux.linux_pointer_switch",
+        "omni.adapters.platform.desktop.linux.linux_pointer_target",
+        "omni.adapters.platform.desktop.linux.linux_window_leases",
+        "omni.adapters.platform.desktop.linux.linux_x11",
+        "omni.adapters.platform.desktop.linux.linux_x11_wire",
+        "omni.adapters.platform.desktop.linux.linux_xtest"
       ],
       "symbols": [
         {
@@ -28298,15 +27824,15 @@
       "summary": "Read-only X11 focus ancestry proof for future explicit foreground delivery; never maps AT-SPI nodes or sends input."
     },
     {
-      "path": "agent/src/omni/adapters/platform/linux_input.py",
+      "path": "agent/src/omni/adapters/platform/desktop/linux/linux_input.py",
       "module": "v2-adapters",
-      "python_module": "omni.adapters.platform.linux_input",
+      "python_module": "omni.adapters.platform.desktop.linux.linux_input",
       "lines": 453,
       "imports": [
-        "omni.adapters.platform.linux_bus",
-        "omni.adapters.platform.linux_session",
-        "omni.adapters.platform.linux_x11_socket",
-        "omni.adapters.platform.linux_x11_wire"
+        "omni.adapters.platform.desktop.linux.linux_bus",
+        "omni.adapters.platform.desktop.linux.linux_session",
+        "omni.adapters.platform.desktop.linux.linux_x11_socket",
+        "omni.adapters.platform.desktop.linux.linux_x11_wire"
       ],
       "symbols": [
         {
@@ -28738,17 +28264,17 @@
       "summary": "Verified Xorg input-change guard for addressed semantic actions; never grabs, synthesizes or stores input content."
     },
     {
-      "path": "agent/src/omni/adapters/platform/linux_key_action.py",
+      "path": "agent/src/omni/adapters/platform/desktop/linux/linux_key_action.py",
       "module": "v2-adapters",
-      "python_module": "omni.adapters.platform.linux_key_action",
+      "python_module": "omni.adapters.platform.desktop.linux.linux_key_action",
       "lines": 171,
       "imports": [
-        "omni.adapters.platform.linux_atspi",
-        "omni.adapters.platform.linux_bus",
-        "omni.adapters.platform.linux_focus_navigation",
-        "omni.adapters.platform.linux_semantic",
-        "omni.adapters.platform.linux_text",
-        "omni.adapters.platform.linux_window_binding",
+        "omni.adapters.platform.desktop.linux.linux_atspi",
+        "omni.adapters.platform.desktop.linux.linux_bus",
+        "omni.adapters.platform.desktop.linux.linux_focus_navigation",
+        "omni.adapters.platform.desktop.linux.linux_semantic",
+        "omni.adapters.platform.desktop.linux.linux_text",
+        "omni.adapters.platform.desktop.linux.linux_window_binding",
         "omni.domain.contracts",
         "omni.domain.foreground"
       ],
@@ -28825,15 +28351,15 @@
       "summary": "One approved native key pair for an explicitly bound focused semantic node; no focus acquisition or replay."
     },
     {
-      "path": "agent/src/omni/adapters/platform/linux_key_switch.py",
+      "path": "agent/src/omni/adapters/platform/desktop/linux/linux_key_switch.py",
       "module": "v2-adapters",
-      "python_module": "omni.adapters.platform.linux_key_switch",
+      "python_module": "omni.adapters.platform.desktop.linux.linux_key_switch",
       "lines": 125,
       "imports": [
-        "omni.adapters.platform.linux_bus",
-        "omni.adapters.platform.linux_input",
-        "omni.adapters.platform.linux_x11_wire",
-        "omni.adapters.platform.linux_xtest"
+        "omni.adapters.platform.desktop.linux.linux_bus",
+        "omni.adapters.platform.desktop.linux.linux_input",
+        "omni.adapters.platform.desktop.linux.linux_x11_wire",
+        "omni.adapters.platform.desktop.linux.linux_xtest"
       ],
       "symbols": [
         {
@@ -28931,17 +28457,17 @@
       "summary": "Prove the single Xorg keyboard slave switch surrounding an owned key pair; no input or configuration writes."
     },
     {
-      "path": "agent/src/omni/adapters/platform/linux_keyboard.py",
+      "path": "agent/src/omni/adapters/platform/desktop/linux/linux_keyboard.py",
       "module": "v2-adapters",
-      "python_module": "omni.adapters.platform.linux_keyboard",
+      "python_module": "omni.adapters.platform.desktop.linux.linux_keyboard",
       "lines": 165,
       "imports": [
-        "omni.adapters.platform.linux_bus",
-        "omni.adapters.platform.linux_input",
-        "omni.adapters.platform.linux_key_switch",
-        "omni.adapters.platform.linux_x11_wire",
-        "omni.adapters.platform.linux_xkb",
-        "omni.adapters.platform.linux_xtest"
+        "omni.adapters.platform.desktop.linux.linux_bus",
+        "omni.adapters.platform.desktop.linux.linux_input",
+        "omni.adapters.platform.desktop.linux.linux_key_switch",
+        "omni.adapters.platform.desktop.linux.linux_x11_wire",
+        "omni.adapters.platform.desktop.linux.linux_xkb",
+        "omni.adapters.platform.desktop.linux.linux_xtest"
       ],
       "symbols": [
         {
@@ -29055,14 +28581,14 @@
       "summary": "Bounded read-only core keymap preflight on an existing focus proof; never translates Unicode, changes layouts or sends input."
     },
     {
-      "path": "agent/src/omni/adapters/platform/linux_keystroke.py",
+      "path": "agent/src/omni/adapters/platform/desktop/linux/linux_keystroke.py",
       "module": "v2-adapters",
-      "python_module": "omni.adapters.platform.linux_keystroke",
+      "python_module": "omni.adapters.platform.desktop.linux.linux_keystroke",
       "lines": 157,
       "imports": [
-        "omni.adapters.platform.linux_bus",
-        "omni.adapters.platform.linux_input",
-        "omni.adapters.platform.linux_xtest"
+        "omni.adapters.platform.desktop.linux.linux_bus",
+        "omni.adapters.platform.desktop.linux.linux_input",
+        "omni.adapters.platform.desktop.linux.linux_xtest"
       ],
       "symbols": [
         {
@@ -29155,9 +28681,9 @@
       "summary": "Single paired XTEST wire delivery and retained release; business target/permit integration remains external."
     },
     {
-      "path": "agent/src/omni/adapters/platform/linux_lease_client.py",
+      "path": "agent/src/omni/adapters/platform/desktop/linux/linux_lease_client.py",
       "module": "v2-adapters",
-      "python_module": "omni.adapters.platform.linux_lease_client",
+      "python_module": "omni.adapters.platform.desktop.linux.linux_lease_client",
       "lines": 335,
       "imports": [
         "omni.adapters.platform.runtime.processes",
@@ -29519,14 +29045,14 @@
       "summary": "Owned persistent X11 guardian transport; no native APIs, target rebinding from verify, unbounded queues or input."
     },
     {
-      "path": "agent/src/omni/adapters/platform/linux_motion_events.py",
+      "path": "agent/src/omni/adapters/platform/desktop/linux/linux_motion_events.py",
       "module": "v2-adapters",
-      "python_module": "omni.adapters.platform.linux_motion_events",
+      "python_module": "omni.adapters.platform.desktop.linux.linux_motion_events",
       "lines": 68,
       "imports": [
-        "omni.adapters.platform.linux_pointer_config",
-        "omni.adapters.platform.linux_pointer_motion",
-        "omni.adapters.platform.linux_x11_wire"
+        "omni.adapters.platform.desktop.linux.linux_pointer_config",
+        "omni.adapters.platform.desktop.linux.linux_pointer_motion",
+        "omni.adapters.platform.desktop.linux.linux_x11_wire"
       ],
       "symbols": [
         {
@@ -29634,17 +29160,17 @@
       "summary": "Exact two-axis RawMotion receipts belonging to one reserved XTEST request."
     },
     {
-      "path": "agent/src/omni/adapters/platform/linux_motion_packet.py",
+      "path": "agent/src/omni/adapters/platform/desktop/linux/linux_motion_packet.py",
       "module": "v2-adapters",
-      "python_module": "omni.adapters.platform.linux_motion_packet",
+      "python_module": "omni.adapters.platform.desktop.linux.linux_motion_packet",
       "lines": 162,
       "imports": [
-        "omni.adapters.platform.linux_bus",
-        "omni.adapters.platform.linux_input",
-        "omni.adapters.platform.linux_motion_events",
-        "omni.adapters.platform.linux_pointer_motion",
-        "omni.adapters.platform.linux_x11_wire",
-        "omni.adapters.platform.linux_xtest"
+        "omni.adapters.platform.desktop.linux.linux_bus",
+        "omni.adapters.platform.desktop.linux.linux_input",
+        "omni.adapters.platform.desktop.linux.linux_motion_events",
+        "omni.adapters.platform.desktop.linux.linux_pointer_motion",
+        "omni.adapters.platform.desktop.linux.linux_x11_wire",
+        "omni.adapters.platform.desktop.linux.linux_xtest"
       ],
       "symbols": [
         {
@@ -29728,22 +29254,22 @@
       "summary": "Own one XTEST absolute move and its acknowledgment; no business click or automatic retry."
     },
     {
-      "path": "agent/src/omni/adapters/platform/linux_node_point.py",
+      "path": "agent/src/omni/adapters/platform/desktop/linux/linux_node_point.py",
       "module": "v2-adapters",
-      "python_module": "omni.adapters.platform.linux_node_point",
-      "lines": 153,
+      "python_module": "omni.adapters.platform.desktop.linux.linux_node_point",
+      "lines": 159,
       "imports": [
-        "omni.adapters.platform.linux_atspi",
-        "omni.adapters.platform.linux_bus",
-        "omni.adapters.platform.linux_window_binding",
-        "omni.adapters.platform.linux_x11_wire",
+        "omni.adapters.platform.desktop.linux.linux_atspi",
+        "omni.adapters.platform.desktop.linux.linux_bus",
+        "omni.adapters.platform.desktop.linux.linux_window_binding",
+        "omni.adapters.platform.desktop.linux.linux_x11_wire",
         "omni.domain.contracts",
         "omni.domain.desktop"
       ],
       "symbols": [
         {
           "name": "rectangle",
-          "line": 19,
+          "line": 25,
           "kind": "function",
           "parameters": [
             "value"
@@ -29754,7 +29280,7 @@
         },
         {
           "name": "hit",
-          "line": 31,
+          "line": 37,
           "kind": "function",
           "parameters": [
             "desktop",
@@ -29773,7 +29299,7 @@
         },
         {
           "name": "point_context",
-          "line": 61,
+          "line": 67,
           "kind": "function",
           "parameters": [
             "desktop",
@@ -29788,12 +29314,12 @@
         },
         {
           "name": "NodePoint",
-          "line": 98,
+          "line": 104,
           "kind": "class"
         },
         {
           "name": "NodePoint.__init__",
-          "line": 99,
+          "line": 105,
           "kind": "function",
           "parameters": [
             "self",
@@ -29813,7 +29339,7 @@
         },
         {
           "name": "NodePoint._read",
-          "line": 106,
+          "line": 112,
           "kind": "function",
           "parameters": [
             "self"
@@ -29822,7 +29348,7 @@
         },
         {
           "name": "NodePoint.prepare",
-          "line": 132,
+          "line": 138,
           "kind": "function",
           "parameters": [
             "self"
@@ -29831,7 +29357,7 @@
         },
         {
           "name": "NodePoint.check",
-          "line": 146,
+          "line": 152,
           "kind": "function",
           "parameters": [
             "self"
@@ -29842,12 +29368,12 @@
       "summary": "Bind actual AT-SPI component hit/physical extents to a continuous X11 window; no scaling guesses or input."
     },
     {
-      "path": "agent/src/omni/adapters/platform/linux_pipewire.py",
+      "path": "agent/src/omni/adapters/platform/desktop/linux/linux_pipewire.py",
       "module": "v2-adapters",
-      "python_module": "omni.adapters.platform.linux_pipewire",
+      "python_module": "omni.adapters.platform.desktop.linux.linux_pipewire",
       "lines": 256,
       "imports": [
-        "omni.adapters.platform.linux_fds",
+        "omni.adapters.platform.desktop.linux.linux_fds",
         "omni.domain.contracts",
         "omni.domain.desktop"
       ],
@@ -30013,16 +29539,16 @@
       "summary": "One serial-targeted GStreamer PipeWire frame inside an owned helper, never the default remote or display."
     },
     {
-      "path": "agent/src/omni/adapters/platform/linux_pointer_actions.py",
+      "path": "agent/src/omni/adapters/platform/desktop/linux/linux_pointer_actions.py",
       "module": "v2-adapters",
-      "python_module": "omni.adapters.platform.linux_pointer_actions",
+      "python_module": "omni.adapters.platform.desktop.linux.linux_pointer_actions",
       "lines": 140,
       "imports": [
-        "omni.adapters.platform.linux_bus",
-        "omni.adapters.platform.linux_button_mapping",
-        "omni.adapters.platform.linux_x11_wire",
-        "omni.adapters.platform.linux_xkb",
-        "omni.adapters.platform.linux_xtest"
+        "omni.adapters.platform.desktop.linux.linux_bus",
+        "omni.adapters.platform.desktop.linux.linux_button_mapping",
+        "omni.adapters.platform.desktop.linux.linux_x11_wire",
+        "omni.adapters.platform.desktop.linux.linux_xkb",
+        "omni.adapters.platform.desktop.linux.linux_xtest"
       ],
       "symbols": [
         {
@@ -30120,15 +29646,15 @@
       "summary": "Read XKB pointer actions and released keyboard state on a mapped native point; never moves, clicks or grants input."
     },
     {
-      "path": "agent/src/omni/adapters/platform/linux_pointer_config.py",
+      "path": "agent/src/omni/adapters/platform/desktop/linux/linux_pointer_config.py",
       "module": "v2-adapters",
-      "python_module": "omni.adapters.platform.linux_pointer_config",
+      "python_module": "omni.adapters.platform.desktop.linux.linux_pointer_config",
       "lines": 281,
       "imports": [
-        "omni.adapters.platform.linux_bus",
-        "omni.adapters.platform.linux_button_mapping",
-        "omni.adapters.platform.linux_input",
-        "omni.adapters.platform.linux_x11_wire"
+        "omni.adapters.platform.desktop.linux.linux_bus",
+        "omni.adapters.platform.desktop.linux.linux_button_mapping",
+        "omni.adapters.platform.desktop.linux.linux_input",
+        "omni.adapters.platform.desktop.linux.linux_x11_wire"
       ],
       "symbols": [
         {
@@ -30339,17 +29865,17 @@
       "summary": "Read canonical pointer axes, feedback and transforms on an existing XKB/point proof; no device writes or mouse dispatch."
     },
     {
-      "path": "agent/src/omni/adapters/platform/linux_pointer_layout.py",
+      "path": "agent/src/omni/adapters/platform/desktop/linux/linux_pointer_layout.py",
       "module": "v2-adapters",
-      "python_module": "omni.adapters.platform.linux_pointer_layout",
+      "python_module": "omni.adapters.platform.desktop.linux.linux_pointer_layout",
       "lines": 240,
       "imports": [
-        "omni.adapters.platform.linux_bus",
-        "omni.adapters.platform.linux_input",
-        "omni.adapters.platform.linux_pointer_config",
-        "omni.adapters.platform.linux_pointer_motion",
-        "omni.adapters.platform.linux_pointer_target",
-        "omni.adapters.platform.linux_x11_wire"
+        "omni.adapters.platform.desktop.linux.linux_bus",
+        "omni.adapters.platform.desktop.linux.linux_input",
+        "omni.adapters.platform.desktop.linux.linux_pointer_config",
+        "omni.adapters.platform.desktop.linux.linux_pointer_motion",
+        "omni.adapters.platform.desktop.linux.linux_pointer_target",
+        "omni.adapters.platform.desktop.linux.linux_x11_wire"
       ],
       "symbols": [
         {
@@ -30514,14 +30040,14 @@
       "summary": "Bind a planned pointer move to live single-root RandR resources and active scanouts; no input or layout mutation."
     },
     {
-      "path": "agent/src/omni/adapters/platform/linux_pointer_motion.py",
+      "path": "agent/src/omni/adapters/platform/desktop/linux/linux_pointer_motion.py",
       "module": "v2-adapters",
-      "python_module": "omni.adapters.platform.linux_pointer_motion",
+      "python_module": "omni.adapters.platform.desktop.linux.linux_pointer_motion",
       "lines": 229,
       "imports": [
-        "omni.adapters.platform.linux_bus",
-        "omni.adapters.platform.linux_pointer_config",
-        "omni.adapters.platform.linux_pointer_target"
+        "omni.adapters.platform.desktop.linux.linux_bus",
+        "omni.adapters.platform.desktop.linux.linux_pointer_config",
+        "omni.adapters.platform.desktop.linux.linux_pointer_target"
       ],
       "symbols": [
         {
@@ -30683,20 +30209,20 @@
       "summary": "Plan signed core XTEST coordinates and raw valuators from proven native geometry/configuration; never sends input."
     },
     {
-      "path": "agent/src/omni/adapters/platform/linux_pointer_switch.py",
+      "path": "agent/src/omni/adapters/platform/desktop/linux/linux_pointer_switch.py",
       "module": "v2-adapters",
-      "python_module": "omni.adapters.platform.linux_pointer_switch",
-      "lines": 136,
+      "python_module": "omni.adapters.platform.desktop.linux.linux_pointer_switch",
+      "lines": 141,
       "imports": [
-        "omni.adapters.platform.linux_bus",
-        "omni.adapters.platform.linux_input",
-        "omni.adapters.platform.linux_pointer_config",
-        "omni.adapters.platform.linux_x11_wire"
+        "omni.adapters.platform.desktop.linux.linux_bus",
+        "omni.adapters.platform.desktop.linux.linux_input",
+        "omni.adapters.platform.desktop.linux.linux_pointer_config",
+        "omni.adapters.platform.desktop.linux.linux_x11_wire"
       ],
       "symbols": [
         {
           "name": "encoded_classes",
-          "line": 15,
+          "line": 20,
           "kind": "function",
           "parameters": [
             "device"
@@ -30707,7 +30233,7 @@
         },
         {
           "name": "encoded_classes.fixed",
-          "line": 20,
+          "line": 25,
           "kind": "function",
           "parameters": [
             "value"
@@ -30718,12 +30244,12 @@
         },
         {
           "name": "PointerSwitch",
-          "line": 35,
+          "line": 40,
           "kind": "class"
         },
         {
           "name": "PointerSwitch.__init__",
-          "line": 36,
+          "line": 41,
           "kind": "function",
           "parameters": [
             "self",
@@ -30743,7 +30269,7 @@
         },
         {
           "name": "PointerSwitch.complete",
-          "line": 84,
+          "line": 89,
           "kind": "function",
           "parameters": [
             "self"
@@ -30752,7 +30278,7 @@
         },
         {
           "name": "PointerSwitch.device",
-          "line": 89,
+          "line": 94,
           "kind": "function",
           "parameters": [
             "self",
@@ -30768,7 +30294,7 @@
         },
         {
           "name": "PointerSwitch.verify_after",
-          "line": 109,
+          "line": 114,
           "kind": "function",
           "parameters": [
             "self"
@@ -30779,15 +30305,15 @@
       "summary": "Precompute and verify one owned pointer slave-class copy; never writes device configuration."
     },
     {
-      "path": "agent/src/omni/adapters/platform/linux_pointer_target.py",
+      "path": "agent/src/omni/adapters/platform/desktop/linux/linux_pointer_target.py",
       "module": "v2-adapters",
-      "python_module": "omni.adapters.platform.linux_pointer_target",
+      "python_module": "omni.adapters.platform.desktop.linux.linux_pointer_target",
       "lines": 215,
       "imports": [
-        "omni.adapters.platform.linux_bus",
-        "omni.adapters.platform.linux_foreground",
-        "omni.adapters.platform.linux_x11",
-        "omni.adapters.platform.linux_x11_wire",
+        "omni.adapters.platform.desktop.linux.linux_bus",
+        "omni.adapters.platform.desktop.linux.linux_foreground",
+        "omni.adapters.platform.desktop.linux.linux_x11",
+        "omni.adapters.platform.desktop.linux.linux_x11_wire",
         "omni.domain.desktop"
       ],
       "symbols": [
@@ -30951,26 +30477,26 @@
       "summary": "Read a bounded Xorg hit path for one physical window point; no pointer motion, button input or AT-SPI coordinate inference."
     },
     {
-      "path": "agent/src/omni/adapters/platform/linux_portal.py",
+      "path": "agent/src/omni/adapters/platform/desktop/linux/linux_portal.py",
       "module": "v2-adapters",
-      "python_module": "omni.adapters.platform.linux_portal",
-      "lines": 220,
+      "python_module": "omni.adapters.platform.desktop.linux.linux_portal",
+      "lines": 229,
       "imports": [
-        "omni.adapters.platform.linux_bus",
-        "omni.adapters.platform.linux_fds",
-        "omni.adapters.platform.linux_session",
-        "omni.adapters.platform.linux_signals",
+        "omni.adapters.platform.desktop.linux.linux_bus",
+        "omni.adapters.platform.desktop.linux.linux_fds",
+        "omni.adapters.platform.desktop.linux.linux_session",
+        "omni.adapters.platform.desktop.linux.linux_signals",
         "omni.domain.desktop_portal"
       ],
       "symbols": [
         {
           "name": "PortalFactory",
-          "line": 23,
+          "line": 32,
           "kind": "class"
         },
         {
           "name": "PortalFactory.open",
-          "line": 24,
+          "line": 33,
           "kind": "function",
           "parameters": [
             "self",
@@ -30982,12 +30508,12 @@
         },
         {
           "name": "PortalSession",
-          "line": 28,
+          "line": 37,
           "kind": "class"
         },
         {
           "name": "PortalSession.__init__",
-          "line": 31,
+          "line": 40,
           "kind": "function",
           "parameters": [
             "self",
@@ -31001,7 +30527,7 @@
         },
         {
           "name": "PortalSession.prepare",
-          "line": 46,
+          "line": 55,
           "kind": "function",
           "parameters": [
             "self"
@@ -31010,7 +30536,7 @@
         },
         {
           "name": "PortalSession.check",
-          "line": 75,
+          "line": 84,
           "kind": "function",
           "parameters": [
             "self"
@@ -31019,7 +30545,7 @@
         },
         {
           "name": "PortalSession.request",
-          "line": 89,
+          "line": 98,
           "kind": "function",
           "parameters": [
             "self",
@@ -31037,7 +30563,7 @@
         },
         {
           "name": "PortalSession.authorize",
-          "line": 126,
+          "line": 135,
           "kind": "function",
           "parameters": [
             "self",
@@ -31049,7 +30575,7 @@
         },
         {
           "name": "PortalSession.close",
-          "line": 182,
+          "line": 191,
           "kind": "function",
           "parameters": [
             "self"
@@ -31058,7 +30584,7 @@
         },
         {
           "name": "PortalSession.open_pipewire",
-          "line": 209,
+          "line": 218,
           "kind": "function",
           "parameters": [
             "self"
@@ -31069,32 +30595,32 @@
       "summary": "Explicit ephemeral window selection on a pinned Wayland portal; never opens PipeWire FDs or dispatches input."
     },
     {
-      "path": "agent/src/omni/adapters/platform/linux_remote_desktop.py",
+      "path": "agent/src/omni/adapters/platform/desktop/linux/linux_remote_desktop.py",
       "module": "v2-adapters",
-      "python_module": "omni.adapters.platform.linux_remote_desktop",
-      "lines": 291,
+      "python_module": "omni.adapters.platform.desktop.linux.linux_remote_desktop",
+      "lines": 298,
       "imports": [
-        "omni.adapters.platform.linux_bus",
-        "omni.adapters.platform.linux_eis",
-        "omni.adapters.platform.linux_eis_devices",
-        "omni.adapters.platform.linux_fds",
-        "omni.adapters.platform.linux_portal",
-        "omni.adapters.platform.linux_seat_input",
-        "omni.adapters.platform.linux_session",
-        "omni.adapters.platform.linux_signals",
-        "omni.adapters.platform.linux_wayland_windows",
+        "omni.adapters.platform.desktop.linux.linux_bus",
+        "omni.adapters.platform.desktop.linux.linux_eis",
+        "omni.adapters.platform.desktop.linux.linux_eis_devices",
+        "omni.adapters.platform.desktop.linux.linux_fds",
+        "omni.adapters.platform.desktop.linux.linux_portal",
+        "omni.adapters.platform.desktop.linux.linux_seat_input",
+        "omni.adapters.platform.desktop.linux.linux_session",
+        "omni.adapters.platform.desktop.linux.linux_signals",
+        "omni.adapters.platform.desktop.linux.linux_wayland_windows",
         "omni.domain.desktop_control",
         "omni.domain.desktop_portal"
       ],
       "symbols": [
         {
           "name": "ControlSession",
-          "line": 25,
+          "line": 32,
           "kind": "class"
         },
         {
           "name": "ControlSession.__init__",
-          "line": 28,
+          "line": 35,
           "kind": "function",
           "parameters": [
             "self",
@@ -31118,7 +30644,7 @@
         },
         {
           "name": "ControlSession.prepare",
-          "line": 61,
+          "line": 68,
           "kind": "function",
           "parameters": [
             "self"
@@ -31127,7 +30653,7 @@
         },
         {
           "name": "ControlSession.system_check",
-          "line": 92,
+          "line": 99,
           "kind": "function",
           "parameters": [
             "self"
@@ -31136,7 +30662,7 @@
         },
         {
           "name": "ControlSession.native_check",
-          "line": 109,
+          "line": 116,
           "kind": "function",
           "parameters": [
             "self"
@@ -31145,7 +30671,7 @@
         },
         {
           "name": "ControlSession.check",
-          "line": 118,
+          "line": 125,
           "kind": "function",
           "parameters": [
             "self"
@@ -31154,7 +30680,7 @@
         },
         {
           "name": "ControlSession.prepare_windows",
-          "line": 127,
+          "line": 134,
           "kind": "function",
           "parameters": [
             "self",
@@ -31166,7 +30692,7 @@
         },
         {
           "name": "ControlSession._prepare_windows",
-          "line": 141,
+          "line": 148,
           "kind": "function",
           "parameters": [
             "self",
@@ -31178,7 +30704,7 @@
         },
         {
           "name": "ControlSession.prepare_input_monitor",
-          "line": 155,
+          "line": 162,
           "kind": "function",
           "parameters": [
             "self"
@@ -31187,7 +30713,7 @@
         },
         {
           "name": "ControlSession._prepare_input",
-          "line": 163,
+          "line": 170,
           "kind": "function",
           "parameters": [
             "self"
@@ -31196,7 +30722,7 @@
         },
         {
           "name": "ControlSession.request",
-          "line": 176,
+          "line": 183,
           "kind": "function",
           "parameters": [
             "self",
@@ -31214,7 +30740,7 @@
         },
         {
           "name": "ControlSession.authorize",
-          "line": 186,
+          "line": 193,
           "kind": "function",
           "parameters": [
             "self",
@@ -31226,7 +30752,7 @@
         },
         {
           "name": "ControlSession.granted_devices",
-          "line": 235,
+          "line": 242,
           "kind": "function",
           "parameters": [
             "self"
@@ -31235,7 +30761,7 @@
         },
         {
           "name": "ControlSession.open_pipewire",
-          "line": 239,
+          "line": 246,
           "kind": "function",
           "parameters": [
             "self"
@@ -31244,7 +30770,7 @@
         },
         {
           "name": "ControlSession.prepare_eis",
-          "line": 242,
+          "line": 249,
           "kind": "function",
           "parameters": [
             "self",
@@ -31256,7 +30782,7 @@
         },
         {
           "name": "ControlSession._prepare_eis",
-          "line": 252,
+          "line": 259,
           "kind": "function",
           "parameters": [
             "self",
@@ -31268,7 +30794,7 @@
         },
         {
           "name": "ControlSession.close",
-          "line": 276,
+          "line": 283,
           "kind": "function",
           "parameters": [
             "self"
@@ -31279,14 +30805,14 @@
       "summary": "Separate Wayland device consent and owned EI core negotiation; no ScreenCast reuse, clipboard, restored authority or input."
     },
     {
-      "path": "agent/src/omni/adapters/platform/linux_seat_input.py",
+      "path": "agent/src/omni/adapters/platform/desktop/linux/linux_seat_input.py",
       "module": "v2-adapters",
-      "python_module": "omni.adapters.platform.linux_seat_input",
+      "python_module": "omni.adapters.platform.desktop.linux.linux_seat_input",
       "lines": 182,
       "imports": [
-        "omni.adapters.platform.linux_bus",
-        "omni.adapters.platform.linux_evdev_input",
-        "omni.adapters.platform.linux_session",
+        "omni.adapters.platform.desktop.linux.linux_bus",
+        "omni.adapters.platform.desktop.linux.linux_evdev_input",
+        "omni.adapters.platform.desktop.linux.linux_session",
         "omni.domain.contracts"
       ],
       "symbols": [
@@ -31520,24 +31046,24 @@
       "summary": "One seat's kernel-input guard with owned executor/FD watches; no authority, input data capture or compositor-target proof."
     },
     {
-      "path": "agent/src/omni/adapters/platform/linux_semantic.py",
+      "path": "agent/src/omni/adapters/platform/desktop/linux/linux_semantic.py",
       "module": "v2-adapters",
-      "python_module": "omni.adapters.platform.linux_semantic",
-      "lines": 313,
+      "python_module": "omni.adapters.platform.desktop.linux.linux_semantic",
+      "lines": 320,
       "imports": [
-        "omni.adapters.platform.linux_atspi",
-        "omni.adapters.platform.linux_bus",
-        "omni.adapters.platform.linux_input",
-        "omni.adapters.platform.linux_node_point",
-        "omni.adapters.platform.linux_session",
-        "omni.adapters.platform.linux_window_binding",
+        "omni.adapters.platform.desktop.linux.linux_atspi",
+        "omni.adapters.platform.desktop.linux.linux_bus",
+        "omni.adapters.platform.desktop.linux.linux_input",
+        "omni.adapters.platform.desktop.linux.linux_node_point",
+        "omni.adapters.platform.desktop.linux.linux_session",
+        "omni.adapters.platform.desktop.linux.linux_window_binding",
         "omni.domain.contracts",
         "omni.domain.desktop_actions"
       ],
       "symbols": [
         {
           "name": "digest",
-          "line": 25,
+          "line": 32,
           "kind": "function",
           "parameters": [
             "value"
@@ -31548,7 +31074,7 @@
         },
         {
           "name": "result",
-          "line": 31,
+          "line": 38,
           "kind": "function",
           "parameters": [
             "status",
@@ -31563,7 +31089,7 @@
         },
         {
           "name": "stable_catalog",
-          "line": 40,
+          "line": 47,
           "kind": "function",
           "parameters": [
             "catalog"
@@ -31574,12 +31100,12 @@
         },
         {
           "name": "Semantics",
-          "line": 51,
+          "line": 58,
           "kind": "class"
         },
         {
           "name": "Semantics.__init__",
-          "line": 52,
+          "line": 59,
           "kind": "function",
           "parameters": [
             "self",
@@ -31591,7 +31117,7 @@
         },
         {
           "name": "Semantics.interfaces",
-          "line": 55,
+          "line": 62,
           "kind": "function",
           "parameters": [
             "self",
@@ -31603,7 +31129,7 @@
         },
         {
           "name": "Semantics.facts",
-          "line": 65,
+          "line": 72,
           "kind": "function",
           "parameters": [
             "self",
@@ -31615,7 +31141,7 @@
         },
         {
           "name": "Semantics.typing_context",
-          "line": 83,
+          "line": 90,
           "kind": "function",
           "parameters": [
             "self",
@@ -31629,7 +31155,7 @@
         },
         {
           "name": "Semantics.keyboard_context",
-          "line": 96,
+          "line": 103,
           "kind": "function",
           "parameters": [
             "self",
@@ -31643,7 +31169,7 @@
         },
         {
           "name": "Semantics.catalogue",
-          "line": 107,
+          "line": 114,
           "kind": "function",
           "parameters": [
             "self",
@@ -31661,7 +31187,7 @@
         },
         {
           "name": "Semantics.make_proof",
-          "line": 176,
+          "line": 183,
           "kind": "function",
           "parameters": [
             "path",
@@ -31678,7 +31204,7 @@
         },
         {
           "name": "Semantics.observed",
-          "line": 191,
+          "line": 198,
           "kind": "function",
           "parameters": [
             "self",
@@ -31700,7 +31226,7 @@
         },
         {
           "name": "Semantics.resolve",
-          "line": 206,
+          "line": 213,
           "kind": "function",
           "parameters": [
             "self",
@@ -31714,7 +31240,7 @@
         },
         {
           "name": "Semantics.proof",
-          "line": 230,
+          "line": 237,
           "kind": "function",
           "parameters": [
             "self",
@@ -31728,7 +31254,7 @@
         },
         {
           "name": "Semantics.act",
-          "line": 237,
+          "line": 244,
           "kind": "function",
           "parameters": [
             "self",
@@ -31748,17 +31274,17 @@
       "summary": "Addressed AT-SPI semantic proof and single mutation; no global input, focus acquisition or retry."
     },
     {
-      "path": "agent/src/omni/adapters/platform/linux_session.py",
+      "path": "agent/src/omni/adapters/platform/desktop/linux/linux_session.py",
       "module": "v2-adapters",
-      "python_module": "omni.adapters.platform.linux_session",
-      "lines": 348,
+      "python_module": "omni.adapters.platform.desktop.linux.linux_session",
+      "lines": 358,
       "imports": [
-        "omni.adapters.platform.linux_bus"
+        "omni.adapters.platform.desktop.linux.linux_bus"
       ],
       "symbols": [
         {
           "name": "number",
-          "line": 24,
+          "line": 34,
           "kind": "function",
           "parameters": [
             "value",
@@ -31771,7 +31297,7 @@
         },
         {
           "name": "text",
-          "line": 30,
+          "line": 40,
           "kind": "function",
           "parameters": [
             "value",
@@ -31784,7 +31310,7 @@
         },
         {
           "name": "unique",
-          "line": 40,
+          "line": 50,
           "kind": "function",
           "parameters": [
             "value"
@@ -31795,7 +31321,7 @@
         },
         {
           "name": "object_path",
-          "line": 47,
+          "line": 57,
           "kind": "function",
           "parameters": [
             "value"
@@ -31806,7 +31332,7 @@
         },
         {
           "name": "one",
-          "line": 54,
+          "line": 64,
           "kind": "function",
           "parameters": [
             "body"
@@ -31817,7 +31343,7 @@
         },
         {
           "name": "variant",
-          "line": 63,
+          "line": 73,
           "kind": "function",
           "parameters": [
             "value",
@@ -31830,12 +31356,12 @@
         },
         {
           "name": "OpsPort",
-          "line": 69,
+          "line": 79,
           "kind": "class"
         },
         {
           "name": "OpsPort.process",
-          "line": 73,
+          "line": 83,
           "kind": "function",
           "parameters": [
             "self",
@@ -31849,12 +31375,12 @@
         },
         {
           "name": "FactoryPort",
-          "line": 76,
+          "line": 86,
           "kind": "class"
         },
         {
           "name": "FactoryPort.open",
-          "line": 77,
+          "line": 87,
           "kind": "function",
           "parameters": [
             "self",
@@ -31866,12 +31392,12 @@
         },
         {
           "name": "LocalFactory",
-          "line": 80,
+          "line": 90,
           "kind": "class"
         },
         {
           "name": "LocalFactory.__init__",
-          "line": 81,
+          "line": 91,
           "kind": "function",
           "parameters": [
             "self",
@@ -31883,7 +31409,7 @@
         },
         {
           "name": "LocalFactory.open",
-          "line": 84,
+          "line": 94,
           "kind": "function",
           "parameters": [
             "self",
@@ -31895,22 +31421,22 @@
         },
         {
           "name": "Owner",
-          "line": 89,
+          "line": 99,
           "kind": "class"
         },
         {
           "name": "Session",
-          "line": 95,
-          "kind": "class"
-        },
-        {
-          "name": "SessionInspector",
           "line": 105,
           "kind": "class"
         },
         {
+          "name": "SessionInspector",
+          "line": 115,
+          "kind": "class"
+        },
+        {
           "name": "SessionInspector.__init__",
-          "line": 106,
+          "line": 116,
           "kind": "function",
           "parameters": [
             "self",
@@ -31924,7 +31450,7 @@
         },
         {
           "name": "SessionInspector.open_bus",
-          "line": 119,
+          "line": 129,
           "kind": "function",
           "parameters": [
             "self",
@@ -31936,7 +31462,7 @@
         },
         {
           "name": "SessionInspector.owner",
-          "line": 128,
+          "line": 138,
           "kind": "function",
           "parameters": [
             "self",
@@ -31952,7 +31478,7 @@
         },
         {
           "name": "SessionInspector.connection",
-          "line": 135,
+          "line": 145,
           "kind": "function",
           "parameters": [
             "self",
@@ -31968,7 +31494,7 @@
         },
         {
           "name": "SessionInspector.properties",
-          "line": 146,
+          "line": 156,
           "kind": "function",
           "parameters": [
             "self",
@@ -31982,7 +31508,7 @@
         },
         {
           "name": "SessionInspector.selected_path",
-          "line": 160,
+          "line": 170,
           "kind": "function",
           "parameters": [
             "self"
@@ -31991,7 +31517,7 @@
         },
         {
           "name": "SessionInspector.read_session",
-          "line": 202,
+          "line": 212,
           "kind": "function",
           "parameters": [
             "self"
@@ -32000,7 +31526,7 @@
         },
         {
           "name": "SessionInspector.open",
-          "line": 237,
+          "line": 247,
           "kind": "function",
           "parameters": [
             "self",
@@ -32012,7 +31538,7 @@
         },
         {
           "name": "SessionInspector.open_accessibility",
-          "line": 251,
+          "line": 261,
           "kind": "function",
           "parameters": [
             "self"
@@ -32021,7 +31547,7 @@
         },
         {
           "name": "SessionInspector._open_accessibility",
-          "line": 267,
+          "line": 277,
           "kind": "function",
           "parameters": [
             "self"
@@ -32030,7 +31556,7 @@
         },
         {
           "name": "SessionInspector.check",
-          "line": 304,
+          "line": 314,
           "kind": "function",
           "parameters": [
             "self"
@@ -32039,7 +31565,7 @@
         },
         {
           "name": "SessionInspector.app",
-          "line": 323,
+          "line": 333,
           "kind": "function",
           "parameters": [
             "self",
@@ -32051,7 +31577,7 @@
         },
         {
           "name": "SessionInspector.close",
-          "line": 345,
+          "line": 355,
           "kind": "function",
           "parameters": [
             "self"
@@ -32062,13 +31588,13 @@
       "summary": "logind display-session and accessibility bus ownership; never trusts desktop environment variables."
     },
     {
-      "path": "agent/src/omni/adapters/platform/linux_signals.py",
+      "path": "agent/src/omni/adapters/platform/desktop/linux/linux_signals.py",
       "module": "v2-adapters",
-      "python_module": "omni.adapters.platform.linux_signals",
+      "python_module": "omni.adapters.platform.desktop.linux.linux_signals",
       "lines": 103,
       "imports": [
-        "omni.adapters.platform.linux_bus",
-        "omni.adapters.platform.linux_session"
+        "omni.adapters.platform.desktop.linux.linux_bus",
+        "omni.adapters.platform.desktop.linux.linux_session"
       ],
       "symbols": [
         {
@@ -32190,15 +31716,15 @@
       "summary": "Bounded, pinned D-Bus signals on the same pre-authenticated local connection; no service activation or FDs."
     },
     {
-      "path": "agent/src/omni/adapters/platform/linux_text.py",
+      "path": "agent/src/omni/adapters/platform/desktop/linux/linux_text.py",
       "module": "v2-adapters",
-      "python_module": "omni.adapters.platform.linux_text",
+      "python_module": "omni.adapters.platform.desktop.linux.linux_text",
       "lines": 100,
       "imports": [
-        "omni.adapters.platform.linux_atspi",
-        "omni.adapters.platform.linux_bus",
-        "omni.adapters.platform.linux_input",
-        "omni.adapters.platform.linux_semantic",
+        "omni.adapters.platform.desktop.linux.linux_atspi",
+        "omni.adapters.platform.desktop.linux.linux_bus",
+        "omni.adapters.platform.desktop.linux.linux_input",
+        "omni.adapters.platform.desktop.linux.linux_semantic",
         "omni.domain.contracts",
         "omni.domain.foreground"
       ],
@@ -32260,12 +31786,12 @@
       "summary": "One addressed Unicode append in a manually focused AT-SPI editor; no key synthesis, clipboard, focus acquisition or retry."
     },
     {
-      "path": "agent/src/omni/adapters/platform/linux_udev_input.py",
+      "path": "agent/src/omni/adapters/platform/desktop/linux/linux_udev_input.py",
       "module": "v2-adapters",
-      "python_module": "omni.adapters.platform.linux_udev_input",
+      "python_module": "omni.adapters.platform.desktop.linux.linux_udev_input",
       "lines": 210,
       "imports": [
-        "omni.adapters.platform.linux_bus",
+        "omni.adapters.platform.desktop.linux.linux_bus",
         "omni.domain.contracts"
       ],
       "symbols": [
@@ -32366,14 +31892,14 @@
       "summary": "Read-only seat input catalog with kernel/udev change FDs; no input reads, grants or device configuration."
     },
     {
-      "path": "agent/src/omni/adapters/platform/linux_wayland_peer.py",
+      "path": "agent/src/omni/adapters/platform/desktop/linux/linux_wayland_peer.py",
       "module": "v2-adapters",
-      "python_module": "omni.adapters.platform.linux_wayland_peer",
+      "python_module": "omni.adapters.platform.desktop.linux.linux_wayland_peer",
       "lines": 119,
       "imports": [
-        "omni.adapters.platform.linux_bus",
-        "omni.adapters.platform.linux_fds",
-        "omni.adapters.platform.linux_session"
+        "omni.adapters.platform.desktop.linux.linux_bus",
+        "omni.adapters.platform.desktop.linux.linux_fds",
+        "omni.adapters.platform.desktop.linux.linux_session"
       ],
       "symbols": [
         {
@@ -32494,32 +32020,32 @@
       "summary": "Bind a canonical Wayland socket to the actual granted EI peer; no environment discovery, authority or protocol requests."
     },
     {
-      "path": "agent/src/omni/adapters/platform/linux_wayland_windows.py",
+      "path": "agent/src/omni/adapters/platform/desktop/linux/linux_wayland_windows.py",
       "module": "v2-adapters",
-      "python_module": "omni.adapters.platform.linux_wayland_windows",
-      "lines": 346,
+      "python_module": "omni.adapters.platform.desktop.linux.linux_wayland_windows",
+      "lines": 353,
       "imports": [
-        "omni.adapters.platform.linux_bus",
-        "omni.adapters.platform.linux_fds",
-        "omni.adapters.platform.linux_session",
-        "omni.adapters.platform.linux_wayland_peer",
-        "omni.adapters.platform.linux_wayland_wire",
+        "omni.adapters.platform.desktop.linux.linux_bus",
+        "omni.adapters.platform.desktop.linux.linux_fds",
+        "omni.adapters.platform.desktop.linux.linux_session",
+        "omni.adapters.platform.desktop.linux.linux_wayland_peer",
+        "omni.adapters.platform.desktop.linux.linux_wayland_wire",
         "omni.domain.contracts"
       ],
       "symbols": [
         {
           "name": "WaylandWindow",
-          "line": 22,
+          "line": 29,
           "kind": "class"
         },
         {
           "name": "_Window",
-          "line": 33,
+          "line": 40,
           "kind": "class"
         },
         {
           "name": "_Window.snapshot",
-          "line": 44,
+          "line": 51,
           "kind": "function",
           "parameters": [
             "self"
@@ -32528,12 +32054,12 @@
         },
         {
           "name": "WaylandWindows",
-          "line": 50,
+          "line": 57,
           "kind": "class"
         },
         {
           "name": "WaylandWindows.__init__",
-          "line": 51,
+          "line": 58,
           "kind": "function",
           "parameters": [
             "self",
@@ -32555,7 +32081,7 @@
         },
         {
           "name": "WaylandWindows._valid",
-          "line": 78,
+          "line": 85,
           "kind": "function",
           "parameters": [
             "self"
@@ -32564,7 +32090,7 @@
         },
         {
           "name": "WaylandWindows._sync",
-          "line": 82,
+          "line": 89,
           "kind": "function",
           "parameters": [
             "self"
@@ -32573,7 +32099,7 @@
         },
         {
           "name": "WaylandWindows._event",
-          "line": 95,
+          "line": 102,
           "kind": "function",
           "parameters": [
             "self",
@@ -32589,7 +32115,7 @@
         },
         {
           "name": "WaylandWindows._output",
-          "line": 185,
+          "line": 192,
           "kind": "function",
           "parameters": [
             "self",
@@ -32605,7 +32131,7 @@
         },
         {
           "name": "WaylandWindows._snapshot",
-          "line": 213,
+          "line": 220,
           "kind": "function",
           "parameters": [
             "self"
@@ -32614,7 +32140,7 @@
         },
         {
           "name": "WaylandWindows._prepare",
-          "line": 236,
+          "line": 243,
           "kind": "function",
           "parameters": [
             "self"
@@ -32623,7 +32149,7 @@
         },
         {
           "name": "WaylandWindows._observe",
-          "line": 277,
+          "line": 284,
           "kind": "function",
           "parameters": [
             "task"
@@ -32634,7 +32160,7 @@
         },
         {
           "name": "WaylandWindows.prepare",
-          "line": 281,
+          "line": 288,
           "kind": "function",
           "parameters": [
             "self"
@@ -32643,7 +32169,7 @@
         },
         {
           "name": "WaylandWindows.windows_view",
-          "line": 289,
+          "line": 296,
           "kind": "function",
           "parameters": [
             "self"
@@ -32652,7 +32178,7 @@
         },
         {
           "name": "WaylandWindows._check",
-          "line": 295,
+          "line": 302,
           "kind": "function",
           "parameters": [
             "self"
@@ -32661,7 +32187,7 @@
         },
         {
           "name": "WaylandWindows.check",
-          "line": 306,
+          "line": 313,
           "kind": "function",
           "parameters": [
             "self"
@@ -32670,7 +32196,7 @@
         },
         {
           "name": "WaylandWindows.select",
-          "line": 315,
+          "line": 322,
           "kind": "function",
           "parameters": [
             "self",
@@ -32682,7 +32208,7 @@
         },
         {
           "name": "WaylandWindows.close",
-          "line": 336,
+          "line": 343,
           "kind": "function",
           "parameters": [
             "self"
@@ -32693,13 +32219,13 @@
       "summary": "Read-only wlroots toplevel generations on the granted EI compositor; no app PID inference, focus acquisition or input authority."
     },
     {
-      "path": "agent/src/omni/adapters/platform/linux_wayland_wire.py",
+      "path": "agent/src/omni/adapters/platform/desktop/linux/linux_wayland_wire.py",
       "module": "v2-adapters",
-      "python_module": "omni.adapters.platform.linux_wayland_wire",
+      "python_module": "omni.adapters.platform.desktop.linux.linux_wayland_wire",
       "lines": 131,
       "imports": [
-        "omni.adapters.platform.linux_bus",
-        "omni.adapters.platform.linux_fds"
+        "omni.adapters.platform.desktop.linux.linux_bus",
+        "omni.adapters.platform.desktop.linux.linux_fds"
       ],
       "symbols": [
         {
@@ -32841,18 +32367,18 @@
       "summary": "Bounded read-only Wayland display/registry/output transport; no surfaces, grabs, pixel capture or input commands."
     },
     {
-      "path": "agent/src/omni/adapters/platform/linux_window_binding.py",
+      "path": "agent/src/omni/adapters/platform/desktop/linux/linux_window_binding.py",
       "module": "v2-adapters",
-      "python_module": "omni.adapters.platform.linux_window_binding",
+      "python_module": "omni.adapters.platform.desktop.linux.linux_window_binding",
       "lines": 141,
       "imports": [
-        "omni.adapters.platform.linux_atspi",
-        "omni.adapters.platform.linux_bus",
-        "omni.adapters.platform.linux_foreground",
-        "omni.adapters.platform.linux_input",
-        "omni.adapters.platform.linux_session",
-        "omni.adapters.platform.linux_window_leases",
-        "omni.adapters.platform.linux_x11",
+        "omni.adapters.platform.desktop.linux.linux_atspi",
+        "omni.adapters.platform.desktop.linux.linux_bus",
+        "omni.adapters.platform.desktop.linux.linux_foreground",
+        "omni.adapters.platform.desktop.linux.linux_input",
+        "omni.adapters.platform.desktop.linux.linux_session",
+        "omni.adapters.platform.desktop.linux.linux_window_leases",
+        "omni.adapters.platform.desktop.linux.linux_x11",
         "omni.domain.desktop"
       ],
       "symbols": [
@@ -32951,14 +32477,14 @@
       "summary": "Bind an explicit AT-SPI provider XID to continuous native ownership/focus; no guessed mapping, focus acquisition or input."
     },
     {
-      "path": "agent/src/omni/adapters/platform/linux_window_leases.py",
+      "path": "agent/src/omni/adapters/platform/desktop/linux/linux_window_leases.py",
       "module": "v2-adapters",
-      "python_module": "omni.adapters.platform.linux_window_leases",
+      "python_module": "omni.adapters.platform.desktop.linux.linux_window_leases",
       "lines": 137,
       "imports": [
-        "omni.adapters.platform.linux_bus",
-        "omni.adapters.platform.linux_x11",
-        "omni.adapters.platform.linux_x11_wire",
+        "omni.adapters.platform.desktop.linux.linux_bus",
+        "omni.adapters.platform.desktop.linux.linux_x11",
+        "omni.adapters.platform.desktop.linux.linux_x11_wire",
         "omni.domain.desktop",
         "omni.domain.linux_window_leases"
       ],
@@ -33107,15 +32633,15 @@
       "summary": "Continuous X11 window generations on one proven connection; no input, AT-SPI mapping or database access."
     },
     {
-      "path": "agent/src/omni/adapters/platform/linux_x11.py",
+      "path": "agent/src/omni/adapters/platform/desktop/linux/linux_x11.py",
       "module": "v2-adapters",
-      "python_module": "omni.adapters.platform.linux_x11",
+      "python_module": "omni.adapters.platform.desktop.linux.linux_x11",
       "lines": 248,
       "imports": [
-        "omni.adapters.platform.linux_bus",
-        "omni.adapters.platform.linux_session",
-        "omni.adapters.platform.linux_x11_socket",
-        "omni.adapters.platform.linux_x11_wire",
+        "omni.adapters.platform.desktop.linux.linux_bus",
+        "omni.adapters.platform.desktop.linux.linux_session",
+        "omni.adapters.platform.desktop.linux.linux_x11_socket",
+        "omni.adapters.platform.desktop.linux.linux_x11_wire",
         "omni.domain.contracts",
         "omni.domain.desktop"
       ],
@@ -33251,13 +32777,13 @@
       "summary": "XRes-bound local X11 targets and existing Composite pixmaps; never captures the root or sends input."
     },
     {
-      "path": "agent/src/omni/adapters/platform/linux_x11_socket.py",
+      "path": "agent/src/omni/adapters/platform/desktop/linux/linux_x11_socket.py",
       "module": "v2-adapters",
-      "python_module": "omni.adapters.platform.linux_x11_socket",
+      "python_module": "omni.adapters.platform.desktop.linux.linux_x11_socket",
       "lines": 219,
       "imports": [
-        "omni.adapters.platform.linux_bus",
-        "omni.adapters.platform.linux_session"
+        "omni.adapters.platform.desktop.linux.linux_bus",
+        "omni.adapters.platform.desktop.linux.linux_session"
       ],
       "symbols": [
         {
@@ -33393,12 +32919,12 @@
       "summary": "Canonical local X11 sockets and private Xauthority; verify peers before sending credentials."
     },
     {
-      "path": "agent/src/omni/adapters/platform/linux_x11_wire.py",
+      "path": "agent/src/omni/adapters/platform/desktop/linux/linux_x11_wire.py",
       "module": "v2-adapters",
-      "python_module": "omni.adapters.platform.linux_x11_wire",
+      "python_module": "omni.adapters.platform.desktop.linux.linux_x11_wire",
       "lines": 253,
       "imports": [
-        "omni.adapters.platform.linux_bus"
+        "omni.adapters.platform.desktop.linux.linux_bus"
       ],
       "symbols": [
         {
@@ -33658,16 +33184,16 @@
       "summary": "Small bounded X11 read protocol on an already verified socket; no discovery, input or reconnect."
     },
     {
-      "path": "agent/src/omni/adapters/platform/linux_xkb.py",
+      "path": "agent/src/omni/adapters/platform/desktop/linux/linux_xkb.py",
       "module": "v2-adapters",
-      "python_module": "omni.adapters.platform.linux_xkb",
+      "python_module": "omni.adapters.platform.desktop.linux.linux_xkb",
       "lines": 263,
       "imports": [
-        "omni.adapters.platform.linux_bus",
-        "omni.adapters.platform.linux_input",
-        "omni.adapters.platform.linux_x11_wire",
-        "omni.adapters.platform.linux_xkb_copy",
-        "omni.adapters.platform.linux_xkb_map"
+        "omni.adapters.platform.desktop.linux.linux_bus",
+        "omni.adapters.platform.desktop.linux.linux_input",
+        "omni.adapters.platform.desktop.linux.linux_x11_wire",
+        "omni.adapters.platform.desktop.linux.linux_xkb_copy",
+        "omni.adapters.platform.desktop.linux.linux_xkb_map"
       ],
       "symbols": [
         {
@@ -33812,13 +33338,13 @@
       "summary": "Read-only XKB server state/actions on the existing input connection; no layout mutation, device acquisition or event dispatch."
     },
     {
-      "path": "agent/src/omni/adapters/platform/linux_xkb_copy.py",
+      "path": "agent/src/omni/adapters/platform/desktop/linux/linux_xkb_copy.py",
       "module": "v2-adapters",
-      "python_module": "omni.adapters.platform.linux_xkb_copy",
+      "python_module": "omni.adapters.platform.desktop.linux.linux_xkb_copy",
       "lines": 176,
       "imports": [
-        "omni.adapters.platform.linux_bus",
-        "omni.adapters.platform.linux_x11_wire"
+        "omni.adapters.platform.desktop.linux.linux_bus",
+        "omni.adapters.platform.desktop.linux.linux_x11_wire"
       ],
       "symbols": [
         {
@@ -33958,13 +33484,13 @@
       "summary": "Canonical bounded identities for XKB copied compatibility, names, indicator maps and current geometry; no writes."
     },
     {
-      "path": "agent/src/omni/adapters/platform/linux_xkb_map.py",
+      "path": "agent/src/omni/adapters/platform/desktop/linux/linux_xkb_map.py",
       "module": "v2-adapters",
-      "python_module": "omni.adapters.platform.linux_xkb_map",
+      "python_module": "omni.adapters.platform.desktop.linux.linux_xkb_map",
       "lines": 107,
       "imports": [
-        "omni.adapters.platform.linux_bus",
-        "omni.adapters.platform.linux_x11_wire"
+        "omni.adapters.platform.desktop.linux.linux_bus",
+        "omni.adapters.platform.desktop.linux.linux_x11_wire"
       ],
       "symbols": [
         {
@@ -34018,13 +33544,13 @@
       "summary": "Bounded canonical identity of a full native XKB map; no key translation, mutation or input dispatch."
     },
     {
-      "path": "agent/src/omni/adapters/platform/linux_xkbcommon.py",
+      "path": "agent/src/omni/adapters/platform/desktop/linux/linux_xkbcommon.py",
       "module": "v2-adapters",
-      "python_module": "omni.adapters.platform.linux_xkbcommon",
+      "python_module": "omni.adapters.platform.desktop.linux.linux_xkbcommon",
       "lines": 191,
       "imports": [
-        "omni.adapters.platform.linux_bus",
-        "omni.adapters.platform.linux_eis_keymap",
+        "omni.adapters.platform.desktop.linux.linux_bus",
+        "omni.adapters.platform.desktop.linux.linux_eis_keymap",
         "omni.domain.contracts",
         "omni.domain.foreground"
       ],
@@ -34155,14 +33681,14 @@
       "summary": "Owned libxkbcommon buffer compilation and special-key interpretation; no default layout, includes or native input."
     },
     {
-      "path": "agent/src/omni/adapters/platform/linux_xtest.py",
+      "path": "agent/src/omni/adapters/platform/desktop/linux/linux_xtest.py",
       "module": "v2-adapters",
-      "python_module": "omni.adapters.platform.linux_xtest",
+      "python_module": "omni.adapters.platform.desktop.linux.linux_xtest",
       "lines": 130,
       "imports": [
-        "omni.adapters.platform.linux_bus",
-        "omni.adapters.platform.linux_input",
-        "omni.adapters.platform.linux_x11_wire"
+        "omni.adapters.platform.desktop.linux.linux_bus",
+        "omni.adapters.platform.desktop.linux.linux_input",
+        "omni.adapters.platform.desktop.linux.linux_x11_wire"
       ],
       "symbols": [
         {
@@ -34242,9 +33768,9 @@
       "summary": "Read-only Xorg XTEST device identity proof; no input dispatch or own-event exemption."
     },
     {
-      "path": "agent/src/omni/adapters/platform/macos_helper.py",
+      "path": "agent/src/omni/adapters/platform/desktop/macos_helper.py",
       "module": "v2-adapters",
-      "python_module": "omni.adapters.platform.macos_helper",
+      "python_module": "omni.adapters.platform.desktop.macos_helper",
       "lines": 114,
       "imports": [
         "omni.domain.contracts",
@@ -34300,110 +33826,13 @@
       "summary": "Resolve the fixed, owner-installed Swift bundle; never build, install or request TCC permissions."
     },
     {
-      "path": "agent/src/omni/adapters/platform/macos_service.py",
+      "path": "agent/src/omni/adapters/platform/desktop/portal.py",
       "module": "v2-adapters",
-      "python_module": "omni.adapters.platform.macos_service",
-      "lines": 109,
-      "imports": [
-        "omni.adapters.platform.deployment_files",
-        "omni.adapters.platform.macos_service_state",
-        "omni.application.ports",
-        "omni.domain.contracts",
-        "omni.domain.service_deployment"
-      ],
-      "symbols": [
-        {
-          "name": "MacOSServiceInspection",
-          "line": 32,
-          "kind": "class"
-        },
-        {
-          "name": "MacOSServiceInspection.__init__",
-          "line": 33,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "command",
-            "helper"
-          ],
-          "annotations": {
-            "command": "Callable[[list[str]], Awaitable[tuple[int, bytes]]]",
-            "helper": "Callable[[], Awaitable[Path | None]]"
-          }
-        },
-        {
-          "name": "MacOSServiceInspection.probe",
-          "line": 38,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "plan"
-          ],
-          "annotations": {
-            "plan": "Record"
-          }
-        }
-      ],
-      "summary": "Inspect loaded launchd descriptions via the fixed Swift helper; never parses launchctl print as authority."
-    },
-    {
-      "path": "agent/src/omni/adapters/platform/macos_service_state.py",
-      "module": "v2-adapters",
-      "python_module": "omni.adapters.platform.macos_service_state",
-      "lines": 101,
-      "imports": [
-        "omni.adapters.platform.service_templates",
-        "omni.domain.service_deployment"
-      ],
-      "symbols": [
-        {
-          "name": "_bounded_job",
-          "line": 17,
-          "kind": "function",
-          "parameters": [
-            "value"
-          ],
-          "annotations": {
-            "value": "object"
-          }
-        },
-        {
-          "name": "loaded_definition",
-          "line": 45,
-          "kind": "function",
-          "parameters": [
-            "plan",
-            "job"
-          ],
-          "annotations": {
-            "plan": "Mapping[str, object]",
-            "job": "object"
-          }
-        },
-        {
-          "name": "disabled_override",
-          "line": 77,
-          "kind": "function",
-          "parameters": [
-            "output",
-            "label"
-          ],
-          "annotations": {
-            "output": "bytes",
-            "label": "str"
-          }
-        }
-      ],
-      "summary": "Pure bounded launchd definition and override comparison shared by owner and administrator ports."
-    },
-    {
-      "path": "agent/src/omni/adapters/platform/portal.py",
-      "module": "v2-adapters",
-      "python_module": "omni.adapters.platform.portal",
+      "python_module": "omni.adapters.platform.desktop.portal",
       "lines": 506,
       "imports": [
-        "omni.adapters.platform",
         "omni.adapters.platform.desktop",
+        "omni.adapters.platform.desktop.backend",
         "omni.adapters.platform.runtime.processes",
         "omni.application.ports",
         "omni.domain.contracts",
@@ -34746,9 +34175,612 @@
       "summary": "Owned long-lived Portal helper sessions with shared desktop capacity and bounded metadata pipes; no pixel or input dispatch."
     },
     {
-      "path": "agent/src/omni/adapters/platform/release_files.py",
+      "path": "agent/src/omni/adapters/platform/exchange_deployments.py",
       "module": "v2-adapters",
-      "python_module": "omni.adapters.platform.release_files",
+      "python_module": "omni.adapters.platform.exchange_deployments",
+      "lines": 27,
+      "imports": [
+        "omni.adapters.platform.deployment_files",
+        "omni.adapters.platform.releases.release_files",
+        "omni.application.ports",
+        "omni.domain.contracts",
+        "omni.domain.releases"
+      ],
+      "symbols": [
+        {
+          "name": "ExchangeSourceDeployment",
+          "line": 14,
+          "kind": "class"
+        },
+        {
+          "name": "ExchangeSourceDeployment.__init__",
+          "line": 15,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "plan",
+            "files"
+          ],
+          "annotations": {
+            "plan": "ReleasePlan",
+            "files": "ReleaseFiles"
+          }
+        },
+        {
+          "name": "ExchangeSourceDeployment.verify",
+          "line": 18,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "bundle"
+          ],
+          "annotations": {
+            "bundle": "str | Path"
+          }
+        }
+      ],
+      "summary": "Verify a reviewed source for removal or signed boot draining; never execute or import the source installation."
+    },
+    {
+      "path": "agent/src/omni/adapters/platform/exchange_files.py",
+      "module": "v2-adapters",
+      "python_module": "omni.adapters.platform.exchange_files",
+      "lines": 278,
+      "imports": [
+        "omni.adapters.object_store",
+        "omni.adapters.platform.deployment_files",
+        "omni.adapters.platform.runtime.paths",
+        "omni.adapters.platform.runtime.permissions",
+        "omni.application.ports",
+        "omni.domain.contracts",
+        "omni.domain.releases",
+        "omni.domain.service_admin",
+        "omni.domain.service_exchange",
+        "omni.domain.service_isolation"
+      ],
+      "symbols": [
+        {
+          "name": "invalid",
+          "line": 24,
+          "kind": "function",
+          "parameters": [
+            "code"
+          ],
+          "annotations": {
+            "code": "str"
+          }
+        },
+        {
+          "name": "ExchangeFiles",
+          "line": 28,
+          "kind": "class"
+        },
+        {
+          "name": "ExchangeFiles.__init__",
+          "line": 29,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "deployments"
+          ],
+          "annotations": {
+            "deployments": "CurrentDeploymentFiles"
+          }
+        },
+        {
+          "name": "ExchangeFiles.homes",
+          "line": 34,
+          "kind": "function",
+          "parameters": [
+            "plan"
+          ],
+          "annotations": {
+            "plan": "ExchangePlan"
+          }
+        },
+        {
+          "name": "ExchangeFiles._root",
+          "line": 44,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "plan"
+          ],
+          "annotations": {
+            "plan": "ExchangePlan"
+          }
+        },
+        {
+          "name": "ExchangeFiles._read",
+          "line": 51,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "path"
+          ],
+          "annotations": {
+            "path": "Path"
+          }
+        },
+        {
+          "name": "ExchangeFiles.read",
+          "line": 56,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "path"
+          ],
+          "annotations": {
+            "path": "Path"
+          }
+        },
+        {
+          "name": "ExchangeFiles._require_owned",
+          "line": 60,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "plan"
+          ],
+          "annotations": {
+            "plan": "ExchangePlan"
+          }
+        },
+        {
+          "name": "ExchangeFiles.publish",
+          "line": 64,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "plan",
+            "output"
+          ],
+          "annotations": {
+            "plan": "ExchangePlan",
+            "output": "str"
+          }
+        },
+        {
+          "name": "ExchangeFiles.publish_isolation",
+          "line": 78,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "plan",
+            "output"
+          ],
+          "annotations": {
+            "plan": "IsolationPlan",
+            "output": "str"
+          }
+        },
+        {
+          "name": "ExchangeFiles.publish_administrator",
+          "line": 91,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "plan",
+            "role",
+            "output"
+          ],
+          "annotations": {
+            "plan": "ExchangePlan",
+            "role": "str",
+            "output": "str"
+          }
+        },
+        {
+          "name": "ExchangeFiles._publish",
+          "line": 111,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "checked",
+            "document",
+            "output"
+          ],
+          "annotations": {
+            "checked": "ExchangePlan",
+            "document": "Mapping[str, object]",
+            "output": "str"
+          }
+        },
+        {
+          "name": "ExchangeFiles.exclusive",
+          "line": 132,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "plan"
+          ],
+          "annotations": {
+            "plan": "ExchangePlan"
+          }
+        },
+        {
+          "name": "ExchangeFiles.history",
+          "line": 148,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "plan"
+          ],
+          "annotations": {
+            "plan": "ExchangePlan"
+          }
+        },
+        {
+          "name": "ExchangeFiles.maintenance",
+          "line": 183,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "plan"
+          ],
+          "annotations": {
+            "plan": "ExchangePlan"
+          }
+        },
+        {
+          "name": "ExchangeFiles.claim",
+          "line": 195,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "plan"
+          ],
+          "annotations": {
+            "plan": "ExchangePlan"
+          }
+        },
+        {
+          "name": "ExchangeFiles.append",
+          "line": 237,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "plan",
+            "record"
+          ],
+          "annotations": {
+            "plan": "ExchangePlan",
+            "record": "Record"
+          }
+        },
+        {
+          "name": "ExchangeFiles.check_idle",
+          "line": 252,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "plan"
+          ],
+          "annotations": {
+            "plan": "ExchangePlan"
+          }
+        },
+        {
+          "name": "ExchangeFiles.settled",
+          "line": 261,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "plan"
+          ],
+          "annotations": {
+            "plan": "ExchangePlan"
+          }
+        }
+      ],
+      "summary": "Private bounded exchange witnesses and maintenance reservations; no database, native calls or rollback."
+    },
+    {
+      "path": "agent/src/omni/adapters/platform/macos_service.py",
+      "module": "v2-adapters",
+      "python_module": "omni.adapters.platform.macos_service",
+      "lines": 109,
+      "imports": [
+        "omni.adapters.platform.deployment_files",
+        "omni.adapters.platform.macos_service_state",
+        "omni.application.ports",
+        "omni.domain.contracts",
+        "omni.domain.service_deployment"
+      ],
+      "symbols": [
+        {
+          "name": "MacOSServiceInspection",
+          "line": 32,
+          "kind": "class"
+        },
+        {
+          "name": "MacOSServiceInspection.__init__",
+          "line": 33,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "command",
+            "helper"
+          ],
+          "annotations": {
+            "command": "Callable[[list[str]], Awaitable[tuple[int, bytes]]]",
+            "helper": "Callable[[], Awaitable[Path | None]]"
+          }
+        },
+        {
+          "name": "MacOSServiceInspection.probe",
+          "line": 38,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "plan"
+          ],
+          "annotations": {
+            "plan": "Record"
+          }
+        }
+      ],
+      "summary": "Inspect loaded launchd descriptions via the fixed Swift helper; never parses launchctl print as authority."
+    },
+    {
+      "path": "agent/src/omni/adapters/platform/macos_service_state.py",
+      "module": "v2-adapters",
+      "python_module": "omni.adapters.platform.macos_service_state",
+      "lines": 101,
+      "imports": [
+        "omni.adapters.platform.service_templates",
+        "omni.domain.service_deployment"
+      ],
+      "symbols": [
+        {
+          "name": "_bounded_job",
+          "line": 17,
+          "kind": "function",
+          "parameters": [
+            "value"
+          ],
+          "annotations": {
+            "value": "object"
+          }
+        },
+        {
+          "name": "loaded_definition",
+          "line": 45,
+          "kind": "function",
+          "parameters": [
+            "plan",
+            "job"
+          ],
+          "annotations": {
+            "plan": "Mapping[str, object]",
+            "job": "object"
+          }
+        },
+        {
+          "name": "disabled_override",
+          "line": 77,
+          "kind": "function",
+          "parameters": [
+            "output",
+            "label"
+          ],
+          "annotations": {
+            "output": "bytes",
+            "label": "str"
+          }
+        }
+      ],
+      "summary": "Pure bounded launchd definition and override comparison shared by owner and administrator ports."
+    },
+    {
+      "path": "agent/src/omni/adapters/platform/releases/__init__.py",
+      "module": "v2-adapters",
+      "python_module": "omni.adapters.platform.releases",
+      "lines": 1,
+      "imports": [],
+      "symbols": [],
+      "summary": "V2 releases adapters; importing never probes the platform."
+    },
+    {
+      "path": "agent/src/omni/adapters/platform/releases/candidate_installer.py",
+      "module": "v2-adapters",
+      "python_module": "omni.adapters.platform.releases.candidate_installer",
+      "lines": 131,
+      "imports": [
+        "omni.adapters.platform.releases.dependency_bundle",
+        "omni.adapters.platform.runtime.permissions",
+        "omni.domain.contracts"
+      ],
+      "symbols": [
+        {
+          "name": "_invalid",
+          "line": 18,
+          "kind": "function",
+          "parameters": [
+            "code"
+          ],
+          "annotations": {
+            "code": "str"
+          }
+        },
+        {
+          "name": "_run",
+          "line": 22,
+          "kind": "function",
+          "parameters": [
+            "command",
+            "cwd"
+          ],
+          "annotations": {
+            "command": "list[str]",
+            "cwd": "Path"
+          }
+        },
+        {
+          "name": "_wheel_hash",
+          "line": 34,
+          "kind": "function",
+          "parameters": [
+            "path"
+          ],
+          "annotations": {
+            "path": "Path"
+          }
+        },
+        {
+          "name": "install_candidate",
+          "line": 45,
+          "kind": "function",
+          "parameters": [
+            "wheel",
+            "sha256",
+            "bundle",
+            "bundle_sha256",
+            "manager",
+            "home"
+          ],
+          "annotations": {
+            "wheel": "Path",
+            "sha256": "str",
+            "bundle": "Path",
+            "bundle_sha256": "str",
+            "manager": "Path",
+            "home": "Path"
+          }
+        }
+      ],
+      "summary": "Bootstrap a fresh offline V2 candidate with a separate maintenance interpreter; never registers services."
+    },
+    {
+      "path": "agent/src/omni/adapters/platform/releases/dependency_bundle.py",
+      "module": "v2-adapters",
+      "python_module": "omni.adapters.platform.releases.dependency_bundle",
+      "lines": 252,
+      "imports": [
+        "omni.adapters.platform.runtime.permissions",
+        "omni.domain.contracts"
+      ],
+      "symbols": [
+        {
+          "name": "invalid",
+          "line": 29,
+          "kind": "function",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "no_links",
+          "line": 35,
+          "kind": "function",
+          "parameters": [
+            "path"
+          ],
+          "annotations": {
+            "path": "Path"
+          }
+        },
+        {
+          "name": "_open",
+          "line": 40,
+          "kind": "function",
+          "parameters": [
+            "path"
+          ],
+          "annotations": {
+            "path": "Path"
+          }
+        },
+        {
+          "name": "_pairs",
+          "line": 45,
+          "kind": "function",
+          "parameters": [
+            "items"
+          ],
+          "annotations": {
+            "items": "list[tuple[str, object]]"
+          }
+        },
+        {
+          "name": "_manifest",
+          "line": 54,
+          "kind": "function",
+          "parameters": [
+            "root",
+            "expected"
+          ],
+          "annotations": {
+            "root": "Path",
+            "expected": "str"
+          }
+        },
+        {
+          "name": "_copy_wheel",
+          "line": 113,
+          "kind": "function",
+          "parameters": [
+            "source",
+            "expected_bytes",
+            "expected_sha256",
+            "target"
+          ],
+          "annotations": {
+            "source": "Path",
+            "expected_bytes": "int",
+            "expected_sha256": "str",
+            "target": "Path | None"
+          }
+        },
+        {
+          "name": "capture_bundle",
+          "line": 136,
+          "kind": "function",
+          "parameters": [
+            "source",
+            "expected_sha256",
+            "stage"
+          ],
+          "annotations": {
+            "source": "Path",
+            "expected_sha256": "str",
+            "stage": "Path"
+          }
+        },
+        {
+          "name": "_capture_bundle",
+          "line": 144,
+          "kind": "function",
+          "parameters": [
+            "source",
+            "expected_sha256",
+            "stage"
+          ],
+          "annotations": {
+            "source": "Path",
+            "expected_sha256": "str",
+            "stage": "Path"
+          }
+        },
+        {
+          "name": "build_bundle",
+          "line": 183,
+          "kind": "function",
+          "parameters": [
+            "source",
+            "destination"
+          ],
+          "annotations": {
+            "source": "Path",
+            "destination": "Path"
+          }
+        }
+      ],
+      "summary": "Capture a hash-pinned local wheel bundle for an isolated environment; never downloads or executes wheels."
+    },
+    {
+      "path": "agent/src/omni/adapters/platform/releases/release_files.py",
+      "module": "v2-adapters",
+      "python_module": "omni.adapters.platform.releases.release_files",
       "lines": 411,
       "imports": [
         "omni.adapters.object_store",
@@ -35055,6 +35087,812 @@
         }
       ],
       "summary": "Private release journals, installation bytes and startup fences; no database or native registration."
+    },
+    {
+      "path": "agent/src/omni/adapters/platform/releases/wheel_artifact.py",
+      "module": "v2-adapters",
+      "python_module": "omni.adapters.platform.releases.wheel_artifact",
+      "lines": 61,
+      "imports": [
+        "omni.domain.contracts"
+      ],
+      "symbols": [
+        {
+          "name": "invalid",
+          "line": 18,
+          "kind": "function",
+          "parameters": [
+            "code"
+          ],
+          "annotations": {
+            "code": "str"
+          }
+        },
+        {
+          "name": "inspect_wheel",
+          "line": 22,
+          "kind": "function",
+          "parameters": [
+            "path",
+            "sha256"
+          ],
+          "annotations": {
+            "path": "Path",
+            "sha256": "str"
+          }
+        }
+      ],
+      "summary": "Read-only wheel artifact verification: hash, archive safety and V2 asset presence; never installs."
+    },
+    {
+      "path": "agent/src/omni/adapters/platform/releases/wheel_backup.py",
+      "module": "v2-adapters",
+      "python_module": "omni.adapters.platform.releases.wheel_backup",
+      "lines": 68,
+      "imports": [
+        "omni.adapters.persistence.maintenance",
+        "omni.adapters.platform.releases.wheel_switch",
+        "omni.adapters.platform.runtime.paths",
+        "omni.adapters.platform.runtime.permissions",
+        "omni.application.ports",
+        "omni.domain.contracts"
+      ],
+      "symbols": [
+        {
+          "name": "invalid",
+          "line": 20,
+          "kind": "function",
+          "parameters": [
+            "code"
+          ],
+          "annotations": {
+            "code": "str"
+          }
+        },
+        {
+          "name": "backup_candidate",
+          "line": 24,
+          "kind": "function",
+          "parameters": [
+            "paths",
+            "sha256"
+          ],
+          "annotations": {
+            "paths": "InstancePaths",
+            "sha256": "str"
+          }
+        }
+      ],
+      "summary": "Execute only the backup step of a reviewed switch plan; no stop, switch, migration or rollback."
+    },
+    {
+      "path": "agent/src/omni/adapters/platform/releases/wheel_environment.py",
+      "module": "v2-adapters",
+      "python_module": "omni.adapters.platform.releases.wheel_environment",
+      "lines": 249,
+      "imports": [
+        "omni.adapters.persistence.maintenance",
+        "omni.adapters.platform.releases.dependency_bundle",
+        "omni.adapters.platform.releases.wheel_artifact",
+        "omni.adapters.platform.releases.wheel_stage",
+        "omni.adapters.platform.runtime.paths",
+        "omni.adapters.platform.runtime.permissions",
+        "omni.adapters.platform.runtime.runtime_identity",
+        "omni.application.ports",
+        "omni.domain.contracts"
+      ],
+      "symbols": [
+        {
+          "name": "invalid",
+          "line": 27,
+          "kind": "function",
+          "parameters": [
+            "code"
+          ],
+          "annotations": {
+            "code": "str"
+          }
+        },
+        {
+          "name": "_python",
+          "line": 31,
+          "kind": "function",
+          "parameters": [
+            "venv"
+          ],
+          "annotations": {
+            "venv": "Path"
+          }
+        },
+        {
+          "name": "_run",
+          "line": 35,
+          "kind": "function",
+          "parameters": [
+            "command",
+            "cwd"
+          ],
+          "annotations": {
+            "command": "list[str]",
+            "cwd": "Path"
+          }
+        },
+        {
+          "name": "_installable",
+          "line": 44,
+          "kind": "function",
+          "parameters": [
+            "artifact",
+            "stage",
+            "sha256"
+          ],
+          "annotations": {
+            "artifact": "Path",
+            "stage": "Path",
+            "sha256": "str"
+          }
+        },
+        {
+          "name": "create_environment",
+          "line": 78,
+          "kind": "function",
+          "parameters": [
+            "paths",
+            "sha256",
+            "dependency_bundle",
+            "dependency_sha256"
+          ],
+          "annotations": {
+            "paths": "InstancePaths",
+            "sha256": "str",
+            "dependency_bundle": "Path | None",
+            "dependency_sha256": "str"
+          }
+        },
+        {
+          "name": "_remove_environment",
+          "line": 99,
+          "kind": "function",
+          "parameters": [
+            "venv",
+            "stage"
+          ],
+          "annotations": {
+            "venv": "Path",
+            "stage": "Path"
+          }
+        },
+        {
+          "name": "installed_environment",
+          "line": 107,
+          "kind": "function",
+          "parameters": [
+            "stage",
+            "sha256"
+          ],
+          "annotations": {
+            "stage": "Path",
+            "sha256": "str"
+          }
+        },
+        {
+          "name": "_create",
+          "line": 140,
+          "kind": "function",
+          "parameters": [
+            "stage",
+            "sha256",
+            "dependency_bundle",
+            "dependency_sha256"
+          ],
+          "annotations": {
+            "stage": "Path",
+            "sha256": "str",
+            "dependency_bundle": "Path | None",
+            "dependency_sha256": "str"
+          }
+        }
+      ],
+      "summary": "Create an offline candidate environment: a venv that installs the staged wheel without a network."
+    },
+    {
+      "path": "agent/src/omni/adapters/platform/releases/wheel_install.py",
+      "module": "v2-adapters",
+      "python_module": "omni.adapters.platform.releases.wheel_install",
+      "lines": 411,
+      "imports": [
+        "omni.adapters.persistence.maintenance",
+        "omni.adapters.persistence.migration_config",
+        "omni.adapters.platform.releases.wheel_artifact",
+        "omni.adapters.platform.releases.wheel_backup",
+        "omni.adapters.platform.releases.wheel_environment",
+        "omni.adapters.platform.releases.wheel_prepare",
+        "omni.adapters.platform.releases.wheel_rollback",
+        "omni.adapters.platform.releases.wheel_smoke",
+        "omni.adapters.platform.releases.wheel_stage",
+        "omni.adapters.platform.runtime.paths",
+        "omni.adapters.platform.runtime.permissions",
+        "omni.adapters.platform.runtime.runtime_identity",
+        "omni.adapters.primitives",
+        "omni.application.ports",
+        "omni.domain.contracts",
+        "omni.domain.installation"
+      ],
+      "symbols": [
+        {
+          "name": "invalid",
+          "line": 70,
+          "kind": "function",
+          "parameters": [
+            "code"
+          ],
+          "annotations": {
+            "code": "str"
+          }
+        },
+        {
+          "name": "_receipt",
+          "line": 74,
+          "kind": "function",
+          "parameters": [
+            "stage",
+            "name",
+            "fmt",
+            "sha256"
+          ],
+          "annotations": {
+            "stage": "Path",
+            "name": "str",
+            "fmt": "str",
+            "sha256": "str"
+          }
+        },
+        {
+          "name": "_wrapper",
+          "line": 90,
+          "kind": "function",
+          "parameters": [
+            "home",
+            "python"
+          ],
+          "annotations": {
+            "home": "Path",
+            "python": "str"
+          }
+        },
+        {
+          "name": "_environment",
+          "line": 116,
+          "kind": "function",
+          "parameters": [
+            "stage",
+            "sha256"
+          ],
+          "annotations": {
+            "stage": "Path",
+            "sha256": "str"
+          }
+        },
+        {
+          "name": "migrate_candidate",
+          "line": 121,
+          "kind": "function",
+          "parameters": [
+            "paths",
+            "sha256"
+          ],
+          "annotations": {
+            "paths": "InstancePaths",
+            "sha256": "str"
+          }
+        },
+        {
+          "name": "_locked",
+          "line": 175,
+          "kind": "function",
+          "parameters": [
+            "paths",
+            "operation"
+          ],
+          "annotations": {
+            "paths": "InstancePaths",
+            "operation": "Callable[[], Record]"
+          }
+        },
+        {
+          "name": "switch_candidate",
+          "line": 189,
+          "kind": "function",
+          "parameters": [
+            "paths",
+            "sha256"
+          ],
+          "annotations": {
+            "paths": "InstancePaths",
+            "sha256": "str"
+          }
+        },
+        {
+          "name": "_switch_candidate",
+          "line": 196,
+          "kind": "function",
+          "parameters": [
+            "paths",
+            "sha256"
+          ],
+          "annotations": {
+            "paths": "InstancePaths",
+            "sha256": "str"
+          }
+        },
+        {
+          "name": "rollback_candidate",
+          "line": 283,
+          "kind": "function",
+          "parameters": [
+            "paths"
+          ],
+          "annotations": {
+            "paths": "InstancePaths"
+          }
+        },
+        {
+          "name": "_rollback_candidate",
+          "line": 290,
+          "kind": "function",
+          "parameters": [
+            "paths"
+          ],
+          "annotations": {
+            "paths": "InstancePaths"
+          }
+        },
+        {
+          "name": "runtime_current",
+          "line": 353,
+          "kind": "function",
+          "parameters": [
+            "paths"
+          ],
+          "annotations": {
+            "paths": "InstancePaths"
+          }
+        },
+        {
+          "name": "install_candidate",
+          "line": 380,
+          "kind": "function",
+          "parameters": [
+            "paths",
+            "wheel",
+            "sha256"
+          ],
+          "annotations": {
+            "paths": "InstancePaths",
+            "wheel": "Path",
+            "sha256": "str"
+          }
+        }
+      ],
+      "summary": "Execute the switch step: point the runtime at a prepared candidate; no stop, migrate or start."
+    },
+    {
+      "path": "agent/src/omni/adapters/platform/releases/wheel_prepare.py",
+      "module": "v2-adapters",
+      "python_module": "omni.adapters.platform.releases.wheel_prepare",
+      "lines": 120,
+      "imports": [
+        "omni.adapters.persistence.maintenance",
+        "omni.adapters.platform.releases.wheel_artifact",
+        "omni.adapters.platform.releases.wheel_stage",
+        "omni.adapters.platform.runtime.permissions",
+        "omni.application.ports",
+        "omni.domain.contracts"
+      ],
+      "symbols": [
+        {
+          "name": "invalid",
+          "line": 23,
+          "kind": "function",
+          "parameters": [
+            "code"
+          ],
+          "annotations": {
+            "code": "str"
+          }
+        },
+        {
+          "name": "_digest",
+          "line": 27,
+          "kind": "function",
+          "parameters": [
+            "path"
+          ],
+          "annotations": {
+            "path": "Path"
+          }
+        },
+        {
+          "name": "_safe_target",
+          "line": 35,
+          "kind": "function",
+          "parameters": [
+            "root",
+            "name"
+          ],
+          "annotations": {
+            "root": "Path",
+            "name": "str"
+          }
+        },
+        {
+          "name": "prepare_wheel",
+          "line": 42,
+          "kind": "function",
+          "parameters": [
+            "home",
+            "sha256"
+          ],
+          "annotations": {
+            "home": "Path",
+            "sha256": "str"
+          }
+        }
+      ],
+      "summary": "Safely unpack one staged wheel into a candidate tree; never creates a venv, switches or migrates."
+    },
+    {
+      "path": "agent/src/omni/adapters/platform/releases/wheel_rollback.py",
+      "module": "v2-adapters",
+      "python_module": "omni.adapters.platform.releases.wheel_rollback",
+      "lines": 71,
+      "imports": [
+        "omni.adapters.persistence.maintenance",
+        "omni.adapters.platform.releases.wheel_backup",
+        "omni.adapters.platform.runtime.paths",
+        "omni.adapters.platform.runtime.permissions",
+        "omni.application.ports",
+        "omni.domain.contracts"
+      ],
+      "symbols": [
+        {
+          "name": "invalid",
+          "line": 19,
+          "kind": "function",
+          "parameters": [
+            "code"
+          ],
+          "annotations": {
+            "code": "str"
+          }
+        },
+        {
+          "name": "rollback_check",
+          "line": 23,
+          "kind": "function",
+          "parameters": [
+            "paths",
+            "sha256"
+          ],
+          "annotations": {
+            "paths": "InstancePaths",
+            "sha256": "str"
+          }
+        }
+      ],
+      "summary": "Rollback drill: restore the update backup into a new sibling directory and verify it; never touches live home."
+    },
+    {
+      "path": "agent/src/omni/adapters/platform/releases/wheel_smoke.py",
+      "module": "v2-adapters",
+      "python_module": "omni.adapters.platform.releases.wheel_smoke",
+      "lines": 115,
+      "imports": [
+        "omni.adapters.persistence.maintenance",
+        "omni.adapters.platform.releases.wheel_environment",
+        "omni.adapters.platform.releases.wheel_prepare",
+        "omni.adapters.platform.runtime.paths",
+        "omni.adapters.platform.runtime.permissions",
+        "omni.adapters.platform.runtime.runtime_identity",
+        "omni.application.ports",
+        "omni.domain.contracts"
+      ],
+      "symbols": [
+        {
+          "name": "invalid",
+          "line": 42,
+          "kind": "function",
+          "parameters": [
+            "code"
+          ],
+          "annotations": {
+            "code": "str"
+          }
+        },
+        {
+          "name": "smoke_candidate",
+          "line": 46,
+          "kind": "function",
+          "parameters": [
+            "paths",
+            "sha256"
+          ],
+          "annotations": {
+            "paths": "InstancePaths",
+            "sha256": "str"
+          }
+        }
+      ],
+      "summary": "Smoke-test a prepared candidate tree in a child interpreter; no install, switch or migration."
+    },
+    {
+      "path": "agent/src/omni/adapters/platform/releases/wheel_stage.py",
+      "module": "v2-adapters",
+      "python_module": "omni.adapters.platform.releases.wheel_stage",
+      "lines": 76,
+      "imports": [
+        "omni.adapters.persistence.maintenance",
+        "omni.adapters.platform.releases.wheel_artifact",
+        "omni.adapters.platform.runtime.permissions",
+        "omni.application.ports",
+        "omni.domain.contracts"
+      ],
+      "symbols": [
+        {
+          "name": "invalid",
+          "line": 21,
+          "kind": "function",
+          "parameters": [
+            "code"
+          ],
+          "annotations": {
+            "code": "str"
+          }
+        },
+        {
+          "name": "stage_wheel",
+          "line": 25,
+          "kind": "function",
+          "parameters": [
+            "home",
+            "wheel",
+            "sha256"
+          ],
+          "annotations": {
+            "home": "Path",
+            "wheel": "Path",
+            "sha256": "str"
+          }
+        }
+      ],
+      "summary": "Atomic local staging of a verified wheel; never extracts, switches directories or runs migrations."
+    },
+    {
+      "path": "agent/src/omni/adapters/platform/releases/wheel_status.py",
+      "module": "v2-adapters",
+      "python_module": "omni.adapters.platform.releases.wheel_status",
+      "lines": 119,
+      "imports": [
+        "omni.adapters.persistence.maintenance",
+        "omni.adapters.persistence.migration_config",
+        "omni.adapters.platform.runtime.paths",
+        "omni.domain.contracts",
+        "omni.domain.installation"
+      ],
+      "symbols": [
+        {
+          "name": "_read",
+          "line": 18,
+          "kind": "function",
+          "parameters": [
+            "path"
+          ],
+          "annotations": {
+            "path": "Path"
+          }
+        },
+        {
+          "name": "_next_step",
+          "line": 26,
+          "kind": "function",
+          "parameters": [
+            "stage",
+            "pending"
+          ],
+          "annotations": {
+            "stage": "Path",
+            "pending": "bool"
+          }
+        },
+        {
+          "name": "_runtime",
+          "line": 40,
+          "kind": "function",
+          "parameters": [
+            "paths"
+          ],
+          "annotations": {
+            "paths": "InstancePaths"
+          }
+        },
+        {
+          "name": "installation_status",
+          "line": 59,
+          "kind": "function",
+          "parameters": [
+            "paths"
+          ],
+          "annotations": {
+            "paths": "InstancePaths"
+          }
+        }
+      ],
+      "summary": "Read-only installation/update status projection; never mutates, plans, switches or migrates."
+    },
+    {
+      "path": "agent/src/omni/adapters/platform/releases/wheel_switch.py",
+      "module": "v2-adapters",
+      "python_module": "omni.adapters.platform.releases.wheel_switch",
+      "lines": 85,
+      "imports": [
+        "omni.adapters.persistence.maintenance",
+        "omni.adapters.persistence.migration_config",
+        "omni.adapters.platform.releases.wheel_prepare",
+        "omni.adapters.platform.runtime.paths",
+        "omni.application.ports",
+        "omni.domain.contracts",
+        "omni.domain.installation"
+      ],
+      "symbols": [
+        {
+          "name": "invalid",
+          "line": 20,
+          "kind": "function",
+          "parameters": [
+            "code"
+          ],
+          "annotations": {
+            "code": "str"
+          }
+        },
+        {
+          "name": "_schema",
+          "line": 24,
+          "kind": "function",
+          "parameters": [
+            "database"
+          ],
+          "annotations": {
+            "database": "Path"
+          }
+        },
+        {
+          "name": "switch_plan",
+          "line": 28,
+          "kind": "function",
+          "parameters": [
+            "paths",
+            "sha256"
+          ],
+          "annotations": {
+            "paths": "InstancePaths",
+            "sha256": "str"
+          }
+        }
+      ],
+      "summary": "Read-only switch plan for a prepared candidate; never stops, switches, migrates or rolls back."
+    },
+    {
+      "path": "agent/src/omni/adapters/platform/releases/wheel_uninstall.py",
+      "module": "v2-adapters",
+      "python_module": "omni.adapters.platform.releases.wheel_uninstall",
+      "lines": 218,
+      "imports": [
+        "omni.adapters.persistence.maintenance",
+        "omni.adapters.platform.releases.dependency_bundle",
+        "omni.adapters.platform.releases.wheel_install",
+        "omni.adapters.platform.runtime.paths",
+        "omni.adapters.platform.runtime.permissions",
+        "omni.adapters.platform.runtime.runtime_identity",
+        "omni.application.ports",
+        "omni.domain.contracts"
+      ],
+      "symbols": [
+        {
+          "name": "invalid",
+          "line": 28,
+          "kind": "function",
+          "parameters": [
+            "code"
+          ],
+          "annotations": {
+            "code": "str"
+          }
+        },
+        {
+          "name": "_inside",
+          "line": 32,
+          "kind": "function",
+          "parameters": [
+            "path",
+            "root"
+          ],
+          "annotations": {
+            "path": "Path",
+            "root": "Path"
+          }
+        },
+        {
+          "name": "_remove_stage",
+          "line": 37,
+          "kind": "function",
+          "parameters": [
+            "stage",
+            "updates"
+          ],
+          "annotations": {
+            "stage": "Path",
+            "updates": "Path"
+          }
+        },
+        {
+          "name": "_removal_receipt",
+          "line": 58,
+          "kind": "function",
+          "parameters": [
+            "runtime",
+            "sha256"
+          ],
+          "annotations": {
+            "runtime": "Path",
+            "sha256": "str"
+          }
+        },
+        {
+          "name": "_record_removal",
+          "line": 75,
+          "kind": "function",
+          "parameters": [
+            "runtime",
+            "sha256",
+            "phase",
+            "backup_kept"
+          ],
+          "annotations": {
+            "runtime": "Path",
+            "sha256": "str",
+            "phase": "str",
+            "backup_kept": "str | None"
+          }
+        },
+        {
+          "name": "_active_sha",
+          "line": 85,
+          "kind": "function",
+          "parameters": [
+            "runtime"
+          ],
+          "annotations": {
+            "runtime": "Path"
+          }
+        },
+        {
+          "name": "uninstall_candidate",
+          "line": 100,
+          "kind": "function",
+          "parameters": [
+            "paths",
+            "sha256",
+            "purge"
+          ],
+          "annotations": {
+            "paths": "InstancePaths",
+            "sha256": "str",
+            "purge": "bool"
+          }
+        }
+      ],
+      "summary": "Remove one staged candidate or deactivate the runtime pointer; data and installation receipts stay."
     },
     {
       "path": "agent/src/omni/adapters/platform/runtime/__init__.py",
@@ -37584,7 +38422,7 @@
         "omni.adapters.object_store",
         "omni.adapters.platform.deployment_files",
         "omni.adapters.platform.exchange_files",
-        "omni.adapters.platform.release_files",
+        "omni.adapters.platform.releases.release_files",
         "omni.adapters.platform.runtime.paths",
         "omni.adapters.platform.runtime.permissions",
         "omni.adapters.platform.service_operation_files",
@@ -38318,7 +39156,7 @@
       "python_module": "omni.adapters.platform.service_query",
       "lines": 472,
       "imports": [
-        "omni.adapters.platform.macos_helper",
+        "omni.adapters.platform.desktop.macos_helper",
         "omni.adapters.platform.macos_service",
         "omni.adapters.platform.runtime.processes",
         "omni.adapters.platform.service_templates",
@@ -39163,812 +40001,6 @@
       "summary": "Shared bounded systemd decoding; no command execution or filesystem access."
     },
     {
-      "path": "agent/src/omni/adapters/platform/wheel_artifact.py",
-      "module": "v2-adapters",
-      "python_module": "omni.adapters.platform.wheel_artifact",
-      "lines": 61,
-      "imports": [
-        "omni.domain.contracts"
-      ],
-      "symbols": [
-        {
-          "name": "invalid",
-          "line": 18,
-          "kind": "function",
-          "parameters": [
-            "code"
-          ],
-          "annotations": {
-            "code": "str"
-          }
-        },
-        {
-          "name": "inspect_wheel",
-          "line": 22,
-          "kind": "function",
-          "parameters": [
-            "path",
-            "sha256"
-          ],
-          "annotations": {
-            "path": "Path",
-            "sha256": "str"
-          }
-        }
-      ],
-      "summary": "Read-only wheel artifact verification: hash, archive safety and V2 asset presence; never installs."
-    },
-    {
-      "path": "agent/src/omni/adapters/platform/wheel_backup.py",
-      "module": "v2-adapters",
-      "python_module": "omni.adapters.platform.wheel_backup",
-      "lines": 68,
-      "imports": [
-        "omni.adapters.persistence.maintenance",
-        "omni.adapters.platform.runtime.paths",
-        "omni.adapters.platform.runtime.permissions",
-        "omni.adapters.platform.wheel_switch",
-        "omni.application.ports",
-        "omni.domain.contracts"
-      ],
-      "symbols": [
-        {
-          "name": "invalid",
-          "line": 20,
-          "kind": "function",
-          "parameters": [
-            "code"
-          ],
-          "annotations": {
-            "code": "str"
-          }
-        },
-        {
-          "name": "backup_candidate",
-          "line": 24,
-          "kind": "function",
-          "parameters": [
-            "paths",
-            "sha256"
-          ],
-          "annotations": {
-            "paths": "InstancePaths",
-            "sha256": "str"
-          }
-        }
-      ],
-      "summary": "Execute only the backup step of a reviewed switch plan; no stop, switch, migration or rollback."
-    },
-    {
-      "path": "agent/src/omni/adapters/platform/wheel_environment.py",
-      "module": "v2-adapters",
-      "python_module": "omni.adapters.platform.wheel_environment",
-      "lines": 249,
-      "imports": [
-        "omni.adapters.persistence.maintenance",
-        "omni.adapters.platform.dependency_bundle",
-        "omni.adapters.platform.runtime.paths",
-        "omni.adapters.platform.runtime.permissions",
-        "omni.adapters.platform.runtime.runtime_identity",
-        "omni.adapters.platform.wheel_artifact",
-        "omni.adapters.platform.wheel_stage",
-        "omni.application.ports",
-        "omni.domain.contracts"
-      ],
-      "symbols": [
-        {
-          "name": "invalid",
-          "line": 27,
-          "kind": "function",
-          "parameters": [
-            "code"
-          ],
-          "annotations": {
-            "code": "str"
-          }
-        },
-        {
-          "name": "_python",
-          "line": 31,
-          "kind": "function",
-          "parameters": [
-            "venv"
-          ],
-          "annotations": {
-            "venv": "Path"
-          }
-        },
-        {
-          "name": "_run",
-          "line": 35,
-          "kind": "function",
-          "parameters": [
-            "command",
-            "cwd"
-          ],
-          "annotations": {
-            "command": "list[str]",
-            "cwd": "Path"
-          }
-        },
-        {
-          "name": "_installable",
-          "line": 44,
-          "kind": "function",
-          "parameters": [
-            "artifact",
-            "stage",
-            "sha256"
-          ],
-          "annotations": {
-            "artifact": "Path",
-            "stage": "Path",
-            "sha256": "str"
-          }
-        },
-        {
-          "name": "create_environment",
-          "line": 78,
-          "kind": "function",
-          "parameters": [
-            "paths",
-            "sha256",
-            "dependency_bundle",
-            "dependency_sha256"
-          ],
-          "annotations": {
-            "paths": "InstancePaths",
-            "sha256": "str",
-            "dependency_bundle": "Path | None",
-            "dependency_sha256": "str"
-          }
-        },
-        {
-          "name": "_remove_environment",
-          "line": 99,
-          "kind": "function",
-          "parameters": [
-            "venv",
-            "stage"
-          ],
-          "annotations": {
-            "venv": "Path",
-            "stage": "Path"
-          }
-        },
-        {
-          "name": "installed_environment",
-          "line": 107,
-          "kind": "function",
-          "parameters": [
-            "stage",
-            "sha256"
-          ],
-          "annotations": {
-            "stage": "Path",
-            "sha256": "str"
-          }
-        },
-        {
-          "name": "_create",
-          "line": 140,
-          "kind": "function",
-          "parameters": [
-            "stage",
-            "sha256",
-            "dependency_bundle",
-            "dependency_sha256"
-          ],
-          "annotations": {
-            "stage": "Path",
-            "sha256": "str",
-            "dependency_bundle": "Path | None",
-            "dependency_sha256": "str"
-          }
-        }
-      ],
-      "summary": "Create an offline candidate environment: a venv that installs the staged wheel without a network."
-    },
-    {
-      "path": "agent/src/omni/adapters/platform/wheel_install.py",
-      "module": "v2-adapters",
-      "python_module": "omni.adapters.platform.wheel_install",
-      "lines": 411,
-      "imports": [
-        "omni.adapters.persistence.maintenance",
-        "omni.adapters.persistence.migration_config",
-        "omni.adapters.platform.runtime.paths",
-        "omni.adapters.platform.runtime.permissions",
-        "omni.adapters.platform.runtime.runtime_identity",
-        "omni.adapters.platform.wheel_artifact",
-        "omni.adapters.platform.wheel_backup",
-        "omni.adapters.platform.wheel_environment",
-        "omni.adapters.platform.wheel_prepare",
-        "omni.adapters.platform.wheel_rollback",
-        "omni.adapters.platform.wheel_smoke",
-        "omni.adapters.platform.wheel_stage",
-        "omni.adapters.primitives",
-        "omni.application.ports",
-        "omni.domain.contracts",
-        "omni.domain.installation"
-      ],
-      "symbols": [
-        {
-          "name": "invalid",
-          "line": 70,
-          "kind": "function",
-          "parameters": [
-            "code"
-          ],
-          "annotations": {
-            "code": "str"
-          }
-        },
-        {
-          "name": "_receipt",
-          "line": 74,
-          "kind": "function",
-          "parameters": [
-            "stage",
-            "name",
-            "fmt",
-            "sha256"
-          ],
-          "annotations": {
-            "stage": "Path",
-            "name": "str",
-            "fmt": "str",
-            "sha256": "str"
-          }
-        },
-        {
-          "name": "_wrapper",
-          "line": 90,
-          "kind": "function",
-          "parameters": [
-            "home",
-            "python"
-          ],
-          "annotations": {
-            "home": "Path",
-            "python": "str"
-          }
-        },
-        {
-          "name": "_environment",
-          "line": 116,
-          "kind": "function",
-          "parameters": [
-            "stage",
-            "sha256"
-          ],
-          "annotations": {
-            "stage": "Path",
-            "sha256": "str"
-          }
-        },
-        {
-          "name": "migrate_candidate",
-          "line": 121,
-          "kind": "function",
-          "parameters": [
-            "paths",
-            "sha256"
-          ],
-          "annotations": {
-            "paths": "InstancePaths",
-            "sha256": "str"
-          }
-        },
-        {
-          "name": "_locked",
-          "line": 175,
-          "kind": "function",
-          "parameters": [
-            "paths",
-            "operation"
-          ],
-          "annotations": {
-            "paths": "InstancePaths",
-            "operation": "Callable[[], Record]"
-          }
-        },
-        {
-          "name": "switch_candidate",
-          "line": 189,
-          "kind": "function",
-          "parameters": [
-            "paths",
-            "sha256"
-          ],
-          "annotations": {
-            "paths": "InstancePaths",
-            "sha256": "str"
-          }
-        },
-        {
-          "name": "_switch_candidate",
-          "line": 196,
-          "kind": "function",
-          "parameters": [
-            "paths",
-            "sha256"
-          ],
-          "annotations": {
-            "paths": "InstancePaths",
-            "sha256": "str"
-          }
-        },
-        {
-          "name": "rollback_candidate",
-          "line": 283,
-          "kind": "function",
-          "parameters": [
-            "paths"
-          ],
-          "annotations": {
-            "paths": "InstancePaths"
-          }
-        },
-        {
-          "name": "_rollback_candidate",
-          "line": 290,
-          "kind": "function",
-          "parameters": [
-            "paths"
-          ],
-          "annotations": {
-            "paths": "InstancePaths"
-          }
-        },
-        {
-          "name": "runtime_current",
-          "line": 353,
-          "kind": "function",
-          "parameters": [
-            "paths"
-          ],
-          "annotations": {
-            "paths": "InstancePaths"
-          }
-        },
-        {
-          "name": "install_candidate",
-          "line": 380,
-          "kind": "function",
-          "parameters": [
-            "paths",
-            "wheel",
-            "sha256"
-          ],
-          "annotations": {
-            "paths": "InstancePaths",
-            "wheel": "Path",
-            "sha256": "str"
-          }
-        }
-      ],
-      "summary": "Execute the switch step: point the runtime at a prepared candidate; no stop, migrate or start."
-    },
-    {
-      "path": "agent/src/omni/adapters/platform/wheel_prepare.py",
-      "module": "v2-adapters",
-      "python_module": "omni.adapters.platform.wheel_prepare",
-      "lines": 120,
-      "imports": [
-        "omni.adapters.persistence.maintenance",
-        "omni.adapters.platform.runtime.permissions",
-        "omni.adapters.platform.wheel_artifact",
-        "omni.adapters.platform.wheel_stage",
-        "omni.application.ports",
-        "omni.domain.contracts"
-      ],
-      "symbols": [
-        {
-          "name": "invalid",
-          "line": 23,
-          "kind": "function",
-          "parameters": [
-            "code"
-          ],
-          "annotations": {
-            "code": "str"
-          }
-        },
-        {
-          "name": "_digest",
-          "line": 27,
-          "kind": "function",
-          "parameters": [
-            "path"
-          ],
-          "annotations": {
-            "path": "Path"
-          }
-        },
-        {
-          "name": "_safe_target",
-          "line": 35,
-          "kind": "function",
-          "parameters": [
-            "root",
-            "name"
-          ],
-          "annotations": {
-            "root": "Path",
-            "name": "str"
-          }
-        },
-        {
-          "name": "prepare_wheel",
-          "line": 42,
-          "kind": "function",
-          "parameters": [
-            "home",
-            "sha256"
-          ],
-          "annotations": {
-            "home": "Path",
-            "sha256": "str"
-          }
-        }
-      ],
-      "summary": "Safely unpack one staged wheel into a candidate tree; never creates a venv, switches or migrates."
-    },
-    {
-      "path": "agent/src/omni/adapters/platform/wheel_rollback.py",
-      "module": "v2-adapters",
-      "python_module": "omni.adapters.platform.wheel_rollback",
-      "lines": 71,
-      "imports": [
-        "omni.adapters.persistence.maintenance",
-        "omni.adapters.platform.runtime.paths",
-        "omni.adapters.platform.runtime.permissions",
-        "omni.adapters.platform.wheel_backup",
-        "omni.application.ports",
-        "omni.domain.contracts"
-      ],
-      "symbols": [
-        {
-          "name": "invalid",
-          "line": 19,
-          "kind": "function",
-          "parameters": [
-            "code"
-          ],
-          "annotations": {
-            "code": "str"
-          }
-        },
-        {
-          "name": "rollback_check",
-          "line": 23,
-          "kind": "function",
-          "parameters": [
-            "paths",
-            "sha256"
-          ],
-          "annotations": {
-            "paths": "InstancePaths",
-            "sha256": "str"
-          }
-        }
-      ],
-      "summary": "Rollback drill: restore the update backup into a new sibling directory and verify it; never touches live home."
-    },
-    {
-      "path": "agent/src/omni/adapters/platform/wheel_smoke.py",
-      "module": "v2-adapters",
-      "python_module": "omni.adapters.platform.wheel_smoke",
-      "lines": 115,
-      "imports": [
-        "omni.adapters.persistence.maintenance",
-        "omni.adapters.platform.runtime.paths",
-        "omni.adapters.platform.runtime.permissions",
-        "omni.adapters.platform.runtime.runtime_identity",
-        "omni.adapters.platform.wheel_environment",
-        "omni.adapters.platform.wheel_prepare",
-        "omni.application.ports",
-        "omni.domain.contracts"
-      ],
-      "symbols": [
-        {
-          "name": "invalid",
-          "line": 42,
-          "kind": "function",
-          "parameters": [
-            "code"
-          ],
-          "annotations": {
-            "code": "str"
-          }
-        },
-        {
-          "name": "smoke_candidate",
-          "line": 46,
-          "kind": "function",
-          "parameters": [
-            "paths",
-            "sha256"
-          ],
-          "annotations": {
-            "paths": "InstancePaths",
-            "sha256": "str"
-          }
-        }
-      ],
-      "summary": "Smoke-test a prepared candidate tree in a child interpreter; no install, switch or migration."
-    },
-    {
-      "path": "agent/src/omni/adapters/platform/wheel_stage.py",
-      "module": "v2-adapters",
-      "python_module": "omni.adapters.platform.wheel_stage",
-      "lines": 76,
-      "imports": [
-        "omni.adapters.persistence.maintenance",
-        "omni.adapters.platform.runtime.permissions",
-        "omni.adapters.platform.wheel_artifact",
-        "omni.application.ports",
-        "omni.domain.contracts"
-      ],
-      "symbols": [
-        {
-          "name": "invalid",
-          "line": 21,
-          "kind": "function",
-          "parameters": [
-            "code"
-          ],
-          "annotations": {
-            "code": "str"
-          }
-        },
-        {
-          "name": "stage_wheel",
-          "line": 25,
-          "kind": "function",
-          "parameters": [
-            "home",
-            "wheel",
-            "sha256"
-          ],
-          "annotations": {
-            "home": "Path",
-            "wheel": "Path",
-            "sha256": "str"
-          }
-        }
-      ],
-      "summary": "Atomic local staging of a verified wheel; never extracts, switches directories or runs migrations."
-    },
-    {
-      "path": "agent/src/omni/adapters/platform/wheel_status.py",
-      "module": "v2-adapters",
-      "python_module": "omni.adapters.platform.wheel_status",
-      "lines": 119,
-      "imports": [
-        "omni.adapters.persistence.maintenance",
-        "omni.adapters.persistence.migration_config",
-        "omni.adapters.platform.runtime.paths",
-        "omni.domain.contracts",
-        "omni.domain.installation"
-      ],
-      "symbols": [
-        {
-          "name": "_read",
-          "line": 18,
-          "kind": "function",
-          "parameters": [
-            "path"
-          ],
-          "annotations": {
-            "path": "Path"
-          }
-        },
-        {
-          "name": "_next_step",
-          "line": 26,
-          "kind": "function",
-          "parameters": [
-            "stage",
-            "pending"
-          ],
-          "annotations": {
-            "stage": "Path",
-            "pending": "bool"
-          }
-        },
-        {
-          "name": "_runtime",
-          "line": 40,
-          "kind": "function",
-          "parameters": [
-            "paths"
-          ],
-          "annotations": {
-            "paths": "InstancePaths"
-          }
-        },
-        {
-          "name": "installation_status",
-          "line": 59,
-          "kind": "function",
-          "parameters": [
-            "paths"
-          ],
-          "annotations": {
-            "paths": "InstancePaths"
-          }
-        }
-      ],
-      "summary": "Read-only installation/update status projection; never mutates, plans, switches or migrates."
-    },
-    {
-      "path": "agent/src/omni/adapters/platform/wheel_switch.py",
-      "module": "v2-adapters",
-      "python_module": "omni.adapters.platform.wheel_switch",
-      "lines": 85,
-      "imports": [
-        "omni.adapters.persistence.maintenance",
-        "omni.adapters.persistence.migration_config",
-        "omni.adapters.platform.runtime.paths",
-        "omni.adapters.platform.wheel_prepare",
-        "omni.application.ports",
-        "omni.domain.contracts",
-        "omni.domain.installation"
-      ],
-      "symbols": [
-        {
-          "name": "invalid",
-          "line": 20,
-          "kind": "function",
-          "parameters": [
-            "code"
-          ],
-          "annotations": {
-            "code": "str"
-          }
-        },
-        {
-          "name": "_schema",
-          "line": 24,
-          "kind": "function",
-          "parameters": [
-            "database"
-          ],
-          "annotations": {
-            "database": "Path"
-          }
-        },
-        {
-          "name": "switch_plan",
-          "line": 28,
-          "kind": "function",
-          "parameters": [
-            "paths",
-            "sha256"
-          ],
-          "annotations": {
-            "paths": "InstancePaths",
-            "sha256": "str"
-          }
-        }
-      ],
-      "summary": "Read-only switch plan for a prepared candidate; never stops, switches, migrates or rolls back."
-    },
-    {
-      "path": "agent/src/omni/adapters/platform/wheel_uninstall.py",
-      "module": "v2-adapters",
-      "python_module": "omni.adapters.platform.wheel_uninstall",
-      "lines": 218,
-      "imports": [
-        "omni.adapters.persistence.maintenance",
-        "omni.adapters.platform.dependency_bundle",
-        "omni.adapters.platform.runtime.paths",
-        "omni.adapters.platform.runtime.permissions",
-        "omni.adapters.platform.runtime.runtime_identity",
-        "omni.adapters.platform.wheel_install",
-        "omni.application.ports",
-        "omni.domain.contracts"
-      ],
-      "symbols": [
-        {
-          "name": "invalid",
-          "line": 28,
-          "kind": "function",
-          "parameters": [
-            "code"
-          ],
-          "annotations": {
-            "code": "str"
-          }
-        },
-        {
-          "name": "_inside",
-          "line": 32,
-          "kind": "function",
-          "parameters": [
-            "path",
-            "root"
-          ],
-          "annotations": {
-            "path": "Path",
-            "root": "Path"
-          }
-        },
-        {
-          "name": "_remove_stage",
-          "line": 37,
-          "kind": "function",
-          "parameters": [
-            "stage",
-            "updates"
-          ],
-          "annotations": {
-            "stage": "Path",
-            "updates": "Path"
-          }
-        },
-        {
-          "name": "_removal_receipt",
-          "line": 58,
-          "kind": "function",
-          "parameters": [
-            "runtime",
-            "sha256"
-          ],
-          "annotations": {
-            "runtime": "Path",
-            "sha256": "str"
-          }
-        },
-        {
-          "name": "_record_removal",
-          "line": 75,
-          "kind": "function",
-          "parameters": [
-            "runtime",
-            "sha256",
-            "phase",
-            "backup_kept"
-          ],
-          "annotations": {
-            "runtime": "Path",
-            "sha256": "str",
-            "phase": "str",
-            "backup_kept": "str | None"
-          }
-        },
-        {
-          "name": "_active_sha",
-          "line": 85,
-          "kind": "function",
-          "parameters": [
-            "runtime"
-          ],
-          "annotations": {
-            "runtime": "Path"
-          }
-        },
-        {
-          "name": "uninstall_candidate",
-          "line": 100,
-          "kind": "function",
-          "parameters": [
-            "paths",
-            "sha256",
-            "purge"
-          ],
-          "annotations": {
-            "paths": "InstancePaths",
-            "sha256": "str",
-            "purge": "bool"
-          }
-        }
-      ],
-      "summary": "Remove one staged candidate or deactivate the runtime pointer; data and installation receipts stay."
-    },
-    {
       "path": "agent/src/omni/adapters/primitives.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.primitives",
@@ -40357,7 +40389,7 @@
       "python_module": "omni.adapters.soak",
       "lines": 401,
       "imports": [
-        "omni.adapters.platform.dependency_bundle",
+        "omni.adapters.platform.releases.dependency_bundle",
         "omni.adapters.platform.runtime.paths",
         "omni.adapters.platform.runtime.permissions",
         "omni.adapters.platform.runtime.runtime_identity",
@@ -41756,7 +41788,7 @@
       "python_module": "omni.adapters.workers.desktop",
       "lines": 132,
       "imports": [
-        "omni.adapters.platform",
+        "omni.adapters.platform.desktop",
         "omni.adapters.workers.linux_desktop",
         "omni.domain.contracts",
         "omni.domain.desktop"
@@ -41853,10 +41885,10 @@
       "python_module": "omni.adapters.workers.desktop_control",
       "lines": 221,
       "imports": [
-        "omni.adapters.platform.linux_bus",
-        "omni.adapters.platform.linux_portal",
-        "omni.adapters.platform.linux_remote_desktop",
-        "omni.adapters.platform.linux_session",
+        "omni.adapters.platform.desktop.linux.linux_bus",
+        "omni.adapters.platform.desktop.linux.linux_portal",
+        "omni.adapters.platform.desktop.linux.linux_remote_desktop",
+        "omni.adapters.platform.desktop.linux.linux_session",
         "omni.domain.contracts",
         "omni.domain.desktop_control",
         "omni.domain.desktop_portal"
@@ -42015,17 +42047,17 @@
       "python_module": "omni.adapters.workers.linux_desktop",
       "lines": 335,
       "imports": [
-        "omni.adapters.platform.linux_atspi",
-        "omni.adapters.platform.linux_bus",
-        "omni.adapters.platform.linux_click_action",
-        "omni.adapters.platform.linux_input",
-        "omni.adapters.platform.linux_key_action",
-        "omni.adapters.platform.linux_semantic",
-        "omni.adapters.platform.linux_session",
-        "omni.adapters.platform.linux_text",
-        "omni.adapters.platform.linux_window_binding",
-        "omni.adapters.platform.linux_x11",
-        "omni.adapters.platform.linux_x11_wire",
+        "omni.adapters.platform.desktop.linux.linux_atspi",
+        "omni.adapters.platform.desktop.linux.linux_bus",
+        "omni.adapters.platform.desktop.linux.linux_click_action",
+        "omni.adapters.platform.desktop.linux.linux_input",
+        "omni.adapters.platform.desktop.linux.linux_key_action",
+        "omni.adapters.platform.desktop.linux.linux_semantic",
+        "omni.adapters.platform.desktop.linux.linux_session",
+        "omni.adapters.platform.desktop.linux.linux_text",
+        "omni.adapters.platform.desktop.linux.linux_window_binding",
+        "omni.adapters.platform.desktop.linux.linux_x11",
+        "omni.adapters.platform.desktop.linux.linux_x11_wire",
         "omni.domain.contracts",
         "omni.domain.desktop",
         "omni.domain.foreground"
@@ -42103,10 +42135,10 @@
       "python_module": "omni.adapters.workers.linux_window_lease",
       "lines": 203,
       "imports": [
-        "omni.adapters.platform.linux_bus",
-        "omni.adapters.platform.linux_session",
-        "omni.adapters.platform.linux_window_leases",
-        "omni.adapters.platform.linux_x11",
+        "omni.adapters.platform.desktop.linux.linux_bus",
+        "omni.adapters.platform.desktop.linux.linux_session",
+        "omni.adapters.platform.desktop.linux.linux_window_leases",
+        "omni.adapters.platform.desktop.linux.linux_x11",
         "omni.domain.contracts",
         "omni.domain.desktop",
         "omni.domain.linux_window_leases"
@@ -42947,10 +42979,10 @@
       "python_module": "omni.adapters.workers.portal",
       "lines": 255,
       "imports": [
-        "omni.adapters.platform.linux_bus",
-        "omni.adapters.platform.linux_pipewire",
-        "omni.adapters.platform.linux_portal",
-        "omni.adapters.platform.linux_session",
+        "omni.adapters.platform.desktop.linux.linux_bus",
+        "omni.adapters.platform.desktop.linux.linux_pipewire",
+        "omni.adapters.platform.desktop.linux.linux_portal",
+        "omni.adapters.platform.desktop.linux.linux_session",
         "omni.domain.contracts",
         "omni.domain.desktop_portal"
       ],
@@ -68679,23 +68711,23 @@
         "omni.adapters.persistence.operations_read",
         "omni.adapters.persistence.reference_release",
         "omni.adapters.platform.deployment_files",
+        "omni.adapters.platform.releases.wheel_artifact",
+        "omni.adapters.platform.releases.wheel_backup",
+        "omni.adapters.platform.releases.wheel_environment",
+        "omni.adapters.platform.releases.wheel_install",
+        "omni.adapters.platform.releases.wheel_prepare",
+        "omni.adapters.platform.releases.wheel_rollback",
+        "omni.adapters.platform.releases.wheel_smoke",
+        "omni.adapters.platform.releases.wheel_stage",
+        "omni.adapters.platform.releases.wheel_status",
+        "omni.adapters.platform.releases.wheel_switch",
+        "omni.adapters.platform.releases.wheel_uninstall",
         "omni.adapters.platform.runtime.paths",
         "omni.adapters.platform.runtime.permissions",
         "omni.adapters.platform.runtime.workbench",
         "omni.adapters.platform.service_admin_bundle",
         "omni.adapters.platform.service_query",
         "omni.adapters.platform.service_readiness",
-        "omni.adapters.platform.wheel_artifact",
-        "omni.adapters.platform.wheel_backup",
-        "omni.adapters.platform.wheel_environment",
-        "omni.adapters.platform.wheel_install",
-        "omni.adapters.platform.wheel_prepare",
-        "omni.adapters.platform.wheel_rollback",
-        "omni.adapters.platform.wheel_smoke",
-        "omni.adapters.platform.wheel_stage",
-        "omni.adapters.platform.wheel_status",
-        "omni.adapters.platform.wheel_switch",
-        "omni.adapters.platform.wheel_uninstall",
         "omni.adapters.primitives",
         "omni.adapters.vector_files",
         "omni.application.ports",
@@ -68937,9 +68969,9 @@
         "omni.adapters.onebot",
         "omni.adapters.persistence.database",
         "omni.adapters.persistence.deployed_instance",
-        "omni.adapters.platform.desktop",
-        "omni.adapters.platform.desktop_control",
-        "omni.adapters.platform.portal",
+        "omni.adapters.platform.desktop.backend",
+        "omni.adapters.platform.desktop.desktop_control",
+        "omni.adapters.platform.desktop.portal",
         "omni.adapters.platform.runtime.paths",
         "omni.adapters.platform.runtime.runtime_identity",
         "omni.adapters.platform.runtime.secrets",
@@ -69333,7 +69365,7 @@
         "omni.adapters.persistence.releases",
         "omni.adapters.platform.deployment_files",
         "omni.adapters.platform.exchange_deployments",
-        "omni.adapters.platform.release_files",
+        "omni.adapters.platform.releases.release_files",
         "omni.adapters.platform.service_admin_client",
         "omni.adapters.platform.service_control_files",
         "omni.adapters.platform.service_readiness",
@@ -69479,7 +69511,7 @@
         "omni.adapters.platform.deployment_files",
         "omni.adapters.platform.exchange_deployments",
         "omni.adapters.platform.exchange_files",
-        "omni.adapters.platform.release_files",
+        "omni.adapters.platform.releases.release_files",
         "omni.adapters.platform.service_admin_client",
         "omni.adapters.platform.service_control_files",
         "omni.adapters.platform.service_handover",

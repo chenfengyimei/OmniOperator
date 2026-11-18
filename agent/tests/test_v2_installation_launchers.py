@@ -10,7 +10,7 @@ from pathlib import Path
 
 import pytest
 
-from omni.adapters.platform.wheel_install import _wrapper
+from omni.adapters.platform.releases.wheel_install import _wrapper
 
 
 def shell():

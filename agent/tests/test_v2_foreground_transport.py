@@ -10,8 +10,8 @@ from test_v2_desktop_action_transport import TestHost, command
 from test_v2_desktop_backend import Owner, factory
 from v2_desktop_helpers import target_identity
 
-from omni.adapters.platform import desktop as d
-from omni.adapters.platform import macos_helper
+from omni.adapters.platform.desktop import backend as d
+from omni.adapters.platform.desktop import macos_helper
 from omni.domain.contracts import BusinessError
 from omni.domain.desktop import VERSION, parse_request
 from omni.domain.foreground import POLICY, permit, ready

@@ -37,7 +37,7 @@ def main() -> int:
             if digest.hexdigest() != args.sha256 or "omni" in sys.modules:
                 raise ValueError("wheel pin mismatch or application already imported")
             sys.path.insert(0, str(captured))
-            from omni.adapters.platform.candidate_installer import install_candidate
+            from omni.adapters.platform.releases.candidate_installer import install_candidate
             from omni.domain.contracts import BusinessError
 
             try:

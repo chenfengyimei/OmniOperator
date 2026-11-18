@@ -14,18 +14,12 @@ from omni.adapters.persistence.maintenance import durable_json
 from omni.adapters.persistence.migration_config import configuration, head
 from omni.adapters.persistence.sqlalchemy_access import database_engine
 from omni.adapters.platform.runtime.paths import InstanceLock, InstancePaths
-from omni.adapters.platform.wheel_backup import backup_candidate
-from omni.adapters.platform.wheel_install import (
-    install_candidate,
-    migrate_candidate,
-    rollback_candidate,
-    runtime_current,
-    switch_candidate,
-)
-from omni.adapters.platform.wheel_prepare import prepare_wheel
-from omni.adapters.platform.wheel_rollback import rollback_check
-from omni.adapters.platform.wheel_smoke import smoke_candidate
-from omni.adapters.platform.wheel_stage import stage_wheel
+from omni.adapters.platform.releases.wheel_backup import backup_candidate
+from omni.adapters.platform.releases.wheel_install import install_candidate, migrate_candidate, rollback_candidate, runtime_current, switch_candidate
+from omni.adapters.platform.releases.wheel_prepare import prepare_wheel
+from omni.adapters.platform.releases.wheel_rollback import rollback_check
+from omni.adapters.platform.releases.wheel_smoke import smoke_candidate
+from omni.adapters.platform.releases.wheel_stage import stage_wheel
 from omni.adapters.primitives import SystemClock
 from omni.composition.cli import main, seal_installation
 from omni.composition.instance import open_instance

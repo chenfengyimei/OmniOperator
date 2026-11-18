@@ -9,9 +9,9 @@ from types import SimpleNamespace
 import pytest
 from v2_linux_control_helpers import EDIT, Guard, Model, Spawn, factory
 
-from omni.adapters.platform import desktop as host
-from omni.adapters.platform.linux_atspi import AtspiDesktop
-from omni.adapters.platform.linux_session import SessionInspector
+from omni.adapters.platform.desktop import backend as host
+from omni.adapters.platform.desktop.linux.linux_atspi import AtspiDesktop
+from omni.adapters.platform.desktop.linux.linux_session import SessionInspector
 from omni.adapters.workers.linux_action import run
 from omni.adapters.workers.linux_desktop import perform
 from omni.domain.contracts import BusinessError

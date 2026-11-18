@@ -11,7 +11,7 @@ from pathlib import Path
 
 import pytest
 
-from omni.adapters.platform.desktop import DesktopBackend
+from omni.adapters.platform.desktop.backend import DesktopBackend
 from omni.adapters.platform.runtime.processes import OwnedProcess
 from omni.domain.contracts import BusinessError
 from omni.domain.foreground import POLICY

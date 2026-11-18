@@ -6,8 +6,8 @@ import pytest
 from v2_seat_input_helpers import inspector
 from v2_wayland_helpers import Ops, Peer, source
 
-from omni.adapters.platform.linux_bus import Process
-from omni.adapters.platform.linux_wayland_peer import WaylandPeer, eis_peer
+from omni.adapters.platform.desktop.linux.linux_bus import Process
+from omni.adapters.platform.desktop.linux.linux_wayland_peer import WaylandPeer, eis_peer
 from omni.domain.contracts import BusinessError
 
 

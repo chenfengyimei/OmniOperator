@@ -8,7 +8,7 @@ from test_v2_linux_foreground import prepared
 from test_v2_linux_keystroke import KeyPeer, cleanup
 from v2_xkb_map_helpers import complete_map
 
-from omni.adapters.platform.linux_xkb_map import map_identity
+from omni.adapters.platform.desktop.linux.linux_xkb_map import map_identity
 from omni.domain.contracts import BusinessError
 
 

@@ -171,7 +171,7 @@ class ServiceQuery:
         return await self._blocking(partial(_read_definition, path))
 
     async def _native_helper(self) -> Path | None:
-        from .macos_helper import resolve
+        from omni.adapters.platform.desktop.macos_helper import resolve
 
         return await self._blocking(resolve)
 

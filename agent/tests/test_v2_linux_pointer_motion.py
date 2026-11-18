@@ -12,11 +12,11 @@ from v2_linux_motion_helpers import MotionPeer, motion_context, randr_event
 from v2_linux_pointer_config_helpers import IDENTITY, configuration_context
 from v2_x11_helpers import ROOT, WINDOW
 
-from omni.adapters.platform.linux_button_mapping import ButtonPlan
-from omni.adapters.platform.linux_pointer_config import Axis, PointerDevice, PointerState
-from omni.adapters.platform.linux_pointer_motion import plan
-from omni.adapters.platform.linux_pointer_target import PointerPoint
-from omni.adapters.platform.linux_x11_wire import setup_reply
+from omni.adapters.platform.desktop.linux.linux_button_mapping import ButtonPlan
+from omni.adapters.platform.desktop.linux.linux_pointer_config import Axis, PointerDevice, PointerState
+from omni.adapters.platform.desktop.linux.linux_pointer_motion import plan
+from omni.adapters.platform.desktop.linux.linux_pointer_target import PointerPoint
+from omni.adapters.platform.desktop.linux.linux_x11_wire import setup_reply
 from omni.domain.contracts import BusinessError
 
 

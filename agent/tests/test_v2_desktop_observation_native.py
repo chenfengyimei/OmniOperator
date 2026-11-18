@@ -12,7 +12,7 @@ from pathlib import Path
 
 import pytest
 
-from omni.adapters.platform.desktop import DesktopBackend
+from omni.adapters.platform.desktop.backend import DesktopBackend
 from omni.domain.contracts import BusinessError
 
 
@@ -68,7 +68,7 @@ def test_fixed_windows_uia_worker_reads_only_owned_fixture_and_redacts_password(
     if sys.platform != "win32":
         from types import SimpleNamespace
 
-        from omni.adapters.platform import desktop
+        from omni.adapters.platform.desktop import backend as desktop
 
         # Test the unsupported-platform gate without scanning a real Linux/Mac desktop.
         monkeypatch.setattr(desktop, "sys", SimpleNamespace(platform="freebsd"))
@@ -99,7 +99,7 @@ def test_fixed_windows_uia_worker_reads_only_owned_fixture_and_redacts_password(
 import ctypes,json,sys,time
 from ctypes import wintypes as w
 from pathlib import Path
-from omni.adapters.platform.desktop_native import WindowsDesktop
+from omni.adapters.platform.desktop.desktop_native import WindowsDesktop
 
 root=Path(sys.argv[1]);user=ctypes.WinDLL('user32',use_last_error=True)
 user.CreateWindowExW.argtypes=[w.DWORD,w.LPCWSTR,w.LPCWSTR,w.DWORD,ctypes.c_int,ctypes.c_int,ctypes.c_int,ctypes.c_int,w.HWND,w.HMENU,w.HINSTANCE,ctypes.c_void_p]

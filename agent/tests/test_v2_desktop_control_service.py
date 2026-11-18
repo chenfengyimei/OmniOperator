@@ -15,7 +15,7 @@ from test_v2_desktop_http import owner as http_owner
 from v2_desktop_helpers import FixtureDesktopBackend
 
 from omni.adapters.persistence.repository import Repositories
-from omni.adapters.platform.desktop_control import DesktopControlBackend
+from omni.adapters.platform.desktop.desktop_control import DesktopControlBackend
 from omni.adapters.platform.runtime.processes import OwnedProcess
 from omni.composition.http import http_app
 from omni.composition.instance import open_instance

@@ -335,10 +335,10 @@ def test_actual_control_session_keeps_original_portal_and_rules_until_key_releas
     from v2_eis_key_packet_helpers import KeyPeer
     from v2_xkbcommon_helpers import Library
 
-    from omni.adapters.platform.linux_portal import SESSION
-    from omni.adapters.platform.linux_remote_desktop import ControlSession
-    from omni.adapters.platform.linux_session import SessionInspector
-    from omni.adapters.platform.linux_xkbcommon import NativeXkb, XkbCompiler
+    from omni.adapters.platform.desktop.linux.linux_portal import SESSION
+    from omni.adapters.platform.desktop.linux.linux_remote_desktop import ControlSession
+    from omni.adapters.platform.desktop.linux.linux_session import SessionInspector
+    from omni.adapters.platform.desktop.linux.linux_xkbcommon import NativeXkb, XkbCompiler
 
     async def scenario():
         ports(monkeypatch)

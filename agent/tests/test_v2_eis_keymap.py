@@ -8,8 +8,8 @@ import threading
 import pytest
 from v2_eis_device_helpers import ports
 
-from omni.adapters.platform import linux_eis_keymap as native
-from omni.adapters.platform.linux_fds import OwnedFd
+from omni.adapters.platform.desktop.linux import linux_eis_keymap as native
+from omni.adapters.platform.desktop.linux.linux_fds import OwnedFd
 from omni.domain.contracts import BusinessError
 
 
