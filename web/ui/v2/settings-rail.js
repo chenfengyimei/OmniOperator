@@ -31,6 +31,8 @@ function collectGroups() {
       icon: node.querySelector('.material-icons')?.textContent.trim() || 'settings',
     });
   }
+  // 空分组自动剔除：如「对话」组只剩 chat 且 chat 不进设置栏时，整组不再显示
+  // （所有者要求：分组空了就删）。
   return groups.filter((group) => group.items.length);
 }
 

@@ -1,7 +1,7 @@
 {
   "batch": "v2-ui-connection-stability-v128",
   "recorded_at": "2026-11-15",
-  "resource_version_final": "20261118v153",
+  "resource_version_final": "20261118v154",
   "v1_alignment": {
     "summary": "用户提供 V1 正式工作台截图后，直接精读 web/ui/workbench.css 的 V1 实现并逐项移植，使 V2 结构与 V1 一致（而非自创风格）。",
     "ported_from_v1": [
@@ -1247,5 +1247,17 @@
       "守卫": "54 passed"
     },
     "口径": "缓存未上报显示未上报不补0;分解条为保守估算并标注"
+  },
+  "nav_dedup": {
+    "需求": "核心系统已有记忆系统,删除对话与记忆分组的重复记忆入口;空分组自动消失",
+    "交付": [
+      "rail删memory重复按钮,分组改名对话",
+      "设置分类栏chat过滤后对话组为空自动剔除(既有filter)",
+      "守卫GROUPS/按钮计数25/业务清单同步"
+    ],
+    "验证": {
+      "守卫导航": "5 passed",
+      "实测": "记忆单入口可达,设置栏7组24项,零报错"
+    }
   }
 }
