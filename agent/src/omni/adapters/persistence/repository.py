@@ -661,6 +661,8 @@ class Repositories(
                 cost_micro=cost,
                 input_tokens=reply.input_tokens if reply else None,
                 output_tokens=reply.output_tokens if reply else None,
+                cached_prompt_tokens=reply.cached_prompt_tokens if reply else None,
+                cache_creation_tokens=reply.cache_creation_tokens if reply else None,
                 ended_at=self.clock.now(),
             )
         )

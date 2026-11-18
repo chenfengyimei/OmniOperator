@@ -1454,6 +1454,21 @@ model_calls.append_column(Column("counting_method", String(20), nullable=False, 
 model_calls.append_column(Column("counter_id", String(100), nullable=False, server_default=""))
 model_calls.append_column(Column("output_token_limit", Integer))
 model_calls.append_column(Column("capacity_tokens", Integer))
+# 供应商上报的提示缓存用量（V1 上下文页缓存统计对齐）；未上报为 NULL，不补 0。
+model_calls.append_column(
+    Column(
+        "cached_prompt_tokens",
+        Integer,
+        CheckConstraint("cached_prompt_tokens IS NULL OR cached_prompt_tokens>=0", name="cached_tokens"),
+    )
+)
+model_calls.append_column(
+    Column(
+        "cache_creation_tokens",
+        Integer,
+        CheckConstraint("cache_creation_tokens IS NULL OR cache_creation_tokens>=0", name="cache_created_tokens"),
+    )
+)
 context_snapshots.append_column(Column("input_token_estimate", Integer))
 context_snapshots.append_column(Column("counting_method", String(20), nullable=False, server_default="unmeasured"))
 context_snapshots.append_column(Column("counter_id", String(100), nullable=False, server_default=""))

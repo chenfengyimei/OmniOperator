@@ -133,11 +133,20 @@ class ModelReply:
     output_tokens: int | None = None
     cost_micro: int | None = None
     completion_reason: str = "stop"
+    # 供应商上报的提示缓存用量；未上报保持 None，不得补 0。
+    cached_prompt_tokens: int | None = None
+    cache_creation_tokens: int | None = None
 
     def __post_init__(self) -> None:
         if self.completion_reason not in {"stop", "tool_calls", "length", "content_filter"}:
             raise ValueError("Invalid model completion reason")
-        for value in (self.input_tokens, self.output_tokens, self.cost_micro):
+        for value in (
+            self.input_tokens,
+            self.output_tokens,
+            self.cost_micro,
+            self.cached_prompt_tokens,
+            self.cache_creation_tokens,
+        ):
             if value is not None and (type(value) is not int or value < 0):
                 raise ValueError("Model usage and cost must be nonnegative integers or unknown")
 

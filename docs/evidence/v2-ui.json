@@ -1,7 +1,7 @@
 {
   "batch": "v2-ui-connection-stability-v128",
   "recorded_at": "2026-11-15",
-  "resource_version_final": "20261118v152",
+  "resource_version_final": "20261118v153",
   "v1_alignment": {
     "summary": "用户提供 V1 正式工作台截图后，直接精读 web/ui/workbench.css 的 V1 实现并逐项移植，使 V2 结构与 V1 一致（而非自创风格）。",
     "ported_from_v1": [
@@ -1231,5 +1231,21 @@
     "问题": "记忆系统图标database在Material Icons子集字体缺失,回退成方框串(宽168px)",
     "修复": "改用子集内正常渲染的storage(堆叠数据库样,单字形15px)",
     "验证": "核心系统三项图标均单字形PASS"
+  },
+  "context_page_rich": {
+    "需求": "上下文系统页对齐V1丰富度(四卡/分解条/缓存统计/提示词折叠)",
+    "交付": [
+      "ModelReply+流式/非流式适配器透传供应商缓存usage",
+      "schema v0040幂等加列cached_prompt_tokens/cache_creation_tokens并结算落库",
+      "新端点 GET sessions/{sid}/context-overview 聚合窗口/分解/缓存/固定提示词sha256",
+      "前端四大指标卡+开销分解条+缓存三卡+横排管线+折叠指纹"
+    ],
+    "验证": {
+      "丰富页实测": "10/10(含真实OpenCode Go一轮,缓存0/None如实落库)",
+      "上下文http路由专项": "39 passed",
+      "schema配置流式": "58 passed",
+      "守卫": "54 passed"
+    },
+    "口径": "缓存未上报显示未上报不补0;分解条为保守估算并标注"
   }
 }

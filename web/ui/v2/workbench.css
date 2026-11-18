@@ -3245,52 +3245,133 @@ body[data-ui-page="workbench-v2"] .services-dialog .svc-list {
 }
 
 /* ==========================================================================
-   上下文系统页（核心系统分组）：整合窗口用量/提示词结构/压缩边界/运行配置。
-   只读统计，对齐 V1 分区结构；颜色走令牌、字号不低于 10px 下限。
+   上下文系统页（核心系统分组）：对齐 V1 丰富统计——四大指标卡、开销分解条、
+   供应商缓存三卡、横排提示词管线、固定提示词折叠。只读；字号≥10px、颜色走令牌。
    ========================================================================== */
-body[data-ui-page="workbench-v2"] #context .ctx-metrics {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-  gap: 8px;
-  margin: 10px 0;
+body[data-ui-page="workbench-v2"] #context .ctx-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
 }
-body[data-ui-page="workbench-v2"] #context .ctx-metric {
+body[data-ui-page="workbench-v2"] #context .ctx-heading h1 {
+  margin-bottom: 2px;
+}
+body[data-ui-page="workbench-v2"] #context .ctx-heading > button {
+  flex: 0 0 auto;
+}
+body[data-ui-page="workbench-v2"] #context .ctx-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 10px;
+  margin: 12px 0;
+}
+body[data-ui-page="workbench-v2"] #context .ctx-card {
   display: flex;
   flex-direction: column;
-  gap: 3px;
-  padding: 9px 11px;
-  border: 1px solid var(--line-3);
-  border-radius: var(--r-md);
-  background: color-mix(in oklab, var(--surface-2) 55%, transparent);
+  align-items: center;
+  gap: 6px;
+  padding: 16px 12px 14px;
+  border: 1px solid var(--line-2);
+  border-radius: var(--r-card);
+  background: linear-gradient(180deg, color-mix(in oklab, var(--surface-1) 92%, transparent), var(--surface-1));
+  text-align: center;
 }
-body[data-ui-page="workbench-v2"] #context .ctx-metric span {
-  color: var(--text-3);
-  font-size: var(--fs-caption);
+body[data-ui-page="workbench-v2"] #context .ctx-card-label {
+  color: var(--text-2);
+  font-size: var(--fs-small);
+  font-weight: 600;
 }
-body[data-ui-page="workbench-v2"] #context .ctx-metric b {
+body[data-ui-page="workbench-v2"] #context .ctx-card-value {
   color: var(--text-1);
-  font-size: var(--fs-secondary);
-  font-weight: 650;
+  font-size: 19px;
+  font-weight: 750;
+  letter-spacing: -0.01em;
 }
-body[data-ui-page="workbench-v2"] #context .ctx-breakdown {
+body[data-ui-page="workbench-v2"] #context .ctx-card-note {
+  color: var(--text-4);
+  font-size: var(--fs-caption);
+  line-height: 1.5;
+}
+/* 开销分解条：标签 + 比例条 + 数值（对齐 V1 meter 行） */
+body[data-ui-page="workbench-v2"] #context .ctx-segments {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  margin: 14px 0 6px;
+}
+body[data-ui-page="workbench-v2"] #context .ctx-seg-row {
+  display: grid;
+  grid-template-columns: minmax(120px, 220px) minmax(0, 1fr) 72px;
+  align-items: center;
+  gap: 12px;
+}
+body[data-ui-page="workbench-v2"] #context .ctx-seg-label {
+  color: var(--text-2);
+  font-size: var(--fs-small);
+}
+body[data-ui-page="workbench-v2"] #context .ctx-seg-track {
+  height: 7px;
+  border: 1px solid var(--line-3);
+  border-radius: var(--r-full);
+  background: var(--surface-inset);
+  overflow: hidden;
+}
+body[data-ui-page="workbench-v2"] #context .ctx-seg-track i {
+  display: block;
+  height: 100%;
+  border-radius: var(--r-full);
+  background: var(--grad);
+  transition: width 0.45s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+body[data-ui-page="workbench-v2"] #context .ctx-seg-value {
+  color: var(--text-1);
+  font: 650 12px/1.4 var(--font-mono);
+  text-align: right;
+}
+/* 横排提示词管线（对齐 V1 四步胶囊） */
+body[data-ui-page="workbench-v2"] #context .ctx-pipeline {
   display: flex;
   flex-wrap: wrap;
-  gap: 4px 12px;
-  margin: 6px 0;
+  gap: 8px;
+  margin: 10px 0;
+  padding: 0;
+  list-style: none;
 }
-body[data-ui-page="workbench-v2"] #context .ctx-legend-item {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
+body[data-ui-page="workbench-v2"] #context .ctx-pipeline li {
+  flex: 1 1 150px;
+  padding: 8px 11px;
+  border: 1px solid var(--line-3);
+  border-radius: var(--r-md);
+  background: var(--surface-inset);
   color: var(--text-2);
   font-size: var(--fs-small);
+  white-space: nowrap;
 }
-body[data-ui-page="workbench-v2"] #context .context-pipeline {
-  margin: 8px 0;
-  padding-left: 20px;
+body[data-ui-page="workbench-v2"] #context .ctx-pipeline b {
+  color: var(--accent);
+  margin-right: 4px;
+}
+/* 折叠区：固定提示词/运行配置对照 */
+body[data-ui-page="workbench-v2"] #context .ctx-fold {
+  margin: 10px 0;
+  border: 1px solid var(--line-3);
+  border-radius: var(--r-md);
+  background: var(--surface-inset);
+}
+body[data-ui-page="workbench-v2"] #context .ctx-fold summary {
+  padding: 9px 12px;
+  cursor: pointer;
   color: var(--text-2);
   font-size: var(--fs-small);
-  line-height: 1.8;
+  font-weight: 600;
+}
+body[data-ui-page="workbench-v2"] #context .ctx-fold pre {
+  margin: 0 12px 10px;
+  max-height: 260px;
+}
+body[data-ui-page="workbench-v2"] #context .ctx-fold .ctx-settings {
+  margin: 0 12px 12px;
 }
 body[data-ui-page="workbench-v2"] #context .ctx-attempts {
   display: flex;

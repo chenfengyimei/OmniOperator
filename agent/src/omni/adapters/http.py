@@ -1759,6 +1759,11 @@ def create_app(factory: Callable[[], Awaitable[HttpRuntime]], *, allowed_origins
             "summary_calls_per_turn": SUMMARY_CALLS_PER_TURN,
         }
 
+    @router.get("/agents/{agent_id}/sessions/{session_id}/context-overview")
+    async def session_context_overview(agent_id: uuid.UUID, session_id: uuid.UUID, request: Request):
+        """会话级上下文总览（对齐 V1 上下文页）：窗口估算/分解/缓存统计/固定提示词，只读。"""
+        return await runtime(request).application.session_context_overview(str(agent_id), str(session_id))
+
     @router.get("/agents/{agent_id}/approvals")
     async def approvals(agent_id: uuid.UUID, request: Request):
         return {"items": await runtime(request).application.approvals(str(agent_id))}

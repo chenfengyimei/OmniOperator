@@ -182,6 +182,16 @@ class LiteLLMModel:
             calls.append(Invocation(str(call["id"]), str(call["function"]["name"]), cast(dict[str, Any], arguments)))
         cost = self._price(response)
         usage: dict[str, Any] = payload.get("usage") or {}
+        details: dict[str, Any] = usage.get("prompt_tokens_details") or {}
+        # 提示缓存用量各家字段不同：DeepSeek/OpenAI 系 hit/cached，Anthropic 系 read/creation。
+        cached = usage.get("prompt_cache_hit_tokens")
+        if cached is None:
+            cached = details.get("cached_tokens")
+        if cached is None:
+            cached = usage.get("cache_read_input_tokens")
+        created = usage.get("cache_creation_input_tokens")
+        if created is None:
+            created = details.get("cache_creation_tokens")
         return ModelReply(
             message.get("content") or "",
             tuple(calls),
@@ -189,6 +199,8 @@ class LiteLLMModel:
             usage.get("completion_tokens"),
             cost,
             completion_reason=payload["choices"][0].get("finish_reason") or "stop",
+            cached_prompt_tokens=cached if type(cached) is int and cached >= 0 else None,
+            cache_creation_tokens=created if type(created) is int and created >= 0 else None,
         )
 
     @staticmethod

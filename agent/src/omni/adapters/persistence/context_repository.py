@@ -503,6 +503,175 @@ class ContextRepositories(RetentionRepositories):
             {"snapshots": snapshots, "history_floor_seq": session["context_floor_seq"], "attempts": attempts},
         )
 
+    def session_context_overview(self, agent_id: str, session_id: str) -> Record:
+        """会话级上下文总览（对齐 V1 上下文页）：全部数字来自已落库事实，缺数据返回 None。"""
+        import hashlib
+        import json
+        import math
+
+        from ...domain.metering import memory_system
+
+        session = self._one(s.sessions, agent_id, session_id)
+        message_count = self.connection.execute(
+            select(func.count())
+            .select_from(s.messages)
+            .where(
+                s.messages.c.agent_id == agent_id,
+                s.messages.c.session_id == session_id,
+                s.messages.c.deleted_at.is_(None),
+            )
+        ).scalar_one()
+        latest_run = (
+            self.connection.execute(
+                select(s.runs)
+                .where(s.runs.c.agent_id == agent_id, s.runs.c.session_id == session_id)
+                .order_by(s.runs.c.created_at.desc())
+                .limit(1)
+            )
+            .mappings()
+            .first()
+        )
+        summary_row = (
+            self.connection.execute(
+                select(s.summaries)
+                .where(
+                    s.summaries.c.agent_id == agent_id,
+                    s.summaries.c.session_id == session_id,
+                    s.summaries.c.state == "ready",
+                    s.summaries.c.session_epoch == session["content_epoch"],
+                )
+                .order_by(s.summaries.c.last_seq.desc())
+                .limit(1)
+            )
+            .mappings()
+            .first()
+        )
+        summary = (
+            {
+                "revision": summary_row["revision"],
+                "first_seq": summary_row["first_seq"],
+                "last_seq": summary_row["last_seq"],
+                "covered_count": summary_row["covered_count"],
+                "chars": len(str(summary_row["content"] or "")),
+            }
+            if summary_row
+            else None
+        )
+        # 供应商缓存统计：本会话最近 12 次已上报 input_tokens 的主调用样本。
+        calls = [
+            dict(r)
+            for r in self.connection.execute(
+                select(s.model_calls)
+                .join(s.runs, s.runs.c.id == s.model_calls.c.run_id)
+                .where(
+                    s.model_calls.c.agent_id == agent_id,
+                    s.runs.c.session_id == session_id,
+                    s.model_calls.c.purpose == "turn",
+                    s.model_calls.c.input_tokens.is_not(None),
+                )
+                .order_by(s.model_calls.c.created_at.desc())
+                .limit(12)
+            ).mappings()
+        ]
+        ratio = [c for c in calls if c["cached_prompt_tokens"] is not None and c["input_tokens"]]
+        created = [c["cache_creation_tokens"] for c in calls if c["cache_creation_tokens"] is not None]
+        cache = {
+            "sample_count": len(calls),
+            "ratio_sample_count": len(ratio),
+            "cached_tokens": sum(c["cached_prompt_tokens"] for c in ratio) if ratio else None,
+            "creation_tokens": sum(created) if created else None,
+            "hit_percent": (
+                round(100 * sum(c["cached_prompt_tokens"] for c in ratio) / sum(c["input_tokens"] for c in ratio), 1)
+                if ratio
+                else None
+            ),
+        }
+        overview: Record = {
+            "session_id": session_id,
+            "title": session["title"],
+            "next_seq": session["next_seq"],
+            "message_count": message_count,
+            "summary": summary,
+            "cache": cache,
+            "run_id": None,
+            "model": None,
+            "used_tokens": None,
+            "max_tokens": None,
+            "history_count": None,
+            "snapshot_count": 0,
+            "omitted_count": None,
+            "segments": [],
+            "system_prompt": None,
+            "stable_prefix": None,
+        }
+        if latest_run is None:
+            return overview
+        run_id = str(latest_run["id"])
+        snapshots = [
+            dict(r)
+            for r in self.connection.execute(
+                select(s.context_snapshots)
+                .where(s.context_snapshots.c.agent_id == agent_id, s.context_snapshots.c.run_id == run_id)
+                .order_by(s.context_snapshots.c.ordinal)
+                .limit(32)
+            ).mappings()
+        ]
+        overview["run_id"] = run_id
+        overview["snapshot_count"] = len(snapshots)
+        try:
+            settings = self.run_settings(agent_id, run_id)
+        except BusinessError:
+            settings = None
+        if settings:
+            overview["model"] = settings.get("model")
+            overview["max_tokens"] = settings.get("context_tokens")
+        snap = snapshots[-1] if snapshots else None
+        if snap is None:
+            return overview
+        overview["used_tokens"] = snap["input_token_estimate"]
+        overview["omitted_count"] = snap["omitted_count"]
+        history_count = self.connection.execute(
+            select(func.count())
+            .select_from(s.context_messages)
+            .where(s.context_messages.c.snapshot_id == snap["id"])
+        ).scalar_one()
+        overview["history_count"] = history_count
+        route = (
+            self.connection.execute(
+                select(s.model_call_routes)
+                .join(s.model_calls, s.model_calls.c.id == s.model_call_routes.c.call_id)
+                .where(s.model_call_routes.c.agent_id == agent_id, s.model_calls.c.run_id == run_id)
+                .order_by(s.model_call_routes.c.ordinal.desc())
+                .limit(1)
+            )
+            .mappings()
+            .first()
+        )
+        # 分解口径：工具规格按路由快照字节/2 估算；固定开销=persona+记忆快照重算；
+        # 保留对话与摘要=快照字符/2 估算；动态余量=总估算减去前三项（不为负）。
+        tools_tokens = math.ceil(int(route["tool_bytes"]) / 2) if route else 0
+        memories = self.context_memories(agent_id, str(snap["id"]))
+        system_text = memory_system(settings, memories) if settings else None
+        system_tokens = math.ceil(len(system_text) / 2) if system_text is not None else 0
+        history_tokens = math.ceil(int(snap["input_chars"] or 0) / 2)
+        used = int(snap["input_token_estimate"] or 0)
+        dynamic_tokens = max(0, used - tools_tokens - system_tokens - history_tokens) if used else 0
+        overview["segments"] = [
+            {"label": "固定提示与记忆开销", "tokens": system_tokens},
+            {"label": "工具规格", "tokens": tools_tokens},
+            {"label": "保留对话与摘要", "tokens": history_tokens},
+            {"label": "动态余量（信封与差额）", "tokens": dynamic_tokens},
+        ]
+        overview["system_prompt"] = system_text
+        if system_text is not None:
+            overview["stable_prefix"] = {
+                "system_chars": len(system_text),
+                "tool_count": int(route["tool_count"]) if route else 0,
+                "system_sha256": hashlib.sha256(system_text.encode("utf-8")).hexdigest(),
+                "tools_sha256": str(route["manifest_sha256"]) if route else None,
+            }
+        return overview
+
     def summary_get(self, agent_id: str, summary_id: str) -> Record:
         row = self._one(s.summaries, agent_id, summary_id)
         row["message_ids"] = list(

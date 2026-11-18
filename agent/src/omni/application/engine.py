@@ -606,6 +606,9 @@ class Application:
 
         return await self._db.read(read)
 
+    async def session_context_overview(self, agent_id: str, session_id: str) -> Record:
+        return await self._db.read(lambda u: u.session_context_overview(agent_id, session_id))
+
     async def summary(self, agent_id: str, summary_id: str) -> Record:
         return await self._db.read(lambda u: u.summary_get(agent_id, summary_id))
 

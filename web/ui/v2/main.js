@@ -1,32 +1,32 @@
-import { mountSkills } from './skills.js?v=20261118v152';
-import { mountCredentials } from './credentials.js?v=20261118v152';
-import { mountAuditHistory, mountOperations } from './operations.js?v=20261118v152';
-import { mountCapabilities } from './capabilities.js?v=20261118v152';
-import { mountTokens } from './tokens.js?v=20261118v152';
-import { mountDocuments } from './documents.js?v=20261118v152';
-import { mountConfiguration } from './configuration.js?v=20261118v152';
-import { mountModels } from './models.js?v=20261118v152';
+import { mountSkills } from './skills.js?v=20261118v153';
+import { mountCredentials } from './credentials.js?v=20261118v153';
+import { mountAuditHistory, mountOperations } from './operations.js?v=20261118v153';
+import { mountCapabilities } from './capabilities.js?v=20261118v153';
+import { mountTokens } from './tokens.js?v=20261118v153';
+import { mountDocuments } from './documents.js?v=20261118v153';
+import { mountConfiguration } from './configuration.js?v=20261118v153';
+import { mountModels } from './models.js?v=20261118v153';
 import { ask } from '../dialog.js?v=20261103v7';
-import { mountPeople } from './people.js?v=20261118v152';
-import { mountDeliveries } from './deliveries.js?v=20261118v152';
-import { mountSchedules } from './schedules.js?v=20261118v152';
-import { mountMemorySemantics } from './memory-semantics.js?v=20261118v152';
-import { mountMemoryOrganization } from './memory-organization.js?v=20261118v152';
-import { mountExtensions } from './extensions.js?v=20261118v152';
-import { mountActionReviews } from './action-reviews.js?v=20261118v152';
-import { mountTerminals } from './terminals.js?v=20261118v152';
-import { mountDesktop } from './desktop.js?v=20261118v152';
-import { mountQQ } from './qq.js?v=20261118v152';
-import { mountBilibili } from './bilibili.js?v=20261118v152';
-import { mountMedia } from './media.js?v=20261118v152';
-import { mountMcp } from './mcp.js?v=20261118v152';
-import { mountAndroid } from './android.js?v=20261118v152';
-import { mountModelOutput } from './model-output.js?v=20261118v152';
-import { mountRouting } from './routing.js?v=20261118v152';
-import { mountChatImages } from './chat-images.js?v=20261118v152';
-import { mountInspector } from './inspector.js?v=20261118v152';
-import { mountSettingsRail } from './settings-rail.js?v=20261118v152';
-import { mountEventStream } from './event-stream.js?v=20261118v152';
+import { mountPeople } from './people.js?v=20261118v153';
+import { mountDeliveries } from './deliveries.js?v=20261118v153';
+import { mountSchedules } from './schedules.js?v=20261118v153';
+import { mountMemorySemantics } from './memory-semantics.js?v=20261118v153';
+import { mountMemoryOrganization } from './memory-organization.js?v=20261118v153';
+import { mountExtensions } from './extensions.js?v=20261118v153';
+import { mountActionReviews } from './action-reviews.js?v=20261118v153';
+import { mountTerminals } from './terminals.js?v=20261118v153';
+import { mountDesktop } from './desktop.js?v=20261118v153';
+import { mountQQ } from './qq.js?v=20261118v153';
+import { mountBilibili } from './bilibili.js?v=20261118v153';
+import { mountMedia } from './media.js?v=20261118v153';
+import { mountMcp } from './mcp.js?v=20261118v153';
+import { mountAndroid } from './android.js?v=20261118v153';
+import { mountModelOutput } from './model-output.js?v=20261118v153';
+import { mountRouting } from './routing.js?v=20261118v153';
+import { mountChatImages } from './chat-images.js?v=20261118v153';
+import { mountInspector } from './inspector.js?v=20261118v153';
+import { mountSettingsRail } from './settings-rail.js?v=20261118v153';
+import { mountEventStream } from './event-stream.js?v=20261118v153';
 // 直接复用 V1 的 rail 提示浮层模块（data-tip → #tip-layer），不自创实现
 import '../app/tips.js?v=20261103u5';
 
@@ -634,26 +634,44 @@ function renderContext(report, snapshot) {
   );
   $('ctx-note').textContent = snap.reason ? `原因：${snap.reason}` : `计数方式：${snap.counting_method || '未计量'}`;
 }
-// 上下文系统页：整合窗口用量、提示词结构、压缩边界与运行配置（只读，对齐 V1 分区）。
+// 上下文系统页：对齐 V1 的丰富统计——四大指标卡、开销分解条、供应商缓存三卡、
+// 横排提示词结构、固定提示词与前缀指纹折叠、压缩边界与运行配置对照。只读，不调用模型。
+function ctxCard(label, value, note) {
+  const cell = document.createElement('div');
+  cell.className = 'ctx-card';
+  const l = document.createElement('span');
+  l.className = 'ctx-card-label';
+  l.textContent = label;
+  const b = document.createElement('b');
+  b.className = 'ctx-card-value';
+  b.textContent = value;
+  const n = document.createElement('span');
+  n.className = 'ctx-card-note';
+  n.textContent = note;
+  cell.append(l, b, n);
+  return cell;
+}
+const ctxNum = (v) => (v == null ? '未上报' : `${Number(v).toLocaleString('en-US')} tokens`);
 async function loadContextPage() {
   const stamp = generation;
   const stale = () => stamp !== generation;
-  const metrics = $('context-page-metrics'),
-    breakdown = $('context-page-breakdown'),
+  const cards = $('ctx-cards'),
+    segments = $('ctx-segments'),
+    cacheCards = $('ctx-cache-cards'),
     attempts = $('context-page-attempts'),
     settingsBox = $('context-page-settings');
   // 固定压缩边界（后端只读常量）
   try {
     const consts = await api(scope('/context/constants'));
     if (!stale()) {
-      $('ctx-const-chars').textContent = consts.context_chars;
+      $('ctx-const-chars').textContent = Number(consts.context_chars).toLocaleString('en-US');
       $('ctx-const-trigger').textContent = consts.summary_trigger_messages;
       $('ctx-const-calls').textContent = consts.summary_calls_per_turn;
     }
   } catch {
     /* 常量读取失败不阻断页面 */
   }
-  // 运行配置（当前空间）
+  // 运行配置对照（当前空间）
   try {
     const st = await api(scope('/settings'));
     if (!stale()) {
@@ -679,69 +697,116 @@ async function loadContextPage() {
   } catch {
     settingsBox.replaceChildren();
   }
-  // 最近一次运行的窗口用量
-  const history = session ? (await api(scope(`/sessions/${session}/messages`))).items : [];
-  if (stale()) return;
-  const lastRun = [...history].reverse().find((m) => m.run_id)?.run_id || null;
-  if (!lastRun) {
-    $('context-page-status').textContent = '当前会话还没有运行记录；发一条消息后这里显示窗口用量。';
-    metrics.replaceChildren();
-    breakdown.replaceChildren();
+  const empty = (msg) => {
+    $('context-page-status').textContent = msg;
+    cards.replaceChildren();
+    segments.replaceChildren();
+    cacheCards.replaceChildren();
     attempts.replaceChildren();
-    $('context-page-note').textContent = '';
+    $('ctx-cache-note').textContent = '';
+    $('ctx-prefix').textContent = '';
+    $('ctx-system-prompt').textContent = '';
+  };
+  if (!session) {
+    $('context-session-line').textContent = '尚未选择会话。';
+    empty('在对话页选择会话后，这里显示该会话的窗口统计。');
     return;
   }
-  const report = await api(scope(`/runs/${lastRun}/context`));
+  const ov = await api(scope(`/sessions/${session}/context-overview`));
   if (stale()) return;
-  const snap = (report.snapshots || []).at(-1);
-  $('context-page-status').textContent = `最近运行 ${lastRun.slice(0, 8)} · 登记 ${report.items.length} 条上下文记录。`;
-  if (!snap) {
-    metrics.replaceChildren();
-    breakdown.replaceChildren();
-    attempts.replaceChildren();
-    return;
-  }
-  const modes = { complete: '完整历史', summary: '摘要', truncated: '已省略', redacted: '已遗忘', blocked: '受阻' };
-  metrics.replaceChildren(
-    ...[
-      ['输入估算', snap.input_token_estimate != null ? `${snap.input_token_estimate} tok` : `${snap.input_chars || 0} 字符`],
-      ['历史处理', modes[snap.mode] || snap.mode || '—'],
-      ['省略条数', snap.omitted_count ?? 0],
-      ['输出上限', snap.output_token_limit ?? '—'],
-    ].map(([label, value]) => {
-      const cell = document.createElement('div');
-      cell.className = 'ctx-metric';
-      const l = document.createElement('span');
-      l.textContent = label;
-      const b = document.createElement('b');
-      b.textContent = value;
-      cell.append(l, b);
-      return cell;
-    }),
+  $('context-session-line').textContent = `会话「${ov.title}」${ov.model ? ' · ' + ov.model : ''}`;
+  $('context-page-status').textContent = `已更新 · ${new Date().toLocaleTimeString('zh-CN', { hour12: false })}`;
+  // 四大指标卡（对齐 V1：窗口估算/保留历史/回合快照/持久摘要）
+  cards.replaceChildren(
+    ctxCard(
+      '窗口估算',
+      ov.used_tokens != null ? `${Number(ov.used_tokens).toLocaleString('en-US')} tokens` : '尚未登记',
+      ov.max_tokens != null
+        ? `声明上限 ${Number(ov.max_tokens).toLocaleString('en-US')} tokens`
+        : '模型未声明上下文上限',
+    ),
+    ctxCard(
+      '保留历史',
+      ov.history_count != null ? `${ov.history_count} 条` : '—',
+      `会话共有 ${ov.message_count} 条消息`,
+    ),
+    ctxCard(
+      '回合快照',
+      `${ov.snapshot_count} 份`,
+      ov.omitted_count ? `最近快照省略 ${ov.omitted_count} 条` : '最近快照未省略消息',
+    ),
+    ctxCard(
+      '持久摘要',
+      ov.summary ? `第 ${ov.summary.revision} 版` : '尚未生成',
+      ov.summary
+        ? `覆盖消息 #${ov.summary.first_seq}–#${ov.summary.last_seq} · ${ov.summary.covered_count} 条`
+        : '历史尚未形成有效摘要',
+    ),
   );
-  const segs = [
-    ['消息', (snap.message_ids || []).length],
-    ['摘要', (snap.summaries || []).length],
-    ['文档', (snap.documents || []).length],
-  ];
-  breakdown.replaceChildren(
-    ...segs.map(([name, n]) => {
-      const row = document.createElement('span');
-      row.className = 'ctx-legend-item';
-      row.textContent = `${name} ${n}`;
-      return row;
-    }),
-  );
-  $('context-page-note').textContent = snap.reason ? `原因：${snap.reason}` : `计数方式：${snap.counting_method || '未计量'}`;
-  attempts.replaceChildren(
-    ...(report.attempts || []).map((a) => {
+  // 开销分解条（对齐 V1 meter 行：标签 + 比例条 + 数值）
+  const used = ov.used_tokens || 0;
+  segments.replaceChildren(
+    ...(ov.segments || []).map((seg) => {
       const row = document.createElement('div');
-      row.className = 'ctx-attempt';
-      row.textContent = `摘要 ${String(a.id).slice(0, 8)} · ${a.state}${a.error_code ? ' · ' + a.error_code : ''}`;
+      row.className = 'ctx-seg-row';
+      const l = document.createElement('span');
+      l.className = 'ctx-seg-label';
+      l.textContent = seg.label;
+      const track = document.createElement('span');
+      track.className = 'ctx-seg-track';
+      const fill = document.createElement('i');
+      fill.style.width = `${used ? Math.min(100, Math.max(1, (100 * seg.tokens) / used)) : 0}%`;
+      track.append(fill);
+      const v = document.createElement('b');
+      v.className = 'ctx-seg-value';
+      v.textContent = Number(seg.tokens).toLocaleString('en-US');
+      row.append(l, track, v);
       return row;
     }),
   );
-  if (!(report.attempts || []).length) attempts.textContent = '本运行未触发摘要压缩。';
+  // 供应商缓存三卡（对齐 V1：命中率/读取/写入；未上报如实标注）
+  const cache = ov.cache || {};
+  if (!cache.sample_count) {
+    cacheCards.replaceChildren(ctxCard('缓存样本', '0 条', '还没有已上报用量的模型调用样本'));
+    $('ctx-cache-note').textContent = '发起对话后，这里聚合本会话主调用的供应商缓存上报；不含压缩/Review。';
+  } else {
+    cacheCards.replaceChildren(
+      ctxCard(
+        '缓存命中率',
+        cache.hit_percent != null ? `${cache.hit_percent}%` : '未知',
+        `基于 ${cache.ratio_sample_count} 条完整上报`,
+      ),
+      ctxCard('读取缓存', ctxNum(cache.cached_tokens), cache.cached_tokens == null ? '供应商未上报保持未知' : '来自供应商上报'),
+      ctxCard('写入缓存', ctxNum(cache.creation_tokens), cache.creation_tokens == null ? '供应商未上报保持未知' : '来自供应商上报'),
+    );
+    $('ctx-cache-note').textContent = `最近 ${cache.sample_count} 条样本中，${cache.ratio_sample_count} 条上报了缓存读取。当前会话最近有记录的主对话模型调用；不含压缩/Review，未上报不计为零。`;
+  }
+  // 固定提示词与前缀指纹折叠
+  const fp = ov.stable_prefix;
+  $('ctx-prefix').textContent = fp
+    ? `固定提示 ${fp.system_chars} 字符 · ${fp.tool_count} 个工具\nsystem_sha256: ${fp.system_sha256}\ntools_sha256: ${fp.tools_sha256 || '未登记'}`
+    : '该会话还没有已解析配置的快照。';
+  $('ctx-system-prompt').textContent = ov.system_prompt || '';
+  // 压缩尝试记录（最近运行）
+  if (ov.run_id) {
+    try {
+      const report = await api(scope(`/runs/${ov.run_id}/context`));
+      if (stale()) return;
+      attempts.replaceChildren(
+        ...(report.attempts || []).map((a) => {
+          const row = document.createElement('div');
+          row.className = 'ctx-attempt';
+          row.textContent = `摘要 ${String(a.id).slice(0, 8)} · ${a.state}${a.error_code ? ' · ' + a.error_code : ''}`;
+          return row;
+        }),
+      );
+      if (!(report.attempts || []).length) attempts.textContent = '最近运行未触发摘要压缩。';
+    } catch {
+      attempts.textContent = '';
+    }
+  } else {
+    attempts.textContent = '该会话还没有运行记录；发一条消息后这里显示窗口统计。';
+  }
 }
 function relTime(value) {
   if (!value) return '';

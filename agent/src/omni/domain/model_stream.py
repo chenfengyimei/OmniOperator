@@ -183,6 +183,16 @@ class StreamAssembly:
                 if not isinstance(decoded, dict) or call["id"] in {item.id for item in invocations}:
                     raise invalid("invalid_tool_arguments")
                 invocations.append(Invocation(call["id"], call["name"], cast(dict[str, JSON], decoded)))
+        usage = self.usage or {}
+        details = usage.get("prompt_tokens_details") or {}
+        cached = usage.get("prompt_cache_hit_tokens")
+        if cached is None:
+            cached = details.get("cached_tokens") if isinstance(details, dict) else None
+        if cached is None:
+            cached = usage.get("cache_read_input_tokens")
+        created = usage.get("cache_creation_input_tokens")
+        if created is None:
+            created = details.get("cache_creation_tokens") if isinstance(details, dict) else None
         return ModelReply(
             "".join(self.fragments),
             tuple(invocations),
@@ -190,4 +200,6 @@ class StreamAssembly:
             integer(self.usage["completion_tokens"]) if self.usage else None,
             cost_micro,
             completion_reason="content_filter" if self.refused else self.finish_reason,
+            cached_prompt_tokens=cached if type(cached) is int and cached >= 0 else None,
+            cache_creation_tokens=created if type(created) is int and created >= 0 else None,
         )
