@@ -1631,20 +1631,8 @@ body[data-ui-page="workbench-v2"] > header {
   margin-left: 0;
   min-width: 0;
 }
-/* 顶栏品牌图标是白色鱼形 svg，浅色主题下直接落在白底上几乎看不见。
-   给它与导航 .rail-brand 同款渐变底，两个主题都清晰且视觉统一。 */
-body[data-ui-page="workbench-v2"] > header > img {
-  flex: 0 0 auto;
-  box-sizing: border-box;
-  width: 28px;
-  height: 28px;
-  padding: 5px 3px;
-  border-radius: var(--r-md);
-  background: var(--grad);
-  box-shadow:
-    var(--sh-1),
-    inset 0 1px 0 color-mix(in srgb, #fff 34%, transparent);
-}
+/* 顶栏不再放鱼图标（与左侧导航 .rail-brand 重复，所有者要求只留左边），
+   品牌只显文字；原 header>img 渐变底规则随元素一并移除。 */
 body[data-ui-page="workbench-v2"] > main {
   grid-column: 2;
   grid-row: 2;

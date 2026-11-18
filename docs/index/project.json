@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "fa3f5826f7592735cf44375949cdd65911ba82d20a4c6e9766742478cf3010c7",
+  "source_sha256": "d3318adb2ba3c82b7aace1808e38a74ef8824660a89d8062ab669d15e7af35de",
   "modules": [
     {
       "id": "v2-domain",
@@ -555,7 +555,7 @@
         "web/ui/v2/v1/workbench.css",
         "web/ui/v2/workbench.css"
       ],
-      "lines": 23092,
+      "lines": 23082,
       "dependencies": []
     },
     {
@@ -105814,7 +105814,7 @@
       "path": "web/ui/v2/index.html",
       "module": "v2-workbench",
       "python_module": null,
-      "lines": 1951,
+      "lines": 1950,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -105964,7 +105964,7 @@
       "path": "web/ui/v2/settings-rail.js",
       "module": "v2-workbench",
       "python_module": null,
-      "lines": 97,
+      "lines": 100,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -106044,7 +106044,7 @@
       "path": "web/ui/v2/workbench.css",
       "module": "v2-workbench",
       "python_module": null,
-      "lines": 3235,
+      "lines": 3223,
       "imports": [],
       "symbols": [],
       "kind": "asset",

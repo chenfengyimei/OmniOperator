@@ -1,7 +1,7 @@
 {
   "batch": "v2-ui-connection-stability-v128",
   "recorded_at": "2026-11-15",
-  "resource_version_final": "20261118v146",
+  "resource_version_final": "20261118v147",
   "v1_alignment": {
     "summary": "用户提供 V1 正式工作台截图后，直接精读 web/ui/workbench.css 的 V1 实现并逐项移植，使 V2 结构与 V1 一致（而非自创风格）。",
     "ported_from_v1": [
@@ -1187,5 +1187,11 @@
     "验证": "取证 PASS（分类栏无chat/22项/导航与返回入口保留/返回可回对话）、设置56/56、交互7/7、横滑4/4、精修40/40、守卫+导航35 passed。",
     "核查脚本同步": "_railscroll 首分类改记忆；_polish_audit 主题专项同步三圆点（修复引用已删除的 #theme 导致的崩溃）。",
     "版本": "资源串整体 v145→v146。"
+  },
+  "brand_text_only_v147": {
+    "需求": "所有者要求品牌鱼图标只保留左侧导航一个，顶栏不重复显示，只显「OmniOperator 开发工作台」文字。",
+    "交付": "index.html 移除 header 内 brand-mark img，副标题「V2 开发工作台」改「开发工作台」；workbench.css 删除失效的 header>img 渐变底规则。",
+    "验证": "守卫+导航35 passed、全站76/76（品牌断言改为左侧唯一图标+顶栏纯文字）、双主题截图确认。",
+    "版本": "资源串整体 v146→v147。"
   }
 }
