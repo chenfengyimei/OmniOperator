@@ -12,9 +12,10 @@ from dataclasses import asdict
 from pathlib import Path
 from typing import Any
 
+from omni.adapters.platform.runtime.permissions import private_path
+
 from ..adapters.http import HttpRuntime, create_app
 from ..adapters.log_query import LogQuery
-from omni.adapters.platform.runtime.permissions import private_path
 from ..application.android import AndroidPort
 from ..application.bilibili import BilibiliPort
 from ..application.mcp import MCPTransportPort

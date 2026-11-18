@@ -13,6 +13,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Protocol, cast
 
+from omni.adapters.platform.runtime.processes import OwnedProcess
 from omni.domain.contracts import BusinessError
 from omni.domain.desktop import MAX_FRAME, validate_target
 from omni.domain.linux_window_leases import (
@@ -27,7 +28,6 @@ from omni.domain.linux_window_leases import (
     parse_request,
     parse_response,
 )
-from omni.adapters.platform.runtime.processes import OwnedProcess
 
 Spawn = Callable[..., Awaitable[OwnedProcess]]
 Guard = Callable[[], Awaitable[None]]

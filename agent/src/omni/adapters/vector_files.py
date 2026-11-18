@@ -12,9 +12,10 @@ import uuid
 from pathlib import Path
 from typing import cast
 
+from omni.adapters.platform.runtime.permissions import private_path
+
 from ..domain.local_vectors import RUNTIME, canonical, fingerprint, invalid, manifest
 from .object_store import sync_directory
-from omni.adapters.platform.runtime.permissions import private_path
 
 
 def runtime_versions() -> dict[str, str]:

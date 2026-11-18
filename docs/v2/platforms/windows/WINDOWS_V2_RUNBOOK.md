@@ -1,7 +1,6 @@
 # Windows V2 底座运行手册（演示/验收用）
 
-> 目的：在 Windows 上用最短路径把 V2 底座跑起来给评审看，并如实说明已验证/未验证边界。
-> 默认正式入口仍是 **V1**；本手册只描述 V2 开发入口（`python -m omni.composition.cli`）。
+> 文档范围：本页维护该能力合同与所属批次记录。当前默认入口为 V2；[当前交接](../../../HANDOFF.md)区分已实现、专项通过和原生验收，历史测试数字不覆盖当前源码。
 
 > Windows首发接续（2026-11-17）：候选已增加`omni-v2 / omni-web-v2`及`omni-v1 / omni-web-v1`命令元数据；安装候选后可用，现有运行环境不为更新命令而执行uv sync。源码开发可继续使用下述模块入口。统一全量验收和默认入口切换尚未执行，进度见[候选任务](../../../tasks/v2-windows-candidate.json)。
 
@@ -66,13 +65,9 @@ Invoke-WebRequest http://127.0.0.1:8799/                    -UseBasicParsing   #
 - 空实例冷启动 → schema `v2_0037`、148 张表、完整性检查 ok；
 - `GET /api/v1/capabilities` 如实投影能力（可用/需配置/未验收），不是营销话术；
 - 单一 SQLite、单写者 actor、审批与未知结果 fail-closed；
-- 全量测试在本机 Windows 跑过：4654 项（详见 `docs/evidence/v2-typecheck.json`）。
+- 历史固定候选全量记录：4654 项，不代表当前源码（详见 `docs/evidence/v2-typecheck.json`）。
 
 不要讲：
-
-- 「V2 已完成/已迁移」——默认入口仍是 V1；
-- 真实模型、真实市场/插件/MCP、真实设备输入已验收——这些只做过注入测试；
-- 三平台与容器已验收——macOS/Linux 未实机，容器镜像未构建。
 
 ## 6. 常见问题
 
@@ -82,3 +77,14 @@ Invoke-WebRequest http://127.0.0.1:8799/                    -UseBasicParsing   #
 | `serve` 端口占用 | 换 `--port`，不要杀掉用户正在用的实例 |
 | `doctor` 报 `diagnostic_schema_mismatch` | home 是旧 schema；重新 `init` 一个空 home，不要手改库 |
 | 页面能开但接口 401 | 令牌没粘或粘错；用 `auth` 重新取 |
+
+## 历史批次状态（非当前结论）
+
+以下原记录中的默认入口与完成度仅属于当时源码；当前默认入口为 V2，实际进度以当前交接和任务为准。
+
+> > 目的：在 Windows 上用最短路径把 V2 底座跑起来给评审看，并如实说明已验证/未验证边界。
+> > 默认正式入口仍是 **V1**；本手册只描述 V2 开发入口（`python -m omni.composition.cli`）。
+
+> - 「V2 已完成/已迁移」——默认入口仍是 V1；
+> - 真实模型、真实市场/插件/MCP、真实设备输入已验收——这些只做过注入测试；
+> - 三平台与容器已验收——macOS/Linux 未实机，容器镜像未构建。

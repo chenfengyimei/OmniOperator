@@ -12,21 +12,21 @@ from collections.abc import Callable
 from pathlib import Path
 from typing import cast
 
-from omni.application.ports import Record
-from omni.domain.contracts import BusinessError
-from omni.domain.installation import make_installation, validate_installation
 from omni.adapters.persistence.maintenance import durable_json, migrate_database, read_schema
 from omni.adapters.persistence.migration_config import head as migration_head
-from omni.adapters.primitives import SystemClock
-from omni.adapters.platform.runtime.paths import InstanceLock, InstancePaths
-from omni.adapters.platform.runtime.permissions import private_path
-from omni.adapters.platform.runtime.runtime_identity import read_private
 from omni.adapters.platform.releases.wheel_artifact import SHA
 from omni.adapters.platform.releases.wheel_backup import FORMAT as BACKUP_FORMAT
 from omni.adapters.platform.releases.wheel_environment import installed_environment
 from omni.adapters.platform.releases.wheel_prepare import FORMAT as PREPARED_FORMAT
 from omni.adapters.platform.releases.wheel_rollback import FORMAT as ROLLBACK_FORMAT
 from omni.adapters.platform.releases.wheel_smoke import FORMAT as SMOKE_FORMAT
+from omni.adapters.platform.runtime.paths import InstanceLock, InstancePaths
+from omni.adapters.platform.runtime.permissions import private_path
+from omni.adapters.platform.runtime.runtime_identity import read_private
+from omni.adapters.primitives import SystemClock
+from omni.application.ports import Record
+from omni.domain.contracts import BusinessError
+from omni.domain.installation import make_installation, validate_installation
 
 FORMAT = "omni-runtime-1"
 LAUNCHER = '''"""Run the active V2 candidate selected by the installation runtime pointer."""

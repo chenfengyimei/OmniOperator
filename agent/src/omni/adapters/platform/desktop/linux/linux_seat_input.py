@@ -6,10 +6,10 @@ import asyncio
 from collections.abc import Awaitable, Callable
 from typing import Protocol, TypeVar
 
-from omni.domain.contracts import BusinessError
 from omni.adapters.platform.desktop.linux.linux_bus import failure
 from omni.adapters.platform.desktop.linux.linux_evdev_input import EvdevInput
 from omni.adapters.platform.desktop.linux.linux_session import SessionInspector
+from omni.domain.contracts import BusinessError
 
 T = TypeVar("T")
 

@@ -10,10 +10,10 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any
 
-from omni.domain.contracts import BusinessError
-from omni.domain.foreground import KEYS
 from omni.adapters.platform.desktop.linux.linux_bus import failure
 from omni.adapters.platform.desktop.linux.linux_eis_keymap import MAX_KEYMAP, KeymapInfo
+from omni.domain.contracts import BusinessError
+from omni.domain.foreground import KEYS
 
 
 @dataclass(frozen=True)

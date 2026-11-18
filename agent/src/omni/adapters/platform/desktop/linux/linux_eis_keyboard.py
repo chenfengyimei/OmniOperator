@@ -6,10 +6,10 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
-from omni.domain.foreground import KEYS
 from omni.adapters.platform.desktop.linux.linux_bus import failure
 from omni.adapters.platform.desktop.linux.linux_eis_devices import Inventory
 from omni.adapters.platform.desktop.linux.linux_xkbcommon import KeyMeaning, XkbCompiler
+from omni.domain.foreground import KEYS
 
 if TYPE_CHECKING:
     from omni.adapters.platform.desktop.linux.linux_eis_devices import EisDevices

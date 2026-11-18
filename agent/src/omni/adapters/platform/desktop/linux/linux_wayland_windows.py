@@ -8,7 +8,6 @@ import struct
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
 
-from omni.domain.contracts import BusinessError
 from omni.adapters.platform.desktop.linux.linux_bus import failure
 from omni.adapters.platform.desktop.linux.linux_fds import OwnedFd
 from omni.adapters.platform.desktop.linux.linux_session import SessionInspector
@@ -21,6 +20,7 @@ from omni.adapters.platform.desktop.linux.linux_wayland_wire import (
     string,
     word,
 )
+from omni.domain.contracts import BusinessError
 
 MANAGER = "zwlr_foreign_toplevel_manager_v1"
 

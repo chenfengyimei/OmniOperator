@@ -17,9 +17,10 @@ from itertools import islice
 from pathlib import Path
 from typing import Any
 
+from omni.adapters.platform.runtime.permissions import private_path
+
 from ..domain.contracts import JSON, BusinessError, Outcome
 from .metrics import OPERATIONS
-from omni.adapters.platform.runtime.permissions import private_path
 
 MAX_BYTES = 128 * 1024 * 1024
 MAX_FILES = 1000

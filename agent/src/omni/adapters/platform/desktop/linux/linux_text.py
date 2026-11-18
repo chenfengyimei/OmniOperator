@@ -6,12 +6,12 @@ import asyncio
 from collections.abc import Awaitable, Callable
 from typing import cast
 
-from omni.domain.contracts import BusinessError
-from omni.domain.foreground import action as foreground_action
 from omni.adapters.platform.desktop.linux.linux_atspi import AtspiDesktop
 from omni.adapters.platform.desktop.linux.linux_bus import failure
 from omni.adapters.platform.desktop.linux.linux_input import X11Input
 from omni.adapters.platform.desktop.linux.linux_semantic import EDITABLE, Semantics, digest, result, stable_catalog
+from omni.domain.contracts import BusinessError
+from omni.domain.foreground import action as foreground_action
 
 Payload = dict[str, object]
 WAIT_SECONDS = 10.0

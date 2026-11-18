@@ -8,6 +8,11 @@ import sys
 from collections.abc import Awaitable, Callable
 from typing import Protocol, cast
 
+from omni.adapters.platform.desktop.linux.linux_bus import LinuxOps, failure, load_types
+from omni.adapters.platform.desktop.linux.linux_session import LocalFactory, SessionInspector
+from omni.adapters.platform.desktop.linux.linux_window_leases import LeaseWire, WindowLeases
+from omni.adapters.platform.desktop.linux.linux_x11 import X11Desktop
+
 from ...domain.contracts import BusinessError
 from ...domain.desktop import MAX_FRAME
 from ...domain.linux_window_leases import (
@@ -19,10 +24,6 @@ from ...domain.linux_window_leases import (
     encode,
     parse_request,
 )
-from omni.adapters.platform.desktop.linux.linux_bus import LinuxOps, failure, load_types
-from omni.adapters.platform.desktop.linux.linux_session import LocalFactory, SessionInspector
-from omni.adapters.platform.desktop.linux.linux_window_leases import LeaseWire, WindowLeases
-from omni.adapters.platform.desktop.linux.linux_x11 import X11Desktop
 
 
 def parse(frame: bytes) -> Payload:

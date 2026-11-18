@@ -13,11 +13,18 @@ from alembic.script import ScriptDirectory
 from alembic.script.revision import RevisionError
 from alembic.util.exc import CommandError
 
+from omni.adapters.platform.runtime.paths import InstancePaths
+from omni.adapters.platform.services.deployment_files import (
+    CurrentDeploymentFiles,
+    json_bytes,
+    no_links,
+    publish_json,
+    read_file,
+)
+
 from ...domain.contracts import BusinessError
 from ...domain.releases import ReleasePlan, digest
 from ...domain.schema_upgrade import FORMAT, schema_upgrade
-from omni.adapters.platform.services.deployment_files import CurrentDeploymentFiles, json_bytes, no_links, publish_json, read_file
-from omni.adapters.platform.runtime.paths import InstancePaths
 from .deployed_instance import verify_deployed_instance
 from .history_sequence import allocate_history
 from .maintenance import fingerprint, inspect_database

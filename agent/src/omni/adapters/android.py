@@ -13,14 +13,15 @@ from typing import cast
 
 from PIL import Image
 
+from omni.adapters.platform.desktop.desktop_capture import inventory
+from omni.adapters.platform.runtime.permissions import assert_private, private_path
+
 from ..application.ports import AsyncSecretPort, Record
 from ..domain.android import METHODS
 from ..domain.contracts import ActionResult, BusinessError, InvocationContext, Outcome
 from ..domain.desktop import CapturedFrame
 from .android_unicode import UnicodeFlow
 from .object_store import checked_path
-from omni.adapters.platform.desktop.desktop_capture import inventory
-from omni.adapters.platform.runtime.permissions import assert_private, private_path
 from .workers.client import WorkerClient
 
 # 与 application.android.AndroidPort 协议口径一致（参数逆变，适配器须接受同样宽的载荷）。

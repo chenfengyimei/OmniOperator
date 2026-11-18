@@ -14,15 +14,20 @@ SOURCES = [
 ]
 
 
+def test_files(root: Path) -> list[str]:
+    """Discover the nested suite explicitly; an empty suite is a broken gate."""
+    tests = sorted((root / "agent/tests/v2").rglob("test_v2_*.py"))
+    if not tests:
+        raise ValueError("V2 test suite is empty")
+    return [str(path.relative_to(root)) for path in tests]
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--evidence", type=Path, default=ROOT / "temp/build/v2-ci")
     args = parser.parse_args()
     args.evidence.mkdir(parents=True, exist_ok=True)
-    tests = [
-        str(path.relative_to(ROOT))
-        for path in sorted((ROOT / "agent/tests").glob("test_v2_*.py"))
-    ]
+    tests = test_files(ROOT)
     commands = [
         [sys.executable, "-m", "ruff", "check", *SOURCES, *tests],
         [sys.executable, "-m", "ruff", "format", "--check", *SOURCES, *tests],

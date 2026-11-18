@@ -6,13 +6,13 @@ import json
 from pathlib import Path
 from typing import cast
 
+from omni.adapters.persistence.maintenance import read_schema
+from omni.adapters.persistence.migration_config import head as migration_head
+from omni.adapters.platform.releases.wheel_prepare import FORMAT as PREPARED_FORMAT
+from omni.adapters.platform.runtime.paths import InstanceLock, InstancePaths
 from omni.application.ports import Record
 from omni.domain.contracts import BusinessError
 from omni.domain.installation import validate_installation
-from omni.adapters.persistence.maintenance import read_schema
-from omni.adapters.persistence.migration_config import head as migration_head
-from omni.adapters.platform.runtime.paths import InstanceLock, InstancePaths
-from omni.adapters.platform.releases.wheel_prepare import FORMAT as PREPARED_FORMAT
 
 FORMAT = "omni-switch-plan-1"
 

@@ -11,10 +11,6 @@ import uuid
 from pathlib import Path
 from typing import cast
 
-from omni.application.ports import Record
-from omni.domain.contracts import BusinessError
-from omni.domain.service_control import start_precondition
-from omni.domain.service_deployment import manager_identity, validate_plan
 from omni.adapters.object_store import sync_directory
 from omni.adapters.platform.services.deployment_files import decode as _decode
 from omni.adapters.platform.services.deployment_files import no_links as _no_links
@@ -22,6 +18,10 @@ from omni.adapters.platform.services.deployment_files import read_file as _read
 from omni.adapters.platform.services.macos_service import MacOSServiceInspection, disabled_override
 from omni.adapters.platform.services.service_query import ServiceQuery
 from omni.adapters.platform.services.service_templates import render
+from omni.application.ports import Record
+from omni.domain.contracts import BusinessError
+from omni.domain.service_control import start_precondition
+from omni.domain.service_deployment import manager_identity, validate_plan
 
 Payload = dict[str, object]
 

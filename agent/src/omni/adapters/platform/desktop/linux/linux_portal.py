@@ -7,7 +7,6 @@ import uuid
 from collections.abc import Awaitable, Callable
 from typing import Any, cast
 
-from omni.domain.desktop_portal import CHOICE_SECONDS
 from omni.adapters.platform.desktop.linux.linux_bus import BusPort, Endpoint, LocalBus, RemoteError, failure
 from omni.adapters.platform.desktop.linux.linux_fds import OwnedFd
 from omni.adapters.platform.desktop.linux.linux_session import (
@@ -21,6 +20,7 @@ from omni.adapters.platform.desktop.linux.linux_session import (
     variant,
 )
 from omni.adapters.platform.desktop.linux.linux_signals import SignalBus
+from omni.domain.desktop_portal import CHOICE_SECONDS
 
 PORTAL = "org.freedesktop.portal.Desktop"
 PATH = "/org/freedesktop/portal/desktop"

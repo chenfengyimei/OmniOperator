@@ -10,8 +10,8 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any
 
-from omni.domain.contracts import BusinessError
 from omni.adapters.platform.desktop.linux.linux_bus import failure
+from omni.domain.contracts import BusinessError
 
 MAX_ENTRIES, MAX_DEVICES = 256, 64
 

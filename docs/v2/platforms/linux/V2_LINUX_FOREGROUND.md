@@ -1,5 +1,7 @@
 # Linux 显式前台控制开发
 
+> 文档范围：本页维护该能力合同与所属批次记录。当前默认入口为 V2；[当前交接](../../../HANDOFF.md)区分已实现、专项通过和原生验收，历史测试数字不覆盖当前源码。
+
 整个Linux通用前台控制仍在开发。已接通人工聚焦AT-SPI编辑器末尾Unicode追加，以及明确提供原生窗口XID的节点逐次按键（当前Avalonia属性）；鼠标、通用GTK/Qt窗口关联和Wayland输入继续开发。文本追加保持直接寻址AT-SPI，不增加原生窗口关联要求。以下历史节点与当前业务接线分别列明。
 
 `platform/linux_foreground.py` 的 `WindowFocus` 持有外部 `WindowLeases` 和自己拥有的独立 `X11Input` 连接。先核对原窗口持续代次，再建立已有物理输入释放/拓扑监测和 250ms 静默窗口。两条连接必须来自同一个 SessionInspector，具有相同 Xorg 进程、socket inode、screen/display 及 root。另在监测连接核验 XRes1.2，实际焦点接收客户端的 PID、进程创建身份、可执行文件和 UID 必须属于所选窗口。

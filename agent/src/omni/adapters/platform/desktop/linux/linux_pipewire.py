@@ -18,9 +18,9 @@ from typing import Any, cast
 
 from PIL import Image
 
+from omni.adapters.platform.desktop.linux.linux_fds import OwnedFd
 from omni.domain.contracts import BusinessError
 from omni.domain.desktop import MAX_CAPTURE_BYTES
-from omni.adapters.platform.desktop.linux.linux_fds import OwnedFd
 
 MAX_EDGE, MAX_PIXELS, MAX_RAW = 4096, 16_000_000, 64 * 1024 * 1024
 

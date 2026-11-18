@@ -6,12 +6,12 @@ import json
 from pathlib import Path
 from typing import cast
 
-from omni.application.ports import Record
-from omni.domain.contracts import BusinessError
 from omni.adapters.persistence.maintenance import durable_json, inspect_database, restore
+from omni.adapters.platform.releases.wheel_backup import FORMAT as BACKUP_FORMAT
 from omni.adapters.platform.runtime.paths import InstancePaths
 from omni.adapters.platform.runtime.permissions import private_path
-from omni.adapters.platform.releases.wheel_backup import FORMAT as BACKUP_FORMAT
+from omni.application.ports import Record
+from omni.domain.contracts import BusinessError
 
 FORMAT = "omni-rollback-check-1"
 

@@ -8,6 +8,19 @@ from contextlib import ExitStack, contextmanager
 from pathlib import Path
 from typing import Any, cast
 
+from omni.adapters.object_store import sync_directory
+from omni.adapters.platform.releases.release_files import ReleaseFiles
+from omni.adapters.platform.runtime.paths import InstanceLock, InstancePaths, PrivateFileLock
+from omni.adapters.platform.runtime.permissions import assert_private, private_path
+from omni.adapters.platform.services.deployment_files import (
+    CurrentDeploymentFiles,
+    json_bytes,
+    no_links,
+    path_of,
+    publish_json,
+)
+from omni.adapters.platform.services.exchange_files import ExchangeFiles
+from omni.adapters.platform.services.service_operation_files import ServiceOperationFiles
 from omni.application.ports import Record
 from omni.domain.contracts import BusinessError
 from omni.domain.release_fence import validate_fence
@@ -21,19 +34,6 @@ from omni.domain.service_cleanup import (
     validate_cleanup,
 )
 from omni.domain.service_exchange import marker, progress
-from omni.adapters.object_store import sync_directory
-from omni.adapters.platform.services.deployment_files import (
-    CurrentDeploymentFiles,
-    json_bytes,
-    no_links,
-    path_of,
-    publish_json,
-)
-from omni.adapters.platform.services.exchange_files import ExchangeFiles
-from omni.adapters.platform.runtime.paths import InstanceLock, InstancePaths, PrivateFileLock
-from omni.adapters.platform.runtime.permissions import assert_private, private_path
-from omni.adapters.platform.releases.release_files import ReleaseFiles
-from omni.adapters.platform.services.service_operation_files import ServiceOperationFiles
 
 
 def invalid(code: str = "service_cleanup_scope_changed") -> BusinessError:

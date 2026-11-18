@@ -7,10 +7,10 @@ import struct
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, cast
 
-from omni.domain.desktop import MAX_CAPTURE_EDGE, validate_target
 from omni.adapters.platform.desktop.linux.linux_bus import failure
 from omni.adapters.platform.desktop.linux.linux_x11 import X11Desktop
 from omni.adapters.platform.desktop.linux.linux_x11_wire import unpack
+from omni.domain.desktop import MAX_CAPTURE_EDGE, validate_target
 
 if TYPE_CHECKING:
     from omni.adapters.platform.desktop.linux.linux_foreground import WindowFocus

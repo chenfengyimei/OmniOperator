@@ -11,7 +11,6 @@ from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
-from omni.domain.desktop_control import devices
 from omni.adapters.platform.desktop.linux.linux_bus import failure
 from omni.adapters.platform.desktop.linux.linux_eis import (
     MAX_TOTAL,
@@ -23,6 +22,7 @@ from omni.adapters.platform.desktop.linux.linux_eis import (
 )
 from omni.adapters.platform.desktop.linux.linux_eis_keymap import MAX_KEYMAP, Keymap, KeymapInfo
 from omni.adapters.platform.desktop.linux.linux_fds import OwnedFd, ReceivedFds
+from omni.domain.desktop_control import devices
 
 if TYPE_CHECKING:
     from omni.adapters.platform.desktop.linux.linux_eis_key_packet import EisKeyPacket

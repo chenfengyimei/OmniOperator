@@ -8,6 +8,22 @@ from contextlib import contextmanager
 from pathlib import Path
 from typing import Any, cast
 
+from omni.adapters.object_store import sync_directory
+from omni.adapters.platform.runtime.paths import InstanceLock, InstancePaths, PrivateFileLock
+from omni.adapters.platform.runtime.permissions import assert_private, private_path
+from omni.adapters.platform.services.deployment_files import (
+    LAYERS,
+    MAX_BYTES,
+    CurrentDeploymentFiles,
+    json_bytes,
+    no_links,
+    path_of,
+    proof,
+    publish_json,
+    python_files,
+    read_file,
+    walk,
+)
 from omni.application.ports import Record
 from omni.domain.contracts import BusinessError
 from omni.domain.recovery_authority import RecoveryAuthority
@@ -15,10 +31,6 @@ from omni.domain.release_fence import fence
 from omni.domain.releases import ReleaseEvent, ReleasePlan, digest, validate_release
 from omni.domain.service_deployment import created
 from omni.domain.service_exchange import ExchangePlan, marker
-from omni.adapters.object_store import sync_directory
-from omni.adapters.platform.services.deployment_files import LAYERS, MAX_BYTES, CurrentDeploymentFiles, json_bytes, no_links, path_of, proof, publish_json, python_files, read_file, walk
-from omni.adapters.platform.runtime.paths import InstanceLock, InstancePaths, PrivateFileLock
-from omni.adapters.platform.runtime.permissions import assert_private, private_path
 
 MAX_EVENTS = 32
 TRANSITIONS: dict[str, set[str]] = {
@@ -126,8 +138,8 @@ class ReleaseFiles:
         recovery = plan["recovery"]
         if recovery is None or recovery["isolation"] is None:
             return None
-        from omni.domain.service_exchange import validate_exchange
         from omni.adapters.platform.services.exchange_files import ExchangeFiles
+        from omni.domain.service_exchange import validate_exchange
 
         authority = recovery["isolation"]
         original = validate_exchange(

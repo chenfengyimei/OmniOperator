@@ -7,12 +7,12 @@ from collections.abc import Awaitable, Callable
 from pathlib import Path
 from typing import cast
 
-from omni.application.ports import Record
-from omni.domain.contracts import BusinessError
-from omni.domain.service_deployment import manager_identity
 from omni.adapters.platform.services.deployment_files import decode
 from omni.adapters.platform.services.macos_service_state import disabled_override as disabled_override
 from omni.adapters.platform.services.macos_service_state import loaded_definition
+from omni.application.ports import Record
+from omni.domain.contracts import BusinessError
+from omni.domain.service_deployment import manager_identity
 
 VERSION = "omni-macos-service-query-2"
 MAX_OUTPUT = 65536

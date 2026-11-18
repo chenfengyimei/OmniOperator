@@ -13,12 +13,13 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, cast
 
+from omni.adapters.platform.runtime.processes import OwnedProcess
+
 from ..application.ports import Record
 from ..domain.contracts import BusinessError
 from ..domain.credential_ipc import MAX_FRAME, VERSION, control, decode, encode, request, response
 from ..domain.credentials import validate_reference, validate_secret
 from .diagnostics import Redactor
-from omni.adapters.platform.runtime.processes import OwnedProcess
 
 log = logging.getLogger("omni.v2.credentials.native")
 TIMEOUT_S = 30.0

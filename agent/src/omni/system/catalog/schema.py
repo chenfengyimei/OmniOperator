@@ -24,7 +24,7 @@ MODULES = (
         ("domain/",),
         "纯领域状态机、结构化结果与配置校验；不依赖旧运行时。",
         ("V2_REFACTOR.md",),
-        ("test_v2_architecture.py",),
+        ('v2/core/test_v2_architecture.py',),
     ),
     Module(
         "v2-application",
@@ -33,7 +33,7 @@ MODULES = (
         ("application/",),
         "单实例调度、会话顺序、审批、取消与费用结算；仍在开发。",
         ("V2_REFACTOR.md",),
-        ("test_v2_execution.py",),
+        ('v2/core/test_v2_execution.py',),
     ),
     Module(
         "v2-adapters",
@@ -42,7 +42,7 @@ MODULES = (
         ("adapters/",),
         "单库事务、诊断、进程外能力与平台原语；平台桌面尚未接入。",
         ("V2_REFACTOR.md",),
-        ("test_v2_kernel.py", "test_v2_reliability.py", "test_v2_diagnostics.py", "test_v2_workers.py"),
+        ('v2/core/test_v2_kernel.py', 'v2/core/test_v2_reliability.py', 'v2/core/test_v2_diagnostics.py', 'v2/core/test_v2_workers.py'),
     ),
     Module(
         "v2-composition",
@@ -51,7 +51,7 @@ MODULES = (
         ("composition/",),
         "独立新目录、生命周期和开发入口，不读取旧库。",
         ("V2_REFACTOR.md",),
-        ("test_v2_kernel.py",),
+        ('v2/core/test_v2_kernel.py',),
     ),
     Module(
         "v2-workbench",
@@ -60,7 +60,7 @@ MODULES = (
         ("web/ui/v2/",),
         "基于现有主题的最小开发工作台，尚非完整功能迁移。",
         ("V2_REFACTOR.md",),
-        ("test_v2_http.py",),
+        ('v2/http/test_v2_http.py',),
     ),
     Module(
         "updates",

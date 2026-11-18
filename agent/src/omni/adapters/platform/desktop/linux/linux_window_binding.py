@@ -5,7 +5,6 @@ from __future__ import annotations
 from collections.abc import Callable
 from typing import cast
 
-from omni.domain.desktop import validate_target
 from omni.adapters.platform.desktop.linux.linux_atspi import ACCESSIBLE, AtspiDesktop
 from omni.adapters.platform.desktop.linux.linux_bus import failure
 from omni.adapters.platform.desktop.linux.linux_foreground import WindowFocus
@@ -13,6 +12,7 @@ from omni.adapters.platform.desktop.linux.linux_input import X11Input
 from omni.adapters.platform.desktop.linux.linux_session import SessionInspector
 from omni.adapters.platform.desktop.linux.linux_window_leases import LeaseWire, WindowLeases
 from omni.adapters.platform.desktop.linux.linux_x11 import X11Desktop
+from omni.domain.desktop import validate_target
 
 Payload = dict[str, object]
 

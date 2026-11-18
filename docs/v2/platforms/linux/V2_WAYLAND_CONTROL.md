@@ -1,5 +1,7 @@
 # Wayland 独立控制许可开发
 
+> 文档范围：本页维护该能力合同与所属批次记录。当前默认入口为 V2；[当前交接](../../../HANDOFF.md)区分已实现、专项通过和原生验收，历史测试数字不覆盖当前源码。
+
 独立 RemoteDesktop 原生许可、固定 worker、父进程归属、持久审计和 HTTP/工作台入口已经接通。真实输入暂停、目标证明与实际派发仍在开发，当前没有开放 Wayland 输入。系统设备许可与业务动作授权分别记录；所有回执的 `input_authorized` 始终为 false。
 
 `domain/desktop_control.py` 使用独立 `omni-desktop-control-1` 协议。打开请求必须带交互输入目的、显式同意、键盘/鼠标位图及 Agent/view/boot/grant 的精确 UUID 绑定。仅接受 open/permit/close；窗口共享协议、恢复令牌和任何输入命令都不能作为控制请求。系统许可阶段名为 `system_authorized`，不使用共享会话的 `active` 冒充动作权限。

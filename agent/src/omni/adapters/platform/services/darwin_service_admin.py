@@ -5,16 +5,16 @@ from __future__ import annotations
 import secrets
 from typing import Any, cast
 
-from omni.domain.contracts import BusinessError
-from omni.domain.service_admin import decode
-from omni.domain.service_control import start_precondition
-from omni.domain.service_operations import registration_goal, registration_precondition
 from omni.adapters.platform.services.darwin_admin_commands import DarwinCommands
 from omni.adapters.platform.services.darwin_admin_policy import DarwinPolicy
 from omni.adapters.platform.services.macos_service_state import disabled_override, loaded_definition
 from omni.adapters.platform.services.service_admin import unknown
 from omni.adapters.platform.services.service_admin_policy import error
 from omni.adapters.platform.services.service_templates import render
+from omni.domain.contracts import BusinessError
+from omni.domain.service_admin import decode
+from omni.domain.service_control import start_precondition
+from omni.domain.service_operations import registration_goal, registration_precondition
 
 
 class DarwinAdministrator:

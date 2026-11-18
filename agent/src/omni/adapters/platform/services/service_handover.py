@@ -5,11 +5,11 @@ from __future__ import annotations
 import asyncio
 from typing import cast
 
+from omni.adapters.platform.services.service_admin_client import ExchangeAdministrator
 from omni.application.ports import Record
 from omni.domain.contracts import BusinessError
 from omni.domain.service_admin import socket_path
 from omni.domain.service_exchange import administrator_approval, stages, validate_exchange
-from omni.adapters.platform.services.service_admin_client import ExchangeAdministrator
 
 
 class AdministratorHandover:

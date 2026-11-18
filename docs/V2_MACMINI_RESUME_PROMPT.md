@@ -8,6 +8,7 @@
 目标与当前阶段：
 - 所有者已完成 Windows 会话的本地收尾，源码、证据、任务记录和本提示词通过项目一起交接。项目迁移由所有者自行完成；macOS 版本、项目路径、工具链和环境状态由你在 Mac 本机读取。
 - 当前主线是 v2，远程为 https://gitee.com/chenfengloveyuri/OmniOperator.git。先核对 pwd、git status、当前分支和 HEAD，使用实际导入的源码，不假定 Windows 的绝对路径在 Mac 存在。
+- 当前代码布局已整理：平台 Python 适配按 desktop/services/releases/runtime 归组，V2 测试位于 agent/tests/v2，复用助手在 omni_test_support/v2；先读目录迁移清单，V1 和原生资源位置保留。
 - Mac mini 已确认是 Apple Silicon（M 系列），所有者告知系统版本为 macOS 27；接手后用 sw_vers 核对实际版本及 SDK。使用原生 arm64 终端、Python 和 helper。
 - 优先完成整个 V2 的开发，再统一全量测试、修复与最终验收。Windows 主体开发和旧离线候选已完成；整个 V2 仍在开发，不能将 Windows 阶段完成当作全项目完成。
 
@@ -18,6 +19,7 @@
 4. 本批实际改动涉及的合同、实现、调用方和现有测试。
 
 已完成的断点与证据：
+- 本次目录整理已经完成：108 个平台实现归组、原 7354 个测试节点保留，新增 7 个后收集 7361 个；386 文件 strict 与打包通过，当前源码未全量。按 docs/evidence/v2-layout-reorganization.json 和 docs/tasks/v2-layout-migration.json 读取具体结果。
 - Linux Enter 控件状态批已提交 f539f21e：194 项专项通过、3 个运行文件 strict 通过；仍有通用 Linux/Wayland 开发，不能据此声称 Linux 原生已验收。
 - Windows 点击复核和样例修正已提交 fbfc16b8，人工前台复验与 arm64 交接记录已提交 73970d20；后续本地收尾提交以当前 Git 为准。
 - 原 STATIC 顶层样例造成 UIA 跨进程命中，生产拒绝正确；已改为标准窗口类 DefWindowProcW。原生产点击点及真实遮挡拒绝通过，矩形中心候选已撤回，生产 windows_foreground.cs 保持原字节。不要重新实现已撤回的回退方案。
@@ -36,7 +38,7 @@
 
 开发与验证纪律：
 - 保留所有其他会话未提交修改。Windows 收尾时 PPT/、docs/competition/ 为其他会话未跟踪资料，未纳入 Git；若所有者另行复制到 Mac，继续保留。
-- 开发中只跑受影响模块及调用方，统一 uv run --no-sync pytest -q -n 0 agent/tests/test_<模块>.py。失败优先重跑具体 nodeid，保留首次失败；不跳过、不降低断言、不缩短被测超时。
+- Mac 主要开发，当前 Windows 保留服务与原生验收，通过同一 v2 分支同步。开发中只跑受影响模块及调用方，统一 uv run --no-sync pytest -q -n 0 agent/tests/v2/<分组>/test_<模块>.py。失败优先重跑具体 nodeid，保留首次失败；不跳过、不降低断言、不缩短被测超时。
 - 每个小模块或文档修改后不跑全量。整个 V2 开发冻结后再统一 uv run --no-sync pytest -q，不同时启动多个全量；不能把专项通过写成全量通过。
 - 已有运行环境不执行 uv sync，不为测试停止用户服务。新的 Mac 环境按锁文件单独创建，不复制 Windows .venv、原生二进制、DPAPI 凭据或运行中的 SQLite。
 - 复用当前四层架构和现有数据库、审批、来源、预算与资源归属链，已派发不明保持 unknown。真实账号、模型质量、设备、干净机器和 72 小时验收分别待验。

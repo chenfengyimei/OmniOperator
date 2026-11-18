@@ -16,13 +16,13 @@ from functools import partial
 from pathlib import Path
 from typing import Any, TypeVar, cast
 
-from omni.application.ports import Record
-from omni.domain.contracts import BusinessError
-from omni.domain.service_deployment import manager_identity, validate_plan
 from omni.adapters.platform.runtime.processes import OwnedProcess
 from omni.adapters.platform.services.service_templates import render
 from omni.adapters.platform.services.systemd_state import PROPERTIES, systemd_state
 from omni.adapters.platform.services.systemd_state import manager_report as _report
+from omni.application.ports import Record
+from omni.domain.contracts import BusinessError
+from omni.domain.service_deployment import manager_identity, validate_plan
 
 MAX_OUTPUT = 1_048_576
 QUERY_SECONDS = 5.0

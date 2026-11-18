@@ -21,7 +21,7 @@
 ## 2. 测试纪律（硬门槛）
 
 ```powershell
-uv run --no-sync pytest -q -n 0 agent/tests/test_<模块>.py  # 开发中：相关模块与调用方
+uv run --no-sync pytest -q -n 0 agent/tests/v2/<分组>/test_<模块>.py  # 开发中：相关模块与调用方
 uv run --no-sync pytest -q          # 多模块集成收尾或所有者明确要求：全量离线测试，默认最多 4 进程
 ```
 

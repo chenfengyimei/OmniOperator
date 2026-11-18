@@ -12,14 +12,14 @@ import sys
 import time
 from typing import Any, Protocol, cast
 
-from omni.domain.contracts import BusinessError
-from omni.domain.service_admin import MAX_FRAME, MAX_REQUESTS, decode, encode, response, validate_request
-from omni.domain.service_control import start_precondition
-from omni.domain.service_operations import registration_goal, registration_precondition
 from omni.adapters.platform.services.service_admin_commands import RootCommands
 from omni.adapters.platform.services.service_admin_policy import RootServicePolicy, error, root_path, sync
 from omni.adapters.platform.services.service_templates import render
 from omni.adapters.platform.services.systemd_state import PROPERTIES, systemd_state
+from omni.domain.contracts import BusinessError
+from omni.domain.service_admin import MAX_FRAME, MAX_REQUESTS, decode, encode, response, validate_request
+from omni.domain.service_control import start_precondition
+from omni.domain.service_operations import registration_goal, registration_precondition
 
 
 def unknown(code: str) -> dict[str, Any]:

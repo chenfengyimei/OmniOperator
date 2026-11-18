@@ -1,6 +1,6 @@
 # V2 安卓受控 Unicode 输入
 
-本批接入 `append_unicode`、独立 Android 输入辅助应用、输入法恢复义务与工作台。它属于 D5 选定的安卓输入范围；设备验收尚未完成，默认入口仍为 V1，完整 V2 尚未交付。证据以 [本批记录](../../evidence/v2-android-unicode.json) 为准。
+> 文档范围：本页维护该能力合同与所属批次记录。当前默认入口为 V2；[当前交接](../../HANDOFF.md)区分已实现、专项通过和原生验收，历史测试数字不覆盖当前源码。
 
 ## 使用与能力边界
 
@@ -82,3 +82,9 @@ uv run --no-sync python agent/scripts/build_android_helper.py --sdk <SDK目录> 
 实机仍需核验 shell socket 身份、包可见性、启用与本次允许、KeyStore、系统生命周期、普通/密码/自绘编辑器、中文/emoji、IME/subtype、锁屏/切换用户、连接中断和服务回收。真实设备安装和动作另行明确安排。
 
 原生合同参考 [InputMethodService](https://developer.android.com/reference/android/inputmethodservice/InputMethodService)、[InputConnection](https://developer.android.com/reference/android/view/inputmethod/InputConnection)、[LocalSocket](https://developer.android.com/reference/android/net/LocalSocket) 和 [Android Keystore](https://developer.android.com/privacy-and-security/keystore)。
+
+## 历史批次状态（非当前结论）
+
+以下原记录中的默认入口与完成度仅属于当时源码；当前默认入口为 V2，实际进度以当前交接和任务为准。
+
+> 本批接入 `append_unicode`、独立 Android 输入辅助应用、输入法恢复义务与工作台。它属于 D5 选定的安卓输入范围；设备验收尚未完成，默认入口仍为 V1，完整 V2 尚未交付。证据以 [本批记录](../../evidence/v2-android-unicode.json) 为准。

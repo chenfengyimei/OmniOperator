@@ -10,9 +10,9 @@ import sys
 from pathlib import Path
 from typing import cast
 
-from omni.domain.contracts import BusinessError
 from omni.adapters.platform.releases.dependency_bundle import SHA, capture_bundle, no_links
 from omni.adapters.platform.runtime.permissions import private_path
+from omni.domain.contracts import BusinessError
 
 
 def _invalid(code: str = "candidate_install_invalid") -> BusinessError:

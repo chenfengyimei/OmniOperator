@@ -19,8 +19,8 @@ from uuid import uuid4
 
 import psutil
 
-from omni.domain.contracts import BusinessError
 from omni.adapters.platform.runtime.processes import OwnedProcess, WindowsJob
+from omni.domain.contracts import BusinessError
 
 Record = dict[str, Any]
 T = TypeVar("T")

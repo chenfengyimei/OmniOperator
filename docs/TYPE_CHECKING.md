@@ -425,7 +425,7 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 
 | `agent/src/omni/adapters/mcp/oauth.py` | MCP OAuth类型收官，V2四层合同范围332文件，真实验收仍待 |
 
-`pyrightconfig.strict.json` 的 `include` 必须与本表完全一致；`agent/tests/test_v2_typecheck_scope.py` 会双向校验。
+`pyrightconfig.strict.json` 的 `include` 必须与本表完全一致；`agent/tests/v2/core/test_v2_typecheck_scope.py` 会双向校验。
 
 ## 3. 历史基线与当前范围
 
@@ -460,5 +460,5 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 ## 5. 验证
 
 - strict 门禁 0 errors / 0 warnings。
-- `agent/tests/test_v2_typecheck_scope.py`：配置与文档表一致、文件存在、只允许 `domain`/`application`/`adapters` 前缀、无目录/通配批量纳入、文档保留“全仓严格类型尚未完成”。
+- `agent/tests/v2/core/test_v2_typecheck_scope.py`：配置与文档表一致、文件存在、只允许 `domain`/`application`/`adapters` 前缀、无目录/通配批量纳入、文档保留“全仓严格类型尚未完成”。
 - 相关调用方回归：各批守卫 + 对应模块调用方测试。

@@ -11,11 +11,12 @@ from collections.abc import Mapping
 from pathlib import Path
 from typing import cast
 
+from omni.adapters.platform.runtime.paths import InstanceLock, InstancePaths
+
 from ...application.ports import Record, UnitOfWork
 from ...domain.contracts import JSON, BusinessError
 from ...domain.objects import Blob
 from ..object_store import checked_path, sync_directory
-from omni.adapters.platform.runtime.paths import InstanceLock, InstancePaths
 from ..primitives import SystemClock, UUIDs
 from .database import Database
 from .maintenance import durable_json

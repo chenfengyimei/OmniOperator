@@ -11,15 +11,15 @@ import zipfile
 from pathlib import Path
 from typing import cast
 
-from omni.application.ports import Record
-from omni.domain.contracts import BusinessError
 from omni.adapters.persistence.maintenance import durable_json
 from omni.adapters.platform.releases.dependency_bundle import SHA, capture_bundle, no_links
+from omni.adapters.platform.releases.wheel_artifact import inspect_wheel
+from omni.adapters.platform.releases.wheel_stage import FORMAT as STAGED_FORMAT
 from omni.adapters.platform.runtime.paths import InstanceLock, InstancePaths
 from omni.adapters.platform.runtime.permissions import private_path
 from omni.adapters.platform.runtime.runtime_identity import read_private
-from omni.adapters.platform.releases.wheel_artifact import inspect_wheel
-from omni.adapters.platform.releases.wheel_stage import FORMAT as STAGED_FORMAT
+from omni.application.ports import Record
+from omni.domain.contracts import BusinessError
 
 FORMAT = "omni-environment-1"
 

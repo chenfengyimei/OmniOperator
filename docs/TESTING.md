@@ -49,7 +49,7 @@ uv run --no-sync pytest -q -n 8
 
 V2 文档维护的开发反馈先选 `test_v2_maintenance.py`、`test_v2_maintenance_http.py`；所有权、迁移或恢复发生变化时再增加对应的 `ownership`、`crash`、`migration` 文件。界面改动先选 `test_v2_maintenance_ui.py` 和受影响的具体 nodeid，整份 `test_v2_ui.py` 的多视口/主题业务矩阵留到跨界面验收。该矩阵保留完整场景、独立上下文与超时，不用缩短业务等待换取提速；开发反馈通过减少无关重复范围获得。
 
-修改 `docs/v2/operations/V2_PACKAGING.md` 的安装/更新交付状态或构建检查入口时，先运行 `uv run --no-sync pytest -q -n 0 agent/tests/test_v2_packaging_contract.py`。该专项检查已验证构建链与未交付平台/安装器边界，通常不需要等完整套件才能发现文档合同回归。源码链已实现和独立安装器已完成交付验收应分别表述。
+修改 `docs/v2/operations/V2_PACKAGING.md` 的安装/更新交付状态或构建检查入口时，先运行 `uv run --no-sync pytest -q -n 0 agent/tests/v2/operations/test_v2_packaging_contract.py`。该专项检查已验证构建链与未交付平台/安装器边界，通常不需要等完整套件才能发现文档合同回归。源码链已实现和独立安装器已完成交付验收应分别表述。
 
 记忆整理开发使用 `test_v2_memory_organization.py`、`test_v2_memory_organization_http.py`；关系/召回变更加入 `repository`，迁移/恢复加入 `migration`，事务中断加入 `crash`，界面仅先跑 `test_v2_memory_organization_ui.py`。必须验证逐字原文与规范化相同的差别、同作用域、审批不改记忆真值、可撤销召回、真实来源删除传播、恢复后旧核查不可复用，以及所有者CAS和迟到界面隔离。默认不调用模型或创建费用账；不得通过遗忘重复项实现普通整理。
 
@@ -164,7 +164,7 @@ uv run --no-sync pytest -q --junitxml=.pytest_cache/test-speed/full.xml
 
 本轮并行全量共 1411 项，**1408 通过、3 失败，207.06 秒**。运行期间发生其他 UI 源码修改，不能作为固定源码快照全绿证据。3 个失败串行复核后，2 个资源版本检查已恢复，1 个 UI 契约检查仍因 `memory:resident-add` 未注册失败；串行同样复现。详细范围与原始报告摘要见 [提速验证记录](evidence/test-speed-2026-10-31.json)。
 
-2026-11-04 的单次串行冷进程观察：相同 node `agent/tests/test_v2_reference_release_contract.py::test_valid_plan_has_canonical_fingerprint_is_immutable_and_allows_shared_objects` 的命令报告从 **3.82 秒降到 0.38 秒**。改动仅将 `llm/usage.py` 的 LiteLLM 导入推迟到实际发现 SDK 价格时，配置价格及纯领域测试不再为未使用的 SDK 支付导入成本；离线价格表、未知费用与故障语义保持。相关定价、Gateway、检索和隔离闸门专项 **84 项通过**，不等于全量通过。这不是重复采样的基准，也不能推算全仓提速比例；开发专项仍用 `-n 0`，完整任务收尾仍按前述纪律运行一次全量。
+2026-11-04 的单次串行冷进程观察：相同 node `agent/tests/v2/core/test_v2_reference_release_contract.py::test_valid_plan_has_canonical_fingerprint_is_immutable_and_allows_shared_objects` 的命令报告从 **3.82 秒降到 0.38 秒**。改动仅将 `llm/usage.py` 的 LiteLLM 导入推迟到实际发现 SDK 价格时，配置价格及纯领域测试不再为未使用的 SDK 支付导入成本；离线价格表、未知费用与故障语义保持。相关定价、Gateway、检索和隔离闸门专项 **84 项通过**，不等于全量通过。这不是重复采样的基准，也不能推算全仓提速比例；开发专项仍用 `-n 0`，完整任务收尾仍按前述纪律运行一次全量。
 
 ## V2 历史游标与后续审计保留
 

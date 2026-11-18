@@ -50,7 +50,7 @@ Mac 主开发，Windows 保留运行及原生验收环境。开发中只跑受�
 ## Windows 平台
 
 - [V2_WINDOWS_CANDIDATE](platforms/windows/V2_WINDOWS_CANDIDATE.md)
-- [WINDOWS_V2_ACCEPTANCE](platforms/windows/WINDOWS_V2_ACCEPTANCE.md)
+- [WINDOWS_V2_ACCEPTANCE](../history/v2/WINDOWS_V2_ACCEPTANCE_2026-11-13.md)
 - [WINDOWS_V2_ACCEPTANCE_2026-11-18](platforms/windows/WINDOWS_V2_ACCEPTANCE_2026-11-18.md)
 - [WINDOWS_V2_RUNBOOK](platforms/windows/WINDOWS_V2_RUNBOOK.md)
 

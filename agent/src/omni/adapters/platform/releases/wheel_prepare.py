@@ -10,12 +10,12 @@ import zipfile
 from pathlib import Path, PurePosixPath
 from typing import cast
 
-from omni.application.ports import Record
-from omni.domain.contracts import BusinessError
 from omni.adapters.persistence.maintenance import durable_json
-from omni.adapters.platform.runtime.permissions import private_path
 from omni.adapters.platform.releases.wheel_artifact import MAX_BYTES, MAX_FILES
 from omni.adapters.platform.releases.wheel_stage import FORMAT as STAGED_FORMAT
+from omni.adapters.platform.runtime.permissions import private_path
+from omni.application.ports import Record
+from omni.domain.contracts import BusinessError
 
 FORMAT = "omni-prepared-update-1"
 

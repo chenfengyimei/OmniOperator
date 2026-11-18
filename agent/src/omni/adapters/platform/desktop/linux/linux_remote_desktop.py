@@ -7,8 +7,6 @@ import uuid
 from collections.abc import Awaitable, Callable
 from typing import Any, cast
 
-from omni.domain.desktop_control import devices
-from omni.domain.desktop_portal import CHOICE_SECONDS, LIFETIME_SECONDS
 from omni.adapters.platform.desktop.linux.linux_bus import BusPort, Endpoint, failure
 from omni.adapters.platform.desktop.linux.linux_eis import EisConnection
 from omni.adapters.platform.desktop.linux.linux_eis_devices import EisDevices
@@ -25,6 +23,8 @@ from omni.adapters.platform.desktop.linux.linux_session import (
 )
 from omni.adapters.platform.desktop.linux.linux_signals import SignalBus
 from omni.adapters.platform.desktop.linux.linux_wayland_windows import WaylandWindows
+from omni.domain.desktop_control import devices
+from omni.domain.desktop_portal import CHOICE_SECONDS, LIFETIME_SECONDS
 
 REMOTE_DESKTOP = "org.freedesktop.portal.RemoteDesktop"
 

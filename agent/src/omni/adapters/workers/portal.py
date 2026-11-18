@@ -10,12 +10,13 @@ from collections.abc import Awaitable, Callable, Coroutine
 from pathlib import Path
 from typing import Any, cast
 
-from ...domain.contracts import BusinessError
-from ...domain.desktop_portal import LIFETIME_SECONDS, MAX_FRAME, VERSION, command, decode, encode
 from omni.adapters.platform.desktop.linux.linux_bus import LinuxOps, RemoteError, failure, load_types
 from omni.adapters.platform.desktop.linux.linux_pipewire import FrameExecutor
 from omni.adapters.platform.desktop.linux.linux_portal import PortalFactory, PortalSession
 from omni.adapters.platform.desktop.linux.linux_session import SessionInspector
+
+from ...domain.contracts import BusinessError
+from ...domain.desktop_portal import LIFETIME_SECONDS, MAX_FRAME, VERSION, command, decode, encode
 
 
 async def run(

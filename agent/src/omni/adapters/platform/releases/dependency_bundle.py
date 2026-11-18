@@ -15,8 +15,8 @@ import uuid
 from pathlib import Path
 from typing import BinaryIO, cast
 
-from omni.domain.contracts import BusinessError
 from omni.adapters.platform.runtime.permissions import private_path
+from omni.domain.contracts import BusinessError
 
 FORMAT = "omni-dependency-bundle-1"
 MAX_MANIFEST = 262144

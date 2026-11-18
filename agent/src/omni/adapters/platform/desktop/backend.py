@@ -15,6 +15,9 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, cast
 
+from omni.adapters.platform.desktop import desktop_capture, macos_helper
+from omni.adapters.platform.desktop.linux.linux_lease_client import LeaseClientPort, LinuxLeaseClient
+from omni.adapters.platform.runtime.processes import OwnedProcess
 from omni.application.ports import Record
 from omni.domain.contracts import JSON, BusinessError
 from omni.domain.desktop import (
@@ -29,9 +32,6 @@ from omni.domain.desktop import (
 from omni.domain.desktop_actions import linux_ready
 from omni.domain.foreground import TIMEOUT_S as FOREGROUND_TIMEOUT_S
 from omni.domain.foreground import permit, ready
-from omni.adapters.platform.desktop import desktop_capture, macos_helper
-from omni.adapters.platform.desktop.linux.linux_lease_client import LeaseClientPort, LinuxLeaseClient
-from omni.adapters.platform.runtime.processes import OwnedProcess
 
 MAX_PENDING = 4
 MAX_RESIDENT = 2

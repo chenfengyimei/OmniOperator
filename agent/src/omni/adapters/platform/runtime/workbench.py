@@ -18,9 +18,9 @@ from typing import Any, cast
 import httpx
 import psutil
 
-from omni.domain.contracts import BusinessError
 from omni.adapters.platform.runtime.runtime_identity import read_private
 from omni.adapters.platform.services.service_readiness import verify_proof
+from omni.domain.contracts import BusinessError
 
 log = logging.getLogger("omni.v2.workbench")
 

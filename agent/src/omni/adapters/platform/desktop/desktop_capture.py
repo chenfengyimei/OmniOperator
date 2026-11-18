@@ -10,10 +10,10 @@ from typing import cast
 
 from PIL import Image
 
+from omni.adapters.object_store import checked_path
 from omni.application.ports import Record
 from omni.domain.contracts import BusinessError
 from omni.domain.desktop import MAX_CAPTURE_BYTES, CapturedFrame
-from omni.adapters.object_store import checked_path
 
 
 def prepare(root: Path, ticket: str) -> Path:

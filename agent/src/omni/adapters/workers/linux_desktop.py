@@ -9,9 +9,6 @@ from collections.abc import Awaitable, Callable
 from pathlib import Path
 from typing import Any, cast
 
-from ...domain.contracts import BusinessError
-from ...domain.desktop import LINUX_ERRORS, VERSION
-from ...domain.foreground import TIMEOUT_S as FOREGROUND_TIMEOUT_S
 from omni.adapters.platform.desktop.linux.linux_atspi import AtspiDesktop, report
 from omni.adapters.platform.desktop.linux.linux_bus import LinuxOps, RemoteError, load_types
 from omni.adapters.platform.desktop.linux.linux_click_action import FocusedClick
@@ -23,6 +20,10 @@ from omni.adapters.platform.desktop.linux.linux_text import FocusedText
 from omni.adapters.platform.desktop.linux.linux_window_binding import WindowBinding
 from omni.adapters.platform.desktop.linux.linux_x11 import X11Desktop
 from omni.adapters.platform.desktop.linux.linux_x11_wire import XError
+
+from ...domain.contracts import BusinessError
+from ...domain.desktop import LINUX_ERRORS, VERSION
+from ...domain.foreground import TIMEOUT_S as FOREGROUND_TIMEOUT_S
 
 Payload = dict[str, object]
 

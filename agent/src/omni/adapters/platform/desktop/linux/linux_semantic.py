@@ -7,8 +7,6 @@ import json
 from collections.abc import Awaitable, Callable, Sequence
 from typing import TYPE_CHECKING, cast
 
-from omni.domain.contracts import BusinessError
-from omni.domain.desktop_actions import node_proof, semantic
 from omni.adapters.platform.desktop.linux.linux_atspi import (
     ACCESSIBLE,
     COMPONENT,
@@ -18,6 +16,8 @@ from omni.adapters.platform.desktop.linux.linux_atspi import (
     reference,
 )
 from omni.adapters.platform.desktop.linux.linux_bus import RemoteError, failure
+from omni.domain.contracts import BusinessError
+from omni.domain.desktop_actions import node_proof, semantic
 
 if TYPE_CHECKING:
     from omni.adapters.platform.desktop.linux.linux_input import X11Input

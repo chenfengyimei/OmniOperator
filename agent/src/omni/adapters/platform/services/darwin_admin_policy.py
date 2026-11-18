@@ -10,6 +10,10 @@ import sys
 from pathlib import Path
 from typing import Any, cast
 
+from omni.adapters.platform.services.darwin_admin_commands import DarwinCommands
+from omni.adapters.platform.services.darwin_admin_files import protected, publish, read, sync
+from omni.adapters.platform.services.service_admin_policy import RootServicePolicy, error
+from omni.adapters.platform.services.service_templates import render
 from omni.domain.service_admin import (
     MACOS_AUDIT_DIRECTORY,
     MACOS_SOCKET_DIRECTORY,
@@ -19,10 +23,6 @@ from omni.domain.service_admin import (
     verify_broker,
 )
 from omni.domain.service_deployment import manager_identity
-from omni.adapters.platform.services.darwin_admin_commands import DarwinCommands
-from omni.adapters.platform.services.darwin_admin_files import protected, publish, read, sync
-from omni.adapters.platform.services.service_admin_policy import RootServicePolicy, error
-from omni.adapters.platform.services.service_templates import render
 
 
 class DarwinPolicy(RootServicePolicy):

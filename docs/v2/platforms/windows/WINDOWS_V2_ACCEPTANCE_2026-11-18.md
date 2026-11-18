@@ -15,7 +15,7 @@
 | 验收源码 commit | `1e62fe08055492e819ee7cfaeabdbc6b77604dd3`（分支 `v2`，冻结工作树 `C:\v2-acceptance\source`） |
 | 源码指纹（测试修复后） | `0cca300342ed5ac07a4b583c15a7db17b903184a3c268b6b212aa1284ab97a81`（1467 文件） |
 | 源码指纹（测试修复前） | `e0f31c762dba0563f1179c9117449e03f1feb432360178753fe0ceecae49ef4c` |
-| 本轮唯一源码改动 | `agent/tests/test_v2_installation_launchers.py`：`shell()` 沿 git 祖先目录查找 `bin/sh.exe`（修复 Git 布局 `D:\Git\mingw64\bin\git.EXE` 导致 sh 定位错误）。**仅测试文件，wheel 字节不变** |
+| 本轮唯一源码改动 | `agent/tests/v2/operations/test_v2_installation_launchers.py`：`shell()` 沿 git 祖先目录查找 `bin/sh.exe`（修复 Git 布局 `D:\Git\mingw64\bin\git.EXE` 导致 sh 定位错误）。**仅测试文件，wheel 字节不变** |
 | wheel SHA256 | `a43eadd3652f1cd347cac864f63c01a15d7d86cb3abdbff8f2a5cae74eeae3d0` |
 | 依赖 bundle manifest SHA256 | `ddc242906492a815e1893505f0453f922f2c218dda441ad0088effb9f5e1225f`（110 wheel，extras terminal/asr/vectors；与当前 lock 导出逐项一致，复用已验证字节） |
 | 测试解释器 | `D:\xm\OmniOperator\.venv\Scripts\python.exe` + `PYTHONPATH=C:\v2-acceptance\source\agent\src`（omni 从固定源码导入，优先于 editable） |

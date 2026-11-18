@@ -16,6 +16,10 @@ from typing import Any, cast
 
 from PIL import Image
 
+from omni.adapters.platform.desktop.linux.linux_bus import failure
+from omni.adapters.platform.desktop.linux.linux_session import SessionInspector
+from omni.adapters.platform.desktop.linux.linux_x11_socket import Connection
+from omni.adapters.platform.desktop.linux.linux_x11_wire import Wire, XError, unpack
 from omni.domain.contracts import BusinessError
 from omni.domain.desktop import (
     MAX_CAPTURE_BYTES,
@@ -25,10 +29,6 @@ from omni.domain.desktop import (
     validate_target,
     validate_targets,
 )
-from omni.adapters.platform.desktop.linux.linux_bus import failure
-from omni.adapters.platform.desktop.linux.linux_session import SessionInspector
-from omni.adapters.platform.desktop.linux.linux_x11_socket import Connection
-from omni.adapters.platform.desktop.linux.linux_x11_wire import Wire, XError, unpack
 
 
 def publish(path: Path, content: bytes) -> None:

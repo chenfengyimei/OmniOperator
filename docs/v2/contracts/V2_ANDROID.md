@@ -1,6 +1,6 @@
 # V2 安卓设备合同
 
-所有者链已接通；模型本次运行权限、滑动/长按/按键、应用查询和启动也已接线，见[模型与扩展输入](V2_ANDROID_MODEL.md)。没有操作真实设备，中文输入及真实验收待完成。整个D5和V2未完成，默认入口仍V1。
+> 文档范围：本页维护该能力合同与所属批次记录。当前默认入口为 V2；[当前交接](../../HANDOFF.md)区分已实现、专项通过和原生验收，历史测试数字不覆盖当前源码。
 
 ## 接入
 
@@ -76,3 +76,9 @@ socket期限8秒，辅助用例20秒，宿主IPC预算22秒，工具总期限25�
 离线使用真实SQLite、实际受管Python和本地假ADB；界面用独立BrowserContext/数据库。Windows本地假设备通过不等于真实Android、macOS或Linux已验收。实机需核验厂商window/keyguard字段、shell-v2、XML、截图、文本/勾选、撤权、用户切换、重连和睡眠。真实操作按具体可审阅场景另行授权；全量、打包、三平台及72小时待验收。
 
 参考[Android官方ADB说明](https://developer.android.com/tools/adb)及[AOSP shell-v2帧](https://android.googlesource.com/platform/packages/modules/adb/+/refs/heads/main/shell_protocol.h)。
+
+## 历史批次状态（非当前结论）
+
+以下原记录中的默认入口与完成度仅属于当时源码；当前默认入口为 V2，实际进度以当前交接和任务为准。
+
+> 所有者链已接通；模型本次运行权限、滑动/长按/按键、应用查询和启动也已接线，见[模型与扩展输入](V2_ANDROID_MODEL.md)。没有操作真实设备，中文输入及真实验收待完成。整个D5和V2未完成，默认入口仍V1。

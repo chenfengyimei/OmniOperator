@@ -11,6 +11,9 @@ from pathlib import Path
 from typing import cast
 from urllib.parse import urlsplit
 
+from omni.adapters.platform.runtime.paths import InstanceLock, InstancePaths
+from omni.adapters.platform.runtime.permissions import private_path
+
 from ..adapters.diagnostic_bundle import DiagnosticFiles, StoredDiagnostics, publish_diagnostic
 from ..adapters.persistence.audit_pruning import (
     apply_audit_retention,
@@ -42,8 +45,6 @@ from ..adapters.persistence.reference_release import (
     plan_reference_release,
     read_reference_plan,
 )
-from omni.adapters.platform.runtime.paths import InstanceLock, InstancePaths
-from omni.adapters.platform.runtime.permissions import private_path
 from ..adapters.primitives import SystemClock, UUIDs
 from ..application.ports import Record
 from ..domain.contracts import BusinessError
@@ -612,6 +613,7 @@ def _run(args: argparse.Namespace) -> int:
             from omni.adapters.platform.services.deployment_files import CurrentDeploymentFiles
             from omni.adapters.platform.services.service_query import ServiceQuery
             from omni.adapters.platform.services.service_readiness import ServiceReadiness
+
             from ..application.service_deployment import ServiceDeployment
 
             deployment = ServiceDeployment(CurrentDeploymentFiles(), SystemClock(), UUIDs())

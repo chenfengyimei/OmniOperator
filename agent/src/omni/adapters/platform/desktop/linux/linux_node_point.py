@@ -5,8 +5,6 @@ from __future__ import annotations
 import struct
 from typing import cast
 
-from omni.domain.contracts import BusinessError
-from omni.domain.desktop import MAX_CAPTURE_EDGE
 from omni.adapters.platform.desktop.linux.linux_atspi import (
     ACCESSIBLE,
     COMPONENT,
@@ -17,6 +15,8 @@ from omni.adapters.platform.desktop.linux.linux_atspi import (
 from omni.adapters.platform.desktop.linux.linux_bus import RemoteError, failure
 from omni.adapters.platform.desktop.linux.linux_window_binding import WindowBinding, declared_window
 from omni.adapters.platform.desktop.linux.linux_x11_wire import unpack
+from omni.domain.contracts import BusinessError
+from omni.domain.desktop import MAX_CAPTURE_EDGE
 
 Payload = dict[str, object]
 Ref = tuple[str, str]

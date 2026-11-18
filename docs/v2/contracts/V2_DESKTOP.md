@@ -1,6 +1,6 @@
 # V2 原生桌面：发现、权限与目标身份合同
 
-Windows 发现、UIA 观察、截图、所有者语义动作及逐次前台输入已接通既有运行、审批、租约与核查。真实键鼠验收按所有者安排稍后进行。macOS已加入身份、AX、截图、语义及前台输入源码，尚未编译或完成原生实测，详见[Mac mini交接](../platforms/macos/V2_MACOS_HANDOFF.md)。Linux已接通logind/实际socket身份、AT-SPI观察与Xorg/XRes/Composite截图源码链路；Linux运行仍待实测，Wayland授权/窗口单帧源码已接入；X11监测支持的AT-SPI语义动作已接入；Linux前台及Wayland控制仍未完成，原生画面尚未验收，详见[Linux交接](../platforms/linux/V2_LINUX_HANDOFF.md)。整个V2尚未完成，默认入口仍为V1，尚未向模型开放桌面工具。
+> 文档范围：本页维护该能力合同与所属批次记录。当前默认入口为 V2；[当前交接](../../HANDOFF.md)区分已实现、专项通过和原生验收，历史测试数字不覆盖当前源码。
 
 ## Windows 单次前台输入（D1.windows.foreground）
 
@@ -165,3 +165,9 @@ Portal IPC2独立于桌面IPC6：选择等待90秒、会话总生存150秒，使
 ## Linux语义动作与逐次放行
 
 AT-SPI在完整有界观察中产生作用于当前视图的路径/祖先/名称/文本/能力证明，只有已核验X11输入守卫时才暴露候选；Wayland仍只读。Linux语义辅助程序使用ready/permit，主进程在真正派发前再次核验现有运行、审批与视图。一次RPC后严格回读，调用或未知副作用进入原核查，不自动重发；不抢焦点、不全局注入输入。IPC6精确区分各平台证明，95表与v2_0025不变。完整限制和实测步骤见[Linux交接](../platforms/linux/V2_LINUX_HANDOFF.md)，离线证据见[语义动作批次](../../evidence/v2-linux-control.json)。
+
+## 历史批次状态（非当前结论）
+
+以下原记录中的默认入口与完成度仅属于当时源码；当前默认入口为 V2，实际进度以当前交接和任务为准。
+
+> Windows 发现、UIA 观察、截图、所有者语义动作及逐次前台输入已接通既有运行、审批、租约与核查。真实键鼠验收按所有者安排稍后进行。macOS已加入身份、AX、截图、语义及前台输入源码，尚未编译或完成原生实测，详见[Mac mini交接](../platforms/macos/V2_MACOS_HANDOFF.md)。Linux已接通logind/实际socket身份、AT-SPI观察与Xorg/XRes/Composite截图源码链路；Linux运行仍待实测，Wayland授权/窗口单帧源码已接入；X11监测支持的AT-SPI语义动作已接入；Linux前台及Wayland控制仍未完成，原生画面尚未验收，详见[Linux交接](../platforms/linux/V2_LINUX_HANDOFF.md)。整个V2尚未完成，默认入口仍为V1，尚未向模型开放桌面工具。

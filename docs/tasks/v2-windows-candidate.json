@@ -147,7 +147,7 @@
     "full_suite_this_round": false,
     "whole_v2_complete": false,
     "production_release_ready": false,
-    "test_only_fix": "agent/tests/test_v2_installation_launchers.py shell()沿git祖先查找bin/sh.exe；wheel字节不变",
+    "test_only_fix": "agent/tests/v2/operations/test_v2_installation_launchers.py shell()沿git祖先查找bin/sh.exe；wheel字节不变",
     "preserved_parallel_work": [
       "PPT/",
       "docs/competition/",

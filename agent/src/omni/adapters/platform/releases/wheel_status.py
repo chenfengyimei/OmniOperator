@@ -6,11 +6,11 @@ import json
 from pathlib import Path
 from typing import cast
 
-from omni.domain.contracts import BusinessError
-from omni.domain.installation import validate_installation
 from omni.adapters.persistence.maintenance import read_schema
 from omni.adapters.persistence.migration_config import head as migration_head
 from omni.adapters.platform.runtime.paths import InstancePaths
+from omni.domain.contracts import BusinessError
+from omni.domain.installation import validate_installation
 
 FORMAT = "omni-installation-status-1"
 

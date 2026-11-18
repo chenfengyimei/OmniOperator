@@ -483,5 +483,15 @@
     "branch": "v2",
     "owner_continuous_push_authorized": true,
     "authorization_received": "2026-11-18"
+  },
+  "layout_reorganization": {
+    "status": "implemented_scoped_verified",
+    "manifest": "docs/tasks/v2-layout-migration.json",
+    "evidence": "docs/evidence/v2-layout-reorganization.json",
+    "original_nodes_preserved": 7354,
+    "collected_nodes": 7361,
+    "distinct_scoped_passed": 397,
+    "whole_v2_complete": false,
+    "whole_current_source_full_suite": false
   }
 }

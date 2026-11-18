@@ -19,8 +19,8 @@ from urllib.parse import unquote_to_bytes
 
 import psutil
 
-from omni.domain.contracts import BusinessError
 from omni.adapters.platform.desktop.linux.linux_fds import OwnedFd, ReceivedFds
+from omni.domain.contracts import BusinessError
 
 MAX_MESSAGE = 65536
 MAX_MESSAGES = 2048

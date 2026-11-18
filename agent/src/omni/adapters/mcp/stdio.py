@@ -10,6 +10,8 @@ import os
 from collections.abc import Awaitable, Callable
 from typing import Any, cast
 
+from omni.adapters.platform.runtime.processes import OwnedProcess
+
 from ...domain.mcp import (
     CATALOG_BUDGET_S,
     CLIENT_NAME,
@@ -22,7 +24,6 @@ from ...domain.mcp import (
     MCPUncertain,
     ServerTarget,
 )
-from omni.adapters.platform.runtime.processes import OwnedProcess
 
 log = logging.getLogger("omni.v2.mcp")
 Packet = dict[str, Any]

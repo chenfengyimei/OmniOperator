@@ -6,14 +6,14 @@ import asyncio
 from collections.abc import Awaitable, Callable
 from typing import cast
 
-from omni.domain.contracts import BusinessError
-from omni.domain.foreground import action as foreground_action
 from omni.adapters.platform.desktop.linux.linux_atspi import AtspiDesktop
 from omni.adapters.platform.desktop.linux.linux_bus import failure
 from omni.adapters.platform.desktop.linux.linux_focus_navigation import FocusNavigation, KeyState
 from omni.adapters.platform.desktop.linux.linux_semantic import Semantics, digest, result, stable_catalog
 from omni.adapters.platform.desktop.linux.linux_text import WAIT_SECONDS
 from omni.adapters.platform.desktop.linux.linux_window_binding import WindowBinding
+from omni.domain.contracts import BusinessError
+from omni.domain.foreground import action as foreground_action
 
 Payload = dict[str, object]
 

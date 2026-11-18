@@ -20,11 +20,11 @@ from typing import Any, cast
 import httpx
 import psutil
 
+from omni.adapters.platform.runtime.runtime_identity import READINESS_FIELDS, canonical_proof, read_private
 from omni.application.ports import Record
 from omni.domain.contracts import BusinessError
 from omni.domain.service_control import ControlPlan, drain_request, verify_receipt
 from omni.domain.service_deployment import service_argv, validate_plan
-from omni.adapters.platform.runtime.runtime_identity import READINESS_FIELDS, canonical_proof, read_private
 
 PROBE_SECONDS = 5.0
 MAX_PROBES = 4

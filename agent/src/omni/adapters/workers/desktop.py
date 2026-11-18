@@ -7,9 +7,10 @@ import json
 import sys
 from typing import Any, cast
 
+from omni.adapters.platform.desktop import desktop_native
+
 from ...domain.contracts import BusinessError
 from ...domain.desktop import VERSION, parse_request, parse_response
-from omni.adapters.platform.desktop import desktop_native
 
 MAX_FRAME = 65536
 Record = dict[str, Any]

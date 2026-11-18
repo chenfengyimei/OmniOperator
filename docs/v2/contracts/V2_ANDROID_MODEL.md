@@ -1,6 +1,6 @@
 # V2 安卓运行权限与扩展输入
 
-本批接入模型本次运行权限，以及滑动、长按、按键、应用查询和启动。没有操作真实设备；中文输入辅助组件和真实验收仍待。整个D5和V2未完成，默认入口V1。
+> 文档范围：本页维护该能力合同与所属批次记录。当前默认入口为 V2；[当前交接](../../HANDOFF.md)区分已实现、专项通过和原生验收，历史测试数字不覆盖当前源码。
 
 ## 使用路径
 
@@ -72,3 +72,9 @@
 受控Unicode组件现已接入独立Android应用、宿主与工作台，开发和离线验证见[Unicode合同](V2_ANDROID_UNICODE.md)及其证据；真实设备仍待验收。后续开发进入D6模型/媒体/MCP等扩展和D7产品切换，历史72项仅代表本文件原批次。
 
 参考[AOSP InputShellCommand](https://android.googlesource.com/platform/frameworks/base/+/refs/heads/main/services/core/java/com/android/server/input/InputShellCommand.java)及[Android ADB](https://developer.android.com/tools/adb)。厂商命令、权限字段和组件行为仍需实机核验。
+
+## 历史批次状态（非当前结论）
+
+以下原记录中的默认入口与完成度仅属于当时源码；当前默认入口为 V2，实际进度以当前交接和任务为准。
+
+> 本批接入模型本次运行权限，以及滑动、长按、按键、应用查询和启动。没有操作真实设备；中文输入辅助组件和真实验收仍待。整个D5和V2未完成，默认入口V1。

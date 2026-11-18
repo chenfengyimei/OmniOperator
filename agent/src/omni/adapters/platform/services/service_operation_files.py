@@ -9,11 +9,10 @@ from contextlib import contextmanager
 from pathlib import Path
 from typing import cast
 
-from omni.application.ports import Record
-from omni.domain.contracts import BusinessError
-from omni.domain.service_operations import validate_operation
 from omni.adapters.object_store import sync_directory
 from omni.adapters.persistence.deployed_instance import verify_deployed_instance
+from omni.adapters.platform.runtime.paths import InstanceLock, InstancePaths, PrivateFileLock
+from omni.adapters.platform.runtime.permissions import assert_private, private_path
 from omni.adapters.platform.services.deployment_files import (
     CurrentDeploymentFiles,
     decode,
@@ -22,8 +21,9 @@ from omni.adapters.platform.services.deployment_files import (
     no_links,
     read_file,
 )
-from omni.adapters.platform.runtime.paths import InstanceLock, InstancePaths, PrivateFileLock
-from omni.adapters.platform.runtime.permissions import assert_private, private_path
+from omni.application.ports import Record
+from omni.domain.contracts import BusinessError
+from omni.domain.service_operations import validate_operation
 
 MAX_EVENTS = 64
 

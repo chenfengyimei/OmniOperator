@@ -1,5 +1,7 @@
 # V2 独立长跑观察
 
+> 文档范围：本页维护该能力合同与所属批次记录。当前默认入口为 V2；[当前交接](../../HANDOFF.md)区分已实现、专项通过和原生验收，历史测试数字不覆盖当前源码。
+
 V2使用`python scripts/v2_soak.py`，不复用仍读取V1状态的`soak_monitor.py`。工具只观察明确指定的现有V2实例：从私有`runtime.json`和`readiness.key`核验当前HMAC启动证明，再以私有所有者令牌读取`/api/v1/system/metrics`。只发GET，不启动/停止服务，不打开业务数据库，不调用模型、设备或外发通道。
 
 ```powershell

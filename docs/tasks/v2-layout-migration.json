@@ -10,542 +10,758 @@
     {
       "old": "agent/src/omni/adapters/platform/candidate_installer.py",
       "new": "agent/src/omni/adapters/platform/releases/candidate_installer.py",
-      "sha256_before": "39efbadca599c01d91d91592e9975e983edfef53797e00bf909c92c37b62aa42"
+      "sha256_before": "39efbadca599c01d91d91592e9975e983edfef53797e00bf909c92c37b62aa42",
+      "old_module": "omni.adapters.platform.candidate_installer",
+      "new_module": "omni.adapters.platform.releases.candidate_installer"
     },
     {
       "old": "agent/src/omni/adapters/platform/darwin_admin_commands.py",
       "new": "agent/src/omni/adapters/platform/services/darwin_admin_commands.py",
-      "sha256_before": "6e9d7dafc1116dc2c58861380cea0ce156afe899202cc39fa18f93e6e247cf34"
+      "sha256_before": "6e9d7dafc1116dc2c58861380cea0ce156afe899202cc39fa18f93e6e247cf34",
+      "old_module": "omni.adapters.platform.darwin_admin_commands",
+      "new_module": "omni.adapters.platform.services.darwin_admin_commands"
     },
     {
       "old": "agent/src/omni/adapters/platform/darwin_admin_files.py",
       "new": "agent/src/omni/adapters/platform/services/darwin_admin_files.py",
-      "sha256_before": "d47e7bbbbe8f56364877bc94943b42999391f2a54590356803e4f0da37404b36"
+      "sha256_before": "d47e7bbbbe8f56364877bc94943b42999391f2a54590356803e4f0da37404b36",
+      "old_module": "omni.adapters.platform.darwin_admin_files",
+      "new_module": "omni.adapters.platform.services.darwin_admin_files"
     },
     {
       "old": "agent/src/omni/adapters/platform/darwin_admin_peer.py",
       "new": "agent/src/omni/adapters/platform/services/darwin_admin_peer.py",
-      "sha256_before": "dcc10be3e4f3e55664f742abbddd52dc2b42f2bedc10d2bd9624300410136511"
+      "sha256_before": "dcc10be3e4f3e55664f742abbddd52dc2b42f2bedc10d2bd9624300410136511",
+      "old_module": "omni.adapters.platform.darwin_admin_peer",
+      "new_module": "omni.adapters.platform.services.darwin_admin_peer"
     },
     {
       "old": "agent/src/omni/adapters/platform/darwin_admin_policy.py",
       "new": "agent/src/omni/adapters/platform/services/darwin_admin_policy.py",
-      "sha256_before": "35670b620188d3648359dedc99c6acfc673f3060ce4ad4dfa854ad132b64c424"
+      "sha256_before": "35670b620188d3648359dedc99c6acfc673f3060ce4ad4dfa854ad132b64c424",
+      "old_module": "omni.adapters.platform.darwin_admin_policy",
+      "new_module": "omni.adapters.platform.services.darwin_admin_policy"
     },
     {
       "old": "agent/src/omni/adapters/platform/darwin_admin_probe.py",
       "new": "agent/src/omni/adapters/platform/services/darwin_admin_probe.py",
-      "sha256_before": "31999ed24516c501d9b5e3351e24305856ecabb891c18a037fa53fbc60762232"
+      "sha256_before": "31999ed24516c501d9b5e3351e24305856ecabb891c18a037fa53fbc60762232",
+      "old_module": "omni.adapters.platform.darwin_admin_probe",
+      "new_module": "omni.adapters.platform.services.darwin_admin_probe"
     },
     {
       "old": "agent/src/omni/adapters/platform/darwin_service_admin.py",
       "new": "agent/src/omni/adapters/platform/services/darwin_service_admin.py",
-      "sha256_before": "7cd023d5d3aa6f4dcf5ebefee3345a303bfc05252ad7f679ea8461811c98d941"
+      "sha256_before": "7cd023d5d3aa6f4dcf5ebefee3345a303bfc05252ad7f679ea8461811c98d941",
+      "old_module": "omni.adapters.platform.darwin_service_admin",
+      "new_module": "omni.adapters.platform.services.darwin_service_admin"
     },
     {
       "old": "agent/src/omni/adapters/platform/dependency_bundle.py",
       "new": "agent/src/omni/adapters/platform/releases/dependency_bundle.py",
-      "sha256_before": "5081d406b02a69d235cf28e83cc1752581d75dbdceb3a84b5be785c07d357b52"
+      "sha256_before": "5081d406b02a69d235cf28e83cc1752581d75dbdceb3a84b5be785c07d357b52",
+      "old_module": "omni.adapters.platform.dependency_bundle",
+      "new_module": "omni.adapters.platform.releases.dependency_bundle"
     },
     {
       "old": "agent/src/omni/adapters/platform/deployment_files.py",
       "new": "agent/src/omni/adapters/platform/services/deployment_files.py",
-      "sha256_before": "2b7362d608eba611d746003a615ea79f6ba8521d13b57c8ec8d29fc1b7e440c1"
+      "sha256_before": "2b7362d608eba611d746003a615ea79f6ba8521d13b57c8ec8d29fc1b7e440c1",
+      "old_module": "omni.adapters.platform.deployment_files",
+      "new_module": "omni.adapters.platform.services.deployment_files"
     },
     {
       "old": "agent/src/omni/adapters/platform/desktop.py",
       "new": "agent/src/omni/adapters/platform/desktop/backend.py",
-      "sha256_before": "cd10f35dd11697945ee9c301d5fcfdb8fca72f641ef3ec228d112c2210b6ce31"
+      "sha256_before": "cd10f35dd11697945ee9c301d5fcfdb8fca72f641ef3ec228d112c2210b6ce31",
+      "old_module": "omni.adapters.platform.desktop",
+      "new_module": "omni.adapters.platform.desktop.backend"
     },
     {
       "old": "agent/src/omni/adapters/platform/desktop_capture.py",
       "new": "agent/src/omni/adapters/platform/desktop/desktop_capture.py",
-      "sha256_before": "dea744e0d96e3735a2c7d7414cee04ae46629e11d210e742270309d69c888538"
+      "sha256_before": "dea744e0d96e3735a2c7d7414cee04ae46629e11d210e742270309d69c888538",
+      "old_module": "omni.adapters.platform.desktop_capture",
+      "new_module": "omni.adapters.platform.desktop.desktop_capture"
     },
     {
       "old": "agent/src/omni/adapters/platform/desktop_control.py",
       "new": "agent/src/omni/adapters/platform/desktop/desktop_control.py",
-      "sha256_before": "b2e18a2bbf2149309a1ba51f38b259abd78193b2f973d8e71cc26302794ee3e8"
+      "sha256_before": "b2e18a2bbf2149309a1ba51f38b259abd78193b2f973d8e71cc26302794ee3e8",
+      "old_module": "omni.adapters.platform.desktop_control",
+      "new_module": "omni.adapters.platform.desktop.desktop_control"
     },
     {
       "old": "agent/src/omni/adapters/platform/desktop_native.py",
       "new": "agent/src/omni/adapters/platform/desktop/desktop_native.py",
-      "sha256_before": "825c35a8ae6a13dfbb0511518c30af174d802a861900236af898506761a64cb2"
+      "sha256_before": "825c35a8ae6a13dfbb0511518c30af174d802a861900236af898506761a64cb2",
+      "old_module": "omni.adapters.platform.desktop_native",
+      "new_module": "omni.adapters.platform.desktop.desktop_native"
     },
     {
       "old": "agent/src/omni/adapters/platform/event_loop.py",
       "new": "agent/src/omni/adapters/platform/runtime/event_loop.py",
-      "sha256_before": "6c128a6bf12fcfbf34cad8e65ca7c0184a277ab83fba2ab5dbfe6edc82c5d386"
+      "sha256_before": "6c128a6bf12fcfbf34cad8e65ca7c0184a277ab83fba2ab5dbfe6edc82c5d386",
+      "old_module": "omni.adapters.platform.event_loop",
+      "new_module": "omni.adapters.platform.runtime.event_loop"
     },
     {
       "old": "agent/src/omni/adapters/platform/exchange_deployments.py",
       "new": "agent/src/omni/adapters/platform/services/exchange_deployments.py",
-      "sha256_before": "7e844edf038741a7c50e444df11298214ab7e3ffbbbf08f013b9edac384dfec5"
+      "sha256_before": "7e844edf038741a7c50e444df11298214ab7e3ffbbbf08f013b9edac384dfec5",
+      "old_module": "omni.adapters.platform.exchange_deployments",
+      "new_module": "omni.adapters.platform.services.exchange_deployments"
     },
     {
       "old": "agent/src/omni/adapters/platform/exchange_files.py",
       "new": "agent/src/omni/adapters/platform/services/exchange_files.py",
-      "sha256_before": "aa2c6b7986bd8f14e74daf1f128b68f3516ecbe83e1c27bd431599f2ee4dcec5"
+      "sha256_before": "aa2c6b7986bd8f14e74daf1f128b68f3516ecbe83e1c27bd431599f2ee4dcec5",
+      "old_module": "omni.adapters.platform.exchange_files",
+      "new_module": "omni.adapters.platform.services.exchange_files"
     },
     {
       "old": "agent/src/omni/adapters/platform/linux_atspi.py",
       "new": "agent/src/omni/adapters/platform/desktop/linux/linux_atspi.py",
-      "sha256_before": "0943ea1bacc50d9515e6741cc2be069b1cc9cd321ee88634b36588a45c517890"
+      "sha256_before": "0943ea1bacc50d9515e6741cc2be069b1cc9cd321ee88634b36588a45c517890",
+      "old_module": "omni.adapters.platform.linux_atspi",
+      "new_module": "omni.adapters.platform.desktop.linux.linux_atspi"
     },
     {
       "old": "agent/src/omni/adapters/platform/linux_bus.py",
       "new": "agent/src/omni/adapters/platform/desktop/linux/linux_bus.py",
-      "sha256_before": "f08bf4bb837efb304ad8d64155b98876bb4cccca421b0ee01f2c377558c9b684"
+      "sha256_before": "f08bf4bb837efb304ad8d64155b98876bb4cccca421b0ee01f2c377558c9b684",
+      "old_module": "omni.adapters.platform.linux_bus",
+      "new_module": "omni.adapters.platform.desktop.linux.linux_bus"
     },
     {
       "old": "agent/src/omni/adapters/platform/linux_button_events.py",
       "new": "agent/src/omni/adapters/platform/desktop/linux/linux_button_events.py",
-      "sha256_before": "7b613986387a5016ffd6b3c7ba2d250ce6f42407d6f833a379a9e80ba988803c"
+      "sha256_before": "7b613986387a5016ffd6b3c7ba2d250ce6f42407d6f833a379a9e80ba988803c",
+      "old_module": "omni.adapters.platform.linux_button_events",
+      "new_module": "omni.adapters.platform.desktop.linux.linux_button_events"
     },
     {
       "old": "agent/src/omni/adapters/platform/linux_button_mapping.py",
       "new": "agent/src/omni/adapters/platform/desktop/linux/linux_button_mapping.py",
-      "sha256_before": "3018db5dfe7c7b8bbabbce9fc3fe1d196081d3e2141939b89a75be1567c1af38"
+      "sha256_before": "3018db5dfe7c7b8bbabbce9fc3fe1d196081d3e2141939b89a75be1567c1af38",
+      "old_module": "omni.adapters.platform.linux_button_mapping",
+      "new_module": "omni.adapters.platform.desktop.linux.linux_button_mapping"
     },
     {
       "old": "agent/src/omni/adapters/platform/linux_button_packet.py",
       "new": "agent/src/omni/adapters/platform/desktop/linux/linux_button_packet.py",
-      "sha256_before": "580d8d0701b8e351cc65c7a8b19e5aeaa1f3baa34d270f8fce680e16151835ce"
+      "sha256_before": "580d8d0701b8e351cc65c7a8b19e5aeaa1f3baa34d270f8fce680e16151835ce",
+      "old_module": "omni.adapters.platform.linux_button_packet",
+      "new_module": "omni.adapters.platform.desktop.linux.linux_button_packet"
     },
     {
       "old": "agent/src/omni/adapters/platform/linux_click_action.py",
       "new": "agent/src/omni/adapters/platform/desktop/linux/linux_click_action.py",
-      "sha256_before": "2de1d67497b5c030068aa3f8881edb1dcbbd64bc9d7bbe695cd25d55b09ad80c"
+      "sha256_before": "2de1d67497b5c030068aa3f8881edb1dcbbd64bc9d7bbe695cd25d55b09ad80c",
+      "old_module": "omni.adapters.platform.linux_click_action",
+      "new_module": "omni.adapters.platform.desktop.linux.linux_click_action"
     },
     {
       "old": "agent/src/omni/adapters/platform/linux_eis.py",
       "new": "agent/src/omni/adapters/platform/desktop/linux/linux_eis.py",
-      "sha256_before": "14ddf8a2d2f9e53148e69897e0dc760a28addbda2cbf9adbd962cc43f78266c8"
+      "sha256_before": "14ddf8a2d2f9e53148e69897e0dc760a28addbda2cbf9adbd962cc43f78266c8",
+      "old_module": "omni.adapters.platform.linux_eis",
+      "new_module": "omni.adapters.platform.desktop.linux.linux_eis"
     },
     {
       "old": "agent/src/omni/adapters/platform/linux_eis_devices.py",
       "new": "agent/src/omni/adapters/platform/desktop/linux/linux_eis_devices.py",
-      "sha256_before": "6e19159f64c6365adc04680559357a38988ddd06045e2bd8f6e7a141accca2ac"
+      "sha256_before": "6e19159f64c6365adc04680559357a38988ddd06045e2bd8f6e7a141accca2ac",
+      "old_module": "omni.adapters.platform.linux_eis_devices",
+      "new_module": "omni.adapters.platform.desktop.linux.linux_eis_devices"
     },
     {
       "old": "agent/src/omni/adapters/platform/linux_eis_key_packet.py",
       "new": "agent/src/omni/adapters/platform/desktop/linux/linux_eis_key_packet.py",
-      "sha256_before": "89aaee12139cf99f2bc7c105584fe87af0cf96b8a23dd2948ac772b492ea3f66"
+      "sha256_before": "89aaee12139cf99f2bc7c105584fe87af0cf96b8a23dd2948ac772b492ea3f66",
+      "old_module": "omni.adapters.platform.linux_eis_key_packet",
+      "new_module": "omni.adapters.platform.desktop.linux.linux_eis_key_packet"
     },
     {
       "old": "agent/src/omni/adapters/platform/linux_eis_keyboard.py",
       "new": "agent/src/omni/adapters/platform/desktop/linux/linux_eis_keyboard.py",
-      "sha256_before": "e8155aee46c4c84b538c9a58ed5622004d2898d091b4b6e84739fb7da1ea7114"
+      "sha256_before": "e8155aee46c4c84b538c9a58ed5622004d2898d091b4b6e84739fb7da1ea7114",
+      "old_module": "omni.adapters.platform.linux_eis_keyboard",
+      "new_module": "omni.adapters.platform.desktop.linux.linux_eis_keyboard"
     },
     {
       "old": "agent/src/omni/adapters/platform/linux_eis_keymap.py",
       "new": "agent/src/omni/adapters/platform/desktop/linux/linux_eis_keymap.py",
-      "sha256_before": "2e2eab2a364805bbcdd3c9dbc379f4f8a2264af6c7ac2dcfae498bca3a3b59b8"
+      "sha256_before": "2e2eab2a364805bbcdd3c9dbc379f4f8a2264af6c7ac2dcfae498bca3a3b59b8",
+      "old_module": "omni.adapters.platform.linux_eis_keymap",
+      "new_module": "omni.adapters.platform.desktop.linux.linux_eis_keymap"
     },
     {
       "old": "agent/src/omni/adapters/platform/linux_evdev_input.py",
       "new": "agent/src/omni/adapters/platform/desktop/linux/linux_evdev_input.py",
-      "sha256_before": "705f3502044169b8127987f8ac7f613f87f4bab737099d0e6facecb3a12960b8"
+      "sha256_before": "705f3502044169b8127987f8ac7f613f87f4bab737099d0e6facecb3a12960b8",
+      "old_module": "omni.adapters.platform.linux_evdev_input",
+      "new_module": "omni.adapters.platform.desktop.linux.linux_evdev_input"
     },
     {
       "old": "agent/src/omni/adapters/platform/linux_fds.py",
       "new": "agent/src/omni/adapters/platform/desktop/linux/linux_fds.py",
-      "sha256_before": "f97a4f536f3cb21945a7a37f7a0b22d5be6f42797aba594b16375f40c34b42e2"
+      "sha256_before": "f97a4f536f3cb21945a7a37f7a0b22d5be6f42797aba594b16375f40c34b42e2",
+      "old_module": "omni.adapters.platform.linux_fds",
+      "new_module": "omni.adapters.platform.desktop.linux.linux_fds"
     },
     {
       "old": "agent/src/omni/adapters/platform/linux_focus_navigation.py",
       "new": "agent/src/omni/adapters/platform/desktop/linux/linux_focus_navigation.py",
-      "sha256_before": "939a2ff2c738142cc10815d37122d35801665af9de278607e1d52198a91489d1"
+      "sha256_before": "939a2ff2c738142cc10815d37122d35801665af9de278607e1d52198a91489d1",
+      "old_module": "omni.adapters.platform.linux_focus_navigation",
+      "new_module": "omni.adapters.platform.desktop.linux.linux_focus_navigation"
     },
     {
       "old": "agent/src/omni/adapters/platform/linux_foreground.py",
       "new": "agent/src/omni/adapters/platform/desktop/linux/linux_foreground.py",
-      "sha256_before": "945e8ccdb5a0cce0957f5fb5f06cd44ad70ad4435957775eab32cb7ae4909076"
+      "sha256_before": "945e8ccdb5a0cce0957f5fb5f06cd44ad70ad4435957775eab32cb7ae4909076",
+      "old_module": "omni.adapters.platform.linux_foreground",
+      "new_module": "omni.adapters.platform.desktop.linux.linux_foreground"
     },
     {
       "old": "agent/src/omni/adapters/platform/linux_input.py",
       "new": "agent/src/omni/adapters/platform/desktop/linux/linux_input.py",
-      "sha256_before": "20ad9fd9291e328095953a56de9316e15afa9775c2b4dcd88570d121120dc130"
+      "sha256_before": "20ad9fd9291e328095953a56de9316e15afa9775c2b4dcd88570d121120dc130",
+      "old_module": "omni.adapters.platform.linux_input",
+      "new_module": "omni.adapters.platform.desktop.linux.linux_input"
     },
     {
       "old": "agent/src/omni/adapters/platform/linux_key_action.py",
       "new": "agent/src/omni/adapters/platform/desktop/linux/linux_key_action.py",
-      "sha256_before": "1506319158dfb1bc1fe90bf44feb4d63868f9eb9f246479b272b9a81216b63c2"
+      "sha256_before": "1506319158dfb1bc1fe90bf44feb4d63868f9eb9f246479b272b9a81216b63c2",
+      "old_module": "omni.adapters.platform.linux_key_action",
+      "new_module": "omni.adapters.platform.desktop.linux.linux_key_action"
     },
     {
       "old": "agent/src/omni/adapters/platform/linux_key_switch.py",
       "new": "agent/src/omni/adapters/platform/desktop/linux/linux_key_switch.py",
-      "sha256_before": "40d50051b531a907119f2a1f9dd06694249d59777262dc7ccf2671d2da07aa61"
+      "sha256_before": "40d50051b531a907119f2a1f9dd06694249d59777262dc7ccf2671d2da07aa61",
+      "old_module": "omni.adapters.platform.linux_key_switch",
+      "new_module": "omni.adapters.platform.desktop.linux.linux_key_switch"
     },
     {
       "old": "agent/src/omni/adapters/platform/linux_keyboard.py",
       "new": "agent/src/omni/adapters/platform/desktop/linux/linux_keyboard.py",
-      "sha256_before": "05c4c44e29eb1a86b943735d2eb28b0d3d93bd95a8c551de521a55126783f72c"
+      "sha256_before": "05c4c44e29eb1a86b943735d2eb28b0d3d93bd95a8c551de521a55126783f72c",
+      "old_module": "omni.adapters.platform.linux_keyboard",
+      "new_module": "omni.adapters.platform.desktop.linux.linux_keyboard"
     },
     {
       "old": "agent/src/omni/adapters/platform/linux_keystroke.py",
       "new": "agent/src/omni/adapters/platform/desktop/linux/linux_keystroke.py",
-      "sha256_before": "2c76f44699dc35f376e2fed67e8b2586308926994b1e354bd691f87f61dddc41"
+      "sha256_before": "2c76f44699dc35f376e2fed67e8b2586308926994b1e354bd691f87f61dddc41",
+      "old_module": "omni.adapters.platform.linux_keystroke",
+      "new_module": "omni.adapters.platform.desktop.linux.linux_keystroke"
     },
     {
       "old": "agent/src/omni/adapters/platform/linux_lease_client.py",
       "new": "agent/src/omni/adapters/platform/desktop/linux/linux_lease_client.py",
-      "sha256_before": "b808905363f98da77b0d64b160099f949177d50f3f73b4947fc2c4100cf3047a"
+      "sha256_before": "b808905363f98da77b0d64b160099f949177d50f3f73b4947fc2c4100cf3047a",
+      "old_module": "omni.adapters.platform.linux_lease_client",
+      "new_module": "omni.adapters.platform.desktop.linux.linux_lease_client"
     },
     {
       "old": "agent/src/omni/adapters/platform/linux_motion_events.py",
       "new": "agent/src/omni/adapters/platform/desktop/linux/linux_motion_events.py",
-      "sha256_before": "1fc7694a9acf5245769755c2be82c206ada18ae1d48384f4c0a4845bf1a4a75e"
+      "sha256_before": "1fc7694a9acf5245769755c2be82c206ada18ae1d48384f4c0a4845bf1a4a75e",
+      "old_module": "omni.adapters.platform.linux_motion_events",
+      "new_module": "omni.adapters.platform.desktop.linux.linux_motion_events"
     },
     {
       "old": "agent/src/omni/adapters/platform/linux_motion_packet.py",
       "new": "agent/src/omni/adapters/platform/desktop/linux/linux_motion_packet.py",
-      "sha256_before": "ba0211414b263ef40fc9712703b4fb8eb841671501bee6305f92dbc5dada572c"
+      "sha256_before": "ba0211414b263ef40fc9712703b4fb8eb841671501bee6305f92dbc5dada572c",
+      "old_module": "omni.adapters.platform.linux_motion_packet",
+      "new_module": "omni.adapters.platform.desktop.linux.linux_motion_packet"
     },
     {
       "old": "agent/src/omni/adapters/platform/linux_node_point.py",
       "new": "agent/src/omni/adapters/platform/desktop/linux/linux_node_point.py",
-      "sha256_before": "a9a65597f83ea9e9f79a7797a5b83be4166e52d2bf4f5d0d084fe6bed0216530"
+      "sha256_before": "a9a65597f83ea9e9f79a7797a5b83be4166e52d2bf4f5d0d084fe6bed0216530",
+      "old_module": "omni.adapters.platform.linux_node_point",
+      "new_module": "omni.adapters.platform.desktop.linux.linux_node_point"
     },
     {
       "old": "agent/src/omni/adapters/platform/linux_pipewire.py",
       "new": "agent/src/omni/adapters/platform/desktop/linux/linux_pipewire.py",
-      "sha256_before": "ea13cf08abbc4eca83af07ab196623c05bf4c257e2acd74708262c06ddb68076"
+      "sha256_before": "ea13cf08abbc4eca83af07ab196623c05bf4c257e2acd74708262c06ddb68076",
+      "old_module": "omni.adapters.platform.linux_pipewire",
+      "new_module": "omni.adapters.platform.desktop.linux.linux_pipewire"
     },
     {
       "old": "agent/src/omni/adapters/platform/linux_pointer_actions.py",
       "new": "agent/src/omni/adapters/platform/desktop/linux/linux_pointer_actions.py",
-      "sha256_before": "d4a97e55e216e6241fb3a43794af2fb5d7428a1836fdb6e359ed6b72900632eb"
+      "sha256_before": "d4a97e55e216e6241fb3a43794af2fb5d7428a1836fdb6e359ed6b72900632eb",
+      "old_module": "omni.adapters.platform.linux_pointer_actions",
+      "new_module": "omni.adapters.platform.desktop.linux.linux_pointer_actions"
     },
     {
       "old": "agent/src/omni/adapters/platform/linux_pointer_config.py",
       "new": "agent/src/omni/adapters/platform/desktop/linux/linux_pointer_config.py",
-      "sha256_before": "19857f942bac7ce7ef362200ec87d2331d5aa298a853a105db7199375cd0e8ca"
+      "sha256_before": "19857f942bac7ce7ef362200ec87d2331d5aa298a853a105db7199375cd0e8ca",
+      "old_module": "omni.adapters.platform.linux_pointer_config",
+      "new_module": "omni.adapters.platform.desktop.linux.linux_pointer_config"
     },
     {
       "old": "agent/src/omni/adapters/platform/linux_pointer_layout.py",
       "new": "agent/src/omni/adapters/platform/desktop/linux/linux_pointer_layout.py",
-      "sha256_before": "18ddc07aff5431bf9e4af614a5f7d44d222d89fea024958a4873c5f98ebe3d23"
+      "sha256_before": "18ddc07aff5431bf9e4af614a5f7d44d222d89fea024958a4873c5f98ebe3d23",
+      "old_module": "omni.adapters.platform.linux_pointer_layout",
+      "new_module": "omni.adapters.platform.desktop.linux.linux_pointer_layout"
     },
     {
       "old": "agent/src/omni/adapters/platform/linux_pointer_motion.py",
       "new": "agent/src/omni/adapters/platform/desktop/linux/linux_pointer_motion.py",
-      "sha256_before": "490490f80e0dfbaa81a4f84644250b80e855e0d31fb0c4888a87a0c07c05c01a"
+      "sha256_before": "490490f80e0dfbaa81a4f84644250b80e855e0d31fb0c4888a87a0c07c05c01a",
+      "old_module": "omni.adapters.platform.linux_pointer_motion",
+      "new_module": "omni.adapters.platform.desktop.linux.linux_pointer_motion"
     },
     {
       "old": "agent/src/omni/adapters/platform/linux_pointer_switch.py",
       "new": "agent/src/omni/adapters/platform/desktop/linux/linux_pointer_switch.py",
-      "sha256_before": "9862355a2b19f07e52b5b4bda60078214c05a0332a155940c74b8cfe9ce684c3"
+      "sha256_before": "9862355a2b19f07e52b5b4bda60078214c05a0332a155940c74b8cfe9ce684c3",
+      "old_module": "omni.adapters.platform.linux_pointer_switch",
+      "new_module": "omni.adapters.platform.desktop.linux.linux_pointer_switch"
     },
     {
       "old": "agent/src/omni/adapters/platform/linux_pointer_target.py",
       "new": "agent/src/omni/adapters/platform/desktop/linux/linux_pointer_target.py",
-      "sha256_before": "04b8296f56e2001660ac14835708cd67348e7b8d2be39aaedf5cc2d96d9655cd"
+      "sha256_before": "04b8296f56e2001660ac14835708cd67348e7b8d2be39aaedf5cc2d96d9655cd",
+      "old_module": "omni.adapters.platform.linux_pointer_target",
+      "new_module": "omni.adapters.platform.desktop.linux.linux_pointer_target"
     },
     {
       "old": "agent/src/omni/adapters/platform/linux_portal.py",
       "new": "agent/src/omni/adapters/platform/desktop/linux/linux_portal.py",
-      "sha256_before": "667c1c33ecd0c73e941b9baae141f3cf6be44222d95b3e0d855e2c7a7e940cb3"
+      "sha256_before": "667c1c33ecd0c73e941b9baae141f3cf6be44222d95b3e0d855e2c7a7e940cb3",
+      "old_module": "omni.adapters.platform.linux_portal",
+      "new_module": "omni.adapters.platform.desktop.linux.linux_portal"
     },
     {
       "old": "agent/src/omni/adapters/platform/linux_remote_desktop.py",
       "new": "agent/src/omni/adapters/platform/desktop/linux/linux_remote_desktop.py",
-      "sha256_before": "f30a3e7639da53262253f7ce2f096e285dd96b8f2e2e6208ea40dfd0cf90ac10"
+      "sha256_before": "f30a3e7639da53262253f7ce2f096e285dd96b8f2e2e6208ea40dfd0cf90ac10",
+      "old_module": "omni.adapters.platform.linux_remote_desktop",
+      "new_module": "omni.adapters.platform.desktop.linux.linux_remote_desktop"
     },
     {
       "old": "agent/src/omni/adapters/platform/linux_seat_input.py",
       "new": "agent/src/omni/adapters/platform/desktop/linux/linux_seat_input.py",
-      "sha256_before": "f4d541a8388d3fc80da9f1cd595468609721fa0960aa535b40d42c86aa93667a"
+      "sha256_before": "f4d541a8388d3fc80da9f1cd595468609721fa0960aa535b40d42c86aa93667a",
+      "old_module": "omni.adapters.platform.linux_seat_input",
+      "new_module": "omni.adapters.platform.desktop.linux.linux_seat_input"
     },
     {
       "old": "agent/src/omni/adapters/platform/linux_semantic.py",
       "new": "agent/src/omni/adapters/platform/desktop/linux/linux_semantic.py",
-      "sha256_before": "6bc701900677bdd6429dfb02e2f3bc0150dae5a3dabb992124c9855610400831"
+      "sha256_before": "6bc701900677bdd6429dfb02e2f3bc0150dae5a3dabb992124c9855610400831",
+      "old_module": "omni.adapters.platform.linux_semantic",
+      "new_module": "omni.adapters.platform.desktop.linux.linux_semantic"
     },
     {
       "old": "agent/src/omni/adapters/platform/linux_session.py",
       "new": "agent/src/omni/adapters/platform/desktop/linux/linux_session.py",
-      "sha256_before": "c58ab413c4e81c0845f42f7618adcb6e31bae97c44b57435aefd737ae3dd88fc"
+      "sha256_before": "c58ab413c4e81c0845f42f7618adcb6e31bae97c44b57435aefd737ae3dd88fc",
+      "old_module": "omni.adapters.platform.linux_session",
+      "new_module": "omni.adapters.platform.desktop.linux.linux_session"
     },
     {
       "old": "agent/src/omni/adapters/platform/linux_signals.py",
       "new": "agent/src/omni/adapters/platform/desktop/linux/linux_signals.py",
-      "sha256_before": "43f14422840052d45484e0cfb259550ea31213aa7e288d892dd7bee0c7fba42b"
+      "sha256_before": "43f14422840052d45484e0cfb259550ea31213aa7e288d892dd7bee0c7fba42b",
+      "old_module": "omni.adapters.platform.linux_signals",
+      "new_module": "omni.adapters.platform.desktop.linux.linux_signals"
     },
     {
       "old": "agent/src/omni/adapters/platform/linux_text.py",
       "new": "agent/src/omni/adapters/platform/desktop/linux/linux_text.py",
-      "sha256_before": "426adb8d4288b1d5e08cc4f8de6886548c5fdaf49b7344cfb1eb32ae18f7a5d3"
+      "sha256_before": "426adb8d4288b1d5e08cc4f8de6886548c5fdaf49b7344cfb1eb32ae18f7a5d3",
+      "old_module": "omni.adapters.platform.linux_text",
+      "new_module": "omni.adapters.platform.desktop.linux.linux_text"
     },
     {
       "old": "agent/src/omni/adapters/platform/linux_udev_input.py",
       "new": "agent/src/omni/adapters/platform/desktop/linux/linux_udev_input.py",
-      "sha256_before": "96be42e15a6c158fe9ba55cbd976bfc93df7337566cc42642ef9cd018b732fb4"
+      "sha256_before": "96be42e15a6c158fe9ba55cbd976bfc93df7337566cc42642ef9cd018b732fb4",
+      "old_module": "omni.adapters.platform.linux_udev_input",
+      "new_module": "omni.adapters.platform.desktop.linux.linux_udev_input"
     },
     {
       "old": "agent/src/omni/adapters/platform/linux_wayland_peer.py",
       "new": "agent/src/omni/adapters/platform/desktop/linux/linux_wayland_peer.py",
-      "sha256_before": "88d5a7c8ebaddaafbe7cac6de27314e5e783f24748499b9bed6cbac0826e8762"
+      "sha256_before": "88d5a7c8ebaddaafbe7cac6de27314e5e783f24748499b9bed6cbac0826e8762",
+      "old_module": "omni.adapters.platform.linux_wayland_peer",
+      "new_module": "omni.adapters.platform.desktop.linux.linux_wayland_peer"
     },
     {
       "old": "agent/src/omni/adapters/platform/linux_wayland_windows.py",
       "new": "agent/src/omni/adapters/platform/desktop/linux/linux_wayland_windows.py",
-      "sha256_before": "5cd4b1add77a51b8b538cdbfc46c64df2ec17a65f1a0dda3c479821fac0e1f09"
+      "sha256_before": "5cd4b1add77a51b8b538cdbfc46c64df2ec17a65f1a0dda3c479821fac0e1f09",
+      "old_module": "omni.adapters.platform.linux_wayland_windows",
+      "new_module": "omni.adapters.platform.desktop.linux.linux_wayland_windows"
     },
     {
       "old": "agent/src/omni/adapters/platform/linux_wayland_wire.py",
       "new": "agent/src/omni/adapters/platform/desktop/linux/linux_wayland_wire.py",
-      "sha256_before": "d52686f0cb4b06e004ac9e40f65e130a47cd4386db883e6141c50cea8075b404"
+      "sha256_before": "d52686f0cb4b06e004ac9e40f65e130a47cd4386db883e6141c50cea8075b404",
+      "old_module": "omni.adapters.platform.linux_wayland_wire",
+      "new_module": "omni.adapters.platform.desktop.linux.linux_wayland_wire"
     },
     {
       "old": "agent/src/omni/adapters/platform/linux_window_binding.py",
       "new": "agent/src/omni/adapters/platform/desktop/linux/linux_window_binding.py",
-      "sha256_before": "85ca5ce3ff4721e60a4cd8976b674f3813251a629457ab56b82e99440348c081"
+      "sha256_before": "85ca5ce3ff4721e60a4cd8976b674f3813251a629457ab56b82e99440348c081",
+      "old_module": "omni.adapters.platform.linux_window_binding",
+      "new_module": "omni.adapters.platform.desktop.linux.linux_window_binding"
     },
     {
       "old": "agent/src/omni/adapters/platform/linux_window_leases.py",
       "new": "agent/src/omni/adapters/platform/desktop/linux/linux_window_leases.py",
-      "sha256_before": "86368c510ab2a7078d474de77b475bfc834b374fc5202797e33268ec262442aa"
+      "sha256_before": "86368c510ab2a7078d474de77b475bfc834b374fc5202797e33268ec262442aa",
+      "old_module": "omni.adapters.platform.linux_window_leases",
+      "new_module": "omni.adapters.platform.desktop.linux.linux_window_leases"
     },
     {
       "old": "agent/src/omni/adapters/platform/linux_x11.py",
       "new": "agent/src/omni/adapters/platform/desktop/linux/linux_x11.py",
-      "sha256_before": "59b857d5c85429410614ab1df93630f75fe387322090b85e0a590d9d42a66070"
+      "sha256_before": "59b857d5c85429410614ab1df93630f75fe387322090b85e0a590d9d42a66070",
+      "old_module": "omni.adapters.platform.linux_x11",
+      "new_module": "omni.adapters.platform.desktop.linux.linux_x11"
     },
     {
       "old": "agent/src/omni/adapters/platform/linux_x11_socket.py",
       "new": "agent/src/omni/adapters/platform/desktop/linux/linux_x11_socket.py",
-      "sha256_before": "8e611867caa2337a439eee0515546112e4417feb6a744c2cada7f9344913a1a2"
+      "sha256_before": "8e611867caa2337a439eee0515546112e4417feb6a744c2cada7f9344913a1a2",
+      "old_module": "omni.adapters.platform.linux_x11_socket",
+      "new_module": "omni.adapters.platform.desktop.linux.linux_x11_socket"
     },
     {
       "old": "agent/src/omni/adapters/platform/linux_x11_wire.py",
       "new": "agent/src/omni/adapters/platform/desktop/linux/linux_x11_wire.py",
-      "sha256_before": "44ec6c111fab0e4ede1d7fd2d7f910627e9824d1a99c5924d3f588cdae878cc9"
+      "sha256_before": "44ec6c111fab0e4ede1d7fd2d7f910627e9824d1a99c5924d3f588cdae878cc9",
+      "old_module": "omni.adapters.platform.linux_x11_wire",
+      "new_module": "omni.adapters.platform.desktop.linux.linux_x11_wire"
     },
     {
       "old": "agent/src/omni/adapters/platform/linux_xkb.py",
       "new": "agent/src/omni/adapters/platform/desktop/linux/linux_xkb.py",
-      "sha256_before": "0305a9fae4bc9f765d88b7d0869bf16445fa54e6b795df51be3f6a64a6ba0dbe"
+      "sha256_before": "0305a9fae4bc9f765d88b7d0869bf16445fa54e6b795df51be3f6a64a6ba0dbe",
+      "old_module": "omni.adapters.platform.linux_xkb",
+      "new_module": "omni.adapters.platform.desktop.linux.linux_xkb"
     },
     {
       "old": "agent/src/omni/adapters/platform/linux_xkb_copy.py",
       "new": "agent/src/omni/adapters/platform/desktop/linux/linux_xkb_copy.py",
-      "sha256_before": "ee7c898d096159525c8d2f344ecf14593a3e1a38793e8f72a56fb9800805adba"
+      "sha256_before": "ee7c898d096159525c8d2f344ecf14593a3e1a38793e8f72a56fb9800805adba",
+      "old_module": "omni.adapters.platform.linux_xkb_copy",
+      "new_module": "omni.adapters.platform.desktop.linux.linux_xkb_copy"
     },
     {
       "old": "agent/src/omni/adapters/platform/linux_xkb_map.py",
       "new": "agent/src/omni/adapters/platform/desktop/linux/linux_xkb_map.py",
-      "sha256_before": "1c09caa679784b03474bd1e848774d6f84444bf4a071e144e9bcee6140bcd2e7"
+      "sha256_before": "1c09caa679784b03474bd1e848774d6f84444bf4a071e144e9bcee6140bcd2e7",
+      "old_module": "omni.adapters.platform.linux_xkb_map",
+      "new_module": "omni.adapters.platform.desktop.linux.linux_xkb_map"
     },
     {
       "old": "agent/src/omni/adapters/platform/linux_xkbcommon.py",
       "new": "agent/src/omni/adapters/platform/desktop/linux/linux_xkbcommon.py",
-      "sha256_before": "d7ff611f05a8ffd4a41287b1e319ea7b3a914367aaca1e8a9c994b987103a40f"
+      "sha256_before": "d7ff611f05a8ffd4a41287b1e319ea7b3a914367aaca1e8a9c994b987103a40f",
+      "old_module": "omni.adapters.platform.linux_xkbcommon",
+      "new_module": "omni.adapters.platform.desktop.linux.linux_xkbcommon"
     },
     {
       "old": "agent/src/omni/adapters/platform/linux_xtest.py",
       "new": "agent/src/omni/adapters/platform/desktop/linux/linux_xtest.py",
-      "sha256_before": "9eda11d9bb49bb985efde699cb571c94b0fc57c0ec9c73aa373893ec2f5e851c"
+      "sha256_before": "9eda11d9bb49bb985efde699cb571c94b0fc57c0ec9c73aa373893ec2f5e851c",
+      "old_module": "omni.adapters.platform.linux_xtest",
+      "new_module": "omni.adapters.platform.desktop.linux.linux_xtest"
     },
     {
       "old": "agent/src/omni/adapters/platform/macos_helper.py",
       "new": "agent/src/omni/adapters/platform/desktop/macos_helper.py",
-      "sha256_before": "0ca4cc8fe4a2407cc6d8e7d98fb4d7911823cd8385ca352b9dc7307e549b2db8"
+      "sha256_before": "0ca4cc8fe4a2407cc6d8e7d98fb4d7911823cd8385ca352b9dc7307e549b2db8",
+      "old_module": "omni.adapters.platform.macos_helper",
+      "new_module": "omni.adapters.platform.desktop.macos_helper"
     },
     {
       "old": "agent/src/omni/adapters/platform/macos_service.py",
       "new": "agent/src/omni/adapters/platform/services/macos_service.py",
-      "sha256_before": "511283eed7a4e4058447122d378926f5b88a170bb29cf58dc07ee2c9c41b53fa"
+      "sha256_before": "511283eed7a4e4058447122d378926f5b88a170bb29cf58dc07ee2c9c41b53fa",
+      "old_module": "omni.adapters.platform.macos_service",
+      "new_module": "omni.adapters.platform.services.macos_service"
     },
     {
       "old": "agent/src/omni/adapters/platform/macos_service_state.py",
       "new": "agent/src/omni/adapters/platform/services/macos_service_state.py",
-      "sha256_before": "0e9f6fa68029daa13141946d9caaa52c468244c4b0a9d832528da04d7a51b59d"
+      "sha256_before": "0e9f6fa68029daa13141946d9caaa52c468244c4b0a9d832528da04d7a51b59d",
+      "old_module": "omni.adapters.platform.macos_service_state",
+      "new_module": "omni.adapters.platform.services.macos_service_state"
     },
     {
       "old": "agent/src/omni/adapters/platform/paths.py",
       "new": "agent/src/omni/adapters/platform/runtime/paths.py",
-      "sha256_before": "bd05c46bdfbb19a87dfc1c0d2d63987544d3895cf1a3a72ae877fc0f5215342b"
+      "sha256_before": "bd05c46bdfbb19a87dfc1c0d2d63987544d3895cf1a3a72ae877fc0f5215342b",
+      "old_module": "omni.adapters.platform.paths",
+      "new_module": "omni.adapters.platform.runtime.paths"
     },
     {
       "old": "agent/src/omni/adapters/platform/permissions.py",
       "new": "agent/src/omni/adapters/platform/runtime/permissions.py",
-      "sha256_before": "e8e687fb4ef24097a119769c9809a9076136debe3750b6d31a13b67a90c3c829"
+      "sha256_before": "e8e687fb4ef24097a119769c9809a9076136debe3750b6d31a13b67a90c3c829",
+      "old_module": "omni.adapters.platform.permissions",
+      "new_module": "omni.adapters.platform.runtime.permissions"
     },
     {
       "old": "agent/src/omni/adapters/platform/portal.py",
       "new": "agent/src/omni/adapters/platform/desktop/portal.py",
-      "sha256_before": "268bb777badafbc13a87235a7a16902b19d0e2fccda05cc365b76200f737aa7d"
+      "sha256_before": "268bb777badafbc13a87235a7a16902b19d0e2fccda05cc365b76200f737aa7d",
+      "old_module": "omni.adapters.platform.portal",
+      "new_module": "omni.adapters.platform.desktop.portal"
     },
     {
       "old": "agent/src/omni/adapters/platform/processes.py",
       "new": "agent/src/omni/adapters/platform/runtime/processes.py",
-      "sha256_before": "11bf30cad90774fdbdeaab8e8ce13cec1bfaca172d670083ef609e6e9204f49f"
+      "sha256_before": "11bf30cad90774fdbdeaab8e8ce13cec1bfaca172d670083ef609e6e9204f49f",
+      "old_module": "omni.adapters.platform.processes",
+      "new_module": "omni.adapters.platform.runtime.processes"
     },
     {
       "old": "agent/src/omni/adapters/platform/publication.py",
       "new": "agent/src/omni/adapters/platform/runtime/publication.py",
-      "sha256_before": "263c0ddb63e65c96389f603481e7624fc9bc76d4e729de31cba0f4d7ecf522f1"
+      "sha256_before": "263c0ddb63e65c96389f603481e7624fc9bc76d4e729de31cba0f4d7ecf522f1",
+      "old_module": "omni.adapters.platform.publication",
+      "new_module": "omni.adapters.platform.runtime.publication"
     },
     {
       "old": "agent/src/omni/adapters/platform/release_files.py",
       "new": "agent/src/omni/adapters/platform/releases/release_files.py",
-      "sha256_before": "ea39046ca85e664b13f0fcd4f2a13f9ef67b9e31548f2c58b21d4519cbaacef4"
+      "sha256_before": "ea39046ca85e664b13f0fcd4f2a13f9ef67b9e31548f2c58b21d4519cbaacef4",
+      "old_module": "omni.adapters.platform.release_files",
+      "new_module": "omni.adapters.platform.releases.release_files"
     },
     {
       "old": "agent/src/omni/adapters/platform/runtime_identity.py",
       "new": "agent/src/omni/adapters/platform/runtime/runtime_identity.py",
-      "sha256_before": "c45eb1d157362d117a82714a122469bb828438f463de97a5ea1263f9579eae0e"
+      "sha256_before": "c45eb1d157362d117a82714a122469bb828438f463de97a5ea1263f9579eae0e",
+      "old_module": "omni.adapters.platform.runtime_identity",
+      "new_module": "omni.adapters.platform.runtime.runtime_identity"
     },
     {
       "old": "agent/src/omni/adapters/platform/secrets.py",
       "new": "agent/src/omni/adapters/platform/runtime/secrets.py",
-      "sha256_before": "5c570a0449b9053231aee020a798a7b2b2adee109552596423444ec29660edb9"
+      "sha256_before": "5c570a0449b9053231aee020a798a7b2b2adee109552596423444ec29660edb9",
+      "old_module": "omni.adapters.platform.secrets",
+      "new_module": "omni.adapters.platform.runtime.secrets"
     },
     {
       "old": "agent/src/omni/adapters/platform/service_admin.py",
       "new": "agent/src/omni/adapters/platform/services/service_admin.py",
-      "sha256_before": "a2864a33b06fe440275ca292a8b3f8fd49afe5ce3de05656ab2455788db7c912"
+      "sha256_before": "a2864a33b06fe440275ca292a8b3f8fd49afe5ce3de05656ab2455788db7c912",
+      "old_module": "omni.adapters.platform.service_admin",
+      "new_module": "omni.adapters.platform.services.service_admin"
     },
     {
       "old": "agent/src/omni/adapters/platform/service_admin_bundle.py",
       "new": "agent/src/omni/adapters/platform/services/service_admin_bundle.py",
-      "sha256_before": "054a09a2f7d74c24ffe828e6f93eacd86cdc047c633e65ff6634b4428fe85aec"
+      "sha256_before": "054a09a2f7d74c24ffe828e6f93eacd86cdc047c633e65ff6634b4428fe85aec",
+      "old_module": "omni.adapters.platform.service_admin_bundle",
+      "new_module": "omni.adapters.platform.services.service_admin_bundle"
     },
     {
       "old": "agent/src/omni/adapters/platform/service_admin_client.py",
       "new": "agent/src/omni/adapters/platform/services/service_admin_client.py",
-      "sha256_before": "3e2c2ca60ec023c31324a67177ecd404862165c3debe320e7e98d80c4ee36bcd"
+      "sha256_before": "3e2c2ca60ec023c31324a67177ecd404862165c3debe320e7e98d80c4ee36bcd",
+      "old_module": "omni.adapters.platform.service_admin_client",
+      "new_module": "omni.adapters.platform.services.service_admin_client"
     },
     {
       "old": "agent/src/omni/adapters/platform/service_admin_commands.py",
       "new": "agent/src/omni/adapters/platform/services/service_admin_commands.py",
-      "sha256_before": "c0e9150986a47ac75aed12492a0361db36fcf52e79d7de76d88c8e4f8287263c"
+      "sha256_before": "c0e9150986a47ac75aed12492a0361db36fcf52e79d7de76d88c8e4f8287263c",
+      "old_module": "omni.adapters.platform.service_admin_commands",
+      "new_module": "omni.adapters.platform.services.service_admin_commands"
     },
     {
       "old": "agent/src/omni/adapters/platform/service_admin_policy.py",
       "new": "agent/src/omni/adapters/platform/services/service_admin_policy.py",
-      "sha256_before": "11829517c2aa4994abcb7b2c51192e60109e4421af3eef406efbd3d5146b1381"
+      "sha256_before": "11829517c2aa4994abcb7b2c51192e60109e4421af3eef406efbd3d5146b1381",
+      "old_module": "omni.adapters.platform.service_admin_policy",
+      "new_module": "omni.adapters.platform.services.service_admin_policy"
     },
     {
       "old": "agent/src/omni/adapters/platform/service_cleanup_files.py",
       "new": "agent/src/omni/adapters/platform/services/service_cleanup_files.py",
-      "sha256_before": "02e59742c2a200ac82894d429918e14b544810166f7bb1c31a0cef6dc29a637d"
+      "sha256_before": "02e59742c2a200ac82894d429918e14b544810166f7bb1c31a0cef6dc29a637d",
+      "old_module": "omni.adapters.platform.service_cleanup_files",
+      "new_module": "omni.adapters.platform.services.service_cleanup_files"
     },
     {
       "old": "agent/src/omni/adapters/platform/service_control_files.py",
       "new": "agent/src/omni/adapters/platform/services/service_control_files.py",
-      "sha256_before": "8272000890dab975afb205394d3b5a198f61205009ad1db777d59a6b41dc1e9e"
+      "sha256_before": "8272000890dab975afb205394d3b5a198f61205009ad1db777d59a6b41dc1e9e",
+      "old_module": "omni.adapters.platform.service_control_files",
+      "new_module": "omni.adapters.platform.services.service_control_files"
     },
     {
       "old": "agent/src/omni/adapters/platform/service_handover.py",
       "new": "agent/src/omni/adapters/platform/services/service_handover.py",
-      "sha256_before": "82798f192ae4e7da52822f121a45b78efe7ddd20bac0413134877dd14cd469fa"
+      "sha256_before": "82798f192ae4e7da52822f121a45b78efe7ddd20bac0413134877dd14cd469fa",
+      "old_module": "omni.adapters.platform.service_handover",
+      "new_module": "omni.adapters.platform.services.service_handover"
     },
     {
       "old": "agent/src/omni/adapters/platform/service_launch.py",
       "new": "agent/src/omni/adapters/platform/services/service_launch.py",
-      "sha256_before": "2aa1a88e438ce3ca1bd9141395681e9c82126b2e46fb63a7cbc4194cc1799d77"
+      "sha256_before": "2aa1a88e438ce3ca1bd9141395681e9c82126b2e46fb63a7cbc4194cc1799d77",
+      "old_module": "omni.adapters.platform.service_launch",
+      "new_module": "omni.adapters.platform.services.service_launch"
     },
     {
       "old": "agent/src/omni/adapters/platform/service_operation_files.py",
       "new": "agent/src/omni/adapters/platform/services/service_operation_files.py",
-      "sha256_before": "6e9fbee2b652284b3ae191634f716d8d2525b2fba9f3c275ea49f12cc5cd1f19"
+      "sha256_before": "6e9fbee2b652284b3ae191634f716d8d2525b2fba9f3c275ea49f12cc5cd1f19",
+      "old_module": "omni.adapters.platform.service_operation_files",
+      "new_module": "omni.adapters.platform.services.service_operation_files"
     },
     {
       "old": "agent/src/omni/adapters/platform/service_query.py",
       "new": "agent/src/omni/adapters/platform/services/service_query.py",
-      "sha256_before": "ebc1abba0085c579bcd27ae193f6645f48b7f11d62d3ee8289222ea7fc668067"
+      "sha256_before": "ebc1abba0085c579bcd27ae193f6645f48b7f11d62d3ee8289222ea7fc668067",
+      "old_module": "omni.adapters.platform.service_query",
+      "new_module": "omni.adapters.platform.services.service_query"
     },
     {
       "old": "agent/src/omni/adapters/platform/service_readiness.py",
       "new": "agent/src/omni/adapters/platform/services/service_readiness.py",
-      "sha256_before": "e776c420eba2906117f0b8075d39eadbe242dead3c3d5079cfc986c56df08bfd"
+      "sha256_before": "e776c420eba2906117f0b8075d39eadbe242dead3c3d5079cfc986c56df08bfd",
+      "old_module": "omni.adapters.platform.service_readiness",
+      "new_module": "omni.adapters.platform.services.service_readiness"
     },
     {
       "old": "agent/src/omni/adapters/platform/service_registration.py",
       "new": "agent/src/omni/adapters/platform/services/service_registration.py",
-      "sha256_before": "7d63ad354cb8eafd77bec57d68f103fdea95aaae96f91c6a4e1bb612bccbfe0b"
+      "sha256_before": "7d63ad354cb8eafd77bec57d68f103fdea95aaae96f91c6a4e1bb612bccbfe0b",
+      "old_module": "omni.adapters.platform.service_registration",
+      "new_module": "omni.adapters.platform.services.service_registration"
     },
     {
       "old": "agent/src/omni/adapters/platform/service_templates.py",
       "new": "agent/src/omni/adapters/platform/services/service_templates.py",
-      "sha256_before": "f85981b9227e1085cee1efe903d84eb4647ccec1f774c6f11acd6dd11111ccbb"
+      "sha256_before": "f85981b9227e1085cee1efe903d84eb4647ccec1f774c6f11acd6dd11111ccbb",
+      "old_module": "omni.adapters.platform.service_templates",
+      "new_module": "omni.adapters.platform.services.service_templates"
     },
     {
       "old": "agent/src/omni/adapters/platform/systemd_state.py",
       "new": "agent/src/omni/adapters/platform/services/systemd_state.py",
-      "sha256_before": "24d03620e4f4594f7e73ae355d987b1c22cecbc43df36b77c5f8468dc00d7535"
+      "sha256_before": "24d03620e4f4594f7e73ae355d987b1c22cecbc43df36b77c5f8468dc00d7535",
+      "old_module": "omni.adapters.platform.systemd_state",
+      "new_module": "omni.adapters.platform.services.systemd_state"
     },
     {
       "old": "agent/src/omni/adapters/platform/terminal.py",
       "new": "agent/src/omni/adapters/platform/runtime/terminal.py",
-      "sha256_before": "8a23683fe8a6d08c7c8635c0af7229fcc4ee7af851ab54bfe74b8bea5b4f0270"
+      "sha256_before": "8a23683fe8a6d08c7c8635c0af7229fcc4ee7af851ab54bfe74b8bea5b4f0270",
+      "old_module": "omni.adapters.platform.terminal",
+      "new_module": "omni.adapters.platform.runtime.terminal"
     },
     {
       "old": "agent/src/omni/adapters/platform/wheel_artifact.py",
       "new": "agent/src/omni/adapters/platform/releases/wheel_artifact.py",
-      "sha256_before": "78f533891d212c9547a2e6b626989690a82b5aa71953f299e1dc67277840216a"
+      "sha256_before": "78f533891d212c9547a2e6b626989690a82b5aa71953f299e1dc67277840216a",
+      "old_module": "omni.adapters.platform.wheel_artifact",
+      "new_module": "omni.adapters.platform.releases.wheel_artifact"
     },
     {
       "old": "agent/src/omni/adapters/platform/wheel_backup.py",
       "new": "agent/src/omni/adapters/platform/releases/wheel_backup.py",
-      "sha256_before": "3031f37b712401b09be9589831030150ae25dd4f57cd59cb2d0449340634a9ee"
+      "sha256_before": "3031f37b712401b09be9589831030150ae25dd4f57cd59cb2d0449340634a9ee",
+      "old_module": "omni.adapters.platform.wheel_backup",
+      "new_module": "omni.adapters.platform.releases.wheel_backup"
     },
     {
       "old": "agent/src/omni/adapters/platform/wheel_environment.py",
       "new": "agent/src/omni/adapters/platform/releases/wheel_environment.py",
-      "sha256_before": "a4997e1fdd68b9b154e6ff121d4662f6aacb74166a24d031968b19ee660766dc"
+      "sha256_before": "a4997e1fdd68b9b154e6ff121d4662f6aacb74166a24d031968b19ee660766dc",
+      "old_module": "omni.adapters.platform.wheel_environment",
+      "new_module": "omni.adapters.platform.releases.wheel_environment"
     },
     {
       "old": "agent/src/omni/adapters/platform/wheel_install.py",
       "new": "agent/src/omni/adapters/platform/releases/wheel_install.py",
-      "sha256_before": "fbcb0ee5e52c2b3c66592688c6f58cde63f57ad3c89829ebd36604ca9bd8f1dd"
+      "sha256_before": "fbcb0ee5e52c2b3c66592688c6f58cde63f57ad3c89829ebd36604ca9bd8f1dd",
+      "old_module": "omni.adapters.platform.wheel_install",
+      "new_module": "omni.adapters.platform.releases.wheel_install"
     },
     {
       "old": "agent/src/omni/adapters/platform/wheel_prepare.py",
       "new": "agent/src/omni/adapters/platform/releases/wheel_prepare.py",
-      "sha256_before": "45b5ed6d48ebab1b1ef391422b1559e426bec83f91eba4f0c2e9206a2d362a18"
+      "sha256_before": "45b5ed6d48ebab1b1ef391422b1559e426bec83f91eba4f0c2e9206a2d362a18",
+      "old_module": "omni.adapters.platform.wheel_prepare",
+      "new_module": "omni.adapters.platform.releases.wheel_prepare"
     },
     {
       "old": "agent/src/omni/adapters/platform/wheel_rollback.py",
       "new": "agent/src/omni/adapters/platform/releases/wheel_rollback.py",
-      "sha256_before": "c39bd4513675053e8fd34ec0268542d1f7bae066f67ca43199c07ae65ca26c7f"
+      "sha256_before": "c39bd4513675053e8fd34ec0268542d1f7bae066f67ca43199c07ae65ca26c7f",
+      "old_module": "omni.adapters.platform.wheel_rollback",
+      "new_module": "omni.adapters.platform.releases.wheel_rollback"
     },
     {
       "old": "agent/src/omni/adapters/platform/wheel_smoke.py",
       "new": "agent/src/omni/adapters/platform/releases/wheel_smoke.py",
-      "sha256_before": "84256d9e46a4d78e89333413446554f3ce719b4e4f97e1951fe18504bb381981"
+      "sha256_before": "84256d9e46a4d78e89333413446554f3ce719b4e4f97e1951fe18504bb381981",
+      "old_module": "omni.adapters.platform.wheel_smoke",
+      "new_module": "omni.adapters.platform.releases.wheel_smoke"
     },
     {
       "old": "agent/src/omni/adapters/platform/wheel_stage.py",
       "new": "agent/src/omni/adapters/platform/releases/wheel_stage.py",
-      "sha256_before": "9918e4f05e0a02b611db9b788a4169275ff5aaa28ba6ef0b069ec62910104672"
+      "sha256_before": "9918e4f05e0a02b611db9b788a4169275ff5aaa28ba6ef0b069ec62910104672",
+      "old_module": "omni.adapters.platform.wheel_stage",
+      "new_module": "omni.adapters.platform.releases.wheel_stage"
     },
     {
       "old": "agent/src/omni/adapters/platform/wheel_status.py",
       "new": "agent/src/omni/adapters/platform/releases/wheel_status.py",
-      "sha256_before": "56998de260a866bdd1e6846d9b66abf91de4fa7da5cb1fb99259d158d9f2f475"
+      "sha256_before": "56998de260a866bdd1e6846d9b66abf91de4fa7da5cb1fb99259d158d9f2f475",
+      "old_module": "omni.adapters.platform.wheel_status",
+      "new_module": "omni.adapters.platform.releases.wheel_status"
     },
     {
       "old": "agent/src/omni/adapters/platform/wheel_switch.py",
       "new": "agent/src/omni/adapters/platform/releases/wheel_switch.py",
-      "sha256_before": "5a0172293d7efbe3b4271a3545c054b73058a5178e4e79f44aafacc1e263e1aa"
+      "sha256_before": "5a0172293d7efbe3b4271a3545c054b73058a5178e4e79f44aafacc1e263e1aa",
+      "old_module": "omni.adapters.platform.wheel_switch",
+      "new_module": "omni.adapters.platform.releases.wheel_switch"
     },
     {
       "old": "agent/src/omni/adapters/platform/wheel_uninstall.py",
       "new": "agent/src/omni/adapters/platform/releases/wheel_uninstall.py",
-      "sha256_before": "66bb3eac9080e9876e3967e400233421ad772c8417dd3401d98c625942c94c69"
+      "sha256_before": "66bb3eac9080e9876e3967e400233421ad772c8417dd3401d98c625942c94c69",
+      "old_module": "omni.adapters.platform.wheel_uninstall",
+      "new_module": "omni.adapters.platform.releases.wheel_uninstall"
     },
     {
       "old": "agent/src/omni/adapters/platform/workbench.py",
       "new": "agent/src/omni/adapters/platform/runtime/workbench.py",
-      "sha256_before": "df9d61045573b1433bf010c984773c7050ce665f5d679c8855e51eb13b364835"
+      "sha256_before": "df9d61045573b1433bf010c984773c7050ce665f5d679c8855e51eb13b364835",
+      "old_module": "omni.adapters.platform.workbench",
+      "new_module": "omni.adapters.platform.runtime.workbench"
     },
     {
       "old": "agent/src/omni/adapters/platform/workspaces.py",
       "new": "agent/src/omni/adapters/platform/runtime/workspaces.py",
-      "sha256_before": "74ad560fc32f69ba1e57f7b9fc6269c32325c49043263c8abac97584ecf26a10"
+      "sha256_before": "74ad560fc32f69ba1e57f7b9fc6269c32325c49043263c8abac97584ecf26a10",
+      "old_module": "omni.adapters.platform.workspaces",
+      "new_module": "omni.adapters.platform.runtime.workspaces"
     },
     {
       "old": "agent/tests/native_v2_local_vectors.py",
@@ -994,7 +1210,7 @@
     },
     {
       "old": "agent/tests/test_v2_evdev_input.py",
-      "new": "agent/tests/v2/core/test_v2_evdev_input.py",
+      "new": "agent/tests/v2/platforms/linux/test_v2_evdev_input.py",
       "sha256_before": "779f2ba4a33c9989e757d8495c593fcd0823861e092464876ba8f9d8a6e09db5"
     },
     {
@@ -1714,7 +1930,7 @@
     },
     {
       "old": "agent/tests/test_v2_native_credential_acceptance.py",
-      "new": "agent/tests/v2/core/test_v2_native_credential_acceptance.py",
+      "new": "agent/tests/v2/platforms/common/test_v2_native_credential_acceptance.py",
       "sha256_before": "9c7da89af85c2ebf45be020d2b552753f28e8e9ec964ad8a844e9ec7081f356f"
     },
     {
@@ -1789,7 +2005,7 @@
     },
     {
       "old": "agent/tests/test_v2_pipewire_consumer.py",
-      "new": "agent/tests/v2/core/test_v2_pipewire_consumer.py",
+      "new": "agent/tests/v2/platforms/linux/test_v2_pipewire_consumer.py",
       "sha256_before": "b0ed8cf5ea59c0a430b8445d79e766c70d162b2f2341503a0f29812c98eca295"
     },
     {
@@ -1949,7 +2165,7 @@
     },
     {
       "old": "agent/tests/test_v2_seat_input.py",
-      "new": "agent/tests/v2/core/test_v2_seat_input.py",
+      "new": "agent/tests/v2/platforms/linux/test_v2_seat_input.py",
       "sha256_before": "76a86cd3bb0e1d1709b1bb5886ea9a6fe4c04765f2a174dd24831217beb4c65f"
     },
     {
@@ -2159,7 +2375,7 @@
     },
     {
       "old": "agent/tests/test_v2_udev_input.py",
-      "new": "agent/tests/v2/core/test_v2_udev_input.py",
+      "new": "agent/tests/v2/platforms/linux/test_v2_udev_input.py",
       "sha256_before": "97ec18d6b309cce71be3d7860eaee3493f80bc5728a1f6c204d4a07cc8c4b0be"
     },
     {
@@ -2274,7 +2490,7 @@
     },
     {
       "old": "agent/tests/test_v2_xkbcommon.py",
-      "new": "agent/tests/v2/core/test_v2_xkbcommon.py",
+      "new": "agent/tests/v2/platforms/linux/test_v2_xkbcommon.py",
       "sha256_before": "74a89267ba6ee7e96601cdab13a1cce233a6ddb2073df7c318f17d62629e0d31"
     },
     {
@@ -2694,7 +2910,7 @@
     },
     {
       "old": "docs/WINDOWS_V2_ACCEPTANCE.md",
-      "new": "docs/v2/platforms/windows/WINDOWS_V2_ACCEPTANCE.md",
+      "new": "docs/history/v2/WINDOWS_V2_ACCEPTANCE_2026-11-13.md",
       "sha256_before": "1665989e2feb73533a0f6ac76743e42bddea0a3799c3b2ed3d0f7ee4081a74d0"
     },
     {
@@ -2721,5 +2937,470 @@
       "archive": "docs/history/pre-layout-2026-11-18/V2_REFACTOR.md",
       "sha256_original": "86f18308752f874850df42806b136392714e3240b4b53e56d3d6b66063ac8d7b"
     }
-  }
+  },
+  "status": "implemented_scoped_verified_full_suite_deferred",
+  "helper_extractions": [
+    {
+      "test_module": "test_v2_android",
+      "support_module": "omni_test_support.v2.android"
+    },
+    {
+      "test_module": "test_v2_android_model",
+      "support_module": "omni_test_support.v2.android_model"
+    },
+    {
+      "test_module": "test_v2_audit_plan_contract",
+      "support_module": "omni_test_support.v2.audit_plan_contract"
+    },
+    {
+      "test_module": "test_v2_audit_plan_migration",
+      "support_module": "omni_test_support.v2.audit_plan_migration"
+    },
+    {
+      "test_module": "test_v2_audit_pruning",
+      "support_module": "omni_test_support.v2.audit_pruning"
+    },
+    {
+      "test_module": "test_v2_audit_retention",
+      "support_module": "omni_test_support.v2.audit_retention"
+    },
+    {
+      "test_module": "test_v2_bilibili",
+      "support_module": "omni_test_support.v2.bilibili"
+    },
+    {
+      "test_module": "test_v2_bilibili_gateway",
+      "support_module": "omni_test_support.v2.bilibili_gateway"
+    },
+    {
+      "test_module": "test_v2_bilibili_response_bounds",
+      "support_module": "omni_test_support.v2.bilibili_response_bounds"
+    },
+    {
+      "test_module": "test_v2_bilibili_streams",
+      "support_module": "omni_test_support.v2.bilibili_streams"
+    },
+    {
+      "test_module": "test_v2_bilibili_worker",
+      "support_module": "omni_test_support.v2.bilibili_worker"
+    },
+    {
+      "test_module": "test_v2_context",
+      "support_module": "omni_test_support.v2.context"
+    },
+    {
+      "test_module": "test_v2_credentials",
+      "support_module": "omni_test_support.v2.credentials"
+    },
+    {
+      "test_module": "test_v2_darwin_service_exchange",
+      "support_module": "omni_test_support.v2.darwin_service_exchange"
+    },
+    {
+      "test_module": "test_v2_delivery",
+      "support_module": "omni_test_support.v2.delivery"
+    },
+    {
+      "test_module": "test_v2_delivery_http",
+      "support_module": "omni_test_support.v2.delivery_http"
+    },
+    {
+      "test_module": "test_v2_deployment_files",
+      "support_module": "omni_test_support.v2.deployment_files"
+    },
+    {
+      "test_module": "test_v2_desktop",
+      "support_module": "omni_test_support.v2.desktop"
+    },
+    {
+      "test_module": "test_v2_desktop_action_transport",
+      "support_module": "omni_test_support.v2.desktop_action_transport"
+    },
+    {
+      "test_module": "test_v2_desktop_actions",
+      "support_module": "omni_test_support.v2.desktop_actions"
+    },
+    {
+      "test_module": "test_v2_desktop_backend",
+      "support_module": "omni_test_support.v2.desktop_backend"
+    },
+    {
+      "test_module": "test_v2_desktop_contracts",
+      "support_module": "omni_test_support.v2.desktop_contracts"
+    },
+    {
+      "test_module": "test_v2_desktop_control_backend",
+      "support_module": "omni_test_support.v2.desktop_control_backend"
+    },
+    {
+      "test_module": "test_v2_desktop_control_service",
+      "support_module": "omni_test_support.v2.desktop_control_service"
+    },
+    {
+      "test_module": "test_v2_desktop_http",
+      "support_module": "omni_test_support.v2.desktop_http"
+    },
+    {
+      "test_module": "test_v2_desktop_ui",
+      "support_module": "omni_test_support.v2.desktop_ui"
+    },
+    {
+      "test_module": "test_v2_documents",
+      "support_module": "omni_test_support.v2.documents"
+    },
+    {
+      "test_module": "test_v2_event_plan_migration",
+      "support_module": "omni_test_support.v2.event_plan_migration"
+    },
+    {
+      "test_module": "test_v2_event_pruning",
+      "support_module": "omni_test_support.v2.event_pruning"
+    },
+    {
+      "test_module": "test_v2_event_retention_contract",
+      "support_module": "omni_test_support.v2.event_retention_contract"
+    },
+    {
+      "test_module": "test_v2_event_stream",
+      "support_module": "omni_test_support.v2.event_stream"
+    },
+    {
+      "test_module": "test_v2_exchange_recovery",
+      "support_module": "omni_test_support.v2.exchange_recovery"
+    },
+    {
+      "test_module": "test_v2_execution",
+      "support_module": "omni_test_support.v2.execution"
+    },
+    {
+      "test_module": "test_v2_execution_pruning",
+      "support_module": "omni_test_support.v2.execution_pruning"
+    },
+    {
+      "test_module": "test_v2_extension_repository",
+      "support_module": "omni_test_support.v2.extension_repository"
+    },
+    {
+      "test_module": "test_v2_extensions",
+      "support_module": "omni_test_support.v2.extensions"
+    },
+    {
+      "test_module": "test_v2_extensions_contract",
+      "support_module": "omni_test_support.v2.extensions_contract"
+    },
+    {
+      "test_module": "test_v2_extensions_http",
+      "support_module": "omni_test_support.v2.extensions_http"
+    },
+    {
+      "test_module": "test_v2_extensions_migration",
+      "support_module": "omni_test_support.v2.extensions_migration"
+    },
+    {
+      "test_module": "test_v2_foreground",
+      "support_module": "omni_test_support.v2.foreground"
+    },
+    {
+      "test_module": "test_v2_history_ui",
+      "support_module": "omni_test_support.v2.history_ui"
+    },
+    {
+      "test_module": "test_v2_http",
+      "support_module": "omni_test_support.v2.http"
+    },
+    {
+      "test_module": "test_v2_images",
+      "support_module": "omni_test_support.v2.images"
+    },
+    {
+      "test_module": "test_v2_isolated_environment",
+      "support_module": "omni_test_support.v2.isolated_environment"
+    },
+    {
+      "test_module": "test_v2_linux_bus",
+      "support_module": "omni_test_support.v2.linux_bus"
+    },
+    {
+      "test_module": "test_v2_linux_desktop",
+      "support_module": "omni_test_support.v2.linux_desktop"
+    },
+    {
+      "test_module": "test_v2_linux_foreground",
+      "support_module": "omni_test_support.v2.linux_foreground"
+    },
+    {
+      "test_module": "test_v2_linux_input",
+      "support_module": "omni_test_support.v2.linux_input"
+    },
+    {
+      "test_module": "test_v2_linux_key_switch",
+      "support_module": "omni_test_support.v2.linux_key_switch"
+    },
+    {
+      "test_module": "test_v2_linux_keyboard",
+      "support_module": "omni_test_support.v2.linux_keyboard"
+    },
+    {
+      "test_module": "test_v2_linux_keystroke",
+      "support_module": "omni_test_support.v2.linux_keystroke"
+    },
+    {
+      "test_module": "test_v2_linux_motion_packet",
+      "support_module": "omni_test_support.v2.linux_motion_packet"
+    },
+    {
+      "test_module": "test_v2_linux_pointer_target",
+      "support_module": "omni_test_support.v2.linux_pointer_target"
+    },
+    {
+      "test_module": "test_v2_linux_semantic",
+      "support_module": "omni_test_support.v2.linux_semantic"
+    },
+    {
+      "test_module": "test_v2_linux_window_binding",
+      "support_module": "omni_test_support.v2.linux_window_binding"
+    },
+    {
+      "test_module": "test_v2_linux_window_leases",
+      "support_module": "omni_test_support.v2.linux_window_leases"
+    },
+    {
+      "test_module": "test_v2_linux_xkb_map",
+      "support_module": "omni_test_support.v2.linux_xkb_map"
+    },
+    {
+      "test_module": "test_v2_linux_xtest",
+      "support_module": "omni_test_support.v2.linux_xtest"
+    },
+    {
+      "test_module": "test_v2_macos_activation",
+      "support_module": "omni_test_support.v2.macos_activation"
+    },
+    {
+      "test_module": "test_v2_macos_services",
+      "support_module": "omni_test_support.v2.macos_services"
+    },
+    {
+      "test_module": "test_v2_maintenance_ownership",
+      "support_module": "omni_test_support.v2.maintenance_ownership"
+    },
+    {
+      "test_module": "test_v2_mcp",
+      "support_module": "omni_test_support.v2.mcp"
+    },
+    {
+      "test_module": "test_v2_mcp_flow",
+      "support_module": "omni_test_support.v2.mcp_flow"
+    },
+    {
+      "test_module": "test_v2_media",
+      "support_module": "omni_test_support.v2.media"
+    },
+    {
+      "test_module": "test_v2_media_admission",
+      "support_module": "omni_test_support.v2.media_admission"
+    },
+    {
+      "test_module": "test_v2_media_audio",
+      "support_module": "omni_test_support.v2.media_audio"
+    },
+    {
+      "test_module": "test_v2_media_frames",
+      "support_module": "omni_test_support.v2.media_frames"
+    },
+    {
+      "test_module": "test_v2_media_output",
+      "support_module": "omni_test_support.v2.media_output"
+    },
+    {
+      "test_module": "test_v2_media_transport",
+      "support_module": "omni_test_support.v2.media_transport"
+    },
+    {
+      "test_module": "test_v2_media_ui",
+      "support_module": "omni_test_support.v2.media_ui"
+    },
+    {
+      "test_module": "test_v2_media_worker",
+      "support_module": "omni_test_support.v2.media_worker"
+    },
+    {
+      "test_module": "test_v2_memory_organization",
+      "support_module": "omni_test_support.v2.memory_organization"
+    },
+    {
+      "test_module": "test_v2_memory_organization_repository",
+      "support_module": "omni_test_support.v2.memory_organization_repository"
+    },
+    {
+      "test_module": "test_v2_memory_organization_ui",
+      "support_module": "omni_test_support.v2.memory_organization_ui"
+    },
+    {
+      "test_module": "test_v2_memory_semantics",
+      "support_module": "omni_test_support.v2.memory_semantics"
+    },
+    {
+      "test_module": "test_v2_model_stream",
+      "support_module": "omni_test_support.v2.model_stream"
+    },
+    {
+      "test_module": "test_v2_objects",
+      "support_module": "omni_test_support.v2.objects"
+    },
+    {
+      "test_module": "test_v2_people",
+      "support_module": "omni_test_support.v2.people"
+    },
+    {
+      "test_module": "test_v2_portal_frames",
+      "support_module": "omni_test_support.v2.portal_frames"
+    },
+    {
+      "test_module": "test_v2_portal_service",
+      "support_module": "omni_test_support.v2.portal_service"
+    },
+    {
+      "test_module": "test_v2_private_permissions",
+      "support_module": "omni_test_support.v2.private_permissions"
+    },
+    {
+      "test_module": "test_v2_releases",
+      "support_module": "omni_test_support.v2.releases"
+    },
+    {
+      "test_module": "test_v2_remote_desktop",
+      "support_module": "omni_test_support.v2.remote_desktop"
+    },
+    {
+      "test_module": "test_v2_retention_preview",
+      "support_module": "omni_test_support.v2.retention_preview"
+    },
+    {
+      "test_module": "test_v2_routing",
+      "support_module": "omni_test_support.v2.routing"
+    },
+    {
+      "test_module": "test_v2_scheduling",
+      "support_module": "omni_test_support.v2.scheduling"
+    },
+    {
+      "test_module": "test_v2_service_admin",
+      "support_module": "omni_test_support.v2.service_admin"
+    },
+    {
+      "test_module": "test_v2_service_admin_ownership",
+      "support_module": "omni_test_support.v2.service_admin_ownership"
+    },
+    {
+      "test_module": "test_v2_service_control",
+      "support_module": "omni_test_support.v2.service_control"
+    },
+    {
+      "test_module": "test_v2_service_deployment",
+      "support_module": "omni_test_support.v2.service_deployment"
+    },
+    {
+      "test_module": "test_v2_service_exchange",
+      "support_module": "omni_test_support.v2.service_exchange"
+    },
+    {
+      "test_module": "test_v2_service_operations",
+      "support_module": "omni_test_support.v2.service_operations"
+    },
+    {
+      "test_module": "test_v2_service_query",
+      "support_module": "omni_test_support.v2.service_query"
+    },
+    {
+      "test_module": "test_v2_service_runtime",
+      "support_module": "omni_test_support.v2.service_runtime"
+    },
+    {
+      "test_module": "test_v2_skill_metadata",
+      "support_module": "omni_test_support.v2.skill_metadata"
+    },
+    {
+      "test_module": "test_v2_skill_notice",
+      "support_module": "omni_test_support.v2.skill_notice"
+    },
+    {
+      "test_module": "test_v2_skill_reads",
+      "support_module": "omni_test_support.v2.skill_reads"
+    },
+    {
+      "test_module": "test_v2_skill_zip_errors",
+      "support_module": "omni_test_support.v2.skill_zip_errors"
+    },
+    {
+      "test_module": "test_v2_skills",
+      "support_module": "omni_test_support.v2.skills"
+    },
+    {
+      "test_module": "test_v2_system_service_exchange",
+      "support_module": "omni_test_support.v2.system_service_exchange"
+    },
+    {
+      "test_module": "test_v2_system_service_start",
+      "support_module": "omni_test_support.v2.system_service_start"
+    },
+    {
+      "test_module": "test_v2_terminals_http",
+      "support_module": "omni_test_support.v2.terminals_http"
+    },
+    {
+      "test_module": "test_v2_terminals_storage",
+      "support_module": "omni_test_support.v2.terminals_storage"
+    },
+    {
+      "test_module": "test_v2_terminals_ui",
+      "support_module": "omni_test_support.v2.terminals_ui"
+    },
+    {
+      "test_module": "test_v2_ui",
+      "support_module": "omni_test_support.v2.ui"
+    },
+    {
+      "test_module": "test_v2_wheel_environment",
+      "support_module": "omni_test_support.v2.wheel_environment"
+    },
+    {
+      "test_module": "test_v2_wheel_install",
+      "support_module": "omni_test_support.v2.wheel_install"
+    },
+    {
+      "test_module": "test_v2_wheel_uninstall",
+      "support_module": "omni_test_support.v2.wheel_uninstall"
+    }
+  ],
+  "collection": {
+    "baseline": 7354,
+    "after": 7361,
+    "original_nodes_preserved": true,
+    "duplicates": 0,
+    "added_nodes": [
+      "agent/tests/test_task_status.py::test_current_summary_rejects_unproven_or_ambiguous_completion[rows0]",
+      "agent/tests/test_task_status.py::test_current_summary_rejects_unproven_or_ambiguous_completion[rows1]",
+      "agent/tests/test_task_status.py::test_current_summary_rejects_unproven_or_ambiguous_completion[rows2]",
+      "agent/tests/test_task_status.py::test_current_summary_uses_current_tasks_and_keeps_windows_acceptance_separate",
+      "agent/tests/v2/core/test_v2_layout.py::test_ci_discovers_nested_files_and_refuses_an_empty_suite",
+      "agent/tests/v2/core/test_v2_layout.py::test_manifest_targets_resolve_and_platform_implementations_have_one_home",
+      "agent/tests/v2/core/test_v2_layout.py::test_v2_tests_do_not_import_other_collected_test_modules"
+    ],
+    "before": {
+      "path": "C:\\v2-acceptance\\v2-layout-667d9648\\before-nodes.json",
+      "sha256": "dbe6bf91c5838e57b94350c6b33ae09820b71595d51026a8ae3336f74c94763e"
+    },
+    "after_nodes": {
+      "path": "C:\\v2-acceptance\\v2-layout-667d9648\\after-nodes.json",
+      "sha256": "90a32dd19539bbce6c24020b4a5bd85cf8bed9d78c6b2d275cd7e2868d4a5302"
+    },
+    "final_log": {
+      "path": "C:\\v2-acceptance\\v2-layout-667d9648\\after-collect-final.log",
+      "sha256": "2676f7f8ce313eb2b866329fc86ee9747ba4987c3a625b6a8ceeda03327c2720"
+    }
+  },
+  "verification_evidence": "docs/evidence/v2-layout-reorganization.json",
+  "existing_windows_host": "retained_for_running_services_and_native_acceptance",
+  "parallel_ui_commit_preserved": "2bdab425af375ac0296e99e75a344ee0dffb15d1"
 }

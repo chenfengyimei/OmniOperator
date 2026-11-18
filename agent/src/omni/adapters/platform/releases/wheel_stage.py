@@ -8,11 +8,11 @@ import shutil
 from pathlib import Path
 from typing import cast
 
+from omni.adapters.persistence.maintenance import durable_json
+from omni.adapters.platform.releases.wheel_artifact import inspect_wheel
+from omni.adapters.platform.runtime.permissions import private_path
 from omni.application.ports import Record
 from omni.domain.contracts import BusinessError
-from omni.adapters.persistence.maintenance import durable_json
-from omni.adapters.platform.runtime.permissions import private_path
-from omni.adapters.platform.releases.wheel_artifact import inspect_wheel
 
 FORMAT = "omni-staged-update-1"
 STAGE_ROOT = "updates"

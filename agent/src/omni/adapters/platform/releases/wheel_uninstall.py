@@ -10,14 +10,14 @@ import time
 from pathlib import Path
 from typing import cast
 
-from omni.application.ports import Record
-from omni.domain.contracts import BusinessError
 from omni.adapters.persistence.maintenance import durable_json
 from omni.adapters.platform.releases.dependency_bundle import SHA, no_links
+from omni.adapters.platform.releases.wheel_install import FORMAT as RUNTIME_FORMAT
 from omni.adapters.platform.runtime.paths import InstanceLock, InstancePaths
 from omni.adapters.platform.runtime.permissions import private_path
 from omni.adapters.platform.runtime.runtime_identity import read_private
-from omni.adapters.platform.releases.wheel_install import FORMAT as RUNTIME_FORMAT
+from omni.application.ports import Record
+from omni.domain.contracts import BusinessError
 
 FORMAT = "omni-uninstall-1"
 POINTER_FILES = ("current.json", "previous.json", "launch.py")

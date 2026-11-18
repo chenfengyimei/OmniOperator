@@ -16,6 +16,16 @@ from typing import Any, cast
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.trace import Span, StatusCode
 
+from omni.adapters.platform.desktop.backend import DesktopBackend
+from omni.adapters.platform.desktop.desktop_control import DesktopControlBackend
+from omni.adapters.platform.desktop.portal import PortalBackend
+from omni.adapters.platform.runtime.paths import InstanceLock, InstancePaths
+from omni.adapters.platform.runtime.runtime_identity import RuntimeIdentityFiles, canonical_proof, process_identity
+from omni.adapters.platform.runtime.secrets import FileVault
+from omni.adapters.platform.runtime.terminal import TerminalBackend
+from omni.adapters.platform.runtime.workspaces import WorkspacePolicy
+from omni.adapters.platform.services.service_launch import consume_launch
+
 from ..adapters.android import AndroidBackend
 from ..adapters.bilibili import BilibiliGateway
 from ..adapters.build_identity import CODE_CACHE_DIRS, CODE_SUFFIXES, LAYERS
@@ -36,15 +46,6 @@ from ..adapters.object_store import ObjectFiles
 from ..adapters.onebot import OneBotTransport
 from ..adapters.persistence.database import Database
 from ..adapters.persistence.deployed_instance import verify_deployed_instance
-from omni.adapters.platform.desktop.backend import DesktopBackend
-from omni.adapters.platform.desktop.desktop_control import DesktopControlBackend
-from omni.adapters.platform.runtime.paths import InstanceLock, InstancePaths
-from omni.adapters.platform.desktop.portal import PortalBackend
-from omni.adapters.platform.runtime.runtime_identity import RuntimeIdentityFiles, canonical_proof, process_identity
-from omni.adapters.platform.runtime.secrets import FileVault
-from omni.adapters.platform.services.service_launch import consume_launch
-from omni.adapters.platform.runtime.terminal import TerminalBackend
-from omni.adapters.platform.runtime.workspaces import WorkspacePolicy
 from ..adapters.primitives import SystemClock, UUIDs
 from ..adapters.process_diagnostics import ProcessDiagnostics
 from ..adapters.skill_packages import SkillPackages

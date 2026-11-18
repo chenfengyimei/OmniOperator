@@ -7,12 +7,12 @@ import json
 from pathlib import Path
 from typing import cast
 
-from omni.application.ports import Record
-from omni.domain.contracts import BusinessError
 from omni.adapters.persistence.maintenance import backup, durable_json
+from omni.adapters.platform.releases.wheel_switch import switch_plan
 from omni.adapters.platform.runtime.paths import InstancePaths
 from omni.adapters.platform.runtime.permissions import private_path
-from omni.adapters.platform.releases.wheel_switch import switch_plan
+from omni.application.ports import Record
+from omni.domain.contracts import BusinessError
 
 FORMAT = "omni-update-backup-1"
 

@@ -1,5 +1,7 @@
 # macOS 原生实现与 Mac mini 交接
 
+> 文档范围：本页维护该能力合同与所属批次记录。当前默认入口为 V2；[当前交接](../../../HANDOFF.md)区分已实现、专项通过和原生验收，历史测试数字不覆盖当前源码。
+
 当前交付包为 D2，仍在开发中。Windows 主机只验证 Python 宿主、协议、隔离及打包；Swift/C 尚未在 Mac 编译，不能据此标记 macOS 已支持。整个 V2 尚未完成；Windows 离线候选默认入口已经是 V2，显式 V1 回退保留。当前迁移步骤与源码交接见 [Mac mini 开发迁移](../../../V2_MACMINI_MIGRATION.md)。
 
 所有者已确认迁移目标为 Apple Silicon Mac mini；本次使用原生 arm64 Python 与 `--arch arm64`。Windows 自有窗口的前台输入/点击完整回归已在人工聚焦后通过，四次动作的生产回执仍均为 unknown；不据此声明真实应用或 Mac 原生通过。
@@ -116,7 +118,7 @@ uv run --no-sync python agent/scripts/accept_macos_desktop.py --build temp/build
 PTY与Keychain分别执行：
 
 ```sh
-uv run --no-sync pytest -q -n 0 agent/tests/test_v2_terminal_native.py::test_native_terminal_unicode_resize_exit_and_verified_cleanup
+uv run --no-sync pytest -q -n 0 agent/tests/v2/platforms/common/test_v2_terminal_native.py::test_native_terminal_unicode_resize_exit_and_verified_cleanup
 uv run --no-sync python agent/scripts/accept_macos_keychain.py --write-owned-item --output temp/build/mac-keychain-acceptance
 ```
 
@@ -129,8 +131,8 @@ uv run --no-sync python agent/scripts/accept_macos_keychain.py --cleanup temp/bu
 本地离线调用方验证：
 
 ```sh
-uv run --no-sync pytest -q -n 0 agent/tests/test_v2_macos_helper.py agent/tests/test_v2_desktop_contracts.py agent/tests/test_v2_desktop_backend.py agent/tests/test_v2_desktop_capture.py
-uv run --no-sync pytest -q -n 0 agent/tests/test_v2_foreground.py agent/tests/test_v2_foreground_transport.py agent/tests/test_v2_macos_acceptance.py
+uv run --no-sync pytest -q -n 0 agent/tests/v2/platforms/macos/test_v2_macos_helper.py agent/tests/v2/platforms/common/test_v2_desktop_contracts.py agent/tests/v2/platforms/common/test_v2_desktop_backend.py agent/tests/v2/platforms/common/test_v2_desktop_capture.py
+uv run --no-sync pytest -q -n 0 agent/tests/v2/platforms/common/test_v2_foreground.py agent/tests/v2/platforms/common/test_v2_foreground_transport.py agent/tests/v2/platforms/macos/test_v2_macos_acceptance.py
 ```
 
 ## 待接续开发及证据回传

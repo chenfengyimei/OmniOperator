@@ -12,12 +12,12 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, cast
 
+from omni.adapters.platform.desktop.backend import helper_environment
+from omni.adapters.platform.runtime.processes import OwnedProcess
 from omni.application.ports import Record
 from omni.domain.contracts import BusinessError
 from omni.domain.desktop_control import PURPOSE, TERMINAL, VERSION, command, devices, event
 from omni.domain.desktop_portal import LIFETIME_SECONDS, MAX_EVENTS, MAX_FRAME, MAX_TOTAL, binding, decode, encode
-from omni.adapters.platform.desktop.backend import helper_environment
-from omni.adapters.platform.runtime.processes import OwnedProcess
 
 Guard = Callable[[], Awaitable[None]]
 Spawn = Callable[..., Awaitable[OwnedProcess]]

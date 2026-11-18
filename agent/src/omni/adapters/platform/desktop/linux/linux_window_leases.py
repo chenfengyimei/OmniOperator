@@ -10,11 +10,11 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from typing import cast
 
-from omni.domain.desktop import validate_target
-from omni.domain.linux_window_leases import MAX_GROUPS, MAX_TARGETS, MAX_TOTAL_BYTES
 from omni.adapters.platform.desktop.linux.linux_bus import failure
 from omni.adapters.platform.desktop.linux.linux_x11 import X11Desktop
 from omni.adapters.platform.desktop.linux.linux_x11_wire import Wire, unpack
+from omni.domain.desktop import validate_target
+from omni.domain.linux_window_leases import MAX_GROUPS, MAX_TARGETS, MAX_TOTAL_BYTES
 
 STRUCTURE = frozenset({17, 18, 19, 21, 22, 24, 26})
 Payload = dict[str, object]

@@ -107,7 +107,7 @@ uv run --no-sync python agent/scripts/build_macos_helper.py --arch arm64 --outpu
 开发中按改动做专项，例如：
 
 ```sh
-uv run --no-sync pytest -q -n 0 agent/tests/test_v2_macos_helper.py agent/tests/test_v2_macos_acceptance.py
+uv run --no-sync pytest -q -n 0 agent/tests/v2/platforms/macos/test_v2_macos_helper.py agent/tests/v2/platforms/macos/test_v2_macos_acceptance.py
 ```
 
 继续当前架构的业务与平台实现，不重做 Windows/MCP/Linux 已完成部分。Mac 原生观察、语义动作、前台、PTY、Keychain、服务与睡眠/锁屏等分别执行既有隔离验收入口并保存原件。整个 V2 开发冻结后才统一全量，开发中不逐模块全量。

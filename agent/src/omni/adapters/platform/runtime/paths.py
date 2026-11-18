@@ -139,10 +139,10 @@ class InstanceLock(PrivateFileLock):
         super().__init__(paths.control / "instance.lock")
 
     def _admit(self, release: tuple[str, str] | None) -> None:
+        from omni.adapters.platform.runtime.permissions import assert_private
+        from omni.adapters.platform.services.deployment_files import decode, read_file
         from omni.domain.contracts import BusinessError
         from omni.domain.release_fence import validate_fence
-        from omni.adapters.platform.services.deployment_files import decode, read_file
-        from omni.adapters.platform.runtime.permissions import assert_private
 
         fence_path = self.path.parent / "release-fence.json"
         if fence_path.exists() or fence_path.is_symlink() or fence_path.is_junction():

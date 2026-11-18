@@ -1,5 +1,7 @@
 # V2 打包、安装、更新与恢复（D7）
 
+> 文档范围：本页维护该能力合同与所属批次记录。当前默认入口为 V2；[当前交接](../../HANDOFF.md)区分已实现、专项通过和原生验收，历史测试数字不覆盖当前源码。
+
 > **默认入口为 V2（Windows离线候选）。** 真实平台与其他系统仍待验收。 本文件只记录 V2 已实际验证的构建/安装/更新/恢复链与仍未验收的部分，不把“能构建 wheel”写成“三平台已交付”。
 
 > **当前接续（2026-11-15）**：源码 `92fbf78a` 的 direct wheel、sdist→wheel、隔离导入、新实例建库及正常关闭已离线复验，123 份资源一致；报告见[静态质量证据](../../evidence/v2-static-quality.json)。下面 2026-11-11 的资源数量和 `installation` 命令限制属于对应历史记录。
@@ -85,28 +87,6 @@ python -m omni.composition.cli --home <home> installation verify
 python -m omni.composition.cli --home <home> installation seal
 ```
 
-- `verify` 只读：报告 home 是否存在、`installation.json` 是否存在/有效/与当前 schema 一致、`data/omni.db` 与 `-wal` 是否存在、数据库当前 schema、代码期望 schema、是否需要升级；不写文件、不改数据库。
-- `seal` 显式写入一次安装收据（`installation.json`：format/created_at/schema_version/code_head），要求数据库 schema 等于代码 head，已存在且同 head 时幂等返回 `written=false`，不同 head 时 fail-closed；使用 `durable_json` 原子写并收紧权限。
-- 收据校验为纯 domain 规则（`domain/installation.py`），拒绝链接、缺字段、非 UTC 时间、非法 schema。
-- 运行时打开实例时校验已存在的收据：schema 与数据库不一致 → `installation_mismatch`；内容损坏或被替换为链接 → `installation_invalid`；没有收据的历史实例保持兼容。升级后必须重新 `seal`。
-- `installation artifact <wheel> --sha256 <hex>` 只读校验候选 wheel：SHA256、zip CRC、成员数/解压体积上限、绝对路径/反斜杠/`..` 越界、重名、缺少 `omni/web_assets/index.html`/`ui/v2/index.html` 或 METADATA 均 fail-closed；只报告，不解压安装。
-- `installation stage <wheel> --sha256 <hex>` 在 artifact 校验通过后把 wheel 原子复制到 `<home>/updates/<sha 前16>/artifact.whl`，写 `staged.json`（`extracted=false`、`installed=false`）；同 SHA 重放幂等 `written=false`，损坏收据 fail-closed；不解压、不建 venv、不切换、不迁移。
-- `installation prepare --sha256 <hex>` 仅对已暂存且哈希未变的 wheel 解包到 `<home>/updates/<sha 前16>/tree`：重新校验 SHA/CRC/成员上限/越界/重名/V2 资源，成功后写 `prepared.json`；同 SHA 重放幂等 `written=false`，失败清理 `.tree.partial`；仍不建 venv、不切换、不迁移。
-- `installation switch-plan --sha256 <hex>` 只读生成切换计划：要求候选已 prepare、安装收据有效且与当前数据库 schema 一致、实例未被占用；输出 backup/stop/switch/migrate/seal/start/health 七步与 `executable=false`、`requires_owner_approval=true`，不执行任何步骤。
-- `installation backup --sha256 <hex>` 只执行计划中的备份步：复用同一前置校验，调用既有 `backup` 在 home **之外**创建一致快照（拒绝覆盖已存在目录），在暂存目录写 `backup.json`（含 manifest SHA256）；同 SHA 重放幂等 `written=false`；不停服、不切换、不迁移。
-- `installation rollback-check --sha256 <hex>` 只做回滚演练：把 `backup.json` 指向的快照 restore 到 home 之外的**新目录**，用 `inspect_database` 校验完整性与 schema，写 `rollback.json`；同 SHA 幂等、目标已存在则拒绝；不触碰 live home。
-- `installation status` 只读汇总：收据有效性、数据库/WAL/当前与期望 schema、是否需要升级、当前运行指针（active/SHA/mode/python/previous/live-rollback），以及 `updates/<sha16>` 下每个候选的 staged/prepared/environment/backup/rollback/migrate/active 与 `next_step`（待迁移时为 `migrate`）；不创建目录、不写文件。
-- `installation smoke --sha256 <hex>` 在子解释器中把候选树加入 `PYTHONPATH`，导入 `omni` 并断言导入路径位于候选树、V2 资源存在；成功写 `smoke.json`（幂等），失败 fail-closed；不安装、不切换、不迁移。
-- `installation switch --sha256 <hex>` 执行计划中的**切换步**：要求候选已 prepare、smoke 已 verified、backup 与 rollback 演练收据齐全、收据与当前 schema 一致且已无待迁移（否则 `switch_migration_required`）、实例未被占用；原子写 `<home>/runtime/current.json`（保留上一指针为 `previous.json`）、`runtime/launch.py` 与 `omni.cmd`/`omni` 启动包装；同 SHA 重放幂等 `written=false`；不停止/启动服务。
-- `installation migrate --sha256 <hex>` 执行待应用的 Alembic head：要求同一组 prepared/smoke/backup/rollback 收据、收据与当前 schema 一致且实例未被占用；迁移后校验到达 head 并重新 seal 安装收据，写 `migrate.json`；同 schema 重放幂等 `written=false`；失败由 SQLite/Alembic 事务回滚并 fail-closed。
-- `installation install <wheel> --sha256 <hex>` 串起 artifact 校验→stage→prepare→smoke→backup→rollback-check→migrate→switch，任一步失败即停止；迁移后自动重 seal，再切换运行指针；输出 `omni-install-1` 汇总；仍不建 venv、不停服/启动。
-- `installation current` 只读读取运行指针：active 表示候选树仍存在、wheel SHA、schema 与上一指针；不写文件。
-- `installation uninstall [--sha256 <hex>] [--purge-data]` 在实例空闲时卸载候选：带 SHA 时删除 `updates/<sha16>`（含暂存 wheel/树/收据），若它正是当前指针则同时移除 `current.json`/`previous.json`/`launch.py` 与 `omni.cmd`/`omni` 包装；不带 SHA 时只停用当前指针；`--purge-data` 显式删除 `data`/`objects`/`logs`/`updates`/`runtime`/`cache` 与安装收据、启动包装（保留 home 目录本身与 home 之外备份）；不带 purge 时保留数据，报告 `data_kept`/`backup_kept`；未知/非当前候选、purge 与 SHA 并用、实例占用均 fail-closed。
-- `installation environment --sha256 <hex>` 为已暂存候选创建**离线** venv：`python -m venv --system-site-packages` 后用 `pip --no-index --no-deps` 安装暂存 wheel（按 METADATA 生成 pip 可识别的文件名），在子解释器中验证 `omni` 导入路径位于该 venv，写 `environment.json`；同 SHA 重放幂等 `written=false`，失败清理 `venv.partial`。这是离线开发/验收模式，依赖宿主 site-packages。
-- `installation switch` 在候选存在有效 `environment.json` 时把运行指针的 `python` 指向该 venv、`mode=venv`，`omni.cmd`/`omni` 与 `runtime/launch.py` 按指针选择解释器（venv 模式不再插入候选树 `sys.path`）；没有环境时保持宿主解释器 + 候选树（`mode=tree`）。
-- `installation rollback` 执行**代码级 live 回滚**：实例空闲时把运行指针换回 `previous.json`（上一候选），重写启动包装与 `launch.py`，写 `rollback-live.json`；要求上一候选树仍存在且其 `schema_version` 与当前数据库一致，否则 `rollback_schema_mismatch`；同一切换对的重复调用幂等 `written=false`；不恢复数据库快照。
-- **仍未完成**：不下载 wheel（artifact/stage 只处理本地文件）、不停止/启动服务、不恢复数据库备份；三平台 venv 与干净机器端到端未验收，默认入口仍是 V1。
-
 ## 4. 明确未完成
 
 - **三平台**：仅在 Windows 主机验证纯 Python wheel 构建与隔离导入；macOS/Linux 未构建、未安装、未恢复，不得写“三平台已交付”。
@@ -120,7 +100,7 @@ python -m omni.composition.cli --home <home> installation seal
 
 ```powershell
 uv run --no-sync python scripts/check_package.py
-uv run --no-sync pytest -q -n 0 agent/tests/test_v2_releases.py agent/tests/test_v2_release_drain.py agent/tests/test_v2_deployment_files.py agent/tests/test_v2_schema_release.py
+uv run --no-sync pytest -q -n 0 agent/tests/v2/operations/test_v2_releases.py agent/tests/v2/operations/test_v2_release_drain.py agent/tests/v2/operations/test_v2_deployment_files.py agent/tests/v2/operations/test_v2_schema_release.py
 ```
 
 产物在 `temp/build/packaging/{direct,sdist}/`，含 `evidence.json`（assets/sha256/chains/v2/v2_kernel_sha256）。
@@ -130,3 +110,29 @@ uv run --no-sync pytest -q -n 0 agent/tests/test_v2_releases.py agent/tests/test
 1. 补齐 V2 安装/更新执行链：建 venv、停服/启动与 live 回滚，先在 Windows 实测；数据目录清理与卸载保留为显式人工步骤。
 2. 生成容器镜像与三平台构建矩阵；macOS/Linux 无环境时只记录“待真实验收”。
 3. 干净机器端到端演练：安装→启动→升级→回滚→备份恢复→卸载，全部留证据后才评估正式入口切换。
+
+## 历史批次状态（非当前结论）
+
+以下原记录中的默认入口与完成度仅属于当时源码；当前默认入口为 V2，实际进度以当前交接和任务为准。
+
+> - `verify` 只读：报告 home 是否存在、`installation.json` 是否存在/有效/与当前 schema 一致、`data/omni.db` 与 `-wal` 是否存在、数据库当前 schema、代码期望 schema、是否需要升级；不写文件、不改数据库。
+> - `seal` 显式写入一次安装收据（`installation.json`：format/created_at/schema_version/code_head），要求数据库 schema 等于代码 head，已存在且同 head 时幂等返回 `written=false`，不同 head 时 fail-closed；使用 `durable_json` 原子写并收紧权限。
+> - 收据校验为纯 domain 规则（`domain/installation.py`），拒绝链接、缺字段、非 UTC 时间、非法 schema。
+> - 运行时打开实例时校验已存在的收据：schema 与数据库不一致 → `installation_mismatch`；内容损坏或被替换为链接 → `installation_invalid`；没有收据的历史实例保持兼容。升级后必须重新 `seal`。
+> - `installation artifact <wheel> --sha256 <hex>` 只读校验候选 wheel：SHA256、zip CRC、成员数/解压体积上限、绝对路径/反斜杠/`..` 越界、重名、缺少 `omni/web_assets/index.html`/`ui/v2/index.html` 或 METADATA 均 fail-closed；只报告，不解压安装。
+> - `installation stage <wheel> --sha256 <hex>` 在 artifact 校验通过后把 wheel 原子复制到 `<home>/updates/<sha 前16>/artifact.whl`，写 `staged.json`（`extracted=false`、`installed=false`）；同 SHA 重放幂等 `written=false`，损坏收据 fail-closed；不解压、不建 venv、不切换、不迁移。
+> - `installation prepare --sha256 <hex>` 仅对已暂存且哈希未变的 wheel 解包到 `<home>/updates/<sha 前16>/tree`：重新校验 SHA/CRC/成员上限/越界/重名/V2 资源，成功后写 `prepared.json`；同 SHA 重放幂等 `written=false`，失败清理 `.tree.partial`；仍不建 venv、不切换、不迁移。
+> - `installation switch-plan --sha256 <hex>` 只读生成切换计划：要求候选已 prepare、安装收据有效且与当前数据库 schema 一致、实例未被占用；输出 backup/stop/switch/migrate/seal/start/health 七步与 `executable=false`、`requires_owner_approval=true`，不执行任何步骤。
+> - `installation backup --sha256 <hex>` 只执行计划中的备份步：复用同一前置校验，调用既有 `backup` 在 home **之外**创建一致快照（拒绝覆盖已存在目录），在暂存目录写 `backup.json`（含 manifest SHA256）；同 SHA 重放幂等 `written=false`；不停服、不切换、不迁移。
+> - `installation rollback-check --sha256 <hex>` 只做回滚演练：把 `backup.json` 指向的快照 restore 到 home 之外的**新目录**，用 `inspect_database` 校验完整性与 schema，写 `rollback.json`；同 SHA 幂等、目标已存在则拒绝；不触碰 live home。
+> - `installation status` 只读汇总：收据有效性、数据库/WAL/当前与期望 schema、是否需要升级、当前运行指针（active/SHA/mode/python/previous/live-rollback），以及 `updates/<sha16>` 下每个候选的 staged/prepared/environment/backup/rollback/migrate/active 与 `next_step`（待迁移时为 `migrate`）；不创建目录、不写文件。
+> - `installation smoke --sha256 <hex>` 在子解释器中把候选树加入 `PYTHONPATH`，导入 `omni` 并断言导入路径位于候选树、V2 资源存在；成功写 `smoke.json`（幂等），失败 fail-closed；不安装、不切换、不迁移。
+> - `installation switch --sha256 <hex>` 执行计划中的**切换步**：要求候选已 prepare、smoke 已 verified、backup 与 rollback 演练收据齐全、收据与当前 schema 一致且已无待迁移（否则 `switch_migration_required`）、实例未被占用；原子写 `<home>/runtime/current.json`（保留上一指针为 `previous.json`）、`runtime/launch.py` 与 `omni.cmd`/`omni` 启动包装；同 SHA 重放幂等 `written=false`；不停止/启动服务。
+> - `installation migrate --sha256 <hex>` 执行待应用的 Alembic head：要求同一组 prepared/smoke/backup/rollback 收据、收据与当前 schema 一致且实例未被占用；迁移后校验到达 head 并重新 seal 安装收据，写 `migrate.json`；同 schema 重放幂等 `written=false`；失败由 SQLite/Alembic 事务回滚并 fail-closed。
+> - `installation install <wheel> --sha256 <hex>` 串起 artifact 校验→stage→prepare→smoke→backup→rollback-check→migrate→switch，任一步失败即停止；迁移后自动重 seal，再切换运行指针；输出 `omni-install-1` 汇总；仍不建 venv、不停服/启动。
+> - `installation current` 只读读取运行指针：active 表示候选树仍存在、wheel SHA、schema 与上一指针；不写文件。
+> - `installation uninstall [--sha256 <hex>] [--purge-data]` 在实例空闲时卸载候选：带 SHA 时删除 `updates/<sha16>`（含暂存 wheel/树/收据），若它正是当前指针则同时移除 `current.json`/`previous.json`/`launch.py` 与 `omni.cmd`/`omni` 包装；不带 SHA 时只停用当前指针；`--purge-data` 显式删除 `data`/`objects`/`logs`/`updates`/`runtime`/`cache` 与安装收据、启动包装（保留 home 目录本身与 home 之外备份）；不带 purge 时保留数据，报告 `data_kept`/`backup_kept`；未知/非当前候选、purge 与 SHA 并用、实例占用均 fail-closed。
+> - `installation environment --sha256 <hex>` 为已暂存候选创建**离线** venv：`python -m venv --system-site-packages` 后用 `pip --no-index --no-deps` 安装暂存 wheel（按 METADATA 生成 pip 可识别的文件名），在子解释器中验证 `omni` 导入路径位于该 venv，写 `environment.json`；同 SHA 重放幂等 `written=false`，失败清理 `venv.partial`。这是离线开发/验收模式，依赖宿主 site-packages。
+> - `installation switch` 在候选存在有效 `environment.json` 时把运行指针的 `python` 指向该 venv、`mode=venv`，`omni.cmd`/`omni` 与 `runtime/launch.py` 按指针选择解释器（venv 模式不再插入候选树 `sys.path`）；没有环境时保持宿主解释器 + 候选树（`mode=tree`）。
+> - `installation rollback` 执行**代码级 live 回滚**：实例空闲时把运行指针换回 `previous.json`（上一候选），重写启动包装与 `launch.py`，写 `rollback-live.json`；要求上一候选树仍存在且其 `schema_version` 与当前数据库一致，否则 `rollback_schema_mismatch`；同一切换对的重复调用幂等 `written=false`；不恢复数据库快照。
+> - **仍未完成**：不下载 wheel（artifact/stage 只处理本地文件）、不停止/启动服务、不恢复数据库备份；三平台 venv 与干净机器端到端未验收，默认入口仍是 V1。

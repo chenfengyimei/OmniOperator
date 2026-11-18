@@ -1,6 +1,6 @@
 # V2 常驻服务与部署合同
 
-R5.services 已有可审阅的部署包、固定启动入口、只读查询与运行身份核验。D4 已接入 Windows/Linux 用户服务注册、macOS 用户服务宿主及只读查询源码；新增 Linux 系统服务的独立管理员包、普通用户客户端和 root broker 源码。后者仅在 Windows 注入验证，尚未在 Linux 安装或验收。Swift/C 尚未编译，默认 ACL 缺失证明及原生返回字段仍待 Mac 核验；macOS 系统单操作和同 schema 整体交换已接独立标准库管理员源码，真实验收仍待完成。整个 V2 尚未完成，默认入口仍为 V1；本轮没有执行提权、真实系统注册、启动、停止或重启。
+> 文档范围：本页维护该能力合同与所属批次记录。当前默认入口为 V2；[当前交接](../../HANDOFF.md)区分已实现、专项通过和原生验收，历史测试数字不覆盖当前源码。
 
 ## 部署流程
 
@@ -134,7 +134,7 @@ Windows/Linux/macOS 用户目标现已接入[交换协调器](V2_SERVICE_EXCHANG
 
 所有模板以数组或平台规定的转义方式表达参数，不把用户字段拼成 Shell 脚本。模板使用绝对解释器，以 `-I -u -m omni.composition.service_runner --deployment BUNDLE` 启动，隔离 Python 环境注入。程序指纹、解释器、venv 配置、依赖版本、执行账号或资源变化时，需要重新生成并审核部署计划，不能继续静默启动。
 
-runner 先核验完整部署包及资格，再检查实际工作目录。取得实例锁后，在迁移或业务恢复前检查实例 ID 及当前数据库版本；不为未初始化或旧结构的 home 自动执行服务升级。更新和恢复继续采用独立维护流程，不能覆盖正在运行的源码。服务启动不修改默认 V1 入口。
+runner 先核验完整部署包及资格，再检查实际工作目录。取得实例锁后，在迁移或业务恢复前检查实例 ID 及当前数据库版本；不为未初始化或旧结构的 home 自动执行服务升级。更新和恢复继续采用独立维护流程，不能覆盖正在运行的源码。服务启动不修改默认入口选择。
 
 部署包 README 列出供审核的安装/移除命令及目标路径；这些命令没有自动执行。launchd bootstrap 可能立即启动程序，systemd enable --now 与任务运行也属于实际启动操作，必须按具体方案另外确认。退出预算为主程序 30 秒，系统模板额外留出回收时间；没有清理完的进程或工作不会因服务模板存在而被标记成功。
 
@@ -157,3 +157,9 @@ runner 先核验完整部署包及资格，再检查实际工作目录。取得�
 模板依据：[Task Scheduler 登录类型](https://learn.microsoft.com/en-us/windows/win32/taskschd/taskschedulerschema-logontype-principaltype-element)、[Apple launchd](https://developer.apple.com/library/archive/documentation/MacOSX/Conceptual/BPSystemStartup/Chapters/CreatingLaunchdJobs.html)、[systemd service](https://www.freedesktop.org/software/systemd/man/systemd.service.html)。本文件的生成合同由专项测试守卫；外部文档不能替代目标机器的真实验收。
 
 macOS 系统状态已另接固定辅助应用的 `--system-service-query`，普通所有者可在无GUI会话尝试读取 system 域；权限不足保持不可用，不提权。响应协议2隔离用户/系统域，删除系统目标的 print 文本解析。该只读链与独立管理员后端分开；Mac单操作管理员源码已接入、同 schema 系统交换已接源码、实测待推进，见[Mac管理员合同](../platforms/macos/V2_MACOS_SYSTEM_SERVICES.md)。
+
+## 历史批次状态（非当前结论）
+
+以下原记录中的默认入口与完成度仅属于当时源码；当前默认入口为 V2，实际进度以当前交接和任务为准。
+
+> R5.services 已有可审阅的部署包、固定启动入口、只读查询与运行身份核验。D4 已接入 Windows/Linux 用户服务注册、macOS 用户服务宿主及只读查询源码；新增 Linux 系统服务的独立管理员包、普通用户客户端和 root broker 源码。后者仅在 Windows 注入验证，尚未在 Linux 安装或验收。Swift/C 尚未编译，默认 ACL 缺失证明及原生返回字段仍待 Mac 核验；macOS 系统单操作和同 schema 整体交换已接独立标准库管理员源码，真实验收仍待完成。整个 V2 尚未完成，默认入口仍为 V1；本轮没有执行提权、真实系统注册、启动、停止或重启。

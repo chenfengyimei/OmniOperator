@@ -14,6 +14,9 @@ from functools import partial
 from pathlib import Path
 from typing import Any, TypeVar, cast
 
+from omni.adapters.platform.desktop import desktop_capture
+from omni.adapters.platform.desktop.backend import helper_environment
+from omni.adapters.platform.runtime.processes import OwnedProcess
 from omni.application.ports import Record
 from omni.domain.contracts import BusinessError
 from omni.domain.desktop import CapturedFrame
@@ -31,9 +34,6 @@ from omni.domain.desktop_portal import (
     event,
     frame_event,
 )
-from omni.adapters.platform.desktop import desktop_capture
-from omni.adapters.platform.desktop.backend import helper_environment
-from omni.adapters.platform.runtime.processes import OwnedProcess
 
 T = TypeVar("T")
 

@@ -1,5 +1,7 @@
 # Linux 原生接入与验收交接
 
+> 文档范围：本页维护该能力合同与所属批次记录。当前默认入口为 V2；[当前交接](../../../HANDOFF.md)区分已实现、专项通过和原生验收，历史测试数字不覆盖当前源码。
+
 共享内核当前为137表/v2_0039，桌面IPC6/Portal IPC2/凭据IPC1，新增持续窗口证明IPC1。Linux AT-SPI/X11读取、持续X11窗口代次、Portal窗口帧、受控语义、系统凭据helper及D4终端核查源码已接通；Portal授权确认状态按下文明确区分系统同意和业务审计，不扩大Linux输入授权。Linux/GStreamer/Portal、原生凭据与PTY仍未实测，前台/RemoteDesktop控制仍待实现；整个V2未完成，Windows离线候选默认V2并保留显式V1回退。持续窗口读取身份见[专项合同](V2_LINUX_WINDOW_LEASES.md)。
 
 最新接续：已接非可编辑控件Enter的明确状态后验：原观察封存可勾选/选择/展开状态，许可后完整复核，再沿原XRes/焦点/XKB/来源及释放链仅发一次键对；完整窗口树双读保持同一唯一焦点，只有目标一个已声明状态位翻转且其余身份/正文/结构/状态全相同才key_verified。不变/其他变化仍unknown，不猜提交/关闭或重发；可读标签正文保留，编辑文本继续原光标/全文合同。26新增与168调用方/合同共194专项通过（93.81秒），3运行文件strict零错误/警告，386仅登记。旧源码6失败、初实现误排除可读标签的6失败与源码留档，修正实际可编辑判定后原6节点及当前组通过。三类真实隔离SQLite审批/UUID许可/单次消费已验；原生端口全注入，无真实Linux/输入/账号/设备/72h或全量，整个V2继续开发。见[状态证据](../../../evidence/v2-linux-key-state.json)。
@@ -159,7 +161,7 @@ PTY、Secret Service 与服务部署还需分别完成本机闭环。Linux 容�
 
 ```sh
 uv sync --frozen --extra desktop-linux
-uv run --no-sync pytest -q -n 0 agent/tests/test_v2_linux_bus.py agent/tests/test_v2_linux_desktop.py agent/tests/test_v2_linux_acceptance.py
+uv run --no-sync pytest -q -n 0 agent/tests/v2/platforms/linux/test_v2_linux_bus.py agent/tests/v2/platforms/linux/test_v2_linux_desktop.py agent/tests/v2/platforms/linux/test_v2_linux_acceptance.py
 uv run --no-sync python agent/scripts/accept_linux_desktop.py --output temp/private/linux-probe-unique
 ```
 

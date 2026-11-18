@@ -9,13 +9,14 @@ import sys
 from collections.abc import Awaitable, Callable, Coroutine
 from typing import Any, cast
 
-from ...domain.contracts import BusinessError
-from ...domain.desktop_control import VERSION, command, event
-from ...domain.desktop_portal import LIFETIME_SECONDS, MAX_FRAME, MAX_TOTAL, decode, encode
 from omni.adapters.platform.desktop.linux.linux_bus import LinuxOps, failure, load_types
 from omni.adapters.platform.desktop.linux.linux_portal import PortalFactory
 from omni.adapters.platform.desktop.linux.linux_remote_desktop import ControlSession
 from omni.adapters.platform.desktop.linux.linux_session import SessionInspector
+
+from ...domain.contracts import BusinessError
+from ...domain.desktop_control import VERSION, command, event
+from ...domain.desktop_portal import LIFETIME_SECONDS, MAX_FRAME, MAX_TOTAL, decode, encode
 
 Payload = dict[str, object]
 

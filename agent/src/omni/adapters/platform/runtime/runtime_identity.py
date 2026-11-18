@@ -20,11 +20,11 @@ from typing import Any, cast
 
 import psutil
 
+from omni.adapters.object_store import sync_directory
+from omni.adapters.platform.runtime.permissions import assert_private, private_path
 from omni.application.ports import Record
 from omni.domain.contracts import BusinessError
 from omni.domain.service_control import drain_receipt, verify_drain
-from omni.adapters.object_store import sync_directory
-from omni.adapters.platform.runtime.permissions import assert_private, private_path
 
 READINESS_FIELDS = (
     "instance_id",
@@ -150,7 +150,12 @@ class RuntimeIdentityFiles:
             raise BusinessError("service_drain_unavailable", "Boot control writer is unavailable")
 
         def persist() -> Record:
-            from omni.adapters.platform.services.deployment_files import CurrentDeploymentFiles, json_bytes, no_links, publish_json
+            from omni.adapters.platform.services.deployment_files import (
+                CurrentDeploymentFiles,
+                json_bytes,
+                no_links,
+                publish_json,
+            )
 
             folder = self.path.parent / "service-drains"
             no_links(folder)

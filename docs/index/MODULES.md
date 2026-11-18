@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`4eb3f0fb7970f652c2a5e1893efa1edab6454227fc849382397fc5e61caa918f`。包含 65 个职责模块、797 个源码/界面文件。
+源码指纹：`6de072d04465f1f3c64aa03445c9cb323047b06f7119e54f1b23f43d1b081dd0`。包含 65 个职责模块、797 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -69,9 +69,9 @@
 | [agent/src/omni/domain/terminal_review.py](../../agent/src/omni/domain/terminal_review.py) | 87 | Owner observations of unknown terminal effects; never a receipt correction or replay authority. |
 | [agent/src/omni/domain/terminals.py](../../agent/src/omni/domain/terminals.py) | 124 | Explicit owner terminal requests and metadata identities; no model tools, shell execution or transcript storage. |
 
-文档：[docs/V2_REFACTOR.md](../../docs/V2_REFACTOR.md)
+文档：[docs/V2_REFACTOR.md](../V2_REFACTOR.md)
 
-测试：[agent/tests/test_v2_architecture.py](../../agent/tests/test_v2_architecture.py)
+测试：[agent/tests/v2/core/test_v2_architecture.py](../../agent/tests/v2/core/test_v2_architecture.py)
 
 直接静态依赖：无内部模块依赖
 
@@ -128,9 +128,9 @@
 | [agent/src/omni/application/terminal_review.py](../../agent/src/omni/application/terminal_review.py) | 127 | Owner terminal evidence use cases; no native actions, receipt changes or historical PID operations. |
 | [agent/src/omni/application/terminals.py](../../agent/src/omni/application/terminals.py) | 506 | Bounded owner terminals with durable input receipts, single-writer leases and explicit output gaps. |
 
-文档：[docs/V2_REFACTOR.md](../../docs/V2_REFACTOR.md)
+文档：[docs/V2_REFACTOR.md](../V2_REFACTOR.md)
 
-测试：[agent/tests/test_v2_execution.py](../../agent/tests/test_v2_execution.py)
+测试：[agent/tests/v2/core/test_v2_execution.py](../../agent/tests/v2/core/test_v2_execution.py)
 
 直接静态依赖：`v2-domain`
 
@@ -141,12 +141,12 @@
 | 文件 | 行数 | 职责 |
 |---|---:|---|
 | [agent/src/omni/adapters/__init__.py](../../agent/src/omni/adapters/__init__.py) | 1 | V2 infrastructure and channel adapters; no import-time external activity. |
-| [agent/src/omni/adapters/android.py](../../agent/src/omni/adapters/android.py) | 197 | Managed Android workers and bounded PNG loading; no main-process device API or application database. |
+| [agent/src/omni/adapters/android.py](../../agent/src/omni/adapters/android.py) | 198 | Managed Android workers and bounded PNG loading; no main-process device API or application database. |
 | [agent/src/omni/adapters/android_unicode.py](../../agent/src/omni/adapters/android_unicode.py) | 160 | Owned Unicode/IME transaction over managed workers; secrets stay in private IPC. |
 | [agent/src/omni/adapters/bilibili.py](../../agent/src/omni/adapters/bilibili.py) | 737 | Bounded Bilibili reads and a single approved UI publication; credentials never enter diagnostics. |
 | [agent/src/omni/adapters/build_identity.py](../../agent/src/omni/adapters/build_identity.py) | 5 | Shared inventory of executable V2 resources for runtime and deployment identities. |
 | [agent/src/omni/adapters/credentials.py](../../agent/src/omni/adapters/credentials.py) | 179 | One bounded, serial credential executor; actual work outlives cancelled request waiters. |
-| [agent/src/omni/adapters/diagnostic_bundle.py](../../agent/src/omni/adapters/diagnostic_bundle.py) | 341 | Bounded metadata and structured correlations; never opens business bodies or credential stores. |
+| [agent/src/omni/adapters/diagnostic_bundle.py](../../agent/src/omni/adapters/diagnostic_bundle.py) | 342 | Bounded metadata and structured correlations; never opens business bodies or credential stores. |
 | [agent/src/omni/adapters/diagnostics.py](../../agent/src/omni/adapters/diagnostics.py) | 343 | Bounded, single-writer JSON diagnostics. Business payloads belong in repositories. |
 | [agent/src/omni/adapters/extensions/__init__.py](../../agent/src/omni/adapters/extensions/__init__.py) | 1 | Trusted Python extension files and process adapters; never opens the application database. |
 | [agent/src/omni/adapters/extensions/hosts.py](../../agent/src/omni/adapters/extensions/hosts.py) | 208 | Bounded trusted Python worker ownership; no database, model, credential or arbitrary command access. |
@@ -155,18 +155,18 @@
 | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py) | 2360 | Versioned HTTP contract for the V2 kernel; business access goes through use cases. |
 | [agent/src/omni/adapters/http_events.py](../../agent/src/omni/adapters/http_events.py) | 177 | Bounded authenticated history notifications over SSE; no event bodies, replay queue or database ownership. |
 | [agent/src/omni/adapters/images.py](../../agent/src/omni/adapters/images.py) | 83 | Bounded image verification and metadata-free low-detail PNG encoding; no database or remote URLs. |
-| [agent/src/omni/adapters/local_vectors.py](../../agent/src/omni/adapters/local_vectors.py) | 287 | One bounded, supervised local embedding process; no native ML imports in the application process. |
+| [agent/src/omni/adapters/local_vectors.py](../../agent/src/omni/adapters/local_vectors.py) | 288 | One bounded, supervised local embedding process; no native ML imports in the application process. |
 | [agent/src/omni/adapters/log_query.py](../../agent/src/omni/adapters/log_query.py) | 320 | Bounded diagnostic pages with cursors that survive rename and process restart. |
 | [agent/src/omni/adapters/mcp/__init__.py](../../agent/src/omni/adapters/mcp/__init__.py) | 1 | Bounded MCP transports: stdio JSON-RPC, Streamable HTTP and later explicit OAuth. |
 | [agent/src/omni/adapters/mcp/hosts.py](../../agent/src/omni/adapters/mcp/hosts.py) | 219 | Bounded MCP session ownership keyed by server generation; no database or model access. |
 | [agent/src/omni/adapters/mcp/http.py](../../agent/src/omni/adapters/mcp/http.py) | 325 | Bounded Streamable HTTP JSON-RPC transport with explicit bearer/OAuth tokens. |
 | [agent/src/omni/adapters/mcp/oauth.py](../../agent/src/omni/adapters/mcp/oauth.py) | 484 | Explicit MCP OAuth 2.0 authorization-code flow with PKCE, state and a vault token store. |
-| [agent/src/omni/adapters/mcp/stdio.py](../../agent/src/omni/adapters/mcp/stdio.py) | 321 | Bounded JSON-RPC over one owned stdio process per MCP server generation. |
-| [agent/src/omni/adapters/media.py](../../agent/src/omni/adapters/media.py) | 330 | One bounded, supervised media processing subprocess; heavy libraries never load in the host. |
+| [agent/src/omni/adapters/mcp/stdio.py](../../agent/src/omni/adapters/mcp/stdio.py) | 322 | Bounded JSON-RPC over one owned stdio process per MCP server generation. |
+| [agent/src/omni/adapters/media.py](../../agent/src/omni/adapters/media.py) | 331 | One bounded, supervised media processing subprocess; heavy libraries never load in the host. |
 | [agent/src/omni/adapters/metrics.py](../../agent/src/omni/adapters/metrics.py) | 92 | Fixed-cardinality in-process measurements; never stores request identities or text. |
 | [agent/src/omni/adapters/model_stream.py](../../agent/src/omni/adapters/model_stream.py) | 240 | One-shot LiteLLM chat stream with verified async upstream close; no persistence or global runtime. |
 | [agent/src/omni/adapters/models.py](../../agent/src/omni/adapters/models.py) | 207 | Async model adapter. Credentials and vendor exceptions do not cross the port. |
-| [agent/src/omni/adapters/native_credentials.py](../../agent/src/omni/adapters/native_credentials.py) | 368 | Serial owned OS-credential helpers; cancelled waiters never release native work or stale reads. |
+| [agent/src/omni/adapters/native_credentials.py](../../agent/src/omni/adapters/native_credentials.py) | 369 | Serial owned OS-credential helpers; cancelled waiters never release native work or stale reads. |
 | [agent/src/omni/adapters/object_store.py](../../agent/src/omni/adapters/object_store.py) | 142 | Private, immutable content-addressed files; never opens the application database. |
 | [agent/src/omni/adapters/onebot.py](../../agent/src/omni/adapters/onebot.py) | 199 | V2 OneBot v11 text transport; no V1 runtime, database access or automatic write replay. |
 | [agent/src/omni/adapters/persistence/__init__.py](../../agent/src/omni/adapters/persistence/__init__.py) | 1 | Only this package owns application SQL, connections and schema evolution. |
@@ -174,7 +174,7 @@
 | [agent/src/omni/adapters/persistence/action_review_repository.py](../../agent/src/omni/adapters/persistence/action_review_repository.py) | 446 | Owner observation ledger for uncertain actions; original actions, costs and delivery state remain unchanged. |
 | [agent/src/omni/adapters/persistence/android_repository.py](../../agent/src/omni/adapters/persistence/android_repository.py) | 295 | Device grants bind immutable configuration/device identities; actions remain in the shared ledger. |
 | [agent/src/omni/adapters/persistence/android_unicode_repository.py](../../agent/src/omni/adapters/persistence/android_unicode_repository.py) | 251 | Immutable helper profiles and durable IME restoration obligations; input truth stays in actions. |
-| [agent/src/omni/adapters/persistence/audit_pruning.py](../../agent/src/omni/adapters/persistence/audit_pruning.py) | 56 | Offline audit-pruning bindings; shared infrastructure owns locks, verified backups and plan files. |
+| [agent/src/omni/adapters/persistence/audit_pruning.py](../../agent/src/omni/adapters/persistence/audit_pruning.py) | 57 | Offline audit-pruning bindings; shared infrastructure owns locks, verified backups and plan files. |
 | [agent/src/omni/adapters/persistence/audit_pruning_repository.py](../../agent/src/omni/adapters/persistence/audit_pruning_repository.py) | 103 | Persist reviewed audit deletion and its proof atomically; preserve identities and business ledgers. |
 | [agent/src/omni/adapters/persistence/audit_retention_repository.py](../../agent/src/omni/adapters/persistence/audit_retention_repository.py) | 216 | Bounded metadata-only audit retention preview; never deletes rows or creates executable plans. |
 | [agent/src/omni/adapters/persistence/bilibili_authority.py](../../agent/src/omni/adapters/persistence/bilibili_authority.py) | 74 | One Bilibili authority implementation shared by owner reads, previews and final dispatch. |
@@ -188,9 +188,9 @@
 | [agent/src/omni/adapters/persistence/delivery_repository.py](../../agent/src/omni/adapters/persistence/delivery_repository.py) | 927 | Transactional outbound authority, FIFO ownership and immutable attempt observations. |
 | [agent/src/omni/adapters/persistence/deployed_instance.py](../../agent/src/omni/adapters/persistence/deployed_instance.py) | 30 | Check an initialized service home without migrations or business recovery. |
 | [agent/src/omni/adapters/persistence/document_repository.py](../../agent/src/omni/adapters/persistence/document_repository.py) | 649 | Source revision, bounded search and derived index transactions; never reads files. |
-| [agent/src/omni/adapters/persistence/event_pruning.py](../../agent/src/omni/adapters/persistence/event_pruning.py) | 56 | Offline event-pruning bindings; shared infrastructure owns locks, verified backups and plan files. |
+| [agent/src/omni/adapters/persistence/event_pruning.py](../../agent/src/omni/adapters/persistence/event_pruning.py) | 57 | Offline event-pruning bindings; shared infrastructure owns locks, verified backups and plan files. |
 | [agent/src/omni/adapters/persistence/event_retention_repository.py](../../agent/src/omni/adapters/persistence/event_retention_repository.py) | 332 | Preview and prune retired run events through the shared history cycle; never remove run identities. |
-| [agent/src/omni/adapters/persistence/execution_pruning.py](../../agent/src/omni/adapters/persistence/execution_pruning.py) | 40 | Execution-body maintenance bindings; shared offline infrastructure owns files and lifecycle. |
+| [agent/src/omni/adapters/persistence/execution_pruning.py](../../agent/src/omni/adapters/persistence/execution_pruning.py) | 41 | Execution-body maintenance bindings; shared offline infrastructure owns files and lifecycle. |
 | [agent/src/omni/adapters/persistence/execution_retention_repository.py](../../agent/src/omni/adapters/persistence/execution_retention_repository.py) | 464 | Execution-body eligibility, owner pins and transactional prune progress; preserves conversations and ledgers. |
 | [agent/src/omni/adapters/persistence/extension_repository.py](../../agent/src/omni/adapters/persistence/extension_repository.py) | 806 | Immutable trusted-plugin versions, scoped grants and execution bindings; no plugin code or file I/O. |
 | [agent/src/omni/adapters/persistence/history_protection.py](../../agent/src/omni/adapters/persistence/history_protection.py) | 68 | Shared provenance and maintenance protection for aged pruned history; never reads execution bodies. |
@@ -199,7 +199,7 @@
 | [agent/src/omni/adapters/persistence/history_sequence.py](../../agent/src/omni/adapters/persistence/history_sequence.py) | 27 | Allocate global history positions in the caller's transaction; never opens connections. |
 | [agent/src/omni/adapters/persistence/image_repository.py](../../agent/src/omni/adapters/persistence/image_repository.py) | 331 | Scoped image metadata, model-revision policies and per-call references; never reads files or encodes images. |
 | [agent/src/omni/adapters/persistence/lease_repository.py](../../agent/src/omni/adapters/persistence/lease_repository.py) | 283 | Persistent FIFO claims and fenced resource leases, within the caller's transaction. |
-| [agent/src/omni/adapters/persistence/maintenance.py](../../agent/src/omni/adapters/persistence/maintenance.py) | 1066 | Exclusive offline snapshots and restore. Live SQLite files are never copied directly. |
+| [agent/src/omni/adapters/persistence/maintenance.py](../../agent/src/omni/adapters/persistence/maintenance.py) | 1067 | Exclusive offline snapshots and restore. Live SQLite files are never copied directly. |
 | [agent/src/omni/adapters/persistence/maintenance_repository.py](../../agent/src/omni/adapters/persistence/maintenance_repository.py) | 543 | Bounded document-maintenance admission, fenced attempts and business-result settlement; no execution or I/O. |
 | [agent/src/omni/adapters/persistence/mcp_repository.py](../../agent/src/omni/adapters/persistence/mcp_repository.py) | 1010 | MCP runtime generations, catalog snapshots, per-tool grants, run captures and call records. |
 | [agent/src/omni/adapters/persistence/media_repository.py](../../agent/src/omni/adapters/persistence/media_repository.py) | 365 | Scoped media sources, bounded jobs and immutable artifact rows; never reads files. |
@@ -249,25 +249,25 @@
 | [agent/src/omni/adapters/persistence/migrations/versions/v0037.py](../../agent/src/omni/adapters/persistence/migrations/versions/v0037.py) | 53 | MCP runtime generations, catalog fingerprints, per-tool grants, run captures and calls; frozen SQL. |
 | [agent/src/omni/adapters/persistence/migrations/versions/v0038.py](../../agent/src/omni/adapters/persistence/migrations/versions/v0038.py) | 26 | Model custom request headers (e.g. OpenCode Go session routing); frozen SQL, no current schema imports. |
 | [agent/src/omni/adapters/persistence/migrations/versions/v0039.py](../../agent/src/omni/adapters/persistence/migrations/versions/v0039.py) | 49 | Immutable uploaded media objects in the existing source/job/artifact graph; frozen DDL, transactional rebuild with foreign keys enabled. |
-| [agent/src/omni/adapters/persistence/object_gc.py](../../agent/src/omni/adapters/persistence/object_gc.py) | 247 | Exclusive plan/apply collection; commit unreferenced metadata before unlinking files. |
+| [agent/src/omni/adapters/persistence/object_gc.py](../../agent/src/omni/adapters/persistence/object_gc.py) | 248 | Exclusive plan/apply collection; commit unreferenced metadata before unlinking files. |
 | [agent/src/omni/adapters/persistence/object_inventory.py](../../agent/src/omni/adapters/persistence/object_inventory.py) | 129 | Offline object registry snapshots and bounded physical inventory validation. |
 | [agent/src/omni/adapters/persistence/object_repository.py](../../agent/src/omni/adapters/persistence/object_repository.py) | 211 | Object metadata, pins and real foreign-key references; never touches files. |
-| [agent/src/omni/adapters/persistence/offline_plans.py](../../agent/src/omni/adapters/persistence/offline_plans.py) | 189 | Exclusive reviewed maintenance plans; domain callbacks own eligibility and transactional progress. |
+| [agent/src/omni/adapters/persistence/offline_plans.py](../../agent/src/omni/adapters/persistence/offline_plans.py) | 190 | Exclusive reviewed maintenance plans; domain callbacks own eligibility and transactional progress. |
 | [agent/src/omni/adapters/persistence/operations_read.py](../../agent/src/omni/adapters/persistence/operations_read.py) | 58 | Offline read-only operational snapshot; caller holds exclusive instance ownership. |
 | [agent/src/omni/adapters/persistence/operations_repository.py](../../agent/src/omni/adapters/persistence/operations_repository.py) | 100 | Operational aggregates and owner credential audit; business bodies and secret values stay excluded. |
 | [agent/src/omni/adapters/persistence/people_repository.py](../../agent/src/omni/adapters/persistence/people_repository.py) | 212 | People and manual account identities; personal documents reuse memory repositories. |
 | [agent/src/omni/adapters/persistence/qq_authority.py](../../agent/src/omni/adapters/persistence/qq_authority.py) | 99 | Shared QQ audience and credential authority for context, model and outbound checks. |
 | [agent/src/omni/adapters/persistence/qq_repository.py](../../agent/src/omni/adapters/persistence/qq_repository.py) | 242 | QQ admission and authority within the shared unit of work; no network or extra truth store. |
-| [agent/src/omni/adapters/persistence/reference_release.py](../../agent/src/omni/adapters/persistence/reference_release.py) | 40 | Offline reference release uses the shared verified maintenance lifecycle; never unlinks objects. |
+| [agent/src/omni/adapters/persistence/reference_release.py](../../agent/src/omni/adapters/persistence/reference_release.py) | 41 | Offline reference release uses the shared verified maintenance lifecycle; never unlinks objects. |
 | [agent/src/omni/adapters/persistence/reference_release_repository.py](../../agent/src/omni/adapters/persistence/reference_release_repository.py) | 330 | Release only reviewed retired action-object references; history is not a live object reference. |
-| [agent/src/omni/adapters/persistence/releases.py](../../agent/src/omni/adapters/persistence/releases.py) | 214 | Consistent release snapshots and quarantined new-directory restores under caller-owned instance locks. |
+| [agent/src/omni/adapters/persistence/releases.py](../../agent/src/omni/adapters/persistence/releases.py) | 215 | Consistent release snapshots and quarantined new-directory restores under caller-owned instance locks. |
 | [agent/src/omni/adapters/persistence/repository.py](../../agent/src/omni/adapters/persistence/repository.py) | 1126 | Transaction-scoped repositories. No connection creation, DDL or external calls. |
 | [agent/src/omni/adapters/persistence/repository_base.py](../../agent/src/omni/adapters/persistence/repository_base.py) | 52 | Common transaction-scoped identity, ownership and audit primitives. |
 | [agent/src/omni/adapters/persistence/retention_repository.py](../../agent/src/omni/adapters/persistence/retention_repository.py) | 135 | Context barriers invalidate derived views without deleting original conversations. |
 | [agent/src/omni/adapters/persistence/routing_repository.py](../../agent/src/omni/adapters/persistence/routing_repository.py) | 304 | Scoped immutable tier policies, run choices, promotions and actual tool manifests; no model calls or I/O. |
 | [agent/src/omni/adapters/persistence/schedule_repository.py](../../agent/src/omni/adapters/persistence/schedule_repository.py) | 434 | Immutable schedule definitions, durable due cursors and atomic occurrence admission. |
 | [agent/src/omni/adapters/persistence/schema.py](../../agent/src/omni/adapters/persistence/schema.py) | 3283 | V2 relational schema. Repositories never issue DDL; migrations use frozen SQL snapshots. |
-| [agent/src/omni/adapters/persistence/schema_upgrade.py](../../agent/src/omni/adapters/persistence/schema_upgrade.py) | 154 | Reviewed migration catalog and transactional upgrades only in a locked, fenced release target. |
+| [agent/src/omni/adapters/persistence/schema_upgrade.py](../../agent/src/omni/adapters/persistence/schema_upgrade.py) | 161 | Reviewed migration catalog and transactional upgrades only in a locked, fenced release target. |
 | [agent/src/omni/adapters/persistence/search_schema.py](../../agent/src/omni/adapters/persistence/search_schema.py) | 8 | Derived FTS definitions. Applied only by versioned migrations. |
 | [agent/src/omni/adapters/persistence/skill_repository.py](../../agent/src/omni/adapters/persistence/skill_repository.py) | 476 | Immutable skill versions, review state and per-run bindings; no package or filesystem access. |
 | [agent/src/omni/adapters/persistence/sqlalchemy_access.py](../../agent/src/omni/adapters/persistence/sqlalchemy_access.py) | 27 | Shared SQLAlchemy SQLite transaction setup for the actor and exclusive offline migration. |
@@ -285,7 +285,7 @@
 | [agent/src/omni/adapters/platform/desktop/linux/linux_bus.py](../../agent/src/omni/adapters/platform/desktop/linux/linux_bus.py) | 447 | Verified local D-Bus transport for desktop helpers; no environment-selected or network buses. |
 | [agent/src/omni/adapters/platform/desktop/linux/linux_button_events.py](../../agent/src/omni/adapters/platform/desktop/linux/linux_button_events.py) | 70 | Exact RawButton pairs and their ordinary XKB pointer-state notifications; no blanket input exemptions. |
 | [agent/src/omni/adapters/platform/desktop/linux/linux_button_mapping.py](../../agent/src/omni/adapters/platform/desktop/linux/linux_button_mapping.py) | 221 | Read primary-button composition on a proven Xorg point/source pair; never changes maps, moves, clicks or grants dispatch. |
-| [agent/src/omni/adapters/platform/desktop/linux/linux_button_packet.py](../../agent/src/omni/adapters/platform/desktop/linux/linux_button_packet.py) | 198 | Own one paired XTEST button request and retained release on the proven stream; no application-success claim. |
+| [agent/src/omni/adapters/platform/desktop/linux/linux_button_packet.py](../../agent/src/omni/adapters/platform/desktop/linux/linux_button_packet.py) | 197 | Own one paired XTEST button request and retained release on the proven stream; no application-success claim. |
 | [agent/src/omni/adapters/platform/desktop/linux/linux_click_action.py](../../agent/src/omni/adapters/platform/desktop/linux/linux_click_action.py) | 119 | One approved component-bound native move/click with concrete application state readback; no replay or focus acquisition. |
 | [agent/src/omni/adapters/platform/desktop/linux/linux_eis.py](../../agent/src/omni/adapters/platform/desktop/linux/linux_eis.py) | 286 | Bounded EI handshake/roundtrips and owned release lifetime; no business input authority or application proof. |
 | [agent/src/omni/adapters/platform/desktop/linux/linux_eis_devices.py](../../agent/src/omni/adapters/platform/desktop/linux/linux_eis_devices.py) | 535 | EI device inventory, key plans and owned transport; no business authority, physical-input or application proof. |
@@ -338,7 +338,7 @@
 | [agent/src/omni/adapters/platform/releases/__init__.py](../../agent/src/omni/adapters/platform/releases/__init__.py) | 1 | V2 releases adapters; importing never probes the platform. |
 | [agent/src/omni/adapters/platform/releases/candidate_installer.py](../../agent/src/omni/adapters/platform/releases/candidate_installer.py) | 131 | Bootstrap a fresh offline V2 candidate with a separate maintenance interpreter; never registers services. |
 | [agent/src/omni/adapters/platform/releases/dependency_bundle.py](../../agent/src/omni/adapters/platform/releases/dependency_bundle.py) | 252 | Capture a hash-pinned local wheel bundle for an isolated environment; never downloads or executes wheels. |
-| [agent/src/omni/adapters/platform/releases/release_files.py](../../agent/src/omni/adapters/platform/releases/release_files.py) | 399 | Private release journals, installation bytes and startup fences; no database or native registration. |
+| [agent/src/omni/adapters/platform/releases/release_files.py](../../agent/src/omni/adapters/platform/releases/release_files.py) | 411 | Private release journals, installation bytes and startup fences; no database or native registration. |
 | [agent/src/omni/adapters/platform/releases/wheel_artifact.py](../../agent/src/omni/adapters/platform/releases/wheel_artifact.py) | 61 | Read-only wheel artifact verification: hash, archive safety and V2 asset presence; never installs. |
 | [agent/src/omni/adapters/platform/releases/wheel_backup.py](../../agent/src/omni/adapters/platform/releases/wheel_backup.py) | 68 | Execute only the backup step of a reviewed switch plan; no stop, switch, migration or rollback. |
 | [agent/src/omni/adapters/platform/releases/wheel_environment.py](../../agent/src/omni/adapters/platform/releases/wheel_environment.py) | 249 | Create an offline candidate environment: a venv that installs the staged wheel without a network. |
@@ -356,7 +356,7 @@
 | [agent/src/omni/adapters/platform/runtime/permissions.py](../../agent/src/omni/adapters/platform/runtime/permissions.py) | 159 | Current-owner private files on POSIX and NTFS; never changes ancestor ACLs. |
 | [agent/src/omni/adapters/platform/runtime/processes.py](../../agent/src/omni/adapters/platform/runtime/processes.py) | 214 | Owned process groups and Windows Job Objects. Never terminate an unverified PID. |
 | [agent/src/omni/adapters/platform/runtime/publication.py](../../agent/src/omni/adapters/platform/runtime/publication.py) | 70 | Atomic, exclusive directory publication on the supported hosts; never replaces an existing target. |
-| [agent/src/omni/adapters/platform/runtime/runtime_identity.py](../../agent/src/omni/adapters/platform/runtime/runtime_identity.py) | 237 | Publish private boot identity while the instance lock is held; never controls another process. |
+| [agent/src/omni/adapters/platform/runtime/runtime_identity.py](../../agent/src/omni/adapters/platform/runtime/runtime_identity.py) | 242 | Publish private boot identity while the instance lock is held; never controls another process. |
 | [agent/src/omni/adapters/platform/runtime/secrets.py](../../agent/src/omni/adapters/platform/runtime/secrets.py) | 159 | Explicit OS credential store or externally keyed encrypted vault; no plaintext fallback. |
 | [agent/src/omni/adapters/platform/runtime/terminal.py](../../agent/src/omni/adapters/platform/runtime/terminal.py) | 588 | Owned terminal IPC. Native PTY libraries run only in the fixed helper process. |
 | [agent/src/omni/adapters/platform/runtime/workbench.py](../../agent/src/omni/adapters/platform/runtime/workbench.py) | 120 | Open an explicitly requested local workbench after proving this process's ready boot; never reads owner tokens. |
@@ -391,24 +391,24 @@
 | [agent/src/omni/adapters/primitives.py](../../agent/src/omni/adapters/primitives.py) | 20 | Real clocks and full UUID identities, injected by the composition root. |
 | [agent/src/omni/adapters/process_diagnostics.py](../../agent/src/omni/adapters/process_diagnostics.py) | 112 | Process-owned logging and exception hooks; installed only by the executable host. |
 | [agent/src/omni/adapters/skill_packages.py](../../agent/src/omni/adapters/skill_packages.py) | 177 | Bounded in-memory Markdown/ZIP parsing; never extracts files or executes package content. |
-| [agent/src/omni/adapters/soak.py](../../agent/src/omni/adapters/soak.py) | 401 | Proof-bound read-only V2 observation and append-only evidence; no V1, service control, models or database opens. |
-| [agent/src/omni/adapters/temporary_debug.py](../../agent/src/omni/adapters/temporary_debug.py) | 321 | Boot-bound, owner-enabled metadata capture; never opens business storage or records free text. |
+| [agent/src/omni/adapters/soak.py](../../agent/src/omni/adapters/soak.py) | 402 | Proof-bound read-only V2 observation and append-only evidence; no V1, service control, models or database opens. |
+| [agent/src/omni/adapters/temporary_debug.py](../../agent/src/omni/adapters/temporary_debug.py) | 322 | Boot-bound, owner-enabled metadata capture; never opens business storage or records free text. |
 | [agent/src/omni/adapters/timezones.py](../../agent/src/omni/adapters/timezones.py) | 29 | Pinned tzdata resolver; avoids OS-dependent timezone database drift. |
 | [agent/src/omni/adapters/token_counter.py](../../agent/src/omni/adapters/token_counter.py) | 34 | Local conservative token estimate; it never fetches model metadata or credentials. |
-| [agent/src/omni/adapters/vector_files.py](../../agent/src/omni/adapters/vector_files.py) | 130 | Verify explicit local vector files and startup selection; never imports a model or downloads data. |
+| [agent/src/omni/adapters/vector_files.py](../../agent/src/omni/adapters/vector_files.py) | 131 | Verify explicit local vector files and startup selection; never imports a model or downloads data. |
 | [agent/src/omni/adapters/workers/__init__.py](../../agent/src/omni/adapters/workers/__init__.py) | 1 | Owned capability workers; no application database or credentials access. |
 | [agent/src/omni/adapters/workers/android.py](../../agent/src/omni/adapters/workers/android.py) | 406 | Fixed Android observation/input worker. No database, arbitrary shell or automatic device setup. |
 | [agent/src/omni/adapters/workers/android_adb.py](../../agent/src/omni/adapters/workers/android_adb.py) | 127 | Bounded smart-socket ADB client. Never starts a server, pairs, installs, roots or accepts arbitrary commands. |
 | [agent/src/omni/adapters/workers/android_unicode.py](../../agent/src/omni/adapters/workers/android_unicode.py) | 307 | Fixed IME transaction and authenticated localabstract IPC; no database or arbitrary shell. |
 | [agent/src/omni/adapters/workers/bilibili.py](../../agent/src/omni/adapters/workers/bilibili.py) | 499 | One isolated Bilibili browser transaction; no database, arbitrary script, API writes or persisted cookies. |
-| [agent/src/omni/adapters/workers/client.py](../../agent/src/omni/adapters/workers/client.py) | 358 | Versioned, bounded JSON IPC to a supervised capability process. |
+| [agent/src/omni/adapters/workers/client.py](../../agent/src/omni/adapters/workers/client.py) | 359 | Versioned, bounded JSON IPC to a supervised capability process. |
 | [agent/src/omni/adapters/workers/credentials.py](../../agent/src/omni/adapters/workers/credentials.py) | 76 | Fixed one-operation OS credential helper; no database, config lookup or plaintext fallback. |
 | [agent/src/omni/adapters/workers/darwin_admin_probe.py](../../agent/src/omni/adapters/workers/darwin_admin_probe.py) | 45 | Root bundle's fixed read-only system probe. Never imported from an owner environment. |
-| [agent/src/omni/adapters/workers/desktop.py](../../agent/src/omni/adapters/workers/desktop.py) | 132 | One bounded read-only desktop request per helper; stdout is IPC and never contains diagnostics. |
-| [agent/src/omni/adapters/workers/desktop_control.py](../../agent/src/omni/adapters/workers/desktop_control.py) | 221 | Owned independent Wayland control-consent helper; no input commands, EIS/clipboard descriptors, database or restored authority. |
+| [agent/src/omni/adapters/workers/desktop.py](../../agent/src/omni/adapters/workers/desktop.py) | 133 | One bounded read-only desktop request per helper; stdout is IPC and never contains diagnostics. |
+| [agent/src/omni/adapters/workers/desktop_control.py](../../agent/src/omni/adapters/workers/desktop_control.py) | 222 | Owned independent Wayland control-consent helper; no input commands, EIS/clipboard descriptors, database or restored authority. |
 | [agent/src/omni/adapters/workers/linux_action.py](../../agent/src/omni/adapters/workers/linux_action.py) | 85 | One prepared Linux semantic action; the initial frame never permits a write, and no provider text is logged. |
-| [agent/src/omni/adapters/workers/linux_desktop.py](../../agent/src/omni/adapters/workers/linux_desktop.py) | 335 | One bounded Linux desktop request; addressed writes need a fresh parent permit, with no global input or database access. |
-| [agent/src/omni/adapters/workers/linux_window_lease.py](../../agent/src/omni/adapters/workers/linux_window_lease.py) | 203 | Bounded read-only X11 lease helper; one owned connection carries window lifetime notifications across requests. |
+| [agent/src/omni/adapters/workers/linux_desktop.py](../../agent/src/omni/adapters/workers/linux_desktop.py) | 336 | One bounded Linux desktop request; addressed writes need a fresh parent permit, with no global input or database access. |
+| [agent/src/omni/adapters/workers/linux_window_lease.py](../../agent/src/omni/adapters/workers/linux_window_lease.py) | 204 | Bounded read-only X11 lease helper; one owned connection carries window lifetime notifications across requests. |
 | [agent/src/omni/adapters/workers/local_vectors.py](../../agent/src/omni/adapters/workers/local_vectors.py) | 204 | CPU ONNX/tokenizers subprocess. No database, credentials, model downloads or arbitrary Python imports. |
 | [agent/src/omni/adapters/workers/macos/Core/Package.swift](../../agent/src/omni/adapters/workers/macos/Core/Package.swift) | 12 | 原生源码、平台脚本或界面资源 |
 | [agent/src/omni/adapters/workers/macos/Core/Sources/ForegroundCore/Takeover.swift](../../agent/src/omni/adapters/workers/macos/Core/Sources/ForegroundCore/Takeover.swift) | 107 | 原生源码、平台脚本或界面资源 |
@@ -430,7 +430,7 @@
 | [agent/src/omni/adapters/workers/macos/Tests/NativeIdentityTests/RegistrationPaths.swift](../../agent/src/omni/adapters/workers/macos/Tests/NativeIdentityTests/RegistrationPaths.swift) | 97 | 原生源码、平台脚本或界面资源 |
 | [agent/src/omni/adapters/workers/main.py](../../agent/src/omni/adapters/workers/main.py) | 281 | Capability subprocess. Requests carry scope; no database or Runtime is imported. |
 | [agent/src/omni/adapters/workers/media.py](../../agent/src/omni/adapters/workers/media.py) | 494 | Bounded media worker: audio decode + local ASR and frame extraction in an owned subprocess. |
-| [agent/src/omni/adapters/workers/portal.py](../../agent/src/omni/adapters/workers/portal.py) | 255 | Owned Wayland window-share helper with explicit one-frame requests; no database, restore token or input capability. |
+| [agent/src/omni/adapters/workers/portal.py](../../agent/src/omni/adapters/workers/portal.py) | 256 | Owned Wayland window-share helper with explicit one-frame requests; no database, restore token or input capability. |
 | [agent/src/omni/adapters/workers/protocol.py](../../agent/src/omni/adapters/workers/protocol.py) | 169 | Strict, bounded IPC records shared by the host and capability worker; no dispatch or I/O. |
 | [agent/src/omni/adapters/workers/service_admin_boot.py](../../agent/src/omni/adapters/workers/service_admin_boot.py) | 211 | Standalone administrator entry. Invoke a reviewed root-owned bundle with Python -I -S. |
 | [agent/src/omni/adapters/workers/terminal.py](../../agent/src/omni/adapters/workers/terminal.py) | 720 | Fixed terminal host. Only this isolated, single-threaded startup may fork. |
@@ -440,9 +440,9 @@
 | [agent/src/omni/adapters/workers/windows_uia.cs](../../agent/src/omni/adapters/workers/windows_uia.cs) | 348 | 原生源码、平台脚本或界面资源 |
 | [agent/src/omni/adapters/workers/windows_uia.ps1](../../agent/src/omni/adapters/workers/windows_uia.ps1) | 78 | 原生源码、平台脚本或界面资源 |
 
-文档：[docs/V2_REFACTOR.md](../../docs/V2_REFACTOR.md)
+文档：[docs/V2_REFACTOR.md](../V2_REFACTOR.md)
 
-测试：[agent/tests/test_v2_kernel.py](../../agent/tests/test_v2_kernel.py)、[agent/tests/test_v2_reliability.py](../../agent/tests/test_v2_reliability.py)、[agent/tests/test_v2_diagnostics.py](../../agent/tests/test_v2_diagnostics.py)、[agent/tests/test_v2_workers.py](../../agent/tests/test_v2_workers.py)
+测试：[agent/tests/v2/core/test_v2_kernel.py](../../agent/tests/v2/core/test_v2_kernel.py)、[agent/tests/v2/core/test_v2_reliability.py](../../agent/tests/v2/core/test_v2_reliability.py)、[agent/tests/v2/core/test_v2_diagnostics.py](../../agent/tests/v2/core/test_v2_diagnostics.py)、[agent/tests/v2/core/test_v2_workers.py](../../agent/tests/v2/core/test_v2_workers.py)
 
 直接静态依赖：`v2-application`、`v2-domain`
 
@@ -454,21 +454,21 @@
 |---|---:|---|
 | [agent/src/omni/composition/__init__.py](../../agent/src/omni/composition/__init__.py) | 1 | V2 composition root. Constructors and lifecycle ownership are explicit here. |
 | [agent/src/omni/composition/capabilities.py](../../agent/src/omni/composition/capabilities.py) | 166 | Explicit builtin capability registration; capabilities never construct the kernel. |
-| [agent/src/omni/composition/cli.py](../../agent/src/omni/composition/cli.py) | 1046 | V2 development entrypoint. Online commands use the authenticated HTTP facade. |
-| [agent/src/omni/composition/http.py](../../agent/src/omni/composition/http.py) | 242 | HTTP composition and owner bootstrap; tokens never appear in diagnostic output. |
-| [agent/src/omni/composition/instance.py](../../agent/src/omni/composition/instance.py) | 827 | Build one isolated instance; never imports or opens the V1 runtime. |
+| [agent/src/omni/composition/cli.py](../../agent/src/omni/composition/cli.py) | 1048 | V2 development entrypoint. Online commands use the authenticated HTTP facade. |
+| [agent/src/omni/composition/http.py](../../agent/src/omni/composition/http.py) | 243 | HTTP composition and owner bootstrap; tokens never appear in diagnostic output. |
+| [agent/src/omni/composition/instance.py](../../agent/src/omni/composition/instance.py) | 828 | Build one isolated instance; never imports or opens the V1 runtime. |
 | [agent/src/omni/composition/lifecycle.py](../../agent/src/omni/composition/lifecycle.py) | 164 | Own startup rollback and one shared shutdown budget; never dispatches business work. |
-| [agent/src/omni/composition/releases.py](../../agent/src/omni/composition/releases.py) | 123 | Assemble explicit offline release commands. No service install, stop, model or default-entry switch. |
-| [agent/src/omni/composition/service_cleanup.py](../../agent/src/omni/composition/service_cleanup.py) | 79 | Assemble quarantined registration cleanup, with an explicit root route for system definitions. |
-| [agent/src/omni/composition/service_control.py](../../agent/src/omni/composition/service_control.py) | 69 | Assemble reviewed lifecycle commands, with no operation during import or plan inspection. |
-| [agent/src/omni/composition/service_exchange.py](../../agent/src/omni/composition/service_exchange.py) | 186 | Assemble reviewed exchanges and their explicitly pinned root session; never elevates or switches default entrypoints. |
-| [agent/src/omni/composition/service_operations.py](../../agent/src/omni/composition/service_operations.py) | 76 | Assemble one explicit offline service-registration command; production entry remains unchanged. |
-| [agent/src/omni/composition/service_runner.py](../../agent/src/omni/composition/service_runner.py) | 67 | Start only a verified immutable deployment as its declared account; never registers a native service. |
+| [agent/src/omni/composition/releases.py](../../agent/src/omni/composition/releases.py) | 124 | Assemble explicit offline release commands. No service install, stop, model or default-entry switch. |
+| [agent/src/omni/composition/service_cleanup.py](../../agent/src/omni/composition/service_cleanup.py) | 80 | Assemble quarantined registration cleanup, with an explicit root route for system definitions. |
+| [agent/src/omni/composition/service_control.py](../../agent/src/omni/composition/service_control.py) | 70 | Assemble reviewed lifecycle commands, with no operation during import or plan inspection. |
+| [agent/src/omni/composition/service_exchange.py](../../agent/src/omni/composition/service_exchange.py) | 187 | Assemble reviewed exchanges and their explicitly pinned root session; never elevates or switches default entrypoints. |
+| [agent/src/omni/composition/service_operations.py](../../agent/src/omni/composition/service_operations.py) | 77 | Assemble one explicit offline service-registration command; production entry remains unchanged. |
+| [agent/src/omni/composition/service_runner.py](../../agent/src/omni/composition/service_runner.py) | 68 | Start only a verified immutable deployment as its declared account; never registers a native service. |
 | [agent/src/omni/composition/serving.py](../../agent/src/omni/composition/serving.py) | 68 | Compose the single-worker HTTP process for manual and pinned service startup. |
 
-文档：[docs/V2_REFACTOR.md](../../docs/V2_REFACTOR.md)
+文档：[docs/V2_REFACTOR.md](../V2_REFACTOR.md)
 
-测试：[agent/tests/test_v2_kernel.py](../../agent/tests/test_v2_kernel.py)
+测试：[agent/tests/v2/core/test_v2_kernel.py](../../agent/tests/v2/core/test_v2_kernel.py)
 
 直接静态依赖：`v2-adapters`、`v2-application`、`v2-domain`
 
@@ -494,7 +494,7 @@
 | [web/ui/v2/extensions.js](../../web/ui/v2/extensions.js) | 656 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/index.html](../../web/ui/v2/index.html) | 1950 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/inspector.js](../../web/ui/v2/inspector.js) | 266 | 原生源码、平台脚本或界面资源 |
-| [web/ui/v2/main.js](../../web/ui/v2/main.js) | 1854 | 原生源码、平台脚本或界面资源 |
+| [web/ui/v2/main.js](../../web/ui/v2/main.js) | 1861 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/maintenance.js](../../web/ui/v2/maintenance.js) | 126 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/mcp.js](../../web/ui/v2/mcp.js) | 362 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/media.js](../../web/ui/v2/media.js) | 426 | 原生源码、平台脚本或界面资源 |
@@ -517,9 +517,9 @@
 | [web/ui/v2/v1/workbench.css](../../web/ui/v2/v1/workbench.css) | 4451 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/workbench.css](../../web/ui/v2/workbench.css) | 3246 | 原生源码、平台脚本或界面资源 |
 
-文档：[docs/V2_REFACTOR.md](../../docs/V2_REFACTOR.md)
+文档：[docs/V2_REFACTOR.md](../V2_REFACTOR.md)
 
-测试：[agent/tests/test_v2_http.py](../../agent/tests/test_v2_http.py)
+测试：[agent/tests/v2/http/test_v2_http.py](../../agent/tests/v2/http/test_v2_http.py)
 
 直接静态依赖：无内部模块依赖
 
@@ -540,7 +540,7 @@
 | [agent/src/omni/system/updates/version.py](../../agent/src/omni/system/updates/version.py) | 104 | 源码身份与 SemVer 比较；不联网、不改变 Git 或安装环境。 |
 | [agent/src/omni/system/updates/worker.py](../../agent/src/omni/system/updates/worker.py) | 314 | 冻结后以基础 Python 独立运行的升级/恢复执行器；只依赖标准库和冻结的平台原语。 |
 
-文档：[docs/UPDATES.md](../../docs/UPDATES.md)
+文档：[docs/UPDATES.md](../UPDATES.md)
 
 测试：[agent/tests/test_updates.py](../../agent/tests/test_updates.py)
 
@@ -555,7 +555,7 @@
 | [agent/src/omni/channels/web_api/updates.py](../../agent/src/omni/channels/web_api/updates.py) | 55 | 版本与更新 HTTP 适配；只消费 Runtime，统一鉴权由工作台负责。 |
 | [web/ui/app/hub-about.js](../../web/ui/app/hub-about.js) | 187 | 原生源码、平台脚本或界面资源 |
 
-文档：[docs/UPDATES.md](../../docs/UPDATES.md)
+文档：[docs/UPDATES.md](../UPDATES.md)
 
 测试：[agent/tests/test_updates_api.py](../../agent/tests/test_updates_api.py)
 
@@ -573,7 +573,7 @@
 | [agent/src/omni/system/agent_spaces/inventory.py](../../agent/src/omni/system/agent_spaces/inventory.py) | 138 | 路径用途索引：纯声明，不扫描磁盘或读取记忆、凭据内容。 |
 | [agent/src/omni/system/agent_spaces/layout.py](../../agent/src/omni/system/agent_spaces/layout.py) | 366 | 本机 Agent 布局的声明与校验，不创建目录或打开数据。 |
 
-文档：[docs/STORAGE.md](../../docs/STORAGE.md)、[docs/AGENT_STORAGE.md](../../docs/AGENT_STORAGE.md)
+文档：[docs/STORAGE.md](../STORAGE.md)、[docs/AGENT_STORAGE.md](../AGENT_STORAGE.md)
 
 测试：[agent/tests/test_agent_storage.py](../../agent/tests/test_agent_storage.py)、[agent/tests/test_storage_cli.py](../../agent/tests/test_storage_cli.py)、[agent/tests/test_application_storage.py](../../agent/tests/test_application_storage.py)
 
@@ -590,7 +590,7 @@
 | [web/storage/storage.css](../../web/storage/storage.css) | 490 | 原生源码、平台脚本或界面资源 |
 | [web/storage/storage.js](../../web/storage/storage.js) | 493 | 原生源码、平台脚本或界面资源 |
 
-文档：[docs/STORAGE.md](../../docs/STORAGE.md)、[docs/AGENT_STORAGE.md](../../docs/AGENT_STORAGE.md)
+文档：[docs/STORAGE.md](../STORAGE.md)、[docs/AGENT_STORAGE.md](../AGENT_STORAGE.md)
 
 测试：[agent/tests/test_storage_settings.py](../../agent/tests/test_storage_settings.py)、[agent/tests/test_agent_storage_ui.py](../../agent/tests/test_agent_storage_ui.py)
 
@@ -605,7 +605,7 @@
 | [agent/src/omni/channels/web_api/context.py](../../agent/src/omni/channels/web_api/context.py) | 106 | 上下文设置与只读统计；不调用模型、不构造服务、不修改运行中的配置。 |
 | [web/ui/app/hub-context.js](../../web/ui/app/hub-context.js) | 267 | 原生源码、平台脚本或界面资源 |
 
-文档：[docs/CONTEXT_SETTINGS.md](../../docs/CONTEXT_SETTINGS.md)、[docs/PROMPT_CONTEXT.md](../../docs/PROMPT_CONTEXT.md)
+文档：[docs/CONTEXT_SETTINGS.md](../CONTEXT_SETTINGS.md)、[docs/PROMPT_CONTEXT.md](../PROMPT_CONTEXT.md)
 
 测试：[agent/tests/test_context_settings.py](../../agent/tests/test_context_settings.py)
 
@@ -619,7 +619,7 @@
 |---|---:|---|
 | [agent/src/omni/bootstrap.py](../../agent/src/omni/bootstrap.py) | 941 | 组装根（Composition Root）：全项目唯一负责装配的地方。 |
 
-文档：[docs/ARCHITECTURE.md](../../docs/ARCHITECTURE.md)、[docs/REPOSITORY_STRUCTURE.md](../../docs/REPOSITORY_STRUCTURE.md)
+文档：[docs/ARCHITECTURE.md](../ARCHITECTURE.md)、[docs/REPOSITORY_STRUCTURE.md](../REPOSITORY_STRUCTURE.md)
 
 测试：[agent/tests/test_paths.py](../../agent/tests/test_paths.py)、[agent/tests/test_repository_layout.py](../../agent/tests/test_repository_layout.py)
 
@@ -633,7 +633,7 @@
 |---|---:|---|
 | [agent/src/omni/config.py](../../agent/src/omni/config.py) | 887 | 配置加载：.env 密钥 + config.yaml 主配置 + 运行期路径表。 |
 
-文档：[docs/ARCHITECTURE.md](../../docs/ARCHITECTURE.md)
+文档：[docs/ARCHITECTURE.md](../ARCHITECTURE.md)
 
 测试：[agent/tests/test_config.py](../../agent/tests/test_config.py)
 
@@ -648,7 +648,7 @@
 | [agent/src/omni/core/compress.py](../../agent/src/omni/core/compress.py) | 328 | 上下文压缩 + 消息不变量（Hermes compression_facade 的最小版，NOTES §1.2）。 |
 | [agent/src/omni/core/context.py](../../agent/src/omni/core/context.py) | 195 | 缓存友好的提示词布局：固定规则在前，每轮快照附于该轮用户正文末尾。 |
 
-文档：[docs/PROMPT_CONTEXT.md](../../docs/PROMPT_CONTEXT.md)、[docs/ARCHITECTURE.md](../../docs/ARCHITECTURE.md)
+文档：[docs/PROMPT_CONTEXT.md](../PROMPT_CONTEXT.md)、[docs/ARCHITECTURE.md](../ARCHITECTURE.md)
 
 测试：[agent/tests/test_prompt_context.py](../../agent/tests/test_prompt_context.py)、[agent/tests/test_context.py](../../agent/tests/test_context.py)、[agent/tests/test_compress.py](../../agent/tests/test_compress.py)
 
@@ -675,7 +675,7 @@
 | [agent/src/omni/core/session.py](../../agent/src/omni/core/session.py) | 142 | 会话作用域：同一会话串行、不同会话并行、排队有界、跨进程有租约。 |
 | [agent/src/omni/core/vision.py](../../agent/src/omni/core/vision.py) | 202 | 工具产物 → 模型图像块（D15/A13）。 |
 
-文档：[docs/ARCHITECTURE.md](../../docs/ARCHITECTURE.md)
+文档：[docs/ARCHITECTURE.md](../ARCHITECTURE.md)
 
 测试：[agent/tests/test_agent.py](../../agent/tests/test_agent.py)、[agent/tests/test_runs.py](../../agent/tests/test_runs.py)、[agent/tests/test_parallel_tools.py](../../agent/tests/test_parallel_tools.py)
 
@@ -695,7 +695,7 @@
 | [agent/src/omni/llm/tiers.py](../../agent/src/omni/llm/tiers.py) | 179 | 费用额度的**口径化判定层**（P5-c，抄 surfcore `token-budget.js` 的判定逻辑）。 |
 | [agent/src/omni/llm/usage.py](../../agent/src/omni/llm/usage.py) | 199 | 用量（tokens）与价格：把"这次调用大概/实际花了多少"变成可记账的数字。（D10） |
 
-文档：[docs/RETRIEVAL.md](../../docs/RETRIEVAL.md)
+文档：[docs/RETRIEVAL.md](../RETRIEVAL.md)
 
 测试：[agent/tests/test_gateway.py](../../agent/tests/test_gateway.py)、[agent/tests/test_usage.py](../../agent/tests/test_usage.py)
 
@@ -715,7 +715,7 @@
 | [agent/src/omni/safety/proactive.py](../../agent/src/omni/safety/proactive.py) | 72 | 主动发言闸门：白名单 + 仅所有者 + 安静时段 + 每日额度上限。 |
 | [agent/src/omni/safety/smart.py](../../agent/src/omni/safety/smart.py) | 78 | smart 审批档（Hermes approval_smart 同款）：辅助 LLM 先判风险，拿不准再问人。 |
 
-文档：[docs/ARCHITECTURE.md](../../docs/ARCHITECTURE.md)
+文档：[docs/ARCHITECTURE.md](../ARCHITECTURE.md)
 
 测试：[agent/tests/test_safety.py](../../agent/tests/test_safety.py)
 
@@ -766,7 +766,7 @@
 | [agent/src/omni/memory/usage.py](../../agent/src/omni/memory/usage.py) | 363 | 模型调用的用量与费用账本（`state.db`，D10）。 |
 | [agent/src/omni/memory/vectors.py](../../agent/src/omni/memory/vectors.py) | 111 | sqlite-vec 派生索引。与事实同库；遗忘/纠错触发器只用普通 SQL，无扩展依赖。 |
 
-文档：[docs/OPERATIONS.md](../../docs/OPERATIONS.md)、[docs/RETRIEVAL.md](../../docs/RETRIEVAL.md)
+文档：[docs/OPERATIONS.md](../OPERATIONS.md)、[docs/RETRIEVAL.md](../RETRIEVAL.md)
 
 测试：[agent/tests/test_state.py](../../agent/tests/test_state.py)、[agent/tests/test_memory.py](../../agent/tests/test_memory.py)
 
@@ -789,7 +789,7 @@
 | [web/terminal/terminal.css](../../web/terminal/terminal.css) | 477 | 原生源码、平台脚本或界面资源 |
 | [web/terminal/terminal.js](../../web/terminal/terminal.js) | 346 | 原生源码、平台脚本或界面资源 |
 
-文档：[docs/ARCHITECTURE.md](../../docs/ARCHITECTURE.md)、[docs/TERMINAL.md](../../docs/TERMINAL.md)
+文档：[docs/ARCHITECTURE.md](../ARCHITECTURE.md)、[docs/TERMINAL.md](../TERMINAL.md)
 
 测试：[agent/tests/test_terminal.py](../../agent/tests/test_terminal.py)、[agent/tests/test_terminal_managed.py](../../agent/tests/test_terminal_managed.py)、[agent/tests/test_doctor_lifecycle.py](../../agent/tests/test_doctor_lifecycle.py)
 
@@ -808,7 +808,7 @@
 | [web/project/project.css](../../web/project/project.css) | 486 | 原生源码、平台脚本或界面资源 |
 | [web/project/project.js](../../web/project/project.js) | 450 | 原生源码、平台脚本或界面资源 |
 
-文档：[docs/PROJECT_INDEX.md](../../docs/PROJECT_INDEX.md)
+文档：[docs/PROJECT_INDEX.md](../PROJECT_INDEX.md)
 
 测试：[agent/tests/test_project_catalog.py](../../agent/tests/test_project_catalog.py)
 
@@ -869,7 +869,7 @@
 | [web/ui/tokens.css](../../web/ui/tokens.css) | 250 | 原生源码、平台脚本或界面资源 |
 | [web/ui/workbench.css](../../web/ui/workbench.css) | 4443 | 原生源码、平台脚本或界面资源 |
 
-文档：[docs/UI_QA.md](../../docs/UI_QA.md)
+文档：[docs/UI_QA.md](../UI_QA.md)
 
 测试：[agent/tests/test_ui_flows.py](../../agent/tests/test_ui_flows.py)
 
@@ -893,7 +893,7 @@
 | [web/vendor/xterm.js](../../web/vendor/xterm.js) | 6 | 原生源码、平台脚本或界面资源 |
 | [web/vendor/xterm.min.css](../../web/vendor/xterm.min.css) | 8 | 原生源码、平台脚本或界面资源 |
 
-文档：[docs/ARCHITECTURE.md](../../docs/ARCHITECTURE.md)、[docs/UI_QA.md](../../docs/UI_QA.md)
+文档：[docs/ARCHITECTURE.md](../ARCHITECTURE.md)、[docs/UI_QA.md](../UI_QA.md)
 
 测试：[agent/tests/test_web.py](../../agent/tests/test_web.py)、[agent/tests/test_web_auth.py](../../agent/tests/test_web_auth.py)、[agent/tests/test_ui_flows.py](../../agent/tests/test_ui_flows.py)
 
@@ -907,7 +907,7 @@
 |---|---:|---|
 | [agent/src/omni/channels/web_api/sessions.py](../../agent/src/omni/channels/web_api/sessions.py) | 99 | 会话与待办 HTTP 适配；使用注入 Runtime，保留既有权限、路径与响应契约。 |
 
-文档：[docs/PROJECT_INDEX.md](../../docs/PROJECT_INDEX.md)
+文档：[docs/PROJECT_INDEX.md](../PROJECT_INDEX.md)
 
 测试：[agent/tests/test_web_api.py](../../agent/tests/test_web_api.py)、[agent/tests/test_sessions.py](../../agent/tests/test_sessions.py)
 
@@ -921,7 +921,7 @@
 |---|---:|---|
 | [agent/src/omni/channels/web_api/conversation.py](../../agent/src/omni/channels/web_api/conversation.py) | 194 | 对话与流式 HTTP 适配；使用注入 Runtime，保留既有权限、路径与响应契约。 |
 
-文档：[docs/PROJECT_INDEX.md](../../docs/PROJECT_INDEX.md)
+文档：[docs/PROJECT_INDEX.md](../PROJECT_INDEX.md)
 
 测试：[agent/tests/test_web_api.py](../../agent/tests/test_web_api.py)、[agent/tests/test_web.py](../../agent/tests/test_web.py)
 
@@ -936,7 +936,7 @@
 | [agent/src/omni/memory/command_schema.py](../../agent/src/omni/memory/command_schema.py) | 7 | 命令账本声明的旧 import 兼容层；真实声明见 `memory/state_schema.py`。 |
 | [agent/src/omni/memory/state_schema.py](../../agent/src/omni/memory/state_schema.py) | 337 | `state.db` 的表结构与迁移声明唯一来源。 |
 
-文档：[docs/TERMINAL.md](../../docs/TERMINAL.md)
+文档：[docs/TERMINAL.md](../TERMINAL.md)
 
 测试：[agent/tests/test_state.py](../../agent/tests/test_state.py)、[agent/tests/test_command_jobs.py](../../agent/tests/test_command_jobs.py)
 
@@ -957,7 +957,7 @@
 | [web/jobs/jobs.js](../../web/jobs/jobs.js) | 254 | 原生源码、平台脚本或界面资源 |
 | [web/jobs/panel.html](../../web/jobs/panel.html) | 50 | 原生源码、平台脚本或界面资源 |
 
-文档：[docs/TERMINAL.md](../../docs/TERMINAL.md)
+文档：[docs/TERMINAL.md](../TERMINAL.md)
 
 测试：[agent/tests/test_command_jobs.py](../../agent/tests/test_command_jobs.py)
 
@@ -971,7 +971,7 @@
 |---|---:|---|
 | [agent/src/omni/channels/web_api/runs.py](../../agent/src/omni/channels/web_api/runs.py) | 96 | 运行与用量 HTTP 适配；使用注入 Runtime，保留既有权限、路径与响应契约。 |
 
-文档：[docs/PROJECT_INDEX.md](../../docs/PROJECT_INDEX.md)
+文档：[docs/PROJECT_INDEX.md](../PROJECT_INDEX.md)
 
 测试：[agent/tests/test_web.py](../../agent/tests/test_web.py)
 
@@ -985,7 +985,7 @@
 |---|---:|---|
 | [agent/src/omni/channels/web_api/memory.py](../../agent/src/omni/channels/web_api/memory.py) | 173 | 记忆与档案 HTTP 适配；使用注入 Runtime，保留既有权限、路径与响应契约。 |
 
-文档：[docs/PROJECT_INDEX.md](../../docs/PROJECT_INDEX.md)
+文档：[docs/PROJECT_INDEX.md](../PROJECT_INDEX.md)
 
 测试：[agent/tests/test_web.py](../../agent/tests/test_web.py)
 
@@ -999,7 +999,7 @@
 |---|---:|---|
 | [agent/src/omni/channels/web_api/skills.py](../../agent/src/omni/channels/web_api/skills.py) | 484 | 技能 HTTP 适配：编辑/审阅/统计/归档/外来包，全部消费注入 Runtime。 |
 
-文档：[docs/PROJECT_INDEX.md](../../docs/PROJECT_INDEX.md)
+文档：[docs/PROJECT_INDEX.md](../PROJECT_INDEX.md)
 
 测试：[agent/tests/test_web_api.py](../../agent/tests/test_web_api.py)、[agent/tests/test_skills_history.py](../../agent/tests/test_skills_history.py)
 
@@ -1013,7 +1013,7 @@
 |---|---:|---|
 | [agent/src/omni/channels/web_api/artifacts.py](../../agent/src/omni/channels/web_api/artifacts.py) | 83 | 产物 HTTP 适配；使用注入 Runtime，保留既有权限、路径与响应契约。 |
 
-文档：[docs/PROJECT_INDEX.md](../../docs/PROJECT_INDEX.md)
+文档：[docs/PROJECT_INDEX.md](../PROJECT_INDEX.md)
 
 测试：[agent/tests/test_artifacts.py](../../agent/tests/test_artifacts.py)
 
@@ -1027,7 +1027,7 @@
 |---|---:|---|
 | [agent/src/omni/channels/web_api/approvals.py](../../agent/src/omni/channels/web_api/approvals.py) | 31 | 人工审批 HTTP 适配；使用注入 Runtime，保留既有权限、路径与响应契约。 |
 
-文档：[docs/ARCHITECTURE.md](../../docs/ARCHITECTURE.md)
+文档：[docs/ARCHITECTURE.md](../ARCHITECTURE.md)
 
 测试：[agent/tests/test_web_auth.py](../../agent/tests/test_web_auth.py)
 
@@ -1045,7 +1045,7 @@
 | [web/mcp/mcp.js](../../web/mcp/mcp.js) | 364 | 原生源码、平台脚本或界面资源 |
 | [web/mcp/panel.html](../../web/mcp/panel.html) | 37 | 原生源码、平台脚本或界面资源 |
 
-文档：[docs/MCP.md](../../docs/MCP.md)
+文档：[docs/MCP.md](../MCP.md)
 
 测试：[agent/tests/test_mcp.py](../../agent/tests/test_mcp.py)
 
@@ -1059,7 +1059,7 @@
 |---|---:|---|
 | [agent/src/omni/channels/web_api/operations.py](../../agent/src/omni/channels/web_api/operations.py) | 133 | 服务与诊断 HTTP 适配；使用注入 Runtime，保留既有权限、路径与响应契约。 |
 
-文档：[docs/OPERATIONS.md](../../docs/OPERATIONS.md)
+文档：[docs/OPERATIONS.md](../OPERATIONS.md)
 
 测试：[agent/tests/test_web.py](../../agent/tests/test_web.py)
 
@@ -1073,7 +1073,7 @@
 |---|---:|---|
 | [agent/src/omni/channels/web_api/automation.py](../../agent/src/omni/channels/web_api/automation.py) | 191 | 调度与可靠投递 HTTP 适配；使用注入 Runtime，保留既有权限、路径与响应契约。 |
 
-文档：[docs/PROJECT_INDEX.md](../../docs/PROJECT_INDEX.md)
+文档：[docs/PROJECT_INDEX.md](../PROJECT_INDEX.md)
 
 测试：[agent/tests/test_cron.py](../../agent/tests/test_cron.py)
 
@@ -1087,7 +1087,7 @@
 |---|---:|---|
 | [agent/src/omni/channels/web_api/publications.py](../../agent/src/omni/channels/web_api/publications.py) | 63 | 发布草稿 HTTP 适配；使用注入 Runtime，保留既有权限、路径与响应契约。 |
 
-文档：[docs/BILIBILI_WRITING.md](../../docs/BILIBILI_WRITING.md)
+文档：[docs/BILIBILI_WRITING.md](../BILIBILI_WRITING.md)
 
 测试：[agent/tests/test_bilibili_publishing.py](../../agent/tests/test_bilibili_publishing.py)
 
@@ -1105,7 +1105,7 @@
 | [web/capabilities/index.html](../../web/capabilities/index.html) | 25 | 原生源码、平台脚本或界面资源 |
 | [web/capabilities/panel.html](../../web/capabilities/panel.html) | 48 | 原生源码、平台脚本或界面资源 |
 
-文档：[docs/OPERATIONS.md](../../docs/OPERATIONS.md)
+文档：[docs/OPERATIONS.md](../OPERATIONS.md)
 
 测试：[agent/tests/test_android_streams.py](../../agent/tests/test_android_streams.py)
 
@@ -1123,7 +1123,7 @@
 | [web/android/android.js](../../web/android/android.js) | 368 | 原生源码、平台脚本或界面资源 |
 | [web/android/index.html](../../web/android/index.html) | 114 | 原生源码、平台脚本或界面资源 |
 
-文档：[docs/ANDROID.md](../../docs/ANDROID.md)
+文档：[docs/ANDROID.md](../ANDROID.md)
 
 测试：[agent/tests/test_android_devices.py](../../agent/tests/test_android_devices.py)
 
@@ -1137,7 +1137,7 @@
 |---|---:|---|
 | [agent/src/omni/channels/web_api/devices.py](../../agent/src/omni/channels/web_api/devices.py) | 141 | 桌面与安卓 HTTP 适配；使用注入 Runtime，保留既有权限、路径与响应契约。 |
 
-文档：[docs/ANDROID.md](../../docs/ANDROID.md)、[docs/DESKTOP.md](../../docs/DESKTOP.md)
+文档：[docs/ANDROID.md](../ANDROID.md)、[docs/DESKTOP.md](../DESKTOP.md)
 
 测试：[agent/tests/test_web.py](../../agent/tests/test_web.py)、[agent/tests/test_web_api.py](../../agent/tests/test_web_api.py)
 
@@ -1151,7 +1151,7 @@
 |---|---:|---|
 | [agent/src/omni/channels/web_api/schemas.py](../../agent/src/omni/channels/web_api/schemas.py) | 240 | 工作台请求契约；路由共用，旧 web.py 继续显式转发公共模型名。 |
 
-文档：[docs/PROJECT_INDEX.md](../../docs/PROJECT_INDEX.md)
+文档：[docs/PROJECT_INDEX.md](../PROJECT_INDEX.md)
 
 测试：[agent/tests/test_web_api.py](../../agent/tests/test_web_api.py)
 
@@ -1165,7 +1165,7 @@
 |---|---:|---|
 | [agent/src/omni/channels/web_api/market.py](../../agent/src/omni/channels/web_api/market.py) | 298 | 市场 HTTP 适配：人设卡与插件列表/安装/激活，全部消费注入 Runtime。 |
 
-文档：[docs/PLUGIN_SYSTEM.md](../../docs/PLUGIN_SYSTEM.md)
+文档：[docs/PLUGIN_SYSTEM.md](../PLUGIN_SYSTEM.md)
 
 测试：[agent/tests/test_market_api.py](../../agent/tests/test_market_api.py)、[agent/tests/test_market_client.py](../../agent/tests/test_market_client.py)
 
@@ -1182,7 +1182,7 @@
 | [agent/src/omni/channels/web_api/memory_system.py](../../agent/src/omni/channels/web_api/memory_system.py) | 287 | 记忆系统 HTTP 适配（M1–M6）：只消费注入 Runtime，路由聚合进既有鉴权闸门。 |
 | [agent/src/omni/channels/web_api/settings.py](../../agent/src/omni/channels/web_api/settings.py) | 422 | 配对与设置HTTP适配；复用注入身份和Runtime，不承担应用生命周期。 |
 
-文档：[docs/PROJECT_INDEX.md](../../docs/PROJECT_INDEX.md)、[docs/REFACTORING.md](../../docs/REFACTORING.md)
+文档：[docs/PROJECT_INDEX.md](../PROJECT_INDEX.md)、[docs/REFACTORING.md](../REFACTORING.md)
 
 测试：[agent/tests/test_web_api.py](../../agent/tests/test_web_api.py)
 
@@ -1197,7 +1197,7 @@
 | [agent/src/omni/__main__.py](../../agent/src/omni/__main__.py) | 5 | Run the V2 CLI; explicit V1 commands retain the legacy runtime. |
 | [agent/src/omni/channels/cli.py](../../agent/src/omni/channels/cli.py) | 147 | 本地终端 REPL 入口：uv run omni。 |
 
-文档：[docs/HANDOFF.md](../../docs/HANDOFF.md)
+文档：[docs/HANDOFF.md](../HANDOFF.md)
 
 测试：关联模块集成验证
 
@@ -1211,7 +1211,7 @@
 |---|---:|---|
 | [agent/src/omni/channels/qq.py](../../agent/src/omni/channels/qq.py) | 367 | QQ 通道入口：uv run omni-qq（需先启动 NapCat 并在 config.yaml 开启 qq）。 |
 
-文档：[docs/QQ_SCENARIOS.md](../../docs/QQ_SCENARIOS.md)
+文档：[docs/QQ_SCENARIOS.md](../QQ_SCENARIOS.md)
 
 测试：[agent/tests/test_qq.py](../../agent/tests/test_qq.py)、[agent/tests/test_qq_scope.py](../../agent/tests/test_qq_scope.py)
 
@@ -1225,7 +1225,7 @@
 |---|---:|---|
 | [agent/src/omni/channels/heartbeat.py](../../agent/src/omni/channels/heartbeat.py) | 117 | 心跳入口：uv run omni-heartbeat（定时任务常驻调度，无人值守 fail-closed）。 |
 
-文档：[docs/OPERATIONS.md](../../docs/OPERATIONS.md)
+文档：[docs/OPERATIONS.md](../OPERATIONS.md)
 
 测试：[agent/tests/test_cron.py](../../agent/tests/test_cron.py)
 
@@ -1242,7 +1242,7 @@
 | [agent/src/omni/channels/eval_retrieval.py](../../agent/src/omni/channels/eval_retrieval.py) | 80 | 在临时数据库评测合成样本；hybrid 模式须显式传配置，默认完全离线。 |
 | [agent/src/omni/channels/lifecycle.py](../../agent/src/omni/channels/lifecycle.py) | 28 | 常驻入口响应本次启动的停止请求；不构造运行态、不自行终止其它进程。 |
 
-文档：[docs/OPERATIONS.md](../../docs/OPERATIONS.md)
+文档：[docs/OPERATIONS.md](../OPERATIONS.md)
 
 测试：关联模块集成验证
 
@@ -1266,7 +1266,7 @@
 | [agent/src/omni/tools/personal/todos.py](../../agent/src/omni/tools/personal/todos.py) | 85 | 个人能力：todos；工具仅使用注入依赖，不构造运行时。 |
 | [agent/src/omni/tools/personal/transcript.py](../../agent/src/omni/tools/personal/transcript.py) | 207 | 记忆系统工具（一）：全量记忆两个模块的检索与精确读取（M1/M2）。 |
 
-文档：[docs/ARCHITECTURE.md](../../docs/ARCHITECTURE.md)
+文档：[docs/ARCHITECTURE.md](../ARCHITECTURE.md)
 
 测试：[agent/tests/test_tools.py](../../agent/tests/test_tools.py)、[agent/tests/test_profile_tools.py](../../agent/tests/test_profile_tools.py)、[agent/tests/test_resident.py](../../agent/tests/test_resident.py)
 
@@ -1281,7 +1281,7 @@
 | [agent/src/omni/tools/skills/__init__.py](../../agent/src/omni/tools/skills/__init__.py) | 5 | skills 能力域注册入口。 |
 | [agent/src/omni/tools/skills/tools.py](../../agent/src/omni/tools/skills/tools.py) | 452 | 技能工具集（toolset=core）：技能的渐进披露与维护。 |
 
-文档：[docs/ARCHITECTURE.md](../../docs/ARCHITECTURE.md)
+文档：[docs/ARCHITECTURE.md](../ARCHITECTURE.md)
 
 测试：[agent/tests/test_skills.py](../../agent/tests/test_skills.py)、[agent/tests/test_skill_inbox.py](../../agent/tests/test_skill_inbox.py)
 
@@ -1296,7 +1296,7 @@
 | [agent/src/omni/tools/scheduling/__init__.py](../../agent/src/omni/tools/scheduling/__init__.py) | 5 | scheduling 能力域注册入口。 |
 | [agent/src/omni/tools/scheduling/tools.py](../../agent/src/omni/tools/scheduling/tools.py) | 314 | 定时任务工具集（toolset=cron）：agent 可自主排程（Hermes cronjob_tools 精神）。 |
 
-文档：[docs/HANDOFF.md](../../docs/HANDOFF.md)
+文档：[docs/HANDOFF.md](../HANDOFF.md)
 
 测试：[agent/tests/test_cron.py](../../agent/tests/test_cron.py)
 
@@ -1311,7 +1311,7 @@
 | [agent/src/omni/tools/delegation/__init__.py](../../agent/src/omni/tools/delegation/__init__.py) | 5 | delegation 能力域注册入口。 |
 | [agent/src/omni/tools/delegation/tools.py](../../agent/src/omni/tools/delegation/tools.py) | 122 | 子任务委派（Hermes delegate_task 同款）：把独立子任务交给一个干净会话去跑。 |
 
-文档：[docs/ARCHITECTURE.md](../../docs/ARCHITECTURE.md)
+文档：[docs/ARCHITECTURE.md](../ARCHITECTURE.md)
 
 测试：[agent/tests/test_delegate.py](../../agent/tests/test_delegate.py)
 
@@ -1326,7 +1326,7 @@
 | [agent/src/omni/tools/system/__init__.py](../../agent/src/omni/tools/system/__init__.py) | 5 | system 能力域注册入口。 |
 | [agent/src/omni/tools/system/tools.py](../../agent/src/omni/tools/system/tools.py) | 121 | 系统工具集（toolset=system）：AI 自查本地服务状态、引导用户处置。 |
 
-文档：[docs/OPERATIONS.md](../../docs/OPERATIONS.md)
+文档：[docs/OPERATIONS.md](../OPERATIONS.md)
 
 测试：[agent/tests/test_system.py](../../agent/tests/test_system.py)
 
@@ -1344,7 +1344,7 @@
 | [agent/src/omni/tools/shell/spec.py](../../agent/src/omni/tools/shell/spec.py) | 539 | SAFE 命令解析：把命令串解析成**受控 argv**，解析不出来就拒绝。 |
 | [agent/src/omni/tools/shell/tools.py](../../agent/src/omni/tools/shell/tools.py) | 264 | shell 工具集（toolset=shell）：peek_command（SAFE 观察）与 run_command（CONFIRM 执行）。 |
 
-文档：[docs/ARCHITECTURE.md](../../docs/ARCHITECTURE.md)
+文档：[docs/ARCHITECTURE.md](../ARCHITECTURE.md)
 
 测试：[agent/tests/test_shell_tools.py](../../agent/tests/test_shell_tools.py)
 
@@ -1363,7 +1363,7 @@
 | [agent/src/omni/tools/files/search.py](../../agent/src/omni/tools/files/search.py) | 169 | 有界目录遍历与内容搜索（D13）。 |
 | [agent/src/omni/tools/files/tools.py](../../agent/src/omni/tools/files/tools.py) | 674 | 结构化文件工具（D13，toolset=files）。 |
 
-文档：[docs/ARCHITECTURE.md](../../docs/ARCHITECTURE.md)
+文档：[docs/ARCHITECTURE.md](../ARCHITECTURE.md)
 
 测试：[agent/tests/test_files.py](../../agent/tests/test_files.py)
 
@@ -1380,7 +1380,7 @@
 | [agent/src/omni/tools/web/net.py](../../agent/src/omni/tools/web/net.py) | 413 | 有界 HTTP 抓取（D14）：协议、目标网络、重定向、大小、超时全部受控。 |
 | [agent/src/omni/tools/web/tools.py](../../agent/src/omni/tools/web/tools.py) | 195 | 网页读取工具（D14，toolset=web）：`web_read`。 |
 
-文档：[docs/ARCHITECTURE.md](../../docs/ARCHITECTURE.md)
+文档：[docs/ARCHITECTURE.md](../ARCHITECTURE.md)
 
 测试：[agent/tests/test_web_fetch.py](../../agent/tests/test_web_fetch.py)
 
@@ -1398,7 +1398,7 @@
 | [agent/src/omni/tools/browser/forms.py](../../agent/src/omni/tools/browser/forms.py) | 273 | 固定配置的 UI 表单观察/提交；所有操作在 BrowserDriver 的所有者线程执行。 |
 | [agent/src/omni/tools/browser/tools.py](../../agent/src/omni/tools/browser/tools.py) | 199 | 浏览器工具集（toolset=browser）：读 SAFE，写 CONFIRM。 |
 
-文档：[docs/BILIBILI_WRITING.md](../../docs/BILIBILI_WRITING.md)
+文档：[docs/BILIBILI_WRITING.md](../BILIBILI_WRITING.md)
 
 测试：[agent/tests/test_browser.py](../../agent/tests/test_browser.py)、[agent/tests/test_browser_owner.py](../../agent/tests/test_browser_owner.py)
 
@@ -1418,7 +1418,7 @@
 | [agent/src/omni/tools/android/tools.py](../../agent/src/omni/tools/android/tools.py) | 317 | 安卓工具集（toolset=android）：观察 SAFE，动作 CONFIRM。 |
 | [agent/src/omni/tools/android/ui.py](../../agent/src/omni/tools/android/ui.py) | 90 | UI 树解析（纯函数）：uiautomator XML → 结构化元素 → 文本树。 |
 
-文档：[docs/ANDROID.md](../../docs/ANDROID.md)
+文档：[docs/ANDROID.md](../ANDROID.md)
 
 测试：[agent/tests/test_android.py](../../agent/tests/test_android.py)、[agent/tests/test_android_observations.py](../../agent/tests/test_android_observations.py)
 
@@ -1436,7 +1436,7 @@
 | [agent/src/omni/tools/desktop/tools.py](../../agent/src/omni/tools/desktop/tools.py) | 115 |  |
 | [agent/src/omni/tools/desktop/uia.ps1](../../agent/src/omni/tools/desktop/uia.ps1) | 198 | 原生源码、平台脚本或界面资源 |
 
-文档：[docs/DESKTOP.md](../../docs/DESKTOP.md)
+文档：[docs/DESKTOP.md](../DESKTOP.md)
 
 测试：[agent/tests/test_desktop.py](../../agent/tests/test_desktop.py)
 
@@ -1458,7 +1458,7 @@
 | [agent/src/omni/tools/bilibili/wbi.py](../../agent/src/omni/tools/bilibili/wbi.py) | 99 | B站 WBI 签名（纯算法，无网络依赖）。 |
 | [agent/src/omni/tools/bilibili/write_tools.py](../../agent/src/omni/tools/bilibili/write_tools.py) | 114 | B站草稿工具及逐次人工发布审批；所有浏览器依赖由组装根注入。 |
 
-文档：[docs/BILIBILI_WRITING.md](../../docs/BILIBILI_WRITING.md)
+文档：[docs/BILIBILI_WRITING.md](../BILIBILI_WRITING.md)
 
 测试：[agent/tests/test_bilibili_tools.py](../../agent/tests/test_bilibili_tools.py)、[agent/tests/test_bilibili_publishing.py](../../agent/tests/test_bilibili_publishing.py)
 
@@ -1478,7 +1478,7 @@
 | [agent/src/omni/tools/storyboard/source.py](../../agent/src/omni/tools/storyboard/source.py) | 45 | 视频来源：把"一个目标"变成"一个本地可解码的视频文件 + 可选的带时间戳台词"。 |
 | [agent/src/omni/tools/storyboard/tools.py](../../agent/src/omni/tools/storyboard/tools.py) | 254 | 分镜工具：把视频变成"能看、能引用、能回看"的画面索引。 |
 
-文档：[docs/VIDEO_UNDERSTANDING.md](../../docs/VIDEO_UNDERSTANDING.md)
+文档：[docs/VIDEO_UNDERSTANDING.md](../VIDEO_UNDERSTANDING.md)
 
 测试：[agent/tests/test_storyboard.py](../../agent/tests/test_storyboard.py)
 
@@ -1494,7 +1494,7 @@
 | [agent/src/omni/tools/qq/client.py](../../agent/src/omni/tools/qq/client.py) | 299 | OneBot v11 正向 WebSocket 客户端（对接 NapCat）。 |
 | [agent/src/omni/tools/qq/tools.py](../../agent/src/omni/tools/qq/tools.py) | 123 | QQ 工具集（toolset=qq）：主动发消息。 |
 
-文档：[docs/QQ_SCENARIOS.md](../../docs/QQ_SCENARIOS.md)
+文档：[docs/QQ_SCENARIOS.md](../QQ_SCENARIOS.md)
 
 测试：[agent/tests/test_outbox.py](../../agent/tests/test_outbox.py)
 
@@ -1511,7 +1511,7 @@
 | [agent/src/omni/tools/mcp/remote.py](../../agent/src/omni/tools/mcp/remote.py) | 178 | 显式配置的远程MCP传输与人工OAuth；不扩大工具授权，不自动打开浏览器。 |
 | [agent/src/omni/tools/mcp/tools.py](../../agent/src/omni/tools/mcp/tools.py) | 107 | MCP 工具适配：渐进发现、用户审核只读调用、人工确认调用；不决定传输细节。 |
 
-文档：[docs/MCP.md](../../docs/MCP.md)
+文档：[docs/MCP.md](../MCP.md)
 
 测试：[agent/tests/test_mcp.py](../../agent/tests/test_mcp.py)
 
@@ -1536,7 +1536,7 @@
 | [agent/src/omni/tools/skill_tools.py](../../agent/src/omni/tools/skill_tools.py) | 5 | 旧导入兼容层；实现位于 tools/skills/。 |
 | [agent/src/omni/tools/system_tools.py](../../agent/src/omni/tools/system_tools.py) | 5 | 旧导入兼容层；实现位于 tools/system/。 |
 
-文档：[docs/ARCHITECTURE.md](../../docs/ARCHITECTURE.md)
+文档：[docs/ARCHITECTURE.md](../ARCHITECTURE.md)
 
 测试：[agent/tests/test_tools.py](../../agent/tests/test_tools.py)
 
@@ -1555,7 +1555,7 @@
 | [agent/src/omni/plugins/community/tools.py](../../agent/src/omni/plugins/community/tools.py) | 138 | 社区工具适配；HTTP/发布逻辑由注入客户端承担。 |
 | [agent/src/omni/plugins/server.py](../../agent/src/omni/plugins/server.py) | 8 | 兼容 python -m omni.plugins.server；实现位于 plugins/community/server.py。 |
 
-文档：[docs/PLUGIN_SYSTEM.md](../../docs/PLUGIN_SYSTEM.md)
+文档：[docs/PLUGIN_SYSTEM.md](../PLUGIN_SYSTEM.md)
 
 测试：[agent/tests/test_plugin_community.py](../../agent/tests/test_plugin_community.py)
 
@@ -1574,7 +1574,7 @@
 | [agent/src/omni/plugins/quarantine.py](../../agent/src/omni/plugins/quarantine.py) | 242 | 插件隔离区与安装状态的文件层：隔离区落盘、清单记录、防篡改复核。 |
 | [agent/src/omni/plugins/tools.py](../../agent/src/omni/plugins/tools.py) | 178 | 插件生命周期工具（面向 agent）：安装 → 审阅 → 激活 → 启停 → 卸载。 |
 
-文档：[docs/PLUGIN_SYSTEM.md](../../docs/PLUGIN_SYSTEM.md)
+文档：[docs/PLUGIN_SYSTEM.md](../PLUGIN_SYSTEM.md)
 
 测试：[agent/tests/test_plugins.py](../../agent/tests/test_plugins.py)
 
@@ -1591,7 +1591,7 @@
 | [agent/src/omni/system/catalog/scan.py](../../agent/src/omni/system/catalog/scan.py) | 309 | 静态源码索引；扫描范围为本地 Agent 的源码包（兼容旧布局），不读取 config/data/.env。 |
 | [agent/src/omni/system/catalog/schema.py](../../agent/src/omni/system/catalog/schema.py) | 692 | 模块分类与关键调用链；分层规则仍以 docs/ARCHITECTURE.md 为准。 |
 
-文档：[docs/PROJECT_INDEX.md](../../docs/PROJECT_INDEX.md)
+文档：[docs/PROJECT_INDEX.md](../PROJECT_INDEX.md)
 
 测试：[agent/tests/test_project_catalog.py](../../agent/tests/test_project_catalog.py)
 
@@ -1626,7 +1626,7 @@
 | [agent/src/omni/system/supervisor.py](../../agent/src/omni/system/supervisor.py) | 384 | 服务守护：让常驻服务在 agent 运行期间保持在线。 |
 | [agent/src/omni/system/text_guard.py](../../agent/src/omni/system/text_guard.py) | 268 | 确定性文本守卫：凭据形态与高危标识的扫描（**单一真源**）。 |
 
-文档：[docs/OPERATIONS.md](../../docs/OPERATIONS.md)、[docs/ACCEPTANCE.md](../../docs/ACCEPTANCE.md)
+文档：[docs/OPERATIONS.md](../OPERATIONS.md)、[docs/ACCEPTANCE.md](../ACCEPTANCE.md)
 
 测试：[agent/tests/test_backup.py](../../agent/tests/test_backup.py)、[agent/tests/test_process_identity.py](../../agent/tests/test_process_identity.py)
 

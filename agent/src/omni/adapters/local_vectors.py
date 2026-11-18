@@ -13,6 +13,8 @@ from collections.abc import Sequence
 from pathlib import Path
 from typing import cast
 
+from omni.adapters.platform.runtime.processes import OwnedProcess
+
 from ..application.ports import Record
 from ..domain.contracts import JSON, BusinessError
 from ..domain.local_vectors import (
@@ -25,7 +27,6 @@ from ..domain.local_vectors import (
     vectors,
     version,
 )
-from omni.adapters.platform.runtime.processes import OwnedProcess
 from .vector_files import read_manifest, runtime_versions, selection
 
 log = logging.getLogger("omni.v2.vectors")

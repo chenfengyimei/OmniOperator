@@ -6,8 +6,6 @@ import asyncio
 import struct
 from collections.abc import Awaitable, Callable
 
-from omni.domain.contracts import BusinessError
-
 from omni.adapters.platform.desktop.linux.linux_bus import failure
 from omni.adapters.platform.desktop.linux.linux_button_events import ButtonEvents
 from omni.adapters.platform.desktop.linux.linux_button_mapping import ButtonPlan
@@ -16,6 +14,7 @@ from omni.adapters.platform.desktop.linux.linux_motion_events import MotionTrans
 from omni.adapters.platform.desktop.linux.linux_pointer_target import PointerPoint
 from omni.adapters.platform.desktop.linux.linux_x11_wire import unpack
 from omni.adapters.platform.desktop.linux.linux_xtest import Sources
+from omni.domain.contracts import BusinessError
 
 
 class ButtonPacket:

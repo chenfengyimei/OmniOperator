@@ -13,8 +13,9 @@ from dataclasses import asdict, replace
 from types import MappingProxyType
 from typing import cast
 
-from ...domain.contracts import JSON, ActionResult, BusinessError, Effect, InvocationContext, Outcome
 from omni.adapters.platform.runtime.processes import OwnedProcess
+
+from ...domain.contracts import JSON, ActionResult, BusinessError, Effect, InvocationContext, Outcome
 from .protocol import MAX_FRAME, VERSION, response
 
 log = logging.getLogger("omni.v2.worker")

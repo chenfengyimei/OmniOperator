@@ -4,8 +4,6 @@ from __future__ import annotations
 
 from typing import Any, cast
 
-from omni.domain.contracts import BusinessError
-from omni.domain.desktop import VERSION, validate_observation, validate_target, validate_targets
 from omni.adapters.platform.desktop.linux.linux_bus import Process, failure
 from omni.adapters.platform.desktop.linux.linux_session import (
     ACCESSIBLE,
@@ -19,6 +17,8 @@ from omni.adapters.platform.desktop.linux.linux_session import (
     unique,
     variant,
 )
+from omni.domain.contracts import BusinessError
+from omni.domain.desktop import VERSION, validate_observation, validate_target, validate_targets
 
 Payload = dict[str, object]
 

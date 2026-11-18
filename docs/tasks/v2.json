@@ -1,4 +1,7 @@
 {
+ "record_role": "historical_delivery_scope",
+ "current_development_source": "docs/tasks/v2-development.json",
+ "current_windows_stage_source": "docs/tasks/v2-windows-candidate.json",
  "schema": 1,
  "plan": "OmniOperator V2",
  "status": "开发中",

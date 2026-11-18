@@ -18,12 +18,12 @@ from typing import Any, NoReturn, cast
 
 import psutil
 
-from omni.domain.contracts import BusinessError
 from omni.adapters.build_identity import CODE_CACHE_DIRS, CODE_SUFFIXES, LAYERS
 from omni.adapters.object_store import publish_file, sync_directory
 from omni.adapters.persistence.migration_config import head as migration_head
 from omni.adapters.platform.runtime.permissions import assert_private, private_path
 from omni.adapters.platform.runtime.publication import publish_directory
+from omni.domain.contracts import BusinessError
 
 Record = dict[str, Any]
 MAX_JSON = 2 * 1024 * 1024
@@ -482,8 +482,8 @@ class CurrentDeploymentFiles:
         self._publish_json(target, data)
 
     def materialize(self, plan: Record, destination: str | Path) -> Record:
-        from omni.domain.service_deployment import plan_fingerprint, validate_plan
         from omni.adapters.platform.services.service_templates import render
+        from omni.domain.service_deployment import plan_fingerprint, validate_plan
 
         checked = validate_plan(plan)
         target = _destination(destination, checked)
@@ -580,8 +580,8 @@ class CurrentDeploymentFiles:
 
     def artifact_plan(self, bundle: str | Path) -> Record:
         """Verify artifact bytes only; never grants foreign installation execution eligibility."""
-        from omni.domain.service_deployment import plan_fingerprint, validate_plan
         from omni.adapters.platform.services.service_templates import render
+        from omni.domain.service_deployment import plan_fingerprint, validate_plan
 
         root = _path(bundle)
         _no_links(root)
