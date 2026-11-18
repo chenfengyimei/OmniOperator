@@ -5,6 +5,18 @@
   "owner_direction_date": "2026-11-17",
   "priority": "implementation_first",
   "test_policy": "开发期间仅必要的受影响模块与调用方局部验证；整个V2开发完成后统一全量，不逐模块全量",
+  "development_handoff": {
+    "date": "2026-11-18",
+    "status": "windows_local_closeout_complete_mac_development_next",
+    "owner_direction": "当前会话只完成本地开发收尾及交接提示词/文档；所有者自行复制或通过Git迁移",
+    "runbook": "docs/V2_MACMINI_MIGRATION.md",
+    "resume_prompt": "docs/V2_MACMINI_RESUME_PROMPT.md",
+    "mac_architecture": "arm64",
+    "actual_mac_transfer_or_execution": false,
+    "local_session_waiting_for_mac_connection": false,
+    "whole_v2_complete": false,
+    "full_suite_for_current_source": false
+  },
   "baseline": {
     "commit": "314ce917ee1030b349bbf15be5d32f12a284665a",
     "windows_offline_candidate_complete": true,

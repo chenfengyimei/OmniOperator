@@ -168,12 +168,17 @@
     "native_click_count": 1
   },
   "mac_development_migration": {
-    "status": "handoff_prepared_transfer_pending",
+    "status": "local_closeout_handoff_complete_owner_managed_transfer",
     "runbook": "docs/V2_MACMINI_MIGRATION.md",
+    "resume_prompt": "docs/V2_MACMINI_RESUME_PROMPT.md",
     "windows_data_and_services_preserved": true,
     "mac_architecture": "arm64",
     "actual_mac_transfer_or_execution": false,
     "owner_confirmed_apple_silicon": true,
-    "macos_version_and_directory": "awaiting_owner_or_host_preflight"
+    "macos_version_and_directory": "successor_session_checks_on_mac_not_a_local_blocker",
+    "transfer_responsibility": "owner_copy_or_git",
+    "local_development_and_documentation_closeout_complete": true,
+    "local_session_waiting_for_mac_connection": false,
+    "whole_v2_complete": false
   }
 }

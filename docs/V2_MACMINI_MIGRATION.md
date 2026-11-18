@@ -4,12 +4,23 @@
 
 Mac 作为下一开发主机；Windows 工作区、服务和现有实例保留。迁移准备不表示已在 Mac 安装、编译或验收。
 
+## 0. 本地收尾与接手入口
+
+所有者已明确：当前 Windows 会话只负责本地开发收尾、提交同步与交接文档，之后由所有者自行复制项目或通过 Git 迁移。无需向此会话提供 Mac 版本、路径或 SSH 信息；Mac 新会话在本机检查这些条件。
+
+- 可直接粘贴的完整提示词：[Mac mini 新会话接续提示词](V2_MACMINI_RESUME_PROMPT.md)。
+- Windows 阶段结论及任务：[Windows 候选任务](tasks/v2-windows-candidate.json)；整个 V2 待办：[持续开发任务](tasks/v2-development.json)。
+- 已完成断点：Linux Enter 批 `f539f21e`；Windows 样例修正 `fbfc16b8`；人工前台复验与 arm64 交接记录 `73970d20`。最终交接以 `v2` 分支实际 HEAD 为准。
+- 本次收尾只调整文档、任务与索引，不变更运行源码或依赖，不重复此前已完成的专项，不启动全量。Windows 当前自有窗口复验结果与后续发布门槛分别保留。
+
 ## 1. 带走的内容
 
 - 使用 `v2` 的完整 Git 历史、源码、`uv.lock`、测试和文档。离线包的 `migration.json` 记录精确提交及 bundle SHA256，先核对再导入。
 - `docs/HANDOFF.md` 是断点入口，`docs/tasks/v2-development.json` 保留整个 V2 的 G3/G4/G5/G6/G7 开发范围，不能因 Windows 通过将总目标标为完成。
 - 原始 Windows 大产物在 `C:/v2-acceptance/win-accept-20261118`，本次后续产物也在 `C:/v2-acceptance`。Git 中汇总记录和本机原件是不同层次；离线包清单会说明实际附带哪些文件。
 - 未提交修改、未跟踪的 `PPT/`、`docs/competition/` 不会自动进入 Git bundle。它们保留在 Windows，按迁移清单逐项另行处理，不能以 Git 干净副本冒充整个工作区已搬完。
+
+直接复制项目时，保留源码、锁文件、测试、文档和 `.git` 历史，按下述规则在 Mac 重建环境。通过 Git 获取时，采用第 3 节命令即可包含最终交接提示词。此前生成的 `macmini-arm64-transfer-73970d20.zip` 是固定于 `73970d20` 的历史快照，不含后续本地收尾文档；使用该包时另行带走最新提示词/文档或同步 `origin/v2`。
 
 在 Mac 重新创建 `.venv`、浏览器运行时和原生 helper。Windows 的 `.venv`、DLL、控制台 EXE、本机依赖 wheel 包、运行锁/进程身份和 DPAPI 凭据不能作为 macOS 运行环境使用。模型权重是否另行复制由所有者决定，默认测试不下载或调用真实模型。
 
@@ -105,4 +116,4 @@ uv run --no-sync pytest -q -n 0 agent/tests/test_v2_macos_helper.py agent/tests/
 
 Mac 成功导入指定提交，依赖和独立实例启动通过，Swift/C 构建结果已保存，专项原始日志和下一代码缺口已记录；能在 Mac 继续提交并同步授权的 origin/v2。未提交工作已核对处理范围，Windows 原实例与原始验收材料仍可回查。
 
-实际复制/远程启动尚未执行。Apple Silicon 架构已确认；仍需 Mac 的 macOS 版本和目标目录，若使用远程连接，另提供已有 SSH 配置名或地址，不提供密码、令牌或私钥正文。
+本地收尾与交接完成后，本阶段即可结束；实际复制、Mac 环境创建、Swift/C 编译和 Mac 原生验收由所有者迁移后的新会话接续。Apple Silicon 架构已确认，系统版本和目标目录由接手会话现场核对，不作为 Windows 本地交付的等待项。
