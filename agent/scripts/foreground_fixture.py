@@ -41,9 +41,42 @@ user.SetWindowLongPtrW.argtypes = [w.HWND, ctypes.c_int, ctypes.c_void_p]
 user.SetWindowLongPtrW.restype = ctypes.c_void_p
 user.CallWindowProcW.argtypes = [ctypes.c_void_p, w.HWND, w.UINT, w.WPARAM, w.LPARAM]
 user.CallWindowProcW.restype = ctypes.c_ssize_t
+# A top-level STATIC window is a control proxy, whose UIA point hit can refer to
+# an underlying application even when Win32 finds its child. Use a real window
+# class so the acceptance fixture represents an ordinary application window.
+WindowProc = ctypes.WINFUNCTYPE(ctypes.c_ssize_t, w.HWND, w.UINT, w.WPARAM, w.LPARAM)
+user.DefWindowProcW.argtypes = [w.HWND, w.UINT, w.WPARAM, w.LPARAM]
+user.DefWindowProcW.restype = ctypes.c_ssize_t
+
+
+@WindowProc
+def window_proc(hwnd, message, first, second):
+    return user.DefWindowProcW(hwnd, message, first, second)
+
+
+class WindowClass(ctypes.Structure):
+    _fields_ = [
+        ("style", w.UINT),
+        ("procedure", WindowProc),
+        ("class_extra", ctypes.c_int),
+        ("window_extra", ctypes.c_int),
+        ("instance", w.HINSTANCE),
+        ("icon", w.HICON),
+        ("cursor", w.HANDLE),
+        ("background", w.HBRUSH),
+        ("menu", w.LPCWSTR),
+        ("name", w.LPCWSTR),
+    ]
+
+
+definition = WindowClass()
+definition.procedure, definition.name = window_proc, "OmniOwnedForegroundWindow"
+user.RegisterClassW.argtypes = [ctypes.POINTER(WindowClass)]
+user.RegisterClassW.restype = w.ATOM
+assert user.RegisterClassW(ctypes.byref(definition))
 window = user.CreateWindowExW(
     0x80 if sys.argv[2] == "interactive" else 0x08000080,
-    "STATIC",
+    definition.name,
     "Omni owned foreground fixture",
     0x90000000,
     40,

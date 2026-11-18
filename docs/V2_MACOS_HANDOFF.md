@@ -1,6 +1,6 @@
 # macOS 原生实现与 Mac mini 交接
 
-当前交付包为 D2，仍在开发中。Windows 主机只验证 Python 宿主、协议、隔离及打包；Swift/C 尚未在 Mac 编译，不能据此标记 macOS 已支持。整个 V2 尚未完成，正式入口仍是 V1。
+当前交付包为 D2，仍在开发中。Windows 主机只验证 Python 宿主、协议、隔离及打包；Swift/C 尚未在 Mac 编译，不能据此标记 macOS 已支持。整个 V2 尚未完成；Windows 离线候选默认入口已经是 V2，显式 V1 回退保留。当前迁移步骤与源码交接见 [Mac mini 开发迁移](V2_MACMINI_MIGRATION.md)。
 
 当前公共桌面协议为`omni-desktop-ipc-6`，Swift协议常量已同步。任何IPC5构建均需使用当前源码重新构建并更新签名后来源清单；Windows打包不能代替Mac编译或原生验收。
 
@@ -59,7 +59,7 @@ uv run --no-sync python agent/scripts/accept_macos_services.py --bundle "$BUNDLE
 
 ### D4 交换激活交接
 
-当前源码已加入 `omni-service-exchange-3` 及 `omni-service-activation-1`。两份固定安装须重新构建、捕获并包含相同启动合同；不能用此前安装搭配新计划。业务数据库仍为 v2_0026，没有迁移旧数据的步骤。Windows 只验证私密文件、实例锁、原有应用用例及注入的管理器/逻辑路径，未验证 Mac 原生。
+当前源码已加入 `omni-service-exchange-3` 及 `omni-service-activation-1`。两份固定安装须重新构建、捕获并包含相同启动合同；不能用此前安装搭配新计划。当前迁移头为 v2_0039，版本以实际源码及 doctor 为准；跨 schema 使用既有结构升级合同，不导入 V1 数据。Windows 只验证私密文件、实例锁、原有应用用例及注入的管理器/逻辑路径，未验证 Mac 原生。
 
 完成上述 Swift、ACL 与真实注册前提后，按[交换合同](V2_SERVICE_EXCHANGE.md)准备隔离的新旧版本与 home。先审阅计划的源卸载影响、目标启动以及 abandon 解除后续登录限制。真实变更另按既有授权执行。验收包含：
 

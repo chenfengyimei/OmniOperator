@@ -153,5 +153,21 @@
       "docs/competition/",
       "Linux/UI/MCP在途修改"
     ]
+  },
+  "windows_click_followup_2026_11_18": {
+    "status": "fixture_corrected_native_point_verified_interactive_pending",
+    "evidence": "docs/evidence/v2-windows-click-fixture.json",
+    "product_changed": false,
+    "old_product_defect_diagnosis": "Narrowed: STATIC top-level test fixture caused cross-process UIA hit. Normal registered window passes original production checks; proposed center fallback was not retained.",
+    "scoped_passed": 36,
+    "interactive_focus_required": true,
+    "whole_current_source_full_suite": false
+  },
+  "mac_development_migration": {
+    "status": "handoff_prepared_transfer_pending",
+    "runbook": "docs/V2_MACMINI_MIGRATION.md",
+    "windows_data_and_services_preserved": true,
+    "mac_architecture": "awaiting_owner_or_detect_on_host",
+    "actual_mac_transfer_or_execution": false
   }
 }
