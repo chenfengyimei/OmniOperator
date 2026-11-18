@@ -1,7 +1,7 @@
 {
   "batch": "v2-ui-connection-stability-v128",
   "recorded_at": "2026-11-15",
-  "resource_version_final": "20261118v151",
+  "resource_version_final": "20261118v152",
   "v1_alignment": {
     "summary": "用户提供 V1 正式工作台截图后，直接精读 web/ui/workbench.css 的 V1 实现并逐项移植，使 V2 结构与 V1 一致（而非自创风格）。",
     "ported_from_v1": [
@@ -1226,5 +1226,10 @@
       "V2UI+守卫回归": "129 passed"
     },
     "口径": "V2为token驱动DB配置,无V1 yaml;上下文页只读整合不发明无效写入"
+  },
+  "icon_subset_fix": {
+    "问题": "记忆系统图标database在Material Icons子集字体缺失,回退成方框串(宽168px)",
+    "修复": "改用子集内正常渲染的storage(堆叠数据库样,单字形15px)",
+    "验证": "核心系统三项图标均单字形PASS"
   }
 }
