@@ -22,6 +22,9 @@ function collectGroups() {
       continue;
     }
     if (!current || !node.matches?.('button[data-page]')) continue;
+    // 「对话」不进设置分类栏：左上角导航与页头「返回对话」都能回对话页，
+    // 侧边栏再放一项是冗余入口（所有者要求移除）。
+    if (node.dataset.page === 'chat') continue;
     current.items.push({
       page: node.dataset.page,
       label: node.getAttribute('aria-label') || node.title || node.dataset.page,

@@ -1,7 +1,7 @@
 {
   "batch": "v2-ui-connection-stability-v128",
   "recorded_at": "2026-11-15",
-  "resource_version_final": "20261118v145",
+  "resource_version_final": "20261118v146",
   "v1_alignment": {
     "summary": "用户提供 V1 正式工作台截图后，直接精读 web/ui/workbench.css 的 V1 实现并逐项移植，使 V2 结构与 V1 一致（而非自创风格）。",
     "ported_from_v1": [
@@ -1180,5 +1180,12 @@
     ],
     "验证": "服务弹窗核查10/10（紧凑按钮/8行/关闭/遮罩/双主题）、守卫33、全站76/76、UI回归75 passed。",
     "版本": "资源串整体 v144→v145。"
+  },
+  "rail_no_chat_v146": {
+    "需求": "所有者指出设置分类栏里的「对话」项冗余（左上角导航与页头返回对话都能回去），要求移除。",
+    "交付": "settings-rail.js collectGroups 过滤 data-page=chat；分类栏 23→22 项，首项为记忆；主导航与返回对话按钮不受影响。",
+    "验证": "取证 PASS（分类栏无chat/22项/导航与返回入口保留/返回可回对话）、设置56/56、交互7/7、横滑4/4、精修40/40、守卫+导航35 passed。",
+    "核查脚本同步": "_railscroll 首分类改记忆；_polish_audit 主题专项同步三圆点（修复引用已删除的 #theme 导致的崩溃）。",
+    "版本": "资源串整体 v145→v146。"
   }
 }
