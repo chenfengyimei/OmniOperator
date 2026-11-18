@@ -1,32 +1,32 @@
-import { mountSkills } from './skills.js?v=20261118v148';
-import { mountCredentials } from './credentials.js?v=20261118v148';
-import { mountAuditHistory, mountOperations } from './operations.js?v=20261118v148';
-import { mountCapabilities } from './capabilities.js?v=20261118v148';
-import { mountTokens } from './tokens.js?v=20261118v148';
-import { mountDocuments } from './documents.js?v=20261118v148';
-import { mountConfiguration } from './configuration.js?v=20261118v148';
-import { mountModels } from './models.js?v=20261118v148';
+import { mountSkills } from './skills.js?v=20261118v149';
+import { mountCredentials } from './credentials.js?v=20261118v149';
+import { mountAuditHistory, mountOperations } from './operations.js?v=20261118v149';
+import { mountCapabilities } from './capabilities.js?v=20261118v149';
+import { mountTokens } from './tokens.js?v=20261118v149';
+import { mountDocuments } from './documents.js?v=20261118v149';
+import { mountConfiguration } from './configuration.js?v=20261118v149';
+import { mountModels } from './models.js?v=20261118v149';
 import { ask } from '../dialog.js?v=20261103v7';
-import { mountPeople } from './people.js?v=20261118v148';
-import { mountDeliveries } from './deliveries.js?v=20261118v148';
-import { mountSchedules } from './schedules.js?v=20261118v148';
-import { mountMemorySemantics } from './memory-semantics.js?v=20261118v148';
-import { mountMemoryOrganization } from './memory-organization.js?v=20261118v148';
-import { mountExtensions } from './extensions.js?v=20261118v148';
-import { mountActionReviews } from './action-reviews.js?v=20261118v148';
-import { mountTerminals } from './terminals.js?v=20261118v148';
-import { mountDesktop } from './desktop.js?v=20261118v148';
-import { mountQQ } from './qq.js?v=20261118v148';
-import { mountBilibili } from './bilibili.js?v=20261118v148';
-import { mountMedia } from './media.js?v=20261118v148';
-import { mountMcp } from './mcp.js?v=20261118v148';
-import { mountAndroid } from './android.js?v=20261118v148';
-import { mountModelOutput } from './model-output.js?v=20261118v148';
-import { mountRouting } from './routing.js?v=20261118v148';
-import { mountChatImages } from './chat-images.js?v=20261118v148';
-import { mountInspector } from './inspector.js?v=20261118v148';
-import { mountSettingsRail } from './settings-rail.js?v=20261118v148';
-import { mountEventStream } from './event-stream.js?v=20261118v148';
+import { mountPeople } from './people.js?v=20261118v149';
+import { mountDeliveries } from './deliveries.js?v=20261118v149';
+import { mountSchedules } from './schedules.js?v=20261118v149';
+import { mountMemorySemantics } from './memory-semantics.js?v=20261118v149';
+import { mountMemoryOrganization } from './memory-organization.js?v=20261118v149';
+import { mountExtensions } from './extensions.js?v=20261118v149';
+import { mountActionReviews } from './action-reviews.js?v=20261118v149';
+import { mountTerminals } from './terminals.js?v=20261118v149';
+import { mountDesktop } from './desktop.js?v=20261118v149';
+import { mountQQ } from './qq.js?v=20261118v149';
+import { mountBilibili } from './bilibili.js?v=20261118v149';
+import { mountMedia } from './media.js?v=20261118v149';
+import { mountMcp } from './mcp.js?v=20261118v149';
+import { mountAndroid } from './android.js?v=20261118v149';
+import { mountModelOutput } from './model-output.js?v=20261118v149';
+import { mountRouting } from './routing.js?v=20261118v149';
+import { mountChatImages } from './chat-images.js?v=20261118v149';
+import { mountInspector } from './inspector.js?v=20261118v149';
+import { mountSettingsRail } from './settings-rail.js?v=20261118v149';
+import { mountEventStream } from './event-stream.js?v=20261118v149';
 // 直接复用 V1 的 rail 提示浮层模块（data-tip → #tip-layer），不自创实现
 import '../app/tips.js?v=20261103u5';
 
@@ -430,6 +430,48 @@ function renderToolBlock(node, trace) {
   chev.append(chevIcon);
   toggle.append(tIcon, tName, tMeta, chev);
   box.append(toggle);
+
+  // 所有者要求调用过程更详细：补「本轮档位 + 输入/输出 token」汇总行。
+  // 数据来自路由报告（右栏同源）：模式给中文标签；token 优先用供应商上报的
+  // 真实用量，未上报时回退到本地估算并明确标注口径，绝不把估算冒充真实值。
+  const MODE_LABEL = { chat: '聊天', retrieval: '检索', agent: '完整' };
+  const report = trace.report;
+  if (report?.route?.recorded) {
+    const route = report.route;
+    const calls = report.calls || [];
+    const sum = (key) => {
+      let total = 0,
+        seen = false;
+      for (const call of calls) {
+        const value = call[key];
+        if (typeof value === 'number') {
+          total += value;
+          seen = true;
+        }
+      }
+      return seen ? total : null;
+    };
+    const realIn = sum('input_tokens'),
+      realOut = sum('output_tokens'),
+      estIn = sum('input_token_estimate');
+    const inText =
+      realIn !== null ? `输入 ${realIn} token` : estIn !== null ? `输入估算 ${estIn} token` : '输入 未知';
+    const outText = realOut !== null ? `输出 ${realOut} token` : '输出 未知';
+    const summary = document.createElement('div');
+    summary.className = 'scaf-summary';
+    const sIcon = document.createElement('span');
+    sIcon.className = 'material-icons';
+    sIcon.textContent = 'speed';
+    const sText = document.createElement('span');
+    sText.className = 'scaf-summary-text';
+    const requested =
+      route.requested_mode === 'auto' ? '自动' : MODE_LABEL[route.requested_mode] || '跟随设置';
+    sText.textContent =
+      `档位 ${MODE_LABEL[route.mode] || route.mode}（请求 ${requested}）` +
+      `${route.promoted ? ' · 已升档' : ''} · ${inText} · ${outText}`;
+    summary.append(sIcon, sText);
+    box.append(summary);
+  }
 
   // 档位与模型计量属于技术详情，已移入右栏「运行」页签；
   // 对话内的链只呈现真实工具步骤，与参考原型一致。

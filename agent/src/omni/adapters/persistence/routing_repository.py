@@ -257,6 +257,10 @@ class RoutingRepositories(ImageRepositories):
                     s.model_calls.c.cost_micro,
                     s.model_calls.c.input_token_estimate,
                     s.model_calls.c.counting_method,
+                    # 真实用量（供应商上报）：与估算口径分开暴露，界面分别标注。
+                    # 未上报时为 NULL，原样交给界面显示「未知」，不补 0。
+                    s.model_calls.c.input_tokens,
+                    s.model_calls.c.output_tokens,
                 )
                 .join(s.model_calls, s.model_calls.c.id == s.model_call_routes.c.call_id)
                 .where(s.model_call_routes.c.agent_id == agent_id, s.model_calls.c.run_id == run_id)

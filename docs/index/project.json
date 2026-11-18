@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "a624ef8562fabf767e18542e1b644086d34b5af84382a2e206118f8d9aa91c2a",
+  "source_sha256": "2dc90ed8ff4074fc330dccad76866d9f0a910f3d974b308414ea20cef6082079",
   "modules": [
     {
       "id": "v2-domain",
@@ -459,7 +459,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 65601,
+      "lines": 65605,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -555,7 +555,7 @@
         "web/ui/v2/v1/workbench.css",
         "web/ui/v2/workbench.css"
       ],
-      "lines": 23082,
+      "lines": 23149,
       "dependencies": []
     },
     {
@@ -801,7 +801,7 @@
         "agent/src/omni/core/compress.py",
         "agent/src/omni/core/context.py"
       ],
-      "lines": 515,
+      "lines": 523,
       "dependencies": [
         "models"
       ]
@@ -21631,7 +21631,7 @@
       "path": "agent/src/omni/adapters/persistence/routing_repository.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.persistence.routing_repository",
-      "lines": 300,
+      "lines": 304,
       "imports": [
         "omni.adapters.persistence",
         "omni.adapters.persistence.image_repository",
@@ -71136,12 +71136,12 @@
       "path": "agent/src/omni/core/context.py",
       "module": "prompt-context",
       "python_module": "omni.core.context",
-      "lines": 187,
+      "lines": 195,
       "imports": [],
       "symbols": [
         {
           "name": "system_prompt",
-          "line": 47,
+          "line": 54,
           "kind": "function",
           "parameters": [
             "persona",
@@ -71160,12 +71160,12 @@
         },
         {
           "name": "TurnContext",
-          "line": 85,
+          "line": 93,
           "kind": "class"
         },
         {
           "name": "TurnContext.payload",
-          "line": 93,
+          "line": 101,
           "kind": "function",
           "parameters": [
             "self"
@@ -71174,7 +71174,7 @@
         },
         {
           "name": "TurnContext.attach",
-          "line": 109,
+          "line": 117,
           "kind": "function",
           "parameters": [
             "self",
@@ -71188,7 +71188,7 @@
         },
         {
           "name": "TurnContext.read",
-          "line": 121,
+          "line": 129,
           "kind": "function",
           "parameters": [
             "cls",
@@ -71200,7 +71200,7 @@
         },
         {
           "name": "render_rows",
-          "line": 141,
+          "line": 149,
           "kind": "function",
           "parameters": [
             "rows",
@@ -71215,7 +71215,7 @@
         },
         {
           "name": "reanchor_current_memory",
-          "line": 176,
+          "line": 184,
           "kind": "function",
           "parameters": [
             "messages",
@@ -105834,7 +105834,7 @@
       "path": "web/ui/v2/main.js",
       "module": "v2-workbench",
       "python_module": null,
-      "lines": 1812,
+      "lines": 1854,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -105944,7 +105944,7 @@
       "path": "web/ui/v2/routing.js",
       "module": "v2-workbench",
       "python_module": null,
-      "lines": 185,
+      "lines": 187,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -106044,7 +106044,7 @@
       "path": "web/ui/v2/workbench.css",
       "module": "v2-workbench",
       "python_module": null,
-      "lines": 3223,
+      "lines": 3246,
       "imports": [],
       "symbols": [],
       "kind": "asset",

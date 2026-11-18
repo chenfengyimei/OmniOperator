@@ -1145,6 +1145,29 @@ body[data-ui-page="workbench-v2"] .scaf-toggle {
   font-size: 10px;
   letter-spacing: 0.01em;
 }
+/* 调用过程汇总行：本轮档位 + 输入/输出 token（所有者要求更详细）。
+   与工具行区分：弱底胶囊、不可点击、字号走 caption。 */
+body[data-ui-page="workbench-v2"] .scaf-summary {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 2px 0 4px;
+  padding: 5px 9px;
+  border: 1px solid var(--line-3);
+  border-radius: var(--r-sm);
+  background: color-mix(in oklab, var(--surface-2) 55%, transparent);
+  color: var(--text-2);
+  font-size: var(--fs-caption);
+  line-height: 1.5;
+}
+body[data-ui-page="workbench-v2"] .scaf-summary .material-icons {
+  font-size: 13px;
+  color: var(--accent);
+}
+body[data-ui-page="workbench-v2"] .scaf-summary-text {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
 body[data-ui-page="workbench-v2"] .thinking-indicator {
   display: flex;
   align-items: center;

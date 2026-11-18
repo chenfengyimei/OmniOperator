@@ -38,6 +38,13 @@ GROUP_POLICY = (
     "当前是群聊场景：不注入所有者的个人档案、常驻笔记与其它会话历史。"
     "不要假设自己知道群外信息；涉及私人资料的请求请让用户私下联系。"
 )
+# 输出纪律：调用过程/工具明细已由界面「调用过程」链自动呈现，模型不需要也不应在
+# 正文里复述或引导用户去展开查看（所有者反馈每轮结尾的「展开上方的调用过程…」冗余）。
+OUTPUT_POLICY = (
+    "输出纪律：回答只给用户需要的结论与必要说明。"
+    "工具调用的过程、参数、耗时、token 用量已由界面的「调用过程」自动展示，"
+    "不要在正文里复述这些明细，也不要在结尾添加「展开上方调用过程查看工具名/参数/耗时」之类的引导语。"
+)
 
 # 场景层的注入标题：让人格场景与核心层在提示词里可分辨。
 SCENE_HEADER_GROUP = "【群聊场景】"
@@ -78,6 +85,7 @@ def system_prompt(
     parts.append(MEMORY_POLICY)
     if not include_personal:
         parts.append(GROUP_POLICY)
+    parts.append(OUTPUT_POLICY)
     return "\n\n".join(parts)
 
 

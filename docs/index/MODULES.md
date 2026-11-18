@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`a624ef8562fabf767e18542e1b644086d34b5af84382a2e206118f8d9aa91c2a`。包含 65 个职责模块、792 个源码/界面文件。
+源码指纹：`2dc90ed8ff4074fc330dccad76866d9f0a910f3d974b308414ea20cef6082079`。包含 65 个职责模块、792 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -264,7 +264,7 @@
 | [agent/src/omni/adapters/persistence/repository.py](../../agent/src/omni/adapters/persistence/repository.py) | 1126 | Transaction-scoped repositories. No connection creation, DDL or external calls. |
 | [agent/src/omni/adapters/persistence/repository_base.py](../../agent/src/omni/adapters/persistence/repository_base.py) | 52 | Common transaction-scoped identity, ownership and audit primitives. |
 | [agent/src/omni/adapters/persistence/retention_repository.py](../../agent/src/omni/adapters/persistence/retention_repository.py) | 135 | Context barriers invalidate derived views without deleting original conversations. |
-| [agent/src/omni/adapters/persistence/routing_repository.py](../../agent/src/omni/adapters/persistence/routing_repository.py) | 300 | Scoped immutable tier policies, run choices, promotions and actual tool manifests; no model calls or I/O. |
+| [agent/src/omni/adapters/persistence/routing_repository.py](../../agent/src/omni/adapters/persistence/routing_repository.py) | 304 | Scoped immutable tier policies, run choices, promotions and actual tool manifests; no model calls or I/O. |
 | [agent/src/omni/adapters/persistence/schedule_repository.py](../../agent/src/omni/adapters/persistence/schedule_repository.py) | 434 | Immutable schedule definitions, durable due cursors and atomic occurrence admission. |
 | [agent/src/omni/adapters/persistence/schema.py](../../agent/src/omni/adapters/persistence/schema.py) | 3283 | V2 relational schema. Repositories never issue DDL; migrations use frozen SQL snapshots. |
 | [agent/src/omni/adapters/persistence/schema_upgrade.py](../../agent/src/omni/adapters/persistence/schema_upgrade.py) | 154 | Reviewed migration catalog and transactional upgrades only in a locked, fenced release target. |
@@ -489,7 +489,7 @@
 | [web/ui/v2/extensions.js](../../web/ui/v2/extensions.js) | 656 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/index.html](../../web/ui/v2/index.html) | 1950 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/inspector.js](../../web/ui/v2/inspector.js) | 266 | 原生源码、平台脚本或界面资源 |
-| [web/ui/v2/main.js](../../web/ui/v2/main.js) | 1812 | 原生源码、平台脚本或界面资源 |
+| [web/ui/v2/main.js](../../web/ui/v2/main.js) | 1854 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/maintenance.js](../../web/ui/v2/maintenance.js) | 126 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/mcp.js](../../web/ui/v2/mcp.js) | 362 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/media.js](../../web/ui/v2/media.js) | 426 | 原生源码、平台脚本或界面资源 |
@@ -500,7 +500,7 @@
 | [web/ui/v2/operations.js](../../web/ui/v2/operations.js) | 352 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/people.js](../../web/ui/v2/people.js) | 319 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/qq.js](../../web/ui/v2/qq.js) | 181 | 原生源码、平台脚本或界面资源 |
-| [web/ui/v2/routing.js](../../web/ui/v2/routing.js) | 185 | 原生源码、平台脚本或界面资源 |
+| [web/ui/v2/routing.js](../../web/ui/v2/routing.js) | 187 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/schedules.js](../../web/ui/v2/schedules.js) | 374 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/settings-rail.js](../../web/ui/v2/settings-rail.js) | 100 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/skills.js](../../web/ui/v2/skills.js) | 458 | 原生源码、平台脚本或界面资源 |
@@ -510,7 +510,7 @@
 | [web/ui/v2/v1/components.css](../../web/ui/v2/v1/components.css) | 655 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/v1/frame.css](../../web/ui/v2/v1/frame.css) | 938 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/v1/workbench.css](../../web/ui/v2/v1/workbench.css) | 4451 | 原生源码、平台脚本或界面资源 |
-| [web/ui/v2/workbench.css](../../web/ui/v2/workbench.css) | 3223 | 原生源码、平台脚本或界面资源 |
+| [web/ui/v2/workbench.css](../../web/ui/v2/workbench.css) | 3246 | 原生源码、平台脚本或界面资源 |
 
 文档：[docs/V2_REFACTOR.md](../../docs/V2_REFACTOR.md)
 
@@ -641,7 +641,7 @@
 | 文件 | 行数 | 职责 |
 |---|---:|---|
 | [agent/src/omni/core/compress.py](../../agent/src/omni/core/compress.py) | 328 | 上下文压缩 + 消息不变量（Hermes compression_facade 的最小版，NOTES §1.2）。 |
-| [agent/src/omni/core/context.py](../../agent/src/omni/core/context.py) | 187 | 缓存友好的提示词布局：固定规则在前，每轮快照附于该轮用户正文末尾。 |
+| [agent/src/omni/core/context.py](../../agent/src/omni/core/context.py) | 195 | 缓存友好的提示词布局：固定规则在前，每轮快照附于该轮用户正文末尾。 |
 
 文档：[docs/PROMPT_CONTEXT.md](../../docs/PROMPT_CONTEXT.md)、[docs/ARCHITECTURE.md](../../docs/ARCHITECTURE.md)
 

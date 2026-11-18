@@ -1,7 +1,7 @@
 {
   "batch": "v2-ui-connection-stability-v128",
   "recorded_at": "2026-11-15",
-  "resource_version_final": "20261118v148",
+  "resource_version_final": "20261118v149",
   "v1_alignment": {
     "summary": "用户提供 V1 正式工作台截图后，直接精读 web/ui/workbench.css 的 V1 实现并逐项移植，使 V2 结构与 V1 一致（而非自创风格）。",
     "ported_from_v1": [
@@ -1200,5 +1200,17 @@
     "修复": "icons.css .material-icons 加 font-synthesis:none（含 weight/style 分项）+ font-stretch:100% + font-variant:normal + transform:none 护栏，任何继承环境下图标都以原始字形渲染。",
     "验证": "抗斜体注入测试 PASS（祖先 italic+800 下图标斜率仍 0）、守卫33 passed、全站76/76、精修40/40。",
     "版本": "资源串整体 v147→v148。"
+  },
+  "chain_detail_v149": {
+    "需求": "所有者要求调用过程更详细（显示切换到哪个模式、输入/输出token）；输入框默认档位改自动；去掉每轮结尾「展开上方调用过程…」引导语。",
+    "交付": [
+      "调用链顶部新增 .scaf-summary 汇总行：档位中文标签（聊天/检索/完整）+请求来源+升档标记+输入/输出token；token优先供应商上报真实值，未上报回退本地估算并标注口径",
+      "routing_repository.route_report 补 input_tokens/output_tokens 只读字段（NULL原样交界面显示未知，不补0）",
+      "右栏调用卡补「输入实测/输出实测」两字段",
+      "输入框 #chat-mode 默认选中自动（auto置顶），跟随设置保留为末项",
+      "context.py 新增 OUTPUT_POLICY 禁止模型复述调用过程明细或添加展开引导语（收尾语为模型自发生成，仓库与提示词原无此文案）"
+    ],
+    "验证": "调用明细实测4/4（默认自动/汇总行含档位+真实token180/96/右栏输入输出实测）、核心+UI专项151 passed、提示词/路由/守卫81+36 passed、全站76/76。",
+    "版本": "资源串整体 v148→v149。"
   }
 }
