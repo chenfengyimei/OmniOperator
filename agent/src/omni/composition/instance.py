@@ -337,6 +337,7 @@ async def open_instance(
     android_backend: AndroidPort | None = None,
     capabilities: tuple[Capability, ...] | None = None,
     delegation_enabled: bool | None = None,
+    verify_on_stop: bool = False,
     master_key_file: Path | None = None,
     stderr_only: bool = False,
     process_diagnostics: bool = False,
@@ -645,9 +646,7 @@ async def open_instance(
         )
         review_read_caps = {cap.spec.name: cap for cap in agent_capabilities if cap.spec.name in READ_TOOLS}
 
-        async def review_read(
-            name: str, arguments: Mapping[str, JSON], context: InvocationContext
-        ) -> ActionResult:
+        async def review_read(name: str, arguments: Mapping[str, JSON], context: InvocationContext) -> ActionResult:
             cap = review_read_caps.get(name)
             if cap is None:
                 return ActionResult(Outcome.ERROR, "Unknown read tool", error_code="tool_not_found")
@@ -687,6 +686,7 @@ async def open_instance(
             delegation_enabled=capabilities is None if delegation_enabled is None else delegation_enabled,
             background_review=background_review if capabilities is None else None,
             clarify=ClarifyService(database) if capabilities is None else None,
+            verify_on_stop=verify_on_stop,
             owner_capabilities=(
                 Capability(DESKTOP_ACTION, desktop_actions, desktop_actions.quiescent),
                 Capability(ANDROID_ACTION, android, android.quiescent),

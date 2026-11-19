@@ -31,6 +31,7 @@ from ..domain.settings import agent_settings_value, settings_value
 from ..domain.todos import TODO_LIST
 from ..domain.tool_batch import BatchEntry, plan_tool_batch
 from ..domain.turn_prompt import TurnPrompt, append_runtime_notice
+from ..domain.verification_stop import build_verify_nudge
 from .background_review import BackgroundReviewService
 from .clarify import ClarifyService
 from .context import ContextService
@@ -86,6 +87,7 @@ class Application:
         delegation_enabled: bool = False,
         background_review: BackgroundReviewService | None = None,
         clarify: ClarifyService | None = None,
+        verify_on_stop: bool = False,
     ) -> None:
         self._db, self._calls, self._contexts, self._clock, self._observer = database, calls, contexts, clock, observer
         self._tools = {cap.spec.name: cap for cap in capabilities}
@@ -106,6 +108,7 @@ class Application:
         self._delegation_enabled = delegation_enabled
         self._background_review = background_review
         self._clarify = clarify
+        self._verify_on_stop = verify_on_stop
         self._child_ids: set[str] = set()
         if delegation_enabled and DELEGATE_TASK.name in self._tools:
             raise ValueError("Delegation control name is reserved")
@@ -320,6 +323,7 @@ class Application:
                 messages: list[Record] = cast(list[Record], prepared["request"])
                 notice = str(prepared["notice"])
                 prompt = TurnPrompt.capture(messages, notice + initial_notice + todo_notice)
+                verify_nudges = 0
                 for _step in range(min(32, max(1, int(settings.get("max_steps", 12))))):
                     await self._checkpoint(agent_id, run_id)
                     route = await self._db.read(lambda u: u.run_route(agent_id, run_id))
@@ -345,6 +349,15 @@ class Application:
                             "The model reply degenerated into a repetition loop; usage was recorded and no action was dispatched",
                         )
                     if not reply.calls:
+                        if self._verify_on_stop and not remote:
+                            writes = await self._db.read(lambda u: u.run_applied_writes(agent_id, run_id))
+                            nudge = build_verify_nudge(writes, verify_nudges)
+                            if nudge is not None:
+                                verify_nudges += 1
+                                messages.append({"role": "assistant", "content": reply.text})
+                                messages.append({"role": "user", "content": nudge})
+                                log.debug("Verify-on-stop nudge issued (attempt %d)", verify_nudges)
+                                continue
                         await self._db.write(lambda u: u.finish(agent_id, run_id, reply.text))
                         if measured:
                             measured.result(Outcome.OK)

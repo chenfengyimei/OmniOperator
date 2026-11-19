@@ -1,0 +1,114 @@
+{
+  "schema": 1,
+  "date": "2026-11-19",
+  "base_commit": "52812c127077604da0ac9edc844e89c095ab0249",
+  "status": "verify_on_stop_gate_implemented_scoped_passed",
+  "contract": "docs/v2/contracts/V2_VERIFICATION_STOP.md",
+  "source_files": {
+    "agent/src/omni/domain/verification_stop.py": "222a570aa3a1568d8f8f141eff866bb40e88e3b8dd6342bc697f2825617200e0",
+    "agent/src/omni/adapters/persistence/repository.py": "fd602845245ee1d1858b52f4b030566b012eba1b29badab1375bc25a2d2840f9",
+    "agent/src/omni/application/engine.py": "5a7a74e6cae13489ff1cc5230fbac6439761d7cc304cd16bae78011faab05a40",
+    "agent/src/omni/application/ports.py": "afa4f061fb1f3f912d90d4176b4e496708507435bab6c9e9f788f720904ec7dd",
+    "agent/src/omni/composition/instance.py": "cc9f7487c1e240cd837471d1e302ff97c829e71be2ee6e87429fb690bf089af8",
+    "agent/src/omni/composition/http.py": "649a73e54c01f496cba0c4226665c65bc8e093dd724a654ddce9c878bea8fe06",
+    "agent/tests/v2/core/test_v2_verification_stop.py": "cd1b9379515542bb1499090eb80473a40fc36b34b55f0c91491e26bbea5f3953",
+    "pyrightconfig.strict.json": "cbc4557e7b8ff42017c6c859e38fbfa413e26c49dc7d94aa8d62b8418f559e5b"
+  },
+  "reference": {
+    "repository": "xuexi/hermes-agent",
+    "commit": "9976f4857b72439d79016354d7b6e1a3ee952e2f",
+    "files": {
+      "agent/turn_stop_gates.py": "studied_text_stop_gates_interim_answer_plus_user_nudge_continue_turn_pending_verification_fallback_bounded_attempts",
+      "agent/verification_stop.py": "studied_policy_only_verify_on_stop_nudge_default_off_opt_in_changed_paths_workspace_verification_ledger_max_attempts_2"
+    },
+    "adaptation": "Text-stop gate studied and independently adapted within V2 four layers: the candidate answer is kept as an interim assistant row plus a user-role nudge and the turn continues for a bounded number of attempts, then finishes with the candidate. V2 has no workspace verification ledger, so the evidence source is the persisted per-action receipt verification (actions.result.verification) instead of changed-path/workspace status; model final text and todo checkboxes are never success evidence. Default OFF (opt-in) like the reference. No third-party source copied, no remote fetch or real account/model used"
+  },
+  "delivered": [
+    "Pure domain/verification_stop.py: MAX_VERIFY_NUDGES=2, MAX_NUDGE_TOOLS=8; unverified_writes (applied writes whose receipt verification is blank, ordered/deduped tool names); build_verify_nudge (None when nothing unverified or attempts exhausted; otherwise lists <=8 unverified tools + '... and N more', demands concrete verification/read-back/check, declares final text and task-list checkboxes are NOT success evidence, asks for the concrete blocker when verification is impossible)",
+    "adapters/persistence/repository.py run_applied_writes(agent_id, run_id): read-only query over the existing actions table (writes=1 AND effect='applied', agent+run scoped, order created_at, limit 200) returning {tool, verification} extracted from actions.result JSON; effect=none/error and read-only actions excluded; UnitOfWork port signature added; no new table/migration/event kind",
+    "engine _run natural text-stop gate: after fee settlement and the degenerate guard, when verify_on_stop and not remote, query run_applied_writes -> build_verify_nudge(writes, verify_nudges); non-None appends assistant candidate row + user nudge row and continues (verify_nudges += 1, per-run local); None finishes with reply.text as before. Grace path (K07 budget fallback), owner-command path and remote QQ runs are not gated; writes are never replayed",
+    "Composition wiring: open_instance(verify_on_stop=False) -> Application(verify_on_stop=...); http_app(verify_on_stop=False) -> open_instance gives the production HTTP entry an explicit opt-in enablement path without touching the strict Agent settings KEYS schema",
+    "9 new regressions: domain (verified writes no nudge, unverified listed in order, bounded attempts + tool count + '... and 4 more', dedup/blank ignore); production integration (unverified write earns exactly MAX_VERIFY_NUDGES nudges then finishes with candidate 'done', writer.calls==1 no replay, evidence persisted; verified write finishes with 0 nudges/2 model calls; default OFF finishes immediately; run without writes finishes in 1 call); persistence (run_applied_writes filters effect=none and read-only, extracts verification, isolates by run)"
+  ],
+  "limits": {
+    "max_verify_nudges": 2,
+    "max_nudge_tools": 8,
+    "applied_writes_query_limit": 200,
+    "default_enabled": false,
+    "enablement": "open_instance/http_app verify_on_stop flag (opt-in, like reference default OFF)",
+    "new_table_or_migration": false,
+    "new_event_retention_kind": false,
+    "new_run_state": false,
+    "evidence_source": "persisted actions.result.verification (per-action receipt)",
+    "model_final_text_is_evidence": false,
+    "todo_checkbox_is_evidence": false,
+    "workspace_verification_ledger": false,
+    "lsp_late_verdicts_pre_verify_hook_kanban_guard": false,
+    "subsequent_read_verifies_prior_write": false,
+    "interim_answer_streamed_to_owner": false,
+    "grace_path_gated": false,
+    "remote_qq_gated": false
+  },
+  "validation": {
+    "mode": "development_working_tree_scoped",
+    "frozen_source": null,
+    "scoped_passed": 114,
+    "failed": 0,
+    "seconds": 324.6,
+    "new_nodes": 9,
+    "scope": [
+      "New K11 test_v2_verification_stop.py: 4 domain rule nodes + 4 production integration nodes + 1 persistence node (9 passed, 20.58s)",
+      "Engine finish-path callers on final formatted source: test_v2_execution + test_v2_tool_batch + test_v2_delegation + test_v2_clarify (61 passed, 194.70s)",
+      "Repository/finish neighbors on final formatted source: test_v2_background_review + test_v2_session_search + test_v2_action_review_repository (44 passed, 109.32s)",
+      "test_v2_todos.py: 32 passed, 1 pre-existing background-review race (see pre_existing_failures_not_chased); proven independent of K11 by a gate-bypass experiment"
+    ],
+    "strict": {
+      "config": "pyrightconfig.strict.json",
+      "files": 406,
+      "errors": 0,
+      "warnings": 0,
+      "note": "one new module added to include (405 -> 406); filesAnalyzed == include count; rechecked clean after fixing run_applied_writes Unknown-type cast and after ruff format on final source"
+    },
+    "ruff": "domain/verification_stop, repository, ports, engine, instance, http and test_v2_verification_stop lint passed; 3 files reformatted then K11 nodes re-run green on final source",
+    "project_index": "scripts/project_index.py rerun after adding one source module and one test (modules=65 files=822 routes=454 declared_tools=94); index regenerated after staging so the new tracked module is included",
+    "full_suite_executed": false,
+    "real_model_account_device_native_or_72h_executed": false,
+    "current_windows_service_or_database_touched": false
+  },
+  "retained_first_failures": [
+    {
+      "phase": "integration-initial",
+      "reason": "4 integration tests failed with TypeError: object NoneType can't be used in 'await' expression — maintenance.stop_accepting() is synchronous. Removed the await on both call sites; 9/9 then passed."
+    },
+    {
+      "phase": "strict-initial",
+      "reason": "2 errors in run_applied_writes: row['result'] is Unknown, so isinstance(result, dict) narrows to dict[Unknown, Unknown] and .get('verification') is partially unknown. Fixed by cast(Record, result).get('verification') and str(row['tool']); final strict 406 clean."
+    }
+  ],
+  "pre_existing_failures_not_chased": [
+    {
+      "tests": [
+        "test_v2_todos.py::test_runtime_restart_reinjects_active_plan_only_into_its_own_session"
+      ],
+      "reason": "This test opens a production instance (capabilities=None) without stopping background review, so after the run finishes the K08 background reviewer/curator calls the same instance model again and Resume.calls becomes 2 before the assertion (expects 1). Proven independent of K11: temporarily bypassing the verify-on-stop gate (if False and ...) still fails identically, and the gate is default OFF/inert for this path. Latent test-isolation race since K08 enabled background review for production instances; not chased per scoped discipline (another module's test, out of K11 scope)."
+    },
+    {
+      "tests": [
+        "test_v2_memory_semantics_migration.py::test_v33_upgrade_keeps_memory_models_and_unknown_cost_without_inventing_vectors[False/True]",
+        "test_v2_routing_migration.py::test_populated_v32_upgrade_backfills_honest_baseline_and_preserves_unknown",
+        "test_v2_skills_migration.py::test_v34_upgrade_does_not_invent_skill_grants_or_lose_unknown_cost[False/True]"
+      ],
+      "reason": "Carried-forward pre-existing debt documented in v2-clarify.json and v2-background-review.json: these upgrade tests pin database.schema_version to the head when written (v2_0039) and lag HEAD (v2_0044). K11 adds no migration and changes no table count, so this debt is unchanged; not re-run or chased in K11."
+    }
+  ],
+  "whole_core_parity_complete": false,
+  "whole_reference_feature_audit_complete": false,
+  "whole_v2_complete": false,
+  "not_executed": [
+    "Full offline suite for current source",
+    "Real accounts/models/devices/native desktop and 72h soak",
+    "Current Windows service restart/database upgrade",
+    "macOS/Linux actual native build or run"
+  ],
+  "next": "K12 explicit model fault recovery/fallback: keep fixed authorized model, timeout/cancel and unknown cost attribution; design explicit authorization and budget contract before any retry/fallback, never swap account/model or replay unknown calls. Do not redo K03-K11"
+}

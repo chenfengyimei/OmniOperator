@@ -150,17 +150,27 @@
     {
       "id": "K11",
       "title": "停止前验核",
-      "status": "not_implemented",
-      "remaining": "通用verify-on-stop gate；已有结构化动作回执保持，模型完成文本和清单勾选均不作成功证据",
-      "reference": "hermes-agent/agent/turn_stop_gates.py",
-      "next": true
+      "status": "implemented_scoped_passed",
+      "acceptance": [
+        "模型自然文本停止时，本run已应用写动作回执缺verification则追加有界nudge续跑，次数用尽以候选答案收尾",
+        "唯一成功证据为持久化动作回执verification；模型最终文本与清单勾选均不作证据",
+        "effect=none/只读动作不计入、run/Agent隔离、写不重放；grace/所有者命令/远程QQ不套gate",
+        "域规则/只读证据查询/engine停止点/composition与HTTP opt-in启用通道接线，默认OFF"
+      ],
+      "reference": "hermes-agent/agent/turn_stop_gates.py; agent/verification_stop.py",
+      "delivered": "domain/verification_stop.py纯规则MAX_VERIFY_NUDGES=2/MAX_NUDGE_TOOLS=8、unverified_writes(回执verification空白者按序去重)、build_verify_nudge(无未验证或次数用尽返None，否则列<=8工具+'... and N more'、要求具体验证并声明文本/清单非证据)；repository.run_applied_writes只读查既有actions(writes=1且effect=applied、agent+run隔离、created_at序、limit200、从result提取verification)，UnitOfWork端口同步；engine._run自然停止点(not reply.calls，费用结算与退化守卫后)当verify_on_stop且not remote查证据→nudge非None则追加assistant候选行+user nudge行continue(verify_nudges局部+1)，None照旧finish；grace/owner_command/remote不套gate、写不重放；open_instance与http_app透传verify_on_stop=False显式opt-in(不改Agent设置KEYS schema)；无新表/迁移/事件种类/run状态",
+      "contract": "docs/v2/contracts/V2_VERIFICATION_STOP.md",
+      "evidence": "docs/evidence/v2-verification-stop.json",
+      "limits": "默认OFF(opt-in与参考一致)，由open_instance/http_app开关驱动未接Agent设置严格schema；证据用逐动作回执verification非参考工作区验证账本；参考LSP迟到verdict/pre_verify插件钩子/kanban终止守卫未对等；后续独立读动作不回溯认定先前写已验证；无interim答案流式对外发射；既有test_v2_todos重启节点为K08后台评审与断言竞态(经gate旁路实验确证与K11无关)及5个pin v2_0039旧迁移测试保留不追",
+      "next": false
     },
     {
       "id": "K12",
       "title": "显式模型故障恢复策略",
       "status": "partial",
       "remaining": "现有固定模型、超时/取消及unknown结算保持；补经过授权/预算约束的有界恢复，禁止擅换账号/模型和未知重试",
-      "reference": "hermes-agent/agent/conversation_loop.py; agent/empty_response_guard.py"
+      "reference": "hermes-agent/agent/conversation_loop.py; agent/empty_response_guard.py",
+      "next": true
     },
     {
       "id": "K13",
@@ -241,6 +251,10 @@
     {
       "id": "K10",
       "evidence": "docs/evidence/v2-clarify.json"
+    },
+    {
+      "id": "K11",
+      "evidence": "docs/evidence/v2-verification-stop.json"
     }
   ]
 }

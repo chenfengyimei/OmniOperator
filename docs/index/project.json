@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "ac99c4dcb72eefc919e59d3c8b2681eead817bbb264bf92822bc1ca49bb9489b",
+  "source_sha256": "fb6dd1d8b1e1701ba94a42d7e5d7f467b98b450007f9985641d5e7736c141254",
   "modules": [
     {
       "id": "v2-domain",
@@ -83,9 +83,10 @@
         "agent/src/omni/domain/terminals.py",
         "agent/src/omni/domain/todos.py",
         "agent/src/omni/domain/tool_batch.py",
-        "agent/src/omni/domain/turn_prompt.py"
+        "agent/src/omni/domain/turn_prompt.py",
+        "agent/src/omni/domain/verification_stop.py"
       ],
-      "lines": 11499,
+      "lines": 11565,
       "dependencies": []
     },
     {
@@ -154,7 +155,7 @@
         "agent/src/omni/application/terminals.py",
         "agent/src/omni/application/todos.py"
       ],
-      "lines": 13065,
+      "lines": 13079,
       "dependencies": [
         "v2-domain"
       ]
@@ -488,7 +489,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 67856,
+      "lines": 67882,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -523,7 +524,7 @@
         "agent/src/omni/composition/service_runner.py",
         "agent/src/omni/composition/serving.py"
       ],
-      "lines": 3187,
+      "lines": 3189,
       "dependencies": [
         "v2-adapters",
         "v2-application",
@@ -21811,7 +21812,7 @@
       "path": "agent/src/omni/adapters/persistence/repository.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.persistence.repository",
-      "lines": 1130,
+      "lines": 1156,
       "imports": [
         "omni.adapters.persistence",
         "omni.adapters.persistence.action_review_repository",
@@ -22410,7 +22411,7 @@
           }
         },
         {
-          "name": "Repositories.cancel",
+          "name": "Repositories.run_applied_writes",
           "line": 902,
           "kind": "function",
           "parameters": [
@@ -22424,8 +22425,22 @@
           }
         },
         {
+          "name": "Repositories.cancel",
+          "line": 928,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "agent_id",
+            "run_id"
+          ],
+          "annotations": {
+            "agent_id": "str",
+            "run_id": "str"
+          }
+        },
+        {
           "name": "Repositories.cancel_approvals",
-          "line": 929,
+          "line": 955,
           "kind": "function",
           "parameters": [
             "self"
@@ -22434,7 +22449,7 @@
         },
         {
           "name": "Repositories.close_run_actions",
-          "line": 946,
+          "line": 972,
           "kind": "function",
           "parameters": [
             "self",
@@ -22448,7 +22463,7 @@
         },
         {
           "name": "Repositories.recover",
-          "line": 993,
+          "line": 1019,
           "kind": "function",
           "parameters": [
             "self"
@@ -22457,7 +22472,7 @@
         },
         {
           "name": "Repositories.query",
-          "line": 1094,
+          "line": 1120,
           "kind": "function",
           "parameters": [
             "self",
@@ -49381,7 +49396,7 @@
       "path": "agent/src/omni/application/engine.py",
       "module": "v2-application",
       "python_module": "omni.application.engine",
-      "lines": 1022,
+      "lines": 1035,
       "imports": [
         "omni.application.background_review",
         "omni.application.clarify",
@@ -49401,22 +49416,23 @@
         "omni.domain.settings",
         "omni.domain.todos",
         "omni.domain.tool_batch",
-        "omni.domain.turn_prompt"
+        "omni.domain.turn_prompt",
+        "omni.domain.verification_stop"
       ],
       "symbols": [
         {
           "name": "Capability",
-          "line": 57,
+          "line": 58,
           "kind": "class"
         },
         {
           "name": "Application",
-          "line": 63,
+          "line": 64,
           "kind": "class"
         },
         {
           "name": "Application.__init__",
-          "line": 66,
+          "line": 67,
           "kind": "function",
           "parameters": [
             "self",
@@ -49439,7 +49455,8 @@
             "todos",
             "delegation_enabled",
             "background_review",
-            "clarify"
+            "clarify",
+            "verify_on_stop"
           ],
           "annotations": {
             "database": "DatabasePort",
@@ -49461,12 +49478,13 @@
             "todos": "TodoService | None",
             "delegation_enabled": "bool",
             "background_review": "BackgroundReviewService | None",
-            "clarify": "ClarifyService | None"
+            "clarify": "ClarifyService | None",
+            "verify_on_stop": "bool"
           }
         },
         {
           "name": "Application.start",
-          "line": 126,
+          "line": 129,
           "kind": "function",
           "parameters": [
             "self"
@@ -49475,7 +49493,7 @@
         },
         {
           "name": "Application.submit_turn",
-          "line": 136,
+          "line": 139,
           "kind": "function",
           "parameters": [
             "self",
@@ -49499,7 +49517,7 @@
         },
         {
           "name": "Application.notify",
-          "line": 164,
+          "line": 167,
           "kind": "function",
           "parameters": [
             "self"
@@ -49508,7 +49526,7 @@
         },
         {
           "name": "Application.action_review_blockers",
-          "line": 167,
+          "line": 170,
           "kind": "function",
           "parameters": [
             "self",
@@ -49520,7 +49538,7 @@
         },
         {
           "name": "Application._dispatch",
-          "line": 191,
+          "line": 194,
           "kind": "function",
           "parameters": [
             "self"
@@ -49529,7 +49547,7 @@
         },
         {
           "name": "Application._completed",
-          "line": 230,
+          "line": 233,
           "kind": "function",
           "parameters": [
             "self",
@@ -49541,7 +49559,7 @@
         },
         {
           "name": "Application._trigger_review",
-          "line": 243,
+          "line": 246,
           "kind": "function",
           "parameters": [
             "self",
@@ -49559,7 +49577,7 @@
         },
         {
           "name": "Application._run",
-          "line": 247,
+          "line": 250,
           "kind": "function",
           "parameters": [
             "self",
@@ -49577,7 +49595,7 @@
         },
         {
           "name": "Application._delegate",
-          "line": 451,
+          "line": 464,
           "kind": "function",
           "parameters": [
             "self",
@@ -49593,7 +49611,7 @@
         },
         {
           "name": "Application._cancel_join_children",
-          "line": 507,
+          "line": 520,
           "kind": "function",
           "parameters": [
             "self",
@@ -49607,7 +49625,7 @@
         },
         {
           "name": "Application._cancel_join_children.cancel",
-          "line": 508,
+          "line": 521,
           "kind": "function",
           "parameters": [
             "u"
@@ -49618,7 +49636,7 @@
         },
         {
           "name": "Application.delegations",
-          "line": 530,
+          "line": 543,
           "kind": "function",
           "parameters": [
             "self",
@@ -49632,7 +49650,7 @@
         },
         {
           "name": "Application.delegations.read",
-          "line": 531,
+          "line": 544,
           "kind": "function",
           "parameters": [
             "u"
@@ -49643,7 +49661,7 @@
         },
         {
           "name": "Application._todo_notice",
-          "line": 538,
+          "line": 551,
           "kind": "function",
           "parameters": [
             "self",
@@ -49659,7 +49677,7 @@
         },
         {
           "name": "Application.session_todos",
-          "line": 545,
+          "line": 558,
           "kind": "function",
           "parameters": [
             "self",
@@ -49673,7 +49691,7 @@
         },
         {
           "name": "Application._end_error",
-          "line": 548,
+          "line": 561,
           "kind": "function",
           "parameters": [
             "self",
@@ -49691,7 +49709,7 @@
         },
         {
           "name": "Application._end_error.end",
-          "line": 549,
+          "line": 562,
           "kind": "function",
           "parameters": [
             "u"
@@ -49702,7 +49720,7 @@
         },
         {
           "name": "Application._revision",
-          "line": 566,
+          "line": 579,
           "kind": "function",
           "parameters": [
             "value"
@@ -49713,7 +49731,7 @@
         },
         {
           "name": "Application._checkpoint",
-          "line": 571,
+          "line": 584,
           "kind": "function",
           "parameters": [
             "self",
@@ -49727,7 +49745,7 @@
         },
         {
           "name": "Application._clarify_wait",
-          "line": 577,
+          "line": 590,
           "kind": "function",
           "parameters": [
             "self",
@@ -49745,7 +49763,7 @@
         },
         {
           "name": "Application._batch_entry",
-          "line": 618,
+          "line": 631,
           "kind": "function",
           "parameters": [
             "self",
@@ -49763,7 +49781,7 @@
         },
         {
           "name": "Application._dispatch_call",
-          "line": 644,
+          "line": 657,
           "kind": "function",
           "parameters": [
             "self",
@@ -49789,7 +49807,7 @@
         },
         {
           "name": "Application._execute_parallel",
-          "line": 709,
+          "line": 722,
           "kind": "function",
           "parameters": [
             "self",
@@ -49809,7 +49827,7 @@
         },
         {
           "name": "Application._execute",
-          "line": 733,
+          "line": 746,
           "kind": "function",
           "parameters": [
             "self",
@@ -49831,7 +49849,7 @@
         },
         {
           "name": "Application.query",
-          "line": 806,
+          "line": 819,
           "kind": "function",
           "parameters": [
             "self",
@@ -49850,7 +49868,7 @@
         },
         {
           "name": "Application.settings",
-          "line": 811,
+          "line": 824,
           "kind": "function",
           "parameters": [
             "self",
@@ -49862,7 +49880,7 @@
         },
         {
           "name": "Application.get_agent",
-          "line": 814,
+          "line": 827,
           "kind": "function",
           "parameters": [
             "self",
@@ -49874,7 +49892,7 @@
         },
         {
           "name": "Application.create_agent",
-          "line": 817,
+          "line": 830,
           "kind": "function",
           "parameters": [
             "self",
@@ -49886,7 +49904,7 @@
         },
         {
           "name": "Application.create_agent.create",
-          "line": 822,
+          "line": 835,
           "kind": "function",
           "parameters": [
             "uow"
@@ -49897,7 +49915,7 @@
         },
         {
           "name": "Application.rename_agent",
-          "line": 833,
+          "line": 846,
           "kind": "function",
           "parameters": [
             "self",
@@ -49913,7 +49931,7 @@
         },
         {
           "name": "Application.history",
-          "line": 839,
+          "line": 852,
           "kind": "function",
           "parameters": [
             "self",
@@ -49933,7 +49951,7 @@
         },
         {
           "name": "Application.save_settings",
-          "line": 846,
+          "line": 859,
           "kind": "function",
           "parameters": [
             "self",
@@ -49949,7 +49967,7 @@
         },
         {
           "name": "Application.run_configuration",
-          "line": 852,
+          "line": 865,
           "kind": "function",
           "parameters": [
             "self",
@@ -49963,7 +49981,7 @@
         },
         {
           "name": "Application.get_run",
-          "line": 855,
+          "line": 868,
           "kind": "function",
           "parameters": [
             "self",
@@ -49977,7 +49995,7 @@
         },
         {
           "name": "Application.live_output",
-          "line": 858,
+          "line": 871,
           "kind": "function",
           "parameters": [
             "self",
@@ -49991,7 +50009,7 @@
         },
         {
           "name": "Application.pin_run",
-          "line": 861,
+          "line": 874,
           "kind": "function",
           "parameters": [
             "self",
@@ -50009,7 +50027,7 @@
         },
         {
           "name": "Application.run_retention",
-          "line": 864,
+          "line": 877,
           "kind": "function",
           "parameters": [
             "self",
@@ -50023,7 +50041,7 @@
         },
         {
           "name": "Application.audit_retention_preview",
-          "line": 867,
+          "line": 880,
           "kind": "function",
           "parameters": [
             "self",
@@ -50041,7 +50059,7 @@
         },
         {
           "name": "Application.event_retention_preview",
-          "line": 874,
+          "line": 887,
           "kind": "function",
           "parameters": [
             "self",
@@ -50059,7 +50077,7 @@
         },
         {
           "name": "Application.messages",
-          "line": 881,
+          "line": 894,
           "kind": "function",
           "parameters": [
             "self",
@@ -50073,7 +50091,7 @@
         },
         {
           "name": "Application.approvals",
-          "line": 887,
+          "line": 900,
           "kind": "function",
           "parameters": [
             "self",
@@ -50085,7 +50103,7 @@
         },
         {
           "name": "Application.approve",
-          "line": 890,
+          "line": 903,
           "kind": "function",
           "parameters": [
             "self",
@@ -50103,7 +50121,7 @@
         },
         {
           "name": "Application.clarifications",
-          "line": 893,
+          "line": 906,
           "kind": "function",
           "parameters": [
             "self",
@@ -50115,7 +50133,7 @@
         },
         {
           "name": "Application.respond_clarify",
-          "line": 898,
+          "line": 911,
           "kind": "function",
           "parameters": [
             "self",
@@ -50135,7 +50153,7 @@
         },
         {
           "name": "Application.cancel_clarify",
-          "line": 905,
+          "line": 918,
           "kind": "function",
           "parameters": [
             "self",
@@ -50153,7 +50171,7 @@
         },
         {
           "name": "Application.cancel",
-          "line": 910,
+          "line": 923,
           "kind": "function",
           "parameters": [
             "self",
@@ -50167,7 +50185,7 @@
         },
         {
           "name": "Application.cancel.cancel",
-          "line": 911,
+          "line": 924,
           "kind": "function",
           "parameters": [
             "u"
@@ -50178,7 +50196,7 @@
         },
         {
           "name": "Application.remember",
-          "line": 923,
+          "line": 936,
           "kind": "function",
           "parameters": [
             "self",
@@ -50200,7 +50218,7 @@
         },
         {
           "name": "Application.forget",
-          "line": 944,
+          "line": 957,
           "kind": "function",
           "parameters": [
             "self",
@@ -50216,7 +50234,7 @@
         },
         {
           "name": "Application.context",
-          "line": 947,
+          "line": 960,
           "kind": "function",
           "parameters": [
             "self",
@@ -50230,7 +50248,7 @@
         },
         {
           "name": "Application.context_report",
-          "line": 950,
+          "line": 963,
           "kind": "function",
           "parameters": [
             "self",
@@ -50244,7 +50262,7 @@
         },
         {
           "name": "Application.context_report.read",
-          "line": 951,
+          "line": 964,
           "kind": "function",
           "parameters": [
             "u"
@@ -50255,7 +50273,7 @@
         },
         {
           "name": "Application.session_context_overview",
-          "line": 959,
+          "line": 972,
           "kind": "function",
           "parameters": [
             "self",
@@ -50269,7 +50287,7 @@
         },
         {
           "name": "Application.summary",
-          "line": 962,
+          "line": 975,
           "kind": "function",
           "parameters": [
             "self",
@@ -50283,7 +50301,7 @@
         },
         {
           "name": "Application.erase_message",
-          "line": 965,
+          "line": 978,
           "kind": "function",
           "parameters": [
             "self",
@@ -50297,7 +50315,7 @@
         },
         {
           "name": "Application.search_memory",
-          "line": 968,
+          "line": 981,
           "kind": "function",
           "parameters": [
             "self",
@@ -50311,7 +50329,7 @@
         },
         {
           "name": "Application.health",
-          "line": 973,
+          "line": 986,
           "kind": "function",
           "parameters": [
             "self"
@@ -50320,7 +50338,7 @@
         },
         {
           "name": "Application.stop_accepting",
-          "line": 982,
+          "line": 995,
           "kind": "function",
           "parameters": [
             "self"
@@ -50329,7 +50347,7 @@
         },
         {
           "name": "Application.close",
-          "line": 986,
+          "line": 999,
           "kind": "function",
           "parameters": [
             "self",
@@ -54616,7 +54634,7 @@
       "path": "agent/src/omni/application/ports.py",
       "module": "v2-application",
       "python_module": "omni.application.ports",
-      "lines": 1050,
+      "lines": 1051,
       "imports": [
         "omni.domain.contracts",
         "omni.domain.delivery",
@@ -62974,8 +62992,22 @@
           }
         },
         {
-          "name": "UnitOfWork.remember",
+          "name": "UnitOfWork.run_applied_writes",
           "line": 999,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "agent_id",
+            "run_id"
+          ],
+          "annotations": {
+            "agent_id": "str",
+            "run_id": "str"
+          }
+        },
+        {
+          "name": "UnitOfWork.remember",
+          "line": 1000,
           "kind": "function",
           "parameters": [
             "self",
@@ -63007,7 +63039,7 @@
         },
         {
           "name": "UnitOfWork.forget",
-          "line": 1014,
+          "line": 1015,
           "kind": "function",
           "parameters": [
             "self",
@@ -63023,7 +63055,7 @@
         },
         {
           "name": "UnitOfWork.search_memory",
-          "line": 1015,
+          "line": 1016,
           "kind": "function",
           "parameters": [
             "self",
@@ -63041,7 +63073,7 @@
         },
         {
           "name": "UnitOfWork.memory_semantic_capture",
-          "line": 1018,
+          "line": 1019,
           "kind": "function",
           "parameters": [
             "self",
@@ -63057,7 +63089,7 @@
         },
         {
           "name": "UnitOfWork.memory_index_audit",
-          "line": 1019,
+          "line": 1020,
           "kind": "function",
           "parameters": [
             "self",
@@ -63075,7 +63107,7 @@
         },
         {
           "name": "UnitOfWork.memory_index_page",
-          "line": 1020,
+          "line": 1021,
           "kind": "function",
           "parameters": [
             "self",
@@ -63091,7 +63123,7 @@
         },
         {
           "name": "UnitOfWork.memory_embedding_begin",
-          "line": 1021,
+          "line": 1022,
           "kind": "function",
           "parameters": [
             "self",
@@ -63109,7 +63141,7 @@
         },
         {
           "name": "UnitOfWork.memory_embedding_finish",
-          "line": 1022,
+          "line": 1023,
           "kind": "function",
           "parameters": [
             "self",
@@ -63127,7 +63159,7 @@
         },
         {
           "name": "UnitOfWork.memory_vector_candidates",
-          "line": 1025,
+          "line": 1026,
           "kind": "function",
           "parameters": [
             "self",
@@ -63143,7 +63175,7 @@
         },
         {
           "name": "UnitOfWork.memory_recall_validate",
-          "line": 1026,
+          "line": 1027,
           "kind": "function",
           "parameters": [
             "self",
@@ -63159,7 +63191,7 @@
         },
         {
           "name": "UnitOfWork.memory_semantic_replay",
-          "line": 1027,
+          "line": 1028,
           "kind": "function",
           "parameters": [
             "self",
@@ -63173,7 +63205,7 @@
         },
         {
           "name": "UnitOfWork.memory_semantic_propose",
-          "line": 1028,
+          "line": 1029,
           "kind": "function",
           "parameters": [
             "self",
@@ -63191,7 +63223,7 @@
         },
         {
           "name": "UnitOfWork.memory_semantic_get",
-          "line": 1029,
+          "line": 1030,
           "kind": "function",
           "parameters": [
             "self",
@@ -63207,7 +63239,7 @@
         },
         {
           "name": "UnitOfWork.memory_semantic_page",
-          "line": 1030,
+          "line": 1031,
           "kind": "function",
           "parameters": [
             "self",
@@ -63223,7 +63255,7 @@
         },
         {
           "name": "UnitOfWork.memory_semantic_decide",
-          "line": 1031,
+          "line": 1032,
           "kind": "function",
           "parameters": [
             "self",
@@ -63241,7 +63273,7 @@
         },
         {
           "name": "UnitOfWork.cancel_approvals",
-          "line": 1032,
+          "line": 1033,
           "kind": "function",
           "parameters": [
             "self"
@@ -63250,7 +63282,7 @@
         },
         {
           "name": "UnitOfWork.close_run_actions",
-          "line": 1033,
+          "line": 1034,
           "kind": "function",
           "parameters": [
             "self",
@@ -63264,7 +63296,7 @@
         },
         {
           "name": "UnitOfWork.query",
-          "line": 1034,
+          "line": 1035,
           "kind": "function",
           "parameters": [
             "self",
@@ -63283,7 +63315,7 @@
         },
         {
           "name": "UnitOfWork.audit",
-          "line": 1035,
+          "line": 1036,
           "kind": "function",
           "parameters": [
             "self",
@@ -63301,23 +63333,11 @@
         },
         {
           "name": "DatabasePort",
-          "line": 1038,
+          "line": 1039,
           "kind": "class"
         },
         {
           "name": "DatabasePort.write",
-          "line": 1039,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "operation"
-          ],
-          "annotations": {
-            "operation": "Callable[[UnitOfWork], T]"
-          }
-        },
-        {
-          "name": "DatabasePort.read",
           "line": 1040,
           "kind": "function",
           "parameters": [
@@ -63329,8 +63349,20 @@
           }
         },
         {
-          "name": "DatabasePort.close",
+          "name": "DatabasePort.read",
           "line": 1041,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "operation"
+          ],
+          "annotations": {
+            "operation": "Callable[[UnitOfWork], T]"
+          }
+        },
+        {
+          "name": "DatabasePort.close",
+          "line": 1042,
           "kind": "function",
           "parameters": [
             "self"
@@ -63339,12 +63371,12 @@
         },
         {
           "name": "SpanReport",
-          "line": 1044,
+          "line": 1045,
           "kind": "class"
         },
         {
           "name": "SpanReport.result",
-          "line": 1045,
+          "line": 1046,
           "kind": "function",
           "parameters": [
             "self",
@@ -63356,12 +63388,12 @@
         },
         {
           "name": "Observer",
-          "line": 1048,
+          "line": 1049,
           "kind": "class"
         },
         {
           "name": "Observer.context",
-          "line": 1049,
+          "line": 1050,
           "kind": "function",
           "parameters": [
             "self",
@@ -63371,7 +63403,7 @@
         },
         {
           "name": "Observer.span",
-          "line": 1050,
+          "line": 1051,
           "kind": "function",
           "parameters": [
             "self",
@@ -71581,7 +71613,7 @@
       "path": "agent/src/omni/composition/http.py",
       "module": "v2-composition",
       "python_module": "omni.composition.http",
-      "lines": 244,
+      "lines": 246,
       "imports": [
         "omni.adapters.http",
         "omni.adapters.log_query",
@@ -71629,7 +71661,8 @@
             "portal_backend",
             "control_backend",
             "deployment",
-            "shutdown"
+            "shutdown",
+            "verify_on_stop"
           ],
           "annotations": {
             "home": "Path | None",
@@ -71653,12 +71686,13 @@
             "portal_backend": "DesktopPortalPort | None",
             "control_backend": "DesktopControlPort | None",
             "deployment": "Record | None",
-            "shutdown": "Callable[[], None] | None"
+            "shutdown": "Callable[[], None] | None",
+            "verify_on_stop": "bool"
           }
         },
         {
           "name": "http_app.factory",
-          "line": 74,
+          "line": 75,
           "kind": "function",
           "parameters": [],
           "annotations": {}
@@ -71914,6 +71948,7 @@
             "android_backend",
             "capabilities",
             "delegation_enabled",
+            "verify_on_stop",
             "master_key_file",
             "stderr_only",
             "process_diagnostics",
@@ -71939,6 +71974,7 @@
             "android_backend": "AndroidPort | None",
             "capabilities": "tuple[Capability, ...] | None",
             "delegation_enabled": "bool | None",
+            "verify_on_stop": "bool",
             "master_key_file": "Path | None",
             "stderr_only": "bool",
             "process_diagnostics": "bool",
@@ -83629,6 +83665,55 @@
         }
       ],
       "summary": "Freeze one run's system prefix; publish changed runtime guidance in the message tail."
+    },
+    {
+      "path": "agent/src/omni/domain/verification_stop.py",
+      "module": "v2-domain",
+      "python_module": "omni.domain.verification_stop",
+      "lines": 66,
+      "imports": [
+        "omni.domain.contracts"
+      ],
+      "symbols": [
+        {
+          "name": "_verification",
+          "line": 20,
+          "kind": "function",
+          "parameters": [
+            "entry"
+          ],
+          "annotations": {
+            "entry": "Mapping[str, JSON]"
+          }
+        },
+        {
+          "name": "unverified_writes",
+          "line": 25,
+          "kind": "function",
+          "parameters": [
+            "writes"
+          ],
+          "annotations": {
+            "writes": "Sequence[Mapping[str, JSON]]"
+          }
+        },
+        {
+          "name": "build_verify_nudge",
+          "line": 38,
+          "kind": "function",
+          "parameters": [
+            "writes",
+            "attempts",
+            "max_attempts"
+          ],
+          "annotations": {
+            "writes": "Sequence[Mapping[str, JSON]]",
+            "attempts": "int",
+            "max_attempts": "int"
+          }
+        }
+      ],
+      "summary": "Pure rules for the verify-on-stop gate: applied writes without verification evidence."
     },
     {
       "path": "agent/src/omni/llm/__init__.py",

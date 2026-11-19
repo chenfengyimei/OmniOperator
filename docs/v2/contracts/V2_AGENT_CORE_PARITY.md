@@ -2,7 +2,7 @@
 
 ## 结论与范围
 
-2026-11-18 实读源码核对：**V2 有可运行的共享 Agent 内核，但尚未完整对标 `xuexi/` 的参考功能，不能宣称内核或整个 V2 开发完成。** 此前补上运行中系统前缀冻结、普通回包工具协议校验和空回复失败结算；随后 K03 补修订化会话任务清单、K04 补单层父子 run 委派、K05 补模型批次工具并行、K06 补 run 内工具上下文压缩、K07 补重复退化守卫与预算内收敛 grace、K08 补回合后 reviewer/curator 后台学习（待审建议进现有审核撤回链）、K09 补模型侧历史会话检索（四形态只读工具、原文锚点、分页/大小限额、Agent/会话隔离与删除屏障）、K10 补结构化澄清与当前 run 暂停续跑（复用 waiting_approval、响应/取消/超时、CAS 与不可变证据）。停止前验核、模型故障恢复等仍有明确源码缺口。
+2026-11-18 实读源码核对：**V2 有可运行的共享 Agent 内核，但尚未完整对标 `xuexi/` 的参考功能，不能宣称内核或整个 V2 开发完成。** 此前补上运行中系统前缀冻结、普通回包工具协议校验和空回复失败结算；随后 K03 补修订化会话任务清单、K04 补单层父子 run 委派、K05 补模型批次工具并行、K06 补 run 内工具上下文压缩、K07 补重复退化守卫与预算内收敛 grace、K08 补回合后 reviewer/curator 后台学习（待审建议进现有审核撤回链）、K09 补模型侧历史会话检索（四形态只读工具、原文锚点、分页/大小限额、Agent/会话隔离与删除屏障）、K10 补结构化澄清与当前 run 暂停续跑（复用 waiting_approval、响应/取消/超时、CAS 与不可变证据）、K11 补停止前验核（通用 verify-on-stop gate，证据用既有动作回执 verification，模型文本与清单勾选不作证据，默认 OFF 有界 nudge）。模型故障恢复等仍有明确源码缺口。
 
 本表是当前已核对范围，不是七个参考仓库全部 API 的穷尽验收。参考仓库位于忽略目录，不随主仓 Git 迁移；下面固定版本、[任务清单](../../tasks/v2-agent-core-parity.json)与[证据](../../evidence/v2-agent-core-parity.json)随主仓保存。阅读旧 `xuexi/NOTES.md` 后仍以固定版本实际代码为准，不把 V1 的实现当作 V2 已有功能。
 
@@ -41,7 +41,7 @@
 | 回合后学习/整理 | **K08 已接生产回合后 reviewer/curator 后台链**，见 [回合后学习合同](V2_BACKGROUND_REVIEW.md)；另有显式记忆整理（memory_organization 不调模型）与技能修订入口 | 后台批次持有/独立预算/只读+记忆技能白名单/证据锚点/待审输出/关闭与撤回已实现；建议经现有 remember/forget 与技能审核撤回链应用，来源不直接变授权；无 prompt-cache parity fork 与 aux 模型路由 |
 | 历史会话检索 | 所有者历史分页/审计接口已有；**K09 已接模型侧 session_search 四形态只读工具**：`domain/session_search.py`、`application/session_search.py`、`session_search_repository.py`，见 [历史检索合同](V2_SESSION_SEARCH.md) | Agent/会话隔离、原文锚点（message_id/session_id/seq）、分页/大小限额与删除屏障（deleted_at+context_floor_seq）已实现，不等同 memory_search；V2 无 messages FTS，discover 用有界 token LIKE+按会话分组，非参考 FTS5/bm25/lineage/跨 profile/时间界全集 |
 | 澄清与主动纠偏 | 普通用户追加消息已有；**K10 已接结构化 clarify 当前 run 暂停与续跑**：`domain/clarify.py`、`application/clarify.py`、`clarify_repository.py`、engine `_clarify_wait`，见 [澄清合同](V2_CLARIFY.md) | 1–5 结构化问题、复用 waiting_approval 暂停态、同一 run 响应/取消/超时续跑、revision/policy CAS、run 取消清理与不可变证据已实现；排队新回合不算当前回合继续。显式用户 steering 完整合同、多平台 UI 回调与委派限制仍非参考全集对等 |
-| 停止前验核 | 外部动作已有结构化 outcome/effect/verification，unknown 不当成功 | **缺通用 verify-on-stop gate**：模型最终文本不能代替工具验证或清单验收 |
+| 停止前验核 | 外部动作已有结构化 outcome/effect/verification，unknown 不当成功；**K11 已接通用的 verify-on-stop gate**：`domain/verification_stop.py`、`repository.run_applied_writes`、engine 自然停止点，见 [停止前验核合同](V2_VERIFICATION_STOP.md) | 模型自然文本停止时，本 run 已应用写动作回执缺 verification 则追加有界 nudge（≤2）续跑、次数用尽以候选答案收尾；唯一证据为持久化动作回执 verification，模型最终文本与清单勾选均不作证据；默认 OFF（opt-in），无新表/迁移；参考工作区验证账本/LSP/pre_verify 钩子/kanban 守卫未对等 |
 | 模型故障恢复/切换 | 已有超时/取消、固定授权模型、已送达未知费用归属；适配器关闭自动重试 | Hermes 的重试、模型/provider fallback 未完整对等。先设计显式授权与预算合同，不能擅换账号、模型或重复未知调用 |
 | 文件、Shell、浏览器与扩展 | 已有：`composition/capabilities.py`、workers、extensions/MCP | 工具存在不等于参考所有工具组/API 一致；浏览器高级交互、代码沙箱、渠道/供应商全集逐项盘点仍待完成 |
 | 定时任务与投递 | 已有 schedules、work_items、outbox 与审批/限额/恢复链 | Hermes cron 的技能绑定、任务输出依赖等变体需逐项盘点；surfcore 的完整自主作息/动机不应标已完成 |
@@ -67,6 +67,6 @@
 
 ## 后续顺序和完成条件
 
-K03 修订化任务清单、K04 单层有界父子 run 委派、K05 模型批次工具并行、K06 run 内工具上下文压缩、K07 重复退化守卫与预算内收敛 grace、K08 回合后 reviewer/curator 后台学习、K09 模型侧历史会话检索和 K10 结构化澄清与当前 run 暂停续跑已实现。下一步按 [K11…任务](../../tasks/v2-agent-core-parity.json)推进停止前验核，再做模型故障恢复。委派子批并行、K05 工具批次并行、K06 run 内压缩、K07 迭代守卫与 K08 回合后评审是不同链路，各自合同独立。顺序中的授权/持久化合同应先于执行接线；任务记录和审计文档不是相应功能的实现。
+K03 修订化任务清单、K04 单层有界父子 run 委派、K05 模型批次工具并行、K06 run 内工具上下文压缩、K07 重复退化守卫与预算内收敛 grace、K08 回合后 reviewer/curator 后台学习、K09 模型侧历史会话检索、K10 结构化澄清与当前 run 暂停续跑和 K11 停止前验核已实现。下一步按 [K12…任务](../../tasks/v2-agent-core-parity.json)推进显式模型故障恢复。委派子批并行、K05 工具批次并行、K06 run 内压缩、K07 迭代守卫、K08 回合后评审与 K11 停止前验核是不同链路，各自合同独立。顺序中的授权/持久化合同应先于执行接线；任务记录和审计文档不是相应功能的实现。
 
 每项需有生产工具/用例/组装链、持久来源与资源归属、错误/取消/删除行为、受影响调用方专项和可复查证据；仅有类、提示词或空工具名称不算完成。所有领域参考功能也需核完后才能关闭总对标任务。开发中局部测试，整个 V2 开发冻结后统一全量，真实模型、设备、各平台和 72 小时分别验收。当前总任务保持未完成。

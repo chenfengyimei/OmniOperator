@@ -70,6 +70,7 @@ def http_app(
     control_backend: DesktopControlPort | None = None,
     deployment: Record | None = None,
     shutdown: Callable[[], None] | None = None,
+    verify_on_stop: bool = False,
 ):
     async def factory() -> HttpRuntime:
         drain_deadline: float | None = None
@@ -94,6 +95,7 @@ def http_app(
             portal_backend=portal_backend,
             control_backend=control_backend,
             deployment=deployment,
+            verify_on_stop=verify_on_stop,
         )
         try:
             token_path = instance.paths.control / "owner.token"

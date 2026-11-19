@@ -899,6 +899,32 @@ class Repositories(
             raise BusinessError("not_found", "Action does not exist in this Agent space", status=404)
         return dict(row)
 
+    def run_applied_writes(self, agent_id: str, run_id: str) -> list[Record]:
+        rows = (
+            self.connection.execute(
+                select(s.actions.c.tool, s.actions.c.result)
+                .where(
+                    s.actions.c.agent_id == agent_id,
+                    s.actions.c.run_id == run_id,
+                    s.actions.c.writes.is_(True),
+                    s.actions.c.effect == "applied",
+                )
+                .order_by(s.actions.c.created_at)
+                .limit(200)
+            )
+            .mappings()
+            .all()
+        )
+        evidence: list[Record] = []
+        for row in rows:
+            result = row["result"]
+            verification = ""
+            if isinstance(result, dict):
+                raw = cast(Record, result).get("verification")
+                verification = raw if isinstance(raw, str) else ""
+            evidence.append(cast(Record, {"tool": str(row["tool"]), "verification": verification}))
+        return evidence
+
     def cancel(self, agent_id: str, run_id: str) -> None:
         for child_id in self.delegation_children(agent_id, run_id):
             self.cancel(agent_id, child_id)

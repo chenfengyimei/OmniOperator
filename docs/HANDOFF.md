@@ -3,7 +3,7 @@
 ## 当前状态与工作方式
 
 - 开发分支 `v2`，跟踪 `origin/v2`。默认入口是 V2，显式 V1 回退保留。
-- 当前工作：目录整理已完成；按 [Agent 内核与学习项目对标](v2/contracts/V2_AGENT_CORE_PARITY.md)持续补齐。K03 [修订化任务清单](v2/contracts/V2_TODOS.md)、K04 [单层父子 run 委派](v2/contracts/V2_DELEGATION.md)、K05 [模型批次工具并行](v2/contracts/V2_TOOL_BATCH.md)、K06 [run 内工具上下文压缩](v2/contracts/V2_RUN_COMPACTION.md)、K07 [迭代守卫与预算收敛](v2/contracts/V2_ITERATION_GUARD.md)、K08 [回合后 reviewer/curator 后台学习](v2/contracts/V2_BACKGROUND_REVIEW.md)、K09 [模型侧历史会话检索](v2/contracts/V2_SESSION_SEARCH.md)、K10 [结构化澄清与当前 run 暂停续跑](v2/contracts/V2_CLARIFY.md)已接生产；下一项 K11 停止前验核仍未实现。
+- 当前工作：目录整理已完成；按 [Agent 内核与学习项目对标](v2/contracts/V2_AGENT_CORE_PARITY.md)持续补齐。K03 [修订化任务清单](v2/contracts/V2_TODOS.md)、K04 [单层父子 run 委派](v2/contracts/V2_DELEGATION.md)、K05 [模型批次工具并行](v2/contracts/V2_TOOL_BATCH.md)、K06 [run 内工具上下文压缩](v2/contracts/V2_RUN_COMPACTION.md)、K07 [迭代守卫与预算收敛](v2/contracts/V2_ITERATION_GUARD.md)、K08 [回合后 reviewer/curator 后台学习](v2/contracts/V2_BACKGROUND_REVIEW.md)、K09 [模型侧历史会话检索](v2/contracts/V2_SESSION_SEARCH.md)、K10 [结构化澄清与当前 run 暂停续跑](v2/contracts/V2_CLARIFY.md)、K11 [停止前验核](v2/contracts/V2_VERIFICATION_STOP.md)已接生产；下一项 K12 显式模型故障恢复仍未实现。
 - Windows 主体开发及旧离线候选已完成；当前源码未统一全量，整个 V2 仍在开发。真实账号/模型质量/设备、干净机器及 72 小时验收分别待办。
 - Mac mini 为 Apple Silicon，所有者提供 macOS 27，实际版本在 Mac 用 `sw_vers` 核对。Mac 做主开发机，现有 Windows 保留运行和原生验收环境，两端同步同一分支。
 - 当前 Windows 服务、实例、凭据和其他会话的 `PPT/`、`docs/competition/` 保留。根 `src`/`tests` 是本机兼容联接，正式代码与测试分别在 `agent/src`、`agent/tests`。
@@ -58,11 +58,15 @@ K10 已接结构化澄清与当前 run 暂停续跑：纯领域 `domain/clarify.
 
 本批新增 13 项回归（5 领域 + 8 生产集成/迁移），最终源码 259 项专项/守卫全过（305.34 秒），覆盖 K10、架构/迁移同步、执行/FIFO/审批/取消、K05 串行屏障、routing 档位、内核/生命周期、事件保留合同、14 处表计数迁移、清单/候选门/目录/入口守卫、K08 后台学习、K06 压缩、K07 迭代守卫、执行裁剪与动作审核执行。V2 strict 405 文件零错误/警告（新增 domain/application/repository 三文件，402→405，格式化后复核干净）；Ruff/格式与项目索引通过（modules=65 files=821 routes=454）。首轮 JSON 列 None→JSON null 违反 pending CHECK（省略 answers 列修正）、invalid-args 测试误用暂停夹具、超时测试时钟推进快于租约续期致 flaky（降至 60s/s 稳定 3/3）、20 处 strict（重复 JSON 导入、跨 mixin 方法 cast(UnitOfWork,self)、递归 JSON 别名 cast、answers 类型放宽）均已修正并在最终源码重跑绿。既有 5 个 pin `v2_0039` 旧版本升级迁移测试（v33/v32/v34）在 K10 之前即滞后（与 K10 无关，K10 仅正确同步其表计数 140→141），保留为既有失败不追。未全量、未真实模型/原生/72 小时验收，未动运行中服务与数据库。详见 [澄清证据](evidence/v2-clarify.json)。
 
-下一批推进 G6.core_parity / K11 停止前验核：参考 `xuexi/hermes-agent/agent/turn_stop_gates.py`，补通用 verify-on-stop gate；已有结构化动作 outcome/effect/verification 保持，模型完成文本和清单勾选均不作成功证据。之后继续 K12 模型故障恢复及后续任务，其他对标项不提前关闭。
+K11 已接停止前验核（通用 verify-on-stop gate）：纯领域 `domain/verification_stop.py` 提供 `MAX_VERIFY_NUDGES=2`/`MAX_NUDGE_TOOLS=8`、`unverified_writes`（回执 verification 空白者按序去重）与 `build_verify_nudge`（无未验证或次数用尽返 None，否则列 ≤8 工具 + 「... and N more」、要求具体验证并声明最终文本与清单勾选非成功证据）。**唯一证据源是持久化动作回执 `actions.result.verification`**：`repository.run_applied_writes` 只读查既有 actions（writes=1 且 effect=applied、agent+run 隔离、created_at 序、limit 200），effect=none/只读不计入。`engine._run` 在自然文本停止点（`not reply.calls`，费用结算与退化守卫后）当 `verify_on_stop and not remote` 查证据→nudge 非 None 则追加 assistant 候选行 + user nudge 行 `continue`（per-run 局部计数 +1），None 照旧 `finish(reply.text)`；grace（K07 预算 fallback）/所有者命令/远程 QQ 不套 gate，写绝不重放。`open_instance`/`http_app` 透传 `verify_on_stop=False` 显式 opt-in（与参考默认 OFF 一致，不改 Agent 设置 KEYS schema）。无新表/迁移/事件保留种类/run 状态。
+
+本批新增 9 项回归（4 领域 + 4 生产集成 + 1 持久化），最终源码 114 项专项全过（324.60 秒：K11 9 + 执行/批次/委派/澄清 61 + 后台学习/历史检索/动作审核 44），另 test_v2_todos 32 过 1 既有竞态。V2 strict 406 文件零错误/警告（新增 domain/verification_stop.py，405→406，filesAnalyzed==include，修正 run_applied_writes Unknown cast 与格式化后复核干净）；Ruff/格式与项目索引通过（modules=65 files=822 routes=454 declared_tools=94）。首轮 `stop_accepting()` 误 await（同步方法）与 2 处 strict（row['result'] Unknown→cast(Record)）均已修正并在最终源码重跑绿。既有 `test_v2_todos::test_runtime_restart_reinjects_active_plan_only_into_its_own_session` 为 K08 后台评审与断言竞态（生产实例未停后台评审，finish 后 reviewer 再调模型致 Resume.calls=2），经 gate 旁路实验确证与 K11 无关（默认 OFF 惰性），保留不追；5 个 pin `v2_0039` 旧迁移测试沿用既有债务（K11 无迁移/表计数改动）。未全量、未真实模型/原生/72 小时验收，未动运行中服务与数据库。详见 [停止前验核证据](evidence/v2-verification-stop.json)。
+
+下一批推进 G6.core_parity / K12 显式模型故障恢复：参考 `xuexi/hermes-agent/agent/conversation_loop.py`、`agent/empty_response_guard.py`，现有固定授权模型、超时/取消与 unknown 费用归属保持，补经过授权/预算约束的有界恢复，禁止擅换账号/模型和未知调用重放。之后继续 K13… 参考全集审计，其他对标项不提前关闭。
 
 K03 新增 34 项回归；首轮冻结源码 114 项集成专项通过（182.82 秒），收尾补强 Agent 禁用检查后最终 34 项清单/HTTP 模块专项通过（39.09 秒），另 7 项目录/状态守卫通过。最终 391 文件 strict 零错误/警告，Ruff 与格式检查通过，未全量。每轮源码指纹与失败均保留，不把首轮结果写为最终源码全量。此前 K01/K02 批 `c4e205d8` 的结果见 [固定证据](evidence/v2-agent-core-parity.json)。测试只用隔离数据库与冻结源码，当前 Windows 服务和真实数据库未停止或由测试升级。
 
-会话级缓存稳定、run 内工具压缩、停止前验核和回合后学习仍待实现；未全量、未真实模型效果验收。
+会话级缓存稳定与显式模型故障恢复仍待实现（run 内工具压缩 K06、回合后学习 K08、停止前验核 K11 已接）；未全量、未真实模型效果验收。
 
 目录迁移、专项和打包已完成；Mac 接手还需实际编译 Swift/C，再推进 G5 平台/交付，G3 Linux、G4 Wayland 缺口继续按任务推进。G7 统一全量与最终实机验收留整个 V2 开发冻结后。
 
