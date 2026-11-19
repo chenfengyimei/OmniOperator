@@ -629,6 +629,38 @@ class Repositories(
             )["id"],
         )
 
+    def _call_route(self, agent_id: str, call_id: str) -> Record | None:
+        return (
+            self.connection.execute(
+                select(s.model_call_routes.c.ordinal, s.model_call_routes.c.mode).where(
+                    s.model_call_routes.c.call_id == call_id,
+                    s.model_call_routes.c.agent_id == agent_id,
+                )
+            )
+            .mappings()
+            .first()
+        )
+
+    def begin_call(self, agent_id: str, call_id: str) -> None:
+        """实时调用链：主对话调用在请求发出前落「模型调用第 N 步 · 调用中」事件。
+
+        摘要/预检调用不发，避免扰乱工具链；与 settle_call 的 completed 事件按 call_id 配对。
+        """
+        call = self._one(s.model_calls, agent_id, call_id)
+        if call["purpose"] != "turn":
+            return
+        route = self._call_route(agent_id, call_id)
+        self.event(
+            agent_id,
+            cast(str, call["run_id"]),
+            "model.started",
+            {
+                "call_id": call_id,
+                "step": int(route["ordinal"]) if route else None,
+                "mode": str(route["mode"]) if route else None,
+            },
+        )
+
     def settle_call(
         self, agent_id: str, call_id: str, reply: ModelReply | None, *, known_not_sent: bool = False
     ) -> None:
@@ -668,16 +700,7 @@ class Repositories(
         # 调用链可视化（对齐 V1 model_end）：主对话调用落「模型调用第 N 步」事件，
         # 带档位、返回字数与上报 token；摘要/预检调用不发，不扰乱工具链。
         if call["purpose"] == "turn" and not known_not_sent:
-            route = (
-                self.connection.execute(
-                    select(s.model_call_routes.c.ordinal, s.model_call_routes.c.mode).where(
-                        s.model_call_routes.c.call_id == call_id,
-                        s.model_call_routes.c.agent_id == agent_id,
-                    )
-                )
-                .mappings()
-                .first()
-            )
+            route = self._call_route(agent_id, call_id)
             self.event(
                 agent_id,
                 cast(str, call["run_id"]),
@@ -826,6 +849,8 @@ class Repositories(
             update(s.actions).where(s.actions.c.id == action_id).values(state="executing", started_at=self.clock.now())
         )
         self.audit(agent_id, "action.executing", action_id, {"tool": action["tool"]})
+        # 实时调用链：执行开始即落事件，运行中界面能看到「正在执行」的工具行。
+        self.event(agent_id, cast(str, action["run_id"]), "action.executing", {"action_id": action_id})
         return action
 
     def extension_dispatch(self, agent_id: str, run_id: str, action_id: str, name: str) -> Record:

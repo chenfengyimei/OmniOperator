@@ -1,7 +1,7 @@
 {
   "batch": "v2-ui-connection-stability-v128",
   "recorded_at": "2026-11-15",
-  "resource_version_final": "20261119v161",
+  "resource_version_final": "20261119v162",
   "v1_alignment": {
     "summary": "用户提供 V1 正式工作台截图后，直接精读 web/ui/workbench.css 的 V1 实现并逐项移植，使 V2 结构与 V1 一致（而非自创风格）。",
     "ported_from_v1": [
@@ -1366,6 +1366,22 @@
       "复测": "旋转盒13x13单字形,截图小转圈正常",
       "专项": "26 passed(V1运行页+V2模型页+守卫24+新契约2)",
       "版本": "V1 u6/V2 v161"
+    }
+  },
+  "live_chain_realtime": {
+    "问题": "运行中调用链空壳:模型/工具事件原先只在结算时落库,运行中事件流仅queued/routing/running,用户看不到执行到哪一步",
+    "交付": [
+      "model.started事件:主对话调用请求发出前落库(begin_call,register同阶段),摘要/预检不发",
+      "action.executing事件:authorize_action执行开始即落库",
+      "事件白名单10→12,契约测试同步",
+      "前端started/completed按call_id配对,completed原位替换run行(修复started先到被当重复跳过致终态不升级)",
+      "工具行运行中显示正在执行/排队中;空事件期占位提示;图标字体就绪后再渲染+字形限尺寸"
+    ],
+    "验证": {
+      "实测": "8/8(2.5s见模型步调用中;运行中见工具行;完成后token/耗时/Markdown;容器结束移除;零报错)",
+      "专项": "115 passed(契约/事件流/内核/恢复/完整性90+保留HTTP/UI/流前端/守卫25)",
+      "截图": "live-chain-running.png/live-chain-tool.png/live-chain-final.png",
+      "版本": "V2 v162"
     }
   }
 }

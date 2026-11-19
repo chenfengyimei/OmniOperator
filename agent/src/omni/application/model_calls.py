@@ -155,6 +155,9 @@ class ModelCalls:
                 )
 
             await self._db.write(register)
+            # 实时调用链：请求发出前先落「调用中」事件，界面运行中即可见当前模型步。
+            if not reserved_id:
+                await self._db.write(lambda u: u.begin_call(agent_id, identity))
             if not self.fits(estimate, settings, summary=bool(reserved_id)):
                 raise BusinessError(
                     "token_budget_exceeded", "Input, output and safety margin exceed the declared model capacity"

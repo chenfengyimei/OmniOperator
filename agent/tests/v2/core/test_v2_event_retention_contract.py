@@ -103,7 +103,7 @@ from omni_test_support.v2.event_retention_contract import (
 )
 
 
-def test_policy_and_ten_event_kinds_are_exact_and_do_not_inherit_audit_subject_semantics():
+def test_policy_and_twelve_event_kinds_are_exact_and_do_not_inherit_audit_subject_semantics():
     assert EVENT_DAYS == 180 and POLICY == "agent-event-retention-v1"
     assert FORMAT == "omni-event-retention-preview-1" and PLAN_FORMAT == "omni-event-retention-plan-1"
     assert KINDS == frozenset(
@@ -116,11 +116,13 @@ def test_policy_and_ten_event_kinds_are_exact_and_do_not_inherit_audit_subject_s
             "run.failed",
             "run.cancelled",
             "action.prepared",
+            "action.executing",
             "action.completed",
+            "model.started",
             "model.completed",
         }
     )
-    assert isinstance(KINDS, frozenset) and len(KINDS) == 10
+    assert isinstance(KINDS, frozenset) and len(KINDS) == 12
     for kind in KINDS:
         plan = make_plan(1)
         plan["targets"][0]["kind"] = kind

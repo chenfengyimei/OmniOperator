@@ -1,32 +1,32 @@
-import { mountSkills } from './skills.js?v=20261119v161';
-import { mountCredentials } from './credentials.js?v=20261119v161';
-import { mountAuditHistory, mountOperations } from './operations.js?v=20261119v161';
-import { mountCapabilities } from './capabilities.js?v=20261119v161';
-import { mountTokens } from './tokens.js?v=20261119v161';
-import { mountDocuments } from './documents.js?v=20261119v161';
-import { mountConfiguration } from './configuration.js?v=20261119v161';
-import { mountModels } from './models.js?v=20261119v161';
+import { mountSkills } from './skills.js?v=20261119v162';
+import { mountCredentials } from './credentials.js?v=20261119v162';
+import { mountAuditHistory, mountOperations } from './operations.js?v=20261119v162';
+import { mountCapabilities } from './capabilities.js?v=20261119v162';
+import { mountTokens } from './tokens.js?v=20261119v162';
+import { mountDocuments } from './documents.js?v=20261119v162';
+import { mountConfiguration } from './configuration.js?v=20261119v162';
+import { mountModels } from './models.js?v=20261119v162';
 import { ask } from '../dialog.js?v=20261103v7';
-import { mountPeople } from './people.js?v=20261119v161';
-import { mountDeliveries } from './deliveries.js?v=20261119v161';
-import { mountSchedules } from './schedules.js?v=20261119v161';
-import { mountMemorySemantics } from './memory-semantics.js?v=20261119v161';
-import { mountMemoryOrganization } from './memory-organization.js?v=20261119v161';
-import { mountExtensions } from './extensions.js?v=20261119v161';
-import { mountActionReviews } from './action-reviews.js?v=20261119v161';
-import { mountTerminals } from './terminals.js?v=20261119v161';
-import { mountDesktop } from './desktop.js?v=20261119v161';
-import { mountQQ } from './qq.js?v=20261119v161';
-import { mountBilibili } from './bilibili.js?v=20261119v161';
-import { mountMedia } from './media.js?v=20261119v161';
-import { mountMcp } from './mcp.js?v=20261119v161';
-import { mountAndroid } from './android.js?v=20261119v161';
-import { mountModelOutput } from './model-output.js?v=20261119v161';
-import { mountRouting } from './routing.js?v=20261119v161';
-import { mountChatImages } from './chat-images.js?v=20261119v161';
-import { mountInspector } from './inspector.js?v=20261119v161';
-import { mountSettingsRail } from './settings-rail.js?v=20261119v161';
-import { mountEventStream } from './event-stream.js?v=20261119v161';
+import { mountPeople } from './people.js?v=20261119v162';
+import { mountDeliveries } from './deliveries.js?v=20261119v162';
+import { mountSchedules } from './schedules.js?v=20261119v162';
+import { mountMemorySemantics } from './memory-semantics.js?v=20261119v162';
+import { mountMemoryOrganization } from './memory-organization.js?v=20261119v162';
+import { mountExtensions } from './extensions.js?v=20261119v162';
+import { mountActionReviews } from './action-reviews.js?v=20261119v162';
+import { mountTerminals } from './terminals.js?v=20261119v162';
+import { mountDesktop } from './desktop.js?v=20261119v162';
+import { mountQQ } from './qq.js?v=20261119v162';
+import { mountBilibili } from './bilibili.js?v=20261119v162';
+import { mountMedia } from './media.js?v=20261119v162';
+import { mountMcp } from './mcp.js?v=20261119v162';
+import { mountAndroid } from './android.js?v=20261119v162';
+import { mountModelOutput } from './model-output.js?v=20261119v162';
+import { mountRouting } from './routing.js?v=20261119v162';
+import { mountChatImages } from './chat-images.js?v=20261119v162';
+import { mountInspector } from './inspector.js?v=20261119v162';
+import { mountSettingsRail } from './settings-rail.js?v=20261119v162';
+import { mountEventStream } from './event-stream.js?v=20261119v162';
 // 直接复用 V1 的 rail 提示浮层模块（data-tip → #tip-layer），不自创实现
 import '../app/tips.js?v=20261103u6';
 
@@ -398,9 +398,13 @@ function renderToolBlock(node, trace) {
   if (!trace) return;
   const rows = (trace.tools || []).slice().sort((a, b) => (a.seq || 0) - (b.seq || 0));
   const completed = new Map();
+  const startedModels = new Map();
+  const executing = new Set();
   for (const row of rows) {
     const data = typeof row.data === 'object' && row.data ? row.data : {};
     if (String(row.kind) === 'action.completed' && data.action_id) completed.set(String(data.action_id), row);
+    if (String(row.kind) === 'model.started' && data.call_id) startedModels.set(String(data.call_id), data);
+    if (String(row.kind) === 'action.executing' && data.action_id) executing.add(String(data.action_id));
   }
   const prepared = rows.filter((row) => String(row.kind) === 'action.prepared');
   const modelRows = rows.filter((row) => String(row.kind) === 'model.completed');
@@ -410,8 +414,11 @@ function renderToolBlock(node, trace) {
     const name = row.tool || data.tool;
     if (name) names.add(String(name));
   }
-  // 无工具也无模型步就不挂链（纯聊天首句等），避免空壳
-  if (!prepared.length && !modelRows.length) return;
+  // 无工具也无模型步就不挂链（纯聊天首句等），避免空壳；运行中先清旧链防残留
+  if (!prepared.length && !modelRows.length && !startedModels.size) {
+    node.querySelector('.scaffolds')?.remove();
+    return;
+  }
 
   // 实时重建：保留展开状态，移除旧链再建（运行中逐步刷新用）
   const old = node.querySelector('.scaffolds');
@@ -433,7 +440,8 @@ function renderToolBlock(node, trace) {
   tName.textContent = '调用过程';
   const tMeta = document.createElement('span');
   tMeta.className = 'scaf-toggle-meta';
-  tMeta.textContent = `· ${prepared.length} 步${names.size ? ` · ${names.size} 个工具` : ''}`;
+  const stepCount = Math.max(modelRows.length, startedModels.size) + prepared.length;
+  tMeta.textContent = `· ${stepCount} 步${names.size ? ` · ${names.size} 个工具` : ''}`;
   const chev = document.createElement('span');
   chev.className = 'chev';
   const chevIcon = document.createElement('span');
@@ -489,22 +497,36 @@ function renderToolBlock(node, trace) {
     unknown: ['fail', 'help'],
   };
   // 按事件顺序交织渲染「模型调用步」与「工具步」，对齐 V1 逐步可读。
-  const ordered = rows.filter((r) => ['action.prepared', 'model.completed'].includes(String(r.kind)));
+  const ordered = rows.filter((r) => ['action.prepared', 'model.completed', 'model.started'].includes(String(r.kind)));
+  const modelItems = new Map();
   let stepNo = 0;
   for (const row of ordered.slice(0, 60)) {
     const data = typeof row.data === 'object' && row.data ? row.data : {};
-    if (String(row.kind) === 'model.completed') {
-      stepNo += 1;
-      const mode = MODE_LABEL[data.mode] || data.mode || '';
-      const label = `模型调用第 ${data.step ?? stepNo} 步`;
-      const tok =
-        typeof data.input_tokens === 'number' || typeof data.output_tokens === 'number'
-          ? ` · 入 ${data.input_tokens ?? '?'} / 出 ${data.output_tokens ?? '?'} token`
-          : '';
-      const arg = `返回 ${data.text_chars ?? 0} 字${mode ? ` · ${mode}` : ''}${tok}`;
-      const item = scafRow('done', 'smart_toy', label, arg, '', false);
-      item.dataset.key = `m${data.call_id || stepNo}`;
-      box.append(item);
+    if (String(row.kind) === 'model.completed' || String(row.kind) === 'model.started') {
+      const key = String(data.call_id || '');
+      // started 先到、completed 后到：completed 原位替换 run 行，终态才能升级。
+      if (modelItems.has(key) && String(row.kind) !== 'model.completed') continue;
+      if (!modelItems.has(key)) stepNo += 1;
+      const begin = startedModels.get(key);
+      const finished = String(row.kind) === 'model.completed';
+      const mode = MODE_LABEL[data.mode || begin?.mode] || data.mode || begin?.mode || '';
+      const label = `模型调用第 ${data.step ?? begin?.step ?? stepNo} 步`;
+      let arg;
+      if (finished) {
+        const tok =
+          typeof data.input_tokens === 'number' || typeof data.output_tokens === 'number'
+            ? ` · 入 ${data.input_tokens ?? '?'} / 出 ${data.output_tokens ?? '?'} token`
+            : '';
+        arg = `返回 ${data.text_chars ?? 0} 字${mode ? ` · ${mode}` : ''}${tok}`;
+      } else {
+        arg = `调用中…${mode ? ` · ${mode}` : ''}`;
+      }
+      const item = scafRow(finished ? 'done' : 'run', finished ? 'smart_toy' : 'autorenew', label, arg, '', false);
+      item.dataset.key = `m${key || stepNo}`;
+      const prev = modelItems.get(key);
+      if (prev) prev.replaceWith(item);
+      else box.append(item);
+      modelItems.set(key, item);
       continue;
     }
     const done = data.action_id ? completed.get(String(data.action_id)) : null;
@@ -520,7 +542,8 @@ function renderToolBlock(node, trace) {
     const toolName = String(row.tool || data.tool || 'tool').replace(/^(tool|action)\./, '');
     const isMemory = /(^|\.)(remember|resident_memory|memory_(add|write|save|update))$/.test(toolName);
     // 入参摘录直接上链（对齐 V1），不再只显示「只读/需审批」
-    const argText = String(data.args_excerpt || (data.requires_approval ? '写动作 · 需审批' : ''));
+    const runArg = data.action_id && executing.has(String(data.action_id)) ? '正在执行…' : '排队中…';
+    const argText = String(data.args_excerpt || (data.requires_approval ? '写动作 · 需审批' : runArg));
     const item = scafRow(
       `${done ? cls : 'run'}${isMemory && done && cls === 'done' ? ' legend' : ''}`,
       isMemory ? 'auto_awesome' : done ? icon : 'autorenew',
@@ -869,15 +892,26 @@ function setThinking(active) {
   const live = document.createElement('div');
   live.id = 'live-chain';
   live.dataset.role = 'assistant';
+  const hint = document.createElement('div');
+  hint.className = 'live-chain-hint';
+  hint.textContent = '调用链将随执行逐步显示：模型调用、工具与耗时。';
+  live.append(hint);
   node.append(live);
   node.scrollTop = node.scrollHeight;
 }
 async function renderLiveChain(runId) {
   const host = document.getElementById('live-chain');
   if (!host || !runId) return;
+  // 图标字体未就绪时连字不生效，会把图标名显示成原文；等字体加载完再渲染。
+  try {
+    await document.fonts.load('13px "Material Icons"');
+  } catch {
+    // 字体加载失败不阻断链展示
+  }
   const trace = await loadRunTrace(runId, { fresh: true });
   if (!document.getElementById('live-chain')) return;
   renderToolBlock(host, trace);
+  if (host.querySelector('.scaffolds')) host.querySelector('.live-chain-hint')?.remove();
 }
 function renderMessages(items) {
   const boundAgent = agent,

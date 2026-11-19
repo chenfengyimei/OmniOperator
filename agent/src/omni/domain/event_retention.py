@@ -27,7 +27,9 @@ KINDS = frozenset(
         "run.failed",
         "run.cancelled",
         "action.prepared",
+        "action.executing",
         "action.completed",
+        "model.started",
         "model.completed",
     }
 )

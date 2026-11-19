@@ -3475,11 +3475,17 @@ body[data-ui-page="workbench-v2"] .material-icons.spin {
 }
 /* 防御：个别字形若不在 bundled 字体里，图标名会按原文排成长条，
    旋转时就是「半透明长方形在转」（所有者截图取证）。旋转图标限尺寸+裁剪。 */
-body[data-ui-page="workbench-v2"] .scaf.run .scaf-glyph .material-icons,
+body[data-ui-page="workbench-v2"] .scaf-glyph .material-icons,
 body[data-ui-page="workbench-v2"] .material-icons.spin {
   max-width: 1em;
   max-height: 1em;
   overflow: hidden;
+}
+/* 实时链空态占位：运行初期尚无事件时告知用户链会逐步出现 */
+body[data-ui-page="workbench-v2"] .live-chain-hint {
+  padding: 2px 0 0 26px;
+  font-size: var(--fs-caption);
+  color: var(--text-4);
 }
 body[data-ui-page="workbench-v2"] button.is-busy {
   opacity: 0.75;
