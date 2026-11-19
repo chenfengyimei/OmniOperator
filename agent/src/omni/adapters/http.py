@@ -252,6 +252,7 @@ class MediaJobInput(StrictInput):
     compute_type: Literal["int8", "float16", "float32"] = "int8"
     count: int = Field(default=6, ge=1, le=12, strict=True)
     width: int = Field(default=640, ge=320, le=1280, strict=True)
+    timestamps: list[float] | None = Field(default=None, max_length=12)
 
 
 class MediaUploadSourceInput(StrictInput):
@@ -860,6 +861,10 @@ def create_app(factory: Callable[[], Awaitable[HttpRuntime]], *, allowed_origins
             params = {"model": data.model, "device": data.device, "compute_type": data.compute_type}
         if data.operation == "frames":
             params = {"count": data.count, "width": data.width}
+            if data.timestamps is not None:
+                params = cast(
+                    Record, {"count": len(data.timestamps), "width": data.width, "timestamps": data.timestamps}
+                )
         return await media_service(request).submit(str(agent_id), str(source_id), data.operation, params)
 
     @router.get("/agents/{agent_id}/media/sources/{source_id}/jobs")

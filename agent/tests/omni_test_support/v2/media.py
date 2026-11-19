@@ -149,7 +149,7 @@ class FakeProcessor:
         output.write_bytes(transcript_payload("asr", "zh", [[0.0, 2.5, "你好世界"], [2.5, 4.0, "第二句锚点"]]))
         return {"ok": True, "language": "zh"}
 
-    async def frames(self, video, sheet_output, count, width):
+    async def frames(self, video, sheet_output, count, width, timestamps=None):
         self.calls.append(("frames", count, width))
         if self.hang:
             await asyncio.sleep(60)
@@ -157,12 +157,13 @@ class FakeProcessor:
             raise self.failure
         content = sheet_png(width, width * 9 // 16)
         sheet_output.write_bytes(content)
+        anchors = list(timestamps) if timestamps is not None else [round(index * 10.0, 1) for index in range(count)]
         return {
             "ok": True,
             "frame_count": count,
             "width": width,
             "height": width * 9 // 16,
-            "timestamps": [round(index * 10.0, 1) for index in range(count)],
+            "timestamps": anchors,
             "sha256": hashlib.sha256(content).hexdigest(),
             "bytes": len(content),
         }

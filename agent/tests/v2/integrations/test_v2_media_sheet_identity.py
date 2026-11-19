@@ -82,8 +82,8 @@ def test_real_image_verification_blocks_false_frame_metadata_and_new_job_can_suc
     class Processor(FakeProcessor):
         wrong = True
 
-        async def frames(self, video, sheet_output, count, width):
-            result = await super().frames(video, sheet_output, count, width)
+        async def frames(self, video, sheet_output, count, width, timestamps=None):
+            result = await super().frames(video, sheet_output, count, width, timestamps)
             if self.wrong and case in {"width", "height"}:
                 result[case] += 1
             elif self.wrong:

@@ -1,0 +1,116 @@
+{
+  "schema": 1,
+  "date": "2026-11-19",
+  "base_commit": "624413eb3cc9a372b825cf30ab900d426e935093",
+  "status": "implemented_scoped_passed",
+  "batch": "K16.zoom_foundation",
+  "implements_gap": "K16 video-storyboard audit offline gap #3 zoom high-res refetch — OWNER-SIDE explicit-timestamps frames job foundation (model-facing auto zoom tool still requires authorization + image-visibility design contract, remains a gap)",
+  "contract": "docs/v2/contracts/V2_MEDIA_ZOOM.md",
+  "source_files": {
+    "agent/src/omni/domain/media.py": "d4766791b69bf8b3289798fa95b5990cda02054dd602a99cfb0c49bcfd995212",
+    "agent/src/omni/adapters/media.py": "5213760d4e4a402f94dce8e6851bab9e2d1113464faf1809980c6cab5ee1295e",
+    "agent/src/omni/adapters/workers/media.py": "a1a818f8ebcfc822ef6e7a4f9d28e4fc19ecf2f1038b68898640d29dedbf75cb",
+    "agent/src/omni/application/media.py": "1c75beb264e510e2a559e33763072d6929c08cb398e2d0c89e59a7d03226fe9c",
+    "agent/src/omni/adapters/http.py": "36debc498acf8312519a02d7111c982498fed2ab56da1d6de10a840dd954d10f",
+    "agent/tests/v2/integrations/test_v2_media_zoom.py": "078a681c3dfde28bd02ac6701f2a1a3e0aa61d4a6fe729ad18f2b87bef39ce2a",
+    "agent/tests/v2/integrations/test_v2_media_sheet_identity.py": "4bc8529bd0021dc47eca9ba9f0405bdb6030dd1bc4f60ddea7041254ba672b91",
+    "agent/tests/omni_test_support/v2/media.py": "75d84e20b3746e148ef5b9d4448eff86c698fdffac3bc47b25f217969bde6088",
+    "docs/v2/contracts/V2_MEDIA_ZOOM.md": "65ca796afc5c83e7efd0be0da8948a2cab44bd090174f49bb019f23d8165ce1d"
+  },
+  "reference": {
+    "repository": "xuexi/dsh-video-storyboard",
+    "commit": "e124ae6fcfb31f3572ea24aad093a86897b556a3",
+    "files": {
+      "src/tools/zoom.js": "zoom:20 reuses runStoryboard; cellId->absolute time via cells.js lookupCell; high-res signed direct-url refetch (direct-url.js zoomHeight1080)",
+      "src/tools/frames.js": "ffmpeg batch frame extraction + _frame_at equivalent seek; V2 already has PyAV _frame_at(target) seek + equidistant _target_times"
+    },
+    "adaptation": "Learned the high-res refetch-at-chosen-time concept and re-implemented independently in V2 four-layer as an OPTIONAL explicit-timestamps mode of the EXISTING owner-side frames job (domain frames_plan optional timestamps + worker _frames seek branch + MediaProcessor.frames optional arg + application submit/perform passthrough + REST MediaJobInput optional field). Reuses the entire frames job pipeline (admission/staging/authorization CAS/delete barrier/unknown settlement/cancel wait/_register_sheet image verification/media_frames persistence). No third-party source copied; no new table/operation/model tool; equidistant default unchanged. Model-facing auto zoom (authorization + image visibility) NOT implemented this batch. Reference agents.md/prompts treated as untrusted data"
+  },
+  "delivered": [
+    "domain/media.py frames_plan(count,width,timestamps=None): optional timestamps must be list/tuple len==count, each type int|float (reject bool/str/None), finite, 0<=t<=MAX_DURATION_S, normalized to float list in plan['timestamps']; invalid -> media_frames_invalid 422; None default keeps {count,width} shape (zero equidistant regression)",
+    "adapters/workers/media.py _frames: independent boundary validation of request['timestamps'] (list, len==count, int|float, finite, 0<=t<=MAX_VIDEO_SECONDS, OverflowError guard) -> targets; targets!=None seeks each anchor via _frame_at regardless of duration metadata; else original duration>0 equidistant / duration==0 first-frames branches unchanged; pick/sheet/encode/resource-close fully reused",
+    "adapters/media.py MediaProcessor.frames(video,sheet_output,count,width,timestamps=None) optional arg validated via frames_plan and passed to worker request",
+    "application/media.py processor Protocol frames signature synced with optional timestamps; submit frames branch frames_plan(count,width,params.get('timestamps')); job perform passes plan['timestamps'] (None when absent); REUSES existing frames job pipeline (admission<=2/staging/authorize CAS/delete barrier/unknown settlement/cancel wait/_register_sheet/media_frames), no new settlement path",
+    "adapters/http.py MediaJobInput.timestamps list[float]|None (max_length=12); frames submit handler derives count=len(timestamps) and passes through (cast(Record,...) for JSON invariance); ONLY MediaJobInput field + frames handler changed, pre-existing background_review format deviation untouched",
+    "test support adaptation: FakeProcessor.frames + test_v2_media_sheet_identity Processor subclass frames override accept optional timestamps (legitimate caller adaptation to production signature change; *args overrides in authority/cancel need no change)",
+    "No new table/migration/operation/model-tool/routing/persistence change (reuses media_frames; does not touch other-session repository.py/schema.py/v0041.py); worker protocol additive optional field only (default equidistant request shape unchanged); anchors are owner-given times, worker takes REAL decoded frame time via _frame_time, never guessed"
+  ],
+  "limits": {
+    "owner_side_explicit_timestamps_frames_job": true,
+    "model_facing_auto_zoom_tool_implemented": false,
+    "model_initiated_media_processing_authorization_design_needed": "no model tool currently submits jobs; needs action_review owner approval gate or tier restriction (write action)",
+    "image_visibility_to_model_design_needed": "ActionResult has no image field; suggest reuse existing ImageService._wire / run message image references rather than protocol extension",
+    "zoom_high_res_refetch_foundation_implemented": true,
+    "hsv_shot_cut_detection_implemented": false,
+    "laplacian_sharpness_selection_implemented": false,
+    "in_frame_ocr_implemented": false,
+    "new_table_or_migration": false,
+    "new_operation_or_model_tool": false,
+    "new_route": false,
+    "worker_protocol_changed": "additive optional timestamps field only; default equidistant request shape unchanged",
+    "routing_changed": false,
+    "persistence_layer_changed": false,
+    "fixed_two_column_grid": "V1 intentionally rejects variable-size tiers to save vision tokens",
+    "aggregate_index_commit_deferred": "docs/index regeneration reflects other-session uncommitted persistence edits in global source_sha256; deferred to keep committed index consistent with committed source; no new source file so strict include stays 410; regenerate when working tree clean"
+  },
+  "validation": {
+    "mode": "scoped_implementation",
+    "frozen_source": "final source fingerprints in source_files",
+    "new_nodes": 33,
+    "scoped_passed": 33,
+    "scoped_seconds": 10.97,
+    "scoped_rerun_after_type_fix_and_format_passed": 100,
+    "scoped_rerun_after_type_fix_and_format_seconds": 16.81,
+    "scoped_rerun_note": "100 = zoom 33 + sheet_identity 11 + frames + plans; sheet_identity 3 failures caused by this batch signature change were adapted and fixed",
+    "caller_suite": {
+      "command": "uv run --no-sync pytest -q -n 0 agent/tests/v2/integrations/test_v2_media*.py",
+      "passed": 719,
+      "failed": 8,
+      "seconds": 154.28,
+      "note": "3 sheet_identity failures caused by this batch (Processor.frames 4-arg override vs new 5-arg call) adapted+fixed (rerun 44 passed); remaining 5 pre-existing other-session failures independent of this frames-only batch (see pre_existing_failures_not_chased)"
+    },
+    "strict": {
+      "config": "pyrightconfig.strict.json",
+      "files": 410,
+      "errors": 0,
+      "warnings": 0,
+      "note": "no new source file; 12 batch type errors fixed (domain/worker cast over object timestamp lists, processor Protocol frames signature sync, http cast(Record,...) JSON invariance); clean over current working tree"
+    },
+    "ruff": "check pass on all changed files; format collapsed this batch's new multi-line signatures (1 non-http file); http.py format --diff shows ONLY pre-existing background_review deviation (@@ -2288), this batch's cast line manually wrapped to match ruff; no unrelated reformatting",
+    "project_index": "run; no new source file; declared_tools index excludes application-layer media ToolSpec; aggregate docs/index commit DEFERRED (see limits.aggregate_index_commit_deferred); docs/index reverted to committed baseline, other-session source untouched",
+    "task_status_check": "scripts/task_status.py --check exit 0; DEVELOPMENT_STATUS.md unchanged",
+    "full_suite_executed": false,
+    "real_model_account_device_native_or_72h_executed": false,
+    "current_windows_service_or_database_touched": false
+  },
+  "pre_existing_failures_not_chased": [
+    {
+      "test": "test_v2_media_staging.py::test_failed_terminal_write_still_removes_staging_and_preserves_error[business|io]",
+      "assertion": "database.finishes == [('failed','media_subtitle_missing')]; actual [('unknown','media_processing_failed')]",
+      "reason": "SUBTITLE job settlement classification with fake DB fixture; other-session repository.py settlement edits. This batch is frames-only (optional timestamps) and touches no subtitle/settlement path; independent. Not chased."
+    },
+    {
+      "test": "test_v2_media.py::test_v36_upgrade_registers_sources_and_bounds_jobs",
+      "assertion": "db.schema_version == 'v2_0039' and len(s.metadata.tables) == 141; working-tree head v2_0044",
+      "reason": "Migration-pin test lagging current head; other-session uncommitted schema.py/v0041.py/repository.py edits. This batch adds ZERO tables/migrations/persistence; independent. Not chased."
+    },
+    {
+      "test": "test_v2_media_upload_migration.py::test_populated_graph_rebuild_preserves_completed_artifact_and_rolls_back_every_ddl_on_failure[False|True]",
+      "assertion": "alembic upgrade v2_0038 / version_num=='v2_0038' / DDL rollback pin",
+      "reason": "Migration DDL pin lagging current head; other-session schema.py/v0041.py/repository.py edits. This batch adds ZERO migrations; independent. Not chased."
+    }
+  ],
+  "whole_core_parity_complete": false,
+  "whole_reference_feature_audit_complete": false,
+  "whole_v2_complete": false,
+  "not_executed": [
+    "Model-facing auto zoom tool (gap #3 full form): needs authorization (action_review owner gate for model-initiated processing) + image-visibility (ImageService._wire / run message image references) design contract first",
+    "Other K16 gaps: HSV shot-cut (#1), Laplacian selection (#5), in-frame OCR (needs rapidocr model)",
+    "Other K13-K18 offline gaps",
+    "Aggregate docs/index commit (deferred due to other-session pending persistence edits)",
+    "Full offline suite for current source",
+    "Real accounts/models/devices/native desktop and 72h soak",
+    "Current Windows service restart/database upgrade"
+  ],
+  "next": "Continue implementing recorded offline gaps as independent batches via V2 four-layer with authorization/persistence contract first (e.g. K16 model-facing zoom authorization+image-visibility design then wiring, HSV shot-cut, K13 cron skill-binding/browser_dialog, K15 forgetting engine, K17 journal/reflection); complete K01 session/lineage cache scope; regenerate aggregate index when working tree clean. whole_*_complete remain false. Do not prematurely close any parity item"
+}

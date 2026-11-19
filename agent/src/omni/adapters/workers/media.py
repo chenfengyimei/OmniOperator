@@ -331,6 +331,25 @@ def _frames(request: Payload) -> Payload:
     width = int(cast(int | str | float, request.get("width") or 640))
     if not 1 <= count <= MAX_FRAMES or not MIN_FRAME_WIDTH <= width <= MAX_FRAME_WIDTH:
         raise ValueError("Invalid frame plan")
+    targets: list[float] | None = None
+    explicit = request.get("timestamps")
+    if explicit is not None:
+        if not isinstance(explicit, list):
+            raise ValueError("Invalid frame plan")
+        requested = cast(list[object], explicit)
+        if len(requested) != count:
+            raise ValueError("Invalid frame plan")
+        targets = []
+        for value in requested:
+            if type(value) not in (int, float):
+                raise ValueError("Invalid frame plan")
+            try:
+                anchor = float(cast("int | float", value))
+            except OverflowError as exc:
+                raise ValueError("Invalid frame plan") from exc
+            if not math.isfinite(anchor) or not 0 <= anchor <= MAX_VIDEO_SECONDS:
+                raise ValueError("Invalid frame plan")
+            targets.append(anchor)
     from PIL import Image, ImageDraw
 
     with ExitStack() as resources:
@@ -367,7 +386,12 @@ def _frames(request: Payload) -> Payload:
                 raise ValueError("video_duration_out_of_range") from exc
             if not math.isfinite(duration) or not 0 <= duration <= MAX_VIDEO_SECONDS:
                 raise ValueError("video_duration_out_of_range")
-            if duration > 0:
+            if targets is not None:
+                for target in targets:
+                    frame = _frame_at(container, stream, target)
+                    if frame is not None:
+                        pick(frame)
+            elif duration > 0:
                 for target in _target_times(duration, count):
                     frame = _frame_at(container, stream, target)
                     if frame is not None:

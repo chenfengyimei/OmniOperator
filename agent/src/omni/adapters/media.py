@@ -302,8 +302,10 @@ class MediaProcessor:
             TRANSCRIBE_BUDGET_S,
         )
 
-    async def frames(self, video: Path, sheet_output: Path, count: int, width: int) -> dict[str, object]:
-        plan = frames_plan(count, width)
+    async def frames(
+        self, video: Path, sheet_output: Path, count: int, width: int, timestamps: list[float] | None = None
+    ) -> dict[str, object]:
+        plan = frames_plan(count, width, timestamps)
         return await self._request(
             "frames",
             {"video": str(video), "sheet_output": str(sheet_output), **plan},

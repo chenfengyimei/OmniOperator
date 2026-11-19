@@ -47,12 +47,29 @@ def duration(value: object) -> int:
     return value
 
 
-def frames_plan(count: object, width: object) -> dict[str, object]:
+def frames_plan(count: object, width: object, timestamps: object = None) -> dict[str, object]:
     if type(count) is not int or not 1 <= count <= MAX_FRAMES:
         raise invalid("media_frames_invalid")
     if type(width) is not int or not MIN_FRAME_WIDTH <= width <= MAX_FRAME_WIDTH:
         raise invalid("media_frames_invalid")
-    return {"count": count, "width": width}
+    plan: dict[str, object] = {"count": count, "width": width}
+    if timestamps is not None:
+        # Explicit anchors refetch chosen moments (zoom foundation); count must match so the sheet has one cell per anchor.
+        if not isinstance(timestamps, (list, tuple)):
+            raise invalid("media_frames_invalid")
+        requested = cast("list[object] | tuple[object, ...]", timestamps)
+        if len(requested) != count:
+            raise invalid("media_frames_invalid")
+        anchors: list[float] = []
+        for value in requested:
+            if type(value) not in (int, float):
+                raise invalid("media_frames_invalid")
+            anchor = _finite_seconds(float(cast("int | float", value)), "media_frames_invalid")
+            if not 0 <= anchor <= MAX_DURATION_S:
+                raise invalid("media_frames_invalid")
+            anchors.append(anchor)
+        plan["timestamps"] = anchors
+    return plan
 
 
 def asr_plan(model: object, device: object, compute_type: object) -> dict[str, object]:

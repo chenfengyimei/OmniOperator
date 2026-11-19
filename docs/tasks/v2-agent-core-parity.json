@@ -284,9 +284,17 @@
           "contract": "docs/v2/contracts/V2_MEDIA_CELLS.md",
           "evidence": "docs/evidence/v2-media-cells.json",
           "delivered": "media_cells只读模型工具(domain/media.py既有模块加CELL_COLUMNS=2/normalize_cell/cell_anchors格号->行列->亚秒time_s/render_cells有界文本，无新源文件、application/media.py CELLS_SPEC+cells复用media_frames_get/media_source_get.latest_frames_id回退/源配对/Agent隔离/_run_bounded，只读DB元数据单读无对象body取、composition Capability注册agent档)；12专项+113媒体调用方过(1既有v36迁移pin schema_version v2_0044 vs v2_0039他会话schema.py未提交无关)、strict410零错误；无新表/迁移/路由/worker/持久层改动(复用既有帧表亚秒timestamps非参考cells.json独立持久化)；zoom#3/HSV#1/Laplacian#5/OCR仍后续；聚合索引因他会话未提交持久层编辑暂缓"
+        },
+        {
+          "gap": "#3 局部zoom高清重取(所有者侧显式时间戳抽帧作业基础)",
+          "status": "implemented_scoped_passed",
+          "batch": "K16.zoom_foundation",
+          "contract": "docs/v2/contracts/V2_MEDIA_ZOOM.md",
+          "evidence": "docs/evidence/v2-media-zoom.json",
+          "delivered": "frames作业可选显式时间戳模式(domain/media.py frames_plan增timestamps可选参len==count/逐元素int|float有限0..7200归一float/缺省形状不变、worker _frames显式seek分支默认等距不变、MediaProcessor.frames+处理器Protocol+application submit/perform透传、http MediaJobInput.timestamps可选+handler派生count)，完整复用既有frames作业管线(admission/staging/授权CAS/删除屏障/未知结算/取消等待/_register_sheet图像核验/media_frames持久化)；33专项+100复跑过(zoom33+sheet_identity11+frames+plans)、媒体全组719过8失败(3 sheet_identity本批签名变更已适配修复、5既有他会话staging字幕结算/v36迁移pin/upload_migration DDL无关)、strict410零错误(12类型问题已修)；无新表/迁移/操作/模型工具/路由/持久层改动，worker仅加性可选字段；模型侧自动zoom(需action_review授权+ImageService图像可见设计合同)/HSV#1/Laplacian#5/OCR仍后续；聚合索引因他会话未提交持久层编辑暂缓"
         }
       ],
-      "limits": "只读审计无新工具/表/迁移/路由/源码改动；可离线缺口未在K16审计批实现(列后续批次)，其中缺口#4转录定位已在K16.locate后续批实现、缺口#2格号可寻址索引模型侧读面已在K16.cell_anchor后续批实现(只读派生既有帧表亚秒timestamps非新持久化层，zoom#3/HSV#1/Laplacian#5/OCR仍后续)；V1 tools/storyboard学习实现不计V2对等；不宣称五工具/算法全集对等；未引入OCR模型依赖；既有todos重启竞态与5个pin v2_0039旧迁移测试沿用保留",
+      "limits": "只读审计无新工具/表/迁移/路由/源码改动；可离线缺口未在K16审计批实现(列后续批次)，其中缺口#4转录定位已在K16.locate后续批实现、缺口#2格号可寻址索引模型侧读面已在K16.cell_anchor后续批实现(只读派生既有帧表亚秒timestamps非新持久化层)、缺口#3局部zoom所有者侧显式时间戳高清重取作业基础已在K16.zoom_foundation后续批实现(frames作业可选timestamps复用既有管线非新表/操作/模型工具，模型侧自动zoom需action_review授权+ImageService图像可见设计合同仍后续，HSV#1/Laplacian#5/OCR仍后续)；V1 tools/storyboard学习实现不计V2对等；不宣称五工具/算法全集对等；未引入OCR模型依赖；既有todos重启竞态与5个pin v2_0039旧迁移测试沿用保留",
       "next": false
     },
     {

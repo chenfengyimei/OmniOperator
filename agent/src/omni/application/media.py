@@ -119,7 +119,9 @@ class MediaProcessingPort(Protocol):
 
     async def transcribe(self, audio: Path, output: Path, plan: Record) -> Record: ...
 
-    async def frames(self, video: Path, sheet_output: Path, count: int, width: int) -> Record: ...
+    async def frames(
+        self, video: Path, sheet_output: Path, count: int, width: int, timestamps: list[float] | None = None
+    ) -> Record: ...
 
     def stop_accepting(self) -> None: ...
 
@@ -231,7 +233,7 @@ class MediaService:
             raise BusinessError("media_operation_invalid", "Choose subtitle, transcribe or frames", status=422)
         plan: dict[str, object] = {}
         if operation == "frames":
-            plan = frames_plan(params.get("count", 6), params.get("width", 640))
+            plan = frames_plan(params.get("count", 6), params.get("width", 640), params.get("timestamps"))
         if operation == "transcribe":
             plan = asr_plan(
                 params.get("model", ASR_DEFAULT["model"]),
@@ -367,7 +369,11 @@ class MediaService:
                     plan = cast(Record, job["params"])
                     sheet = staging / "sheet.png"
                     result = await self._processor.frames(
-                        destination, sheet, int(cast(int, plan["count"])), int(cast(int, plan["width"]))
+                        destination,
+                        sheet,
+                        int(cast(int, plan["count"])),
+                        int(cast(int, plan["width"])),
+                        cast(list[float], plan["timestamps"]) if "timestamps" in plan else None,
                     )
                     await authorize()
                     sheet_info = await self._register_sheet(agent_id, sheet, result, before_publish=authorize)
