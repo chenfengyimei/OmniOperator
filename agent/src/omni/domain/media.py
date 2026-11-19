@@ -47,13 +47,18 @@ def duration(value: object) -> int:
     return value
 
 
-def frames_plan(count: object, width: object, timestamps: object = None) -> dict[str, object]:
+def frames_plan(count: object, width: object, timestamps: object = None, select: object = None) -> dict[str, object]:
     if type(count) is not int or not 1 <= count <= MAX_FRAMES:
         raise invalid("media_frames_invalid")
     if type(width) is not int or not MIN_FRAME_WIDTH <= width <= MAX_FRAME_WIDTH:
         raise invalid("media_frames_invalid")
+    mode = "equidistant" if select is None else select
+    if mode not in SCENE_SELECTS:
+        raise invalid("media_frames_invalid")
     plan: dict[str, object] = {"count": count, "width": width}
     if timestamps is not None:
+        if mode == "scenes":
+            raise invalid("media_frames_invalid")
         # Explicit anchors refetch chosen moments (zoom foundation); count must match so the sheet has one cell per anchor.
         if not isinstance(timestamps, (list, tuple)):
             raise invalid("media_frames_invalid")
@@ -69,7 +74,72 @@ def frames_plan(count: object, width: object, timestamps: object = None) -> dict
                 raise invalid("media_frames_invalid")
             anchors.append(anchor)
         plan["timestamps"] = anchors
+    if mode == "scenes":
+        plan["select"] = "scenes"
     return plan
+
+
+SCENE_SELECTS = ("equidistant", "scenes")
+SCENE_CUT_THRESHOLD = 12.0
+SCENE_MIN_GAP_S = 0.35
+SCENE_SAMPLE_FPS = 2.0
+SCENE_MAX_SAMPLES = 240
+SCENE_ANALYSIS_WIDTH = 64
+
+
+def scene_cuts(times: Sequence[float], scores: Sequence[float]) -> list[float]:
+    """Cut times where the consecutive-sample HSV score crosses the fixed threshold.
+
+    scores[i] (i>=1) compares sample i-1 with i; scores[0] is unused. Cuts closer than
+    SCENE_MIN_GAP_S keep the higher-scoring one (conservative suppression, no adaptive quantiles).
+    """
+    cuts: list[tuple[float, float]] = []
+    for index in range(1, min(len(times), len(scores))):
+        if scores[index] < SCENE_CUT_THRESHOLD:
+            continue
+        moment = times[index]
+        if cuts and moment - cuts[-1][0] < SCENE_MIN_GAP_S:
+            if scores[index] > cuts[-1][1]:
+                cuts[-1] = (moment, scores[index])
+            continue
+        cuts.append((moment, scores[index]))
+    return [moment for moment, _ in cuts]
+
+
+def scene_segments(cuts: Sequence[float], duration: float) -> list[tuple[float, float]]:
+    bounds = [0.0, *cuts, duration]
+    return [(bounds[i], bounds[i + 1]) for i in range(len(bounds) - 1) if bounds[i + 1] > bounds[i]]
+
+
+def scene_slots(segments: Sequence[tuple[float, float]], count: int) -> list[tuple[float, float]]:
+    """Distribute count frame slots across scenes proportionally to duration (largest remainder).
+
+    More scenes than slots keep the longest scenes (stable ties); every kept scene gets at least
+    one slot. Each scene is split evenly into its slots; windows are returned in time order.
+    """
+    if count < 1 or not segments:
+        return []
+    kept = list(segments)
+    if len(kept) > count:
+        order = sorted(range(len(kept)), key=lambda i: (-(kept[i][1] - kept[i][0]), i))
+        kept = [kept[i] for i in sorted(order[:count])]
+    weights = [end - start for start, end in kept]
+    total = sum(weights)
+    slots = [1] * len(kept)
+    extra = count - len(kept)
+    if extra > 0 and total > 0:
+        ideal = [extra * weight / total for weight in weights]
+        for i, value in enumerate(ideal):
+            slots[i] += int(value)
+        remainder = extra - sum(int(value) for value in ideal)
+        order = sorted(range(len(kept)), key=lambda i: (-(ideal[i] - int(ideal[i])), i))
+        for i in order[:remainder]:
+            slots[i] += 1
+    windows: list[tuple[float, float]] = []
+    for (start, end), number in zip(kept, slots, strict=True):
+        for piece in range(number):
+            windows.append((start + (end - start) * piece / number, start + (end - start) * (piece + 1) / number))
+    return windows
 
 
 def asr_plan(model: object, device: object, compute_type: object) -> dict[str, object]:

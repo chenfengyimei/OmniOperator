@@ -1,0 +1,41 @@
+{
+  "schema": 1,
+  "date": "2026-11-20",
+  "batch": "K16.scene_frames",
+  "requirement": "K16",
+  "gap": "#1 HSV切点检测+密度分段 与 #5 Laplacian清晰度选帧（保守子集合并实现）",
+  "status": "implemented_scoped_passed",
+  "contract": "docs/v2/contracts/V2_MEDIA_SCENES.md",
+  "reference": "xuexi/dsh-video-storyboard src/storyboard/scan.js scorePair/MIN_CUT_SCORE/suppressClose + frames.js extractSharpest（固定提交 e124ae6f，独立实现未复制源码）",
+  "production_wiring": [
+    "agent/src/omni/domain/media.py: SCENE_SELECTS/SCENE_CUT_THRESHOLD=12/SCENE_MIN_GAP_S=0.35/SCENE_SAMPLE_FPS=2/SCENE_MAX_SAMPLES=240/SCENE_ANALYSIS_WIDTH=64、frames_plan第四参select（scenes与timestamps互斥）、scene_cuts固定阈值+minGap保留高分、scene_segments、scene_slots最大余数比例分配每段≥1槽段多保最长平局稳定",
+    "agent/src/omni/adapters/workers/media.py: _circular_hue/_hsv_score（色相环形差+较低饱和度降权+S/V绝对差，PIL C级运算无numpy依赖）、_scene_targets有界seek采样+Laplacian方差选锐+窗口无候选取中点+无切点等距回退、_frames select校验/分支/响应仅scenes增select+scene_cuts键，ExitStack资源登记，pick/宫格/编码防线复用",
+    "agent/src/omni/application/media.py: Protocol/submit/perform透传select；agent/src/omni/adapters/media.py: MediaProcessor.frames第六参；agent/src/omni/adapters/http.py: MediaJobInput.select Literal+handler",
+    "调用方适配：omni_test_support/v2/media.py FakeProcessor与test_v2_media_sheet_identity.py Processor子类增select默认参（zoom_foundation先例）"
+  ],
+  "tests": {
+    "new_regressions": 14,
+    "new_test_file": "agent/tests/v2/integrations/test_v2_media_scenes.py（真实PyAV合成视频：三场景/棋盘锐度/纯色；真实MediaProcessor子进程；真实作业settle+cells）",
+    "caller_suites": "scenes14 + frames/zoom/plans/sheet_identity/cells/worker/decoding/duration/anchors",
+    "command": "uv run --no-sync pytest -q -n 0 agent/tests/v2/integrations/test_v2_media_scenes.py agent/tests/v2/integrations/test_v2_media_frames.py agent/tests/v2/integrations/test_v2_media_zoom.py agent/tests/v2/integrations/test_v2_media_plans.py agent/tests/v2/integrations/test_v2_media_sheet_identity.py agent/tests/v2/integrations/test_v2_media_cells.py agent/tests/v2/integrations/test_v2_media_worker.py agent/tests/v2/integrations/test_v2_media_decoding.py agent/tests/v2/integrations/test_v2_media_duration.py agent/tests/v2/integrations/test_v2_media_anchors.py",
+    "result": "221 passed, 0 failed",
+    "duration_seconds": 44.56,
+    "first_round_failures": [
+      "scene_slots scarce 用例期望写错：count=2 保留两个最长段（平局取先序）而非单段，修正断言",
+      "strict 3 错误：PIL point lambda 未知类型，改具名 _circular_hue(value:int)->int",
+      "ruff I001 新测试文件 import 排序 --fix"
+    ],
+    "final_source_rerun": "lambda→具名函数修正后 scenes 14 复跑绿（3.71s）+ 221 调用方终源复跑"
+  },
+  "strict": {
+    "config": "pyrightconfig.strict.json（仓库根运行）",
+    "batch_files_errors": 0,
+    "preexisting_errors": "5 错误均既有他会话已提交 adapters/persistence/repository.py（6bcb0e98 L633/659/710），不追逐",
+    "new_source_files": 0
+  },
+  "ruff": "check/format 通过（仅本批文件）",
+  "no_changes": "无新表/迁移/操作/模型工具/路由/worker协议帧改动；select加性可选作业参数同timestamps先例；admission/staging/授权CAS/删除屏障/未知结算/取消等待/_register_sheet全复用；默认equidistant响应字节等价",
+  "limits": "保守子集：固定阈值12+minGap0.35，不含参考自适应分位数阈值auto/auto-low、REF_V亮度增益、黑边补偿、自适应gap、快剪事件合并；自适应宫格/DP打包需独立设计合同；模型侧zoom待所有者批准协议选型；帧内OCR需rapidocr；真实长片切点质量/耗时内存另验",
+  "full_suite_for_current_source": false,
+  "real_account_device_model_acceptance": false
+}

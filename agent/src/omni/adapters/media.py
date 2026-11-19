@@ -303,9 +303,15 @@ class MediaProcessor:
         )
 
     async def frames(
-        self, video: Path, sheet_output: Path, count: int, width: int, timestamps: list[float] | None = None
+        self,
+        video: Path,
+        sheet_output: Path,
+        count: int,
+        width: int,
+        timestamps: list[float] | None = None,
+        select: str = "equidistant",
     ) -> dict[str, object]:
-        plan = frames_plan(count, width, timestamps)
+        plan = frames_plan(count, width, timestamps, select)
         return await self._request(
             "frames",
             {"video": str(video), "sheet_output": str(sheet_output), **plan},

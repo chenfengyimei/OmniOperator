@@ -149,7 +149,7 @@ class FakeProcessor:
         output.write_bytes(transcript_payload("asr", "zh", [[0.0, 2.5, "你好世界"], [2.5, 4.0, "第二句锚点"]]))
         return {"ok": True, "language": "zh"}
 
-    async def frames(self, video, sheet_output, count, width, timestamps=None):
+    async def frames(self, video, sheet_output, count, width, timestamps=None, select="equidistant"):
         self.calls.append(("frames", count, width))
         if self.hang:
             await asyncio.sleep(60)

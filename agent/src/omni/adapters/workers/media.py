@@ -23,6 +23,15 @@ from itertools import islice
 from pathlib import Path
 from typing import Any, cast
 
+from ...domain.media import (
+    SCENE_ANALYSIS_WIDTH,
+    SCENE_MAX_SAMPLES,
+    SCENE_SAMPLE_FPS,
+    scene_cuts,
+    scene_segments,
+    scene_slots,
+)
+
 Payload = dict[str, object]
 
 MAX_FRAME = 8 * 1024 * 1024
@@ -300,6 +309,76 @@ def _frame_at(container: Any, stream: Any, target: float) -> Any:
     return best
 
 
+def _circular_hue(value: int) -> int:
+    return min(value, 255 - value)
+
+
+def _hsv_score(prev: Any, cur: Any) -> float:
+    """Weighted mean absolute HSV difference (0-255): circular hue gated by the lower saturation.
+
+    Hue is circular (0 and 255 are neighbors) and meaningless near gray, so the hue term is
+    weighted by min saturation of the pair; S/V terms are plain absolute differences.
+    """
+    from PIL import ImageChops, ImageStat
+
+    ph, ps, pv = prev.split()
+    ch, cs, cv = cur.split()
+    hue_diff = ImageChops.difference(ph, ch)
+    circular = hue_diff.point(_circular_hue)
+    hue_term = ImageChops.multiply(circular, ImageChops.darker(ps, cs))
+    return (
+        ImageStat.Stat(hue_term).mean[0]
+        + ImageStat.Stat(ImageChops.difference(ps, cs)).mean[0]
+        + ImageStat.Stat(ImageChops.difference(pv, cv)).mean[0]
+    ) / 3.0
+
+
+def _scene_targets(
+    container: Any, stream: Any, duration: float, count: int, resources: ExitStack
+) -> tuple[list[float], list[float]]:
+    """Bounded seek-sampled HSV cut detection + per-scene Laplacian-sharpest frame selection."""
+    from PIL import ImageFilter, ImageStat
+
+    samples_n = min(SCENE_MAX_SAMPLES, max(2, int(duration * SCENE_SAMPLE_FPS)))
+    kernel = ImageFilter.Kernel((3, 3), [0, 1, 0, 1, -4, 1, 0, 1, 0], scale=1, offset=128)
+    times: list[float] = []
+    thumbs: list[Any] = []
+    sharpness: list[float] = []
+    for index in range(samples_n):
+        frame = _frame_at(container, stream, duration * (index + 0.5) / samples_n)
+        if frame is None:
+            continue
+        moment = _frame_time(frame)
+        source = frame.to_image()
+        with closing(source):
+            small = source.resize((SCENE_ANALYSIS_WIDTH, max(1, source.height * SCENE_ANALYSIS_WIDTH // source.width)))
+        resources.callback(small.close)
+        hsv = small.convert("HSV")
+        resources.callback(hsv.close)
+        gray = small.convert("L")
+        with closing(gray):
+            variance = ImageStat.Stat(gray.filter(kernel)).var[0]
+        times.append(moment)
+        thumbs.append(hsv)
+        sharpness.append(variance)
+    scores = [0.0] + [_hsv_score(thumbs[i - 1], thumbs[i]) for i in range(1, len(thumbs))]
+    cuts = scene_cuts(times, scores)
+    if not cuts or len(times) < 2:
+        return _target_times(duration, count), cuts
+    windows = scene_slots(scene_segments(cuts, duration), count)
+    targets: list[float] = []
+    for start, end in windows:
+        candidates = [
+            i for i, moment in enumerate(times) if start <= moment < end or (end == duration and moment == end)
+        ]
+        if candidates:
+            best = max(candidates, key=lambda i: (sharpness[i], -times[i]))
+            targets.append(times[best])
+        else:
+            targets.append((start + end) / 2.0)
+    return targets, cuts
+
+
 def _sheet_size(width: int, height: int, count: int) -> tuple[int, int]:
     columns = 2 if count > 1 else 1
     size = width * columns, (height + LABEL_HEIGHT) * ((count + columns - 1) // columns)
@@ -332,8 +411,13 @@ def _frames(request: Payload) -> Payload:
     if not 1 <= count <= MAX_FRAMES or not MIN_FRAME_WIDTH <= width <= MAX_FRAME_WIDTH:
         raise ValueError("Invalid frame plan")
     targets: list[float] | None = None
+    select = request.get("select") or "equidistant"
+    if select not in {"equidistant", "scenes"}:
+        raise ValueError("Invalid frame plan")
     explicit = request.get("timestamps")
     if explicit is not None:
+        if select == "scenes":
+            raise ValueError("Invalid frame plan")
         if not isinstance(explicit, list):
             raise ValueError("Invalid frame plan")
         requested = cast(list[object], explicit)
@@ -354,6 +438,7 @@ def _frames(request: Payload) -> Payload:
 
     with ExitStack() as resources:
         picked: list[tuple[float, Image.Image]] = []
+        scene_cut_list: list[float] = []
 
         def pick(frame: Any) -> None:
             timestamp = _frame_time(frame)
@@ -392,10 +477,17 @@ def _frames(request: Payload) -> Payload:
                     if frame is not None:
                         pick(frame)
             elif duration > 0:
-                for target in _target_times(duration, count):
-                    frame = _frame_at(container, stream, target)
-                    if frame is not None:
-                        pick(frame)
+                if select == "scenes":
+                    scene_targets, scene_cut_list = _scene_targets(container, stream, duration, count, resources)
+                    for target in scene_targets:
+                        frame = _frame_at(container, stream, target)
+                        if frame is not None:
+                            pick(frame)
+                else:
+                    for target in _target_times(duration, count):
+                        frame = _frame_at(container, stream, target)
+                        if frame is not None:
+                            pick(frame)
             else:
                 # Live or metadata-less containers degrade to the first decoded frames.
                 with _video_frames(container, stream) as frames:
@@ -420,7 +512,7 @@ def _frames(request: Payload) -> Payload:
             content = buffer.getvalue()
         output.parent.mkdir(parents=True, exist_ok=True)
         output.write_bytes(content)
-        return {
+        payload: Payload = {
             "frame_count": len(picked),
             "timestamps": [round(t, 3) for t, _ in picked],
             "width": sheet.width,
@@ -428,6 +520,10 @@ def _frames(request: Payload) -> Payload:
             "sha256": hashlib.sha256(content).hexdigest(),
             "bytes": len(content),
         }
+        if select == "scenes":
+            payload["select"] = "scenes"
+            payload["scene_cuts"] = [round(cut, 3) for cut in scene_cut_list]
+        return payload
 
 
 def _asr_model_missing(exc: BaseException) -> bool:

@@ -253,6 +253,7 @@ class MediaJobInput(StrictInput):
     count: int = Field(default=6, ge=1, le=12, strict=True)
     width: int = Field(default=640, ge=320, le=1280, strict=True)
     timestamps: list[float] | None = Field(default=None, max_length=12)
+    select: Literal["equidistant", "scenes"] = "equidistant"
 
 
 class MediaUploadSourceInput(StrictInput):
@@ -865,6 +866,8 @@ def create_app(factory: Callable[[], Awaitable[HttpRuntime]], *, allowed_origins
                 params = cast(
                     Record, {"count": len(data.timestamps), "width": data.width, "timestamps": data.timestamps}
                 )
+            if data.select == "scenes":
+                params["select"] = "scenes"
         return await media_service(request).submit(str(agent_id), str(source_id), data.operation, params)
 
     @router.get("/agents/{agent_id}/media/sources/{source_id}/jobs")

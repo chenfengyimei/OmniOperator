@@ -388,9 +388,17 @@
           "contract": "docs/v2/contracts/V2_TOOL_IMAGE_VISIBILITY.md",
           "evidence": "docs/evidence/v2-tool-image-visibility.json",
           "delivered": "工具结果图像可见协议+模型侧media_zoom授权实现前设计合同(纯文档无源码/测试/迁移改动，非实现)：实读核验ActionResult(domain/contracts.py:68-77无图像字段/artifacts未用于图像附着)、domain/images.py:119-122 references()强制omni_image仅role==user(tool消息不能携带)、engine.py:404/428工具结果纯文本追加、engine.py:772-792写工具审批门(prepare_action→approved/denied/cancelled/expired→authorize_action→资源锁→invoke)；方案A(注册image对象后续user消息附着零协议改动非同步,模型下回合才见帧)vs方案B(ActionResult.images+tool消息omni_image协议扩展+references放宽role==tool+image_repository/with_images/context支持+per_call_limit/run_budget计量策略一致,同步可见推荐完整对标且通用惠及桌面/安卓视觉,触冻结图像协议需所有者批准+既有图像协议全量零回归)；决策2模型发起zoom为写动作writes=True复用既有审批门(同files_patch链)无需新授权；决策3复用K16.zoom_foundation frames timestamps(count=1,width=1280,timestamps=[t])无新表/操作,输入source_id+cell(经media_cells时间映射)或timestamp+可选width,作业done取media_frames.object_id经ImageService.prepare注册返回图像；实现步骤/有界安全(width<=1280/timestamp0..7200/count1/image<=16MiB ImageInfo校验/计量openai_low/凭据源CAS+删除屏障+未知不重放+取消等待真实清理+所有者审批门)/验证列明；模型侧zoom仍未实现,HSV#1/Laplacian#5/OCR仍后续；whole_*_complete保持false不提前关闭任何对标项"
+        },
+        {
+          "gap": "#1 HSV切点检测+密度分段 与 #5 Laplacian清晰度选帧（保守子集）",
+          "status": "implemented_scoped_passed",
+          "batch": "K16.scene_frames",
+          "contract": "docs/v2/contracts/V2_MEDIA_SCENES.md",
+          "evidence": "docs/evidence/v2-media-scenes.json",
+          "delivered": "frames作业可选select=scenes(domain/media.py SCENE_*常量+frames_plan第四参select与timestamps互斥+scene_cuts固定阈值12+minGap0.35保留高分+scene_segments+scene_slots最大余数比例分配每段≥1槽段多保最长平局稳定；worker _hsv_score色相环形差min(dh,255-dh)+较低饱和度降权+S/V绝对差PIL C级运算无numpy依赖、_scene_targets有界seek采样min(240,duration*2fps)64宽分析缩略图+Laplacian 3x3核offset128方差选锐平局最早+窗口无候选中点+无切点等距回退、_frames select解码前校验响应仅scenes增select/scene_cuts键默认字节等价ExitStack资源登记pick/宫格/编码防线复用；application Protocol/submit/perform+adapters MediaProcessor.frames第六参+http MediaJobInput.select Literal透传；FakeProcessor/sheet_identity子类适配select默认参zoom先例)；继承参考scan.js两条关键经验(色相环形/低饱和降权防假切点)；14新增专项(真实PyAV合成三场景切点≈4/8每段有帧/棋盘vs纯灰选锐/无切点回退/默认形状/fake解码前拒/真实子进程透传/真实作业settle+cells+非法plan422/REST)+221调用方(scenes14/frames/zoom/plans/sheet_identity/cells/worker/decoding/duration/anchors)过0失败44.56秒终源复跑、strict本批零错误(首轮point lambda 3错误改具名_circular_hue；余5既有他会话repository.py不追逐)、ruff通过；无新表/迁移/操作/模型工具/路由/协议帧改动admission/CAS/删除屏障/未知结算/取消等待全复用；不含参考自适应分位数阈值/亮度增益/黑边补偿/自适应gap/快剪合并/自适应宫格DP打包(独立合同)/模型侧zoom(待批准)/OCR，真实长片质量另验"
         }
       ],
-      "limits": "只读审计无新工具/表/迁移/路由/源码改动；可离线缺口未在K16审计批实现(列后续批次)，其中缺口#4转录定位已在K16.locate后续批实现、缺口#2格号可寻址索引模型侧读面已在K16.cell_anchor后续批实现(只读派生既有帧表亚秒timestamps非新持久化层)、缺口#3局部zoom所有者侧显式时间戳高清重取作业基础已在K16.zoom_foundation后续批实现(frames作业可选timestamps复用既有管线非新表/操作/模型工具，模型侧自动zoom需action_review授权+ImageService图像可见设计合同——该实现前设计合同已记录于K16.zoom_model_design批(方案A/B工具结果图像可见协议+写工具审批门复用+frames timestamps作业复用，仍未实现需所有者批准协议选型)，HSV#1/Laplacian#5/OCR仍后续)；V1 tools/storyboard学习实现不计V2对等；不宣称五工具/算法全集对等；未引入OCR模型依赖；既有todos重启竞态与5个pin v2_0039旧迁移测试沿用保留",
+      "limits": "只读审计无新工具/表/迁移/路由/源码改动；可离线缺口未在K16审计批实现(列后续批次)，其中缺口#4转录定位已在K16.locate后续批实现、缺口#2格号可寻址索引模型侧读面已在K16.cell_anchor后续批实现(只读派生既有帧表亚秒timestamps非新持久化层)、缺口#3局部zoom所有者侧显式时间戳高清重取作业基础已在K16.zoom_foundation后续批实现(frames作业可选timestamps复用既有管线非新表/操作/模型工具，模型侧自动zoom需action_review授权+ImageService图像可见设计合同——该实现前设计合同已记录于K16.zoom_model_design批(方案A/B工具结果图像可见协议+写工具审批门复用+frames timestamps作业复用，仍未实现需所有者批准协议选型)，HSV#1/Laplacian#5已在K16.scene_frames后续批实现(select=scenes保守子集：固定阈值12+minGap0.35+比例密度分配+Laplacian方差选锐，自适应分位数阈值/亮度增益/黑边补偿仍后续)、OCR仍后续)；V1 tools/storyboard学习实现不计V2对等；不宣称五工具/算法全集对等；未引入OCR模型依赖；既有todos重启竞态与5个pin v2_0039旧迁移测试沿用保留",
       "next": false
     },
     {
@@ -677,6 +685,10 @@
     {
       "id": "K13.browser_dialog",
       "evidence": "docs/evidence/v2-browser-dialog.json"
+    },
+    {
+      "id": "K16.scene_frames",
+      "evidence": "docs/evidence/v2-media-scenes.json"
     }
   ]
 }
