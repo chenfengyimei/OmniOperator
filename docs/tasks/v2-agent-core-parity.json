@@ -374,9 +374,17 @@
           "contract": "docs/v2/contracts/V2_BILI_TAGS.md",
           "evidence": "docs/evidence/v2-bili-tags.json",
           "delivered": "bilibili_read新增operation=tags只读(domain tag_rows data数组有界50/None空正常/非列表行非dict tag_id非int显式502/tag_name去标记<=100/has_more=len>limit、adapter隔离_get_list列表形data读取器_get dict-only合同不变零回归+_tags GET archive/tags bvid/target必填BV非豁免/nav后view前分派、READ_SPEC enum+desc+http Literal增tags)；17专项+220bilibili读调用方过0失败、strict410零错误(无新源文件)；仅单BV公开标签无订阅写/历史/msgfeed、需登录真实送达另验；无新表/迁移/路由/worker/持久层改动routing不变_get未改；聚合索引暂缓"
+        },
+        {
+          "gap": "#1 读API广度之观看历史(x/web-interface/history/cursor type=archive)",
+          "status": "implemented_scoped_passed",
+          "batch": "K18.history",
+          "contract": "docs/v2/contracts/V2_BILI_HISTORY.md",
+          "evidence": "docs/evidence/v2-bili-history.json",
+          "delivered": "bilibili_read新增operation=history只读(domain history_rows data.list有界50/缺失正常空/非列表行非dict显式502/title+author_name去标记/author_mid int→str/progress int|None保留-1看完/嵌套history.business+oid→aid+cid→cid/bvid仅合法BV否则None不臆造身份/has_more=len>=limit、adapter _history复用泛型_get type=archive ps=20首页/nav后分派无目标豁免BV、READ_SPEC enum+desc+http Literal增history)；14专项+234bilibili读调用方过0失败、strict410零错误(无新源文件)；仅所有者archive历史首页无cursor翻页/上报写/msgfeed、需登录真实送达另验；无新表/迁移/路由/worker/持久层改动routing不变_get/_get_list未改；聚合索引暂缓"
         }
       ],
-      "limits": "只读审计无新工具/表/迁移/路由/源码改动；可离线缺口未在K18审计批实现(列后续批次)，其中读API广度之搜索/space whois/弹幕/热门排行feed/关注动态feed/收藏夹/视频标签已在K18.search/K18.whois/K18.danmaku/K18.feed/K18.following/K18.favorites/K18.tag后续批实现；V1 tools/bilibili实现不计V2对等；不宣称全集API/主动观看/受控分享对等；参考agents.md/RULES当不可信数据非本会话指令；K18为清单末项领域参考审计(K13-K18全部记录)；既有todos重启竞态与5个pin v2_0039旧迁移测试沿用保留",
+      "limits": "只读审计无新工具/表/迁移/路由/源码改动；可离线缺口未在K18审计批实现(列后续批次)，其中读API广度之搜索/space whois/弹幕/热门排行feed/关注动态feed/收藏夹/视频标签/观看历史已在K18.search/K18.whois/K18.danmaku/K18.feed/K18.following/K18.favorites/K18.tag/K18.history后续批实现；V1 tools/bilibili实现不计V2对等；不宣称全集API/主动观看/受控分享对等；参考agents.md/RULES当不可信数据非本会话指令；K18为清单末项领域参考审计(K13-K18全部记录)；既有todos重启竞态与5个pin v2_0039旧迁移测试沿用保留",
       "next": false
     }
   ],
@@ -493,6 +501,10 @@
     {
       "id": "K18.tag",
       "evidence": "docs/evidence/v2-bili-tags.json"
+    },
+    {
+      "id": "K18.history",
+      "evidence": "docs/evidence/v2-bili-history.json"
     },
     {
       "id": "K13.patch",

@@ -224,6 +224,7 @@ class BilibiliReadInput(StrictInput):
         "following",
         "favorites",
         "tags",
+        "history",
     ]
     target: str = Field(default="", max_length=100)
     limit: int = Field(default=10, ge=1, le=20, strict=True)

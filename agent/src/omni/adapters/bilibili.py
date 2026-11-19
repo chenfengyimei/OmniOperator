@@ -22,6 +22,7 @@ from ..domain.bilibili import (
     fav_folder_rows,
     feed_rows,
     following_rows,
+    history_rows,
     search_keyword,
     search_rows,
     tag_rows,
@@ -479,6 +480,11 @@ class BilibiliGateway:
         data = await self._get_list(client, "/x/tag/archive/tags", {"bvid": bvid})
         return {"bvid": bvid, **tag_rows(data, limit)}
 
+    async def _history(self, client: Any, limit: int) -> Payload:
+        """Owner watch history (archive, first page); bounded rows, no target, login required."""
+        data = await self._get(client, "/x/web-interface/history/cursor", {"type": "archive", "ps": 20})
+        return {"feed": "history", **history_rows(data, limit)}
+
     async def read(self, configuration: Mapping[str, object], operation: str, target: str, limit: int = 10) -> Payload:
         return await self._read(configuration, operation, target, limit)
 
@@ -526,13 +532,14 @@ class BilibiliGateway:
                     "following",
                     "favorites",
                     "tags",
+                    "history",
                 }
                 or type(limit) is not int
                 or not 1 <= limit <= 20
             ):
                 raise BusinessError(
                     "bilibili_read_invalid",
-                    "Choose account/video/comments/replies/subtitle/streams/search/whois/danmaku/popular/ranking/following/favorites/tags and a limit of 1–20",
+                    "Choose account/video/comments/replies/subtitle/streams/search/whois/danmaku/popular/ranking/following/favorites/tags/history and a limit of 1–20",
                     status=422,
                 )
             root = ""
@@ -547,9 +554,14 @@ class BilibiliGateway:
                 keyword = search_keyword(target)
             elif operation == "whois":
                 mid = uid(target)
-            elif operation not in {"account", "popular", "ranking", "following", "favorites"} and not re.fullmatch(
-                r"BV[0-9A-Za-z]{10}", target
-            ):
+            elif operation not in {
+                "account",
+                "popular",
+                "ranking",
+                "following",
+                "favorites",
+                "history",
+            } and not re.fullmatch(r"BV[0-9A-Za-z]{10}", target):
                 raise BusinessError("bilibili_read_invalid", "Read targets require an exact BV identifier", status=422)
             async with self._slots, asyncio.timeout(20):
                 cookies = await self._cookies(value)
@@ -575,6 +587,8 @@ class BilibiliGateway:
                         return await self._following(client, limit)
                     if operation == "favorites":
                         return await self._favorites(client, uid(value["account"]), limit)
+                    if operation == "history":
+                        return await self._history(client, limit)
                     video = await self._get(client, "/x/web-interface/view", {"bvid": target})
                     if video.get("bvid") != target:
                         raise BusinessError("bilibili_source_changed", "Video identity changed")

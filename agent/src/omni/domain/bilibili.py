@@ -445,6 +445,39 @@ def tag_rows(data: object, limit: int) -> dict[str, object]:
     return {"items": items, "has_more": len(rows) > limit}
 
 
+def history_rows(data: Mapping[str, object], limit: int) -> dict[str, object]:
+    """Bounded watch-history video rows from data.list (nested history oid/cid/business); absent list = empty."""
+    raw = data.get("list")
+    if raw is None:
+        rows: list[object] = []
+    elif isinstance(raw, list):
+        rows = cast(list[object], raw)
+    else:
+        raise BusinessError("bilibili_response_invalid", "History list changed format", status=502)
+    if len(rows) > FEED_MAX_ROWS:
+        raise BusinessError("bilibili_response_invalid", "History list changed format", status=502)
+    items: list[dict[str, object]] = []
+    for row in rows[:limit]:
+        if not isinstance(row, dict):
+            raise BusinessError("bilibili_response_invalid", "History records changed format", status=502)
+        entry = cast(dict[str, object], row)
+        history = _as_dict(entry.get("history"))
+        bvid = history.get("bvid")
+        items.append(
+            {
+                "title": search_text(entry.get("title"), 300),
+                "author_name": search_text(entry.get("author_name"), 100),
+                "author_mid": str(entry.get("author_mid")) if type(entry.get("author_mid")) is int else "",
+                "progress": entry.get("progress") if type(entry.get("progress")) is int else None,
+                "business": history.get("business") if type(history.get("business")) is str else None,
+                "aid": history.get("oid") if type(history.get("oid")) is int else None,
+                "cid": history.get("cid") if type(history.get("cid")) is int else None,
+                "bvid": bvid if isinstance(bvid, str) and re.fullmatch(r"BV[0-9A-Za-z]{10}", bvid) else None,
+            }
+        )
+    return {"items": items, "has_more": len(rows) >= limit}
+
+
 class Form(BaseModel):
     model_config = ConfigDict(extra="forbid", strict=True)
 
