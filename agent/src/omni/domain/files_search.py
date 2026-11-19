@@ -1,6 +1,8 @@
-"""Bounded workspace text-search rules; no filesystem, network or storage I/O."""
+"""Bounded workspace search rules (content substring + filename glob); no filesystem, network or storage I/O."""
 
 from __future__ import annotations
+
+import fnmatch
 
 SEARCH_QUERY_CHARS = 200
 SEARCH_FILE_MATCHES = 5
@@ -30,3 +32,8 @@ def match_lines(text: str, query: str) -> list[dict[str, object]]:
             if len(hits) >= SEARCH_FILE_MATCHES:
                 break
     return hits
+
+
+def match_name(filename: str, pattern: str) -> bool:
+    """Case-sensitive glob against the file basename; a directory prefix in the pattern is stripped (rg --files semantics)."""
+    return fnmatch.fnmatchcase(filename, pattern.rsplit("/", 1)[-1])

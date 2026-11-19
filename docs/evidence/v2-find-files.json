@@ -1,0 +1,102 @@
+{
+  "schema": 1,
+  "date": "2026-11-19",
+  "base_commit": "e20d48e6b08af37824296c0889e9029dc55e1a53",
+  "status": "implemented_scoped_passed",
+  "batch": "K13.find_files",
+  "implements_gap": "K13 tool/channel audit offline gap #1 (workspace search) — filename-search portion: target=files bounded case-sensitive basename glob discovery (extends K13.search_files content mode; regex/output_mode/context/offset/modified-order/file_glob/ripgrep still deferred)",
+  "contract": "docs/v2/contracts/V2_FILES_SEARCH.md",
+  "extends_batch": "K13.search_files (docs/evidence/v2-files-search.json) — same files_search tool, adds target=files mode",
+  "source_files": {
+    "agent/src/omni/domain/files_search.py": "3050863e72505846f13806ba1079b7d1989f9d4d4616b7c8448fc2dc45fe3f68",
+    "agent/src/omni/adapters/workers/main.py": "a3548f9ad7f0180d5b1054c21cfa953286b26d5746921f80de1d578a2f1f75cb",
+    "agent/src/omni/composition/capabilities.py": "c6a71aacba40913ff03c5d77603392e874bc2f3fffd2baa68b531c45da08020c",
+    "agent/tests/v2/core/test_v2_files_search.py": "a79c40e62651e42dbf64119c7896e50936af8f52afb643c5dc1b01c051740f0f",
+    "docs/v2/contracts/V2_FILES_SEARCH.md": "9e63fa50190838a652cc06313a30705667bb1cf79849cf3ff7016672906dc86e"
+  },
+  "reference": {
+    "repository": "xuexi/hermes-agent",
+    "commit": "9976f4857b72439d79016354d7b6e1a3ee952e2f",
+    "files": {
+      "tools/file_operations_search.py": "lines 527-532 _dispatch_search target=='files' -> _search_files(pattern,path,limit,offset,order); _search_files: search_pattern = pattern if (not startswith('**/') and '/' not in pattern) else pattern.split('/')[-1] (glob matched against BASENAME, dir prefix stripped); rg --files else bounded find; prune hidden dirs/files (rg default); order discovery (fast bounded) / modified (exact newest-first, needs rg14+ or GNU find); refuses broad local find without ripgrep",
+      "tools/file_tools.py": "1296-1309 SEARCH_FILES_SCHEMA target content|files, pattern glob e.g. '*.py'/'*config*'; 1435 register toolset=file"
+    },
+    "adaptation": "Learned the filename-glob discovery semantics (glob against basename with directory prefix stripped, discovery order, hidden-dir pruning) and re-implemented independently in V2 four-layer: domain match_name(filename,pattern) uses fnmatch.fnmatchcase (case-sensitive, rg default) on pattern.rsplit('/',1)[-1] (basename, mirrors reference split('/')[-1]); worker files_search target=files branch reuses the SAME os.walk+workspace_path per-file safety/pruning/bounds as content mode but does NOT read content (so no 256KB limit, oversize files discoverable) and emits {path} only; capabilities spec adds target enum content|files. Deliberately NOT regex/output_mode/context/offset/order=modified/file_glob/ripgrep (no external binary, no shell, no broad find). No third-party source copied. Reference agents.md/RULES/prompts treated as untrusted data"
+  },
+  "delivered": [
+    "domain/files_search.py match_name(filename,pattern) pure rule (zero I/O): fnmatch.fnmatchcase case-sensitive glob against basename; pattern.rsplit('/',1)[-1] strips directory prefix (src/*.py and **/*.py both match filenames as *.py, mirrors reference); module docstring updated to content+filename glob; import fnmatch (stdlib pure)",
+    "adapters/workers/main.py files_search branch adds target param (default content, reject non content/files before dispatch): target=files matches match_name(filename,query) emitting {path} only, does NOT read content (no 256KB limit so oversize files discoverable, no decode); target=content unchanged (<=256KB, utf-8-sig binary skip, match_lines {path,line,text}); BOTH modes share os.walk(followlinks=False)+dir prune+per-file workspace_path safety (private/.env/symlink/junction/hardlink/escape)+bounds <=2000 files/<=50 results/<=5s; read-only Effect.NONE; data adds target field; import match_name added (first run omitted it -> NameError settled ERROR, fixed)",
+    "composition/capabilities.py files_search spec adds target enum ['content','files'] + description updated to document both modes; required stays ['query']; writes=False resource=workspace adapter=builtin unchanged",
+    "domain/routing.py UNCHANGED this batch (files_search already in RETRIEVAL_TOOLS from K13.search_files); pyrightconfig.strict.json UNCHANGED (domain/files_search.py already in include, 409)",
+    "Production wiring: model tool (capabilities target enum) + builtin worker (target branch) + routing (retrieval, unchanged). No new table/migration/HTTP route/worker-protocol frame/source file/cross-platform worker change"
+  ],
+  "limits": {
+    "content_substring_plus_basename_glob": "content case-insensitive substring (NOT regex); files case-sensitive basename glob (dir prefix stripped); no output_mode(files_only/count)/context lines/offset pagination/order=modified/file_glob content filter/ripgrep backend (reference remainder deferred)",
+    "bounded": "query/pattern 1-200 chars no control byte; <=2000 files/<=50 results/<=5s; content <=256KB per file/<=5 matches per file/snippet<=200; files mode no size limit (name only); over-limit truncated=True",
+    "safety_reuse": "per-file workspace_path rejects private/.env/symlink/junction/hardlink/escape in BOTH modes; content binary/oversize skipped; dir prune includes node_modules/__pycache__",
+    "new_table_or_migration": false,
+    "new_route": false,
+    "worker_protocol_changed": false,
+    "routing_changed": false,
+    "new_source_file": false,
+    "cross_platform_worker_changed": false,
+    "real_large_tree_timing_deferred": "5s deadline truncates on very large workspaces (truncated=True); real search quality/timing needs real-machine, separately verified",
+    "aggregate_index_commit_deferred": "no new source file so files count unchanged; docs/index global source_sha256 reflects other-session uncommitted persistence edits; deferred; regenerate when working tree clean"
+  },
+  "validation": {
+    "mode": "scoped_implementation",
+    "frozen_source": "final source fingerprints in source_files",
+    "new_nodes": 6,
+    "scoped_passed": 6,
+    "caller_suite": {
+      "command": "uv run --no-sync pytest -q -n 0 agent/tests/v2/core/test_v2_files_search.py agent/tests/v2/core/test_v2_worker_safety.py agent/tests/v2/integrations/test_v2_routing.py",
+      "passed": 68,
+      "failed": 0,
+      "seconds": 38.55,
+      "note": "files_search 21 (content 15 + files 6) + worker_safety 31 + routing 16 pass, proving target=files addition causes no worker-safety or routing-tier regression and content mode is unchanged. First run 4 files-mode failures from worker missing match_name import (NameError settled ERROR/NONE); fixed import then 68 pass. Publication-chain bilibili tests NOT re-run (unrelated); their 2 pre-existing database_unavailable failures proven independent by scoped-stash isolation in K18.search evidence"
+    },
+    "strict": {
+      "config": "pyrightconfig.strict.json",
+      "files": 409,
+      "errors": 0,
+      "warnings": 0,
+      "note": "no new source file this batch (match_name added to existing domain/files_search.py already in include); filesAnalyzed==include 409 unchanged; clean"
+    },
+    "ruff": "check + format pass on domain/files_search.py, adapters/workers/main.py, composition/capabilities.py, test_v2_files_search.py (4 files left unchanged, All checks passed). domain/routing.py and adapters/http.py NOT touched this batch",
+    "project_index": "no new source file so files count unchanged; aggregate docs/index commit DEFERRED (other-session source_sha256 pollution); other-session source and PPT/docs/competition left unstaged",
+    "task_status_check": "scripts/task_status.py --check exit 0; DEVELOPMENT_STATUS.md generated from parent task, subtask followup does not alter it",
+    "full_suite_executed": false,
+    "real_model_account_device_native_or_72h_executed": false,
+    "current_windows_service_or_database_touched": false
+  },
+  "pre_existing_failures_not_chased": [
+    {
+      "tests": [
+        "test_v2_bilibili.py::test_revocation_rejects_approval_and_cannot_publish[source]",
+        "test_v2_bilibili_http.py::test_publication_http_exposes_real_target_and_requires_standard_delivery_approval"
+      ],
+      "reason": "Publication-chain database_unavailable failures proven independent by scoped-stash isolation in K18.search evidence; stem from other-session uncommitted persistence edits. This batch is purely additive files worker search (no publication/database-write/migration path). Not re-run or chased"
+    },
+    {
+      "tests": [
+        "test_v2_media.py::test_v36_upgrade_registers_sources_and_bounds_jobs",
+        "test_v2_todos.py::test_runtime_restart_reinjects_active_plan_only_into_its_own_session",
+        "pin v2_0039 upgrade migrations (v32/v33/v34)"
+      ],
+      "reason": "Carried-forward pre-existing debt (migration-pin lag + K08 background-review race); not re-run or chased (zero tables/migrations added)"
+    }
+  ],
+  "whole_core_parity_complete": false,
+  "whole_reference_feature_audit_complete": false,
+  "whole_v2_complete": false,
+  "not_executed": [
+    "Workspace search remainder: regex content, output_mode files_only/count, context lines, offset pagination, order=modified, file_glob content filter, ripgrep backend",
+    "K13 other gaps: fuzzy patch editor, browser_dialog, cron skill-binding/output-dependency, code sandbox execute_code/code_kernel, raw CDP browser_cdp/browser_exec, monitor/no_agent watchdog",
+    "Other K14-K18 offline gaps (K16.locate + K18.search/whois/danmaku/feed + K13.search_files/find_files implemented so far)",
+    "Aggregate docs/index commit (deferred due to other-session pending persistence edits)",
+    "Full offline suite for current source",
+    "Real large-workspace search quality/timing, real models/devices/native desktop and 72h soak",
+    "Current Windows service restart/database upgrade"
+  ],
+  "next": "Continue implementing recorded offline gaps as independent batches (e.g. K13 fuzzy patch/browser_dialog, K18 following-feed, K16 HSV shot-cut/addressable cell index/zoom, K15 forgetting engine, K17 journal/reflection) via V2 four-layer with authorization/persistence contract first; persistence-touching gaps wait for other-session edits to settle; complete K01 session/lineage cache scope; regenerate aggregate index when working tree clean. whole_*_complete remain false. Do not prematurely close any parity item"
+}

@@ -47,8 +47,12 @@ def builtin_capabilities(
         ),
         (
             "files_search",
-            "Search workspace text files for a bounded case-insensitive query; returns matching relative paths and line numbers",
-            {"query": {"type": "string", "minLength": 1, "maxLength": 200}, "path": {"type": "string"}},
+            "Search the workspace: target=content (default) does bounded case-insensitive substring search returning relative paths/line numbers/snippets; target=files finds files by case-sensitive basename glob (e.g. '*.py')",
+            {
+                "query": {"type": "string", "minLength": 1, "maxLength": 200},
+                "path": {"type": "string"},
+                "target": {"type": "string", "enum": ["content", "files"]},
+            },
             ["query"],
             False,
             worker,

@@ -202,9 +202,17 @@
           "contract": "docs/v2/contracts/V2_FILES_SEARCH.md",
           "evidence": "docs/evidence/v2-files-search.json",
           "delivered": "files_search只读builtin worker能力(domain/files_search.py新纯规则normalize_query1-200无控制字节/match_lines大小写不敏感子串1-based行号snippet200每文件5上限、adapters/workers/main.py _files新分支泛型files_*分派无协议帧改动+逐文件复用workspace_path同一安全路径+os.walk剪枝+有界2000文件/50结果/5秒/256KB/二进制硬链接跳过+只读NONE+非法query分派前ERROR、capabilities spec writes=False resource=workspace、routing RETRIEVAL_TOOLS+=files_search)；15专项+62调用方(files_search15+worker_safety31+routing16)过0失败、strict409零错误(新源文件408→409)；仅内容子串非regex/glob文件名/output_mode/context/offset/modified序/ripgrep；无新表/迁移/路由/worker协议帧/跨平台worker改动；聚合索引因他会话未提交持久层编辑暂缓"
+        },
+        {
+          "gap": "#1 工作区搜索工具之文件名glob发现(search_files target=files)",
+          "status": "implemented_scoped_passed",
+          "batch": "K13.find_files",
+          "contract": "docs/v2/contracts/V2_FILES_SEARCH.md",
+          "evidence": "docs/evidence/v2-find-files.json",
+          "delivered": "files_search增target=files文件名glob发现(domain match_name fnmatchcase大小写敏感basename glob剥离目录前缀同参考split('/')[-1]、worker target分支files模式不读内容故无256KB限制超尺寸可发现/复用同一os.walk+workspace_path安全剪枝有界/产出{path}、capabilities target enum content|files、routing不变)；6专项+68调用方(files_search21+worker_safety31+routing16)过0失败(首轮漏导入match_name致NameError结算ERROR已补)、strict409零错误(无新源文件)；仅basename glob非regex/output_mode/context/offset/modified序/file_glob/ripgrep；无新表/迁移/路由/worker协议帧/源文件/跨平台改动；聚合索引暂缓"
         }
       ],
-      "limits": "只读审计无新工具/迁移/路由/源码改动；可离线缺口未在K13审计批实现(列后续批次)，其中缺口#1工作区搜索之内容搜索已在K13.search_files后续批实现(泛型files_*分派无需协议帧/跨平台改动)；regex/glob文件名搜索/模糊补丁patch/浏览器对话框/cron技能绑定输出依赖/代码沙箱/原始CDP仍列后续；不宣称全集对等；既有todos重启竞态与5个pin v2_0039旧迁移测试沿用保留",
+      "limits": "只读审计无新工具/迁移/路由/源码改动；可离线缺口未在K13审计批实现(列后续批次)，其中缺口#1工作区搜索之内容搜索与文件名glob发现已在K13.search_files/K13.find_files后续批实现(泛型files_*分派无需协议帧/跨平台改动)；regex内容/output_mode/context/offset/modified序/file_glob/ripgrep/模糊补丁patch/浏览器对话框/cron技能绑定输出依赖/代码沙箱/原始CDP仍列后续；不宣称全集对等；既有todos重启竞态与5个pin v2_0039旧迁移测试沿用保留",
       "next": false
     },
     {
@@ -425,6 +433,10 @@
     {
       "id": "K13.search_files",
       "evidence": "docs/evidence/v2-files-search.json"
+    },
+    {
+      "id": "K13.find_files",
+      "evidence": "docs/evidence/v2-find-files.json"
     }
   ]
 }

@@ -19,7 +19,7 @@ if TYPE_CHECKING:
     from playwright.async_api import Browser, BrowserContext, Page, Playwright
 
 from ...domain.contracts import JSON, ActionResult, Effect, Outcome
-from ...domain.files_search import match_lines, normalize_query
+from ...domain.files_search import match_lines, match_name, normalize_query
 from ..object_store import publish_file
 from .protocol import MAX_FRAME, encode_response
 from .protocol import request as decode_request
@@ -157,6 +157,9 @@ class Worker:
             digest = hashlib.sha256(payload).hexdigest()
             return ActionResult(Outcome.OK, "File saved", Effect.APPLIED, verification=digest, data={"sha256": digest})
         if name == "files_search":
+            target = args.get("target", "content")
+            if target not in {"content", "files"}:
+                raise ValueError("Search target must be content or files")
             query = normalize_query(args.get("query"))
             base = Path(context["workspace"]).resolve()
             results: list[dict[str, Any]] = []
@@ -184,9 +187,18 @@ class Worker:
                         info = checked.stat()
                     except (ValueError, OSError):
                         continue
-                    if not checked.is_file() or info.st_nlink != 1 or info.st_size > 256 * 1024:
+                    if not checked.is_file() or info.st_nlink != 1:
                         continue
                     scanned += 1
+                    if target == "files":
+                        if match_name(filename, query):
+                            results.append({"path": relative})
+                            if len(results) >= 50:
+                                truncated = True
+                                break
+                        continue
+                    if info.st_size > 256 * 1024:
+                        continue
                     try:
                         text = checked.read_bytes().decode("utf-8-sig")
                     except (UnicodeError, OSError):
@@ -202,7 +214,12 @@ class Worker:
             return ActionResult(
                 Outcome.OK,
                 json.dumps(results, ensure_ascii=False),
-                data={"matches": cast(list[JSON], results), "scanned": scanned, "truncated": truncated},
+                data={
+                    "matches": cast(list[JSON], results),
+                    "scanned": scanned,
+                    "truncated": truncated,
+                    "target": target,
+                },
             )
         raise ValueError("Unknown file capability")
 

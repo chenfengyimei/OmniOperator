@@ -8,7 +8,7 @@ import pytest
 
 from omni.adapters.workers.main import Worker
 from omni.domain.contracts import Effect, Outcome
-from omni.domain.files_search import match_lines, normalize_query
+from omni.domain.files_search import match_lines, match_name, normalize_query
 from omni.domain.routing import CHAT_TOOLS, RETRIEVAL_TOOLS, select_tools
 
 
@@ -158,9 +158,101 @@ def test_files_search_is_registered_readonly_and_tier_filtered(tmp_path):
             specs = tuple(c.spec for c in builtin_capabilities(db, DocumentService(db, objects)))
             spec = next(s for s in specs if s.name == "files_search")
             assert spec.writes is False and spec.resource == "workspace"
+            assert spec.parameters["properties"]["target"]["enum"] == ["content", "files"]
             assert "files_search" in RETRIEVAL_TOOLS and "files_search" not in CHAT_TOOLS
             retrieval = [t.name for t in select_tools("retrieval", specs, escalate=False)]
             chat = [t.name for t in select_tools("chat", specs, escalate=False)]
             assert "files_search" in retrieval and "files_search" not in chat
+
+    asyncio.run(scenario())
+
+
+def test_match_name_glob_is_basename_case_sensitive_and_strips_dir_prefix():
+    assert match_name("a.py", "*.py") is True
+    assert match_name("a.txt", "*.py") is False
+    assert match_name("a.py", "src/*.py") is True
+    assert match_name("a.py", "**/*.py") is True
+    assert match_name("a.py", "*.PY") is False
+    assert match_name("myconfig.json", "*config*") is True
+
+
+def test_worker_files_mode_finds_by_glob_with_relative_paths(tmp_path):
+    (tmp_path / "a.py").write_text("x", encoding="utf-8")
+    (tmp_path / "b.txt").write_text("x", encoding="utf-8")
+    (tmp_path / "sub").mkdir()
+    (tmp_path / "sub" / "c.py").write_text("x", encoding="utf-8")
+
+    async def scenario():
+        result = await Worker().invoke(
+            "files_search", {"query": "*.py", "target": "files"}, {"workspace": str(tmp_path)}
+        )
+        assert result.status == Outcome.OK and result.effect == Effect.NONE
+        assert result.data["target"] == "files"
+        paths = {Path(m["path"]).as_posix() for m in result.data["matches"]}
+        assert paths == {"a.py", "sub/c.py"}
+        assert all("line" not in m and "text" not in m for m in result.data["matches"])
+
+    asyncio.run(scenario())
+
+
+def test_worker_files_mode_skips_private_and_hardlinked(tmp_path):
+    workspace = tmp_path / "ws"
+    workspace.mkdir()
+    (workspace / "good.py").write_text("x", encoding="utf-8")
+    (workspace / ".env").write_text("secret", encoding="utf-8")
+    (workspace / ".git").mkdir()
+    (workspace / ".git" / "config.py").write_text("x", encoding="utf-8")
+    outside = tmp_path / "outside.py"
+    outside.write_text("x", encoding="utf-8")
+    os.link(outside, workspace / "alias.py")
+
+    async def scenario():
+        result = await Worker().invoke(
+            "files_search", {"query": "*.py", "target": "files"}, {"workspace": str(workspace)}
+        )
+        assert result.status == Outcome.OK
+        paths = {Path(m["path"]).as_posix() for m in result.data["matches"]}
+        assert paths == {"good.py"}
+
+    asyncio.run(scenario())
+
+
+def test_worker_files_mode_includes_oversize_while_content_skips(tmp_path):
+    (tmp_path / "big.py").write_text("needle " + "x" * 300000, encoding="utf-8")
+
+    async def scenario():
+        files = await Worker().invoke(
+            "files_search", {"query": "*.py", "target": "files"}, {"workspace": str(tmp_path)}
+        )
+        assert {Path(m["path"]).as_posix() for m in files.data["matches"]} == {"big.py"}
+        content = await Worker().invoke("files_search", {"query": "needle"}, {"workspace": str(tmp_path)})
+        assert content.data["matches"] == []
+
+    asyncio.run(scenario())
+
+
+def test_worker_files_mode_caps_results_and_truncates(tmp_path):
+    for index in range(60):
+        (tmp_path / f"f{index:03d}.py").write_text("x", encoding="utf-8")
+
+    async def scenario():
+        result = await Worker().invoke(
+            "files_search", {"query": "*.py", "target": "files"}, {"workspace": str(tmp_path)}
+        )
+        assert result.status == Outcome.OK
+        assert len(result.data["matches"]) == 50 and result.data["truncated"] is True
+
+    asyncio.run(scenario())
+
+
+def test_worker_search_rejects_invalid_target(tmp_path):
+    (tmp_path / "a.py").write_text("needle", encoding="utf-8")
+
+    async def scenario():
+        result = await Worker().invoke(
+            "files_search", {"query": "needle", "target": "bogus"}, {"workspace": str(tmp_path)}
+        )
+        assert result.status == Outcome.ERROR and result.effect == Effect.NONE
+        assert result.error_code == "invalid_capability_request"
 
     asyncio.run(scenario())
