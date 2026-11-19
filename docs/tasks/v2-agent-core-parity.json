@@ -118,17 +118,26 @@
     {
       "id": "K09",
       "title": "模型侧历史会话检索",
-      "status": "partial",
-      "remaining": "已有所有者历史API；补模型session_search、来源锚点、分页/大小、Agent/会话与删除屏障",
+      "status": "implemented_scoped_passed",
+      "acceptance": [
+        "模型侧session_search工具接生产捕获/档位/派发链",
+        "原文来源锚点(message_id+session_id+seq)与有界返回",
+        "分页/大小限额(结果/窗口/head-tail/逐消息内容上限)",
+        "Agent/会话隔离与删除屏障(deleted_at+context_floor_seq)，不等同memory_search"
+      ],
       "reference": "hermes-agent/tools/session_search_tool.py",
-      "next": true
+      "delivered": "domain/session_search.py纯规则四形态推断(discover/scroll/read/browse)、有界clamp/角色/排除归一化、token化、逐消息截断与锚点shaping、按会话去重分组与渲染；SessionSearchRepositories只读仓储Agent隔离+deleted_atISNULL+seq>context_floor_seq屏障+隐藏委派子会话，tokenLIKE有界扫描(discover)、锚点窗口与前后计数(scroll)、head/tail截断(read)、最近会话预览(browse)；SessionSearchCapabilities映射错误码并返回 ActionResult文本+结构化锚点；capabilities.py新增只读ToolSpec(writes=False,resource空)、routing.py RETRIEVAL_TOOLS纳入；engine._execute原生命周期派发无需改",
+      "contract": "docs/v2/contracts/V2_SESSION_SEARCH.md",
+      "evidence": "docs/evidence/v2-session-search.json",
+      "limits": "V2 messages无FTS索引，discover用有界tokenLIKE+按会话分组非参考FTS5/bm25/lineage去重全集；sessions无source/parent列，隐藏委派子会话由run_delegations推导，无cron降级/跨profile/时间界/压缩lineage变体；删除屏障在读取时遵守floor(整段prior历史排除)，不做读取后追溯scrub或context捕获注册(区别于memory/document)；无新表/无迁移/无新HTTP路由"
     },
     {
       "id": "K10",
       "title": "结构化澄清和当前回合纠偏",
       "status": "not_implemented",
       "remaining": "clarify等待/响应/取消/超时与显式steering；排队下一回合不是当前run继续",
-      "reference": "hermes-agent/tools/clarify_tool.py"
+      "reference": "hermes-agent/tools/clarify_tool.py",
+      "next": true
     },
     {
       "id": "K11",
@@ -215,6 +224,10 @@
     {
       "id": "K08",
       "evidence": "docs/evidence/v2-background-review.json"
+    },
+    {
+      "id": "K09",
+      "evidence": "docs/evidence/v2-session-search.json"
     }
   ]
 }

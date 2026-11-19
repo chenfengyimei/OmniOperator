@@ -2,7 +2,7 @@
 
 ## 结论与范围
 
-2026-11-18 实读源码核对：**V2 有可运行的共享 Agent 内核，但尚未完整对标 `xuexi/` 的参考功能，不能宣称内核或整个 V2 开发完成。** 此前补上运行中系统前缀冻结、普通回包工具协议校验和空回复失败结算；随后 K03 补修订化会话任务清单、K04 补单层父子 run 委派、K05 补模型批次工具并行、K06 补 run 内工具上下文压缩、K07 补重复退化守卫与预算内收敛 grace、K08 补回合后 reviewer/curator 后台学习（待审建议进现有审核撤回链）。模型侧历史会话检索、结构化澄清、停止前验核、模型故障恢复等仍有明确源码缺口。
+2026-11-18 实读源码核对：**V2 有可运行的共享 Agent 内核，但尚未完整对标 `xuexi/` 的参考功能，不能宣称内核或整个 V2 开发完成。** 此前补上运行中系统前缀冻结、普通回包工具协议校验和空回复失败结算；随后 K03 补修订化会话任务清单、K04 补单层父子 run 委派、K05 补模型批次工具并行、K06 补 run 内工具上下文压缩、K07 补重复退化守卫与预算内收敛 grace、K08 补回合后 reviewer/curator 后台学习（待审建议进现有审核撤回链）、K09 补模型侧历史会话检索（四形态只读工具、原文锚点、分页/大小限额、Agent/会话隔离与删除屏障）。结构化澄清、停止前验核、模型故障恢复等仍有明确源码缺口。
 
 本表是当前已核对范围，不是七个参考仓库全部 API 的穷尽验收。参考仓库位于忽略目录，不随主仓 Git 迁移；下面固定版本、[任务清单](../../tasks/v2-agent-core-parity.json)与[证据](../../evidence/v2-agent-core-parity.json)随主仓保存。阅读旧 `xuexi/NOTES.md` 后仍以固定版本实际代码为准，不把 V1 的实现当作 V2 已有功能。
 
@@ -39,7 +39,7 @@
 | 记忆检索、来源及删除 | 已有 FTS、语义向量、引用来源、审计与删除：memory/people/documents/semantics | 不等于自动人格成长或回合后复盘 |
 | 技能渐进披露、补丁与审核 | 已有 skills_list/view/activate、参考文件、revision、patch 与审核：`application/skills.py`、skill 仓储 | 继续保留审核；不把模型生成内容直接当新权限 |
 | 回合后学习/整理 | **K08 已接生产回合后 reviewer/curator 后台链**，见 [回合后学习合同](V2_BACKGROUND_REVIEW.md)；另有显式记忆整理（memory_organization 不调模型）与技能修订入口 | 后台批次持有/独立预算/只读+记忆技能白名单/证据锚点/待审输出/关闭与撤回已实现；建议经现有 remember/forget 与技能审核撤回链应用，来源不直接变授权；无 prompt-cache parity fork 与 aux 模型路由 |
-| 历史会话检索 | 所有者历史分页/审计接口已有：`application/engine.py` 的 history 用例、history 仓储 | **缺模型侧 session_search**；需 Agent/会话隔离、原文锚点、删除屏障和有界返回，不等同 memory_search |
+| 历史会话检索 | 所有者历史分页/审计接口已有；**K09 已接模型侧 session_search 四形态只读工具**：`domain/session_search.py`、`application/session_search.py`、`session_search_repository.py`，见 [历史检索合同](V2_SESSION_SEARCH.md) | Agent/会话隔离、原文锚点（message_id/session_id/seq）、分页/大小限额与删除屏障（deleted_at+context_floor_seq）已实现，不等同 memory_search；V2 无 messages FTS，discover 用有界 token LIKE+按会话分组，非参考 FTS5/bm25/lineage/跨 profile/时间界全集 |
 | 澄清与主动纠偏 | 普通用户追加消息已有；当前同会话排队 | **缺结构化 clarify/当前 run 暂停与继续**，以及显式用户 steering 合同；不能把排队新回合算进当前回合 |
 | 停止前验核 | 外部动作已有结构化 outcome/effect/verification，unknown 不当成功 | **缺通用 verify-on-stop gate**：模型最终文本不能代替工具验证或清单验收 |
 | 模型故障恢复/切换 | 已有超时/取消、固定授权模型、已送达未知费用归属；适配器关闭自动重试 | Hermes 的重试、模型/provider fallback 未完整对等。先设计显式授权与预算合同，不能擅换账号、模型或重复未知调用 |
@@ -67,6 +67,6 @@
 
 ## 后续顺序和完成条件
 
-K03 修订化任务清单、K04 单层有界父子 run 委派、K05 模型批次工具并行、K06 run 内工具上下文压缩、K07 重复退化守卫与预算内收敛 grace 和 K08 回合后 reviewer/curator 后台学习已实现。下一步按 [K09…任务](../../tasks/v2-agent-core-parity.json)推进模型侧历史会话检索，再做结构化澄清、停止前验核与模型故障恢复。委派子批并行、K05 工具批次并行、K06 run 内压缩、K07 迭代守卫与 K08 回合后评审是不同链路，各自合同独立。顺序中的授权/持久化合同应先于执行接线；任务记录和审计文档不是相应功能的实现。
+K03 修订化任务清单、K04 单层有界父子 run 委派、K05 模型批次工具并行、K06 run 内工具上下文压缩、K07 重复退化守卫与预算内收敛 grace、K08 回合后 reviewer/curator 后台学习和 K09 模型侧历史会话检索已实现。下一步按 [K10…任务](../../tasks/v2-agent-core-parity.json)推进结构化澄清与当前回合纠偏，再做停止前验核与模型故障恢复。委派子批并行、K05 工具批次并行、K06 run 内压缩、K07 迭代守卫与 K08 回合后评审是不同链路，各自合同独立。顺序中的授权/持久化合同应先于执行接线；任务记录和审计文档不是相应功能的实现。
 
 每项需有生产工具/用例/组装链、持久来源与资源归属、错误/取消/删除行为、受影响调用方专项和可复查证据；仅有类、提示词或空工具名称不算完成。所有领域参考功能也需核完后才能关闭总对标任务。开发中局部测试，整个 V2 开发冻结后统一全量，真实模型、设备、各平台和 72 小时分别验收。当前总任务保持未完成。

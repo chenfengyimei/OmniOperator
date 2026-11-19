@@ -10,6 +10,7 @@ from ..application.engine import Capability
 from ..application.memory_semantics import MemorySemanticService
 from ..application.memory_tools import MemoryCapabilities
 from ..application.ports import DatabasePort
+from ..application.session_search import SessionSearchCapabilities
 from ..domain.contracts import ToolSpec
 
 
@@ -23,6 +24,7 @@ def builtin_capabilities(
     worker = "builtin"
     browser = "browser"
     memory = MemoryCapabilities(database, semantics)
+    sessions = SessionSearchCapabilities(database)
     specs: list[tuple[str, str, dict[str, Any], list[str] | None, bool, Any, str]] = [
         ("system_info", "Read operating system and runtime versions", {}, [], False, worker, ""),
         (
@@ -143,6 +145,27 @@ def builtin_capabilities(
             ["memory_id", "revision"],
             True,
             memory,
+            "",
+        ),
+        (
+            "session_search",
+            "Search or read this Agent's past conversations (not memory). query=discover matching sessions; "
+            "session_id+around_seq=scroll a window; session_id alone=read head/tail; no args=browse recent. "
+            "Returns original message anchors; erased history is excluded.",
+            {
+                "query": {"type": "string", "maxLength": 500},
+                "session_id": {"type": "string", "maxLength": 64},
+                "around_seq": {"type": "integer", "minimum": 1},
+                "window": {"type": "integer", "minimum": 1, "maximum": 20},
+                "limit": {"type": "integer", "minimum": 1, "maximum": 10},
+                "head": {"type": "integer", "minimum": 0, "maximum": 50},
+                "tail": {"type": "integer", "minimum": 0, "maximum": 50},
+                "role_filter": {"type": "string"},
+                "exclude_session_ids": {"type": "array", "items": {"type": "string"}, "maxItems": 20},
+            },
+            [],
+            False,
+            sessions,
             "",
         ),
     ]

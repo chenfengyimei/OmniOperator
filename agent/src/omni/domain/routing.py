@@ -15,6 +15,7 @@ CHAT_TOOLS = frozenset({"memory_search"})
 RETRIEVAL_TOOLS = CHAT_TOOLS | {
     "document_search",
     "document_read",
+    "session_search",
     "system_info",
     "files_list",
     "files_read",

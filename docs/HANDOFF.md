@@ -3,7 +3,7 @@
 ## 当前状态与工作方式
 
 - 开发分支 `v2`，跟踪 `origin/v2`。默认入口是 V2，显式 V1 回退保留。
-- 当前工作：目录整理已完成；按 [Agent 内核与学习项目对标](v2/contracts/V2_AGENT_CORE_PARITY.md)持续补齐。K03 [修订化任务清单](v2/contracts/V2_TODOS.md)、K04 [单层父子 run 委派](v2/contracts/V2_DELEGATION.md)、K05 [模型批次工具并行](v2/contracts/V2_TOOL_BATCH.md)、K06 [run 内工具上下文压缩](v2/contracts/V2_RUN_COMPACTION.md)、K07 [迭代守卫与预算收敛](v2/contracts/V2_ITERATION_GUARD.md)、K08 [回合后 reviewer/curator 后台学习](v2/contracts/V2_BACKGROUND_REVIEW.md)已接生产；下一项 K09 模型侧历史会话检索仍未实现。
+- 当前工作：目录整理已完成；按 [Agent 内核与学习项目对标](v2/contracts/V2_AGENT_CORE_PARITY.md)持续补齐。K03 [修订化任务清单](v2/contracts/V2_TODOS.md)、K04 [单层父子 run 委派](v2/contracts/V2_DELEGATION.md)、K05 [模型批次工具并行](v2/contracts/V2_TOOL_BATCH.md)、K06 [run 内工具上下文压缩](v2/contracts/V2_RUN_COMPACTION.md)、K07 [迭代守卫与预算收敛](v2/contracts/V2_ITERATION_GUARD.md)、K08 [回合后 reviewer/curator 后台学习](v2/contracts/V2_BACKGROUND_REVIEW.md)、K09 [模型侧历史会话检索](v2/contracts/V2_SESSION_SEARCH.md)已接生产；下一项 K10 结构化澄清与当前回合纠偏仍未实现。
 - Windows 主体开发及旧离线候选已完成；当前源码未统一全量，整个 V2 仍在开发。真实账号/模型质量/设备、干净机器及 72 小时验收分别待办。
 - Mac mini 为 Apple Silicon，所有者提供 macOS 27，实际版本在 Mac 用 `sw_vers` 核对。Mac 做主开发机，现有 Windows 保留运行和原生验收环境，两端同步同一分支。
 - 当前 Windows 服务、实例、凭据和其他会话的 `PPT/`、`docs/competition/` 保留。根 `src`/`tests` 是本机兼容联接，正式代码与测试分别在 `agent/src`、`agent/tests`。
@@ -50,7 +50,11 @@ K08 已接回合后 reviewer/curator 后台学习：纯领域 `domain/background
 
 本批新增 18 项回归（8 领域 + 8 生产集成 + 2 迁移），最终源码 123 项专项/守卫全过（140.36 秒），覆盖 K08、K05 并行、K06 压缩、K07 迭代守卫、维护与记忆整理迁移、四层架构与候选门/清单/目录/入口守卫。V2 strict 399 文件零错误/警告（新增 domain/application/repository 三文件，396→399）；Ruff/格式与项目索引通过（modules=65 files=814 routes=451）。首轮领域内容误拒换行、maintenance 自动运行与手动 process_one 竞态（改排他 claim + 测试停自动驱动 + 桩按内容确定性返回）、ruff 误删 lambda 捕获的 except 绑定（改局部变量绑定）均已修正并在最终源码重跑绿。既有 6 个 pin 旧版本（v2_0032/33/34/36/39）的升级迁移测试在 HEAD 之前即滞后（与 K08 无关），head 升级类计数断言已同步 136→140。未全量、未真实模型/原生/72 小时验收，未动运行中服务与数据库。详见 [回合后学习证据](evidence/v2-background-review.json)。
 
-下一批推进 G6.core_parity / K09 模型侧历史会话检索：参考 `xuexi/hermes-agent/tools/session_search_tool.py`，在已有所有者历史 API 基础上补模型 session_search 工具、原文来源锚点、分页/大小限额、Agent/会话隔离与删除屏障（不等同 memory_search）。之后继续 K10 结构化澄清、K11 停止前验核、K12 模型故障恢复及后续任务，其他对标项不提前关闭。
+K09 已接模型侧历史会话检索：纯领域 `domain/session_search.py` 提供四形态推断（discover/scroll/read/browse）、有界 clamp/角色/排除归一化、Unicode 分词、逐消息截断与原文锚点 shaping、按会话去重分组与渲染。`SessionSearchRepositories` 只读仓储全部 Agent 隔离（复合 FK + `_one` 归属，跨 Agent 404）、`deleted_at IS NULL` 且 `seq > context_floor_seq` 删除屏障、discover/browse 隐藏 `run_delegations` 委派子会话；discover 用有界 token LIKE（≤300 行）交领域分组，scroll 校验锚点并给窗口与前后计数，read 计总数取 head/tail，browse 最近会话预览。`SessionSearchCapabilities` 映射错误码返回 ActionResult 文本+结构化锚点（message_id/session_id/seq），只读无写事务、不注册 context 捕获（区别于 memory/document）。`capabilities.py` 新增只读 ToolSpec（writes=False、resource 空），`routing.py` RETRIEVAL_TOOLS 纳入；`engine._execute` 原 schema/prepare/资源锁/authorize/observe/超时/settle 生命周期派发无需改，K05 中按 name 键独立并发。V2 messages 无 FTS、sessions 无 source/parent 列，故非参考 FTS5/bm25/lineage/跨 profile/时间界全集；擦除抬 floor 会排除整段 prior 历史。无新表、无迁移、无新 HTTP 路由。
+
+本批新增 14 项回归（6 领域 + 8 生产集成），最终源码 224 项专项/守卫全过（331.71 秒），覆盖 K09、routing 档位、K05 并行、能力、清单、四层架构与候选门/目录/入口守卫、执行/FIFO/审批/取消、内核/生命周期、执行裁剪、动作审核执行、K06 压缩、K07 迭代守卫、K04 委派、K08 后台学习与上下文。V2 strict 402 文件零错误/警告（新增 domain/application/repository 三文件，399→402，格式化后复核干净）；Ruff/格式与项目索引通过（modules=65 files=817 routes=451 declared_tools=94）。首轮 12 处 strict（递归 JSON 别名需 cast、list[Unknown] 显式标注、多余 cast/int 与 isinstance 守卫）与 3 处未用变量均已修正并在最终源码重跑绿。未全量、未真实模型/原生/72 小时验收，未动运行中服务与数据库。详见 [历史检索证据](evidence/v2-session-search.json)。
+
+下一批推进 G6.core_parity / K10 结构化澄清与当前回合纠偏：参考 `xuexi/hermes-agent/tools/clarify_tool.py`，补 clarify 等待/响应/取消/超时与显式 steering 合同；排队下一回合不是当前 run 继续。之后继续 K11 停止前验核、K12 模型故障恢复及后续任务，其他对标项不提前关闭。
 
 K03 新增 34 项回归；首轮冻结源码 114 项集成专项通过（182.82 秒），收尾补强 Agent 禁用检查后最终 34 项清单/HTTP 模块专项通过（39.09 秒），另 7 项目录/状态守卫通过。最终 391 文件 strict 零错误/警告，Ruff 与格式检查通过，未全量。每轮源码指纹与失败均保留，不把首轮结果写为最终源码全量。此前 K01/K02 批 `c4e205d8` 的结果见 [固定证据](evidence/v2-agent-core-parity.json)。测试只用隔离数据库与冻结源码，当前 Windows 服务和真实数据库未停止或由测试升级。
 

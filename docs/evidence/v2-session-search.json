@@ -1,0 +1,104 @@
+{
+  "schema": 1,
+  "date": "2026-11-19",
+  "base_commit": "65983f3832845460e8171fb82516c3869b908bfb",
+  "status": "model_side_session_search_implemented_scoped_passed",
+  "contract": "docs/v2/contracts/V2_SESSION_SEARCH.md",
+  "source_files": {
+    "agent/src/omni/domain/session_search.py": "2be5fe00961120d767f12cb36989b3ab64f88cf2e1df816fe108e002701e2861",
+    "agent/src/omni/application/session_search.py": "9e3d68d5b09bd89668c0209160dcd0e17dd5dcf23314f06e8541ab015cc4f2d2",
+    "agent/src/omni/adapters/persistence/session_search_repository.py": "49855dc6751bca1cfc7cc2b7b58352f874e17c37982304ca7d0a0c146c3dd0bf",
+    "agent/src/omni/composition/capabilities.py": "b4838d170a67141fa18f94bfdab6b4ad75a238d54daf4321c7c77b2ef6b8e121",
+    "agent/src/omni/domain/routing.py": "6a11822b4da0397c3984edce5e6ba3061d61bf7c70afaa563af8670d1eee6032",
+    "agent/tests/v2/core/test_v2_session_search.py": "67fa857cf5ba8583cd312a09d7a457ce76ce78a159e70cb24147399bec790b11",
+    "pyrightconfig.strict.json": "0b86aadf76f39bdea0cadd542363341142e81918c18474b6cc6c2f00268897a4"
+  },
+  "reference": {
+    "repository": "xuexi/hermes-agent",
+    "commit": "9976f4857b72439d79016354d7b6e1a3ee952e2f",
+    "files": {
+      "tools/session_search_tool.py": "studied_single_shape_four_modes_discover_scroll_read_browse"
+    },
+    "adaptation": "Single-shape four-mode history recall studied and independently adapted within V2 four layers over the existing sessions/messages store; no third-party source copied, no remote fetch or real account/model used. V2 has no messages FTS and no session source/parent columns, so discovery uses bounded token LIKE grouped by session and delegation-child hiding is derived from run_delegations"
+  },
+  "delivered": [
+    "Pure domain/session_search.py: mode inference (discover/scroll/read/browse), bounded clamps, role/exclude normalization, unicode tokenization, per-message truncation with anchor marking, session dedup grouping and text rendering",
+    "SessionSearchRepositories read-only queries: explicit agent_id scoping + _one session ownership (cross-agent 404), deleted_at IS NULL and seq > context_floor_seq erasure barrier, delegation-child sessions hidden from discover/browse",
+    "discover bounded token LIKE scan (<=300 rows) grouped by session in domain; scroll anchor validation + window + before/after counts; read total + head/tail truncation; browse recent sessions with count + preview",
+    "SessionSearchCapabilities maps invalid_session_query/not_found/session_deleted/context_invalidated to ERROR and returns ActionResult text + structured original-text anchors (message_id/session_id/seq); read-only, no write txn, no context capture registration",
+    "Production wiring: capabilities.py adds read-only ToolSpec(writes=False, resource=\"\") bound to SessionSearchCapabilities; routing.py RETRIEVAL_TOOLS includes session_search; engine._execute dispatches via the existing schema/prepare/resource-lock/authorize/observe/timeout/settle lifecycle unchanged",
+    "K05 batch parallelism: session_search participates as an independent read keyed by name, distinct from memory_search; repeated key serializes"
+  ],
+  "limits": {
+    "discover_default_limit": 3,
+    "discover_max_limit": 10,
+    "discover_scan_limit": 300,
+    "discover_snippet_chars": 600,
+    "scroll_default_window": 5,
+    "scroll_max_window": 20,
+    "read_default_head": 20,
+    "read_default_tail": 10,
+    "read_max_head_tail": 50,
+    "message_max_content": 2000,
+    "browse_max_sessions": 10,
+    "preview_chars": 200,
+    "max_query_chars": 500,
+    "max_exclude": 20,
+    "max_tokens": 20,
+    "messages_fts": false,
+    "discovery_ranking": "bounded token LIKE + session grouping, not reference FTS5/bm25/lineage dedup/adaptive hydration/bookends/title match",
+    "session_source_columns": false,
+    "lineage_walk_or_cron_demotion_or_cross_profile_or_time_bounds": false,
+    "post_read_retroactive_scrub": false,
+    "context_capture_registration": false,
+    "database_migration": false,
+    "new_tables": false,
+    "new_http_routes": false,
+    "second_kernel_or_state_store": false
+  },
+  "validation": {
+    "mode": "development_working_tree_scoped",
+    "frozen_source": null,
+    "scoped_passed": 224,
+    "failed": 0,
+    "seconds": 331.71,
+    "new_nodes": 14,
+    "scope": [
+      "New K09 domain rules (6) and production integration (8): mode inference/clamps/bounds, tokenization, truncation+anchor shaping, session dedup grouping, browse/render; discover anchor + current-session exclusion, agent isolation not_found, scroll window + boundary counts, read head/tail truncation, browse recent exclusion, erasure floor barrier (discover empty/read zero/scroll context_invalidated), invalid args + unknown tool error mapping, engine production dispatch settles ok with anchors",
+      "Routing tier gate, K05 tool batch parallelism, capabilities, business inventory, four-layer architecture, candidate gate, layout and default/other entrypoint guards (88)",
+      "Execution/FIFO/approval/cancellation, kernel/lifecycle, execution pruning, action-review execution, K06 run compaction, K07 iteration guard, K04 delegation, K08 background review, context (122)"
+    ],
+    "strict": {
+      "config": "pyrightconfig.strict.json",
+      "files": 402,
+      "errors": 0,
+      "warnings": 0,
+      "note": "three new modules added to include (399 -> 402); rechecked clean after ruff format on final source"
+    },
+    "ruff": "domain/application/repository session_search, capabilities, routing, repository, ports and test_v2_session_search lint and format-check passed",
+    "project_index": "scripts/project_index.py rerun after adding three source modules and one test (modules=65 files=817 routes=451 declared_tools=94)",
+    "full_suite_executed": false,
+    "real_model_account_device_native_or_72h_executed": false,
+    "current_windows_service_or_database_touched": false
+  },
+  "retained_first_failures": [
+    {
+      "phase": "strict-initial",
+      "reason": "12 errors: recursive JSON alias rejected nested list[Record]/list[dict] in return/data dicts (cast to Record/dict[str,JSON]); list[Unknown] from object-typed role/exclude inputs (explicit list[object] + cast); unnecessary cast(int) on scalar_one() and unnecessary isinstance(Mapping) guard removed. One residual list[str]->list[object] invariance fixed with cast. Final strict 402 files clean."
+    },
+    {
+      "phase": "ruff-initial",
+      "reason": "Three unused run_a locals in discover/browse/engine tests prefixed _run_a; four files reformatted by ruff format. K09 14 nodes rechecked green on final formatted source (31.18s)."
+    }
+  ],
+  "whole_core_parity_complete": false,
+  "whole_reference_feature_audit_complete": false,
+  "whole_v2_complete": false,
+  "not_executed": [
+    "Full offline suite for current source",
+    "Real accounts/models/devices/native desktop and 72h soak",
+    "Current Windows service restart/database upgrade",
+    "macOS/Linux actual native build or run"
+  ],
+  "next": "K10 structured clarify and current-run steering (wait/respond/cancel/timeout); a queued next turn is not continuation of the current run. Do not redo K03-K09"
+}

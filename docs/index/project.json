@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "c8610b77e2b443110433cf248b9af4eacfd99f684ac32cc61516c804bb184975",
+  "source_sha256": "d982a912c81f7004aff6f7f6d6446151c16ac8cfe9fd34823e57e45ef081a0af",
   "modules": [
     {
       "id": "v2-domain",
@@ -74,6 +74,7 @@
         "agent/src/omni/domain/service_exchange.py",
         "agent/src/omni/domain/service_isolation.py",
         "agent/src/omni/domain/service_operations.py",
+        "agent/src/omni/domain/session_search.py",
         "agent/src/omni/domain/settings.py",
         "agent/src/omni/domain/skills.py",
         "agent/src/omni/domain/soak.py",
@@ -83,7 +84,7 @@
         "agent/src/omni/domain/tool_batch.py",
         "agent/src/omni/domain/turn_prompt.py"
       ],
-      "lines": 11028,
+      "lines": 11300,
       "dependencies": []
     },
     {
@@ -145,12 +146,13 @@
         "agent/src/omni/application/service_deployment.py",
         "agent/src/omni/application/service_exchange.py",
         "agent/src/omni/application/service_operations.py",
+        "agent/src/omni/application/session_search.py",
         "agent/src/omni/application/skills.py",
         "agent/src/omni/application/terminal_review.py",
         "agent/src/omni/application/terminals.py",
         "agent/src/omni/application/todos.py"
       ],
-      "lines": 12819,
+      "lines": 12942,
       "dependencies": [
         "v2-domain"
       ]
@@ -309,6 +311,7 @@
         "agent/src/omni/adapters/persistence/schema.py",
         "agent/src/omni/adapters/persistence/schema_upgrade.py",
         "agent/src/omni/adapters/persistence/search_schema.py",
+        "agent/src/omni/adapters/persistence/session_search_repository.py",
         "agent/src/omni/adapters/persistence/skill_repository.py",
         "agent/src/omni/adapters/persistence/sqlalchemy_access.py",
         "agent/src/omni/adapters/persistence/sqlite_access.py",
@@ -481,7 +484,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 67296,
+      "lines": 67563,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -516,7 +519,7 @@
         "agent/src/omni/composition/service_runner.py",
         "agent/src/omni/composition/serving.py"
       ],
-      "lines": 3162,
+      "lines": 3185,
       "dependencies": [
         "v2-adapters",
         "v2-application",
@@ -21565,7 +21568,7 @@
       "path": "agent/src/omni/adapters/persistence/repository.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.persistence.repository",
-      "lines": 1114,
+      "lines": 1116,
       "imports": [
         "omni.adapters.persistence",
         "omni.adapters.persistence.action_review_repository",
@@ -21592,6 +21595,7 @@
         "omni.adapters.persistence.reference_release_repository",
         "omni.adapters.persistence.routing_repository",
         "omni.adapters.persistence.schedule_repository",
+        "omni.adapters.persistence.session_search_repository",
         "omni.adapters.persistence.skill_repository",
         "omni.adapters.persistence.terminal_review_repository",
         "omni.adapters.persistence.todo_repository",
@@ -21605,12 +21609,12 @@
       "symbols": [
         {
           "name": "Repositories",
-          "line": 45,
+          "line": 46,
           "kind": "class"
         },
         {
           "name": "Repositories.instance_identity",
-          "line": 73,
+          "line": 75,
           "kind": "function",
           "parameters": [
             "self"
@@ -21619,7 +21623,7 @@
         },
         {
           "name": "Repositories.initialize",
-          "line": 79,
+          "line": 81,
           "kind": "function",
           "parameters": [
             "self"
@@ -21628,7 +21632,7 @@
         },
         {
           "name": "Repositories.probe_write",
-          "line": 88,
+          "line": 90,
           "kind": "function",
           "parameters": [
             "self"
@@ -21637,7 +21641,7 @@
         },
         {
           "name": "Repositories.create_agent",
-          "line": 91,
+          "line": 93,
           "kind": "function",
           "parameters": [
             "self",
@@ -21649,7 +21653,7 @@
         },
         {
           "name": "Repositories.get_agent",
-          "line": 118,
+          "line": 120,
           "kind": "function",
           "parameters": [
             "self",
@@ -21661,7 +21665,7 @@
         },
         {
           "name": "Repositories.rename_agent",
-          "line": 124,
+          "line": 126,
           "kind": "function",
           "parameters": [
             "self",
@@ -21677,7 +21681,7 @@
         },
         {
           "name": "Repositories.issue_token",
-          "line": 148,
+          "line": 150,
           "kind": "function",
           "parameters": [
             "self",
@@ -21691,7 +21695,7 @@
         },
         {
           "name": "Repositories.token_valid",
-          "line": 153,
+          "line": 155,
           "kind": "function",
           "parameters": [
             "self",
@@ -21703,7 +21707,7 @@
         },
         {
           "name": "Repositories.token_sessions",
-          "line": 165,
+          "line": 167,
           "kind": "function",
           "parameters": [
             "self",
@@ -21715,7 +21719,7 @@
         },
         {
           "name": "Repositories.revoke_other_tokens",
-          "line": 175,
+          "line": 177,
           "kind": "function",
           "parameters": [
             "self",
@@ -21727,7 +21731,7 @@
         },
         {
           "name": "Repositories._message",
-          "line": 182,
+          "line": 184,
           "kind": "function",
           "parameters": [
             "self",
@@ -21745,7 +21749,7 @@
         },
         {
           "name": "Repositories.accept_turn",
-          "line": 190,
+          "line": 192,
           "kind": "function",
           "parameters": [
             "self",
@@ -21777,7 +21781,7 @@
         },
         {
           "name": "Repositories.owner_command",
-          "line": 337,
+          "line": 339,
           "kind": "function",
           "parameters": [
             "self",
@@ -21791,7 +21795,7 @@
         },
         {
           "name": "Repositories.owner_command_replay",
-          "line": 349,
+          "line": 351,
           "kind": "function",
           "parameters": [
             "self",
@@ -21807,7 +21811,7 @@
         },
         {
           "name": "Repositories.accept_owner_command",
-          "line": 366,
+          "line": 368,
           "kind": "function",
           "parameters": [
             "self",
@@ -21829,7 +21833,7 @@
         },
         {
           "name": "Repositories.assert_run_authorized",
-          "line": 413,
+          "line": 415,
           "kind": "function",
           "parameters": [
             "self",
@@ -21843,7 +21847,7 @@
         },
         {
           "name": "Repositories.desktop_dispatch",
-          "line": 418,
+          "line": 420,
           "kind": "function",
           "parameters": [
             "self",
@@ -21861,7 +21865,7 @@
         },
         {
           "name": "Repositories.owner_dispatch",
-          "line": 421,
+          "line": 423,
           "kind": "function",
           "parameters": [
             "self",
@@ -21881,7 +21885,7 @@
         },
         {
           "name": "Repositories.approved_dispatch",
-          "line": 427,
+          "line": 429,
           "kind": "function",
           "parameters": [
             "self",
@@ -21901,7 +21905,7 @@
         },
         {
           "name": "Repositories.get_run",
-          "line": 450,
+          "line": 452,
           "kind": "function",
           "parameters": [
             "self",
@@ -21915,7 +21919,7 @@
         },
         {
           "name": "Repositories.transition",
-          "line": 453,
+          "line": 455,
           "kind": "function",
           "parameters": [
             "self",
@@ -21933,7 +21937,7 @@
         },
         {
           "name": "Repositories.event",
-          "line": 496,
+          "line": 498,
           "kind": "function",
           "parameters": [
             "self",
@@ -21951,7 +21955,7 @@
         },
         {
           "name": "Repositories.messages",
-          "line": 513,
+          "line": 515,
           "kind": "function",
           "parameters": [
             "self",
@@ -21967,7 +21971,7 @@
         },
         {
           "name": "Repositories.run_context",
-          "line": 531,
+          "line": 533,
           "kind": "function",
           "parameters": [
             "self",
@@ -21981,7 +21985,7 @@
         },
         {
           "name": "Repositories.finish",
-          "line": 540,
+          "line": 542,
           "kind": "function",
           "parameters": [
             "self",
@@ -21999,7 +22003,7 @@
         },
         {
           "name": "Repositories.reserve_call",
-          "line": 570,
+          "line": 572,
           "kind": "function",
           "parameters": [
             "self",
@@ -22021,7 +22025,7 @@
         },
         {
           "name": "Repositories.settle_call",
-          "line": 616,
+          "line": 618,
           "kind": "function",
           "parameters": [
             "self",
@@ -22039,7 +22043,7 @@
         },
         {
           "name": "Repositories.prepare_action",
-          "line": 653,
+          "line": 655,
           "kind": "function",
           "parameters": [
             "self",
@@ -22059,7 +22063,7 @@
         },
         {
           "name": "Repositories.pending_approvals",
-          "line": 711,
+          "line": 713,
           "kind": "function",
           "parameters": [
             "self",
@@ -22071,7 +22075,7 @@
         },
         {
           "name": "Repositories.resolve_approval",
-          "line": 726,
+          "line": 728,
           "kind": "function",
           "parameters": [
             "self",
@@ -22089,7 +22093,7 @@
         },
         {
           "name": "Repositories.authorize_action",
-          "line": 750,
+          "line": 752,
           "kind": "function",
           "parameters": [
             "self",
@@ -22103,7 +22107,7 @@
         },
         {
           "name": "Repositories.extension_dispatch",
-          "line": 777,
+          "line": 779,
           "kind": "function",
           "parameters": [
             "self",
@@ -22121,7 +22125,7 @@
         },
         {
           "name": "Repositories._extension_revoke",
-          "line": 807,
+          "line": 809,
           "kind": "function",
           "parameters": [
             "self",
@@ -22133,7 +22137,7 @@
         },
         {
           "name": "Repositories.settle_action",
-          "line": 847,
+          "line": 849,
           "kind": "function",
           "parameters": [
             "self",
@@ -22149,7 +22153,7 @@
         },
         {
           "name": "Repositories.action",
-          "line": 880,
+          "line": 882,
           "kind": "function",
           "parameters": [
             "self",
@@ -22163,7 +22167,7 @@
         },
         {
           "name": "Repositories.cancel",
-          "line": 898,
+          "line": 900,
           "kind": "function",
           "parameters": [
             "self",
@@ -22177,7 +22181,7 @@
         },
         {
           "name": "Repositories.cancel_approvals",
-          "line": 924,
+          "line": 926,
           "kind": "function",
           "parameters": [
             "self"
@@ -22186,7 +22190,7 @@
         },
         {
           "name": "Repositories.close_run_actions",
-          "line": 930,
+          "line": 932,
           "kind": "function",
           "parameters": [
             "self",
@@ -22200,7 +22204,7 @@
         },
         {
           "name": "Repositories.recover",
-          "line": 977,
+          "line": 979,
           "kind": "function",
           "parameters": [
             "self"
@@ -22209,7 +22213,7 @@
         },
         {
           "name": "Repositories.query",
-          "line": 1078,
+          "line": 1080,
           "kind": "function",
           "parameters": [
             "self",
@@ -22983,6 +22987,165 @@
       "imports": [],
       "symbols": [],
       "summary": "Derived FTS definitions. Applied only by versioned migrations."
+    },
+    {
+      "path": "agent/src/omni/adapters/persistence/session_search_repository.py",
+      "module": "v2-adapters",
+      "python_module": "omni.adapters.persistence.session_search_repository",
+      "lines": 265,
+      "imports": [
+        "omni.adapters.persistence",
+        "omni.adapters.persistence.repository_base",
+        "omni.application.ports",
+        "omni.domain.contracts"
+      ],
+      "symbols": [
+        {
+          "name": "SessionSearchRepositories",
+          "line": 21,
+          "kind": "class"
+        },
+        {
+          "name": "SessionSearchRepositories._agent_exists",
+          "line": 22,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "agent_id"
+          ],
+          "annotations": {
+            "agent_id": "str"
+          }
+        },
+        {
+          "name": "SessionSearchRepositories._live_session",
+          "line": 26,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "agent_id",
+            "session_id"
+          ],
+          "annotations": {
+            "agent_id": "str",
+            "session_id": "str"
+          }
+        },
+        {
+          "name": "SessionSearchRepositories._hidden_sessions",
+          "line": 32,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "agent_id"
+          ],
+          "annotations": {
+            "agent_id": "str"
+          }
+        },
+        {
+          "name": "SessionSearchRepositories._live_messages",
+          "line": 38,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "agent_id",
+            "session_id",
+            "floor"
+          ],
+          "annotations": {
+            "agent_id": "str",
+            "session_id": "str",
+            "floor": "int"
+          }
+        },
+        {
+          "name": "SessionSearchRepositories.session_search_discover",
+          "line": 55,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "agent_id",
+            "tokens",
+            "roles",
+            "exclude",
+            "current_session_id",
+            "scan_limit"
+          ],
+          "annotations": {
+            "agent_id": "str",
+            "tokens": "tuple[str, ...]",
+            "roles": "tuple[str, ...]",
+            "exclude": "tuple[str, ...]",
+            "current_session_id": "str",
+            "scan_limit": "int"
+          }
+        },
+        {
+          "name": "SessionSearchRepositories.session_search_scroll",
+          "line": 93,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "agent_id",
+            "session_id",
+            "around_seq",
+            "window"
+          ],
+          "annotations": {
+            "agent_id": "str",
+            "session_id": "str",
+            "around_seq": "int",
+            "window": "int"
+          }
+        },
+        {
+          "name": "SessionSearchRepositories.session_search_scroll.count",
+          "line": 130,
+          "kind": "function",
+          "parameters": [
+            "below"
+          ],
+          "annotations": {
+            "below": "bool"
+          }
+        },
+        {
+          "name": "SessionSearchRepositories.session_search_read",
+          "line": 158,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "agent_id",
+            "session_id",
+            "head",
+            "tail"
+          ],
+          "annotations": {
+            "agent_id": "str",
+            "session_id": "str",
+            "head": "int",
+            "tail": "int"
+          }
+        },
+        {
+          "name": "SessionSearchRepositories.session_search_browse",
+          "line": 213,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "agent_id",
+            "limit",
+            "current_session_id"
+          ],
+          "annotations": {
+            "agent_id": "str",
+            "limit": "int",
+            "current_session_id": "str"
+          }
+        }
+      ],
+      "summary": "Bounded read-only history recall over the shared session/message store."
     },
     {
       "path": "agent/src/omni/adapters/persistence/skill_repository.py",
@@ -54013,7 +54176,7 @@
       "path": "agent/src/omni/application/ports.py",
       "module": "v2-application",
       "python_module": "omni.application.ports",
-      "lines": 1026,
+      "lines": 1039,
       "imports": [
         "omni.domain.contracts",
         "omni.domain.delivery",
@@ -61950,8 +62113,82 @@
           }
         },
         {
-          "name": "UnitOfWork.context_messages",
+          "name": "UnitOfWork.session_search_discover",
           "line": 956,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "agent_id",
+            "tokens",
+            "roles",
+            "exclude",
+            "current_session_id",
+            "scan_limit"
+          ],
+          "annotations": {
+            "agent_id": "str",
+            "tokens": "tuple[str, ...]",
+            "roles": "tuple[str, ...]",
+            "exclude": "tuple[str, ...]",
+            "current_session_id": "str",
+            "scan_limit": "int"
+          }
+        },
+        {
+          "name": "UnitOfWork.session_search_scroll",
+          "line": 966,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "agent_id",
+            "session_id",
+            "around_seq",
+            "window"
+          ],
+          "annotations": {
+            "agent_id": "str",
+            "session_id": "str",
+            "around_seq": "int",
+            "window": "int"
+          }
+        },
+        {
+          "name": "UnitOfWork.session_search_read",
+          "line": 967,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "agent_id",
+            "session_id",
+            "head",
+            "tail"
+          ],
+          "annotations": {
+            "agent_id": "str",
+            "session_id": "str",
+            "head": "int",
+            "tail": "int"
+          }
+        },
+        {
+          "name": "UnitOfWork.session_search_browse",
+          "line": 968,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "agent_id",
+            "limit",
+            "current_session_id"
+          ],
+          "annotations": {
+            "agent_id": "str",
+            "limit": "int",
+            "current_session_id": "str"
+          }
+        },
+        {
+          "name": "UnitOfWork.context_messages",
+          "line": 969,
           "kind": "function",
           "parameters": [
             "self",
@@ -61965,7 +62202,7 @@
         },
         {
           "name": "UnitOfWork.snapshot",
-          "line": 957,
+          "line": 970,
           "kind": "function",
           "parameters": [
             "self",
@@ -61983,7 +62220,7 @@
         },
         {
           "name": "UnitOfWork.finish",
-          "line": 958,
+          "line": 971,
           "kind": "function",
           "parameters": [
             "self",
@@ -62001,7 +62238,7 @@
         },
         {
           "name": "UnitOfWork.settings",
-          "line": 959,
+          "line": 972,
           "kind": "function",
           "parameters": [
             "self",
@@ -62013,7 +62250,7 @@
         },
         {
           "name": "UnitOfWork.settings_put",
-          "line": 960,
+          "line": 973,
           "kind": "function",
           "parameters": [
             "self",
@@ -62029,7 +62266,7 @@
         },
         {
           "name": "UnitOfWork.reserve_call",
-          "line": 961,
+          "line": 974,
           "kind": "function",
           "parameters": [
             "self",
@@ -62051,7 +62288,7 @@
         },
         {
           "name": "UnitOfWork.settle_call",
-          "line": 964,
+          "line": 977,
           "kind": "function",
           "parameters": [
             "self",
@@ -62069,7 +62306,7 @@
         },
         {
           "name": "UnitOfWork.prepare_action",
-          "line": 967,
+          "line": 980,
           "kind": "function",
           "parameters": [
             "self",
@@ -62089,7 +62326,7 @@
         },
         {
           "name": "UnitOfWork.authorize_action",
-          "line": 968,
+          "line": 981,
           "kind": "function",
           "parameters": [
             "self",
@@ -62103,7 +62340,7 @@
         },
         {
           "name": "UnitOfWork.settle_action",
-          "line": 969,
+          "line": 982,
           "kind": "function",
           "parameters": [
             "self",
@@ -62119,7 +62356,7 @@
         },
         {
           "name": "UnitOfWork.pending_approvals",
-          "line": 970,
+          "line": 983,
           "kind": "function",
           "parameters": [
             "self",
@@ -62131,7 +62368,7 @@
         },
         {
           "name": "UnitOfWork.resolve_approval",
-          "line": 971,
+          "line": 984,
           "kind": "function",
           "parameters": [
             "self",
@@ -62149,7 +62386,7 @@
         },
         {
           "name": "UnitOfWork.recover",
-          "line": 972,
+          "line": 985,
           "kind": "function",
           "parameters": [
             "self"
@@ -62158,7 +62395,7 @@
         },
         {
           "name": "UnitOfWork.cancel",
-          "line": 973,
+          "line": 986,
           "kind": "function",
           "parameters": [
             "self",
@@ -62172,7 +62409,7 @@
         },
         {
           "name": "UnitOfWork.action",
-          "line": 974,
+          "line": 987,
           "kind": "function",
           "parameters": [
             "self",
@@ -62186,7 +62423,7 @@
         },
         {
           "name": "UnitOfWork.remember",
-          "line": 975,
+          "line": 988,
           "kind": "function",
           "parameters": [
             "self",
@@ -62218,7 +62455,7 @@
         },
         {
           "name": "UnitOfWork.forget",
-          "line": 990,
+          "line": 1003,
           "kind": "function",
           "parameters": [
             "self",
@@ -62234,7 +62471,7 @@
         },
         {
           "name": "UnitOfWork.search_memory",
-          "line": 991,
+          "line": 1004,
           "kind": "function",
           "parameters": [
             "self",
@@ -62252,7 +62489,7 @@
         },
         {
           "name": "UnitOfWork.memory_semantic_capture",
-          "line": 994,
+          "line": 1007,
           "kind": "function",
           "parameters": [
             "self",
@@ -62268,7 +62505,7 @@
         },
         {
           "name": "UnitOfWork.memory_index_audit",
-          "line": 995,
+          "line": 1008,
           "kind": "function",
           "parameters": [
             "self",
@@ -62286,7 +62523,7 @@
         },
         {
           "name": "UnitOfWork.memory_index_page",
-          "line": 996,
+          "line": 1009,
           "kind": "function",
           "parameters": [
             "self",
@@ -62302,7 +62539,7 @@
         },
         {
           "name": "UnitOfWork.memory_embedding_begin",
-          "line": 997,
+          "line": 1010,
           "kind": "function",
           "parameters": [
             "self",
@@ -62320,7 +62557,7 @@
         },
         {
           "name": "UnitOfWork.memory_embedding_finish",
-          "line": 998,
+          "line": 1011,
           "kind": "function",
           "parameters": [
             "self",
@@ -62338,7 +62575,7 @@
         },
         {
           "name": "UnitOfWork.memory_vector_candidates",
-          "line": 1001,
+          "line": 1014,
           "kind": "function",
           "parameters": [
             "self",
@@ -62354,7 +62591,7 @@
         },
         {
           "name": "UnitOfWork.memory_recall_validate",
-          "line": 1002,
+          "line": 1015,
           "kind": "function",
           "parameters": [
             "self",
@@ -62370,7 +62607,7 @@
         },
         {
           "name": "UnitOfWork.memory_semantic_replay",
-          "line": 1003,
+          "line": 1016,
           "kind": "function",
           "parameters": [
             "self",
@@ -62384,7 +62621,7 @@
         },
         {
           "name": "UnitOfWork.memory_semantic_propose",
-          "line": 1004,
+          "line": 1017,
           "kind": "function",
           "parameters": [
             "self",
@@ -62402,7 +62639,7 @@
         },
         {
           "name": "UnitOfWork.memory_semantic_get",
-          "line": 1005,
+          "line": 1018,
           "kind": "function",
           "parameters": [
             "self",
@@ -62418,7 +62655,7 @@
         },
         {
           "name": "UnitOfWork.memory_semantic_page",
-          "line": 1006,
+          "line": 1019,
           "kind": "function",
           "parameters": [
             "self",
@@ -62434,7 +62671,7 @@
         },
         {
           "name": "UnitOfWork.memory_semantic_decide",
-          "line": 1007,
+          "line": 1020,
           "kind": "function",
           "parameters": [
             "self",
@@ -62452,7 +62689,7 @@
         },
         {
           "name": "UnitOfWork.cancel_approvals",
-          "line": 1008,
+          "line": 1021,
           "kind": "function",
           "parameters": [
             "self"
@@ -62461,7 +62698,7 @@
         },
         {
           "name": "UnitOfWork.close_run_actions",
-          "line": 1009,
+          "line": 1022,
           "kind": "function",
           "parameters": [
             "self",
@@ -62475,7 +62712,7 @@
         },
         {
           "name": "UnitOfWork.query",
-          "line": 1010,
+          "line": 1023,
           "kind": "function",
           "parameters": [
             "self",
@@ -62494,7 +62731,7 @@
         },
         {
           "name": "UnitOfWork.audit",
-          "line": 1011,
+          "line": 1024,
           "kind": "function",
           "parameters": [
             "self",
@@ -62512,12 +62749,12 @@
         },
         {
           "name": "DatabasePort",
-          "line": 1014,
+          "line": 1027,
           "kind": "class"
         },
         {
           "name": "DatabasePort.write",
-          "line": 1015,
+          "line": 1028,
           "kind": "function",
           "parameters": [
             "self",
@@ -62529,7 +62766,7 @@
         },
         {
           "name": "DatabasePort.read",
-          "line": 1016,
+          "line": 1029,
           "kind": "function",
           "parameters": [
             "self",
@@ -62541,7 +62778,7 @@
         },
         {
           "name": "DatabasePort.close",
-          "line": 1017,
+          "line": 1030,
           "kind": "function",
           "parameters": [
             "self"
@@ -62550,12 +62787,12 @@
         },
         {
           "name": "SpanReport",
-          "line": 1020,
+          "line": 1033,
           "kind": "class"
         },
         {
           "name": "SpanReport.result",
-          "line": 1021,
+          "line": 1034,
           "kind": "function",
           "parameters": [
             "self",
@@ -62567,12 +62804,12 @@
         },
         {
           "name": "Observer",
-          "line": 1024,
+          "line": 1037,
           "kind": "class"
         },
         {
           "name": "Observer.context",
-          "line": 1025,
+          "line": 1038,
           "kind": "function",
           "parameters": [
             "self",
@@ -62582,7 +62819,7 @@
         },
         {
           "name": "Observer.span",
-          "line": 1026,
+          "line": 1039,
           "kind": "function",
           "parameters": [
             "self",
@@ -64222,6 +64459,98 @@
         }
       ],
       "summary": "Offline registration use cases with durable intent, no replay, and retained cancellation ownership."
+    },
+    {
+      "path": "agent/src/omni/application/session_search.py",
+      "module": "v2-application",
+      "python_module": "omni.application.session_search",
+      "lines": 110,
+      "imports": [
+        "omni.application.ports",
+        "omni.domain.contracts",
+        "omni.domain.session_search"
+      ],
+      "symbols": [
+        {
+          "name": "SessionSearchCapabilities",
+          "line": 22,
+          "kind": "class"
+        },
+        {
+          "name": "SessionSearchCapabilities.__init__",
+          "line": 23,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "database"
+          ],
+          "annotations": {
+            "database": "DatabasePort"
+          }
+        },
+        {
+          "name": "SessionSearchCapabilities.invoke",
+          "line": 26,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "name",
+            "arguments",
+            "operation_id",
+            "context"
+          ],
+          "annotations": {
+            "name": "str",
+            "arguments": "Mapping[str, JSON]",
+            "operation_id": "str",
+            "context": "InvocationContext"
+          }
+        },
+        {
+          "name": "SessionSearchCapabilities._invoke",
+          "line": 36,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "name",
+            "arguments",
+            "context"
+          ],
+          "annotations": {
+            "name": "str",
+            "arguments": "Mapping[str, JSON]",
+            "context": "InvocationContext"
+          }
+        },
+        {
+          "name": "SessionSearchCapabilities._messages_view",
+          "line": 76,
+          "kind": "function",
+          "parameters": [
+            "mode",
+            "payload",
+            "anchor_seq"
+          ],
+          "annotations": {
+            "mode": "str",
+            "payload": "Record",
+            "anchor_seq": "int | None"
+          }
+        },
+        {
+          "name": "SessionSearchCapabilities.close",
+          "line": 109,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "timeout_s"
+          ],
+          "annotations": {
+            "timeout_s": "float"
+          }
+        }
+      ],
+      "summary": "Model-side history recall capability; shares application transactions and the erasure barrier."
     },
     {
       "path": "agent/src/omni/application/skills.py",
@@ -70494,7 +70823,7 @@
       "path": "agent/src/omni/composition/capabilities.py",
       "module": "v2-composition",
       "python_module": "omni.composition.capabilities",
-      "lines": 166,
+      "lines": 189,
       "imports": [
         "omni.adapters.workers.client",
         "omni.application.documents",
@@ -70502,12 +70831,13 @@
         "omni.application.memory_semantics",
         "omni.application.memory_tools",
         "omni.application.ports",
+        "omni.application.session_search",
         "omni.domain.contracts"
       ],
       "symbols": [
         {
           "name": "parameters",
-          "line": 16,
+          "line": 17,
           "kind": "function",
           "parameters": [
             "properties",
@@ -70520,7 +70850,7 @@
         },
         {
           "name": "builtin_capabilities",
-          "line": 20,
+          "line": 21,
           "kind": "function",
           "parameters": [
             "database",
@@ -80238,14 +80568,14 @@
       "path": "agent/src/omni/domain/routing.py",
       "module": "v2-domain",
       "python_module": "omni.domain.routing",
-      "lines": 128,
+      "lines": 129,
       "imports": [
         "omni.domain.contracts"
       ],
       "symbols": [
         {
           "name": "invalid",
-          "line": 46,
+          "line": 47,
           "kind": "function",
           "parameters": [
             "code"
@@ -80256,7 +80586,7 @@
         },
         {
           "name": "requested",
-          "line": 50,
+          "line": 51,
           "kind": "function",
           "parameters": [
             "value"
@@ -80267,7 +80597,7 @@
         },
         {
           "name": "policy",
-          "line": 58,
+          "line": 59,
           "kind": "function",
           "parameters": [
             "value"
@@ -80278,7 +80608,7 @@
         },
         {
           "name": "choose",
-          "line": 84,
+          "line": 85,
           "kind": "function",
           "parameters": [
             "text",
@@ -80297,7 +80627,7 @@
         },
         {
           "name": "select_tools",
-          "line": 112,
+          "line": 113,
           "kind": "function",
           "parameters": [
             "mode",
@@ -80312,7 +80642,7 @@
         },
         {
           "name": "notice",
-          "line": 123,
+          "line": 124,
           "kind": "function",
           "parameters": [
             "mode",
@@ -81831,6 +82161,175 @@
         }
       ],
       "summary": "Fingerprint offline service changes; registration never implies a healthy running service."
+    },
+    {
+      "path": "agent/src/omni/domain/session_search.py",
+      "module": "v2-domain",
+      "python_module": "omni.domain.session_search",
+      "lines": 271,
+      "imports": [
+        "omni.domain.contracts"
+      ],
+      "symbols": [
+        {
+          "name": "SessionSearchRequest",
+          "line": 42,
+          "kind": "class"
+        },
+        {
+          "name": "_invalid",
+          "line": 56,
+          "kind": "function",
+          "parameters": [
+            "message"
+          ],
+          "annotations": {
+            "message": "str"
+          }
+        },
+        {
+          "name": "_bounded_text",
+          "line": 60,
+          "kind": "function",
+          "parameters": [
+            "value",
+            "max_chars",
+            "field"
+          ],
+          "annotations": {
+            "value": "object",
+            "max_chars": "int",
+            "field": "str"
+          }
+        },
+        {
+          "name": "_clamp_int",
+          "line": 73,
+          "kind": "function",
+          "parameters": [
+            "value",
+            "default",
+            "lo",
+            "hi"
+          ],
+          "annotations": {
+            "value": "object",
+            "default": "int",
+            "lo": "int",
+            "hi": "int"
+          }
+        },
+        {
+          "name": "query_tokens",
+          "line": 81,
+          "kind": "function",
+          "parameters": [
+            "query"
+          ],
+          "annotations": {
+            "query": "str"
+          }
+        },
+        {
+          "name": "_roles",
+          "line": 85,
+          "kind": "function",
+          "parameters": [
+            "value"
+          ],
+          "annotations": {
+            "value": "object"
+          }
+        },
+        {
+          "name": "_exclude",
+          "line": 105,
+          "kind": "function",
+          "parameters": [
+            "value"
+          ],
+          "annotations": {
+            "value": "object"
+          }
+        },
+        {
+          "name": "parse_request",
+          "line": 125,
+          "kind": "function",
+          "parameters": [
+            "arguments"
+          ],
+          "annotations": {
+            "arguments": "Mapping[str, JSON]"
+          }
+        },
+        {
+          "name": "truncate_content",
+          "line": 155,
+          "kind": "function",
+          "parameters": [
+            "text",
+            "cap"
+          ],
+          "annotations": {
+            "text": "str",
+            "cap": "int"
+          }
+        },
+        {
+          "name": "shape_message",
+          "line": 162,
+          "kind": "function",
+          "parameters": [
+            "row",
+            "anchor_seq",
+            "max_content"
+          ],
+          "annotations": {
+            "row": "Mapping[str, JSON]",
+            "anchor_seq": "int | None",
+            "max_content": "int"
+          }
+        },
+        {
+          "name": "group_discover",
+          "line": 182,
+          "kind": "function",
+          "parameters": [
+            "rows",
+            "limit"
+          ],
+          "annotations": {
+            "rows": "Sequence[Mapping[str, JSON]]",
+            "limit": "int"
+          }
+        },
+        {
+          "name": "browse_entry",
+          "line": 212,
+          "kind": "function",
+          "parameters": [
+            "row"
+          ],
+          "annotations": {
+            "row": "Mapping[str, JSON]"
+          }
+        },
+        {
+          "name": "render",
+          "line": 227,
+          "kind": "function",
+          "parameters": [
+            "mode",
+            "data"
+          ],
+          "annotations": {
+            "mode": "str",
+            "data": "Mapping[str, JSON]"
+          }
+        }
+      ],
+      "summary": "Pure rules for model-side history recall: mode inference, bounded shaping and lineage-free dedup."
     },
     {
       "path": "agent/src/omni/domain/settings.py",

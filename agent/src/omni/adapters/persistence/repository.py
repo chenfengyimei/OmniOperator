@@ -37,6 +37,7 @@ from .qq_repository import QQRepositories
 from .reference_release_repository import ReferenceReleaseRepositories
 from .routing_repository import RoutingRepositories
 from .schedule_repository import ScheduleRepositories
+from .session_search_repository import SessionSearchRepositories
 from .skill_repository import SkillRepositories
 from .terminal_review_repository import TerminalReviewRepositories
 from .todo_repository import TodoRepositories
@@ -63,6 +64,7 @@ class Repositories(
     AuditPruningRepositories,
     EventRetentionRepositories,
     HistoryRepositories,
+    SessionSearchRepositories,
     ObjectRepositories,
     PeopleRepositories,
     ContextRepositories,

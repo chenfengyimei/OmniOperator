@@ -399,7 +399,10 @@
     "agent/src/omni/domain/tool_batch.py",
     "agent/src/omni/domain/repetition.py",
     "agent/src/omni/domain/background_review.py",
-    "agent/src/omni/adapters/persistence/background_review_repository.py"
+    "agent/src/omni/adapters/persistence/background_review_repository.py",
+    "agent/src/omni/domain/session_search.py",
+    "agent/src/omni/application/session_search.py",
+    "agent/src/omni/adapters/persistence/session_search_repository.py"
   ],
   "exclude": [
     "**/__pycache__"
