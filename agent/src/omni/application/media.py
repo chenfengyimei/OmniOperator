@@ -18,6 +18,7 @@ from typing import Any, Protocol, cast
 
 from ..domain.contracts import JSON, ActionResult, BusinessError, InvocationContext, Outcome, ToolSpec
 from ..domain.media import (
+    CELL_COLUMNS,
     DOWNLOAD_BUDGET_S,
     MAX_ACTIVE_JOBS,
     MAX_DOWNLOAD_BYTES,
@@ -25,8 +26,11 @@ from ..domain.media import (
     MAX_TRANSCRIPT_BYTES,
     OPERATIONS,
     asr_plan,
+    cell_anchors,
     frames_plan,
+    normalize_cell,
     parse_transcript,
+    render_cells,
     source_row,
     subtitle_text,
     transcript_payload,
@@ -81,6 +85,23 @@ LOCATE_SPEC = ToolSpec(
             "limit": {"type": "integer", "minimum": 1, "maximum": 8},
         },
         "required": ["source_id", "query"],
+        "additionalProperties": False,
+    },
+    timeout_s=10,
+    resource="media",
+)
+CELLS_SPEC = ToolSpec(
+    "media_cells",
+    "Read the addressable frame-cell index of a registered media source's frame sheet: each cell's "
+    "grid row/column and sub-second time anchor. Reads verified frame metadata, not pixels.",
+    {
+        "type": "object",
+        "properties": {
+            "source_id": {"type": "string", "format": "uuid"},
+            "frames_id": {"type": "string", "format": "uuid"},
+            "cell": {"type": "integer", "minimum": 0},
+        },
+        "required": ["source_id"],
         "additionalProperties": False,
     },
     timeout_s=10,
@@ -605,6 +626,37 @@ class MediaService:
     async def frames(self, agent_id: str, frames_id: str) -> Record:
         return await self._db.read(lambda u: u.media_frames_get(agent_id, frames_id))
 
+    async def cells(self, agent_id: str, source_id: str, frames_id: str | None, cell: object) -> Record:
+        return await self._run_bounded(self._cells(agent_id, source_id, frames_id, cell), task_name="media-cells")
+
+    async def _cells(self, agent_id: str, source_id: str, frames_id: str | None, cell: object) -> Record:
+        if frames_id:
+            row = await self._db.read(lambda u: u.media_frames_get(agent_id, frames_id))
+        else:
+            source = await self._db.read(lambda u: u.media_source_get(agent_id, source_id))
+            latest = source.get("latest_frames_id")
+            if not latest:
+                raise BusinessError("media_frames_not_found", "This source has no finished frame sheet yet", status=404)
+            row = await self._db.read(lambda u: u.media_frames_get(agent_id, str(latest)))
+        if str(row["source_id"]) != source_id:
+            raise BusinessError("media_frames_not_found", "Frame sheet does not belong to this source", status=404)
+        frame_count = int(cast(int, row["frame_count"]))
+        selected = normalize_cell(cell, frame_count)
+        anchors = cell_anchors(cast(list[object], row["timestamps"]))
+        body = render_cells(str(row["id"]), source_id, anchors, selected)
+        return {
+            "frames_id": row["id"],
+            "source_id": source_id,
+            "object_id": row["object_id"],
+            "frame_count": frame_count,
+            "width": row["width"],
+            "height": row["height"],
+            "columns": CELL_COLUMNS,
+            "cells": cast(JSON, anchors),
+            "selected": selected,
+            "text": body,
+        }
+
     async def _run_bounded(self, coroutine: Coroutine[Any, Any, Record], *, task_name: str = "media-read") -> Record:
         if self._closing:
             coroutine.close()
@@ -658,6 +710,14 @@ class MediaService:
                     arguments.get("limit"),
                 )
                 return ActionResult(Outcome.OK, str(located["text"]), data=located)
+            if name == CELLS_SPEC.name:
+                indexed = await self.cells(
+                    context.agent_id,
+                    str(arguments["source_id"]),
+                    str(arguments["frames_id"]) if arguments.get("frames_id") else None,
+                    arguments.get("cell"),
+                )
+                return ActionResult(Outcome.OK, str(indexed["text"]), data=indexed)
         except BusinessError as exc:
             return ActionResult(Outcome.ERROR, exc.message, error_code=exc.code)
         return ActionResult(Outcome.ERROR, "Unknown media capability", error_code="tool_not_found")

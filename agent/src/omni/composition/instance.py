@@ -73,6 +73,7 @@ from ..application.extensions import ExtensionService
 from ..application.images import ImageService
 from ..application.maintenance import MaintenanceService
 from ..application.mcp import MCPService, MCPTransportPort
+from ..application.media import CELLS_SPEC as MEDIA_CELLS
 from ..application.media import LIST_SPEC as MEDIA_LIST
 from ..application.media import LOCATE_SPEC as MEDIA_LOCATE
 from ..application.media import TRANSCRIPT_SPEC as MEDIA_TRANSCRIPT
@@ -642,6 +643,7 @@ async def open_instance(
                 Capability(MEDIA_LIST, media),
                 Capability(MEDIA_TRANSCRIPT, media),
                 Capability(MEDIA_LOCATE, media),
+                Capability(MEDIA_CELLS, media),
                 Capability(ANDROID_ACCESS, android, android.quiescent),
                 Capability(ANDROID_OBSERVE, android, android.quiescent),
                 Capability(ANDROID_MODEL, android, android.quiescent),

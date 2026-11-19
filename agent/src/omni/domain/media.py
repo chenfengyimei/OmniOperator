@@ -19,6 +19,7 @@ MAX_TRANSCRIPT_CHARS = 24000
 MAX_TOOL_TEXT_CHARS = 12000
 MAX_SEGMENTS = 4000
 MAX_FRAMES = 12
+CELL_COLUMNS = 2
 MIN_FRAME_WIDTH = 320
 MAX_FRAME_WIDTH = 1280
 MAX_SHEET_BYTES = 8 * 1024 * 1024
@@ -239,6 +240,44 @@ def sheet_result(
         "sha256": sha256,
         "bytes": size,
     }
+
+
+def normalize_cell(value: object, frame_count: int) -> int | None:
+    """Optional 0-based cell selector; None addresses every cell of the sheet."""
+    if value is None:
+        return None
+    if type(value) is not int or not 0 <= value < frame_count:
+        raise invalid("media_cell_invalid")
+    return value
+
+
+def cell_anchors(timestamps: Sequence[object]) -> list[dict[str, object]]:
+    """Addressable grid cells: cell index -> (row, column, sub-second source anchor)."""
+    anchors: list[dict[str, object]] = []
+    for index, stamp in enumerate(timestamps):
+        anchors.append(
+            {
+                "cell": index,
+                "row": index // CELL_COLUMNS,
+                "column": index % CELL_COLUMNS,
+                "time_s": float(cast(float, stamp)),
+            }
+        )
+    return anchors
+
+
+def render_cells(frames_id: str, source_id: str, anchors: Sequence[Mapping[str, object]], selected: int | None) -> str:
+    """Bounded cell index text; timestamps are anchors, never guesses."""
+    lines = [f"frames_id={frames_id} source={source_id} cells={len(anchors)} columns={CELL_COLUMNS}"]
+    for anchor in anchors:
+        cell = cast(int, anchor["cell"])
+        if selected is not None and cell != selected:
+            continue
+        row = cast(int, anchor["row"])
+        column = cast(int, anchor["column"])
+        time_s = cast(float, anchor["time_s"])
+        lines.append(f"[cell {cell}] row={row} col={column} t={time_s:.3f}s")
+    return "\n".join(lines)
 
 
 def source_row(config_id: str, config_revision_id: str, video: Mapping[str, object]) -> dict[str, object]:

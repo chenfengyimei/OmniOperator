@@ -1,0 +1,96 @@
+{
+  "schema": 1,
+  "date": "2026-11-19",
+  "base_commit": "91edfa24972c6005fe64c588283db8b17b9e9956",
+  "status": "implemented_scoped_passed",
+  "batch": "K16.cell_anchor",
+  "implements_gap": "K16 video-storyboard audit offline gap #2 read surface (addressable frame-cell index cell->absolute sub-second time anchor)",
+  "contract": "docs/v2/contracts/V2_MEDIA_CELLS.md",
+  "source_files": {
+    "agent/src/omni/domain/media.py": "fe1109a3cd64c7fe479d96de8c1a5a63293f1fc17d6ae6aebf32b1a2dd274368",
+    "agent/src/omni/application/media.py": "ee9405913dd2cf1998466605cfb6620f2fc0724422cba03377f074ba4f198784",
+    "agent/src/omni/composition/instance.py": "b7334785ab80648b5b1993b98c255e1c1efb40fab2282d393e6bf0c77f81f463",
+    "agent/tests/v2/integrations/test_v2_media_cells.py": "589523ca7c359b14860a639506576f1867fd5f46aec536fa5419cb84dea01462",
+    "docs/v2/contracts/V2_MEDIA_CELLS.md": "7d150f9cce0231ff985deec61e469e9740b4fc58e6db429e028258a38f9ad3d3"
+  },
+  "reference": {
+    "repository": "xuexi/dsh-video-storyboard",
+    "commit": "e124ae6fcfb31f3572ea24aad093a86897b556a3",
+    "files": {
+      "src/tools/cells.js": "lookupCell:67 cellId->absolute time via cells.json (CELLS_VERSION=2)",
+      "src/tools/format.js": "formatManifest:384 'cell N (image M)=mm:ss.ss-mm:ss.ss' sub-second anchors, badge numbering not burned timecodes"
+    },
+    "adaptation": "Learned the addressable cell-index concept (cell id -> grid position -> absolute sub-second source anchor) and re-implemented independently in V2 four-layer pure domain rules over EXISTING verified media_frames.timestamps (already persisted sub-second); no third-party source copied; no new cells.json persistence layer (V2 already persists anchors); no zoom/HSV/Laplacian/OCR (separate K16 gaps). Reference agents.md/prompts treated as untrusted data"
+  },
+  "delivered": [
+    "domain/media.py pure rules (zero I/O, existing module no new source file): CELL_COLUMNS=2; normalize_cell (None->all cells, 0-based int with 0<=cell<frame_count, reject non-int/out-of-range/bool -> media_cell_invalid); cell_anchors (timestamps -> [{cell,row=index//2,column=index%2,time_s}] preserving sub-second); render_cells (bounded text frames_id/source/cells/columns header + per-cell '[cell N] row= col= t=0.000s', selected renders only that cell)",
+    "application/media.py CELLS_SPEC read-only model tool media_cells (writes=False, source_id required, frames_id optional, cell optional >=0, timeout_s=10, resource=media); cells/_cells use case REUSES existing media_frames_get (agent-scoped, missing/deleted -> media_frames_not_found 404) + frames_id default via media_source_get.latest_frames_id fallback (no frames -> 404) + source pairing (row.source_id != source_id -> 404) + _run_bounded (closing admission guard before any lookup, owns task until settle); read-only single DB metadata read with NO object-body fetch (so no locate-style loaded-body-after-delete race; source delete already cascades media_frames); invoke media_cells branch returns ActionResult text + structured cells",
+    "composition/instance.py Capability(MEDIA_CELLS, media) registered in production agent capabilities after MEDIA_LOCATE; agent-tier read-only media tool consistent with existing media tools NOT in RETRIEVAL_TOOLS (domain/routing.py unchanged)",
+    "No new table/migration/HTTP route/worker-protocol/routing/persistence change (reuses existing media_frames_get/media_source_get, does not touch other-session repository.py/schema.py/v0041.py); anchors come only from the source frame sheet's verified timestamps (sub-second), never guessed; read-only no write transaction"
+  ],
+  "limits": {
+    "cell_index_read_only_derived_from_existing_frames_timestamps": true,
+    "new_cells_json_persistence_layer": false,
+    "sub_second_anchors_already_persisted_in_media_frames": true,
+    "fixed_two_column_grid": "V1 intentionally rejects variable-size tiers to save vision tokens",
+    "zoom_high_res_refetch_implemented": false,
+    "hsv_shot_cut_detection_implemented": false,
+    "laplacian_sharpness_selection_implemented": false,
+    "in_frame_ocr_implemented": false,
+    "new_table_or_migration": false,
+    "new_route": false,
+    "worker_protocol_changed": false,
+    "routing_changed": false,
+    "persistence_layer_changed": false,
+    "opt_in": "always available in agent tier like media_list/media_transcript/media_locate (not opt-in)",
+    "aggregate_index_commit_deferred": "docs/index regeneration reflects other-session uncommitted persistence edits in global source_sha256; deferred to keep committed index consistent with committed source and avoid encoding their pending work; no new source file so strict include stays 410; regenerate when working tree clean"
+  },
+  "validation": {
+    "mode": "scoped_implementation",
+    "frozen_source": "final source fingerprints in source_files",
+    "new_nodes": 12,
+    "scoped_passed": 12,
+    "scoped_seconds": 8.06,
+    "scoped_rerun_after_format_passed": 12,
+    "scoped_rerun_after_format_seconds": 8.46,
+    "caller_suite": {
+      "command": "uv run --no-sync pytest -q -n 0 test_v2_media.py test_v2_media_locate.py test_v2_media_frames.py test_v2_media_anchors.py test_v2_media_authority.py",
+      "passed": 113,
+      "failed": 1,
+      "seconds": 36.52,
+      "note": "additive read-only tool; all real media caller tests (service/locate/frames/anchors/authority) pass except one pre-existing migration-pin failure independent of this batch"
+    },
+    "strict": {
+      "config": "pyrightconfig.strict.json",
+      "files": 410,
+      "errors": 0,
+      "warnings": 0,
+      "note": "no new source file (functions added to existing domain/media.py); filesAnalyzed stays 410; clean over current working tree (other-session persistence edits are type-clean)"
+    },
+    "ruff": "check + format pass on domain/media.py, application/media.py, composition/instance.py, test_v2_media_cells.py (format only collapsed this batch's new multi-line signatures; git diff confirms no unrelated reformatting)",
+    "project_index": "run; declared_tools index excludes application-layer media ToolSpec (same as media_list/transcript/locate); aggregate docs/index commit DEFERRED (see limits.aggregate_index_commit_deferred); docs/index reverted to committed baseline, other-session source untouched",
+    "task_status_check": "scripts/task_status.py --check exit 0; DEVELOPMENT_STATUS.md unchanged",
+    "full_suite_executed": false,
+    "real_model_account_device_native_or_72h_executed": false,
+    "current_windows_service_or_database_touched": false
+  },
+  "pre_existing_failures_not_chased": [
+    {
+      "test": "test_v2_media.py::test_v36_upgrade_registers_sources_and_bounds_jobs",
+      "assertion": "db.schema_version == 'v2_0039' and len(s.metadata.tables) == 141 (line 212); actual working-tree head v2_0044",
+      "reason": "Migration-pin test lagging behind current head; other sessions have uncommitted schema.py/v0041.py/repository.py edits (git status confirms M). This batch adds ZERO tables/migrations/persistence changes (read-only tool over existing media_frames), so it cannot affect schema_version or table count; independent of media_cells. Not chased."
+    }
+  ],
+  "whole_core_parity_complete": false,
+  "whole_reference_feature_audit_complete": false,
+  "whole_v2_complete": false,
+  "not_executed": [
+    "Other K13-K18 offline gaps (only K16 gap #2 cell-index read surface implemented this batch)",
+    "K16 zoom high-res refetch (#3), HSV shot-cut (#1), Laplacian selection (#5), in-frame OCR (needs rapidocr model)",
+    "Aggregate docs/index commit (deferred due to other-session pending persistence edits)",
+    "Full offline suite for current source",
+    "Real accounts/models/devices/native desktop and 72h soak",
+    "Current Windows service restart/database upgrade"
+  ],
+  "next": "Continue implementing recorded offline gaps as independent batches (e.g. K16 zoom/HSV shot-cut, K13 browser_dialog/CDP/cron skill-binding, K15 forgetting engine, K17 journal/reflection) via V2 four-layer with authorization/persistence contract first; complete K01 session/lineage cache scope; regenerate aggregate index when working tree clean. whole_*_complete remain false. Do not prematurely close any parity item"
+}
