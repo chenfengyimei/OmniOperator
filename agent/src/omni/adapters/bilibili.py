@@ -24,6 +24,7 @@ from ..domain.bilibili import (
     following_rows,
     search_keyword,
     search_rows,
+    tag_rows,
     uid,
 )
 from ..domain.contracts import JSON, BusinessError, Effect, InvocationContext, Outcome
@@ -296,6 +297,32 @@ class BilibiliGateway:
                 )
             return cast(Payload, value["data"])
 
+    @staticmethod
+    async def _get_list(client: Any, path: str, params: Payload | None = None) -> list[object]:
+        """List-shaped data reader (e.g. video tags); _get's dict-only contract stays strict and unchanged."""
+        async with client.stream("GET", path, params=params or {}) as response:
+            if response.status_code != 200 or "json" not in response.headers.get("content-type", "").lower():
+                raise BusinessError(
+                    "bilibili_read_unavailable", "Bilibili read was denied, redirected or unavailable", status=503
+                )
+            body = await _response_body(response, 524288, "Bilibili response")
+            try:
+                value: dict[str, Any] = json.loads(body)
+            except (ValueError, RecursionError) as exc:
+                raise BusinessError(
+                    "bilibili_response_invalid", "Bilibili response was not valid JSON", status=502
+                ) from exc
+            if (
+                not isinstance(cast(object, value), dict)
+                or type(value.get("code")) is not int
+                or value["code"] != 0
+                or not isinstance(value.get("data"), list)
+            ):
+                raise BusinessError(
+                    "bilibili_read_rejected", "Bilibili denied the request or changed its response format", status=502
+                )
+            return cast(list[object], value["data"])
+
     async def _login_nav(self, client: Any, account: str) -> Payload:
         nav = await self._get(client, "/x/web-interface/nav")
         if nav.get("isLogin") is not True or uid(nav.get("mid")) != account:
@@ -447,6 +474,11 @@ class BilibiliGateway:
         data = await self._get(client, "/x/v3/fav/folder/created/list-all", {"up_mid": mid})
         return {"feed": "favorites", **fav_folder_rows(data, limit)}
 
+    async def _tags(self, client: Any, bvid: str, limit: int) -> Payload:
+        """Public video tags (x/tag/archive/tags); bounded rows, target BV required."""
+        data = await self._get_list(client, "/x/tag/archive/tags", {"bvid": bvid})
+        return {"bvid": bvid, **tag_rows(data, limit)}
+
     async def read(self, configuration: Mapping[str, object], operation: str, target: str, limit: int = 10) -> Payload:
         return await self._read(configuration, operation, target, limit)
 
@@ -493,13 +525,14 @@ class BilibiliGateway:
                     "ranking",
                     "following",
                     "favorites",
+                    "tags",
                 }
                 or type(limit) is not int
                 or not 1 <= limit <= 20
             ):
                 raise BusinessError(
                     "bilibili_read_invalid",
-                    "Choose account/video/comments/replies/subtitle/streams/search/whois/danmaku/popular/ranking/following/favorites and a limit of 1–20",
+                    "Choose account/video/comments/replies/subtitle/streams/search/whois/danmaku/popular/ranking/following/favorites/tags and a limit of 1–20",
                     status=422,
                 )
             root = ""
@@ -532,6 +565,8 @@ class BilibiliGateway:
                         return await self._search(client, nav, keyword, limit)
                     if operation == "whois":
                         return await self._whois(client, nav, mid)
+                    if operation == "tags":
+                        return await self._tags(client, target, limit)
                     if operation == "popular":
                         return await self._popular(client, limit)
                     if operation == "ranking":

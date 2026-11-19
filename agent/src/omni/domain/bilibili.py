@@ -423,6 +423,28 @@ def fav_folder_rows(data: Mapping[str, object], limit: int) -> dict[str, object]
     return {"items": items, "has_more": len(rows) > limit}
 
 
+def tag_rows(data: object, limit: int) -> dict[str, object]:
+    """Bounded public video tags from the data array (x/tag/archive/tags); absent/empty = normal."""
+    if data is None:
+        rows: list[object] = []
+    elif isinstance(data, list):
+        rows = cast(list[object], data)
+    else:
+        raise BusinessError("bilibili_response_invalid", "Tag list changed format", status=502)
+    if len(rows) > FEED_MAX_ROWS:
+        raise BusinessError("bilibili_response_invalid", "Tag list changed format", status=502)
+    items: list[dict[str, object]] = []
+    for row in rows[:limit]:
+        if not isinstance(row, dict):
+            raise BusinessError("bilibili_response_invalid", "Tag records changed format", status=502)
+        entry = cast(dict[str, object], row)
+        tag_id = entry.get("tag_id")
+        if type(tag_id) is not int:
+            raise BusinessError("bilibili_response_invalid", "Tag records changed format", status=502)
+        items.append({"tag_id": tag_id, "tag_name": search_text(entry.get("tag_name"), 100)})
+    return {"items": items, "has_more": len(rows) > limit}
+
+
 class Form(BaseModel):
     model_config = ConfigDict(extra="forbid", strict=True)
 
