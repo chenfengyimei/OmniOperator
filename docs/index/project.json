@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "d482fd3e89ce1f13d68a68dad65488eaa880e11710f3f5c180f3f0131bed88a1",
+  "source_sha256": "167b8485f1881da9a3e1c98314759c413862c56ace79a0dc3adb63dc9284f37c",
   "modules": [
     {
       "id": "v2-domain",
@@ -90,7 +90,7 @@
         "agent/src/omni/domain/turn_prompt.py",
         "agent/src/omni/domain/verification_stop.py"
       ],
-      "lines": 12353,
+      "lines": 12372,
       "dependencies": []
     },
     {
@@ -159,7 +159,7 @@
         "agent/src/omni/application/terminals.py",
         "agent/src/omni/application/todos.py"
       ],
-      "lines": 13283,
+      "lines": 13287,
       "dependencies": [
         "v2-domain"
       ]
@@ -494,7 +494,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 68371,
+      "lines": 68401,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -529,7 +529,7 @@
         "agent/src/omni/composition/service_runner.py",
         "agent/src/omni/composition/serving.py"
       ],
-      "lines": 3229,
+      "lines": 3230,
       "dependencies": [
         "v2-adapters",
         "v2-application",
@@ -590,7 +590,7 @@
         "web/ui/v2/v1/workbench.css",
         "web/ui/v2/workbench.css"
       ],
-      "lines": 23981,
+      "lines": 24021,
       "dependencies": []
     },
     {
@@ -22023,7 +22023,7 @@
       "path": "agent/src/omni/adapters/persistence/repository.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.persistence.repository",
-      "lines": 1224,
+      "lines": 1249,
       "imports": [
         "omni.adapters.persistence",
         "omni.adapters.persistence.action_review_repository",
@@ -22502,8 +22502,36 @@
           }
         },
         {
-          "name": "Repositories.settle_call",
+          "name": "Repositories._call_route",
           "line": 632,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "agent_id",
+            "call_id"
+          ],
+          "annotations": {
+            "agent_id": "str",
+            "call_id": "str"
+          }
+        },
+        {
+          "name": "Repositories.begin_call",
+          "line": 644,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "agent_id",
+            "call_id"
+          ],
+          "annotations": {
+            "agent_id": "str",
+            "call_id": "str"
+          }
+        },
+        {
+          "name": "Repositories.settle_call",
+          "line": 664,
           "kind": "function",
           "parameters": [
             "self",
@@ -22521,7 +22549,7 @@
         },
         {
           "name": "Repositories.prepare_action",
-          "line": 697,
+          "line": 720,
           "kind": "function",
           "parameters": [
             "self",
@@ -22541,7 +22569,7 @@
         },
         {
           "name": "Repositories.pending_approvals",
-          "line": 763,
+          "line": 786,
           "kind": "function",
           "parameters": [
             "self",
@@ -22553,7 +22581,7 @@
         },
         {
           "name": "Repositories.resolve_approval",
-          "line": 778,
+          "line": 801,
           "kind": "function",
           "parameters": [
             "self",
@@ -22571,7 +22599,7 @@
         },
         {
           "name": "Repositories.authorize_action",
-          "line": 802,
+          "line": 825,
           "kind": "function",
           "parameters": [
             "self",
@@ -22585,7 +22613,7 @@
         },
         {
           "name": "Repositories.extension_dispatch",
-          "line": 831,
+          "line": 856,
           "kind": "function",
           "parameters": [
             "self",
@@ -22603,7 +22631,7 @@
         },
         {
           "name": "Repositories._extension_revoke",
-          "line": 861,
+          "line": 886,
           "kind": "function",
           "parameters": [
             "self",
@@ -22615,7 +22643,7 @@
         },
         {
           "name": "Repositories.settle_action",
-          "line": 901,
+          "line": 926,
           "kind": "function",
           "parameters": [
             "self",
@@ -22631,7 +22659,7 @@
         },
         {
           "name": "Repositories.action",
-          "line": 952,
+          "line": 977,
           "kind": "function",
           "parameters": [
             "self",
@@ -22645,7 +22673,7 @@
         },
         {
           "name": "Repositories.run_applied_writes",
-          "line": 970,
+          "line": 995,
           "kind": "function",
           "parameters": [
             "self",
@@ -22659,7 +22687,7 @@
         },
         {
           "name": "Repositories.cancel",
-          "line": 996,
+          "line": 1021,
           "kind": "function",
           "parameters": [
             "self",
@@ -22673,7 +22701,7 @@
         },
         {
           "name": "Repositories.cancel_approvals",
-          "line": 1023,
+          "line": 1048,
           "kind": "function",
           "parameters": [
             "self"
@@ -22682,7 +22710,7 @@
         },
         {
           "name": "Repositories.close_run_actions",
-          "line": 1040,
+          "line": 1065,
           "kind": "function",
           "parameters": [
             "self",
@@ -22696,7 +22724,7 @@
         },
         {
           "name": "Repositories.recover",
-          "line": 1087,
+          "line": 1112,
           "kind": "function",
           "parameters": [
             "self"
@@ -22705,7 +22733,7 @@
         },
         {
           "name": "Repositories.query",
-          "line": 1188,
+          "line": 1213,
           "kind": "function",
           "parameters": [
             "self",
@@ -44109,7 +44137,7 @@
       "path": "agent/src/omni/adapters/workers/main.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.workers.main",
-      "lines": 438,
+      "lines": 443,
       "imports": [
         "omni.adapters.object_store",
         "omni.adapters.workers.protocol",
@@ -44120,12 +44148,12 @@
       "symbols": [
         {
           "name": "Effects",
-          "line": 39,
+          "line": 41,
           "kind": "class"
         },
         {
           "name": "workspace_path",
-          "line": 43,
+          "line": 45,
           "kind": "function",
           "parameters": [
             "root_text",
@@ -44138,12 +44166,12 @@
         },
         {
           "name": "Worker",
-          "line": 69,
+          "line": 71,
           "kind": "class"
         },
         {
           "name": "Worker.__init__",
-          "line": 70,
+          "line": 72,
           "kind": "function",
           "parameters": [
             "self"
@@ -44152,7 +44180,7 @@
         },
         {
           "name": "Worker.invoke",
-          "line": 76,
+          "line": 78,
           "kind": "function",
           "parameters": [
             "self",
@@ -44168,7 +44196,7 @@
         },
         {
           "name": "Worker._files",
-          "line": 110,
+          "line": 112,
           "kind": "function",
           "parameters": [
             "self",
@@ -44186,7 +44214,7 @@
         },
         {
           "name": "Worker._shell",
-          "line": 316,
+          "line": 321,
           "kind": "function",
           "parameters": [
             "self",
@@ -44202,7 +44230,7 @@
         },
         {
           "name": "Worker._shell.drain",
-          "line": 333,
+          "line": 338,
           "kind": "function",
           "parameters": [
             "stream"
@@ -44213,7 +44241,7 @@
         },
         {
           "name": "Worker._web",
-          "line": 364,
+          "line": 369,
           "kind": "function",
           "parameters": [
             "self",
@@ -44231,7 +44259,7 @@
         },
         {
           "name": "Worker.close",
-          "line": 409,
+          "line": 414,
           "kind": "function",
           "parameters": [
             "self"
@@ -44240,7 +44268,7 @@
         },
         {
           "name": "serve",
-          "line": 416,
+          "line": 421,
           "kind": "function",
           "parameters": [],
           "annotations": {}
@@ -53957,7 +53985,7 @@
       "path": "agent/src/omni/application/model_calls.py",
       "module": "v2-application",
       "python_module": "omni.application.model_calls",
-      "lines": 339,
+      "lines": 342,
       "imports": [
         "omni.application.images",
         "omni.application.model_output",
@@ -54114,7 +54142,7 @@
         },
         {
           "name": "ModelCalls.invoke",
-          "line": 295,
+          "line": 298,
           "kind": "function",
           "parameters": [
             "self",
@@ -54138,7 +54166,7 @@
         },
         {
           "name": "ModelCalls.invoke_recovering",
-          "line": 313,
+          "line": 316,
           "kind": "function",
           "parameters": [
             "self",
@@ -54997,7 +55025,7 @@
       "path": "agent/src/omni/application/ports.py",
       "module": "v2-application",
       "python_module": "omni.application.ports",
-      "lines": 1051,
+      "lines": 1052,
       "imports": [
         "omni.domain.contracts",
         "omni.domain.delivery",
@@ -63108,8 +63136,22 @@
           }
         },
         {
-          "name": "UnitOfWork.settle_call",
+          "name": "UnitOfWork.begin_call",
           "line": 977,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "agent_id",
+            "call_id"
+          ],
+          "annotations": {
+            "agent_id": "str",
+            "call_id": "str"
+          }
+        },
+        {
+          "name": "UnitOfWork.settle_call",
+          "line": 978,
           "kind": "function",
           "parameters": [
             "self",
@@ -63127,7 +63169,7 @@
         },
         {
           "name": "UnitOfWork.prepare_action",
-          "line": 980,
+          "line": 981,
           "kind": "function",
           "parameters": [
             "self",
@@ -63147,7 +63189,7 @@
         },
         {
           "name": "UnitOfWork.authorize_action",
-          "line": 981,
+          "line": 982,
           "kind": "function",
           "parameters": [
             "self",
@@ -63161,7 +63203,7 @@
         },
         {
           "name": "UnitOfWork.settle_action",
-          "line": 982,
+          "line": 983,
           "kind": "function",
           "parameters": [
             "self",
@@ -63177,7 +63219,7 @@
         },
         {
           "name": "UnitOfWork.pending_approvals",
-          "line": 983,
+          "line": 984,
           "kind": "function",
           "parameters": [
             "self",
@@ -63189,7 +63231,7 @@
         },
         {
           "name": "UnitOfWork.resolve_approval",
-          "line": 984,
+          "line": 985,
           "kind": "function",
           "parameters": [
             "self",
@@ -63207,7 +63249,7 @@
         },
         {
           "name": "UnitOfWork.clarify_request",
-          "line": 985,
+          "line": 986,
           "kind": "function",
           "parameters": [
             "self",
@@ -63227,7 +63269,7 @@
         },
         {
           "name": "UnitOfWork.clarification",
-          "line": 988,
+          "line": 989,
           "kind": "function",
           "parameters": [
             "self",
@@ -63241,7 +63283,7 @@
         },
         {
           "name": "UnitOfWork.clarify_respond",
-          "line": 989,
+          "line": 990,
           "kind": "function",
           "parameters": [
             "self",
@@ -63261,7 +63303,7 @@
         },
         {
           "name": "UnitOfWork.clarify_cancel",
-          "line": 992,
+          "line": 993,
           "kind": "function",
           "parameters": [
             "self",
@@ -63279,7 +63321,7 @@
         },
         {
           "name": "UnitOfWork.clarify_timeout",
-          "line": 993,
+          "line": 994,
           "kind": "function",
           "parameters": [
             "self",
@@ -63293,7 +63335,7 @@
         },
         {
           "name": "UnitOfWork.pending_clarifications",
-          "line": 994,
+          "line": 995,
           "kind": "function",
           "parameters": [
             "self",
@@ -63305,7 +63347,7 @@
         },
         {
           "name": "UnitOfWork.cancel_run_clarifications",
-          "line": 995,
+          "line": 996,
           "kind": "function",
           "parameters": [
             "self",
@@ -63319,7 +63361,7 @@
         },
         {
           "name": "UnitOfWork.recover",
-          "line": 996,
+          "line": 997,
           "kind": "function",
           "parameters": [
             "self"
@@ -63328,7 +63370,7 @@
         },
         {
           "name": "UnitOfWork.cancel",
-          "line": 997,
+          "line": 998,
           "kind": "function",
           "parameters": [
             "self",
@@ -63342,7 +63384,7 @@
         },
         {
           "name": "UnitOfWork.action",
-          "line": 998,
+          "line": 999,
           "kind": "function",
           "parameters": [
             "self",
@@ -63356,7 +63398,7 @@
         },
         {
           "name": "UnitOfWork.run_applied_writes",
-          "line": 999,
+          "line": 1000,
           "kind": "function",
           "parameters": [
             "self",
@@ -63370,7 +63412,7 @@
         },
         {
           "name": "UnitOfWork.remember",
-          "line": 1000,
+          "line": 1001,
           "kind": "function",
           "parameters": [
             "self",
@@ -63402,7 +63444,7 @@
         },
         {
           "name": "UnitOfWork.forget",
-          "line": 1015,
+          "line": 1016,
           "kind": "function",
           "parameters": [
             "self",
@@ -63418,7 +63460,7 @@
         },
         {
           "name": "UnitOfWork.search_memory",
-          "line": 1016,
+          "line": 1017,
           "kind": "function",
           "parameters": [
             "self",
@@ -63436,7 +63478,7 @@
         },
         {
           "name": "UnitOfWork.memory_semantic_capture",
-          "line": 1019,
+          "line": 1020,
           "kind": "function",
           "parameters": [
             "self",
@@ -63452,7 +63494,7 @@
         },
         {
           "name": "UnitOfWork.memory_index_audit",
-          "line": 1020,
+          "line": 1021,
           "kind": "function",
           "parameters": [
             "self",
@@ -63470,7 +63512,7 @@
         },
         {
           "name": "UnitOfWork.memory_index_page",
-          "line": 1021,
+          "line": 1022,
           "kind": "function",
           "parameters": [
             "self",
@@ -63486,7 +63528,7 @@
         },
         {
           "name": "UnitOfWork.memory_embedding_begin",
-          "line": 1022,
+          "line": 1023,
           "kind": "function",
           "parameters": [
             "self",
@@ -63504,7 +63546,7 @@
         },
         {
           "name": "UnitOfWork.memory_embedding_finish",
-          "line": 1023,
+          "line": 1024,
           "kind": "function",
           "parameters": [
             "self",
@@ -63522,7 +63564,7 @@
         },
         {
           "name": "UnitOfWork.memory_vector_candidates",
-          "line": 1026,
+          "line": 1027,
           "kind": "function",
           "parameters": [
             "self",
@@ -63538,7 +63580,7 @@
         },
         {
           "name": "UnitOfWork.memory_recall_validate",
-          "line": 1027,
+          "line": 1028,
           "kind": "function",
           "parameters": [
             "self",
@@ -63554,7 +63596,7 @@
         },
         {
           "name": "UnitOfWork.memory_semantic_replay",
-          "line": 1028,
+          "line": 1029,
           "kind": "function",
           "parameters": [
             "self",
@@ -63568,7 +63610,7 @@
         },
         {
           "name": "UnitOfWork.memory_semantic_propose",
-          "line": 1029,
+          "line": 1030,
           "kind": "function",
           "parameters": [
             "self",
@@ -63586,7 +63628,7 @@
         },
         {
           "name": "UnitOfWork.memory_semantic_get",
-          "line": 1030,
+          "line": 1031,
           "kind": "function",
           "parameters": [
             "self",
@@ -63602,7 +63644,7 @@
         },
         {
           "name": "UnitOfWork.memory_semantic_page",
-          "line": 1031,
+          "line": 1032,
           "kind": "function",
           "parameters": [
             "self",
@@ -63618,7 +63660,7 @@
         },
         {
           "name": "UnitOfWork.memory_semantic_decide",
-          "line": 1032,
+          "line": 1033,
           "kind": "function",
           "parameters": [
             "self",
@@ -63636,7 +63678,7 @@
         },
         {
           "name": "UnitOfWork.cancel_approvals",
-          "line": 1033,
+          "line": 1034,
           "kind": "function",
           "parameters": [
             "self"
@@ -63645,7 +63687,7 @@
         },
         {
           "name": "UnitOfWork.close_run_actions",
-          "line": 1034,
+          "line": 1035,
           "kind": "function",
           "parameters": [
             "self",
@@ -63659,7 +63701,7 @@
         },
         {
           "name": "UnitOfWork.query",
-          "line": 1035,
+          "line": 1036,
           "kind": "function",
           "parameters": [
             "self",
@@ -63678,7 +63720,7 @@
         },
         {
           "name": "UnitOfWork.audit",
-          "line": 1036,
+          "line": 1037,
           "kind": "function",
           "parameters": [
             "self",
@@ -63696,23 +63738,11 @@
         },
         {
           "name": "DatabasePort",
-          "line": 1039,
+          "line": 1040,
           "kind": "class"
         },
         {
           "name": "DatabasePort.write",
-          "line": 1040,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "operation"
-          ],
-          "annotations": {
-            "operation": "Callable[[UnitOfWork], T]"
-          }
-        },
-        {
-          "name": "DatabasePort.read",
           "line": 1041,
           "kind": "function",
           "parameters": [
@@ -63724,8 +63754,20 @@
           }
         },
         {
-          "name": "DatabasePort.close",
+          "name": "DatabasePort.read",
           "line": 1042,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "operation"
+          ],
+          "annotations": {
+            "operation": "Callable[[UnitOfWork], T]"
+          }
+        },
+        {
+          "name": "DatabasePort.close",
+          "line": 1043,
           "kind": "function",
           "parameters": [
             "self"
@@ -63734,12 +63776,12 @@
         },
         {
           "name": "SpanReport",
-          "line": 1045,
+          "line": 1046,
           "kind": "class"
         },
         {
           "name": "SpanReport.result",
-          "line": 1046,
+          "line": 1047,
           "kind": "function",
           "parameters": [
             "self",
@@ -63751,12 +63793,12 @@
         },
         {
           "name": "Observer",
-          "line": 1049,
+          "line": 1050,
           "kind": "class"
         },
         {
           "name": "Observer.context",
-          "line": 1050,
+          "line": 1051,
           "kind": "function",
           "parameters": [
             "self",
@@ -63766,7 +63808,7 @@
         },
         {
           "name": "Observer.span",
-          "line": 1051,
+          "line": 1052,
           "kind": "function",
           "parameters": [
             "self",
@@ -71770,7 +71812,7 @@
       "path": "agent/src/omni/composition/capabilities.py",
       "module": "v2-composition",
       "python_module": "omni.composition.capabilities",
-      "lines": 221,
+      "lines": 222,
       "imports": [
         "omni.adapters.workers.client",
         "omni.application.documents",
@@ -78979,7 +79021,7 @@
       "path": "agent/src/omni/domain/event_retention.py",
       "module": "v2-domain",
       "python_module": "omni.domain.event_retention",
-      "lines": 290,
+      "lines": 292,
       "imports": [
         "omni.domain.contracts",
         "omni.domain.history",
@@ -78988,12 +79030,12 @@
       "symbols": [
         {
           "name": "PreviewPosition",
-          "line": 59,
+          "line": 61,
           "kind": "class"
         },
         {
           "name": "_time",
-          "line": 66,
+          "line": 68,
           "kind": "function",
           "parameters": [
             "value"
@@ -79004,7 +79046,7 @@
         },
         {
           "name": "preview_time",
-          "line": 75,
+          "line": 77,
           "kind": "function",
           "parameters": [
             "as_of",
@@ -79017,7 +79059,7 @@
         },
         {
           "name": "_identity",
-          "line": 91,
+          "line": 93,
           "kind": "function",
           "parameters": [
             "value"
@@ -79028,7 +79070,7 @@
         },
         {
           "name": "_position",
-          "line": 97,
+          "line": 99,
           "kind": "function",
           "parameters": [
             "value"
@@ -79039,7 +79081,7 @@
         },
         {
           "name": "_payload",
-          "line": 103,
+          "line": 105,
           "kind": "function",
           "parameters": [
             "epoch",
@@ -79060,7 +79102,7 @@
         },
         {
           "name": "_canonical",
-          "line": 124,
+          "line": 126,
           "kind": "function",
           "parameters": [
             "payload"
@@ -79071,7 +79113,7 @@
         },
         {
           "name": "_encode",
-          "line": 130,
+          "line": 132,
           "kind": "function",
           "parameters": [
             "raw"
@@ -79082,7 +79124,7 @@
         },
         {
           "name": "_unique_pairs",
-          "line": 134,
+          "line": 136,
           "kind": "function",
           "parameters": [
             "pairs"
@@ -79093,7 +79135,7 @@
         },
         {
           "name": "_reject_constant",
-          "line": 143,
+          "line": 145,
           "kind": "function",
           "parameters": [
             "value"
@@ -79104,14 +79146,14 @@
         },
         {
           "name": "_invalid",
-          "line": 147,
+          "line": 149,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "encode_preview_cursor",
-          "line": 151,
+          "line": 153,
           "kind": "function",
           "parameters": [
             "epoch",
@@ -79132,7 +79174,7 @@
         },
         {
           "name": "decode_preview_cursor",
-          "line": 163,
+          "line": 165,
           "kind": "function",
           "parameters": [
             "value",
@@ -79155,7 +79197,7 @@
         },
         {
           "name": "validate_event_plan",
-          "line": 224,
+          "line": 226,
           "kind": "function",
           "parameters": [
             "plan",
@@ -79610,7 +79652,7 @@
       "path": "agent/src/omni/domain/files_search.py",
       "module": "v2-domain",
       "python_module": "omni.domain.files_search",
-      "lines": 97,
+      "lines": 114,
       "imports": [],
       "symbols": [
         {
@@ -79669,8 +79711,32 @@
           }
         },
         {
-          "name": "match_lines",
+          "name": "normalize_file_glob",
           "line": 62,
+          "kind": "function",
+          "parameters": [
+            "value"
+          ],
+          "annotations": {
+            "value": "object"
+          }
+        },
+        {
+          "name": "match_path_glob",
+          "line": 74,
+          "kind": "function",
+          "parameters": [
+            "relative",
+            "pattern"
+          ],
+          "annotations": {
+            "relative": "str",
+            "pattern": "str"
+          }
+        },
+        {
+          "name": "match_lines",
+          "line": 79,
           "kind": "function",
           "parameters": [
             "text",
@@ -79685,7 +79751,7 @@
         },
         {
           "name": "match_name",
-          "line": 89,
+          "line": 106,
           "kind": "function",
           "parameters": [
             "filename",
@@ -79698,7 +79764,7 @@
         },
         {
           "name": "count_matches",
-          "line": 94,
+          "line": 111,
           "kind": "function",
           "parameters": [
             "text",
@@ -110569,7 +110635,7 @@
       "path": "web/ui/v2/main.js",
       "module": "v2-workbench",
       "python_module": null,
-      "lines": 2079,
+      "lines": 2113,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -110779,7 +110845,7 @@
       "path": "web/ui/v2/workbench.css",
       "module": "v2-workbench",
       "python_module": null,
-      "lines": 3625,
+      "lines": 3631,
       "imports": [],
       "symbols": [],
       "kind": "asset",
