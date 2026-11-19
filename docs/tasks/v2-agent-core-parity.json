@@ -290,9 +290,17 @@
           "contract": "docs/v2/contracts/V2_FILES_PATCH_DRIFT.md",
           "evidence": "docs/evidence/v2-files-patch-drift.json",
           "delivered": "files_patch匹配前escape-drift验证自动纠正(domain/files_patch.py既有模块加correct_escape_drift：引号漂移须old/new同含\\'或\\\"+该种类全调用每处恰一个反斜杠+剥离old字面在文件才纠正双侧，new单独转义未证明种类显式patch_escape_drift拒；反斜杠倍增须全偶数串+减半old字面在文件仅纠正old，new含反斜杠显式拒；已精确锚点绝不纠正)+boundary_note仅block_anchor/context_aware近似命中警告边界近似定位需复核落点；patch_replace返回四元组(patched,count,strategy,note)纠正在策略链前identical在纠正后，worker解包四元组成功文本附note+data增note写管线(指纹CAS/staging复核/原子publish/unknown不重放/审批)不变drift歧义写前ERROR/NONE，spec描述更新参数schema不变routing不变；15新增专项+41既有适配四元组共56过+213调用方(files_patch56/worker_safety31/files_search110/routing16)过0失败46.68秒(首轮字符串转义语法错+两drift-skip用例实际命中既有context_aware近似改断言无drift纠正+identical用例构造修正，format后56复跑绿)、strict本批4文件零错误(余5既有他会话repository.py不追逐)、ruff通过；无新表/迁移/路由/协议帧/源文件/跨平台改动；参考匹配后_detect_escape_drift字面\\n拒绝/_maybe_unescape_new_string替换侧解转义/V4A多文件仍后续"
+        },
+        {
+          "gap": "#2 模糊补丁之匹配后漂移拒绝与替换侧解转义",
+          "status": "implemented_scoped_passed",
+          "batch": "K13.patch_drift_guards",
+          "contract": "docs/v2/contracts/V2_FILES_PATCH_DRIFT.md",
+          "evidence": "docs/evidence/v2-files-patch-drift-guards.json",
+          "delivered": "files_patch非exact命中后拼接前_detect_post_match_drift拒绝替换侧序列化伪影(引号\\'/\\\"同在old/new但匹配区域缺失/字面\\n逐区域计数盈余且区域含真实换行/反斜杠串恰2倍同串数非平凡信号区域≥2长串或≥2串且new串计数≠区域，平凡单串1→2不可区分不拒)→patch_escape_drift写前拒；_maybe_unescape_new_string仅匹配区域含真实控制字符时转换new字面\\t/\\r，\\n绝不重写防损坏源码字面量；exact跳过守卫(old==区域三类条件数学不成立)；spec描述更新；12新增专项共68过+225调用方(files_patch68/worker_safety31/files_search110/routing16)过0失败48.55秒(首轮平凡单串用例误期望保留缩进——跨度覆盖整行替换new原样修正+两字面量保留用例改行尾空白漂移强制line_trimmed)、strict本批文件零错误(余5既有他会话repository.py不追逐)、ruff通过；无新表/迁移/路由/协议帧/源文件/跨平台改动worker写管线不变；V4A多文件/_reindent_replacement替换侧缩进重锚仍后续"
         }
       ],
-      "limits": "只读审计无新工具/迁移/路由/源码改动；可离线缺口未在K13审计批实现(列后续批次)，其中缺口#1工作区搜索之内容搜索与文件名glob发现已在K13.search_files/K13.find_files后续批实现、缺口#2模糊补丁之核心normalizing策略搜索替换写工具已在K13.patch后续批实现(泛型files_*分派无需协议帧/跨平台改动)；搜索output_mode三态(content/files_with_matches/count)已在K13.search_modes、context邻接线(0-3)已在K13.search_context、offset分页(0-1000)已在K13.search_offset、order排序(discovery|modified修改时间最新优先)已在K13.search_order后续批实现、file_glob内容包含过滤已在K13.search_file_glob后续批实现、regex已在K13.search_regex后续批实现(use_regex保守静态安全门大小写敏感，拒嵌套量词/反向引用等超线性构造，非ripgrep全集)、ripgrep、补丁escape/unicode归一化策略已在K13.patch_strategies后续批实现(indentation_flexible/trimmed_boundary经证明被line_trimmed涵盖故省略)、similarity近似(block_anchor/context_aware)已在K13.patch_similarity后续批实现(首末锚定+中间/逐行SequenceMatcher阈值，近似命中禁止replace_all仅唯一替换复用指纹CAS/审批)、escape-drift自动纠正与boundary-note已在K13.patch_drift后续批实现(匹配前验证纠正引号/反斜杠倍增漂移、歧义显式拒、近似边界注记，patch_replace四元组返回)、V4A多文件格式/匹配后字面\\n漂移拒绝与替换侧解转义、浏览器对话框/cron技能绑定输出依赖/代码沙箱/原始CDP仍列后续；不宣称全集对等；既有todos重启竞态与5个pin v2_0039旧迁移测试沿用保留",
+      "limits": "只读审计无新工具/迁移/路由/源码改动；可离线缺口未在K13审计批实现(列后续批次)，其中缺口#1工作区搜索之内容搜索与文件名glob发现已在K13.search_files/K13.find_files后续批实现、缺口#2模糊补丁之核心normalizing策略搜索替换写工具已在K13.patch后续批实现(泛型files_*分派无需协议帧/跨平台改动)；搜索output_mode三态(content/files_with_matches/count)已在K13.search_modes、context邻接线(0-3)已在K13.search_context、offset分页(0-1000)已在K13.search_offset、order排序(discovery|modified修改时间最新优先)已在K13.search_order后续批实现、file_glob内容包含过滤已在K13.search_file_glob后续批实现、regex已在K13.search_regex后续批实现(use_regex保守静态安全门大小写敏感，拒嵌套量词/反向引用等超线性构造，非ripgrep全集)、ripgrep、补丁escape/unicode归一化策略已在K13.patch_strategies后续批实现(indentation_flexible/trimmed_boundary经证明被line_trimmed涵盖故省略)、similarity近似(block_anchor/context_aware)已在K13.patch_similarity后续批实现(首末锚定+中间/逐行SequenceMatcher阈值，近似命中禁止replace_all仅唯一替换复用指纹CAS/审批)、escape-drift自动纠正与boundary-note已在K13.patch_drift后续批实现(匹配前验证纠正引号/反斜杠倍增漂移、歧义显式拒、近似边界注记，patch_replace四元组返回)、匹配后漂移拒绝与替换侧解转义已在K13.patch_drift_guards后续批实现(引号嫌疑/字面\\n盈余/反斜杠2倍非平凡拒，\\t/\\r区域证据解转义\\n绝不重写)、V4A多文件格式/替换侧缩进重锚、浏览器对话框/cron技能绑定输出依赖/代码沙箱/原始CDP仍列后续；不宣称全集对等；既有todos重启竞态与5个pin v2_0039旧迁移测试沿用保留",
       "next": false
     },
     {
@@ -653,6 +661,10 @@
     {
       "id": "K13.patch_drift",
       "evidence": "docs/evidence/v2-files-patch-drift.json"
+    },
+    {
+      "id": "K13.patch_drift_guards",
+      "evidence": "docs/evidence/v2-files-patch-drift-guards.json"
     }
   ]
 }

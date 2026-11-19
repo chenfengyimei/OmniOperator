@@ -584,3 +584,87 @@ def test_worker_patch_exact_note_none(tmp_path):
         assert result.data["note"] is None and result.text == "File patched"
 
     asyncio.run(scenario())
+
+
+def test_post_match_newline_literal_drift_rejected():
+    with pytest.raises(PatchError) as caught:
+        patch_replace("a\nb\n", "a\\nb", "c\\nd")
+    assert caught.value.code == "patch_escape_drift"
+    assert "literal '\\n'" in str(caught.value)
+
+
+def test_post_match_equal_literal_newline_counts_preserved():
+    out = patch_replace('sep = "\\n"  \n', 'sep = "\\n"\n', 'sep = "\\t"\n')
+    assert out == ('sep = "\\t"\n', 1, "line_trimmed", None)
+
+
+def test_post_match_quote_suspect_absent_from_region_rejected():
+    with pytest.raises(PatchError) as caught:
+        patch_replace("\tsay 'hi'\n", "    say \\'hi\\'\n", "    say \\'yo\\'\n")
+    assert caught.value.code == "patch_escape_drift"
+
+
+def test_post_match_backslash_doubling_rejected():
+    with pytest.raises(PatchError) as caught:
+        patch_replace("\tx\\y\\z\n", "    x\\\\y\\\\z\n", "    w\\\\q\\\\r\n")
+    assert caught.value.code == "patch_escape_drift"
+    assert "twice as long" in str(caught.value)
+
+
+def test_post_match_trivial_single_run_doubling_not_rejected():
+    out = patch_replace("\tx\\y\n", "    x\\\\y\n", "    z\\\\w\n")
+    assert out == ("    z\\\\w\n", 1, "context_aware", boundary_note("context_aware"))
+
+
+def test_new_string_literal_tab_unescaped_when_region_has_real_tab():
+    assert patch_replace("a\tb\n", "a\\tb", "c\\td") == ("c\td\n", 1, "escape_normalized", None)
+
+
+def test_new_string_literal_cr_unescaped_when_region_has_real_cr():
+    assert patch_replace("a\rb\n", "a\\rb", "c\\rd") == ("c\rd\n", 1, "escape_normalized", None)
+
+
+def test_new_string_literals_preserved_when_region_lacks_control_char():
+    out = patch_replace('sep = "\\t"  \n', 'sep = "\\t"\n', 'sep = "\\r"\n')
+    assert out == ('sep = "\\r"\n', 1, "line_trimmed", None)
+
+
+def test_new_string_literal_newline_never_unescaped():
+    assert patch_replace("a\tb\n", "a\\tb", "c\\td\\ne") == ("c\td\\ne\n", 1, "escape_normalized", None)
+
+
+def test_exact_strategy_keeps_replacement_literals_verbatim():
+    assert patch_replace("a\\nb\n", "a\\nb", "c\\nd") == ("c\\nd\n", 1, "exact", None)
+
+
+def test_worker_patch_post_match_drift_rejected_before_write(tmp_path):
+    put(tmp_path / "a.txt", "a\nb\n")
+
+    async def scenario():
+        result = await Worker().invoke(
+            "files_patch",
+            {"path": "a.txt", "old_string": "a\\nb", "new_string": "c\\nd", "expected_sha256": digest("a\nb\n")},
+            {"workspace": str(tmp_path)},
+        )
+        assert result.status == Outcome.ERROR and result.effect == Effect.NONE
+        assert result.error_code == "patch_escape_drift"
+        assert (tmp_path / "a.txt").read_bytes() == b"a\nb\n"
+        assert not list(tmp_path.glob(".omni-write-*"))
+
+    asyncio.run(scenario())
+
+
+def test_worker_patch_unescapes_new_string_with_region_evidence(tmp_path):
+    put(tmp_path / "a.txt", "a\tb\n")
+
+    async def scenario():
+        result = await Worker().invoke(
+            "files_patch",
+            {"path": "a.txt", "old_string": "a\\tb", "new_string": "c\\td", "expected_sha256": digest("a\tb\n")},
+            {"workspace": str(tmp_path)},
+        )
+        assert result.status == Outcome.OK and result.effect == Effect.APPLIED
+        assert (tmp_path / "a.txt").read_bytes() == b"c\td\n"
+        assert result.verification == digest("c\td\n")
+
+    asyncio.run(scenario())

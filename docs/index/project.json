@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "e5e50cc6877346c221078e0c353591489c2c5f33d24ec5cc7074db21a3a7787b",
+  "source_sha256": "1831b203dec9e454db639a4c0396bb0ad5a365262835b757312b3f74a6fe8e53",
   "modules": [
     {
       "id": "v2-domain",
@@ -90,7 +90,7 @@
         "agent/src/omni/domain/turn_prompt.py",
         "agent/src/omni/domain/verification_stop.py"
       ],
-      "lines": 12697,
+      "lines": 12787,
       "dependencies": []
     },
     {
@@ -79515,7 +79515,7 @@
       "path": "agent/src/omni/domain/files_patch.py",
       "module": "v2-domain",
       "python_module": "omni.domain.files_patch",
-      "lines": 345,
+      "lines": 435,
       "imports": [],
       "symbols": [
         {
@@ -79860,8 +79860,96 @@
           }
         },
         {
-          "name": "patch_replace",
+          "name": "_backslash_runs",
           "line": 298,
+          "kind": "function",
+          "parameters": [
+            "text"
+          ],
+          "annotations": {
+            "text": "str"
+          }
+        },
+        {
+          "name": "_matched_regions",
+          "line": 302,
+          "kind": "function",
+          "parameters": [
+            "content",
+            "spans"
+          ],
+          "annotations": {
+            "content": "str",
+            "spans": "list[Span]"
+          }
+        },
+        {
+          "name": "_detect_newline_literal_drift",
+          "line": 306,
+          "kind": "function",
+          "parameters": [
+            "content",
+            "spans",
+            "old_string",
+            "new_string"
+          ],
+          "annotations": {
+            "content": "str",
+            "spans": "list[Span]",
+            "old_string": "str",
+            "new_string": "str"
+          }
+        },
+        {
+          "name": "_detect_backslash_doubling",
+          "line": 326,
+          "kind": "function",
+          "parameters": [
+            "regions",
+            "old_string",
+            "new_string"
+          ],
+          "annotations": {
+            "regions": "str",
+            "old_string": "str",
+            "new_string": "str"
+          }
+        },
+        {
+          "name": "_detect_post_match_drift",
+          "line": 348,
+          "kind": "function",
+          "parameters": [
+            "content",
+            "spans",
+            "old_string",
+            "new_string"
+          ],
+          "annotations": {
+            "content": "str",
+            "spans": "list[Span]",
+            "old_string": "str",
+            "new_string": "str"
+          }
+        },
+        {
+          "name": "_maybe_unescape_new_string",
+          "line": 371,
+          "kind": "function",
+          "parameters": [
+            "new_string",
+            "content",
+            "spans"
+          ],
+          "annotations": {
+            "new_string": "str",
+            "content": "str",
+            "spans": "list[Span]"
+          }
+        },
+        {
+          "name": "patch_replace",
+          "line": 382,
           "kind": "function",
           "parameters": [
             "content",

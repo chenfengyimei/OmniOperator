@@ -295,6 +295,90 @@ def boundary_note(strategy: str) -> str | None:
     )
 
 
+def _backslash_runs(text: str) -> list[int]:
+    return [len(run) for run in _BACKSLASH_RUN.findall(text)]
+
+
+def _matched_regions(content: str, spans: list[Span]) -> str:
+    return "".join(content[start:end] for start, end in spans)
+
+
+def _detect_newline_literal_drift(content: str, spans: list[Span], old_string: str, new_string: str) -> str | None:
+    # Regions are compared one by one because joining them would multiply the file-side
+    # count under replace_all; only a surplus of literal \n over the region is drift.
+    if "\\n" not in new_string:
+        return None
+    old_literals = old_string.count("\\n")
+    for start, end in spans:
+        region = content[start:end]
+        if "\n" in region and old_literals > region.count("\\n"):
+            return (
+                "Escape-drift detected: old_string contains more literal '\\n' sequences than the "
+                "matched region of the file, which has real line breaks there instead. This is almost "
+                "always a tool-call serialization artifact where a line break got escaped one extra "
+                "time; new_string would write it as backslash + n. Re-read the file with files_read "
+                "and pass old_string/new_string with actual line breaks, keeping only the '\\n' "
+                "sequences that appear literally in the file."
+            )
+    return None
+
+
+def _detect_backslash_doubling(regions: str, old_string: str, new_string: str) -> str | None:
+    old_runs = _backslash_runs(old_string)
+    file_runs = _backslash_runs(regions)
+    if (
+        not old_runs
+        or not file_runs
+        or len(old_runs) != len(file_runs)
+        or old_runs == file_runs
+        or any(o != f * 2 for o, f in zip(old_runs, file_runs))
+        or not (any(f >= 2 for f in file_runs) or len(file_runs) >= 2)
+        or _backslash_runs(new_string) == file_runs
+    ):
+        return None
+    return (
+        "Escape-drift detected: every backslash run in old_string is exactly twice as long as in "
+        "the matched region of the file. The tool-call arguments were JSON-escaped one extra time; "
+        "applying new_string verbatim would double every backslash in the file. Re-read the file "
+        "with files_read and resend old_string/new_string with the backslash counts exactly as they "
+        "appear in the file."
+    )
+
+
+def _detect_post_match_drift(content: str, spans: list[Span], old_string: str, new_string: str) -> str | None:
+    """Reject replacement-side serialization artifacts a non-exact match would otherwise write."""
+    has_quote_suspects = "\\'" in new_string or '\\"' in new_string
+    if not has_quote_suspects and "\\" not in old_string:
+        return None
+    regions = _matched_regions(content, spans)
+    if has_quote_suspects:
+        for suspect in ("\\'", '\\"'):
+            if suspect in new_string and suspect in old_string and suspect not in regions:
+                plain = suspect[1]
+                return (
+                    f"Escape-drift detected: old_string and new_string contain the literal sequence "
+                    f"{suspect!r} but the matched region of the file does not. This is almost always "
+                    f"a tool-call serialization artifact where an apostrophe or quote got prefixed "
+                    f"with a spurious backslash. Re-read the file with files_read and pass "
+                    f"old_string/new_string without backslash-escaping {plain!r} characters."
+                )
+    newline_drift = _detect_newline_literal_drift(content, spans, old_string, new_string)
+    if newline_drift:
+        return newline_drift
+    return _detect_backslash_doubling(regions, old_string, new_string)
+
+
+def _maybe_unescape_new_string(new_string: str, content: str, spans: list[Span]) -> str:
+    # \n is deliberately excluded: rewriting it would mangle source escape literals.
+    if "\\t" not in new_string and "\\r" not in new_string:
+        return new_string
+    regions = _matched_regions(content, spans)
+    for literal, control in (("\\t", "\t"), ("\\r", "\r")):
+        if literal in new_string and control in regions:
+            new_string = new_string.replace(literal, control)
+    return new_string
+
+
 def patch_replace(
     content: str, old_string: object, new_string: object, *, replace_all: bool = False
 ) -> tuple[str, int, str, str | None]:
@@ -335,9 +419,15 @@ def patch_replace(
                 else "provide more context or use replace_all"
             )
             raise PatchError("patch_ambiguous", f"Found {len(spans)} matches for old_string; {hint}")
+        effective_new = new_string
+        if name != "exact":
+            drift = _detect_post_match_drift(content, spans, old_string, new_string)
+            if drift:
+                raise PatchError("patch_escape_drift", drift)
+            effective_new = _maybe_unescape_new_string(new_string, content, spans)
         patched = content
         for start, end in reversed(spans):
-            patched = patched[:start] + new_string + patched[end:]
+            patched = patched[:start] + effective_new + patched[end:]
         note = "; ".join(part for part in (correction, boundary_note(name)) if part) or None
         return patched, len(spans), name, note
     if is_already_applied(content, old_string, new_string):
