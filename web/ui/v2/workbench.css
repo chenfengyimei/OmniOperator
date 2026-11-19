@@ -3466,3 +3466,26 @@ body[data-ui-page="workbench-v2"]:not(.chat-mode) .settings-content > .page:not(
   }
 }
 
+/* ==========================================================================
+   模型接入简化 + 点击反馈：下拉选模型；请求期间按钮转圈禁用，
+   杜绝「点了没反应」（所有者反馈）。spin 关键帧复用 V1 副本既有定义。
+   ========================================================================== */
+body[data-ui-page="workbench-v2"] .material-icons.spin {
+  animation: spin 1.1s linear infinite;
+}
+body[data-ui-page="workbench-v2"] button.is-busy {
+  opacity: 0.75;
+  cursor: progress;
+}
+body[data-ui-page="workbench-v2"] #models .mo-mini:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+/* 模型下拉与整行字段：与既有输入同语言 */
+body[data-ui-page="workbench-v2"] #models #mo-model-pick {
+  width: 100%;
+}
+body[data-ui-page="workbench-v2"] #models .mo-field-wide {
+  grid-column: 1 / -1;
+}
+

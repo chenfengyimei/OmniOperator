@@ -140,7 +140,9 @@ def test_models_custom_headers_roundtrip_and_auth_guard(ui_browser, models_serve
         page.locator("#mo-model").fill("openai/gpt-4o-mini")
         page.locator("#mo-cred-ref").fill("hdr-key")
         page.locator("#mo-api-key").fill("sk-hdr-canary")
-        page.locator(".mo-advanced summary").click()
+        # 自定义供应商现在自动展开高级区；仅在未展开时点击展开
+        if not page.locator(".mo-advanced").evaluate("el => el.open"):
+            page.locator(".mo-advanced summary").click()
         page.locator("#mo-headers").fill("x-route-tag: blue\nx-team: omni")
         page.locator("#mo-save").click()
         expect(page.locator(".mo-model-card", has_text="gpt-4o-mini").first).to_be_visible(timeout=15000)

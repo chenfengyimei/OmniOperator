@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`fb6dd1d8b1e1701ba94a42d7e5d7f467b98b450007f9985641d5e7736c141254`。包含 65 个职责模块、822 个源码/界面文件。
+源码指纹：`e005703352aab2189b13f61295bb11cc95e9b91159036170ce018b994b2bb1f4`。包含 65 个职责模块、822 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -517,7 +517,7 @@
 | [web/ui/v2/documents.js](../../web/ui/v2/documents.js) | 487 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/event-stream.js](../../web/ui/v2/event-stream.js) | 168 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/extensions.js](../../web/ui/v2/extensions.js) | 656 | 原生源码、平台脚本或界面资源 |
-| [web/ui/v2/index.html](../../web/ui/v2/index.html) | 2026 | 原生源码、平台脚本或界面资源 |
+| [web/ui/v2/index.html](../../web/ui/v2/index.html) | 2028 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/inspector.js](../../web/ui/v2/inspector.js) | 266 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/main.js](../../web/ui/v2/main.js) | 2042 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/maintenance.js](../../web/ui/v2/maintenance.js) | 126 | 原生源码、平台脚本或界面资源 |
@@ -526,7 +526,7 @@
 | [web/ui/v2/memory-organization.js](../../web/ui/v2/memory-organization.js) | 465 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/memory-semantics.js](../../web/ui/v2/memory-semantics.js) | 252 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/model-output.js](../../web/ui/v2/model-output.js) | 30 | 原生源码、平台脚本或界面资源 |
-| [web/ui/v2/models.js](../../web/ui/v2/models.js) | 530 | 原生源码、平台脚本或界面资源 |
+| [web/ui/v2/models.js](../../web/ui/v2/models.js) | 672 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/operations.js](../../web/ui/v2/operations.js) | 352 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/people.js](../../web/ui/v2/people.js) | 319 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/qq.js](../../web/ui/v2/qq.js) | 181 | 原生源码、平台脚本或界面资源 |
@@ -540,7 +540,7 @@
 | [web/ui/v2/v1/components.css](../../web/ui/v2/v1/components.css) | 655 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/v1/frame.css](../../web/ui/v2/v1/frame.css) | 938 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/v1/workbench.css](../../web/ui/v2/v1/workbench.css) | 4451 | 原生源码、平台脚本或界面资源 |
-| [web/ui/v2/workbench.css](../../web/ui/v2/workbench.css) | 3468 | 原生源码、平台脚本或界面资源 |
+| [web/ui/v2/workbench.css](../../web/ui/v2/workbench.css) | 3491 | 原生源码、平台脚本或界面资源 |
 
 文档：[docs/V2_REFACTOR.md](../../docs/V2_REFACTOR.md)
 

@@ -1,7 +1,7 @@
 {
   "batch": "v2-ui-connection-stability-v128",
   "recorded_at": "2026-11-15",
-  "resource_version_final": "20261119v157",
+  "resource_version_final": "20261119v158",
   "v1_alignment": {
     "summary": "用户提供 V1 正式工作台截图后，直接精读 web/ui/workbench.css 的 V1 实现并逐项移植，使 V2 结构与 V1 一致（而非自创风格）。",
     "ported_from_v1": [
@@ -1305,5 +1305,20 @@
     "问题": "v156标题两行预留用-webkit-box致单行标题沉底,看似不居中位置错",
     "修复": "标题自然行高;等高改在body容器min-height:65px(px计量消除em基准差)+justify-content:center",
     "验证": "九卡67px等高/图标文本中心偏差0/优化12-12/守卫模型55/全站76-76"
+  },
+  "models_refresh_2026_11": {
+    "需求": "模型清单太老+操作复杂+按钮无反馈",
+    "交付": [
+      "九家供应商预设更新为官方核验最新型号(OpenAI GPT-6.2系/Claude 5.5系/Gemini 4系/DeepSeek V4.1/Qwen4-Max/Kimi K3.1/GLM-5.3/Go套餐32模型清单)",
+      "模型标识改下拉即选即用,容量按型号自动填",
+      "端点/凭据名/容量收进高级区,自定义供应商自动展开",
+      "保存/测试/行按钮忙碌态:禁用+转圈+分步进度,成功提示不被回填覆盖"
+    ],
+    "来源": "各家官方文档2026-11-19核验,详见models.js头注释",
+    "验证": {
+      "模型页实测": "12/12",
+      "专项": "60 passed",
+      "全站": "76/76"
+    }
   }
 }

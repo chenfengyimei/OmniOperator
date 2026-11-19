@@ -8,11 +8,11 @@
     <link rel="stylesheet" href="/assets/ui/tokens.css?v=20261115u1" />
     <link rel="stylesheet" href="/assets/ui/base.css?v=20261103v7" />
     <link rel="stylesheet" href="/assets/ui/icons.css?v=20261115u1" />
-    <link rel="stylesheet" href="/assets/ui/v2/v1/components.css?v=20261119v157" />
-    <link rel="stylesheet" href="/assets/ui/v2/v1/frame.css?v=20261119v157" />
-    <link rel="stylesheet" href="/assets/ui/v2/v1/workbench.css?v=20261119v157" />
-    <link rel="stylesheet" href="/assets/ui/v2/workbench.css?v=20261119v157" />
-    <link rel="stylesheet" href="/assets/vendor/xterm.min.css?v=20261119v157" />
+    <link rel="stylesheet" href="/assets/ui/v2/v1/components.css?v=20261119v158" />
+    <link rel="stylesheet" href="/assets/ui/v2/v1/frame.css?v=20261119v158" />
+    <link rel="stylesheet" href="/assets/ui/v2/v1/workbench.css?v=20261119v158" />
+    <link rel="stylesheet" href="/assets/ui/v2/workbench.css?v=20261119v158" />
+    <link rel="stylesheet" href="/assets/vendor/xterm.min.css?v=20261119v158" />
   </head>
   <body class="chat-mode" data-ui-page="workbench-v2">
     <header class="app-header">
@@ -1235,7 +1235,7 @@
                   <span class="mo-step-num">1</span><span class="mo-step-label">选供应商</span>
                 </li>
                 <li class="mo-step" data-step="2">
-                  <span class="mo-step-num">2</span><span class="mo-step-label">填密钥</span>
+                  <span class="mo-step-num">2</span><span class="mo-step-label">选模型 · 填 Key</span>
                 </li>
                 <li class="mo-step" data-step="3">
                   <span class="mo-step-num">3</span><span class="mo-step-label">存并启用</span>
@@ -1252,31 +1252,16 @@
 
                     <div class="mo-field-grid">
                       <label class="mo-field mo-field-wide">
-                        <span class="mo-label">API 端点</span>
-                        <input
-                          id="mo-base-url"
-                          type="url"
-                          placeholder="https://api.example.com/v1"
-                          autocomplete="off"
-                        />
-                        <span class="mo-hint" id="mo-base-hint">选择供应商后自动填入，可改为代理或兼容端点。</span>
-                      </label>
-                      <label class="mo-field">
-                        <span class="mo-label">模型标识</span>
+                        <span class="mo-label">选择模型</span>
+                        <select id="mo-model-pick" aria-label="选择模型"></select>
                         <input
                           id="mo-model"
-                          list="mo-model-suggestions"
                           maxlength="200"
-                          placeholder="provider/model"
+                          placeholder="provider/model，例如 openai/gpt-6.2-sol"
                           autocomplete="off"
+                          hidden
                         />
-                        <datalist id="mo-model-suggestions"></datalist>
-                        <span class="mo-hint">须含供应商前缀，例如 openai/gpt-4o。</span>
-                      </label>
-                      <label class="mo-field">
-                        <span class="mo-label">凭据引用名称</span>
-                        <input id="mo-cred-ref" maxlength="200" placeholder="例如 openai-key" autocomplete="off" />
-                        <span class="mo-hint">密钥在凭据库中的名字，配置只存这个名字。</span>
+                        <span class="mo-hint">已按 2026-11 各家官方清单更新；容量自动按所选模型填好。</span>
                       </label>
                       <label class="mo-field mo-field-wide">
                         <span class="mo-label">API Key</span>
@@ -1300,8 +1285,25 @@
 
                     <details class="mo-advanced">
                       <summary>
-                        <span class="material-icons" aria-hidden="true">tune</span>容量与计量（默认已按通用值填好）
+                        <span class="material-icons" aria-hidden="true">tune</span>高级设置（端点 / 凭据名 / 容量，已自动填好）
                       </summary>
+                      <div class="mo-field-grid">
+                        <label class="mo-field mo-field-wide">
+                          <span class="mo-label">API 端点</span>
+                          <input
+                            id="mo-base-url"
+                            type="url"
+                            placeholder="https://api.example.com/v1"
+                            autocomplete="off"
+                          />
+                          <span class="mo-hint" id="mo-base-hint">选择供应商后自动填入，可改为代理或兼容端点。</span>
+                        </label>
+                        <label class="mo-field mo-field-wide">
+                          <span class="mo-label">凭据引用名称</span>
+                          <input id="mo-cred-ref" maxlength="200" placeholder="例如 openai-key" autocomplete="off" />
+                          <span class="mo-hint">密钥在凭据库中的名字，配置只存这个名字。</span>
+                        </label>
+                      </div>
                       <div class="mo-field-grid">
                         <label class="mo-field"
                           ><span class="mo-label">上下文容量（token）</span
@@ -2019,8 +2021,8 @@
       </div>
       <div id="service-list" class="svc-list"></div>
     </dialog>
-    <script src="/assets/vendor/xterm.js?v=20261119v157"></script>
-    <script src="/assets/vendor/xterm-addon-fit.js?v=20261119v157"></script>
-    <script type="module" src="/assets/ui/v2/main.js?v=20261119v157"></script>
+    <script src="/assets/vendor/xterm.js?v=20261119v158"></script>
+    <script src="/assets/vendor/xterm-addon-fit.js?v=20261119v158"></script>
+    <script type="module" src="/assets/ui/v2/main.js?v=20261119v158"></script>
   </body>
 </html>

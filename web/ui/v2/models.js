@@ -5,6 +5,16 @@
 // 本页 input 保存后立即清空，绝不写入 localStorage/sessionStorage，也不回显明文。
 // 「测试连接」走真实模型适配器的一次最小调用；离线实例会明确拒绝（offline_model_denied）。
 
+// 模型清单核验于 2026-11-19（各家官方文档）：
+// OpenAI developers.openai.com/api/docs/models/all（gpt-4o/4.1/o3 已退役）；
+// Anthropic platform.claude.com/docs/en/models/overview；
+// Gemini aistudio.google.com/docs/models（2.5 系已弃用）；
+// DeepSeek api-docs.deepseek.com 定价页（deepseek-chat/reasoner 已换代）；
+// Kimi platform.kimi.com/docs/models（moonshot-v1 与 k2 系已下线）；
+// 智谱 docs.bigmodel.cn 模型概览（glm-4 系自动切换 5.3）；
+// 百炼 help.aliyun.com/zh/model-studio/models；
+// OpenCode Go opencode.ai/console/go 套餐清单 + models.dev 目录。
+// models 数组首项为推荐默认；ctx/out 为该模型的保守容量建议（可高级区改）。
 const PROVIDERS = [
   {
     id: 'openai',
@@ -12,9 +22,15 @@ const PROVIDERS = [
     glyph: 'O',
     tint: 'ok',
     base: 'https://api.openai.com/v1',
-    models: ['openai/gpt-4o', 'openai/gpt-4o-mini', 'openai/gpt-4.1', 'openai/o3-mini'],
+    models: [
+      { id: 'openai/gpt-6.2-sol', label: 'GPT-6.2 Sol · 日常旗舰（推荐）', ctx: 400000, out: 16384 },
+      { id: 'openai/gpt-6.2-astra', label: 'GPT-6.2 Astra · 最强复杂任务', ctx: 400000, out: 16384 },
+      { id: 'openai/gpt-6.1-terra', label: 'GPT-6.1 Terra · 快速视觉推理', ctx: 400000, out: 16384 },
+      { id: 'openai/gpt-6-luna', label: 'GPT-6 Luna · 高效低成本', ctx: 400000, out: 16384 },
+      { id: 'openai/gpt-5.2', label: 'GPT-5.2 · 上一代旗舰', ctx: 262144, out: 16384 },
+    ],
     ref: 'openai-key',
-    note: 'GPT 系列；图片低清计量仅 gpt-4o / 4o-mini 已知。',
+    note: 'GPT-6.2 系列为当前旗舰；4o/o3 等旧型号已退役。',
   },
   {
     id: 'anthropic',
@@ -22,9 +38,14 @@ const PROVIDERS = [
     glyph: 'A',
     tint: 'warn',
     base: 'https://api.anthropic.com',
-    models: ['anthropic/claude-sonnet-4-5', 'anthropic/claude-opus-4-1', 'anthropic/claude-haiku-4-5'],
+    models: [
+      { id: 'anthropic/claude-opus-5-5', label: 'Claude Opus 5.5 · 旗舰（推荐）', ctx: 1000000, out: 16384 },
+      { id: 'anthropic/claude-fable-5-2', label: 'Claude Fable 5.2 · 最强推理', ctx: 1000000, out: 16384 },
+      { id: 'anthropic/claude-sonnet-5-5', label: 'Claude Sonnet 5.5 · 速度均衡', ctx: 1000000, out: 16384 },
+      { id: 'anthropic/claude-haiku-5-5', label: 'Claude Haiku 5.5 · 极速低价', ctx: 1000000, out: 16384 },
+    ],
     ref: 'anthropic-key',
-    note: 'Claude 系列；端点不带 /v1，由适配器补全。',
+    note: 'Claude 5.5 系列；端点不带 /v1，由适配器补全。',
   },
   {
     id: 'dashscope',
@@ -32,7 +53,12 @@ const PROVIDERS = [
     glyph: '通',
     tint: 'accent',
     base: 'https://dashscope.aliyuncs.com/compatible-mode/v1',
-    models: ['openai/qwen-plus', 'openai/qwen-max', 'openai/qwen-turbo', 'openai/qwen3-max'],
+    models: [
+      { id: 'openai/qwen4-max', label: 'Qwen4-Max · 复杂推理旗舰（推荐）', ctx: 262144, out: 16384 },
+      { id: 'openai/qwen3.7-plus', label: 'Qwen3.7-Plus · 性能均衡', ctx: 1000000, out: 16384 },
+      { id: 'openai/qwen3.8-flash', label: 'Qwen3.8-Flash · 快速低价', ctx: 1000000, out: 16384 },
+      { id: 'openai/qwen3-max', label: 'Qwen3-Max · 上一代旗舰', ctx: 262144, out: 16384 },
+    ],
     ref: 'dashscope-key',
     note: 'OpenAI 兼容模式，模型前缀用 openai/。',
   },
@@ -42,9 +68,12 @@ const PROVIDERS = [
     glyph: 'D',
     tint: 'accent2',
     base: 'https://api.deepseek.com/v1',
-    models: ['deepseek/deepseek-chat', 'deepseek/deepseek-reasoner'],
+    models: [
+      { id: 'deepseek/deepseek-flash', label: 'DeepSeek V4.1 Flash · 通用+思考（推荐）', ctx: 1000000, out: 16384 },
+      { id: 'deepseek/deepseek-v4-pro', label: 'DeepSeek V4 Pro · 深度推理', ctx: 1000000, out: 16384 },
+    ],
     ref: 'deepseek-key',
-    note: 'deepseek-chat 通用；reasoner 带思考链。',
+    note: 'flash 支持思考/非思考切换；chat/reasoner 旧名已换代。',
   },
   {
     id: 'moonshot',
@@ -52,9 +81,13 @@ const PROVIDERS = [
     glyph: 'K',
     tint: 'accent',
     base: 'https://api.moonshot.cn/v1',
-    models: ['openai/moonshot-v1-8k', 'openai/moonshot-v1-32k', 'openai/kimi-k2-0905-preview'],
+    models: [
+      { id: 'openai/kimi-k3.1-pro', label: 'Kimi K3.1 Pro · 最强旗舰（推荐）', ctx: 1000000, out: 16384 },
+      { id: 'openai/kimi-k3.1-pro-highspeed', label: 'Kimi K3.1 Pro 高速版 · 2-3 倍速', ctx: 1000000, out: 16384 },
+      { id: 'openai/kimi-k3', label: 'Kimi K3 · 上一代开源旗舰', ctx: 1000000, out: 8192 },
+    ],
     ref: 'moonshot-key',
-    note: 'OpenAI 兼容；长上下文型号注意容量声明。',
+    note: 'K3 系原生视觉+1M 上下文；moonshot-v1/k2 已下线。',
   },
   {
     id: 'zhipu',
@@ -62,9 +95,13 @@ const PROVIDERS = [
     glyph: '智',
     tint: 'accent2',
     base: 'https://open.bigmodel.cn/api/paas/v4',
-    models: ['openai/glm-4-plus', 'openai/glm-4-air', 'openai/glm-4-flash'],
+    models: [
+      { id: 'openai/glm-5.3', label: 'GLM-5.3 · 编程旗舰（推荐）', ctx: 1000000, out: 16384 },
+      { id: 'openai/glm-5.3-flash', label: 'GLM-5.3-Flash · 多模态低价', ctx: 1000000, out: 16384 },
+      { id: 'openai/glm-5.3-flashx', label: 'GLM-5.3-FlashX · 200 tok/s 高速', ctx: 1000000, out: 16384 },
+    ],
     ref: 'zhipu-key',
-    note: 'OpenAI 兼容 v4 端点。',
+    note: 'GLM-5.3 系；glm-4 旧名服务端自动切换。',
   },
   {
     id: 'gemini',
@@ -72,9 +109,14 @@ const PROVIDERS = [
     glyph: 'G',
     tint: 'warn',
     base: 'https://generativelanguage.googleapis.com/v1beta',
-    models: ['gemini/gemini-2.5-pro', 'gemini/gemini-2.5-flash'],
+    models: [
+      { id: 'gemini/gemini-4-neon', label: 'Gemini 4 Neon · 编程/知识工作（推荐）', ctx: 1000000, out: 16384 },
+      { id: 'gemini/gemini-4-argon', label: 'Gemini 4 Argon · 高效前沿推理', ctx: 1000000, out: 16384 },
+      { id: 'gemini/gemini-4-hydrogen', label: 'Gemini 4 Hydrogen · 日常高速', ctx: 1000000, out: 16384 },
+      { id: 'gemini/gemini-3.8-flash', label: 'Gemini 3.8 Flash · 上一代主力', ctx: 1000000, out: 16384 },
+    ],
     ref: 'gemini-key',
-    note: '使用 gemini/ 前缀与 AI Studio Key。',
+    note: 'Gemini 4 系列 + AI Studio Key；2.5 系已弃用。',
   },
   {
     id: 'opencode-go',
@@ -83,15 +125,18 @@ const PROVIDERS = [
     tint: 'accent',
     base: 'https://opencode.ai/zen/go/v1',
     models: [
-      'openai/qwen3.8-flash',
-      'openai/qwen3.8-max',
-      'openai/deepseek-v4-flash',
-      'openai/glm-5.2',
-      'openai/kimi-k2.7-code',
-      'openai/minimax-m3',
+      { id: 'openai/qwen3.8-flash', label: 'Qwen3.8 Flash · 套餐高性价比（推荐）', ctx: 262144, out: 16384 },
+      { id: 'openai/kimi-k3.1-pro', label: 'Kimi K3.1 Pro · 套餐最强', ctx: 1000000, out: 16384 },
+      { id: 'openai/gemini-4-argon', label: 'Gemini 4 Argon · 前沿推理', ctx: 1000000, out: 16384 },
+      { id: 'openai/claude-haiku-5-5', label: 'Claude Haiku 5.5 · 极速', ctx: 1000000, out: 16384 },
+      { id: 'openai/gpt-6-luna', label: 'GPT-6 Luna · 高效', ctx: 400000, out: 16384 },
+      { id: 'openai/glm-5.3', label: 'GLM-5.3 · 编程旗舰', ctx: 1000000, out: 16384 },
+      { id: 'openai/glm-5.3-flash', label: 'GLM-5.3-Flash · 低价多模态', ctx: 1000000, out: 16384 },
+      { id: 'openai/deepseek-v4.1-flash', label: 'DeepSeek V4.1 Flash · 大额度', ctx: 1000000, out: 16384 },
+      { id: 'openai/qwen3.8-max', label: 'Qwen3.8 Max · 旧配置兼容', ctx: 262144, out: 16384 },
     ],
     ref: 'opencode-go',
-    note: 'OpenAI 兼容；适配器自动附加 x-opencode-session 会话头。',
+    note: 'Go 订阅套餐；适配器自动附加会话头。',
   },
   {
     id: 'custom',
@@ -101,7 +146,7 @@ const PROVIDERS = [
     base: '',
     models: [],
     ref: 'custom-key',
-    note: '任意 OpenAI 兼容网关、本地推理或代理；自行填写端点与模型前缀。',
+    note: '任意 OpenAI 兼容网关、本地推理或代理。',
   },
 ];
 
@@ -130,6 +175,24 @@ export function mountModels({ api, wrap, getAgent, getGeneration }) {
     const node = $('mo-status');
     node.textContent = text;
     node.dataset.state = state;
+  }
+  // 点击反馈：请求期间按钮禁用+转圈+文案变化，杜绝「点了没反应」（所有者反馈）。
+  function busy(button, label) {
+    const icon = button.querySelector('.material-icons');
+    const saved = { html: button.innerHTML, disabled: button.disabled };
+    button.disabled = true;
+    button.classList.add('is-busy');
+    button.replaceChildren();
+    const spin = document.createElement('span');
+    spin.className = 'material-icons spin';
+    spin.textContent = 'progress_activity';
+    button.append(spin, document.createTextNode(label));
+    return () => {
+      button.classList.remove('is-busy');
+      button.innerHTML = saved.html;
+      button.disabled = saved.disabled;
+      void icon;
+    };
   }
   function hero(text, state) {
     $('mo-hero-text').textContent = text;
@@ -179,21 +242,45 @@ export function mountModels({ api, wrap, getAgent, getGeneration }) {
       card.setAttribute('aria-checked', String(card.dataset.provider === p.id));
     $('mo-base-url').value = p.base;
     $('mo-cred-ref').value = p.ref;
-    $('mo-model').value = p.models[0] || '';
+    // 简单路径：有预设清单的供应商用下拉直接选模型；自定义端点回退手填。
+    const picker = $('mo-model-pick');
+    const manual = $('mo-model');
+    const hasList = p.models.length > 0;
+    picker.hidden = !hasList;
+    manual.hidden = hasList;
+    if (hasList) {
+      picker.replaceChildren(
+        ...p.models.map((m) => {
+          const option = document.createElement('option');
+          option.value = m.id;
+          option.textContent = m.label;
+          return option;
+        }),
+      );
+      picker.value = p.models[0].id;
+      manual.value = p.models[0].id;
+      applyModelDefaults(p.models[0]);
+    } else {
+      manual.value = '';
+    }
     $('mo-base-hint').textContent = p.base
       ? `${p.name} 默认端点，可改为代理或兼容网关。`
       : '自定义端点：填写完整 base_url（含 /v1 等路径）。';
-    const list = $('mo-model-suggestions');
-    list.replaceChildren(
-      ...p.models.map((m) => {
-        const option = document.createElement('option');
-        option.value = m;
-        return option;
-      }),
-    );
     if (!keepKey) $('mo-api-key').value = '';
+    // 自定义端点必须填 base/ref：自动展开高级区；预设供应商保持收起。
+    const advanced = document.querySelector('#models .mo-advanced');
+    if (advanced) advanced.open = !hasList;
     steps(2);
-    setStatus(`已选择 ${p.name}，填入 API Key 后保存。`, 'idle');
+    setStatus(`已选择 ${p.name}，${hasList ? '选好模型、' : ''}填入 API Key 后保存。`, 'idle');
+  }
+
+  // 选模型自动带容量建议：普通用户不再面对 token 数字；高级区仍可改。
+  function applyModelDefaults(m) {
+    if (!m) return;
+    $('mo-context').value = m.ctx;
+    $('mo-output').value = m.out;
+    $('mo-summary').value = 4096;
+    $('mo-margin').value = 2048;
   }
 
   function parseHeaders(text) {
@@ -209,6 +296,9 @@ export function mountModels({ api, wrap, getAgent, getGeneration }) {
   }
 
   function readForm() {
+    // 下拉可见时以选择值为准；自定义供应商用手填输入。
+    const picker = $('mo-model-pick');
+    if (!picker.hidden && picker.value) $('mo-model').value = picker.value;
     const value = {
       model: $('mo-model').value.trim(),
       base_url: $('mo-base-url').value.trim(),
@@ -350,11 +440,28 @@ export function mountModels({ api, wrap, getAgent, getGeneration }) {
     glyph.className = 'material-icons';
     glyph.textContent = icon;
     button.append(glyph, document.createTextNode(label));
-    button.addEventListener('click', wrap(onClick));
+    button.addEventListener(
+      'click',
+      wrap(async () => {
+        // 即时反馈：禁用+转圈；操作完成后 load() 重绘列表自然恢复。
+        button.disabled = true;
+        glyph.classList.add('spin');
+        glyph.textContent = 'progress_activity';
+        try {
+          await onClick();
+        } finally {
+          if (button.isConnected) {
+            button.disabled = false;
+            glyph.classList.remove('spin');
+            glyph.textContent = icon;
+          }
+        }
+      }),
+    );
     return button;
   }
 
-  async function load() {
+  async function load({ quiet = false } = {}) {
     // 只按「空间 + 连接代次」守卫：并发刷新（导航与保存后各一次）不应互相取消，
     // 否则后一次 epoch 自增会让前一次在渲染前 return，列表永远空白。
     const scope = { agent: getAgent(), generation: getGeneration() };
@@ -383,12 +490,31 @@ export function mountModels({ api, wrap, getAgent, getGeneration }) {
       if (match) {
         selectProvider(match, { keepKey: true });
         $('mo-model').value = def.value.model;
+        const picker = $('mo-model-pick');
+        if (!picker.hidden) {
+          // 已有配置可能用清单外型号：追加兼容选项，不覆盖已保存容量。
+          if (![...picker.options].some((o) => o.value === def.value.model))
+            picker.append(new Option(`${def.value.model}（当前配置）`, def.value.model));
+          picker.value = def.value.model;
+        }
         $('mo-base-url').value = def.value.base_url;
         $('mo-cred-ref').value = def.value.credential_ref;
+        for (const [id, key] of [
+          ['mo-context', 'context_tokens'],
+          ['mo-output', 'output_tokens'],
+          ['mo-summary', 'summary_tokens'],
+          ['mo-margin', 'margin_tokens'],
+        ])
+          if (def.value[key] != null) $(id).value = def.value[key];
         $('mo-headers').value = Object.entries(def.value.extra_headers || {})
           .map(([k, v]) => `${k}: ${v}`)
           .join('\n');
-        setStatus('已有默认模型。如需更换密钥，填入新 Key 后保存即可覆盖。', 'ok');
+        // 已保存自定义头的配置：展开高级区让头可见可编辑，不藏在收起的折叠里。
+        if ($('mo-headers').value) {
+          const advanced = document.querySelector('#models .mo-advanced');
+          if (advanced) advanced.open = true;
+        }
+        if (!quiet) setStatus('已有默认模型。如需更换密钥，填入新 Key 后保存即可覆盖。', 'ok');
         steps(3);
       }
     }
@@ -466,29 +592,34 @@ export function mountModels({ api, wrap, getAgent, getGeneration }) {
     wrap(async () => {
       const t = stamp();
       const form = readForm();
-      const existing = await findConfigByRef(form.ref);
-      validate(form, { requireKey: !existing });
-      $('mo-fields').disabled = true;
-      setStatus('正在写入凭据库…', 'busy');
+      const restore = busy($('mo-save'), '保存中…');
       try {
+        const existing = await findConfigByRef(form.ref);
+        validate(form, { requireKey: !existing });
+        $('mo-fields').disabled = true;
+        setStatus('第 1/3 步：正在写入凭据库…', 'busy');
         if (form.key.trim()) await saveCredential(form.ref, form.key.trim());
         if (!current(t)) return;
-        setStatus('正在保存模型配置…', 'busy');
+        setStatus('第 2/3 步：正在保存模型配置…', 'busy');
         const saved = await saveConfig(form, existing);
         if (!current(t)) return;
         $('mo-api-key').value = '';
         if ($('mo-set-default').checked) {
-          setStatus('正在设为默认模型…', 'busy');
+          setStatus('第 3/3 步：正在设为默认模型…', 'busy');
           await setDefault(saved.id);
           if (!current(t)) return;
         }
         steps(3);
         setStatus(
-          `已保存并启用「${saved.name}」${$('mo-set-default').checked ? '，已设为默认' : ''}。可点「测试连接」验证。`,
+          `✓ 已保存并启用「${saved.name}」${$('mo-set-default').checked ? '，已设为默认' : ''}。可点「测试连接」验证。`,
           'ok',
         );
-        await load();
+        await load({ quiet: true });
+      } catch (e) {
+        if (current(t)) setStatus(`保存失败：${e.message}`, 'err');
+        throw e;
       } finally {
+        restore();
         if (current(t)) $('mo-fields').disabled = false;
       }
     }),
@@ -497,11 +628,16 @@ export function mountModels({ api, wrap, getAgent, getGeneration }) {
   $('mo-test').addEventListener(
     'click',
     wrap(async () => {
-      const form = readForm();
-      validate(form, { requireKey: false });
-      const existing = await findConfigByRef(form.ref);
-      if (!existing) throw new Error('请先保存配置，再测试连接');
-      await testRow(existing);
+      const restore = busy($('mo-test'), '测试中…');
+      try {
+        const form = readForm();
+        validate(form, { requireKey: false });
+        const existing = await findConfigByRef(form.ref);
+        if (!existing) throw new Error('请先保存配置，再测试连接');
+        await testRow(existing);
+      } finally {
+        restore();
+      }
     }),
   );
 
@@ -519,6 +655,12 @@ export function mountModels({ api, wrap, getAgent, getGeneration }) {
     input.type = show ? 'text' : 'password';
     $('mo-key-toggle').setAttribute('aria-label', show ? '隐藏密钥' : '显示密钥');
     $('mo-key-toggle').querySelector('.material-icons').textContent = show ? 'visibility_off' : 'visibility';
+  });
+  $('mo-model-pick').addEventListener('change', () => {
+    $('mo-model').value = $('mo-model-pick').value;
+    const m = provider.models.find((x) => x.id === $('mo-model-pick').value);
+    applyModelDefaults(m);
+    steps($('mo-api-key').value ? 3 : 2);
   });
   for (const id of ['mo-model', 'mo-api-key', 'mo-base-url', 'mo-cred-ref'])
     $(id).addEventListener('input', () => steps($('mo-api-key').value ? 3 : 2));
