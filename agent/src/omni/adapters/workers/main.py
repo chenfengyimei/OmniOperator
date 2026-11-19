@@ -24,7 +24,9 @@ from ...domain.files_search import (
     count_matches,
     match_lines,
     match_name,
+    match_path_glob,
     normalize_context,
+    normalize_file_glob,
     normalize_offset,
     normalize_order,
     normalize_output_mode,
@@ -175,6 +177,7 @@ class Worker:
             context_lines = normalize_context(args.get("context"))
             offset = normalize_offset(args.get("offset"))
             order = normalize_order(args.get("order"))
+            file_glob = normalize_file_glob(args.get("file_glob"))
             collect_all = order == "modified"
             cap = offset + 50
             base = Path(context["workspace"]).resolve()
@@ -214,6 +217,8 @@ class Worker:
                             if not collect_all and len(results) >= cap:
                                 truncated = True
                                 break
+                        continue
+                    if file_glob is not None and not match_path_glob(Path(relative).as_posix(), file_glob):
                         continue
                     if info.st_size > 256 * 1024:
                         continue

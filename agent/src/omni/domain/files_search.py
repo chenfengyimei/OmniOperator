@@ -59,6 +59,23 @@ def normalize_order(value: object) -> str:
     return value
 
 
+def normalize_file_glob(value: object) -> str | None:
+    """Optional bounded include glob for content search (rg --glob); None disables the filter."""
+    if value is None:
+        return None
+    if not isinstance(value, str):
+        raise ValueError("Search file_glob must be a string")
+    pattern = value.strip()
+    if not 1 <= len(pattern) <= SEARCH_QUERY_CHARS or any(ord(c) < 32 for c in pattern):
+        raise ValueError("Search file_glob must be 1-200 characters without control bytes")
+    return pattern
+
+
+def match_path_glob(relative: str, pattern: str) -> bool:
+    """Case-sensitive glob against the workspace-relative POSIX path (rg --glob include semantics, linear time)."""
+    return fnmatch.fnmatchcase(relative, pattern)
+
+
 def match_lines(text: str, query: str, context: int = 0) -> list[dict[str, object]]:
     """Case-insensitive substring matches with 1-based line numbers and bounded snippets.
 
