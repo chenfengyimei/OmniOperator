@@ -3138,7 +3138,9 @@ body[data-ui-page="workbench-v2"] .workbench-side {
 }
 body[data-ui-page="workbench-v2"] .workbench-side .session-panel {
   flex: 1 1 auto !important;
-  min-height: 150px;
+  /* 150px 硬下限会在矮视口把实例面板压缩致内容溢出遮挡；改可收缩下限，
+     内部列表自带滚动，宽屏仍撑满剩余空间。 */
+  min-height: min(150px, 18vh);
 }
 body[data-ui-page="workbench-v2"] .service-strip,
 body[data-ui-page="workbench-v2"] .context-panel {

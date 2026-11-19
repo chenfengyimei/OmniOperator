@@ -1,7 +1,7 @@
 {
   "batch": "v2-ui-connection-stability-v128",
   "recorded_at": "2026-11-15",
-  "resource_version_final": "20261119v162",
+  "resource_version_final": "20261119v163",
   "v1_alignment": {
     "summary": "用户提供 V1 正式工作台截图后，直接精读 web/ui/workbench.css 的 V1 实现并逐项移植，使 V2 结构与 V1 一致（而非自创风格）。",
     "ported_from_v1": [
@@ -1382,6 +1382,20 @@
       "专项": "115 passed(契约/事件流/内核/恢复/完整性90+保留HTTP/UI/流前端/守卫25)",
       "截图": "live-chain-running.png/live-chain-tool.png/live-chain-final.png",
       "版本": "V2 v162"
+    }
+  },
+  "side_panel_overlap_fix": {
+    "问题": "实例面板被左栏flex压缩(1440压到72px/内容需169px,390压到24px),overflow:hidden下提示/Agent/按钮溢出叠到会话卡(所有者截图取证)",
+    "根因": "会话面板min-height:150px!important硬下限抢占空间,实例面板默认可收缩",
+    "交付": [
+      "实例面板flex:0 0 auto按内容保持完整高度",
+      "会话面板硬下限改min-height:min(150px,18vh)可收缩,内部列表自滚,宽屏仍撑满"
+    ],
+    "验证": {
+      "实测": "4视口(1440x950/1024x800/390x844/390x600)全过:面板171px完整/子元素无溢出/与会话卡间隔11px/无横向溢出",
+      "专项": "36 passed(令牌/导航/历史/守卫)",
+      "截图": "overlap-fixed-1440.png/overlap-fixed-390.png",
+      "版本": "V2 v163"
     }
   }
 }

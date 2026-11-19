@@ -524,6 +524,9 @@ body[data-ui-page="workbench-v2"] .instance-panel {
   flex-direction: column;
   gap: 8px;
   padding: 10px 12px;
+  /* 左栏空间不足时实例面板曾被压到 72px（内容需 169px），提示/Agent/按钮
+     溢出面板叠到会话卡上（所有者截图取证）。实例面板按内容保持完整高度。 */
+  flex: 0 0 auto;
 }
 body[data-ui-page="workbench-v2"] .instance-panel #connect.panel {
   padding: 0;
