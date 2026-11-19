@@ -301,6 +301,45 @@ def parse_danmaku(xml: str) -> list[dict[str, object]]:
     return items
 
 
+FEED_MAX_ROWS = 50
+
+
+def feed_rows(data: Mapping[str, object], limit: int) -> dict[str, object]:
+    """Bounded popular/ranking video rows from data.list (nested stat/owner); absent list = empty."""
+    raw = data.get("list")
+    if raw is None:
+        rows: list[object] = []
+    elif isinstance(raw, list):
+        rows = cast(list[object], raw)
+    else:
+        raise BusinessError("bilibili_response_invalid", "Feed list changed format", status=502)
+    if len(rows) > FEED_MAX_ROWS:
+        raise BusinessError("bilibili_response_invalid", "Feed list changed format", status=502)
+    items: list[dict[str, object]] = []
+    for row in rows[:limit]:
+        if not isinstance(row, dict):
+            raise BusinessError("bilibili_response_invalid", "Feed records changed format", status=502)
+        entry = cast(dict[str, object], row)
+        bvid = entry.get("bvid")
+        if not isinstance(bvid, str) or not re.fullmatch(r"BV[0-9A-Za-z]{10}", bvid):
+            raise BusinessError("bilibili_response_invalid", "Feed records changed format", status=502)
+        raw_stat = entry.get("stat")
+        stat: dict[str, object] = cast(dict[str, object], raw_stat) if isinstance(raw_stat, dict) else {}
+        raw_owner = entry.get("owner")
+        owner: dict[str, object] = cast(dict[str, object], raw_owner) if isinstance(raw_owner, dict) else {}
+        items.append(
+            {
+                "bvid": bvid,
+                "title": search_text(entry.get("title"), 300),
+                "author": search_text(owner.get("name"), 100),
+                "play": stat.get("view") if type(stat.get("view")) is int else None,
+                "danmaku": stat.get("danmaku") if type(stat.get("danmaku")) is int else None,
+                "duration_s": entry.get("duration") if type(entry.get("duration")) is int else None,
+            }
+        )
+    return {"items": items, "has_more": len(rows) >= limit}
+
+
 class Form(BaseModel):
     model_config = ConfigDict(extra="forbid", strict=True)
 

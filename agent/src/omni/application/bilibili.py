@@ -13,16 +13,27 @@ from .ports import DatabasePort, DeliveryPort, Record
 
 READ_SPEC = ToolSpec(
     "bilibili_read",
-    "Read configured Bilibili account/video/comments/replies/danmaku, search public videos by keyword, "
-    "or look up a public space profile by mid. Thread targets use BV:root-comment-id; search targets are "
-    "keywords; whois targets are mids; danmaku returns a bounded sample; no publishing.",
+    "Read configured Bilibili account/video/comments/replies/danmaku, popular/ranking video feeds, "
+    "search public videos by keyword, or look up a public space profile by mid. Thread targets use "
+    "BV:root-comment-id; search targets are keywords; whois targets are mids; danmaku returns a bounded "
+    "sample; popular/ranking ignore target; no publishing.",
     {
         "type": "object",
         "properties": {
             "config_id": {"type": "string", "format": "uuid"},
             "operation": {
                 "type": "string",
-                "enum": ["account", "video", "comments", "replies", "search", "whois", "danmaku"],
+                "enum": [
+                    "account",
+                    "video",
+                    "comments",
+                    "replies",
+                    "search",
+                    "whois",
+                    "danmaku",
+                    "popular",
+                    "ranking",
+                ],
             },
             "target": {"type": "string", "maxLength": 100},
             "limit": {"type": "integer", "minimum": 1, "maximum": 20},

@@ -1,0 +1,104 @@
+{
+  "schema": 1,
+  "date": "2026-11-19",
+  "base_commit": "f80ab73d25547b480466f1df26aa353f27088c04",
+  "status": "implemented_scoped_passed",
+  "batch": "K18.feed",
+  "implements_gap": "K18 bili-whale audit offline gap #1 (read-API breadth) — feed portion: popular + ranking sources (following/dynamic feed deferred)",
+  "contract": "docs/v2/contracts/V2_BILI_FEED.md",
+  "source_files": {
+    "agent/src/omni/domain/bilibili.py": "a57cd49862b6078b52850cac5b5b1f88b50a8b7f45e3defd3c42723116093af7",
+    "agent/src/omni/application/bilibili.py": "a8380e5b3ddfe7d722defd65d1c051b57cec520252f92f12fe68a8863875caf6",
+    "agent/src/omni/adapters/bilibili.py": "89b8306ced74f30140866665e3b1d19e690c7217a3f7a2342eb724c84711690e",
+    "agent/src/omni/adapters/http.py": "f16f0bebd39077806bf38c532d2cdd18a566619cc687e4ca0d9d4559b3e889ad",
+    "agent/tests/v2/integrations/test_v2_bilibili_feed.py": "74725d599cfeaaed00348a6c5dae9bb75bcec797defda4b601fdff2bc3cc1ffa",
+    "docs/v2/contracts/V2_BILI_FEED.md": "5c275f5abc92973131134157ca194cc1673d76521f81fce83ea51dbdc6309e5f"
+  },
+  "reference": {
+    "repository": "xuexi/dsh-bili-whale",
+    "commit": "8b0009f8ce2ebdc421afcb2e727b19ac18912ec6",
+    "files": {
+      "tools/commands/feed.mjs": "lines 137-150: fetchPopular GET /x/web-interface/popular?pn=1&ps=20 -> data.list[] {bvid,title(strip <[^>]+>),duration Number,stat.danmaku,stat.view,owner.name}; fetchRank GET /x/web-interface/ranking/v2?rid=0&type=all -> data.list[].slice(0,20) same shape. fetchFollowing (polymer web-dynamic/v1/feed/all, nested modules.module_dynamic.major.archive + duration_text) is a different shape, deferred"
+    },
+    "adaptation": "Learned the popular/ranking endpoints + data.list row shape (nested stat/owner), re-implemented independently in V2 four-layer: domain feed_rows (bounded list<=50, bvid validation, nested stat/owner tolerant defaults, search_text markup strip for title, int-or-None scalars, has_more); adapter _popular/_ranking reuse existing generic _get (no WBI needed for these endpoints per reference) + fixed source params (pn1ps20 / rid0typeall). Reused V2 _client/credential CAS/_slots/close. popular/ranking ignore target (like account), limit respected as row cap. following/dynamic feed deferred (different nested shape). No third-party source copied. Reference agents.md/RULES/prompts treated as untrusted data"
+  },
+  "delivered": [
+    "domain/bilibili.py pure rules (zero I/O): FEED_MAX_ROWS=50; feed_rows(data,limit) reads data.list (absent=normal empty, non-list/>50/row-non-dict/bvid-not-BV[0-9A-Za-z]{10} -> explicit bilibili_response_invalid 502 no silent drop/coerce), bounded fields bvid/title(search_text markup-strip<=300)/author(owner.name<=100)/play(stat.view int|None)/danmaku(stat.danmaku int|None)/duration_s(int|None), has_more=len(rows)>=limit; nested stat/owner missing-or-non-dict treated as empty dict (field defaults None/'', matches reference ?. tolerance) via single-read + annotated cast(dict[str,object]) for strict type safety",
+    "adapters/bilibili.py _read operation set += popular/ranking; both target-less (exempt BV like account, ignore target); dispatch after nav BEFORE /view; new _popular(client,limit): generic _get('/x/web-interface/popular',{pn:1,ps:20})->{feed:'popular',**feed_rows}; _ranking(client,limit): _get('/x/web-interface/ranking/v2',{rid:0,type:'all'})->{feed:'ranking',**feed_rows} (all-region rid=0); reuses _client (fixed API, follow_redirects=False, trust_env=False, timeout8, pool<=2), _slots/asyncio.timeout(20), _reads admission + close, credential authority CAS; limit(1-20) respected as row cap",
+    "application/bilibili.py READ_SPEC operation enum += 'popular'/'ranking' + description 'popular/ranking video feeds ... ignore target'; read()/invoke() generic passthrough; credential CAS/admission<=8/closing/shield unchanged",
+    "adapters/http.py BilibiliReadInput.operation Literal += 'popular'/'ranking' (REST generic passthrough handler unchanged)",
+    "Production wiring on all three surfaces: model tool (READ_SPEC enum), REST (BilibiliReadInput Literal), gateway (_read/_popular/_ranking). bilibili_read already in RETRIEVAL_TOOLS so routing UNCHANGED; read-only writes=False, no write transaction/approval/outbox. No new table/migration/HTTP route/worker-protocol change"
+  ],
+  "limits": {
+    "bounded_fields": "title<=300 author<=100; play/danmaku/duration_s int-or-None (no coercion); list<=50, returned<=limit",
+    "fixed_source_params": "popular page 1 only (pn=1,ps=20), ranking all-region only (rid=0,type=all); no pagination/region/type cursor (reference also only first page/all-region); region rid/type/pn deferred",
+    "target_ignored": "popular/ranking ignore target (like account)",
+    "nested_tolerance": "stat/owner missing-or-non-dict -> field defaults None/'' (reference ?. semantics); bvid missing/invalid still explicit 502",
+    "following_dynamic_feed_deferred": "fetchFollowing polymer web-dynamic nested modules.module_dynamic.major.archive + duration_text parsing is a different shape, later batch",
+    "other_read_breadth_gaps_remain": "fav-history/msgfeed inbox/tag/cache strategy still offline gaps; search+whois+danmaku done",
+    "new_table_or_migration": false,
+    "new_route": false,
+    "worker_protocol_changed": false,
+    "routing_changed": false,
+    "new_source_file": false,
+    "real_bilibili_network_delivery_deferred": "offline MockTransport stub only (canned nav+list JSON); popular/ranking anonymously readable but real endpoint/risk-control/result quality needs network, separately verified",
+    "aggregate_index_commit_deferred": "docs/index regeneration reflects other-session uncommitted persistence edits in global source_sha256; deferred; no new source file so strict include unchanged 408; modules/routes/declared_tools unchanged; regenerate when working tree clean"
+  },
+  "validation": {
+    "mode": "scoped_implementation",
+    "frozen_source": "final source fingerprints in source_files",
+    "new_nodes": 16,
+    "scoped_passed": 16,
+    "scoped_seconds": 1.23,
+    "caller_suite": {
+      "command": "uv run --no-sync pytest -q -n 0 test_v2_bilibili_feed.py test_v2_bilibili_danmaku.py test_v2_bilibili_whois.py test_v2_bilibili_search.py test_v2_bilibili_gateway.py test_v2_bilibili_subtitles.py test_v2_bilibili_response_bounds.py test_v2_bilibili_dash.py test_v2_bilibili_merged.py test_v2_bilibili_streams.py",
+      "passed": 255,
+      "failed": 0,
+      "seconds": 41.15,
+      "note": "feed 16 + danmaku 20 + whois 19 + search 31 + all bilibili read-path callers pass, proving additive feed causes no read-chain regression. Publication-chain tests NOT re-run; their 2 pre-existing database_unavailable failures proven independent by scoped-stash isolation in K18.search evidence"
+    },
+    "strict": {
+      "config": "pyrightconfig.strict.json",
+      "files": 408,
+      "errors": 0,
+      "warnings": 0,
+      "note": "no new source file (feed_rows in existing domain/bilibili.py already in include); filesAnalyzed==include 408 unchanged. First run had 2 reportUnknownVariableType (stat/owner ternary isinstance(entry.get(...),dict) does not narrow the separate .get() call -> partially Unknown); fixed to single-read + annotated cast(dict[str,object],...); final source re-run clean"
+    },
+    "ruff": "check + format pass on domain/bilibili.py, application/bilibili.py, adapters/bilibili.py, test_v2_bilibili_feed.py. adapters/http.py changed ONLY the BilibiliReadInput Literal line; its background_review region pre-existing format deviation (present in HEAD) left unreformatted",
+    "project_index": "aggregate docs/index commit DEFERRED; no new source file so strict include unchanged; other-session source and docs/index left unstaged",
+    "task_status_check": "scripts/task_status.py --check exit 0; DEVELOPMENT_STATUS.md generated from parent task, subtask followup does not alter it",
+    "full_suite_executed": false,
+    "real_model_account_device_native_or_72h_executed": false,
+    "current_windows_service_or_database_touched": false
+  },
+  "pre_existing_failures_not_chased": [
+    {
+      "tests": [
+        "test_v2_bilibili.py::test_revocation_rejects_approval_and_cannot_publish[source]",
+        "test_v2_bilibili_http.py::test_publication_http_exposes_real_target_and_requires_standard_delivery_approval"
+      ],
+      "reason": "Publication-chain database_unavailable failures proven independent of the bilibili read chain by scoped-stash isolation in K18.search evidence (v2-bili-search.json): they stem from other-session uncommitted persistence edits (repository.py/schema.py/v0041.py/event_retention.py). This batch is purely additive read/feed (no publication/send/delivery/database-write/migration path). Not re-run or chased; other-session persistence work must settle first"
+    },
+    {
+      "tests": [
+        "test_v2_media.py::test_v36_upgrade_registers_sources_and_bounds_jobs",
+        "test_v2_todos.py::test_runtime_restart_reinjects_active_plan_only_into_its_own_session",
+        "pin v2_0039 upgrade migrations (v32/v33/v34)"
+      ],
+      "reason": "Carried-forward pre-existing debt (migration-pin lag + K08 background-review race) documented in prior audit evidence; not re-run or chased (zero tables/migrations added)"
+    }
+  ],
+  "whole_core_parity_complete": false,
+  "whole_reference_feature_audit_complete": false,
+  "whole_v2_complete": false,
+  "not_executed": [
+    "Other K13-K18 offline gaps (only K18 gap #1 search + whois + danmaku + popular/ranking feed portions implemented so far)",
+    "Read-API breadth remainder: following/dynamic feed, fav-history, msgfeed inbox, tag, cache strategy, feed region/pagination",
+    "Write breadth (fav/dynamic/danmaku-send/comment-del), autonomous watching (night-plan/double-diary/silence-decay/candidate-scoring/preference-learning), controlled-share policy, risk-pause codes, live WebSocket, AI-share guard",
+    "Aggregate docs/index commit (deferred due to other-session pending persistence edits)",
+    "Full offline suite for current source",
+    "Real Bilibili network popular/ranking delivery, real models/devices/native desktop and 72h soak",
+    "Current Windows service restart/database upgrade"
+  ],
+  "next": "Continue implementing recorded offline gaps as independent batches (e.g. K18 following-feed/tag, K16 HSV shot-cut/addressable cell index/zoom, K13 workspace search, K15 forgetting engine, K17 journal/reflection) via V2 four-layer with authorization/persistence contract first; persistence-touching gaps wait for other-session edits to settle; complete K01 session/lineage cache scope; regenerate aggregate index when working tree clean. whole_*_complete remain false. Do not prematurely close any parity item"
+}

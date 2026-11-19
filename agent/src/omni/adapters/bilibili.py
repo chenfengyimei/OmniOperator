@@ -15,7 +15,7 @@ from typing import Any, cast
 import httpx
 
 from ..application.ports import AsyncSecretPort, Record
-from ..domain.bilibili import ADAPTER, API, connection, search_keyword, search_rows, uid
+from ..domain.bilibili import ADAPTER, API, connection, feed_rows, search_keyword, search_rows, uid
 from ..domain.contracts import JSON, BusinessError, Effect, InvocationContext, Outcome
 from ..domain.delivery import DeliveryResult, OutboundMessage, text_fingerprint
 from .diagnostics import Redactor
@@ -417,6 +417,16 @@ class BilibiliGateway:
         rows = parse_danmaku(_danmaku_xml(bytes(body)))
         return {"bvid": bvid, "cid": cid, "items": rows, "count": len(rows), "sampled": True}
 
+    async def _popular(self, client: Any, limit: int) -> Payload:
+        """Popular video feed (page 1); bounded rows, no target."""
+        data = await self._get(client, "/x/web-interface/popular", {"pn": 1, "ps": 20})
+        return {"feed": "popular", **feed_rows(data, limit)}
+
+    async def _ranking(self, client: Any, limit: int) -> Payload:
+        """All-region ranking video feed (rid=0, type=all); bounded rows, no target."""
+        data = await self._get(client, "/x/web-interface/ranking/v2", {"rid": 0, "type": "all"})
+        return {"feed": "ranking", **feed_rows(data, limit)}
+
     async def read(self, configuration: Mapping[str, object], operation: str, target: str, limit: int = 10) -> Payload:
         return await self._read(configuration, operation, target, limit)
 
@@ -449,13 +459,25 @@ class BilibiliGateway:
             value = connection(cast(Payload, configuration))
             if (
                 operation
-                not in {"account", "video", "comments", "replies", "subtitle", "streams", "search", "whois", "danmaku"}
+                not in {
+                    "account",
+                    "video",
+                    "comments",
+                    "replies",
+                    "subtitle",
+                    "streams",
+                    "search",
+                    "whois",
+                    "danmaku",
+                    "popular",
+                    "ranking",
+                }
                 or type(limit) is not int
                 or not 1 <= limit <= 20
             ):
                 raise BusinessError(
                     "bilibili_read_invalid",
-                    "Choose account/video/comments/replies/subtitle/streams/search/whois/danmaku and a limit of 1–20",
+                    "Choose account/video/comments/replies/subtitle/streams/search/whois/danmaku/popular/ranking and a limit of 1–20",
                     status=422,
                 )
             root = ""
@@ -470,7 +492,7 @@ class BilibiliGateway:
                 keyword = search_keyword(target)
             elif operation == "whois":
                 mid = uid(target)
-            elif operation != "account" and not re.fullmatch(r"BV[0-9A-Za-z]{10}", target):
+            elif operation not in {"account", "popular", "ranking"} and not re.fullmatch(r"BV[0-9A-Za-z]{10}", target):
                 raise BusinessError("bilibili_read_invalid", "Read targets require an exact BV identifier", status=422)
             async with self._slots, asyncio.timeout(20):
                 cookies = await self._cookies(value)
@@ -486,6 +508,10 @@ class BilibiliGateway:
                         return await self._search(client, nav, keyword, limit)
                     if operation == "whois":
                         return await self._whois(client, nav, mid)
+                    if operation == "popular":
+                        return await self._popular(client, limit)
+                    if operation == "ranking":
+                        return await self._ranking(client, limit)
                     video = await self._get(client, "/x/web-interface/view", {"bvid": target})
                     if video.get("bvid") != target:
                         raise BusinessError("bilibili_source_changed", "Video identity changed")
