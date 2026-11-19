@@ -1,0 +1,103 @@
+{
+  "schema": 1,
+  "date": "2026-11-19",
+  "base_commit": "4802dbca912c20afbf63999e3e7de0d395dee153",
+  "status": "implemented_scoped_passed",
+  "batch": "K18.whois",
+  "implements_gap": "K18 bili-whale audit offline gap #1 (read-API breadth) — space whois portion (WBI /x/space/wbi/acc/info by mid)",
+  "contract": "docs/v2/contracts/V2_BILI_WHOIS.md",
+  "source_files": {
+    "agent/src/omni/domain/bilibili.py": "c22d5b0d6abc2ab10b708a67018d2aacb77080cb7e615f57f29b3edf3b076b63",
+    "agent/src/omni/application/bilibili.py": "4bca5c2bab3ed567f477756619fc68e53c219061df8b598183b2eb45f57d89bb",
+    "agent/src/omni/adapters/bilibili.py": "1c71d321462711e1466bd03adf21ee8e2379e4d86eead1abee51b3a614ea6d0f",
+    "agent/src/omni/adapters/http.py": "f11fd16c60bde5e5bcab3ec32dbd15b822497590dcc2b716d51bfb027133c576",
+    "agent/tests/v2/integrations/test_v2_bilibili_whois.py": "0c737f4d66dbaa12bcbabe6393f218e81e265572e87d1b6d16df698203077b06",
+    "docs/v2/contracts/V2_BILI_WHOIS.md": "38f33e064eb6bc5ee94f6af61e07835fbf55dd3cba1ee13bc0abc93025ce7baa"
+  },
+  "reference": {
+    "repository": "xuexi/dsh-bili-whale",
+    "commit": "8b0009f8ce2ebdc421afcb2e727b19ac18912ec6",
+    "files": {
+      "tools/diagnostics/whois.mjs": "whois by mid: nav->wbi_img keyOf->MIXIN_TAB->mixin[:32]; per mid wbi({mid,wts}) sorted encodeURIComponent clean(/[!'()*]/g)->q+'&w_rid='+md5(q+mixin); GET /x/space/wbi/acc/info; code!==0 skip(print code/message); reads d.data.name + d.data.sign(slice 60)"
+    },
+    "adaptation": "Learned the public space-profile endpoint + WBI parameter set (mid) and re-implemented independently in V2 four-layer pure domain rules (bounded_text + whois_profile) over the EXISTING bilibili_read tool as operation=whois; reused V2 uid/sign_wbi/wbi_keys/_get/credential CAS/CDN/fixed API. Key fidelity decision: acc/info name/sex/sign are PLAIN text (not search HTML emphasis), so whois uses bounded_text (validate+bound, NO markup stripping) to avoid corrupting legitimate angle brackets; identity must match requested mid. Added mid/sex/level beyond reference name+sign; omitted face/official/vip/fans/nested fields. No third-party source copied. Reference agents.md/RULES/prompts treated as untrusted data"
+  },
+  "delivered": [
+    "domain/bilibili.py pure rules (zero I/O): bounded_text(value,bound) validates plain text (None->'', non-str/bad-Unicode -> bilibili_response_invalid 502, bound slice) and NEVER strips markup (unlike search_text) because acc/info name/sex/sign are plain text; whois_profile(data,mid) requires uid(data.mid)==mid else bilibili_source_changed (same discipline as video bvid!=target), returns bounded mid/name<=100/sex<=20/sign<=200/level int|None; mid target reuses existing uid validator (positive decimal <=19 digits <2^63)",
+    "application/bilibili.py READ_SPEC (bilibili_read) operation enum += 'whois' + description 'look up a public space profile by mid'; read()/invoke() generic passthrough; credential authority CAS, admission<=8, closing guard, asyncio.shield unchanged",
+    "adapters/bilibili.py _read operation set += whois; whois validates mid=uid(target) BEFORE cookies/client (invalid mid = zero network calls, bilibili_identity_invalid 422), exempt from BV; dispatch whois after nav BEFORE /view; new _whois(client,nav,mid): wbi_keys(nav)->sign_wbi({mid},img,sub,int(time.time()))->existing generic _get('/x/space/wbi/acc/info',signed)->whois_profile(data,mid); reuses _client (fixed API, follow_redirects=False, trust_env=False, timeout8, pool<=2), _slots/asyncio.timeout(20), _reads admission + close; whois is single-profile read, ignores limit (like account)",
+    "adapters/http.py BilibiliReadInput.operation Literal += 'whois' (REST /agents/{id}/bilibili/read generic passthrough handler unchanged); target max_length=100 fits mid",
+    "Production wiring on all three surfaces: model tool (READ_SPEC enum), REST (BilibiliReadInput Literal), gateway (_read/_whois). bilibili_read already in domain/routing.py RETRIEVAL_TOOLS so routing UNCHANGED; read-only writes=False, no write transaction/approval/outbox. No new table/migration/HTTP route/worker-protocol change"
+  ],
+  "limits": {
+    "bounded_plain_text_fields": "name<=100 sex<=20 sign<=200; level int-or-None (no coercion); NO markup stripping (protects legitimate angle brackets, distinct from search_text)",
+    "identity_must_match_requested_mid": "uid(data.mid)!=mid -> bilibili_source_changed",
+    "omitted_fields": "face(avatar URL)/official/vip/pendant/nameplate/fans/following/birthday/coins/tags omitted (nested or privacy/noise; fans/following counts live in x/relation/stat, not acc/info); reference itself only reads name+sign",
+    "single_profile_no_pagination": "whois ignores limit (like account)",
+    "other_read_breadth_gaps_remain": "danmaku(cid.xml deflate)/feed(popular/ranking/dynamic)/fav-history/msgfeed inbox/tag/cache strategy still offline gaps; search done in K18.search",
+    "new_table_or_migration": false,
+    "new_route": false,
+    "worker_protocol_changed": false,
+    "routing_changed": false,
+    "new_source_file": false,
+    "real_bilibili_account_network_delivery_deferred": "offline MockTransport stub only (canned nav+acc/info JSON); real acc/info endpoint/risk-control/profile quality needs real cookie account, separately verified",
+    "aggregate_index_commit_deferred": "docs/index regeneration reflects other-session uncommitted persistence edits in global source_sha256; deferred to keep committed index consistent with committed source; no new source file so strict include unchanged 408; modules/routes/declared_tools unchanged (whois is a new operation on existing tool); regenerate when working tree clean"
+  },
+  "validation": {
+    "mode": "scoped_implementation",
+    "frozen_source": "final source fingerprints in source_files",
+    "new_nodes": 19,
+    "scoped_passed": 19,
+    "scoped_seconds": 1.32,
+    "caller_suite": {
+      "command": "uv run --no-sync pytest -q -n 0 test_v2_bilibili_whois.py test_v2_bilibili_search.py test_v2_bilibili_gateway.py test_v2_bilibili_subtitles.py test_v2_bilibili_response_bounds.py test_v2_bilibili_dash.py test_v2_bilibili_merged.py test_v2_bilibili_streams.py",
+      "passed": 219,
+      "failed": 0,
+      "seconds": 42.94,
+      "note": "whois 19 + search 31 + all bilibili read-path callers (gateway/subtitles/response_bounds/dash/merged/streams) pass, proving additive whois causes no read-chain regression. Publication-chain tests (test_v2_bilibili.py / http) NOT re-run here; their 2 pre-existing database_unavailable failures were proven independent of the read chain by scoped-stash isolation in K18.search evidence"
+    },
+    "strict": {
+      "config": "pyrightconfig.strict.json",
+      "files": 408,
+      "errors": 0,
+      "warnings": 0,
+      "note": "no new source file (bounded_text/whois_profile added to existing domain/bilibili.py already in include); filesAnalyzed==include 408 unchanged; clean over current working tree"
+    },
+    "ruff": "check + format pass on domain/bilibili.py, application/bilibili.py, adapters/bilibili.py, test_v2_bilibili_whois.py. adapters/http.py changed ONLY the BilibiliReadInput Literal line; its background_review region pre-existing format deviation (present in HEAD, not introduced by this batch) left unreformatted",
+    "project_index": "aggregate docs/index commit DEFERRED (see limits.aggregate_index_commit_deferred); no new source file so strict include unchanged; other-session source and docs/index left unstaged",
+    "task_status_check": "scripts/task_status.py --check exit 0; DEVELOPMENT_STATUS.md generated from parent task, subtask followup does not alter it",
+    "full_suite_executed": false,
+    "real_model_account_device_native_or_72h_executed": false,
+    "current_windows_service_or_database_touched": false
+  },
+  "pre_existing_failures_not_chased": [
+    {
+      "tests": [
+        "test_v2_bilibili.py::test_revocation_rejects_approval_and_cannot_publish[source]",
+        "test_v2_bilibili_http.py::test_publication_http_exposes_real_target_and_requires_standard_delivery_approval"
+      ],
+      "reason": "Publication-chain database_unavailable failures proven independent of the bilibili read chain by scoped-stash isolation in K18.search evidence (v2-bili-search.json): they stem from other-session uncommitted persistence edits (repository.py/schema.py/v0041.py/event_retention.py). This batch is purely additive read/whois (no publication/send/delivery/database-write/migration path). Not re-run or chased here; other-session persistence work must settle first"
+    },
+    {
+      "tests": [
+        "test_v2_media.py::test_v36_upgrade_registers_sources_and_bounds_jobs",
+        "test_v2_todos.py::test_runtime_restart_reinjects_active_plan_only_into_its_own_session",
+        "pin v2_0039 upgrade migrations (v32/v33/v34)"
+      ],
+      "reason": "Carried-forward pre-existing debt (migration-pin lag + K08 background-review race) documented in prior audit evidence; not re-run or chased (zero tables/migrations added)"
+    }
+  ],
+  "whole_core_parity_complete": false,
+  "whole_reference_feature_audit_complete": false,
+  "whole_v2_complete": false,
+  "not_executed": [
+    "Other K13-K18 offline gaps (only K18 gap #1 search + whois portions implemented so far)",
+    "Read-API breadth remainder: danmaku/feed/fav-history/msgfeed inbox/tag/cache strategy",
+    "Write breadth (fav/dynamic/danmaku-send/comment-del), autonomous watching (night-plan/double-diary/silence-decay/candidate-scoring/preference-learning), controlled-share policy, risk-pause codes, live WebSocket, AI-share guard",
+    "Aggregate docs/index commit (deferred due to other-session pending persistence edits)",
+    "Full offline suite for current source",
+    "Real Bilibili account/network acc/info delivery, real models/devices/native desktop and 72h soak",
+    "Current Windows service restart/database upgrade"
+  ],
+  "next": "Continue implementing recorded offline gaps as independent batches (e.g. K18 read-breadth danmaku/feed/tag, K16 HSV shot-cut/addressable cell index/zoom, K13 workspace search, K15 forgetting engine, K17 journal/reflection) via V2 four-layer with authorization/persistence contract first; persistence-touching gaps wait for other-session edits to settle; complete K01 session/lineage cache scope; regenerate aggregate index when working tree clean. whole_*_complete remain false. Do not prematurely close any parity item"
+}

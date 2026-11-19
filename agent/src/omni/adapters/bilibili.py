@@ -365,6 +365,14 @@ class BilibiliGateway:
         )
         return {"keyword": keyword, **search_rows(data, limit)}
 
+    async def _whois(self, client: Any, nav: Payload, mid: str) -> Payload:
+        """WBI-signed public space profile (acc/info) by mid."""
+        from ..domain.bilibili import sign_wbi, wbi_keys, whois_profile
+
+        img, sub = wbi_keys(nav)
+        data = await self._get(client, "/x/space/wbi/acc/info", sign_wbi({"mid": mid}, img, sub, int(time.time())))
+        return whois_profile(data, mid)
+
     async def read(self, configuration: Mapping[str, object], operation: str, target: str, limit: int = 10) -> Payload:
         return await self._read(configuration, operation, target, limit)
 
@@ -396,13 +404,13 @@ class BilibiliGateway:
         try:
             value = connection(cast(Payload, configuration))
             if (
-                operation not in {"account", "video", "comments", "replies", "subtitle", "streams", "search"}
+                operation not in {"account", "video", "comments", "replies", "subtitle", "streams", "search", "whois"}
                 or type(limit) is not int
                 or not 1 <= limit <= 20
             ):
                 raise BusinessError(
                     "bilibili_read_invalid",
-                    "Choose account/video/comments/replies/subtitle/streams/search and a limit of 1–20",
+                    "Choose account/video/comments/replies/subtitle/streams/search/whois and a limit of 1–20",
                     status=422,
                 )
             root = ""
@@ -412,8 +420,11 @@ class BilibiliGateway:
                     raise BusinessError("bilibili_read_invalid", "Thread reads require BV:root-comment-id", status=422)
                 root = uid(root)
             keyword = ""
+            mid = ""
             if operation == "search":
                 keyword = search_keyword(target)
+            elif operation == "whois":
+                mid = uid(target)
             elif operation != "account" and not re.fullmatch(r"BV[0-9A-Za-z]{10}", target):
                 raise BusinessError("bilibili_read_invalid", "Read targets require an exact BV identifier", status=422)
             async with self._slots, asyncio.timeout(20):
@@ -428,6 +439,8 @@ class BilibiliGateway:
                         }
                     if operation == "search":
                         return await self._search(client, nav, keyword, limit)
+                    if operation == "whois":
+                        return await self._whois(client, nav, mid)
                     video = await self._get(client, "/x/web-interface/view", {"bvid": target})
                     if video.get("bvid") != target:
                         raise BusinessError("bilibili_source_changed", "Video identity changed")

@@ -244,6 +244,32 @@ def search_rows(data: Mapping[str, object], limit: int) -> dict[str, object]:
     return {"items": items, "has_more": len(rows) >= limit}
 
 
+def bounded_text(value: object, bound: int) -> str:
+    """Validate and bound a plain-text field; unlike search_text it never strips markup."""
+    if value is None:
+        return ""
+    if not isinstance(value, str):
+        raise BusinessError("bilibili_response_invalid", "Bilibili text field changed format", status=502)
+    try:
+        value.encode("utf-8")
+    except UnicodeError as exc:
+        raise BusinessError("bilibili_response_invalid", "Bilibili text is not valid Unicode", status=502) from exc
+    return value[:bound]
+
+
+def whois_profile(data: Mapping[str, object], mid: str) -> dict[str, object]:
+    """Bounded public space profile from acc/info; identity must match the requested mid."""
+    if uid(data.get("mid")) != mid:
+        raise BusinessError("bilibili_source_changed", "Bilibili space identity changed")
+    return {
+        "mid": mid,
+        "name": bounded_text(data.get("name"), 100),
+        "sex": bounded_text(data.get("sex"), 20),
+        "sign": bounded_text(data.get("sign"), 200),
+        "level": data.get("level") if type(data.get("level")) is int else None,
+    }
+
+
 class Form(BaseModel):
     model_config = ConfigDict(extra="forbid", strict=True)
 

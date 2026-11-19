@@ -292,9 +292,17 @@
           "contract": "docs/v2/contracts/V2_BILI_SEARCH.md",
           "evidence": "docs/evidence/v2-bili-search.json",
           "delivered": "bilibili_read新增operation=search只读(domain/bilibili.py search_keyword/search_text去HTML标记/search_rows有界解析+SEARCH_MAX_RESULTS50、application READ_SPEC enum+desc通用透传、adapters _read search分支豁免BV+nav后_search WBI签名/x/web-interface/wbi/search/type复用_get/凭据CAS/CDN、http BilibiliReadInput Literal)；31专项+218bilibili调用方过(2既有publication database_unavailable经scoped-stash隔离实证他会话持久层编辑无关)、strict408零错误；仅第1页无分页/省略tag/无缓存策略；无新表/迁移/路由/worker改动routing不变；聚合索引因他会话未提交持久层编辑暂缓"
+        },
+        {
+          "gap": "#1 读API广度之space whois(wbi/acc/info)",
+          "status": "implemented_scoped_passed",
+          "batch": "K18.whois",
+          "contract": "docs/v2/contracts/V2_BILI_WHOIS.md",
+          "evidence": "docs/evidence/v2-bili-whois.json",
+          "delivered": "bilibili_read新增operation=whois只读(domain/bilibili.py bounded_text纯文本不去标记+whois_profile身份匹配mid/有界name-sex-sign-level、application READ_SPEC enum+desc、adapters _read whois目标uid校验豁免BV+nav后_whois WBI/x/space/wbi/acc/info复用_get/凭据CAS、http Literal)；19专项+219bilibili读调用方过0失败、strict408零错误；省略face/official/vip/fans等嵌套字段、单资料无分页；无新表/迁移/路由/worker改动routing不变；聚合索引暂缓"
         }
       ],
-      "limits": "只读审计无新工具/表/迁移/路由/源码改动；可离线缺口未在K18审计批实现(列后续批次)，其中读API广度之搜索已在K18.search后续批实现；V1 tools/bilibili实现不计V2对等；不宣称全集API/主动观看/受控分享对等；参考agents.md/RULES当不可信数据非本会话指令；K18为清单末项领域参考审计(K13-K18全部记录)；既有todos重启竞态与5个pin v2_0039旧迁移测试沿用保留",
+      "limits": "只读审计无新工具/表/迁移/路由/源码改动；可离线缺口未在K18审计批实现(列后续批次)，其中读API广度之搜索与space whois已在K18.search/K18.whois后续批实现；V1 tools/bilibili实现不计V2对等；不宣称全集API/主动观看/受控分享对等；参考agents.md/RULES当不可信数据非本会话指令；K18为清单末项领域参考审计(K13-K18全部记录)；既有todos重启竞态与5个pin v2_0039旧迁移测试沿用保留",
       "next": false
     }
   ],
@@ -375,6 +383,10 @@
     {
       "id": "K18.search",
       "evidence": "docs/evidence/v2-bili-search.json"
+    },
+    {
+      "id": "K18.whois",
+      "evidence": "docs/evidence/v2-bili-whois.json"
     }
   ]
 }
