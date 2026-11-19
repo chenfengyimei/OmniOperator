@@ -167,16 +167,26 @@
     {
       "id": "K12",
       "title": "显式模型故障恢复策略",
-      "status": "partial",
-      "remaining": "现有固定模型、超时/取消及unknown结算保持；补经过授权/预算约束的有界恢复，禁止擅换账号/模型和未知重试",
+      "status": "implemented_scoped_passed",
+      "acceptance": [
+        "空回复在同一授权模型上有界重试（默认3、昂贵降1），每次新预留再计费受日预算硬限",
+        "确定性空（≥2次同签名零输出）短路；unknown成本调用结算unknown绝不重放",
+        "禁止擅换账号/模型（无fallback链）；超时/取消/unknown结算与固定授权模型保持",
+        "域规则/ModelCalls重构兼容包装/invoke_recovering/engine主回合/composition与HTTP opt-in接线，默认OFF"
+      ],
       "reference": "hermes-agent/agent/conversation_loop.py; agent/empty_response_guard.py",
-      "next": true
+      "delivered": "domain/model_recovery.py纯规则DEFAULT_EMPTY_RETRY_BUDGET=3/REDUCED=1/COST_THRESHOLD_MICRO=250000、is_empty(同validate_reply空条件)、EmptyAttempt(model/provider/finish/usage_present/zero_output/cost_micro)、deterministic_empty(≥2同签名用量零输出)、should_retry_empty(unknown成本绝不重放/确定性停/成本感知预算/len<budget)；ModelCalls原invoke主体抽为_invoke_once(预留→准备→派发→结算→length/content_filter/output_limit终态检查保持，移出末尾validate_reply)，invoke薄包装=_invoke_once+非摘要validate_reply(既有调用方行为不变)，新增invoke_recovering循环_invoke_once每次新预留再计费受日预算约束、非空走validate_reply、空记录attempt并should_retry_empty False抛model_empty_reply终态；engine构造器model_recovery=False主回合not remote走invoke_recovering(grace/摘要不套)；open_instance/http_app透传model_recovery=False显式opt-in(不改KEYS schema)；每次重试重断言run/context/model授权与凭据权威承接取消/租约；无新表/迁移/事件种类",
+      "contract": "docs/v2/contracts/V2_MODEL_RECOVERY.md",
+      "evidence": "docs/evidence/v2-model-recovery.json",
+      "limits": "默认OFF(opt-in)由open_instance/http_app开关驱动未接Agent设置严格schema；恢复仅覆盖空回复，参考超时/网络瞬态重试/context_compressor_retry/turn_recovery自动恢复/auxiliary_fallback未对等；无模型/provider fallback链(禁擅换)；成本阈值用micro常量非USD Decimal、provider签名用base_url；无重试退避延迟与重试次数持久化审计行(体现为多条settled model_calls)；既有todos重启竞态与5个pin v2_0039旧迁移测试沿用保留不追",
+      "next": false
     },
     {
       "id": "K13",
       "title": "参考工具组、渠道和cron变体全集",
       "status": "audit_pending",
-      "remaining": "逐项核对Hermes工具组/高级浏览器/代码沙箱、渠道/供应商、定时任务技能绑定与任务依赖；已有files/shell/browser/MCP不重复实现"
+      "remaining": "逐项核对Hermes工具组/高级浏览器/代码沙箱、渠道/供应商、定时任务技能绑定与任务依赖；已有files/shell/browser/MCP不重复实现",
+      "next": true
     },
     {
       "id": "K14",
@@ -255,6 +265,10 @@
     {
       "id": "K11",
       "evidence": "docs/evidence/v2-verification-stop.json"
+    },
+    {
+      "id": "K12",
+      "evidence": "docs/evidence/v2-model-recovery.json"
     }
   ]
 }

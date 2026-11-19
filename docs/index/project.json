@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "e005703352aab2189b13f61295bb11cc95e9b91159036170ce018b994b2bb1f4",
+  "source_sha256": "f597f0e8f737fc0f73cc32fe3c5a03e94f3493dd3b1e4b7df42c3b92555ef5db",
   "modules": [
     {
       "id": "v2-domain",
@@ -53,6 +53,7 @@
         "agent/src/omni/domain/memory_organization.py",
         "agent/src/omni/domain/memory_semantics.py",
         "agent/src/omni/domain/metering.py",
+        "agent/src/omni/domain/model_recovery.py",
         "agent/src/omni/domain/model_reply.py",
         "agent/src/omni/domain/model_stream.py",
         "agent/src/omni/domain/objects.py",
@@ -86,7 +87,7 @@
         "agent/src/omni/domain/turn_prompt.py",
         "agent/src/omni/domain/verification_stop.py"
       ],
-      "lines": 11565,
+      "lines": 11641,
       "dependencies": []
     },
     {
@@ -155,7 +156,7 @@
         "agent/src/omni/application/terminals.py",
         "agent/src/omni/application/todos.py"
       ],
-      "lines": 13079,
+      "lines": 13131,
       "dependencies": [
         "v2-domain"
       ]
@@ -524,7 +525,7 @@
         "agent/src/omni/composition/service_runner.py",
         "agent/src/omni/composition/serving.py"
       ],
-      "lines": 3189,
+      "lines": 3193,
       "dependencies": [
         "v2-adapters",
         "v2-application",
@@ -49396,7 +49397,7 @@
       "path": "agent/src/omni/application/engine.py",
       "module": "v2-application",
       "python_module": "omni.application.engine",
-      "lines": 1035,
+      "lines": 1042,
       "imports": [
         "omni.application.background_review",
         "omni.application.clarify",
@@ -49456,7 +49457,8 @@
             "delegation_enabled",
             "background_review",
             "clarify",
-            "verify_on_stop"
+            "verify_on_stop",
+            "model_recovery"
           ],
           "annotations": {
             "database": "DatabasePort",
@@ -49479,12 +49481,13 @@
             "delegation_enabled": "bool",
             "background_review": "BackgroundReviewService | None",
             "clarify": "ClarifyService | None",
-            "verify_on_stop": "bool"
+            "verify_on_stop": "bool",
+            "model_recovery": "bool"
           }
         },
         {
           "name": "Application.start",
-          "line": 129,
+          "line": 131,
           "kind": "function",
           "parameters": [
             "self"
@@ -49493,7 +49496,7 @@
         },
         {
           "name": "Application.submit_turn",
-          "line": 139,
+          "line": 141,
           "kind": "function",
           "parameters": [
             "self",
@@ -49517,7 +49520,7 @@
         },
         {
           "name": "Application.notify",
-          "line": 167,
+          "line": 169,
           "kind": "function",
           "parameters": [
             "self"
@@ -49526,7 +49529,7 @@
         },
         {
           "name": "Application.action_review_blockers",
-          "line": 170,
+          "line": 172,
           "kind": "function",
           "parameters": [
             "self",
@@ -49538,7 +49541,7 @@
         },
         {
           "name": "Application._dispatch",
-          "line": 194,
+          "line": 196,
           "kind": "function",
           "parameters": [
             "self"
@@ -49547,7 +49550,7 @@
         },
         {
           "name": "Application._completed",
-          "line": 233,
+          "line": 235,
           "kind": "function",
           "parameters": [
             "self",
@@ -49559,7 +49562,7 @@
         },
         {
           "name": "Application._trigger_review",
-          "line": 246,
+          "line": 248,
           "kind": "function",
           "parameters": [
             "self",
@@ -49577,7 +49580,7 @@
         },
         {
           "name": "Application._run",
-          "line": 250,
+          "line": 252,
           "kind": "function",
           "parameters": [
             "self",
@@ -49595,7 +49598,7 @@
         },
         {
           "name": "Application._delegate",
-          "line": 464,
+          "line": 471,
           "kind": "function",
           "parameters": [
             "self",
@@ -49611,7 +49614,7 @@
         },
         {
           "name": "Application._cancel_join_children",
-          "line": 520,
+          "line": 527,
           "kind": "function",
           "parameters": [
             "self",
@@ -49625,7 +49628,7 @@
         },
         {
           "name": "Application._cancel_join_children.cancel",
-          "line": 521,
+          "line": 528,
           "kind": "function",
           "parameters": [
             "u"
@@ -49636,7 +49639,7 @@
         },
         {
           "name": "Application.delegations",
-          "line": 543,
+          "line": 550,
           "kind": "function",
           "parameters": [
             "self",
@@ -49650,7 +49653,7 @@
         },
         {
           "name": "Application.delegations.read",
-          "line": 544,
+          "line": 551,
           "kind": "function",
           "parameters": [
             "u"
@@ -49661,7 +49664,7 @@
         },
         {
           "name": "Application._todo_notice",
-          "line": 551,
+          "line": 558,
           "kind": "function",
           "parameters": [
             "self",
@@ -49677,7 +49680,7 @@
         },
         {
           "name": "Application.session_todos",
-          "line": 558,
+          "line": 565,
           "kind": "function",
           "parameters": [
             "self",
@@ -49691,7 +49694,7 @@
         },
         {
           "name": "Application._end_error",
-          "line": 561,
+          "line": 568,
           "kind": "function",
           "parameters": [
             "self",
@@ -49709,7 +49712,7 @@
         },
         {
           "name": "Application._end_error.end",
-          "line": 562,
+          "line": 569,
           "kind": "function",
           "parameters": [
             "u"
@@ -49720,7 +49723,7 @@
         },
         {
           "name": "Application._revision",
-          "line": 579,
+          "line": 586,
           "kind": "function",
           "parameters": [
             "value"
@@ -49731,7 +49734,7 @@
         },
         {
           "name": "Application._checkpoint",
-          "line": 584,
+          "line": 591,
           "kind": "function",
           "parameters": [
             "self",
@@ -49745,7 +49748,7 @@
         },
         {
           "name": "Application._clarify_wait",
-          "line": 590,
+          "line": 597,
           "kind": "function",
           "parameters": [
             "self",
@@ -49763,7 +49766,7 @@
         },
         {
           "name": "Application._batch_entry",
-          "line": 631,
+          "line": 638,
           "kind": "function",
           "parameters": [
             "self",
@@ -49781,7 +49784,7 @@
         },
         {
           "name": "Application._dispatch_call",
-          "line": 657,
+          "line": 664,
           "kind": "function",
           "parameters": [
             "self",
@@ -49807,7 +49810,7 @@
         },
         {
           "name": "Application._execute_parallel",
-          "line": 722,
+          "line": 729,
           "kind": "function",
           "parameters": [
             "self",
@@ -49827,7 +49830,7 @@
         },
         {
           "name": "Application._execute",
-          "line": 746,
+          "line": 753,
           "kind": "function",
           "parameters": [
             "self",
@@ -49849,7 +49852,7 @@
         },
         {
           "name": "Application.query",
-          "line": 819,
+          "line": 826,
           "kind": "function",
           "parameters": [
             "self",
@@ -49868,7 +49871,7 @@
         },
         {
           "name": "Application.settings",
-          "line": 824,
+          "line": 831,
           "kind": "function",
           "parameters": [
             "self",
@@ -49880,7 +49883,7 @@
         },
         {
           "name": "Application.get_agent",
-          "line": 827,
+          "line": 834,
           "kind": "function",
           "parameters": [
             "self",
@@ -49892,7 +49895,7 @@
         },
         {
           "name": "Application.create_agent",
-          "line": 830,
+          "line": 837,
           "kind": "function",
           "parameters": [
             "self",
@@ -49904,7 +49907,7 @@
         },
         {
           "name": "Application.create_agent.create",
-          "line": 835,
+          "line": 842,
           "kind": "function",
           "parameters": [
             "uow"
@@ -49915,7 +49918,7 @@
         },
         {
           "name": "Application.rename_agent",
-          "line": 846,
+          "line": 853,
           "kind": "function",
           "parameters": [
             "self",
@@ -49931,7 +49934,7 @@
         },
         {
           "name": "Application.history",
-          "line": 852,
+          "line": 859,
           "kind": "function",
           "parameters": [
             "self",
@@ -49951,7 +49954,7 @@
         },
         {
           "name": "Application.save_settings",
-          "line": 859,
+          "line": 866,
           "kind": "function",
           "parameters": [
             "self",
@@ -49967,7 +49970,7 @@
         },
         {
           "name": "Application.run_configuration",
-          "line": 865,
+          "line": 872,
           "kind": "function",
           "parameters": [
             "self",
@@ -49981,7 +49984,7 @@
         },
         {
           "name": "Application.get_run",
-          "line": 868,
+          "line": 875,
           "kind": "function",
           "parameters": [
             "self",
@@ -49995,7 +49998,7 @@
         },
         {
           "name": "Application.live_output",
-          "line": 871,
+          "line": 878,
           "kind": "function",
           "parameters": [
             "self",
@@ -50009,7 +50012,7 @@
         },
         {
           "name": "Application.pin_run",
-          "line": 874,
+          "line": 881,
           "kind": "function",
           "parameters": [
             "self",
@@ -50027,7 +50030,7 @@
         },
         {
           "name": "Application.run_retention",
-          "line": 877,
+          "line": 884,
           "kind": "function",
           "parameters": [
             "self",
@@ -50041,24 +50044,6 @@
         },
         {
           "name": "Application.audit_retention_preview",
-          "line": 880,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "agent_id",
-            "cursor",
-            "limit",
-            "as_of"
-          ],
-          "annotations": {
-            "agent_id": "str",
-            "cursor": "str",
-            "limit": "int",
-            "as_of": "str"
-          }
-        },
-        {
-          "name": "Application.event_retention_preview",
           "line": 887,
           "kind": "function",
           "parameters": [
@@ -50076,8 +50061,26 @@
           }
         },
         {
-          "name": "Application.messages",
+          "name": "Application.event_retention_preview",
           "line": 894,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "agent_id",
+            "cursor",
+            "limit",
+            "as_of"
+          ],
+          "annotations": {
+            "agent_id": "str",
+            "cursor": "str",
+            "limit": "int",
+            "as_of": "str"
+          }
+        },
+        {
+          "name": "Application.messages",
+          "line": 901,
           "kind": "function",
           "parameters": [
             "self",
@@ -50091,7 +50094,7 @@
         },
         {
           "name": "Application.approvals",
-          "line": 900,
+          "line": 907,
           "kind": "function",
           "parameters": [
             "self",
@@ -50103,7 +50106,7 @@
         },
         {
           "name": "Application.approve",
-          "line": 903,
+          "line": 910,
           "kind": "function",
           "parameters": [
             "self",
@@ -50121,7 +50124,7 @@
         },
         {
           "name": "Application.clarifications",
-          "line": 906,
+          "line": 913,
           "kind": "function",
           "parameters": [
             "self",
@@ -50133,7 +50136,7 @@
         },
         {
           "name": "Application.respond_clarify",
-          "line": 911,
+          "line": 918,
           "kind": "function",
           "parameters": [
             "self",
@@ -50153,7 +50156,7 @@
         },
         {
           "name": "Application.cancel_clarify",
-          "line": 918,
+          "line": 925,
           "kind": "function",
           "parameters": [
             "self",
@@ -50171,7 +50174,7 @@
         },
         {
           "name": "Application.cancel",
-          "line": 923,
+          "line": 930,
           "kind": "function",
           "parameters": [
             "self",
@@ -50185,7 +50188,7 @@
         },
         {
           "name": "Application.cancel.cancel",
-          "line": 924,
+          "line": 931,
           "kind": "function",
           "parameters": [
             "u"
@@ -50196,7 +50199,7 @@
         },
         {
           "name": "Application.remember",
-          "line": 936,
+          "line": 943,
           "kind": "function",
           "parameters": [
             "self",
@@ -50218,7 +50221,7 @@
         },
         {
           "name": "Application.forget",
-          "line": 957,
+          "line": 964,
           "kind": "function",
           "parameters": [
             "self",
@@ -50234,7 +50237,7 @@
         },
         {
           "name": "Application.context",
-          "line": 960,
+          "line": 967,
           "kind": "function",
           "parameters": [
             "self",
@@ -50248,7 +50251,7 @@
         },
         {
           "name": "Application.context_report",
-          "line": 963,
+          "line": 970,
           "kind": "function",
           "parameters": [
             "self",
@@ -50262,7 +50265,7 @@
         },
         {
           "name": "Application.context_report.read",
-          "line": 964,
+          "line": 971,
           "kind": "function",
           "parameters": [
             "u"
@@ -50273,7 +50276,7 @@
         },
         {
           "name": "Application.session_context_overview",
-          "line": 972,
+          "line": 979,
           "kind": "function",
           "parameters": [
             "self",
@@ -50287,7 +50290,7 @@
         },
         {
           "name": "Application.summary",
-          "line": 975,
+          "line": 982,
           "kind": "function",
           "parameters": [
             "self",
@@ -50301,7 +50304,7 @@
         },
         {
           "name": "Application.erase_message",
-          "line": 978,
+          "line": 985,
           "kind": "function",
           "parameters": [
             "self",
@@ -50315,7 +50318,7 @@
         },
         {
           "name": "Application.search_memory",
-          "line": 981,
+          "line": 988,
           "kind": "function",
           "parameters": [
             "self",
@@ -50329,7 +50332,7 @@
         },
         {
           "name": "Application.health",
-          "line": 986,
+          "line": 993,
           "kind": "function",
           "parameters": [
             "self"
@@ -50338,7 +50341,7 @@
         },
         {
           "name": "Application.stop_accepting",
-          "line": 995,
+          "line": 1002,
           "kind": "function",
           "parameters": [
             "self"
@@ -50347,7 +50350,7 @@
         },
         {
           "name": "Application.close",
-          "line": 999,
+          "line": 1006,
           "kind": "function",
           "parameters": [
             "self",
@@ -53641,7 +53644,7 @@
       "path": "agent/src/omni/application/model_calls.py",
       "module": "v2-application",
       "python_module": "omni.application.model_calls",
-      "lines": 294,
+      "lines": 339,
       "imports": [
         "omni.application.images",
         "omni.application.model_output",
@@ -53650,18 +53653,19 @@
         "omni.domain.contracts",
         "omni.domain.images",
         "omni.domain.metering",
+        "omni.domain.model_recovery",
         "omni.domain.model_reply",
         "omni.domain.settings"
       ],
       "symbols": [
         {
           "name": "ModelCalls",
-          "line": 30,
+          "line": 31,
           "kind": "class"
         },
         {
           "name": "ModelCalls.__init__",
-          "line": 31,
+          "line": 32,
           "kind": "function",
           "parameters": [
             "self",
@@ -53685,7 +53689,7 @@
         },
         {
           "name": "ModelCalls.health",
-          "line": 48,
+          "line": 49,
           "kind": "function",
           "parameters": [
             "self"
@@ -53694,7 +53698,7 @@
         },
         {
           "name": "ModelCalls.live_output",
-          "line": 51,
+          "line": 52,
           "kind": "function",
           "parameters": [
             "self",
@@ -53708,7 +53712,7 @@
         },
         {
           "name": "ModelCalls.live_output.authorize",
-          "line": 61,
+          "line": 62,
           "kind": "function",
           "parameters": [
             "u"
@@ -53719,7 +53723,7 @@
         },
         {
           "name": "ModelCalls.counter_available",
-          "line": 76,
+          "line": 77,
           "kind": "function",
           "parameters": [
             "self",
@@ -53731,7 +53735,7 @@
         },
         {
           "name": "ModelCalls.estimate",
-          "line": 81,
+          "line": 82,
           "kind": "function",
           "parameters": [
             "self",
@@ -53747,7 +53751,7 @@
         },
         {
           "name": "ModelCalls.fits",
-          "line": 105,
+          "line": 106,
           "kind": "function",
           "parameters": [
             "estimate",
@@ -53761,8 +53765,8 @@
           }
         },
         {
-          "name": "ModelCalls.invoke",
-          "line": 109,
+          "name": "ModelCalls._invoke_once",
+          "line": 110,
           "kind": "function",
           "parameters": [
             "self",
@@ -53785,14 +53789,60 @@
           }
         },
         {
-          "name": "ModelCalls.invoke.reserve",
-          "line": 120,
+          "name": "ModelCalls._invoke_once.reserve",
+          "line": 121,
           "kind": "function",
           "parameters": [
             "u"
           ],
           "annotations": {
             "u": "UnitOfWork"
+          }
+        },
+        {
+          "name": "ModelCalls.invoke",
+          "line": 295,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "agent_id",
+            "run_id",
+            "messages",
+            "tools",
+            "settings",
+            "reserved_id",
+            "baseline_tools"
+          ],
+          "annotations": {
+            "agent_id": "str",
+            "run_id": "str",
+            "messages": "Sequence[Record]",
+            "tools": "Sequence[ToolSpec]",
+            "settings": "Settings",
+            "reserved_id": "str | None",
+            "baseline_tools": "Sequence[ToolSpec] | None"
+          }
+        },
+        {
+          "name": "ModelCalls.invoke_recovering",
+          "line": 313,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "agent_id",
+            "run_id",
+            "messages",
+            "tools",
+            "settings",
+            "baseline_tools"
+          ],
+          "annotations": {
+            "agent_id": "str",
+            "run_id": "str",
+            "messages": "Sequence[Record]",
+            "tools": "Sequence[ToolSpec]",
+            "settings": "Settings",
+            "baseline_tools": "Sequence[ToolSpec] | None"
           }
         }
       ],
@@ -71613,7 +71663,7 @@
       "path": "agent/src/omni/composition/http.py",
       "module": "v2-composition",
       "python_module": "omni.composition.http",
-      "lines": 246,
+      "lines": 248,
       "imports": [
         "omni.adapters.http",
         "omni.adapters.log_query",
@@ -71662,7 +71712,8 @@
             "control_backend",
             "deployment",
             "shutdown",
-            "verify_on_stop"
+            "verify_on_stop",
+            "model_recovery"
           ],
           "annotations": {
             "home": "Path | None",
@@ -71687,12 +71738,13 @@
             "control_backend": "DesktopControlPort | None",
             "deployment": "Record | None",
             "shutdown": "Callable[[], None] | None",
-            "verify_on_stop": "bool"
+            "verify_on_stop": "bool",
+            "model_recovery": "bool"
           }
         },
         {
           "name": "http_app.factory",
-          "line": 75,
+          "line": 76,
           "kind": "function",
           "parameters": [],
           "annotations": {}
@@ -71704,7 +71756,7 @@
       "path": "agent/src/omni/composition/instance.py",
       "module": "v2-composition",
       "python_module": "omni.composition.instance",
-      "lines": 867,
+      "lines": 869,
       "imports": [
         "omni.adapters.android",
         "omni.adapters.bilibili",
@@ -71949,6 +72001,7 @@
             "capabilities",
             "delegation_enabled",
             "verify_on_stop",
+            "model_recovery",
             "master_key_file",
             "stderr_only",
             "process_diagnostics",
@@ -71975,6 +72028,7 @@
             "capabilities": "tuple[Capability, ...] | None",
             "delegation_enabled": "bool | None",
             "verify_on_stop": "bool",
+            "model_recovery": "bool",
             "master_key_file": "Path | None",
             "stderr_only": "bool",
             "process_diagnostics": "bool",
@@ -80514,6 +80568,82 @@
         }
       ],
       "summary": "Request shape and capacity policy shared by counting and model invocation; no I/O."
+    },
+    {
+      "path": "agent/src/omni/domain/model_recovery.py",
+      "module": "v2-domain",
+      "python_module": "omni.domain.model_recovery",
+      "lines": 76,
+      "imports": [
+        "omni.domain.contracts"
+      ],
+      "symbols": [
+        {
+          "name": "EmptyAttempt",
+          "line": 26,
+          "kind": "class"
+        },
+        {
+          "name": "EmptyAttempt.signature",
+          "line": 35,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "is_empty",
+          "line": 39,
+          "kind": "function",
+          "parameters": [
+            "reply"
+          ],
+          "annotations": {
+            "reply": "ModelReply"
+          }
+        },
+        {
+          "name": "empty_attempt",
+          "line": 43,
+          "kind": "function",
+          "parameters": [
+            "reply",
+            "model",
+            "provider"
+          ],
+          "annotations": {
+            "reply": "ModelReply",
+            "model": "str",
+            "provider": "str"
+          }
+        },
+        {
+          "name": "deterministic_empty",
+          "line": 55,
+          "kind": "function",
+          "parameters": [
+            "attempts"
+          ],
+          "annotations": {
+            "attempts": "list[EmptyAttempt]"
+          }
+        },
+        {
+          "name": "should_retry_empty",
+          "line": 62,
+          "kind": "function",
+          "parameters": [
+            "attempts",
+            "threshold_micro"
+          ],
+          "annotations": {
+            "attempts": "list[EmptyAttempt]",
+            "threshold_micro": "int"
+          }
+        }
+      ],
+      "summary": "Pure rules for bounded model empty-reply recovery: deterministic-empty detection and cost-aware budget."
     },
     {
       "path": "agent/src/omni/domain/model_reply.py",

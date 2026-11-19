@@ -338,6 +338,7 @@ async def open_instance(
     capabilities: tuple[Capability, ...] | None = None,
     delegation_enabled: bool | None = None,
     verify_on_stop: bool = False,
+    model_recovery: bool = False,
     master_key_file: Path | None = None,
     stderr_only: bool = False,
     process_diagnostics: bool = False,
@@ -687,6 +688,7 @@ async def open_instance(
             background_review=background_review if capabilities is None else None,
             clarify=ClarifyService(database) if capabilities is None else None,
             verify_on_stop=verify_on_stop,
+            model_recovery=model_recovery,
             owner_capabilities=(
                 Capability(DESKTOP_ACTION, desktop_actions, desktop_actions.quiescent),
                 Capability(ANDROID_ACTION, android, android.quiescent),

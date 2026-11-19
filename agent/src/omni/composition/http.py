@@ -71,6 +71,7 @@ def http_app(
     deployment: Record | None = None,
     shutdown: Callable[[], None] | None = None,
     verify_on_stop: bool = False,
+    model_recovery: bool = False,
 ):
     async def factory() -> HttpRuntime:
         drain_deadline: float | None = None
@@ -96,6 +97,7 @@ def http_app(
             control_backend=control_backend,
             deployment=deployment,
             verify_on_stop=verify_on_stop,
+            model_recovery=model_recovery,
         )
         try:
             token_path = instance.paths.control / "owner.token"

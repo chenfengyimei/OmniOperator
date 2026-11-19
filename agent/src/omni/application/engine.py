@@ -88,6 +88,7 @@ class Application:
         background_review: BackgroundReviewService | None = None,
         clarify: ClarifyService | None = None,
         verify_on_stop: bool = False,
+        model_recovery: bool = False,
     ) -> None:
         self._db, self._calls, self._contexts, self._clock, self._observer = database, calls, contexts, clock, observer
         self._tools = {cap.spec.name: cap for cap in capabilities}
@@ -109,6 +110,7 @@ class Application:
         self._background_review = background_review
         self._clarify = clarify
         self._verify_on_stop = verify_on_stop
+        self._model_recovery = model_recovery
         self._child_ids: set[str] = set()
         if delegation_enabled and DELEGATE_TASK.name in self._tools:
             raise ValueError("Delegation control name is reserved")
@@ -339,9 +341,14 @@ class Application:
                         + await self._todo_notice(agent_id, run_id, tools),
                     )
                     await self._contexts.compact_run(agent_id, run_id, messages, tools, settings)
-                    reply = await self._calls.invoke(
-                        agent_id, run_id, messages, tools, settings, baseline_tools=baseline
-                    )
+                    if self._model_recovery and not remote:
+                        reply = await self._calls.invoke_recovering(
+                            agent_id, run_id, messages, tools, settings, baseline_tools=baseline
+                        )
+                    else:
+                        reply = await self._calls.invoke(
+                            agent_id, run_id, messages, tools, settings, baseline_tools=baseline
+                        )
                     await self._checkpoint(agent_id, run_id)
                     if is_degenerate_reply(reply.text):
                         raise BusinessError(

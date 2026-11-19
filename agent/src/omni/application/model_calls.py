@@ -10,6 +10,7 @@ from ..domain.context import CONTEXT_CHARS
 from ..domain.contracts import BusinessError, ModelReply, Outcome, ToolSpec
 from ..domain.images import references
 from ..domain.metering import TokenEstimate, serialized_request
+from ..domain.model_recovery import EmptyAttempt, empty_attempt, is_empty, should_retry_empty
 from ..domain.model_reply import validate_reply
 from ..domain.settings import Settings
 from .images import ImageService
@@ -106,7 +107,7 @@ class ModelCalls:
         output = settings["summary_tokens"] if summary else settings["output_tokens"]
         return estimate.tokens + output + settings["margin_tokens"] <= settings["context_tokens"]
 
-    async def invoke(
+    async def _invoke_once(
         self,
         agent_id: str,
         run_id: str,
@@ -289,6 +290,50 @@ class ModelCalls:
                 "model_output_limit_exceeded",
                 "The provider exceeded the requested output budget; recorded costs remain settled",
             )
+        return reply
+
+    async def invoke(
+        self,
+        agent_id: str,
+        run_id: str,
+        messages: Sequence[Record],
+        tools: Sequence[ToolSpec],
+        settings: Settings,
+        *,
+        reserved_id: str | None = None,
+        baseline_tools: Sequence[ToolSpec] | None = None,
+    ) -> ModelReply:
+        reply = await self._invoke_once(
+            agent_id, run_id, messages, tools, settings, reserved_id=reserved_id, baseline_tools=baseline_tools
+        )
         if reserved_id is None:
             validate_reply(reply)
         return reply
+
+    async def invoke_recovering(
+        self,
+        agent_id: str,
+        run_id: str,
+        messages: Sequence[Record],
+        tools: Sequence[ToolSpec],
+        settings: Settings,
+        *,
+        baseline_tools: Sequence[ToolSpec] | None = None,
+    ) -> ModelReply:
+        """Bounded empty-reply recovery on the SAME authorized model; each retry is a fresh reserved
+        call that re-bills the input and stays under the daily budget. Unknown-cost calls settled
+        ``unknown`` and are never replayed; no account/model fallback. Non-empty replies pass the
+        ordinary tool-reply contract; truncation/filter/output-limit faults stay terminal."""
+        attempts: list[EmptyAttempt] = []
+        while True:
+            reply = await self._invoke_once(agent_id, run_id, messages, tools, settings, baseline_tools=baseline_tools)
+            if not is_empty(reply):
+                validate_reply(reply)
+                return reply
+            attempts.append(empty_attempt(reply, model=settings["model"], provider=settings["base_url"]))
+            if not should_retry_empty(attempts):
+                raise BusinessError(
+                    "model_empty_reply",
+                    "The model returned no answer or tool calls; bounded recovery was exhausted",
+                    status=502,
+                )

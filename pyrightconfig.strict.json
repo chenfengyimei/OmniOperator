@@ -406,7 +406,8 @@
     "agent/src/omni/domain/clarify.py",
     "agent/src/omni/application/clarify.py",
     "agent/src/omni/adapters/persistence/clarify_repository.py",
-    "agent/src/omni/domain/verification_stop.py"
+    "agent/src/omni/domain/verification_stop.py",
+    "agent/src/omni/domain/model_recovery.py"
   ],
   "exclude": [
     "**/__pycache__"
