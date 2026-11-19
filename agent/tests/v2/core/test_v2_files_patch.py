@@ -263,3 +263,83 @@ def test_files_patch_is_registered_write_and_agent_tier_only(tmp_path):
             assert "files_patch" not in [t.name for t in select_tools("chat", specs, escalate=False)]
 
     asyncio.run(scenario())
+
+
+def test_escape_normalized_matches_literal_newline_and_tab():
+    assert patch_replace("a\nb\n", "a\\nb", "X") == ("X\n", 1, "escape_normalized")
+    assert patch_replace("a\tb\n", "a\\tb", "X") == ("X\n", 1, "escape_normalized")
+
+
+def test_escape_normalized_replace_all_non_overlapping():
+    assert patch_replace("a\nb a\nb", "a\\nb", "X", replace_all=True) == ("X X", 2, "escape_normalized")
+
+
+def test_escape_normalized_only_fires_for_literal_escapes():
+    assert patch_replace("a\nb\n", "a\nb", "X") == ("X\n", 1, "exact")
+
+
+def test_worker_patch_escape_normalized(tmp_path):
+    put(tmp_path / "a.txt", "a\nb\n")
+
+    async def scenario():
+        result = await Worker().invoke(
+            "files_patch",
+            {"path": "a.txt", "old_string": "a\\nb", "new_string": "X", "expected_sha256": digest("a\nb\n")},
+            {"workspace": str(tmp_path)},
+        )
+        assert result.status == Outcome.OK and result.effect == Effect.APPLIED
+        assert result.data["strategy"] == "escape_normalized"
+        assert (tmp_path / "a.txt").read_bytes() == b"X\n"
+
+    asyncio.run(scenario())
+
+
+def test_unicode_normalized_smart_quotes():
+    assert patch_replace("\u201cfoo\u201d\n", '"foo"', "bar") == ("bar\n", 1, "unicode_normalized")
+
+
+def test_unicode_normalized_em_dash_expansion_span():
+    assert patch_replace("a\u2014b\n", "a--b", "X") == ("X\n", 1, "unicode_normalized")
+
+
+def test_unicode_normalized_ellipsis_expansion_span():
+    assert patch_replace("a\u2026b\n", "a...b", "X") == ("X\n", 1, "unicode_normalized")
+
+
+def test_unicode_normalized_line_trimmed_fallback():
+    assert patch_replace("\u201cfoo\u201d  \n", '"foo"\n', "bar\n") == ("bar\n", 1, "unicode_normalized")
+
+
+def test_unicode_normalized_ambiguous_rejected():
+    with pytest.raises(PatchError) as caught:
+        patch_replace("\u201cfoo\u201d \u201cfoo\u201d", '"foo"', "bar")
+    assert caught.value.code == "patch_ambiguous"
+
+
+def test_unicode_normalized_ascii_exact_wins():
+    assert patch_replace('"foo"\n', '"foo"', "bar")[2] == "exact"
+
+
+def test_worker_patch_unicode_normalized(tmp_path):
+    put(tmp_path / "a.txt", "\u201cfoo\u201d\n")
+
+    async def scenario():
+        result = await Worker().invoke(
+            "files_patch",
+            {
+                "path": "a.txt",
+                "old_string": '"foo"',
+                "new_string": "bar",
+                "expected_sha256": digest("\u201cfoo\u201d\n"),
+            },
+            {"workspace": str(tmp_path)},
+        )
+        assert result.status == Outcome.OK and result.data["strategy"] == "unicode_normalized"
+        assert (tmp_path / "a.txt").read_bytes() == b"bar\n"
+
+    asyncio.run(scenario())
+
+
+def test_indentation_drift_subsumed_by_line_trimmed():
+    # Reference indentation_flexible (lstrip) is provably subsumed by line_trimmed (strip-all).
+    assert patch_replace("\tfoo\n", "    foo\n", "bar\n") == ("bar\n", 1, "line_trimmed")

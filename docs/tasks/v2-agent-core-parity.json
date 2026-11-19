@@ -258,9 +258,17 @@
           "contract": "docs/v2/contracts/V2_FILES_SEARCH_GLOB.md",
           "evidence": "docs/evidence/v2-files-search-glob.json",
           "delivered": "files_search增file_glob内容过滤(domain/files_search.py既有模块加normalize_file_glob None禁用/strip1-200无控制字节+match_path_glob fnmatchcase相对POSIX路径大小写敏感线性时间无DoS、worker仅内容模式content/files_with_matches/count读取内容前跳过不匹配文件as_posix跨平台+target=files忽略file_glob(query即glob)+None默认全搜索零回归+分派前校验、spec file_glob string1-200、routing不变)，V2无ripgrep依赖原生fnmatch实现rg--glob包含过滤常见用法(*.py任意深度/src/*.py根锚定)，与order/offset/context/output_mode正交(modified全局排序在过滤后子集内)，既有2000文件/5秒/256KB/每文件5命中/50页剪枝+workspace_path安全沿用、响应页<=50远小于MAX_FRAME1MiB；13新增专项合既有77过+128调用方(files_search77/worker_safety31/files_patch20)过0失败、strict410零错误(无新源文件从根运行)、ruff4文件unchanged；regex(需安全设计)/ripgrep/glob否定!/高级gitignore仍后续；无新表/迁移/路由/worker协议帧/源文件/跨平台改动；聚合索引暂缓(刷新源指纹后回退基线并行会话活跃)"
+        },
+        {
+          "gap": "#2 模糊补丁之escape/unicode归一化策略(具新匹配力)",
+          "status": "implemented_scoped_passed",
+          "batch": "K13.patch_strategies",
+          "contract": "docs/v2/contracts/V2_FILES_PATCH_STRATEGIES.md",
+          "evidence": "docs/evidence/v2-files-patch-strategies.json",
+          "delivered": "files_patch策略链追加escape_normalized(字面\\n/\\t/\\r解转义后exact,无字面转义则落空)与unicode_normalized(UNICODE_MAP22项智能引号/破折号—→--/省略号…→.../数学减号/Zs空格族→ASCII,双侧归一no-op守卫,exact或line_trimmed回退,经orig↔norm索引映射处理1→多字符扩展回映射原始字符跨度)，链exact→line_trimmed→line_whitespace→escape→unicode前三不变零回归；经证明indentation_flexible(lstrip)/trimmed_boundary(首末strip+中间精确)均被line_trimmed(strip-all)涵盖(lstrip相等⟹strip相等)首命中即胜链中永不触发故省略(零匹配力损失避免死代码)；唯一性守卫/blank/identical/no_match/already_applied不变、unicode扩展回映射保证替换落原始字符边界无漂移、worker写管线(指纹CAS/原子publish/unknown不重放/审批)不变、spec描述更新；12新增专项合既有32过+140调用方(files_patch32/files_search77/worker_safety31)过0失败、ruff通过、strict410文件5错误均既有他会话已提交repository.py(6bcb0e98 L633/659/710 RowMapping/JSON)本批files_patch/capabilities零错误不追逐；similarity(block_anchor/context_aware)/V4A多文件/escape-drift自动纠正仍后续；无新表/迁移/路由/协议帧/源文件/跨平台改动；聚合索引暂缓"
         }
       ],
-      "limits": "只读审计无新工具/迁移/路由/源码改动；可离线缺口未在K13审计批实现(列后续批次)，其中缺口#1工作区搜索之内容搜索与文件名glob发现已在K13.search_files/K13.find_files后续批实现、缺口#2模糊补丁之核心normalizing策略搜索替换写工具已在K13.patch后续批实现(泛型files_*分派无需协议帧/跨平台改动)；搜索output_mode三态(content/files_with_matches/count)已在K13.search_modes、context邻接线(0-3)已在K13.search_context、offset分页(0-1000)已在K13.search_offset、order排序(discovery|modified修改时间最新优先)已在K13.search_order后续批实现、file_glob内容包含过滤已在K13.search_file_glob后续批实现、regex/ripgrep、补丁escape/unicode/trimmed_boundary/indentation_flexible字符级/similarity/V4A多文件格式、浏览器对话框/cron技能绑定输出依赖/代码沙箱/原始CDP仍列后续；不宣称全集对等；既有todos重启竞态与5个pin v2_0039旧迁移测试沿用保留",
+      "limits": "只读审计无新工具/迁移/路由/源码改动；可离线缺口未在K13审计批实现(列后续批次)，其中缺口#1工作区搜索之内容搜索与文件名glob发现已在K13.search_files/K13.find_files后续批实现、缺口#2模糊补丁之核心normalizing策略搜索替换写工具已在K13.patch后续批实现(泛型files_*分派无需协议帧/跨平台改动)；搜索output_mode三态(content/files_with_matches/count)已在K13.search_modes、context邻接线(0-3)已在K13.search_context、offset分页(0-1000)已在K13.search_offset、order排序(discovery|modified修改时间最新优先)已在K13.search_order后续批实现、file_glob内容包含过滤已在K13.search_file_glob后续批实现、regex/ripgrep、补丁escape/unicode归一化策略已在K13.patch_strategies后续批实现(indentation_flexible/trimmed_boundary经证明被line_trimmed涵盖故省略)、similarity近似/V4A多文件格式/escape-drift自动纠正、浏览器对话框/cron技能绑定输出依赖/代码沙箱/原始CDP仍列后续；不宣称全集对等；既有todos重启竞态与5个pin v2_0039旧迁移测试沿用保留",
       "next": false
     },
     {

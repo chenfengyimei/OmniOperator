@@ -74,7 +74,7 @@ def builtin_capabilities(
         ),
         (
             "files_patch",
-            "Edit a workspace file by unique fuzzy search-replace (exact, then line-trimmed, then whitespace-normalized); requires its current fingerprint; ambiguous matches rejected unless replace_all",
+            "Edit a workspace file by unique fuzzy search-replace (ordered strategies: exact, line-trimmed, whitespace-normalized, escape-normalized, unicode-normalized); requires its current fingerprint; ambiguous matches rejected unless replace_all",
             {
                 "path": {"type": "string"},
                 "old_string": {"type": "string", "minLength": 1},
