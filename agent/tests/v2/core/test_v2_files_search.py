@@ -14,6 +14,7 @@ from omni.domain.files_search import (
     match_name,
     normalize_context,
     normalize_offset,
+    normalize_order,
     normalize_output_mode,
     normalize_query,
 )
@@ -515,5 +516,133 @@ def test_worker_search_rejects_invalid_offset_before_dispatch(tmp_path, value):
         )
         assert result.status == Outcome.ERROR and result.effect == Effect.NONE
         assert result.error_code == "invalid_capability_request"
+
+    asyncio.run(scenario())
+
+
+def test_normalize_order_defaults_and_rejects_unknown():
+    assert normalize_order(None) == "discovery"
+    for value in ("discovery", "modified"):
+        assert normalize_order(value) == value
+    for bad in ("bogus", "", "MODIFIED", 5, True, ["discovery"]):
+        with pytest.raises(ValueError):
+            normalize_order(bad)
+
+
+def test_worker_order_modified_sorts_newest_first(tmp_path):
+    for name, mtime in (("old.txt", 1000), ("mid.txt", 2000), ("new.txt", 3000)):
+        path = tmp_path / name
+        path.write_text("needle", encoding="utf-8")
+        os.utime(path, (mtime, mtime))
+
+    async def scenario():
+        result = await Worker().invoke(
+            "files_search", {"query": "needle", "order": "modified"}, {"workspace": str(tmp_path)}
+        )
+        assert result.status == Outcome.OK and result.effect == Effect.NONE
+        assert result.data["order"] == "modified"
+        assert [Path(m["path"]).as_posix() for m in result.data["matches"]] == ["new.txt", "mid.txt", "old.txt"]
+
+    asyncio.run(scenario())
+
+
+def test_worker_order_discovery_default_keeps_traversal_order(tmp_path):
+    older = tmp_path / "a.txt"
+    older.write_text("needle", encoding="utf-8")
+    os.utime(older, (1000, 1000))
+    newer = tmp_path / "b.txt"
+    newer.write_text("needle", encoding="utf-8")
+    os.utime(newer, (9000, 9000))
+
+    async def scenario():
+        result = await Worker().invoke("files_search", {"query": "needle"}, {"workspace": str(tmp_path)})
+        assert result.data["order"] == "discovery"
+        assert [Path(m["path"]).as_posix() for m in result.data["matches"]] == ["a.txt", "b.txt"]
+
+    asyncio.run(scenario())
+
+
+def test_worker_order_modified_stable_ties_keep_discovery_order(tmp_path):
+    for name in ("b.txt", "a.txt", "c.txt"):
+        path = tmp_path / name
+        path.write_text("needle", encoding="utf-8")
+        os.utime(path, (5000, 5000))
+
+    async def scenario():
+        result = await Worker().invoke(
+            "files_search", {"query": "needle", "order": "modified"}, {"workspace": str(tmp_path)}
+        )
+        assert [Path(m["path"]).as_posix() for m in result.data["matches"]] == ["a.txt", "b.txt", "c.txt"]
+
+    asyncio.run(scenario())
+
+
+def test_worker_order_modified_global_sort_across_scan_and_pages(tmp_path):
+    for index in range(60):
+        path = tmp_path / f"f{index:03d}.txt"
+        path.write_text("needle", encoding="utf-8")
+        os.utime(path, (1000 + index, 1000 + index))
+
+    async def scenario():
+        result = await Worker().invoke(
+            "files_search", {"query": "needle", "order": "modified"}, {"workspace": str(tmp_path)}
+        )
+        assert result.status == Outcome.OK
+        matches = result.data["matches"]
+        assert len(matches) == 50 and result.data["truncated"] is True
+        assert matches[0]["path"] == "f059.txt" and matches[-1]["path"] == "f010.txt"
+        page2 = await Worker().invoke(
+            "files_search", {"query": "needle", "order": "modified", "offset": 50}, {"workspace": str(tmp_path)}
+        )
+        assert [Path(m["path"]).as_posix() for m in page2.data["matches"]] == [
+            f"f{i:03d}.txt" for i in range(9, -1, -1)
+        ]
+        assert page2.data["truncated"] is False
+
+    asyncio.run(scenario())
+
+
+def test_worker_order_modified_files_mode(tmp_path):
+    for name, mtime in (("a.py", 1000), ("b.py", 3000), ("c.py", 2000)):
+        path = tmp_path / name
+        path.write_text("x", encoding="utf-8")
+        os.utime(path, (mtime, mtime))
+
+    async def scenario():
+        result = await Worker().invoke(
+            "files_search", {"query": "*.py", "target": "files", "order": "modified"}, {"workspace": str(tmp_path)}
+        )
+        assert result.data["target"] == "files" and result.data["order"] == "modified"
+        assert [Path(m["path"]).as_posix() for m in result.data["matches"]] == ["b.py", "c.py", "a.py"]
+        assert all(set(m) == {"path"} for m in result.data["matches"])
+
+    asyncio.run(scenario())
+
+
+@pytest.mark.parametrize("value", ["bogus", "", "MODIFIED", 5, True])
+def test_worker_search_rejects_invalid_order_before_dispatch(tmp_path, value):
+    (tmp_path / "a.py").write_text("needle", encoding="utf-8")
+
+    async def scenario():
+        result = await Worker().invoke(
+            "files_search", {"query": "needle", "order": value}, {"workspace": str(tmp_path)}
+        )
+        assert result.status == Outcome.ERROR and result.effect == Effect.NONE
+        assert result.error_code == "invalid_capability_request"
+
+    asyncio.run(scenario())
+
+
+def test_files_search_spec_exposes_order_enum(tmp_path):
+    from omni_test_support.v2.documents import Clock, DocumentService, opened
+
+    from omni.composition.capabilities import builtin_capabilities
+
+    async def scenario():
+        async with opened(tmp_path, Clock()) as (_, db, objects, _agent):
+            specs = tuple(c.spec for c in builtin_capabilities(db, DocumentService(db, objects)))
+            parameters = next(s for s in specs if s.name == "files_search").parameters
+            assert parameters["properties"]["order"]["enum"] == ["discovery", "modified"]
+            assert parameters["required"] == ["query"]
 
     asyncio.run(scenario())

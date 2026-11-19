@@ -26,6 +26,7 @@ from ...domain.files_search import (
     match_name,
     normalize_context,
     normalize_offset,
+    normalize_order,
     normalize_output_mode,
     normalize_query,
 )
@@ -173,9 +174,12 @@ class Worker:
             output_mode = normalize_output_mode(args.get("output_mode"))
             context_lines = normalize_context(args.get("context"))
             offset = normalize_offset(args.get("offset"))
+            order = normalize_order(args.get("order"))
+            collect_all = order == "modified"
             cap = offset + 50
             base = Path(context["workspace"]).resolve()
             results: list[dict[str, Any]] = []
+            mtimes: list[float] = []
             scanned = 0
             truncated = False
             deadline = time.monotonic() + 5.0
@@ -190,7 +194,7 @@ class Worker:
                     and not (Path(dirpath) / d).is_junction()
                 )
                 for filename in sorted(filenames):
-                    if len(results) >= cap or scanned >= 2000 or time.monotonic() > deadline:
+                    if (not collect_all and len(results) >= cap) or scanned >= 2000 or time.monotonic() > deadline:
                         truncated = True
                         break
                     candidate = Path(dirpath) / filename
@@ -206,7 +210,8 @@ class Worker:
                     if target == "files":
                         if match_name(filename, query):
                             results.append({"path": relative})
-                            if len(results) >= cap:
+                            mtimes.append(info.st_mtime)
+                            if not collect_all and len(results) >= cap:
                                 truncated = True
                                 break
                         continue
@@ -223,20 +228,29 @@ class Worker:
                                 row["before"] = hit["before"]
                                 row["after"] = hit["after"]
                             results.append(row)
-                            if len(results) >= cap:
+                            mtimes.append(info.st_mtime)
+                            if not collect_all and len(results) >= cap:
                                 truncated = True
                                 break
                     elif output_mode == "files_with_matches":
                         if match_lines(text, query):
                             results.append({"path": relative})
+                            mtimes.append(info.st_mtime)
                     else:
                         total = count_matches(text, query)
                         if total:
                             results.append({"path": relative, "count": total})
-                if len(results) >= cap or scanned >= 2000 or time.monotonic() > deadline:
+                            mtimes.append(info.st_mtime)
+                if (not collect_all and len(results) >= cap) or scanned >= 2000 or time.monotonic() > deadline:
                     truncated = True
                     break
-            page = results[offset:cap]
+            if collect_all:
+                # Newest-first across the whole bounded scan; stable ties keep discovery order.
+                ranked = sorted(range(len(results)), key=lambda i: mtimes[i], reverse=True)
+                page = [results[i] for i in ranked][offset:cap]
+                truncated = truncated or len(results) > cap
+            else:
+                page = results[offset:cap]
             return ActionResult(
                 Outcome.OK,
                 json.dumps(page, ensure_ascii=False),
@@ -248,6 +262,7 @@ class Worker:
                     "output_mode": output_mode,
                     "context": context_lines,
                     "offset": offset,
+                    "order": order,
                 },
             )
         if name == "files_patch":

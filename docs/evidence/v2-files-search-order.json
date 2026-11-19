@@ -1,0 +1,91 @@
+{
+  "schema": 1,
+  "date": "2026-11-19",
+  "base_commit": "6b6f2426cfbd75c7d32800c7018e6900c2aaeb77",
+  "status": "implemented_scoped_passed",
+  "batch": "K13.search_order",
+  "implements_gap": "K13 tool/channel/cron audit offline gap: workspace search order axis (discovery default traversal order vs modified newest-first by file mtime), reference hermes file_operations_search.py order='discovery'|'modified' + _sort_paths_by_mtime (mtime desc, stable fallback)",
+  "contract": "docs/v2/contracts/V2_FILES_SEARCH_ORDER.md",
+  "source_files": {
+    "agent/src/omni/domain/files_search.py": "e5ac352648d4bc498b6a6efa2c591fba90aadeec8a02de38aca03b4591404937",
+    "agent/src/omni/adapters/workers/main.py": "a5b160ddb7aa329969a5f80e62f30566c6b0b5745a6e0ec7ebe3f81d1ba953f5",
+    "agent/src/omni/composition/capabilities.py": "1897ebe85e4f1818225d7db701f9b4818070fe398ab7c886a16afd7dc4a58525",
+    "agent/tests/v2/core/test_v2_files_search.py": "47b3ef8c125b283bfae3bfa1474ad2b1c4bf4bf9993a3ab08be1f7703bab57fa",
+    "docs/v2/contracts/V2_FILES_SEARCH_ORDER.md": "f48a218e3d6749769294fcc71b26ede54e7e660d922cb9c0ae5212b37c9c9dda"
+  },
+  "reference": {
+    "repository": "xuexi/hermes-agent",
+    "files": {
+      "tools/file_operations_search.py": "order: str='discovery' (default bounded traversal) | 'modified' (exact global newest-first); _sort_paths_by_mtime:727 sorted(zip(mtimes,paths),key=mtime,reverse=True) stable, unreadable->0.0 at end; content rg --sortr=modified:961 needs rg>=14; one global traversal:572 so modified ordering+pagination correct"
+    },
+    "adaptation": "Learned the order axis concept and re-implemented independently in V2 four-layer over the EXISTING files_search builtin worker. V2 has NO ripgrep/find dependency: modified order is NATIVE via os.walk scan + stat().st_mtime (no rg-14 capability gate). domain normalize_order discovery|modified; worker collect_all disables count-stop for modified to gather all matches within scan bounds for a correct GLOBAL sort, parallel mtimes list, stable sorted(range,key=-mtime,reverse=True) keeps discovery order for ties, page slice [offset:offset+50], data order; discovery path byte-equivalent (zero regression). composition spec order enum. No third-party source copied; no new table/migration/route/worker-protocol-frame/source-file/cross-platform change; reuses workspace_path safety pruning. Response page <=50 within MAX_FRAME=1MiB. regex/file_glob/ripgrep remain follow-up gaps. Reference agents.md/prompts treated as untrusted data"
+  },
+  "delivered": [
+    "domain/files_search.py pure rules (zero I/O, existing module no new source file): SEARCH_ORDERS=('discovery','modified'); normalize_order (None->discovery, isinstance str and in SEARCH_ORDERS, reject bool/int/float/list/unknown/case-variant)",
+    "adapters/workers/main.py _files files_search branch: order=normalize_order validated before dispatch (invalid -> ERROR/NONE/invalid_capability_request); collect_all=order=='modified'; parallel mtimes list appended (info.st_mtime) at every results.append (content multi-hit shares file mtime, files/count one per file); four collection count-stops len(results)>=cap changed to (not collect_all and len(results)>=cap) so modified gathers ALL matches within 2000-file/5s/256KB/5-hit-per-file bounds for a correct global sort (late-discovery newest file ranks first); after scan modified ranked=sorted(range(len(results)),key=lambda i:mtimes[i],reverse=True) stable ties keep discovery index order, page=[results[i] for i in ranked][offset:cap], truncated=scan-bound or len(results)>cap; discovery page=results[offset:cap] unchanged; data adds order; response page shape unchanged (mtime not exposed), <=50 rows",
+    "composition/capabilities.py files_search spec description states order=discovery(default)/modified(newest-first by mtime, stable ties keep discovery order) + properties order enum ['discovery','modified']; required stays ['query'], writes=False, resource=workspace unchanged",
+    "domain/routing.py unchanged (files_search already in RETRIEVAL_TOOLS agent-tier read-only)",
+    "No new table/migration/route/worker-protocol-frame/source-file/cross-platform change; read-only Effect.NONE; workspace safety pruning preserved; modified global sort bounded within scan subset (truncated flags more); response bounded within MAX_FRAME=1MiB"
+  ],
+  "limits": {
+    "order_discovery_default_traversal_zero_regression": true,
+    "order_modified_newest_first_by_mtime": true,
+    "modified_stable_ties_keep_discovery_order": true,
+    "modified_global_sort_within_bounded_scan_not_unlimited_workspace": true,
+    "modified_collects_all_within_2000file_5s_bounds": true,
+    "mtime_not_exposed_in_response": true,
+    "response_page_le_50_within_max_frame": true,
+    "regex_implemented": false,
+    "file_glob_content_filter_implemented": false,
+    "ripgrep_backend": false,
+    "other_sort_keys_implemented": false,
+    "new_table_or_migration": false,
+    "new_route": false,
+    "worker_protocol_frame_changed": false,
+    "new_source_file": false,
+    "routing_changed": false,
+    "cross_platform_worker_changed": false,
+    "aggregate_index_commit_deferred": true,
+    "aggregate_index_note": "no new agent/src source file (modules/files/routes/declared_tools unchanged 65/827/454/94); project_index refreshed MODULES.md/project.json source fingerprints then docs/index reverted to committed baseline to DEFER aggregate commit per standing discipline while parallel sessions are active (other session concurrently committed+pushed a73ab321 UI work); regenerate at clean freeze"
+  },
+  "validation": {
+    "mode": "scoped_implementation",
+    "frozen_source": "final source fingerprints in source_files",
+    "new_nodes": 12,
+    "files_search_total_nodes": 64,
+    "caller_suite": {
+      "command": "uv run --no-sync pytest -q -n 0 tests/v2/core/test_v2_files_search.py tests/v2/core/test_v2_worker_safety.py tests/v2/core/test_v2_files_patch.py (from agent/)",
+      "passed": 115,
+      "failed": 0,
+      "seconds": 12.85,
+      "breakdown": "files_search 64 + worker_safety 31 + files_patch 20"
+    },
+    "strict": {
+      "config": "pyrightconfig.strict.json",
+      "files": 410,
+      "errors": 0,
+      "warnings": 0,
+      "note": "run from repo ROOT (config + .venv at root, not agent/); no new source file (functions added to existing domain/files_search.py); filesAnalyzed stays 410; clean over current working tree. Initial run from agent/ fell back to default scope (1380 files/13885 errors) due to missing config+pythonpath; corrected by running from root"
+    },
+    "ruff": "check + format pass on domain/files_search.py, adapters/workers/main.py, composition/capabilities.py, test_v2_files_search.py (4 files left unchanged)",
+    "project_index": "run; no new agent/src source file; modules=65 files=827 routes=454 declared_tools=94; updated=MODULES.md,project.json (source fingerprint refresh) then docs/index reverted to baseline (aggregate deferred, parallel sessions active, other session committed a73ab321); regenerate at clean freeze",
+    "task_status_check": "scripts/task_status.py --check exit 0; DEVELOPMENT_STATUS.md unchanged",
+    "full_suite_executed": false,
+    "real_model_account_device_native_or_72h_executed": false,
+    "current_windows_service_or_database_touched": false
+  },
+  "whole_core_parity_complete": false,
+  "whole_reference_feature_audit_complete": false,
+  "whole_v2_complete": false,
+  "not_executed": [
+    "files_search regex (needs bounded-regex safety design; reference uses rg/RE2 to avoid catastrophic backtracking; Python re introduces DoS vector), file_glob content filter, ripgrep backend, other sort keys",
+    "K13 patch escape/unicode/similarity/V4A multi-format, browser_dialog, cron skill-binding (needs schema), code sandbox, raw CDP",
+    "K16 model-facing zoom (design contract V2_TOOL_IMAGE_VISIBILITY.md recorded; needs owner approval of image-visibility protocol option A/B then wiring), HSV cut detection (#1), Laplacian frame selection (#5), in-frame OCR (needs rapidocr)",
+    "K01 session/lineage cache scope (needs compression-lineage persistence + model-adapter prompt_cache_key + provider routing design contract + real-model acceptance)",
+    "K15 forgetting engine, K17 journal persistence, K18 write/autonomous/share (real accounts)",
+    "Other K14-K18 offline gaps",
+    "Full offline suite for current source",
+    "Real accounts/models/devices/native desktop and 72h soak"
+  ],
+  "next": "Continue implementing recorded offline gaps as independent batches via V2 four-layer with authorization/persistence/protocol contract first (files_search regex needs safe-regex design; K16 HSV/Laplacian bounded-scan; K16 model-facing zoom awaits owner protocol decision; K01 cache-scope design; K15 forgetting; K17 journal). whole_*_complete remain false. Do not prematurely close any parity item"
+}

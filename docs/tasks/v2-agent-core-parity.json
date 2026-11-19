@@ -242,9 +242,17 @@
           "contract": "docs/v2/contracts/V2_FILES_SEARCH_OFFSET.md",
           "evidence": "docs/evidence/v2-files-search-offset.json",
           "delivered": "files_search增offset分页(domain/files_search.py既有模块加SEARCH_MAX_OFFSET=1000/normalize_offset 0-1000 int拒bool/float/str、worker cap=offset+50收集上限四处50改cap+末尾page=results[offset:cap]切片text/data.matches用page+data增offset分派前校验、spec offset integer0-1000、routing不变)，truncated语义保持(达cap页外仍有或2000文件/5秒界命中)、offset超总数空页未截断、output_mode/context/target各态同切片、页<=50远小于MAX_FRAME1MiB；6新增专项合既有43过+103调用方(files_search43/worker_safety31/files_patch20)过0失败、strict410零错误(无新源文件)；regex/modified序/file_glob/ripgrep仍后续；无新表/迁移/路由/worker协议帧/源文件/跨平台改动；聚合索引暂缓"
+        },
+        {
+          "gap": "#1 工作区搜索之排序(order discovery|modified 修改时间最新优先)",
+          "status": "implemented_scoped_passed",
+          "batch": "K13.search_order",
+          "contract": "docs/v2/contracts/V2_FILES_SEARCH_ORDER.md",
+          "evidence": "docs/evidence/v2-files-search-order.json",
+          "delivered": "files_search增order排序轴(domain/files_search.py既有模块加SEARCH_ORDERS/normalize_order None→discovery拒bool/int/float/list/未知/大小写、worker order分派前校验+collect_all=modified禁用计数停止收集扫描界内全部命中使全局排序正确+平行mtimes列表每行附info.st_mtime+modified稳定sorted(range,key=-mtime,reverse=True)平局保持discovery序+page切片[offset:cap]+truncated扫描界或len>cap+data增order响应不暴露mtime、discovery路径字节等价零回归、spec order enum、routing不变)，V2无ripgrep/find依赖原生os.walk+stat.st_mtime实现修改时间序无需rg-14能力门，modified全局序仅既有有界扫描子集内(2000文件/5秒/256KB/每文件5命中)truncated标示界外、响应页<=50远小于MAX_FRAME1MiB；12新增专项合既有64过+115调用方(files_search64/worker_safety31/files_patch20)过0失败、strict410零错误(无新源文件,从仓库根运行config/.venv在根)、ruff check/format4文件unchanged；regex/file_glob/ripgrep/其他排序键仍后续；无新表/迁移/路由/worker协议帧/源文件/跨平台改动；聚合索引本批暂缓(project_index刷新源指纹后回退基线,并行会话活跃他会话并发提交a73ab321;无新源文件计数不变)"
         }
       ],
-      "limits": "只读审计无新工具/迁移/路由/源码改动；可离线缺口未在K13审计批实现(列后续批次)，其中缺口#1工作区搜索之内容搜索与文件名glob发现已在K13.search_files/K13.find_files后续批实现、缺口#2模糊补丁之核心normalizing策略搜索替换写工具已在K13.patch后续批实现(泛型files_*分派无需协议帧/跨平台改动)；搜索output_mode三态(content/files_with_matches/count)已在K13.search_modes、context邻接线(0-3)已在K13.search_context、offset分页(0-1000)已在K13.search_offset后续批实现、regex/modified序/file_glob/ripgrep、补丁escape/unicode/trimmed_boundary/indentation_flexible字符级/similarity/V4A多文件格式、浏览器对话框/cron技能绑定输出依赖/代码沙箱/原始CDP仍列后续；不宣称全集对等；既有todos重启竞态与5个pin v2_0039旧迁移测试沿用保留",
+      "limits": "只读审计无新工具/迁移/路由/源码改动；可离线缺口未在K13审计批实现(列后续批次)，其中缺口#1工作区搜索之内容搜索与文件名glob发现已在K13.search_files/K13.find_files后续批实现、缺口#2模糊补丁之核心normalizing策略搜索替换写工具已在K13.patch后续批实现(泛型files_*分派无需协议帧/跨平台改动)；搜索output_mode三态(content/files_with_matches/count)已在K13.search_modes、context邻接线(0-3)已在K13.search_context、offset分页(0-1000)已在K13.search_offset、order排序(discovery|modified修改时间最新优先)已在K13.search_order后续批实现、regex/file_glob/ripgrep、补丁escape/unicode/trimmed_boundary/indentation_flexible字符级/similarity/V4A多文件格式、浏览器对话框/cron技能绑定输出依赖/代码沙箱/原始CDP仍列后续；不宣称全集对等；既有todos重启竞态与5个pin v2_0039旧迁移测试沿用保留",
       "next": false
     },
     {

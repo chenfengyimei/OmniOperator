@@ -10,6 +10,7 @@ SEARCH_SNIPPET_CHARS = 200
 SEARCH_OUTPUT_MODES = ("content", "files_with_matches", "count")
 SEARCH_CONTEXT_LINES = 3
 SEARCH_MAX_OFFSET = 1000
+SEARCH_ORDERS = ("discovery", "modified")
 
 
 def normalize_query(value: object) -> str:
@@ -46,6 +47,15 @@ def normalize_offset(value: object) -> int:
         return 0
     if type(value) is not int or not 0 <= value <= SEARCH_MAX_OFFSET:
         raise ValueError("Search offset must be an integer from 0 to 1000")
+    return value
+
+
+def normalize_order(value: object) -> str:
+    """Result ordering: discovery (default, bounded traversal order) or modified (newest-first by file mtime)."""
+    if value is None:
+        return "discovery"
+    if not isinstance(value, str) or value not in SEARCH_ORDERS:
+        raise ValueError("Search order must be discovery or modified")
     return value
 
 
