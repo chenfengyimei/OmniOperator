@@ -67,21 +67,25 @@
     {
       "id": "K05",
       "title": "模型批次工具并行",
-      "status": "not_implemented",
+      "status": "implemented_scoped_passed",
       "acceptance": [
         "明确可并行分类，交互和有冲突动作串行",
         "每项原观察/审批/预算/生命周期保持",
         "结果按原调用顺序汇合，取消后不释放未结任务"
       ],
-      "reference": "hermes-agent/agent/tool_executor.py",
-      "next": true
+      "reference": "hermes-agent/agent/tool_executor.py; agent/tool_dispatch_helpers.py",
+      "delivered": "纯领域分段规划器与引擎_execute_parallel：已提供只读能力按两两不同资源键并发，控制/写/档位外/未知串行屏障；逐项_execute生命周期不变，结果按调用顺序汇合，兄弟动作先结算再按序抛错，取消等待每个已启动动作自身结算，unknown不重放",
+      "contract": "docs/v2/contracts/V2_TOOL_BATCH.md",
+      "evidence": "docs/evidence/v2-tool-batch.json",
+      "limits": "仅只读可并行；冲突基于显式资源键而非路径启发式；无批次总超时与新管理界面；无数据库迁移"
     },
     {
       "id": "K06",
       "title": "run内工具上下文压缩",
       "status": "partial",
       "remaining": "已有持久整回合压缩，缺run内有界压缩与继续；工具对不拆分、状态/任务清单保留、费用与来源删除仍可追溯",
-      "reference": "hermes-agent/agent/context_engine.py"
+      "reference": "hermes-agent/agent/context_engine.py",
+      "next": true
     },
     {
       "id": "K07",
@@ -185,6 +189,10 @@
     {
       "id": "K04",
       "evidence": "docs/evidence/v2-delegation.json"
+    },
+    {
+      "id": "K05",
+      "evidence": "docs/evidence/v2-tool-batch.json"
     }
   ]
 }

@@ -1,0 +1,90 @@
+{
+  "schema": 1,
+  "date": "2026-11-19",
+  "base_commit": "6f6592cbda96fb51144a56ddbdd59325cfba1e38",
+  "status": "model_tool_batch_parallelism_implemented_scoped_passed",
+  "contract": "docs/v2/contracts/V2_TOOL_BATCH.md",
+  "source_files": {
+    "agent/src/omni/domain/tool_batch.py": "fa06322f8b9a2819c527f666dfabab770b648fbb21224a498ae8dfae5fd31555",
+    "agent/src/omni/application/engine.py": "eaa4998e9f96220f2a6fefbcb7dc48585f8de6c1f37d4bc9a3deb37919c992c1",
+    "agent/tests/v2/core/test_v2_tool_batch.py": "ef46639fc3d7f5822e72381bc0460644896026a415dd9c7b02e7833eee1f69c1",
+    "pyrightconfig.strict.json": "5c37f0c393b5b320a300268f1acc44245b3903a4aef88f21233c7202335c1f4b"
+  },
+  "reference": {
+    "repository": "xuexi/hermes-agent",
+    "commit": "9976f4857b72439d79016354d7b6e1a3ee952e2f",
+    "files": {
+      "agent/tool_executor.py": "1084ce98afcc044cf93499c17b87db7687de6d9fa3a8e90a29f2525dfb98d532",
+      "agent/tool_dispatch_helpers.py": "bf4c6e4af26ba8a93ece9dfa6afa9a2e4d96bfe27ae854bd483a6613306c2cfc"
+    },
+    "adaptation": "Segmented planning, ordered join and cancel-hold behavior studied and independently adapted within V2 four layers; no third-party source copied, no remote fetch or real account/model used"
+  },
+  "delivered": [
+    "Pure domain planner domain/tool_batch.py: ordered parallel/serial segments, call order preserved exactly",
+    "Parallel admission only for offered read-only capabilities; request_mode/todo_list/delegate_task controls, all writes, tier-denied and unknown tools stay serial barriers",
+    "Conflict key = ToolSpec.resource or name; a parallel run admits pairwise-distinct keys, conflict closes the run; sub-two runs demote and adjacent serials merge",
+    "Application._execute_parallel gathers independent reads through the unchanged per-item _execute lifecycle (schema/prepare/resource lock/authorize/observe/timeout/settle)",
+    "Results appended in original call order regardless of finish order; next model input order asserted",
+    "Sibling actions settle before surfacing the first ordered error or action_outcome_unknown; unknown never replayed",
+    "Run cancellation cancels the group and waits for every started action's own settlement before parent cleanup; no executing residue, instance closes cleanly"
+  ],
+  "limits": {
+    "parallel_writes": false,
+    "conflict_basis": "explicit resource key, not Hermes path-overlap/destructive-command heuristics",
+    "batch_deadline": false,
+    "per_item_timeout_preserved": true,
+    "batch_call_limit": 32,
+    "new_management_ui": false,
+    "database_migration": false,
+    "second_kernel_or_state_store": false
+  },
+  "validation": {
+    "mode": "development_working_tree_scoped",
+    "frozen_source": null,
+    "scoped_passed": 144,
+    "failed": 0,
+    "seconds": 223.69,
+    "new_nodes": 15,
+    "scope": [
+      "New K05 planner core (8) and engine integration (7): concurrency overlap, ordered join, same-resource serial, write/approval barriers, two-write exclusive approval window, cancel settlement, unknown sibling settlement, per-action records",
+      "Existing execution/FIFO/approval/cancellation certainty",
+      "K04 delegation core (single/batch, budget, cancel join, unknown no-replay)",
+      "K03 task-list core and runtime restart reinjection",
+      "Kernel exclusive instance, lifecycle/close, capabilities, context/compression and context faults",
+      "Action-review execution, execution pruning, four-layer architecture guard"
+    ],
+    "strict": {
+      "config": "pyrightconfig.strict.json",
+      "files": 395,
+      "errors": 0,
+      "warnings": 0,
+      "seconds": 17.46,
+      "note": "scripts/run_pyright.py only covers 4 closed V1 files; V2 strict scope checked directly with pyright==1.1.414 -p pyrightconfig.strict.json; new domain/tool_batch.py added to include (394 -> 395)"
+    },
+    "ruff": "tool_batch.py, engine.py and test_v2_tool_batch.py lint and format-check passed",
+    "project_index": "scripts/project_index.py rerun after adding 2 files (modules=65 files=809 routes=446 declared_tools=94)",
+    "full_suite_executed": false,
+    "real_model_account_device_native_or_72h_executed": false,
+    "current_windows_service_or_database_touched": false
+  },
+  "retained_first_failures": [
+    {
+      "phase": "k05-r1",
+      "reason": "Two integration assertions read intermediate tool rows via app.messages/app.context, which only expose session messages and persisted snapshots; a failed run does not persist the in-memory tool rows (same as sequential). Corrected the success path to assert the model's second-round input order and the unknown path to assert failure code plus the sibling's settled real result; exact nodes rechecked green."
+    },
+    {
+      "phase": "strict-initial",
+      "reason": "reportUnnecessaryCast on the gather result; typeshed already infers list[ActionResult | BaseException]. Removed the redundant cast; final strict 395 files clean and full 144-node scoped rerun green on final source."
+    }
+  ],
+  "whole_core_parity_complete": false,
+  "whole_reference_feature_audit_complete": false,
+  "whole_v2_complete": false,
+  "not_executed": [
+    "Full offline suite for current source",
+    "Real accounts/models/devices/native desktop and 72h soak",
+    "Current Windows service restart/database upgrade",
+    "macOS/Linux actual native build or run"
+  ],
+  "next": "K06 in-run tool transcript compression with bounded resumable compaction; keep tool pairs intact, preserve state/task plan, fees and source erasure traceable; do not redo K03/K04/K05"
+}

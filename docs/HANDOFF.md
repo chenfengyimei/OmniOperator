@@ -3,7 +3,7 @@
 ## 当前状态与工作方式
 
 - 开发分支 `v2`，跟踪 `origin/v2`。默认入口是 V2，显式 V1 回退保留。
-- 当前工作：目录整理已完成；按 [Agent 内核与学习项目对标](v2/contracts/V2_AGENT_CORE_PARITY.md)持续补齐。K03 [修订化任务清单](v2/contracts/V2_TODOS.md)、K04 [单层父子 run 委派](v2/contracts/V2_DELEGATION.md)已接生产与同库持久化；下一项 K05 通用工具批次并行仍未实现。
+- 当前工作：目录整理已完成；按 [Agent 内核与学习项目对标](v2/contracts/V2_AGENT_CORE_PARITY.md)持续补齐。K03 [修订化任务清单](v2/contracts/V2_TODOS.md)、K04 [单层父子 run 委派](v2/contracts/V2_DELEGATION.md)、K05 [模型批次工具并行](v2/contracts/V2_TOOL_BATCH.md)已接生产；下一项 K06 run 内工具上下文压缩仍未实现。
 - Windows 主体开发及旧离线候选已完成；当前源码未统一全量，整个 V2 仍在开发。真实账号/模型质量/设备、干净机器及 72 小时验收分别待办。
 - Mac mini 为 Apple Silicon，所有者提供 macOS 27，实际版本在 Mac 用 `sw_vers` 核对。Mac 做主开发机，现有 Windows 保留运行和原生验收环境，两端同步同一分支。
 - 当前 Windows 服务、实例、凭据和其他会话的 `PPT/`、`docs/competition/` 保留。根 `src`/`tests` 是本机兼容联接，正式代码与测试分别在 `agent/src`、`agent/tests`。
@@ -34,7 +34,11 @@ K04 已接 `delegate_task` 单任务/批量生产链：每父生命周期最多 
 
 本批新增 30 项回归，冻结源码 121 项集成专项全过（189.42 秒），覆盖委派、K03、执行/FIFO/关闭、上下文/迁移、路由、技能、MCP、来源记忆与架构。最终 394 文件 strict 零错误/警告（16.35 秒）；测试候选后只有一处本地变量类型标注修正，无运行逻辑变化，指纹和首次失败见 [委派证据](evidence/v2-delegation.json)。未全量、未真实模型/原生/72 小时验收。
 
-下一批推进 G6.core_parity / K05 通用工具批次并行。先读现有 `_execute`、动作锁/审批和 capability 清理链，按冲突资源分类，只让符合条件的独立动作并行；结果保持原调用顺序，取消不释放仍执行的任务，unknown 不重放。K04 的子任务批内并行不能代替该项。之后继续 K06 run 内压缩及后续任务，其他对标项不提前关闭。
+K05 已接模型批次工具并行：纯领域 `domain/tool_batch.py` 分段规划器把批次切成有序 parallel/serial 段，严格保持调用顺序；只有本回合已提供的只读能力按两两不同资源键（`ToolSpec.resource or name`）并发，`request_mode`/`todo_list`/`delegate_task` 控制、所有写动作（独占 run 审批状态机）、档位外与未知能力一律串行屏障。并行经 `Application._execute_parallel` 的 `asyncio.gather` 派发，每项仍走原 `_execute` 的 schema/prepare/资源锁/authorize/观察/逐项超时/settle 生命周期；结果按原调用顺序写回（以模型第二轮实际输入断言），段内失败或 unknown 时兄弟动作先结算再按序抛错，unknown 不重放；run 取消时 gather 取消整组并等待每个已启动动作自身结算后才走父清理，无 executing 残留、实例可正常关闭。无数据库迁移、无第二内核/状态库。写动作并行需改造审批状态机，冲突分类基于显式资源键而非 Hermes 路径启发式，均不在本项范围。
+
+本批新增 15 项回归（8 规划器 + 7 引擎集成），最终源码 144 项专项全过（223.69 秒），覆盖 K05、执行/FIFO/审批/取消、K04 委派、K03 清单、内核/生命周期/能力、上下文/压缩与故障、动作审核执行、执行裁剪与四层架构守卫。V2 strict 用 `pyrightconfig.strict.json` 直接检查 395 文件零错误/警告（17.46 秒，新模块已加入 include，394→395）；注意 `scripts/run_pyright.py` 只覆盖 4 个 V1 收口文件，不能当作 V2 类型通过。Ruff 与格式检查通过，项目索引已更新。首轮两处断言误用 `app.messages`/`app.context` 读取未持久化的中间 tool 行、一处多余 cast 均已修正并在最终源码重跑绿。未全量、未真实模型/原生/72 小时验收，未停止或升级运行中的 Windows 服务与数据库。详见 [批次并行证据](evidence/v2-tool-batch.json)。
+
+下一批推进 G6.core_parity / K06 run 内工具上下文压缩：先读现有 `application/context.py` 整回合压缩与快照/摘要/删除屏障，补 run 内有界可续压缩，工具对不拆分、状态/任务清单保留、费用与来源删除仍可追溯。之后继续 K07 迭代预算/重复退化、K08 回合后学习、K11 停止前验核及后续任务，其他对标项不提前关闭。
 
 K03 新增 34 项回归；首轮冻结源码 114 项集成专项通过（182.82 秒），收尾补强 Agent 禁用检查后最终 34 项清单/HTTP 模块专项通过（39.09 秒），另 7 项目录/状态守卫通过。最终 391 文件 strict 零错误/警告，Ruff 与格式检查通过，未全量。每轮源码指纹与失败均保留，不把首轮结果写为最终源码全量。此前 K01/K02 批 `c4e205d8` 的结果见 [固定证据](evidence/v2-agent-core-parity.json)。测试只用隔离数据库与冻结源码，当前 Windows 服务和真实数据库未停止或由测试升级。
 

@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`6bea855022194d4cb45db2aa891db937d36dfb6d408c9c99d2bbb57c4e882c2d`。包含 65 个职责模块、808 个源码/界面文件。
+源码指纹：`6405a9cac0747bd76d0cfd030d25d1a4c15fdda18030ff4a2598812ee44cc35f`。包含 65 个职责模块、809 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -71,6 +71,7 @@
 | [agent/src/omni/domain/terminal_review.py](../../agent/src/omni/domain/terminal_review.py) | 87 | Owner observations of unknown terminal effects; never a receipt correction or replay authority. |
 | [agent/src/omni/domain/terminals.py](../../agent/src/omni/domain/terminals.py) | 124 | Explicit owner terminal requests and metadata identities; no model tools, shell execution or transcript storage. |
 | [agent/src/omni/domain/todos.py](../../agent/src/omni/domain/todos.py) | 166 | Bounded revisioned planning data and hierarchy rules; no execution or authorization. |
+| [agent/src/omni/domain/tool_batch.py](../../agent/src/omni/domain/tool_batch.py) | 65 | Model tool-batch segment planning: independent read-only capabilities may run in parallel. |
 | [agent/src/omni/domain/turn_prompt.py](../../agent/src/omni/domain/turn_prompt.py) | 45 | Freeze one run's system prefix; publish changed runtime guidance in the message tail. |
 
 文档：[docs/V2_REFACTOR.md](../../docs/V2_REFACTOR.md)
@@ -99,7 +100,7 @@
 | [agent/src/omni/application/desktop_control.py](../../agent/src/omni/application/desktop_control.py) | 383 | Owner/view-bound independent system-device consent and durable audit; never authorizes or dispatches an input action. |
 | [agent/src/omni/application/desktop_portal.py](../../agent/src/omni/application/desktop_portal.py) | 326 | Owner/view-scoped temporary share sessions with durable consent metadata; no image, native identity or input authorization. |
 | [agent/src/omni/application/documents.py](../../agent/src/omni/application/documents.py) | 360 | Source documents, explicitly requested local indexes and registered retrieval dependencies. |
-| [agent/src/omni/application/engine.py](../../agent/src/omni/application/engine.py) | 819 | One supervised runtime: admission, session FIFO, model/tool execution and shutdown. |
+| [agent/src/omni/application/engine.py](../../agent/src/omni/application/engine.py) | 917 | One supervised runtime: admission, session FIFO, model/tool execution and shutdown. |
 | [agent/src/omni/application/exchange_recovery.py](../../agent/src/omni/application/exchange_recovery.py) | 86 | Explicit offline exchange quarantine and new-directory rescue; no native changes or unknown-outcome erasure. |
 | [agent/src/omni/application/exchange_recovery_steps.py](../../agent/src/omni/application/exchange_recovery_steps.py) | 47 | Reuse release snapshots and fences for explicit quarantine/rescue; never clear a child unknown or call a manager. |
 | [agent/src/omni/application/exchange_steps.py](../../agent/src/omni/application/exchange_steps.py) | 139 | Compose existing release/registration/control use cases without holding instance locks across target startup. |

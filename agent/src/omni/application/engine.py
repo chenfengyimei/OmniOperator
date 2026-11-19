@@ -5,19 +5,29 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
-from collections.abc import Callable, Mapping
+from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass
 from typing import cast
 
 from jsonschema import Draft202012Validator
 
 from ..domain.agents import MAX_AGENTS, name_value, revision_value
-from ..domain.contracts import JSON, ActionResult, BusinessError, Effect, InvocationContext, Outcome, ToolSpec
+from ..domain.contracts import (
+    JSON,
+    ActionResult,
+    BusinessError,
+    Effect,
+    Invocation,
+    InvocationContext,
+    Outcome,
+    ToolSpec,
+)
 from ..domain.delegation import CHILD_CONCURRENCY, DELEGATE_TASK, SUMMARY_CHARS, inherited, record_tools, task_batch
 from ..domain.routing import REQUEST_MODE, select_tools
 from ..domain.routing import notice as route_notice
 from ..domain.settings import agent_settings_value, settings_value
 from ..domain.todos import TODO_LIST
+from ..domain.tool_batch import BatchEntry, plan_tool_batch
 from ..domain.turn_prompt import TurnPrompt
 from .context import ContextService
 from .images import ImageService
@@ -332,74 +342,51 @@ class Application:
                             ],
                         }
                     )
-                    for call in reply.calls:
-                        await self._checkpoint(agent_id, run_id)
-                        if call.name == "request_mode":
-                            validator = Draft202012Validator(REQUEST_MODE.parameters)
-                            check = cast(Callable[[object], bool], getattr(validator, "is_valid"))
-                            if not check(call.arguments):
-                                result = ActionResult(
-                                    Outcome.ERROR, "Invalid tier control arguments", error_code="invalid_tool_arguments"
-                                )
-                            else:
-                                try:
-                                    promoted = await self._db.write(
-                                        lambda u: u.route_promote(agent_id, run_id, str(call.arguments["mode"]))
-                                    )
-                                    result = ActionResult(
-                                        Outcome.OK,
-                                        f"Next call uses {promoted['mode']} tools. Captured model and authorization are unchanged.",
-                                    )
-                                except BusinessError as exc:
-                                    if exc.code not in {
-                                        "mode_escalation_disabled",
-                                        "mode_escalation_exhausted",
-                                        "mode_escalation_not_upward",
-                                        "mode_escalation_not_offered",
-                                    }:
-                                        raise
-                                    result = ActionResult(
-                                        Outcome.ERROR,
-                                        f"Tier request rejected: {exc.code}. No model or permission change occurred.",
-                                        error_code=exc.code,
-                                    )
-                        elif (
-                            call.name == DELEGATE_TASK.name
-                            and self._delegation_enabled
-                            and any(t.name == DELEGATE_TASK.name for t in tools)
-                        ):
-                            result = await self._delegate(agent_id, run_id, call.arguments)
-                        elif call.name == TODO_LIST.name and call.name in batch_registry and self._todos is not None:
-                            # Planning is an internal control like request_mode: no external
-                            # action, human approval or executable capability is created.
-                            result = await self._todos.invoke(
-                                call.name,
-                                call.arguments,
-                                operation_id=run_id,
-                                context=InvocationContext(
-                                    agent_id, run_id, str(run["session_id"]), self._revision(run["policy_epoch"])
-                                ),
-                            )
-                        elif call.name in registry and call.name not in batch_registry:
-                            result = ActionResult(
-                                Outcome.DENIED,
-                                "Tool is outside this call's tier. A tier request only changes the next call; permissions remain separate.",
-                                error_code="tool_outside_mode",
-                            )
-                        else:
-                            result = await self._execute(
+                    entries = tuple(self._batch_entry(call, registry, batch_registry, tools) for call in reply.calls)
+                    for kind, indices in plan_tool_batch(entries):
+                        if kind == "parallel":
+                            await self._checkpoint(agent_id, run_id)
+                            outcomes = await self._execute_parallel(
                                 agent_id,
                                 run_id,
-                                call.name,
-                                call.arguments,
+                                [reply.calls[index] for index in indices],
                                 self._revision(run["policy_epoch"]),
-                                registry=batch_registry,
+                                batch_registry,
                             )
-                        messages.append({"role": "tool", "tool_call_id": call.id, "content": result.text})
-                        if result.effect == Effect.UNKNOWN:
-                            raise BusinessError(
-                                "action_outcome_unknown", "An external action requires manual verification"
+                            failure: BaseException | None = None
+                            unknown = False
+                            for index, outcome in zip(indices, outcomes, strict=True):
+                                call = reply.calls[index]
+                                if isinstance(outcome, ActionResult):
+                                    messages.append({"role": "tool", "tool_call_id": call.id, "content": outcome.text})
+                                    unknown = unknown or outcome.effect == Effect.UNKNOWN
+                                elif failure is None:
+                                    failure = outcome
+                            if failure is not None:
+                                raise failure
+                            if unknown:
+                                raise BusinessError(
+                                    "action_outcome_unknown", "An external action requires manual verification"
+                                )
+                            continue
+                        for index in indices:
+                            call = reply.calls[index]
+                            await self._checkpoint(agent_id, run_id)
+                            result = await self._dispatch_call(
+                                agent_id,
+                                run_id,
+                                call,
+                                self._revision(run["policy_epoch"]),
+                                registry=registry,
+                                batch_registry=batch_registry,
+                                tools=tools,
+                                session_id=str(run["session_id"]),
                             )
+                            messages.append({"role": "tool", "tool_call_id": call.id, "content": result.text})
+                            if result.effect == Effect.UNKNOWN:
+                                raise BusinessError(
+                                    "action_outcome_unknown", "An external action requires manual verification"
+                                )
                 raise BusinessError("step_budget_exceeded", "The run reached its step limit")
             except asyncio.CancelledError:
                 if measured:
@@ -543,6 +530,117 @@ class Application:
         run = await self._db.read(lambda u: u.get_run(agent_id, run_id))
         if self._closing or run["state"] in {"cancelling", "cancelled"}:
             raise asyncio.CancelledError
+
+    def _batch_entry(
+        self,
+        call: Invocation,
+        registry: Mapping[str, Capability],
+        batch_registry: Mapping[str, Capability],
+        tools: tuple[ToolSpec, ...],
+    ) -> BatchEntry:
+        if call.name == "request_mode":
+            return BatchEntry(call.name)
+        if (
+            call.name == DELEGATE_TASK.name
+            and self._delegation_enabled
+            and any(t.name == DELEGATE_TASK.name for t in tools)
+        ):
+            return BatchEntry(call.name)
+        if call.name == TODO_LIST.name and call.name in batch_registry and self._todos is not None:
+            return BatchEntry(call.name)
+        cap = batch_registry.get(call.name)
+        # Writes own the exclusive approval state machine and unoffered/unknown tools resolve
+        # inline; only offered read-only capabilities are independent enough to run in parallel.
+        if cap is None or cap.spec.writes:
+            return BatchEntry(call.name)
+        return BatchEntry(call.name, resource=cap.spec.resource or call.name, parallel=True)
+
+    async def _dispatch_call(
+        self,
+        agent_id: str,
+        run_id: str,
+        call: Invocation,
+        policy: int,
+        *,
+        registry: Mapping[str, Capability],
+        batch_registry: Mapping[str, Capability],
+        tools: tuple[ToolSpec, ...],
+        session_id: str,
+    ) -> ActionResult:
+        if call.name == "request_mode":
+            validator = Draft202012Validator(REQUEST_MODE.parameters)
+            check = cast(Callable[[object], bool], getattr(validator, "is_valid"))
+            if not check(call.arguments):
+                return ActionResult(
+                    Outcome.ERROR, "Invalid tier control arguments", error_code="invalid_tool_arguments"
+                )
+            try:
+                promoted = await self._db.write(
+                    lambda u: u.route_promote(agent_id, run_id, str(call.arguments["mode"]))
+                )
+                return ActionResult(
+                    Outcome.OK,
+                    f"Next call uses {promoted['mode']} tools. Captured model and authorization are unchanged.",
+                )
+            except BusinessError as exc:
+                if exc.code not in {
+                    "mode_escalation_disabled",
+                    "mode_escalation_exhausted",
+                    "mode_escalation_not_upward",
+                    "mode_escalation_not_offered",
+                }:
+                    raise
+                return ActionResult(
+                    Outcome.ERROR,
+                    f"Tier request rejected: {exc.code}. No model or permission change occurred.",
+                    error_code=exc.code,
+                )
+        if (
+            call.name == DELEGATE_TASK.name
+            and self._delegation_enabled
+            and any(t.name == DELEGATE_TASK.name for t in tools)
+        ):
+            return await self._delegate(agent_id, run_id, call.arguments)
+        if call.name == TODO_LIST.name and call.name in batch_registry and self._todos is not None:
+            # Planning is an internal control like request_mode: no external
+            # action, human approval or executable capability is created.
+            return await self._todos.invoke(
+                call.name,
+                call.arguments,
+                operation_id=run_id,
+                context=InvocationContext(agent_id, run_id, session_id, policy),
+            )
+        if call.name in registry and call.name not in batch_registry:
+            return ActionResult(
+                Outcome.DENIED,
+                "Tool is outside this call's tier. A tier request only changes the next call; permissions remain separate.",
+                error_code="tool_outside_mode",
+            )
+        return await self._execute(agent_id, run_id, call.name, call.arguments, policy, registry=batch_registry)
+
+    async def _execute_parallel(
+        self,
+        agent_id: str,
+        run_id: str,
+        calls: Sequence[Invocation],
+        policy: int,
+        registry: Mapping[str, Capability],
+    ) -> list[ActionResult | BaseException]:
+        """Dispatch independent read-only calls concurrently, keeping original call order.
+
+        Every started action settles through its own ``_execute`` lifecycle before this returns;
+        cancelling the run cancels the group and waits for each settlement, never replaying a
+        dispatched call. Per-slot failures are returned in order so the caller can persist the
+        settled results before surfacing the first error.
+        """
+        tasks = [
+            asyncio.create_task(
+                self._execute(agent_id, run_id, call.name, call.arguments, policy, registry=registry),
+                name=f"tool-{run_id}-{call.id}",
+            )
+            for call in calls
+        ]
+        return await asyncio.gather(*tasks, return_exceptions=True)
 
     async def _execute(
         self,
