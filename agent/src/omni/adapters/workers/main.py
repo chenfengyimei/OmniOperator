@@ -20,7 +20,14 @@ if TYPE_CHECKING:
 
 from ...domain.contracts import JSON, ActionResult, Effect, Outcome
 from ...domain.files_patch import PatchError, patch_replace
-from ...domain.files_search import count_matches, match_lines, match_name, normalize_output_mode, normalize_query
+from ...domain.files_search import (
+    count_matches,
+    match_lines,
+    match_name,
+    normalize_context,
+    normalize_output_mode,
+    normalize_query,
+)
 from ..object_store import publish_file
 from .protocol import MAX_FRAME, encode_response
 from .protocol import request as decode_request
@@ -163,6 +170,7 @@ class Worker:
                 raise ValueError("Search target must be content or files")
             query = normalize_query(args.get("query"))
             output_mode = normalize_output_mode(args.get("output_mode"))
+            context_lines = normalize_context(args.get("context"))
             base = Path(context["workspace"]).resolve()
             results: list[dict[str, Any]] = []
             scanned = 0
@@ -206,8 +214,12 @@ class Worker:
                     except (UnicodeError, OSError):
                         continue
                     if output_mode == "content":
-                        for hit in match_lines(text, query):
-                            results.append({"path": relative, "line": hit["line"], "text": hit["text"]})
+                        for hit in match_lines(text, query, context_lines):
+                            row: dict[str, Any] = {"path": relative, "line": hit["line"], "text": hit["text"]}
+                            if context_lines > 0:
+                                row["before"] = hit["before"]
+                                row["after"] = hit["after"]
+                            results.append(row)
                             if len(results) >= 50:
                                 truncated = True
                                 break
@@ -230,6 +242,7 @@ class Worker:
                     "truncated": truncated,
                     "target": target,
                     "output_mode": output_mode,
+                    "context": context_lines,
                 },
             )
         if name == "files_patch":

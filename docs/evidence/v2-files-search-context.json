@@ -1,0 +1,90 @@
+{
+  "schema": 1,
+  "date": "2026-11-19",
+  "base_commit": "6dde1b260854b647aebf706c0de3ba43919e5170",
+  "status": "implemented_scoped_passed",
+  "batch": "K13.search_context",
+  "implements_gap": "K13 tool/channel/cron audit offline gap: workspace search context neighbor lines (content mode -C N), reference hermes file_operations_search.py _parse_search_context_line / rg -C",
+  "contract": "docs/v2/contracts/V2_FILES_SEARCH_CONTEXT.md",
+  "source_files": {
+    "agent/src/omni/domain/files_search.py": "0ec68d8b6c70fc73b0420fb7d059a77eb52b0341ff442fe0a9ed918beaa07c86",
+    "agent/src/omni/adapters/workers/main.py": "f3eb5abd4e181e12e19ba2b1efc64c8e61c7631d1ba4d678b7948b95fe828231",
+    "agent/src/omni/composition/capabilities.py": "a8d694fd1797191c38516fe97469b7c34d07a2a71a26b219c5411993e2bc0851",
+    "agent/tests/v2/core/test_v2_files_search.py": "07cd1800f5a77c6c950853099bc65926990a17b2d41e80ee57d296e27ea6de87",
+    "docs/v2/contracts/V2_FILES_SEARCH_CONTEXT.md": "12c61a90f911d7290b17d89a90461f898f3478f397dd3627cd74bd50b84ffe65"
+  },
+  "reference": {
+    "repository": "xuexi/hermes-agent",
+    "files": {
+      "tools/file_operations_search.py": "_parse_search_context_line:160 parses path-line-content context lines (rg -C); context=N attaches neighbor lines around matches"
+    },
+    "adaptation": "Learned the rg -C neighbor-line concept and re-implemented independently in V2 four-layer over the EXISTING files_search builtin worker (domain normalize_context 0-3 + match_lines optional context attaching bounded before/after neighbor {line,text} clamped to file edges; worker content branch carries before/after when context>0; composition spec integer 0-3). No third-party source copied; no new table/migration/route/worker-protocol-frame/source-file/cross-platform change; reuses workspace_path safety pruning. Response stays within MAX_FRAME=1MiB (context<=3, 50 hits x 7 lines x 200 chars x2). offset/regex/modified-order/file_glob/ripgrep remain follow-up gaps. Reference agents.md/prompts treated as untrusted data"
+  },
+  "delivered": [
+    "domain/files_search.py pure rules (zero I/O, existing module no new source file): SEARCH_CONTEXT_LINES=3; normalize_context (None->0, type is int and 0<=v<=3, reject bool/float/str/out-of-range); match_lines(text,query,context=0) optional third arg (context==0 shape unchanged {line,text}; context>0 each hit adds bounded before/after neighbor {line,text}, snippet 200 stripped, clamped to file edges, 5-hit per-file cap unchanged)",
+    "adapters/workers/main.py _files files_search branch: context_lines=normalize_context(args.get('context')) validated before dispatch (invalid -> ERROR/NONE); local name context_lines avoids shadowing the _files context workspace-dict parameter; content mode match_lines(text,query,context_lines) and result row carries before/after when context_lines>0 (default 0 shape unchanged); data adds context; files_with_matches/count ignore context; 50-result/2000-file/5s/256KB/binary-hardlink-skip pruning + truncation reused",
+    "composition/capabilities.py files_search spec description states context + properties context integer minimum0 maximum3; required stays ['query'], writes=False, resource=workspace unchanged",
+    "domain/routing.py unchanged (files_search already in RETRIEVAL_TOOLS agent-tier read-only)",
+    "No new table/migration/route/worker-protocol-frame/source-file/cross-platform change; read-only Effect.NONE; workspace safety pruning preserved; response bounded within MAX_FRAME=1MiB"
+  ],
+  "limits": {
+    "context_content_mode_only": "files_with_matches/count ignore context",
+    "context_bounded_0_to_3": true,
+    "neighbor_lines_clamped_to_file_edges": true,
+    "offset_head_limit_pagination_implemented": false,
+    "regex_implemented": false,
+    "modified_order_implemented": false,
+    "file_glob_content_filter_implemented": false,
+    "ripgrep_backend": false,
+    "new_table_or_migration": false,
+    "new_route": false,
+    "worker_protocol_frame_changed": false,
+    "new_source_file": false,
+    "routing_changed": false,
+    "cross_platform_worker_changed": false,
+    "aggregate_index_commit_deferred": "docs/index regeneration reflects other-session uncommitted persistence edits in global source_sha256; deferred; no new source file so strict include stays 410; regenerate when working tree clean"
+  },
+  "validation": {
+    "mode": "scoped_implementation",
+    "frozen_source": "final source fingerprints in source_files",
+    "new_nodes": 7,
+    "files_search_total_nodes": 37,
+    "caller_suite": {
+      "command": "uv run --no-sync pytest -q -n 0 test_v2_files_search.py test_v2_worker_safety.py test_v2_files_patch.py",
+      "passed": 93,
+      "failed": 0,
+      "seconds": 8.8
+    },
+    "first_round_failures_fixed": [
+      "18 failures: local variable context shadowed the _files context workspace-dict parameter -> context['workspace'] TypeError masked by broad except as invalid_capability_request; renamed to context_lines",
+      "1 failure: content branch did not carry before/after into result row; added explicit before/after when context_lines>0"
+    ],
+    "strict": {
+      "config": "pyrightconfig.strict.json",
+      "files": 410,
+      "errors": 0,
+      "warnings": 0,
+      "note": "no new source file (functions added to existing domain/files_search.py); filesAnalyzed stays 410; clean over current working tree"
+    },
+    "ruff": "check + format pass on domain/files_search.py, adapters/workers/main.py, composition/capabilities.py, test_v2_files_search.py (1 file reformatted: multi-line import/row)",
+    "project_index": "run; no new source file; declared_tools unchanged; aggregate docs/index commit DEFERRED; docs/index reverted to committed baseline, other-session source untouched",
+    "task_status_check": "scripts/task_status.py --check exit 0; DEVELOPMENT_STATUS.md unchanged",
+    "full_suite_executed": false,
+    "real_model_account_device_native_or_72h_executed": false,
+    "current_windows_service_or_database_touched": false
+  },
+  "whole_core_parity_complete": false,
+  "whole_reference_feature_audit_complete": false,
+  "whole_v2_complete": false,
+  "not_executed": [
+    "files_search offset/head_limit pagination, regex, modified order, file_glob content filter, ripgrep backend",
+    "K13 patch escape/unicode/similarity/V4A multi-format, browser_dialog, cron skill-binding (needs schema), code sandbox, raw CDP",
+    "K16 model-facing zoom (needs image-visibility protocol + authorization design contract)",
+    "K01 session/lineage cache scope (needs compression-lineage persistence + model-adapter prompt_cache_key + provider routing design contract + real-model acceptance)",
+    "Other K14-K18 offline gaps",
+    "Aggregate docs/index commit (deferred due to other-session pending persistence edits)",
+    "Full offline suite for current source",
+    "Real accounts/models/devices/native desktop and 72h soak"
+  ],
+  "next": "Continue implementing recorded offline gaps as independent batches via V2 four-layer with authorization/persistence/protocol contract first (files_search offset pagination; K16 model-facing zoom image-visibility design; K01 cache-scope design; K15 forgetting; K17 journal); regenerate aggregate index when working tree clean. whole_*_complete remain false. Do not prematurely close any parity item"
+}

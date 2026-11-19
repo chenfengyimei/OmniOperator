@@ -8,6 +8,7 @@ SEARCH_QUERY_CHARS = 200
 SEARCH_FILE_MATCHES = 5
 SEARCH_SNIPPET_CHARS = 200
 SEARCH_OUTPUT_MODES = ("content", "files_with_matches", "count")
+SEARCH_CONTEXT_LINES = 3
 
 
 def normalize_query(value: object) -> str:
@@ -29,16 +30,37 @@ def normalize_output_mode(value: object) -> str:
     return value
 
 
-def match_lines(text: str, query: str) -> list[dict[str, object]]:
+def normalize_context(value: object) -> int:
+    """Bounded neighbor lines around each content match (0 disables); keeps the response within the IPC frame."""
+    if value is None:
+        return 0
+    if type(value) is not int or not 0 <= value <= SEARCH_CONTEXT_LINES:
+        raise ValueError("Search context must be an integer from 0 to 3")
+    return value
+
+
+def match_lines(text: str, query: str, context: int = 0) -> list[dict[str, object]]:
     """Case-insensitive substring matches with 1-based line numbers and bounded snippets.
 
     At most SEARCH_FILE_MATCHES hits per file so one large file cannot exhaust the result budget.
+    With context>0 each hit also carries bounded before/after neighbor lines (clamped to file edges).
     """
     needle = query.casefold()
+    lines = text.splitlines()
     hits: list[dict[str, object]] = []
-    for lineno, line in enumerate(text.splitlines(), 1):
+    for index, line in enumerate(lines):
         if needle in line.casefold():
-            hits.append({"line": lineno, "text": line.strip()[:SEARCH_SNIPPET_CHARS]})
+            hit: dict[str, object] = {"line": index + 1, "text": line.strip()[:SEARCH_SNIPPET_CHARS]}
+            if context > 0:
+                hit["before"] = [
+                    {"line": j + 1, "text": lines[j].strip()[:SEARCH_SNIPPET_CHARS]}
+                    for j in range(max(0, index - context), index)
+                ]
+                hit["after"] = [
+                    {"line": j + 1, "text": lines[j].strip()[:SEARCH_SNIPPET_CHARS]}
+                    for j in range(index + 1, min(len(lines), index + 1 + context))
+                ]
+            hits.append(hit)
             if len(hits) >= SEARCH_FILE_MATCHES:
                 break
     return hits

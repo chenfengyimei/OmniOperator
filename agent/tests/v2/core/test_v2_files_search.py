@@ -8,7 +8,14 @@ import pytest
 
 from omni.adapters.workers.main import Worker
 from omni.domain.contracts import Effect, Outcome
-from omni.domain.files_search import count_matches, match_lines, match_name, normalize_output_mode, normalize_query
+from omni.domain.files_search import (
+    count_matches,
+    match_lines,
+    match_name,
+    normalize_context,
+    normalize_output_mode,
+    normalize_query,
+)
 from omni.domain.routing import CHAT_TOOLS, RETRIEVAL_TOOLS, select_tools
 
 
@@ -359,6 +366,80 @@ def test_files_search_spec_exposes_output_mode_enum(tmp_path):
             specs = tuple(c.spec for c in builtin_capabilities(db, DocumentService(db, objects)))
             parameters = next(s for s in specs if s.name == "files_search").parameters
             assert parameters["properties"]["output_mode"]["enum"] == ["content", "files_with_matches", "count"]
+            assert parameters["properties"]["context"] == {"type": "integer", "minimum": 0, "maximum": 3}
             assert parameters["required"] == ["query"]
+
+    asyncio.run(scenario())
+
+
+def test_normalize_context_defaults_and_rejects_out_of_range_or_non_int():
+    assert normalize_context(None) == 0
+    for value in (0, 1, 2, 3):
+        assert normalize_context(value) == value
+    for bad in (-1, 4, True, False, 1.5, "2", [1]):
+        with pytest.raises(ValueError):
+            normalize_context(bad)
+
+
+def test_match_lines_context_attaches_bounded_neighbors_and_clamps_edges():
+    text = "l1\nl2\nneedle\nl4\nl5\nl6"
+    hits = match_lines(text, "needle", 2)
+    assert hits[0]["line"] == 3 and hits[0]["text"] == "needle"
+    assert hits[0]["before"] == [{"line": 1, "text": "l1"}, {"line": 2, "text": "l2"}]
+    assert hits[0]["after"] == [{"line": 4, "text": "l4"}, {"line": 5, "text": "l5"}]
+    first = match_lines("needle\nb\nc", "needle", 3)[0]
+    assert first["before"] == [] and first["after"] == [{"line": 2, "text": "b"}, {"line": 3, "text": "c"}]
+    assert match_lines("a\nneedle", "needle", 0) == [{"line": 2, "text": "needle"}]
+
+
+def test_worker_content_mode_context_returns_neighbors(tmp_path):
+    (tmp_path / "a.txt").write_text("alpha\nbeta\nNeedle here\ngamma\ndelta", encoding="utf-8")
+
+    async def scenario():
+        result = await Worker().invoke("files_search", {"query": "needle", "context": 1}, {"workspace": str(tmp_path)})
+        assert result.status == Outcome.OK and result.effect == Effect.NONE
+        assert result.data["context"] == 1
+        hit = result.data["matches"][0]
+        assert hit["line"] == 3 and hit["text"] == "Needle here"
+        assert hit["before"] == [{"line": 2, "text": "beta"}]
+        assert hit["after"] == [{"line": 4, "text": "gamma"}]
+
+    asyncio.run(scenario())
+
+
+def test_worker_context_default_zero_shape_unchanged(tmp_path):
+    (tmp_path / "a.txt").write_text("alpha\nNeedle here\ngamma", encoding="utf-8")
+
+    async def scenario():
+        result = await Worker().invoke("files_search", {"query": "needle"}, {"workspace": str(tmp_path)})
+        assert result.data["context"] == 0
+        assert result.data["matches"] == [{"path": "a.txt", "line": 2, "text": "Needle here"}]
+
+    asyncio.run(scenario())
+
+
+def test_worker_context_ignored_for_count_mode(tmp_path):
+    (tmp_path / "a.txt").write_text("alpha\nneedle\nneedle", encoding="utf-8")
+
+    async def scenario():
+        result = await Worker().invoke(
+            "files_search", {"query": "needle", "output_mode": "count", "context": 3}, {"workspace": str(tmp_path)}
+        )
+        assert result.status == Outcome.OK
+        assert result.data["matches"] == [{"path": "a.txt", "count": 2}]
+
+    asyncio.run(scenario())
+
+
+@pytest.mark.parametrize("value", [-1, 4, True, "2", 1.5])
+def test_worker_search_rejects_invalid_context_before_dispatch(tmp_path, value):
+    (tmp_path / "a.py").write_text("needle", encoding="utf-8")
+
+    async def scenario():
+        result = await Worker().invoke(
+            "files_search", {"query": "needle", "context": value}, {"workspace": str(tmp_path)}
+        )
+        assert result.status == Outcome.ERROR and result.effect == Effect.NONE
+        assert result.error_code == "invalid_capability_request"
 
     asyncio.run(scenario())
