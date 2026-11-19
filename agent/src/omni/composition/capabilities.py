@@ -126,6 +126,20 @@ def builtin_capabilities(
             "browser",
         ),
         (
+            "browser_dialog",
+            "Accept or dismiss a native JS dialog (alert/confirm/prompt/beforeunload) held pending on the approved page; browser_read lists pending dialogs; prompt_text answers prompt() only (ignored otherwise); dialog_id is required when multiple dialogs are pending",
+            {
+                "action": {"type": "string", "enum": ["accept", "dismiss"]},
+                "prompt_text": {"type": "string", "maxLength": 2000},
+                "dialog_id": {"type": "string"},
+                "expected_url": {"type": "string"},
+            },
+            ["action", "expected_url"],
+            True,
+            browser,
+            "browser",
+        ),
+        (
             "document_search",
             "Search source documents; returned exact revision and character ranges are registered before use",
             {"query": {"type": "string", "minLength": 1, "maxLength": 500}},

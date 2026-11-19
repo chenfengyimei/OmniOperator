@@ -1,0 +1,39 @@
+{
+  "schema": 1,
+  "date": "2026-11-20",
+  "batch": "K13.browser_dialog",
+  "requirement": "K13",
+  "gap": "#3 浏览器对话框(browser_dialog)",
+  "status": "implemented_scoped_passed",
+  "contract": "docs/v2/contracts/V2_BROWSER_DIALOG.md",
+  "reference": "xuexi/hermes-agent tools/browser_dialog_tool.py 响应语义（固定提交 9976f485，独立实现于 V2 Playwright worker，不依赖参考 CDP supervisor）",
+  "production_wiring": [
+    "agent/src/omni/adapters/workers/main.py: PendingDialog/_dialog_rows/_dialogs/_dialog_seq per-agent 有界队列(上限8超出自动dismiss)，页面创建注册 page.on(dialog) 持有而非自动驳回；持有期间 navigate/click/fill 派发前拒、read 不求值返回队列信息；click/fill 触发对话框致 10 秒超时以持有队列为送达证据结算 APPLIED(无对话框超时仍 unknown)；browser_dialog accept/dismiss+prompt_text≤2000 仅 prompt+缺省空串+expected_url CAS+多对话框 browser_dialog_ambiguous 显式列候选 id+effects.dispatched 先行 unknown 不重放",
+    "agent/src/omni/composition/capabilities.py: browser_dialog spec writes=True resource=browser agent 档；routing 不变"
+  ],
+  "behavior_change": "原生对话框由 Playwright 自动驳回改为持有等待显式响应（参考 supervisor 语义）；加载期对话框阻塞 goto 至超时 unknown 不重放；合同与 HANDOFF 明示",
+  "tests": {
+    "new_regressions": 9,
+    "new_test_file": "agent/tests/v2/core/test_v2_browser_dialog.py（真实 Chromium + 127.0.0.1 本地 HTTP 夹具，离线）",
+    "caller_suites": "browser_dialog 9 + worker_safety 31 = 40（format 后终源复跑 91.68s）；routing 16 + capabilities + business_inventory + architecture + candidate_gate 合 80 过 0 失败 47.99s",
+    "command": "uv run --no-sync pytest -q -n 0 agent/tests/v2/core/test_v2_browser_dialog.py agent/tests/v2/core/test_v2_worker_safety.py agent/tests/v2/integrations/test_v2_routing.py agent/tests/v2/core/test_v2_capabilities.py agent/tests/v2/core/test_v2_business_inventory.py agent/tests/v2/core/test_v2_architecture.py agent/tests/v2/core/test_v2_candidate_gate.py",
+    "result": "all passed, 0 failed",
+    "first_round_failures": [
+      "click 被对话框阻塞渲染器确认 10 秒超时误判 unknown：超时+持有队列证据结算 APPLIED（对话框证明 onclick 已执行）",
+      "多对话框候选 id 被 worker 通用异常文本掩盖：专用 browser_dialog_ambiguous 显式 ERROR 回执列候选",
+      "prompt accept 缺省误期望页面 defaultValue：Playwright accept() 空串语义（与参考默认一致），修正断言",
+      "溢出用例误用 click（持有守卫派发前拒）：改页面定时器自发对话框触发溢出自动 dismiss"
+    ]
+  },
+  "strict": {
+    "config": "pyrightconfig.strict.json（仓库根运行）",
+    "batch_files_errors": 0,
+    "preexisting_errors": "5 错误均既有他会话已提交 adapters/persistence/repository.py（6bcb0e98 L633/659/710），不追逐",
+    "new_source_files": 0
+  },
+  "ruff": "check 通过；format 仅本批新增代码折叠，3 文件终检干净",
+  "no_changes": "无新表/迁移/HTTP 路由/worker 协议帧/源文件/跨平台改动；routing 不变；declared_tools 94→95（计数守卫未 pin）",
+  "limits": "无 CDP supervisor/browser_cdp/browser_exec 门控（另列缺口）；超时+持有证据结算在自发对话框与无关超时巧合时可能误判送达（有界）；加载期对话框 goto 超时 unknown；真实网站对话框质量另验",
+  "full_suite_for_current_source": false,
+  "real_account_device_model_acceptance": false
+}

@@ -298,9 +298,17 @@
           "contract": "docs/v2/contracts/V2_FILES_PATCH_DRIFT.md",
           "evidence": "docs/evidence/v2-files-patch-drift-guards.json",
           "delivered": "files_patch非exact命中后拼接前_detect_post_match_drift拒绝替换侧序列化伪影(引号\\'/\\\"同在old/new但匹配区域缺失/字面\\n逐区域计数盈余且区域含真实换行/反斜杠串恰2倍同串数非平凡信号区域≥2长串或≥2串且new串计数≠区域，平凡单串1→2不可区分不拒)→patch_escape_drift写前拒；_maybe_unescape_new_string仅匹配区域含真实控制字符时转换new字面\\t/\\r，\\n绝不重写防损坏源码字面量；exact跳过守卫(old==区域三类条件数学不成立)；spec描述更新；12新增专项共68过+225调用方(files_patch68/worker_safety31/files_search110/routing16)过0失败48.55秒(首轮平凡单串用例误期望保留缩进——跨度覆盖整行替换new原样修正+两字面量保留用例改行尾空白漂移强制line_trimmed)、strict本批文件零错误(余5既有他会话repository.py不追逐)、ruff通过；无新表/迁移/路由/协议帧/源文件/跨平台改动worker写管线不变；V4A多文件/_reindent_replacement替换侧缩进重锚仍后续"
+        },
+        {
+          "gap": "#3 浏览器对话框(browser_dialog)",
+          "status": "implemented_scoped_passed",
+          "batch": "K13.browser_dialog",
+          "contract": "docs/v2/contracts/V2_BROWSER_DIALOG.md",
+          "evidence": "docs/evidence/v2-browser-dialog.json",
+          "delivered": "browser_dialog写工具+对话框持有语义(adapters/workers/main.py页面创建注册page.on(dialog)由Playwright自动驳回改为per-agent有界队列持有上限8超出自动dismiss、PendingDialog id/type/message/default_value、持有期间navigate/click/fill派发前拒ERROR/NONE+read不求值返回pending_dialogs有界渲染message/default≤200、click/fill触发对话框阻塞渲染器确认10秒超时以持有队列为送达证据结算APPLIED附pending计数无对话框超时仍unknown、browser_dialog accept/dismiss+prompt_text≤2000仅prompt生效缺省空串Playwright语义+expected_url CAS复用+多对话框browser_dialog_ambiguous显式回执列候选id+未知id/非法action/超长非串拒+effects.dispatched先行unknown不重放+出队verification=page.url、capabilities spec writes=True resource=browser agent档routing不变)；行为变更合同明示：加载期对话框阻塞goto至30秒超时unknown不重放；9新增专项(真实Chromium+127.0.0.1本地HTTP离线夹具：alert持有/列出/派发前拒/accept、confirm驱动页面true/false、prompt text/dismiss null/缺省空串、prompt_text对alert忽略、五类非法拒保持持有、多对话框id消歧白盒、溢出自发对话框自动dismiss白盒+定时器、无持有read形状不变、spec写/档位)+40调用方(browser_dialog9/worker_safety31)format后复跑91.68秒+80守卫调用方(routing16/capabilities/business_inventory/architecture/candidate_gate)47.99秒全过、strict本批零错误(余5既有他会话repository.py不追逐)、ruff通过；首轮click阻塞超时误判unknown改证据结算+候选id被通用异常掩盖改专用错误码+prompt缺省空串语义+溢出改定时器自发；无新表/迁移/HTTP路由/协议帧/源文件/跨平台改动declared_tools94→95；CDP supervisor/browser_cdp/browser_exec门控/真实网站对话框质量仍后续"
         }
       ],
-      "limits": "只读审计无新工具/迁移/路由/源码改动；可离线缺口未在K13审计批实现(列后续批次)，其中缺口#1工作区搜索之内容搜索与文件名glob发现已在K13.search_files/K13.find_files后续批实现、缺口#2模糊补丁之核心normalizing策略搜索替换写工具已在K13.patch后续批实现(泛型files_*分派无需协议帧/跨平台改动)；搜索output_mode三态(content/files_with_matches/count)已在K13.search_modes、context邻接线(0-3)已在K13.search_context、offset分页(0-1000)已在K13.search_offset、order排序(discovery|modified修改时间最新优先)已在K13.search_order后续批实现、file_glob内容包含过滤已在K13.search_file_glob后续批实现、regex已在K13.search_regex后续批实现(use_regex保守静态安全门大小写敏感，拒嵌套量词/反向引用等超线性构造，非ripgrep全集)、ripgrep、补丁escape/unicode归一化策略已在K13.patch_strategies后续批实现(indentation_flexible/trimmed_boundary经证明被line_trimmed涵盖故省略)、similarity近似(block_anchor/context_aware)已在K13.patch_similarity后续批实现(首末锚定+中间/逐行SequenceMatcher阈值，近似命中禁止replace_all仅唯一替换复用指纹CAS/审批)、escape-drift自动纠正与boundary-note已在K13.patch_drift后续批实现(匹配前验证纠正引号/反斜杠倍增漂移、歧义显式拒、近似边界注记，patch_replace四元组返回)、匹配后漂移拒绝与替换侧解转义已在K13.patch_drift_guards后续批实现(引号嫌疑/字面\\n盈余/反斜杠2倍非平凡拒，\\t/\\r区域证据解转义\\n绝不重写)、V4A多文件格式/替换侧缩进重锚、浏览器对话框/cron技能绑定输出依赖/代码沙箱/原始CDP仍列后续；不宣称全集对等；既有todos重启竞态与5个pin v2_0039旧迁移测试沿用保留",
+      "limits": "只读审计无新工具/迁移/路由/源码改动；可离线缺口未在K13审计批实现(列后续批次)，其中缺口#1工作区搜索之内容搜索与文件名glob发现已在K13.search_files/K13.find_files后续批实现、缺口#2模糊补丁之核心normalizing策略搜索替换写工具已在K13.patch后续批实现(泛型files_*分派无需协议帧/跨平台改动)；搜索output_mode三态(content/files_with_matches/count)已在K13.search_modes、context邻接线(0-3)已在K13.search_context、offset分页(0-1000)已在K13.search_offset、order排序(discovery|modified修改时间最新优先)已在K13.search_order后续批实现、file_glob内容包含过滤已在K13.search_file_glob后续批实现、regex已在K13.search_regex后续批实现(use_regex保守静态安全门大小写敏感，拒嵌套量词/反向引用等超线性构造，非ripgrep全集)、ripgrep、补丁escape/unicode归一化策略已在K13.patch_strategies后续批实现(indentation_flexible/trimmed_boundary经证明被line_trimmed涵盖故省略)、similarity近似(block_anchor/context_aware)已在K13.patch_similarity后续批实现(首末锚定+中间/逐行SequenceMatcher阈值，近似命中禁止replace_all仅唯一替换复用指纹CAS/审批)、escape-drift自动纠正与boundary-note已在K13.patch_drift后续批实现(匹配前验证纠正引号/反斜杠倍增漂移、歧义显式拒、近似边界注记，patch_replace四元组返回)、匹配后漂移拒绝与替换侧解转义已在K13.patch_drift_guards后续批实现(引号嫌疑/字面\\n盈余/反斜杠2倍非平凡拒，\\t/\\r区域证据解转义\\n绝不重写)、V4A多文件格式/替换侧缩进重锚、浏览器对话框已在K13.browser_dialog后续批实现(Playwright对话框持有队列+accept/dismiss+prompt_text+expected_url CAS+多对话框id消歧，行为由自动驳回改持有)、cron技能绑定输出依赖/代码沙箱/原始CDP仍列后续；不宣称全集对等；既有todos重启竞态与5个pin v2_0039旧迁移测试沿用保留",
       "next": false
     },
     {
@@ -665,6 +673,10 @@
     {
       "id": "K13.patch_drift_guards",
       "evidence": "docs/evidence/v2-files-patch-drift-guards.json"
+    },
+    {
+      "id": "K13.browser_dialog",
+      "evidence": "docs/evidence/v2-browser-dialog.json"
     }
   ]
 }

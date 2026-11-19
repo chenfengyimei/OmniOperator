@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "1831b203dec9e454db639a4c0396bb0ad5a365262835b757312b3f74a6fe8e53",
+  "source_sha256": "fc45f431640e4a65df19c212ce7534463296feea6407a1dce6003b409b4b187e",
   "modules": [
     {
       "id": "v2-domain",
@@ -494,7 +494,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 68414,
+      "lines": 68530,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -529,7 +529,7 @@
         "agent/src/omni/composition/service_runner.py",
         "agent/src/omni/composition/serving.py"
       ],
-      "lines": 3231,
+      "lines": 3245,
       "dependencies": [
         "v2-adapters",
         "v2-application",
@@ -44137,7 +44137,7 @@
       "path": "agent/src/omni/adapters/workers/main.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.workers.main",
-      "lines": 456,
+      "lines": 572,
       "imports": [
         "omni.adapters.object_store",
         "omni.adapters.workers.protocol",
@@ -44152,8 +44152,24 @@
           "kind": "class"
         },
         {
+          "name": "PendingDialog",
+          "line": 55,
+          "kind": "class"
+        },
+        {
+          "name": "_dialog_rows",
+          "line": 63,
+          "kind": "function",
+          "parameters": [
+            "queue"
+          ],
+          "annotations": {
+            "queue": "list[PendingDialog]"
+          }
+        },
+        {
           "name": "workspace_path",
-          "line": 49,
+          "line": 75,
           "kind": "function",
           "parameters": [
             "root_text",
@@ -44166,12 +44182,12 @@
         },
         {
           "name": "Worker",
-          "line": 75,
+          "line": 101,
           "kind": "class"
         },
         {
           "name": "Worker.__init__",
-          "line": 76,
+          "line": 102,
           "kind": "function",
           "parameters": [
             "self"
@@ -44180,7 +44196,7 @@
         },
         {
           "name": "Worker.invoke",
-          "line": 82,
+          "line": 110,
           "kind": "function",
           "parameters": [
             "self",
@@ -44196,7 +44212,7 @@
         },
         {
           "name": "Worker._files",
-          "line": 116,
+          "line": 144,
           "kind": "function",
           "parameters": [
             "self",
@@ -44214,7 +44230,7 @@
         },
         {
           "name": "Worker._shell",
-          "line": 334,
+          "line": 362,
           "kind": "function",
           "parameters": [
             "self",
@@ -44230,7 +44246,7 @@
         },
         {
           "name": "Worker._shell.drain",
-          "line": 351,
+          "line": 379,
           "kind": "function",
           "parameters": [
             "stream"
@@ -44241,7 +44257,7 @@
         },
         {
           "name": "Worker._web",
-          "line": 382,
+          "line": 410,
           "kind": "function",
           "parameters": [
             "self",
@@ -44259,7 +44275,7 @@
         },
         {
           "name": "Worker.close",
-          "line": 427,
+          "line": 543,
           "kind": "function",
           "parameters": [
             "self"
@@ -44268,7 +44284,7 @@
         },
         {
           "name": "serve",
-          "line": 434,
+          "line": 550,
           "kind": "function",
           "parameters": [],
           "annotations": {}
@@ -71812,7 +71828,7 @@
       "path": "agent/src/omni/composition/capabilities.py",
       "module": "v2-composition",
       "python_module": "omni.composition.capabilities",
-      "lines": 223,
+      "lines": 237,
       "imports": [
         "omni.adapters.workers.client",
         "omni.application.documents",

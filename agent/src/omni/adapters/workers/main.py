@@ -16,7 +16,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any, cast
 
 if TYPE_CHECKING:
-    from playwright.async_api import Browser, BrowserContext, Page, Playwright
+    from playwright.async_api import Browser, BrowserContext, Dialog, Page, Playwright
 
 from ...domain.contracts import JSON, ActionResult, Effect, Outcome
 from ...domain.files_patch import PatchError, patch_replace
@@ -44,6 +44,32 @@ from .protocol import request as decode_request
 @dataclass
 class Effects:
     dispatched: bool = False
+
+
+DIALOG_QUEUE_LIMIT = 8
+DIALOG_PROMPT_CHARS = 2000
+DIALOG_MESSAGE_CHARS = 200
+
+
+@dataclass
+class PendingDialog:
+    id: str
+    type: str
+    message: str
+    default_value: str
+    dialog: Dialog
+
+
+def _dialog_rows(queue: list[PendingDialog]) -> list[dict[str, Any]]:
+    return [
+        {
+            "dialog_id": entry.id,
+            "type": entry.type,
+            "message": entry.message[:DIALOG_MESSAGE_CHARS],
+            "default_value": entry.default_value[:DIALOG_MESSAGE_CHARS],
+        }
+        for entry in queue
+    ]
 
 
 def workspace_path(root_text: str, relative: str) -> Path:
@@ -78,6 +104,8 @@ class Worker:
         self._browser: Browser | None = None
         self._contexts: dict[str, BrowserContext] = {}
         self._pages: dict[str, Page] = {}
+        self._dialogs: dict[str, list[PendingDialog]] = {}
+        self._dialog_seq: dict[str, int] = {}
 
     async def invoke(self, name: str, args: dict[str, Any], context: dict[str, Any]) -> ActionResult:
         effects = Effects()
@@ -392,14 +420,41 @@ class Worker:
         if agent not in self._contexts:
             self._contexts[agent] = await self._browser.new_context(accept_downloads=False)
             self._pages[agent] = await self._contexts[agent].new_page()
+            self._dialogs[agent] = []
+            self._dialog_seq[agent] = 0
+
+            def on_dialog(dialog: Dialog, agent: str = agent) -> None:
+                queue = self._dialogs[agent]
+                if len(queue) >= DIALOG_QUEUE_LIMIT:
+                    asyncio.get_running_loop().create_task(dialog.dismiss())
+                    return
+                self._dialog_seq[agent] += 1
+                queue.append(
+                    PendingDialog(
+                        str(self._dialog_seq[agent]), dialog.type, dialog.message, dialog.default_value, dialog
+                    )
+                )
+
+            self._pages[agent].on("dialog", on_dialog)
         page = self._pages[agent]
+        pending = self._dialogs[agent]
         if name == "browser_navigate":
+            if pending:
+                raise ValueError("A native dialog is pending; respond with browser_dialog first")
             url = str(args["url"])
             target = urlsplit(url)
             if target.scheme not in {"http", "https"} or target.username or target.password:
                 raise ValueError("Browser navigation requires a plain HTTP(S) URL")
             effects.dispatched = True
             await page.goto(url, timeout=30_000, wait_until="domcontentloaded")
+            if pending:
+                return ActionResult(
+                    Outcome.OK,
+                    "Navigation completed; a native dialog is pending — call browser_read then browser_dialog",
+                    Effect.APPLIED,
+                    verification=page.url,
+                    data={"url": page.url, "pending_dialogs": len(pending)},
+                )
             return ActionResult(
                 Outcome.OK,
                 (await page.locator("body").inner_text())[:80_000],
@@ -408,19 +463,80 @@ class Worker:
                 data={"title": await page.title(), "url": page.url},
             )
         if name == "browser_read":
+            if pending:
+                rows = _dialog_rows(pending)
+                return ActionResult(
+                    Outcome.OK,
+                    json.dumps({"pending_dialogs": rows}, ensure_ascii=False),
+                    data={"url": page.url, "pending_dialogs": cast(list[JSON], rows)},
+                )
             return ActionResult(Outcome.OK, (await page.locator("body").inner_text())[:80_000], data={"url": page.url})
+        if name == "browser_dialog":
+            if not pending:
+                raise ValueError("No native dialog is pending")
+            if page.url != args.get("expected_url"):
+                raise ValueError("Page changed since approval")
+            action = args.get("action")
+            if action not in {"accept", "dismiss"}:
+                raise ValueError("Dialog action must be accept or dismiss")
+            prompt_text = args.get("prompt_text")
+            if prompt_text is not None and (not isinstance(prompt_text, str) or len(prompt_text) > DIALOG_PROMPT_CHARS):
+                raise ValueError("prompt_text must be a string of at most 2000 characters")
+            dialog_id = args.get("dialog_id")
+            if len(pending) > 1 and dialog_id is None:
+                ids = ", ".join(entry.id for entry in pending)
+                return ActionResult(
+                    Outcome.ERROR,
+                    f"Multiple dialogs pending; pass dialog_id (candidates: {ids})",
+                    Effect.NONE,
+                    error_code="browser_dialog_ambiguous",
+                )
+            entry = pending[0] if dialog_id is None else next((d for d in pending if d.id == dialog_id), None)
+            if entry is None:
+                raise ValueError("Unknown dialog_id")
+            effects.dispatched = True
+            if action == "accept":
+                text = prompt_text if entry.type == "prompt" and isinstance(prompt_text, str) else None
+                await entry.dialog.accept(text)
+            else:
+                await entry.dialog.dismiss()
+            pending.remove(entry)
+            return ActionResult(
+                Outcome.OK,
+                "Dialog responded",
+                Effect.APPLIED,
+                verification=page.url,
+                data={"dialog_id": entry.id, "type": entry.type, "action": action},
+            )
         if name in {"browser_click", "browser_fill"}:
+            if pending:
+                raise ValueError("A native dialog is pending; respond with browser_dialog first")
             if page.url != args.get("expected_url"):
                 raise ValueError("Page changed since approval")
             locator = page.locator(str(args["selector"]))
             if await locator.count() != 1:
                 raise ValueError("Selector must identify exactly one element")
-            if name == "browser_fill":
-                effects.dispatched = True
-                await locator.fill(str(args["text"]), timeout=10_000)
-            else:
-                effects.dispatched = True
-                await locator.click(timeout=10_000)
+            from playwright.async_api import TimeoutError as PlaywrightTimeoutError
+
+            effects.dispatched = True
+            try:
+                if name == "browser_fill":
+                    await locator.fill(str(args["text"]), timeout=10_000)
+                else:
+                    await locator.click(timeout=10_000)
+            except PlaywrightTimeoutError:
+                # A dialog opened by the action blocks the renderer ack; the held dialog
+                # itself proves the input landed, so settle as applied instead of unknown.
+                if not pending:
+                    raise
+            if pending:
+                return ActionResult(
+                    Outcome.OK,
+                    "Browser action completed; a native dialog is pending — call browser_read then browser_dialog",
+                    Effect.APPLIED,
+                    verification=page.url,
+                    data={"pending_dialogs": len(pending)},
+                )
             return ActionResult(Outcome.OK, "Browser action completed", Effect.APPLIED, verification=page.url)
         raise ValueError("Unknown browser capability")
 
