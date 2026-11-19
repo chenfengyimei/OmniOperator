@@ -4,9 +4,11 @@ from __future__ import annotations
 
 import re
 from collections.abc import Callable
+from difflib import SequenceMatcher
 
 PATCH_STRING_CHARS = 64 * 1024
 Span = tuple[int, int]
+SIMILARITY_STRATEGIES = frozenset({"block_anchor", "context_aware"})
 UNICODE_MAP = {
     "\u201c": '"',
     "\u201d": '"',
@@ -141,6 +143,68 @@ def _unicode_spans(content: str, old_string: str) -> list[Span]:
     return _map_positions_norm_to_orig(_build_orig_to_norm_map(content), norm_matches)
 
 
+def _window_spans(content: str, n: int, accept: Callable[[int], bool]) -> list[Span]:
+    content_lines = content.splitlines(keepends=True)
+    if n <= 0 or n > len(content_lines):
+        return []
+    offsets = [0]
+    for line in content_lines:
+        offsets.append(offsets[-1] + len(line))
+    return [(offsets[i], offsets[i + n]) for i in range(len(content_lines) - n + 1) if accept(i)]
+
+
+def _block_anchor_spans(content: str, old_string: str) -> list[Span]:
+    pattern_lines = _unicode_normalize(old_string).splitlines()
+    n = len(pattern_lines)
+    if n < 2:
+        return []
+    first_line = pattern_lines[0].strip()
+    last_line = pattern_lines[-1].strip()
+    norm_content_lines = [_unicode_normalize(line) for line in content.splitlines()]
+    if n > len(norm_content_lines):
+        return []
+    potential = {
+        i
+        for i in range(len(norm_content_lines) - n + 1)
+        if norm_content_lines[i].strip() == first_line and norm_content_lines[i + n - 1].strip() == last_line
+    }
+    if not potential:
+        return []
+    threshold = 0.50 if len(potential) == 1 else 0.70
+    pattern_middle = "\n".join(pattern_lines[1:-1])
+
+    def accept(i: int) -> bool:
+        if i not in potential:
+            return False
+        if n <= 2:
+            return True
+        content_middle = "\n".join(norm_content_lines[i + 1 : i + n - 1])
+        return SequenceMatcher(None, content_middle, pattern_middle).ratio() >= threshold
+
+    return _window_spans(content, n, accept)
+
+
+def _context_aware_spans(content: str, old_string: str) -> list[Span]:
+    pattern_lines = old_string.splitlines()
+    n = len(pattern_lines)
+    content_cmp = content.splitlines()
+    if n <= 0 or n > len(content_cmp):
+        return []
+    first_pat = pattern_lines[0].strip()
+    last_pat = pattern_lines[-1].strip()
+
+    def sim(a: str, b: str) -> float:
+        return 1.0 if a == b else SequenceMatcher(None, a, b).ratio()
+
+    def accept(i: int) -> bool:
+        block = content_cmp[i : i + n]
+        if sim(first_pat, block[0].strip()) < 0.80 or sim(last_pat, block[-1].strip()) < 0.80:
+            return False
+        return all(not p.strip() or sim(p.strip(), c.strip()) >= 0.80 for p, c in zip(pattern_lines, block))
+
+    return _window_spans(content, n, accept)
+
+
 def is_already_applied(content: str, old_string: str, new_string: str) -> bool:
     """Conservative: new_string non-trivial (>=8 chars) present exactly and old_string gone."""
     if not new_string or len(new_string.strip()) < 8 or new_string not in content:
@@ -154,7 +218,8 @@ def patch_replace(
     """Unique fuzzy search-replace via an ordered normalizing strategy chain.
 
     Returns (new_content, match_count, strategy). Ambiguous matches are rejected unless
-    replace_all; blank/identical anchors and no-match are explicit errors, never silent edits.
+    replace_all; approximate similarity matches (block_anchor/context_aware) never allow
+    replace_all. Blank/identical anchors and no-match are explicit errors, never silent edits.
     """
     if not isinstance(old_string, str) or not isinstance(new_string, str):
         raise PatchError("patch_invalid", "old_string and new_string must be strings")
@@ -170,16 +235,20 @@ def patch_replace(
         ("line_whitespace", _whitespace_spans),
         ("escape_normalized", _escape_spans),
         ("unicode_normalized", _unicode_spans),
+        ("block_anchor", _block_anchor_spans),
+        ("context_aware", _context_aware_spans),
     )
     for name, find in strategies:
         spans = find(content, old_string)
         if not spans:
             continue
-        if len(spans) > 1 and not replace_all:
-            raise PatchError(
-                "patch_ambiguous",
-                f"Found {len(spans)} matches for old_string; provide more context or use replace_all",
+        if len(spans) > 1 and (not replace_all or name in SIMILARITY_STRATEGIES):
+            hint = (
+                "approximate matches cannot use replace_all; provide the precise text"
+                if name in SIMILARITY_STRATEGIES
+                else "provide more context or use replace_all"
             )
+            raise PatchError("patch_ambiguous", f"Found {len(spans)} matches for old_string; {hint}")
         patched = content
         for start, end in reversed(spans):
             patched = patched[:start] + new_string + patched[end:]

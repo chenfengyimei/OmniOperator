@@ -266,9 +266,17 @@
           "contract": "docs/v2/contracts/V2_FILES_PATCH_STRATEGIES.md",
           "evidence": "docs/evidence/v2-files-patch-strategies.json",
           "delivered": "files_patch策略链追加escape_normalized(字面\\n/\\t/\\r解转义后exact,无字面转义则落空)与unicode_normalized(UNICODE_MAP22项智能引号/破折号—→--/省略号…→.../数学减号/Zs空格族→ASCII,双侧归一no-op守卫,exact或line_trimmed回退,经orig↔norm索引映射处理1→多字符扩展回映射原始字符跨度)，链exact→line_trimmed→line_whitespace→escape→unicode前三不变零回归；经证明indentation_flexible(lstrip)/trimmed_boundary(首末strip+中间精确)均被line_trimmed(strip-all)涵盖(lstrip相等⟹strip相等)首命中即胜链中永不触发故省略(零匹配力损失避免死代码)；唯一性守卫/blank/identical/no_match/already_applied不变、unicode扩展回映射保证替换落原始字符边界无漂移、worker写管线(指纹CAS/原子publish/unknown不重放/审批)不变、spec描述更新；12新增专项合既有32过+140调用方(files_patch32/files_search77/worker_safety31)过0失败、ruff通过、strict410文件5错误均既有他会话已提交repository.py(6bcb0e98 L633/659/710 RowMapping/JSON)本批files_patch/capabilities零错误不追逐；similarity(block_anchor/context_aware)/V4A多文件/escape-drift自动纠正仍后续；无新表/迁移/路由/协议帧/源文件/跨平台改动；聚合索引暂缓"
+        },
+        {
+          "gap": "#2 模糊补丁之similarity近似策略(block_anchor/context_aware)",
+          "status": "implemented_scoped_passed",
+          "batch": "K13.patch_similarity",
+          "contract": "docs/v2/contracts/V2_FILES_PATCH_SIMILARITY.md",
+          "evidence": "docs/evidence/v2-files-patch-similarity.json",
+          "delivered": "files_patch策略链末追加block_anchor(8)与context_aware(9)近似兜底(stdlib difflib.SequenceMatcher无新依赖无正则DoS)，仅前五精确/归一化策略全落空时触发(零回归)；block_anchor首末unicode归一strip锚定预筛+中间SequenceMatcher.ratio≥0.50(唯一锚)/0.70(多锚)、n≥2、n≤2直通；context_aware首末sim≥0.80+每非空模式行sim≥0.80(sim=1.0若等否则ratio)；_window_spans复用既有keepends精确行边界偏移；SIMILARITY_STRATEGIES={block_anchor,context_aware}关键安全闸：patch_replace歧义守卫改为len(spans)>1且(not replace_all或name∈SIMILARITY_STRATEGIES)→patch_ambiguous(近似命中永不许replace_all即便replace_all=True多匹配仍拒)，仅唯一近似命中可在所有者审批+指纹CAS下替换，低相似度→显式patch_no_match无静默误编辑；capabilities spec描述更新；worker写管线(指纹CAS/原子publish/unknown不重放/审批)不变；9新增专项合既有32过41(files_patch41/files_search77/worker_safety31)149过0失败11.31秒、ruff通过、strict410文件5错误均既有他会话已提交repository.py(6bcb0e98 L633/659/710)本批files_patch/capabilities零错误不追逐；V4A多文件/escape-drift自动纠正/boundary-note诊断仍后续；无新表/迁移/路由/协议帧/源文件/跨平台改动；聚合索引暂缓"
         }
       ],
-      "limits": "只读审计无新工具/迁移/路由/源码改动；可离线缺口未在K13审计批实现(列后续批次)，其中缺口#1工作区搜索之内容搜索与文件名glob发现已在K13.search_files/K13.find_files后续批实现、缺口#2模糊补丁之核心normalizing策略搜索替换写工具已在K13.patch后续批实现(泛型files_*分派无需协议帧/跨平台改动)；搜索output_mode三态(content/files_with_matches/count)已在K13.search_modes、context邻接线(0-3)已在K13.search_context、offset分页(0-1000)已在K13.search_offset、order排序(discovery|modified修改时间最新优先)已在K13.search_order后续批实现、file_glob内容包含过滤已在K13.search_file_glob后续批实现、regex/ripgrep、补丁escape/unicode归一化策略已在K13.patch_strategies后续批实现(indentation_flexible/trimmed_boundary经证明被line_trimmed涵盖故省略)、similarity近似/V4A多文件格式/escape-drift自动纠正、浏览器对话框/cron技能绑定输出依赖/代码沙箱/原始CDP仍列后续；不宣称全集对等；既有todos重启竞态与5个pin v2_0039旧迁移测试沿用保留",
+      "limits": "只读审计无新工具/迁移/路由/源码改动；可离线缺口未在K13审计批实现(列后续批次)，其中缺口#1工作区搜索之内容搜索与文件名glob发现已在K13.search_files/K13.find_files后续批实现、缺口#2模糊补丁之核心normalizing策略搜索替换写工具已在K13.patch后续批实现(泛型files_*分派无需协议帧/跨平台改动)；搜索output_mode三态(content/files_with_matches/count)已在K13.search_modes、context邻接线(0-3)已在K13.search_context、offset分页(0-1000)已在K13.search_offset、order排序(discovery|modified修改时间最新优先)已在K13.search_order后续批实现、file_glob内容包含过滤已在K13.search_file_glob后续批实现、regex/ripgrep、补丁escape/unicode归一化策略已在K13.patch_strategies后续批实现(indentation_flexible/trimmed_boundary经证明被line_trimmed涵盖故省略)、similarity近似(block_anchor/context_aware)已在K13.patch_similarity后续批实现(首末锚定+中间/逐行SequenceMatcher阈值，近似命中禁止replace_all仅唯一替换复用指纹CAS/审批)、V4A多文件格式/escape-drift自动纠正、浏览器对话框/cron技能绑定输出依赖/代码沙箱/原始CDP仍列后续；不宣称全集对等；既有todos重启竞态与5个pin v2_0039旧迁移测试沿用保留",
       "next": false
     },
     {

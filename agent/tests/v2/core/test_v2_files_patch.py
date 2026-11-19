@@ -343,3 +343,85 @@ def test_worker_patch_unicode_normalized(tmp_path):
 def test_indentation_drift_subsumed_by_line_trimmed():
     # Reference indentation_flexible (lstrip) is provably subsumed by line_trimmed (strip-all).
     assert patch_replace("\tfoo\n", "    foo\n", "bar\n") == ("bar\n", 1, "line_trimmed")
+
+
+def test_block_anchor_unique_middle_drift():
+    out = patch_replace("head\nmiddle one\nfoot\n", "head\nmiddle two\nfoot\n", "head\nREPLACED\nfoot\n")
+    assert out == ("head\nREPLACED\nfoot\n", 1, "block_anchor")
+
+
+def test_block_anchor_rejects_low_similarity_middle():
+    with pytest.raises(PatchError) as caught:
+        patch_replace("head\nxxxxxxxxxxxxxxxxxxxx\nfoot\n", "head\nmiddle two\nfoot\n", "X\n")
+    assert caught.value.code == "patch_no_match"
+
+
+def test_block_anchor_multiple_anchors_ambiguous_even_replace_all():
+    content = "head\nmiddle one\nfoot\nhead\nmiddle one\nfoot\n"
+    for replace_all in (False, True):
+        with pytest.raises(PatchError) as caught:
+            patch_replace(content, "head\nmiddle two\nfoot\n", "X\n", replace_all=replace_all)
+        assert caught.value.code == "patch_ambiguous"
+
+
+def test_context_aware_approximate_boundary_lines():
+    out = patch_replace("head one\nmiddle\nfoot one\n", "head onX\nmiddle\nfoot onX\n", "REPLACED\n")
+    assert out == ("REPLACED\n", 1, "context_aware")
+
+
+def test_context_aware_rejects_low_similarity_middle_line():
+    with pytest.raises(PatchError) as caught:
+        patch_replace("head\nxxxxxxxxxxxxxxxxxxxx\nfoot\n", "head\nmiddle\nfoot\n", "X\n")
+    assert caught.value.code == "patch_no_match"
+
+
+def test_context_aware_single_line_last_resort():
+    assert patch_replace("hello world\n", "hello worlds\n", "X\n") == ("X\n", 1, "context_aware")
+
+
+def test_precise_strategy_wins_over_similarity():
+    assert patch_replace("head\nmiddle one\nfoot\n", "head\nmiddle one\nfoot\n", "X\n")[2] == "exact"
+
+
+def test_worker_patch_block_anchor(tmp_path):
+    put(tmp_path / "a.txt", "head\nmiddle one\nfoot\n")
+
+    async def scenario():
+        result = await Worker().invoke(
+            "files_patch",
+            {
+                "path": "a.txt",
+                "old_string": "head\nmiddle two\nfoot\n",
+                "new_string": "head\nREPLACED\nfoot\n",
+                "expected_sha256": digest("head\nmiddle one\nfoot\n"),
+            },
+            {"workspace": str(tmp_path)},
+        )
+        assert result.status == Outcome.OK and result.effect == Effect.APPLIED
+        assert result.data["strategy"] == "block_anchor"
+        assert (tmp_path / "a.txt").read_bytes() == b"head\nREPLACED\nfoot\n"
+
+    asyncio.run(scenario())
+
+
+def test_worker_patch_similarity_ambiguous_leaves_file_unchanged(tmp_path):
+    content = "head\nmiddle one\nfoot\nhead\nmiddle one\nfoot\n"
+    put(tmp_path / "a.txt", content)
+
+    async def scenario():
+        result = await Worker().invoke(
+            "files_patch",
+            {
+                "path": "a.txt",
+                "old_string": "head\nmiddle two\nfoot\n",
+                "new_string": "X\n",
+                "replace_all": True,
+                "expected_sha256": digest(content),
+            },
+            {"workspace": str(tmp_path)},
+        )
+        assert result.status == Outcome.ERROR and result.effect == Effect.NONE
+        assert result.error_code == "patch_ambiguous"
+        assert (tmp_path / "a.txt").read_bytes() == content.encode("utf-8")
+
+    asyncio.run(scenario())
