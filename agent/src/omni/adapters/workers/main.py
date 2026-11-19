@@ -20,7 +20,7 @@ if TYPE_CHECKING:
 
 from ...domain.contracts import JSON, ActionResult, Effect, Outcome
 from ...domain.files_patch import PatchError, patch_replace
-from ...domain.files_search import match_lines, match_name, normalize_query
+from ...domain.files_search import count_matches, match_lines, match_name, normalize_output_mode, normalize_query
 from ..object_store import publish_file
 from .protocol import MAX_FRAME, encode_response
 from .protocol import request as decode_request
@@ -162,6 +162,7 @@ class Worker:
             if target not in {"content", "files"}:
                 raise ValueError("Search target must be content or files")
             query = normalize_query(args.get("query"))
+            output_mode = normalize_output_mode(args.get("output_mode"))
             base = Path(context["workspace"]).resolve()
             results: list[dict[str, Any]] = []
             scanned = 0
@@ -204,11 +205,19 @@ class Worker:
                         text = checked.read_bytes().decode("utf-8-sig")
                     except (UnicodeError, OSError):
                         continue
-                    for hit in match_lines(text, query):
-                        results.append({"path": relative, "line": hit["line"], "text": hit["text"]})
-                        if len(results) >= 50:
-                            truncated = True
-                            break
+                    if output_mode == "content":
+                        for hit in match_lines(text, query):
+                            results.append({"path": relative, "line": hit["line"], "text": hit["text"]})
+                            if len(results) >= 50:
+                                truncated = True
+                                break
+                    elif output_mode == "files_with_matches":
+                        if match_lines(text, query):
+                            results.append({"path": relative})
+                    else:
+                        total = count_matches(text, query)
+                        if total:
+                            results.append({"path": relative, "count": total})
                 if len(results) >= 50 or scanned >= 2000 or time.monotonic() > deadline:
                     truncated = True
                     break
@@ -220,6 +229,7 @@ class Worker:
                     "scanned": scanned,
                     "truncated": truncated,
                     "target": target,
+                    "output_mode": output_mode,
                 },
             )
         if name == "files_patch":

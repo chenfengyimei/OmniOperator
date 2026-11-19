@@ -8,7 +8,7 @@ import pytest
 
 from omni.adapters.workers.main import Worker
 from omni.domain.contracts import Effect, Outcome
-from omni.domain.files_search import match_lines, match_name, normalize_query
+from omni.domain.files_search import count_matches, match_lines, match_name, normalize_output_mode, normalize_query
 from omni.domain.routing import CHAT_TOOLS, RETRIEVAL_TOOLS, select_tools
 
 
@@ -254,5 +254,111 @@ def test_worker_search_rejects_invalid_target(tmp_path):
         )
         assert result.status == Outcome.ERROR and result.effect == Effect.NONE
         assert result.error_code == "invalid_capability_request"
+
+    asyncio.run(scenario())
+
+
+def test_normalize_output_mode_defaults_and_rejects_unknown():
+    assert normalize_output_mode(None) == "content"
+    for mode in ("content", "files_with_matches", "count"):
+        assert normalize_output_mode(mode) == mode
+    for bad in ("bogus", "", "CONTENT", 5, True, ["content"]):
+        with pytest.raises(ValueError):
+            normalize_output_mode(bad)
+
+
+def test_count_matches_counts_all_lines_beyond_per_file_hit_cap():
+    text = "alpha\n" * 12 + "beta\n"
+    assert count_matches(text, "ALPHA") == 12
+    assert count_matches(text, "zzz") == 0
+    assert count_matches("one alpha two\nalpha again", "alpha") == 2
+
+
+def test_worker_output_mode_files_with_matches_returns_distinct_paths(tmp_path):
+    (tmp_path / "a.txt").write_text("needle\nneedle again\nneedle third", encoding="utf-8")
+    (tmp_path / "b.txt").write_text("nothing here", encoding="utf-8")
+    (tmp_path / "sub").mkdir()
+    (tmp_path / "sub" / "c.txt").write_text("a needle", encoding="utf-8")
+
+    async def scenario():
+        result = await Worker().invoke(
+            "files_search", {"query": "needle", "output_mode": "files_with_matches"}, {"workspace": str(tmp_path)}
+        )
+        assert result.status == Outcome.OK and result.effect == Effect.NONE
+        assert result.data["output_mode"] == "files_with_matches"
+        matches = result.data["matches"]
+        assert {Path(m["path"]).as_posix() for m in matches} == {"a.txt", "sub/c.txt"}
+        assert all(set(m) == {"path"} for m in matches)
+
+    asyncio.run(scenario())
+
+
+def test_worker_output_mode_count_returns_full_per_file_totals(tmp_path):
+    (tmp_path / "a.txt").write_text("alpha\n" * 12 + "beta\n", encoding="utf-8")
+    (tmp_path / "b.txt").write_text("no hit", encoding="utf-8")
+
+    async def scenario():
+        result = await Worker().invoke(
+            "files_search", {"query": "alpha", "output_mode": "count"}, {"workspace": str(tmp_path)}
+        )
+        assert result.status == Outcome.OK
+        assert result.data["output_mode"] == "count"
+        matches = result.data["matches"]
+        assert matches == [{"path": "a.txt", "count": 12}]
+
+    asyncio.run(scenario())
+
+
+def test_worker_output_mode_content_default_shape_unchanged(tmp_path):
+    (tmp_path / "a.txt").write_text("first\nNeedle here\nlast", encoding="utf-8")
+
+    async def scenario():
+        result = await Worker().invoke("files_search", {"query": "needle"}, {"workspace": str(tmp_path)})
+        assert result.data["output_mode"] == "content"
+        assert result.data["matches"] == [{"path": "a.txt", "line": 2, "text": "Needle here"}]
+
+    asyncio.run(scenario())
+
+
+def test_worker_output_mode_count_caps_files_and_truncates(tmp_path):
+    for index in range(60):
+        (tmp_path / f"f{index:03d}.txt").write_text("needle", encoding="utf-8")
+
+    async def scenario():
+        result = await Worker().invoke(
+            "files_search", {"query": "needle", "output_mode": "count"}, {"workspace": str(tmp_path)}
+        )
+        assert result.status == Outcome.OK
+        assert len(result.data["matches"]) == 50 and result.data["truncated"] is True
+        assert all(m["count"] == 1 for m in result.data["matches"])
+
+    asyncio.run(scenario())
+
+
+@pytest.mark.parametrize("mode", ["bogus", "", 5, True])
+def test_worker_search_rejects_invalid_output_mode_before_dispatch(tmp_path, mode):
+    (tmp_path / "a.py").write_text("needle", encoding="utf-8")
+
+    async def scenario():
+        result = await Worker().invoke(
+            "files_search", {"query": "needle", "output_mode": mode}, {"workspace": str(tmp_path)}
+        )
+        assert result.status == Outcome.ERROR and result.effect == Effect.NONE
+        assert result.error_code == "invalid_capability_request"
+
+    asyncio.run(scenario())
+
+
+def test_files_search_spec_exposes_output_mode_enum(tmp_path):
+    from omni_test_support.v2.documents import Clock, DocumentService, opened
+
+    from omni.composition.capabilities import builtin_capabilities
+
+    async def scenario():
+        async with opened(tmp_path, Clock()) as (_, db, objects, _agent):
+            specs = tuple(c.spec for c in builtin_capabilities(db, DocumentService(db, objects)))
+            parameters = next(s for s in specs if s.name == "files_search").parameters
+            assert parameters["properties"]["output_mode"]["enum"] == ["content", "files_with_matches", "count"]
+            assert parameters["required"] == ["query"]
 
     asyncio.run(scenario())

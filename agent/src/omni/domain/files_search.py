@@ -7,6 +7,7 @@ import fnmatch
 SEARCH_QUERY_CHARS = 200
 SEARCH_FILE_MATCHES = 5
 SEARCH_SNIPPET_CHARS = 200
+SEARCH_OUTPUT_MODES = ("content", "files_with_matches", "count")
 
 
 def normalize_query(value: object) -> str:
@@ -17,6 +18,15 @@ def normalize_query(value: object) -> str:
     if not 1 <= len(query) <= SEARCH_QUERY_CHARS or any(ord(c) < 32 for c in query):
         raise ValueError("Search query must be 1-200 characters without control bytes")
     return query
+
+
+def normalize_output_mode(value: object) -> str:
+    """Content-search result shape: matching lines (default), distinct paths, or per-file match counts."""
+    if value is None:
+        return "content"
+    if not isinstance(value, str) or value not in SEARCH_OUTPUT_MODES:
+        raise ValueError("Search output_mode must be content, files_with_matches or count")
+    return value
 
 
 def match_lines(text: str, query: str) -> list[dict[str, object]]:
@@ -37,3 +47,9 @@ def match_lines(text: str, query: str) -> list[dict[str, object]]:
 def match_name(filename: str, pattern: str) -> bool:
     """Case-sensitive glob against the file basename; a directory prefix in the pattern is stripped (rg --files semantics)."""
     return fnmatch.fnmatchcase(filename, pattern.rsplit("/", 1)[-1])
+
+
+def count_matches(text: str, query: str) -> int:
+    """Total matching lines in one file (case-insensitive substring); the file is already size-bounded by the caller."""
+    needle = query.casefold()
+    return sum(1 for line in text.splitlines() if needle in line.casefold())

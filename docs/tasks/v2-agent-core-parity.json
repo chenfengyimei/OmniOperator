@@ -218,9 +218,17 @@
           "contract": "docs/v2/contracts/V2_FILES_PATCH.md",
           "evidence": "docs/evidence/v2-files-patch.json",
           "delivered": "files_patch写工具(domain/files_patch.py新纯规则patch_replace三normalizing策略exact字符级/line_trimmed整行strip/line_whitespace行内折叠+唯一性守卫ambiguous拒绝除非replace_all+blank/identical/no_match/already_applied显式码+右到左非重叠行边界span替换、worker _files新分支复用workspace_path安全+files_write原子publish链+强制expected_sha256 CAS+严格bool replace_all+PatchError→ERROR/NONE不写+中途异常UNKNOWN不重放、capabilities writes=True spec、routing不变写工具agent档)；20专项+88调用方(patch20/worker_safety31/files_search21/routing16)过0失败(首轮Windows write_text换行译致测试指纹不符改write_bytes)、strict410零错误(新源文件409→410,形参object修Any|None+冗余isinstance)；escape/unicode/trimmed_boundary/indentation_flexible字符级/similarity/V4A多文件格式仍列后续；无新表/迁移/路由/worker协议帧/跨平台改动；聚合索引暂缓"
+        },
+        {
+          "gap": "#1 工作区搜索之输出模式(output_mode content/files_with_matches/count)",
+          "status": "implemented_scoped_passed",
+          "batch": "K13.search_modes",
+          "contract": "docs/v2/contracts/V2_FILES_SEARCH_MODES.md",
+          "evidence": "docs/evidence/v2-files-search-modes.json",
+          "delivered": "files_search增output_mode轴(domain/files_search.py既有模块加SEARCH_OUTPUT_MODES/normalize_output_mode None→content三态校验/count_matches全量命中行计数不受5命中上限、worker _files content分支按mode产出content命中行/files_with_matches去重{path}/count每文件{path,count}+data增output_mode分派前校验非法ERROR/NONE、composition spec output_mode enum+desc、routing不变)，复用既有files_search builtin worker与workspace_path安全剪枝50结果/2000文件/5秒/256KB界；9新增专项合既有30过+83调用方(files_search30/worker_safety31/files_patch20)过0失败+routing16过、strict410零错误(无新源文件)；count为每文件命中行总数非全文出现次数；context邻接线/offset分页/regex/modified序/file_glob/ripgrep仍后续；无新表/迁移/路由/worker协议帧/源文件/跨平台改动；聚合索引暂缓"
         }
       ],
-      "limits": "只读审计无新工具/迁移/路由/源码改动；可离线缺口未在K13审计批实现(列后续批次)，其中缺口#1工作区搜索之内容搜索与文件名glob发现已在K13.search_files/K13.find_files后续批实现、缺口#2模糊补丁之核心normalizing策略搜索替换写工具已在K13.patch后续批实现(泛型files_*分派无需协议帧/跨平台改动)；搜索regex/output_mode/context/offset/modified序/file_glob/ripgrep、补丁escape/unicode/trimmed_boundary/indentation_flexible字符级/similarity/V4A多文件格式、浏览器对话框/cron技能绑定输出依赖/代码沙箱/原始CDP仍列后续；不宣称全集对等；既有todos重启竞态与5个pin v2_0039旧迁移测试沿用保留",
+      "limits": "只读审计无新工具/迁移/路由/源码改动；可离线缺口未在K13审计批实现(列后续批次)，其中缺口#1工作区搜索之内容搜索与文件名glob发现已在K13.search_files/K13.find_files后续批实现、缺口#2模糊补丁之核心normalizing策略搜索替换写工具已在K13.patch后续批实现(泛型files_*分派无需协议帧/跨平台改动)；搜索output_mode三态(content/files_with_matches/count)已在K13.search_modes后续批实现、regex/context/offset/modified序/file_glob/ripgrep、补丁escape/unicode/trimmed_boundary/indentation_flexible字符级/similarity/V4A多文件格式、浏览器对话框/cron技能绑定输出依赖/代码沙箱/原始CDP仍列后续；不宣称全集对等；既有todos重启竞态与5个pin v2_0039旧迁移测试沿用保留",
       "next": false
     },
     {
