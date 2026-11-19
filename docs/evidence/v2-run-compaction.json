@@ -1,0 +1,86 @@
+{
+  "schema": 1,
+  "date": "2026-11-19",
+  "base_commit": "f5480fda3e671cb957b06c090075425ef3de1bef",
+  "status": "in_run_tool_transcript_compaction_implemented_scoped_passed",
+  "contract": "docs/v2/contracts/V2_RUN_COMPACTION.md",
+  "source_files": {
+    "agent/src/omni/domain/context.py": "98202d75147c7544aa73c95709b49eaaa7051fd2bebf3f86d934591f66298a2e",
+    "agent/src/omni/application/context.py": "ce8bb544a51667f88bd02381f32a458cfc69bbe8a9c4a709c9cd5da9deff34d6",
+    "agent/src/omni/application/engine.py": "af1303ff7fe6b7bbd0ebbaf1a1fd0d40a91cc9131efb0bfba70d1b2495030e60",
+    "agent/tests/v2/core/test_v2_run_compaction.py": "84d04a5172ea513789af5d9838d8c10a97deb9180d7947332e24585c97ba5c35"
+  },
+  "reference": {
+    "repository": "xuexi/hermes-agent",
+    "commit": "9976f4857b72439d79016354d7b6e1a3ee952e2f",
+    "files": {
+      "agent/context_engine.py": "516a4961c59af4c1048dc523b83f135b1fd0089423775fbe3fc04ffdcdb45cbb"
+    },
+    "adaptation": "Bounded compaction and tool-pair-preserving pruning behavior studied and independently adapted within V2 four layers; no third-party source copied, no remote fetch or real account/model used"
+  },
+  "delivered": [
+    "Pure domain rules: tool_round_starts, run_compaction_window (head_end/cut keeping recent rounds), bounded_tool_summary_sources",
+    "ContextService.compact_run: size-triggered in-run compaction of old complete tool rounds into one bounded summary",
+    "Tool pairs never split: compressed rounds replaced whole; recent RUN_COMPACT_KEEP_ROUNDS rounds and tail runtime/todo notice preserved intact",
+    "Frozen system prefix and initial head untouched (K01 TurnPrompt invariant holds across compaction)",
+    "Summary billed as purpose=summary call through reserve_call/invoke(reserved_id)/settle_call with the same authorization and erasure guards; fee traceable via query(calls)",
+    "Summary tool calls rejected without dispatch; summary failure/budget shortfall settles the call and leaves the transcript unchanged, no replay",
+    "Engine run loop calls compact_run before each model invoke; long runs continue past the token/character hard limit"
+  ],
+  "limits": {
+    "trigger_chars": 24000,
+    "keep_rounds": 2,
+    "summary_input_chars": 32000,
+    "summary_chars": 4000,
+    "compresses": "in-memory live run tool transcript only; persisted whole-turn prepare compression unchanged",
+    "single_oversized_kept_round_may_exceed_hard_limit": true,
+    "summary_input_truncation_lossy_for_very_old_huge_rounds": true,
+    "new_management_ui": false,
+    "database_migration": false,
+    "second_kernel_or_state_store": false
+  },
+  "validation": {
+    "mode": "development_working_tree_scoped",
+    "frozen_source": null,
+    "scoped_passed": 154,
+    "failed": 0,
+    "seconds": 240.09,
+    "new_nodes": 10,
+    "scope": [
+      "New K06 domain rules (5) and engine integration (5): compaction preserves pairs/frozen prefix/bills summary, short run no-op, repeated compaction keeps recent rounds, summary tool calls rejected without actions, kept recent rounds never split",
+      "Existing context compression/summary/erasure/faults and legacy schema recovery",
+      "Execution/FIFO/approval/cancellation certainty and K05 tool batch parallelism",
+      "K04 delegation core, K03 task-list core and restart reinjection",
+      "Kernel exclusive instance, lifecycle/close, capabilities, action-review execution, execution pruning, four-layer architecture guard"
+    ],
+    "strict": {
+      "config": "pyrightconfig.strict.json",
+      "files": 395,
+      "errors": 0,
+      "warnings": 0,
+      "seconds": 18.58,
+      "note": "K06 adds functions to existing domain/context.py and application/context.py (no new source file); strict include unchanged at 395 from K05"
+    },
+    "ruff": "domain/context.py, application/context.py, engine.py and test_v2_run_compaction.py lint and format-check passed",
+    "project_index": "scripts/project_index.py rerun after adding the new test file",
+    "full_suite_executed": false,
+    "real_model_account_device_native_or_72h_executed": false,
+    "current_windows_service_or_database_touched": false
+  },
+  "retained_first_failures": [
+    {
+      "phase": "k06-r1",
+      "reason": "bounded_tool_summary_sources unit test used a budget that excluded the second source entirely (per-message +64 overhead); corrected the budget arithmetic to exercise truncation. All 10 K06 nodes green on first engine run and rechecked after formatting."
+    }
+  ],
+  "whole_core_parity_complete": false,
+  "whole_reference_feature_audit_complete": false,
+  "whole_v2_complete": false,
+  "not_executed": [
+    "Full offline suite for current source",
+    "Real accounts/models/devices/native desktop and 72h soak",
+    "Current Windows service restart/database upgrade",
+    "macOS/Linux actual native build or run"
+  ],
+  "next": "K07 iteration budget grace/recovery, repetition detection and degeneration exit within explicit budget; do not relax limits or replay unknown calls; do not redo K03/K04/K05/K06"
+}

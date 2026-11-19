@@ -318,6 +318,7 @@ class Application:
                         + (await self._skills.notice(agent_id, run_id) if self._skills and not remote else "")
                         + await self._todo_notice(agent_id, run_id, tools),
                     )
+                    await self._contexts.compact_run(agent_id, run_id, messages, tools, settings)
                     reply = await self._calls.invoke(
                         agent_id, run_id, messages, tools, settings, baseline_tools=baseline
                     )

@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`6405a9cac0747bd76d0cfd030d25d1a4c15fdda18030ff4a2598812ee44cc35f`。包含 65 个职责模块、809 个源码/界面文件。
+源码指纹：`ec98cc428c1e1a74e06bc47b2e86c6e47246788639d0526293e647c405a50389`。包含 65 个职责模块、809 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -19,7 +19,7 @@
 | [agent/src/omni/domain/bilibili.py](../../agent/src/omni/domain/bilibili.py) | 346 | Explicit Bilibili form profiles, targets and mention ranges; no browser, network or storage. |
 | [agent/src/omni/domain/capabilities.py](../../agent/src/omni/domain/capabilities.py) | 116 | Read-only capability projection over the instance health snapshot; no I/O and no acceptance claims. |
 | [agent/src/omni/domain/configuration.py](../../agent/src/omni/domain/configuration.py) | 164 | Typed configuration payloads and fingerprints; contains no I/O or credential values. |
-| [agent/src/omni/domain/context.py](../../agent/src/omni/domain/context.py) | 56 | Bounded conversation policy; whole turns are the smallest compression unit. |
+| [agent/src/omni/domain/context.py](../../agent/src/omni/domain/context.py) | 106 | Bounded conversation policy; whole turns are the smallest compression unit. |
 | [agent/src/omni/domain/contracts.py](../../agent/src/omni/domain/contracts.py) | 170 | Typed execution contracts and state transitions; performs no I/O. |
 | [agent/src/omni/domain/credential_ipc.py](../../agent/src/omni/domain/credential_ipc.py) | 109 | Bounded native credential messages; no platform selection, imports or diagnostics payloads. |
 | [agent/src/omni/domain/credentials.py](../../agent/src/omni/domain/credentials.py) | 79 | Credential reference and payload bounds; contains no secret store or platform dependency. |
@@ -91,7 +91,7 @@
 | [agent/src/omni/application/android.py](../../agent/src/omni/application/android.py) | 802 | Owner Android device grants, ephemeral observations and shared approved actions; no platform I/O. |
 | [agent/src/omni/application/bilibili.py](../../agent/src/omni/application/bilibili.py) | 210 | Owner Bilibili queries and publication preparation; all sending remains in shared approvals/outbox. |
 | [agent/src/omni/application/configuration.py](../../agent/src/omni/application/configuration.py) | 184 | Owner configuration use cases; import only previews and never starts an adapter. |
-| [agent/src/omni/application/context.py](../../agent/src/omni/application/context.py) | 245 | Token-aware bounded compression; external calls never hold a transaction. |
+| [agent/src/omni/application/context.py](../../agent/src/omni/application/context.py) | 327 | Token-aware bounded compression; external calls never hold a transaction. |
 | [agent/src/omni/application/credentials.py](../../agent/src/omni/application/credentials.py) | 185 | Serialize audited owner credential changes; shield accepted mutations through caller cancellation. |
 | [agent/src/omni/application/debugging.py](../../agent/src/omni/application/debugging.py) | 122 | Boot-scoped debug authorization, durable audit and bounded maintenance; no log files here. |
 | [agent/src/omni/application/delivery.py](../../agent/src/omni/application/delivery.py) | 428 | Supervised, bounded outbound execution; never supplies a real transport by default. |
@@ -100,7 +100,7 @@
 | [agent/src/omni/application/desktop_control.py](../../agent/src/omni/application/desktop_control.py) | 383 | Owner/view-bound independent system-device consent and durable audit; never authorizes or dispatches an input action. |
 | [agent/src/omni/application/desktop_portal.py](../../agent/src/omni/application/desktop_portal.py) | 326 | Owner/view-scoped temporary share sessions with durable consent metadata; no image, native identity or input authorization. |
 | [agent/src/omni/application/documents.py](../../agent/src/omni/application/documents.py) | 360 | Source documents, explicitly requested local indexes and registered retrieval dependencies. |
-| [agent/src/omni/application/engine.py](../../agent/src/omni/application/engine.py) | 917 | One supervised runtime: admission, session FIFO, model/tool execution and shutdown. |
+| [agent/src/omni/application/engine.py](../../agent/src/omni/application/engine.py) | 918 | One supervised runtime: admission, session FIFO, model/tool execution and shutdown. |
 | [agent/src/omni/application/exchange_recovery.py](../../agent/src/omni/application/exchange_recovery.py) | 86 | Explicit offline exchange quarantine and new-directory rescue; no native changes or unknown-outcome erasure. |
 | [agent/src/omni/application/exchange_recovery_steps.py](../../agent/src/omni/application/exchange_recovery_steps.py) | 47 | Reuse release snapshots and fences for explicit quarantine/rescue; never clear a child unknown or call a manager. |
 | [agent/src/omni/application/exchange_steps.py](../../agent/src/omni/application/exchange_steps.py) | 139 | Compose existing release/registration/control use cases without holding instance locks across target startup. |

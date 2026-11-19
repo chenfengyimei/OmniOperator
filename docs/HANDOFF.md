@@ -3,7 +3,7 @@
 ## 当前状态与工作方式
 
 - 开发分支 `v2`，跟踪 `origin/v2`。默认入口是 V2，显式 V1 回退保留。
-- 当前工作：目录整理已完成；按 [Agent 内核与学习项目对标](v2/contracts/V2_AGENT_CORE_PARITY.md)持续补齐。K03 [修订化任务清单](v2/contracts/V2_TODOS.md)、K04 [单层父子 run 委派](v2/contracts/V2_DELEGATION.md)、K05 [模型批次工具并行](v2/contracts/V2_TOOL_BATCH.md)已接生产；下一项 K06 run 内工具上下文压缩仍未实现。
+- 当前工作：目录整理已完成；按 [Agent 内核与学习项目对标](v2/contracts/V2_AGENT_CORE_PARITY.md)持续补齐。K03 [修订化任务清单](v2/contracts/V2_TODOS.md)、K04 [单层父子 run 委派](v2/contracts/V2_DELEGATION.md)、K05 [模型批次工具并行](v2/contracts/V2_TOOL_BATCH.md)、K06 [run 内工具上下文压缩](v2/contracts/V2_RUN_COMPACTION.md)已接生产；下一项 K07 迭代预算/重复退化与收敛仍未实现。
 - Windows 主体开发及旧离线候选已完成；当前源码未统一全量，整个 V2 仍在开发。真实账号/模型质量/设备、干净机器及 72 小时验收分别待办。
 - Mac mini 为 Apple Silicon，所有者提供 macOS 27，实际版本在 Mac 用 `sw_vers` 核对。Mac 做主开发机，现有 Windows 保留运行和原生验收环境，两端同步同一分支。
 - 当前 Windows 服务、实例、凭据和其他会话的 `PPT/`、`docs/competition/` 保留。根 `src`/`tests` 是本机兼容联接，正式代码与测试分别在 `agent/src`、`agent/tests`。
@@ -38,7 +38,11 @@ K05 已接模型批次工具并行：纯领域 `domain/tool_batch.py` 分段规�
 
 本批新增 15 项回归（8 规划器 + 7 引擎集成），最终源码 144 项专项全过（223.69 秒），覆盖 K05、执行/FIFO/审批/取消、K04 委派、K03 清单、内核/生命周期/能力、上下文/压缩与故障、动作审核执行、执行裁剪与四层架构守卫。V2 strict 用 `pyrightconfig.strict.json` 直接检查 395 文件零错误/警告（17.46 秒，新模块已加入 include，394→395）；注意 `scripts/run_pyright.py` 只覆盖 4 个 V1 收口文件，不能当作 V2 类型通过。Ruff 与格式检查通过，项目索引已更新。首轮两处断言误用 `app.messages`/`app.context` 读取未持久化的中间 tool 行、一处多余 cast 均已修正并在最终源码重跑绿。未全量、未真实模型/原生/72 小时验收，未停止或升级运行中的 Windows 服务与数据库。详见 [批次并行证据](evidence/v2-tool-batch.json)。
 
-下一批推进 G6.core_parity / K06 run 内工具上下文压缩。已核实的架构起点：run 内工具转录只存在于内存 `messages`（持久化 `s.messages` 仅由 `_message` 在 submit 写 user、finish 写最终 assistant，中间 assistant tool_calls/tool 结果不落消息行，仅进 context_snapshots）；`ModelCalls.invoke` 在 `serialized_request(messages, tools) > CONTEXT_CHARS`（48000）时硬失败 `context_budget_exceeded`，长 run 多轮工具会撞限而非压缩。现有 `ContextService.prepare` 压缩作用于持久化整回合（`domain/context.py` 的 `turns` 按 run_id 分组，最小单位整回合），在 run 起点执行。K06 需对内存 live 转录的**旧完整工具轮**（assistant tool_calls + 其全部匹配 tool 结果为一轮，绝不拆对）做有界可续压缩：保留 `TurnPrompt` 冻结的 messages[0] 系统前缀（K01）、保留近若干轮与 todo 尾部通知、复用 `summary_request`/`reserve_call(purpose="summary")`/`settle_call` 计费、保持来源删除屏障（context_invalidated）。参考 `xuexi/hermes-agent/agent/context_engine.py` 的 `prune_tool_results_only`/`compress`。之后继续 K07 迭代预算/重复退化、K08 回合后学习、K11 停止前验核及后续任务，其他对标项不提前关闭。
+K06 已接 run 内工具上下文压缩：run 内工具转录只在内存 `messages`（持久化 `s.messages` 仅 submit 写 user、finish 写最终 assistant），长 run 会撞 `ModelCalls.invoke` 的 `CONTEXT_CHARS`/token 硬限。纯领域 `domain/context.py` 加 `tool_round_starts`/`run_compaction_window`/`bounded_tool_summary_sources`；`ContextService.compact_run` 在每轮 invoke 前检查，超 `RUN_COMPACT_TRIGGER_CHARS`（24000）且轮数大于保留数时，把旧完整工具轮（`messages[head_end:cut]`）整段摘要为一条有界 user summary，保留冻结系统前缀、初始 head、最近 `RUN_COMPACT_KEEP_ROUNDS`（2）轮及其 tool 对与尾部 runtime/todo notice——工具对绝不拆半。摘要是一次 `purpose="summary"` 计费调用（reserve_call→invoke(reserved_id)→settle_call），走相同 assert_context/assert_model_authorized 与删除屏障；摘要携带工具调用被拒绝不派发，失败/预算不足结算后保持转录不变、不重放。引擎仅在 prompt.update 后加一行 compact_run 接入，短 run no-op。无数据库迁移、无第二内核。单个超大保留轮仍可能超硬限、极旧轮摘要输入按 32000 预算有损截断，均不在本项放宽。
+
+本批新增 10 项回归（5 领域 + 5 引擎集成），最终源码 154 项专项全过（240.09 秒），覆盖 K06、上下文压缩/摘要/删除/故障与旧schema恢复、执行/FIFO/审批/取消、K05 批次并行、K04 委派、K03 清单与重启重注入、内核/生命周期/能力、动作审核执行、执行裁剪与四层架构守卫。V2 strict 395 文件零错误/警告（18.58 秒，K06 未新增源文件、include 不变）；Ruff/格式与项目索引通过。首轮一处有界摘要源预算算术修正后全绿。未全量、未真实模型/原生/72 小时验收，未动运行中服务与数据库。详见 [run 内压缩证据](evidence/v2-run-compaction.json)。
+
+下一批推进 G6.core_parity / K07 迭代预算、重复退化与收敛：先读现有步数/费用硬限（`max_steps`、reserve_call/delegation_check_budget），参考 `xuexi/hermes-agent/agent/iteration_budget.py`、`agent/repetition_guard.py`，补显式预算内 grace/恢复策略、重复检测与退化退出，不能靠放宽上限或重发未知调用。之后继续 K08 回合后学习、K11 停止前验核及后续任务，其他对标项不提前关闭。
 
 K03 新增 34 项回归；首轮冻结源码 114 项集成专项通过（182.82 秒），收尾补强 Agent 禁用检查后最终 34 项清单/HTTP 模块专项通过（39.09 秒），另 7 项目录/状态守卫通过。最终 391 文件 strict 零错误/警告，Ruff 与格式检查通过，未全量。每轮源码指纹与失败均保留，不把首轮结果写为最终源码全量。此前 K01/K02 批 `c4e205d8` 的结果见 [固定证据](evidence/v2-agent-core-parity.json)。测试只用隔离数据库与冻结源码，当前 Windows 服务和真实数据库未停止或由测试升级。
 

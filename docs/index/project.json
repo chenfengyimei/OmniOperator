@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "6405a9cac0747bd76d0cfd030d25d1a4c15fdda18030ff4a2598812ee44cc35f",
+  "source_sha256": "ec98cc428c1e1a74e06bc47b2e86c6e47246788639d0526293e647c405a50389",
   "modules": [
     {
       "id": "v2-domain",
@@ -81,7 +81,7 @@
         "agent/src/omni/domain/tool_batch.py",
         "agent/src/omni/domain/turn_prompt.py"
       ],
-      "lines": 10710,
+      "lines": 10760,
       "dependencies": []
     },
     {
@@ -147,7 +147,7 @@
         "agent/src/omni/application/terminals.py",
         "agent/src/omni/application/todos.py"
       ],
-      "lines": 12362,
+      "lines": 12445,
       "dependencies": [
         "v2-domain"
       ]
@@ -45608,7 +45608,7 @@
       "path": "agent/src/omni/application/context.py",
       "module": "v2-application",
       "python_module": "omni.application.context",
-      "lines": 245,
+      "lines": 327,
       "imports": [
         "omni.application.images",
         "omni.application.model_calls",
@@ -45622,12 +45622,12 @@
       "symbols": [
         {
           "name": "ContextService",
-          "line": 20,
+          "line": 29,
           "kind": "class"
         },
         {
           "name": "ContextService.__init__",
-          "line": 21,
+          "line": 30,
           "kind": "function",
           "parameters": [
             "self",
@@ -45643,7 +45643,7 @@
         },
         {
           "name": "ContextService._history",
-          "line": 25,
+          "line": 34,
           "kind": "function",
           "parameters": [
             "self",
@@ -45669,7 +45669,7 @@
         },
         {
           "name": "ContextService._summary_sources",
-          "line": 43,
+          "line": 52,
           "kind": "function",
           "parameters": [
             "self",
@@ -45683,7 +45683,7 @@
         },
         {
           "name": "ContextService.summary_request",
-          "line": 47,
+          "line": 56,
           "kind": "function",
           "parameters": [
             "parent",
@@ -45696,7 +45696,7 @@
         },
         {
           "name": "ContextService._fits",
-          "line": 75,
+          "line": 84,
           "kind": "function",
           "parameters": [
             "self",
@@ -45714,7 +45714,7 @@
         },
         {
           "name": "ContextService.prepare",
-          "line": 83,
+          "line": 92,
           "kind": "function",
           "parameters": [
             "self",
@@ -45732,6 +45732,37 @@
             "tools": "tuple[ToolSpec, ...]",
             "extra_notice": "str",
             "tail_notice": "str"
+          }
+        },
+        {
+          "name": "ContextService.compact_run",
+          "line": 256,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "agent_id",
+            "run_id",
+            "messages",
+            "tools",
+            "settings"
+          ],
+          "annotations": {
+            "agent_id": "str",
+            "run_id": "str",
+            "messages": "list[Record]",
+            "tools": "tuple[ToolSpec, ...]",
+            "settings": "Settings"
+          }
+        },
+        {
+          "name": "ContextService.compact_run.begin",
+          "line": 281,
+          "kind": "function",
+          "parameters": [
+            "u"
+          ],
+          "annotations": {
+            "u": "UnitOfWork"
           }
         }
       ],
@@ -48094,7 +48125,7 @@
       "path": "agent/src/omni/application/engine.py",
       "module": "v2-application",
       "python_module": "omni.application.engine",
-      "lines": 917,
+      "lines": 918,
       "imports": [
         "omni.application.context",
         "omni.application.images",
@@ -48264,7 +48295,7 @@
         },
         {
           "name": "Application._delegate",
-          "line": 408,
+          "line": 409,
           "kind": "function",
           "parameters": [
             "self",
@@ -48280,7 +48311,7 @@
         },
         {
           "name": "Application._cancel_join_children",
-          "line": 464,
+          "line": 465,
           "kind": "function",
           "parameters": [
             "self",
@@ -48294,7 +48325,7 @@
         },
         {
           "name": "Application._cancel_join_children.cancel",
-          "line": 465,
+          "line": 466,
           "kind": "function",
           "parameters": [
             "u"
@@ -48305,7 +48336,7 @@
         },
         {
           "name": "Application.delegations",
-          "line": 487,
+          "line": 488,
           "kind": "function",
           "parameters": [
             "self",
@@ -48319,7 +48350,7 @@
         },
         {
           "name": "Application.delegations.read",
-          "line": 488,
+          "line": 489,
           "kind": "function",
           "parameters": [
             "u"
@@ -48330,7 +48361,7 @@
         },
         {
           "name": "Application._todo_notice",
-          "line": 495,
+          "line": 496,
           "kind": "function",
           "parameters": [
             "self",
@@ -48346,7 +48377,7 @@
         },
         {
           "name": "Application.session_todos",
-          "line": 502,
+          "line": 503,
           "kind": "function",
           "parameters": [
             "self",
@@ -48360,7 +48391,7 @@
         },
         {
           "name": "Application._end_error",
-          "line": 505,
+          "line": 506,
           "kind": "function",
           "parameters": [
             "self",
@@ -48378,7 +48409,7 @@
         },
         {
           "name": "Application._end_error.end",
-          "line": 506,
+          "line": 507,
           "kind": "function",
           "parameters": [
             "u"
@@ -48389,7 +48420,7 @@
         },
         {
           "name": "Application._revision",
-          "line": 523,
+          "line": 524,
           "kind": "function",
           "parameters": [
             "value"
@@ -48400,7 +48431,7 @@
         },
         {
           "name": "Application._checkpoint",
-          "line": 528,
+          "line": 529,
           "kind": "function",
           "parameters": [
             "self",
@@ -48414,7 +48445,7 @@
         },
         {
           "name": "Application._batch_entry",
-          "line": 534,
+          "line": 535,
           "kind": "function",
           "parameters": [
             "self",
@@ -48432,7 +48463,7 @@
         },
         {
           "name": "Application._dispatch_call",
-          "line": 558,
+          "line": 559,
           "kind": "function",
           "parameters": [
             "self",
@@ -48458,7 +48489,7 @@
         },
         {
           "name": "Application._execute_parallel",
-          "line": 621,
+          "line": 622,
           "kind": "function",
           "parameters": [
             "self",
@@ -48478,7 +48509,7 @@
         },
         {
           "name": "Application._execute",
-          "line": 645,
+          "line": 646,
           "kind": "function",
           "parameters": [
             "self",
@@ -48500,7 +48531,7 @@
         },
         {
           "name": "Application.query",
-          "line": 718,
+          "line": 719,
           "kind": "function",
           "parameters": [
             "self",
@@ -48519,7 +48550,7 @@
         },
         {
           "name": "Application.settings",
-          "line": 723,
+          "line": 724,
           "kind": "function",
           "parameters": [
             "self",
@@ -48531,7 +48562,7 @@
         },
         {
           "name": "Application.get_agent",
-          "line": 726,
+          "line": 727,
           "kind": "function",
           "parameters": [
             "self",
@@ -48543,7 +48574,7 @@
         },
         {
           "name": "Application.create_agent",
-          "line": 729,
+          "line": 730,
           "kind": "function",
           "parameters": [
             "self",
@@ -48555,7 +48586,7 @@
         },
         {
           "name": "Application.create_agent.create",
-          "line": 734,
+          "line": 735,
           "kind": "function",
           "parameters": [
             "uow"
@@ -48566,7 +48597,7 @@
         },
         {
           "name": "Application.rename_agent",
-          "line": 745,
+          "line": 746,
           "kind": "function",
           "parameters": [
             "self",
@@ -48582,7 +48613,7 @@
         },
         {
           "name": "Application.history",
-          "line": 751,
+          "line": 752,
           "kind": "function",
           "parameters": [
             "self",
@@ -48602,7 +48633,7 @@
         },
         {
           "name": "Application.save_settings",
-          "line": 758,
+          "line": 759,
           "kind": "function",
           "parameters": [
             "self",
@@ -48618,7 +48649,7 @@
         },
         {
           "name": "Application.run_configuration",
-          "line": 764,
+          "line": 765,
           "kind": "function",
           "parameters": [
             "self",
@@ -48632,7 +48663,7 @@
         },
         {
           "name": "Application.get_run",
-          "line": 767,
+          "line": 768,
           "kind": "function",
           "parameters": [
             "self",
@@ -48646,7 +48677,7 @@
         },
         {
           "name": "Application.live_output",
-          "line": 770,
+          "line": 771,
           "kind": "function",
           "parameters": [
             "self",
@@ -48660,7 +48691,7 @@
         },
         {
           "name": "Application.pin_run",
-          "line": 773,
+          "line": 774,
           "kind": "function",
           "parameters": [
             "self",
@@ -48678,7 +48709,7 @@
         },
         {
           "name": "Application.run_retention",
-          "line": 776,
+          "line": 777,
           "kind": "function",
           "parameters": [
             "self",
@@ -48692,7 +48723,7 @@
         },
         {
           "name": "Application.audit_retention_preview",
-          "line": 779,
+          "line": 780,
           "kind": "function",
           "parameters": [
             "self",
@@ -48710,7 +48741,7 @@
         },
         {
           "name": "Application.event_retention_preview",
-          "line": 786,
+          "line": 787,
           "kind": "function",
           "parameters": [
             "self",
@@ -48728,7 +48759,7 @@
         },
         {
           "name": "Application.messages",
-          "line": 793,
+          "line": 794,
           "kind": "function",
           "parameters": [
             "self",
@@ -48742,7 +48773,7 @@
         },
         {
           "name": "Application.approvals",
-          "line": 799,
+          "line": 800,
           "kind": "function",
           "parameters": [
             "self",
@@ -48754,7 +48785,7 @@
         },
         {
           "name": "Application.approve",
-          "line": 802,
+          "line": 803,
           "kind": "function",
           "parameters": [
             "self",
@@ -48772,7 +48803,7 @@
         },
         {
           "name": "Application.cancel",
-          "line": 805,
+          "line": 806,
           "kind": "function",
           "parameters": [
             "self",
@@ -48786,7 +48817,7 @@
         },
         {
           "name": "Application.cancel.cancel",
-          "line": 806,
+          "line": 807,
           "kind": "function",
           "parameters": [
             "u"
@@ -48797,7 +48828,7 @@
         },
         {
           "name": "Application.remember",
-          "line": 818,
+          "line": 819,
           "kind": "function",
           "parameters": [
             "self",
@@ -48819,7 +48850,7 @@
         },
         {
           "name": "Application.forget",
-          "line": 839,
+          "line": 840,
           "kind": "function",
           "parameters": [
             "self",
@@ -48835,7 +48866,7 @@
         },
         {
           "name": "Application.context",
-          "line": 842,
+          "line": 843,
           "kind": "function",
           "parameters": [
             "self",
@@ -48849,7 +48880,7 @@
         },
         {
           "name": "Application.context_report",
-          "line": 845,
+          "line": 846,
           "kind": "function",
           "parameters": [
             "self",
@@ -48863,7 +48894,7 @@
         },
         {
           "name": "Application.context_report.read",
-          "line": 846,
+          "line": 847,
           "kind": "function",
           "parameters": [
             "u"
@@ -48874,7 +48905,7 @@
         },
         {
           "name": "Application.session_context_overview",
-          "line": 854,
+          "line": 855,
           "kind": "function",
           "parameters": [
             "self",
@@ -48888,7 +48919,7 @@
         },
         {
           "name": "Application.summary",
-          "line": 857,
+          "line": 858,
           "kind": "function",
           "parameters": [
             "self",
@@ -48902,7 +48933,7 @@
         },
         {
           "name": "Application.erase_message",
-          "line": 860,
+          "line": 861,
           "kind": "function",
           "parameters": [
             "self",
@@ -48916,7 +48947,7 @@
         },
         {
           "name": "Application.search_memory",
-          "line": 863,
+          "line": 864,
           "kind": "function",
           "parameters": [
             "self",
@@ -48930,7 +48961,7 @@
         },
         {
           "name": "Application.health",
-          "line": 868,
+          "line": 869,
           "kind": "function",
           "parameters": [
             "self"
@@ -48939,7 +48970,7 @@
         },
         {
           "name": "Application.stop_accepting",
-          "line": 877,
+          "line": 878,
           "kind": "function",
           "parameters": [
             "self"
@@ -48948,7 +48979,7 @@
         },
         {
           "name": "Application.close",
-          "line": 881,
+          "line": 882,
           "kind": "function",
           "parameters": [
             "self",
@@ -74823,12 +74854,12 @@
       "path": "agent/src/omni/domain/context.py",
       "module": "v2-domain",
       "python_module": "omni.domain.context",
-      "lines": 56,
+      "lines": 106,
       "imports": [],
       "symbols": [
         {
           "name": "_text",
-          "line": 18,
+          "line": 22,
           "kind": "function",
           "parameters": [
             "value"
@@ -74839,7 +74870,7 @@
         },
         {
           "name": "source_digest",
-          "line": 22,
+          "line": 26,
           "kind": "function",
           "parameters": [
             "epoch",
@@ -74854,7 +74885,7 @@
         },
         {
           "name": "turns",
-          "line": 27,
+          "line": 31,
           "kind": "function",
           "parameters": [
             "messages"
@@ -74865,7 +74896,7 @@
         },
         {
           "name": "batch",
-          "line": 36,
+          "line": 40,
           "kind": "function",
           "parameters": [
             "messages"
@@ -74876,7 +74907,44 @@
         },
         {
           "name": "tail",
-          "line": 48,
+          "line": 52,
+          "kind": "function",
+          "parameters": [
+            "messages",
+            "budget"
+          ],
+          "annotations": {
+            "messages": "Sequence[Mapping[str, object]]",
+            "budget": "int"
+          }
+        },
+        {
+          "name": "tool_round_starts",
+          "line": 63,
+          "kind": "function",
+          "parameters": [
+            "messages"
+          ],
+          "annotations": {
+            "messages": "Sequence[Mapping[str, object]]"
+          }
+        },
+        {
+          "name": "run_compaction_window",
+          "line": 72,
+          "kind": "function",
+          "parameters": [
+            "messages",
+            "keep_rounds"
+          ],
+          "annotations": {
+            "messages": "Sequence[Mapping[str, object]]",
+            "keep_rounds": "int"
+          }
+        },
+        {
+          "name": "bounded_tool_summary_sources",
+          "line": 87,
           "kind": "function",
           "parameters": [
             "messages",

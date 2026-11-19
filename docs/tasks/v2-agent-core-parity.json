@@ -82,17 +82,20 @@
     {
       "id": "K06",
       "title": "run内工具上下文压缩",
-      "status": "partial",
-      "remaining": "已有持久整回合压缩，缺run内有界压缩与继续；工具对不拆分、状态/任务清单保留、费用与来源删除仍可追溯",
+      "status": "implemented_scoped_passed",
+      "remaining": "单个超大保留轮仍可能超硬限；极旧轮摘要输入有损截断；持久化整回合压缩仍由prepare负责",
       "reference": "hermes-agent/agent/context_engine.py",
-      "next": true
+      "delivered": "domain/context.py工具轮规则与ContextService.compact_run：尺寸触发的run内旧完整工具轮有界摘要，冻结前缀/初始head/最近2轮与尾部notice保留、工具对不拆分；摘要purpose=summary计费并经同授权/删除守卫，摘要工具调用拒绝、失败保持转录不变不重放；引擎每轮invoke前接入，长run可继续",
+      "contract": "docs/v2/contracts/V2_RUN_COMPACTION.md",
+      "evidence": "docs/evidence/v2-run-compaction.json"
     },
     {
       "id": "K07",
       "title": "迭代预算、重复退化与收敛",
       "status": "partial",
       "remaining": "已有步数/费用硬限；补显式预算内grace/恢复策略、重复检测与退化退出，不能靠放宽上限或重发未知调用",
-      "reference": "hermes-agent/agent/iteration_budget.py; agent/repetition_guard.py"
+      "reference": "hermes-agent/agent/iteration_budget.py; agent/repetition_guard.py",
+      "next": true
     },
     {
       "id": "K08",
@@ -193,6 +196,10 @@
     {
       "id": "K05",
       "evidence": "docs/evidence/v2-tool-batch.json"
+    },
+    {
+      "id": "K06",
+      "evidence": "docs/evidence/v2-run-compaction.json"
     }
   ]
 }
