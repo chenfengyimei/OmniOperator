@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`8c8615788af03054aca5bc1d704118a6a42e90fe1798d81cdfe1c4f82d52096f`。包含 65 个职责模块、827 个源码/界面文件。
+源码指纹：`d482fd3e89ce1f13d68a68dad65488eaa880e11710f3f5c180f3f0131bed88a1`。包含 65 个职责模块、827 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -35,7 +35,7 @@
 | [agent/src/omni/domain/event_retention.py](../../agent/src/omni/domain/event_retention.py) | 290 | Bounded event-retention previews and explicit plans; performs no I/O, deletion or sequence reconstruction. |
 | [agent/src/omni/domain/extensions.py](../../agent/src/omni/domain/extensions.py) | 482 | Static trusted-plugin metadata, immutable capture records and owner authorizations; never loads code or files. |
 | [agent/src/omni/domain/files_patch.py](../../agent/src/omni/domain/files_patch.py) | 102 | Bounded fuzzy search-replace patch rules; no filesystem, network or storage I/O. |
-| [agent/src/omni/domain/files_search.py](../../agent/src/omni/domain/files_search.py) | 87 | Bounded workspace search rules (content substring + filename glob); no filesystem, network or storage I/O. |
+| [agent/src/omni/domain/files_search.py](../../agent/src/omni/domain/files_search.py) | 97 | Bounded workspace search rules (content substring + filename glob); no filesystem, network or storage I/O. |
 | [agent/src/omni/domain/foreground.py](../../agent/src/omni/domain/foreground.py) | 107 | Single-use foreground authority and bounded input, independent of native APIs. |
 | [agent/src/omni/domain/history.py](../../agent/src/omni/domain/history.py) | 142 | Canonical, bounded history cursors bind a stream and its retention generation; performs no I/O. |
 | [agent/src/omni/domain/images.py](../../agent/src/omni/domain/images.py) | 207 | Validated image references, immutable model policies and conservative low-detail metering; no I/O. |
@@ -458,7 +458,7 @@
 | [agent/src/omni/adapters/workers/macos/Sources/OmniDesktopHelper/Protocol.swift](../../agent/src/omni/adapters/workers/macos/Sources/OmniDesktopHelper/Protocol.swift) | 186 | 原生源码、平台脚本或界面资源 |
 | [agent/src/omni/adapters/workers/macos/Sources/OmniDesktopHelper/ServiceQuery.swift](../../agent/src/omni/adapters/workers/macos/Sources/OmniDesktopHelper/ServiceQuery.swift) | 139 | 原生源码、平台脚本或界面资源 |
 | [agent/src/omni/adapters/workers/macos/Tests/NativeIdentityTests/RegistrationPaths.swift](../../agent/src/omni/adapters/workers/macos/Tests/NativeIdentityTests/RegistrationPaths.swift) | 97 | 原生源码、平台脚本或界面资源 |
-| [agent/src/omni/adapters/workers/main.py](../../agent/src/omni/adapters/workers/main.py) | 423 | Capability subprocess. Requests carry scope; no database or Runtime is imported. |
+| [agent/src/omni/adapters/workers/main.py](../../agent/src/omni/adapters/workers/main.py) | 438 | Capability subprocess. Requests carry scope; no database or Runtime is imported. |
 | [agent/src/omni/adapters/workers/media.py](../../agent/src/omni/adapters/workers/media.py) | 518 | Bounded media worker: audio decode + local ASR and frame extraction in an owned subprocess. |
 | [agent/src/omni/adapters/workers/portal.py](../../agent/src/omni/adapters/workers/portal.py) | 256 | Owned Wayland window-share helper with explicit one-frame requests; no database, restore token or input capability. |
 | [agent/src/omni/adapters/workers/protocol.py](../../agent/src/omni/adapters/workers/protocol.py) | 169 | Strict, bounded IPC records shared by the host and capability worker; no dispatch or I/O. |
@@ -483,7 +483,7 @@
 | 文件 | 行数 | 职责 |
 |---|---:|---|
 | [agent/src/omni/composition/__init__.py](../../agent/src/omni/composition/__init__.py) | 1 | V2 composition root. Constructors and lifecycle ownership are explicit here. |
-| [agent/src/omni/composition/capabilities.py](../../agent/src/omni/composition/capabilities.py) | 220 | Explicit builtin capability registration; capabilities never construct the kernel. |
+| [agent/src/omni/composition/capabilities.py](../../agent/src/omni/composition/capabilities.py) | 221 | Explicit builtin capability registration; capabilities never construct the kernel. |
 | [agent/src/omni/composition/cli.py](../../agent/src/omni/composition/cli.py) | 1048 | V2 development entrypoint. Online commands use the authenticated HTTP facade. |
 | [agent/src/omni/composition/http.py](../../agent/src/omni/composition/http.py) | 248 | HTTP composition and owner bootstrap; tokens never appear in diagnostic output. |
 | [agent/src/omni/composition/instance.py](../../agent/src/omni/composition/instance.py) | 873 | Build one isolated instance; never imports or opens the V1 runtime. |
@@ -524,7 +524,7 @@
 | [web/ui/v2/extensions.js](../../web/ui/v2/extensions.js) | 656 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/index.html](../../web/ui/v2/index.html) | 2029 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/inspector.js](../../web/ui/v2/inspector.js) | 266 | 原生源码、平台脚本或界面资源 |
-| [web/ui/v2/main.js](../../web/ui/v2/main.js) | 2083 | 原生源码、平台脚本或界面资源 |
+| [web/ui/v2/main.js](../../web/ui/v2/main.js) | 2079 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/maintenance.js](../../web/ui/v2/maintenance.js) | 126 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/mcp.js](../../web/ui/v2/mcp.js) | 362 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/media.js](../../web/ui/v2/media.js) | 426 | 原生源码、平台脚本或界面资源 |
@@ -545,7 +545,7 @@
 | [web/ui/v2/v1/components.css](../../web/ui/v2/v1/components.css) | 655 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/v1/frame.css](../../web/ui/v2/v1/frame.css) | 938 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/v1/workbench.css](../../web/ui/v2/v1/workbench.css) | 4451 | 原生源码、平台脚本或界面资源 |
-| [web/ui/v2/workbench.css](../../web/ui/v2/workbench.css) | 3617 | 原生源码、平台脚本或界面资源 |
+| [web/ui/v2/workbench.css](../../web/ui/v2/workbench.css) | 3625 | 原生源码、平台脚本或界面资源 |
 
 文档：[docs/V2_REFACTOR.md](../../docs/V2_REFACTOR.md)
 

@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "8c8615788af03054aca5bc1d704118a6a42e90fe1798d81cdfe1c4f82d52096f",
+  "source_sha256": "d482fd3e89ce1f13d68a68dad65488eaa880e11710f3f5c180f3f0131bed88a1",
   "modules": [
     {
       "id": "v2-domain",
@@ -90,7 +90,7 @@
         "agent/src/omni/domain/turn_prompt.py",
         "agent/src/omni/domain/verification_stop.py"
       ],
-      "lines": 12343,
+      "lines": 12353,
       "dependencies": []
     },
     {
@@ -494,7 +494,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 68356,
+      "lines": 68371,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -529,7 +529,7 @@
         "agent/src/omni/composition/service_runner.py",
         "agent/src/omni/composition/serving.py"
       ],
-      "lines": 3228,
+      "lines": 3229,
       "dependencies": [
         "v2-adapters",
         "v2-application",
@@ -590,7 +590,7 @@
         "web/ui/v2/v1/workbench.css",
         "web/ui/v2/workbench.css"
       ],
-      "lines": 23977,
+      "lines": 23981,
       "dependencies": []
     },
     {
@@ -44109,7 +44109,7 @@
       "path": "agent/src/omni/adapters/workers/main.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.workers.main",
-      "lines": 423,
+      "lines": 438,
       "imports": [
         "omni.adapters.object_store",
         "omni.adapters.workers.protocol",
@@ -44120,12 +44120,12 @@
       "symbols": [
         {
           "name": "Effects",
-          "line": 38,
+          "line": 39,
           "kind": "class"
         },
         {
           "name": "workspace_path",
-          "line": 42,
+          "line": 43,
           "kind": "function",
           "parameters": [
             "root_text",
@@ -44138,12 +44138,12 @@
         },
         {
           "name": "Worker",
-          "line": 68,
+          "line": 69,
           "kind": "class"
         },
         {
           "name": "Worker.__init__",
-          "line": 69,
+          "line": 70,
           "kind": "function",
           "parameters": [
             "self"
@@ -44152,7 +44152,7 @@
         },
         {
           "name": "Worker.invoke",
-          "line": 75,
+          "line": 76,
           "kind": "function",
           "parameters": [
             "self",
@@ -44168,7 +44168,7 @@
         },
         {
           "name": "Worker._files",
-          "line": 109,
+          "line": 110,
           "kind": "function",
           "parameters": [
             "self",
@@ -44186,7 +44186,7 @@
         },
         {
           "name": "Worker._shell",
-          "line": 301,
+          "line": 316,
           "kind": "function",
           "parameters": [
             "self",
@@ -44202,7 +44202,7 @@
         },
         {
           "name": "Worker._shell.drain",
-          "line": 318,
+          "line": 333,
           "kind": "function",
           "parameters": [
             "stream"
@@ -44213,7 +44213,7 @@
         },
         {
           "name": "Worker._web",
-          "line": 349,
+          "line": 364,
           "kind": "function",
           "parameters": [
             "self",
@@ -44231,7 +44231,7 @@
         },
         {
           "name": "Worker.close",
-          "line": 394,
+          "line": 409,
           "kind": "function",
           "parameters": [
             "self"
@@ -44240,7 +44240,7 @@
         },
         {
           "name": "serve",
-          "line": 401,
+          "line": 416,
           "kind": "function",
           "parameters": [],
           "annotations": {}
@@ -71770,7 +71770,7 @@
       "path": "agent/src/omni/composition/capabilities.py",
       "module": "v2-composition",
       "python_module": "omni.composition.capabilities",
-      "lines": 220,
+      "lines": 221,
       "imports": [
         "omni.adapters.workers.client",
         "omni.application.documents",
@@ -79610,12 +79610,12 @@
       "path": "agent/src/omni/domain/files_search.py",
       "module": "v2-domain",
       "python_module": "omni.domain.files_search",
-      "lines": 87,
+      "lines": 97,
       "imports": [],
       "symbols": [
         {
           "name": "normalize_query",
-          "line": 15,
+          "line": 16,
           "kind": "function",
           "parameters": [
             "value"
@@ -79626,7 +79626,7 @@
         },
         {
           "name": "normalize_output_mode",
-          "line": 25,
+          "line": 26,
           "kind": "function",
           "parameters": [
             "value"
@@ -79637,7 +79637,7 @@
         },
         {
           "name": "normalize_context",
-          "line": 34,
+          "line": 35,
           "kind": "function",
           "parameters": [
             "value"
@@ -79648,7 +79648,18 @@
         },
         {
           "name": "normalize_offset",
-          "line": 43,
+          "line": 44,
+          "kind": "function",
+          "parameters": [
+            "value"
+          ],
+          "annotations": {
+            "value": "object"
+          }
+        },
+        {
+          "name": "normalize_order",
+          "line": 53,
           "kind": "function",
           "parameters": [
             "value"
@@ -79659,7 +79670,7 @@
         },
         {
           "name": "match_lines",
-          "line": 52,
+          "line": 62,
           "kind": "function",
           "parameters": [
             "text",
@@ -79674,7 +79685,7 @@
         },
         {
           "name": "match_name",
-          "line": 79,
+          "line": 89,
           "kind": "function",
           "parameters": [
             "filename",
@@ -79687,7 +79698,7 @@
         },
         {
           "name": "count_matches",
-          "line": 84,
+          "line": 94,
           "kind": "function",
           "parameters": [
             "text",
@@ -110558,7 +110569,7 @@
       "path": "web/ui/v2/main.js",
       "module": "v2-workbench",
       "python_module": null,
-      "lines": 2083,
+      "lines": 2079,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -110768,7 +110779,7 @@
       "path": "web/ui/v2/workbench.css",
       "module": "v2-workbench",
       "python_module": null,
-      "lines": 3617,
+      "lines": 3625,
       "imports": [],
       "symbols": [],
       "kind": "asset",
