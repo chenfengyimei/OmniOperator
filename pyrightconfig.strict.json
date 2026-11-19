@@ -395,7 +395,8 @@
     "agent/src/omni/domain/delegation.py",
     "agent/src/omni/adapters/persistence/delegation_authority.py",
     "agent/src/omni/adapters/persistence/delegation_repository.py",
-    "agent/src/omni/domain/tool_batch.py"
+    "agent/src/omni/domain/tool_batch.py",
+    "agent/src/omni/domain/repetition.py"
   ],
   "exclude": [
     "**/__pycache__"

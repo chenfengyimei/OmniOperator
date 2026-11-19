@@ -3,7 +3,7 @@
 ## 当前状态与工作方式
 
 - 开发分支 `v2`，跟踪 `origin/v2`。默认入口是 V2，显式 V1 回退保留。
-- 当前工作：目录整理已完成；按 [Agent 内核与学习项目对标](v2/contracts/V2_AGENT_CORE_PARITY.md)持续补齐。K03 [修订化任务清单](v2/contracts/V2_TODOS.md)、K04 [单层父子 run 委派](v2/contracts/V2_DELEGATION.md)、K05 [模型批次工具并行](v2/contracts/V2_TOOL_BATCH.md)、K06 [run 内工具上下文压缩](v2/contracts/V2_RUN_COMPACTION.md)已接生产；下一项 K07 迭代预算/重复退化与收敛仍未实现。
+- 当前工作：目录整理已完成；按 [Agent 内核与学习项目对标](v2/contracts/V2_AGENT_CORE_PARITY.md)持续补齐。K03 [修订化任务清单](v2/contracts/V2_TODOS.md)、K04 [单层父子 run 委派](v2/contracts/V2_DELEGATION.md)、K05 [模型批次工具并行](v2/contracts/V2_TOOL_BATCH.md)、K06 [run 内工具上下文压缩](v2/contracts/V2_RUN_COMPACTION.md)、K07 [迭代守卫与预算收敛](v2/contracts/V2_ITERATION_GUARD.md)已接生产；下一项 K08 回合后 reviewer/curator 后台学习仍未实现。
 - Windows 主体开发及旧离线候选已完成；当前源码未统一全量，整个 V2 仍在开发。真实账号/模型质量/设备、干净机器及 72 小时验收分别待办。
 - Mac mini 为 Apple Silicon，所有者提供 macOS 27，实际版本在 Mac 用 `sw_vers` 核对。Mac 做主开发机，现有 Windows 保留运行和原生验收环境，两端同步同一分支。
 - 当前 Windows 服务、实例、凭据和其他会话的 `PPT/`、`docs/competition/` 保留。根 `src`/`tests` 是本机兼容联接，正式代码与测试分别在 `agent/src`、`agent/tests`。
@@ -42,7 +42,11 @@ K06 已接 run 内工具上下文压缩：run 内工具转录只在内存 `messa
 
 本批新增 10 项回归（5 领域 + 5 引擎集成），最终源码 154 项专项全过（240.09 秒），覆盖 K06、上下文压缩/摘要/删除/故障与旧schema恢复、执行/FIFO/审批/取消、K05 批次并行、K04 委派、K03 清单与重启重注入、内核/生命周期/能力、动作审核执行、执行裁剪与四层架构守卫。V2 strict 395 文件零错误/警告（18.58 秒，K06 未新增源文件、include 不变）；Ruff/格式与项目索引通过。首轮一处有界摘要源预算算术修正后全绿。未全量、未真实模型/原生/72 小时验收，未动运行中服务与数据库。详见 [run 内压缩证据](evidence/v2-run-compaction.json)。
 
-下一批推进 G6.core_parity / K07 迭代预算、重复退化与收敛：先读现有步数/费用硬限（`max_steps`、reserve_call/delegation_check_budget），参考 `xuexi/hermes-agent/agent/iteration_budget.py`、`agent/repetition_guard.py`，补显式预算内 grace/恢复策略、重复检测与退化退出，不能靠放宽上限或重发未知调用。之后继续 K08 回合后学习、K11 停止前验核及后续任务，其他对标项不提前关闭。
+K07 已接重复退化守卫与预算内收敛 grace：纯领域 `domain/repetition.py` 提供保守文本重复检测（`is_repetition_dominated` 窗口/行覆盖）、`is_runaway_repetition`（行 distinct 比例）与 stop-path 守卫 `is_degenerate_reply`（仅 ≥16000 字符 runaway 才判退化，避免误判小型合成/请求重复载荷）。引擎在每次 invoke 返回后、派发任何动作前检查，命中即 `model_repetition_degenerated` 失败，费用已结算保留、不派发不重放；检测只针对模型输出文本，不针对重复工具调用（合法重复读取不误判）。步数耗尽时委派 run 保持严格 `step_budget_exceeded`（保留 K04 调用数合同），非委派 run 进入恰好一次 no-tool 收敛 grace：追加尾部收敛通知、经 compact_run 有界压缩后做一次 tools=() 调用，仍经 reserve_call 费用闸门（预算耗尽→step_budget_exceeded），grace 无工具且非退化则 finish 成功，仍调用工具或退化则 step_budget_exceeded。不放宽任何硬上限、不重发未知。无数据库迁移、无第二内核。
+
+本批新增 13 项回归（9 领域 + 4 引擎集成），最终源码 199 项专项/守卫全过（266.99 秒），覆盖 K07、K04 委派（含子调用数耗尽与批量摘要界）、K06 压缩、K05 并行、执行/FIFO/审批/取消、K03 清单、内核/生命周期/能力、上下文压缩/摘要/删除/故障、动作审核执行、执行裁剪、四层架构与候选门/清单/目录/入口守卫。V2 strict 396 文件零错误/警告（16.11 秒，新模块 repetition.py 加入 include，395→396）；Ruff/格式与项目索引通过（files=810）。首轮 max_steps 误用模型配置（应走 save_settings）、保守检测误判委派 5000 字符合法摘要（改用 stop-path 守卫并补误判防护回归）、两处多余 isinstance/未用变量均已修正并在最终源码重跑绿。未全量、未真实模型/原生/72 小时验收，未动运行中服务与数据库。详见 [迭代守卫证据](evidence/v2-iteration-guard.json)。
+
+下一批推进 G6.core_parity / K08 回合后 reviewer/curator 后台学习：参考 `xuexi/hermes-agent/agent/background_review.py`，补后台工作项生产接线、启动/关闭/取消归属与独立预算、只读/记忆/技能白名单及证据锚点，建议进入现有审核与撤回链（不把来源变授权），无收益可不写、幂等触发不重复付费。之后继续 K09 模型侧历史检索、K10 结构化澄清、K11 停止前验核、K12 模型故障恢复及后续任务，其他对标项不提前关闭。
 
 K03 新增 34 项回归；首轮冻结源码 114 项集成专项通过（182.82 秒），收尾补强 Agent 禁用检查后最终 34 项清单/HTTP 模块专项通过（39.09 秒），另 7 项目录/状态守卫通过。最终 391 文件 strict 零错误/警告，Ruff 与格式检查通过，未全量。每轮源码指纹与失败均保留，不把首轮结果写为最终源码全量。此前 K01/K02 批 `c4e205d8` 的结果见 [固定证据](evidence/v2-agent-core-parity.json)。测试只用隔离数据库与冻结源码，当前 Windows 服务和真实数据库未停止或由测试升级。
 

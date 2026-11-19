@@ -1,0 +1,97 @@
+{
+  "schema": 1,
+  "date": "2026-11-19",
+  "base_commit": "170eb6df874e9b477d5846625c4bea49176c714c",
+  "status": "iteration_convergence_and_repetition_guard_implemented_scoped_passed",
+  "contract": "docs/v2/contracts/V2_ITERATION_GUARD.md",
+  "source_files": {
+    "agent/src/omni/domain/repetition.py": "6590187ff65670634ce123136b8bf3429a4aa5c186f88cfc298258a65fb9a8da",
+    "agent/src/omni/application/engine.py": "348f8935a1a6e2e3fce0e052299b07fe2e33fed0e23db72a07557a74e585ba95",
+    "agent/tests/v2/core/test_v2_iteration_guard.py": "49c2852775e149b672770c73c52a84accd939b39ef43f68813be1a430cc119f9",
+    "pyrightconfig.strict.json": "15ad437b73e563cdb6ccab801be1b7054983c54646a8ab2ddfeca96d13878147"
+  },
+  "reference": {
+    "repository": "xuexi/hermes-agent",
+    "commit": "9976f4857b72439d79016354d7b6e1a3ee952e2f",
+    "files": {
+      "agent/repetition_guard.py": "b24651bbfe8a56f083e75064846a42e75dd799269de4aa32895da0226ed8f98b",
+      "agent/iteration_budget.py": "c6ac199bf3d53ae6eb840fa1e72fa191e8c00af535f0621896a98196fe880f72"
+    },
+    "adaptation": "Conservative text repetition detection, stop-path runaway threshold and bounded budget grace studied and independently adapted within V2 four layers; no third-party source copied, no remote fetch or real account/model used"
+  },
+  "delivered": [
+    "Pure domain/repetition.py: is_repetition_dominated (window/line dominance), is_runaway_repetition (distinct-line ratio), is_degenerate_reply (stop-path >=16000 chars scale guard)",
+    "Engine checks is_degenerate_reply after each invoke before any dispatch; model_repetition_degenerated failure keeps settled fees, dispatches nothing, never replays",
+    "Detection targets model output text only, not repeated tool calls, so legitimate repeated reads are not flagged",
+    "Bounded convergence grace: non-delegated runs at step exhaustion get exactly one no-tool wrap-up call after a runtime notice and compact_run",
+    "Grace still gated by reserve_call fee budget; budget exhaustion keeps step_budget_exceeded; grace that still calls tools or degenerates keeps step_budget_exceeded",
+    "Delegated runs keep strict step_budget_exceeded and call-count contract (no grace); no hard limit relaxed"
+  ],
+  "limits": {
+    "stop_path_min_chars": 16000,
+    "min_fragment_length": 400,
+    "repeat_window": 60,
+    "grace_calls": 1,
+    "grace_for_delegated_runs": false,
+    "detection": "conservative text heuristic (window/line scan), not the full reference periodic-anchor variant set",
+    "truncated_replies": "still settled by K02 model_response_incomplete",
+    "model_provider_fallback": false,
+    "hard_limits_relaxed": false,
+    "unknown_calls_replayed": false,
+    "database_migration": false,
+    "second_kernel_or_state_store": false
+  },
+  "validation": {
+    "mode": "development_working_tree_scoped",
+    "frozen_source": null,
+    "scoped_passed": 199,
+    "failed": 0,
+    "seconds": 266.99,
+    "new_nodes": 13,
+    "scope": [
+      "New K07 domain rules (9) and engine integration (4): runaway degeneration exit without dispatch/replay, bounded uniform payload and large distinct rows not flagged, stop-path scale guard, grace convergence, grace non-convergence keeps step_budget_exceeded, normal short run no grace",
+      "K04 delegation core including child call-count exhaustion (step_budget_exceeded) and batch summary bounds",
+      "K06 run compaction and K05 tool batch parallelism",
+      "Execution/FIFO/approval/cancellation, K03 task-list, kernel/lifecycle/capabilities",
+      "Context compression/summary/erasure/faults, action-review execution, execution pruning, four-layer architecture guard",
+      "Candidate gate, business inventory, layout and default entrypoint guards"
+    ],
+    "strict": {
+      "config": "pyrightconfig.strict.json",
+      "files": 396,
+      "errors": 0,
+      "warnings": 0,
+      "seconds": 16.11,
+      "note": "new domain/repetition.py added to include (395 -> 396)"
+    },
+    "ruff": "domain/repetition.py, engine.py and test_v2_iteration_guard.py lint and format-check passed",
+    "project_index": "scripts/project_index.py rerun after adding the new module and test (modules=65 files=810)",
+    "full_suite_executed": false,
+    "real_model_account_device_native_or_72h_executed": false,
+    "current_windows_service_or_database_touched": false
+  },
+  "retained_first_failures": [
+    {
+      "phase": "k07-r1",
+      "reason": "Grace tests set max_steps via model configuration (invalid_configuration); max_steps is an Agent settings field, corrected to save_settings. Exact nodes rechecked green."
+    },
+    {
+      "phase": "k07-r2",
+      "reason": "Conservative is_repetition_dominated flagged the delegation batch test's legitimate 5000-char uniform child summary, failing the parent. Adopted the reference stop-path distinction: completed replies use is_degenerate_reply (>=16000 chars AND runaway distinct-line ratio); added false-positive guard tests. Delegation batch and full 199-node scoped set rechecked green on final source."
+    },
+    {
+      "phase": "strict-initial",
+      "reason": "reportUnnecessaryIsInstance on str-typed parameters and an unused test local; removed redundant guards (engine always passes str) and the unused assignment. Final strict 396 files clean."
+    }
+  ],
+  "whole_core_parity_complete": false,
+  "whole_reference_feature_audit_complete": false,
+  "whole_v2_complete": false,
+  "not_executed": [
+    "Full offline suite for current source",
+    "Real accounts/models/devices/native desktop and 72h soak",
+    "Current Windows service restart/database upgrade",
+    "macOS/Linux actual native build or run"
+  ],
+  "next": "K08 post-turn reviewer/curator background learning with bounded budget, whitelist and evidence anchors into the existing review/revocation chain; do not redo K03-K07"
+}

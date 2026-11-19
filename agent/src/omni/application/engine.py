@@ -23,12 +23,13 @@ from ..domain.contracts import (
     ToolSpec,
 )
 from ..domain.delegation import CHILD_CONCURRENCY, DELEGATE_TASK, SUMMARY_CHARS, inherited, record_tools, task_batch
+from ..domain.repetition import is_degenerate_reply
 from ..domain.routing import REQUEST_MODE, select_tools
 from ..domain.routing import notice as route_notice
 from ..domain.settings import agent_settings_value, settings_value
 from ..domain.todos import TODO_LIST
 from ..domain.tool_batch import BatchEntry, plan_tool_batch
-from ..domain.turn_prompt import TurnPrompt
+from ..domain.turn_prompt import TurnPrompt, append_runtime_notice
 from .context import ContextService
 from .images import ImageService
 from .memory_semantics import MemorySemanticService
@@ -323,6 +324,11 @@ class Application:
                         agent_id, run_id, messages, tools, settings, baseline_tools=baseline
                     )
                     await self._checkpoint(agent_id, run_id)
+                    if is_degenerate_reply(reply.text):
+                        raise BusinessError(
+                            "model_repetition_degenerated",
+                            "The model reply degenerated into a repetition loop; usage was recorded and no action was dispatched",
+                        )
                     if not reply.calls:
                         await self._db.write(lambda u: u.finish(agent_id, run_id, reply.text))
                         if measured:
@@ -388,7 +394,26 @@ class Application:
                                 raise BusinessError(
                                     "action_outcome_unknown", "An external action requires manual verification"
                                 )
-                raise BusinessError("step_budget_exceeded", "The run reached its step limit")
+                if delegated:
+                    raise BusinessError("step_budget_exceeded", "The run reached its step limit")
+                # Bounded convergence grace: one final no-tool wrap-up within the fee budget.
+                # Delegated runs keep the strict call-count limit above; the fee hard limit is
+                # never relaxed (reserve_call still gates this call) and nothing is replayed.
+                append_runtime_notice(messages, "Step budget reached. Provide the final answer now without tool calls.")
+                await self._contexts.compact_run(agent_id, run_id, messages, (), settings)
+                try:
+                    grace = await self._calls.invoke(agent_id, run_id, messages, (), settings)
+                except BusinessError as exc:
+                    if exc.code in {"budget_exceeded", "delegation_budget_exceeded", "database_busy"}:
+                        raise BusinessError("step_budget_exceeded", "The run reached its step limit") from exc
+                    raise
+                if grace.calls or is_degenerate_reply(grace.text):
+                    raise BusinessError("step_budget_exceeded", "The run reached its step limit")
+                await self._db.write(lambda u: u.finish(agent_id, run_id, grace.text))
+                if measured:
+                    measured.result(Outcome.OK)
+                log.info("Run completed", extra={"event": "run.succeeded"})
+                return
             except asyncio.CancelledError:
                 if measured:
                     measured.result(Outcome.CANCELLED)

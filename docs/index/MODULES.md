@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`ec98cc428c1e1a74e06bc47b2e86c6e47246788639d0526293e647c405a50389`。包含 65 个职责模块、809 个源码/界面文件。
+源码指纹：`39f12c99da130a3dd5559016c7467b0b4c61f3d86433425a3ab617abd4be5e87`。包含 65 个职责模块、810 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -53,6 +53,7 @@
 | [agent/src/omni/domain/reference_release.py](../../agent/src/omni/domain/reference_release.py) | 69 | Bounded artifact-reference release plans; validates identities without accessing storage or files. |
 | [agent/src/omni/domain/release_fence.py](../../agent/src/omni/domain/release_fence.py) | 78 | Persisted startup exclusion contract shared by immutable installations; no IO or mutable state. |
 | [agent/src/omni/domain/releases.py](../../agent/src/omni/domain/releases.py) | 273 | Reviewed immutable release/recovery plans; same-schema first delivery, with no platform or storage IO. |
+| [agent/src/omni/domain/repetition.py](../../agent/src/omni/domain/repetition.py) | 70 | Conservative model-output repetition degeneration detection; pure rules, no I/O. |
 | [agent/src/omni/domain/retention.py](../../agent/src/omni/domain/retention.py) | 101 | Execution-body retention policy; time is injected, no erasure or file operations. |
 | [agent/src/omni/domain/routing.py](../../agent/src/omni/domain/routing.py) | 128 | Deterministic capability tiers and immutable route policy; neither permissions nor model/network calls. |
 | [agent/src/omni/domain/scheduling.py](../../agent/src/omni/domain/scheduling.py) | 190 | Deterministic UTC scheduling and numeric cron rules; resolved timezone data is injected. |
@@ -100,7 +101,7 @@
 | [agent/src/omni/application/desktop_control.py](../../agent/src/omni/application/desktop_control.py) | 383 | Owner/view-bound independent system-device consent and durable audit; never authorizes or dispatches an input action. |
 | [agent/src/omni/application/desktop_portal.py](../../agent/src/omni/application/desktop_portal.py) | 326 | Owner/view-scoped temporary share sessions with durable consent metadata; no image, native identity or input authorization. |
 | [agent/src/omni/application/documents.py](../../agent/src/omni/application/documents.py) | 360 | Source documents, explicitly requested local indexes and registered retrieval dependencies. |
-| [agent/src/omni/application/engine.py](../../agent/src/omni/application/engine.py) | 918 | One supervised runtime: admission, session FIFO, model/tool execution and shutdown. |
+| [agent/src/omni/application/engine.py](../../agent/src/omni/application/engine.py) | 943 | One supervised runtime: admission, session FIFO, model/tool execution and shutdown. |
 | [agent/src/omni/application/exchange_recovery.py](../../agent/src/omni/application/exchange_recovery.py) | 86 | Explicit offline exchange quarantine and new-directory rescue; no native changes or unknown-outcome erasure. |
 | [agent/src/omni/application/exchange_recovery_steps.py](../../agent/src/omni/application/exchange_recovery_steps.py) | 47 | Reuse release snapshots and fences for explicit quarantine/rescue; never clear a child unknown or call a manager. |
 | [agent/src/omni/application/exchange_steps.py](../../agent/src/omni/application/exchange_steps.py) | 139 | Compose existing release/registration/control use cases without holding instance locks across target startup. |

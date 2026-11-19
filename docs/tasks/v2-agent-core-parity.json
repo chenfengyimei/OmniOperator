@@ -92,10 +92,12 @@
     {
       "id": "K07",
       "title": "迭代预算、重复退化与收敛",
-      "status": "partial",
-      "remaining": "已有步数/费用硬限；补显式预算内grace/恢复策略、重复检测与退化退出，不能靠放宽上限或重发未知调用",
+      "status": "implemented_scoped_passed",
+      "remaining": "保守文本启发式非参考周期锚点全集变体；截断回包仍由K02结算；grace仅非委派一次；provider fallback属K12",
       "reference": "hermes-agent/agent/iteration_budget.py; agent/repetition_guard.py",
-      "next": true
+      "delivered": "domain/repetition.py保守重复检测与stop-path runaway守卫(>=16000字符)，引擎invoke后派发前检查命中即model_repetition_degenerated失败保留费用不重放；非委派步数耗尽一次no-tool收敛grace(费用闸门保持、仍调用工具或退化则step_budget_exceeded)，委派保持调用数合同；不放宽硬限不重发未知",
+      "contract": "docs/v2/contracts/V2_ITERATION_GUARD.md",
+      "evidence": "docs/evidence/v2-iteration-guard.json"
     },
     {
       "id": "K08",
@@ -107,7 +109,8 @@
         "建议进入现有审核与撤回链，不把来源变授权",
         "无收益可不写，幂等触发不重复付费"
       ],
-      "reference": "hermes-agent/agent/background_review.py"
+      "reference": "hermes-agent/agent/background_review.py",
+      "next": true
     },
     {
       "id": "K09",
@@ -200,6 +203,10 @@
     {
       "id": "K06",
       "evidence": "docs/evidence/v2-run-compaction.json"
+    },
+    {
+      "id": "K07",
+      "evidence": "docs/evidence/v2-iteration-guard.json"
     }
   ]
 }
