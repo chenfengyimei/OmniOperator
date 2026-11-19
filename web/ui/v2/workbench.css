@@ -1318,6 +1318,8 @@ body[data-ui-page="workbench-v2"]:not(.chat-mode) #settings-rail {
   align-items: stretch;
   gap: 1px;
   min-height: 0;
+  /* 定位上下文：sync 用 link.offsetTop 只滚侧栏自身，需相对侧栏计量 */
+  position: relative;
   padding: 10px 10px 14px;
   overflow-y: auto;
   overflow-x: hidden;
@@ -2509,8 +2511,9 @@ body[data-ui-page="workbench-v2"] #models .mo-provider {
     transform 0.1s;
 }
 body[data-ui-page="workbench-v2"] #models .mo-provider:hover {
-  border-color: var(--line-1);
+  border-color: var(--line-accent);
   transform: translateY(-1px);
+  box-shadow: var(--sh-1);
 }
 body[data-ui-page="workbench-v2"] #models .mo-provider[aria-checked="true"] {
   border-color: var(--line-accent);
@@ -2556,11 +2559,23 @@ body[data-ui-page="workbench-v2"] #models .mo-provider-body strong {
   font-size: var(--fs-secondary);
   font-weight: 650;
   color: var(--text-1);
+  /* 审美：标题统一预留两行高（长名两行、短名留白），九卡彻底等高 */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  min-height: 2.6em;
+  line-height: 1.3;
 }
 body[data-ui-page="workbench-v2"] #models .mo-provider-body small {
   font-size: var(--fs-caption);
   color: var(--text-4);
   line-height: 1.4;
+  /* 审美：描述统一夹两行，九张供应商卡高度一致、网格整齐 */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 body[data-ui-page="workbench-v2"] #models .mo-provider-check {
   flex: 0 0 auto;
@@ -3409,5 +3424,43 @@ body[data-ui-page="workbench-v2"] #context .ctx-setting-row span {
 body[data-ui-page="workbench-v2"] #context .ctx-setting-row b {
   color: var(--text-1);
   font-weight: 650;
+}
+
+/* ==========================================================================
+   设置中心精修：可达性命中区 + 切页轻过渡 + 减弱动效全覆盖。
+   ========================================================================== */
+/* 复选行：整行可点、命中区≥28px（此前裸 checkbox 仅 16px，量取取证） */
+body[data-ui-page="workbench-v2"] .page:not(#chat) label.check-line {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 28px;
+  padding: 2px 6px;
+  border-radius: var(--r-sm);
+  cursor: pointer;
+}
+body[data-ui-page="workbench-v2"] .page:not(#chat) label.check-line:hover {
+  background: var(--surface-2);
+}
+/* 切页轻淡入：只动 opacity（合成层，不触发重排），120ms 不拖慢切换 */
+@keyframes v2-page-in {
+  from {
+    opacity: 0.35;
+  }
+  to {
+    opacity: 1;
+  }
+}
+body[data-ui-page="workbench-v2"]:not(.chat-mode) .settings-content > .page:not([hidden]) {
+  animation: v2-page-in 0.12s ease-out;
+}
+@media (prefers-reduced-motion: reduce) {
+  body[data-ui-page="workbench-v2"] *,
+  body[data-ui-page="workbench-v2"] *::before,
+  body[data-ui-page="workbench-v2"] *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 

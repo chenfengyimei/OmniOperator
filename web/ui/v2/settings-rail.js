@@ -90,9 +90,14 @@ export function mountSettingsRail({ getPage }) {
       for (const link of host.querySelectorAll('[data-settings-page]')) {
         const on = link.dataset.settingsPage === next;
         link.setAttribute('aria-current', String(on));
-        // 侧边栏独立滚动：选中项可能在可见区外，滚入最近可见位置
-        // （block:'nearest' 只滚侧边栏自身，不带动整页）。
-        if (on) link.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+        if (!on) continue;
+        // 只滚侧栏自身把选中项带入可见区。不用 scrollIntoView——它会连带
+        // 滚动所有可滚祖先（含工作区），把页头推出视口（稳定性修复）。
+        const top = link.offsetTop;
+        const bottom = top + link.offsetHeight;
+        if (top < host.scrollTop + 4) host.scrollTop = Math.max(0, top - 4);
+        else if (bottom > host.scrollTop + host.clientHeight - 4)
+          host.scrollTop = bottom - host.clientHeight + 4;
       }
     },
     reset() {

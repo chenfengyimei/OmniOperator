@@ -1,32 +1,32 @@
-import { mountSkills } from './skills.js?v=20261118v155';
-import { mountCredentials } from './credentials.js?v=20261118v155';
-import { mountAuditHistory, mountOperations } from './operations.js?v=20261118v155';
-import { mountCapabilities } from './capabilities.js?v=20261118v155';
-import { mountTokens } from './tokens.js?v=20261118v155';
-import { mountDocuments } from './documents.js?v=20261118v155';
-import { mountConfiguration } from './configuration.js?v=20261118v155';
-import { mountModels } from './models.js?v=20261118v155';
+import { mountSkills } from './skills.js?v=20261119v156';
+import { mountCredentials } from './credentials.js?v=20261119v156';
+import { mountAuditHistory, mountOperations } from './operations.js?v=20261119v156';
+import { mountCapabilities } from './capabilities.js?v=20261119v156';
+import { mountTokens } from './tokens.js?v=20261119v156';
+import { mountDocuments } from './documents.js?v=20261119v156';
+import { mountConfiguration } from './configuration.js?v=20261119v156';
+import { mountModels } from './models.js?v=20261119v156';
 import { ask } from '../dialog.js?v=20261103v7';
-import { mountPeople } from './people.js?v=20261118v155';
-import { mountDeliveries } from './deliveries.js?v=20261118v155';
-import { mountSchedules } from './schedules.js?v=20261118v155';
-import { mountMemorySemantics } from './memory-semantics.js?v=20261118v155';
-import { mountMemoryOrganization } from './memory-organization.js?v=20261118v155';
-import { mountExtensions } from './extensions.js?v=20261118v155';
-import { mountActionReviews } from './action-reviews.js?v=20261118v155';
-import { mountTerminals } from './terminals.js?v=20261118v155';
-import { mountDesktop } from './desktop.js?v=20261118v155';
-import { mountQQ } from './qq.js?v=20261118v155';
-import { mountBilibili } from './bilibili.js?v=20261118v155';
-import { mountMedia } from './media.js?v=20261118v155';
-import { mountMcp } from './mcp.js?v=20261118v155';
-import { mountAndroid } from './android.js?v=20261118v155';
-import { mountModelOutput } from './model-output.js?v=20261118v155';
-import { mountRouting } from './routing.js?v=20261118v155';
-import { mountChatImages } from './chat-images.js?v=20261118v155';
-import { mountInspector } from './inspector.js?v=20261118v155';
-import { mountSettingsRail } from './settings-rail.js?v=20261118v155';
-import { mountEventStream } from './event-stream.js?v=20261118v155';
+import { mountPeople } from './people.js?v=20261119v156';
+import { mountDeliveries } from './deliveries.js?v=20261119v156';
+import { mountSchedules } from './schedules.js?v=20261119v156';
+import { mountMemorySemantics } from './memory-semantics.js?v=20261119v156';
+import { mountMemoryOrganization } from './memory-organization.js?v=20261119v156';
+import { mountExtensions } from './extensions.js?v=20261119v156';
+import { mountActionReviews } from './action-reviews.js?v=20261119v156';
+import { mountTerminals } from './terminals.js?v=20261119v156';
+import { mountDesktop } from './desktop.js?v=20261119v156';
+import { mountQQ } from './qq.js?v=20261119v156';
+import { mountBilibili } from './bilibili.js?v=20261119v156';
+import { mountMedia } from './media.js?v=20261119v156';
+import { mountMcp } from './mcp.js?v=20261119v156';
+import { mountAndroid } from './android.js?v=20261119v156';
+import { mountModelOutput } from './model-output.js?v=20261119v156';
+import { mountRouting } from './routing.js?v=20261119v156';
+import { mountChatImages } from './chat-images.js?v=20261119v156';
+import { mountInspector } from './inspector.js?v=20261119v156';
+import { mountSettingsRail } from './settings-rail.js?v=20261119v156';
+import { mountEventStream } from './event-stream.js?v=20261119v156';
 // 直接复用 V1 的 rail 提示浮层模块（data-tip → #tip-layer），不自创实现
 import '../app/tips.js?v=20261103u5';
 
@@ -306,6 +306,10 @@ function syncPageChrome(next) {
   settingsRail.sync(next);
   const aside = document.querySelector('aside');
   if (aside && next === 'chat') aside.scrollTop = 0;
+  // 稳定性：切分类时内容区回顶——共享滚动容器会保留上一页位置，
+  // 新页从中间截断显示（所有者截图取证）。每次切页复位到页头。
+  const scroller = document.querySelector('.settings-content');
+  if (scroller && next !== 'chat') scroller.scrollTop = 0;
 }
 function themeLabel() {
   // 三圆点直接切换（对齐 prototype-workbench-redesign）：选中项加 .active + aria-checked
