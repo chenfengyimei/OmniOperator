@@ -14,7 +14,7 @@ from typing import Any, cast
 import httpx
 
 from ..application.ports import AsyncSecretPort, Record
-from ..domain.bilibili import ADAPTER, API, connection, uid
+from ..domain.bilibili import ADAPTER, API, connection, search_keyword, search_rows, uid
 from ..domain.contracts import JSON, BusinessError, Effect, InvocationContext, Outcome
 from ..domain.delivery import DeliveryResult, OutboundMessage, text_fingerprint
 from .diagnostics import Redactor
@@ -353,6 +353,18 @@ class BilibiliGateway:
             )
         return {"audio": audio or None, "video": video_stream or None}
 
+    async def _search(self, client: Any, nav: Payload, keyword: str, limit: int) -> Payload:
+        """WBI-signed public video search (page 1); bounded, markup-stripped rows."""
+        from ..domain.bilibili import sign_wbi, wbi_keys
+
+        img, sub = wbi_keys(nav)
+        data = await self._get(
+            client,
+            "/x/web-interface/wbi/search/type",
+            sign_wbi({"search_type": "video", "keyword": keyword, "page": 1}, img, sub, int(time.time())),
+        )
+        return {"keyword": keyword, **search_rows(data, limit)}
+
     async def read(self, configuration: Mapping[str, object], operation: str, target: str, limit: int = 10) -> Payload:
         return await self._read(configuration, operation, target, limit)
 
@@ -384,13 +396,13 @@ class BilibiliGateway:
         try:
             value = connection(cast(Payload, configuration))
             if (
-                operation not in {"account", "video", "comments", "replies", "subtitle", "streams"}
+                operation not in {"account", "video", "comments", "replies", "subtitle", "streams", "search"}
                 or type(limit) is not int
                 or not 1 <= limit <= 20
             ):
                 raise BusinessError(
                     "bilibili_read_invalid",
-                    "Choose account/video/comments/replies/subtitle/streams and a limit of 1–20",
+                    "Choose account/video/comments/replies/subtitle/streams/search and a limit of 1–20",
                     status=422,
                 )
             root = ""
@@ -399,7 +411,10 @@ class BilibiliGateway:
                 if not separator:
                     raise BusinessError("bilibili_read_invalid", "Thread reads require BV:root-comment-id", status=422)
                 root = uid(root)
-            if operation != "account" and not re.fullmatch(r"BV[0-9A-Za-z]{10}", target):
+            keyword = ""
+            if operation == "search":
+                keyword = search_keyword(target)
+            elif operation != "account" and not re.fullmatch(r"BV[0-9A-Za-z]{10}", target):
                 raise BusinessError("bilibili_read_invalid", "Read targets require an exact BV identifier", status=422)
             async with self._slots, asyncio.timeout(20):
                 cookies = await self._cookies(value)
@@ -411,6 +426,8 @@ class BilibiliGateway:
                             "name": str(nav.get("uname", ""))[:100],
                             "logged_in": True,
                         }
+                    if operation == "search":
+                        return await self._search(client, nav, keyword, limit)
                     video = await self._get(client, "/x/web-interface/view", {"bvid": target})
                     if video.get("bvid") != target:
                         raise BusinessError("bilibili_source_changed", "Video identity changed")

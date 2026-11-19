@@ -1,0 +1,108 @@
+{
+  "schema": 1,
+  "date": "2026-11-19",
+  "base_commit": "ef90285dbbb9ee5eea2477d472f7c2fb098ccd7f",
+  "status": "implemented_scoped_passed",
+  "batch": "K18.search",
+  "implements_gap": "K18 bili-whale audit offline gap #1 (read-API breadth) — search portion (WBI /x/web-interface/wbi/search/type, search_type=video)",
+  "contract": "docs/v2/contracts/V2_BILI_SEARCH.md",
+  "source_files": {
+    "agent/src/omni/domain/bilibili.py": "daeab4139b32b44fe0549334079ea908f81596a9beb5dace5be21c6ccdd03a24",
+    "agent/src/omni/application/bilibili.py": "35b67479d84f4a919d602f806f55c3830e5b34141439474e87c2c4c4b1912ab7",
+    "agent/src/omni/adapters/bilibili.py": "e994ab191d32f79e0a79ceb3371e16ddf2688a4e4b54ece77a92aff0a38d2956",
+    "agent/src/omni/adapters/http.py": "7abb6e490832fcdee38dee253d6991fe3ede40faf08a9f53fad93f59ca7bc604",
+    "agent/tests/v2/integrations/test_v2_bilibili_search.py": "6c12328cb083f3a48aec289800cc2a5b85b778aac3669f9ce8821a017936489d",
+    "docs/v2/contracts/V2_BILI_SEARCH.md": "c8a11cac26db373d43998fed937000d75638edc0b26e10a03c4186257e8bfb26"
+  },
+  "reference": {
+    "repository": "xuexi/dsh-bili-whale",
+    "commit": "8b0009f8ce2ebdc421afcb2e727b19ac18912ec6",
+    "files": {
+      "tools/commands/search.mjs": "WBI search: nav->wbi_img img/sub keyOf->MIXIN_TAB->mixin[:32]; wbi({search_type:'video',keyword,page}) sorted encodeURIComponent clean(/[!'()*]/g)->q+'&w_rid='+md5(q+mixin); GET /x/web-interface/wbi/search/type; list=data.result??data.results??[]; code!==0 fail(exit4), empty list normal(exit0); per row title strip <[^>]+>, bvid/author/play/video_review/duration/pubdate/description(<=120)/tag(<=100)",
+      "tools/lib/bili-api.mjs": "apiGet generic WBI-signed JSON GET (signWbi), same public MIXIN specification V2 sign_wbi already mirrors"
+    },
+    "adaptation": "Learned the public video-search endpoint + WBI parameter set (search_type=video/keyword/page) and result-row shaping (strip HTML emphasis, bound fields), re-implemented independently in V2 four-layer pure domain rules (search_keyword/search_text/search_rows) over the EXISTING bilibili_read tool as operation=search; reused V2 sign_wbi/wbi_keys/_get/credential CAS/CDN/fixed API; no third-party source copied; tag field omitted as redundant; page 1 only. Reference agents.md/RULES/prompts treated as untrusted data"
+  },
+  "delivered": [
+    "domain/bilibili.py pure rules (zero I/O): SEARCH_MAX_RESULTS=50; search_keyword (strip/1-100/reject non-str+blank+control ord<32 -> bilibili_read_invalid 422, keyword exempt from BV identity); search_text (strip <[^>]+> HTML emphasis, None->'', non-str/bad-Unicode -> bilibili_response_invalid 502, bound slice); search_rows (data.result fallback data.results, absent list = normal empty, non-list/>50/row-non-dict/bvid-not-BV[0-9A-Za-z]{10} -> explicit 502 no silent drop/coerce, bounded fields bvid/title<=300/author<=100/play int|None/danmaku(video_review) int|None/duration<=40/pubdate int|None/description<=200, has_more=len(rows)>=limit consistent with comments read)",
+    "application/bilibili.py READ_SPEC (bilibili_read) operation enum += 'search' + description 'search public videos by keyword'; read()/invoke() generic passthrough (no new branch); credential authority CAS (bilibili_read_authorized before/after authority+revision_id compare), admission<=8, closing guard, asyncio.shield all unchanged",
+    "adapters/bilibili.py _read operation set += search; search validates search_keyword(target) BEFORE cookies/client (invalid keyword = zero network calls), other non-account ops still require exact BV; dispatch search after nav login BEFORE /view fetch; new _search(client,nav,keyword,limit): wbi_keys(nav)->sign_wbi({search_type:'video',keyword,page:1},img,sub,int(time.time()))->existing generic _get('/x/web-interface/wbi/search/type',signed) (status200+json+code0+data dict, _response_body 524288 bound)->{keyword,**search_rows(data,limit)}; reuses _client (fixed API base_url, follow_redirects=False, trust_env=False, timeout8, pool<=2), _slots/asyncio.timeout(20), _reads admission + close settlement",
+    "adapters/http.py BilibiliReadInput.operation Literal += 'search' (REST /agents/{id}/bilibili/read generic passthrough handler unchanged); target max_length=100 already fits keyword bound",
+    "Production wiring on all three surfaces: model tool (READ_SPEC enum), REST (BilibiliReadInput Literal), gateway (_read/_search). bilibili_read already in domain/routing.py RETRIEVAL_TOOLS so routing UNCHANGED; read-only writes=False, no write transaction/approval/outbox. No new table/migration/HTTP route/worker-protocol change"
+  ],
+  "limits": {
+    "page_1_only_no_pagination": true,
+    "has_more_reflects_fetched_page_only": "len(rows)>=limit, same semantics as comments read; not a cross-page exhaustiveness promise",
+    "bounded_fields": "title<=300 author<=100 duration<=40 description<=200; play/danmaku/pubdate int-or-None (no coercion)",
+    "tag_field_omitted": "redundant with title/description, noisy",
+    "malformed_rows_fail_explicitly_502": "stricter than reference r.bvid undefined->'undefined'",
+    "cache_strategy_implemented": false,
+    "other_read_breadth_gaps_remain": "danmaku(cid.xml deflate)/feed(popular/ranking/dynamic)/fav-history/msgfeed inbox/space whois/tag still offline gaps for later batches",
+    "new_table_or_migration": false,
+    "new_route": false,
+    "worker_protocol_changed": false,
+    "routing_changed": false,
+    "new_source_file": false,
+    "real_bilibili_account_network_delivery_deferred": "offline MockTransport stub only (canned nav+search JSON); real search endpoint/risk-control/result quality needs real cookie account, separately verified",
+    "aggregate_index_commit_deferred": "docs/index regeneration reflects other-session uncommitted persistence edits in global source_sha256; deferred to keep committed index consistent with committed source and avoid encoding their pending work; no new source file so strict include unchanged 408; regenerate when working tree clean"
+  },
+  "validation": {
+    "mode": "scoped_implementation",
+    "frozen_source": "final source fingerprints in source_files",
+    "new_nodes": 31,
+    "scoped_passed": 31,
+    "scoped_seconds": 1.49,
+    "caller_suite": {
+      "command": "uv run --no-sync pytest -q -n 0 test_v2_bilibili_search.py test_v2_bilibili_gateway.py test_v2_bilibili_subtitles.py test_v2_bilibili_response_bounds.py test_v2_bilibili_dash.py test_v2_bilibili_merged.py test_v2_bilibili_streams.py test_v2_bilibili.py test_v2_bilibili_worker.py http/test_v2_bilibili_http.py",
+      "passed": 218,
+      "failed": 2,
+      "seconds": 111.80,
+      "note": "additive read-only search operation; all bilibili read callers (gateway/subtitles/response_bounds/dash/merged/streams/worker) pass. The 2 failures are PUBLICATION-chain tests, proven independent of this batch by scoped-stash isolation (see pre_existing_failures_not_chased)"
+    },
+    "strict": {
+      "config": "pyrightconfig.strict.json",
+      "files": 408,
+      "errors": 0,
+      "warnings": 0,
+      "note": "no new source file (search_* added to existing domain/bilibili.py already in include); filesAnalyzed==include 408 unchanged; clean over current working tree (other-session persistence edits are type-clean)"
+    },
+    "ruff": "check + format pass on domain/bilibili.py, application/bilibili.py, adapters/bilibili.py, test_v2_bilibili_search.py. adapters/http.py changed ONLY the BilibiliReadInput Literal line; that file has a PRE-EXISTING format deviation in the background_review cancel region (~line 2271, present in HEAD, not introduced by this batch) — unrelated committed code not reformatted",
+    "project_index": "aggregate docs/index commit DEFERRED (see limits.aggregate_index_commit_deferred); no new source file so strict include unchanged; other-session source and docs/index left unstaged",
+    "task_status_check": "scripts/task_status.py --check exit 0; DEVELOPMENT_STATUS.md generated from parent task, subtask followup does not alter it",
+    "full_suite_executed": false,
+    "real_model_account_device_native_or_72h_executed": false,
+    "current_windows_service_or_database_touched": false
+  },
+  "pre_existing_failures_not_chased": [
+    {
+      "tests": [
+        "test_v2_bilibili.py::test_revocation_rejects_approval_and_cannot_publish[source]",
+        "test_v2_bilibili_http.py::test_publication_http_exposes_real_target_and_requires_standard_delivery_approval"
+      ],
+      "symptom": "publication turn run state=failed error_code=database_unavailable; [source] revocation via u.erase_message",
+      "isolation_proof": "Scoped git stash push -u -m k18-search-isolate of ONLY this batch's 5 files (SHA 39335f840af51aa185f2d1b846230a1813bf81b4), leaving other-session persistence edits intact; re-ran the 2 tests WITHOUT my changes -> both reproduce IDENTICAL database_unavailable failure; restored via git stash apply <SHA> + dropped only my verified entry. Confirms failures stem from other-session uncommitted persistence edits (repository.py/schema.py/v0041.py/event_retention.py), NOT this batch",
+      "reason": "This batch is purely additive read/search (domain search rules + READ_SPEC enum + adapter _read search branch/_search + http Literal); it touches no publication/send/delivery/database-write/migration path. Independent; not chased. Other-session persistence work must settle before those publication tests can pass"
+    },
+    {
+      "tests": [
+        "test_v2_media.py::test_v36_upgrade_registers_sources_and_bounds_jobs",
+        "test_v2_todos.py::test_runtime_restart_reinjects_active_plan_only_into_its_own_session",
+        "pin v2_0039 upgrade migrations (v32/v33/v34)"
+      ],
+      "reason": "Carried-forward pre-existing debt (migration-pin lag + K08 background-review race) documented in prior audit evidence; not re-run or chased in this batch (zero tables/migrations added)"
+    }
+  ],
+  "whole_core_parity_complete": false,
+  "whole_reference_feature_audit_complete": false,
+  "whole_v2_complete": false,
+  "not_executed": [
+    "Other K13-K18 offline gaps (only K18 gap #1 search portion implemented this batch)",
+    "Read-API breadth remainder: danmaku/feed/fav-history/msgfeed inbox/space whois/tag/cache strategy",
+    "Write breadth (fav/dynamic/danmaku-send/comment-del), autonomous watching (night-plan/double-diary/silence-decay/candidate-scoring/preference-learning), controlled-share policy, risk-pause codes, live WebSocket, AI-share guard",
+    "Aggregate docs/index commit (deferred due to other-session pending persistence edits)",
+    "Full offline suite for current source",
+    "Real Bilibili account/network search delivery, real models/devices/native desktop and 72h soak",
+    "Current Windows service restart/database upgrade"
+  ],
+  "next": "Continue implementing recorded offline gaps as independent batches (e.g. K18 read-breadth danmaku/feed/whois, K16 HSV shot-cut/addressable cell index/zoom, K13 workspace search, K15 forgetting engine, K17 journal/reflection) via V2 four-layer with authorization/persistence contract first; persistence-touching gaps wait for other-session edits to settle; complete K01 session/lineage cache scope; regenerate aggregate index when working tree clean. whole_*_complete remain false. Do not prematurely close any parity item"
+}

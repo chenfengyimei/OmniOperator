@@ -181,6 +181,69 @@ def page_identity(value: object) -> str:
     raise ValueError("Unsupported page identity")
 
 
+SEARCH_MAX_RESULTS = 50
+
+
+def search_keyword(value: object) -> str:
+    """A bounded public-search keyword; never a BV identity, blank or control bytes."""
+    if not isinstance(value, str):
+        raise BusinessError("bilibili_read_invalid", "Search requires a bounded keyword", status=422)
+    keyword = value.strip()
+    if not 1 <= len(keyword) <= 100 or any(ord(c) < 32 for c in keyword):
+        raise BusinessError(
+            "bilibili_read_invalid", "Search keyword must be 1–100 characters without control bytes", status=422
+        )
+    return keyword
+
+
+def search_text(value: object, bound: int) -> str:
+    """Strip Bilibili's HTML emphasis markup and bound one search text field."""
+    if value is None:
+        return ""
+    if not isinstance(value, str):
+        raise BusinessError("bilibili_response_invalid", "Search text field changed format", status=502)
+    text = re.sub(r"<[^>]+>", "", value)
+    try:
+        text.encode("utf-8")
+    except UnicodeError as exc:
+        raise BusinessError("bilibili_response_invalid", "Search text is not valid Unicode", status=502) from exc
+    return text[:bound]
+
+
+def search_rows(data: Mapping[str, object], limit: int) -> dict[str, object]:
+    """Bounded, markup-stripped video search rows; an absent result list means no matches."""
+    raw = data.get("result", data.get("results"))
+    if raw is None:
+        rows: list[object] = []
+    elif isinstance(raw, list):
+        rows = cast(list[object], raw)
+    else:
+        raise BusinessError("bilibili_response_invalid", "Search result list changed format", status=502)
+    if len(rows) > SEARCH_MAX_RESULTS:
+        raise BusinessError("bilibili_response_invalid", "Search result list changed format", status=502)
+    items: list[dict[str, object]] = []
+    for row in rows[:limit]:
+        if not isinstance(row, dict):
+            raise BusinessError("bilibili_response_invalid", "Search records changed format", status=502)
+        entry = cast(dict[str, object], row)
+        bvid = entry.get("bvid")
+        if not isinstance(bvid, str) or not re.fullmatch(r"BV[0-9A-Za-z]{10}", bvid):
+            raise BusinessError("bilibili_response_invalid", "Search records changed format", status=502)
+        items.append(
+            {
+                "bvid": bvid,
+                "title": search_text(entry.get("title"), 300),
+                "author": search_text(entry.get("author"), 100),
+                "play": entry.get("play") if type(entry.get("play")) is int else None,
+                "danmaku": entry.get("video_review") if type(entry.get("video_review")) is int else None,
+                "duration": search_text(entry.get("duration"), 40),
+                "pubdate": entry.get("pubdate") if type(entry.get("pubdate")) is int else None,
+                "description": search_text(entry.get("description"), 200),
+            }
+        )
+    return {"items": items, "has_more": len(rows) >= limit}
+
+
 class Form(BaseModel):
     model_config = ConfigDict(extra="forbid", strict=True)
 

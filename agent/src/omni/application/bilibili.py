@@ -13,12 +13,13 @@ from .ports import DatabasePort, DeliveryPort, Record
 
 READ_SPEC = ToolSpec(
     "bilibili_read",
-    "Read configured Bilibili account/video/comments/replies. Thread targets use BV:root-comment-id; no publishing.",
+    "Read configured Bilibili account/video/comments/replies or search public videos by keyword. "
+    "Thread targets use BV:root-comment-id; search targets are keywords; no publishing.",
     {
         "type": "object",
         "properties": {
             "config_id": {"type": "string", "format": "uuid"},
-            "operation": {"type": "string", "enum": ["account", "video", "comments", "replies"]},
+            "operation": {"type": "string", "enum": ["account", "video", "comments", "replies", "search"]},
             "target": {"type": "string", "maxLength": 100},
             "limit": {"type": "integer", "minimum": 1, "maximum": 20},
         },
