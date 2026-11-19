@@ -216,17 +216,26 @@
     {
       "id": "K15",
       "title": "人格、遗忘/巩固与自主行为",
-      "status": "partial_audit_pending",
-      "remaining": "已有people/memory/QQ/B站/schedule；补跨渠道一致性、作息/动机与记忆成长反馈闭环",
-      "reference": "surfcore",
-      "next": true
+      "status": "audited_gaps_recorded",
+      "acceptance": [
+        "五组逐项审计（跨渠道一致人格、遗忘/巩固学习、主动动机/自主行为、作息反馈闭环、渠道集成）分类已对等/需账号设备/可离线缺口",
+        "V2已有people/persona、memory CRUD/semantics/显式整理/来源删除屏障、K08回合后评审、调度/投递框架、QQ/B站确认对等基础",
+        "时间衰减遗忘巩固引擎、主动动机引擎、分层人格+跨渠道统一卡、作息质量反馈列可离线后续批次；真实账号送达/人格一致性质量另验，不宣称自主行为对等"
+      ],
+      "reference": "surfcore(59ec3066, v0.8.6 DSH plugin+独立QQ桥; memory-card.js衰减巩固/purpose-engine.js需求->目标->驱动->情绪/night-schedule.mjs质量反馈作息/persona-layers.js分层人格/wake-policy.js睡前观察/greeting-schedule.js晨间问候/platforms.js渠道适配+隐私)",
+      "delivered": "审计合同V2_PERSONA_AUTONOMY_AUDIT.md：V2 people/persona身份、memory_search/remember/forget模型工具、memory_semantics FTS+向量、memory_organization显式整理(不调模型)、来源删除屏障、K08回合后reviewer/curator(待审建议进remember/forget+技能审核)、SchedulingService interval/cron所有者侧、DeliveryService outbox、QQ OneBot+bilibili读/prepare对照参考五组；可离线缺口(时间衰减遗忘巩固引擎=衰减层级+重要性启发+召回强化+每日forget tick+容量告警/自动压缩+记忆级保护、主动动机引擎=需求->目标->驱动衰减->情绪->动作规划+观察账本/反馈+外联硬闸、分层人格合成+跨渠道统一卡=scene/daily层+预算裁剪+渠道sanitize+character-pack epoch切换、作息质量反馈+睡前观察/唤醒策略+晨间问候)列后续批次；需账号/设备项(QQ/B站真实送达质量+SnowLuma运行时+主动外联送达、pet Electron载体、voice TTS引擎、跨渠道记忆隐私scope隔离效果、真实模型话语生成质量与人格一致性)另验",
+      "contract": "docs/v2/contracts/V2_PERSONA_AUTONOMY_AUDIT.md",
+      "evidence": "docs/evidence/v2-persona-autonomy-audit.json",
+      "limits": "只读审计无新引擎/表/迁移/路由/源码改动；可离线缺口未在K15实现(列后续批次)；不宣称自主行为/遗忘巩固/分层人格/作息反馈对等；既有todos重启竞态与5个pin v2_0039旧迁移测试沿用保留",
+      "next": false
     },
     {
       "id": "K16",
       "title": "视频理解完整分镜工具链",
       "status": "partial_audit_pending",
       "remaining": "已有上传/ASR/有限抽帧/锚点；核对自适应分镜、zoom、字幕带、locate等五工具与算法",
-      "reference": "dsh-video-storyboard"
+      "reference": "dsh-video-storyboard",
+      "next": true
     },
     {
       "id": "K17",
@@ -296,6 +305,10 @@
     {
       "id": "K14",
       "evidence": "docs/evidence/v2-android-audit.json"
+    },
+    {
+      "id": "K15",
+      "evidence": "docs/evidence/v2-persona-autonomy-audit.json"
     }
   ]
 }
