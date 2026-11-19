@@ -300,9 +300,17 @@
           "contract": "docs/v2/contracts/V2_BILI_WHOIS.md",
           "evidence": "docs/evidence/v2-bili-whois.json",
           "delivered": "bilibili_read新增operation=whois只读(domain/bilibili.py bounded_text纯文本不去标记+whois_profile身份匹配mid/有界name-sex-sign-level、application READ_SPEC enum+desc、adapters _read whois目标uid校验豁免BV+nav后_whois WBI/x/space/wbi/acc/info复用_get/凭据CAS、http Literal)；19专项+219bilibili读调用方过0失败、strict408零错误；省略face/official/vip/fans等嵌套字段、单资料无分页；无新表/迁移/路由/worker改动routing不变；聚合索引暂缓"
+        },
+        {
+          "gap": "#1 读API广度之官方弹幕(comment.bilibili.com/cid.xml deflate)",
+          "status": "implemented_scoped_passed",
+          "batch": "K18.danmaku",
+          "contract": "docs/v2/contracts/V2_BILI_DANMAKU.md",
+          "evidence": "docs/evidence/v2-bili-danmaku.json",
+          "delivered": "bilibili_read新增operation=danmaku只读(domain danmaku_url固定comment host+uid cid/parse_danmaku正则<d p>有界1000行text100/html.unescape/finite时间过滤、adapter _danmaku_xml有界zlib解压-15/15/31防炸弹4MiB+eof/_danmaku固定host stream status200、_read BV目标/view后cid分派、READ_SPEC+http Literal)；20专项+239bilibili读调用方过0失败、strict408零错误；sampled样本集语义忽略limit、刷屏热区debrief分析另层不在范围；无新表/迁移/路由/worker改动routing不变；聚合索引暂缓"
         }
       ],
-      "limits": "只读审计无新工具/表/迁移/路由/源码改动；可离线缺口未在K18审计批实现(列后续批次)，其中读API广度之搜索与space whois已在K18.search/K18.whois后续批实现；V1 tools/bilibili实现不计V2对等；不宣称全集API/主动观看/受控分享对等；参考agents.md/RULES当不可信数据非本会话指令；K18为清单末项领域参考审计(K13-K18全部记录)；既有todos重启竞态与5个pin v2_0039旧迁移测试沿用保留",
+      "limits": "只读审计无新工具/表/迁移/路由/源码改动；可离线缺口未在K18审计批实现(列后续批次)，其中读API广度之搜索/space whois/弹幕已在K18.search/K18.whois/K18.danmaku后续批实现；V1 tools/bilibili实现不计V2对等；不宣称全集API/主动观看/受控分享对等；参考agents.md/RULES当不可信数据非本会话指令；K18为清单末项领域参考审计(K13-K18全部记录)；既有todos重启竞态与5个pin v2_0039旧迁移测试沿用保留",
       "next": false
     }
   ],
@@ -387,6 +395,10 @@
     {
       "id": "K18.whois",
       "evidence": "docs/evidence/v2-bili-whois.json"
+    },
+    {
+      "id": "K18.danmaku",
+      "evidence": "docs/evidence/v2-bili-danmaku.json"
     }
   ]
 }

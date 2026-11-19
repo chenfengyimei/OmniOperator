@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import hashlib
+import html
 import json
 import re
 from collections.abc import Mapping
@@ -268,6 +269,36 @@ def whois_profile(data: Mapping[str, object], mid: str) -> dict[str, object]:
         "sign": bounded_text(data.get("sign"), 200),
         "level": data.get("level") if type(data.get("level")) is int else None,
     }
+
+
+DANMAKU_HOST = "comment.bilibili.com"
+DANMAKU_MAX_ROWS = 1000
+DANMAKU_TEXT_CHARS = 100
+
+
+def danmaku_url(value: object) -> str:
+    """Fixed Bilibili danmaku XML host; the cid must be a bounded uid, never an arbitrary URL."""
+    return f"https://{DANMAKU_HOST}/{uid(value)}.xml"
+
+
+def parse_danmaku(xml: str) -> list[dict[str, object]]:
+    """Bounded sample of danmaku rows (time seconds + unescaped text) from the official XML.
+
+    The endpoint returns a SAMPLE set, not the full danmaku history; rows are capped and each
+    text bounded. Non-finite/negative timestamps are skipped, never coerced.
+    """
+    items: list[dict[str, object]] = []
+    for match in re.finditer(r'<d p="([^"]*)">([^<]*)</d>', xml):
+        if len(items) >= DANMAKU_MAX_ROWS:
+            break
+        try:
+            t = float(match.group(1).split(",", 1)[0])
+        except ValueError:
+            continue
+        if not 0 <= t < 1e9:
+            continue
+        items.append({"t": round(t, 3), "text": html.unescape(match.group(2))[:DANMAKU_TEXT_CHARS]})
+    return items
 
 
 class Form(BaseModel):

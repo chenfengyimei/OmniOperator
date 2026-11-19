@@ -7,6 +7,7 @@ import json
 import re
 import sys
 import time
+import zlib
 from collections.abc import Awaitable, Callable, Mapping
 from pathlib import Path
 from typing import Any, cast
@@ -162,6 +163,36 @@ def _download_lengths(response: httpx.Response, offset: int) -> tuple[int | None
     if start != offset or end < start or end >= total or (length is not None and length != end - start + 1):
         raise invalid
     return end - start + 1, total
+
+
+DANMAKU_BODY_MAX = 2 * 1024 * 1024
+DANMAKU_XML_MAX = 4 * 1024 * 1024
+
+
+def _danmaku_xml(raw: bytes) -> str:
+    """Decode the official danmaku XML, which arrives as a header-less deflate stream.
+
+    Bounded against decompression bombs: at most DANMAKU_XML_MAX decoded bytes and the stream
+    must finish (eof) within that bound. Plain UTF-8 XML is accepted as-is.
+    """
+    try:
+        text = raw.decode("utf-8")
+    except UnicodeError:
+        text = ""
+    if "<d " in text or "<i>" in text:
+        return text
+    for wbits in (-15, 15, 31):
+        try:
+            inflater = zlib.decompressobj(wbits)
+            out = inflater.decompress(raw, DANMAKU_XML_MAX + 1)
+        except zlib.error:
+            continue
+        if len(out) <= DANMAKU_XML_MAX and inflater.eof:
+            try:
+                return out.decode("utf-8")
+            except UnicodeError:
+                continue
+    raise BusinessError("bilibili_response_invalid", "Danmaku XML was not decodable or exceeds its bound", status=502)
 
 
 class BilibiliGateway:
@@ -373,6 +404,19 @@ class BilibiliGateway:
         data = await self._get(client, "/x/space/wbi/acc/info", sign_wbi({"mid": mid}, img, sub, int(time.time())))
         return whois_profile(data, mid)
 
+    async def _danmaku(self, client: Any, bvid: str, cid: str) -> Payload:
+        """Official danmaku XML sample via the fixed comment host; bounded decode + parse."""
+        from ..domain.bilibili import danmaku_url, parse_danmaku
+
+        async with client.stream("GET", danmaku_url(cid)) as response:
+            if response.status_code != 200:
+                raise BusinessError(
+                    "bilibili_read_unavailable", "Danmaku download was denied or unavailable", status=503
+                )
+            body = await _response_body(response, DANMAKU_BODY_MAX, "Danmaku")
+        rows = parse_danmaku(_danmaku_xml(bytes(body)))
+        return {"bvid": bvid, "cid": cid, "items": rows, "count": len(rows), "sampled": True}
+
     async def read(self, configuration: Mapping[str, object], operation: str, target: str, limit: int = 10) -> Payload:
         return await self._read(configuration, operation, target, limit)
 
@@ -404,13 +448,14 @@ class BilibiliGateway:
         try:
             value = connection(cast(Payload, configuration))
             if (
-                operation not in {"account", "video", "comments", "replies", "subtitle", "streams", "search", "whois"}
+                operation
+                not in {"account", "video", "comments", "replies", "subtitle", "streams", "search", "whois", "danmaku"}
                 or type(limit) is not int
                 or not 1 <= limit <= 20
             ):
                 raise BusinessError(
                     "bilibili_read_invalid",
-                    "Choose account/video/comments/replies/subtitle/streams/search/whois and a limit of 1–20",
+                    "Choose account/video/comments/replies/subtitle/streams/search/whois/danmaku and a limit of 1–20",
                     status=422,
                 )
             root = ""
@@ -464,6 +509,8 @@ class BilibiliGateway:
                         return await self._subtitle(client, nav, {"bvid": target, "cid": uid(video.get("cid"))})
                     if operation == "streams":
                         return await self._streams(client, {"bvid": target, "cid": uid(video.get("cid"))})
+                    if operation == "danmaku":
+                        return await self._danmaku(client, target, uid(video.get("cid")))
                     comments = await self._get(
                         client,
                         "/x/v2/reply/reply" if root else "/x/v2/reply",
