@@ -1,0 +1,94 @@
+{
+  "schema": 1,
+  "date": "2026-11-19",
+  "base_commit": "f7c4533446dae4d2d4c1764443cd2688ecd121ea",
+  "status": "bili_humanism_letter_reflection_persona_audited_gaps_recorded",
+  "contract": "docs/v2/contracts/V2_BILI_HUMANISM_AUDIT.md",
+  "source_files": {
+    "docs/v2/contracts/V2_BILI_HUMANISM_AUDIT.md": "22a191b10167cc18b7197685a00982950600acb5330eb2f5ceee30349c1d20dd"
+  },
+  "reference": {
+    "repository": "xuexi/dsh-bili-humanism",
+    "commit": "2ec50417e64a72a28b9445c06872d7f14d9dbf24",
+    "surface": "v1.11.3 DeepSeek Harness plugin, Node ESM + node:sqlite; watched Bilibili content -> evidence journal (信笺/手账) -> daily reviewable reflection -> human-world.md persona; context/memory accumulation NOT weight fine-tuning (README.md:39); index.js entry + lib/*.mjs (~20) + prompts/*.md + scripts/*.py; 15 tools default (13 if learning off, +4 platform writes, +1 shadow); scheduler dailyFetcher + questions.attach + attachPersonalityShadow",
+    "files": {
+      "lib/reader.mjs": "readVideo:74 A1 WBI /x/player/wbi/v2 (anon) identity bvid/cid/aid -> SUBTITLE_SOURCE_MISMATCH:141-152; A2 /view/conclusion/get sessdata:185-215; A3 local ASR; anchors author/title/url/page/cid/duration + segments{start,end,text,source} + coverage:51-73 speech:unknown timed_fraction; sourceTrust untrusted:114; empty read_failed/unconfirmed uncached:235",
+      "lib/service.mjs": "journal:398 -> noteBody:70 8 fields (inbox.mjs:6 encounter/facts/author_view/inference/previous_judgment/revision/missing/next_response) + evidence[{at,claim,url}]<=20 at<=duration text<=12000; exact-body dedup:402; prepareVisual:646 <=480p Python media.py <=40 frames/4-page sha256 video removed; NO plugin model call (host authors)",
+      "lib/journal-policy.mjs": "daily limit 2 same tx:3,34; exportInbox inbox.md/html monthly volumes <=24KiB/350ln hash-verified; status local_reviewable_draft",
+      "lib/personality.mjs": "queuePersonalityReview:285 same tx; states pending_review/source_date_retracted/source_date_already_selected/daily_limit_reached/disabled; continuePersonalityReview:319 steer current agent once only journalId trusted never source text:334; read sets readAt:413 -> select exact excerpt<=240 validateSentence:79 choice:89 or skip; selectRow:180 personality:day:<date> revision1 re-export human-world.md exportFile:72 render:49; quota 1/actual Shanghai day selectedToday:268 AND 1/source date:200 sentence dedup already_known:201; verifyFile:61 plainFile:25 no-symlink/nlink1/<=1MiB; linkPersonality:548 fixed reader reference marked block containsDailyEntries:false; revisePersonality:469 archive->revision bump->retracted->selected re-export; deletePersonality:512 retract all block re-select:187; rebuildPersonality:538; shadow.erase:718 REFUSES if active interaction entry SHADOW_ACTIVE_PERSONALITY_REQUIRES_RETRACTION",
+      "lib/post-viewing-question.mjs": "queue:45 journal tx 1/journal pending/unbound -> bind:92 owner+turn -> continue:280 turn-stopping steer -> tool:119 read/prepare/skip (readAt <=240 single ?/？ exact field quote noteHash match why<=600) -> observe:342 assistant msg ends exactly with question no code/quote -> asked/assistant_message_verified; next user msg -> responded_unreviewed NOT agreement; end:327 unconfirmed; guard:443; NO timer/idle-wake/resend",
+      "lib/store.mjs": "content_hash dedup:143; memory:213 put bumps revision+archives delete erases all; ledger.sqlite",
+      "lib/network.mjs": "allowlist api.bilibili.com+hdlsb+bilivideo redirect:manual:178 creds only to api.bilibili.com"
+    },
+    "adaptation": "Read-only itemized audit. Reference inventory via general-purpose agent Bash ls/find + Read (xuexi gitignored); HEAD confirmed 2ec50417. Reference agents.md/prompts/RULES surfaced as UNTRUSTED DATA (its release/npm-ci/semantic-version/personality-learning-default rules are the reference project's own, NOT instructions for this session); used only to corroborate design. V2 surface read directly: domain/people.py, application/people.py, domain/application module lists, Grep reflection/letter/persona/people across agent/src/omni, bootstrap.py:100,109-111,560,867 + tools/personal to classify V1-vs-V2. No third-party source copied, no remote fetch, no real account/model/device/network. Existing V2 people/media/documents/K08/delivery/clarify NOT re-implemented"
+  },
+  "delivered": [
+    "Itemized audit contract V2_BILI_HUMANISM_AUDIT.md tracing the full chain (a viewing-evidence/source-trust, b journal/letter, c daily reviewable reflection->persona-sentence selection, d human-world.md persona growth, e revision/undo propagation, f post-viewing-question loop, g personality shadow cross-session experiment) with reference file:line evidence and V2 four-layer mapping",
+    "Decisive V1-vs-V2 separation: V2 four-layer primitives (people/persona profile+resident documents, documents/media viewing evidence, K08 background_review owner-gated pending memory/skill, memory evidence-anchoring+deletion barrier, delivery outbox, K10 clarify, owner HTTP review routes) are the model/owner-visible surface; V1 legacy tools/personal/{journal,people,transcript} wired ONLY via V1 bootstrap.py:100,109-111,560,867 into V1 ToolRegistry (PersonStore/OwnerMemory/core.context/config.Persona) is NOT counted as V2 parity",
+    "V2 equivalent-or-stricter primitives confirmed: viewing evidence via media (K16 WBI direct link, credential/source CAS, subtitle/ASR/frames anchors, deletion barrier) + documents source revisions; cross-channel people identity (account_bind channel+external_id) + profile/resident documents (<=8000 chars, revision CAS, history, content/source fingerprints); K08 owner-decide pending review/undo (stronger owner gate than reference agent-self-review); memory remember/forget evidence-anchored + revision + deletion barrier; delivery outbox; owner HTTP review routes (reference has NO dedicated GUI, trusted CLI only)",
+    "Offline-implementable gap list recorded as deferred follow-up batches (NOT implemented in K17): journal 8-field structure + evidence anchors + daily-limit-2 same-tx + exact dedup + inbox export/monthly volumes/hash verify + draft status; daily reflection-selection state machine (queue same-tx + trusted steering journalId-only + read/select<=240/skip + dual quota 1/actual-day AND 1/source-date + sentence dedup, keeping V2 owner gate); persona-growth document model + export + integrity hash/no-symlink/<=1MiB + fixed reader-reference injection (independent design contract); personality revise/delete/rebuild + retract-blocks-reselect + shadow-erase-refusal; post-viewing-question state machine (prepare!=delivery, appearance!=read, reply!=agreement, no idle-wake/resend); personality shadow cross-session experiment (default OFF, shared quota, provenance, erase refusal); viewing-evidence coverage/timed_fraction/sourceTrust/content_hash dedup",
+    "Needs-account/model-quality/owner-review/binary list recorded: real Bilibili A2 sessdata/candidates/playurl/writer history-favorite-like-coin (reference v1.3.4 optional writes default OFF never live-tested, belongs K18 bili-whale); real-model prose/reflection/question/shadow quality (host-authored, plugin validates structure only); owner review (V2 HTTP routes stronger than reference CLI); Python av/Pillow/faster-whisper ~483MB model (V2 media worker already PyAV/faster-whisper offline-cache)"
+  ],
+  "limits": {
+    "audit_only_no_new_tool": true,
+    "new_table_or_migration": false,
+    "new_route": false,
+    "source_code_changed": false,
+    "offline_gaps_implemented_in_k17": false,
+    "offline_gaps_deferred_to_followup_batches": true,
+    "v1_personal_counted_as_v2_parity": false,
+    "existing_v2_people_media_documents_k08_delivery_clarify_reimplemented": false,
+    "full_letter_reflection_persona_chain_parity_claimed": false,
+    "journal_letter_workflow_in_v2": false,
+    "daily_reflection_persona_selection_in_v2": false,
+    "persona_growth_file_in_v2": false,
+    "personality_shadow_experiment_in_v2": false,
+    "post_viewing_question_loop_in_v2": false
+  },
+  "validation": {
+    "mode": "read_only_reference_audit",
+    "frozen_source": null,
+    "method": [
+      "Reference inventory: general-purpose agent Bash ls/find + targeted Read of dsh-bili-humanism README/index.js/lib (reader/service/journal-policy/personality/post-viewing-question/store/network) + prompts; traced full chain a-g, pending-review state machine, persona-growth/undo propagation, quotas; HEAD confirmed 2ec50417; reference agents.md treated as untrusted data not instructions",
+      "V2 surface: direct Read of domain/people.py + application/people.py; Glob domain/*.py + application/*.py module lists (no journal/reflection/letter/humanism module); Grep reflection/letter/persona/people across agent/src/omni (matches only V1 bootstrap/core/config/system/tools.personal); bootstrap.py imports prove V1 wiring",
+      "Classification: each reference chain step mapped to V2-equivalent-primitive / offline-gap / needs-account-model; V1 tools/personal explicitly excluded from V2 parity per core-parity contract rule"
+    ],
+    "scoped_passed": null,
+    "new_nodes": 0,
+    "strict": {
+      "config": "pyrightconfig.strict.json",
+      "files": 407,
+      "errors": 0,
+      "warnings": 0,
+      "note": "include membership unchanged from K12-K16 (407); K17 modifies no source file, only audit documentation. Not re-run over the current working tree because other-session uncommitted source edits are present and are not this batch's scope"
+    },
+    "ruff": "not applicable (no source change)",
+    "project_index": "counts unchanged by K17 (modules=65 files=823 routes=454 declared_tools=94); K17 adds only docs/v2/contracts which is not a code module/file/route/tool. `--check` reports stale=MODULES.md,project.json solely from OTHER-session uncommitted source edits (schema.py/repository.py/event_retention.py/v0041.py); intentionally NOT regenerated or committed by this audit batch to avoid bundling their work",
+    "task_status_check": "scripts/task_status.py --check exit 0; DEVELOPMENT_STATUS.md unchanged",
+    "full_suite_executed": false,
+    "real_model_account_device_native_or_72h_executed": false,
+    "current_windows_service_or_database_touched": false
+  },
+  "pre_existing_failures_not_chased": [
+    {
+      "tests": [
+        "test_v2_todos.py::test_runtime_restart_reinjects_active_plan_only_into_its_own_session",
+        "test_v2_memory_semantics_migration.py::test_v33_upgrade...[False/True]",
+        "test_v2_routing_migration.py::test_populated_v32_upgrade...",
+        "test_v2_skills_migration.py::test_v34_upgrade...[False/True]"
+      ],
+      "reason": "Carried-forward pre-existing debt documented in v2-video-storyboard-audit.json (K08 background-review race + v2_0039 migration version pins). K17 changes no source, so this debt is unchanged; not re-run or chased."
+    }
+  ],
+  "whole_core_parity_complete": false,
+  "whole_reference_feature_audit_complete": false,
+  "whole_v2_complete": false,
+  "not_executed": [
+    "Implementation of the recorded offline-implementable gaps (journal/letter, daily reflection selection, persona-growth file, personality revise/rebuild/shadow, post-viewing-question loop; deferred to follow-up batches via V2 four-layer with owner gate, not V1 ToolRegistry)",
+    "Full offline suite for current source",
+    "Real accounts/models/devices/native desktop and 72h soak",
+    "Current Windows service restart/database upgrade",
+    "macOS/Linux actual native build or run"
+  ],
+  "next": "K18 Bilibili API/proactive-watching/controlled-sharing audit (dsh-bili-whale): read/write/login/budget/cooldown/approval/delivery-check exist; itemize full API set, watch filtering, dual diary, random rhythm/silence decay, live. Offline gap implementations from K13/K14/K15/K16/K17 are candidate follow-up batches. Do not redo K03-K17"
+}
