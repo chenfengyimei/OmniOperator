@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`ebabacbb3d08fd6a9a24f12f5423aa5e0a32f4097fd69454512bac06cca4a839`。包含 65 个职责模块、827 个源码/界面文件。
+源码指纹：`507176c42cb420c6eed25bd22fc432f97c63275e93dcd87210706463d2a1adc9`。包含 65 个职责模块、828 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -17,12 +17,12 @@
 | [agent/src/omni/domain/android_unicode.py](../../agent/src/omni/domain/android_unicode.py) | 121 | Pinned helper profiles and authenticated, bounded Unicode input messages; no device I/O. |
 | [agent/src/omni/domain/audit_retention.py](../../agent/src/omni/domain/audit_retention.py) | 291 | Agent audit-retention subjects, frozen previews and explicit plans; performs no I/O or deletion. |
 | [agent/src/omni/domain/background_review.py](../../agent/src/omni/domain/background_review.py) | 198 | Bounded post-turn review proposals and owner decisions; no model calls, memory writes or I/O. |
-| [agent/src/omni/domain/bilibili.py](../../agent/src/omni/domain/bilibili.py) | 697 | Explicit Bilibili form profiles, targets and mention ranges; no browser, network or storage. |
+| [agent/src/omni/domain/bilibili.py](../../agent/src/omni/domain/bilibili.py) | 705 | Explicit Bilibili form profiles, targets and mention ranges; no browser, network or storage. |
 | [agent/src/omni/domain/capabilities.py](../../agent/src/omni/domain/capabilities.py) | 116 | Read-only capability projection over the instance health snapshot; no I/O and no acceptance claims. |
 | [agent/src/omni/domain/clarify.py](../../agent/src/omni/domain/clarify.py) | 199 | Pure rules for structured clarification: question normalization, answer cleaning and outcomes. |
 | [agent/src/omni/domain/configuration.py](../../agent/src/omni/domain/configuration.py) | 164 | Typed configuration payloads and fingerprints; contains no I/O or credential values. |
 | [agent/src/omni/domain/context.py](../../agent/src/omni/domain/context.py) | 106 | Bounded conversation policy; whole turns are the smallest compression unit. |
-| [agent/src/omni/domain/contracts.py](../../agent/src/omni/domain/contracts.py) | 170 | Typed execution contracts and state transitions; performs no I/O. |
+| [agent/src/omni/domain/contracts.py](../../agent/src/omni/domain/contracts.py) | 173 | Typed execution contracts and state transitions; performs no I/O. |
 | [agent/src/omni/domain/credential_ipc.py](../../agent/src/omni/domain/credential_ipc.py) | 109 | Bounded native credential messages; no platform selection, imports or diagnostics payloads. |
 | [agent/src/omni/domain/credentials.py](../../agent/src/omni/domain/credentials.py) | 79 | Credential reference and payload bounds; contains no secret store or platform dependency. |
 | [agent/src/omni/domain/delegation.py](../../agent/src/omni/domain/delegation.py) | 113 | Bounded child-run requests and tool inheritance; no scheduling, I/O or permission grants. |
@@ -99,7 +99,7 @@
 | [agent/src/omni/application/action_review.py](../../agent/src/omni/application/action_review.py) | 111 | Owner reconciliation records observations, never dispatches an action or rewrites its result. |
 | [agent/src/omni/application/android.py](../../agent/src/omni/application/android.py) | 802 | Owner Android device grants, ephemeral observations and shared approved actions; no platform I/O. |
 | [agent/src/omni/application/background_review.py](../../agent/src/omni/application/background_review.py) | 312 | Own one bounded post-turn reviewer per finished run; proposals stay pending until the owner decides. |
-| [agent/src/omni/application/bilibili.py](../../agent/src/omni/application/bilibili.py) | 234 | Owner Bilibili queries and publication preparation; all sending remains in shared approvals/outbox. |
+| [agent/src/omni/application/bilibili.py](../../agent/src/omni/application/bilibili.py) | 260 | Owner Bilibili queries and publication preparation; all sending remains in shared approvals/outbox. |
 | [agent/src/omni/application/clarify.py](../../agent/src/omni/application/clarify.py) | 42 | Owner-facing clarification use cases; the model-side wait lives in the engine run coroutine. |
 | [agent/src/omni/application/configuration.py](../../agent/src/omni/application/configuration.py) | 184 | Owner configuration use cases; import only previews and never starts an adapter. |
 | [agent/src/omni/application/context.py](../../agent/src/omni/application/context.py) | 327 | Token-aware bounded compression; external calls never hold a transaction. |
@@ -129,7 +129,7 @@
 | [agent/src/omni/application/objects.py](../../agent/src/omni/application/objects.py) | 140 | Object publication and access use cases; no filesystem paths or ORM objects. |
 | [agent/src/omni/application/operations.py](../../agent/src/omni/application/operations.py) | 127 | Bounded operational queries and privacy-preserving diagnostic export; no model or device actions. |
 | [agent/src/omni/application/people.py](../../agent/src/omni/application/people.py) | 69 | Owner-facing people and personal-document use cases; no ORM or filesystem access. |
-| [agent/src/omni/application/ports.py](../../agent/src/omni/application/ports.py) | 1052 | Application boundaries. Implementations belong to adapters. |
+| [agent/src/omni/application/ports.py](../../agent/src/omni/application/ports.py) | 1055 | Application boundaries. Implementations belong to adapters. |
 | [agent/src/omni/application/qq.py](../../agent/src/omni/application/qq.py) | 227 | Own bounded QQ listeners and owner conversation grants; turns use the shared V2 kernel. |
 | [agent/src/omni/application/release_drain.py](../../agent/src/omni/application/release_drain.py) | 30 | Bind release draining to the existing once-only boot control; reconciliation never sends another request. |
 | [agent/src/omni/application/releases.py](../../agent/src/omni/application/releases.py) | 337 | Offline release preparation and single-directory selection; never elevates, registers or starts a service. |
@@ -161,7 +161,7 @@
 | [agent/src/omni/adapters/__init__.py](../../agent/src/omni/adapters/__init__.py) | 1 | V2 infrastructure and channel adapters; no import-time external activity. |
 | [agent/src/omni/adapters/android.py](../../agent/src/omni/adapters/android.py) | 198 | Managed Android workers and bounded PNG loading; no main-process device API or application database. |
 | [agent/src/omni/adapters/android_unicode.py](../../agent/src/omni/adapters/android_unicode.py) | 160 | Owned Unicode/IME transaction over managed workers; secrets stay in private IPC. |
-| [agent/src/omni/adapters/bilibili.py](../../agent/src/omni/adapters/bilibili.py) | 930 | Bounded Bilibili reads and a single approved UI publication; credentials never enter diagnostics. |
+| [agent/src/omni/adapters/bilibili.py](../../agent/src/omni/adapters/bilibili.py) | 948 | Bounded Bilibili reads and a single approved UI publication; credentials never enter diagnostics. |
 | [agent/src/omni/adapters/build_identity.py](../../agent/src/omni/adapters/build_identity.py) | 5 | Shared inventory of executable V2 resources for runtime and deployment identities. |
 | [agent/src/omni/adapters/credentials.py](../../agent/src/omni/adapters/credentials.py) | 179 | One bounded, serial credential executor; actual work outlives cancelled request waiters. |
 | [agent/src/omni/adapters/diagnostic_bundle.py](../../agent/src/omni/adapters/diagnostic_bundle.py) | 342 | Bounded metadata and structured correlations; never opens business bodies or credential stores. |
@@ -170,7 +170,7 @@
 | [agent/src/omni/adapters/extensions/hosts.py](../../agent/src/omni/adapters/extensions/hosts.py) | 208 | Bounded trusted Python worker ownership; no database, model, credential or arbitrary command access. |
 | [agent/src/omni/adapters/extensions/packages.py](../../agent/src/omni/adapters/extensions/packages.py) | 570 | Bounded zero-execution package capture and immutable verified snapshots; never opens a database. |
 | [agent/src/omni/adapters/extensions/worker.py](../../agent/src/omni/adapters/extensions/worker.py) | 326 | Static extension handshake and trusted Python invocation in an owned child; never opens the main database. |
-| [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py) | 2477 | Versioned HTTP contract for the V2 kernel; business access goes through use cases. |
+| [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py) | 2483 | Versioned HTTP contract for the V2 kernel; business access goes through use cases. |
 | [agent/src/omni/adapters/http_events.py](../../agent/src/omni/adapters/http_events.py) | 177 | Bounded authenticated history notifications over SSE; no event bodies, replay queue or database ownership. |
 | [agent/src/omni/adapters/images.py](../../agent/src/omni/adapters/images.py) | 83 | Bounded image verification and metadata-free low-detail PNG encoding; no database or remote URLs. |
 | [agent/src/omni/adapters/local_vectors.py](../../agent/src/omni/adapters/local_vectors.py) | 288 | One bounded, supervised local embedding process; no native ML imports in the application process. |
@@ -197,7 +197,7 @@
 | [agent/src/omni/adapters/persistence/audit_retention_repository.py](../../agent/src/omni/adapters/persistence/audit_retention_repository.py) | 216 | Bounded metadata-only audit retention preview; never deletes rows or creates executable plans. |
 | [agent/src/omni/adapters/persistence/background_review_repository.py](../../agent/src/omni/adapters/persistence/background_review_repository.py) | 425 | Bounded post-turn review proposals and owner review; applying still uses the memory/skill chains. |
 | [agent/src/omni/adapters/persistence/bilibili_authority.py](../../agent/src/omni/adapters/persistence/bilibili_authority.py) | 74 | One Bilibili authority implementation shared by owner reads, previews and final dispatch. |
-| [agent/src/omni/adapters/persistence/bilibili_repository.py](../../agent/src/omni/adapters/persistence/bilibili_repository.py) | 311 | Immutable Bilibili form revisions and publications referencing the common delivery ledger. |
+| [agent/src/omni/adapters/persistence/bilibili_repository.py](../../agent/src/omni/adapters/persistence/bilibili_repository.py) | 365 | Immutable Bilibili form revisions and publications referencing the common delivery ledger. |
 | [agent/src/omni/adapters/persistence/clarify_repository.py](../../agent/src/omni/adapters/persistence/clarify_repository.py) | 181 | Structured clarification requests that pause the current run for the owner and resume the same run. |
 | [agent/src/omni/adapters/persistence/configuration_repository.py](../../agent/src/omni/adapters/persistence/configuration_repository.py) | 380 | Typed configuration revisions and Agent preferences; no connections, DDL or credentials. |
 | [agent/src/omni/adapters/persistence/context_repository.py](../../agent/src/omni/adapters/persistence/context_repository.py) | 734 | Revision-bound summaries and context provenance; all operations stay inside a short transaction. |
@@ -277,6 +277,7 @@
 | [agent/src/omni/adapters/persistence/migrations/versions/v0043.py](../../agent/src/omni/adapters/persistence/migrations/versions/v0043.py) | 86 | Bounded post-turn review batches and revocable pending proposals; frozen SQL, no current schema imports. |
 | [agent/src/omni/adapters/persistence/migrations/versions/v0044.py](../../agent/src/omni/adapters/persistence/migrations/versions/v0044.py) | 45 | Structured clarification requests pausing a run for the owner; frozen SQL, no current schema imports. |
 | [agent/src/omni/adapters/persistence/migrations/versions/v0045.py](../../agent/src/omni/adapters/persistence/migrations/versions/v0045.py) | 24 | Heal actions.started_at for databases whose earlier add-column did not land; idempotent. |
+| [agent/src/omni/adapters/persistence/migrations/versions/v0046.py](../../agent/src/omni/adapters/persistence/migrations/versions/v0046.py) | 40 | Per-account Bilibili risk-control pauses; frozen SQL, no current schema imports. |
 | [agent/src/omni/adapters/persistence/object_gc.py](../../agent/src/omni/adapters/persistence/object_gc.py) | 248 | Exclusive plan/apply collection; commit unreferenced metadata before unlinking files. |
 | [agent/src/omni/adapters/persistence/object_inventory.py](../../agent/src/omni/adapters/persistence/object_inventory.py) | 129 | Offline object registry snapshots and bounded physical inventory validation. |
 | [agent/src/omni/adapters/persistence/object_repository.py](../../agent/src/omni/adapters/persistence/object_repository.py) | 211 | Object metadata, pins and real foreign-key references; never touches files. |
@@ -294,7 +295,7 @@
 | [agent/src/omni/adapters/persistence/retention_repository.py](../../agent/src/omni/adapters/persistence/retention_repository.py) | 150 | Context barriers invalidate derived views without deleting original conversations. |
 | [agent/src/omni/adapters/persistence/routing_repository.py](../../agent/src/omni/adapters/persistence/routing_repository.py) | 304 | Scoped immutable tier policies, run choices, promotions and actual tool manifests; no model calls or I/O. |
 | [agent/src/omni/adapters/persistence/schedule_repository.py](../../agent/src/omni/adapters/persistence/schedule_repository.py) | 434 | Immutable schedule definitions, durable due cursors and atomic occurrence admission. |
-| [agent/src/omni/adapters/persistence/schema.py](../../agent/src/omni/adapters/persistence/schema.py) | 3463 | V2 relational schema. Repositories never issue DDL; migrations use frozen SQL snapshots. |
+| [agent/src/omni/adapters/persistence/schema.py](../../agent/src/omni/adapters/persistence/schema.py) | 3477 | V2 relational schema. Repositories never issue DDL; migrations use frozen SQL snapshots. |
 | [agent/src/omni/adapters/persistence/schema_upgrade.py](../../agent/src/omni/adapters/persistence/schema_upgrade.py) | 161 | Reviewed migration catalog and transactional upgrades only in a locked, fenced release target. |
 | [agent/src/omni/adapters/persistence/search_schema.py](../../agent/src/omni/adapters/persistence/search_schema.py) | 8 | Derived FTS definitions. Applied only by versioned migrations. |
 | [agent/src/omni/adapters/persistence/session_search_repository.py](../../agent/src/omni/adapters/persistence/session_search_repository.py) | 265 | Bounded read-only history recall over the shared session/message store. |

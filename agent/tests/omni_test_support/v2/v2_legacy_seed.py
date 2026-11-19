@@ -7,12 +7,20 @@ from omni.adapters.persistence.repository import Repositories
 from omni.domain.contracts import BusinessError
 
 
-def preserved_rows(connection, tables, *, excluded_run_columns=("extension_capture_epoch", "execution_kind")):
+def preserved_rows(
+    connection,
+    tables,
+    *,
+    excluded_run_columns=("extension_capture_epoch", "execution_kind"),
+    excluded_action_columns=(),
+):
     result = {}
     for name in tables:
         columns = [row[1] for row in connection.execute(f'PRAGMA table_info("{name}")')]
         if name == "runs":
             columns = [column for column in columns if column not in {*excluded_run_columns, "skill_capture_epoch"}]
+        if name == "actions":
+            columns = [column for column in columns if column not in excluded_action_columns]
         projection = ",".join('"' + column.replace('"', '""') + '"' for column in columns)
         result[name] = connection.execute(f'SELECT {projection} FROM "{name}" ORDER BY rowid').fetchall()
     return result

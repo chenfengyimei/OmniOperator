@@ -349,7 +349,7 @@ def test_capture_schema_scope_immutability_and_verified_snapshot_restore(tmp_pat
                 agent, {**verification(view, snap), "session_id": turn["session_id"]}
             )
             db = instance._database
-            assert db.schema_version == migration_head() and len(s.metadata.tables) == 141
+            assert db.schema_version == migration_head() and len(s.metadata.tables) == 142
 
             def check(unit):
                 reflection = inspect(unit.connection)

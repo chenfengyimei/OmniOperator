@@ -53,8 +53,10 @@ SOURCE_TABLES = (
 )
 
 
-def rows(connection, tables=SOURCE_TABLES):
-    return preserved_rows(connection, tables, excluded_run_columns=("execution_kind",))
+def rows(connection, tables=SOURCE_TABLES, *, excluded_action_columns=()):
+    return preserved_rows(
+        connection, tables, excluded_run_columns=("execution_kind",), excluded_action_columns=excluded_action_columns
+    )
 
 
 def baseline(paths):
@@ -111,7 +113,7 @@ def baseline(paths):
 
 def assert_schema(unit):
     reflection = inspect(unit.connection)
-    assert len(s.metadata.tables) == 141 and set(s.metadata.tables) <= set(reflection.get_table_names())
+    assert len(s.metadata.tables) == 142 and set(s.metadata.tables) <= set(reflection.get_table_names())
     for name in TABLES:
         table = s.metadata.tables[name]
         assert {column["name"]: column["nullable"] for column in reflection.get_columns(name)} == {
@@ -239,7 +241,10 @@ raise AssertionError('Requested v20 interruption did not occur')
 
         asyncio.run(retry())
         with sqlite_connection(paths.database) as connection:
-            assert rows(connection) == original
+            # V45 appended actions.started_at; the retry must leave every baseline column untouched
+            # and must not invent a start time for the preserved unknown action.
+            assert rows(connection, excluded_action_columns=("started_at",)) == original
+            assert connection.execute("SELECT started_at FROM actions").fetchall() == [(None,)]
     snapshots = list(paths.database.parent.glob("schema-backups/*"))
     assert len(snapshots) == 2
     for snapshot in snapshots:

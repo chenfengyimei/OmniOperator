@@ -130,6 +130,20 @@ bilibili_profile_revisions = scoped(
         name="payload",
     ),
 )
+bilibili_risk_pauses = scoped(
+    "bilibili_risk_pauses",
+    Column("config_id", String(36), nullable=False),
+    Column("code", Integer, nullable=False),
+    Column("paused_at", String(40), nullable=False),
+    Column("resumed_at", String(40)),
+    scoped_fk("config_id", "configurations"),
+    UniqueConstraint("agent_id", "config_id"),
+    CheckConstraint("code IN (12015,-105,-101,401)", name="risk_code"),
+    CheckConstraint(
+        "typeof(code)='integer' AND length(paused_at) BETWEEN 1 AND 40 AND (resumed_at IS NULL OR length(resumed_at) BETWEEN 1 AND 40)",
+        name="payload",
+    ),
+)
 bilibili_publications = scoped(
     "bilibili_publications",
     Column("message_id", String(36), nullable=False),

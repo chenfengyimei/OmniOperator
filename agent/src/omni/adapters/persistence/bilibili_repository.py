@@ -107,6 +107,55 @@ class BilibiliRepositories(DeliveryRepositories):
         )
         return self.bilibili_profile_get(agent_id, config_id)
 
+    def bilibili_risk_get(self, agent_id: str, config_id: str) -> Record | None:
+        self.configuration_get(agent_id, config_id)
+        row = (
+            self.connection.execute(
+                select(s.bilibili_risk_pauses).where(
+                    s.bilibili_risk_pauses.c.agent_id == agent_id,
+                    s.bilibili_risk_pauses.c.config_id == config_id,
+                )
+            )
+            .mappings()
+            .first()
+        )
+        return cast(Record, dict(row)) if row else None
+
+    def bilibili_risk_pause(self, agent_id: str, config_id: str, code: int) -> Record:
+        from ...domain.bilibili import is_risk_code
+
+        if not is_risk_code(code):
+            raise BusinessError("bilibili_risk_invalid", "Not a recognized risk-control code", status=422)
+        self.configuration_get(agent_id, config_id)
+        current = self.bilibili_risk_get(agent_id, config_id)
+        now = self.clock.now()
+        if current is None:
+            self._record(
+                s.bilibili_risk_pauses,
+                {"config_id": config_id, "code": code, "paused_at": now, "resumed_at": None},
+                agent_id,
+            )
+        else:
+            self.connection.execute(
+                update(s.bilibili_risk_pauses)
+                .where(s.bilibili_risk_pauses.c.id == current["id"])
+                .values(code=code, paused_at=now, resumed_at=None)
+            )
+        self.audit(agent_id, "bilibili.risk_paused", config_id, {"code": code})
+        return cast(Record, self.bilibili_risk_get(agent_id, config_id))
+
+    def bilibili_risk_resume(self, agent_id: str, config_id: str) -> Record:
+        current = self.bilibili_risk_get(agent_id, config_id)
+        if current is None or current["resumed_at"] is not None:
+            raise BusinessError("bilibili_risk_not_paused", "This account has no active risk pause", status=409)
+        self.connection.execute(
+            update(s.bilibili_risk_pauses)
+            .where(s.bilibili_risk_pauses.c.id == current["id"], s.bilibili_risk_pauses.c.resumed_at.is_(None))
+            .values(resumed_at=self.clock.now())
+        )
+        self.audit(agent_id, "bilibili.risk_resumed", config_id, {"code": cast(int, current["code"])})
+        return cast(Record, self.bilibili_risk_get(agent_id, config_id))
+
     def bilibili_prepare(
         self,
         agent_id: str,
@@ -117,6 +166,11 @@ class BilibiliRepositories(DeliveryRepositories):
         mentions: list[dict[str, object]],
         key: str,
     ) -> Record:
+        pause = self.bilibili_risk_get(agent_id, config_id)
+        if pause is not None and pause["resumed_at"] is None:
+            raise BusinessError(
+                "bilibili_risk_paused", "This account is paused by risk control; the owner must resume it", status=403
+            )
         if not isinstance(cast(object, key), str) or not 1 <= len(key) <= 180:
             raise BusinessError(
                 "bilibili_request_invalid", "A bounded publication idempotency key is required", status=422

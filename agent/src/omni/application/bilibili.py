@@ -112,7 +112,24 @@ class BilibiliService:
             config = cast(
                 dict[str, object], await self._db.read(lambda u: u.bilibili_read_authorized(agent_id, config_id))
             )
-            result = await self._gateway.read(cast(Mapping[str, object], config["value"]), operation, target, limit)
+            pause = await self._db.read(lambda u: u.bilibili_risk_get(agent_id, config_id))
+            if pause is not None and pause["resumed_at"] is None:
+                raise BusinessError(
+                    "bilibili_risk_paused",
+                    "This account is paused by risk control; the owner must resume it",
+                    status=403,
+                )
+            try:
+                result = await self._gateway.read(cast(Mapping[str, object], config["value"]), operation, target, limit)
+            except BusinessError as exc:
+                if exc.code == "bilibili_risk_code" and exc.detail is not None:
+                    await self._db.write(lambda u: u.bilibili_risk_pause(agent_id, config_id, cast(int, exc.detail)))
+                    raise BusinessError(
+                        "bilibili_risk_paused",
+                        "This account was paused by risk control; the owner must resume it",
+                        status=403,
+                    ) from exc
+                raise
             current = await self._db.read(
                 lambda u: u.bilibili_read_authorized(agent_id, config_id, cast(str, config["revision_id"]))
             )
@@ -136,6 +153,15 @@ class BilibiliService:
 
     async def profile(self, agent_id: str, config_id: str) -> Record:
         return await self._db.read(lambda u: u.bilibili_profile_get(agent_id, config_id))
+
+    async def risk_state(self, agent_id: str, config_id: str) -> Record:
+        row = await self._db.read(lambda u: u.bilibili_risk_get(agent_id, config_id))
+        return {"paused": row is not None and row["resumed_at"] is None, "pause": row}
+
+    async def resume(self, agent_id: str, config_id: str) -> Record:
+        if self._closing:
+            raise BusinessError("bilibili_closing", "Bilibili admission is draining", status=503)
+        return await self._db.write(lambda u: u.bilibili_risk_resume(agent_id, config_id))
 
     async def save_profile(
         self,

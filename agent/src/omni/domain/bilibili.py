@@ -15,6 +15,14 @@ from pydantic import BaseModel, ConfigDict, Field, ValidationError
 from .contracts import BusinessError
 
 ADAPTER = "bilibili-ui/v2"
+RISK_CODES = frozenset({12015, -105, -101, 401})
+
+
+def is_risk_code(value: object) -> bool:
+    """Risk-control API codes that pause an account until the owner resumes (reference traffic.mjs set)."""
+    return type(value) is int and value in RISK_CODES
+
+
 API = "https://api.bilibili.com"
 MAX_CONTENT = 2000
 

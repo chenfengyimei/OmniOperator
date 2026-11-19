@@ -289,6 +289,15 @@ class BilibiliGateway:
                 raise BusinessError(
                     "bilibili_response_invalid", "Bilibili response was not valid JSON", status=502
                 ) from exc
+            from ..domain.bilibili import is_risk_code
+
+            if isinstance(cast(object, value), dict) and is_risk_code(value.get("code")):
+                raise BusinessError(
+                    "bilibili_risk_code",
+                    "Bilibili risk control rejected the request",
+                    status=403,
+                    detail=cast(int, value.get("code")),
+                )
             if (
                 not isinstance(cast(object, value), dict)
                 or type(value.get("code")) is not int
@@ -315,6 +324,15 @@ class BilibiliGateway:
                 raise BusinessError(
                     "bilibili_response_invalid", "Bilibili response was not valid JSON", status=502
                 ) from exc
+            from ..domain.bilibili import is_risk_code
+
+            if isinstance(cast(object, value), dict) and is_risk_code(value.get("code")):
+                raise BusinessError(
+                    "bilibili_risk_code",
+                    "Bilibili risk control rejected the request",
+                    status=403,
+                    detail=cast(int, value.get("code")),
+                )
             if (
                 not isinstance(cast(object, value), dict)
                 or type(value.get("code")) is not int

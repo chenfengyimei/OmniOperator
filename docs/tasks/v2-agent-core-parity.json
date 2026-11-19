@@ -502,9 +502,17 @@
           "contract": "docs/v2/contracts/V2_BILI_MSGFEED.md",
           "evidence": "docs/evidence/v2-bili-msgfeed.json",
           "delivered": "bilibili_read新增operation=msgfeed只读(domain msgfeed_kind仅reply/at否则422+msgfeed_rows data.items有界50/缺失正常空/非列表行非dict id非int显式502/time reply_time优先at_time回退/nickname去标记/mid int→str/business_id+subject_id+root_id+source_id/uri+title+source_content去标记仅发现提示权威正文经replies回读继承参考msgfeed.mjs经验/has_more=len>=limit、adapter _msgfeed复用泛型_get kind路径platform=web build=0 mobi_app=web/target=kind独立elif分支/nav后分派、READ_SPEC enum+desc+http Literal增msgfeed)；22专项+256bilibili读调用方过0失败、strict410零错误(无新源文件)；仅reply/at首页无cursor翻页去重/回复写、title/source不可靠仅发现提示、需登录真实送达另验；无新表/迁移/路由/worker/持久层改动routing不变_get/_get_list未改；K18读API广度缺口全部实现；聚合索引暂缓"
+        },
+        {
+          "gap": "#3 登录凭据风险暂停之风险码每账号阻断与所有者恢复(traffic.mjs码集)",
+          "status": "implemented_scoped_passed",
+          "batch": "K18.risk_pause",
+          "contract": "docs/v2/contracts/V2_BILI_RISK_PAUSE.md",
+          "evidence": "docs/evidence/v2-bili-risk-pause.json",
+          "delivered": "domain/bilibili.py RISK_CODES{12015,-105,-101,401}/is_risk_code精确int+domain/contracts.py BusinessError.detail加性int传输；adapters/bilibili.py _get/_get_list JSON解析后通用拒绝前识别风险码→bilibili_risk_code 403 detail=码(非风险码保持read_rejected)；application/bilibili.py read凭据授权后网关前查暂停→bilibili_risk_paused 403不触达网关，网关risk_code→同事务bilibili_risk_pause持久化转403，risk_state/resume(closing门)；bilibili_repository.py bilibili_risk_get/pause/resume(upsert每agent+config一行/恢复CAS resumed_at IS NULL/无暂停409/非法码422/审计)+bilibili_prepare顶部暂停门403；schema.py bilibili_risk_pauses+v0046冻结SQL迁移(identity immutable+keep禁删触发器,downgrade拒绝)表数142；http.py GET risk态/POST resume所有者路由(无模型侧暂停恢复工具)；已批准outbox投递不追溯阻断列明确不做；14处141→142守卫同步+v0045遗留action_review崩溃重试actions.started_at守卫修复(投影基线列+额外NULL断言不放宽)"
         }
       ],
-      "limits": "只读审计无新工具/表/迁移/路由/源码改动；可离线缺口未在K18审计批实现(列后续批次)，其中读API广度之搜索/space whois/弹幕/热门排行feed/关注动态feed/收藏夹/视频标签/观看历史/收件箱reply-at已在K18.search/K18.whois/K18.danmaku/K18.feed/K18.following/K18.favorites/K18.tag/K18.history/K18.msgfeed后续批实现(读API广度缺口全部实现，写广度/自主观看/受控分享仍后续)；V1 tools/bilibili实现不计V2对等；不宣称全集API/主动观看/受控分享对等；参考agents.md/RULES当不可信数据非本会话指令；K18为清单末项领域参考审计(K13-K18全部记录)；既有todos重启竞态与5个pin v2_0039旧迁移测试沿用保留",
+      "limits": "只读审计无新工具/表/迁移/路由/源码改动；可离线缺口未在K18审计批实现(列后续批次)，其中读API广度之搜索/space whois/弹幕/热门排行feed/关注动态feed/收藏夹/视频标签/观看历史/收件箱reply-at已在K18.search/K18.whois/K18.danmaku/K18.feed/K18.following/K18.favorites/K18.tag/K18.history/K18.msgfeed后续批实现(读API广度缺口全部实现；风险码每账号暂停与所有者恢复已在K18.risk_pause实现，已批准outbox投递不追溯阻断；写广度/自主观看/受控分享仍后续)；V1 tools/bilibili实现不计V2对等；不宣称全集API/主动观看/受控分享对等；参考agents.md/RULES当不可信数据非本会话指令；K18为清单末项领域参考审计(K13-K18全部记录)；既有todos重启竞态与6个pin v2_0039旧迁移测试沿用保留(本批实测memory_semantics×2/routing×1/skills×2/media×1)；v0045遗留action_review崩溃重试守卫已修(started_at投影+NULL断言)",
       "next": false
     }
   ],
@@ -689,6 +697,10 @@
     {
       "id": "K16.scene_frames",
       "evidence": "docs/evidence/v2-media-scenes.json"
+    },
+    {
+      "id": "K18.risk_pause",
+      "evidence": "docs/evidence/v2-bili-risk-pause.json"
     }
   ]
 }

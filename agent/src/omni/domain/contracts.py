@@ -19,9 +19,12 @@ def _empty_json() -> dict[str, JSON]:
 class BusinessError(Exception):
     """A public, non-secret failure. Original exceptions stay inside adapters."""
 
-    def __init__(self, code: str, message: str, *, retryable: bool = False, status: int = 409) -> None:
+    def __init__(
+        self, code: str, message: str, *, retryable: bool = False, status: int = 409, detail: int | None = None
+    ) -> None:
         super().__init__(message)
         self.code, self.message, self.retryable, self.status = code, message, retryable, status
+        self.detail = detail
 
 
 class RunState(StrEnum):

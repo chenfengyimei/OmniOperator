@@ -787,6 +787,14 @@ def create_app(factory: Callable[[], Awaitable[HttpRuntime]], *, allowed_origins
             str(agent_id), str(config_id), data.enabled, data.forms, data.revision, data.headless
         )
 
+    @router.get("/agents/{agent_id}/bilibili/risk/{config_id}")
+    async def bilibili_risk_state(agent_id: uuid.UUID, config_id: uuid.UUID, request: Request):
+        return await bilibili_service(request).risk_state(str(agent_id), str(config_id))
+
+    @router.post("/agents/{agent_id}/bilibili/risk/{config_id}/resume")
+    async def bilibili_risk_resume(agent_id: uuid.UUID, config_id: uuid.UUID, request: Request):
+        return await bilibili_service(request).resume(str(agent_id), str(config_id))
+
     @router.post("/agents/{agent_id}/bilibili/read")
     async def bilibili_read(agent_id: uuid.UUID, request: Request):
         data = configuration_input(BilibiliReadInput, await bounded_configuration(request, 4096, strict=True))
@@ -2291,9 +2299,7 @@ def create_app(factory: Callable[[], Awaitable[HttpRuntime]], *, allowed_origins
     async def background_review_cancel(agent_id: uuid.UUID, batch_id: uuid.UUID, request: Request):
         data = await bounded_configuration(request, 2048)
         if set(data) != {"revision"} or type(data.get("revision")) is not int or cast(int, data["revision"]) < 1:
-            raise BusinessError(
-                "background_review_invalid", "A positive cancellation revision is required", status=422
-            )
+            raise BusinessError("background_review_invalid", "A positive cancellation revision is required", status=422)
         return await runtime(request).background_review.cancel(
             str(agent_id), str(batch_id), cast(int, data["revision"])
         )
