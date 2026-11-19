@@ -19,6 +19,7 @@ RETRIEVAL_TOOLS = CHAT_TOOLS | {
     "system_info",
     "files_list",
     "files_read",
+    "files_search",
     "browser_read",
     "bilibili_read",
     "skills_list",

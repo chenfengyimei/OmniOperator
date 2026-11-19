@@ -46,6 +46,15 @@ def builtin_capabilities(
             "workspace",
         ),
         (
+            "files_search",
+            "Search workspace text files for a bounded case-insensitive query; returns matching relative paths and line numbers",
+            {"query": {"type": "string", "minLength": 1, "maxLength": 200}, "path": {"type": "string"}},
+            ["query"],
+            False,
+            worker,
+            "workspace",
+        ),
+        (
             "files_write",
             "Save a workspace file; overwrites require its current fingerprint",
             {"path": {"type": "string"}, "content": {"type": "string"}, "expected_sha256": {"type": "string"}},

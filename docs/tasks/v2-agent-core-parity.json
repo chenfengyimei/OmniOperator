@@ -194,7 +194,17 @@
       "delivered": "审计合同V2_TOOL_CHANNEL_AUDIT.md：V2模型侧工具面(system_info/files_*/shell_execute/browser_*/document_*/memory_*/session_search/skills_*/bilibili_*/media_*/android_*/desktop_semantic/控制request_mode/todo_list/delegate_task/clarify/extensions/MCP；日程/投递/终端为所有者API)对照参考六组；可离线缺口(工作区搜索search_files、模糊补丁patch、浏览器对话框browser_dialog、cron技能绑定+输出依赖skills/context_from/continuity、工具调用代码沙箱execute_code/code_kernel、原始CDP browser_cdp/browser_exec)列后续批次；需实机/账号/网络项(渠道全集27平台/discord/feishu/yuanbao/x_search、hosted connector、catalog hub、浏览器云/真实profile/vault/沙箱/Lightpanda、远程终端/kernel后端、computer_use真机+cua-driver、Android真机、QQ/B站/投递送达质量)另验",
       "contract": "docs/v2/contracts/V2_TOOL_CHANNEL_AUDIT.md",
       "evidence": "docs/evidence/v2-tool-channel-audit.json",
-      "limits": "只读审计无新工具/迁移/路由/源码改动；可离线缺口未在K13实现(列后续批次，避免强行改跨平台worker协议)；不宣称全集对等；既有todos重启竞态与5个pin v2_0039旧迁移测试沿用保留",
+      "followups": [
+        {
+          "gap": "#1 工作区搜索工具之内容搜索(search_files content)",
+          "status": "implemented_scoped_passed",
+          "batch": "K13.search_files",
+          "contract": "docs/v2/contracts/V2_FILES_SEARCH.md",
+          "evidence": "docs/evidence/v2-files-search.json",
+          "delivered": "files_search只读builtin worker能力(domain/files_search.py新纯规则normalize_query1-200无控制字节/match_lines大小写不敏感子串1-based行号snippet200每文件5上限、adapters/workers/main.py _files新分支泛型files_*分派无协议帧改动+逐文件复用workspace_path同一安全路径+os.walk剪枝+有界2000文件/50结果/5秒/256KB/二进制硬链接跳过+只读NONE+非法query分派前ERROR、capabilities spec writes=False resource=workspace、routing RETRIEVAL_TOOLS+=files_search)；15专项+62调用方(files_search15+worker_safety31+routing16)过0失败、strict409零错误(新源文件408→409)；仅内容子串非regex/glob文件名/output_mode/context/offset/modified序/ripgrep；无新表/迁移/路由/worker协议帧/跨平台worker改动；聚合索引因他会话未提交持久层编辑暂缓"
+        }
+      ],
+      "limits": "只读审计无新工具/迁移/路由/源码改动；可离线缺口未在K13审计批实现(列后续批次)，其中缺口#1工作区搜索之内容搜索已在K13.search_files后续批实现(泛型files_*分派无需协议帧/跨平台改动)；regex/glob文件名搜索/模糊补丁patch/浏览器对话框/cron技能绑定输出依赖/代码沙箱/原始CDP仍列后续；不宣称全集对等；既有todos重启竞态与5个pin v2_0039旧迁移测试沿用保留",
       "next": false
     },
     {
@@ -411,6 +421,10 @@
     {
       "id": "K18.feed",
       "evidence": "docs/evidence/v2-bili-feed.json"
+    },
+    {
+      "id": "K13.search_files",
+      "evidence": "docs/evidence/v2-files-search.json"
     }
   ]
 }

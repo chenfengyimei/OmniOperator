@@ -10,6 +10,7 @@ import os
 import platform
 import sys
 import tempfile
+import time
 from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, cast
@@ -18,6 +19,7 @@ if TYPE_CHECKING:
     from playwright.async_api import Browser, BrowserContext, Page, Playwright
 
 from ...domain.contracts import JSON, ActionResult, Effect, Outcome
+from ...domain.files_search import match_lines, normalize_query
 from ..object_store import publish_file
 from .protocol import MAX_FRAME, encode_response
 from .protocol import request as decode_request
@@ -154,6 +156,54 @@ class Worker:
                 Path(temporary).unlink(missing_ok=True)
             digest = hashlib.sha256(payload).hexdigest()
             return ActionResult(Outcome.OK, "File saved", Effect.APPLIED, verification=digest, data={"sha256": digest})
+        if name == "files_search":
+            query = normalize_query(args.get("query"))
+            base = Path(context["workspace"]).resolve()
+            results: list[dict[str, Any]] = []
+            scanned = 0
+            truncated = False
+            deadline = time.monotonic() + 5.0
+            prune = {".git", ".venv", ".ssh", ".aws", ".azure", "node_modules", "__pycache__"}
+            for dirpath, dirnames, filenames in os.walk(path, followlinks=False):
+                dirnames[:] = sorted(
+                    d
+                    for d in dirnames
+                    if d.lower() not in prune
+                    and not d.lower().startswith(".env")
+                    and not (Path(dirpath) / d).is_symlink()
+                    and not (Path(dirpath) / d).is_junction()
+                )
+                for filename in sorted(filenames):
+                    if len(results) >= 50 or scanned >= 2000 or time.monotonic() > deadline:
+                        truncated = True
+                        break
+                    candidate = Path(dirpath) / filename
+                    try:
+                        relative = str(candidate.relative_to(base))
+                        checked = workspace_path(context["workspace"], relative)
+                        info = checked.stat()
+                    except (ValueError, OSError):
+                        continue
+                    if not checked.is_file() or info.st_nlink != 1 or info.st_size > 256 * 1024:
+                        continue
+                    scanned += 1
+                    try:
+                        text = checked.read_bytes().decode("utf-8-sig")
+                    except (UnicodeError, OSError):
+                        continue
+                    for hit in match_lines(text, query):
+                        results.append({"path": relative, "line": hit["line"], "text": hit["text"]})
+                        if len(results) >= 50:
+                            truncated = True
+                            break
+                if len(results) >= 50 or scanned >= 2000 or time.monotonic() > deadline:
+                    truncated = True
+                    break
+            return ActionResult(
+                Outcome.OK,
+                json.dumps(results, ensure_ascii=False),
+                data={"matches": cast(list[JSON], results), "scanned": scanned, "truncated": truncated},
+            )
         raise ValueError("Unknown file capability")
 
     async def _shell(self, args: dict[str, Any], context: dict[str, Any], effects: Effects) -> ActionResult:
