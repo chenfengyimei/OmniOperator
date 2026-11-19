@@ -340,6 +340,60 @@ def feed_rows(data: Mapping[str, object], limit: int) -> dict[str, object]:
     return {"items": items, "has_more": len(rows) >= limit}
 
 
+def _as_dict(value: object) -> dict[str, object]:
+    return cast(dict[str, object], value) if isinstance(value, dict) else {}
+
+
+def duration_seconds(value: object) -> int | None:
+    """Parse 'MM:SS' or 'HH:MM:SS' duration_text to whole seconds; unparseable -> None (no silent 0)."""
+    if not isinstance(value, str):
+        return None
+    parts = value.split(":")
+    if len(parts) not in (2, 3) or not all(part.isdigit() for part in parts):
+        return None
+    numbers = [int(part) for part in parts]
+    if len(numbers) == 2:
+        return numbers[0] * 60 + numbers[1]
+    return numbers[0] * 3600 + numbers[1] * 60 + numbers[2]
+
+
+def following_rows(data: Mapping[str, object], limit: int) -> dict[str, object]:
+    """Bounded following video-dynamic rows from data.items (nested modules); non-video items skipped."""
+    raw = data.get("items")
+    if raw is None:
+        rows: list[object] = []
+    elif isinstance(raw, list):
+        rows = cast(list[object], raw)
+    else:
+        raise BusinessError("bilibili_response_invalid", "Following feed items changed format", status=502)
+    if len(rows) > FEED_MAX_ROWS:
+        raise BusinessError("bilibili_response_invalid", "Following feed items changed format", status=502)
+    items: list[dict[str, object]] = []
+    for row in rows[:limit]:
+        if not isinstance(row, dict):
+            raise BusinessError("bilibili_response_invalid", "Following feed records changed format", status=502)
+        entry = cast(dict[str, object], row)
+        modules = _as_dict(entry.get("modules"))
+        archive = _as_dict(_as_dict(_as_dict(modules.get("module_dynamic")).get("major")).get("archive"))
+        bvid = archive.get("bvid")
+        if bvid is None:
+            continue
+        if not isinstance(bvid, str) or not re.fullmatch(r"BV[0-9A-Za-z]{10}", bvid):
+            raise BusinessError("bilibili_response_invalid", "Following feed records changed format", status=502)
+        author = _as_dict(modules.get("module_author"))
+        stat = _as_dict(archive.get("stat"))
+        items.append(
+            {
+                "bvid": bvid,
+                "title": search_text(archive.get("title"), 300),
+                "author": search_text(author.get("name"), 100),
+                "play": stat.get("play") if type(stat.get("play")) is int else None,
+                "duration_s": duration_seconds(archive.get("duration_text")),
+            }
+        )
+    return {"items": items, "has_more": len(rows) >= limit}
+
+
 class Form(BaseModel):
     model_config = ConfigDict(extra="forbid", strict=True)
 

@@ -211,7 +211,9 @@ class BilibiliProfileInput(StrictInput):
 
 class BilibiliReadInput(StrictInput):
     config_id: uuid.UUID
-    operation: Literal["account", "video", "comments", "replies", "search", "whois", "danmaku", "popular", "ranking"]
+    operation: Literal[
+        "account", "video", "comments", "replies", "search", "whois", "danmaku", "popular", "ranking", "following"
+    ]
     target: str = Field(default="", max_length=100)
     limit: int = Field(default=10, ge=1, le=20, strict=True)
 

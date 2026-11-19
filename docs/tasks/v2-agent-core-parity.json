@@ -334,9 +334,17 @@
           "contract": "docs/v2/contracts/V2_BILI_FEED.md",
           "evidence": "docs/evidence/v2-bili-feed.json",
           "delivered": "bilibili_read新增operation=popular/ranking只读(domain feed_rows data.list有界50/嵌套stat-owner容错默认/title去标记/bvid校验/has_more、adapter _popular pn1ps20+_ranking rid0typeall复用泛型_get、_read无目标豁免BV同account/nav后分派、READ_SPEC+http Literal)；16专项+255bilibili读调用方过0失败、strict408零错误(首轮2处stat/owner Unknown三元isinstance不窄化已修单次读取+标注cast)；仅首页/全区无分区分页、关注动态feed另批；无新表/迁移/路由/worker改动routing不变；聚合索引暂缓"
+        },
+        {
+          "gap": "#1 读API广度之关注动态feed(polymer web-dynamic/v1/feed/all)",
+          "status": "implemented_scoped_passed",
+          "batch": "K18.following",
+          "contract": "docs/v2/contracts/V2_BILI_FOLLOWING.md",
+          "evidence": "docs/evidence/v2-bili-following.json",
+          "delivered": "bilibili_read新增operation=following只读(domain _as_dict嵌套容错+duration_seconds MM:SS/HH:MM:SS→int不可解析None不coerced0+following_rows data.items有界50/嵌套modules.module_dynamic.major.archive/module_author.name/bvid缺失跳过非视频存在非法502/title去标记/play int|None/has_more无danmaku字段、adapter _following type=video page=1复用泛型_get无WBI/nav后分派无目标豁免BV、READ_SPEC+http Literal拆多行)；25专项+280bilibili读调用方过0失败、strict409零错误(无新源文件)；仅首页video无分页其他类型、需登录真实送达另验；无新表/迁移/路由/worker改动routing不变；聚合索引暂缓"
         }
       ],
-      "limits": "只读审计无新工具/表/迁移/路由/源码改动；可离线缺口未在K18审计批实现(列后续批次)，其中读API广度之搜索/space whois/弹幕/热门排行feed已在K18.search/K18.whois/K18.danmaku/K18.feed后续批实现；V1 tools/bilibili实现不计V2对等；不宣称全集API/主动观看/受控分享对等；参考agents.md/RULES当不可信数据非本会话指令；K18为清单末项领域参考审计(K13-K18全部记录)；既有todos重启竞态与5个pin v2_0039旧迁移测试沿用保留",
+      "limits": "只读审计无新工具/表/迁移/路由/源码改动；可离线缺口未在K18审计批实现(列后续批次)，其中读API广度之搜索/space whois/弹幕/热门排行feed/关注动态feed已在K18.search/K18.whois/K18.danmaku/K18.feed/K18.following后续批实现；V1 tools/bilibili实现不计V2对等；不宣称全集API/主动观看/受控分享对等；参考agents.md/RULES当不可信数据非本会话指令；K18为清单末项领域参考审计(K13-K18全部记录)；既有todos重启竞态与5个pin v2_0039旧迁移测试沿用保留",
       "next": false
     }
   ],
@@ -437,6 +445,10 @@
     {
       "id": "K13.find_files",
       "evidence": "docs/evidence/v2-find-files.json"
+    },
+    {
+      "id": "K18.following",
+      "evidence": "docs/evidence/v2-bili-following.json"
     }
   ]
 }

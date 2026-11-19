@@ -13,10 +13,10 @@ from .ports import DatabasePort, DeliveryPort, Record
 
 READ_SPEC = ToolSpec(
     "bilibili_read",
-    "Read configured Bilibili account/video/comments/replies/danmaku, popular/ranking video feeds, "
+    "Read configured Bilibili account/video/comments/replies/danmaku, popular/ranking/following video feeds, "
     "search public videos by keyword, or look up a public space profile by mid. Thread targets use "
     "BV:root-comment-id; search targets are keywords; whois targets are mids; danmaku returns a bounded "
-    "sample; popular/ranking ignore target; no publishing.",
+    "sample; popular/ranking/following ignore target; no publishing.",
     {
         "type": "object",
         "properties": {
@@ -33,6 +33,7 @@ READ_SPEC = ToolSpec(
                     "danmaku",
                     "popular",
                     "ranking",
+                    "following",
                 ],
             },
             "target": {"type": "string", "maxLength": 100},
