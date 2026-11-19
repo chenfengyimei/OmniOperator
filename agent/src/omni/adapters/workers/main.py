@@ -19,6 +19,7 @@ if TYPE_CHECKING:
     from playwright.async_api import Browser, BrowserContext, Page, Playwright
 
 from ...domain.contracts import JSON, ActionResult, Effect, Outcome
+from ...domain.files_patch import PatchError, patch_replace
 from ...domain.files_search import match_lines, match_name, normalize_query
 from ..object_store import publish_file
 from .protocol import MAX_FRAME, encode_response
@@ -220,6 +221,52 @@ class Worker:
                     "truncated": truncated,
                     "target": target,
                 },
+            )
+        if name == "files_patch":
+            if not path.is_file():
+                raise ValueError("Patch target must be an existing regular file")
+            if path.stat().st_size > 256 * 1024:
+                raise ValueError("File exceeds patch limit")
+            raw = path.read_bytes()
+            expected = args.get("expected_sha256")
+            if not expected or hashlib.sha256(raw).hexdigest() != expected:
+                raise ValueError("File changed or patch was not authorized with its current fingerprint")
+            replace_all = args.get("replace_all", False)
+            if type(replace_all) is not bool:
+                raise ValueError("replace_all must be a boolean")
+            try:
+                patched, count, strategy = patch_replace(
+                    raw.decode("utf-8-sig"),
+                    args.get("old_string"),
+                    args.get("new_string"),
+                    replace_all=replace_all,
+                )
+            except PatchError as exc:
+                return ActionResult(Outcome.ERROR, str(exc), Effect.NONE, error_code=exc.code)
+            payload = patched.encode("utf-8")
+            if len(payload) > 256 * 1024:
+                raise ValueError("Patched file exceeds write limit")
+            fd, temporary = tempfile.mkstemp(dir=path.parent, prefix=".omni-write-")
+            try:
+                with os.fdopen(fd, "wb") as stream:
+                    stream.write(payload)
+                    stream.flush()
+                    os.fsync(stream.fileno())
+                workspace_path(context["workspace"], str(args["path"]))
+                current = hashlib.sha256(path.read_bytes()).hexdigest() if path.exists() else None
+                if current != expected:
+                    raise ValueError("File fingerprint changed while preparing the patch")
+                effects.dispatched = True
+                publish_file(Path(temporary), path, replace=True)
+            finally:
+                Path(temporary).unlink(missing_ok=True)
+            digest = hashlib.sha256(payload).hexdigest()
+            return ActionResult(
+                Outcome.OK,
+                "File patched",
+                Effect.APPLIED,
+                verification=digest,
+                data={"sha256": digest, "replacements": count, "strategy": strategy},
             )
         raise ValueError("Unknown file capability")
 

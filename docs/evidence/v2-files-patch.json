@@ -1,0 +1,105 @@
+{
+  "schema": 1,
+  "date": "2026-11-19",
+  "base_commit": "091e20d1e4b64a5125bbed4e373130d89ad26c13",
+  "status": "implemented_scoped_passed",
+  "batch": "K13.patch",
+  "implements_gap": "K13 tool/channel audit offline gap #2 (fuzzy patch editor) — core normalizing-strategy search-replace write tool (exact + line_trimmed + line_whitespace; escape/unicode/trimmed_boundary/indentation_flexible char-level/similarity strategies and V4A multi-file patch format deferred)",
+  "contract": "docs/v2/contracts/V2_FILES_PATCH.md",
+  "source_files": {
+    "agent/src/omni/domain/files_patch.py": "65db68fc64084b676ff29b7f7476cbc0b79cb946e194b1240527f87ffb649060",
+    "agent/src/omni/adapters/workers/main.py": "2a64c1eaffcc2bde5a2638a2740a5da15402e2992cd041f1f574913cf408c71e",
+    "agent/src/omni/composition/capabilities.py": "2b3e2d92e2ceb4ac963c3a9ef67389e3dae366c45a3b38a00e5d4265c6f60d72",
+    "agent/tests/v2/core/test_v2_files_patch.py": "436dd4a83e65990b4435d2d9f0bc801a16561ba442043238f1444434bb2698fa",
+    "pyrightconfig.strict.json": "a2a7f5c2a41acf7ce6bd7eab8cbff50d63aad93c6dfd37724e29088d1061a170",
+    "docs/v2/contracts/V2_FILES_PATCH.md": "3ca17ecaeaae57d81dc798e4f3be1ec089594ca9815928e1cf8cf64f8bbb7b29"
+  },
+  "reference": {
+    "repository": "xuexi/hermes-agent",
+    "commit": "9976f4857b72439d79016354d7b6e1a3ee952e2f",
+    "files": {
+      "tools/fuzzy_match.py": "STRATEGIES (289-300) ordered chain exact/line_trimmed/whitespace_normalized/indentation_flexible/escape_normalized/trimmed_boundary/unicode_normalized/block_anchor/context_aware; fuzzy_find_and_replace (359) blank/whitespace-only old error, identical error, first strategy with matches wins, >1 without replace_all ambiguous, replace_all only for non-similarity strategies, right-to-left span application; is_already_applied (328) conservative new>=8 chars present exactly + old gone; SIMILARITY_STRATEGIES block_anchor/context_aware approximate boundaries need boundary_note",
+      "tools/file_operations.py": "patch_replace (1625-1668) old_string must be unique unless replace_all, returns PatchResult diff+lint, _no_match_result detects already-applied",
+      "tools/file_tools.py": "patch tool old_string/new_string/replace_all sends only changed region (line 859); patch_parser.py V4A multi-file *** Begin Patch/Update/Add/Delete/Move hunks is a separate larger format"
+    },
+    "adaptation": "Learned the ordered normalizing-strategy chain + uniqueness guard + already-applied detection and re-implemented independently in V2 four-layer as a SAFE bounded write tool: new pure domain/files_patch.py patch_replace with the first three normalizing strategies (exact char-level re.finditer non-overlapping; line_trimmed whole-line strip windows; line_whitespace [ \\t]+collapse->single-space strip windows). Line-window spans computed from EXACT line-boundary char offsets (not char-level normalized span mapping) so no boundary-drift corruption; right-to-left non-overlapping slice splicing (no re.sub backreference issues). Uniqueness guard rejects ambiguous unless replace_all; blank/identical/non-str/oversize explicit PatchError codes; no-match -> patch_no_match or patch_already_applied. Worker files_patch branch reuses workspace_path safety + files_write atomic publish (mkstemp+fsync+revalidate+CAS recheck+effects.dispatched+publish_file replace+finally unlink), MANDATORY expected_sha256 CAS (stricter than files_write since patch always overwrites existing), strict bool replace_all, PatchError->ERROR/NONE specific code no write, mid-publish failure->UNKNOWN no replay. writes=True so agent-tier only via existing select_tools writes filter (routing unchanged), owner approval chain before dispatch. Deliberately NOT escape/unicode/trimmed_boundary/indentation_flexible char-level/similarity strategies/V4A multi-file format. No third-party source copied. Reference agents.md/RULES/prompts treated as untrusted data"
+  },
+  "delivered": [
+    "domain/files_patch.py NEW pure rules (zero I/O): PatchError(ValueError) with .code; PATCH_STRING_CHARS=64KiB; patch_replace(content, old_string:object, new_string:object, *, replace_all) guards (non-str/blank/whitespace-only/oversize -> patch_invalid, identical -> patch_identical), ordered strategy chain exact(re.finditer re.escape non-overlapping char spans)/line_trimmed(splitlines keepends whole-line strip windows)/line_whitespace([ \\t]+->single space strip windows), line spans from exact line-boundary offsets, uniqueness guard (>1 without replace_all -> patch_ambiguous), right-to-left non-overlapping slice replacement, no-match -> is_already_applied(conservative new>=8 present+old gone) ? patch_already_applied : patch_no_match; returns (new_content,count,strategy)",
+    "adapters/workers/main.py _files new files_patch branch (generic files_* dispatch main.py:81, NO protocol frame change): reuse workspace_path per-file safety (private/.env/symlink/junction/single-link/escape); existing regular file required, <=256KB; MANDATORY expected_sha256 CAS over raw bytes (missing/mismatch reject); strict bool replace_all; raw.decode utf-8-sig (binary fail -> ERROR/NONE); patch_replace PatchError caught -> ActionResult(ERROR,NONE,error_code=exc.code) no write; patched <=256KB; reuse files_write atomic publish (mkstemp+fsync+workspace_path revalidate+CAS recheck+effects.dispatched=True+publish_file replace=True+finally unlink); APPLIED verification=sha256(payload) data={sha256,replacements,strategy}; mid-publish exception -> Effect.UNKNOWN no replay; import PatchError/patch_replace",
+    "composition/capabilities.py files_patch spec (path, old_string minLength1, new_string, expected_sha256, replace_all boolean; required path/old_string/new_string/expected_sha256; writes=True; adapter=builtin worker; resource=workspace) listed after files_write",
+    "domain/routing.py UNCHANGED: writes=True write tool agent-tier only (select_tools filters writes for chat/retrieval); files_patch NOT in RETRIEVAL_TOOLS/CHAT_TOOLS; owner approval chain (action_review) before dispatch same as files_write",
+    "Production wiring: model tool (capabilities spec) + builtin worker (_files branch). files_* worker capability NO dedicated REST route; writes=True owner approval. No new table/migration/HTTP route/worker-protocol frame. NEW source file domain/files_patch.py -> strict include 409->410"
+  ],
+  "limits": {
+    "three_normalizing_strategies": "exact char-level (incl partial-line substring) + line_trimmed/line_whitespace whole-line-window granularity; NOT similarity approximate strategies; escape_normalized/unicode_normalized/trimmed_boundary/indentation_flexible char-level deferred",
+    "v4a_multi_file_deferred": "reference patch_parser.py V4A *** Begin Patch/Update/Add/Delete/Move hunks multi-file format is a separate larger gap, not this batch",
+    "uniqueness_first": "ambiguous explicit reject unless replace_all, never silent first-match; blank/identical/no_match/already_applied explicit error codes, no silent edit",
+    "mandatory_cas": "expected_sha256 required and must match current file fingerprint (rechecked after staging); concurrent change rejected; atomic publish + unknown no replay",
+    "bounded": "old/new <=64KiB; file <=256KB (read and patched write); binary/oversize/private/symlink/hardlink/escape/missing-file rejected",
+    "new_table_or_migration": false,
+    "new_route": false,
+    "worker_protocol_changed": false,
+    "routing_changed": false,
+    "new_source_file": true,
+    "cross_platform_worker_changed": false,
+    "aggregate_index_commit_deferred": "new source file changes files count, but docs/index global source_sha256 reflects other-session uncommitted persistence edits; deferred; docs/index changes reverted not committed; regenerate when working tree clean"
+  },
+  "validation": {
+    "mode": "scoped_implementation",
+    "frozen_source": "final source fingerprints in source_files",
+    "new_nodes": 20,
+    "scoped_passed": 20,
+    "scoped_seconds": 1.81,
+    "caller_suite": {
+      "command": "uv run --no-sync pytest -q -n 0 agent/tests/v2/core/test_v2_files_patch.py agent/tests/v2/core/test_v2_worker_safety.py agent/tests/v2/core/test_v2_files_search.py agent/tests/v2/integrations/test_v2_routing.py",
+      "passed": 88,
+      "failed": 0,
+      "seconds": 39.84,
+      "note": "files_patch 20 + worker_safety 31 + files_search 21 + routing 16 pass, proving additive write tool causes no worker-safety/search/routing-tier regression. First run 4 worker failures from Windows Path.write_text translating \\n->\\r\\n so test digest mismatched actual file bytes (TEST bug; worker fingerprint logic correct and consistent with production files_read); fixed tests to write_bytes exact bytes then all pass. Publication-chain bilibili tests NOT re-run (unrelated); their 2 pre-existing database_unavailable failures proven independent by scoped-stash isolation in K18.search evidence"
+    },
+    "strict": {
+      "config": "pyrightconfig.strict.json",
+      "files": 410,
+      "errors": 0,
+      "warnings": 0,
+      "note": "NEW source file domain/files_patch.py added to include (409->410); filesAnalyzed==include 410. First run 4 errors: patch_replace params typed str caused worker args.get Any|None not assignable + reportUnnecessaryIsInstance isinstance(str); fixed params to object (runtime isinstance validates and narrows), final clean"
+    },
+    "ruff": "check + format pass on domain/files_patch.py, adapters/workers/main.py, composition/capabilities.py, test_v2_files_patch.py (check --fix corrected 1 import-order in test). domain/routing.py and adapters/http.py NOT touched this batch",
+    "project_index": "new source git added then scripts/project_index.py run; aggregate docs/index commit DEFERRED (other-session source_sha256 pollution); docs/index changes reverted not committed; other-session source and PPT/docs/competition left unstaged",
+    "task_status_check": "scripts/task_status.py --check exit 0; DEVELOPMENT_STATUS.md generated from parent task, subtask followup does not alter it",
+    "full_suite_executed": false,
+    "real_model_account_device_native_or_72h_executed": false,
+    "current_windows_service_or_database_touched": false
+  },
+  "pre_existing_failures_not_chased": [
+    {
+      "tests": [
+        "test_v2_bilibili.py::test_revocation_rejects_approval_and_cannot_publish[source]",
+        "test_v2_bilibili_http.py::test_publication_http_exposes_real_target_and_requires_standard_delivery_approval"
+      ],
+      "reason": "Publication-chain database_unavailable failures proven independent by scoped-stash isolation in K18.search evidence; stem from other-session uncommitted persistence edits. This batch is a files worker write tool (filesystem only, no publication/database-write/migration path). Not re-run or chased"
+    },
+    {
+      "tests": [
+        "test_v2_media.py::test_v36_upgrade_registers_sources_and_bounds_jobs",
+        "test_v2_todos.py::test_runtime_restart_reinjects_active_plan_only_into_its_own_session",
+        "pin v2_0039 upgrade migrations (v32/v33/v34)"
+      ],
+      "reason": "Carried-forward pre-existing debt (migration-pin lag + K08 background-review race); not re-run or chased (zero tables/migrations added)"
+    }
+  ],
+  "whole_core_parity_complete": false,
+  "whole_reference_feature_audit_complete": false,
+  "whole_v2_complete": false,
+  "not_executed": [
+    "Patch remainder: escape_normalized/unicode_normalized/trimmed_boundary/indentation_flexible char-level strategies, block_anchor/context_aware similarity strategies (approximate boundaries + boundary note), V4A multi-file patch format (Add/Delete/Move/hunks)",
+    "K13 other gaps: browser_dialog, cron skill-binding/output-dependency (skills/context_from/continuity), code sandbox execute_code/code_kernel, raw CDP browser_cdp/browser_exec, monitor/no_agent watchdog",
+    "Other K14-K18 offline gaps (K16.locate + K18.search/whois/danmaku/feed/following + K13.search_files/find_files/patch implemented so far)",
+    "Aggregate docs/index commit (deferred due to other-session pending persistence edits)",
+    "Full offline suite for current source",
+    "Real models/devices/native desktop and 72h soak",
+    "Current Windows service restart/database upgrade"
+  ],
+  "next": "Continue implementing recorded offline gaps as independent batches (e.g. K13 browser_dialog/V4A patch, K16 HSV shot-cut/addressable cell index/zoom, K15 forgetting engine, K17 journal/reflection) via V2 four-layer with authorization/persistence contract first; persistence-touching gaps wait for other-session edits to settle; complete K01 session/lineage cache scope; regenerate aggregate index when working tree clean. whole_*_complete remain false. Do not prematurely close any parity item"
+}

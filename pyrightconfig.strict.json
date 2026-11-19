@@ -351,6 +351,7 @@
     "agent/src/omni/domain/documents.py",
     "agent/src/omni/domain/event_retention.py",
     "agent/src/omni/domain/extensions.py",
+    "agent/src/omni/domain/files_patch.py",
     "agent/src/omni/domain/files_search.py",
     "agent/src/omni/domain/foreground.py",
     "agent/src/omni/domain/history.py",

@@ -68,6 +68,21 @@ def builtin_capabilities(
             "workspace",
         ),
         (
+            "files_patch",
+            "Edit a workspace file by unique fuzzy search-replace (exact, then line-trimmed, then whitespace-normalized); requires its current fingerprint; ambiguous matches rejected unless replace_all",
+            {
+                "path": {"type": "string"},
+                "old_string": {"type": "string", "minLength": 1},
+                "new_string": {"type": "string"},
+                "expected_sha256": {"type": "string"},
+                "replace_all": {"type": "boolean"},
+            },
+            ["path", "old_string", "new_string", "expected_sha256"],
+            True,
+            worker,
+            "workspace",
+        ),
+        (
             "shell_execute",
             "Execute an approved argv in the workspace",
             {"argv": {"type": "array", "items": {"type": "string"}}, "cwd": {"type": "string"}},
