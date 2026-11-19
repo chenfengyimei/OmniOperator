@@ -394,6 +394,35 @@ def following_rows(data: Mapping[str, object], limit: int) -> dict[str, object]:
     return {"items": items, "has_more": len(rows) >= limit}
 
 
+def fav_folder_rows(data: Mapping[str, object], limit: int) -> dict[str, object]:
+    """Bounded owner-created favorite folders from data.list (list-all is complete); absent list = empty."""
+    raw = data.get("list")
+    if raw is None:
+        rows: list[object] = []
+    elif isinstance(raw, list):
+        rows = cast(list[object], raw)
+    else:
+        raise BusinessError("bilibili_response_invalid", "Favorite folder list changed format", status=502)
+    if len(rows) > FEED_MAX_ROWS:
+        raise BusinessError("bilibili_response_invalid", "Favorite folder list changed format", status=502)
+    items: list[dict[str, object]] = []
+    for row in rows[:limit]:
+        if not isinstance(row, dict):
+            raise BusinessError("bilibili_response_invalid", "Favorite folder records changed format", status=502)
+        entry = cast(dict[str, object], row)
+        folder_id = entry.get("id")
+        if type(folder_id) is not int:
+            raise BusinessError("bilibili_response_invalid", "Favorite folder records changed format", status=502)
+        items.append(
+            {
+                "id": folder_id,
+                "title": search_text(entry.get("title"), 300),
+                "media_count": entry.get("media_count") if type(entry.get("media_count")) is int else None,
+            }
+        )
+    return {"items": items, "has_more": len(rows) > limit}
+
+
 class Form(BaseModel):
     model_config = ConfigDict(extra="forbid", strict=True)
 

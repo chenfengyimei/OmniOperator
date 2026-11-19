@@ -15,7 +15,17 @@ from typing import Any, cast
 import httpx
 
 from ..application.ports import AsyncSecretPort, Record
-from ..domain.bilibili import ADAPTER, API, connection, feed_rows, following_rows, search_keyword, search_rows, uid
+from ..domain.bilibili import (
+    ADAPTER,
+    API,
+    connection,
+    fav_folder_rows,
+    feed_rows,
+    following_rows,
+    search_keyword,
+    search_rows,
+    uid,
+)
 from ..domain.contracts import JSON, BusinessError, Effect, InvocationContext, Outcome
 from ..domain.delivery import DeliveryResult, OutboundMessage, text_fingerprint
 from .diagnostics import Redactor
@@ -432,6 +442,11 @@ class BilibiliGateway:
         data = await self._get(client, "/x/polymer/web-dynamic/v1/feed/all", {"type": "video", "page": 1})
         return {"feed": "following", **following_rows(data, limit)}
 
+    async def _favorites(self, client: Any, mid: str, limit: int) -> Payload:
+        """Owner-created favorite folders (list-all); bounded rows, no target, login required."""
+        data = await self._get(client, "/x/v3/fav/folder/created/list-all", {"up_mid": mid})
+        return {"feed": "favorites", **fav_folder_rows(data, limit)}
+
     async def read(self, configuration: Mapping[str, object], operation: str, target: str, limit: int = 10) -> Payload:
         return await self._read(configuration, operation, target, limit)
 
@@ -477,13 +492,14 @@ class BilibiliGateway:
                     "popular",
                     "ranking",
                     "following",
+                    "favorites",
                 }
                 or type(limit) is not int
                 or not 1 <= limit <= 20
             ):
                 raise BusinessError(
                     "bilibili_read_invalid",
-                    "Choose account/video/comments/replies/subtitle/streams/search/whois/danmaku/popular/ranking/following and a limit of 1–20",
+                    "Choose account/video/comments/replies/subtitle/streams/search/whois/danmaku/popular/ranking/following/favorites and a limit of 1–20",
                     status=422,
                 )
             root = ""
@@ -498,7 +514,7 @@ class BilibiliGateway:
                 keyword = search_keyword(target)
             elif operation == "whois":
                 mid = uid(target)
-            elif operation not in {"account", "popular", "ranking", "following"} and not re.fullmatch(
+            elif operation not in {"account", "popular", "ranking", "following", "favorites"} and not re.fullmatch(
                 r"BV[0-9A-Za-z]{10}", target
             ):
                 raise BusinessError("bilibili_read_invalid", "Read targets require an exact BV identifier", status=422)
@@ -522,6 +538,8 @@ class BilibiliGateway:
                         return await self._ranking(client, limit)
                     if operation == "following":
                         return await self._following(client, limit)
+                    if operation == "favorites":
+                        return await self._favorites(client, uid(value["account"]), limit)
                     video = await self._get(client, "/x/web-interface/view", {"bvid": target})
                     if video.get("bvid") != target:
                         raise BusinessError("bilibili_source_changed", "Video identity changed")
