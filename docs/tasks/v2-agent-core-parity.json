@@ -264,10 +264,18 @@
     {
       "id": "K18",
       "title": "B站API、主动观看与受控分享",
-      "status": "partial_audit_pending",
-      "remaining": "已有读写/登录/限额/冷却/审批；核对全集API、筛选/双日记/作息/沉默反馈/直播等",
-      "reference": "dsh-bili-whale",
-      "next": true
+      "status": "audited_gaps_recorded",
+      "acceptance": [
+        "六组逐项审计（读API/写表达API/登录凭据风险暂停/主动观看生物钟双日记沉默衰减候选打分偏好学习/受控分享投递/直播）分类已对等原语/可离线缺口/需账号网络模型/计划未实现",
+        "V2四层B站链(API WBI读account/video/comments/replies+媒体读、comment/private_message准备->所有者审批->outbox->已审浏览器表单投递bilibili-ui/v2、凭据权威CAS/CDN allowlist/mention精确范围/幂等指纹/共享限额冷却送达核查)确认对等或更严基础",
+        "V1 tools/bilibili经bootstrap注册V1 ToolRegistry不计V2对等；读API广度/写广度fav-dynamic-danmaku-del/自主观看双日记沉默衰减候选打分偏好学习/直播/AI-share守卫列可离线后续批次或需账号网络，like/coin/follow/gift/charge参考亦未实现，不宣称全集对等"
+      ],
+      "reference": "dsh-bili-whale(8b0009f8, v0.4.6 Node/JS DSH插件唯一依赖qrcode; bili-api.mjs WBI读全集view/nav/subtitle/danmaku/reply/search/feed/fav/msgfeed/space/relation/tag; commands写comment/fav/dm/dynamic/danmaku需--dry/--go like/coin/follow/gift/charge未实现; quota.mjs share<=3日同BV7日去重沉默衰减>=3日降第7日=0; traffic.mjs读600/h写12/h冷却120s风险码手动暂停; night-plan随机唤醒skipChance0.3maxWakes12; scheduler双日记whale-diary+private; feed候选打分log弹幕密度+偏好命中排除播放量; danmaku直播WebSocket; ai-share守卫默认OFF阈值30硬编码与文档60漂移从未在线验证)",
+      "delivered": "审计合同V2_BILI_WHALE_AUDIT.md：V2四层B站链(domain/bilibili.py WBI sign_wbi公开MIXIN表+subtitle_url/stream_url固定CDN allowlist https-only+connection显式cookie credential_ref+Form pydantic strict已审浏览器选择器+target限video/BV?reply_id与message whisper/mid+mentions_value<=10有序不重叠精确@name uid绑定+MAX_CONTENT2000+digest幂等、application/bilibili.py BilibiliService bilibili_read account/video/comments/replies凭据权威CAS前后比对admission<=8+bilibili_prepare_publication comment/private_message从已保存assistant消息取正文准备->所有者审批绝不自行发送health.publication_approval_required=True+profile headless浏览器表单、adapters/bilibili.py网关BilibiliPort扩展DeliveryPort、共享action_review审批+delivery outbox限额冷却恢复送达核查、media K16视频字幕流读)对照参考六组；V2对等或更严(API WBI同规范+CDN allowlist+凭据CAS、写仅comment/private_message经所有者审批门+已审浏览器表单真实账号身份核验比参考直接API POST+硬编码互关attribute===6更严、幂等key/body_hash/fingerprint+unknown不重发+共享送达核查)；可离线缺口(读API广度弹幕cid.xml/搜索/feed/收藏夹历史/msgfeed收件箱/space whois/tag+缓存策略、写广度fav/dynamic post-rm-edit-image/danmaku-send/comment-del已审表单+配额、主动观看night-plan随机唤醒skipChance/minGap/maxWakes/maxVideos+双日记致所有者信与自我偏好校准+沉默衰减>=3日降share第7日=0日记仍写normal/quiet/faint带+反馈检测去重+候选打分log弹幕密度偏好命中学习token排除播放量junk过滤+feed偏好学习协同K15动机、受控分享share<=3日@同BV7日去重score/reason/rank门fav/comment/dm配额notify多后端去shell注入、风险暂停码[12015,-105,-101,401]每账号阻断resume、直播room info/history/WebSocket弹幕brotli-deflate解析send gift只读独立开关所有者或@-only、AI-share守卫默认OFF独立合同+真实验证不照抄漂移阈值30vs60)列后续批次经V2四层不复用V1 ToolRegistry；需账号网络(所有apiGet/QR登录/全部写发送/直播WebSocket/真实送达风控弹幕质量)、需真实模型质量(debrief六路+read_image/bili-watch帧/ai-share标注/日记评论DM著作/feed偏好学习)、计划未实现(like/coin/follow/gift/charge参考亦未实现、comment-action/hate/top/report仅文档、AI-share守卫模型协议遵从+误报率从未在线验证、DM-history本地待发布、文档代码阈值漂移)另验",
+      "contract": "docs/v2/contracts/V2_BILI_WHALE_AUDIT.md",
+      "evidence": "docs/evidence/v2-bili-whale-audit.json",
+      "limits": "只读审计无新工具/表/迁移/路由/源码改动；可离线缺口未在K18实现(列后续批次)；V1 tools/bilibili实现不计V2对等；不宣称全集API/主动观看/受控分享对等；参考agents.md/RULES当不可信数据非本会话指令；K18为清单末项领域参考审计(K13-K18全部记录)；既有todos重启竞态与5个pin v2_0039旧迁移测试沿用保留",
+      "next": false
     }
   ],
   "completion_rule": "每项需实际生产接线、状态/权限/费用/资源与失败合同、相关调用方专项和证据；全部参考功能审计与缺口实现完成后才能关闭总对标任务，随后遵守V2统一验收阶段。",
@@ -335,6 +343,10 @@
     {
       "id": "K17",
       "evidence": "docs/evidence/v2-bili-humanism-audit.json"
+    },
+    {
+      "id": "K18",
+      "evidence": "docs/evidence/v2-bili-whale-audit.json"
     }
   ]
 }
