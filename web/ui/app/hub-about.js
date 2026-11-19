@@ -1,7 +1,7 @@
 // 关于：版本、更新准备、人工确认和有界重连；远端说明始终按文本呈现。
-import { $ } from './dom.js?v=20261103u5';
-import { api } from './api.js?v=20261103u5';
-import { openModal, closeModal } from './modals.js?v=20261103u5';
+import { $ } from './dom.js?v=20261103u6';
+import { api } from './api.js?v=20261103u6';
+import { openModal, closeModal } from './modals.js?v=20261103u6';
 
 let snapshot = null,
   operation = null,

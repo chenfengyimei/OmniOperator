@@ -1,4 +1,4 @@
-import { $ } from '/ui/app/dom.js?v=20261103u5';
+import { $ } from '/ui/app/dom.js?v=20261103u6';
 const UI = window.OmniUI;
 let serial = '',
   token = '',

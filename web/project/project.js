@@ -418,7 +418,7 @@ export async function loadProject(root) {
     root.setAttribute('aria-busy', 'true');
     root.replaceChildren(UI.element('p', '正在读取项目索引…', 'empty'));
     try {
-      const response = await fetch('/project/panel.html?v=20261103u5', {
+      const response = await fetch('/project/panel.html?v=20261103u6', {
         credentials: 'same-origin',
         cache: 'no-store',
         signal: AbortSignal.timeout(15000),

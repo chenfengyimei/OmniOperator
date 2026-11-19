@@ -1,5 +1,5 @@
 import { ask, element } from './dialog.js?v=20261103v7';
-import { SECTIONS, resolveSection, sectionUrl } from './sections.js?v=20261103u5';
+import { SECTIONS, resolveSection, sectionUrl } from './sections.js?v=20261103u6';
 /* 本地工作台公共交互：请求、反馈、对话框和导航；不触发能力操作。 */
 (() => {
   'use strict';

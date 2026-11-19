@@ -1,34 +1,34 @@
-import { mountSkills } from './skills.js?v=20261119v160';
-import { mountCredentials } from './credentials.js?v=20261119v160';
-import { mountAuditHistory, mountOperations } from './operations.js?v=20261119v160';
-import { mountCapabilities } from './capabilities.js?v=20261119v160';
-import { mountTokens } from './tokens.js?v=20261119v160';
-import { mountDocuments } from './documents.js?v=20261119v160';
-import { mountConfiguration } from './configuration.js?v=20261119v160';
-import { mountModels } from './models.js?v=20261119v160';
+import { mountSkills } from './skills.js?v=20261119v161';
+import { mountCredentials } from './credentials.js?v=20261119v161';
+import { mountAuditHistory, mountOperations } from './operations.js?v=20261119v161';
+import { mountCapabilities } from './capabilities.js?v=20261119v161';
+import { mountTokens } from './tokens.js?v=20261119v161';
+import { mountDocuments } from './documents.js?v=20261119v161';
+import { mountConfiguration } from './configuration.js?v=20261119v161';
+import { mountModels } from './models.js?v=20261119v161';
 import { ask } from '../dialog.js?v=20261103v7';
-import { mountPeople } from './people.js?v=20261119v160';
-import { mountDeliveries } from './deliveries.js?v=20261119v160';
-import { mountSchedules } from './schedules.js?v=20261119v160';
-import { mountMemorySemantics } from './memory-semantics.js?v=20261119v160';
-import { mountMemoryOrganization } from './memory-organization.js?v=20261119v160';
-import { mountExtensions } from './extensions.js?v=20261119v160';
-import { mountActionReviews } from './action-reviews.js?v=20261119v160';
-import { mountTerminals } from './terminals.js?v=20261119v160';
-import { mountDesktop } from './desktop.js?v=20261119v160';
-import { mountQQ } from './qq.js?v=20261119v160';
-import { mountBilibili } from './bilibili.js?v=20261119v160';
-import { mountMedia } from './media.js?v=20261119v160';
-import { mountMcp } from './mcp.js?v=20261119v160';
-import { mountAndroid } from './android.js?v=20261119v160';
-import { mountModelOutput } from './model-output.js?v=20261119v160';
-import { mountRouting } from './routing.js?v=20261119v160';
-import { mountChatImages } from './chat-images.js?v=20261119v160';
-import { mountInspector } from './inspector.js?v=20261119v160';
-import { mountSettingsRail } from './settings-rail.js?v=20261119v160';
-import { mountEventStream } from './event-stream.js?v=20261119v160';
+import { mountPeople } from './people.js?v=20261119v161';
+import { mountDeliveries } from './deliveries.js?v=20261119v161';
+import { mountSchedules } from './schedules.js?v=20261119v161';
+import { mountMemorySemantics } from './memory-semantics.js?v=20261119v161';
+import { mountMemoryOrganization } from './memory-organization.js?v=20261119v161';
+import { mountExtensions } from './extensions.js?v=20261119v161';
+import { mountActionReviews } from './action-reviews.js?v=20261119v161';
+import { mountTerminals } from './terminals.js?v=20261119v161';
+import { mountDesktop } from './desktop.js?v=20261119v161';
+import { mountQQ } from './qq.js?v=20261119v161';
+import { mountBilibili } from './bilibili.js?v=20261119v161';
+import { mountMedia } from './media.js?v=20261119v161';
+import { mountMcp } from './mcp.js?v=20261119v161';
+import { mountAndroid } from './android.js?v=20261119v161';
+import { mountModelOutput } from './model-output.js?v=20261119v161';
+import { mountRouting } from './routing.js?v=20261119v161';
+import { mountChatImages } from './chat-images.js?v=20261119v161';
+import { mountInspector } from './inspector.js?v=20261119v161';
+import { mountSettingsRail } from './settings-rail.js?v=20261119v161';
+import { mountEventStream } from './event-stream.js?v=20261119v161';
 // 直接复用 V1 的 rail 提示浮层模块（data-tip → #tip-layer），不自创实现
-import '../app/tips.js?v=20261103u5';
+import '../app/tips.js?v=20261103u6';
 
 const $ = (id) => document.getElementById(id);
 let token = '',
@@ -515,14 +515,15 @@ function renderToolBlock(node, trace) {
       const delta = Date.parse(done.created_at) - Date.parse(row.created_at);
       if (Number.isFinite(delta) && delta >= 0) ms = delta;
     }
-    const [cls, icon] = STATE[state] || ['run', 'progress_activity'];
+    // bundled 字体缺新式加载图标字形（会渲染成长条并旋转）；用既有 autorenew。
+    const [cls, icon] = STATE[state] || ['run', 'autorenew'];
     const toolName = String(row.tool || data.tool || 'tool').replace(/^(tool|action)\./, '');
     const isMemory = /(^|\.)(remember|resident_memory|memory_(add|write|save|update))$/.test(toolName);
     // 入参摘录直接上链（对齐 V1），不再只显示「只读/需审批」
     const argText = String(data.args_excerpt || (data.requires_approval ? '写动作 · 需审批' : ''));
     const item = scafRow(
       `${done ? cls : 'run'}${isMemory && done && cls === 'done' ? ' legend' : ''}`,
-      isMemory ? 'auto_awesome' : done ? icon : 'progress_activity',
+      isMemory ? 'auto_awesome' : done ? icon : 'autorenew',
       toolName,
       argText,
       durText(ms),

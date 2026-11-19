@@ -1,7 +1,7 @@
 // 上下文设置：只读统计与配置分开加载；保存只影响下次启动，不触发模型调用。
-import { $, esc } from './dom.js?v=20261103u5';
-import { api } from './api.js?v=20261103u5';
-import { S } from './state.js?v=20261103u5';
+import { $, esc } from './dom.js?v=20261103u6';
+import { api } from './api.js?v=20261103u6';
+import { S } from './state.js?v=20261103u6';
 
 let revision = null,
   dirty = false,

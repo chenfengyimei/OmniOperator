@@ -1,9 +1,9 @@
 // 运行进度可视化：等待回复期间轮询本会话进行中的 run（D09 端点，只读）。
 // 历史挂链把每个 run 的调用链卡片挂到它开始后出现的第一条助手消息上（事件持久化在服务端，随时回放）。
-import { $, esc, modeLabel } from './dom.js?v=20261103u5';
-import { api } from './api.js?v=20261103u5';
-import { S } from './state.js?v=20261103u5';
-import { selectSession } from './sessions.js?v=20261103u5';
+import { $, esc, modeLabel } from './dom.js?v=20261103u6';
+import { api } from './api.js?v=20261103u6';
+import { S } from './state.js?v=20261103u6';
+import { selectSession } from './sessions.js?v=20261103u6';
 
 let runWatch = null; // {timer, runId, seq, polling}：轮询器；chat 返回/出错即停
 
@@ -37,7 +37,7 @@ function scaffoldHTML(events, opts = {}) {
       if (Array.isArray(info.tool_calls) && info.tool_calls.length) out.push('决定调用：' + info.tool_calls.join('、'));
       const open = openSet && openSet.has('m' + ev.seq) ? ' open' : '';
       rows.push(
-        `<div class="scaf ${live && !end ? 'run' : 'done'}${open}" data-k="m${ev.seq}" data-action="runs:toggle-scaf"><span class="scaf-glyph"><span class="material-icons">${live && !end ? 'progress_activity' : 'check'}</span></span><span class="scaf-label">模型调用<b>第 ${d.step || '?'} 步</b></span><span class="scaf-arg">${end ? '返回 ' + (info.text_chars || 0) + ' 字' : '思考中…'}</span><span class="scaf-chev"><span class="material-icons">chevron_right</span></span></div>`,
+        `<div class="scaf ${live && !end ? 'run' : 'done'}${open}" data-k="m${ev.seq}" data-action="runs:toggle-scaf"><span class="scaf-glyph"><span class="material-icons">${live && !end ? 'autorenew' : 'check'}</span></span><span class="scaf-label">模型调用<b>第 ${d.step || '?'} 步</b></span><span class="scaf-arg">${end ? '返回 ' + (info.text_chars || 0) + ' 字' : '思考中…'}</span><span class="scaf-chev"><span class="material-icons">chevron_right</span></span></div>`,
       );
       if (end || !live) rows.push(`<div class="scaf-out">${esc(out.join('\n'))}</div>`);
       continue;

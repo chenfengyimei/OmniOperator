@@ -671,7 +671,7 @@ nav[aria-label="工作台"]::-webkit-scrollbar {
   width: 24px;
   height: 17px;
   flex-shrink: 0;
-  background: url("/assets/ui/brand-mark.svg?v=20261103u5") center/contain no-repeat;
+  background: url("/assets/ui/brand-mark.svg?v=20261103u6") center/contain no-repeat;
 }
 .rail-btn {
   position: relative;

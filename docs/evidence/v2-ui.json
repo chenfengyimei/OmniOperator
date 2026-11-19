@@ -1,7 +1,7 @@
 {
   "batch": "v2-ui-connection-stability-v128",
   "recorded_at": "2026-11-15",
-  "resource_version_final": "20261119v160",
+  "resource_version_final": "20261119v161",
   "v1_alignment": {
     "summary": "用户提供 V1 正式工作台截图后，直接精读 web/ui/workbench.css 的 V1 实现并逐项移植，使 V2 结构与 V1 一致（而非自创风格）。",
     "ported_from_v1": [
@@ -1351,6 +1351,21 @@
       "专项": "27 passed(档位界面8+样式守卫与业务清单19)",
       "选择器修复": "档位测试裸data-page=settings与上下文页运行设置按钮二义,限定导航后8项复跑全过(同技能/记忆约定)",
       "截图": "temp/build/v2-demo/chain-actual.png"
+    }
+  },
+  "spinner_glyph_fix": {
+    "问题": "bundled Material Icons 字体缺 progress_activity 字形,图标名按原文排成221px长条,spin动画整条旋转=所有者所见半透明长方形旋转",
+    "取证": "check/autorenew等13px单字形,progress_activity 221px;注入run态行旋转盒170x76",
+    "交付": [
+      "V2调用链run态/模型页busy/行按钮busy换用字体既有autorenew",
+      "V1 runs.js同缺陷同修复",
+      "V2旋转图标max-width/max-height:1em+overflow:hidden防御",
+      "新增test_ui_icon_glyphs契约:源码禁缺字形+run态字形单字形且盒≤17px"
+    ],
+    "验证": {
+      "复测": "旋转盒13x13单字形,截图小转圈正常",
+      "专项": "26 passed(V1运行页+V2模型页+守卫24+新契约2)",
+      "版本": "V1 u6/V2 v161"
     }
   }
 }

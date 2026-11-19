@@ -185,7 +185,7 @@ export function mountModels({ api, wrap, getAgent, getGeneration }) {
     button.replaceChildren();
     const spin = document.createElement('span');
     spin.className = 'material-icons spin';
-    spin.textContent = 'progress_activity';
+    spin.textContent = 'autorenew';
     button.append(spin, document.createTextNode(label));
     return () => {
       button.classList.remove('is-busy');
@@ -446,7 +446,7 @@ export function mountModels({ api, wrap, getAgent, getGeneration }) {
         // 即时反馈：禁用+转圈；操作完成后 load() 重绘列表自然恢复。
         button.disabled = true;
         glyph.classList.add('spin');
-        glyph.textContent = 'progress_activity';
+        glyph.textContent = 'autorenew';
         try {
           await onClick();
         } finally {

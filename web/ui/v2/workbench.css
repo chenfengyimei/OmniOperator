@@ -3473,6 +3473,14 @@ body[data-ui-page="workbench-v2"]:not(.chat-mode) .settings-content > .page:not(
 body[data-ui-page="workbench-v2"] .material-icons.spin {
   animation: spin 1.1s linear infinite;
 }
+/* 防御：个别字形若不在 bundled 字体里，图标名会按原文排成长条，
+   旋转时就是「半透明长方形在转」（所有者截图取证）。旋转图标限尺寸+裁剪。 */
+body[data-ui-page="workbench-v2"] .scaf.run .scaf-glyph .material-icons,
+body[data-ui-page="workbench-v2"] .material-icons.spin {
+  max-width: 1em;
+  max-height: 1em;
+  overflow: hidden;
+}
 body[data-ui-page="workbench-v2"] button.is-busy {
   opacity: 0.75;
   cursor: progress;

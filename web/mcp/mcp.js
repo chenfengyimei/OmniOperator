@@ -6,7 +6,7 @@
      · loadMcpServices(root)：先取 panel.html 再挂载（设置中心分区用）
    id 全部带 mcp- 前缀：面板要挂进工作台文档，而工作台自身已有 #status 等 id，
    不加前缀会互相串味（面板状态写进工作台侧栏）。 */
-import { esc } from '/ui/app/dom.js?v=20261103u5';
+import { esc } from '/ui/app/dom.js?v=20261103u6';
 const UI = window.OmniUI;
 const api = UI.request;
 
@@ -332,7 +332,7 @@ export async function loadMcpServices(root) {
     root.setAttribute('aria-busy', 'true');
     root.replaceChildren(UI.element('p', '正在读取 MCP 服务…', 'empty'));
     try {
-      const response = await fetch('/mcp/panel.html?v=20261103u5', {
+      const response = await fetch('/mcp/panel.html?v=20261103u6', {
         credentials: 'same-origin',
         cache: 'no-store',
         signal: AbortSignal.timeout(15000),

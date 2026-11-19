@@ -1,8 +1,8 @@
 // 设置中心「服务与运行」：状态总览 / 通道与登录 / 调度统计 / 日志。
 // 故意不放"启动/停止"：服务由守护默认拉起并自动重启，这里只留"重启一次"和
 // "清理旧记录"这两个确实需要人判断的动作。
-import { $, esc } from './dom.js?v=20261103u5';
-import { api } from './api.js?v=20261103u5';
+import { $, esc } from './dom.js?v=20261103u6';
+import { api } from './api.js?v=20261103u6';
 
 const STATE_TEXT = {
   verified: '运行中',
