@@ -51,7 +51,7 @@ def test_v34_upgrade_does_not_invent_skill_grants_or_lose_unknown_cost(tmp_path,
         db = Database(path, clock, ids)
         try:
             await db.write(lambda u: u.recover())
-            assert db.schema_version == "v2_0039" and len(s.metadata.tables) == 136
+            assert db.schema_version == "v2_0039" and len(s.metadata.tables) == 140
             assert (await db.read(lambda u: u._one(s.model_calls, agent, call)))["state"] == "unknown"
             report = await db.read(lambda u: u.skill_run_report(agent, turn["run_id"], "windows"))
             assert not report["captured"] and not report["items"]

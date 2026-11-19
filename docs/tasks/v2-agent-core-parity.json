@@ -102,7 +102,7 @@
     {
       "id": "K08",
       "title": "回合后学习reviewer/curator",
-      "status": "not_implemented",
+      "status": "implemented_scoped_passed",
       "acceptance": [
         "后台工作项生产接线、启动/关闭/取消归属和独立预算",
         "只读/记忆/技能白名单及证据锚点",
@@ -110,14 +110,18 @@
         "无收益可不写，幂等触发不重复付费"
       ],
       "reference": "hermes-agent/agent/background_review.py",
-      "next": true
+      "delivered": "domain/background_review.py白名单分类与有界建议/决策/幂等规则；BackgroundReviewService由maintenance.tick驱动排他claim+reserve/invoke/settle评审循环(只读派发、写拦截为待审、其余拒绝)；引擎finish后非委派非远程幂等触发(生产路径门控)；所有者decide记忆走remember/forget、技能走SkillService审核撤回链并CAS绑定revision/fingerprint/epoch；独立MAX_CALLS=8与budget_micro记账；无收益零候选；v0043冻结迁移两表+不可变/状态机/禁删触发器；5个/memory/reviews所有者路由",
+      "contract": "docs/v2/contracts/V2_BACKGROUND_REVIEW.md",
+      "evidence": "docs/evidence/v2-background-review.json",
+      "limits": "评审复用summary辅助通道(未新增model_calls.purpose、不重建核心表)；独立预算由批次调用上限+记账+日预算闸门约束；无prompt-cache parity fork/aux模型路由/参考读前写守卫全集；单层无嵌套子run"
     },
     {
       "id": "K09",
       "title": "模型侧历史会话检索",
       "status": "partial",
       "remaining": "已有所有者历史API；补模型session_search、来源锚点、分页/大小、Agent/会话与删除屏障",
-      "reference": "hermes-agent/tools/session_search_tool.py"
+      "reference": "hermes-agent/tools/session_search_tool.py",
+      "next": true
     },
     {
       "id": "K10",
@@ -207,6 +211,10 @@
     {
       "id": "K07",
       "evidence": "docs/evidence/v2-iteration-guard.json"
+    },
+    {
+      "id": "K08",
+      "evidence": "docs/evidence/v2-background-review.json"
     }
   ]
 }

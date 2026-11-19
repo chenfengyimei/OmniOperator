@@ -2179,6 +2179,103 @@ Index(
 )
 
 
+background_review_batches = Table(
+    "background_review_batches",
+    metadata,
+    Column("sequence", Integer, primary_key=True),
+    Column("id", String(36), CheckConstraint("length(id)=36", name="uuid_length"), nullable=False),
+    scope(),
+    stamp(),
+    Column("run_id", String(36), nullable=False),
+    scoped_fk("run_id", "runs"),
+    Column("request_key", String(200), nullable=False),
+    Column("request_sha256", String(64), nullable=False),
+    Column("policy", String(48), nullable=False),
+    Column("history_epoch", String(36), nullable=False),
+    Column("budget_micro", Integer, nullable=False),
+    Column("call_count", Integer, nullable=False),
+    Column("candidate_count", Integer, nullable=False),
+    Column("state", String(20), nullable=False),
+    Column("revision", Integer, nullable=False),
+    Column("updated_at", String(40), nullable=False),
+    Column("prepared_at", String(40)),
+    Column("error_code", String(80), nullable=False, server_default=""),
+    UniqueConstraint("id"),
+    UniqueConstraint("id", "agent_id"),
+    UniqueConstraint("agent_id", "request_key"),
+    UniqueConstraint("agent_id", "run_id"),
+    CheckConstraint(
+        "sequence>0 AND length(request_key) BETWEEN 1 AND 200 AND length(request_sha256)=64 AND "
+        "policy='post-turn-review-v1' AND length(history_epoch)=36 AND length(error_code)<=80",
+        name="identity",
+    ),
+    CheckConstraint(
+        "typeof(budget_micro)='integer' AND budget_micro>=0 AND "
+        "typeof(call_count)='integer' AND call_count BETWEEN 0 AND 8 AND "
+        "typeof(candidate_count)='integer' AND candidate_count BETWEEN 0 AND 16 AND "
+        "typeof(revision)='integer' AND revision BETWEEN 1 AND 9223372036854775807",
+        name="bounds",
+    ),
+    CheckConstraint(
+        "state IN ('queued','running','ready','complete','cancelled','invalidated','failed') AND "
+        "(state NOT IN ('ready','complete') OR prepared_at IS NOT NULL)",
+        name="state",
+    ),
+    sqlite_autoincrement=True,
+)
+Index(
+    "ix_background_review_batches_agent_sequence",
+    background_review_batches.c.agent_id,
+    background_review_batches.c.sequence,
+)
+
+background_review_candidates = scoped(
+    "background_review_candidates",
+    Column("batch_id", String(36), nullable=False),
+    scoped_fk("batch_id", "background_review_batches"),
+    Column("position", Integer, nullable=False),
+    Column("kind", String(10), nullable=False),
+    Column("tool", String(40), nullable=False),
+    Column("proposal", Text, nullable=False),
+    Column("state", String(20), nullable=False),
+    Column("revision", Integer, nullable=False),
+    Column("fingerprint", String(64), nullable=False),
+    Column("updated_at", String(40), nullable=False),
+    Column("reviewed_at", String(40)),
+    Column("review_audit_id", String(36)),
+    scoped_fk("review_audit_id", "audit"),
+    Column("applied_memory_id", String(36)),
+    Column("applied_memory_revision", Integer),
+    Column("applied_skill_id", String(36)),
+    Column("applied_skill_revision_id", String(36)),
+    Column("error_code", String(80), nullable=False, server_default=""),
+    UniqueConstraint("batch_id", "position"),
+    CheckConstraint(
+        "kind IN ('memory','skill') AND length(tool) BETWEEN 1 AND 40 AND length(fingerprint)=64 AND "
+        "typeof(revision)='integer' AND revision BETWEEN 1 AND 9223372036854775807 AND "
+        "typeof(position)='integer' AND position BETWEEN 0 AND 15 AND length(error_code)<=80",
+        name="identity",
+    ),
+    CheckConstraint(
+        "(state='pending' AND reviewed_at IS NULL AND review_audit_id IS NULL) OR "
+        "(state IN ('applied','rejected','revoked') AND reviewed_at IS NOT NULL AND review_audit_id IS NOT NULL) OR "
+        "(state IN ('invalidated','cancelled') AND ((reviewed_at IS NULL AND review_audit_id IS NULL) OR "
+        "(reviewed_at IS NOT NULL AND review_audit_id IS NOT NULL)))",
+        name="state",
+    ),
+)
+Index(
+    "ix_background_review_candidates_batch",
+    background_review_candidates.c.agent_id,
+    background_review_candidates.c.batch_id,
+)
+Index(
+    "ix_background_review_review_audit",
+    background_review_candidates.c.agent_id,
+    background_review_candidates.c.review_audit_id,
+)
+
+
 extension_revisions = scoped(
     "extension_revisions",
     Column("extension_id", String(36), nullable=False),

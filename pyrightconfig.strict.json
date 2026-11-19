@@ -296,6 +296,7 @@
     "agent/src/omni/application/mcp.py",
     "agent/src/omni/application/media.py",
     "agent/src/omni/application/memory_organization.py",
+    "agent/src/omni/application/background_review.py",
     "agent/src/omni/application/memory_semantics.py",
     "agent/src/omni/application/memory_tools.py",
     "agent/src/omni/application/model_calls.py",
@@ -396,7 +397,9 @@
     "agent/src/omni/adapters/persistence/delegation_authority.py",
     "agent/src/omni/adapters/persistence/delegation_repository.py",
     "agent/src/omni/domain/tool_batch.py",
-    "agent/src/omni/domain/repetition.py"
+    "agent/src/omni/domain/repetition.py",
+    "agent/src/omni/domain/background_review.py",
+    "agent/src/omni/adapters/persistence/background_review_repository.py"
   ],
   "exclude": [
     "**/__pycache__"

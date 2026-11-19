@@ -7,7 +7,7 @@ import hashlib
 import json
 import logging
 import sys
-from collections.abc import Generator
+from collections.abc import Generator, Mapping
 from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
@@ -53,6 +53,7 @@ from ..adapters.timezones import PinnedTimezones
 from ..adapters.token_counter import ConservativeTokenCounter
 from ..application.action_review import ActionReviewService
 from ..application.android import AndroidPort, AndroidService
+from ..application.background_review import BackgroundReviewService
 from ..application.bilibili import PREPARE_SPEC as BILIBILI_PREPARE
 from ..application.bilibili import READ_SPEC as BILIBILI_READ
 from ..application.bilibili import BilibiliPort, BilibiliService
@@ -109,7 +110,8 @@ from ..domain.android import MODEL_SPEC as ANDROID_MODEL
 from ..domain.android import OBSERVE_SPEC as ANDROID_OBSERVE
 from ..domain.android import RESTORE_SPEC as ANDROID_RESTORE
 from ..domain.android import SPEC as ANDROID_ACTION
-from ..domain.contracts import BusinessError, Outcome
+from ..domain.background_review import READ_TOOLS
+from ..domain.contracts import JSON, ActionResult, BusinessError, InvocationContext, Outcome
 from ..domain.delivery import OutboundMessage
 from ..domain.desktop_actions import SPEC as DESKTOP_ACTION
 from ..domain.mcp import ServerTarget
@@ -242,6 +244,7 @@ class Instance:
     _lifetime: Lifetime
     maintenance: MaintenanceService
     memory_organization: MemoryOrganizationService
+    background_review: BackgroundReviewService
     extensions: ExtensionService
     action_reviews: ActionReviewService
     terminals: TerminalService
@@ -288,6 +291,7 @@ class Instance:
             "desktop_actions": self.desktop_actions.health(),
             "maintenance": self.maintenance.health(),
             "memory_organization": self.memory_organization.health(),
+            "background_review": self.background_review.health(),
             "extensions": self.extensions.health(),
             "images": _record(self.images.health()),
             "shutdown_residual": list(self._lifetime.residual),
@@ -300,6 +304,7 @@ class Instance:
             and self.deliveries.health()["ready"]
             and self.maintenance.health()["ready"]
             and not self.memory_organization.health()["closing"]
+            and not self.background_review.health()["closing"]
             and not self.memory_semantics.health()["closing"]
             and not self.skills.health()["closing"]
             and not self.media.health()["closing"]
@@ -493,9 +498,6 @@ async def open_instance(
         lifetime.own("memory_semantics", 0, memory_semantics.close, memory_semantics.stop_accepting)
         memory_organization = MemoryOrganizationService(database, observation)
         lifetime.own("memory_organization", 0, memory_organization.close, memory_organization.stop_accepting)
-        maintenance = MaintenanceService(database, documents, clock, observation, memory_organization)
-        memory_organization.on_queued(maintenance.notify)
-        lifetime.own("maintenance", 0, maintenance.close, maintenance.stop_accepting)
         namespace = hashlib.sha256(str(paths.home).encode()).hexdigest()[:20]
         credential_io: AsyncSecretPort
         if credential_backend is not None:
@@ -625,10 +627,7 @@ async def open_instance(
                 "MCP records from the previous process were reconciled",
                 extra={"event": "mcp.restart_reconciled", **mcp_recovered},
             )
-        application = Application(
-            database,
-            calls,
-            contexts,
+        agent_capabilities = (
             capabilities
             if capabilities is not None
             else (
@@ -641,7 +640,39 @@ async def open_instance(
                 Capability(ANDROID_ACCESS, android, android.quiescent),
                 Capability(ANDROID_OBSERVE, android, android.quiescent),
                 Capability(ANDROID_MODEL, android, android.quiescent),
-            ),
+            )
+        )
+        review_read_caps = {cap.spec.name: cap for cap in agent_capabilities if cap.spec.name in READ_TOOLS}
+
+        async def review_read(
+            name: str, arguments: Mapping[str, JSON], context: InvocationContext
+        ) -> ActionResult:
+            cap = review_read_caps.get(name)
+            if cap is None:
+                return ActionResult(Outcome.ERROR, "Unknown read tool", error_code="tool_not_found")
+            return await cap.adapter.invoke(name, arguments, operation_id=context.run_id, context=context)
+
+        background_review = BackgroundReviewService(
+            database,
+            calls,
+            clock,
+            observation,
+            read_tools=tuple(cap.spec for cap in agent_capabilities if cap.spec.name in READ_TOOLS),
+            read_dispatch=review_read,
+            skills=skills,
+        )
+        lifetime.own("background_review", 0, background_review.close, background_review.stop_accepting)
+        maintenance = MaintenanceService(
+            database, documents, clock, observation, memory_organization, background_review
+        )
+        memory_organization.on_queued(maintenance.notify)
+        background_review.on_queued(maintenance.notify)
+        lifetime.own("maintenance", 0, maintenance.close, maintenance.stop_accepting)
+        application = Application(
+            database,
+            calls,
+            contexts,
+            agent_capabilities,
             clock,
             observation,
             workspace_validator=WorkspacePolicy(paths.home, Path(__file__).resolve().parents[1]).validate,
@@ -653,6 +684,7 @@ async def open_instance(
             skills=skills,
             todos=TodoService(database) if capabilities is None else None,
             delegation_enabled=capabilities is None if delegation_enabled is None else delegation_enabled,
+            background_review=background_review if capabilities is None else None,
             owner_capabilities=(
                 Capability(DESKTOP_ACTION, desktop_actions, desktop_actions.quiescent),
                 Capability(ANDROID_ACTION, android, android.quiescent),
@@ -807,6 +839,7 @@ async def open_instance(
             _lifetime=lifetime,
             maintenance=maintenance,
             memory_organization=memory_organization,
+            background_review=background_review,
             extensions=extensions,
             action_reviews=action_reviews,
             terminals=terminals,

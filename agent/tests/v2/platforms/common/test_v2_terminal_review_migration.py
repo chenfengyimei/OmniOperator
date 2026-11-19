@@ -66,7 +66,7 @@ def test_v25_to_v26_preserves_terminal_rows_and_adds_scoped_immutable_review_sch
     async def scenario():
         db = Database(paths.database, Clock(), UUIDs(), objects_root=paths.objects)
         try:
-            assert db.schema_version == migration_head() and len(s.metadata.tables) == 136
+            assert db.schema_version == migration_head() and len(s.metadata.tables) == 140
             detail = await db.read(lambda u: u.terminal_review_detail(agent, opened_request["operation_id"]))
             assert detail["reviewable"] and detail["operation"]["state"] == "unknown"
             reflected = await db.read(lambda u: inspect(u.connection).get_foreign_keys("terminal_reviews"))

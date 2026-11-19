@@ -30,6 +30,7 @@ from ..domain.settings import agent_settings_value, settings_value
 from ..domain.todos import TODO_LIST
 from ..domain.tool_batch import BatchEntry, plan_tool_batch
 from ..domain.turn_prompt import TurnPrompt, append_runtime_notice
+from .background_review import BackgroundReviewService
 from .context import ContextService
 from .images import ImageService
 from .memory_semantics import MemorySemanticService
@@ -81,6 +82,7 @@ class Application:
         skills: SkillService | None = None,
         todos: TodoService | None = None,
         delegation_enabled: bool = False,
+        background_review: BackgroundReviewService | None = None,
     ) -> None:
         self._db, self._calls, self._contexts, self._clock, self._observer = database, calls, contexts, clock, observer
         self._tools = {cap.spec.name: cap for cap in capabilities}
@@ -99,6 +101,7 @@ class Application:
         self._skills = skills
         self._todos = todos
         self._delegation_enabled = delegation_enabled
+        self._background_review = background_review
         self._child_ids: set[str] = set()
         if delegation_enabled and DELEGATE_TASK.name in self._tools:
             raise ValueError("Delegation control name is reserved")
@@ -231,6 +234,10 @@ class Application:
                 )
         self._wake.set()
 
+    async def _trigger_review(self, agent_id: str, run_id: str, delegated: object, remote: object) -> None:
+        if self._background_review is not None and not delegated and not remote:
+            await self._background_review.trigger(agent_id, run_id)
+
     async def _run(self, agent_id: str, run_id: str, token: str, fence: int) -> None:
         with self._observer.context(agent_id=agent_id, run_id=run_id), self._observer.span("agent.turn") as measured:
             if measured:
@@ -334,6 +341,7 @@ class Application:
                         if measured:
                             measured.result(Outcome.OK)
                         log.info("Run completed", extra={"event": "run.succeeded"})
+                        await self._trigger_review(agent_id, run_id, delegated, remote)
                         return
                     messages.append(
                         {
@@ -413,6 +421,7 @@ class Application:
                 if measured:
                     measured.result(Outcome.OK)
                 log.info("Run completed", extra={"event": "run.succeeded"})
+                await self._trigger_review(agent_id, run_id, delegated, remote)
                 return
             except asyncio.CancelledError:
                 if measured:

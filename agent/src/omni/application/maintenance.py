@@ -8,6 +8,7 @@ from typing import cast
 
 from ..domain.contracts import BusinessError
 from ..domain.maintenance import MAX_ACTIVE, MAX_PENDING
+from .background_review import BackgroundReviewService
 from .documents import DocumentService
 from .memory_organization import MemoryOrganizationService
 from .ports import Clock, DatabasePort, Observer, Record, UnitOfWork
@@ -23,6 +24,7 @@ class MaintenanceService:
         clock: Clock,
         observer: Observer,
         memory_organization: MemoryOrganizationService | None = None,
+        background_review: BackgroundReviewService | None = None,
     ) -> None:
         self._db, self._documents, self._clock, self._observer = database, documents, clock, observer
         self._active: dict[str, tuple[Record, asyncio.Task[None]]] = {}
@@ -32,6 +34,7 @@ class MaintenanceService:
         self._error = ""
         self._settling: set[str] = set()
         self._memory_organization = memory_organization
+        self._background_review = background_review
 
     def notify(self) -> None:
         self._wake.set()
@@ -183,6 +186,11 @@ class MaintenanceService:
         if self._memory_organization is not None:
             for _ in range(available):
                 if not await self._memory_organization.process_one():
+                    break
+                processed += 1
+        if self._background_review is not None:
+            for _ in range(available - processed):
+                if not await self._background_review.process_one():
                     break
                 processed += 1
         claims = await self._db.write(lambda u: u.maintenance_claim(available))

@@ -17,6 +17,7 @@ from .action_review_repository import ActionReviewRepositories
 from .android_repository import AndroidRepositories
 from .android_unicode_repository import AndroidUnicodeRepositories
 from .audit_pruning_repository import AuditPruningRepositories
+from .background_review_repository import BackgroundReviewRepositories
 from .bilibili_repository import BilibiliRepositories
 from .context_repository import ContextRepositories
 from .delegation_repository import DelegationRepositories
@@ -57,6 +58,7 @@ class Repositories(
     MCPRepositories,
     ExtensionRepositories,
     MemoryOrganizationRepositories,
+    BackgroundReviewRepositories,
     MaintenanceRepositories,
     AuditPruningRepositories,
     EventRetentionRepositories,

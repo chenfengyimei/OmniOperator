@@ -1,0 +1,108 @@
+{
+  "schema": 1,
+  "date": "2026-11-19",
+  "base_commit": "de20f637088b702c7589f5409813ac91822352b1",
+  "status": "post_turn_reviewer_curator_implemented_scoped_passed",
+  "contract": "docs/v2/contracts/V2_BACKGROUND_REVIEW.md",
+  "source_files": {
+    "agent/src/omni/domain/background_review.py": "47936f59c3a83f7985d10e29350ba8d976d0d6a143cd8ca06f20ff37d96547c7",
+    "agent/src/omni/application/background_review.py": "95b023297411976738a6985703f35125b49972be1f40373bec97a1cd1b75827f",
+    "agent/src/omni/adapters/persistence/background_review_repository.py": "0011fdb4105f37fc7e28c9a537769653b130317fa71e5785c29fce6570951d9e",
+    "agent/src/omni/adapters/persistence/migrations/versions/v0043.py": "be7ec83f2b2b4631af3e2cfe9f65aeca02b2f36a3637b92a918d266ef33d3ed1",
+    "agent/src/omni/application/engine.py": "d73b195c3969a3475e59dfb81fa12b37dbfe47adf71761e36d3eed92b0b55ec7",
+    "agent/src/omni/application/maintenance.py": "044312ddd801f4e447049bdb79f677a7ed21eab8841110c14a81573e6fe29cf7",
+    "agent/src/omni/composition/instance.py": "9fcea868633295fc94fd9971c3ba2cac684c2ffa53009d0ec1b7b2163bf6b916",
+    "agent/src/omni/adapters/http.py": "77330e2202af36b756bc4390a22df28f4fb316f5bf78fc23c5f32ad2db10fc52",
+    "agent/src/omni/adapters/persistence/schema.py": "bf2d27e92e6b1c1fab8829ff3a005b25bf6324f1208e27fa1fd08e0e76ec2242",
+    "agent/tests/v2/core/test_v2_background_review.py": "c0f38e5902a392eb4fd3d64fa97209f71f10edbae288699a54fe1aaed9dda1c7",
+    "agent/tests/v2/core/test_v2_background_review_migration.py": "2f3d7fc4c01c8f1f99b6dd7fa86614c47c0ece261eb3ad32799208f6e32fb68f",
+    "pyrightconfig.strict.json": "f6eb6735ad3d0140da2999253f88b0f1355a4f094ed2a85ff1edb8d438783371"
+  },
+  "reference": {
+    "repository": "xuexi/hermes-agent",
+    "commit": "9976f4857b72439d79016354d7b6e1a3ee952e2f",
+    "files": {
+      "agent/background_review.py": "befe068ba8283ee2c480b9b3b28a47913fea62bef92408c7aeed211bf4cc71bd"
+    },
+    "adaptation": "Post-turn forked reviewer/curator studied and independently adapted within V2 four layers as a bounded background maintenance batch producing pending proposals; no third-party source copied, no remote fetch or real account/model/device used"
+  },
+  "delivered": [
+    "Pure domain/background_review.py: whitelist classification (read/write/deny), bounded proposal normalization with evidence quote, proposal/request fingerprints, owner decision parsing, per-run idempotency key, frozen review prompt",
+    "BackgroundReviewService driven by MaintenanceService.tick: exclusive queued->running claim, reserve->invoke->settle review loop across transactions; read tools dispatched, write intents staged as pending proposals, other tools denied",
+    "Engine triggers one idempotent review after finish (normal and grace paths) for non-delegated non-remote runs; production-only gating (capabilities is None) keeps isolated caller tests free of extra review calls",
+    "Owner decide applies memory through evidence-anchored remember and revokes through forget; applies skills through SkillService save/patch/rollback/state (review-before-enable) and revokes through archived state; CAS binds revision/fingerprint/epoch",
+    "Independent budget: MAX_CALLS=8 per batch, call_count/budget_micro accounting and reserve_call daily gate; nothing-to-save writes zero candidates; UNIQUE(agent_id,run_id) idempotent trigger never re-pays",
+    "v0043 frozen migration adds background_review_batches/candidates with immutable identity, one-way state machine and keep-delete triggers; five owner HTTP routes under /memory/reviews with router-level owner auth"
+  ],
+  "limits": {
+    "max_calls_per_review": 8,
+    "max_proposals_per_batch": 16,
+    "max_quote_chars": 2000,
+    "max_content_chars": 20000,
+    "model_call_purpose": "summary (auxiliary channel; no new model_calls.purpose value, core table not rebuilt)",
+    "independent_budget": "batch call cap + budget_micro accounting + daily reserve_call gate, separate from turn max_steps",
+    "prompt_cache_parity_fork": false,
+    "aux_model_routing": false,
+    "full_reference_read_before_write_guard_set": false,
+    "nested_child_runs": false,
+    "hard_limits_relaxed": false,
+    "unknown_calls_replayed": false,
+    "database_migration": "v0043 adds two tables; model_calls unchanged",
+    "second_kernel_or_state_store": false
+  },
+  "validation": {
+    "mode": "development_working_tree_scoped",
+    "frozen_source": null,
+    "scoped_passed": 123,
+    "failed": 0,
+    "seconds": 140.36,
+    "new_nodes": 18,
+    "scope": [
+      "New K08 domain rules (8) and production integration (8): pending proposal with anchor and billing, owner apply via evidence chain and undo revoke, reject writes nothing, nothing-to-save writes no candidates, idempotent trigger no re-pay, whitelist denies non-review tools, cancel settles without model call, production engine trigger enqueues review",
+      "New K08 v0043 migration (2): head schema columns/FK/triggers match, idempotent per-run enqueue and immutable evidence",
+      "K05 tool batch parallelism, K06 run compaction, K07 iteration guard (affected callers)",
+      "Maintenance and memory-organization migration, four-layer architecture guard",
+      "Candidate gate, business inventory, layout and default entrypoint guards"
+    ],
+    "strict": {
+      "config": "pyrightconfig.strict.json",
+      "files": 399,
+      "errors": 0,
+      "warnings": 0,
+      "note": "added domain/application/background_review.py and adapters/persistence/background_review_repository.py to include (396 -> 399)"
+    },
+    "ruff": "K08 source, wiring and test files lint passed (one lambda-capture except binding adjusted to satisfy both ruff F841 and pyright)",
+    "project_index": "scripts/project_index.py rerun after adding modules, migration and tests (modules=65 files=814 routes=451)",
+    "full_suite_executed": false,
+    "real_model_account_device_native_or_72h_executed": false,
+    "current_windows_service_or_database_touched": false
+  },
+  "retained_first_failures": [
+    {
+      "phase": "k08-r1",
+      "reason": "Domain _bounded_text rejected newline-bearing skill content (Cc category); allowed \\n\\r\\t while still rejecting other control chars. Domain tests rechecked green."
+    },
+    {
+      "phase": "k08-r2",
+      "reason": "Maintenance auto-run raced the manual process_one in tests; non-exclusive claim returned an already-running batch and double-reviewed. Made claim exclusive (non-queued returns None), stopped maintenance auto-drive in service-level tests and made the model stub content-deterministic. All 16 K08 nodes rechecked green."
+    },
+    {
+      "phase": "k08-r3",
+      "reason": "ruff --fix removed an except-as binding captured only inside a lambda (F841 false negative), breaking pyright; bound exc.code to a local before the lambda so both ruff and pyright pass. Final strict 399 files clean."
+    },
+    {
+      "phase": "preexisting-stale-migration-pins",
+      "reason": "Six upgrade tests pin old schema versions (v2_0032/v2_0033/v2_0034/v2_0036/v2_0039) while head already exceeded them before K08; they fail on the version pin independent of this batch. Head-upgrading migration count assertions synchronized 136->140 for the two new tables; those tests pass."
+    }
+  ],
+  "whole_core_parity_complete": false,
+  "whole_reference_feature_audit_complete": false,
+  "whole_v2_complete": false,
+  "not_executed": [
+    "Full offline suite for current source",
+    "Real accounts/models/devices/native desktop and 72h soak",
+    "Current Windows service restart/database upgrade",
+    "macOS/Linux actual native build or run"
+  ],
+  "next": "K09 model-side session search (session_search tool, source anchors, pagination/size, Agent/session and deletion barriers); do not redo K03-K08"
+}
