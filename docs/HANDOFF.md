@@ -3,7 +3,7 @@
 ## 当前状态与工作方式
 
 - 开发分支 `v2`，跟踪 `origin/v2`。默认入口是 V2，显式 V1 回退保留。
-- 当前工作：目录整理已完成；按 [Agent 内核与学习项目对标](v2/contracts/V2_AGENT_CORE_PARITY.md)持续补齐。K03 [修订化任务清单](v2/contracts/V2_TODOS.md)、K04 [单层父子 run 委派](v2/contracts/V2_DELEGATION.md)、K05 [模型批次工具并行](v2/contracts/V2_TOOL_BATCH.md)、K06 [run 内工具上下文压缩](v2/contracts/V2_RUN_COMPACTION.md)、K07 [迭代守卫与预算收敛](v2/contracts/V2_ITERATION_GUARD.md)、K08 [回合后 reviewer/curator 后台学习](v2/contracts/V2_BACKGROUND_REVIEW.md)、K09 [模型侧历史会话检索](v2/contracts/V2_SESSION_SEARCH.md)、K10 [结构化澄清与当前 run 暂停续跑](v2/contracts/V2_CLARIFY.md)、K11 [停止前验核](v2/contracts/V2_VERIFICATION_STOP.md)、K12 [显式模型故障恢复](v2/contracts/V2_MODEL_RECOVERY.md)已接生产；下一项 K13 参考工具组/渠道/cron 变体全集审计仍未实现。
+- 当前工作：目录整理已完成；按 [Agent 内核与学习项目对标](v2/contracts/V2_AGENT_CORE_PARITY.md)持续补齐。K03 [修订化任务清单](v2/contracts/V2_TODOS.md)、K04 [单层父子 run 委派](v2/contracts/V2_DELEGATION.md)、K05 [模型批次工具并行](v2/contracts/V2_TOOL_BATCH.md)、K06 [run 内工具上下文压缩](v2/contracts/V2_RUN_COMPACTION.md)、K07 [迭代守卫与预算收敛](v2/contracts/V2_ITERATION_GUARD.md)、K08 [回合后 reviewer/curator 后台学习](v2/contracts/V2_BACKGROUND_REVIEW.md)、K09 [模型侧历史会话检索](v2/contracts/V2_SESSION_SEARCH.md)、K10 [结构化澄清与当前 run 暂停续跑](v2/contracts/V2_CLARIFY.md)、K11 [停止前验核](v2/contracts/V2_VERIFICATION_STOP.md)、K12 [显式模型故障恢复](v2/contracts/V2_MODEL_RECOVERY.md)已接生产，K13 [参考工具组/渠道/cron 变体全集审计](v2/contracts/V2_TOOL_CHANNEL_AUDIT.md)已完成；下一项 K14 Android 全能力/视觉子代理审计与 K13 可离线缺口实现仍待推进。
 - Windows 主体开发及旧离线候选已完成；当前源码未统一全量，整个 V2 仍在开发。真实账号/模型质量/设备、干净机器及 72 小时验收分别待办。
 - Mac mini 为 Apple Silicon，所有者提供 macOS 27，实际版本在 Mac 用 `sw_vers` 核对。Mac 做主开发机，现有 Windows 保留运行和原生验收环境，两端同步同一分支。
 - 当前 Windows 服务、实例、凭据和其他会话的 `PPT/`、`docs/competition/` 保留。根 `src`/`tests` 是本机兼容联接，正式代码与测试分别在 `agent/src`、`agent/tests`。
@@ -66,11 +66,13 @@ K12 已接显式模型故障恢复（经过授权/预算约束的有界空回复
 
 本批新增 12 项回归（5 领域 + 7 生产集成），最终源码 114 项专项全过（279.87 秒：K12 12 + turn_integrity 28 + 执行/委派/压缩/迭代守卫/上下文/上下文故障 74），证明 `ModelCalls` 重构对既有 invoke 调用方兼容。V2 strict 407 文件零错误/警告（新增 domain/model_recovery.py，406→407，filesAnalyzed==include，import 排序修正与格式化后复核干净）；Ruff/格式与项目索引通过（modules=65 files=823 routes=454 declared_tools=94）。首轮仅 1 处 I001 import 排序（model_reply 应在 model_recovery 前）已修正；K12 与 strict 首轮即绿。既有 todos 重启竞态（K08 后台评审）与 5 个 pin `v2_0039` 旧迁移测试沿用保留不追（K12 无迁移/表计数/后台评审改动）。未全量、未真实模型/原生/72 小时验收，未动运行中服务与数据库。详见 [模型恢复证据](evidence/v2-model-recovery.json)。
 
-下一批推进 G6.core_parity / K13 参考工具组/渠道/cron 变体全集审计：逐项核对 Hermes 工具组/高级浏览器/代码沙箱、渠道/供应商、定时任务技能绑定与任务依赖，已有 files/shell/browser/MCP 不重复实现。之后继续 K14… 参考全集审计，其他对标项不提前关闭。
+K13 已完成参考工具组/渠道/cron 变体全集**逐项审计**（只读，无新工具/迁移/路由/源码改动）：对照参考 `xuexi/hermes-agent`（固定提交 `9976f485`，tools/ 286 模块经 registry 注册/toolsets 门控）与 V2 模型侧工具面，按六组分类——文件/shell/终端、高级浏览器、代码沙箱、渠道/供应商/连接器、cron 变体、computer_use/桌面。**已对等**：基础 files/shell/browser/MCP、QQ/B 站链路、调度/投递框架、技能审核。**可离线缺口列后续批次**（不在 K13 强行改跨平台 worker 协议）：工作区搜索（search_files）、模糊补丁（patch）、浏览器对话框（browser_dialog）、cron 技能绑定+任务输出依赖（skills/context_from/continuity）、工具调用代码沙箱（execute_code/code_kernel）、原始 CDP/脚本化浏览器（browser_cdp/browser_exec）。**需实机/账号/网络验收**：渠道全集（discord/feishu/yuanbao/x_search/27 gateway 平台）、hosted connector/catalog hub、浏览器云/真实 profile/vault/沙箱/Lightpanda、远程终端/kernel 后端、computer_use 真机+cua-driver、Android 真机、QQ/B 站/投递送达质量。审计完成**不宣称全集对等**。详见 [工具/渠道审计](v2/contracts/V2_TOOL_CHANNEL_AUDIT.md) 与 [审计证据](evidence/v2-tool-channel-audit.json)。
+
+下一批推进 G6.core_parity / K14 Android 全能力/视觉子代理审计：观察/动作/Unicode/许可已有，核对全部参考工具、独立有界视觉子代理、设备矩阵，真机质量另验；并择机实现 K13 记录的可离线缺口（独立批次，先授权/持久化合同后执行接线）。之后继续 K15… 领域参考审计，其他对标项不提前关闭。
 
 K03 新增 34 项回归；首轮冻结源码 114 项集成专项通过（182.82 秒），收尾补强 Agent 禁用检查后最终 34 项清单/HTTP 模块专项通过（39.09 秒），另 7 项目录/状态守卫通过。最终 391 文件 strict 零错误/警告，Ruff 与格式检查通过，未全量。每轮源码指纹与失败均保留，不把首轮结果写为最终源码全量。此前 K01/K02 批 `c4e205d8` 的结果见 [固定证据](evidence/v2-agent-core-parity.json)。测试只用隔离数据库与冻结源码，当前 Windows 服务和真实数据库未停止或由测试升级。
 
-会话级缓存稳定与参考工具组/渠道/cron 变体全集仍待实现（run 内工具压缩 K06、回合后学习 K08、停止前验核 K11、模型故障恢复 K12 已接）；未全量、未真实模型效果验收。
+会话级缓存稳定、K13 记录的可离线工具缺口与 Android/人格等领域参考审计仍待推进（run 内工具压缩 K06、回合后学习 K08、停止前验核 K11、模型故障恢复 K12 已接，工具/渠道/cron 全集 K13 已审计）；未全量、未真实模型效果验收。
 
 目录迁移、专项和打包已完成；Mac 接手还需实际编译 Swift/C，再推进 G5 平台/交付，G3 Linux、G4 Wayland 缺口继续按任务推进。G7 统一全量与最终实机验收留整个 V2 开发冻结后。
 

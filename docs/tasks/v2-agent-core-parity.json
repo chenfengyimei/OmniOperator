@@ -184,16 +184,26 @@
     {
       "id": "K13",
       "title": "参考工具组、渠道和cron变体全集",
-      "status": "audit_pending",
-      "remaining": "逐项核对Hermes工具组/高级浏览器/代码沙箱、渠道/供应商、定时任务技能绑定与任务依赖；已有files/shell/browser/MCP不重复实现",
-      "next": true
+      "status": "audited_gaps_recorded",
+      "acceptance": [
+        "六组逐项审计（文件/shell/终端、高级浏览器、代码沙箱、渠道/供应商、cron变体、computer_use/桌面）分类已对等/需实机账号网络/可离线缺口",
+        "可离线缺口清单与实机验收清单分别记录为后续批次，不重复实现已有files/shell/browser/MCP",
+        "审计完成不宣称全集对等，whole_core_parity与whole_reference_feature_audit仍false"
+      ],
+      "reference": "hermes-agent/tools (286模块, registry注册/toolsets门控); browser_use_cli/browser_cdp_tool/browser_dialog_tool/browser_vault_tool/code_execution_tool/code_kernel/file_tools/terminal_tool/process_registry/connectors/cronjob_tools/computer_use_tool",
+      "delivered": "审计合同V2_TOOL_CHANNEL_AUDIT.md：V2模型侧工具面(system_info/files_*/shell_execute/browser_*/document_*/memory_*/session_search/skills_*/bilibili_*/media_*/android_*/desktop_semantic/控制request_mode/todo_list/delegate_task/clarify/extensions/MCP；日程/投递/终端为所有者API)对照参考六组；可离线缺口(工作区搜索search_files、模糊补丁patch、浏览器对话框browser_dialog、cron技能绑定+输出依赖skills/context_from/continuity、工具调用代码沙箱execute_code/code_kernel、原始CDP browser_cdp/browser_exec)列后续批次；需实机/账号/网络项(渠道全集27平台/discord/feishu/yuanbao/x_search、hosted connector、catalog hub、浏览器云/真实profile/vault/沙箱/Lightpanda、远程终端/kernel后端、computer_use真机+cua-driver、Android真机、QQ/B站/投递送达质量)另验",
+      "contract": "docs/v2/contracts/V2_TOOL_CHANNEL_AUDIT.md",
+      "evidence": "docs/evidence/v2-tool-channel-audit.json",
+      "limits": "只读审计无新工具/迁移/路由/源码改动；可离线缺口未在K13实现(列后续批次，避免强行改跨平台worker协议)；不宣称全集对等；既有todos重启竞态与5个pin v2_0039旧迁移测试沿用保留",
+      "next": false
     },
     {
       "id": "K14",
       "title": "Android全能力及视觉子代理",
       "status": "partial_audit_pending",
       "remaining": "观察/动作/Unicode/许可已有；核对全部参考工具、独立视觉子代理、设备矩阵，真机质量另验",
-      "reference": "android-agent; android-adb-control"
+      "reference": "android-agent; android-adb-control",
+      "next": true
     },
     {
       "id": "K15",
@@ -269,6 +279,10 @@
     {
       "id": "K12",
       "evidence": "docs/evidence/v2-model-recovery.json"
+    },
+    {
+      "id": "K13",
+      "evidence": "docs/evidence/v2-tool-channel-audit.json"
     }
   ]
 }

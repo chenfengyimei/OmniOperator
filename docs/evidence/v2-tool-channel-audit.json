@@ -1,0 +1,93 @@
+{
+  "schema": 1,
+  "date": "2026-11-19",
+  "base_commit": "931f78e2de421b39ba312d5dc6c358e036ef069c",
+  "status": "tool_channel_cron_full_surface_audited_gaps_recorded",
+  "contract": "docs/v2/contracts/V2_TOOL_CHANNEL_AUDIT.md",
+  "source_files": {
+    "docs/v2/contracts/V2_TOOL_CHANNEL_AUDIT.md": "f3dc91c99e735bcbbab7031647583058486cc82316887ff2b7994b3dbac07636"
+  },
+  "reference": {
+    "repository": "xuexi/hermes-agent",
+    "commit": "9976f4857b72439d79016354d7b6e1a3ee952e2f",
+    "surface": "tools/ 286 modules registered via tools/registry.py and gated by tools/toolsets.py; model-facing names extracted from registration strings",
+    "files": {
+      "tools/browser_use_cli.py": "browser_exec Python-over-CDP harness",
+      "tools/browser_cdp_tool.py": "browser_cdp raw CDP + OOPIF frame routing",
+      "tools/browser_dialog_tool.py": "browser_dialog native JS dialogs",
+      "tools/browser_vault_tool.py": "browser_vault credential managers/TOTP origin-bound",
+      "tools/code_execution_tool.py": "execute_code Python sandbox tool-calling RPC",
+      "tools/code_kernel.py": "persistent session kernels",
+      "tools/file_tools.py": "read_file/write_file/patch/search_files",
+      "tools/terminal_tool.py": "terminal persistent shell",
+      "tools/process_registry.py": "process_manage background control",
+      "tools/connectors/tool.py": "manage_connections hosted connectors + local MCP",
+      "tools/cronjob_tools.py": "cronjob_manage skills/context_from/continuity/monitor/no_agent/deliver",
+      "tools/computer_use_tool.py": "computer_use consolidated som/vision/ax action tool"
+    },
+    "adaptation": "Read-only itemized audit: reference model-facing tool groups compared against V2's existing capability surface and classified equivalent / needs-real-device-account-network / offline-implementable-gap. No third-party source copied, no remote fetch, no real account/model/device used. Existing files/shell/browser/MCP are NOT re-implemented"
+  },
+  "delivered": [
+    "Six-group itemized audit contract V2_TOOL_CHANNEL_AUDIT.md: (1) file/shell/terminal, (2) advanced browser, (3) code sandbox, (4) channels/providers/connectors, (5) cron variants, (6) computer_use/desktop; each reference tool mapped to a V2 equivalent or recorded as a gap with classification",
+    "V2 model-facing tool surface established from composition/capabilities.py + composition/instance.py + domain ToolSpec extraction: system_info, files_list/read/write, shell_execute, browser_navigate/read/click/fill, document_search/read, memory_search/remember/forget, session_search, skills_list/skill_activate/view/history/create, bilibili_read/prepare_publication, media_list/transcript, android_request_access/observe/act/input/restore_ime, desktop_semantic, controls request_mode/todo_list/delegate_task/clarify, extensions/MCP dynamic; schedules/deliveries/terminals are owner-side APIs not model tools",
+    "Offline-implementable gap list recorded as deferred follow-up batches (NOT implemented in K13): workspace search tool (search_files), fuzzy patch edit (patch), browser dialog (browser_dialog), cron skill-binding + task-output dependencies (skills/context_from/continuity), tool-calling code sandbox (execute_code/code_kernel), raw CDP/scripted browser exec (browser_cdp/browser_exec)",
+    "Needs-real-device/account/network acceptance list recorded: channel full set (discord/feishu/yuanbao/x_search/27 gateway platforms), hosted connector account management, catalog hub, browser cloud/real-profile/vault/sandbox/Lightpanda, remote terminal/code-kernel backends, computer_use real desktop + cua-driver, Android real-device quality, QQ/bilibili/delivery real-account delivery quality"
+  ],
+  "limits": {
+    "audit_only_no_new_tool": true,
+    "new_table_or_migration": false,
+    "new_route": false,
+    "source_code_changed": false,
+    "offline_gaps_implemented_in_k13": false,
+    "offline_gaps_deferred_to_followup_batches": true,
+    "existing_files_shell_browser_mcp_reimplemented": false,
+    "full_surface_parity_claimed": false,
+    "account_or_model_swap": false
+  },
+  "validation": {
+    "mode": "read_only_reference_audit",
+    "frozen_source": null,
+    "method": [
+      "Reference inventory: Bash ls of xuexi/hermes-agent/tools (286 modules) + targeted Read of key module per group to extract registered model-facing tool names (registry.register / toolsets gating); Explore agent grouped inventory cross-checked against direct reads",
+      "V2 surface: Read composition/capabilities.py builtin specs + composition/instance.py production capability assembly; python regex extraction of ToolSpec names across agent/src/omni; confirmed NO model-facing terminal/schedule/cron/search_files/patch/execute_code tool exists (grep returned none)",
+      "Classification: each reference tool/group mapped to V2 equivalent or gap; offline-implementable vs needs-real-device/account/network separated using reference connectivity notes"
+    ],
+    "scoped_passed": null,
+    "new_nodes": 0,
+    "strict": {
+      "config": "pyrightconfig.strict.json",
+      "files": 407,
+      "errors": 0,
+      "warnings": 0,
+      "note": "unchanged from K12 (407); K13 modifies no source file, only audit documentation"
+    },
+    "ruff": "not applicable (no source change)",
+    "project_index": "unchanged (modules=65 files=823 routes=454 declared_tools=94); no source file added/removed",
+    "task_status_check": "scripts/task_status.py --check exit 0; DEVELOPMENT_STATUS.md unchanged (parity subtask audit does not alter parent-task status doc)",
+    "full_suite_executed": false,
+    "real_model_account_device_native_or_72h_executed": false,
+    "current_windows_service_or_database_touched": false
+  },
+  "pre_existing_failures_not_chased": [
+    {
+      "tests": [
+        "test_v2_todos.py::test_runtime_restart_reinjects_active_plan_only_into_its_own_session",
+        "test_v2_memory_semantics_migration.py::test_v33_upgrade...[False/True]",
+        "test_v2_routing_migration.py::test_populated_v32_upgrade...",
+        "test_v2_skills_migration.py::test_v34_upgrade...[False/True]"
+      ],
+      "reason": "Carried-forward pre-existing debt documented in v2-model-recovery.json (K08 background-review race + v2_0039 migration version pins). K13 changes no source, so this debt is unchanged; not re-run or chased."
+    }
+  ],
+  "whole_core_parity_complete": false,
+  "whole_reference_feature_audit_complete": false,
+  "whole_v2_complete": false,
+  "not_executed": [
+    "Implementation of the recorded offline-implementable gaps (deferred to follow-up batches)",
+    "Full offline suite for current source",
+    "Real accounts/models/devices/native desktop and 72h soak",
+    "Current Windows service restart/database upgrade",
+    "macOS/Linux actual native build or run"
+  ],
+  "next": "K14 Android full capability + bounded visual sub-agent audit (observe/act/Unicode/permission exist; itemize all reference tools, independent visual sub-agent, device matrix; real-device quality separately accepted). Offline gap implementations from K13 (workspace search, fuzzy patch, browser dialog, cron skill-binding/output-deps, code sandbox, raw CDP) are candidate follow-up batches. Do not redo K03-K13"
+}
