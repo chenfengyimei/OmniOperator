@@ -21,6 +21,7 @@ if TYPE_CHECKING:
 from ...domain.contracts import JSON, ActionResult, Effect, Outcome
 from ...domain.files_patch import PatchError, patch_replace
 from ...domain.files_search import (
+    compile_search_regex,
     count_matches,
     match_lines,
     match_name,
@@ -31,6 +32,9 @@ from ...domain.files_search import (
     normalize_order,
     normalize_output_mode,
     normalize_query,
+    normalize_use_regex,
+    regex_count_matches,
+    regex_match_lines,
 )
 from ..object_store import publish_file
 from .protocol import MAX_FRAME, encode_response
@@ -178,6 +182,8 @@ class Worker:
             offset = normalize_offset(args.get("offset"))
             order = normalize_order(args.get("order"))
             file_glob = normalize_file_glob(args.get("file_glob"))
+            use_regex = normalize_use_regex(args.get("use_regex"))
+            regex = compile_search_regex(query) if use_regex and target == "content" else None
             collect_all = order == "modified"
             cap = offset + 50
             base = Path(context["workspace"]).resolve()
@@ -227,7 +233,12 @@ class Worker:
                     except (UnicodeError, OSError):
                         continue
                     if output_mode == "content":
-                        for hit in match_lines(text, query, context_lines):
+                        hits = (
+                            regex_match_lines(text, regex, context_lines)
+                            if regex is not None
+                            else match_lines(text, query, context_lines)
+                        )
+                        for hit in hits:
                             row: dict[str, Any] = {"path": relative, "line": hit["line"], "text": hit["text"]}
                             if context_lines > 0:
                                 row["before"] = hit["before"]
@@ -238,11 +249,12 @@ class Worker:
                                 truncated = True
                                 break
                     elif output_mode == "files_with_matches":
-                        if match_lines(text, query):
+                        found = regex_match_lines(text, regex) if regex is not None else match_lines(text, query)
+                        if found:
                             results.append({"path": relative})
                             mtimes.append(info.st_mtime)
                     else:
-                        total = count_matches(text, query)
+                        total = regex_count_matches(text, regex) if regex is not None else count_matches(text, query)
                         if total:
                             results.append({"path": relative, "count": total})
                             mtimes.append(info.st_mtime)
@@ -268,6 +280,7 @@ class Worker:
                     "context": context_lines,
                     "offset": offset,
                     "order": order,
+                    "use_regex": use_regex,
                 },
             )
         if name == "files_patch":

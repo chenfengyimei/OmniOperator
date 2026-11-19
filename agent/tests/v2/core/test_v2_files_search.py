@@ -9,6 +9,7 @@ import pytest
 from omni.adapters.workers.main import Worker
 from omni.domain.contracts import Effect, Outcome
 from omni.domain.files_search import (
+    compile_search_regex,
     count_matches,
     match_lines,
     match_name,
@@ -19,6 +20,9 @@ from omni.domain.files_search import (
     normalize_order,
     normalize_output_mode,
     normalize_query,
+    normalize_use_regex,
+    regex_count_matches,
+    regex_match_lines,
 )
 from omni.domain.routing import CHAT_TOOLS, RETRIEVAL_TOOLS, select_tools
 
@@ -765,6 +769,236 @@ def test_files_search_spec_exposes_file_glob(tmp_path):
             specs = tuple(c.spec for c in builtin_capabilities(db, DocumentService(db, objects)))
             parameters = next(s for s in specs if s.name == "files_search").parameters
             assert parameters["properties"]["file_glob"] == {"type": "string", "minLength": 1, "maxLength": 200}
+            assert parameters["required"] == ["query"]
+
+    asyncio.run(scenario())
+
+
+def test_normalize_use_regex_defaults_and_rejects_non_bool():
+    assert normalize_use_regex(None) is False
+    assert normalize_use_regex(True) is True
+    assert normalize_use_regex(False) is False
+    for bad in (1, 0, "true", "", ["regex"], 1.0):
+        with pytest.raises(ValueError):
+            normalize_use_regex(bad)
+
+
+def test_compile_search_regex_accepts_near_linear_patterns():
+    for pattern in (
+        r"needle",
+        r"^def \w+\(",
+        r"[a-z]+\d{2,4}",
+        r"a|b",
+        r"(a|b)+",
+        r"(ab)c",
+        r"(?=ab)cd",
+        r"a+?",
+        r"a++",
+        r"a{1024}",
+        r".*",
+    ):
+        assert compile_search_regex(pattern) is not None
+
+
+def test_compile_search_regex_rejects_invalid_syntax():
+    for pattern in ("[", "(unclosed", "a{2,1}", "*bad"):
+        with pytest.raises(ValueError):
+            compile_search_regex(pattern)
+
+
+@pytest.mark.parametrize(
+    "pattern",
+    [
+        r"(a+)+",
+        r"(a*)*",
+        r"(?:a+)+",
+        r"(a|bc)+",
+        r"(a|ab)*",
+        r"(?=a+)b",
+        r"(?!x+)y",
+        r"(?<=a+)b",
+        r"(a)\1",
+        r"a{1025}",
+        r"(a{2}){3}",
+    ],
+)
+def test_compile_search_regex_rejects_super_linear_constructs(pattern):
+    with pytest.raises(ValueError):
+        compile_search_regex(pattern)
+
+
+def test_regex_match_lines_are_case_sensitive_bounded_and_capped():
+    text = "Alpha\nbeta ALPHA\ngamma\n" + "alpha\n" * 10
+    hits = regex_match_lines(text, compile_search_regex("alpha"))
+    assert [h["line"] for h in hits] == [4, 5, 6, 7, 8]
+    assert regex_match_lines("abc", compile_search_regex("zzz")) == []
+    long_line = "x" * 500 + "needle"
+    snippet = regex_match_lines(long_line, compile_search_regex("needle"))[0]["text"]
+    assert isinstance(snippet, str) and len(snippet) <= 200
+    anchored = regex_match_lines("a1\nb22\nc333", compile_search_regex(r"^[a-z]\d{2}$"))
+    assert [h["line"] for h in anchored] == [2]
+
+
+def test_regex_match_lines_context_matches_substring_shape():
+    text = "l1\nl2\nneedle\nl4\nl5\nl6"
+    hits = regex_match_lines(text, compile_search_regex("needle"), 2)
+    assert hits[0]["line"] == 3 and hits[0]["text"] == "needle"
+    assert hits[0]["before"] == [{"line": 1, "text": "l1"}, {"line": 2, "text": "l2"}]
+    assert hits[0]["after"] == [{"line": 4, "text": "l4"}, {"line": 5, "text": "l5"}]
+    assert regex_match_lines("a\nneedle", compile_search_regex("needle"), 0) == [{"line": 2, "text": "needle"}]
+
+
+def test_regex_count_matches_counts_all_lines_beyond_hit_cap():
+    text = "alpha\n" * 12 + "beta\n"
+    assert regex_count_matches(text, compile_search_regex("alpha")) == 12
+    assert regex_count_matches(text, compile_search_regex("ALPHA")) == 0
+    assert regex_count_matches("one alpha two\nalpha again", compile_search_regex(r"alpha")) == 2
+
+
+def test_worker_regex_content_search_is_case_sensitive(tmp_path):
+    (tmp_path / "a.txt").write_text("first\nNeedle here\nneedle again\nlast", encoding="utf-8")
+
+    async def scenario():
+        result = await Worker().invoke(
+            "files_search", {"query": r"needle\b", "use_regex": True}, {"workspace": str(tmp_path)}
+        )
+        assert result.status == Outcome.OK and result.effect == Effect.NONE
+        assert result.data["use_regex"] is True
+        assert result.data["matches"] == [{"path": "a.txt", "line": 3, "text": "needle again"}]
+        insensitive = await Worker().invoke("files_search", {"query": "needle"}, {"workspace": str(tmp_path)})
+        assert [m["line"] for m in insensitive.data["matches"]] == [2, 3]
+
+    asyncio.run(scenario())
+
+
+def test_worker_regex_default_false_shape_unchanged(tmp_path):
+    (tmp_path / "a.txt").write_text("alpha\nNeedle here\ngamma", encoding="utf-8")
+
+    async def scenario():
+        result = await Worker().invoke("files_search", {"query": "needle"}, {"workspace": str(tmp_path)})
+        assert result.data["use_regex"] is False
+        assert result.data["matches"] == [{"path": "a.txt", "line": 2, "text": "Needle here"}]
+
+    asyncio.run(scenario())
+
+
+def test_worker_regex_output_modes_and_context(tmp_path):
+    (tmp_path / "a.txt").write_text("v1\nv2\nv3\nnone\n", encoding="utf-8")
+    (tmp_path / "b.txt").write_text("nothing here", encoding="utf-8")
+
+    async def scenario():
+        fwm = await Worker().invoke(
+            "files_search",
+            {"query": r"^v\d+$", "use_regex": True, "output_mode": "files_with_matches"},
+            {"workspace": str(tmp_path)},
+        )
+        assert {Path(m["path"]).as_posix() for m in fwm.data["matches"]} == {"a.txt"}
+        cnt = await Worker().invoke(
+            "files_search",
+            {"query": r"^v\d+$", "use_regex": True, "output_mode": "count"},
+            {"workspace": str(tmp_path)},
+        )
+        assert cnt.data["matches"] == [{"path": "a.txt", "count": 3}]
+        ctx = await Worker().invoke(
+            "files_search", {"query": r"^v2$", "use_regex": True, "context": 1}, {"workspace": str(tmp_path)}
+        )
+        hit = ctx.data["matches"][0]
+        assert (
+            hit["line"] == 2
+            and hit["before"] == [{"line": 1, "text": "v1"}]
+            and hit["after"] == [{"line": 3, "text": "v3"}]
+        )
+
+    asyncio.run(scenario())
+
+
+def test_worker_regex_combines_with_file_glob_order_and_offset(tmp_path):
+    for name, mtime in (("a.py", 1000), ("b.py", 3000), ("c.txt", 2000)):
+        path = tmp_path / name
+        path.write_text("item1\nitem2\n", encoding="utf-8")
+        os.utime(path, (mtime, mtime))
+
+    async def scenario():
+        result = await Worker().invoke(
+            "files_search",
+            {"query": r"item\d", "use_regex": True, "file_glob": "*.py", "order": "modified", "offset": 1},
+            {"workspace": str(tmp_path)},
+        )
+        assert result.status == Outcome.OK
+        matches = result.data["matches"]
+        assert [(Path(m["path"]).as_posix(), m["line"]) for m in matches] == [("b.py", 2), ("a.py", 1), ("a.py", 2)]
+        assert result.data["truncated"] is False
+
+    asyncio.run(scenario())
+
+
+def test_worker_regex_caps_matches_per_file(tmp_path):
+    (tmp_path / "many.txt").write_text("item1\n" * 10, encoding="utf-8")
+
+    async def scenario():
+        result = await Worker().invoke(
+            "files_search", {"query": r"item\d", "use_regex": True}, {"workspace": str(tmp_path)}
+        )
+        assert result.status == Outcome.OK
+        assert len(result.data["matches"]) == 5 and result.data["truncated"] is False
+
+    asyncio.run(scenario())
+
+
+@pytest.mark.parametrize("pattern", ["[", "(a+)+", r"(a)\1", "a{1025}", r"(?=a+)b"])
+def test_worker_regex_rejects_invalid_or_unsafe_before_dispatch(tmp_path, pattern):
+    (tmp_path / "a.txt").write_text("needle", encoding="utf-8")
+
+    async def scenario():
+        result = await Worker().invoke(
+            "files_search", {"query": pattern, "use_regex": True}, {"workspace": str(tmp_path)}
+        )
+        assert result.status == Outcome.ERROR and result.effect == Effect.NONE
+        assert result.error_code == "invalid_capability_request"
+        assert "needle" not in result.text
+
+    asyncio.run(scenario())
+
+
+@pytest.mark.parametrize("value", [1, "true", "", ["regex"]])
+def test_worker_regex_rejects_non_bool_use_regex_before_dispatch(tmp_path, value):
+    (tmp_path / "a.txt").write_text("needle", encoding="utf-8")
+
+    async def scenario():
+        result = await Worker().invoke(
+            "files_search", {"query": "needle", "use_regex": value}, {"workspace": str(tmp_path)}
+        )
+        assert result.status == Outcome.ERROR and result.effect == Effect.NONE
+        assert result.error_code == "invalid_capability_request"
+
+    asyncio.run(scenario())
+
+
+def test_worker_regex_ignored_for_files_target(tmp_path):
+    (tmp_path / "a.py").write_text("x", encoding="utf-8")
+    (tmp_path / "b.txt").write_text("x", encoding="utf-8")
+
+    async def scenario():
+        result = await Worker().invoke(
+            "files_search", {"query": "*.py", "target": "files", "use_regex": True}, {"workspace": str(tmp_path)}
+        )
+        assert result.status == Outcome.OK
+        assert result.data["use_regex"] is True
+        assert {Path(m["path"]).as_posix() for m in result.data["matches"]} == {"a.py"}
+
+    asyncio.run(scenario())
+
+
+def test_files_search_spec_exposes_use_regex(tmp_path):
+    from omni_test_support.v2.documents import Clock, DocumentService, opened
+
+    from omni.composition.capabilities import builtin_capabilities
+
+    async def scenario():
+        async with opened(tmp_path, Clock()) as (_, db, objects, _agent):
+            specs = tuple(c.spec for c in builtin_capabilities(db, DocumentService(db, objects)))
+            parameters = next(s for s in specs if s.name == "files_search").parameters
+            assert parameters["properties"]["use_regex"] == {"type": "boolean"}
             assert parameters["required"] == ["query"]
 
     asyncio.run(scenario())

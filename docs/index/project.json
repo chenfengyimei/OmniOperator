@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "b3b04c59d9b5af4dc260b285af4b05849000e092c54101222b6699da022e68da",
+  "source_sha256": "2b05144a13f2553c675568e10797d44881b17f52f0f55d7a7d7baa13c907b7ee",
   "modules": [
     {
       "id": "v2-domain",
@@ -90,7 +90,7 @@
         "agent/src/omni/domain/turn_prompt.py",
         "agent/src/omni/domain/verification_stop.py"
       ],
-      "lines": 12459,
+      "lines": 12610,
       "dependencies": []
     },
     {
@@ -494,7 +494,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 68401,
+      "lines": 68414,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -529,7 +529,7 @@
         "agent/src/omni/composition/service_runner.py",
         "agent/src/omni/composition/serving.py"
       ],
-      "lines": 3230,
+      "lines": 3231,
       "dependencies": [
         "v2-adapters",
         "v2-application",
@@ -44137,7 +44137,7 @@
       "path": "agent/src/omni/adapters/workers/main.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.workers.main",
-      "lines": 443,
+      "lines": 456,
       "imports": [
         "omni.adapters.object_store",
         "omni.adapters.workers.protocol",
@@ -44148,12 +44148,12 @@
       "symbols": [
         {
           "name": "Effects",
-          "line": 41,
+          "line": 45,
           "kind": "class"
         },
         {
           "name": "workspace_path",
-          "line": 45,
+          "line": 49,
           "kind": "function",
           "parameters": [
             "root_text",
@@ -44166,12 +44166,12 @@
         },
         {
           "name": "Worker",
-          "line": 71,
+          "line": 75,
           "kind": "class"
         },
         {
           "name": "Worker.__init__",
-          "line": 72,
+          "line": 76,
           "kind": "function",
           "parameters": [
             "self"
@@ -44180,7 +44180,7 @@
         },
         {
           "name": "Worker.invoke",
-          "line": 78,
+          "line": 82,
           "kind": "function",
           "parameters": [
             "self",
@@ -44196,7 +44196,7 @@
         },
         {
           "name": "Worker._files",
-          "line": 112,
+          "line": 116,
           "kind": "function",
           "parameters": [
             "self",
@@ -44214,7 +44214,7 @@
         },
         {
           "name": "Worker._shell",
-          "line": 321,
+          "line": 334,
           "kind": "function",
           "parameters": [
             "self",
@@ -44230,7 +44230,7 @@
         },
         {
           "name": "Worker._shell.drain",
-          "line": 338,
+          "line": 351,
           "kind": "function",
           "parameters": [
             "stream"
@@ -44241,7 +44241,7 @@
         },
         {
           "name": "Worker._web",
-          "line": 369,
+          "line": 382,
           "kind": "function",
           "parameters": [
             "self",
@@ -44259,7 +44259,7 @@
         },
         {
           "name": "Worker.close",
-          "line": 414,
+          "line": 427,
           "kind": "function",
           "parameters": [
             "self"
@@ -44268,7 +44268,7 @@
         },
         {
           "name": "serve",
-          "line": 421,
+          "line": 434,
           "kind": "function",
           "parameters": [],
           "annotations": {}
@@ -71812,7 +71812,7 @@
       "path": "agent/src/omni/composition/capabilities.py",
       "module": "v2-composition",
       "python_module": "omni.composition.capabilities",
-      "lines": 222,
+      "lines": 223,
       "imports": [
         "omni.adapters.workers.client",
         "omni.application.documents",
@@ -79515,17 +79515,17 @@
       "path": "agent/src/omni/domain/files_patch.py",
       "module": "v2-domain",
       "python_module": "omni.domain.files_patch",
-      "lines": 189,
+      "lines": 258,
       "imports": [],
       "symbols": [
         {
           "name": "PatchError",
-          "line": 37,
+          "line": 39,
           "kind": "class"
         },
         {
           "name": "PatchError.__init__",
-          "line": 38,
+          "line": 40,
           "kind": "function",
           "parameters": [
             "self",
@@ -79539,7 +79539,7 @@
         },
         {
           "name": "_strip_line",
-          "line": 43,
+          "line": 45,
           "kind": "function",
           "parameters": [
             "line"
@@ -79550,7 +79550,7 @@
         },
         {
           "name": "_normalize_line",
-          "line": 47,
+          "line": 49,
           "kind": "function",
           "parameters": [
             "line"
@@ -79561,7 +79561,7 @@
         },
         {
           "name": "_exact_spans",
-          "line": 51,
+          "line": 53,
           "kind": "function",
           "parameters": [
             "content",
@@ -79574,7 +79574,7 @@
         },
         {
           "name": "_line_spans",
-          "line": 55,
+          "line": 57,
           "kind": "function",
           "parameters": [
             "content",
@@ -79589,7 +79589,7 @@
         },
         {
           "name": "_trimmed_spans",
-          "line": 76,
+          "line": 78,
           "kind": "function",
           "parameters": [
             "content",
@@ -79602,7 +79602,7 @@
         },
         {
           "name": "_whitespace_spans",
-          "line": 80,
+          "line": 82,
           "kind": "function",
           "parameters": [
             "content",
@@ -79615,7 +79615,7 @@
         },
         {
           "name": "_escape_spans",
-          "line": 84,
+          "line": 86,
           "kind": "function",
           "parameters": [
             "content",
@@ -79628,7 +79628,7 @@
         },
         {
           "name": "_unicode_normalize",
-          "line": 91,
+          "line": 93,
           "kind": "function",
           "parameters": [
             "text"
@@ -79639,7 +79639,7 @@
         },
         {
           "name": "_build_orig_to_norm_map",
-          "line": 97,
+          "line": 99,
           "kind": "function",
           "parameters": [
             "original"
@@ -79650,7 +79650,7 @@
         },
         {
           "name": "_invert_norm_map",
-          "line": 108,
+          "line": 110,
           "kind": "function",
           "parameters": [
             "orig_to_norm"
@@ -79661,7 +79661,7 @@
         },
         {
           "name": "_norm_end_to_orig",
-          "line": 115,
+          "line": 117,
           "kind": "function",
           "parameters": [
             "orig_to_norm",
@@ -79676,7 +79676,7 @@
         },
         {
           "name": "_map_positions_norm_to_orig",
-          "line": 123,
+          "line": 125,
           "kind": "function",
           "parameters": [
             "orig_to_norm",
@@ -79689,7 +79689,7 @@
         },
         {
           "name": "_unicode_spans",
-          "line": 133,
+          "line": 135,
           "kind": "function",
           "parameters": [
             "content",
@@ -79701,8 +79701,84 @@
           }
         },
         {
+          "name": "_window_spans",
+          "line": 146,
+          "kind": "function",
+          "parameters": [
+            "content",
+            "n",
+            "accept"
+          ],
+          "annotations": {
+            "content": "str",
+            "n": "int",
+            "accept": "Callable[[int], bool]"
+          }
+        },
+        {
+          "name": "_block_anchor_spans",
+          "line": 156,
+          "kind": "function",
+          "parameters": [
+            "content",
+            "old_string"
+          ],
+          "annotations": {
+            "content": "str",
+            "old_string": "str"
+          }
+        },
+        {
+          "name": "_block_anchor_spans.accept",
+          "line": 176,
+          "kind": "function",
+          "parameters": [
+            "i"
+          ],
+          "annotations": {
+            "i": "int"
+          }
+        },
+        {
+          "name": "_context_aware_spans",
+          "line": 187,
+          "kind": "function",
+          "parameters": [
+            "content",
+            "old_string"
+          ],
+          "annotations": {
+            "content": "str",
+            "old_string": "str"
+          }
+        },
+        {
+          "name": "_context_aware_spans.sim",
+          "line": 196,
+          "kind": "function",
+          "parameters": [
+            "a",
+            "b"
+          ],
+          "annotations": {
+            "a": "str",
+            "b": "str"
+          }
+        },
+        {
+          "name": "_context_aware_spans.accept",
+          "line": 199,
+          "kind": "function",
+          "parameters": [
+            "i"
+          ],
+          "annotations": {
+            "i": "int"
+          }
+        },
+        {
           "name": "is_already_applied",
-          "line": 144,
+          "line": 208,
           "kind": "function",
           "parameters": [
             "content",
@@ -79717,7 +79793,7 @@
         },
         {
           "name": "patch_replace",
-          "line": 151,
+          "line": 215,
           "kind": "function",
           "parameters": [
             "content",
@@ -79739,12 +79815,29 @@
       "path": "agent/src/omni/domain/files_search.py",
       "module": "v2-domain",
       "python_module": "omni.domain.files_search",
-      "lines": 114,
+      "lines": 196,
       "imports": [],
       "symbols": [
         {
+          "name": "_RegexParser",
+          "line": 12,
+          "kind": "class"
+        },
+        {
+          "name": "_RegexParser.parse",
+          "line": 15,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "pattern"
+          ],
+          "annotations": {
+            "pattern": "str"
+          }
+        },
+        {
           "name": "normalize_query",
-          "line": 16,
+          "line": 32,
           "kind": "function",
           "parameters": [
             "value"
@@ -79755,7 +79848,7 @@
         },
         {
           "name": "normalize_output_mode",
-          "line": 26,
+          "line": 42,
           "kind": "function",
           "parameters": [
             "value"
@@ -79766,7 +79859,7 @@
         },
         {
           "name": "normalize_context",
-          "line": 35,
+          "line": 51,
           "kind": "function",
           "parameters": [
             "value"
@@ -79777,7 +79870,7 @@
         },
         {
           "name": "normalize_offset",
-          "line": 44,
+          "line": 60,
           "kind": "function",
           "parameters": [
             "value"
@@ -79788,7 +79881,7 @@
         },
         {
           "name": "normalize_order",
-          "line": 53,
+          "line": 69,
           "kind": "function",
           "parameters": [
             "value"
@@ -79799,7 +79892,7 @@
         },
         {
           "name": "normalize_file_glob",
-          "line": 62,
+          "line": 78,
           "kind": "function",
           "parameters": [
             "value"
@@ -79809,8 +79902,43 @@
           }
         },
         {
+          "name": "normalize_use_regex",
+          "line": 90,
+          "kind": "function",
+          "parameters": [
+            "value"
+          ],
+          "annotations": {
+            "value": "object"
+          }
+        },
+        {
+          "name": "_reject_unbounded_regex",
+          "line": 99,
+          "kind": "function",
+          "parameters": [
+            "items",
+            "guarded"
+          ],
+          "annotations": {
+            "items": "Iterable[tuple[object, Any]]",
+            "guarded": "bool"
+          }
+        },
+        {
+          "name": "compile_search_regex",
+          "line": 128,
+          "kind": "function",
+          "parameters": [
+            "query"
+          ],
+          "annotations": {
+            "query": "str"
+          }
+        },
+        {
           "name": "match_path_glob",
-          "line": 74,
+          "line": 143,
           "kind": "function",
           "parameters": [
             "relative",
@@ -79822,8 +79950,23 @@
           }
         },
         {
+          "name": "_line_hits",
+          "line": 148,
+          "kind": "function",
+          "parameters": [
+            "lines",
+            "matches",
+            "context"
+          ],
+          "annotations": {
+            "lines": "list[str]",
+            "matches": "Callable[[str], bool]",
+            "context": "int"
+          }
+        },
+        {
           "name": "match_lines",
-          "line": 79,
+          "line": 168,
           "kind": "function",
           "parameters": [
             "text",
@@ -79837,8 +79980,23 @@
           }
         },
         {
+          "name": "regex_match_lines",
+          "line": 178,
+          "kind": "function",
+          "parameters": [
+            "text",
+            "pattern",
+            "context"
+          ],
+          "annotations": {
+            "text": "str",
+            "pattern": "re.Pattern[str]",
+            "context": "int"
+          }
+        },
+        {
           "name": "match_name",
-          "line": 106,
+          "line": 183,
           "kind": "function",
           "parameters": [
             "filename",
@@ -79851,7 +80009,7 @@
         },
         {
           "name": "count_matches",
-          "line": 111,
+          "line": 188,
           "kind": "function",
           "parameters": [
             "text",
@@ -79861,9 +80019,22 @@
             "text": "str",
             "query": "str"
           }
+        },
+        {
+          "name": "regex_count_matches",
+          "line": 194,
+          "kind": "function",
+          "parameters": [
+            "text",
+            "pattern"
+          ],
+          "annotations": {
+            "text": "str",
+            "pattern": "re.Pattern[str]"
+          }
         }
       ],
-      "summary": "Bounded workspace search rules (content substring + filename glob); no filesystem, network or storage I/O."
+      "summary": "Bounded workspace search rules (content substring/regex + filename glob); no filesystem, network or storage I/O."
     },
     {
       "path": "agent/src/omni/domain/foreground.py",

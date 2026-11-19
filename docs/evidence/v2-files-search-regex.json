@@ -1,0 +1,41 @@
+{
+  "schema": 1,
+  "date": "2026-11-20",
+  "batch": "K13.search_regex",
+  "requirement": "K13",
+  "gap": "#1 工作区搜索之正则模式(use_regex 有界安全门)",
+  "status": "implemented_scoped_passed",
+  "contract": "docs/v2/contracts/V2_FILES_SEARCH_REGEX.md",
+  "reference": "xuexi/hermes-agent tools/file_operations_search.py regex 搜索语义（固定提交 9976f485，独立实现未复制源码）",
+  "production_wiring": [
+    "agent/src/omni/domain/files_search.py: normalize_use_regex/compile_search_regex/_reject_unbounded_regex/regex_match_lines/regex_count_matches，match_lines 抽共享 _line_hits 子串行为不变",
+    "agent/src/omni/adapters/workers/main.py: _files files_search use_regex 分派前校验，regex 仅 content 编译，三输出模式匹配器分派，data 增 use_regex",
+    "agent/src/omni/composition/capabilities.py: files_search spec use_regex boolean + 描述"
+  ],
+  "safety_design": "编译前 re._parser 语法树静态门：拒反向引用/条件、嵌套量词、量词下交替/环视、环视内量词/交替、有限重复>1024；接受单层量词/字符类/顶层交替/无量词环视（(a|b)+ 被解析器优化为 [ab]+ 线性正确接受）；大小写敏感（rg 默认）；叠加既有 200 字符 query/256KB 文件/每文件 5 命中/50 页/2000 文件/5 秒界；保守拒绝显式报错不静默降级；re._parser 无 typeshed stub 经 importlib+类型化 Protocol 承接 strict 全检查",
+  "tests": {
+    "new_regressions": 33,
+    "files_search_total": 110,
+    "caller_suites": "files_search 110 + worker_safety 31 + files_patch 41 + routing 16",
+    "command": "uv run --no-sync pytest -q -n 0 agent/tests/v2/core/test_v2_files_search.py agent/tests/v2/core/test_v2_worker_safety.py agent/tests/v2/core/test_v2_files_patch.py agent/tests/v2/integrations/test_v2_routing.py",
+    "result": "198 passed, 0 failed",
+    "duration_seconds": 48.5,
+    "first_round_failures": [
+      "(a|b)+ 误列拒绝集：解析器把单字符交替优化为字符类 [ab]+ 属线性，安全门正确接受；测试改正为 (a|bc)+ 真 BRANCH 并把 (a|b)+ 移入接受集",
+      "一处恒真断言（search(...) is None or True）改为 is not None",
+      "strict 首轮 6 错误：re._parser 无 typeshed stub 致 unknown import；改 importlib.import_module + 类型化 Protocol cast 后本批零错误",
+      "ruff format 折叠本批新增多行参数（main.py/test 文件），无无关重格式化"
+    ]
+  },
+  "strict": {
+    "config": "pyrightconfig.strict.json（仓库根运行）",
+    "batch_files_errors": 0,
+    "preexisting_errors": "5 错误均既有他会话已提交 adapters/persistence/repository.py（6bcb0e98 L633/659/710 RowMapping/JSON），沿用前批纪律不追逐",
+    "new_source_files": 0
+  },
+  "ruff": "check 通过；format 仅本批新增代码折叠，4 文件终检干净",
+  "no_changes": "无新表/迁移/路由/worker 协议帧/源文件/跨平台改动；routing 不变（files_search 已在 RETRIEVAL_TOOLS）；target=files 忽略 use_regex",
+  "limits": "保守静态门非 ripgrep 语法/性能全集；无大小写不敏感旗标/多行模式/replace/glob 否定；真实大仓性能另验",
+  "full_suite_for_current_source": false,
+  "real_account_device_model_acceptance": false
+}

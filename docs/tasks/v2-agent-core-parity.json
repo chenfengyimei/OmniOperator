@@ -274,9 +274,17 @@
           "contract": "docs/v2/contracts/V2_FILES_PATCH_SIMILARITY.md",
           "evidence": "docs/evidence/v2-files-patch-similarity.json",
           "delivered": "files_patch策略链末追加block_anchor(8)与context_aware(9)近似兜底(stdlib difflib.SequenceMatcher无新依赖无正则DoS)，仅前五精确/归一化策略全落空时触发(零回归)；block_anchor首末unicode归一strip锚定预筛+中间SequenceMatcher.ratio≥0.50(唯一锚)/0.70(多锚)、n≥2、n≤2直通；context_aware首末sim≥0.80+每非空模式行sim≥0.80(sim=1.0若等否则ratio)；_window_spans复用既有keepends精确行边界偏移；SIMILARITY_STRATEGIES={block_anchor,context_aware}关键安全闸：patch_replace歧义守卫改为len(spans)>1且(not replace_all或name∈SIMILARITY_STRATEGIES)→patch_ambiguous(近似命中永不许replace_all即便replace_all=True多匹配仍拒)，仅唯一近似命中可在所有者审批+指纹CAS下替换，低相似度→显式patch_no_match无静默误编辑；capabilities spec描述更新；worker写管线(指纹CAS/原子publish/unknown不重放/审批)不变；9新增专项合既有32过41(files_patch41/files_search77/worker_safety31)149过0失败11.31秒、ruff通过、strict410文件5错误均既有他会话已提交repository.py(6bcb0e98 L633/659/710)本批files_patch/capabilities零错误不追逐；V4A多文件/escape-drift自动纠正/boundary-note诊断仍后续；无新表/迁移/路由/协议帧/源文件/跨平台改动；聚合索引暂缓"
+        },
+        {
+          "gap": "#1 工作区搜索之正则模式(use_regex 有界安全门)",
+          "status": "implemented_scoped_passed",
+          "batch": "K13.search_regex",
+          "contract": "docs/v2/contracts/V2_FILES_SEARCH_REGEX.md",
+          "evidence": "docs/evidence/v2-files-search-regex.json",
+          "delivered": "files_search增use_regex布尔轴(domain/files_search.py既有模块加normalize_use_regex严格bool/compile_search_regex经re._parser语法树保守静态门_reject_unbounded_regex拒反向引用条件嵌套量词量词下交替环视环视内量词交替有限重复>1024/regex_match_lines+regex_count_matches大小写敏感同形状同上限、match_lines抽共享_line_hits子串行为不变、re._parser无typeshed stub经importlib+类型化Protocol承接strict全检查、worker use_regex分派前校验regex仅content编译非法零扫描即拒三输出模式匹配器分派data增use_regex、spec use_regex boolean、routing不变)，默认false子串合同字节等价零回归、与output_mode/context/offset/order/file_glob正交、target=files忽略use_regex、(a|b)+解析器优化为[ab]+线性正确接受、保守拒绝显式报错不静默降级非ripgrep全集；33新增专项合既有77共110过+198调用方(files_search110/worker_safety31/files_patch41/routing16)过0失败48.50秒(首轮(a|b)+误列拒绝集修正+恒真断言修正+strict6错误importlib Protocol修复)、strict本批4文件零错误(余5既有他会话repository.py不追逐)、ruff check/format通过；无新表/迁移/路由/worker协议帧/源文件/跨平台改动；ripgrep/大小写旗标/多行/replace仍后续"
         }
       ],
-      "limits": "只读审计无新工具/迁移/路由/源码改动；可离线缺口未在K13审计批实现(列后续批次)，其中缺口#1工作区搜索之内容搜索与文件名glob发现已在K13.search_files/K13.find_files后续批实现、缺口#2模糊补丁之核心normalizing策略搜索替换写工具已在K13.patch后续批实现(泛型files_*分派无需协议帧/跨平台改动)；搜索output_mode三态(content/files_with_matches/count)已在K13.search_modes、context邻接线(0-3)已在K13.search_context、offset分页(0-1000)已在K13.search_offset、order排序(discovery|modified修改时间最新优先)已在K13.search_order后续批实现、file_glob内容包含过滤已在K13.search_file_glob后续批实现、regex/ripgrep、补丁escape/unicode归一化策略已在K13.patch_strategies后续批实现(indentation_flexible/trimmed_boundary经证明被line_trimmed涵盖故省略)、similarity近似(block_anchor/context_aware)已在K13.patch_similarity后续批实现(首末锚定+中间/逐行SequenceMatcher阈值，近似命中禁止replace_all仅唯一替换复用指纹CAS/审批)、V4A多文件格式/escape-drift自动纠正、浏览器对话框/cron技能绑定输出依赖/代码沙箱/原始CDP仍列后续；不宣称全集对等；既有todos重启竞态与5个pin v2_0039旧迁移测试沿用保留",
+      "limits": "只读审计无新工具/迁移/路由/源码改动；可离线缺口未在K13审计批实现(列后续批次)，其中缺口#1工作区搜索之内容搜索与文件名glob发现已在K13.search_files/K13.find_files后续批实现、缺口#2模糊补丁之核心normalizing策略搜索替换写工具已在K13.patch后续批实现(泛型files_*分派无需协议帧/跨平台改动)；搜索output_mode三态(content/files_with_matches/count)已在K13.search_modes、context邻接线(0-3)已在K13.search_context、offset分页(0-1000)已在K13.search_offset、order排序(discovery|modified修改时间最新优先)已在K13.search_order后续批实现、file_glob内容包含过滤已在K13.search_file_glob后续批实现、regex已在K13.search_regex后续批实现(use_regex保守静态安全门大小写敏感，拒嵌套量词/反向引用等超线性构造，非ripgrep全集)、ripgrep、补丁escape/unicode归一化策略已在K13.patch_strategies后续批实现(indentation_flexible/trimmed_boundary经证明被line_trimmed涵盖故省略)、similarity近似(block_anchor/context_aware)已在K13.patch_similarity后续批实现(首末锚定+中间/逐行SequenceMatcher阈值，近似命中禁止replace_all仅唯一替换复用指纹CAS/审批)、V4A多文件格式/escape-drift自动纠正、浏览器对话框/cron技能绑定输出依赖/代码沙箱/原始CDP仍列后续；不宣称全集对等；既有todos重启竞态与5个pin v2_0039旧迁移测试沿用保留",
       "next": false
     },
     {
@@ -593,6 +601,46 @@
     {
       "id": "K13.patch",
       "evidence": "docs/evidence/v2-files-patch.json"
+    },
+    {
+      "id": "K13.search_modes",
+      "evidence": "docs/evidence/v2-files-search-modes.json"
+    },
+    {
+      "id": "K13.search_context",
+      "evidence": "docs/evidence/v2-files-search-context.json"
+    },
+    {
+      "id": "K13.search_offset",
+      "evidence": "docs/evidence/v2-files-search-offset.json"
+    },
+    {
+      "id": "K13.search_order",
+      "evidence": "docs/evidence/v2-files-search-order.json"
+    },
+    {
+      "id": "K13.search_file_glob",
+      "evidence": "docs/evidence/v2-files-search-glob.json"
+    },
+    {
+      "id": "K13.patch_strategies",
+      "evidence": "docs/evidence/v2-files-patch-strategies.json"
+    },
+    {
+      "id": "K13.patch_similarity",
+      "evidence": "docs/evidence/v2-files-patch-similarity.json"
+    },
+    {
+      "id": "K16.zoom_foundation",
+      "evidence": "docs/evidence/v2-media-zoom.json"
+    },
+    {
+      "id": "K16.zoom_model_design",
+      "evidence": "docs/evidence/v2-tool-image-visibility.json"
+    },
+    {
+      "id": "K13.search_regex",
+      "evidence": "docs/evidence/v2-files-search-regex.json"
     }
   ]
 }
