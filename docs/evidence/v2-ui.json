@@ -1,7 +1,7 @@
 {
   "batch": "v2-ui-connection-stability-v128",
   "recorded_at": "2026-11-15",
-  "resource_version_final": "20261119v156",
+  "resource_version_final": "20261119v157",
   "v1_alignment": {
     "summary": "用户提供 V1 正式工作台截图后，直接精读 web/ui/workbench.css 的 V1 实现并逐项移植，使 V2 结构与 V1 一致（而非自创风格）。",
     "ported_from_v1": [
@@ -1300,5 +1300,10 @@
       "全站": "76/76",
       "守卫": "54 passed"
     }
+  },
+  "provider_card_center_fix": {
+    "问题": "v156标题两行预留用-webkit-box致单行标题沉底,看似不居中位置错",
+    "修复": "标题自然行高;等高改在body容器min-height:65px(px计量消除em基准差)+justify-content:center",
+    "验证": "九卡67px等高/图标文本中心偏差0/优化12-12/守卫模型55/全站76-76"
   }
 }

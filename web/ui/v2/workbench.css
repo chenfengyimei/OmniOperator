@@ -2554,18 +2554,20 @@ body[data-ui-page="workbench-v2"] #models .mo-provider-body {
   gap: 2px;
   min-width: 0;
   flex: 1 1 auto;
+  /* 等高在容器层预留（标题两行34+间距2+描述两行29），不压到标题自身——
+     标题保持自然行高，随卡片 align-items:center 垂直居中。
+     用 px 计量：body 与 strong 字号不同，em 基准会差出几像素。 */
+  min-height: 65px;
+  justify-content: center;
 }
 body[data-ui-page="workbench-v2"] #models .mo-provider-body strong {
   font-size: var(--fs-secondary);
   font-weight: 650;
   color: var(--text-1);
-  /* 审美：标题统一预留两行高（长名两行、短名留白），九卡彻底等高 */
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  min-height: 2.6em;
   line-height: 1.3;
+  /* 标题不强制预留两行：-webkit-box 会把单行文字沉到预留区底部，
+     看起来不居中、位置错（所有者反馈）。自然行高+卡片垂直居中才正确。 */
+  overflow-wrap: anywhere;
 }
 body[data-ui-page="workbench-v2"] #models .mo-provider-body small {
   font-size: var(--fs-caption);
