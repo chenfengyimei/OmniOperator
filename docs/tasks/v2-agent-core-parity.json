@@ -134,17 +134,26 @@
     {
       "id": "K10",
       "title": "结构化澄清和当前回合纠偏",
-      "status": "not_implemented",
-      "remaining": "clarify等待/响应/取消/超时与显式steering；排队下一回合不是当前run继续",
+      "status": "implemented_scoped_passed",
+      "acceptance": [
+        "clarify当前run暂停等待所有者响应/取消/超时，同一run续跑（排队下一回合不是继续）",
+        "结构化问题归一化与answered/skipped/unanswered响应及outcome",
+        "revision/policy CAS、run取消清理与不可变证据",
+        "生产工具/档位/串行屏障/派发与所有者HTTP路由接线"
+      ],
       "reference": "hermes-agent/tools/clarify_tool.py",
-      "next": true
+      "delivered": "domain/clarify.py纯规则CLARIFY规格与normalize_questions(1-5问、choices<=4去重clamp、推荐首项标记、空/越界/控制字符拒绝)、build_result(answered/skipped/unanswered+submitted/cancelled/timed_out/undelivered)、render；复用waiting_approval暂停态，engine._clarify_wait轮询每轮_checkpoint承接取消/租约，clarify_request转running->waiting_approval(work保持running、租约LIVE续期、同会话FIFO阻塞)，_resolve响应/取消/超时转回同一run running；_batch_entry串行屏障、_dispatch_call档位门后拦截(agent档)、_run生产注入；ClarifyService所有者pending/respond/cancel；clarifications表+v0044冻结迁移(身份/单向状态机/禁删触发器，JSON列pending省略answers避JSONnull陷阱)；3个所有者路由；run取消与启动恢复清理pending",
+      "contract": "docs/v2/contracts/V2_CLARIFY.md",
+      "evidence": "docs/evidence/v2-clarify.json",
+      "limits": "复用waiting_approval不新增run状态/事件保留种类；Other自由文本由所有者answers承载非schema强制、无多平台UI回调(走HTTP)；委派子run未单独限制clarify；显式用户steering完整合同属后续；超时读取时判定无后台清扫器；既有5个pin v2_0039旧版本升级迁移测试在K10之前即滞后(与K10无关)保留"
     },
     {
       "id": "K11",
       "title": "停止前验核",
       "status": "not_implemented",
       "remaining": "通用verify-on-stop gate；已有结构化动作回执保持，模型完成文本和清单勾选均不作成功证据",
-      "reference": "hermes-agent/agent/turn_stop_gates.py"
+      "reference": "hermes-agent/agent/turn_stop_gates.py",
+      "next": true
     },
     {
       "id": "K12",
@@ -228,6 +237,10 @@
     {
       "id": "K09",
       "evidence": "docs/evidence/v2-session-search.json"
+    },
+    {
+      "id": "K10",
+      "evidence": "docs/evidence/v2-clarify.json"
     }
   ]
 }

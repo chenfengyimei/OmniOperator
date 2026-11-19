@@ -345,6 +345,17 @@ class ApprovalInput(StrictInput):
     policy_revision: int = Field(ge=1)
 
 
+class ClarifyRespondInput(StrictInput):
+    answers: dict[str, object]
+    revision: int = Field(ge=1)
+    policy_revision: int = Field(ge=1)
+
+
+class ClarifyCancelInput(StrictInput):
+    revision: int = Field(ge=1)
+    notice: str = Field(default="", max_length=2000)
+
+
 class MemoryInput(StrictInput):
     content: str = Field(min_length=1, max_length=20_000)
     message_id: uuid.UUID | None = None
@@ -1782,6 +1793,28 @@ def create_app(factory: Callable[[], Awaitable[HttpRuntime]], *, allowed_origins
     async def approve(agent_id: uuid.UUID, approval_id: uuid.UUID, data: ApprovalInput, request: Request):
         await runtime(request).application.approve(str(agent_id), str(approval_id), data.allowed, data.policy_revision)
         return {"resolved": True}
+
+    @router.get("/agents/{agent_id}/clarifications")
+    async def clarifications(agent_id: uuid.UUID, request: Request):
+        return {"items": await runtime(request).application.clarifications(str(agent_id))}
+
+    @router.post("/agents/{agent_id}/clarifications/{clarification_id}/respond")
+    async def respond_clarify(
+        agent_id: uuid.UUID, clarification_id: uuid.UUID, data: ClarifyRespondInput, request: Request
+    ):
+        result = await runtime(request).application.respond_clarify(
+            str(agent_id), str(clarification_id), data.answers, data.revision, data.policy_revision
+        )
+        return {"resolved": True, "state": result["state"], "revision": result["revision"]}
+
+    @router.post("/agents/{agent_id}/clarifications/{clarification_id}/cancel")
+    async def cancel_clarify(
+        agent_id: uuid.UUID, clarification_id: uuid.UUID, data: ClarifyCancelInput, request: Request
+    ):
+        result = await runtime(request).application.cancel_clarify(
+            str(agent_id), str(clarification_id), data.revision, data.notice
+        )
+        return {"resolved": True, "state": result["state"], "revision": result["revision"]}
 
     @router.get("/agents/{agent_id}/desktop")
     async def desktop_status(agent_id: uuid.UUID, request: Request):

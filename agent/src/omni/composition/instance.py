@@ -57,6 +57,7 @@ from ..application.background_review import BackgroundReviewService
 from ..application.bilibili import PREPARE_SPEC as BILIBILI_PREPARE
 from ..application.bilibili import READ_SPEC as BILIBILI_READ
 from ..application.bilibili import BilibiliPort, BilibiliService
+from ..application.clarify import ClarifyService
 from ..application.configuration import ConfigurationService
 from ..application.context import ContextService
 from ..application.credentials import CredentialService
@@ -685,6 +686,7 @@ async def open_instance(
             todos=TodoService(database) if capabilities is None else None,
             delegation_enabled=capabilities is None if delegation_enabled is None else delegation_enabled,
             background_review=background_review if capabilities is None else None,
+            clarify=ClarifyService(database) if capabilities is None else None,
             owner_capabilities=(
                 Capability(DESKTOP_ACTION, desktop_actions, desktop_actions.quiescent),
                 Capability(ANDROID_ACTION, android, android.quiescent),

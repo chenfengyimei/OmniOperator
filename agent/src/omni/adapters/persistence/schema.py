@@ -708,6 +708,26 @@ approvals = scoped(
     scoped_fk("action_id", "actions"),
     CheckConstraint("state IN ('pending','approved','denied','expired','cancelled')", name="state"),
 )
+clarifications = scoped(
+    "clarifications",
+    Column("run_id", String(36), nullable=False),
+    Column("questions", JSON, nullable=False),
+    Column("state", String(20), nullable=False),
+    Column("answers", JSON),
+    Column("outcome", String(20)),
+    Column("notice", Text),
+    Column("revision", Integer, nullable=False, default=1),
+    Column("policy_revision", Integer, nullable=False),
+    Column("expires_at", String(40), nullable=False),
+    Column("resolved_at", String(40)),
+    scoped_fk("run_id", "runs"),
+    CheckConstraint("state IN ('pending','answered','cancelled','timed_out')", name="state"),
+    CheckConstraint(
+        "(state = 'pending' AND answers IS NULL AND outcome IS NULL AND resolved_at IS NULL) "
+        "OR (state <> 'pending' AND outcome IS NOT NULL AND resolved_at IS NOT NULL)",
+        name="resolution",
+    ),
+)
 action_objects = scoped(
     "action_objects",
     Column("action_id", String(36), nullable=False),

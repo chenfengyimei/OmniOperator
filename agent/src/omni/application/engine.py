@@ -12,6 +12,7 @@ from typing import cast
 from jsonschema import Draft202012Validator
 
 from ..domain.agents import MAX_AGENTS, name_value, revision_value
+from ..domain.clarify import CLARIFY, CLARIFY_TIMEOUT_S, build_result, normalize_questions, render_result
 from ..domain.contracts import (
     JSON,
     ActionResult,
@@ -31,6 +32,7 @@ from ..domain.todos import TODO_LIST
 from ..domain.tool_batch import BatchEntry, plan_tool_batch
 from ..domain.turn_prompt import TurnPrompt, append_runtime_notice
 from .background_review import BackgroundReviewService
+from .clarify import ClarifyService
 from .context import ContextService
 from .images import ImageService
 from .memory_semantics import MemorySemanticService
@@ -83,6 +85,7 @@ class Application:
         todos: TodoService | None = None,
         delegation_enabled: bool = False,
         background_review: BackgroundReviewService | None = None,
+        clarify: ClarifyService | None = None,
     ) -> None:
         self._db, self._calls, self._contexts, self._clock, self._observer = database, calls, contexts, clock, observer
         self._tools = {cap.spec.name: cap for cap in capabilities}
@@ -102,11 +105,14 @@ class Application:
         self._todos = todos
         self._delegation_enabled = delegation_enabled
         self._background_review = background_review
+        self._clarify = clarify
         self._child_ids: set[str] = set()
         if delegation_enabled and DELEGATE_TASK.name in self._tools:
             raise ValueError("Delegation control name is reserved")
         if todos is not None and TODO_LIST.name in self._tools:
             raise ValueError("Task-plan control name is reserved")
+        if clarify is not None and CLARIFY.name in self._tools:
+            raise ValueError("Clarify control name is reserved")
         self._last_probe = 0.0
         self._active: dict[str, tuple[str, asyncio.Task[None]]] = {}
         self._resources: dict[str, asyncio.Lock] = {}
@@ -280,6 +286,8 @@ class Application:
                 registry = {} if remote else dict(self._tools)
                 if self._todos is not None and not remote:
                     registry[TODO_LIST.name] = Capability(TODO_LIST, self._todos)
+                if self._clarify is not None and not remote:
+                    registry[CLARIFY.name] = Capability(CLARIFY, self._clarify)
                 if self._extensions is not None and not remote:
                     for spec in await self._extensions.tools_for_run(agent_id, run_id):
                         if spec.name in registry or spec.name in {"request_mode", DELEGATE_TASK.name}:
@@ -566,6 +574,47 @@ class Application:
         if self._closing or run["state"] in {"cancelling", "cancelled"}:
             raise asyncio.CancelledError
 
+    async def _clarify_wait(self, agent_id: str, run_id: str, arguments: Record, policy: int) -> ActionResult:
+        validator = Draft202012Validator(CLARIFY.parameters)
+        check = cast(Callable[[object], bool], getattr(validator, "is_valid"))
+        if not check(arguments):
+            return ActionResult(
+                Outcome.ERROR, "Clarify arguments do not match its schema", error_code="invalid_tool_arguments"
+            )
+        try:
+            questions = normalize_questions(arguments.get("questions"))
+            request = await self._db.write(
+                lambda u: u.clarify_request(agent_id, run_id, questions, policy, CLARIFY_TIMEOUT_S)
+            )
+        except BusinessError as exc:
+            if exc.code in {"invalid_clarify", "run_not_running", "policy_changed"}:
+                return ActionResult(Outcome.ERROR, exc.message, error_code=exc.code)
+            raise
+        clarification_id = str(request["id"])
+        while True:
+            await self._checkpoint(agent_id, run_id)
+            current = await self._db.read(lambda u: u.clarification(agent_id, clarification_id))
+            state = str(current["state"])
+            raw_answers = current["answers"]
+            answers = cast(dict[str, JSON], raw_answers) if isinstance(raw_answers, dict) else {}
+            if state == "answered":
+                result = build_result(questions, answers, "submitted")
+                return ActionResult(Outcome.OK, render_result(result), data=result)
+            if state == "cancelled":
+                result = build_result(questions, answers, "cancelled", str(current["notice"] or ""))
+                return ActionResult(Outcome.OK, render_result(result), data=result)
+            if state == "timed_out":
+                result = build_result(questions, {}, "timed_out", str(current["notice"] or ""))
+                return ActionResult(Outcome.OK, render_result(result), data=result)
+            if str(current["expires_at"]) <= self._clock.now():
+                try:
+                    await self._db.write(lambda u: u.clarify_timeout(agent_id, clarification_id))
+                except BusinessError as exc:
+                    if exc.code not in {"clarify_resolved", "run_not_waiting"}:
+                        raise
+                continue
+            await asyncio.sleep(0.1)
+
     def _batch_entry(
         self,
         call: Invocation,
@@ -582,6 +631,8 @@ class Application:
         ):
             return BatchEntry(call.name)
         if call.name == TODO_LIST.name and call.name in batch_registry and self._todos is not None:
+            return BatchEntry(call.name)
+        if call.name == CLARIFY.name and call.name in batch_registry and self._clarify is not None:
             return BatchEntry(call.name)
         cap = batch_registry.get(call.name)
         # Writes own the exclusive approval state machine and unoffered/unknown tools resolve
@@ -645,6 +696,8 @@ class Application:
                 operation_id=run_id,
                 context=InvocationContext(agent_id, run_id, session_id, policy),
             )
+        if call.name == CLARIFY.name and call.name in batch_registry and self._clarify is not None:
+            return await self._clarify_wait(agent_id, run_id, call.arguments, policy)
         if call.name in registry and call.name not in batch_registry:
             return ActionResult(
                 Outcome.DENIED,
@@ -836,6 +889,23 @@ class Application:
 
     async def approve(self, agent_id: str, approval_id: str, allowed: bool, revision: int) -> None:
         await self._db.write(lambda u: u.resolve_approval(agent_id, approval_id, allowed, revision))
+
+    async def clarifications(self, agent_id: str) -> list[Record]:
+        if self._clarify is None:
+            raise BusinessError("clarify_unavailable", "Clarification is not enabled", status=503)
+        return await self._clarify.pending(agent_id)
+
+    async def respond_clarify(
+        self, agent_id: str, clarification_id: str, answers: dict[str, object], revision: int, policy_revision: int
+    ) -> Record:
+        if self._clarify is None:
+            raise BusinessError("clarify_unavailable", "Clarification is not enabled", status=503)
+        return await self._clarify.respond(agent_id, clarification_id, answers, revision, policy_revision)
+
+    async def cancel_clarify(self, agent_id: str, clarification_id: str, revision: int, notice: str = "") -> Record:
+        if self._clarify is None:
+            raise BusinessError("clarify_unavailable", "Clarification is not enabled", status=503)
+        return await self._clarify.cancel(agent_id, clarification_id, revision, notice)
 
     async def cancel(self, agent_id: str, run_id: str) -> None:
         def cancel(u: UnitOfWork) -> tuple[list[str], list[str]]:

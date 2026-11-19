@@ -402,7 +402,10 @@
     "agent/src/omni/adapters/persistence/background_review_repository.py",
     "agent/src/omni/domain/session_search.py",
     "agent/src/omni/application/session_search.py",
-    "agent/src/omni/adapters/persistence/session_search_repository.py"
+    "agent/src/omni/adapters/persistence/session_search_repository.py",
+    "agent/src/omni/domain/clarify.py",
+    "agent/src/omni/application/clarify.py",
+    "agent/src/omni/adapters/persistence/clarify_repository.py"
   ],
   "exclude": [
     "**/__pycache__"

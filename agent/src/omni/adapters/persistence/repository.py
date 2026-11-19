@@ -19,6 +19,7 @@ from .android_unicode_repository import AndroidUnicodeRepositories
 from .audit_pruning_repository import AuditPruningRepositories
 from .background_review_repository import BackgroundReviewRepositories
 from .bilibili_repository import BilibiliRepositories
+from .clarify_repository import ClarifyRepositories
 from .context_repository import ContextRepositories
 from .delegation_repository import DelegationRepositories
 from .event_retention_repository import EventRetentionRepositories
@@ -53,6 +54,7 @@ class Repositories(
     AndroidRepositories,
     MediaRepositories,
     BilibiliRepositories,
+    ClarifyRepositories,
     QQRepositories,
     TerminalReviewRepositories,
     ActionReviewRepositories,
@@ -921,12 +923,24 @@ class Repositories(
             .where(s.actions.c.run_id == run_id, s.actions.c.state.in_(["pending", "approved"]))
             .values(state="cancelled")
         )
+        self.cancel_run_clarifications(agent_id, run_id)
         self.audit(agent_id, "run.cancel_requested", run_id, {})
 
     def cancel_approvals(self) -> None:
         self.connection.execute(update(s.approvals).where(s.approvals.c.state == "pending").values(state="cancelled"))
         self.connection.execute(
             update(s.actions).where(s.actions.c.state.in_(["pending", "approved"])).values(state="cancelled")
+        )
+        self.connection.execute(
+            update(s.clarifications)
+            .where(s.clarifications.c.state == "pending")
+            .values(
+                state="cancelled",
+                outcome="cancelled",
+                notice="Run was interrupted.",
+                resolved_at=self.clock.now(),
+                revision=s.clarifications.c.revision + 1,
+            )
         )
 
     def close_run_actions(self, agent_id: str, run_id: str) -> int:

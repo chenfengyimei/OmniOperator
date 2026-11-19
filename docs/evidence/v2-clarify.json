@@ -1,0 +1,109 @@
+{
+  "schema": 1,
+  "date": "2026-11-19",
+  "base_commit": "a8271a75d335325eb030d33653389fc26703087a",
+  "status": "structured_clarify_implemented_scoped_passed",
+  "contract": "docs/v2/contracts/V2_CLARIFY.md",
+  "source_files": {
+    "agent/src/omni/domain/clarify.py": "c99ed94f1a2ba3035e425c8adbe3f6a0410eee51fa0bcf6929d5476793d1cbe0",
+    "agent/src/omni/application/clarify.py": "979ef22744b3d2a13b425c58e0cfbdec262cf03b7cd47e1ae599925c50a5626c",
+    "agent/src/omni/adapters/persistence/clarify_repository.py": "f9b5c205dd731e5d42d5d876306c21a239efe5d4a0ac86c76466f3e5362a2e0f",
+    "agent/src/omni/adapters/persistence/migrations/versions/v0044.py": "f44dfe35d2cc953065067a0aa3d2e7dc914a57155c2b831609ce0d0d24d81d64",
+    "agent/src/omni/application/engine.py": "53a0bb83ec0e38cde72a1fc823c7ec9a2827d3bb465c142dc5d377f089a57838",
+    "agent/tests/v2/core/test_v2_clarify.py": "3c8fe89b707f9228f2051501a4b60a50661070aa2cde964b38bb997b5b55ed30",
+    "pyrightconfig.strict.json": "846d37b699fc7da9f84e7ecde85fce950e8b0f311feddb67d4ea55df89313f82"
+  },
+  "reference": {
+    "repository": "xuexi/hermes-agent",
+    "commit": "9976f4857b72439d79016354d7b6e1a3ee952e2f",
+    "files": {
+      "tools/clarify_tool.py": "studied_thin_dispatcher_normalize_questions_callback_wait_structured_responses_outcome"
+    },
+    "adaptation": "Single-call 1-5 structured questions with recommended-first choices and answered/skipped/unanswered responses studied and independently adapted within V2 four layers; the wait lives in the run coroutine reusing the write-approval pause/resume/cancel/lease machinery rather than a platform UI callback. No third-party source copied, no remote fetch or real account/model used"
+  },
+  "delivered": [
+    "Pure domain/clarify.py: CLARIFY ToolSpec, normalize_questions (validate/dedup/clamp choices<=4, recommended-first label, reject blank/oversize/control), strip/mark_recommended so presentation never leaks into answers, build_result (answered/skipped/unanswered + submitted/cancelled/timed_out/undelivered), render_result, CLARIFY_TIMEOUT_S=300",
+    "clarify reuses the waiting_approval pause state: _clarify_wait polls every 0.1s with _checkpoint each iteration (cancel/lease gate); clarify_request transitions running->waiting_approval, work row stays running and session lease keeps renewing (waiting_approval in LIVE), so same-session FIFO stays blocked until resume",
+    "Owner respond/cancel/timeout resolve the SAME run back to running via _resolve (revision CAS + not-expired + policy for respond/cancel; timeout is a system action); no accept_turn, no new run_id; a queued turn is never continuation",
+    "Run-level cancel and boot recovery cancel pending clarifications (cancel_run_clarifications wired into repository.cancel and cancel_approvals); _checkpoint raises CancelledError and _end_error settles",
+    "Engine wiring: _run injects registry[CLARIFY] on the non-remote production path; _batch_entry makes clarify a serial barrier (blocking wait never parallels); _dispatch_call intercepts after the tier gate (agent tier only); owner facade clarifications/respond_clarify/cancel_clarify",
+    "v0044 frozen migration clarifications table + anonymous CHECK + clarification_identity (immutable identity/questions/policy/expires, revision+1, one-way pending->answered/cancelled/timed_out) + clarification_keep delete trigger; schema metadata synced; 14 table-count assertions 140->141",
+    "3 owner HTTP routes GET /clarifications, POST /clarifications/{id}/respond, POST /clarifications/{id}/cancel with StrictInput bodies"
+  ],
+  "limits": {
+    "max_questions": 5,
+    "max_choices": 4,
+    "max_choice_chars": 8000,
+    "max_question_chars": 4000,
+    "max_notice_chars": 2000,
+    "timeout_seconds": 300,
+    "pending_list_limit": 100,
+    "new_run_state": false,
+    "reused_pause_state": "waiting_approval",
+    "new_event_retention_kind": false,
+    "other_free_text_row": "owner answers carry arbitrary text; not schema-enforced; no multi-platform UI callback (owner HTTP routes)",
+    "delegation_clarify_restriction": false,
+    "explicit_user_steering_full_contract": "deferred; this batch focuses on structured clarify wait/respond/cancel/timeout",
+    "timeout_sweeper": false,
+    "second_kernel_or_state_store": false
+  },
+  "validation": {
+    "mode": "development_working_tree_scoped",
+    "frozen_source": null,
+    "scoped_passed": 259,
+    "failed": 5,
+    "seconds": 305.34,
+    "new_nodes": 13,
+    "scope": [
+      "New K10 domain rules (5) and production integration + migration (8): normalize/recommended/multi/clamp/reject, build_result statuses, render; clarify pauses and owner response resumes SAME run with answers fed to model, owner cancel resumes cancelled, run cancel cleans pending clarification, timeout resumes timed_out (controlled clock), stale revision/policy rejected, invalid args settle error without request, v44 head columns/FK/triggers, immutable one-way evidence",
+      "Architecture/migration sync, execution/FIFO/approval/cancel, K05 tool batch serial barrier, routing tier gate, kernel/lifecycle, event-retention kind contract (96)",
+      "14 table-count migration tests, business inventory, candidate gate, layout, default/other entrypoints, K08 background review, K06 run compaction, K07 iteration guard, execution pruning, action-review execution (163 passed)"
+    ],
+    "strict": {
+      "config": "pyrightconfig.strict.json",
+      "files": 405,
+      "errors": 0,
+      "warnings": 0,
+      "note": "three new modules added to include (402 -> 405); rechecked clean after ruff format on final source"
+    },
+    "ruff": "domain/application/repository clarify, engine, instance, http and test_v2_clarify lint and format-check passed",
+    "project_index": "scripts/project_index.py rerun after adding three source modules, one migration and one test (modules=65 files=821 routes=454 declared_tools=94)",
+    "full_suite_executed": false,
+    "real_model_account_device_native_or_72h_executed": false,
+    "current_windows_service_or_database_touched": false
+  },
+  "retained_first_failures": [
+    {
+      "phase": "integration-initial",
+      "reason": "All integration tests timed out waiting for waiting_approval: clarify_request INSERT violated the resolution CHECK because SQLAlchemy JSON columns serialize Python None to JSON 'null' (not SQL NULL), so pending answers IS NULL failed. Fixed by omitting the answers column on insert (defaults to SQL NULL). 12/13 then passed."
+    },
+    {
+      "phase": "test-fixes",
+      "reason": "invalid-args test wrongly used the paused_run helper (invalid questions never pause); rewritten to wait succeeded directly. Timeout test was flaky advancing the clock faster than lease renewal (250s/s); slowed to 60s/s (advance 3 per 0.05s) so renew_run_leases keeps the 60s lease valid; verified stable 3/3."
+    },
+    {
+      "phase": "strict-initial",
+      "reason": "20 errors: duplicate JSON import in engine; ClarifyRepositories(RepositoryBase) cannot see cross-mixin get_run/settings/transition (cast(UnitOfWork, self)); recursive JSON alias rejected nested dicts/lists in domain (cast); http dict[str,object] answers vs Record (widened facade/service to object mapping with internal cast). Final strict 405 clean."
+    }
+  ],
+  "pre_existing_failures_not_chased": [
+    {
+      "tests": [
+        "test_v2_memory_semantics_migration.py::test_v33_upgrade_keeps_memory_models_and_unknown_cost_without_inventing_vectors[False/True]",
+        "test_v2_routing_migration.py::test_populated_v32_upgrade_backfills_honest_baseline_and_preserves_unknown",
+        "test_v2_skills_migration.py::test_v34_upgrade_does_not_invent_skill_grants_or_lose_unknown_cost[False/True]"
+      ],
+      "reason": "These upgrade tests pin database.schema_version == 'v2_0039' (the head when written) and already lagged HEAD before K10 (v2_0043 at K08, v2_0044 now). Failure is the stale version pin, independent of K10; K10 only correctly bumped their table-count clause 140->141. Same pre-existing debt documented in v2-background-review.json (v2_0032/33/34/36/39 pins); not chased per scoped discipline."
+    }
+  ],
+  "whole_core_parity_complete": false,
+  "whole_reference_feature_audit_complete": false,
+  "whole_v2_complete": false,
+  "not_executed": [
+    "Full offline suite for current source",
+    "Real accounts/models/devices/native desktop and 72h soak",
+    "Current Windows service restart/database upgrade",
+    "macOS/Linux actual native build or run"
+  ],
+  "next": "K11 verify-on-stop gate: the model's final text and todo checkboxes are not success evidence; reuse structured action outcome/effect/verification. Do not redo K03-K10"
+}

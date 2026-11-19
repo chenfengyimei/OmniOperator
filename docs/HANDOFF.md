@@ -3,7 +3,7 @@
 ## 当前状态与工作方式
 
 - 开发分支 `v2`，跟踪 `origin/v2`。默认入口是 V2，显式 V1 回退保留。
-- 当前工作：目录整理已完成；按 [Agent 内核与学习项目对标](v2/contracts/V2_AGENT_CORE_PARITY.md)持续补齐。K03 [修订化任务清单](v2/contracts/V2_TODOS.md)、K04 [单层父子 run 委派](v2/contracts/V2_DELEGATION.md)、K05 [模型批次工具并行](v2/contracts/V2_TOOL_BATCH.md)、K06 [run 内工具上下文压缩](v2/contracts/V2_RUN_COMPACTION.md)、K07 [迭代守卫与预算收敛](v2/contracts/V2_ITERATION_GUARD.md)、K08 [回合后 reviewer/curator 后台学习](v2/contracts/V2_BACKGROUND_REVIEW.md)、K09 [模型侧历史会话检索](v2/contracts/V2_SESSION_SEARCH.md)已接生产；下一项 K10 结构化澄清与当前回合纠偏仍未实现。
+- 当前工作：目录整理已完成；按 [Agent 内核与学习项目对标](v2/contracts/V2_AGENT_CORE_PARITY.md)持续补齐。K03 [修订化任务清单](v2/contracts/V2_TODOS.md)、K04 [单层父子 run 委派](v2/contracts/V2_DELEGATION.md)、K05 [模型批次工具并行](v2/contracts/V2_TOOL_BATCH.md)、K06 [run 内工具上下文压缩](v2/contracts/V2_RUN_COMPACTION.md)、K07 [迭代守卫与预算收敛](v2/contracts/V2_ITERATION_GUARD.md)、K08 [回合后 reviewer/curator 后台学习](v2/contracts/V2_BACKGROUND_REVIEW.md)、K09 [模型侧历史会话检索](v2/contracts/V2_SESSION_SEARCH.md)、K10 [结构化澄清与当前 run 暂停续跑](v2/contracts/V2_CLARIFY.md)已接生产；下一项 K11 停止前验核仍未实现。
 - Windows 主体开发及旧离线候选已完成；当前源码未统一全量，整个 V2 仍在开发。真实账号/模型质量/设备、干净机器及 72 小时验收分别待办。
 - Mac mini 为 Apple Silicon，所有者提供 macOS 27，实际版本在 Mac 用 `sw_vers` 核对。Mac 做主开发机，现有 Windows 保留运行和原生验收环境，两端同步同一分支。
 - 当前 Windows 服务、实例、凭据和其他会话的 `PPT/`、`docs/competition/` 保留。根 `src`/`tests` 是本机兼容联接，正式代码与测试分别在 `agent/src`、`agent/tests`。
@@ -54,7 +54,11 @@ K09 已接模型侧历史会话检索：纯领域 `domain/session_search.py` 提
 
 本批新增 14 项回归（6 领域 + 8 生产集成），最终源码 224 项专项/守卫全过（331.71 秒），覆盖 K09、routing 档位、K05 并行、能力、清单、四层架构与候选门/目录/入口守卫、执行/FIFO/审批/取消、内核/生命周期、执行裁剪、动作审核执行、K06 压缩、K07 迭代守卫、K04 委派、K08 后台学习与上下文。V2 strict 402 文件零错误/警告（新增 domain/application/repository 三文件，399→402，格式化后复核干净）；Ruff/格式与项目索引通过（modules=65 files=817 routes=451 declared_tools=94）。首轮 12 处 strict（递归 JSON 别名需 cast、list[Unknown] 显式标注、多余 cast/int 与 isinstance 守卫）与 3 处未用变量均已修正并在最终源码重跑绿。未全量、未真实模型/原生/72 小时验收，未动运行中服务与数据库。详见 [历史检索证据](evidence/v2-session-search.json)。
 
-下一批推进 G6.core_parity / K10 结构化澄清与当前回合纠偏：参考 `xuexi/hermes-agent/tools/clarify_tool.py`，补 clarify 等待/响应/取消/超时与显式 steering 合同；排队下一回合不是当前 run 继续。之后继续 K11 停止前验核、K12 模型故障恢复及后续任务，其他对标项不提前关闭。
+K10 已接结构化澄清与当前 run 暂停续跑：纯领域 `domain/clarify.py` 提供 CLARIFY 规格与 `normalize_questions`（1–5 问、choices≤4 去重 clamp、推荐首项标记、空/越界/控制字符拒绝）、`build_result`（answered/skipped/unanswered + submitted/cancelled/timed_out/undelivered）与渲染。**复用既有 `waiting_approval` 暂停态**而非新增 run 状态：`engine._clarify_wait` 在 run 协程内每 0.1s 轮询、每轮 `_checkpoint` 承接取消/租约；`clarify_request` 转 running→waiting_approval（work 保持 running、租约因 LIVE 续期、同会话 FIFO 阻塞），所有者响应/取消/超时经 `_resolve` 把**同一 run** 转回 running（revision/policy CAS，超时为系统动作），无新 run_id。`_batch_entry` 列 clarify 为串行屏障、`_dispatch_call` 档位门后拦截（仅 agent 档）、`_run` 生产路径注入；`ClarifyService` 所有者 pending/respond/cancel；run 取消与启动恢复清理 pending clarification。`clarifications` 表 + v0044 冻结迁移（身份/单向状态机/禁删触发器；JSON 列 pending 省略 answers 避 JSON null 陷阱）；3 个所有者路由。run 状态机/LIVE/事件保留白名单均无需改动。
+
+本批新增 13 项回归（5 领域 + 8 生产集成/迁移），最终源码 259 项专项/守卫全过（305.34 秒），覆盖 K10、架构/迁移同步、执行/FIFO/审批/取消、K05 串行屏障、routing 档位、内核/生命周期、事件保留合同、14 处表计数迁移、清单/候选门/目录/入口守卫、K08 后台学习、K06 压缩、K07 迭代守卫、执行裁剪与动作审核执行。V2 strict 405 文件零错误/警告（新增 domain/application/repository 三文件，402→405，格式化后复核干净）；Ruff/格式与项目索引通过（modules=65 files=821 routes=454）。首轮 JSON 列 None→JSON null 违反 pending CHECK（省略 answers 列修正）、invalid-args 测试误用暂停夹具、超时测试时钟推进快于租约续期致 flaky（降至 60s/s 稳定 3/3）、20 处 strict（重复 JSON 导入、跨 mixin 方法 cast(UnitOfWork,self)、递归 JSON 别名 cast、answers 类型放宽）均已修正并在最终源码重跑绿。既有 5 个 pin `v2_0039` 旧版本升级迁移测试（v33/v32/v34）在 K10 之前即滞后（与 K10 无关，K10 仅正确同步其表计数 140→141），保留为既有失败不追。未全量、未真实模型/原生/72 小时验收，未动运行中服务与数据库。详见 [澄清证据](evidence/v2-clarify.json)。
+
+下一批推进 G6.core_parity / K11 停止前验核：参考 `xuexi/hermes-agent/agent/turn_stop_gates.py`，补通用 verify-on-stop gate；已有结构化动作 outcome/effect/verification 保持，模型完成文本和清单勾选均不作成功证据。之后继续 K12 模型故障恢复及后续任务，其他对标项不提前关闭。
 
 K03 新增 34 项回归；首轮冻结源码 114 项集成专项通过（182.82 秒），收尾补强 Agent 禁用检查后最终 34 项清单/HTTP 模块专项通过（39.09 秒），另 7 项目录/状态守卫通过。最终 391 文件 strict 零错误/警告，Ruff 与格式检查通过，未全量。每轮源码指纹与失败均保留，不把首轮结果写为最终源码全量。此前 K01/K02 批 `c4e205d8` 的结果见 [固定证据](evidence/v2-agent-core-parity.json)。测试只用隔离数据库与冻结源码，当前 Windows 服务和真实数据库未停止或由测试升级。
 
