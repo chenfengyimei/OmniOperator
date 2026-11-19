@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "167b8485f1881da9a3e1c98314759c413862c56ace79a0dc3adb63dc9284f37c",
+  "source_sha256": "b3b04c59d9b5af4dc260b285af4b05849000e092c54101222b6699da022e68da",
   "modules": [
     {
       "id": "v2-domain",
@@ -90,7 +90,7 @@
         "agent/src/omni/domain/turn_prompt.py",
         "agent/src/omni/domain/verification_stop.py"
       ],
-      "lines": 12372,
+      "lines": 12459,
       "dependencies": []
     },
     {
@@ -590,7 +590,7 @@
         "web/ui/v2/v1/workbench.css",
         "web/ui/v2/workbench.css"
       ],
-      "lines": 24021,
+      "lines": 24026,
       "dependencies": []
     },
     {
@@ -79515,17 +79515,17 @@
       "path": "agent/src/omni/domain/files_patch.py",
       "module": "v2-domain",
       "python_module": "omni.domain.files_patch",
-      "lines": 102,
+      "lines": 189,
       "imports": [],
       "symbols": [
         {
           "name": "PatchError",
-          "line": 12,
+          "line": 37,
           "kind": "class"
         },
         {
           "name": "PatchError.__init__",
-          "line": 13,
+          "line": 38,
           "kind": "function",
           "parameters": [
             "self",
@@ -79539,7 +79539,7 @@
         },
         {
           "name": "_strip_line",
-          "line": 18,
+          "line": 43,
           "kind": "function",
           "parameters": [
             "line"
@@ -79550,7 +79550,7 @@
         },
         {
           "name": "_normalize_line",
-          "line": 22,
+          "line": 47,
           "kind": "function",
           "parameters": [
             "line"
@@ -79561,7 +79561,7 @@
         },
         {
           "name": "_exact_spans",
-          "line": 26,
+          "line": 51,
           "kind": "function",
           "parameters": [
             "content",
@@ -79574,7 +79574,7 @@
         },
         {
           "name": "_line_spans",
-          "line": 30,
+          "line": 55,
           "kind": "function",
           "parameters": [
             "content",
@@ -79589,7 +79589,7 @@
         },
         {
           "name": "_trimmed_spans",
-          "line": 51,
+          "line": 76,
           "kind": "function",
           "parameters": [
             "content",
@@ -79602,7 +79602,94 @@
         },
         {
           "name": "_whitespace_spans",
-          "line": 55,
+          "line": 80,
+          "kind": "function",
+          "parameters": [
+            "content",
+            "old_string"
+          ],
+          "annotations": {
+            "content": "str",
+            "old_string": "str"
+          }
+        },
+        {
+          "name": "_escape_spans",
+          "line": 84,
+          "kind": "function",
+          "parameters": [
+            "content",
+            "old_string"
+          ],
+          "annotations": {
+            "content": "str",
+            "old_string": "str"
+          }
+        },
+        {
+          "name": "_unicode_normalize",
+          "line": 91,
+          "kind": "function",
+          "parameters": [
+            "text"
+          ],
+          "annotations": {
+            "text": "str"
+          }
+        },
+        {
+          "name": "_build_orig_to_norm_map",
+          "line": 97,
+          "kind": "function",
+          "parameters": [
+            "original"
+          ],
+          "annotations": {
+            "original": "str"
+          }
+        },
+        {
+          "name": "_invert_norm_map",
+          "line": 108,
+          "kind": "function",
+          "parameters": [
+            "orig_to_norm"
+          ],
+          "annotations": {
+            "orig_to_norm": "list[int]"
+          }
+        },
+        {
+          "name": "_norm_end_to_orig",
+          "line": 115,
+          "kind": "function",
+          "parameters": [
+            "orig_to_norm",
+            "orig_start",
+            "norm_end"
+          ],
+          "annotations": {
+            "orig_to_norm": "list[int]",
+            "orig_start": "int",
+            "norm_end": "int"
+          }
+        },
+        {
+          "name": "_map_positions_norm_to_orig",
+          "line": 123,
+          "kind": "function",
+          "parameters": [
+            "orig_to_norm",
+            "norm_matches"
+          ],
+          "annotations": {
+            "orig_to_norm": "list[int]",
+            "norm_matches": "list[Span]"
+          }
+        },
+        {
+          "name": "_unicode_spans",
+          "line": 133,
           "kind": "function",
           "parameters": [
             "content",
@@ -79615,7 +79702,7 @@
         },
         {
           "name": "is_already_applied",
-          "line": 59,
+          "line": 144,
           "kind": "function",
           "parameters": [
             "content",
@@ -79630,7 +79717,7 @@
         },
         {
           "name": "patch_replace",
-          "line": 66,
+          "line": 151,
           "kind": "function",
           "parameters": [
             "content",
@@ -110835,7 +110922,7 @@
       "path": "web/ui/v2/v1/workbench.css",
       "module": "v2-workbench",
       "python_module": null,
-      "lines": 4451,
+      "lines": 4453,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -110845,7 +110932,7 @@
       "path": "web/ui/v2/workbench.css",
       "module": "v2-workbench",
       "python_module": null,
-      "lines": 3631,
+      "lines": 3634,
       "imports": [],
       "symbols": [],
       "kind": "asset",

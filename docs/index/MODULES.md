@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`167b8485f1881da9a3e1c98314759c413862c56ace79a0dc3adb63dc9284f37c`。包含 65 个职责模块、827 个源码/界面文件。
+源码指纹：`b3b04c59d9b5af4dc260b285af4b05849000e092c54101222b6699da022e68da`。包含 65 个职责模块、827 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -34,7 +34,7 @@
 | [agent/src/omni/domain/documents.py](../../agent/src/omni/domain/documents.py) | 100 | Bounded source text, deterministic chunks and local vector math; contains no I/O. |
 | [agent/src/omni/domain/event_retention.py](../../agent/src/omni/domain/event_retention.py) | 292 | Bounded event-retention previews and explicit plans; performs no I/O, deletion or sequence reconstruction. |
 | [agent/src/omni/domain/extensions.py](../../agent/src/omni/domain/extensions.py) | 482 | Static trusted-plugin metadata, immutable capture records and owner authorizations; never loads code or files. |
-| [agent/src/omni/domain/files_patch.py](../../agent/src/omni/domain/files_patch.py) | 102 | Bounded fuzzy search-replace patch rules; no filesystem, network or storage I/O. |
+| [agent/src/omni/domain/files_patch.py](../../agent/src/omni/domain/files_patch.py) | 189 | Bounded fuzzy search-replace patch rules; no filesystem, network or storage I/O. |
 | [agent/src/omni/domain/files_search.py](../../agent/src/omni/domain/files_search.py) | 114 | Bounded workspace search rules (content substring + filename glob); no filesystem, network or storage I/O. |
 | [agent/src/omni/domain/foreground.py](../../agent/src/omni/domain/foreground.py) | 107 | Single-use foreground authority and bounded input, independent of native APIs. |
 | [agent/src/omni/domain/history.py](../../agent/src/omni/domain/history.py) | 142 | Canonical, bounded history cursors bind a stream and its retention generation; performs no I/O. |
@@ -544,8 +544,8 @@
 | [web/ui/v2/tokens.js](../../web/ui/v2/tokens.js) | 81 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/v1/components.css](../../web/ui/v2/v1/components.css) | 655 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/v1/frame.css](../../web/ui/v2/v1/frame.css) | 938 | 原生源码、平台脚本或界面资源 |
-| [web/ui/v2/v1/workbench.css](../../web/ui/v2/v1/workbench.css) | 4451 | 原生源码、平台脚本或界面资源 |
-| [web/ui/v2/workbench.css](../../web/ui/v2/workbench.css) | 3631 | 原生源码、平台脚本或界面资源 |
+| [web/ui/v2/v1/workbench.css](../../web/ui/v2/v1/workbench.css) | 4453 | 原生源码、平台脚本或界面资源 |
+| [web/ui/v2/workbench.css](../../web/ui/v2/workbench.css) | 3634 | 原生源码、平台脚本或界面资源 |
 
 文档：[docs/V2_REFACTOR.md](../../docs/V2_REFACTOR.md)
 
