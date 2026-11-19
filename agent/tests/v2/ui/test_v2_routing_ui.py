@@ -27,17 +27,19 @@ def test_tier_editor_draft_and_actual_model_report(ui_browser, v2_server, width,
         )
         assert response.status == 201
         model = response.json()
-        page.locator('[data-page="settings"]').click()
+        # 上下文页另有「运行设置」快捷按钮同带 data-page=settings，裸选择器二义；
+        # 按既有约定把切页入口限定到导航（同技能/记忆测试）。
+        page.locator('nav[aria-label="工作台"] [data-page="settings"]').click()
         expect(page.locator("#route-fields")).to_be_enabled()
         page.locator("#route-chat-model").select_option(model["id"])
         page.locator("#route-chat-reserve").fill("321")
         page.locator("#route-default").select_option("auto")
-        page.locator('[data-page="people"]').click()
-        page.locator('[data-page="settings"]').click()
+        page.locator('nav[aria-label="工作台"] [data-page="people"]').click()
+        page.locator('nav[aria-label="工作台"] [data-page="settings"]').click()
         expect(page.locator("#route-chat-reserve")).to_have_value("321")
         page.get_by_role("button", name="保存档位配置", exact=True).click()
         expect(page.locator("#route-config-status")).to_contain_text("已载入修订 1")
-        page.locator('[data-page="chat"]').click()
+        page.locator('nav[aria-label="工作台"] [data-page="chat"]').click()
         page.locator("#message").fill("你好")
         page.get_by_role("button", name="发送", exact=True).click()
         expect(page.locator("#messages")).to_contain_text("V2 test reply")

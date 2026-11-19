@@ -164,7 +164,7 @@ export function mountRouting({ api, wrap, getAgent, getGeneration, getSession })
           for (const [label, text] of [
             ['工具', `${call.tool_count}/${call.full_tool_count}`],
             ['规格', `${call.tool_bytes}/${call.full_tool_bytes} 字节`],
-            ['输入估算', `${call.input_token_estimate} token（${call.counting_method}）`],
+            // 所有者要求：不展示估算，只保留实测口径。
             ['输入实测', call.input_tokens == null ? '未知' : `${call.input_tokens} token`],
             ['输出实测', call.output_tokens == null ? '未知' : `${call.output_tokens} token`],
             ['费用', call.cost_micro === null ? '未知' : `${call.cost_micro} 微美元`],

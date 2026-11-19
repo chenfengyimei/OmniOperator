@@ -1,32 +1,32 @@
-import { mountSkills } from './skills.js?v=20261119v159';
-import { mountCredentials } from './credentials.js?v=20261119v159';
-import { mountAuditHistory, mountOperations } from './operations.js?v=20261119v159';
-import { mountCapabilities } from './capabilities.js?v=20261119v159';
-import { mountTokens } from './tokens.js?v=20261119v159';
-import { mountDocuments } from './documents.js?v=20261119v159';
-import { mountConfiguration } from './configuration.js?v=20261119v159';
-import { mountModels } from './models.js?v=20261119v159';
+import { mountSkills } from './skills.js?v=20261119v160';
+import { mountCredentials } from './credentials.js?v=20261119v160';
+import { mountAuditHistory, mountOperations } from './operations.js?v=20261119v160';
+import { mountCapabilities } from './capabilities.js?v=20261119v160';
+import { mountTokens } from './tokens.js?v=20261119v160';
+import { mountDocuments } from './documents.js?v=20261119v160';
+import { mountConfiguration } from './configuration.js?v=20261119v160';
+import { mountModels } from './models.js?v=20261119v160';
 import { ask } from '../dialog.js?v=20261103v7';
-import { mountPeople } from './people.js?v=20261119v159';
-import { mountDeliveries } from './deliveries.js?v=20261119v159';
-import { mountSchedules } from './schedules.js?v=20261119v159';
-import { mountMemorySemantics } from './memory-semantics.js?v=20261119v159';
-import { mountMemoryOrganization } from './memory-organization.js?v=20261119v159';
-import { mountExtensions } from './extensions.js?v=20261119v159';
-import { mountActionReviews } from './action-reviews.js?v=20261119v159';
-import { mountTerminals } from './terminals.js?v=20261119v159';
-import { mountDesktop } from './desktop.js?v=20261119v159';
-import { mountQQ } from './qq.js?v=20261119v159';
-import { mountBilibili } from './bilibili.js?v=20261119v159';
-import { mountMedia } from './media.js?v=20261119v159';
-import { mountMcp } from './mcp.js?v=20261119v159';
-import { mountAndroid } from './android.js?v=20261119v159';
-import { mountModelOutput } from './model-output.js?v=20261119v159';
-import { mountRouting } from './routing.js?v=20261119v159';
-import { mountChatImages } from './chat-images.js?v=20261119v159';
-import { mountInspector } from './inspector.js?v=20261119v159';
-import { mountSettingsRail } from './settings-rail.js?v=20261119v159';
-import { mountEventStream } from './event-stream.js?v=20261119v159';
+import { mountPeople } from './people.js?v=20261119v160';
+import { mountDeliveries } from './deliveries.js?v=20261119v160';
+import { mountSchedules } from './schedules.js?v=20261119v160';
+import { mountMemorySemantics } from './memory-semantics.js?v=20261119v160';
+import { mountMemoryOrganization } from './memory-organization.js?v=20261119v160';
+import { mountExtensions } from './extensions.js?v=20261119v160';
+import { mountActionReviews } from './action-reviews.js?v=20261119v160';
+import { mountTerminals } from './terminals.js?v=20261119v160';
+import { mountDesktop } from './desktop.js?v=20261119v160';
+import { mountQQ } from './qq.js?v=20261119v160';
+import { mountBilibili } from './bilibili.js?v=20261119v160';
+import { mountMedia } from './media.js?v=20261119v160';
+import { mountMcp } from './mcp.js?v=20261119v160';
+import { mountAndroid } from './android.js?v=20261119v160';
+import { mountModelOutput } from './model-output.js?v=20261119v160';
+import { mountRouting } from './routing.js?v=20261119v160';
+import { mountChatImages } from './chat-images.js?v=20261119v160';
+import { mountInspector } from './inspector.js?v=20261119v160';
+import { mountSettingsRail } from './settings-rail.js?v=20261119v160';
+import { mountEventStream } from './event-stream.js?v=20261119v160';
 // 直接复用 V1 的 rail 提示浮层模块（data-tip → #tip-layer），不自创实现
 import '../app/tips.js?v=20261103u5';
 
@@ -460,15 +460,10 @@ function renderToolBlock(node, trace) {
       }
       return seen ? total : null;
     };
+    // 所有者要求：不展示输入估算，只显示供应商上报的实际 token；未上报显示未知。
     const realIn = sum('input_tokens'),
-      realOut = sum('output_tokens'),
-      estIn = sum('input_token_estimate');
-    const inText =
-      estIn !== null
-        ? `输入估算 ${estIn} token（含工具）` + (realIn !== null ? ` · 上报 ${realIn}` : '')
-        : realIn !== null
-          ? `输入 ${realIn} token（上报）`
-          : '输入 未知';
+      realOut = sum('output_tokens');
+    const inText = realIn !== null ? `输入 ${realIn} token（上报）` : '输入 未知';
     const outText = realOut !== null ? `输出 ${realOut} token（上报）` : '输出 未知';
     const summary = document.createElement('div');
     summary.className = 'scaf-summary';
