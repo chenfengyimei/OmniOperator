@@ -200,17 +200,26 @@
     {
       "id": "K14",
       "title": "Android全能力及视觉子代理",
-      "status": "partial_audit_pending",
-      "remaining": "观察/动作/Unicode/许可已有；核对全部参考工具、独立视觉子代理、设备矩阵，真机质量另验",
-      "reference": "android-agent; android-adb-control",
-      "next": true
+      "status": "audited_gaps_recorded",
+      "acceptance": [
+        "五组逐项审计（观察/动作/输入纪律、观察增强/视觉、独立有界视觉子代理、设备矩阵/应用管理、web/技能/工作流）分类已对等/需真机/可离线缺口",
+        "V2纪律(新鲜观察绑定/元素索引/逐次审批/unknown不重试/滚动验证/Unicode IME恢复/本地服务器/设备身份)确认对等adb-control rigor",
+        "独立视觉子代理/SoM/OCR/explore_app列可离线后续批次；真机质量与设备健康矩阵另验，不宣称对等"
+      ],
+      "reference": "android-agent(7c09f6cd, gitd/services/agent_tools.py约65工具, sub_agent.py视觉子代理); android-adb-control(82b41743, SKILL.md纪律)",
+      "delivered": "审计合同V2_ANDROID_AUDIT.md：V2 android_request_access/observe/act/input/restore_ime(KINDS tap/toggle/append_ascii/append_unicode/long_press/swipe/key/launch、observation_sha256新鲜绑定、node_id索引、逐输入审批、scroll_verified两稳定身份、Unicode helper IME+restore、ASCII-only无shell插值、127.0.0.1本地服务器、设备身份)对照参考五组；可离线缺口(独立有界视觉子代理基于K04委派+视觉模型/帧≤60保序子采样/无工具/单次/仅文本汇总、SoM编号截图、屏幕OCR/查找/分类、explore_app状态图)列后续批次；需真机项(全部设备I/O质量、device_health完整矩阵+fix+逐工具平台矩阵、force_stop/app_state/intent/camera/clipboard/notifications/TTS/wireless、设备内web、真实视觉质量、真机输入/Unicode/滚动/恢复质量)另验",
+      "contract": "docs/v2/contracts/V2_ANDROID_AUDIT.md",
+      "evidence": "docs/evidence/v2-android-audit.json",
+      "limits": "只读审计无新工具/迁移/路由/源码改动；可离线缺口未在K14实现(列后续批次)；不宣称真机质量或约65工具广度对等；V2有意不提供shell逃生舱/变更链(更严格)；既有todos重启竞态与5个pin v2_0039旧迁移测试沿用保留",
+      "next": false
     },
     {
       "id": "K15",
       "title": "人格、遗忘/巩固与自主行为",
       "status": "partial_audit_pending",
       "remaining": "已有people/memory/QQ/B站/schedule；补跨渠道一致性、作息/动机与记忆成长反馈闭环",
-      "reference": "surfcore"
+      "reference": "surfcore",
+      "next": true
     },
     {
       "id": "K16",
@@ -283,6 +292,10 @@
     {
       "id": "K13",
       "evidence": "docs/evidence/v2-tool-channel-audit.json"
+    },
+    {
+      "id": "K14",
+      "evidence": "docs/evidence/v2-android-audit.json"
     }
   ]
 }
