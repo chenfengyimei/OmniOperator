@@ -232,17 +232,26 @@
     {
       "id": "K16",
       "title": "视频理解完整分镜工具链",
-      "status": "partial_audit_pending",
-      "remaining": "已有上传/ASR/有限抽帧/锚点；核对自适应分镜、zoom、字幕带、locate等五工具与算法",
-      "reference": "dsh-video-storyboard",
-      "next": true
+      "status": "audited_gaps_recorded",
+      "acceptance": [
+        "五工具逐项审计（自适应分镜密度/自适应宫格/局部zoom/字幕带/文本定位）+取流/ASR/抽帧/锚点对照，分类已对等/可离线缺口/需OCR模型/需账号设备",
+        "V2四层媒体面(MediaService上传/B站源+在线字幕+离线faster-whisper ASR锚点+有界等距抽帧宫格+media_list/media_transcript+授权/删除/未知/取消/恢复)确认对等基础",
+        "V1 tools/storyboard(HSV切点/密度分段/固定宫格/video_storyboard/video_zoom)经bootstrap注册V1 ToolRegistry，明确不计V2对等；切点/宫格/格号寻址/zoom/locate/清晰度选帧列可离线后续批次，字幕带/帧内OCR需rapidocr模型另验，不宣称五工具全集对等"
+      ],
+      "reference": "dsh-video-storyboard(e124ae6f, v0.6.0 Node ESM约11.8k LOC; scan.js HSV加权差切点/tiers.js 8档levelCurve/pack.js DP行打包/zoom.js格号->时间高清重取/subtitles.js+ocr_bridge.py rapidocr字幕带/locate.js转录LCS+帧内OCR/fetch.js yt-dlp+cookies/asr.js三级云SenseVoice/frames.js ffmpeg批抽+Laplacian选帧/format.js cell锚点0.01s分页)",
+      "delivered": "审计合同V2_VIDEO_STORYBOARD_AUDIT.md：V2四层生产媒体链(domain/media.py+application/media.py MediaService+adapters/workers/media.py PyAV/faster-whisper+media_repository，composition/instance.py:76,78,570装配)对照参考五工具+取流/ASR/抽帧/锚点；V2已对等或更严(上传/B站WBI直链不引yt-dlp/cookies、在线字幕无锚点、本地离线faster-whisper ASR锚点段、有界等距抽帧<=12帧固定2列宫格MM:SS标签timestamps+sha256已核验image对象、media_list/media_transcript有界窗<=12000、凭据/源CAS+删除屏障+未知结算+取消等待+启动恢复)；可离线缺口(HSV切点检测+密度分段替代等距、格号可寻址索引cell->绝对时间亚秒锚点、V2 video_zoom等价模型工具、转录LCS定位只读工具、Laplacian清晰度选帧；自适应宫格/DP打包需独立设计合同因V1有意拒绝变尺寸档位省视觉token)列后续批次经V2四层移植不复用V1 ToolRegistry；需OCR模型(字幕带+帧内OCR定位/ASR校正需rapidocr ONNX约250MB未捆绑独立provisioning合同)、需账号(真实B站送达/凭据质量、参考云ASR V2有意离线only)、需实机(真实视频视觉质量/长片扫描耗时内存/GPU hwaccel/whisper模型缓存)另验",
+      "contract": "docs/v2/contracts/V2_VIDEO_STORYBOARD_AUDIT.md",
+      "evidence": "docs/evidence/v2-video-storyboard-audit.json",
+      "limits": "只读审计无新工具/表/迁移/路由/源码改动；可离线缺口未在K16实现(列后续批次)；V1 tools/storyboard学习实现不计V2对等；不宣称五工具/算法全集对等；未引入OCR模型依赖；既有todos重启竞态与5个pin v2_0039旧迁移测试沿用保留",
+      "next": false
     },
     {
       "id": "K17",
       "title": "观影证据、信笺、反思和人格成长",
       "status": "partial_audit_pending",
       "remaining": "核对内容来源→信笺→待审反思→人格、修订/撤回及观影提问全链",
-      "reference": "dsh-bili-humanism"
+      "reference": "dsh-bili-humanism",
+      "next": true
     },
     {
       "id": "K18",
@@ -309,6 +318,10 @@
     {
       "id": "K15",
       "evidence": "docs/evidence/v2-persona-autonomy-audit.json"
+    },
+    {
+      "id": "K16",
+      "evidence": "docs/evidence/v2-video-storyboard-audit.json"
     }
   ]
 }
