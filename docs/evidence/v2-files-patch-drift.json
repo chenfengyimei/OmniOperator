@@ -1,0 +1,41 @@
+{
+  "schema": 1,
+  "date": "2026-11-20",
+  "batch": "K13.patch_drift",
+  "requirement": "K13",
+  "gap": "#2 模糊补丁之escape-drift自动纠正与boundary-note近似边界注记",
+  "status": "implemented_scoped_passed",
+  "contract": "docs/v2/contracts/V2_FILES_PATCH_DRIFT.md",
+  "reference": "xuexi/hermes-agent tools/escape_drift_autocorrect.py + tools/fuzzy_match.py boundary_note（固定提交 9976f485，独立实现未复制源码）",
+  "production_wiring": [
+    "agent/src/omni/domain/files_patch.py: correct_escape_drift（引号剥离+反斜杠减半，均须纠正后 old 字面在文件验证；new 未证明转义显式 patch_escape_drift 拒绝）/boundary_note（仅 block_anchor/context_aware）；patch_replace 返回四元组 (patched,count,strategy,note)，纠正在策略链前、identical 检查在纠正后",
+    "agent/src/omni/adapters/workers/main.py: 解包四元组，成功文本附 note，data 增 note；写管线（指纹 CAS/staging 复核/原子 publish/unknown 不重放/审批）不变，drift 歧义写前 ERROR/NONE",
+    "agent/src/omni/composition/capabilities.py: files_patch spec 描述更新，参数 schema 不变"
+  ],
+  "tests": {
+    "new_regressions": 15,
+    "existing_adapted": "41 项既有测试适配四元组返回（合法签名变更调用方适配，zoom_foundation 先例）",
+    "files_patch_total": 56,
+    "caller_suites": "files_patch 56 + worker_safety 31 + files_search 110 + routing 16",
+    "command": "uv run --no-sync pytest -q -n 0 agent/tests/v2/core/test_v2_files_patch.py agent/tests/v2/core/test_v2_worker_safety.py agent/tests/v2/core/test_v2_files_search.py agent/tests/v2/integrations/test_v2_routing.py",
+    "result": "213 passed, 0 failed",
+    "duration_seconds": 46.68,
+    "first_round_failures": [
+      "一处测试字符串字面量转义语法错误（\\\"end\\\"）改拼接修正",
+      "两 drift-skip 用例误断言 no_match：实际命中既有 context_aware 近似（x\\y vs x\\\\y sim=0.857、say \\\\'hi\\\\' vs say 'hi' sim≥0.8），drift 纠正未触发；断言改为策略 context_aware 且 note 不含 escape-drift，符合守卫语义",
+      "correction-then-identical 用例构造修正：new 无漂移时不触发引号纠正，改 old/new 同漂移经纠正后相同 → patch_identical"
+    ],
+    "post_format_rerun": "files_patch 56 passed (3.37s)"
+  },
+  "strict": {
+    "config": "pyrightconfig.strict.json（仓库根运行）",
+    "batch_files_errors": 0,
+    "preexisting_errors": "5 错误均既有他会话已提交 adapters/persistence/repository.py（6bcb0e98 L633/659/710），沿用前批纪律不追逐",
+    "new_source_files": 0
+  },
+  "ruff": "check 通过；format 仅本批测试长行折叠，4 文件终检干净",
+  "no_changes": "无新表/迁移/路由/worker 协议帧/源文件/跨平台改动；参数 schema 不变；routing 不变",
+  "limits": "参考匹配后 _detect_escape_drift 字面 \\n 拒绝与 _maybe_unescape_new_string 替换侧解转义仍后续；V4A 多文件格式仍后续；drift 纠正不绕过指纹 CAS/审批/unknown 不重放",
+  "full_suite_for_current_source": false,
+  "real_account_device_model_acceptance": false
+}

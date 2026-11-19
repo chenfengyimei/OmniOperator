@@ -8,7 +8,13 @@ import pytest
 
 from omni.adapters.workers.main import Worker
 from omni.domain.contracts import Effect, Outcome
-from omni.domain.files_patch import PATCH_STRING_CHARS, PatchError, is_already_applied, patch_replace
+from omni.domain.files_patch import (
+    PATCH_STRING_CHARS,
+    PatchError,
+    boundary_note,
+    is_already_applied,
+    patch_replace,
+)
 from omni.domain.routing import CHAT_TOOLS, RETRIEVAL_TOOLS, select_tools
 
 
@@ -21,13 +27,13 @@ def put(path: Path, text: str) -> None:
 
 
 def test_exact_unique_and_partial_line_replace():
-    assert patch_replace("hello world", "world", "there") == ("hello there", 1, "exact")
-    assert patch_replace("foo bar baz", "bar", "QUX") == ("foo QUX baz", 1, "exact")
+    assert patch_replace("hello world", "world", "there") == ("hello there", 1, "exact", None)
+    assert patch_replace("foo bar baz", "bar", "QUX") == ("foo QUX baz", 1, "exact", None)
 
 
 def test_exact_replace_all_is_non_overlapping():
-    assert patch_replace("a a a", "a", "b", replace_all=True) == ("b b b", 3, "exact")
-    assert patch_replace("ababab", "ab", "X", replace_all=True) == ("XXX", 3, "exact")
+    assert patch_replace("a a a", "a", "b", replace_all=True) == ("b b b", 3, "exact", None)
+    assert patch_replace("ababab", "ab", "X", replace_all=True) == ("XXX", 3, "exact", None)
 
 
 def test_exact_ambiguous_rejected_without_replace_all():
@@ -39,12 +45,12 @@ def test_exact_ambiguous_rejected_without_replace_all():
 def test_line_trimmed_matches_indent_drift():
     content = "def f():\n\treturn 1\n"
     out = patch_replace(content, "def f():\n    return 1\n", "def f():\n    return 2\n")
-    assert out == ("def f():\n    return 2\n", 1, "line_trimmed")
+    assert out == ("def f():\n    return 2\n", 1, "line_trimmed", None)
 
 
 def test_line_whitespace_matches_internal_drift():
     out = patch_replace("foo   bar\n", "foo bar\n", "foo baz\n")
-    assert out == ("foo baz\n", 1, "line_whitespace")
+    assert out == ("foo baz\n", 1, "line_whitespace", None)
 
 
 def test_line_trimmed_ambiguous_rejected():
@@ -54,7 +60,7 @@ def test_line_trimmed_ambiguous_rejected():
 
 
 def test_multiline_exact_window_replace():
-    assert patch_replace("a\nb\nc\nd\n", "b\nc", "X\nY") == ("a\nX\nY\nd\n", 1, "exact")
+    assert patch_replace("a\nb\nc\nd\n", "b\nc", "X\nY") == ("a\nX\nY\nd\n", 1, "exact", None)
 
 
 def test_strategy_precedence_exact_wins():
@@ -266,16 +272,16 @@ def test_files_patch_is_registered_write_and_agent_tier_only(tmp_path):
 
 
 def test_escape_normalized_matches_literal_newline_and_tab():
-    assert patch_replace("a\nb\n", "a\\nb", "X") == ("X\n", 1, "escape_normalized")
-    assert patch_replace("a\tb\n", "a\\tb", "X") == ("X\n", 1, "escape_normalized")
+    assert patch_replace("a\nb\n", "a\\nb", "X") == ("X\n", 1, "escape_normalized", None)
+    assert patch_replace("a\tb\n", "a\\tb", "X") == ("X\n", 1, "escape_normalized", None)
 
 
 def test_escape_normalized_replace_all_non_overlapping():
-    assert patch_replace("a\nb a\nb", "a\\nb", "X", replace_all=True) == ("X X", 2, "escape_normalized")
+    assert patch_replace("a\nb a\nb", "a\\nb", "X", replace_all=True) == ("X X", 2, "escape_normalized", None)
 
 
 def test_escape_normalized_only_fires_for_literal_escapes():
-    assert patch_replace("a\nb\n", "a\nb", "X") == ("X\n", 1, "exact")
+    assert patch_replace("a\nb\n", "a\nb", "X") == ("X\n", 1, "exact", None)
 
 
 def test_worker_patch_escape_normalized(tmp_path):
@@ -295,19 +301,19 @@ def test_worker_patch_escape_normalized(tmp_path):
 
 
 def test_unicode_normalized_smart_quotes():
-    assert patch_replace("\u201cfoo\u201d\n", '"foo"', "bar") == ("bar\n", 1, "unicode_normalized")
+    assert patch_replace("\u201cfoo\u201d\n", '"foo"', "bar") == ("bar\n", 1, "unicode_normalized", None)
 
 
 def test_unicode_normalized_em_dash_expansion_span():
-    assert patch_replace("a\u2014b\n", "a--b", "X") == ("X\n", 1, "unicode_normalized")
+    assert patch_replace("a\u2014b\n", "a--b", "X") == ("X\n", 1, "unicode_normalized", None)
 
 
 def test_unicode_normalized_ellipsis_expansion_span():
-    assert patch_replace("a\u2026b\n", "a...b", "X") == ("X\n", 1, "unicode_normalized")
+    assert patch_replace("a\u2026b\n", "a...b", "X") == ("X\n", 1, "unicode_normalized", None)
 
 
 def test_unicode_normalized_line_trimmed_fallback():
-    assert patch_replace("\u201cfoo\u201d  \n", '"foo"\n', "bar\n") == ("bar\n", 1, "unicode_normalized")
+    assert patch_replace("\u201cfoo\u201d  \n", '"foo"\n', "bar\n") == ("bar\n", 1, "unicode_normalized", None)
 
 
 def test_unicode_normalized_ambiguous_rejected():
@@ -342,12 +348,12 @@ def test_worker_patch_unicode_normalized(tmp_path):
 
 def test_indentation_drift_subsumed_by_line_trimmed():
     # Reference indentation_flexible (lstrip) is provably subsumed by line_trimmed (strip-all).
-    assert patch_replace("\tfoo\n", "    foo\n", "bar\n") == ("bar\n", 1, "line_trimmed")
+    assert patch_replace("\tfoo\n", "    foo\n", "bar\n") == ("bar\n", 1, "line_trimmed", None)
 
 
 def test_block_anchor_unique_middle_drift():
     out = patch_replace("head\nmiddle one\nfoot\n", "head\nmiddle two\nfoot\n", "head\nREPLACED\nfoot\n")
-    assert out == ("head\nREPLACED\nfoot\n", 1, "block_anchor")
+    assert out == ("head\nREPLACED\nfoot\n", 1, "block_anchor", boundary_note("block_anchor"))
 
 
 def test_block_anchor_rejects_low_similarity_middle():
@@ -366,7 +372,7 @@ def test_block_anchor_multiple_anchors_ambiguous_even_replace_all():
 
 def test_context_aware_approximate_boundary_lines():
     out = patch_replace("head one\nmiddle\nfoot one\n", "head onX\nmiddle\nfoot onX\n", "REPLACED\n")
-    assert out == ("REPLACED\n", 1, "context_aware")
+    assert out == ("REPLACED\n", 1, "context_aware", boundary_note("context_aware"))
 
 
 def test_context_aware_rejects_low_similarity_middle_line():
@@ -376,7 +382,12 @@ def test_context_aware_rejects_low_similarity_middle_line():
 
 
 def test_context_aware_single_line_last_resort():
-    assert patch_replace("hello world\n", "hello worlds\n", "X\n") == ("X\n", 1, "context_aware")
+    assert patch_replace("hello world\n", "hello worlds\n", "X\n") == (
+        "X\n",
+        1,
+        "context_aware",
+        boundary_note("context_aware"),
+    )
 
 
 def test_precise_strategy_wins_over_similarity():
@@ -423,5 +434,153 @@ def test_worker_patch_similarity_ambiguous_leaves_file_unchanged(tmp_path):
         assert result.status == Outcome.ERROR and result.effect == Effect.NONE
         assert result.error_code == "patch_ambiguous"
         assert (tmp_path / "a.txt").read_bytes() == content.encode("utf-8")
+
+    asyncio.run(scenario())
+
+
+def test_quote_drift_corrected_when_verified_against_file():
+    out = patch_replace("say 'hi'\n", "say \\'hi\\'", "say \\'yo\\'")
+    assert out == ("say 'yo'\n", 1, "exact", out[3])
+    assert isinstance(out[3], str) and "escape-drift auto-corrected" in out[3] and "quote" in out[3]
+
+
+def test_quote_drift_skipped_when_anchor_already_exact():
+    assert patch_replace("say \\'hi\\'\n", "say \\'hi\\'", "X") == ("X\n", 1, "exact", None)
+
+
+def test_quote_drift_skipped_when_bare_quote_mixes_with_escaped():
+    with pytest.raises(PatchError) as caught:
+        patch_replace("it's a 'test' plus more words here\n", "it\\'s a 'test'", "X")
+    assert caught.value.code == "patch_no_match"
+
+
+def test_quote_drift_skipped_for_longer_backslash_run():
+    out = patch_replace("say 'hi'\n", "say \\\\'hi\\\\'", "X")
+    assert out[2] == "context_aware"
+    assert "escape-drift" not in (out[3] or "")
+
+
+def test_quote_drift_unproven_replacement_kind_rejected():
+    with pytest.raises(PatchError) as caught:
+        patch_replace("say 'hi'\n", "say \\'hi\\'", "say \\'yo\\' " + '\\"end\\"')
+    assert caught.value.code == "patch_escape_drift"
+
+
+def test_backslash_doubling_halved_when_verified():
+    out = patch_replace("path C:\\temp\n", "path C:\\\\temp", "path D:/tmp")
+    assert out == ("path D:/tmp\n", 1, "exact", out[3])
+    assert isinstance(out[3], str) and "halved doubled backslash" in out[3]
+
+
+def test_backslash_doubling_with_replacement_backslashes_rejected():
+    with pytest.raises(PatchError) as caught:
+        patch_replace("path C:\\temp\n", "path C:\\\\temp", "path D:\\tmp")
+    assert caught.value.code == "patch_escape_drift"
+
+
+def test_backslash_odd_runs_not_corrected():
+    out = patch_replace("x\\\\y\n", "x\\y", "Z")
+    assert out[2] == "context_aware"
+    assert "escape-drift" not in (out[3] or "")
+
+
+def test_backslash_halved_anchor_absent_not_corrected():
+    with pytest.raises(PatchError) as caught:
+        patch_replace("zzz\n", "a\\\\b", "X")
+    assert caught.value.code == "patch_no_match"
+
+
+def test_correction_then_identical_rejected():
+    with pytest.raises(PatchError) as caught:
+        patch_replace("say 'hi'\n", "say \\'hi\\'", "say \\'hi\\'")
+    assert caught.value.code == "patch_identical"
+
+
+def test_boundary_note_only_for_similarity_strategies():
+    assert boundary_note("exact") is None
+    assert boundary_note("line_trimmed") is None
+    assert boundary_note("unicode_normalized") is None
+    for name in ("block_anchor", "context_aware"):
+        note = boundary_note(name)
+        assert isinstance(note, str) and name in note and "approximately" in note
+
+
+def test_worker_patch_quote_drift_applied_with_note(tmp_path):
+    put(tmp_path / "a.txt", "say 'hi'\n")
+
+    async def scenario():
+        result = await Worker().invoke(
+            "files_patch",
+            {
+                "path": "a.txt",
+                "old_string": "say \\'hi\\'",
+                "new_string": "say \\'yo\\'",
+                "expected_sha256": digest("say 'hi'\n"),
+            },
+            {"workspace": str(tmp_path)},
+        )
+        assert result.status == Outcome.OK and result.effect == Effect.APPLIED
+        assert (tmp_path / "a.txt").read_bytes() == b"say 'yo'\n"
+        assert isinstance(result.data["note"], str) and "escape-drift auto-corrected" in result.data["note"]
+        assert result.data["note"] in result.text
+        assert result.verification == digest("say 'yo'\n")
+
+    asyncio.run(scenario())
+
+
+def test_worker_patch_ambiguous_drift_rejected_before_write(tmp_path):
+    put(tmp_path / "a.txt", "path C:\\temp\n")
+
+    async def scenario():
+        result = await Worker().invoke(
+            "files_patch",
+            {
+                "path": "a.txt",
+                "old_string": "path C:\\\\temp",
+                "new_string": "path D:\\tmp",
+                "expected_sha256": digest("path C:\\temp\n"),
+            },
+            {"workspace": str(tmp_path)},
+        )
+        assert result.status == Outcome.ERROR and result.effect == Effect.NONE
+        assert result.error_code == "patch_escape_drift"
+        assert (tmp_path / "a.txt").read_bytes() == b"path C:\\temp\n"
+        assert not list(tmp_path.glob(".omni-write-*"))
+
+    asyncio.run(scenario())
+
+
+def test_worker_patch_similarity_note_surfaces(tmp_path):
+    put(tmp_path / "a.txt", "head\nmiddle one\nfoot\n")
+
+    async def scenario():
+        result = await Worker().invoke(
+            "files_patch",
+            {
+                "path": "a.txt",
+                "old_string": "head\nmiddle two\nfoot\n",
+                "new_string": "head\nREPLACED\nfoot\n",
+                "expected_sha256": digest("head\nmiddle one\nfoot\n"),
+            },
+            {"workspace": str(tmp_path)},
+        )
+        assert result.status == Outcome.OK and result.data["strategy"] == "block_anchor"
+        assert isinstance(result.data["note"], str) and "Non-exact match" in result.data["note"]
+        assert result.data["note"] in result.text
+
+    asyncio.run(scenario())
+
+
+def test_worker_patch_exact_note_none(tmp_path):
+    put(tmp_path / "a.txt", "hello world\n")
+
+    async def scenario():
+        result = await Worker().invoke(
+            "files_patch",
+            {"path": "a.txt", "old_string": "world", "new_string": "there", "expected_sha256": digest("hello world\n")},
+            {"workspace": str(tmp_path)},
+        )
+        assert result.status == Outcome.OK
+        assert result.data["note"] is None and result.text == "File patched"
 
     asyncio.run(scenario())

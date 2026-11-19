@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "2b05144a13f2553c675568e10797d44881b17f52f0f55d7a7d7baa13c907b7ee",
+  "source_sha256": "e5e50cc6877346c221078e0c353591489c2c5f33d24ec5cc7074db21a3a7787b",
   "modules": [
     {
       "id": "v2-domain",
@@ -90,7 +90,7 @@
         "agent/src/omni/domain/turn_prompt.py",
         "agent/src/omni/domain/verification_stop.py"
       ],
-      "lines": 12610,
+      "lines": 12697,
       "dependencies": []
     },
     {
@@ -79515,7 +79515,7 @@
       "path": "agent/src/omni/domain/files_patch.py",
       "module": "v2-domain",
       "python_module": "omni.domain.files_patch",
-      "lines": 258,
+      "lines": 345,
       "imports": [],
       "symbols": [
         {
@@ -79792,8 +79792,76 @@
           }
         },
         {
+          "name": "_halve_backslash_runs",
+          "line": 226,
+          "kind": "function",
+          "parameters": [
+            "text"
+          ],
+          "annotations": {
+            "text": "str"
+          }
+        },
+        {
+          "name": "_all_backslash_runs_even",
+          "line": 230,
+          "kind": "function",
+          "parameters": [
+            "text"
+          ],
+          "annotations": {
+            "text": "str"
+          }
+        },
+        {
+          "name": "_strip_spurious_quote_escapes",
+          "line": 234,
+          "kind": "function",
+          "parameters": [
+            "text"
+          ],
+          "annotations": {
+            "text": "str"
+          }
+        },
+        {
+          "name": "_quote_escapes_all_spurious",
+          "line": 238,
+          "kind": "function",
+          "parameters": [
+            "*strings"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "correct_escape_drift",
+          "line": 251,
+          "kind": "function",
+          "parameters": [
+            "content",
+            "old_string",
+            "new_string"
+          ],
+          "annotations": {
+            "content": "str",
+            "old_string": "str",
+            "new_string": "str"
+          }
+        },
+        {
+          "name": "boundary_note",
+          "line": 286,
+          "kind": "function",
+          "parameters": [
+            "strategy"
+          ],
+          "annotations": {
+            "strategy": "str"
+          }
+        },
+        {
           "name": "patch_replace",
-          "line": 215,
+          "line": 298,
           "kind": "function",
           "parameters": [
             "content",

@@ -212,14 +212,99 @@ def is_already_applied(content: str, old_string: str, new_string: str) -> bool:
     return old_string == new_string or old_string not in content
 
 
+_BACKSLASH_RUN = re.compile(r"\\+")
+_QUOTE_NOTE = (
+    "escape-drift auto-corrected: stripped a spurious backslash before a quote/apostrophe "
+    "in old_string/new_string (a JSON-double-escaping wire artifact) before matching."
+)
+_BACKSLASH_NOTE = (
+    "escape-drift auto-corrected: halved doubled backslash runs in old_string "
+    "(a JSON-double-escaping wire artifact) before matching; new_string had no backslashes."
+)
+
+
+def _halve_backslash_runs(text: str) -> str:
+    return _BACKSLASH_RUN.sub(lambda m: "\\" * (len(m.group(0)) // 2), text)
+
+
+def _all_backslash_runs_even(text: str) -> bool:
+    return all(len(run) % 2 == 0 for run in _BACKSLASH_RUN.findall(text))
+
+
+def _strip_spurious_quote_escapes(text: str) -> str:
+    return text.replace("\\'", "'").replace('\\"', '"')
+
+
+def _quote_escapes_all_spurious(*strings: str) -> bool:
+    # The wire artifact escapes a touched quote kind at EVERY occurrence by exactly one
+    # backslash; a bare quote or a longer run means an intended escape, indistinguishable.
+    for quote in ("'", '"'):
+        escaped = "\\" + quote
+        if not any(escaped in s for s in strings):
+            continue
+        pattern = re.compile(r"(\\*)" + quote)
+        if any(len(m.group(1)) != 1 for s in strings for m in pattern.finditer(s)):
+            return False
+    return True
+
+
+def correct_escape_drift(content: str, old_string: str, new_string: str) -> tuple[str, str, str | None]:
+    """Verified pre-match correction of JSON-double-escaping drift; raises PatchError when ambiguous.
+
+    Corrections require the corrected old_string to appear verbatim in the file. New code's
+    intended escaping cannot be proven, so a verified doubled anchor with replacement
+    backslashes (or a quote kind only new_string escapes) is rejected, never guessed.
+    """
+    suspect = ("\\'" in old_string and "\\'" in new_string) or ('\\"' in old_string and '\\"' in new_string)
+    if suspect and old_string not in content and _quote_escapes_all_spurious(old_string, new_string):
+        stripped_old = _strip_spurious_quote_escapes(old_string)
+        if stripped_old in content:
+            unproven = [q for q in ("'", '"') if "\\" + q in new_string and "\\" + q not in old_string]
+            if unproven:
+                shown = " and ".join("\\" + q for q in unproven)
+                raise PatchError(
+                    "patch_escape_drift",
+                    "Escape-drift detected: removing the spurious quote escapes in old_string matches "
+                    f"the file, but new_string also contains {shown}, which old_string gives no evidence "
+                    "for. Re-read the file and resend old_string/new_string with their intended escaping.",
+                )
+            return stripped_old, _strip_spurious_quote_escapes(new_string), _QUOTE_NOTE
+    if "\\" in old_string and old_string not in content and _all_backslash_runs_even(old_string):
+        halved_old = _halve_backslash_runs(old_string)
+        if halved_old in content:
+            if "\\" in new_string:
+                raise PatchError(
+                    "patch_escape_drift",
+                    "Escape-drift detected: halving old_string's backslashes matches the file, "
+                    "but correcting new_string could remove intentional backslashes. "
+                    "Re-read the file and resend old_string/new_string with their intended escaping.",
+                )
+            return halved_old, new_string, _BACKSLASH_NOTE
+    return old_string, new_string, None
+
+
+def boundary_note(strategy: str) -> str | None:
+    """Warning for spans located approximately; normalizing strategies match every line exactly."""
+    if strategy not in SIMILARITY_STRATEGIES:
+        return None
+    return (
+        f"Non-exact match (strategy: {strategy}). The edit span was located approximately, "
+        "not matched to old_string's literal boundaries — review the change to confirm it landed "
+        "exactly where intended (a shifted boundary can duplicate or drop a line just outside "
+        "the edited region)."
+    )
+
+
 def patch_replace(
     content: str, old_string: object, new_string: object, *, replace_all: bool = False
-) -> tuple[str, int, str]:
+) -> tuple[str, int, str, str | None]:
     """Unique fuzzy search-replace via an ordered normalizing strategy chain.
 
-    Returns (new_content, match_count, strategy). Ambiguous matches are rejected unless
-    replace_all; approximate similarity matches (block_anchor/context_aware) never allow
-    replace_all. Blank/identical anchors and no-match are explicit errors, never silent edits.
+    Returns (new_content, match_count, strategy, note). Verified escape-drift correction runs
+    before matching; the note reports any correction and/or an approximate-boundary warning.
+    Ambiguous matches are rejected unless replace_all; approximate similarity matches
+    (block_anchor/context_aware) never allow replace_all. Blank/identical anchors, ambiguous
+    escape drift and no-match are explicit errors, never silent edits.
     """
     if not isinstance(old_string, str) or not isinstance(new_string, str):
         raise PatchError("patch_invalid", "old_string and new_string must be strings")
@@ -227,6 +312,7 @@ def patch_replace(
         raise PatchError("patch_invalid", "old_string must be non-blank text to match")
     if len(old_string) > PATCH_STRING_CHARS or len(new_string) > PATCH_STRING_CHARS:
         raise PatchError("patch_invalid", "old_string/new_string exceed the bounded length")
+    old_string, new_string, correction = correct_escape_drift(content, old_string, new_string)
     if old_string == new_string:
         raise PatchError("patch_identical", "old_string and new_string are identical")
     strategies: tuple[tuple[str, Callable[[str, str], list[Span]]], ...] = (
@@ -252,7 +338,8 @@ def patch_replace(
         patched = content
         for start, end in reversed(spans):
             patched = patched[:start] + new_string + patched[end:]
-        return patched, len(spans), name
+        note = "; ".join(part for part in (correction, boundary_note(name)) if part) or None
+        return patched, len(spans), name, note
     if is_already_applied(content, old_string, new_string):
         raise PatchError("patch_already_applied", "The replacement is already present and old_string is gone")
     raise PatchError("patch_no_match", "Could not find a match for old_string in the file")

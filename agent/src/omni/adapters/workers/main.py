@@ -296,7 +296,7 @@ class Worker:
             if type(replace_all) is not bool:
                 raise ValueError("replace_all must be a boolean")
             try:
-                patched, count, strategy = patch_replace(
+                patched, count, strategy, note = patch_replace(
                     raw.decode("utf-8-sig"),
                     args.get("old_string"),
                     args.get("new_string"),
@@ -324,10 +324,10 @@ class Worker:
             digest = hashlib.sha256(payload).hexdigest()
             return ActionResult(
                 Outcome.OK,
-                "File patched",
+                "File patched" + (f"\n{note}" if note else ""),
                 Effect.APPLIED,
                 verification=digest,
-                data={"sha256": digest, "replacements": count, "strategy": strategy},
+                data={"sha256": digest, "replacements": count, "strategy": strategy, "note": note},
             )
         raise ValueError("Unknown file capability")
 
