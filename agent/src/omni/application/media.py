@@ -33,6 +33,7 @@ from ..domain.media import (
     transcript_text,
     upload_source_row,
 )
+from ..domain.media_locate import match_segments, normalize_limit, normalize_query, render_locate
 from .images import ImageService
 from .objects import ObjectService
 from .ports import Clock, DatabasePort, Record, UnitOfWork
@@ -62,6 +63,24 @@ TRANSCRIPT_SPEC = ToolSpec(
             "length": {"type": "integer", "minimum": 1, "maximum": 12000},
         },
         "required": ["source_id"],
+        "additionalProperties": False,
+    },
+    timeout_s=10,
+    resource="media",
+)
+LOCATE_SPEC = ToolSpec(
+    "media_locate",
+    "Search a registered media source's anchored transcript for a query; returns best-matching "
+    "[MM:SS-MM:SS] segments with scores. Reads transcript anchors, not memory_search.",
+    {
+        "type": "object",
+        "properties": {
+            "source_id": {"type": "string", "format": "uuid"},
+            "transcript_id": {"type": "string", "format": "uuid"},
+            "query": {"type": "string", "minLength": 1, "maxLength": 200},
+            "limit": {"type": "integer", "minimum": 1, "maximum": 8},
+        },
+        "required": ["source_id", "query"],
         "additionalProperties": False,
     },
     timeout_s=10,
@@ -549,6 +568,40 @@ class MediaService:
 
         return await self._run_bounded(perform())
 
+    async def locate(
+        self, agent_id: str, source_id: str, transcript_id: str | None, query: object, limit: object
+    ) -> Record:
+        return await self._run_bounded(
+            self._locate(agent_id, source_id, transcript_id, query, limit), task_name="media-locate"
+        )
+
+    async def _locate(
+        self, agent_id: str, source_id: str, transcript_id: str | None, query: object, limit: object
+    ) -> Record:
+        text_query = normalize_query(query)
+        count = normalize_limit(limit)
+        row = (
+            await self._db.read(lambda u: u.media_transcript_get(agent_id, transcript_id))
+            if transcript_id
+            else await self._db.read(lambda u: u.media_transcript_latest(agent_id, source_id))
+        )
+        if str(row["source_id"]) != source_id:
+            raise BusinessError("media_transcript_not_found", "Transcript does not belong to this source", status=404)
+        full = await self._read_transcript(agent_id, str(row["id"]))
+        segments = cast(list[list[object]], full["segments"])
+        matches = match_segments(text_query, segments, count)
+        body = render_locate(text_query, str(full["kind"]), matches, len(segments))
+        return {
+            "transcript_id": row["id"],
+            "source_id": source_id,
+            "kind": full["kind"],
+            "language": full["language"],
+            "query": text_query,
+            "total_segments": len(segments),
+            "matches": cast(JSON, matches),
+            "text": body,
+        }
+
     async def frames(self, agent_id: str, frames_id: str) -> Record:
         return await self._db.read(lambda u: u.media_frames_get(agent_id, frames_id))
 
@@ -596,6 +649,15 @@ class MediaService:
                     f"range={window['start']}:{window['end']} of {window['total_chars']} chars"
                 )
                 return ActionResult(Outcome.OK, header + "\n" + str(window["text"]), data=window)
+            if name == LOCATE_SPEC.name:
+                located = await self.locate(
+                    context.agent_id,
+                    str(arguments["source_id"]),
+                    str(arguments["transcript_id"]) if arguments.get("transcript_id") else None,
+                    arguments["query"],
+                    arguments.get("limit"),
+                )
+                return ActionResult(Outcome.OK, str(located["text"]), data=located)
         except BusinessError as exc:
             return ActionResult(Outcome.ERROR, exc.message, error_code=exc.code)
         return ActionResult(Outcome.ERROR, "Unknown media capability", error_code="tool_not_found")

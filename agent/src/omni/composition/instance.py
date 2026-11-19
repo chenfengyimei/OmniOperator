@@ -74,6 +74,7 @@ from ..application.images import ImageService
 from ..application.maintenance import MaintenanceService
 from ..application.mcp import MCPService, MCPTransportPort
 from ..application.media import LIST_SPEC as MEDIA_LIST
+from ..application.media import LOCATE_SPEC as MEDIA_LOCATE
 from ..application.media import TRANSCRIPT_SPEC as MEDIA_TRANSCRIPT
 from ..application.media import BilibiliMediaPort, MediaProcessingPort, MediaService
 from ..application.memory_organization import MemoryOrganizationService
@@ -640,6 +641,7 @@ async def open_instance(
                 Capability(BILIBILI_PREPARE, bilibili),
                 Capability(MEDIA_LIST, media),
                 Capability(MEDIA_TRANSCRIPT, media),
+                Capability(MEDIA_LOCATE, media),
                 Capability(ANDROID_ACCESS, android, android.quiescent),
                 Capability(ANDROID_OBSERVE, android, android.quiescent),
                 Capability(ANDROID_MODEL, android, android.quiescent),
