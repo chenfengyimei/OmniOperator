@@ -28,6 +28,7 @@ KINDS = frozenset(
         "run.cancelled",
         "action.prepared",
         "action.completed",
+        "model.completed",
     }
 )
 KEYS = frozenset({"format", "policy", "epoch", "agent_id", "revision", "as_of", "high_water", "position"})

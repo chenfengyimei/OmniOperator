@@ -692,6 +692,7 @@ actions = scoped(
     Column("effect", String(20), nullable=False, default="none"),
     Column("policy_revision", Integer, nullable=False),
     Column("result", JSON),
+    Column("started_at", String(40)),
     Column("ended_at", String(40)),
     scoped_fk("run_id", "runs"),
     CheckConstraint(

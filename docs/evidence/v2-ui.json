@@ -1,7 +1,7 @@
 {
   "batch": "v2-ui-connection-stability-v128",
   "recorded_at": "2026-11-15",
-  "resource_version_final": "20261119v158",
+  "resource_version_final": "20261119v159",
   "v1_alignment": {
     "summary": "用户提供 V1 正式工作台截图后，直接精读 web/ui/workbench.css 的 V1 实现并逐项移植，使 V2 结构与 V1 一致（而非自创风格）。",
     "ported_from_v1": [
@@ -1319,6 +1319,24 @@
       "模型页实测": "12/12",
       "专项": "60 passed",
       "全站": "76/76"
+    }
+  },
+  "callchain_md_realtime": {
+    "需求": "V2调用链对齐V1:每步参数/耗时/模型步+Markdown+实时查看",
+    "交付": [
+      "action.prepared/completed事件附args_excerpt/excerpt/elapsed_ms",
+      "actions加started_at列(v0041)+v0045幂等补列治愈已迁移库",
+      "settle_call落model.completed事件(step/mode/text_chars/上报token)",
+      "调用链交织渲染模型步+工具步,每步带入/出token",
+      "助手消息接OmniMarkdown渲染+移植md样式",
+      "运行中live-chain容器随轮询实时刷新"
+    ],
+    "验证": {
+      "带工具真实运行": "succeeded,事件含token/摘录",
+      "schema守卫": "11 passed",
+      "结算内核": "31 passed",
+      "路由": "17 passed",
+      "截图": "模型步token+工具耗时+md列表正常"
     }
   }
 }

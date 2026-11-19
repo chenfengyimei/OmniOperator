@@ -44,6 +44,18 @@ from .terminal_review_repository import TerminalReviewRepositories
 from .todo_repository import TodoRepositories
 
 
+def _json_excerpt(arguments: Record) -> str:
+    """工具入参摘录（调用链可视化，对齐 V1 _args_excerpt）：JSON 文本过长截断。"""
+    raw = json.dumps(arguments, ensure_ascii=False, separators=(",", ":"))
+    return raw[:240] + ("…" if len(raw) > 240 else "")
+
+
+def _text_excerpt(text: str) -> str:
+    """工具结果摘录（对齐 V1 _result_excerpt）：不把长输出整段塞进事件流。"""
+    raw = str(text or "")
+    return raw[:240] + ("…" if len(raw) > 240 else "")
+
+
 class Repositories(
     DelegationRepositories,
     TodoRepositories,
@@ -653,6 +665,34 @@ class Repositories(
                 ended_at=self.clock.now(),
             )
         )
+        # 调用链可视化（对齐 V1 model_end）：主对话调用落「模型调用第 N 步」事件，
+        # 带档位、返回字数与上报 token；摘要/预检调用不发，不扰乱工具链。
+        if call["purpose"] == "turn" and not known_not_sent:
+            route = (
+                self.connection.execute(
+                    select(s.model_call_routes.c.ordinal, s.model_call_routes.c.mode).where(
+                        s.model_call_routes.c.call_id == call_id,
+                        s.model_call_routes.c.agent_id == agent_id,
+                    )
+                )
+                .mappings()
+                .first()
+            )
+            self.event(
+                agent_id,
+                cast(str, call["run_id"]),
+                "model.completed",
+                {
+                    "call_id": call_id,
+                    "step": int(route["ordinal"]) if route else None,
+                    "mode": str(route["mode"]) if route else None,
+                    "text_chars": len(reply.text) if reply else 0,
+                    "tool_calls": [c.name for c in reply.calls] if reply else [],
+                    "input_tokens": reply.input_tokens if reply else None,
+                    "output_tokens": reply.output_tokens if reply else None,
+                    "state": state,
+                },
+            )
 
     def prepare_action(self, agent_id: str, run_id: str, spec: ToolSpec, arguments: Record, policy: int) -> Record:
         run = self.get_run(agent_id, run_id)
@@ -708,7 +748,15 @@ class Repositories(
             agent_id,
             run_id,
             "action.prepared",
-            {"action_id": action["id"], "tool": spec.name, "requires_approval": spec.writes},
+            {
+                "action_id": action["id"],
+                "tool": spec.name,
+                "requires_approval": spec.writes,
+                # 调用链可视化（对齐 V1）：入参摘录只进本库事件流——模型上下文
+                # 全文本来就在这里，不新增隐私面；截断防长参数撑爆事件。
+                "args_excerpt": _json_excerpt(arguments),
+                "arguments_sha256": digest,
+            },
         )
         return action
 
@@ -774,7 +822,9 @@ class Repositories(
             )
             if approval["state"] != "approved" or approval["expires_at"] <= self.clock.now():
                 raise BusinessError("approval_expired", "Action approval has expired")
-        self.connection.execute(update(s.actions).where(s.actions.c.id == action_id).values(state="executing"))
+        self.connection.execute(
+            update(s.actions).where(s.actions.c.id == action_id).values(state="executing", started_at=self.clock.now())
+        )
         self.audit(agent_id, "action.executing", action_id, {"tool": action["tool"]})
         return action
 
@@ -874,11 +924,29 @@ class Repositories(
             action_id,
             {"effect": result.effect.value, "error_code": result.error_code},
         )
+        elapsed_ms: int | None = None
+        if action.get("started_at"):
+            try:
+                delta = (
+                    dt.datetime.fromisoformat(self.clock.now()) - dt.datetime.fromisoformat(str(action["started_at"]))
+                ).total_seconds() * 1000
+                if delta >= 0:
+                    elapsed_ms = int(delta)
+            except ValueError:
+                elapsed_ms = None
         self.event(
             agent_id,
             cast(str, action["run_id"]),
             "action.completed",
-            {"action_id": action_id, "status": result.status.value, "effect": result.effect.value},
+            {
+                "action_id": action_id,
+                "status": result.status.value,
+                "effect": result.effect.value,
+                # 调用链可视化（对齐 V1）：结果摘录与执行耗时（不含审批等待）。
+                "excerpt": _text_excerpt(result.text),
+                "elapsed_ms": elapsed_ms,
+                "error_code": result.error_code,
+            },
         )
 
     def action(self, agent_id: str, action_id: str) -> Record:

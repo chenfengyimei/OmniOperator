@@ -1,32 +1,32 @@
-import { mountSkills } from './skills.js?v=20261119v158';
-import { mountCredentials } from './credentials.js?v=20261119v158';
-import { mountAuditHistory, mountOperations } from './operations.js?v=20261119v158';
-import { mountCapabilities } from './capabilities.js?v=20261119v158';
-import { mountTokens } from './tokens.js?v=20261119v158';
-import { mountDocuments } from './documents.js?v=20261119v158';
-import { mountConfiguration } from './configuration.js?v=20261119v158';
-import { mountModels } from './models.js?v=20261119v158';
+import { mountSkills } from './skills.js?v=20261119v159';
+import { mountCredentials } from './credentials.js?v=20261119v159';
+import { mountAuditHistory, mountOperations } from './operations.js?v=20261119v159';
+import { mountCapabilities } from './capabilities.js?v=20261119v159';
+import { mountTokens } from './tokens.js?v=20261119v159';
+import { mountDocuments } from './documents.js?v=20261119v159';
+import { mountConfiguration } from './configuration.js?v=20261119v159';
+import { mountModels } from './models.js?v=20261119v159';
 import { ask } from '../dialog.js?v=20261103v7';
-import { mountPeople } from './people.js?v=20261119v158';
-import { mountDeliveries } from './deliveries.js?v=20261119v158';
-import { mountSchedules } from './schedules.js?v=20261119v158';
-import { mountMemorySemantics } from './memory-semantics.js?v=20261119v158';
-import { mountMemoryOrganization } from './memory-organization.js?v=20261119v158';
-import { mountExtensions } from './extensions.js?v=20261119v158';
-import { mountActionReviews } from './action-reviews.js?v=20261119v158';
-import { mountTerminals } from './terminals.js?v=20261119v158';
-import { mountDesktop } from './desktop.js?v=20261119v158';
-import { mountQQ } from './qq.js?v=20261119v158';
-import { mountBilibili } from './bilibili.js?v=20261119v158';
-import { mountMedia } from './media.js?v=20261119v158';
-import { mountMcp } from './mcp.js?v=20261119v158';
-import { mountAndroid } from './android.js?v=20261119v158';
-import { mountModelOutput } from './model-output.js?v=20261119v158';
-import { mountRouting } from './routing.js?v=20261119v158';
-import { mountChatImages } from './chat-images.js?v=20261119v158';
-import { mountInspector } from './inspector.js?v=20261119v158';
-import { mountSettingsRail } from './settings-rail.js?v=20261119v158';
-import { mountEventStream } from './event-stream.js?v=20261119v158';
+import { mountPeople } from './people.js?v=20261119v159';
+import { mountDeliveries } from './deliveries.js?v=20261119v159';
+import { mountSchedules } from './schedules.js?v=20261119v159';
+import { mountMemorySemantics } from './memory-semantics.js?v=20261119v159';
+import { mountMemoryOrganization } from './memory-organization.js?v=20261119v159';
+import { mountExtensions } from './extensions.js?v=20261119v159';
+import { mountActionReviews } from './action-reviews.js?v=20261119v159';
+import { mountTerminals } from './terminals.js?v=20261119v159';
+import { mountDesktop } from './desktop.js?v=20261119v159';
+import { mountQQ } from './qq.js?v=20261119v159';
+import { mountBilibili } from './bilibili.js?v=20261119v159';
+import { mountMedia } from './media.js?v=20261119v159';
+import { mountMcp } from './mcp.js?v=20261119v159';
+import { mountAndroid } from './android.js?v=20261119v159';
+import { mountModelOutput } from './model-output.js?v=20261119v159';
+import { mountRouting } from './routing.js?v=20261119v159';
+import { mountChatImages } from './chat-images.js?v=20261119v159';
+import { mountInspector } from './inspector.js?v=20261119v159';
+import { mountSettingsRail } from './settings-rail.js?v=20261119v159';
+import { mountEventStream } from './event-stream.js?v=20261119v159';
 // 直接复用 V1 的 rail 提示浮层模块（data-tip → #tip-layer），不自创实现
 import '../app/tips.js?v=20261103u5';
 
@@ -322,13 +322,13 @@ function themeLabel() {
 }
 const runToolsCache = new Map();
 // 一轮运行即使没有工具调用，也有档位选择与模型调用的输入输出，这些都要能查看
-async function loadRunTrace(runId) {
+async function loadRunTrace(runId, { fresh = false } = {}) {
   if (!runId) return null;
-  if (runToolsCache.has(runId)) return runToolsCache.get(runId);
+  if (!fresh && runToolsCache.has(runId)) return runToolsCache.get(runId);
   const data = await api(scope(`/runs/${runId}/events?limit=200`));
   const items = data.items || [];
   const trace = {
-    tools: items.filter((row) => /^(tool|action)\./.test(String(row.kind || ''))),
+    tools: items.filter((row) => /^(tool|action|model)\./.test(String(row.kind || ''))),
     routing: items.find((row) => String(row.kind) === 'routing.selected') || null,
     report: null,
   };
@@ -395,27 +395,34 @@ function scafRow(cls, icon, label, arg, time, detail) {
 const durText = (ms) => (ms == null ? '' : ms >= 1000 ? `${(ms / 1000).toFixed(1)}s` : `${Math.round(ms)}ms`);
 
 function renderToolBlock(node, trace) {
-  if (!trace || node.querySelector('.scaffolds')) return;
-  const rows = trace.tools || [];
+  if (!trace) return;
+  const rows = (trace.tools || []).slice().sort((a, b) => (a.seq || 0) - (b.seq || 0));
   const completed = new Map();
   for (const row of rows) {
     const data = typeof row.data === 'object' && row.data ? row.data : {};
     if (String(row.kind) === 'action.completed' && data.action_id) completed.set(String(data.action_id), row);
   }
   const prepared = rows.filter((row) => String(row.kind) === 'action.prepared');
-  const steps = prepared.length ? prepared : rows;
+  const modelRows = rows.filter((row) => String(row.kind) === 'model.completed');
   const names = new Set();
-  for (const row of steps) {
+  for (const row of prepared) {
     const data = typeof row.data === 'object' && row.data ? row.data : {};
-    const name = row.tool || data.tool || data.name;
+    const name = row.tool || data.tool;
     if (name) names.add(String(name));
   }
-  // 没有真实工具步骤就不挂链：技术计量在右栏，对话区不留空壳
-  if (!steps.length) return;
+  // 无工具也无模型步就不挂链（纯聊天首句等），避免空壳
+  if (!prepared.length && !modelRows.length) return;
 
+  // 实时重建：保留展开状态，移除旧链再建（运行中逐步刷新用）
+  const old = node.querySelector('.scaffolds');
+  const openSet = new Set();
+  if (old) {
+    old.querySelectorAll('.scaf.open').forEach((r) => openSet.add(r.dataset.key || ''));
+    if (!old.classList.contains('open')) openSet.add('__collapsed__');
+    old.remove();
+  }
   const box = document.createElement('div');
-  // 参考原型里调用链是直接可见的，默认展开；开关仍可收起
-  box.className = 'scaffolds open';
+  box.className = 'scaffolds' + (openSet.has('__collapsed__') ? '' : ' open');
   const toggle = document.createElement('div');
   toggle.className = 'scaf-toggle';
   toggle.dataset.action = 'toggle-chain';
@@ -426,7 +433,7 @@ function renderToolBlock(node, trace) {
   tName.textContent = '调用过程';
   const tMeta = document.createElement('span');
   tMeta.className = 'scaf-toggle-meta';
-  tMeta.textContent = `· ${steps.length} 步${names.size ? ` · ${names.size} 个工具` : ''}`;
+  tMeta.textContent = `· ${prepared.length} 步${names.size ? ` · ${names.size} 个工具` : ''}`;
   const chev = document.createElement('span');
   chev.className = 'chev';
   const chevIcon = document.createElement('span');
@@ -436,9 +443,6 @@ function renderToolBlock(node, trace) {
   toggle.append(tIcon, tName, tMeta, chev);
   box.append(toggle);
 
-  // 所有者要求调用过程更详细：补「本轮档位 + 输入/输出 token」汇总行。
-  // 数据来自路由报告（右栏同源）：模式给中文标签；token 优先用供应商上报的
-  // 真实用量，未上报时回退到本地估算并明确标注口径，绝不把估算冒充真实值。
   const MODE_LABEL = { chat: '聊天', retrieval: '检索', agent: '完整' };
   const report = trace.report;
   if (report?.route?.recorded) {
@@ -459,9 +463,6 @@ function renderToolBlock(node, trace) {
     const realIn = sum('input_tokens'),
       realOut = sum('output_tokens'),
       estIn = sum('input_token_estimate');
-    // 口径标清：本地估算含「系统提示+历史+全部工具规格」，是完整输入上界；
-    // 供应商上报值可能不含工具规格（离线 stub 固定小值），二者并列标注，
-    // 避免把上报小值误读成完整档的总输入（所有者质疑 180 太小）。
     const inText =
       estIn !== null
         ? `输入估算 ${estIn} token（含工具）` + (realIn !== null ? ` · 上报 ${realIn}` : '')
@@ -485,8 +486,6 @@ function renderToolBlock(node, trace) {
     box.append(summary);
   }
 
-  // 档位与模型计量属于技术详情，已移入右栏「运行」页签；
-  // 对话内的链只呈现真实工具步骤，与参考原型一致。
   const STATE = {
     ok: ['done', 'check'],
     error: ['fail', 'error'],
@@ -494,36 +493,57 @@ function renderToolBlock(node, trace) {
     cancelled: ['fail', 'block'],
     unknown: ['fail', 'help'],
   };
-  for (const row of steps.slice(0, 40)) {
+  // 按事件顺序交织渲染「模型调用步」与「工具步」，对齐 V1 逐步可读。
+  const ordered = rows.filter((r) => ['action.prepared', 'model.completed'].includes(String(r.kind)));
+  let stepNo = 0;
+  for (const row of ordered.slice(0, 60)) {
     const data = typeof row.data === 'object' && row.data ? row.data : {};
+    if (String(row.kind) === 'model.completed') {
+      stepNo += 1;
+      const mode = MODE_LABEL[data.mode] || data.mode || '';
+      const label = `模型调用第 ${data.step ?? stepNo} 步`;
+      const tok =
+        typeof data.input_tokens === 'number' || typeof data.output_tokens === 'number'
+          ? ` · 入 ${data.input_tokens ?? '?'} / 出 ${data.output_tokens ?? '?'} token`
+          : '';
+      const arg = `返回 ${data.text_chars ?? 0} 字${mode ? ` · ${mode}` : ''}${tok}`;
+      const item = scafRow('done', 'smart_toy', label, arg, '', false);
+      item.dataset.key = `m${data.call_id || stepNo}`;
+      box.append(item);
+      continue;
+    }
     const done = data.action_id ? completed.get(String(data.action_id)) : null;
     const doneData = done && typeof done.data === 'object' ? done.data : {};
-    const state = doneData.status || 'unknown';
-    let ms = data.duration_ms ?? data.elapsed_ms ?? data.ms;
+    const state = doneData.status || (done ? 'unknown' : 'running');
+    let ms = doneData.elapsed_ms ?? data.elapsed_ms;
     if (typeof ms !== 'number' && done && row.created_at && done.created_at) {
       const delta = Date.parse(done.created_at) - Date.parse(row.created_at);
       if (Number.isFinite(delta) && delta >= 0) ms = delta;
     }
-    const [cls, icon] = STATE[state] || STATE.unknown;
-    const toolName = String(row.tool || data.tool || row.kind || 'tool').replace(/^(tool|action)\./, '');
-    // 只有「写入长期记忆」才用参考原型的渐变高亮；只读检索不算沉淀
+    const [cls, icon] = STATE[state] || ['run', 'progress_activity'];
+    const toolName = String(row.tool || data.tool || 'tool').replace(/^(tool|action)\./, '');
     const isMemory = /(^|\.)(remember|resident_memory|memory_(add|write|save|update))$/.test(toolName);
+    // 入参摘录直接上链（对齐 V1），不再只显示「只读/需审批」
+    const argText = String(data.args_excerpt || (data.requires_approval ? '写动作 · 需审批' : ''));
     const item = scafRow(
       `${done ? cls : 'run'}${isMemory && done && cls === 'done' ? ' legend' : ''}`,
       isMemory ? 'auto_awesome' : done ? icon : 'progress_activity',
       toolName,
-      data.requires_approval ? '写动作 · 需审批' : '只读 · 无需审批',
+      argText,
       durText(ms),
       true,
     );
+    item.dataset.key = String(data.action_id || toolName);
+    if (openSet.has(item.dataset.key)) item.classList.add('open');
     box.append(item);
     const out = document.createElement('div');
     out.className = 'scaf-out';
     const fp = String(data.arguments_sha256 || '');
     out.textContent =
       `状态 ${state}｜副作用 ${doneData.effect || 'none'}\n` +
-      (fp ? `参数指纹 sha256:${fp}\n` : '') +
-      '参数与结果原文已留存；所有者接口按设计不外发。';
+      (data.args_excerpt ? `入参 ${data.args_excerpt}\n` : '') +
+      (doneData.excerpt ? `结果 ${doneData.excerpt}\n` : '') +
+      (fp ? `参数指纹 sha256:${fp}` : '');
     box.append(out);
   }
   node.append(box);
@@ -829,6 +849,7 @@ function setThinking(active) {
   const existing = node.querySelector('.thinking-indicator');
   if (!active) {
     existing?.remove();
+    node.querySelector('#live-chain')?.remove();
     return;
   }
   if (existing) return;
@@ -848,7 +869,19 @@ function setThinking(active) {
   }
   box.append(label, dots);
   node.append(box);
+  // 实时调用链容器（对齐 V1 随时可看每一步）：运行中逐步刷新
+  const live = document.createElement('div');
+  live.id = 'live-chain';
+  live.dataset.role = 'assistant';
+  node.append(live);
   node.scrollTop = node.scrollHeight;
+}
+async function renderLiveChain(runId) {
+  const host = document.getElementById('live-chain');
+  if (!host || !runId) return;
+  const trace = await loadRunTrace(runId, { fresh: true });
+  if (!document.getElementById('live-chain')) return;
+  renderToolBlock(host, trace);
 }
 function renderMessages(items) {
   const boundAgent = agent,
@@ -923,7 +956,14 @@ function renderMessages(items) {
       }
       const body = document.createElement('div');
       body.className = 'message-body';
-      body.textContent = m.content;
+      // 助手消息走 Markdown（对齐 V1，OmniMarkdown 先整体转义再结构转换，防 XSS）；
+      // 用户消息保持纯文本，避免把用户输入当富文本解析。
+      if (m.role === 'assistant' && window.OmniMarkdown?.render) {
+        body.classList.add('md');
+        body.innerHTML = window.OmniMarkdown.render(String(m.content || ''));
+      } else {
+        body.textContent = m.content;
+      }
       const actions = document.createElement('div');
       actions.className = 'msg-actions';
       // 参考原型：操作是头像行右侧的紧凑图标，名称走 aria-label/title
@@ -1242,9 +1282,10 @@ async function pollBody() {
         ['running', 'waiting_approval', 'cancelling'].includes(result.state),
     );
     renderRetention(result);
-    if (page === 'chat' && session === result.session_id && result.state === 'running')
+    if (page === 'chat' && session === result.session_id && result.state === 'running') {
       await modelOutput.refresh(checkedRun);
-    else modelOutput.clear();
+      await renderLiveChain(checkedRun);
+    } else modelOutput.clear();
     if (current !== generation || run !== checkedRun) return;
     if (['succeeded', 'failed', 'cancelled', 'interrupted'].includes(result.state)) {
       if (session === result.session_id && page === 'chat') {
