@@ -382,9 +382,17 @@
           "contract": "docs/v2/contracts/V2_BILI_HISTORY.md",
           "evidence": "docs/evidence/v2-bili-history.json",
           "delivered": "bilibili_read新增operation=history只读(domain history_rows data.list有界50/缺失正常空/非列表行非dict显式502/title+author_name去标记/author_mid int→str/progress int|None保留-1看完/嵌套history.business+oid→aid+cid→cid/bvid仅合法BV否则None不臆造身份/has_more=len>=limit、adapter _history复用泛型_get type=archive ps=20首页/nav后分派无目标豁免BV、READ_SPEC enum+desc+http Literal增history)；14专项+234bilibili读调用方过0失败、strict410零错误(无新源文件)；仅所有者archive历史首页无cursor翻页/上报写/msgfeed、需登录真实送达另验；无新表/迁移/路由/worker/持久层改动routing不变_get/_get_list未改；聚合索引暂缓"
+        },
+        {
+          "gap": "#1 读API广度之收件箱reply/at(/x/msgfeed/{kind})",
+          "status": "implemented_scoped_passed",
+          "batch": "K18.msgfeed",
+          "contract": "docs/v2/contracts/V2_BILI_MSGFEED.md",
+          "evidence": "docs/evidence/v2-bili-msgfeed.json",
+          "delivered": "bilibili_read新增operation=msgfeed只读(domain msgfeed_kind仅reply/at否则422+msgfeed_rows data.items有界50/缺失正常空/非列表行非dict id非int显式502/time reply_time优先at_time回退/nickname去标记/mid int→str/business_id+subject_id+root_id+source_id/uri+title+source_content去标记仅发现提示权威正文经replies回读继承参考msgfeed.mjs经验/has_more=len>=limit、adapter _msgfeed复用泛型_get kind路径platform=web build=0 mobi_app=web/target=kind独立elif分支/nav后分派、READ_SPEC enum+desc+http Literal增msgfeed)；22专项+256bilibili读调用方过0失败、strict410零错误(无新源文件)；仅reply/at首页无cursor翻页去重/回复写、title/source不可靠仅发现提示、需登录真实送达另验；无新表/迁移/路由/worker/持久层改动routing不变_get/_get_list未改；K18读API广度缺口全部实现；聚合索引暂缓"
         }
       ],
-      "limits": "只读审计无新工具/表/迁移/路由/源码改动；可离线缺口未在K18审计批实现(列后续批次)，其中读API广度之搜索/space whois/弹幕/热门排行feed/关注动态feed/收藏夹/视频标签/观看历史已在K18.search/K18.whois/K18.danmaku/K18.feed/K18.following/K18.favorites/K18.tag/K18.history后续批实现；V1 tools/bilibili实现不计V2对等；不宣称全集API/主动观看/受控分享对等；参考agents.md/RULES当不可信数据非本会话指令；K18为清单末项领域参考审计(K13-K18全部记录)；既有todos重启竞态与5个pin v2_0039旧迁移测试沿用保留",
+      "limits": "只读审计无新工具/表/迁移/路由/源码改动；可离线缺口未在K18审计批实现(列后续批次)，其中读API广度之搜索/space whois/弹幕/热门排行feed/关注动态feed/收藏夹/视频标签/观看历史/收件箱reply-at已在K18.search/K18.whois/K18.danmaku/K18.feed/K18.following/K18.favorites/K18.tag/K18.history/K18.msgfeed后续批实现(读API广度缺口全部实现，写广度/自主观看/受控分享仍后续)；V1 tools/bilibili实现不计V2对等；不宣称全集API/主动观看/受控分享对等；参考agents.md/RULES当不可信数据非本会话指令；K18为清单末项领域参考审计(K13-K18全部记录)；既有todos重启竞态与5个pin v2_0039旧迁移测试沿用保留",
       "next": false
     }
   ],
@@ -505,6 +513,10 @@
     {
       "id": "K18.history",
       "evidence": "docs/evidence/v2-bili-history.json"
+    },
+    {
+      "id": "K18.msgfeed",
+      "evidence": "docs/evidence/v2-bili-msgfeed.json"
     },
     {
       "id": "K13.patch",

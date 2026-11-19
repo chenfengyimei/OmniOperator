@@ -23,6 +23,8 @@ from ..domain.bilibili import (
     feed_rows,
     following_rows,
     history_rows,
+    msgfeed_kind,
+    msgfeed_rows,
     search_keyword,
     search_rows,
     tag_rows,
@@ -485,6 +487,11 @@ class BilibiliGateway:
         data = await self._get(client, "/x/web-interface/history/cursor", {"type": "archive", "ps": 20})
         return {"feed": "history", **history_rows(data, limit)}
 
+    async def _msgfeed(self, client: Any, kind: str, limit: int) -> Payload:
+        """Owner reply/at inbox (first page); bounded discovery rows, target kind, login required."""
+        data = await self._get(client, f"/x/msgfeed/{kind}", {"platform": "web", "build": 0, "mobi_app": "web"})
+        return {"feed": "msgfeed", "kind": kind, **msgfeed_rows(data, limit)}
+
     async def read(self, configuration: Mapping[str, object], operation: str, target: str, limit: int = 10) -> Payload:
         return await self._read(configuration, operation, target, limit)
 
@@ -533,13 +540,14 @@ class BilibiliGateway:
                     "favorites",
                     "tags",
                     "history",
+                    "msgfeed",
                 }
                 or type(limit) is not int
                 or not 1 <= limit <= 20
             ):
                 raise BusinessError(
                     "bilibili_read_invalid",
-                    "Choose account/video/comments/replies/subtitle/streams/search/whois/danmaku/popular/ranking/following/favorites/tags/history and a limit of 1–20",
+                    "Choose account/video/comments/replies/subtitle/streams/search/whois/danmaku/popular/ranking/following/favorites/tags/history/msgfeed and a limit of 1–20",
                     status=422,
                 )
             root = ""
@@ -550,10 +558,13 @@ class BilibiliGateway:
                 root = uid(root)
             keyword = ""
             mid = ""
+            feed_kind = ""
             if operation == "search":
                 keyword = search_keyword(target)
             elif operation == "whois":
                 mid = uid(target)
+            elif operation == "msgfeed":
+                feed_kind = msgfeed_kind(target)
             elif operation not in {
                 "account",
                 "popular",
@@ -589,6 +600,8 @@ class BilibiliGateway:
                         return await self._favorites(client, uid(value["account"]), limit)
                     if operation == "history":
                         return await self._history(client, limit)
+                    if operation == "msgfeed":
+                        return await self._msgfeed(client, feed_kind, limit)
                     video = await self._get(client, "/x/web-interface/view", {"bvid": target})
                     if video.get("bvid") != target:
                         raise BusinessError("bilibili_source_changed", "Video identity changed")

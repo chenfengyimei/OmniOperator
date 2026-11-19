@@ -478,6 +478,60 @@ def history_rows(data: Mapping[str, object], limit: int) -> dict[str, object]:
     return {"items": items, "has_more": len(rows) >= limit}
 
 
+def msgfeed_kind(value: object) -> str:
+    """Inbox kind selector: reply ('回复我的') or at ('@我的'); anything else is invalid."""
+    if value not in ("reply", "at"):
+        raise BusinessError("bilibili_read_invalid", "Msgfeed target must be reply or at", status=422)
+    return cast(str, value)
+
+
+def msgfeed_rows(data: Mapping[str, object], limit: int) -> dict[str, object]:
+    """Bounded inbox notification rows from data.items; title/source_content are unreliable discovery hints.
+
+    The official inbox only signals 'someone contacted us'; authoritative reply text must be
+    read from the thread (replies operation), never inferred from these fields.
+    """
+    raw = data.get("items")
+    if raw is None:
+        rows: list[object] = []
+    elif isinstance(raw, list):
+        rows = cast(list[object], raw)
+    else:
+        raise BusinessError("bilibili_response_invalid", "Msgfeed items changed format", status=502)
+    if len(rows) > FEED_MAX_ROWS:
+        raise BusinessError("bilibili_response_invalid", "Msgfeed items changed format", status=502)
+    items: list[dict[str, object]] = []
+    for row in rows[:limit]:
+        if not isinstance(row, dict):
+            raise BusinessError("bilibili_response_invalid", "Msgfeed records changed format", status=502)
+        entry = cast(dict[str, object], row)
+        item_id = entry.get("id")
+        if type(item_id) is not int:
+            raise BusinessError("bilibili_response_invalid", "Msgfeed records changed format", status=502)
+        user = _as_dict(entry.get("user"))
+        item = _as_dict(entry.get("item"))
+        reply_time = entry.get("reply_time")
+        at_time = entry.get("at_time")
+        mid = user.get("mid")
+        business_id = item.get("business_id")
+        items.append(
+            {
+                "id": item_id,
+                "time": reply_time if type(reply_time) is int else (at_time if type(at_time) is int else None),
+                "nickname": search_text(user.get("nickname"), 100),
+                "mid": str(mid) if type(mid) is int else "",
+                "business_id": business_id if type(business_id) is int else None,
+                "subject_id": str(item.get("subject_id")) if type(item.get("subject_id")) is int else "",
+                "root_id": str(item.get("root_id")) if type(item.get("root_id")) is int else "",
+                "source_id": str(item.get("source_id")) if type(item.get("source_id")) is int else "",
+                "uri": search_text(item.get("uri"), 300),
+                "title": search_text(item.get("title"), 300),
+                "source_content": search_text(item.get("source_content"), 300),
+            }
+        )
+    return {"items": items, "has_more": len(rows) >= limit}
+
+
 class Form(BaseModel):
     model_config = ConfigDict(extra="forbid", strict=True)
 
