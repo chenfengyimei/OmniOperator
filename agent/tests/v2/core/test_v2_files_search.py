@@ -13,6 +13,7 @@ from omni.domain.files_search import (
     match_lines,
     match_name,
     normalize_context,
+    normalize_offset,
     normalize_output_mode,
     normalize_query,
 )
@@ -367,6 +368,7 @@ def test_files_search_spec_exposes_output_mode_enum(tmp_path):
             parameters = next(s for s in specs if s.name == "files_search").parameters
             assert parameters["properties"]["output_mode"]["enum"] == ["content", "files_with_matches", "count"]
             assert parameters["properties"]["context"] == {"type": "integer", "minimum": 0, "maximum": 3}
+            assert parameters["properties"]["offset"] == {"type": "integer", "minimum": 0, "maximum": 1000}
             assert parameters["required"] == ["query"]
 
     asyncio.run(scenario())
@@ -438,6 +440,78 @@ def test_worker_search_rejects_invalid_context_before_dispatch(tmp_path, value):
     async def scenario():
         result = await Worker().invoke(
             "files_search", {"query": "needle", "context": value}, {"workspace": str(tmp_path)}
+        )
+        assert result.status == Outcome.ERROR and result.effect == Effect.NONE
+        assert result.error_code == "invalid_capability_request"
+
+    asyncio.run(scenario())
+
+
+def test_normalize_offset_defaults_and_rejects_out_of_range_or_non_int():
+    assert normalize_offset(None) == 0
+    for value in (0, 1, 1000):
+        assert normalize_offset(value) == value
+    for bad in (-1, 1001, True, False, 1.5, "2", [1]):
+        with pytest.raises(ValueError):
+            normalize_offset(bad)
+
+
+def test_worker_offset_skips_first_matches(tmp_path):
+    (tmp_path / "a.txt").write_text("needle\nneedle\nneedle\nneedle", encoding="utf-8")
+
+    async def scenario():
+        result = await Worker().invoke("files_search", {"query": "needle", "offset": 2}, {"workspace": str(tmp_path)})
+        assert result.status == Outcome.OK and result.effect == Effect.NONE
+        assert result.data["offset"] == 2 and result.data["truncated"] is False
+        assert [m["line"] for m in result.data["matches"]] == [3, 4]
+
+    asyncio.run(scenario())
+
+
+def test_worker_offset_beyond_total_is_empty_untruncated(tmp_path):
+    for index in range(3):
+        (tmp_path / f"f{index}.txt").write_text("needle", encoding="utf-8")
+
+    async def scenario():
+        result = await Worker().invoke("files_search", {"query": "needle", "offset": 10}, {"workspace": str(tmp_path)})
+        assert result.status == Outcome.OK
+        assert result.data["matches"] == [] and result.data["truncated"] is False
+
+    asyncio.run(scenario())
+
+
+def test_worker_offset_pages_with_truncation(tmp_path):
+    for index in range(60):
+        (tmp_path / f"f{index:03d}.txt").write_text("needle", encoding="utf-8")
+
+    async def scenario():
+        result = await Worker().invoke("files_search", {"query": "needle", "offset": 5}, {"workspace": str(tmp_path)})
+        assert result.status == Outcome.OK
+        matches = result.data["matches"]
+        assert len(matches) == 50 and result.data["truncated"] is True
+        assert matches[0]["path"] == "f005.txt" and matches[-1]["path"] == "f054.txt"
+
+    asyncio.run(scenario())
+
+
+def test_worker_offset_default_zero_shape_unchanged(tmp_path):
+    (tmp_path / "a.txt").write_text("alpha\nNeedle here\ngamma", encoding="utf-8")
+
+    async def scenario():
+        result = await Worker().invoke("files_search", {"query": "needle"}, {"workspace": str(tmp_path)})
+        assert result.data["offset"] == 0
+        assert result.data["matches"] == [{"path": "a.txt", "line": 2, "text": "Needle here"}]
+
+    asyncio.run(scenario())
+
+
+@pytest.mark.parametrize("value", [-1, 1001, True, "2", 1.5])
+def test_worker_search_rejects_invalid_offset_before_dispatch(tmp_path, value):
+    (tmp_path / "a.py").write_text("needle", encoding="utf-8")
+
+    async def scenario():
+        result = await Worker().invoke(
+            "files_search", {"query": "needle", "offset": value}, {"workspace": str(tmp_path)}
         )
         assert result.status == Outcome.ERROR and result.effect == Effect.NONE
         assert result.error_code == "invalid_capability_request"

@@ -47,13 +47,14 @@ def builtin_capabilities(
         ),
         (
             "files_search",
-            "Search the workspace: target=content (default) does bounded case-insensitive substring search; output_mode=content (default) returns relative paths/line numbers/snippets, files_with_matches returns distinct matching paths, count returns per-file matching-line totals; context=0-3 attaches bounded before/after neighbor lines to content matches; target=files finds files by case-sensitive basename glob (e.g. '*.py')",
+            "Search the workspace: target=content (default) does bounded case-insensitive substring search; output_mode=content (default) returns relative paths/line numbers/snippets, files_with_matches returns distinct matching paths, count returns per-file matching-line totals; context=0-3 attaches bounded before/after neighbor lines to content matches; offset=0-1000 skips the first N matches for pagination (50-result page); target=files finds files by case-sensitive basename glob (e.g. '*.py')",
             {
                 "query": {"type": "string", "minLength": 1, "maxLength": 200},
                 "path": {"type": "string"},
                 "target": {"type": "string", "enum": ["content", "files"]},
                 "output_mode": {"type": "string", "enum": ["content", "files_with_matches", "count"]},
                 "context": {"type": "integer", "minimum": 0, "maximum": 3},
+                "offset": {"type": "integer", "minimum": 0, "maximum": 1000},
             },
             ["query"],
             False,

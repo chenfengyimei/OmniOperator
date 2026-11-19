@@ -25,6 +25,7 @@ from ...domain.files_search import (
     match_lines,
     match_name,
     normalize_context,
+    normalize_offset,
     normalize_output_mode,
     normalize_query,
 )
@@ -171,6 +172,8 @@ class Worker:
             query = normalize_query(args.get("query"))
             output_mode = normalize_output_mode(args.get("output_mode"))
             context_lines = normalize_context(args.get("context"))
+            offset = normalize_offset(args.get("offset"))
+            cap = offset + 50
             base = Path(context["workspace"]).resolve()
             results: list[dict[str, Any]] = []
             scanned = 0
@@ -187,7 +190,7 @@ class Worker:
                     and not (Path(dirpath) / d).is_junction()
                 )
                 for filename in sorted(filenames):
-                    if len(results) >= 50 or scanned >= 2000 or time.monotonic() > deadline:
+                    if len(results) >= cap or scanned >= 2000 or time.monotonic() > deadline:
                         truncated = True
                         break
                     candidate = Path(dirpath) / filename
@@ -203,7 +206,7 @@ class Worker:
                     if target == "files":
                         if match_name(filename, query):
                             results.append({"path": relative})
-                            if len(results) >= 50:
+                            if len(results) >= cap:
                                 truncated = True
                                 break
                         continue
@@ -220,7 +223,7 @@ class Worker:
                                 row["before"] = hit["before"]
                                 row["after"] = hit["after"]
                             results.append(row)
-                            if len(results) >= 50:
+                            if len(results) >= cap:
                                 truncated = True
                                 break
                     elif output_mode == "files_with_matches":
@@ -230,19 +233,21 @@ class Worker:
                         total = count_matches(text, query)
                         if total:
                             results.append({"path": relative, "count": total})
-                if len(results) >= 50 or scanned >= 2000 or time.monotonic() > deadline:
+                if len(results) >= cap or scanned >= 2000 or time.monotonic() > deadline:
                     truncated = True
                     break
+            page = results[offset:cap]
             return ActionResult(
                 Outcome.OK,
-                json.dumps(results, ensure_ascii=False),
+                json.dumps(page, ensure_ascii=False),
                 data={
-                    "matches": cast(list[JSON], results),
+                    "matches": cast(list[JSON], page),
                     "scanned": scanned,
                     "truncated": truncated,
                     "target": target,
                     "output_mode": output_mode,
                     "context": context_lines,
+                    "offset": offset,
                 },
             )
         if name == "files_patch":

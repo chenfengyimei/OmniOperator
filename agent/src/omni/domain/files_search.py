@@ -9,6 +9,7 @@ SEARCH_FILE_MATCHES = 5
 SEARCH_SNIPPET_CHARS = 200
 SEARCH_OUTPUT_MODES = ("content", "files_with_matches", "count")
 SEARCH_CONTEXT_LINES = 3
+SEARCH_MAX_OFFSET = 1000
 
 
 def normalize_query(value: object) -> str:
@@ -36,6 +37,15 @@ def normalize_context(value: object) -> int:
         return 0
     if type(value) is not int or not 0 <= value <= SEARCH_CONTEXT_LINES:
         raise ValueError("Search context must be an integer from 0 to 3")
+    return value
+
+
+def normalize_offset(value: object) -> int:
+    """Bounded result offset for pagination (0 disables); skips the first N matches before the 50-result page."""
+    if value is None:
+        return 0
+    if type(value) is not int or not 0 <= value <= SEARCH_MAX_OFFSET:
+        raise ValueError("Search offset must be an integer from 0 to 1000")
     return value
 
 
