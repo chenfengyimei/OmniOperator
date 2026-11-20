@@ -368,13 +368,13 @@ body[data-ui-page="workbench-v2"] .page-head {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 12px;
+  gap: var(--sp-3);
   flex: 0 0 auto;
-  padding: 10px 14px 8px;
+  padding: var(--sp-3) var(--sp-4) var(--sp-2);
   border-bottom: 1px solid var(--line-3);
 }
 body[data-ui-page="workbench-v2"] .page-head h1 {
-  font-size: 15px;
+  font-size: var(--fs-title);
   font-weight: 700;
 }
 body[data-ui-page="workbench-v2"] .page-head p {
@@ -395,8 +395,8 @@ body[data-ui-page="workbench-v2"] .page {
   min-height: 0;
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding: 12px 14px 14px;
+  gap: var(--sp-3);
+  padding: var(--sp-3) var(--sp-4) var(--sp-4);
   overflow-y: auto;
 }
 /* [hidden] 必须胜过 .page 的 display，否则 21 个隐藏页会一起占高度 */
@@ -410,14 +410,15 @@ body[data-ui-page="workbench-v2"].chat-mode #chat {
 }
 body[data-ui-page="workbench-v2"] .page:not(#chat) > form {
   display: grid;
-  gap: 10px;
+  gap: var(--sp-3);
 }
+/* 标题层级：h1 16 > h2 14 > 正文 13 > h3 12（小节标签），此前 h2=12/h3=11 与正文无对比 */
 body[data-ui-page="workbench-v2"] .page h2 {
-  font-size: var(--fs-secondary);
+  font-size: var(--fs-headline);
   font-weight: 650;
 }
 body[data-ui-page="workbench-v2"] .page h3 {
-  font-size: var(--fs-small);
+  font-size: var(--fs-secondary);
   font-weight: 650;
 }
 
@@ -427,12 +428,12 @@ body[data-ui-page="workbench-v2"] #connect.panel {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: end;
-  gap: 8px;
-  padding: 10px 12px;
+  gap: var(--sp-2);
+  padding: var(--sp-3);
 }
 body[data-ui-page="workbench-v2"] #connect label {
   display: grid;
-  gap: 4px;
+  gap: var(--sp-1);
   color: var(--text-3);
   font-size: var(--fs-small);
 }
@@ -1301,10 +1302,10 @@ body[data-ui-page="workbench-v2"]:not(.chat-mode) .settings-content {
   overflow-y: auto;
   overflow-x: hidden;
   overscroll-behavior: contain;
-  scroll-padding-top: 12px;
+  scroll-padding-top: var(--sp-3);
 }
 body[data-ui-page="workbench-v2"]:not(.chat-mode) .page {
-  padding: 16px 22px 28px;
+  padding: var(--sp-4) 24px 32px;
 }
 /* 所有者要求非对话页全屏铺开：去掉 980px 上限，内容占满工作区整宽。 */
 body[data-ui-page="workbench-v2"]:not(.chat-mode) .page > * {
@@ -1323,7 +1324,7 @@ body[data-ui-page="workbench-v2"]:not(.chat-mode) #settings-rail {
   min-height: 0;
   /* 定位上下文：sync 用 link.offsetTop 只滚侧栏自身，需相对侧栏计量 */
   position: relative;
-  padding: 10px 10px 14px;
+  padding: var(--sp-3) var(--sp-3) var(--sp-4);
   overflow-y: auto;
   overflow-x: hidden;
   border-right: 1px solid var(--line-2);
@@ -2816,9 +2817,9 @@ body[data-ui-page="workbench-v2"] #models .mo-list-head {
 body[data-ui-page="workbench-v2"] #models .mo-list-head h2 {
   display: flex;
   align-items: center;
-  gap: 7px;
+  gap: var(--sp-2);
   margin: 0;
-  font-size: var(--fs-body);
+  font-size: var(--fs-headline);
   font-weight: 700;
   color: var(--text-1);
 }

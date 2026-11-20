@@ -1,7 +1,7 @@
 {
   "batch": "v2-ui-connection-stability-v128",
   "recorded_at": "2026-11-15",
-  "resource_version_final": "20261119v163",
+  "resource_version_final": "20261120v164",
   "v1_alignment": {
     "summary": "用户提供 V1 正式工作台截图后，直接精读 web/ui/workbench.css 的 V1 实现并逐项移植，使 V2 结构与 V1 一致（而非自创风格）。",
     "ported_from_v1": [
@@ -1396,6 +1396,20 @@
       "专项": "36 passed(令牌/导航/历史/守卫)",
       "截图": "overlap-fixed-1440.png/overlap-fixed-390.png",
       "版本": "V2 v163"
+    }
+  },
+  "ui_iteration_p1_scale": {
+    "计划": "七阶段UI迭代获批(plan 20261119-211353-016)：P1刻度→P2阅读体验→P3 dock披露→P4设置瘦身→P5 schedules向导→P6选择器+白话→P7全量收尾",
+    "交付": [
+      "tokens.css增--sp-1..4(4/8/12/16)与--fs-title:16/--fs-headline:14",
+      "页头h1 15→16px；分区页h2 12→14/h3 11→12；models列表头h2 13→14同步",
+      "页头/分区容器/表单/连接卡/设置侧栏散值间距(5/7/10/11/14/22/28)归一4/8刻度"
+    ],
+    "验证": {
+      "专项": "51 passed(design_tokens/glass_tokens/contract/embed_layer)",
+      "实测": "双主题h1=16/h2=14/h3=12,pad=16/24/32,--sp-1=4px,无横向溢出",
+      "截图": "p1-models-dark.png/p1-settings-dark.png",
+      "版本": "V2 20261120v164/tokens 20261120u2"
     }
   }
 }
