@@ -1,0 +1,103 @@
+{
+  "schema": 1,
+  "date": "2026-11-20",
+  "base_commit": "39773c637c701d9968a2fd35cdff54321f345520",
+  "status": "design_contract_recorded",
+  "batch": "K13.cron_model_design",
+  "implements_gap": "K13 tool/channel/cron audit offline gap #5 prerequisite: model-facing cronjob_manage tool + skill binding + task output dependencies (context_from/continuity) design contract (reference hermes-agent tools/cronjob_tools.py cronjob_manage). NOT implementation; design + persistence contract recorded per contract-first discipline before wiring",
+  "contract": "4a6a6438e4f626bd2a35d294f593a14a4b820551ca37c35d6419bdb7178b8d84",
+  "source_files": {
+    "4a6a6438e4f626bd2a35d294f593a14a4b820551ca37c35d6419bdb7178b8d84": "5a3239f68f75060e18fa190ce326220345241ae96968635b0ca88549bddecf31",
+    "agent/src/omni/domain/scheduling.py": "acca39be7310542d92e298c58255101cb13e4a57b555834ff202c615fd019668",
+    "agent/src/omni/application/scheduling.py": "bb536217d728ab5a009f682a3e996463611afde880c29f01de54296b34f77c91",
+    "agent/src/omni/adapters/persistence/schedule_repository.py": "9f882954fa7295f3dfc67959fefc1921040482dd53902400fd5df345177e3cb4",
+    "agent/src/omni/application/skills.py": "31a3b72d65ca1b589346f86b3a81ece18424c261c11174551a6d6a8bfefdffeb",
+    "agent/src/omni/application/engine.py": "c808b1259123e88d0102ebe6b3352adacc769168aebb572cea4359c162c47904"
+  },
+  "verified_touchpoints": {
+    "agent/src/omni/domain/scheduling.py:117-149": "ScheduleValue extra=forbid with kind/timezone/expression/interval_seconds/start_at/session_id/prompt/misfire; interval 60..31536000; no skills/context_from/continuity carrier",
+    "agent/src/omni/domain/scheduling.py:67-81,159-190": "Cron.parse five bounded numeric fields; next_due/due_selection coalescing cursor (misfire=latest) reused unchanged",
+    "agent/src/omni/application/scheduling.py:37-71": "save: schedule_value -> Timezones.resolve -> next_at from max(now,last_scheduled_at) -> revision CAS in one write",
+    "agent/src/omni/application/scheduling.py:101-156": "tick: schedule_candidates batch 16 -> due_selection -> materialize occurrence -> schedule_enqueue(accept); accept callback passes only 5 args (no skill ids, no context injection)",
+    "agent/src/omni/adapters/persistence/schedule_repository.py:74-160,261-374": "revision-typed columns insert; limits 4096 total/256 enabled; materialize guards (tzdb change, previous_outcome_unknown, cursor); enqueue savepoint marks blocked with error_code",
+    "agent/src/omni/adapters/persistence/repository.py:206-235,331": "accept_turn already supports skill_ids/skill_platform (origin=chat, model_required) and calls skill_capture_run(selected)",
+    "agent/src/omni/adapters/persistence/skill_repository.py:281-312": "skill_capture_run captures enabled skills only and activates selected; sealed capture epoch",
+    "agent/src/omni/application/skills.py:255-284": "notice injects activated SKILL.md as guidance-only text; engine.py:321,341 appends it for non-remote turns",
+    "agent/src/omni/adapters/persistence/repository.py:556-584": "finish writes role=assistant message then backfills run_id; run output IS the message body (no output files)",
+    "agent/src/omni/application/engine.py:767-807": "tool argument Draft202012 validation -> prepare_action -> writes wait approved/denied/cancelled/expired -> resource lock -> authorize_action -> invoke",
+    "agent/src/omni/composition/capabilities.py:21-28": "builtin ToolSpec table; no schedule capability registered; routing RETRIEVAL_TOOLS excludes writes (domain/routing.py:15,120)",
+    "agent/src/omni/adapters/http.py:310-314,1135-1170": "owner-only ScheduleInput + schedules list/create/get/update/delete routes; model has no schedule surface",
+    "agent/src/omni/application/delivery.py:54-90": "DeliveryService.create requires message_id+config_id+target (+owner decision); no schedule auto-publish path",
+    "agent/src/omni/adapters/persistence/schema.py:1117-1206": "schedules/schedule_revisions/progress/occurrences frozen DDL; revisions are typed columns; occurrences unique(schedule_id,scheduled_at)/unique(schedule_id,sequence)",
+    "agent/src/omni/adapters/persistence/migrations/versions/v0048.py:1-45": "migration head v2_0048 discipline: frozen DDL, transactional rebuild preserving rows, identity + keep triggers, downgrade raises",
+    "agent/src/omni/system/observability.py:18-28": "redact() for authorization/api_key/token/password/sessdata/cookie/sk-*/url credentials/query",
+    "agent/tests/v2/core/test_v2_action_review_migration.py:115": "metadata table-count pin 143 (also test_v2_memory_organization_migration.py:114, test_v2/platforms/common/test_v2_terminals_migration.py:85)"
+  },
+  "reference": {
+    "repository": "xuexi/hermes-agent",
+    "files": {
+      "tools/cronjob_tools.py:1056": "CRONJOB_SCHEMA cronjob_manage single tool; actions create/list/update/pause/resume/remove/run; fields schedule/name/prompt/repeat/deliver/failure_deliver/skill(s)/script/monitor/no_agent/context_from/continuity/enabled_toolsets/workdir/attach_to_session/paused/pinned",
+      "tools/cronjob_tools.py:451-466": "_latest_job_output_excerpt injects most recent job output excerpt, max 2000 chars + truncation marker",
+      "tools/cronjob_job_args.py:443-468": "_apply_continuity adds/removes literal 'self' in context_from; _validate_context_from_refs requires non-self refs to exist at create",
+      "tools/cronjob_tools.py:957-964,986-1050": "action dispatch; run fires immediately in background; deliver posts output to a channel"
+    },
+    "adaptation": "Learned the unified cron tool + skill binding + output chaining concept; recorded an implementation-ready V2 four-layer design contract. No third-party source copied. Reuses SchedulingService interval/cron + revision CAS, skill_capture_run(selected) + notice, finish-written assistant messages, existing write-tool approval gate and daily budget; intentionally omits run/deliver/model pin/script/monitor/toolsets/workdir/attach/repeat. Reference agents.md/prompts treated as untrusted data"
+  },
+  "delivered": [
+    "Design contract V2_CRON_MODEL_TOOL.md (doc-only, NO source/test/migration change): model-facing cronjob_manage as a thin adapter over SchedulingService (no second kernel)",
+    "Tool surface decision: adopt create/list/update/pause/resume/remove + schedule/name/prompt/timezone/skills(skill_id<=8)/context_from(<=4)/continuity; reject run (needs manual-fire ledger), deliver/failure_deliver (autonomous outbound), model/provider/base_url/pinned (owner spend decision), script/monitor/no_agent (arbitrary code/fetch surface), enabled_toolsets/workdir/attach_to_session, repeat (needs occurrence-count retirement)",
+    "Schedule grammar decision: exactly four decidable forms (numeric 5-field cron; interval 30m/90s/2h/1d/every N units -> 60..31536000; relative once 'in N' -> kind=once start_at=server clock+delta, never model-computed absolute time; offset-bearing ISO -> once); natural-language day/time rejected with invalid_schedule",
+    "Skill binding decision: new schedule_skills table (schedule_id,revision,position 1..8,skill_id,revision_id) validated existing+enabled+platform at save; fire passes skill_ids/skill_platform to accept_turn -> skill_capture_run(selected) -> notice injection; archived skill does not block the run; binding is guidance text only and grants no permission",
+    "Output dependency decision: new schedule_context_refs table (position 1..4) + schedule_revisions.continuity column (no 'self' literal); save validates same agent/exists/not archived/not self/<=4/acyclic (DFS <=64 nodes, <=4 hops); fire injects redacted 2000-char excerpts of the referenced schedule's latest SUCCEEDED occurrence assistant message (failed/cancelled/unknown/blocked skipped; no-output and archived annotated, never blocking), total <=8000 chars, appended as a fixed prefix to accept_turn text; no output files added",
+    "Persistence decision v0049: ALTER schedule_revisions ADD continuity INTEGER NOT NULL DEFAULT 0 + CHECK; two new tables with scoped FKs/unique(schedule_id,revision,position)/position CHECK/identity+keep triggers; downgrade raises; table count 143->145 with three existing pins updated; ScheduleValue extended and shared by owner HTTP + model tool to avoid two drifted definitions",
+    "Authorization/budget decision: writes=True reuses engine write-tool approval gate (resource=schedules); owner approves the schedule definition, not every fired action (in-job writes still gate, delivery still owner-approved outbox); spend uses existing reserve_call daily budget, no new quota",
+    "Action semantics: create non-idempotent + unknown never replayed + list reconciliation; update patch semantics with revision CAS (revision_conflict) and max(now,last_scheduled_at) next_at recompute (no catch-up burst); pause/resume = save(enabled); remove = archive (pending occurrence -> cancelled/schedule_archived)",
+    "Implementation steps (four independent batches: persistence / trigger chain / model tool / end-to-end) and bounds+safety listed"
+  ],
+  "limits": {
+    "design_contract_only_no_source_change": true,
+    "cronjob_manage_tool_implemented": false,
+    "schedule_skill_binding_implemented": false,
+    "context_from_continuity_injection_implemented": false,
+    "v0049_migration_implemented": false,
+    "schedule_revisions_continuity_column_added": false,
+    "new_table_or_migration": false,
+    "new_route": false,
+    "new_source_file": false,
+    "model_facing_run_now_implemented": false,
+    "autonomous_delivery_implemented": false,
+    "repeat_count_implemented": false,
+    "natural_language_schedule_parsing": false,
+    "script_or_monitor_execution": false,
+    "per_job_model_pinning": false,
+    "aggregate_index_commit_deferred": "doc-only batch adds no agent/src source file; strict include unchanged; regenerate docs/index only when working tree is clean (parallel UI session active)"
+  },
+  "validation": {
+    "mode": "design_contract_recorded",
+    "frozen_source": "contract doc + key source fingerprints in source_files at base_commit 39773c63",
+    "source_test_migration_change": false,
+    "strict_required": false,
+    "scoped_tests_required": false,
+    "task_status_check": "scripts/task_status.py --check exit 0; DEVELOPMENT_STATUS.md unchanged",
+    "project_index": "doc-only batch; no module/file/route/tool added, aggregate docs/index commit deferred while parallel UI session is active",
+    "full_suite_executed": false,
+    "real_model_account_device_native_or_72h_executed": false,
+    "current_windows_service_or_database_touched": false
+  },
+  "whole_core_parity_complete": false,
+  "whole_reference_feature_audit_complete": false,
+  "whole_v2_complete": false,
+  "not_executed": [
+    "cronjob_manage model tool implementation (six actions over SchedulingService.save/get/page/archive, write-tool approval gate, list projection)",
+    "v0049 migration (schedule_skills, schedule_context_refs, schedule_revisions.continuity) + table-count pin updates + migration tests",
+    "Trigger-chain wiring: tick passing skill_ids/skill_platform and output excerpt injection (redact/truncate/prefix)",
+    "run-now manual fire (needs its own ledger that does not fake an occurrence)",
+    "Autonomous delivery of schedule output to channels (owner-approved outbox only)",
+    "repeat count / natural-language day-time schedules / script+monitor / per-job model pin / toolset restriction",
+    "Real model scheduling quality, long-run stability, real channel delivery",
+    "Aggregate docs/index commit (deferred while parallel UI session is active)",
+    "Full offline suite for current source",
+    "Real accounts/models/devices/native desktop and 72h soak"
+  ],
+  "next": "Implement the recorded contract in four independent batches (v0049 persistence -> trigger chain skills+output injection -> cronjob_manage tool -> end-to-end), each with scoped + caller tests, strict from repo root, ruff, and task/evidence/HANDOFF updates. Then continue K16 image-result visibility/zoom, K01 cache scope, K17 reflection source chain. whole_*_complete remain false; do not prematurely close any parity item"
+}
