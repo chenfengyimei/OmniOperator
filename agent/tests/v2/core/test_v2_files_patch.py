@@ -14,7 +14,9 @@ from omni.domain.files_patch import (
     _first_meaningful_line,
     _leading_whitespace,
     _match_starts_mid_line,
+    _preserve_unicode_in_replacement,
     _reindent_replacement,
+    _unicode_edit_plan,
     boundary_note,
     is_already_applied,
     patch_replace,
@@ -767,5 +769,80 @@ def test_worker_patch_reindent_preserves_file_indent(tmp_path):
         assert result.data["strategy"] == "line_trimmed"
         assert (tmp_path / "a.py").read_bytes() == b"\tdef m():\n\t    return 2\n"
         assert result.verification == digest("\tdef m():\n\t    return 2\n")
+
+    asyncio.run(scenario())
+
+
+def test_unicode_edit_plan_and_preserve_fallback():
+    norm_old, opcodes = _unicode_edit_plan("a--b", "a--c")
+    assert norm_old == "a--b"
+    assert opcodes == [("equal", 0, 3, 0, 3), ("replace", 3, 4, 3, 4)]
+    # A region whose normalization differs from norm_old falls back to verbatim new_string.
+    assert _preserve_unicode_in_replacement("a--b  ", "a--c", (norm_old, opcodes)) == "a--c"
+
+
+def test_preserve_unicode_keeps_region_typography():
+    plan = _unicode_edit_plan("a--b", "a--c")
+    assert _preserve_unicode_in_replacement("a\u2014b", "a--c", plan) == "a\u2014c"
+
+
+def test_patch_unicode_preserve_em_dash_shared_prefix():
+    assert patch_replace("a\u2014b\n", "a--b", "a--c") == ("a\u2014c\n", 1, "unicode_normalized", None)
+
+
+def test_patch_unicode_preserve_smart_quotes_shared_affixes():
+    assert patch_replace("\u201cfoo\u201d\n", '"foo"', '"bar"') == (
+        "\u201cbar\u201d\n",
+        1,
+        "unicode_normalized",
+        None,
+    )
+
+
+def test_patch_unicode_preserve_ellipsis():
+    assert patch_replace("a\u2026b\n", "a...b", "a...c") == ("a\u2026c\n", 1, "unicode_normalized", None)
+
+
+def test_patch_unicode_preserve_delete_opcode():
+    assert patch_replace("\u2014foo\n", "--foo", "--") == ("\u2014\n", 1, "unicode_normalized", None)
+
+
+def test_patch_unicode_preserve_fallback_on_region_norm_mismatch():
+    # Trailing-space region normalizes unequal to norm_old -> verbatim new_string (typography flattened).
+    assert patch_replace("a\u2014b  \n", "a--b\n", "a--c\n") == ("a--c\n", 1, "unicode_normalized", None)
+
+
+def test_patch_unicode_preserve_replace_all_per_region_typography():
+    out = patch_replace("\u201cx\u201d\n\u201dx\u201c\n", '"x"', '"z"', replace_all=True)
+    assert out == ("\u201cz\u201d\n\u201dz\u201c\n", 2, "unicode_normalized", None)
+
+
+def test_patch_unicode_preserve_with_matching_indent():
+    assert patch_replace("\ta\u2014b\n", "\ta--b\n", "\ta--c\n") == (
+        "\ta\u2014c\n",
+        1,
+        "unicode_normalized",
+        None,
+    )
+
+
+def test_worker_patch_unicode_preserve_typography(tmp_path):
+    put(tmp_path / "a.txt", "a\u2014b\n")
+
+    async def scenario():
+        result = await Worker().invoke(
+            "files_patch",
+            {
+                "path": "a.txt",
+                "old_string": "a--b",
+                "new_string": "a--c",
+                "expected_sha256": digest("a\u2014b\n"),
+            },
+            {"workspace": str(tmp_path)},
+        )
+        assert result.status == Outcome.OK and result.effect == Effect.APPLIED
+        assert result.data["strategy"] == "unicode_normalized"
+        assert (tmp_path / "a.txt").read_bytes() == "a\u2014c\n".encode("utf-8")
+        assert result.verification == digest("a\u2014c\n")
 
     asyncio.run(scenario())

@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
+import bisect
 import re
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 from difflib import SequenceMatcher
 
 PATCH_STRING_CHARS = 64 * 1024
@@ -427,6 +428,35 @@ def _reindent_replacement(file_region: str, old_string: str, new_string: str, *,
     return "\n".join(out_lines)
 
 
+_Opcode = tuple[str, int, int, int, int]
+_UnicodePlan = tuple[str, Sequence[_Opcode]]
+
+
+def _unicode_edit_plan(old_string: str, new_string: str) -> _UnicodePlan:
+    """(normalized old, old->new opcodes), region-independent so replace_all computes it once."""
+    norm_old = _unicode_normalize(old_string)
+    return norm_old, SequenceMatcher(None, norm_old, new_string).get_opcodes()
+
+
+def _preserve_unicode_in_replacement(file_region: str, new_string: str, plan: _UnicodePlan) -> str:
+    """Apply only the old->new edits onto the region's original text so a unicode_normalized match
+    keeps the file's em-dashes/smart quotes instead of flattening them to new_string's ASCII.
+    """
+    norm_old, opcodes = plan
+    if norm_old != _unicode_normalize(file_region):
+        return new_string
+    file_orig_to_norm = _build_orig_to_norm_map(file_region)
+    parts: list[str] = []
+    for tag, i1, i2, j1, j2 in opcodes:
+        if tag == "equal":
+            orig_start = bisect.bisect_right(file_orig_to_norm, i1) - 1
+            orig_end = _norm_end_to_orig(file_orig_to_norm, orig_start, i2)
+            parts.append(file_region[orig_start:orig_end])
+        elif tag != "delete":
+            parts.append(new_string[j1:j2])
+    return "".join(parts)
+
+
 def patch_replace(
     content: str, old_string: object, new_string: object, *, replace_all: bool = False
 ) -> tuple[str, int, str, str | None]:
@@ -473,14 +503,18 @@ def patch_replace(
             if drift:
                 raise PatchError("patch_escape_drift", drift)
             effective_new = _maybe_unescape_new_string(new_string, content, spans)
+        unicode_plan = _unicode_edit_plan(old_string, effective_new) if name == "unicode_normalized" else None
         patched = content
         for start, end in reversed(spans):
             adjusted = effective_new
             if name != "exact":
+                region = content[start:end]
+                if unicode_plan is not None:
+                    adjusted = _preserve_unicode_in_replacement(region, adjusted, unicode_plan)
                 adjusted = _reindent_replacement(
-                    content[start:end],
+                    region,
                     old_string,
-                    effective_new,
+                    adjusted,
                     match_starts_mid_line=_match_starts_mid_line(content, start, end),
                 )
             patched = patched[:start] + adjusted + patched[end:]
