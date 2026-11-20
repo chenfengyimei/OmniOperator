@@ -46,6 +46,7 @@ def test_linux_semantic_text_passes_owner_approval_and_clears_on_departure(
     try:
         page, errors = connect(context, linux_server)
         page.get_by_role("button", name="设置", exact=True).click()
+        shared_ui.reveal_settings(page)
         page.locator("#model").fill("fake")
         page.get_by_role("button", name="保存配置", exact=True).click()
         expect(page.locator("#configuration-status")).to_contain_text("修订 2")
@@ -86,7 +87,7 @@ def test_linux_semantic_text_passes_owner_approval_and_clears_on_departure(
         assert len(model.mutations) == 1
         assert all(o.reclaimed for o in spawn.owners)
         with page.expect_response(lambda r: "/desktop/snapshot?" in r.url and r.request.method == "DELETE"):
-            page.get_by_role("button", name="记忆", exact=True).click()
+            page.locator('nav[aria-label="工作台"] [data-page="memory"]').click()
         expect(page.locator("#desktop-targets")).to_be_empty()
         assert errors == []
     finally:

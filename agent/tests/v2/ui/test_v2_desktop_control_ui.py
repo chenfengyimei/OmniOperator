@@ -126,7 +126,7 @@ def test_leaving_the_view_during_audit_discards_late_response_and_never_opens_sy
         with page.expect_response(
             lambda response: "/desktop/snapshot?" in response.url and response.request.method == "DELETE"
         ) as detached:
-            page.get_by_role("button", name="记忆", exact=True).click()
+            page.locator('nav[aria-label="工作台"] [data-page="memory"]').click()
         assert detached.value.status == 503, detached.value.text()
         assert detached.value.json()["error"]["code"] == "portal_cleanup_pending"
         gate.release.set()

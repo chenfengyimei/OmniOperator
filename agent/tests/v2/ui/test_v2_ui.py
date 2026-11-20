@@ -41,6 +41,9 @@ from omni_test_support.v2.ui import (
     open_instance as open_instance,
 )
 from omni_test_support.v2.ui import (
+    reveal_settings as reveal_settings,
+)
+from omni_test_support.v2.ui import (
     pytest as pytest,
 )
 from omni_test_support.v2.ui import (
@@ -76,6 +79,7 @@ def test_credential_unknown_review_and_save_use_current_api(ui_browser, v2_serve
         page.get_by_role("button", name="连接实例").click()
         expect(page.locator("#agents option")).to_have_count(1)
         page.get_by_role("button", name="设置", exact=True).click()
+        reveal_settings(page)
         page.locator("#secret-ref").fill("fixture/ui-key")
         page.locator("#secret").fill("isolated-ui-key-value")
         page.get_by_role("button", name="保存至凭据库", exact=True).click()
@@ -90,6 +94,7 @@ def test_credential_unknown_review_and_save_use_current_api(ui_browser, v2_serve
         page.locator("#credential-evidence").fill("External inspection of the isolated fake store")
         page.get_by_role("button", name="对话", exact=True).click()
         page.get_by_role("button", name="设置", exact=True).click()
+        reveal_settings(page)
         expect(page.locator("#credential-evidence")).to_have_value("External inspection of the isolated fake store")
         page.locator("#credential-decision").select_option("allow_current")
         page.get_by_role("button", name="提交凭据核查", exact=True).click()
@@ -129,6 +134,7 @@ def test_workbench_chat_memory_and_theme(ui_browser, v2_server, width, theme):
         page.get_by_role("button", name="连接实例").click()
         expect(page.locator("#agents option")).to_have_count(1)
         page.get_by_role("button", name="设置", exact=True).click()
+        reveal_settings(page)
         page.locator("#model").fill("fake")
         page.get_by_role("button", name="保存配置", exact=True).click()
         expect(page.locator("#configuration-status")).to_contain_text("修订 2")
@@ -384,6 +390,7 @@ def test_configuration_drafts_import_apply_and_export(ui_browser, v2_server, wid
         page.get_by_role("button", name="连接实例", exact=True).click()
         expect(page.locator("#agents option")).to_have_count(1)
         page.get_by_role("button", name="设置", exact=True).click()
+        reveal_settings(page)
         expect(page.locator("#configuration-fields")).to_be_enabled()
         agent = page.locator("#agents").input_value()
         headers = {"Authorization": "Bearer " + token}
@@ -482,6 +489,7 @@ def test_configuration_reload_waits_for_pending_write_and_agent_drafts_are_isola
         page.get_by_role("button", name="连接实例", exact=True).click()
         expect(page.locator("#agents option")).to_have_count(2)
         page.get_by_role("button", name="设置", exact=True).click()
+        reveal_settings(page)
         expect(page.locator("#configuration-fields")).to_be_enabled()
         agent = page.locator("#agents").input_value()
         headers = {"Authorization": "Bearer " + token}
@@ -532,6 +540,7 @@ def test_import_replacement_requires_explicit_draft_choice(ui_browser, v2_server
         page.get_by_role("button", name="连接实例", exact=True).click()
         expect(page.locator("#agents option")).to_have_count(1)
         page.get_by_role("button", name="设置", exact=True).click()
+        reveal_settings(page)
         page.locator("#configuration-kind").select_option("preset")
         expect(page.locator("#cfg-preset-fields")).to_be_visible()
         page.locator("#cfg-name").fill("Existing draft")
@@ -896,6 +905,7 @@ def test_operational_metrics_and_diagnostic_download(ui_browser, v2_server, widt
         page.get_by_role("button", name="连接实例", exact=True).click()
         expect(page.locator("#agents option")).to_have_count(1)
         page.get_by_role("button", name="设置", exact=True).click()
+        reveal_settings(page)
         page.locator("#model").fill("fake")
         page.get_by_role("button", name="保存配置", exact=True).click()
         expect(page.locator("#configuration-status")).to_contain_text("修订 2")

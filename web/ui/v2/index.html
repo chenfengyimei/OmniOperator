@@ -8,11 +8,11 @@
     <link rel="stylesheet" href="/assets/ui/tokens.css?v=20261120u2" />
     <link rel="stylesheet" href="/assets/ui/base.css?v=20261103v7" />
     <link rel="stylesheet" href="/assets/ui/icons.css?v=20261115u1" />
-    <link rel="stylesheet" href="/assets/ui/v2/v1/components.css?v=20261120v166" />
-    <link rel="stylesheet" href="/assets/ui/v2/v1/frame.css?v=20261120v166" />
-    <link rel="stylesheet" href="/assets/ui/v2/v1/workbench.css?v=20261120v166" />
-    <link rel="stylesheet" href="/assets/ui/v2/workbench.css?v=20261120v166" />
-    <link rel="stylesheet" href="/assets/vendor/xterm.min.css?v=20261120v166" />
+    <link rel="stylesheet" href="/assets/ui/v2/v1/components.css?v=20261120v168" />
+    <link rel="stylesheet" href="/assets/ui/v2/v1/frame.css?v=20261120v168" />
+    <link rel="stylesheet" href="/assets/ui/v2/v1/workbench.css?v=20261120v168" />
+    <link rel="stylesheet" href="/assets/ui/v2/workbench.css?v=20261120v168" />
+    <link rel="stylesheet" href="/assets/vendor/xterm.min.css?v=20261120v168" />
   </head>
   <body class="chat-mode" data-ui-page="workbench-v2">
     <header class="app-header">
@@ -1412,14 +1412,17 @@
                       placeholder="描述这个 Agent 的身份、语气与行为边界…"
                     ></textarea>
                   </label>
-                  <div class="log-filters">
-                    <label
-                      >每日预算（微美元，0 表示不限）<input id="daily-budget" type="number" min="0" required
-                    /></label>
-                    <label>单次调用费用预留（微美元）<input id="call-budget" type="number" min="1" required /></label>
-                    <label>每轮最大步骤<input id="max-steps" type="number" min="1" max="32" required /></label>
-                  </div>
-                  <label>禁用能力名称（逗号分隔）<input id="disabled-tools" /></label>
+                  <details class="settings-advanced">
+                    <summary>高级：预算、步数与能力开关</summary>
+                    <div class="log-filters">
+                      <label
+                        >每日预算（微美元，0 表示不限）<input id="daily-budget" type="number" min="0" required
+                      /></label>
+                      <label>单次调用费用预留（微美元）<input id="call-budget" type="number" min="1" required /></label>
+                      <label>每轮最大步骤<input id="max-steps" type="number" min="1" max="32" required /></label>
+                    </div>
+                    <label>禁用能力名称（逗号分隔）<input id="disabled-tools" /></label>
+                  </details>
                   <p class="muted">人设与模型选择用于新运行；禁用能力、更换工作目录会使旧授权失效。</p>
                   <div class="actions">
                     <button type="submit">保存设置</button
@@ -1442,31 +1445,34 @@
                   <label class="checkbox"
                     ><input id="route-escalation" type="checkbox" />允许一次工具升档（模型固定，操作仍需审批）</label
                   >
-                  <div class="form-row">
-                    <label>聊天模型<select id="route-chat-model"></select></label
-                    ><label
-                      >每次预留微美元（空白跟随设置）<input
-                        id="route-chat-reserve"
-                        type="number"
-                        min="1"
-                        max="1000000000000"
-                    /></label>
-                  </div>
-                  <div class="form-row">
-                    <label>检索模型<select id="route-retrieval-model"></select></label
-                    ><label
-                      >每次预留微美元<input id="route-retrieval-reserve" type="number" min="1" max="1000000000000"
-                    /></label>
-                  </div>
-                  <div class="form-row">
-                    <label>完整模型<select id="route-agent-model"></select></label
-                    ><label
-                      >每次预留微美元<input id="route-agent-reserve" type="number" min="1" max="1000000000000"
-                    /></label>
-                  </div>
-                  <p class="muted">
-                    留空模型跟随本空间默认模型。图片能力和计量来自实际选中的模型；缺少能力会明确拒绝。升档只改变下一次调用工具，模型和预算保持本轮捕获值。
-                  </p>
+                  <details class="settings-advanced">
+                    <summary>高级：逐档指定模型与费用预留</summary>
+                    <div class="form-row">
+                      <label>聊天模型<select id="route-chat-model"></select></label
+                      ><label
+                        >每次预留微美元（空白跟随设置）<input
+                          id="route-chat-reserve"
+                          type="number"
+                          min="1"
+                          max="1000000000000"
+                      /></label>
+                    </div>
+                    <div class="form-row">
+                      <label>检索模型<select id="route-retrieval-model"></select></label
+                      ><label
+                        >每次预留微美元<input id="route-retrieval-reserve" type="number" min="1" max="1000000000000"
+                      /></label>
+                    </div>
+                    <div class="form-row">
+                      <label>完整模型<select id="route-agent-model"></select></label
+                      ><label
+                        >每次预留微美元<input id="route-agent-reserve" type="number" min="1" max="1000000000000"
+                      /></label>
+                    </div>
+                    <p class="muted">
+                      留空模型跟随本空间默认模型。图片能力和计量来自实际选中的模型；缺少能力会明确拒绝。升档只改变下一次调用工具，模型和预算保持本轮捕获值。
+                    </p>
+                  </details>
                   <button type="submit">保存档位配置</button
                   ><button id="route-reload" type="button">放弃档位草稿并重新载入</button>
                 </fieldset>
@@ -1474,12 +1480,17 @@
               <p id="route-config-status" role="status"></p>
               <h2>配置目录</h2>
               <p class="muted">
-                模型、通道、MCP 和预设均在服务端保存修订。保存不会自动连接或认证；已接入的通道在对应面板显式使用，MCP
-                服务仍待接入。归档保留历史。
+                日常添加模型请到「模型接入」页：选供应商、填 Key 即可。本页目录用于管理通道、MCP
+                与人设预设；模型类配置也可在此做高级编辑。保存不会自动连接或认证，归档保留历史。
+              </p>
+              <p class="settings-goto">
+                <button id="goto-models" type="button" class="btn small">
+                  <span class="material-icons" aria-hidden="true">hub</span>去模型接入页
+                </button>
               </p>
               <label
                 >配置类型<select id="configuration-kind">
-                  <option value="model">模型</option>
+                  <option value="model">模型（高级）</option>
                   <option value="channel">通道</option>
                   <option value="mcp">MCP</option>
                   <option value="preset">人设预设</option>
@@ -1494,6 +1505,8 @@
                 <label>新配置名称<input id="new-configuration-name" maxlength="100" required /></label
                 ><button type="submit">新建配置草稿</button>
               </form>
+              <details id="config-editor-wrap" class="settings-advanced">
+                <summary id="config-editor-summary">高级：编辑所选配置（模型/通道/MCP/预设）</summary>
               <form id="configuration-form">
                 <fieldset id="configuration-fields" disabled>
                   <label>配置名称<input id="cfg-name" maxlength="100" required /></label>
@@ -1588,18 +1601,22 @@
                   </div>
                 </fieldset>
               </form>
+              </details>
               <p id="configuration-status" role="status"></p>
               <p id="configuration-diagnosis" role="status"></p>
               <pre id="configuration-history"></pre>
-              <form id="configuration-import">
-                <label
-                  >导入 JSON 配置（只生成草稿）<input
-                    id="configuration-file"
-                    type="file"
-                    accept=".json,application/json"
-                    required /></label
-                ><button type="submit">导入为草稿</button>
-              </form>
+              <details class="settings-advanced">
+                <summary>高级：导入 JSON 配置（只生成草稿）</summary>
+                <form id="configuration-import">
+                  <label
+                    >导入 JSON 配置<input
+                      id="configuration-file"
+                      type="file"
+                      accept=".json,application/json"
+                      required /></label
+                  ><button type="submit">导入为草稿</button>
+                </form>
+              </details>
               <form id="credential-form">
                 <h2>实例凭据</h2>
                 <label>引用名称<input id="secret-ref" required /></label
@@ -1617,18 +1634,21 @@
                 ><button id="credential-more" type="button" disabled>更多引用</button>
               </div>
               <p id="credential-state" role="status"></p>
-              <form id="credential-review">
-                <fieldset id="credential-review-fields" disabled>
-                  <label
-                    >核查结论<select id="credential-decision">
-                      <option value="revoke">撤销未来使用</option>
-                      <option value="allow_current">允许未来尝试使用</option>
-                    </select></label
-                  >
-                  <label>人工核查依据<textarea id="credential-evidence" maxlength="2000" required></textarea></label>
-                  <button type="submit">提交凭据核查</button>
-                </fieldset>
-              </form>
+              <details id="credential-review-wrap" class="settings-advanced">
+                <summary>高级：凭据结果未知时的人工核查</summary>
+                <form id="credential-review">
+                  <fieldset id="credential-review-fields" disabled>
+                    <label
+                      >核查结论<select id="credential-decision">
+                        <option value="revoke">撤销未来使用</option>
+                        <option value="allow_current">允许未来尝试使用</option>
+                      </select></label
+                    >
+                    <label>人工核查依据<textarea id="credential-evidence" maxlength="2000" required></textarea></label>
+                    <button type="submit">提交凭据核查</button>
+                  </fieldset>
+                </form>
+              </details>
               <details>
                 <summary>操作与核查记录（各最多 100 条）</summary>
                 <pre id="credential-history"></pre>
@@ -2041,9 +2061,9 @@
       </div>
       <div id="service-list" class="svc-list"></div>
     </dialog>
-    <script src="/assets/vendor/xterm.js?v=20261120v166"></script>
-    <script src="/assets/vendor/xterm-addon-fit.js?v=20261120v166"></script>
-    <script src="/assets/ui/markdown.js?v=20261120v166"></script>
-    <script type="module" src="/assets/ui/v2/main.js?v=20261120v166"></script>
+    <script src="/assets/vendor/xterm.js?v=20261120v168"></script>
+    <script src="/assets/vendor/xterm-addon-fit.js?v=20261120v168"></script>
+    <script src="/assets/ui/markdown.js?v=20261120v168"></script>
+    <script type="module" src="/assets/ui/v2/main.js?v=20261120v168"></script>
   </body>
 </html>

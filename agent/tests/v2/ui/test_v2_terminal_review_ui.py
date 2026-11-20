@@ -61,7 +61,7 @@ def test_unknown_terminal_review_records_independent_evidence_and_panel_leave_cl
         )
         assert response.json()["operation"]["state"] == "unknown"
         assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
-        page.get_by_role("button", name="记忆", exact=True).click()
+        page.locator('nav[aria-label="工作台"] [data-page="memory"]').click()
         expect(page.locator("#terminal-review-history")).to_be_empty()
         expect(page.locator("#terminal-review-evidence")).to_have_value("")
         assert not errors

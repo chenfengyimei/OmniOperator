@@ -122,7 +122,7 @@ def test_owner_start_explicit_input_and_panel_leave_detaches_without_closing_nat
         assert resized.value.status == 200 and resized.value.json()["state"] == "accepted"
         assert len(native.resizes) == 1 and 20 <= native.resizes[0][0] <= 500 and 5 <= native.resizes[0][1] <= 200
         with page.expect_response(lambda response: response.url.endswith("/detach")) as detached:
-            page.get_by_role("button", name="记忆", exact=True).click()
+            page.locator('nav[aria-label="工作台"] [data-page="memory"]').click()
         assert detached.value.status == 200
         assert not native.reclaimed and len(native.writes) == 1
         assert page.evaluate("window.__fixtureScreens.at(-1).__fixtureDisposed === true")

@@ -1,7 +1,7 @@
 {
   "batch": "v2-ui-connection-stability-v128",
   "recorded_at": "2026-11-15",
-  "resource_version_final": "20261120v166",
+  "resource_version_final": "20261120v168",
   "v1_alignment": {
     "summary": "用户提供 V1 正式工作台截图后，直接精读 web/ui/workbench.css 的 V1 实现并逐项移植，使 V2 结构与 V1 一致（而非自创风格）。",
     "ported_from_v1": [
@@ -1440,6 +1440,33 @@
       "专项": "40 passed(images8+skills8+model_stream+两token守卫,198.82s)",
       "截图": "p3-dock-closed.png/p3-dock-open.png",
       "版本": "V2 20261120v166"
+    }
+  },
+  "ui_iteration_p4_settings": {
+    "交付": [
+      "设置页5处技术项收进settings-advanced折叠:预算步数/逐档模型预留/配置编辑器/导入JSON/凭据核查",
+      "配置目录加「去模型接入页」引导按钮,模型类标注(高级),日常加模型走models页简化入口",
+      "配置编辑器折叠头随类型+配置名更新;类型切换自动展开;凭据unknown态自动展开核查",
+      "只藏不删:全部原ID与fieldset门控/草稿CAS路径保留",
+      "折叠样式与mo-advanced同语言:chevron指示/32px命中区/token色"
+    ],
+    "验证": {
+      "实测": "可见输入45→11(checkVisibility口径;Chrome156收起details不再display:none,rect口径会误报);展开编辑器25;引导按钮切页models正常;零报错",
+      "专项": "全绿:P4九文件复跑28+隔离2(并行负载抖动)=30/30;首轮42败=折叠后Playwright要求控件可见,8测试文件加reveal_settings展开(不放宽断言)+7文件19处记忆旧选择器存量修复;首跑42败中其余为同一根因",
+      "截图": "p4-settings-collapsed.png/p4-settings-expanded.png",
+      "版本": "V2 20261120v168"
+    }
+  },
+  "approval_card": {
+    "问题": "审批卡把工具名+JSON直接textContent堆进无样式容器(所有者截图:裸文本错位)",
+    "交付": [
+      "approval-card结构化:警示头(盾牌+工具名+等待状态)/参数pre限高180内滚/过期时间行/主渐变允许+红底拒绝按钮各半宽32px",
+      "按钮点击禁用+is-busy忙碌反馈,处理完poll刷新",
+      "border-left强调条走warn语义token"
+    ],
+    "验证": {
+      "实测": "真实files_write审批触发→卡片结构齐全→拒绝后卡片消失运行按拒绝结算,零报错",
+      "截图": "approval-card.png/approval-after.png"
     }
   }
 }

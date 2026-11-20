@@ -162,6 +162,11 @@ def _credential_fixture(request):
     return None
 
 
+def reveal_settings(page):
+    """P4 渐进披露：设置页技术项默认收起，操作折叠内字段前先展开全部 details。"""
+    page.evaluate("()=>{for (const d of document.querySelectorAll('#settings details')) d.open = true;}")
+
+
 def connect_people(page, url, token):
     page.goto(url)
     page.locator("#token").fill(token)
@@ -184,6 +189,7 @@ def delivery_scenario(ui_browser, v2_server, width, theme):
         page.get_by_role("button", name="连接实例", exact=True).click()
         expect(page.locator("#agents option")).to_have_count(1)
         page.get_by_role("button", name="设置", exact=True).click()
+        reveal_settings(page)
         page.locator("#model").fill("fake")
         page.get_by_role("button", name="保存配置", exact=True).click()
         expect(page.locator("#configuration-status")).to_contain_text("修订 2")
@@ -264,6 +270,7 @@ __all__ = [
     "http_app",
     "json",
     "open_instance",
+    "reveal_settings",
     "pytest",
     "socket",
     "test_delivery_draft_approval_preview_receipt_and_archive",

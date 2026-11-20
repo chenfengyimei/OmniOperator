@@ -133,7 +133,10 @@ export function mountConfiguration({ api, wrap, getAgent, getGeneration }) {
     ['counter-mode', 'counter_mode'],
     ['counter-ref', 'counter_ref'],
   ];
+  const KIND_LABEL = { model: '模型', channel: '通道', mcp: 'MCP', preset: '人设预设' };
   function renderEditor(draft) {
+    // P4 渐进披露：编辑器收在高级折叠里，标题随当前类型更新，用户知道展开后编辑的是什么。
+    $('config-editor-summary').textContent = `高级：编辑${KIND_LABEL[kind] || ''}配置${draft.name ? `「${draft.name}」` : '（新草稿）'}`;
     $('cfg-name').value = draft.name;
     $('cfg-enabled').checked = draft.enabled;
     for (const k of ['model', 'channel', 'mcp', 'preset']) {
@@ -315,6 +318,7 @@ export function mountConfiguration({ api, wrap, getAgent, getGeneration }) {
       selections.set(`${getAgent()}/${kind}`, selected);
       kind = $('configuration-kind').value;
       selected = selections.get(`${getAgent()}/${kind}`) || null;
+      $('config-editor-wrap').open = true;
       await loadList();
     }),
   );

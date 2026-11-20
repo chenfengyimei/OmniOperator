@@ -39,6 +39,7 @@ def test_foreground_input_requires_takeover_consent_and_independent_approval(
         context.add_init_script(f"localStorage.setItem('omni_theme', '{theme}')")
         page, errors = connect(context, foreground_server)
         page.get_by_role("button", name="设置", exact=True).click()
+        shared_ui.reveal_settings(page)
         page.locator("#model").fill("fake")
         page.get_by_role("button", name="保存配置", exact=True).click()
         expect(page.locator("#configuration-status")).to_contain_text("修订 2")

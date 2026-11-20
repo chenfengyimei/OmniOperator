@@ -1,32 +1,32 @@
-import { mountSkills } from './skills.js?v=20261120v166';
-import { mountCredentials } from './credentials.js?v=20261120v166';
-import { mountAuditHistory, mountOperations } from './operations.js?v=20261120v166';
-import { mountCapabilities } from './capabilities.js?v=20261120v166';
-import { mountTokens } from './tokens.js?v=20261120v166';
-import { mountDocuments } from './documents.js?v=20261120v166';
-import { mountConfiguration } from './configuration.js?v=20261120v166';
-import { mountModels } from './models.js?v=20261120v166';
+import { mountSkills } from './skills.js?v=20261120v168';
+import { mountCredentials } from './credentials.js?v=20261120v168';
+import { mountAuditHistory, mountOperations } from './operations.js?v=20261120v168';
+import { mountCapabilities } from './capabilities.js?v=20261120v168';
+import { mountTokens } from './tokens.js?v=20261120v168';
+import { mountDocuments } from './documents.js?v=20261120v168';
+import { mountConfiguration } from './configuration.js?v=20261120v168';
+import { mountModels } from './models.js?v=20261120v168';
 import { ask } from '../dialog.js?v=20261103v7';
-import { mountPeople } from './people.js?v=20261120v166';
-import { mountDeliveries } from './deliveries.js?v=20261120v166';
-import { mountSchedules } from './schedules.js?v=20261120v166';
-import { mountMemorySemantics } from './memory-semantics.js?v=20261120v166';
-import { mountMemoryOrganization } from './memory-organization.js?v=20261120v166';
-import { mountExtensions } from './extensions.js?v=20261120v166';
-import { mountActionReviews } from './action-reviews.js?v=20261120v166';
-import { mountTerminals } from './terminals.js?v=20261120v166';
-import { mountDesktop } from './desktop.js?v=20261120v166';
-import { mountQQ } from './qq.js?v=20261120v166';
-import { mountBilibili } from './bilibili.js?v=20261120v166';
-import { mountMedia } from './media.js?v=20261120v166';
-import { mountMcp } from './mcp.js?v=20261120v166';
-import { mountAndroid } from './android.js?v=20261120v166';
-import { mountModelOutput } from './model-output.js?v=20261120v166';
-import { mountRouting } from './routing.js?v=20261120v166';
-import { mountChatImages } from './chat-images.js?v=20261120v166';
-import { mountInspector } from './inspector.js?v=20261120v166';
-import { mountSettingsRail } from './settings-rail.js?v=20261120v166';
-import { mountEventStream } from './event-stream.js?v=20261120v166';
+import { mountPeople } from './people.js?v=20261120v168';
+import { mountDeliveries } from './deliveries.js?v=20261120v168';
+import { mountSchedules } from './schedules.js?v=20261120v168';
+import { mountMemorySemantics } from './memory-semantics.js?v=20261120v168';
+import { mountMemoryOrganization } from './memory-organization.js?v=20261120v168';
+import { mountExtensions } from './extensions.js?v=20261120v168';
+import { mountActionReviews } from './action-reviews.js?v=20261120v168';
+import { mountTerminals } from './terminals.js?v=20261120v168';
+import { mountDesktop } from './desktop.js?v=20261120v168';
+import { mountQQ } from './qq.js?v=20261120v168';
+import { mountBilibili } from './bilibili.js?v=20261120v168';
+import { mountMedia } from './media.js?v=20261120v168';
+import { mountMcp } from './mcp.js?v=20261120v168';
+import { mountAndroid } from './android.js?v=20261120v168';
+import { mountModelOutput } from './model-output.js?v=20261120v168';
+import { mountRouting } from './routing.js?v=20261120v168';
+import { mountChatImages } from './chat-images.js?v=20261120v168';
+import { mountInspector } from './inspector.js?v=20261120v168';
+import { mountSettingsRail } from './settings-rail.js?v=20261120v168';
+import { mountEventStream } from './event-stream.js?v=20261120v168';
 // 直接复用 V1 的 rail 提示浮层模块（data-tip → #tip-layer），不自创实现
 import '../app/tips.js?v=20261103u6';
 
@@ -1262,6 +1262,78 @@ async function refreshSessions() {
     }),
   );
 }
+function renderApprovals(approvals) {
+  // 审批卡此前把工具名/JSON 直接塞进 textContent，视觉上就是一块灰底裸文本。
+  // 现在做成结构化卡片：标题 + 参数 + 过期时间 + 明确的主/次按钮（带忙碌反馈）。
+  const box = $('approvals');
+  if (!approvals.length) {
+    box.replaceChildren();
+    return;
+  }
+  box.replaceChildren(
+    ...approvals.map((approval) => {
+      const card = document.createElement('article');
+      card.className = 'approval-card';
+      const head = document.createElement('div');
+      head.className = 'approval-head';
+      const icon = document.createElement('span');
+      icon.className = 'material-icons';
+      icon.setAttribute('aria-hidden', 'true');
+      icon.textContent = 'shield';
+      const title = document.createElement('b');
+      title.textContent = `需要确认：${approval.tool}`;
+      const wait = document.createElement('span');
+      wait.className = 'approval-wait';
+      wait.textContent = 'Agent 正在等待';
+      head.append(icon, title, wait);
+      const args = document.createElement('pre');
+      args.className = 'approval-args';
+      args.textContent = JSON.stringify(approval.arguments ?? {}, null, 2);
+      const meta = document.createElement('div');
+      meta.className = 'approval-meta';
+      const clock = document.createElement('span');
+      clock.className = 'material-icons';
+      clock.setAttribute('aria-hidden', 'true');
+      clock.textContent = 'schedule';
+      const expire = document.createElement('span');
+      expire.textContent = `请在 ${String(approval.expires_at || '').slice(11, 16)} 前决定，过期后需重新发起`;
+      meta.append(clock, expire);
+      const actions = document.createElement('div');
+      actions.className = 'approval-actions';
+      for (const [label, allowed, cls] of [
+        ['允许本次', true, 'primary'],
+        ['拒绝', false, 'ghost'],
+      ]) {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = `approval-btn ${cls}`;
+        button.textContent = label;
+        button.addEventListener(
+          'click',
+          wrap(async () => {
+            button.disabled = true;
+            button.classList.add('is-busy');
+            try {
+              await api(scope(`/approvals/${approval.id}`), {
+                method: 'POST',
+                body: { allowed, policy_revision: approval.policy_revision },
+              });
+            } finally {
+              if (button.isConnected) {
+                button.disabled = false;
+                button.classList.remove('is-busy');
+              }
+            }
+            await poll();
+          }),
+        );
+        actions.append(button);
+      }
+      card.append(head, args, meta, actions);
+      return card;
+    }),
+  );
+}
 let polling = null;
 function poll() {
   if (polling?.generation === generation) return polling.promise;
@@ -1287,32 +1359,7 @@ async function pollBody() {
   renderServices(version);
   const approvals = (await api(scope('/approvals'))).items;
   if (current !== generation) return;
-  $('approvals').replaceChildren(
-    ...approvals.map((approval) => {
-      const card = document.createElement('article');
-      card.textContent = `请求执行 ${approval.tool}\n${JSON.stringify(approval.arguments, null, 2)}\n`;
-      for (const [label, allowed] of [
-        ['允许本次', true],
-        ['拒绝', false],
-      ]) {
-        const button = document.createElement('button');
-        button.textContent = label;
-        button.addEventListener(
-          'click',
-          wrap(async () => {
-            button.disabled = true;
-            await api(scope(`/approvals/${approval.id}`), {
-              method: 'POST',
-              body: { allowed, policy_revision: approval.policy_revision },
-            });
-            await poll();
-          }),
-        );
-        card.append(button);
-      }
-      return card;
-    }),
-  );
+  renderApprovals(approvals);
   $('inspector-todo-count').textContent = approvals.length ? `${approvals.length} 项待审批` : '暂无待办';
   if (current !== generation) return;
   if (run || !inspectorSkillsLoaded) {
@@ -1739,6 +1786,10 @@ $('back-to-chat').addEventListener('click', () =>
 );
 $('open-settings').addEventListener('click', () =>
   document.querySelector('nav[aria-label="工作台"] [data-page="settings"]')?.click(),
+);
+// P4 设置瘦身：配置目录里的模型类引导到「模型接入」页（选供应商+填Key 的简化入口）
+$('goto-models').addEventListener('click', () =>
+  document.querySelector('nav[aria-label="工作台"] [data-page="models"]')?.click(),
 );
 
 // 窄屏两个抽屉互斥：同时展开会把对话与输入区挤没。

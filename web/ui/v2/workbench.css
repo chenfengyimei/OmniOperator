@@ -3764,3 +3764,158 @@ body[data-ui-page="workbench-v2"] .dock-extra[hidden] {
   display: none !important;
 }
 
+/* ==========================================================================
+   P4 设置中心瘦身：技术项收进「高级」折叠（与模型页 mo-advanced 同语言），
+   主区只留普通用户需要的字段。折叠头可点、有 chevron 指示。
+   ========================================================================== */
+body[data-ui-page="workbench-v2"] .settings-advanced {
+  border: 1px solid var(--line-3);
+  border-radius: var(--r-md);
+  background: color-mix(in oklab, var(--surface-1) 55%, transparent);
+  padding: 0;
+}
+body[data-ui-page="workbench-v2"] .settings-advanced > summary {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  min-height: 32px;
+  padding: var(--sp-2) var(--sp-3);
+  cursor: pointer;
+  color: var(--text-3);
+  font-size: var(--fs-secondary);
+  font-weight: 600;
+  list-style: none;
+  user-select: none;
+}
+body[data-ui-page="workbench-v2"] .settings-advanced > summary::-webkit-details-marker {
+  display: none;
+}
+body[data-ui-page="workbench-v2"] .settings-advanced > summary::before {
+  content: "chevron_right";
+  font-family: "Material Icons";
+  font-size: 15px;
+  color: var(--text-4);
+  transition: transform 0.14s var(--ease-out);
+}
+body[data-ui-page="workbench-v2"] .settings-advanced[open] > summary::before {
+  transform: rotate(90deg);
+}
+body[data-ui-page="workbench-v2"] .settings-advanced > summary:hover {
+  color: var(--text-1);
+}
+body[data-ui-page="workbench-v2"] .settings-advanced[open] > summary {
+  border-bottom: 1px solid var(--line-3);
+}
+body[data-ui-page="workbench-v2"] .settings-advanced > :not(summary) {
+  margin: var(--sp-3);
+}
+body[data-ui-page="workbench-v2"] .settings-goto {
+  margin: 0;
+}
+body[data-ui-page="workbench-v2"] .settings-goto .btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-1);
+}
+body[data-ui-page="workbench-v2"] .settings-goto .material-icons {
+  font-size: 14px;
+}
+
+/* ==========================================================================
+   审批卡：此前工具名/参数直接 textContent 堆出裸文本块（所有者截图取证）。
+   结构化卡片 = 警示头 + 参数块 + 过期时间 + 主/次按钮。
+   ========================================================================== */
+body[data-ui-page="workbench-v2"] .approval-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  margin: var(--sp-2) 0;
+  padding: var(--sp-3);
+  border: 1px solid var(--warn-bd);
+  border-left: 3px solid var(--warn);
+  border-radius: var(--r-card);
+  background: var(--glass-mid-bg);
+  box-shadow: var(--sh-1);
+}
+body[data-ui-page="workbench-v2"] .approval-head {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  min-width: 0;
+}
+body[data-ui-page="workbench-v2"] .approval-head .material-icons {
+  color: var(--warn);
+  font-size: 16px;
+}
+body[data-ui-page="workbench-v2"] .approval-head b {
+  font-size: var(--fs-headline);
+  font-weight: 650;
+  color: var(--text-1);
+  overflow-wrap: anywhere;
+}
+body[data-ui-page="workbench-v2"] .approval-wait {
+  margin-left: auto;
+  flex-shrink: 0;
+  font-size: var(--fs-caption);
+  color: var(--warn);
+}
+body[data-ui-page="workbench-v2"] .approval-args {
+  margin: 0;
+  padding: var(--sp-2) var(--sp-3);
+  max-height: 180px;
+  overflow: auto;
+  border-radius: var(--r-md);
+  background: var(--surface-inset);
+  border: 1px solid var(--line-3);
+  font: var(--fs-caption) / 1.6 var(--font-mono);
+  color: var(--text-2);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+body[data-ui-page="workbench-v2"] .approval-meta {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-1);
+  font-size: var(--fs-caption);
+  color: var(--text-3);
+}
+body[data-ui-page="workbench-v2"] .approval-meta .material-icons {
+  font-size: 13px;
+}
+body[data-ui-page="workbench-v2"] .approval-actions {
+  display: flex;
+  gap: var(--sp-2);
+}
+body[data-ui-page="workbench-v2"] .approval-btn {
+  flex: 1 1 auto;
+  min-height: 32px;
+  border-radius: var(--r-md);
+  font-size: var(--fs-secondary);
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    filter 0.14s,
+    border-color 0.14s,
+    color 0.14s;
+}
+body[data-ui-page="workbench-v2"] .approval-btn.primary {
+  border: 1px solid transparent;
+  background: var(--grad);
+  color: var(--on-accent);
+}
+body[data-ui-page="workbench-v2"] .approval-btn.primary:hover {
+  filter: brightness(1.08);
+}
+body[data-ui-page="workbench-v2"] .approval-btn.ghost {
+  border: 1px solid var(--danger-bd);
+  background: var(--danger-bg);
+  color: color-mix(in srgb, var(--danger) 86%, var(--text-1));
+}
+body[data-ui-page="workbench-v2"] .approval-btn.ghost:hover {
+  border-color: var(--danger);
+}
+body[data-ui-page="workbench-v2"] .approval-btn:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+

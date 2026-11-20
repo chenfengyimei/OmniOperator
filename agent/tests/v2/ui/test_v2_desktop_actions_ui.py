@@ -36,6 +36,7 @@ def test_semantic_action_requires_explicit_approval_and_shows_durable_run(
         context.add_init_script(f"localStorage.setItem('omni_theme', '{theme}')")
         page, errors = connect(context, action_server)
         page.get_by_role("button", name="设置", exact=True).click()
+        shared_ui.reveal_settings(page)
         page.locator("#model").fill("fake")
         page.get_by_role("button", name="保存配置", exact=True).click()
         expect(page.locator("#configuration-status")).to_contain_text("修订 2")

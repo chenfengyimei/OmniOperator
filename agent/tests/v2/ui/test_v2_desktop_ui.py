@@ -121,6 +121,7 @@ def test_capture_is_explicit_persistent_preview_is_released_and_late_capture_sta
         list_targets(page)
         expect(page.get_by_role("button", name="截图保存至当前会话", exact=True)).to_be_disabled()
         page.get_by_role("button", name="设置", exact=True).click()
+        shared_ui.reveal_settings(page)
         page.locator("#model").fill("fake")
         page.get_by_role("button", name="保存配置", exact=True).click()
         expect(page.locator("#configuration-status")).to_contain_text("修订 2")
@@ -147,7 +148,7 @@ def test_capture_is_explicit_persistent_preview_is_released_and_late_capture_sta
         hold(page, "/desktop/capture")
         page.get_by_role("button", name="截图保存至当前会话", exact=True).click()
         page.wait_for_function("() => window.__desktopHeld.length === 1")
-        page.get_by_role("button", name="记忆", exact=True).click()
+        page.locator('nav[aria-label="工作台"] [data-page="memory"]').click()
         release(page)
         expect(page.locator("#desktop-captures")).to_be_empty()
         open_desktop(page)
@@ -183,7 +184,7 @@ def test_ui_observation_is_explicit_text_only_and_late_content_cannot_reappear(
         hold(page, "/desktop/observe")
         page.get_by_role("button", name="读取界面内容", exact=True).click()
         page.wait_for_function("() => window.__desktopHeld.length === 1")
-        page.get_by_role("button", name="记忆", exact=True).click()
+        page.locator('nav[aria-label="工作台"] [data-page="memory"]').click()
         release(page)
         expect(page.locator("#desktop-targets")).to_have_text("")
         open_desktop(page)
@@ -232,7 +233,7 @@ def test_desktop_requires_explicit_native_queries_and_releases_observations_on_p
         with page.expect_response(
             lambda response: response.request.method == "DELETE" and "/desktop/snapshot?" in response.url
         ) as forgotten:
-            page.get_by_role("button", name="记忆", exact=True).click()
+            page.locator('nav[aria-label="工作台"] [data-page="memory"]').click()
         assert forgotten.value.status == 200 and forgotten.value.json()["forgotten"] is True
         assert parse_qs(urlsplit(forgotten.value.url).query) == {"view_id": [view_id]}
         assert status(context, desktop_server, agent)["snapshot_id"] is None
@@ -279,7 +280,7 @@ def test_late_agent_and_panel_responses_cannot_clear_a_new_view_snapshot(ui_brow
         old_view = page.evaluate("window.__desktopHeld[0].body.snapshot_id")
         assert old_view != current["snapshot_id"]
         hold(page, "/desktop/snapshot", method="DELETE", before=True)
-        page.get_by_role("button", name="记忆", exact=True).click()
+        page.locator('nav[aria-label="工作台"] [data-page="memory"]').click()
         page.wait_for_function("() => window.__desktopHeld.length === 2")
         open_desktop(page)
         desktop_backend.items = [target_identity(application_id="fixture-new-view.exe", native_id="window:third")]

@@ -60,7 +60,7 @@ def test_exact_only_proposal_completes_and_undo_preserves_raw_facts_and_sources(
             fact["id"]: get_json(context, v2_server, base + f"/memory/{fact['id']}/revisions?limit=20")["items"]
             for fact in facts
         }
-        page.get_by_role("button", name="记忆", exact=True).click()
+        page.locator('nav[aria-label="工作台"] [data-page="memory"]').click()
         choices = page.locator("#memory-organization-sources input[type=checkbox]")
         expect(choices).to_have_count(3)
         assert choices.evaluate_all("inputs => inputs.every(input => !input.checked)")
@@ -147,7 +147,7 @@ def test_forgotten_sources_reject_stale_owner_decision_and_clear_old_body_and_ac
         facts = create_facts(context, v2_server, agent, [canary, canary])
         batch = submit_batch(page, context, v2_server, agent, facts)
         candidate = batch["candidates"][0]
-        page.get_by_role("button", name="记忆", exact=True).click()
+        page.locator('nav[aria-label="工作台"] [data-page="memory"]').click()
         select_batch(page, batch)
         bodies = page.locator("#memory-organization-detail-sources")
         expect(bodies).to_contain_text(canary)
@@ -196,7 +196,7 @@ def test_late_real_decision_detail_and_raw_memory_reads_keep_current_agent_and_b
         old_batch = submit_batch(page, context, v2_server, original, old_facts)
         current_batch = submit_batch(page, context, v2_server, other, new_facts)
         next_batch = submit_batch(page, context, v2_server, other, new_facts)
-        page.get_by_role("button", name="记忆", exact=True).click()
+        page.locator('nav[aria-label="工作台"] [data-page="memory"]').click()
         select_batch(page, old_batch)
         candidate = old_batch["candidates"][0]
         page.evaluate(

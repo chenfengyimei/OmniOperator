@@ -26,6 +26,8 @@ export function mountCredentials({ api, wrap, getGeneration }) {
     $('credential-list').value = selected;
     $('credential-more').disabled = !cursor || rows.length >= 200;
     $('credential-review-fields').disabled = writing || !row || row.state !== 'unknown';
+    // P4 渐进披露：核查表单平时收起；结果未知（唯一需要它的场景）自动展开。
+    if (row?.state === 'unknown') $('credential-review-wrap').open = true;
     $('credential-state').textContent = row
       ? `${states[row.state]} · 修订 ${row.revision} · 授权代次 ${row.authority_epoch}\n引用指纹 ${row.reference_sha256}\n此状态只代表所有者授权，不证明密钥或账号有效。`
       : '实例所有者的凭据引用在各 Agent 间共用。每页最多 100 条，当前最多显示 200 条。';

@@ -62,6 +62,7 @@ def authorization_gate(configured_server, monkeypatch):
 def open_share_page(context, server):
     page, errors = connect(context, server)
     page.get_by_role("button", name="设置", exact=True).click()
+    shared_ui.reveal_settings(page)
     page.locator("#model").fill("fake")
     page.get_by_role("button", name="保存配置", exact=True).click()
     expect(page.locator("#configuration-status")).to_contain_text("修订 2")
@@ -139,7 +140,7 @@ def test_owner_selects_queries_captures_and_leaving_revokes_without_implicit_pix
         page.wait_for_function("document.querySelector('#desktop-captures img').naturalWidth === 2")
         assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
         with page.expect_response(lambda r: "/desktop/snapshot?" in r.url and r.request.method == "DELETE") as detached:
-            page.get_by_role("button", name="记忆", exact=True).click()
+            page.locator('nav[aria-label="工作台"] [data-page="memory"]').click()
         assert detached.value.status == 200
         assert all(o.reclaimed for o in spawn.owners) and io_backend.health()["resident"] == 0
         expect(page.locator("#desktop-captures")).to_have_text("")
@@ -191,7 +192,7 @@ def test_pending_audit_is_not_authorized_until_explicit_refresh(
         page.screenshot(path=tmp_path / f"portal-{theme}-{width}-ready.png")
         assert not pixels.calls and errors == []
         with page.expect_response(lambda r: "/desktop/snapshot?" in r.url and r.request.method == "DELETE") as detached:
-            page.get_by_role("button", name="记忆", exact=True).click()
+            page.locator('nav[aria-label="工作台"] [data-page="memory"]').click()
         assert detached.value.status == 200
     finally:
         authorization_gate.release.set()
