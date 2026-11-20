@@ -1,7 +1,7 @@
 {
   "batch": "v2-ui-connection-stability-v128",
   "recorded_at": "2026-11-15",
-  "resource_version_final": "20261120v168",
+  "resource_version_final": "20261120v169",
   "v1_alignment": {
     "summary": "用户提供 V1 正式工作台截图后，直接精读 web/ui/workbench.css 的 V1 实现并逐项移植，使 V2 结构与 V1 一致（而非自创风格）。",
     "ported_from_v1": [
@@ -1467,6 +1467,19 @@
     "验证": {
       "实测": "真实files_write审批触发→卡片结构齐全→拒绝后卡片消失运行按拒绝结算,零报错",
       "截图": "approval-card.png/approval-after.png"
+    }
+  },
+  "session_title_overflow": {
+    "问题": "长会话标题溢出卡片被硬裁切(所有者截图):.s-title是行内span,副本的省略号三件套只对块级盒生效",
+    "交付": [
+      "桥接层#sessions .s-title块级化(display:block+min-width:0),单行省略号生效",
+      "main.js写入title属性,省略后悬停可看全文"
+    ],
+    "验证": {
+      "实测": "32条会话长标题全部clipped=true且overflow=false,hoverTitle=true;双主题无溢出",
+      "专项": "19 passed(history+两token守卫)",
+      "截图": "session-title-fixed.png",
+      "版本": "V2 20261120v169"
     }
   }
 }

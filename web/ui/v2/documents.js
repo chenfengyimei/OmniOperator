@@ -1,5 +1,5 @@
 import { ask } from '../dialog.js?v=20261103v7';
-import { maintenanceActive, maintenanceDescription } from './maintenance.js?v=20261120v168';
+import { maintenanceActive, maintenanceDescription } from './maintenance.js?v=20261120v169';
 
 // All editable source drafts remain local until explicit save; reads use exact revisions.
 export function mountDocuments({ api, wrap, getAgent, getGeneration }) {

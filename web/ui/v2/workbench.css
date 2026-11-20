@@ -3919,3 +3919,12 @@ body[data-ui-page="workbench-v2"] .approval-btn:disabled {
   cursor: progress;
 }
 
+/* 会话标题溢出修复：.s-title 是行内 span，而副本的省略号三件套
+   （overflow/text-overflow/white-space）只对块级盒生效，长标题因此直接
+   溢出卡片被硬裁切（所有者截图取证）。块级化后单行省略号生效，
+   完整标题由 main.js 写入 title 属性供悬停查看。 */
+body[data-ui-page="workbench-v2"] #sessions .s-title {
+  display: block;
+  min-width: 0;
+}
+
