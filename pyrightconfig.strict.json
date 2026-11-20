@@ -412,6 +412,7 @@
     "agent/src/omni/domain/verification_stop.py",
     "agent/src/omni/domain/model_recovery.py",
     "agent/src/omni/domain/memory_decay.py",
+    "agent/src/omni/domain/memory_scoring.py",
     "agent/src/omni/adapters/persistence/migrations/versions/v0047.py",
     "agent/src/omni/adapters/persistence/migrations/versions/v0048.py"
   ],

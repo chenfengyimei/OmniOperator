@@ -174,7 +174,8 @@ def builtin_capabilities(
         (
             "memory_remember",
             "Save memory with an exact quote from a message, observed tool action, or observed document revision; "
-            "optional importance 1-100 (default 50) steers later decay",
+            "optional importance 1-100 overrides automatic scoring; when omitted, channel-sourced captures are "
+            "auto-scored from speaker context and content (otherwise default 50), steering later decay",
             {
                 "content": {"type": "string", "minLength": 1, "maxLength": 20000},
                 "message_id": {"type": "string"},

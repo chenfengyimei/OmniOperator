@@ -24,6 +24,7 @@ from ...domain.memory_decay import (
     should_auto_decay,
     target_clarity,
 )
+from ...domain.memory_scoring import MemoryScore, score_memory
 from ...domain.people import DOCUMENT_KINDS, content_fingerprint, source_fingerprint
 from . import schema as s
 from .document_repository import DocumentRepositories
@@ -175,7 +176,7 @@ class MemoryRepositories(DocumentRepositories):
         action_id: str | None = None,
         document_revision_id: str | None = None,
         source_run_id: str | None = None,
-        importance: int = DEFAULT_IMPORTANCE,
+        importance: int | None = None,
         pinned: bool = False,
     ) -> Record:
         if (
@@ -184,10 +185,25 @@ class MemoryRepositories(DocumentRepositories):
             or kind not in {"fact", "profile", "resident", "journal", "note"}
         ):
             raise BusinessError("invalid_memory", "Memory must contain bounded text and a known kind", status=422)
-        if type(importance) is not int or not 1 <= importance <= 100:
+        if importance is not None and (type(importance) is not int or not 1 <= importance <= 100):
             raise BusinessError("invalid_memory", "Memory importance must be an integer 1-100", status=422)
         if type(pinned) is not bool:
             raise BusinessError("invalid_memory", "Memory pin must be an explicit boolean", status=422)
+        scored: MemoryScore | None = None
+        context = self._memory_score_context(agent_id, source_run_id)
+        if context is not None:
+            source, is_owner, is_private = context
+            scored = score_memory(
+                content,
+                source=source,
+                is_owner=is_owner,
+                is_private=is_private,
+                manual_importance=importance,
+                pinned=pinned,
+            )
+            importance, pinned = scored["importance"], scored["pinned"]
+        elif importance is None:
+            importance = DEFAULT_IMPORTANCE
         if person_id:
             self._live_person(agent_id, person_id)
         if kind in DOCUMENT_KINDS and not person_id:
@@ -240,7 +256,50 @@ class MemoryRepositories(DocumentRepositories):
             source_run_id=source_run_id,
         )
         self._touch_person(person_id)
+        if scored is not None:
+            self.audit(
+                agent_id,
+                "memory.scored",
+                cast(str, entry["id"]),
+                cast(
+                    Record,
+                    {
+                        "importance": scored["importance"],
+                        "pinned": scored["pinned"],
+                        "emotional": scored["emotional"],
+                        "kind": scored["kind"],
+                        "tags": scored["tags"],
+                        "scope": scored["scope"],
+                        "reasons": scored["reasons"],
+                    },
+                ),
+            )
         return entry
+
+    def _memory_score_context(self, agent_id: str, source_run_id: str | None) -> tuple[str, bool, bool] | None:
+        """Resolve QQ channel speaker context for automatic importance scoring; non-channel runs stay model-authored."""
+        if not source_run_id:
+            return None
+        qq = (
+            self.connection.execute(
+                select(s.qq_runs).where(s.qq_runs.c.agent_id == agent_id, s.qq_runs.c.run_id == source_run_id)
+            )
+            .mappings()
+            .first()
+        )
+        if qq is None:
+            return None
+        owner = self.connection.execute(
+            select(s.people.c.owner_id).where(s.people.c.agent_id == agent_id, s.people.c.id == qq["person_id"])
+        ).first()
+        is_owner = owner is not None and owner[0] is not None
+        scene = self.connection.execute(
+            select(s.qq_bindings.c.scene).where(
+                s.qq_bindings.c.agent_id == agent_id, s.qq_bindings.c.id == qq["binding_id"]
+            )
+        ).first()
+        is_private = scene is not None and scene[0] == "private"
+        return ("qq-private" if is_private else "qq-group", is_owner, is_private)
 
     def revise_memory(
         self,

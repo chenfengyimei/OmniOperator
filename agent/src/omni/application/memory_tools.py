@@ -97,7 +97,7 @@ class MemoryCapabilities:
                     if arguments.get("document_revision_id")
                     else None,
                     source_run_id=context.run_id,
-                    importance=cast(int, arguments.get("importance", 50)),
+                    importance=cast(int, arguments["importance"]) if "importance" in arguments else None,
                 )
             )
             return ActionResult(Outcome.OK, "Memory saved: " + str(row["id"]), Effect.APPLIED)

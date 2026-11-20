@@ -1015,7 +1015,7 @@ class UnitOfWork(Protocol):
         action_id: str | None = None,
         document_revision_id: str | None = None,
         source_run_id: str | None = None,
-        importance: int = 50,
+        importance: int | None = None,
         pinned: bool = False,
     ) -> Record: ...
     def forget(self, agent_id: str, memory_id: str, revision: int | None = None) -> None: ...

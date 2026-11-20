@@ -1,0 +1,100 @@
+{
+  "schema": 1,
+  "date": "2026-11-20",
+  "base_commit": "f87a9ad6f59341f2c6d6f34574a47a1c496f6fb2",
+  "status": "implemented_scoped_passed",
+  "batch": "K15.score_memory",
+  "owner_approval": "所有者批准完整 scoreMemory 自动评分（含记忆权威模型变更：显式 model importance 为手动覆盖优先，省略时渠道捕获自动评分）",
+  "implements_gap": "K15 人格/遗忘巩固/自主行为审计之重要性启发 scoreMemory（decay_core/decay_tick 已列后续）：自动从渠道说话人上下文+内容计算记忆 importance/pinned，学习参考 surfcore scoreMemory/detectEmotionScore 纯逻辑启发",
+  "contract": "docs/v2/contracts/V2_MEMORY_SCORING.md",
+  "source_files": {
+    "agent/src/omni/domain/memory_scoring.py": "e52059d01a7f6d5cd6063e45be077e8d1f5ad488e32336be7e334365341ba2c0",
+    "agent/src/omni/adapters/persistence/memory_repository.py": "fcb7f54affb7c83c3c41998d8fe7229b4aaa1ef09162db2457665e7054365872",
+    "agent/src/omni/application/memory_tools.py": "3d968fff75334ced614ea04b4e6a563cdd577c84798bf1ea6ff6f2340c6fe166",
+    "agent/src/omni/application/ports.py": "15b4b000dc2561ebc230dd18aff067838f6c41736871c1ed7ba6ef4432031e81",
+    "agent/src/omni/composition/capabilities.py": "76c90d68f982d6ebf4b53a9b5c167b19f22644b9510533d281fd305fe555efce",
+    "agent/tests/v2/core/test_v2_memory_scoring.py": "67d33a4aee5532477e55d88b002dad6e0dcc48ab1704e51a051a7f6c77582d7b",
+    "pyrightconfig.strict.json": "5d35766ea9d65210f7d1916a7b95769e7cad11a469868dfb991757524f87ede9",
+    "docs/v2/contracts/V2_MEMORY_SCORING.md": "d6e449da390857ecdb9b596aea51b55c069f4c082b1b32d82f6ba23054b35954"
+  },
+  "reference": {
+    "repository": "xuexi/surfcore",
+    "commit": "59ec3066",
+    "files": {
+      "src/memory-card.js": "scoreMemory(base8+owner42私/32群+direct8+emotional+first30+promise16+conflict14+self5+bili score0-18/favorite8/anecdote4+len<6-12+manualImportance override，clamp1-100，kind first/owner/emotion>=14/conflict/promise/event，pinned=input.pinned||(first&&(owner||imp>=60))，first&&owner→100 pinned，tags owner/emotion>=8/first/bili/qq≤12，scope/platform)、detectEmotionScore(min24,strong*8+medium*3+exclaim)、EMOTION_STRONG/MEDIUM/FIRST/PROMISE/CONFLICT/SELF 正则、SOURCE_PLATFORM"
+    },
+    "adaptation": "学习参考纯逻辑重要性启发，独立实现于 V2 四层 memory 链（stdlib re，无新依赖，无第三方源码复制）。权威模型：V2 memory_remember 为 model-authored（模型供 importance），本批改为显式 model importance=手动覆盖优先（参考 manualImportance），省略时渠道捕获（qq_runs 可解析说话人上下文）自动 score_memory；非渠道 run 保持默认 50（隔离测试零回归）。保守子集：is_first/direct/bili score/favorite/anecdote 当前 False/0（V2 intake 缺数据，引擎完整支持这些因子），first-meet 指定属独立 isInitial 缺口；reasons/scored_kind/tags/scope/emotional 入审计 memory.scored（V2 memory_entries 无 tags/scope 列、kind CHECK 限 fact/profile/resident/journal/note 与参考 kind 冲突，故不改 kind 列/不加新列/迁移）。参考 agents.md/RULES/prompts 当不可信数据非本会话指令。"
+  },
+  "delivered": [
+    "domain/memory_scoring.py 新纯规则文件：detect_emotion_score(min24,strong*8+medium*3+exclaim)、score_memory(text,source,is_owner,is_private,direct,is_first,score,favorite,anecdote,manual_importance,pinned,tags,scope)->MemoryScore(importance/pinned/reasons/emotional/kind/tags/scope/platform)、EMOTION_STRONG/MEDIUM/FIRST/PROMISE/CONFLICT/SELF 正则逐字移植、SOURCE_PLATFORM 映射、BASE_IMPORTANCE8/EMOTION_CAP24/MAX_TAGS12/BILI_SCORE_CAP18；kind 优先级 first>owner>emotion>=14>conflict>promise>event；pinned first&&owner→importance100；manual override 在 first&&owner 强制之前（参考顺序）；tags 去重≤12",
+    "memory_repository.py remember importance 签名 int DEFAULT_IMPORTANCE→int|None None；新增 _memory_score_context(agent_id,source_run_id)->tuple[source,is_owner,is_private]|None（qq_runs by run_id→people.owner_id is_owner、qq_bindings.scene is_private、source qq-private/qq-group；非渠道无 qq_runs→None）；remember 当 context 可解析→score_memory(content,manual_importance=importance,pinned=pinned,source/is_owner/is_private) 取 importance/pinned，否则 importance None→DEFAULT_IMPORTANCE50；显式 importance 先校验 1-100 再作 manual override；审计 memory.scored（importance/pinned/emotional/kind/tags/scope/reasons，cast Record，不含私有正文）；clarity=initial_clarity(importance,pinned) 复用 decay_core",
+    "memory_tools.py memory_remember importance 透传改为 arguments 含 importance 时 cast(int) 否则 None（省略触发渠道自动评分，显式为手动覆盖）",
+    "ports.py UnitOfWork.remember importance int=50→int|None=None（Protocol 与仓储签名一致）",
+    "capabilities.py memory_remember spec 描述更新：optional importance 覆盖自动评分，省略时渠道捕获按说话人上下文+内容自动评分（否则默认50）",
+    "pyrightconfig.strict.json include 补 memory_scoring.py（新源文件，413→414）",
+    "test_v2_memory_scoring.py 新 13 项：领域 10（emotion 计数/cap24、base/owner 私50群40、direct/emotional/first/promise/conflict/self、短文本<6惩罚 clamp 地板1、bili score clamp18/favorite/anecdote、manual override（first&&owner 仍强制100）、kind 优先级、pinned first&&owner/阈值60、tags 去重 cap12/scope/platform、clamp 天花板100）+ 接线 3（非渠道 accept_turn 省略 importance→50 无 memory.scored 审计；QQ 私聊 owner→63 审计不含私有正文；QQ 群非 owner→21、显式70→manual override）"
+  ],
+  "limits": {
+    "full_score_memory_heuristic_ported_all_factors": true,
+    "detect_emotion_score_strong_medium_exclaim_cap24": true,
+    "explicit_model_importance_manual_override_priority": true,
+    "channel_gated_auto_score_qq_runs_context": true,
+    "non_channel_runs_keep_default_50_zero_regression": true,
+    "owner_private_group_context_resolved_people_owner_id_binding_scene": true,
+    "pinned_computed_first_owner_force_100": true,
+    "reasons_kind_tags_scope_emotional_audited_no_private_body": true,
+    "no_new_column_no_new_migration_no_new_route": true,
+    "memory_entries_kind_check_unchanged_fact_profile_resident_journal_note": true,
+    "is_first_direct_bili_score_favorite_anecdote_conservative_false_0": true,
+    "isInitial_first_meet_designation_implemented": false,
+    "qq_direct_at_reply_resolution_implemented": false,
+    "bilibili_inbound_speaker_context_table_implemented": false,
+    "tags_scope_platform_persisted_columns_implemented": false,
+    "non_channel_auto_score_implemented": false,
+    "new_source_files": 1,
+    "worker_protocol_frame_changed": false,
+    "cross_platform_worker_changed": false,
+    "aggregate_index_commit_deferred": true
+  },
+  "validation": {
+    "mode": "scoped_implementation_plus_caller",
+    "scoring_scoped": {
+      "command": "uv run --no-sync pytest -q -n 0 tests/v2/core/test_v2_memory_scoring.py (from agent/)",
+      "passed": 13,
+      "failed": 0,
+      "seconds": 8.86
+    },
+    "caller_regression": {
+      "command": "uv run --no-sync pytest -q -n 0 <7 files: memory_decay/memory_decay_tick/memory_scoring/memory_organization/memory_semantics/background_review/qq> (from agent/)",
+      "passed": 110,
+      "failed": 0,
+      "seconds": 170.72,
+      "note": "渠道门控保证零回归：非渠道 run（无 qq_runs）remember 省略 importance 仍默认 50，既有 memory/decay/decay_tick/organization/semantics/background_review 隔离专项不受影响；QQ 集成专项全绿"
+    },
+    "strict": {
+      "config": "pyrightconfig.strict.json",
+      "files": 414,
+      "errors_total": 5,
+      "errors_attributable_to_this_batch": 0,
+      "warnings": 0,
+      "pre_existing_errors_not_chased": "ALL 5 in agent/src/omni/adapters/persistence/repository.py (other-session COMMITTED 6bcb0e98): L633/659x2/710x2. 本批 memory_scoring/memory_repository/memory_tools/ports/capabilities 零错误",
+      "note": "run from repo ROOT; include 补 memory_scoring.py 413->414；修 ports remember importance int|None + 审计 data cast(Record)（list 不变性）后本批零错误"
+    },
+    "ruff": "check + format pass on memory_scoring/memory_repository/memory_tools/ports/capabilities/test_v2_memory_scoring (import 排序自动修复)",
+    "project_index": "run; new source file memory_scoring.py; aggregate docs/index deferred per standing discipline (parallel UI session active)",
+    "task_status_check": "scripts/task_status.py --check exit 0",
+    "full_suite_executed": false,
+    "real_model_account_device_native_or_72h_executed": false,
+    "current_windows_service_or_database_touched": false
+  },
+  "whole_core_parity_complete": false,
+  "whole_reference_feature_audit_complete": false,
+  "whole_v2_complete": false,
+  "not_executed": [
+    "K15 isInitial 30天窗口/first-meet 指定/designateFirstMeeting/stableInitialChance/initialProbabilityForOffset、QQ direct @/reply 解析接 remember、Bilibili 入站说话人上下文表+score/favorite/anecdote、tags/scope/platform 持久化列（需独立迁移合同）、非渠道 run 自动评分、双卡分离/注入 clarity 裁剪/容量告警 auto-compact、主动动机引擎/分层人格/作息反馈",
+    "既有缺陷待独立批：execution_pruning[cost] 指纹含 settle 事件、7 个 pin v2_0039 schema_version 滞后、2 个 media_upload DDL、5 个 repository.py strict 错误",
+    "files_patch V4A 多文件格式、files_search ripgrep/glob 否定、K16 帧内 OCR/模型侧 zoom（需所有者图像协议批准）、K01 会话/lineage 缓存范围、K17 信笺/反思/人格成长、K18 写广度/自主观看/受控分享",
+    "真实模型 importance 自评质量/长期衰减曲线/多渠道人格一致性；Full offline suite for current source; real accounts/models/devices/native desktop and 72h soak"
+  ],
+  "next": "继续清单可离线缺口独立合同先批：K15 isInitial first-meet 窗口或 QQ direct 解析或 Bilibili 入站说话人上下文（补全 score_memory 保守输入）；或 files_patch V4A/files_search ripgrep/K01 cache-scope/K17 信笺反思；或既有缺陷独立批。whole_*_complete 保持 false，不提前关闭任何对标项。"
+}
