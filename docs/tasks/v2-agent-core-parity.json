@@ -11,17 +11,16 @@
   "evidence": "docs/evidence/v2-agent-core-parity.json",
   "test_policy": "实现优先，只跑受影响模块和调用方专项；整个V2开发冻结后统一全量",
   "current_followup": {
-    "id": "K13.cron_e2e",
-    "status": "implemented_e2e_batch",
+    "id": "K16.tool_image_protocol",
+    "status": "design_contract_recorded",
     "scope": [
-      "合同第四批(端到端)：只新增test_v2_cronjob_e2e.py 3例，经生产open_instance+注入Clock+脚本模型走全链，零生产源码改动(git diff HEAD -- agent/src/为空)",
-      "create→审批门→触发→绑定技能真激活(run_skill_activations)→上游输出经生产Redactor脱敏注入→continuity自喂；update/pause/resume/list/remove五连同回合6审批全ok/list effect=none；陈旧rev99 update结算error/none/revision_conflict定义保持rev1",
-      "脚本模型以工具面区分通道(K08背景评审只读面不含cronjob_manage不消费run回复)；技能经生产SkillService.save+enabled真写对象字节",
-      "发现既有生产交互(非本批引入)：assert_run_lease→schedule_blocker把上一occurrence在途K08评审reserved模型调用计为未解决工作，下一触发run在评审reserve→settle窗口内被claim会previous_outcome_unknown终态失败；测试wait_review_settled轮询真实background_review_batches账本确定性消除竞态；守卫是否排除purpose=summary属安全敏感独立批(需合同)本批不改生产"
+      "所有者2026-11-21批准方案B(同步工具结果图像可见,冻结图像协议扩展)后的独立实现合同(纯文档无源码/测试/迁移改动)：实现前勘定证伪草案「持久层无需改」前提——工具转录仅存内存(engine.py:340/:419/:443,finish才持久化终稿,无role=tool消息行)、model_call_images.message_id NOT NULL+FK(schema.py:2945-2966)、冻结触发器call_image_scope(v0032:26)要求context_messages→message_parts→messages→objects全链、message_image_insert(v0032:23)只允许role=user+run_id NULL消息带image part、账本object_id经OBJECT_REFERENCES(schema.py:3523)计入对象引用且唯一释放路径是消息擦除触发器(工具图像无释放路径则对象永久不可收集)",
+      "八决策：D1工具转录保持内存态(历史/UI/保留零改动)；D2 ImageInfo+MAX_IMAGES移入domain/contracts.py解ImageRef依赖环(4个src导入点同步)+ImageRef委托ImageInfo.validate+ActionResult.images缺省空元组字节等价+references()接受role=tool严格校验逐字不变并附加role键；D3引擎两追加site共用helper(disabled镜像with_images通知/openai_low≤per_call_limit附着+全局最后限额降级旧part/run_budget唯一执行点仍在prepare与DB)；D4 prepare按ref.get(role,user)分流,tool分支核验part_id不冒充message_parts+agent域image_objects/objects字段一致+policy/token_cost,user分支逐字不变；D5迁移v0050重建账本表message_id可空(表数145不变无新表)+scope双分支(message分支v0032原SQL逐字保留零弱化)+budget/state/erasure/delete逐字重建+update身份触发器仅扩展tool行释放模式+新增call_image_tool_release(run终态→tool行object_id=NULL,erased_at保持NULL,释放≠擦除)；D6 user图像全链字节等价零回归；D7 bounded_tool_summary_sources渲染omni_image为有界文本标记；D8四批1a持久化/1b协议+引擎/2 media_zoom/3端到端",
+      "D5触及冻结安全触发器面并引入run终态释放新生命周期语义,超出草案描述,按先授权/持久化/安全合同后接线纪律待所有者批准后接线"
     ],
-    "evidence": "docs/evidence/v2-cronjob-e2e.json",
-    "validation": "终源3过0败(36.08秒)；修复后交错单跑3/3+合跑cronjob_tool(86)3/3全绿；修复前合跑2轮单跑3轮第二触发失败诊断暴露('failed','previous_outcome_unknown')非负载型flaky；回退验证摘掉组合层attach后3/3全红还原instance.py sha256与提交一致；strict引用3/4批417文件0错误(生产字节零漂移本批内复跑亦0错误0警告)；ruff净；未跑全量、未触真实账号/模型/设备/运行中服务与数据库",
-    "next": "K13 cron四批全部落地。随后K16图像结果与zoom(需所有者A/B协议选型不擅自接线)、K01缓存作用域、K17反思来源链(各需先设计合同)；K15主动外联边界/K18写路径扩面/代码沙箱/原始CDP安全模型仍待所有者决定。设计需求不作为自动停止理由，真实操作许可仍保留。"
+    "evidence": "docs/evidence/v2-tool-image-protocol.json",
+    "validation": "纯合同批：无源码/测试/迁移改动,strict与专项不适用；勘定事实11条均实读当前工作树源码(engine/model_calls/context/images/image_repository/object_repository/retention_repository/schema/v0032/metering/domain.context/对象TTL)；既有测试面核验(test_v2_images.py 12例+http 1例+migration,references消费方字段访问对附加role键安全)；未跑全量、未触真实账号/模型/设备/运行中服务与数据库",
+    "next": "待所有者批准D5持久化重设计(冻结触发器重建+run终态释放)后按D8接线：1a持久化批(v0050+schema+prepare tool分支+仓库级专项+图像/媒体调用方零回归)→1b协议+引擎批→2 media_zoom工具批→3端到端批。K01缓存作用域/K17反思来源链各需先设计合同。whole_*_complete保持false。"
   },
   "requirements": [
     {
@@ -501,6 +500,14 @@
           "delivered": "工具结果图像可见协议+模型侧media_zoom授权实现前设计合同(纯文档无源码/测试/迁移改动，非实现)：实读核验ActionResult(domain/contracts.py:68-77无图像字段/artifacts未用于图像附着)、domain/images.py:119-122 references()强制omni_image仅role==user(tool消息不能携带)、engine.py:404/428工具结果纯文本追加、engine.py:772-792写工具审批门(prepare_action→approved/denied/cancelled/expired→authorize_action→资源锁→invoke)；方案A(注册image对象后续user消息附着零协议改动非同步,模型下回合才见帧)vs方案B(ActionResult.images+tool消息omni_image协议扩展+references放宽role==tool+image_repository/with_images/context支持+per_call_limit/run_budget计量策略一致,同步可见推荐完整对标且通用惠及桌面/安卓视觉,触冻结图像协议需所有者批准+既有图像协议全量零回归)；决策2模型发起zoom为写动作writes=True复用既有审批门(同files_patch链)无需新授权；决策3复用K16.zoom_foundation frames timestamps(count=1,width=1280,timestamps=[t])无新表/操作,输入source_id+cell(经media_cells时间映射)或timestamp+可选width,作业done取media_frames.object_id经ImageService.prepare注册返回图像；实现步骤/有界安全(width<=1280/timestamp0..7200/count1/image<=16MiB ImageInfo校验/计量openai_low/凭据源CAS+删除屏障+未知不重放+取消等待真实清理+所有者审批门)/验证列明；模型侧zoom仍未实现,HSV#1/Laplacian#5/OCR仍后续；whole_*_complete保持false不提前关闭任何对标项"
         },
         {
+          "gap": "#3 局部zoom模型侧自动重取+工具结果图像可见(方案B批准后的独立实现合同)",
+          "status": "design_contract_recorded",
+          "batch": "K16.tool_image_protocol",
+          "contract": "docs/v2/contracts/V2_TOOL_IMAGE_PROTOCOL.md",
+          "evidence": "docs/evidence/v2-tool-image-protocol.json",
+          "delivered": "所有者2026-11-21批准方案B后按草案「需独立合同」要求写独立实现合同(纯文档无源码/测试/迁移改动)：实现前勘定证伪草案「持久层无需改」前提——事实1工具转录仅存内存(engine.py:340每run一次prepare重建/:419并行与:443顺序追加纯文本/finish才持久化终稿,grep证实无role=tool消息行)、事实2 canonical请求与图像流(prepare→with_images从DB parts附着+最后per_call_limit选择/references每调用校验/model_images_prepare按最新快照parts核验/wire每调用重取字节)、事实3账本表message_id NOT NULL+FK与六冻结触发器(call_image_scope全链join/call_image_budget/call_image_state/call_image_erasure消息驱动/call_image_update身份与擦除模式/call_image_delete不可删,v0032:26-38)、事实4 message_image_insert仅role=user+run_id NULL、事实5 image_parts角色无关(草案此点正确)、事实6 OBJECT_REFERENCES自动派生致账本object_id阻塞object_remove且对象TTL1天唯一释放路径是消息擦除(工具图像无释放则永久泄漏)、事实7 references消费方字段访问对附加role键安全、事实8 with_images只处理持久化行(tool支持落实为引擎附着+prepare核验)、事实9 serialized_request泛型JSON安全/bounded_tool_summary_sources会json.dumps列表content、事实10 ImageInfo依赖环需移入contracts(4个src导入点)、事实11测试面12+1+migration与媒体_register_sheet；八决策D1工具转录保持内存态/D2 ImageInfo+MAX_IMAGES移入contracts+ImageRef委托ImageInfo.validate+ActionResult.images缺省空元组+references接受role=tool严格校验不变并附加role键/D3引擎helper(disabled通知/openai_low≤per_call_limit截断/全局最后限额降级/run_budget唯一执行点不变)/D4 prepare按role分流tool分支(part_id不冒充+image_objects/objects字段一致+policy/token_cost)user分支逐字不变/D5迁移v0050重建账本表message_id可空(表数145不变无新表)+scope双分支(message分支原SQL逐字保留)+budget/state/erasure/delete逐字重建+update仅扩展tool行释放模式+新增call_image_tool_release(run终态置object_id=NULL,erased_at保持NULL释放≠擦除,理由run内每调用re-wire须字节活到终态)/D6 user全链字节等价零回归/D7压缩摘要源渲染图像标记不泄漏part元数据/D8四批1a持久化/1b协议+引擎/2 media_zoom/3端到端；D5触及冻结安全触发器面与新生命周期语义超出草案描述,待所有者批准后接线；模型侧zoom与协议扩展仍未实现,HSV/Laplacian已K16.scene_frames落地,OCR仍后续；whole_*_complete保持false"
+        },
+        {
           "gap": "#1 HSV切点检测+密度分段 与 #5 Laplacian清晰度选帧（保守子集）",
           "status": "implemented_scoped_passed",
           "batch": "K16.scene_frames",
@@ -509,7 +516,7 @@
           "delivered": "frames作业可选select=scenes(domain/media.py SCENE_*常量+frames_plan第四参select与timestamps互斥+scene_cuts固定阈值12+minGap0.35保留高分+scene_segments+scene_slots最大余数比例分配每段≥1槽段多保最长平局稳定；worker _hsv_score色相环形差min(dh,255-dh)+较低饱和度降权+S/V绝对差PIL C级运算无numpy依赖、_scene_targets有界seek采样min(240,duration*2fps)64宽分析缩略图+Laplacian 3x3核offset128方差选锐平局最早+窗口无候选中点+无切点等距回退、_frames select解码前校验响应仅scenes增select/scene_cuts键默认字节等价ExitStack资源登记pick/宫格/编码防线复用；application Protocol/submit/perform+adapters MediaProcessor.frames第六参+http MediaJobInput.select Literal透传；FakeProcessor/sheet_identity子类适配select默认参zoom先例)；继承参考scan.js两条关键经验(色相环形/低饱和降权防假切点)；14新增专项(真实PyAV合成三场景切点≈4/8每段有帧/棋盘vs纯灰选锐/无切点回退/默认形状/fake解码前拒/真实子进程透传/真实作业settle+cells+非法plan422/REST)+221调用方(scenes14/frames/zoom/plans/sheet_identity/cells/worker/decoding/duration/anchors)过0失败44.56秒终源复跑、strict本批零错误(首轮point lambda 3错误改具名_circular_hue；余5既有他会话repository.py不追逐)、ruff通过；无新表/迁移/操作/模型工具/路由/协议帧改动admission/CAS/删除屏障/未知结算/取消等待全复用；不含参考自适应分位数阈值/亮度增益/黑边补偿/自适应gap/快剪合并/自适应宫格DP打包(独立合同)/模型侧zoom(待批准)/OCR，真实长片质量另验"
         }
       ],
-      "limits": "只读审计无新工具/表/迁移/路由/源码改动；可离线缺口未在K16审计批实现(列后续批次)，其中缺口#4转录定位已在K16.locate后续批实现、缺口#2格号可寻址索引模型侧读面已在K16.cell_anchor后续批实现(只读派生既有帧表亚秒timestamps非新持久化层)、缺口#3局部zoom所有者侧显式时间戳高清重取作业基础已在K16.zoom_foundation后续批实现(frames作业可选timestamps复用既有管线非新表/操作/模型工具，模型侧自动zoom需action_review授权+ImageService图像可见设计合同——该实现前设计合同已记录于K16.zoom_model_design批(方案A/B工具结果图像可见协议+写工具审批门复用+frames timestamps作业复用，仍未实现需所有者批准协议选型)，HSV#1/Laplacian#5已在K16.scene_frames后续批实现(select=scenes保守子集：固定阈值12+minGap0.35+比例密度分配+Laplacian方差选锐，自适应分位数阈值/亮度增益/黑边补偿仍后续)、OCR仍后续)；V1 tools/storyboard学习实现不计V2对等；不宣称五工具/算法全集对等；未引入OCR模型依赖；既有todos重启竞态与5个pin v2_0039旧迁移测试沿用保留",
+      "limits": "只读审计无新工具/表/迁移/路由/源码改动；可离线缺口未在K16审计批实现(列后续批次)，其中缺口#4转录定位已在K16.locate后续批实现、缺口#2格号可寻址索引模型侧读面已在K16.cell_anchor后续批实现(只读派生既有帧表亚秒timestamps非新持久化层)、缺口#3局部zoom所有者侧显式时间戳高清重取作业基础已在K16.zoom_foundation后续批实现(frames作业可选timestamps复用既有管线非新表/操作/模型工具，模型侧自动zoom需action_review授权+ImageService图像可见设计合同——该实现前设计合同已记录于K16.zoom_model_design批(方案A/B工具结果图像可见协议+写工具审批门复用+frames timestamps作业复用)，所有者已于2026-11-21批准方案B，独立实现合同已记录于K16.tool_image_protocol批(勘定证伪草案持久层无需改前提：工具转录仅存内存+账本message_id非空FK+冻结触发器链，D5迁移v0050账本重建+双分支scope+run终态释放待所有者批准后接线，仍未实现)，HSV#1/Laplacian#5已在K16.scene_frames后续批实现(select=scenes保守子集：固定阈值12+minGap0.35+比例密度分配+Laplacian方差选锐，自适应分位数阈值/亮度增益/黑边补偿仍后续)、OCR仍后续)；V1 tools/storyboard学习实现不计V2对等；不宣称五工具/算法全集对等；未引入OCR模型依赖；既有todos重启竞态与5个pin v2_0039旧迁移测试沿用保留",
       "next": false
     },
     {
@@ -804,6 +811,10 @@
     {
       "id": "K16.zoom_model_design",
       "evidence": "docs/evidence/v2-tool-image-visibility.json"
+    },
+    {
+      "id": "K16.tool_image_protocol",
+      "evidence": "docs/evidence/v2-tool-image-protocol.json"
     },
     {
       "id": "K13.search_regex",

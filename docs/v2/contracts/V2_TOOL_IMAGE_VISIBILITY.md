@@ -2,7 +2,9 @@
 
 ## 状态
 
-**设计合同（design_contract_recorded），非实现。** K16 缺口 #3「模型侧自动 zoom」仍未实现；本批交付实现前必须的**工具结果图像可见协议 + 模型发起媒体处理授权**设计（按总对标纪律「先授权/持久化合同后执行接线」）。已实现的 [K16.zoom_foundation](V2_MEDIA_ZOOM.md)（所有者侧 frames 显式时间戳高清重取）是其作业基础。`whole_core_parity_complete`/`whole_reference_feature_audit_complete`/`whole_v2_complete` 保持 false。
+**设计合同（design_contract_recorded）→ 所有者已批准方案 B（2026-11-21），进入实现。** 所有者在 K13 四批完结后的批次边界明确选型「K16 方案 B（合同推荐）」：批准冻结图像协议扩展（`ActionResult.images` + tool 消息 `omni_image`），同回合可见，完整对标参考 zoom。决策 2（写工具审批门复用）与决策 3（frames 作业复用，无新表）随方案 B 一并生效。实现按下方步骤独立分批：协议扩展批（既有 user-image 协议全量零回归）→ media_zoom 工具批 → 端到端批。**实现前勘定（2026-11-21）证伪下文「持久层无需改」前提**：工具转录从不持久化、`model_call_images.message_id` 非空 FK、冻结触发器 `call_image_scope`/`message_image_insert` 要求 user 消息 part 链——方案 B 必须含迁移 v0050（账本表重建 + 双分支触发器 + run 终态释放）。独立实现合同见 [V2_TOOL_IMAGE_PROTOCOL.md](V2_TOOL_IMAGE_PROTOCOL.md)（D5 持久化重设计待所有者批准后接线）。下文「状态」原文为设计批时点快照。K16 缺口 #3「模型侧自动 zoom」实现中；已实现的 [K16.zoom_foundation](V2_MEDIA_ZOOM.md)（所有者侧 frames 显式时间戳高清重取）是其作业基础。`whole_core_parity_complete`/`whole_reference_feature_audit_complete`/`whole_v2_complete` 保持 false。
+
+设计批原文（已过期，仅存档）：K16 缺口 #3 仍未实现；本批交付实现前必须的**工具结果图像可见协议 + 模型发起媒体处理授权**设计（按总对标纪律「先授权/持久化合同后执行接线」）。
 
 ## 参考与 V2 现状（实读源码）
 
