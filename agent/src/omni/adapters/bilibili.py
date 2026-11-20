@@ -24,6 +24,7 @@ from ..domain.bilibili import (
     following_rows,
     history_rows,
     msgfeed_kind,
+    msgfeed_like_rows,
     msgfeed_rows,
     search_keyword,
     search_rows,
@@ -506,9 +507,10 @@ class BilibiliGateway:
         return {"feed": "history", **history_rows(data, limit)}
 
     async def _msgfeed(self, client: Any, kind: str, limit: int) -> Payload:
-        """Owner reply/at inbox (first page); bounded discovery rows, target kind, login required."""
+        """Owner reply/at/like inbox (first page); bounded discovery rows, target kind, login required."""
         data = await self._get(client, f"/x/msgfeed/{kind}", {"platform": "web", "build": 0, "mobi_app": "web"})
-        return {"feed": "msgfeed", "kind": kind, **msgfeed_rows(data, limit)}
+        rows = msgfeed_like_rows(data, limit) if kind == "like" else msgfeed_rows(data, limit)
+        return {"feed": "msgfeed", "kind": kind, **rows}
 
     async def read(self, configuration: Mapping[str, object], operation: str, target: str, limit: int = 10) -> Payload:
         return await self._read(configuration, operation, target, limit)

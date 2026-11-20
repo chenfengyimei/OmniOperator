@@ -18,7 +18,7 @@ READ_SPEC = ToolSpec(
     "BV:root-comment-id; search targets are keywords; whois targets are mids; tags targets are BV ids "
     "returning public video tags; danmaku returns a bounded "
     "sample; popular/ranking/following/favorites/history ignore target; favorites lists owner-created folders; "
-    "history lists owner watch history; msgfeed targets are reply/at inbox kinds (discovery hints, "
+    "history lists owner watch history; msgfeed targets are reply/at/like inbox kinds (discovery hints, "
     "authoritative reply text via replies); no publishing.",
     {
         "type": "object",

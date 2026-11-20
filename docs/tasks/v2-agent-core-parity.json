@@ -554,6 +554,14 @@
           "delivered": "bilibili_read新增operation=msgfeed只读(domain msgfeed_kind仅reply/at否则422+msgfeed_rows data.items有界50/缺失正常空/非列表行非dict id非int显式502/time reply_time优先at_time回退/nickname去标记/mid int→str/business_id+subject_id+root_id+source_id/uri+title+source_content去标记仅发现提示权威正文经replies回读继承参考msgfeed.mjs经验/has_more=len>=limit、adapter _msgfeed复用泛型_get kind路径platform=web build=0 mobi_app=web/target=kind独立elif分支/nav后分派、READ_SPEC enum+desc+http Literal增msgfeed)；22专项+256bilibili读调用方过0失败、strict410零错误(无新源文件)；仅reply/at首页无cursor翻页去重/回复写、title/source不可靠仅发现提示、需登录真实送达另验；无新表/迁移/路由/worker/持久层改动routing不变_get/_get_list未改；K18读API广度缺口全部实现；聚合索引暂缓"
         },
         {
+          "gap": "#1 读API广度之收件箱收到的赞like(/x/msgfeed/like，参考likes.mjs形状根本不同于reply/at)",
+          "status": "implemented_scoped_passed",
+          "batch": "K18.msgfeed_like",
+          "contract": "docs/v2/contracts/V2_BILI_MSGFEED_LIKE.md",
+          "evidence": "docs/evidence/v2-bili-msgfeed-like.json",
+          "delivered": "bilibili_read operation=msgfeed增第三kind=like收到的赞只读(domain/bilibili.py既有模块msgfeed_kind接受reply/at/like其余422分派前拒+MSGFEED_LIKE_MAX_USERS=20+独立msgfeed_like_rows：合并data.latest.items+data.total.items+data.items各分支None跳过非list502、逐条须dict且id须int否则502、按id去重保序latest先、合并去重后len>FEED_MAX_ROWS50→502、逐条[:limit] time=like_time(int否则None)/counts(int否则None)/users(None→[]非list502截断≤20每个须dict否则502 {mid str(int否则'')/nickname search_text100})/item发现提示同msgfeed_rows(business_id int否则None/subject_id+root_id+source_id str(int否则'')/uri+title+source_content search_text300去标记)/has_more=len(merged)>=limit；adapter _msgfeed rows=msgfeed_like_rows if kind=='like' else msgfeed_rows再{feed:msgfeed,kind,**rows}+import+docstring reply/at→reply/at/like，泛型/x/msgfeed/{kind}+platform=web build=0 mobi_app=web自动命中like、凭据CAS/login required/limit≤20/timeout20-25/共享slots不变；application READ_SPEC desc reply/at→reply/at/like，operation enum/schema/required/target≤100不变like是target kind非operation)，学参考likes.mjs x/msgfeed/like实测形状{latest:{items},total:{cursor,items}}+like_time+users[]点赞者数组+counts(与reply/at data.items单user根本不同故独立解析器不复用msgfeed_rows避免污染reply/at合同)，like title/source_content仅发现提示users是点赞者样本counts总数权威内容经replies/视频读；reply/at字节等价零回归(msgfeed_rows与非like _msgfeed分支未触)；15新增专项(kind接受like/like_rows解析latest+total去重保序/absent空/flat items回退/users截断≤20/缺字段默认/limit+has_more/malformed×7显式502/网关like收件箱URL+query+CAS/网关like malformed502)合既有22共37过+131调用方(msgfeed37+bilibili service/gateway/worker/response_bounds/merged94)过0失败46.73秒(strict类型收窄重构后复跑仍131)、strict414文件5错误均既有他会话已提交repository.py(6bcb0e98 L633/659×2/710×2)本批零新错误(初现domain/bilibili.py:556 len(raw)在or内list[Unknown]经分离isinstance+cast(list[object])惯用法修正复跑绿)、ruff check/format4文件通过(test一长行折行)；like cursor分页(total.cursor)/notice_state过滤/自主点赞反馈检测偏好学习/写广度/直播仍后续需账号+模型；无新表/迁移/路由/worker协议帧/源文件/跨平台改动routing/ports/http不变；聚合索引暂缓(刷新源指纹后回退基线并行会话活跃)"
+        },
+        {
           "gap": "#3 登录凭据风险暂停之风险码每账号阻断与所有者恢复(traffic.mjs码集)",
           "status": "implemented_scoped_passed",
           "batch": "K18.risk_pause",
@@ -562,7 +570,7 @@
           "delivered": "domain/bilibili.py RISK_CODES{12015,-105,-101,401}/is_risk_code精确int+domain/contracts.py BusinessError.detail加性int传输；adapters/bilibili.py _get/_get_list JSON解析后通用拒绝前识别风险码→bilibili_risk_code 403 detail=码(非风险码保持read_rejected)；application/bilibili.py read凭据授权后网关前查暂停→bilibili_risk_paused 403不触达网关，网关risk_code→同事务bilibili_risk_pause持久化转403，risk_state/resume(closing门)；bilibili_repository.py bilibili_risk_get/pause/resume(upsert每agent+config一行/恢复CAS resumed_at IS NULL/无暂停409/非法码422/审计)+bilibili_prepare顶部暂停门403；schema.py bilibili_risk_pauses+v0046冻结SQL迁移(identity immutable+keep禁删触发器,downgrade拒绝)表数142；http.py GET risk态/POST resume所有者路由(无模型侧暂停恢复工具)；已批准outbox投递不追溯阻断列明确不做；14处141→142守卫同步+v0045遗留action_review崩溃重试actions.started_at守卫修复(投影基线列+额外NULL断言不放宽)"
         }
       ],
-      "limits": "只读审计无新工具/表/迁移/路由/源码改动；可离线缺口未在K18审计批实现(列后续批次)，其中读API广度之搜索/space whois/弹幕/热门排行feed/关注动态feed/收藏夹/视频标签/观看历史/收件箱reply-at已在K18.search/K18.whois/K18.danmaku/K18.feed/K18.following/K18.favorites/K18.tag/K18.history/K18.msgfeed后续批实现(读API广度缺口全部实现；风险码每账号暂停与所有者恢复已在K18.risk_pause实现，已批准outbox投递不追溯阻断；写广度/自主观看/受控分享仍后续)；V1 tools/bilibili实现不计V2对等；不宣称全集API/主动观看/受控分享对等；参考agents.md/RULES当不可信数据非本会话指令；K18为清单末项领域参考审计(K13-K18全部记录)；既有todos重启竞态与6个pin v2_0039旧迁移测试沿用保留(本批实测memory_semantics×2/routing×1/skills×2/media×1)；v0045遗留action_review崩溃重试守卫已修(started_at投影+NULL断言)",
+      "limits": "只读审计无新工具/表/迁移/路由/源码改动；可离线缺口未在K18审计批实现(列后续批次)，其中读API广度之搜索/space whois/弹幕/热门排行feed/关注动态feed/收藏夹/视频标签/观看历史/收件箱reply-at已在K18.search/K18.whois/K18.danmaku/K18.feed/K18.following/K18.favorites/K18.tag/K18.history/K18.msgfeed后续批实现、收件箱收到的赞like已在K18.msgfeed_like后续批实现(参考likes.mjs x/msgfeed/like形状{latest/total嵌套+users[]点赞者数组+like_time+counts}根本不同于reply/at data.items单user，独立msgfeed_like_rows合并去重保序+users截断≤20+FEED_MAX_ROWS50+显式502，msgfeed_kind接受reply/at/like，reply/at字节等价零回归，like cursor分页/notice_state过滤/自主点赞反馈仍后续；风险码每账号暂停与所有者恢复已在K18.risk_pause实现，已批准outbox投递不追溯阻断；写广度/自主观看/受控分享仍后续)；V1 tools/bilibili实现不计V2对等；不宣称全集API/主动观看/受控分享对等；参考agents.md/RULES当不可信数据非本会话指令；K18为清单末项领域参考审计(K13-K18全部记录)；既有todos重启竞态与6个pin v2_0039旧迁移测试沿用保留(本批实测memory_semantics×2/routing×1/skills×2/media×1)；v0045遗留action_review崩溃重试守卫已修(started_at投影+NULL断言)",
       "next": false
     }
   ],
@@ -779,6 +787,10 @@
     {
       "id": "K13.patch_unicode_preserve",
       "evidence": "docs/evidence/v2-files-patch-unicode-preserve.json"
+    },
+    {
+      "id": "K18.msgfeed_like",
+      "evidence": "docs/evidence/v2-bili-msgfeed-like.json"
     }
   ]
 }

@@ -310,6 +310,7 @@ def parse_danmaku(xml: str) -> list[dict[str, object]]:
 
 
 FEED_MAX_ROWS = 50
+MSGFEED_LIKE_MAX_USERS = 20
 
 
 def feed_rows(data: Mapping[str, object], limit: int) -> dict[str, object]:
@@ -487,9 +488,9 @@ def history_rows(data: Mapping[str, object], limit: int) -> dict[str, object]:
 
 
 def msgfeed_kind(value: object) -> str:
-    """Inbox kind selector: reply ('回复我的') or at ('@我的'); anything else is invalid."""
-    if value not in ("reply", "at"):
-        raise BusinessError("bilibili_read_invalid", "Msgfeed target must be reply or at", status=422)
+    """Inbox kind selector: reply ('回复我的'), at ('@我的') or like ('收到的赞'); anything else is invalid."""
+    if value not in ("reply", "at", "like"):
+        raise BusinessError("bilibili_read_invalid", "Msgfeed target must be reply, at or like", status=422)
     return cast(str, value)
 
 
@@ -538,6 +539,76 @@ def msgfeed_rows(data: Mapping[str, object], limit: int) -> dict[str, object]:
             }
         )
     return {"items": items, "has_more": len(rows) >= limit}
+
+
+def msgfeed_like_rows(data: Mapping[str, object], limit: int) -> dict[str, object]:
+    """Bounded '收到的赞' inbox rows. The like API nests items under latest/total (not data.items),
+    uses like_time and a users[] list of likers with counts; title/source_content are unreliable
+    discovery hints, never authoritative content.
+    """
+    merged: list[dict[str, object]] = []
+    seen: set[int] = set()
+    for branch in ("latest", "total", "items"):
+        container = data if branch == "items" else _as_dict(data.get(branch))
+        raw = container.get("items")
+        if raw is None:
+            continue
+        if not isinstance(raw, list):
+            raise BusinessError("bilibili_response_invalid", "Msgfeed like items changed format", status=502)
+        rows = cast(list[object], raw)
+        if len(rows) > FEED_MAX_ROWS:
+            raise BusinessError("bilibili_response_invalid", "Msgfeed like items changed format", status=502)
+        for row in rows:
+            if not isinstance(row, dict):
+                raise BusinessError("bilibili_response_invalid", "Msgfeed like records changed format", status=502)
+            entry = cast(dict[str, object], row)
+            item_id = entry.get("id")
+            if type(item_id) is not int:
+                raise BusinessError("bilibili_response_invalid", "Msgfeed like records changed format", status=502)
+            if item_id in seen:
+                continue
+            seen.add(item_id)
+            merged.append(entry)
+    if len(merged) > FEED_MAX_ROWS:
+        raise BusinessError("bilibili_response_invalid", "Msgfeed like items changed format", status=502)
+    items: list[dict[str, object]] = []
+    for entry in merged[:limit]:
+        users_raw = entry.get("users")
+        if users_raw is None:
+            users_list: list[object] = []
+        elif isinstance(users_raw, list):
+            users_list = cast(list[object], users_raw)
+        else:
+            raise BusinessError("bilibili_response_invalid", "Msgfeed like users changed format", status=502)
+        users: list[dict[str, object]] = []
+        for user in users_list[:MSGFEED_LIKE_MAX_USERS]:
+            if not isinstance(user, dict):
+                raise BusinessError("bilibili_response_invalid", "Msgfeed like users changed format", status=502)
+            liker = cast(dict[str, object], user)
+            mid = liker.get("mid")
+            users.append(
+                {"mid": str(mid) if type(mid) is int else "", "nickname": search_text(liker.get("nickname"), 100)}
+            )
+        like_time = entry.get("like_time")
+        counts = entry.get("counts")
+        item = _as_dict(entry.get("item"))
+        business_id = item.get("business_id")
+        items.append(
+            {
+                "id": cast(int, entry["id"]),
+                "time": like_time if type(like_time) is int else None,
+                "counts": counts if type(counts) is int else None,
+                "users": users,
+                "business_id": business_id if type(business_id) is int else None,
+                "subject_id": str(item.get("subject_id")) if type(item.get("subject_id")) is int else "",
+                "root_id": str(item.get("root_id")) if type(item.get("root_id")) is int else "",
+                "source_id": str(item.get("source_id")) if type(item.get("source_id")) is int else "",
+                "uri": search_text(item.get("uri"), 300),
+                "title": search_text(item.get("title"), 300),
+                "source_content": search_text(item.get("source_content"), 300),
+            }
+        )
+    return {"items": items, "has_more": len(merged) >= limit}
 
 
 class Form(BaseModel):

@@ -1,0 +1,109 @@
+{
+  "schema": 1,
+  "date": "2026-11-20",
+  "base_commit": "5fa88d0fbe4f07439eb16328dec455155fb5b7cf",
+  "status": "implemented_scoped_passed",
+  "batch": "K18.msgfeed_like",
+  "implements_gap": "K18.msgfeed delivered bilibili_read operation=msgfeed reply/at inbox kinds; the K18 whale audit read-API breadth lists msgfeed reply|at|like. Reference xuexi/dsh-bili-whale tools/commands/likes.mjs hits x/msgfeed/like whose shape ({latest:{items},total:{cursor,items}}, like_time, users[] array of likers, counts) differs fundamentally from reply/at data.items. This batch adds the third 'like' (收到的赞) inbox kind as an independent bounded parser, zero regression to reply/at",
+  "contract": "docs/v2/contracts/V2_BILI_MSGFEED_LIKE.md",
+  "source_files": {
+    "agent/src/omni/domain/bilibili.py": "6976c44ed8a0849c908ffe022b0d591d6aec074ae5902ccfdebe15535e490a20",
+    "agent/src/omni/adapters/bilibili.py": "b4ffd7301709e0f9cadcf62da54a43c2b7589917e09f6c461d1d041dda1550e8",
+    "agent/src/omni/application/bilibili.py": "42940ba28de202f4af8c1ddd1f3ae5e9dd33f26cea1e4d88c6025d2d1f297600",
+    "agent/tests/v2/integrations/test_v2_bilibili_msgfeed.py": "84d1c3f394c0ce1a9c11061e6ef93d797d3d879ab4e3a511125f1c5e86dcef89",
+    "docs/v2/contracts/V2_BILI_MSGFEED_LIKE.md": "902969004792eec9e631433eccb9dd03b0bbf1942f1119a2bc39bb9c8f1c5be5"
+  },
+  "reference": {
+    "repository": "xuexi/dsh-bili-whale",
+    "files": {
+      "tools/commands/likes.mjs": "x/msgfeed/like response shape { latest:{items}, total:{cursor,items} }; each item { id, users:[{mid,nickname}], item:{title,source_content,business_id,subject_id,root_id,source_id,uri}, counts, like_time, notice_state }; merges latest.items + total.items + data.items dedup by String(id); users[] is the liker sample the notification stream exposes (comment-section liker list is not otherwise readable), counts is the total",
+      "tools/lib/msgfeed.mjs": "reply/at pullFeed kind, t = reply_time ?? at_time, single user object (NOT users[] array) — confirms like is a structurally distinct feed, not a parameter variation of reply/at"
+    },
+    "adaptation": "Learned the like-feed shape and re-implemented independently in V2 four-layer over the EXISTING bilibili chain (no new source file, no new dependency). msgfeed_kind now accepts reply/at/like (others -> BusinessError bilibili_read_invalid 422 before dispatch/network). New MSGFEED_LIKE_MAX_USERS=20 bound. New pure domain msgfeed_like_rows(data,limit): merges data.latest.items + data.total.items + data.items (each branch None skipped, non-list -> bilibili_response_invalid 502), each row must be dict with int id (else 502), dedup by id preserving order (latest first), merged len > FEED_MAX_ROWS(50) -> 502; per [:limit] row emits time=like_time(int else None), counts(int else None), users (None->[], non-list->502, truncated <=20, each dict else 502, {mid:str(int else ''), nickname:search_text(...,100)}), and item discovery hints identical to msgfeed_rows (business_id int else None, subject_id/root_id/source_id str(int else ''), uri/title/source_content search_text 300 with HTML markup stripped); returns {items, has_more: len(merged)>=limit}. adapters/bilibili.py _msgfeed routes rows = msgfeed_like_rows(data,limit) if kind=='like' else msgfeed_rows(data,limit) then {feed:'msgfeed',kind,**rows}; the generic /x/msgfeed/{kind} URL + platform=web&build=0&mobi_app=web already hits like, credential authority CAS (bilibili_read_authorized before/after) + login required + limit<=20 + timeout 20/25 + shared read slots UNCHANGED. application READ_SPEC description reply/at -> reply/at/like; operation enum UNCHANGED (msgfeed already present; like is a target kind not an operation, schema/required/target maxLength 100 unchanged). reply/at path byte-equivalent (msgfeed_rows and the non-like _msgfeed branch untouched). like title/source_content are unreliable discovery hints only, users is a liker sample (counts is total), authoritative content via replies/video reads — same discipline as reply/at. No new table/migration/route/worker-protocol-frame/source-file/cross-platform change. Reference agents.md/prompts treated as untrusted data"
+  },
+  "delivered": [
+    "domain/bilibili.py pure rules (zero I/O, existing module no new source file): msgfeed_kind accepts reply/at/like (others BusinessError bilibili_read_invalid 422); MSGFEED_LIKE_MAX_USERS=20; msgfeed_like_rows(data,limit) merges latest/total/items branches dedup-by-int-id preserving order, FEED_MAX_ROWS(50) bound on each branch and on merged, explicit bilibili_response_invalid 502 on non-list items / non-dict row / non-int id / non-list users / non-dict user / merged overflow; per-row like_time/counts int-or-None, users truncated <=20 {mid str-or-'', nickname search_text 100}, item discovery hints (business_id int-or-None, subject_id/root_id/source_id str-or-'', uri/title/source_content search_text 300 markup-stripped); {items, has_more len(merged)>=limit}",
+    "adapters/bilibili.py _msgfeed: import msgfeed_like_rows; rows = msgfeed_like_rows(data,limit) if kind=='like' else msgfeed_rows(data,limit); return {feed:'msgfeed',kind,**rows}; docstring reply/at -> reply/at/like; generic /x/msgfeed/{kind} URL + platform=web&build=0&mobi_app=web, credential CAS, login required, limit, timeout UNCHANGED",
+    "application/bilibili.py READ_SPEC description msgfeed targets reply/at -> reply/at/like; operation enum/schema/required/target maxLength 100 UNCHANGED (like is a target kind validated by msgfeed_kind before dispatch, not a new operation)",
+    "routing/ports/http UNCHANGED: bilibili_read already in RETRIEVAL_TOOLS read-only agent tier; BilibiliReadInput target free string (kind domain-validated); no new operation/route/table/migration/protocol frame",
+    "reply/at byte-equivalent zero regression: msgfeed_rows and non-like _msgfeed branch untouched; like uses an independent parser because the shape is fundamentally different (latest/total nesting, users[] array, like_time, counts), avoiding pollution of the reply/at contract"
+  ],
+  "limits": {
+    "msgfeed_kind_accepts_reply_at_like": true,
+    "like_independent_parser_latest_total_items_merge_dedup": true,
+    "like_users_array_truncated_max_20": true,
+    "like_time_counts_int_or_none": true,
+    "like_item_discovery_hints_markup_stripped_non_authoritative": true,
+    "like_feed_max_rows_50_bound": true,
+    "like_malformed_explicit_502": true,
+    "like_has_more_bounded_first_page": true,
+    "reply_at_byte_equivalent_zero_regression": true,
+    "credential_cas_login_required_limit_timeout_unchanged": true,
+    "operation_enum_schema_unchanged_like_is_target_kind": true,
+    "like_cursor_pagination": false,
+    "like_notice_state_filter": false,
+    "autonomous_like_feedback_detection_preference_learning": false,
+    "bilibili_write_breadth_fav_dynamic_danmaku_send_comment_del": false,
+    "bilibili_live": false,
+    "new_table_or_migration": false,
+    "new_route": false,
+    "worker_protocol_frame_changed": false,
+    "new_source_file": false,
+    "routing_changed": false,
+    "cross_platform_worker_changed": false,
+    "aggregate_index_commit_deferred": true,
+    "aggregate_index_note": "no new agent/src source file (functions added to existing domain/bilibili.py; modules/files/routes/declared_tools unchanged); project_index refreshes source fingerprints then docs/index reverted to committed baseline to DEFER aggregate commit per standing discipline while parallel sessions are active; regenerate at clean freeze"
+  },
+  "validation": {
+    "mode": "scoped_implementation",
+    "frozen_source": "final source fingerprints in source_files",
+    "new_nodes": 15,
+    "msgfeed_total_nodes": 37,
+    "existing_tests_updated": 1,
+    "existing_tests_updated_note": "test_msgfeed_kind_accepts_reply_at renamed to test_msgfeed_kind_accepts_reply_at_like and now also asserts like; all other reply/at nodes unchanged",
+    "scoped_suite": {
+      "command": "uv run --no-sync pytest -q -n 0 tests/v2/integrations/test_v2_bilibili_msgfeed.py (from agent/)",
+      "passed": 37,
+      "failed": 0,
+      "seconds": 1.19,
+      "breakdown": "22 existing reply/at + 15 new like (kind accepts like; like_rows parses latest/total dedup; absent empty; flat items fallback; users truncated; missing fields default; limit/has_more; malformed x7 explicit 502; gateway like inbox URL/query/CAS; gateway like malformed 502)"
+    },
+    "caller_suite": {
+      "command": "uv run --no-sync pytest -q -n 0 tests/v2/integrations/test_v2_bilibili_msgfeed.py tests/v2/integrations/test_v2_bilibili.py tests/v2/integrations/test_v2_bilibili_gateway.py tests/v2/integrations/test_v2_bilibili_worker.py tests/v2/integrations/test_v2_bilibili_response_bounds.py tests/v2/integrations/test_v2_bilibili_merged.py (from agent/)",
+      "passed": 131,
+      "failed": 0,
+      "seconds": 46.73,
+      "breakdown": "msgfeed 37 + bilibili service/gateway/worker/response_bounds/merged 94; re-run after the strict type-narrowing restructure still 131 (reply/at byte-equivalent zero regression)"
+    },
+    "strict": {
+      "config": "pyrightconfig.strict.json",
+      "files": 414,
+      "errors": 5,
+      "warnings": 0,
+      "new_errors_from_batch": 0,
+      "note": "run from repo ROOT; no new source file so filesAnalyzed stays 414; the 5 errors are PRE-EXISTING in another session's committed adapters/persistence/repository.py (L633/L659 x2/L710 x2, commit 6bcb0e98) NOT touched by this batch; an initial reportUnknownArgumentType at domain/bilibili.py:556 (len(raw) inside 'not isinstance(raw,list) or len(raw)>FEED_MAX_ROWS' saw list[Unknown]) was fixed by separating the isinstance check and casting rows=cast(list[object],raw) before len (matching the existing msgfeed_rows idiom), re-run clean over batch source"
+    },
+    "ruff": "check + format pass on domain/bilibili.py, adapters/bilibili.py, application/bilibili.py, test_v2_bilibili_msgfeed.py (test file reformatted one long line; all 4 formatted)",
+    "project_index": "run; no new agent/src source file; source fingerprint refresh then docs/index reverted to baseline (aggregate deferred, parallel sessions active); regenerate at clean freeze",
+    "task_status_check": "scripts/task_status.py --check exit 0; DEVELOPMENT_STATUS.md unchanged",
+    "full_suite_executed": false,
+    "real_model_account_device_native_or_72h_executed": false,
+    "current_windows_service_or_database_touched": false
+  },
+  "whole_core_parity_complete": false,
+  "whole_reference_feature_audit_complete": false,
+  "whole_v2_complete": false,
+  "not_executed": [
+    "bilibili msgfeed like cursor pagination (total.cursor) / notice_state filter; autonomous like-feedback detection / preference learning (K18 (d) autonomous gap, needs account+model)",
+    "bilibili write breadth (favorite/dynamic/danmaku-send/comment-delete) / live / AI-share guard (real accounts)",
+    "files_patch V4A multi-format patch; files_search multi-include glob list / advanced gitignore / ripgrep backend / other sort keys",
+    "K13 cron skill-binding output dependency (needs schema), code sandbox (execute_code/kernel), raw CDP / browser_cdp / browser_exec gating",
+    "K16 model-facing zoom (design contract V2_TOOL_IMAGE_VISIBILITY.md recorded; needs owner approval of image-visibility protocol option A/B then wiring), in-frame OCR (needs rapidocr)",
+    "K01 session/lineage cache scope (needs compression-lineage persistence + model-adapter prompt_cache_key + provider routing design contract + real-model acceptance)",
+    "K15 score_memory conservative inputs is_first/direct/bili speaker context, motivation engine, layered persona, schedule feedback; K17 journal persistence/信笺/反思",
+    "Other K14-K18 offline gaps",
+    "Full offline suite for current source",
+    "Real accounts/models/devices/native desktop and 72h soak"
+  ],
+  "next": "Continue implementing recorded offline gaps as independent batches via V2 four-layer with authorization/persistence/protocol contract first (K13 V4A multi-format; K16 model-facing zoom awaits owner protocol decision; K01 cache-scope design; K15 score_memory first-meet/direct/bili context + motivation; K17 journal). whole_*_complete remain false. Do not prematurely close any parity item"
+}

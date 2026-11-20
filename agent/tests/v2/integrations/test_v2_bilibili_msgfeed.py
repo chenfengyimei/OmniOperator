@@ -12,7 +12,7 @@ from omni_test_support.v2.bilibili_response_bounds import NAV
 
 from omni.adapters.bilibili import BilibiliGateway
 from omni.adapters.diagnostics import Redactor
-from omni.domain.bilibili import FEED_MAX_ROWS, msgfeed_kind, msgfeed_rows
+from omni.domain.bilibili import FEED_MAX_ROWS, MSGFEED_LIKE_MAX_USERS, msgfeed_kind, msgfeed_like_rows, msgfeed_rows
 from omni.domain.contracts import BusinessError
 
 MSGFEED = {
@@ -38,6 +38,41 @@ MSGFEED = {
             "item": {"business_id": 17, "subject_id": 112, "uri": "https://b23.tv/y"},
         },
     ]
+}
+
+LIKE_FEED = {
+    "latest": {
+        "items": [
+            {
+                "id": 7001,
+                "like_time": 1700000200,
+                "counts": 3,
+                "users": [{"nickname": "点赞者甲", "mid": 601}, {"nickname": "点赞者乙", "mid": 602}],
+                "item": {
+                    "title": "<em>视频</em>标题",
+                    "source_content": "评论片段",
+                    "business_id": 1,
+                    "subject_id": 111,
+                    "root_id": 222,
+                    "source_id": 333,
+                    "uri": "https://b23.tv/z",
+                },
+            }
+        ]
+    },
+    "total": {
+        "cursor": 123,
+        "items": [
+            {"id": 7001, "like_time": 1700000200, "counts": 3, "users": [{"nickname": "点赞者甲", "mid": 601}]},
+            {
+                "id": 7002,
+                "like_time": 1700000300,
+                "counts": 1,
+                "users": [{"nickname": "点赞者丙", "mid": 603}],
+                "item": {"business_id": 17, "subject_id": 112, "uri": "https://b23.tv/w"},
+            },
+        ],
+    },
 }
 
 
@@ -67,8 +102,8 @@ def fixture(*, feed=None):
     return gateway, state, calls
 
 
-def test_msgfeed_kind_accepts_reply_and_at():
-    assert msgfeed_kind("reply") == "reply" and msgfeed_kind("at") == "at"
+def test_msgfeed_kind_accepts_reply_at_like():
+    assert msgfeed_kind("reply") == "reply" and msgfeed_kind("at") == "at" and msgfeed_kind("like") == "like"
 
 
 @pytest.mark.parametrize("value", ["", "video", "REPLY", None, 5, []])
@@ -222,3 +257,116 @@ def test_msgfeed_exposed_in_tool_spec_and_http_input():
     assert "msgfeed" in enum
     args = typing.get_args(BilibiliReadInput.model_fields["operation"].annotation)
     assert "msgfeed" in args
+
+
+def test_msgfeed_like_rows_parses_latest_total_dedup():
+    out = msgfeed_like_rows(LIKE_FEED, 10)
+    assert out["has_more"] is False and len(out["items"]) == 2
+    assert out["items"][0] == {
+        "id": 7001,
+        "time": 1700000200,
+        "counts": 3,
+        "users": [{"mid": "601", "nickname": "点赞者甲"}, {"mid": "602", "nickname": "点赞者乙"}],
+        "business_id": 1,
+        "subject_id": "111",
+        "root_id": "222",
+        "source_id": "333",
+        "uri": "https://b23.tv/z",
+        "title": "视频标题",
+        "source_content": "评论片段",
+    }
+    second = out["items"][1]
+    assert second["id"] == 7002 and second["time"] == 1700000300 and second["counts"] == 1
+    assert second["users"] == [{"mid": "603", "nickname": "点赞者丙"}]
+    assert second["title"] == "" and second["business_id"] == 17 and second["subject_id"] == "112"
+
+
+def test_msgfeed_like_rows_absent_is_empty():
+    assert msgfeed_like_rows({}, 10) == {"items": [], "has_more": False}
+
+
+def test_msgfeed_like_rows_flat_items_fallback():
+    out = msgfeed_like_rows(
+        {"items": [{"id": 1, "like_time": 5, "counts": 2, "users": [{"mid": 9, "nickname": "n"}]}]}, 10
+    )
+    assert out["items"][0]["id"] == 1 and out["items"][0]["time"] == 5 and out["items"][0]["counts"] == 2
+    assert out["items"][0]["users"] == [{"mid": "9", "nickname": "n"}]
+
+
+def test_msgfeed_like_rows_users_truncated():
+    users = [{"mid": i, "nickname": f"u{i}"} for i in range(MSGFEED_LIKE_MAX_USERS + 5)]
+    out = msgfeed_like_rows({"items": [{"id": 1, "users": users}]}, 10)
+    assert len(out["items"][0]["users"]) == MSGFEED_LIKE_MAX_USERS
+
+
+def test_msgfeed_like_rows_missing_fields_default():
+    assert msgfeed_like_rows({"items": [{"id": 1}]}, 10)["items"] == [
+        {
+            "id": 1,
+            "time": None,
+            "counts": None,
+            "users": [],
+            "business_id": None,
+            "subject_id": "",
+            "root_id": "",
+            "source_id": "",
+            "uri": "",
+            "title": "",
+            "source_content": "",
+        }
+    ]
+
+
+def test_msgfeed_like_rows_limit_and_has_more():
+    out = msgfeed_like_rows(LIKE_FEED, 1)
+    assert len(out["items"]) == 1 and out["has_more"] is True
+
+
+@pytest.mark.parametrize(
+    "data",
+    [
+        {"latest": {"items": "changed"}},
+        {"total": {"items": [None]}},
+        {"items": [{"id": "not-int"}]},
+        {"items": [{"id": 1, "users": "changed"}]},
+        {"items": [{"id": 1, "users": [None]}]},
+        {"items": [{"id": 1, "users": [{"nickname": 42}]}]},
+        {"latest": {"items": [{"id": 1}] * (FEED_MAX_ROWS + 1)}},
+    ],
+)
+def test_msgfeed_like_rows_malformed_fails_explicitly(data):
+    with pytest.raises(BusinessError) as caught:
+        msgfeed_like_rows(data, 10)
+    assert caught.value.code == "bilibili_response_invalid" and caught.value.status == 502
+
+
+def test_msgfeed_gateway_like_inbox():
+    async def scenario():
+        gateway, _, calls = fixture(feed=LIKE_FEED)
+        try:
+            out = await gateway.read(CONFIG, "msgfeed", "like", 5)
+            assert out["feed"] == "msgfeed" and out["kind"] == "like"
+            assert len(out["items"]) == 2 and out["items"][0]["counts"] == 3
+            assert out["items"][0]["users"][0]["nickname"] == "点赞者甲"
+            assert [c.url.path for c in calls] == ["/x/web-interface/nav", "/x/msgfeed/like"]
+            query = calls[-1].url.params
+            assert query["platform"] == "web" and query["build"] == "0" and query["mobi_app"] == "web"
+            assert not gateway._reads
+        finally:
+            assert await gateway.close()
+
+    asyncio.run(scenario())
+
+
+def test_msgfeed_gateway_like_malformed_fails():
+    async def scenario():
+        gateway, _, _ = fixture(feed={"latest": {"items": "changed"}})
+        try:
+            with pytest.raises(BusinessError) as caught:
+                await gateway.read(CONFIG, "msgfeed", "like", 5)
+            assert caught.value.code == "bilibili_response_invalid" and caught.value.status == 502
+            assert not gateway._reads
+        finally:
+            assert await gateway.close()
+
+    asyncio.run(scenario())
