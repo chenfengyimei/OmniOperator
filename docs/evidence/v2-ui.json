@@ -1544,6 +1544,7 @@
     ],
     "验证": {
       "专项": "守卫16/16;logs+metrics 8/8;chat/theme+导航+清单13/13;终版CSS后复跑logs/metrics/chat/theme/导航/清单16/16;prettier净+86模块node --check",
+      "纯源复验": "收尾审计补导航/清单在终版CSS后的覆盖缺口:detached worktree@79827c4f+PYTHONPATH路由(.pth式editable可覆盖)+共享venv,守卫+导航+清单21/21与logs/metrics/chat/theme 16/16全绿;omni.__file__与web_root均指向worktree证实纯提交版;验证后worktree已移除",
       "实测": "22/22:纹理四层背景/负层/遮罩computed校验+像素级40px周期竖线证实绘制;页签渐变药丸/指示条移除/roving/方向键/End;六芯片计数/ERROR过滤25条全ERROR/回全部;行展开JSON;吸顶dt<3;四层默认open可收再展/层内刷新指标可用;390无溢出;双主题截图;零pageerror",
       "踩坑修复": "sticky最近滚动口被.page的overflow-y:auto劫持(非对话真实滚动口是.settings-content)→#logs非对话overflow-y:visible;base.css body不透明底盖负层→镜像选择器透底;h3 margin简写覆盖层卡左缩进→改10px 14px 4px",
       "截图": "p8-logs-dark-1440.png/p8-logs-sticky-dark-1440.png/p8-logs-light-1440.png/p8-logs-dark-390.png/p8-tabs-texture-dark-1440.png/p8-tabs-light-1440.png",
