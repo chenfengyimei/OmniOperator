@@ -36,6 +36,8 @@ def test_image_draft_switch_and_image_only_message(ui_browser, v2_server, width,
             ).status
             == 200
         )
+        # P3 渐进披露：图片控件收进「更多」面板，操作前先展开（不放宽断言）
+        page.locator("#dock-more").click()
         page.locator("#image-file").set_input_files({"name": "source.png", "mimeType": "image/png", "buffer": png()})
         expect(page.locator("#image-drafts")).to_contain_text("待附加")
         assert "private-image-canary" not in page.locator("#image-drafts").inner_text()

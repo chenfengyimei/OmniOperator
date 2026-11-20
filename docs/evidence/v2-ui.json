@@ -1,7 +1,7 @@
 {
   "batch": "v2-ui-connection-stability-v128",
   "recorded_at": "2026-11-15",
-  "resource_version_final": "20261120v165",
+  "resource_version_final": "20261120v166",
   "v1_alignment": {
     "summary": "用户提供 V1 正式工作台截图后，直接精读 web/ui/workbench.css 的 V1 实现并逐项移植，使 V2 结构与 V1 一致（而非自创风格）。",
     "ported_from_v1": [
@@ -1425,6 +1425,21 @@
       "存量修复": "c28fe83b改名记忆→记忆系统未同步6处旧选择器(test_v2_ui×5+共享助手×1),HEAD纯树复跑证实存量失败;按约定改nav[data-page=memory]限定导航,不放宽断言",
       "截图": "p2-suggestions.png/p2-chat.png",
       "版本": "V2 20261120v165"
+    }
+  },
+  "ui_iteration_p3_dock": {
+    "交付": [
+      "dock默认只留输入框+档位+「更多」芯片+发送;技能/图片7控件收进dock-extra内联展开面板",
+      "采用计划允许的内联展开方案(非浮层):避免焦点陷阱与dock裁剪,一键可达",
+      "原ID全保留(skill-turn/image-file等),模块与自动化仍按id定位",
+      "芯片激活计数:已选技能+图片草稿数显示「更多·N」并点亮,收起也可见;Esc收起并还焦",
+      "images/skills两测试操作前加一步点开面板,不放宽断言"
+    ],
+    "验证": {
+      "实测": "默认可见控件3个(chat-mode/dock-more/send-btn);展开后7控件全可达;无横向溢出;收起后发送正常;零报错",
+      "专项": "40 passed(images8+skills8+model_stream+两token守卫,198.82s)",
+      "截图": "p3-dock-closed.png/p3-dock-open.png",
+      "版本": "V2 20261120v166"
     }
   }
 }

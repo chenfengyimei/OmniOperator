@@ -1,32 +1,32 @@
-import { mountSkills } from './skills.js?v=20261120v165';
-import { mountCredentials } from './credentials.js?v=20261120v165';
-import { mountAuditHistory, mountOperations } from './operations.js?v=20261120v165';
-import { mountCapabilities } from './capabilities.js?v=20261120v165';
-import { mountTokens } from './tokens.js?v=20261120v165';
-import { mountDocuments } from './documents.js?v=20261120v165';
-import { mountConfiguration } from './configuration.js?v=20261120v165';
-import { mountModels } from './models.js?v=20261120v165';
+import { mountSkills } from './skills.js?v=20261120v166';
+import { mountCredentials } from './credentials.js?v=20261120v166';
+import { mountAuditHistory, mountOperations } from './operations.js?v=20261120v166';
+import { mountCapabilities } from './capabilities.js?v=20261120v166';
+import { mountTokens } from './tokens.js?v=20261120v166';
+import { mountDocuments } from './documents.js?v=20261120v166';
+import { mountConfiguration } from './configuration.js?v=20261120v166';
+import { mountModels } from './models.js?v=20261120v166';
 import { ask } from '../dialog.js?v=20261103v7';
-import { mountPeople } from './people.js?v=20261120v165';
-import { mountDeliveries } from './deliveries.js?v=20261120v165';
-import { mountSchedules } from './schedules.js?v=20261120v165';
-import { mountMemorySemantics } from './memory-semantics.js?v=20261120v165';
-import { mountMemoryOrganization } from './memory-organization.js?v=20261120v165';
-import { mountExtensions } from './extensions.js?v=20261120v165';
-import { mountActionReviews } from './action-reviews.js?v=20261120v165';
-import { mountTerminals } from './terminals.js?v=20261120v165';
-import { mountDesktop } from './desktop.js?v=20261120v165';
-import { mountQQ } from './qq.js?v=20261120v165';
-import { mountBilibili } from './bilibili.js?v=20261120v165';
-import { mountMedia } from './media.js?v=20261120v165';
-import { mountMcp } from './mcp.js?v=20261120v165';
-import { mountAndroid } from './android.js?v=20261120v165';
-import { mountModelOutput } from './model-output.js?v=20261120v165';
-import { mountRouting } from './routing.js?v=20261120v165';
-import { mountChatImages } from './chat-images.js?v=20261120v165';
-import { mountInspector } from './inspector.js?v=20261120v165';
-import { mountSettingsRail } from './settings-rail.js?v=20261120v165';
-import { mountEventStream } from './event-stream.js?v=20261120v165';
+import { mountPeople } from './people.js?v=20261120v166';
+import { mountDeliveries } from './deliveries.js?v=20261120v166';
+import { mountSchedules } from './schedules.js?v=20261120v166';
+import { mountMemorySemantics } from './memory-semantics.js?v=20261120v166';
+import { mountMemoryOrganization } from './memory-organization.js?v=20261120v166';
+import { mountExtensions } from './extensions.js?v=20261120v166';
+import { mountActionReviews } from './action-reviews.js?v=20261120v166';
+import { mountTerminals } from './terminals.js?v=20261120v166';
+import { mountDesktop } from './desktop.js?v=20261120v166';
+import { mountQQ } from './qq.js?v=20261120v166';
+import { mountBilibili } from './bilibili.js?v=20261120v166';
+import { mountMedia } from './media.js?v=20261120v166';
+import { mountMcp } from './mcp.js?v=20261120v166';
+import { mountAndroid } from './android.js?v=20261120v166';
+import { mountModelOutput } from './model-output.js?v=20261120v166';
+import { mountRouting } from './routing.js?v=20261120v166';
+import { mountChatImages } from './chat-images.js?v=20261120v166';
+import { mountInspector } from './inspector.js?v=20261120v166';
+import { mountSettingsRail } from './settings-rail.js?v=20261120v166';
+import { mountEventStream } from './event-stream.js?v=20261120v166';
 // 直接复用 V1 的 rail 提示浮层模块（data-tip → #tip-layer），不自创实现
 import '../app/tips.js?v=20261103u6';
 
@@ -2068,6 +2068,37 @@ for (const button of document.querySelectorAll('[data-page]'))
     }),
   );
 window.addEventListener('pagehide', stop);
+// P3 dock 渐进披露：「更多」开合技能/图片面板；收起时芯片带激活计数，
+// 用户不用展开也知道本轮已选了技能或图片。
+{
+  const more = $('dock-more');
+  const extra = $('dock-extra');
+  const label = more.querySelector('.dock-chip-label');
+  const syncBadge = () => {
+    const skills = $('skill-turn').selectedOptions.length;
+    const images = $('image-drafts').children.length;
+    const active = skills + images;
+    label.textContent = active ? `更多 · ${active}` : '更多';
+    more.classList.toggle('on', active > 0 || !extra.hidden);
+  };
+  more.addEventListener('click', () => {
+    extra.hidden = !extra.hidden;
+    more.setAttribute('aria-expanded', String(!extra.hidden));
+    syncBadge();
+  });
+  $('skill-turn').addEventListener('change', syncBadge);
+  $('skill-turn-clear').addEventListener('click', syncBadge);
+  new MutationObserver(syncBadge).observe($('image-drafts'), { childList: true });
+  new MutationObserver(syncBadge).observe($('skill-turn'), { childList: true });
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && !extra.hidden && extra.contains(document.activeElement)) {
+      extra.hidden = true;
+      more.setAttribute('aria-expanded', 'false');
+      syncBadge();
+      more.focus();
+    }
+  });
+}
 // 回底悬浮钮：消息区离开底部超过阈值时出现，点击平滑回底（P2 阅读体验）
 {
   const box = $('messages');

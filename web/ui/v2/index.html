@@ -8,11 +8,11 @@
     <link rel="stylesheet" href="/assets/ui/tokens.css?v=20261120u2" />
     <link rel="stylesheet" href="/assets/ui/base.css?v=20261103v7" />
     <link rel="stylesheet" href="/assets/ui/icons.css?v=20261115u1" />
-    <link rel="stylesheet" href="/assets/ui/v2/v1/components.css?v=20261120v165" />
-    <link rel="stylesheet" href="/assets/ui/v2/v1/frame.css?v=20261120v165" />
-    <link rel="stylesheet" href="/assets/ui/v2/v1/workbench.css?v=20261120v165" />
-    <link rel="stylesheet" href="/assets/ui/v2/workbench.css?v=20261120v165" />
-    <link rel="stylesheet" href="/assets/vendor/xterm.min.css?v=20261120v165" />
+    <link rel="stylesheet" href="/assets/ui/v2/v1/components.css?v=20261120v166" />
+    <link rel="stylesheet" href="/assets/ui/v2/v1/frame.css?v=20261120v166" />
+    <link rel="stylesheet" href="/assets/ui/v2/v1/workbench.css?v=20261120v166" />
+    <link rel="stylesheet" href="/assets/ui/v2/workbench.css?v=20261120v166" />
+    <link rel="stylesheet" href="/assets/vendor/xterm.min.css?v=20261120v166" />
   </head>
   <body class="chat-mode" data-ui-page="workbench-v2">
     <header class="app-header">
@@ -344,6 +344,23 @@
                             <option value="">跟随设置</option>
                           </select>
                         </label>
+                        <button
+                          id="dock-more"
+                          type="button"
+                          class="dock-chip"
+                          aria-expanded="false"
+                          aria-controls="dock-extra"
+                          title="更多：本轮技能与图片"
+                        >
+                          <span class="material-icons" aria-hidden="true">add</span>
+                          <span class="dock-chip-label">更多</span>
+                        </button>
+                      </span>
+                    </div>
+                    <!-- 渐进披露：技能/图片等低频控件收进可开合面板；原 ID 全部保留，
+                         自动化与既有模块仍按 id 定位。默认收起，点「更多」展开。 -->
+                    <div id="dock-extra" class="dock-extra" hidden>
+                      <span class="pick-group">
                         <label class="mode-pick" title="本轮使用的技能">
                           <span class="material-icons" aria-hidden="true">auto_awesome</span>
                           <select id="skill-turn" multiple size="1" aria-label="本轮技能"></select>
@@ -2024,9 +2041,9 @@
       </div>
       <div id="service-list" class="svc-list"></div>
     </dialog>
-    <script src="/assets/vendor/xterm.js?v=20261120v165"></script>
-    <script src="/assets/vendor/xterm-addon-fit.js?v=20261120v165"></script>
-    <script src="/assets/ui/markdown.js?v=20261120v165"></script>
-    <script type="module" src="/assets/ui/v2/main.js?v=20261120v165"></script>
+    <script src="/assets/vendor/xterm.js?v=20261120v166"></script>
+    <script src="/assets/vendor/xterm-addon-fit.js?v=20261120v166"></script>
+    <script src="/assets/ui/markdown.js?v=20261120v166"></script>
+    <script type="module" src="/assets/ui/v2/main.js?v=20261120v166"></script>
   </body>
 </html>

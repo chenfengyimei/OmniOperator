@@ -3710,3 +3710,57 @@ body[data-ui-page="workbench-v2"] .empty-state .chat-suggestions {
   margin-top: var(--sp-2);
 }
 
+/* ==========================================================================
+   P3 dock 渐进披露：默认只留 输入框+档位+「更多」+发送；技能/图片收进
+   内联展开面板（一键可达，不做浮层——避免焦点陷阱与 dock 裁剪）。
+   芯片样式对齐原型 .dock-chip，字号提到守卫下限以上。
+   ========================================================================== */
+body[data-ui-page="workbench-v2"] .dock-chip {
+  height: 24px;
+  padding: 0 var(--sp-2);
+  border-radius: var(--r-full);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-1);
+  border: 1px solid var(--line-2);
+  background: transparent;
+  font-size: var(--fs-caption);
+  color: var(--text-3);
+  font-weight: 560;
+  cursor: pointer;
+  white-space: nowrap;
+  transition:
+    color 0.14s,
+    border-color 0.14s,
+    background 0.14s;
+}
+body[data-ui-page="workbench-v2"] .dock-chip:hover {
+  color: var(--text-1);
+  border-color: var(--line-accent);
+  background: var(--surface-accent);
+}
+body[data-ui-page="workbench-v2"] .dock-chip.on {
+  border-color: var(--line-accent);
+  color: color-mix(in srgb, var(--seed-accent) 86%, var(--text-1));
+  background: color-mix(in srgb, var(--seed-accent) 10%, transparent);
+}
+body[data-ui-page="workbench-v2"] .dock-chip .material-icons {
+  font-size: 13px;
+  transition: transform 0.14s var(--ease-out);
+}
+body[data-ui-page="workbench-v2"] .dock-chip[aria-expanded="true"] .material-icons {
+  transform: rotate(45deg);
+}
+body[data-ui-page="workbench-v2"] .dock-extra {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--sp-1) var(--sp-3);
+  min-width: 0;
+  padding-top: var(--sp-2);
+  border-top: 1px dashed var(--line-3);
+}
+body[data-ui-page="workbench-v2"] .dock-extra[hidden] {
+  display: none !important;
+}
+

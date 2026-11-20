@@ -50,6 +50,8 @@ def test_skill_draft_review_and_explicit_turn_selection(ui_browser, v2_server, w
         confirm(page, "启用此修订")
         expect(page.locator("#skills-status")).to_contain_text("enabled")
         page.locator('[data-page="chat"]').click()
+        # P3 渐进披露：技能选择收进「更多」面板，操作前先展开（不放宽断言）
+        page.locator("#dock-more").click()
         page.locator("#skill-turn").select_option([skill])
         page.locator("#message").fill("hello")
         page.get_by_role("button", name="发送", exact=True).click()
