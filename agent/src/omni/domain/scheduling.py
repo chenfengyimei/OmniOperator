@@ -11,9 +11,17 @@ from typing import Literal, cast
 from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_validator
 
 from .contracts import BusinessError
+from .skills import MAX_ACTIVE
+from .skills import identifiers as skill_identifiers
 
 UTC = dt.timezone.utc
 LEASE_SECONDS = 60
+# A binding may never exceed the runtime activation cap: saving more would block
+# every occurrence once skill_activate_run rejects the fifth activation.
+MAX_SKILLS = MAX_ACTIVE
+MAX_CONTEXT_REFS = 4
+MAX_CONTEXT_DEPTH = 4
+MAX_CONTEXT_NODES = 64
 
 
 def instant(value: str) -> dt.datetime:
@@ -114,6 +122,28 @@ class Cron:
         )
 
 
+def skill_refs(value: list[str]) -> list[str]:
+    """Bound skills are unique canonical ids; the runtime activation cap is the only storage bound."""
+    try:
+        return list(skill_identifiers(value))
+    except BusinessError as exc:
+        raise BusinessError("invalid_skill", "Bound skills require unique canonical skill ids", status=422) from exc
+
+
+def context_refs(value: list[str]) -> list[str]:
+    result: list[str] = []
+    for item in value:
+        try:
+            if str(uuid.UUID(item)) != item or item in result:
+                raise ValueError
+        except (ValueError, AttributeError):
+            raise BusinessError(
+                "invalid_context_ref", "Context references require unique canonical schedule ids", status=422
+            ) from None
+        result.append(item)
+    return result
+
+
 class ScheduleValue(BaseModel):
     model_config = ConfigDict(extra="forbid", strict=True)
     kind: Literal["cron", "interval", "once"] = "cron"
@@ -124,6 +154,9 @@ class ScheduleValue(BaseModel):
     session_id: str | None = None
     prompt: str = Field(min_length=1, max_length=20000)
     misfire: Literal["latest"] = "latest"
+    skills: list[str] = Field(default_factory=list, max_length=MAX_SKILLS)
+    context_from: list[str] = Field(default_factory=list, max_length=MAX_CONTEXT_REFS)
+    continuity: bool = False
 
     @model_validator(mode="after")
     def valid(self):
@@ -131,6 +164,8 @@ class ScheduleValue(BaseModel):
             raise ValueError("A bounded prompt is required")
         if self.session_id is not None and str(uuid.UUID(self.session_id)) != self.session_id:
             raise ValueError("Session requires a full canonical UUID")
+        self.skills = skill_refs(self.skills)
+        self.context_from = context_refs(self.context_from)
         if self.start_at:
             value = instant(self.start_at)
             if not 1970 <= value.year <= 9990:

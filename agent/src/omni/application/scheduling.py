@@ -23,9 +23,12 @@ class SchedulingService:
         zones: Timezones,
         notify: Callable[[], None],
         cancel: Callable[[str, str], Awaitable[None]],
+        platform: str = "",
     ) -> None:
         self._db, self._clock, self._zones = database, clock, zones
         self._notify, self._cancel = notify, cancel
+        # Bound skill guidance is resolved against the same platform the run activates on.
+        self._platform = platform
         self._worker: asyncio.Task[None] | None = None
         self._wake = asyncio.Event()
         self._closing = False
@@ -64,7 +67,9 @@ class SchedulingService:
                 last = progress.get("last_scheduled_at")
                 if last and str(last) > boundary:
                     raise BusinessError("revision_conflict", "Schedule advanced while editing; load it again")
-            return u.schedule_save(agent_id, name, enabled, value, self._zones.version, due, schedule_id, revision)
+            return u.schedule_save(
+                agent_id, name, enabled, value, self._zones.version, due, schedule_id, revision, platform=self._platform
+            )
 
         result = await self._db.write(persist)
         self._wake.set()

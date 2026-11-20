@@ -414,12 +414,8 @@ async def open_instance(
         lifetime.own("object_store", 2, objects.close)
         skill_packages = SkillPackages()
         lifetime.own("skill_packages", 1, skill_packages.close)
-        skills = SkillService(
-            database,
-            objects,
-            skill_packages,
-            "windows" if sys.platform == "win32" else "macos" if sys.platform == "darwin" else "linux",
-        )
+        platform = "windows" if sys.platform == "win32" else "macos" if sys.platform == "darwin" else "linux"
+        skills = SkillService(database, objects, skill_packages, platform)
         lifetime.own("skills", 0, skills.close, skills.stop_accepting)
         image_codec = ImageCodec()
         lifetime.own("image_codec", 1, image_codec.close, image_codec.stop_accepting)
@@ -711,7 +707,9 @@ async def open_instance(
         lifetime.own(
             "runs", 0, lambda budget: application.close(budget, close_database=False), application.stop_accepting
         )
-        schedules = SchedulingService(database, clock, PinnedTimezones(), application.notify, application.cancel)
+        schedules = SchedulingService(
+            database, clock, PinnedTimezones(), application.notify, application.cancel, platform
+        )
         lifetime.own("scheduler", 0, schedules.close, schedules.stop_accepting)
         action_reviews = ActionReviewService(database, application.action_review_blockers, schedules.notify)
         lifetime.own("action_reviews", 0, action_reviews.close, action_reviews.stop_accepting)

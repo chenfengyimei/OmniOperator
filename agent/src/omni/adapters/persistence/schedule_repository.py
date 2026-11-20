@@ -5,10 +5,12 @@ from __future__ import annotations
 from collections.abc import Callable, Mapping
 from typing import cast
 
-from sqlalchemy import func, insert, literal, or_, select, update
+from sqlalchemy import and_, func, insert, literal, or_, select, update
 
 from ...application.ports import Record
 from ...domain.contracts import BusinessError
+from ...domain.scheduling import MAX_CONTEXT_DEPTH, MAX_CONTEXT_NODES
+from ...domain.skills import PLATFORMS
 from . import schema as s
 from .delivery_predicates import pending_for_run
 from .lease_repository import LeaseRepositories
@@ -48,12 +50,134 @@ class ScheduleRepositories(LeaseRepositories):
             Record,
             {
                 **root,
-                "value": {k: revision[k] for k in FIELDS},
+                "value": {
+                    **{k: revision[k] for k in FIELDS},
+                    "continuity": bool(revision["continuity"]),
+                    "skills": self._schedule_skills(agent_id, schedule_id, cast(int, revision["revision"])),
+                    "context_from": self._schedule_context(agent_id, schedule_id, cast(int, revision["revision"])),
+                },
                 "tzdb_version": revision["tzdb_version"],
                 "progress": dict(progress),
                 "blocker": self.schedule_blocker(agent_id, schedule_id),
             },
         )
+
+    def _schedule_skills(self, agent_id: str, schedule_id: str, revision: int) -> list[str]:
+        return [
+            str(row)
+            for row in self.connection.execute(
+                select(s.schedule_skills.c.skill_id)
+                .where(
+                    s.schedule_skills.c.agent_id == agent_id,
+                    s.schedule_skills.c.schedule_id == schedule_id,
+                    s.schedule_skills.c.revision == revision,
+                )
+                .order_by(s.schedule_skills.c.position)
+            ).scalars()
+        ]
+
+    def _schedule_context(self, agent_id: str, schedule_id: str, revision: int) -> list[str]:
+        return [
+            str(row)
+            for row in self.connection.execute(
+                select(s.schedule_context_refs.c.ref_schedule_id)
+                .where(
+                    s.schedule_context_refs.c.agent_id == agent_id,
+                    s.schedule_context_refs.c.schedule_id == schedule_id,
+                    s.schedule_context_refs.c.revision == revision,
+                )
+                .order_by(s.schedule_context_refs.c.position)
+            ).scalars()
+        ]
+
+    def _current_context(self, agent_id: str, schedule_ids: list[str]) -> dict[str, list[str]]:
+        """References of each live schedule at its current revision; bindings belong to a revision."""
+        result: dict[str, list[str]] = {key: [] for key in schedule_ids}
+        for owner, reference in self.connection.execute(
+            select(s.schedule_context_refs.c.schedule_id, s.schedule_context_refs.c.ref_schedule_id)
+            .join(
+                s.schedules,
+                and_(
+                    s.schedules.c.id == s.schedule_context_refs.c.schedule_id,
+                    s.schedules.c.agent_id == s.schedule_context_refs.c.agent_id,
+                ),
+            )
+            .where(
+                s.schedule_context_refs.c.agent_id == agent_id,
+                s.schedule_context_refs.c.schedule_id.in_(schedule_ids),
+                s.schedule_context_refs.c.revision == s.schedules.c.revision,
+            )
+            .order_by(s.schedule_context_refs.c.schedule_id, s.schedule_context_refs.c.position)
+        ).all():
+            result.setdefault(str(owner), []).append(str(reference))
+        return result
+
+    def _schedule_bindings(
+        self, agent_id: str, schedule_id: str | None, skills: list[str], refs: list[str], platform: str
+    ) -> dict[str, str]:
+        """A binding must resolve before it is stored; cycles would feed outputs back into themselves."""
+        revisions = self._checked_skills(agent_id, skills, platform)
+        if refs:
+            if schedule_id is not None and schedule_id in refs:
+                raise BusinessError(
+                    "invalid_context_ref", "A schedule cannot reference itself; use continuity", status=422
+                )
+            live = {
+                str(row)
+                for row in self.connection.execute(
+                    select(s.schedules.c.id).where(
+                        s.schedules.c.agent_id == agent_id,
+                        s.schedules.c.id.in_(refs),
+                        s.schedules.c.deleted_at.is_(None),
+                    )
+                ).scalars()
+            }
+            if live != set(refs):
+                raise BusinessError(
+                    "invalid_context_ref", "Context references must be live schedules of this agent", status=422
+                )
+            if schedule_id is not None:
+                self._reject_context_cycle(agent_id, schedule_id, refs)
+        return revisions
+
+    def _checked_skills(self, agent_id: str, skills: list[str], platform: str) -> dict[str, str]:
+        if not skills:
+            return {}
+        if platform not in PLATFORMS:
+            raise BusinessError("skill_channel_unsupported", "This host cannot activate skills", status=422)
+        rows = self.connection.execute(
+            select(s.skills.c.id, s.skills.c.current_revision_id)
+            .join(s.skill_manifests, s.skill_manifests.c.revision_id == s.skills.c.current_revision_id)
+            .where(
+                s.skills.c.agent_id == agent_id,
+                s.skills.c.id.in_(skills),
+                s.skills.c.state == "enabled",
+                s.skill_manifests.c[platform].is_(True),
+            )
+        ).all()
+        found = {str(row[0]): str(row[1]) for row in rows}
+        if set(found) != set(skills):
+            raise BusinessError(
+                "invalid_skill", "Bindings require enabled skills that support this platform", status=422
+            )
+        return found
+
+    def _reject_context_cycle(self, agent_id: str, schedule_id: str, refs: list[str]) -> None:
+        """Bounded DFS; the saved schedule must not appear among its own transitive references."""
+        frontier, seen, depth = list(refs), set[str](), 0
+        while frontier and depth < MAX_CONTEXT_DEPTH and len(seen) < MAX_CONTEXT_NODES:
+            if schedule_id in frontier:
+                raise BusinessError(
+                    "invalid_context_cycle", "Scheduled output references must not form a cycle", status=422
+                )
+            seen.update(frontier)
+            frontier = [
+                item
+                for values in self._current_context(agent_id, frontier).values()
+                for item in values
+                if item not in seen
+            ]
+            depth += 1
 
     def schedule_page(
         self, agent_id: str, after: str = "", limit: int = 100, include_archived: bool = False
@@ -81,6 +205,8 @@ class ScheduleRepositories(LeaseRepositories):
         next_at: str | None,
         schedule_id: str | None = None,
         revision: int = 0,
+        *,
+        platform: str = "",
     ) -> Record:
         self._schedule_agent(agent_id)
         if not name.strip() or len(name) > 100 or type(enabled) is not bool:
@@ -100,6 +226,10 @@ class ScheduleRepositories(LeaseRepositories):
         if enabled and not (old and old["enabled"]) and self.connection.execute(active).scalar_one() >= 256:
             raise BusinessError("schedule_limit", "At most 256 schedules may be enabled", status=429)
         value = dict(value)
+        skills = cast(list[str], value.pop("skills", []))
+        refs = cast(list[str], value.pop("context_from", []))
+        continuity = 1 if value.pop("continuity", False) else 0
+        skill_revisions = self._schedule_bindings(agent_id, schedule_id, skills, refs, platform)
         session_id = cast(str | None, value["session_id"]) or (
             cast(str | None, cast(Record, old["value"])["session_id"]) if old else None
         )
@@ -130,10 +260,34 @@ class ScheduleRepositories(LeaseRepositories):
                 "name": name,
                 "enabled": enabled,
                 "tzdb_version": tzdb_version,
+                "continuity": continuity,
                 **value,
             },
             agent_id,
         )
+        for position, skill_id in enumerate(skills, start=1):
+            self._record(
+                s.schedule_skills,
+                {
+                    "schedule_id": schedule_id,
+                    "revision": revision + 1,
+                    "position": position,
+                    "skill_id": skill_id,
+                    "revision_id": skill_revisions[skill_id],
+                },
+                agent_id,
+            )
+        for position, ref_schedule_id in enumerate(refs, start=1):
+            self._record(
+                s.schedule_context_refs,
+                {
+                    "schedule_id": schedule_id,
+                    "revision": revision + 1,
+                    "position": position,
+                    "ref_schedule_id": ref_schedule_id,
+                },
+                agent_id,
+            )
         progress = {
             "revision_id": definition["id"],
             "next_at": next_at if enabled else None,

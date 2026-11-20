@@ -435,6 +435,48 @@ strict 配置显式将 `agent/src` 加入导入根，隔离源码副本也解析
 
 | `agent/src/omni/adapters/mcp/oauth.py` | MCP OAuth类型收官，V2四层合同范围332文件，真实验收仍待 |
 
+| `agent/src/omni/domain/repetition.py` | 模型输出重复退化检测纯规则，保守判定且无 I/O |
+
+| `agent/src/omni/domain/files_search.py` | 工作区搜索规则（内容子串/正则与文件名 glob）有界，不访问文件系统 |
+
+| `agent/src/omni/domain/files_patch.py` | 模糊搜索替换补丁规则有界，不访问文件系统与存储 |
+
+| `agent/src/omni/domain/media_locate.py` | 转写定位纯规则，锚点只取自源转写、不猜测 |
+
+| `agent/src/omni/domain/tool_batch.py` | 工具批次分段规划，仅只读能力可并行 |
+
+| `agent/src/omni/domain/clarify.py` | 结构化澄清纯规则：问题归一、答案清洗与结果态 |
+
+| `agent/src/omni/domain/session_search.py` | 模型侧历史召回纯规则：模式推断、有界整形与去重 |
+
+| `agent/src/omni/domain/background_review.py` | 轮次后复盘提案与所有者决策的有界规则，不做模型调用与写入 |
+
+| `agent/src/omni/domain/verification_stop.py` | 停止前验证门纯规则：已应用写入缺少验证证据 |
+
+| `agent/src/omni/domain/model_recovery.py` | 模型空回复恢复纯规则：确定性空判定与成本感知预算 |
+
+| `agent/src/omni/domain/memory_decay.py` | 记忆衰减与整理纯规则：保留评分、清晰化步骤与追赶，无 I/O |
+
+| `agent/src/omni/domain/memory_scoring.py` | 记忆重要性评分启发式纯规则，无 I/O |
+
+| `agent/src/omni/application/clarify.py` | 面向所有者的澄清用例，模型侧等待留在引擎运行协程 |
+
+| `agent/src/omni/application/session_search.py` | 模型侧历史召回能力，共享应用事务与擦除屏障 |
+
+| `agent/src/omni/application/background_review.py` | 每个已结束运行一个有界复盘器，提案在所有者决策前保持待定 |
+
+| `agent/src/omni/adapters/persistence/clarify_repository.py` | 结构化澄清请求持久化：暂停当前运行并在同一运行上恢复 |
+
+| `agent/src/omni/adapters/persistence/session_search_repository.py` | 共享会话/消息存储上的有界只读历史召回 |
+
+| `agent/src/omni/adapters/persistence/background_review_repository.py` | 复盘提案与所有者审阅持久化，应用仍走记忆/技能链 |
+
+| `agent/src/omni/adapters/persistence/migrations/versions/v0047.py` | 冻结迁移版本 v0047（记忆衰减列与按代理衰减游标；幂等加列，沿用 v0045 先例） |
+
+| `agent/src/omni/adapters/persistence/migrations/versions/v0048.py` | 冻结迁移版本 v0048（`event_retention_targets` kind 白名单与领域 KINDS 对齐；事务重建保留全部证据行、索引与触发器） |
+
+| `agent/src/omni/adapters/persistence/migrations/versions/v0049.py` | 冻结迁移版本 v0049（日程技能绑定与输出引用两表 + `continuity` 列；身份与禁删触发器，`downgrade` 拒绝） |
+
 `pyrightconfig.strict.json` 的 `include` 必须与本表完全一致；`agent/tests/v2/core/test_v2_typecheck_scope.py` 会双向校验。
 
 ## 3. 历史基线与当前范围

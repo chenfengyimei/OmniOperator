@@ -42,7 +42,7 @@ V2 已有原语（均实读核验）：
 | `action=create/list/update/pause/resume/remove` | 采纳 | 与 `save/get/page/archive` 一一对应 |
 | `action=run`（立即触发） | **不采纳**，`invalid_tool_arguments` 级别拒绝（枚举外） | 手工触发要么伪造 occurrence（破坏 `(schedule_id,scheduled_at)` 唯一与游标），要么引入第三本触发账本；需独立设计 |
 | `schedule` / `name` / `prompt` / `timezone` | 采纳 | 既有 `ScheduleValue` 字段 |
-| `skills`（有序技能绑定） | 采纳（`skill_id` 列表 ≤8） | 复用 `skill_capture_run(selected)` 与 notice，不新建权限 |
+| `skills`（有序技能绑定） | 采纳（`skill_id` 列表 ≤4，与运行时 `MAX_ACTIVE` 同源） | 复用 `skill_capture_run(selected)` 与 notice，不新建权限 |
 | `context_from` / `continuity` | 采纳（refs ≤4 / 布尔） | 见决策 4 |
 | `deliver` / `failure_deliver` | **不采纳** | 自动外发越界；V2 投递仍由所有者审批的 outbox 承担 |
 | `model/provider/base_url/pinned` | **不采纳** | 无人值守花费指向别的模型是所有者决策；调度沿用主模型配置 |
@@ -87,8 +87,8 @@ V2 已有原语（均实读核验）：
 - `ALTER TABLE schedule_revisions ADD COLUMN continuity INTEGER NOT NULL DEFAULT 0` + `CHECK(continuity IN (0,1))`（SQLite 允许带默认值的加列，既有行保持 0 且语义等价）。
 - 新建 `schedule_skills`、`schedule_context_refs` 两表：FK（`ON DELETE RESTRICT`）、唯一约束、position/长度 CHECK、`agent_id` 归属列、`ident()/scope()/stamp()` 与既有表一致。
 - 修订子行**只插不改不删**：加身份触发器（禁止更新 `schedule_id/revision/position/skill_id|ref_schedule_id`）与禁删触发器（`RAISE(ABORT)`），与 `v0048` 的触发器纪律一致；`downgrade` 抛错拒绝。
-- 表数 **143 → 145**，同步三处 pin（见上）；迁移测试沿用既有范式：源表（含 `schedules/schedule_revisions/schedule_progress/occurrences`）行数与内容不变、新表初始为空、DDL 冻结、`upgrade→reflection` 全表存在、`downgrade` 拒绝。
-- `ScheduleValue` 扩展 `skills: list[str] ≤8`、`context_from: list[str] ≤4`、`continuity: bool`（`extra="forbid"` 保持）；所有者 HTTP `ScheduleInput.value` 与模型工具**共用同一校验与同一 `save`**，杜绝两份定义漂移。
+- 表数 **143 → 145**，同步全部表计数 pin（实测 **14 处**，合同初稿估计的"三处"偏少）；迁移测试沿用既有范式：源表（含 `schedules/schedule_revisions/schedule_progress/occurrences`）行数与内容不变、新表初始为空、DDL 冻结、`upgrade→reflection` 全表存在、`downgrade` 拒绝。
+- `ScheduleValue` 扩展 `skills: list[str] ≤4`、`context_from: list[str] ≤4`、`continuity: bool`（`extra="forbid"` 保持）；所有者 HTTP `ScheduleInput.value` 与模型工具**共用同一校验与同一 `save`**，杜绝两份定义漂移。
 
 ### 决策 6：授权与预算（不放大权限）
 
@@ -105,14 +105,14 @@ V2 已有原语（均实读核验）：
 
 ## 实现步骤（合同记录后，独立批次）
 
-1. **持久化批**：v0049 迁移 + `schema.py` 两表/一列 + `ScheduleValue` 扩展 + `SchedulingService.save` 校验（存在性/平台/上限/环）+ 读写（`schedule_get` 投影、`schedule_save` 子行插入）+ 迁移测试与三处 pin 更新。
+1. **持久化批**：v0049 迁移 + `schema.py` 两表/一列 + `ScheduleValue` 扩展 + `SchedulingService.save` 校验（存在性/平台/上限/环）+ 读写（`schedule_get` 投影、`schedule_save` 子行插入）+ 迁移测试与表计数 pin 更新（实测 14 处）。
 2. **触发链批**：`tick` accept 传 `skill_ids`/`skill_platform`；输出摘录查询（occurrence→run→assistant 消息）+ `redact`/截断 + prompt 前缀拼接；测试技能激活、只取 succeeded、缺失/归档标注、环外正常链。
 3. **模型工具批**：`application/cronjob.py` 工具实现 + `domain` spec（参数枚举/additionalProperties=false/长度上限）+ `composition` 注册（**不入** `RETRIEVAL_TOOLS`）+ list 投影；测试审批拒绝/撤销/过期、schema 422、CAS 冲突、archive 取消 pending、上限 8/4/256。
 4. **端到端批**：create→审批→触发→通知注入→update/pause/resume/remove；strict（`pyrightconfig.strict.json` 仓库根）+ ruff + 调用方零回归 + `scripts/project_index.py`（并行 UI 会话期间聚合索引暂缓提交）。
 
 ## 有界与安全
 
-数量：enabled ≤256、总数 ≤4096（既有）、技能 ≤8、context refs ≤4、prompt ≤20000、name ≤100、list ≤50/页。注入 ≤8000 字符且脱敏、只取 succeeded。不自动外发、不 pin 模型、不执行脚本/抓取、不扩工具集、不改 workspace、不跨 agent、不伪造 occurrence（无 run-now）、不重放 unknown、revision CAS、archive 取消 pending、写动作仍走审批门、花费仍走日预算。
+数量：enabled ≤256、总数 ≤4096（既有）、技能 ≤4（= `domain.skills.MAX_ACTIVE`）、context refs ≤4、prompt ≤20000、name ≤100、list ≤50/页。注入 ≤8000 字符且脱敏、只取 succeeded。不自动外发、不 pin 模型、不执行脚本/抓取、不扩工具集、不改 workspace、不跨 agent、不伪造 occurrence（无 run-now）、不重放 unknown、revision CAS、archive 取消 pending、写动作仍走审批门、花费仍走日预算。
 
 ## 边界
 

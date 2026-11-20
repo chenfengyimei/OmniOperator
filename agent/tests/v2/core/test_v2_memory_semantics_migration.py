@@ -51,7 +51,7 @@ def test_v33_upgrade_keeps_memory_models_and_unknown_cost_without_inventing_vect
         database = Database(path, clock, ids)
         try:
             await database.write(lambda u: u.recover())
-            assert database.schema_version == "v2_0039" and len(s.metadata.tables) == 143
+            assert database.schema_version == "v2_0039" and len(s.metadata.tables) == 145
             assert (await database.read(lambda u: u.search_memory(agent, "Persistent")))[0]["id"] == memory["id"]
             assert (await database.read(lambda u: u._one(s.model_calls, agent, call)))["state"] == "unknown"
             assert not await database.read(lambda u: u.connection.execute(select(s.memory_embeddings)).all())

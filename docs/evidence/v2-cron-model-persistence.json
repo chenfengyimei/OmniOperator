@@ -1,0 +1,107 @@
+{
+  "schema": 1,
+  "date": "2026-11-20",
+  "base_commit": "4dc060268dac3f60e802a9e85f14fa21fb59d018",
+  "status": "implemented_scoped_passed",
+  "batch": "K13.cron_model_persistence",
+  "owner_approval": "所有者 2026-11-20 要求接管持续开发并自主规划：先按合同四批接线 K13 模型侧调度能力，本批为第一批（持久化），安全边界不变（不自动外发、不执行代码、不触真实账号/设备/运行中服务与数据库）",
+  "implements_gap": "K13 cron 变体缺口之持久化载体：日程技能绑定（有序 skill_id）与任务输出依赖（context_from 引用列表 + continuity 布尔）在 V2 无持久化列/表，且调度侧技能激活通路不可达；本批只落持久化与保存/读取校验，触发链与模型工具仍后续",
+  "contract": "docs/v2/contracts/V2_CRON_MODEL_TOOL.md",
+  "source_files": {
+    "agent/src/omni/domain/scheduling.py": "af0e08f0c461ae75f6ea1bf154600a3d4be8b140c5cd0992b08ff029fe8116de",
+    "agent/src/omni/adapters/persistence/schema.py": "9ae06f9f747e5f9b4d7bcc023b08d0f13b003d1888720547b366756b3e83eb73",
+    "agent/src/omni/adapters/persistence/schedule_repository.py": "d233802062c54cc393d2c39fcd45e12935c9254d0e042cb463ec8e903bf9d807",
+    "agent/src/omni/adapters/persistence/migrations/versions/v0049.py": "ec2d001042d53c591159cf84e50ecd7ddb2fa93c63f2f69254d7d6df68988d13",
+    "agent/src/omni/application/scheduling.py": "9152bdfff0a9e845410b47cbaf02b260e4a39e4d55a3e0ed775150e0d066ee5c",
+    "agent/src/omni/application/ports.py": "a886271f1815eb3568fb4b2c0a97168f58e5f47f2d00d0e5ed2bc8d0825bf9a5",
+    "agent/src/omni/composition/instance.py": "fe99324511a51120fff502dc005f596b5c58ee94032398054216480461ab7635",
+    "agent/tests/omni_test_support/v2/scheduling.py": "e70bd049f5cdaf401307599864338df525b3de0d4312c6a3842cb63b82ed0241",
+    "agent/tests/v2/core/test_v2_schedule_bindings.py": "e6592c40d526dc2fa3d6240f8a725585a776c1c8bf9e8344397d1978a3cb38b8",
+    "docs/v2/contracts/V2_CRON_MODEL_TOOL.md": "24aa231f9e6c8283dacb8270f572aad7ab28cffdc524b164742930064fbb16de"
+  },
+  "delivered": [
+    "domain/scheduling.py：新增 MAX_SKILLS = domain.skills.MAX_ACTIVE(4)、MAX_CONTEXT_REFS=4、MAX_CONTEXT_DEPTH=4、MAX_CONTEXT_NODES=64；新增 skill_refs()（复用 skill_identifiers，唯一 canonical UUID，错误码 invalid_skill 且消息改为绑定语义）与 context_refs()（唯一 canonical UUID，错误码 invalid_context_ref）；ScheduleValue 增 skills/context_from/continuity（extra=forbid 与 strict 保持，continuity 传非布尔仍走 invalid_schedule，超长列表由 pydantic max_length 归一为 invalid_schedule）",
+    "schema.py：schedule_revisions 加 continuity INTEGER NOT NULL DEFAULT 0 CHECK(continuity IN (0,1))；新建 schedule_skills(schedule_id,revision,position,skill_id,revision_id) 与 schedule_context_refs(schedule_id,revision,position,ref_schedule_id)，复合 FK 到 schedule_revisions(schedule_id,revision,agent_id)、scoped_fk 指 skills/skill_revisions/schedules、UNIQUE(schedule_id,revision,position)、position CHECK 1..4、agent_id 归属列与既有表一致",
+    "migrations/versions/v0049.py：冻结 SQL + PRAGMA table_info/sqlite_master 幂等 upgrade；身份触发器禁改 id/agent_id/created_at/schedule_id/revision/position/skill_id|ref_schedule_id，禁删触发器 RAISE(ABORT)，两个 agent_id 索引；downgrade 抛 RuntimeError 拒绝（与 v0048 同纪律）",
+    "adapters/persistence/schedule_repository.py：schedule_save 剥离 skills/context_from/continuity（不再把新字段展开进强类型主表列），写前 _schedule_bindings 校验：技能须 enabled 且 manifest 支持本机平台（否则 invalid_skill）、引用须同 agent 存在且未归档且非自身（否则 invalid_context_ref）、有界 DFS（≤4 跳/≤64 节点）拒环 invalid_context_cycle；技能/引用按 position 写子表并与 revision 同版本，continuity 写主表列；schedule_get 按当前 revision 投影 skills/context_from/continuity（按 position 升序）",
+    "application/scheduling.py 与 composition/instance.py：SchedulingService 注入 platform（默认空串＝不校验平台，向后兼容），组合层把平台表达式提为单点变量并同时喂 SkillService 与 SchedulingService，避免两处各算一份；application/ports.py UnitOfWork.schedule_save 加 keyword-only platform",
+    "所有者 HTTP ScheduleInput.value 直通同一个 save，故与后续模型工具共享同一校验与同一写入路径（合同防漂移要求）",
+    "表数 143→145：同步实测 14 处表计数 pin（合同初稿只估三处，已在合同更正为 14 处）；test_v2_memory_decay.py head pin v2_0048→v2_0049",
+    "新增 agent/tests/v2/core/test_v2_schedule_bindings.py（5 例）：ScheduleValue 边界/唯一/canonical/严格与非 4 值上限；绑定属于单个 revision 且改/删被触发器拒绝、历史 revision 各自持有自己的 continuity；enabled 技能 + live 引用的正向路径与六类拒绝（不存在/平台不符/已归档技能、不存在/自引用/已归档引用）且拒绝不留半成品日程；环拒绝且原定义不被改写；v0049 幂等升级保留旧行、reflection 列/唯一/FK/索引/触发器全等、foreign_key_check 干净、downgrade 拒绝",
+    "顺带修复 test_v2_typecheck_scope 既有漂移：并行会话已加入 pyrightconfig.strict.json 却未登记文档的 19 个模块（含 v0047/v0048）补齐 docs/TYPE_CHECKING.md，并同批登记 v0049，守卫测试恢复双向一致"
+  ],
+  "limits": {
+    "skills_capped_at_runtime_max_active_4": true,
+    "context_refs_capped_4_and_cycle_check_is_bounded_dfs": "≤4 跳 / ≤64 节点；超出预算的更深环不在保存时检测（合同决策 4 的有界口径）",
+    "bindings_are_per_revision_and_immutable": true,
+    "skill_binding_confers_no_authority": "绑定只是指导文本选择器；写动作仍走审批门，权限不因绑定变化",
+    "platform_validation_is_host_local": "组合层按本机平台校验 manifest；跨平台日程导入仍需显式校验（后续批）",
+    "no_second_scheduling_kernel": "未新增调度循环/未复制 due 计算/未绕 revision CAS",
+    "no_new_table_beyond_v0049_two_tables_one_column": true,
+    "history_projection_unchanged": "schedule_history 仍只回放 revision 列（含 continuity），技能/引用子行由 schedule_get 按当前 revision 提供",
+    "aggregate_index_commit_deferred": true,
+    "model_tool_and_trigger_chain_not_implemented": true
+  },
+  "validation": {
+    "mode": "scoped_implementation_plus_caller",
+    "scoped": {
+      "command": "uv run --no-sync pytest -q -n 0 agent/tests/v2/core/test_v2_schedule_bindings.py agent/tests/v2/core/test_v2_typecheck_scope.py",
+      "passed": 7,
+      "failed": 0,
+      "seconds": 7.13
+    },
+    "caller_scheduling_delivery": {
+      "command": "uv run --no-sync pytest -q -n 0 agent/tests/v2/core/test_v2_scheduling.py test_v2_scheduling_faults.py test_v2_delivery.py test_v2_delivery_faults.py",
+      "passed": 59,
+      "failed": 1,
+      "seconds": 110.76,
+      "failure": "test_supervised_scheduler_executes_through_model_runtime_and_closes（asyncio.timeout(10) 超时）",
+      "baseline": "在 HEAD 隔离 worktree（PYTHONPATH=<worktree>/agent/src）单跑同节点同样超时失败 → 既有问题，与本批无因果"
+    },
+    "caller_arch_memory_migration": {
+      "command": "uv run --no-sync pytest -q -n 0 <architecture/memory_decay/memory_decay_tick + 9 个 *_migration.py>",
+      "passed": 107,
+      "failed": 2,
+      "seconds": 189.98,
+      "failure": "test_v2_memory_semantics_migration.py::test_v33_upgrade_keeps_memory_models_and_unknown_cost_without_inventing_vectors[False|True]",
+      "baseline": "基线树同文件同样 2 失败（schema_version 断言仍 pin v2_0039）→ 既有债务（7 个 v2_0039 滞后 pin），本批未触碰该断言"
+    },
+    "caller_integrations_platforms": {
+      "command": "uv run --no-sync pytest -q -n 0 <skills/android/routing migration + terminals/terminal_review migration>",
+      "passed": 10,
+      "failed": 3,
+      "seconds": 30.52,
+      "failure": "test_v2_skills_migration.py 2 例 + test_v2_routing_migration.py 1 例（均 schema_version pin v2_0039）",
+      "baseline": "基线树同样 3 失败（同文件同用例）→ 既有债务；曾出现 android docstring 用例单次失败，重跑与单独运行均通过，属同批并发/临时目录 flaky"
+    },
+    "caller_media_capture": {
+      "command": "uv run --no-sync pytest -q -n 0 agent/tests/v2/integrations/test_v2_media.py（另单跑 desktop_capture 结构用例）",
+      "passed": 5,
+      "failed": 4,
+      "baseline": "基线树同样 4 失败但集合不同（delete_propagates vs http_contract 互换），单跑 http_contract 亦通过/失败交替 → 环境型 flaky（外部媒体工具与端口），与本批改动无因果",
+      "note": "desktop_capture 的 145 表计数断言用例单跑通过，连续跑时偶发失败（snapshot/restore 时序），基线同态"
+    },
+    "strict": {
+      "config": "pyrightconfig.strict.json",
+      "files": 414,
+      "errors_total": 0,
+      "warnings": 0,
+      "note": "从仓库根运行 uv run --no-sync pyright --project pyrightconfig.strict.json；首轮 set[str] 未标注触发 3 处 reportUnknown*，标注后清零"
+    },
+    "ruff": "check + format 对 9 个本批文件通过（修 I001 导入排序与 RUF059 未用解包变量）",
+    "full_suite_executed": false,
+    "real_model_account_device_native_or_72h_executed": false,
+    "current_windows_service_or_database_touched": false
+  },
+  "whole_core_parity_complete": false,
+  "whole_reference_feature_audit_complete": false,
+  "whole_v2_complete": false,
+  "not_executed": [
+    "合同余下三批：触发链（tick 传 skill_ids/skill_platform + 输出摘录 redact/截断/前缀注入）、模型工具（application/cronjob.py + domain spec + composition 晚绑定注册）、端到端（create→审批→触发→通知注入→update/pause/resume/remove）",
+    "output 摘录查询（occurrence→run→assistant 消息）、continuity 取本日程最近成功输出、注入总量 ≤8000 字符的实测",
+    "docs/index 再生与提交（并行 UI 会话在途，按纪律暂缓；project_index --check 显示 MODULES/API/project.json 已过期，含他会话未提交内容）",
+    "既有债务（独立批）：execution_pruning[cost] 指纹含 settle 事件、7 个 pin v2_0039 schema_version 滞后、2 个 media_upload DDL pin、supervised scheduler 用例超时",
+    "真实账号/设备/模型质量、72h soak、整个 V2 冻结后统一全量"
+  ],
+  "next": "触发链批：SchedulingService.tick accept 传 skill_ids/skill_platform；新增输出摘录查询（只取 succeeded、redact、截断 2000、总注入 ≤8000、固定前缀拼进 accept_turn 文本）；随后模型工具批与端到端批。whole_*_complete 保持 false。"
+}

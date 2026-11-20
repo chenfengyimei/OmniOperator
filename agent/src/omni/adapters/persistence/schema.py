@@ -1143,6 +1143,13 @@ schedule_revisions = scoped(
     Column("session_id", String(36), nullable=False),
     Column("prompt", Text, nullable=False),
     Column("misfire", String(20), nullable=False),
+    Column(
+        "continuity",
+        Integer,
+        CheckConstraint("continuity IN (0,1)", name="continuity"),
+        nullable=False,
+        server_default="0",
+    ),
     scoped_fk("schedule_id", "schedules"),
     scoped_fk("session_id", "sessions"),
     UniqueConstraint("schedule_id", "revision", "agent_id"),
@@ -1228,6 +1235,38 @@ schedule_reviews = scoped(
     UniqueConstraint("occurrence_id", "model_call_id", "state", "review_epoch"),
     UniqueConstraint("occurrence_id", "action_id", "state", "review_epoch"),
     UniqueConstraint("occurrence_id", "delivery_id", "state", "review_epoch", "delivery_revision"),
+)
+schedule_skills = scoped(
+    "schedule_skills",
+    Column("schedule_id", String(36), nullable=False),
+    Column("revision", Integer, nullable=False),
+    Column("position", Integer, nullable=False),
+    Column("skill_id", String(36), nullable=False),
+    Column("revision_id", String(36), nullable=False),
+    ForeignKeyConstraint(
+        ["schedule_id", "revision", "agent_id"],
+        ["schedule_revisions.schedule_id", "schedule_revisions.revision", "schedule_revisions.agent_id"],
+        ondelete="RESTRICT",
+    ),
+    scoped_fk("skill_id", "skills"),
+    scoped_fk("revision_id", "skill_revisions"),
+    UniqueConstraint("schedule_id", "revision", "position"),
+    CheckConstraint("revision>0 AND position BETWEEN 1 AND 4", name="bounds"),
+)
+schedule_context_refs = scoped(
+    "schedule_context_refs",
+    Column("schedule_id", String(36), nullable=False),
+    Column("revision", Integer, nullable=False),
+    Column("position", Integer, nullable=False),
+    Column("ref_schedule_id", String(36), nullable=False),
+    ForeignKeyConstraint(
+        ["schedule_id", "revision", "agent_id"],
+        ["schedule_revisions.schedule_id", "schedule_revisions.revision", "schedule_revisions.agent_id"],
+        ondelete="RESTRICT",
+    ),
+    scoped_fk("ref_schedule_id", "schedules"),
+    UniqueConstraint("schedule_id", "revision", "position"),
+    CheckConstraint("revision>0 AND position BETWEEN 1 AND 4 AND ref_schedule_id<>schedule_id", name="bounds"),
 )
 leases = Table(
     "leases",
