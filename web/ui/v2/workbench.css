@@ -4100,3 +4100,21 @@ body[data-ui-page="workbench-v2"] .page:not(#chat) .schedule-wizard .wiz-note {
 body[data-ui-page="workbench-v2"] .page:not(#chat) #schedule-advanced {
   margin: 0 0 var(--sp-3);
 }
+
+/* ==========================================================================
+   P6 投递消息选择器：选中回复的正文预览限两行，避免长正文撑破草稿卡。
+   ========================================================================== */
+body[data-ui-page="workbench-v2"] .page:not(#chat) .delivery-message-preview {
+  margin: 0 0 var(--sp-2);
+  font-size: var(--fs-caption);
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+body[data-ui-page="workbench-v2"] .page:not(#chat) .usd-hint {
+  font-size: var(--fs-caption);
+  font-weight: 400;
+  color: var(--text-3);
+  font-variant-numeric: tabular-nums;
+}

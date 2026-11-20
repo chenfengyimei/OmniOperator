@@ -104,6 +104,7 @@ export function mountExtensions({ api, wrap, getAgent, getGeneration }) {
     actionAfter = '';
     actionRead++;
     $('extension-details').textContent = '';
+    $('extension-plain').textContent = '';
     $('extension-files').textContent = '';
     $('extension-tools').replaceChildren();
     $('extension-actions').replaceChildren();
@@ -116,6 +117,8 @@ export function mountExtensions({ api, wrap, getAgent, getGeneration }) {
     choices();
     const runtime = record.runtime,
       authorization = review();
+    $('extension-plain').textContent =
+      `${record.name} · ${record.state === 'drifted' ? '包内容与登记版本不一致，请重新登记并核查' : stateLabels[record.state] || record.state} · 版本 ${record.version}`;
     $('extension-details').textContent =
       `${record.name} · ${stateLabels[record.state] || record.state}\n` +
       `插件 ${record.id} · 版本 ${record.version} · 槽修订 ${record.revision}\n` +

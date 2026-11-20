@@ -83,6 +83,22 @@ export function mountConfiguration({ api, wrap, getAgent, getGeneration }) {
       ? `设置草稿保留，基于修订 ${draft.revision}`
       : `设置已载入修订 ${draft.revision}`;
     $('settings-fields').disabled = false;
+    usdHints();
+  }
+  const usd = (micro) =>
+    '$' +
+    (Number(micro) / 1e6)
+      .toFixed(6)
+      .replace(/(\.\d*?)0+$/, '$1')
+      .replace(/\.$/, '');
+  function usdHints() {
+    for (const [id, hint] of [
+      ['daily-budget', 'daily-budget-usd'],
+      ['call-budget', 'call-budget-usd'],
+    ]) {
+      const value = $(id).value;
+      $(hint).textContent = value === '' ? '' : `≈ ${usd(value)} 美元 · 输入单位微美元（1 美元 = 1000000）`;
+    }
   }
   function readPreferences() {
     const draft = preferences.get(getAgent());
@@ -101,6 +117,7 @@ export function mountConfiguration({ api, wrap, getAgent, getGeneration }) {
     };
     draft.dirty = true;
     $('saved').textContent = '设置草稿尚未保存';
+    usdHints();
   }
   for (const id of [
     'active-model',
@@ -136,7 +153,8 @@ export function mountConfiguration({ api, wrap, getAgent, getGeneration }) {
   const KIND_LABEL = { model: '模型', channel: '通道', mcp: 'MCP', preset: '人设预设' };
   function renderEditor(draft) {
     // P4 渐进披露：编辑器收在高级折叠里，标题随当前类型更新，用户知道展开后编辑的是什么。
-    $('config-editor-summary').textContent = `高级：编辑${KIND_LABEL[kind] || ''}配置${draft.name ? `「${draft.name}」` : '（新草稿）'}`;
+    $('config-editor-summary').textContent =
+      `高级：编辑${KIND_LABEL[kind] || ''}配置${draft.name ? `「${draft.name}」` : '（新草稿）'}`;
     $('cfg-name').value = draft.name;
     $('cfg-enabled').checked = draft.enabled;
     for (const k of ['model', 'channel', 'mcp', 'preset']) {

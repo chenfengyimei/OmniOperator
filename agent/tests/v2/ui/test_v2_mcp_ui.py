@@ -119,16 +119,16 @@ def test_mcp_panel_connects_authorizes_calls_revokes_and_disconnects(ui_browser,
         expect(page.locator("#mcp-status")).to_contain_text("连接完成：3 个工具")
         expect(page.locator("#mcp-server-detail")).to_contain_text("已连接")
         expect(page.locator("#mcp-catalog-meta")).to_contain_text("目录指纹")
-        expect(page.locator("#mcp-tool-list details")).to_have_count(3)
+        expect(page.locator("#mcp-tool-list > details")).to_have_count(3)
 
-        card = page.locator("#mcp-tool-list details", has_text="mcp__notes__search")
-        card.locator("summary").click()
+        card = page.locator("#mcp-tool-list > details", has_text="mcp__notes__search")
+        card.locator("> summary").click()
         expect(card.locator("pre")).to_contain_text('"properties"')
         card.locator('input[data-action="authorize"]').check()
         card.locator('input[data-action="read-only"]').check()
         page.get_by_role("button", name="保存逐工具授权", exact=True).click()
         expect(page.locator("#mcp-status")).to_contain_text("授权已保存：1 个工具（只读 1）")
-        expect(card.locator("summary")).to_contain_text("已授权 · 只读")
+        expect(card.locator("> summary")).to_contain_text("已授权 · 只读")
 
         receipt = page.request.post(
             base + "/turns", headers=headers, data={"key": "ui-mcp", "message": "搜索", "mode": "agent"}
@@ -141,7 +141,7 @@ def test_mcp_panel_connects_authorizes_calls_revokes_and_disconnects(ui_browser,
         page.get_by_role("button", name="撤销全部授权", exact=True).click()
         page.get_by_role("dialog").get_by_role("button", name="撤销全部授权", exact=True).click()
         expect(page.locator("#mcp-status")).to_contain_text("已撤销全部授权")
-        expect(card.locator("summary")).to_contain_text("未授权")
+        expect(card.locator("> summary")).to_contain_text("未授权")
 
         page.get_by_role("button", name="断开所选服务", exact=True).click()
         page.get_by_role("dialog").get_by_role("button", name="断开", exact=True).click()

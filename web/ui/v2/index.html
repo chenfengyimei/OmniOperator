@@ -8,11 +8,11 @@
     <link rel="stylesheet" href="/assets/ui/tokens.css?v=20261120u2" />
     <link rel="stylesheet" href="/assets/ui/base.css?v=20261103v7" />
     <link rel="stylesheet" href="/assets/ui/icons.css?v=20261115u1" />
-    <link rel="stylesheet" href="/assets/ui/v2/v1/components.css?v=20261120v170" />
-    <link rel="stylesheet" href="/assets/ui/v2/v1/frame.css?v=20261120v170" />
-    <link rel="stylesheet" href="/assets/ui/v2/v1/workbench.css?v=20261120v170" />
-    <link rel="stylesheet" href="/assets/ui/v2/workbench.css?v=20261120v170" />
-    <link rel="stylesheet" href="/assets/vendor/xterm.min.css?v=20261120v170" />
+    <link rel="stylesheet" href="/assets/ui/v2/v1/components.css?v=20261120v171" />
+    <link rel="stylesheet" href="/assets/ui/v2/v1/frame.css?v=20261120v171" />
+    <link rel="stylesheet" href="/assets/ui/v2/v1/workbench.css?v=20261120v171" />
+    <link rel="stylesheet" href="/assets/ui/v2/workbench.css?v=20261120v171" />
+    <link rel="stylesheet" href="/assets/vendor/xterm.min.css?v=20261120v171" />
   </head>
   <body class="chat-mode" data-ui-page="workbench-v2">
     <header class="app-header">
@@ -704,8 +704,8 @@
               <h2>MCP 服务</h2>
               <p>
                 外部 MCP
-                服务以“配置修订”为身份。连接、目录发现与逐工具授权都由所有者显式发起：状态只读本地记录，不会启动进程；工具参数
-                schema 与当前指纹展示在此，未授权工具对模型不可见。远端 OAuth 只在点“授权远程服务”后开始。
+                服务按「连接配置」管理。连接、查看工具目录与逐工具授权都由你显式发起：状态只读本地记录，不会启动进程；未授权工具对模型不可见。远端
+                OAuth 只在点“授权远程服务”后开始。
               </p>
               <div class="actions">
                 <button id="mcp-refresh" type="button">刷新服务</button
@@ -716,6 +716,10 @@
               <p id="mcp-status" role="status"></p>
               <label>MCP 服务<select id="mcp-server-list"></select></label>
               <pre id="mcp-server-detail"></pre>
+              <details class="settings-advanced">
+                <summary>技术详情：配置修订 / 代际 / 端点 / 目录指纹</summary>
+                <pre id="mcp-server-tech"></pre>
+              </details>
               <div class="actions">
                 <button id="mcp-catalog-refresh" type="button" disabled>刷新目录</button
                 ><button id="mcp-catalog-more" type="button" disabled>更多工具</button
@@ -723,7 +727,11 @@
                 ><button id="mcp-revoke" type="button" disabled>撤销全部授权</button>
               </div>
               <p id="mcp-catalog-status" role="status"></p>
-              <pre id="mcp-catalog-meta"></pre>
+              <p id="mcp-catalog-plain" role="status"></p>
+              <details class="settings-advanced">
+                <summary>技术详情：目录指纹</summary>
+                <pre id="mcp-catalog-meta"></pre>
+              </details>
               <div id="mcp-tool-list"></div>
               <div class="actions">
                 <button id="mcp-oauth-start" type="button" disabled>授权远程服务（显式 OAuth）</button>
@@ -791,7 +799,9 @@
               <p id="delivery-capabilities" role="status"></p>
               <form id="delivery-form">
                 <fieldset id="delivery-fields" disabled>
-                  <label>已保存的助手消息 ID<input id="delivery-message" required /></label>
+                  <label>会话<select id="delivery-session"></select></label>
+                  <label>助手回复（仅已完成回合可外发）<select id="delivery-message" required></select></label>
+                  <p class="muted delivery-message-preview" id="delivery-message-preview" hidden></p>
                   <label>发送通道配置<select id="delivery-channel" required></select></label>
                   <label>目标标识<input id="delivery-target" maxlength="512" required /></label>
                   <p id="delivery-parent" role="status"></p>
@@ -1120,8 +1130,8 @@
               <div id="memory-organization-candidates"></div>
               <h2>本地向量召回与相关事实</h2>
               <p class="muted">
-                事实、人物档案和常驻记忆共用原始修订与来源。向量模型可选，未配置时仍可全文检索；建立索引每次最多 32
-                条。相关候选使用上方手动选择的事实，只标记关系，不合并或抑制召回。
+                事实、人物档案和常驻记忆都保留每次修改的历史与来源，可随时回看。向量模型可选：未配置时仍可全文检索；建立索引每次最多
+                32 条。相关候选使用上方手动选择的事实，只标记关系，不合并或抑制召回。
               </p>
               <div class="actions">
                 <button id="semantic-index" type="button">建立下一页记忆索引</button>
@@ -1204,7 +1214,7 @@
                 </div>
               </form>
               <p class="muted">
-                更新所选插件时绑定当前修订，并撤销旧版本的授权。输入草稿只保存在当前网页内存；登记结果未核清时保留原请求键，核查不会覆盖新输入。
+                更新插件会按新版本重新登记，并撤销旧版本已授予的权限。输入草稿只保存在当前网页内存；登记结果未核清时保留原请求，核查不会覆盖新输入。
               </p>
               <form id="extension-market-form">
                 <label>本地市场目录（绝对路径，只读扫描）<input id="extension-market-source" maxlength="4000" /></label>
@@ -1219,9 +1229,13 @@
                 <button id="extension-disable" type="button" disabled>禁用并核查回收</button>
               </div>
               <p id="extension-status" role="status"></p>
-              <pre id="extension-details"></pre>
+              <p id="extension-plain" role="status"></p>
+              <details class="settings-advanced">
+                <summary>技术详情：登记修订、入口与包指纹</summary>
+                <pre id="extension-details"></pre>
+              </details>
               <details>
-                <summary>包内文件与指纹</summary>
+                <summary>包内文件清单（含校验指纹）</summary>
                 <pre id="extension-files"></pre>
               </details>
               <div class="actions">
@@ -1422,9 +1436,17 @@
                     <summary>高级：预算、步数与能力开关</summary>
                     <div class="log-filters">
                       <label
-                        >每日预算（微美元，0 表示不限）<input id="daily-budget" type="number" min="0" required
-                      /></label>
-                      <label>单次调用费用预留（微美元）<input id="call-budget" type="number" min="1" required /></label>
+                        >每日预算（0 表示不限）<input id="daily-budget" type="number" min="0" required /><span
+                          class="usd-hint"
+                          id="daily-budget-usd"
+                        ></span
+                      ></label>
+                      <label
+                        >单次调用费用预留<input id="call-budget" type="number" min="1" required /><span
+                          class="usd-hint"
+                          id="call-budget-usd"
+                        ></span
+                      ></label>
                       <label>每轮最大步骤<input id="max-steps" type="number" min="1" max="32" required /></label>
                     </div>
                     <label>禁用能力名称（逗号分隔）<input id="disabled-tools" /></label>
@@ -1456,24 +1478,31 @@
                     <div class="form-row">
                       <label>聊天模型<select id="route-chat-model"></select></label
                       ><label
-                        >每次预留微美元（空白跟随设置）<input
+                        >每次调用预留（空白跟随设置）<input
                           id="route-chat-reserve"
                           type="number"
                           min="1"
-                          max="1000000000000"
-                      /></label>
+                          max="1000000000000" /><span class="usd-hint" id="route-chat-reserve-usd"></span
+                      ></label>
                     </div>
                     <div class="form-row">
                       <label>检索模型<select id="route-retrieval-model"></select></label
                       ><label
-                        >每次预留微美元<input id="route-retrieval-reserve" type="number" min="1" max="1000000000000"
-                      /></label>
+                        >每次调用预留<input
+                          id="route-retrieval-reserve"
+                          type="number"
+                          min="1"
+                          max="1000000000000" /><span class="usd-hint" id="route-retrieval-reserve-usd"></span
+                      ></label>
                     </div>
                     <div class="form-row">
                       <label>完整模型<select id="route-agent-model"></select></label
                       ><label
-                        >每次预留微美元<input id="route-agent-reserve" type="number" min="1" max="1000000000000"
-                      /></label>
+                        >每次调用预留<input id="route-agent-reserve" type="number" min="1" max="1000000000000" /><span
+                          class="usd-hint"
+                          id="route-agent-reserve-usd"
+                        ></span
+                      ></label>
                     </div>
                     <p class="muted">
                       留空模型跟随本空间默认模型。图片能力和计量来自实际选中的模型；缺少能力会明确拒绝。升档只改变下一次调用工具，模型和预算保持本轮捕获值。
@@ -1640,6 +1669,10 @@
                 ><button id="credential-more" type="button" disabled>更多引用</button>
               </div>
               <p id="credential-state" role="status"></p>
+              <details class="settings-advanced">
+                <summary>技术详情：修订 / 授权代次 / 引用指纹</summary>
+                <pre id="credential-tech"></pre>
+              </details>
               <details id="credential-review-wrap" class="settings-advanced">
                 <summary>高级：凭据结果未知时的人工核查</summary>
                 <form id="credential-review">
@@ -2102,9 +2135,9 @@
       </div>
       <div id="service-list" class="svc-list"></div>
     </dialog>
-    <script src="/assets/vendor/xterm.js?v=20261120v170"></script>
-    <script src="/assets/vendor/xterm-addon-fit.js?v=20261120v170"></script>
-    <script src="/assets/ui/markdown.js?v=20261120v170"></script>
-    <script type="module" src="/assets/ui/v2/main.js?v=20261120v170"></script>
+    <script src="/assets/vendor/xterm.js?v=20261120v171"></script>
+    <script src="/assets/vendor/xterm-addon-fit.js?v=20261120v171"></script>
+    <script src="/assets/ui/markdown.js?v=20261120v171"></script>
+    <script type="module" src="/assets/ui/v2/main.js?v=20261120v171"></script>
   </body>
 </html>

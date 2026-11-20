@@ -20,6 +20,20 @@ export function mountRouting({ api, wrap, getAgent, getGeneration, getSession })
     }
     draft.dirty = true;
     $('route-config-status').textContent = '档位草稿尚未保存，已有运行继续使用原修订';
+    usdHints();
+  }
+  const usd = (micro) =>
+    '$' +
+    (Number(micro) / 1e6)
+      .toFixed(6)
+      .replace(/(\.\d*?)0+$/, '$1')
+      .replace(/\.$/, '');
+  function usdHints() {
+    for (const mode of modes) {
+      const value = $(`route-${mode}-reserve`).value;
+      $(`route-${mode}-reserve-usd`).textContent =
+        value === '' ? '输入单位：微美元（1 美元 = 1000000）' : `≈ ${usd(value)} 美元 · 输入单位微美元`;
+    }
   }
   $('route-fields').addEventListener('input', read);
   $('route-fields').addEventListener('change', read);
@@ -67,6 +81,7 @@ export function mountRouting({ api, wrap, getAgent, getGeneration, getSession })
       select.value = identity || '';
       $(`route-${mode}-reserve`).value = draft.value[`${mode}_reservation_micro`] ?? '';
     }
+    usdHints();
     $('route-config-status').textContent =
       `${draft.dirty ? '草稿保留，基于' : '已载入'}修订 ${draft.revision}。普通修改仅作用于新运行，模型停用和权限撤销仍即时核验。`;
     $('route-fields').disabled = false;
@@ -136,8 +151,8 @@ export function mountRouting({ api, wrap, getAgent, getGeneration, getSession })
       };
       const named = (map, key) => (map[key] ? `${map[key]}（${key}）` : String(key));
       $('route-run-status').textContent =
-        `档位 ${labels[route.mode]}（请求 ${labels[route.requested_mode] || (route.requested_mode === 'default' ? '跟随设置' : '自动')}） · ${named(SOURCE, route.source)} / ${named(REASON, route.reason)}${route.promoted ? ' · 已升档一次' : ''}；本轮模型 ${route.model_name} / ${route.model}，修订 ${route.model_revision_id}，单次预留 ${route.reservation_micro} 微美元。\n` +
-        `已登记 ${value.calls.length} 份调用工具快照；工具规格字节差 ${value.byte_delta}（正值表示减少，不是费用收益）。已知结算 ${value.known_cost_micro} 微美元，${value.unsettled_calls} 次待结清；路由模型调用 ${value.routing_model_calls} 次。`;
+        `档位 ${labels[route.mode]}（请求 ${labels[route.requested_mode] || (route.requested_mode === 'default' ? '跟随设置' : '自动')}） · ${named(SOURCE, route.source)} / ${named(REASON, route.reason)}${route.promoted ? ' · 已升档一次' : ''}；本轮模型 ${route.model_name} / ${route.model}，修订 ${route.model_revision_id}，单次预留 ${route.reservation_micro} 微美元（≈${usd(route.reservation_micro)}）。\n` +
+        `已登记 ${value.calls.length} 份调用工具快照；工具规格字节差 ${value.byte_delta}（正值表示减少，不是费用收益）。已知结算 ${value.known_cost_micro} 微美元（≈${usd(value.known_cost_micro)}），${value.unsettled_calls} 次待结清；路由模型调用 ${value.routing_model_calls} 次。`;
       if (value.unrecorded_turn_calls)
         $('route-run-status').textContent +=
           ` ${value.unrecorded_turn_calls} 条主调用记录无工具快照（历史记录或预检未通过）。`;
@@ -167,7 +182,7 @@ export function mountRouting({ api, wrap, getAgent, getGeneration, getSession })
             // 所有者要求：不展示估算，只保留实测口径。
             ['输入实测', call.input_tokens == null ? '未知' : `${call.input_tokens} token`],
             ['输出实测', call.output_tokens == null ? '未知' : `${call.output_tokens} token`],
-            ['费用', call.cost_micro === null ? '未知' : `${call.cost_micro} 微美元`],
+            ['费用', call.cost_micro === null ? '未知' : `${call.cost_micro} 微美元（≈${usd(call.cost_micro)}）`],
           ]) {
             const dt = document.createElement('dt');
             dt.textContent = label;

@@ -5,13 +5,17 @@ export function mountDeliveries({ api, wrap, getAgent, getGeneration }) {
   const drafts = new Map(),
     choices = new Map(),
     channelChoices = new Map(),
+    draftSession = new Map(),
     writes = new Set();
   let selected = '',
     row = null,
     epoch = 0,
     cursor = null,
     channelCursor = null,
-    available = false;
+    available = false,
+    sessionItems = [],
+    lastMessages = [],
+    lastRunStates = new Map();
   const root = (agent = getAgent()) => `/agents/${agent}/deliveries`;
   const target = () => ({ agent: getAgent(), generation: getGeneration(), selected, epoch });
   const current = (t) =>
@@ -48,11 +52,59 @@ export function mountDeliveries({ api, wrap, getAgent, getGeneration }) {
   }
   function renderDraft() {
     const d = draft();
+    $('delivery-session').value = draftSession.get(getAgent()) || '';
     $('delivery-message').value = d.message_id;
     $('delivery-channel').value = d.config_id;
     $('delivery-target').value = d.target;
     $('delivery-parent').textContent = d.parent_id ? `从投递 ${d.parent_id} 建立新意图；保存后仍需重新批准` : '';
     $('delivery-fields').disabled = !available;
+    previewMessage(d.message_id);
+  }
+  function previewMessage(messageId) {
+    const node = $('delivery-message-preview');
+    const item = lastMessages.find((m) => m.id === messageId);
+    node.hidden = !item;
+    node.textContent = item ? `将外发：${String(item.content).replace(/\s+/g, ' ').slice(0, 200)}` : '';
+  }
+  function renderSessionOptions() {
+    $('delivery-session').replaceChildren(
+      new Option('选择会话', ''),
+      ...sessionItems.map((s) => new Option(s.title || `会话 ${s.id.slice(0, 8)}`, s.id)),
+    );
+  }
+  async function syncMessages(sessionId, wantId) {
+    const t = target();
+    if (!sessionId) {
+      lastMessages = [];
+      lastRunStates = new Map();
+      $('delivery-message').replaceChildren(new Option('先选择会话', ''));
+      previewMessage('');
+      return;
+    }
+    const [messages, runs] = await Promise.all([
+      api(`/agents/${t.agent}/sessions/${sessionId}/messages`),
+      api(`/agents/${t.agent}/runs?limit=100`),
+    ]);
+    if (!current(t)) return;
+    lastRunStates = new Map(runs.items.map((r) => [r.id, r.state]));
+    lastMessages = messages.items.filter((m) => m.role === 'assistant' && m.run_id);
+    $('delivery-message').replaceChildren(
+      new Option(lastMessages.length ? '选择助手回复' : '该会话暂无可外发的助手回复', ''),
+      ...lastMessages.map((m) => {
+        const done = lastRunStates.get(m.run_id) === 'succeeded';
+        const excerpt = String(m.content).replace(/\s+/g, ' ').slice(0, 42);
+        const option = new Option(
+          `${String(m.created_at || '')
+            .slice(5, 16)
+            .replace('T', ' ')} · ${excerpt}${done ? '' : '（回合未完成）'}`,
+          m.id,
+        );
+        option.disabled = !done;
+        return option;
+      }),
+    );
+    $('delivery-message').value = lastMessages.some((m) => m.id === wantId) ? wantId : '';
+    previewMessage($('delivery-message').value);
   }
   function reset() {
     epoch++;
@@ -65,6 +117,9 @@ export function mountDeliveries({ api, wrap, getAgent, getGeneration }) {
     available = false;
     $('delivery-list').replaceChildren();
     $('delivery-fields').disabled = true;
+    $('delivery-session').replaceChildren();
+    $('delivery-message').replaceChildren();
+    $('delivery-message-preview').hidden = true;
     $('delivery-preview').textContent = $('delivery-attempts').textContent = $('delivery-status').textContent = '';
     for (const id of ['approve', 'reject', 'cancel', 'archive', 'copy']) $('delivery-' + id).disabled = true;
     $('delivery-review').hidden = true;
@@ -142,12 +197,13 @@ export function mountDeliveries({ api, wrap, getAgent, getGeneration }) {
     const t = target();
     await Promise.allSettled([...writes]);
     if (!current(t)) return;
-    const [page, capabilities, channels] = await Promise.all([
+    const [page, capabilities, channels, sessions] = await Promise.all([
       api(
         `${root(t.agent)}?limit=100&include_archived=${$('delivery-archived').checked}${more && cursor ? '&after=' + cursor : ''}`,
       ),
       api(`${root(t.agent)}/capabilities`),
       api(`${root(t.agent)}/channels?limit=200`),
+      api(`/agents/${t.agent}/sessions`),
     ]);
     if (!current(t)) return;
     if (!more) choices.clear();
@@ -156,13 +212,20 @@ export function mountDeliveries({ api, wrap, getAgent, getGeneration }) {
     channelChoices.clear();
     for (const c of channels.items) channelChoices.set(c.id, c);
     channelCursor = channels.next_after;
+    sessionItems = sessions.items;
+    renderSessionOptions();
     $('delivery-capabilities').textContent = capabilities.items.length
       ? '仅使用已安装适配器；外发前需逐条人工批准。'
       : '当前未安装实际发送适配器，可以查看、取消和核查历史投递。真实通道接入仍待实施。';
     renderChannels();
     renderChoices();
     await loadSelected();
-    if (t.agent === getAgent() && t.generation === getGeneration() && epoch === t.epoch + 1) renderDraft();
+    if (t.agent === getAgent() && t.generation === getGeneration() && epoch === t.epoch + 1) {
+      const sessionId = draftSession.get(t.agent) || $('delivery-session').value || sessionItems[0]?.id || '';
+      if (!draftSession.has(t.agent) && sessionId) $('delivery-session').value = sessionId;
+      await syncMessages(sessionId, draft().message_id);
+      renderDraft();
+    }
   }
   function renderChannels() {
     const usable = [...channelChoices.values()].filter((c) => c.available);
@@ -196,11 +259,23 @@ export function mountDeliveries({ api, wrap, getAgent, getGeneration }) {
   }
   function capture() {
     const d = draft();
-    d.message_id = $('delivery-message').value.trim();
+    d.message_id = $('delivery-message').value;
     d.config_id = $('delivery-channel').value;
     d.target = $('delivery-target').value.trim();
   }
   $('delivery-form').addEventListener('input', capture);
+  $('delivery-session').addEventListener(
+    'change',
+    wrap(async () => {
+      const t = target();
+      draftSession.set(t.agent, $('delivery-session').value);
+      draft().message_id = '';
+      $('delivery-message').value = '';
+      previewMessage('');
+      await syncMessages($('delivery-session').value, '');
+    }),
+  );
+  $('delivery-message').addEventListener('change', () => previewMessage($('delivery-message').value));
   $('delivery-form').addEventListener(
     'submit',
     wrap(async () => {
@@ -332,6 +407,10 @@ export function mountDeliveries({ api, wrap, getAgent, getGeneration }) {
         parent_id: r.id,
         acknowledge_duplicate: risk,
       });
+      const sourceRun = await api(`/agents/${t.agent}/runs/${r.run_id}`);
+      if (!current(t)) return;
+      draftSession.set(t.agent, sourceRun.session_id);
+      await syncMessages(sourceRun.session_id, r.message_id);
       renderDraft();
     }),
   );
@@ -363,8 +442,9 @@ export function mountDeliveries({ api, wrap, getAgent, getGeneration }) {
       }
     }),
   );
-  async function fromMessage(message_id) {
+  async function fromMessage(message_id, session_id) {
     if (draft().message_id !== message_id) drafts.set(getAgent(), { ...fresh(), message_id });
+    if (session_id) draftSession.set(getAgent(), session_id);
     await load();
   }
   return { load, reset, fromMessage };

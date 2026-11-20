@@ -1,32 +1,32 @@
-import { mountSkills } from './skills.js?v=20261120v170';
-import { mountCredentials } from './credentials.js?v=20261120v170';
-import { mountAuditHistory, mountOperations } from './operations.js?v=20261120v170';
-import { mountCapabilities } from './capabilities.js?v=20261120v170';
-import { mountTokens } from './tokens.js?v=20261120v170';
-import { mountDocuments } from './documents.js?v=20261120v170';
-import { mountConfiguration } from './configuration.js?v=20261120v170';
-import { mountModels } from './models.js?v=20261120v170';
+import { mountSkills } from './skills.js?v=20261120v171';
+import { mountCredentials } from './credentials.js?v=20261120v171';
+import { mountAuditHistory, mountOperations } from './operations.js?v=20261120v171';
+import { mountCapabilities } from './capabilities.js?v=20261120v171';
+import { mountTokens } from './tokens.js?v=20261120v171';
+import { mountDocuments } from './documents.js?v=20261120v171';
+import { mountConfiguration } from './configuration.js?v=20261120v171';
+import { mountModels } from './models.js?v=20261120v171';
 import { ask } from '../dialog.js?v=20261103v7';
-import { mountPeople } from './people.js?v=20261120v170';
-import { mountDeliveries } from './deliveries.js?v=20261120v170';
-import { mountSchedules } from './schedules.js?v=20261120v170';
-import { mountMemorySemantics } from './memory-semantics.js?v=20261120v170';
-import { mountMemoryOrganization } from './memory-organization.js?v=20261120v170';
-import { mountExtensions } from './extensions.js?v=20261120v170';
-import { mountActionReviews } from './action-reviews.js?v=20261120v170';
-import { mountTerminals } from './terminals.js?v=20261120v170';
-import { mountDesktop } from './desktop.js?v=20261120v170';
-import { mountQQ } from './qq.js?v=20261120v170';
-import { mountBilibili } from './bilibili.js?v=20261120v170';
-import { mountMedia } from './media.js?v=20261120v170';
-import { mountMcp } from './mcp.js?v=20261120v170';
-import { mountAndroid } from './android.js?v=20261120v170';
-import { mountModelOutput } from './model-output.js?v=20261120v170';
-import { mountRouting } from './routing.js?v=20261120v170';
-import { mountChatImages } from './chat-images.js?v=20261120v170';
-import { mountInspector } from './inspector.js?v=20261120v170';
-import { mountSettingsRail } from './settings-rail.js?v=20261120v170';
-import { mountEventStream } from './event-stream.js?v=20261120v170';
+import { mountPeople } from './people.js?v=20261120v171';
+import { mountDeliveries } from './deliveries.js?v=20261120v171';
+import { mountSchedules } from './schedules.js?v=20261120v171';
+import { mountMemorySemantics } from './memory-semantics.js?v=20261120v171';
+import { mountMemoryOrganization } from './memory-organization.js?v=20261120v171';
+import { mountExtensions } from './extensions.js?v=20261120v171';
+import { mountActionReviews } from './action-reviews.js?v=20261120v171';
+import { mountTerminals } from './terminals.js?v=20261120v171';
+import { mountDesktop } from './desktop.js?v=20261120v171';
+import { mountQQ } from './qq.js?v=20261120v171';
+import { mountBilibili } from './bilibili.js?v=20261120v171';
+import { mountMedia } from './media.js?v=20261120v171';
+import { mountMcp } from './mcp.js?v=20261120v171';
+import { mountAndroid } from './android.js?v=20261120v171';
+import { mountModelOutput } from './model-output.js?v=20261120v171';
+import { mountRouting } from './routing.js?v=20261120v171';
+import { mountChatImages } from './chat-images.js?v=20261120v171';
+import { mountInspector } from './inspector.js?v=20261120v171';
+import { mountSettingsRail } from './settings-rail.js?v=20261120v171';
+import { mountEventStream } from './event-stream.js?v=20261120v171';
 // 直接复用 V1 的 rail 提示浮层模块（data-tip → #tip-layer），不自创实现
 import '../app/tips.js?v=20261103u6';
 
@@ -480,8 +480,7 @@ function renderToolBlock(node, trace) {
     sIcon.textContent = 'speed';
     const sText = document.createElement('span');
     sText.className = 'scaf-summary-text';
-    const requested =
-      route.requested_mode === 'auto' ? '自动' : MODE_LABEL[route.requested_mode] || '跟随设置';
+    const requested = route.requested_mode === 'auto' ? '自动' : MODE_LABEL[route.requested_mode] || '跟随设置';
     sText.textContent =
       `档位 ${MODE_LABEL[route.mode] || route.mode}（请求 ${requested}）` +
       `${route.promoted ? ' · 已升档' : ''} · ${inText} · ${outText}`;
@@ -819,10 +818,19 @@ async function loadContextPage() {
         cache.hit_percent != null ? `${cache.hit_percent}%` : '未知',
         `基于 ${cache.ratio_sample_count} 条完整上报`,
       ),
-      ctxCard('读取缓存', ctxNum(cache.cached_tokens), cache.cached_tokens == null ? '供应商未上报保持未知' : '来自供应商上报'),
-      ctxCard('写入缓存', ctxNum(cache.creation_tokens), cache.creation_tokens == null ? '供应商未上报保持未知' : '来自供应商上报'),
+      ctxCard(
+        '读取缓存',
+        ctxNum(cache.cached_tokens),
+        cache.cached_tokens == null ? '供应商未上报保持未知' : '来自供应商上报',
+      ),
+      ctxCard(
+        '写入缓存',
+        ctxNum(cache.creation_tokens),
+        cache.creation_tokens == null ? '供应商未上报保持未知' : '来自供应商上报',
+      ),
     );
-    $('ctx-cache-note').textContent = `最近 ${cache.sample_count} 条样本中，${cache.ratio_sample_count} 条上报了缓存读取。当前会话最近有记录的主对话模型调用；不含压缩/Review，未上报不计为零。`;
+    $('ctx-cache-note').textContent =
+      `最近 ${cache.sample_count} 条样本中，${cache.ratio_sample_count} 条上报了缓存读取。当前会话最近有记录的主对话模型调用；不含压缩/Review，未上报不计为零。`;
   }
   // 固定提示词与前缀指纹折叠
   const fp = ov.stable_prefix;
@@ -947,10 +955,25 @@ function renderMessages(items) {
       const grid = document.createElement('div');
       grid.className = 'chat-suggestions';
       const STARTERS = [
-        ['travel_explore', '看看本机状态', '用 system_info 查看系统与磁盘空间', '用 system_info 看一下本机系统与磁盘状态，列出要点。'],
+        [
+          'travel_explore',
+          '看看本机状态',
+          '用 system_info 查看系统与磁盘空间',
+          '用 system_info 看一下本机系统与磁盘状态，列出要点。',
+        ],
         ['folder_open', '整理一个文件夹', '列出文件并给出归类建议', '列出我指定文件夹里的文件，按类型给出整理建议。'],
-        ['schedule', '建一个每日提醒', '每天固定时间自动执行', '帮我建一个每天 09:30 的提醒计划，先告诉我需要确认什么。'],
-        ['auto_awesome', '总结一段内容', '贴链接或文本，提炼要点', '我稍后贴一段内容，请先用 markdown 列表总结三个要点。'],
+        [
+          'schedule',
+          '建一个每日提醒',
+          '每天固定时间自动执行',
+          '帮我建一个每天 09:30 的提醒计划，先告诉我需要确认什么。',
+        ],
+        [
+          'auto_awesome',
+          '总结一段内容',
+          '贴链接或文本，提炼要点',
+          '我稍后贴一段内容，请先用 markdown 列表总结三个要点。',
+        ],
       ];
       for (const [icon, title, desc, prompt] of STARTERS) {
         const card = document.createElement('button');
@@ -1141,7 +1164,7 @@ function renderMessages(items) {
               syncPageChrome('deliveries');
               for (const section of document.querySelectorAll('.page')) section.hidden = section.id !== page;
             }
-            await deliveriesPanel.fromMessage(m.id);
+            await deliveriesPanel.fromMessage(m.id, m.session_id);
           }),
         );
         actions.append(outbound);

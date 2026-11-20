@@ -40,18 +40,23 @@ export function mountMcp({ api, wrap, getAgent, getGeneration }) {
   function renderDetail(row) {
     if (!row) {
       $('mcp-server-detail').textContent = '尚未选择 MCP 服务。';
+      $('mcp-server-tech').textContent = '';
       return;
     }
     const lines = [
-      `服务 ${row.name}（${row.config_id}）`,
-      `配置修订 ${row.revision} · ${row.enabled ? '已启用' : '已停用'} · 传输 ${row.transport} · 认证 ${row.auth_mode}`,
-      `远端 ${row.endpoint || '—'} · 命令 ${row.command || '—'}`,
-      `状态 ${STATE_LABEL[row.state] || row.state} · 代际 ${row.authority_epoch} · 已连接 ${row.connected_at || '—'}`,
-      `目录指纹 ${row.fingerprint ? row.fingerprint.slice(0, 16) + '…' : '尚无'} · 工具 ${row.tool_count} · 已授权 ${row.authorized_tools}（只读 ${row.read_only_tools}）`,
+      `服务 ${row.name}`,
+      `状态 ${STATE_LABEL[row.state] || row.state} · 已连接 ${row.connected_at || '—'}`,
+      `工具 ${row.tool_count} · 已授权 ${row.authorized_tools}（只读 ${row.read_only_tools}）`,
     ];
     if (row.error_code) lines.push(`最近错误 ${row.error_code}`);
-    if (row.needs_confirmation) lines.push('目录尚未确认授权：请展开工具并按当前指纹逐项确认。');
+    if (row.needs_confirmation) lines.push('目录尚未确认授权：请展开工具逐项确认。');
     $('mcp-server-detail').textContent = lines.join('\n');
+    $('mcp-server-tech').textContent = [
+      `配置修订 ${row.revision} · ${row.enabled ? '已启用' : '已停用'} · 传输 ${row.transport} · 认证 ${row.auth_mode}`,
+      `远端 ${row.endpoint || '—'} · 命令 ${row.command || '—'}`,
+      `代际 ${row.authority_epoch} · 配置 ID ${row.config_id}`,
+      `目录指纹 ${row.fingerprint ? row.fingerprint.slice(0, 16) + '…' : '尚无'}`,
+    ].join('\n');
   }
 
   function renderActions(row) {
@@ -62,6 +67,7 @@ export function mountMcp({ api, wrap, getAgent, getGeneration }) {
     $('mcp-oauth-start').disabled = !row || row.auth_mode !== 'oauth';
     if (!ready) {
       $('mcp-catalog-meta').textContent = '';
+      $('mcp-catalog-plain').textContent = '';
       $('mcp-tool-list').replaceChildren();
       $('mcp-calls').textContent = '';
       $('mcp-calls-more').disabled = true;
@@ -73,11 +79,14 @@ export function mountMcp({ api, wrap, getAgent, getGeneration }) {
     if (!appended) $('mcp-tool-list').replaceChildren();
     if (!data.catalog) {
       $('mcp-catalog-meta').textContent = '该服务尚未完成目录发现。';
+      $('mcp-catalog-plain').textContent = '工具目录尚未发现；点「刷新目录」开始。';
       return;
     }
     $('mcp-catalog-meta').textContent =
       `目录指纹 ${data.catalog.fingerprint} · 工具 ${data.catalog.tool_count} · ` +
       `已授权 ${data.authorized.length}（只读 ${data.read_only.length}）`;
+    $('mcp-catalog-plain').textContent =
+      `工具目录：${data.catalog.tool_count} 个工具 · 已授权 ${data.authorized.length}（只读 ${data.read_only.length}）`;
     for (const tool of data.items) $('mcp-tool-list').append(toolCard(tool));
     catalogCursor = data.next_after;
     $('mcp-catalog-more').disabled = !catalogCursor;
@@ -93,6 +102,11 @@ export function mountMcp({ api, wrap, getAgent, getGeneration }) {
     summary.textContent = `${tool.exposed_name} · ${marker}`;
     const schema = document.createElement('pre');
     schema.textContent = JSON.stringify(tool.input_schema, null, 2);
+    const schemaWrap = document.createElement('details');
+    schemaWrap.className = 'settings-advanced';
+    const schemaSummary = document.createElement('summary');
+    schemaSummary.textContent = '参数结构（schema）';
+    schemaWrap.append(schemaSummary, schema);
     const description = document.createElement('p');
     description.className = 'muted';
     // External descriptions are untrusted data; render as text only.
@@ -111,7 +125,7 @@ export function mountMcp({ api, wrap, getAgent, getGeneration }) {
     readOnlyCheck.dataset.action = 'read-only';
     readOnlyCheck.dataset.toolId = tool.tool_id;
     readOnly.append(readOnlyCheck, document.createTextNode(' 只读（无需审批；仅所有者声明）'));
-    card.append(summary, description, schema, authorize, readOnly);
+    card.append(summary, description, schemaWrap, authorize, readOnly);
     return card;
   }
 
@@ -354,7 +368,9 @@ export function mountMcp({ api, wrap, getAgent, getGeneration }) {
       $('mcp-oauth-status').textContent = '';
       $('mcp-oauth-url').replaceChildren();
       $('mcp-server-detail').textContent = '';
+      $('mcp-server-tech').textContent = '';
       $('mcp-catalog-meta').textContent = '';
+      $('mcp-catalog-plain').textContent = '';
       $('mcp-tool-list').replaceChildren();
       $('mcp-calls').textContent = '';
     },

@@ -1,7 +1,7 @@
 {
   "batch": "v2-ui-connection-stability-v128",
   "recorded_at": "2026-11-15",
-  "resource_version_final": "20261120v170",
+  "resource_version_final": "20261120v171",
   "v1_alignment": {
     "summary": "用户提供 V1 正式工作台截图后，直接精读 web/ui/workbench.css 的 V1 实现并逐项移植，使 V2 结构与 V1 一致（而非自创风格）。",
     "ported_from_v1": [
@@ -1498,6 +1498,23 @@
       "截图": "p5-wizard-dark-1440.png/p5-wizard-light-1440.png/p5-wizard-dark-390.png/p5-weekly.png/p5-monthly.png/p5-advanced-open.png",
       "版本": "V2 20261120v170",
       "已知既有竞态": "切页初始化尾载(main.js selectAgentBody尾段对当前页load)与归档确认窗口重叠时epoch守卫按设计中止(空间或计划已变化);非P5引入,既有测试以expect等待渲染值不命中该窗口;实测脚本以显式刷新+稳定窗规避"
+    }
+  },
+  "ui_iteration_p6_delivery_picker_plain_language": {
+    "需求": "delivery-message手填ID改会话消息只读API列表选取;routing/credentials/extensions/mcp/memory文案白话化;微美元÷1e6显示美元;修订/指纹/epoch/schema收技术详情折叠",
+    "交付": [
+      "deliveries:新增#delivery-session会话选择+#delivery-message改为select(原ID保留),选项=该会话assistant且带run_id的消息,非succeeded回合选项disabled标注;选中回复两行正文预览#delivery-message-preview;fromMessage(m.id,m.session_id)与copy路径经runs反查会话定位选项",
+      "修复必需select与异步选项序竞态:load尾先await syncMessages填选项再renderDraft赋值,否则epoch中止sync后value落空被required静默拦提交(refresh-race双repeat复现并锁住)",
+      "美元等值:设置每日预算/单次预留与路由三档预留输入下实时hint(≈$X美元·输入单位微美元);routing运行报告与调用表微美元后 append 美元等值(保留原串,测试零改动)",
+      "技术详情折叠:mcp服务详情拆白话pre+tech pre(修订/代际/端点/指纹),目录指纹pre收折叠+白话计数行,工具schema收嵌套details;credentials状态拆白话+tech pre;extensions详情收折叠+白话摘要行(漂移白话警示);mcp/extensions/memory intro白话重写",
+      "标签白话:每日预算(0表示不限)/单次调用费用预留/每次调用预留;折叠复用settings-advanced语言"
+    ],
+    "验证": {
+      "专项": "delivery 8/8(含refresh-race双repeat)+routing 8/8+mcp 2/2+extensions三文件7/7+ui delivery/credential/schedules 25/25+memory两文件与守卫nav/inventory 32/32+最终源码复跑delivery 8与mcp/守卫23;prettier净+86模块node --check",
+      "测试适配": "routing补P4遗留缺失的reveal_settings导入(既有红);mcp工具卡计数/summary选择器改直子级(嵌套schema details致strict双匹配),断言语义不变不放宽",
+      "实测": "19/19:聊天真实回复→建立投递草稿→会话/消息选择器自动定位+预览两行;切会话重载;预算$0.5/预留$0.000321/$2 hint;五页折叠默认收起;390投递/设置无溢出;双主题截图;零pageerror",
+      "截图": "p6-delivery-picker-dark-1440.png/p6-delivery-picker-light-1440.png/p6-delivery-390.png/p6-usd-hints.png/p6-mcp-folds.png",
+      "版本": "V2 20261120v171"
     }
   }
 }

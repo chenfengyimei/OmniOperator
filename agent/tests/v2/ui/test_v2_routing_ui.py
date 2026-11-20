@@ -2,7 +2,7 @@
 
 import pytest
 from omni_test_support.v2.history_ui import connect
-from omni_test_support.v2.ui import v2_server as v2_server
+from omni_test_support.v2.ui import reveal_settings, v2_server as v2_server
 from playwright.sync_api import expect
 
 
