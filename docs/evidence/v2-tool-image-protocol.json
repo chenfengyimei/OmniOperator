@@ -1,7 +1,8 @@
 {
   "schema": 1,
   "date": "2026-11-21",
-  "base_commit": "3bd8c27e428aca91ef6537711fab8eedf13c7d54",
+  "base_commit": "ea051d20f0f1a6b7e1a9c4f7e66faada515728c4",
+  "base_commit_note": "勘定开始时 HEAD 为 3bd8c27e（K13 端到端批回填）；会话期间并行 UI 会话同仓提交 ea051d20（仅 docs/evidence/v2-ui.json +1 行，与本批零文件重叠、无源码改动），成为本批实际父提交，按 3/4 批先例更正登记。勘定事实均实读该工作树源码，ea051d20 不影响任何勘定点。",
   "batch_commit": "2cbf500da309e092888b4ef0abfe77782196792e",
   "status": "design_contract_recorded",
   "batch": "K16.tool_image_protocol",
@@ -60,7 +61,7 @@
   },
   "validation": {
     "mode": "design_contract_recorded",
-    "frozen_source": "source_files 为暂存后 git index blob 指纹；勘定事实均实读 base_commit 3bd8c27e 工作树源码",
+    "frozen_source": "source_files 为暂存后 git index blob 指纹；勘定事实均实读 base_commit ea051d20 工作树源码（与勘定开始时 3bd8c27e 仅差并行会话 v2-ui.json 一行）",
     "source_test_migration_change": false,
     "strict_required": false,
     "scoped_tests_required": false,
