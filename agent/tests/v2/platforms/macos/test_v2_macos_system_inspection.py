@@ -211,6 +211,7 @@ def test_native_acl_gate_fails_before_signing_or_installing_any_application(tmp_
         ET.ElementTree(suite).write(output, encoding="utf-8")
 
     monkeypatch.setattr(script, "source_fingerprints", lambda: {"fixture.swift": "a" * 64})
+    monkeypatch.setattr(script.platform, "platform", lambda: "injected-platform")
     monkeypatch.setattr(script.subprocess, "check_output", lambda *args, **kwargs: "injected-toolchain")
     monkeypatch.setattr(script, "run", run)
     with pytest.raises(RuntimeError, match="all eight"):

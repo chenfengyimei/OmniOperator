@@ -1,5 +1,5 @@
 // No system input, UI, sleeping or permission prompts. The real controller uses this port contract.
-import XCTest
+import Testing
 @testable import ForegroundCore
 
 final class FixturePort: TakeoverPort {
@@ -29,79 +29,98 @@ final class FixturePort: TakeoverPort {
     func verification() -> String? { expectedVerification }
     func close() -> Bool { closes += 1; return cleanup }
 }
-final class TakeoverTests: XCTestCase {
+struct TakeoverTests {
     func text() throws -> InputCommand { try InputCommand(kind: "type_text", text: "owned-🙂") }
-    func testManualQuietFocusAndReleasedKeysPrecedeAuthorization() throws {
+    @Test func testManualQuietFocusAndReleasedKeysPrecedeAuthorization() throws {
         let port = FixturePort(); port.ready = false; port.keysUp = false
         port.onSleep = { p in
             if p.now < 0.5 { p.inputRevision += 1 }
             else { p.ready = true; p.keysUp = true }
         }
         let result = TakeoverController.execute(try text(), port: port)
-        XCTAssertGreaterThanOrEqual(port.quietAt, 0.74)
-        XCTAssertEqual(port.authorizations, 1); XCTAssertEqual(port.sends, 1); XCTAssertEqual(port.closes, 1)
-        XCTAssertEqual(result.status, "unknown")
+        #expect(port.quietAt >= 0.74)
+        #expect(port.authorizations == 1)
+        #expect(port.sends == 1)
+        #expect(port.closes == 1)
+        #expect(result.status == "unknown")
     }
-    func testTenSecondFocusDeadlineDoesNotAuthorizeOrSend() throws {
+    @Test func testTenSecondFocusDeadlineDoesNotAuthorizeOrSend() throws {
         let port = FixturePort(); port.ready = false
         let result = TakeoverController.execute(try text(), port: port)
-        XCTAssertGreaterThanOrEqual(port.now, 10); XCTAssertLessThan(port.now, 10.02)
-        XCTAssertEqual(result.errorCode, TakeoverCode.focusTimeout.rawValue)
-        XCTAssertEqual(result.effect, "none"); XCTAssertEqual(port.authorizations, 0); XCTAssertEqual(port.sends, 0)
-        XCTAssertEqual(port.closes, 1)
+        #expect(port.now >= 10)
+        #expect(port.now < 10.02)
+        #expect(result.errorCode == TakeoverCode.focusTimeout.rawValue)
+        #expect(result.effect == "none")
+        #expect(port.authorizations == 0)
+        #expect(port.sends == 0)
+        #expect(port.closes == 1)
     }
-    func testPermitRefusalNeverSends() throws {
+    @Test func testPermitRefusalNeverSends() throws {
         let port = FixturePort(); port.allowed = false
         let result = TakeoverController.execute(try text(), port: port)
-        XCTAssertEqual(result.status, "denied"); XCTAssertEqual(result.errorCode, TakeoverCode.revoked.rawValue)
-        XCTAssertEqual(port.sends, 0); XCTAssertEqual(port.closes, 1)
+        #expect(result.status == "denied")
+        #expect(result.errorCode == TakeoverCode.revoked.rawValue)
+        #expect(port.sends == 0)
+        #expect(port.closes == 1)
     }
-    func testInputBetweenQuietProofAndArmingInvalidatesReadiness() throws {
+    @Test func testInputBetweenQuietProofAndArmingInvalidatesReadiness() throws {
         let port = FixturePort(); port.changeAtArm = true
         let result = TakeoverController.execute(try text(), port: port)
-        XCTAssertEqual(result.effect, "none"); XCTAssertEqual(result.errorCode, TakeoverCode.userIntervened.rawValue)
-        XCTAssertEqual(port.authorizations, 0); XCTAssertEqual(port.sends, 0); XCTAssertEqual(port.closes, 1)
+        #expect(result.effect == "none")
+        #expect(result.errorCode == TakeoverCode.userIntervened.rawValue)
+        #expect(port.authorizations == 0)
+        #expect(port.sends == 0)
+        #expect(port.closes == 1)
     }
-    func testInterventionBeforeSendAndAfterSendHaveDifferentCertainty() throws {
+    @Test func testInterventionBeforeSendAndAfterSendHaveDifferentCertainty() throws {
         for (check, effect, sends) in [(2, "none", 0), (3, "none", 0), (4, "unknown", 1), (5, "unknown", 1)] {
             let port = FixturePort(); port.breakAtCheck = check; port.expectedVerification = "text_appended"
             let result = TakeoverController.execute(try text(), port: port)
-            XCTAssertEqual(result.effect, effect); XCTAssertEqual(port.sends, sends); XCTAssertEqual(port.closes, 1)
+            #expect(result.effect == effect)
+            #expect(port.sends == sends)
+            #expect(port.closes == 1)
         }
     }
-    func testPartialOrUnconfirmedDispatchNeverRetries() throws {
+    @Test func testPartialOrUnconfirmedDispatchNeverRetries() throws {
         for error in [TakeoverCode.inputUnverified, .targetChanged, .permissionDenied, .monitorUnavailable] {
             let port = FixturePort(); port.sendError = error
             let result = TakeoverController.execute(try text(), port: port)
-            XCTAssertEqual(result.status, "unknown"); XCTAssertEqual(port.sends, 1); XCTAssertEqual(port.confirmations, 0)
-            XCTAssertEqual(port.closes, 1)
+            #expect(result.status == "unknown")
+            #expect(port.sends == 1)
+            #expect(port.confirmations == 0)
+            #expect(port.closes == 1)
             let confirmation = FixturePort(); confirmation.confirmError = error
-            XCTAssertEqual(TakeoverController.execute(try text(), port: confirmation).effect, "unknown")
-            XCTAssertEqual(confirmation.sends, 1); XCTAssertEqual(confirmation.closes, 1)
+            let confirmed = TakeoverController.execute(try text(), port: confirmation)
+            #expect(confirmed.effect == "unknown")
+            #expect(confirmation.sends == 1)
+            #expect(confirmation.closes == 1)
         }
     }
-    func testOnlyExactAppendCanClaimVerifiedSuccess() throws {
+    @Test func testOnlyExactAppendCanClaimVerifiedSuccess() throws {
         let port = FixturePort(); port.expectedVerification = "text_appended"
         let result = TakeoverController.execute(try text(), port: port)
-        XCTAssertEqual(result.status, "ok"); XCTAssertEqual(result.verification, "text_appended")
+        #expect(result.status == "ok")
+        #expect(result.verification == "text_appended")
         for command in [try InputCommand(kind: "press_key", text: "Enter"), try InputCommand(kind: "click", text: "")] {
             let fake = FixturePort(); fake.expectedVerification = "text_appended"
-            XCTAssertEqual(TakeoverController.execute(command, port: fake).status, "unknown")
+            #expect(TakeoverController.execute(command, port: fake).status == "unknown")
         }
     }
-    func testCleanupFailureOverridesBothSuccessAndNoDispatch() throws {
+    @Test func testCleanupFailureOverridesBothSuccessAndNoDispatch() throws {
         let port = FixturePort(); port.expectedVerification = "text_appended"; port.cleanup = false
-        XCTAssertEqual(TakeoverController.execute(try text(), port: port).status, "unknown")
+        let result = TakeoverController.execute(try text(), port: port)
+        #expect(result.status == "unknown")
         let denied = FixturePort(); denied.allowed = false; denied.cleanup = false
-        let result = TakeoverController.execute(try text(), port: denied)
-        XCTAssertEqual(result.status, "denied"); XCTAssertEqual(result.errorCode, TakeoverCode.cleanupFailed.rawValue)
+        let deniedResult = TakeoverController.execute(try text(), port: denied)
+        #expect(deniedResult.status == "denied")
+        #expect(deniedResult.errorCode == TakeoverCode.cleanupFailed.rawValue)
     }
-    func testInvalidTextKeysAndKindsAreRejectedWithoutAPort() throws {
+    @Test func testInvalidTextKeysAndKindsAreRejectedWithoutAPort() throws {
         for (kind, text) in [("type_text", ""), ("type_text", String(repeating: "x", count: 129)),
             ("type_text", "line\n"), ("press_key", "Ctrl+A"), ("click", "123,456"), ("shell", "x")] {
-            XCTAssertThrowsError(try InputCommand(kind: kind, text: text))
+            #expect(throws: (any Error).self) { try InputCommand(kind: kind, text: text) }
         }
-        XCTAssertNoThrow(try InputCommand(kind: "type_text", text: String(repeating: "🙂", count: 128)))
+        #expect(throws: Never.self) { try InputCommand(kind: "type_text", text: String(repeating: "🙂", count: 128)) }
     }
 }
 

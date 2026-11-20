@@ -22,7 +22,7 @@
 
 文件前后核对设备、inode、属主/组、mode、链接数、大小及 ctime。用户路径要求当前 UID；系统 plist 路径要求 root，Swift 在 `/`、`/Library`、`/Library/LaunchDaemons` 和目标文件逐级核验。链接、多硬链接文件、其他主体可写、正向授权或未知 ACL 仍拒绝；明确无 ACL 和标准 deny-delete 可接受。这是当前保守策略，正向只读 ACL 尚未放开。
 
-构建脚本签名前增加 `NativeIdentityTests.RegistrationPathTests`：8 项在临时目录执行真实 Mac 文件 API，覆盖无 ACL、deny-delete、正向授权、符号链接、硬链接、组可写、系统属主和缺失新叶子。不修改用户目录 ACL 或系统目录；失败、跳过或缺项均阻止签名。Windows 上只验证了构建门禁接线；8 项 XCTest 本身待 Mac mini 执行。
+构建脚本签名前增加 `NativeIdentityTests.RegistrationPathTests`：8 项在临时目录执行真实 Mac 文件 API，覆盖无 ACL、deny-delete、正向授权、符号链接、硬链接、组可写、系统属主和缺失新叶子。不修改用户目录 ACL 或系统目录；失败、跳过或缺项均阻止签名。Windows 上只验证了构建门禁接线；Mac mini 已用 Swift Testing 执行并通过全部 8 项。
 
 ## Mac mini 交接
 

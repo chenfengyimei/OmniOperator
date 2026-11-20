@@ -2,7 +2,7 @@
 
 > 文档范围：本页维护该能力合同与所属批次记录。当前默认入口为 V2；[当前交接](../../../HANDOFF.md)区分已实现、专项通过和原生验收，历史测试数字不覆盖当前源码。
 
-当前交付包为 D2，仍在开发中。Windows 主机只验证 Python 宿主、协议、隔离及打包；Swift/C 尚未在 Mac 编译，不能据此标记 macOS 已支持。整个 V2 尚未完成；Windows 离线候选默认入口已经是 V2，显式 V1 回退保留。当前迁移步骤与源码交接见 [Mac mini 开发迁移](../../../V2_MACMINI_MIGRATION.md)。
+当前交付包为 D2，仍在开发中。Windows 主机验证了 Python 宿主、协议、隔离及打包。Mac mini 已完成首批 arm64 构建、开发签名、固定安装和只读 probe，图形动作仍待隔离样例验收。整个 V2 尚未完成；Windows 离线候选默认入口已经是 V2，显式 V1 回退保留。当前迁移步骤与源码交接见 [Mac mini 开发迁移](../../../V2_MACMINI_MIGRATION.md)。
 
 所有者已确认迁移目标为 Apple Silicon Mac mini；本次使用原生 arm64 Python 与 `--arch arm64`。Windows 自有窗口的前台输入/点击完整回归已在人工聚焦后通过，四次动作的生产回执仍均为 unknown；不据此声明真实应用或 Mac 原生通过。
 
@@ -24,13 +24,19 @@ D4 服务查询现为 `omni-macos-service-query-2`：用户/系统入口分别�
 - ScreenCaptureKit 只采指定窗口；输出经私有独占文件、RGB 解码、尺寸和 SHA256 验证后进入现有对象/会话引用链。没有全桌面回退，不自动作为模型附件。
 - 语义 invoke/select/set_text 复用所有者运行、审批、租约和 unknown 核查，需要 AX 和输入监测权限。AX语义可作用于已审批的后台目标，不切换前台；派发后的原焦点必须保持稳定。被动事件监听不记录按键内容，用户介入、目标变化、权限丢失或不能证明后置状态时拒绝或保持 unknown。
 - 前台输入源码已接入逐次授权、ready/permit、10秒手动焦点等待及250ms静止期。一次只向已核验目标PID投递一个有界CGEvent事件对；不分块续写，不切换前台。会话监听、目标进程监听、AX焦点通知及睡眠/会话切换共同约束执行；缺少通知支持或权限时拒绝。
-- 独立ForegroundCore包只含编排和端口，没有AppKit、时钟或系统I/O。9个XCTest用例用注入端口覆盖焦点期限、静止期与代次、撤权、未知结果和回收；构建脚本先执行用例，再编译和签名。当前Windows主机没有执行Swift编译或XCTest；加入CI不代表CI已运行通过。
+- 独立ForegroundCore包只含编排和端口，没有AppKit、时钟或系统I/O。9 个 Swift Testing 用例用注入端口覆盖焦点期限、静止期与代次、撤权、未知结果和回收；构建脚本先执行用例，再编译和签名。当前Windows主机没有执行 Swift 编译或这些用例；加入CI不代表CI已运行通过。
 - 发送不是成功回执。目标进程监听须观察到本次两个不同标记，之后再次核验身份、焦点与权限；只有有界文本和选区能证明精确追加时才可返回ok。按键、点击和不能证明的结果保持unknown。
 - PTY沿用受管POSIX后端；Keychain另有只操作新测试命名空间的显式验收脚本。未知写入不重试，执行前保存私有清理标识；两项均仍需Mac实测。
 
+## Apple Silicon 首批构建与启动
+
+macOS 27.2.1（26B131）上使用 Command Line Tools 的 Swift 6.4.2、macOS SDK 27.2 与原生 arm64 Python 3.12.16。此工具链没有 XCTest，构建门禁改用 Swift Testing，保留 9 项前台核心和 8 项真实临时文件 ACL/属主检查。测试以宿主架构和 macOS 14 为目标，构建器显式补充所选工具链中的 Swift Testing 宏搜索路径（该目录存在时），XML 写入指定输出目录。
+
+本机新实例通过 `init`、`doctor` 和工作台回环验证，浏览器自动连接并读取隔离实例的 Agent 清单。开发签名包通过 `codesign --verify --strict` 并固定安装。生产宿主通过 IPC6 probe 识别当前图形会话并回收进程，AX、录屏及前台控制报告权限拒绝。原生 PTY 样例已读回 Unicode，退出后的 `close(5)` 回收确认连续返回 false，保留为后续 POSIX 终端断点。
+
 ## Mac mini 上执行
 
-先同步本次封存的完整源码及锁文件，核对 [当前交接](../../../HANDOFF.md) 和 [证据](../../../evidence/v2-macos-control.json) 中的指纹。不要仅复制 Swift 目录，宿主和 IPC 必须匹配。使用非 root、已登录的 macOS 14+，安装 Xcode 命令行工具及 Python 3.12。新环境可按部署文档安装锁定依赖；已有工作环境继续用 `--no-sync`。
+先同步本次封存的完整源码及锁文件，核对 [当前交接](../../../HANDOFF.md) 和 [证据](../../../evidence/v2-macos-control.json) 中的指纹。不要仅复制 Swift 目录，宿主和 IPC 必须匹配。使用非 root、已登录的 macOS 14+，安装含 Swift Testing 的 Swift 6+ 工具链（已验证 Command Line Tools 27.2）及 Python 3.12。新环境可按部署文档安装锁定依赖；已有工作环境继续用 `--no-sync`。
 
 构建 arm64 开发签名包（Intel 使用 x86_64；通用包使用 universal）：
 
