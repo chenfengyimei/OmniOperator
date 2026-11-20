@@ -1,0 +1,78 @@
+{
+  "schema": 1,
+  "date": "2026-11-20",
+  "base_commit": "ef0ee4bf38c07d683fa3e1b679520f512d871e67",
+  "status": "implemented_scoped_passed",
+  "batch": "K13.cron_e2e",
+  "owner_approval": "所有者 2026-11-20 要求接管持续开发并自主规划：按合同四批接线 K13 模型侧调度能力，本批为第四批（端到端），四批至此全部落地。安全边界不变：不自动外发、不执行代码、不触真实账号/设备/运行中服务与数据库。",
+  "implements_gap": "K13 cron 变体缺口收尾：持久化/触发链/模型工具三批已落地，但尚无一条经生产组合根（open_instance）的全链贯通证据——模型经审批门创建日程→调度器触发→绑定技能真激活→上游输出脱敏注入→continuity 自喂→update/pause/resume/list/remove 全生命周期。本批只新增端到端测试，不改生产源码。",
+  "contract": "docs/v2/contracts/V2_CRON_MODEL_TOOL.md",
+  "source_files": {
+    "agent/tests/v2/core/test_v2_cronjob_e2e.py": "ff07a7067672fdea08f3f8cbad6a2613eab4808e128a66161f531f6ef246d513"
+  },
+  "production_source_unchanged": "本批 git diff HEAD -- agent/src/ 为空：domain/cronjob.py、application/cronjob.py、application/engine.py、composition/instance.py 与 3/4 批提交字节一致（instance.py sha256 e91f44ed… 回退还原后核对）。故 3/4 批的 strict 417 文件 0 错误与 115 调用方通过结果对当前生产源码仍有效，不重复跑。",
+  "hash_scope": "git index blob bytes (LF-normalized)；复现：git cat-file blob <commit>:<path> | sha256sum",
+  "delivered": [
+    "tests/v2/core/test_v2_cronjob_e2e.py（新增，3 例，经生产 open_instance + 注入 Clock + 脚本模型）：(1) test_model_created_job_triggers_with_skills_and_redacted_context——所有者侧 source 日程先触发并 succeeded 产出含 sk- 令牌正文；模型回合经 cronjob_manage create（skills+context_from+continuity）走审批门创建 consumer；推进时钟 tick 触发，断言注入 prompt 以 'Scheduled job context (source): source output ' 起、sk- 令牌被生产 Redactor 脱敏、以 '\\n\\nTask: summarize' 收尾，run_skill_activations 恰为绑定技能；再推进触发第二次，continuity 把 consumer 自身上一份输出 'done' 与 source 输出按 position 一并注入。技能经生产 SkillService.save+state(enabled) 播种（真写对象字节，notice 可读）。(2) test_update_pause_resume_list_remove_all_pass_the_approval_gate——create 后读回 job_id，update(rev1)/pause(rev2)/resume(rev3)/list/remove(rev4) 五连同回合，drive 逐次 waiting_approval→approve 共 6 次审批；断言 6 动作全 ok、list effect=none 余 applied、page 空、occurrences 空、deleted_at 置位。(3) test_stale_revision_conflict_is_visible_and_list_reconciles——create 后以 rev99 陈旧 update，动作结算 state=error/effect=none/result.error_code=revision_conflict，定义保持 rev1 原 prompt，list 对账回合正常收尾。",
+    "ScriptedModel 以工具面区分通道：背景评审走只读 read_tools（不含 cronjob_manage），返回 'no candidates' 不消费 run 脚本回复——生产事实（K08 评审只读派发）而非模拟绕过。",
+    "wait_review_settled 同步助手：轮询真实 background_review_batches 账本直至该 run 的批次离开 queued/running，再推进下一次触发（见 discovered_interaction）。",
+    "drive/accepted_text/latest_run 助手复用既有 wait_state 与 input_message_id 读法，无新生产端口。"
+  ],
+  "discovered_interaction": "既有生产交互（非本批引入，首次被全链测试暴露）：调度 run 的准入/检查点守卫 assert_run_lease→schedule_blocker（lease_repository.py:99-105）把上一 occurrence 关联 run 的在途 K08 背景评审 reserved 模型调用计为未解决工作。若下一触发 run 恰在评审 reserve→settle 窗口内被 claim，会以 previous_outcome_unknown 终态失败（materialize 阶段被阻则只标 blocked 并由调度器下一 tick 重试，但已 claim 的 run 终态失败不重试）。本批测试以 wait_review_settled 等待真实评审批次终态后再触发，确定性消除该竞态；是否让 schedule_blocker 排除 purpose=summary 辅助调用或改为等待语义，属安全敏感独立批（需合同），本批不改生产。",
+  "limits": {
+    "scripted_model_not_real_quality": "脚本模型验证接线/审批/注入/生命周期事实，不代表真实模型调度质量",
+    "review_channel_separated_by_read_tier": "背景评审只读工具面不含 cronjob_manage，脚本据此分流，不消费 run 回复",
+    "frozen_injected_clock": "注入 Clock 冻结时间推进触发；审批 180s 过期与租约 60s 在测试时窗内不触发",
+    "skill_seeded_through_production_service": "技能经 SkillService.save+enabled 真写对象字节，notice 注入路径与生产一致",
+    "no_production_change": "仅新增测试；生产源码字节与 3/4 批一致",
+    "remote_tool_less_semantics_unchanged": "QQ 远程 run 不暴露本地工具语义未改（3/4 批已钉，本批未触）"
+  },
+  "validation": {
+    "mode": "scoped_e2e_no_production_change",
+    "scoped": {
+      "command": "uv run --no-sync pytest -q -n 0 agent/tests/v2/core/test_v2_cronjob_e2e.py",
+      "passed": 3,
+      "failed": 0,
+      "seconds": 36.08
+    },
+    "stability_interleaved": {
+      "method": "修复评审竞态后交错各 3 轮：单跑 e2e 与合跑 e2e+cronjob_tool(86)",
+      "solo": "3/3 轮 3 过（32.23/33.04/33.97 秒）",
+      "combined": "3/3 轮 86 过（67.30/68.68/72.37 秒）",
+      "prefix_characterization": "修复前合跑曾 2 轮第二触发超时、单跑 3 轮失败，诊断断言暴露 ('failed','previous_outcome_unknown')；根因为 discovered_interaction 的既有守卫交互，非负载型 flaky，以真实账本同步确定性修复"
+    },
+    "revert_check": {
+      "method": "临时摘掉组合层 attach 接线（终版测试源码）",
+      "command": "uv run --no-sync pytest -q -n 0 agent/tests/v2/core/test_v2_cronjob_e2e.py",
+      "passed": 0,
+      "failed": 3,
+      "seconds": 38.26,
+      "conclusion": "3/3 全红证明端到端用例真锁住生产接线；cp 还原 instance.py 后 sha256 与提交一致"
+    },
+    "strict": {
+      "config": "pyrightconfig.strict.json",
+      "command": "uv run --no-sync pyright --project pyrightconfig.strict.json（仓库根）",
+      "files": 417,
+      "errors_total": 0,
+      "warnings": 0,
+      "note": "本批无新生产源文件（测试不在 strict include）；生产字节与 3/4 批一致，引用该次 417 文件 0 错误结果；本批内亦复跑一次 strict，输出 0 errors, 0 warnings, 0 informations"
+    },
+    "ruff": {
+      "check": "All checks passed!（test_v2_cronjob_e2e.py）",
+      "format": "1 file reformatted（长行重排），复检 1 file already formatted"
+    }
+  },
+  "whole_core_parity_complete": false,
+  "whole_reference_feature_audit_complete": false,
+  "whole_v2_complete": false,
+  "not_executed": [
+    "注入块 8.6K 最坏情形（4 ref 各 2000 字符）的专门实测断言（本批注入 1 ref+continuity 共 2 条；逐条 excerpt 2000+标记已有单元断言，4 条组装最坏输入未构造）",
+    "跨 agent 隔离专门断言（查询按 agent_id 过滤，未构造跨 agent 同名日程用例）",
+    "schedule_blocker 排除 purpose=summary 辅助调用/等待语义的安全敏感独立批（需合同，本批仅记录交互）",
+    "docs/index 再生与提交（并行 UI 会话在途，按纪律暂缓）",
+    "全量测试（V2 冻结后统一跑）",
+    "真实账号/模型/设备/运行中 Windows 服务与数据库（本批全程脚本模型/隔离 SQLite）",
+    "真实模型调度质量与长跑稳定性（另验）"
+  ],
+  "next": "K13 cron 四批全部落地。后续 K16 工具结果图像与 zoom（需所有者 A/B 协议选型，不擅自接线）、K01 会话/lineage 缓存作用域、K17 反思来源链（各需先设计合同）；K15 主动外联边界、K18 写路径扩面、代码沙箱/原始 CDP 安全模型仍待所有者决定。whole_*_complete 保持 false。"
+}

@@ -2,7 +2,9 @@
 
 ## 状态
 
-**设计合同（design_contract_recorded），非实现。** K13 审计缺口「cron 模型侧 cronjob_manage 工具 + 技能绑定 + 任务输出依赖（context_from/continuity）」仍未实现；本批交付实现前必须的**工具面 + 持久化 + 输出链 + 授权/预算边界**设计（按总对标纪律「先设计/持久化合同后接线」，本能力已由所有者授权自主规划，不属于待决策真断点）。`whole_core_parity_complete`/`whole_reference_feature_audit_complete`/`whole_v2_complete` 保持 false。
+**设计合同（design_contract_recorded）→ 四批实现全部落地（2026-11-20）。** 1/4 持久化 `K13.cron_model_persistence`（v0049 两表一列 + 保存校验 + 读投影）、2/4 触发链 `K13.cron_context`（技能激活 + 输出摘录脱敏注入）、3/4 模型工具 `K13.cronjob_tool`（`domain/cronjob.py` 合同 + `application/cronjob.py` 薄封装 + `Application.attach` + 组合层生产门控接线）、4/4 端到端 `K13.cron_e2e`（生产 `open_instance` 全链 3 例：create→审批→触发→技能激活→脱敏注入→continuity 自喂 + 五动作生命周期 + 陈旧 revision 冲突；零生产源码改动）。证据见 `docs/evidence/v2-cron-model-design.json`、`v2-cron-model-persistence.json`、`v2-cron-context.json`、`v2-cronjob-tool.json`、`v2-cronjob-e2e.json`。端到端批暴露**既有生产交互**（非实现引入）：`assert_run_lease→schedule_blocker` 把上一 occurrence 在途 K08 背景评审的 reserved 模型调用计为未解决工作，窗口内被 claim 的下一触发 run 会 `previous_outcome_unknown` 终态失败；测试以真实评审批次账本同步消除竞态，守卫是否排除 purpose=summary 辅助调用属安全敏感独立批（需合同），未改生产。下文「状态」原文与「边界」段为设计批时点快照。`whole_core_parity_complete`/`whole_reference_feature_audit_complete`/`whole_v2_complete` 保持 false。
+
+设计批原文（已过期，仅存档）：K13 审计缺口「cron 模型侧 cronjob_manage 工具 + 技能绑定 + 任务输出依赖（context_from/continuity）」仍未实现；本批交付实现前必须的**工具面 + 持久化 + 输出链 + 授权/预算边界**设计（按总对标纪律「先设计/持久化合同后接线」，本能力已由所有者授权自主规划，不属于待决策真断点）。
 
 ## 参考与 V2 现状（实读源码）
 
@@ -121,4 +123,4 @@ V2 已有原语（均实读核验）：
 
 ## 边界
 
-本批**仅设计合同，无源码/测试/迁移改动**；`cronjob_manage`、技能绑定、输出注入、v0049 均未实现。不主张 cron 变体全集对等：`run`/`deliver`/`repeat`/自然语言日程/脚本/监控/模型 pin/工具集限制/手工触发账本仍为缺口；真实模型调度质量、长跑稳定性、真实通道外发另验。`whole_*_complete` 保持 false，不提前关闭任何对标项。
+本段为设计批时点快照（当时仅设计合同，无源码/测试/迁移改动）；四批实现现已落地，见「状态」段。不主张 cron 变体全集对等：`run`/`deliver`/`repeat`/自然语言日程/脚本/监控/模型 pin/工具集限制/手工触发账本仍为缺口；注入块 8.6K 最坏情形与跨 agent 隔离的专门断言未构造；真实模型调度质量、长跑稳定性、真实通道外发另验。`whole_*_complete` 保持 false，不提前关闭任何对标项。
