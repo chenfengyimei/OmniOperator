@@ -2,6 +2,7 @@
   "schema": 1,
   "date": "2026-11-21",
   "base_commit": "3bd8c27e428aca91ef6537711fab8eedf13c7d54",
+  "batch_commit": "2cbf500da309e092888b4ef0abfe77782196792e",
   "status": "design_contract_recorded",
   "batch": "K16.tool_image_protocol",
   "owner_approval": "所有者 2026-11-21 在 K13 四批完结后的批次边界明确选型「K16 方案 B（合同推荐）」，批准冻结图像协议扩展（ActionResult.images + tool 消息 omni_image，同回合可见）。本批为该草案「需独立合同」要求的独立实现合同；D5 持久化重设计（冻结触发器重建 + run 终态释放新语义）超出草案描述，另行提请所有者批准后方可接线。",
