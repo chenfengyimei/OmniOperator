@@ -218,6 +218,7 @@ class BilibiliReadInput(StrictInput):
         "replies",
         "search",
         "whois",
+        "relation",
         "danmaku",
         "popular",
         "ranking",

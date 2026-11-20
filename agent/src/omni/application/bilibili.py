@@ -15,7 +15,9 @@ READ_SPEC = ToolSpec(
     "bilibili_read",
     "Read configured Bilibili account/video/comments/replies/danmaku, popular/ranking/following video feeds, "
     "search public videos by keyword, or look up a public space profile by mid. Thread targets use "
-    "BV:root-comment-id; search targets are keywords; whois targets are mids; tags targets are BV ids "
+    "BV:root-comment-id; search targets are keywords; whois targets are mids; relation targets are mids "
+    "returning the owner-target follow relationship (attribute/be_attribute/mutual/blocked, discovery "
+    "only, never gates the shared approval/outbox send); tags targets are BV ids "
     "returning public video tags; danmaku returns a bounded "
     "sample; popular/ranking/following/favorites/history ignore target; favorites lists owner-created folders; "
     "history lists owner watch history; msgfeed targets are reply/at/like inbox kinds (discovery hints, "
@@ -33,6 +35,7 @@ READ_SPEC = ToolSpec(
                     "replies",
                     "search",
                     "whois",
+                    "relation",
                     "danmaku",
                     "popular",
                     "ranking",

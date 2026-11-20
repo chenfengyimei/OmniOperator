@@ -279,6 +279,33 @@ def whois_profile(data: Mapping[str, object], mid: str) -> dict[str, object]:
     }
 
 
+RELATION_FOLLOWED = 2
+RELATION_MUTUAL = 6
+RELATION_BLOCKED = 128
+
+
+def relation_view(data: Mapping[str, object], mid: str) -> dict[str, object]:
+    """Bounded DM follow-relationship discovery from x/relation; attribute is owner->target and
+    be_attribute target->owner (nullable). Discovery hints only: never gates the shared
+    approval/outbox send, which the owner decides. The relationship is never cached.
+    """
+    attribute = data.get("attribute")
+    if type(attribute) is not int:
+        raise BusinessError("bilibili_response_invalid", "Bilibili relation changed format", status=502)
+    be_raw = _as_dict(data.get("be_relation")).get("attribute")
+    be_attribute = be_raw if type(be_raw) is int else None
+    return {
+        "mid": mid,
+        "attribute": attribute,
+        "be_attribute": be_attribute,
+        "follows": attribute in (RELATION_FOLLOWED, RELATION_MUTUAL),
+        "followed_by": attribute == RELATION_MUTUAL
+        or (be_attribute is not None and be_attribute in (RELATION_FOLLOWED, RELATION_MUTUAL)),
+        "mutual": attribute == RELATION_MUTUAL,
+        "blocked": attribute == RELATION_BLOCKED or be_attribute == RELATION_BLOCKED,
+    }
+
+
 DANMAKU_HOST = "comment.bilibili.com"
 DANMAKU_MAX_ROWS = 1000
 DANMAKU_TEXT_CHARS = 100

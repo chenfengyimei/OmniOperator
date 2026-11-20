@@ -463,6 +463,13 @@ class BilibiliGateway:
         data = await self._get(client, "/x/space/wbi/acc/info", sign_wbi({"mid": mid}, img, sub, int(time.time())))
         return whois_profile(data, mid)
 
+    async def _relation(self, client: Any, mid: str) -> Payload:
+        """DM follow relationship (x/relation) by mid; plain GET, no WBI signing, never cached."""
+        from ..domain.bilibili import relation_view
+
+        data = await self._get(client, "/x/relation", {"fid": mid})
+        return relation_view(data, mid)
+
     async def _danmaku(self, client: Any, bvid: str, cid: str) -> Payload:
         """Official danmaku XML sample via the fixed comment host; bounded decode + parse."""
         from ..domain.bilibili import danmaku_url, parse_danmaku
@@ -553,6 +560,7 @@ class BilibiliGateway:
                     "streams",
                     "search",
                     "whois",
+                    "relation",
                     "danmaku",
                     "popular",
                     "ranking",
@@ -567,7 +575,7 @@ class BilibiliGateway:
             ):
                 raise BusinessError(
                     "bilibili_read_invalid",
-                    "Choose account/video/comments/replies/subtitle/streams/search/whois/danmaku/popular/ranking/following/favorites/tags/history/msgfeed and a limit of 1–20",
+                    "Choose account/video/comments/replies/subtitle/streams/search/whois/relation/danmaku/popular/ranking/following/favorites/tags/history/msgfeed and a limit of 1–20",
                     status=422,
                 )
             root = ""
@@ -581,7 +589,7 @@ class BilibiliGateway:
             feed_kind = ""
             if operation == "search":
                 keyword = search_keyword(target)
-            elif operation == "whois":
+            elif operation in {"whois", "relation"}:
                 mid = uid(target)
             elif operation == "msgfeed":
                 feed_kind = msgfeed_kind(target)
@@ -608,6 +616,8 @@ class BilibiliGateway:
                         return await self._search(client, nav, keyword, limit)
                     if operation == "whois":
                         return await self._whois(client, nav, mid)
+                    if operation == "relation":
+                        return await self._relation(client, mid)
                     if operation == "tags":
                         return await self._tags(client, target, limit)
                     if operation == "popular":
