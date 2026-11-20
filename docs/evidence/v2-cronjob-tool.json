@@ -1,7 +1,9 @@
 {
   "schema": 1,
   "date": "2026-11-20",
-  "base_commit": "11c4ad8fb7d1be04a00c2b8f14ea84ef3d652a61",
+  "base_commit": "79827c4fe95cc3fa78e0e4ba84c1f6cda1c69eb6",
+  "batch_commit": "4acc46c93717c3eb02ee829a82ad7a1917a98002",
+  "base_commit_note": "会话开始时 HEAD=11c4ad8f；期间并行 UI 会话在同仓提交 P8（4b549f22+79827c4f，web/ui/v2 与 docs/handoff-v2-ui-iteration.md，与本批零文件重叠），本批提交 4acc46c9 的实际父提交为 79827c4f。调用方回归（含读 web/ui/v2/index.html 的 business_inventory）在该工作树状态下运行并通过。",
   "status": "implemented_scoped_passed",
   "batch": "K13.cronjob_tool",
   "owner_approval": "所有者 2026-11-20 要求接管持续开发并自主规划：按合同四批接线 K13 模型侧调度能力，本批为第三批（模型工具 cronjob_manage）。安全边界不变：不自动外发、不执行代码、不触真实账号/设备/运行中服务与数据库。",
