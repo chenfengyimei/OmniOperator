@@ -156,7 +156,18 @@ K03 新增 34 项回归；首轮冻结源码 114 项集成专项通过（182.82 
 
 目录迁移、专项和打包已完成；Mac 接手还需实际编译 Swift/C，再推进 G5 平台/交付，G3 Linux、G4 Wayland 缺口继续按任务推进。G7 统一全量与最终实机验收留整个 V2 开发冻结后。
 
-## 当前断点（夜间无人值守接管，2026-11-20）
+## 当前持续开发安排（2026-11-20，所有者要求自主规划）
+
+撤销“干净有界离线增量缺口已尽，因此停止”的判断：需要设计不等于必须等待所有者，离线实现与真实效果验收分开推进。当前先修已落地能力的确证问题，再推进有边界的完整批次；总对标状态仍为未完成。
+
+- 本轮完善：B站关系保留未知状态、畸形like分支显式拒绝、搜索单串恢复内核schema长度检查；模型调用事件使用明确的类型投影，清除遗留严格类型错误。
+- 本轮开发：QQ direct 评分接入现有准入事实。`parse_event` 只接受好友私聊或精确@当前账号的群消息，因此已授权且持久化的 qq_runs 足以证明 direct；不需新增字段。reply仍不支持，禁止从模型正文猜测寻址。
+- 后续顺序：先完成K13模型侧调度能力设计与现有审批/预算/持久化接线；再推进K16工具结果图像传递和zoom；继而K01缓存作用域与K17反思来源链。按真实源码决定最小完整交付，不按接口数量宣称对等。
+- 安全边界不变：不自动发送真实消息，不扩大任意代码/CDP或设备权限，不触运行中数据库；自主规划只消除非必要等待，不替代真实外部操作许可。
+
+CORE.correctness_direct 已收尾（接管额度耗尽会话的在途批并完成验证）：relation 三态（未知反向/未知码→null 不再误报 false，畸形反向对象/非 int 反向码显式 502）、like latest/total 畸形分支容器显式 502、files_search file_glob/file_glob_exclude 联合类型顶层恢复 minLength/maxLength（非法单串在 `_execute` 创建动作前即 `invalid_tool_arguments`/NONE）、`_call_route` 类型化投影 `tuple[int,str]|None`（model.started/completed 事件值形状不变，**清除 6bcb0e98 遗留 repository.py 5 处 strict 错误**）、QQ direct 评分接线（parse_event 仅准入私聊/精确@群聊，qq_runs 持久记录即证明 direct，+8 因子；显式 importance 仍覆盖、非渠道仍默认 50、审计无正文、无新表/迁移）。另修两处既有测试脆弱性：v0046 迁移测试改 pin v2_0046（head 已 v2_0048）、decay HTTP 测试注入 hour=3 Clock 与后台每日衰减隔离。新增/更新回归后 **7 文件专项 317 过 + 9 文件 bilibili/qq/capabilities/worker 调用方 234 过 + 7 文件 memory/模型事件调用方 100 过，合计 651 过/0 失败**（另 ruff 修正后 v0046 节点复跑 1 过）；**strict 414 文件 0 错误 0 警告（V2 首次全绿）**，ruff check/format 12 文件通过。未全量、未真实模型/账号/设备、未动运行中服务与数据库；聚合 docs/index 暂缓（并行 UI 会话活跃）。详见 [正确性与 direct 接线证据](evidence/v2-core-correctness-direct.json)。下一步按上述顺序推进 K13 模型侧调度设计合同。下方历史验证仅证明当时源码。
+
+## 历史断点（7352fece，已由当前安排替代）
 
 **本段已落地并推送 origin/v2 的三批**（均合同先于接线、V2 四层、专项+调用方回归绿、strict 414 文件 5 错误全为既有他会话 repository.py 本批零新错误、ruff 净、聚合索引暂缓、whole_*_complete 保持 false）：
 

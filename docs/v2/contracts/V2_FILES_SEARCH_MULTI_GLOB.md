@@ -2,6 +2,10 @@
 
 状态：已实现专项通过（2026-11-20，合同先于接线）。承接 [工作区搜索文件过滤](V2_FILES_SEARCH_GLOB.md)（K13.search_file_glob，单包含字符串）与 [搜索否定排除](V2_FILES_SEARCH_EXCLUDE.md)（K13.search_exclude，≤8 字符串列表排除）；[K13 工具/渠道审计](V2_TOOL_CHANNEL_AUDIT.md) 与 [总对标](V2_AGENT_CORE_PARITY.md) 明列「多包含 glob 列表」仍后续。学习参考 hermes-agent `file_operations_search.py` rg `--glob` 多包含 OR 语义（user-facing `file_glob:634` 仅包含，多个非否定 glob 之间是「命中任一即纳入」），独立实现于 V2 既有四层 files_search 链，复用既有 `match_path_glob`，无新依赖/源文件。
 
+## 2026-11-20 schema 校验修订
+
+string/array 联合类型的顶层必须保留 `minLength=1/maxLength=200`，同时数组 `items` 保留相同长度约束；该规则同时适用于 include/exclude。只在 items 写长度会让非法单串通过内核校验，直至 worker 才失败。本修订恢复 `_execute` 在创建动作前返回 `invalid_tool_arguments`，新增真实校验入口回归；已有 OR 和包含后排除顺序不变。下方结果与指纹属于首批历史，修订验证另记。
+
 ## 缺口与动机
 
 V2 `files_search` 的 `file_glob` 仅接受**单个**包含 glob 字符串（`normalize_file_glob(value) -> str | None`），而参考 rg 支持多个 `--glob` 包含模式（如 `--glob '*.py' --glob '*.md'`，文件命中**任一**即被搜索）。排除侧 `file_glob_exclude` 已支持 ≤8 字符串列表，包含侧却仍单串，不对称。多包含让所有者一次限定多种文件类型（`['*.py','*.pyi']`、`['src/*.ts','tests/*.ts']`），是读面发现的自然增量。

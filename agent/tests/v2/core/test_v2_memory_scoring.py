@@ -5,6 +5,7 @@ import copy
 import json
 from contextlib import asynccontextmanager
 
+import pytest
 from omni_test_support.v2.objects import Clock, opened
 from omni_test_support.v2.v2_configuration_helpers import model_instance
 from sqlalchemy import select
@@ -256,8 +257,8 @@ def test_channel_capture_auto_scores_owner_private_and_audits_without_private_bo
                     source_run_id=run_id,
                 )
             )
-            expected = score_memory(text, source="qq-private", is_owner=True, is_private=True)
-            assert row["importance"] == expected["importance"] == 63  # 8+42+emotion8+self5
+            expected = score_memory(text, source="qq-private", is_owner=True, is_private=True, direct=True)
+            assert row["importance"] == expected["importance"] == 71
             assert row["importance"] != 50
             audits = await instance._database.read(
                 lambda u: list(
@@ -286,8 +287,8 @@ def test_channel_capture_non_owner_group_scores_lower_and_manual_importance_over
                     source_run_id=run_id,
                 )
             )
-            expected = score_memory(text, source="qq-group", is_owner=False, is_private=False)
-            assert auto["importance"] == expected["importance"] == 21  # 8+emotion8+self5
+            expected = score_memory(text, source="qq-group", is_owner=False, is_private=False, direct=True)
+            assert auto["importance"] == expected["importance"] == 29
             manual = await instance._database.write(
                 lambda u: u.remember(
                     agent,
@@ -300,5 +301,56 @@ def test_channel_capture_non_owner_group_scores_lower_and_manual_importance_over
                 )
             )
             assert manual["importance"] == 70
+
+    asyncio.run(scenario())
+
+
+@pytest.mark.parametrize("scene", ["private", "group"])
+@pytest.mark.parametrize("owner_speaks", [False, True])
+def test_direct_score_reconstructs_from_persisted_qq_admission(tmp_path, scene, owner_speaks):
+    async def scenario():
+        async with qq_opened(tmp_path, scene=scene, owner_speaks=owner_speaks) as (instance, agent, channel, _):
+            text = "今天整理阅读记录"
+            run_id, message_id = await _qq_run(instance, agent, channel, text, scene=scene)
+        reopened = await open_instance(tmp_path, model=_Model(), clock=Clock(), qq_transport=_Transport())
+        try:
+            row = await reopened._database.write(
+                lambda u: u.remember(
+                    agent, text, message_id=message_id, quote=text, model_authored=True, source_run_id=run_id
+                )
+            )
+            expected = score_memory(
+                text, source="qq-" + scene, is_owner=owner_speaks, is_private=scene == "private", direct=True
+            )
+            assert row["importance"] == expected["importance"]
+            audits = await reopened._database.read(
+                lambda u: list(
+                    u.connection.execute(select(s.audit).where(s.audit.c.operation_id == row["id"])).mappings()
+                )
+            )
+            scored = next(a for a in audits if a["kind"] == "memory.scored")
+            assert scored["data"]["reasons"].count("直接对你说的") == 1
+            assert text not in json.dumps(dict(scored), ensure_ascii=False)
+        finally:
+            assert (await reopened.close())["complete"]
+
+    asyncio.run(scenario())
+
+
+def test_unaddressed_or_unsupported_qq_events_cannot_create_scoring_context(tmp_path):
+    async def scenario():
+        async with qq_opened(tmp_path, scene="group") as (instance, agent, channel, _):
+            text = {"type": "text", "data": {"text": "今天整理阅读记录"}}
+            for parts in (
+                [text],
+                [{"type": "text", "data": {"text": "[CQ:at,qq=456] hello"}}],
+                [{"type": "at", "data": {"qq": "all"}}, text],
+                [{"type": "at", "data": {"qq": "999"}}, text],
+                [{"type": "reply", "data": {"id": "1"}}, text],
+            ):
+                raw = _event("unused", scene="group")
+                raw["message"] = parts
+                assert await instance.qq.receive(agent, channel["id"], channel["revision_id"], raw) is None
+            assert await instance._database.read(lambda u: u.connection.execute(select(s.qq_runs)).first()) is None
 
     asyncio.run(scenario())

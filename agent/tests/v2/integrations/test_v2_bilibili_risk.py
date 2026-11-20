@@ -246,7 +246,7 @@ def test_v0046_upgrade_creates_retained_risk_table_and_refuses_downgrade(tmp_pat
     from alembic import command
     from sqlalchemy import inspect
 
-    from omni.adapters.persistence.migration_config import configuration, head
+    from omni.adapters.persistence.migration_config import configuration
     from omni.adapters.persistence.sqlalchemy_access import database_engine
 
     engine = database_engine(tmp_path / "omni.db")
@@ -256,9 +256,8 @@ def test_v0046_upgrade_creates_retained_risk_table_and_refuses_downgrade(tmp_pat
             config.attributes["connection"] = connection
             command.upgrade(config, "v2_0045")
             assert "bilibili_risk_pauses" not in inspect(connection).get_table_names()
-            command.upgrade(config, "head")
-            command.upgrade(config, "head")
-            assert head() == "v2_0046"
+            command.upgrade(config, "v2_0046")
+            command.upgrade(config, "v2_0046")
             assert connection.exec_driver_sql("SELECT version_num FROM alembic_version").scalar_one() == "v2_0046"
             reflection = inspect(connection)
             table = s.metadata.tables["bilibili_risk_pauses"]

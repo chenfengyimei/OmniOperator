@@ -340,6 +340,14 @@ def test_msgfeed_like_rows_malformed_fails_explicitly(data):
     assert caught.value.code == "bilibili_response_invalid" and caught.value.status == 502
 
 
+@pytest.mark.parametrize("branch", ["latest", "total"])
+@pytest.mark.parametrize("value", [[], "changed", 4, True])
+def test_msgfeed_like_rejects_malformed_branch_containers(branch, value):
+    with pytest.raises(BusinessError) as caught:
+        msgfeed_like_rows({branch: value}, 10)
+    assert (caught.value.code, caught.value.status) == ("bilibili_response_invalid", 502)
+
+
 def test_msgfeed_gateway_like_inbox():
     async def scenario():
         gateway, _, calls = fixture(feed=LIKE_FEED)

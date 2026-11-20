@@ -58,11 +58,15 @@ def builtin_capabilities(
                 "order": {"type": "string", "enum": ["discovery", "modified"]},
                 "file_glob": {
                     "type": ["string", "array"],
+                    "minLength": 1,
+                    "maxLength": 200,
                     "items": {"type": "string", "minLength": 1, "maxLength": 200},
                     "maxItems": 8,
                 },
                 "file_glob_exclude": {
                     "type": ["string", "array"],
+                    "minLength": 1,
+                    "maxLength": 200,
                     "items": {"type": "string", "minLength": 1, "maxLength": 200},
                     "maxItems": 8,
                 },

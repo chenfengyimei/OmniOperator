@@ -352,14 +352,22 @@ def test_v0047_adds_decay_columns_and_state_table_idempotently(tmp_path):
         engine.dispose()
 
 
-def test_decay_http_state_pass_gate_and_force(tmp_path):
+def test_decay_http_state_pass_gate_and_force(tmp_path, monkeypatch):
     import uuid
 
     from fastapi.testclient import TestClient
 
-    from omni.composition.http import http_app
+    from omni.composition import http
 
-    with TestClient(http_app(tmp_path)) as client:
+    clock = Clock()
+    clock.current = clock.current.replace(hour=3, minute=0, second=0, microsecond=0)
+    original_open = http.open_instance
+
+    async def open_with_clock(*args, **kwargs):
+        return await original_open(*args, **kwargs, clock=clock)
+
+    monkeypatch.setattr(http, "open_instance", open_with_clock)
+    with TestClient(http.http_app(tmp_path)) as client:
         assert client.get(f"/api/v1/agents/{uuid.uuid4()}/memory/decay").status_code == 401
         client.headers["Authorization"] = "Bearer " + (tmp_path / "run/owner.token").read_text()
         agent = client.get("/api/v1/agents").json()["items"][0]["id"]

@@ -629,8 +629,8 @@ class Repositories(
             )["id"],
         )
 
-    def _call_route(self, agent_id: str, call_id: str) -> Record | None:
-        return (
+    def _call_route(self, agent_id: str, call_id: str) -> tuple[int, str] | None:
+        row = (
             self.connection.execute(
                 select(s.model_call_routes.c.ordinal, s.model_call_routes.c.mode).where(
                     s.model_call_routes.c.call_id == call_id,
@@ -640,6 +640,7 @@ class Repositories(
             .mappings()
             .first()
         )
+        return (cast(int, row["ordinal"]), cast(str, row["mode"])) if row is not None else None
 
     def begin_call(self, agent_id: str, call_id: str) -> None:
         """实时调用链：主对话调用在请求发出前落「模型调用第 N 步 · 调用中」事件。
@@ -656,8 +657,8 @@ class Repositories(
             "model.started",
             {
                 "call_id": call_id,
-                "step": int(route["ordinal"]) if route else None,
-                "mode": str(route["mode"]) if route else None,
+                "step": route[0] if route else None,
+                "mode": route[1] if route else None,
             },
         )
 
@@ -707,8 +708,8 @@ class Repositories(
                 "model.completed",
                 {
                     "call_id": call_id,
-                    "step": int(route["ordinal"]) if route else None,
-                    "mode": str(route["mode"]) if route else None,
+                    "step": route[0] if route else None,
+                    "mode": route[1] if route else None,
                     "text_chars": len(reply.text) if reply else 0,
                     "tool_calls": [c.name for c in reply.calls] if reply else [],
                     "input_tokens": reply.input_tokens if reply else None,

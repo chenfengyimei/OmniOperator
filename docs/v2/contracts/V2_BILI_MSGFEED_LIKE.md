@@ -14,7 +14,11 @@ V2 `bilibili_read` operation=msgfeed 的 `msgfeed_kind` 仅接受 `reply`（回�
   - `like_time`（非 reply_time/at_time）；`counts` 总赞数；`users[]` 是**点赞者数组**（非 reply/at 的单个 `user`）。
   - `item` 同 reply/at 的发现提示（title/source_content/business_id/subject_id/root_id/source_id/uri），**title/source_content 不可靠仅提示**，权威正文经 replies/视频读，绝不从通知推断。
 
-## 范围（本批）
+## 正确性修订（2026-11-20）
+
+`latest`/`total` 容器缺失或 null 仍表示该分支未提供；若提供数组、字符串、数值或布尔而非对象，必须明确返回 `bilibili_response_invalid` 502，不能借 `_as_dict` 静默折为空收件箱。首批验证与指纹保留为历史快照，修订验证另记。
+
+## 范围（首批历史）
 
 1. **domain/bilibili.py**（既有模块，无新源文件）：
    - `msgfeed_kind` 接受 `reply`/`at`/`like`（其余 ValueError→BusinessError `bilibili_read_invalid` 422，分派前/网络前拒）。

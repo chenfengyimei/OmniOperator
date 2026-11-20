@@ -198,6 +198,8 @@ class MemoryRepositories(DocumentRepositories):
                 source=source,
                 is_owner=is_owner,
                 is_private=is_private,
+                # QQ intake admits only private messages or exact mentions of this account.
+                direct=True,
                 manual_importance=importance,
                 pinned=pinned,
             )

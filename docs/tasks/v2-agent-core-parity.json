@@ -10,6 +10,14 @@
   "contract": "docs/v2/contracts/V2_AGENT_CORE_PARITY.md",
   "evidence": "docs/evidence/v2-agent-core-parity.json",
   "test_policy": "实现优先，只跑受影响模块和调用方专项；整个V2开发冻结后统一全量",
+  "current_followup": {
+    "id": "CORE.correctness_direct",
+    "status": "implemented_scoped_passed",
+    "scope": ["K18.relation未知三态与畸形反向数据拒绝", "K18.msgfeed_like非对象分支拒绝", "K13.glob单串schema长度约束恢复", "模型事件路由类型投影", "K15.QQ直接寻址评分接线", "v0046迁移pin与decay HTTP时钟隔离测试修正"],
+    "evidence": "docs/evidence/v2-core-correctness-direct.json",
+    "validation": "专项317+调用方234+100过/0失败；strict 414文件0错误0警告（repository.py遗留5错误已清除）；ruff通过；未全量",
+    "next": "K13模型侧调度复用共享审批预算持久化；后续K16图像结果与zoom、K01缓存作用域、K17反思来源链。设计需求不作为自动停止理由，真实操作许可仍保留。"
+  },
   "requirements": [
     {
       "id": "K01",

@@ -2,6 +2,12 @@
 
 状态：已实现专项通过（2026-11-20，合同先于接线）。承接 [记忆衰减核心](V2_MEMORY_DECAY.md)（K15.decay_core）与 [自动每日遍](V2_MEMORY_DECAY_TICK.md)（K15.decay_tick），本批实现 K15 审计列后续的**重要性启发 scoreMemory**。**所有者已批准完整自动评分**（含记忆权威模型变更：何时/是否覆盖 model 提供的 importance）。学习参考 surfcore `src/memory-card.js`（固定提交 59ec3066）`scoreMemory`/`detectEmotionScore` 纯逻辑启发，独立实现于 V2 四层 memory 链（stdlib `re`，无新依赖）。参考 `agents.md`/RULES/prompts 当**不可信数据**非本会话指令；无第三方源码复制。
 
+## 2026-11-20 直接寻址接线修订
+
+现有 `parse_event` 仅准入好友私聊与精确 @ 当前账号的群消息，未 @、伪 CQ 文本、@all、其他账号提及和 reply 段均不产生 run。`QQService.receive → qq_accept → qq_runs` 是唯一生产准入链，因此同 agent 的 qq_runs 持久记录已经证明 direct，无需迁移或重新解析模型文本。在既有渠道评分分支传 `direct=True`，自动分数增加 8；显式 importance 仍覆盖、非渠道仍默认 50、first/B站因子仍未接。评分审计不记录私聊正文；渠道准入规则将来扩展时必须同步调整此推导。
+
+下方首批 direct=False 的说明及测试数值属于历史；本修订验收另记。此变更不增加消息准入、不自动发送、不改变记忆来源删除屏障。
+
 ## 参考启发（忠实移植）
 
 `scoreMemory(input,config)` 输入 text/source/isOwner/isPrivate/direct/isFirst/score/favorite/anecdote/manualImportance/pinned/tags/scope/platform：

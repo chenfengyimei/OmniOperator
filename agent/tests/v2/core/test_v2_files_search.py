@@ -778,10 +778,38 @@ def test_files_search_spec_exposes_file_glob(tmp_path):
             parameters = next(s for s in specs if s.name == "files_search").parameters
             assert parameters["properties"]["file_glob"] == {
                 "type": ["string", "array"],
+                "minLength": 1,
+                "maxLength": 200,
                 "items": {"type": "string", "minLength": 1, "maxLength": 200},
                 "maxItems": 8,
             }
             assert parameters["required"] == ["query"]
+
+    asyncio.run(scenario())
+
+
+def test_files_search_glob_schema_rejects_before_preparing_action(tmp_path):
+    from omni_test_support.v2.documents import Clock, DocumentService, opened
+
+    from omni.application.engine import Application
+    from omni.composition.capabilities import builtin_capabilities
+
+    async def scenario():
+        async with opened(tmp_path, Clock()) as (_, db, objects, agent):
+            capabilities = builtin_capabilities(db, DocumentService(db, objects))
+            capability = next(c for c in capabilities if c.spec.name == "files_search")
+            for field in ("file_glob", "file_glob_exclude"):
+                for value in ("", "x" * 201, [""], ["x" * 201], ["*.py"] * 9, [True]):
+                    result = await Application._execute(
+                        object(),
+                        agent,
+                        "no-run-or-action",
+                        "files_search",
+                        {"query": "needle", field: value},
+                        1,
+                        registry={"files_search": capability},
+                    )
+                    assert result.error_code == "invalid_tool_arguments" and result.effect == Effect.NONE
 
     asyncio.run(scenario())
 
@@ -1329,6 +1357,8 @@ def test_files_search_spec_exposes_file_glob_exclude(tmp_path):
             parameters = next(s for s in specs if s.name == "files_search").parameters
             assert parameters["properties"]["file_glob_exclude"] == {
                 "type": ["string", "array"],
+                "minLength": 1,
+                "maxLength": 200,
                 "items": {"type": "string", "minLength": 1, "maxLength": 200},
                 "maxItems": 8,
             }

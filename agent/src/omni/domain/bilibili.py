@@ -285,24 +285,32 @@ RELATION_BLOCKED = 128
 
 
 def relation_view(data: Mapping[str, object], mid: str) -> dict[str, object]:
-    """Bounded DM follow-relationship discovery from x/relation; attribute is owner->target and
-    be_attribute target->owner (nullable). Discovery hints only: never gates the shared
-    approval/outbox send, which the owner decides. The relationship is never cached.
-    """
+    """Preserve unknown directions and codes instead of claiming a negative relationship."""
     attribute = data.get("attribute")
     if type(attribute) is not int:
         raise BusinessError("bilibili_response_invalid", "Bilibili relation changed format", status=502)
-    be_raw = _as_dict(data.get("be_relation")).get("attribute")
-    be_attribute = be_raw if type(be_raw) is int else None
+    reverse = data.get("be_relation")
+    if reverse is not None and not isinstance(reverse, dict):
+        raise BusinessError("bilibili_response_invalid", "Bilibili reverse relation changed format", status=502)
+    be_attribute = cast(dict[str, object], reverse).get("attribute") if reverse is not None else None
+    if be_attribute is not None and type(be_attribute) is not int:
+        raise BusinessError("bilibili_response_invalid", "Bilibili reverse relation changed format", status=502)
+    follow_states = {0: False, RELATION_FOLLOWED: True, RELATION_MUTUAL: True, RELATION_BLOCKED: False}
+    follows = follow_states.get(attribute)
+    reverse_follows = follow_states.get(be_attribute) if be_attribute is not None else None
+    blocked: bool | None = None
+    if attribute == RELATION_BLOCKED or be_attribute == RELATION_BLOCKED:
+        blocked = True
+    elif follows is not None and reverse_follows is not None:
+        blocked = False
     return {
         "mid": mid,
         "attribute": attribute,
         "be_attribute": be_attribute,
-        "follows": attribute in (RELATION_FOLLOWED, RELATION_MUTUAL),
-        "followed_by": attribute == RELATION_MUTUAL
-        or (be_attribute is not None and be_attribute in (RELATION_FOLLOWED, RELATION_MUTUAL)),
-        "mutual": attribute == RELATION_MUTUAL,
-        "blocked": attribute == RELATION_BLOCKED or be_attribute == RELATION_BLOCKED,
+        "follows": follows,
+        "followed_by": True if attribute == RELATION_MUTUAL else reverse_follows,
+        "mutual": attribute == RELATION_MUTUAL if follows is not None else None,
+        "blocked": blocked,
     }
 
 
@@ -569,14 +577,14 @@ def msgfeed_rows(data: Mapping[str, object], limit: int) -> dict[str, object]:
 
 
 def msgfeed_like_rows(data: Mapping[str, object], limit: int) -> dict[str, object]:
-    """Bounded '收到的赞' inbox rows. The like API nests items under latest/total (not data.items),
-    uses like_time and a users[] list of likers with counts; title/source_content are unreliable
-    discovery hints, never authoritative content.
-    """
+    """Notification snippets are discovery hints, not authoritative content."""
     merged: list[dict[str, object]] = []
     seen: set[int] = set()
     for branch in ("latest", "total", "items"):
-        container = data if branch == "items" else _as_dict(data.get(branch))
+        nested = data.get(branch) if branch != "items" else None
+        if nested is not None and not isinstance(nested, dict):
+            raise BusinessError("bilibili_response_invalid", "Msgfeed like branch changed format", status=502)
+        container = data if branch == "items" else cast(dict[str, object], nested) if nested is not None else {}
         raw = container.get("items")
         if raw is None:
             continue

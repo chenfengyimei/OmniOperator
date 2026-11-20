@@ -100,6 +100,45 @@ def test_tiers_intersect_only_known_reads_and_do_not_offer_useless_upgrade():
     assert not select_tools("chat", (), escalate=True)
 
 
+@pytest.mark.parametrize("cost", [7, None])
+def test_model_event_route_projection_keeps_typed_step_and_agent_scope(tmp_path, cost):
+    from sqlalchemy import select
+
+    async def scenario():
+        instance = await open_instance(tmp_path, model=Model([ModelReply("answer", cost_micro=cost)]))
+        try:
+            agent, _, _ = await configured(instance)
+            receipt = await instance.application.submit_turn(agent, None, "event-projection", "你好", mode="chat")
+            await wait_state(instance.application, agent, receipt["run_id"], {"succeeded"})
+            events = await instance._database.read(
+                lambda u: list(
+                    u.connection.execute(
+                        select(s.run_events)
+                        .where(
+                            s.run_events.c.agent_id == agent,
+                            s.run_events.c.run_id == receipt["run_id"],
+                            s.run_events.c.kind.in_(["model.started", "model.completed"]),
+                        )
+                        .order_by(s.run_events.c.seq)
+                    ).mappings()
+                )
+            )
+            assert [e["kind"] for e in events] == ["model.started", "model.completed"]
+            for event in events:
+                assert type(event["data"]["step"]) is int and event["data"]["step"] == 1
+                assert event["data"]["mode"] == "chat"
+            call_id = events[0]["data"]["call_id"]
+            assert events[1]["data"]["call_id"] == call_id
+            assert events[1]["data"]["state"] == ("settled" if cost is not None else "unknown")
+            assert await instance._database.read(lambda u: u._call_route(agent, call_id)) == (1, "chat")
+            assert await instance._database.read(lambda u: u._call_route("other-agent", call_id)) is None
+            assert await instance._database.read(lambda u: u._call_route(agent, "missing-call")) is None
+        finally:
+            assert (await instance.close())["complete"]
+
+    asyncio.run(scenario())
+
+
 def test_profile_reservation_tool_snapshot_and_unknown_cost_are_one_run_truth(tmp_path):
     async def scenario():
         model = Model([ModelReply("answer", cost_micro=None)])

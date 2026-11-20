@@ -13,7 +13,13 @@
   - `attribute`：**owner→target** 关系码——`0` 未关注、`2` 已关注、`6` 互关、`128` 拉黑（参考 `relationLines` outgoing=`[2,6].includes(attribute)`、互关=`attribute===6`、拉黑=`attribute===128`）。
   - `be_relation.attribute`：**target→owner** 反向关系码，**可空**（参考 `j.data?.be_relation?.attribute == null ? null : Number(...`，incoming=`attribute===6 || beAttribute∈[2,6]`）。
 
-## 范围（本批）
+## 2026-11-20 正确性修订（覆盖下方首批语义）
+
+关系推导采用 `true/false/null`：缺失的反向关系与未知整数码不能解释为未关注或未拉黑。`follows` 按已知 0/2/6/128 映射；`followed_by` 在主码为 6 时为 true，否则按反向码映射，缺失/未知为 null；`mutual` 以主码判定，未知码为 null；任一方向 128 则 `blocked=true`，两侧已知且均非 128 才为 false，否则 null。原始整数码保留；主码非整数、非空反向对象格式错误或反向码非整数明确 502。`be_relation`/其 attribute 缺失或 null 正常表示未知。发送审批和风险暂停不变。
+
+下方验证结果与指纹属于首批历史快照，不证明本修订；修订验证另记。
+
+## 范围（首批历史）
 
 1. **domain/bilibili.py**（既有模块，无新源文件）：
    - 常量 `RELATION_FOLLOWED=2`/`RELATION_MUTUAL=6`/`RELATION_BLOCKED=128`（关系码，自文档）。
