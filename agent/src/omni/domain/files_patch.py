@@ -379,6 +379,54 @@ def _maybe_unescape_new_string(new_string: str, content: str, spans: list[Span])
     return new_string
 
 
+def _leading_whitespace(line: str) -> str:
+    return line[: len(line) - len(line.lstrip(" \t"))]
+
+
+def _first_meaningful_line(text: str) -> str | None:
+    return next((line for line in text.split("\n") if line.strip()), None)
+
+
+def _match_starts_mid_line(content: str, start: int, end: int) -> bool:
+    # Leading newlines/blank lines don't make an anchor partial-line: the first code line
+    # can still be captured whole and need its base indent re-anchored.
+    first_line_start = start
+    for line in content[start:end].split("\n"):
+        if line.strip():
+            line_start = content.rfind("\n", 0, first_line_start) + 1
+            return bool(content[line_start:first_line_start].strip(" \t\r"))
+        first_line_start += len(line) + 1
+    return False
+
+
+def _reindent_replacement(file_region: str, old_string: str, new_string: str, *, match_starts_mid_line: bool) -> str:
+    """Re-anchor new_string's base indent onto the file region's after a non-exact match.
+
+    Swaps the LLM base prefix (first non-blank old_string line) for the file's, preserving relative
+    nesting; shallower lines anchor to the file base. A partial-line match (non-whitespace text before
+    its first non-blank line) has no reliable base indent, so the supplied indentation is kept.
+    """
+    if not new_string or match_starts_mid_line:
+        return new_string
+    old_first = _first_meaningful_line(old_string)
+    file_first = _first_meaningful_line(file_region)
+    if old_first is None or file_first is None:
+        return new_string
+    old_indent = _leading_whitespace(old_first)
+    file_indent = _leading_whitespace(file_first)
+    if old_indent == file_indent:
+        return new_string
+    out_lines: list[str] = []
+    for line in new_string.split("\n"):
+        if not line.strip():
+            out_lines.append(line)
+        elif _leading_whitespace(line).startswith(old_indent):
+            out_lines.append(file_indent + line[len(old_indent) :])
+        else:
+            out_lines.append(file_indent + line.lstrip(" \t"))
+    return "\n".join(out_lines)
+
+
 def patch_replace(
     content: str, old_string: object, new_string: object, *, replace_all: bool = False
 ) -> tuple[str, int, str, str | None]:
@@ -427,7 +475,15 @@ def patch_replace(
             effective_new = _maybe_unescape_new_string(new_string, content, spans)
         patched = content
         for start, end in reversed(spans):
-            patched = patched[:start] + effective_new + patched[end:]
+            adjusted = effective_new
+            if name != "exact":
+                adjusted = _reindent_replacement(
+                    content[start:end],
+                    old_string,
+                    effective_new,
+                    match_starts_mid_line=_match_starts_mid_line(content, start, end),
+                )
+            patched = patched[:start] + adjusted + patched[end:]
         note = "; ".join(part for part in (correction, boundary_note(name)) if part) or None
         return patched, len(spans), name, note
     if is_already_applied(content, old_string, new_string):

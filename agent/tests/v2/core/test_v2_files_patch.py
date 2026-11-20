@@ -11,6 +11,10 @@ from omni.domain.contracts import Effect, Outcome
 from omni.domain.files_patch import (
     PATCH_STRING_CHARS,
     PatchError,
+    _first_meaningful_line,
+    _leading_whitespace,
+    _match_starts_mid_line,
+    _reindent_replacement,
     boundary_note,
     is_already_applied,
     patch_replace,
@@ -45,6 +49,8 @@ def test_exact_ambiguous_rejected_without_replace_all():
 def test_line_trimmed_matches_indent_drift():
     content = "def f():\n\treturn 1\n"
     out = patch_replace(content, "def f():\n    return 1\n", "def f():\n    return 2\n")
+    # First meaningful line "def f():" is top-level in both, so reindent is a no-op here;
+    # the replacement keeps new_string verbatim (reindent only re-anchors the base indent).
     assert out == ("def f():\n    return 2\n", 1, "line_trimmed", None)
 
 
@@ -132,7 +138,7 @@ def test_worker_patch_line_trimmed_indent_drift(tmp_path):
             {"workspace": str(tmp_path)},
         )
         assert result.status == Outcome.OK and result.data["strategy"] == "line_trimmed"
-        assert (tmp_path / "a.py").read_bytes() == b"    return 2\n"
+        assert (tmp_path / "a.py").read_bytes() == b"\treturn 2\n"
 
     asyncio.run(scenario())
 
@@ -348,7 +354,8 @@ def test_worker_patch_unicode_normalized(tmp_path):
 
 def test_indentation_drift_subsumed_by_line_trimmed():
     # Reference indentation_flexible (lstrip) is provably subsumed by line_trimmed (strip-all).
-    assert patch_replace("\tfoo\n", "    foo\n", "bar\n") == ("bar\n", 1, "line_trimmed", None)
+    # Reindent anchors the unindented replacement onto the file's tab base.
+    assert patch_replace("\tfoo\n", "    foo\n", "bar\n") == ("\tbar\n", 1, "line_trimmed", None)
 
 
 def test_block_anchor_unique_middle_drift():
@@ -613,7 +620,8 @@ def test_post_match_backslash_doubling_rejected():
 
 def test_post_match_trivial_single_run_doubling_not_rejected():
     out = patch_replace("\tx\\y\n", "    x\\\\y\n", "    z\\\\w\n")
-    assert out == ("    z\\\\w\n", 1, "context_aware", boundary_note("context_aware"))
+    # Trivial single-run doubling is not drift; reindent swaps the 4-space base for the file's tab.
+    assert out == ("\tz\\\\w\n", 1, "context_aware", boundary_note("context_aware"))
 
 
 def test_new_string_literal_tab_unescaped_when_region_has_real_tab():
@@ -666,5 +674,98 @@ def test_worker_patch_unescapes_new_string_with_region_evidence(tmp_path):
         assert result.status == Outcome.OK and result.effect == Effect.APPLIED
         assert (tmp_path / "a.txt").read_bytes() == b"c\td\n"
         assert result.verification == digest("c\td\n")
+
+    asyncio.run(scenario())
+
+
+def test_leading_whitespace_and_first_meaningful_line():
+    assert _leading_whitespace("    foo") == "    "
+    assert _leading_whitespace("\tfoo") == "\t"
+    assert _leading_whitespace("foo") == ""
+    assert _leading_whitespace("  \t x") == "  \t "
+    assert _leading_whitespace("") == ""
+    assert _first_meaningful_line("\n\n    foo\nbar") == "    foo"
+    assert _first_meaningful_line("foo\nbar") == "foo"
+    assert _first_meaningful_line("\n  \n") is None
+    assert _first_meaningful_line("") is None
+
+
+def test_match_starts_mid_line_whole_line_vs_partial():
+    assert _match_starts_mid_line("def f():\n\treturn 1\n", 9, 19) is False
+    assert _match_starts_mid_line("\n\n    foo\n", 0, 10) is False
+    assert _match_starts_mid_line("hello world", 6, 11) is True
+    assert _match_starts_mid_line("hello\nworld", 6, 11) is False
+
+
+def test_reindent_replacement_swaps_base_preserves_nesting():
+    region = "\tfoo\n\t    bar\n"
+    old = "    foo\n        bar\n"
+    new = "    baz\n        qux\n"
+    assert _reindent_replacement(region, old, new, match_starts_mid_line=False) == "\tbaz\n\t    qux\n"
+
+
+def test_reindent_replacement_shallow_line_anchors_to_file_base():
+    region = "        foo\n"
+    old = "    foo\n"
+    new = "    bar\n  baz\n"
+    assert _reindent_replacement(region, old, new, match_starts_mid_line=False) == "        bar\n        baz\n"
+
+
+def test_reindent_replacement_noop_guards():
+    assert _reindent_replacement("\tfoo\n", "    foo\n", "", match_starts_mid_line=False) == ""
+    assert _reindent_replacement("\tfoo\n", "    foo\n", "bar\n", match_starts_mid_line=True) == "bar\n"
+    assert _reindent_replacement("    foo\n", "    foo\n", "bar\n", match_starts_mid_line=False) == "bar\n"
+    assert _reindent_replacement("\n\n", "\n\n", "bar\n", match_starts_mid_line=False) == "bar\n"
+    assert (
+        _reindent_replacement("\tfoo\n", "    foo\n", "bar\n\nbaz\n", match_starts_mid_line=False) == "\tbar\n\n\tbaz\n"
+    )
+
+
+def test_patch_reindent_swaps_base_keeps_relative_nesting():
+    content = "\tdef m(self):\n\t\treturn 1\n"
+    old = "    def m(self):\n        return 1\n"
+    new = "    def m(self):\n        return 2\n"
+    # Base 4-space -> file tab; the +4-space relative nesting from old_string is preserved verbatim.
+    assert patch_replace(content, old, new) == ("\tdef m(self):\n\t    return 2\n", 1, "line_trimmed", None)
+
+
+def test_patch_reindent_replace_all_per_region():
+    content = "\tfoo\n\t\tfoo\n"
+    out = patch_replace(content, "  foo\n", "  bar\n", replace_all=True)
+    # Each region re-anchors onto its own file base (tab vs double-tab); old base is 2 spaces.
+    assert out == ("\tbar\n\t\tbar\n", 2, "line_trimmed", None)
+
+
+def test_patch_reindent_exact_stays_verbatim():
+    assert patch_replace("\tfoo\n", "\tfoo\n", "    bar\n") == ("    bar\n", 1, "exact", None)
+
+
+def test_patch_reindent_mid_line_escape_keeps_supplied_indent():
+    out = patch_replace("\tx = a\tb\n", "a\\tb", "    c\\td")
+    assert out == ("\tx = " + "    c\td\n", 1, "escape_normalized", None)
+
+
+def test_patch_reindent_top_level_noop_zero_regression():
+    assert patch_replace("foo bar\n", "foo  bar\n", "baz\n") == ("baz\n", 1, "line_whitespace", None)
+
+
+def test_worker_patch_reindent_preserves_file_indent(tmp_path):
+    put(tmp_path / "a.py", "\tdef m():\n\t\treturn 1\n")
+
+    async def scenario():
+        result = await Worker().invoke(
+            "files_patch",
+            {
+                "path": "a.py",
+                "old_string": "    def m():\n        return 1\n",
+                "new_string": "    def m():\n        return 2\n",
+                "expected_sha256": digest("\tdef m():\n\t\treturn 1\n"),
+            },
+            {"workspace": str(tmp_path)},
+        )
+        assert result.status == Outcome.OK and result.effect == Effect.APPLIED
+        assert result.data["strategy"] == "line_trimmed"
+        assert (tmp_path / "a.py").read_bytes() == b"\tdef m():\n\t    return 2\n"
+        assert result.verification == digest("\tdef m():\n\t    return 2\n")
 
     asyncio.run(scenario())

@@ -1,0 +1,97 @@
+{
+  "schema": 1,
+  "date": "2026-11-20",
+  "base_commit": "f52e2b90837716db6555fbf35ddef3b78c3d0edf",
+  "status": "implemented_scoped_passed",
+  "batch": "K13.patch_reindent",
+  "implements_gap": "K13.patch_drift_guards limits recorded reference _reindent_replacement (non-exact-match replacement-side indent re-anchoring) as follow-up; reference hermes fuzzy_match.py _apply_replacements:637 re-indents new_string per region for non-exact matches. This batch ports that replacement-shaping into V2 domain/files_patch.py",
+  "contract": "docs/v2/contracts/V2_FILES_PATCH_REINDENT.md",
+  "source_files": {
+    "agent/src/omni/domain/files_patch.py": "f1e4260fd586dd87aad349ebfbd3c6364b012510e1bb991061c8502d356c4103",
+    "agent/src/omni/composition/capabilities.py": "bf7a265e66fe6790bca9e70c5416c0900c225228d655e811bacfd965f28e2ada",
+    "agent/tests/v2/core/test_v2_files_patch.py": "6d4e82a77e33d948534fb22460fc2ab1f3e4aa66b59939e03bf854452a556cde",
+    "docs/v2/contracts/V2_FILES_PATCH_REINDENT.md": "2103d76a542c538d49cf7e1daada2f702e15b536d091445dcf99e5d055409781"
+  },
+  "reference": {
+    "repository": "xuexi/hermes-agent",
+    "files": {
+      "tools/fuzzy_match.py": "_leading_whitespace(line):552 = line[:len(line)-len(line.lstrip(' \\t'))]; _first_meaningful_line(text):556 first non-blank split('\\n') line; _match_starts_mid_line(content,start,end):560 whether non-whitespace text precedes the match's first non-blank line (leading newlines/blank lines still allow whole-line re-anchoring); _reindent_replacement(file_region,old_string,new_string,*,match_starts_mid_line):575 swap LLM base prefix (first non-blank old line) for file's preserving relative nesting, shallower lines anchor to file base, equal-indent/mid-line/empty -> verbatim; _apply_replacements:637 applies it per region for non-exact matches (old_string non-None) AFTER unicode preservation, end-to-start"
+    },
+    "adaptation": "Learned the replacement-side indent re-anchoring concept and re-implemented independently in V2 four-layer over the EXISTING domain/files_patch.py (no new source file, stdlib only). V2 patch_replace spliced new_string verbatim for all strategies; now non-exact strategies re-anchor new_string's base indent onto each matched file region's actual base indent (preserving relative nesting from old_string), so a tab-indented file is not flattened to the model's supplied spaces. Faithful port of the reference's conservative semantics: only the FIRST meaningful line's indent is compared (a block whose first line is top-level in both old and file is a no-op even if later lines drift); mid-line byte-exact spans (escape/unicode) keep supplied indentation; equal indent / empty new / blank-only -> verbatim. Runs per-region in the reversed(spans) splice loop AFTER _detect_post_match_drift (reject) and _maybe_unescape_new_string, using ORIGINAL content for region/mid-line so offsets stay valid; exact strategy stays verbatim. Reindent only changes leading whitespace (adds no backslash/quote/literal-\\n), so it cannot bypass the drift guards. Worker write pipeline (fingerprint CAS / staging recheck / atomic publish / unknown-no-replay / owner approval / agent tier) UNCHANGED. composition files_patch description updated; no schema/param shape change. BEHAVIOR CHANGE: exactly 3 existing indent-drift tests updated to expect file-style preservation (strengthened, not weakened); all exact/top-level/equal-indent/mid-line/reject tests zero regression. No third-party source copied; no new table/migration/route/worker-protocol-frame/source-file/cross-platform change. V4A multi-format and _preserve_unicode_in_replacement (typography preservation) remain follow-up. Reference agents.md/prompts treated as untrusted data"
+  },
+  "delivered": [
+    "domain/files_patch.py pure rules (zero I/O, existing module no new source file): _leading_whitespace (space/tab prefix only), _first_meaningful_line (first non-blank split('\\n') line or None), _match_starts_mid_line(content,start,end) (advance absolute first_line_start over region lines; at first non-blank line return bool(content[line_start:first_line_start].strip(' \\t\\r')) where line_start=content.rfind('\\n',0,first_line_start)+1; leading blank lines do not make it mid-line), _reindent_replacement(file_region,old_string,new_string,*,match_starts_mid_line) (empty new or mid-line -> verbatim; old_first/file_first None -> verbatim; old_indent==file_indent -> verbatim; per new_string.split('\\n') line: blank kept, leading-whitespace.startswith(old_indent) -> file_indent+line[len(old_indent):] preserving relative nesting, else shallower -> file_indent+line.lstrip(' \\t'); '\\n'.join)",
+    "domain/files_patch.py patch_replace splice loop: for non-exact strategies only, per region in reversed(spans) compute adjusted=_reindent_replacement(content[start:end], old_string, effective_new, match_starts_mid_line=_match_starts_mid_line(content,start,end)) AFTER drift guard + unescape, then splice; exact stays verbatim; replace_all re-anchors each region independently (regions may have different base indents); region/mid-line use ORIGINAL content so reversed-splice offsets stay valid",
+    "composition/capabilities.py files_patch spec description states non-exact matches re-anchor new_string base indentation onto the file region's actual base indent (preserving relative nesting, shallower lines anchor to file base, partial-line match keeps supplied indentation, exact stays verbatim); parameters schema/required/writes=True/resource=workspace unchanged",
+    "worker write pipeline (fingerprint CAS / staging recheck / atomic publish / unknown-no-replay / owner approval / agent tier), routing, ports UNCHANGED; drift guards run BEFORE reindent on raw old/new (reindent adds no backslash/quote/literal-\\n, cannot bypass); _maybe_unescape_new_string runs BEFORE reindent (reindent sees final effective_new)",
+    "No new table/migration/route/worker-protocol-frame/source-file/cross-platform change; linear per-line reindent no regex no DoS; PATCH_STRING_CHARS=64KiB bound preserved; approximate matches still forbid replace_all"
+  ],
+  "limits": {
+    "reindent_non_exact_strategies_only": true,
+    "reindent_per_region_replace_all": true,
+    "reindent_compares_first_meaningful_line_only": true,
+    "reindent_preserves_relative_nesting": true,
+    "reindent_shallow_lines_anchor_to_file_base": true,
+    "reindent_mid_line_keeps_supplied_indent": true,
+    "reindent_equal_indent_or_empty_verbatim_noop": true,
+    "reindent_exact_stays_verbatim": true,
+    "reindent_after_drift_guard_and_unescape": true,
+    "reindent_leading_whitespace_only_no_drift_bypass": true,
+    "worker_write_pipeline_unchanged": true,
+    "existing_indent_drift_tests_updated_strengthened": 3,
+    "preserve_unicode_in_replacement_typography_implemented": false,
+    "v4a_multi_format_patch_implemented": false,
+    "new_table_or_migration": false,
+    "new_route": false,
+    "worker_protocol_frame_changed": false,
+    "new_source_file": false,
+    "routing_changed": false,
+    "cross_platform_worker_changed": false,
+    "aggregate_index_commit_deferred": true,
+    "aggregate_index_note": "no new agent/src source file (functions added to existing domain/files_patch.py; modules/files/routes/declared_tools unchanged); project_index refreshes source fingerprints then docs/index reverted to committed baseline to DEFER aggregate commit per standing discipline while parallel sessions are active; regenerate at clean freeze"
+  },
+  "validation": {
+    "mode": "scoped_implementation",
+    "frozen_source": "final source fingerprints in source_files",
+    "new_nodes": 11,
+    "files_patch_total_nodes": 79,
+    "existing_tests_updated": 3,
+    "caller_suite": {
+      "command": "uv run --no-sync pytest -q -n 0 tests/v2/core/test_v2_worker_safety.py tests/v2/core/test_v2_files_search.py tests/v2/core/test_v2_capabilities.py tests/v2/core/test_v2_business_inventory.py tests/v2/integrations/test_v2_routing.py (from agent/)",
+      "passed": 180,
+      "failed": 0,
+      "seconds": 53.56,
+      "breakdown": "files_search 128 + worker_safety 31 + capabilities/business_inventory/integrations-routing 21"
+    },
+    "strict": {
+      "config": "pyrightconfig.strict.json",
+      "files": 414,
+      "errors": 5,
+      "warnings": 0,
+      "new_errors_from_batch": 0,
+      "note": "run from repo ROOT (config + .venv at root); no new source file (functions added to existing domain/files_patch.py) so filesAnalyzed stays 414; the 5 errors are PRE-EXISTING in another session's committed adapters/persistence/repository.py (L633 RowMapping|None->Record|None, L659 x2 + L710 x2 JSON->ConvertibleToInt, commit 6bcb0e98) NOT touched by this batch; domain/files_patch.py + capabilities.py clean"
+    },
+    "ruff": "check + format pass on domain/files_patch.py, composition/capabilities.py, test_v2_files_patch.py (one long new assert line wrapped by format)",
+    "first_round_corrections": "test_line_trimmed_matches_indent_drift + worker reindent test initially mis-expected a 'def f():' block to re-anchor (first meaningful line top-level in both -> no-op per reference conservative semantics); reverted/redesigned to first-line-indent-drift cases. replace_all test initially used old='  foo\\n' which is an exact substring of a 4-space line so exact fired first; switched to tab/double-tab file + 2-space old to force line_trimmed per-region reindent",
+    "project_index": "run; no new agent/src source file; source fingerprint refresh then docs/index reverted to baseline (aggregate deferred, parallel sessions active); regenerate at clean freeze",
+    "task_status_check": "scripts/task_status.py --check exit 0; DEVELOPMENT_STATUS.md unchanged",
+    "full_suite_executed": false,
+    "real_model_account_device_native_or_72h_executed": false,
+    "current_windows_service_or_database_touched": false
+  },
+  "whole_core_parity_complete": false,
+  "whole_reference_feature_audit_complete": false,
+  "whole_v2_complete": false,
+  "not_executed": [
+    "files_patch V4A multi-format patch; _preserve_unicode_in_replacement (unicode_normalized match preserving region typography em-dash/smart quotes, applying only old->new edits — separate gap; V2 unicode still splices new_string verbatim); other replacement-side shaping",
+    "files_search multi-include glob list / advanced gitignore (** anchoring, dir-level ignore files) / ripgrep backend / other sort keys",
+    "K13 cron skill-binding output dependency (needs schema), code sandbox (execute_code/kernel), raw CDP / browser_cdp / browser_exec gating",
+    "K16 model-facing zoom (design contract V2_TOOL_IMAGE_VISIBILITY.md recorded; needs owner approval of image-visibility protocol option A/B then wiring), in-frame OCR (needs rapidocr)",
+    "K01 session/lineage cache scope (needs compression-lineage persistence + model-adapter prompt_cache_key + provider routing design contract + real-model acceptance)",
+    "K15 score_memory conservative inputs is_first/direct/bili speaker context (first-meet 30-day window / QQ direct @reply / Bilibili inbound speaker-context table), motivation engine, layered persona, schedule feedback; K17 journal persistence/信笺/反思; K18 write breadth/autonomous watching/live/AI-share guard (real accounts)",
+    "Other K14-K18 offline gaps",
+    "Full offline suite for current source",
+    "Real accounts/models/devices/native desktop and 72h soak"
+  ],
+  "next": "Continue implementing recorded offline gaps as independent batches via V2 four-layer with authorization/persistence/protocol contract first (K13 _preserve_unicode_in_replacement typography / V4A; K16 model-facing zoom awaits owner protocol decision; K01 cache-scope design; K15 score_memory first-meet/direct/bili context + motivation; K17 journal). whole_*_complete remain false. Do not prematurely close any parity item"
+}
