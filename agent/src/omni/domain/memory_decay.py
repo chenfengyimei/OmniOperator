@@ -13,6 +13,8 @@ CATCHUP_MAX_DAYS = 30
 RECALL_CAP = 999
 TOUCH_LIMIT = 5
 DEFAULT_IMPORTANCE = 50
+DECAY_DAILY_HOUR = 4
+DECAY_TICK_LIMIT = 8
 
 
 def is_protected(importance: int, pinned: bool) -> bool:
@@ -75,3 +77,7 @@ def catchup_steps(last_decay_date: str | None, today: str) -> int:
         return 1
     days = (date.fromisoformat(today) - date.fromisoformat(last_decay_date)).days
     return max(1, min(CATCHUP_MAX_DAYS, days))
+
+
+def should_auto_decay(last_decay_date: str | None, today: str, hour: int, daily_hour: int) -> bool:
+    return hour >= daily_hour and last_decay_date != today

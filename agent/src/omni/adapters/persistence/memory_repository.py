@@ -6,7 +6,7 @@ import re
 from datetime import datetime
 from typing import cast
 
-from sqlalchemy import column, delete, literal_column, select, table, text, update
+from sqlalchemy import column, delete, literal_column, or_, select, table, text, update
 
 from ...application.ports import Record, UnitOfWork
 from ...domain.contracts import BusinessError
@@ -21,6 +21,7 @@ from ...domain.memory_decay import (
     initial_clarity,
     is_protected,
     retention_score,
+    should_auto_decay,
     target_clarity,
 )
 from ...domain.people import DOCUMENT_KINDS, content_fingerprint, source_fingerprint
@@ -544,3 +545,31 @@ class MemoryRepositories(DocumentRepositories):
             "pass_decayed": decayed,
             "pass_forgotten": forgotten,
         }
+
+    def memory_decay_auto_tick(self, daily_hour: int, limit: int) -> int:
+        now = self.clock.now()
+        today, hour = now[:10], int(now[11:13])
+        candidates = self.connection.execute(
+            select(s.agents.c.id, s.memory_decay_state.c.last_decay_date)
+            .outerjoin(s.memory_decay_state, s.memory_decay_state.c.agent_id == s.agents.c.id)
+            .where(
+                s.agents.c.enabled.is_(True),
+                or_(
+                    s.memory_decay_state.c.last_decay_date.is_(None),
+                    s.memory_decay_state.c.last_decay_date != today,
+                ),
+            )
+            .limit(limit)
+        ).all()
+        processed = 0
+        for agent_id, last_date in candidates:
+            if not should_auto_decay(last_date, today, hour, daily_hour):
+                continue
+            try:
+                self.memory_decay_pass(str(agent_id), force=False)
+            except BusinessError as exc:
+                if exc.code == "memory_decay_already_today":
+                    continue
+                raise
+            processed += 1
+        return processed

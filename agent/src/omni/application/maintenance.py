@@ -8,6 +8,7 @@ from typing import cast
 
 from ..domain.contracts import BusinessError
 from ..domain.maintenance import MAX_ACTIVE, MAX_PENDING
+from ..domain.memory_decay import DECAY_TICK_LIMIT
 from .background_review import BackgroundReviewService
 from .documents import DocumentService
 from .memory_organization import MemoryOrganizationService
@@ -25,6 +26,7 @@ class MaintenanceService:
         observer: Observer,
         memory_organization: MemoryOrganizationService | None = None,
         background_review: BackgroundReviewService | None = None,
+        decay_daily_hour: int | None = None,
     ) -> None:
         self._db, self._documents, self._clock, self._observer = database, documents, clock, observer
         self._active: dict[str, tuple[Record, asyncio.Task[None]]] = {}
@@ -35,6 +37,7 @@ class MaintenanceService:
         self._settling: set[str] = set()
         self._memory_organization = memory_organization
         self._background_review = background_review
+        self._decay_daily_hour = decay_daily_hour
 
     def notify(self) -> None:
         self._wake.set()
@@ -193,6 +196,10 @@ class MaintenanceService:
                 if not await self._background_review.process_one():
                     break
                 processed += 1
+        decayed = 0
+        if self._decay_daily_hour is not None:
+            daily_hour = self._decay_daily_hour
+            decayed = await self._db.write(lambda u: u.memory_decay_auto_tick(daily_hour, DECAY_TICK_LIMIT))
         claims = await self._db.write(lambda u: u.maintenance_claim(available))
         for claim in claims:
             identity = str(claim["id"])
@@ -206,7 +213,7 @@ class MaintenanceService:
                 self._wake.set()
 
             task.add_done_callback(complete)
-        return len(claims) + processed
+        return len(claims) + processed + decayed
 
     async def _loop(self) -> None:
         while not self._closing:

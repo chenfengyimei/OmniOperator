@@ -348,9 +348,17 @@
           "contract": "docs/v2/contracts/V2_MEMORY_DECAY.md",
           "evidence": "docs/evidence/v2-memory-decay.json",
           "delivered": "domain/memory_decay.py纯规则(CLARITY_ORDER vivid/clear/fuzzy/trace/forgotten、retention_score rate0.12protected/0.35地板55/50、target_clarity切分68/46/24/12+pinned恒vivid、hard_forget age>60&importance<50&!protected、decay_step每遍一步、catchup_steps clamp[1,30])；schema memory_entries6加性列+memory_decay_state新表(每agent唯一+identity/keep触发器)表142→143+v0047幂等迁移；remember加importance1-100/pinned bool校验+initial_clarity+last_seen_at；memory_touch<=5召回强化(recall_count cap999/跳过deleted/document/forgotten)；memory_decay_pass所有者今日门409/force422/catchup补追/逐条一步/forgotten仅隐藏不擦除/审计memory.decayed/state累计upsert；search_memory两分支排除forgotten；engine.search_memory两分支+memory_tools两分支touch强化、remember透传importance；ports3新方法、capabilities memory_remember可选importance、http GET/POST memory/decay两所有者路由strict force；无模型侧decay工具。接管收尾：前会话在途批remember加性列+search强化破坏旧schema夹具播种与事实真相比较，按既有加性列先例修v2_legacy_seed(PreSkill._record剥离6列+preserved_rows excluded_memory_columns)、action_review v19 baseline改LegacySeedRepositories、memory_organization original_truth排除recall_count/last_seen_at(生产源码不变)；strict include补memory_decay+v0047(410→412)。29 decay专项过+38文件广调用方341过/17失败均既有非decay(7 pin v2_0039含images、7 event_pruning因6bcb0e98 action.executing未入event_retention_targets kind白名单、1 execution_pruning[cost]因settle_call事件改fingerprint、2 media_upload DDL)、strict412文件5错误均既有repository.py本批零错误、ruff通过；自动tick/重要性启发/双卡/注入裁剪/容量告警仍后续；聚合索引暂缓"
+        },
+        {
+          "gap": "时间衰减自动每日遍(接入 MaintenanceService.tick，dailyHour=4 夜间门+每agent今日一次幂等+有界sweep)",
+          "status": "implemented_scoped_passed",
+          "batch": "K15.decay_tick",
+          "contract": "docs/v2/contracts/V2_MEMORY_DECAY_TICK.md",
+          "evidence": "docs/evidence/v2-memory-decay-tick.json",
+          "delivered": "承接 decay_core(所有者手动衰减遍)，学习参考 surfcore night-schedule.mjs dailyHour=4 夜间触发+needsDailyDecay(last_decay_date!=today) 每日一次门，独立实现于 V2 四层 maintenance/memory 链。domain/memory_decay.py 加 DECAY_DAILY_HOUR=4/DECAY_TICK_LIMIT=8/should_auto_decay(hour>=daily_hour and last!=today，None!=today 待衰减)；memory_repository.py 加 memory_decay_auto_tick(daily_hour,limit)->int(enabled agent LEFT JOIN decay_state SQL 过滤 last IS NULL OR !=today LIMIT limit 有界候选，逐候选 hour 门确认→调既有 memory_decay_pass(force=False) 复用今日门409/catchup/一步/隐藏不擦除/审计/state累计，捕获 already_today 竞态跳过、余错误传播回滚，返回实际衰减数)；maintenance.py __init__ 加 decay_daily_hour:int|None=None，tick 在 background_review 后 claim 前加 decay sweep，返回 len(claims)+processed+decayed(decayed 独立计不占 MAX_ACTIVE 槽，同步DB写非durable job)；instance.py MaintenanceService(decay_daily_hour=DECAY_DAILY_HOUR if capabilities is None else None) 仅生产启用隔离测试禁用(K08 background_review 同先例)；ports UnitOfWork 加 memory_decay_auto_tick。保守子集复用 decay_core forgotten 隐藏不擦除/protected(pinned or importance>=65)永不衰减/DOCUMENT_KINDS 豁免，自动遍仅步进 clarity 绝不擦除/不写tombstone/不失效会话。无新表/迁移/路由/模型工具/源文件(既有文件加方法)。15 专项过(15.07秒，should_auto_decay门参数化6+仓储夜间门/幂等/次日/有界limit跨agent/disabled跳过/手动竞态/protected+document豁免+maintenance默认禁用零回归/启用sweep+composition生产=4隔离=None接线)，10 文件调用方回归 107 过/0 失败(190.53秒，maintenance/memory/lifecycle/kernel/execution/routing，隔离 decay_daily_hour=None 门控OFF零回归)，strict 412文件5错误均既有repository.py本批零错误0警告，ruff通过；聚合索引暂缓。所有者侧自动衰减开关/dailyHour配置/时区local hour/重要性启发/双卡/注入裁剪/容量告警/衰减通知仍后续"
         }
       ],
-      "limits": "只读审计无新引擎/表/迁移/路由/源码改动；可离线缺口未在K15审计批实现(列后续批次)，其中时间衰减遗忘巩固引擎核心已在K15.decay_core后续批实现(新memory_decay_state表+v0047迁移+memory_entries6加性列+2所有者REST路由+domain/memory_decay.py纯规则，forgotten隐藏态不擦除V2纪律更严于参考自动删除，自动每日tick/重要性启发scoreMemory/isInitial/双卡分离/注入clarity裁剪/容量告警auto-compact仍后续)；不宣称自主行为/分层人格/作息反馈对等，遗忘巩固仅核心手动衰减遍；既有todos重启竞态与pin v2_0039旧迁移测试沿用保留",
+      "limits": "只读审计无新引擎/表/迁移/路由/源码改动；可离线缺口未在K15审计批实现(列后续批次)，其中时间衰减遗忘巩固引擎核心已在K15.decay_core后续批实现(新memory_decay_state表+v0047迁移+memory_entries6加性列+2所有者REST路由+domain/memory_decay.py纯规则，forgotten隐藏态不擦除V2纪律更严于参考自动删除)，自动每日遍已在K15.decay_tick后续批接入MaintenanceService.tick(dailyHour=4夜间门+每agent今日一次幂等+有界8agent sweep，生产启用隔离测试禁用，复用decay_core隐藏不擦除/protected豁免，无新表/迁移/路由)；重要性启发scoreMemory/isInitial/双卡分离/注入clarity裁剪/容量告警auto-compact/所有者自动衰减开关仍后续；不宣称自主行为/分层人格/作息反馈对等，遗忘巩固仅核心手动+自动每日衰减遍；既有todos重启竞态与pin v2_0039旧迁移测试沿用保留",
       "next": false
     },
     {
@@ -715,6 +723,10 @@
     {
       "id": "K15.decay_core",
       "evidence": "docs/evidence/v2-memory-decay.json"
+    },
+    {
+      "id": "K15.decay_tick",
+      "evidence": "docs/evidence/v2-memory-decay-tick.json"
     }
   ]
 }

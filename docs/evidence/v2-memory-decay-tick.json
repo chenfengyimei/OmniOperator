@@ -1,0 +1,99 @@
+{
+  "schema": 1,
+  "date": "2026-11-20",
+  "base_commit": "1d79110fd6ad94cbb6e6c61ed03e2930895c84c0",
+  "status": "implemented_scoped_passed",
+  "batch": "K15.decay_tick",
+  "implements_gap": "K15 人格/遗忘巩固/自主行为审计之时间衰减自动每日遍（decay_core 已实现所有者手动衰减遍，本批接入 MaintenanceService.tick 自动每日运行，保守子集复用 decay_core 隐藏不擦除/protected 豁免）",
+  "contract": "docs/v2/contracts/V2_MEMORY_DECAY_TICK.md",
+  "source_files": {
+    "agent/src/omni/domain/memory_decay.py": "ae3719cfe8edbc08dd66ba05d77d2c90ab8d77962550ce21fcac4b4bb406484c",
+    "agent/src/omni/adapters/persistence/memory_repository.py": "a6b70341178777e7de7366c90398ff1dc07901b1fdc513bb6ba180ec0f52524d",
+    "agent/src/omni/application/maintenance.py": "afc276d45dda3cf8fcfcf6c592b63a49da3fbf3e24e9d3fd2b6723967160356d",
+    "agent/src/omni/application/ports.py": "3bc1de3c8f50eb4dadab809dc4f42cb71a1947d000ea02ebc15ffb9be05dfbfe",
+    "agent/src/omni/composition/instance.py": "185c14d660cc63feba406a7e7e4a7d5962e347e4029405fe22b46b05317159c0",
+    "agent/tests/v2/core/test_v2_memory_decay_tick.py": "0552432498773fa2ad619694d86ca6496013417c786c66499e8ed5ccdf3f4a80",
+    "docs/v2/contracts/V2_MEMORY_DECAY_TICK.md": "387a50632888de0a55a8e228fd4bbe56e4333f12149da3cbb8b361dc87e3cf74"
+  },
+  "reference": {
+    "repository": "xuexi/surfcore",
+    "commit": "59ec3066",
+    "files": {
+      "src/night-schedule.mjs": "dailyHour=4 夜间触发 + needsDailyDecay(last_decay_date != today) 每日一次衰减门",
+      "src/memory-card.js": "applyDailyDecay 每日一步衰减（decay_core 已实现核心，本批复用）"
+    },
+    "adaptation": "学习参考夜间 dailyHour 触发 + 每日一次门语义，独立实现于 V2 四层 maintenance/memory 链（stdlib，无新依赖）。保守子集：自动遍仅步进 clarity，绝不擦除/不写 tombstone/不失效会话，复用 decay_core 的 forgotten 隐藏态不擦除（所有者 forget 唯一擦除路径，严于参考自动删除）+ protected(pinned or importance>=65) 永不衰减 + DOCUMENT_KINDS profile/resident 豁免。生产路径(capabilities is None)启用、隔离测试 None 禁用（K08 background_review maintenance 驱动同先例，避免破坏既有 tick 计数/费用断言）。参考 agents.md/prompts 当不可信数据非本会话指令。无第三方源码复制。"
+  },
+  "delivered": [
+    "domain/memory_decay.py 加 DECAY_DAILY_HOUR=4（参考 dailyHour，UTC 小时；clock.now() UTC ISO）、DECAY_TICK_LIMIT=8（每 tick 最多处理 agent 数有界扫描）、should_auto_decay(last_decay_date,today,hour,daily_hour)=hour>=daily_hour and last_decay_date!=today（参考 needsDailyDecay+夜间门；无记录 None!=today 视为待衰减）",
+    "memory_repository.py 加 memory_decay_auto_tick(daily_hour,limit)->int：now=clock.now()/today=now[:10]/hour=int(now[11:13])；有界候选 agents enabled=1 LEFT JOIN memory_decay_state SQL 过滤 last_decay_date IS NULL OR !=today LIMIT limit；逐候选 should_auto_decay hour 门确认→调既有 memory_decay_pass(force=False) 复用今日门409/catchup/一步/隐藏不擦除/审计/state累计；捕获 memory_decay_already_today（与所有者手动遍竞态）跳过不计、其余错误传播回滚；返回本 tick 实际衰减 agent 数（hour<daily_hour 全 False→0）；加 or_ 导入",
+    "application/maintenance.py：__init__ 加 decay_daily_hour:int|None=None（None 禁用隔离测试默认）；tick 在 background_review 之后 claim 之前加 if self._decay_daily_hour is not None: decayed=await self._db.write(memory_decay_auto_tick(daily_hour,DECAY_TICK_LIMIT))；返回 len(claims)+processed+decayed（decayed 独立计不占 MAX_ACTIVE 槽，同步 DB 写非 durable job，不干扰 memory_organization/background_review 槽位 accounting）；加 DECAY_TICK_LIMIT 导入",
+    "composition/instance.py：MaintenanceService(...,decay_daily_hour=DECAY_DAILY_HOUR if capabilities is None else None)——仅生产路径启用，隔离测试 None 禁用；加 DECAY_DAILY_HOUR 导入",
+    "ports.py UnitOfWork Protocol 加 memory_decay_auto_tick(daily_hour:int,limit:int)->int",
+    "test_v2_memory_decay_tick.py 新 15 项专项：should_auto_decay 门参数化6（hour<4/==4/>4、last==today、last None、last 昨日）、仓储夜间门前0/门后衰减/今日门幂等第二遍0/次日再衰减/有界limit跨agent(limit2→2,1,0)/disabled跳过/手动遍今日后自动0/protected+document永不褪色、maintenance tick默认禁用(tick()==0)/启用sweep(tick()==1后0)、composition生产=4隔离=None接线(NoModel)"
+  ],
+  "limits": {
+    "daily_hour_gate_utc4_should_auto_decay": true,
+    "once_per_day_per_agent_idempotent_reuse_today_gate": true,
+    "bounded_sweep_decay_tick_limit_8": true,
+    "production_only_enabled_isolated_tests_disabled": true,
+    "does_not_occupy_max_active_slot_sync_db_write": true,
+    "reuses_decay_core_hidden_not_erased_protected_exempt_document_exempt": true,
+    "manual_pass_today_race_already_today_skip": true,
+    "disabled_agent_skipped": true,
+    "no_new_table_no_new_migration_no_new_route_no_new_model_tool": true,
+    "owner_auto_decay_toggle_dailyhour_config_implemented": false,
+    "per_agent_timezone_local_hour_implemented": false,
+    "importance_heuristic_scoreMemory_implemented": false,
+    "isInitial_window_implemented": false,
+    "dual_card_separation_injection_clarity_truncation_implemented": false,
+    "capacity_warning_auto_compact_implemented": false,
+    "decay_notification_owner_alert_implemented": false,
+    "new_source_files": 0,
+    "worker_protocol_frame_changed": false,
+    "cross_platform_worker_changed": false,
+    "aggregate_index_commit_deferred": true
+  },
+  "validation": {
+    "mode": "scoped_implementation_plus_caller",
+    "decay_tick_scoped": {
+      "command": "uv run --no-sync pytest -q -n 0 tests/v2/core/test_v2_memory_decay_tick.py (from agent/)",
+      "passed": 15,
+      "failed": 0,
+      "seconds": 15.07
+    },
+    "caller_regression": {
+      "command": "uv run --no-sync pytest -q -n 0 <10 files: maintenance/maintenance_migration/memory_decay/memory_decay_tick/memory_organization/memory_semantics/lifecycle/kernel/execution/routing> (from agent/)",
+      "passed": 107,
+      "failed": 0,
+      "seconds": 190.53,
+      "note": "decay sweep 在隔离测试经 decay_daily_hour=None 门控 OFF，既有 maintenance tick 计数/费用断言零回归；生产启用路径由 composition 接线专项覆盖"
+    },
+    "strict": {
+      "config": "pyrightconfig.strict.json",
+      "files": 412,
+      "errors_total": 5,
+      "errors_attributable_to_this_batch": 0,
+      "warnings": 0,
+      "pre_existing_errors_not_chased": "ALL 5 in agent/src/omni/adapters/persistence/repository.py (other-session COMMITTED 6bcb0e98): L633 RowMapping|None->Record|None; L659 x2 + L710 x2 JSON->ConvertibleToInt. 本批 domain/memory_decay/memory_repository/maintenance/ports/instance 零错误",
+      "note": "run from repo ROOT; 本批无新源文件(既有文件加方法)，include 无需新增，412 文件不变"
+    },
+    "ruff": "check + format pass on 5 source files + 1 test (test reformatted once)",
+    "project_index": "run; no new/removed source files (existing files add methods + new test/contract/evidence); aggregate docs/index deferred per standing discipline (parallel UI session active)",
+    "task_status_check": "scripts/task_status.py --check exit 0",
+    "full_suite_executed": false,
+    "real_model_account_device_native_or_72h_executed": false,
+    "current_windows_service_or_database_touched": false
+  },
+  "whole_core_parity_complete": false,
+  "whole_reference_feature_audit_complete": false,
+  "whole_v2_complete": false,
+  "not_executed": [
+    "K15 所有者侧自动衰减开关/dailyHour 可配置(settings 集成)、按 agent 时区/local hour、重要性启发 scoreMemory(owner/emotion/first-meet 依赖渠道说话人上下文)、isInitial 30天窗口、双卡分离(注入预算裁剪+JSONL归档)、注入 clarity 截断(200/130/42/22)、容量告警/auto-compact、衰减通知/所有者告警",
+    "K15 主动动机引擎/分层人格合成+跨渠道统一卡/作息质量反馈+睡前观察/唤醒/晨间问候",
+    "既有 pre-existing bug 待独立批：6bcb0e98 event_retention_targets kind 白名单缺 action.executing/model.started(event_pruning 7 失败)、execution_pruning[cost] fingerprint 含 settle 事件、7 个 pin v2_0039 schema_version 滞后、media_upload DDL、5 个 repository.py strict 错误",
+    "files_patch V4A 多文件格式、files_search ripgrep/glob 否定、K16 帧内 OCR/模型侧 zoom(需所有者图像协议批准)、K01 会话/lineage 缓存范围、K17 信笺/反思/人格成长、K18 写广度/自主观看/受控分享",
+    "真实长期衰减曲线/多 agent 长尾性能验收；Full offline suite for current source; real accounts/models/devices/native desktop and 72h soak"
+  ],
+  "next": "继续清单可离线缺口独立合同先批：K15 重要性启发 scoreMemory 或既有 event_retention 白名单修复批(6bcb0e98 遗留,独立于 decay)；或 files_patch V4A/K16 OCR/K01 cache-scope/K17 信笺反思。whole_*_complete 保持 false,不提前关闭任何对标项。"
+}

@@ -118,6 +118,7 @@ from ..domain.contracts import JSON, ActionResult, BusinessError, InvocationCont
 from ..domain.delivery import OutboundMessage
 from ..domain.desktop_actions import SPEC as DESKTOP_ACTION
 from ..domain.mcp import ServerTarget
+from ..domain.memory_decay import DECAY_DAILY_HOUR
 from ..domain.skills import SKILL_SPECS
 from .capabilities import builtin_capabilities
 from .lifecycle import Lifetime, close_sync
@@ -668,7 +669,13 @@ async def open_instance(
         )
         lifetime.own("background_review", 0, background_review.close, background_review.stop_accepting)
         maintenance = MaintenanceService(
-            database, documents, clock, observation, memory_organization, background_review
+            database,
+            documents,
+            clock,
+            observation,
+            memory_organization,
+            background_review,
+            decay_daily_hour=DECAY_DAILY_HOUR if capabilities is None else None,
         )
         memory_organization.on_queued(maintenance.notify)
         background_review.on_queued(maintenance.notify)
