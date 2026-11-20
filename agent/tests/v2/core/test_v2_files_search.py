@@ -16,6 +16,7 @@ from omni.domain.files_search import (
     match_path_glob,
     normalize_context,
     normalize_file_glob,
+    normalize_file_glob_exclude,
     normalize_offset,
     normalize_order,
     normalize_output_mode,
@@ -999,6 +1000,199 @@ def test_files_search_spec_exposes_use_regex(tmp_path):
             specs = tuple(c.spec for c in builtin_capabilities(db, DocumentService(db, objects)))
             parameters = next(s for s in specs if s.name == "files_search").parameters
             assert parameters["properties"]["use_regex"] == {"type": "boolean"}
+            assert parameters["required"] == ["query"]
+
+    asyncio.run(scenario())
+
+
+def test_normalize_file_glob_exclude_defaults_and_normalizes():
+    assert normalize_file_glob_exclude(None) == ()
+    assert normalize_file_glob_exclude([]) == ()
+    assert normalize_file_glob_exclude(()) == ()
+    assert normalize_file_glob_exclude("  *.min.js  ") == ("*.min.js",)
+    assert normalize_file_glob_exclude("!*.lock") == ("*.lock",)
+    assert normalize_file_glob_exclude("!  node_modules/*  ") == ("node_modules/*",)
+    assert normalize_file_glob_exclude(["*.py", "!*.txt"]) == ("*.py", "*.txt")
+    assert normalize_file_glob_exclude(("a", "b")) == ("a", "b")
+    assert normalize_file_glob_exclude("x" * 200) == ("x" * 200,)
+    assert normalize_file_glob_exclude([f"g{i}" for i in range(8)]) == tuple(f"g{i}" for i in range(8))
+
+
+def test_normalize_file_glob_exclude_rejects_invalid():
+    for bad in (5, True, 1.5, {"glob": "*.py"}, b"*.py"):
+        with pytest.raises(ValueError):
+            normalize_file_glob_exclude(bad)
+    for bad in ("", "   ", "!", "x" * 201, "a\nb", "a\x00b"):
+        with pytest.raises(ValueError):
+            normalize_file_glob_exclude(bad)
+    for bad in (["*.py", ""], ["*.py", 5], ["*.py", "x" * 201], ["a\nb"], ["!"], [None]):
+        with pytest.raises(ValueError):
+            normalize_file_glob_exclude(bad)
+    with pytest.raises(ValueError):
+        normalize_file_glob_exclude(["*.py"] * 9)
+
+
+def test_worker_file_glob_exclude_drops_matching_files(tmp_path):
+    (tmp_path / "a.py").write_text("needle", encoding="utf-8")
+    (tmp_path / "b.min.js").write_text("needle", encoding="utf-8")
+    (tmp_path / "c.txt").write_text("needle", encoding="utf-8")
+
+    async def scenario():
+        result = await Worker().invoke(
+            "files_search", {"query": "needle", "file_glob_exclude": "*.min.js"}, {"workspace": str(tmp_path)}
+        )
+        assert result.status == Outcome.OK and result.effect == Effect.NONE
+        assert {Path(m["path"]).as_posix() for m in result.data["matches"]} == {"a.py", "c.txt"}
+
+    asyncio.run(scenario())
+
+
+def test_worker_file_glob_exclude_combines_with_include(tmp_path):
+    (tmp_path / "a.py").write_text("needle", encoding="utf-8")
+    (tmp_path / "b.py").write_text("needle", encoding="utf-8")
+    (tmp_path / "c.txt").write_text("needle", encoding="utf-8")
+
+    async def scenario():
+        result = await Worker().invoke(
+            "files_search",
+            {"query": "needle", "file_glob": "*.py", "file_glob_exclude": "b.py"},
+            {"workspace": str(tmp_path)},
+        )
+        assert {Path(m["path"]).as_posix() for m in result.data["matches"]} == {"a.py"}
+
+    asyncio.run(scenario())
+
+
+def test_worker_file_glob_exclude_multiple_bang_and_path_anchored(tmp_path):
+    (tmp_path / "sub").mkdir()
+    (tmp_path / "sub" / "x.py").write_text("needle", encoding="utf-8")
+    (tmp_path / "top.py").write_text("needle", encoding="utf-8")
+    (tmp_path / "keep.txt").write_text("needle", encoding="utf-8")
+    (tmp_path / "drop.lock").write_text("needle", encoding="utf-8")
+
+    async def scenario():
+        listed = await Worker().invoke(
+            "files_search",
+            {"query": "needle", "file_glob_exclude": ["sub/*.py", "*.lock"]},
+            {"workspace": str(tmp_path)},
+        )
+        assert {Path(m["path"]).as_posix() for m in listed.data["matches"]} == {"top.py", "keep.txt"}
+        bang = await Worker().invoke(
+            "files_search",
+            {"query": "needle", "file_glob_exclude": ["!sub/*.py", "!*.lock"]},
+            {"workspace": str(tmp_path)},
+        )
+        assert {Path(m["path"]).as_posix() for m in bang.data["matches"]} == {"top.py", "keep.txt"}
+
+    asyncio.run(scenario())
+
+
+def test_worker_file_glob_exclude_applies_to_files_with_matches_and_count(tmp_path):
+    (tmp_path / "a.py").write_text("needle\nneedle", encoding="utf-8")
+    (tmp_path / "b.min.js").write_text("needle", encoding="utf-8")
+
+    async def scenario():
+        fwm = await Worker().invoke(
+            "files_search",
+            {"query": "needle", "output_mode": "files_with_matches", "file_glob_exclude": "*.min.js"},
+            {"workspace": str(tmp_path)},
+        )
+        assert {Path(m["path"]).as_posix() for m in fwm.data["matches"]} == {"a.py"}
+        cnt = await Worker().invoke(
+            "files_search",
+            {"query": "needle", "output_mode": "count", "file_glob_exclude": "*.min.js"},
+            {"workspace": str(tmp_path)},
+        )
+        assert cnt.data["matches"] == [{"path": "a.py", "count": 2}]
+
+    asyncio.run(scenario())
+
+
+def test_worker_file_glob_exclude_ignored_for_files_target(tmp_path):
+    (tmp_path / "a.py").write_text("x", encoding="utf-8")
+    (tmp_path / "b.py").write_text("x", encoding="utf-8")
+
+    async def scenario():
+        result = await Worker().invoke(
+            "files_search",
+            {"query": "*.py", "target": "files", "file_glob_exclude": "b.py"},
+            {"workspace": str(tmp_path)},
+        )
+        assert {Path(m["path"]).as_posix() for m in result.data["matches"]} == {"a.py", "b.py"}
+
+    asyncio.run(scenario())
+
+
+def test_worker_file_glob_exclude_empty_default_searches_all(tmp_path):
+    (tmp_path / "a.py").write_text("needle", encoding="utf-8")
+    (tmp_path / "b.txt").write_text("needle", encoding="utf-8")
+
+    async def scenario():
+        omitted = await Worker().invoke("files_search", {"query": "needle"}, {"workspace": str(tmp_path)})
+        empty = await Worker().invoke(
+            "files_search", {"query": "needle", "file_glob_exclude": []}, {"workspace": str(tmp_path)}
+        )
+        for result in (omitted, empty):
+            assert {Path(m["path"]).as_posix() for m in result.data["matches"]} == {"a.py", "b.txt"}
+
+    asyncio.run(scenario())
+
+
+def test_worker_file_glob_exclude_combines_with_regex_order_offset(tmp_path):
+    for name, mtime in (("a.py", 1000), ("b.py", 3000), ("c.min.js", 2000)):
+        path = tmp_path / name
+        path.write_text("item1\nitem2\n", encoding="utf-8")
+        os.utime(path, (mtime, mtime))
+
+    async def scenario():
+        result = await Worker().invoke(
+            "files_search",
+            {
+                "query": r"item\d",
+                "use_regex": True,
+                "file_glob_exclude": "*.min.js",
+                "order": "modified",
+                "offset": 1,
+            },
+            {"workspace": str(tmp_path)},
+        )
+        assert result.status == Outcome.OK
+        matches = result.data["matches"]
+        assert [(Path(m["path"]).as_posix(), m["line"]) for m in matches] == [("b.py", 2), ("a.py", 1), ("a.py", 2)]
+        assert result.data["truncated"] is False
+
+    asyncio.run(scenario())
+
+
+@pytest.mark.parametrize("value", ["", "!", "x" * 201, 5, True, ["*.py", ""], ["*.py"] * 9, {"g": "*.py"}])
+def test_worker_search_rejects_invalid_file_glob_exclude_before_dispatch(tmp_path, value):
+    (tmp_path / "a.py").write_text("needle", encoding="utf-8")
+
+    async def scenario():
+        result = await Worker().invoke(
+            "files_search", {"query": "needle", "file_glob_exclude": value}, {"workspace": str(tmp_path)}
+        )
+        assert result.status == Outcome.ERROR and result.effect == Effect.NONE
+        assert result.error_code == "invalid_capability_request"
+        assert "needle" not in result.text
+
+    asyncio.run(scenario())
+
+
+def test_files_search_spec_exposes_file_glob_exclude(tmp_path):
+    from omni_test_support.v2.documents import Clock, DocumentService, opened
+
+    from omni.composition.capabilities import builtin_capabilities
+
+    async def scenario():
+        async with opened(tmp_path, Clock()) as (_, db, objects, _agent):
+            specs = tuple(c.spec for c in builtin_capabilities(db, DocumentService(db, objects)))
+            parameters = next(s for s in specs if s.name == "files_search").parameters
+            assert parameters["properties"]["file_glob_exclude"] == {
+                "type": ["string", "array"],
+                "items": {"type": "string", "minLength": 1, "maxLength": 200},
+                "maxItems": 8,
+            }
             assert parameters["required"] == ["query"]
 
     asyncio.run(scenario())

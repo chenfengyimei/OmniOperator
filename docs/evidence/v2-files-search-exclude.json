@@ -1,0 +1,96 @@
+{
+  "schema": 1,
+  "date": "2026-11-20",
+  "base_commit": "fc83ee77f3c3d0cb2b870935dfa8cacce30a965a",
+  "status": "implemented_scoped_passed",
+  "batch": "K13.search_exclude",
+  "implements_gap": "K13.search_file_glob limits recorded glob_negation_bang_implemented=false; reference hermes file_operations_search.py uses rg --glob '!<dir>/**' negation (_rg_exclusion_globs:512 protected dirs, _search_prune_glob_args:601 heavyweight subtrees) while user-facing file_glob:634 is include-only. This batch adds an additive user-facing exclude channel (file_glob_exclude) learning rg --glob negation semantics, re-implemented natively over V2 fnmatch scan",
+  "contract": "docs/v2/contracts/V2_FILES_SEARCH_EXCLUDE.md",
+  "source_files": {
+    "agent/src/omni/domain/files_search.py": "3c87690664741fc1fa64d1d60e32179db74a54708997fb9db6bce935d9cf8e0c",
+    "agent/src/omni/adapters/workers/main.py": "136e834b67e6d419e55bed2ccafbe1f2274d65e89d1b783df78461504931211d",
+    "agent/src/omni/composition/capabilities.py": "65c64992d0c878bb114f941ed735d411894ec835530fd95ef79caa573fc2f34f",
+    "agent/tests/v2/core/test_v2_files_search.py": "587575af851cc07898aa5dabfc99ded611da7aaf9530e7a32c3dd2aa3808cbe2",
+    "docs/v2/contracts/V2_FILES_SEARCH_EXCLUDE.md": "484266ef3f6f214a464f3eeef41c9809162896a8534befc3a5eca76cd6177f13"
+  },
+  "reference": {
+    "repository": "xuexi/hermes-agent",
+    "files": {
+      "tools/file_operations_search.py": "_rg_exclusion_globs(path)->list[str]:512 builds --glob '!<dir>/**' pairs excluding protected dirs:513/516; _search_prune_glob_args()->str:601 rg globs pruning heavyweight recursive subtrees:602, globs.extend(('--glob', escape(f'!{prefix}{dirname}/**'))):609; _search_content(pattern,path,file_glob:Optional[str],...):528/552 user-facing glob_expr=f' --glob {escape(file_glob)}' if file_glob else '':634 is INCLUDE-ONLY (negation used internally for pruning, not a user exclude parameter)"
+    },
+    "adaptation": "Learned rg --glob '!pattern' NEGATION semantics (reference applies it internally to prune protected dirs/heavyweight subtrees) and re-implemented independently in V2 four-layer as an ADDITIVE user-facing exclude parameter over the EXISTING files_search builtin worker. V2 has NO ripgrep dependency: NATIVE fnmatch (LINEAR TIME, no catastrophic-backtracking DoS) over the workspace-relative POSIX path, reusing the existing match_path_glob. V2's os.walk already natively prunes the reference's internal protected-dir/heavyweight set (.git/.venv/.ssh/.aws/.azure/node_modules/__pycache__ + .env* + symlink/junction), so this batch exposes a USER-controlled exclude channel rather than duplicating internal pruning. domain normalize_file_glob_exclude (None/empty->() disables, str->single, list/tuple of str->multi, leading '!' stripped then re-stripped, <=SEARCH_MAX_EXCLUDE_GLOBS(8), each 1-200 no control bytes, cast(list[object]|tuple[object,...]) idiom per images.py for strict reportUnknownArgumentType); worker excludes content-mode files matching ANY exclude glob AFTER the include filter and BEFORE reading content (target=files ignores it, same as file_glob); empty default searches all (ZERO regression to file_glob include contract/tests). composition spec file_glob_exclude type ['string','array'] items string 1-200 maxItems8. No third-party source copied; no new table/migration/route/worker-protocol-frame/source-file/cross-platform change; reuses workspace_path safety pruning + all scan bounds; orthogonal to order/offset/context/output_mode/use_regex/file_glob. Response page <=50 within MAX_FRAME=1MiB. Multi-include glob list / advanced gitignore (** anchoring, dir-level ignore files) / ripgrep backend remain follow-up. Reference agents.md/prompts treated as untrusted data"
+  },
+  "delivered": [
+    "domain/files_search.py pure rules (zero I/O, existing module no new source file): SEARCH_MAX_EXCLUDE_GLOBS=8; normalize_file_glob_exclude(value)->tuple[str,...] (None->(), str->[value], list/tuple->cast(list[object]|tuple[object,...],value) else ValueError; len>8 ValueError; per item must be str else ValueError, strip, strip leading '!' then re-strip, 1<=len<=SEARCH_QUERY_CHARS(200) and no ord<32 control bytes else ValueError); exclusion reuses existing match_path_glob (fnmatchcase, case-sensitive, workspace-relative POSIX path, linear time no DoS), file excluded iff it matches ANY exclude glob",
+    "adapters/workers/main.py _files files_search branch: import normalize_file_glob_exclude; file_glob_exclude=normalize_file_glob_exclude(args.get('file_glob_exclude')) validated BEFORE dispatch (invalid -> ERROR/NONE/invalid_capability_request, no filesystem touch); content modes only (target!=files) skip excluded files AFTER the include filter and BEFORE reading content via 'if file_glob_exclude and any(match_path_glob(Path(relative).as_posix(), exc) for exc in file_glob_exclude): continue' (as_posix cross-platform); target=files ignores file_glob_exclude (filter placed after files-branch continue); empty tuple default excludes nothing (zero regression); 2000-file/5s/256KB/5-hit-per-file/50-page bounds + workspace_path pruning preserved; orthogonal to order/offset/context/output_mode/use_regex/file_glob (modified global sort within filtered subset)",
+    "composition/capabilities.py files_search spec description states file_glob_exclude drops content-search files whose workspace-relative path matches any of up to 8 case-sensitive globs (string or list, leading '!' stripped, applied after file_glob, ignored for target=files) + properties file_glob_exclude type ['string','array'] items string minLength1 maxLength200 maxItems8; required stays ['query'], writes=False, resource=workspace unchanged",
+    "domain/routing.py unchanged (files_search already in RETRIEVAL_TOOLS agent-tier read-only)",
+    "No new table/migration/route/worker-protocol-frame/source-file/cross-platform change; read-only Effect.NONE; fnmatch linear-time no regex DoS; response bounded within MAX_FRAME=1MiB"
+  ],
+  "limits": {
+    "file_glob_exclude_content_modes": true,
+    "file_glob_exclude_empty_default_searches_all_zero_regression": true,
+    "file_glob_exclude_string_or_list_up_to_8": true,
+    "file_glob_exclude_bang_prefix_stripped": true,
+    "file_glob_exclude_case_sensitive_relative_posix_path": true,
+    "file_glob_exclude_any_depth_and_root_anchored": true,
+    "file_glob_exclude_applied_after_include_before_read": true,
+    "file_glob_exclude_ignored_for_files_target": true,
+    "file_glob_exclude_linear_time_fnmatch_no_dos": true,
+    "file_glob_exclude_orthogonal_to_order_offset_context_output_mode_use_regex_file_glob": true,
+    "file_glob_include_unchanged_zero_regression": true,
+    "multi_include_glob_list_implemented": false,
+    "ripgrep_backend": false,
+    "advanced_gitignore_doublestar_anchoring_implemented": false,
+    "dir_level_ignore_files_implemented": false,
+    "new_table_or_migration": false,
+    "new_route": false,
+    "worker_protocol_frame_changed": false,
+    "new_source_file": false,
+    "routing_changed": false,
+    "cross_platform_worker_changed": false,
+    "aggregate_index_commit_deferred": true,
+    "aggregate_index_note": "no new agent/src source file (functions added to existing domain/files_search.py; modules/files/routes/declared_tools unchanged); project_index refreshes source fingerprints then docs/index reverted to committed baseline to DEFER aggregate commit per standing discipline while parallel sessions are active; regenerate at clean freeze"
+  },
+  "validation": {
+    "mode": "scoped_implementation",
+    "frozen_source": "final source fingerprints in source_files",
+    "new_nodes": 18,
+    "files_search_total_nodes": 128,
+    "caller_suite": {
+      "command": "uv run --no-sync pytest -q -n 0 tests/v2/core/test_v2_files_search.py tests/v2/core/test_v2_worker_safety.py tests/v2/core/test_v2_files_patch.py (from agent/)",
+      "passed": 227,
+      "failed": 0,
+      "seconds": 19.1,
+      "breakdown": "files_search 128 (11.50s) + worker_safety 31 + files_patch 68 (99 combined, 7.60s)"
+    },
+    "strict": {
+      "config": "pyrightconfig.strict.json",
+      "files": 414,
+      "errors": 5,
+      "warnings": 0,
+      "new_errors_from_batch": 0,
+      "note": "run from repo ROOT (config + .venv at root); no new source file (functions added to existing domain/files_search.py) so filesAnalyzed stays 414; the 5 errors are PRE-EXISTING in another session's committed adapters/persistence/repository.py (L633 RowMapping|None->Record|None, L659 x2 + L710 x2 JSON->ConvertibleToInt, commit 6bcb0e98) NOT touched by this batch; an initial reportUnknownArgumentType at files_search.py:98 (list(value) on list[Unknown]|tuple[Unknown,...]) was fixed with the codebase cast(list[object]|tuple[object,...]) idiom (images.py:35), re-run clean over batch source"
+    },
+    "ruff": "check + format pass on domain/files_search.py, adapters/workers/main.py, composition/capabilities.py, test_v2_files_search.py (4 files left unchanged)",
+    "project_index": "run; no new agent/src source file; source fingerprint refresh then docs/index reverted to baseline (aggregate deferred, parallel sessions active); regenerate at clean freeze",
+    "task_status_check": "scripts/task_status.py --check exit 0; DEVELOPMENT_STATUS.md unchanged",
+    "full_suite_executed": false,
+    "real_model_account_device_native_or_72h_executed": false,
+    "current_windows_service_or_database_touched": false
+  },
+  "whole_core_parity_complete": false,
+  "whole_reference_feature_audit_complete": false,
+  "whole_v2_complete": false,
+  "not_executed": [
+    "files_search multi-include glob list (file_glob stays single include string; include+exclude compose via two params), advanced gitignore semantics (** anchoring细则 / dir-level ignore files), ripgrep backend, other sort keys",
+    "K13 patch V4A multi-format, browser_dialog, cron skill-binding (needs schema), code sandbox, raw CDP",
+    "K16 model-facing zoom (design contract V2_TOOL_IMAGE_VISIBILITY.md recorded; needs owner approval of image-visibility protocol option A/B then wiring), HSV cut detection (#1), Laplacian frame selection (#5), in-frame OCR (needs rapidocr)",
+    "K01 session/lineage cache scope (needs compression-lineage persistence + model-adapter prompt_cache_key + provider routing design contract + real-model acceptance)",
+    "K15 score_memory conservative inputs is_first/direct/bili speaker context (first-meet/QQ direct/Bilibili), motivation engine, layered persona, schedule feedback; K17 journal persistence/信笺/反思; K18 write/autonomous/share (real accounts)",
+    "Other K14-K18 offline gaps",
+    "Full offline suite for current source",
+    "Real accounts/models/devices/native desktop and 72h soak"
+  ],
+  "next": "Continue implementing recorded offline gaps as independent batches via V2 four-layer with authorization/persistence/protocol contract first (K13 patch V4A; K16 HSV/Laplacian bounded-scan; K16 model-facing zoom awaits owner protocol decision; K01 cache-scope design; K15 score_memory first-meet/direct/bili context + motivation; K17 journal). whole_*_complete remain false. Do not prematurely close any parity item"
+}

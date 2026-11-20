@@ -28,6 +28,7 @@ from ...domain.files_search import (
     match_path_glob,
     normalize_context,
     normalize_file_glob,
+    normalize_file_glob_exclude,
     normalize_offset,
     normalize_order,
     normalize_output_mode,
@@ -210,6 +211,7 @@ class Worker:
             offset = normalize_offset(args.get("offset"))
             order = normalize_order(args.get("order"))
             file_glob = normalize_file_glob(args.get("file_glob"))
+            file_glob_exclude = normalize_file_glob_exclude(args.get("file_glob_exclude"))
             use_regex = normalize_use_regex(args.get("use_regex"))
             regex = compile_search_regex(query) if use_regex and target == "content" else None
             collect_all = order == "modified"
@@ -253,6 +255,10 @@ class Worker:
                                 break
                         continue
                     if file_glob is not None and not match_path_glob(Path(relative).as_posix(), file_glob):
+                        continue
+                    if file_glob_exclude and any(
+                        match_path_glob(Path(relative).as_posix(), exc) for exc in file_glob_exclude
+                    ):
                         continue
                     if info.st_size > 256 * 1024:
                         continue

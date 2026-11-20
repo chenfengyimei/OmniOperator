@@ -26,6 +26,7 @@ SEARCH_CONTEXT_LINES = 3
 SEARCH_MAX_OFFSET = 1000
 SEARCH_ORDERS = ("discovery", "modified")
 SEARCH_REGEX_MAX_REPEAT = 1024
+SEARCH_MAX_EXCLUDE_GLOBS = 8
 _REGEX_REPEATS = frozenset({"MAX_REPEAT", "MIN_REPEAT", "POSSESSIVE_REPEAT"})
 
 
@@ -85,6 +86,31 @@ def normalize_file_glob(value: object) -> str | None:
     if not 1 <= len(pattern) <= SEARCH_QUERY_CHARS or any(ord(c) < 32 for c in pattern):
         raise ValueError("Search file_glob must be 1-200 characters without control bytes")
     return pattern
+
+
+def normalize_file_glob_exclude(value: object) -> tuple[str, ...]:
+    """Optional bounded exclude globs for content search (rg --glob '!...' negation); empty disables exclusion."""
+    if value is None:
+        return ()
+    if isinstance(value, str):
+        items: list[object] | tuple[object, ...] = [value]
+    elif isinstance(value, (list, tuple)):
+        items = cast(list[object] | tuple[object, ...], value)
+    else:
+        raise ValueError("Search file_glob_exclude must be a string or a list of strings")
+    if len(items) > SEARCH_MAX_EXCLUDE_GLOBS:
+        raise ValueError("Search file_glob_exclude accepts at most 8 globs")
+    patterns: list[str] = []
+    for item in items:
+        if not isinstance(item, str):
+            raise ValueError("Search file_glob_exclude must be a string or a list of strings")
+        pattern = item.strip()
+        if pattern.startswith("!"):
+            pattern = pattern[1:].strip()
+        if not 1 <= len(pattern) <= SEARCH_QUERY_CHARS or any(ord(c) < 32 for c in pattern):
+            raise ValueError("Search file_glob_exclude must be 1-200 characters without control bytes")
+        patterns.append(pattern)
+    return tuple(patterns)
 
 
 def normalize_use_regex(value: object) -> bool:
