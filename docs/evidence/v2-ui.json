@@ -1516,5 +1516,21 @@
       "截图": "p6-delivery-picker-dark-1440.png/p6-delivery-picker-light-1440.png/p6-delivery-390.png/p6-usd-hints.png/p6-mcp-folds.png",
       "版本": "V2 20261120v171"
     }
+  },
+  "ui_iteration_p7_integration": {
+    "需求": "唯一一次全量pytest(≤4worker,记录耗时与覆盖源码)+Playwright双主题×1440/760/390巡24页截图+汇总证据提交",
+    "全量首跑": "2419.24s -n 4:7819 passed/205 failed/193 errors;环境级根因作废:Windows注册表ProxyOverride被urllib.getproxies()读成scheme为no的代理项,httpx 0.28.1解析其IPv6覆写列表抛InvalidURL(':1]'),BiliAPI默认Client构造即炸并波及所有默认Client路径;裸httpx.Client()可复现,NO_PROXY=*隔离后跨组抽样5/5过;非源码回归",
+    "全量权威": "NO_PROXY=*隔离 -n 4 复跑2591.83s(43:11):8192 passed/25 failed/0 errors;源码基线7cdd21a6(跑期间前端index.html/model-output.js暂置HEAD,并行WIP备份temp/build/_p7_wip_backup跑后恢复;跑期间无并行新提交/无agent-src WIP);日志temp/build/_p7_full_run2.log",
+    "失败归因": [
+      "负载型flaky 1例:test_v2_delegation four_waiting_parents串行复跑通过",
+      "迁移pin漂移9例(memory_semantics v33×2/media_upload rebuild×2/skills v34×2/images v31/routing v32/media v36):断言仍pin旧head v2_0039,K13已进v2_0049,并行批pin更新漏这些测试文件",
+      "schema/行为漂移7例(todos restart/pruning[cost]/reference_release[cost]/android_unicode/android_model/media_staging×2):no such table run_delegations或断言漂移,均在后端提交批爆炸半径",
+      "Windows原生登记6例(service_registration receipt×5+broker):powershell命令参数断言漂移",
+      "installer隔离python 1例:candidate_install_failed(unicode临时目录+-I隔离子进程),待并行/所有者处置",
+      "V1项目目录1例:#proj-detail-body pre缺『OmniOperator 架构说明』,docs/index置HEAD仍红,HEAD既有红",
+      "24确定性红串行复跑仍红(temp/build/_p7_run2_serial.log);P1-P6仅改web/ui/v2+两V2 UI测试文件+docs,与上述爆炸半径零交集,非本批回归;V2专项在全量中全绿(delivery/routing/mcp/extensions/schedules/导航/守卫)"
+    ],
+    "巡页": "147/147:24页×双主题×1440/760/390=144截图逐页无横向溢出+双主题导航24页+全程零pageerror;390聊天空态建议卡滚动可达探针PASS(cardBottom617<dockTop677);截图temp/build/v2-demo/p7-{dark,light}-{1440,760,390}-<page>.png与p7-chat390-scrolled.png",
+    "版本": "V2 20261120v171(本批无资源改动)"
   }
 }
