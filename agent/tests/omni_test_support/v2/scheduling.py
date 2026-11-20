@@ -32,7 +32,7 @@ class Clock:
         self.value = timestamp(instant(self.value) + dt.timedelta(seconds=seconds))
 
 
-async def setup(tmp_path, platform="linux"):
+async def setup(tmp_path, platform="linux", redact=lambda text: text):
     clock = Clock()
     db = Database(tmp_path / "omni.db", clock, UUIDs())
     await db.write(lambda u: u.initialize())
@@ -41,7 +41,7 @@ async def setup(tmp_path, platform="linux"):
     async def cancel(a, r):
         await db.write(lambda u: u.cancel(a, r))
 
-    service = SchedulingService(db, clock, PinnedTimezones(), lambda: None, cancel, platform)
+    service = SchedulingService(db, clock, PinnedTimezones(), lambda: None, cancel, platform, redact=redact)
     return db, agent, clock, service
 
 

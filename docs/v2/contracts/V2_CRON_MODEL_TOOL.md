@@ -77,9 +77,10 @@ V2 已有原语（均实读核验）：
 
 - 新表 `schedule_context_refs(schedule_id, revision, agent_id, position, ref_schedule_id)`，`position ∈ [1,4]`，唯一 `(schedule_id, revision, position)`，`scoped_fk` 到 `schedules`；`schedule_revisions` 增列 `continuity INTEGER NOT NULL DEFAULT 0`（`CHECK(continuity IN (0,1))`）表达"自身上一份输出"。参考的 `self` 字面量**不采纳**（创建时无法解析自身 id；自身一律由 `continuity` 表达）。
 - 保存校验：refs 去重、同 agent、存在且未归档、非自身、≤4；**图无环**（DFS ≤64 节点/≤4 跳）。环会把输出链变成互相喂养的无界上下文，必须在保存时拒绝（`invalid_context_cycle`）。
-- 触发注入（在 `tick` 物化后、`accept_turn` 之前）：按 position 依次取 ref 日程**最近一次 `succeeded` occurrence** → 其 `run_id` 对应、由 `finish` 写入的 assistant 消息正文；`system.observability.redact` 脱敏；截断 2000 字符并加截断标记；拼成固定前缀块（`Scheduled job context (<name>): ...`）后接 `Task:` 与原 prompt。无成功输出 → `(no completed output yet)`；已归档 → `(unavailable)`；不阻塞本次触发。
+- 触发注入（在 `tick` 物化后、`accept_turn` 之前）：按 position 依次取 ref 日程**最近一次 `succeeded` occurrence** → 其 `run_id` 对应、由 `finish` 写入的 assistant 消息正文；脱敏后截断 2000 字符并加截断标记；拼成固定前缀块（`Scheduled job context (<name>): ...`）后接 `Task:` 与原 prompt。无成功输出 → `(no completed output yet)`；已归档 → `(unavailable)`；不阻塞本次触发。
+- 脱敏实现落点（实现期修订）：**不用** `system.observability.redact`。V2 分层守卫（`test_v2_architecture.py`）的 `ALLOWED["composition"]` 不含 `system`，从组合层导入即违规。改为由组合层注入**同一活实例** `adapters.diagnostics.Redactor.text`（`sink.redactor`）——它属于 `adapters` 层，正则覆盖面与 V1 的 `redact` 等价，且额外覆盖**运行期 `register()` 进来的真实凭证**，比合同初稿更强。脱敏**先于**截断，避免把凭证截成不再匹配模式的残片。
 - `continuity=true` 用同一查询取**本日程**最近一次成功输出（首次触发为空）。
-- 只取 `succeeded`：`failed/cancelled/unknown/blocked` 一律跳过（unknown 绝不重放，也不进上下文）。注入总长 ≤ 4×2000 字符，加 prompt ≤ 20000，远低于 `accept_turn` 的 200000 上限；**不新增输出文件**，输出仍是消息（审计链不复制）。
+- 只取 `succeeded`：`failed/cancelled/unknown/blocked` 一律跳过（unknown 绝不重放，也不进上下文）。注入块实测上限 = 4 条 ×（2006 截断值 + `Scheduled job context (<name>): ` 前缀，名称 ≤100）≈ 8.6K 字符，加 prompt（≤ 20000）仍远低于 `accept_turn` 的 200000 上限（合同初稿的"≤8000"少算了前缀与截断标记，实现期已更正）；**不新增输出文件**，输出仍是消息（审计链不复制）。
 - 摘录查询在 `schedule_enqueue` 的 accept 回调内、**复用同一 UnitOfWork 连接**完成（该回调已处在 `_db.write` 事务里，另起读连接会自锁）；查询为只读 join（occurrence→run→message），不产生新写。
 
 ### 决策 5：持久化与迁移 v0049
@@ -112,7 +113,7 @@ V2 已有原语（均实读核验）：
 
 ## 有界与安全
 
-数量：enabled ≤256、总数 ≤4096（既有）、技能 ≤4（= `domain.skills.MAX_ACTIVE`）、context refs ≤4、prompt ≤20000、name ≤100、list ≤50/页。注入 ≤8000 字符且脱敏、只取 succeeded。不自动外发、不 pin 模型、不执行脚本/抓取、不扩工具集、不改 workspace、不跨 agent、不伪造 occurrence（无 run-now）、不重放 unknown、revision CAS、archive 取消 pending、写动作仍走审批门、花费仍走日预算。
+数量：enabled ≤256、总数 ≤4096（既有）、技能 ≤4（= `domain.skills.MAX_ACTIVE`）、context refs ≤4、prompt ≤20000、name ≤100、list ≤50/页。注入块 ≤8.6K（4×(2006+名称前缀)）且脱敏、只取 succeeded。不自动外发、不 pin 模型、不执行脚本/抓取、不扩工具集、不改 workspace、不跨 agent、不伪造 occurrence（无 run-now）、不重放 unknown、revision CAS、archive 取消 pending、写动作仍走审批门、花费仍走日预算。
 
 ## 边界
 

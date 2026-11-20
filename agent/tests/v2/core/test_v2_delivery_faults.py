@@ -271,7 +271,7 @@ def test_late_observation_invalidates_exact_reviews_but_archive_does_not(tmp_pat
 
     async def scenario():
         db, agent, channel, clock, _, service = await setup(tmp_path)
-        scheduler = SchedulingService(db, clock, PinnedTimezones(), lambda: None, lambda a, r: None)
+        scheduler = SchedulingService(db, clock, PinnedTimezones(), lambda: None, lambda a, r: None, redact=lambda text: text)
         try:
             plan = await scheduler.save(
                 agent,

@@ -708,7 +708,15 @@ async def open_instance(
             "runs", 0, lambda budget: application.close(budget, close_database=False), application.stop_accepting
         )
         schedules = SchedulingService(
-            database, clock, PinnedTimezones(), application.notify, application.cancel, platform
+            database,
+            clock,
+            PinnedTimezones(),
+            application.notify,
+            application.cancel,
+            platform,
+            # Same live redactor as diagnostics: scheduled output excerpts also mask
+            # credentials registered at runtime, not just pattern-shaped secrets.
+            redact=sink.redactor.text,
         )
         lifetime.own("scheduler", 0, schedules.close, schedules.stop_accepting)
         action_reviews = ActionReviewService(database, application.action_review_blockers, schedules.notify)

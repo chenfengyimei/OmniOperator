@@ -90,6 +90,56 @@ class ScheduleRepositories(LeaseRepositories):
             ).scalars()
         ]
 
+    def schedule_output_excerpts(
+        self, agent_id: str, schedule_id: str, refs: list[str], continuity: bool
+    ) -> list[Record]:
+        """Latest finished assistant output per referenced job, in position order.
+
+        Only ``succeeded`` runs contribute: ``failed/cancelled/unknown/blocked`` outputs are never
+        replayed into a new run's context. Missing and archived jobs stay listed so the caller can
+        label them instead of silently dropping a declared dependency.
+        """
+        ids = [*refs, *(position for position in [schedule_id] if continuity)]
+        if not ids:
+            return []
+        roots = {
+            str(row["id"]): row
+            for row in self.connection.execute(
+                select(s.schedules.c.id, s.schedules.c.name, s.schedules.c.deleted_at).where(
+                    s.schedules.c.agent_id == agent_id, s.schedules.c.id.in_(ids)
+                )
+            ).mappings()
+        }
+        latest: dict[str, str] = {}
+        for owner, content in self.connection.execute(
+            select(s.occurrences.c.schedule_id, s.messages.c.content)
+            .select_from(s.occurrences)
+            .join(s.runs, s.runs.c.id == s.occurrences.c.run_id)
+            .join(s.messages, s.messages.c.run_id == s.runs.c.id)
+            .where(
+                s.occurrences.c.agent_id == agent_id,
+                s.occurrences.c.schedule_id.in_(ids),
+                s.runs.c.state == "succeeded",
+                s.messages.c.role == "assistant",
+                s.messages.c.deleted_at.is_(None),
+            )
+            .order_by(
+                s.occurrences.c.schedule_id,
+                s.occurrences.c.scheduled_at.desc(),
+                s.messages.c.seq.desc(),
+            )
+        ).all():
+            latest.setdefault(str(owner), str(content))
+        return [
+            {
+                "id": key,
+                "name": str(roots[key]["name"]) if key in roots else "",
+                "text": latest.get(key),
+                "archived": bool(roots[key]["deleted_at"]) if key in roots else True,
+            }
+            for key in ids
+        ]
+
     def _current_context(self, agent_id: str, schedule_ids: list[str]) -> dict[str, list[str]]:
         """References of each live schedule at its current revision; bindings belong to a revision."""
         result: dict[str, list[str]] = {key: [] for key in schedule_ids}

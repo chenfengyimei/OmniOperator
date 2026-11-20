@@ -40,8 +40,8 @@ class Clock:
     def now(self): return '2026-11-03T00:01:01.000000+00:00'
     def monotonic(self): return 0.0
 original=Repositories.accept_turn
-def cut(self,*args):
-    result=original(self,*args)
+def cut(self,*args,**kwargs):
+    result=original(self,*args,**kwargs)
     if sys.argv[3]=='before_commit': os._exit(96)
     return result
 Repositories.accept_turn=cut
@@ -49,7 +49,7 @@ async def main():
     paths=InstancePaths.resolve(Path(sys.argv[1])); paths.initialize()
     lock=InstanceLock(paths); lock.acquire()
     db=Database(Path(sys.argv[1])/'omni.db',Clock(),UUIDs())
-    service=SchedulingService(db,Clock(),PinnedTimezones(),lambda:None,lambda a,r:None)
+    service=SchedulingService(db,Clock(),PinnedTimezones(),lambda:None,lambda a,r:None,redact=str)
     await service.tick()
     if sys.argv[3] in ('claimed','started'):
         run=(await db.write(lambda u:u.claim_runs(4)))[0]
@@ -73,7 +73,9 @@ asyncio.run(main())
     async def recover():
         clock = Clock("2026-11-03T00:02:01.000000+00:00")
         db = Database(tmp_path / "omni.db", clock, UUIDs())
-        service = SchedulingService(db, clock, PinnedTimezones(), lambda: None, lambda a, r: None)
+        service = SchedulingService(
+            db, clock, PinnedTimezones(), lambda: None, lambda a, r: None, redact=lambda text: text
+        )
         try:
             await db.write(lambda u: u.recover())
             await service.tick()
@@ -179,7 +181,9 @@ def test_restored_snapshot_quarantines_execution_and_invalidates_old_reviews(tmp
 
     async def seed():
         async with opened(tmp_path / "original", clock) as (paths, db, _, agent):
-            svc = SchedulingService(db, clock, PinnedTimezones(), lambda: None, lambda a, r: None)
+            svc = SchedulingService(
+                db, clock, PinnedTimezones(), lambda: None, lambda a, r: None, redact=lambda text: text
+            )
             unknown = await svc.save(agent, "unknown", True, interval())
             clock.advance(60)
             await svc.tick()
@@ -223,7 +227,7 @@ def test_restored_snapshot_quarantines_execution_and_invalidates_old_reviews(tmp
 
     async def verify():
         db = Database(InstancePaths.resolve(target).database, clock, UUIDs())
-        svc = SchedulingService(db, clock, PinnedTimezones(), lambda: None, lambda a, r: None)
+        svc = SchedulingService(db, clock, PinnedTimezones(), lambda: None, lambda a, r: None, redact=lambda text: text)
         try:
             await db.write(lambda u: u.recover())
             clock.advance(600)

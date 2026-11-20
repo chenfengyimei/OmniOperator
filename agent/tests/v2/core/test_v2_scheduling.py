@@ -245,8 +245,8 @@ def test_admission_savepoint_preserves_due_but_not_partial_turn(tmp_path, monkey
             plan = await service.save(agent, "periodic", True, interval())
             clock.advance(60)
 
-            def fail(self, *args):
-                original(self, *args)
+            def fail(self, *args, **kwargs):
+                original(self, *args, **kwargs)
                 raise BusinessError("admission_aborted", "Injected failure after turn creation")
 
             monkeypatch.setattr(Repositories, "accept_turn", fail)

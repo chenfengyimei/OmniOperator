@@ -9,7 +9,17 @@ from collections.abc import Awaitable, Callable, Mapping
 from typing import cast
 
 from ..domain.contracts import BusinessError
-from ..domain.scheduling import due_selection, instant, next_due, schedule_value, timestamp
+from ..domain.scheduling import (
+    CONTEXT_MISSING,
+    CONTEXT_UNAVAILABLE,
+    context_text,
+    due_selection,
+    excerpt,
+    instant,
+    next_due,
+    schedule_value,
+    timestamp,
+)
 from .ports import Clock, DatabasePort, Record, Timezones, UnitOfWork
 
 log = logging.getLogger("omni.v2.scheduling")
@@ -24,9 +34,13 @@ class SchedulingService:
         notify: Callable[[], None],
         cancel: Callable[[str, str], Awaitable[None]],
         platform: str = "",
+        *,
+        redact: Callable[[str], str],
     ) -> None:
         self._db, self._clock, self._zones = database, clock, zones
         self._notify, self._cancel = notify, cancel
+        # Injected from composition; inner layers may not import the observability sink.
+        self._redact = redact
         # Bound skill guidance is resolved against the same platform the run activates on.
         self._platform = platform
         self._worker: asyncio.Task[None] | None = None
@@ -137,8 +151,10 @@ class SchedulingService:
                             agent,
                             None if session is None else str(session),
                             token,
-                            str(definition["prompt"]),
+                            self._context_text(u, agent, key, definition),
                             {},
+                            skill_ids=tuple(cast(list[str], definition.get("skills") or [])),
+                            skill_platform=self._platform,
                         )
 
                     return u.schedule_enqueue(occurrence, accept)
@@ -159,6 +175,27 @@ class SchedulingService:
         self._enqueued += count
         self._last_tick = self._clock.now()
         return count
+
+    def _context_text(self, unit: UnitOfWork, agent: str, key: str, definition: Mapping[str, object]) -> str:
+        """Prefix the task with referenced job outputs; a plain schedule keeps its prompt verbatim."""
+        prompt = str(definition["prompt"])
+        refs = cast(list[str], definition.get("context_from") or [])
+        continuity = bool(definition.get("continuity"))
+        if not refs and not continuity:
+            return prompt
+        entries: list[tuple[str, str]] = []
+        for row in unit.schedule_output_excerpts(agent, key, refs, continuity):
+            text = row.get("text")
+            if row["archived"]:
+                value = CONTEXT_UNAVAILABLE
+            elif not text:
+                value = CONTEXT_MISSING
+            else:
+                # Redact before truncating: cutting first could leave a partial secret
+                # that no longer matches the credential patterns.
+                value = excerpt(self._redact(str(text)))
+            entries.append((str(row["name"]) or str(row["id"]), value))
+        return context_text(entries, prompt)
 
     async def _loop(self) -> None:
         while not self._closing:

@@ -28,7 +28,7 @@
     "所有者 HTTP ScheduleInput.value 直通同一个 save，故与后续模型工具共享同一校验与同一写入路径（合同防漂移要求）",
     "表数 143→145：同步实测 14 处表计数 pin（合同初稿只估三处，已在合同更正为 14 处）；test_v2_memory_decay.py head pin v2_0048→v2_0049",
     "新增 agent/tests/v2/core/test_v2_schedule_bindings.py（5 例）：ScheduleValue 边界/唯一/canonical/严格与非 4 值上限；绑定属于单个 revision 且改/删被触发器拒绝、历史 revision 各自持有自己的 continuity；enabled 技能 + live 引用的正向路径与六类拒绝（不存在/平台不符/已归档技能、不存在/自引用/已归档引用）且拒绝不留半成品日程；环拒绝且原定义不被改写；v0049 幂等升级保留旧行、reflection 列/唯一/FK/索引/触发器全等、foreign_key_check 干净、downgrade 拒绝",
-    "顺带修复 test_v2_typecheck_scope 既有漂移：并行会话已加入 pyrightconfig.strict.json 却未登记文档的 19 个模块（含 v0047/v0048）补齐 docs/TYPE_CHECKING.md，并同批登记 v0049，守卫测试恢复双向一致"
+    "顺带修复 test_v2_typecheck_scope 既有漂移：并行会话已加入 pyrightconfig.strict.json 却未登记文档的 20 个模块（含 v0047/v0048）补齐 docs/TYPE_CHECKING.md，并同批登记 v0049，守卫测试恢复双向一致（本文件初记 19，复核实际为 20，已于触发链批同步更正 HANDOFF 与本字段）"
   ],
   "limits": {
     "skills_capped_at_runtime_max_active_4": true,

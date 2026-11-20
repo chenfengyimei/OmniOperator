@@ -22,6 +22,10 @@ MAX_SKILLS = MAX_ACTIVE
 MAX_CONTEXT_REFS = 4
 MAX_CONTEXT_DEPTH = 4
 MAX_CONTEXT_NODES = 64
+EXCERPT_CHARS = 2000
+EXCERPT_MARKER = "…[truncated]"
+CONTEXT_MISSING = "(no completed output yet)"
+CONTEXT_UNAVAILABLE = "(unavailable)"
 
 
 def instant(value: str) -> dt.datetime:
@@ -142,6 +146,19 @@ def context_refs(value: list[str]) -> list[str]:
             ) from None
         result.append(item)
     return result
+
+
+def excerpt(text: str) -> str:
+    """Bound one excerpt; the marker only appears when content was actually dropped."""
+    return text if len(text) <= EXCERPT_CHARS else text[:EXCERPT_CHARS] + EXCERPT_MARKER
+
+
+def context_text(entries: list[tuple[str, str]], prompt: str) -> str:
+    """Position-ordered scheduled-job context block followed by the original task."""
+    if not entries:
+        return prompt
+    block = "\n".join(f"Scheduled job context ({name}): {value}" for name, value in entries)
+    return f"{block}\n\nTask: {prompt}"
 
 
 class ScheduleValue(BaseModel):
