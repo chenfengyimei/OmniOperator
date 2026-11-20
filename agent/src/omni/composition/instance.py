@@ -61,6 +61,7 @@ from ..application.clarify import ClarifyService
 from ..application.configuration import ConfigurationService
 from ..application.context import ContextService
 from ..application.credentials import CredentialService
+from ..application.cronjob import CronjobCapabilities
 from ..application.debugging import DebugService
 from ..application.delivery import DeliveryService
 from ..application.desktop import DesktopService
@@ -115,6 +116,7 @@ from ..domain.android import RESTORE_SPEC as ANDROID_RESTORE
 from ..domain.android import SPEC as ANDROID_ACTION
 from ..domain.background_review import READ_TOOLS
 from ..domain.contracts import JSON, ActionResult, BusinessError, InvocationContext, Outcome
+from ..domain.cronjob import CRONJOB_MANAGE
 from ..domain.delivery import OutboundMessage
 from ..domain.desktop_actions import SPEC as DESKTOP_ACTION
 from ..domain.mcp import ServerTarget
@@ -719,6 +721,10 @@ async def open_instance(
             redact=sink.redactor.text,
         )
         lifetime.own("scheduler", 0, schedules.close, schedules.stop_accepting)
+        if capabilities is None:
+            # SchedulingService depends on application.notify/cancel, so its model tool is attached
+            # only once both exist; start() has not run and every run reads the live registry.
+            application.attach(Capability(CRONJOB_MANAGE, CronjobCapabilities(schedules, clock), lambda: True))
         action_reviews = ActionReviewService(database, application.action_review_blockers, schedules.notify)
         lifetime.own("action_reviews", 0, action_reviews.close, action_reviews.stop_accepting)
         diagnostic = DiagnosticFiles(paths, sink)

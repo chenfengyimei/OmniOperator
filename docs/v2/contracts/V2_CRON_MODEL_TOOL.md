@@ -53,6 +53,8 @@ V2 已有原语（均实读核验）：
 
 `list` 只返回有界投影：`job_id/name/enabled/kind/expression|interval_seconds/start_at/timezone/next_at/last_scheduled_at/last_occurrence{state,error_code}/prompt_preview(≤200)/skills_count/context_count`，**不回传** `session_id`、完整 prompt、tzdb 版本、审计；每页 ≤50。
 
+**实现期修订（模型工具批）**：`skills_count/context_count` 由完整 `skills/context_from` 列表（各 ≤4）取代——update 是 patch 语义，模型必须能读到当前绑定才能保留或清空；投影同时补 `revision`（CAS 必需）与 `continuity`。`last_occurrence.state` 有 run 时取 `run_state`（succeeded/failed/…），无 run 时取 occurrence 自身状态（pending/blocked/cancelled）；`error_code` 优先 occurrence 错误码，否则 run 错误码。写动作回执携带同一投影（`data`），便于模型不再 list 即对账。
+
 ### 决策 2：日程语法（只接受可判定形式）
 
 | 输入 | 映射 | 说明 |
@@ -100,6 +102,8 @@ V2 已有原语（均实读核验）：
 ### 决策 7：动作语义与幂等
 
 - `create`：`name` 缺省取 prompt 前 50 字；不幂等（无自然键），动作结果 unknown 时**不重放**，模型应 `list` 对账。
+
+**实现期修订（模型工具批）**：`create` 固定 `enabled=True`（工具面不暴露 enabled/paused 字段，启停由 pause/resume 承担）；缺省 name 实为 `prompt.strip()[:50]`（先剥前导空白，保证非空名通过保存校验）。`CronjobCapabilities(schedules, clock)` 注入 Clock——`in N` 相对一次性由服务端时钟计算（交接落点简写为 `(schedules)`，clock 是决策 2 的必需注入）。组合层仅在 `capabilities is None`（生产路径）attach，与 todos/clarify/background_review 同一门控先例，隔离测试注入的工具面字节等价零回归。`Application.attach` 除重名（含 owner 工具碰撞）外拒绝引擎控制名（request_mode/delegate_task/todo_list/clarify），防止 run 期 registry 静默覆盖；仅限 `start()` 前调用。已知公共错误码映射为 ERROR 回执，未知码上抛由引擎结算 UNKNOWN（writes=True 不重放）。审批过期在 waiting_approval 态由既有 `_end_error` 收尾为 **interrupted**（error_code=approval_expired），所有者撤销走 run cancel → cancelled；两者均不派发、不创建日程（有专项断言）。
 - `update`：patch 语义（省略即保留；`skills=[]`、`context_from=[]`、`continuity=false` 清空）；必须带当前 `revision`，冲突 → `revision_conflict` 让模型重读；改 `schedule` 时按 `max(now,last_scheduled_at)` 重算 next_at（不补跑、不突发）。
 - `pause`/`resume`：`save(enabled=false/true)`，恢复不补跑（合并语义不变）。
 - `remove`：`archive`（revision CAS；pending occurrence → `cancelled`/`schedule_archived`，与既有 HTTP 删除一致）。

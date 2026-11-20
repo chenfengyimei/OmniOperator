@@ -113,6 +113,7 @@ strict 配置显式将 `agent/src` 加入导入根，隔离源码副本也解析
 | `agent/src/omni/domain/contracts.py` | 执行合同/状态机/动作结果纯类型 |
 | `agent/src/omni/domain/configuration.py` | 配置载荷/名称/指纹纯校验 |
 | `agent/src/omni/domain/context.py` | 对话压缩/批次/尾部预算纯规则 |
+| `agent/src/omni/domain/cronjob.py` | 模型侧调度工具合同：可判定日程语法/有界请求与投影纯规则 |
 | `agent/src/omni/domain/recovery_authority.py` | 恢复授权与源见证校验（经 service_deployment 公共桥） |
 | `agent/src/omni/domain/reference_release.py` | 工件引用释放计划结构与指纹纯校验 |
 | `agent/src/omni/domain/schema_upgrade.py` | 前向 schema 路由与双运行时清单校验（经公共桥） |
@@ -166,6 +167,7 @@ strict 配置显式将 `agent/src` 加入导入根，隔离源码副本也解析
 | `agent/src/omni/application/exchange_steps.py` | 服务交换步骤编排（公开部署校验桥/显式 Mapping） |
 | `agent/src/omni/application/extensions.py` | 扩展安装/授权/运行期调用编排（显式 Record、有界任务集） |
 | `agent/src/omni/application/credentials.py` | 凭据变更/审阅用例（UnitOfWork 回调与有界任务显式化） |
+| `agent/src/omni/application/cronjob.py` | 模型侧调度工具薄封装（save/get/page/archive 复用，错误码映射与有界投影） |
 | `agent/src/omni/application/desktop_actions.py` | 语义桌面动作用例（绑定请求显式化/有界任务与守卫回调） |
 | `agent/src/omni/application/documents.py` | 源文档/索引/检索编排（有界任务、显式 Record） |
 | `agent/src/omni/application/engine.py` | 运行准入/调度/工具执行/关闭编排（有界任务、显式 Record） |

@@ -62,6 +62,9 @@ class Capability:
     quiescent: Callable[[], bool] | None = None
 
 
+_CONTROL_NAMES = frozenset({REQUEST_MODE.name, DELEGATE_TASK.name, TODO_LIST.name, CLARIFY.name})
+
+
 class Application:
     """Public facade contains use cases, not infrastructure object attributes."""
 
@@ -128,6 +131,17 @@ class Application:
         self._ready = False
         self._worker_error = ""
         self._fully_closed = False
+
+    def attach(self, capability: Capability) -> None:
+        """Register one late-built capability before start; runs read the live registry, remote runs stay tool-less."""
+        if self._dispatcher is not None or self._closing:
+            raise ValueError("Capabilities must be attached before start")
+        name = capability.spec.name
+        if name in self._tools or name in self._owner_tools:
+            raise ValueError("Duplicate capability names")
+        if name in _CONTROL_NAMES:
+            raise ValueError("Capability name is reserved by the engine")
+        self._tools[name] = capability
 
     async def start(self) -> None:
         if self._dispatcher:

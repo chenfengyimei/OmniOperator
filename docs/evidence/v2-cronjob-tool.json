@@ -1,0 +1,99 @@
+{
+  "schema": 1,
+  "date": "2026-11-20",
+  "base_commit": "11c4ad8fb7d1be04a00c2b8f14ea84ef3d652a61",
+  "status": "implemented_scoped_passed",
+  "batch": "K13.cronjob_tool",
+  "owner_approval": "所有者 2026-11-20 要求接管持续开发并自主规划：按合同四批接线 K13 模型侧调度能力，本批为第三批（模型工具 cronjob_manage）。安全边界不变：不自动外发、不执行代码、不触真实账号/设备/运行中服务与数据库。",
+  "implements_gap": "K13 cron 变体的模型工具缺口：持久化（v0049）与触发链（技能激活+输出注入）已落地，但模型侧没有任何 schedule 能力——SchedulingService 只被所有者 HTTP 调用，模型无法创建/查看/修改日程。本批落 cronjob_manage 单工具薄适配与构造后 attach 接线；端到端全链仍后续。",
+  "contract": "docs/v2/contracts/V2_CRON_MODEL_TOOL.md",
+  "source_files": {
+    "agent/src/omni/domain/cronjob.py": "9a7269d0138b9c9f86cb785d00ed1bef99fe303898610d46b4b9aaee92f92c10",
+    "agent/src/omni/application/cronjob.py": "e30e699ba347e4e97817419b5bc31387a46fbc3ec4cd0942823ff9306e8cc4f3",
+    "agent/src/omni/application/engine.py": "997f41bbfbb466d19e779849636eeaf9d67b692d52f9ea6334e0186fca3bd52e",
+    "agent/src/omni/composition/instance.py": "e91f44edb55f302c9594b7bd25d297860dec08581ba411fdd7e65bf119bd2010",
+    "agent/tests/v2/core/test_v2_cronjob_tool.py": "49470d50a85d5025aa3d4adf6097dd820ea2e38d23109cf6b8fe1e742abdecde",
+    "pyrightconfig.strict.json": "6dc37ef34b7c34ef9d426d1ad95c7c8ef924c399a6a8ea265f57642549c1ad72",
+    "docs/TYPE_CHECKING.md": "08e011fb902307691c07a54802ce5c26acd0724c37df10eadf60b896dc22350c",
+    "docs/v2/contracts/V2_CRON_MODEL_TOOL.md": "7ce5f127858859484ed127d63638f431be1047bec8e37789ae303dc7b272ec57",
+    "docs/HANDOFF.md": "7961b1022583b3e802ff476485161161cc0ed2912a149c55fd3e84df4bf83cab",
+    "docs/tasks/v2-agent-core-parity.json": "47fb234834ec957c8757a5711c6b6f1bfd6638b18ace309210a04feffb42001e"
+  },
+  "hash_scope": "git index blob bytes (LF-normalized)；复现：git cat-file blob <commit>:<path> | sha256sum",
+  "delivered": [
+    "domain/cronjob.py（新增，纯合同无 I/O）：CRONJOB_MANAGE ToolSpec（writes=True、resource='schedules'、timeout_s=30；动作枚举 create/list/update/pause/resume/remove；required 仅 action；additionalProperties=false 使 run 与合同拒绝字段 deliver/failure_deliver/repeat/script/monitor/no_agent/pinned/model/provider/base_url/enabled_toolsets/workdir/attach_to_session 在引擎 Draft202012 校验层即 invalid_tool_arguments，零动作创建）；compile_schedule 四类可判定形式（五段数字 cron 经既有 Cron.parse；interval 紧凑 30m/90s/2h/1d 与 every 前缀/词单位 every 2 hours 归一 [60,31536000]；in N 相对 once 由注入服务端 Clock 计算 start_at=now+delta，禁模型自算绝对时间；带显式偏移 ISO 经 instant 归一 UTC once，naive→invalid_schedule_time；自然语言/越界→invalid_schedule 422）；parse_request 每动作必填（create 需 schedule+prompt；update/pause/resume/remove 需 canonical job_id+revision≥1；update 空 patch 拒）与严格类型（type is int/bool、limit 1..50、skills/context_from 须 list[str]、省略 None 与清空 () 区分）；job_projection 有界投影（job_id/name/enabled/revision/kind/expression|interval_seconds/start_at/timezone/next_at/last_scheduled_at/prompt_preview≤200/skills/context_from/continuity/last_occurrence{state,error_code}；不回传 session_id/完整 prompt/tzdb_version/审计；last_occurrence.state 有 run 取 run_state 否则 occurrence 状态，error_code 优先 occurrence 否则 run）；render_jobs 有界文本。",
+    "application/cronjob.py（新增）：CronjobCapabilities(schedules, clock) invoke(name, arguments, *, operation_id, context) 薄封装 SchedulingService.save/get/page/archive——不建第二内核、不复制 due 计算、不绕 revision CAS。create 固定 enabled=True、name 缺省 prompt.strip()[:50]；update 从 schedule_get 当前 value 合并 patch（schedule 改时 compile 四键整体替换避免 kind 字段冲突；session_id 内部保留，模型不可改）；pause/resume=save(enabled 翻转) 由既有 save 重算 next_at 不补跑；remove=archive（revision CAS，pending occurrence→cancelled/schedule_archived）。已知公共错误码 15 个映射 ERROR 回执 Effect.NONE；未知码上抛由引擎 writes=True 结算 UNKNOWN 不重放。写回执 Effect.APPLIED + verification（revision/enabled 读回）+ data 同投影；list 每页 ≤50、after 游标、逐 job 按 progress.sequence-1 取最近 occurrence（有界只读）。close 返回 True（无自有资源，调度器生命周期归 lifetime）。",
+    "application/engine.py：新增 Application.attach(capability) 构造后注册——_tools 是活字典（:95 建立、:292 每次 run dict(self._tools) 现取、:764 执行时现取），重名（含 _owner_tools 碰撞）与引擎控制名（request_mode/delegate_task/todo_list/clarify，_CONTROL_NAMES）抛 ValueError，仅限 start() 前（dispatcher 已建或 closing 拒）。remote run 的 registry = {} if remote else dict(self._tools) 语义未改：QQ 远程 run 本就不暴露本地工具，cron 同此。",
+    "composition/instance.py：在 Application(:679) 与 SchedulingService(:710, lifetime.own scheduler) 都就绪后、application.start(:793) 前 application.attach(Capability(CRONJOB_MANAGE, CronjobCapabilities(schedules, clock), lambda: True))，仅 capabilities is None 生产路径——todos/clarify/background_review/decay 同门控先例，隔离测试注入 capabilities 的工具面字节等价零回归。SchedulingService 依赖 application.notify(_wake.set)/application.cancel(db 写+delivery 取消+active task cancel) 不能前移到 Application 之前；attach 无循环依赖、无晚绑定 lambda。quiescent=lambda: True（同步 DB 事务无自有 worker，memory/session 能力同先例）。",
+    "pyrightconfig.strict.json + docs/TYPE_CHECKING.md：同步登记 domain/cronjob.py 与 application/cronjob.py（committed 基线 415→417；旧交接文案'414'已过时，本批实测更正）。",
+    "tests/v2/core/test_v2_cronjob_tool.py（新增，83 项）：域（spec 常量/写档/资源/超时、chat/retrieval 排除 agent 纳入、不入 RETRIEVAL_TOOLS、compile 11 合法+17 非法参数化、相对/绝对 once 服务端时钟精确值、parse 15 非法参数化+省略与清空区分、schema 18 拒绝参数化含 skills/refs>4 与 prompt/name 超长、投影边界与 last_occurrence 两态）；应用真实 SQLite（create 缺省名与投影、显式绑定技能+context_from+continuity、list 分页 after 游标与投影无 session_id、update 保留省略与 []/false 清空、改 schedule 重算 next_at 恰 09:00、CAS 冲突定义不变与 not_found、pause/resume enabled 翻转 next_at 精确不补跑、remove 归档+白盒 schedule_materialize pending occurrence→cancelled/schedule_archived+再 remove 冲突、256 enabled 上限 schedule_limit、技能/引用/环错误码、语法/naive/过去错误码、未知工具名）；引擎（attach 重名/owner 碰撞/控制名/start 后拒、create 等审批→approve→ok/applied 持久化、denied 与所有者 cancel 撤销→denied/cancelled 零创建、expires_at 注入过期→interrupted/approval_expired 零派发）；组合（生产 attach spec 同一/quiescent 真、隔离 capabilities=() 缺席）。",
+    "合同实现期修订六处：list count 投影→完整 skills/context_from 列表+revision/continuity 与 last_occurrence 语义；CronjobCapabilities clock 注入（交接简写 (schedules)）；生产门控 capabilities is None；attach 控制名与 owner 碰撞拒绝；create enabled=True 与 name strip[:50] 缺省；过期→interrupted、撤销→cancelled 的既有引擎收尾语义记录。",
+    "HANDOFF 与任务 JSON 同步：后续顺序余下一批（端到端）；current_followup→K13.cronjob_tool；K13 followups/batches 增本批；K13 limits 的 cron 子句由'仍未实现'更正为三批已落地余端到端。"
+  ],
+  "limits": {
+    "six_actions_only": "run/deliver/failure_deliver/repeat/script/monitor/no_agent/pinned/model/provider/base_url/enabled_toolsets/workdir/attach_to_session 一律 schema 层拒绝（枚举外/additionalProperties=false），零动作创建",
+    "writes_true_gates_every_action": "单工具 writes=True，list 也走既有审批门（合同决策 1/6）；所有者批准的是日程定义，触发内写动作仍逐次审批",
+    "thin_adapter_no_second_kernel": "全部读写走既有 save/get/page/archive；due 计算/revision CAS/occurrence 账本不复制；无 run-now（不伪造 occurrence）",
+    "bounds": "enabled≤256、总数≤4096（既有保存校验）、skills≤4(=MAX_ACTIVE)、context_from≤4、prompt≤20000、name≤100、timezone≤100、schedule 文本≤100、list≤50/页、interval∈[60,31536000]",
+    "unknown_never_replayed": "未知错误码上抛由引擎结算 UNKNOWN（writes=True），模型应 list 对账；create 不幂等",
+    "remote_runs_stay_tool_less": "engine.py:292 registry={} if remote 语义未改；QQ 远程 run 不暴露 cronjob_manage",
+    "isolated_tool_surface_byte_identical": "attach 仅生产路径（capabilities is None）；隔离注入 capabilities 的既有工具面/档位断言零回归",
+    "attach_before_start_only": "构造后注册一次；重名/owner 碰撞/控制名/start 后均 ValueError",
+    "server_clock_for_relative_once": "in N 的 start_at 由注入 Clock 计算，模型不传绝对时间；ISO 必须带显式偏移",
+    "projection_never_leaks_session_or_full_prompt": "list 与写回执 data 均不含 session_id/完整 prompt/tzdb_version/审计；prompt_preview≤200"
+  },
+  "validation": {
+    "mode": "scoped_implementation_plus_caller",
+    "scoped": {
+      "command": "uv run --no-sync pytest -q -n 0 agent/tests/v2/core/test_v2_cronjob_tool.py",
+      "passed": 83,
+      "failed": 0,
+      "seconds": 34.42,
+      "note": "终源（strict 修正+ruff format 后）复跑；格式化前首轮全绿 83 过 38.45 秒。首轮 2 败为测试期望写错（撤销用 cancel_approvals 不转 run 态、过期在 waiting_approval 收尾为 interrupted 非 failed），按真实引擎语义修正测试而非改生产。"
+    },
+    "revert_check": {
+      "method": "备份四源文件后摘掉实现：engine.attach 改 no-op、组合层摘 attach 行、CronjobCapabilities._invoke 一律 tool_not_found、domain compile_schedule/parse_request 改一律接受（固定 cron 值/Request(action=list)）、job_projection 返 {}",
+      "command": "uv run --no-sync pytest -q -n 0 agent/tests/v2/core/test_v2_cronjob_tool.py",
+      "passed": 21,
+      "failed": 62,
+      "conclusion": "62/83 全红证明行为用例真锁住实现；21 绿均为静态合同钉（18 schema 拒绝参数化+spec 常量+未知工具名守卫+1 恰与桩固定 cron 值重合的 compile 参数），不依赖被摘掉的行为。cp 还原后 sha256sum -c 四文件全 OK。"
+    },
+    "caller_scheduling_delivery_architecture_routing": {
+      "command": "uv run --no-sync pytest -q -n 0 agent/tests/v2/core/test_v2_scheduling.py test_v2_schedule_bindings.py test_v2_schedule_context.py test_v2_scheduling_faults.py test_v2_delivery.py test_v2_delivery_faults.py test_v2_architecture.py test_v2_capabilities.py test_v2_typecheck_scope.py test_v2_business_inventory.py agent/tests/v2/integrations/test_v2_routing.py",
+      "passed": 102,
+      "failed": 0,
+      "seconds": 139.73
+    },
+    "caller_engine_consumers": {
+      "command": "uv run --no-sync pytest -q -n 0 agent/tests/v2/core/test_v2_execution.py test_v2_kernel.py test_v2_lifecycle.py test_v2_action_review_execution.py",
+      "passed": 13,
+      "failed": 0,
+      "seconds": 24.25,
+      "note": "engine.py/instance.py 自调用方运行后字节未变（sha256 与回退备份核对一致）；本轮未触发既有负载型 flaky（test_supervised_scheduler_executes_through_model_runtime_and_closes / test_shutdown_budget_keeps_one_owned_cleanup_task[port] 不在本批范围文件内）。"
+    },
+    "strict": {
+      "config": "pyrightconfig.strict.json",
+      "command": "uv run --no-sync pyright --project pyrightconfig.strict.json（仓库根）",
+      "files": 417,
+      "errors_total": 0,
+      "warnings": 0,
+      "note": "committed 基线 415（旧交接 414 文案过时）+2 新源文件。首轮 7 错误均本批新文件（6 处 reportUnnecessaryCast：type() is int/bool 守卫后 pyright 已收窄；1 处 reportAssignmentType：list[str] 不变性不能赋给 list[JSON]），去冗余 cast 与 cast(list[JSON]) 修正后 0 错误。"
+    },
+    "ruff": {
+      "check": "All checks passed!（5 个改动文件；首轮 4 处 RUF059 未用解包变量改下划线前缀）",
+      "format": "3 files reformatted（domain/cronjob.py、application/cronjob.py、test_v2_cronjob_tool.py 长行重排），复检 5 files already formatted"
+    }
+  },
+  "whole_core_parity_complete": false,
+  "whole_reference_feature_audit_complete": false,
+  "whole_v2_complete": false,
+  "not_executed": [
+    "合同余下一批：端到端（create→审批→触发→通知注入→update/pause/resume/remove 全链，含模型工具创建的日程上技能激活与 context 注入贯通）",
+    "注入块 8.6K 上限的实测断言与跨 agent 隔离专门断言（触发链批遗留，属端到端批范围）",
+    "docs/index 再生与提交（并行 UI 会话在途，按纪律暂缓；declared_tools 将在再生时 +1）",
+    "全量测试（V2 冻结后统一跑）",
+    "真实账号/模型/设备/运行中 Windows 服务与数据库（本批全程离线 fake/隔离 SQLite）",
+    "真实模型调度质量与长跑稳定性（另验）"
+  ],
+  "next": "端到端批：create→审批→触发→通知注入→update/pause/resume/remove 全链贯通验证；随后 K16 工具结果图像与 zoom（需所有者 A/B 选型）、K01 缓存作用域、K17 反思来源链。whole_*_complete 保持 false。"
+}
