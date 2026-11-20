@@ -156,6 +156,33 @@ K03 新增 34 项回归；首轮冻结源码 114 项集成专项通过（182.82 
 
 目录迁移、专项和打包已完成；Mac 接手还需实际编译 Swift/C，再推进 G5 平台/交付，G3 Linux、G4 Wayland 缺口继续按任务推进。G7 统一全量与最终实机验收留整个 V2 开发冻结后。
 
+## 当前断点（夜间无人值守接管，2026-11-20）
+
+**本段已落地并推送 origin/v2 的三批**（均合同先于接线、V2 四层、专项+调用方回归绿、strict 414 文件 5 错误全为既有他会话 repository.py 本批零新错误、ruff 净、聚合索引暂缓、whole_*_complete 保持 false）：
+
+1. `2608f592` **K18.msgfeed_like**：bilibili_read msgfeed 收到的赞 like kind（独立 msgfeed_like_rows 解析 latest/total/users，reply/at 字节等价零回归）。37 专项 + 131 调用方。[合同](v2/contracts/V2_BILI_MSGFEED_LIKE.md)/[证据](evidence/v2-bili-msgfeed-like.json)。
+2. `cfa3c4b6` **K13.search_multi_glob**：files_search file_glob 多包含 glob 列表（widen str→str|list ≤8 OR，镜像 exclude，单串字节等价零回归）。140 专项 + 141 调用方。[合同](v2/contracts/V2_FILES_SEARCH_MULTI_GLOB.md)/[证据](evidence/v2-files-search-multi-glob.json)。
+3. `840e5f5f` **K18.relation**：bilibili_read DM 关注关系 relation 只读发现（attribute/be_attribute/mutual/blocked，plain GET 无 WBI 无缓存，写路径 prepare/outbox 不变不作发送硬门）。20 专项 + 201 bilibili 调用方 + 21 库存/路由。[合同](v2/contracts/V2_BILI_RELATION.md)/[证据](evidence/v2-bili-relation.json)。
+
+**干净有界离线增量缺口已尽**：K18 读 API 广度现已齐全（account/video/comments/replies/search/whois/relation/danmaku/popular/ranking/following/favorites/tags/history/msgfeed reply|at|like，字幕经 K16 媒体链）；K13 files_search（内容/glob/多包含/排除/regex/order/offset/context/output_mode）与 files_patch（策略链/近似/drift/重锚/排版保留）增量变体已补齐。**剩余 recorded 缺口均需所有者决策、设计/持久化/安全合同或真实账号/设备/模型，不再是可径直实现的干净离线增量**，按所需前置分类如下：
+
+- **需所有者协议/自主边界决策（真断点）**：
+  - K16 模型侧自动 zoom：[工具结果图像可见合同](v2/contracts/V2_TOOL_IMAGE_VISIBILITY.md) 已记录方案 A/B（工具结果图像可见协议 + 写工具审批门复用 + frames timestamps 作业复用），**待所有者批准协议选型**后接线；zoom_foundation（所有者侧 frames 显式时间戳高清重取）已实现。
+  - K15 主动动机引擎 / 作息反馈 / 问候：主动 outbound 自主行为，需**授权/预算/静默时段合同**与所有者对自主边界的决策（不擅自主动发送）。
+  - K18 relation 作 private_message prepare 互关硬门 / 写广度（fav/dynamic/danmaku-send/comment-del）：属写路径合同，需所有者决策（V2 送达由所有者审批，是否加互关前置/扩写面）。
+- **需设计/持久化/安全合同先行的较大离线能力**（可离线但复杂/安全敏感，先合同后接线，不臆测协议）：
+  - K13 工具调用代码沙箱（execute_code/code_kernel）：本地 Python 沙箱 + 允许清单 RPC 桥 + 持久 kernel + scrub 隔离 + 调用预算，**安全模型需合同与所有者审阅**（任意代码执行）。
+  - K13 原始 CDP / browser_exec：CDP 接入 + OOPIF 帧路由 + 门控，安全敏感需合同。
+  - K13 cron 模型侧 cronjob_manage 工具 + 技能绑定 + 任务输出依赖（context_from/continuity）：SchedulingService 层 + 输出链持久化合同（需 schema）。
+  - K15 分层人格数据模型（core/tone/scene/daily 不直接映射 V2 persona-layer，需设计）；score_memory 保守输入 is_first/direct/bili 说话人上下文（first-meet 30 天窗口 / QQ 私聊 @reply / B 站入站说话人上下文表，需 intake 持久化合同；引擎已完整支持这些因子）。
+  - K17 journal 持久化 / 信笺手账 / 每日反思选择 / 人格成长文件（需持久化/设计合同）。
+  - K01 会话/lineage 缓存范围（需压缩 lineage 持久化 + 模型适配器 prompt_cache_key + 供应商路由设计合同 + 真实模型验收）。
+  - K18 B 站读缓存策略（参考 view/acc/info 24h、nav 10min、LRU 400、relation/player/playurl/msgfeed 永不缓存）：跨读路径 correctness 合同（凭据修订失效键、never-cache 清单、TTL、LRU），V2 当前无缓存层。
+  - K13 files_search 高级 gitignore（`**` 锚定细则 / 目录级忽略文件，改既有 fnmatch glob 语义需合同）/ files_patch V4A 多文件格式（481 行参考，较大新能力）。
+- **需真实账号/设备/模型/网络（外部状态，不可离线宣称对等）**：K18 自主生物钟观看/双日记/沉默衰减/候选打分/偏好学习/直播/AI-share 守卫/DM 发送/关注写；K14 Android 独立视觉子代理/SoM/屏幕 OCR/explore_app + 设备健康矩阵 + 真机输入/滚动/Unicode 质量；真实模型 importance 自评/人格一致性/缓存命中质量；干净机器各平台原生验收；72 小时 soak；整个 V2 冻结后统一全量。
+
+**下一步**：上述真断点需所有者就 zoom 协议 A/B、自主行为授权边界、写路径扩面做决策；较大离线能力按「先授权/持久化/安全合同后执行接线」推进（代码沙箱/CDP 安全模型尤需所有者审阅，不臆测协议、不擅自实现任意代码执行）。接管者可择一需设计合同的能力先写设计合同（如 K16.zoom_model_design 范式）供所有者批准，或在所有者决策后接线；**不宣称全集对等，whole_core_parity_complete / whole_reference_feature_audit_complete / whole_v2_complete 保持 false，不提前关闭任何对标项**。本段未跑全量、未触真实账号/模型/设备/运行中 Windows 服务与数据库；并行 UI 会话 `web/ui/v2/*`、`docs/history/v2/*`、`docs/evidence/v2-ui.json` 与 `PPT/`、`docs/competition/` 全程保留未提交。
+
 ## 追溯入口
 
 - [旧交接记录](history/pre-layout-2026-11-18/HANDOFF.md)、[旧重构记录](history/pre-layout-2026-11-18/V2_REFACTOR.md)只证明所属版本，不作为当前待办。
