@@ -1976,7 +1976,8 @@ event_retention_targets = Table(
     ),
     CheckConstraint(
         "kind IN ('run.queued','run.running','run.waiting_approval','run.cancelling','run.succeeded',"
-        "'run.failed','run.cancelled','action.prepared','action.completed')",
+        "'run.failed','run.cancelled','action.prepared','action.executing','action.completed',"
+        "'model.started','model.completed')",
         name="kind",
     ),
     CheckConstraint(

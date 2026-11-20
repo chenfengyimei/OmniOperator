@@ -1,0 +1,98 @@
+{
+  "schema": 1,
+  "date": "2026-11-20",
+  "base_commit": "fc56186460ef7d2f76cb0f5b12003eb5bd2e0408",
+  "status": "implemented_scoped_passed",
+  "batch": "FIX.event_retention_kinds",
+  "kind": "pre_existing_bug_fix",
+  "implements_gap": "既有缺陷修复（非新对标项）：6bcb0e98 实时调用链新增 action.executing/model.started/model.completed 事件种并扩展 domain/event_retention.py KINDS 至 12 种，但 event_retention_targets.kind CHECK 白名单（schema.py + 冻结迁移 v0016）未同步（仍 9 种），致事件保留裁剪 plan_event_retention 对含新种的 run 事件 INSERT 违约 OperationalError，event_pruning 7 项失败、生产侧自 6bcb0e98 起事件保留裁剪对当前所有 run 不可用",
+  "contract": "docs/v2/contracts/V2_EVENT_RETENTION_KINDS.md",
+  "source_files": {
+    "agent/src/omni/adapters/persistence/schema.py": "390dd0b71a93fc1e5ccbcd37d70ccc39e326682d9f47e39277c77a9915db553e",
+    "agent/src/omni/adapters/persistence/migrations/versions/v0048.py": "c65055763f4036d1f19ff3eec98d5f3bcde9b613fe64a3c6fafc550f4b2044f4",
+    "agent/tests/v2/core/test_v2_memory_decay.py": "a008e69201620d2f82c2663b45dc3a6949578776c27e7afd320b6696a355c5ed",
+    "agent/tests/v2/core/test_v2_event_pruning.py": "90c4d6c1eb6d74dff8d116c66ecb886bc18ca5b223be4674969a8e15102b33b7",
+    "pyrightconfig.strict.json": "45f189117c4ce03d9980f9ca57acd624148e95de7ad4e2e30ce29854d9ecf90b",
+    "docs/v2/contracts/V2_EVENT_RETENTION_KINDS.md": "6e6f5e8e42aa8e6b18208678ba8ede5b175e8301c3470f00bb59c6408e59736d"
+  },
+  "root_cause": {
+    "authoritative_domain_kinds": "domain/event_retention.py KINDS frozenset 12 种（run.queued/running/waiting_approval/cancelling/succeeded/failed/cancelled、action.prepared/executing/completed、model.started/completed）；validate_event_plan 用 kind not in KINDS 校验，领域已允许新种",
+    "emission": "repository.py:851/853 发 action.executing 审计+事件；repository.py:656/707 发 model.started/model.completed（6bcb0e98）",
+    "stale_constraint": "schema.py:1977-1981 event_retention_targets CheckConstraint(name=kind) 仅 9 种；v0016.py:39-40 冻结 CREATE TABLE 同 9 种（缺 action.executing/model.started/model.completed）",
+    "test_db_path": "Database→alembic command.upgrade(head) 建表（非 create_all），v0016 9 种 CHECK 生效；event_case→plan_event_retention 读真实 run 事件含新种建目标 INSERT→CHECK 违约",
+    "reflection_guard": "event_plan_migration.assert_schema 以 normalized_check（去全部空白+小写+剥外层括号）比较反射 CHECK sqltext 与 schema.py CheckConstraint sqltext 集合（不比较约束名），故只需 schema.py 与重建 DDL CHECK 文本一致"
+  },
+  "delivered": [
+    "schema.py event_retention_targets kind CHECK 扩至 12 种，顺序对齐 domain KINDS（action.prepared 后插 action.executing，action.completed 后插 model.started/model.completed）；仅改 CHECK 文本，其余列/约束/索引/触发器不变",
+    "v0048 冻结重建迁移（新源文件，down_revision v2_0047，downgrade 拒绝）按 v0039 媒体表事务化重建先例：ALTER TABLE event_retention_targets RENAME TO _v48_event_retention_targets→CREATE TABLE（复用 v0016 完整 DDL 12 列/复合 PK(batch_id,sequence)/UNIQUE(batch_id,run_id,seq)/复合 FK→event_retention_batches+runs/单 FK→agents+retention_batches/identity+bounds+state CHECK 不变，仅 kind CHECK 扩 12 种）→INSERT SELECT 12 列保留全部既有证据行→DROP TABLE _v48（SQLite DROP 不触发 DELETE 触发器，keep 随旧表删；叶子证据表无入向 FK，DROP 安全；DROP 先于 CREATE INDEX/TRIGGER 释放旧索引/触发器名）→重建 2 索引(ix_event_retention_targets_agent_id、ix_event_retention_pending_sequence 部分唯一 WHERE state='pending')+2 触发器(event_retention_target_identity 不可变、event_retention_target_keep 禁删)逐字复用 v0016；表数 143 不变（重建非新表），head v2_0047→v2_0048",
+    "test_v2_memory_decay.py:331-332 head 断言 v2_0047→v2_0048（升级至 head 验证 decay 列/表存在，v0048 仅重建 event_retention_targets 不影响 decay 列）",
+    "test_v2_event_pruning.py forged 测试有界分页修复（既有脆弱性，CHECK 修复解除夹具掩盖后暴露）：原仅取预览首页 limit=50，6bcb0e98 每回合新增 3 事件使模板 cutoff 内事件 >50，伪造 future.kind（全局 sequence 58）落第 51 行被截断（实测 scanned=50/has_more=True，future.kind 已存 run_events 但不在首页）；改为 ≤20 页跟随 next_cursor 收集全部 items 再断言，3 伪造种均受保护不变性完整验证且更强（原漏检 future.kind），not exported 逐页检查，未放宽断言",
+    "pyrightconfig.strict.json include 补 v0048.py（新源文件须入 include，v0047 先例）412→413"
+  ],
+  "limits": {
+    "kind_check_aligned_to_domain_kinds_12": true,
+    "v0048_transactional_rebuild_preserves_rows_indexes_triggers": true,
+    "table_count_unchanged_143": true,
+    "head_v2_0047_to_v2_0048": true,
+    "no_new_event_kind_no_new_table_no_new_route_no_new_model_tool": true,
+    "keep_identity_trigger_semantics_unchanged": true,
+    "v0016_frozen_migration_not_edited_only_v0048_appended": true,
+    "domain_kinds_not_changed_authoritative": true,
+    "forged_test_pagination_invariant_strengthened_not_weakened": true,
+    "execution_pruning_cost_fingerprint_pre_existing_not_chased": true,
+    "pin_v2_0039_schema_version_lag_7_not_chased": true,
+    "media_upload_ddl_2_not_chased": true,
+    "repository_py_strict_5_not_chased": true,
+    "new_source_files": 1,
+    "new_migration": "v0048",
+    "worker_protocol_frame_changed": false,
+    "cross_platform_worker_changed": false,
+    "aggregate_index_commit_deferred": true
+  },
+  "validation": {
+    "mode": "scoped_implementation_plus_migration_schema_guard",
+    "scoped": {
+      "command": "uv run --no-sync pytest -q -n 0 tests/v2/core/test_v2_event_pruning.py tests/v2/core/test_v2_event_pruning_crash.py tests/v2/core/test_v2_memory_decay.py (from agent/)",
+      "passed": 52,
+      "failed": 0,
+      "seconds": 96.61,
+      "note": "event_pruning 此前 7 失败（6 kind CHECK 违约 + 1 forged 预览 limit=50 截断）全转绿；memory_decay head 断言随 v0048 前移通过"
+    },
+    "migration_schema_guard_regression": {
+      "command": "uv run --no-sync pytest -q -n 0 <8 files: event_plan_migration/maintenance_migration/event_retention_contract/execution_pruning/audit_plan_migration/history_migration/retention_preview/schema_release> (from agent/)",
+      "passed": 112,
+      "failed": 1,
+      "seconds": 309.15,
+      "batch_caused_failures": 0,
+      "guards_green": "event_plan_migration assert_schema（12 种 CHECK 反射对齐 schema.py/143 表/索引触发器 FK 不变/源行保留/integrity+foreign_key ok）、v15→head 崩溃重试（marker 命中 v0016 首次 CREATE，重试经 v0048 重建至 head）、identity/keep/kind/unique 约束（run.interrupted 仍被拒不在 12 种）、maintenance_migration、event_retention_contract、audit_plan_migration、history_migration、retention_preview、schema_release 跨模式交换/head 前移",
+      "pre_existing_failure_not_chased": {
+        "execution_pruning_cost_1": "test_apply_rechecks_protections_and_fingerprint_before_any_backup_or_prune[cost] 指纹哈希不匹配（e5bc5db9... vs 0fecc7be...）；retention fingerprint 哈希 runs/actions/run_events，settle_call 自 6bcb0e98 发 model.completed 改变指纹 vs 冻结期望；本批仅改 event_retention_targets kind CHECK 不触及指纹哈希/这三表内容，机制核实无关，decay_core 证据已记录同一既有失败"
+      }
+    },
+    "strict": {
+      "config": "pyrightconfig.strict.json",
+      "files": 413,
+      "errors_total": 5,
+      "errors_attributable_to_this_batch": 0,
+      "warnings": 0,
+      "pre_existing_errors_not_chased": "ALL 5 in agent/src/omni/adapters/persistence/repository.py (other-session COMMITTED 6bcb0e98): L633 RowMapping|None->Record|None; L659 x2 + L710 x2 JSON->ConvertibleToInt. 本批 schema.py/v0048.py 零错误",
+      "note": "run from repo ROOT; include 补 v0048.py 412->413，新源文件确被 strict 覆盖且零错误"
+    },
+    "ruff": "check + format pass on schema.py/v0048.py/test_v2_memory_decay.py/test_v2_event_pruning.py (1 test reformatted, SQL semantics intact)",
+    "project_index": "run; new source file v0048.py; aggregate docs/index deferred per standing discipline (parallel UI session active)",
+    "task_status_check": "scripts/task_status.py --check exit 0",
+    "full_suite_executed": false,
+    "real_model_account_device_native_or_72h_executed": false,
+    "current_windows_service_or_database_touched": false
+  },
+  "whole_core_parity_complete": false,
+  "whole_reference_feature_audit_complete": false,
+  "whole_v2_complete": false,
+  "not_executed": [
+    "既有缺陷待独立批：execution_pruning[cost] retention fingerprint 含 settle_call model.completed 事件、7 个 pin v2_0039 schema_version 滞后（memory_semantics×2/routing×1/skills×2/media×1/images_migration×1）、2 个 media_upload DDL、5 个 repository.py strict 错误（6bcb0e98）",
+    "K15 重要性启发 scoreMemory/isInitial 窗口/双卡分离/注入 clarity 裁剪/容量告警 auto-compact/所有者自动衰减开关、主动动机引擎/分层人格/作息反馈",
+    "files_patch V4A 多文件格式、files_search ripgrep/glob 否定、K16 帧内 OCR/模型侧 zoom（需所有者图像协议批准）、K01 会话/lineage 缓存范围、K17 信笺/反思/人格成长、K18 写广度/自主观看/受控分享",
+    "Full offline suite for current source; real accounts/models/devices/native desktop and 72h soak"
+  ],
+  "next": "继续清单可离线缺口独立合同先批：K15 重要性启发 scoreMemory 或 files_patch V4A/files_search ripgrep/K16 OCR/K01 cache-scope/K17 信笺反思；或其余既有缺陷独立批（execution_pruning[cost] 指纹、pin v2_0039 滞后、media_upload DDL、repository.py strict）。whole_*_complete 保持 false，不提前关闭任何对标项。"
+}

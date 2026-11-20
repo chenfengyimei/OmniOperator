@@ -727,6 +727,10 @@
     {
       "id": "K15.decay_tick",
       "evidence": "docs/evidence/v2-memory-decay-tick.json"
+    },
+    {
+      "id": "FIX.event_retention_kinds",
+      "evidence": "docs/evidence/v2-event-retention-kinds.json"
     }
   ]
 }

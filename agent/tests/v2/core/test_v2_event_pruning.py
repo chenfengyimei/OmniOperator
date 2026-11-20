@@ -229,9 +229,19 @@ def test_unpruned_unknown_recovery_and_forged_action_events_are_protected(event_
 
     write_case(case, late)
     clock.current += dt.timedelta(days=200)
-    preview = read_case(case, lambda u: u.event_retention_preview(case["agent"], limit=50))
-    assert not preview["can_apply"] and "not exported" not in json.dumps(preview)
-    recent = [row for row in preview["items"] if row["run_id"] == run and row["seq"] > 5]
+
+    def pages(u):
+        items, cursor = [], ""
+        for _ in range(20):
+            page = u.event_retention_preview(case["agent"], cursor=cursor, limit=50)
+            assert not page["can_apply"] and "not exported" not in json.dumps(page)
+            items.extend(page["items"])
+            if not page["has_more"]:
+                return {"items": items}
+            cursor = page["next_cursor"]
+        raise AssertionError("event preview pagination did not terminate")
+
+    recent = [row for row in read_case(case, pages)["items"] if row["run_id"] == run and row["seq"] > 5]
     forged = [row for row in recent if row["kind"] in {"run.running", "run.interrupted", "future.kind"}]
     assert len(forged) == 3 and all(
         not row["eligible"] and "event_body_not_pruned" in row["protected_reasons"] for row in forged
