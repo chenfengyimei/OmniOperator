@@ -8,11 +8,11 @@
     <link rel="stylesheet" href="/assets/ui/tokens.css?v=20261120u2" />
     <link rel="stylesheet" href="/assets/ui/base.css?v=20261103v7" />
     <link rel="stylesheet" href="/assets/ui/icons.css?v=20261115u1" />
-    <link rel="stylesheet" href="/assets/ui/v2/v1/components.css?v=20261120v169" />
-    <link rel="stylesheet" href="/assets/ui/v2/v1/frame.css?v=20261120v169" />
-    <link rel="stylesheet" href="/assets/ui/v2/v1/workbench.css?v=20261120v169" />
-    <link rel="stylesheet" href="/assets/ui/v2/workbench.css?v=20261120v169" />
-    <link rel="stylesheet" href="/assets/vendor/xterm.min.css?v=20261120v169" />
+    <link rel="stylesheet" href="/assets/ui/v2/v1/components.css?v=20261120v170" />
+    <link rel="stylesheet" href="/assets/ui/v2/v1/frame.css?v=20261120v170" />
+    <link rel="stylesheet" href="/assets/ui/v2/v1/workbench.css?v=20261120v170" />
+    <link rel="stylesheet" href="/assets/ui/v2/workbench.css?v=20261120v170" />
+    <link rel="stylesheet" href="/assets/vendor/xterm.min.css?v=20261120v170" />
   </head>
   <body class="chat-mode" data-ui-page="workbench-v2">
     <header class="app-header">
@@ -1050,7 +1050,9 @@
                 <li><b>3.</b> 本轮用户输入</li>
                 <li><b>4.</b> 动态资料与时间</li>
               </ol>
-              <p class="muted">旧轮快照不改写，工具目录在回合内固定。摘要、窗口滑动、工具或人设变化会形成新的缓存边界。</p>
+              <p class="muted">
+                旧轮快照不改写，工具目录在回合内固定。摘要、窗口滑动、工具或人设变化会形成新的缓存边界。
+              </p>
               <details class="ctx-fold">
                 <summary>查看固定提示词与前缀指纹</summary>
                 <pre id="ctx-prefix"></pre>
@@ -1059,14 +1061,17 @@
               <h3>历史与压缩</h3>
               <p class="muted">
                 V2 采用 token 驱动的有界压缩：字符安全上限 <b id="ctx-const-chars">—</b>，摘要触发阈值
-                <b id="ctx-const-trigger">—</b> 条，每回合最多 <b id="ctx-const-calls">—</b> 次摘要调用。超出窗口时按整回合滑动并登记摘要，不丢当前请求与完整工具调用。
+                <b id="ctx-const-trigger">—</b> 条，每回合最多
+                <b id="ctx-const-calls">—</b> 次摘要调用。超出窗口时按整回合滑动并登记摘要，不丢当前请求与完整工具调用。
               </p>
               <div id="context-page-attempts" class="ctx-attempts"></div>
               <details class="ctx-fold">
                 <summary>对照当前运行配置</summary>
                 <div id="context-page-settings" class="ctx-settings"></div>
               </details>
-              <p class="muted">步数与预算在「设置」页修改；模型容量（上下文/输出/摘要/余量）在「模型接入」页按模型声明，修改仅作用于新运行。</p>
+              <p class="muted">
+                步数与预算在「设置」页修改；模型容量（上下文/输出/摘要/余量）在「模型接入」页按模型声明，修改仅作用于新运行。
+              </p>
               <div class="actions">
                 <button type="button" data-page="memory">记忆系统</button>
                 <button type="button" data-page="skills">技能系统</button>
@@ -1305,7 +1310,8 @@
 
                     <details class="mo-advanced">
                       <summary>
-                        <span class="material-icons" aria-hidden="true">tune</span>高级设置（端点 / 凭据名 / 容量，已自动填好）
+                        <span class="material-icons" aria-hidden="true">tune</span>高级设置（端点 / 凭据名 /
+                        容量，已自动填好）
                       </summary>
                       <div class="mo-field-grid">
                         <label class="mo-field mo-field-wide">
@@ -1507,100 +1513,100 @@
               </form>
               <details id="config-editor-wrap" class="settings-advanced">
                 <summary id="config-editor-summary">高级：编辑所选配置（模型/通道/MCP/预设）</summary>
-              <form id="configuration-form">
-                <fieldset id="configuration-fields" disabled>
-                  <label>配置名称<input id="cfg-name" maxlength="100" required /></label>
-                  <label><input id="cfg-enabled" type="checkbox" />配置启用（停用模型会撤销旧运行的后续调用）</label>
-                  <fieldset id="cfg-model-fields">
-                    <label>模型标识<input id="model" maxlength="200" placeholder="provider/model" /></label>
-                    <label>模型端点<input id="base-url" type="url" placeholder="https://api.example.com/v1" /></label>
-                    <label
-                      >凭据引用名称<input id="credential-ref" maxlength="200" placeholder="例如 openai-key"
-                    /></label>
-                    <div class="log-filters">
+                <form id="configuration-form">
+                  <fieldset id="configuration-fields" disabled>
+                    <label>配置名称<input id="cfg-name" maxlength="100" required /></label>
+                    <label><input id="cfg-enabled" type="checkbox" />配置启用（停用模型会撤销旧运行的后续调用）</label>
+                    <fieldset id="cfg-model-fields">
+                      <label>模型标识<input id="model" maxlength="200" placeholder="provider/model" /></label>
+                      <label>模型端点<input id="base-url" type="url" placeholder="https://api.example.com/v1" /></label>
                       <label
-                        >声明上下文容量（token）<input
-                          id="context-tokens"
-                          type="number"
-                          min="1024"
-                          max="2000000"
-                          required
+                        >凭据引用名称<input id="credential-ref" maxlength="200" placeholder="例如 openai-key"
                       /></label>
-                      <label>回答输出上限（token）<input id="output-tokens" type="number" min="1" required /></label>
-                      <label>摘要输出上限（token）<input id="summary-tokens" type="number" min="1" required /></label>
-                      <label>安全余量（token）<input id="margin-tokens" type="number" min="128" required /></label>
-                    </div>
-                    <label
-                      >输入计量方式<select id="counter-mode">
-                        <option value="utf8_upper_bound">本地保守估计</option>
-                        <option value="required">要求专用计量器</option>
-                      </select></label
-                    >
-                    <label>计量器版本标识<input id="counter-ref" maxlength="100" required /></label>
-                    <label
-                      >图片协议<select id="image-protocol">
-                        <option value="disabled">关闭</option>
-                        <option value="openai_low">OpenAI 低清（已知计量型号）</option>
-                      </select></label
-                    >
-                    <div class="form-row">
-                      <label>单次附图上限<input id="image-per-call" type="number" min="1" max="4" required /></label
+                      <div class="log-filters">
+                        <label
+                          >声明上下文容量（token）<input
+                            id="context-tokens"
+                            type="number"
+                            min="1024"
+                            max="2000000"
+                            required
+                        /></label>
+                        <label>回答输出上限（token）<input id="output-tokens" type="number" min="1" required /></label>
+                        <label>摘要输出上限（token）<input id="summary-tokens" type="number" min="1" required /></label>
+                        <label>安全余量（token）<input id="margin-tokens" type="number" min="128" required /></label>
+                      </div>
+                      <label
+                        >输入计量方式<select id="counter-mode">
+                          <option value="utf8_upper_bound">本地保守估计</option>
+                          <option value="required">要求专用计量器</option>
+                        </select></label
+                      >
+                      <label>计量器版本标识<input id="counter-ref" maxlength="100" required /></label>
+                      <label
+                        >图片协议<select id="image-protocol">
+                          <option value="disabled">关闭</option>
+                          <option value="openai_low">OpenAI 低清（已知计量型号）</option>
+                        </select></label
+                      >
+                      <div class="form-row">
+                        <label>单次附图上限<input id="image-per-call" type="number" min="1" max="4" required /></label
+                        ><label
+                          >本轮累计附图次数<input id="image-run-budget" type="number" min="1" max="64" required
+                        /></label>
+                      </div>
+                      <p class="muted">
+                        仅对明确支持低清计量的 gpt-4o / gpt-4o-mini
+                        型号开放。重复调用会累计次数，压缩上下文不重置；真实模型仍需验收。
+                      </p>
+                      <p class="muted">
+                        容量需按目标模型声明填写。保守估计包含 UTF-8
+                        字节与封装余量，不能保证供应商隐藏内容；专用计量器不可用时不会发送请求。
+                      </p>
+                    </fieldset>
+                    <fieldset id="cfg-channel-fields" hidden disabled>
+                      <label
+                        >通道类型<select id="channel-driver">
+                          <option value="qq">QQ</option>
+                          <option value="bilibili">B站</option>
+                          <option value="android">安卓</option>
+                        </select></label
+                      >
+                      <label>服务端点<input id="channel-endpoint" /></label
+                      ><label>账号或目标<input id="channel-account" maxlength="200" /></label
+                      ><label>凭据引用名称<input id="channel-credential" /></label>
+                    </fieldset>
+                    <fieldset id="cfg-mcp-fields" hidden disabled>
+                      <label
+                        >传输<select id="mcp-transport">
+                          <option value="stdio">stdio</option>
+                          <option value="streamable_http">Streamable HTTP</option>
+                        </select></label
+                      >
+                      <label>stdio 可执行文件<input id="mcp-command" maxlength="4000" /></label
+                      ><label>公开参数（每行一个，不放令牌）<textarea id="mcp-arguments" rows="3"></textarea></label>
+                      <label>远程端点<input id="mcp-endpoint" /></label
                       ><label
-                        >本轮累计附图次数<input id="image-run-budget" type="number" min="1" max="64" required
-                      /></label>
+                        >远程认证<select id="mcp-auth">
+                          <option value="none">无</option>
+                          <option value="bearer">凭据引用</option>
+                          <option value="oauth">OAuth（接入待实现）</option>
+                        </select></label
+                      ><label>凭据引用名称<input id="mcp-credential" /></label>
+                    </fieldset>
+                    <fieldset id="cfg-preset-fields" hidden disabled>
+                      <label>预设人设<textarea id="preset-content" rows="5" maxlength="50000"></textarea></label>
+                    </fieldset>
+                    <div class="actions">
+                      <button type="submit">保存配置</button
+                      ><button id="reload-configuration" type="button">放弃配置草稿并重载</button
+                      ><button id="configuration-history-button" type="button">查看配置修订</button
+                      ><button id="configuration-export" type="button">导出已保存配置</button
+                      ><button id="configuration-archive" type="button">归档配置</button
+                      ><button id="apply-preset" type="button" hidden>应用已保存预设到设置草稿</button>
                     </div>
-                    <p class="muted">
-                      仅对明确支持低清计量的 gpt-4o / gpt-4o-mini
-                      型号开放。重复调用会累计次数，压缩上下文不重置；真实模型仍需验收。
-                    </p>
-                    <p class="muted">
-                      容量需按目标模型声明填写。保守估计包含 UTF-8
-                      字节与封装余量，不能保证供应商隐藏内容；专用计量器不可用时不会发送请求。
-                    </p>
                   </fieldset>
-                  <fieldset id="cfg-channel-fields" hidden disabled>
-                    <label
-                      >通道类型<select id="channel-driver">
-                        <option value="qq">QQ</option>
-                        <option value="bilibili">B站</option>
-                        <option value="android">安卓</option>
-                      </select></label
-                    >
-                    <label>服务端点<input id="channel-endpoint" /></label
-                    ><label>账号或目标<input id="channel-account" maxlength="200" /></label
-                    ><label>凭据引用名称<input id="channel-credential" /></label>
-                  </fieldset>
-                  <fieldset id="cfg-mcp-fields" hidden disabled>
-                    <label
-                      >传输<select id="mcp-transport">
-                        <option value="stdio">stdio</option>
-                        <option value="streamable_http">Streamable HTTP</option>
-                      </select></label
-                    >
-                    <label>stdio 可执行文件<input id="mcp-command" maxlength="4000" /></label
-                    ><label>公开参数（每行一个，不放令牌）<textarea id="mcp-arguments" rows="3"></textarea></label>
-                    <label>远程端点<input id="mcp-endpoint" /></label
-                    ><label
-                      >远程认证<select id="mcp-auth">
-                        <option value="none">无</option>
-                        <option value="bearer">凭据引用</option>
-                        <option value="oauth">OAuth（接入待实现）</option>
-                      </select></label
-                    ><label>凭据引用名称<input id="mcp-credential" /></label>
-                  </fieldset>
-                  <fieldset id="cfg-preset-fields" hidden disabled>
-                    <label>预设人设<textarea id="preset-content" rows="5" maxlength="50000"></textarea></label>
-                  </fieldset>
-                  <div class="actions">
-                    <button type="submit">保存配置</button
-                    ><button id="reload-configuration" type="button">放弃配置草稿并重载</button
-                    ><button id="configuration-history-button" type="button">查看配置修订</button
-                    ><button id="configuration-export" type="button">导出已保存配置</button
-                    ><button id="configuration-archive" type="button">归档配置</button
-                    ><button id="apply-preset" type="button" hidden>应用已保存预设到设置草稿</button>
-                  </div>
-                </fieldset>
-              </form>
+                </form>
               </details>
               <p id="configuration-status" role="status"></p>
               <p id="configuration-diagnosis" role="status"></p>
@@ -1876,31 +1882,66 @@
                 <fieldset id="schedule-fields" disabled>
                   <label>计划名称<input id="schedule-name" maxlength="100" required /></label>
                   <label><input id="schedule-enabled" type="checkbox" />启用自动调度</label>
-                  <label
-                    >重复方式<select id="schedule-kind">
-                      <option value="cron">日历规则</option>
-                      <option value="interval">固定间隔</option>
-                      <option value="once">单次</option>
-                    </select></label
-                  >
-                  <label
-                    >IANA 时区<input id="schedule-timezone" maxlength="100" required placeholder="Asia/Shanghai"
-                  /></label>
-                  <label
-                    >五段日历规则（分 时 日 月 周）<input
-                      id="schedule-expression"
-                      maxlength="100"
-                      placeholder="0 9 * * *"
-                  /></label>
-                  <label
-                    >间隔秒数（至少 60）<input id="schedule-interval" type="number" min="60" max="31536000"
-                  /></label>
-                  <label
-                    >起始时间（ISO，需含 UTC 偏移）<input
-                      id="schedule-start"
-                      placeholder="2026-12-01T09:00:00+08:00"
-                      maxlength="40"
-                  /></label>
+                  <div class="schedule-wizard" id="schedule-wizard">
+                    <div class="wiz-row">
+                      <span class="wiz-caption" id="schedule-wiz-caption">重复频率</span>
+                      <div class="wiz-modes" role="radiogroup" aria-labelledby="schedule-wiz-caption">
+                        <label class="wiz-mode"
+                          ><input type="radio" name="schedule-wiz-mode" value="daily" checked /><span>每天</span></label
+                        >
+                        <label class="wiz-mode"
+                          ><input type="radio" name="schedule-wiz-mode" value="weekly" /><span>每周</span></label
+                        >
+                        <label class="wiz-mode"
+                          ><input type="radio" name="schedule-wiz-mode" value="monthly" /><span>每月</span></label
+                        >
+                      </div>
+                      <label class="wiz-time"
+                        >时刻<input id="schedule-wiz-time" type="time" value="09:00" required
+                      /></label>
+                    </div>
+                    <div class="wiz-pick-row" id="schedule-wiz-weekdays" hidden>
+                      <span class="wiz-caption">星期（可多选，至少一天）</span>
+                      <div class="wiz-pick"></div>
+                    </div>
+                    <div class="wiz-pick-row" id="schedule-wiz-days" hidden>
+                      <span class="wiz-caption">日期（可多选，至少一天）</span>
+                      <div class="wiz-pick"></div>
+                    </div>
+                    <p class="wiz-summary">
+                      <span class="material-icons" aria-hidden="true">event</span
+                      ><span id="schedule-wiz-summary-text" role="status"></span>
+                    </p>
+                    <p class="muted wiz-note" id="schedule-wiz-note" hidden></p>
+                  </div>
+                  <details id="schedule-advanced" class="settings-advanced">
+                    <summary>高级模式：日历规则原文 / 固定间隔 / 单次</summary>
+                    <label
+                      >重复方式<select id="schedule-kind">
+                        <option value="cron">日历规则</option>
+                        <option value="interval">固定间隔</option>
+                        <option value="once">单次</option>
+                      </select></label
+                    >
+                    <label
+                      >IANA 时区<input id="schedule-timezone" maxlength="100" required placeholder="Asia/Shanghai"
+                    /></label>
+                    <label
+                      >五段日历规则（分 时 日 月 周）<input
+                        id="schedule-expression"
+                        maxlength="100"
+                        placeholder="0 9 * * *"
+                    /></label>
+                    <label
+                      >间隔秒数（至少 60）<input id="schedule-interval" type="number" min="60" max="31536000"
+                    /></label>
+                    <label
+                      >起始时间（ISO，需含 UTC 偏移）<input
+                        id="schedule-start"
+                        placeholder="2026-12-01T09:00:00+08:00"
+                        maxlength="40"
+                    /></label>
+                  </details>
                   <label>到期指令<textarea id="schedule-prompt" maxlength="20000" rows="4" required></textarea></label>
                   <p class="muted">
                     保存修订不覆盖已经登记的到期指令。停用或归档会取消尚未入队的到期记录；已入队或运行中的回合请在下方单独取消。
@@ -2061,9 +2102,9 @@
       </div>
       <div id="service-list" class="svc-list"></div>
     </dialog>
-    <script src="/assets/vendor/xterm.js?v=20261120v169"></script>
-    <script src="/assets/vendor/xterm-addon-fit.js?v=20261120v169"></script>
-    <script src="/assets/ui/markdown.js?v=20261120v169"></script>
-    <script type="module" src="/assets/ui/v2/main.js?v=20261120v169"></script>
+    <script src="/assets/vendor/xterm.js?v=20261120v170"></script>
+    <script src="/assets/vendor/xterm-addon-fit.js?v=20261120v170"></script>
+    <script src="/assets/ui/markdown.js?v=20261120v170"></script>
+    <script type="module" src="/assets/ui/v2/main.js?v=20261120v170"></script>
   </body>
 </html>
