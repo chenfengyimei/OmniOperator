@@ -6,6 +6,8 @@ from omni.adapters.persistence import schema as s
 from omni.adapters.persistence.repository import Repositories
 from omni.domain.contracts import BusinessError
 
+_MEMORY_DECAY_COLUMNS = ("importance", "clarity", "recall_count", "decay_steps", "pinned", "last_seen_at")
+
 
 def preserved_rows(
     connection,
@@ -13,6 +15,7 @@ def preserved_rows(
     *,
     excluded_run_columns=("extension_capture_epoch", "execution_kind"),
     excluded_action_columns=(),
+    excluded_memory_columns=_MEMORY_DECAY_COLUMNS,
 ):
     result = {}
     for name in tables:
@@ -21,6 +24,8 @@ def preserved_rows(
             columns = [column for column in columns if column not in {*excluded_run_columns, "skill_capture_epoch"}]
         if name == "actions":
             columns = [column for column in columns if column not in excluded_action_columns]
+        if name == "memory_entries":
+            columns = [column for column in columns if column not in excluded_memory_columns]
         projection = ",".join('"' + column.replace('"', '""') + '"' for column in columns)
         result[name] = connection.execute(f'SELECT {projection} FROM "{name}" ORDER BY rowid').fetchall()
     return result
@@ -31,6 +36,12 @@ class PreSkillSeedRepositories(Repositories):
 
     # These schemas also predate V42: fixture creation has no delegated runs.
     # After upgrade the Database actor always constructs real Repositories.
+    # v0047 decay columns are absent at pinned pre-v47 schemas; drop them so legacy seeding inserts only original columns.
+    def _record(self, table, values, agent_id=None):
+        if table is s.memory_entries:
+            values = {k: v for k, v in values.items() if k not in _MEMORY_DECAY_COLUMNS}
+        return super()._record(table, values, agent_id)
+
     def delegation_link(self, agent_id, child_id):
         return None
 

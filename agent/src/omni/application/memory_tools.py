@@ -6,6 +6,7 @@ from collections.abc import Mapping
 from typing import cast
 
 from ..domain.contracts import JSON, ActionResult, BusinessError, Effect, InvocationContext, Outcome
+from ..domain.memory_decay import TOUCH_LIMIT
 from .memory_semantics import MemorySemanticService
 from .ports import DatabasePort, Record, UnitOfWork
 
@@ -45,6 +46,9 @@ class MemoryCapabilities:
             if self._semantics is not None:
                 result = await self._semantics.search(context.agent_id, str(arguments["query"]), run_id=context.run_id)
                 rows = result["items"]
+                identities = [str(row["id"]) for row in rows[:TOUCH_LIMIT]]
+                if identities:
+                    await self._db.write(lambda u: u.memory_touch(context.agent_id, identities))
                 return ActionResult(
                     Outcome.OK,
                     "\n".join(f"{row['id']} revision={row['revision']}: {row['content']}" for row in rows)
@@ -55,6 +59,7 @@ class MemoryCapabilities:
             def search(u: UnitOfWork) -> list[Record]:
                 rows = u.search_memory(context.agent_id, str(arguments["query"]))
                 u.capture_tool_memories(context.agent_id, context.run_id, [str(row["id"]) for row in rows])
+                u.memory_touch(context.agent_id, [str(row["id"]) for row in rows[:TOUCH_LIMIT]])
                 return rows
 
             rows = await self._db.write(search)
@@ -92,6 +97,7 @@ class MemoryCapabilities:
                     if arguments.get("document_revision_id")
                     else None,
                     source_run_id=context.run_id,
+                    importance=cast(int, arguments.get("importance", 50)),
                 )
             )
             return ActionResult(Outcome.OK, "Memory saved: " + str(row["id"]), Effect.APPLIED)

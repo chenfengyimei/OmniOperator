@@ -17,7 +17,7 @@ from omni_test_support.v2.extensions_migration import raw_run
 from omni_test_support.v2.objects import Clock, opened
 from omni_test_support.v2.v2_action_review_helpers import review_request, seed_unknown
 from omni_test_support.v2.v2_configuration_helpers import add_model_headers_column
-from omni_test_support.v2.v2_legacy_seed import preserved_rows
+from omni_test_support.v2.v2_legacy_seed import LegacySeedRepositories, preserved_rows
 from sqlalchemy import CheckConstraint, UniqueConstraint, create_engine, delete, inspect, select, update
 
 from omni.adapters.persistence import maintenance
@@ -26,7 +26,6 @@ from omni.adapters.persistence.database import Database
 from omni.adapters.persistence.maintenance import backup, inspect_database, restore, verify_snapshot
 from omni.adapters.persistence.migration_config import configuration
 from omni.adapters.persistence.migration_config import head as migration_head
-from omni.adapters.persistence.repository import Repositories
 from omni.adapters.persistence.sqlite_access import sqlite_connection
 from omni.adapters.platform.runtime.paths import InstancePaths
 from omni.adapters.primitives import SystemClock, UUIDs
@@ -69,7 +68,7 @@ def baseline(paths):
                 cfg.attributes["connection"] = connection
                 command.upgrade(cfg, "v2_0019")
                 add_model_headers_column(connection)
-                unit = Repositories(connection, SystemClock(), UUIDs())
+                unit = LegacySeedRepositories(connection, SystemClock(), UUIDs())
                 unit.initialize()
                 agent = unit.query("agents", "")[0]["id"]
                 run = raw_run(unit, agent)
@@ -113,7 +112,7 @@ def baseline(paths):
 
 def assert_schema(unit):
     reflection = inspect(unit.connection)
-    assert len(s.metadata.tables) == 142 and set(s.metadata.tables) <= set(reflection.get_table_names())
+    assert len(s.metadata.tables) == 143 and set(s.metadata.tables) <= set(reflection.get_table_names())
     for name in TABLES:
         table = s.metadata.tables[name]
         assert {column["name"]: column["nullable"] for column in reflection.get_columns(name)} == {

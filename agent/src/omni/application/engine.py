@@ -24,6 +24,7 @@ from ..domain.contracts import (
     ToolSpec,
 )
 from ..domain.delegation import CHILD_CONCURRENCY, DELEGATE_TASK, SUMMARY_CHARS, inherited, record_tools, task_batch
+from ..domain.memory_decay import TOUCH_LIMIT
 from ..domain.repetition import is_degenerate_reply
 from ..domain.routing import REQUEST_MODE, select_tools
 from ..domain.routing import notice as route_notice
@@ -949,6 +950,8 @@ class Application:
         quote: str = "",
         action_id: str | None = None,
         document_revision_id: str | None = None,
+        importance: int = 50,
+        pinned: bool = False,
     ) -> Record:
         return await self._db.write(
             lambda u: u.remember(
@@ -958,6 +961,8 @@ class Application:
                 quote=quote,
                 action_id=action_id,
                 document_revision_id=document_revision_id,
+                importance=importance,
+                pinned=pinned,
             )
         )
 
@@ -987,8 +992,19 @@ class Application:
 
     async def search_memory(self, agent_id: str, query: str) -> list[Record]:
         if self._memory_semantics is not None:
-            return (await self._memory_semantics.search(agent_id, query))["items"]
-        return await self._db.read(lambda u: u.search_memory(agent_id, query))
+            items = (await self._memory_semantics.search(agent_id, query))["items"]
+        else:
+            items = await self._db.read(lambda u: u.search_memory(agent_id, query))
+        identities = [str(row["id"]) for row in items[:TOUCH_LIMIT]]
+        if identities:
+            await self._db.write(lambda u: u.memory_touch(agent_id, identities))
+        return items
+
+    async def memory_decay_state(self, agent_id: str) -> Record:
+        return await self._db.read(lambda u: u.memory_decay_state(agent_id))
+
+    async def memory_decay(self, agent_id: str, force: bool = False) -> Record:
+        return await self._db.write(lambda u: u.memory_decay_pass(agent_id, force))
 
     def health(self) -> Record:
         return {

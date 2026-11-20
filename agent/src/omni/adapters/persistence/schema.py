@@ -1015,6 +1015,23 @@ memory_entries = scoped(
     scoped_fk("person_id", "people"),
     scoped_fk("session_id", "sessions"),
     CheckConstraint("kind IN ('fact','profile','resident','journal','note')", name="kind"),
+    Column("importance", Integer, nullable=False, server_default="50"),
+    Column("clarity", String(12), nullable=False, server_default="vivid"),
+    Column("recall_count", Integer, nullable=False, server_default="0"),
+    Column("decay_steps", Integer, nullable=False, server_default="0"),
+    Column("pinned", Boolean, nullable=False, server_default="0"),
+    Column("last_seen_at", String(40)),
+)
+memory_decay_state = scoped(
+    "memory_decay_state",
+    Column("last_decay_date", String(10)),
+    Column("last_decay_at", String(40)),
+    Column("decayed", Integer, nullable=False, server_default="0"),
+    Column("forgotten", Integer, nullable=False, server_default="0"),
+    UniqueConstraint("agent_id"),
+    CheckConstraint(
+        "decayed>=0 AND forgotten>=0 AND (last_decay_date IS NULL OR length(last_decay_date)=10)", name="payload"
+    ),
 )
 source_anchors = scoped(
     "source_anchors",

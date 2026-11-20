@@ -51,7 +51,7 @@ def test_populated_v28_upgrade_retains_owner_command_body_and_scoped_schema(tmp_
             assert row["tool"] == "desktop_semantic" and row["arguments"]["text"] == "preserve this pending body"
             assert db.schema_version == migration_head()
             assert await db.read(lambda u: u.connection.exec_driver_sql("PRAGMA foreign_key_check").all()) == []
-            assert len(s.metadata.tables) == 142
+            assert len(s.metadata.tables) == 143
         finally:
             await db.close()
 

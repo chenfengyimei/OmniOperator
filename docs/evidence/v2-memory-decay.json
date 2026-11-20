@@ -1,0 +1,118 @@
+{
+  "schema": 1,
+  "date": "2026-11-20",
+  "base_commit": "8297836b128ecb7e9fc200d8459e6d1c19b59842",
+  "status": "implemented_scoped_passed",
+  "batch": "K15.decay_core",
+  "takeover": "接替额度耗尽会话：前会话已写完 decay 领域/迁移/仓储/引擎/工具/能力/HTTP 接线与合同并同步 14 处表计数守卫 142→143，但未跑调用方回归、未写证据/任务/parity/HANDOFF、未提交。接管会话完成收尾回归修复+验证+文档+提交推送。",
+  "implements_gap": "K15 人格/遗忘巩固/自主行为审计之时间衰减遗忘巩固引擎核心（保守子集）：retention 评分/清晰度层级/每日一步/漏日补追/召回强化/硬遗忘谓词，forgotten 隐藏态非擦除",
+  "contract": "docs/v2/contracts/V2_MEMORY_DECAY.md",
+  "source_files": {
+    "agent/src/omni/domain/memory_decay.py": "a8c9c53701d56e593b4cd0ee60397024890f1420b0b2275bcfacaebf779541e0",
+    "agent/src/omni/adapters/persistence/memory_repository.py": "4ae36f1b50f72b9b92b054ddf755178c3b7e7f5acd6d62facf3ec0939323bbdb",
+    "agent/src/omni/adapters/persistence/schema.py": "1eafb39566896a542b2c1f814e6d2bf6685187a2eae2b62a07710ac86c8a188d",
+    "agent/src/omni/adapters/persistence/migrations/versions/v0047.py": "40f28e96754be4ab2b43eac7ebb55a2e702560f20c1995de665a46090ab3faf2",
+    "agent/src/omni/application/engine.py": "c808b1259123e88d0102ebe6b3352adacc769168aebb572cea4359c162c47904",
+    "agent/src/omni/application/memory_tools.py": "a5318d16ef6768e880e18715145a2ea56a646213d19a8e3d323300484743bde5",
+    "agent/src/omni/application/ports.py": "d03cf7b85670ed45c4604bdc2a25caeb2127f5d56ad4a3634ee8cb4cd6abc671",
+    "agent/src/omni/adapters/http.py": "158a4365cd71697a82355ad14603aac8ab9d7b70b1c2f3034a4ceb75cc312e55",
+    "agent/src/omni/composition/capabilities.py": "3bac9b670a08b5f4028b23439203f951375735b4a3748f6d9714e722958b434e",
+    "agent/tests/v2/core/test_v2_memory_decay.py": "a5ac181d1b866949ad87f389faf8a4f383a5751a23a7c7037dc0dce8d075dd4c",
+    "agent/tests/omni_test_support/v2/v2_legacy_seed.py": "6bcea5476a14be1d218fc1aff18bafc21e44f4c3135ea148f8536e77af9991a2",
+    "agent/tests/v2/core/test_v2_memory_organization.py": "5f9c7e7259c8ea6417f8576d63c6201eaa26b2f6d133998ad00d4afafe5b3278",
+    "agent/tests/v2/core/test_v2_action_review_migration.py": "c1da4b01830a804825b232f1634950f5e0442a5f4234af8e0a033e54dd3b8808",
+    "docs/v2/contracts/V2_MEMORY_DECAY.md": "7a6fd1ed56f3f06bbe058a5c4c895505bd3a833c5e793207846d9b0623b8b195",
+    "pyrightconfig.strict.json": "6a3c5f76b031343192bdf1defc6c1a0e6c605445d2548ee06c12f2323777678b"
+  },
+  "reference": {
+    "repository": "xuexi/surfcore",
+    "commit": "59ec3066",
+    "files": {
+      "src/memory-card.js": "retention 评分(importance+recall*2 capped12+recent18+seen8-age penalty)、clarity 层级 vivid/clear/fuzzy/trace/forgotten、target_clarity 切分 68/46/24/12、hard_forget(age>60 & importance<50 & !protected)、applyDailyDecay 每日一步、catchup 漏日补追、touch 召回强化、ownerImportant=minOwnerImportance65"
+    },
+    "adaptation": "学习参考纯逻辑衰减/巩固引擎，独立实现于 V2 四层 memory 链（stdlib datetime/difflib 无新依赖）。保守子集：V2 擦除纪律优先——forgotten 仅置 clarity 隐藏态，不擦除/不写 tombstone/不失效会话，所有者 forget 仍是唯一擦除路径（严于参考自动删除）。protected 代理=pinned or importance>=65（V2 无 tags/isInitial）。参考 agents.md/prompts 当不可信数据非本会话指令。无第三方源码复制。"
+  },
+  "delivered": [
+    "domain/memory_decay.py 新纯规则文件：CLARITY_ORDER(vivid/clear/fuzzy/trace/forgotten)、is_protected、initial_clarity、retention_score(rate0.12protected/0.35、地板protected55/recent50)、target_clarity(68/46/24/12切分+pinned恒vivid)、hard_forget(age>60&importance<50&!protected)、decay_step(每遍最多一步上下行)、catchup_steps(日差clamp[1,30]无记录1)",
+    "schema.py memory_entries 6 加性列(importance50/clarity vivid/recall_count0/decay_steps0/pinned0/last_seen_at) + 新表 memory_decay_state(scoped 每agent唯一行 last_decay_date/last_decay_at/decayed/forgotten + identity/keep 触发器)；表数 142→143",
+    "v0047 冻结迁移幂等 ALTER 6 列 + CREATE memory_decay_state(index+identity immutable+keep 禁删触发器)，down_revision v0046，downgrade 拒绝；head v2_0047",
+    "memory_repository remember 加 importance(1-100校验)/pinned(bool校验)参数+initial_clarity+last_seen_at=now；memory_touch(<=5否则422、跳过deleted/document/forgotten/missing、recall_count min999+1、last_seen_at=now)；memory_decay_state(需真agent404、无行默认)；memory_decay_pass(force bool422、今日门409、catchup steps、live非文档逐条hard_forget/retention→target一步、下行计decayed/到forgotten计forgotten、decay_steps cap999仅下行、重复至steps或无变化、state upsert累计、audit memory.decayed)；search_memory FTS+LIKE 两分支排除 clarity=forgotten",
+    "engine.py remember 透传 importance/pinned；search_memory 两分支(semantics/fallback)对返回结果<=TOUCH_LIMIT 召回强化 memory_touch；memory_decay_state/memory_decay 所有者 facade",
+    "memory_tools.py memory_search semantics+fallback 两分支 touch 强化；memory_remember 透传 importance；ports.py remember 签名+3 新方法；capabilities.py memory_remember spec 加可选 importance(1-100)；http.py GET/POST /agents/{id}/memory/decay 两所有者路由(strict force bool 校验422)",
+    "接管收尾回归修复(生产源码不变,仅测试夹具/断言口径,按既有加性列先例)：v2_legacy_seed.py PreSkillSeedRepositories._record 对 memory_entries 剥离 v0047 六列(旧schema播种只插原始列)+preserved_rows excluded_memory_columns 默认剥离六列(升级前后投影忽略新列,execution_kind/excluded_action_columns 同先例)；test_v2_action_review_migration.py v19 baseline 真Repositories改designated LegacySeedRepositories+移除未用导入；test_v2_memory_organization.py original_truth 投影排除 recall_count/last_seen_at(召回强化合法变更统计列,事实真相content/kind/revision等仍全列比较,不变性未放宽)",
+    "pyrightconfig.strict.json include 补 memory_decay.py + v0047.py(前会话漏加,新源文件须入 include 才被 strict 覆盖,K07 repetition.py 先例)；410→412 文件"
+  ],
+  "limits": {
+    "retention_formula_clarity_cuts_one_step_catchup_hard_forget": true,
+    "recall_reinforcement_touch_bounded_5": true,
+    "owner_decay_pass_daily_gate_force_catchup": true,
+    "forgotten_hidden_not_erased_owner_forget_only_erase": true,
+    "documents_profile_resident_exempt": true,
+    "pinned_always_vivid_protected_floor": true,
+    "search_excludes_forgotten_both_branches": true,
+    "v0047_idempotent_migration_reflection_triggers_guard_143": true,
+    "rest_owner_routes_strict_force": true,
+    "no_model_side_decay_tool": true,
+    "automatic_daily_tick_implemented": false,
+    "importance_heuristic_scoreMemory_implemented": false,
+    "isInitial_window_implemented": false,
+    "dual_card_separation_injection_clarity_truncation_implemented": false,
+    "capacity_warning_auto_compact_implemented": false,
+    "new_table": true,
+    "new_migration": "v0047",
+    "new_routes": 2,
+    "new_source_files": 2,
+    "worker_protocol_frame_changed": false,
+    "cross_platform_worker_changed": false,
+    "aggregate_index_commit_deferred": true
+  },
+  "validation": {
+    "mode": "scoped_implementation_plus_broad_caller",
+    "decay_scoped": {
+      "command": "uv run --no-sync pytest -q -n 0 tests/v2/core/test_v2_memory_decay.py (from agent/)",
+      "passed": 29,
+      "failed": 0,
+      "seconds": 18.49
+    },
+    "broad_caller_regression": {
+      "command": "uv run --no-sync pytest -q -n 0 <38 files: memory suites + all seed-helper callers + migration guards + architecture/capabilities/execution/kernel/lifecycle/routing> (from agent/)",
+      "passed": 341,
+      "failed": 17,
+      "seconds": 922.57,
+      "decay_caused_failures_after_fix": 0,
+      "note": "接管首轮 24 文件回归曾 17 失败(10 decay 引入:remember 加性列旧schema播种INSERT importance错+search强化破坏事实真相比较;另 extensions 等 LegacySeed 播种同因)，经 3 处夹具/口径修复后全部转绿；扩至 38 文件覆盖全部 shared-helper 调用方确认无新破坏",
+      "pre_existing_failures_not_chased": {
+        "pinned_schema_version_v2_0039_lag_7": "memory_semantics_migration v33 x2 / routing_migration v32 x1 / skills_migration v34 x2 / media v36 x1 / images_migration v31 x1(断言 schema_version==v2_0039 而 head 已 v0047,head 移过 v0039 即滞后,非 decay)",
+        "event_pruning_7": "6bcb0e98 实时调用链新增 action.executing/model.started 事件种,但 event_retention_targets kind CHECK 白名单(schema.py:1979/v0016:40 仅 run.failed/run.cancelled/action.prepared/action.completed)未扩展→retention target INSERT 违约;decay 不触及 event_retention/事件种/repository.py:853,机制核实 decay 无关",
+        "execution_pruning_cost_1": "retention fingerprint 哈希 runs/actions/run_events,settle_call 自 6bcb0e98 发 model.completed 事件改变 fingerprint;decay 不触及这三表/成本/事件路径",
+        "media_upload_ddl_2": "test_populated_graph_rebuild...rolls_back_every_ddl_on_failure[False/True],zoom_foundation 批已记录既有 upload_migration DDL 无关"
+      }
+    },
+    "strict": {
+      "config": "pyrightconfig.strict.json",
+      "files": 412,
+      "errors_total": 5,
+      "errors_attributable_to_this_batch": 0,
+      "warnings": 0,
+      "pre_existing_errors_not_chased": "ALL 5 in agent/src/omni/adapters/persistence/repository.py (other-session COMMITTED 6bcb0e98): L633 RowMapping|None->Record|None; L659 x2 + L710 x2 JSON->ConvertibleToInt. 本批 memory_decay.py/v0047.py/memory_repository/engine/ports/memory_tools/http/capabilities/schema 零错误",
+      "note": "run from repo ROOT; include 补 memory_decay.py+v0047.py 后 410->412; 新源文件确被 strict 覆盖且零错误"
+    },
+    "ruff": "check + format pass on 9 decay source/test files + 3 takeover-fix files (v2_legacy_seed/memory_organization/action_review_migration), all unchanged",
+    "project_index": "run; new source files memory_decay.py+v0047.py; aggregate docs/index deferred per standing discipline (parallel UI session active)",
+    "task_status_check": "scripts/task_status.py --check exit 0",
+    "full_suite_executed": false,
+    "real_model_account_device_native_or_72h_executed": false,
+    "current_windows_service_or_database_touched": false
+  },
+  "whole_core_parity_complete": false,
+  "whole_reference_feature_audit_complete": false,
+  "whole_v2_complete": false,
+  "not_executed": [
+    "K15 自动每日 decay tick(maintenance/scheduling dailyHour=4)、重要性启发 scoreMemory(owner/emotion/first-meet 依赖渠道说话人上下文)、isInitial 30天窗口、双卡分离(注入预算裁剪+JSONL归档)、注入 clarity 截断(200/130/42/22)、容量告警/auto-compact、touch 分词命中判定",
+    "K15 主动动机引擎/分层人格合成+跨渠道统一卡/作息质量反馈+睡前观察/唤醒/晨间问候",
+    "既有 pre-existing bug 待独立批：6bcb0e98 event_retention_targets kind 白名单缺 action.executing/model.started(event_pruning 7 失败)、execution_pruning[cost] fingerprint 含 settle 事件、7 个 pin v2_0039 schema_version 滞后、media_upload DDL、5 个 repository.py strict 错误",
+    "files_patch V4A 多文件格式、files_search ripgrep/glob 否定、K16 帧内 OCR/模型侧 zoom(需所有者图像协议批准)、K01 会话/lineage 缓存范围、K17 信笺/反思/人格成长、K18 写广度/自主观看/受控分享",
+    "Full offline suite for current source; real accounts/models/devices/native desktop and 72h soak"
+  ],
+  "next": "继续清单可离线缺口独立合同先批：K15 自动 decay tick(maintenance 集成)或重要性启发；或既有 event_retention 白名单修复批(6bcb0e98 遗留,独立于 decay)；或 files_patch V4A/K16 OCR/K01 cache-scope。whole_*_complete 保持 false,不提前关闭任何对标项。"
+}

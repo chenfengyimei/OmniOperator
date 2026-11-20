@@ -3,12 +3,26 @@
 from __future__ import annotations
 
 import re
+from datetime import datetime
 from typing import cast
 
 from sqlalchemy import column, delete, literal_column, select, table, text, update
 
 from ...application.ports import Record, UnitOfWork
 from ...domain.contracts import BusinessError
+from ...domain.memory_decay import (
+    CLARITY_ORDER,
+    DEFAULT_IMPORTANCE,
+    RECALL_CAP,
+    TOUCH_LIMIT,
+    catchup_steps,
+    decay_step,
+    hard_forget,
+    initial_clarity,
+    is_protected,
+    retention_score,
+    target_clarity,
+)
 from ...domain.people import DOCUMENT_KINDS, content_fingerprint, source_fingerprint
 from . import schema as s
 from .document_repository import DocumentRepositories
@@ -160,6 +174,8 @@ class MemoryRepositories(DocumentRepositories):
         action_id: str | None = None,
         document_revision_id: str | None = None,
         source_run_id: str | None = None,
+        importance: int = DEFAULT_IMPORTANCE,
+        pinned: bool = False,
     ) -> Record:
         if (
             not content.strip()
@@ -167,6 +183,10 @@ class MemoryRepositories(DocumentRepositories):
             or kind not in {"fact", "profile", "resident", "journal", "note"}
         ):
             raise BusinessError("invalid_memory", "Memory must contain bounded text and a known kind", status=422)
+        if type(importance) is not int or not 1 <= importance <= 100:
+            raise BusinessError("invalid_memory", "Memory importance must be an integer 1-100", status=422)
+        if type(pinned) is not bool:
+            raise BusinessError("invalid_memory", "Memory pin must be an explicit boolean", status=422)
         if person_id:
             self._live_person(agent_id, person_id)
         if kind in DOCUMENT_KINDS and not person_id:
@@ -190,7 +210,17 @@ class MemoryRepositories(DocumentRepositories):
             )
         entry = self._record(
             s.memory_entries,
-            {"kind": kind, "content": content, "content_hash": digest, "person_id": person_id, "revision": 1},
+            {
+                "kind": kind,
+                "content": content,
+                "content_hash": digest,
+                "person_id": person_id,
+                "revision": 1,
+                "importance": importance,
+                "pinned": pinned,
+                "clarity": initial_clarity(importance, pinned),
+                "last_seen_at": self.clock.now(),
+            },
             agent_id,
         )
         revision = self._record(
@@ -354,6 +384,7 @@ class MemoryRepositories(DocumentRepositories):
                         text("memory_fts MATCH :expression"),
                         s.memory_entries.c.agent_id == agent_id,
                         s.memory_entries.c.deleted_at.is_(None),
+                        s.memory_entries.c.clarity != "forgotten",
                         s.memory_entries.c.kind.in_(["fact", "profile", "resident"])
                         if include_documents
                         else s.memory_entries.c.kind.not_in(DOCUMENT_KINDS),
@@ -373,6 +404,7 @@ class MemoryRepositories(DocumentRepositories):
             .where(
                 s.memory_entries.c.agent_id == agent_id,
                 s.memory_entries.c.deleted_at.is_(None),
+                s.memory_entries.c.clarity != "forgotten",
                 s.memory_entries.c.kind.in_(["fact", "profile", "resident"])
                 if include_documents
                 else s.memory_entries.c.kind.not_in(DOCUMENT_KINDS),
@@ -382,3 +414,133 @@ class MemoryRepositories(DocumentRepositories):
             .limit(min(100, max(1, limit)))
         )
         return [cast(Record, dict(row)) for row in self.connection.execute(statement).mappings()]
+
+    def memory_touch(self, agent_id: str, identities: list[str]) -> int:
+        if len(identities) > TOUCH_LIMIT:
+            raise BusinessError("memory_touch_invalid", "Recall reinforcement is bounded per call", status=422)
+        now = self.clock.now()
+        touched = 0
+        for identity in identities:
+            row = (
+                self.connection.execute(
+                    select(s.memory_entries).where(
+                        s.memory_entries.c.agent_id == agent_id, s.memory_entries.c.id == identity
+                    )
+                )
+                .mappings()
+                .first()
+            )
+            if row is None or row["deleted_at"] or row["kind"] in DOCUMENT_KINDS or row["clarity"] == "forgotten":
+                continue
+            self.connection.execute(
+                update(s.memory_entries)
+                .where(s.memory_entries.c.id == identity, s.memory_entries.c.agent_id == agent_id)
+                .values(recall_count=min(RECALL_CAP, cast(int, row["recall_count"]) + 1), last_seen_at=now)
+            )
+            touched += 1
+        return touched
+
+    def memory_decay_state(self, agent_id: str) -> Record:
+        if not self.connection.execute(select(s.agents.c.id).where(s.agents.c.id == agent_id)).first():
+            raise BusinessError("not_found", "Agent does not exist", status=404)
+        row = (
+            self.connection.execute(select(s.memory_decay_state).where(s.memory_decay_state.c.agent_id == agent_id))
+            .mappings()
+            .first()
+        )
+        if row is None:
+            return cast(Record, {"last_decay_date": None, "last_decay_at": None, "decayed": 0, "forgotten": 0})
+        return cast(Record, {k: row[k] for k in ("last_decay_date", "last_decay_at", "decayed", "forgotten")})
+
+    def memory_decay_pass(self, agent_id: str, force: bool = False) -> Record:
+        if type(force) is not bool:
+            raise BusinessError("memory_decay_invalid", "Decay force must be an explicit boolean", status=422)
+        state = self.memory_decay_state(agent_id)
+        now = self.clock.now()
+        today = now[:10]
+        if state["last_decay_date"] == today and not force:
+            raise BusinessError(
+                "memory_decay_already_today", "Memory decay already ran today; force a new pass explicitly", status=409
+            )
+        steps = catchup_steps(cast(str | None, state["last_decay_date"]), today)
+        rows = [
+            dict(row)
+            for row in self.connection.execute(
+                select(s.memory_entries).where(
+                    s.memory_entries.c.agent_id == agent_id,
+                    s.memory_entries.c.deleted_at.is_(None),
+                    s.memory_entries.c.kind.not_in(DOCUMENT_KINDS),
+                )
+            ).mappings()
+        ]
+        created = {row["id"]: datetime.fromisoformat(cast(str, row["created_at"])) for row in rows}
+        seen = {row["id"]: datetime.fromisoformat(cast(str, row["last_seen_at"] or row["created_at"])) for row in rows}
+        moment = datetime.fromisoformat(now)
+        decayed = forgotten = 0
+        for _ in range(steps):
+            changed = False
+            for row in rows:
+                age_days = max(0.0, (moment - created[row["id"]]).total_seconds() / 86400)
+                since_seen = max(0.0, (moment - seen[row["id"]]).total_seconds() / 86400)
+                importance = cast(int, row["importance"])
+                pinned = bool(row["pinned"])
+                protected = is_protected(importance, pinned)
+                target = (
+                    "forgotten"
+                    if hard_forget(age_days, importance, protected)
+                    else target_clarity(
+                        retention_score(importance, cast(int, row["recall_count"]), age_days, since_seen, protected),
+                        pinned,
+                    )
+                )
+                current = cast(str, row["clarity"])
+                stepped = decay_step(current, target)
+                if stepped == current:
+                    continue
+                down = CLARITY_ORDER.index(stepped) > CLARITY_ORDER.index(current)
+                self.connection.execute(
+                    update(s.memory_entries)
+                    .where(s.memory_entries.c.id == row["id"], s.memory_entries.c.agent_id == agent_id)
+                    .values(
+                        clarity=stepped,
+                        decay_steps=min(RECALL_CAP, cast(int, row["decay_steps"]) + 1) if down else row["decay_steps"],
+                    )
+                )
+                row["clarity"] = stepped
+                row["decay_steps"] = min(RECALL_CAP, cast(int, row["decay_steps"]) + 1) if down else row["decay_steps"]
+                changed = True
+                if down:
+                    decayed += 1
+                if stepped == "forgotten":
+                    forgotten += 1
+            if not changed:
+                break
+        if state["last_decay_date"] is None and state["last_decay_at"] is None and not state["decayed"]:
+            self._record(
+                s.memory_decay_state,
+                {
+                    "last_decay_date": today,
+                    "last_decay_at": now,
+                    "decayed": decayed,
+                    "forgotten": forgotten,
+                },
+                agent_id,
+            )
+        else:
+            self.connection.execute(
+                update(s.memory_decay_state)
+                .where(s.memory_decay_state.c.agent_id == agent_id)
+                .values(
+                    last_decay_date=today,
+                    last_decay_at=now,
+                    decayed=cast(int, state["decayed"]) + decayed,
+                    forgotten=cast(int, state["forgotten"]) + forgotten,
+                )
+            )
+        self.audit(agent_id, "memory.decayed", agent_id, {"steps": steps, "decayed": decayed, "forgotten": forgotten})
+        return {
+            **self.memory_decay_state(agent_id),
+            "steps": steps,
+            "pass_decayed": decayed,
+            "pass_forgotten": forgotten,
+        }

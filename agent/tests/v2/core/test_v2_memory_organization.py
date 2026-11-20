@@ -48,10 +48,16 @@ def test_proposals_preserve_fact_truth_and_owner_apply_undo_only_changes_recall(
             agent, memories = await seed(instance)
 
             def original_truth(unit):
-                return {
-                    table.name: [dict(row) for row in unit.connection.execute(select(table)).mappings()]
-                    for table in (s.memory_entries, s.memory_revisions, s.source_anchors)
-                }
+                # search_memory recall reinforcement mutates recall_count/last_seen_at; fact truth excludes those stats.
+                truth = {}
+                for table in (s.memory_entries, s.memory_revisions, s.source_anchors):
+                    columns = [
+                        c
+                        for c in table.c
+                        if not (table is s.memory_entries and c.name in {"recall_count", "last_seen_at"})
+                    ]
+                    truth[table.name] = [dict(row) for row in unit.connection.execute(select(*columns)).mappings()]
+                return truth
 
             original = await instance._database.read(original_truth)
             queued = await instance.memory_organization.submit(agent, request(memories))

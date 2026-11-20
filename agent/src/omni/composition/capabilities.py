@@ -173,13 +173,15 @@ def builtin_capabilities(
         ),
         (
             "memory_remember",
-            "Save memory with an exact quote from a message, observed tool action, or observed document revision",
+            "Save memory with an exact quote from a message, observed tool action, or observed document revision; "
+            "optional importance 1-100 (default 50) steers later decay",
             {
                 "content": {"type": "string", "minLength": 1, "maxLength": 20000},
                 "message_id": {"type": "string"},
                 "action_id": {"type": "string"},
                 "document_revision_id": {"type": "string"},
                 "quote": {"type": "string", "minLength": 1, "maxLength": 20000},
+                "importance": {"type": "integer", "minimum": 1, "maximum": 100},
             },
             ["content", "quote"],
             True,

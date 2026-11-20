@@ -2208,6 +2208,17 @@ def create_app(factory: Callable[[], Awaitable[HttpRuntime]], *, allowed_origins
             else await application.query("memory", str(agent_id))
         }
 
+    @router.get("/agents/{agent_id}/memory/decay")
+    async def memory_decay_state(agent_id: uuid.UUID, request: Request):
+        return await runtime(request).application.memory_decay_state(str(agent_id))
+
+    @router.post("/agents/{agent_id}/memory/decay")
+    async def memory_decay(agent_id: uuid.UUID, request: Request):
+        data = await bounded_configuration(request, 2048, strict=True)
+        if set(data) - {"force"} or ("force" in data and type(data["force"]) is not bool):
+            raise BusinessError("memory_decay_invalid", "Only an explicit boolean force is accepted", status=422)
+        return await runtime(request).application.memory_decay(str(agent_id), bool(data.get("force", False)))
+
     def memory_semantic_service(request: Request) -> MemorySemanticService:
         service = runtime(request).memory_semantics
         if service is None:

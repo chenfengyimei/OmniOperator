@@ -340,7 +340,17 @@
       "delivered": "审计合同V2_PERSONA_AUTONOMY_AUDIT.md：V2 people/persona身份、memory_search/remember/forget模型工具、memory_semantics FTS+向量、memory_organization显式整理(不调模型)、来源删除屏障、K08回合后reviewer/curator(待审建议进remember/forget+技能审核)、SchedulingService interval/cron所有者侧、DeliveryService outbox、QQ OneBot+bilibili读/prepare对照参考五组；可离线缺口(时间衰减遗忘巩固引擎=衰减层级+重要性启发+召回强化+每日forget tick+容量告警/自动压缩+记忆级保护、主动动机引擎=需求->目标->驱动衰减->情绪->动作规划+观察账本/反馈+外联硬闸、分层人格合成+跨渠道统一卡=scene/daily层+预算裁剪+渠道sanitize+character-pack epoch切换、作息质量反馈+睡前观察/唤醒策略+晨间问候)列后续批次；需账号/设备项(QQ/B站真实送达质量+SnowLuma运行时+主动外联送达、pet Electron载体、voice TTS引擎、跨渠道记忆隐私scope隔离效果、真实模型话语生成质量与人格一致性)另验",
       "contract": "docs/v2/contracts/V2_PERSONA_AUTONOMY_AUDIT.md",
       "evidence": "docs/evidence/v2-persona-autonomy-audit.json",
-      "limits": "只读审计无新引擎/表/迁移/路由/源码改动；可离线缺口未在K15实现(列后续批次)；不宣称自主行为/遗忘巩固/分层人格/作息反馈对等；既有todos重启竞态与5个pin v2_0039旧迁移测试沿用保留",
+      "followups": [
+        {
+          "gap": "时间衰减遗忘巩固引擎核心(衰减层级/retention评分/召回强化/每日一步/漏日补追/硬遗忘隐藏态)",
+          "status": "implemented_scoped_passed",
+          "batch": "K15.decay_core",
+          "contract": "docs/v2/contracts/V2_MEMORY_DECAY.md",
+          "evidence": "docs/evidence/v2-memory-decay.json",
+          "delivered": "domain/memory_decay.py纯规则(CLARITY_ORDER vivid/clear/fuzzy/trace/forgotten、retention_score rate0.12protected/0.35地板55/50、target_clarity切分68/46/24/12+pinned恒vivid、hard_forget age>60&importance<50&!protected、decay_step每遍一步、catchup_steps clamp[1,30])；schema memory_entries6加性列+memory_decay_state新表(每agent唯一+identity/keep触发器)表142→143+v0047幂等迁移；remember加importance1-100/pinned bool校验+initial_clarity+last_seen_at；memory_touch<=5召回强化(recall_count cap999/跳过deleted/document/forgotten)；memory_decay_pass所有者今日门409/force422/catchup补追/逐条一步/forgotten仅隐藏不擦除/审计memory.decayed/state累计upsert；search_memory两分支排除forgotten；engine.search_memory两分支+memory_tools两分支touch强化、remember透传importance；ports3新方法、capabilities memory_remember可选importance、http GET/POST memory/decay两所有者路由strict force；无模型侧decay工具。接管收尾：前会话在途批remember加性列+search强化破坏旧schema夹具播种与事实真相比较，按既有加性列先例修v2_legacy_seed(PreSkill._record剥离6列+preserved_rows excluded_memory_columns)、action_review v19 baseline改LegacySeedRepositories、memory_organization original_truth排除recall_count/last_seen_at(生产源码不变)；strict include补memory_decay+v0047(410→412)。29 decay专项过+38文件广调用方341过/17失败均既有非decay(7 pin v2_0039含images、7 event_pruning因6bcb0e98 action.executing未入event_retention_targets kind白名单、1 execution_pruning[cost]因settle_call事件改fingerprint、2 media_upload DDL)、strict412文件5错误均既有repository.py本批零错误、ruff通过；自动tick/重要性启发/双卡/注入裁剪/容量告警仍后续；聚合索引暂缓"
+        }
+      ],
+      "limits": "只读审计无新引擎/表/迁移/路由/源码改动；可离线缺口未在K15审计批实现(列后续批次)，其中时间衰减遗忘巩固引擎核心已在K15.decay_core后续批实现(新memory_decay_state表+v0047迁移+memory_entries6加性列+2所有者REST路由+domain/memory_decay.py纯规则，forgotten隐藏态不擦除V2纪律更严于参考自动删除，自动每日tick/重要性启发scoreMemory/isInitial/双卡分离/注入clarity裁剪/容量告警auto-compact仍后续)；不宣称自主行为/分层人格/作息反馈对等，遗忘巩固仅核心手动衰减遍；既有todos重启竞态与pin v2_0039旧迁移测试沿用保留",
       "next": false
     },
     {
@@ -701,6 +711,10 @@
     {
       "id": "K18.risk_pause",
       "evidence": "docs/evidence/v2-bili-risk-pause.json"
+    },
+    {
+      "id": "K15.decay_core",
+      "evidence": "docs/evidence/v2-memory-decay.json"
     }
   ]
 }
