@@ -1,32 +1,32 @@
-import { mountSkills } from './skills.js?v=20261120v164';
-import { mountCredentials } from './credentials.js?v=20261120v164';
-import { mountAuditHistory, mountOperations } from './operations.js?v=20261120v164';
-import { mountCapabilities } from './capabilities.js?v=20261120v164';
-import { mountTokens } from './tokens.js?v=20261120v164';
-import { mountDocuments } from './documents.js?v=20261120v164';
-import { mountConfiguration } from './configuration.js?v=20261120v164';
-import { mountModels } from './models.js?v=20261120v164';
+import { mountSkills } from './skills.js?v=20261120v165';
+import { mountCredentials } from './credentials.js?v=20261120v165';
+import { mountAuditHistory, mountOperations } from './operations.js?v=20261120v165';
+import { mountCapabilities } from './capabilities.js?v=20261120v165';
+import { mountTokens } from './tokens.js?v=20261120v165';
+import { mountDocuments } from './documents.js?v=20261120v165';
+import { mountConfiguration } from './configuration.js?v=20261120v165';
+import { mountModels } from './models.js?v=20261120v165';
 import { ask } from '../dialog.js?v=20261103v7';
-import { mountPeople } from './people.js?v=20261120v164';
-import { mountDeliveries } from './deliveries.js?v=20261120v164';
-import { mountSchedules } from './schedules.js?v=20261120v164';
-import { mountMemorySemantics } from './memory-semantics.js?v=20261120v164';
-import { mountMemoryOrganization } from './memory-organization.js?v=20261120v164';
-import { mountExtensions } from './extensions.js?v=20261120v164';
-import { mountActionReviews } from './action-reviews.js?v=20261120v164';
-import { mountTerminals } from './terminals.js?v=20261120v164';
-import { mountDesktop } from './desktop.js?v=20261120v164';
-import { mountQQ } from './qq.js?v=20261120v164';
-import { mountBilibili } from './bilibili.js?v=20261120v164';
-import { mountMedia } from './media.js?v=20261120v164';
-import { mountMcp } from './mcp.js?v=20261120v164';
-import { mountAndroid } from './android.js?v=20261120v164';
-import { mountModelOutput } from './model-output.js?v=20261120v164';
-import { mountRouting } from './routing.js?v=20261120v164';
-import { mountChatImages } from './chat-images.js?v=20261120v164';
-import { mountInspector } from './inspector.js?v=20261120v164';
-import { mountSettingsRail } from './settings-rail.js?v=20261120v164';
-import { mountEventStream } from './event-stream.js?v=20261120v164';
+import { mountPeople } from './people.js?v=20261120v165';
+import { mountDeliveries } from './deliveries.js?v=20261120v165';
+import { mountSchedules } from './schedules.js?v=20261120v165';
+import { mountMemorySemantics } from './memory-semantics.js?v=20261120v165';
+import { mountMemoryOrganization } from './memory-organization.js?v=20261120v165';
+import { mountExtensions } from './extensions.js?v=20261120v165';
+import { mountActionReviews } from './action-reviews.js?v=20261120v165';
+import { mountTerminals } from './terminals.js?v=20261120v165';
+import { mountDesktop } from './desktop.js?v=20261120v165';
+import { mountQQ } from './qq.js?v=20261120v165';
+import { mountBilibili } from './bilibili.js?v=20261120v165';
+import { mountMedia } from './media.js?v=20261120v165';
+import { mountMcp } from './mcp.js?v=20261120v165';
+import { mountAndroid } from './android.js?v=20261120v165';
+import { mountModelOutput } from './model-output.js?v=20261120v165';
+import { mountRouting } from './routing.js?v=20261120v165';
+import { mountChatImages } from './chat-images.js?v=20261120v165';
+import { mountInspector } from './inspector.js?v=20261120v165';
+import { mountSettingsRail } from './settings-rail.js?v=20261120v165';
+import { mountEventStream } from './event-stream.js?v=20261120v165';
 // 直接复用 V1 的 rail 提示浮层模块（data-tip → #tip-layer），不自创实现
 import '../app/tips.js?v=20261103u6';
 
@@ -940,6 +940,42 @@ function renderMessages(items) {
     );
     actions.append(fresh, openSettings);
     empty.append(mark, strong, hint, actions);
+    // 冷启动引导：已连接即给四张可点击起手提示（复用 V1 .chat-suggestions 样式）；
+    // 新会话尚未创建（session=null）时同样需要引导。
+    if (token) {
+      hint.textContent = '点一张卡片直接开始，或在下方输入框自由提问。';
+      const grid = document.createElement('div');
+      grid.className = 'chat-suggestions';
+      const STARTERS = [
+        ['travel_explore', '看看本机状态', '用 system_info 查看系统与磁盘空间', '用 system_info 看一下本机系统与磁盘状态，列出要点。'],
+        ['folder_open', '整理一个文件夹', '列出文件并给出归类建议', '列出我指定文件夹里的文件，按类型给出整理建议。'],
+        ['schedule', '建一个每日提醒', '每天固定时间自动执行', '帮我建一个每天 09:30 的提醒计划，先告诉我需要确认什么。'],
+        ['auto_awesome', '总结一段内容', '贴链接或文本，提炼要点', '我稍后贴一段内容，请先用 markdown 列表总结三个要点。'],
+      ];
+      for (const [icon, title, desc, prompt] of STARTERS) {
+        const card = document.createElement('button');
+        card.type = 'button';
+        card.className = 'chat-suggestion';
+        const glyph = document.createElement('span');
+        glyph.className = 'material-icons';
+        glyph.setAttribute('aria-hidden', 'true');
+        glyph.textContent = icon;
+        const text = document.createElement('span');
+        const b = document.createElement('b');
+        b.textContent = title;
+        const small = document.createElement('small');
+        small.textContent = desc;
+        text.append(b, small);
+        card.append(glyph, text);
+        card.addEventListener('click', () => {
+          const box = $('message');
+          box.value = prompt;
+          box.focus();
+        });
+        grid.append(card);
+      }
+      empty.append(grid);
+    }
     $('messages').replaceChildren(empty);
     return;
   }
@@ -2032,6 +2068,20 @@ for (const button of document.querySelectorAll('[data-page]'))
     }),
   );
 window.addEventListener('pagehide', stop);
+// 回底悬浮钮：消息区离开底部超过阈值时出现，点击平滑回底（P2 阅读体验）
+{
+  const box = $('messages');
+  const fab = $('fab-down');
+  const syncFab = () => {
+    const away = box.scrollHeight - box.scrollTop - box.clientHeight;
+    fab.classList.toggle('show', away > 240 && box.scrollHeight > box.clientHeight + 240);
+  };
+  box.addEventListener('scroll', syncFab, { passive: true });
+  fab.addEventListener('click', () => {
+    box.scrollTo({ top: box.scrollHeight, behavior: 'smooth' });
+  });
+  new MutationObserver(syncFab).observe(box, { childList: true, subtree: true, characterData: true });
+}
 for (const tab of document.querySelectorAll('[data-inspector]'))
   tab.addEventListener('click', () => {
     const selected = tab.dataset.inspector;

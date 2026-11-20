@@ -209,7 +209,7 @@ def delivery_scenario(ui_browser, v2_server, width, theme):
         page.locator("#delivery-channel").select_option(channel["id"])
         page.locator("#delivery-target").fill("fixture:private-target")
         v2_server.app.state.slow_delivery_read = True
-        page.get_by_role("button", name="记忆", exact=True).click()
+        page.locator('nav[aria-label="工作台"] [data-page="memory"]').click()
         page.get_by_role("button", name="持久投递", exact=True).click()
         expect(page.locator("#delivery-target")).to_have_value("fixture:private-target")
         page.get_by_role("button", name="建立待审批投递", exact=True).click()

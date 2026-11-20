@@ -142,7 +142,7 @@ def test_workbench_chat_memory_and_theme(ui_browser, v2_server, width, theme):
         expect(page.locator("#run-retention-status")).to_contain_text("本次运行已固定")
         page.get_by_role("button", name="取消固定本次运行", exact=True).click()
         expect(page.locator("#run-retention-status")).to_contain_text("本次运行未固定")
-        page.get_by_role("button", name="记忆", exact=True).click()
+        page.locator('nav[aria-label="工作台"] [data-page="memory"]').click()
         page.locator("#memory-text").fill("V2 test memory")
         page.get_by_role("button", name="保存记忆", exact=True).click()
         expect(page.locator("#memory-list")).to_contain_text("V2 test memory")
@@ -172,7 +172,7 @@ def test_workbench_chat_memory_and_theme(ui_browser, v2_server, width, theme):
         page.get_by_role("button", name="常驻修订", exact=True).click()
         expect(page.locator("#resident-history")).to_contain_text("来源文件")
         page.locator("#profile-content").fill("Retained unsaved draft")
-        page.get_by_role("button", name="记忆", exact=True).click()
+        page.locator('nav[aria-label="工作台"] [data-page="memory"]').click()
         page.get_by_role("button", name="人物与档案", exact=True).click()
         expect(page.locator("#profile-content")).to_have_value("Retained unsaved draft")
         page.get_by_role("button", name="保存档案", exact=True).click()
@@ -223,7 +223,7 @@ def test_person_draft_conflict_is_kept_until_explicit_reload(ui_browser, v2_serv
         page.get_by_role("button", name="保存档案", exact=True).click()
         expect(page.locator("#error")).to_contain_text("当前草稿保留")
         expect(page.locator("#profile-content")).to_have_value("unsaved local canary")
-        page.get_by_role("button", name="记忆", exact=True).click()
+        page.locator('nav[aria-label="工作台"] [data-page="memory"]').click()
         page.get_by_role("button", name="人物与档案", exact=True).click()
         expect(page.locator("#profile-content")).to_have_value("unsaved local canary")
         page.get_by_role("button", name="放弃档案草稿并重载", exact=True).click()
@@ -612,7 +612,7 @@ def test_source_documents_revision_draft_import_search_and_erasure(ui_browser, v
         with page.expect_download() as exporting:
             page.get_by_role("button", name="导出已保存来源", exact=True).click()
         assert Path(exporting.value.path()).read_text(encoding="utf-8") == "第三版 source-external"
-        page.get_by_role("button", name="记忆", exact=True).click()
+        page.locator('nav[aria-label="工作台"] [data-page="memory"]').click()
         page.get_by_role("button", name="来源文档", exact=True).click()
         expect(page.locator("#document-content")).to_have_value("本地未保存草稿")
         page.get_by_role("button", name="放弃文档草稿并载入当前版本", exact=True).click()
@@ -799,7 +799,7 @@ def test_schedules_drafts_revision_conflict_history_and_archive(ui_browser, v2_s
         base = f"{url}/api/v1/agents/{agent}/schedules/{identity}"
         headers = {"Authorization": "Bearer " + token}
         page.locator("#schedule-prompt").fill("本地未保存指令")
-        page.get_by_role("button", name="记忆", exact=True).click()
+        page.locator('nav[aria-label="工作台"] [data-page="memory"]').click()
         page.get_by_role("button", name="持久调度", exact=True).click()
         expect(page.locator("#schedule-prompt")).to_have_value("本地未保存指令")
         row = page.request.get(base, headers=headers).json()

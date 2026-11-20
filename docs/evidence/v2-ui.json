@@ -1,7 +1,7 @@
 {
   "batch": "v2-ui-connection-stability-v128",
   "recorded_at": "2026-11-15",
-  "resource_version_final": "20261120v164",
+  "resource_version_final": "20261120v165",
   "v1_alignment": {
     "summary": "用户提供 V1 正式工作台截图后，直接精读 web/ui/workbench.css 的 V1 实现并逐项移植，使 V2 结构与 V1 一致（而非自创风格）。",
     "ported_from_v1": [
@@ -1410,6 +1410,21 @@
       "实测": "双主题h1=16/h2=14/h3=12,pad=16/24/32,--sp-1=4px,无横向溢出",
       "截图": "p1-models-dark.png/p1-settings-dark.png",
       "版本": "V2 20261120v164/tokens 20261120u2"
+    }
+  },
+  "ui_iteration_p2_reading": {
+    "交付": [
+      "消息流阅读列max-width:760px居中(助手/用户/空态同列)",
+      "空态接线V1既有.chat-suggestions:已连接即渲染4张起手提示卡,点击填入输入框",
+      "回底FAB:离底>240px出现,点击平滑回底,MutationObserver同步",
+      "::selection强调色+消息入场v2-msg-in轻淡入(reduced-motion全局覆盖)"
+    ],
+    "验证": {
+      "实测": "阅读列760px;建议卡4张点击填入;FAB离底出现/回底后away=0自动隐藏;零报错",
+      "专项": "92 passed(test_v2_ui全量+history+两token守卫,-n 0,1002.55s)",
+      "存量修复": "c28fe83b改名记忆→记忆系统未同步6处旧选择器(test_v2_ui×5+共享助手×1),HEAD纯树复跑证实存量失败;按约定改nav[data-page=memory]限定导航,不放宽断言",
+      "截图": "p2-suggestions.png/p2-chat.png",
+      "版本": "V2 20261120v165"
     }
   }
 }

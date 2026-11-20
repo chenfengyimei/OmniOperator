@@ -3633,3 +3633,80 @@ body[data-ui-page="workbench-v2"] #live-chain .scaffolds {
   padding-left: 0;
 }
 
+/* ==========================================================================
+   P2 聊天阅读体验：宽屏阅读列限宽居中（此前助手正文一行可超百字符）；
+   回底悬浮钮；选区强调色；消息入场轻淡入。颜色/圆角/间距全走 token。
+   ========================================================================== */
+body[data-ui-page="workbench-v2"].chat-mode #chat {
+  position: relative;
+}
+body[data-ui-page="workbench-v2"].chat-mode #messages > .msg,
+body[data-ui-page="workbench-v2"].chat-mode #messages > .empty-state,
+body[data-ui-page="workbench-v2"].chat-mode #messages > .chat-loading {
+  width: 100%;
+  max-width: 760px;
+  margin-inline: auto;
+}
+/* 消息入场：只动 opacity+位移（合成层），reduced-motion 全局规则已覆盖 */
+@keyframes v2-msg-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+body[data-ui-page="workbench-v2"].chat-mode #messages > .msg {
+  animation: v2-msg-in 0.16s ease-out;
+}
+/* 回底悬浮钮：离开底部时出现，点击平滑回底（规则对齐原型 .fab-down） */
+body[data-ui-page="workbench-v2"] .fab-down {
+  position: absolute;
+  bottom: 132px;
+  left: 50%;
+  transform: translate(-50%, 10px);
+  z-index: 5;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--r-full);
+  display: grid;
+  place-items: center;
+  background: color-mix(in oklab, var(--surface-3) 94%, transparent);
+  border: 1px solid var(--line-1);
+  box-shadow: var(--sh-2);
+  color: var(--text-2);
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    opacity 0.16s var(--ease-out),
+    transform 0.16s var(--ease-out),
+    color 0.16s,
+    border-color 0.16s;
+}
+body[data-ui-page="workbench-v2"] .fab-down.show {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translate(-50%, 0);
+}
+body[data-ui-page="workbench-v2"] .fab-down:hover {
+  color: var(--seed-accent);
+  border-color: var(--line-accent);
+}
+body[data-ui-page="workbench-v2"] .fab-down .material-icons {
+  font-size: 15px;
+}
+/* 选区强调色（对齐原型 ::selection 抛光） */
+body[data-ui-page="workbench-v2"] ::selection {
+  background: color-mix(in srgb, var(--seed-accent) 32%, transparent);
+}
+/* 空态建议卡容器在限宽列内居中 */
+body[data-ui-page="workbench-v2"].chat-mode #messages > .empty-state {
+  margin-block: auto;
+}
+body[data-ui-page="workbench-v2"] .empty-state .chat-suggestions {
+  max-width: 560px;
+  margin-top: var(--sp-2);
+}
+
