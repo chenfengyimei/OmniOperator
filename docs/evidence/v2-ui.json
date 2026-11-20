@@ -1,7 +1,7 @@
 {
   "batch": "v2-ui-connection-stability-v128",
   "recorded_at": "2026-11-15",
-  "resource_version_final": "20261120v171",
+  "resource_version_final": "20261120v172",
   "v1_alignment": {
     "summary": "用户提供 V1 正式工作台截图后，直接精读 web/ui/workbench.css 的 V1 实现并逐项移植，使 V2 结构与 V1 一致（而非自创风格）。",
     "ported_from_v1": [
@@ -1532,5 +1532,22 @@
     ],
     "巡页": "147/147:24页×双主题×1440/760/390=144截图逐页无横向溢出+双主题导航24页+全程零pageerror;390聊天空态建议卡滚动可达探针PASS(cardBottom617<dockTop677);截图temp/build/v2-demo/p7-{dark,light}-{1440,760,390}-<page>.png与p7-chat390-scrolled.png",
     "版本": "V2 20261120v171(本批无资源改动)"
+  },
+  "ui_iteration_p8_visual_texture_logs_layers": {
+    "需求": "迭代候选落地:logs分层+右栏seg-tabs抛光+背景细网格纹理(原型/V1 frame :87-99 语言);不动导航三方契约,audit并入留独立候选",
+    "交付": [
+      "logs分层:日志流置顶(吸顶玻璃工具条=等级芯片计数+原过滤form+继续读取/实时+状态);结构化行details(等级语义徽章/UTC时钟/组件/消息单行省略,展开完整JSON);原始JSON收settings-advanced折叠保留#log-list;指标/维护/保留候选/审计调试四组details.log-layer默认open可收起;原ID与按钮名全保留",
+      "等级芯片:六枚(全部/DEBUG/INFO/WARNING/ERROR/CRITICAL)带当前批次计数与aria-pressed,点芯片写select并重查;非激活芯片按语义色着色;select change同步芯片",
+      "seg-tabs:V1下划线语言改分段控件(容器surface-2 inset+激活渐变药丸on-accent+内高光+按压缩放);V1底部指示条content:none移除;roving tabindex+ArrowLeft/Right/Home/End键盘切换并同步面板",
+      "背景细网格:body::before负层40px细网格(seed-fg 6%)+两角seed-accent/accent2环境光晕+底部渐隐遮罩;镜像base.css同选择器透掉V2 body不透明底(否则盖住负层);浅色自动翻面",
+      "滚动条:.log-rows并入分区页主题滚动条选择器组"
+    ],
+    "验证": {
+      "专项": "守卫16/16;logs+metrics 8/8;chat/theme+导航+清单13/13;终版CSS后复跑logs/metrics/chat/theme/导航/清单16/16;prettier净+86模块node --check",
+      "实测": "22/22:纹理四层背景/负层/遮罩computed校验+像素级40px周期竖线证实绘制;页签渐变药丸/指示条移除/roving/方向键/End;六芯片计数/ERROR过滤25条全ERROR/回全部;行展开JSON;吸顶dt<3;四层默认open可收再展/层内刷新指标可用;390无溢出;双主题截图;零pageerror",
+      "踩坑修复": "sticky最近滚动口被.page的overflow-y:auto劫持(非对话真实滚动口是.settings-content)→#logs非对话overflow-y:visible;base.css body不透明底盖负层→镜像选择器透底;h3 margin简写覆盖层卡左缩进→改10px 14px 4px",
+      "截图": "p8-logs-dark-1440.png/p8-logs-sticky-dark-1440.png/p8-logs-light-1440.png/p8-logs-dark-390.png/p8-tabs-texture-dark-1440.png/p8-tabs-light-1440.png",
+      "版本": "V2 20261120v172"
+    }
   }
 }

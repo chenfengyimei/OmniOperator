@@ -1,32 +1,32 @@
-import { mountSkills } from './skills.js?v=20261120v171';
-import { mountCredentials } from './credentials.js?v=20261120v171';
-import { mountAuditHistory, mountOperations } from './operations.js?v=20261120v171';
-import { mountCapabilities } from './capabilities.js?v=20261120v171';
-import { mountTokens } from './tokens.js?v=20261120v171';
-import { mountDocuments } from './documents.js?v=20261120v171';
-import { mountConfiguration } from './configuration.js?v=20261120v171';
-import { mountModels } from './models.js?v=20261120v171';
+import { mountSkills } from './skills.js?v=20261120v172';
+import { mountCredentials } from './credentials.js?v=20261120v172';
+import { mountAuditHistory, mountOperations } from './operations.js?v=20261120v172';
+import { mountCapabilities } from './capabilities.js?v=20261120v172';
+import { mountTokens } from './tokens.js?v=20261120v172';
+import { mountDocuments } from './documents.js?v=20261120v172';
+import { mountConfiguration } from './configuration.js?v=20261120v172';
+import { mountModels } from './models.js?v=20261120v172';
 import { ask } from '../dialog.js?v=20261103v7';
-import { mountPeople } from './people.js?v=20261120v171';
-import { mountDeliveries } from './deliveries.js?v=20261120v171';
-import { mountSchedules } from './schedules.js?v=20261120v171';
-import { mountMemorySemantics } from './memory-semantics.js?v=20261120v171';
-import { mountMemoryOrganization } from './memory-organization.js?v=20261120v171';
-import { mountExtensions } from './extensions.js?v=20261120v171';
-import { mountActionReviews } from './action-reviews.js?v=20261120v171';
-import { mountTerminals } from './terminals.js?v=20261120v171';
-import { mountDesktop } from './desktop.js?v=20261120v171';
-import { mountQQ } from './qq.js?v=20261120v171';
-import { mountBilibili } from './bilibili.js?v=20261120v171';
-import { mountMedia } from './media.js?v=20261120v171';
-import { mountMcp } from './mcp.js?v=20261120v171';
-import { mountAndroid } from './android.js?v=20261120v171';
-import { mountModelOutput } from './model-output.js?v=20261120v171';
-import { mountRouting } from './routing.js?v=20261120v171';
-import { mountChatImages } from './chat-images.js?v=20261120v171';
-import { mountInspector } from './inspector.js?v=20261120v171';
-import { mountSettingsRail } from './settings-rail.js?v=20261120v171';
-import { mountEventStream } from './event-stream.js?v=20261120v171';
+import { mountPeople } from './people.js?v=20261120v172';
+import { mountDeliveries } from './deliveries.js?v=20261120v172';
+import { mountSchedules } from './schedules.js?v=20261120v172';
+import { mountMemorySemantics } from './memory-semantics.js?v=20261120v172';
+import { mountMemoryOrganization } from './memory-organization.js?v=20261120v172';
+import { mountExtensions } from './extensions.js?v=20261120v172';
+import { mountActionReviews } from './action-reviews.js?v=20261120v172';
+import { mountTerminals } from './terminals.js?v=20261120v172';
+import { mountDesktop } from './desktop.js?v=20261120v172';
+import { mountQQ } from './qq.js?v=20261120v172';
+import { mountBilibili } from './bilibili.js?v=20261120v172';
+import { mountMedia } from './media.js?v=20261120v172';
+import { mountMcp } from './mcp.js?v=20261120v172';
+import { mountAndroid } from './android.js?v=20261120v172';
+import { mountModelOutput } from './model-output.js?v=20261120v172';
+import { mountRouting } from './routing.js?v=20261120v172';
+import { mountChatImages } from './chat-images.js?v=20261120v172';
+import { mountInspector } from './inspector.js?v=20261120v172';
+import { mountSettingsRail } from './settings-rail.js?v=20261120v172';
+import { mountEventStream } from './event-stream.js?v=20261120v172';
 // 直接复用 V1 的 rail 提示浮层模块（data-tip → #tip-layer），不自创实现
 import '../app/tips.js?v=20261103u6';
 
@@ -1411,9 +1411,14 @@ async function pollBody() {
     };
     const statusNode = $('run-status');
     statusNode.dataset.state = String(result.state);
+    // 所有者反馈：运行中/待审批/取消中的文字状态与实时调用链、审批卡重复，是噪音——
+    // 这些状态不再写文本（#run-status:empty 规则会隐藏空条）；错误与终态仍显示。
+    const NOISE_STATES = new Set(['running', 'waiting_approval', 'cancelling']);
     statusNode.textContent = result.error_code
       ? `${RUN_LABEL[result.state] || result.state}：${ERROR_HINT[result.error_code] || result.error_code}`
-      : RUN_LABEL[result.state] || String(result.state);
+      : NOISE_STATES.has(String(result.state))
+        ? ''
+        : RUN_LABEL[result.state] || String(result.state);
     setThinking(
       page === 'chat' &&
         session === result.session_id &&
@@ -1976,6 +1981,77 @@ $('remember').addEventListener(
     await loadMemory();
   }),
 );
+const LOG_LEVELS = ['', 'DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'];
+function renderLogChips() {
+  const counts = new Map(LOG_LEVELS.map((level) => [level, 0]));
+  for (const r of logRows) counts.set(r.level, (counts.get(r.level) || 0) + 1);
+  const active = $('log-level').value;
+  $('log-chips').replaceChildren(
+    ...LOG_LEVELS.map((level) => {
+      const chip = document.createElement('button');
+      chip.type = 'button';
+      chip.className = 'log-chip' + (level === active ? ' active' : '');
+      chip.dataset.level = level;
+      chip.setAttribute('aria-pressed', String(level === active));
+      chip.title = level ? `只看 ${level} 级` : '看全部等级';
+      const label = document.createElement('span');
+      label.textContent = level || '全部';
+      const count = document.createElement('span');
+      count.className = 'log-chip-count';
+      count.textContent = String(level ? counts.get(level) || 0 : logRows.length);
+      chip.append(label, count);
+      chip.addEventListener(
+        'click',
+        wrap(async () => {
+          $('log-level').value = level;
+          await loadLogs(true);
+        }),
+      );
+      return chip;
+    }),
+  );
+}
+function renderLogRows() {
+  const box = $('log-rows');
+  if (!logRows.length) {
+    const empty = document.createElement('p');
+    empty.className = 'muted log-empty';
+    empty.textContent = '当前条件没有匹配记录。放宽等级或时间窗后重新查询；新运行产生的日志会进入后续批次。';
+    box.replaceChildren(empty);
+    return;
+  }
+  box.replaceChildren(
+    ...logRows.map((r) => {
+      const row = document.createElement('details');
+      row.className = 'log-row';
+      row.dataset.level = r.level || '';
+      const head = document.createElement('summary');
+      head.title = String(r.timestamp || '');
+      const badge = document.createElement('span');
+      badge.className = 'log-badge';
+      badge.textContent = r.level || '—';
+      const time = document.createElement('span');
+      time.className = 'log-time';
+      time.textContent = String(r.timestamp || '').slice(11, 19);
+      const comp = document.createElement('span');
+      comp.className = 'log-comp';
+      comp.textContent = String(r.component || '').replace(/^omni\./, '');
+      const msg = document.createElement('span');
+      msg.className = 'log-msg';
+      msg.textContent = r.message || r.event || '';
+      head.append(badge, time, comp, msg);
+      const body = document.createElement('pre');
+      body.className = 'log-json';
+      body.textContent = JSON.stringify(r, null, 2);
+      row.append(head, body);
+      return row;
+    }),
+  );
+}
+function renderLogView() {
+  renderLogChips();
+  renderLogRows();
+}
 async function loadLogs(reset = true) {
   const version = ++logGeneration,
     current = generation;
@@ -2006,6 +2082,7 @@ async function loadLogs(reset = true) {
     logCursor = result.next_cursor;
     logRows = [...logRows, ...result.items].slice(-500);
     $('log-list').textContent = JSON.stringify(logRows, null, 2);
+    renderLogView();
     $('more-logs').disabled = !result.has_more;
     $('log-status').textContent =
       `当前显示 ${logRows.length} 条，最多保留最近 500 条。${result.has_more ? '还有记录可继续读取。' : '已读到当前末尾。'}`;
@@ -2097,6 +2174,7 @@ $('log-filter').addEventListener(
   'submit',
   wrap(() => loadLogs(true)),
 );
+$('log-level').addEventListener('change', renderLogChips);
 $('more-logs').addEventListener(
   'click',
   wrap(() => loadLogs(false)),
@@ -2189,13 +2267,18 @@ window.addEventListener('pagehide', stop);
   });
   new MutationObserver(syncFab).observe(box, { childList: true, subtree: true, characterData: true });
 }
-for (const tab of document.querySelectorAll('[data-inspector]'))
+const inspectorTabs = [...document.querySelectorAll('[data-inspector]')];
+function syncTabindex() {
+  for (const tab of inspectorTabs) tab.tabIndex = tab.classList.contains('active') ? 0 : -1;
+}
+for (const tab of inspectorTabs)
   tab.addEventListener('click', () => {
     const selected = tab.dataset.inspector;
-    for (const other of document.querySelectorAll('[data-inspector]')) {
+    for (const other of inspectorTabs) {
       other.setAttribute('aria-selected', String(other === tab));
       other.classList.toggle('active', other === tab);
     }
+    syncTabindex();
     for (const panel of document.querySelectorAll('[data-inspector-panel]')) {
       const on = panel.dataset.inspectorPanel === selected;
       panel.hidden = !on;
@@ -2206,6 +2289,25 @@ for (const tab of document.querySelectorAll('[data-inspector]'))
     if (selected === 'objects') inspectorPanel.loadObjects();
     if (selected === 'desktop') inspectorPanel.loadDesktop();
   });
+for (const tab of inspectorTabs)
+  tab.addEventListener('keydown', (event) => {
+    const index = inspectorTabs.indexOf(tab);
+    const next =
+      event.key === 'ArrowRight'
+        ? inspectorTabs[(index + 1) % inspectorTabs.length]
+        : event.key === 'ArrowLeft'
+          ? inspectorTabs[(index - 1 + inspectorTabs.length) % inspectorTabs.length]
+          : event.key === 'Home'
+            ? inspectorTabs[0]
+            : event.key === 'End'
+              ? inspectorTabs[inspectorTabs.length - 1]
+              : null;
+    if (!next) return;
+    event.preventDefault();
+    next.focus();
+    next.click();
+  });
+syncTabindex();
 syncPageChrome('chat');
 themeLabel();
 // 启动即尝试本机自动连接，恢复 V1 的「运行起来就能用」

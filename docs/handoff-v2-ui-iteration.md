@@ -17,10 +17,11 @@
 - ✅ P5 schedules 频率向导（向导卡 `#schedule-wizard`：每天/每周/每月分段单选+`#schedule-wiz-time` 时刻+星期7/日期31多选芯片；`compileWizard` 写回 `schedule-kind`/`schedule-expression`、`parseWizard`/`syncWizard` 双向回读带焦点守卫；fresh 时区=`Intl…timeZone`；摘要行 `#schedule-wiz-summary-text` 实时回显；自定义规则/interval/once 让位或禁用+高级 `#schedule-advanced` 自动展开+点选接管；末位芯片守卫；原 ID 与草稿 CAS 全保留）— 提交 `f147ccbb`，**当前资源版本 `20261120v170`**；实测 54/54（每天 09:30→载荷 `30 9 * * *`、高级回读一致）+schedules 专项 9/9 零改动
 - ✅ P6 deliveries 消息选择器 + 术语白话横扫（`#delivery-session`+`#delivery-message` select 从会话消息只读 API 选取、非 succeeded 回合禁用标注、两行正文预览；美元等值 hint 与运行报告 append；mcp/credentials/extensions 技术详情折叠+白话摘要；五页 intro/标签白话）— 提交 `6690b59c`，**当前资源版本 `20261120v171`**；delivery 8/8 含 refresh-race 双 repeat、四专项+守卫全绿、实测 19/19
 - ✅ P7 集成收尾（唯一一次全量在 `NO_PROXY=*` 隔离下跑：8192 passed / 25 failed / 0 errors，43:11，-n 4，基线 `7cdd21a6`；25 例全归因并行批既有红/负载 flaky/环境，见证据 `ui_iteration_p7_integration`；首跑被 Windows 注册表 ProxyOverride→httpx InvalidURL 环境根因作废已记录）；Playwright 双主题×1440/760/390 巡 24 页 144 截图 147/147 检查过；提交 `c8dbc1f9`，资源版本仍 `20261120v171`（本批无资源改动）
-- 七阶段完成。留下迭代候选：logs 分层+audit 并入（动导航三方契约，成本高）；右栏 seg-tabs 抛光；背景细网格纹理（原型 :103 有）；或所有者新指示。并行会话遗留红清单见证据 P7 归因（迁移 pin v2_0039→v2_0049 漏更新 9 例等），归其处置。
+- ✅ P8 视觉批（logs 分层：日志流置顶+吸顶玻璃工具条+六等级芯片计数+结构化行展开 JSON+原始 JSON 折叠+四组层卡默认 open；seg-tabs 分段控件抛光+roving 方向键；背景 40px 细网格+两角环境光晕负层纹理，浅色自动翻面）— 提交见最近提交，**当前资源版本 `20261120v172`**；守卫 16、专项 8+13+16、实测 22/22、像素级证实纹理绘制
+- 七阶段+P8 完成。留下迭代候选：logs 的 audit 并入（动导航三方契约，成本高，独立批）；或所有者新指示。并行会话遗留红清单见证据 P7 归因（迁移 pin v2_0039→v2_0049 漏更新 9 例等），归其处置。
 
 ## 每阶段统一收尾（必须全部执行）
-1. 整组升版本串：`sed -i 's/20261120v171/20261120vNNN/g'` 应用于 `web/ui/v2/*.js web/ui/v2/index.html` + 两份提示文档 + `docs/evidence/v2-ui.json`（**开工前先 grep 当前值防并行会话已升**：`grep -o "20261120v[0-9]*" web/ui/v2/index.html | head -1`；evidence 只升 `resource_version_final` 当前版本字段，历史条目的「版本」保留原值）。
+1. 整组升版本串：`sed -i 's/20261120v172/20261120vNNN/g'` 应用于 `web/ui/v2/*.js web/ui/v2/index.html` + 两份提示文档 + `docs/evidence/v2-ui.json`（**开工前先 grep 当前值防并行会话已升**：`grep -o "20261120v[0-9]*" web/ui/v2/index.html | head -1`；evidence 只升 `resource_version_final` 当前版本字段，历史条目的「版本」保留原值；带组版本串的只有 main/android/desktop/documents/operations/terminals+index，叶模块无组串）。
 2. `docs/evidence/v2-ui.json` 追加 `ui_iteration_pN_xxx` 键（需求/交付/验证/截图/版本）。
 3. 新增/删除仓库文件后跑 `scripts/project_index.py`——必须用纯树法避免混入他会话未提交代码：
    `TREE=$(git write-tree) && rm -rf temp/build/_idx_tree && mkdir -p temp/build/_idx_tree && git archive "$TREE" | tar -x -C temp/build/_idx_tree && uv run --no-sync python scripts/project_index.py --root temp/build/_idx_tree --output temp/build/_idx_tree/docs/index && cp temp/build/_idx_tree/docs/index/MODULES.md temp/build/_idx_tree/docs/index/project.json docs/index/ && git add docs/index/MODULES.md docs/index/project.json` 单独 chore 提交。
@@ -42,6 +43,7 @@
 - **Windows 注册表 ProxyOverride 环境陷阱（P7 首跑作废根因）**：注册表 ProxyOverride 被 `urllib.getproxies()` 读成 scheme `no` 的代理项，httpx 0.28.1 解析其 IPv6 覆写列表抛 `InvalidURL: Invalid port: ':1]'`，任何默认 `httpx.Client()` 构造即炸（V1 web/UI 组全灭）。本机跑全量/涉网测试一律加 `NO_PROXY="*"` 前缀隔离（env 非空即跳过注册表）；不改测试断言、不改产品 trust_env。
 - pytest 缓存归因陷阱：`.pytest_cache/v/cache/lastfailed` 保留未被本次收集的历史失败（含 xuexi 等旧路径），且会被并行会话的运行覆盖污染；归因以本次运行日志为准（全量输出落盘再分析，别只 tail）。
 - 并行批既有红（P7 勘定，归并行会话处置）：迁移测试 9 例仍 pin `v2_0039` 而 head 已 `v2_0049`；service_registration powershell 参数 6 例；todos/pruning/reference_release/android×2/media_staging×2 行为漂移；installer 隔离 python 1 例；V1 project_catalog 1 例（docs/index 置 HEAD 仍红）。
+- sticky 吸顶两连坑（P8 真缺陷已修）：① 非对话页真实滚动口是 `.settings-content`，`.page` 的 `overflow-y:auto` 虽不滚动却劫持 sticky 最近滚动口→该页需 `overflow-y:visible` 让位；② `base.css` 的 body 不透明底（V2 页名不在其排除名单）盖住 `z-index:-1` 负层纹理→桥接层镜像同选择器 `background:transparent`（画布色仍由 html --shell-bg 承担）。验证吸顶要对齐滚动口顶而非页顶；full_page 截图里 sticky+backdrop 的模糊带是拼接伪影非缺陷。
 
 ## 演示与验证环境
 - 演示实例：`uv run --no-sync python -m omni.composition.cli --home temp/build/v2-demo-home serve --port 8790`（后台跑；就绪判定 `socket.connect_ex(('127.0.0.1',8790))==0`；重启需先 taskkill 旧 PID）。agent id `1b51394c-aebe-48fc-ba31-25e87f5b1b6a`，OpenCode Go 真实档可用（跑真实调用费用极小）。改后端需重启才生效；改前端只需刷新。
@@ -63,4 +65,4 @@
 ## 未验收声明（不得当成已完成）
 真实平台账号/72小时稳定性/三平台原生未验收；全部验证基于离线演示实例+本地 OpenCode Go 真实档。P7 全量已跑（NO_PROXY 隔离）：8192 passed / 25 failed / 0 errors，25 例均非本迭代回归（归因见证据）；全量全绿仍待并行批遗留红处置后复跑。
 
-先读 `docs/HANDOFF.md`、`docs/ARCHITECTURE.md`、`CONTRIBUTING.md` 与 `docs/history/v2/V2_UI_PROMPT.md`（§3 契约、§4 踩坑 21 条）。七阶段已完成；从迭代候选或所有者新指示开始，涉网测试记得 `NO_PROXY="*"`。
+先读 `docs/HANDOFF.md`、`docs/ARCHITECTURE.md`、`CONTRIBUTING.md` 与 `docs/history/v2/V2_UI_PROMPT.md`（§3 契约、§4 踩坑 21 条）。七阶段+P8 已完成；从迭代候选或所有者新指示开始，涉网测试记得 `NO_PROXY="*"`。

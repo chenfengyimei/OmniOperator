@@ -268,23 +268,29 @@ body[data-ui-page="workbench-v2"] .page:not(#chat) .actions {
 }
 /* 分区页滚动条走面板语言，不用浏览器默认 */
 body[data-ui-page="workbench-v2"] .page:not(#chat)::-webkit-scrollbar,
-body[data-ui-page="workbench-v2"] .page:not(#chat) :is(pre, textarea, select[multiple])::-webkit-scrollbar {
+body[data-ui-page="workbench-v2"] .page:not(#chat) :is(pre, textarea, select[multiple], .log-rows)::-webkit-scrollbar {
   width: 9px;
   height: 9px;
 }
 body[data-ui-page="workbench-v2"] .page:not(#chat)::-webkit-scrollbar-track,
-body[data-ui-page="workbench-v2"] .page:not(#chat) :is(pre, textarea, select[multiple])::-webkit-scrollbar-track {
+body[data-ui-page="workbench-v2"]
+  .page:not(#chat)
+  :is(pre, textarea, select[multiple], .log-rows)::-webkit-scrollbar-track {
   background: transparent;
 }
 body[data-ui-page="workbench-v2"] .page:not(#chat)::-webkit-scrollbar-thumb,
-body[data-ui-page="workbench-v2"] .page:not(#chat) :is(pre, textarea, select[multiple])::-webkit-scrollbar-thumb {
+body[data-ui-page="workbench-v2"]
+  .page:not(#chat)
+  :is(pre, textarea, select[multiple], .log-rows)::-webkit-scrollbar-thumb {
   border: 2px solid transparent;
   border-radius: var(--r-full);
   background: color-mix(in srgb, var(--seed-fg) 20%, transparent);
   background-clip: content-box;
 }
 body[data-ui-page="workbench-v2"] .page:not(#chat)::-webkit-scrollbar-thumb:hover,
-body[data-ui-page="workbench-v2"] .page:not(#chat) :is(pre, textarea, select[multiple])::-webkit-scrollbar-thumb:hover {
+body[data-ui-page="workbench-v2"]
+  .page:not(#chat)
+  :is(pre, textarea, select[multiple], .log-rows)::-webkit-scrollbar-thumb:hover {
   background: color-mix(in srgb, var(--seed-accent) 50%, transparent);
   background-clip: content-box;
 }
@@ -4117,4 +4123,294 @@ body[data-ui-page="workbench-v2"] .page:not(#chat) .usd-hint {
   font-weight: 400;
   color: var(--text-3);
   font-variant-numeric: tabular-nums;
+}
+
+/* ==========================================================================
+   P8 视觉批：背景细网格纹理 / 右栏分段页签 / logs 分层
+   --------------------------------------------------------------------------
+   纹理移植 V1 frame.css 子页画布（:87-99）：V2 曾被 :not(workbench-v2) 排除，
+   工作台底一直是平色。这里在桥接层补同语言细网格+两角环境光晕，颜色全部由
+   seed-fg/seed-accent 派生，浅色自动翻面；z-index:-1 保证恒在内容之下
+   （html 有 --shell-bg，canvas 先绘，负层在其上、流内内容之下）。
+   ========================================================================== */
+/* base.css 的 body 不透明底（V2 页名不在其排除名单）会盖住负层纹理——
+   镜像同选择器仅透掉 background，画布色仍由 html --shell-bg 承担。 */
+body[data-ui-page="workbench-v2"]:not([data-ui-page="workbench"]):not([data-ui-page="project"]) {
+  background: transparent;
+}
+body[data-ui-page="workbench-v2"]::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image:
+    linear-gradient(color-mix(in srgb, var(--seed-fg) 6%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--seed-fg) 6%, transparent) 1px, transparent 1px),
+    radial-gradient(980px 620px at 8% -8%, color-mix(in srgb, var(--seed-accent) 9%, transparent), transparent 58%),
+    radial-gradient(900px 620px at 102% -2%, color-mix(in srgb, var(--seed-accent2) 8%, transparent), transparent 58%);
+  background-size:
+    40px 40px,
+    40px 40px,
+    auto,
+    auto;
+  mask-image: linear-gradient(to bottom, #000, transparent 72%);
+}
+
+/* 右栏页签：V1 下划线语言改为分段控件（segmented control）。
+   激活=渐变药丸+on-accent 前景+内高光；V1 的底部渐变指示条移除避免双指示。 */
+body[data-ui-page="workbench-v2"] .inspector-panel > .tabs {
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid var(--line-2);
+  border-radius: var(--r-md);
+  background: color-mix(in oklab, var(--surface-2) 60%, transparent);
+}
+body[data-ui-page="workbench-v2"] .inspector-panel > .tabs button {
+  border-radius: var(--r-sm);
+  color: var(--text-3);
+  font-weight: 600;
+  transition:
+    color 0.16s,
+    background 0.16s,
+    box-shadow 0.16s,
+    transform 0.12s;
+}
+body[data-ui-page="workbench-v2"] .inspector-panel > .tabs button:hover {
+  color: var(--text-1);
+  background: color-mix(in oklab, var(--surface-3) 65%, transparent);
+}
+body[data-ui-page="workbench-v2"] .inspector-panel > .tabs button:active {
+  transform: scale(0.96);
+}
+body[data-ui-page="workbench-v2"] .inspector-panel > .tabs button.active {
+  color: var(--on-accent);
+  background: var(--grad);
+  box-shadow:
+    var(--sh-1),
+    inset 0 1px 0 color-mix(in srgb, #fff 22%, transparent);
+}
+body[data-ui-page="workbench-v2"] .inspector-panel > .tabs button.active::after {
+  content: none;
+}
+
+/* logs 分层：吸顶工具条（玻璃弱档）+等级芯片+结构化行+分组层卡 */
+/* 非对话模式真实滚动口是 .settings-content；.page 的 overflow-y:auto 虽不滚动
+   却会成为 sticky 的最近滚动口导致吸顶失效——logs 页让位给外层滚动口。 */
+body[data-ui-page="workbench-v2"]:not(.chat-mode) #logs {
+  overflow-y: visible;
+}
+body[data-ui-page="workbench-v2"] #logs .log-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  margin: 0 calc(var(--sp-4) * -1);
+  padding: var(--sp-2) var(--sp-4);
+  background: var(--glass-weak-bg);
+  backdrop-filter: blur(var(--glass-weak-blur)) saturate(var(--glass-weak-sat));
+  border-bottom: 1px solid var(--line-2);
+}
+body[data-ui-page="workbench-v2"] #logs .log-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+body[data-ui-page="workbench-v2"] #logs .log-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 26px;
+  padding: 2px 10px;
+  border: 1px solid var(--line-2);
+  border-radius: var(--r-full);
+  background: color-mix(in oklab, var(--surface-2) 55%, transparent);
+  color: var(--text-2);
+  font-size: var(--fs-caption);
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    color 0.14s,
+    background 0.14s,
+    border-color 0.14s,
+    transform 0.12s;
+}
+body[data-ui-page="workbench-v2"] #logs .log-chip:hover {
+  color: var(--text-1);
+  border-color: var(--line-3);
+  transform: translateY(-1px);
+}
+body[data-ui-page="workbench-v2"] #logs .log-chip:active {
+  transform: scale(0.96);
+}
+body[data-ui-page="workbench-v2"] #logs .log-chip.active {
+  color: var(--on-accent);
+  background: var(--grad);
+  border-color: transparent;
+  box-shadow: var(--sh-1);
+}
+body[data-ui-page="workbench-v2"] #logs .log-chip[data-level="INFO"]:not(.active) {
+  color: var(--seed-accent);
+}
+body[data-ui-page="workbench-v2"] #logs .log-chip[data-level="WARNING"]:not(.active) {
+  color: var(--warn);
+}
+body[data-ui-page="workbench-v2"] #logs .log-chip[data-level="ERROR"]:not(.active),
+body[data-ui-page="workbench-v2"] #logs .log-chip[data-level="CRITICAL"]:not(.active) {
+  color: var(--danger);
+}
+body[data-ui-page="workbench-v2"] #logs .log-chip-count {
+  min-width: 18px;
+  padding: 0 5px;
+  border-radius: var(--r-full);
+  background: color-mix(in srgb, var(--seed-fg) 12%, transparent);
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+body[data-ui-page="workbench-v2"] #logs .log-chip.active .log-chip-count {
+  background: color-mix(in srgb, #000 18%, transparent);
+  color: var(--on-accent);
+}
+body[data-ui-page="workbench-v2"] #logs .log-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 420px;
+  overflow-y: auto;
+  padding-right: 2px;
+}
+body[data-ui-page="workbench-v2"] #logs .log-row {
+  border: 1px solid var(--line-1);
+  border-radius: var(--r-sm);
+  background: color-mix(in oklab, var(--surface-1) 72%, transparent);
+}
+body[data-ui-page="workbench-v2"] #logs .log-row:hover {
+  border-color: var(--line-2);
+}
+body[data-ui-page="workbench-v2"] #logs .log-row > summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  cursor: pointer;
+  list-style: none;
+  font-size: var(--fs-caption);
+}
+body[data-ui-page="workbench-v2"] #logs .log-row > summary::-webkit-details-marker {
+  display: none;
+}
+body[data-ui-page="workbench-v2"] #logs .log-row > summary::before {
+  content: "";
+  flex: 0 0 auto;
+  width: 6px;
+  height: 6px;
+  border-radius: var(--r-full);
+  background: var(--text-4);
+}
+body[data-ui-page="workbench-v2"] #logs .log-row[open] > summary::before {
+  background: var(--seed-accent);
+}
+body[data-ui-page="workbench-v2"] #logs .log-badge {
+  flex: 0 0 auto;
+  min-width: 52px;
+  padding: 1px 6px;
+  border-radius: var(--r-sm);
+  background: color-mix(in srgb, var(--text-4) 14%, transparent);
+  color: var(--text-3);
+  text-align: center;
+  font-size: var(--fs-caption);
+  font-weight: 700;
+}
+body[data-ui-page="workbench-v2"] #logs .log-row[data-level="INFO"] .log-badge {
+  background: color-mix(in srgb, var(--seed-accent) 14%, transparent);
+  color: var(--seed-accent);
+}
+body[data-ui-page="workbench-v2"] #logs .log-row[data-level="WARNING"] .log-badge {
+  background: color-mix(in srgb, var(--warn) 16%, transparent);
+  color: var(--warn);
+}
+body[data-ui-page="workbench-v2"] #logs .log-row[data-level="ERROR"] .log-badge,
+body[data-ui-page="workbench-v2"] #logs .log-row[data-level="CRITICAL"] .log-badge {
+  background: color-mix(in srgb, var(--danger) 16%, transparent);
+  color: var(--danger);
+}
+body[data-ui-page="workbench-v2"] #logs .log-time {
+  flex: 0 0 auto;
+  color: var(--text-4);
+  font-variant-numeric: tabular-nums;
+}
+body[data-ui-page="workbench-v2"] #logs .log-comp {
+  flex: 0 0 auto;
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text-3);
+}
+body[data-ui-page="workbench-v2"] #logs .log-msg {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text-2);
+}
+body[data-ui-page="workbench-v2"] #logs .log-row > .log-json {
+  margin: 0;
+  border-top: 1px solid var(--line-1);
+  max-height: 260px;
+}
+body[data-ui-page="workbench-v2"] #logs .log-empty {
+  padding: 18px 12px;
+  border: 1px dashed var(--line-2);
+  border-radius: var(--r-md);
+  text-align: center;
+}
+body[data-ui-page="workbench-v2"] #logs details.log-layer {
+  padding: 0;
+  border: 1px solid var(--line-1);
+  border-radius: var(--r-card);
+  background: color-mix(in oklab, var(--surface-1) 60%, transparent);
+}
+body[data-ui-page="workbench-v2"] #logs details.log-layer > summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  cursor: pointer;
+  list-style: none;
+  font-size: var(--fs-headline);
+  font-weight: 700;
+  color: var(--text-1);
+}
+body[data-ui-page="workbench-v2"] #logs details.log-layer > summary::-webkit-details-marker {
+  display: none;
+}
+body[data-ui-page="workbench-v2"] #logs details.log-layer > summary::before {
+  content: "";
+  flex: 0 0 auto;
+  border-left: 5px solid var(--text-3);
+  border-top: 4px solid transparent;
+  border-bottom: 4px solid transparent;
+  transition: transform 0.16s;
+}
+body[data-ui-page="workbench-v2"] #logs details.log-layer[open] > summary::before {
+  transform: rotate(90deg);
+}
+body[data-ui-page="workbench-v2"] #logs details.log-layer[open] > summary {
+  border-bottom: 1px solid var(--line-1);
+}
+body[data-ui-page="workbench-v2"] #logs details.log-layer > :not(summary) {
+  margin-left: 14px;
+  margin-right: 14px;
+}
+body[data-ui-page="workbench-v2"] #logs details.log-layer > :last-child {
+  margin-bottom: 12px;
+}
+body[data-ui-page="workbench-v2"] #logs details.log-layer h3 {
+  margin: 10px 14px 4px;
+  font-size: var(--fs-headline);
+  color: var(--text-2);
 }
