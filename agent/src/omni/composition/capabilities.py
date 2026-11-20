@@ -47,7 +47,7 @@ def builtin_capabilities(
         ),
         (
             "files_search",
-            "Search the workspace: target=content (default) does bounded case-insensitive substring search, or use_regex=true treats query as a case-sensitive regular expression (conservative safety gate rejects nested quantifiers, backreferences and other super-linear constructs); output_mode=content (default) returns relative paths/line numbers/snippets, files_with_matches returns distinct matching paths, count returns per-file matching-line totals; context=0-3 attaches bounded before/after neighbor lines to content matches; offset=0-1000 skips the first N matches for pagination (50-result page); order=discovery (default) keeps bounded traversal order, order=modified sorts newest-first by file mtime across the bounded scan (stable ties keep discovery order); file_glob restricts content search to files whose workspace-relative path matches a case-sensitive glob (e.g. '*.py', 'src/*.py'), ignored for target=files; file_glob_exclude drops content-search files whose workspace-relative path matches any of up to 8 case-sensitive globs (a string or list of strings, e.g. '*.min.js' or ['node_modules/*', '*.lock']); a leading '!' is stripped, exclusion is applied after file_glob and ignored for target=files; use_regex is ignored for target=files; target=files finds files by case-sensitive basename glob (e.g. '*.py')",
+            "Search the workspace: target=content (default) does bounded case-insensitive substring search, or use_regex=true treats query as a case-sensitive regular expression (conservative safety gate rejects nested quantifiers, backreferences and other super-linear constructs); output_mode=content (default) returns relative paths/line numbers/snippets, files_with_matches returns distinct matching paths, count returns per-file matching-line totals; context=0-3 attaches bounded before/after neighbor lines to content matches; offset=0-1000 skips the first N matches for pagination (50-result page); order=discovery (default) keeps bounded traversal order, order=modified sorts newest-first by file mtime across the bounded scan (stable ties keep discovery order); file_glob restricts content search to files whose workspace-relative path matches any of up to 8 case-sensitive include globs (a string or list of strings, e.g. '*.py' or ['*.py', '*.md'], OR across patterns), ignored for target=files; file_glob_exclude drops content-search files whose workspace-relative path matches any of up to 8 case-sensitive globs (a string or list of strings, e.g. '*.min.js' or ['node_modules/*', '*.lock']); a leading '!' is stripped, exclusion is applied after file_glob and ignored for target=files; use_regex is ignored for target=files; target=files finds files by case-sensitive basename glob (e.g. '*.py')",
             {
                 "query": {"type": "string", "minLength": 1, "maxLength": 200},
                 "path": {"type": "string"},
@@ -56,7 +56,11 @@ def builtin_capabilities(
                 "context": {"type": "integer", "minimum": 0, "maximum": 3},
                 "offset": {"type": "integer", "minimum": 0, "maximum": 1000},
                 "order": {"type": "string", "enum": ["discovery", "modified"]},
-                "file_glob": {"type": "string", "minLength": 1, "maxLength": 200},
+                "file_glob": {
+                    "type": ["string", "array"],
+                    "items": {"type": "string", "minLength": 1, "maxLength": 200},
+                    "maxItems": 8,
+                },
                 "file_glob_exclude": {
                     "type": ["string", "array"],
                     "items": {"type": "string", "minLength": 1, "maxLength": 200},

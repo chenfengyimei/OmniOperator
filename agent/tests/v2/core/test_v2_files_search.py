@@ -656,12 +656,19 @@ def test_files_search_spec_exposes_order_enum(tmp_path):
 
 
 def test_normalize_file_glob_defaults_and_rejects_invalid():
-    assert normalize_file_glob(None) is None
-    assert normalize_file_glob("  *.py  ") == "*.py"
-    assert normalize_file_glob("x" * 200) == "x" * 200
-    for bad in ("", "   ", "x" * 201, "a\nb", "a\x00b", 5, True, ["*.py"]):
+    assert normalize_file_glob(None) == ()
+    assert normalize_file_glob([]) == ()
+    assert normalize_file_glob(()) == ()
+    assert normalize_file_glob("  *.py  ") == ("*.py",)
+    assert normalize_file_glob("x" * 200) == ("x" * 200,)
+    assert normalize_file_glob(["*.py", "*.md"]) == ("*.py", "*.md")
+    assert normalize_file_glob(("  src/*.ts  ", "tests/*.ts")) == ("src/*.ts", "tests/*.ts")
+    assert normalize_file_glob([f"g{i}" for i in range(8)]) == tuple(f"g{i}" for i in range(8))
+    for bad in ("", "   ", "x" * 201, "a\nb", "a\x00b", 5, True, ["*.py", 5], [""], ["x" * 201]):
         with pytest.raises(ValueError):
             normalize_file_glob(bad)
+    with pytest.raises(ValueError):
+        normalize_file_glob(["*.py"] * 9)
 
 
 def test_match_path_glob_is_case_sensitive_and_path_aware():
@@ -769,8 +776,140 @@ def test_files_search_spec_exposes_file_glob(tmp_path):
         async with opened(tmp_path, Clock()) as (_, db, objects, _agent):
             specs = tuple(c.spec for c in builtin_capabilities(db, DocumentService(db, objects)))
             parameters = next(s for s in specs if s.name == "files_search").parameters
-            assert parameters["properties"]["file_glob"] == {"type": "string", "minLength": 1, "maxLength": 200}
+            assert parameters["properties"]["file_glob"] == {
+                "type": ["string", "array"],
+                "items": {"type": "string", "minLength": 1, "maxLength": 200},
+                "maxItems": 8,
+            }
             assert parameters["required"] == ["query"]
+
+    asyncio.run(scenario())
+
+
+def test_worker_file_glob_multiple_includes_or(tmp_path):
+    (tmp_path / "a.py").write_text("needle", encoding="utf-8")
+    (tmp_path / "b.md").write_text("needle", encoding="utf-8")
+    (tmp_path / "c.txt").write_text("needle", encoding="utf-8")
+
+    async def scenario():
+        result = await Worker().invoke(
+            "files_search", {"query": "needle", "file_glob": ["*.py", "*.md"]}, {"workspace": str(tmp_path)}
+        )
+        assert result.status == Outcome.OK and result.effect == Effect.NONE
+        assert {Path(m["path"]).as_posix() for m in result.data["matches"]} == {"a.py", "b.md"}
+
+    asyncio.run(scenario())
+
+
+def test_worker_file_glob_multiple_path_anchored(tmp_path):
+    (tmp_path / "sub").mkdir()
+    (tmp_path / "docs").mkdir()
+    (tmp_path / "sub" / "x.py").write_text("needle", encoding="utf-8")
+    (tmp_path / "docs" / "y.md").write_text("needle", encoding="utf-8")
+    (tmp_path / "top.py").write_text("needle", encoding="utf-8")
+    (tmp_path / "other.txt").write_text("needle", encoding="utf-8")
+
+    async def scenario():
+        result = await Worker().invoke(
+            "files_search", {"query": "needle", "file_glob": ["sub/*.py", "docs/*.md"]}, {"workspace": str(tmp_path)}
+        )
+        assert {Path(m["path"]).as_posix() for m in result.data["matches"]} == {"sub/x.py", "docs/y.md"}
+
+    asyncio.run(scenario())
+
+
+def test_worker_file_glob_multiple_combines_with_exclude(tmp_path):
+    (tmp_path / "a.py").write_text("needle", encoding="utf-8")
+    (tmp_path / "b.py").write_text("needle", encoding="utf-8")
+    (tmp_path / "c.md").write_text("needle", encoding="utf-8")
+
+    async def scenario():
+        result = await Worker().invoke(
+            "files_search",
+            {"query": "needle", "file_glob": ["*.py", "*.md"], "file_glob_exclude": "b.py"},
+            {"workspace": str(tmp_path)},
+        )
+        assert {Path(m["path"]).as_posix() for m in result.data["matches"]} == {"a.py", "c.md"}
+
+    asyncio.run(scenario())
+
+
+def test_worker_file_glob_multiple_applies_to_files_with_matches_and_count(tmp_path):
+    (tmp_path / "a.py").write_text("needle\nneedle", encoding="utf-8")
+    (tmp_path / "b.md").write_text("needle", encoding="utf-8")
+    (tmp_path / "c.txt").write_text("needle", encoding="utf-8")
+
+    async def scenario():
+        fwm = await Worker().invoke(
+            "files_search",
+            {"query": "needle", "output_mode": "files_with_matches", "file_glob": ["*.py", "*.md"]},
+            {"workspace": str(tmp_path)},
+        )
+        assert {Path(m["path"]).as_posix() for m in fwm.data["matches"]} == {"a.py", "b.md"}
+        cnt = await Worker().invoke(
+            "files_search",
+            {"query": "needle", "output_mode": "count", "file_glob": ["*.py", "*.md"]},
+            {"workspace": str(tmp_path)},
+        )
+        assert {(m["path"], m["count"]) for m in cnt.data["matches"]} == {("a.py", 2), ("b.md", 1)}
+
+    asyncio.run(scenario())
+
+
+def test_worker_file_glob_multiple_ignored_for_files_target(tmp_path):
+    (tmp_path / "a.py").write_text("x", encoding="utf-8")
+    (tmp_path / "b.md").write_text("x", encoding="utf-8")
+
+    async def scenario():
+        result = await Worker().invoke(
+            "files_search",
+            {"query": "*.py", "target": "files", "file_glob": ["*.md"]},
+            {"workspace": str(tmp_path)},
+        )
+        assert {Path(m["path"]).as_posix() for m in result.data["matches"]} == {"a.py"}
+
+    asyncio.run(scenario())
+
+
+def test_worker_file_glob_empty_list_searches_all(tmp_path):
+    (tmp_path / "a.py").write_text("needle", encoding="utf-8")
+    (tmp_path / "b.txt").write_text("needle", encoding="utf-8")
+
+    async def scenario():
+        result = await Worker().invoke(
+            "files_search", {"query": "needle", "file_glob": []}, {"workspace": str(tmp_path)}
+        )
+        assert {Path(m["path"]).as_posix() for m in result.data["matches"]} == {"a.py", "b.txt"}
+
+    asyncio.run(scenario())
+
+
+def test_worker_file_glob_multiple_combines_with_regex(tmp_path):
+    (tmp_path / "a.py").write_text("item1", encoding="utf-8")
+    (tmp_path / "b.md").write_text("item2", encoding="utf-8")
+    (tmp_path / "c.txt").write_text("item3", encoding="utf-8")
+
+    async def scenario():
+        result = await Worker().invoke(
+            "files_search",
+            {"query": r"item\d", "use_regex": True, "file_glob": ["*.py", "*.md"]},
+            {"workspace": str(tmp_path)},
+        )
+        assert {Path(m["path"]).as_posix() for m in result.data["matches"]} == {"a.py", "b.md"}
+
+    asyncio.run(scenario())
+
+
+@pytest.mark.parametrize("value", [["*.py", 5], [""], ["x" * 201], ["*.py"] * 9, ["a\nb"]])
+def test_worker_search_rejects_invalid_file_glob_list_before_dispatch(tmp_path, value):
+    (tmp_path / "a.py").write_text("needle", encoding="utf-8")
+
+    async def scenario():
+        result = await Worker().invoke(
+            "files_search", {"query": "needle", "file_glob": value}, {"workspace": str(tmp_path)}
+        )
+        assert result.status == Outcome.ERROR and result.effect == Effect.NONE
+        assert result.error_code == "invalid_capability_request"
 
     asyncio.run(scenario())
 

@@ -254,7 +254,7 @@ class Worker:
                                 truncated = True
                                 break
                         continue
-                    if file_glob is not None and not match_path_glob(Path(relative).as_posix(), file_glob):
+                    if file_glob and not any(match_path_glob(Path(relative).as_posix(), inc) for inc in file_glob):
                         continue
                     if file_glob_exclude and any(
                         match_path_glob(Path(relative).as_posix(), exc) for exc in file_glob_exclude
