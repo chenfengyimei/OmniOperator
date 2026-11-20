@@ -332,10 +332,10 @@ def reclaim_posix(pid: int, created: float | None, timeout_s: float) -> bool:
     try:
         leader = psutil.Process(pid)
         verified = leader.create_time() == created and os.getsid(pid) == pid and os.getpgid(pid) == pid
-    except psutil.NoSuchProcess:
-        # Absence is safe to establish; an unverifiable surviving group is not.
-        members = _session_members(pid)
-        return members == []
+    except (ProcessLookupError, psutil.NoSuchProcess):
+        # On Darwin, getsid/getpgid can report ESRCH for the retained zombie.
+        # Require a complete empty scan and never signal an unverified session.
+        return _session_members(pid) == []
     except (OSError, psutil.Error):
         return False
     if not verified:

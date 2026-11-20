@@ -170,3 +170,9 @@ uv run --no-sync python agent/scripts/accept_native_credentials.py --cleanup <�
 
 
 D4追加独立root管理员包：单次注册/卸载/start使用标准库、固定原生框架probe和Darwin kqueue无fork命令合同，不在root执行本图形helper。必须由管理员独立审阅并使用受信root Python；Mac原生ABI/ACL/dscl/peer/kqueue/launchd未在本Windows主机验证，见[管理员合同](V2_MACOS_SYSTEM_SERVICES.md)。
+
+## macOS PTY 退出回收
+
+在 macOS 27.2.1 arm64 上，已退出的隔离 shell 仍能查询到创建时间和 zombie 状态，`getsid` 与 `getpgid` 会返回 `ESRCH`。POSIX worker 对会话身份查询的 `ESRCH` 沿用进程消失时的只读枚举路径。完整扫描确认没有存活成员才允许报告回收。扫描失败或仍有会话成员时返回未确认，无会话身份时不发送信号。
+
+隔离样例通过 Unicode 写入与读回、调整尺寸、退出和回收，原生启动拒绝与启动中取消样例也通过。注入用例覆盖两个查询失败点，以及空会话、扫描不完整和存活成员。应用生命周期、持久回执、HTTP 和架构调用方完成专项验证。此批 Linux 实机复验待图形虚拟机准备。
