@@ -1,0 +1,43 @@
+{
+  "schema": 1,
+  "date": "2026-11-21",
+  "base_commit": "79d9cd52f19ca81e6600a743bb7d01c919089196",
+  "batch_commit": "e0bca9ae637fa5429f027e7a3db8e493a9202bf2",
+  "status": "implemented_scoped_passed",
+  "batch": "FIX.baseline_alignment",
+  "scope": "C0 全量基线暴露的两处 committed 债：服务注册测试仍用布局迁移前 parents[1] 路径（broker 源 + 5 receipt 共 6 项红）；TYPE_CHECKING 漏登 v0051.py 与 domain/reflection.py（1 项红）。纯测试/文档对齐，无生产源码、迁移、依赖改动。",
+  "root_cause": [
+    "agent/tests/v2/operations/test_v2_service_registration.py 从 omni.adapters.platform.services.service_registration 取 __file__，但布局迁移后 windows_services.ps1 位于 adapters/workers/；测试仍用 parents[1] 得到 adapters/platform/workers，broker 源读取与 5 个 receipt 命令断言全部失败（生产代码 parents[2] 正确）。",
+    "pyrightconfig.strict.json 在 K17 文档信笺提交中新增 v0051.py 与 domain/reflection.py，但 docs/TYPE_CHECKING.md 表格未同步；test_v2_typecheck_scope 守卫按设计红。"
+  ],
+  "fix": [
+    "test_v2_service_registration.py 两处 Path(r.__file__).parents[1] 改为 parents[2]，与生产 service_registration.py 的 parents[2]/workers/windows_services.ps1 对齐。",
+    "docs/TYPE_CHECKING.md 表格补 v0051 冻结迁移行与 domain/reflection.py 行（strict include 与文档双向一致）。"
+  ],
+  "source_files": {
+    "agent/tests/v2/operations/test_v2_service_registration.py": "1ba2c17cdb92ccad7a33cd47ec00d5b1eaf51dee",
+    "docs/TYPE_CHECKING.md": "06081d605a918c70086f98d03d67640f8f006564"
+  },
+  "validation": {
+    "targeted": {
+      "command": "source/.venv/Scripts/python.exe -m pytest -q -n 0 agent/tests/v2/operations/test_v2_service_registration.py agent/tests/v2/core/test_v2_typecheck_scope.py",
+      "passed": 18,
+      "failed": 0,
+      "seconds": 0.73,
+      "note": "在 79d9cd52 基线 worktree 应用本补丁后运行"
+    },
+    "before": "79d9cd52 全量 58 失败中 6 项 service_registration（broker 源 1 + receipt 5）与 1 项 typecheck_scope；补齐后 7 项应转绿，未重跑全量，不声称全量绿。",
+    "ruff": {
+      "check": "All checks passed!",
+      "format": "1 file already formatted"
+    },
+    "strict": "测试/文档改动不影响 pyright include 集；同时补齐后 test_v2_typecheck_scope 通过（committed head 无他会话 v0052 漂移）"
+  },
+  "not_executed": [
+    "e0bca9ae 的完整全量重跑（结果按 58-7=51 预期记录，不宣称 current_full_passed）",
+    "真实 Windows 服务安装/停止演练（本批只读源码与命令构造断言）",
+    "docs/index 再生（C0.5 暂缓）"
+  ],
+  "current_full_passed": false,
+  "whole_v2_complete": false
+}

@@ -82,6 +82,15 @@ user 图像全链语义字节等价：message 分支触发器原 SQL、reference
 3. **2 media_zoom 工具批**：按草案决策 2/3（writes=True 审批门、frames 作业复用、ImageService.prepare 注册、ActionResult.images 返回）。**已落地**（证据 v2-tool-image-zoom.json）。
 4. **3 端到端批**：按草案步骤 3。**已落地**（证据 v2-tool-image-e2e.json，零生产源码改动）。
 
+### D9 worker IPC 图像字段（缺陷修复 FIX.worker_image_wire）
+
+1b 把 `images` 加入 `ActionResult` 后，`domain/contracts.py::ActionResult` 的 `asdict` 会把它序列化进 worker 响应；但 `adapters/workers/protocol.py` 的 `RESULT_FIELDS` 仍是旧精确键集，`action()` 对任何 worker 结果都报 `IPC result fields do not match`，父进程统一降级为 `worker_disconnected`/`Effect.UNKNOWN`——所有经 `WorkerClient` 的能力（Android、B站网关、扩展宿主、内置 files/shell、媒体 worker、终端）在 1b 之后实际不可用。修复（2026-11-21，独立缺陷批）：
+
+- `RESULT_FIELDS` 保持 1b 前的基础键集（旧 worker 省略 `images` 仍合法，版本号 2 不变），`OPTIONAL_RESULT_FIELDS={"images"}`；`action()` 接受“基础键集 + 可选 images”且拒绝其他未知键。
+- 新增 `images()`：`images` 必须是列表、`len ≤ MAX_IMAGES`、每项键集严格等于 `ImageRef` 六字段，并构造冻结 `ImageRef` 复用其规范 UUID/`ImageInfo` 校验；任何畸形/超限一律 `ValueError`（父进程按既有 malformed-frame 语义结算，绝不静默丢弃或猜测成功）。
+- worker 发出的图像引用原样透传（不新增对象注册/计量路径）；引擎侧仍只经 `model_images_prepare` 核验对象、policy 与预算，worker 不能凭 IPC 字段绕过持久化校验。
+- 新增 3 组回归：round-trip（含 legacy 省略 images）、畸形/超限拒绝参数化、既有截断/效果保持用例在 images 空值时继续通过。
+
 每批：小步 `-n 0` 专项、新增用例回退验证、strict 仓库根、ruff、证据/HANDOFF/任务 JSON、精确提交推送。
 
 ## 有界与安全

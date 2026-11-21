@@ -1,0 +1,215 @@
+{
+  "schema": 1,
+  "date": "2026-11-21",
+  "batch": "C0.closeout_baseline",
+  "status": "baseline_recorded_with_triage",
+  "snapshot_head": "18b75b757b0a8b82243963494be06f5d6d457601",
+  "baseline_head": "79d9cd52f19ca81e6600a743bb7d01c919089196",
+  "alignment_head": "e0bca9ae637fa5429f027e7a3db8e493a9202bf2",
+  "worktree": "C:/v2-acceptance/closeout-18b75b75/source",
+  "tree": "d9bb1b25cfef18445966dd9732c2393019b3fcb1",
+  "scope": "C0.1–C0.4：独立基线工作树、统一全量、失败分诊、strict/ruff 基线；C0.5 因主工作树有他会话在途修改而暂缓。不修改主工作树源码/测试/迁移，不重启用户服务，不声称真实环境验收。",
+  "environment": {
+    "worktree_command": "git worktree add --detach C:/v2-acceptance/closeout-18b75b75/source 18b75b75（后 fast-forward 到 79d9cd52）",
+    "venv": "C:/v2-acceptance/closeout-18b75b75/source/.venv",
+    "venv_command": "uv sync --frozen --all-extras --all-packages --offline（首次仅 --frozen 缺 av/numpy，storyboard 40 项误红；补齐 extras 后 40/40 绿）",
+    "import_check": "source/.venv/Scripts/python.exe -c 'import omni' -> C:/v2-acceptance/closeout-18b75b75/source/agent/src/omni/__init__.py",
+    "lock": "uv.lock git blob 6106398ae4f0c5e4018bf7fefbe9bd191f856160（与主工作树一致）",
+    "doctor": {
+      "command": "source/.venv/Scripts/python.exe -m omni.composition.cli --home C:/v2-acceptance/closeout-18b75b75/instance doctor",
+      "integrity": "ok",
+      "foreign_key_errors": 0,
+      "schema": "v2_0051",
+      "tables": 159,
+      "exit": 0
+    }
+  },
+  "full_suite": {
+    "valid_run": {
+      "head": "79d9cd52f19ca81e6600a743bb7d01c919089196",
+      "command": "source/.venv/Scripts/python.exe -m pytest -q -n 4 --dist=loadfile --junitxml=full-79d9cd52-v2.xml",
+      "tests": 8368,
+      "passed": 8310,
+      "failed": 58,
+      "errors": 0,
+      "skipped": 0,
+      "warnings": 12,
+      "seconds": 2456.79,
+      "junit": "C:/v2-acceptance/closeout-18b75b75/full-79d9cd52-v2.xml",
+      "log": "C:/v2-acceptance/closeout-18b75b75/full-79d9cd52-v2.log",
+      "verdict": "current_full_passed=false；58 项全部完成分诊（下表）"
+    },
+    "invalid_attempts": [
+      {
+        "head": "18b75b75",
+        "tests": 8359,
+        "failed": 125,
+        "passed": 8234,
+        "seconds": 2534.67,
+        "artifacts": "C:/v2-acceptance/closeout-18b75b75/full-18b75b75.xml",
+        "reason_invalid": "使用主工作树 .venv + PYTHONPATH 覆盖：父进程导入基线源码，但 WorkerClient/子进程按生产环境剥离 PYTHONPATH 后仍导入主工作树 editable 源码；同时 K16 1b 的 worker IPC images 回归尚未修复。该 125 项只用于发现缺陷，不作为源码基线结论。"
+      },
+      {
+        "head": "79d9cd52",
+        "reason_aborted": "独立 .venv 首次只装基础依赖，缺 av/numpy/faster-whisper，storyboard 40 项误红；保留日志 full-79d9cd52.log，安装 extras 后重跑。"
+      }
+    ]
+  },
+  "triage": {
+    "migration_pin_debt": {
+      "count": 38,
+      "classes": [
+        "表计数 pin：147（当前 s.metadata.tables）vs 145（K17 v0051 增加 2 表前）",
+        "版本 pin：v2_0051（当前 head）vs v2_0039（旧断言）"
+      ],
+      "files": {
+        "agent/tests/v2/core/test_v2_memory_organization_migration.py": 4,
+        "agent/tests/v2/core/test_v2_maintenance_migration.py": 4,
+        "agent/tests/v2/core/test_v2_action_review_migration.py": 4,
+        "agent/tests/v2/core/test_v2_audit_plan_migration.py": 4,
+        "agent/tests/v2/core/test_v2_event_plan_migration.py": 4,
+        "agent/tests/v2/integrations/test_v2_extensions_migration.py": 4,
+        "agent/tests/v2/platforms/common/test_v2_terminals_migration.py": 2,
+        "agent/tests/v2/core/test_v2_memory_semantics_migration.py": 2,
+        "agent/tests/v2/integrations/test_v2_media_upload_migration.py": 2,
+        "agent/tests/v2/integrations/test_v2_skills_migration.py": 2,
+        "agent/tests/v2/integrations/test_v2_android_migration.py": 1,
+        "agent/tests/v2/platforms/common/test_v2_desktop_capture.py": 1,
+        "agent/tests/v2/platforms/common/test_v2_terminal_review_migration.py": 1,
+        "agent/tests/v2/integrations/test_v2_media.py": 1,
+        "agent/tests/v2/integrations/test_v2_images_migration.py": 1,
+        "agent/tests/v2/integrations/test_v2_routing_migration.py": 1
+      },
+      "disposition": "记录为债务批；不本批改。原因：他会话 v0052 在途再增 2 表，统一升级应以 v0052 落定后的 head 为准；且 D1 要求统一升级/标记历史测试，需逐文件甄别而非全量替换。",
+      "evidence": "JUnit full-79d9cd52-v2.xml 失败消息均为 147==145 或 v2_0051==v2_0039；images/routing 为 run_delegations 不存在的 v2_0039 迁移链旧断言"
+    },
+    "fixed_in_this_session": [
+      {
+        "batch": "FIX.worker_image_wire",
+        "root": "K16 1b ActionResult.images 未接入 worker RESULT_FIELDS，所有 worker 响应被父进程判为非法",
+        "resolved_failures": 67,
+        "evidence": "docs/evidence/v2-worker-image-wire.json"
+      },
+      {
+        "batch": "FIX.run_compaction_settlement",
+        "root": "compact_run 对 ModelCalls 已结算的 summary call 二次 settle，长 run 报 already_settled",
+        "evidence": "docs/evidence/v2-run-compaction-settlement.json"
+      },
+      {
+        "batch": "FIX.baseline_alignment",
+        "root": "服务注册测试沿用布局迁移前 parents[1] 路径（broker 源 + 5 receipt 命令共 6 项）；TYPE_CHECKING 漏登 v0051/reflection（1 项）",
+        "resolved_failures": 7,
+        "evidence": "docs/evidence/v2-baseline-alignment.json"
+      }
+    ],
+    "remaining_independent": [
+      {
+        "count": 2,
+        "class": "known_product_test_debt",
+        "nodeids": [
+          "agent/tests/v2/integrations/test_v2_media_staging.py::test_failed_terminal_write_still_removes_staging_and_preserves_error[business]",
+          "agent/tests/v2/integrations/test_v2_media_staging.py::test_failed_terminal_write_still_removes_staging_and_preserves_error[io]"
+        ],
+        "cause": "测试 stub Database.media_source_get 缺 kind 键，走 committed _execute source['kind'] KeyError → unknown/media_processing_failed；生产路径不受影响"
+      },
+      {
+        "count": 1,
+        "class": "known_race",
+        "nodeid": "agent/tests/v2/core/test_v2_todos.py::test_runtime_restart_reinjects_active_plan_only_into_its_own_session",
+        "cause": "K08 后台评审与断言竞态（D2），隔离多次可复现"
+      },
+      {
+        "count": 2,
+        "class": "known_fingerprint_debt",
+        "nodeids": [
+          "agent/tests/v2/core/test_v2_execution_pruning.py::test_apply_rechecks_protections_and_fingerprint_before_any_backup_or_prune[cost]",
+          "agent/tests/v2/core/test_v2_reference_release.py::test_release_rechecks_protections_after_review[cost]"
+        ],
+        "cause": "cost 指纹包含 model.started/settle 事件，既有债务批"
+      },
+      {
+        "count": 1,
+        "class": "load_flake",
+        "nodeid": "agent/tests/v2/core/test_v2_delegation.py::test_four_waiting_parents_do_not_starve_the_child_pool",
+        "cause": "4 worker 全量负载下 TimeoutError；需隔离复现 3 次后判定（C0.3 未完成复现，保留红）"
+      },
+      {
+        "count": 1,
+        "class": "stale_assertion_after_compaction",
+        "nodeid": "agent/tests/v2/integrations/test_v2_android_model.py::test_model_access_and_input_are_separately_approved_and_application_reads_are_scoped",
+        "cause": "run 已 succeeded，但断言 model.tool_bodies[-1] 为 apps JSON；K06 压缩后最后 tool 消息为 input postcondition，apps 轮不在最终 live 转录。需另批把断言改为捕获动作/结果而非最终转录。"
+      },
+      {
+        "count": 1,
+        "class": "environment_isolated_python",
+        "nodeid": "agent/tests/v2/operations/test_v2_installation_check.py::test_standalone_installer_json_preserves_non_legacy_unicode_under_isolated_python",
+        "cause": "C:/.../用户🙂 路径 + python -I + candidate install 返回 candidate_install_failed；需干净安装环境/依赖包缓存"
+      },
+      {
+        "count": 4,
+        "class": "environment_browser_or_native_desktop",
+        "nodeids": [
+          "agent/tests/test_project_catalog.py::test_real_browser_project_navigation_search_details_and_mobile",
+          "agent/tests/v2/ui/test_v2_desktop_control_ui.py::test_explicit_device_scope_is_separate_from_share_and_never_reports_input_enabled[1080-light]",
+          "agent/tests/v2/ui/test_v2_memory_organization_ui.py::test_exact_only_proposal_completes_and_undo_preserves_raw_facts_and_sources",
+          "agent/tests/v2/platforms/common/test_v2_desktop_observation_native.py::test_fixed_windows_uia_worker_reads_only_owned_fixture_and_redacts_password[act]"
+        ],
+        "cause": "浏览器/UI 5s 断言超时、真实桌面用户介入 desktop_user_intervened；非源码判定，需隔离浏览器/桌面窗口"
+      },
+      {
+        "count": 1,
+        "class": "test_hygiene",
+        "nodeid": "agent/tests/v2/core/test_v2_layout.py::test_v2_tests_do_not_import_other_collected_test_modules",
+        "cause": "test_v2_media_zoom_e2e.py 跨测试模块导入 test_v2_media_source_identity；需抽共享 fixture"
+      }
+    ]
+  },
+  "static": {
+    "pyright": {
+      "baseline_command": "source/.venv/Scripts/python.exe -m pyright -p pyrightconfig.strict.json --pythonpath source/.venv/Scripts/python.exe",
+      "baseline_head": "79d9cd52",
+      "files": 420,
+      "errors": 0,
+      "warnings": 0,
+      "seconds": 27.84,
+      "main_tree_after_fixes": {
+        "files": 424,
+        "errors": 0,
+        "warnings": 0,
+        "seconds": 26.9,
+        "note": "主工作树含他会话未提交 v0052 四文件；本会话改动文件全绿"
+      }
+    },
+    "ruff": {
+      "check_src": "ruff check agent/src/omni -> All checks passed!",
+      "check_tests": "ruff check agent/tests -> 339 errors（全部为既有 V1/旧测试 F401/F811/I001/F841 欠账；非本批引入）",
+      "format_src": "6 files would be reformatted（既有欠账：background_review_repository/background_review/v0043/v0044/catalog schema 等）",
+      "format_tests": "4 files would be reformatted（既有欠账）",
+      "changed_files": "protocol.py/context.py/test_v2_worker_safety.py/test_v2_context.py：check+format 全过"
+    }
+  },
+  "c0_items": {
+    "C0.1": "完成（独立 worktree + 独立 .venv；doctor v2_0051/159 表/integrity ok）",
+    "C0.2": "完成（8368 项，58 失败，JUnit 落盘；有效基线）",
+    "C0.3": "完成初版分诊（58 项均有类别/归属；delegation load flake 未做 3 次隔离复现）",
+    "C0.4": "完成（pyright 420/0/0；ruff src 绿/tests 339 欠账；format 6+4 欠账）",
+    "C0.5": "暂缓（主工作树 40+ 修改/10+ 未跟踪，他会话 v0052 在途；遵守索引再生暂缓纪律）"
+  },
+  "fixes_after_baseline": {
+    "commit": "e0bca9ae637fa5429f027e7a3db8e493a9202bf2",
+    "scope": "服务注册测试路径 parents[1]→parents[2]（broker 源 1 + receipt 5，共 6 项）；TYPE_CHECKING 补 v0051/reflection（1 项）",
+    "targeted": "service_registration + typecheck_scope 18 passed 0.73 秒（基线 worktree + extras）",
+    "full_rerun": "未重跑全量；58→预期 51，不声称全量绿"
+  },
+  "not_executed": [
+    "修复后 e0bca9ae 的完整全量（仅专项验证；不声称 current_full_passed=true）",
+    "迁移 pin/表计数债务批（38 项，待 v0052 落定后统一升级）",
+    "delegation  starvation 的 3 次隔离复现",
+    "真实 Linux/macOS/Windows 原生服务、干净机器、容器、真实账号/设备/模型、72 小时",
+    "docs/index 再生（C0.5 暂缓）",
+    "C1 功能缺口/平台收口/真实验收"
+  ],
+  "current_full_passed": false,
+  "all_quality_gates_passed": false,
+  "whole_v2_complete": false
+}

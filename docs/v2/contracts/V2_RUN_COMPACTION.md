@@ -40,3 +40,7 @@
 ## 证据
 
 见 [run 内压缩证据](../../evidence/v2-run-compaction.json)。
+
+## 缺陷修复（2026-11-21，FIX.run_compaction_settlement）
+
+K06 首版 `compact_run` 在 `ModelCalls.invoke(reserved_id=...)` 之后又写了一次 `settle_call`。`ModelCalls._invoke_once` 是 reserved call 的唯一结算点（正常回包、known-not-sent、已派发 unknown 三条路径都会结算），第二次结算抛 `already_settled`；因此摘要回包带 `tool_calls`（引擎只用于拒绝）或摘要失败时，长 run 会在业务工具已成功后整轮失败。修复后 `compact_run` 不再自行结算，`ModelCalls` 保持唯一结算点；摘要带工具调用仍只返回 False、不动转录。回归见 [settlement 证据](../../evidence/v2-run-compaction-settlement.json)，在旧代码上以 `already_settled` 失败、修复后通过。

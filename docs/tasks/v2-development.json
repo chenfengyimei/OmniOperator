@@ -23,7 +23,25 @@
     "commit": "314ce917ee1030b349bbf15be5d32f12a284665a",
     "windows_offline_candidate_complete": true,
     "default_entrypoint": "v2",
-    "prior_full_suite": "5998通过，仅覆盖7e64d348固定候选及其封存源码，不覆盖本轮后续开发和其他会话WIP"
+    "prior_full_suite": "5998通过，仅覆盖7e64d348固定候选及其封存源码，不覆盖本轮后续开发和其他会话WIP",
+    "closeout_2026_11_21": {
+      "worktree": "C:/v2-acceptance/closeout-18b75b75/source",
+      "snapshot_head": "18b75b757b0a8b82243963494be06f5d6d457601",
+      "baseline_head": "79d9cd52f19ca81e6600a743bb7d01c919089196",
+      "alignment_head": "e0bca9ae637fa5429f027e7a3db8e493a9202bf2",
+      "independent_venv": true,
+      "full_suite_tests": 8368,
+      "full_suite_passed": 8310,
+      "full_suite_failed": 58,
+      "full_suite_seconds": 2456.79,
+      "junit": "C:/v2-acceptance/closeout-18b75b75/full-79d9cd52-v2.xml",
+      "post_baseline_alignment_fixed": 7,
+      "expected_remaining": 51,
+      "full_rerun_after_alignment": false,
+      "migration_pin_debt": 38,
+      "evidence": "docs/evidence/v2-closeout-baseline.json",
+      "current_full_passed": false
+    }
   },
   "requirements": [
     {

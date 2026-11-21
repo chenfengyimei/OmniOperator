@@ -101,7 +101,16 @@
       "reference": "hermes-agent/agent/context_engine.py",
       "delivered": "domain/context.py工具轮规则与ContextService.compact_run：尺寸触发的run内旧完整工具轮有界摘要，冻结前缀/初始head/最近2轮与尾部notice保留、工具对不拆分；摘要purpose=summary计费并经同授权/删除守卫，摘要工具调用拒绝、失败保持转录不变不重放；引擎每轮invoke前接入，长run可继续",
       "contract": "docs/v2/contracts/V2_RUN_COMPACTION.md",
-      "evidence": "docs/evidence/v2-run-compaction.json"
+      "evidence": "docs/evidence/v2-run-compaction.json",
+      "fixes": [
+        {
+          "batch": "FIX.run_compaction_settlement",
+          "status": "implemented_scoped_passed",
+          "contract": "docs/v2/contracts/V2_RUN_COMPACTION.md",
+          "evidence": "docs/evidence/v2-run-compaction-settlement.json",
+          "delivered": "compact_run 不再对 ModelCalls 已结算的 reserved summary call 二次 settle_call：删除 invoked 死变量与 except/reply.calls 两处结算，避免摘要带 tool_calls 或失败时长 run 报 already_settled；新增 3 工具轮超阈值回归（单次 settled/cost=7/转录不变），旧代码以 already_settled 失败、修复后 14/14 上下文专项通过。"
+        }
+      ]
     },
     {
       "id": "K07",
@@ -548,6 +557,14 @@
           "contract": "docs/v2/contracts/V2_MEDIA_SCENES.md",
           "evidence": "docs/evidence/v2-media-scenes.json",
           "delivered": "frames作业可选select=scenes(domain/media.py SCENE_*常量+frames_plan第四参select与timestamps互斥+scene_cuts固定阈值12+minGap0.35保留高分+scene_segments+scene_slots最大余数比例分配每段≥1槽段多保最长平局稳定；worker _hsv_score色相环形差min(dh,255-dh)+较低饱和度降权+S/V绝对差PIL C级运算无numpy依赖、_scene_targets有界seek采样min(240,duration*2fps)64宽分析缩略图+Laplacian 3x3核offset128方差选锐平局最早+窗口无候选中点+无切点等距回退、_frames select解码前校验响应仅scenes增select/scene_cuts键默认字节等价ExitStack资源登记pick/宫格/编码防线复用；application Protocol/submit/perform+adapters MediaProcessor.frames第六参+http MediaJobInput.select Literal透传；FakeProcessor/sheet_identity子类适配select默认参zoom先例)；继承参考scan.js两条关键经验(色相环形/低饱和降权防假切点)；14新增专项(真实PyAV合成三场景切点≈4/8每段有帧/棋盘vs纯灰选锐/无切点回退/默认形状/fake解码前拒/真实子进程透传/真实作业settle+cells+非法plan422/REST)+221调用方(scenes14/frames/zoom/plans/sheet_identity/cells/worker/decoding/duration/anchors)过0失败44.56秒终源复跑、strict本批零错误(首轮point lambda 3错误改具名_circular_hue；余5既有他会话repository.py不追逐)、ruff通过；无新表/迁移/操作/模型工具/路由/协议帧改动admission/CAS/删除屏障/未知结算/取消等待全复用；不含参考自适应分位数阈值/亮度增益/黑边补偿/自适应gap/快剪合并/自适应宫格DP打包(独立合同)/模型侧zoom(待批准)/OCR，真实长片质量另验"
+        },
+        {
+          "gap": "#3 工具结果图像协议后续缺陷：worker IPC images 字段导致全部 worker 断开",
+          "status": "implemented_scoped_passed",
+          "batch": "FIX.worker_image_wire",
+          "contract": "docs/v2/contracts/V2_TOOL_IMAGE_PROTOCOL.md#d9-worker-ipc-图像字段缺陷修复-fixworker_image_wire",
+          "evidence": "docs/evidence/v2-worker-image-wire.json",
+          "delivered": "K16 1b 给 ActionResult 增加 images 后，worker 响应 asdict 多出 images 键，而 workers/protocol.py RESULT_FIELDS 仍是旧精确键集，action() 对所有 worker 结果抛 IPC result fields do not match，父进程降级 worker_disconnected/UNKNOWN；Android/B站网关/扩展宿主/内置 files/shell/媒体 worker/终端在 1b 后实际不可用。修复：RESULT_FIELDS 保持基础键集 + OPTIONAL_RESULT_FIELDS={'images'}，旧帧省略仍合法；新增 images() 严格校验 list/≤MAX_IMAGES/六字段 ImageRef 并透传；引擎仍只经 model_images_prepare/DB 触发器核验对象与预算。新增 round-trip/legacy 省略/畸形超限参数化回归；worker 安全 39/39、worker 安全+扩展宿主+B站网关 58/58、18b75b75 基线 125 失败精确重跑后 67 项转绿；strict 424 文件 0 错误 0 警告、ruff 净。剩余 58 项为独立债务/环境，见 C0 基线证据。"
         }
       ],
       "limits": "只读审计无新工具/表/迁移/路由/源码改动；可离线缺口未在K16审计批实现(列后续批次)，其中缺口#4转录定位已在K16.locate后续批实现、缺口#2格号可寻址索引模型侧读面已在K16.cell_anchor后续批实现(只读派生既有帧表亚秒timestamps非新持久化层)、缺口#3局部zoom所有者侧显式时间戳高清重取作业基础已在K16.zoom_foundation后续批实现(frames作业可选timestamps复用既有管线非新表/操作/模型工具，模型侧自动zoom需action_review授权+ImageService图像可见设计合同——该实现前设计合同已记录于K16.zoom_model_design批(方案A/B工具结果图像可见协议+写工具审批门复用+frames timestamps作业复用)，所有者已于2026-11-21批准方案B，独立实现合同已记录于K16.tool_image_protocol批(勘定证伪草案持久层无需改前提：工具转录仅存内存+账本message_id非空FK+冻结触发器链)，所有者已批准D5，1a持久化批K16.tool_image_persistence已落地(v0050账本重建message_id可空+scope双分支message分支原SQL逐字保留+run终态释放触发器+prepare tool分支,5专项回退4/5红+147调用方零回归+strict418文件0错误)，1b协议+引擎批K16.tool_image_engine已落地(ImageInfo等移入contracts+ImageRef+ActionResult.images+references role标签与tool分支+引擎两site附着helper全局最后限额降级+压缩摘要图像标记,10专项回退7/10红+83调用方终源零回归+strict418文件0错误)，2 media_zoom批K16.tool_image_zoom已落地(ZOOM_SPEC writes=True审批门复用+frames作业复用zoom_foundation无新表/操作+cell经media_cells锚映射+media_frames_for_job按job_id唯一取帧+ImageService.prepare注册+ActionResult.images同回合可见+composition生产档capabilities is None门控+routing writes自动排除,17专项回退14/17红+838调用方distinct零回归(5既有红git diff实证非本批)+strict418文件0错误)，3端到端批K16.tool_image_e2e已落地(生产open_instance全链安全矩阵9例:审批拒绝/撤销/过期不提交作业+owner取消等待真实清理+凭据revision CAS+源身份CAS+删除屏障+未知不重放+上传源同回合可见账本终态释放,零生产源码改动,回退9/9红+191调用方distinct零回归+strict418文件0错误)，K16缺口#3四批完结，HSV#1/Laplacian#5已在K16.scene_frames后续批实现(select=scenes保守子集：固定阈值12+minGap0.35+比例密度分配+Laplacian方差选锐，自适应分位数阈值/亮度增益/黑边补偿仍后续)、OCR仍后续)；V1 tools/storyboard学习实现不计V2对等；不宣称五工具/算法全集对等；未引入OCR模型依赖；既有todos重启竞态与5个pin v2_0039旧迁移测试沿用保留",
@@ -966,6 +983,14 @@
     {
       "id": "K17.reflection_document_journal",
       "evidence": "docs/evidence/v2-reflection-document-journal.json"
+    },
+    {
+      "id": "FIX.worker_image_wire",
+      "evidence": "docs/evidence/v2-worker-image-wire.json"
+    },
+    {
+      "id": "FIX.run_compaction_settlement",
+      "evidence": "docs/evidence/v2-run-compaction-settlement.json"
     }
   ]
 }
