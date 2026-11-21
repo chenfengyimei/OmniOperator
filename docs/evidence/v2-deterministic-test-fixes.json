@@ -35,27 +35,26 @@
     }
   ],
   "latest_full_suite": {
-    "head": "872d200b",
-    "command": "source/.venv/Scripts/python.exe -m pytest -q -n 4 --dist=loadfile --junitxml=full-872d200b.xml",
+    "head": "a7a47595",
+    "command": "source/.venv/Scripts/python.exe -m pytest -q -n 4 --dist=loadfile --junitxml=full-a7a47595.xml",
     "tests": 8368,
-    "passed": 8366,
-    "failed": 2,
-    "seconds": 2729.13,
-    "junit": "C:/v2-acceptance/closeout-18b75b75/full-872d200b.xml",
+    "passed": 8367,
+    "failed": 1,
+    "seconds": 2728.34,
+    "junit": "C:/v2-acceptance/closeout-18b75b75/full-a7a47595.xml",
     "remaining": [
       {
-        "nodeid": "agent/tests/v2/ui/test_v2_memory_organization_ui.py（4-worker 下不同用例竞态）",
-        "failure": "exact 用例已由 b1bf5810 显式选择批次修复；4 个 UI 文件并发时同文件 test_forgotten_sources_reject_stale_owner_decision... 出现时序红（21/22）。隔离全部通过。",
-        "risk": "memory UI 测试文件在并发 UI 下的异步刷新/选择竞态；web/ui/v2 文件为他会话在途修改，未触碰",
-        "after_fix_note": "event stream 项已修；872d200b 全量后尚未重跑，预期 full 仅剩 memory UI 文件 1 项左右的竞态"
+        "nodeid": "agent/tests/v2/ui/test_v2_memory_organization_ui.py::test_late_real_decision_detail_and_raw_memory_reads_keep_current_agent_and_batch[two_agents]",
+        "failure": "4-worker 全量下 old_batch candidates 偶发为空（IndexError）；隔离通过。exact 用例已由 b1bf5810 修复并在本全量通过。",
+        "risk": "memory UI 测试文件在并发 UI 下的异步刷新/候选生成竞态；web/ui/v2 文件为他会话在途修改，未触碰",
+        "after_fix_note": "event stream/确定性环境/UI 超时均已转绿；仅剩此 1 项，未修生产 UI"
       }
     ]
   },
-  "effect": "全量 58 → 7 → 6 → 2（872d200b）；event stream 帧序与 memory exact 选择竞态已修，但 memory UI 文件在并发 UI 下仍有不同用例时序红。当前预期 full 剩 1 项左右 UI 竞态；未再跑全量，不声称 current_full_passed。",
+  "effect": "全量 58 → 7 → 6 → 2 → 1（a7a47595：8367 passed / 1 failed）。确定性环境、event stream、exact memory UI、UI 超时均已转绿；仅剩 memory UI late_real_decision 的 4-worker 候选生成竞态，隔离通过。全量仍未绿，不声称 current_full_passed。",
   "not_executed": [
-    "ff30592d/b1bf5810 后的完整全量重跑（预期剩 memory UI 1 项左右，不声称 0 红）",
-    "memory UI 文件并发竞态的测试侧彻底修复（需他会话 UI 文件或 UI 串行分组）",
-    "memory UI 4-worker 竞态的测试侧修复（需他会话 UI 文件）",
+    "memory UI late_real_decision 的 4-worker 候选生成竞态彻底修复（生产 UI 文件他会话在途）",
+    "再次达到 0 红的完整全量（本轮 a7a47595 已跑，1 红）",
     "真实平台/账号/设备/72h",
     "docs/index 再生（C0.5 暂缓）"
   ],

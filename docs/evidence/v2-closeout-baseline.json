@@ -40,16 +40,23 @@
       "verdict": "current_full_passed=false；58 项全部完成分诊（下表）"
     },
     "post_cleanup_full_suite": {
-      "head": "872d200b",
-      "command": "source/.venv/Scripts/python.exe -m pytest -q -n 4 --dist=loadfile --junitxml=full-872d200b.xml",
+      "head": "a7a47595",
+      "command": "source/.venv/Scripts/python.exe -m pytest -q -n 4 --dist=loadfile --junitxml=full-a7a47595.xml",
       "tests": 8368,
-      "passed": 8366,
-      "failed": 2,
-      "seconds": 2729.13,
-      "junit": "C:/v2-acceptance/closeout-18b75b75/full-872d200b.xml",
-      "breakdown": "2 项全量时序/UI 竞态：event stream token 轮换后读到 history 而非 unauthenticated（隔离 3.18s 过）；memory UI exact（4-worker UI 复现，隔离 8.80s 过）",
-      "verdict": "确定性环境红已消除；剩余 2 项隔离通过、全量负载下竞态，未证明产品缺陷；全量仍未绿，不声称 current_full_passed",
+      "passed": 8367,
+      "failed": 1,
+      "seconds": 2728.34,
+      "junit": "C:/v2-acceptance/closeout-18b75b75/full-a7a47595.xml",
+      "breakdown": "仅 memory UI test_late_real_decision...[two_agents] IndexError（candidates 空，隔离通过；同文件并发下失败用例会变化）",
+      "verdict": "确定性环境、event stream、project catalog、安装、UI 超时均已转绿；仅剩 memory UI 文件并发竞态，全量仍未绿，不声称 current_full_passed",
       "previous_runs": [
+        {
+          "head": "872d200b",
+          "passed": 8366,
+          "failed": 2,
+          "seconds": 2729.13,
+          "junit": "C:/v2-acceptance/closeout-18b75b75/full-872d200b.xml"
+        },
         {
           "head": "72d40eec",
           "passed": 8362,
@@ -145,8 +152,8 @@
       {
         "count": 1,
         "class": "ui_4worker_race",
-        "nodeid": "agent/tests/v2/ui/test_v2_memory_organization_ui.py（并发下不同用例，失败点会变化）",
-        "cause": "b1bf5810 显式选择就绪批次后 exact 用例通过，但 4 个 UI 文件并发时同文件 test_forgotten_sources... 出现时序红（21/22）；隔离全部通过。UI 异步刷新/选择竞态，web/ui/v2 为他会话在途修改，未触碰。"
+        "nodeid": "agent/tests/v2/ui/test_v2_memory_organization_ui.py（并发下不同用例，a7a47595 为 test_late_real_decision...[two_agents] candidates 空）",
+        "cause": "exact 用例已由 b1bf5810 显式选择批次修复并在 a7a47595 全量通过；同文件 late_real_decision 在 4-worker 并发下 candidates 偶发为空（IndexError），隔离通过。UI 异步刷新/候选生成竞态，web/ui/v2 为他会话在途修改，未触碰。"
       }
     ]
   },
