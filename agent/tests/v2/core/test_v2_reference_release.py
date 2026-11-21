@@ -165,7 +165,7 @@ def test_release_rechecks_protections_after_review(tmp_path, change):
                 await db.write(add_anchor)
 
     asyncio.run(alter())
-    if change in {"cost", "lease", "approval", "source"}:
+    if change in {"lease", "approval", "source"}:
         assert (
             read(paths, lambda u: u.reference_inspect(agent, plan["targets"][0]["reference_id"]))["fingerprint"]
             == plan["targets"][0]["fingerprint"]

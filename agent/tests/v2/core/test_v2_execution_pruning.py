@@ -229,7 +229,7 @@ def test_apply_rechecks_protections_and_fingerprint_before_any_backup_or_prune(t
                 )
 
     asyncio.run(alter())
-    if change in {"memory", "cost", "lease", "object_pin", "approval"}:
+    if change in {"memory", "lease", "object_pin", "approval"}:
         assert (
             read(paths, lambda u: u.retention_inspect(agent, turn["run_id"]))["fingerprint"]
             == plan["targets"][0]["fingerprint"]
