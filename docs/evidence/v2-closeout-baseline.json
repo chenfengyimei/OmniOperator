@@ -40,36 +40,33 @@
       "verdict": "current_full_passed=false；58 项全部完成分诊（下表）"
     },
     "post_cleanup_full_suite": {
-      "head": "a7a47595",
-      "command": "source/.venv/Scripts/python.exe -m pytest -q -n 4 --dist=loadfile --junitxml=full-a7a47595.xml",
+      "head": "a4350753",
+      "command": "source/.venv/Scripts/python.exe -m pytest -q -n 4 --dist=loadfile --junitxml=full-a4350753.xml",
       "tests": 8368,
-      "passed": 8367,
-      "failed": 1,
-      "seconds": 2728.34,
-      "junit": "C:/v2-acceptance/closeout-18b75b75/full-a7a47595.xml",
-      "breakdown": "仅 memory UI test_late_real_decision...[two_agents] IndexError（candidates 空，隔离通过；同文件并发下失败用例会变化）",
-      "verdict": "确定性环境、event stream、project catalog、安装、UI 超时均已转绿；仅剩 memory UI 文件并发竞态，全量仍未绿，不声称 current_full_passed",
+      "passed": 8368,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 0,
+      "warnings": 12,
+      "seconds": 2767.05,
+      "junit": "C:/v2-acceptance/closeout-18b75b75/full-a4350753.xml",
+      "log": "C:/v2-acceptance/closeout-18b75b75/full-a4350753.log",
+      "breakdown": "0 失败 / 8,368 通过；确定性环境、event stream、UI 超时与 memory organization wait_ready 全部修复",
+      "verdict": "committed HEAD a4350753 全量绿；主工作树其余会话未提交 WIP 不在该基线内",
       "previous_runs": [
+        {
+          "head": "a7a47595",
+          "passed": 8367,
+          "failed": 1,
+          "seconds": 2728.34,
+          "junit": "C:/v2-acceptance/closeout-18b75b75/full-a7a47595.xml"
+        },
         {
           "head": "872d200b",
           "passed": 8366,
           "failed": 2,
           "seconds": 2729.13,
           "junit": "C:/v2-acceptance/closeout-18b75b75/full-872d200b.xml"
-        },
-        {
-          "head": "72d40eec",
-          "passed": 8362,
-          "failed": 6,
-          "seconds": 2716.86,
-          "junit": "C:/v2-acceptance/closeout-18b75b75/full-72d40eec.xml"
-        },
-        {
-          "head": "3b7ee1b4",
-          "passed": 8361,
-          "failed": 7,
-          "seconds": 2548.87,
-          "junit": "C:/v2-acceptance/closeout-18b75b75/full-3b7ee1b4.xml"
         }
       ]
     },
@@ -148,14 +145,8 @@
         "evidence": "docs/evidence/v2-baseline-debt-cleanup.json"
       }
     ],
-    "remaining_independent": [
-      {
-        "count": 1,
-        "class": "ui_4worker_race",
-        "nodeid": "agent/tests/v2/ui/test_v2_memory_organization_ui.py（并发下不同用例，a7a47595 为 test_late_real_decision...[two_agents] candidates 空）",
-        "cause": "exact 用例已由 b1bf5810 显式选择批次修复并在 a7a47595 全量通过；同文件 late_real_decision 在 4-worker 并发下 candidates 偶发为空（IndexError），隔离通过。UI 异步刷新/候选生成竞态，web/ui/v2 为他会话在途修改，未触碰。"
-      }
-    ]
+    "remaining_independent": [],
+    "final_note": "a4350753 全量 8368/0；此项原判为 API 缓存/状态竞态，最终定位为 wait_ready 的 async wait_for_function 未 await Promise，已改 Python 轮询并由全量确认。"
   },
   "static": {
     "pyright": {
@@ -202,22 +193,22 @@
       "3d360137",
       "872d200b",
       "ff30592d",
-      "b1bf5810"
+      "b1bf5810",
+      "a4350753"
     ],
-    "scope": "e0bca9ae：服务注册路径 6 + TYPE_CHECKING 1；fcea91ac：迁移 pin 36 + pre-v42 seed 2；FIX.baseline_debt_cleanup：layout 1 + media staging stub 2 + Android 摘要步骤 1 + todos 评审竞态 1 + cost 指纹断言 2；FIX.full_suite_timeouts：compaction/UI/delegation 等待；FIX.deterministic_env_tests：安装 fake wheel releases 包 1 + project catalog 架构标题 1；ff30592d：event stream 轮换后排队的 history 帧序 1",
-    "targeted": "service_registration+typecheck 18 passed 0.73 秒；16 迁移文件 78 passed 42.55 秒；media_staging 14 passed 7.25 秒；Android 1 passed 10.87 秒；todos 3/3；cost 14 passed 28.35 秒；layout 3 passed 2.57 秒；compaction 10 passed 32.85 秒；UI/delegation 10 passed 89.71 秒；安装 1 passed 0.39 秒；project catalog 1 passed 14.66 秒",
-    "full_rerun": "872d200b 复跑 8368 项/2 失败（event stream 授权时序 + memory UI 4-worker 竞态，均隔离通过）；确定性环境红已消除；全量仍未绿，不声称 current_full_passed"
+    "scope": "e0bca9ae：服务注册路径 6 + TYPE_CHECKING 1；fcea91ac：迁移 pin 36 + pre-v42 seed 2；FIX.baseline_debt_cleanup：layout 1 + media staging stub 2 + Android 摘要步骤 1 + todos 评审竞态 1 + cost 指纹断言 2；FIX.full_suite_timeouts：compaction/UI/delegation 等待；FIX.deterministic_env_tests：安装 fake wheel releases 包 1 + project catalog 架构标题 1；ff30592d：event stream 轮换后排队的 history 帧序 1；a4350753：memory organization wait_ready 改 Python 轮询 1",
+    "targeted": "service_registration+typecheck 18 passed 0.73 秒；16 迁移文件 78 passed 42.55 秒；media_staging 14 passed 7.25 秒；Android 1 passed 10.87 秒；todos 3/3；cost 14 passed 28.35 秒；layout 3 passed 2.57 秒；compaction 10 passed 32.85 秒；UI/delegation 10 passed 89.71 秒；安装 1 passed 0.39 秒；project catalog 1 passed 14.66 秒；memory wait_ready 5/5 + 4 UI 文件 22/22",
+    "full_rerun": "a4350753 复跑 8368 项/0 失败/2767.05 秒；committed HEAD 全量绿，主工作树其余 WIP 不在基线内"
   },
   "not_executed": [
-    "event stream token 轮换后 history/unauthenticated 时序的生产修复（需他会话在途 http 文件）",
-    "memory UI 4-worker 竞态的测试侧修复（需他会话 UI 文件）",
+    "主工作树其余会话未提交 WIP 的全量（本基线只覆盖 committed HEAD a4350753）",
     "v0052 落定后的 pin 再升级（当前 pin 为 v2_0051/147，v0052 需到 v2_0052/149）",
-    "主工作树 test_v2_layout 仍受他会话在途 reflection_review/reflection_flow 两条跨测试导入影响（提交树基线已绿）",
     "真实 Linux/macOS/Windows 原生服务、干净机器、容器、真实账号/设备/模型、72 小时",
     "docs/index 再生（C0.5 暂缓）",
     "C1 功能缺口/平台收口/真实验收"
   ],
-  "current_full_passed": false,
+  "full_suite_scope": "committed HEAD a4350753；主工作树 40+ 修改 / 10+ 未跟踪 WIP 未进入本基线",
+  "current_full_passed": true,
   "all_quality_gates_passed": false,
   "whole_v2_complete": false
 }

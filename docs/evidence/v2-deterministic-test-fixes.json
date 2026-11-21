@@ -32,32 +32,38 @@
       "root": "4-worker 下 UI 可能仍选中上一个/排队批次，刷新后详情停在‘已入队’；隔离 8.80 秒通过。",
       "fix": "wait_ready 后显式 select_batch(page, batch) 再刷新详情，保证选择的是就绪批次；断言不变。",
       "validation": "隔离 1 passed / 9.76 秒；4 个 UI 文件并发时该用例通过，但同文件另一用例 test_forgotten_sources... 出现时序红（21/22）。"
+    },
+    {
+      "commit": "a4350753",
+      "item": "memory organization wait_ready 状态轮询",
+      "root": "wait_ready 用 page.wait_for_function 注入 async 箭头函数；Playwright 未 await 其 Promise，条件可立即为真，随后 APIRequestContext GET 仍得到 state=queued/candidate_count=0，late_real_decision 隔离约 1/3–1/2 失败。",
+      "fix": "改为 Python 同步轮询 context.request GET，最多 30s，直到 state=ready；failed/cancelled 立即报错；不再依赖浏览器 Promise。",
+      "validation": "late_real_decision 隔离 5/5 passed；memory UI 整文件 3 passed / 24.54 秒；4 个 UI 文件并发 22/22 / 81.63 秒；a4350753 全量 8368/0。"
     }
   ],
   "latest_full_suite": {
-    "head": "a7a47595",
-    "command": "source/.venv/Scripts/python.exe -m pytest -q -n 4 --dist=loadfile --junitxml=full-a7a47595.xml",
+    "head": "a4350753",
+    "command": "source/.venv/Scripts/python.exe -m pytest -q -n 4 --dist=loadfile --junitxml=full-a4350753.xml",
     "tests": 8368,
-    "passed": 8367,
-    "failed": 1,
-    "seconds": 2728.34,
-    "junit": "C:/v2-acceptance/closeout-18b75b75/full-a7a47595.xml",
-    "remaining": [
-      {
-        "nodeid": "agent/tests/v2/ui/test_v2_memory_organization_ui.py::test_late_real_decision_detail_and_raw_memory_reads_keep_current_agent_and_batch[two_agents]",
-        "failure": "4-worker 全量下 old_batch candidates 偶发为空（IndexError）；隔离通过。exact 用例已由 b1bf5810 修复并在本全量通过。",
-        "risk": "memory UI 测试文件在并发 UI 下的异步刷新/候选生成竞态；web/ui/v2 文件为他会话在途修改，未触碰",
-        "after_fix_note": "event stream/确定性环境/UI 超时均已转绿；仅剩此 1 项，未修生产 UI"
-      }
-    ]
+    "passed": 8368,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0,
+    "warnings": 12,
+    "seconds": 2767.05,
+    "junit": "C:/v2-acceptance/closeout-18b75b75/full-a4350753.xml",
+    "log": "C:/v2-acceptance/closeout-18b75b75/full-a4350753.log",
+    "remaining": [],
+    "note": "committed HEAD a4350753 独立基线全量 0 失败；主工作树其余会话未提交 WIP 不在该基线内"
   },
-  "effect": "全量 58 → 7 → 6 → 2 → 1（a7a47595：8367 passed / 1 failed）。确定性环境、event stream、exact memory UI、UI 超时均已转绿；仅剩 memory UI late_real_decision 的 4-worker 候选生成竞态，隔离通过。全量仍未绿，不声称 current_full_passed。",
+  "effect": "全量 58 → 7 → 6 → 2 → 1 → 0（a4350753：8368 passed / 0 failed）。确定性环境、event stream、project catalog、安装、UI 超时与 memory organization wait_ready 均已修复；committed HEAD 全量绿。",
   "not_executed": [
-    "memory UI late_real_decision 的 4-worker 候选生成竞态彻底修复（生产 UI 文件他会话在途）",
-    "再次达到 0 红的完整全量（本轮 a7a47595 已跑，1 红）",
+    "主工作树其余会话未提交 WIP 的全量（本基线只覆盖 committed HEAD a4350753）",
     "真实平台/账号/设备/72h",
     "docs/index 再生（C0.5 暂缓）"
   ],
-  "current_full_passed": false,
+  "full_suite_scope": "committed HEAD a4350753；主工作树 40+ 修改 / 10+ 未跟踪 WIP 未进入本基线",
+  "current_full_passed": true,
+  "all_quality_gates_passed": false,
   "whole_v2_complete": false
 }

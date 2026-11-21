@@ -6,7 +6,16 @@
   "whole_core_parity_complete": false,
   "whole_reference_feature_audit_complete": false,
   "whole_v2_complete": false,
-  "full_suite_for_current_source": false,
+  "full_suite_for_current_source": true,
+  "full_suite_evidence": {
+    "head": "a4350753",
+    "tests": 8368,
+    "passed": 8368,
+    "failed": 0,
+    "seconds": 2767.05,
+    "junit": "C:/v2-acceptance/closeout-18b75b75/full-a4350753.xml",
+    "scope": "committed HEAD a4350753; other-session uncommitted WIP not covered"
+  },
   "contract": "docs/v2/contracts/V2_AGENT_CORE_PARITY.md",
   "evidence": "docs/evidence/v2-agent-core-parity.json",
   "test_policy": "实现优先，只跑受影响模块和调用方专项；整个V2开发冻结后统一全量",
