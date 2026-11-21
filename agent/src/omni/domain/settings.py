@@ -43,6 +43,10 @@ class Settings(AgentSettings):
     counter_ref: str
     model_revision_id: str
     model_permission_epoch: int
+    # Run-scoped cache routing identity; never persisted as editable Agent settings.
+    agent_id: str
+    session_id: str
+    content_epoch: int
 
 
 def agent_settings_value(value: object) -> AgentSettings:
@@ -88,11 +92,21 @@ def settings_value(value: object) -> Settings:
     if not isinstance(value, dict):
         raise BusinessError("invalid_runtime_configuration", "Run configuration is unresolved or invalid")
     record = cast(dict[str, object], value)
-    if set(record) != KEYS | MODEL_KEYS | {"model_revision_id", "model_permission_epoch"}:
+    scope = {"agent_id", "session_id", "content_epoch"}
+    base = KEYS | MODEL_KEYS | {"model_revision_id", "model_permission_epoch"}
+    if not base <= set(record) <= base | scope:
         raise BusinessError("invalid_runtime_configuration", "Run configuration is unresolved or invalid")
     validate_settings({k: record[k] for k in KEYS})
     config_value("model", {k: record[k] for k in MODEL_KEYS})
     epoch = cast(int, record["model_permission_epoch"])
     if type(record["model_permission_epoch"]) is not int or epoch < 1:
         raise BusinessError("invalid_runtime_configuration", "Invalid model authorization version")
+    present = scope & set(record)
+    if present and (
+        present != scope
+        or not isinstance(record["agent_id"], str)
+        or not isinstance(record["session_id"], str)
+        or type(record["content_epoch"]) is not int
+    ):
+        raise BusinessError("invalid_runtime_configuration", "Run cache scope is invalid")
     return cast(Settings, record)

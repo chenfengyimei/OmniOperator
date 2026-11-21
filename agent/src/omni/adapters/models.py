@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import hashlib
 import json
 import logging
 import os
@@ -15,6 +16,28 @@ from ..domain.metering import wire_tools
 from ..domain.settings import Settings
 from .diagnostics import Redactor
 from .model_stream import PreparedStream
+
+CACHE_KEY_PROVIDERS = ("xai/", "x-ai/", "openai/", "gpt-", "o1", "o3", "o4")
+
+
+def prompt_cache_key(settings: Settings) -> str | None:
+    """Stable opaque routing key for the run's (agent, session, content_epoch) cache bucket."""
+    agent = cast(object, settings.get("agent_id"))
+    session = cast(object, settings.get("session_id"))
+    epoch = cast(object, settings.get("content_epoch"))
+    if not isinstance(agent, str) or not isinstance(session, str) or type(epoch) is not int:
+        return None
+    digest = hashlib.sha256(f"{agent}|{session}|{epoch}".encode()).hexdigest()[:24]
+    return "pc_" + digest
+
+
+def cache_route(settings: Settings) -> bool:
+    """Only inject the key where the provider uses routing affinity; content-address routes rely on bytes."""
+    base = str(settings.get("base_url", "")).lower()
+    model = str(settings.get("model", "")).lower()
+    if "api.x.ai" in base or model.startswith(("xai/", "x-ai/")) or "grok" in model:
+        return True
+    return "openai" in base or model.startswith(CACHE_KEY_PROVIDERS)
 
 
 class PreparedCall:
@@ -138,6 +161,13 @@ class LiteLLMModel:
                 ):
                     headers[key] = value
         kwargs["extra_headers"] = headers
+        cache_key = prompt_cache_key(settings)
+        if cache_key is not None and cache_route(settings):
+            # Provider routing affinity only; request messages/prefix bytes are untouched.
+            extra_body: object = kwargs.get("extra_body")
+            body: dict[str, Any] = dict(cast(dict[str, Any], extra_body)) if isinstance(extra_body, dict) else {}
+            body["prompt_cache_key"] = cache_key
+            kwargs["extra_body"] = body
         if tools:
             kwargs["tools"] = wire_tools(tools)
         os.environ.setdefault("LITELLM_LOCAL_MODEL_COST_MAP", "True")

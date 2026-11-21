@@ -289,9 +289,20 @@ class ConfigurationRepositories(CredentialRepositories):
 
     def run_settings(self, agent_id: str, run_id: str) -> Record:
         run = self._one(s.runs, agent_id, run_id)
+        session = self._one(s.sessions, agent_id, cast(str, run["session_id"]))
+        cache_scope = {
+            "agent_id": agent_id,
+            "session_id": run["session_id"],
+            "content_epoch": session["content_epoch"],
+        }
         if run.get("execution_kind") == "owner" and run["settings_revision_id"]:
             preference = self._one(s.settings_revisions, agent_id, cast(str, run["settings_revision_id"]))
-            return {**{k: preference[k] for k in KEYS}, "execution_kind": "owner", "model_revision_id": None}
+            return {
+                **{k: preference[k] for k in KEYS},
+                **cache_scope,
+                "execution_kind": "owner",
+                "model_revision_id": None,
+            }
         if not run["settings_revision_id"] or not run["model_revision_id"]:
             raise BusinessError("configuration_unresolved", "Historical configuration is unresolved")
         preference = self._one(s.settings_revisions, agent_id, cast(str, run["settings_revision_id"]))
@@ -301,6 +312,7 @@ class ConfigurationRepositories(CredentialRepositories):
             Record,
             {
                 **{k: preference[k] for k in KEYS},
+                **cache_scope,
                 **cast(Record, model["value"]),
                 "model_profile_id": model["config_id"],
                 "call_reservation_micro": self.route_reservation(
