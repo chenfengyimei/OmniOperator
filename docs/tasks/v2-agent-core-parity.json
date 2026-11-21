@@ -487,6 +487,14 @@
           "contract": "docs/v2/contracts/V2_MOTIVATION.md",
           "evidence": "docs/evidence/v2-motivation-design.json",
           "delivered": "实现前授权/预算/quiet/外联硬门合同（纯文档）：D0 范围（全量/仅核心/不做）、D1 持久化（motivation_state 表/内存重放）、D2 tick 载体、D3 话语生成（模板/模型）、D4 外联渠道（仅内部/审批 outbox/白名单）；9 需求/9 驱动半衰期 8h/10 情绪/目标假设纯逻辑边界；每 tick≤1 提议+幂等去重；quiet 23–08/日限≤4/白名单/reserved/预算/载体互斥；D0–D4 未决分别不实现/不迁移/不调模型/不投递；接线点 instance.py/engine.py 他会话在途。"
+        },
+        {
+          "gap": "分层人格组合 + 跨渠道统一卡 + 角色包 epoch 切换（K15 可离线缺口）",
+          "status": "design_contract_recorded",
+          "batch": "K15.persona_layers_design",
+          "contract": "docs/v2/contracts/V2_PERSONA_LAYERS.md",
+          "evidence": "docs/evidence/v2-persona-layers-design.json",
+          "delivered": "实现前合同（纯文档）：D0 层存储、D1 scene 来源、D2 预算裁剪、D3 注入点、D4 B站 sanitize、D5 角色包 epoch；层序 identity-base→core→tone→scene→daily，daily→scene→tone 裁剪且 core 永不裁；B站剥离 QQ 号/昵称/群号/链接 + 统一 banner，凭据模式拒绝；角色包 epoch 单事务 CAS；K01 交互要求同 session 跨 scene 前缀要么固定 scene、要么缓存键加 scene_hash。D0/D3 未决不实现，D5 未决不迁移。"
         }
       ],
       "limits": "只读审计无新引擎/表/迁移/路由/源码改动；可离线缺口未在K15审计批实现(列后续批次)，其中时间衰减遗忘巩固引擎核心已在K15.decay_core后续批实现(新memory_decay_state表+v0047迁移+memory_entries6加性列+2所有者REST路由+domain/memory_decay.py纯规则，forgotten隐藏态不擦除V2纪律更严于参考自动删除)，自动每日遍已在K15.decay_tick后续批接入MaintenanceService.tick(dailyHour=4夜间门+每agent今日一次幂等+有界8agent sweep，生产启用隔离测试禁用，复用decay_core隐藏不擦除/protected豁免，无新表/迁移/路由)，重要性启发已在K15.score_memory后续批实现(domain/memory_scoring.py完整scoreMemory启发+渠道门控自动评分，所有者批准记忆权威变更：显式model importance手动覆盖优先、省略时QQ渠道捕获按说话人上下文自动评分、非渠道保持默认50零回归，is_first/direct/bili保守False0引擎完整支持，reasons/kind/tags/scope入审计无新列/迁移)；isInitial first-meet窗口/QQ direct解析/Bilibili入站说话人上下文/tags scope持久化列/双卡分离/注入clarity裁剪/容量告警auto-compact/所有者自动衰减开关仍后续；不宣称自主行为/分层人格/作息反馈对等，遗忘巩固核心手动+自动每日衰减遍+重要性启发已接；既有todos重启竞态与pin v2_0039旧迁移测试沿用保留",
@@ -1047,6 +1055,10 @@
     {
       "id": "K15.motivation_design",
       "evidence": "docs/evidence/v2-motivation-design.json"
+    },
+    {
+      "id": "K15.persona_layers_design",
+      "evidence": "docs/evidence/v2-persona-layers-design.json"
     }
   ]
 }
