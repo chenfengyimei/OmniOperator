@@ -143,15 +143,12 @@
         "cause": "isolated Python candidate_install_failed（用户🙂 路径）与 project catalog 浏览器 locator 超时；隔离运行同样失败，需干净安装包缓存/浏览器数据环境"
       },
       {
-        "count": 4,
-        "class": "load_flake_hardened",
+        "count": 1,
+        "class": "ui_4worker_race",
         "nodeids": [
-          "agent/tests/v2/ui/test_v2_routing_ui.py::test_tier_editor_draft_and_actual_model_report[light-1440]",
-          "agent/tests/v2/ui/test_v2_desktop_control_ui.py::test_explicit_device_scope_is_separate_from_share_and_never_reports_input_enabled[1080-light]",
-          "agent/tests/v2/ui/test_v2_memory_organization_ui.py::test_exact_only_proposal_completes_and_undo_preserves_raw_facts_and_sources",
-          "agent/tests/v2/ui/test_v2_memory_organization_ui.py::test_late_real_decision_detail_and_raw_memory_reads_keep_current_agent_and_batch[two_agents]"
+          "agent/tests/v2/ui/test_v2_memory_organization_ui.py::test_exact_only_proposal_completes_and_undo_preserves_raw_facts_and_sources"
         ],
-        "cause": "72d40eec 4-worker 全量下 UI 等待超时/无候选；这几项在隔离运行全过（routing+desktop 10 passed 74.32s，memory 1 passed 8.80s）。images UI/delegation/compaction 的 15s/30s 加固已生效；这 4 项需进一步隔离 UI worker 或继续放宽等待，未改断言文本。"
+        "cause": "3d360137 全局 expect 15s 后，UI-only 4-worker 套件 241/242：routing/desktop 已转绿，仅 memory exact 仍复现（详情停在已入队，隔离 8.80s 通过）；属 UI 选择/异步刷新竞态，测试侧。full 重跑未做。"
       }
     ]
   },
