@@ -374,3 +374,45 @@ def test_live_request_erasure_and_large_tool_results_never_produce_false_success
             await instance.close()
 
     asyncio.run(scenario())
+
+
+def test_run_compaction_tool_summary_settles_once_and_keeps_transcript(tmp_path):
+    class ToolModel(Model):
+        async def complete(self, messages, tools, settings):
+            self.requests.append(messages)
+            return ModelReply("invented", (Invocation("forbidden", "memory_forget", {}),), cost_micro=7)
+
+    async def scenario():
+        async with opened(tmp_path, Clock()) as (_, db, _, agent):
+            current, _ = await db.write(lambda u: seed(u, agent, 24))
+            cfg = await db.read(lambda u: u.run_settings(agent, current["run_id"]))
+            messages = [
+                {"role": "system", "content": "frozen"},
+                {"role": "user", "content": "head"},
+            ]
+            for index in range(3):
+                messages.append(
+                    {
+                        "role": "assistant",
+                        "content": "",
+                        "tool_calls": [
+                            {
+                                "id": f"call-{index}",
+                                "type": "function",
+                                "function": {"name": "files_read", "arguments": "{}"},
+                            }
+                        ],
+                    }
+                )
+                messages.append({"role": "tool", "content": "x" * 10000, "tool_call_id": f"call-{index}"})
+            before = json.dumps(messages, sort_keys=True)
+            model = ToolModel()
+            applied = await service(db, model).compact_run(agent, current["run_id"], messages, (), cfg)
+            assert applied is False
+            assert json.dumps(messages, sort_keys=True) == before
+            calls = await db.read(lambda u: u.query("calls", agent))
+            assert len(calls) == 1 and len(model.requests) == 1
+            assert calls[0]["purpose"] == "summary" and calls[0]["state"] == "settled"
+            assert calls[0]["cost_micro"] == 7
+
+    asyncio.run(scenario())

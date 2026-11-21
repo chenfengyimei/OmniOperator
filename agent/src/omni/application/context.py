@@ -296,13 +296,12 @@ class ContextService:
                 return False
             raise
         prompt = self.summary_request("", bounded_tool_summary_sources(compressible))
-        invoked = False
         try:
-            invoked = True
+            # ModelCalls owns reservation settlement for this reserved call on every path
+            # (reply, known-not-sent, dispatched unknown). Settling it here again raises
+            # already_settled and failed a run whose compaction actually succeeded.
             reply = await self._calls.invoke(agent_id, run_id, prompt, (), settings, reserved_id=call_id)
         except BaseException as exc:
-            if not invoked:
-                await self._db.write(lambda u: u.settle_call(agent_id, call_id, None, known_not_sent=True))
             if isinstance(exc, (asyncio.CancelledError, KeyboardInterrupt, SystemExit)):
                 raise
             if isinstance(exc, BusinessError) and exc.code in {
@@ -311,10 +310,8 @@ class ContextService:
                 "token_counter_unavailable",
             }:
                 raise
-            await self._db.write(lambda u: u.settle_call(agent_id, call_id, None, known_not_sent=False))
             return False
         if reply.calls:
-            await self._db.write(lambda u: u.settle_call(agent_id, call_id, None, known_not_sent=False))
             return False
         summary = reply.text[:SUMMARY_CHARS]
         messages[head_end:cut] = [
