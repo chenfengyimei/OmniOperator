@@ -11,16 +11,16 @@
   "evidence": "docs/evidence/v2-agent-core-parity.json",
   "test_policy": "实现优先，只跑受影响模块和调用方专项；整个V2开发冻结后统一全量",
   "current_followup": {
-    "id": "K16.tool_image_protocol",
-    "status": "design_contract_recorded",
+    "id": "K16.tool_image_persistence",
+    "status": "implemented_persistence_batch",
     "scope": [
-      "所有者2026-11-21批准方案B(同步工具结果图像可见,冻结图像协议扩展)后的独立实现合同(纯文档无源码/测试/迁移改动)：实现前勘定证伪草案「持久层无需改」前提——工具转录仅存内存(engine.py:340/:419/:443,finish才持久化终稿,无role=tool消息行)、model_call_images.message_id NOT NULL+FK(schema.py:2945-2966)、冻结触发器call_image_scope(v0032:26)要求context_messages→message_parts→messages→objects全链、message_image_insert(v0032:23)只允许role=user+run_id NULL消息带image part、账本object_id经OBJECT_REFERENCES(schema.py:3523)计入对象引用且唯一释放路径是消息擦除触发器(工具图像无释放路径则对象永久不可收集)",
-      "八决策：D1工具转录保持内存态(历史/UI/保留零改动)；D2 ImageInfo+MAX_IMAGES移入domain/contracts.py解ImageRef依赖环(4个src导入点同步)+ImageRef委托ImageInfo.validate+ActionResult.images缺省空元组字节等价+references()接受role=tool严格校验逐字不变并附加role键；D3引擎两追加site共用helper(disabled镜像with_images通知/openai_low≤per_call_limit附着+全局最后限额降级旧part/run_budget唯一执行点仍在prepare与DB)；D4 prepare按ref.get(role,user)分流,tool分支核验part_id不冒充message_parts+agent域image_objects/objects字段一致+policy/token_cost,user分支逐字不变；D5迁移v0050重建账本表message_id可空(表数145不变无新表)+scope双分支(message分支v0032原SQL逐字保留零弱化)+budget/state/erasure/delete逐字重建+update身份触发器仅扩展tool行释放模式+新增call_image_tool_release(run终态→tool行object_id=NULL,erased_at保持NULL,释放≠擦除)；D6 user图像全链字节等价零回归；D7 bounded_tool_summary_sources渲染omni_image为有界文本标记；D8四批1a持久化/1b协议+引擎/2 media_zoom/3端到端",
-      "D5触及冻结安全触发器面并引入run终态释放新生命周期语义,超出草案描述,按先授权/持久化/安全合同后接线纪律待所有者批准后接线"
+      "D8之1a持久化批(所有者2026-11-21批准D5后接线)：迁移v0050按v0048先例事务重建model_call_images——message_id可空(FK/其余列/CHECK/唯一约束逐字保留,表数145不变无新表)旧行全量复制；call_image_scope双分支(message分支v0032原SQL逐字保留零弱化,tool分支call reserved+turn/快照属run/policy属run修订+openai_low/对象注册+sha匹配/part_id不在message_parts/prepared/未擦除)；budget/state/erasure/delete逐字重建(RENAME改写model_calls/messages上引用账本表的触发器体故state/erasure一并DROP+重建)；call_image_update身份列不可变保留仅扩展tool行释放模式；新增call_image_tool_release(run终态→tool行object_id=NULL,erased_at保持NULL释放≠擦除,sha/part/state保留账本不可删)",
+      "schema.py message_id同步可空；model_images_prepare按ref.get(role,user)分流：tool分支先拒part_id冒充message_parts再按agent域image_objects join objects核验六字段+policy_id/token_cost,账本message_id=NULL；user分支逐字不变；spent/per_call/run_budget两类一致",
+      "新增5专项+回退验证4/5红(1绿disabled前置静态路径)+调用方A77过B70过user图像协议全量零回归+strict418文件0错误+v0050登记config与TYPE_CHECKING.md+head pin两处v2_0049→v2_0050"
     ],
-    "evidence": "docs/evidence/v2-tool-image-protocol.json",
-    "validation": "纯合同批：无源码/测试/迁移改动,strict与专项不适用；勘定事实11条均实读当前工作树源码(engine/model_calls/context/images/image_repository/object_repository/retention_repository/schema/v0032/metering/domain.context/对象TTL)；既有测试面核验(test_v2_images.py 12例+http 1例+migration,references消费方字段访问对附加role键安全)；未跑全量、未触真实账号/模型/设备/运行中服务与数据库",
-    "next": "待所有者批准D5持久化重设计(冻结触发器重建+run终态释放)后按D8接线：1a持久化批(v0050+schema+prepare tool分支+仓库级专项+图像/媒体调用方零回归)→1b协议+引擎批→2 media_zoom工具批→3端到端批。K01缓存作用域/K17反思来源链各需先设计合同。whole_*_complete保持false。"
+    "evidence": "docs/evidence/v2-tool-image-persistence.json",
+    "validation": "终源5过0败(17.00秒)；回退摘tool分支+释放触发器4/5红还原sha256一致；调用方A图像协议/HTTP/对象/head pin/架构/typecheck 77过0败(130.63秒)+B媒体zoom/sheet_identity/frames 70过0败(19.41秒)；strict 418文件0错误0警告；ruff净；既有红不变(6处v2_0039 pin含images_migration基线先跑确认红+2处media_upload DDL pin属独立债务批)；未跑全量、未触真实账号/模型/设备/运行中服务与数据库",
+    "next": "D8余三批：1b协议+引擎(ImageInfo+MAX_IMAGES移入contracts/ImageRef/ActionResult.images/references role标签与tool分支/引擎两site附着helper disabled通知+per_call_limit截断+全局最后限额降级/bounded_tool_summary_sources图像标记)→2 media_zoom工具(writes=True审批门+frames作业复用+ImageService.prepare注册+ActionResult.images返回)→3端到端。K01/K17各需先设计合同。whole_*_complete保持false。"
   },
   "requirements": [
     {
@@ -508,6 +508,14 @@
           "delivered": "所有者2026-11-21批准方案B后按草案「需独立合同」要求写独立实现合同(纯文档无源码/测试/迁移改动)：实现前勘定证伪草案「持久层无需改」前提——事实1工具转录仅存内存(engine.py:340每run一次prepare重建/:419并行与:443顺序追加纯文本/finish才持久化终稿,grep证实无role=tool消息行)、事实2 canonical请求与图像流(prepare→with_images从DB parts附着+最后per_call_limit选择/references每调用校验/model_images_prepare按最新快照parts核验/wire每调用重取字节)、事实3账本表message_id NOT NULL+FK与六冻结触发器(call_image_scope全链join/call_image_budget/call_image_state/call_image_erasure消息驱动/call_image_update身份与擦除模式/call_image_delete不可删,v0032:26-38)、事实4 message_image_insert仅role=user+run_id NULL、事实5 image_parts角色无关(草案此点正确)、事实6 OBJECT_REFERENCES自动派生致账本object_id阻塞object_remove且对象TTL1天唯一释放路径是消息擦除(工具图像无释放则永久泄漏)、事实7 references消费方字段访问对附加role键安全、事实8 with_images只处理持久化行(tool支持落实为引擎附着+prepare核验)、事实9 serialized_request泛型JSON安全/bounded_tool_summary_sources会json.dumps列表content、事实10 ImageInfo依赖环需移入contracts(4个src导入点)、事实11测试面12+1+migration与媒体_register_sheet；八决策D1工具转录保持内存态/D2 ImageInfo+MAX_IMAGES移入contracts+ImageRef委托ImageInfo.validate+ActionResult.images缺省空元组+references接受role=tool严格校验不变并附加role键/D3引擎helper(disabled通知/openai_low≤per_call_limit截断/全局最后限额降级/run_budget唯一执行点不变)/D4 prepare按role分流tool分支(part_id不冒充+image_objects/objects字段一致+policy/token_cost)user分支逐字不变/D5迁移v0050重建账本表message_id可空(表数145不变无新表)+scope双分支(message分支原SQL逐字保留)+budget/state/erasure/delete逐字重建+update仅扩展tool行释放模式+新增call_image_tool_release(run终态置object_id=NULL,erased_at保持NULL释放≠擦除,理由run内每调用re-wire须字节活到终态)/D6 user全链字节等价零回归/D7压缩摘要源渲染图像标记不泄漏part元数据/D8四批1a持久化/1b协议+引擎/2 media_zoom/3端到端；D5触及冻结安全触发器面与新生命周期语义超出草案描述,待所有者批准后接线；模型侧zoom与协议扩展仍未实现,HSV/Laplacian已K16.scene_frames落地,OCR仍后续；whole_*_complete保持false"
         },
         {
+          "gap": "#3 局部zoom模型侧自动重取+工具结果图像可见(D8之1a持久化批)",
+          "status": "implemented_persistence_batch",
+          "batch": "K16.tool_image_persistence",
+          "contract": "docs/v2/contracts/V2_TOOL_IMAGE_PROTOCOL.md",
+          "evidence": "docs/evidence/v2-tool-image-persistence.json",
+          "delivered": "所有者2026-11-21批准D5后1a持久化批落地：迁移v0050按v0048先例事务重建model_call_images——RENAME旧表→CREATE新表(message_id VARCHAR(36)可空,FK/其余列/CHECK/唯一约束逐字保留,表数145不变无新表)→INSERT SELECT旧行全量→DROP旧表→重建两索引；触发器：call_image_scope双分支(message分支v0032:26原SQL逐字保留零弱化；tool分支message_id IS NULL要求call reserved+purpose turn/快照属本run/policy属run模型修订且openai_low/对象经image_objects+objects注册且sha匹配/part_id不在message_parts防冒充/state prepared/erased_at NULL)、call_image_budget与call_image_delete逐字重建、call_image_state与call_image_erasure因RENAME改写model_calls/messages上引用账本表的触发器体而DROP IF EXISTS+逐字重建、call_image_update身份列(含message_id)不可变逐字保留+object_id clause仅扩展tool行释放模式(old/new message_id均NULL+new object_id NULL+erased_at IS old.erased_at+经call→run终态核验)、新增call_image_tool_release(AFTER UPDATE OF state ON runs终态→本run各call的tool行object_id=NULL,erased_at保持NULL释放≠擦除,sha/part/state保留账本不可删；语义：run内每调用re-wire同一批part字节须活到终态,终态后转录消亡不可能再发送→释放→TTL到期object_remove可收集,堵OBJECT_REFERENCES永久阻塞泄漏)；schema.py message_id同步nullable+注释；model_images_prepare按ref.get('role','user')分流——tool分支先select message_parts拒part_id冒充,再agent域image_objects join objects核验object_id/sha256/bytes/width/height/media_type与ref一致+policy_id==config id+token_cost==model_tokens(settings model),账本message_id=NULL；user分支逐字不变(sources快照匹配)；spent/per_call_limit/run_budget检查两类ref一致适用；downgrade拒绝。新增test_v2_tool_image_ledger.py 5例：(1)生产open_instance+阻塞模型+注入Clock——user图像turn的reserved call上tool ref接受(message_id NULL)与engine自prepare的user行共存、五类拒绝矩阵(未注册对象/sha不符/policy不符/token_cost不符/part_id冒充user part)均image_source_changed且事务回滚不留行、run存活期object_remove被阻object_protected、gate放行succeeded后tool行object_id NULL+erased_at NULL+state attached+sha保留而user行object_id仍在、clock.advance两天后tool对象可收集、erase_message_record后user行erased而tool行erased_at仍NULL(释放≠擦除)；(2)per_call=1 budget=1——单prepare两ref拒image_budget_exceeded(len>per_call)、首ref接受、次ref拒(spent+1>budget)；(3)身份触发器六类篡改(object_id置空/part_id/sha/message_id/state跃迁)与DELETE均data_constraint、app.cancel→cancelled终态释放；(4)disabled policy前置拒image_call_invalid；(5)v0049真实user账本行(Repositories直连seed：initialize/model_uow gpt-4o/model_image_policy_add/object_register+image_register/accept_turn image_ids/claim_runs/prepare_context+finalize_context写context_messages/reserve_call/image_parts构ref/model_images_prepare)升级head双跑——行字节保留/message_id notnull=0/七触发器齐全/foreign_key_check空/升级后同reserved call接受tool ref。回退验证摘tool分支(if False)+释放触发器→4/5红(1绿disabled前置静态路径不经分支)，cp还原sha256sum -c全OK终源5过17.00秒；调用方A图像协议12+HTTP1+对象+memory_decay与schedule_bindings head pin+架构+typecheck_scope 77过0败130.63秒+B媒体zoom/sheet_identity/frames 70过0败19.41秒,user图像协议全量零回归；strict 418文件0错误0警告(v0050登记pyrightconfig.strict.json与TYPE_CHECKING.md)；ruff check净/format 2文件重排后6文件复检净；head pin两处v2_0049→v2_0050；既有红不变：6处v2_0039 schema_version pin(images_migration基线先跑确认红因run_delegations缺失)与2处media_upload DDL pin属独立债务批未触；聚合索引暂缓(docs/index他会话在途)；未跑全量、未触真实账号/模型/设备。未实现：1b协议+引擎/2 media_zoom/3端到端"
+        },
+        {
           "gap": "#1 HSV切点检测+密度分段 与 #5 Laplacian清晰度选帧（保守子集）",
           "status": "implemented_scoped_passed",
           "batch": "K16.scene_frames",
@@ -516,7 +524,7 @@
           "delivered": "frames作业可选select=scenes(domain/media.py SCENE_*常量+frames_plan第四参select与timestamps互斥+scene_cuts固定阈值12+minGap0.35保留高分+scene_segments+scene_slots最大余数比例分配每段≥1槽段多保最长平局稳定；worker _hsv_score色相环形差min(dh,255-dh)+较低饱和度降权+S/V绝对差PIL C级运算无numpy依赖、_scene_targets有界seek采样min(240,duration*2fps)64宽分析缩略图+Laplacian 3x3核offset128方差选锐平局最早+窗口无候选中点+无切点等距回退、_frames select解码前校验响应仅scenes增select/scene_cuts键默认字节等价ExitStack资源登记pick/宫格/编码防线复用；application Protocol/submit/perform+adapters MediaProcessor.frames第六参+http MediaJobInput.select Literal透传；FakeProcessor/sheet_identity子类适配select默认参zoom先例)；继承参考scan.js两条关键经验(色相环形/低饱和降权防假切点)；14新增专项(真实PyAV合成三场景切点≈4/8每段有帧/棋盘vs纯灰选锐/无切点回退/默认形状/fake解码前拒/真实子进程透传/真实作业settle+cells+非法plan422/REST)+221调用方(scenes14/frames/zoom/plans/sheet_identity/cells/worker/decoding/duration/anchors)过0失败44.56秒终源复跑、strict本批零错误(首轮point lambda 3错误改具名_circular_hue；余5既有他会话repository.py不追逐)、ruff通过；无新表/迁移/操作/模型工具/路由/协议帧改动admission/CAS/删除屏障/未知结算/取消等待全复用；不含参考自适应分位数阈值/亮度增益/黑边补偿/自适应gap/快剪合并/自适应宫格DP打包(独立合同)/模型侧zoom(待批准)/OCR，真实长片质量另验"
         }
       ],
-      "limits": "只读审计无新工具/表/迁移/路由/源码改动；可离线缺口未在K16审计批实现(列后续批次)，其中缺口#4转录定位已在K16.locate后续批实现、缺口#2格号可寻址索引模型侧读面已在K16.cell_anchor后续批实现(只读派生既有帧表亚秒timestamps非新持久化层)、缺口#3局部zoom所有者侧显式时间戳高清重取作业基础已在K16.zoom_foundation后续批实现(frames作业可选timestamps复用既有管线非新表/操作/模型工具，模型侧自动zoom需action_review授权+ImageService图像可见设计合同——该实现前设计合同已记录于K16.zoom_model_design批(方案A/B工具结果图像可见协议+写工具审批门复用+frames timestamps作业复用)，所有者已于2026-11-21批准方案B，独立实现合同已记录于K16.tool_image_protocol批(勘定证伪草案持久层无需改前提：工具转录仅存内存+账本message_id非空FK+冻结触发器链，D5迁移v0050账本重建+双分支scope+run终态释放待所有者批准后接线，仍未实现)，HSV#1/Laplacian#5已在K16.scene_frames后续批实现(select=scenes保守子集：固定阈值12+minGap0.35+比例密度分配+Laplacian方差选锐，自适应分位数阈值/亮度增益/黑边补偿仍后续)、OCR仍后续)；V1 tools/storyboard学习实现不计V2对等；不宣称五工具/算法全集对等；未引入OCR模型依赖；既有todos重启竞态与5个pin v2_0039旧迁移测试沿用保留",
+      "limits": "只读审计无新工具/表/迁移/路由/源码改动；可离线缺口未在K16审计批实现(列后续批次)，其中缺口#4转录定位已在K16.locate后续批实现、缺口#2格号可寻址索引模型侧读面已在K16.cell_anchor后续批实现(只读派生既有帧表亚秒timestamps非新持久化层)、缺口#3局部zoom所有者侧显式时间戳高清重取作业基础已在K16.zoom_foundation后续批实现(frames作业可选timestamps复用既有管线非新表/操作/模型工具，模型侧自动zoom需action_review授权+ImageService图像可见设计合同——该实现前设计合同已记录于K16.zoom_model_design批(方案A/B工具结果图像可见协议+写工具审批门复用+frames timestamps作业复用)，所有者已于2026-11-21批准方案B，独立实现合同已记录于K16.tool_image_protocol批(勘定证伪草案持久层无需改前提：工具转录仅存内存+账本message_id非空FK+冻结触发器链)，所有者已批准D5，1a持久化批K16.tool_image_persistence已落地(v0050账本重建message_id可空+scope双分支message分支原SQL逐字保留+run终态释放触发器+prepare tool分支,5专项回退4/5红+147调用方零回归+strict418文件0错误)，余1b协议+引擎/2 media_zoom/3端到端未实现，HSV#1/Laplacian#5已在K16.scene_frames后续批实现(select=scenes保守子集：固定阈值12+minGap0.35+比例密度分配+Laplacian方差选锐，自适应分位数阈值/亮度增益/黑边补偿仍后续)、OCR仍后续)；V1 tools/storyboard学习实现不计V2对等；不宣称五工具/算法全集对等；未引入OCR模型依赖；既有todos重启竞态与5个pin v2_0039旧迁移测试沿用保留",
       "next": false
     },
     {
@@ -815,6 +823,10 @@
     {
       "id": "K16.tool_image_protocol",
       "evidence": "docs/evidence/v2-tool-image-protocol.json"
+    },
+    {
+      "id": "K16.tool_image_persistence",
+      "evidence": "docs/evidence/v2-tool-image-persistence.json"
     },
     {
       "id": "K13.search_regex",

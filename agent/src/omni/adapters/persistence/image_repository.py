@@ -206,7 +206,43 @@ class ImageRepositories(ConfigurationRepositories):
             raise BusinessError("image_budget_exceeded", "This run has exhausted its cumulative image budget")
         settings = self.run_settings(agent_id, run_id)
         for ref in refs:
-            source = sources.get(cast(str, ref["part_id"]))
+            message_id: str | None
+            source: Record | None
+            if ref.get("role", "user") == "tool":
+                # Tool results live only in the in-run transcript: the part must impersonate no
+                # message part, and the object must be registered and verified for this agent.
+                if self.connection.execute(
+                    select(s.message_parts.c.id).where(s.message_parts.c.id == ref["part_id"])
+                ).first():
+                    raise BusinessError("image_source_changed", "Image is outside the captured context or policy")
+                row = (
+                    self.connection.execute(
+                        select(
+                            s.image_objects.c.object_id,
+                            s.image_objects.c.width,
+                            s.image_objects.c.height,
+                            s.image_objects.c.media_type,
+                            s.objects.c.sha256,
+                            s.objects.c.bytes,
+                        )
+                        .join(
+                            s.objects,
+                            (s.objects.c.id == s.image_objects.c.object_id)
+                            & (s.objects.c.agent_id == s.image_objects.c.agent_id),
+                        )
+                        .where(
+                            s.image_objects.c.agent_id == agent_id,
+                            s.image_objects.c.object_id == ref["object_id"],
+                        )
+                    )
+                    .mappings()
+                    .first()
+                )
+                source = cast(Record, dict(row)) if row else None
+                message_id = None
+            else:
+                source = sources.get(cast(str, ref["part_id"]))
+                message_id = cast(str, source["message_id"]) if source else None
             if (
                 not source
                 or ref["policy_id"] != config["id"]
@@ -220,7 +256,7 @@ class ImageRepositories(ConfigurationRepositories):
                     "call_id": call_id,
                     "snapshot_id": snapshot,
                     "policy_id": config["id"],
-                    "message_id": source["message_id"],
+                    "message_id": message_id,
                     "part_id": ref["part_id"],
                     "object_id": ref["object_id"],
                     "sha256": ref["sha256"],

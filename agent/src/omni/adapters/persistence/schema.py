@@ -2947,7 +2947,8 @@ model_call_images = scoped(
     Column("call_id", String(36), nullable=False),
     Column("snapshot_id", String(36), nullable=False),
     Column("policy_id", String(36), nullable=False),
-    Column("message_id", String(36), nullable=False),
+    # Tool-result images live only in the in-run transcript; their ledger rows have no message.
+    Column("message_id", String(36)),
     Column("part_id", String(36), nullable=False),
     Column("object_id", String(36)),
     Column("sha256", String(64), nullable=False),

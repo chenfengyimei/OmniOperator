@@ -2,7 +2,7 @@
 
 ## 状态
 
-**设计合同（design_contract_recorded），待所有者批准 D5 持久化重设计后接线。** 所有者已于 2026-11-21 在 [V2_TOOL_IMAGE_VISIBILITY.md](V2_TOOL_IMAGE_VISIBILITY.md) 批准方案 B（同步工具结果图像可见，完整对标参考 zoom）。该草案明言「触及冻结图像协议 + 计量 + 策略，需独立合同 + 既有图像协议全量零回归」——本合同即该独立合同。
+**设计合同（design_contract_recorded）→ 所有者已批准 D5（2026-11-21），1a 持久化批已落地。** 所有者先于 2026-11-21 在 [V2_TOOL_IMAGE_VISIBILITY.md](V2_TOOL_IMAGE_VISIBILITY.md) 批准方案 B（同步工具结果图像可见，完整对标参考 zoom），随后批准本合同 D5 持久化重设计（冻结触发器重建 + run 终态释放语义）。该草案明言「触及冻结图像协议 + 计量 + 策略，需独立合同 + 既有图像协议全量零回归」——本合同即该独立合同。**1a 已实现**：迁移 v0050（账本表重建 message_id 可空 + scope 双分支 + run 终态释放触发器）、schema.py 同步、`model_images_prepare` tool 分支、5 专项（回退 4/5 红）+ 147 调用方零回归 + strict 418 文件 0 错误。余 1b 协议+引擎 / 2 media_zoom / 3 端到端三批。
 
 **关键勘定：草案「持久层无需改」前提被源码证伪。** 工具转录从不持久化（事实 1），图像账本 `model_call_images.message_id` 非空外键（事实 3），冻结触发器 `call_image_scope` 要求完整 message-part 链（事实 3），`message_image_insert` 只允许所有者 user 输入消息带图像（事实 4）。方案 B 因此**必须**包含迁移 v0050（重建账本表 + 双分支 scope 触发器 + run 终态释放），触及冻结安全触发器面并引入新的生命周期语义（D5）——超出草案描述，按「先授权/持久化/安全合同后执行接线」纪律提请所有者批准后方可实现。
 
@@ -96,4 +96,4 @@ per_call_limit≤4/run_budget≤64/MAX_IMAGES=4/detail=low/LOW_MODELS 计量全�
 
 ## 边界
 
-本批**纯合同，无源码/测试/迁移改动**。D5 触及冻结安全触发器并引入 run 终态释放新语义，草案「持久层无需改」前提已被事实 1-6 证伪——**需所有者批准 D5 后接线**。K16 HSV 切点（#1）/Laplacian 选帧（#5）/帧内 OCR 仍后续；真实视频视觉质量另验。`whole_*_complete` 保持 false，不提前关闭任何对标项。
+本段为设计批时点快照（当时纯合同，无源码/测试/迁移改动）。D5 已获所有者批准（2026-11-21）并由 1a 持久化批落地（v0050 + schema + prepare tool 分支 + 专项/调用方/strict 全绿，见 docs/evidence/v2-tool-image-persistence.json）；1b/2/3 批待实现。K16 HSV 切点（#1）/Laplacian 选帧（#5）已 K16.scene_frames 落地，帧内 OCR 仍后续；真实视频视觉质量另验。`whole_*_complete` 保持 false，不提前关闭任何对标项。
