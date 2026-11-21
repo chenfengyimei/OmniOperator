@@ -2,7 +2,7 @@
   "schema": 1,
   "date": "2026-11-21",
   "base_commit": "fa2cecb47f93da7797429e5d7d13e507e639e001",
-  "batch_commit": "PENDING_BACKFILL",
+  "batch_commit": "17565339a3bbccb238a5e5913c10fb96cf2957ec",
   "status": "implemented_scoped_passed",
   "batch": "K16.tool_image_engine",
   "owner_approval": "所有者 2026-11-21 先批准方案 B（V2_TOOL_IMAGE_VISIBILITY.md），再批准独立实现合同 D5 持久化重设计，按 D8 四批接线；本批为 1b 协议+引擎批（1a 持久化批已落地 39da3eef）。",
