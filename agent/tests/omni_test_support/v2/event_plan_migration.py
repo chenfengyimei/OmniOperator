@@ -106,7 +106,7 @@ def normalized_check(text):
 
 def assert_schema(unit):
     reflection = inspect(unit.connection)
-    assert len(s.metadata.tables) == 145
+    assert len(s.metadata.tables) == 147
     assert set(s.metadata.tables) <= set(reflection.get_table_names())
     for name in NEW_TABLES:
         table = s.metadata.tables[name]

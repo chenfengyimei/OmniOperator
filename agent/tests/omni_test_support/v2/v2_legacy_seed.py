@@ -57,6 +57,29 @@ class PreSkillSeedRepositories(Repositories):
     def delegation_recover(self):
         return None
 
+    def claim_runs(self, limit):
+        # v42 added run_delegations, but these fixtures are created on a pinned pre-v42 schema;
+        # use the original claim query without the delegation NOT IN subquery.
+        result = []
+        rows = self.connection.execute(
+            select(s.work_items.c.agent_id, s.work_items.c.run_id)
+            .join(s.agents, s.agents.c.id == s.work_items.c.agent_id)
+            .where(
+                s.work_items.c.kind == "turn",
+                s.work_items.c.state == "pending",
+                s.agents.c.enabled.is_(True),
+            )
+            .order_by(s.work_items.c.queue_sequence)
+            .limit(64)
+        ).all()
+        for agent_id, run_id in rows:
+            if len(result) >= max(0, min(4, limit)):
+                break
+            claim = self._claim_run(agent_id, run_id)
+            if claim:
+                result.append(claim)
+        return result
+
     def skill_capture_run(self, *args, **kwargs):
         return None
 

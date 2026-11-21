@@ -39,7 +39,7 @@ def test_populated_v31_upgrade_preserves_old_running_call_without_fabricating_im
         db = Database(path, clock, ids)
         try:
             await db.write(lambda u: u.recover())
-            assert db.schema_version == "v2_0039"
+            assert db.schema_version == "v2_0051"
             assert (await db.read(lambda u: u.messages(agent, receipt["session_id"])))[0]["content"] == "Original text"
             row = await db.read(lambda u: u._one(s.model_calls, agent, call))
             assert row["state"] == "unknown" and row["cost_micro"] is None
