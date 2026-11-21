@@ -995,6 +995,10 @@
     {
       "id": "FIX.migration_pins_v0051",
       "evidence": "docs/evidence/v2-migration-pins-v0051.json"
+    },
+    {
+      "id": "FIX.baseline_debt_cleanup",
+      "evidence": "docs/evidence/v2-baseline-debt-cleanup.json"
     }
   ]
 }

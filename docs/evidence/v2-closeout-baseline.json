@@ -106,67 +106,32 @@
         "root": "36 项表计数/版本 pin 停在 v2_0039/145；2 项 pre-v42 seed 使用当前 claim_runs 引用 run_delegations",
         "resolved_failures": 38,
         "evidence": "docs/evidence/v2-migration-pins-v0051.json"
+      },
+      {
+        "batch": "FIX.baseline_debt_cleanup",
+        "root": "跨测试模块导入 1、media staging stub 缺 kind 2、Android 脚本模型被 K06 摘要调用消费 1、todos 被 K08 评审打乱 1、cost 指纹断言 2",
+        "resolved_failures": 7,
+        "evidence": "docs/evidence/v2-baseline-debt-cleanup.json"
       }
     ],
     "remaining_independent": [
       {
-        "count": 2,
-        "class": "known_product_test_debt",
-        "nodeids": [
-          "agent/tests/v2/integrations/test_v2_media_staging.py::test_failed_terminal_write_still_removes_staging_and_preserves_error[business]",
-          "agent/tests/v2/integrations/test_v2_media_staging.py::test_failed_terminal_write_still_removes_staging_and_preserves_error[io]"
-        ],
-        "cause": "测试 stub Database.media_source_get 缺 kind 键，走 committed _execute source['kind'] KeyError → unknown/media_processing_failed；生产路径不受影响"
-      },
-      {
-        "count": 1,
-        "class": "known_race",
-        "nodeid": "agent/tests/v2/core/test_v2_todos.py::test_runtime_restart_reinjects_active_plan_only_into_its_own_session",
-        "cause": "K08 后台评审与断言竞态（D2），隔离多次可复现"
-      },
-      {
-        "count": 2,
-        "class": "known_fingerprint_debt",
-        "nodeids": [
-          "agent/tests/v2/core/test_v2_execution_pruning.py::test_apply_rechecks_protections_and_fingerprint_before_any_backup_or_prune[cost]",
-          "agent/tests/v2/core/test_v2_reference_release.py::test_release_rechecks_protections_after_review[cost]"
-        ],
-        "cause": "cost 指纹包含 model.started/settle 事件，既有债务批"
-      },
-      {
         "count": 1,
         "class": "load_flake",
         "nodeid": "agent/tests/v2/core/test_v2_delegation.py::test_four_waiting_parents_do_not_starve_the_child_pool",
-        "cause": "4 worker 全量负载下 TimeoutError；需隔离复现 3 次后判定（C0.3 未完成复现，保留红）"
+        "cause": "4 worker 全量负载下 TimeoutError；隔离 3/3 通过（11.46/11.74/12.20 秒），保留全量红记录"
       },
       {
-        "count": 1,
-        "class": "stale_assertion_after_compaction",
-        "nodeid": "agent/tests/v2/integrations/test_v2_android_model.py::test_model_access_and_input_are_separately_approved_and_application_reads_are_scoped",
-        "cause": "run 已 succeeded，但断言 model.tool_bodies[-1] 为 apps JSON；K06 压缩后最后 tool 消息为 input postcondition，apps 轮不在最终 live 转录。需另批把断言改为捕获动作/结果而非最终转录。"
-      },
-      {
-        "count": 1,
-        "class": "environment_isolated_python",
-        "nodeid": "agent/tests/v2/operations/test_v2_installation_check.py::test_standalone_installer_json_preserves_non_legacy_unicode_under_isolated_python",
-        "cause": "C:/.../用户🙂 路径 + python -I + candidate install 返回 candidate_install_failed；需干净安装环境/依赖包缓存"
-      },
-      {
-        "count": 4,
-        "class": "environment_browser_or_native_desktop",
+        "count": 5,
+        "class": "environment_isolated_python_browser_or_native_desktop",
         "nodeids": [
+          "agent/tests/v2/operations/test_v2_installation_check.py::test_standalone_installer_json_preserves_non_legacy_unicode_under_isolated_python",
           "agent/tests/test_project_catalog.py::test_real_browser_project_navigation_search_details_and_mobile",
           "agent/tests/v2/ui/test_v2_desktop_control_ui.py::test_explicit_device_scope_is_separate_from_share_and_never_reports_input_enabled[1080-light]",
           "agent/tests/v2/ui/test_v2_memory_organization_ui.py::test_exact_only_proposal_completes_and_undo_preserves_raw_facts_and_sources",
           "agent/tests/v2/platforms/common/test_v2_desktop_observation_native.py::test_fixed_windows_uia_worker_reads_only_owned_fixture_and_redacts_password[act]"
         ],
-        "cause": "浏览器/UI 5s 断言超时、真实桌面用户介入 desktop_user_intervened；非源码判定，需隔离浏览器/桌面窗口"
-      },
-      {
-        "count": 1,
-        "class": "test_hygiene",
-        "nodeid": "agent/tests/v2/core/test_v2_layout.py::test_v2_tests_do_not_import_other_collected_test_modules",
-        "cause": "test_v2_media_zoom_e2e.py 跨测试模块导入 test_v2_media_source_identity；需抽共享 fixture"
+        "cause": "isolated Python candidate install、浏览器/UI 5s 断言超时、真实桌面 user_intervened；需隔离环境，非源码判定"
       }
     ]
   },
@@ -197,23 +162,28 @@
   "c0_items": {
     "C0.1": "完成（独立 worktree + 独立 .venv；doctor v2_0051/159 表/integrity ok）",
     "C0.2": "完成（8368 项，58 失败，JUnit 落盘；有效基线）",
-    "C0.3": "完成初版分诊（58 项均有类别/归属；delegation load flake 未做 3 次隔离复现）",
+    "C0.3": "完成（58 项均有类别/归属；delegation 负载 flake 已隔离 3/3 通过并记录）",
     "C0.4": "完成（pyright 420/0/0；ruff src 绿/tests 339 欠账；format 6+4 欠账）",
     "C0.5": "暂缓（主工作树 40+ 修改/10+ 未跟踪，他会话 v0052 在途；遵守索引再生暂缓纪律）"
   },
   "fixes_after_baseline": {
     "commits": [
       "e0bca9ae637fa5429f027e7a3db8e493a9202bf2",
-      "fcea91ac"
+      "fcea91ac",
+      "7477dded",
+      "5106fdcc",
+      "a1047d79",
+      "188b5071",
+      "bc9f74cb"
     ],
-    "scope": "e0bca9ae：服务注册测试路径 parents[1]→parents[2]（6 项）+ TYPE_CHECKING 补 v0051/reflection（1 项）；fcea91ac：迁移 pin 145→147 / v2_0039→v2_0051（36 项）+ pre-v42 seed claim_runs（2 项）",
-    "targeted": "service_registration + typecheck_scope 18 passed 0.73 秒；16 个迁移文件 78 passed 42.55 秒（均在 79d9cd52 基线 worktree）",
-    "full_rerun": "未重跑全量；58→预期 13，不声称全量绿"
+    "scope": "e0bca9ae：服务注册路径 6 + TYPE_CHECKING 1；fcea91ac：迁移 pin 36 + pre-v42 seed 2；FIX.baseline_debt_cleanup：layout 1 + media staging stub 2 + Android 摘要步骤 1 + todos 评审竞态 1 + cost 指纹断言 2",
+    "targeted": "service_registration+typecheck 18 passed 0.73 秒；16 迁移文件 78 passed 42.55 秒；media_staging 14 passed 7.25 秒；Android 1 passed 10.87 秒；todos 3/3；cost 14 passed 28.35 秒；layout 3 passed 2.57 秒",
+    "full_rerun": "未重跑全量；58→预期 6（剩余 1 load flake + 5 环境项），不声称全量绿"
   },
   "not_executed": [
-    "修复后 fcea91ac 的完整全量（仅专项验证；不声称 current_full_passed=true）",
+    "bc9f74cb 后完整全量重跑（仅专项验证；不声称 current_full_passed=true）",
     "v0052 落定后的 pin 再升级（本批 pin 为 v2_0051/147，v0052 需到 v2_0052/149）",
-    "delegation  starvation 的 3 次隔离复现",
+    "主工作树 test_v2_layout 仍受他会话在途 reflection_review/reflection_flow 两条跨测试导入影响（提交树基线已绿）",
     "真实 Linux/macOS/Windows 原生服务、干净机器、容器、真实账号/设备/模型、72 小时",
     "docs/index 再生（C0.5 暂缓）",
     "C1 功能缺口/平台收口/真实验收"
