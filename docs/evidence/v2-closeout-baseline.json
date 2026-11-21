@@ -39,6 +39,17 @@
       "log": "C:/v2-acceptance/closeout-18b75b75/full-79d9cd52-v2.log",
       "verdict": "current_full_passed=false；58 项全部完成分诊（下表）"
     },
+    "post_cleanup_full_suite": {
+      "head": "3b7ee1b4",
+      "command": "source/.venv/Scripts/python.exe -m pytest -q -n 4 --dist=loadfile --junitxml=full-3b7ee1b4.xml",
+      "tests": 8368,
+      "passed": 8361,
+      "failed": 7,
+      "seconds": 2548.87,
+      "junit": "C:/v2-acceptance/closeout-18b75b75/full-3b7ee1b4.xml",
+      "breakdown": "2 确定性环境项（installation/project catalog）+ 4 负载 flake（delegation/images UI×2/memory UI，均隔离通过）+ 1 新时序项（run compaction 长测，隔离 9.62s 逼近 10s 硬限，c40e40e9 放宽到 30s）",
+      "verdict": "债务批后复跑；已修复/加固 5 项，预期至少剩 2 个确定性环境项；未重跑不声称 0 红"
+    },
     "invalid_attempts": [
       {
         "head": "18b75b75",
@@ -116,22 +127,24 @@
     ],
     "remaining_independent": [
       {
-        "count": 1,
-        "class": "load_flake",
-        "nodeid": "agent/tests/v2/core/test_v2_delegation.py::test_four_waiting_parents_do_not_starve_the_child_pool",
-        "cause": "4 worker 全量负载下 TimeoutError；隔离 3/3 通过（11.46/11.74/12.20 秒），保留全量红记录"
-      },
-      {
-        "count": 5,
-        "class": "environment_isolated_python_browser_or_native_desktop",
+        "count": 2,
+        "class": "deterministic_environment",
         "nodeids": [
           "agent/tests/v2/operations/test_v2_installation_check.py::test_standalone_installer_json_preserves_non_legacy_unicode_under_isolated_python",
-          "agent/tests/test_project_catalog.py::test_real_browser_project_navigation_search_details_and_mobile",
-          "agent/tests/v2/ui/test_v2_desktop_control_ui.py::test_explicit_device_scope_is_separate_from_share_and_never_reports_input_enabled[1080-light]",
-          "agent/tests/v2/ui/test_v2_memory_organization_ui.py::test_exact_only_proposal_completes_and_undo_preserves_raw_facts_and_sources",
-          "agent/tests/v2/platforms/common/test_v2_desktop_observation_native.py::test_fixed_windows_uia_worker_reads_only_owned_fixture_and_redacts_password[act]"
+          "agent/tests/test_project_catalog.py::test_real_browser_project_navigation_search_details_and_mobile"
         ],
-        "cause": "isolated Python candidate install、浏览器/UI 5s 断言超时、真实桌面 user_intervened；需隔离环境，非源码判定"
+        "cause": "isolated Python candidate_install_failed（用户🙂 路径）与 project catalog 浏览器 locator 超时；隔离运行同样失败，需干净安装包缓存/浏览器数据环境"
+      },
+      {
+        "count": 4,
+        "class": "load_flake_hardened",
+        "nodeids": [
+          "agent/tests/v2/core/test_v2_delegation.py::test_four_waiting_parents_do_not_starve_the_child_pool",
+          "agent/tests/v2/ui/test_v2_images_ui.py::test_image_draft_switch_and_image_only_message[light-1440]",
+          "agent/tests/v2/ui/test_v2_images_ui.py::test_image_draft_switch_and_image_only_message[dark-1024]",
+          "agent/tests/v2/ui/test_v2_memory_organization_ui.py::test_exact_only_proposal_completes_and_undo_preserves_raw_facts_and_sources"
+        ],
+        "cause": "4-worker 全量负载下等待超时；隔离全部通过。c40e40e9 将 run compaction 长测 wait_state 放宽到 30s；9f860571 将 images/memory UI expect 放宽到 15s、delegation started/parents 放宽到 30s。断言文本与业务条件未变；加固后未重跑全量。"
       }
     ]
   },
@@ -161,7 +174,7 @@
   },
   "c0_items": {
     "C0.1": "完成（独立 worktree + 独立 .venv；doctor v2_0051/159 表/integrity ok）",
-    "C0.2": "完成（8368 项，58 失败，JUnit 落盘；有效基线）",
+    "C0.2": "完成（首轮 8368 项/58 失败；债务清理后 3b7ee1b4 复跑 8368 项/7 失败，JUnit 均落盘）",
     "C0.3": "完成（58 项均有类别/归属；delegation 负载 flake 已隔离 3/3 通过并记录）",
     "C0.4": "完成（pyright 420/0/0；ruff src 绿/tests 339 欠账；format 6+4 欠账）",
     "C0.5": "暂缓（主工作树 40+ 修改/10+ 未跟踪，他会话 v0052 在途；遵守索引再生暂缓纪律）"
@@ -174,15 +187,18 @@
       "5106fdcc",
       "a1047d79",
       "188b5071",
-      "bc9f74cb"
+      "bc9f74cb",
+      "c40e40e9",
+      "9f860571"
     ],
-    "scope": "e0bca9ae：服务注册路径 6 + TYPE_CHECKING 1；fcea91ac：迁移 pin 36 + pre-v42 seed 2；FIX.baseline_debt_cleanup：layout 1 + media staging stub 2 + Android 摘要步骤 1 + todos 评审竞态 1 + cost 指纹断言 2",
-    "targeted": "service_registration+typecheck 18 passed 0.73 秒；16 迁移文件 78 passed 42.55 秒；media_staging 14 passed 7.25 秒；Android 1 passed 10.87 秒；todos 3/3；cost 14 passed 28.35 秒；layout 3 passed 2.57 秒",
-    "full_rerun": "未重跑全量；58→预期 6（剩余 1 load flake + 5 环境项），不声称全量绿"
+    "scope": "e0bca9ae：服务注册路径 6 + TYPE_CHECKING 1；fcea91ac：迁移 pin 36 + pre-v42 seed 2；FIX.baseline_debt_cleanup：layout 1 + media staging stub 2 + Android 摘要步骤 1 + todos 评审竞态 1 + cost 指纹断言 2；FIX.full_suite_timeouts：compaction 长测 10s→30s、images/memory UI 5s→15s、delegation 10s→30s",
+    "targeted": "service_registration+typecheck 18 passed 0.73 秒；16 迁移文件 78 passed 42.55 秒；media_staging 14 passed 7.25 秒；Android 1 passed 10.87 秒；todos 3/3；cost 14 passed 28.35 秒；layout 3 passed 2.57 秒；compaction 10 passed 32.85 秒；UI/delegation 10 passed 89.71 秒",
+    "full_rerun": "3b7ee1b4 复跑 8368 项/7 失败（2 确定性环境 + 4 负载 flake + 1 新时序）；时序已修、负载已加固；预期至少剩 2 个确定性环境项，不声称全量绿"
   },
   "not_executed": [
-    "bc9f74cb 后完整全量重跑（仅专项验证；不声称 current_full_passed=true）",
+    "9f860571 后完整全量重跑（仅隔离专项；不声称 current_full_passed=true）",
     "v0052 落定后的 pin 再升级（本批 pin 为 v2_0051/147，v0052 需到 v2_0052/149）",
+    "installation 干净包缓存环境与 project catalog 浏览器数据修复",
     "主工作树 test_v2_layout 仍受他会话在途 reflection_review/reflection_flow 两条跨测试导入影响（提交树基线已绿）",
     "真实 Linux/macOS/Windows 原生服务、干净机器、容器、真实账号/设备/模型、72 小时",
     "docs/index 再生（C0.5 暂缓）",

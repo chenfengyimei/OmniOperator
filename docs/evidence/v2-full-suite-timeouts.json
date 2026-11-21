@@ -1,0 +1,61 @@
+{
+  "schema": 1,
+  "date": "2026-11-21",
+  "base_commit": "3b7ee1b4",
+  "commits": [
+    "c40e40e9",
+    "9f860571"
+  ],
+  "batch": "FIX.full_suite_timeouts",
+  "status": "implemented_scoped_passed",
+  "scope": "3b7ee1b4 新全量基线暴露的 5 项负载/时序红（run compaction 长测 10s 硬限、images UI 2、memory UI 1、delegation 4-worker 超时）做超时加固；不改断言文本、不放宽业务语义。",
+  "post_cleanup_full_suite": {
+    "head": "3b7ee1b4",
+    "command": "source/.venv/Scripts/python.exe -m pytest -q -n 4 --dist=loadfile",
+    "tests": 8368,
+    "passed": 8361,
+    "failed": 7,
+    "seconds": 2548.87,
+    "junit": "C:/v2-acceptance/closeout-18b75b75/full-3b7ee1b4.xml",
+    "failures": {
+      "deterministic_environment": [
+        "agent/tests/v2/operations/test_v2_installation_check.py::test_standalone_installer_json_preserves_non_legacy_unicode_under_isolated_python",
+        "agent/tests/test_project_catalog.py::test_real_browser_project_navigation_search_details_and_mobile"
+      ],
+      "load_flake_isolated_pass": [
+        "agent/tests/v2/core/test_v2_delegation.py::test_four_waiting_parents_do_not_starve_the_child_pool",
+        "agent/tests/v2/ui/test_v2_images_ui.py::test_image_draft_switch_and_image_only_message[light-1440]",
+        "agent/tests/v2/ui/test_v2_images_ui.py::test_image_draft_switch_and_image_only_message[dark-1024]",
+        "agent/tests/v2/ui/test_v2_memory_organization_ui.py::test_exact_only_proposal_completes_and_undo_preserves_raw_facts_and_sources"
+      ],
+      "new_timing": [
+        "agent/tests/v2/core/test_v2_run_compaction.py::test_long_run_compacts_repeatedly_keeping_recent_rounds（隔离 9.62s，wait_state 硬限 10s）"
+      ]
+    }
+  },
+  "fixes": [
+    {
+      "commit": "c40e40e9",
+      "item": "run 内重复压缩长测等待超时",
+      "root": "test_long_run_compacts_repeatedly 在独立 .venv 隔离 9.62s，已逼近 wait_state 的 10s 硬限；4-worker 全量负载下超时，并非压缩逻辑回归。",
+      "fix": "wait_state 增加可选 timeout（默认 10 不变）；长压缩测传 timeout=30。",
+      "validation": "test_v2_run_compaction.py 10 passed / 32.85 秒（基线）；主工作树 10 passed / 35.71 秒。"
+    },
+    {
+      "commit": "9f860571",
+      "item": "images UI / memory UI / delegation 负载超时",
+      "root": "Playwright expect 默认 5s、delegation 内部 wait_for 与 wait_state 10s，在 4-worker 全量负载下被挤超时；隔离运行全过。",
+      "fix": "images UI 的 reply/图片/状态断言 5s→15s；memory UI 提案生成断言 5s→15s；delegation 的 started wait 与 4 个 parent wait_state 10s→30s。断言文本与业务条件不变。",
+      "validation": "images UI 8 + memory UI 1 + delegation 1 合计 10 passed / 89.71 秒（隔离）；delegation 单测复跑 1 passed / 12.77 秒。"
+    }
+  ],
+  "accounting": "3b7ee1b4 全量 7 红 = 2 个确定性环境项（installation/project catalog）+ 4 个已隔离证明的负载 flake + 1 个新时序项；时序项已修复，负载项已加固。下一轮全量预期至少剩 2 个确定性环境项；不声称 0 红或 current_full_passed=true。",
+  "not_executed": [
+    "9f860571 后的完整全量重跑（仅隔离专项；不声称 0 红）",
+    "installation 干净包缓存环境与 project catalog 浏览器数据修复",
+    "真实平台/账号/设备/72h",
+    "docs/index 再生（C0.5 暂缓）"
+  ],
+  "current_full_passed": false,
+  "whole_v2_complete": false
+}

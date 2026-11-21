@@ -999,6 +999,10 @@
     {
       "id": "FIX.baseline_debt_cleanup",
       "evidence": "docs/evidence/v2-baseline-debt-cleanup.json"
+    },
+    {
+      "id": "FIX.full_suite_timeouts",
+      "evidence": "docs/evidence/v2-full-suite-timeouts.json"
     }
   ]
 }
