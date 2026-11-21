@@ -1,5 +1,6 @@
 """Reusable memory_organization_ui fixtures, extracted without collecting test cases."""
 
+import time
 import unicodedata
 import uuid
 
@@ -37,15 +38,16 @@ def create_facts(context, server, agent, contents):
 
 def wait_ready(page, context, server, agent, batch_id):
     url = agent_url(server, agent) + f"/memory/organizations/{batch_id}"
-    page.wait_for_function(
-        """async ({url, token}) => {
-          const response = await fetch(url, {headers: {Authorization: `Bearer ${token}`}});
-          return response.ok && (await response.json()).state === 'ready';
-        }""",
-        arg={"url": url, "token": server[1]},
-        polling=100,
-    )
-    return get_json(context, server, url)
+    deadline = time.monotonic() + 30
+    while True:
+        batch = get_json(context, server, url)
+        if batch["state"] == "ready":
+            return batch
+        if batch["state"] in {"failed", "cancelled"}:
+            raise AssertionError(f"memory organization batch ended {batch['state']}: {batch.get('error_code')}")
+        if time.monotonic() >= deadline:
+            raise AssertionError(f"memory organization batch not ready: {batch['state']}")
+        time.sleep(0.1)
 
 
 def submit_batch(page, context, server, agent, facts):
