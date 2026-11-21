@@ -2,6 +2,7 @@
   "schema": 1,
   "date": "2026-11-21",
   "base_commit": "8afdd7e7a06405201c886faf0977123a9d0381b6",
+  "batch_commit": "39da3eef0bc54d47ff2ac0cc260822cf9bfa69b5",
   "status": "implemented_scoped_passed",
   "batch": "K16.tool_image_persistence",
   "owner_approval": "所有者 2026-11-21 先批准方案 B（V2_TOOL_IMAGE_VISIBILITY.md），再批准独立实现合同 D5 持久化重设计（冻结触发器重建 + run 终态释放语义），本批为 D8 之 1a 持久化批。",
