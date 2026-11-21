@@ -263,7 +263,7 @@ def test_real_browser_project_navigation_search_details_and_mobile(workbench, tm
         page.locator('[data-view="extensions"]').click()
         assert page.locator("#proj-content").get_by_role("heading", name="Python 插件", exact=True).is_visible()
         page.locator('[data-doc="ARCHITECTURE.md"]').click()
-        page.locator("#proj-detail-body pre").get_by_text("OmniOperator 架构说明", exact=False).wait_for()
+        page.locator("#proj-detail-body pre").get_by_text("OmniOperator 架构权威", exact=False).wait_for()
         page.locator("#proj-close-detail").click()
         page.set_viewport_size({"width": 390, "height": 844})
         assert page.evaluate("document.documentElement.scrollWidth <= window.innerWidth")

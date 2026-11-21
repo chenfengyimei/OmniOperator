@@ -261,7 +261,13 @@ def test_cancellation_keeps_late_spawn_and_actual_cleanup_owned(tmp_path, monkey
 def test_standalone_installer_json_preserves_non_legacy_unicode_under_isolated_python(tmp_path):
     app = tmp_path / "omnioperator-1.0-py3-none-any.whl"
     with zipfile.ZipFile(app, "w") as archive:
-        for name in ("omni", "omni/adapters", "omni/adapters/platform", "omni/domain"):
+        for name in (
+            "omni",
+            "omni/adapters",
+            "omni/adapters/platform",
+            "omni/adapters/platform/releases",
+            "omni/domain",
+        ):
             archive.writestr(name + "/__init__.py", "")
         archive.writestr(
             "omni/adapters/platform/releases/candidate_installer.py",
