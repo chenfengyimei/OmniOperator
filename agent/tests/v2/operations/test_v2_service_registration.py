@@ -182,7 +182,7 @@ def test_unit_links_and_parent_permissions_rejected_without_writes(tmp_path, mon
 
 
 def test_windows_broker_source_is_packaged_bounded_and_never_updates_or_force_stops():
-    path = Path(r.__file__).parents[1] / "workers/windows_services.ps1"
+    path = Path(r.__file__).parents[2] / "workers/windows_services.ps1"
     text = path.read_text(encoding="utf-8")
     assert "RegisterTask($TaskName,$xml,34,$OwnerSID,$null,3,$null)" in text
     assert "DeleteTask($TaskName,0)" in text and "$task.GetInstances(0)" in text
@@ -256,7 +256,7 @@ def test_windows_native_receipt_is_identity_bound_and_rejects_untrusted_output(m
                 "-NonInteractive",
                 "-Mta",
                 "-File",
-                str(Path(r.__file__).resolve().parents[1] / "workers/windows_services.ps1"),
+                str(Path(r.__file__).resolve().parents[2] / "workers/windows_services.ps1"),
             ]
             assert commands[0][7:9] == ["-Mode", "inspect"]
             if corrupt is None:

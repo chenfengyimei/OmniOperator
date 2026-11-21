@@ -481,6 +481,10 @@ strict 配置显式将 `agent/src` 加入导入根，隔离源码副本也解析
 
 | `agent/src/omni/adapters/persistence/migrations/versions/v0050.py` | 冻结迁移版本 v0050（工具结果图像账本：`model_call_images.message_id` 可空重建；`call_image_scope` 双分支——消息分支 v0032 原 SQL 逐字保留、工具分支要求注册对象与新鲜 part_id；run 终态释放触发器，释放≠擦除；账本不可删不变，`downgrade` 拒绝） |
 
+| `agent/src/omni/adapters/persistence/migrations/versions/v0051.py` | 冻结迁移版本 v0051（反思信笺、文档/媒体已读锚点与待审队列；新表与身份/禁删触发器，`downgrade` 拒绝） |
+
+| `agent/src/omni/domain/reflection.py` | 反思信笺纯领域：8 字段正文、证据锚点、摘录选择与修订状态约束 |
+
 `pyrightconfig.strict.json` 的 `include` 必须与本表完全一致；`agent/tests/v2/core/test_v2_typecheck_scope.py` 会双向校验。
 
 ## 3. 历史基线与当前范围
