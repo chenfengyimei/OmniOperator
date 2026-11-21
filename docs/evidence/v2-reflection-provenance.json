@@ -1,0 +1,40 @@
+{
+  "schema": 1,
+  "date": "2026-11-21",
+  "base_commit": "504fe72c540c63d2ef1d8941a0e9b7156dd27665",
+  "batch": "K17.reflection_provenance_design",
+  "status": "design_contract_recorded",
+  "contract": "docs/v2/contracts/V2_REFLECTION_PROVENANCE.md",
+  "source_files": {
+    "docs/HANDOFF.md": "dd0d2adba9482cae57badfd732885c7ebf73a95d2f3667aaf0c0825208fd57b1",
+    "docs/tasks/v2-agent-core-parity.json": "09c2eaaca1b64456f7059db1f271f76607263f7a3444a68e6012987462fd0de4",
+    "docs/v2/contracts/V2_REFLECTION_PROVENANCE.md": "628e04f167f5a4366818db26361f84b6b163d2d3390d18cffc2aaa57228ac703"
+  },
+  "hash_scope": "SHA-256 of git cat-file blob :<path> bytes; excludes this evidence file.",
+  "validation": [
+    {
+      "command": "git diff --cached --name-only; git cat-file blob :<path>; Python json.loads + assertions on contract/evidence/batch/HANDOFF and completion flags; git diff --cached --check",
+      "result": "passed",
+      "elapsed_seconds": 0.434
+    },
+    {
+      "command": "uv run --no-sync python scripts/project_index.py --output <temporary directory>",
+      "result": "modules=65 files=836 routes=458 declared_tools=94\nupdated=MODULES.md,API.md,project.json",
+      "differences_from_working_index": [
+        "API.md",
+        "MODULES.md",
+        "project.json"
+      ],
+      "elapsed_seconds": 5.937
+    }
+  ],
+  "pytest_passed": null,
+  "limits": [
+    "设计合同，尚未实现。其他会话在途文件不纳入本批。",
+    "未验证真实模型或人格质量；K01 D3 待所有者选定。"
+  ],
+  "not_executed": [
+    "pytest (targeted/full), rollback probes, pyright strict, ruff: documentation only",
+    "live models, accounts, devices, running services and databases"
+  ]
+}

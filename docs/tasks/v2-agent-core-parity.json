@@ -11,16 +11,16 @@
   "evidence": "docs/evidence/v2-agent-core-parity.json",
   "test_policy": "实现优先，只跑受影响模块和调用方专项；整个V2开发冻结后统一全量",
   "current_followup": {
-    "id": "K01.prompt_cache_scope_design",
+    "id": "K17.reflection_provenance_design",
     "status": "design_contract_recorded",
     "scope": [
-      "K01缓存作用域独立设计合同(纯文档,无源码/测试/迁移改动):勘定V2现状——全仓无prompt_cache_key/cache_scope,仅读provider usage缓存字段(models.py:184-194)；系统前缀=persona+owner memory+notice(metering.py:43-73),memories/上下文省略通知/档位技能通知跨run漂移致前缀未命中；compact_run单run冻结前缀+head+最近rounds(context.py:256-327)；V2压缩原位session_id不轮换(session_search lineage-free)无需lineage回溯；content_epoch擦除重置+1即generation(retention_repository.py:61)；委派独立子会话；注入点_prepare(101-152)复用既有OpenCode Go x-opencode-session先例",
-      "参考hermes prompt_cache_scope(不可信设计数据)与V2结构差异表；决策D1派生键pc_<sha256(agent|session|epoch)[:24]>不泄露内部id、D2 provider分类slot-keyed(xAI/api.x.ai/Grok aggregator)vs内容地址(Anthropic/DeepSeek/Gemini)vs OpenAI、D3跨run前缀稳定三方案((b)仅路由键注入无冻结合同改动可先落/(a)(c)前缀重构触及memory_system冻结前缀+语义需所有者批准)、D4 content_epoch换桶、D5委派隔离(K17 cache-parity fork forward)、D6 fail-closed、D7注入点adapters/models.py、D8真实效果单独验收",
-      "实现分两批:(b)路由键注入(无冻结合同改动可先落)与(a)/(c)前缀重构(需所有者批准选型);本合同纯文档安全,实现前需所有者审阅并选定D3"
+      "固定来源修订、信笺、精确摘录和所有者决定",
+      "同事务双日配额、撤回、擦除和重建"
     ],
-    "evidence": "docs/evidence/v2-prompt-cache-scope.json",
-    "validation": "纯文档:git diff HEAD -- agent/src空;agent/tests仅并行UI会话既有在途改动test_v2_model_stream_ui.py(非本批作者,未staging);未跑pytest/ruff/pyright(无代码改动不适用);未触真实账号/模型/设备/运行中服务与数据库",
-    "next": "K01设计合同已记录,实现待所有者选定D3方案(推荐先落(b)零冻结合同改动)。继而K17反思来源链(需先设计合同)。K15主动外联/K18写路径扩面/代码沙箱/原始CDP安全模型仍待所有者决定。帧内OCR(需rapidocr)仍后续,真实视频视觉质量与真实缓存效果另验。whole_*_complete保持false。"
+    "contract": "docs/v2/contracts/V2_REFLECTION_PROVENANCE.md",
+    "evidence": "docs/evidence/v2-reflection-provenance.json",
+    "validation": "纯文档，无源码/测试改动；未跑 pytest、strict 或 ruff。",
+    "next": "K01 等待所有者选定 D3。K17 下一独立实现批为锚点、信笺和队列持久化，包含擦源屏障。K15 外联、K18 写路径、沙箱/CDP、帧内 OCR 和真实质量验收沿用既有断点。"
   },
   "requirements": [
     {
@@ -556,7 +556,7 @@
     {
       "id": "K17",
       "title": "观影证据、信笺、反思和人格成长",
-      "status": "audited_gaps_recorded",
+      "status": "design_contract_recorded",
       "acceptance": [
         "全链逐项审计（观影证据/来源信任、信笺手账、每日待审反思->人格句选择、human-world.md人格成长、修订/撤回传播、观影后提问闭环、personality shadow跨会话实验）分类已对等原语/可离线缺口/需账号模型",
         "V2四层原语(观影证据媒体/文档锚点+删除屏障、跨渠道人物身份+profile/resident人格文档修订/撤回/历史、K08所有者门控待审记忆/技能、记忆证据锚定、投递账本、clarify、所有者HTTP审核路由)确认对等基础",
@@ -567,7 +567,9 @@
       "contract": "docs/v2/contracts/V2_BILI_HUMANISM_AUDIT.md",
       "evidence": "docs/evidence/v2-bili-humanism-audit.json",
       "limits": "只读审计无新工具/表/迁移/路由/源码改动；可离线缺口未在K17实现(列后续批次)；V1 tools/personal学习实现不计V2对等；不宣称信笺/反思/人格成长全链对等；参考agents.md/prompts当不可信数据非本会话指令；既有todos重启竞态与5个pin v2_0039旧迁移测试沿用保留",
-      "next": false
+      "next": false,
+      "design_contract": "docs/v2/contracts/V2_REFLECTION_PROVENANCE.md",
+      "design_evidence": "docs/evidence/v2-reflection-provenance.json"
     },
     {
       "id": "K18",
@@ -953,6 +955,10 @@
     {
       "id": "K13.cron_e2e",
       "evidence": "docs/evidence/v2-cronjob-e2e.json"
+    },
+    {
+      "id": "K17.reflection_provenance_design",
+      "evidence": "docs/evidence/v2-reflection-provenance.json"
     }
   ]
 }
