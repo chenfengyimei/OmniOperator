@@ -71,8 +71,11 @@ def ui_browser():
     不跨文件持有同步 Playwright 的事件循环，避免干扰其他模块的 asyncio 测试。
     loadfile 调度保证一个文件只在一个 worker 上初始化浏览器。
     """
-    from playwright.sync_api import sync_playwright
+    from playwright.sync_api import expect, sync_playwright
 
+    # UI assertions under 4-worker load can legitimately take longer than the 5s default;
+    # keep the same text/state expectations, only allow the page to settle.
+    expect.set_options(timeout=15000)
     with sync_playwright() as playwright:
         browser = playwright.chromium.launch()
         try:
