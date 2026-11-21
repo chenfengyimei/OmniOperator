@@ -2,7 +2,7 @@
   "schema": 1,
   "date": "2026-11-21",
   "base_commit": "75885fb30aaa150c89409a085634055e83b53445",
-  "batch_commit": "PENDING_BACKFILL",
+  "batch_commit": "12d92c0669bc2a616b147154d473a744989ac7a9",
   "status": "implemented_scoped_passed",
   "batch": "K16.tool_image_e2e",
   "owner_approval": "所有者 2026-11-21 批准方案 B 与 D5，按 D8 四批接线；本批为 3 端到端批（1a 39da3eef、1b 17565339、2 e3f007f0 已落地）。K16 缺口 #3 模型侧 zoom + 工具结果图像可见四批全部完结。",
