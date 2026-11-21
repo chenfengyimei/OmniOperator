@@ -213,7 +213,7 @@ K13.cron_model_design 已记录**实现前设计合同**（纯文档，无源码
   - K13 files_search 高级 gitignore（`**` 锚定细则 / 目录级忽略文件，改既有 fnmatch glob 语义需合同）/ files_patch V4A 多文件格式（481 行参考，较大新能力）。
 - **需真实账号/设备/模型/网络（外部状态，不可离线宣称对等）**：K18 自主生物钟观看/双日记/沉默衰减/候选打分/偏好学习/直播/AI-share 守卫/DM 发送/关注写；K14 Android 独立视觉子代理/SoM/屏幕 OCR/explore_app + 设备健康矩阵 + 真机输入/滚动/Unicode 质量；真实模型 importance 自评/人格一致性/缓存命中质量；干净机器各平台原生验收；72 小时 soak；整个 V2 冻结后统一全量。
 
-**下一步**：上述真断点需所有者就 zoom 协议 A/B、自主行为授权边界、写路径扩面做决策；较大离线能力按「先授权/持久化/安全合同后执行接线」推进（代码沙箱/CDP 安全模型尤需所有者审阅，不臆测协议、不擅自实现任意代码执行）。接管者可择一需设计合同的能力先写设计合同（如 K16.zoom_model_design 范式）供所有者批准，或在所有者决策后接线；**不宣称全集对等，whole_core_parity_complete / whole_reference_feature_audit_complete / whole_v2_complete 保持 false，不提前关闭任何对标项**。本段未跑全量、未触真实账号/模型/设备/运行中 Windows 服务与数据库；并行 UI 会话 `web/ui/v2/*`、`docs/history/v2/*`、`docs/evidence/v2-ui.json` 与 `PPT/`、`docs/competition/` 全程保留未提交。
+**下一步**：上述真断点需所有者就 zoom 协议 A/B、自主行为授权边界、写路径扩面做决策；较大离线能力按「先授权/持久化/安全合同后执行接线」推进（代码沙箱/CDP 安全模型尤需所有者审阅，不臆测协议、不擅自实现任意代码执行）。接管者可择一需设计合同的能力先写设计合同（如 K16.zoom_model_design 范式）供所有者批准，或在所有者决策后接线；**不宣称全集对等，whole_core_parity_complete / whole_reference_feature_audit_complete / whole_v2_complete 保持 false，不提前关闭任何对标项**。本段未跑全量、未触真实账号/模型/设备/运行中 Windows 服务与数据库；并行 UI 会话 `web/ui/v2/*`、`docs/history/v2/*`、`docs/evidence/v2-ui.json` 与 `PPT/`、`docs/competition/` 全程保留未提交。当前完整进度快照、计划与可直接粘贴的交接提示词见 [v2/HANDOFF_PROMPT.md](v2/HANDOFF_PROMPT.md)。
 
 ## 追溯入口
 
