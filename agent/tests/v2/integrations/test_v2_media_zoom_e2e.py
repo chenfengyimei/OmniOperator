@@ -16,8 +16,8 @@ from omni_test_support.v2.media import (
     _seed,
     open_instance,
 )
+from omni_test_support.v2.media_source import fixture as gateway_fixture
 from sqlalchemy import select, update
-from test_v2_media_source_identity import fixture as gateway_fixture
 
 from omni.adapters.persistence import schema as s
 from omni.application.media import ZOOM_SPEC
