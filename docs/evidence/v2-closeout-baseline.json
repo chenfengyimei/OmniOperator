@@ -80,8 +80,8 @@
         "agent/tests/v2/integrations/test_v2_images_migration.py": 1,
         "agent/tests/v2/integrations/test_v2_routing_migration.py": 1
       },
-      "disposition": "记录为债务批；不本批改。原因：他会话 v0052 在途再增 2 表，统一升级应以 v0052 落定后的 head 为准；且 D1 要求统一升级/标记历史测试，需逐文件甄别而非全量替换。",
-      "evidence": "JUnit full-79d9cd52-v2.xml 失败消息均为 147==145 或 v2_0051==v2_0039；images/routing 为 run_delegations 不存在的 v2_0039 迁移链旧断言"
+      "disposition": "已由 FIX.migration_pins_v0051（fcea91ac）修复：15 处表计数 145→147、6 处版本 v2_0039→v2_0051；2 项 pre-v42 seed 的 claim_runs 改为不含 run_delegations 的旧查询。16 文件复跑 78 passed / 42.55 秒。",
+      "evidence": "docs/evidence/v2-migration-pins-v0051.json；JUnit full-79d9cd52-v2.xml 失败消息为 147==145 / v2_0051==v2_0039 / run_delegations missing"
     },
     "fixed_in_this_session": [
       {
@@ -100,6 +100,12 @@
         "root": "服务注册测试沿用布局迁移前 parents[1] 路径（broker 源 + 5 receipt 命令共 6 项）；TYPE_CHECKING 漏登 v0051/reflection（1 项）",
         "resolved_failures": 7,
         "evidence": "docs/evidence/v2-baseline-alignment.json"
+      },
+      {
+        "batch": "FIX.migration_pins_v0051",
+        "root": "36 项表计数/版本 pin 停在 v2_0039/145；2 项 pre-v42 seed 使用当前 claim_runs 引用 run_delegations",
+        "resolved_failures": 38,
+        "evidence": "docs/evidence/v2-migration-pins-v0051.json"
       }
     ],
     "remaining_independent": [
@@ -196,14 +202,17 @@
     "C0.5": "暂缓（主工作树 40+ 修改/10+ 未跟踪，他会话 v0052 在途；遵守索引再生暂缓纪律）"
   },
   "fixes_after_baseline": {
-    "commit": "e0bca9ae637fa5429f027e7a3db8e493a9202bf2",
-    "scope": "服务注册测试路径 parents[1]→parents[2]（broker 源 1 + receipt 5，共 6 项）；TYPE_CHECKING 补 v0051/reflection（1 项）",
-    "targeted": "service_registration + typecheck_scope 18 passed 0.73 秒（基线 worktree + extras）",
-    "full_rerun": "未重跑全量；58→预期 51，不声称全量绿"
+    "commits": [
+      "e0bca9ae637fa5429f027e7a3db8e493a9202bf2",
+      "fcea91ac"
+    ],
+    "scope": "e0bca9ae：服务注册测试路径 parents[1]→parents[2]（6 项）+ TYPE_CHECKING 补 v0051/reflection（1 项）；fcea91ac：迁移 pin 145→147 / v2_0039→v2_0051（36 项）+ pre-v42 seed claim_runs（2 项）",
+    "targeted": "service_registration + typecheck_scope 18 passed 0.73 秒；16 个迁移文件 78 passed 42.55 秒（均在 79d9cd52 基线 worktree）",
+    "full_rerun": "未重跑全量；58→预期 13，不声称全量绿"
   },
   "not_executed": [
-    "修复后 e0bca9ae 的完整全量（仅专项验证；不声称 current_full_passed=true）",
-    "迁移 pin/表计数债务批（38 项，待 v0052 落定后统一升级）",
+    "修复后 fcea91ac 的完整全量（仅专项验证；不声称 current_full_passed=true）",
+    "v0052 落定后的 pin 再升级（本批 pin 为 v2_0051/147，v0052 需到 v2_0052/149）",
     "delegation  starvation 的 3 次隔离复现",
     "真实 Linux/macOS/Windows 原生服务、干净机器、容器、真实账号/设备/模型、72 小时",
     "docs/index 再生（C0.5 暂缓）",

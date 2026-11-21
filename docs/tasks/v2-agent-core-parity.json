@@ -991,6 +991,10 @@
     {
       "id": "FIX.run_compaction_settlement",
       "evidence": "docs/evidence/v2-run-compaction-settlement.json"
+    },
+    {
+      "id": "FIX.migration_pins_v0051",
+      "evidence": "docs/evidence/v2-migration-pins-v0051.json"
     }
   ]
 }
