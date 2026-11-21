@@ -215,8 +215,13 @@ def test_shutdown_budget_keeps_one_owned_cleanup_task(tmp_path, component):
         if component == "database":
             service._db = slow
         try:
-            assert not await service.close(0.02)
-            assert not await service.close(0.02)
+            assert not await service.close(0.5)
+            # The first bounded close must have actually started its owned cleanup before
+            # the idempotence check; scheduling under 4-worker load can exceed the old 20ms.
+            async with asyncio.timeout(5):
+                while (slow.calls if component == "database" else port.close_calls) < 1:
+                    await asyncio.sleep(0.01)
+            assert not await service.close(0.5)
             assert (slow.calls if component == "database" else port.close_calls) == 1
             release.set()
             port.release.set()
@@ -271,7 +276,9 @@ def test_late_observation_invalidates_exact_reviews_but_archive_does_not(tmp_pat
 
     async def scenario():
         db, agent, channel, clock, _, service = await setup(tmp_path)
-        scheduler = SchedulingService(db, clock, PinnedTimezones(), lambda: None, lambda a, r: None, redact=lambda text: text)
+        scheduler = SchedulingService(
+            db, clock, PinnedTimezones(), lambda: None, lambda a, r: None, redact=lambda text: text
+        )
         try:
             plan = await scheduler.save(
                 agent,
