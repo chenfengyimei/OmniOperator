@@ -40,22 +40,31 @@
       "verdict": "current_full_passed=false；58 项全部完成分诊（下表）"
     },
     "post_cleanup_full_suite": {
-      "head": "72d40eec",
-      "command": "source/.venv/Scripts/python.exe -m pytest -q -n 4 --dist=loadfile --junitxml=full-72d40eec.xml",
+      "head": "872d200b",
+      "command": "source/.venv/Scripts/python.exe -m pytest -q -n 4 --dist=loadfile --junitxml=full-872d200b.xml",
       "tests": 8368,
-      "passed": 8362,
-      "failed": 6,
-      "seconds": 2716.86,
-      "junit": "C:/v2-acceptance/closeout-18b75b75/full-72d40eec.xml",
-      "breakdown": "2 确定性环境项（installation/project catalog）+ 4 UI 负载 flake（routing UI/desktop control UI/memory UI×2，isolated 全过）；compaction/images UI/delegation 加固生效已转绿",
-      "verdict": "债务批+超时加固后复跑；全量仍未绿，不声称 current_full_passed",
-      "previous_run": {
-        "head": "3b7ee1b4",
-        "passed": 8361,
-        "failed": 7,
-        "seconds": 2548.87,
-        "junit": "C:/v2-acceptance/closeout-18b75b75/full-3b7ee1b4.xml"
-      }
+      "passed": 8366,
+      "failed": 2,
+      "seconds": 2729.13,
+      "junit": "C:/v2-acceptance/closeout-18b75b75/full-872d200b.xml",
+      "breakdown": "2 项全量时序/UI 竞态：event stream token 轮换后读到 history 而非 unauthenticated（隔离 3.18s 过）；memory UI exact（4-worker UI 复现，隔离 8.80s 过）",
+      "verdict": "确定性环境红已消除；剩余 2 项隔离通过、全量负载下竞态，未证明产品缺陷；全量仍未绿，不声称 current_full_passed",
+      "previous_runs": [
+        {
+          "head": "72d40eec",
+          "passed": 8362,
+          "failed": 6,
+          "seconds": 2716.86,
+          "junit": "C:/v2-acceptance/closeout-18b75b75/full-72d40eec.xml"
+        },
+        {
+          "head": "3b7ee1b4",
+          "passed": 8361,
+          "failed": 7,
+          "seconds": 2548.87,
+          "junit": "C:/v2-acceptance/closeout-18b75b75/full-3b7ee1b4.xml"
+        }
+      ]
     },
     "invalid_attempts": [
       {
@@ -134,21 +143,16 @@
     ],
     "remaining_independent": [
       {
-        "count": 2,
-        "class": "deterministic_environment",
-        "nodeids": [
-          "agent/tests/v2/operations/test_v2_installation_check.py::test_standalone_installer_json_preserves_non_legacy_unicode_under_isolated_python",
-          "agent/tests/test_project_catalog.py::test_real_browser_project_navigation_search_details_and_mobile"
-        ],
-        "cause": "isolated Python candidate_install_failed（用户🙂 路径）与 project catalog 浏览器 locator 超时；隔离运行同样失败，需干净安装包缓存/浏览器数据环境"
+        "count": 1,
+        "class": "event_stream_auth_ordering_race",
+        "nodeid": "agent/tests/v2/core/test_v2_event_stream.py::test_real_http_disconnect_resume_and_token_rotation_keep_one_durable_event_source",
+        "cause": "全量负载下 token 轮换后继续读到 history 帧，未立即收到 unauthenticated；隔离 3.18s 通过。涉及 G1 事件流授权/续接时序与他会话在途的 composition/http.py、adapters/http.py，本轮未触碰。"
       },
       {
         "count": 1,
         "class": "ui_4worker_race",
-        "nodeids": [
-          "agent/tests/v2/ui/test_v2_memory_organization_ui.py::test_exact_only_proposal_completes_and_undo_preserves_raw_facts_and_sources"
-        ],
-        "cause": "3d360137 全局 expect 15s 后，UI-only 4-worker 套件 241/242：routing/desktop 已转绿，仅 memory exact 仍复现（详情停在已入队，隔离 8.80s 通过）；属 UI 选择/异步刷新竞态，测试侧。full 重跑未做。"
+        "nodeid": "agent/tests/v2/ui/test_v2_memory_organization_ui.py::test_exact_only_proposal_completes_and_undo_preserves_raw_facts_and_sources",
+        "cause": "4-worker 全量/UI-only 下详情停在‘已入队，等待生成提案’，隔离 8.80s 通过；UI 选择/异步刷新竞态，web/ui/v2 为他会话在途修改，本轮未触碰。"
       }
     ]
   },
@@ -193,16 +197,18 @@
       "188b5071",
       "bc9f74cb",
       "c40e40e9",
-      "9f860571"
+      "9f860571",
+      "3d360137",
+      "872d200b"
     ],
-    "scope": "e0bca9ae：服务注册路径 6 + TYPE_CHECKING 1；fcea91ac：迁移 pin 36 + pre-v42 seed 2；FIX.baseline_debt_cleanup：layout 1 + media staging stub 2 + Android 摘要步骤 1 + todos 评审竞态 1 + cost 指纹断言 2；FIX.full_suite_timeouts：compaction 长测 10s→30s、images/memory UI 5s→15s、delegation 10s→30s",
-    "targeted": "service_registration+typecheck 18 passed 0.73 秒；16 迁移文件 78 passed 42.55 秒；media_staging 14 passed 7.25 秒；Android 1 passed 10.87 秒；todos 3/3；cost 14 passed 28.35 秒；layout 3 passed 2.57 秒；compaction 10 passed 32.85 秒；UI/delegation 10 passed 89.71 秒",
-    "full_rerun": "72d40eec 复跑 8368 项/6 失败（2 确定性环境 + 4 UI 负载 flake，isolated 全过）；compaction/images UI/delegation 加固已生效；全量仍未绿，不声称 current_full_passed"
+    "scope": "e0bca9ae：服务注册路径 6 + TYPE_CHECKING 1；fcea91ac：迁移 pin 36 + pre-v42 seed 2；FIX.baseline_debt_cleanup：layout 1 + media staging stub 2 + Android 摘要步骤 1 + todos 评审竞态 1 + cost 指纹断言 2；FIX.full_suite_timeouts：compaction/UI/delegation 等待；FIX.deterministic_env_tests：安装 fake wheel releases 包 1 + project catalog 架构标题 1",
+    "targeted": "service_registration+typecheck 18 passed 0.73 秒；16 迁移文件 78 passed 42.55 秒；media_staging 14 passed 7.25 秒；Android 1 passed 10.87 秒；todos 3/3；cost 14 passed 28.35 秒；layout 3 passed 2.57 秒；compaction 10 passed 32.85 秒；UI/delegation 10 passed 89.71 秒；安装 1 passed 0.39 秒；project catalog 1 passed 14.66 秒",
+    "full_rerun": "872d200b 复跑 8368 项/2 失败（event stream 授权时序 + memory UI 4-worker 竞态，均隔离通过）；确定性环境红已消除；全量仍未绿，不声称 current_full_passed"
   },
   "not_executed": [
-    "9f860571 后完整全量重跑（仅隔离专项；不声称 current_full_passed=true）",
-    "v0052 落定后的 pin 再升级（本批 pin 为 v2_0051/147，v0052 需到 v2_0052/149）",
-    "installation 干净包缓存环境与 project catalog 浏览器数据修复",
+    "event stream token 轮换后 history/unauthenticated 时序的生产修复（需他会话在途 http 文件）",
+    "memory UI 4-worker 竞态的测试侧修复（需他会话 UI 文件）",
+    "v0052 落定后的 pin 再升级（当前 pin 为 v2_0051/147，v0052 需到 v2_0052/149）",
     "主工作树 test_v2_layout 仍受他会话在途 reflection_review/reflection_flow 两条跨测试导入影响（提交树基线已绿）",
     "真实 Linux/macOS/Windows 原生服务、干净机器、容器、真实账号/设备/模型、72 小时",
     "docs/index 再生（C0.5 暂缓）",

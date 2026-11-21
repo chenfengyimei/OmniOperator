@@ -1003,6 +1003,10 @@
     {
       "id": "FIX.full_suite_timeouts",
       "evidence": "docs/evidence/v2-full-suite-timeouts.json"
+    },
+    {
+      "id": "FIX.deterministic_env_tests",
+      "evidence": "docs/evidence/v2-deterministic-test-fixes.json"
     }
   ]
 }

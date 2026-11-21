@@ -1,0 +1,54 @@
+{
+  "schema": 1,
+  "date": "2026-11-21",
+  "base_commit": "7aef9a14",
+  "batch_commit": "872d200b",
+  "status": "implemented_scoped_passed",
+  "batch": "FIX.deterministic_env_tests",
+  "scope": "此前被判为‘确定性环境’的两项全量红，实为测试夹具缺陷：安装测试 fake wheel 缺 releases 包（zipimport 不支持隐式 namespace package）、project catalog 仍期待旧文档标题。只改 V1/V2 测试文件，无生产源码改动。",
+  "fixes": [
+    {
+      "item": "test_standalone_installer_json_preserves_non_legacy_unicode_under_isolated_python",
+      "root": "fake wheel 只写 omni/adapters/platform/__init__.py，未写 omni/adapters/platform/releases/__init__.py；zipimport 不认隐式 namespace package，install_v2.py 导入 candidate_installer 失败并输出 candidate_install_failed。",
+      "fix": "fake wheel 增加 omni/adapters/platform/releases 包目录；仍用 -I，不修改生产安装器。",
+      "validation": "单测 1 passed（4.22 秒含首次；去掉 -S 后 0.39 秒复跑通过）。"
+    },
+    {
+      "item": "test_real_browser_project_navigation_search_details_and_mobile",
+      "root": "docs/ARCHITECTURE.md 当前标题为 ‘OmniOperator 架构权威’，V1 项目目录浏览器测试仍等待旧标题 ‘OmniOperator 架构说明’，页面实际渲染正确。",
+      "fix": "断言改用当前权威标题；仍等待 #proj-detail-body pre 可见，不做弱化。",
+      "validation": "单测 1 passed / 14.66 秒（真实 Chromium + V1 项目目录）。"
+    }
+  ],
+  "latest_full_suite": {
+    "head": "872d200b",
+    "command": "source/.venv/Scripts/python.exe -m pytest -q -n 4 --dist=loadfile --junitxml=full-872d200b.xml",
+    "tests": 8368,
+    "passed": 8366,
+    "failed": 2,
+    "seconds": 2729.13,
+    "junit": "C:/v2-acceptance/closeout-18b75b75/full-872d200b.xml",
+    "remaining": [
+      {
+        "nodeid": "agent/tests/v2/core/test_v2_event_stream.py::test_real_http_disconnect_resume_and_token_rotation_keep_one_durable_event_source",
+        "failure": "token rotation 后读到 history 帧而非 unauthenticated（隔离 3.18 秒通过；全量负载下事件顺序竞态）",
+        "risk": "G1 事件流授权/续接时序；涉及 composition/http.py 与 adapters/http.py（他会话在途修改，未触碰）"
+      },
+      {
+        "nodeid": "agent/tests/v2/ui/test_v2_memory_organization_ui.py::test_exact_only_proposal_completes_and_undo_preserves_raw_facts_and_sources",
+        "failure": "4-worker UI 下详情停在‘已入队，等待生成提案’（隔离 8.80 秒通过；UI-only 4-worker 241/242 复现）",
+        "risk": "UI 选择/异步刷新竞态；web/ui/v2 文件为他会话在途修改，未触碰"
+      }
+    ]
+  },
+  "effect": "全量 58 → 7 → 6 → 2；两项确定性环境红已消除。剩余 2 项均为全量负载下的时序/UI 竞态，隔离通过，未证明为可稳定复现的产品缺陷；不声称 current_full_passed。",
+  "not_executed": [
+    "872d200b 之后再次全量（本轮已含 872d200b 全量）",
+    "event stream 授权/续接竞态的隔离 3 次复现与生产修复（需他会话在途 http 文件）",
+    "memory UI 4-worker 竞态的测试侧修复（需他会话 UI 文件）",
+    "真实平台/账号/设备/72h",
+    "docs/index 再生（C0.5 暂缓）"
+  ],
+  "current_full_passed": false,
+  "whole_v2_complete": false
+}
