@@ -33,6 +33,33 @@
       ]
     }
   },
+  "post_timeout_full_suite": {
+    "head": "72d40eec",
+    "command": "source/.venv/Scripts/python.exe -m pytest -q -n 4 --dist=loadfile",
+    "tests": 8368,
+    "passed": 8362,
+    "failed": 6,
+    "seconds": 2716.86,
+    "junit": "C:/v2-acceptance/closeout-18b75b75/full-72d40eec.xml",
+    "fixed_vs_previous": [
+      "run compaction 长测（已通过；30s 等待生效）",
+      "images UI 2 项（已通过；15s 等待生效）",
+      "delegation starvation（已通过；30s 等待生效）"
+    ],
+    "remaining": {
+      "deterministic_environment": [
+        "agent/tests/v2/operations/test_v2_installation_check.py::test_standalone_installer_json_preserves_non_legacy_unicode_under_isolated_python（candidate_install_failed）",
+        "agent/tests/test_project_catalog.py::test_real_browser_project_navigation_search_details_and_mobile（浏览器 locator 30s 超时）"
+      ],
+      "ui_load_flake_isolated_pass": [
+        "agent/tests/v2/ui/test_v2_routing_ui.py::test_tier_editor_draft_and_actual_model_report[light-1440]（5s expect）",
+        "agent/tests/v2/ui/test_v2_desktop_control_ui.py::test_explicit_device_scope_is_separate_from_share_and_never_reports_input_enabled[1080-light]（5s expect）",
+        "agent/tests/v2/ui/test_v2_memory_organization_ui.py::test_exact_only_proposal_completes_and_undo_preserves_raw_facts_and_sources（15s expect 仍超时，实际停在已入队）",
+        "agent/tests/v2/ui/test_v2_memory_organization_ui.py::test_late_real_decision_detail_and_raw_memory_reads_keep_current_agent_and_batch[two_agents]（IndexError，同源）"
+      ]
+    },
+    "isolated_proof": "routing_ui + desktop_control_ui 10 passed / 74.32 秒；memory UI 单测 1 passed / 8.80 秒；images UI 8 passed / 152.22 秒；delegation 3/3 passed；run compaction 10 passed / 32.85 秒"
+  },
   "fixes": [
     {
       "commit": "c40e40e9",
@@ -49,9 +76,9 @@
       "validation": "images UI 8 + memory UI 1 + delegation 1 合计 10 passed / 89.71 秒（隔离）；delegation 单测复跑 1 passed / 12.77 秒。"
     }
   ],
-  "accounting": "3b7ee1b4 全量 7 红 = 2 个确定性环境项（installation/project catalog）+ 4 个已隔离证明的负载 flake + 1 个新时序项；时序项已修复，负载项已加固。下一轮全量预期至少剩 2 个确定性环境项；不声称 0 红或 current_full_passed=true。",
+  "accounting": "3b7ee1b4 全量 7 红 = 2 确定性环境 + 4 负载 flake + 1 新时序（已修）。72d40eec 复跑 8362/6 红 = 2 确定性环境 + 4 UI 负载 flake（isolated 全过）；compaction/images UI/delegation 加固生效。剩余 6 项均非已证明产品缺陷，但全量仍未绿，不声称 current_full_passed=true。",
   "not_executed": [
-    "9f860571 后的完整全量重跑（仅隔离专项；不声称 0 红）",
+    "进一步 UI 全局超时/负载隔离后的完整全量重跑（仅隔离专项；不声称 0 红）",
     "installation 干净包缓存环境与 project catalog 浏览器数据修复",
     "真实平台/账号/设备/72h",
     "docs/index 再生（C0.5 暂缓）"

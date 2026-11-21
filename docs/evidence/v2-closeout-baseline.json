@@ -40,15 +40,22 @@
       "verdict": "current_full_passed=false；58 项全部完成分诊（下表）"
     },
     "post_cleanup_full_suite": {
-      "head": "3b7ee1b4",
-      "command": "source/.venv/Scripts/python.exe -m pytest -q -n 4 --dist=loadfile --junitxml=full-3b7ee1b4.xml",
+      "head": "72d40eec",
+      "command": "source/.venv/Scripts/python.exe -m pytest -q -n 4 --dist=loadfile --junitxml=full-72d40eec.xml",
       "tests": 8368,
-      "passed": 8361,
-      "failed": 7,
-      "seconds": 2548.87,
-      "junit": "C:/v2-acceptance/closeout-18b75b75/full-3b7ee1b4.xml",
-      "breakdown": "2 确定性环境项（installation/project catalog）+ 4 负载 flake（delegation/images UI×2/memory UI，均隔离通过）+ 1 新时序项（run compaction 长测，隔离 9.62s 逼近 10s 硬限，c40e40e9 放宽到 30s）",
-      "verdict": "债务批后复跑；已修复/加固 5 项，预期至少剩 2 个确定性环境项；未重跑不声称 0 红"
+      "passed": 8362,
+      "failed": 6,
+      "seconds": 2716.86,
+      "junit": "C:/v2-acceptance/closeout-18b75b75/full-72d40eec.xml",
+      "breakdown": "2 确定性环境项（installation/project catalog）+ 4 UI 负载 flake（routing UI/desktop control UI/memory UI×2，isolated 全过）；compaction/images UI/delegation 加固生效已转绿",
+      "verdict": "债务批+超时加固后复跑；全量仍未绿，不声称 current_full_passed",
+      "previous_run": {
+        "head": "3b7ee1b4",
+        "passed": 8361,
+        "failed": 7,
+        "seconds": 2548.87,
+        "junit": "C:/v2-acceptance/closeout-18b75b75/full-3b7ee1b4.xml"
+      }
     },
     "invalid_attempts": [
       {
@@ -139,12 +146,12 @@
         "count": 4,
         "class": "load_flake_hardened",
         "nodeids": [
-          "agent/tests/v2/core/test_v2_delegation.py::test_four_waiting_parents_do_not_starve_the_child_pool",
-          "agent/tests/v2/ui/test_v2_images_ui.py::test_image_draft_switch_and_image_only_message[light-1440]",
-          "agent/tests/v2/ui/test_v2_images_ui.py::test_image_draft_switch_and_image_only_message[dark-1024]",
-          "agent/tests/v2/ui/test_v2_memory_organization_ui.py::test_exact_only_proposal_completes_and_undo_preserves_raw_facts_and_sources"
+          "agent/tests/v2/ui/test_v2_routing_ui.py::test_tier_editor_draft_and_actual_model_report[light-1440]",
+          "agent/tests/v2/ui/test_v2_desktop_control_ui.py::test_explicit_device_scope_is_separate_from_share_and_never_reports_input_enabled[1080-light]",
+          "agent/tests/v2/ui/test_v2_memory_organization_ui.py::test_exact_only_proposal_completes_and_undo_preserves_raw_facts_and_sources",
+          "agent/tests/v2/ui/test_v2_memory_organization_ui.py::test_late_real_decision_detail_and_raw_memory_reads_keep_current_agent_and_batch[two_agents]"
         ],
-        "cause": "4-worker 全量负载下等待超时；隔离全部通过。c40e40e9 将 run compaction 长测 wait_state 放宽到 30s；9f860571 将 images/memory UI expect 放宽到 15s、delegation started/parents 放宽到 30s。断言文本与业务条件未变；加固后未重跑全量。"
+        "cause": "72d40eec 4-worker 全量下 UI 等待超时/无候选；这几项在隔离运行全过（routing+desktop 10 passed 74.32s，memory 1 passed 8.80s）。images UI/delegation/compaction 的 15s/30s 加固已生效；这 4 项需进一步隔离 UI worker 或继续放宽等待，未改断言文本。"
       }
     ]
   },
@@ -193,7 +200,7 @@
     ],
     "scope": "e0bca9ae：服务注册路径 6 + TYPE_CHECKING 1；fcea91ac：迁移 pin 36 + pre-v42 seed 2；FIX.baseline_debt_cleanup：layout 1 + media staging stub 2 + Android 摘要步骤 1 + todos 评审竞态 1 + cost 指纹断言 2；FIX.full_suite_timeouts：compaction 长测 10s→30s、images/memory UI 5s→15s、delegation 10s→30s",
     "targeted": "service_registration+typecheck 18 passed 0.73 秒；16 迁移文件 78 passed 42.55 秒；media_staging 14 passed 7.25 秒；Android 1 passed 10.87 秒；todos 3/3；cost 14 passed 28.35 秒；layout 3 passed 2.57 秒；compaction 10 passed 32.85 秒；UI/delegation 10 passed 89.71 秒",
-    "full_rerun": "3b7ee1b4 复跑 8368 项/7 失败（2 确定性环境 + 4 负载 flake + 1 新时序）；时序已修、负载已加固；预期至少剩 2 个确定性环境项，不声称全量绿"
+    "full_rerun": "72d40eec 复跑 8368 项/6 失败（2 确定性环境 + 4 UI 负载 flake，isolated 全过）；compaction/images UI/delegation 加固已生效；全量仍未绿，不声称 current_full_passed"
   },
   "not_executed": [
     "9f860571 后完整全量重跑（仅隔离专项；不声称 current_full_passed=true）",
