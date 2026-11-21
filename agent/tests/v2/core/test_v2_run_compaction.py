@@ -197,7 +197,7 @@ def test_long_run_compacts_repeatedly_keeping_recent_rounds(tmp_path):
             app = instance.application
             agent = await configure(app, instance._database)
             receipt = await app.submit_turn(agent, None, "go", "go")
-            await wait_state(app, agent, receipt["run_id"], {"succeeded"})
+            await wait_state(app, agent, receipt["run_id"], {"succeeded"}, timeout=30)
             assert reader.count == 6
             assert model.summary >= 2
             final = model.main_inputs[-1]
