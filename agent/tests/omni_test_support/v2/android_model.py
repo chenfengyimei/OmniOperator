@@ -33,6 +33,10 @@ class AndroidModel:
     async def complete(self, messages, tools, settings):
         self.catalogs.append([t.name for t in tools])
         self.tool_bodies = [m["content"] for m in messages if m["role"] == "tool"]
+        if not tools:
+            # K06 run compaction uses a no-tools summary call; it must not consume a scripted
+            # device step or the following app-inventory request is replaced by the final answer.
+            return ModelReply("Bounded run summary", cost_micro=0)
         self.step += 1
         if self.step == 1:
             return ModelReply("", (Invocation("request-device-access", ACCESS_SPEC.name, self.request),), cost_micro=0)
