@@ -179,6 +179,18 @@
     "C0.4": "完成（pyright 420/0/0；ruff src 绿/tests 339 欠账；format 6+4 欠账）",
     "C0.5": "暂缓（主工作树 40+ 修改/10+ 未跟踪，他会话 v0052 在途；遵守索引再生暂缓纪律）"
   },
+  "c0_5_probe": {
+    "date": "2026-11-22",
+    "baseline_command": "source/.venv/Scripts/python.exe scripts/project_index.py",
+    "baseline_result": "modules=65 files=838 routes=458 declared_tools=94 updated=MODULES.md,API.md,project.json; source_sha256=bb5f3bf054cbd2544832226255196e6f59af458c38223d7bb52dc6c89f210820",
+    "committed_index": "modules=65 files=? routes=? declared_tools=94 source_sha256=ecb88ce12ecb23b6fda1b08064c17c87d716c114e7ad5fed4cab6eee7d6a56de",
+    "main_worktree_index": "modules=65 files=833 routes=? declared_tools=94 source_sha256=7dcc48636dfc0d99a9e1fe907a6ac80937c3c2a6444e676deb312e9bfb1ca1fe（含他会话未提交编辑，仍落后基线 5 个文件）",
+    "blocked_reason": "主工作树 docs/index 已被他会话修改；直接再生会覆盖其未提交编辑并编码其 WIP。基线在 a4350753 clean 树上可复现，等主工作树洁净或他会话提交后再落索引。"
+  },
+  "platform_blockers": {
+    "C2.8_container": "Docker Desktop Linux engine 不可连接；com.docker.service 启动被拒绝（Cannot open service，当前会话无管理员/服务控制权限）。未 build/run 镜像，check_v2_container.py 未执行。",
+    "C2.7_windows_native_service": "真实服务安装/停止需要管理员与服务控制权限；本会话未执行，保留 unknown 语义。"
+  },
   "fixes_after_baseline": {
     "commits": [
       "e0bca9ae637fa5429f027e7a3db8e493a9202bf2",
