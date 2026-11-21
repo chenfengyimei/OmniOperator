@@ -8,13 +8,13 @@
   "whole_v2_complete": false,
   "full_suite_for_current_source": true,
   "full_suite_evidence": {
-    "head": "a4350753",
-    "tests": 8368,
-    "passed": 8368,
+    "head": "696ed937",
+    "tests": 8374,
+    "passed": 8374,
     "failed": 0,
-    "seconds": 2767.05,
-    "junit": "C:/v2-acceptance/closeout-18b75b75/full-a4350753.xml",
-    "scope": "committed HEAD a4350753; other-session uncommitted WIP not covered"
+    "seconds": 2741.11,
+    "junit": "C:/v2-acceptance/closeout-18b75b75/full-696ed937.xml",
+    "scope": "committed HEAD 696ed937; other-session uncommitted WIP not covered"
   },
   "contract": "docs/v2/contracts/V2_AGENT_CORE_PARITY.md",
   "evidence": "docs/evidence/v2-agent-core-parity.json",
@@ -35,12 +35,13 @@
     {
       "id": "K01",
       "title": "系统前缀与缓存范围",
-      "status": "design_contract_recorded",
-      "delivered": "单run前缀冻结，档位/已审技能变化尾部通知；缓存作用域设计合同已记录（v2/contracts/V2_PROMPT_CACHE_SCOPE.md，D1-D8）",
-      "remaining": "实现待所有者选定D3方案（(b)路由键注入可先落无冻结合同改动；(a)/(c)前缀重构需批准）；真实缓存效果单独验收",
+      "status": "partial",
+      "delivered": "单run前缀冻结，档位/已审技能变化尾部通知；缓存作用域设计合同已记录（v2/contracts/V2_PROMPT_CACHE_SCOPE.md，D1-D8）；D3(b) 路由键注入已实现（K01.prompt_cache_route_key：pc_<sha256(agent|session|epoch)[:24]>，仅 xAI/Grok/OpenAI extra_body，messages/前缀字节/计量不变）",
+      "remaining": "D3(a)/(c) 前缀重构待所有者批准（触及 memory_system/history_request 冻结前缀+语义）；D8 真实缓存效果需隔离环境单独验收",
       "reference": "hermes-agent/agent/prompt_builder.py; agent/prompt_cache_scope.py",
       "evidence": "docs/evidence/v2-prompt-cache-scope.json",
-      "limits": "设计合同纯文档未实现；V2无prompt_cache_key现状仅读usage缓存字段；实现分两批，前缀重构触及memory_system/history_request冻结前缀+语义需所有者批准；真实缓存效果需隔离环境单独验收"
+      "implementation_evidence": "docs/evidence/v2-prompt-cache-route-key.json",
+      "limits": "D3(b) 仅 provider 路由亲和，不改变内容地址 provider 的前缀漂移现状；未用 prompt_cache_key 伪造缓存命中；D3(a)/(c) 与真实缓存效果未做"
     },
     {
       "id": "K02",
@@ -1030,6 +1031,10 @@
     {
       "id": "K14.visual_subagent_design",
       "evidence": "docs/evidence/v2-visual-subagent-design.json"
+    },
+    {
+      "id": "K01.prompt_cache_route_key",
+      "evidence": "docs/evidence/v2-prompt-cache-route-key.json"
     }
   ]
 }

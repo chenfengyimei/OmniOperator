@@ -40,33 +40,33 @@
       "verdict": "current_full_passed=false；58 项全部完成分诊（下表）"
     },
     "post_cleanup_full_suite": {
-      "head": "a4350753",
-      "command": "source/.venv/Scripts/python.exe -m pytest -q -n 4 --dist=loadfile --junitxml=full-a4350753.xml",
-      "tests": 8368,
-      "passed": 8368,
+      "head": "696ed937",
+      "command": "source/.venv/Scripts/python.exe -m pytest -q -n 4 --dist=loadfile --junitxml=full-696ed937.xml",
+      "tests": 8374,
+      "passed": 8374,
       "failed": 0,
       "errors": 0,
       "skipped": 0,
-      "warnings": 12,
-      "seconds": 2767.05,
-      "junit": "C:/v2-acceptance/closeout-18b75b75/full-a4350753.xml",
-      "log": "C:/v2-acceptance/closeout-18b75b75/full-a4350753.log",
-      "breakdown": "0 失败 / 8,368 通过；确定性环境、event stream、UI 超时与 memory organization wait_ready 全部修复",
-      "verdict": "committed HEAD a4350753 全量绿；主工作树其余会话未提交 WIP 不在该基线内",
+      "warnings": 4,
+      "seconds": 2741.11,
+      "junit": "C:/v2-acceptance/closeout-18b75b75/full-696ed937.xml",
+      "log": "C:/v2-acceptance/closeout-18b75b75/full-696ed937.log",
+      "breakdown": "0 失败 / 8,374 通过；K01(b) 路由键 + shutdown-budget flake 修复后 committed HEAD 全量绿",
+      "verdict": "committed HEAD 696ed937 全量绿；主工作树其余会话未提交 WIP 不在该基线内",
       "previous_runs": [
+        {
+          "head": "a4350753",
+          "passed": 8368,
+          "failed": 0,
+          "seconds": 2767.05,
+          "junit": "C:/v2-acceptance/closeout-18b75b75/full-a4350753.xml"
+        },
         {
           "head": "a7a47595",
           "passed": 8367,
           "failed": 1,
           "seconds": 2728.34,
           "junit": "C:/v2-acceptance/closeout-18b75b75/full-a7a47595.xml"
-        },
-        {
-          "head": "872d200b",
-          "passed": 8366,
-          "failed": 2,
-          "seconds": 2729.13,
-          "junit": "C:/v2-acceptance/closeout-18b75b75/full-872d200b.xml"
         }
       ]
     },
@@ -206,11 +206,13 @@
       "872d200b",
       "ff30592d",
       "b1bf5810",
-      "a4350753"
+      "a4350753",
+      "372ad56d",
+      "696ed937"
     ],
-    "scope": "e0bca9ae：服务注册路径 6 + TYPE_CHECKING 1；fcea91ac：迁移 pin 36 + pre-v42 seed 2；FIX.baseline_debt_cleanup：layout 1 + media staging stub 2 + Android 摘要步骤 1 + todos 评审竞态 1 + cost 指纹断言 2；FIX.full_suite_timeouts：compaction/UI/delegation 等待；FIX.deterministic_env_tests：安装 fake wheel releases 包 1 + project catalog 架构标题 1；ff30592d：event stream 轮换后排队的 history 帧序 1；a4350753：memory organization wait_ready 改 Python 轮询 1",
-    "targeted": "service_registration+typecheck 18 passed 0.73 秒；16 迁移文件 78 passed 42.55 秒；media_staging 14 passed 7.25 秒；Android 1 passed 10.87 秒；todos 3/3；cost 14 passed 28.35 秒；layout 3 passed 2.57 秒；compaction 10 passed 32.85 秒；UI/delegation 10 passed 89.71 秒；安装 1 passed 0.39 秒；project catalog 1 passed 14.66 秒；memory wait_ready 5/5 + 4 UI 文件 22/22",
-    "full_rerun": "a4350753 复跑 8368 项/0 失败/2767.05 秒；committed HEAD 全量绿，主工作树其余 WIP 不在基线内"
+    "scope": "e0bca9ae：服务注册路径 6 + TYPE_CHECKING 1；fcea91ac：迁移 pin 36 + pre-v42 seed 2；FIX.baseline_debt_cleanup：layout 1 + media staging stub 2 + Android 摘要步骤 1 + todos 评审竞态 1 + cost 指纹断言 2；FIX.full_suite_timeouts：compaction/UI/delegation 等待；FIX.deterministic_env_tests：安装 fake wheel releases 包 1 + project catalog 架构标题 1；ff30592d：event stream 轮换后排队的 history 帧序 1；a4350753：memory organization wait_ready 改 Python 轮询 1；372ad56d：K01(b) 提示缓存路由键；696ed937：shutdown budget flake 首次 close 等待 cleanup 启动",
+    "targeted": "service_registration+typecheck 18 passed 0.73 秒；16 迁移文件 78 passed 42.55 秒；media_staging 14 passed 7.25 秒；Android 1 passed 10.87 秒；todos 3/3；cost 14 passed 28.35 秒；layout 3 passed 2.57 秒；compaction 10 passed 32.85 秒；UI/delegation 10 passed 89.71 秒；安装 1 passed 0.39 秒；project catalog 1 passed 14.66 秒；memory wait_ready 5/5 + 4 UI 文件 22/22；K01 cache 6 + 调用方 85 passed；shutdown budget 3/3",
+    "full_rerun": "696ed937 复跑 8374 项/0 失败/2741.11 秒；K01(b) 与 shutdown-budget flake 修复后 committed HEAD 全量绿，主工作树其余 WIP 不在基线内"
   },
   "not_executed": [
     "主工作树其余会话未提交 WIP 的全量（本基线只覆盖 committed HEAD a4350753）",
@@ -219,7 +221,7 @@
     "docs/index 再生（C0.5 暂缓）",
     "C1 功能缺口/平台收口/真实验收"
   ],
-  "full_suite_scope": "committed HEAD a4350753；主工作树 40+ 修改 / 10+ 未跟踪 WIP 未进入本基线",
+  "full_suite_scope": "committed HEAD 696ed937；主工作树 40+ 修改 / 10+ 未跟踪 WIP 未进入本基线",
   "current_full_passed": true,
   "all_quality_gates_passed": false,
   "whole_v2_complete": false

@@ -1,0 +1,71 @@
+{
+  "schema": 1,
+  "date": "2026-11-22",
+  "base_commit": "a4350753",
+  "batch_commit": "372ad56d",
+  "batch": "K01.prompt_cache_route_key",
+  "status": "implemented_scoped_passed",
+  "scope": "K01 D3(b) 最小风险方案：仅向 provider 注入不可逆派生 prompt_cache_key，不改冻结系统前缀/消息字节/计量；xAI/Grok slot-keyed 与 OpenAI 系注入，内容地址 provider 与 OpenCode Go 既有头不叠加。",
+  "contract": "docs/v2/contracts/V2_PROMPT_CACHE_SCOPE.md",
+  "source_files": {
+    "agent/src/omni/domain/settings.py": "run-scoped agent_id/session_id/content_epoch 字段；settings_value 兼容旧调用",
+    "agent/src/omni/adapters/persistence/configuration_repository.py": "run_settings 返回 run 所属 session/content_epoch",
+    "agent/src/omni/adapters/models.py": "prompt_cache_key/cache_route/_prepare extra_body 注入",
+    "agent/tests/v2/core/test_v2_prompt_cache.py": "6 项域/注入回归"
+  },
+  "delivered": [
+    "prompt_cache_key = pc_<sha256(agent|session|epoch)[:24]>；不可逆、不含明文 UUID；缺失/类型不符 fail-closed 返回 None。",
+    "cache_route 分类：xAI/Grok（base api.x.ai 或 model xai/x-ai/grok）与 OpenAI 系（base openai 或 model openai/gpt-/o1/o3/o4）注入；DeepSeek/Anthropic/Gemini 跳过。",
+    "run_settings 增加 run-scoped 身份；Settings 增字段；settings_value 允许旧 settings 缺省（不注入）或完整 scope（校验类型）。",
+    "_prepare 仅设置 kwargs['extra_body']['prompt_cache_key']；messages/system prefix/tools/caching:False 不变；extra_headers 仍过滤 authorization/x-api-key。",
+    "OpenCode Go 既有 x-opencode-session 头保持不变，不叠加 prompt_cache_key。"
+  ],
+  "validation": {
+    "scoped": {
+      "command": "uv run --no-sync pytest -q -n 0 agent/tests/v2/core/test_v2_prompt_cache.py",
+      "passed": 6,
+      "failed": 0,
+      "seconds": 4.23
+    },
+    "callers": {
+      "command": "source/.venv pytest -q -n 0 test_v2_prompt_cache + model_stream + configuration + execution + turn_integrity",
+      "passed": 85,
+      "failed": 0,
+      "seconds": 143.65,
+      "note": "独立 a4350753 基线应用本批后运行；主工作树 v0052 WIP 不参与"
+    },
+    "strict": {
+      "command": "python -m pyright -p pyrightconfig.strict.json --pythonpath .venv/Scripts/python.exe",
+      "files": 424,
+      "errors": 0,
+      "warnings": 0,
+      "seconds": 26.59
+    },
+    "full_suite": {
+      "head": "696ed937",
+      "command": "source/.venv/Scripts/python.exe -m pytest -q -n 4 --dist=loadfile",
+      "tests": 8374,
+      "passed": 8374,
+      "failed": 0,
+      "warnings": 4,
+      "seconds": 2741.11,
+      "junit": "C:/v2-acceptance/closeout-18b75b75/full-696ed937.xml",
+      "note": "K01(b) + shutdown-budget flake 修复后的 committed HEAD 全量绿；主工作树 WIP 不在基线内"
+    },
+    "ruff": "4 files: All checks passed! / already formatted"
+  },
+  "safety": {
+    "frozen_prefix_untouched": "domain/metering.py memory_system/history_request 未改；messages 逐字节不变",
+    "opaque_key": "仅 sha256 派生 24 hex，不含 agent/session UUID",
+    "fail_closed": "缺失/非法 scope 不注入，不阻断模型调用",
+    "no_effect_on_cost": "usage 缓存字段照读，cost 计算与账本不变"
+  },
+  "not_executed": [
+    "D3(a)/(c) 前缀重构（需所有者批准，触及冻结 memory_system/history_request）",
+    "D8 真实 provider 缓存命中率验收（需隔离凭据/账号）"
+  ],
+  "full_suite_scope": "committed HEAD 696ed937; other-session uncommitted WIP not covered",
+  "current_full_passed": true,
+  "all_quality_gates_passed": false,
+  "whole_v2_complete": false
+}

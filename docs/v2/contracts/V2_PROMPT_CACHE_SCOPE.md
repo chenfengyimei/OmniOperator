@@ -2,7 +2,7 @@
 
 ## 状态
 
-**设计合同（design_contract_recorded，纯文档，无源码/测试/迁移改动，2026-11-21）。** K01 现状态 `partial`：交付项为「单 run 前缀冻结，档位/已审技能变化以通知形式注入」；剩余项为「会话/分叉 lineage 级稳定范围与跨 run 策略；真实缓存效果单独验收」。本合同即该剩余项的设计合同。
+**设计合同（design_contract_recorded，纯文档，无源码/测试/迁移改动，2026-11-21）。** K01 现状态 `partial`：交付项为「单 run 前缀冻结，档位/已审技能变化以通知形式注入」；剩余项为「会话/分叉 lineage 级稳定范围与跨 run 策略；真实缓存效果单独验收」。本合同即该剩余项的设计合同。**2026-11-22 更新：D3(b) 路由键注入已实现**（`K01.prompt_cache_route_key`，纯 adapter 注入，无冻结合同改动）；D3(a)/(c) 前缀重构与 D8 真实缓存效果仍待所有者/隔离环境。
 
 **本合同本身是安全的纯设计文档，可提交。其第二阶段实现触及两处需所有者批准的面：(1) 系统前缀结构（`domain/metering.py` 的 `memory_system`/`history_request`，当前冻结前缀合同）；(2) `adapters/models.py` 请求装配 + 可能含会话标识哈希的 provider 缓存键（安全敏感）。按「合同先于接线」纪律，实现前需所有者审阅本合同并选定 D3 方案。**
 
@@ -74,7 +74,17 @@
 - **不改** `messages` 内容/前缀（D3(a) 除外，后者独立批）。
 - **不改** 计量/计费：usage 缓存字段照读（事实 1），cost 计算不变。
 
-### D8 真实缓存效果验收（单独批，不入本设计批）
+### 实现记录：D3(b) 路由键注入（2026-11-22，`K01.prompt_cache_route_key`）
+
+- **作用域**：`run_settings` 返回 run 所属 `agent_id`/`session_id`/`content_epoch`（`configuration_repository.py`）；`Settings` 增三个 run-scoped 字段，`settings_value` 对旧调用保持可选（缺失即不注入）。
+- **派生键**：`adapters/models.py::prompt_cache_key` = `pc_<sha256("agent|session|epoch")[:24]>`；不可逆、不含明文内部 id；缺失/类型不符 → `None`（fail-closed，不阻断调用）。
+- **provider 分类**：`cache_route` 仅对 xAI/Grok slot-keyed 与 OpenAI 系注入；Anthropic/DeepSeek/Gemini 等内容地址 provider 依靠前缀字节 parity，不注入。OpenCode Go 既有 `x-opencode-session` 头保持，不叠加路由键。
+- **注入位置**：`_prepare` 的 litellm `extra_body.prompt_cache_key`；`messages`/系统前缀/工具/计量/kwargs 其余字段不变；`caching:False` 保持。
+- **无冻结合同改动**：未改 `domain/metering.py` 的 `memory_system`/`history_request`，未改 provider 请求体语义。
+- **验证**：新增 `agent/tests/v2/core/test_v2_prompt_cache.py` 6 项（派生稳定/epoch 换桶/不泄露/分类矩阵/注入字节不变/内容地址跳过/OpenCode 头）；model/config/execution/turn-integrity/model-stream 调用方 85 passed；strict 424 文件 0 错误；证据见 [v2-prompt-cache-route-key.json](../../evidence/v2-prompt-cache-route-key.json)。
+- **未做**：D3(a)/(c) 前缀重构、D8 真实 provider 缓存命中率验收。
+
+## D8 真实缓存效果验收（单独批，不入本设计批）
 
 - 用既有 usage 读取（事实 1）比对注入前后跨 run 的 hit/miss tokens 变化；真实 provider 调用在隔离凭据/环境下单独验收，**不混入默认离线套件、不触真实账号/计费**（需所有者安排隔离环境）。
 
