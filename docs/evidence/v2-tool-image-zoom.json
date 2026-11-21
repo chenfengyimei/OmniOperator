@@ -2,7 +2,7 @@
   "schema": 1,
   "date": "2026-11-21",
   "base_commit": "ab2dadd9a37b99f90d515616f959eab6c50fdfec",
-  "batch_commit": "PENDING_BACKFILL",
+  "batch_commit": "e3f007f01663276fd7ab442832c7acb44e8b6f8a",
   "status": "implemented_scoped_passed",
   "batch": "K16.tool_image_zoom",
   "owner_approval": "所有者 2026-11-21 批准方案 B（决策 2 写工具审批门复用、决策 3 frames 作业复用随方案 B 生效）与 D5，按 D8 四批接线；本批为 2 media_zoom 工具批（1a 持久化 39da3eef、1b 协议+引擎 17565339 已落地）。",
