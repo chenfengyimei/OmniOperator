@@ -479,6 +479,14 @@
           "contract": "docs/v2/contracts/V2_MEMORY_SCORING.md",
           "evidence": "docs/evidence/v2-memory-scoring.json",
           "delivered": "所有者批准完整 scoreMemory 自动评分。学习参考 surfcore memory-card.js scoreMemory/detectEmotionScore 纯逻辑启发，独立实现于 V2 四层 memory 链(stdlib re 无新依赖)。domain/memory_scoring.py 新纯规则：detect_emotion_score(min24,strong*8+medium*3+exclaim)、score_memory(base8+owner42私/32群+direct8+emotional+first30+promise16+conflict14+self5+bili score clamp0-18/favorite8/anecdote4+len<6-12+manual override，clamp1-100，kind first>owner>emotion>=14>conflict>promise>event，pinned=input.pinned||(first&&(owner||imp>=60))，first&&owner→100 pinned，tags owner/emotion>=8/first/bili/qq去重≤12，scope/platform)、EMOTION_STRONG/MEDIUM/FIRST/PROMISE/CONFLICT/SELF 正则逐字移植、SOURCE_PLATFORM。权威模型：memory_repository.remember importance int默认50→int|None None，新增 _memory_score_context(qq_runs by run_id→people.owner_id is_owner、qq_bindings.scene is_private、source qq-private/qq-group；非渠道无 qq_runs→None)，context 可解析→score_memory(manual_importance=importance,pinned) 取 importance/pinned 否则 None→默认50；显式 model importance=手动覆盖优先(参考 manualImportance，先校验1-100)；审计 memory.scored(importance/pinned/emotional/kind/tags/scope/reasons，cast Record 不含私有正文)；clarity=initial_clarity 复用 decay_core。memory_tools memory_remember importance 含则 cast(int) 否则 None；ports UnitOfWork.remember importance int|None；capabilities spec 描述更新。保守输入 is_first/direct/bili score/favorite/anecdote=False/0(V2 intake 缺，引擎完整支持；first-meet 属独立 isInitial 缺口)；reasons/scored_kind/tags/scope 入审计(V2 无 tags/scope 列、kind CHECK 限 fact/profile/resident/journal/note 与参考 kind 冲突，不改 kind 列/无新列/迁移/路由)。strict include 补 memory_scoring.py(413→414)。13 专项过(8.86秒，领域10全因子+接线3：非渠道默认50无审计/QQ私聊owner63审计无私有正文/QQ群非owner21+显式70manual override)，7 文件调用方回归 110 过/0 失败(170.72秒，memory_decay/decay_tick/scoring/organization/semantics/background_review/qq，渠道门控非渠道默认50零回归)，strict 414文件5错误均既有repository.py本批零错误0警告(修 ports importance int|None+审计 cast Record)，ruff通过；聚合索引暂缓。isInitial first-meet/QQ direct @reply/Bilibili 入站说话人上下文表/tags scope 持久化列/非渠道自动评分仍后续"
+        },
+        {
+          "gap": "主动动机/需求/目标/驱动/情绪引擎 + 外联硬门（K15 重大可离线缺口）",
+          "status": "design_contract_recorded",
+          "batch": "K15.motivation_design",
+          "contract": "docs/v2/contracts/V2_MOTIVATION.md",
+          "evidence": "docs/evidence/v2-motivation-design.json",
+          "delivered": "实现前授权/预算/quiet/外联硬门合同（纯文档）：D0 范围（全量/仅核心/不做）、D1 持久化（motivation_state 表/内存重放）、D2 tick 载体、D3 话语生成（模板/模型）、D4 外联渠道（仅内部/审批 outbox/白名单）；9 需求/9 驱动半衰期 8h/10 情绪/目标假设纯逻辑边界；每 tick≤1 提议+幂等去重；quiet 23–08/日限≤4/白名单/reserved/预算/载体互斥；D0–D4 未决分别不实现/不迁移/不调模型/不投递；接线点 instance.py/engine.py 他会话在途。"
         }
       ],
       "limits": "只读审计无新引擎/表/迁移/路由/源码改动；可离线缺口未在K15审计批实现(列后续批次)，其中时间衰减遗忘巩固引擎核心已在K15.decay_core后续批实现(新memory_decay_state表+v0047迁移+memory_entries6加性列+2所有者REST路由+domain/memory_decay.py纯规则，forgotten隐藏态不擦除V2纪律更严于参考自动删除)，自动每日遍已在K15.decay_tick后续批接入MaintenanceService.tick(dailyHour=4夜间门+每agent今日一次幂等+有界8agent sweep，生产启用隔离测试禁用，复用decay_core隐藏不擦除/protected豁免，无新表/迁移/路由)，重要性启发已在K15.score_memory后续批实现(domain/memory_scoring.py完整scoreMemory启发+渠道门控自动评分，所有者批准记忆权威变更：显式model importance手动覆盖优先、省略时QQ渠道捕获按说话人上下文自动评分、非渠道保持默认50零回归，is_first/direct/bili保守False0引擎完整支持，reasons/kind/tags/scope入审计无新列/迁移)；isInitial first-meet窗口/QQ direct解析/Bilibili入站说话人上下文/tags scope持久化列/双卡分离/注入clarity裁剪/容量告警auto-compact/所有者自动衰减开关仍后续；不宣称自主行为/分层人格/作息反馈对等，遗忘巩固核心手动+自动每日衰减遍+重要性启发已接；既有todos重启竞态与pin v2_0039旧迁移测试沿用保留",
@@ -1035,6 +1043,10 @@
     {
       "id": "K01.prompt_cache_route_key",
       "evidence": "docs/evidence/v2-prompt-cache-route-key.json"
+    },
+    {
+      "id": "K15.motivation_design",
+      "evidence": "docs/evidence/v2-motivation-design.json"
     }
   ]
 }
