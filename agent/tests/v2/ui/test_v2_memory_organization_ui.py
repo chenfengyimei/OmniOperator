@@ -83,6 +83,9 @@ def test_exact_only_proposal_completes_and_undo_preserves_raw_facts_and_sources(
             ),
         }
         batch = wait_ready(page, context, v2_server, agent, queued.value.json()["id"])
+        # The page may still have the previous/queued batch selected when another UI file
+        # is running in a sibling worker; bind the selector to the ready batch before refresh.
+        select_batch(page, batch)
         expect(page.locator("#memory-organization-refresh-detail")).to_be_enabled()
         page.locator("#memory-organization-refresh-detail").click()
         expect(page.locator("#memory-organization-detail")).to_contain_text("提案已生成", timeout=15000)
