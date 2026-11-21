@@ -2,6 +2,7 @@
   "schema": 1,
   "date": "2026-11-21",
   "base_commit": "a849b1273a2c87246537449eb8a90d3e192d80ab",
+  "batch_commit": "f350e0c9ca785a6276467122299d9467b0a24196",
   "status": "design_contract_recorded",
   "batch": "K01.prompt_cache_scope_design",
   "owner_approval": "K01 属用户指令顺序「K01 会话/lineage 缓存作用域…各需先设计合同」的设计批，本合同为纯文档。其实现分两批——(b) 路由键注入（无冻结合同改动，可先落）与 (a)/(c) 系统前缀重构（触及 memory_system/history_request 冻结前缀 + 语义变更 + 安全敏感 provider 缓存键）——需所有者审阅本合同并选定 D3 方案后方可接线。",
