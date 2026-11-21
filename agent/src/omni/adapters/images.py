@@ -12,8 +12,7 @@ from typing import cast
 
 from PIL import Image, ImageOps
 
-from ..domain.contracts import BusinessError
-from ..domain.images import MAX_BYTES, ImageInfo
+from ..domain.contracts import MAX_BYTES, BusinessError, ImageInfo
 
 
 def inspect_image(content: bytes, wire: bool = False) -> ImageInfo | str:

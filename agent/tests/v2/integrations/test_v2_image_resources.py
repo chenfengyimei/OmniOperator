@@ -12,7 +12,7 @@ import pytest
 from PIL import Image, PngImagePlugin
 
 from omni.adapters import images
-from omni.domain.images import ImageInfo
+from omni.domain.contracts import ImageInfo
 
 
 def source_image(mode="RGB", *, rotated=False):

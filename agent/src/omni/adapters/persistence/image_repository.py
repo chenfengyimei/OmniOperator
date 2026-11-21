@@ -7,8 +7,8 @@ from typing import TYPE_CHECKING, cast
 from sqlalchemy import func, select, update
 
 from ...application.ports import Record
-from ...domain.contracts import BusinessError
-from ...domain.images import POLICY_DEFAULT, ImageInfo, fingerprint, model_tokens, policy
+from ...domain.contracts import BusinessError, ImageInfo
+from ...domain.images import POLICY_DEFAULT, fingerprint, model_tokens, policy
 from . import schema as s
 from .configuration_repository import ConfigurationRepositories
 

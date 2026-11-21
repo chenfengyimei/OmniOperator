@@ -68,6 +68,58 @@ class Effect(StrEnum):
     UNKNOWN = "unknown"
 
 
+MAX_IMAGES = 4
+MAX_BYTES = 16 * 1024 * 1024
+
+
+def invalid(code: str = "image_invalid") -> BusinessError:
+    return BusinessError(code, "Image, model image policy or source reference is invalid", status=422)
+
+
+@dataclass(frozen=True)
+class ImageInfo:
+    media_type: str
+    width: int
+    height: int
+    sha256: str
+    bytes: int
+
+    def validate(self) -> None:
+        if (
+            self.media_type not in {"image/png", "image/jpeg", "image/webp"}
+            or type(self.width) is not int
+            or type(self.height) is not int
+            or type(self.bytes) is not int
+            or not 1 <= self.width <= 8192
+            or not 1 <= self.height <= 8192
+            or self.width * self.height > 16000000
+            or not 1 <= self.bytes <= MAX_BYTES
+            or not re.fullmatch(r"[0-9a-f]{64}", self.sha256)
+        ):
+            raise invalid()
+
+
+@dataclass(frozen=True)
+class ImageRef:
+    """A verified image object a tool result hands back for same-turn model visibility."""
+
+    object_id: str
+    media_type: str
+    width: int
+    height: int
+    sha256: str
+    bytes: int
+
+    def __post_init__(self) -> None:
+        object_id: object = cast(object, self.object_id)
+        try:
+            if not isinstance(object_id, str) or str(uuid.UUID(object_id)) != object_id:
+                raise invalid()
+        except (ValueError, AttributeError):
+            raise invalid() from None
+        ImageInfo(self.media_type, self.width, self.height, self.sha256, self.bytes).validate()
+
+
 @dataclass(frozen=True)
 class ActionResult:
     status: Outcome
@@ -78,6 +130,7 @@ class ActionResult:
     artifacts: tuple[str, ...] = ()
     verification: str = ""
     data: dict[str, JSON] = field(default_factory=_empty_json)
+    images: tuple[ImageRef, ...] = ()
 
     def __post_init__(self) -> None:
         status: object = cast(object, self.status)
@@ -90,6 +143,15 @@ class ActionResult:
             raise ValueError("Unknown effects require unknown outcome and prohibit automatic retry")
         if self.status == Outcome.UNKNOWN and self.effect != Effect.UNKNOWN:
             raise ValueError("Unknown outcome must preserve unknown effects")
+        images: object = cast(object, self.images)
+        if not isinstance(images, tuple):
+            raise ValueError("Action images are a bounded tuple of validated references")
+        checked = cast(tuple[object, ...], cast(object, self.images))
+        if len(checked) > MAX_IMAGES:
+            raise ValueError("Action images are a bounded tuple of validated references")
+        for image in checked:
+            if not isinstance(image, ImageRef):
+                raise ValueError("Action images are a bounded tuple of validated references")
 
 
 @dataclass(frozen=True)

@@ -6,8 +6,8 @@ import asyncio
 from collections.abc import Awaitable, Callable, Coroutine, Mapping
 from typing import Any, Protocol, TypeVar, cast
 
-from ..domain.contracts import BusinessError
-from ..domain.images import ImageInfo, references, with_images
+from ..domain.contracts import BusinessError, ImageInfo
+from ..domain.images import references, with_images
 from .objects import ObjectService
 from .ports import DatabasePort, Record, UnitOfWork
 

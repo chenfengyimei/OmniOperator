@@ -5,6 +5,7 @@ from __future__ import annotations
 import hashlib
 import json
 from collections.abc import Mapping, Sequence
+from typing import cast
 
 CONTEXT_CHARS = 48_000
 SUMMARY_CHARS = 4_000
@@ -84,6 +85,10 @@ def run_compaction_window(
     return starts[0], starts[-keep_rounds]
 
 
+def _is_image_part(part: object) -> bool:
+    return isinstance(part, dict) and cast(dict[str, object], part).get("type") == "omni_image"
+
+
 def bounded_tool_summary_sources(
     messages: Sequence[Mapping[str, object]], budget: int = SUMMARY_INPUT_CHARS
 ) -> list[dict[str, object]]:
@@ -98,7 +103,17 @@ def bounded_tool_summary_sources(
         remaining = budget - used
         if remaining <= 0:
             break
-        content = m["content"] if isinstance(m["content"], str) else json.dumps(m["content"], ensure_ascii=False)
+        raw: object = m["content"]
+        if isinstance(raw, list):
+            # Summary prompts never carry image part metadata; bytes never enter a summary.
+            rendered: list[object] = []
+            for part in cast(list[object], raw):
+                if _is_image_part(part):
+                    rendered.append({"type": "text", "text": "[image attached to tool result]"})
+                else:
+                    rendered.append(part)
+            raw = rendered
+        content = raw if isinstance(raw, str) else json.dumps(raw, ensure_ascii=False)
         if len(content) > remaining:
             content = content[:remaining]
         sources.append({"id": f"run-tool-{index}", "role": m["role"], "content": content})

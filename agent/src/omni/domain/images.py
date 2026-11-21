@@ -4,16 +4,12 @@ from __future__ import annotations
 
 import hashlib
 import json
-import re
 import uuid
 from collections.abc import Sequence
-from dataclasses import dataclass
 from typing import cast
 
-from .contracts import BusinessError
+from .contracts import MAX_IMAGES, ImageInfo, invalid
 
-MAX_IMAGES = 4
-MAX_BYTES = 16 * 1024 * 1024
 POLICY_DEFAULT = {"protocol": "disabled", "per_call_limit": 4, "run_budget": 12}
 LOW_MODELS = {
     "gpt-4o": 85,
@@ -23,10 +19,6 @@ LOW_MODELS = {
     "gpt-4o-mini": 2833,
     "gpt-4o-mini-2024-07-18": 2833,
 }
-
-
-def invalid(code: str = "image_invalid") -> BusinessError:
-    return BusinessError(code, "Image, model image policy or source reference is invalid", status=422)
 
 
 def image_ids(value: object) -> list[str]:
@@ -83,29 +75,6 @@ def fingerprint(value: object) -> str:
     ).hexdigest()
 
 
-@dataclass(frozen=True)
-class ImageInfo:
-    media_type: str
-    width: int
-    height: int
-    sha256: str
-    bytes: int
-
-    def validate(self) -> None:
-        if (
-            self.media_type not in {"image/png", "image/jpeg", "image/webp"}
-            or type(self.width) is not int
-            or type(self.height) is not int
-            or type(self.bytes) is not int
-            or not 1 <= self.width <= 8192
-            or not 1 <= self.height <= 8192
-            or self.width * self.height > 16000000
-            or not 1 <= self.bytes <= MAX_BYTES
-            or not re.fullmatch(r"[0-9a-f]{64}", self.sha256)
-        ):
-            raise invalid()
-
-
 def references(messages: Sequence[dict[str, object]]) -> list[dict[str, object]]:
     result: list[dict[str, object]] = []
     for message in messages:
@@ -118,7 +87,7 @@ def references(messages: Sequence[dict[str, object]]) -> list[dict[str, object]]
             item = cast(dict[str, object], raw_item)
             if item.get("type") == "omni_image":
                 if (
-                    message.get("role") != "user"
+                    message.get("role") not in {"user", "tool"}
                     or set(item)
                     != {
                         "type",
@@ -150,7 +119,7 @@ def references(messages: Sequence[dict[str, object]]) -> list[dict[str, object]]
                     raise invalid()
                 if item["part_id"] in {r["part_id"] for r in result}:
                     raise invalid()
-                result.append(dict(item))
+                result.append({**item, "role": message.get("role")})
             elif item.get("type") != "text" or set(item) != {"type", "text"} or not isinstance(item["text"], str):
                 # Arbitrary image URLs/data URLs never enter a canonical application request.
                 raise invalid()

@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+import uuid
 from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass
 from typing import cast
@@ -24,11 +25,12 @@ from ..domain.contracts import (
     ToolSpec,
 )
 from ..domain.delegation import CHILD_CONCURRENCY, DELEGATE_TASK, SUMMARY_CHARS, inherited, record_tools, task_batch
+from ..domain.images import model_tokens
 from ..domain.memory_decay import TOUCH_LIMIT
 from ..domain.repetition import is_degenerate_reply
 from ..domain.routing import REQUEST_MODE, select_tools
 from ..domain.routing import notice as route_notice
-from ..domain.settings import agent_settings_value, settings_value
+from ..domain.settings import Settings, agent_settings_value, settings_value
 from ..domain.todos import TODO_LIST
 from ..domain.tool_batch import BatchEntry, plan_tool_batch
 from ..domain.turn_prompt import TurnPrompt, append_runtime_notice
@@ -63,6 +65,7 @@ class Capability:
 
 
 _CONTROL_NAMES = frozenset({REQUEST_MODE.name, DELEGATE_TASK.name, TODO_LIST.name, CLARIFY.name})
+_IMAGE_UNATTACHED = "[Image registered but not attached: {reason}; do not infer its content.]"
 
 
 class Application:
@@ -416,7 +419,15 @@ class Application:
                             for index, outcome in zip(indices, outcomes, strict=True):
                                 call = reply.calls[index]
                                 if isinstance(outcome, ActionResult):
-                                    messages.append({"role": "tool", "tool_call_id": call.id, "content": outcome.text})
+                                    messages.append(
+                                        {
+                                            "role": "tool",
+                                            "tool_call_id": call.id,
+                                            "content": await self._tool_message_content(
+                                                agent_id, run_id, messages, outcome, settings
+                                            ),
+                                        }
+                                    )
                                     unknown = unknown or outcome.effect == Effect.UNKNOWN
                                 elif failure is None:
                                     failure = outcome
@@ -440,7 +451,15 @@ class Application:
                                 tools=tools,
                                 session_id=str(run["session_id"]),
                             )
-                            messages.append({"role": "tool", "tool_call_id": call.id, "content": result.text})
+                            messages.append(
+                                {
+                                    "role": "tool",
+                                    "tool_call_id": call.id,
+                                    "content": await self._tool_message_content(
+                                        agent_id, run_id, messages, result, settings
+                                    ),
+                                }
+                            )
                             if result.effect == Effect.UNKNOWN:
                                 raise BusinessError(
                                     "action_outcome_unknown", "An external action requires manual verification"
@@ -675,6 +694,62 @@ class Application:
         if cap is None or cap.spec.writes:
             return BatchEntry(call.name)
         return BatchEntry(call.name, resource=cap.spec.resource or call.name, parallel=True)
+
+    async def _tool_message_content(
+        self, agent_id: str, run_id: str, messages: list[Record], result: ActionResult, settings: Settings
+    ) -> JSON:
+        """Same-turn tool-image attachment; mirrors with_images selection for the in-memory transcript."""
+        if not result.images:
+            return result.text
+        config = await self._db.read(lambda u: u.run_image_policy(agent_id, run_id))
+        text_part: dict[str, JSON] = {"type": "text", "text": result.text}
+        parts: list[JSON] = [text_part]
+        if config["protocol"] == "disabled":
+            for _image in result.images:
+                disabled_notice: dict[str, JSON] = {
+                    "type": "text",
+                    "text": _IMAGE_UNATTACHED.format(reason="image_capability_disabled"),
+                }
+                parts.append(disabled_notice)
+            return parts
+        limit = cast(int, config["per_call_limit"])
+        attached = [
+            (message_index, part_index)
+            for message_index, message in enumerate(messages)
+            if isinstance(message.get("content"), list)
+            for part_index, part in enumerate(cast(list[object], message["content"]))
+            if isinstance(part, dict) and cast(dict[str, object], part).get("type") == "omni_image"
+        ]
+        keep = min(len(result.images), limit)
+        # Last-limit wins across the whole transcript, exactly as with_images selects persisted parts.
+        for message_index, part_index in attached[: max(0, len(attached) + keep - limit)]:
+            cast(list[object], messages[message_index]["content"])[part_index] = {
+                "type": "text",
+                "text": _IMAGE_UNATTACHED.format(reason="context_image_limit"),
+            }
+        token_cost = model_tokens(str(settings["model"]))
+        for ref in result.images[:keep]:
+            image_part: dict[str, JSON] = {
+                "type": "omni_image",
+                "part_id": str(uuid.uuid4()),
+                "object_id": ref.object_id,
+                "sha256": ref.sha256,
+                "width": ref.width,
+                "height": ref.height,
+                "media_type": ref.media_type,
+                "bytes": ref.bytes,
+                "token_cost": token_cost,
+                "detail": "low",
+                "policy_id": str(config["id"]),
+            }
+            parts.append(image_part)
+        for _image in result.images[keep:]:
+            limit_notice: dict[str, JSON] = {
+                "type": "text",
+                "text": _IMAGE_UNATTACHED.format(reason="context_image_limit"),
+            }
+            parts.append(limit_notice)
+        return parts
 
     async def _dispatch_call(
         self,

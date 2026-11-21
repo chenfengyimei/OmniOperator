@@ -18,8 +18,8 @@ from omni.adapters.persistence.object_inventory import registry
 from omni.adapters.token_counter import ConservativeTokenCounter
 from omni.application.context import ContextService
 from omni.composition.instance import open_instance
-from omni.domain.contracts import BusinessError, Invocation, ModelReply, ToolSpec
-from omni.domain.images import ImageInfo, model_tokens, policy, references
+from omni.domain.contracts import BusinessError, ImageInfo, Invocation, ModelReply, ToolSpec
+from omni.domain.images import model_tokens, policy, references
 from omni_test_support.v2.execution import wait_state
 
 

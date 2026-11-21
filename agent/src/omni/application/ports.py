@@ -7,12 +7,11 @@ from collections.abc import Awaitable, Callable, Mapping, Sequence
 from contextlib import AbstractContextManager
 from typing import Protocol, TypeVar
 
-from ..domain.contracts import JSON, ActionResult, InvocationContext, ModelReply, Outcome, ToolSpec
+from ..domain.contracts import JSON, ActionResult, ImageInfo, InvocationContext, ModelReply, Outcome, ToolSpec
 from ..domain.delivery import DeliveryResult, OutboundMessage
 from ..domain.desktop import CapturedFrame
 from ..domain.documents import DocumentText
 from ..domain.extensions import CapturedPackage
-from ..domain.images import ImageInfo
 from ..domain.metering import TokenEstimate
 from ..domain.objects import Blob
 from ..domain.qq import QQEvent
