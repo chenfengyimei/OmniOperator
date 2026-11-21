@@ -18,6 +18,13 @@
       "root": "docs/ARCHITECTURE.md 当前标题为 ‘OmniOperator 架构权威’，V1 项目目录浏览器测试仍等待旧标题 ‘OmniOperator 架构说明’，页面实际渲染正确。",
       "fix": "断言改用当前权威标题；仍等待 #proj-detail-body pre 可见，不做弱化。",
       "validation": "单测 1 passed / 14.66 秒（真实 Chromium + V1 项目目录）。"
+    },
+    {
+      "commit": "ff30592d",
+      "item": "test_real_http_disconnect_resume_and_token_rotation_keep_one_durable_event_source",
+      "root": "全量负载下 token 轮换后先到一帧已排队的 history（轮换前产生），测试直接断言下一帧必须是 unauthenticated；隔离时帧序不同所以通过。",
+      "fix": "轮换后允许连续排队的 history 帧（3s 上限）后仍必须收到 unauthenticated；不新建轮换后 turn，授权撤回语义不变。",
+      "validation": "隔离 3/3 passed（6.77 / 89.24 / 5.69 秒）。"
     }
   ],
   "latest_full_suite": {
@@ -30,21 +37,17 @@
     "junit": "C:/v2-acceptance/closeout-18b75b75/full-872d200b.xml",
     "remaining": [
       {
-        "nodeid": "agent/tests/v2/core/test_v2_event_stream.py::test_real_http_disconnect_resume_and_token_rotation_keep_one_durable_event_source",
-        "failure": "token rotation 后读到 history 帧而非 unauthenticated（隔离 3.18 秒通过；全量负载下事件顺序竞态）",
-        "risk": "G1 事件流授权/续接时序；涉及 composition/http.py 与 adapters/http.py（他会话在途修改，未触碰）"
-      },
-      {
         "nodeid": "agent/tests/v2/ui/test_v2_memory_organization_ui.py::test_exact_only_proposal_completes_and_undo_preserves_raw_facts_and_sources",
         "failure": "4-worker UI 下详情停在‘已入队，等待生成提案’（隔离 8.80 秒通过；UI-only 4-worker 241/242 复现）",
-        "risk": "UI 选择/异步刷新竞态；web/ui/v2 文件为他会话在途修改，未触碰"
+        "risk": "UI 选择/异步刷新竞态；web/ui/v2 文件为他会话在途修改，未触碰",
+        "after_fix_note": "event stream 项已由 ff30592d 测试修正；872d200b 全量后尚未重跑，预期剩此 1 项"
       }
     ]
   },
-  "effect": "全量 58 → 7 → 6 → 2；两项确定性环境红已消除。剩余 2 项均为全量负载下的时序/UI 竞态，隔离通过，未证明为可稳定复现的产品缺陷；不声称 current_full_passed。",
+  "effect": "全量 58 → 7 → 6 → 2（872d200b）；event stream 帧序测试已由 ff30592d 修正。当前预期剩 1 个 memory UI 4-worker 竞态；未再跑全量，不声称 current_full_passed。",
   "not_executed": [
-    "872d200b 之后再次全量（本轮已含 872d200b 全量）",
-    "event stream 授权/续接竞态的隔离 3 次复现与生产修复（需他会话在途 http 文件）",
+    "ff30592d 后的完整全量重跑（预期剩 1 个 memory UI 竞态，不声称 0 红）",
+    "memory UI 4-worker 竞态的测试侧修复（需他会话 UI 文件）",
     "memory UI 4-worker 竞态的测试侧修复（需他会话 UI 文件）",
     "真实平台/账号/设备/72h",
     "docs/index 再生（C0.5 暂缓）"
