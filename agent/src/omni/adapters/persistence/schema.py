@@ -3519,6 +3519,34 @@ mcp_calls = scoped(
 )
 Index("ix_mcp_calls_server", mcp_calls.c.agent_id, mcp_calls.c.server_id, mcp_calls.c.id)
 
+reflection_journals = scoped(
+    "reflection_journals",
+    Column("source_day", String(10), nullable=False),
+    Column("slot", Integer, nullable=False),
+    Column("revision", Integer, nullable=False),
+    Column("state", String(16), nullable=False),
+    Column("body", JSON(none_as_null=True)),
+    Column("fingerprint", String(64)),
+    UniqueConstraint("agent_id", "source_day", "slot", name="uq_reflection_daily_slot"),
+    UniqueConstraint("agent_id", "fingerprint", name="uq_reflection_fingerprint"),
+    CheckConstraint("slot IN (1,2) AND revision>0", name="quota"),
+    CheckConstraint(
+        "(state='pending' AND body IS NOT NULL AND fingerprint IS NOT NULL AND length(fingerprint)=64) OR (state='erased' AND body IS NULL AND fingerprint IS NULL)",
+        name="state",
+    ),
+)
+reflection_document_links = scoped(
+    "reflection_document_links",
+    Column("journal_id", String(36), nullable=False),
+    Column("capture_id", String(36), nullable=False),
+    Column("field", String(32), nullable=False),
+    Column("sha256", String(64), nullable=False),
+    scoped_fk("journal_id", "reflection_journals"),
+    scoped_fk("capture_id", "context_documents"),
+    UniqueConstraint("journal_id", "capture_id", "field"),
+)
+Index("ix_reflection_capture", reflection_document_links.c.capture_id)
+
 # Compute once after every object-owning table is declared; live queries and
 # offline foreign-key inventory must recognize exactly the same owners.
 OBJECT_REFERENCES = tuple(

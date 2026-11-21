@@ -1,0 +1,74 @@
+{
+  "schema": 1,
+  "date": "2026-11-21",
+  "batch": "K17.reflection_document_journal",
+  "base_commit": "93e3f0edbc91111fbb47696911d6017f00fc051b",
+  "status": "implemented_scoped_passed",
+  "contract": "docs/v2/contracts/V2_REFLECTION_PROVENANCE.md",
+  "source_files": {
+    "agent/src/omni/adapters/persistence/document_repository.py": "7cc751361abee72cfadc9dcfabb16c5f2c46645fcebf356e594404a7d771788d",
+    "agent/src/omni/adapters/persistence/migrations/versions/v0051.py": "45b31628e64e0a5c24e3d24e9e1d90365c2af10c03dd0ce37b27c55841e57cdc",
+    "agent/src/omni/adapters/persistence/schema.py": "cc23a3817576b2e55508de7278a2cf31bf7cef85550b061f176028213397d2be",
+    "agent/src/omni/application/ports.py": "59bad2895f9cfd0572ee1d483dabda8253cee80ab3f5ad0f74bf09c233336b4e",
+    "agent/src/omni/domain/reflection.py": "b31faa3c3a0771a7a8a07eb553006a9057efd5894fe105926d58abcb962a264b",
+    "agent/tests/v2/core/test_v2_memory_decay.py": "6a842d5e92d2d5bf4015b1091d83583e2afd7d06c16c51928646fbf708758798",
+    "agent/tests/v2/core/test_v2_reflection_journal.py": "a9e474a1040b98125511c5e724c0ee48387453a2645c92f52f2caf8a4a374a04",
+    "agent/tests/v2/core/test_v2_schedule_bindings.py": "5513b7dcb93780a55fac404a77c7c0cc3d5228bb1ab1f831444a1f6dc3c59114",
+    "agent/tests/v2/core/test_v2_tool_image_ledger.py": "d056bcb1014cb9569c7264c571b5e2786f5cc4092787e10dc54807d07d7d53fe",
+    "docs/HANDOFF.md": "867f0654908d48bfed735c5c427bf36b1eab82a87c7964e765e5115344396d23",
+    "docs/tasks/v2-agent-core-parity.json": "1ee23f1d26be89e7591b0c7a03a3dc4515d92c32aba673e118dfae101f8f1285",
+    "docs/v2/contracts/V2_REFLECTION_PROVENANCE.md": "4b79e08977df31ca74a43a7f8124ce9b98ebfbded0b07f733d498ede28cf5f3a",
+    "pyrightconfig.strict.json": "6dca3244f6b7c98f46208edda98769769756b92d75845b26ca654a78af01a5f8"
+  },
+  "hash_scope": "SHA-256 of git index blob bytes, excluding this evidence file",
+  "validation": [
+    {
+      "command": "uv run --no-sync pytest -q -n 0 agent/tests/v2/core/test_v2_reflection_journal.py agent/tests/v2/core/test_v2_documents.py agent/tests/v2/core/test_v2_documents_faults.py agent/tests/v2/http/test_v2_documents_http.py agent/tests/v2/core/test_v2_architecture.py agent/tests/v2/core/test_v2_memory_decay.py::test_v0047_adds_decay_columns_and_state_table_idempotently agent/tests/v2/core/test_v2_schedule_bindings.py::test_v0049_adds_bindings_preserves_rows_and_rejects_downgrade agent/tests/v2/core/test_v2_tool_image_ledger.py::test_v0050_upgrade_preserves_user_ledger_and_enables_tool_rows",
+      "passed": 50,
+      "elapsed_seconds": 154.4,
+      "includes_new_cases": 15
+    },
+    {
+      "command": "uv run --no-sync pytest -q -n 0 --tb=no agent/tests/v2/core/test_v2_reflection_journal.py",
+      "mode": "temporarily removed reflection_journal_save from DocumentRepositories",
+      "failed_as_expected": 15,
+      "elapsed_seconds": 35.15,
+      "restored_file_sha256": "7cc751361abee72cfadc9dcfabb16c5f2c46645fcebf356e594404a7d771788d",
+      "restore_check": "working file sha256 and git diff identical before/after"
+    },
+    {
+      "command": "uv run --no-sync pyright --project pyrightconfig.strict.json",
+      "explicit_include_count": 420,
+      "errors": 0,
+      "warnings": 0,
+      "elapsed_seconds": 35.347
+    },
+    {
+      "command": "uv run --no-sync ruff check <9 changed Python files> and ruff format --check <same>",
+      "result": "All checks passed; 9 files already formatted"
+    },
+    {
+      "command": "uv run --no-sync python, isolated database_engine + alembic.command.upgrade(v2_0050, head, head); PRAGMA foreign_key_check",
+      "elapsed_seconds": 1.068,
+      "result": "v2_0051; new tables empty; no FK violations"
+    },
+    {
+      "command": "uv run --no-sync python scripts/project_index.py --output <temp>",
+      "result": "modules=65 files=838 routes=458 declared_tools=94\nupdated=MODULES.md,API.md,project.json",
+      "elapsed_seconds": 7.063
+    }
+  ],
+  "diagnostics": [
+    "First focused run: 12 passed, 1 failed in 28.80s. Midnight fixture also expired its active lease. Separated midnight boundary from explicit expired-lease rejection. Failed node passed in 4.54s. Final scoped run covers both.",
+    "Initial strict run rejected conversion of JSON offsets with int(); final code validates exact integer types and bounds."
+  ],
+  "limits": [
+    "仅文档已读锚点与持久化端口，尚无模型工具/HTTP；媒体来源、审核与后续投影留在后续批。",
+    "当前索引工作树有并行修改，仅向独立临时目录生成，不覆盖共享聚合索引。"
+  ],
+  "not_executed": [
+    "full pytest",
+    "live service/database, model, account, device",
+    "K01 implementation and outstanding owner decisions"
+  ]
+}

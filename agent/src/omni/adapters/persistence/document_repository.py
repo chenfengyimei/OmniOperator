@@ -2,7 +2,11 @@
 
 from __future__ import annotations
 
+import datetime as dt
+import hashlib
+import json
 import re
+from collections.abc import Mapping, Sequence
 from typing import cast
 
 from sqlalchemy import Select, delete, func, select, text, update
@@ -10,6 +14,7 @@ from sqlalchemy import Select, delete, func, select, text, update
 from ...application.ports import Record
 from ...domain.contracts import BusinessError
 from ...domain.documents import TEXT_INDEX_VERSION, VECTOR_CANDIDATES, DocumentText, document_title, normalized_vector
+from ...domain.reflection import document_links, journal_body
 from . import schema as s
 from .retention_repository import RetentionRepositories
 
@@ -279,6 +284,77 @@ class DocumentRepositories(RetentionRepositories):
                     },
                     agent_id,
                 )
+
+    def reflection_journal_save(
+        self, agent_id: str, run_id: str, fields: Mapping[str, object], anchors: Sequence[object]
+    ) -> Record:
+        self.assert_context(agent_id, run_id)
+        if self._one(s.runs, agent_id, run_id)["state"] != "running":
+            raise BusinessError("journal_run_inactive", "Journal capture requires an active run")
+        body = journal_body(fields)
+        links = document_links(body, anchors)
+        verified: list[tuple[str, str, str]] = []
+        revisions: dict[str, str] = {}
+        for capture_id, field in links:
+            capture = self._one(s.context_documents, agent_id, capture_id)
+            action = self._one(s.actions, agent_id, str(capture["action_id"]))
+            if action["run_id"] != run_id or action["state"] != "ok" or action["writes"]:
+                raise BusinessError("journal_source_unobserved", "Expected a successful read by this run")
+            revision_id = str(capture["document_revision_id"])
+            if revision_id not in revisions:
+                revision = self._one(s.document_revisions, agent_id, revision_id)
+                if self.document_erasure_status(agent_id, str(revision["document_id"])):
+                    raise BusinessError("document_erased", "Source erasure has begun", status=410)
+                revisions[revision_id] = self.document_text(agent_id, revision_id)
+            content = revisions[revision_id]
+            start, end = capture["source_start"], capture["source_end"]
+            if type(start) is not int or type(end) is not int or not 0 <= start < end <= len(content):
+                raise BusinessError("invalid_journal_anchor", "Captured range is no longer available")
+            verified.append((capture_id, field, hashlib.sha256(content[start:end].encode()).hexdigest()))
+
+        identity = json.dumps([body, verified], ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+        fingerprint = hashlib.sha256(identity.encode()).hexdigest()
+        journals = s.reflection_journals
+        previous = self.connection.execute(
+            select(journals.c.id).where(journals.c.agent_id == agent_id, journals.c.fingerprint == fingerprint)
+        ).scalar_one_or_none()
+        if previous is not None:
+            return self._one(journals, agent_id, previous)
+        now = self.clock.now()
+        day = dt.datetime.fromisoformat(now).astimezone(dt.timezone(dt.timedelta(hours=8))).date().isoformat()
+        count = self.connection.execute(
+            select(func.count())
+            .select_from(journals)
+            .where(journals.c.agent_id == agent_id, journals.c.source_day == day)
+        ).scalar_one()
+        if count >= 2:
+            raise BusinessError("journal_daily_limit", "Two journals already recorded on this source day")
+        # The pending row is itself the queue entry. Erasure keeps its quota slot.
+        journal = self._record(
+            journals,
+            {
+                "created_at": now,
+                "source_day": day,
+                "slot": count + 1,
+                "revision": 1,
+                "state": "pending",
+                "body": body,
+                "fingerprint": fingerprint,
+            },
+            agent_id,
+        )
+        for capture_id, field, sha256 in verified:
+            self._record(
+                s.reflection_document_links,
+                {
+                    "journal_id": journal["id"],
+                    "capture_id": capture_id,
+                    "field": field,
+                    "sha256": sha256,
+                },
+                agent_id,
+            )
+        return journal
 
     def document_validate_results(self, agent_id: str, rows: list[Record]) -> None:
         for revision_id in {cast(str, r["document_revision_id"]) for r in rows}:

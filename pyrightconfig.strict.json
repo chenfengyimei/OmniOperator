@@ -418,7 +418,9 @@
     "agent/src/omni/adapters/persistence/migrations/versions/v0047.py",
     "agent/src/omni/adapters/persistence/migrations/versions/v0048.py",
     "agent/src/omni/adapters/persistence/migrations/versions/v0049.py",
-    "agent/src/omni/adapters/persistence/migrations/versions/v0050.py"
+    "agent/src/omni/adapters/persistence/migrations/versions/v0050.py",
+    "agent/src/omni/adapters/persistence/migrations/versions/v0051.py",
+    "agent/src/omni/domain/reflection.py"
   ],
   "exclude": [
     "**/__pycache__"

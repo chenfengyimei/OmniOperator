@@ -11,16 +11,16 @@
   "evidence": "docs/evidence/v2-agent-core-parity.json",
   "test_policy": "实现优先，只跑受影响模块和调用方专项；整个V2开发冻结后统一全量",
   "current_followup": {
-    "id": "K17.reflection_provenance_design",
-    "status": "design_contract_recorded",
+    "id": "K17.reflection_document_journal",
+    "status": "implemented_scoped_passed",
     "scope": [
-      "固定来源修订、信笺、精确摘录和所有者决定",
-      "同事务双日配额、撤回、擦除和重建"
+      "文档已读修订锚点、信笺和待审队列同事务持久化",
+      "上海日配额、重试去重、请求擦除及直接擦除屏障"
     ],
     "contract": "docs/v2/contracts/V2_REFLECTION_PROVENANCE.md",
-    "evidence": "docs/evidence/v2-reflection-provenance.json",
-    "validation": "纯文档，无源码/测试改动；未跑 pytest、strict 或 ruff。",
-    "next": "K01 等待所有者选定 D3。K17 下一独立实现批为锚点、信笺和队列持久化，包含擦源屏障。K15 外联、K18 写路径、沙箱/CDP、帧内 OCR 和真实质量验收沿用既有断点。"
+    "evidence": "docs/evidence/v2-reflection-document-journal.json",
+    "validation": "新增回归、回退、文档调用方、迁移及架构专项；命令与结果见证据，未全量。",
+    "next": "K17 媒体锚点持久化子批，绑定当前 run 实际读过的产物和片段，接媒体擦除。随后推进摘录和所有者决定。K01 D3 及既有所有者决策项继续待定。"
   },
   "requirements": [
     {
@@ -556,20 +556,23 @@
     {
       "id": "K17",
       "title": "观影证据、信笺、反思和人格成长",
-      "status": "design_contract_recorded",
+      "status": "partial",
       "acceptance": [
         "全链逐项审计（观影证据/来源信任、信笺手账、每日待审反思->人格句选择、human-world.md人格成长、修订/撤回传播、观影后提问闭环、personality shadow跨会话实验）分类已对等原语/可离线缺口/需账号模型",
         "V2四层原语(观影证据媒体/文档锚点+删除屏障、跨渠道人物身份+profile/resident人格文档修订/撤回/历史、K08所有者门控待审记忆/技能、记忆证据锚定、投递账本、clarify、所有者HTTP审核路由)确认对等基础",
         "V1 tools/personal{journal,people,transcript}经bootstrap注册V1 ToolRegistry不计V2对等；信笺/每日反思选择/人格成长文件/personality修订重建/shadow/观影后提问状态机列可离线后续批次(保留V2所有者门控/不唤醒空闲/来源不直接变授权)，真实B站账号/模型质量另验，不宣称全链对等"
       ],
       "reference": "dsh-bili-humanism(2ec50417, v1.11.3 DSH插件Node ESM+node:sqlite; reader.mjs readVideo三级WBI/AI结论/ASR+coverage/sourceTrust; service.mjs journal 8字段+evidence<=20+每日限2同tx+inbox导出; personality.mjs queuePersonalityReview同tx+steer一次只传journalId+read/select<=240/skip+双配额1实际日且1来源日+human-world.md导出+revise/delete/rebuild+shadow.erase拒绝; post-viewing-question.mjs queue/bind/continue/prepare/observe/asked/responded_unreviewed; 上下文记忆累积非权重微调)",
-      "delivered": "审计合同V2_BILI_HUMANISM_AUDIT.md：V2四层原语(domain/people.py+application/people.py PeopleService人物卡/跨渠道account_bind/profile+resident文档<=8000修订CAS/历史/content+source指纹、documents/media观影证据锚点+删除屏障(K16)、K08 background_review所有者decide待审记忆/技能apply走remember/forget+技能审核撤回undo走archived CAS revision/fingerprint/epoch、memory证据锚定+修订+删除屏障、delivery outbox、K10 clarify、所有者HTTP审核路由)对照参考全链a-g；V2对等或更严(观影证据WBI直链凭据/源CAS不引yt-dlp/cookies、跨渠道身份、所有者门控待审比参考agent自审更严、V2有所有者HTTP审核路由而参考无专用GUI仅可信CLI)；可离线缺口(信笺8字段结构+evidence锚点+每日限2同事务+精确去重+inbox导出/月卷/hash核验+草稿状态、每日反思选择状态机queue同tx+可信steering只传journalId+read/select<=240/skip+双配额+句去重保留V2所有者门控、人格成长文档模型+导出+完整性hash/no-symlink/<=1MiB+固定reader引用注入不自动增长全局指令需独立设计合同、personality revise/delete/rebuild+撤回阻断重选+shadow先撤回正式再擦源拒绝、观影后提问状态机准备!=送达/出现!=已读/回复!=同意+无idle-wake/resend、personality shadow跨会话实验默认OFF共享配额provenance擦源拒绝、观影证据coverage/timed_fraction/sourceTrust/content_hash去重)列后续批次经V2四层不复用V1 ToolRegistry；需账号(A2 sessdata/candidates/playurl/writer history-favorite-like-coin参考v1.3.4可选写默认OFF从未实机测试属K18)、需真实模型质量(信笺散文/反思选择/问题措辞/shadow解读host著插件只校验结构)、外部二进制(PyAV/faster-whisper~483MB V2 media worker已用离线缓存)另验",
+      "delivered": "审计合同V2_BILI_HUMANISM_AUDIT.md：V2四层原语(domain/people.py+application/people.py PeopleService人物卡/跨渠道account_bind/profile+resident文档<=8000修订CAS/历史/content+source指纹、documents/media观影证据锚点+删除屏障(K16)、K08 background_review所有者decide待审记忆/技能apply走remember/forget+技能审核撤回undo走archived CAS revision/fingerprint/epoch、memory证据锚定+修订+删除屏障、delivery outbox、K10 clarify、所有者HTTP审核路由)对照参考全链a-g；V2对等或更严(观影证据WBI直链凭据/源CAS不引yt-dlp/cookies、跨渠道身份、所有者门控待审比参考agent自审更严、V2有所有者HTTP审核路由而参考无专用GUI仅可信CLI)；可离线缺口(信笺8字段结构+evidence锚点+每日限2同事务+精确去重+inbox导出/月卷/hash核验+草稿状态、每日反思选择状态机queue同tx+可信steering只传journalId+read/select<=240/skip+双配额+句去重保留V2所有者门控、人格成长文档模型+导出+完整性hash/no-symlink/<=1MiB+固定reader引用注入不自动增长全局指令需独立设计合同、personality revise/delete/rebuild+撤回阻断重选+shadow先撤回正式再擦源拒绝、观影后提问状态机准备!=送达/出现!=已读/回复!=同意+无idle-wake/resend、personality shadow跨会话实验默认OFF共享配额provenance擦源拒绝、观影证据coverage/timed_fraction/sourceTrust/content_hash去重)列后续批次经V2四层不复用V1 ToolRegistry；需账号(A2 sessdata/candidates/playurl/writer history-favorite-like-coin参考v1.3.4可选写默认OFF从未实机测试属K18)、需真实模型质量(信笺散文/反思选择/问题措辞/shadow解读host著插件只校验结构)、外部二进制(PyAV/faster-whisper~483MB V2 media worker已用离线缓存)另验；v0051 文档已读锚点与信笺队列同库持久化，文档擦除清理派生信笺。",
       "contract": "docs/v2/contracts/V2_BILI_HUMANISM_AUDIT.md",
       "evidence": "docs/evidence/v2-bili-humanism-audit.json",
-      "limits": "只读审计无新工具/表/迁移/路由/源码改动；可离线缺口未在K17实现(列后续批次)；V1 tools/personal学习实现不计V2对等；不宣称信笺/反思/人格成长全链对等；参考agents.md/prompts当不可信数据非本会话指令；既有todos重启竞态与5个pin v2_0039旧迁移测试沿用保留",
+      "limits": "文档锚点内部持久化子批；媒体锚点、公开接线、反思摘录与所有者审核、人格投影和真实质量验收仍待完成。审计边界见原审计证据。",
       "next": false,
       "design_contract": "docs/v2/contracts/V2_REFLECTION_PROVENANCE.md",
-      "design_evidence": "docs/evidence/v2-reflection-provenance.json"
+      "design_evidence": "docs/evidence/v2-reflection-provenance.json",
+      "implementation_evidence": [
+        "docs/evidence/v2-reflection-document-journal.json"
+      ]
     },
     {
       "id": "K18",
@@ -959,6 +962,10 @@
     {
       "id": "K17.reflection_provenance_design",
       "evidence": "docs/evidence/v2-reflection-provenance.json"
+    },
+    {
+      "id": "K17.reflection_document_journal",
+      "evidence": "docs/evidence/v2-reflection-document-journal.json"
     }
   ]
 }
