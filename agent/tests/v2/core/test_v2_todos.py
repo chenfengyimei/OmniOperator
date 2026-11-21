@@ -495,6 +495,9 @@ def test_runtime_restart_reinjects_active_plan_only_into_its_own_session(tmp_pat
             self.expected, self.calls = expected, 0
 
         async def complete(self, messages, tools, settings):
+            if "todo_list" not in {tool.name for tool in tools}:
+                # K08 background review runs on a no-todo tool face; it is not a resumed turn.
+                return ModelReply("no candidates", cost_micro=0)
             self.calls += 1
             assert "unfinished-restart-canary" not in messages[0]["content"]
             assert ("unfinished-restart-canary" in str(messages[1:])) is self.expected
