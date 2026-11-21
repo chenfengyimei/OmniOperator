@@ -57,6 +57,13 @@
       "c0_5_index": "baseline a4350753/696ed937 可生成 modules=65 files=838 routes=458 tools=94 sha=bb5f3bf0…；二次运行零 diff（三文件字节稳定）；主工作树 docs/index 被他会话修改且 files=833，待洁净后再生",
       "c2_8_container": "Docker engine 不可连接；com.docker.service 启动被拒绝（无服务控制权限）；未 build/run",
       "c2_7_windows_service": "需要管理员/服务控制权限；未执行",
+      "blockers": [
+        "他会话 v0052 WIP 未提交（40+ 修改/10+ 未跟踪；占用 instance.py/engine.py/http.py/schema.py/ports.py/web/ui）",
+        "所有者决策未给：K01 D3(a)/(c)/D8、K14 D0-D5、K15 动机 D0-D4、K15 人格 D0-D5、C1.5 execute_code",
+        "真实环境不可用：Docker daemon/服务控制、Windows 管理员、真实账号/设备/干净机器/72h",
+        "源码未冻结，C4 发布与最终全量确认未执行"
+      ],
+      "blocker_evidence": "docs/evidence/v2-closeout-blockers.json",
       "evidence": "docs/evidence/v2-closeout-baseline.json",
       "full_suite_scope": "committed HEAD a4350753; other-session uncommitted WIP not covered",
       "current_full_passed": true
