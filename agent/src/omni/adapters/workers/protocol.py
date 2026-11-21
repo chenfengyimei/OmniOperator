@@ -9,11 +9,15 @@ import uuid
 from dataclasses import asdict
 from typing import Any, cast
 
-from ...domain.contracts import ActionResult, Effect, Outcome
+from ...domain.contracts import MAX_IMAGES, ActionResult, BusinessError, Effect, ImageRef, Outcome
 
 VERSION = 2
 MAX_FRAME = 1_048_576
 RESULT_FIELDS = {"status", "text", "effect", "error_code", "retryable", "artifacts", "verification", "data"}
+# ActionResult.images 是 1b 图像协议加入的字段。版本号未变，因此接受旧 worker 省略该键，
+# 同时把新 worker 发出的图像引用按冻结的 ImageRef 校验后透传，绝不静默丢弃。
+OPTIONAL_RESULT_FIELDS = {"images"}
+IMAGE_FIELDS = {"object_id", "media_type", "width", "height", "sha256", "bytes"}
 
 
 def identity(value: object) -> bool:
@@ -99,11 +103,38 @@ def request(frame: bytes) -> dict[str, Any]:
     return data
 
 
+def images(value: object) -> tuple[ImageRef, ...]:
+    """Validate the additive image wire field; legacy workers may omit it (empty tuple)."""
+    if not isinstance(value, list) or len(cast(list[object], value)) > MAX_IMAGES:
+        raise ValueError("Invalid IPC image results")
+    checked: list[ImageRef] = []
+    for item in cast(list[object], value):
+        if not isinstance(item, dict):
+            raise ValueError("Invalid IPC image results")
+        fields = cast(dict[str, Any], item)
+        if set(fields) != IMAGE_FIELDS:
+            raise ValueError("Invalid IPC image results")
+        try:
+            checked.append(
+                ImageRef(
+                    cast(str, fields["object_id"]),
+                    cast(str, fields["media_type"]),
+                    cast(int, fields["width"]),
+                    cast(int, fields["height"]),
+                    cast(str, fields["sha256"]),
+                    cast(int, fields["bytes"]),
+                )
+            )
+        except (TypeError, ValueError, BusinessError):
+            raise ValueError("Invalid IPC image results") from None
+    return tuple(checked)
+
+
 def action(value: object, *, writes: bool) -> ActionResult:
     if not isinstance(value, dict):
         raise ValueError("IPC result fields do not match")
     fields = cast(dict[str, Any], value)
-    if set(fields) != RESULT_FIELDS:
+    if not RESULT_FIELDS <= set(fields) <= RESULT_FIELDS | OPTIONAL_RESULT_FIELDS:
         raise ValueError("IPC result fields do not match")
     if (
         not all(isinstance(fields[name], str) for name in ("status", "effect", "text", "error_code", "verification"))
@@ -125,6 +156,7 @@ def action(value: object, *, writes: bool) -> ActionResult:
         artifacts=tuple(cast(list[str], fields["artifacts"])),
         verification=cast(str, fields["verification"]),
         data=cast(dict[str, Any], fields["data"]),
+        images=images(fields.get("images", [])),
     )
     if not writes and result.effect != Effect.NONE:
         raise ValueError("Read-only capability reported an external effect")

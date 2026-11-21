@@ -144,9 +144,115 @@ def test_protocol_preserves_valid_retryable_none_effect_and_rejects_bool_version
     frame = lambda: (json.dumps(data) + "\n").encode()
     result = response(frame(), operation, writes=True)
     assert result.retryable and result.effect == Effect.NONE
+    assert result.images == ()
     data["version"] = 2.0
     with pytest.raises(ValueError):
         response(frame(), operation, writes=True)
+
+
+def test_protocol_round_trips_bounded_tool_images_and_accepts_legacy_omission():
+    from omni.adapters.workers.protocol import encode_response, response
+    from omni.domain.contracts import ActionResult, ImageRef
+
+    operation = str(uuid.uuid4())
+    image = ImageRef(str(uuid.uuid4()), "image/png", 1280, 720, "a" * 64, 4096)
+    original = ActionResult(Outcome.OK, "frame ready", images=(image,))
+    result = response(encode_response(operation, original), operation, writes=False)
+    assert result.status == Outcome.OK and result.images == (image,)
+
+    legacy = {
+        "version": VERSION,
+        "id": operation,
+        "result": {
+            "status": "ok",
+            "effect": "none",
+            "text": "legacy result",
+            "error_code": "",
+            "retryable": False,
+            "artifacts": [],
+            "verification": "",
+            "data": {},
+        },
+    }
+    assert response((json.dumps(legacy) + "\n").encode(), operation, writes=False).images == ()
+
+
+@pytest.mark.parametrize(
+    "images",
+    [
+        {},
+        [{}],
+        [{"object_id": str(uuid.uuid4())}],
+        [
+            {
+                "object_id": str(uuid.uuid4()),
+                "media_type": "image/png",
+                "width": 1280,
+                "height": 720,
+                "sha256": "a" * 64,
+                "bytes": 4096,
+                "extra": True,
+            }
+        ],
+        [
+            {
+                "object_id": "not-a-uuid",
+                "media_type": "image/png",
+                "width": 1280,
+                "height": 720,
+                "sha256": "a" * 64,
+                "bytes": 4096,
+            }
+        ],
+        [
+            {
+                "object_id": str(uuid.uuid4()),
+                "media_type": "image/gif",
+                "width": 1280,
+                "height": 720,
+                "sha256": "a" * 64,
+                "bytes": 4096,
+            }
+        ],
+        [
+            {
+                "object_id": str(uuid.uuid4()),
+                "media_type": "image/png",
+                "width": 1280,
+                "height": 720,
+                "sha256": "a" * 64,
+                "bytes": 4096,
+            }
+        ]
+        * 5,
+    ],
+)
+def test_protocol_rejects_malformed_or_unbounded_tool_images(images):
+    from omni.adapters.workers.protocol import response
+
+    operation = str(uuid.uuid4())
+    frame = (
+        json.dumps(
+            {
+                "version": VERSION,
+                "id": operation,
+                "result": {
+                    "status": "ok",
+                    "effect": "none",
+                    "text": "frame ready",
+                    "error_code": "",
+                    "retryable": False,
+                    "artifacts": [],
+                    "verification": "",
+                    "data": {},
+                    "images": images,
+                },
+            }
+        )
+        + "\n"
+    ).encode()
+    with pytest.raises(ValueError):
+        response(frame, operation, writes=False)
 
 
 def test_truncated_result_keeps_registered_artifacts_and_bounded_verification():
