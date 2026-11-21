@@ -145,8 +145,8 @@
       {
         "count": 1,
         "class": "ui_4worker_race",
-        "nodeid": "agent/tests/v2/ui/test_v2_memory_organization_ui.py::test_exact_only_proposal_completes_and_undo_preserves_raw_facts_and_sources",
-        "cause": "4-worker 全量/UI-only 下详情停在‘已入队，等待生成提案’，隔离 8.80s 通过；UI 选择/异步刷新竞态，web/ui/v2 为他会话在途修改，本轮未触碰。event stream 帧序测试已由 ff30592d 修正；当前预期仅剩此 1 项。"
+        "nodeid": "agent/tests/v2/ui/test_v2_memory_organization_ui.py（并发下不同用例，失败点会变化）",
+        "cause": "b1bf5810 显式选择就绪批次后 exact 用例通过，但 4 个 UI 文件并发时同文件 test_forgotten_sources... 出现时序红（21/22）；隔离全部通过。UI 异步刷新/选择竞态，web/ui/v2 为他会话在途修改，未触碰。"
       }
     ]
   },
@@ -194,7 +194,8 @@
       "9f860571",
       "3d360137",
       "872d200b",
-      "ff30592d"
+      "ff30592d",
+      "b1bf5810"
     ],
     "scope": "e0bca9ae：服务注册路径 6 + TYPE_CHECKING 1；fcea91ac：迁移 pin 36 + pre-v42 seed 2；FIX.baseline_debt_cleanup：layout 1 + media staging stub 2 + Android 摘要步骤 1 + todos 评审竞态 1 + cost 指纹断言 2；FIX.full_suite_timeouts：compaction/UI/delegation 等待；FIX.deterministic_env_tests：安装 fake wheel releases 包 1 + project catalog 架构标题 1；ff30592d：event stream 轮换后排队的 history 帧序 1",
     "targeted": "service_registration+typecheck 18 passed 0.73 秒；16 迁移文件 78 passed 42.55 秒；media_staging 14 passed 7.25 秒；Android 1 passed 10.87 秒；todos 3/3；cost 14 passed 28.35 秒；layout 3 passed 2.57 秒；compaction 10 passed 32.85 秒；UI/delegation 10 passed 89.71 秒；安装 1 passed 0.39 秒；project catalog 1 passed 14.66 秒",

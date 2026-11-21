@@ -25,6 +25,13 @@
       "root": "全量负载下 token 轮换后先到一帧已排队的 history（轮换前产生），测试直接断言下一帧必须是 unauthenticated；隔离时帧序不同所以通过。",
       "fix": "轮换后允许连续排队的 history 帧（3s 上限）后仍必须收到 unauthenticated；不新建轮换后 turn，授权撤回语义不变。",
       "validation": "隔离 3/3 passed（6.77 / 89.24 / 5.69 秒）。"
+    },
+    {
+      "commit": "b1bf5810",
+      "item": "test_exact_only_proposal_completes_and_undo_preserves_raw_facts_and_sources",
+      "root": "4-worker 下 UI 可能仍选中上一个/排队批次，刷新后详情停在‘已入队’；隔离 8.80 秒通过。",
+      "fix": "wait_ready 后显式 select_batch(page, batch) 再刷新详情，保证选择的是就绪批次；断言不变。",
+      "validation": "隔离 1 passed / 9.76 秒；4 个 UI 文件并发时该用例通过，但同文件另一用例 test_forgotten_sources... 出现时序红（21/22）。"
     }
   ],
   "latest_full_suite": {
@@ -37,17 +44,17 @@
     "junit": "C:/v2-acceptance/closeout-18b75b75/full-872d200b.xml",
     "remaining": [
       {
-        "nodeid": "agent/tests/v2/ui/test_v2_memory_organization_ui.py::test_exact_only_proposal_completes_and_undo_preserves_raw_facts_and_sources",
-        "failure": "4-worker UI 下详情停在‘已入队，等待生成提案’（隔离 8.80 秒通过；UI-only 4-worker 241/242 复现）",
-        "risk": "UI 选择/异步刷新竞态；web/ui/v2 文件为他会话在途修改，未触碰",
-        "after_fix_note": "event stream 项已由 ff30592d 测试修正；872d200b 全量后尚未重跑，预期剩此 1 项"
+        "nodeid": "agent/tests/v2/ui/test_v2_memory_organization_ui.py（4-worker 下不同用例竞态）",
+        "failure": "exact 用例已由 b1bf5810 显式选择批次修复；4 个 UI 文件并发时同文件 test_forgotten_sources_reject_stale_owner_decision... 出现时序红（21/22）。隔离全部通过。",
+        "risk": "memory UI 测试文件在并发 UI 下的异步刷新/选择竞态；web/ui/v2 文件为他会话在途修改，未触碰",
+        "after_fix_note": "event stream 项已修；872d200b 全量后尚未重跑，预期 full 仅剩 memory UI 文件 1 项左右的竞态"
       }
     ]
   },
-  "effect": "全量 58 → 7 → 6 → 2（872d200b）；event stream 帧序测试已由 ff30592d 修正。当前预期剩 1 个 memory UI 4-worker 竞态；未再跑全量，不声称 current_full_passed。",
+  "effect": "全量 58 → 7 → 6 → 2（872d200b）；event stream 帧序与 memory exact 选择竞态已修，但 memory UI 文件在并发 UI 下仍有不同用例时序红。当前预期 full 剩 1 项左右 UI 竞态；未再跑全量，不声称 current_full_passed。",
   "not_executed": [
-    "ff30592d 后的完整全量重跑（预期剩 1 个 memory UI 竞态，不声称 0 红）",
-    "memory UI 4-worker 竞态的测试侧修复（需他会话 UI 文件）",
+    "ff30592d/b1bf5810 后的完整全量重跑（预期剩 memory UI 1 项左右，不声称 0 红）",
+    "memory UI 文件并发竞态的测试侧彻底修复（需他会话 UI 文件或 UI 串行分组）",
     "memory UI 4-worker 竞态的测试侧修复（需他会话 UI 文件）",
     "真实平台/账号/设备/72h",
     "docs/index 再生（C0.5 暂缓）"
