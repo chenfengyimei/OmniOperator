@@ -280,6 +280,11 @@ def test_real_http_disconnect_resume_and_token_rotation_keep_one_durable_event_s
             assert after["id"] != before["id"]
             assert client.post("/api/v1/owner-token/rotate").status_code == 200
             revoked = read_frame(lines)
+            # A history notification already queued before rotation may arrive first; no new
+            # turn is created after rotation, so drain only those and require the revocation frame.
+            deadline = time.monotonic() + 3
+            while revoked["event"] == "history" and time.monotonic() < deadline:
+                revoked = read_frame(lines)
             assert revoked == {"event": "unauthenticated", "data": {"code": "unauthenticated"}}
         deadline = time.monotonic() + 5
         while app.state.event_streams.active and time.monotonic() < deadline:
