@@ -78,6 +78,7 @@ from ..application.media import CELLS_SPEC as MEDIA_CELLS
 from ..application.media import LIST_SPEC as MEDIA_LIST
 from ..application.media import LOCATE_SPEC as MEDIA_LOCATE
 from ..application.media import TRANSCRIPT_SPEC as MEDIA_TRANSCRIPT
+from ..application.media import ZOOM_SPEC as MEDIA_ZOOM
 from ..application.media import BilibiliMediaPort, MediaProcessingPort, MediaService
 from ..application.memory_organization import MemoryOrganizationService
 from ..application.memory_semantics import MemorySemanticService
@@ -643,6 +644,7 @@ async def open_instance(
                 Capability(MEDIA_TRANSCRIPT, media),
                 Capability(MEDIA_LOCATE, media),
                 Capability(MEDIA_CELLS, media),
+                Capability(MEDIA_ZOOM, media),
                 Capability(ANDROID_ACCESS, android, android.quiescent),
                 Capability(ANDROID_OBSERVE, android, android.quiescent),
                 Capability(ANDROID_MODEL, android, android.quiescent),

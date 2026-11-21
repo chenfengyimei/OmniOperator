@@ -348,6 +348,17 @@ class MediaRepositories(BilibiliRepositories):
             raise BusinessError("media_frames_not_found", "No such frame sheet in this Agent", status=404)
         return cast(Record, dict(found))
 
+    def media_frames_for_job(self, agent_id: str, job_id: str) -> Record:
+        # job_id is unique on media_frames, so a completed zoom job maps to exactly one sheet
+        # even when a concurrent owner job finishes later for the same source.
+        row = self.connection.execute(
+            select(s.media_frames).where(s.media_frames.c.agent_id == agent_id, s.media_frames.c.job_id == job_id)
+        ).mappings()
+        found = row.first()
+        if found is None:
+            raise BusinessError("media_frames_not_found", "No frame sheet for this job", status=404)
+        return cast(Record, dict(found))
+
     def media_recover(self) -> Record:
         """Startup reconciliation for jobs owned by the previous process."""
         cancelled = self.connection.execute(

@@ -1,0 +1,102 @@
+{
+  "schema": 1,
+  "date": "2026-11-21",
+  "base_commit": "ab2dadd9a37b99f90d515616f959eab6c50fdfec",
+  "batch_commit": "PENDING_BACKFILL",
+  "status": "implemented_scoped_passed",
+  "batch": "K16.tool_image_zoom",
+  "owner_approval": "所有者 2026-11-21 批准方案 B（决策 2 写工具审批门复用、决策 3 frames 作业复用随方案 B 生效）与 D5，按 D8 四批接线；本批为 2 media_zoom 工具批（1a 持久化 39da3eef、1b 协议+引擎 17565339 已落地）。",
+  "implements_gap": "K16 缺口 #3 模型侧自动 zoom 的工具面：1a/1b 已备工具图像账本身份与引擎同回合附着协议，本批落地 media_zoom 写工具——复用 K16.zoom_foundation frames 作业管线（无新表/操作），作业 done 后经 ImageService.prepare 注册帧图像并以 ActionResult.images 同回合返回；写动作经既有审批门，composition 生产档门控接线，routing 写工具自动排除。全链安全矩阵留 3 端到端批。",
+  "contract": "docs/v2/contracts/V2_TOOL_IMAGE_PROTOCOL.md",
+  "source_files": {
+    "agent/src/omni/application/media.py": "6adf14357d9f27cf1c656760dd0e25e86d80373ae7c84aad9559ab07cecbff79",
+    "agent/src/omni/application/ports.py": "b685ef3ceda3ecb4843ce6aa85629f6b9598d21d22e84073ea51375cf3c6c7b8",
+    "agent/src/omni/adapters/persistence/media_repository.py": "d5a7b127dc35a72fabce0f5f5af58a1788d098b8833f3e6955447dc680369b16",
+    "agent/src/omni/composition/instance.py": "74cbdb333fabe380c237bd7e52b133458b931e2f4551c62437b316c16f69fcba",
+    "agent/tests/v2/integrations/test_v2_media_zoom_tool.py": "228b3d880014b34a01ad8510fdbe950b1c387af3bcd32f67c93db431f18b5862",
+    "docs/v2/contracts/V2_TOOL_IMAGE_PROTOCOL.md": "cd93d08a957128722fc51ff07ccba4e49ec4e7adc291d706164e39cded98f3ae",
+    "docs/HANDOFF.md": "52e7597bbbe0df2e738ae919f909c02df8f696a848af8832d3fa6be2bf0b95ab",
+    "docs/tasks/v2-agent-core-parity.json": "738c8232ea83b90b65766f13be528331244a0131a15e2f2375249e7746fbbb8a"
+  },
+  "hash_scope": "git index blob bytes (LF-normalized)；复现：git cat-file blob <commit>:<path> | sha256sum",
+  "delivered": [
+    "application/media.py ZOOM_SPEC（media_zoom，writes=True/resource=media/timeout_s=DOWNLOAD_BUDGET_S+60=240，覆盖 frames 作业下载预算 180s + 解码/发布余量）：parameters oneOf[{required:[timestamp]},{required:[cell]}] 强制二选一，width MIN_FRAME_WIDTH(320)..MAX_FRAME_WIDTH(1280)，timestamp 0..MAX_DURATION_S(7200)，source_id 必填 uuid，frames_id 可选，additionalProperties=false。",
+    "MediaService.invoke 加 ZOOM 分支委托 _zoom：width 缺省 1280；XOR（has_timestamp==has_cell，同缺/同给）→media_zoom_invalid；timestamp 直取 float 或 cell 经 _cell_time（复用 self.cells 锚索引，selected None→media_zoom_invalid，anchors[selected].time_s；normalize_cell 越界→media_cell_invalid）→frames_plan(1,width,[anchor]) 复用既有 width/anchor 校验→submit('frames',cast(Record,plan)) 复用 zoom_foundation 管线（admission/staging/authorize CAS/删除屏障/未知结算/取消等待/_register_sheet publish+images.prepare/media_frames，无新表/操作）→_wait_job 轮询 self.job 至终态（引擎 _execute wait_for(spec.timeout_s) 界定；except CancelledError→await self.cancel 清理作业再 raise）→非 done：unknown→ActionResult(UNKNOWN,Effect.UNKNOWN,error_code)，余→ERROR→done 经 media_frames_for_job 取本作业帧行→images.prepare(object_id) 注册取完整图像记录→ImageRef 六字段→ActionResult(OK,text,images=(ref,),data={frames_id,object_id,timestamp,width})，由 1b 引擎 _tool_message_content 同回合附着。",
+    "media_repository.py media_frames_for_job(agent_id,job_id) 只读查询（select media_frames where agent_id+job_id；media_frames.job_id 有 UniqueConstraint，一个作业唯一帧行，防并发 owner 作业竞态；缺行 media_frames_not_found）+ ports.py UnitOfWork Protocol 声明。纯读查询，无 schema/触发器/迁移改动。",
+    "composition/instance.py 导入 ZOOM_SPEC as MEDIA_ZOOM + 生产档（capabilities is None）agent_capabilities 在 MEDIA_CELLS 后加 Capability(MEDIA_ZOOM, media)（media 于 :571 已就绪，无需晚绑定 attach；隔离注入 capabilities=() 天然缺席）。domain/routing.py select_tools 对 mode!=agent 按 not s.writes 过滤，media_zoom writes=True 自动不入 chat/retrieval（name 亦不在 RETRIEVAL_TOOLS 集）——无需改 routing.py。",
+    "tests/v2/integrations/test_v2_media_zoom_tool.py（新增 17 例）：spec writes/resource/timeout/oneOf schema 矩阵；select_tools agent 包含/chat 与 retrieval 排除；timestamp zoom 返回 OK+恰 1 ImageRef（png/1280×720/bytes>0/sha64/规范 UUID）+data+帧行 job_id 关联 frame_count1 timestamps[12.5]+image_objects 注册行；cell zoom 先 seed frames count3（锚[0,10,20]）→cell2 width640→timestamp20.0；XOR 拒绝；width/timestamp 越界 media_frames_invalid；cell 越界 media_cell_invalid；未知源 media_source_not_found；作业 failed→ERROR media_sheet_invalid/unknown→UNKNOWN media_processing_failed 均零 images；hang 作业取消→job cancelled+CancelledError；生产档 writes 接线/注入档缺席；引擎审批门 capstone（生产 open_instance+ZoomModel+configure gpt-4o openai_low→submit_turn→waiting_approval→approve→succeeded，第二请求 tool 消息 image_url detail low+账本 tool 行 message_id NULL/终态 object_id NULL 释放/state attached）。",
+    "合同 V2_TOOL_IMAGE_PROTOCOL.md 状态/D8 步骤 2/边界段（2 落地余 3）；HANDOFF K16 bullet/2 media_zoom 段落/后续顺序；任务 JSON current_followup/followups/limits/evidence 同步。"
+  ],
+  "limits": {
+    "e2e_security_matrix_not_yet": "3 端到端批未实现：审批拒绝/取消/过期、凭据/源 CAS、删除屏障、未知不重放、取消等待真实清理的全链安全矩阵留待下一批；本批 capstone 仅证审批批准 happy path 同回合可见",
+    "no_new_table_operation_migration": "复用 frames 作业管线，无新表/操作/迁移；media_frames_for_job 为纯读查询（job_id 唯一约束既有）；schema/触发器零改动",
+    "routing_unchanged": "writes=True 经 select_tools not s.writes 过滤自动排除 chat/retrieval，routing.py 零改动",
+    "run_budget_execution_point_unchanged": "zoom 不做 run_budget 预检（D3 允许但不强制）；唯一执行点仍在 prepare/DB；disabled 协议下 zoom 仍注册图像但引擎附通知（与 owner upload 未附着语义一致）",
+    "existing_reds_untouched": "5 既有红 git diff 实证非本批：v36_upgrade 与 media_upload_migration[False]/[True] pin v2_0039（实测 v2_0050，属 6 处 v2_0039 pin + 2 处 media_upload DDL pin 债务族）；media_staging[business]/[io] stub media_source_get 缺 kind 键撞 committed _execute:305 source[kind] KeyError（本批 _execute 零改动）",
+    "aggregate_index_commit_deferred": "docs/index 并行 UI 会话在途，按纪律暂缓",
+    "strict_config_unchanged": "无新 src 文件，pyrightconfig.strict.json 与 TYPE_CHECKING.md 不变（418）；新测试文件未入 strict include"
+  },
+  "validation": {
+    "mode": "scoped_media_zoom_tool_batch",
+    "scoped": {
+      "command": "uv run --no-sync pytest -q -n 0 agent/tests/v2/integrations/test_v2_media_zoom_tool.py",
+      "passed": 17,
+      "failed": 0,
+      "seconds": 31.56,
+      "note": "终源（strict cast 修复后）复跑；cast 修复前同运行时 17 过 29.44 秒"
+    },
+    "revert_check": {
+      "method": "备份 media.py/instance.py 后临时摘掉 invoke ZOOM 分支 + composition Capability(MEDIA_ZOOM, media) 两处实现（终版测试源码）",
+      "passed": 3,
+      "failed": 14,
+      "seconds": 42.8,
+      "green_explanation": "3 绿=静态合同钉：test_zoom_spec_is_write_media_tool_with_xor_schema（ZOOM_SPEC 常量+schema）、test_zoom_write_tool_excluded_from_chat_and_retrieval_tiers（routing 静态过滤）、test_zoom_absent_when_capabilities_injected（capabilities=() 本就不含 zoom）",
+      "restore": "cp 还原 media.py/instance.py，sha256sum -c /tmp/tool-image-zoom-rollback/before.sha 全 OK，终源复跑 17 过"
+    },
+    "callers_a": {
+      "command": "uv run --no-sync pytest -q -n 0 agent/tests/v2/integrations/test_v2_media*.py agent/tests/v2/core/test_v2_architecture.py agent/tests/v2/core/test_v2_typecheck_scope.py agent/tests/v2/core/test_v2_capabilities.py agent/tests/v2/core/test_v2_business_inventory.py agent/tests/v2/integrations/test_v2_routing.py",
+      "passed": 784,
+      "failed": 5,
+      "seconds": 256.93,
+      "note": "含 17 专项（test_v2_media_zoom_tool.py 匹配 test_v2_media* glob）；5 失败均既有红，见 preexisting_reds"
+    },
+    "callers_b": {
+      "command": "uv run --no-sync pytest -q -n 0 agent/tests/v2/integrations/test_v2_images.py agent/tests/v2/integrations/test_v2_image_resources.py agent/tests/v2/core/test_v2_tool_image_protocol.py agent/tests/v2/core/test_v2_tool_image_ledger.py agent/tests/v2/http/test_v2_images_http.py",
+      "passed": 54,
+      "failed": 0,
+      "seconds": 85.63,
+      "note": "图像协议面（zoom 产图经 1b 引擎消费）；与 callers_a 不相交，distinct 通过 784+54=838"
+    },
+    "preexisting_reds": {
+      "count": 5,
+      "attribution_method": "git diff HEAD 实证本批 4 src 文件改动纯新增、未触失败路径",
+      "schema_pin_debt": "test_v2_media.py::test_v36_upgrade_registers_sources_and_bounds_jobs 断言 db.schema_version==v2_0039、test_v2_media_upload_migration.py::test_populated_graph_rebuild...[False]/[True] 断言 alembic_version==v2_0039，实测均 v2_0050（1a bump head）——属 6 处 v2_0039 schema_version pin + 2 处 media_upload DDL pin 既有债务族",
+      "staging_stub_key": "test_v2_media_staging.py::test_failed_terminal_write_still_removes_staging_and_preserves_error[business]/[io] 期望 finishes==[(failed,media_subtitle_missing)] 实得 [(unknown,media_processing_failed)]：stub Database.media_source_get 返回无 kind 键，撞 committed _execute:305 uploaded=source['kind'] KeyError→except BaseException→unknown。git diff HEAD media.py 三 hunk（@@-16 imports/@@-108 ZOOM_SPEC/@@-733 invoke+新方法）_execute(288-443) 零改动，grep uploaded/source[kind]/_execute/media_subtitle_missing 均 NONE，HEAD:305 已有该行——既有 stub 过时红，非本批引入，独立债务批才修"
+    },
+    "strict": {
+      "config": "pyrightconfig.strict.json",
+      "command": "uv run --no-sync pyright --project pyrightconfig.strict.json（仓库根）",
+      "files": 418,
+      "errors_total": 0,
+      "warnings": 0,
+      "note": "首轮 1 错 media.py:780 frames_plan 返回 dict[str,object]→submit params Mapping[str,JSON]（object 非 JSON 子类型），经 cast(Record,plan) 修复（镜像 submit 内部 cast）；无新 src 文件 config 不变"
+    },
+    "ruff": {
+      "check": "All checks passed!（4 src + 1 测试）",
+      "format": "实现期 1 file reformatted（media.py）后复检 5 files already formatted"
+    }
+  },
+  "whole_core_parity_complete": false,
+  "whole_reference_feature_audit_complete": false,
+  "whole_v2_complete": false,
+  "not_executed": [
+    "3 端到端批（生产 open_instance 视频 zoom→审批→作业 done→模型同回合可见全链 + 审批拒绝/取消/过期/凭据源 CAS/删除屏障/未知不重放/取消等待真实清理安全矩阵）",
+    "5 既有红债务批（3 处 v2_0039/media_upload DDL pin + 2 处 media_staging stub kind 键，独立批才修）",
+    "execution_pruning[cost] 指纹含 settle 事件债务（独立批）",
+    "docs/index 再生与提交（并行 UI 会话在途暂缓）",
+    "全量测试（V2 冻结后统一跑）",
+    "真实账号/模型/设备/运行中 Windows 服务与数据库（本批全程隔离 SQLite+FakeGateway/FakeProcessor+注入模型）",
+    "真实视频视觉质量与长跑稳定性（另验）"
+  ],
+  "next": "D8 之 3 端到端批：生产 open_instance 视频 zoom 全链（create source→frames sheet→模型 media_zoom→审批→作业 done→同回合 image part 可见）+ 审批拒绝/取消/过期、凭据/源 CAS、删除屏障、未知不重放、取消等待真实清理安全矩阵；专项+回退+调用方+strict+ruff+证据链。随后 K01/K17（各需先设计合同）。whole_*_complete 保持 false。"
+}

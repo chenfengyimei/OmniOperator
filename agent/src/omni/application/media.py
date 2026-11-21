@@ -16,14 +16,17 @@ from collections.abc import Awaitable, Callable, Coroutine, Mapping
 from pathlib import Path
 from typing import Any, Protocol, cast
 
-from ..domain.contracts import JSON, ActionResult, BusinessError, InvocationContext, Outcome, ToolSpec
+from ..domain.contracts import JSON, ActionResult, BusinessError, Effect, ImageRef, InvocationContext, Outcome, ToolSpec
 from ..domain.media import (
     CELL_COLUMNS,
     DOWNLOAD_BUDGET_S,
     MAX_ACTIVE_JOBS,
     MAX_DOWNLOAD_BYTES,
+    MAX_DURATION_S,
+    MAX_FRAME_WIDTH,
     MAX_TOOL_TEXT_CHARS,
     MAX_TRANSCRIPT_BYTES,
+    MIN_FRAME_WIDTH,
     OPERATIONS,
     asr_plan,
     cell_anchors,
@@ -105,6 +108,30 @@ CELLS_SPEC = ToolSpec(
         "additionalProperties": False,
     },
     timeout_s=10,
+    resource="media",
+)
+
+ZOOM_SPEC = ToolSpec(
+    "media_zoom",
+    "Refetch one high-resolution frame of a registered media source at an absolute timestamp or a "
+    "frame-cell anchor and return it as a same-turn visible image. Submits a frames processing job; "
+    "owner approval is required (write action).",
+    {
+        "type": "object",
+        "properties": {
+            "source_id": {"type": "string", "format": "uuid"},
+            "timestamp": {"type": "number", "minimum": 0, "maximum": MAX_DURATION_S},
+            "cell": {"type": "integer", "minimum": 0},
+            "frames_id": {"type": "string", "format": "uuid"},
+            "width": {"type": "integer", "minimum": MIN_FRAME_WIDTH, "maximum": MAX_FRAME_WIDTH},
+        },
+        "required": ["source_id"],
+        "oneOf": [{"required": ["timestamp"]}, {"required": ["cell"]}],
+        "additionalProperties": False,
+    },
+    writes=True,
+    # The synchronous wait covers the frames job download budget plus a decode/publish margin.
+    timeout_s=DOWNLOAD_BUDGET_S + 60,
     resource="media",
 )
 
@@ -733,9 +760,74 @@ class MediaService:
                     arguments.get("cell"),
                 )
                 return ActionResult(Outcome.OK, str(indexed["text"]), data=indexed)
+            if name == ZOOM_SPEC.name:
+                return await self._zoom(context.agent_id, arguments)
         except BusinessError as exc:
             return ActionResult(Outcome.ERROR, exc.message, error_code=exc.code)
         return ActionResult(Outcome.ERROR, "Unknown media capability", error_code="tool_not_found")
+
+    async def _zoom(self, agent_id: str, arguments: Mapping[str, JSON]) -> ActionResult:
+        source_id = str(arguments["source_id"])
+        width = int(cast(int, arguments.get("width", MAX_FRAME_WIDTH)))
+        has_timestamp, has_cell = "timestamp" in arguments, "cell" in arguments
+        if has_timestamp == has_cell:
+            raise BusinessError("media_zoom_invalid", "Provide exactly one of timestamp or cell", status=422)
+        if has_timestamp:
+            anchor = float(cast("int | float", arguments["timestamp"]))
+        else:
+            anchor = await self._cell_time(agent_id, source_id, arguments.get("frames_id"), arguments["cell"])
+        plan = frames_plan(1, width, [anchor])
+        job = await self.submit(agent_id, source_id, "frames", cast(Record, plan))
+        job_id = str(job["id"])
+        try:
+            settled = await self._wait_job(agent_id, job_id)
+        except asyncio.CancelledError:
+            await self.cancel(agent_id, job_id)
+            raise
+        if settled["state"] != "done":
+            code = str(settled["error_code"] or "media_processing_failed")
+            if settled["state"] == "unknown":
+                return ActionResult(Outcome.UNKNOWN, "Frame refetch did not complete", Effect.UNKNOWN, error_code=code)
+            return ActionResult(Outcome.ERROR, "Frame refetch did not complete", error_code=code)
+        frames = await self._db.read(lambda u: u.media_frames_for_job(agent_id, job_id))
+        prepared = await self._images.prepare(agent_id, str(frames["object_id"]))
+        ref = ImageRef(
+            str(prepared["object_id"]),
+            str(prepared["media_type"]),
+            int(cast(int, prepared["width"])),
+            int(cast(int, prepared["height"])),
+            str(prepared["sha256"]),
+            int(cast(int, prepared["bytes"])),
+        )
+        text = (
+            f"frames_id={frames['id']} source={source_id} t={anchor:.3f}s width={width} object={prepared['object_id']}"
+        )
+        return ActionResult(
+            Outcome.OK,
+            text,
+            images=(ref,),
+            data={
+                "frames_id": frames["id"],
+                "object_id": prepared["object_id"],
+                "timestamp": anchor,
+                "width": width,
+            },
+        )
+
+    async def _cell_time(self, agent_id: str, source_id: str, frames_id: object, cell: object) -> float:
+        indexed = await self.cells(agent_id, source_id, str(frames_id) if frames_id else None, cell)
+        selected = indexed["selected"]
+        if selected is None:
+            raise BusinessError("media_zoom_invalid", "A frame-cell selector is required", status=422)
+        anchors = cast(list[Record], indexed["cells"])
+        return float(cast(float, anchors[int(cast(int, selected))]["time_s"]))
+
+    async def _wait_job(self, agent_id: str, job_id: str) -> Record:
+        while True:
+            job = await self.job(agent_id, job_id)
+            if job["state"] not in ("queued", "running"):
+                return job
+            await asyncio.sleep(0.02)
 
     # ---------- lifecycle ----------
 
