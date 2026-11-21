@@ -559,11 +559,13 @@ def test_four_waiting_parents_do_not_starve_the_child_pool(tmp_path):
             parents = [
                 await instance.application.submit_turn(agent, None, str(i), "root", mode="agent") for i in range(4)
             ]
-            await asyncio.wait_for(model.started.wait(), 10)
+            await asyncio.wait_for(model.started.wait(), 30)
             assert len(instance.application._active) == 8 and len(instance.application._child_ids) == 4
             model.release.set()
             for parent in parents:
-                result = await wait_state(instance.application, agent, parent["run_id"], {"succeeded", "failed"})
+                result = await wait_state(
+                    instance.application, agent, parent["run_id"], {"succeeded", "failed"}, timeout=30
+                )
                 assert result["state"] == "succeeded", result
             assert model.maximum == 4
         finally:

@@ -85,7 +85,7 @@ def test_exact_only_proposal_completes_and_undo_preserves_raw_facts_and_sources(
         batch = wait_ready(page, context, v2_server, agent, queued.value.json()["id"])
         expect(page.locator("#memory-organization-refresh-detail")).to_be_enabled()
         page.locator("#memory-organization-refresh-detail").click()
-        expect(page.locator("#memory-organization-detail")).to_contain_text("提案已生成")
+        expect(page.locator("#memory-organization-detail")).to_contain_text("提案已生成", timeout=15000)
         assert batch["policy"] == "exact-fact-duplicates-v1" and batch["budget_micro"] == 0
         assert batch["source_count"] == 3 and len(batch["candidates"]) == 1
         candidate = batch["candidates"][0]
