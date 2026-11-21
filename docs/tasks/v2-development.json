@@ -54,7 +54,7 @@
       "full_rerun_after_alignment": true,
       "migration_pin_debt": 0,
       "k01_prompt_cache_route_key": "D3(b) 已实现：pc_<sha256(agent|session|epoch)[:24]>，仅 xAI/Grok/OpenAI extra_body，前缀字节不变",
-      "c0_5_index": "baseline a4350753 可生成 modules=65 files=838 routes=458 tools=94 sha=bb5f3bf0…；主工作树 docs/index 被他会话修改且 files=833，待洁净后再生",
+      "c0_5_index": "baseline a4350753/696ed937 可生成 modules=65 files=838 routes=458 tools=94 sha=bb5f3bf0…；二次运行零 diff（三文件字节稳定）；主工作树 docs/index 被他会话修改且 files=833，待洁净后再生",
       "c2_8_container": "Docker engine 不可连接；com.docker.service 启动被拒绝（无服务控制权限）；未 build/run",
       "c2_7_windows_service": "需要管理员/服务控制权限；未执行",
       "evidence": "docs/evidence/v2-closeout-baseline.json",

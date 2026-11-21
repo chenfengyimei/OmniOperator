@@ -183,6 +183,13 @@
     "date": "2026-11-22",
     "baseline_command": "source/.venv/Scripts/python.exe scripts/project_index.py",
     "baseline_result": "modules=65 files=838 routes=458 declared_tools=94 updated=MODULES.md,API.md,project.json; source_sha256=bb5f3bf054cbd2544832226255196e6f59af458c38223d7bb52dc6c89f210820",
+    "idempotent": true,
+    "second_run": "modules=65 files=838 routes=458 declared_tools=94 updated=（空，三文件字节稳定）",
+    "artifact_sha256": {
+      "docs/index/API.md": "D17A0F0A30D06E2BCFCBD5D6EAB6F9BB8617C8FB33D0018ECE4726CCC4374F4A",
+      "docs/index/MODULES.md": "34E846A9D5A6C4211BC0ED4127A18F5C3664510B8C5310239FB16F8BE0437C41",
+      "docs/index/project.json": "2043FC47EFF8CEBD63026F331F1945D0FEF40D3489D960C586FE648D2F5CD75D"
+    },
     "committed_index": "modules=65 files=? routes=? declared_tools=94 source_sha256=ecb88ce12ecb23b6fda1b08064c17c87d716c114e7ad5fed4cab6eee7d6a56de",
     "main_worktree_index": "modules=65 files=833 routes=? declared_tools=94 source_sha256=7dcc48636dfc0d99a9e1fe907a6ac80937c3c2a6444e676deb312e9bfb1ca1fe（含他会话未提交编辑，仍落后基线 5 个文件）",
     "blocked_reason": "主工作树 docs/index 已被他会话修改；直接再生会覆盖其未提交编辑并编码其 WIP。基线在 a4350753 clean 树上可复现，等主工作树洁净或他会话提交后再落索引。"
