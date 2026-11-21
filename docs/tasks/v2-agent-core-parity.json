@@ -11,24 +11,27 @@
   "evidence": "docs/evidence/v2-agent-core-parity.json",
   "test_policy": "实现优先，只跑受影响模块和调用方专项；整个V2开发冻结后统一全量",
   "current_followup": {
-    "id": "K16.tool_image_e2e",
-    "status": "implemented_e2e_batch",
+    "id": "K01.prompt_cache_scope_design",
+    "status": "design_contract_recorded",
     "scope": [
-      "D8之3端到端批(K16缺口#3四批完结)：只新增test_v2_media_zoom_e2e.py 9例经生产open_instance+脚本ZoomModel全链安全矩阵,零生产源码改动(git diff HEAD -- agent/src/空)——审批拒绝/撤销/过期均不提交作业(action denied/cancelled/effect none,expired→run interrupted approval_expired)；owner取消等待真实清理(WaitingProcessor门控→app.cancel→run cancelled+作业cancelled+staging移除+processor.cleaned)；凭据revision CAS(bilibili_configuration_revoked)；源身份CAS(bilibili_source_changed复用真实gateway fixture)；删除屏障(action error/none无产物)；未知不重放(job unknown→UNKNOWN/Effect.UNKNOWN→run failed action_outcome_unknown恰1作业model.requests==1)；上传object_video源全链同回合image part可见+账本tool行终态释放",
-      "回退摘composition MEDIA_ZOOM接线9/9红(无zoom能力全部waiting_approval超时)还原sha256一致；191调用方distinct零回归(A zoom工具17+e2e9+媒体安全105=131过+B图像协议/架构60过)；strict418文件0错误(生产字节零漂移本批复跑)"
+      "K01缓存作用域独立设计合同(纯文档,无源码/测试/迁移改动):勘定V2现状——全仓无prompt_cache_key/cache_scope,仅读provider usage缓存字段(models.py:184-194)；系统前缀=persona+owner memory+notice(metering.py:43-73),memories/上下文省略通知/档位技能通知跨run漂移致前缀未命中；compact_run单run冻结前缀+head+最近rounds(context.py:256-327)；V2压缩原位session_id不轮换(session_search lineage-free)无需lineage回溯；content_epoch擦除重置+1即generation(retention_repository.py:61)；委派独立子会话；注入点_prepare(101-152)复用既有OpenCode Go x-opencode-session先例",
+      "参考hermes prompt_cache_scope(不可信设计数据)与V2结构差异表；决策D1派生键pc_<sha256(agent|session|epoch)[:24]>不泄露内部id、D2 provider分类slot-keyed(xAI/api.x.ai/Grok aggregator)vs内容地址(Anthropic/DeepSeek/Gemini)vs OpenAI、D3跨run前缀稳定三方案((b)仅路由键注入无冻结合同改动可先落/(a)(c)前缀重构触及memory_system冻结前缀+语义需所有者批准)、D4 content_epoch换桶、D5委派隔离(K17 cache-parity fork forward)、D6 fail-closed、D7注入点adapters/models.py、D8真实效果单独验收",
+      "实现分两批:(b)路由键注入(无冻结合同改动可先落)与(a)/(c)前缀重构(需所有者批准选型);本合同纯文档安全,实现前需所有者审阅并选定D3"
     ],
-    "evidence": "docs/evidence/v2-tool-image-e2e.json",
-    "validation": "终源9过0败(40.09秒)；回退9/9红106.55秒还原instance.py sha256一致git diff agent/src空；调用方A 131过0败101.85秒+B 60过0败91.00秒distinct191过；strict418文件0错误0警告(生产字节零漂移本批复跑)；ruff净；零生产源码改动；未跑全量、未触真实账号/模型/设备/运行中服务与数据库",
-    "next": "K16缺口#3四批完结。下一步K01会话/lineage缓存作用域(需先设计合同)→K17反思来源链(需先设计合同)。K15主动外联/K18写路径扩面/代码沙箱/原始CDP安全模型仍待所有者决定。帧内OCR(需rapidocr)仍后续,真实视频视觉质量另验。whole_*_complete保持false。"
+    "evidence": "docs/evidence/v2-prompt-cache-scope.json",
+    "validation": "纯文档:git diff HEAD -- agent/src空;agent/tests仅并行UI会话既有在途改动test_v2_model_stream_ui.py(非本批作者,未staging);未跑pytest/ruff/pyright(无代码改动不适用);未触真实账号/模型/设备/运行中服务与数据库",
+    "next": "K01设计合同已记录,实现待所有者选定D3方案(推荐先落(b)零冻结合同改动)。继而K17反思来源链(需先设计合同)。K15主动外联/K18写路径扩面/代码沙箱/原始CDP安全模型仍待所有者决定。帧内OCR(需rapidocr)仍后续,真实视频视觉质量与真实缓存效果另验。whole_*_complete保持false。"
   },
   "requirements": [
     {
       "id": "K01",
       "title": "系统前缀与缓存范围",
-      "status": "partial",
-      "delivered": "单run前缀冻结，档位/已审技能变化尾部通知",
-      "remaining": "会话/分叉lineage级稳定范围与跨run策略；真实缓存效果单独验收",
-      "reference": "hermes-agent/agent/prompt_builder.py; agent/prompt_cache_scope.py"
+      "status": "design_contract_recorded",
+      "delivered": "单run前缀冻结，档位/已审技能变化尾部通知；缓存作用域设计合同已记录（v2/contracts/V2_PROMPT_CACHE_SCOPE.md，D1-D8）",
+      "remaining": "实现待所有者选定D3方案（(b)路由键注入可先落无冻结合同改动；(a)/(c)前缀重构需批准）；真实缓存效果单独验收",
+      "reference": "hermes-agent/agent/prompt_builder.py; agent/prompt_cache_scope.py",
+      "evidence": "docs/evidence/v2-prompt-cache-scope.json",
+      "limits": "设计合同纯文档未实现；V2无prompt_cache_key现状仅读usage缓存字段；实现分两批，前缀重构触及memory_system/history_request冻结前缀+语义需所有者批准；真实缓存效果需隔离环境单独验收"
     },
     {
       "id": "K02",
@@ -862,6 +865,10 @@
     {
       "id": "K16.tool_image_e2e",
       "evidence": "docs/evidence/v2-tool-image-e2e.json"
+    },
+    {
+      "id": "K01.prompt_cache_scope_design",
+      "evidence": "docs/evidence/v2-prompt-cache-scope.json"
     },
     {
       "id": "K13.search_regex",

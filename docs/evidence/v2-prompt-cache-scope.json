@@ -1,0 +1,53 @@
+{
+  "schema": 1,
+  "date": "2026-11-21",
+  "base_commit": "a849b1273a2c87246537449eb8a90d3e192d80ab",
+  "status": "design_contract_recorded",
+  "batch": "K01.prompt_cache_scope_design",
+  "owner_approval": "K01 属用户指令顺序「K01 会话/lineage 缓存作用域…各需先设计合同」的设计批，本合同为纯文档。其实现分两批——(b) 路由键注入（无冻结合同改动，可先落）与 (a)/(c) 系统前缀重构（触及 memory_system/history_request 冻结前缀 + 语义变更 + 安全敏感 provider 缓存键）——需所有者审阅本合同并选定 D3 方案后方可接线。",
+  "implements_gap": "K01 剩余项「会话/分叉 lineage 级稳定范围与跨 run 策略」的设计合同。勘定更正原有假设：V2 压缩原位、session_id 不轮换（session_search lineage-free），无需压缩 lineage 持久化回溯；content_epoch 即 reset generation。合同给出 D1-D8 决策与两批实现划分，标注触及冻结前缀/安全敏感面需所有者批准。",
+  "contract": "docs/v2/contracts/V2_PROMPT_CACHE_SCOPE.md",
+  "source_files": {
+    "docs/v2/contracts/V2_PROMPT_CACHE_SCOPE.md": "952b08a359cfb3c697000d851f62a35919316c7acb3b31b9840c1cea4ee029e4",
+    "docs/HANDOFF.md": "822fe05ba3f89a41d2c27bfcbfca8a1c89fd43f5a70f1c5494b9b41f9a9a57e1",
+    "docs/tasks/v2-agent-core-parity.json": "1ab0e1c8029fcc54e9b611453391def6884d8d81d63890b61d7a72b6aa643d35"
+  },
+  "hash_scope": "git index blob bytes (LF-normalized)；复现：git cat-file blob <commit>:<path> | sha256sum",
+  "delivered": [
+    "勘定事实（实读源码）：全仓 agent/src/omni 无 prompt_cache_key/cache_scope/prompt_cache_scope（仅读 provider usage 缓存字段 models.py:184-194）；系统前缀 = memory_system(metering.py:43-53) = persona + owner memory JSON + notice，其中 notice = context_notice(omitted/reason/erased) + extra_notice(route_notice+skills.notice，engine.py:336-338)，tail_notice=todo_notice 才走尾部（append_runtime_notice）——memories/省略计数/档位技能通知跨 run 漂移致前缀未命中；compact_run(context.py:256-327) 单 run 冻结前缀+head+最近 rounds；压缩原位 session 不轮换（session_search.py:1-4 lineage-free）；content_epoch 默认1、擦除重置+1（retention_repository.py:61）即 generation；委派独立子会话（delegation_repository.py:186）；注入点 _prepare(101-152) 且已有 OpenCode Go x-opencode-session 亲和头先例（models.py:127-130）。",
+    "参考与 V2 结构差异表（gateway 每响应铸 id vs 持久 session 行；压缩轮换 vs 原位；generation vs content_epoch；fork/branch vs 委派子会话）。",
+    "设计决策 D1 派生键 pc_<sha256(agent_id|session_id|content_epoch)[:24]>（不暴露内部 id/明文平台标识）；D2 provider 分类镜像 slot-keyed(xAI/api.x.ai/Grok aggregator) vs 内容地址(Anthropic/DeepSeek/Gemini) vs OpenAI 前缀路由，domain 不感知 provider；D3 跨 run 前缀稳定三方案（(b) 仅路由键注入、无冻结合同改动可先落；(a)/(c) 前缀重构触及冻结前缀+语义需所有者批准），推荐分批；D4 content_epoch 换桶（压缩不推进）；D5 委派隔离 + K17 cache-parity fork forward；D6 fail-closed 回退物理；D7 注入点 adapters/models.py _prepare，不改请求内容/计量；D8 真实缓存效果单独隔离验收。",
+    "合同 V2_PROMPT_CACHE_SCOPE.md（状态/勘定事实/差异表/D1-D8/有界与安全/测试计划/边界）；HANDOFF 后续顺序与 K01 断点段更新（更正 lineage 假设）；任务 JSON current_followup/K01 requirement(external evidence+limits)/evidence 列表同步。"
+  ],
+  "limits": {
+    "design_contract_only": "纯文档设计批，无源码/测试/迁移改动；git diff HEAD -- agent/src 空。实现尚未开始。",
+    "frozen_prefix_touched_by_a_c": "D3(a)/(c) 触及 memory_system/history_request 冻结前缀合同 + owner memory salience 语义变更，必须所有者批准；本合同不实现。",
+    "security_sensitive_key": "provider prompt_cache_key 采用不可逆派生键避免泄露内部 id/明文平台标识；实现须评审出网字段面（extra_headers 仍过滤 authorization/x-api-key）。",
+    "real_cache_effect_separate": "D8 真实缓存命中质量需隔离凭据/环境用既有 usage 字段比对，单独批验收，不入默认离线套件、不触真实账号/计费。",
+    "existing_reds_untouched": "5 既有红（3 处 v2_0039/media_upload DDL pin + 2 处 media_staging stub kind 键）独立债务批未触。",
+    "aggregate_index_commit_deferred": "docs/index 并行 UI 会话在途，按纪律暂缓提交。",
+    "concurrent_ui_change_not_staged": "agent/tests/v2/ui/test_v2_model_stream_ui.py 为并行 UI 会话既有在途改动（会话起始 git status 即列 M），非本批作者，未 git add；cached name-only 仅本批 3 文件。"
+  },
+  "validation": {
+    "mode": "design_contract_only",
+    "pure_docs": {
+      "command": "git diff HEAD --stat -- agent/src (empty); git status --short -- docs/v2/contracts/ (only ?? V2_PROMPT_CACHE_SCOPE.md)",
+      "result": "no source/test/migration change from this batch",
+      "note": "agent/tests 唯一 diff 为并行 UI 会话既有在途 test_v2_model_stream_ui.py，非本批作者且未 staging"
+    },
+    "json_parse": {
+      "command": "python -c json.load(docs/tasks/v2-agent-core-parity.json)",
+      "result": "JSON OK"
+    },
+    "staging_scope": {
+      "command": "git diff --cached --name-only",
+      "result": "docs/HANDOFF.md, docs/tasks/v2-agent-core-parity.json, docs/v2/contracts/V2_PROMPT_CACHE_SCOPE.md (仅本批 3 文件)"
+    },
+    "not_executed": {
+      "pytest": "无代码改动，不适用",
+      "ruff": "无代码改动，不适用",
+      "pyright_strict": "无代码改动，不适用",
+      "real_cache_effect": "D8 需真实 provider，单独隔离批"
+    }
+  }
+}
