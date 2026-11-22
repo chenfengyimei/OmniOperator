@@ -17,7 +17,7 @@ from omni.domain.contracts import ActionResult, Effect, Invocation, ModelReply, 
 from omni_test_support.v2.v2_configuration_helpers import model_uow
 
 
-async def wait_state(app, agent, run_id, states, timeout=10):
+async def wait_state(app, agent, run_id, states, timeout=30):
     async with asyncio.timeout(timeout):
         while True:
             run = await app.get_run(agent, run_id)

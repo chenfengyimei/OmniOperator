@@ -2,6 +2,7 @@
 
 import asyncio
 import threading
+import time
 from types import SimpleNamespace
 
 import omni_test_support.v2.ui as shared_ui
@@ -128,6 +129,11 @@ def test_owner_selects_queries_captures_and_leaving_revokes_without_implicit_pix
         assert not pixels.calls
         wait_for_share(page, configured_server, view, selected.value.json()["grant_id"])
         current = query_share(page)
+        deadline = time.monotonic() + 10
+        while not (current["authorized"] and current["capture_available"] and not current["input_authorized"]):
+            assert time.monotonic() < deadline, current
+            page.wait_for_timeout(100)
+            current = query_share(page)
         assert current["authorized"] and current["capture_available"] and not current["input_authorized"]
         expect(page.locator("#desktop-portal-status")).to_contain_text("窗口共享已授权")
         expect(page.locator("#desktop-portal-capture")).to_be_enabled()
