@@ -2,6 +2,20 @@
 
 状态：已实现并专项通过（2026-11-20）；2026-11-22 增补场景渐变合并（K16.scene_gradual）、上下黑边补偿（K16.scene_bars）、左右黑边补偿（K16.scene_bars_side）、邻域尖峰守卫（K16.scene_spike）、暗部增益（K16.scene_gain）、组合质量回归（K16.scene_quality）与采样上限/60s 素材（K16.scene_resource），固定素材复核见证据。学习参考 dsh-video-storyboard `src/storyboard/scan.js`（HSV 加权切点，PySceneDetect ContentDetector 思路）与 `frames.js extractSharpest`（Laplacian 清晰度选帧），独立实现于 V2 四层媒体链，不复用 V1 tools/storyboard。合并实现 K16 缺口 #1（HSV 切点+密度分段）与 #5（Laplacian 清晰度选帧）的**保守子集**。
 
+## 子批与证据（2026-11-22）
+
+| 子批 | 关键变化 | 证据 |
+|---|---|---|
+| K16.scene_frames | HSV 切点、密度分段、Laplacian 选帧、固定 2 列 | [v2-media-scenes.json](../evidence/v2-media-scenes.json) |
+| K16.scene_gradual | 亮度单调运行合并为单一中点（2s 渐隐 4→1） | [v2-media-scenes-gradual.json](../evidence/v2-media-scenes-gradual.json) |
+| K16.scene_bars | 上下黑边裁剪（bars16 0→1） | [v2-media-scenes-bars.json](../evidence/v2-media-scenes-bars.json) |
+| K16.scene_bars_side | 四轴黑边裁剪（pillar20 0→1） | [v2-media-scenes-bars-side.json](../evidence/v2-media-scenes-bars-side.json) |
+| K16.scene_spike | 邻域尖峰守卫（暗噪声假切点 2→0） | [v2-media-scenes-spike.json](../evidence/v2-media-scenes-spike.json) |
+| K16.scene_gain | 暗部增益（极暗 cut 0→1） | [v2-media-scenes-gain.json](../evidence/v2-media-scenes-gain.json) |
+| K16.scene_quality | mixed/大黑边/暗蒙太奇/cells 映射回归 | [v2-media-scenes-quality.json](../evidence/v2-media-scenes-quality.json) |
+| K16.scene_resource | 600s→240 次采样与 60s 素材 | [v2-media-scenes-resource.json](../evidence/v2-media-scenes-resource.json) |
+| K16.adaptive_grid_design | 宫格/DP 设计合同（D0/D2/D4 待决，未实现） | [v2-adaptive-grid-design.json](../evidence/v2-adaptive-grid-design.json) |
+
 ## 范围
 
 frames 作业新增可选 `select="scenes"`（默认 `equidistant` 字节等价零回归；与显式 `timestamps` 互斥，组合即 `media_frames_invalid` 422）：

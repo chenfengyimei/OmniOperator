@@ -89,3 +89,23 @@
 ## 完成条件
 
 K16 审计完成**不宣称五工具/算法全集对等**：V2 四层生产媒体面已有上传/B 站源 + 在线字幕 + 离线 ASR（锚点）+ 有界等距抽帧宫格 + 模型有界转录窗 + 完整授权/删除/未知/取消/恢复合同；切点检测/自适应宫格/格号寻址/zoom/字幕带 OCR/文本定位/清晰度选帧/亚秒锚点为**可离线缺口或需 OCR 模型**，分别列后续批次与另验。V1 `tools/storyboard` 的学习实现**不计为 V2 对等**。`whole_core_parity_complete`、`whole_reference_feature_audit_complete`、`whole_v2_complete` 保持 false。后续按 [K17…任务](../../tasks/v2-agent-core-parity.json) 推进 bili-humanism 审计，并择机实现 K13/K14/K15/K16 记录的可离线缺口（独立批次，先授权/持久化合同后执行接线）。
+
+## 实现进展（2026-11-22，K16 分支 `k16-storyboard`，基线 `0793f254`）
+
+上文“抽帧/锚点”等段落是 2026-11-20 的**审计快照**；以下后续子批已在独立分支实现并通过专项+调用方，历史“无切点/无清晰度/格号/zoom 未实现”的描述**不再代表当前 v2**：
+
+| 子批 | 内容 | 证据 |
+|---|---|---|
+| K16.scene_frames | HSV 切点 + 密度分段 + Laplacian 选帧（固定 2 列） | [v2-media-scenes.json](../evidence/v2-media-scenes.json) |
+| K16.scene_gradual | 2s 渐隐 4→1 切点（亮度单调运行合并） | [v2-media-scenes-gradual.json](../evidence/v2-media-scenes-gradual.json) |
+| K16.scene_bars | 上下黑边裁剪（bars16 0→1） | [v2-media-scenes-bars.json](../evidence/v2-media-scenes-bars.json) |
+| K16.scene_bars_side | 左右黑边四轴裁剪（pillar20 0→1） | [v2-media-scenes-bars-side.json](../evidence/v2-media-scenes-bars-side.json) |
+| K16.scene_spike | 邻域尖峰守卫（暗噪声假切点 2→0） | [v2-media-scenes-spike.json](../evidence/v2-media-scenes-spike.json) |
+| K16.scene_gain | 暗部亮度增益（极暗 cut 0→1） | [v2-media-scenes-gain.json](../evidence/v2-media-scenes-gain.json) |
+| K16.scene_quality | mixed/大黑边/暗蒙太奇/cells 映射回归 | [v2-media-scenes-quality.json](../evidence/v2-media-scenes-quality.json) |
+| K16.scene_resource | 采样上限 600s→240 与 60s 素材 | [v2-media-scenes-resource.json](../evidence/v2-media-scenes-resource.json) |
+| K16.adaptive_grid_design | 自适应宫格/DP 设计合同（未实现） | [v2-adaptive-grid-design.json](../evidence/v2-adaptive-grid-design.json) |
+
+- 缺口 #2 格号寻址：`K16.cell_anchor`（只读派生）已实现；#3 zoom/工具图像：`K16.zoom_foundation` + tool_image 协议/持久化/引擎/zoom/e2e 已实现（所有者批准方案 B）；#4 文本定位：`K16.locate` 已实现；#5 Laplacian：随 scene_frames 实现。
+- 仍未实现/决策：参考 `auto/auto-low` 分位阈值、自适应 minGap；**自适应宫格/DP 的 D0/D2/D4** 待所有者与 A；OCR 需 rapidocr（依赖/模型来源未定）；真实长片（>10min）、真实 B 站、真实运动/压缩复杂度另验。
+- 当前分支聚合：scenes 32 项 8.95 秒；23 个 K16 生产入口文件 422 项 225.35 秒；strict 428 文件 0 错误；索引 65/849/464/94。子批提交 `d5691940`→`36779499`→`469ec591`→`cfc7753f`→`84053b8c`→`a16cace9`→`f64539ca`→`2806fa29`。
