@@ -24,7 +24,7 @@
 | D5 | 主动观看 | 默认 OFF；先 infra（W1/W2）后策略 | 高（计划/日记/评分/反馈） | 新表需 A 迁移；**接主动行为前与 D 对齐** | 自主行为边界/预算/静默 |
 | D6 | 受控分享 | S2-A 逐条审批 + S1 资格门 + S3 账本；S5-A 不移植 AI-share 守卫 | 中 | 账本需 A 迁移；通知首版不加 webhook/command | 重复/配额/误报；AI-share 未验证 |
 | D7 | 直播 | L1/L2 只读先做；L3 owner 服务；L4-a 不做发送 | L1/L2 低；L3 中 | 首版无迁移；事件持久化才需 A | WS 协议/解压炸弹/私网 |
-| D8 | cron 阻塞与 K08/K06 `summary` 调用 | 合同 A（blocker 只统计 `purpose="turn"`） | 低（无迁移） | A 仅备案 | 安全敏感守卫，需明确批准 |
+| D8 | cron 阻塞与 K08/K06 `summary` 调用 | **已实现方案 A**（blocker 只统计 `purpose="turn"`） | 低（无迁移） | A 仅备案 | 安全敏感守卫；若所有者选 B/C/D 可回退过滤 |
 | D9 | 浏览器 SSRF/IMDS floor | 先 D9-i（元数据/link-local）+ D9-iv（`page.route` 全请求拦截） | 中低 | 无迁移；builtin worker | 本地浏览是否允许；重定向/子资源 |
 | R1–R5 | cron 残余（toolsets/workdir/deliver/monitor/script/scan） | 默认不移植；R3 失败先 owner 事件 | 低 | R1–R3 需 A 迁移；R2 需 worker 协议 | 无模型脚本/URL 监视属新执行/SSRF 面 |
 | T1–T5 | 模型侧持久终端/进程 | T1 不移植；可选 T2 只读观察 | 低 | 无迁移 | T4 拒绝；kill 需 `(pid, started_at)` |
@@ -102,7 +102,7 @@
 - **需决定**：是否采用合同 A（blocker 只统计 `purpose="turn"`，summary 不阻塞；turn/actions/outbox 与 `schedule_reviews` 语义不变），或 B（自动确认）、C（调度等待评审）、D（维持现状）。
 - **安全/授权面**：守卫本身安全敏感（复核未派发外部结果）；A 只移除内部辅助调用的假阻塞，不放过任何外部动作/投递复核；unknown summary 成本仍在 `model_calls`/usage/审计可见。
 - **验证要求**：离线冻结时钟 + 真实隔离 SQLite（summary 不阻塞、turn 仍阻塞、actions/outbox 仍阻塞、崩溃遗留 unknown summary 不阻塞）、cron/评审/维护调用方零回归、回退验证。
-- **依赖**：所有者批准；预计无迁移/接口改动（A 协调仅备案）。合同见 [V2_SCHEDULE_REVIEW_BLOCKER](V2_SCHEDULE_REVIEW_BLOCKER.md)。**未实现。**
+- **依赖**：所有者批准；预计无迁移/接口改动（A 协调仅备案）。合同与实现记录见 [V2_SCHEDULE_REVIEW_BLOCKER](V2_SCHEDULE_REVIEW_BLOCKER.md)。**已按推荐方案 A 实现（2026-11-23）：`model_calls` 条件加 `purpose='turn'`，summary 不再阻塞；turn/actions/outbox 与 `schedule_reviews` 语义不变；5 项新增回归 + 调用方通过，回退探针 3 红。若所有者选 B/C/D 可回退该过滤。**
 
 ## D9（K13）浏览器 URL 显式 SSRF/IMDS floor
 

@@ -1,6 +1,6 @@
 # V2 调度阻塞与后台评审辅助调用（K13 设计合同，先合同后接线）
 
-状态：**设计合同（design_contract_recorded，纯文档，无源码/测试/迁移改动，2026-11-22）**。K13 cron 四批已交付（`1d52cca1`/`a3436361`/`4acc46c9`/`42cf2e98`）；本册记录交付时已发现、`42cf2e98` 明确标注「属安全敏感独立批（需合同）」的残留交互，供所有者决定后再接线。**本批不实现、不改生产守卫。**
+状态：**已实现并专项通过（2026-11-23，按合同推荐方案 A）**。K13 cron 四批已交付（`1d52cca1`/`a3436361`/`4acc46c9`/`42cf2e98`）；本册记录交付时已发现、`42cf2e98` 标注「属安全敏感独立批（需合同）」的残留交互。合同先行记录（2026-11-22），随后按推荐 A 实现：`schedule_blocker` 的 `model_calls` 条件增加 `purpose='turn'` 过滤，`summary`（K06 压缩/K08 评审）不再阻塞下一定时触发；turn/actions/outbox 与 `schedule_reviews` 语义不变。**若所有者选择 B/C/D，可回退该过滤。**
 
 ## 勘定事实（实读源码 + 现有回归，2026-11-22，基线 `0793f254`）
 
@@ -34,23 +34,30 @@
 - 不改 run 状态机、租约、事件保留；不新增第二内核/状态库。
 - 跨 agent/跨日程隔离不变。
 
-## 测试计划（获批准后）
+## 测试计划（已按实现落地）
 
-- 新增领域/仓储回归（冻结时钟 + 真实隔离 SQLite，无需模型）：
-  1. 上一 occurrence run 终态 + 其 run 名下 **reserved summary**（模拟在途 K08/K06）→ `schedule_blocker` 为空，下一次触发成功；
-  2. 同场景 **reserved turn** → 仍返回 `reason="unknown"`，触发仍 `previous_outcome_unknown`；
-  3. **unknown summary**（崩溃遗留）→ 不阻塞且成本仍在 `model_calls`/usage 可见；
-  4. `actions` unknown / `outbox` unknown 仍阻塞（既有语义）；
-  5. `purpose` 过滤不影响 `schedule_reviews` 对 turn/action/outbox 的确认。
-- 调用方：`test_v2_cronjob_e2e.py`（可移除/保留 `wait_review_settled` 均可，保留不冲突）、`test_v2_cronjob_tool.py`、`test_v2_schedule_context.py`、`test_v2_schedule_bindings.py`、`test_v2_background_review.py`、`test_v2_maintenance.py`、租约/执行/委派/事件保留相关守卫。
-- 回退验证：摘掉 purpose 过滤 → 新增用例（1/3）必须全红，证明用例锁住行为。
-- 验证级别：离线专项 + 调用方 + strict/ruff/索引；真实模型/72 小时不适用（评审在真实运行中由模型驱动，但行为等价性由离线冻结时钟覆盖）。
+- 新增领域/仓储回归（冻结时钟 + 真实隔离 SQLite，无需模型）：`agent/tests/v2/core/test_v2_schedule_review_blocker.py` **5 项**：
+  1. 上一 occurrence run 终态 + 其 run 名下 **reserved summary** → `schedule_blocker` 为空，下一次触发成功；
+  2. 同场景 **reserved turn** → 仍 `reason="unknown"`，触发仍 `previous_outcome_unknown`；
+  3. **unknown summary**（崩溃遗留）→ 不阻塞；
+  4. **unknown turn** → 仍阻塞；所有者 `review` 后解除；
+  5. summary 与 turn 并存时 summary 不掩盖 turn 的阻塞。
+- 调用方：`test_v2_cronjob_e2e.py`/`test_v2_cronjob_tool.py`/`test_v2_schedule_context.py`/`test_v2_schedule_bindings.py`/`test_v2_scheduling.py`/`test_v2_scheduling_faults.py`/`test_v2_background_review.py`/`test_v2_maintenance.py`/`test_v2_execution.py`/`test_v2_kernel.py`/`test_v2_lifecycle.py`/`test_v2_delegation.py`（结果见证据）。
+- **回退验证**：摘掉 purpose 过滤（`if False and ...`）→ 3 个 summary 用例全红、2 个 turn 用例仍绿；还原后终源 5/5 绿，`git diff` 仅含预期的 6 行过滤。
+- 验证级别：离线专项 + 调用方 + strict/ruff/索引；真实模型/72 小时不适用（评审在真实运行中由模型驱动，行为等价性由离线冻结时钟覆盖）。
+
+## 实现记录（2026-11-23，方案 A）
+
+- `adapters/persistence/lease_repository.py` `schedule_blocker.conditions()`：`model_calls` 条件加 `table.c.purpose == "turn"`（注释记录原因与合同引用）；`actions`/`outbox`/`schedule_reviews` 分支零改动。
+- 语义：`summary` 的 reserved/unknown 均不再进入 blocker 的 `unknown_exists` 与 `items`/fingerprint；turn 的 reserved/unknown 仍阻塞并可经所有者 `schedule_review` 逐条确认；`assert_run_lease`/`schedule_materialize` 的 `previous_outcome_unknown` 行为对 turn/action/outbox 不变。
+- 无新表/迁移/路由/worker 协议/共享端口签名改动；`usage`/审计中 summary 成本仍可见（本改动只影响调度准入）。
+- 未做/保留：K08 评审调度策略、K06 压缩触发策略、日程重试退避、自动 review、评审失败重试；`wait_review_settled` 测试辅助保留（不冲突）。
 
 ## 边界
 
-- 本册**不实现**任何改动；`schedule_blocker`/`assert_run_lease`/`schedule_materialize`/`schedule_review` 生产行为保持现状（`42cf2e98` 纪律不变）。
+- 本册实现的是**推荐方案 A**；若所有者选择 B/C/D，可回退 `purpose='turn'` 过滤（回退探针已记录）。
 - 不做：K08 评审调度策略/预算、K06 压缩触发策略、日程重试退避、自动 review、评审失败重试。
-- 需所有者批准 A（或另选 B/C）后，按独立批次实现；共享接口/迁移/公共 CI 由 A 协调（本方案预计不触迁移）。
+- 共享接口/迁移/公共 CI 由 A 协调（本方案不触迁移）。
 
 ## 关联
 
