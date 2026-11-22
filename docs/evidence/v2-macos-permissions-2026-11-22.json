@@ -25,7 +25,9 @@
         "installed": true,
         "installed_backup": "temp/build/mac-2026-11-22/backup-installed"
       }
-    }
+    },
+    "commit": "fb4293f47cdf6957288a9cda084623011323422e",
+    "merge": "local v2 tip; not pushed (no Gitee HTTPS credential)"
   },
   "permissions": {
     "before": {
@@ -38,10 +40,23 @@
       "fail_closed": true
     },
     "requests": [
-      {"permission": "accessibility", "exit": 0},
-      {"permission": "screen", "exit": 3, "note": "first call returned 3 (not granted); the owner then enabled Screen & System Audio Recording in System Settings"},
-      {"permission": "input", "exit": 0},
-      {"permission": "post", "exit": 0}
+      {
+        "permission": "accessibility",
+        "exit": 0
+      },
+      {
+        "permission": "screen",
+        "exit": 3,
+        "note": "first call returned 3 (not granted); the owner then enabled Screen & System Audio Recording in System Settings"
+      },
+      {
+        "permission": "input",
+        "exit": 0
+      },
+      {
+        "permission": "post",
+        "exit": 0
+      }
     ],
     "after": {
       "window_identity": "granted",
@@ -61,9 +76,29 @@
     "read_only": {
       "status": "passed",
       "build_manifest_sha256": "5fd03089dcf6717f495fbfa1ad4977851528a29d049f59de9570ef8a089b78df",
-      "identity": {"matches": true, "backend": "ax", "application_id": "org.omnioperator.desktophelper.fixture"},
-      "observation": {"nodes": 9, "truncated": false, "password_redacted": true, "roles": ["AXWindow", "AXGroup", "AXStaticText", "AXTextField", "AXButton"]},
-      "capture": {"method": "screen_capture_kit", "width": 1040, "height": 556, "sha256": "84eb2bd0b95b85d6e92bf2b8ae420f23f1d0a04d6889c29b2f293831d427f367"},
+      "identity": {
+        "matches": true,
+        "backend": "ax",
+        "application_id": "org.omnioperator.desktophelper.fixture"
+      },
+      "observation": {
+        "nodes": 9,
+        "truncated": false,
+        "password_redacted": true,
+        "roles": [
+          "AXWindow",
+          "AXGroup",
+          "AXStaticText",
+          "AXTextField",
+          "AXButton"
+        ]
+      },
+      "capture": {
+        "method": "screen_capture_kit",
+        "width": 1040,
+        "height": 556,
+        "sha256": "84eb2bd0b95b85d6e92bf2b8ae420f23f1d0a04d6889c29b2f293831d427f367"
+      },
       "evidence": "temp/build/mac-2026-11-22/read-acceptance-fixed",
       "first_attempt_race": "Immediately after reinstalling, one run failed at verify (owned target identity did not match) and an immediate retry passed. The fixture announces ready before the window is enumerable on first launch; the host stays fail-closed (desktop_target_changed), so this is a cold-start test race, not a permission or identity relaxation."
     },
@@ -71,8 +106,18 @@
       "status": "passed",
       "command": "accept_macos_desktop.py --mutate-owned-fixture",
       "receipts": [
-        {"kind": "set_text", "status": "ok", "effect": "applied", "verification": "value_matches"},
-        {"kind": "invoke", "status": "unknown", "effect": "unknown", "error_code": "desktop_postcondition_unverified"}
+        {
+          "kind": "set_text",
+          "status": "ok",
+          "effect": "applied",
+          "verification": "value_matches"
+        },
+        {
+          "kind": "invoke",
+          "status": "unknown",
+          "effect": "unknown",
+          "error_code": "desktop_postcondition_unverified"
+        }
       ],
       "independent_state_verified": true,
       "replayed": false,
@@ -97,19 +142,72 @@
     "diagnostic": {
       "evidence": "temp/build/mac-2026-11-22/fg-diag/foreground-diagnostic.json",
       "steps": [
-        {"kind": "type_text", "receipt": {"status": "ok", "effect": "applied", "verification": "text_appended"}, "before": "omni-owned-fixture", "after": "omni-owned-fixture-FG", "matched": true},
-        {"kind": "press_key", "receipt": {"status": "unknown", "error_code": "desktop_postcondition_unverified"}, "selection_start": [21, 20], "matched": true},
-        {"kind": "type_text", "receipt": {"status": "unknown", "error_code": "desktop_postcondition_unverified"}, "text_after": "omni-owned-fixture-F_G", "matched": true},
-        {"kind": "click", "receipt": {"status": "unknown", "error_code": "desktop_postcondition_unverified"}, "clicks": [0, 0], "matched": false}
+        {
+          "kind": "type_text",
+          "receipt": {
+            "status": "ok",
+            "effect": "applied",
+            "verification": "text_appended"
+          },
+          "before": "omni-owned-fixture",
+          "after": "omni-owned-fixture-FG",
+          "matched": true
+        },
+        {
+          "kind": "press_key",
+          "receipt": {
+            "status": "unknown",
+            "error_code": "desktop_postcondition_unverified"
+          },
+          "selection_start": [
+            21,
+            20
+          ],
+          "matched": true
+        },
+        {
+          "kind": "type_text",
+          "receipt": {
+            "status": "unknown",
+            "error_code": "desktop_postcondition_unverified"
+          },
+          "text_after": "omni-owned-fixture-F_G",
+          "matched": true
+        },
+        {
+          "kind": "click",
+          "receipt": {
+            "status": "unknown",
+            "error_code": "desktop_postcondition_unverified"
+          },
+          "clicks": [
+            0,
+            0
+          ],
+          "matched": false
+        }
       ],
       "conclusion": "Targeted keyboard events reached the fixture (text and selection changed) and the receipts never claimed success for unprovable outcomes. The targeted mouse click was acknowledged but did not press the owned button; the raw acceptance timeout is preserved as an open item for the foreground batch."
     }
   },
   "validation": {
-    "macos_helper_and_desktop": {"passed": 232, "failed": 1, "seconds": 18.66, "report": "temp/build/mac-2026-11-22/pytest-macos-helper2.xml"},
-    "terminal_native": {"passed": 10, "failed": 0, "seconds": 0.27, "report": "temp/build/mac-2026-11-22/pytest-terminal2.xml"},
+    "macos_helper_and_desktop": {
+      "passed": 232,
+      "failed": 1,
+      "seconds": 18.66,
+      "report": "temp/build/mac-2026-11-22/pytest-macos-helper2.xml"
+    },
+    "terminal_native": {
+      "passed": 10,
+      "failed": 0,
+      "seconds": 0.27,
+      "report": "temp/build/mac-2026-11-22/pytest-terminal2.xml"
+    },
     "existing_failure": "test_capture_schema_scope_immutability_and_verified_snapshot_restore still pins 145 tables at v2_0051 (actual 147); reproducible on clean origin/v2 and unrelated to this batch",
-    "swift_tests": {"foreground_core": 9, "native_identity_registration_paths": 8}
+    "swift_tests": {
+      "foreground_core": 9,
+      "native_identity_registration_paths": 8
+    }
   },
   "limits": [
     "No automated Swift test covers Actions.swift; the fix is verified by real owned-fixture acceptance only.",
