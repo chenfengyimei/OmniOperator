@@ -288,3 +288,7 @@ LaunchServices 生命周期稳定性复测：连续 15 次 `probe` 每次 0.062�
 根因（macOS 27 行为变化）：`launchctl print-disabled gui/501` 现在输出 `"label" => enabled|disabled`，而解析器只接受 `=> true|false`，于是 `enabled=None`，`--expect registered`（要求 `enabled is True`）失败。已修复 `disabled_override` 同时接受两种拼写并保留整段语法校验，新增 `enabled/disabled` 回归（服务专项 54/54）。修复在源码 runtime，尚未用新 wheel 重新安装验证。
 
 清理：unknown 的安装意图阻止了 `operation apply` 卸载（`service_operation_unresolved`），因此按回执手工清理——`launchctl disable`、`bootout`（本未加载）、删除 plist；复核 plist 不存在、`launchctl print` 报找不到服务，残留一条随机 label 的 `=> disabled` 覆盖项。临时 home/操作账本均在 temp，可弃置。**不宣称安装/卸载闭环或 registered/loaded/ready 通过。** 证据：[安装尝试](../../../evidence/v2-macos-launchagent-install-2026-11-22.json)。
+
+### 2026-11-22 真实 LaunchAgent 安装—激活—卸载闭环（部分通过）
+
+修复 `print-disabled` 语法后，用新 wheel/runtime（build `1c699971…`、schema v2_0052）与全新隔离 home（instance `21dd31f9…`）重走真实验收：安装 operation **succeeded/terminal**（`command_and_registration_postcondition`），registration `installed/definition_matches/enabled=true`、`activation=next_login`，`--expect registered` **通过**；`launchctl bootstrap` 后服务运行（pid 55103），runtime probe `ready=true` 且 build/instance/plan/schema 全部匹配；但 `--expect loaded`/`ready` 仍失败——manager `loaded=true`、`definition_matches=None`、`state=unknown`，即使运行时已就绪。卸载 operation **succeeded/terminal**，plist 删除、服务消失，`--expect absent` **通过**；仅残留一条随机 label 的 `=> disabled` 覆盖项。`loaded_definition_matches` 未知是下一项原生缺口。证据：[闭环](../../../evidence/v2-macos-launchagent-loop-2026-11-22.json)。
