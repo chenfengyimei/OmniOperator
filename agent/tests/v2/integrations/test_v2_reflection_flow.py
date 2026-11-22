@@ -10,9 +10,11 @@ from fastapi.testclient import TestClient
 from omni_test_support.v2.execution import wait_state
 from omni_test_support.v2.media import BV, _seed, _settle
 from omni_test_support.v2.media_zoom import configure_image_policy, zoom_instance
+from omni_test_support.v2.routing import configured
 from omni_test_support.v2.v2_configuration_helpers import model_instance
 
 from omni.composition.http import http_app
+from omni.composition.instance import open_instance
 from omni.domain.contracts import BusinessError, Invocation, ModelReply
 
 SENTENCE = "📖 Observe before inferring."
@@ -194,6 +196,52 @@ def test_settled_media_evidence_survives_run_and_erases_with_source(tmp_path, to
             assert "reflection_media_source" not in protections["protected_reasons"]
             with pytest.raises(BusinessError):
                 await instance.reflections.get(agent, model.journal)
+        finally:
+            assert (await instance.close())["complete"]
+
+    asyncio.run(scenario())
+
+
+def test_journal_face_requires_an_evidence_source_and_is_inherited_by_children(tmp_path):
+    """No anchor can exist without a document or media source, so the journal is not offered."""
+
+    class Probe:
+        def __init__(self):
+            self.faces = []
+            self.delegate = False
+
+        async def complete(self, messages, tools, settings):
+            if not tools:
+                return ModelReply("no candidates", cost_micro=0)
+            child = any(m["role"] == "user" and str(m["content"]).startswith("Delegated task.") for m in messages)
+            names = {t.name for t in tools}
+            if not child and "delegate_task" not in names:
+                # K08 background review runs after the turn with its own read-only face.
+                return ModelReply("no candidates", cost_micro=0)
+            self.faces.append((child, "reflection_journal" in names))
+            if child:
+                return ModelReply("child done", cost_micro=0)
+            if self.delegate and not any(m["role"] == "tool" for m in messages):
+                return ModelReply(
+                    "delegate", (Invocation("delegate", "delegate_task", {"goal": "review later"}),), cost_micro=0
+                )
+            return ModelReply("parent done", cost_micro=0)
+
+    async def scenario():
+        probe = Probe()
+        instance = await open_instance(tmp_path, model=probe)
+        try:
+            agent = (await configured(instance))[0]
+            plain = await instance.application.submit_turn(agent, None, "plain", "no evidence yet", mode="agent")
+            await wait_state(instance.application, agent, plain["run_id"], {"succeeded", "failed"}, timeout=30)
+            assert probe.faces == [(False, False)]
+            await instance.documents.save(agent, "evidence", "bounded observation")
+            probe.delegate = True
+            second = await instance.application.submit_turn(agent, None, "reflect", "delegate a review", mode="agent")
+            ended = await wait_state(instance.application, agent, second["run_id"], {"succeeded", "failed"}, timeout=30)
+            assert ended["state"] == "succeeded", ended
+            # Parent face, delegated child face, then the parent's follow-up call all carry the journal.
+            assert probe.faces[1:] == [(False, True), (True, True), (False, True)], probe.faces
         finally:
             assert (await instance.close())["complete"]
 
