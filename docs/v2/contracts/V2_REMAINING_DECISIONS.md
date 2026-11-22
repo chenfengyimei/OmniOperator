@@ -78,17 +78,33 @@
 - **验证要求**：协议解析离线样本帧、有界/断线/重连/背压、开关隔离、风险码暂停联动、真实网络/账号另验。
 - **依赖**：所有者网络/账号验收安排；新 worker/连接协议 → A 协调。
 
+## D8（K13）调度阻塞与后台评审辅助调用
+
+- **现状（已核，2026-11-22 基线 `0793f254`）**：K08 评审以 `purpose="summary"`、被评审 run 名下 `reserve_call` 记账（`background_review.py:147-156`）；`schedule_blocker` 对该 run 名下**所有** reserved/unknown 模型调用计为未解决工作、无 purpose 过滤（`lease_repository.py:120-155`），触发链因此把在途评审当作外部结果未复核：`assert_run_lease` 抛 `previous_outcome_unknown`（`:99-105`），`schedule_materialize` 不物化下一次 occurrence（`schedule_repository.py:477-483`）；同因亦覆盖 K06 `compact_run` 摘要调用（`context.py:151/289`）。现有 e2e 以 `wait_review_settled` 等待评审终态绕过（`test_v2_cronjob_e2e.py:61-78`），`42cf2e98` 已记录修复前真实失败计数。
+- **需决定**：是否采用合同 A（blocker 只统计 `purpose="turn"`，summary 不阻塞；turn/actions/outbox 与 `schedule_reviews` 语义不变），或 B（自动确认）、C（调度等待评审）、D（维持现状）。
+- **安全/授权面**：守卫本身安全敏感（复核未派发外部结果）；A 只移除内部辅助调用的假阻塞，不放过任何外部动作/投递复核；unknown summary 成本仍在 `model_calls`/usage/审计可见。
+- **验证要求**：离线冻结时钟 + 真实隔离 SQLite（summary 不阻塞、turn 仍阻塞、actions/outbox 仍阻塞、崩溃遗留 unknown summary 不阻塞）、cron/评审/维护调用方零回归、回退验证。
+- **依赖**：所有者批准；预计无迁移/接口改动（A 协调仅备案）。合同见 [V2_SCHEDULE_REVIEW_BLOCKER](V2_SCHEDULE_REVIEW_BLOCKER.md)。**未实现。**
+
+## D9（K13）浏览器 URL 显式 SSRF/IMDS floor
+
+- **现状（已核，2026-11-22 基线 `0793f254`）**：builtin browser worker 的 `browser_navigate` 只校验 scheme ∈ {http,https} 且无 userinfo（`adapters/workers/main.py:447-453`），**无主机/IP floor**：loopback、RFC1918、link-local、云元数据地址均会被接受；`page.goto` 默认跟随 HTTP 重定向且无每请求拦截，落地地址/子资源不受初始 URL 审批约束。`browser_navigate`/`click`/`fill`/`dialog` 均 `writes=True` 走所有者审批（`composition/capabilities.py:113-155`），但审批只看到模型给出的初始 URL。实测：本地 302 → `http://127.0.0.1:<port>/latest/meta-data/` 被 Playwright 跟随并读取 body（`docs/evidence/v2-delivered-verification.json`）。
+- **需决定**：是否补 floor 及范围——（i）仅拒云元数据/link-local（169.254.0.0/16、fd00:ec2::254、metadata.google.internal、100.100.100.200），保留 loopback/RFC1918（V2 UI/本地开发需要）；（ii）默认拒 loopback+RFC1918+link-local，按 agent 配置显式允许本地浏览；（iii）只校验初始 URL（弱，重定向可绕过）；（iv）worker 级 `page.route` 全请求拦截 + 重定向后复检（与 i/ii 组合，最强，需评估性能与误伤）。
+- **安全/授权面**：SSRF 可读云元数据/内网服务，绕过 owner 审批看到的 URL；属安全策略变更，需所有者定策略（本地浏览是否允许、allowlist 形式）。无迁移/共享接口改动（builtin worker 内实现）。
+- **验证要求**：离线真实 Chromium + 本地 HTTP 夹具（loopback/私网/元数据名/重定向/子资源/iframe）、正常公网导航零回归、`browser_dialog` 等既有套件、审批面说明。
+- **依赖**：所有者批准；worker 协议不变（builtin）。**未实现。**
+
 ---
 
 ## 其他剩余差异（非决策项，登记）
 
 - **K13 组 5（cron）表内其余残余**：cron 四批只交付 `skills`/`context_from`/`continuity` + `cronjob_manage` 六动作 + 生产端到端；审计表里 `monitor`（URL/脚本变化检测门控 run + diff 注入）、`no_agent`+`script`（无模型看门狗）、`enabled_toolsets` 允许清单、`workdir`、`deliver`/`failure_deliver`/`attach_to_session` 细分、`cronjob_prompt_scan`（prompt 威胁扫描）仍为**部分对等/可离线缺口**，未实现、未列本册决策（不需新授权面，但会触 `SchedulingService`/`delivery`/技能接口 → A 协调排期）。
 - **K13 组 1（终端/进程）模型侧面**：模型侧只有一次性 `shell_execute`；持久终端会话与 `process_manage`（list/poll/log/wait/kill/write/submit/close/handoff）、`read_terminal`/`close_terminal`/`read_window_below` 仍缺（所有者侧 `TerminalService` 已有）。属新 worker 持久会话协议 + 审批 + 所有者面，需设计与实机验收，未列本册决策。
-- **K13 组 2（浏览器）URL floor**：V2 有 URL 审批，但参考的显式 SSRF/IMDS floor（拒 IMDS/私网，除非本地后端）**待核**；属安全项，核对后决定是否补。
+- **K13 组 2（浏览器）URL floor**：**已核（2026-11-22）**——worker 仅 scheme 校验、无主机/IP floor 且跟随重定向（见 D9，实测 loopback 元数据路径可读）；待所有者定策略，未实现。
 - **读侧速率预算**：参考 读 600/h·3000/d、写 12/h·30/d、gap 1500ms、写冷却 120s、dm 60s；V2 共享 delivery 限额/冷却覆盖投递侧，**读侧预算未实现**（需跨进程/重启持久的共享预算账本设计）。
 - **nav 10min 缓存**：有意不做（比参考更严，见 [V2_BILI_READ_CACHE](V2_BILI_READ_CACHE.md)）。
 - **真实账号/网络/模型质量/72 小时验收**：全部读端点送达、风控触发与恢复、QR 登录、真实写发送、直播连接、模型生成质量；参考亦未在线验证的 AI-share 守卫误报率。
 
 ## 顺序建议
 
-D1（前缀，触冻结合同）与 D2/D3（新执行面）风险最高、需所有者批准；D4 写扩面在 D6 分享策略前；D5 主动观看依赖 D4/D6 与 K15 动机对齐；D7 直播独立。共享接口/迁移/公共 CI 由 A 协调：D1 触 `domain/metering.py`，D5/D6 若新增账本/日记表需迁移编号，D2/D3/D7 若扩 worker 协议需两端约定提交方。`whole_core_parity_complete`/`whole_reference_feature_audit_complete`/`whole_v2_complete` 保持 false。
+D1（前缀，触冻结合同）与 D2/D3（新执行面）风险最高、需所有者批准；D4 写扩面在 D6 分享策略前；D5 主动观看依赖 D4/D6 与 K15 动机对齐；D7 直播独立；D8（cron 阻塞与评审交互，预计无迁移）与 D9（浏览器 SSRF floor，仅 builtin worker）可在所有者选定策略后小批先行，是当前决策登记中实现成本最低的两项。共享接口/迁移/公共 CI 由 A 协调：D1 触 `domain/metering.py`，D5/D6 若新增账本/日记表需迁移编号，D2/D3/D7 若扩 worker 协议需两端约定提交方。`whole_core_parity_complete`/`whole_reference_feature_audit_complete`/`whole_v2_complete` 保持 false。

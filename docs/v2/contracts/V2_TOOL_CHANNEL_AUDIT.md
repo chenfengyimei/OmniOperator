@@ -97,6 +97,12 @@ V2 模型侧工具面（生产 `capabilities is None`）：`system_info`、`file
 5. **工具调用代码沙箱：未实现（决策待定）**——见 [剩余差异决策登记](V2_REMAINING_DECISIONS.md) D2（新执行面，需独立安全合同）。
 6. **原始 CDP / 脚本化浏览器执行：未实现（决策待定）**——见决策登记 D3（可绕 URL 审批，需合同）。
 
+2026-11-22 交付核对与两项残留（本批只读核对，无源码改动）：
+
+- **已交付项逐条核对通过**：K01(b) 路由键（`adapters/models.py:23-40` 派生键 + provider 分类、`_prepare` 注入）、cron 四批（`domain/cronjob.py`/`application/cronjob.py`/`composition/instance.py:743` attach/`v0049`）、browser_dialog（`adapters/workers/main.py:432-516` 持有队列）、B 站读广度与风控暂停（详见 [v2-delivered-verification.json](../../evidence/v2-delivered-verification.json)）。核对套件 **112 过 / 204.17 秒**（prompt cache、cronjob tool/e2e、schedule context/bindings、browser_dialog）。
+- **新增残留 D8（cron 阻塞与后台评审交互）**：`schedule_blocker` 无 purpose 过滤，把 K08/K06 的 `summary` 辅助调用当未复核外部结果；已核机制与影响，合同 [V2_SCHEDULE_REVIEW_BLOCKER](V2_SCHEDULE_REVIEW_BLOCKER.md)，待所有者选 A–D。
+- **组 2 URL floor 已核（原「待核」）**：worker 只校验 scheme 且跟随重定向，无主机/IP floor；实测 loopback 元数据路径可读。策略待决 → 决策登记 D9（含 4 个选项与验证要求）。
+
 ## 需实机/账号/网络验收清单（不可离线宣称对等）
 
 - 渠道全集（discord/feishu/yuanbao/x_search/27 gateway 平台）、hosted connector 账号管理、catalog hub。
