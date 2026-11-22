@@ -262,3 +262,5 @@ LaunchAgent 基线：本机当前没有 OmniOperator 用户服务 job，`~/Libra
 修复：`NoSuchProcess` 视为“已无组长可发信号”，继续由 `wait()` 与组扫描证明；SIGKILL 容忍退出/复用竞态的 ESRCH/EPERM；`_group_quiet` 在 kill(0) EPERM 时改为显式成员扫描并跳过非本组的外部进程。仍未证明回收前不宣称成功：必须 `wait()` 完成且自有进程组安静。
 
 验证：终端整文件 **30/30 轮零失败**（修复前 1/10–1/3）；OwnedProcess 调用方 **100 项通过（32.68 秒）**；桌面套件 238/239（20.08 秒，唯一失败仍为既有 v2_0051 pin）；ruff 干净。证据：[进程回收竞态](../../../evidence/v2-processes-terminate-race-2026-11-22.json)。
+
+补充回归：传输层增加“half-close 后仍能读到回包”（假 helper 等 EOF 再应答，直接锁住 stdin.close 拆 socket 的缺陷）与“失败启动不残留 `/tmp/omni-d-*` 私有目录”两项，launcher 8/8 通过（1.16 秒）。

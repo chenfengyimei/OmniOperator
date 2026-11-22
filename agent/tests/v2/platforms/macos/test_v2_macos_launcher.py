@@ -32,6 +32,9 @@ connection = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
 connection.connect(path)
 stream = connection.makefile("rwb", buffering=0)
 request = json.loads(stream.readline().decode("utf-8"))
+if "after-eof" in args:
+    # Prove the host only half-closes stdin: wait for EOF, then answer.
+    stream.readline()
 reply = {"version": "omni-desktop-ipc-6", "request_id": request["request_id"], "ok": True,
          "result": {"echo": request["operation"]}}
 stream.write((json.dumps(reply) + "\n").encode("utf-8"))
@@ -40,12 +43,14 @@ if linger:
 """
 
 
-def fake_command(directory: Path, *, linger: bool = False) -> list[str]:
+def fake_command(directory: Path, *, linger: bool = False, after_eof: bool = False) -> list[str]:
     script = directory / "fake_helper.py"
     script.write_text(FAKE_HELPER, encoding="utf-8")
     command = [sys.executable, str(script)]
     if linger:
         command.append("linger")
+    if after_eof:
+        command.append("after-eof")
     return command
 
 
@@ -194,3 +199,37 @@ def test_backend_uses_the_launchservices_transport_when_selected(monkeypatch):
             assert await instance.close(5)
 
     asyncio.run(scenario())
+
+
+def test_half_close_keeps_the_response_readable(tmp_path):
+    async def scenario():
+        helper = await launch_helper(
+            Path(sys.executable), Path("/nonexistent.bundle"), open_command=fake_command(tmp_path, after_eof=True)
+        )
+        try:
+            helper.process.stdin.write(request_frame())
+            await helper.process.stdin.drain()
+            helper.process.stdin.close()
+            reply = json.loads(await asyncio.wait_for(helper.process.stdout.readline(), 5))
+            assert reply["request_id"] == "transport-1" and reply["ok"] is True
+        finally:
+            assert await helper.terminate(5)
+
+    asyncio.run(scenario())
+
+
+def test_failed_launch_removes_its_private_directory(tmp_path):
+    before = set(Path("/tmp").glob("omni-d-*"))
+
+    async def scenario():
+        loop = asyncio.get_running_loop()
+        with pytest.raises(LaunchError):
+            await launch_helper(
+                Path(sys.executable),
+                Path("/nonexistent.bundle"),
+                deadline=loop.time() + 0.3,
+                open_command=[sys.executable, "-c", "pass"],
+            )
+
+    asyncio.run(scenario())
+    assert set(Path("/tmp").glob("omni-d-*")) - before == set()

@@ -28,8 +28,16 @@
   "real_probe": {
     "command": "DesktopBackend(macos_transport='launchservices').probe()",
     "version": "omni-desktop-ipc-6",
-    "session": {"kind": "interactive", "identity": "macos:audit:100021:uid:501"},
-    "permissions": {"window_identity": "denied", "accessibility": "denied", "screen_capture": "denied", "foreground_control": "denied"},
+    "session": {
+      "kind": "interactive",
+      "identity": "macos:audit:100021:uid:501"
+    },
+    "permissions": {
+      "window_identity": "denied",
+      "accessibility": "denied",
+      "screen_capture": "denied",
+      "foreground_control": "denied"
+    },
     "close": "clean, resident 0, cleanup_pending 0",
     "note": "first run failed with desktop_protocol_invalid because stdin.close() tore down the socket; fixed with the half-close writer and re-verified"
   },
@@ -45,11 +53,30 @@
     "helper_binary": "unchanged delivery build 9360128b (grants must be made on this final binary)"
   },
   "validation": {
-    "launcher_tests": {"passed": 6, "seconds": 0.81},
-    "macos_suites": {"passed": 238, "failed": 1, "seconds": 19.80, "report": "temp/build/mac-2026-11-22/pytest-macos-helper7.xml", "existing_failure": "test_capture_schema_scope_immutability_and_verified_snapshot_restore pins 145 tables at v2_0051 (147 actual)"},
-    "terminal_native": {"runs": ["9/10", "10/10"], "note": "existing intermittent close(5)==False race under load; desktop changes do not touch the terminal adapter"},
+    "launcher_tests": {
+      "passed": 6,
+      "seconds": 0.81
+    },
+    "macos_suites": {
+      "passed": 238,
+      "failed": 1,
+      "seconds": 19.8,
+      "report": "temp/build/mac-2026-11-22/pytest-macos-helper7.xml",
+      "existing_failure": "test_capture_schema_scope_immutability_and_verified_snapshot_restore pins 145 tables at v2_0051 (147 actual)"
+    },
+    "terminal_native": {
+      "runs": [
+        "9/10",
+        "10/10"
+      ],
+      "note": "existing intermittent close(5)==False race under load; desktop changes do not touch the terminal adapter"
+    },
     "ruff": "clean for backend, macos_launch and composition",
-    "pyright_strict": {"new_errors": 0, "tree_errors": 30, "note": "pre-existing drift in 5 untouched files"}
+    "pyright_strict": {
+      "new_errors": 0,
+      "tree_errors": 30,
+      "note": "pre-existing drift in 5 untouched files"
+    }
   },
   "limits": [
     "Functional acceptance under the LaunchServices path is blocked until the owner grants the four permissions to the helper; only probe (denied, fail-closed) was exercised end-to-end.",
@@ -64,5 +91,13 @@
   ],
   "artifacts": [
     "temp/build/mac-2026-11-22/pytest-macos-helper7.log"
-  ]
+  ],
+  "hardening": {
+    "tests_added": [
+      "half-close keeps the reply readable: the fake helper waits for EOF before answering, proving the transport does not tear down the socket",
+      "failed launch removes its private /tmp/omni-d-* directory"
+    ],
+    "launcher_tests": 8,
+    "seconds": 1.16
+  }
 }
