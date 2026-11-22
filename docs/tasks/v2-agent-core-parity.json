@@ -611,9 +611,17 @@
           "contract": "docs/v2/contracts/V2_MEDIA_SCENES.md",
           "evidence": "docs/evidence/v2-media-scenes-gradual.json",
           "delivered": "固定合成素材复核定位固定阈值失败：2s 0→255 渐隐在 2fps 采样下分数 18.3/28/23/22，旧规则输出 4 切点（3.24/3.76/4.24/4.76），把渐变拆成 4 段。新增 scene_sample_count 与 scene_cuts(times,scores,brightness=None)：连续超阈值样本中亮度单调、跨度>=0.4s、首末差>1 的运行合并为单一中点切点；brightness=None 输出与旧实现逐字节一致；worker _scene_targets 传每样本 HSV V 均值。验证：渐变 4→1（约 4.0s），三色基线仍 2，±12 噪声 0，无切点等距回退，0.2s 快剪 <=1，锚点来自真实解码帧且跨切点；取消→删除后无帧行；scenes 19 过 111.00 秒、frames/scene 调用方 186 过 54.14 秒、zoom/图像预算/media/结构 95 过 168.97 秒；strict 428 文件 0 错误；索引 65/849/464/94。"
+        },
+        {
+          "gap": "#1 自适应分段：黑边稀释 HSV 分数导致 subtle cut 漏检/编码边缘假切点（黑边补偿）",
+          "status": "implemented_scoped_passed",
+          "batch": "K16.scene_bars",
+          "contract": "docs/v2/contracts/V2_MEDIA_SCENES.md",
+          "evidence": "docs/evidence/v2-media-scenes-bars.json",
+          "delivered": "固定素材复核：同一 subtle cut 全幅分数 22.3（检出 4.24s），16px 上下黑边后 7.8（漏检），12px 黑边出现 1.0s 假切点。新增 SCENE_BAR_V_MAX=24/SCENE_BAR_LIMIT=0.4 与纯规则 bar_rows（单侧连续 V<=24 行，最多 40% 且留 1 行）；worker _bar_crop 取所有采样最小 top/bottom 后裁 HSV 分析图，再算分数/亮度，清晰度与宫格不变。结果：bars16 0→1（4.24s）、bars12 [1.0,4.5]→[4.24]、bars0 不变、bars20 4.5s；全黑源 0 切点。scenes 22 过、调用方 281 过、strict 428/0、索引 849/464/94。"
         }
       ],
-      "limits": "只读审计无新工具/表/迁移/路由/源码改动；可离线缺口未在K16审计批实现(列后续批次)，其中缺口#4转录定位已在K16.locate后续批实现、缺口#2格号可寻址索引模型侧读面已在K16.cell_anchor后续批实现(只读派生既有帧表亚秒timestamps非新持久化层)、缺口#3局部zoom所有者侧显式时间戳高清重取作业基础已在K16.zoom_foundation后续批实现(frames作业可选timestamps复用既有管线非新表/操作/模型工具，模型侧自动zoom需action_review授权+ImageService图像可见设计合同——该实现前设计合同已记录于K16.zoom_model_design批(方案A/B工具结果图像可见协议+写工具审批门复用+frames timestamps作业复用)，所有者已于2026-11-21批准方案B，独立实现合同已记录于K16.tool_image_protocol批(勘定证伪草案持久层无需改前提：工具转录仅存内存+账本message_id非空FK+冻结触发器链)，所有者已批准D5，1a持久化批K16.tool_image_persistence已落地(v0050账本重建message_id可空+scope双分支message分支原SQL逐字保留+run终态释放触发器+prepare tool分支,5专项回退4/5红+147调用方零回归+strict418文件0错误)，1b协议+引擎批K16.tool_image_engine已落地(ImageInfo等移入contracts+ImageRef+ActionResult.images+references role标签与tool分支+引擎两site附着helper全局最后限额降级+压缩摘要图像标记,10专项回退7/10红+83调用方终源零回归+strict418文件0错误)，2 media_zoom批K16.tool_image_zoom已落地(ZOOM_SPEC writes=True审批门复用+frames作业复用zoom_foundation无新表/操作+cell经media_cells锚映射+media_frames_for_job按job_id唯一取帧+ImageService.prepare注册+ActionResult.images同回合可见+composition生产档capabilities is None门控+routing writes自动排除,17专项回退14/17红+838调用方distinct零回归(5既有红git diff实证非本批)+strict418文件0错误)，3端到端批K16.tool_image_e2e已落地(生产open_instance全链安全矩阵9例:审批拒绝/撤销/过期不提交作业+owner取消等待真实清理+凭据revision CAS+源身份CAS+删除屏障+未知不重放+上传源同回合可见账本终态释放,零生产源码改动,回退9/9红+191调用方distinct零回归+strict418文件0错误)，K16缺口#3四批完结，HSV#1/Laplacian#5已在K16.scene_frames后续批实现(select=scenes保守子集：固定阈值12+minGap0.35+比例密度分配+Laplacian方差选锐，自适应分位数阈值/亮度增益/黑边补偿仍后续)、OCR仍后续)；V1 tools/storyboard学习实现不计V2对等；不宣称五工具/算法全集对等；未引入OCR模型依赖；既有todos重启竞态与5个pin v2_0039旧迁移测试沿用保留；K16.scene_gradual 已用固定素材补渐变合并（固定阈值误拆渐变），auto/auto-low 分位阈值、亮度增益/黑边补偿、DP 宫格、真实长片质量与 OCR 仍未验。",
+      "limits": "只读审计无新工具/表/迁移/路由/源码改动；可离线缺口未在K16审计批实现(列后续批次)，其中缺口#4转录定位已在K16.locate后续批实现、缺口#2格号可寻址索引模型侧读面已在K16.cell_anchor后续批实现(只读派生既有帧表亚秒timestamps非新持久化层)、缺口#3局部zoom所有者侧显式时间戳高清重取作业基础已在K16.zoom_foundation后续批实现(frames作业可选timestamps复用既有管线非新表/操作/模型工具，模型侧自动zoom需action_review授权+ImageService图像可见设计合同——该实现前设计合同已记录于K16.zoom_model_design批(方案A/B工具结果图像可见协议+写工具审批门复用+frames timestamps作业复用)，所有者已于2026-11-21批准方案B，独立实现合同已记录于K16.tool_image_protocol批(勘定证伪草案持久层无需改前提：工具转录仅存内存+账本message_id非空FK+冻结触发器链)，所有者已批准D5，1a持久化批K16.tool_image_persistence已落地(v0050账本重建message_id可空+scope双分支message分支原SQL逐字保留+run终态释放触发器+prepare tool分支,5专项回退4/5红+147调用方零回归+strict418文件0错误)，1b协议+引擎批K16.tool_image_engine已落地(ImageInfo等移入contracts+ImageRef+ActionResult.images+references role标签与tool分支+引擎两site附着helper全局最后限额降级+压缩摘要图像标记,10专项回退7/10红+83调用方终源零回归+strict418文件0错误)，2 media_zoom批K16.tool_image_zoom已落地(ZOOM_SPEC writes=True审批门复用+frames作业复用zoom_foundation无新表/操作+cell经media_cells锚映射+media_frames_for_job按job_id唯一取帧+ImageService.prepare注册+ActionResult.images同回合可见+composition生产档capabilities is None门控+routing writes自动排除,17专项回退14/17红+838调用方distinct零回归(5既有红git diff实证非本批)+strict418文件0错误)，3端到端批K16.tool_image_e2e已落地(生产open_instance全链安全矩阵9例:审批拒绝/撤销/过期不提交作业+owner取消等待真实清理+凭据revision CAS+源身份CAS+删除屏障+未知不重放+上传源同回合可见账本终态释放,零生产源码改动,回退9/9红+191调用方distinct零回归+strict418文件0错误)，K16缺口#3四批完结，HSV#1/Laplacian#5已在K16.scene_frames后续批实现(select=scenes保守子集：固定阈值12+minGap0.35+比例密度分配+Laplacian方差选锐，自适应分位数阈值/亮度增益/黑边补偿仍后续)、OCR仍后续)；V1 tools/storyboard学习实现不计V2对等；不宣称五工具/算法全集对等；未引入OCR模型依赖；既有todos重启竞态与5个pin v2_0039旧迁移测试沿用保留；K16.scene_gradual 已用固定素材补渐变合并（固定阈值误拆渐变），auto/auto-low 分位阈值、亮度增益/黑边补偿、DP 宫格、真实长片质量与 OCR 仍未验；K16.scene_bars 已补均匀黑边裁剪（subtle cut 漏检与编码边缘假切点），不规则/图形黑边、亮度增益、auto 分位阈值、DP 宫格与 OCR 仍未验。",
       "next": false
     },
     {
@@ -1114,6 +1122,10 @@
     {
       "id": "K16.scene_gradual",
       "evidence": "docs/evidence/v2-media-scenes-gradual.json"
+    },
+    {
+      "id": "K16.scene_bars",
+      "evidence": "docs/evidence/v2-media-scenes-bars.json"
     }
   ]
 }

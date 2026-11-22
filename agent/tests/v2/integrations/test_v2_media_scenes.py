@@ -10,7 +10,7 @@ from omni_test_support.v2.media_frames import frames as frames
 
 from omni.adapters.workers import media as worker
 from omni.domain.contracts import BusinessError
-from omni.domain.media import frames_plan, scene_cuts, scene_sample_count, scene_segments, scene_slots
+from omni.domain.media import bar_rows, frames_plan, scene_cuts, scene_sample_count, scene_segments, scene_slots
 
 
 def _make_scene_video(
@@ -384,3 +384,80 @@ def test_scene_job_cancel_then_delete_leaves_no_frames(tmp_path):
             assert (await instance.close())["complete"]
 
     asyncio.run(scenario())
+
+
+def _make_letterbox_video(
+    path: Path,
+    bars: int,
+    first: tuple[int, int, int] = (100, 60, 50),
+    second: tuple[int, int, int] = (60, 100, 90),
+    *,
+    fps: int = 25,
+    size=(64, 48),
+) -> Path:
+    import av
+    from PIL import Image
+
+    container = av.open(str(path), mode="w")
+    try:
+        stream = container.add_stream("mpeg4", rate=fps)
+        stream.width, stream.height = size
+        stream.pix_fmt = "yuv420p"
+        for index in range(8 * fps):
+            color = first if index / fps < 4 else second
+            image = Image.new("RGB", size, (0, 0, 0))
+            inner = Image.new("RGB", (size[0], size[1] - 2 * bars), color)
+            image.paste(inner, (0, bars))
+            frame = av.VideoFrame.from_image(image)
+            for packet in stream.encode(frame):
+                container.mux(packet)
+        for packet in stream.encode():
+            container.mux(packet)
+    finally:
+        container.close()
+    return path
+
+
+def test_bar_rows_caps_and_stops_at_content():
+    assert bar_rows([0.0, 0.0, 90.0, 0.0]) == 1  # 40% cap of four rows
+    assert bar_rows([0.0, 0.0, 0.0, 90.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]) == 3
+    assert bar_rows([0.0] * 48) == 19
+    assert bar_rows([90.0, 0.0]) == 0
+    assert bar_rows([]) == 0
+
+
+def test_worker_scenes_crops_letterbox_bars_before_scoring(tmp_path):
+    full = _make_letterbox_video(tmp_path / "full.mp4", 0)
+    letterbox = _make_letterbox_video(tmp_path / "letterbox.mp4", 16)
+    outputs = []
+    for video in (full, letterbox):
+        outputs.append(
+            worker._frames(
+                {
+                    "video": str(video),
+                    "sheet_output": str(tmp_path / f"{video.stem}.png"),
+                    "count": 2,
+                    "width": 320,
+                    "select": "scenes",
+                }
+            )
+        )
+    assert len(outputs[0]["scene_cuts"]) == 1 and 3.5 < outputs[0]["scene_cuts"][0] < 4.8
+    assert len(outputs[1]["scene_cuts"]) == 1 and 3.5 < outputs[1]["scene_cuts"][0] < 4.8
+    assert outputs[1]["timestamps"] == sorted(outputs[1]["timestamps"])
+
+
+def test_worker_scenes_all_black_source_stays_bounded(tmp_path):
+    video = _make_letterbox_video(tmp_path / "black.mp4", 24, (0, 0, 0), (0, 0, 0))
+    result = worker._frames(
+        {
+            "video": str(video),
+            "sheet_output": str(tmp_path / "black.png"),
+            "count": 3,
+            "width": 320,
+            "select": "scenes",
+        }
+    )
+    assert result["frame_count"] == 3
+    assert result["scene_cuts"] == []
+    assert (tmp_path / "black.png").is_file()

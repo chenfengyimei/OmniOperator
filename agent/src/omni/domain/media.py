@@ -87,11 +87,30 @@ SCENE_MAX_SAMPLES = 240
 SCENE_ANALYSIS_WIDTH = 64
 SCENE_GRADUAL_WINDOW_S = 0.4
 SCENE_GRADUAL_TOLERANCE = 1.0
+SCENE_BAR_V_MAX = 24.0
+SCENE_BAR_LIMIT = 0.4
 
 
 def scene_sample_count(duration: float) -> int:
     """Bounded number of seek samples for a source, independent of frame count."""
     return min(SCENE_MAX_SAMPLES, max(2, int(duration * SCENE_SAMPLE_FPS)))
+
+
+def bar_rows(rows: Sequence[float], threshold: float = SCENE_BAR_V_MAX, limit: float = SCENE_BAR_LIMIT) -> int:
+    """Count contiguous near-black rows from one edge, capped so some content always remains.
+
+    Rows carry per-row HSV V means. A row is a bar when V <= threshold; the cap prevents a
+    genuinely dark scene from being cropped to nothing and keeps the rule independent of I/O.
+    """
+    if not rows:
+        return 0
+    cap = min(len(rows) - 1, int(len(rows) * limit))
+    count = 0
+    for value in rows:
+        if value > threshold or count >= cap:
+            break
+        count += 1
+    return count
 
 
 def _gradual(values: Sequence[float]) -> bool:

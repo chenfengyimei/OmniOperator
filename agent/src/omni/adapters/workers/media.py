@@ -25,6 +25,7 @@ from typing import Any, cast
 
 from ...domain.media import (
     SCENE_ANALYSIS_WIDTH,
+    bar_rows,
     scene_cuts,
     scene_sample_count,
     scene_segments,
@@ -332,6 +333,31 @@ def _hsv_score(prev: Any, cur: Any) -> float:
     ) / 3.0
 
 
+def _bar_crop(thumbs: list[Any], resources: ExitStack) -> list[Any]:
+    """Crop uniform black borders shared by every analysis sample; no-op without bars."""
+    from PIL import ImageStat
+
+    tops: list[int] = []
+    bottoms: list[int] = []
+    for hsv in thumbs:
+        value = hsv.split()[2]
+        rows = [ImageStat.Stat(value.crop((0, y, value.width, y + 1))).mean[0] for y in range(value.height)]
+        tops.append(bar_rows(rows))
+        bottoms.append(bar_rows(list(reversed(rows))))
+    if not tops:
+        return thumbs
+    top, bottom = min(tops), min(bottoms)
+    height = thumbs[0].height
+    if top + bottom >= height - 1:
+        return thumbs
+    cropped: list[Any] = []
+    for hsv in thumbs:
+        piece = hsv.crop((0, top, hsv.width, height - bottom))
+        resources.callback(piece.close)
+        cropped.append(piece)
+    return cropped
+
+
 def _scene_targets(
     container: Any, stream: Any, duration: float, count: int, resources: ExitStack
 ) -> tuple[list[float], list[float]]:
@@ -343,7 +369,6 @@ def _scene_targets(
     times: list[float] = []
     thumbs: list[Any] = []
     sharpness: list[float] = []
-    brightness: list[float] = []
     for index in range(samples_n):
         frame = _frame_at(container, stream, duration * (index + 0.5) / samples_n)
         if frame is None:
@@ -361,8 +386,9 @@ def _scene_targets(
         times.append(moment)
         thumbs.append(hsv)
         sharpness.append(variance)
-        brightness.append(ImageStat.Stat(hsv.split()[2]).mean[0])
-    scores = [0.0] + [_hsv_score(thumbs[i - 1], thumbs[i]) for i in range(1, len(thumbs))]
+    analysis = _bar_crop(thumbs, resources)
+    scores = [0.0] + [_hsv_score(analysis[i - 1], analysis[i]) for i in range(1, len(analysis))]
+    brightness = [ImageStat.Stat(piece.split()[2]).mean[0] for piece in analysis]
     cuts = scene_cuts(times, scores, brightness)
     if not cuts or len(times) < 2:
         return _target_times(duration, count), cuts

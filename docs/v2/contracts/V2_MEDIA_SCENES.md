@@ -1,6 +1,6 @@
 # V2 媒体场景切点抽帧与清晰度选帧（K16.scene_frames）
 
-状态：已实现并专项通过（2026-11-20）；2026-11-22 增补场景渐变合并（K16.scene_gradual），固定素材复核见证据。学习参考 dsh-video-storyboard `src/storyboard/scan.js`（HSV 加权切点，PySceneDetect ContentDetector 思路）与 `frames.js extractSharpest`（Laplacian 清晰度选帧），独立实现于 V2 四层媒体链，不复用 V1 tools/storyboard。合并实现 K16 缺口 #1（HSV 切点+密度分段）与 #5（Laplacian 清晰度选帧）的**保守子集**。
+状态：已实现并专项通过（2026-11-20）；2026-11-22 增补场景渐变合并（K16.scene_gradual）与黑边补偿（K16.scene_bars），固定素材复核见证据。学习参考 dsh-video-storyboard `src/storyboard/scan.js`（HSV 加权切点，PySceneDetect ContentDetector 思路）与 `frames.js extractSharpest`（Laplacian 清晰度选帧），独立实现于 V2 四层媒体链，不复用 V1 tools/storyboard。合并实现 K16 缺口 #1（HSV 切点+密度分段）与 #5（Laplacian 清晰度选帧）的**保守子集**。
 
 ## 范围
 
@@ -31,7 +31,7 @@ frames 作业新增可选 `select="scenes"`（默认 `equidistant` 字节等价�
 
 ## 明确不做
 
-参考自适应分位数阈值（auto/auto-low）/REF_V 亮度增益/黑边补偿/自适应 minGap（渐变合并已实现，见下）；快剪事件合并；自适应宫格/DP 打包（需独立设计合同）；模型侧自动 zoom（K16.zoom_model_design 待所有者批准协议选型）；帧内 OCR（需 rapidocr）；真实长片切点质量/耗时内存另验。
+参考自适应分位数阈值（auto/auto-low）/REF_V 亮度增益/自适应 minGap（渐变合并与黑边补偿已实现，见下）；快剪事件合并；自适应宫格/DP 打包（需独立设计合同）；模型侧自动 zoom（K16.zoom_model_design 待所有者批准协议选型）；帧内 OCR（需 rapidocr）；真实长片切点质量/耗时内存另验。
 
 ## K16.scene_gradual（自适应渐变合并，2026-11-22）
 
@@ -46,3 +46,17 @@ frames 作业新增可选 `select="scenes"`（默认 `equidistant` 字节等价�
 **验证**：渐变素材切点 4→1（≈4.0s），锚点仍来自真实解码帧且跨越切点两侧；三色基线仍 2 切点；噪声、无切点等距回退、0.2s 快剪（≤1 切点）有界；取消→删除后无帧行；工具图像预算与 frames/zoom/cells 调用方回归。固定素材指纹见证据（两次生成 SHA-256 一致）。
 
 **边界**：2fps 采样（<0.5s 快剪不可分辨，合并为一个切点）；亮度单调的快速蒙太奇可能被误合并（保守性低于参考逐帧 0.4s lag 渐变检测）；不含参考 auto/auto-low 分位数阈值、亮度增益、黑边补偿、DP 宫格（仍需独立合同）；真实长片切点质量/耗时内存与帧内 OCR 未验。
+
+
+## K16.scene_bars（黑边补偿，2026-11-22）
+
+**固定素材失败**：同一 subtle cut（(100,60,50)→(60,100,90)）在全幅 64×48 上分数 22.3、检出 4.24s；加 16px 上下黑边（内容仅 16px 高）后分数降到 7.8，固定阈值漏检；12px 黑边还会因编码边缘噪声在 1.0s 产生假切点。
+
+**最小可验批次**：
+
+- `domain/media.py` 新增 `SCENE_BAR_V_MAX=24.0`/`SCENE_BAR_LIMIT=0.4` 与纯规则 `bar_rows(rows, threshold, limit)`：从一侧连续 `V<=24` 的行计为黑边，单侧最多 40% 且至少保留 1 行；无 I/O、可单测。
+- worker `_bar_crop`：对每个采样 HSV 缩略图逐行求 V 均值，取**所有样本的最小** top/bottom（保守共享，只裁所有样本都黑的边），裁后再算 HSV 分数与亮度；Laplacian 清晰度与宫格仍用全帧，时间锚点不变。
+- 固定素材结果：bars16 由 0→1 切点（4.24s）、bars12 由 `[1.0,4.5]`→`[4.24]`、bars0 保持 `[4.24]`、bars20（内容 8px）检出 4.5s；全黑源 0 切点、3 帧宫格正常。
+- 调用方：scenes 22 项；frames/scene 调用方 281 项（含取消/删除、工具图像预算、zoom、结构守卫）。
+
+**边界**：只识别与画面边缘对齐的均匀近黑边；不规则/图形黑边、像素级渐隐边不处理；单侧 40% 上限避免暗场景被裁空；暗场景仍可能被裁掉一部分分析行；真实长片黑边/质量/耗时内存与 OCR 未验。
