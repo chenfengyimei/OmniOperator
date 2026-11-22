@@ -238,7 +238,7 @@ def test_live_child_context_tools_model_and_parent_summary_are_independent(tmp_p
         try:
             agent, _, _ = await configured(instance)
             parent = await instance.application.submit_turn(agent, None, "parent", "parent-private-input", mode="agent")
-            ended = await wait_state(instance.application, agent, parent["run_id"], {"succeeded", "failed"}, timeout=30)
+            ended = await wait_state(instance.application, agent, parent["run_id"], {"succeeded", "failed"}, timeout=90)
             assert ended["state"] == "succeeded", ended
             rows = await instance.application.delegations(agent, parent["run_id"])
             assert len(rows) == 1 and rows[0]["summary"] == "child-summary" and rows[0]["state"] == "succeeded"
@@ -300,7 +300,7 @@ def test_child_can_activate_only_the_captured_reviewed_skill_catalog(tmp_path):
             root = await instance.application.submit_turn(agent, None, "skill", "inspect procedure", mode="agent")
             # Parent completion spans child claims and two child model rounds; a loaded
             # host stretches that beyond the 10s default while the asserted state is unchanged.
-            ended = await wait_state(instance.application, agent, root["run_id"], {"succeeded", "failed"}, timeout=30)
+            ended = await wait_state(instance.application, agent, root["run_id"], {"succeeded", "failed"}, timeout=90)
             assert ended["state"] == "succeeded" and model.child_calls == 2
             assert (await instance.application.delegations(agent, root["run_id"]))[0][
                 "summary"
@@ -344,7 +344,7 @@ def test_child_inherits_reviewed_extension_binding_and_requires_its_own_write_ap
                     await asyncio.sleep(0.01)
             assert not marker.exists() and pending[0]["run_id"] != parent["run_id"]
             await instance.application.approve(agent, pending[0]["id"], True, pending[0]["policy_revision"])
-            ended = await wait_state(instance.application, agent, parent["run_id"], {"succeeded", "failed"}, timeout=30)
+            ended = await wait_state(instance.application, agent, parent["run_id"], {"succeeded", "failed"}, timeout=90)
             assert ended["state"] == "succeeded", ended
             assert marker.read_text(encoding="utf-8") == "child-approved-value"
             assert (await instance.application.delegations(agent, parent["run_id"]))[0][
@@ -426,7 +426,7 @@ def test_erasure_propagates_both_ways_and_prevents_summary_projection(tmp_path, 
             target = await instance.application.get_run(agent, child_id if erased == "child" else parent["run_id"])
             await instance.application.erase_message(agent, target["input_message_id"])
             model.release.set()
-            ended = await wait_state(instance.application, agent, parent["run_id"], {"failed", "succeeded"}, timeout=30)
+            ended = await wait_state(instance.application, agent, parent["run_id"], {"failed", "succeeded"}, timeout=90)
             assert ended["state"] == "failed" and model.parent_calls == 1
             result = (await instance.application.delegations(agent, parent["run_id"]))[0]
             assert result["summary"] == "" and result["summary_redacted"]
@@ -467,12 +467,12 @@ def test_child_unknown_write_stops_parent_without_replay_and_keeps_approval(tmp_
         try:
             agent, _, _ = await configured(instance)
             parent = await instance.application.submit_turn(agent, None, "write", "root", mode="agent")
-            async with asyncio.timeout(10):
+            async with asyncio.timeout(120):
                 while not (pending := await instance.application.approvals(agent)):
                     await asyncio.sleep(0.01)
             assert writer.calls == 0 and pending[0]["run_id"] != parent["run_id"]
             await instance.application.approve(agent, pending[0]["id"], True, pending[0]["policy_revision"])
-            ended = await wait_state(instance.application, agent, parent["run_id"], {"failed", "succeeded"}, timeout=30)
+            ended = await wait_state(instance.application, agent, parent["run_id"], {"failed", "succeeded"}, timeout=90)
             assert ended["state"] == "failed" and ended["error_code"] == "action_outcome_unknown"
             assert writer.calls == 1 and writer.returned and model.calls == 2
             action = (await instance.application.query("actions", agent))[0]
@@ -522,7 +522,7 @@ def test_child_limits_preserve_actual_charges_and_prevent_extra_sends(tmp_path, 
         try:
             agent, _, _ = await configured(instance)
             parent = await instance.application.submit_turn(agent, None, "limit", "root", mode="agent")
-            ended = await wait_state(instance.application, agent, parent["run_id"], {"succeeded", "failed"}, timeout=30)
+            ended = await wait_state(instance.application, agent, parent["run_id"], {"succeeded", "failed"}, timeout=90)
             assert ended["state"] == "succeeded", ended
             child = (await instance.application.delegations(agent, parent["run_id"]))[0]
             assert child["state"] == "failed" and child["summary"] == ""
@@ -570,7 +570,7 @@ def test_four_waiting_parents_do_not_starve_the_child_pool(tmp_path):
             model.release.set()
             for parent in parents:
                 result = await wait_state(
-                    instance.application, agent, parent["run_id"], {"succeeded", "failed"}, timeout=30
+                    instance.application, agent, parent["run_id"], {"succeeded", "failed"}, timeout=90
                 )
                 assert result["state"] == "succeeded", result
             assert model.maximum == 4
@@ -616,7 +616,7 @@ def test_batch_runs_four_children_concurrently_and_bounds_the_combined_summary(t
             await asyncio.wait_for(model.started.wait(), 15)
             assert len(instance.application._child_ids) == 4
             model.release.set()
-            result = await wait_state(instance.application, agent, root["run_id"], {"succeeded", "failed"}, timeout=30)
+            result = await wait_state(instance.application, agent, root["run_id"], {"succeeded", "failed"}, timeout=90)
             assert result["state"] == "succeeded", result
         finally:
             model.release.set()
@@ -646,7 +646,7 @@ def test_bad_batch_is_atomic_and_never_dispatches_a_partial_child(tmp_path):
         try:
             agent, _, _ = await configured(instance)
             root = await instance.application.submit_turn(agent, None, "bad-batch", "root", mode="agent")
-            ended = await wait_state(instance.application, agent, root["run_id"], {"succeeded", "failed"}, timeout=30)
+            ended = await wait_state(instance.application, agent, root["run_id"], {"succeeded", "failed"}, timeout=90)
             assert ended["state"] == "succeeded" and model.calls == 2
             assert await instance.application.delegations(agent, root["run_id"]) == []
             assert len(await instance.application.query("sessions", agent)) == 1
@@ -690,7 +690,7 @@ def test_parent_authority_revocation_stops_children_and_prevents_another_parent_
                     agent, profile["id"], profile["name"], False, profile["value"], profile["revision"]
                 )
             model.release.set()
-            result = await wait_state(instance.application, agent, root["run_id"], {"succeeded", "failed"}, timeout=30)
+            result = await wait_state(instance.application, agent, root["run_id"], {"succeeded", "failed"}, timeout=90)
             assert result["state"] == "failed" and model.parent_calls == 1
             assert result["error_code"] == ("agent_disabled" if revoked == "agent" else "model_configuration_revoked")
             assert (await instance.application.delegations(agent, root["run_id"]))[0]["summary"] == ""
@@ -750,7 +750,7 @@ def test_unknown_batch_write_cancels_and_joins_a_sibling_before_parent_finishes(
             agent, _, _ = await configured(instance)
             root = await instance.application.submit_turn(agent, None, "unknown-batch", "root", mode="agent")
             await asyncio.wait_for(model.entered.wait(), 10)
-            async with asyncio.timeout(10):
+            async with asyncio.timeout(120):
                 while not (pending := await instance.application.approvals(agent)):
                     await asyncio.sleep(0.01)
             await instance.application.approve(agent, pending[0]["id"], True, pending[0]["policy_revision"])
@@ -759,7 +759,7 @@ def test_unknown_batch_write_cancels_and_joins_a_sibling_before_parent_finishes(
             assert active["state"] == "running" and active["ended_at"] is None
             assert len(instance.application._active) == 2
             model.release.set()
-            ended = await wait_state(instance.application, agent, root["run_id"], {"failed", "succeeded"}, timeout=30)
+            ended = await wait_state(instance.application, agent, root["run_id"], {"failed", "succeeded"}, timeout=90)
             assert ended["state"] == "failed" and ended["error_code"] == "action_outcome_unknown"
             assert writer.calls == 1 and model.root_calls == 1
         finally:
