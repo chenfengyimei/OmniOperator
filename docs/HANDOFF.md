@@ -360,6 +360,15 @@ K13.cron_model_design 已记录**实现前设计合同**（纯文档，无源码
 - **未验**：合同内能力均未实现；真实无模型脚本/URL 监视/prompt 扫描；当前源码未全量。
 - **下一批**：若所有者批准，优先实现 D8 或 D9；否则复核已交付项的调用方/证据、补组 1 模型侧持久终端/进程控制设计合同，或对 D1–D7 决策材料做一致性复核。共享接口/迁移/公共 CI 由 A 协调。
 
+### 2026-11-23 K13 模型侧持久终端/进程设计合同与决策速览（第 12 批，`k18-read-cache`）
+
+- **范围/基线**：承接前十一批；本批**纯设计合同 + 决策速览表**，无源码/测试/迁移/路由/worker 改动。基线仍 `origin/v2`=`0793f254`（前十一批未合入），同一任务分支/独立工作树。
+- **组 1 合同**：[V2_TERMINAL_MODEL_TOOLS](v2/contracts/V2_TERMINAL_MODEL_TOOLS.md)——参考事实（持久 shell 跨调用保留 cwd/env 且模型自由执行、`process_manage` 九动作、`desktop_ui` 三工具）；V2 现状（`shell_execute` 一次性已审 argv；`TerminalService` 所有者侧单写者/意图回执/权限代次/工作目录指纹/boot/lease/≤4 终端，无模型入口）。选项 **T1 不移植（推荐，参考持久 shell 与逐 argv 审批冲突）/ T2 只读观察（`terminal_list`/`terminal_read`/`process_list`/`process_read`，可选低风险）/ T3 逐命令审批的持久终端 / T4 完整持久 shell+`process_manage`（拒绝）/ T5 kill·handoff 审批子集（`(pid, started_at)` 身份）**；薄封装既有 `TerminalService`、无迁移。
+- **决策速览**：决策登记顶部新增 D1–D9 + R1–R5 + T1–T5 的**一张表**（推荐、成本、迁移/协调、关键风险、建议顺序：D8→D9→D1→D4/D6→D7→D5→D2/D3/R/T），便于所有者/A 一次选定。
+- **决策状态**：D1–D9/R1–R5/T1–T5 全部已有设计合同或速览，**实现均待所有者选定**；D8（cron 阻塞）/D9（浏览器 SSRF floor）仍是最低成本实现项（D8 预计无迁移）。
+- **未验**：合同内能力均未实现；真实终端交互/桌面 pane；当前源码未全量。
+- **下一批**：若所有者批准，优先实现 D8 或 D9；否则复核 D1–D9 决策材料一致性、对已交付项做再次专项复核，或按所有者选定开始任一实现批次。共享接口/迁移/公共 CI 由 A 协调。
+
 ## 追溯入口
 
 - [旧交接记录](history/pre-layout-2026-11-18/HANDOFF.md)、[旧重构记录](history/pre-layout-2026-11-18/V2_REFACTOR.md)只证明所属版本，不作为当前待办。
