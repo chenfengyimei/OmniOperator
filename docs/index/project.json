@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "6bb696a9e3ffd2e4826cdadd21b980780520012bd7a3a43371db10ae7c710079",
+  "source_sha256": "a30b59d85515b05067e1edca4c46d52f4e83d255b5468fccb093a3cc18cdd092",
   "modules": [
     {
       "id": "v2-domain",
@@ -514,7 +514,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 71371,
+      "lines": 71381,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -45620,7 +45620,7 @@
       "path": "agent/src/omni/adapters/workers/media.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.workers.media",
-      "lines": 641,
+      "lines": 651,
       "imports": [
         "omni.domain.media"
       ],
@@ -45817,7 +45817,7 @@
         },
         {
           "name": "_scene_targets",
-          "line": 361,
+          "line": 371,
           "kind": "function",
           "parameters": [
             "container",
@@ -45836,7 +45836,7 @@
         },
         {
           "name": "_sheet_size",
-          "line": 409,
+          "line": 419,
           "kind": "function",
           "parameters": [
             "width",
@@ -45851,12 +45851,12 @@
         },
         {
           "name": "_SheetBuffer",
-          "line": 423,
+          "line": 433,
           "kind": "class"
         },
         {
           "name": "_SheetBuffer.write",
-          "line": 424,
+          "line": 434,
           "kind": "function",
           "parameters": [
             "self",
@@ -45868,7 +45868,7 @@
         },
         {
           "name": "_frames",
-          "line": 431,
+          "line": 441,
           "kind": "function",
           "parameters": [
             "request"
@@ -45879,7 +45879,7 @@
         },
         {
           "name": "_asr_model_missing",
-          "line": 556,
+          "line": 566,
           "kind": "function",
           "parameters": [
             "exc"
@@ -45890,7 +45890,7 @@
         },
         {
           "name": "_handle",
-          "line": 574,
+          "line": 584,
           "kind": "function",
           "parameters": [
             "line"
@@ -45901,7 +45901,7 @@
         },
         {
           "name": "main",
-          "line": 622,
+          "line": 632,
           "kind": "function",
           "parameters": [],
           "annotations": {}

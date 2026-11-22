@@ -1,0 +1,112 @@
+{
+  "schema": 1,
+  "date": "2026-11-22",
+  "requirement": "K16",
+  "batch": "K16.scene_bars_side",
+  "gap": "#1 自适应分段：左右黑边（竖屏/窄内容）稀释分数导致漏检/切点偏移（左右黑边补偿）",
+  "status": "implemented_scoped_passed",
+  "base_commit": "84053b8c",
+  "original_base_commit": "0793f254",
+  "branch": "k16-storyboard",
+  "contract": "docs/v2/contracts/V2_MEDIA_SCENES.md",
+  "files": {
+    "agent/src/omni/adapters/workers/media.py": "20b087c52e5a474e06eb92655897d02d5067ce24fb8f8a8d9288219bdd45f03b",
+    "agent/tests/v2/integrations/test_v2_media_scenes.py": "eeeb13d8dc1380f880716b8938e2512d7dd7549191f398a3a80733b8dff49797",
+    "docs/v2/contracts/V2_MEDIA_SCENES.md": "571ad8adfec9a7ba15bb0564fb987ef9c62008b933d14e6aaed915d379e1ce5a",
+    "docs/tasks/v2-agent-core-parity.json": "74924ba037c573ae39b82db8d236760f1c58b5212a6edb6d7f0c062c296602b1",
+    "docs/HANDOFF.md": "27af8ecc4542f20627e06a9ab72d9543576e576cac3f84fc44fb3619b5c2ff9c"
+  },
+  "hash_scope": "SHA-256 of git index blob bytes (LF-normalized); excludes this evidence file and generated docs/index.",
+  "fixed_materials": {
+    "generator": "PyAV mpeg4, 8s, 25fps, 64x48；左右 side 行黑边；内容色 (100,60,50) 0..4s → (60,100,90) 4..8s",
+    "sha256": {
+      "pillar0.mp4": "e88f12c6e1435057e9678c8846e5d0abcd93fc1870114bf7db9f32e16896dbb4",
+      "pillar8.mp4": "583e0d7ddc0dcd267a0f56423ec3fa7068880ca7e42e6fd169faccc2ee9f858e",
+      "pillar20.mp4": "43d9c70ab7f91044e530ed77bb62d95a6d01bed14cfe13c7f22c6a100b8c3cf9"
+    },
+    "bytes": {
+      "pillar0.mp4": 5784,
+      "pillar8.mp4": 6996,
+      "pillar20.mp4": 8964
+    },
+    "determinism": "同一生成器重跑两次，三个 SHA-256 与字节数一致（2026-11-22 本机，PyAV mpeg4）。"
+  },
+  "failure_probe": {
+    "full_frame": {
+      "fixed_cuts": [
+        4.24
+      ]
+    },
+    "pillar8": {
+      "fixed_cuts": [
+        4.74
+      ],
+      "failure": "编码边缘噪声使切点偏移 0.5s。"
+    },
+    "pillar20": {
+      "fixed_cuts": [],
+      "failure": "内容仅 24/64 宽，黑边稀释分数到阈值以下。"
+    },
+    "after_crop": {
+      "pillar0": [
+        4.24
+      ],
+      "pillar8": [
+        4.24
+      ],
+      "pillar20": [
+        4.74
+      ]
+    }
+  },
+  "production_wiring": [
+    "agent/src/omni/adapters/workers/media.py: _bar_crop 从上下扩展到四轴：逐行与逐列 HSV V 均值，bar_rows 分别从 top/bottom/left/right 计数，取所有采样最小；每轴 40% 且至少留 1 行/列；轴退化时独立回退为 0，另一轴仍裁剪；仍只裁 HSV 分析缩略图，清晰度/宫格/锚点不变。"
+  ],
+  "validation": [
+    {
+      "command": "uv run --no-sync pytest -q -n 0 agent/tests/v2/integrations/test_v2_media_scenes.py",
+      "result": "28 passed",
+      "seconds": 6.96
+    },
+    {
+      "command": "uv run --no-sync pytest -q -n 0 <frames/plans/sheet_identity/cells/worker/decoding/duration/anchors/cancel/zoom/zoom_tool/zoom_e2e/tool_image_protocol/tool_image_ledger/media/architecture/typecheck_scope/layout>",
+      "result": "281 passed",
+      "seconds": 182.41
+    },
+    {
+      "command": "uv run --no-sync pyright --project pyrightconfig.strict.json",
+      "include": 428,
+      "errors": 0,
+      "warnings": 0
+    },
+    {
+      "command": "uv run --no-sync ruff check/format --check <2 changed files>",
+      "result": "All checks passed; 2 files already formatted"
+    },
+    {
+      "command": "uv run --no-sync python scripts/project_index.py",
+      "result": "modules=65 files=849 routes=464 declared_tools=94; 二次运行 updated=(none)"
+    }
+  ],
+  "verified_matrix": {
+    "pillarbox": "pillar20 0→1（4.74s）、pillar8 4.74→4.24s、pillar0 保持 4.24s。",
+    "existing_paths": "上下黑边 bars0/12/16/20、全黑、暗噪声、极暗 cut、渐变、快剪/蒙太奇全部保持。",
+    "time_anchors": "裁剪仅作用于 HSV 分析缩略图；锚点仍来自真实解码帧。",
+    "deletion_cancellation": "运行中删除拒绝→取消→删除无 media_frames（既有 scenes 用例）。",
+    "tool_image_budget": "zoom/tool_image 调用方覆盖 per_call_limit/run_budget 与账本释放。"
+  },
+  "not_executed": [
+    "完整 pytest 全量（本批只跑受影响专项与调用方，current_full_passed 保持 false）",
+    "真实长片/真实竖屏视频黑边与切点质量、耗时与内存",
+    "不规则/渐变黑边、非黑色遮挡",
+    "auto/auto-low 分位阈值与自适应 minGap",
+    "自适应宫格/DP 打包（设计合同待 D0/D2/D4 决策）",
+    "帧内 OCR（rapidocr 依赖/模型来源未确定）",
+    "真实 B 站视频/账号回放"
+  ],
+  "limits": "只识别与画面边缘对齐的均匀近黑边；单轴 40% 上限避免内容被裁空；不规则/渐变黑边不处理；真实长片与 OCR 未验。",
+  "current_full_passed": false,
+  "whole_core_parity_complete": false,
+  "whole_reference_feature_audit_complete": false,
+  "whole_v2_complete": false
+}

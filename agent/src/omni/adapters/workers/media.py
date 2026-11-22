@@ -334,25 +334,35 @@ def _hsv_score(prev: Any, cur: Any) -> float:
 
 
 def _bar_crop(thumbs: list[Any], resources: ExitStack) -> list[Any]:
-    """Crop uniform black borders shared by every analysis sample; no-op without bars."""
+    """Crop uniform black borders (top/bottom and left/right) shared by every sample."""
     from PIL import ImageStat
 
     tops: list[int] = []
     bottoms: list[int] = []
+    lefts: list[int] = []
+    rights: list[int] = []
     for hsv in thumbs:
         value = hsv.split()[2]
         rows = [ImageStat.Stat(value.crop((0, y, value.width, y + 1))).mean[0] for y in range(value.height)]
+        columns = [ImageStat.Stat(value.crop((x, 0, x + 1, value.height))).mean[0] for x in range(value.width)]
         tops.append(bar_rows(rows))
         bottoms.append(bar_rows(list(reversed(rows))))
+        lefts.append(bar_rows(columns))
+        rights.append(bar_rows(list(reversed(columns))))
     if not tops:
         return thumbs
     top, bottom = min(tops), min(bottoms)
-    height = thumbs[0].height
+    left, right = min(lefts), min(rights)
+    height, width = thumbs[0].height, thumbs[0].width
     if top + bottom >= height - 1:
+        top = bottom = 0
+    if left + right >= width - 1:
+        left = right = 0
+    if not (top or bottom or left or right):
         return thumbs
     cropped: list[Any] = []
     for hsv in thumbs:
-        piece = hsv.crop((0, top, hsv.width, height - bottom))
+        piece = hsv.crop((left, top, width - right, height - bottom))
         resources.callback(piece.close)
         cropped.append(piece)
     return cropped

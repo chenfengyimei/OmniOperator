@@ -1,6 +1,6 @@
 # V2 媒体场景切点抽帧与清晰度选帧（K16.scene_frames）
 
-状态：已实现并专项通过（2026-11-20）；2026-11-22 增补场景渐变合并（K16.scene_gradual）、黑边补偿（K16.scene_bars）、邻域尖峰守卫（K16.scene_spike）与暗部增益（K16.scene_gain），固定素材复核见证据。学习参考 dsh-video-storyboard `src/storyboard/scan.js`（HSV 加权切点，PySceneDetect ContentDetector 思路）与 `frames.js extractSharpest`（Laplacian 清晰度选帧），独立实现于 V2 四层媒体链，不复用 V1 tools/storyboard。合并实现 K16 缺口 #1（HSV 切点+密度分段）与 #5（Laplacian 清晰度选帧）的**保守子集**。
+状态：已实现并专项通过（2026-11-20）；2026-11-22 增补场景渐变合并（K16.scene_gradual）、上下黑边补偿（K16.scene_bars）、左右黑边补偿（K16.scene_bars_side）、邻域尖峰守卫（K16.scene_spike）与暗部增益（K16.scene_gain），固定素材复核见证据。学习参考 dsh-video-storyboard `src/storyboard/scan.js`（HSV 加权切点，PySceneDetect ContentDetector 思路）与 `frames.js extractSharpest`（Laplacian 清晰度选帧），独立实现于 V2 四层媒体链，不复用 V1 tools/storyboard。合并实现 K16 缺口 #1（HSV 切点+密度分段）与 #5（Laplacian 清晰度选帧）的**保守子集**。
 
 ## 范围
 
@@ -86,3 +86,16 @@ frames 作业新增可选 `select="scenes"`（默认 `equidistant` 字节等价�
 - 结果：极暗 cut 由 0→1（4.24s）；暗噪声 ±8 仍 0 假切点；三色基线、2s 渐隐、bars0/12/16/20、0.2s 快剪、1s 蒙太奇、全黑源既有 27 项不变。
 
 **边界**：增益上限 3（更暗场景不再提升）；真实暗部噪声/压缩伪影可能被放大后仍靠尖峰守卫压制，但合成素材覆盖有限；不是参考 auto/auto-low 分位阈值；真实长片、真实 B 站来源与 OCR 未验。
+
+
+## K16.scene_bars_side（左右黑边补偿，2026-11-22）
+
+**固定素材失败**：同一 subtle cut 在 64×48 全幅分数 22.3、检出 4.24s；左右各 20px 黑边（内容仅 24/64 宽）分数被稀释到阈值以下，**0 切点**；左右各 8px 黑边还会因编码边缘噪声把切点偏移到 4.74s。
+
+**最小可验批次**：
+
+- `_bar_crop` 从只处理上下扩展到**四个轴**：逐行与逐列求 HSV V 均值，`bar_rows` 分别从 top/bottom/left/right 计数，取所有采样样本的最小值；每轴最多 40% 并至少保留 1 行/列；某轴裁剪会导致退化时该轴回退为 0，另一轴仍可独立裁剪；仍只裁 HSV 分析缩略图。
+- 结果：pillar0 保持 `[4.24]`；pillar8 `4.74`→`4.24`；pillar20 `[]`→`[4.74]`（1 切点，滞后 1 个采样，约 0.5s 内）；竖屏/窄内容左右大黑边可被识别。
+- 既有上下黑边、全黑、暗噪声、极暗 cut、渐变、快剪用例全部保持。
+
+**边界**：只识别与画面边缘对齐的均匀近黑边；不规则/渐变边、非黑色遮挡不处理；单轴 40% 上限避免内容被裁空；真实长片/真实竖屏视频质量未验。

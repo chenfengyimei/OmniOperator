@@ -577,3 +577,55 @@ def test_worker_scenes_gain_detects_very_dark_cut(tmp_path):
     assert result["frame_count"] == 2
     assert len(result["scene_cuts"]) == 1 and 3.5 < result["scene_cuts"][0] < 4.8
     assert result["timestamps"] == sorted(result["timestamps"])
+
+
+def _make_pillarbox_video(
+    path: Path,
+    side: int,
+    first: tuple[int, int, int] = (100, 60, 50),
+    second: tuple[int, int, int] = (60, 100, 90),
+    *,
+    fps: int = 25,
+    size=(64, 48),
+) -> Path:
+    import av
+    from PIL import Image
+
+    container = av.open(str(path), mode="w")
+    try:
+        stream = container.add_stream("mpeg4", rate=fps)
+        stream.width, stream.height = size
+        stream.pix_fmt = "yuv420p"
+        for index in range(8 * fps):
+            color = first if index / fps < 4 else second
+            image = Image.new("RGB", size, (0, 0, 0))
+            inner = Image.new("RGB", (size[0] - 2 * side, size[1]), color)
+            image.paste(inner, (side, 0))
+            frame = av.VideoFrame.from_image(image)
+            for packet in stream.encode(frame):
+                container.mux(packet)
+        for packet in stream.encode():
+            container.mux(packet)
+    finally:
+        container.close()
+    return path
+
+
+def test_worker_scenes_crops_pillarbox_bars_before_scoring(tmp_path):
+    outputs = []
+    for side in (0, 8, 20):
+        video = _make_pillarbox_video(tmp_path / f"pillar{side}.mp4", side)
+        outputs.append(
+            worker._frames(
+                {
+                    "video": str(video),
+                    "sheet_output": str(tmp_path / f"pillar{side}.png"),
+                    "count": 2,
+                    "width": 320,
+                    "select": "scenes",
+                }
+            )
+        )
+    for result in outputs:
+        assert len(result["scene_cuts"]) == 1 and 3.5 < result["scene_cuts"][0] < 4.9
+        assert result["timestamps"] == sorted(result["timestamps"])
