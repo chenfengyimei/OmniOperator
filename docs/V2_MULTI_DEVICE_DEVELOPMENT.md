@@ -14,12 +14,23 @@ Windows 侧负责共享领域与应用合同、HTTP、能力注册与组装、�
 
 两端统一遵循 [V2 架构](ARCHITECTURE.md)。平台差异走已有端口和适配层。共享业务使用同一套源码与合同，运行实例和数据库按环境隔离。
 
+## 已有任务分支的改名接续
+
+2026-11-22 已将三个远端任务分支统一为 `macos-helper-tcc`、`macos-helper-tcc-r2` 和 `windows-k17-reflection`。在仍检出旧名的设备上，先用 `git branch --show-current` 确认当前任务，然后运行以下命令（将示例短名替换为当前任务对应的新名）。本地改名保留在途提交和工作树修改。
+
+```sh
+git fetch --prune origin
+git branch -m macos-helper-tcc
+git branch --set-upstream-to=origin/macos-helper-tcc
+git status --short --branch
+```
+
 ## 每批 Git 流程
 
-1. **开工。** 核对实际仓库路径、`git status --short --branch`、`git remote -v` 和当前提交。运行 `git fetch origin`，记录 `git rev-parse origin/v2`。从该提交新建单任务分支，如 `codex/windows-<任务>`、`codex/macos-<任务>` 或 `codex/linux-<任务>`。当前检出的是干净且仅落后的本地 `v2` 时，可用 `git merge --ff-only origin/v2` 快进。已有任务先查实际分支和在途状态。
+1. **开工。** 核对实际仓库路径、`git status --short --branch`、`git remote -v` 和当前提交。运行 `git fetch origin`，记录 `git rev-parse origin/v2`。直接用任务短名创建分支，例如 `git switch --no-track -c macos-helper-tcc origin/v2`。平台名仅在有助于说明任务时写入短名。当前检出的是干净且仅落后的本地 `v2` 时，可用 `git merge --ff-only origin/v2` 快进。已有任务先查实际分支和在途状态。
 2. **保留并行工作。** 当前 checkout 有其他会话的修改时，保留其工作树和暂存区。需要换基线、切分支或做集成验证时，使用合适的独立 checkout/worktree。遇到同文件或同一合同的在途改动，和当前负责人确认接入点，先推进独立部分。
 3. **开发与验证。** 一个批次集中解决一个平台缺口或一项功能。按 [测试纪律](TESTING.md) 跑受影响模块及调用方离线专项。提交前复查文件归属、差异、证据及 `git diff --check`。逐路径提交本批文件。新增或删除文件后运行项目索引生成命令；在干净候选源码上生成提交用索引。
-4. **交付。** 普通推送自己的任务分支，随后用 `git ls-remote --exit-code origin refs/heads/<任务分支>` 核对 Gitee 返回的 SHA。接收方取到提交后进入审查。远端缺分支或推送失败时，在原设备保留本地提交和推送日志，按实际鉴权、分支权限或网络错误恢复。需要离线交付时，可用 Git bundle，并核对包的 SHA256 与交付提交。
+4. **交付。** 在任务分支上用 `git push -u origin HEAD` 首次推送同名分支，后续用 `git push`。随后用 `git ls-remote --exit-code origin refs/heads/<任务分支>` 核对 Gitee 返回的 SHA。接收方取到提交后进入审查。远端缺分支或推送失败时，在原设备保留本地提交和推送日志，按实际鉴权、分支权限或网络错误恢复。需要离线交付时，可用 Git bundle，并核对包的 SHA256 与交付提交。
 5. **集成。** Windows 在干净的集成 checkout 获取最新 `origin/v2` 和任务分支，审查实际差异及依赖，验证合并后的源码。有 Gitee PR 时以 `v2` 为目标，附对应专项与原生证据。若主线前进或合并有冲突，先把最新主线纳入候选、核对行为并重跑受影响专项，再按现有权限合并。任务分支用普通推送更新；远程 `v2` 接受已审查的正常合并和快进更新。
 6. **回传。** 把实际合入的 `v2` SHA 返回给开发端。两边下一批从更新后的 `origin/v2` 起步，证据保留原来实测的 SHA。
 

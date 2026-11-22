@@ -2,7 +2,7 @@
 
 先读 `docs/HANDOFF.md`、`docs/ARCHITECTURE.md` 和 `CONTRIBUTING.md`。本仓库可能有其他会话的未提交修改；保留它们，只修改本任务所需内容。
 
-Windows 与 Mac mini 按 [V2 双设备协作开发规范](docs/V2_MULTI_DEVICE_DEVELOPMENT.md) 在同一 `v2` 主线迭代。新会话按设备使用 [接续提示词](docs/V2_MULTI_DEVICE_PROMPTS.md)。
+Windows 与 Mac mini 按 [V2 双设备协作开发规范](docs/V2_MULTI_DEVICE_DEVELOPMENT.md) 在同一 `v2` 主线迭代。任务分支直接使用任务短名（如 `macos-helper-tcc`），创建和推送都使用同名分支，省略工具名或命名空间前缀。新会话按设备使用 [接续提示词](docs/V2_MULTI_DEVICE_PROMPTS.md)。
 
 ## 测试执行纪律
 
