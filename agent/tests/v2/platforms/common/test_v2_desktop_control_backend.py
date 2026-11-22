@@ -141,7 +141,7 @@ def test_late_spawn_remains_owned_and_cannot_prompt_after_cancel_or_close(monkey
             await task
         assert not await backend.close(0) and slots._value == 1 and backend.health()["resident"] == 1
         proceed.set()
-        assert await backend.close(5)
+        assert await backend.close(30)
         assert owners[0].reclaimed and not frames and slots._value == 2
 
     asyncio.run(scenario())

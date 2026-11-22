@@ -51,6 +51,9 @@ class Model:
         self.error, self.steps = error, steps
 
     async def complete(self, messages, tools, settings):
+        if "staged for owner review" in str(messages[0].get("content", "")):
+            # K08 background review runs after the turn; it is not an image turn call.
+            return ModelReply("Nothing to save.", cost_micro=0)
         self.requests.append(messages)
         if self.error:
             raise OSError("provider-image-canary")
