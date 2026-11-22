@@ -274,3 +274,9 @@ LaunchServices 生命周期稳定性复测：连续 15 次 `probe` 每次 0.062�
 首次用真实 wheel 走通部署包链路：`uv build` 生成 2.77 MB wheel → 在 resolved CPython 3.12.16 上建 venv 并安装（`editable=false`、591 文件、96 分发包、build `de104e2f…`）→ `service capture` → `service plan`（target `macos-user`）→ `service materialize` → 在部署 runtime 下 `accept_macos_services.py --bundle … --expect absent` **通过**（`omni-macos-service-acceptance-2`，`expectation_passed=true`）：verify `valid/eligible`、registration `available=true/installed=false/loaded=false/definition_present=false/state=stopped/activation=unknown`（`service_enable_state_unverified`，无 plist 属正常）、runtime `ready=false`（`service_probe_unavailable`，无运行实例）。未安装、未 enable、未 bootstrap、未提权。
 
 三条操作坑已写入上文：`materialize` 目标必须等于 request 的 `bundle_dir`；验收必须用部署 runtime 执行（源码/editable 运行时会得到 `deployment_path_unsafe` → `deployment_not_eligible`）；`uv venv` 会经 uv 托管别名路径（其父目录是符号链接）导致 capture 拒绝，需用 resolved 解释器 `python -m venv` 并改写 `bin/python`。证据：[部署包只读验收](../../../evidence/v2-macos-service-deployment-readonly-2026-11-22.json)。
+
+### 2026-11-22 主线更新到 0fe3cc5f（v0052）
+
+远端 `v2` 已从 `18b75b75` 前进到 `0fe3cc5f`（20 个提交：v0052 迁移、K01(b)、K15 合同、索引再生、全量 8388/1 分诊等）。本机 21 个 macOS 提交已 rebase 到 `0fe3cc5f`，无冲突；rebase 后 macOS 11 文件专项 **241/241 通过（20.68 秒）**——此前既有的 `v2_0051` 表数 pin 失败已被上游 v0052 迁移更新修掉；终端专项 10/10（0.28 秒）。项目索引在 rebase 后的干净树再生：modules=65 files=844 routes=462 declared_tools=94（新增 `macos_launch.py` 与 `Connect.swift`），已随本批提交。
+
+注意：上一轮的真实部署包 runtime 捕获于 `v2_0051`，与当前 `v2_0052` 源码不再匹配；再做部署包验收需重新构建 wheel/capture/plan/materialize。证据中记录的部分本地交付 SHA（如 `28cb5632`、`fb4293f4`、`17cc65a9`、`d8586f1b`）属于 rebase 前的本地历史，rebase 后对应内容在新提交中，旧 SHA 不再解析。

@@ -30,6 +30,7 @@
 - 2026-11-22 进程回收竞态修复：PTY `close(5)` 偶发立即 False（1/10–1/3）；根因是子进程已退出/回收但 transport 尚未发布 returncode 时 `psutil.Process` 抛 `NoSuchProcess` 被当作未回收，另有 killpg ESRCH/EPERM 假阴性。修复后终端整文件 30/30 零失败、OwnedProcess 调用方 100 项通过（32.68s）、桌面 238/239（20.08s，既有 pin）。[证据](evidence/v2-processes-terminate-race-2026-11-22.json)。
 - 2026-11-22 macOS LaunchServices 生命周期稳定性：15 次连续 probe 0.062–0.075s（均值 0.067）、2 并发 probe 正常、关闭后 resident/cleanup_pending=0，无 helper 进程或 `/tmp/omni-d-*` 残留；仅 probe/close 走通（其余待 helper 授权）。[证据](evidence/v2-macos-launch-lifecycle-2026-11-22.json)。
 - 2026-11-22 macOS 真实部署包只读验收：`uv build` wheel → 非 editable runtime（591 文件/96 分发包，build `de104e2f`）→ capture/plan/materialize/verify → 在部署 runtime 下 `accept_macos_services.py --expect absent` 通过（`omni-macos-service-acceptance-2`，installed/loaded=false、runtime probe unavailable）；未安装/启用/提权。记录 materialize 目标须等于 bundle_dir、验收须用部署 runtime、uv 别名 symlink 三个操作坑。[证据](evidence/v2-macos-service-deployment-readonly-2026-11-22.json)。
+- 2026-11-22 macOS 主线 rebase 到 `0fe3cc5f`（v0052）：21 个 macOS 提交无冲突重放；rebase 后 macOS 11 文件 **241/241（20.68s）**（既有 v2_0051 pin 已由上游 v0052 修掉）+ 终端 10/10（0.28s）；索引再生 65/844/462/94。部署包 runtime 仍为 v2_0051，复验需重建。
 - Windows 样例修正 `fbfc16b8`、人工复验 `73970d20`：标准顶层窗口下点击点与遮挡拒绝通过，36 专项。自有窗口完整回归最终文本 `PREFIX-ONLY-OWNED-TEXT`、按钮 1 次，四次生产回执仍为 unknown、不重发。原 STATIC 样例导致跨进程命中，生产拒绝正确，矩形中心候选未保留。[复核证据](evidence/v2-windows-click-fixture.json)。
 - Linux Enter 控件状态批 `f539f21e`：194 专项、3 个运行文件 strict 通过，真实 Linux 未验。[证据](evidence/v2-linux-key-state.json)。
 - 历史 5998 全量仅覆盖 `7e64d348` 固定候选。后续修改、其他会话提交及本次目录迁移均不能复用为当前源码全量通过。
