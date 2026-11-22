@@ -222,3 +222,5 @@ LaunchAgent 基线：本机当前没有 OmniOperator 用户服务 job，`~/Libra
 补充实测（同一日）：临时给 helper 加只读 `--self-test <json>` 入口（随后回退），用 `open -n ... --args --self-test` 经 LaunchServices 启动。结果 `bundle_id=org.omnioperator.desktophelper`、`ppid=1`、`__CFBundleIdentifier` 为自身，四个能力全部 `denied`（本批已重置 helper 条目）；tccd 的 `AUTHREQ_ATTRIBUTION` 只有 `requesting=org.omnioperator.desktophelper`、没有 `responsible` 项，即 helper 成为自己的 responsible process。
 
 结论与建议：选 (a) 可行——用 LaunchServices/NSWorkspace（或 XPC 服务）启动 helper，使其真正拥有自己的 TCC；因为该启动方式没有可用的双向管道，需要一个常驻的只读诊断入口（如 `--diagnose <path>`）供验收。随后由所有者对 helper 自身授予辅助功能/屏幕/输入/投递权限。待办：该启动机制与只读诊断入口属合同/安全面，需 A 与所有者批准；ad-hoc 授权可能绑定 cdhash，最终授权必须在交付二进制上完成。未验：由 launchd 服务启动时的归属；TCC.db 受保护未读取。证据：[TCC 归属](../../../evidence/v2-macos-tcc-attribution-2026-11-22.json)。
+
+设计合同与方案 A1（LaunchServices 启动 + 宿主 UDS 传输，原型已通：0.266 秒、IPC 6 帧原样、`LOCAL_PEERPID` 可取对端、tccd 无 `responsible` 项）：[V2_MACOS_HELPER_TCC](../contracts/V2_MACOS_HELPER_TCC.md)。实施前需所有者/A 批准；当前生产仍为宿主归属的 POSIX 启动。
