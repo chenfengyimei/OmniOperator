@@ -2,7 +2,7 @@
 
 ## 状态
 
-**设计合同草案（design_contract_recorded，纯文档，无源码/测试/迁移改动，2026-11-22）。** 事实来自本机两批实测（[TCC 归属](../evidence/v2-macos-tcc-attribution-2026-11-22.json)、[权限与语义](../evidence/v2-macos-permissions-2026-11-22.json)）。本合同涉及安全/合同面（辅助应用启动方式、IPC 传输、权限归属），**实现前需所有者与 A 审阅并选定方案**；批准前不改生产代码。
+**设计合同（design_contract_recorded，2026-11-22）。** 事实来自本机实测（[TCC 归属](../evidence/v2-macos-tcc-attribution-2026-11-22.json)、[权限与语义](../evidence/v2-macos-permissions-2026-11-22.json)）。所有者已于 2026-11-22 批准按 A1 执行（“全部批准、不必逐项询问”）。**阶段 1（helper `--connect` 校验 + UDS 传输）已实现并实测**（[证据](../evidence/v2-macos-helper-connect-stage1-2026-11-22.json)）；阶段 2（宿主 LaunchServices 启动/对端身份/回收）待实现，生产仍走原有 POSIX 启动。
 
 `whole_core_parity_complete`/`whole_reference_feature_audit_complete`/`whole_v2_complete` 保持 false。
 

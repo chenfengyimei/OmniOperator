@@ -9,6 +9,15 @@ struct HelperMain {
         guard Bundle.main.bundleIdentifier == bundleID,
               Bundle.main.object(forInfoDictionaryKey: "OmniDesktopProtocol") as? String == protocolVersion else { exit(2) }
         let args = Array(CommandLine.arguments.dropFirst())
+        // A LaunchServices launch has no inherited pipes: connect back to the
+        // host-owned socket and serve the unchanged IPC protocol over it.
+        var connected = false
+        if args.count == 2 && args[0] == "--connect" {
+            let fd = connectHostSocket(args[1])
+            guard dup2(fd, 0) >= 0, dup2(fd, 1) >= 0 else { exit(2) }
+            if fd > 1 { close(fd) }
+            connected = true
+        }
         if args.first == "--service-query" || args.first == "--system-service-query" { serviceQuery(args) }
         if args.count == 2 && args[0] == "--request-permission" {
             // This entry is only invoked explicitly by the owner, never by probe or an API request.
@@ -23,7 +32,7 @@ struct HelperMain {
             }
             exit(allowed ? 0 : 3)
         }
-        guard args == ["--ipc"] else { exit(2) }
+        guard connected || args == ["--ipc"] else { exit(2) }
         // Host owns the total deadline and process group. This fuse also covers a lost host.
         DispatchQueue.global().asyncAfter(deadline: .now() + 20) { exit(4) }
         Task.detached {

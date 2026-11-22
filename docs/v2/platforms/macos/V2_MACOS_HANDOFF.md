@@ -232,3 +232,9 @@ LaunchAgent 基线：本机当前没有 OmniOperator 用户服务 job，`~/Libra
 ### 2026-11-22 临时 LaunchAgent 注册与清理实测
 
 按所有者批准，用随机 `com.omnioperator.v2.<uuid>` 标签做一次可逆注册：写 `~/Library/LaunchAgents/<label>.plist`（0600，`ProgramArguments=/usr/bin/true`、`LimitLoadToSessionType=Aqua`、`RunAtLoad=false`），`launchctl bootstrap gui/501` 退出 0 后，原生 `--service-query` 返回 `complete=true`、`loaded=true`，job 字典含 `Label/LastExitStatus/OnDemand/Program/ProgramArguments`；随后 `launchctl bootout gui/501/<label>` 退出 0、删除 plist，查询恢复 `loaded=false`、`job=null`，`launchctl print` 报找不到服务，`launchctl list` 无 `com.omnioperator` 残留。未执行 enable 状态、运行身份 HMAC 就绪、登录激活及系统域注册（真实部署包与 root 操作另批）。证据：[LaunchAgent 注册与清理](../../../evidence/v2-macos-launchagent-2026-11-22.json)。
+
+### 2026-11-22 helper `--connect` 阶段 1（A1）
+
+新增 `Connect.swift`：helper 接受 `--connect <绝对路径>`，校验参数个数、路径绝对/有界/无 NUL、父目录为真实目录且属主为当前 uid、无组/其他权限位、socket 本身为 `S_IFSOCK` 且属主为 uid、`connect` 成功且 `getpeereid()` 同 uid；任何失败 `exit 2`，**不回退 stdio**；成功后 `dup2` 到 fd 0/1，沿用现有 IPC 6 循环与 20 秒 fuse。宿主本阶段未改，生产仍走 POSIX `--ipc`。
+
+实测：0700 目录 + `open -n <installed app> --args --connect <path>` + IPC 6 probe，连接 0.056 秒、回包 2112 字节、`ok=true`；LaunchServices 独立身份下四能力仍 `denied`（helper 自身条目未授予）。六个负例（/tmp 公共目录、相对路径、缺失 socket、普通文件、无监听 socket、`/tmp/../tmp`）全部 `exit 2`。原 POSIX probe 不受影响（四能力 `granted`）。macOS 专项 232/233（18.90 秒，1 项既有 v2_0051 pin）+ 10/10（0.27 秒）。证据：[阶段 1](../../../evidence/v2-macos-helper-connect-stage1-2026-11-22.json)。阶段 2（宿主 LaunchServices 启动/对端身份/回收）待实现。
