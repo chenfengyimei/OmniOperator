@@ -350,6 +350,16 @@ K13.cron_model_design 已记录**实现前设计合同**（纯文档，无源码
 - **未验**：两份合同内能力均未实现；真实模型脚本/真实 Chromium/公网/账号；当前源码未全量。
 - **下一批**：无新增点名项待设计；下一轮优先做 D8/D9 实现（若所有者批准即可小批接线）或复核已交付项/证据、补 K13 cron 残余（monitor/no_agent/toolsets/workdir/deliver/prompt_scan）设计合同；共享接口/迁移/公共 CI 由 A 协调。
 
+### 2026-11-23 K13 cron 变体残余设计合同（第 11 批，`k18-read-cache`）
+
+- **范围/基线**：承接前十批；本批**纯设计合同**，无源码/测试/迁移/路由/worker 改动。基线仍 `origin/v2`=`0793f254`（前十批未合入），同一任务分支/独立工作树。
+- **合同**：[V2_CRON_VARIANTS](v2/contracts/V2_CRON_VARIANTS.md)——cron 四批之外的组 5 残余：参考事实（`script` 必须是 `HERMES_HOME/scripts/` 下文件、stdout 注入、`no_agent` 脚本即 job；`workdir` 载入目录 `AGENTS.md`/`CLAUDE.md`；`deliver`/`failure_deliver`/`enabled_toolsets`/`attach_to_session`/`monitor_*`；inactivity watchdog 600s、脚本 3600s、catch-up 半周期 clamp、at-most-once、headless 拒绝 spawn、cron `skip_memory`/独立会话；prompt scan）与 V2 现状。
+- **R1–R5 决策**：R1 `enabled_toolsets` 推荐不移植（与 route 档位/`disabled_tools` 重叠）；R2 `workdir` 推荐不移植（破坏 workspace 边界；如需则 workspace 内 realpath 包含校验 + 迁移，且不移植 AGENTS.md 语义）；R3 `deliver`/`failure_deliver` 推荐不移植自动投递（失败先 owner 事件；自动投递需独立授权合同；`attach_to_session` 已由 `schedules.session_id` 表达）；R4 `monitor`/`no_agent`+`script` 推荐不移植（脚本=无模型执行面、URL=SSRF 面，需独立安全合同并接 D2/D9）；R5 `prompt_scan` 推荐不移植/只读建议式。
+- **协调项**：R1/R2/R3 若采纳 → `ScheduleValue` 加性字段 + 冻结迁移（A 编号）+ owner 投影；R2 另需 worker workspace 覆盖（A 协议）；R4 需新执行适配器与审计；R5 无迁移。
+- **决策状态**：D1–D7 已有设计合同待所有者选定；D8（cron 阻塞）/D9（浏览器 SSRF floor）仍是最低成本实现项；D4 写批待 Q1/Q2；D5 待 W1–W8 且需与 D 对齐。
+- **未验**：合同内能力均未实现；真实无模型脚本/URL 监视/prompt 扫描；当前源码未全量。
+- **下一批**：若所有者批准，优先实现 D8 或 D9；否则复核已交付项的调用方/证据、补组 1 模型侧持久终端/进程控制设计合同，或对 D1–D7 决策材料做一致性复核。共享接口/迁移/公共 CI 由 A 协调。
+
 ## 追溯入口
 
 - [旧交接记录](history/pre-layout-2026-11-18/HANDOFF.md)、[旧重构记录](history/pre-layout-2026-11-18/V2_REFACTOR.md)只证明所属版本，不作为当前待办。
