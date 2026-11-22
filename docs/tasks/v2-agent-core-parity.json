@@ -487,6 +487,14 @@
           "contract": "docs/v2/contracts/V2_REMAINING_DECISIONS.md",
           "evidence": "docs/evidence/v2-browser-url-floor.json",
           "delivered": "main.py 新增 METADATA_HOSTS/METADATA_IPS/_blocked_host/_blocked_url/_blocked_navigation：导航前拒绝 169.254.169.254、[fe80::1]（含 zone id）、metadata.google.internal 等别名、100.100.100.200、fd00:ec2::254，并对主机名做 ≤1.5s DNS 解析检查；page.route('**/*') 对每个 http(s) 请求（含重定向与子资源）命中即 abort 并计数，落地 page.url 再 backstop；结果带 blocked_requests。loopback/RFC1918 仍允许（V2 UI/本地夹具），私网默认策略 ii/iii 与子资源完整 DNS-rebinding floor 仍待所有者。无新表/迁移/路由/worker 协议/依赖。新增 16 项回归 16 过 6.72 秒（元数据/别名/zone id/重定向/子资源/同源放行/loopback 正常），回退探针 10 红+1 error、还原 16/16；调用方 browser_dialog/worker_safety/workers/capabilities 52 过 97.38 秒；strict 0/0、ruff 净"
+        },
+        {
+          "gap": "合并前综合复核——分支 tip 上 41 个测试文件/819 项全绿 + strict/ruff/索引",
+          "status": "verification_passed",
+          "batch": "K13.prejoin_verification",
+          "contract": "docs/HANDOFF.md",
+          "evidence": "docs/evidence/v2-prejoin-verification.json",
+          "delivered": "在交付 tip 9085c6a7 上单次串联运行 41 个受影响测试文件 819 项全过 543.26 秒 0 失败 0 跳过（bilibili 读写/风控/worker 546 + cron/schedule/租约/执行/内核/生命周期/委派/后台评审/维护 205 + 浏览器/对话框/URL floor/worker safety/capabilities 68，含本分支 5 个新测试文件 109 项）；strict 0 错误 0 警告、ruff check agent/src 与 5 个新测试文件通过；project_index 在 tip 上再生（源指纹更新）且二次运行零差异，索引随批提交。未跑全仓全量（留集成收尾）、未触真实账号/模型/设备/72 小时"
         }
       ],
       "limits": "只读审计无新工具/迁移/路由/源码改动；可离线缺口未在K13审计批实现(列后续批次)，其中缺口#1工作区搜索之内容搜索与文件名glob发现已在K13.search_files/K13.find_files后续批实现、缺口#2模糊补丁之核心normalizing策略搜索替换写工具已在K13.patch后续批实现(泛型files_*分派无需协议帧/跨平台改动)；搜索output_mode三态(content/files_with_matches/count)已在K13.search_modes、context邻接线(0-3)已在K13.search_context、offset分页(0-1000)已在K13.search_offset、order排序(discovery|modified修改时间最新优先)已在K13.search_order后续批实现、file_glob内容包含过滤已在K13.search_file_glob后续批实现、glob否定排除(file_glob_exclude)已在K13.search_exclude后续批实现(学rg--glob!否定语义，additive独立排除参数string或≤8字符串list，!前缀剥离，include过滤后读内容前跳过命中任一者，target=files忽略，既有file_glob单包含零回归，多包含glob列表已在K13.search_multi_glob后续批实现(file_glob widen str→str|list≤8多包含OR镜像exclude，单串字节等价零回归，ripgrep/高级gitignore仍后续)、高级gitignore仍后续)、regex已在K13.search_regex后续批实现(use_regex保守静态安全门大小写敏感，拒嵌套量词/反向引用等超线性构造，非ripgrep全集)、ripgrep、补丁escape/unicode归一化策略已在K13.patch_strategies后续批实现(indentation_flexible/trimmed_boundary经证明被line_trimmed涵盖故省略)、similarity近似(block_anchor/context_aware)已在K13.patch_similarity后续批实现(首末锚定+中间/逐行SequenceMatcher阈值，近似命中禁止replace_all仅唯一替换复用指纹CAS/审批)、escape-drift自动纠正与boundary-note已在K13.patch_drift后续批实现(匹配前验证纠正引号/反斜杠倍增漂移、歧义显式拒、近似边界注记，patch_replace四元组返回)、匹配后漂移拒绝与替换侧解转义已在K13.patch_drift_guards后续批实现(引号嫌疑/字面\\n盈余/反斜杠2倍非平凡拒，\\t/\\r区域证据解转义\\n绝不重写)、替换侧缩进重锚已在K13.patch_reindent后续批实现(非精确匹配把new_string基准缩进重锚到文件区域实际基准保留相对嵌套，仅比较首非空行、行中保留supplied、exact逐字、drift守卫后逐区域，3既有indent-drift用例保真更新)、unicode匹配替换侧排版保留已在K13.patch_unicode_preserve后续批实现(仅施加old→new编辑到区域原文，equal部分bisect归属保留em-dash/智能引号/省略号原排版不flatten为ASCII，归一不等回退verbatim，preserve→reindent顺序，既有unicode零回归)、V4A多文件格式、浏览器对话框已在K13.browser_dialog后续批实现(Playwright对话框持有队列+accept/dismiss+prompt_text+expected_url CAS+多对话框id消歧，行为由自动驳回改持有)、cron技能绑定输出依赖已在K13.cron_model_design记录实现前设计合同(工具面cronjob_manage六动作+四类日程语法+技能≤4(运行时MAX_ACTIVE)/context_from≤4与continuity+迁移v0049两表一列+输出摘录脱敏注入+审批门与日预算边界)，持久化批K13.cron_model_persistence(v0049两表一列+保存校验+读投影)、触发链批K13.cron_context(技能激活+输出摘录脱敏注入)、模型工具批K13.cronjob_tool(domain/cronjob.py合同+application/cronjob.py薄封装+Application.attach+组合层生产门控接线+list投影补revision/skills/context_from/continuity)与端到端批K13.cron_e2e(生产open_instance全链3例：create审批触发技能激活脱敏注入continuity自喂+五动作生命周期+陈旧revision冲突，零生产改动，发现并记录schedule_blocker与K08评审reserved call窗口的既有交互)已落地，cron四批全部完结；代码沙箱/原始CDP仍列后续；不宣称全集对等；既有todos重启竞态与5个pin v2_0039旧迁移测试沿用保留",
@@ -1296,6 +1304,10 @@
     {
       "id": "K13.browser_url_floor",
       "evidence": "docs/evidence/v2-browser-url-floor.json"
+    },
+    {
+      "id": "K13.prejoin_verification",
+      "evidence": "docs/evidence/v2-prejoin-verification.json"
     }
   ]
 }
