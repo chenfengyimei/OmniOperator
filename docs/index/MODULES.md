@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`d8a092fb1abf14a7ab0967fe3d916cf78a6522bc3fa7b1445d47573df46874fd`。包含 65 个职责模块、842 个源码/界面文件。
+源码指纹：`86bf5f76b0ad5895107b62894800fd22ff4089e837b2d3cfc9e15e61fe15ae9a`。包含 65 个职责模块、842 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -116,7 +116,7 @@
 | [agent/src/omni/application/desktop_control.py](../../agent/src/omni/application/desktop_control.py) | 383 | Owner/view-bound independent system-device consent and durable audit; never authorizes or dispatches an input action. |
 | [agent/src/omni/application/desktop_portal.py](../../agent/src/omni/application/desktop_portal.py) | 326 | Owner/view-scoped temporary share sessions with durable consent metadata; no image, native identity or input authorization. |
 | [agent/src/omni/application/documents.py](../../agent/src/omni/application/documents.py) | 360 | Source documents, explicitly requested local indexes and registered retrieval dependencies. |
-| [agent/src/omni/application/engine.py](../../agent/src/omni/application/engine.py) | 1178 | One supervised runtime: admission, session FIFO, model/tool execution and shutdown. |
+| [agent/src/omni/application/engine.py](../../agent/src/omni/application/engine.py) | 1180 | One supervised runtime: admission, session FIFO, model/tool execution and shutdown. |
 | [agent/src/omni/application/exchange_recovery.py](../../agent/src/omni/application/exchange_recovery.py) | 86 | Explicit offline exchange quarantine and new-directory rescue; no native changes or unknown-outcome erasure. |
 | [agent/src/omni/application/exchange_recovery_steps.py](../../agent/src/omni/application/exchange_recovery_steps.py) | 47 | Reuse release snapshots and fences for explicit quarantine/rescue; never clear a child unknown or call a manager. |
 | [agent/src/omni/application/exchange_steps.py](../../agent/src/omni/application/exchange_steps.py) | 139 | Compose existing release/registration/control use cases without holding instance locks across target startup. |
@@ -134,9 +134,9 @@
 | [agent/src/omni/application/objects.py](../../agent/src/omni/application/objects.py) | 140 | Object publication and access use cases; no filesystem paths or ORM objects. |
 | [agent/src/omni/application/operations.py](../../agent/src/omni/application/operations.py) | 127 | Bounded operational queries and privacy-preserving diagnostic export; no model or device actions. |
 | [agent/src/omni/application/people.py](../../agent/src/omni/application/people.py) | 69 | Owner-facing people and personal-document use cases; no ORM or filesystem access. |
-| [agent/src/omni/application/ports.py](../../agent/src/omni/application/ports.py) | 1077 | Application boundaries. Implementations belong to adapters. |
+| [agent/src/omni/application/ports.py](../../agent/src/omni/application/ports.py) | 1078 | Application boundaries. Implementations belong to adapters. |
 | [agent/src/omni/application/qq.py](../../agent/src/omni/application/qq.py) | 227 | Own bounded QQ listeners and owner conversation grants; turns use the shared V2 kernel. |
-| [agent/src/omni/application/reflections.py](../../agent/src/omni/application/reflections.py) | 145 | Local reflection control and owner review use cases sharing one transactional ledger. |
+| [agent/src/omni/application/reflections.py](../../agent/src/omni/application/reflections.py) | 148 | Local reflection control and owner review use cases sharing one transactional ledger. |
 | [agent/src/omni/application/release_drain.py](../../agent/src/omni/application/release_drain.py) | 30 | Bind release draining to the existing once-only boot control; reconciliation never sends another request. |
 | [agent/src/omni/application/releases.py](../../agent/src/omni/application/releases.py) | 337 | Offline release preparation and single-directory selection; never elevates, registers or starts a service. |
 | [agent/src/omni/application/routing.py](../../agent/src/omni/application/routing.py) | 19 | Tier configuration, query and bounded control use cases; model invocation remains in ModelCalls. |
@@ -302,7 +302,7 @@
 | [agent/src/omni/adapters/persistence/reference_release.py](../../agent/src/omni/adapters/persistence/reference_release.py) | 41 | Offline reference release uses the shared verified maintenance lifecycle; never unlinks objects. |
 | [agent/src/omni/adapters/persistence/reference_release_repository.py](../../agent/src/omni/adapters/persistence/reference_release_repository.py) | 330 | Release only reviewed retired action-object references; history is not a live object reference. |
 | [agent/src/omni/adapters/persistence/reflection_media.py](../../agent/src/omni/adapters/persistence/reflection_media.py) | 97 | Resolve media evidence from settled tool receipts and the tool-image dispatch ledger. |
-| [agent/src/omni/adapters/persistence/reflection_repository.py](../../agent/src/omni/adapters/persistence/reflection_repository.py) | 408 | Scoped reflection review, exact excerpts and atomic owner decisions. |
+| [agent/src/omni/adapters/persistence/reflection_repository.py](../../agent/src/omni/adapters/persistence/reflection_repository.py) | 430 | Scoped reflection review, exact excerpts and atomic owner decisions. |
 | [agent/src/omni/adapters/persistence/releases.py](../../agent/src/omni/adapters/persistence/releases.py) | 215 | Consistent release snapshots and quarantined new-directory restores under caller-owned instance locks. |
 | [agent/src/omni/adapters/persistence/repository.py](../../agent/src/omni/adapters/persistence/repository.py) | 1254 | Transaction-scoped repositories. No connection creation, DDL or external calls. |
 | [agent/src/omni/adapters/persistence/repository_base.py](../../agent/src/omni/adapters/persistence/repository_base.py) | 52 | Common transaction-scoped identity, ownership and audit primitives. |
