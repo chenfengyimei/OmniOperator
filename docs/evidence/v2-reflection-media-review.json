@@ -62,12 +62,13 @@
     "ruff": "all staged Python passed"
   },
   "full_suite": {
-    "head": "38c01d80",
-    "tests": null,
-    "passed": null,
-    "failed": null,
-    "junit": "C:/v2-acceptance/closeout-18b75b75/full-38c01d80.xml",
-    "note": "提交后独立基线全量运行中；结果以该 JUnit 为准"
+    "head": "0fe3cc5f",
+    "tests": 8389,
+    "passed": 8389,
+    "failed": 0,
+    "seconds": 3406.49,
+    "junit": "C:/v2-acceptance/closeout-18b75b75/full-0fe3cc5f.xml",
+    "note": "v0052 反思媒体/审核链进入全量绿；含 desktop UIA 前台拒绝路径"
   },
   "limits": [
     "未验证真实 B 站账号、真实模型散文/反思质量与 72h。",
@@ -79,6 +80,6 @@
     "人格成长与 shadow 投影",
     "最终冻结发布"
   ],
-  "current_full_passed": false,
+  "current_full_passed": true,
   "whole_v2_complete": false
 }

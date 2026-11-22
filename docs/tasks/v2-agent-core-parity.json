@@ -6,15 +6,15 @@
   "whole_core_parity_complete": false,
   "whole_reference_feature_audit_complete": false,
   "whole_v2_complete": false,
-  "full_suite_for_current_source": false,
+  "full_suite_for_current_source": true,
   "full_suite_evidence": {
-    "head": "03aa5499",
+    "head": "0fe3cc5f",
     "tests": 8389,
-    "passed": 8388,
-    "failed": 1,
-    "seconds": 3187.26,
-    "junit": "C:/v2-acceptance/closeout-18b75b75/full-03aa5499.xml",
-    "scope": "committed HEAD 03aa5499; v0052 included; desktop UIA foreground guard environment failure"
+    "passed": 8389,
+    "failed": 0,
+    "seconds": 3406.49,
+    "junit": "C:/v2-acceptance/closeout-18b75b75/full-0fe3cc5f.xml",
+    "scope": "committed HEAD 0fe3cc5f; v0052 and closure fixes included"
   },
   "contract": "docs/v2/contracts/V2_AGENT_CORE_PARITY.md",
   "evidence": "docs/evidence/v2-agent-core-parity.json",

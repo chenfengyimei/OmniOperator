@@ -38,18 +38,18 @@
       "post_baseline_alignment_fixed": 7,
       "migration_pins_fixed": 38,
       "baseline_debt_cleanup_fixed": 7,
-      "post_cleanup_full_head": "03aa5499",
+      "post_cleanup_full_head": "0fe3cc5f",
       "post_cleanup_full_tests": 8389,
-      "post_cleanup_full_passed": 8388,
-      "post_cleanup_full_failed": 1,
-      "post_cleanup_full_seconds": 3187.26,
-      "post_cleanup_junit": "C:/v2-acceptance/closeout-18b75b75/full-03aa5499.xml",
-      "post_cleanup_breakdown": "v0052 全量复验仅 desktop UIA act 在交互式前台被另一窗口占用时正确拒绝（desktop_user_intervened）；其余 8388 通过",
+      "post_cleanup_full_passed": 8389,
+      "post_cleanup_full_failed": 0,
+      "post_cleanup_full_seconds": 3406.49,
+      "post_cleanup_junit": "C:/v2-acceptance/closeout-18b75b75/full-0fe3cc5f.xml",
+      "post_cleanup_breakdown": "v0052 + 收尾修复全量 8,389 项 / 0 失败；desktop UIA 前台竞争按正确拒绝路径通过",
       "timeouts_hardened": true,
       "ui_suite_4workers": "241/242 passed（1219.64 秒，修复前）",
       "deterministic_environment_remaining": 0,
-      "expected_remaining": 1,
-      "expected_remaining_note": "desktop native act 前台竞争：产品正确拒绝注入；已加‘用户介入即零写入’分支，待最终全量复验",
+      "expected_remaining": 0,
+      "expected_remaining_note": "committed HEAD 0fe3cc5f 全量 8389/0 绿；v0052 已包含",
       "full_rerun_after_alignment": true,
       "migration_pin_debt": 0,
       "k01_prompt_cache_route_key": "D3(b) 已实现：pc_<sha256(agent|session|epoch)[:24]>，仅 xAI/Grok/OpenAI extra_body，前缀字节不变",
@@ -60,13 +60,13 @@
       "owner_authorization": "2026-11-22 所有者授权：全部提交推送、所有决策项允许、真实环境放行、C4 全部允许；后续按该授权执行。",
       "blockers": [
         "真实环境：Docker daemon/服务控制、Windows 管理员、真实账号/设备/干净机器/72h 仍需对应窗口",
-        "交互式桌面前台竞争使 desktop UIA act 进入正确拒绝分支（非产品缺陷）；已按零写入验证",
+        "K17 人格成长分支 codex/windows-k17-reflection 已推送但尚未合入 v2",
         "源码尚未最终冻结，C4 发布/签名/公证待执行"
       ],
       "blocker_evidence": "docs/evidence/v2-closeout-blockers.json",
       "evidence": "docs/evidence/v2-closeout-baseline.json",
-      "full_suite_scope": "committed HEAD 03aa5499; v0052 + 收尾修复已包含",
-      "current_full_passed": false
+      "full_suite_scope": "committed HEAD 0fe3cc5f; v0052 + 收尾修复已包含",
+      "current_full_passed": true
     }
   },
   "requirements": [
