@@ -9,8 +9,8 @@ import pytest
 from fastapi.testclient import TestClient
 from omni_test_support.v2.execution import wait_state
 from omni_test_support.v2.media import BV, _seed, _settle
+from omni_test_support.v2.media_zoom import configure_image_policy, zoom_instance
 from omni_test_support.v2.v2_configuration_helpers import model_instance
-from test_v2_media_zoom_e2e import configure_image_policy, zoom_instance
 
 from omni.composition.http import http_app
 from omni.domain.contracts import BusinessError, Invocation, ModelReply

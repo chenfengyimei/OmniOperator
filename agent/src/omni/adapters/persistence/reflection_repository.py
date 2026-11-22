@@ -42,7 +42,7 @@ class ReflectionRepositories(DocumentRepositories):
         return str(row["session_id"])
 
     def _session_journals(self, agent: str, run: str):
-        session = self._scope(agent,run)
+        session = self._scope(agent, run)
         actions = (
             select(s.actions.c.id)
             .join(s.runs, s.runs.c.id == s.actions.c.run_id)
@@ -65,13 +65,33 @@ class ReflectionRepositories(DocumentRepositories):
             .union(select(media_links.c.journal_id).where(media_links.c.action_id.in_(actions)))
         )
 
-        disabled=cast(list[str],self.run_settings(agent,run)["disabled_tools"])
+        disabled = cast(list[str], self.run_settings(agent, run)["disabled_tools"])
         if not disabled:
             return visible
-        blocked=select(s.actions.c.id).where(s.actions.c.agent_id==agent,s.actions.c.tool.in_(disabled))
-        blocked_journals=select(document_links.c.journal_id).join(s.context_documents,s.context_documents.c.id==document_links.c.capture_id).where(
-            s.context_documents.c.action_id.in_(blocked)).union(select(media_links.c.journal_id).where(media_links.c.action_id.in_(blocked)))
+        blocked = select(s.actions.c.id).where(s.actions.c.agent_id == agent, s.actions.c.tool.in_(disabled))
+        blocked_journals = (
+            select(document_links.c.journal_id)
+            .join(s.context_documents, s.context_documents.c.id == document_links.c.capture_id)
+            .where(s.context_documents.c.action_id.in_(blocked))
+            .union(select(media_links.c.journal_id).where(media_links.c.action_id.in_(blocked)))
+        )
         return select(journals.c.id).where(journals.c.id.in_(visible), journals.c.id.not_in(blocked_journals))
+
+    def reflection_available(self, agent_id: str) -> bool:
+        """Offer the journal only where an anchor can exist: a live document or a media source."""
+        document = self.connection.execute(
+            select(s.source_documents.c.id)
+            .where(s.source_documents.c.agent_id == agent_id, s.source_documents.c.deleted_at.is_(None))
+            .limit(1)
+        ).first()
+        if document is not None:
+            return True
+        return (
+            self.connection.execute(
+                select(s.media_sources.c.id).where(s.media_sources.c.agent_id == agent_id).limit(1)
+            ).first()
+            is not None
+        )
 
     def reflection_pending(self, agent: str, run: str) -> str | None:
         return self.connection.execute(
@@ -217,7 +237,9 @@ class ReflectionRepositories(DocumentRepositories):
             "candidate": dict(candidate) if candidate else None,
             "replaces": slot["active_candidate"] if slot else None,
             "withdrawn": bool(slot and slot["withdrawn"]),
-            "slot_candidate":self.one(candidates,agent,slot["active_candidate"]) if slot and slot["active_candidate"] else None,
+            "slot_candidate": self.one(candidates, agent, slot["active_candidate"])
+            if slot and slot["active_candidate"]
+            else None,
         }
 
     def reflection_page(self, agent: str, after: str, limit: int, approved: bool) -> Record:

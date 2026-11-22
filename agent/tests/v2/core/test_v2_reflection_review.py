@@ -5,8 +5,8 @@ import datetime as dt
 import hashlib
 
 import pytest
+from omni_test_support.v2.reflection import BODY, evidence
 from sqlalchemy import select
-from test_v2_reflection_journal import BODY, evidence
 
 from omni.adapters.persistence import schema as s
 from omni.domain.contracts import BusinessError

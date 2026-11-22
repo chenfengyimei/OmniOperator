@@ -66,6 +66,9 @@ class ReflectionService:
     def __init__(self, database: DatabasePort) -> None:
         self._db = database
 
+    async def available(self, agent: str) -> bool:
+        return await self._db.read(lambda u: u.reflection_available(agent))
+
     async def notice(self, agent: str, run: str) -> str:
         jid = await self._db.read(lambda u: u.reflection_pending(agent, run))
         return "\nPending reflection journal ID: " + jid if jid else ""

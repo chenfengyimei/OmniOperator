@@ -10,13 +10,11 @@ from omni_test_support.v2.execution import wait_state
 from omni_test_support.v2.media import (
     BV,
     CHANNEL,
-    FakeGateway,
     FakeProcessor,
-    Secrets,
     _seed,
-    open_instance,
 )
 from omni_test_support.v2.media_source import fixture as gateway_fixture
+from omni_test_support.v2.media_zoom import configure_image_policy, zoom_instance
 from sqlalchemy import select, update
 
 from omni.adapters.persistence import schema as s
@@ -50,30 +48,6 @@ class WaitingProcessor(FakeProcessor):
             self.cleaned = True
             raise
         return await super().frames(video, sheet_output, count, width, timestamps, select)
-
-
-async def zoom_instance(tmp_path, model, *, processor=None, gateway=None):
-    return await open_instance(
-        tmp_path,
-        model=model,
-        bilibili_backend=gateway or FakeGateway(),
-        media_processor=processor or FakeProcessor(),
-        credential_backend=Secrets(),
-    )
-
-
-async def configure_image_policy(instance, agent):
-    settings = await instance.application.settings(agent)
-    row = await instance.configurations.get(agent, settings["value"]["model_profile_id"])
-    await instance.configurations.save(
-        agent,
-        row["id"],
-        row["name"],
-        True,
-        {**row["value"], "model": "gpt-4o"},
-        row["revision"],
-        {"protocol": "openai_low", "per_call_limit": 4, "run_budget": 12},
-    )
 
 
 async def bilibili_source(instance, model):

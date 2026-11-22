@@ -312,7 +312,9 @@ class Application:
                     settings["max_steps"] = min(settings["max_steps"], cast(int, delegated["max_calls"]))
                 remote = await self._db.read(lambda u: u.qq_run(agent_id, run_id))
                 registry = {} if remote else dict(self._tools)
-                if self._reflections and not remote and not delegated:
+                if self._reflections and not remote and await self._reflections.available(agent_id):
+                    # The journal is offered only when an evidence source exists, and it is
+                    # registered for delegated runs too so a captured parent face stays inheritable.
                     registry[REFLECTION.name] = Capability(REFLECTION, self._reflections)
                 if self._todos is not None and not remote:
                     registry[TODO_LIST.name] = Capability(TODO_LIST, self._todos)
