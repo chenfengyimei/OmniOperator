@@ -82,6 +82,9 @@
 
 ## 其他剩余差异（非决策项，登记）
 
+- **K13 组 5（cron）表内其余残余**：cron 四批只交付 `skills`/`context_from`/`continuity` + `cronjob_manage` 六动作 + 生产端到端；审计表里 `monitor`（URL/脚本变化检测门控 run + diff 注入）、`no_agent`+`script`（无模型看门狗）、`enabled_toolsets` 允许清单、`workdir`、`deliver`/`failure_deliver`/`attach_to_session` 细分、`cronjob_prompt_scan`（prompt 威胁扫描）仍为**部分对等/可离线缺口**，未实现、未列本册决策（不需新授权面，但会触 `SchedulingService`/`delivery`/技能接口 → A 协调排期）。
+- **K13 组 1（终端/进程）模型侧面**：模型侧只有一次性 `shell_execute`；持久终端会话与 `process_manage`（list/poll/log/wait/kill/write/submit/close/handoff）、`read_terminal`/`close_terminal`/`read_window_below` 仍缺（所有者侧 `TerminalService` 已有）。属新 worker 持久会话协议 + 审批 + 所有者面，需设计与实机验收，未列本册决策。
+- **K13 组 2（浏览器）URL floor**：V2 有 URL 审批，但参考的显式 SSRF/IMDS floor（拒 IMDS/私网，除非本地后端）**待核**；属安全项，核对后决定是否补。
 - **读侧速率预算**：参考 读 600/h·3000/d、写 12/h·30/d、gap 1500ms、写冷却 120s、dm 60s；V2 共享 delivery 限额/冷却覆盖投递侧，**读侧预算未实现**（需跨进程/重启持久的共享预算账本设计）。
 - **nav 10min 缓存**：有意不做（比参考更严，见 [V2_BILI_READ_CACHE](V2_BILI_READ_CACHE.md)）。
 - **真实账号/网络/模型质量/72 小时验收**：全部读端点送达、风控触发与恢复、QR 登录、真实写发送、直播连接、模型生成质量；参考亦未在线验证的 AI-share 守卫误报率。

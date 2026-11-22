@@ -24,7 +24,7 @@
     "agent/src/omni/application/bilibili.py": "13e5a5df1dcb8c6669842e2e6a0d86c675d056b86b37cb707fd896ac3a4e95a6",
     "agent/tests/v2/integrations/test_v2_bilibili_read_cache.py": "bd4f777e351a7f84eb2c788b85b67a803517dfa3210b7af2ef1df0be0cbd9366",
     "docs/v2/contracts/V2_BILI_READ_CACHE.md": "96aabf3141da0b3fa115e94c2847be19674bcb55a6f6bf70069379b08ca6c524",
-    "docs/v2/contracts/V2_REMAINING_DECISIONS.md": "6ad6528e0ad95e6ade042a5ee2b44a0b45e1605d5c80be359f506f3ed6ab4e11",
+    "docs/v2/contracts/V2_REMAINING_DECISIONS.md": "39a531fadbf240966624fdae1d8c9ac1182fafe628048d474e30cc6e3e20ae38",
     "docs/v2/contracts/V2_BILI_WHALE_AUDIT.md": "13e2ce6dd5a8ebbab1d831dae7e1cbd5dcb5cb11cec400cbc52b826243791d17",
     "docs/v2/contracts/V2_TOOL_CHANNEL_AUDIT.md": "abf7e304670cf5fa0de8755a304b3799d89284a440d9b4009a7a3abf328cc8ed"
   },
