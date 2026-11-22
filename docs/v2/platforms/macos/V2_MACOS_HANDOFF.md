@@ -193,7 +193,7 @@ D4追加独立root管理员包：单次注册/卸载/start使用标准库、固�
 
 语义写入首次验收在真实权限下失败：所有动作在派发前被 `desktop_user_intervened` 拒绝（effect=none、verification=not_dispatched），包括所有者保持鼠标键盘静止的一轮。根因是 `InputWatch` 基线从未 arm（baseline=0），tap 安装后到首个检查之间的 fixture 激活与窗口焦点抖动被误计为用户介入。修复为安装后立即 `arm()`，并把系统禁用的监听区分成 `desktop_monitor_unavailable`（不再伪装成用户输入）；重建、重装到同一固定路径后重跑。修复后 `--mutate-owned-fixture` 通过：set_text `ok/applied/value_matches`，invoke `unknown/desktop_postcondition_unverified`，独立样例状态确认按钮触发一次，未重放。重装后首次 read 验收出现冷启动身份竞态（首次 verify 不匹配、立即重试通过），宿主保持 fail-closed，按测试竞态记录。
 
-前台输入仍未完成：键盘输入与 Left/插入能改变样例文本与选区（回执按合同为 ok/unknown，绝不宣称成功）；定向鼠标点击被目标 tap 确认后未按下样例按钮（回执 unknown、clicks 仍 0），官方 `--foreground-owned-fixture` 在最后一步状态等待超时。原始失败保留，作为前台输入批的独立缺陷。证据：[权限与语义](../../../evidence/v2-macos-permissions-2026-11-22.json)。
+前台输入仍未完成：键盘输入与 Left/插入能改变样例文本与选区（回执按合同为 ok/unknown，绝不宣称成功）；定向鼠标点击被目标 tap 确认后未按下样例按钮（回执 unknown、clicks 仍 0），官方 `--foreground-owned-fixture` 在最后一步状态等待超时。原始失败保留，作为前台输入批的独立缺陷；后续前台点击已修复（见上节）。另据本日 TCC 归属实测，本节功能证据不能证明 helper 独立获权，见文末“TCC 归属实测”。证据：[权限与语义](../../../evidence/v2-macos-permissions-2026-11-22.json)。
 
 ### 2026-11-22 Keychain 与 LaunchAgent 基线
 
@@ -212,3 +212,11 @@ LaunchAgent 基线：本机当前没有 OmniOperator 用户服务 job，`~/Libra
 修复：键盘仍 `postToPid`；点击改为在投递前重新核验目标、确认点仍在目标窗口内，`CGWarpMouseCursorPosition` 移到已核验点后经 `.cghidEventTap` 投递同一有界 down/up 对，随即恢复原光标位置。窗口按 takeover 合同已在前台、AX 命中已确认点到控件，仍只有一个事件对且不调用激活 API。契约文字同步到 [V2_DESKTOP](../../contracts/V2_DESKTOP.md)。
 
 修复后 read、semantic、foreground 三个显式验收全部通过：foreground 回执为 text_appended + unknown×3，独立样例状态的文本、选区与 clicks 全部符合，`replayed=false`，样例 clicks 0→1。交付 helper `8dbc0d3c` 上 read 截图 sha256 `8565ae96…`、语义 `value_matches` 复验通过。证据：[前台输入](../../../evidence/v2-macos-foreground-2026-11-22.json)。
+
+### 2026-11-22 TCC 归属实测（重要，待决策）
+
+撤回验收时发现权限并不属于 helper 自身：把已安装应用原样复制到新路径（从未授权）后，用与宿主相同的环境发 IPC 6 probe，四个能力仍全部 `granted`；tccd 日志显示 `responsible=com.deepseek.dsh`、`requesting=org.omnioperator.desktophelper`、`AUTHREQ_SUBJECT=com.deepseek.dsh`、`authValue=2`。`tccutil reset ScreenCapture/Accessibility org.omnioperator.desktophelper` 虽返回成功，新建 helper 仍报告 `granted`；所有者在系统设置里关闭 helper 条目也未产生拒绝。
+
+结论：helper 作为宿主（本机为 DeepSeek Harness）的 POSIX 子进程运行，macOS 以 responsible process 判定 TCC，而不是 helper 自己的 bundle 身份。此前“授予/拒绝”的功能证据仍然成立，但不能证明 helper 独立获权；本页与 `V2_DESKTOP` 中“权限属于辅助应用自身”的说法在当前启动方式下不成立。
+
+待决：需要选择 (a) 改用 LaunchServices/XPC 等让 helper 成为独立 responsible process（涉及合同与安全设计，需批准），或 (b) 明确接受“权限随宿主”并修改合同、验收方法和威胁模型。本批未改代码。验证限制：LaunchServices 启动的 probe 没有可用的双向管道，未实测；未来由 launchd 服务启动 helper 的归属未知；TCC.db 受保护未读取。证据：[TCC 归属](../../../evidence/v2-macos-tcc-attribution-2026-11-22.json)。

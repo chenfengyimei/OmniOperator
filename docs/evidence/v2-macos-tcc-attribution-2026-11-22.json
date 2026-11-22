@@ -1,0 +1,63 @@
+{
+  "schema": 1,
+  "batch": "D2.macos.tcc_attribution",
+  "date": "2026-11-22",
+  "status": "investigation: helper TCC checks are attributed to the responsible host process, not to the helper bundle; a never-granted helper copy reports every permission granted; no code change in this batch",
+  "whole_v2_complete": false,
+  "platform_macos_complete": false,
+  "release_candidate": false,
+  "default_entrypoints": "V2",
+  "source": {
+    "baseline_git_head": "18b75b757b0a8b82243963494be06f5d6d457601",
+    "task_branch": "macos-pty-reclaim",
+    "code_change": "none; investigation and documentation only"
+  },
+  "finding": {
+    "summary": "When the Swift helper is spawned as a POSIX child of the harness (asyncio subprocess, new session), macOS attributes its TCC queries to the responsible process that launched the harness, not to the helper's own bundle identifier.",
+    "evidence": [
+      {
+        "what": "Never-granted helper copy",
+        "detail": "Copied the installed bundle to temp/build/tcc-attribution/HelperCopy.app (no TCC entry for that path) and sent a valid IPC 6 probe frame with the host helper environment. Result: exit 0, all four capabilities granted (window_identity, accessibility, screen_capture, foreground_control), although the copy had never been approved.",
+        "command": "printf '{\"version\":\"omni-desktop-ipc-6\",\"request_id\":\"<uuid>\",\"operation\":\"probe\",\"target\":null,\"limit\":1}\\n' | <HelperCopy>/Contents/MacOS/OmniDesktopHelper --ipc"
+      },
+      {
+        "what": "TCC attribution log",
+        "detail": "tccd AUTHREQ_ATTRIBUTION for the copy shows responsible={identifier=com.deepseek.dsh, responsible_path=/Applications/DeepSeek Harness.app/Contents/MacOS/DeepSeek Harness}, requesting={identifier=org.omnioperator.desktophelper, binary_path=.../HelperCopy.app/...}; AUTHREQ_SUBJECT=com.deepseek.dsh and AUTHREQ_RESULT authValue=2 (allowed).",
+        "command": "log show --last 90s --predicate 'process == \"tccd\"' | grep AUTHREQ_ATTRIBUTION"
+      },
+      {
+        "what": "Reset by helper bundle id has no effect",
+        "detail": "tccutil reset ScreenCapture org.omnioperator.desktophelper and tccutil reset Accessibility org.omnioperator.desktophelper both returned success, but a new helper process still reported granted for those capabilities; the owner toggling the helper entry in System Settings likewise did not produce a deny.",
+        "command": "tccutil reset ScreenCapture org.omnioperator.desktophelper; tccutil reset Accessibility org.omnioperator.desktophelper"
+      }
+    ],
+    "mechanism": "For a POSIX-spawned child, TCC resolves the responsible process through the launch chain. The helper is launched by the DSH harness's Python process, so the harness is responsible; the helper's own ad-hoc code identity does not become the decision subject. The helper still enforces fail-closed on whatever the preflight calls return.",
+    "impact": [
+      "The macOS permissions that the helper exercises are effectively the launching host's permissions, so the earlier grant/deny evidence (all four denied before, granted after the owner's action) is functional but not proof that the helper is independently authorized.",
+      "The V2 macOS contract statement that permissions belong to the helper application itself is not satisfied under the current child-process launch; it needs a launch mechanism that gives the helper its own TCC responsibility (for example LaunchServices/XPC) or an explicit contract change accepted by the owner/coordinator.",
+      "Reset-based revocation testing cannot be used with the current launch method; denying requires changing the host's grants, which would affect the whole session."
+    ],
+    "not_concluded": [
+      "A LaunchServices- or XPC-launched helper was not exercised: the probe needs a bidirectional pipe, and the existing entry points do not provide a file-based probe result.",
+      "It is not proven whether a helper launched by a future OmniOperator service (launchd) would be attributed to launchd or to itself.",
+      "No TCC database was read (protected); conclusions use preflight results and tccd attribution logs."
+    ]
+  },
+  "current_state": {
+    "functional": "All four capabilities report granted when the helper is spawned from this harness, and read/semantic/foreground acceptances passed earlier on the same build.",
+    "owner_action": "The owner could not find the helper entry to re-add; nothing else is required for the current launch context, because the effective grants follow the harness.",
+    "helper_path": "/Users/chenfeng/Applications/OmniOperator Desktop Helper.app"
+  },
+  "limits": [
+    "Investigation only; no source, contract or acceptance change in this batch.",
+    "Functional acceptance of the four capabilities predates this finding and stays valid for the current launch context, but it is not evidence of independent helper authorization.",
+    "Gitee push remains blocked without an HTTPS credential; delivery is local only."
+  ],
+  "shared_interface_requests": [
+    "macOS helper TCC responsibility: needs a coordinator/owner decision between (a) LaunchServices/XPC launch so the helper owns its permissions, or (b) documenting host-attributed permissions as the contract. No code change made before that decision."
+  ],
+  "artifacts": [
+    "temp/build/tcc-attribution/HelperCopy.app",
+    "temp/build/mac-2026-11-22/revoke-acceptance/ax-acceptance.json"
+  ]
+}
