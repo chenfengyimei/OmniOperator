@@ -396,6 +396,36 @@ K13.cron_model_design 已记录**实现前设计合同**（纯文档，无源码
 - **未验**：私网默认策略、子资源完整 DNS-rebinding、WebSocket 拦截、真实网站/账号、当前源码未全量。
 - **下一批**：D9 收尾需所有者私网策略；D1/D4–D7 待选定；D2/D3/R/T 默认不移植。共享接口/迁移/公共 CI 由 A 协调。
 
+## 分支交付汇总（`k18-read-cache` → A 集成，2026-11-23）
+
+- **基线/交付**：`origin/v2`=`0793f2543f1b2bb94e960d171747fbf08bc11b84`；分支 `k18-read-cache` 线性叠加其上，交付 tip `474fd975`（远端 `git ls-remote` 回读同值）；工作树 `C:/v2-sessions/k18-read-cache`，全程未触碰主检出在途修改。
+- **实现提交（5 个）**：`341041a6` 读缓存（仅 video/whois 24h/400 条/8MiB，凭据换代换桶、13 端点不缓存）、`0202bcfc` `dynamic_list`（固定 VC host）、`41252a11` `fav_resources`（固定 resource/list、只保留视频行）、`85716859` D8（`schedule_blocker` 仅 `purpose='turn'`）、`46c098f6` D9（元数据/link-local 导航拒绝 + `page.route` 全请求 abort）。其余为文档/合同/证据提交。
+- **触及源码（6 个，无共享接口/迁移/worker 协议/composition/ports 改动）**：`domain/bilibili.py`、`application/bilibili.py`、`adapters/bilibili.py`、`adapters/http.py`（仅 Literal）、`adapters/persistence/lease_repository.py`、`adapters/workers/main.py`。`git diff --name-only origin/v2..HEAD -- application/ports.py adapters/workers/protocol.py adapters/persistence/migrations composition` 为空；无新表/迁移/路由/依赖。
+- **新增测试（5 文件 109 项）**：`test_v2_bilibili_read_cache.py`(38)、`test_v2_bilibili_dynamic.py`(27)、`test_v2_bilibili_fav_resources.py`(23)、`test_v2_schedule_review_blocker.py`(5)、`test_v2_browser_url_floor.py`(16)。
+- **验证记录（每批终源）**：缓存 38 过 37.31s + bilibili 调用方 496 过 170.96s；dynamic_list 27 过 1.54s + 523 过 158.06s；fav_resources 23 过 1.22s + 546 过 142.79s；D8 5 过 10.67s + cron/租约/执行等 12 套件 200 过 303.16s（回退探针 3 红）；D9 16 过 6.72s + browser_dialog/worker_safety/workers/capabilities 52 过 97.38s（回退探针 10 红+1 error）。strict `pyrightconfig.strict.json` 每批 0 错误 0 警告；ruff/format 净；`project_index` 65/849/464/94 零差异；`task_status.py --check` exit 0；未跑全量、未触真实账号/模型/服务/数据库。
+- **集成建议**：在干净集成 checkout 取最新 `origin/v2` 与本分支；若主线前进则先 rebase 再重跑受影响专项（命令见各批证据）。实现均为加性/局部修复，冲突面预计仅在 HANDOFF/任务 JSON/合同文档；回退点：D8 为 `lease_repository.py` 的 6 行 purpose 过滤，D9 为 `workers/main.py` 的 helper + 路由安装（摘除后新用例按设计变红），缓存/两个读 operation 可单独 revert 而不影响其余。
+- **数据/行为变化**：B 站 `bilibili_read` 结果新增 `dynamic_list`/`fav_resources` 两个只读 operation 与 video/whois 缓存命中（文本逐字节一致）；定时触发不再被 K08/K06 summary 调用假阻塞；浏览器对元数据/link-local 的导航与请求被拒绝/中止（loopback/RFC1918 仍允许，私网策略待所有者）。**未宣称 K01/K13/K18 全量对等**；D1–D9/R1–R5/T1–T5 决策状态与建议顺序见决策登记速览表，`whole_*` 保持 false。
+
+### 批次证据索引
+
+| 批次 | 实现提交 | 合同 | 证据 |
+|---|---|---|---|
+| K18.read_cache | `341041a6` | V2_BILI_READ_CACHE.md | v2-bili-read-cache.json |
+| 交付核对/决策登记 | `d9574705`、`993af24a` | V2_REMAINING_DECISIONS.md | v2-delivered-verification.json |
+| K18.write_breadth_design | `8aa8becf` | V2_BILI_WRITE_BREADTH.md | v2-bili-write-breadth-design.json |
+| K18.dynamic_list | `0202bcfc` | V2_BILI_DYNAMIC.md | v2-bili-dynamic.json |
+| K18.fav_resources | `41252a11` | V2_BILI_FAV_RESOURCES.md | v2-bili-fav-resources.json |
+| K18.proactive_watch_design | `8bb68f51` | V2_BILI_PROACTIVE_WATCH.md | v2-bili-proactive-watch-design.json |
+| K18.share_policy_design | `063f082b` | V2_BILI_SHARE_POLICY.md | v2-bili-share-policy-design.json |
+| K18.live_design | `f7cb339f` | V2_BILI_LIVE.md | v2-bili-live-design.json |
+| K01.prompt_cache_prefix_design | `1fcaf4c4` | V2_PROMPT_CACHE_PREFIX.md | v2-prompt-cache-prefix-design.json |
+| K13.code_sandbox_design / browser_cdp_design | `a4ea761b` | V2_CODE_SANDBOX.md / V2_BROWSER_CDP.md | v2-code-sandbox-design.json / v2-browser-cdp-design.json |
+| K13.cron_variants_design | `2d1a6dd5` | V2_CRON_VARIANTS.md | v2-cron-variants-design.json |
+| K13.terminal_model_tools_design | `af5ffe51` | V2_TERMINAL_MODEL_TOOLS.md | v2-terminal-model-tools-design.json |
+| 决策材料复核 | `c50f5e6e` | V2_REMAINING_DECISIONS.md | v2-decision-material-audit.json |
+| D8 实现 | `85716859` | V2_SCHEDULE_REVIEW_BLOCKER.md | v2-schedule-review-blocker-impl.json |
+| D9 部分实现 | `46c098f6` | 决策登记 D9 | v2-browser-url-floor.json |
+
 ## 追溯入口
 
 - [旧交接记录](history/pre-layout-2026-11-18/HANDOFF.md)、[旧重构记录](history/pre-layout-2026-11-18/V2_REFACTOR.md)只证明所属版本，不作为当前待办。
