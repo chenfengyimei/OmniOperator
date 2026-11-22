@@ -264,3 +264,5 @@ LaunchAgent 基线：本机当前没有 OmniOperator 用户服务 job，`~/Libra
 验证：终端整文件 **30/30 轮零失败**（修复前 1/10–1/3）；OwnedProcess 调用方 **100 项通过（32.68 秒）**；桌面套件 238/239（20.08 秒，唯一失败仍为既有 v2_0051 pin）；ruff 干净。证据：[进程回收竞态](../../../evidence/v2-processes-terminate-race-2026-11-22.json)。
 
 补充回归：传输层增加“half-close 后仍能读到回包”（假 helper 等 EOF 再应答，直接锁住 stdin.close 拆 socket 的缺陷）与“失败启动不残留 `/tmp/omni-d-*` 私有目录”两项，launcher 8/8 通过（1.16 秒）。
+
+LaunchServices 生命周期稳定性复测：连续 15 次 `probe` 每次 0.062–0.075 秒（均值 0.067），2 个并发 `probe` 同时返回 `omni-desktop-ipc-6`，关闭后 resident/pending/cleanup_pending 均为 0；测量前后均无遗留 `OmniDesktopHelper` 进程、`/tmp/omni-d-*` 私有目录为空。仅 probe/close 走通，observe/capture/act/foreground 仍等 helper 的辅助功能/输入/投递授权。证据：[生命周期稳定性](../../../evidence/v2-macos-launch-lifecycle-2026-11-22.json)。
