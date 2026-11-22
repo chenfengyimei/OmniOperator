@@ -502,7 +502,8 @@ async def open_instance(
         )
         lifetime.own("desktop_actions", 0, desktop_actions.close, desktop_actions.stop_accepting)
         local_vectors = vectorizer if vectorizer is not None else await configured_vectors(paths.home)
-        documents = DocumentService(database, objects, local_vectors)
+        persona_growth = PersonaGrowthService(database, PersonaGrowthFiles(paths.persona))
+        documents = DocumentService(database, objects, local_vectors, persona=persona_growth)
         lifetime.own("source_documents", 1, documents.close)
         memory_semantics = MemorySemanticService(database, local_vectors)
         lifetime.own("memory_semantics", 0, memory_semantics.close, memory_semantics.stop_accepting)
@@ -582,6 +583,7 @@ async def open_instance(
             processor,
             clock,
             paths.control / "media-staging",
+            persona=persona_growth,
         )
         lifetime.own("media", 0, media.close, media.stop_accepting)
         # Jobs owned by the previous process end interrupted or unknown before
@@ -664,7 +666,6 @@ async def open_instance(
             return await cap.adapter.invoke(name, arguments, operation_id=context.run_id, context=context)
 
         reflections = ReflectionService(database)
-        persona_growth = PersonaGrowthService(database, PersonaGrowthFiles(paths.persona))
         background_review = BackgroundReviewService(
             database,
             calls,

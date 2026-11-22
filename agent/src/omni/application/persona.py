@@ -17,6 +17,12 @@ class PersonaGrowthStore(Protocol):
     def invalidate(self, agent: str) -> bool: ...
 
 
+class PersonaGrowthInvalidator(Protocol):
+    """Narrow port used by source erasure to clear a derived cache before completion."""
+
+    async def invalidate(self, agent: str) -> bool: ...
+
+
 def _record(rendered: RenderedGrowth, built_at: str) -> Record:
     return {
         "state": "ready",
@@ -71,4 +77,4 @@ class PersonaGrowthService:
         return True
 
 
-__all__ = ["PersonaGrowthService", "PersonaGrowthStore"]
+__all__ = ["PersonaGrowthInvalidator", "PersonaGrowthService", "PersonaGrowthStore"]

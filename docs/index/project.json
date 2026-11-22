@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "96aa3f88bce6f16dd928aa2a4dae27f6c9fc2173772633ce9ace0dae953899d5",
+  "source_sha256": "5673d6187a5169059723039185508ea8d1faa5b9a10dceda8bd98f3c6e7b27a8",
   "modules": [
     {
       "id": "v2-domain",
@@ -167,7 +167,7 @@
         "agent/src/omni/application/terminals.py",
         "agent/src/omni/application/todos.py"
       ],
-      "lines": 14004,
+      "lines": 14038,
       "dependencies": [
         "v2-domain"
       ]
@@ -547,7 +547,7 @@
         "agent/src/omni/composition/service_runner.py",
         "agent/src/omni/composition/serving.py"
       ],
-      "lines": 3294,
+      "lines": 3295,
       "dependencies": [
         "v2-adapters",
         "v2-application",
@@ -50586,10 +50586,11 @@
       "path": "agent/src/omni/application/documents.py",
       "module": "v2-application",
       "python_module": "omni.application.documents",
-      "lines": 360,
+      "lines": 378,
       "imports": [
         "omni.application.local_vectors",
         "omni.application.objects",
+        "omni.application.persona",
         "omni.application.ports",
         "omni.domain.contracts",
         "omni.domain.documents"
@@ -50597,28 +50598,42 @@
       "symbols": [
         {
           "name": "DocumentService",
-          "line": 25,
+          "line": 26,
           "kind": "class"
         },
         {
           "name": "DocumentService.__init__",
-          "line": 26,
+          "line": 27,
           "kind": "function",
           "parameters": [
             "self",
             "database",
             "objects",
-            "vectorizer"
+            "vectorizer",
+            "persona"
           ],
           "annotations": {
             "database": "DatabasePort",
             "objects": "ObjectService",
-            "vectorizer": "LocalVectorizer | None"
+            "vectorizer": "LocalVectorizer | None",
+            "persona": "PersonaGrowthInvalidator | None"
+          }
+        },
+        {
+          "name": "DocumentService._drop_persona_cache",
+          "line": 41,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "agent_id"
+          ],
+          "annotations": {
+            "agent_id": "str"
           }
         },
         {
           "name": "DocumentService._execute",
-          "line": 34,
+          "line": 46,
           "kind": "function",
           "parameters": [
             "self",
@@ -50630,14 +50645,14 @@
         },
         {
           "name": "DocumentService._execute.perform",
-          "line": 40,
+          "line": 52,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "DocumentService._execute.completed",
-          "line": 47,
+          "line": 59,
           "kind": "function",
           "parameters": [
             "future"
@@ -50648,7 +50663,7 @@
         },
         {
           "name": "DocumentService._source",
-          "line": 55,
+          "line": 67,
           "kind": "function",
           "parameters": [
             "self",
@@ -50662,7 +50677,7 @@
         },
         {
           "name": "DocumentService.save",
-          "line": 62,
+          "line": 74,
           "kind": "function",
           "parameters": [
             "self",
@@ -50682,14 +50697,14 @@
         },
         {
           "name": "DocumentService.save.perform",
-          "line": 68,
+          "line": 80,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "DocumentService.import_object",
-          "line": 77,
+          "line": 89,
           "kind": "function",
           "parameters": [
             "self",
@@ -50709,14 +50724,14 @@
         },
         {
           "name": "DocumentService.import_object.perform",
-          "line": 82,
+          "line": 94,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "DocumentService.get",
-          "line": 91,
+          "line": 103,
           "kind": "function",
           "parameters": [
             "self",
@@ -50732,14 +50747,14 @@
         },
         {
           "name": "DocumentService.get.perform",
-          "line": 92,
+          "line": 104,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "DocumentService.page",
-          "line": 101,
+          "line": 113,
           "kind": "function",
           "parameters": [
             "self",
@@ -50755,7 +50770,7 @@
         },
         {
           "name": "DocumentService.history",
-          "line": 105,
+          "line": 117,
           "kind": "function",
           "parameters": [
             "self",
@@ -50773,7 +50788,7 @@
         },
         {
           "name": "DocumentService.erase",
-          "line": 109,
+          "line": 121,
           "kind": "function",
           "parameters": [
             "self",
@@ -50789,14 +50804,14 @@
         },
         {
           "name": "DocumentService.erase.perform",
-          "line": 110,
+          "line": 122,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "DocumentService.erase.perform.remove",
-          "line": 116,
+          "line": 133,
           "kind": "function",
           "parameters": [
             "u"
@@ -50807,7 +50822,7 @@
         },
         {
           "name": "DocumentService.vector_status",
-          "line": 131,
+          "line": 149,
           "kind": "function",
           "parameters": [
             "self"
@@ -50816,7 +50831,7 @@
         },
         {
           "name": "DocumentService._embed",
-          "line": 134,
+          "line": 152,
           "kind": "function",
           "parameters": [
             "self",
@@ -50834,7 +50849,7 @@
         },
         {
           "name": "DocumentService.rebuild",
-          "line": 139,
+          "line": 157,
           "kind": "function",
           "parameters": [
             "self",
@@ -50858,14 +50873,14 @@
         },
         {
           "name": "DocumentService.rebuild.perform",
-          "line": 160,
+          "line": 178,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "DocumentService.rebuild.perform.begin",
-          "line": 161,
+          "line": 179,
           "kind": "function",
           "parameters": [
             "u"
@@ -50876,7 +50891,7 @@
         },
         {
           "name": "DocumentService.index_status",
-          "line": 202,
+          "line": 220,
           "kind": "function",
           "parameters": [
             "self",
@@ -50894,7 +50909,7 @@
         },
         {
           "name": "DocumentService.search",
-          "line": 213,
+          "line": 231,
           "kind": "function",
           "parameters": [
             "self",
@@ -50914,14 +50929,14 @@
         },
         {
           "name": "DocumentService.search.perform",
-          "line": 221,
+          "line": 239,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "DocumentService.search.perform.validate",
-          "line": 263,
+          "line": 281,
           "kind": "function",
           "parameters": [
             "u"
@@ -50932,7 +50947,7 @@
         },
         {
           "name": "DocumentService.invoke",
-          "line": 294,
+          "line": 312,
           "kind": "function",
           "parameters": [
             "self",
@@ -50950,7 +50965,7 @@
         },
         {
           "name": "DocumentService.health",
-          "line": 343,
+          "line": 361,
           "kind": "function",
           "parameters": [
             "self"
@@ -50959,7 +50974,7 @@
         },
         {
           "name": "DocumentService.close",
-          "line": 346,
+          "line": 364,
           "kind": "function",
           "parameters": [
             "self",
@@ -54049,10 +54064,11 @@
       "path": "agent/src/omni/application/media.py",
       "module": "v2-application",
       "python_module": "omni.application.media",
-      "lines": 864,
+      "lines": 874,
       "imports": [
         "omni.application.images",
         "omni.application.objects",
+        "omni.application.persona",
         "omni.application.ports",
         "omni.domain.contracts",
         "omni.domain.media",
@@ -54061,12 +54077,12 @@
       "symbols": [
         {
           "name": "MediaProcessingPort",
-          "line": 142,
+          "line": 143,
           "kind": "class"
         },
         {
           "name": "MediaProcessingPort.status",
-          "line": 143,
+          "line": 144,
           "kind": "function",
           "parameters": [
             "self"
@@ -54075,7 +54091,7 @@
         },
         {
           "name": "MediaProcessingPort.probe",
-          "line": 145,
+          "line": 146,
           "kind": "function",
           "parameters": [
             "self"
@@ -54084,7 +54100,7 @@
         },
         {
           "name": "MediaProcessingPort.transcribe",
-          "line": 147,
+          "line": 148,
           "kind": "function",
           "parameters": [
             "self",
@@ -54100,7 +54116,7 @@
         },
         {
           "name": "MediaProcessingPort.frames",
-          "line": 149,
+          "line": 150,
           "kind": "function",
           "parameters": [
             "self",
@@ -54122,7 +54138,7 @@
         },
         {
           "name": "MediaProcessingPort.stop_accepting",
-          "line": 159,
+          "line": 160,
           "kind": "function",
           "parameters": [
             "self"
@@ -54131,7 +54147,7 @@
         },
         {
           "name": "MediaProcessingPort.close",
-          "line": 161,
+          "line": 162,
           "kind": "function",
           "parameters": [
             "self",
@@ -54143,12 +54159,12 @@
         },
         {
           "name": "BilibiliMediaPort",
-          "line": 164,
+          "line": 165,
           "kind": "class"
         },
         {
           "name": "BilibiliMediaPort.read",
-          "line": 165,
+          "line": 166,
           "kind": "function",
           "parameters": [
             "self",
@@ -54166,7 +54182,7 @@
         },
         {
           "name": "BilibiliMediaPort.read_source",
-          "line": 167,
+          "line": 168,
           "kind": "function",
           "parameters": [
             "self",
@@ -54182,7 +54198,7 @@
         },
         {
           "name": "BilibiliMediaPort.download",
-          "line": 169,
+          "line": 170,
           "kind": "function",
           "parameters": [
             "self",
@@ -54204,7 +54220,7 @@
         },
         {
           "name": "_processing_error",
-          "line": 181,
+          "line": 182,
           "kind": "function",
           "parameters": [
             "exc"
@@ -54215,7 +54231,7 @@
         },
         {
           "name": "_output_bytes",
-          "line": 185,
+          "line": 186,
           "kind": "function",
           "parameters": [
             "path",
@@ -54230,7 +54246,7 @@
         },
         {
           "name": "_authorized",
-          "line": 194,
+          "line": 195,
           "kind": "function",
           "parameters": [
             "unit",
@@ -54249,12 +54265,12 @@
         },
         {
           "name": "MediaService",
-          "line": 204,
+          "line": 205,
           "kind": "class"
         },
         {
           "name": "MediaService.__init__",
-          "line": 205,
+          "line": 206,
           "kind": "function",
           "parameters": [
             "self",
@@ -54264,7 +54280,8 @@
             "bilibili",
             "processor",
             "clock",
-            "staging_root"
+            "staging_root",
+            "persona"
           ],
           "annotations": {
             "database": "DatabasePort",
@@ -54273,12 +54290,13 @@
             "bilibili": "BilibiliMediaPort",
             "processor": "MediaProcessingPort",
             "clock": "Clock",
-            "staging_root": "Path"
+            "staging_root": "Path",
+            "persona": "PersonaGrowthInvalidator | None"
           }
         },
         {
           "name": "MediaService.register",
-          "line": 225,
+          "line": 229,
           "kind": "function",
           "parameters": [
             "self",
@@ -54294,14 +54312,14 @@
         },
         {
           "name": "MediaService.register.perform",
-          "line": 226,
+          "line": 230,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "MediaService.register.perform.save",
-          "line": 231,
+          "line": 235,
           "kind": "function",
           "parameters": [
             "unit"
@@ -54312,7 +54330,7 @@
         },
         {
           "name": "MediaService.sources",
-          "line": 239,
+          "line": 243,
           "kind": "function",
           "parameters": [
             "self",
@@ -54328,7 +54346,7 @@
         },
         {
           "name": "MediaService.register_upload",
-          "line": 246,
+          "line": 250,
           "kind": "function",
           "parameters": [
             "self",
@@ -54344,14 +54362,14 @@
         },
         {
           "name": "MediaService.register_upload.perform",
-          "line": 247,
+          "line": 251,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "MediaService.source",
-          "line": 254,
+          "line": 258,
           "kind": "function",
           "parameters": [
             "self",
@@ -54365,7 +54383,7 @@
         },
         {
           "name": "MediaService.delete",
-          "line": 257,
+          "line": 261,
           "kind": "function",
           "parameters": [
             "self",
@@ -54379,7 +54397,7 @@
         },
         {
           "name": "MediaService.submit",
-          "line": 262,
+          "line": 272,
           "kind": "function",
           "parameters": [
             "self",
@@ -54397,21 +54415,21 @@
         },
         {
           "name": "MediaService.submit.create",
-          "line": 279,
+          "line": 289,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "MediaService.submit.create.perform",
-          "line": 283,
+          "line": 293,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "MediaService._retire",
-          "line": 301,
+          "line": 311,
           "kind": "function",
           "parameters": [
             "self",
@@ -54423,7 +54441,7 @@
         },
         {
           "name": "MediaService._configuration",
-          "line": 307,
+          "line": 317,
           "kind": "function",
           "parameters": [
             "self",
@@ -54439,7 +54457,7 @@
         },
         {
           "name": "MediaService._execute",
-          "line": 315,
+          "line": 325,
           "kind": "function",
           "parameters": [
             "self",
@@ -54451,7 +54469,7 @@
         },
         {
           "name": "MediaService._register_sheet",
-          "line": 471,
+          "line": 481,
           "kind": "function",
           "parameters": [
             "self",
@@ -54469,7 +54487,7 @@
         },
         {
           "name": "MediaService._cleanup",
-          "line": 512,
+          "line": 522,
           "kind": "function",
           "parameters": [
             "self",
@@ -54481,7 +54499,7 @@
         },
         {
           "name": "MediaService.cancel",
-          "line": 523,
+          "line": 533,
           "kind": "function",
           "parameters": [
             "self",
@@ -54495,14 +54513,14 @@
         },
         {
           "name": "MediaService.cancel.perform",
-          "line": 528,
+          "line": 538,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "MediaService.job",
-          "line": 561,
+          "line": 571,
           "kind": "function",
           "parameters": [
             "self",
@@ -54516,7 +54534,7 @@
         },
         {
           "name": "MediaService.jobs",
-          "line": 567,
+          "line": 577,
           "kind": "function",
           "parameters": [
             "self",
@@ -54534,7 +54552,7 @@
         },
         {
           "name": "MediaService.transcript",
-          "line": 576,
+          "line": 586,
           "kind": "function",
           "parameters": [
             "self",
@@ -54548,7 +54566,7 @@
         },
         {
           "name": "MediaService._read_transcript",
-          "line": 579,
+          "line": 589,
           "kind": "function",
           "parameters": [
             "self",
@@ -54562,7 +54580,7 @@
         },
         {
           "name": "MediaService.transcript_window",
-          "line": 592,
+          "line": 602,
           "kind": "function",
           "parameters": [
             "self",
@@ -54582,7 +54600,7 @@
         },
         {
           "name": "MediaService._transcript_window",
-          "line": 597,
+          "line": 607,
           "kind": "function",
           "parameters": [
             "self",
@@ -54602,7 +54620,7 @@
         },
         {
           "name": "MediaService.transcript_window_for",
-          "line": 625,
+          "line": 635,
           "kind": "function",
           "parameters": [
             "self",
@@ -54620,14 +54638,14 @@
         },
         {
           "name": "MediaService.transcript_window_for.perform",
-          "line": 628,
+          "line": 638,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "MediaService.locate",
-          "line": 634,
+          "line": 644,
           "kind": "function",
           "parameters": [
             "self",
@@ -54647,7 +54665,7 @@
         },
         {
           "name": "MediaService._locate",
-          "line": 641,
+          "line": 651,
           "kind": "function",
           "parameters": [
             "self",
@@ -54667,7 +54685,7 @@
         },
         {
           "name": "MediaService.frames",
-          "line": 668,
+          "line": 678,
           "kind": "function",
           "parameters": [
             "self",
@@ -54681,7 +54699,7 @@
         },
         {
           "name": "MediaService.cells",
-          "line": 671,
+          "line": 681,
           "kind": "function",
           "parameters": [
             "self",
@@ -54699,7 +54717,7 @@
         },
         {
           "name": "MediaService._cells",
-          "line": 674,
+          "line": 684,
           "kind": "function",
           "parameters": [
             "self",
@@ -54717,7 +54735,7 @@
         },
         {
           "name": "MediaService._run_bounded",
-          "line": 702,
+          "line": 712,
           "kind": "function",
           "parameters": [
             "self",
@@ -54731,7 +54749,7 @@
         },
         {
           "name": "MediaService.invoke",
-          "line": 713,
+          "line": 723,
           "kind": "function",
           "parameters": [
             "self",
@@ -54749,7 +54767,7 @@
         },
         {
           "name": "MediaService._zoom",
-          "line": 769,
+          "line": 779,
           "kind": "function",
           "parameters": [
             "self",
@@ -54763,7 +54781,7 @@
         },
         {
           "name": "MediaService._cell_time",
-          "line": 817,
+          "line": 827,
           "kind": "function",
           "parameters": [
             "self",
@@ -54781,7 +54799,7 @@
         },
         {
           "name": "MediaService._wait_job",
-          "line": 825,
+          "line": 835,
           "kind": "function",
           "parameters": [
             "self",
@@ -54795,7 +54813,7 @@
         },
         {
           "name": "MediaService.processor_probe",
-          "line": 834,
+          "line": 844,
           "kind": "function",
           "parameters": [
             "self"
@@ -54804,7 +54822,7 @@
         },
         {
           "name": "MediaService.recover",
-          "line": 838,
+          "line": 848,
           "kind": "function",
           "parameters": [
             "self"
@@ -54813,7 +54831,7 @@
         },
         {
           "name": "MediaService.health",
-          "line": 842,
+          "line": 852,
           "kind": "function",
           "parameters": [
             "self"
@@ -54822,7 +54840,7 @@
         },
         {
           "name": "MediaService.stop_accepting",
-          "line": 851,
+          "line": 861,
           "kind": "function",
           "parameters": [
             "self"
@@ -54831,7 +54849,7 @@
         },
         {
           "name": "MediaService.close",
-          "line": 854,
+          "line": 864,
           "kind": "function",
           "parameters": [
             "self",
@@ -56463,7 +56481,7 @@
       "path": "agent/src/omni/application/persona.py",
       "module": "v2-application",
       "python_module": "omni.application.persona",
-      "lines": 74,
+      "lines": 80,
       "imports": [
         "omni.application.ports",
         "omni.domain.contracts",
@@ -56516,8 +56534,25 @@
           }
         },
         {
-          "name": "_record",
+          "name": "PersonaGrowthInvalidator",
           "line": 20,
+          "kind": "class"
+        },
+        {
+          "name": "PersonaGrowthInvalidator.invalidate",
+          "line": 23,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "agent"
+          ],
+          "annotations": {
+            "agent": "str"
+          }
+        },
+        {
+          "name": "_record",
+          "line": 26,
           "kind": "function",
           "parameters": [
             "rendered",
@@ -56530,12 +56565,12 @@
         },
         {
           "name": "PersonaGrowthService",
-          "line": 33,
+          "line": 39,
           "kind": "class"
         },
         {
           "name": "PersonaGrowthService.__init__",
-          "line": 36,
+          "line": 42,
           "kind": "function",
           "parameters": [
             "self",
@@ -56549,7 +56584,7 @@
         },
         {
           "name": "PersonaGrowthService._entries",
-          "line": 40,
+          "line": 46,
           "kind": "function",
           "parameters": [
             "self",
@@ -56561,7 +56596,7 @@
         },
         {
           "name": "PersonaGrowthService.read",
-          "line": 51,
+          "line": 57,
           "kind": "function",
           "parameters": [
             "self",
@@ -56573,7 +56608,7 @@
         },
         {
           "name": "PersonaGrowthService.rebuild",
-          "line": 62,
+          "line": 68,
           "kind": "function",
           "parameters": [
             "self",
@@ -56585,7 +56620,7 @@
         },
         {
           "name": "PersonaGrowthService.invalidate",
-          "line": 66,
+          "line": 72,
           "kind": "function",
           "parameters": [
             "self",
@@ -56597,7 +56632,7 @@
         },
         {
           "name": "PersonaGrowthService.close",
-          "line": 70,
+          "line": 76,
           "kind": "function",
           "parameters": [
             "self",
@@ -74180,7 +74215,7 @@
       "path": "agent/src/omni/composition/instance.py",
       "module": "v2-composition",
       "python_module": "omni.composition.instance",
-      "lines": 904,
+      "lines": 905,
       "imports": [
         "omni.adapters.android",
         "omni.adapters.bilibili",
