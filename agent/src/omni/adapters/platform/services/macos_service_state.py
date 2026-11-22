@@ -88,13 +88,15 @@ def disabled_override(output: bytes, label: str) -> bool | None:
             return None
         values: dict[str, bool] = {}
         for line in lines[1:-1]:
-            match = re.fullmatch(r'\s*("(?:[^"\\\x00-\x1f]|\\["\\])+")\s*=>\s*(true|false)\s*', line)
+            match = re.fullmatch(r'\s*("(?:[^"\\\x00-\x1f]|\\["\\])+")\s*=>\s*(true|false|enabled|disabled)\s*', line)
             if match is None:
                 return None
             name = json.loads(match[1])
             if name in values or len(name) > 256 or len(values) >= 4096:
                 return None
-            values[name] = match[2] == "true"
+            # macOS 27 prints the override state as enabled/disabled instead of
+            # the older boolean spelling; both mean the same two states.
+            values[name] = match[2] in {"true", "disabled"}
         # No override means the plist's own Disabled=false/default applies.
         return values.get(label, False)
     except (ValueError, UnicodeError):

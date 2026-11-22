@@ -280,3 +280,11 @@ LaunchServices 生命周期稳定性复测：连续 15 次 `probe` 每次 0.062�
 远端 `v2` 已从 `18b75b75` 前进到 `0fe3cc5f`（20 个提交：v0052 迁移、K01(b)、K15 合同、索引再生、全量 8388/1 分诊等）。本机 21 个 macOS 提交已 rebase 到 `0fe3cc5f`，无冲突；rebase 后 macOS 11 文件专项 **241/241 通过（20.68 秒）**——此前既有的 `v2_0051` 表数 pin 失败已被上游 v0052 迁移更新修掉；终端专项 10/10（0.28 秒）。项目索引在 rebase 后的干净树再生：modules=65 files=844 routes=462 declared_tools=94（新增 `macos_launch.py` 与 `Connect.swift`），已随本批提交。
 
 注意：上一轮的真实部署包 runtime 捕获于 `v2_0051`，与当前 `v2_0052` 源码不再匹配；再做部署包验收需重新构建 wheel/capture/plan/materialize。证据中记录的部分本地交付 SHA（如 `28cb5632`、`fb4293f4`、`17cc65a9`、`d8586f1b`）属于 rebase 前的本地历史，rebase 后对应内容在新提交中，旧 SHA 不再解析。
+
+### 2026-11-22 真实 LaunchAgent 安装尝试与 macOS 27 启用态语法修复
+
+在 `v2_0052` 上重建 wheel/runtime（595 文件、build `2f8d1825…`）、初始化隔离 home（instance `9733a3c5…`）并 materialize 真实部署包，`--expect absent` 通过。随后执行真实安装计划（10 步，`starts_service=true`，SHA `81905f52…`，显式 `--approve`）：plist 发布到 `~/Library/LaunchAgents/com.omnioperator.v2.9733a3c5-….plist`，registration 为 `installed=true`、`definition_present=true`、`definition_matches=true`、`activation=next_login`。但 operation 为 **unknown**（`service_outcome_unresolved`），因为 `enabled` 无法证明（`service_enable_state_unverified`）。
+
+根因（macOS 27 行为变化）：`launchctl print-disabled gui/501` 现在输出 `"label" => enabled|disabled`，而解析器只接受 `=> true|false`，于是 `enabled=None`，`--expect registered`（要求 `enabled is True`）失败。已修复 `disabled_override` 同时接受两种拼写并保留整段语法校验，新增 `enabled/disabled` 回归（服务专项 54/54）。修复在源码 runtime，尚未用新 wheel 重新安装验证。
+
+清理：unknown 的安装意图阻止了 `operation apply` 卸载（`service_operation_unresolved`），因此按回执手工清理——`launchctl disable`、`bootout`（本未加载）、删除 plist；复核 plist 不存在、`launchctl print` 报找不到服务，残留一条随机 label 的 `=> disabled` 覆盖项。临时 home/操作账本均在 temp，可弃置。**不宣称安装/卸载闭环或 registered/loaded/ready 通过。** 证据：[安装尝试](../../../evidence/v2-macos-launchagent-install-2026-11-22.json)。

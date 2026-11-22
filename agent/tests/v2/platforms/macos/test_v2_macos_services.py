@@ -100,6 +100,10 @@ def test_disabled_state_rejects_partial_ambiguous_and_unrecognized_output(payloa
     assert disabled_override(b'disabled services = {\n "x" => false\n "other" => true\n}', "x") is False
     assert disabled_override(b'disabled services = {\n "x" => true\n}', "x") is True
     assert disabled_override(b"disabled services = {\n}", "x") is False
+    # macOS 27 prints enabled/disabled instead of the older boolean spelling.
+    assert disabled_override(b'disabled services = {\n "x" => enabled\n}', "x") is False
+    assert disabled_override(b'disabled services = {\n "x" => disabled\n}', "x") is True
+    assert disabled_override(b'disabled services = {\n "x" => enabled\n "y" => disabled\n}', "x") is False
 
 
 @pytest.mark.parametrize("loaded,pid,state", [(False, None, "stopped"), (True, 0, "stopped"), (True, 42, "running")])

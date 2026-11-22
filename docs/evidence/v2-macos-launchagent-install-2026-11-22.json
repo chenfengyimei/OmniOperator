@@ -1,0 +1,71 @@
+{
+  "schema": 1,
+  "batch": "D2.macos.launchagent_real_install_attempt",
+  "date": "2026-11-22",
+  "status": "a real macOS user LaunchAgent was published from a v0052 deployment bundle and its definition matched, but the enable state could not be verified on macOS 27; the operation stayed unknown and the uninstall was blocked, so the registration was removed manually and the loop is not claimed closed",
+  "whole_v2_complete": false,
+  "platform_macos_complete": false,
+  "release_candidate": false,
+  "default_entrypoints": "V2",
+  "environment": {
+    "system": "macOS 27.2.1 (26B131)",
+    "architecture": "arm64",
+    "runtime": {"path": "temp/build/svc-venv4", "editable": false, "schema_head": "v2_0052", "files": 595, "build_id": "2f8d1825c81de5a43464a7e5fec93b675e3935b52028c574e4d5a1d01a3a7e1a"},
+    "deployment": {"path": "temp/build/service2/deployment2", "plan_sha256": "c831c1c49560f47e5ed39a335ffee2097a4e22fa3b72f59499f43facd68254f7", "valid": true, "eligible": true},
+    "instance": {"home": "temp/build/service2/home", "instance_id": "9733a3c5-d610-44de-b6e6-06ab5cf6f095", "schema": "v2_0052"},
+    "label": "com.omnioperator.v2.9733a3c5-d610-44de-b6e6-06ab5cf6f095"
+  },
+  "read_only_acceptance": {
+    "command": "deployment runtime python agent/scripts/accept_macos_services.py --bundle temp/build/service2/deployment2 --expect absent --output ...",
+    "result": {"format": "omni-macos-service-acceptance-2", "expectation_passed": true, "installed": false, "loaded": false, "definition_present": false}
+  },
+  "install": {
+    "plan": {"format": "omni-service-operation-2", "sha256": "81905f528b2c7b97aa80d08dd448c27f17e7352baf29405f8a2dbf3a406599d5", "steps": 10, "starts_service": true, "stops_service": false, "deletes_instance_data": false},
+    "apply": {"state": "unknown", "effect": "unknown", "terminal": false, "error_code": "service_outcome_unresolved"},
+    "registration": {"available": true, "installed": true, "definition_present": true, "definition_matches": true, "enabled": null, "state": "stopped", "loaded": false, "activation": "next_login", "error_code": "service_enable_state_unverified"},
+    "plist_published": "~/Library/LaunchAgents/com.omnioperator.v2.9733a3c5-...plist (1267 bytes, RunAtLoad true, KeepAlive false, Aqua)",
+    "reconcile": {"state": "unknown", "terminal": false, "error_code": "service_outcome_unresolved", "note": "the read-only query could not prove the enable override"}
+  },
+  "registered_expectation": {
+    "result": {"expectation_passed": false, "installed": true, "definition_matches": true, "enabled": null, "activation": "next_login"},
+    "root_cause": "macOS 27 prints launchctl print-disabled entries as `\"label\" => enabled|disabled`; the parser accepted only `=> true|false`, so enabled stayed None and the registered expectation (installed + definition_present + definition_matches + enabled is True) could not pass even though launchctl listed the label as enabled."
+  },
+  "fix": {
+    "file": "agent/src/omni/adapters/platform/services/macos_service_state.py",
+    "change": "disabled_override accepts the enabled/disabled spelling alongside true/false while keeping the full-output grammar check",
+    "test": "agent/tests/v2/platforms/macos/test_v2_macos_services.py gained enabled/disabled cases; 54 service tests pass",
+    "not_yet_revalidated": "the fixed parser is in the source runtime; the installed deployment runtime predates it, so a fresh wheel/venv/plan/materialize/install is required to close the registered expectation"
+  },
+  "uninstall": {
+    "plan": {"format": "omni-service-operation-2", "sha256": "e759f2c07a7cdfd4fe70c21f2d1cac178ed38735e7b4eadd14a5ea97f17215b1", "steps": 10},
+    "apply": {"error": "service_operation_unresolved", "message": "Resolve the earlier service maintenance intent first"},
+    "manual_cleanup": {
+      "commands": ["launchctl disable gui/501/<label>", "launchctl bootout gui/501/<label> (not loaded: No such process)", "rm ~/Library/LaunchAgents/<label>.plist"],
+      "verified": {"plist": "absent", "job": "Could not find service ...", "disabled_override": "label => disabled"},
+      "residue": "a disabled override entry for the random test label remains; the temp home/instance and the operation ledger are disposable and outside production"
+    }
+  },
+  "validation": {
+    "macos_suites": {"passed": 241, "failed": 0, "seconds": 20.92},
+    "terminal_native": {"passed": 10, "failed": 0, "seconds": 0.27},
+    "service_parser_tests": {"passed": 54, "seconds": 0.42},
+    "pyright_strict": {"new_errors": 0, "tree_errors": 30, "note": "pre-existing drift in untouched files"}
+  },
+  "limits": [
+    "Install/uninstall is not a closed loop: the install operation remained unknown, the uninstall operation was refused, and cleanup was manual.",
+    "The enable-state fix has not been revalidated against a fresh installed deployment; registered/loaded/ready remain unproven.",
+    "No isolated account; the temporary LaunchAgent was created in the owner's login domain and removed in the same session.",
+    "The v0052 deployment bundle and runtime live under temp/build, not an immutable production location.",
+    "Gitee push remains blocked without an HTTPS credential; delivery is local only.",
+    "Not whole-platform or whole-V2 acceptance; the 72-hour requirement remains open."
+  ],
+  "shared_interface_requests": [],
+  "artifacts": [
+    "temp/build/service2/runtime.json",
+    "temp/build/service2/plan2.json",
+    "temp/build/service2/deployment2/deployment.json",
+    "temp/build/service2/install-op.json",
+    "temp/build/service2/uninstall-op.json",
+    "temp/build/service2/registered.json"
+  ]
+}
