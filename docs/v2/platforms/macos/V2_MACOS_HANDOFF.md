@@ -238,3 +238,9 @@ LaunchAgent 基线：本机当前没有 OmniOperator 用户服务 job，`~/Libra
 新增 `Connect.swift`：helper 接受 `--connect <绝对路径>`，校验参数个数、路径绝对/有界/无 NUL、父目录为真实目录且属主为当前 uid、无组/其他权限位、socket 本身为 `S_IFSOCK` 且属主为 uid、`connect` 成功且 `getpeereid()` 同 uid；任何失败 `exit 2`，**不回退 stdio**；成功后 `dup2` 到 fd 0/1，沿用现有 IPC 6 循环与 20 秒 fuse。宿主本阶段未改，生产仍走 POSIX `--ipc`。
 
 实测：0700 目录 + `open -n <installed app> --args --connect <path>` + IPC 6 probe，连接 0.056 秒、回包 2112 字节、`ok=true`；LaunchServices 独立身份下四能力仍 `denied`（helper 自身条目未授予）。六个负例（/tmp 公共目录、相对路径、缺失 socket、普通文件、无监听 socket、`/tmp/../tmp`）全部 `exit 2`。原 POSIX probe 不受影响（四能力 `granted`）。macOS 专项 232/233（18.90 秒，1 项既有 v2_0051 pin）+ 10/10（0.27 秒）。证据：[阶段 1](../../../evidence/v2-macos-helper-connect-stage1-2026-11-22.json)。阶段 2（宿主 LaunchServices 启动/对端身份/回收）待实现。
+
+### 2026-11-22 LaunchServices 传输核心（A1 阶段 2 前半）
+
+新增 `adapters/platform/desktop/macos_launch.py`：0700 私有目录 + `<dir>/s` UDS，`/usr/bin/open -n <bundle> --args --connect <path>` 有界等待；accept 后经 `LOCAL_PEERPID` 取 pid/create_time，校验 real uid 与可执行文件为固定 helper；用 `asyncio.open_connection(sock=...)` 提供与现有后端相同的流接口；`terminate()` 只按已验证身份信号并升级，`wait()` 轮询身份消失；结束删除 socket 与私有目录。`open_command` 仅用于离线注入测试。
+
+离线测试 5/5（0.78 秒）：假 helper 分离进程连接并完成一次 IPC 帧、错误可执行文件被拒、无连接超时、launcher 非零退出被拒、linger helper 被回收且目录删除。macOS 11 文件 **237/238（19.59 秒，1 项既有 v2_0051 pin）** + 终端 10/10；ruff 干净；pyright strict 新模块 0 错误（树内 30 个既有错误分布在 5 个本批未触碰文件，属当前树漂移，未在本批修）。**尚未接入 backend**，生产仍 POSIX 启动。证据：[传输核心](../../../evidence/v2-macos-launch-transport-2026-11-22.json)。

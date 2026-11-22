@@ -148,6 +148,7 @@
     "agent/src/omni/adapters/platform/desktop/desktop_capture.py",
     "agent/src/omni/adapters/platform/desktop/desktop_control.py",
     "agent/src/omni/adapters/platform/desktop/desktop_native.py",
+    "agent/src/omni/adapters/platform/desktop/macos_launch.py",
     "agent/src/omni/adapters/platform/runtime/event_loop.py",
     "agent/src/omni/adapters/platform/services/exchange_deployments.py",
     "agent/src/omni/adapters/platform/services/exchange_files.py",

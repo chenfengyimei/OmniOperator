@@ -2,7 +2,7 @@
 
 ## 状态
 
-**设计合同（design_contract_recorded，2026-11-22）。** 事实来自本机实测（[TCC 归属](../evidence/v2-macos-tcc-attribution-2026-11-22.json)、[权限与语义](../evidence/v2-macos-permissions-2026-11-22.json)）。所有者已于 2026-11-22 批准按 A1 执行（“全部批准、不必逐项询问”）。**阶段 1（helper `--connect` 校验 + UDS 传输）已实现并实测**（[证据](../evidence/v2-macos-helper-connect-stage1-2026-11-22.json)）；阶段 2（宿主 LaunchServices 启动/对端身份/回收）待实现，生产仍走原有 POSIX 启动。
+**设计合同（design_contract_recorded，2026-11-22）。** 事实来自本机实测（[TCC 归属](../evidence/v2-macos-tcc-attribution-2026-11-22.json)、[权限与语义](../evidence/v2-macos-permissions-2026-11-22.json)）。所有者已于 2026-11-22 批准按 A1 执行（“全部批准、不必逐项询问”）。**阶段 1（helper `--connect` 校验 + UDS 传输）已实现并实测**（[证据](../evidence/v2-macos-helper-connect-stage1-2026-11-22.json)）；**阶段 2 的传输核心（LaunchServices 启动、`LOCAL_PEERPID` 对端身份、身份终止回收）已实现并通过离线测试**（[证据](../evidence/v2-macos-launch-transport-2026-11-22.json)），但尚未接入 `backend.py`，生产仍走原有 POSIX 启动。
 
 `whole_core_parity_complete`/`whole_reference_feature_audit_complete`/`whole_v2_complete` 保持 false。
 
