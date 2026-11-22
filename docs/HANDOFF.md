@@ -304,6 +304,15 @@ K13.cron_model_design 已记录**实现前设计合同**（纯文档，无源码
 - **未验**：真实账号公开/私密收藏夹送达、`pn` 翻页/`tid`/排序变体、非视频媒体详情、收藏写（D4-B2）、动态写（D4-B3/B4）、直播（D7）、AI-share（D6）；当前源码未全量。
 - **下一批**：Q1/Q2 批准后 D4-B1 `comment_delete`（最小写面）/B2 `favorite_add`（`fav_resources` 验证）/B3 dynamic 文本；D8/D9 仍是最低成本决策；D5/D6/D7 合同待写。共享接口/迁移/公共 CI 由 A 协调。
 
+### 2026-11-23 K18 主动观看设计合同（第 6 批，`k18-read-cache`）
+
+- **范围/基线**：承接前五批；本批**纯设计合同**，无源码/测试/迁移/路由/worker 改动。基线仍 `origin/v2`=`0793f254`（前五批未合入），同一任务分支/独立工作树。
+- **D5 合同**：[V2_BILI_PROACTIVE_WATCH](v2/contracts/V2_BILI_PROACTIVE_WATCH.md)——参考事实（窗口随机唤醒/skipChance 0.3/minGap 10/maxWakes 12/maxVideos 5/pending 持久/跳过仍写日记并耗位/3 天历史；双日记+事件流；沉默衰减 <3 全额、≥7 天 0、中间线性降、normal/quiet/faint 带；反馈 `kind:id`+水位去重≤1000、learned boost≤7.5；`score=log10(1+dm/max(30,d))*3+prefHits*4+boost` 排除播放量、junk 过滤与≥2 命中豁免、多样性）与 V2 映射（Scheduling/Maintenance tick、`submit_turn` 普通 run、documents 或受管文件、既有 B 站读、K08/K15），列 **W1–W8 决策**：唤醒路径、日记存储、debrief→应用层渲染、衰减只限 D6 share 上限、反馈判定、打分来源、默认 OFF/预算/不补唤醒、K15 接缝。
+- **协调项**：预计新表 `bilibili_watch_plans`/`bilibili_watch_events`（迁移号由 A 分配）；W2-A 需 `InstancePaths` 加性路径；无共享端口签名改动；`BilibiliWatchService` 仅生产路径启用、隔离测试默认禁用（K08/decay 先例）。**接主动行为前须与 D 对齐**（已写入合同与决策登记）。
+- **决策状态**：D5 已上升为设计合同；D6（分享/AI-share 守卫）、D7（直播）合同待写；D8/D9 仍待所有者选定；D4 写批待 Q1/Q2。
+- **未验**：合同内所有能力未实现；真实账号/模型/72 小时；当前源码未全量。
+- **下一批**：写 D6（受控分享：share 阈值/7 日去重/score-reason-rank 门/notify 后端/AI-share 守卫）合同，或 D7（直播：room/WS/gift/send）合同；D8/D9 批准后可立即小批接线。共享接口/迁移/公共 CI 由 A 协调。
+
 ## 追溯入口
 
 - [旧交接记录](history/pre-layout-2026-11-18/HANDOFF.md)、[旧重构记录](history/pre-layout-2026-11-18/V2_REFACTOR.md)只证明所属版本，不作为当前待办。
