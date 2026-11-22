@@ -250,6 +250,14 @@ K13.cron_model_design 已记录**实现前设计合同**（纯文档，无源码
 - **未验**：真实账号/设备/模型质量、干净机器安装矩阵、容器真实运行、72 小时、macOS/Linux 原生。
 - 证据：[v2-closeout-integration.json](evidence/v2-closeout-integration.json)；基线证据 [v2-closeout-baseline.json](evidence/v2-closeout-baseline.json)。
 
+### 2026-11-22 K17 与 macOS 交付集成（同批）
+
+- **K17（B）**：`windows-k17-reflection`（`82532c73`）合入为 `e93c1a05`，业务清单缺 `reflections`/`persona-growth` 两行导致 `test_v2_business_inventory` 红，`ea91ff8c` 补齐 26 入口/分组与验收边界后通过并推送。
+- **macOS（F）**：`macos-helper-tcc-r2`（`378456c9`，已 rebase 到 `75a27435`）合入 `6fc51373`。共享改动仅 `desktop/backend.py`（新增 `macos_transport`，默认 `posix`，Windows 路径不变）、`runtime/processes.py`（回收竞态更保守）、`workers/terminal.py`（Darwin ESRCH）、`composition/instance.py`（仅 darwin 选 launchservices）；无新迁移（仍 `v2_0052`/151 表）。
+- **Windows 侧修复**：`macos_launch.py` 的 `socket.AF_UNIX`/`os.getuid`/`psutil.Process.uids` 在 Windows 类型存根中缺失，按既有 Linux socket 先例改 `getattr`（Darwin 行为不变）后 strict **428 文件 0 错 0 警**；`macos_launch.py` 同步补入 `docs/TYPE_CHECKING.md`（`test_v2_typecheck_scope` 守卫）。
+- **验证**：受影响专项（desktop backend/terminal/macOS 平台/架构/布局/kernel/业务清单）**261 passed, 8 skipped**（212.75 秒）；索引 65/849/464/94 幂等；**合并后冻结源码单跑全量 `f3f44afd`：8439 项 8430 通过 / 0 失败 / 9 跳过，3108.91 秒**（`C:/v2-acceptance/integration-1f31e96d/full-f3f44afd.xml`）。此前同源 `e73b58d9` 为 8429 通过 / 1 失败（strict 文档漂移，补文档行后 2 passed，代码零变化）。
+- **未验**：Windows 不编译 Swift、不跑 LaunchServices/UDS 真机链路；macOS 睡眠/锁屏/快速用户切换与系统域安装归 F；TCC 授权后四能力的真机结论以 Mac 端证据为准。
+
 ## 追溯入口
 
 - [旧交接记录](history/pre-layout-2026-11-18/HANDOFF.md)、[旧重构记录](history/pre-layout-2026-11-18/V2_REFACTOR.md)只证明所属版本，不作为当前待办。
