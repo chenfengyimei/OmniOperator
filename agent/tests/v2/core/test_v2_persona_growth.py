@@ -90,55 +90,74 @@ def test_render_rejects_malformed_entries(value):
         render([value])
 
 
+AGENT = "123e4567-e89b-42d3-a456-426614174000"
+OTHER = "123e4567-e89b-42d3-a456-426614174001"
+
+
 def test_publish_then_read_requires_exactly_the_expected_bytes(tmp_path):
     files = PersonaGrowthFiles(tmp_path / "persona")
-    assert files.read(b"anything") is None
-    built = files.publish(b"expected\n")
-    assert built and files.read(b"expected\n") == (b"expected\n", built)
-    assert files.read(b"other\n") is None
+    assert files.read(AGENT, b"anything") is None
+    built = files.publish(AGENT, b"expected\n")
+    assert built and files.read(AGENT, b"expected\n") == (b"expected\n", built)
+    assert files.read(AGENT, b"other\n") is None
+
+
+def test_agents_never_share_a_cache_file_and_identity_must_be_canonical(tmp_path):
+    files = PersonaGrowthFiles(tmp_path / "persona")
+    files.publish(AGENT, b"one\n")
+    assert files.read(OTHER, b"one\n") is None
+    files.publish(OTHER, b"two\n")
+    assert files.read(AGENT, b"one\n")[0] == b"one\n"
+    assert files.read(OTHER, b"two\n")[0] == b"two\n"
+    for invalid in ("not-a-uuid", AGENT.upper(), "../../escape"):
+        with pytest.raises(BusinessError) as error:
+            files.read(invalid, b"one\n")
+        assert error.value.code == "persona_growth_invalid_agent"
 
 
 def test_publish_cleans_stale_temporary_files_and_invalidation_removes_the_cache(tmp_path):
     root = tmp_path / "persona"
     files = PersonaGrowthFiles(root)
-    files.publish(b"first\n")
-    (root / "growth.md.tmp-leftover").write_bytes(b"partial")
-    files.publish(b"second\n")
-    assert not (root / "growth.md.tmp-leftover").exists()
-    assert files.invalidate() is True
-    assert not (root / "growth.md").exists()
-    assert files.invalidate() is False
+    files.publish(AGENT, b"first\n")
+    directory = root / AGENT
+    (directory / "growth.md.tmp-leftover").write_bytes(b"partial")
+    files.publish(AGENT, b"second\n")
+    assert not (directory / "growth.md.tmp-leftover").exists()
+    assert files.invalidate(AGENT) is True
+    assert not (directory / "growth.md").exists()
+    assert files.invalidate(AGENT) is False
 
 
 def test_publish_keeps_the_previous_cache_when_publication_fails(tmp_path, monkeypatch):
     files = PersonaGrowthFiles(tmp_path / "persona")
-    files.publish(b"old\n")
+    files.publish(AGENT, b"old\n")
 
     def unavailable(source, target, *, replace=False):
         raise OSError("publication failed")
 
     monkeypatch.setattr("omni.adapters.persona_files.publish_file", unavailable)
     with pytest.raises(OSError, match="publication failed"):
-        files.publish(b"new\n")
-    found = files.read(b"old\n")
+        files.publish(AGENT, b"new\n")
+    found = files.read(AGENT, b"old\n")
     assert found is not None and found[0] == b"old\n"
-    assert list((tmp_path / "persona").glob("growth.md.tmp-*")) == []
+    assert list((tmp_path / "persona" / AGENT).glob("growth.md.tmp-*")) == []
 
 
 def test_publish_rejects_oversize_content(tmp_path):
     files = PersonaGrowthFiles(tmp_path / "persona")
     with pytest.raises(BusinessError) as error:
-        files.publish(b"x" * (MAX_GROWTH_BYTES + 1))
+        files.publish(AGENT, b"x" * (MAX_GROWTH_BYTES + 1))
     assert error.value.code == "persona_growth_too_large"
 
 
 def test_hardlinked_cache_is_rejected(tmp_path):
     root = tmp_path / "persona"
     files = PersonaGrowthFiles(root)
-    files.publish(b"expected\n")
-    os.link(root / "growth.md", root / "second-link")
+    files.publish(AGENT, b"expected\n")
+    directory = root / AGENT
+    os.link(directory / "growth.md", directory / "second-link")
     with pytest.raises(BusinessError) as error:
-        files.read(b"expected\n")
+        files.read(AGENT, b"expected\n")
     assert error.value.code == "persona_growth_unsafe"
 
 
@@ -158,7 +177,7 @@ def test_linked_directory_is_rejected(tmp_path):
         root.symlink_to(outside, target_is_directory=True)
     try:
         with pytest.raises(BusinessError) as error:
-            PersonaGrowthFiles(root).publish(b"never\n")
+            PersonaGrowthFiles(root).publish(AGENT, b"never\n")
         assert error.value.code == "persona_growth_unsafe"
         assert list(outside.iterdir()) == []
     finally:
@@ -168,15 +187,16 @@ def test_linked_directory_is_rejected(tmp_path):
 def test_linked_cache_file_is_rejected(tmp_path):
     root = tmp_path / "persona"
     files = PersonaGrowthFiles(root)
-    files.publish(b"expected\n")
+    files.publish(AGENT, b"expected\n")
+    directory = root / AGENT
     outside = tmp_path / "outside.md"
     outside.write_bytes(b"expected\n")
-    target = root / "growth.md"
+    target = directory / "growth.md"
     target.unlink()
     try:
         target.symlink_to(outside)
     except OSError:
         pytest.skip("file symlinks require extra Windows privileges")
     with pytest.raises(BusinessError) as error:
-        files.read(b"expected\n")
+        files.read(AGENT, b"expected\n")
     assert error.value.code == "persona_growth_unsafe"

@@ -12,9 +12,9 @@ from .ports import DatabasePort, Record
 class PersonaGrowthStore(Protocol):
     """Managed bytes that can be verified, replaced atomically and cleared."""
 
-    def read(self, expected: bytes) -> tuple[bytes, str] | None: ...
-    def publish(self, content: bytes) -> str: ...
-    def invalidate(self) -> bool: ...
+    def read(self, agent: str, expected: bytes) -> tuple[bytes, str] | None: ...
+    def publish(self, agent: str, content: bytes) -> str: ...
+    def invalidate(self, agent: str) -> bool: ...
 
 
 def _record(rendered: RenderedGrowth, built_at: str) -> Record:
@@ -50,7 +50,7 @@ class PersonaGrowthService:
 
     async def read(self, agent: str) -> Record:
         rendered = render(await self._entries(agent))
-        found = self._store.read(rendered.content.encode())
+        found = self._store.read(agent, rendered.content.encode())
         if found is None:
             raise BusinessError(
                 "persona_growth_stale",
@@ -61,11 +61,11 @@ class PersonaGrowthService:
 
     async def rebuild(self, agent: str) -> Record:
         rendered = render(await self._entries(agent))
-        return _record(rendered, self._store.publish(rendered.content.encode()))
+        return _record(rendered, self._store.publish(agent, rendered.content.encode()))
 
-    async def invalidate(self) -> bool:
-        """Clear the cache after a source erasure; the next read needs a rebuild."""
-        return self._store.invalidate()
+    async def invalidate(self, agent: str) -> bool:
+        """Clear this agent's cache after a source erasure; the next read needs a rebuild."""
+        return self._store.invalidate(agent)
 
     async def close(self, timeout_s: float = 30) -> bool:
         return True

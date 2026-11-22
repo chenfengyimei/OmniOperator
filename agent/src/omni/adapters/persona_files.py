@@ -26,33 +26,43 @@ def _unreadable(message: str) -> BusinessError:
     return BusinessError("persona_growth_unreadable", message, retryable=True, status=503)
 
 
+def _agent_root(root: Path, agent: str) -> Path:
+    try:
+        canonical = str(uuid.UUID(agent))
+    except ValueError as exc:
+        raise BusinessError("persona_growth_invalid_agent", "Agent identity must be a UUID", status=422) from exc
+    if canonical != agent:
+        raise BusinessError("persona_growth_invalid_agent", "Agent identity must be canonical", status=422)
+    if root.is_symlink() or root.is_junction():
+        raise _unsafe("Growth root cannot be a link")
+    path = root / canonical
+    if path.is_symlink() or path.is_junction():
+        raise _unsafe("Growth directory cannot be a link")
+    if path.exists() and not path.is_dir():
+        raise _unsafe("Growth directory must be a directory")
+    return path
+
+
 class PersonaGrowthFiles:
-    """Publish and verify `growth.md` under one managed directory.
+    """Publish and verify each agent's `growth.md` under one managed root.
 
     The database ledger stays authoritative: :meth:`read` only returns bytes equal
     to the caller's expected rendering, so a cached file can never resurrect a
-    retracted or erased sentence.
+    retracted or erased sentence. Agents never share a cache file.
     """
 
     def __init__(self, root: Path) -> None:
         self.root = root
         self._mutex = threading.Lock()
 
-    def _root(self) -> Path:
-        if self.root.is_symlink() or self.root.is_junction():
-            raise _unsafe("Growth directory cannot be a link")
-        if self.root.exists() and not self.root.is_dir():
-            raise _unsafe("Growth directory must be a directory")
-        return self.root
-
-    def _target(self, root: Path) -> Path:
+    def _target(self, directory: Path) -> Path:
         try:
-            return checked_path(root, FILE_NAME)
+            return checked_path(directory, FILE_NAME)
         except BusinessError as exc:
             raise _unsafe(str(exc.message)) from exc
 
-    def _clean_temps(self, root: Path) -> None:
-        for child in root.iterdir():
+    def _clean_temps(self, directory: Path) -> None:
+        for child in directory.iterdir():
             if not child.name.startswith(TEMP_PREFIX):
                 continue
             if child.is_symlink() or child.is_junction():
@@ -65,13 +75,13 @@ class PersonaGrowthFiles:
     def _stamp(path: Path) -> str:
         return dt.datetime.fromtimestamp(path.stat().st_mtime, tz=dt.timezone.utc).isoformat()
 
-    def read(self, expected: bytes) -> tuple[bytes, str] | None:
+    def read(self, agent: str, expected: bytes) -> tuple[bytes, str] | None:
         """Return the cached bytes and build time only when they match ``expected``."""
         with self._mutex:
-            root = self._root()
-            if not root.exists():
+            directory = _agent_root(self.root, agent)
+            if not directory.exists():
                 return None
-            target = self._target(root)
+            target = self._target(directory)
             flags = os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0) | getattr(os, "O_BINARY", 0)
             try:
                 descriptor = os.open(target, flags)
@@ -96,21 +106,19 @@ class PersonaGrowthFiles:
                 raise _unreadable("Growth cache could not be read") from exc
             if content != expected:
                 return None
-            return content, self._stamp(target)
+            return content, dt.datetime.fromtimestamp(info.st_mtime, tz=dt.timezone.utc).isoformat()
 
-    def publish(self, content: bytes) -> str:
-        """Atomically replace the cache; returns the new build time."""
+    def publish(self, agent: str, content: bytes) -> str:
+        """Atomically replace this agent's cache; returns the new build time."""
         if len(content) > MAX_GROWTH_BYTES:
             raise BusinessError("persona_growth_too_large", "Growth cache exceeds 1 MiB", status=413)
         with self._mutex:
-            root = self._root()
-            root.mkdir(parents=True, exist_ok=True, mode=0o700)
-            root = self._root()
-            if not root.is_dir():
-                raise _unsafe("Growth directory must be a directory")
-            self._clean_temps(root)
-            target = self._target(root)
-            temporary = root / f"{TEMP_PREFIX}{uuid.uuid4()}"
+            directory = _agent_root(self.root, agent)
+            directory.mkdir(parents=True, exist_ok=True, mode=0o700)
+            directory = _agent_root(self.root, agent)
+            self._clean_temps(directory)
+            target = self._target(directory)
+            temporary = directory / f"{TEMP_PREFIX}{uuid.uuid4()}"
             flags = os.O_WRONLY | os.O_CREAT | os.O_EXCL | getattr(os, "O_NOFOLLOW", 0) | getattr(os, "O_BINARY", 0)
             descriptor = os.open(temporary, flags, 0o600)
             try:
@@ -124,18 +132,18 @@ class PersonaGrowthFiles:
                 raise
             return self._stamp(target)
 
-    def invalidate(self) -> bool:
-        """Remove the cache and temporary files; True only if a cache existed."""
+    def invalidate(self, agent: str) -> bool:
+        """Remove this agent's cache and temporary files; True only if a cache existed."""
         with self._mutex:
-            root = self._root()
-            if not root.exists():
+            directory = _agent_root(self.root, agent)
+            if not directory.exists():
                 return False
-            self._clean_temps(root)
-            target = self._target(root)
+            self._clean_temps(directory)
+            target = self._target(directory)
             existed = target.exists()
             target.unlink(missing_ok=True)
             if os.name != "nt":
-                sync_directory(root)
+                sync_directory(directory)
             if target.exists() or target.is_symlink():
                 raise BusinessError(
                     "persona_growth_cleanup_failed", "Growth cache is still present", retryable=True, status=503

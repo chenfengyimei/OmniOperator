@@ -293,6 +293,8 @@ class ReflectionRepositories(DocumentRepositories):
 
     def persona_growth_entries(self, agent: str) -> list[Record]:
         """Approved, still-visible reflection sentences that feed the owner-only projection."""
+        if not self.connection.execute(select(s.agents.c.id).where(s.agents.c.id == agent)).first():
+            raise BusinessError("not_found", "Agent does not exist", status=404)
         rows = self.connection.execute(
             select(
                 journals.c.id,

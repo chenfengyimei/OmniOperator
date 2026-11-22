@@ -186,6 +186,16 @@
       <button type="button" class="rail-btn" data-page="media" data-tip="媒体" aria-label="媒体" title="媒体">
         <span class="material-icons">movie</span>
       </button>
+      <button
+        type="button"
+        class="rail-btn"
+        data-page="persona-growth"
+        data-tip="人格成长"
+        aria-label="人格成长"
+        title="人格成长"
+      >
+        <span class="material-icons">psychology</span>
+      </button>
       <p class="nav-group">自动化</p>
       <button
         type="button"
@@ -1775,6 +1785,19 @@
                 ><button id="reflection-retract" type="button" disabled>撤回已批准条目</button>
               </div>
             </section>
+            <section id="persona-growth" class="page" hidden>
+              <h1>人格成长</h1>
+              <p class="muted">
+                只读派生视图：由所有者已批准的反思条目生成，不读取来源正文，也不进入模型上下文。撤回、修订或来源擦除后本页会要求显式重建，并且绝不展示旧内容。
+              </p>
+              <div class="actions">
+                <button id="persona-growth-refresh" type="button">刷新</button
+                ><button id="persona-growth-rebuild" type="button" hidden>重建派生文件</button>
+              </div>
+              <p id="persona-growth-status" role="status"></p>
+              <pre id="persona-growth-content"></pre>
+              <p id="persona-growth-meta" class="muted"></p>
+            </section>
             <section id="capabilities" class="page" hidden>
               <h1>能力报告</h1>
               <p class="muted">
@@ -2190,6 +2213,6 @@
     <script src="/assets/vendor/xterm.js?v=20261121v173"></script>
     <script src="/assets/vendor/xterm-addon-fit.js?v=20261121v173"></script>
     <script src="/assets/ui/markdown.js?v=20261121v173"></script>
-    <script type="module" src="/assets/ui/v2/main.js?v=20261122r174"></script>
+    <script type="module" src="/assets/ui/v2/main.js?v=20261122p176"></script>
   </body>
 </html>

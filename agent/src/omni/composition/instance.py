@@ -46,6 +46,7 @@ from ..adapters.object_store import ObjectFiles
 from ..adapters.onebot import OneBotTransport
 from ..adapters.persistence.database import Database
 from ..adapters.persistence.deployed_instance import verify_deployed_instance
+from ..adapters.persona_files import PersonaGrowthFiles
 from ..adapters.primitives import SystemClock, UUIDs
 from ..adapters.process_diagnostics import ProcessDiagnostics
 from ..adapters.skill_packages import SkillPackages
@@ -86,6 +87,7 @@ from ..application.model_calls import ModelCalls
 from ..application.objects import ObjectService
 from ..application.operations import OperationsService
 from ..application.people import PeopleService
+from ..application.persona import PersonaGrowthService
 from ..application.ports import (
     AsyncSecretPort,
     Clock,
@@ -254,6 +256,7 @@ class Instance:
     memory_organization: MemoryOrganizationService
     background_review: BackgroundReviewService
     reflections: ReflectionService
+    persona_growth: PersonaGrowthService
     extensions: ExtensionService
     action_reviews: ActionReviewService
     terminals: TerminalService
@@ -661,6 +664,7 @@ async def open_instance(
             return await cap.adapter.invoke(name, arguments, operation_id=context.run_id, context=context)
 
         reflections = ReflectionService(database)
+        persona_growth = PersonaGrowthService(database, PersonaGrowthFiles(paths.persona))
         background_review = BackgroundReviewService(
             database,
             calls,
@@ -874,6 +878,7 @@ async def open_instance(
             memory_organization=memory_organization,
             background_review=background_review,
             reflections=reflections,
+            persona_growth=persona_growth,
             extensions=extensions,
             action_reviews=action_reviews,
             terminals=terminals,

@@ -42,6 +42,7 @@ from ..application.memory_semantics import MemorySemanticService
 from ..application.objects import ObjectService
 from ..application.operations import OperationsService
 from ..application.people import PeopleService
+from ..application.persona import PersonaGrowthService
 from ..application.ports import Record
 from ..application.qq import QQService
 from ..application.reflections import ReflectionService
@@ -85,6 +86,7 @@ class HttpRuntime:
     memory_organization: MemoryOrganizationService
     background_review: BackgroundReviewService
     reflections: ReflectionService
+    persona_growth: PersonaGrowthService
     extensions: ExtensionService
     action_reviews: ActionReviewService
     terminals: TerminalService
@@ -2315,6 +2317,14 @@ def create_app(factory: Callable[[], Awaitable[HttpRuntime]], *, allowed_origins
         return await runtime(request).reflections.decide(
             str(agent_id), str(candidate_id), await bounded_configuration(request, 2048)
         )
+
+    @router.get("/agents/{agent_id}/persona-growth")
+    async def persona_growth(agent_id: uuid.UUID, request: Request):
+        return await runtime(request).persona_growth.read(str(agent_id))
+
+    @router.post("/agents/{agent_id}/persona-growth/rebuild")
+    async def persona_growth_rebuild(agent_id: uuid.UUID, request: Request):
+        return await runtime(request).persona_growth.rebuild(str(agent_id))
 
     @router.post("/agents/{agent_id}/memory/reviews", status_code=202)
     async def background_review_create(agent_id: uuid.UUID, request: Request):

@@ -9,7 +9,7 @@
 | 决策 | 内容 | 落点 |
 |---|---|---|
 | D1 | 已批准反思账本是唯一真值；`growth.md` 只是派生缓存，不可反写 | §1 |
-| D2 | 固定落 `<instance>/persona/growth.md`，不进对象存储（避免 TTL/GC） | §2 |
+| D2 | 每个 agent 固定落 `<instance>/persona/<agent_id>/growth.md`，不进对象存储（避免 TTL/GC）；agent 目录互不共享 | §2 |
 | D3 | GET 从账本重算期望字节并逐字节校验，陈旧/缺失即 409，绝不返回旧文 | §4 |
 | D4 | 实例锁内临时文件 + fsync + `os.replace` 原子重建；拒绝 symlink/junction/硬链接/非常规文件 | §2 |
 | D5 | 确定性渲染：`approved_day DESC, journal_id ASC`、CR/LF 折单空格、固定空态 | §3 |
@@ -37,8 +37,8 @@
 
 | 项 | 决策 |
 |---|---|
-| 目录 | `<instance>/persona/`（新增 `InstancePaths.persona`，`initialize()` 建 0700；与 `objects/`、`logs/` 同级；不进对象存储，避免 TTL/GC 删除所有者视图） |
-| 文件名 | 固定 `growth.md`；临时文件 `growth.md.tmp-<uuid4>`，同目录 |
+| 目录 | `<instance>/persona/<agent_id>/`（新增 `InstancePaths.persona`，`initialize()` 建 0700；agent id 必须规范 UUID；与 `objects/`、`logs/` 同级；不进对象存储，避免 TTL/GC 删除所有者视图；不同 agent 不共享缓存） |
+| 文件名 | 每个 agent 目录内固定 `growth.md`；临时文件 `growth.md.tmp-<uuid4>`，同目录 |
 | 目录内容 | 只允许 `growth.md` 与 `growth.md.tmp-*`；其他文件不读、不删 |
 | 链接拒绝 | 目录及每一级、目标文件、临时文件都拒绝 symlink/junction；读前 `lstat`+`O_NOFOLLOW`，`fstat` 必须 `S_ISREG` 且 `st_nlink == 1` |
 | 权限 | 复用实例目录权限与实例锁；文件 0600；不返回绝对路径给 HTTP/UI/日志 |
@@ -130,9 +130,17 @@ UTF-8、LF 换行，固定头部：
 **批 1（离线核心，2026-11-22）已落地**：
 
 - `domain/persona_growth.py`：已批准句的确定性渲染（`approved_day DESC, journal_id ASC`、CR/LF 折单空格、Unicode 原样、固定空态、1 MiB/2000 行按最新条目截断 + ASCII 标记、sha256/bytes）。
-- `adapters/persona_files.py`：受管 `persona/growth.md` 缓存；逐字节/长度校验、`O_NOFOLLOW` + 硬链接与非常规文件拒绝、同目录临时文件 + fsync + `os.replace` 原子替换、临时残留清理、`invalidate()` 幂等清除。
+- `adapters/persona_files.py`：受管 `persona/<agent_id>/growth.md` 缓存（规范 UUID 目录、跨 agent 不共享）；逐字节/长度校验、`O_NOFOLLOW` + 硬链接与非常规文件拒绝、同目录临时文件 + fsync + `os.replace` 原子替换、临时残留清理、`invalidate()` 幂等清除。
 - `adapters/persistence/reflection_repository.py::persona_growth_entries`：只读当前正式条目（`state=approved`、`journal_revision = journals.revision`、slot 未撤回、信笺 pending）。
 - `application/persona.py`：`read` 每次从账本重算期望字节并要求缓存完全一致，否则 `409 persona_growth_stale`；`rebuild` 原子重建；`invalidate` 供批 3 擦除钩子使用。
 - `InstancePaths.persona` 与 `initialize()` 建 0700 目录；strict include/`docs/TYPE_CHECKING.md` 已登记三个新文件。
 - 离线专项覆盖：空/排序/同日均稳定/换行折叠/240 码点边界/字节与行截断确定性/发布失败保留旧文/超限 413/链接目录/硬链接/文件链接/撤回/编辑替换/擦源/重启后有效缓存与变更后 stale/「不进入模型上下文」守卫。
-- **待批 2/3**：两个所有者 HTTP 路由 + 工作台只读页（接口先交 A）、文档/媒体擦除后的 `invalidate` 钩子（共享服务变更先交 A）；真实模型质量、真实 B 站来源与 72 小时另验。
+- **待批 3**：文档/媒体擦除后的 `invalidate` 钩子（共享服务变更先交 A）；真实模型质量、真实 B 站来源与 72 小时另验。
+
+**批 2（HTTP + 工作台只读页，2026-11-22）已落地**：
+
+- 所有者路由：`GET /api/v1/agents/{agent_id}/persona-growth`、`POST /api/v1/agents/{agent_id}/persona-growth/rebuild`；`HttpRuntime`/`Instance` 装配 `PersonaGrowthService(database, PersonaGrowthFiles(paths.persona))`。401 未授权、404 未知 agent、409 陈旧/缺失、200 ready 均按既有错误包络返回。
+- **实现勘定修正（多 agent 隔离）**：实例可承载多个 agent，派生缓存不能是实例级单文件；改为 `persona/<agent_id>/growth.md`，`PersonaGrowthFiles` 对 agent 做规范 UUID 校验并拒绝跨 agent 读取。合同 D2/§2 已同步。
+- 工作台新增「人格成长」只读页（`web/ui/v2/persona.js`，导航 25→26）：显示正文、sha256 前 12 位、条数、截断与构建时间；409 时只显示「需重建」并清空旧内容，重建按钮显式调用 POST；不提供编辑。
+- 专项覆盖：HTTP 401/404/200/409→rebuild→200、撤回后 409 与空态重建、删除缓存文件后 409、未知 agent 404；UI 390/1440 已同步→撤回→刷新显示过期→重建为空；导航 26 页可达；工作台原有页面纳入 `#persona` 碰撞修正（页面 id 为 `persona-growth`）。
+- **待批 3**：文档/媒体擦除后的 `invalidate` 钩子（共享服务变更先交 A）；真实模型质量、真实 B 站来源与 72 小时另验。

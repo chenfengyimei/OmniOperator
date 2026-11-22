@@ -227,6 +227,7 @@ def http_app(
                 memory_organization=instance.memory_organization,
                 background_review=instance.background_review,
                 reflections=instance.reflections,
+                persona_growth=instance.persona_growth,
                 extensions=instance.extensions,
                 action_reviews=instance.action_reviews,
                 terminals=instance.terminals,

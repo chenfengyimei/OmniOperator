@@ -8,7 +8,9 @@ from contextlib import asynccontextmanager
 from sqlalchemy import select
 
 from omni.adapters.persistence import schema as s
+from omni.adapters.persona_files import PersonaGrowthFiles
 from omni.application.documents import DocumentService
+from omni.application.persona import PersonaGrowthService
 from omni.domain.contracts import InvocationContext, Outcome
 
 from .documents import Clock, opened, read_action
@@ -120,4 +122,29 @@ async def seed_review(home, sentence=SENTENCE):
             assert await service.close()
 
 
-__all__ = ["BODY", "SENTENCE", "evidence", "seed_review"]
+async def seed_persona(home, sentence=SENTENCE):
+    """Approve one journal sentence and build the owner-only growth cache."""
+    seed = await seed_review(home, sentence)
+    async with opened(home, Clock()) as (paths, db, _, agent):
+        detail = await db.read(lambda u: u.reflection_detail(agent, seed["journal"]))
+        candidate = detail["candidate"]
+        approved = await db.write(
+            lambda u: u.reflection_decide(
+                agent,
+                seed["candidate"],
+                int(candidate["revision"]),
+                str(candidate["digest"]),
+                "approve",
+            )
+        )
+        ready = await PersonaGrowthService(db, PersonaGrowthFiles(paths.persona)).rebuild(agent)
+        return {
+            **seed,
+            "revision": int(approved["revision"]),
+            "digest": str(approved["digest"]),
+            "content": str(ready["content"]),
+            "sha256": str(ready["sha256"]),
+        }
+
+
+__all__ = ["BODY", "SENTENCE", "evidence", "seed_persona", "seed_review"]
