@@ -378,6 +378,15 @@ K13.cron_model_design 已记录**实现前设计合同**（纯文档，无源码
 - **未验**：所有决策实现；真实账号/模型/设备/72 小时；当前源码未全量。
 - **下一批**：若无所有者决策，继续只读复核/证据维护；获准后按选定项（建议 D8→D9）独立批次接线。共享接口/迁移/公共 CI 由 A 协调。证据 [v2-decision-material-audit.json](evidence/v2-decision-material-audit.json)。
 
+### 2026-11-23 D8 调度阻塞修复（第 14 批，`k18-read-cache`）
+
+- **范围/基线**：承接前十三批；本批为**实现批**（合同方案 A）：K13 cron 触发被 K08 评审/K06 压缩 `summary` 调用假阻塞的缺陷。基线仍 `origin/v2`=`0793f254`（前十三批未合入），同一任务分支/独立工作树。
+- **改动**：`adapters/persistence/lease_repository.py` `schedule_blocker.conditions()` 的 `model_calls` 条件加 `purpose='turn'`——`summary`（K06 压缩/K08 评审）的 reserved/unknown 不再进入 blocker 的 `unknown_exists`/`items`/fingerprint，不会把下一定时触发判为 `previous_outcome_unknown`；`turn` reserved/unknown 仍阻塞、可经所有者 `schedule_review` 按 fingerprint 解除；`actions`/`outbox` 与 `schedule_reviews` 语义**零改动**；无新表/迁移/路由/worker 协议/共享端口；summary 成本仍在 `model_calls`/usage/审计可见。
+- **验证**：新增 5 项（`test_v2_schedule_review_blocker.py`：reserved summary 不阻塞且下一 occurrence 准入、崩溃遗留 unknown summary 不阻塞、reserved turn 仍 `previous_outcome_unknown`、unknown turn 所有者 review 后解除、summary 不掩盖 turn）**5 过 / 10.67s**；**回退探针**摘过滤后 3 个 summary 用例红、2 个 turn 用例绿，还原后 diff 仅 6 行；调用方 12 套件（cron/schedule/background_review/maintenance/execution/kernel/lifecycle/delegation）**200 过 / 303.16s**；strict **0 错误 0 警告**、ruff 净。未跑全量、未触真实账号/模型/服务/数据库。
+- **合同/证据**：[V2_SCHEDULE_REVIEW_BLOCKER](v2/contracts/V2_SCHEDULE_REVIEW_BLOCKER.md) 状态改「已实现并专项通过」并补实现记录；决策登记 D8 与速览表标记已实现（若所有者选 B/C/D 可回退过滤）；[证据](evidence/v2-schedule-review-blocker-impl.json)；任务 JSON `K13.schedule_review_blocker`。
+- **未验**：真实 K08 评审窗口与下一触发竞态（离线冻结时钟覆盖等价语义）、真实模型/72 小时、全量。
+- **下一批**：D9 需所有者先定本地浏览策略（i–iv）；D1/D4–D7 待所有者选定；若无决策，继续只读复核/证据维护。共享接口/迁移/公共 CI 由 A 协调。
+
 ## 追溯入口
 
 - [旧交接记录](history/pre-layout-2026-11-18/HANDOFF.md)、[旧重构记录](history/pre-layout-2026-11-18/V2_REFACTOR.md)只证明所属版本，不作为当前待办。
