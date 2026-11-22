@@ -1,0 +1,87 @@
+{
+  "schema": 1,
+  "batch": "D2.macos.service_deployment_readonly",
+  "date": "2026-11-22",
+  "status": "built a non-editable wheel runtime, captured it, produced and verified a real macOS user deployment bundle, and passed the read-only service acceptance with --expect absent; nothing was installed, enabled or loaded",
+  "whole_v2_complete": false,
+  "platform_macos_complete": false,
+  "release_candidate": false,
+  "default_entrypoints": "V2",
+  "environment": {
+    "system": "macOS 27.2.1 (26B131)",
+    "architecture": "arm64",
+    "wheel": "temp/build/wheel/omnioperator-0.1.0-py3-none-any.whl (2772240 bytes)",
+    "runtime": {
+      "editable": false,
+      "python": "temp/build/svc-venv3/bin/python",
+      "python_sha256": "b268d9eee13e33cbc544f2d39c2c1c1909606415e668a32952ef067bc2dbcdfd",
+      "build_id": "de104e2f76629eaf0eb092ffdb4dbeb34b1ebc744c121e5acfa88111f6155fc7",
+      "schema_head": "v2_0051",
+      "files": 591,
+      "distributions": 96
+    },
+    "bundle": {
+      "path": "temp/build/service/deployment",
+      "manifest_sha256": "24266bb07825d589d133d203ef0010b528cd4f2b0c1db911047200b152a3d8d4",
+      "deployment_sha256": "f31e1d1025dcc616c7a6564e6a5188bf1a7a1cb3a8a67f7fc9af63963c27c388",
+      "plist_sha256": "ccd0b9b913360a56b856e121f2bce2bc9893503a69dd3e1d710d706b8595f580",
+      "startup_sha256": "a9eb4bd070e25a6e319187a35150f4bd320b9e6644fe8b0006d60ee79a95ee44",
+      "plan_sha256": "c136f0af72fdfcb902b35186c9caf858f8749096b40d394957fbcc8069e60c78"
+    },
+    "request": {"target": "macos-user", "instance_id": "f77f8454-f20b-4acc-8d1b-4305d937611f", "bundle_dir": "temp/build/service/deployment"}
+  },
+  "procedure": [
+    "uv build --package omnioperator --out-dir temp/build/wheel",
+    "python -m venv temp/build/svc-venv3 with the resolved CPython 3.12.16 interpreter; bin/python rewritten to that real path",
+    "uv pip install --python temp/build/svc-venv3/bin/python temp/build/wheel/omnioperator-0.1.0-py3-none-any.whl",
+    "temp/build/svc-venv3/bin/python -m omni.composition.cli service capture temp/build/service/runtime.json",
+    "temp/build/svc-venv3/bin/python -m omni.composition.cli service plan request.json runtime.json plan.json",
+    "temp/build/svc-venv3/bin/python -m omni.composition.cli service materialize plan.json temp/build/service/deployment",
+    "temp/build/svc-venv3/bin/python agent/scripts/accept_macos_services.py --bundle temp/build/service/deployment --expect absent --output temp/build/service/absent.json"
+  ],
+  "findings": [
+    "materialize requires the destination to be exactly the request bundle_dir; a different directory returns deployment_location_mismatch",
+    "the acceptance script must run under the deployment runtime: from the source/editable venv its verify captures that runtime and returns deployment_path_unsafe -> deployment_not_eligible",
+    "uv-created venvs symlink through the uv managed alias path, whose parent is itself a symlink; capture rejects that chain. A python -m venv created from the resolved interpreter, with bin/python rewritten, captured cleanly",
+    "service verify also only reports valid/eligible when the running program equals the plan runtime"
+  ],
+  "acceptance": {
+    "format": "omni-macos-service-acceptance-2",
+    "expected": "absent",
+    "expectation_passed": true,
+    "scope": "read_only_inspection",
+    "target": "macos-user",
+    "verification": {"valid": true, "eligible": true, "issues": []},
+    "registration": {
+      "available": true,
+      "installed": false,
+      "loaded": false,
+      "definition_matches": false,
+      "definition_present": false,
+      "enabled": null,
+      "state": "stopped",
+      "activation": "unknown",
+      "error_code": "service_enable_state_unverified"
+    },
+    "runtime_ready": false,
+    "runtime_error_code": "service_probe_unavailable",
+    "installation_exercised": false,
+    "uninstallation_exercised": false,
+    "administrator_operation_exercised": false,
+    "whole_platform_acceptance": false
+  },
+  "limits": [
+    "Nothing was installed: registered/loaded/ready, enable override, login activation and unload remain unexercised.",
+    "The deployment bundle lives under temp/build, not an immutable production installation directory; a real installation still needs an isolated account and an owner-approved apply-operation.",
+    "The helper's Accessibility/input/post grants are still pending, so the runtime readiness probe would report desktop denial even if a service were started.",
+    "Gitee push remains blocked without an HTTPS credential; delivery is local only.",
+    "Not whole-platform or whole-V2 acceptance; the 72-hour requirement remains open."
+  ],
+  "shared_interface_requests": [],
+  "artifacts": [
+    "temp/build/service/runtime.json",
+    "temp/build/service/plan.json",
+    "temp/build/service/deployment/deployment.json",
+    "temp/build/service/absent.json"
+  ]
+}

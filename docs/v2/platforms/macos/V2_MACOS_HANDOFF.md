@@ -60,7 +60,9 @@ uv run --no-sync python agent/scripts/build_macos_helper.py --arch arm64 --outpu
 只读证据入口如下。`BUNDLE` 必须是已验证的真实安装部署包；每次 OUTPUT 使用一个新的绝对 JSON 路径，位于实例、程序和 bundle 外：
 
 ```sh
-uv run --no-sync python agent/scripts/accept_macos_services.py --bundle "$BUNDLE" --expect absent --output "$OUTPUT"
+# 必须用该部署包捕获的 runtime（非源码/editable 环境）执行；否则 verify 会因当前运行时
+# 与 plan 不一致而报 deployment_not_eligible。示例：
+"$DEPLOYED_RUNTIME/bin/python" agent/scripts/accept_macos_services.py --bundle "$BUNDLE" --expect absent --output "$OUTPUT"
 ```
 
 可选预期为 `inspection`、`absent`、`registered`、`loaded`、`ready`。它组合注册元数据、完整加载定义和独立的运行身份/HMAC 就绪校验，生成私密、有界报告；不会安装、enable、bootstrap、disable、bootout 或停止服务。`registered` 允许未加载，不能替代 `ready`。没有必要条件时返回非零并保存可用诊断，不修改系统以取得通过。
@@ -266,3 +268,9 @@ LaunchAgent 基线：本机当前没有 OmniOperator 用户服务 job，`~/Libra
 补充回归：传输层增加“half-close 后仍能读到回包”（假 helper 等 EOF 再应答，直接锁住 stdin.close 拆 socket 的缺陷）与“失败启动不残留 `/tmp/omni-d-*` 私有目录”两项，launcher 8/8 通过（1.16 秒）。
 
 LaunchServices 生命周期稳定性复测：连续 15 次 `probe` 每次 0.062–0.075 秒（均值 0.067），2 个并发 `probe` 同时返回 `omni-desktop-ipc-6`，关闭后 resident/pending/cleanup_pending 均为 0；测量前后均无遗留 `OmniDesktopHelper` 进程、`/tmp/omni-d-*` 私有目录为空。仅 probe/close 走通，observe/capture/act/foreground 仍等 helper 的辅助功能/输入/投递授权。证据：[生命周期稳定性](../../../evidence/v2-macos-launch-lifecycle-2026-11-22.json)。
+
+### 2026-11-22 真实部署包只读验收（absent）
+
+首次用真实 wheel 走通部署包链路：`uv build` 生成 2.77 MB wheel → 在 resolved CPython 3.12.16 上建 venv 并安装（`editable=false`、591 文件、96 分发包、build `de104e2f…`）→ `service capture` → `service plan`（target `macos-user`）→ `service materialize` → 在部署 runtime 下 `accept_macos_services.py --bundle … --expect absent` **通过**（`omni-macos-service-acceptance-2`，`expectation_passed=true`）：verify `valid/eligible`、registration `available=true/installed=false/loaded=false/definition_present=false/state=stopped/activation=unknown`（`service_enable_state_unverified`，无 plist 属正常）、runtime `ready=false`（`service_probe_unavailable`，无运行实例）。未安装、未 enable、未 bootstrap、未提权。
+
+三条操作坑已写入上文：`materialize` 目标必须等于 request 的 `bundle_dir`；验收必须用部署 runtime 执行（源码/editable 运行时会得到 `deployment_path_unsafe` → `deployment_not_eligible`）；`uv venv` 会经 uv 托管别名路径（其父目录是符号链接）导致 capture 拒绝，需用 resolved 解释器 `python -m venv` 并改写 `bin/python`。证据：[部署包只读验收](../../../evidence/v2-macos-service-deployment-readonly-2026-11-22.json)。
