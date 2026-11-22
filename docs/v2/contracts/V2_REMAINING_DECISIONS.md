@@ -42,14 +42,14 @@
 - **验证要求**：负例（未审批 URL、越权 CDP method、跨 OOPIF 越界）、审计事件、与既有 browser 审批/worker 协议零回归、真实 Chromium 另验。
 - **依赖**：所有者安全批准 + 真实 Chromium 环境；可能触 worker 协议 → A 协调。
 
-## D4（K18）写扩面（fav / dynamic / danmaku-send / comment-del）
+## D4（K18）写扩面（fav / dynamic / comment-del；danmaku-send 归 D7 直播）
 
-- **现状**：写只支持 `comment`/`private_message`：准备 → 所有者审批 → `delivery` outbox → **已审浏览器表单**（非直接 API POST）+ mention 精确范围 + 幂等指纹 + unknown 不重发。参考另实现 fav（`x/v3/fav/resource/deal`）、dynamic post/rm/edit/image、danmaku-send、comment-del；like/coin/follow/gift/charge 参考也未实现。
-- **缺口**：以上四种动作的已审表单/操作 + 配额 + 幂等 + 失败重排队。
-- **需决定**：逐动作是否开放（各自独立表单审核 + 所有者批准）；配额映射（参考 fav reason≥6/≤3 日/30 日每 BV/kind≥2 需 `--better`；comment 每人 30 日一次；dm 1 收件人/日）；是否复用共享 `action_review`/`delivery` 限额/冷却/送达核查；unknown/失败重排队策略。
+- **现状**：写只支持 `comment`/`private_message`：准备 → 所有者审批 → `delivery` outbox → **已审浏览器表单**（非直接 API POST）+ mention 精确范围 + 幂等指纹 + unknown 不重发。参考另实现 fav（`x/v3/fav/resource/deal`）、dynamic post/rm/edit/image、comment-del；`danmaku-send` 是直播 API（`api.live.bilibili.com/msg/send`）归 D7；like/coin/follow/gift/charge 参考也未实现。
+- **缺口**：以上三种动作的已审表单/操作 + 配额 + 幂等 + 失败重排队；**新发现**：现有 comment/dm 路径**没有任何配额/冷却**（V2 仅 `MAX_ATTEMPTS=3` 退避 + QQ 专属 `cooldown_s`），K18 审计「共享限额/冷却」措辞需更正。
+- **需决定**：逐动作是否开放（各自独立表单审核 + 所有者批准）；配额机制选 Q1（仅审批+幂等，零迁移）/Q2（通用配额账本，迁移由 A 编号）/Q3（内存限速，不采用）；是否移植参考具体窗口（fav 3 日/BV、comment 30 日/视频、dm 1/日）；unknown/失败重排队策略。
 - **安全/授权面**：写扩面即扩大真实账号可执行动作；须保持「准备≠发送、审批≠成功」与 owner-only 批准，禁止模型直接 API POST。
-- **验证要求**：表单选择器审核、审批四态、幂等/unknown 不重发、配额与冷却、真实账号送达另验。
-- **依赖**：所有者逐动作批准；若新增配额表 → A 分配迁移号。
+- **验证要求**：表单选择器审核、审批四态、幂等/unknown 不重发、配额与冷却、真实账号送达另验；fav/dynamic 需先补只读验证面（`fav_resources`/`dynamic_list`）。
+- **依赖**：所有者逐动作批准 + 配额 Q1/Q2 决策；若 Q2 → A 分配迁移号。设计合同见 [V2_BILI_WRITE_BREADTH](V2_BILI_WRITE_BREADTH.md)。**未实现。**
 
 ## D5（K18）主动观看（生物钟 / 双日记 / 沉默衰减 / 候选打分 / 偏好学习）
 
