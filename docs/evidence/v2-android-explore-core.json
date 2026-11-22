@@ -16,22 +16,22 @@
     "domain/android_explore.py: skeleton_hash(app, activity, nodes) hashes only class/resource-id/sorted actions; text/description/password values never enter the hash, so copy changes merge into one screen while structural changes split; password nodes are skipped.",
     "ExploreScreen id = sha256(app|activity|skeleton)[:24]; ExploreGraph caps 200 screens and 1000 edges, deduplicates identical edges, never invents edges to missing targets or self-loops, and sets truncated on overflow; summary returns only screen/edge/app counts and truncation.",
     "build_graph consumes bounded observations plus observed (source,target,node_key,action) transitions; invalid rows raise android_explore_invalid; no capture, persistence, tool, HTTP or automatic action.",
-    "8 tests: copy merge/structural split, password exclusion, invalid observations, 200-screen cap, 1000-edge cap/dedupe/missing target, bounded reachable BFS, bounded simple paths, summary/build_graph."
+    "8 tests: copy merge/structural split, password exclusion, invalid observations, 200-screen cap, 1000-edge cap/dedupe/missing target, bounded reachable BFS, bounded simple paths, unexplored observed actions minus edges, summary/build_graph."
   ],
   "validation": {
     "mode": "development_working_tree_scoped",
-    "new_nodes": 8,
+    "new_nodes": 9,
     "scoped": {
       "command": "uv run --no-sync pytest -q -n 0 agent/tests/v2/core/test_v2_android_explore.py",
-      "passed": 8,
+      "passed": 9,
       "failed": 0,
-      "seconds": 0.29
+      "seconds": 0.33
     },
     "guards": {
       "command": "uv run --no-sync pytest -q -n 0 agent/tests/v2/core/test_v2_android_explore.py agent/tests/v2/core/test_v2_typecheck_scope.py agent/tests/v2/core/test_v2_architecture.py agent/tests/v2/core/test_v2_candidate_gate.py agent/tests/v2/core/test_v2_layout.py",
-      "passed": 41,
+      "passed": 42,
       "failed": 0,
-      "seconds": 7.27
+      "seconds": 8.18
     },
     "strict": {
       "config": "pyrightconfig.strict.json",

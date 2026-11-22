@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "87eb089045dd288798479db37ec21f28b7472e96875d649c9ccbb614fbe62fea",
+  "source_sha256": "c4037781a8e93bc364cde14afe47a1e51aec5f55155ce3bc1a28f82d79b594e7",
   "modules": [
     {
       "id": "v2-domain",
@@ -98,7 +98,7 @@
         "agent/src/omni/domain/verification_stop.py",
         "agent/src/omni/domain/visual_subagent.py"
       ],
-      "lines": 14474,
+      "lines": 14497,
       "dependencies": []
     },
     {
@@ -79020,7 +79020,7 @@
       "path": "agent/src/omni/domain/android_explore.py",
       "module": "v2-domain",
       "python_module": "omni.domain.android_explore",
-      "lines": 194,
+      "lines": 217,
       "imports": [
         "omni.domain.contracts"
       ],
@@ -79063,8 +79063,34 @@
           }
         },
         {
-          "name": "skeleton_hash",
+          "name": "_structure",
           "line": 51,
+          "kind": "function",
+          "parameters": [
+            "nodes"
+          ],
+          "annotations": {
+            "nodes": "object"
+          }
+        },
+        {
+          "name": "_digest",
+          "line": 72,
+          "kind": "function",
+          "parameters": [
+            "app",
+            "activity",
+            "structure"
+          ],
+          "annotations": {
+            "app": "str",
+            "activity": "str",
+            "structure": "list[dict[str, object]]"
+          }
+        },
+        {
+          "name": "skeleton_hash",
+          "line": 82,
           "kind": "function",
           "parameters": [
             "app",
@@ -79079,22 +79105,22 @@
         },
         {
           "name": "ExploreScreen",
-          "line": 79,
+          "line": 91,
           "kind": "class"
         },
         {
           "name": "ExploreEdge",
-          "line": 87,
+          "line": 100,
           "kind": "class"
         },
         {
           "name": "ExploreGraph",
-          "line": 95,
+          "line": 108,
           "kind": "class"
         },
         {
           "name": "ExploreGraph.add_screen",
-          "line": 100,
+          "line": 113,
           "kind": "function",
           "parameters": [
             "self",
@@ -79110,7 +79136,7 @@
         },
         {
           "name": "ExploreGraph.add_edge",
-          "line": 115,
+          "line": 129,
           "kind": "function",
           "parameters": [
             "self",
@@ -79128,7 +79154,7 @@
         },
         {
           "name": "ExploreGraph.reachable",
-          "line": 129,
+          "line": 143,
           "kind": "function",
           "parameters": [
             "self",
@@ -79140,7 +79166,7 @@
         },
         {
           "name": "ExploreGraph.paths",
-          "line": 145,
+          "line": 159,
           "kind": "function",
           "parameters": [
             "self",
@@ -79157,8 +79183,20 @@
           }
         },
         {
+          "name": "ExploreGraph.unexplored",
+          "line": 181,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "screen_id"
+          ],
+          "annotations": {
+            "screen_id": "str"
+          }
+        },
+        {
           "name": "ExploreGraph.summary",
-          "line": 167,
+          "line": 189,
           "kind": "function",
           "parameters": [
             "self"
@@ -79167,7 +79205,7 @@
         },
         {
           "name": "build_graph",
-          "line": 176,
+          "line": 199,
           "kind": "function",
           "parameters": [
             "observations",

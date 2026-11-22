@@ -48,31 +48,43 @@ def _nodes(value: object) -> list[dict[str, object]]:
     return result
 
 
-def skeleton_hash(app: object, activity: object, nodes: object) -> str:
-    """Hash only structural fields; copy changes do not fragment the same screen."""
-    checked_app = _text(app, MAX_TEXT, "app")
-    checked_activity = _text(activity, MAX_TEXT, "activity")
+def _structure(nodes: object) -> tuple[list[dict[str, object]], tuple[str, ...]]:
     structure: list[dict[str, object]] = []
+    seen_actions: set[str] = set()
     for node in _nodes(nodes):
         if node.get("password") is True:
             continue
         actions = node.get("actions", [])
         if not isinstance(actions, list):
             raise _invalid("node actions must be a list")
+        checked_actions = sorted(str(action)[:MAX_ACTION] for action in cast(list[object], actions))
         structure.append(
             {
                 "class": str(node.get("class", ""))[:128],
                 "resource_id": str(node.get("resource-id", node.get("resource_id", "")))[:256],
-                "actions": sorted(str(action)[:MAX_ACTION] for action in cast(list[object], actions)),
+                "actions": checked_actions,
             }
         )
+        seen_actions.update(checked_actions)
+    return structure, tuple(sorted(seen_actions))
+
+
+def _digest(app: str, activity: str, structure: list[dict[str, object]]) -> str:
     payload = json.dumps(
-        {"app": checked_app, "activity": checked_activity, "structure": structure},
+        {"app": app, "activity": activity, "structure": structure},
         ensure_ascii=False,
         sort_keys=True,
         separators=(",", ":"),
     )
     return hashlib.sha256(payload.encode("utf-8")).hexdigest()
+
+
+def skeleton_hash(app: object, activity: object, nodes: object) -> str:
+    """Hash only structural fields; copy changes do not fragment the same screen."""
+    checked_app = _text(app, MAX_TEXT, "app")
+    checked_activity = _text(activity, MAX_TEXT, "activity")
+    structure, _ = _structure(nodes)
+    return _digest(checked_app, checked_activity, structure)
 
 
 @dataclass(frozen=True)
@@ -81,6 +93,7 @@ class ExploreScreen:
     app: str
     activity: str
     skeleton_sha256: str
+    actions: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -98,17 +111,18 @@ class ExploreGraph:
     truncated: bool = False
 
     def add_screen(self, app: object, activity: object, nodes: object) -> ExploreScreen:
-        digest = skeleton_hash(app, activity, nodes)
         checked_app = _text(app, MAX_TEXT, "app")
         checked_activity = _text(activity, MAX_TEXT, "activity")
+        structure, actions = _structure(nodes)
+        digest = _digest(checked_app, checked_activity, structure)
         screen_id = hashlib.sha256(f"{checked_app}|{checked_activity}|{digest}".encode()).hexdigest()[:24]
         existing = self.screens.get(screen_id)
         if existing is not None:
             return existing
         if len(self.screens) >= MAX_SCREENS:
             self.truncated = True
-            return ExploreScreen(screen_id, checked_app, checked_activity, digest)
-        screen = ExploreScreen(screen_id, checked_app, checked_activity, digest)
+            return ExploreScreen(screen_id, checked_app, checked_activity, digest, actions)
+        screen = ExploreScreen(screen_id, checked_app, checked_activity, digest, actions)
         self.screens[screen_id] = screen
         return screen
 
@@ -164,11 +178,20 @@ class ExploreGraph:
                     stack.append((edge.target, [*path, edge.target]))
         return result
 
+    def unexplored(self, screen_id: str) -> list[str]:
+        """Observed action kinds on a screen that have no edge yet, sorted; unknown screen -> []."""
+        screen = self.screens.get(screen_id)
+        if screen is None:
+            return []
+        used = {edge.action for edge in self.edges if edge.source == screen_id}
+        return [action for action in screen.actions if action not in used]
+
     def summary(self) -> dict[str, object]:
         return {
             "screens": len(self.screens),
             "edges": len(self.edges),
             "apps": sorted({screen.app for screen in self.screens.values()}),
+            "unexplored": sum(len(self.unexplored(screen_id)) for screen_id in self.screens),
             "truncated": self.truncated,
         }
 

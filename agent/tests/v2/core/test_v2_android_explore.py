@@ -123,6 +123,19 @@ def test_paths_are_simple_bounded_and_deterministic():
             graph.paths(first.screen_id, third.screen_id, max_paths=max_paths, max_depth=max_depth)
 
 
+def test_unexplored_actions_are_observed_minus_edges():
+    graph = ExploreGraph()
+    first = graph.add_screen("org.fixture", ".Main", [_node(0), _node(1, password=True, actions=["tap"])])
+    second = graph.add_screen("org.fixture", ".Detail", [_node(2, actions=[])])
+    assert first.actions == ("tap",)
+    assert graph.unexplored(first.screen_id) == ["tap"]
+    assert graph.unexplored(second.screen_id) == []
+    assert graph.unexplored("missing") == []
+    graph.add_edge(first.screen_id, second.screen_id, "node-0", "tap")
+    assert graph.unexplored(first.screen_id) == []
+    assert graph.summary()["unexplored"] == 0
+
+
 def test_summary_and_build_graph_are_bounded():
     observations = [
         {"app": "org.fixture", "activity": ".Main", "nodes": [_node(0)]},
