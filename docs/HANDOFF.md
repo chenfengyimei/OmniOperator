@@ -426,6 +426,14 @@ K13.cron_model_design 已记录**实现前设计合同**（纯文档，无源码
 | D8 实现 | `85716859` | V2_SCHEDULE_REVIEW_BLOCKER.md | v2-schedule-review-blocker-impl.json |
 | D9 部分实现 | `46c098f6` | 决策登记 D9 | v2-browser-url-floor.json |
 
+### 2026-11-23 合并前综合复核（第 17 批，`k18-read-cache`）
+
+- **范围/基线**：承接前十六批；本批**只读复核 + 索引再生**，无源码/测试改动。基线仍 `origin/v2`=`0793f254`，复核 tip `9085c6a7`。
+- **单次串联全绿**：在分支 tip 上一次性运行 **41 个受影响测试文件、819 项**：bilibili 读写/风控/worker 546 + cron/schedule/租约/执行/内核/生命周期/委派/后台评审/维护 205 + 浏览器/对话框/URL floor/worker safety/capabilities 68（含本分支 5 个新测试文件 109 项）——**819 passed / 543.26s，0 失败 0 跳过**。这是合并前可引用的整体绿色结果（此前各批结果为分批专项）。
+- **静态/索引**：tip 上 strict `pyrightconfig.strict.json` **0 错误 0 警告**；`ruff check agent/src/omni` + 5 个新测试文件通过；`project_index` 在 tip 上再生（源指纹随本分支源码变更更新，MODULES/API/project.json），**二次运行零差异**（幂等），索引随本批提交。此前各批 `project_index` 报「updated=」是因为生成器读取已提交 HEAD，源码随后提交才在本次体现——非漂移。
+- **未验**：未跑全仓全量（多模块集成收尾留 A）；真实 B 站账号/模型质量/设备/72 小时；D9 私网策略与 D1/D4–D7 决策实现。
+- **下一批**：分支已可交付 A（线性于 `0793f254`；主线若前进先 rebase 再重跑上述 41 文件命令）。剩余实现项全部由所有者决策门控（D1/D4–D7、D9 收尾、R1–R5、T1–T5），决策速览见决策登记。共享接口/迁移/公共 CI 由 A 协调。证据 [v2-prejoin-verification.json](evidence/v2-prejoin-verification.json)。
+
 ## 追溯入口
 
 - [旧交接记录](history/pre-layout-2026-11-18/HANDOFF.md)、[旧重构记录](history/pre-layout-2026-11-18/V2_REFACTOR.md)只证明所属版本，不作为当前待办。
