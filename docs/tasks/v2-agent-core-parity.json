@@ -471,9 +471,25 @@
           "contract": "docs/v2/contracts/V2_ANDROID.md",
           "evidence": "docs/evidence/v2-android-capture-failure-regression.json",
           "delivered": "仅测试/无生产改动：假 ADB 返回非 PNG 时 capture 以 android_capture_failed 失败，android-captures 零临时 PNG、session_captures 零行；恢复合法 PNG 后同一 grant/session 新 capture 成功（adb_screencap、单 object 引用、字节与假设备一致）且无临时残留。targeted 1/4.65s，整文件 20/74.37s（final formatted source），model 20/195.17s；真机未验。"
+        },
+        {
+          "gap": "Android 屏幕 OCR / 查找（ocr_screen/ocr_region/find_on_screen，RapidOCR 本地只读）",
+          "status": "design_contract_recorded",
+          "batch": "K14.android_ocr_design",
+          "contract": "docs/v2/contracts/V2_ANDROID_OCR.md",
+          "evidence": "docs/evidence/v2-android-ocr-explore-design.json",
+          "delivered": "实现前合同（纯文档）：仅授权截图/有界 region、本地 OCR、文本/框/置信度有界、find 只定位不动作；密码/敏感输入沿用排除口径，OCR 文本为不可信数据，不自动动作/记忆/投递，日志不记正文，失败显式 android_ocr_*；D0 是否引入 OCR、D1 模型 provisioning、D2 可见面、D3 区域/输出上限、D4 留存、D5 失败语义未决；D0 未决不新增依赖/模型，D1 未决不下载，D2 未决不新增工具/HTTP。"
+        },
+        {
+          "gap": "Android explore_app 状态图（XML skeleton hash→有界屏幕/动作图）",
+          "status": "design_contract_recorded",
+          "batch": "K14.android_explore_design",
+          "contract": "docs/v2/contracts/V2_ANDROID_EXPLORE.md",
+          "evidence": "docs/evidence/v2-android-ocr-explore-design.json",
+          "delivered": "实现前合同（纯文档）：同一 grant/session 的多次观察，skeleton 仅结构字段（不含文本/密码）去重，动作边来自已观察可用动作，屏幕/边/路径有界且截断显式；不自动探索/不执行动作、不返回节点文本/密码/object_id；D0 持久化、D1 触发、D2 图上限、D3 可见面、D4 失败语义未决；D0 未决不落库/不迁移，D1/D3 未决不新增工具/HTTP。"
         }
       ],
-      "limits": "K14 审计本身只读；后续独立批次已实现视觉子代理离线核心(K14.visual_subagent_core：有界帧/无工具/单次/仅文本/零写，20 专项过)、SoM 离线核心(K14.android_som_core：节点准入/编号/PNG 渲染，9 专项过)，并补 Android 截图撤销/取消/坏 PNG 清理恢复与输入派发后撤权/不重放四项回归(K14.android_capture_regression、K14.android_capture_failure_regression、K14.android_input_dispatch_regression，仅测试/夹具)；但视觉 D0-D5 与 SoM D0-D3 未决，生产接线/真实视觉模型/真实帧来源/对象发布/付费调用/真机未做；OCR/explore_app 仍列后续；不宣称真机质量或约65工具广度对等；V2有意不提供shell逃生舱/变更链(更严格)；既有todos重启竞态与5个pin v2_0039旧迁移测试沿用保留",
+      "limits": "K14 审计本身只读；后续独立批次已实现视觉子代理离线核心(K14.visual_subagent_core：有界帧/无工具/单次/仅文本/零写，20 专项过)、SoM 离线核心(K14.android_som_core：节点准入/编号/PNG 渲染，9 专项过)，并补 Android 截图撤销/取消/坏 PNG 清理恢复与输入派发后撤权/不重放四项回归(仅测试/夹具)；OCR 与 explore_app 已记录实现前合同(K14.android_ocr_design、K14.android_explore_design，D0–D5/D0–D4 未决，未实现，无迁移/路由)；视觉 D0-D5 与 SoM D0-D3 未决，生产接线/真实视觉模型/真实帧来源/对象发布/付费调用/真机未做；不宣称真机质量或约65工具广度对等；V2有意不提供shell逃生舱/变更链(更严格)；既有todos重启竞态与5个pin v2_0039旧迁移测试沿用保留",
       "next": false
     },
     {
