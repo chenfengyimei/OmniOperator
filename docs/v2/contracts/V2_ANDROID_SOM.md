@@ -1,6 +1,6 @@
 # V2 Android SoM 编号截图设计合同（K14 可离线缺口）
 
-**状态：`design_contract_recorded`，未实现，无源码/测试/迁移/路由改动。** 本文件把 K14 审计组 2 的 `screenshot_annotated`（set-of-mark）缺口收敛为可裁定的实现边界；D0–D3 未决前只允许离线核心，不新增模型可见工具或 HTTP 路由。
+**状态：`offline_core_implemented_not_wired`（2026-11-22）。** 离线核心（节点准入/编号/PNG 渲染）已实现并专项通过；D0–D3 仍未决，**没有**模型工具、HTTP 路由、对象发布接线、迁移或真机验收。
 
 ## 1. 范围
 
@@ -63,4 +63,11 @@
 - 不做 OCR/文字识别、屏幕分类、explore_app 状态图、录制/流、overlay 真机叠加。
 - 不宣称真实设备截图质量、厂商窗口/密码字段、SoM 视觉效果或真机可点性；这些需指定真机窗口。
 - 不新增模型工具/HTTP/迁移/表；D0–D3 未决前只做离线核心。
-- 本批无源码/测试/迁移/路由改动；`whole_core_parity_complete`、`whole_v2_complete` 保持 false。
+- 真实设备截图质量、厂商窗口/密码字段、SoM 视觉效果未验；`whole_core_parity_complete`、`whole_v2_complete` 保持 false。
+
+## 7. 离线核心实现记录（2026-11-22）
+
+- `domain/som.py`：`SomNode`/`SomMark`/`SomSelection`；节点 1–128、规范 UUID 唯一、bounds 四整数且正宽高、`visible`/`password` 必须显式 bool；只标 visible 且非 password 节点，bounds 裁剪到帧内，完全越界计数跳过，≤50 标记按 observe 顺序 1-based，超限 `truncated=true`；帧尺寸复用 8192/16Mpx 上限；`mark_map` 只给内部/所有者映射。
+- `adapters/som.py`：`render_som(png, selection)` 用 Pillow 同尺寸叠加红框 + 黑底黄边编号，只把数字写入像素；零标记返回原 PNG；坏 PNG/尺寸不符/编码异常显式 `android_som_invalid`，输入/输出超 16MiB `android_som_too_large`；不读文件、不发布对象、不调用模型。
+- 测试：`agent/tests/v2/core/test_v2_android_som.py` **9 passed / 0.29s**（节点准入/密码跳过/裁剪/50+1 截断/重复与非法输入/渲染确定性/同尺寸/坏图）；架构/候选门/目录/类型范围守卫 **42 passed / 8.57s**；strict **432 文件 0 错 0 警**；ruff/格式通过。
+- 未做：模型工具/HTTP/对象发布接线、真实设备帧、视觉质量、OCR/explore_app；D0–D3 未决。证据：[v2-android-som-core.json](../../evidence/v2-android-som-core.json)。

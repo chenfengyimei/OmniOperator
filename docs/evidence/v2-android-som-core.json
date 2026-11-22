@@ -1,0 +1,63 @@
+{
+  "schema": 1,
+  "date": "2026-11-22",
+  "batch": "K14.android_som_core",
+  "base_commit": "15ca83e5958bf1ff32c44897135b5c331e9a0590",
+  "status": "offline_core_implemented_not_wired",
+  "contract": "docs/v2/contracts/V2_ANDROID_SOM.md",
+  "scope": "K14 Android SoM offline core only: node admission/numbering and deterministic PNG rendering over an already-authorized screenshot. No model tool, HTTP route, object publication, capture, migration or real device was added.",
+  "source_files": {
+    "agent/src/omni/domain/som.py": "1d8e08914cfd3e9fe416e69400d866d5cd4c71406f2ec72275ecb19991122aeb",
+    "agent/src/omni/adapters/som.py": "10619a8d6051ca7abd94c3a6cedc7be9535812640fbc0ae12a57a1b38cac73d0",
+    "agent/tests/v2/core/test_v2_android_som.py": "e403c412d9de9b5a10a6c34487822c9f01d4aa58ca0476777dbf6286e16337f4",
+    "pyrightconfig.strict.json": "454e8a8bf421529a2630fbb17de7166710ab0429387703bc34199f0c329e0fe2",
+    "docs/v2/contracts/V2_ANDROID_SOM.md": "0857a31ce5dce0acd968fd06f6512ec377e0c9cb07ddf1d3933703d6584f9c91"
+  },
+  "delivered": [
+    "domain/som.py: SomNode/SomMark/SomSelection; nodes 1-128, canonical unique UUIDs, four-integer positive bounds, explicit visible/password booleans; only visible non-password nodes are marked; bounds are clipped to the frame and fully out-of-frame nodes are skipped/counted; <=50 marks in observe order with 1-based stable numbers and explicit truncated; frame caps reuse 8192 edge / 16M pixels; mark_map is a bounded internal mapping.",
+    "adapters/som.py: Pillow renderer draws same-size red target boxes and black/yellow number badges; only numbers enter pixels, never node ids/text/paths; zero marks returns the original PNG byte-for-byte; bad PNG, dimension mismatch or encode failure is android_som_invalid; input/output over 16MiB is android_som_too_large; no file read, object publication, database or model call.",
+    "9 new tests: zero/one/many nodes, 50+1 truncation, password/invisible/out-of-frame skips, bounds clipping, invalid ids/bounds/flags/duplicates, frame/node caps, bounded mark_map, renderer dimensions/pixels/determinism, zero-marks original, bad PNG/mismatched size.",
+    "Added both modules to strict include and docs/TYPE_CHECKING; no migration or shared interface change."
+  ],
+  "validation": {
+    "mode": "development_working_tree_scoped",
+    "new_nodes": 9,
+    "scoped": {
+      "command": "uv run --no-sync pytest -q -n 0 agent/tests/v2/core/test_v2_android_som.py",
+      "passed": 9,
+      "failed": 0,
+      "seconds": 0.29
+    },
+    "guards": {
+      "command": "uv run --no-sync pytest -q -n 0 agent/tests/v2/core/test_v2_architecture.py agent/tests/v2/core/test_v2_candidate_gate.py agent/tests/v2/core/test_v2_layout.py agent/tests/v2/core/test_v2_typecheck_scope.py agent/tests/v2/core/test_v2_android_som.py",
+      "passed": 42,
+      "failed": 0,
+      "seconds": 8.57
+    },
+    "strict": {
+      "config": "pyrightconfig.strict.json",
+      "files": 432,
+      "errors": 0,
+      "warnings": 0,
+      "note": "two new modules added to include (430 -> 432); filesAnalyzed == include count"
+    },
+    "ruff": "domain/som.py, adapters/som.py and test_v2_android_som.py pass ruff check and format",
+    "full_suite_executed": false,
+    "real_android_device_or_visual_quality_executed": false
+  },
+  "retained_first_failures": [
+    {
+      "phase": "renderer-tests-initial",
+      "reason": "The first render test expected a red outline pixel where the number badge is drawn (badge wins); assertion moved to the node's right edge. Bad PNG raised PIL.UnidentifiedImageError, now mapped to android_som_invalid. A strict unknown-type error from len() on an object before casting was fixed by casting first."
+    }
+  ],
+  "not_executed": [
+    "Model tool, HTTP route or object/session_captures publication wiring (D0/D1 undecided)",
+    "Real Android screenshot quality, vendor password/visible fields, overlay visual quality",
+    "OCR/explore_app, recording/stream or overlay device acceptance",
+    "Full suite or 72h soak"
+  ],
+  "whole_core_parity_complete": false,
+  "whole_v2_complete": false,
+  "next": "D0-D3 decide the visible surface/output publication/numbering/failure semantics; then wire object publication and one owner/model surface with real image codec and Android capture. Until then, keep the offline core. Shared interfaces, migrations and public CI stay with A."
+}

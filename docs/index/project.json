@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "5557b7d144c5c99d2292449e0286528a156c305d6027a19275b51a81bd8aaa3a",
+  "source_sha256": "f449102128313b476bfdcaaacc7f337100237443de4d15887b473c4c446acc72",
   "modules": [
     {
       "id": "v2-domain",
@@ -88,6 +88,7 @@
         "agent/src/omni/domain/settings.py",
         "agent/src/omni/domain/skills.py",
         "agent/src/omni/domain/soak.py",
+        "agent/src/omni/domain/som.py",
         "agent/src/omni/domain/terminal_review.py",
         "agent/src/omni/domain/terminals.py",
         "agent/src/omni/domain/todos.py",
@@ -96,7 +97,7 @@
         "agent/src/omni/domain/verification_stop.py",
         "agent/src/omni/domain/visual_subagent.py"
       ],
-      "lines": 14148,
+      "lines": 14280,
       "dependencies": []
     },
     {
@@ -467,6 +468,7 @@
         "agent/src/omni/adapters/process_diagnostics.py",
         "agent/src/omni/adapters/skill_packages.py",
         "agent/src/omni/adapters/soak.py",
+        "agent/src/omni/adapters/som.py",
         "agent/src/omni/adapters/temporary_debug.py",
         "agent/src/omni/adapters/timezones.py",
         "agent/src/omni/adapters/token_counter.py",
@@ -516,7 +518,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 71344,
+      "lines": 71415,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -43485,6 +43487,60 @@
         }
       ],
       "summary": "Proof-bound read-only V2 observation and append-only evidence; no V1, service control, models or database opens."
+    },
+    {
+      "path": "agent/src/omni/adapters/som.py",
+      "module": "v2-adapters",
+      "python_module": "omni.adapters.som",
+      "lines": 71,
+      "imports": [
+        "omni.domain.contracts",
+        "omni.domain.som"
+      ],
+      "symbols": [
+        {
+          "name": "_invalid",
+          "line": 22,
+          "kind": "function",
+          "parameters": [
+            "message"
+          ],
+          "annotations": {
+            "message": "str"
+          }
+        },
+        {
+          "name": "_badge_position",
+          "line": 26,
+          "kind": "function",
+          "parameters": [
+            "left",
+            "top",
+            "width",
+            "height"
+          ],
+          "annotations": {
+            "left": "int",
+            "top": "int",
+            "width": "int",
+            "height": "int"
+          }
+        },
+        {
+          "name": "render_som",
+          "line": 32,
+          "kind": "function",
+          "parameters": [
+            "png",
+            "selection"
+          ],
+          "annotations": {
+            "png": "bytes",
+            "selection": "SomSelection"
+          }
+        }
+      ],
+      "summary": "Deterministic bounded SoM PNG rendering; no capture, database or model calls."
     },
     {
       "path": "agent/src/omni/adapters/temporary_debug.py",
@@ -88031,6 +88087,110 @@
         }
       ],
       "summary": "V2 observational soak coverage and owner limits; no sampling, clocks, files or acceptance execution."
+    },
+    {
+      "path": "agent/src/omni/domain/som.py",
+      "module": "v2-domain",
+      "python_module": "omni.domain.som",
+      "lines": 132,
+      "imports": [
+        "omni.domain.contracts",
+        "omni.domain.desktop"
+      ],
+      "symbols": [
+        {
+          "name": "_invalid",
+          "line": 22,
+          "kind": "function",
+          "parameters": [
+            "code",
+            "message",
+            "status"
+          ],
+          "annotations": {
+            "code": "str",
+            "message": "str",
+            "status": "int"
+          }
+        },
+        {
+          "name": "SomNode",
+          "line": 27,
+          "kind": "class"
+        },
+        {
+          "name": "SomMark",
+          "line": 37,
+          "kind": "class"
+        },
+        {
+          "name": "SomSelection",
+          "line": 44,
+          "kind": "class"
+        },
+        {
+          "name": "_bounds",
+          "line": 52,
+          "kind": "function",
+          "parameters": [
+            "value"
+          ],
+          "annotations": {
+            "value": "object"
+          }
+        },
+        {
+          "name": "normalize_nodes",
+          "line": 66,
+          "kind": "function",
+          "parameters": [
+            "value"
+          ],
+          "annotations": {
+            "value": "object"
+          }
+        },
+        {
+          "name": "frame_size",
+          "line": 96,
+          "kind": "function",
+          "parameters": [
+            "width",
+            "height"
+          ],
+          "annotations": {
+            "width": "object",
+            "height": "object"
+          }
+        },
+        {
+          "name": "select_marks",
+          "line": 108,
+          "kind": "function",
+          "parameters": [
+            "nodes",
+            "width",
+            "height"
+          ],
+          "annotations": {
+            "nodes": "Sequence[SomNode]",
+            "width": "object",
+            "height": "object"
+          }
+        },
+        {
+          "name": "mark_map",
+          "line": 130,
+          "kind": "function",
+          "parameters": [
+            "selection"
+          ],
+          "annotations": {
+            "selection": "SomSelection"
+          }
+        }
+      ],
+      "summary": "Pure Android SoM node admission and stable numbering: bounded, password-excluding; no image I/O."
     },
     {
       "path": "agent/src/omni/domain/terminal_review.py",

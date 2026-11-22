@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`5557b7d144c5c99d2292449e0286528a156c305d6027a19275b51a81bd8aaa3a`。包含 65 个职责模块、851 个源码/界面文件。
+源码指纹：`f449102128313b476bfdcaaacc7f337100237443de4d15887b473c4c446acc72`。包含 65 个职责模块、853 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -81,6 +81,7 @@
 | [agent/src/omni/domain/settings.py](../../agent/src/omni/domain/settings.py) | 112 | Editable Agent settings and immutable resolved run configuration; no I/O. |
 | [agent/src/omni/domain/skills.py](../../agent/src/omni/domain/skills.py) | 251 | Versioned textual skills, bounded disclosure and edit rules; skills confer no authority. |
 | [agent/src/omni/domain/soak.py](../../agent/src/omni/domain/soak.py) | 119 | V2 observational soak coverage and owner limits; no sampling, clocks, files or acceptance execution. |
+| [agent/src/omni/domain/som.py](../../agent/src/omni/domain/som.py) | 132 | Pure Android SoM node admission and stable numbering: bounded, password-excluding; no image I/O. |
 | [agent/src/omni/domain/terminal_review.py](../../agent/src/omni/domain/terminal_review.py) | 87 | Owner observations of unknown terminal effects; never a receipt correction or replay authority. |
 | [agent/src/omni/domain/terminals.py](../../agent/src/omni/domain/terminals.py) | 124 | Explicit owner terminal requests and metadata identities; no model tools, shell execution or transcript storage. |
 | [agent/src/omni/domain/todos.py](../../agent/src/omni/domain/todos.py) | 166 | Bounded revisioned planning data and hierarchy rules; no execution or authorization. |
@@ -443,6 +444,7 @@
 | [agent/src/omni/adapters/process_diagnostics.py](../../agent/src/omni/adapters/process_diagnostics.py) | 112 | Process-owned logging and exception hooks; installed only by the executable host. |
 | [agent/src/omni/adapters/skill_packages.py](../../agent/src/omni/adapters/skill_packages.py) | 177 | Bounded in-memory Markdown/ZIP parsing; never extracts files or executes package content. |
 | [agent/src/omni/adapters/soak.py](../../agent/src/omni/adapters/soak.py) | 402 | Proof-bound read-only V2 observation and append-only evidence; no V1, service control, models or database opens. |
+| [agent/src/omni/adapters/som.py](../../agent/src/omni/adapters/som.py) | 71 | Deterministic bounded SoM PNG rendering; no capture, database or model calls. |
 | [agent/src/omni/adapters/temporary_debug.py](../../agent/src/omni/adapters/temporary_debug.py) | 322 | Boot-bound, owner-enabled metadata capture; never opens business storage or records free text. |
 | [agent/src/omni/adapters/timezones.py](../../agent/src/omni/adapters/timezones.py) | 29 | Pinned tzdata resolver; avoids OS-dependent timezone database drift. |
 | [agent/src/omni/adapters/token_counter.py](../../agent/src/omni/adapters/token_counter.py) | 34 | Local conservative token estimate; it never fetches model metadata or credentials. |

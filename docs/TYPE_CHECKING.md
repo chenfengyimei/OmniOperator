@@ -504,6 +504,10 @@ strict 配置显式将 `agent/src` 加入导入根，隔离源码副本也解析
 
 | `agent/src/omni/application/visual_subagent.py` | K14 离线视觉子代理用例：父 run/模型授权、帧源顺序核验、单次调用/取消/并发、零写与仅文本汇总 |
 
+| `agent/src/omni/domain/som.py` | K14 Android SoM 纯领域：节点准入/密码跳过/边界裁剪/≤50 稳定编号与有界映射 |
+
+| `agent/src/omni/adapters/som.py` | K14 SoM PNG 渲染：同尺寸叠加、仅数字入像素、确定性编码与输出上限；不做采集/发布 |
+
 `pyrightconfig.strict.json` 的 `include` 必须与本表完全一致；`agent/tests/v2/core/test_v2_typecheck_scope.py` 会双向校验。
 
 ## 3. 历史基线与当前范围
