@@ -6,6 +6,7 @@ Windows 与 Mac mini 按 [双设备协作开发规范](../V2_MULTI_DEVICE_DEVELO
 
 ## 业务与领域合同
 
+- [V2_ADAPTIVE_GRID](contracts/V2_ADAPTIVE_GRID.md)
 - [Agent 内核与 xuexi 功能对标、缺口和开发顺序](contracts/V2_AGENT_CORE_PARITY.md)
 - [V2_AGENTS](contracts/V2_AGENTS.md)
 - [V2_ANDROID](contracts/V2_ANDROID.md)
