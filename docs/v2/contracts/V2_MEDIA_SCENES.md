@@ -1,6 +1,6 @@
 # V2 媒体场景切点抽帧与清晰度选帧（K16.scene_frames）
 
-状态：已实现并专项通过（2026-11-20）；2026-11-22 增补场景渐变合并（K16.scene_gradual）、上下黑边补偿（K16.scene_bars）、左右黑边补偿（K16.scene_bars_side）、邻域尖峰守卫（K16.scene_spike）与暗部增益（K16.scene_gain），固定素材复核见证据。学习参考 dsh-video-storyboard `src/storyboard/scan.js`（HSV 加权切点，PySceneDetect ContentDetector 思路）与 `frames.js extractSharpest`（Laplacian 清晰度选帧），独立实现于 V2 四层媒体链，不复用 V1 tools/storyboard。合并实现 K16 缺口 #1（HSV 切点+密度分段）与 #5（Laplacian 清晰度选帧）的**保守子集**。
+状态：已实现并专项通过（2026-11-20）；2026-11-22 增补场景渐变合并（K16.scene_gradual）、上下黑边补偿（K16.scene_bars）、左右黑边补偿（K16.scene_bars_side）、邻域尖峰守卫（K16.scene_spike）、暗部增益（K16.scene_gain）与组合质量回归（K16.scene_quality），固定素材复核见证据。学习参考 dsh-video-storyboard `src/storyboard/scan.js`（HSV 加权切点，PySceneDetect ContentDetector 思路）与 `frames.js extractSharpest`（Laplacian 清晰度选帧），独立实现于 V2 四层媒体链，不复用 V1 tools/storyboard。合并实现 K16 缺口 #1（HSV 切点+密度分段）与 #5（Laplacian 清晰度选帧）的**保守子集**。
 
 ## 范围
 
@@ -99,3 +99,16 @@ frames 作业新增可选 `select="scenes"`（默认 `equidistant` 字节等价�
 - 既有上下黑边、全黑、暗噪声、极暗 cut、渐变、快剪用例全部保持。
 
 **边界**：只识别与画面边缘对齐的均匀近黑边；不规则/渐变边、非黑色遮挡不处理；单轴 40% 上限避免内容被裁空；真实长片/真实竖屏视频质量未验。
+
+
+## K16.scene_quality（组合质量回归，2026-11-22）
+
+固定素材组合补齐（无源码改动）：
+
+- **mixed 黑边**：64×48，上下各 6px + 左右各 8px，同一 subtle cut → 1 切点（4.24s）。
+- **大 letterbox**：64×96，上下各 32px（内容 32px），subtle cut → 1 切点（4.24s）。
+- **暗色蒙太奇**：6 个 1s 暗色镜头（V≈30–90），在暗部增益 + 尖峰守卫下保留 ≥4 切点，锚点升序。
+- **生产入口映射**：真实 scenes 作业 settle 后 `media_cells` 的 cell/row/column 为 row-major（0,0)(0,1)(1,0)，`time_s` 升序且落在 0..duration；与既有 3 网格一致。
+- 既有空片段/全黑源/0.2s 快剪/运行中删除→取消→无帧/工具图像预算回归保持；本批只扩测试与证据，生产字节未变。
+
+**边界**：组合黑边只覆盖均匀近黑边；暗色蒙太奇为合成色块，无真实运动/压缩复杂度；真实长片与 OCR 未验。

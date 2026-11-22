@@ -232,6 +232,11 @@ def test_real_job_scene_selection_persists_and_addresses_cells(tmp_path):
             assert row["state"] == "done", row
             cells = await instance.media.cells(agent, str(source["id"]), None, None)
             assert cells["frame_count"] == 3 and len(cells["cells"]) == 3
+            anchors = cells["cells"]
+            assert [anchor["cell"] for anchor in anchors] == [0, 1, 2]
+            assert [(anchor["row"], anchor["column"]) for anchor in anchors] == [(0, 0), (0, 1), (1, 0)]
+            assert all(0.0 <= anchor["time_s"] <= 12.0 for anchor in anchors)
+            assert [anchor["time_s"] for anchor in anchors] == sorted(anchor["time_s"] for anchor in anchors)
         finally:
             assert (await instance.close())["complete"]
 
@@ -629,3 +634,76 @@ def test_worker_scenes_crops_pillarbox_bars_before_scoring(tmp_path):
     for result in outputs:
         assert len(result["scene_cuts"]) == 1 and 3.5 < result["scene_cuts"][0] < 4.9
         assert result["timestamps"] == sorted(result["timestamps"])
+
+
+def _make_bordered_video(
+    path: Path,
+    *,
+    top: int,
+    side: int,
+    first: tuple[int, int, int] = (100, 60, 50),
+    second: tuple[int, int, int] = (60, 100, 90),
+    size=(64, 48),
+    fps: int = 25,
+) -> Path:
+    import av
+    from PIL import Image
+
+    container = av.open(str(path), mode="w")
+    try:
+        stream = container.add_stream("mpeg4", rate=fps)
+        stream.width, stream.height = size
+        stream.pix_fmt = "yuv420p"
+        for index in range(8 * fps):
+            color = first if index / fps < 4 else second
+            image = Image.new("RGB", size, (0, 0, 0))
+            inner = Image.new("RGB", (size[0] - 2 * side, size[1] - 2 * top), color)
+            image.paste(inner, (side, top))
+            frame = av.VideoFrame.from_image(image)
+            for packet in stream.encode(frame):
+                container.mux(packet)
+        for packet in stream.encode():
+            container.mux(packet)
+    finally:
+        container.close()
+    return path
+
+
+def test_worker_scenes_crops_mixed_letterbox_and_pillarbox(tmp_path):
+    for top, side, size, name in ((6, 8, (64, 48), "mixed"), (32, 0, (64, 96), "large")):
+        video = _make_bordered_video(tmp_path / f"{name}.mp4", top=top, side=side, size=size)
+        result = worker._frames(
+            {
+                "video": str(video),
+                "sheet_output": str(tmp_path / f"{name}.png"),
+                "count": 2,
+                "width": 320,
+                "select": "scenes",
+            }
+        )
+        assert len(result["scene_cuts"]) == 1 and 3.5 < result["scene_cuts"][0] < 4.9, (name, result["scene_cuts"])
+        assert result["timestamps"] == sorted(result["timestamps"])
+
+
+def test_worker_scenes_dark_montage_keeps_cuts_with_gain_and_spike(tmp_path):
+    scenes = [
+        (0, 1, (40, 20, 20)),
+        (1, 2, (20, 40, 40)),
+        (2, 3, (50, 50, 20)),
+        (3, 4, (20, 20, 50)),
+        (4, 5, (60, 30, 50)),
+        (5, 6, (30, 60, 30)),
+    ]
+    video = _make_scene_video(tmp_path / "dark-montage.mp4", scenes)
+    result = worker._frames(
+        {
+            "video": str(video),
+            "sheet_output": str(tmp_path / "dark-montage.png"),
+            "count": 4,
+            "width": 320,
+            "select": "scenes",
+        }
+    )
+    assert result["frame_count"] == 4
+    assert len(result["scene_cuts"]) >= 4
+    assert result["timestamps"] == sorted(result["timestamps"])
