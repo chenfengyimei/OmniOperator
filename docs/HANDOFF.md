@@ -270,6 +270,7 @@ K13.cron_model_design 已记录**实现前设计合同**（纯文档，无源码
 ### 2026-11-22 K15 isInitial 设计合同（纯文档）
 
 - 记录 `isInitial` 30 天首遇窗口/最早主人互动/first-meet 指定的实现前决策门：只算可证明的主人互动；`source_anchors→messages→runs→qq_runs/people` 可还原消息锚点，无锚点保守不判；D0 自动/手动、D1 主人互动范围、D2 窗口用途、D3 持久化、D4 遗忘保护、D5 手动入口。推荐先做零迁移保守版（只最早一条 `is_first=True`，复用 pinned/100 保护，tier/probability 仅审计）；完整概率版需 A 分配迁移与所有者入口。**未改 `is_first` 默认值或评分权威，无源码/迁移/路由。** 合同：[V2_MEMORY_INITIAL.md](v2/contracts/V2_MEMORY_INITIAL.md)；证据：[v2-memory-initial-design.json](evidence/v2-memory-initial-design.json)。
+- **前缀影响回归**：新增 4 项（`history_request` 首条 system 恰为 `memory_system`；persona→Owner memory→captured→notice 顺序；forgotten/deleted/erased 从前缀消失而 captured 保留；persona 编辑或记忆撤回改变前缀字节且同输入确定）。**4 passed / 0.24s**，仅测试/无生产改动；分层人格、scene 裁剪、缓存键改动仍待 D0/D3。证据：[v2-memory-prefix-regression.json](evidence/v2-memory-prefix-regression.json)。
 
 ## 追溯入口
 
