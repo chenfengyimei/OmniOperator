@@ -318,6 +318,31 @@ def test_cancelled_capture_waiter_keeps_real_capture_owned_and_publishes_once(tm
     asyncio.run(scenario())
 
 
+def test_revoked_grant_after_input_dispatch_does_not_retract_or_replay(tmp_path):
+    async def scenario():
+        async with prepared(tmp_path) as (instance, fake, agent, _, session, grant):
+            request, _ = await request_for(instance, agent, session, grant)
+            receipt = await instance.android.submit(agent, request)
+            instance.application.notify()
+            await wait_state(instance.application, agent, receipt["run_id"], {"waiting_approval"})
+            fake.allow_input.clear()
+            await approve(instance, agent, receipt)
+            await asyncio.wait_for(fake.input_entered.wait(), 5)
+            await instance.android.revoke(agent, grant["id"], grant["revision"])
+            fake.allow_input.set()
+            run = await wait_state(instance.application, agent, receipt["run_id"], {"succeeded", "failed"})
+            assert fake.text == "hello world" and len(fake.writes) == 1
+            assert run["state"] == "succeeded"
+            command = await instance._database.read(lambda u: u.owner_command(agent, receipt["run_id"]))
+            action = await instance._database.read(lambda u: u.action(agent, command["action_id"]))
+            assert action["effect"] == "applied"
+            with pytest.raises(BusinessError):
+                await request_for(instance, agent, session, grant)
+            assert len(fake.writes) == 1
+
+    asyncio.run(scenario())
+
+
 def test_cancelled_run_and_shutdown_retain_instance_until_worker_is_reclaimed(tmp_path):
     async def scenario():
         async with prepared(tmp_path) as (instance, fake, agent, _, session, grant):

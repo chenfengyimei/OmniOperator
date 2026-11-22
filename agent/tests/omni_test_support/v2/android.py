@@ -45,6 +45,9 @@ class FakeAdb:
         self.allow_capture = asyncio.Event()
         self.allow_capture.set()
         self.capture_entered = asyncio.Event()
+        self.allow_input = asyncio.Event()
+        self.allow_input.set()
+        self.input_entered = asyncio.Event()
         self.clients = set()
         self.errors = []
         picture = io.BytesIO()
@@ -148,18 +151,21 @@ class FakeAdb:
                 if not self.ignore_launch:
                     self.package, self.activity = component.split("/", 1)
                 payload = b"Status: ok\n"
-            elif command.startswith("input swipe ") or command.startswith("input keyevent KEYCODE_"):
-                self.writes.append(command)
-                if self.scrolling and command.startswith("input swipe "):
-                    self.scroll_offset -= 10
-            elif command.startswith("input text '") and command.endswith("'"):
-                self.writes.append(command)
-                self.text += command[len("input text '") : -1].replace("%s", " ")
-            elif command == "input tap 50 75":
-                self.writes.append(command)
-                self.checked = not self.checked
-            elif command == "input tap 50 20":
-                self.writes.append(command)
+            elif command.startswith("input "):
+                self.input_entered.set()
+                await self.allow_input.wait()
+                if command.startswith("input swipe ") or command.startswith("input keyevent KEYCODE_"):
+                    self.writes.append(command)
+                    if self.scrolling and command.startswith("input swipe "):
+                        self.scroll_offset -= 10
+                elif command.startswith("input text '") and command.endswith("'"):
+                    self.writes.append(command)
+                    self.text += command[len("input text '") : -1].replace("%s", " ")
+                elif command == "input tap 50 75":
+                    self.writes.append(command)
+                    self.checked = not self.checked
+                elif command == "input tap 50 20":
+                    self.writes.append(command)
             else:
                 payload = await self.extra_shell(command)
             if command.startswith("input ") and self.drop_after_input:
@@ -193,6 +199,7 @@ async def fake_server():
     finally:
         fake.allow_dump.set()
         fake.allow_capture.set()
+        fake.allow_input.set()
         server.close()
         await server.wait_closed()
         if fake.clients:

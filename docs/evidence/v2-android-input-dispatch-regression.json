@@ -1,0 +1,55 @@
+{
+  "schema": 1,
+  "date": "2026-11-22",
+  "batch": "K14.android_input_dispatch_regression",
+  "base_commit": "6e41099339cc5e9f33dcbcb9bc2c88cf59c410fe",
+  "status": "implemented_scoped_passed_test_only",
+  "contract": "docs/v2/contracts/V2_ANDROID.md",
+  "scope": "Test-only regression for the existing Android input/revocation chain: revocation after the input command was dispatched must not claim to retract it and must not replay it. No production source, tool, route, schema, migration or device change.",
+  "source_files": {
+    "agent/tests/v2/integrations/test_v2_android.py": "68b8a505b711eed12903615608f79b89197fd4634ff14a6d18456dbe222f9b09",
+    "agent/tests/omni_test_support/v2/android.py": "f694ae71322658473e9e37e123f4018bfc2ab0797754d4289a30bbc852f7498b"
+  },
+  "delivered": [
+    "FakeAdb gains allow_input/input_entered gates around every `input ...` shell command; defaults are open and the server fixture releases the gate on teardown, so all existing Android tests keep their prior behavior.",
+    "New regression: submit and approve an append_ascii input, hold the fake device after the input command enters the worker, revoke the grant, then release. The actual text changes to `hello world` and the run succeeds with action effect applied (revocation cannot retract an already dispatched input); fake.writes is exactly 1, so there is no replay.",
+    "After revocation the old observation cannot authorize another input: request_for fails, and fake.writes stays 1.",
+    "No assertion was weakened, no production timeout/budget was shortened, and no real device/account/model was used."
+  ],
+  "validation": {
+    "mode": "development_working_tree_scoped",
+    "new_nodes": 1,
+    "targeted": {
+      "command": "uv run --no-sync pytest -q -n 0 agent/tests/v2/integrations/test_v2_android.py -k 'revoked_grant_after_input'",
+      "passed": 1,
+      "failed": 0,
+      "seconds": 5.13
+    },
+    "android_integration_and_model": {
+      "command": "uv run --no-sync pytest -q -n 0 agent/tests/v2/integrations/test_v2_android.py agent/tests/v2/integrations/test_v2_android_model.py",
+      "passed": 39,
+      "failed": 0,
+      "seconds": 202.14,
+      "notes": "19 integration + 20 model nodes on the final formatted source; real V2 SQLite, managed Python worker, isolated fake ADB; no actual device."
+    },
+    "ruff": "both changed test files pass ruff check and format check (no reformat needed)",
+    "full_suite_executed": false,
+    "real_android_device_or_vendor_fields_executed": false
+  },
+  "retained_first_failures": [
+    {
+      "phase": "test-edit",
+      "reason": "A PowerShell in-place replacement once inserted a literal CRLF escape into the test source; the syntax error was fixed before any final run. No production code was touched."
+    },
+    {
+      "phase": "new-regression",
+      "reason": "The first version asserted run state succeeded-or-failed and effect applied-or-unknown. The actual isolated fake-device behavior is succeeded/applied (revocation does not retract a dispatched input), so the assertion was tightened to lock that contract."
+    }
+  ],
+  "not_executed": [
+    "Real Android device input quality, vendor IME/keyguard fields, shell-v2, Unicode, scroll and user-switch behavior",
+    "Full offline suite for current source",
+    "Real accounts/models or 72h soak"
+  ],
+  "next": "K14 screenshot/input/revocation regressions now cover capture revocation, capture cancellation and input revocation-after-dispatch. Next independent item: K15 isInitial 30-day first-meet window requires an owner policy boundary before implementation; otherwise continue contract-gap/regression checks. Shared interfaces, migrations and public CI remain with A."
+}
