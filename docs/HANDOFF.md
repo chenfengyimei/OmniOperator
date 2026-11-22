@@ -215,6 +215,18 @@ K13.cron_model_design 已记录**实现前设计合同**（纯文档，无源码
 
 **下一步**：上述真断点需所有者就 zoom 协议 A/B、自主行为授权边界、写路径扩面做决策；较大离线能力按「先授权/持久化/安全合同后执行接线」推进（代码沙箱/CDP 安全模型尤需所有者审阅，不臆测协议、不擅自实现任意代码执行）。接管者可择一需设计合同的能力先写设计合同（如 K16.zoom_model_design 范式）供所有者批准，或在所有者决策后接线；**不宣称全集对等，whole_core_parity_complete / whole_reference_feature_audit_complete / whole_v2_complete 保持 false，不提前关闭任何对标项**。本段未跑全量、未触真实账号/模型/设备/运行中 Windows 服务与数据库；并行 UI 会话 `web/ui/v2/*`、`docs/history/v2/*`、`docs/evidence/v2-ui.json` 与 `PPT/`、`docs/competition/` 全程保留未提交。当前完整进度快照、计划与可直接粘贴的交接提示词见 [v2/HANDOFF_PROMPT.md](v2/HANDOFF_PROMPT.md)。
 
+## 2026-11-22 Windows 总集成（远端核对 → 分诊修复 → 冻结全量绿）
+
+- **远端**：`origin/v2` 仍为 `18b75b75`（`git ls-remote` 回读一致）；本地 `v2` 此前积压 37 个未推送提交（v0052 反思媒体链 + 收尾/UI 文档 + 基线修复），落后 0。
+- **基线全量**：独立工作树复验 `1f31e96d`：8388 项，8370 通过 / **18 失败**（3142.92 秒，4 worker，`C:/v2-acceptance/closeout-18b75b75/full-1f31e96d.xml`）。
+- **分诊与修复**：17 项为 v0052 回归——`reflection_journal` 无条件进入每个 agent run（请求 +1953 字节，默认 32768 模型第 2–3 轮即 `token_budget_exceeded`；委派捕获面含该工具而子 run 不注册 → `delegation_toolset_changed`）。`38c01d80` 改为仅当存在活跃文档/媒体源时暴露，并让委派子 run 同面，测试助手抽到 `omni_test_support/v2/`；1 项跨测试模块导入由同一提交消除。负载时序红分别由 `03aa5499`（`wait_state` 默认 30 秒、portal 轮询）、`1a31356e`（委派完成等待）、`38962aa3`（原生 UIA 退场等待，实测退场 8.6–12 秒）处理，断言与预算均未放宽。
+- **冻结全量**：`0fe3cc5f` 上单会话 4 worker **8389 项全部通过，0 失败 0 跳过，3406.49 秒**（`C:/v2-acceptance/closeout-18b75b75/full-0fe3cc5f.xml`：tests=8389 failures=0 errors=0）。此前 `03aa5499` 全量为 8388/1（原生 UIA resident 10 秒截止），`38c01d80` 为 8384/4（均为负载时序）。
+- **静态门槛**：strict 424 文件 0 错 0 警（47.96 秒，须经 `uv run --no-sync python -m pyright`；直接 `.venv\\Scripts\\python.exe -m pyright` 在无 `VIRTUAL_ENV` 的 shell 会回退无依赖解释器并报 20327 假错误）；ruff/格式通过；`docs/index` 再生 65/842/462/94 且二次运行零差异；迁移单头 `v2_0052`（52 个迁移、151 表、无分支，downgrade 拒绝）。
+- **环境**：机器负载 78–93%、提交额度一度仅剩 4.9GB/94.4GB（TGitCache ~1.15 核、演示实例 ~0.55 核、并行全量）。同一委派场景在 `18b75b75` 源码上同样 14.39 秒，证明超时与 v0052 无关；两个全量并发时出现的大量原生媒体 setup 失败在单跑后消失（8389/0）。未停止用户服务。
+- **观察**：`1f31e96d` 夹带 `PPT/`（27 文件 7.3MB）与 `docs/competition/`（1 文件），与本文件上面"全程保留未提交"的记述不一致；未改写历史，需所有者决定是否从 `v2` 移除。
+- **未验**：真实账号/设备/模型质量、干净机器安装矩阵、容器真实运行、72 小时、macOS/Linux 原生。
+- 证据：[v2-closeout-integration.json](evidence/v2-closeout-integration.json)；基线证据 [v2-closeout-baseline.json](evidence/v2-closeout-baseline.json)。
+
 ## 追溯入口
 
 - [旧交接记录](history/pre-layout-2026-11-18/HANDOFF.md)、[旧重构记录](history/pre-layout-2026-11-18/V2_REFACTOR.md)只证明所属版本，不作为当前待办。

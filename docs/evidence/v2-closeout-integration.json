@@ -2,7 +2,7 @@
   "schema": 1,
   "topic": "v2-closeout-integration",
   "date": "2026-11-22",
-  "source_head": "38962aa3",
+  "source_head": "0fe3cc5f",
   "remote_baseline": "18b75b757b0a8b82243963494be06f5d6d457601",
   "verified_closeout_head": "1f31e96d",
   "scope": "Windows 总集成：核对本地 37 提交相对 origin/v2 的差异与远端状态；在独立工作树复验 1f31e96d 全量并分诊 18 项失败；修复 v0052 反思工具接线回归（工具面门槛、委派继承面、测试助手抽到 support）；核对 v0052 迁移头/表数、工作台版本串、索引与 strict；协调冻结全量。不做真实账号/设备/模型质量/72 小时验收，不改公共接口语义与迁移编号。",
@@ -65,9 +65,16 @@
     {"head": "03aa5499", "junit": "C:/v2-acceptance/closeout-18b75b75/full-03aa5499.xml", "passed": 8388, "failed": 1, "seconds": 3187.26, "failures": ["原生 UIA worker resident 归零 10s 截止"], "note": "38962aa3 放宽该等待后单节点 4/4 通过。"}
   ],
   "delivery_full_suite": {
-    "head": "38962aa3",
-    "junit": "C:/v2-acceptance/integration-1f31e96d/full-38962aa3.xml",
-    "status": "PENDING"
+    "head": "0fe3cc5f",
+    "junit": "C:/v2-acceptance/closeout-18b75b75/full-0fe3cc5f.xml",
+    "status": "green",
+    "tests": 8389,
+    "passed": 8389,
+    "failed": 0,
+    "skipped": 0,
+    "seconds": 3406.49,
+    "workers": 4,
+    "note": "冻结源码单一全量：8389 项 0 失败（56:46），JUnit 由 03aa5499 与 38962aa3 的等待修复后取得。"
   },
   "strict": {"command": "uv run --no-sync python -m pyright -p pyrightconfig.strict.json", "files": 424, "errors": 0, "warnings": 0, "seconds": 47.96, "note": ".venv\\Scripts\\python.exe -m pyright 在无 VIRTUAL_ENV 的 shell 会回退到无依赖解释器并报 20327 假错误；必须经 uv run。"},
   "migrations": {"head": "v2_0052", "migrations": 52, "branches": 0, "tables": 151, "pins": "head/表数守卫已同步 v2_0052/151；v0052 downgrade 显式拒绝。"},
@@ -81,7 +88,8 @@
     "baseline_ab": "同一委派场景在 origin/v2(18b75b75) 源码上 14.39s 完成、四轮模型调用间隔 3-5s，证明超时为环境负载而非 v0052。"
   },
   "process_notes": [
-    "本地复验全量只允许一个在跑：发现并行会话已启动 full-03aa5499 后，本会话主动停止自己的重复全量，改以其为权威结果。",
+    "本地复验全量只允许一个在跑：发现并行会话已启动 full-03aa5499 后，本会话主动停止自己的重复全量，改以其为权威结果；final 全量 full-0fe3cc5f 同样由单会话独占运行。",
+    "本会话在 38962aa3 上的重复全量恰逢两个全量并发、提交额度仅剩 4.9GB/94.4GB，出现大量原生媒体 setup 失败；已主动停止并在单跑后取得 8389/0，证明该簇为资源耗尽而非源码回归。",
     "1f31e96d 夹带 PPT/（27 文件 7.3MB）与 docs/competition/（1 文件）；未改写历史，保留提交，需所有者决定是否从 v2 移除。"
   ],
   "not_executed": [
