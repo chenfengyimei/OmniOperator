@@ -1,0 +1,12 @@
+{
+  "cover_main": {
+    "query": "A calm modern home-office desk at night viewed from a slight angle, a sleek laptop and monitor glowing softly with warm amber light, a smartphone resting beside the keyboard, subtle ambient haze, deep slate-black tones dominating the frame, one soft warm amber glow emanating from the screens at the right edge, photorealistic, cinematic low-key lighting, the desk and devices extend across the full 16:9 width with content distributed to all edges, no text, no letters, no logo, no watermark",
+    "route": "aigc",
+    "ratio": "1600*900"
+  },
+  "bg_content": {
+    "query": "dark atmospheric background, deep slate black with subtle misty depth and one faint warm amber glow at a corner, calm minimal, very low luminance, no text, no letters, no logo, no watermark",
+    "route": "aigc",
+    "ratio": "1600*900"
+  }
+}

@@ -2,7 +2,7 @@
 
 先读 [当前交接](../HANDOFF.md)、[架构](../ARCHITECTURE.md) 和 [目录规则](../REPOSITORY_STRUCTURE.md)。当前状态以 [持续开发任务](../tasks/v2-development.json) 为准，历史记录不代表当前源码验收。
 
-Mac 主开发，Windows 保留运行及原生验收环境。开发中只跑受影响专项，整个 V2 开发冻结后统一全量。
+Windows 与 Mac mini 按 [双设备协作开发规范](../V2_MULTI_DEVICE_DEVELOPMENT.md) 共同迭代 `v2`。开发中跑受影响专项，按测试纪律协调集成全量。
 
 ## 业务与领域合同
 
@@ -71,6 +71,6 @@ Mac 主开发，Windows 保留运行及原生验收环境。开发中只跑受�
 
 ## 交接与历史
 
-- [Mac 环境迁移](../V2_MACMINI_MIGRATION.md)、[可直接粘贴的接续提示词](../V2_MACMINI_RESUME_PROMPT.md)。
+- [双设备接续提示词](../V2_MULTI_DEVICE_PROMPTS.md)、[Mac 环境迁移](../V2_MACMINI_MIGRATION.md)。
 - [历史交接与计划](../history/README.md)。
 - [原始证据摘要](../evidence)、[生成的代码索引](../index/MODULES.md)。

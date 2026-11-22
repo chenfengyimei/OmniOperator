@@ -3547,6 +3547,64 @@ reflection_document_links = scoped(
 )
 Index("ix_reflection_capture", reflection_document_links.c.capture_id)
 
+reflection_media_links = scoped(
+    "reflection_media_links",
+    Column("journal_id", String(36), nullable=False),
+    Column("source_id", String(36), nullable=False),
+    Column("action_id", String(36), nullable=False),
+    Column("position", Integer, nullable=False),
+    Column("field", String(32), nullable=False),
+    Column("receipt", JSON, nullable=False),
+    scoped_fk("journal_id", "reflection_journals"),
+    scoped_fk("source_id", "media_sources"),
+    scoped_fk("action_id", "actions"),
+    UniqueConstraint("journal_id", "action_id", "position", "field"),
+)
+Index("ix_reflection_media_source", reflection_media_links.c.source_id)
+reflection_reads = scoped(
+    "reflection_reads",
+    Column("journal_id", String(36), nullable=False),
+    Column("run_id", String(36), nullable=False),
+    Column("revision", Integer, nullable=False),
+    Column("fingerprint", String(64), nullable=False),
+    scoped_fk("journal_id", "reflection_journals"),
+    scoped_fk("run_id", "runs"),
+    UniqueConstraint("journal_id", "run_id", "revision"),
+)
+reflection_candidates = scoped(
+    "reflection_candidates",
+    Column("journal_id", String(36), nullable=False),
+    Column("read_id", String(36), nullable=False),
+    Column("journal_revision", Integer, nullable=False),
+    Column("field", String(32), nullable=False),
+    Column("start", Integer, nullable=False),
+    Column("end", Integer, nullable=False),
+    Column("digest", String(64), nullable=False),
+    Column("state", String(16), nullable=False),
+    Column("revision", Integer, nullable=False),
+    Column("reason", String(32), nullable=False),
+    Column("replaces", String(36)),
+    scoped_fk("journal_id", "reflection_journals"),
+    scoped_fk("read_id", "reflection_reads"),
+    UniqueConstraint("journal_id", "journal_revision"),
+    CheckConstraint(
+        "state IN ('proposed','skipped','approved','rejected','superseded','retracted') AND revision>0", name="state"
+    ),
+)
+reflection_slots = scoped(
+    "reflection_slots",
+    Column("journal_id", String(36), nullable=False),
+    Column("source_day", String(10), nullable=False),
+    Column("approved_day", String(10), nullable=False),
+    Column("active_candidate", String(36)),
+    Column("withdrawn", Boolean, nullable=False),
+    UniqueConstraint("agent_id", "approved_day", name="uq_reflection_approval_day"),
+    UniqueConstraint("agent_id", "source_day", name="uq_reflection_source_day"),
+    UniqueConstraint("journal_id"),
+    scoped_fk("journal_id", "reflection_journals"),
+    scoped_fk("active_candidate", "reflection_candidates"),
+)
+
 # Compute once after every object-owning table is declared; live queries and
 # offline foreign-key inventory must recognize exactly the same owners.
 OBJECT_REFERENCES = tuple(

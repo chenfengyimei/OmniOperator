@@ -44,6 +44,7 @@ from ..application.operations import OperationsService
 from ..application.people import PeopleService
 from ..application.ports import Record
 from ..application.qq import QQService
+from ..application.reflections import ReflectionService
 from ..application.routing import RoutingService
 from ..application.scheduling import SchedulingService
 from ..application.skills import SkillService
@@ -83,6 +84,7 @@ class HttpRuntime:
     maintenance: MaintenanceService
     memory_organization: MemoryOrganizationService
     background_review: BackgroundReviewService
+    reflections: ReflectionService
     extensions: ExtensionService
     action_reviews: ActionReviewService
     terminals: TerminalService
@@ -2285,6 +2287,32 @@ def create_app(factory: Callable[[], Awaitable[HttpRuntime]], *, allowed_origins
     @router.post("/agents/{agent_id}/memory/organizations/candidates/{candidate_id}/decision")
     async def memory_organization_decision(agent_id: uuid.UUID, candidate_id: uuid.UUID, request: Request):
         return await runtime(request).memory_organization.decide(
+            str(agent_id), str(candidate_id), await bounded_configuration(request, 2048)
+        )
+
+    @router.get("/agents/{agent_id}/reflections")
+    async def reflections(
+        agent_id: uuid.UUID,
+        request: Request,
+        after: str = "",
+        limit: int = Query(20, ge=1, le=50),
+        approved: bool = False,
+    ):
+        return await runtime(request).reflections.page(str(agent_id), after, limit, approved)
+
+    @router.get("/agents/{agent_id}/reflections/{journal_id}")
+    async def reflection_detail(agent_id: uuid.UUID, journal_id: uuid.UUID, request: Request):
+        return await runtime(request).reflections.get(str(agent_id), str(journal_id))
+
+    @router.put("/agents/{agent_id}/reflections/{journal_id}")
+    async def reflection_edit(agent_id: uuid.UUID, journal_id: uuid.UUID, request: Request):
+        return await runtime(request).reflections.edit(
+            str(agent_id), str(journal_id), await bounded_configuration(request, 480000)
+        )
+
+    @router.post("/agents/{agent_id}/reflections/candidates/{candidate_id}/decision")
+    async def reflection_decision(agent_id: uuid.UUID, candidate_id: uuid.UUID, request: Request):
+        return await runtime(request).reflections.decide(
             str(agent_id), str(candidate_id), await bounded_configuration(request, 2048)
         )
 

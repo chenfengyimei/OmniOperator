@@ -1,4 +1,6 @@
-# Mac mini 新会话接续提示词
+# Mac mini 初次迁移提示词（2026-11-18 历史）
+
+> 日常开发请复制 [双设备协作的 Mac mini 提示词](V2_MULTI_DEVICE_PROMPTS.md#mac-mini)。下文保留初次迁移时的任务背景。
 
 所有者自行复制项目或通过 Git 的 `v2` 分支迁移后，将下方完整文本粘贴给 Mac mini 上的新会话。项目目录和系统版本由接手会话在本机读取。迁移步骤见 [开发环境交接](V2_MACMINI_MIGRATION.md)，原生实现断点见 [macOS 交接](v2/platforms/macos/V2_MACOS_HANDOFF.md)。
 

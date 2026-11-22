@@ -11,12 +11,22 @@ from typing import cast
 
 from sqlalchemy import Select, delete, func, select, text, update
 
-from ...application.ports import Record
+from ...application.ports import Record, UnitOfWork
 from ...domain.contracts import BusinessError
 from ...domain.documents import TEXT_INDEX_VERSION, VECTOR_CANDIDATES, DocumentText, document_title, normalized_vector
 from ...domain.reflection import document_links, journal_body
 from . import schema as s
+from .reflection_media import media_receipt
 from .retention_repository import RetentionRepositories
+
+
+def journal_identity(
+    body: Mapping[str, object], documents: list[tuple[str, str, str]], media: dict[tuple[str, int, str], Record]
+) -> str:
+    parts: list[object] = [body, sorted(documents)]
+    if media:
+        parts.append([(key, media[key]) for key in sorted(media)])
+    return json.dumps(parts, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
 
 
 class DocumentRepositories(RetentionRepositories):
@@ -292,7 +302,31 @@ class DocumentRepositories(RetentionRepositories):
         if self._one(s.runs, agent_id, run_id)["state"] != "running":
             raise BusinessError("journal_run_inactive", "Journal capture requires an active run")
         body = journal_body(fields)
-        links = document_links(body, anchors)
+        if not 1 <= len(anchors) <= 20:
+            raise BusinessError("invalid_journal_anchor", "Expected one to twenty observations", status=422)
+        documents: list[object] = []
+        media: dict[tuple[str, int, str], Record] = {}
+        for item in anchors:
+            if not isinstance(item, dict) or "action_id" not in item:
+                documents.append(cast(object, item))
+                continue
+            entry = cast(dict[str, object], item)
+            action, position, field = entry.get("action_id"), entry.get("position"), entry.get("field")
+            if (
+                set(entry) != {"action_id", "position", "field"}
+                or not isinstance(action, str)
+                or not action.isascii()
+                or len(action) != 36
+                or type(position) is not int
+                or position < 0
+                or not isinstance(field, str)
+                or not body.get(field, "").strip()
+            ):
+                raise BusinessError(
+                    "invalid_journal_anchor", "Expected a media action, position and journal field", status=422
+                )
+            media[(action, position, field)] = media_receipt(self, agent_id, run_id, action, position)
+        links = document_links(body, documents) if documents else []
         verified: list[tuple[str, str, str]] = []
         revisions: dict[str, str] = {}
         for capture_id, field in links:
@@ -312,7 +346,7 @@ class DocumentRepositories(RetentionRepositories):
                 raise BusinessError("invalid_journal_anchor", "Captured range is no longer available")
             verified.append((capture_id, field, hashlib.sha256(content[start:end].encode()).hexdigest()))
 
-        identity = json.dumps([body, verified], ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+        identity = journal_identity(body, verified, media)
         fingerprint = hashlib.sha256(identity.encode()).hexdigest()
         journals = s.reflection_journals
         previous = self.connection.execute(
@@ -354,6 +388,19 @@ class DocumentRepositories(RetentionRepositories):
                 },
                 agent_id,
             )
+        for (action, position, field), receipt in media.items():
+            self._record(
+                s.reflection_media_links,
+                {
+                    "journal_id": journal["id"],
+                    "action_id": action,
+                    "position": position,
+                    "field": field,
+                    "source_id": receipt["source_id"],
+                    "receipt": receipt,
+                },
+                agent_id,
+            )
         return journal
 
     def document_validate_results(self, agent_id: str, rows: list[Record]) -> None:
@@ -382,6 +429,29 @@ class DocumentRepositories(RetentionRepositories):
         )
         return cast(Record, dict(row)) if row else None
 
+    def reflection_invalidate_readers(self, agent_id: str, source_id: str, *, media: bool) -> None:
+        if media:
+            journals = select(s.reflection_media_links.c.journal_id).where(
+                s.reflection_media_links.c.source_id == source_id
+            )
+        else:
+            journals = (
+                select(s.reflection_document_links.c.journal_id)
+                .join(s.context_documents, s.context_documents.c.id == s.reflection_document_links.c.capture_id)
+                .join(s.document_revisions, s.document_revisions.c.id == s.context_documents.c.document_revision_id)
+                .where(s.document_revisions.c.document_id == source_id)
+            )
+        sessions = set(
+            self.connection.scalars(
+                select(s.runs.c.session_id)
+                .join(s.reflection_reads, s.reflection_reads.c.run_id == s.runs.c.id)
+                .where(s.runs.c.agent_id == agent_id, s.reflection_reads.c.journal_id.in_(journals))
+            )
+        )
+        if sessions:
+            for memory_id in self._invalidate_sessions(agent_id, sessions):
+                cast(UnitOfWork, self).forget(agent_id, memory_id)
+
     def document_erasure_begin(self, agent_id: str, document_id: str, revision: int) -> Record:
         doc = self._one(s.source_documents, agent_id, document_id)
         if type(revision) is not int or revision != doc["revision"]:
@@ -400,6 +470,7 @@ class DocumentRepositories(RetentionRepositories):
                     )
                 )
             return self._one(s.document_erasure_jobs, agent_id, cast(str, job["id"]))
+        self.reflection_invalidate_readers(agent_id, document_id, media=False)
         row = self._record(
             s.document_erasure_jobs,
             {

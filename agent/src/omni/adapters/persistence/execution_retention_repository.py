@@ -107,6 +107,9 @@ class ExecutionRetentionRepositories(RepositoryBase):
                 or_(pending_outbound(), s.outbox.c.state == "unknown", held_outbound()),
             ),
             "memory_source": select(s.source_anchors.c.id).where(s.source_anchors.c.action_id.in_(actions)),
+            "reflection_media_source": select(s.reflection_media_links.c.id).where(
+                s.reflection_media_links.c.action_id.in_(actions)
+            ),
             "document_context_source": select(s.context_documents.c.id).where(
                 s.context_documents.c.action_id.in_(actions)
             ),

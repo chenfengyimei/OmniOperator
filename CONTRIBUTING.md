@@ -62,8 +62,10 @@ uv run --no-sync pytest -q          # 多模块集成收尾或所有者明确要
 
 ## 5. Pull Request 流程（Gitee）
 
+V2 双设备的分工、分支同步与交接位置见 [双设备协作开发规范](docs/V2_MULTI_DEVICE_DEVELOPMENT.md)。
+
 1. Fork 或建分支，一个 PR 聚焦一件事；
-2. PR 描述写清：做了什么、为什么、怎么验证的（贴上全量测试输出摘要）；
+2. PR 描述说明改动、原因、受影响的调用方与专项结果；已执行全量时附被测提交和结果摘要；
 3. 涉及行为变更的，先在 PR 里说明与 [docs/REFACTORING.md](docs/REFACTORING.md)
    兼容合同的符合性（HTTP 契约、公开 import、旧命令兼容）；
 4. 维护者评审通过后合并；发布与对外宣传由所有者统一决策（见 [docs/ACCEPTANCE.md](docs/ACCEPTANCE.md)）。

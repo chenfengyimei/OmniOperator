@@ -25,7 +25,7 @@ from ..domain.contracts import (
     ToolSpec,
 )
 from ..domain.delegation import CHILD_CONCURRENCY, DELEGATE_TASK, SUMMARY_CHARS, inherited, record_tools, task_batch
-from ..domain.images import model_tokens
+from ..domain.images import model_tokens, zoom_part_id
 from ..domain.memory_decay import TOUCH_LIMIT
 from ..domain.repetition import is_degenerate_reply
 from ..domain.routing import REQUEST_MODE, select_tools
@@ -51,6 +51,7 @@ from .ports import (
     Record,
     UnitOfWork,
 )
+from .reflections import REFLECTION, ReflectionService
 from .skills import SkillService
 from .todos import TodoService
 
@@ -64,7 +65,7 @@ class Capability:
     quiescent: Callable[[], bool] | None = None
 
 
-_CONTROL_NAMES = frozenset({REQUEST_MODE.name, DELEGATE_TASK.name, TODO_LIST.name, CLARIFY.name})
+_CONTROL_NAMES = frozenset({REQUEST_MODE.name, DELEGATE_TASK.name, TODO_LIST.name, CLARIFY.name, REFLECTION.name})
 _IMAGE_UNATTACHED = "[Image registered but not attached: {reason}; do not infer its content.]"
 
 
@@ -91,6 +92,7 @@ class Application:
         memory_semantics: MemorySemanticService | None = None,
         skills: SkillService | None = None,
         todos: TodoService | None = None,
+        reflections: ReflectionService | None = None,
         delegation_enabled: bool = False,
         background_review: BackgroundReviewService | None = None,
         clarify: ClarifyService | None = None,
@@ -113,6 +115,9 @@ class Application:
         self._memory_semantics = memory_semantics
         self._skills = skills
         self._todos = todos
+        self._reflections = reflections
+        if REFLECTION.name in self._tools and reflections:
+            raise ValueError("Reflection control name is reserved")
         self._delegation_enabled = delegation_enabled
         self._background_review = background_review
         self._clarify = clarify
@@ -307,6 +312,8 @@ class Application:
                     settings["max_steps"] = min(settings["max_steps"], cast(int, delegated["max_calls"]))
                 remote = await self._db.read(lambda u: u.qq_run(agent_id, run_id))
                 registry = {} if remote else dict(self._tools)
+                if self._reflections and not remote and not delegated:
+                    registry[REFLECTION.name] = Capability(REFLECTION, self._reflections)
                 if self._todos is not None and not remote:
                     registry[TODO_LIST.name] = Capability(TODO_LIST, self._todos)
                 if self._clarify is not None and not remote:
@@ -337,8 +344,17 @@ class Application:
                     str(route["mode"]), any(spec.name == "request_mode" for spec in tools)
                 ) + (await self._skills.notice(agent_id, run_id) if self._skills and not remote else "")
                 todo_notice = await self._todo_notice(agent_id, run_id, tools)
+                reflection_notice = ""
+                if self._reflections and any(t.name == REFLECTION.name for t in tools):
+                    reflection_notice = await self._reflections.notice(agent_id, run_id)
+
                 prepared = await self._contexts.prepare(
-                    agent_id, run_id, settings, tools, extra_notice=initial_notice, tail_notice=todo_notice
+                    agent_id,
+                    run_id,
+                    settings,
+                    tools,
+                    extra_notice=initial_notice,
+                    tail_notice=todo_notice + reflection_notice,
                 )
                 messages: list[Record] = cast(list[Record], prepared["request"])
                 notice = str(prepared["notice"])
@@ -424,7 +440,7 @@ class Application:
                                             "role": "tool",
                                             "tool_call_id": call.id,
                                             "content": await self._tool_message_content(
-                                                agent_id, run_id, messages, outcome, settings
+                                                agent_id, run_id, messages, outcome, settings, call.name
                                             ),
                                         }
                                     )
@@ -456,7 +472,7 @@ class Application:
                                     "role": "tool",
                                     "tool_call_id": call.id,
                                     "content": await self._tool_message_content(
-                                        agent_id, run_id, messages, result, settings
+                                        agent_id, run_id, messages, result, settings, call.name
                                     ),
                                 }
                             )
@@ -676,7 +692,7 @@ class Application:
         batch_registry: Mapping[str, Capability],
         tools: tuple[ToolSpec, ...],
     ) -> BatchEntry:
-        if call.name == "request_mode":
+        if call.name in ("request_mode", REFLECTION.name):
             return BatchEntry(call.name)
         if (
             call.name == DELEGATE_TASK.name
@@ -696,7 +712,13 @@ class Application:
         return BatchEntry(call.name, resource=cap.spec.resource or call.name, parallel=True)
 
     async def _tool_message_content(
-        self, agent_id: str, run_id: str, messages: list[Record], result: ActionResult, settings: Settings
+        self,
+        agent_id: str,
+        run_id: str,
+        messages: list[Record],
+        result: ActionResult,
+        settings: Settings,
+        tool_name: str,
     ) -> JSON:
         """Same-turn tool-image attachment; mirrors with_images selection for the in-memory transcript."""
         if not result.images:
@@ -731,7 +753,9 @@ class Application:
         for ref in result.images[:keep]:
             image_part: dict[str, JSON] = {
                 "type": "omni_image",
-                "part_id": str(uuid.uuid4()),
+                "part_id": zoom_part_id(str(result.data["frames_id"]), ref.object_id)
+                if tool_name == "media_zoom" and result.data.get("frames_id")
+                else str(uuid.uuid4()),
                 "object_id": ref.object_id,
                 "sha256": ref.sha256,
                 "width": ref.width,
@@ -797,6 +821,13 @@ class Application:
             and any(t.name == DELEGATE_TASK.name for t in tools)
         ):
             return await self._delegate(agent_id, run_id, call.arguments)
+        if call.name == REFLECTION.name and call.name in batch_registry and self._reflections:
+            return await self._reflections.invoke(
+                call.name,
+                call.arguments,
+                operation_id=run_id,
+                context=InvocationContext(agent_id, run_id, session_id, policy),
+            )
         if call.name == TODO_LIST.name and call.name in batch_registry and self._todos is not None:
             # Planning is an internal control like request_mode: no external
             # action, human approval or executable capability is created.

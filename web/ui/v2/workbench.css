@@ -3835,7 +3835,8 @@ body[data-ui-page="workbench-v2"] .approval-card {
   display: flex;
   flex-direction: column;
   gap: var(--sp-2);
-  margin: var(--sp-2) 0;
+  /* 外边距归零：卡片同时出现在对话浮层与右栏待办列表，间距由两个容器各自排布 */
+  margin: 0;
   padding: var(--sp-3);
   border: 1px solid var(--warn-bd);
   border-left: 3px solid var(--warn);
@@ -4413,4 +4414,70 @@ body[data-ui-page="workbench-v2"] #logs details.log-layer h3 {
   margin: 10px 14px 4px;
   font-size: var(--fs-headline);
   color: var(--text-2);
+}
+
+/* ==========================================================================
+   审批浮层（所有者 2026-11-21 反馈）：审批卡此前内联在消息流上方，一有 pending
+   就把整段会话上顶、且和状态条重复播报。对齐 V1 顶部横幅：悬浮在对话区顶部居中，
+   不占消息流高度。#chat 在对话模式已 position:relative + overflow:hidden，
+   与回底 FAB 同一手法（见 .fab-down）。
+   ========================================================================== */
+body[data-ui-page="workbench-v2"] #approvals {
+  position: absolute;
+  top: var(--sp-3);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 8;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  width: min(620px, calc(100% - 2 * var(--sp-4)));
+  max-height: calc(100% - 2 * var(--sp-3));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  /* 无待审批时空盒也必须放行消息区的滚动与选字 */
+  pointer-events: none;
+}
+body[data-ui-page="workbench-v2"] #approvals > * {
+  pointer-events: auto;
+}
+/* 悬浮在消息之上要有自身底色，靠玻璃 token 而不是新的色值 */
+body[data-ui-page="workbench-v2"] #approvals .approval-card {
+  background: var(--glass-strong-bg);
+  box-shadow: var(--glass-strong-shadow);
+  backdrop-filter: blur(var(--glass-strong-blur)) saturate(var(--glass-strong-sat));
+  -webkit-backdrop-filter: blur(var(--glass-strong-blur)) saturate(var(--glass-strong-sat));
+}
+body[data-ui-page="workbench-v2"] .approval-countdown {
+  font-variant-numeric: tabular-nums;
+}
+body[data-ui-page="workbench-v2"] .approval-countdown.is-urgent {
+  color: var(--warn);
+  font-weight: 650;
+}
+body[data-ui-page="workbench-v2"] .approval-countdown.is-expired {
+  color: var(--danger);
+  font-weight: 650;
+}
+
+/* ==========================================================================
+   右栏「待办」= 审批界面（所有者 2026-11-21）：此前只有一句提示和一个计数，
+   待审批项既列不出也点不动。现在与对话浮层共用同一张卡，计数升级为标题行。
+   非对话页 aside.inspector 是 display:none，所以这里天然只在对话页出现。
+   ========================================================================== */
+body[data-ui-page="workbench-v2"] #inspector-todo-count {
+  color: var(--text-2);
+  font-size: var(--fs-small);
+}
+body[data-ui-page="workbench-v2"] #inspector-todo-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+/* 待办列表面板窄（右栏 ~300px），参数块与按钮组按窄栏收身 */
+body[data-ui-page="workbench-v2"] #inspector-todo-list .approval-head b {
+  font-size: var(--fs-secondary);
+}
+body[data-ui-page="workbench-v2"] #inspector-todo-list .approval-args {
+  max-height: 120px;
 }

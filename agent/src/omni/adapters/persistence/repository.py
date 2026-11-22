@@ -56,7 +56,11 @@ def _text_excerpt(text: str) -> str:
     return raw[:240] + ("…" if len(raw) > 240 else "")
 
 
+from .reflection_repository import ReflectionRepositories
+
+
 class Repositories(
+    ReflectionRepositories,
     DelegationRepositories,
     TodoRepositories,
     SkillRepositories,

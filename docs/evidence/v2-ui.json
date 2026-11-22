@@ -1,7 +1,7 @@
 {
   "batch": "v2-ui-connection-stability-v128",
   "recorded_at": "2026-11-15",
-  "resource_version_final": "20261120v172",
+  "resource_version_final": "20261121v173",
   "v1_alignment": {
     "summary": "用户提供 V1 正式工作台截图后，直接精读 web/ui/workbench.css 的 V1 实现并逐项移植，使 V2 结构与 V1 一致（而非自创风格）。",
     "ported_from_v1": [
@@ -1549,6 +1549,23 @@
       "踩坑修复": "sticky最近滚动口被.page的overflow-y:auto劫持(非对话真实滚动口是.settings-content)→#logs非对话overflow-y:visible;base.css body不透明底盖负层→镜像选择器透底;h3 margin简写覆盖层卡左缩进→改10px 14px 4px",
       "截图": "p8-logs-dark-1440.png/p8-logs-sticky-dark-1440.png/p8-logs-light-1440.png/p8-logs-dark-390.png/p8-tabs-texture-dark-1440.png/p8-tabs-light-1440.png",
       "版本": "V2 20261120v172"
+    }
+  },
+  "ui_iteration_p9_approval_overlay": {
+    "需求": "所有者 2026-11-21 截图与追问共三点：① 运行状态条/模型片段状态文字与实时调用链、审批卡重复（图一）；② 审批卡内联在消息流上方，应移到顶部并参照 V1 界面（图二/图三）；③ 追问「审批界面可能忽略了」——确认不需要跨页常驻，改为把右栏「待办」页签做成真正可查看可决定的审批界面",
+    "交付": [
+      "状态降噪：main.js NOISE_STATES 对 running/waiting_approval/cancelling 不再写 #run-status 文本（#run-status:empty 隐藏空条），错误码与终态仍显示；index.html 删除 #model-live-status，model-output.js 同步去掉写入点，面板只留 aria-label 与临时片段",
+      "审批浮层：index.html 把 #approvals 移入 #chat 首个子节点；workbench.css 新增分节——position:absolute + top:var(--sp-3) + left:50%/translateX(-50%) + z-index:8 + width:min(620px,calc(100%-2*var(--sp-4))) + max-height 内滚 + pointer-events:none（子节点 auto），复用 .chat-mode #chat 已有的 position:relative（与回底 FAB 同法），玻璃底/阴影走 --glass-strong-* token，不新增色值",
+      "倒计时：renderApprovals 用 Date.parse(expires_at)-now 每秒递减「剩余 MM:SS，过期后需重新发起」，替换 String().slice(11,16) 直接截 UTC 钟点的错误显示（本机 +08:00 会少 8 小时）；≤60s 加 is-urgent(--warn)、过期 is-expired(--danger)；倒计时节点 aria-live=off 免每秒播报；每轮重建卡片前先 stopCountdowns 清表清定时器",
+      "审批界面：卡片构造抽成 approvalCard(approval)，renderApprovals 同时填充对话浮层 #approvals 与右栏 #inspector-todo-list；待办页签原状只有 dashed 空态+一句提示+计数（列出/决定都做不到），现改为 #inspector-todo-count 标题行（1 项待审批）+ #inspector-todo-list 卡列表 + #inspector-todo-empty 空态在有 pending 时收起；两处按钮走同一个 POST /approvals/{id}，批准后下一轮 poll 一起收起；.approval-card 外边距归零由两个容器各自排 gap，窄栏收身（标题 --fs-secondary、参数块 max-height 120px）",
+      "版本串整组 20261120v172→20261121v173（web/ui/v2/*.js + index.html + 两份 V2 提示文档 + 本证据 resource_version_final）"
+    ],
+    "验证": {
+      "专项": "UI token/glass 守卫 16/16；check_frontend.py 86 模块 node --check 过；待办页签标记无测试依赖（grep data-inspector/inspector-todo 零命中）；model_stream 8 + ui + navigation + desktop_actions + foreground + delivery + bilibili UI 回归 104/104（-n 0，NO_PROXY 隔离，22:15，待办改造后复跑）",
+      "实测": "temp/build/_approval_overlay_check.py 24/24：空浮层零高度且不拦截消息区点击；waiting_approval 下 #run-status 文本为空且不可见；#model-live-status 节点数 0；浮层 computed position=absolute、距 #chat 顶 13px、对话区内水平居中、#messages 几何 63/703.91 前后一致（不挤占消息流）；倒计时 01:53→01:49 递减且无「请在 HH:MM」UTC 钟点；expires_at=+40s 进入 is-urgent 且颜色翻 warn；待办页签列出 1 张卡且 panel checkVisibility、标题「1 项待审批」、空态收起、卡带倒计时与 2 个按钮；点待办的「允许本次」POST 到 /approvals/{id} 且 allowed=true；批准后浮层与待办同时清空并回到空态「暂无待办」；1440/390 双宽无横向溢出、无 pageerror",
+      "范围说明": "按所有者决定不做跨页常驻：非对话页 aside.inspector 本就 display:none，审批浮层只在对话页出现，回看/决定入口为对话页右栏「运行→待办」页签",
+      "截图": "approval-overlay-top.png/approval-overlay-urgent.png/approval-todo-tab.png/approval-overlay-390.png",
+      "版本": "V2 20261121v173"
     }
   }
 }

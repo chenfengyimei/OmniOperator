@@ -8,11 +8,11 @@
     <link rel="stylesheet" href="/assets/ui/tokens.css?v=20261120u2" />
     <link rel="stylesheet" href="/assets/ui/base.css?v=20261103v7" />
     <link rel="stylesheet" href="/assets/ui/icons.css?v=20261115u1" />
-    <link rel="stylesheet" href="/assets/ui/v2/v1/components.css?v=20261120v172" />
-    <link rel="stylesheet" href="/assets/ui/v2/v1/frame.css?v=20261120v172" />
-    <link rel="stylesheet" href="/assets/ui/v2/v1/workbench.css?v=20261120v172" />
-    <link rel="stylesheet" href="/assets/ui/v2/workbench.css?v=20261120v172" />
-    <link rel="stylesheet" href="/assets/vendor/xterm.min.css?v=20261120v172" />
+    <link rel="stylesheet" href="/assets/ui/v2/v1/components.css?v=20261121v173" />
+    <link rel="stylesheet" href="/assets/ui/v2/v1/frame.css?v=20261121v173" />
+    <link rel="stylesheet" href="/assets/ui/v2/v1/workbench.css?v=20261121v173" />
+    <link rel="stylesheet" href="/assets/ui/v2/workbench.css?v=20261121v173" />
+    <link rel="stylesheet" href="/assets/vendor/xterm.min.css?v=20261121v173" />
   </head>
   <body class="chat-mode" data-ui-page="workbench-v2">
     <header class="app-header">
@@ -311,8 +311,9 @@
           <div id="settings-rail" class="settings-rail" role="navigation" aria-label="设置分类"></div>
           <div class="settings-content">
             <p id="error" role="alert" hidden></p>
-            <div id="approvals" aria-live="polite"></div>
             <section id="chat" class="page">
+              <!-- 审批浮层：对齐 V1，悬浮在对话区顶部居中，不挤占消息流 -->
+              <div id="approvals" aria-live="polite"></div>
               <div id="messages" aria-live="polite">
                 <div class="empty-state">
                   <span class="material-icons">forum</span>
@@ -325,7 +326,6 @@
               </button>
               <p id="run-status" role="status"></p>
               <section id="model-live" hidden aria-label="模型临时输出">
-                <p id="model-live-status" role="status"></p>
                 <pre id="model-live-text"></pre>
               </section>
               <div id="composer">
@@ -2129,10 +2129,11 @@
               </div>
             </section>
             <section data-inspector-panel="todo" class="tab-body hidden">
-              <div class="inspector-empty-todo">
+              <strong id="inspector-todo-count">暂无待办</strong>
+              <div id="inspector-todo-list"></div>
+              <div class="inspector-empty-todo" id="inspector-todo-empty">
                 <span class="material-icons">task_alt</span>
-                <strong id="inspector-todo-count">暂无待办</strong>
-                <span>需要审批的动作会显示在对话上方，批准后才会执行。</span>
+                <span>需要审批的动作会浮在对话上方，批准后才会执行。</span>
               </div>
             </section>
             <section data-inspector-panel="skills" class="tab-body hidden">
@@ -2156,9 +2157,9 @@
       </div>
       <div id="service-list" class="svc-list"></div>
     </dialog>
-    <script src="/assets/vendor/xterm.js?v=20261120v172"></script>
-    <script src="/assets/vendor/xterm-addon-fit.js?v=20261120v172"></script>
-    <script src="/assets/ui/markdown.js?v=20261120v172"></script>
-    <script type="module" src="/assets/ui/v2/main.js?v=20261120v172"></script>
+    <script src="/assets/vendor/xterm.js?v=20261121v173"></script>
+    <script src="/assets/vendor/xterm-addon-fit.js?v=20261121v173"></script>
+    <script src="/assets/ui/markdown.js?v=20261121v173"></script>
+    <script type="module" src="/assets/ui/v2/main.js?v=20261121v173"></script>
   </body>
 </html>

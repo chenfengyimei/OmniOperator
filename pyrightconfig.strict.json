@@ -420,7 +420,11 @@
     "agent/src/omni/adapters/persistence/migrations/versions/v0049.py",
     "agent/src/omni/adapters/persistence/migrations/versions/v0050.py",
     "agent/src/omni/adapters/persistence/migrations/versions/v0051.py",
-    "agent/src/omni/domain/reflection.py"
+    "agent/src/omni/domain/reflection.py",
+    "agent/src/omni/adapters/persistence/migrations/versions/v0052.py",
+    "agent/src/omni/adapters/persistence/reflection_media.py",
+    "agent/src/omni/adapters/persistence/reflection_repository.py",
+    "agent/src/omni/application/reflections.py"
   ],
   "exclude": [
     "**/__pycache__"

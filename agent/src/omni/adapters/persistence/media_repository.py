@@ -7,7 +7,7 @@ from typing import cast
 from sqlalchemy import Table, delete, func, select, update
 from sqlalchemy.engine import Connection
 
-from ...application.ports import Record
+from ...application.ports import Record, UnitOfWork
 from ...domain.contracts import BusinessError
 from ...domain.media import JOB_STATES, OPERATIONS, upload_source_row
 from . import schema as s
@@ -170,6 +170,7 @@ class MediaRepositories(BilibiliRepositories):
             raise BusinessError(
                 "media_source_busy", "Cancel or wait for the active jobs of this source first", status=409
             )
+        cast(UnitOfWork, self).reflection_invalidate_readers(agent_id, source_id, media=True)
         self.connection.execute(
             delete(s.media_transcripts).where(
                 s.media_transcripts.c.agent_id == agent_id, s.media_transcripts.c.source_id == source_id

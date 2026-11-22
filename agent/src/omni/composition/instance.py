@@ -104,6 +104,7 @@ from ..application.ports import (
     UnitOfWork,
 )
 from ..application.qq import QQService, QQTransportPort
+from ..application.reflections import ReflectionService
 from ..application.routing import RoutingService
 from ..application.scheduling import SchedulingService
 from ..application.skills import SkillService
@@ -252,6 +253,7 @@ class Instance:
     maintenance: MaintenanceService
     memory_organization: MemoryOrganizationService
     background_review: BackgroundReviewService
+    reflections: ReflectionService
     extensions: ExtensionService
     action_reviews: ActionReviewService
     terminals: TerminalService
@@ -658,6 +660,7 @@ async def open_instance(
                 return ActionResult(Outcome.ERROR, "Unknown read tool", error_code="tool_not_found")
             return await cap.adapter.invoke(name, arguments, operation_id=context.run_id, context=context)
 
+        reflections = ReflectionService(database)
         background_review = BackgroundReviewService(
             database,
             calls,
@@ -695,6 +698,7 @@ async def open_instance(
             memory_semantics=memory_semantics,
             skills=skills,
             todos=TodoService(database) if capabilities is None else None,
+            reflections=reflections if capabilities is None else None,
             delegation_enabled=capabilities is None if delegation_enabled is None else delegation_enabled,
             background_review=background_review if capabilities is None else None,
             clarify=ClarifyService(database) if capabilities is None else None,
@@ -869,6 +873,7 @@ async def open_instance(
             maintenance=maintenance,
             memory_organization=memory_organization,
             background_review=background_review,
+            reflections=reflections,
             extensions=extensions,
             action_reviews=action_reviews,
             terminals=terminals,

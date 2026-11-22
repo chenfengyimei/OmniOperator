@@ -21,6 +21,11 @@ LOW_MODELS = {
 }
 
 
+def zoom_part_id(frames_id: str, object_id: str) -> str:
+    """Identify the image part of this particular zoom artifact, even for identical pixels."""
+    return str(uuid.uuid5(uuid.NAMESPACE_URL, f"omni:media_zoom:{frames_id}:{object_id}"))
+
+
 def image_ids(value: object) -> list[str]:
     if not isinstance(value, (list, tuple)):
         raise invalid()

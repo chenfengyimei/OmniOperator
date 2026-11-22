@@ -1,14 +1,13 @@
 // Generation fragments are temporary and never copied to saved chat or browser storage.
+// 状态提示行已删（所有者反馈：实时调用链已表达进度，重复文案是噪音）。
 export function mountModelOutput({ api, getAgent, getGeneration }) {
   const panel = document.getElementById('model-live'),
-    body = document.getElementById('model-live-text'),
-    status = document.getElementById('model-live-status');
+    body = document.getElementById('model-live-text');
   let sequence = 0;
   function clear() {
     sequence++;
     panel.hidden = true;
     body.textContent = '';
-    status.textContent = '';
   }
   async function refresh(runId) {
     const agent = getAgent(),
@@ -22,9 +21,6 @@ export function mountModelOutput({ api, getAgent, getGeneration }) {
     }
     panel.hidden = false;
     body.textContent = value.text;
-    status.textContent = value.truncated
-      ? '正在生成 · 仅显示片段末尾 · 尚未保存，最终以会话消息为准'
-      : '正在生成 · 临时片段，尚未保存或确认完成';
   }
   return { refresh, clear };
 }

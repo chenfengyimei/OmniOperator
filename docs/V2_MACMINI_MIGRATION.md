@@ -1,5 +1,7 @@
 # Mac mini 开发环境迁移交接（2026-11-18）
 
+> 这里保留迁移环境步骤和当时的断点。当前分工和 Git 流程见 [双设备协作开发规范](V2_MULTI_DEVICE_DEVELOPMENT.md)，新会话使用 [Mac mini 接续提示词](V2_MULTI_DEVICE_PROMPTS.md#mac-mini)。
+
 本次迁移接续整个 V2 开发。Windows 主体开发与离线候选已完成，实机专项记录见 [Windows 报告](v2/platforms/windows/WINDOWS_V2_ACCEPTANCE_2026-11-18.md)。前台点击样例的后续核查见 [核查证据](evidence/v2-windows-click-fixture.json)：修正 STATIC 顶层样例后，原生产点击点与真实遮挡拒绝通过；用户配合聚焦后的完整前台回归通过，最终文本为 `PREFIX-ONLY-OWNED-TEXT`，按钮计数为 1。四次生产动作回执均为 `unknown`，保持原回执、不重发；样例实际效果通过不等于生产后验已确认。首次聚焦超时的失败另行保留。当前源码没有统一全量覆盖，真实账号、模型质量、设备、干净机器与 72 小时证据仍分别待验，整个 V2 未完成。
 
 Mac 作为下一开发主机；Windows 工作区、服务和现有实例保留。迁移准备不表示已在 Mac 安装、编译或验收。
@@ -8,7 +10,7 @@ Mac 作为下一开发主机；Windows 工作区、服务和现有实例保留�
 
 所有者已明确：当前 Windows 会话只负责本地开发收尾、提交同步与交接文档，之后由所有者自行复制项目或通过 Git 迁移。无需向此会话提供 Mac 版本、路径或 SSH 信息；Mac 新会话在本机检查这些条件。
 
-- 可直接粘贴的完整提示词：[Mac mini 新会话接续提示词](V2_MACMINI_RESUME_PROMPT.md)。
+- 2026-11-18 迁移背景与当时的会话提示词见 [历史 Mac 接续](V2_MACMINI_RESUME_PROMPT.md)。
 - Windows 阶段结论及任务：[Windows 候选任务](tasks/v2-windows-candidate.json)；整个 V2 待办：[持续开发任务](tasks/v2-development.json)。
 - 已完成断点：Linux Enter 批 `f539f21e`；Windows 样例修正 `fbfc16b8`；人工前台复验与 arm64 交接记录 `73970d20`。最终交接以 `v2` 分支实际 HEAD 为准。
 - 本次收尾只调整文档、任务与索引，不变更运行源码或依赖，不重复此前已完成的专项，不启动全量。Windows 当前自有窗口复验结果与后续发布门槛分别保留。

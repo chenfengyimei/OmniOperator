@@ -20,7 +20,7 @@ Windows 主体开发与旧离线候选完成。历史 5998 全量只覆盖 7e64d
 
 自有窗口前台复验已通过，生产 unknown 回执保留。真实账号、模型质量、设备、干净机器及 72 小时仍待验。
 
-Mac mini 主开发，现有 Windows 保留运行和原生验收环境。开发中执行受影响专项，整个 V2 开发冻结后统一全量。
+Windows 与 Mac mini 共同迭代 `v2`。分工、同步和集成流程见 [双设备协作开发规范](V2_MULTI_DEVICE_DEVELOPMENT.md)。
 
 当前真值：[持续开发任务](tasks/v2-development.json)、[Windows 阶段](tasks/v2-windows-candidate.json)。
 

@@ -62,7 +62,8 @@ def test_model_preview_is_text_only_temporary_and_replaced_by_saved_output(ui_br
         page.locator("#message").fill("question")
         page.get_by_role("button", name="发送", exact=True).click()
         expect(page.locator("#model-live")).to_be_visible()
-        expect(page.locator("#model-live-status")).to_contain_text("尚未保存")
+        # 状态提示行已删（所有者反馈：实时调用链已表达进度，重复文案是噪音），只留临时片段
+        assert page.locator("#model-live-status").count() == 0
         expect(page.locator("#model-live-text")).to_contain_text("<script>")
         assert page.locator("#model-live script").count() == 0 and page.evaluate("window.injected") is None
         expect(page.locator("#messages")).not_to_contain_text("partial")

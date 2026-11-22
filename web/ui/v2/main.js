@@ -1,32 +1,32 @@
-import { mountSkills } from './skills.js?v=20261120v172';
-import { mountCredentials } from './credentials.js?v=20261120v172';
-import { mountAuditHistory, mountOperations } from './operations.js?v=20261120v172';
-import { mountCapabilities } from './capabilities.js?v=20261120v172';
-import { mountTokens } from './tokens.js?v=20261120v172';
-import { mountDocuments } from './documents.js?v=20261120v172';
-import { mountConfiguration } from './configuration.js?v=20261120v172';
-import { mountModels } from './models.js?v=20261120v172';
+import { mountSkills } from './skills.js?v=20261121v173';
+import { mountCredentials } from './credentials.js?v=20261121v173';
+import { mountAuditHistory, mountOperations } from './operations.js?v=20261121v173';
+import { mountCapabilities } from './capabilities.js?v=20261121v173';
+import { mountTokens } from './tokens.js?v=20261121v173';
+import { mountDocuments } from './documents.js?v=20261121v173';
+import { mountConfiguration } from './configuration.js?v=20261121v173';
+import { mountModels } from './models.js?v=20261121v173';
 import { ask } from '../dialog.js?v=20261103v7';
-import { mountPeople } from './people.js?v=20261120v172';
-import { mountDeliveries } from './deliveries.js?v=20261120v172';
-import { mountSchedules } from './schedules.js?v=20261120v172';
-import { mountMemorySemantics } from './memory-semantics.js?v=20261120v172';
-import { mountMemoryOrganization } from './memory-organization.js?v=20261120v172';
-import { mountExtensions } from './extensions.js?v=20261120v172';
-import { mountActionReviews } from './action-reviews.js?v=20261120v172';
-import { mountTerminals } from './terminals.js?v=20261120v172';
-import { mountDesktop } from './desktop.js?v=20261120v172';
-import { mountQQ } from './qq.js?v=20261120v172';
-import { mountBilibili } from './bilibili.js?v=20261120v172';
-import { mountMedia } from './media.js?v=20261120v172';
-import { mountMcp } from './mcp.js?v=20261120v172';
-import { mountAndroid } from './android.js?v=20261120v172';
-import { mountModelOutput } from './model-output.js?v=20261120v172';
-import { mountRouting } from './routing.js?v=20261120v172';
-import { mountChatImages } from './chat-images.js?v=20261120v172';
-import { mountInspector } from './inspector.js?v=20261120v172';
-import { mountSettingsRail } from './settings-rail.js?v=20261120v172';
-import { mountEventStream } from './event-stream.js?v=20261120v172';
+import { mountPeople } from './people.js?v=20261121v173';
+import { mountDeliveries } from './deliveries.js?v=20261121v173';
+import { mountSchedules } from './schedules.js?v=20261121v173';
+import { mountMemorySemantics } from './memory-semantics.js?v=20261121v173';
+import { mountMemoryOrganization } from './memory-organization.js?v=20261121v173';
+import { mountExtensions } from './extensions.js?v=20261121v173';
+import { mountActionReviews } from './action-reviews.js?v=20261121v173';
+import { mountTerminals } from './terminals.js?v=20261121v173';
+import { mountDesktop } from './desktop.js?v=20261121v173';
+import { mountQQ } from './qq.js?v=20261121v173';
+import { mountBilibili } from './bilibili.js?v=20261121v173';
+import { mountMedia } from './media.js?v=20261121v173';
+import { mountMcp } from './mcp.js?v=20261121v173';
+import { mountAndroid } from './android.js?v=20261121v173';
+import { mountModelOutput } from './model-output.js?v=20261121v173';
+import { mountRouting } from './routing.js?v=20261121v173';
+import { mountChatImages } from './chat-images.js?v=20261121v173';
+import { mountInspector } from './inspector.js?v=20261121v173';
+import { mountSettingsRail } from './settings-rail.js?v=20261121v173';
+import { mountEventStream } from './event-stream.js?v=20261121v173';
 // 直接复用 V1 的 rail 提示浮层模块（data-tip → #tip-layer），不自创实现
 import '../app/tips.js?v=20261103u6';
 
@@ -1287,77 +1287,107 @@ async function refreshSessions() {
     }),
   );
 }
-function renderApprovals(approvals) {
-  // 审批卡此前把工具名/JSON 直接塞进 textContent，视觉上就是一块灰底裸文本。
-  // 现在做成结构化卡片：标题 + 参数 + 过期时间 + 明确的主/次按钮（带忙碌反馈）。
-  const box = $('approvals');
-  if (!approvals.length) {
-    box.replaceChildren();
+// 审批剩余时间：expires_at 是服务端 UTC ISO，直接切出钟点会在非 UTC 时区显示错时间
+// （所有者截图里的「07:19」就是 UTC），改成按秒递减的剩余时长。
+let countdowns = [],
+  countdownTimer = null;
+function paintCountdown(node, expiresAt) {
+  const deadline = Date.parse(String(expiresAt || ''));
+  const seconds = Number.isFinite(deadline) ? Math.ceil((deadline - Date.now()) / 1000) : null;
+  if (seconds === null) {
+    node.textContent = '过期时间待同步，请尽快决定';
     return;
   }
-  box.replaceChildren(
-    ...approvals.map((approval) => {
-      const card = document.createElement('article');
-      card.className = 'approval-card';
-      const head = document.createElement('div');
-      head.className = 'approval-head';
-      const icon = document.createElement('span');
-      icon.className = 'material-icons';
-      icon.setAttribute('aria-hidden', 'true');
-      icon.textContent = 'shield';
-      const title = document.createElement('b');
-      title.textContent = `需要确认：${approval.tool}`;
-      const wait = document.createElement('span');
-      wait.className = 'approval-wait';
-      wait.textContent = 'Agent 正在等待';
-      head.append(icon, title, wait);
-      const args = document.createElement('pre');
-      args.className = 'approval-args';
-      args.textContent = JSON.stringify(approval.arguments ?? {}, null, 2);
-      const meta = document.createElement('div');
-      meta.className = 'approval-meta';
-      const clock = document.createElement('span');
-      clock.className = 'material-icons';
-      clock.setAttribute('aria-hidden', 'true');
-      clock.textContent = 'schedule';
-      const expire = document.createElement('span');
-      expire.textContent = `请在 ${String(approval.expires_at || '').slice(11, 16)} 前决定，过期后需重新发起`;
-      meta.append(clock, expire);
-      const actions = document.createElement('div');
-      actions.className = 'approval-actions';
-      for (const [label, allowed, cls] of [
-        ['允许本次', true, 'primary'],
-        ['拒绝', false, 'ghost'],
-      ]) {
-        const button = document.createElement('button');
-        button.type = 'button';
-        button.className = `approval-btn ${cls}`;
-        button.textContent = label;
-        button.addEventListener(
-          'click',
-          wrap(async () => {
-            button.disabled = true;
-            button.classList.add('is-busy');
-            try {
-              await api(scope(`/approvals/${approval.id}`), {
-                method: 'POST',
-                body: { allowed, policy_revision: approval.policy_revision },
-              });
-            } finally {
-              if (button.isConnected) {
-                button.disabled = false;
-                button.classList.remove('is-busy');
-              }
-            }
-            await poll();
-          }),
-        );
-        actions.append(button);
-      }
-      card.append(head, args, meta, actions);
-      return card;
-    }),
-  );
+  node.classList.toggle('is-urgent', seconds > 0 && seconds <= 60);
+  node.classList.toggle('is-expired', seconds <= 0);
+  if (seconds <= 0) {
+    node.textContent = '已过期，需重新发起';
+    return;
+  }
+  const pad = (value) => String(value).padStart(2, '0');
+  node.textContent = `剩余 ${pad(Math.floor(seconds / 60))}:${pad(seconds % 60)}，过期后需重新发起`;
+}
+function stopCountdowns() {
+  countdowns = [];
+  if (countdownTimer) clearInterval(countdownTimer);
+  countdownTimer = null;
+}
+// 一张审批卡，两个落点：对话顶部浮层（当场决定）与右栏「待办」页签（审批界面，可回看）。
+// 两处是各自独立的 DOM，按钮走同一个 resolve 端点，批准后下一轮 poll 一起收起。
+function approvalCard(approval) {
+  const card = document.createElement('article');
+  card.className = 'approval-card';
+  const head = document.createElement('div');
+  head.className = 'approval-head';
+  const icon = document.createElement('span');
+  icon.className = 'material-icons';
+  icon.setAttribute('aria-hidden', 'true');
+  icon.textContent = 'shield';
+  const title = document.createElement('b');
+  title.textContent = `需要确认：${approval.tool}`;
+  const wait = document.createElement('span');
+  wait.className = 'approval-wait';
+  wait.textContent = 'Agent 正在等待';
+  head.append(icon, title, wait);
+  const args = document.createElement('pre');
+  args.className = 'approval-args';
+  args.textContent = JSON.stringify(approval.arguments ?? {}, null, 2);
+  const meta = document.createElement('div');
+  meta.className = 'approval-meta';
+  const clock = document.createElement('span');
+  clock.className = 'material-icons';
+  clock.setAttribute('aria-hidden', 'true');
+  clock.textContent = 'schedule';
+  const expire = document.createElement('span');
+  expire.className = 'approval-countdown';
+  // 秒级跳动不进实时播报区，否则读屏会被每秒打断
+  expire.setAttribute('aria-live', 'off');
+  meta.append(clock, expire);
+  countdowns.push([expire, approval.expires_at]);
+  paintCountdown(expire, approval.expires_at);
+  const actions = document.createElement('div');
+  actions.className = 'approval-actions';
+  for (const [label, allowed, cls] of [
+    ['允许本次', true, 'primary'],
+    ['拒绝', false, 'ghost'],
+  ]) {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = `approval-btn ${cls}`;
+    button.textContent = label;
+    button.addEventListener(
+      'click',
+      wrap(async () => {
+        button.disabled = true;
+        button.classList.add('is-busy');
+        try {
+          await api(scope(`/approvals/${approval.id}`), {
+            method: 'POST',
+            body: { allowed, policy_revision: approval.policy_revision },
+          });
+        } finally {
+          if (button.isConnected) {
+            button.disabled = false;
+            button.classList.remove('is-busy');
+          }
+        }
+        await poll();
+      }),
+    );
+    actions.append(button);
+  }
+  card.append(head, args, meta, actions);
+  return card;
+}
+function renderApprovals(approvals) {
+  stopCountdowns();
+  $('approvals').replaceChildren(...approvals.map(approvalCard));
+  $('inspector-todo-list').replaceChildren(...approvals.map(approvalCard));
+  $('inspector-todo-empty').hidden = approvals.length > 0;
+  if (!approvals.length) return;
+  countdownTimer = setInterval(() => {
+    for (const [node, expiresAt] of countdowns) paintCountdown(node, expiresAt);
+  }, 1000);
 }
 let polling = null;
 function poll() {

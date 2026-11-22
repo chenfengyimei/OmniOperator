@@ -1,0 +1,16 @@
+{
+  "bg_content": {
+    "task_ids": [],
+    "route": "aigc",
+    "status": "failed",
+    "reason": "未从输出解析到本地产物路径",
+    "timestamp": "2026-11-14T07:48:45.172525"
+  },
+  "cover_main": {
+    "task_ids": [],
+    "route": "aigc",
+    "status": "failed",
+    "reason": "未从输出解析到本地产物路径",
+    "timestamp": "2026-11-14T07:48:50.431721"
+  }
+}

@@ -59,3 +59,24 @@ def document_links(body: Mapping[str, str], links: Sequence[object]) -> list[tup
             raise BusinessError("invalid_journal_anchor", "Invalid document capture or journal field", status=422)
         unique.add((capture, field))
     return sorted(unique)
+
+
+def excerpt(body: Mapping[str, object], fields: Mapping[str, object]) -> str:
+    field, start, end = fields.get("field"), fields.get("start"), fields.get("end")
+    value = body.get(field) if isinstance(field, str) else None
+    if (
+        field not in ("revision", "next_response")
+        or not isinstance(value, str)
+        or type(start) is not int
+        or type(end) is not int
+        or not 0 <= start < end <= len(value)
+        or end - start > 240
+        or not value[start:end].strip()
+    ):
+        raise BusinessError(
+            "reflection_excerpt_invalid", "Choose 1–240 exact characters from revision or next_response", status=422
+        )
+    sentence = value[start:end]
+    if "sentence" in fields and fields["sentence"] != sentence:
+        raise BusinessError("reflection_excerpt_invalid", "Excerpt differs from source text", status=422)
+    return sentence

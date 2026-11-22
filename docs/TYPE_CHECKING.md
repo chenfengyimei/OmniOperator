@@ -483,7 +483,15 @@ strict 配置显式将 `agent/src` 加入导入根，隔离源码副本也解析
 
 | `agent/src/omni/adapters/persistence/migrations/versions/v0051.py` | 冻结迁移版本 v0051（反思信笺、文档/媒体已读锚点与待审队列；新表与身份/禁删触发器，`downgrade` 拒绝） |
 
+| `agent/src/omni/adapters/persistence/migrations/versions/v0052.py` | 冻结迁移版本 v0052（反思媒体锚点、修订绑定审核与所有者日槽；身份/禁删触发器，`downgrade` 拒绝） |
+
 | `agent/src/omni/domain/reflection.py` | 反思信笺纯领域：8 字段正文、证据锚点、摘录选择与修订状态约束 |
+
+| `agent/src/omni/application/reflections.py` | 反思控制与所有者审核用例：观察/保存/读取/摘录/跳过，共享同一事务账本 |
+
+| `agent/src/omni/adapters/persistence/reflection_repository.py` | 反思审核持久化：范围/来源/修订 CAS、精确摘录与原子所有者决定 |
+
+| `agent/src/omni/adapters/persistence/reflection_media.py` | 反思媒体证据收据：媒体动作/产物锚点与擦除联动 |
 
 `pyrightconfig.strict.json` 的 `include` 必须与本表完全一致；`agent/tests/v2/core/test_v2_typecheck_scope.py` 会双向校验。
 
