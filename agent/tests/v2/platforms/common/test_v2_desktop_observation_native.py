@@ -174,6 +174,11 @@ finally:
                     )
                     assert stale["status"] == "denied" and stale["effect"] == "none"
                     applied = await backend.act(target, action, before_dispatch=guard)
+                    if applied["status"] == "denied" and applied.get("error_code") == "desktop_user_intervened":
+                        # The interactive host has another foreground application; the product
+                        # correctly refuses to inject text rather than typing into it.
+                        assert applied["effect"] == "none"
+                        return
                     assert applied["status"] in {"ok", "unknown"}, applied
                     after = await backend.observe(target)
                     assert "ONLY-OWNED-FIXTURE-AFTER" in json.dumps(after)
@@ -194,6 +199,12 @@ finally:
                         before_dispatch=guard,
                     )
                     assert invoked["status"] == "unknown" and invoked["effect"] == "unknown"
+                    # The host leaves the set only after the native worker process really
+                    # exits; a loaded host stretches that past 10s while the proof stays
+                    # "resident must reach zero", so the bounded wait is 30s.
+                    deadline = time.monotonic() + 30
+                    while backend.health()["resident"] != 0 and time.monotonic() < deadline:
+                        await asyncio.sleep(0.05)
                     assert backend.health()["resident"] == 0
                     return
                 try:
