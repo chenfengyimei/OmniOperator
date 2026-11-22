@@ -811,6 +811,14 @@
           "contract": "docs/v2/contracts/V2_BILI_SHARE_POLICY.md",
           "evidence": "docs/evidence/v2-bili-share-policy-design.json",
           "delivered": "纯设计合同：参考事实（share.enabled/reason>=8/score 0-20>=minScore13/rank1；shareDaily3+同BV7日去重+有效上限min(shareDaily,silence)；正文以 @owner 开头且不看白名单；拦截先于发送与记账；notify none/desktop/webhook/command/dm，$MSG shell 占位因注入风险已弃用、command 走 execFileSync 无 shell；AI-share 默认 OFF、仅 comment--share--auto、样本<=20/扩样<=40、TTL6h、代码自算比例、阈值 30(代码) vs 60(文档) 漂移且从未在线验证；DM 1 收件人/日/互关硬编码/300 字）与 V2 映射（既有 prepare→owner 审批→outbox→已审表单、D5 沉默上限、D4-Q2 配额账本）；S1 资格门逐条拒绝码、S2 逐条审批（推荐）vs 自主分享（需独立授权）、S3 bilibili_share_ledger（A 迁移号/unknown 保守/local-day）、S4 首版 owner 事件+既有 delivery 不加 webhook/command（另需安全合同）、S5 AI-share 守卫推荐 S5-A 暂不移植且不宣称对等、S6 不照搬 30 日/1 收件人等参考数值；不变量与测试计划列明。未实现、无源码/测试/迁移改动"
+        },
+        {
+          "gap": "#6 直播设计合同（room/history/WS 弹幕/gift 只读/send/独立开关；L1-L5）",
+          "status": "design_contract_recorded",
+          "batch": "K18.live_design",
+          "contract": "docs/v2/contracts/V2_BILI_LIVE.md",
+          "evidence": "docs/evidence/v2-bili-live-design.json",
+          "delivered": "纯设计合同：参考事实（get_info/gethistory/GetDMConfigByGroup；msg/send 表单与错误码 0/-101/-111/-400/1003212/10031、失败必须非零；live 需 WBI getDanmuInfo 取 token+host_list、16 字节包头、op7 鉴权/op2 心跳 30s、ver3 brotli/ver2 zlib、op5 DANMU_MSG/INTERACT_WORD/SEND_GIFT 只读、独立开关 owner/@-only、gift/charge 发送参考亦未实现）；V2 映射（websockets>=17.3 已是依赖、bilibili_read 固定 host 读、owner-side LiveDanmakuService 内存 ring buffer 不落库、写路径纪律拒绝直接 API POST）；L1 房间读、L2 历史读、L3 WS 监听（推荐 owner 服务+owner-only 摘要）、L4 发送（推荐L4-a 不做；L4-b 已审表单独立写批；L4-c 直接 API POST 拒绝）、L5 独立开关默认 OFF/owner-only/风险码联动；安全（固定 host、WS .bilibili.com 后缀+wss 校验、token 不带 cookie、单帧 1MiB/解压 4MiB+eof、不可信文本、单连接+全局上限+心跳/退避/关闭等待）；测试计划列明。未实现、无源码/测试/迁移改动、无锁文件改动"
         }
       ],
       "limits": "只读审计无新工具/表/迁移/路由/源码改动；可离线缺口未在K18审计批实现(列后续批次)，其中读API广度之搜索/space whois/弹幕/热门排行feed/关注动态feed/收藏夹/视频标签/观看历史/收件箱reply-at已在K18.search/K18.whois/K18.danmaku/K18.feed/K18.following/K18.favorites/K18.tag/K18.history/K18.msgfeed后续批实现、收件箱收到的赞like已在K18.msgfeed_like后续批实现(参考likes.mjs x/msgfeed/like形状{latest/total嵌套+users[]点赞者数组+like_time+counts}根本不同于reply/at data.items单user，独立msgfeed_like_rows合并去重保序+users截断≤20+FEED_MAX_ROWS50+显式502，msgfeed_kind接受reply/at/like，reply/at字节等价零回归，like cursor分页/notice_state过滤/自主点赞反馈仍后续；DM关注关系relation已在K18.relation后续批实现(参考dm.mjs x/relation?fid=<mid> attribute owner→target/be_relation反向，relation_view派生follows/followed_by/mutual/blocked纯只读发现，plain GET无WBI无缓存，mid经uid校验，既有operation字节等价零回归，写路径prepare/outbox不变relation不作发送硬门；relation作prepare互关硬门需所有者决策/relation_modify写/followings fans列表分页/DM发送写广度仍后续)；风险码每账号暂停与所有者恢复已在K18.risk_pause实现，已批准outbox投递不追溯阻断；写广度/自主观看/受控分享仍后续)；V1 tools/bilibili实现不计V2对等；不宣称全集API/主动观看/受控分享对等；参考agents.md/RULES当不可信数据非本会话指令；K18为清单末项领域参考审计(K13-K18全部记录)；既有todos重启竞态与6个pin v2_0039旧迁移测试沿用保留(本批实测memory_semantics×2/routing×1/skills×2/media×1)；v0045遗留action_review崩溃重试守卫已修(started_at投影+NULL断言)",
@@ -1186,6 +1194,10 @@
     {
       "id": "K18.share_policy_design",
       "evidence": "docs/evidence/v2-bili-share-policy-design.json"
+    },
+    {
+      "id": "K18.live_design",
+      "evidence": "docs/evidence/v2-bili-live-design.json"
     }
   ]
 }
