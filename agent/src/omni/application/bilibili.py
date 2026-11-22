@@ -5,9 +5,11 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
-from collections.abc import Mapping
+import time
+from collections.abc import Callable, Mapping
 from typing import Protocol, cast
 
+from ..domain.bilibili import READ_CACHE_TTL_S, ReadCache, read_cache_key
 from ..domain.contracts import JSON, ActionResult, BusinessError, InvocationContext, Outcome, ToolSpec
 from .ports import DatabasePort, DeliveryPort, Record
 
@@ -100,8 +102,17 @@ log = logging.getLogger("omni.v2.bilibili")
 
 
 class BilibiliService:
-    def __init__(self, database: DatabasePort, gateway: BilibiliPort) -> None:
+    def __init__(
+        self,
+        database: DatabasePort,
+        gateway: BilibiliPort,
+        *,
+        clock: Callable[[], float] = time.monotonic,
+        cache: ReadCache | None = None,
+    ) -> None:
         self._db, self._gateway = database, gateway
+        self._clock = clock
+        self._cache = cache if cache is not None else ReadCache()
         self._closing = False
         self._pending: set[asyncio.Task[object]] = set()
 
@@ -122,6 +133,30 @@ class BilibiliService:
                     "This account is paused by risk control; the owner must resume it",
                     status=403,
                 )
+            authority = cast(str, config["authority"])
+            revision_id = cast(str, config["revision_id"])
+            # A rotated credential is a new generation: nothing stored for older ones may be served.
+            self._cache.discard_generations(agent_id, config_id, authority)
+            ttl = READ_CACHE_TTL_S.get(operation)
+            key = read_cache_key(agent_id, config_id, authority, operation, target, limit) if ttl is not None else None
+            if key is not None:
+                cached = self._cache.get(key, self._clock())
+                if cached is not None:
+                    current = await self._db.read(
+                        lambda u: u.bilibili_read_authorized(agent_id, config_id, revision_id)
+                    )
+                    if current["authority"] == authority:
+                        log.info(
+                            "Bilibili read served from cache",
+                            extra={
+                                "event": "bilibili.read_cached",
+                                "agent_id": agent_id,
+                                "operation": operation,
+                            },
+                        )
+                        return cached
+                    # The credential generation changed after this snapshot: never serve the stale copy.
+                    self._cache.discard_scope(agent_id, config_id)
             try:
                 result = await self._gateway.read(cast(Mapping[str, object], config["value"]), operation, target, limit)
             except BusinessError as exc:
@@ -133,11 +168,18 @@ class BilibiliService:
                         status=403,
                     ) from exc
                 raise
-            current = await self._db.read(
-                lambda u: u.bilibili_read_authorized(agent_id, config_id, cast(str, config["revision_id"]))
-            )
-            if current["authority"] != config["authority"]:
+            current = await self._db.read(lambda u: u.bilibili_read_authorized(agent_id, config_id, revision_id))
+            if current["authority"] != authority:
                 raise BusinessError("bilibili_credential_changed", "Credential authority changed during the read")
+            if key is not None and ttl is not None and self._cache.put(key, result, self._clock(), ttl):
+                log.info(
+                    "Bilibili read cached",
+                    extra={
+                        "event": "bilibili.read_cache_store",
+                        "agent_id": agent_id,
+                        "operation": operation,
+                    },
+                )
             log.info(
                 "Bilibili read and account verified",
                 extra={"event": "bilibili.read_verified", "agent_id": agent_id},
@@ -250,10 +292,17 @@ class BilibiliService:
             return ActionResult(Outcome.ERROR, exc.message, error_code=exc.code)
 
     def health(self) -> dict[str, object]:
-        return {"closing": self._closing, "active_reads": len(self._pending), "publication_approval_required": True}
+        return {
+            "closing": self._closing,
+            "active_reads": len(self._pending),
+            "publication_approval_required": True,
+            "read_cache_entries": self._cache.entries,
+            "read_cache_bytes": self._cache.bytes,
+        }
 
     def stop_accepting(self) -> None:
         self._closing = True
+        self._cache.clear()
 
     async def close(self, timeout_s: float = 30) -> bool:
         self.stop_accepting()

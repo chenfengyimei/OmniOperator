@@ -86,6 +86,17 @@ V2 模型侧工具面（生产 `capabilities is None`）：`system_info`、`file
 5. **工具调用代码沙箱**（参考 `execute_code`/`code_kernel`）：本地 Python 沙箱 + 允许清单 RPC 桥 + 持久 kernel。复杂，独立批次。
 6. **原始 CDP / 脚本化浏览器执行**（参考 `browser_cdp`/`browser_exec`）：需 CDP 接入与帧路由，独立批次。
 
+## 实现进度（2026-11-22 更新；审计原文保留为当时快照）
+
+缺口清单 1–6 状态：
+
+1. **工作区搜索：已交付**——`files_search` 内容/文件名发现 + output_mode/context/offset/order/file_glob（含否定）/use_regex 有界安全门，见 `V2_FILES_SEARCH*.md` 系列合同与证据。
+2. **模糊补丁：已交付**——`files_patch` 指纹 CAS 模糊编辑 + escape/unicode 归一化 + block_anchor/context_aware 近似兜底（近似命中永不许 `replace_all`），见 `V2_FILES_PATCH*.md` 系列与证据。
+3. **浏览器对话框：已交付**——`7827b664`（有界持有队列，accept/dismiss + `prompt_text` + `expected_url` CAS）。
+4. **cron 技能绑定 + 输出依赖：已交付**——`1d52cca1`（v0049 两表一列）、`a3436361`（触发链技能激活/上游输出注入/Redactor 脱敏）、`4acc46c9`（`cronjob_manage` 六动作）、`42cf2e98`（生产端到端四批完结）。
+5. **工具调用代码沙箱：未实现（决策待定）**——见 [剩余差异决策登记](V2_REMAINING_DECISIONS.md) D2（新执行面，需独立安全合同）。
+6. **原始 CDP / 脚本化浏览器执行：未实现（决策待定）**——见决策登记 D3（可绕 URL 审批，需合同）。
+
 ## 需实机/账号/网络验收清单（不可离线宣称对等）
 
 - 渠道全集（discord/feishu/yuanbao/x_search/27 gateway 平台）、hosted connector 账号管理、catalog hub。

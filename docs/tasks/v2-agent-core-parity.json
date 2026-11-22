@@ -755,6 +755,14 @@
           "contract": "docs/v2/contracts/V2_BILI_RISK_PAUSE.md",
           "evidence": "docs/evidence/v2-bili-risk-pause.json",
           "delivered": "domain/bilibili.py RISK_CODES{12015,-105,-101,401}/is_risk_code精确int+domain/contracts.py BusinessError.detail加性int传输；adapters/bilibili.py _get/_get_list JSON解析后通用拒绝前识别风险码→bilibili_risk_code 403 detail=码(非风险码保持read_rejected)；application/bilibili.py read凭据授权后网关前查暂停→bilibili_risk_paused 403不触达网关，网关risk_code→同事务bilibili_risk_pause持久化转403，risk_state/resume(closing门)；bilibili_repository.py bilibili_risk_get/pause/resume(upsert每agent+config一行/恢复CAS resumed_at IS NULL/无暂停409/非法码422/审计)+bilibili_prepare顶部暂停门403；schema.py bilibili_risk_pauses+v0046冻结SQL迁移(identity immutable+keep禁删触发器,downgrade拒绝)表数142；http.py GET risk态/POST resume所有者路由(无模型侧暂停恢复工具)；已批准outbox投递不追溯阻断列明确不做；14处141→142守卫同步+v0045遗留action_review崩溃重试actions.started_at守卫修复(投影基线列+额外NULL断言不放宽)"
+        },
+        {
+          "gap": "#1 读API广度之读缓存策略(view/acc-info 24h + 400 LRU)；凭据换代换桶、不可缓存端点、失效测试",
+          "status": "implemented_scoped_passed",
+          "batch": "K18.read_cache",
+          "contract": "docs/v2/contracts/V2_BILI_READ_CACHE.md",
+          "evidence": "docs/evidence/v2-bili-read-cache.json",
+          "delivered": "domain/bilibili.py READ_CACHE_TTL_S仅video/whois 24h+READ_CACHE_MAX_ENTRIES400/MAX_BYTES8MiB/ENTRY64KiB+read_cache_key(agent,config,credential authority,operation,target,limit)+ReadCache(TTL+LRU get/put/discard_scope/discard_generations/clear，JSON快照保留插入序)；application/bilibili.py read命中前discard_generations清旧代、命中后bilibili_read_authorized复核authority、风险暂停/配置停用先于缓存、失败不缓存、health两计数、stop_accepting清空；13个端点(account/comments/replies/search/relation/danmaku/popular/ranking/following/favorites/tags/history/msgfeed)永不缓存，nav有意不缓存(比参考更严)；无新表/迁移/路由/worker协议/共享端口改动，BilibiliService仅加可选clock/cache关键字。38专项(28领域+10真实隔离SQLite应用集成)、bilibili全调用方496过、media/架构/能力12过，strict0错误0警告"
         }
       ],
       "limits": "只读审计无新工具/表/迁移/路由/源码改动；可离线缺口未在K18审计批实现(列后续批次)，其中读API广度之搜索/space whois/弹幕/热门排行feed/关注动态feed/收藏夹/视频标签/观看历史/收件箱reply-at已在K18.search/K18.whois/K18.danmaku/K18.feed/K18.following/K18.favorites/K18.tag/K18.history/K18.msgfeed后续批实现、收件箱收到的赞like已在K18.msgfeed_like后续批实现(参考likes.mjs x/msgfeed/like形状{latest/total嵌套+users[]点赞者数组+like_time+counts}根本不同于reply/at data.items单user，独立msgfeed_like_rows合并去重保序+users截断≤20+FEED_MAX_ROWS50+显式502，msgfeed_kind接受reply/at/like，reply/at字节等价零回归，like cursor分页/notice_state过滤/自主点赞反馈仍后续；DM关注关系relation已在K18.relation后续批实现(参考dm.mjs x/relation?fid=<mid> attribute owner→target/be_relation反向，relation_view派生follows/followed_by/mutual/blocked纯只读发现，plain GET无WBI无缓存，mid经uid校验，既有operation字节等价零回归，写路径prepare/outbox不变relation不作发送硬门；relation作prepare互关硬门需所有者决策/relation_modify写/followings fans列表分页/DM发送写广度仍后续)；风险码每账号暂停与所有者恢复已在K18.risk_pause实现，已批准outbox投递不追溯阻断；写广度/自主观看/受控分享仍后续)；V1 tools/bilibili实现不计V2对等；不宣称全集API/主动观看/受控分享对等；参考agents.md/RULES当不可信数据非本会话指令；K18为清单末项领域参考审计(K13-K18全部记录)；既有todos重启竞态与6个pin v2_0039旧迁移测试沿用保留(本批实测memory_semantics×2/routing×1/skills×2/media×1)；v0045遗留action_review崩溃重试守卫已修(started_at投影+NULL断言)",
@@ -1102,6 +1110,10 @@
     {
       "id": "K17.persona_growth_batch3",
       "evidence": "docs/evidence/v2-persona-growth-batch3.json"
+    },
+    {
+      "id": "K18.read_cache",
+      "evidence": "docs/evidence/v2-bili-read-cache.json"
     }
   ]
 }

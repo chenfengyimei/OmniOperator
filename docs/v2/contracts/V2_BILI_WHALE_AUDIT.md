@@ -69,6 +69,18 @@
 6. 直播：room info/history/WebSocket 实时弹幕解析（brotli/deflate）/send/gift 只读事件/独立开关/所有者或 @-only 范围（真实连接需账号网络）。
 7. AI-share 守卫（参考默认 OFF、阈值硬编码 30 与文档 60 漂移、模型协议遵从+误报率**从未在线验证**）：若移植须独立合同 + 真实验证，不照抄漂移阈值。
 
+## 实现进度（2026-11-22 更新；审计原文保留为当时快照）
+
+清单 1–7 的实现状态逐项如下（**未实现项均为决策待定，见 [剩余差异决策登记](V2_REMAINING_DECISIONS.md)**）：
+
+1. **读 API 广度：已交付**——`search` `4802dbca`、`whois` `f673f969`、`danmaku` `f80ab73d`、`popular/ranking` `b14d06ff`、`following` `091e20d1`、`favorites` `4c280835`、`tags` `a81a0353`、`history` `21417ec6`、`msgfeed` `624413eb`、`msgfeed like` `2608f592`、`relation` `840e5f5f`。**缓存策略：已交付**——`K18.read_cache`（[合同](V2_BILI_READ_CACHE.md)：仅 `video`/`whois` 24h + 400 条/8MiB 有界 LRU；凭据换代换桶并清旧代；13 个端点永不缓存；`nav` 有意不缓存）。**剩余**：读侧速率预算（600/h·3000/d）、真实账号命中率/新鲜度。
+2. **写广度：未实现（决策待定）**——fav/dynamic/danmaku-send/comment-del 的已审表单 + 配额见决策 D4。
+3. **主动观看：未实现（决策待定）**——night-plan/双日记/沉默衰减/反馈/候选打分/偏好学习见决策 D5（与 K15 协同）。
+4. **受控分享策略：未实现（决策待定）**——share 阈值/去重/notify 后端见决策 D6。
+5. **风险暂停：已交付**——`8923054c`（风险码 `[12015,-105,-101,401]` 每账号暂停 + 所有者恢复，v0046）。
+6. **直播：未实现（决策待定）**——room/WS/gift/send 见决策 D7。
+7. **AI-share 守卫：未实现且不放默认套件**——若移植须独立合同 + 真实验证，不照抄 30/60 漂移阈值（并入决策 D6）。
+
 ## 需账号 / 网络 / 模型质量 / 计划未实现验收（另验）
 
 - **需真实 B 站账号/网络**：所有 apiGet/fetch 端点、QR 登录、deps/selftest（真实 nav）、全部写发送、直播 WebSocket、真实送达/风控/弹幕质量。参考 `network` allowlist + `redirect:'error'`/`manual`、凭据只发 api.bilibili.com（V2 CDN allowlist + 固定 API 同纪律）。
@@ -77,4 +89,4 @@
 
 ## 完成条件
 
-K18 审计完成**不宣称全集 API/主动观看/受控分享对等**：V2 四层已有 API WBI 读（account/video/comments/replies）+ 媒体读 + comment/private_message 准备→所有者审批→outbox→已审浏览器表单投递 + 凭据权威 CAS + CDN allowlist + mention 精确范围 + 幂等指纹 + 共享限额/冷却/送达核查；读 API 广度/写广度（fav/dynamic/danmaku/del）/自主生物钟观看/双日记/沉默衰减/候选打分/偏好学习/直播/AI-share 守卫为**可离线缺口或需账号网络**，分别列后续批次与另验。V1 `tools/bilibili` 实现**不计 V2 对等**。like/coin/follow/gift/charge 参考亦未实现。`whole_core_parity_complete`、`whole_reference_feature_audit_complete`、`whole_v2_complete` 保持 false（K01 会话/lineage 缓存范围仍 partial、K13–K18 记录的可离线缺口尚未实现、真实账号/设备/模型质量与 72 小时验收待办）。K18 为清单末项领域参考审计；后续择机实现 K13/K14/K15/K16/K17/K18 记录的可离线缺口（独立批次，先授权/持久化合同后执行接线），并补 K01 缓存范围，整个 V2 开发冻结后统一全量与实机验收，其他对标项不提前关闭。
+K18 审计完成**不宣称全集 API/主动观看/受控分享对等**：V2 四层已有 API WBI 读（account/video/comments/replies）+ 媒体读 + comment/private_message 准备→所有者审批→outbox→已审浏览器表单投递 + 凭据权威 CAS + CDN allowlist + mention 精确范围 + 幂等指纹 + 共享限额/冷却/送达核查；**读 API 广度与读缓存已交付**（见上「实现进度」），写广度（fav/dynamic/danmaku/del）/自主生物钟观看/双日记/沉默衰减/候选打分/偏好学习/直播/AI-share 守卫仍为**决策待定或需账号网络**，分别列决策登记与另验。V1 `tools/bilibili` 实现**不计 V2 对等**。like/coin/follow/gift/charge 参考亦未实现。`whole_core_parity_complete`、`whole_reference_feature_audit_complete`、`whole_v2_complete` 保持 false（K01 会话/lineage 缓存范围仍 partial、K13–K18 记录的可离线缺口尚未实现、真实账号/设备/模型质量与 72 小时验收待办）。K18 为清单末项领域参考审计；后续择机实现 K13/K14/K15/K16/K17/K18 记录的可离线缺口（独立批次，先授权/持久化合同后执行接线），并补 K01 缓存范围，整个 V2 开发冻结后统一全量与实机验收，其他对标项不提前关闭。

@@ -5,7 +5,9 @@ from __future__ import annotations
 import hashlib
 import html
 import json
+import math
 import re
+from collections import OrderedDict
 from collections.abc import Mapping
 from typing import cast
 from urllib.parse import parse_qsl, quote, urlencode, urlsplit
@@ -644,6 +646,124 @@ def msgfeed_like_rows(data: Mapping[str, object], limit: int) -> dict[str, objec
             }
         )
     return {"items": items, "has_more": len(merged) >= limit}
+
+
+# Bounded read cache for endpoints whose payload is stable enough to serve stale for a day
+# (reference dsh-bili-whale: view/acc-info 24h, 400-entry LRU). Every other read is live on
+# every call — account, comments, replies, search, relation, danmaku, feeds, favorites, tags,
+# history, msgfeed — and nav is never cached so a rotated credential is observed next read.
+READ_CACHE_TTL_S: Mapping[str, float] = {"video": 86_400.0, "whois": 86_400.0}
+READ_CACHE_MAX_ENTRIES = 400
+READ_CACHE_MAX_BYTES = 8 * 1024 * 1024
+READ_CACHE_MAX_ENTRY_BYTES = 64 * 1024
+
+ReadCacheKey = tuple[str, str, str, str, str, int]
+
+
+def read_cache_key(
+    agent_id: str, config_id: str, authority: str, operation: str, target: str, limit: int
+) -> ReadCacheKey:
+    """Key includes owner, configuration and credential generation, so a rotated credential misses."""
+    if (
+        not isinstance(cast(object, agent_id), str)
+        or not agent_id
+        or not isinstance(cast(object, config_id), str)
+        or not config_id
+        or not isinstance(cast(object, authority), str)
+        or not authority
+        or not isinstance(cast(object, operation), str)
+        or not operation
+        or not isinstance(cast(object, target), str)
+        or type(limit) is not int
+        or limit < 1
+    ):
+        raise ValueError("Read cache keys require owner, configuration, authority, operation and a positive limit")
+    return (agent_id, config_id, authority, operation, target, limit)
+
+
+class ReadCache:
+    """TTL + LRU snapshots of JSON payloads; no I/O, no clock reads and no unbounded memory."""
+
+    def __init__(
+        self,
+        max_entries: int = READ_CACHE_MAX_ENTRIES,
+        max_bytes: int = READ_CACHE_MAX_BYTES,
+    ) -> None:
+        if type(max_entries) is not int or max_entries < 1 or type(max_bytes) is not int or max_bytes < 1:
+            raise ValueError("Read cache bounds must be positive integers")
+        self._max_entries, self._max_bytes = max_entries, max_bytes
+        self._entries: OrderedDict[ReadCacheKey, tuple[float, int, str]] = OrderedDict()
+        self._bytes = 0
+
+    @property
+    def entries(self) -> int:
+        return len(self._entries)
+
+    @property
+    def bytes(self) -> int:
+        return self._bytes
+
+    def get(self, key: ReadCacheKey, now: float) -> dict[str, object] | None:
+        entry = self._entries.get(key)
+        if entry is None:
+            return None
+        expires, _, raw = entry
+        if now >= expires:
+            self._drop(key)
+            return None
+        self._entries.move_to_end(key)
+        try:
+            decoded: object = json.loads(raw)
+        except (ValueError, RecursionError):
+            self._drop(key)
+            return None
+        if not isinstance(decoded, dict):
+            self._drop(key)
+            return None
+        return cast(dict[str, object], decoded)
+
+    def put(self, key: ReadCacheKey, value: dict[str, object], now: float, ttl_s: float) -> bool:
+        """Store an immutable snapshot; returns False when it cannot fit the byte bounds."""
+        if type(ttl_s) not in (int, float) or not math.isfinite(ttl_s) or ttl_s <= 0:
+            raise ValueError("Read cache TTL must be finite and positive")
+        try:
+            # Insertion order is preserved on the round trip so a cache hit serializes byte-identically
+            # to the live read it replaces.
+            raw = json.dumps(value, ensure_ascii=False, separators=(",", ":"))
+            size = len(raw.encode())
+        except (TypeError, ValueError, UnicodeError):
+            return False
+        if size > READ_CACHE_MAX_ENTRY_BYTES or size > self._max_bytes:
+            return False
+        self._drop(key)
+        self._entries[key] = (now + float(ttl_s), size, raw)
+        self._bytes += size
+        while len(self._entries) > self._max_entries or self._bytes > self._max_bytes:
+            self._drop(next(iter(self._entries)))
+        return True
+
+    def discard_scope(self, agent_id: str, config_id: str) -> int:
+        """Drop every generation of one configuration after its credential authority changes."""
+        keys = [key for key in self._entries if key[0] == agent_id and key[1] == config_id]
+        for key in keys:
+            self._drop(key)
+        return len(keys)
+
+    def discard_generations(self, agent_id: str, config_id: str, authority: str) -> int:
+        """Drop snapshots of retired credential generations once the current generation is known."""
+        keys = [key for key in self._entries if key[0] == agent_id and key[1] == config_id and key[2] != authority]
+        for key in keys:
+            self._drop(key)
+        return len(keys)
+
+    def clear(self) -> None:
+        self._entries.clear()
+        self._bytes = 0
+
+    def _drop(self, key: ReadCacheKey) -> None:
+        entry = self._entries.pop(key, None)
+        if entry is not None:
+            self._bytes -= entry[1]
 
 
 class Form(BaseModel):
