@@ -294,6 +294,16 @@ K13.cron_model_design 已记录**实现前设计合同**（纯文档，无源码
 - **未验**：真实 B 站账号 `space_history` 送达/字段（need_top、私密动态、分页）、动态详情/富卡片解析、动态写（D4-B3/B4）、直播（D7）、AI-share（D6）；当前源码未全量。
 - **下一批**：`fav_resources` 只读（D4-B0 剩余，离线无授权面）或等 Q1/Q2 后 D4-B1 `comment_delete`/B3 dynamic 写（`dynamic_list` 已可作验证面）；D8/D9 仍是最低成本决策；D5/D6/D7 合同待写。共享接口/迁移/公共 CI 由 A 协调。
 
+### 2026-11-23 K18 收藏夹内容只读 `fav_resources`（第 5 批，`k18-read-cache`）
+
+- **范围/基线**：承接前四批；本批为**实现批**（读-only），基线仍 `origin/v2`=`0793f254`（前四批未合入），同一任务分支/独立工作树。
+- **已交**：`bilibili_read` 新增 `operation=fav_resources`（target=收藏夹 id）——固定 `/x/v3/fav/resource/list`（`media_id/pn=1/ps=20/keyword=""/order=mtime/type=0/tid=0/platform=web`），登录后分派、folder id 在取 cookie 前 422；`domain/bilibili.py` 新增 `fav_folder_id`/`fav_resource_rows`（缺 medias 正常空、非列表/超 50 行/坏行/存在但非法 bvid 显式 502、缺失或空 bvid 的非视频与失效条目跳过、先过滤后取 limit 视频行、`bvid/title/author/duration_s/fav_time`、`info.title/media_count` 可选、`has_more` 精确 1/True 否则 `len>limit`）；application `READ_SPEC`、http Literal、缓存 allowlist 回归同步（不缓存）。**无新表/迁移/路由/worker 协议/共享端口/新源文件**，routing 不变、declared_tools 94。
+- **完成 D4-B0**：写扩面合同的只读前置（`dynamic_list` + `fav_resources`）已全部交付，D4-B2 `favorite_add` 的「回读目标夹确认」验证面就绪。
+- **验证**：新增 23 项（domain 行规则/跳过/坏 bvid×4/坏形状×4/>50/可选字段/filter-then-limit/has_more/folder id；gateway 固定端点+全部参数+cookie+登录顺序；非法 folder×7 网络前拒；风控码；坏 medias 502；spec+HTTP）**23 过 / 1.22s**；bilibili 全调用方 22 套件含 HTTP **546 过 / 142.79s**；strict **0 错误 0 警告**；ruff check/format 净（format 仅折行新测试，源码未变）。未跑全量、未触真实账号/网络。
+- **文档**：合同 [V2_BILI_FAV_RESOURCES](v2/contracts/V2_BILI_FAV_RESOURCES.md)；K18 审计读广度补 `fav_resources`；写扩面合同 D4-B0 标记完成；证据 [v2-bili-fav-resources.json](evidence/v2-bili-fav-resources.json)；任务 JSON `K18.fav_resources`。
+- **未验**：真实账号公开/私密收藏夹送达、`pn` 翻页/`tid`/排序变体、非视频媒体详情、收藏写（D4-B2）、动态写（D4-B3/B4）、直播（D7）、AI-share（D6）；当前源码未全量。
+- **下一批**：Q1/Q2 批准后 D4-B1 `comment_delete`（最小写面）/B2 `favorite_add`（`fav_resources` 验证）/B3 dynamic 文本；D8/D9 仍是最低成本决策；D5/D6/D7 合同待写。共享接口/迁移/公共 CI 由 A 协调。
+
 ## 追溯入口
 
 - [旧交接记录](history/pre-layout-2026-11-18/HANDOFF.md)、[旧重构记录](history/pre-layout-2026-11-18/V2_REFACTOR.md)只证明所属版本，不作为当前待办。
