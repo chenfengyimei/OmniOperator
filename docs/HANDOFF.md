@@ -20,7 +20,7 @@
 - Linux Enter 控件状态批 `f539f21e`：194 专项、3 个运行文件 strict 通过，真实 Linux 未验。[证据](evidence/v2-linux-key-state.json)。
 - Windows 样例修正 `fbfc16b8`、人工复验 `73970d20`：标准顶层窗口下点击点与遮挡拒绝通过，36 专项。自有窗口完整回归最终文本 `PREFIX-ONLY-OWNED-TEXT`、按钮 1 次，四次生产回执仍为 unknown、不重发。原 STATIC 样例导致跨进程命中，生产拒绝正确，矩形中心候选未保留。[复核证据](evidence/v2-windows-click-fixture.json)。
 - 历史 5998 全量仅覆盖 `7e64d348` 固定候选。后续修改、其他会话提交及本次目录迁移均不能复用为当前源码全量通过。
-- K17 反思来源链所有者审核批（rebase 到 `38c01d80`，含 v0052；首版 `6d6e92a4`）：媒体锚点、修订绑定审核与双日槽已接生产 HTTP 和工作台「反思信笺」页；本批修正待决定队列投影（只列当前修订 proposed，批准/拒绝/撤回/他人来源日占用即退出），补 v0051→head 升级、生产入口提交/批准/撤回/重启不复活、双文档删一清整封、中断擦除重启续清专项。40 项专项 278.05 秒、13 项架构/类型/nav 20.61 秒、strict 424 文件 0 错误。人格成长文件与固定 reader 待所有者先确认本版决策。[证据](evidence/v2-reflection-owner-review.json)。
+- K17 反思来源链所有者审核批（rebase 到 `38c01d80`，含 v0052；首版 `6d6e92a4`）：媒体锚点、修订绑定审核与双日槽已接生产 HTTP 和工作台「反思信笺」页；本批修正待决定队列投影（只列当前修订 proposed，批准/拒绝/撤回/他人来源日占用即退出），补 v0051→head 升级、生产入口提交/批准/撤回/重启不复活、双文档删一清整封、中断擦除重启续清专项。40 项专项 278.05 秒、13 项架构/类型/nav 20.61 秒、strict 424 文件 0 错误。[证据](evidence/v2-reflection-owner-review.json)。人格成长文件与固定 reader 已由所有者确认：做派生视图、reader 仅所有者只读页/HTTP、不注入系统前缀；设计合同 [V2_PERSONA_GROWTH](v2/contracts/V2_PERSONA_GROWTH.md) 已记录（无新表/迁移，拆三批实现）。[设计证据](evidence/v2-persona-growth-design.json)。
 
 ## 本次目录整理验证
 

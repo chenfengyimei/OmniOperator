@@ -28,6 +28,7 @@ Windows 与 Mac mini 按 [双设备协作开发规范](../V2_MULTI_DEVICE_DEVELO
 - [V2_MEMORY_SEMANTICS](contracts/V2_MEMORY_SEMANTICS.md)
 - [V2_MODEL_STREAMING](contracts/V2_MODEL_STREAMING.md)
 - [V2_OWNER_TOKENS](contracts/V2_OWNER_TOKENS.md)
+- [V2_PERSONA_GROWTH](contracts/V2_PERSONA_GROWTH.md)
 - [V2_QQ](contracts/V2_QQ.md)
 - [V2_ROUTING](contracts/V2_ROUTING.md)
 - [V2_SKILLS](contracts/V2_SKILLS.md)
