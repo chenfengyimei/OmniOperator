@@ -434,6 +434,20 @@ K13.cron_model_design 已记录**实现前设计合同**（纯文档，无源码
 - **未验**：未跑全仓全量（多模块集成收尾留 A）；真实 B 站账号/模型质量/设备/72 小时；D9 私网策略与 D1/D4–D7 决策实现。
 - **下一批**：分支已可交付 A（线性于 `0793f254`；主线若前进先 rebase 再重跑上述 41 文件命令）。剩余实现项全部由所有者决策门控（D1/D4–D7、D9 收尾、R1–R5、T1–T5），决策速览见决策登记。共享接口/迁移/公共 CI 由 A 协调。证据 [v2-prejoin-verification.json](evidence/v2-prejoin-verification.json)。
 
+### 并行任务分支集成风险（2026-11-23 核对，供 A）
+
+对 `origin/v2`（仍 `0793f254`）上并存的任务分支做只读文件级核对；本分支改动集与它们的交集：
+
+| 分支 | tip | 改动文件数 | 与本分支源码交集 | 与本分支文档交集 | 说明 |
+|---|---|---|---|---|---|
+| `k14-visual-persona` | `fa1bac0b` | 39 | **无** | `docs/HANDOFF.md`、`docs/index/MODULES.md`、`docs/index/project.json`、`docs/tasks/v2-agent-core-parity.json` | 含 `V2_K14_K15_DECISION_LEDGER.md`、memory initial/prefix 测试与证据（`test_v2_memory_prefix.py`、`v2-memory-prefix-regression.json`）。**与 K01 D1 前缀重构存在语义交叉**：若其 memory-prefix 工作改变 `context_memories` 可见集/前缀，A 需先合该分支再评估 D1 的 P1 方案（或反之），避免两份前缀改动互相覆盖。 |
+| `k16-storyboard` | `489d093b` | 25 | **无** | 同上四个文档 | 仅 media worker/domain/scenes 与 K16 合同/证据，与本分支源码无交集。 |
+| `linux-container-g3` | `37ab8640` | 5 | **无** | 仅 `docs/HANDOFF.md` | 仅 `composition/serving.py` + Linux 平台文档/证据。 |
+
+- **源码零交集**：三支与本分支的 6 个源码文件均不重叠，A 可按分支顺序合并源码而无需源码级冲突处理。
+- **文档冲突面**：HANDOFF、`docs/index/*`、任务 JSON 四方都会改；建议 A 在各分支合入后**只在一个干净树上最后再生一次索引**（`project_index.py` 二次运行确认幂等），HANDOFF 按批次顺序拼接而不是自动合并，任务 JSON 按各自的 `batches`/`followups` 条目合并（本分支已用 `K01.*`/`K13.*`/`K18.*` 唯一 id）。
+- **决策材料**：k14 分支另有 `V2_K14_K15_DECISION_LEDGER.md`，与本分支的 `V2_REMAINING_DECISIONS.md`（D1–D9/R1–R5/T1–T5）是两份独立决策台账，A 汇总给所有者时应并列而非相互覆盖；K16 的 `V2_K16_REMAINING_DECISIONS.md` 同理。
+
 ## 追溯入口
 
 - [旧交接记录](history/pre-layout-2026-11-18/HANDOFF.md)、[旧重构记录](history/pre-layout-2026-11-18/V2_REFACTOR.md)只证明所属版本，不作为当前待办。
