@@ -70,6 +70,24 @@
         }
       ]
     },
+    "post_merge_full_suite": {
+      "head": "bffd4eb7",
+      "command": "source/.venv/Scripts/python.exe -m pytest -q -n 4 --dist=loadfile --junitxml=full-bffd4eb7.xml",
+      "tests": 8424,
+      "passed": 8419,
+      "failed": 4,
+      "skipped": 1,
+      "seconds": 3864.59,
+      "junit": "C:/v2-acceptance/closeout-18b75b75/full-bffd4eb7.xml",
+      "failures": [
+        "test_ui_navigation.py::test_legacy_address_opens_registered_workbench_section[project-sec-project]",
+        "test_v2_qq.py::test_revocation_during_model_settles_cost_without_publishing_output",
+        "test_v2_desktop_control_ui.py::test_explicit_device_scope_is_separate_from_share_and_never_reports_input_enabled[390-dark]",
+        "test_v2_images_http.py::test_upload_configure_attach_report_and_download_are_scoped"
+      ],
+      "triage": "4 项均在高负载 4-worker 全量中失败；隔离同一 nodeid 复跑 12 passed（UI 导航全部参数化），无产品断言失败。",
+      "verdict": "K17 人格成长合并后未取得当前 HEAD 0 红全量；最后 0 红为祖先 0fe3cc5f（8389/0）"
+    },
     "invalid_attempts": [
       {
         "head": "18b75b75",
@@ -228,8 +246,8 @@
     "docs/index 再生（C0.5 暂缓）",
     "C1 功能缺口/平台收口/真实验收"
   ],
-  "full_suite_scope": "committed HEAD 0fe3cc5f；v0052 + 收尾修复 + K01(b)；主工作树无未提交 WIP",
-  "current_full_passed": true,
+  "full_suite_scope": "committed HEAD bffd4eb7；最后 0 红为祖先 0fe3cc5f（8389/0）；当前 HEAD 4 项负载误红隔离通过",
+  "current_full_passed": false,
   "all_quality_gates_passed": false,
   "whole_v2_complete": false
 }
