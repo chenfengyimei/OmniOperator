@@ -276,6 +276,15 @@ K13.cron_model_design 已记录**实现前设计合同**（纯文档，无源码
 - **未验**：D8/D9 未实现；真实 B 站账号/模型质量/公网浏览器/72 小时；当前源码未全量。
 - **下一批**：等所有者对 D8/D9（成本最低）或 D1–D7 决策后按合同独立批次接线；共享接口/迁移/公共 CI 由 A 协调。
 
+### 2026-11-22 K18 写扩面设计合同与配额缺口（第 3 批，`k18-read-cache`）
+
+- **范围/基线**：承接第 1/2 批；本批**纯设计合同**，无源码/测试/迁移/路由/worker 改动。基线仍 `origin/v2`=`0793f254`（前两批未合入），同一任务分支/独立工作树；本批文档提交见分支 tip。
+- **D4 设计合同**：[V2_BILI_WRITE_BREADTH](v2/contracts/V2_BILI_WRITE_BREADTH.md)——逐动作设计 `comment_delete`（记录行/删除菜单/复用 `browser_dialog` confirm/列表消失验证）、`favorite_add`（目标夹必须来自 `favorites`、跨夹重复需显式 ack、需新只读 `fav_resources` 验证）、`dynamic_post/delete/edit/image`（需新只读 `dynamic_list` 验证；图片上传独立安全审查）；`danmaku-send` 属直播 `api.live…/msg/send`，归 D7。读侧前置 `fav_resources`/`dynamic_list` 建议先批（只读、无授权、无迁移）。分批 B0→B4、不变量与测试计划已列。
+- **新发现 F1（配额缺口）**：现有已授权 comment/private_message 写路径**没有任何配额/冷却**——V2 只有 `MAX_ATTEMPTS=3` + `2**seq` 退避，唯一冷却为 QQ 专属 `cooldown_s`；B 站读/写均无参考的 600/h、12/h、120s、share≤3/日、评论 30 日、fav 3 日窗口。K18 审计「共享限额/冷却」措辞已在实现进度更正。配额机制需所有者选 Q1（审批+幂等，零迁移）/Q2（通用配额账本，A 分配迁移号）/Q3（内存限速，不采用）；若接 D5/D6 自主行为必须先落 Q2。
+- **决策状态**：D4 已补设计合同与 Q1/Q2 决策点；D8（cron 阻塞与评审）/D9（浏览器 SSRF floor）仍待所有者；D1/D2/D3/D5/D6/D7 未动。
+- **未验**：合同内所有动作与读前置未实现；真实 B 站账号发送/删除/收藏/动态未验；当前源码未全量。
+- **下一批**：等 Q1/Q2 与逐动作批准后先做 D4-B0（只读 `fav_resources`+`dynamic_list`），再做 B1 `comment_delete`；D8/D9 仍是最低成本决策项。共享接口/迁移/公共 CI 由 A 协调。
+
 ## 追溯入口
 
 - [旧交接记录](history/pre-layout-2026-11-18/HANDOFF.md)、[旧重构记录](history/pre-layout-2026-11-18/V2_REFACTOR.md)只证明所属版本，不作为当前待办。
