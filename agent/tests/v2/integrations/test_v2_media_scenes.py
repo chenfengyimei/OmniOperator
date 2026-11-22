@@ -759,3 +759,37 @@ def test_worker_scenes_sixty_second_material_keeps_the_scene_budget(tmp_path):
     assert len(stamps) == 12 and stamps == sorted(stamps) and len(set(stamps)) == 12
     assert all(0.0 <= stamp <= 60.0 for stamp in stamps)
     assert (tmp_path / "long.png").is_file()
+
+
+def test_worker_scenes_ten_minute_material_stays_bounded(tmp_path):
+    palette = [
+        (255, 0, 0),
+        (0, 255, 0),
+        (0, 0, 255),
+        (255, 255, 0),
+        (0, 255, 255),
+        (255, 0, 255),
+        (128, 0, 0),
+        (0, 128, 0),
+        (0, 0, 128),
+        (255, 128, 0),
+        (0, 128, 255),
+        (128, 255, 0),
+    ]
+    scenes = [(index * 30, (index + 1) * 30, palette[index % len(palette)]) for index in range(20)]
+    video = _make_scene_video(tmp_path / "ten-minutes.mp4", scenes)
+    result = worker._frames(
+        {
+            "video": str(video),
+            "sheet_output": str(tmp_path / "ten-minutes.png"),
+            "count": 12,
+            "width": 320,
+            "select": "scenes",
+        }
+    )
+    assert result["frame_count"] == 12
+    assert len(result["scene_cuts"]) == 19
+    stamps = result["timestamps"]
+    assert len(stamps) == 12 and stamps == sorted(stamps) and len(set(stamps)) == 12
+    assert all(0.0 <= stamp <= 600.0 for stamp in stamps)
+    assert (tmp_path / "ten-minutes.png").is_file()

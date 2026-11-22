@@ -1,6 +1,6 @@
 # V2 媒体场景切点抽帧与清晰度选帧（K16.scene_frames）
 
-状态：已实现并专项通过（2026-11-20）；2026-11-22 增补场景渐变合并（K16.scene_gradual）、上下黑边补偿（K16.scene_bars）、左右黑边补偿（K16.scene_bars_side）、邻域尖峰守卫（K16.scene_spike）、暗部增益（K16.scene_gain）、组合质量回归（K16.scene_quality）与采样上限/60s 素材（K16.scene_resource），固定素材复核见证据。学习参考 dsh-video-storyboard `src/storyboard/scan.js`（HSV 加权切点，PySceneDetect ContentDetector 思路）与 `frames.js extractSharpest`（Laplacian 清晰度选帧），独立实现于 V2 四层媒体链，不复用 V1 tools/storyboard。合并实现 K16 缺口 #1（HSV 切点+密度分段）与 #5（Laplacian 清晰度选帧）的**保守子集**。
+状态：已实现并专项通过（2026-11-20）；2026-11-22 增补场景渐变合并（K16.scene_gradual）、上下黑边补偿（K16.scene_bars）、左右黑边补偿（K16.scene_bars_side）、邻域尖峰守卫（K16.scene_spike）、暗部增益（K16.scene_gain）、组合质量回归（K16.scene_quality）、采样上限/60s（K16.scene_resource）与 600s 端到端（K16.scene_long），固定素材复核见证据。学习参考 dsh-video-storyboard `src/storyboard/scan.js`（HSV 加权切点，PySceneDetect ContentDetector 思路）与 `frames.js extractSharpest`（Laplacian 清晰度选帧），独立实现于 V2 四层媒体链，不复用 V1 tools/storyboard。合并实现 K16 缺口 #1（HSV 切点+密度分段）与 #5（Laplacian 清晰度选帧）的**保守子集**。
 
 ## 子批与证据（2026-11-22）
 
@@ -138,3 +138,15 @@ frames 作业新增可选 `select="scenes"`（默认 `equidistant` 字节等价�
 - 既有 32 项 scenes 与 K16 生产入口（locate/cells/zoom/frames/worker/cancel/工具图像预算）聚合套件见证据。
 
 **边界**：60s 为合成色块素材，不含真实运动/压缩复杂度、无真实长片内存/耗时曲线；OCR 与真实 B 站来源未验。
+
+
+## K16.scene_long（600s 端到端，2026-11-22）
+
+仅测试/证据，无生产改动：
+
+- 固定合成 **600s/20×30s** 高对比色块素材（2fps 上限 240 样本）：检出 **19 个切点**，count=12 产出 12 个唯一升序锚点与宫格；本机 `encode 0.31s + scenes 0.61s = 0.92s`（单次，非基准）。
+- 素材指纹 `ten-minutes.mp4=ca686f56…6afc7ab`（74785B，两次生成一致）。
+- 与 60s 用例共同验证：长片采样数不随 duration 线性增长、切点/锚点/宫格仍受既有 count/像素/字节/样本上限约束。
+- scenes 专项 33 项 11.56 秒；K16 生产入口 422 项结果沿用同生产源码。
+
+**边界**：合成色块，不含真实运动/压缩复杂度；未测真实 10min 内存曲线；7200s 最大时长未端到端；真实长片/真实 B 站仍另验。
