@@ -224,3 +224,7 @@ LaunchAgent 基线：本机当前没有 OmniOperator 用户服务 job，`~/Libra
 结论与建议：选 (a) 可行——用 LaunchServices/NSWorkspace（或 XPC 服务）启动 helper，使其真正拥有自己的 TCC；因为该启动方式没有可用的双向管道，需要一个常驻的只读诊断入口（如 `--diagnose <path>`）供验收。随后由所有者对 helper 自身授予辅助功能/屏幕/输入/投递权限。待办：该启动机制与只读诊断入口属合同/安全面，需 A 与所有者批准；ad-hoc 授权可能绑定 cdhash，最终授权必须在交付二进制上完成。未验：由 launchd 服务启动时的归属；TCC.db 受保护未读取。证据：[TCC 归属](../../../evidence/v2-macos-tcc-attribution-2026-11-22.json)。
 
 设计合同与方案 A1（LaunchServices 启动 + 宿主 UDS 传输，原型已通：0.266 秒、IPC 6 帧原样、`LOCAL_PEERPID` 可取对端、tccd 无 `responsible` 项）：[V2_MACOS_HELPER_TCC](../contracts/V2_MACOS_HELPER_TCC.md)。实施前需所有者/A 批准；当前生产仍为宿主归属的 POSIX 启动。
+
+### 2026-11-22 服务只读查询实机验证（absent 路径）
+
+用已安装交付 helper（`966be5fc…`）直接运行 `--service-query` / `--system-service-query`，查询随机 `com.omnioperator.v2.<uuid>` 标签：用户域 `gui/501` 与系统域均返回 `complete=true`、`loaded=false`、`job=null`、`error_code=""`（协议 `omni-macos-service-query-2`）。这证明弃用的 `SMJobCopyDictionary`/`SMCopyAllJobDictionaries` 在 macOS 27 SDK 27.2 仍可用，且“不存在”由完整枚举正面证明，而不是 nil 查询或枚举失败。查询由普通所有者执行：无提权、无 TCC 提示、无服务变更。未验 registered/loaded/ready 路径与真实安装；未创建瞬时 `launchctl` job（那属于真实注册变更）。证据：[服务只读查询](../../../evidence/v2-macos-service-query-2026-11-22.json)。
