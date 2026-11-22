@@ -66,7 +66,38 @@
       "state": "unknown",
       "pid": 55103
     },
-    "note": "the service is running and its runtime probe reports ready=true, but the loaded definition comparison returns unknown, so loaded/ready acceptance cannot pass"
+    "note": "the service is running and its runtime probe reports ready=true, but the loaded definition comparison returns unknown, so loaded/ready acceptance cannot pass",
+    "diagnosis": {
+      "method": "manual copy of the deployment plist + launchctl enable + bootstrap, then the raw helper --service-query (cleaned up afterwards)",
+      "loaded_job_keys": [
+        "Label",
+        "LastExitStatus",
+        "LimitLoadToSessionType",
+        "OnDemand",
+        "PID",
+        "Program",
+        "ProgramArguments",
+        "StandardErrorPath",
+        "StandardOutPath"
+      ],
+      "expected_plist_keys": [
+        "EnvironmentVariables",
+        "ExitTimeOut",
+        "KeepAlive",
+        "Label",
+        "LimitLoadToSessionType",
+        "ProgramArguments",
+        "RunAtLoad",
+        "StandardErrorPath",
+        "StandardOutPath",
+        "Umask",
+        "WorkingDirectory"
+      ],
+      "cause": "launchd's SMJobCopyDictionary returns a normalized subset for a running job; loaded_definition requires every rendered plist key to be present, so set(expected) - set(job) is non-empty and the result is None (unknown) instead of a comparison",
+      "consequence": "loaded/ready acceptance cannot pass with the current exact-key-set rule even though the process runs and the runtime probe is ready",
+      "decision_needed": "define which normalized fields are execution-relevant for a loaded job (file definition already matches on disk) and accept launchd's defaults for absent keys, without weakening identity/Program/ProgramArguments/path/session checks",
+      "note": "bootstrapping after an uninstall requires launchctl enable first; the official install does enable, a manual copy must not skip it"
+    }
   },
   "uninstall": {
     "operation_sha256": "2e88853cbd62ee3bed935ad1d8f8febade3b2f07a33339657f0774cecd149e4c",
