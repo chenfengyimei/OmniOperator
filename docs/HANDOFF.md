@@ -387,6 +387,15 @@ K13.cron_model_design 已记录**实现前设计合同**（纯文档，无源码
 - **未验**：真实 K08 评审窗口与下一触发竞态（离线冻结时钟覆盖等价语义）、真实模型/72 小时、全量。
 - **下一批**：D9 需所有者先定本地浏览策略（i–iv）；D1/D4–D7 待所有者选定；若无决策，继续只读复核/证据维护。共享接口/迁移/公共 CI 由 A 协调。
 
+### 2026-11-23 D9 浏览器 URL floor（第 15 批，`k18-read-cache`）
+
+- **范围/基线**：承接前十四批；本批为**实现批**（D9 保守子集 i+iv）。基线仍 `origin/v2`=`0793f254`（前十四批未合入），同一任务分支/独立工作树。
+- **改动**：`adapters/workers/main.py` 新增 `METADATA_HOSTS`/`METADATA_IPS`/`_blocked_host`/`_blocked_url`/`_blocked_navigation`——导航前拒绝 link-local 与云元数据（IP 字面量含 `[fe80::1]`/zone id、`metadata.google.internal`/`metadata.goog`/`instance-data` 等别名、`100.100.100.200`、`fd00:ec2::254`），主机名做 ≤1.5s DNS 解析检查后拒绝；`page.route("**/*")` 对每个 http(s) 请求（含**重定向与子资源**）命中即 `abort` 并计数，落地 `page.url` 再 backstop；结果携带 `blocked_requests`。**loopback/RFC1918 仍允许**（V2 UI/本地夹具），私网默认策略（ii/iii）与子资源完整 DNS-rebinding floor 仍待所有者。无新表/迁移/路由/worker 协议/依赖。
+- **验证**：新增 `test_v2_browser_url_floor.py` **16 项 / 6.72s**（元数据/别名/zone id、导航前拒绝、loopback 正常、子资源 abort 但页面可用、重定向 abort 且无元数据正文、同源子资源放行）；**回退探针**强制 `_blocked_host=False` → 10 红 + 1 error，还原后 16/16；调用方 `browser_dialog`/`worker_safety`/`workers`/`capabilities` **52 过 / 97.38s**；strict **0/0**、ruff 净。未跑全量、未触真实网络/账号。
+- **文档/证据**：决策登记 D9 与速览表标记「部分实现 i+iv」；`V2_BROWSER_CDP` 共同前提更新；[证据](evidence/v2-browser-url-floor.json)；任务 JSON `K13.browser_url_floor`。
+- **未验**：私网默认策略、子资源完整 DNS-rebinding、WebSocket 拦截、真实网站/账号、当前源码未全量。
+- **下一批**：D9 收尾需所有者私网策略；D1/D4–D7 待选定；D2/D3/R/T 默认不移植。共享接口/迁移/公共 CI 由 A 协调。
+
 ## 追溯入口
 
 - [旧交接记录](history/pre-layout-2026-11-18/HANDOFF.md)、[旧重构记录](history/pre-layout-2026-11-18/V2_REFACTOR.md)只证明所属版本，不作为当前待办。
