@@ -300,3 +300,7 @@ LaunchServices 生命周期稳定性复测：连续 15 次 `probe` 每次 0.062�
 ### 2026-11-22 LaunchAgent 闭环全部通过
 
 字段面修正（commit `ae2b41ae`）后用 `v2_0052` 新 runtime（build `d9da1ec1…`、instance `5f54194e…`）完整重跑：安装 operation succeeded/terminal → `--expect registered` 通过 → `launchctl bootstrap` 后 `--expect loaded` **通过**（loaded=true、definition_matches=true、state=running）→ `--expect ready` **通过**（runtime probe ready）→ 卸载 operation succeeded/terminal、installed=false → `--expect absent` 通过；复核无 plist、无服务、无进程。证据：[闭环全部通过](../../../evidence/v2-macos-launchagent-closure-2026-11-22.json)。仍属 temp 部署与所有者登录域，非不可变生产安装/隔离账号；helper AX/输入/投递授权、睡眠/锁屏、推送与 72 小时另列。
+
+### 2026-11-22 远端交付
+
+任务分支 `codex/macos-helper-tcc` 已普通推送到 Gitee，`git ls-remote --exit-code --heads origin refs/heads/codex/macos-helper-tcc` 回读 `3b2dbc74332e08b410ed4fc8404ddba12d9b2fd0`，与本地提交一致；交付基线 `origin/v2` 为 `0fe3cc5f`（v0052）。Windows 集成方按该分支审查实际 diff、在最新 `v2` 上跑受影响专项后合入。此前证据中的 SHA 均为对应实测时的本地提交；本分支包含全部 28 个 macOS 提交。
