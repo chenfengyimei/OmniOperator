@@ -48,8 +48,8 @@
 ## 读侧前置（只读，建议先批 D4-B0）
 
 - `fav_resources`：收藏夹内容（`x/v3/fav/resource/list`，bounded rows），验证收藏。
-- `dynamic_list`：空间动态（`polymer/web-dynamic/v1/feed/space` 或按 id），验证发布/删除/编辑。
-- 两者与 K18 已交付读广度同模式（domain 解析 + READ_SPEC enum + 网关 `_get` + 凭据 CAS + 有界），**只读、无写授权、无迁移**；可独立先交，供写批验证使用。
+- `dynamic_list`：空间动态（`space_history`，已按本批 [V2_BILI_DYNAMIC](V2_BILI_DYNAMIC.md) 交付：固定 VC host、严格 id/尽力文本、≤50 卡、不缓存），验证发布/删除/编辑。
+- 两者与 K18 已交付读广度同模式（domain 解析 + READ_SPEC enum + 网关 `_get` + 凭据 CAS + 有界），**只读、无写授权、无迁移**；`dynamic_list` 已交付，`fav_resources` 仍待 D4-B0。
 
 ## 配额机制（P0 决策）
 
@@ -62,7 +62,7 @@
 
 ## 分批建议与依赖
 
-1. **D4-B0（只读前置）**：`fav_resources` + `dynamic_list` 两个只读 operation（无授权面、无迁移），先交。
+1. **D4-B0（只读前置）**：`fav_resources` 只读 operation（`x/v3/fav/resource/list`，无授权面、无迁移）；`dynamic_list` 已交付（[V2_BILI_DYNAMIC](V2_BILI_DYNAMIC.md)）。
 2. **D4-B1**：`comment_delete`（最小写面，复用 browser_dialog；含配额 Q1/Q2 决策结果）。
 3. **D4-B2**：`favorite_add`（含 `favorite_duplicate_ack`）。
 4. **D4-B3**：`dynamic_post`/`dynamic_delete`（文本）。

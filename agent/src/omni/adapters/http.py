@@ -223,6 +223,7 @@ class BilibiliReadInput(StrictInput):
         "search",
         "whois",
         "relation",
+        "dynamic_list",
         "danmaku",
         "popular",
         "ranking",

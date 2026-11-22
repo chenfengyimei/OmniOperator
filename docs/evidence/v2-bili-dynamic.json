@@ -1,0 +1,79 @@
+{
+  "schema": 1,
+  "date": "2026-11-22",
+  "batch": "K18.dynamic_list",
+  "requirement": "K18",
+  "status": "implemented_scoped_passed",
+  "branch": "k18-read-cache",
+  "base_commit": "0793f2543f1b2bb94e960d171747fbf08bc11b84",
+  "implements_gap": "K18 whale audit (a) read API breadth: the reference dynamic command lists a space's recent dynamics via space_history (dsh-bili-whale tools/commands/dynamic.mjs:62-78) to observe/verify dynamic posts; V2 had no dynamic read operation (following is the video-dynamic feed polymer/web-dynamic/v1/feed/all). This batch adds operation=dynamic_list as a bounded read-only discovery/verification surface and completes the reference read set",
+  "contract": "docs/v2/contracts/V2_BILI_DYNAMIC.md",
+  "contract_sha256": "c5e7f38cb80167460b65e60c138a8624243177238a4e714aae9a77894cec1fc4",
+  "source_files": {
+    "agent/src/omni/domain/bilibili.py": "fdc5dd5722f01882c86ecf14fa2c28113063e5a14e10512b582450d5a362f7ad",
+    "agent/src/omni/adapters/bilibili.py": "9e50c57e2b3690bc0fee000cd765e256fc3344a30c6065775b6ea0780133835a",
+    "agent/src/omni/application/bilibili.py": "2e299faa6fd07f99537b10e51040ad8fca6803e1dbff19112016f1b178988d2d",
+    "agent/src/omni/adapters/http.py": "86d974450d5fad9db117ba0c404ffd329f23edf3b25f77ee8232e715a03d67ec",
+    "agent/tests/v2/integrations/test_v2_bilibili_dynamic.py": "cc0f2a9ae39a95ccb3bb6fed6832fe7900490a246c4c07090c97f343fdf2a489"
+  },
+  "reference": {
+    "repository": "xuexi/dsh-bili-whale (fixed 8b0009f8)",
+    "shape": "GET https://api.vc.bilibili.com/dynamic_svr/v1/dynamic_svr/space_history?host_uid=<mid>&offset_dynamic_id=0&need_top=0 with the session cookies and referer https://t.bilibili.com/; response data.cards[].desc.dynamic_id_str / desc.timestamp; card is a JSON string whose item.description or item.content holds the body (dynamic.mjs:66-71 slices 60 chars)",
+    "adaptation": "Independent V2 implementation over the existing four-layer bilibili chain. Only the fixed VC host constant is added (never an arbitrary URL); the primary connection() validation still pins API. Strict desc.dynamic_id_str /[0-9]{1,32}/ (identity drift fails 502, never invented); timestamp/type only exact ints else None; card text is best effort from item.description then item.content, markup-stripped and bounded to 200, with malformed/oversized cards yielding empty text rather than a fake body"
+  },
+  "delivered": [
+    "domain/bilibili.py: VC_API/DYNAMIC_HISTORY fixed constants; DYNAMIC_MAX_CARD_CHARS=64KiB / DYNAMIC_MAX_TEXT=200; dynamic_rows(data, limit): absent cards = normal empty, non-list or >FEED_MAX_ROWS(50) = 502, each row needs dict desc and numeric dynamic_id_str (1-32 digits), timestamp/type int-or-None, text via _dynamic_text; has_more from exact 1/True or len>=limit fallback",
+    "adapters/bilibili.py: _dynamic_list(client, mid, limit) calls _get on the absolute DYNAMIC_HISTORY URL with host_uid/offset_dynamic_id=0/need_top=0 (same risk-code, JSON/content-type and 524288-byte bounds); _read op set adds dynamic_list; target validated as uid before any cookie/network; dispatch after the nav login identity gate; never cached (READ_CACHE_TTL_S unchanged)",
+    "application/bilibili.py: READ_SPEC enum + description add dynamic_list (target mid, discovery/post-verification surface, never cached); reads-only, no new tool",
+    "adapters/http.py: BilibiliReadInput operation Literal adds dynamic_list (owner REST surface synced)",
+    "routing/ports/worker/migrations UNCHANGED: bilibili_read is already in RETRIEVAL_TOOLS (read-only agent tier); no new table/migration/route/worker frame/shared port signature; declared_tools stays 94",
+    "test_v2_bilibili_read_cache.py NOT_CACHED updated to include dynamic_list so the cache-allowlist pin stays exact"
+  ],
+  "limits": {
+    "operation": "dynamic_list",
+    "target": "bilibili uid (positive decimal, <2^63)",
+    "fixed_hosts": ["https://api.bilibili.com", "https://api.vc.bilibili.com"],
+    "login_required": true,
+    "cacheable": false,
+    "max_cards": 50,
+    "columns": ["dynamic_id", "timestamp", "type", "text"],
+    "text_policy": "best effort item.description/content, markup stripped, <=200 chars, malformed card -> empty",
+    "pagination": "first page only (offset_dynamic_id=0), no cursor",
+    "need_top": 0,
+    "new_table_or_migration": false,
+    "new_route": false,
+    "worker_protocol_frame_changed": false,
+    "shared_port_signature_changed": false,
+    "new_agent_src_source_file": false,
+    "routing_changed": false
+  },
+  "validation": {
+    "mode": "scoped_implementation",
+    "frozen_source": "final source fingerprints in source_files",
+    "new_nodes": 27,
+    "new_test_file": "agent/tests/v2/integrations/test_v2_bilibili_dynamic.py",
+    "breakdown": "domain strict identity/bounded text/absent-empty/non-list/>50/non-dict row/desc shapes/limit+has_more; gateway fixed VC host and exact query + cookie + nav-before-history ordering; invalid mid x7 before network (422 bilibili_identity_invalid); risk code typed detail; malformed cards 502; READ_SPEC/HTTP Literal exposure",
+    "scoped_suite": {"command": "uv run --no-sync pytest -q -n 0 agent/tests/v2/integrations/test_v2_bilibili_dynamic.py", "passed": 27, "failed": 0, "seconds": 1.54},
+    "caller_suite": {
+      "command": "uv run --no-sync pytest -q -n 0 agent/tests/v2/integrations/test_v2_bilibili*.py agent/tests/v2/http/test_v2_bilibili_http.py",
+      "passed": 523,
+      "failed": 0,
+      "seconds": 158.06
+    },
+    "strict": {"config": "pyrightconfig.strict.json (worktree root)", "errors": 0, "warnings": 0},
+    "ruff": "check + format --check pass on domain/adapter/application/http and both bilibili read-cache/dynamic test files",
+    "full_suite_executed": false,
+    "real_account_or_network_executed": false,
+    "current_windows_service_or_database_touched": false
+  },
+  "not_executed": [
+    "real Bilibili account/network acceptance of space_history (need_top, private dynamics, cursor pagination)",
+    "dynamic detail by id, rich card parsing (images/video/opus), other users' private dynamics",
+    "dynamic write post/delete/edit/image (D4-B3/B4), live danmaku (D7), AI-share guard (D6)",
+    "full offline suite for current source; real model quality; 72h soak"
+  ],
+  "next": "D4-B0 now only needs fav_resources; then D4-B1 comment_delete / D4-B3 dynamic post-delete (dynamic_list is already available as their verification surface). D8/D9 remain the lowest-cost K13 decisions; D5/D6/D7 contracts still to write. whole_* flags stay false",
+  "whole_core_parity_complete": false,
+  "whole_reference_feature_audit_complete": false,
+  "whole_v2_complete": false
+}

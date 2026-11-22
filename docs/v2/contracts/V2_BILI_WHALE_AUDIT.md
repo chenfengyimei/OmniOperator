@@ -73,7 +73,7 @@
 
 清单 1–7 的实现状态逐项如下（**未实现项均为决策待定，见 [剩余差异决策登记](V2_REMAINING_DECISIONS.md)**）：
 
-1. **读 API 广度：已交付**——`search` `4802dbca`、`whois` `f673f969`、`danmaku` `f80ab73d`、`popular/ranking` `b14d06ff`、`following` `091e20d1`、`favorites` `4c280835`、`tags` `a81a0353`、`history` `21417ec6`、`msgfeed` `624413eb`、`msgfeed like` `2608f592`、`relation` `840e5f5f`。**缓存策略：已交付**——`K18.read_cache`（[合同](V2_BILI_READ_CACHE.md)：仅 `video`/`whois` 24h + 400 条/8MiB 有界 LRU；凭据换代换桶并清旧代；13 个端点永不缓存；`nav` 有意不缓存）。**剩余**：读侧速率预算（600/h·3000/d）、真实账号命中率/新鲜度。
+1. **读 API 广度：已交付**——`search` `4802dbca`、`whois` `f673f969`、`danmaku` `f80ab73d`、`popular/ranking` `b14d06ff`、`following` `091e20d1`、`favorites` `4c280835`、`tags` `a81a0353`、`history` `21417ec6`、`msgfeed` `624413eb`、`msgfeed like` `2608f592`、`relation` `840e5f5f`、**`dynamic_list`（空间动态，2026-11-22 本批，[合同](V2_BILI_DYNAMIC.md)：固定 VC host、严格 id/尽力文本、≤50 卡、不缓存）**。**缓存策略：已交付**——`K18.read_cache`（[合同](V2_BILI_READ_CACHE.md)：仅 `video`/`whois` 24h + 400 条/8MiB 有界 LRU；凭据换代换桶并清旧代；13 个端点永不缓存；`nav` 有意不缓存）。**剩余**：读侧速率预算（600/h·3000/d）、真实账号命中率/新鲜度。
 2. **写广度：未实现（决策待定）**——`comment-del`/`fav`/`dynamic`（`danmaku-send` 属直播 D7）的已审表单 + 配额 + 幂等 + unknown/恢复见决策 D4 与设计合同 [V2_BILI_WRITE_BREADTH](V2_BILI_WRITE_BREADTH.md)。**新发现（2026-11-22 核对）**：现有 comment/private_message 路径**没有配额/冷却**（V2 只有 `MAX_ATTEMPTS=3` 退避与 QQ 专属 `cooldown_s`），原文「共享限额/冷却」应更正；配额机制需先定 Q1（审批+幂等，零迁移）或 Q2（通用配额账本，A 分配迁移号）。fav/dynamic 验证还需要新只读 operation `fav_resources`/`dynamic_list` 先批。
 3. **主动观看：未实现（决策待定）**——night-plan/双日记/沉默衰减/反馈/候选打分/偏好学习见决策 D5（与 K15 协同）。
 4. **受控分享策略：未实现（决策待定）**——share 阈值/去重/notify 后端见决策 D6。

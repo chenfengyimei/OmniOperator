@@ -18,7 +18,9 @@ from ..application.ports import AsyncSecretPort, Record
 from ..domain.bilibili import (
     ADAPTER,
     API,
+    DYNAMIC_HISTORY,
     connection,
+    dynamic_rows,
     fav_folder_rows,
     feed_rows,
     following_rows,
@@ -470,6 +472,11 @@ class BilibiliGateway:
         data = await self._get(client, "/x/relation", {"fid": mid})
         return relation_view(data, mid)
 
+    async def _dynamic_list(self, client: Any, mid: str, limit: int) -> Payload:
+        """Owner-target space dynamics (space_history, fixed VC host); cards are bounded, never cached."""
+        data = await self._get(client, DYNAMIC_HISTORY, {"host_uid": mid, "offset_dynamic_id": 0, "need_top": 0})
+        return {"mid": mid, **dynamic_rows(data, limit)}
+
     async def _danmaku(self, client: Any, bvid: str, cid: str) -> Payload:
         """Official danmaku XML sample via the fixed comment host; bounded decode + parse."""
         from ..domain.bilibili import danmaku_url, parse_danmaku
@@ -561,6 +568,7 @@ class BilibiliGateway:
                     "search",
                     "whois",
                     "relation",
+                    "dynamic_list",
                     "danmaku",
                     "popular",
                     "ranking",
@@ -575,7 +583,7 @@ class BilibiliGateway:
             ):
                 raise BusinessError(
                     "bilibili_read_invalid",
-                    "Choose account/video/comments/replies/subtitle/streams/search/whois/relation/danmaku/popular/ranking/following/favorites/tags/history/msgfeed and a limit of 1–20",
+                    "Choose account/video/comments/replies/subtitle/streams/search/whois/relation/dynamic_list/danmaku/popular/ranking/following/favorites/tags/history/msgfeed and a limit of 1–20",
                     status=422,
                 )
             root = ""
@@ -589,7 +597,7 @@ class BilibiliGateway:
             feed_kind = ""
             if operation == "search":
                 keyword = search_keyword(target)
-            elif operation in {"whois", "relation"}:
+            elif operation in {"whois", "relation", "dynamic_list"}:
                 mid = uid(target)
             elif operation == "msgfeed":
                 feed_kind = msgfeed_kind(target)
@@ -618,6 +626,8 @@ class BilibiliGateway:
                         return await self._whois(client, nav, mid)
                     if operation == "relation":
                         return await self._relation(client, mid)
+                    if operation == "dynamic_list":
+                        return await self._dynamic_list(client, mid, limit)
                     if operation == "tags":
                         return await self._tags(client, target, limit)
                     if operation == "popular":

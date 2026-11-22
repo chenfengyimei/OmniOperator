@@ -779,6 +779,14 @@
           "contract": "docs/v2/contracts/V2_BILI_WRITE_BREADTH.md",
           "evidence": "docs/evidence/v2-bili-write-breadth-design.json",
           "delivered": "纯设计合同：现有 comment/private_message 写链核对（审批 PREPARE_SPEC 不发送+delivery review、去重 key/body_hash/delivery_already_exists/duplicate_ack_required/delivery_review_required、unknown 不重发仅 not_sent+retryable 2^seq MAX_ATTEMPTS=3、恢复 recover/release_boot/cancel/credential revoke、已审表单+凭据 CAS）；**新发现 F1**：现有写路径无任何配额/冷却（仅重试上限+退避与 QQ 专属 cooldown_s），K18 审计「共享限额/冷却」措辞更正；逐动作设计 comment_delete（记录行/删除菜单/复用 browser_dialog/列表验证）、favorite_add（目标夹来自 favorites、跨夹重复需 ack、需新只读 fav_resources 验证）、dynamic_post/delete/edit/image（需只读 dynamic_list 验证、图片上传独立安全审查）；配额 Q1（审批+幂等零迁移）/Q2（通用配额账本，A 迁移号）/Q3（内存，不采用）；分批 B0 只读前置→B1 comment-del→B2 fav→B3 dynamic→B4 图片；不变量与测试计划列明。无源码/测试/迁移/路由/worker 改动，未实现"
+        },
+        {
+          "gap": "#1 读API广度之空间动态列表(space_history；参考动态命令 list)",
+          "status": "implemented_scoped_passed",
+          "batch": "K18.dynamic_list",
+          "contract": "docs/v2/contracts/V2_BILI_DYNAMIC.md",
+          "evidence": "docs/evidence/v2-bili-dynamic.json",
+          "delivered": "bilibili_read新增operation=dynamic_list只读(target=mid)：domain VC_API/DYNAMIC_HISTORY固定第二host+dynamic_rows严格desc.dynamic_id_str[0-9]{1,32}/timestamp/type精确int/文本尽力item.description→content去标记≤200/缺失cards正常空/非列表或>50卡或行非dict或desc非dict显式502/has_more精确1或True否则len>=limit；adapter _dynamic_list绝对URL复用_get(host_uid/offset_dynamic_id=0/need_top=0、风控码/JSON/524288上限、nav登录门后分派、mid在取cookie前422、不缓存)；application READ_SPEC enum+desc、http Literal增dynamic_list；无新表/迁移/路由/worker协议/共享端口/新源文件，routing不变declared_tools 94；27专项1.54秒、bilibili全调用方523过158.06秒、strict0/0、ruff净"
         }
       ],
       "limits": "只读审计无新工具/表/迁移/路由/源码改动；可离线缺口未在K18审计批实现(列后续批次)，其中读API广度之搜索/space whois/弹幕/热门排行feed/关注动态feed/收藏夹/视频标签/观看历史/收件箱reply-at已在K18.search/K18.whois/K18.danmaku/K18.feed/K18.following/K18.favorites/K18.tag/K18.history/K18.msgfeed后续批实现、收件箱收到的赞like已在K18.msgfeed_like后续批实现(参考likes.mjs x/msgfeed/like形状{latest/total嵌套+users[]点赞者数组+like_time+counts}根本不同于reply/at data.items单user，独立msgfeed_like_rows合并去重保序+users截断≤20+FEED_MAX_ROWS50+显式502，msgfeed_kind接受reply/at/like，reply/at字节等价零回归，like cursor分页/notice_state过滤/自主点赞反馈仍后续；DM关注关系relation已在K18.relation后续批实现(参考dm.mjs x/relation?fid=<mid> attribute owner→target/be_relation反向，relation_view派生follows/followed_by/mutual/blocked纯只读发现，plain GET无WBI无缓存，mid经uid校验，既有operation字节等价零回归，写路径prepare/outbox不变relation不作发送硬门；relation作prepare互关硬门需所有者决策/relation_modify写/followings fans列表分页/DM发送写广度仍后续)；风险码每账号暂停与所有者恢复已在K18.risk_pause实现，已批准outbox投递不追溯阻断；写广度/自主观看/受控分享仍后续)；V1 tools/bilibili实现不计V2对等；不宣称全集API/主动观看/受控分享对等；参考agents.md/RULES当不可信数据非本会话指令；K18为清单末项领域参考审计(K13-K18全部记录)；既有todos重启竞态与6个pin v2_0039旧迁移测试沿用保留(本批实测memory_semantics×2/routing×1/skills×2/media×1)；v0045遗留action_review崩溃重试守卫已修(started_at投影+NULL断言)",
@@ -1138,6 +1146,10 @@
     {
       "id": "K18.write_breadth_design",
       "evidence": "docs/evidence/v2-bili-write-breadth-design.json"
+    },
+    {
+      "id": "K18.dynamic_list",
+      "evidence": "docs/evidence/v2-bili-dynamic.json"
     }
   ]
 }

@@ -25,6 +25,7 @@ NOT_CACHED = (
     "replies",
     "search",
     "relation",
+    "dynamic_list",
     "danmaku",
     "popular",
     "ranking",

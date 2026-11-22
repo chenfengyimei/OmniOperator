@@ -26,6 +26,9 @@ def is_risk_code(value: object) -> bool:
 
 
 API = "https://api.bilibili.com"
+# Fixed second API host: space dynamics live on the dynamic service; never an arbitrary URL.
+VC_API = "https://api.vc.bilibili.com"
+DYNAMIC_HISTORY = VC_API + "/dynamic_svr/v1/dynamic_svr/space_history"
 MAX_CONTENT = 2000
 
 # Public community specification (bilibili-API-collect): WBI request signing
@@ -348,6 +351,8 @@ def parse_danmaku(xml: str) -> list[dict[str, object]]:
 
 FEED_MAX_ROWS = 50
 MSGFEED_LIKE_MAX_USERS = 20
+DYNAMIC_MAX_CARD_CHARS = 64 * 1024
+DYNAMIC_MAX_TEXT = 200
 
 
 def feed_rows(data: Mapping[str, object], limit: int) -> dict[str, object]:
@@ -522,6 +527,59 @@ def history_rows(data: Mapping[str, object], limit: int) -> dict[str, object]:
             }
         )
     return {"items": items, "has_more": len(rows) >= limit}
+
+
+def dynamic_rows(data: Mapping[str, object], limit: int) -> dict[str, object]:
+    """Bounded space-dynamic cards from data.cards (strict desc identity, best-effort card text)."""
+    raw = data.get("cards")
+    if raw is None:
+        rows: list[object] = []
+    elif isinstance(raw, list):
+        rows = cast(list[object], raw)
+    else:
+        raise BusinessError("bilibili_response_invalid", "Dynamic cards changed format", status=502)
+    if len(rows) > FEED_MAX_ROWS:
+        raise BusinessError("bilibili_response_invalid", "Dynamic cards changed format", status=502)
+    items: list[dict[str, object]] = []
+    for row in rows[:limit]:
+        if not isinstance(row, dict):
+            raise BusinessError("bilibili_response_invalid", "Dynamic records changed format", status=502)
+        entry = cast(dict[str, object], row)
+        desc = entry.get("desc")
+        if not isinstance(desc, dict):
+            raise BusinessError("bilibili_response_invalid", "Dynamic records changed format", status=502)
+        identity = cast(dict[str, object], desc).get("dynamic_id_str")
+        if not isinstance(identity, str) or not re.fullmatch(r"[0-9]{1,32}", identity):
+            raise BusinessError("bilibili_response_invalid", "Dynamic records changed format", status=502)
+        fields = cast(dict[str, object], desc)
+        timestamp, kind = fields.get("timestamp"), fields.get("type")
+        items.append(
+            {
+                "dynamic_id": identity,
+                "timestamp": timestamp if type(timestamp) is int else None,
+                "type": kind if type(kind) is int else None,
+                "text": _dynamic_text(entry.get("card")),
+            }
+        )
+    has_more = data.get("has_more")
+    more = has_more is True or (type(has_more) is int and has_more == 1) or (has_more is None and len(rows) >= limit)
+    return {"items": items, "has_more": more}
+
+
+def _dynamic_text(card: object) -> str:
+    """Best-effort bounded text from the card JSON string; a malformed card yields empty text, never a fake body."""
+    if not isinstance(card, str) or len(card) > DYNAMIC_MAX_CARD_CHARS:
+        return ""
+    try:
+        decoded: object = json.loads(card)
+    except (ValueError, RecursionError):
+        return ""
+    item = _as_dict(_as_dict(decoded).get("item"))
+    for field in ("description", "content"):
+        value = item.get(field)
+        if isinstance(value, str) and value.strip():
+            return search_text(value, DYNAMIC_MAX_TEXT)
+    return ""
 
 
 def msgfeed_kind(value: object) -> str:
