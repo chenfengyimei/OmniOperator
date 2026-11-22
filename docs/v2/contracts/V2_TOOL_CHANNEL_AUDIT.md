@@ -103,6 +103,7 @@ V2 模型侧工具面（生产 `capabilities is None`）：`system_info`、`file
 - **新增残留 D8（cron 阻塞与后台评审交互）**：`schedule_blocker` 无 purpose 过滤，把 K08/K06 的 `summary` 辅助调用当未复核外部结果；已核机制与影响，合同 [V2_SCHEDULE_REVIEW_BLOCKER](V2_SCHEDULE_REVIEW_BLOCKER.md)，待所有者选 A–D。
 - **组 2 URL floor 已核（原「待核」）**：worker 只校验 scheme 且跟随重定向，无主机/IP floor；实测 loopback 元数据路径可读。策略待决 → 决策登记 D9（含 4 个选项与验证要求）。
 - **组 5 cron 残余设计合同（2026-11-23）**：[V2_CRON_VARIANTS](V2_CRON_VARIANTS.md) 记录 `enabled_toolsets`/`workdir`/`deliver`·`failure_deliver`·`attach_to_session`/`monitor`+`no_agent`+`script`/`prompt_scan` 的 R1–R5 选项（默认推荐不移植；脚本与 URL 监视需独立安全合同并接 D2/D9；自动投递需独立授权；需 A 迁移）。**未实现。**
+- **组 1 终端/进程设计合同（2026-11-23）**：[V2_TERMINAL_MODEL_TOOLS](V2_TERMINAL_MODEL_TOOLS.md) 记录 T1 不移植（推荐）/T2 只读观察/T3 逐命令审批/T4 拒绝/T5 kill·handoff 审批子集（`(pid, started_at)` 身份），薄封装既有 `TerminalService`、无迁移。**未实现。**
 
 ## 需实机/账号/网络验收清单（不可离线宣称对等）
 

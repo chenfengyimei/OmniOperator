@@ -11,7 +11,25 @@
 - **K18 风控暂停**：`8923054c`（风险码类型化 → 每账号暂停 → 所有者恢复，v0046）。
 - **K18 读缓存**：本批 `K18.read_cache`（见 [V2_BILI_READ_CACHE](V2_BILI_READ_CACHE.md)），不重复决策。
 
-以下 D1–D7 逐项登记待决。
+以下 D1–D9 与组残余逐项登记待决。
+
+## 决策速览（所有者/A 一次选定）
+
+| 项 | 主题 | 推荐 | 成本 | 迁移/协调 | 关键风险 |
+|---|---|---|---|---|---|
+| D1 | K01 系统前缀重构 + D8 | P1-a（仅 persona 前缀，记忆/摘要固定位、通知走尾）+ D8 隔离实验 | 中（字节稳定回归 + 真实 provider 对照） | 无迁移；触 `domain/metering.py` 冻结前缀 | memory salience 下降；需所有者真实模型对照 |
+| D2 | 代码沙箱 | S1 不移植；如需则 S2 受限计算沙箱 | S1 零；S2 中 | S3 需 A 协议；无迁移 | 非安全边界；写/terminal 不桥接 |
+| D3 | 原始 CDP/脚本浏览器 | C1 不移植；如需多步则 C2 声明式计划 | C1 零；C2 中 | C3 需 D9 + A 协议 | C4（任意宿主 Python）拒绝 |
+| D4 | B 站写扩面 | 逐动作批准；先 Q1 或 Q2 | 中高（表单/配额） | Q2 账本需 A 迁移 | 外联写面扩大；须审批/配额/去重/unknown/恢复 |
+| D5 | 主动观看 | 默认 OFF；先 infra（W1/W2）后策略 | 高（计划/日记/评分/反馈） | 新表需 A 迁移；**接主动行为前与 D 对齐** | 自主行为边界/预算/静默 |
+| D6 | 受控分享 | S2-A 逐条审批 + S1 资格门 + S3 账本；S5-A 不移植 AI-share 守卫 | 中 | 账本需 A 迁移；通知首版不加 webhook/command | 重复/配额/误报；AI-share 未验证 |
+| D7 | 直播 | L1/L2 只读先做；L3 owner 服务；L4-a 不做发送 | L1/L2 低；L3 中 | 首版无迁移；事件持久化才需 A | WS 协议/解压炸弹/私网 |
+| D8 | cron 阻塞与 K08/K06 `summary` 调用 | 合同 A（blocker 只统计 `purpose="turn"`） | 低（无迁移） | A 仅备案 | 安全敏感守卫，需明确批准 |
+| D9 | 浏览器 SSRF/IMDS floor | 先 D9-i（元数据/link-local）+ D9-iv（`page.route` 全请求拦截） | 中低 | 无迁移；builtin worker | 本地浏览是否允许；重定向/子资源 |
+| R1–R5 | cron 残余（toolsets/workdir/deliver/monitor/script/scan） | 默认不移植；R3 失败先 owner 事件 | 低 | R1–R3 需 A 迁移；R2 需 worker 协议 | 无模型脚本/URL 监视属新执行/SSRF 面 |
+| T1–T5 | 模型侧持久终端/进程 | T1 不移植；可选 T2 只读观察 | 低 | 无迁移 | T4 拒绝；kill 需 `(pid, started_at)` |
+
+**建议顺序**：D8 → D9（低成本、无迁移）→ D1（冻结前缀，需真实模型对照）→ D4/D6（写/分享，先 Q1/Q2）→ D7（只读）→ D5（主动观看，最后且需 D 对齐）→ D2/D3/R/T（默认不移植，除非所有者明确需要）。
 
 ---
 
@@ -99,7 +117,7 @@
 ## 其他剩余差异（非决策项，登记）
 
 - **K13 组 5（cron）表内其余残余**：cron 四批只交付 `skills`/`context_from`/`continuity` + `cronjob_manage` 六动作 + 生产端到端；审计表里 `monitor`、`no_agent`+`script`、`enabled_toolsets`、`workdir`、`deliver`/`failure_deliver`/`attach_to_session`、`cronjob_prompt_scan` 仍为**部分对等/可离线缺口**。其设计合同 [V2_CRON_VARIANTS](V2_CRON_VARIANTS.md) 已记录 R1 `enabled_toolsets`（推荐不移植/或白名单交集+迁移）/R2 `workdir`（推荐不移植/或 workspace 内包含校验+迁移）/R3 `deliver`（推荐不移植自动投递，失败先 owner 事件；自动投递需独立授权）/R4 `monitor`+`no_agent`+`script`（推荐不移植；脚本=无模型执行面、URL=SSRF 面，需独立安全合同并接 D2/D9）/R5 `prompt_scan`（推荐不移植/或只读建议式），以及需 A 分配的迁移与 `ScheduleValue` 加性字段。**未实现、未列本册决策**（实现需所有者逐项选定与 A 协调）。
-- **K13 组 1（终端/进程）模型侧面**：模型侧只有一次性 `shell_execute`；持久终端会话与 `process_manage`（list/poll/log/wait/kill/write/submit/close/handoff）、`read_terminal`/`close_terminal`/`read_window_below` 仍缺（所有者侧 `TerminalService` 已有）。属新 worker 持久会话协议 + 审批 + 所有者面，需设计与实机验收，未列本册决策。
+- **K13 组 1（终端/进程）模型侧面**：模型侧只有一次性 `shell_execute`；持久终端会话与 `process_manage`（list/poll/log/wait/kill/write/submit/close/handoff）、`read_terminal`/`close_terminal`/`read_window_below` 仍缺（所有者侧 `TerminalService` 已有）。设计合同 [V2_TERMINAL_MODEL_TOOLS](V2_TERMINAL_MODEL_TOOLS.md) 已记录 T1 不移植（推荐）/T2 只读观察（可选，模型读本 agent 终端与进程） /T3 逐命令审批的持久终端 /T4 完整持久 shell+process_manage（拒绝）/T5 kill/handoff 审批子集（身份必须 `(pid, started_at)`）；无迁移（薄封装既有 TerminalService）。**未实现。**
 - **K13 组 2（浏览器）URL floor**：**已核（2026-11-22）**——worker 仅 scheme 校验、无主机/IP floor 且跟随重定向（见 D9，实测 loopback 元数据路径可读）；待所有者定策略，未实现。
 - **读侧速率预算**：参考 读 600/h·3000/d、写 12/h·30/d、gap 1500ms、写冷却 120s、dm 60s；V2 共享 delivery 限额/冷却覆盖投递侧，**读侧预算未实现**（需跨进程/重启持久的共享预算账本设计）。
 - **nav 10min 缓存**：有意不做（比参考更严，见 [V2_BILI_READ_CACHE](V2_BILI_READ_CACHE.md)）。
