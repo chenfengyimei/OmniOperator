@@ -1,0 +1,35 @@
+{
+  "schema": 1,
+  "date": "2026-11-22",
+  "batch": "K15.is_initial_gate_regression",
+  "base_commit": "2bf6974272f4a3df1dad9dbf8392ba9d3dcd6d55",
+  "status": "implemented_scoped_passed_test_only",
+  "contract": "docs/v2/contracts/V2_MEMORY_INITIAL.md",
+  "scope": "Test-only regression locking the K15 isInitial decision gate: content text alone never promotes a memory to first-meet; only explicit is_first does. No scoring-authority change, no persistence, no migration.",
+  "source_files": {
+    "agent/tests/v2/core/test_v2_memory_initial_gate.py": "e2c7c779c46a387a24203ca3d89a4ac74d2331f480c2af13d3adc3e176fb4545"
+  },
+  "delivered": [
+    "Assert score_memory produces identical importance/pinned/kind/tags for '很高兴认识你' and '第一次见面，很高兴认识你' when is_first is omitted: the FIRST_RE text alone is not an implicit promotion.",
+    "Assert explicit is_first=True with owner/private reaches importance 100, kind first, pinned and the first tag.",
+    "Assert explicit is_first=True without owner stays at 38, kind first, not pinned: first alone does not force the owner promotion path.",
+    "This locks the current conservative default until the owner decides D0-D5; it does not implement isInitial or change is_first's default."
+  ],
+  "validation": {
+    "mode": "development_working_tree_scoped",
+    "new_nodes": 3,
+    "command": "uv run --no-sync pytest -q -n 0 agent/tests/v2/core/test_v2_memory_initial_gate.py",
+    "passed": 3,
+    "failed": 0,
+    "seconds": 0.22,
+    "ruff": "ruff check and format pass",
+    "full_suite_executed": false,
+    "real_model_account_or_device_executed": false
+  },
+  "not_executed": [
+    "isInitial implementation, earliest-owner-interaction query, manual designation or probability tiers",
+    "New column/table/migration or owner route",
+    "Real model importance quality or 72h soak"
+  ],
+  "next": "Owner/A decide V2_MEMORY_INITIAL D0-D5. If the conservative zero-migration option is chosen, implement earliest provable owner interaction and keep this gate regression green; if the full option is chosen, A assigns migration and owner entry first."
+}

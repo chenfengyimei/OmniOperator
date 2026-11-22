@@ -555,6 +555,14 @@
           "delivered": "实现前合同（纯文档，无源码/测试/迁移/路由）：只算可证明的主人互动；source_anchors→messages→runs→qq_runs/people 可还原消息锚点，无锚点保守不判；D0 自动/手动、D1 主人互动范围、D2 30 天窗口用途（仅审计/概率 is_first/只最早一条）、D3 持久化（重算/审计/新列）、D4 遗忘保护、D5 手动入口；推荐先做零迁移保守版（只最早一条、is_first=True、复用 pinned/100 保护，tier/probability 仅审计），完整概率版需 A 分配迁移与所有者入口。未改 is_first 默认值或评分权威。"
         },
         {
+          "gap": "isInitial 决策门回归（文本“第一次”不自动晋升；仅显式 is_first 生效）",
+          "status": "implemented_scoped_passed",
+          "batch": "K15.is_initial_gate_regression",
+          "contract": "docs/v2/contracts/V2_MEMORY_INITIAL.md",
+          "evidence": "docs/evidence/v2-memory-initial-gate-regression.json",
+          "delivered": "仅测试/无生产改动：score_memory 在省略 is_first 时对“第一次见面”文本与普通文本输出完全一致，不产生 first kind/tag/pin；显式 is_first=True + owner/private 才走 100/pinned/first；显式 is_first 非 owner 仅 38、不 pin。3 passed / 0.22s；未实现 isInitial、未改评分权威。"
+        },
+        {
           "gap": "人格/记忆前缀影响回归（persona+captured memory 冻结前缀、遗忘/擦除后下一次前缀变化）",
           "status": "implemented_scoped_passed",
           "batch": "K15.memory_prefix_regression",
@@ -579,7 +587,7 @@
           "delivered": "实现前合同（纯文档）：D0 层存储、D1 scene 来源、D2 预算裁剪、D3 注入点、D4 B站 sanitize、D5 角色包 epoch；层序 identity-base→core→tone→scene→daily，daily→scene→tone 裁剪且 core 永不裁；B站剥离 QQ 号/昵称/群号/链接 + 统一 banner，凭据模式拒绝；角色包 epoch 单事务 CAS；K01 交互要求同 session 跨 scene 前缀要么固定 scene、要么缓存键加 scene_hash。D0/D3 未决不实现，D5 未决不迁移。"
         }
       ],
-      "limits": "只读审计无新引擎/表/迁移/路由/源码改动；可离线缺口未在K15审计批实现(列后续批次)，其中时间衰减遗忘巩固引擎核心已在K15.decay_core后续批实现(新memory_decay_state表+v0047迁移+memory_entries6加性列+2所有者REST路由+domain/memory_decay.py纯规则，forgotten隐藏态不擦除V2纪律更严于参考自动删除)，自动每日遍已在K15.decay_tick后续批接入MaintenanceService.tick(dailyHour=4夜间门+每agent今日一次幂等+有界8agent sweep，生产启用隔离测试禁用，复用decay_core隐藏不擦除/protected豁免，无新表/迁移/路由)，重要性启发已在K15.score_memory后续批实现(domain/memory_scoring.py完整scoreMemory启发+渠道门控自动评分，所有者批准记忆权威变更：显式model importance手动覆盖优先、省略时QQ渠道捕获按说话人上下文自动评分、非渠道保持默认50零回归，is_first/direct/bili保守False0引擎完整支持，reasons/kind/tags/scope入审计无新列/迁移)，isInitial first-meet窗口已记录实现前合同(K15.is_initial_design，D0-D5 未决，未实现，无迁移/路由)，前缀影响已补 4 项回归(K15.memory_prefix_regression，仅测试/无生产改动)；QQ direct 解析已接(2026-11-20 修订)；Bilibili入站说话人上下文/tags scope持久化列/双卡分离/注入clarity裁剪/容量告警auto-compact/所有者自动衰减开关仍后续；不宣称自主行为/分层人格/作息反馈对等，遗忘巩固核心手动+自动每日衰减遍+重要性启发已接；既有todos重启竞态与pin v2_0039旧迁移测试沿用保留",
+      "limits": "只读审计无新引擎/表/迁移/路由/源码改动；可离线缺口未在K15审计批实现(列后续批次)，其中时间衰减遗忘巩固引擎核心已在K15.decay_core后续批实现(新memory_decay_state表+v0047迁移+memory_entries6加性列+2所有者REST路由+domain/memory_decay.py纯规则，forgotten隐藏态不擦除V2纪律更严于参考自动删除)，自动每日遍已在K15.decay_tick后续批接入MaintenanceService.tick(dailyHour=4夜间门+每agent今日一次幂等+有界8agent sweep，生产启用隔离测试禁用，复用decay_core隐藏不擦除/protected豁免，无新表/迁移/路由)，重要性启发已在K15.score_memory后续批实现(domain/memory_scoring.py完整scoreMemory启发+渠道门控自动评分，所有者批准记忆权威变更：显式model importance手动覆盖优先、省略时QQ渠道捕获按说话人上下文自动评分、非渠道保持默认50零回归，is_first/direct/bili保守False0引擎完整支持，reasons/kind/tags/scope入审计无新列/迁移)，isInitial first-meet窗口已记录实现前合同(K15.is_initial_design，D0-D5 未决，未实现，无迁移/路由)，决策门已补 3 项回归(K15.is_initial_gate_regression，文本不自动晋升、仅显式 is_first 生效)，前缀影响已补 4 项回归(K15.memory_prefix_regression，仅测试/无生产改动)；QQ direct 解析已接(2026-11-20 修订)；Bilibili入站说话人上下文/tags scope持久化列/双卡分离/注入clarity裁剪/容量告警auto-compact/所有者自动衰减开关仍后续；不宣称自主行为/分层人格/作息反馈对等，遗忘巩固核心手动+自动每日衰减遍+重要性启发已接；既有todos重启竞态与pin v2_0039旧迁移测试沿用保留",
       "next": false
     },
     {
