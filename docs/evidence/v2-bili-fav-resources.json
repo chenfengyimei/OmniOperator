@@ -1,0 +1,79 @@
+{
+  "schema": 1,
+  "date": "2026-11-23",
+  "batch": "K18.fav_resources",
+  "requirement": "K18",
+  "status": "implemented_scoped_passed",
+  "branch": "k18-read-cache",
+  "base_commit": "0793f2543f1b2bb94e960d171747fbf08bc11b84",
+  "implements_gap": "K18 read breadth and D4-B0 write-verification prerequisite: the reference has favorite folder listing and favorite writes but no folder CONTENT read, so a future favorite_add cannot verify that the record appeared in the target folder. This batch adds operation=fav_resources (x/v3/fav/resource/list, folder id target, video rows only) as a bounded read-only surface; completes D4-B0 together with dynamic_list",
+  "contract": "docs/v2/contracts/V2_BILI_FAV_RESOURCES.md",
+  "contract_sha256": "5a6b214054ce80e0ff9c8128cbeb71ea3bde6f3a69258b4d92c1800e14f9427e",
+  "source_files": {
+    "agent/src/omni/domain/bilibili.py": "d8d35ace55e15c419cd65ba9c82e9283ccb7df10d08c626b7b8c2df45e9c08f4",
+    "agent/src/omni/adapters/bilibili.py": "1e6a7153c4715687e32309e33bc4d0af47d95e123bef6ab146db3f7f79e36e9e",
+    "agent/src/omni/application/bilibili.py": "8ea490e9b676187e6ca6597f2fa8e2706f43d72e29a7d586af7c1cfd6e7affae",
+    "agent/src/omni/adapters/http.py": "b4b2f7b34883d9f734786a96871fec89deea416274407aa07ddc1a570daea0c3",
+    "agent/tests/v2/integrations/test_v2_bilibili_fav_resources.py": "36f174c007a0fec800aeaadda57ad7ed0e716a881702fd035575f52fbb421e30",
+    "agent/tests/v2/integrations/test_v2_bilibili_read_cache.py": "7551b552c0624e83b51a92c74b8d9227ee28f2a6dbedfc79a2ea8e827baa46bb"
+  },
+  "reference": {
+    "repository": "xuexi/dsh-bili-whale (fixed 8b0009f8)",
+    "shape": "fav.mjs:87 lists folders via /x/v3/fav/folder/created/list-all and adds via /x/v3/fav/resource/deal; it does not read folder contents. V2 uses the public community endpoint /x/v3/fav/resource/list documented for folder resources",
+    "adaptation": "Independent V2 implementation. Fixed API host only; folder id validated before network; rows are strict about a present-but-invalid bvid and tolerant about non-video/invalidated entries; response shape drift (non-list medias, >50 rows, non-dict rows) fails 502 rather than silently truncating"
+  },
+  "delivered": [
+    "domain/bilibili.py: fav_folder_id (positive decimal <2^63, 422 bilibili_identity_invalid before network); fav_resource_rows(data, limit): absent medias = normal empty, non-list or >FEED_MAX_ROWS(50) = 502, rows non-dict = 502, present-but-invalid bvid = 502, absent/empty bvid (audio/collection/article/invalidated) skipped, items bounded to limit video rows (filter then limit), fields bvid/title<=300/author<=100/duration_s int|None/fav_time int|None, folder title<=300/media_count int|None from optional data.info (non-dict tolerated), has_more exact 1/True else len>limit",
+    "adapters/bilibili.py: _fav_resources(client, folder, limit) GETs /x/v3/fav/resource/list with media_id/pn=1/ps=20/keyword empty/order=mtime/type=0/tid=0/platform=web through _get (risk codes, JSON/content-type, 524288-byte body bound); _read op set adds fav_resources; folder id validated before cookies/network; dispatch after the nav login identity gate; never cached",
+    "application/bilibili.py: READ_SPEC enum + description add fav_resources (folder id target, bounded video rows, favorite verification surface, never cached)",
+    "adapters/http.py: BilibiliReadInput operation Literal adds fav_resources (owner REST surface synced)",
+    "routing/ports/worker/migrations UNCHANGED: bilibili_read already in RETRIEVAL_TOOLS (read-only agent tier); no new table/migration/route/worker frame/shared port signature; declared_tools stays 94",
+    "read-cache allowlist regression updated (fav_resources is never cached)"
+  ],
+  "limits": {
+    "operation": "fav_resources",
+    "target": "favorite folder id (positive decimal <2^63)",
+    "endpoint": "/x/v3/fav/resource/list (fixed api.bilibili.com, first page only)",
+    "login_required": true,
+    "cacheable": false,
+    "max_rows": 50,
+    "columns": ["bvid", "title", "author", "duration_s", "fav_time"],
+    "folder_fields": ["title", "media_count"],
+    "non_video_policy": "skipped (no BV); present-but-invalid bvid fails 502",
+    "new_table_or_migration": false,
+    "new_route": false,
+    "worker_protocol_frame_changed": false,
+    "shared_port_signature_changed": false,
+    "new_agent_src_source_file": false,
+    "routing_changed": false
+  },
+  "validation": {
+    "mode": "scoped_implementation",
+    "frozen_source": "final source fingerprints in source_files",
+    "new_nodes": 23,
+    "new_test_file": "agent/tests/v2/integrations/test_v2_bilibili_fav_resources.py",
+    "breakdown": "domain row shape/skip non-video and deleted/broken bvid x4/broken shapes x4/>50 rows/optional fields/filter-then-limit + has_more/folder id normalize+reject; gateway fixed endpoint + all query params + cookie + nav-before-resource ordering; invalid folder x7 before network (422); risk code typed detail; malformed medias 502; READ_SPEC/HTTP Literal exposure",
+    "scoped_suite": {"command": "uv run --no-sync pytest -q -n 0 agent/tests/v2/integrations/test_v2_bilibili_fav_resources.py", "passed": 23, "failed": 0, "seconds": 1.22},
+    "caller_suite": {
+      "command": "uv run --no-sync pytest -q -n 0 agent/tests/v2/integrations/test_v2_bilibili*.py agent/tests/v2/http/test_v2_bilibili_http.py",
+      "passed": 546,
+      "failed": 0,
+      "seconds": 142.79
+    },
+    "strict": {"config": "pyrightconfig.strict.json (worktree root)", "errors": 0, "warnings": 0},
+    "ruff": "check pass; format --check pass after formatting the new test's long assert (source files unchanged by formatting)",
+    "full_suite_executed": false,
+    "real_account_or_network_executed": false,
+    "current_windows_service_or_database_touched": false
+  },
+  "not_executed": [
+    "real Bilibili account acceptance of private/public folder contents",
+    "cursor pagination (pn>1), tid/order variants, folder info page, non-video media details",
+    "favorite write add/remove (D4-B2), dynamic write (D4-B3/B4), live (D7), AI-share (D6)",
+    "full offline suite for current source; real model quality; 72h soak"
+  ],
+  "next": "D4-B0 is complete (dynamic_list + fav_resources). Next: Q1/Q2 decision, then D4-B1 comment_delete, D4-B2 favorite_add (fav_resources now verifies it), D4-B3 dynamic text. D8/D9 remain lowest-cost K13 decisions; D5/D6/D7 contracts still to write. whole_* flags stay false",
+  "whole_core_parity_complete": false,
+  "whole_reference_feature_audit_complete": false,
+  "whole_v2_complete": false
+}

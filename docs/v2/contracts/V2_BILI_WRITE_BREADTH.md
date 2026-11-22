@@ -31,7 +31,7 @@
 - **参考**：`x/v3/fav/resource/deal`。V2 走视频页收藏面板 UI。
 - **输入**：`target` BV、`folder_id` + `folder_title`（必须来自只读 `favorites` 的返回，模型/所有者显式选择，不臆造）、`expected_url` CAS。
 - **表单新增字段**：收藏按钮、面板、目标文件夹行（标题+属性）、确认按钮；验证：面板显示已收藏且目标夹选中，并**回读目标夹内容**确认记录出现。
-- **读侧前置**：现有 `favorites` 只列文件夹，**没有文件夹内容读取** → 需新只读 operation `fav_resources`（`x/v3/fav/resource/list`，folder id → 有界资源行）作为验证面；属只读扩展（同 K18 读广度模式），可先批交付。
+- **读侧前置**：`fav_resources` 已交付（[V2_BILI_FAV_RESOURCES](V2_BILI_FAV_RESOURCES.md)：`x/v3/fav/resource/list`、folder id → 有界视频行、只读无迁移），作为「回读目标夹确认记录出现」的验证面。
 - **配额/去重**：参考 reason≥6/≤3 日/30 日每 BV/kind≥2 需 `--better`；V2 建议最小集：`(account, bvid, folder_id)` 幂等、同一 BV 跨夹重复需 `favorite_duplicate_ack` 显式确认、日限可选（Q1/Q2 决策）。
 - **unknown**：面板提交已派发但面板/列表未确认 → unknown，不重放。
 
@@ -45,11 +45,11 @@
 - **配额**：参考无明确 dynamic 配额；V2 建议 owner 审批 + 每 message 一个 dynamic intent（幂等），日限可选（Q1/Q2）。
 - **图片上传**是跨层新面（本地文件→页面），安全影响最大，建议独立子批 + 所有者确认路径约束后再做。
 
-## 读侧前置（只读，建议先批 D4-B0）
+## 读侧前置（只读，D4-B0 已全部交付）
 
-- `fav_resources`：收藏夹内容（`x/v3/fav/resource/list`，bounded rows），验证收藏。
-- `dynamic_list`：空间动态（`space_history`，已按本批 [V2_BILI_DYNAMIC](V2_BILI_DYNAMIC.md) 交付：固定 VC host、严格 id/尽力文本、≤50 卡、不缓存），验证发布/删除/编辑。
-- 两者与 K18 已交付读广度同模式（domain 解析 + READ_SPEC enum + 网关 `_get` + 凭据 CAS + 有界），**只读、无写授权、无迁移**；`dynamic_list` 已交付，`fav_resources` 仍待 D4-B0。
+- `fav_resources`：收藏夹内容（`x/v3/fav/resource/list`，bounded rows），验证收藏——已交付 [V2_BILI_FAV_RESOURCES](V2_BILI_FAV_RESOURCES.md)。
+- `dynamic_list`：空间动态（`space_history`，已按 [V2_BILI_DYNAMIC](V2_BILI_DYNAMIC.md) 交付：固定 VC host、严格 id/尽力文本、≤50 卡、不缓存），验证发布/删除/编辑。
+- 两者与 K18 已交付读广度同模式（domain 解析 + READ_SPEC enum + 网关 `_get` + 凭据 CAS + 有界），**只读、无写授权、无迁移**；D4-B0 已完成，写批 B1–B4 待 Q1/Q2 与逐动作批准。
 
 ## 配额机制（P0 决策）
 
@@ -62,7 +62,7 @@
 
 ## 分批建议与依赖
 
-1. **D4-B0（只读前置）**：`fav_resources` 只读 operation（`x/v3/fav/resource/list`，无授权面、无迁移）；`dynamic_list` 已交付（[V2_BILI_DYNAMIC](V2_BILI_DYNAMIC.md)）。
+1. **D4-B0（只读前置）：已完成**——`fav_resources`（[V2_BILI_FAV_RESOURCES](V2_BILI_FAV_RESOURCES.md)）与 `dynamic_list`（[V2_BILI_DYNAMIC](V2_BILI_DYNAMIC.md)）均已交付，无授权面、无迁移。
 2. **D4-B1**：`comment_delete`（最小写面，复用 browser_dialog；含配额 Q1/Q2 决策结果）。
 3. **D4-B2**：`favorite_add`（含 `favorite_duplicate_ack`）。
 4. **D4-B3**：`dynamic_post`/`dynamic_delete`（文本）。

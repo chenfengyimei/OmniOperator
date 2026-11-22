@@ -229,6 +229,7 @@ class BilibiliReadInput(StrictInput):
         "ranking",
         "following",
         "favorites",
+        "fav_resources",
         "tags",
         "history",
         "msgfeed",

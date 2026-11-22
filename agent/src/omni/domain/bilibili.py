@@ -170,6 +170,17 @@ def uid(value: object) -> str:
     return value
 
 
+def fav_folder_id(value: object) -> str:
+    """A favorite folder id is a positive decimal; distinct from a UID/BV target and validated before network."""
+    if type(value) is int:
+        value = str(value)
+    if not isinstance(value, str) or not re.fullmatch(r"[1-9][0-9]{0,18}", value) or int(value) >= 2**63:
+        raise BusinessError(
+            "bilibili_identity_invalid", "A positive decimal favorite folder id is required", status=422
+        )
+    return value
+
+
 def connection(value: Mapping[str, object]) -> dict[str, object]:
     if value.get("driver") != "bilibili" or value.get("endpoint") not in {"", API} or not value.get("credential_ref"):
         raise BusinessError(
@@ -472,6 +483,51 @@ def fav_folder_rows(data: Mapping[str, object], limit: int) -> dict[str, object]
             }
         )
     return {"items": items, "has_more": len(rows) > limit}
+
+
+def fav_resource_rows(data: Mapping[str, object], limit: int) -> dict[str, object]:
+    """Bounded video rows from one favorite folder (data.medias); non-video/deleted entries are skipped."""
+    raw = data.get("medias")
+    if raw is None:
+        rows: list[object] = []
+    elif isinstance(raw, list):
+        rows = cast(list[object], raw)
+    else:
+        raise BusinessError("bilibili_response_invalid", "Favorite resource list changed format", status=502)
+    if len(rows) > FEED_MAX_ROWS:
+        raise BusinessError("bilibili_response_invalid", "Favorite resource list changed format", status=502)
+    info = _as_dict(data.get("info"))
+    items: list[dict[str, object]] = []
+    for row in rows:
+        if len(items) >= limit:
+            break
+        if not isinstance(row, dict):
+            raise BusinessError("bilibili_response_invalid", "Favorite resource records changed format", status=502)
+        entry = cast(dict[str, object], row)
+        bvid = entry.get("bvid")
+        if bvid is None or bvid == "":
+            # Audio/collection/article media and invalidated videos carry no usable BV; video rows stay authoritative.
+            continue
+        if not isinstance(bvid, str) or not re.fullmatch(r"BV[0-9A-Za-z]{10}", bvid):
+            raise BusinessError("bilibili_response_invalid", "Favorite resource records changed format", status=502)
+        upper = _as_dict(entry.get("upper"))
+        items.append(
+            {
+                "bvid": bvid,
+                "title": search_text(entry.get("title"), 300),
+                "author": search_text(upper.get("name"), 100),
+                "duration_s": entry.get("duration") if type(entry.get("duration")) is int else None,
+                "fav_time": entry.get("fav_time") if type(entry.get("fav_time")) is int else None,
+            }
+        )
+    has_more = data.get("has_more")
+    more = has_more is True or (type(has_more) is int and has_more == 1) or (has_more is None and len(rows) > limit)
+    return {
+        "title": search_text(info.get("title"), 300),
+        "media_count": info.get("media_count") if type(info.get("media_count")) is int else None,
+        "items": items,
+        "has_more": more,
+    }
 
 
 def tag_rows(data: object, limit: int) -> dict[str, object]:

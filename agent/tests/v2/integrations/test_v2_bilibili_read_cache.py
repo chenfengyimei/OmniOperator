@@ -31,6 +31,7 @@ NOT_CACHED = (
     "ranking",
     "following",
     "favorites",
+    "fav_resources",
     "tags",
     "history",
     "msgfeed",

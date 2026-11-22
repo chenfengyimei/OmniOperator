@@ -24,6 +24,8 @@ READ_SPEC = ToolSpec(
     "BV ids "
     "returning public video tags; danmaku returns a bounded "
     "sample; popular/ranking/following/favorites/history ignore target; favorites lists owner-created folders; "
+    "fav_resources targets are favorite folder ids returning bounded video rows (title/author/duration/fav_time; "
+    "favorite verification surface, never cached); "
     "history lists owner watch history; msgfeed targets are reply/at/like inbox kinds (discovery hints, "
     "authoritative reply text via replies); no publishing.",
     {
@@ -46,6 +48,7 @@ READ_SPEC = ToolSpec(
                     "ranking",
                     "following",
                     "favorites",
+                    "fav_resources",
                     "tags",
                     "history",
                     "msgfeed",
