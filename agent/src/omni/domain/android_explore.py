@@ -126,6 +126,44 @@ class ExploreGraph:
         self.edges.append(edge)
         return True
 
+    def reachable(self, source: str) -> list[str]:
+        """Bounded deterministic BFS from a known screen; missing source returns []."""
+        if source not in self.screens:
+            return []
+        seen = {source}
+        queue = [source]
+        result: list[str] = []
+        while queue and len(result) < MAX_SCREENS:
+            current = queue.pop(0)
+            result.append(current)
+            for edge in self.edges:
+                if edge.source == current and edge.target not in seen:
+                    seen.add(edge.target)
+                    queue.append(edge.target)
+        return result
+
+    def paths(self, source: str, target: str, *, max_paths: int = 20, max_depth: int = 20) -> list[list[str]]:
+        """Bounded simple paths from source to target; missing endpoints return []."""
+        if type(max_paths) is not int or not 1 <= max_paths <= MAX_EDGES:
+            raise _invalid("max_paths must be a bounded positive integer")
+        if type(max_depth) is not int or not 1 <= max_depth <= MAX_SCREENS:
+            raise _invalid("max_depth must be a bounded positive integer")
+        if source not in self.screens or target not in self.screens:
+            return []
+        result: list[list[str]] = []
+        stack: list[tuple[str, list[str]]] = [(source, [source])]
+        while stack and len(result) < max_paths:
+            current, path = stack.pop()
+            if current == target:
+                result.append(path)
+                continue
+            if len(path) >= max_depth:
+                continue
+            for edge in reversed(self.edges):
+                if edge.source == current and edge.target not in path:
+                    stack.append((edge.target, [*path, edge.target]))
+        return result
+
     def summary(self) -> dict[str, object]:
         return {
             "screens": len(self.screens),

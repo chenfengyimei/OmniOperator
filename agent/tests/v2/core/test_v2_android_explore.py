@@ -87,6 +87,42 @@ def test_edges_are_bounded_deduplicated_and_never_fabricated():
     assert len(graph.edges) == MAX_EDGES and graph.truncated
 
 
+def test_reachable_bfs_is_deterministic_bounded_and_cycle_safe():
+    graph = ExploreGraph()
+    first = graph.add_screen("org.fixture", ".Main", [_node(0)])
+    second = graph.add_screen("org.fixture", ".Detail", [_node(1)])
+    third = graph.add_screen("org.fixture", ".Other", [_node(2)])
+    graph.add_edge(first.screen_id, second.screen_id, "node-1", "tap")
+    graph.add_edge(second.screen_id, third.screen_id, "node-2", "tap")
+    graph.add_edge(third.screen_id, first.screen_id, "node-3", "tap")
+    assert graph.reachable(first.screen_id) == [first.screen_id, second.screen_id, third.screen_id]
+    assert graph.reachable("missing") == []
+
+
+def test_paths_are_simple_bounded_and_deterministic():
+    graph = ExploreGraph()
+    first = graph.add_screen("org.fixture", ".Main", [_node(0)])
+    second = graph.add_screen("org.fixture", ".Detail", [_node(1)])
+    third = graph.add_screen("org.fixture", ".Other", [_node(2)])
+    graph.add_edge(first.screen_id, second.screen_id, "node-1", "tap")
+    graph.add_edge(first.screen_id, third.screen_id, "node-2", "tap")
+    graph.add_edge(second.screen_id, third.screen_id, "node-3", "tap")
+    graph.add_edge(third.screen_id, first.screen_id, "node-4", "tap")
+    assert graph.paths(first.screen_id, third.screen_id) == [
+        [first.screen_id, second.screen_id, third.screen_id],
+        [first.screen_id, third.screen_id],
+    ]
+    assert graph.paths(first.screen_id, first.screen_id) == [[first.screen_id]]
+    assert graph.paths(first.screen_id, third.screen_id, max_paths=1) == [
+        [first.screen_id, second.screen_id, third.screen_id]
+    ]
+    assert graph.paths(first.screen_id, third.screen_id, max_depth=2) == [[first.screen_id, third.screen_id]]
+    assert graph.paths("missing", third.screen_id) == []
+    for max_paths, max_depth in ((0, 2), (MAX_EDGES + 1, 2), (2, 0), (2, MAX_SCREENS + 1)):
+        with pytest.raises(BusinessError):
+            graph.paths(first.screen_id, third.screen_id, max_paths=max_paths, max_depth=max_depth)
+
+
 def test_summary_and_build_graph_are_bounded():
     observations = [
         {"app": "org.fixture", "activity": ".Main", "nodes": [_node(0)]},

@@ -494,10 +494,10 @@
           "batch": "K14.android_explore_core",
           "contract": "docs/v2/contracts/V2_ANDROID_EXPLORE.md",
           "evidence": "docs/evidence/v2-android-explore-core.json",
-          "delivered": "离线核心（无持久化/模型工具/HTTP/真机）：domain/android_explore.py skeleton_hash 只哈希 class/resource-id/排序 actions，text/description/password 不入哈希，文案变化归并；密码节点跳过；屏幕 id=sha256(app|activity|skeleton)[:24]；ExploreGraph 200 屏/1000 边上限、重复边去重、自环/缺失目标不造边、超限 truncated；summary 仅屏/边/应用/截断；build_graph 从观察+已观察 transition 构图。6 专项 0.33s。D0–D4 未决。"
+          "delivered": "离线核心（无持久化/模型工具/HTTP/真机）：domain/android_explore.py skeleton_hash 只哈希 class/resource-id/排序 actions，text/description/password 不入哈希，文案变化归并；密码节点跳过；屏幕 id=sha256(app|activity|skeleton)[:24]；ExploreGraph 200 屏/1000 边上限、重复边去重、自环/缺失目标不造边、超限 truncated；reachable 有界确定性 BFS、paths 有界简单路径（默认 20/20，避环）；summary 仅屏/边/应用/截断；build_graph 从观察+已观察 transition 构图。8 专项 0.29s。D0–D4 未决。"
         }
       ],
-      "limits": "K14 审计本身只读；后续独立批次已实现视觉子代理离线核心(K14.visual_subagent_core：有界帧/无工具/单次/仅文本/零写，20 专项过)、SoM 离线核心(K14.android_som_core：节点准入/编号/PNG 渲染，9 专项过)、explore_app 离线核心(K14.android_explore_core：结构 skeleton/有界屏幕动作图，6 专项过)，并补 Android 截图撤销/取消/坏 PNG 清理恢复、输入派发后撤权/取消不重放五项回归(仅测试/夹具)；OCR 已记录实现前合同(K14.android_ocr_design，D0–D5 未决，未实现，无依赖/模型/迁移/路由)；视觉 D0-D5、SoM D0-D3、explore D0–D4 未决，生产接线/真实视觉模型/真实帧来源/对象发布/持久化/付费调用/真机未做；不宣称真机质量或约65工具广度对等；V2有意不提供shell逃生舱/变更链(更严格)；既有todos重启竞态与5个pin v2_0039旧迁移测试沿用保留",
+      "limits": "K14 审计本身只读；后续独立批次已实现视觉子代理离线核心(K14.visual_subagent_core：有界帧/无工具/单次/仅文本/零写，20 专项过)、SoM 离线核心(K14.android_som_core：节点准入/编号/PNG 渲染，9 专项过)、explore_app 离线核心(K14.android_explore_core：结构 skeleton/有界屏幕动作图/可达与简单路径，8 专项过)，并补 Android 截图撤销/取消/坏 PNG 清理恢复、输入派发后撤权/取消不重放五项回归(仅测试/夹具)；OCR 已记录实现前合同(K14.android_ocr_design，D0–D5 未决，未实现，无依赖/模型/迁移/路由)；视觉 D0-D5、SoM D0-D3、explore D0–D4 未决，生产接线/真实视觉模型/真实帧来源/对象发布/持久化/付费调用/真机未做；不宣称真机质量或约65工具广度对等；V2有意不提供shell逃生舱/变更链(更严格)；既有todos重启竞态与5个pin v2_0039旧迁移测试沿用保留",
       "next": false
     },
     {

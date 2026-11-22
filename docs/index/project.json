@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "8cfb87969ee89e4d83d9f4defbeae8fa496addc4cc6f48d8a35335f166ee9737",
+  "source_sha256": "87eb089045dd288798479db37ec21f28b7472e96875d649c9ccbb614fbe62fea",
   "modules": [
     {
       "id": "v2-domain",
@@ -98,7 +98,7 @@
         "agent/src/omni/domain/verification_stop.py",
         "agent/src/omni/domain/visual_subagent.py"
       ],
-      "lines": 14436,
+      "lines": 14474,
       "dependencies": []
     },
     {
@@ -79020,7 +79020,7 @@
       "path": "agent/src/omni/domain/android_explore.py",
       "module": "v2-domain",
       "python_module": "omni.domain.android_explore",
-      "lines": 156,
+      "lines": 194,
       "imports": [
         "omni.domain.contracts"
       ],
@@ -79127,8 +79127,38 @@
           }
         },
         {
-          "name": "ExploreGraph.summary",
+          "name": "ExploreGraph.reachable",
           "line": 129,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "source"
+          ],
+          "annotations": {
+            "source": "str"
+          }
+        },
+        {
+          "name": "ExploreGraph.paths",
+          "line": 145,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "source",
+            "target",
+            "max_paths",
+            "max_depth"
+          ],
+          "annotations": {
+            "source": "str",
+            "target": "str",
+            "max_paths": "int",
+            "max_depth": "int"
+          }
+        },
+        {
+          "name": "ExploreGraph.summary",
+          "line": 167,
           "kind": "function",
           "parameters": [
             "self"
@@ -79137,7 +79167,7 @@
         },
         {
           "name": "build_graph",
-          "line": 138,
+          "line": 176,
           "kind": "function",
           "parameters": [
             "observations",

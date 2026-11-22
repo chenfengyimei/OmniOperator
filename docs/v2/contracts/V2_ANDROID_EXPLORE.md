@@ -51,6 +51,6 @@
 
 ## 7. 离线核心实现记录（2026-11-22）
 
-- `domain/android_explore.py`：`skeleton_hash(app, activity, nodes)` 只哈希结构字段（class/resource-id/排序 actions），**text/description/password 值不进入**，文案变化归并同一屏；密码节点跳过；屏幕 id 为 `sha256(app|activity|skeleton)[:24]`；`ExploreGraph` 上限 200 屏/1000 边，重复边去重、自环/缺失目标不造边，超限 `truncated=true`；`summary` 只返回屏/边/应用/截断；`build_graph` 从观察与已观察 transition 构图。
-- 测试：`agent/tests/v2/core/test_v2_android_explore.py` **6 passed / 0.33s**（文案归并/结构变化分屏/密码排除/非法输入/200 屏/1000 边/去重/缺失目标/摘要/build_graph）。
+- `domain/android_explore.py`：`skeleton_hash(app, activity, nodes)` 只哈希结构字段（class/resource-id/排序 actions），**text/description/password 值不进入**，文案变化归并同一屏；密码节点跳过；屏幕 id 为 `sha256(app|activity|skeleton)[:24]`；`ExploreGraph` 上限 200 屏/1000 边，重复边去重、自环/缺失目标不造边，超限 `truncated=true`；`reachable` 有界确定性 BFS、`paths` 有界简单路径（20 路径/20 深度默认，避免环）；`summary` 只返回屏/边/应用/截断；`build_graph` 从观察与已观察 transition 构图。
+- 测试：`agent/tests/v2/core/test_v2_android_explore.py` **8 passed / 0.29s**（文案归并/结构变化分屏/密码排除/非法输入/200 屏/1000 边/去重/缺失目标/可达/简单路径/摘要/build_graph）。
 - 无持久化、模型工具、HTTP、对象发布或自动动作；D0–D4 未决。证据：[v2-android-explore-core.json](../../evidence/v2-android-explore-core.json)。
