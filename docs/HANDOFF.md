@@ -332,6 +332,15 @@ K13.cron_model_design 已记录**实现前设计合同**（纯文档，无源码
 - **未验**：合同内所有能力未实现；真实直播/账号/网络；当前源码未全量。
 - **下一批**：补 D1（K01 前缀重构）/D2（代码沙箱）/D3（原始 CDP）设计合同，或 D8/D9 批准后小批接线；D4/D5/D6/D7 实现均待所有者决策与 A 迁移协调。共享接口/迁移/公共 CI 由 A 协调。
 
+### 2026-11-23 K01 系统前缀重构与 D8 设计合同（第 9 批，`k18-read-cache`）
+
+- **范围/基线**：承接前八批；本批**纯设计合同**，无源码/测试/迁移/路由/worker 改动。基线仍 `origin/v2`=`0793f254`（前八批未合入），同一任务分支/独立工作树。
+- **D1 合同**：[V2_PROMPT_CACHE_PREFIX](v2/contracts/V2_PROMPT_CACHE_PREFIX.md)——勘定系统前缀 = `persona` + owner memory（`metering.py:43-53`）+ run 启动 `route_notice`/`skills.notice`（`engine.py:345-359` → `context.py:92-101`），摘要是 system 后首条 user；run 内 `TurnPrompt` 已冻结 system、变更只走尾；**跨 run 漂移源** = memory/route/skills/摘要（persona 低频）。D3(b) 路由键已交付（`372ad56d`），内容地址 provider 仍靠字节 parity。
+- **P1–P6 决策**：P1-a 仅 persona 系统前缀 + 记忆/摘要固定位 + route·skills 走尾（推荐，**语义变更**：memory salience 下降、通知即时性下降，需所有者接受）；P1-b 混合稳定记忆快照；P1-c 最小改动（通知/摘要移尾）；P1-d 维持。P2 记忆块删除屏障/字段序/上限；P3 通知顺序；P4 摘要位置；P5 全局切换 vs 每 agent 设置（后者可能触 settings schema → A）；P6 **D8** 隔离 provider 对照实验（同模型/同会话连续 run，用既有 usage 缓存字段度量，不入默认离线套件）。
+- **触达面**：`domain/metering.py` 冻结前缀合同（需所有者批准）+ `application/context.py`/`engine.py` 装配；预计**无新表/迁移**；D3(b) 不动。
+- **未验**：P1 方案未实现；D8 真实缓存效果需所有者提供隔离 provider 环境；真实模型质量对照未做；当前源码未全量。
+- **下一批**：补 D2（代码沙箱）/D3（原始 CDP）安全设计合同（任务点名清单中仅剩这两项），或 D8/D9 批准后小批接线；D1/D4–D7 实现均待所有者决策与 A 迁移协调。共享接口/迁移/公共 CI 由 A 协调。
+
 ## 追溯入口
 
 - [旧交接记录](history/pre-layout-2026-11-18/HANDOFF.md)、[旧重构记录](history/pre-layout-2026-11-18/V2_REFACTOR.md)只证明所属版本，不作为当前待办。
