@@ -364,6 +364,32 @@ def test_capture_bad_png_fails_cleanly_and_next_capture_succeeds(tmp_path):
     asyncio.run(scenario())
 
 
+def test_cancelled_run_after_input_dispatch_keeps_actual_input_without_replay(tmp_path):
+    async def scenario():
+        async with prepared(tmp_path) as (instance, fake, agent, _, session, grant):
+            request, _ = await request_for(instance, agent, session, grant)
+            receipt = await instance.android.submit(agent, request)
+            instance.application.notify()
+            await wait_state(instance.application, agent, receipt["run_id"], {"waiting_approval"})
+            fake.allow_input.clear()
+            await approve(instance, agent, receipt)
+            await asyncio.wait_for(fake.input_entered.wait(), 5)
+            await instance.application.cancel(agent, receipt["run_id"])
+            fake.allow_input.set()
+            run = await wait_state(instance.application, agent, receipt["run_id"], {"cancelled", "failed", "succeeded"})
+            for _ in range(200):
+                if instance.android.quiescent():
+                    break
+                await asyncio.sleep(0.01)
+            assert instance.android.quiescent()
+            assert fake.text == "hello world" and len(fake.writes) == 1
+            await asyncio.sleep(0.05)
+            assert len(fake.writes) == 1
+            assert run["state"] == "cancelled"
+
+    asyncio.run(scenario())
+
+
 def test_cancelled_run_and_shutdown_retain_instance_until_worker_is_reclaimed(tmp_path):
     async def scenario():
         async with prepared(tmp_path) as (instance, fake, agent, _, session, grant):
