@@ -6,7 +6,7 @@ import datetime as dt
 import hashlib
 from typing import cast
 
-from sqlalchemy import exists, select, update
+from sqlalchemy import and_, exists, or_, select, update
 
 from ...application.ports import Record
 from ...domain.contracts import JSON, BusinessError
@@ -243,33 +243,99 @@ class ReflectionRepositories(DocumentRepositories):
         }
 
     def reflection_page(self, agent: str, after: str, limit: int, approved: bool) -> Record:
-        stmt = select(journals.c.id, journals.c.revision, journals.c.source_day).where(
+        statement = select(journals.c.id, journals.c.revision, journals.c.source_day).where(
             journals.c.agent_id == agent, journals.c.state == "pending", journals.c.id > after
         )
         if approved:
-            stmt = (
-                stmt.join(slots, slots.c.journal_id == journals.c.id)
+            statement = (
+                statement.join(slots, slots.c.journal_id == journals.c.id)
                 .join(candidates, candidates.c.id == slots.c.active_candidate)
                 .where(candidates.c.state == "approved", candidates.c.journal_revision == journals.c.revision)
             )
+        else:
+            # The owner queue is exactly the journals whose current revision awaits a decision.
+            # A withdrawn or foreign day slot, an approval, a rejection and a skip all leave the
+            # queue; the journal row stays until its source is erased so audit and replacement
+            # keep a stable identity.
+            statement = statement.where(
+                exists(
+                    select(candidates.c.id).where(
+                        candidates.c.journal_id == journals.c.id,
+                        candidates.c.journal_revision == journals.c.revision,
+                        candidates.c.state == "proposed",
+                    )
+                ),
+                ~exists(
+                    select(slots.c.id).where(
+                        slots.c.agent_id == agent,
+                        slots.c.source_day == journals.c.source_day,
+                        or_(slots.c.withdrawn.is_(True), slots.c.journal_id != journals.c.id),
+                    )
+                ),
+            )
         items: list[JSON] = []
-        for row in self.connection.execute(stmt.order_by(journals.c.id).limit(min(50, max(1, limit)))).mappings():
-            if approved:
-                detail = self.reflection_detail(agent, row["id"])
-                candidate = cast(Record, detail["candidate"])
-                body = cast(Record, detail["body"])
-                items.append(
-                    {
-                        **dict(row),
-                        "candidate_id": candidate["id"],
-                        "sentence": str(body[str(candidate["field"])])[
-                            cast(int, candidate["start"]) : cast(int, candidate["end"])
-                        ],
-                    }
-                )
-            else:
-                items.append(dict(row))
+        for row in self.connection.execute(statement.order_by(journals.c.id).limit(min(50, max(1, limit)))).mappings():
+            detail = self.reflection_detail(agent, row["id"])
+            candidate = cast(Record, detail["candidate"])
+            body = cast(Record, detail["body"])
+            items.append(
+                {
+                    **dict(row),
+                    "candidate_id": candidate["id"],
+                    "candidate_revision": candidate["revision"],
+                    "digest": candidate["digest"],
+                    "sentence": str(body[str(candidate["field"])])[
+                        cast(int, candidate["start"]) : cast(int, candidate["end"])
+                    ],
+                }
+            )
         return {"items": items}
+
+    def persona_growth_entries(self, agent: str) -> list[Record]:
+        """Approved, still-visible reflection sentences that feed the owner-only projection."""
+        if not self.connection.execute(select(s.agents.c.id).where(s.agents.c.id == agent)).first():
+            raise BusinessError("not_found", "Agent does not exist", status=404)
+        rows = self.connection.execute(
+            select(
+                journals.c.id,
+                journals.c.body,
+                slots.c.approved_day,
+                candidates.c.field,
+                candidates.c.start,
+                candidates.c.end,
+            )
+            .join(slots, and_(slots.c.journal_id == journals.c.id, slots.c.agent_id == agent))
+            .join(candidates, and_(candidates.c.id == slots.c.active_candidate, candidates.c.agent_id == agent))
+            .where(
+                journals.c.agent_id == agent,
+                journals.c.state == "pending",
+                slots.c.withdrawn.is_(False),
+                candidates.c.state == "approved",
+                candidates.c.journal_revision == journals.c.revision,
+            )
+        ).mappings()
+        entries: list[Record] = []
+        for row in rows:
+            body, field = row["body"], row["field"]
+            start, end = row["start"], row["end"]
+            if (
+                not isinstance(body, dict)
+                or not isinstance(field, str)
+                or type(start) is not int
+                or type(end) is not int
+            ):
+                continue
+            value = cast(dict[str, object], body).get(field)
+            if not isinstance(value, str) or not 0 <= start < end <= len(value):
+                continue
+            entries.append(
+                {
+                    "approved_day": str(row["approved_day"]),
+                    "journal_id": str(row["id"]),
+                    "sentence": value[start:end],
+                }
+            )
+        return entries
 
     def reflection_model_review(self, agent: str, run: str, args: Record) -> Record:
         jid = str(args["journal_id"])

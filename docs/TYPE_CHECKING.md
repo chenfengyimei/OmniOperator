@@ -493,6 +493,12 @@ strict 配置显式将 `agent/src` 加入导入根，隔离源码副本也解析
 
 | `agent/src/omni/adapters/persistence/reflection_media.py` | 反思媒体证据收据：媒体动作/产物锚点与擦除联动 |
 
+| `agent/src/omni/domain/persona_growth.py` | 人格成长派生视图纯领域：已批准句确定性渲染、换行折叠、1 MiB/2000 行截断与固定空态 |
+
+| `agent/src/omni/adapters/persona_files.py` | 人格成长受管缓存：逐字节校验、原子替换、符号链接/硬链接拒绝、临时残留清理与不可逆失效 |
+
+| `agent/src/omni/application/persona.py` | 人格成长只读用例：账本→期望字节→缓存校验/重建，仅所有者读取，不进入模型上下文 |
+
 `pyrightconfig.strict.json` 的 `include` 必须与本表完全一致；`agent/tests/v2/core/test_v2_typecheck_scope.py` 会双向校验。
 
 ## 3. 历史基线与当前范围

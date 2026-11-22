@@ -620,13 +620,29 @@
       "delivered": "审计合同V2_BILI_HUMANISM_AUDIT.md：V2四层原语(domain/people.py+application/people.py PeopleService人物卡/跨渠道account_bind/profile+resident文档<=8000修订CAS/历史/content+source指纹、documents/media观影证据锚点+删除屏障(K16)、K08 background_review所有者decide待审记忆/技能apply走remember/forget+技能审核撤回undo走archived CAS revision/fingerprint/epoch、memory证据锚定+修订+删除屏障、delivery outbox、K10 clarify、所有者HTTP审核路由)对照参考全链a-g；V2对等或更严(观影证据WBI直链凭据/源CAS不引yt-dlp/cookies、跨渠道身份、所有者门控待审比参考agent自审更严、V2有所有者HTTP审核路由而参考无专用GUI仅可信CLI)；可离线缺口(信笺8字段结构+evidence锚点+每日限2同事务+精确去重+inbox导出/月卷/hash核验+草稿状态、每日反思选择状态机queue同tx+可信steering只传journalId+read/select<=240/skip+双配额+句去重保留V2所有者门控、人格成长文档模型+导出+完整性hash/no-symlink/<=1MiB+固定reader引用注入不自动增长全局指令需独立设计合同、personality revise/delete/rebuild+撤回阻断重选+shadow先撤回正式再擦源拒绝、观影后提问状态机准备!=送达/出现!=已读/回复!=同意+无idle-wake/resend、personality shadow跨会话实验默认OFF共享配额provenance擦源拒绝、观影证据coverage/timed_fraction/sourceTrust/content_hash去重)列后续批次经V2四层不复用V1 ToolRegistry；需账号(A2 sessdata/candidates/playurl/writer history-favorite-like-coin参考v1.3.4可选写默认OFF从未实机测试属K18)、需真实模型质量(信笺散文/反思选择/问题措辞/shadow解读host著插件只校验结构)、外部二进制(PyAV/faster-whisper~483MB V2 media worker已用离线缓存)另验；v0051 文档已读锚点与信笺队列同库持久化，文档擦除清理派生信笺。",
       "contract": "docs/v2/contracts/V2_BILI_HUMANISM_AUDIT.md",
       "evidence": "docs/evidence/v2-bili-humanism-audit.json",
-      "limits": "v0051 文档锚点 + v0052 媒体锚点/修订绑定候选/双配额/所有者 HTTP 决定已落地；人格成长文件、personality revise/rebuild/shadow、观影后提问状态机与真实账号/模型质量验收仍待完成。审计边界见原审计证据。",
+      "limits": "文档锚点(v0051)、媒体锚点/修订绑定摘录/双日槽/撤回与所有者 HTTP/工作台审核页(v0052+K17.owner_review+K17.reflection_media_review)已实现并专项通过；人格成长派生视图+固定 reader 三批全部落地（渲染/受管缓存、HTTP/工作台只读页、擦除失效钩子与多 agent 隔离）；inbox/月卷导出、所有者正文编辑页、shadow/观影后提问仍待后续批次，真实 B 站账号与模型质量另验。",
       "next": false,
       "design_contract": "docs/v2/contracts/V2_REFLECTION_PROVENANCE.md",
       "design_evidence": "docs/evidence/v2-reflection-provenance.json",
       "implementation_evidence": [
         "docs/evidence/v2-reflection-document-journal.json",
-        "docs/evidence/v2-reflection-media-review.json"
+        "docs/evidence/v2-reflection-media-review.json",
+        "docs/evidence/v2-reflection-owner-review.json"
+      ],
+      "followups": [
+        {
+          "gap": "人格成长文件与固定 reader（派生视图，不注入系统前缀）",
+          "status": "batch_3_implemented",
+          "batch": "K17.persona_growth_design",
+          "contract": "docs/v2/contracts/V2_PERSONA_GROWTH.md",
+          "evidence": "docs/evidence/v2-persona-growth-design.json",
+          "delivered": "所有者 2026-11-22 确认做派生视图 + 固定 reader（仅所有者只读页/HTTP，不进入模型上下文）。合同记录 D1-D10：已批准反思账本为唯一真值、persona/growth.md 为确定性派生缓存；GET 时从账本重算期望字节并逐字节校验，撤回/修订/擦源后绝不返回旧文；受管目录单文件、原子临时写+replace+fsync、拒绝 symlink/junction/硬链接/非常规文件、≤1MiB/≤2000 行确定性截断；擦除在 DB 提交后 unlink 并核验，失败使 erasure job 失败可重试，文件未清除不得报告完成；无新表/无迁移；实现拆三批：核心渲染+文件存储（离线）、HTTP+工作台只读页（接口先交 A）、擦除失效钩子（共享服务变更交 A）。 批 1（离线核心）已落地：domain/persona_growth.py 确定性渲染（排序/换行折叠/1MiB+2000 行截断/固定空态/hash）、adapters/persona_files.py 受管缓存（逐字节校验/原子替换/链接与硬链接拒绝/临时清理/invalidate）、reflection_repository.persona_growth_entries 只读账本、application/persona.py 只读与重建用例、InstancePaths.persona；专项含撤回/编辑替换/擦源 stale、重启后有效缓存、发布失败保留旧文与不进入模型上下文守卫。 批 2（HTTP+工作台只读页）已落地：GET/POST 两个所有者路由与 HttpRuntime/Instance 装配；勘定多 agent 后缓存改为 persona/<agent_id>/growth.md（规范 UUID、跨 agent 不共享），合同 D2/§2 同步；工作台「人格成长」只读页（409 时清空旧内容并要求显式重建），导航 25→26；HTTP 401/404/200/409→rebuild 与 UI 390/1440 撤回→过期→重建为空专项通过；路由数 462→464，索引 847/464/94。 批 3（擦除失效钩子）已落地：PersonaGrowthInvalidator 窄端口 + DocumentService/MediaService 可选 persona 注入；文档擦除按 fail-closed 排序（先 invalidate→begin→删源→再 invalidate→finish(done)），二次清除失败写 finish(error=persona_growth_cleanup_failed) 且 job 可重试；媒体删除前后各 invalidate；生产实例擦除后缓存消失、fail-closed/重试/媒体顺序专项通过。",
+          "implementation_evidence": [
+            "docs/evidence/v2-persona-growth-batch1.json",
+            "docs/evidence/v2-persona-growth-batch2.json",
+            "docs/evidence/v2-persona-growth-batch3.json"
+          ]
+        }
       ]
     },
     {
@@ -1065,6 +1081,26 @@
     {
       "id": "K17.reflection_media_review",
       "evidence": "docs/evidence/v2-reflection-media-review.json"
+    },
+    {
+      "id": "K17.owner_review",
+      "evidence": "docs/evidence/v2-reflection-owner-review.json"
+    },
+    {
+      "id": "K17.persona_growth_design",
+      "evidence": "docs/evidence/v2-persona-growth-design.json"
+    },
+    {
+      "id": "K17.persona_growth_batch1",
+      "evidence": "docs/evidence/v2-persona-growth-batch1.json"
+    },
+    {
+      "id": "K17.persona_growth_batch2",
+      "evidence": "docs/evidence/v2-persona-growth-batch2.json"
+    },
+    {
+      "id": "K17.persona_growth_batch3",
+      "evidence": "docs/evidence/v2-persona-growth-batch3.json"
     }
   ]
 }

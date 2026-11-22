@@ -98,6 +98,16 @@
       >
         <span class="material-icons">description</span>
       </button>
+      <button
+        type="button"
+        class="rail-btn"
+        data-page="reflections"
+        data-tip="反思信笺"
+        aria-label="反思信笺"
+        title="反思信笺"
+      >
+        <span class="material-icons">auto_stories</span>
+      </button>
       <p class="nav-group">工具与扩展</p>
       <button
         type="button"
@@ -175,6 +185,16 @@
       </button>
       <button type="button" class="rail-btn" data-page="media" data-tip="媒体" aria-label="媒体" title="媒体">
         <span class="material-icons">movie</span>
+      </button>
+      <button
+        type="button"
+        class="rail-btn"
+        data-page="persona-growth"
+        data-tip="人格成长"
+        aria-label="人格成长"
+        title="人格成长"
+      >
+        <span class="material-icons">psychology</span>
       </button>
       <p class="nav-group">自动化</p>
       <button
@@ -1745,6 +1765,39 @@
               <p id="document-search-status" role="status"></p>
               <div id="document-results"></div>
             </section>
+            <section id="reflections" class="page" hidden>
+              <h1>反思信笺</h1>
+              <p class="muted">
+                模型只能提交待审摘录；批准、拒绝与撤回均由所有者在此决定。来源正文不在此重放，只展示已核验的区间与指纹。任一来源被删除后，整封信笺与正式条目立即失效，且不会自动恢复。
+              </p>
+              <div class="actions">
+                <button id="reflection-refresh" type="button">刷新反思</button>
+              </div>
+              <p id="reflection-status" role="status"></p>
+              <div class="field-row">
+                <label class="field">待决定<select id="reflection-pending" aria-label="待决定反思"></select></label>
+                <label class="field">已批准<select id="reflection-approved" aria-label="已批准反思"></select></label>
+              </div>
+              <pre id="reflection-detail"></pre>
+              <div class="actions">
+                <button id="reflection-approve" type="button" disabled>批准这条反思</button
+                ><button id="reflection-reject" type="button" disabled>拒绝</button
+                ><button id="reflection-retract" type="button" disabled>撤回已批准条目</button>
+              </div>
+            </section>
+            <section id="persona-growth" class="page" hidden>
+              <h1>人格成长</h1>
+              <p class="muted">
+                只读派生视图：由所有者已批准的反思条目生成，不读取来源正文，也不进入模型上下文。撤回、修订或来源擦除后本页会要求显式重建，并且绝不展示旧内容。
+              </p>
+              <div class="actions">
+                <button id="persona-growth-refresh" type="button">刷新</button
+                ><button id="persona-growth-rebuild" type="button" hidden>重建派生文件</button>
+              </div>
+              <p id="persona-growth-status" role="status"></p>
+              <pre id="persona-growth-content"></pre>
+              <p id="persona-growth-meta" class="muted"></p>
+            </section>
             <section id="capabilities" class="page" hidden>
               <h1>能力报告</h1>
               <p class="muted">
@@ -2160,6 +2213,6 @@
     <script src="/assets/vendor/xterm.js?v=20261121v173"></script>
     <script src="/assets/vendor/xterm-addon-fit.js?v=20261121v173"></script>
     <script src="/assets/ui/markdown.js?v=20261121v173"></script>
-    <script type="module" src="/assets/ui/v2/main.js?v=20261121v173"></script>
+    <script type="module" src="/assets/ui/v2/main.js?v=20261122p176"></script>
   </body>
 </html>

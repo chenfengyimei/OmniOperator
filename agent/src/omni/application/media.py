@@ -43,6 +43,7 @@ from ..domain.media import (
 from ..domain.media_locate import match_segments, normalize_limit, normalize_query, render_locate
 from .images import ImageService
 from .objects import ObjectService
+from .persona import PersonaGrowthInvalidator
 from .ports import Clock, DatabasePort, Record, UnitOfWork
 
 log = logging.getLogger("omni.v2.media")
@@ -211,10 +212,13 @@ class MediaService:
         processor: MediaProcessingPort,
         clock: Clock,
         staging_root: Path,
+        *,
+        persona: PersonaGrowthInvalidator | None = None,
     ) -> None:
         self._db, self._objects, self._images = database, objects, images
         self._bilibili, self._processor, self._clock = bilibili, processor, clock
         self._staging = staging_root
+        self._persona = persona
         self._slots = asyncio.Semaphore(MAX_ACTIVE_JOBS)
         self._tasks: set[asyncio.Task[object]] = set()
         self._queued_jobs: set[asyncio.Task[object]] = set()
@@ -255,7 +259,13 @@ class MediaService:
         return await self._db.read(lambda u: u.media_source_get(agent_id, source_id))
 
     async def delete(self, agent_id: str, source_id: str) -> None:
+        # Clear the derived view before and after the source transaction: no erased
+        # transcript text may remain in an owner cache once deletion reports success.
+        if self._persona is not None:
+            await self._persona.invalidate(agent_id)
         await self._db.write(lambda u: u.media_source_delete(agent_id, source_id))
+        if self._persona is not None:
+            await self._persona.invalidate(agent_id)
 
     # ---------- jobs ----------
 

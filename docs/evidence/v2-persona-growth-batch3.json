@@ -1,0 +1,64 @@
+{
+  "schema": 1,
+  "date": "2026-11-22",
+  "batch": "K17.persona_growth_batch3",
+  "status": "implemented_scoped_passed",
+  "base_commit": "03aa5499",
+  "branch": "codex/windows-k17-reflection",
+  "contract": "docs/v2/contracts/V2_PERSONA_GROWTH.md",
+  "scope": "人格成长批 3：擦除失效钩子（PersonaGrowthInvalidator + DocumentService/MediaService 可选注入）、fail-closed 与重试语义、生产装配。无新表/迁移、无 HTTP/引擎改动。",
+  "files": {
+    "agent/src/omni/application/documents.py": "8a0372c301dd930c686b918721ef1597eebed7b002ecc53f347e5ec3893b15b7",
+    "agent/src/omni/application/media.py": "8883995b60398180f42e9a5b32f310ef3f60f8e49db28386789757d0a62f38fb",
+    "agent/src/omni/application/persona.py": "892eb679f954b85e780fbc6a39934086bb1eb9be481e7d9d78b816a6a8684237",
+    "agent/src/omni/composition/instance.py": "b92e8024346beda757bd307a4787a613326098c595a117bafb1507be2e915f79",
+    "agent/tests/v2/core/test_v2_persona_growth_erasure.py": "bc8786eb95ec967be4d843f6d2fa86acf61feec2160d1563f59a3f57a842625e",
+    "docs/v2/contracts/V2_PERSONA_GROWTH.md": "f296a826d3cd8f38a8bdc20e7e28c7247fbbf0f37cac0058e46947d782e4076a",
+    "docs/tasks/v2-agent-core-parity.json": "27b866e63ac8329a487a99dac5809b9af3afd0210673d643f03025e2400b1fd3",
+    "docs/HANDOFF.md": "f55f6a513434419dd57b5ac387b0f6992ca557be5c2f493be4924a7bbafb8ecf"
+  },
+  "hash_scope": "SHA-256 of git index blob bytes (LF-normalized); excludes this evidence file and generated docs/index.",
+  "behaviour": {
+    "port": "application/persona.py 新增 PersonaGrowthInvalidator（async invalidate(agent)->bool）；DocumentService/MediaService 增加可选 keyword persona=，未注入时保持原行为。",
+    "document_erase": "先 invalidate（失败即中止，账本/源不变）→ begin（触发信笺擦除）→ 删除源（提交）→ 再 invalidate（关闭并发重建竞态）→ finish(done)。第二次失败写 finish(error=persona_growth_cleanup_failed) 并抛出；job failed 可重试，重试幂等。",
+    "media_delete": "invalidate → 删除源 → invalidate；第一次失败不删源；第二次失败返回 503（源已删、缓存已先失效，reader 仍因期望变化拒绝旧文）。",
+    "wiring": "composition/instance.py 在 documents/media 之前构造 persona_growth 并注入；HTTP 路由与既有构造调用保持兼容。"
+  },
+  "verification_matrix": {
+    "production": "生产 open_instance 文档擦除后 growth.md 消失、反思详情失效。",
+    "fail_closed": "invalidate 首次失败→擦除抛出、无 erasure job、源仍可读。",
+    "retry": "删除源后第二次 invalidate 失败→job failed/error=persona_growth_cleanup_failed；换正常 invalidator 重试→done/attempt=2。",
+    "media": "媒体删除前后各一次 invalidate；首次失败零 DB 写；第二次失败已写库并报错。"
+  },
+  "validation": [
+    {
+      "command": "uv run --no-sync pytest -q -n 0 <persona 6 文件 + 文档 3 文件 + 媒体 + 反思 flow/closeout + typecheck/architecture/layout>",
+      "result": "83 passed, 1 skipped",
+      "seconds": 367.77,
+      "note": "1 skip = Windows 普通用户无法创建文件符号链接；目录 junction 用例已执行。"
+    },
+    {
+      "command": "uv run --no-sync pyright --project pyrightconfig.strict.json",
+      "include": 427,
+      "errors": 0,
+      "warnings": 0
+    },
+    {
+      "command": "uv run --no-sync ruff check <5 changed Python files> && ruff format --check <same>",
+      "result": "All checks passed; formatting clean"
+    },
+    {
+      "command": "uv run --no-sync python scripts/project_index.py",
+      "result": "modules=65 files=847 routes=464 declared_tools=94; 二次运行 updated=(none)"
+    }
+  ],
+  "not_executed": [
+    "完整 pytest 全量（本批只跑受影响专项与调用方，current_full_passed 保持 false）",
+    "真实模型人格质量、真实 B 站来源与 72 小时",
+    "批后 persona 缓存目录在真实崩溃注入（进程被杀）下的续清演练"
+  ],
+  "current_full_passed": false,
+  "whole_core_parity_complete": false,
+  "whole_reference_feature_audit_complete": false,
+  "whole_v2_complete": false
+}

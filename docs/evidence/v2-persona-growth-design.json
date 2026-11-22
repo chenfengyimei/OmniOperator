@@ -1,0 +1,70 @@
+{
+  "schema": 1,
+  "date": "2026-11-22",
+  "batch": "K17.persona_growth_design",
+  "status": "design_contract_recorded",
+  "base_commit": "ab28ab7c761e811da45d68de9f772a0a2fcae680",
+  "contract": "docs/v2/contracts/V2_PERSONA_GROWTH.md",
+  "owner_decision": {
+    "date": "2026-11-22",
+    "persona_growth": "做派生视图 + 固定 reader",
+    "fixed_reader": "仅所有者只读页/HTTP；不注入系统前缀、不进入模型上下文、不参与记忆检索或缓存键"
+  },
+  "decisions": {
+    "D1": "已批准反思账本是唯一真值；persona/growth.md 只是确定性派生缓存，不可反写。",
+    "D2": "固定落 <instance>/persona/growth.md，不进对象存储（避免 TTL/GC 删除所有者视图）。",
+    "D3": "GET 从账本重算期望字节并逐字节校验；缺失/链接/哈希不符/账本变化即 409，绝不返回旧文。",
+    "D4": "实例锁内临时文件 + fsync + os.replace 原子重建；拒绝 symlink/junction/硬链接/非常规文件。",
+    "D5": "确定性渲染：approved_day DESC, journal_id ASC；CR/LF 折单空格；固定空态。",
+    "D6": "≤1 MiB 且 ≤2000 行；超出按最新条目截断并加固定 ASCII 标记。",
+    "D7": "固定 reader 仅所有者 GET/POST；不进入系统前缀、模型上下文、记忆检索或缓存键。",
+    "D8": "撤回/修订/擦源立即改变期望字节使 reader 拒绝旧文；物理清除由擦除钩子保证，未清除不得报告擦除完成。",
+    "D9": "无新表、无迁移；构建元数据只取文件 mtime/hash/bytes。",
+    "D10": "inbox/月卷、人格修订重建、shadow、观影后提问、自动注入明确不做。"
+  },
+  "scope": "纯文档设计合同：人格成长派生视图、受管文件安全与原子重建、读取新鲜度、所有者只读接口、擦除/撤回/重启联动、三批实现顺序。无源码/测试/迁移/HTTP 改动。",
+  "files": {
+    "docs/v2/contracts/V2_PERSONA_GROWTH.md": "d1d8aa5261bc66c941df95e45c7142ba1d5fa8d3bf74c21a6ea77dcf4e2984a9",
+    "docs/v2/contracts/V2_REFLECTION_PROVENANCE.md": "a4bf6a122af93fa76e1d5702445753c9dded51f889e8783f9a783c571e9c8d73",
+    "docs/v2/README.md": "4e97e458f8dd260623661e16bf35da75536304cf20cc8c76d26a68d661d67b3a",
+    "docs/tasks/v2-agent-core-parity.json": "23a753c242156b2dbf83153abed168ec10638d230febb0f6ca448609eb9089c3",
+    "docs/HANDOFF.md": "91465f44b082d1a56929d31a37aa838533983d100d88eb50831a9617337daedd"
+  },
+  "hash_scope": "SHA-256 of working-tree bytes; excludes this evidence file.",
+  "grounding": {
+    "instance_paths": "agent/src/omni/adapters/platform/runtime/paths.py InstancePaths（home/logs/objects/control）",
+    "managed_file": "agent/src/omni/adapters/object_store.py checked_path/publish_file/sync_directory（symlink/junction/硬链接拒绝、O_NOFOLLOW、fsync、os.replace）",
+    "erasure_callers": "agent/src/omni/application/documents.py DocumentService.erase（begin→remove→finish）与 application/media.py MediaService.delete",
+    "ledger": "reflection_slots/reflection_candidates/reflection_journals（v0052），applied = withdrawn=0 + state=approved + journal_revision=journals.revision"
+  },
+  "validation": [
+    {
+      "command": "python consistency check: D1-D10 table, owner decision phrases, referenced source paths, README link, provenance pointer, ledger followup/batch, JSON load",
+      "result": "design consistency ok"
+    },
+    {
+      "command": "uv run --no-sync python scripts/project_index.py",
+      "result": "modules=65 files=843 routes=462 declared_tools=94; updated=(none) — docs-only batch, index unchanged"
+    },
+    {
+      "command": "git diff --check",
+      "result": "clean"
+    }
+  ],
+  "pytest_passed": null,
+  "limits": [
+    "设计合同，尚未实现；无源码、测试、迁移或 HTTP 改动。",
+    "HTTP 两个所有者路由与 DocumentService/MediaService 擦除后清理属共享面，接线前先提供接口与调用方给 A。",
+    "本项不新增表、不改 v0052，因此无需迁移编号；文件是派生缓存，真值仍是反思账本。",
+    "真实模型人格一致性/信笺质量、真实 B 站来源与 72 小时不在本项。"
+  ],
+  "not_executed": [
+    "pytest（本批纯文档）",
+    "HTTP/工作台实现、擦除钩子与真实文件系统验收",
+    "真实模型、账号、运行中服务与数据库"
+  ],
+  "current_full_passed": false,
+  "whole_core_parity_complete": false,
+  "whole_reference_feature_audit_complete": false,
+  "whole_v2_complete": false
+}

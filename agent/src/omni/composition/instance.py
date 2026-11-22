@@ -46,6 +46,7 @@ from ..adapters.object_store import ObjectFiles
 from ..adapters.onebot import OneBotTransport
 from ..adapters.persistence.database import Database
 from ..adapters.persistence.deployed_instance import verify_deployed_instance
+from ..adapters.persona_files import PersonaGrowthFiles
 from ..adapters.primitives import SystemClock, UUIDs
 from ..adapters.process_diagnostics import ProcessDiagnostics
 from ..adapters.skill_packages import SkillPackages
@@ -86,6 +87,7 @@ from ..application.model_calls import ModelCalls
 from ..application.objects import ObjectService
 from ..application.operations import OperationsService
 from ..application.people import PeopleService
+from ..application.persona import PersonaGrowthService
 from ..application.ports import (
     AsyncSecretPort,
     Clock,
@@ -254,6 +256,7 @@ class Instance:
     memory_organization: MemoryOrganizationService
     background_review: BackgroundReviewService
     reflections: ReflectionService
+    persona_growth: PersonaGrowthService
     extensions: ExtensionService
     action_reviews: ActionReviewService
     terminals: TerminalService
@@ -499,7 +502,8 @@ async def open_instance(
         )
         lifetime.own("desktop_actions", 0, desktop_actions.close, desktop_actions.stop_accepting)
         local_vectors = vectorizer if vectorizer is not None else await configured_vectors(paths.home)
-        documents = DocumentService(database, objects, local_vectors)
+        persona_growth = PersonaGrowthService(database, PersonaGrowthFiles(paths.persona))
+        documents = DocumentService(database, objects, local_vectors, persona=persona_growth)
         lifetime.own("source_documents", 1, documents.close)
         memory_semantics = MemorySemanticService(database, local_vectors)
         lifetime.own("memory_semantics", 0, memory_semantics.close, memory_semantics.stop_accepting)
@@ -579,6 +583,7 @@ async def open_instance(
             processor,
             clock,
             paths.control / "media-staging",
+            persona=persona_growth,
         )
         lifetime.own("media", 0, media.close, media.stop_accepting)
         # Jobs owned by the previous process end interrupted or unknown before
@@ -874,6 +879,7 @@ async def open_instance(
             memory_organization=memory_organization,
             background_review=background_review,
             reflections=reflections,
+            persona_growth=persona_growth,
             extensions=extensions,
             action_reviews=action_reviews,
             terminals=terminals,

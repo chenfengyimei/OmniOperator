@@ -32,6 +32,12 @@ class ServerInfo(tuple):
 
 @pytest.fixture
 def v2_server(tmp_path, request):
+    reflection_seed = None
+    persona_seed = None
+    if getattr(request, "param", None) == "reflection":
+        from omni_test_support.v2.reflection import seed_review
+    if getattr(request, "param", None) == "persona":
+        from omni_test_support.v2.reflection import seed_persona
     if getattr(request, "param", None) in {"two_agents", "maintenance_erasure"}:
 
         async def seed_agents():
@@ -65,6 +71,8 @@ def v2_server(tmp_path, request):
         credential_backend=credential_backend,
     )
     app.state.credential_fixture = credential_backend
+    app.state.reflection_seed = reflection_seed
+    app.state.persona_seed = persona_seed
     app.state.slow_person = None
     app.state.slow_write = False
     app.state.slow_configuration = None
@@ -112,6 +120,10 @@ def v2_server(tmp_path, request):
     )
 
     def run_server():
+        if getattr(request, "param", None) == "reflection":
+            app.state.reflection_seed = asyncio.run(seed_review(tmp_path))
+        if getattr(request, "param", None) == "persona":
+            app.state.persona_seed = asyncio.run(seed_persona(tmp_path))
         if getattr(request, "param", None) in {"two_agents", "maintenance_erasure"}:
             asyncio.run(seed_agents())
         server.run(sockets=[listener])

@@ -17,6 +17,7 @@ from ..domain.documents import (
 )
 from .local_vectors import embed_local, vector_status
 from .objects import ObjectService
+from .persona import PersonaGrowthInvalidator
 from .ports import DatabasePort, LocalVectorizer, Record, UnitOfWork
 
 T = TypeVar("T")
@@ -24,12 +25,23 @@ T = TypeVar("T")
 
 class DocumentService:
     def __init__(
-        self, database: DatabasePort, objects: ObjectService, vectorizer: LocalVectorizer | None = None
+        self,
+        database: DatabasePort,
+        objects: ObjectService,
+        vectorizer: LocalVectorizer | None = None,
+        *,
+        persona: PersonaGrowthInvalidator | None = None,
     ) -> None:
         self._db, self._objects, self._vectorizer = database, objects, vectorizer
+        self._persona = persona
         self._pending: set[asyncio.Task[object]] = set()
         self._slots = asyncio.Semaphore(2)
         self._closing = self._closed = False
+
+    async def _drop_persona_cache(self, agent_id: str) -> None:
+        """Derived growth text must not outlive the source it quotes."""
+        if self._persona is not None:
+            await self._persona.invalidate(agent_id)
 
     async def _execute(self, operation: Callable[[], Awaitable[T]]) -> T:
         if self._closing:
@@ -108,23 +120,29 @@ class DocumentService:
 
     async def erase(self, agent_id: str, document_id: str, revision: int) -> None:
         async def perform() -> None:
+            # Fail closed before any ledger change, then again after the source transaction
+            # commits: an owner rebuild racing the erase cannot leave old text in the cache.
+            await self._drop_persona_cache(agent_id)
             job = await self._db.write(lambda u: u.document_erasure_begin(agent_id, document_id, revision))
+            job_id = str(job["id"])
             if job["state"] == "done":
-                await self._db.write(lambda u: u.document_erasure_finish(agent_id, str(job["id"])))
+                await self._drop_persona_cache(agent_id)
+                await self._db.write(lambda u: u.document_erasure_finish(agent_id, job_id))
                 return
 
             def remove(u: UnitOfWork) -> None:
                 derived = u.document_erase(agent_id, document_id, revision)
                 for memory_id in cast(list[str], derived):
                     u.forget(agent_id, memory_id)
-                u.document_erasure_finish(agent_id, str(job["id"]))
 
             try:
                 await self._db.write(remove)
+                await self._drop_persona_cache(agent_id)
             except BaseException as exc:
                 code = exc.code if isinstance(exc, BusinessError) else "erasure_interrupted"
-                await self._db.write(lambda u: u.document_erasure_finish(agent_id, str(job["id"]), code))
+                await self._db.write(lambda u: u.document_erasure_finish(agent_id, job_id, code))
                 raise
+            await self._db.write(lambda u: u.document_erasure_finish(agent_id, job_id))
 
         await self._execute(perform)
 

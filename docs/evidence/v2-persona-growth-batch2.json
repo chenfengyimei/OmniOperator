@@ -1,0 +1,80 @@
+{
+  "schema": 1,
+  "date": "2026-11-22",
+  "batch": "K17.persona_growth_batch2",
+  "status": "implemented_scoped_passed",
+  "base_commit": "03aa5499",
+  "branch": "codex/windows-k17-reflection",
+  "contract": "docs/v2/contracts/V2_PERSONA_GROWTH.md",
+  "scope": "人格成长批 2：所有者 HTTP 只读/重建路由、Instance/HttpRuntime 装配、多 agent 缓存勘定修正（persona/<agent_id>/growth.md）、工作台只读页与导航 26 页。无新表/迁移、无模型注入、擦除钩子留批 3。",
+  "files": {
+    "agent/src/omni/adapters/http.py": "c3917ab20fbb1afc5ce39135386c07e2c3b9573e6a3adc58befa2e544a0e4e05",
+    "agent/src/omni/composition/http.py": "8755628fda0803bd34811e93566bd977af0334bde23394aaed623b33e67dab50",
+    "agent/src/omni/composition/instance.py": "adc3dec9859c35d81d495606905002fa35b173d52e66c028a1ed139e65d275ad",
+    "agent/src/omni/adapters/persona_files.py": "01cae1adf72803631fa40e07ca218e4562b577709ad54b1a80b9c20c3b2473c0",
+    "agent/src/omni/application/persona.py": "acabfbb105b9777873234a606e4763170a8f8754de8fb61d7b3316541a579e35",
+    "agent/src/omni/adapters/persistence/reflection_repository.py": "d856279b4b36cbd2ceee138c3534c3d577493ca1c29aee59258a4b1a1c23ca8a",
+    "agent/tests/omni_test_support/v2/reflection.py": "5359495dd6bc930e46582c8b5ad46b776a0640e2ffd96f1a7808cdd6988c2348",
+    "agent/tests/omni_test_support/v2/ui.py": "7fe32ebc9218a6e067c9d1d2a6253af8083a214202f75483791742699cfad329",
+    "agent/tests/v2/core/test_v2_persona_growth.py": "740a730b8db557d54a09d8775eeb3c25b2553e3aca613cff6de7a43f81e28350",
+    "agent/tests/v2/http/test_v2_persona_growth_http.py": "3722f38662de7d2cf7a7f300a1cc336a703e45389ef5dc0486c21ff13337ae3c",
+    "agent/tests/v2/ui/test_v2_persona_ui.py": "4b1ebff4bb24bfb7c693a0aafe40795505f7decef38f1b9fcefd0984b3c01b72",
+    "agent/tests/v2/ui/test_v2_navigation_ui.py": "4802dad4dc1a0914e28a791a2a1544f448e22ca12dda69227bac886ad5533478",
+    "web/ui/v2/persona.js": "b13a96f8479982c9900e795b7cd96164e7f7fbfa11bb5697c65e6e1c15066a70",
+    "web/ui/v2/main.js": "ff5414f3c0276784796b6a91560a1bc03f18db5ae09631929d9c0ea7062ef881",
+    "web/ui/v2/index.html": "60b7946bbc65b1000bf2c7e9d747a9e81afb612908610a59ec0796445b54a4b2",
+    "docs/v2/contracts/V2_PERSONA_GROWTH.md": "1c576a96560c476e682d9354b59ea4056be00ce0fcdc44ceacb094f218ecc976",
+    "docs/tasks/v2-agent-core-parity.json": "ce70c98aed154fe7b5d6cfc24f00fabe53be88927d1a5beac111987a1ad7b0f2",
+    "docs/HANDOFF.md": "a34f68acd705947e3687e48bffe701cf8bb0f376e2b17fd6375aa68668a3b5b0"
+  },
+  "hash_scope": "SHA-256 of git index blob bytes (LF-normalized); excludes this evidence file and generated docs/index.",
+  "behaviour": {
+    "routes": "GET /api/v1/agents/{agent_id}/persona-growth → 200 ready 或 409 persona_growth_stale；POST .../rebuild → 200 ready；沿用 owner token 中间件（401），未知 agent 404。",
+    "multi_agent": "缓存从实例级单文件改为 persona/<agent_id>/growth.md；PersonaGrowthFiles 校验规范 UUID、拒绝跨 agent 读取；合同 D2/§2 同步。",
+    "ui": "「人格成长」页显示正文、sha256 前 12 位、批准条数、截断与构建时间；409 时清空旧内容、显示需重建；重建按钮显式 POST；不提供编辑。",
+    "wiring": "Instance.persona_growth = PersonaGrowthService(database, PersonaGrowthFiles(paths.persona))；HttpRuntime 增加字段并注入。",
+    "unchanged": "无模型工具、无系统前缀/上下文注入、无新表/迁移、无 v0052 变更。"
+  },
+  "verification_matrix": {
+    "http": "test_v2_persona_growth_http.py：401、ready 200 与 sha/条数、删除缓存→409、rebuild→同 sha、HTTP 撤回→409、rebuild 空态；未知 agent GET/POST 404。",
+    "ui": "test_v2_persona_ui.py 390/1440：已同步→HTTP 撤回→刷新显示过期且不显示旧句→重建空态；正文无子元素；无横向溢出。",
+    "navigation": "test_v2_navigation_ui.py 26 页可达（含 #persona-growth）。",
+    "multi_agent": "test_v2_persona_growth.py 两 agent 缓存互不可见、非法/大写/路径穿越 agent 拒绝。"
+  },
+  "validation": [
+    {
+      "command": "uv run --no-sync pytest -q -n 0 <persona 3 文件 + 导航/UI + typecheck/architecture/layout + 反思 flow/closeout>",
+      "result": "44 passed, 1 skipped",
+      "seconds": 205.14,
+      "note": "rebase 到 03aa5499 后的最终源码；1 skip = Windows 普通用户无法创建文件符号链接，目录 junction 用例已执行。"
+    },
+    {
+      "command": "uv run --no-sync pyright --project pyrightconfig.strict.json",
+      "include": 427,
+      "errors": 0,
+      "warnings": 0
+    },
+    {
+      "command": "uv run --no-sync ruff check <12 changed Python files> && ruff format --check <same>",
+      "result": "All checks passed; 12 files already formatted"
+    },
+    {
+      "command": "uv run --no-sync python scripts/check_frontend.py; prettier --check persona.js/main.js/index.html",
+      "result": "88 ES module syntax checks passed; Prettier clean"
+    },
+    {
+      "command": "uv run --no-sync python scripts/project_index.py",
+      "result": "modules=65 files=847 routes=464 declared_tools=94; 二次运行 updated=(none)"
+    }
+  ],
+  "not_executed": [
+    "完整 pytest 全量（本批只跑受影响专项与调用方，current_full_passed 保持 false）",
+    "批 3 文档/媒体擦除后的 invalidate 钩子（共享服务变更先交 A）",
+    "真实模型人格质量、真实 B 站来源与 72 小时"
+  ],
+  "current_full_passed": false,
+  "whole_core_parity_complete": false,
+  "whole_reference_feature_audit_complete": false,
+  "whole_v2_complete": false,
+  "rebase_note": "初版基于 df50fe7f；期间主线新增 03aa5499（wait_state 默认 30s 与 portal 轮询），已 rebase 并按最终源码重跑受影响专项。"
+}
