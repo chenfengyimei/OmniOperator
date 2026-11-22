@@ -25,9 +25,16 @@
     },
     "delivery": {
       "branch": "macos-pty-reclaim",
-      "merge": "fast-forward into v2",
+      "merge": "fast-forward into v2 at 18b75b75",
+      "commit": "28cb56329356a07e74cf781e1ffb076b79e3fca1",
       "remote_readback": "blocked: no Gitee HTTPS credential on this Mac (osxkeychain empty); git push fails with \"could not read Username for 'https://gitee.com'\"",
-      "local_bundle": "temp/build/mac-2026-11-22/omnioperator-macos-20261122.bundle"
+      "local_bundle": "temp/build/mac-2026-11-22/omnioperator-macos-20261122.bundle",
+      "bundle_contains": [
+        "refs/heads/v2",
+        "refs/heads/macos-helper",
+        "refs/heads/macos-pty-reclaim"
+      ],
+      "bundle_sha256_file": "temp/build/mac-2026-11-22/SHA256SUMS"
     },
     "changed_files": [
       "agent/scripts/build_macos_helper.py",
