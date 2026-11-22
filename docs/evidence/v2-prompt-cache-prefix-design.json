@@ -8,7 +8,7 @@
   "branch": "k18-read-cache",
   "implements_gap": "K01 D3(a)/(c) cross-run prefix stability and D8 real cache effectiveness (decision D1): system prefix currently carries persona + owner memory + run-start route/skills notice, and the summary is the first user message, so content-address providers (Anthropic/DeepSeek/Gemini) never match across runs when memories/route/skills/summary change. This batch records the verified drift sources, the P1-a/b/c/d layout options (P1-a recommended: persona-only system, memory/summary blocks at fixed positions, route/skills moved to the tail), the semantics risks, byte-stability tests, and the D8 isolated-provider experiment design. NOT implementation: no source/test/migration/route/worker change",
   "contract": "docs/v2/contracts/V2_PROMPT_CACHE_PREFIX.md",
-  "contract_sha256": "5731d095d1b241f30eff0229aad1492cadae5cfe132b5ef61da301c68955cb84",
+  "contract_sha256": "7eaf5d480fa5908165f1d6ce90bd4aa3035e67d5beb5c952e59a1c9f4623fd96",
   "touched_docs": {
     "docs/v2/contracts/V2_PROMPT_CACHE_SCOPE.md": "f29180fe1929c9573028a88912b33cf54b1ec1b7ace3bc6e325149454f02cdbe",
     "docs/v2/contracts/V2_REMAINING_DECISIONS.md": "6bbc276394dab01d76a5008028a285eaa82186facf22219c5694ee589933c3a5"
@@ -48,5 +48,6 @@
   "next": "Owner selects P1 and approves the frozen-prefix contract change; then implement P1-a/P2-P4 with byte-stability regressions and caller suites; D8 in a separate isolated-provider batch. D2/D3 contracts still to write; D8/D9 (K13) remain lowest-cost decisions. whole_* flags stay false",
   "whole_core_parity_complete": false,
   "whole_reference_feature_audit_complete": false,
-  "whole_v2_complete": false
+  "whole_v2_complete": false,
+  "k15_prefix_test_coordination": "origin/k14-visual-persona carries the test-only K15 regression agent/tests/v2/core/test_v2_memory_prefix.py (4 tests) that pins the current memory_system layout (persona + memory + notice, history_request[0] byte-equal, forget/erase leave the prefix, stable order/notice tail). Its source changes do not touch domain/metering.py or application/context.py and V2_MEMORY_INITIAL explicitly excludes injecting isInitial into the prefix, so there is no implementation-order dependency; P1-a wiring must update those 4 assertions in the same batch (contract synchronization, not a weakened assertion)."
 }

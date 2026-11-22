@@ -440,12 +440,13 @@ K13.cron_model_design 已记录**实现前设计合同**（纯文档，无源码
 
 | 分支 | tip | 改动文件数 | 与本分支源码交集 | 与本分支文档交集 | 说明 |
 |---|---|---|---|---|---|
-| `k14-visual-persona` | `fa1bac0b` | 39 | **无** | `docs/HANDOFF.md`、`docs/index/MODULES.md`、`docs/index/project.json`、`docs/tasks/v2-agent-core-parity.json` | 含 `V2_K14_K15_DECISION_LEDGER.md`、memory initial/prefix 测试与证据（`test_v2_memory_prefix.py`、`v2-memory-prefix-regression.json`）。**与 K01 D1 前缀重构存在语义交叉**：若其 memory-prefix 工作改变 `context_memories` 可见集/前缀，A 需先合该分支再评估 D1 的 P1 方案（或反之），避免两份前缀改动互相覆盖。 |
+| `k14-visual-persona` | `fa1bac0b` | 39 | **无** | `docs/HANDOFF.md`、`docs/index/MODULES.md`、`docs/index/project.json`、`docs/tasks/v2-agent-core-parity.json` | 含 `V2_K14_K15_DECISION_LEDGER.md`、memory initial 合同与 **test-only** 的 `test_v2_memory_prefix.py`/`v2-memory-prefix-regression.json`。**已核（2026-11-23）**：该分支源码改动仅 som/android_explore/visual_subagent（不含 `domain/metering.py`/`application/context.py`），`V2_MEMORY_INITIAL` 明言「不把『最初』注入系统前缀」；`test_v2_memory_prefix.py` 只是**锁定当前前缀组成**（persona+memory+notice、`history_request[0]` 逐字节相等、遗忘/擦除离开前缀、顺序与 notice 尾稳定），对当前 `memory_system` 布局做断言。**与 K01 D1 的交叉仅是该测试合同**：D1 P1-a 改变前缀布局时须在同一批更新这条 K15 测试（不是实现顺序依赖）；当前两分支合并不冲突、该测试对现布局仍绿。 |
 | `k16-storyboard` | `489d093b` | 25 | **无** | 同上四个文档 | 仅 media worker/domain/scenes 与 K16 合同/证据，与本分支源码无交集。 |
 | `linux-container-g3` | `37ab8640` | 5 | **无** | 仅 `docs/HANDOFF.md` | 仅 `composition/serving.py` + Linux 平台文档/证据。 |
 
 - **源码零交集**：三支与本分支的 6 个源码文件均不重叠，A 可按分支顺序合并源码而无需源码级冲突处理。
 - **文档冲突面**：HANDOFF、`docs/index/*`、任务 JSON 四方都会改；建议 A 在各分支合入后**只在一个干净树上最后再生一次索引**（`project_index.py` 二次运行确认幂等），HANDOFF 按批次顺序拼接而不是自动合并，任务 JSON 按各自的 `batches`/`followups` 条目合并（本分支已用 `K01.*`/`K13.*`/`K18.*` 唯一 id）。
+- **K14/K15 前缀测试协调（精确版）**：`test_v2_memory_prefix.py` 的 4 项断言绑定当前 `memory_system` 组成；D1 接线时必须同步调整该测试（P1-a 后系统仅 persona、memory 变独立块、notice 走尾），并在证据中说明是合同同步而非弱化断言。合并顺序无硬依赖。
 - **决策材料**：k14 分支另有 `V2_K14_K15_DECISION_LEDGER.md`，与本分支的 `V2_REMAINING_DECISIONS.md`（D1–D9/R1–R5/T1–T5）是两份独立决策台账，A 汇总给所有者时应并列而非相互覆盖；K16 的 `V2_K16_REMAINING_DECISIONS.md` 同理。
 
 ## 追溯入口

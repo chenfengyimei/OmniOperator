@@ -89,4 +89,5 @@
 - K01 合同：[V2_PROMPT_CACHE_SCOPE](V2_PROMPT_CACHE_SCOPE.md)（D1–D8）。
 - 决策登记：[V2_REMAINING_DECISIONS](V2_REMAINING_DECISIONS.md) D1。
 - 相关合同：K06 `V2_RUN_COMPACTION`、K08 `V2_BACKGROUND_REVIEW`、K15 `V2_MEMORY_DECAY*`（记忆可见性/擦除）。
+- **并行分支测试协调（2026-11-23 核对）**：`origin/k14-visual-persona` 分支含 K15 的 **test-only** 回归 `agent/tests/v2/core/test_v2_memory_prefix.py`（4 项），断言当前 `memory_system` 组成（persona+memory+notice、`history_request[0]` 逐字节相等、遗忘/擦除离开前缀、顺序与 notice 尾稳定）。该分支源码不触 `domain/metering.py`/`application/context.py`，其 `V2_MEMORY_INITIAL` 也明言不把「最初」注入系统前缀；因此**无实现顺序依赖**，但 D1 P1-a 接线时必须**同步更新这 4 项断言**（改为仅 persona 系统前缀、memory 独立块、通知走尾），并在证据中说明是合同同步、不是弱化断言。
 - 证据：[v2-prompt-cache-prefix-design.json](../../evidence/v2-prompt-cache-prefix-design.json)。
