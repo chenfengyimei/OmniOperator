@@ -264,6 +264,60 @@ def test_cancelled_waiter_and_revocation_keep_actual_observation_owned(tmp_path)
     asyncio.run(scenario())
 
 
+def test_capture_revocation_after_frame_is_taken_publishes_no_object(tmp_path):
+    async def scenario():
+        async with prepared(tmp_path) as (instance, fake, agent, _, session, grant):
+            fake.allow_capture.clear()
+            task = asyncio.create_task(instance.android.capture(agent, grant["id"], session))
+            await asyncio.wait_for(fake.capture_entered.wait(), 5)
+            await instance.android.revoke(agent, grant["id"], grant["revision"])
+            fake.allow_capture.set()
+            with pytest.raises(BusinessError) as caught:
+                await task
+            assert caught.value.code in {
+                "android_authority_invalid",
+                "android_grant_changed",
+                "android_grant_revoked",
+            }
+            assert not list((instance.paths.control / "android-captures").glob("*.png"))
+            rows = await instance._database.read(lambda u: u.connection.execute(select(s.session_captures)).all())
+            assert rows == []
+            assert instance.android.quiescent()
+            with pytest.raises(BusinessError) as denied:
+                await instance.android.capture(agent, grant["id"], session)
+            assert denied.value.code in {"android_authority_invalid", "android_grant_revoked"}
+
+    asyncio.run(scenario())
+
+
+def test_cancelled_capture_waiter_keeps_real_capture_owned_and_publishes_once(tmp_path):
+    async def scenario():
+        async with prepared(tmp_path) as (instance, fake, agent, _, session, grant):
+            fake.allow_capture.clear()
+            waiter = asyncio.create_task(instance.android.capture(agent, grant["id"], session))
+            await asyncio.wait_for(fake.capture_entered.wait(), 5)
+            waiter.cancel()
+            with pytest.raises(asyncio.CancelledError):
+                await waiter
+            assert instance.android.health()["pending"] == 1
+            assert not instance.android.quiescent()
+            fake.allow_capture.set()
+            for _ in range(100):
+                if instance.android.quiescent():
+                    break
+                await asyncio.sleep(0.02)
+            assert instance.android.quiescent()
+            row = await instance._database.read(
+                lambda u: u.connection.execute(select(s.session_captures)).mappings().one()
+            )
+            assert row["content_epoch"] == 1 and row["method"] == "adb_screencap"
+            stored, content = await instance.objects.get(agent, row["object_id"])
+            assert stored["references"] == 1 and content == fake.png
+            assert not list((instance.paths.control / "android-captures").glob("*.png"))
+
+    asyncio.run(scenario())
+
+
 def test_cancelled_run_and_shutdown_retain_instance_until_worker_is_reclaimed(tmp_path):
     async def scenario():
         async with prepared(tmp_path) as (instance, fake, agent, _, session, grant):

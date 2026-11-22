@@ -42,6 +42,9 @@ class FakeAdb:
         self.allow_dump = asyncio.Event()
         self.allow_dump.set()
         self.dump_entered = asyncio.Event()
+        self.allow_capture = asyncio.Event()
+        self.allow_capture.set()
+        self.capture_entered = asyncio.Event()
         self.clients = set()
         self.errors = []
         picture = io.BytesIO()
@@ -127,6 +130,8 @@ class FakeAdb:
                 await self.allow_dump.wait()
                 payload = self.xml()
             elif command == "screencap -p":
+                self.capture_entered.set()
+                await self.allow_capture.wait()
                 payload = self.png
             elif command == f"pm list packages --user {self.user}":
                 payload = ("\n".join("package:" + p for p in self.packages) + "\n").encode()
@@ -187,6 +192,7 @@ async def fake_server():
         yield fake, server.sockets[0].getsockname()[1]
     finally:
         fake.allow_dump.set()
+        fake.allow_capture.set()
         server.close()
         await server.wait_closed()
         if fake.clients:
