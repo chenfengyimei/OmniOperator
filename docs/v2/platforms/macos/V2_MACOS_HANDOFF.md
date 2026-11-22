@@ -312,3 +312,7 @@ LaunchServices 生命周期稳定性复测：连续 15 次 `probe` 每次 0.062�
 ### 2026-11-22 权限撤回→恢复闭环
 
 `tccutil reset Accessibility/PostEvent` 后 probe 立即变为 `window_identity/accessibility/foreground_control=denied`（screen 保持 granted），read 验收在 verify/observe 前失败（BusinessError，未尝试任何写动作，失败关闭）。重新执行 `--request-permission accessibility/post` 并允许后，8 秒内四项恢复 `granted`；read 验收通过（AX 9 节点、ScreenCaptureKit）。恢复后首次验收曾出现一次 `Desktop helper request did not complete`（已知冷启动瞬时问题），立即重试通过，写动作未重放。证据：[撤回与恢复](../../../evidence/v2-macos-permission-revocation-2026-11-22.json)。
+
+### 2026-11-22 主线更新到 75a27435 与分支 r2
+
+远端 `v2` 已到 `75a27435`（A 合入 B 的 K17 人格成长三批与反思信笺审核收尾，`e93c1a05` 起共 10 个提交）。Mac 的 31 个提交已 rebase 到该基线；索引冲突按“再生”处理（生成文件不手工合并），rebase 后索引再生为当前树。受影响专项复跑：macOS 11 文件 **242/242（21.03s）**、终端 **10/10（0.29s）**。为避免强推，rebase 后的交付放在新分支 `codex/macos-helper-tcc-r2`，原 `codex/macos-helper-tcc`（`983daba5`，基线 `0fe3cc5f`）保留供对照；A 可直接审查 r2。

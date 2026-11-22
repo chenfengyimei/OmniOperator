@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`5673d6187a5169059723039185508ea8d1faa5b9a10dceda8bd98f3c6e7b27a8`。包含 65 个职责模块、847 个源码/界面文件。
+源码指纹：`09e9e09afd267bd1b63f4e1e2b310d78381f82b9427e97542dc9b4b6e2b7e1a8`。包含 65 个职责模块、849 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -324,7 +324,7 @@
 | [agent/src/omni/adapters/persona_files.py](../../agent/src/omni/adapters/persona_files.py) | 154 | Owner-only managed persona growth cache; validates bytes against the ledger expectation. |
 | [agent/src/omni/adapters/platform/__init__.py](../../agent/src/omni/adapters/platform/__init__.py) | 1 | Portable paths, ownership, credentials and platform capability implementations. |
 | [agent/src/omni/adapters/platform/desktop/__init__.py](../../agent/src/omni/adapters/platform/desktop/__init__.py) | 5 | Desktop transport public entry; platform probing only occurs through explicit calls. |
-| [agent/src/omni/adapters/platform/desktop/backend.py](../../agent/src/omni/adapters/platform/desktop/backend.py) | 667 | Bounded, one-shot desktop metadata helpers; construction never probes a native desktop. |
+| [agent/src/omni/adapters/platform/desktop/backend.py](../../agent/src/omni/adapters/platform/desktop/backend.py) | 686 | Bounded, one-shot desktop metadata helpers; construction never probes a native desktop. |
 | [agent/src/omni/adapters/platform/desktop/desktop_capture.py](../../agent/src/omni/adapters/platform/desktop/desktop_capture.py) | 83 | Host-owned screenshot staging. File decoding runs only on the desktop I/O worker. |
 | [agent/src/omni/adapters/platform/desktop/desktop_control.py](../../agent/src/omni/adapters/platform/desktop/desktop_control.py) | 407 | Owned parent transport for independent control consent; no input dispatch, capture grants or unowned process termination. |
 | [agent/src/omni/adapters/platform/desktop/desktop_native.py](../../agent/src/omni/adapters/platform/desktop/desktop_native.py) | 493 | Read-only desktop diagnostics and process/window identities; never reads UI contents or performs input. |
@@ -382,6 +382,7 @@
 | [agent/src/omni/adapters/platform/desktop/linux/linux_xkbcommon.py](../../agent/src/omni/adapters/platform/desktop/linux/linux_xkbcommon.py) | 191 | Owned libxkbcommon buffer compilation and special-key interpretation; no default layout, includes or native input. |
 | [agent/src/omni/adapters/platform/desktop/linux/linux_xtest.py](../../agent/src/omni/adapters/platform/desktop/linux/linux_xtest.py) | 130 | Read-only Xorg XTEST device identity proof; no input dispatch or own-event exemption. |
 | [agent/src/omni/adapters/platform/desktop/macos_helper.py](../../agent/src/omni/adapters/platform/desktop/macos_helper.py) | 114 | Resolve the fixed, owner-installed Swift bundle; never build, install or request TCC permissions. |
+| [agent/src/omni/adapters/platform/desktop/macos_launch.py](../../agent/src/omni/adapters/platform/desktop/macos_launch.py) | 252 | Owner-only Unix-socket launcher for the fixed macOS helper. |
 | [agent/src/omni/adapters/platform/desktop/portal.py](../../agent/src/omni/adapters/platform/desktop/portal.py) | 506 | Owned long-lived Portal helper sessions with shared desktop capacity and bounded metadata pipes; no pixel or input dispatch. |
 | [agent/src/omni/adapters/platform/releases/__init__.py](../../agent/src/omni/adapters/platform/releases/__init__.py) | 1 | V2 releases adapters; importing never probes the platform. |
 | [agent/src/omni/adapters/platform/releases/candidate_installer.py](../../agent/src/omni/adapters/platform/releases/candidate_installer.py) | 131 | Bootstrap a fresh offline V2 candidate with a separate maintenance interpreter; never registers services. |
@@ -402,7 +403,7 @@
 | [agent/src/omni/adapters/platform/runtime/event_loop.py](../../agent/src/omni/adapters/platform/runtime/event_loop.py) | 105 | Own the Windows TCP reset workaround without patching global asyncio classes. |
 | [agent/src/omni/adapters/platform/runtime/paths.py](../../agent/src/omni/adapters/platform/runtime/paths.py) | 161 | Resolve writable instance paths independently from installed code and cwd. |
 | [agent/src/omni/adapters/platform/runtime/permissions.py](../../agent/src/omni/adapters/platform/runtime/permissions.py) | 159 | Current-owner private files on POSIX and NTFS; never changes ancestor ACLs. |
-| [agent/src/omni/adapters/platform/runtime/processes.py](../../agent/src/omni/adapters/platform/runtime/processes.py) | 214 | Owned process groups and Windows Job Objects. Never terminate an unverified PID. |
+| [agent/src/omni/adapters/platform/runtime/processes.py](../../agent/src/omni/adapters/platform/runtime/processes.py) | 232 | Owned process groups and Windows Job Objects. Never terminate an unverified PID. |
 | [agent/src/omni/adapters/platform/runtime/publication.py](../../agent/src/omni/adapters/platform/runtime/publication.py) | 70 | Atomic, exclusive directory publication on the supported hosts; never replaces an existing target. |
 | [agent/src/omni/adapters/platform/runtime/runtime_identity.py](../../agent/src/omni/adapters/platform/runtime/runtime_identity.py) | 242 | Publish private boot identity while the instance lock is held; never controls another process. |
 | [agent/src/omni/adapters/platform/runtime/secrets.py](../../agent/src/omni/adapters/platform/runtime/secrets.py) | 159 | Explicit OS credential store or externally keyed encrypted vault; no plaintext fallback. |
@@ -420,7 +421,7 @@
 | [agent/src/omni/adapters/platform/services/exchange_deployments.py](../../agent/src/omni/adapters/platform/services/exchange_deployments.py) | 27 | Verify a reviewed source for removal or signed boot draining; never execute or import the source installation. |
 | [agent/src/omni/adapters/platform/services/exchange_files.py](../../agent/src/omni/adapters/platform/services/exchange_files.py) | 284 | Private bounded exchange witnesses and maintenance reservations; no database, native calls or rollback. |
 | [agent/src/omni/adapters/platform/services/macos_service.py](../../agent/src/omni/adapters/platform/services/macos_service.py) | 109 | Inspect loaded launchd descriptions via the fixed Swift helper; never parses launchctl print as authority. |
-| [agent/src/omni/adapters/platform/services/macos_service_state.py](../../agent/src/omni/adapters/platform/services/macos_service_state.py) | 101 | Pure bounded launchd definition and override comparison shared by owner and administrator ports. |
+| [agent/src/omni/adapters/platform/services/macos_service_state.py](../../agent/src/omni/adapters/platform/services/macos_service_state.py) | 114 | Pure bounded launchd definition and override comparison shared by owner and administrator ports. |
 | [agent/src/omni/adapters/platform/services/service_admin.py](../../agent/src/omni/adapters/platform/services/service_admin.py) | 364 | Fixed Linux system-service registration/start broker; no owner code execution, business DB, stop or shell. |
 | [agent/src/omni/adapters/platform/services/service_admin_bundle.py](../../agent/src/omni/adapters/platform/services/service_admin_bundle.py) | 144 | Publish a reviewable stdlib-only administrator artifact; never installs it or elevates privileges. |
 | [agent/src/omni/adapters/platform/services/service_admin_client.py](../../agent/src/omni/adapters/platform/services/service_admin_client.py) | 446 | Owner-side pinned root broker connection; no elevation, root code launch or automatic request retry. |
@@ -460,17 +461,18 @@
 | [agent/src/omni/adapters/workers/local_vectors.py](../../agent/src/omni/adapters/workers/local_vectors.py) | 204 | CPU ONNX/tokenizers subprocess. No database, credentials, model downloads or arbitrary Python imports. |
 | [agent/src/omni/adapters/workers/macos/Core/Package.swift](../../agent/src/omni/adapters/workers/macos/Core/Package.swift) | 12 | 原生源码、平台脚本或界面资源 |
 | [agent/src/omni/adapters/workers/macos/Core/Sources/ForegroundCore/Takeover.swift](../../agent/src/omni/adapters/workers/macos/Core/Sources/ForegroundCore/Takeover.swift) | 107 | 原生源码、平台脚本或界面资源 |
-| [agent/src/omni/adapters/workers/macos/Core/Tests/ForegroundCoreTests/TakeoverTests.swift](../../agent/src/omni/adapters/workers/macos/Core/Tests/ForegroundCoreTests/TakeoverTests.swift) | 107 | 原生源码、平台脚本或界面资源 |
+| [agent/src/omni/adapters/workers/macos/Core/Tests/ForegroundCoreTests/TakeoverTests.swift](../../agent/src/omni/adapters/workers/macos/Core/Tests/ForegroundCoreTests/TakeoverTests.swift) | 126 | 原生源码、平台脚本或界面资源 |
 | [agent/src/omni/adapters/workers/macos/Package.swift](../../agent/src/omni/adapters/workers/macos/Package.swift) | 17 | 原生源码、平台脚本或界面资源 |
 | [agent/src/omni/adapters/workers/macos/Sources/NativeIdentity/identity.c](../../agent/src/omni/adapters/workers/macos/Sources/NativeIdentity/identity.c) | 129 | 原生源码、平台脚本或界面资源 |
 | [agent/src/omni/adapters/workers/macos/Sources/NativeIdentity/include/NativeIdentity.h](../../agent/src/omni/adapters/workers/macos/Sources/NativeIdentity/include/NativeIdentity.h) | 11 | 原生源码、平台脚本或界面资源 |
 | [agent/src/omni/adapters/workers/macos/Sources/OmniDesktopFixture/Fixture.swift](../../agent/src/omni/adapters/workers/macos/Sources/OmniDesktopFixture/Fixture.swift) | 65 | 原生源码、平台脚本或界面资源 |
 | [agent/src/omni/adapters/workers/macos/Sources/OmniDesktopHelper/Accessibility.swift](../../agent/src/omni/adapters/workers/macos/Sources/OmniDesktopHelper/Accessibility.swift) | 202 | 原生源码、平台脚本或界面资源 |
-| [agent/src/omni/adapters/workers/macos/Sources/OmniDesktopHelper/Actions.swift](../../agent/src/omni/adapters/workers/macos/Sources/OmniDesktopHelper/Actions.swift) | 69 | 原生源码、平台脚本或界面资源 |
+| [agent/src/omni/adapters/workers/macos/Sources/OmniDesktopHelper/Actions.swift](../../agent/src/omni/adapters/workers/macos/Sources/OmniDesktopHelper/Actions.swift) | 76 | 原生源码、平台脚本或界面资源 |
 | [agent/src/omni/adapters/workers/macos/Sources/OmniDesktopHelper/Capture.swift](../../agent/src/omni/adapters/workers/macos/Sources/OmniDesktopHelper/Capture.swift) | 52 | 原生源码、平台脚本或界面资源 |
+| [agent/src/omni/adapters/workers/macos/Sources/OmniDesktopHelper/Connect.swift](../../agent/src/omni/adapters/workers/macos/Sources/OmniDesktopHelper/Connect.swift) | 46 | 原生源码、平台脚本或界面资源 |
 | [agent/src/omni/adapters/workers/macos/Sources/OmniDesktopHelper/FocusWatch.swift](../../agent/src/omni/adapters/workers/macos/Sources/OmniDesktopHelper/FocusWatch.swift) | 75 | 原生源码、平台脚本或界面资源 |
-| [agent/src/omni/adapters/workers/macos/Sources/OmniDesktopHelper/Foreground.swift](../../agent/src/omni/adapters/workers/macos/Sources/OmniDesktopHelper/Foreground.swift) | 190 | 原生源码、平台脚本或界面资源 |
-| [agent/src/omni/adapters/workers/macos/Sources/OmniDesktopHelper/HelperMain.swift](../../agent/src/omni/adapters/workers/macos/Sources/OmniDesktopHelper/HelperMain.swift) | 64 | 原生源码、平台脚本或界面资源 |
+| [agent/src/omni/adapters/workers/macos/Sources/OmniDesktopHelper/Foreground.swift](../../agent/src/omni/adapters/workers/macos/Sources/OmniDesktopHelper/Foreground.swift) | 210 | 原生源码、平台脚本或界面资源 |
+| [agent/src/omni/adapters/workers/macos/Sources/OmniDesktopHelper/HelperMain.swift](../../agent/src/omni/adapters/workers/macos/Sources/OmniDesktopHelper/HelperMain.swift) | 73 | 原生源码、平台脚本或界面资源 |
 | [agent/src/omni/adapters/workers/macos/Sources/OmniDesktopHelper/Identity.swift](../../agent/src/omni/adapters/workers/macos/Sources/OmniDesktopHelper/Identity.swift) | 92 | 原生源码、平台脚本或界面资源 |
 | [agent/src/omni/adapters/workers/macos/Sources/OmniDesktopHelper/InputWatch.swift](../../agent/src/omni/adapters/workers/macos/Sources/OmniDesktopHelper/InputWatch.swift) | 99 | 原生源码、平台脚本或界面资源 |
 | [agent/src/omni/adapters/workers/macos/Sources/OmniDesktopHelper/Protocol.swift](../../agent/src/omni/adapters/workers/macos/Sources/OmniDesktopHelper/Protocol.swift) | 186 | 原生源码、平台脚本或界面资源 |
@@ -504,7 +506,7 @@
 | [agent/src/omni/composition/capabilities.py](../../agent/src/omni/composition/capabilities.py) | 253 | Explicit builtin capability registration; capabilities never construct the kernel. |
 | [agent/src/omni/composition/cli.py](../../agent/src/omni/composition/cli.py) | 1048 | V2 development entrypoint. Online commands use the authenticated HTTP facade. |
 | [agent/src/omni/composition/http.py](../../agent/src/omni/composition/http.py) | 250 | HTTP composition and owner bootstrap; tokens never appear in diagnostic output. |
-| [agent/src/omni/composition/instance.py](../../agent/src/omni/composition/instance.py) | 905 | Build one isolated instance; never imports or opens the V1 runtime. |
+| [agent/src/omni/composition/instance.py](../../agent/src/omni/composition/instance.py) | 910 | Build one isolated instance; never imports or opens the V1 runtime. |
 | [agent/src/omni/composition/lifecycle.py](../../agent/src/omni/composition/lifecycle.py) | 164 | Own startup rollback and one shared shutdown budget; never dispatches business work. |
 | [agent/src/omni/composition/releases.py](../../agent/src/omni/composition/releases.py) | 124 | Assemble explicit offline release commands. No service install, stop, model or default-entry switch. |
 | [agent/src/omni/composition/service_cleanup.py](../../agent/src/omni/composition/service_cleanup.py) | 80 | Assemble quarantined registration cleanup, with an explicit root route for system definitions. |
