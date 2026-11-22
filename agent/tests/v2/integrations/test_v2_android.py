@@ -264,6 +264,22 @@ def test_cancelled_waiter_and_revocation_keep_actual_observation_owned(tmp_path)
     asyncio.run(scenario())
 
 
+def test_malformed_ui_dump_fails_closed_and_next_observe_recovers(tmp_path):
+    async def scenario():
+        async with prepared(tmp_path) as (instance, fake, agent, _, _, grant):
+            fake.malformed = True
+            with pytest.raises(BusinessError) as caught:
+                await instance.android.observe(agent, grant["id"])
+            assert caught.value.code == "android_observation_failed"
+            assert instance.android.health()["observations"] == 0
+            assert instance.android.quiescent()
+            fake.malformed = False
+            view = await instance.android.observe(agent, grant["id"])
+            assert view["nodes"] and instance.android.health()["observations"] == 1
+
+    asyncio.run(scenario())
+
+
 def test_capture_revocation_after_frame_is_taken_publishes_no_object(tmp_path):
     async def scenario():
         async with prepared(tmp_path) as (instance, fake, agent, _, session, grant):
