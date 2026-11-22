@@ -29,23 +29,34 @@
         "what": "Reset by helper bundle id has no effect",
         "detail": "tccutil reset ScreenCapture org.omnioperator.desktophelper and tccutil reset Accessibility org.omnioperator.desktophelper both returned success, but a new helper process still reported granted for those capabilities; the owner toggling the helper entry in System Settings likewise did not produce a deny.",
         "command": "tccutil reset ScreenCapture org.omnioperator.desktophelper; tccutil reset Accessibility org.omnioperator.desktophelper"
+      },
+      {
+        "what": "LaunchServices launch gives the helper its own responsibility",
+        "detail": "Built a temporary --self-test <path> mode (reverted afterwards), installed it, launched with `open -n ... --args --self-test <json>`. The process reported bundle_id=org.omnioperator.desktophelper, ppid=1, __CFBundleIdentifier=org.omnioperator.desktophelper, and all four permissions denied (its own TCC entries had been reset in the previous batch). tccd AUTHREQ_ATTRIBUTION for that pid had no responsible entry, only requesting=org.omnioperator.desktophelper, i.e. the helper is its own responsible process.",
+        "command": "open -n \"$HOME/Applications/OmniOperator Desktop Helper.app\" --args --self-test <report.json>"
       }
     ],
-    "mechanism": "For a POSIX-spawned child, TCC resolves the responsible process through the launch chain. The helper is launched by the DSH harness's Python process, so the harness is responsible; the helper's own ad-hoc code identity does not become the decision subject. The helper still enforces fail-closed on whatever the preflight calls return.",
+    "mechanism": "For a POSIX-spawned child, TCC resolves the responsible process through the launch chain. The helper is launched by the DSH harness's Python process, so the harness is responsible; the helper's own ad-hoc code identity does not become the decision subject. The helper still enforces fail-closed on whatever the preflight calls return. A LaunchServices launch (open/NSWorkspace) drops the host from the attribution chain: the helper becomes its own responsible process and its own TCC entries apply; with those entries reset it reports denied.",
     "impact": [
       "The macOS permissions that the helper exercises are effectively the launching host's permissions, so the earlier grant/deny evidence (all four denied before, granted after the owner's action) is functional but not proof that the helper is independently authorized.",
       "The V2 macOS contract statement that permissions belong to the helper application itself is not satisfied under the current child-process launch; it needs a launch mechanism that gives the helper its own TCC responsibility (for example LaunchServices/XPC) or an explicit contract change accepted by the owner/coordinator.",
       "Reset-based revocation testing cannot be used with the current launch method; denying requires changing the host's grants, which would affect the whole session."
     ],
     "not_concluded": [
-      "A LaunchServices- or XPC-launched helper was not exercised: the probe needs a bidirectional pipe, and the existing entry points do not provide a file-based probe result.",
-      "It is not proven whether a helper launched by a future OmniOperator service (launchd) would be attributed to launchd or to itself.",
-      "No TCC database was read (protected); conclusions use preflight results and tccd attribution logs."
+      "It is not proven whether a helper launched by a future OmniOperator launchd service would be attributed to launchd or to itself.",
+      "No TCC database was read (protected); conclusions use preflight results and tccd attribution logs.",
+      "The end-to-end grant flow for a LaunchServices-launched delivery helper was not executed: the diagnostic build was reverted and ad-hoc grants may be bound to the exact cdhash, so the grant must be performed on the final binary."
     ]
   },
   "current_state": {
-    "functional": "All four capabilities report granted when the helper is spawned from this harness, and read/semantic/foreground acceptances passed earlier on the same build.",
-    "owner_action": "The owner could not find the helper entry to re-add; nothing else is required for the current launch context, because the effective grants follow the harness.",
+    "functional": "All four capabilities report granted when the helper is spawned from this harness, and the read/semantic/foreground acceptances passed on the same source.",
+    "delivery_helper": {
+      "executable_sha256": "c8d585994273f3c7eabb2578497c10d90a89175ab2355af02dab3d5f03367f80",
+      "manifest_sha256": "586a37e3b35f12592492e82c8d1f76f5ccd3ad6bc38debebd3d897a6da92a9f8",
+      "build_output": "temp/build/mac-native-arm64-delivery2-20261122",
+      "note": "rebuilt after reverting the temporary self-test mode; semantic acceptance re-passed"
+    },
+    "owner_action": "None required for the current launch context; helper entries are reset and will be granted again under the LaunchServices design.",
     "helper_path": "/Users/chenfeng/Applications/OmniOperator Desktop Helper.app"
   },
   "limits": [
@@ -59,5 +70,11 @@
   "artifacts": [
     "temp/build/tcc-attribution/HelperCopy.app",
     "temp/build/mac-2026-11-22/revoke-acceptance/ax-acceptance.json"
-  ]
+  ],
+  "recommendation": {
+    "option": "a",
+    "summary": "Adopt a LaunchServices/NSWorkspace launch (or XPC service) for the helper so its TCC permissions are its own, and add a permanent read-only diagnose entry (for example --diagnose <path>) because a LaunchServices launch has no pipe for an IPC probe. The owner then grants accessibility/screen/input/post to OmniOperator Desktop Helper itself.",
+    "why": "POSIX child launch attributes permissions to the launching host, which violates the contract that permissions belong to the helper and makes revocation/reset testing ineffective.",
+    "needs": "coordinator/owner approval for the launch-mechanism change and the new owner-only diagnose entry; contract update in V2_DESKTOP/macOS handoff."
+  }
 }
