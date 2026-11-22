@@ -322,6 +322,16 @@ K13.cron_model_design 已记录**实现前设计合同**（纯文档，无源码
 - **未验**：合同内所有能力未实现；真实 B 站分享送达/沉默联动/AI-share 误报率；当前源码未全量。
 - **下一批**：写 D7 直播合同（room/WS 弹幕/gift 只读/send/独立开关），或 D8/D9 批准后小批接线；D4/D5/D6 的实现均待所有者决策与 A 迁移协调。共享接口/迁移/公共 CI 由 A 协调。
 
+### 2026-11-23 K18 直播设计合同（第 8 批，`k18-read-cache`）
+
+- **范围/基线**：承接前七批；本批**纯设计合同**，无源码/测试/迁移/路由/worker 改动。基线仍 `origin/v2`=`0793f254`（前七批未合入），同一任务分支/独立工作树。
+- **D7 合同**：[V2_BILI_LIVE](v2/contracts/V2_BILI_LIVE.md)——参考事实（房间 `get_info`、`gethistory`、`GetDMConfigByGroup`；`msg/send` 表单与错误码 `0/-101/-111/-400/1003212/10031`、失败必须非零；WS 需 WBI `getDanmuInfo` 取 token+host_list、16 字节包头、op7 鉴权/op2 心跳 30s、ver3 brotli/ver2 zlib、op5 `DANMU_MSG/INTERACT_WORD/SEND_GIFT` 只读；独立开关 owner/@-only；gift/charge 发送参考亦未实现）与 V2 映射（`websockets>=17.3` 已是依赖；`bilibili_read` 固定 host 读；owner 侧 `LiveDanmakuService` 内存 ring buffer 不落库）。
+- **L1–L5 决策**：L1 房间读、L2 历史读（推荐先做）；L3 WS 监听（推荐 owner 服务 + owner-only 摘要，可选纯解析器先行）；L4 发送（**推荐 L4-a 不做**；L4-b 已审表单独立写批；L4-c 直接 API POST **拒绝**，违反 V2 写路径纪律）；L5 独立开关默认 OFF、owner-only 启停、风险码联动。
+- **安全/有界**：固定 `api.live.bilibili.com`；WS host 必须来自 `getDanmuInfo` 且 `.bilibili.com` 后缀 + wss + 端口校验；WS 只用一次性 token（不带 cookie）；单帧 ≤1 MiB/解压 ≤4 MiB + `eof`、未知 ver 丢弃、op 白名单；弹幕/礼物文本不可信、截断、不入 system；单连接/全局上限/心跳/退避/关闭等待真实释放。
+- **持久化**：首版无新表、无迁移；若所有者要事件/摘要持久化 → 新表 + A 迁移号。
+- **未验**：合同内所有能力未实现；真实直播/账号/网络；当前源码未全量。
+- **下一批**：补 D1（K01 前缀重构）/D2（代码沙箱）/D3（原始 CDP）设计合同，或 D8/D9 批准后小批接线；D4/D5/D6/D7 实现均待所有者决策与 A 迁移协调。共享接口/迁移/公共 CI 由 A 协调。
+
 ## 追溯入口
 
 - [旧交接记录](history/pre-layout-2026-11-18/HANDOFF.md)、[旧重构记录](history/pre-layout-2026-11-18/V2_REFACTOR.md)只证明所属版本，不作为当前待办。
