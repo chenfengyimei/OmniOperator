@@ -18,6 +18,7 @@ final class NativeTakeoverPort: TakeoverPort {
     private var command: InputCommand?
     private var selected: Description?
     private var down: CGEvent?, up: CGEvent?
+    private var clickPoint: CGPoint?
     private var eventSource: CGEventSource?
     private var input: InputWatch?, focus: FocusWatch?
     private var downPosted = false, upPosted = false
@@ -43,6 +44,7 @@ final class NativeTakeoverPort: TakeoverPort {
             switch command.kind {
             case .click:
                 let point = CGPoint(x: selected.box.midX, y: selected.box.midY)
+                clickPoint = point
                 try require(selected.box.contains(point) && windowBounds(windowInfo(target.window)).contains(point),
                             "desktop_target_changed")
                 var hit: AXUIElement?
@@ -137,9 +139,26 @@ final class NativeTakeoverPort: TakeoverPort {
     func send() throws {
         guard let down = down, let up = up, !downPosted && !upPosted else { throw TakeoverCode.invalid }
         // There is one pair, no chunk loop. Posting is not a delivery/success receipt.
-        // Targeted posting avoids routing this pair to another foreground process.
-        downPosted = true; down.postToPid(target.pid)
-        upPosted = true; up.postToPid(target.pid)
+        if command?.kind == .click, let point = clickPoint {
+            // A mouse pair posted directly to a PID carries windowNumber 0 on macOS and
+            // is delivered to the process without being routed to any window. Post the
+            // verified point through the window server instead: the target is already
+            // frontmost, the point was AX hit-tested against the selected element, and
+            // the cursor is restored right after the single pair.
+            guard let saved = CGEvent(source: nil)?.location else { throw TakeoverCode.targetChanged }
+            try takeoverNative {
+                try verify(target)
+                let bounds = try windowBounds(try windowInfo(target.window))
+                guard bounds.contains(point) else { throw TakeoverCode.targetChanged }
+            }
+            CGWarpMouseCursorPosition(point)
+            downPosted = true; down.post(tap: .cghidEventTap)
+            upPosted = true; up.post(tap: .cghidEventTap)
+            CGWarpMouseCursorPosition(saved)
+        } else {
+            downPosted = true; down.postToPid(target.pid)
+            upPosted = true; up.postToPid(target.pid)
+        }
     }
     func confirm() throws {
         let deadline = now + 0.2
@@ -174,6 +193,7 @@ final class NativeTakeoverPort: TakeoverPort {
         }
         let inputClean = input?.close() ?? true, focusClean = focus?.close() ?? true
         input = nil; focus = nil; down = nil; up = nil; eventSource = nil; selected = nil; before = nil
+        clickPoint = nil
         return clean && inputClean && focusClean
     }
     deinit { _ = close() }

@@ -222,6 +222,7 @@ strict 配置显式将 `agent/src` 加入导入根，隔离源码副本也解析
 | `agent/src/omni/adapters/platform/desktop/linux/linux_x11_wire.py` | X11 只读线上协议（已校验套接字，无发现/输入/重连） |
 | `agent/src/omni/adapters/platform/services/service_readiness.py` | 每次启动的 HMAC 就绪证明（不读不传属主凭据） |
 | `agent/src/omni/adapters/platform/desktop/desktop_native.py` | Windows 桌面只读诊断与进程/窗口身份（不读界面内容） |
+| `agent/src/omni/adapters/platform/desktop/macos_launch.py` | macOS helper 独立 TCC 身份的 LaunchServices 启动与宿主 UDS 传输（校验对端身份，不触业务库） |
 | `agent/src/omni/adapters/diagnostics.py` | 有界单写 JSON 诊断（脱敏与载荷预算） |
 | `agent/src/omni/adapters/persistence/object_repository.py` | 对象元数据/固定与真实外键引用（不触文件） |
 | `agent/src/omni/adapters/persistence/releases.py` | 发布一致快照与新目录隔离恢复（调用方持实例锁） |

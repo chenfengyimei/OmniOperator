@@ -133,6 +133,34 @@ def test_cancelled_native_start_keeps_ownership_until_actual_gate_work_finishes(
     asyncio.run(scenario())
 
 
+@pytest.mark.parametrize("lookup", ["getsid", "getpgid"])
+@pytest.mark.parametrize("members, clean", [([], True), (None, False), ([object()], False)])
+def test_session_lookup_esrch_only_confirms_cleanup_after_complete_empty_scan(monkeypatch, lookup, members, clean):
+    pid, created = 42, 123.0
+
+    def present(process_id):
+        assert process_id == pid
+        return pid
+
+    def gone(process_id):
+        assert process_id == pid
+        raise ProcessLookupError(3, "No such process")
+
+    scans = []
+
+    def scan(session_id):
+        scans.append(session_id)
+        return members
+
+    monkeypatch.setattr(worker, "sys", SimpleNamespace(platform="darwin"))
+    monkeypatch.setattr(worker, "os", SimpleNamespace(getsid=present, getpgid=present))
+    monkeypatch.setattr(worker.os, lookup, gone)
+    monkeypatch.setattr(worker.psutil, "Process", lambda _: SimpleNamespace(create_time=lambda: created))
+    monkeypatch.setattr(worker, "_session_members", scan)
+    assert worker.reclaim_posix(pid, created, 1.0) is clean
+    assert scans == [pid]
+
+
 def test_injected_posix_helper_exit_does_not_prove_native_session_reclaimed(monkeypatch):
     async def scenario():
         backend = adapter.TerminalBackend()

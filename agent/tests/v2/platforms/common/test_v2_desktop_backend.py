@@ -53,6 +53,13 @@ from omni_test_support.v2.desktop_backend import (
 )
 
 
+@pytest.fixture(autouse=True)
+def use_python_worker_transport(monkeypatch):
+    # These injected replies exercise the Python worker path even on a Mac
+    # without a helper installed. The fixed Darwin helper has its own tests.
+    monkeypatch.setattr(d, "sys", SimpleNamespace(platform="win32", executable=sys.executable))
+
+
 def test_constructor_is_pure_and_invalid_requests_never_spawn(monkeypatch):
     calls, before = [], set(sys.modules)
 

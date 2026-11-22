@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "5673d6187a5169059723039185508ea8d1faa5b9a10dceda8bd98f3c6e7b27a8",
+  "source_sha256": "ac342eb21f687a02145bd15d693c998556ac725614cb7689a2dd0d2db7c14708",
   "modules": [
     {
       "id": "v2-domain",
@@ -406,6 +406,7 @@
         "agent/src/omni/adapters/platform/desktop/linux/linux_xkbcommon.py",
         "agent/src/omni/adapters/platform/desktop/linux/linux_xtest.py",
         "agent/src/omni/adapters/platform/desktop/macos_helper.py",
+        "agent/src/omni/adapters/platform/desktop/macos_launch.py",
         "agent/src/omni/adapters/platform/desktop/portal.py",
         "agent/src/omni/adapters/platform/releases/__init__.py",
         "agent/src/omni/adapters/platform/releases/candidate_installer.py",
@@ -492,6 +493,7 @@
         "agent/src/omni/adapters/workers/macos/Sources/OmniDesktopHelper/Accessibility.swift",
         "agent/src/omni/adapters/workers/macos/Sources/OmniDesktopHelper/Actions.swift",
         "agent/src/omni/adapters/workers/macos/Sources/OmniDesktopHelper/Capture.swift",
+        "agent/src/omni/adapters/workers/macos/Sources/OmniDesktopHelper/Connect.swift",
         "agent/src/omni/adapters/workers/macos/Sources/OmniDesktopHelper/FocusWatch.swift",
         "agent/src/omni/adapters/workers/macos/Sources/OmniDesktopHelper/Foreground.swift",
         "agent/src/omni/adapters/workers/macos/Sources/OmniDesktopHelper/HelperMain.swift",
@@ -512,7 +514,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 70938,
+      "lines": 71344,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -547,7 +549,7 @@
         "agent/src/omni/composition/service_runner.py",
         "agent/src/omni/composition/serving.py"
       ],
-      "lines": 3295,
+      "lines": 3300,
       "dependencies": [
         "v2-adapters",
         "v2-application",
@@ -25575,10 +25577,11 @@
       "path": "agent/src/omni/adapters/platform/desktop/backend.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.desktop.backend",
-      "lines": 667,
+      "lines": 686,
       "imports": [
         "omni.adapters.platform.desktop",
         "omni.adapters.platform.desktop.linux.linux_lease_client",
+        "omni.adapters.platform.desktop.macos_launch",
         "omni.adapters.platform.runtime.processes",
         "omni.application.ports",
         "omni.domain.contracts",
@@ -25589,7 +25592,7 @@
       "symbols": [
         {
           "name": "_error",
-          "line": 43,
+          "line": 46,
           "kind": "function",
           "parameters": [
             "code"
@@ -25600,7 +25603,7 @@
         },
         {
           "name": "_decode",
-          "line": 47,
+          "line": 50,
           "kind": "function",
           "parameters": [
             "frame"
@@ -25611,7 +25614,7 @@
         },
         {
           "name": "_decode.pairs",
-          "line": 51,
+          "line": 54,
           "kind": "function",
           "parameters": [
             "items"
@@ -25622,7 +25625,7 @@
         },
         {
           "name": "_decode.constant",
-          "line": 59,
+          "line": 62,
           "kind": "function",
           "parameters": [
             "_value"
@@ -25633,42 +25636,46 @@
         },
         {
           "name": "helper_environment",
-          "line": 68,
+          "line": 71,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "_Host",
-          "line": 111,
+          "line": 114,
           "kind": "class"
         },
         {
           "name": "DesktopBackend",
-          "line": 134,
+          "line": 137,
           "kind": "class"
         },
         {
           "name": "DesktopBackend.__init__",
-          "line": 135,
+          "line": 138,
           "kind": "function",
           "parameters": [
             "self",
             "process_factory",
             "capture_root",
             "capacity",
-            "lease_backend"
+            "lease_backend",
+            "macos_transport",
+            "macos_launcher"
           ],
           "annotations": {
             "process_factory": "Spawn | None",
             "capture_root": "Path | None",
             "capacity": "asyncio.Semaphore | None",
-            "lease_backend": "LeaseClientPort | None"
+            "lease_backend": "LeaseClientPort | None",
+            "macos_transport": "Literal['posix', 'launchservices']",
+            "macos_launcher": "MacLauncher | None"
           }
         },
         {
           "name": "DesktopBackend.health",
-          "line": 157,
+          "line": 166,
           "kind": "function",
           "parameters": [
             "self"
@@ -25677,7 +25684,7 @@
         },
         {
           "name": "DesktopBackend.stop_accepting",
-          "line": 170,
+          "line": 179,
           "kind": "function",
           "parameters": [
             "self"
@@ -25686,7 +25693,7 @@
         },
         {
           "name": "DesktopBackend.probe",
-          "line": 174,
+          "line": 183,
           "kind": "function",
           "parameters": [
             "self",
@@ -25698,7 +25705,7 @@
         },
         {
           "name": "DesktopBackend.targets",
-          "line": 177,
+          "line": 186,
           "kind": "function",
           "parameters": [
             "self",
@@ -25712,7 +25719,7 @@
         },
         {
           "name": "DesktopBackend.verify",
-          "line": 180,
+          "line": 189,
           "kind": "function",
           "parameters": [
             "self",
@@ -25726,7 +25733,7 @@
         },
         {
           "name": "DesktopBackend.observe",
-          "line": 191,
+          "line": 200,
           "kind": "function",
           "parameters": [
             "self",
@@ -25740,7 +25747,7 @@
         },
         {
           "name": "DesktopBackend.capture",
-          "line": 196,
+          "line": 205,
           "kind": "function",
           "parameters": [
             "self",
@@ -25754,7 +25761,7 @@
         },
         {
           "name": "DesktopBackend.act",
-          "line": 201,
+          "line": 210,
           "kind": "function",
           "parameters": [
             "self",
@@ -25770,7 +25777,7 @@
         },
         {
           "name": "DesktopBackend.foreground",
-          "line": 204,
+          "line": 213,
           "kind": "function",
           "parameters": [
             "self",
@@ -25786,7 +25793,7 @@
         },
         {
           "name": "DesktopBackend._write",
-          "line": 207,
+          "line": 216,
           "kind": "function",
           "parameters": [
             "self",
@@ -25804,7 +25811,7 @@
         },
         {
           "name": "DesktopBackend.quiescent",
-          "line": 228,
+          "line": 237,
           "kind": "function",
           "parameters": [
             "self"
@@ -25813,7 +25820,7 @@
         },
         {
           "name": "DesktopBackend.reclaim",
-          "line": 231,
+          "line": 240,
           "kind": "function",
           "parameters": [
             "self",
@@ -25825,7 +25832,7 @@
         },
         {
           "name": "DesktopBackend._request",
-          "line": 239,
+          "line": 248,
           "kind": "function",
           "parameters": [
             "self",
@@ -25847,14 +25854,14 @@
         },
         {
           "name": "DesktopBackend._request.perform",
-          "line": 270,
+          "line": 279,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "DesktopBackend._request.finished",
-          "line": 306,
+          "line": 315,
           "kind": "function",
           "parameters": [
             "future"
@@ -25865,7 +25872,7 @@
         },
         {
           "name": "DesktopBackend._drain",
-          "line": 314,
+          "line": 323,
           "kind": "function",
           "parameters": [
             "self",
@@ -25881,7 +25888,7 @@
         },
         {
           "name": "DesktopBackend._spawn",
-          "line": 339,
+          "line": 348,
           "kind": "function",
           "parameters": [
             "self",
@@ -25895,14 +25902,14 @@
         },
         {
           "name": "DesktopBackend._spawn.collected",
-          "line": 387,
+          "line": 406,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "DesktopBackend._reclaim_actual",
-          "line": 395,
+          "line": 414,
           "kind": "function",
           "parameters": [
             "self",
@@ -25916,7 +25923,7 @@
         },
         {
           "name": "DesktopBackend._file",
-          "line": 443,
+          "line": 462,
           "kind": "function",
           "parameters": [
             "self",
@@ -25932,14 +25939,14 @@
         },
         {
           "name": "DesktopBackend._file.actual",
-          "line": 447,
+          "line": 466,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "DesktopBackend._reclaim",
-          "line": 456,
+          "line": 475,
           "kind": "function",
           "parameters": [
             "self",
@@ -25953,7 +25960,7 @@
         },
         {
           "name": "DesktopBackend._dispatch_gate",
-          "line": 471,
+          "line": 490,
           "kind": "function",
           "parameters": [
             "self",
@@ -25965,7 +25972,7 @@
         },
         {
           "name": "DesktopBackend._run",
-          "line": 484,
+          "line": 503,
           "kind": "function",
           "parameters": [
             "self",
@@ -25983,7 +25990,7 @@
         },
         {
           "name": "DesktopBackend.close",
-          "line": 656,
+          "line": 675,
           "kind": "function",
           "parameters": [
             "self",
@@ -35472,6 +35479,206 @@
       "summary": "Resolve the fixed, owner-installed Swift bundle; never build, install or request TCC permissions."
     },
     {
+      "path": "agent/src/omni/adapters/platform/desktop/macos_launch.py",
+      "module": "v2-adapters",
+      "python_module": "omni.adapters.platform.desktop.macos_launch",
+      "lines": 255,
+      "imports": [],
+      "symbols": [
+        {
+          "name": "LaunchError",
+          "line": 33,
+          "kind": "class"
+        },
+        {
+          "name": "_HalfCloseWriter",
+          "line": 37,
+          "kind": "class"
+        },
+        {
+          "name": "_HalfCloseWriter.__init__",
+          "line": 45,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "writer"
+          ],
+          "annotations": {
+            "writer": "asyncio.StreamWriter"
+          }
+        },
+        {
+          "name": "_HalfCloseWriter.write",
+          "line": 49,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "data"
+          ],
+          "annotations": {
+            "data": "bytes"
+          }
+        },
+        {
+          "name": "_HalfCloseWriter.drain",
+          "line": 52,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "_HalfCloseWriter.close",
+          "line": 55,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "_ProcessView",
+          "line": 67,
+          "kind": "class"
+        },
+        {
+          "name": "_ProcessView.__init__",
+          "line": 70,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "stdin",
+            "stdout",
+            "stderr",
+            "pid",
+            "wait"
+          ],
+          "annotations": {
+            "stdin": "_HalfCloseWriter",
+            "stdout": "asyncio.StreamReader",
+            "stderr": "asyncio.StreamReader",
+            "pid": "int",
+            "wait": "Callable[[], Awaitable[int]]"
+          }
+        },
+        {
+          "name": "_ProcessView.wait",
+          "line": 85,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "_gone",
+          "line": 91,
+          "kind": "function",
+          "parameters": [
+            "pid",
+            "created"
+          ],
+          "annotations": {
+            "pid": "int",
+            "created": "float"
+          }
+        },
+        {
+          "name": "_wait_gone",
+          "line": 103,
+          "kind": "function",
+          "parameters": [
+            "pid",
+            "created",
+            "timeout_s"
+          ],
+          "annotations": {
+            "pid": "int",
+            "created": "float",
+            "timeout_s": "float"
+          }
+        },
+        {
+          "name": "LaunchedHelper",
+          "line": 113,
+          "kind": "class"
+        },
+        {
+          "name": "LaunchedHelper.__init__",
+          "line": 116,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "stdin",
+            "stdout",
+            "stderr",
+            "pid",
+            "created",
+            "directory",
+            "socket_path"
+          ],
+          "annotations": {
+            "stdin": "_HalfCloseWriter",
+            "stdout": "asyncio.StreamReader",
+            "stderr": "asyncio.StreamReader",
+            "pid": "int",
+            "created": "float",
+            "directory": "Path",
+            "socket_path": "Path"
+          }
+        },
+        {
+          "name": "LaunchedHelper._cleanup",
+          "line": 133,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "LaunchedHelper._exit",
+          "line": 144,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "LaunchedHelper.terminate",
+          "line": 150,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "timeout_s"
+          ],
+          "annotations": {
+            "timeout_s": "float"
+          }
+        },
+        {
+          "name": "launch_helper",
+          "line": 180,
+          "kind": "function",
+          "parameters": [
+            "executable",
+            "bundle",
+            "deadline",
+            "open_command"
+          ],
+          "annotations": {
+            "executable": "Path",
+            "bundle": "Path",
+            "deadline": "float | None",
+            "open_command": "Sequence[str]"
+          }
+        }
+      ],
+      "summary": "Owner-only Unix-socket launcher for the fixed macOS helper."
+    },
+    {
       "path": "agent/src/omni/adapters/platform/desktop/portal.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.desktop.portal",
@@ -37436,7 +37643,7 @@
       "path": "agent/src/omni/adapters/platform/runtime/processes.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.runtime.processes",
-      "lines": 214,
+      "lines": 232,
       "imports": [],
       "symbols": [
         {
@@ -37546,7 +37753,7 @@
         },
         {
           "name": "OwnedProcess._group_quiet",
-          "line": 199,
+          "line": 212,
           "kind": "function",
           "parameters": [
             "self"
@@ -39935,7 +40142,7 @@
       "path": "agent/src/omni/adapters/platform/services/macos_service_state.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.services.macos_service_state",
-      "lines": 101,
+      "lines": 114,
       "imports": [
         "omni.adapters.platform.services.service_templates",
         "omni.domain.service_deployment"
@@ -39943,7 +40150,7 @@
       "symbols": [
         {
           "name": "_bounded_job",
-          "line": 17,
+          "line": 23,
           "kind": "function",
           "parameters": [
             "value"
@@ -39954,7 +40161,7 @@
         },
         {
           "name": "loaded_definition",
-          "line": 45,
+          "line": 51,
           "kind": "function",
           "parameters": [
             "plan",
@@ -39967,7 +40174,7 @@
         },
         {
           "name": "disabled_override",
-          "line": 77,
+          "line": 88,
           "kind": "function",
           "parameters": [
             "output",
@@ -45084,7 +45291,7 @@
       "path": "agent/src/omni/adapters/workers/macos/Core/Tests/ForegroundCoreTests/TakeoverTests.swift",
       "module": "v2-adapters",
       "python_module": null,
-      "lines": 107,
+      "lines": 126,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -45144,7 +45351,7 @@
       "path": "agent/src/omni/adapters/workers/macos/Sources/OmniDesktopHelper/Actions.swift",
       "module": "v2-adapters",
       "python_module": null,
-      "lines": 69,
+      "lines": 76,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -45155,6 +45362,16 @@
       "module": "v2-adapters",
       "python_module": null,
       "lines": 52,
+      "imports": [],
+      "symbols": [],
+      "kind": "asset",
+      "summary": "原生源码、平台脚本或界面资源"
+    },
+    {
+      "path": "agent/src/omni/adapters/workers/macos/Sources/OmniDesktopHelper/Connect.swift",
+      "module": "v2-adapters",
+      "python_module": null,
+      "lines": 46,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -45174,7 +45391,7 @@
       "path": "agent/src/omni/adapters/workers/macos/Sources/OmniDesktopHelper/Foreground.swift",
       "module": "v2-adapters",
       "python_module": null,
-      "lines": 190,
+      "lines": 210,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -45184,7 +45401,7 @@
       "path": "agent/src/omni/adapters/workers/macos/Sources/OmniDesktopHelper/HelperMain.swift",
       "module": "v2-adapters",
       "python_module": null,
-      "lines": 64,
+      "lines": 73,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -74215,7 +74432,7 @@
       "path": "agent/src/omni/composition/instance.py",
       "module": "v2-composition",
       "python_module": "omni.composition.instance",
-      "lines": 905,
+      "lines": 910,
       "imports": [
         "omni.adapters.android",
         "omni.adapters.bilibili",

@@ -1,0 +1,68 @@
+{
+  "schema": 1,
+  "batch": "D2.macos.keychain_and_launchagent_baseline",
+  "date": "2026-11-22",
+  "status": "Keychain owned-item roundtrip passed with verified cleanup and no residual item; no OmniOperator LaunchAgent exists on this machine; real LaunchAgent registration/activation and sleep/lock acceptance not executed",
+  "whole_v2_complete": false,
+  "platform_macos_complete": false,
+  "release_candidate": false,
+  "default_entrypoints": "V2",
+  "source": {
+    "baseline_git_head": "18b75b757b0a8b82243963494be06f5d6d457601",
+    "task_branch": "macos-pty-reclaim",
+    "note": "no source change in this batch; acceptance only"
+  },
+  "keychain": {
+    "command": "uv run --no-sync python agent/scripts/accept_macos_keychain.py --write-owned-item --output temp/build/mac-2026-11-22/keychain-acceptance",
+    "status": "passed",
+    "format": "omni-macos-keychain-acceptance-1",
+    "scope": "Fresh owned test namespace macos-acceptance-<random token> only; no existing item read, overwritten or deleted",
+    "readback_verified": true,
+    "cleanup_verified": true,
+    "cleanup_required": false,
+    "worker": {"pid": 29795, "reclaimed": true, "stderr_bytes": 0},
+    "prompt_observed": false,
+    "sources": {
+      "accept_macos_keychain.py": "55d3bb95b0e933a4842c658ca03ab4b89cc6f4265da9456ffd97ecbff0ba4282",
+      "secrets.py": "2e6bb1c3bcfecd83861b00aa98546af4af2eca47ddcffffbf34a4f4afbcf9ad1"
+    },
+    "independent_absence_check": {
+      "command": "security find-generic-password -s macos-acceptance-<token>",
+      "exit": 44,
+      "meaning": "item not found"
+    },
+    "evidence": "temp/build/mac-2026-11-22/keychain-acceptance/acceptance.json",
+    "note": "The report records only the random namespace identity; no credential value, reference or keychain content is exported."
+  },
+  "launchagent": {
+    "baseline": "absent",
+    "launchctl": "no OmniOperator or DesktopHelper job in the user domain",
+    "plists": "no *omni* plist under ~/Library/LaunchAgents, /Library/LaunchAgents or /Library/LaunchDaemons; only com.microsoft.EdgeUpdater.wake.plist exists (unrelated)",
+    "real_install_executed": false,
+    "reason": "Installing and activating a user service mutates the owner's login domain and the service contract requires an immutable deployment bundle plus an isolated account; neither is available here.",
+    "offline_coverage": "54 macOS service tests plus helper/activation/inspection suites passed in the 232-test macOS run for this tree"
+  },
+  "sleep_lock": {
+    "executed": false,
+    "reason": "Triggering real sleep, lock screen or fast user switching would interrupt the owner's active GUI session; no isolated account exists to absorb it.",
+    "offline_coverage": "Injected sleep/session transitions are covered by test_v2_foreground.py and test_v2_foreground_transport.py inside the 232-test run."
+  },
+  "validation": {
+    "macos_helper_and_desktop": {"passed": 232, "failed": 1, "seconds": 18.66, "report": "temp/build/mac-2026-11-22/pytest-macos-helper2.xml"},
+    "terminal_native": {"passed": 10, "failed": 0, "seconds": 0.27, "report": "temp/build/mac-2026-11-22/pytest-terminal2.xml"},
+    "existing_failure": "test_capture_schema_scope_immutability_and_verified_snapshot_restore still pins 145 tables at v2_0051 (147 actual); pre-existing on clean origin/v2"
+  },
+  "limits": [
+    "Real LaunchAgent registration, login activation, loaded/ready observation, unload and absence proof require an isolated account and an owner-approved apply-operation; not executed.",
+    "Real sleep/lock/fast-user-switch transitions were not triggered.",
+    "Keychain acceptance used the owner's login keychain (isolated random namespace only); no isolated account was available.",
+    "Gitee push remains blocked without an HTTPS credential; delivery is local only.",
+    "This is not whole-platform or whole-V2 acceptance and does not close the 72-hour requirement."
+  ],
+  "shared_interface_requests": [],
+  "artifacts": [
+    "temp/build/mac-2026-11-22/keychain-acceptance/acceptance.json",
+    "temp/build/mac-2026-11-22/keychain-acceptance/cleanup.json",
+    "temp/build/mac-2026-11-22/state.txt"
+  ]
+}

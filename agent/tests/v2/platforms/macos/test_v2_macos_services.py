@@ -100,6 +100,27 @@ def test_disabled_state_rejects_partial_ambiguous_and_unrecognized_output(payloa
     assert disabled_override(b'disabled services = {\n "x" => false\n "other" => true\n}', "x") is False
     assert disabled_override(b'disabled services = {\n "x" => true\n}', "x") is True
     assert disabled_override(b"disabled services = {\n}", "x") is False
+    # macOS 27 prints enabled/disabled instead of the older boolean spelling.
+    assert disabled_override(b'disabled services = {\n "x" => enabled\n}', "x") is False
+    assert disabled_override(b'disabled services = {\n "x" => disabled\n}', "x") is True
+    assert disabled_override(b'disabled services = {\n "x" => enabled\n "y" => disabled\n}', "x") is False
+
+
+def test_loaded_definition_accepts_launchd_normalized_subset():
+    import plistlib as plist
+
+    from omni.adapters.platform.services.macos_service_state import OMITTED_BY_LAUNCHD, loaded_definition
+    from omni.adapters.platform.services.service_templates import render
+    from omni.domain.service_deployment import manager_identity
+
+    value = plan("macos-user")
+    expected = plist.loads(render(value)[str(manager_identity(value)["artifact"])])
+    job = {key: item for key, item in expected.items() if key not in OMITTED_BY_LAUNCHD}
+    job.update({"LastExitStatus": 0, "OnDemand": True, "PID": 42, "Program": expected["ProgramArguments"][0]})
+    assert loaded_definition(value, job) is True
+    assert loaded_definition(value, {**job, "Label": "foreign"}) is False
+    assert loaded_definition(value, {key: item for key, item in job.items() if key != "ProgramArguments"}) is None
+    assert loaded_definition(value, {**job, "Unknown": True}) is None
 
 
 @pytest.mark.parametrize("loaded,pid,state", [(False, None, "stopped"), (True, 0, "stopped"), (True, 42, "running")])

@@ -1,0 +1,51 @@
+{
+  "schema": 1,
+  "batch": "D2.runtime.process_reclaim_race",
+  "date": "2026-11-22",
+  "status": "fixed an intermittent false-negative in OwnedProcess.terminate that left native PTY close cleanup pending; 30/30 terminal file runs clean afterwards",
+  "whole_v2_complete": false,
+  "platform_macos_complete": false,
+  "release_candidate": false,
+  "default_entrypoints": "V2",
+  "source": {
+    "baseline_git_head": "18b75b757b0a8b82243963494be06f5d6d457601",
+    "task_branch": "macos-pty-reclaim",
+    "changed_files": ["agent/src/omni/adapters/platform/runtime/processes.py"]
+  },
+  "symptom": {
+    "test": "agent/tests/v2/platforms/common/test_v2_terminal_native.py::test_native_terminal_unicode_resize_exit_and_verified_cleanup",
+    "failure": "captured.close(5) returned False in 0.1-0.2 s and backend.health() kept cleanup_pending=1",
+    "frequency": "about 1/10 to 1/3 across repeated single-node runs under load; 9/10 on one full-file run"
+  },
+  "diagnosis": {
+    "instrumented": "temporary stderr diagnostics in TerminalProcess._close_actual and OwnedProcess.terminate (reverted before delivery)",
+    "observed": "native_clean=True (worker reply skipped or false, host reclaim true) but helper_clean=False on the first attempt; terminate logged NoSuchProcess from psutil.Process(pid) while process.returncode was still None, then a second close attempt reclaimed cleanly",
+    "root_cause": "the child can exit and be reaped before the asyncio transport publishes returncode; the identity lookup then raises psutil.NoSuchProcess and the broad except turned that into 'not reclaimed'. A SIGKILL racing with child exit (ESRCH) or a reused/unsignalable group (EPERM) had the same effect, and _group_quiet treated EPERM from kill(0) as 'not quiet'."
+  },
+  "fix": {
+    "file": "agent/src/omni/adapters/platform/runtime/processes.py",
+    "changes": [
+      "psutil.NoSuchProcess during the identity check means there is no leader left to signal; wait() and the group scan still decide",
+      "os.killpg(SIGKILL) tolerates ESRCH/EPERM (exited leader or reused/unsignalable group) instead of failing the whole reclamation",
+      "_group_quiet falls through to the explicit member scan on EPERM from kill(0) and skips foreign processes that are not members of the owned group"
+    ],
+    "safety": "reclamation is still only reported after wait() and a quiet owner-group scan; no unverifiable group is signalled or claimed clean"
+  },
+  "validation": {
+    "terminal_file": {"runs": 30, "failures": 0, "note": "full test_v2_terminal_native.py, -n 0, isolated basetemps"},
+    "process_callers": {"passed": 100, "seconds": 32.68, "files": ["test_v2_terminal_native.py", "test_v2_media_startup.py", "test_v2_media_transport.py", "test_v2_media_protocol.py", "test_v2_native_credentials.py"]},
+    "desktop_suite": {"passed": 238, "failed": 1, "seconds": 20.08, "existing_failure": "test_capture_schema_scope_immutability_and_verified_snapshot_restore pins 145 tables at v2_0051 (147 actual)"},
+    "ruff": "clean"
+  },
+  "limits": [
+    "The race window is inferred from instrumentation and eliminated in 30/30 runs; it is not proven impossible, only that the failure path now waits/scans instead of failing early.",
+    "Observed on macOS 27.2.1 arm64 only; Linux/Windows reclamation paths were not re-run natively.",
+    "The terminal close still depends on macOS session scanning; a long-lived foreign process with the same uid but an unreadable session could still return 'not quiet' by design.",
+    "Not whole-platform or whole-V2 acceptance; the 72-hour requirement remains open."
+  ],
+  "shared_interface_requests": [],
+  "artifacts": [
+    "temp/build/mac-2026-11-22/pytest-process-callers.xml",
+    "temp/build/mac-2026-11-22/pytest-macos-helper8.log"
+  ]
+}

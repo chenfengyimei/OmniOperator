@@ -12,6 +12,12 @@ from omni.adapters.platform.services.service_templates import render
 from omni.domain.service_deployment import manager_identity
 
 MAX_OUTPUT = 65536
+# launchd returns a normalized subset for a running job; these plist keys are
+# covered by the on-disk definition comparison and may be omitted at runtime.
+OMITTED_BY_LAUNCHD = frozenset(
+    {"EnvironmentVariables", "ExitTimeOut", "KeepAlive", "RunAtLoad", "Umask", "WorkingDirectory"}
+)
+REQUIRED_LOADED = ("Label", "ProgramArguments", "StandardOutPath", "StandardErrorPath", "LimitLoadToSessionType")
 
 
 def _bounded_job(value: object) -> bool:
@@ -52,11 +58,16 @@ def loaded_definition(plan: Mapping[str, object], job: object) -> bool | None:
     metadata = {"PID", "LastExitStatus", "OnDemand", "Program"}
     if set(job_value) - set(expected) - metadata:
         return None
-    if set(expected) - set(job_value):
+    absent = set(expected) - set(job_value)
+    if absent - OMITTED_BY_LAUNCHD:
         return None
+    if any(key in expected and key not in job_value for key in REQUIRED_LOADED):
+        return None
+    # Compare every field launchd reports, including omit-nothing when present;
     # JSON's typed spelling distinguishes booleans from integers.
-    actual = {key: job_value[key] for key in expected}
-    if json.dumps(actual, sort_keys=True, allow_nan=False) != json.dumps(expected, sort_keys=True, allow_nan=False):
+    actual = {key: job_value[key] for key in expected if key in job_value}
+    wanted = {key: expected[key] for key in actual}
+    if json.dumps(actual, sort_keys=True, allow_nan=False) != json.dumps(wanted, sort_keys=True, allow_nan=False):
         return False
     if "Program" in job_value and job_value["Program"] != cast(list[object], expected["ProgramArguments"])[0]:
         return False
@@ -88,13 +99,15 @@ def disabled_override(output: bytes, label: str) -> bool | None:
             return None
         values: dict[str, bool] = {}
         for line in lines[1:-1]:
-            match = re.fullmatch(r'\s*("(?:[^"\\\x00-\x1f]|\\["\\])+")\s*=>\s*(true|false)\s*', line)
+            match = re.fullmatch(r'\s*("(?:[^"\\\x00-\x1f]|\\["\\])+")\s*=>\s*(true|false|enabled|disabled)\s*', line)
             if match is None:
                 return None
             name = json.loads(match[1])
             if name in values or len(name) > 256 or len(values) >= 4096:
                 return None
-            values[name] = match[2] == "true"
+            # macOS 27 prints the override state as enabled/disabled instead of
+            # the older boolean spelling; both mean the same two states.
+            values[name] = match[2] in {"true", "disabled"}
         # No override means the plist's own Disabled=false/default applies.
         return values.get(label, False)
     except (ValueError, UnicodeError):

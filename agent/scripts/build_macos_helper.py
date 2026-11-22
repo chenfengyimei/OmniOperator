@@ -15,7 +15,14 @@ import xml.etree.ElementTree as ET
 from datetime import datetime, timezone
 from pathlib import Path
 
-from omni.adapters.platform.desktop.macos_helper import BUNDLE_ID, BUNDLE_NAME, EXECUTABLE, bundle_path, resolve, source_fingerprints
+from omni.adapters.platform.desktop.macos_helper import (
+    BUNDLE_ID,
+    BUNDLE_NAME,
+    EXECUTABLE,
+    bundle_path,
+    resolve,
+    source_fingerprints,
+)
 from omni.domain.desktop import VERSION
 
 SOURCE = Path(__file__).resolve().parents[1] / "src/omni/adapters/workers/macos"
@@ -54,6 +61,22 @@ def build(output: Path, architectures: list[str], signing: str) -> dict:
         "system": platform.platform(),
         "python": platform.python_version(),
     }
+    # Run both suites on the host, even for a cross-architecture release.
+    # Swift Testing on macOS needs the same deployment target as the helper.
+    test_arguments = [
+        "--triple",
+        platform.machine() + "-apple-macosx14.0",
+        "--disable-automatic-resolution",
+        "--disable-xctest",
+        "--enable-swift-testing",
+        "--no-parallel",
+    ]
+    # Some Command Line Tools releases put TestingMacros in a separate
+    # directory that the Swift Build dependency scanner can miss.
+    swiftc = Path(subprocess.check_output(["/usr/bin/xcrun", "--find", "swiftc"], text=True, timeout=30).strip())
+    testing_plugins = swiftc.parent.parent / "lib/swift/host/plugins/testing"
+    if (testing_plugins / "libTestingMacros.dylib").is_file():
+        test_arguments.extend(("-Xswiftc", "-plugin-path", "-Xswiftc", str(testing_plugins)))
     # The portable controller tests never load AppKit, open a desktop or post input.
     core_report = output / "foreground-core.xml"
     run(
@@ -65,7 +88,7 @@ def build(output: Path, architectures: list[str], signing: str) -> dict:
             str(SOURCE / "Core"),
             "--scratch-path",
             str(output / "swift-core-tests"),
-            "--disable-automatic-resolution",
+            *test_arguments,
             "--xunit-output",
             str(core_report),
         ]
@@ -87,7 +110,7 @@ def build(output: Path, architectures: list[str], signing: str) -> dict:
             str(SOURCE),
             "--scratch-path",
             str(output / "swift-native-tests"),
-            "--disable-automatic-resolution",
+            *test_arguments,
             "--filter",
             "RegistrationPathTests",
             "--xunit-output",

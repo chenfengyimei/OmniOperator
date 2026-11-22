@@ -1,0 +1,44 @@
+{
+  "schema": 1,
+  "batch": "D2.macos.launch_lifecycle_stability",
+  "date": "2026-11-22",
+  "status": "the LaunchServices transport completed 15 sequential and 2 concurrent native probes with no stray helper process or private socket directory",
+  "whole_v2_complete": false,
+  "platform_macos_complete": false,
+  "release_candidate": false,
+  "default_entrypoints": "V2",
+  "source": {
+    "baseline_git_head": "18b75b757b0a8b82243963494be06f5d6d457601",
+    "task_branch": "macos-pty-reclaim",
+    "code_change": "none; stability measurement on the installed delivery helper"
+  },
+  "measurement": {
+    "sequential_probes": {
+      "count": 15,
+      "transport": "DesktopBackend(macos_transport='launchservices')",
+      "protocol": "omni-desktop-ipc-6",
+      "latency_seconds": {"min": 0.063, "max": 0.080, "average": 0.072},
+      "close": "every probe closed cleanly"
+    },
+    "concurrent_probes": {
+      "count": 2,
+      "result": "both returned omni-desktop-ipc-6",
+      "close": {"resident": 0, "pending": 0, "cleanup_pending": 0}
+    },
+    "residue": {
+      "helper_processes_before": 0,
+      "helper_processes_after": 0,
+      "private_directories_before": 0,
+      "private_directories_after": 0
+    },
+    "permissions_at_measurement": {"window_identity": "denied", "accessibility": "denied", "screen_capture": "granted", "foreground_control": "denied"}
+  },
+  "limits": [
+    "Only probe/close was exercised end-to-end: observe/capture/act/foreground still require the helper's Accessibility/input/post grants, which are pending owner action.",
+    "Latency is a single warm run on this machine and is not a benchmark.",
+    "Concurrency was limited to two probes by the backend's resident slot design; higher fan-out was not exercised.",
+    "Not whole-platform or whole-V2 acceptance; the 72-hour requirement remains open."
+  ],
+  "shared_interface_requests": [],
+  "artifacts": ["temp/build/mac-2026-11-22/probe-stability.txt"]
+}

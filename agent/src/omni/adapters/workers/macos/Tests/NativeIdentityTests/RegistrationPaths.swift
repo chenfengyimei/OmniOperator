@@ -1,19 +1,19 @@
 // Local disposable metadata only; no service, desktop, account or TCC mutation.
-import XCTest
+import Testing
 import Foundation
 import Darwin
 import NativeIdentity
 
-final class RegistrationPathTests: XCTestCase {
+struct RegistrationPathTests {
     private func fixture(_ body: (URL, URL) throws -> Void) throws {
-        XCTAssertGreaterThan(getuid(), 0, "Run as the ordinary test account")
+        #expect(getuid() > 0, "Run as the ordinary test account")
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: false,
             attributes: [.posixPermissions: 0o700])
         defer { try? FileManager.default.removeItem(at: directory) }
         let file = directory.appendingPathComponent("owned.plist")
         try Data("owned-fixture".utf8).write(to: file, options: .withoutOverwriting)
-        XCTAssertEqual(chmod(file.path, 0o600), 0)
+        #expect(chmod(file.path, 0o600) == 0)
         try body(directory, file)
     }
 
@@ -30,68 +30,68 @@ final class RegistrationPathTests: XCTestCase {
         process.standardError = FileHandle.nullDevice
         try process.run()
         process.waitUntilExit()
-        XCTAssertEqual(process.terminationStatus, 0)
+        #expect(process.terminationStatus == 0)
     }
 
-    func testDefaultFileAndDirectoryHavePositiveAbsenceProof() throws {
+    @Test func testDefaultFileAndDirectoryHavePositiveAbsenceProof() throws {
         try fixture { directory, file in
             try mode(["-N", file.path])
             try mode(["-N", directory.path])
-            XCTAssertEqual(safe(directory), 1)
-            XCTAssertEqual(safe(file), 1)
+            #expect(safe(directory) == 1)
+            #expect(safe(file) == 1)
         }
     }
 
-    func testDefaultDenyDeleteIsAccepted() throws {
+    @Test func testDefaultDenyDeleteIsAccepted() throws {
         try fixture { _, file in
             defer { try? mode(["-N", file.path]) }
             try mode(["+a", "everyone deny delete", file.path])
-            XCTAssertEqual(safe(file), 1)
+            #expect(safe(file) == 1)
         }
     }
 
-    func testPositiveACLDoesNotBecomeSafeBecauseModeIsPrivate() throws {
+    @Test func testPositiveACLDoesNotBecomeSafeBecauseModeIsPrivate() throws {
         try fixture { _, file in
             defer { try? mode(["-N", file.path]) }
             try mode(["+a", "everyone allow read", file.path])
-            XCTAssertEqual(safe(file), 0)
+            #expect(safe(file) == 0)
         }
     }
 
-    func testSymbolicLinkIsRejected() throws {
+    @Test func testSymbolicLinkIsRejected() throws {
         try fixture { directory, file in
             let link = directory.appendingPathComponent("link")
             try FileManager.default.createSymbolicLink(at: link, withDestinationURL: file)
-            XCTAssertEqual(safe(link), 0)
+            #expect(safe(link) == 0)
         }
     }
 
-    func testHardLinkIsRejected() throws {
+    @Test func testHardLinkIsRejected() throws {
         try fixture { directory, file in
             try FileManager.default.linkItem(at: file, to: directory.appendingPathComponent("alias"))
-            XCTAssertEqual(safe(file), 0)
+            #expect(safe(file) == 0)
         }
     }
 
-    func testGroupWritableFileAndDirectoryAreRejected() throws {
+    @Test func testGroupWritableFileAndDirectoryAreRejected() throws {
         try fixture { directory, file in
-            XCTAssertEqual(chmod(file.path, 0o620), 0)
-            XCTAssertEqual(safe(file), 0)
-            XCTAssertEqual(chmod(directory.path, 0o720), 0)
-            XCTAssertEqual(safe(directory), 0)
+            #expect(chmod(file.path, 0o620) == 0)
+            #expect(safe(file) == 0)
+            #expect(chmod(directory.path, 0o720) == 0)
+            #expect(safe(directory) == 0)
         }
     }
 
-    func testSystemPathsCannotUseAnOwnerControlledObject() throws {
+    @Test func testSystemPathsCannotUseAnOwnerControlledObject() throws {
         try fixture { directory, file in
-            XCTAssertEqual(safe(directory, system: true), 0)
-            XCTAssertEqual(safe(file, system: true), 0)
+            #expect(safe(directory, system: true) == 0)
+            #expect(safe(file, system: true) == 0)
         }
     }
 
-    func testMissingLeafDoesNotPreventNonOverwritingRegistration() throws {
+    @Test func testMissingLeafDoesNotPreventNonOverwritingRegistration() throws {
         try fixture { directory, _ in
-            XCTAssertEqual(safe(directory.appendingPathComponent("not-created")), 1)
+            #expect(safe(directory.appendingPathComponent("not-created")) == 1)
         }
     }
 }

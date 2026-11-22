@@ -457,7 +457,12 @@ async def open_instance(
         desktop_io = (
             desktop_backend
             if desktop_backend is not None
-            else DesktopBackend(capture_root=paths.control / "desktop-captures", capacity=desktop_capacity)
+            else DesktopBackend(
+                capture_root=paths.control / "desktop-captures",
+                capacity=desktop_capacity,
+                # Own TCC identity on macOS: LaunchServices + host socket (A1).
+                macos_transport="launchservices",
+            )
         )
         lifetime.own("desktop_io", 1, desktop_io.close, desktop_io.stop_accepting)
 
