@@ -20,17 +20,17 @@
   "evidence": "docs/evidence/v2-agent-core-parity.json",
   "test_policy": "实现优先，只跑受影响模块和调用方专项；整个V2开发冻结后统一全量",
   "current_followup": {
-    "id": "K17.reflection_media_review",
-    "status": "implemented_scoped_passed",
+    "id": "K17.persona_growth",
+    "status": "batch_3_implemented",
     "scope": [
-      "v0052 媒体证据锚点、修订绑定反思候选、实际日/来源日双配额",
-      "所有者 HTTP 列表/详情/决定、来源擦除与重启一致",
-      "reflection_journal 仅在存在证据源时暴露，委派继承捕获面"
+      "派生渲染/受管缓存/账本只读/重建（批 1）",
+      "所有者 HTTP 只读/重建 + 工作台人格成长页，多 agent 缓存隔离（批 2）",
+      "源擦除失效钩子——fail-closed invalidate、重试与媒体顺序（批 3）"
     ],
-    "contract": "docs/v2/contracts/V2_REFLECTION_PROVENANCE.md",
-    "evidence": "docs/evidence/v2-reflection-media-review.json",
-    "validation": "新增 14 项 + 失败全量节点 29 项 + 16 迁移/pin 78 项 + strict 424/0；独立基线全量提交后重跑，结果以 full-38c01d80.xml 为准。",
-    "next": "K17 人格成长文件、personality revise/rebuild/shadow、观影后提问状态机；真实 B 站账号与模型质量另验。K01 D3(a)/(c)/D8 等所有者决策项继续待定。"
+    "contract": "docs/v2/contracts/V2_PERSONA_GROWTH.md",
+    "evidence": "docs/evidence/v2-persona-growth-design.json",
+    "validation": "新增 persona growth 三批专项 + 反思审核/媒体链 + 迁移/pin + strict 427/0；合并后独立基线全量以 full-e93c1a05.xml 为准。",
+    "next": "K17 剩余：inbox/月卷导出、所有者正文编辑页、personality shadow/观影后提问状态机；真实 B 站账号与模型质量另验。K01 D3(a)/(c)/D8 等所有者决策项继续待定。"
   },
   "requirements": [
     {
