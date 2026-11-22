@@ -258,6 +258,15 @@ K13.cron_model_design 已记录**实现前设计合同**（纯文档，无源码
 - **验证**：受影响专项（desktop backend/terminal/macOS 平台/架构/布局/kernel/业务清单）**261 passed, 8 skipped**（212.75 秒）；索引 65/849/464/94 幂等；**合并后冻结源码单跑全量 `f3f44afd`：8439 项 8430 通过 / 0 失败 / 9 跳过，3108.91 秒**（`C:/v2-acceptance/integration-1f31e96d/full-f3f44afd.xml`）。此前同源 `e73b58d9` 为 8429 通过 / 1 失败（strict 文档漂移，补文档行后 2 passed，代码零变化）。
 - **未验**：Windows 不编译 Swift、不跑 LaunchServices/UDS 真机链路；macOS 睡眠/锁屏/快速用户切换与系统域安装归 F；TCC 授权后四能力的真机结论以 Mac 端证据为准。
 
+### 2026-11-22 K01/K13/K18 剩余差异首批（`k18-read-cache`）
+
+- **任务/分支/基线**：K01/K13/K18 剩余差异首批（接手 OmniOperator v2），Windows，2026-11-22；任务分支 `k18-read-cache`（独立工作树 `C:/v2-sessions/k18-read-cache`，不共用 `D:/xm/OmniOperator` 工作树），基线 `origin/v2`=`0793f254`（fetch 后核对一致，开工时工作树干净）；本批实现提交 `341041a6`。待 A 集成，集成后回读 `origin/v2`。
+- **已交（K18.read_cache）**：`bilibili_read` 有界读缓存——domain `ReadCache` TTL+LRU 只缓存 `video`/`whois`（各 24h），上限 400 条/8MiB/单条 64KiB；键含 `(agent_id, config_id, credential authority, operation, target, limit)`，凭据换代（credential revision/authority_epoch 变化）即换桶并在该配置下次读时清旧代；命中仍以 `revision_id` 复核 authority，风险暂停与配置停用门先于缓存，失败/风控码不缓存，命中返回独立副本且模型工具文本与现读逐字节一致；13 个端点（account/comments/replies/search/relation/danmaku/popular/ranking/following/favorites/tags/history/msgfeed）永不缓存，`nav` 有意不缓存（比参考 10min 更严，凭据换代下一读即见）。**无新表/迁移/路由/worker 协议/共享端口签名改动**，组合根与 routing 不变。合同 [V2_BILI_READ_CACHE](v2/contracts/V2_BILI_READ_CACHE.md)。
+- **决策登记**：[V2_REMAINING_DECISIONS](v2/contracts/V2_REMAINING_DECISIONS.md) 把已交付清单之外、须所有者/A 决定的剩余项逐项登记——D1 K01 系统前缀重构 (a)/(c)+D8 真实缓存效果、D2 工具调用代码沙箱、D3 原始 CDP/脚本化浏览器、D4 K18 写扩面（fav/dynamic/danmaku-send/comment-del）、D5 主动观看（night-plan/双日记/沉默衰减/候选打分/偏好学习）、D6 受控分享策略+AI-share 守卫、D7 直播；每项列现状、缺口、需决定什么、安全/授权面、验证要求与依赖顺序，**均未实现**。另登记读侧速率预算 600/h·3000/d 未实现、nav 10min 缓存有意不做。K13/K18 审计已补「实现进度」对照（工作区搜索/模糊补丁/cron 四批/browser_dialog 与 B 站读广度、风控暂停已交付；沙箱/CDP 与 K18 写/观看/分享/直播未实现）。
+- **验证**：新增 **38** 项（`agent/tests/v2/integrations/test_v2_bilibili_read_cache.py`，28 领域 + 10 真实隔离 SQLite 应用集成）**38 过 / 37.31s**；bilibili 全调用方 19 个读/发表/风控/网关/worker 套件 + HTTP 含本批 **496 过 / 170.96s**；media/架构/能力调用方 **12 过 / 21.22s**；strict `pyrightconfig.strict.json` **0 错误 0 警告**；ruff check/format 净；`docs/index` 再生 65/849/464/94 与基线零差异（无索引提交）。当前源码未跑全量，未触真实账号/模型/设备/运行中服务与数据库。
+- **未验**：真实 B 站账号缓存命中率与 24h 新鲜度、进程重启后的命中（内存缓存天然不持久）、`nav` 10min、读侧速率预算、写广度/主动观看/受控分享/直播/AI-share 守卫（决策 D2–D7）、K01 D3(a)/(c)/D8；真实模型质量/设备/72 小时。
+- **下一批**：剩余 K01/K13/K18 项均需所有者决定（决策登记 D1–D7），获批准后按「先授权/持久化合同后接线」独立批次推进；共享接口、数据库迁移与公共 CI 由 A 协调。证据 [v2-bili-read-cache.json](evidence/v2-bili-read-cache.json)。
+
 ## 追溯入口
 
 - [旧交接记录](history/pre-layout-2026-11-18/HANDOFF.md)、[旧重构记录](history/pre-layout-2026-11-18/V2_REFACTOR.md)只证明所属版本，不作为当前待办。
