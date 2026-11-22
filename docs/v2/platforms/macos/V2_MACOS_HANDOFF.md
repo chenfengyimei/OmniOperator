@@ -308,3 +308,7 @@ LaunchServices 生命周期稳定性复测：连续 15 次 `probe` 每次 0.062�
 ### 2026-11-22 helper 自身授权生效，LS 三项验收通过
 
 `tccutil reset Accessibility/PostEvent` + 重新显式请求后，helper（`9360128b…`）自身身份的四项权限全部 `granted`（此前 Input Monitoring 已允许，Accessibility/PostEvent 的旧拒绝记录被重置后生效）。验收脚本已改为 `macos_transport="launchservices"`，三项全部通过：read（AX 9 节点、密码脱敏、ScreenCaptureKit）、semantic（set_text `value_matches`、invoke unknown、独立状态、未重放）、foreground（text_appended + unknown×3、独立状态、未重放）。macOS 11 文件 242/242（20.85s）。撤回/恢复证据闭环与生产化安装仍待办。证据：[LS 验收](../../../evidence/v2-macos-launchservices-acceptance-2026-11-22.json)。
+
+### 2026-11-22 权限撤回→恢复闭环
+
+`tccutil reset Accessibility/PostEvent` 后 probe 立即变为 `window_identity/accessibility/foreground_control=denied`（screen 保持 granted），read 验收在 verify/observe 前失败（BusinessError，未尝试任何写动作，失败关闭）。重新执行 `--request-permission accessibility/post` 并允许后，8 秒内四项恢复 `granted`；read 验收通过（AX 9 节点、ScreenCaptureKit）。恢复后首次验收曾出现一次 `Desktop helper request did not complete`（已知冷启动瞬时问题），立即重试通过，写动作未重放。证据：[撤回与恢复](../../../evidence/v2-macos-permission-revocation-2026-11-22.json)。

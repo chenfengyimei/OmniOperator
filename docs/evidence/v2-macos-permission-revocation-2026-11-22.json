@@ -1,0 +1,61 @@
+{
+  "schema": 1,
+  "batch": "D2.macos.permission_revocation_recovery",
+  "date": "2026-11-22",
+  "status": "helper-owned Accessibility/PostEvent revocation produced a fail-closed denial; explicit re-request recovered all four grants and read acceptance passed",
+  "whole_v2_complete": false,
+  "platform_macos_complete": false,
+  "release_candidate": false,
+  "environment": {
+    "system": "macOS 27.2.1 (26B131)",
+    "architecture": "arm64",
+    "helper_sha256": "9360128b0c3c2f29d878bf808dbaecdc744e138d284781006722e67d5c47c261",
+    "transport": "launchservices"
+  },
+  "revocation": {
+    "commands": [
+      "tccutil reset Accessibility org.omnioperator.desktophelper",
+      "tccutil reset PostEvent org.omnioperator.desktophelper"
+    ],
+    "probe": {
+      "window_identity": "denied",
+      "accessibility": "denied",
+      "screen_capture": "granted",
+      "foreground_control": "denied"
+    },
+    "read_acceptance": {
+      "status": "failed",
+      "error_type": "BusinessError",
+      "note": "verify/observe refused before any native access; no write action was attempted"
+    }
+  },
+  "recovery": {
+    "commands": [
+      "open -n <app> --args --request-permission accessibility",
+      "open -n <app> --args --request-permission post"
+    ],
+    "probe_after_seconds": 8,
+    "probe": {
+      "window_identity": "granted",
+      "accessibility": "granted",
+      "screen_capture": "granted",
+      "foreground_control": "granted"
+    },
+    "read_acceptance": {
+      "status": "passed",
+      "nodes": 9,
+      "capture": "screen_capture_kit",
+      "note": "the first attempt right after the grant failed with an unresolved helper request; an immediate retry passed (known cold-start transient, no write replay)"
+    }
+  },
+  "limits": [
+    "revocation was limited to Accessibility/PostEvent; screen and input monitoring were left granted",
+    "the first acceptance attempt after re-granting failed once; this transient is recorded, not hidden",
+    "grants bind to helper 9360128b",
+    "production install/isolated account and 72h remain open"
+  ],
+  "artifacts": [
+    "temp/build/mac-2026-11-22/ls-revoked/acceptance.json",
+    "temp/build/mac-2026-11-22/ls-recovered/acceptance.json"
+  ]
+}
