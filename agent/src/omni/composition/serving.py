@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import signal
 from pathlib import Path
+from types import FrameType
 from typing import Any
 from urllib.parse import urlsplit
 
@@ -65,4 +67,17 @@ def serve_instance(
         timeout_graceful_shutdown=30,
     )
     server = uvicorn.Server(configuration)
+
+    def handle_termination(_signum: int, _frame: FrameType | None) -> None:
+        server.should_exit = True
+
+    # uvicorn restores the previous handler and re-raises the captured signal
+    # after a graceful shutdown, which would exit 143/130. Keep our own handler
+    # installed so a stopped service exits 0 and the container check can prove
+    # a complete shutdown.
+    for signum in (signal.SIGTERM, signal.SIGINT):
+        try:
+            signal.signal(signum, handle_termination)
+        except (ValueError, OSError):
+            pass
     server.run()

@@ -211,3 +211,11 @@ uv run --no-sync python agent/scripts/accept_native_credentials.py --cleanup <�
 
 清理只接受本平台的固定格式随机token，不能传入生产命名空间或任意引用。原生解锁提示、拒绝/撤回、注销与睡眠恢复、原生服务阻塞及条目清理分别回传；不要回传密钥、系统凭据清单或数据库。Linux原生后端需要实际Secret Service及可访问的当前UID用户总线；headless使用显式FileVault，不自动生成同目录主密钥。Keychain/WinVault的权限与提示也必须在对应平台核验。
 
+
+### 2026-11-22 容器/无桌面验收（Mac mini 上的 Linux VM）
+
+本机（macOS 27.2.1 arm64）没有原生 Linux、显示会话或容器引擎。用 Lima 2.3.0（vz）起 Ubuntu 26.04.1 LTS（kernel 7.0.0-38-generic、aarch64、Docker 29.10.0），从 `deploy/v2/Dockerfile` 构建镜像 `omni-v2:check2`（image `sha256:3899bd7c…`），在 VM 内运行 `scripts/check_v2_container.py`：**passed=true、cleanup_complete=true**；fresh 与 reopened 两阶段均为 nonroot/private_home/owner_auth/headless，同一 agent/instance 跨重启保留、boot_id 更新、schema v2_0052、build_id 匹配；容器离线（network none）运行。
+
+过程中修复一个真实缺陷：`serve_instance` 在 SIGTERM 时因 uvicorn 恢复旧 handler 并重发信号而退出 **143**，导致容器 check 报 `container_shutdown_incomplete`；现在服务自持 SIGTERM/SIGINT handler，优雅退出返回 0。受影响离线专项 57 项通过（service runtime/lifecycle/entrypoints/operations CLI）。
+
+未验：X11/AT-SPI 控件身份、XRes 前台后验、用户介入与撤权（无 X11 会话）；Wayland RemoteDesktop/EIS 关联、暂停与撤权（无 Wayland 会话）；图形样例、锁屏、睡眠、热插拔。容器 check 仅为无桌面/离线/持久/重启证据（full_suite_run=false），不代表 Linux 原生 GUI 支持。证据：[容器验收](../../../evidence/v2-linux-container-2026-11-22.json)。
