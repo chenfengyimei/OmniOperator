@@ -2,7 +2,7 @@
 
 ## 状态
 
-**设计合同（design_contract_recorded，纯文档，无源码/测试/迁移改动，2026-11-21）。** K01 现状态 `partial`：交付项为「单 run 前缀冻结，档位/已审技能变化以通知形式注入」；剩余项为「会话/分叉 lineage 级稳定范围与跨 run 策略；真实缓存效果单独验收」。本合同即该剩余项的设计合同。**2026-11-22 更新：D3(b) 路由键注入已实现**（`K01.prompt_cache_route_key`，纯 adapter 注入，无冻结合同改动）；D3(a)/(c) 前缀重构与 D8 真实缓存效果仍待所有者/隔离环境。
+**设计合同（design_contract_recorded，纯文档，无源码/测试/迁移改动，2026-11-21）。** K01 现状态 `partial`：交付项为「单 run 前缀冻结，档位/已审技能变化以通知形式注入」；剩余项为「会话/分叉 lineage 级稳定范围与跨 run 策略；真实缓存效果单独验收」。本合同即该剩余项的设计合同。**2026-11-22 更新：D3(b) 路由键注入已实现**（`K01.prompt_cache_route_key`，纯 adapter 注入，无冻结合同改动）；D3(a)/(c) 前缀重构与 D8 真实缓存效果仍待所有者/隔离环境。**2026-11-23 更新：D3(a)/(c)+D8 的细化设计合同已记录**（[V2_PROMPT_CACHE_PREFIX](V2_PROMPT_CACHE_PREFIX.md)：P1-a 仅 persona 系统前缀/记忆与摘要固定位/route·skills 走尾、P1-b 混合、P1-c 最小改动、P1-d 维持；D8 隔离 provider 对照实验），实现仍待所有者选定 P1 方案。
 
 **本合同本身是安全的纯设计文档，可提交。其第二阶段实现触及两处需所有者批准的面：(1) 系统前缀结构（`domain/metering.py` 的 `memory_system`/`history_request`，当前冻结前缀合同）；(2) `adapters/models.py` 请求装配 + 可能含会话标识哈希的 provider 缓存键（安全敏感）。按「合同先于接线」纪律，实现前需所有者审阅本合同并选定 D3 方案。**
 

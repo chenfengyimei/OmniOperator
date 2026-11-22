@@ -22,7 +22,7 @@
 - **需决定**：所有者选 (a)/(c)/维持现状；是否接受 memory salience 与遗忘/优先级变化；批准修改冻结前缀合同（`memory_system`/`history_request`）；D8 的隔离凭据/环境与计费边界。
 - **安全/授权面**：系统前缀承载 owner memory（数据非授权），移尾不改授权语义、不新增出网字段；委派/重置换桶语义（D4/D5）保持。
 - **验证要求**：前缀字节稳定回归（跨 run 同字节、变更新桶）、memory/notice 语义对照、既有 metering/context/压缩/摘要调用方零回归、D8 真实命中率单独验收（不入默认离线套件）。
-- **依赖**：所有者批准 + 隔离 provider 环境。**建议最后做，与 D2–D7 无耦合。**
+- **依赖**：所有者批准 + 隔离 provider 环境；细化设计合同 [V2_PROMPT_CACHE_PREFIX](V2_PROMPT_CACHE_PREFIX.md) 已记录 P1-a（仅 persona 系统前缀、记忆/摘要固定位、route·skills 走尾，推荐）/P1-b 混合/P1-c 最小改动/P1-d 维持，P2 记忆块删除屏障、P3 route/skills 位置、P4 摘要位置、P5 开关/灰度、P6 D8 隔离对照实验与度量。**未实现。** **建议最后做，与 D2–D7 无耦合。**
 
 ## D2（K13）工具调用代码沙箱（execute_code / code_kernel + RPC 桥）
 

@@ -1,0 +1,52 @@
+{
+  "schema": 1,
+  "date": "2026-11-23",
+  "batch": "K01.prompt_cache_prefix_design",
+  "requirement": "K01",
+  "status": "design_contract_recorded",
+  "base_commit": "0793f2543f1b2bb94e960d171747fbf08bc11b84",
+  "branch": "k18-read-cache",
+  "implements_gap": "K01 D3(a)/(c) cross-run prefix stability and D8 real cache effectiveness (decision D1): system prefix currently carries persona + owner memory + run-start route/skills notice, and the summary is the first user message, so content-address providers (Anthropic/DeepSeek/Gemini) never match across runs when memories/route/skills/summary change. This batch records the verified drift sources, the P1-a/b/c/d layout options (P1-a recommended: persona-only system, memory/summary blocks at fixed positions, route/skills moved to the tail), the semantics risks, byte-stability tests, and the D8 isolated-provider experiment design. NOT implementation: no source/test/migration/route/worker change",
+  "contract": "docs/v2/contracts/V2_PROMPT_CACHE_PREFIX.md",
+  "contract_sha256": "5731d095d1b241f30eff0229aad1492cadae5cfe132b5ef61da301c68955cb84",
+  "touched_docs": {
+    "docs/v2/contracts/V2_PROMPT_CACHE_SCOPE.md": "f29180fe1929c9573028a88912b33cf54b1ec1b7ace3bc6e325149454f02cdbe",
+    "docs/v2/contracts/V2_REMAINING_DECISIONS.md": "6bbc276394dab01d76a5008028a285eaa82186facf22219c5694ee589933c3a5"
+  },
+  "verified_facts": [
+    "domain/metering.py:43-53 memory_system = persona + optional owner-memory JSON (memory_id/revision/kind/content, captured and not erased) + notice; history_request:56-73 puts the summary as the first user message and then history",
+    "application/engine.py:345-359 initial_notice = route_notice(mode, has request_mode) + skills.notice(...) goes into the system via extra_notice; tail_notice = todo_notice + reflection_notice goes to the tail",
+    "application/context.py:92-101 prepare passes extra_notice to the system and tail_notice via append_runtime_notice; domain/turn_prompt.py:28-44 TurnPrompt keeps the captured system byte-frozen for the run and appends changed notices to the tail",
+    "drift sources into the system: owner memory changes (new/decay/erase), run-start route mode, captured/activated skills notice, persona edits (low frequency); summary drift starts right after the system message",
+    "K06 compact_run compresses old tool rounds into one bounded user summary and does not change the system/head/recent rounds or content_epoch",
+    "D3(b) already shipped (372ad56d): pc_<sha256(agent|session|epoch)[:24]> only for slot-keyed/OpenAI extra_body; content-address providers rely on byte parity"
+  ],
+  "decision_questions": [
+    "P1 layout: P1-a persona-only system + fixed memory/summary blocks + route/skills tail (recommended) / P1-b hybrid stable-memory snapshot / P1-c minimal (notices+summary only) / P1-d keep current",
+    "P2 memory block: position, size bound, deletion barrier, no importance/clarity exposure; fixed header and field order",
+    "P3 route/skills notices: unify with append_runtime_notice tail ordering (route -> skills -> todo -> reflection), truncation",
+    "P4 summary position relative to the memory block and history",
+    "P5 rollout: global code switch vs per-agent setting (settings KEYS/schema + A coordination); rollback probe keeps old assembly internally",
+    "P6 D8: isolated provider/key, same model/session consecutive runs, measure cache hit/creation tokens and cost from existing usage fields; only D3(b) as the baseline control; never in the default offline suite"
+  ],
+  "semantics_risks": [
+    "owner memory drops from system (high salience) to a data block after the system message",
+    "route/skills guidance moves from system to tail, which may reduce immediate adherence; owner real-model review required",
+    "persona edits intentionally change the system and therefore the cache bucket",
+    "erased/forgotten memories must never appear in the memory block"
+  ],
+  "validation": {
+    "mode": "design_only",
+    "tests_executed": 0,
+    "note": "pure documentation batch; latest green scoped results remain 546 passed / 142.79s for the bilibili caller suites; the K01 route-key suite (6 tests) was last run green in the delivered-item verification batch (112 passed / 204.17s, docs/evidence/v2-delivered-verification.json)"
+  },
+  "not_executed": [
+    "P1 prefix refactor wiring and byte-stability regressions",
+    "D8 real provider cache effectiveness (needs an isolated provider environment from the owner)",
+    "D2 code sandbox, D3 CDP, D4-D7 implementations; real model quality; full offline suite"
+  ],
+  "next": "Owner selects P1 and approves the frozen-prefix contract change; then implement P1-a/P2-P4 with byte-stability regressions and caller suites; D8 in a separate isolated-provider batch. D2/D3 contracts still to write; D8/D9 (K13) remain lowest-cost decisions. whole_* flags stay false",
+  "whole_core_parity_complete": false,
+  "whole_reference_feature_audit_complete": false,
+  "whole_v2_complete": false
+}

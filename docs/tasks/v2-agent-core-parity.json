@@ -43,7 +43,17 @@
       "reference": "hermes-agent/agent/prompt_builder.py; agent/prompt_cache_scope.py",
       "evidence": "docs/evidence/v2-prompt-cache-scope.json",
       "implementation_evidence": "docs/evidence/v2-prompt-cache-route-key.json",
-      "limits": "D3(b) 仅 provider 路由亲和，不改变内容地址 provider 的前缀漂移现状；未用 prompt_cache_key 伪造缓存命中；D3(a)/(c) 与真实缓存效果未做"
+      "limits": "D3(b) 仅 provider 路由亲和，不改变内容地址 provider 的前缀漂移现状；未用 prompt_cache_key 伪造缓存命中；D3(a)/(c) 与真实缓存效果未做",
+      "followups": [
+        {
+          "gap": "D3(a)/(c) 系统前缀重构 + D8 真实缓存效果（P1-a/b/c/d 布局、P2-P5、D8 隔离对照实验）",
+          "status": "design_contract_recorded",
+          "batch": "K01.prompt_cache_prefix_design",
+          "contract": "docs/v2/contracts/V2_PROMPT_CACHE_PREFIX.md",
+          "evidence": "docs/evidence/v2-prompt-cache-prefix-design.json",
+          "delivered": "纯设计合同：勘定系统前缀=persona+owner memory+run 启动 route/skills 通知（metering.py:43-53/engine.py:345-359/context.py:92-101），摘要紧随 system 首条 user，run 内 TurnPrompt 已冻结 system 且变更走尾；跨 run 漂移源=memory/route/skills/摘要（persona 低频）；P1-a 仅 persona 系统前缀+记忆/摘要固定位+route·skills 走尾（推荐，语义变更需所有者接受） /P1-b 混合稳定记忆快照/P1-c 最小改动/P1-d 维持；P2 记忆块删除屏障与字段序、P3 通知顺序、P4 摘要位置、P5 全局切换 vs 每 agent 设置（可能触 settings schema→A）、P6 D8 隔离 provider 对照实验与既有 usage 字段度量；字节稳定回归、run 内冻结适配、调用方与回退验证计划列明。无源码/测试/迁移/路由/worker 改动，未实现"
+        }
+      ]
     },
     {
       "id": "K02",
@@ -1198,6 +1208,10 @@
     {
       "id": "K18.live_design",
       "evidence": "docs/evidence/v2-bili-live-design.json"
+    },
+    {
+      "id": "K01.prompt_cache_prefix_design",
+      "evidence": "docs/evidence/v2-prompt-cache-prefix-design.json"
     }
   ]
 }
