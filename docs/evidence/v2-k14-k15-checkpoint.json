@@ -2,24 +2,24 @@
   "schema": 1,
   "date": "2026-11-22",
   "batch": "K14_K15.affected_checkpoint",
-  "base_commit": "6a2c915064676daac83abc2b724bf2c36bd52c5a",
-  "source_state": "committed task branch k14-visual-persona at 6a2c9150; no uncommitted source/test changes during this checkpoint",
+  "base_commit": "0e751b97c7725924f6f317db53a196f746579d20",
+  "source_state": "committed task branch k14-visual-persona at 0e751b97; no uncommitted source/test changes during this checkpoint",
   "status": "affected_set_passed",
   "scope": "Cumulative affected-set checkpoint for the K14/K15 branch: visual sub-agent offline core, SoM offline core, explore_app offline core, memory prefix regression, memory scoring/decay, Android integration/model chains and architecture/typecheck/candidate/layout guards. Not a full suite and not real device/model acceptance.",
   "command": "uv run --no-sync pytest -q -n 0 agent/tests/v2/core/test_v2_visual_subagent.py agent/tests/v2/core/test_v2_android_som.py agent/tests/v2/core/test_v2_android_explore.py agent/tests/v2/core/test_v2_memory_prefix.py agent/tests/v2/core/test_v2_memory_scoring.py agent/tests/v2/core/test_v2_memory_decay.py agent/tests/v2/integrations/test_v2_android.py agent/tests/v2/integrations/test_v2_android_model.py agent/tests/v2/core/test_v2_architecture.py agent/tests/v2/core/test_v2_candidate_gate.py agent/tests/v2/core/test_v2_layout.py agent/tests/v2/core/test_v2_typecheck_scope.py",
   "validation": {
-    "passed": 159,
+    "passed": 162,
     "failed": 0,
     "skipped": 0,
-    "seconds": 241.55,
+    "seconds": 247.01,
     "mode": "serial -n 0",
     "scope_breakdown": [
       "K14 visual sub-agent offline core (20)",
       "K14 SoM offline core (9)",
-      "K14 explore_app offline core (6)",
+      "K14 explore_app offline core (8)",
       "K15 memory prefix regression (4)",
       "K15 memory scoring/decay (47)",
-      "Android integration + model chains (40)",
+      "Android integration + model chains (41)",
       "architecture/candidate/layout/typecheck-scope guards (33)"
     ]
   },
@@ -35,7 +35,7 @@
     "K14 D0-D5, K15 motivation D0-D4, K15 persona-layer D0-D5, isInitial D0-D5 decisions",
     "72h soak, packaging or release freeze"
   ],
-  "accounting": "This checkpoint proves only the listed affected set on committed branch HEAD 6a2c9150. It does not claim whole-V2 or full-suite completion; production wiring remains gated by the recorded decision contracts.",
+  "accounting": "This checkpoint proves only the listed affected set on committed branch HEAD 0e751b97. It does not claim whole-V2 or full-suite completion; production wiring remains gated by the recorded decision contracts.",
   "whole_core_parity_complete": false,
   "whole_v2_complete": false
 }
