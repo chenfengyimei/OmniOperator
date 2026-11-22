@@ -285,6 +285,15 @@ K13.cron_model_design 已记录**实现前设计合同**（纯文档，无源码
 - **未验**：合同内所有动作与读前置未实现；真实 B 站账号发送/删除/收藏/动态未验；当前源码未全量。
 - **下一批**：等 Q1/Q2 与逐动作批准后先做 D4-B0（只读 `fav_resources`+`dynamic_list`），再做 B1 `comment_delete`；D8/D9 仍是最低成本决策项。共享接口/迁移/公共 CI 由 A 协调。
 
+### 2026-11-22 K18 空间动态只读 `dynamic_list`（第 4 批，`k18-read-cache`）
+
+- **范围/基线**：承接前三批；本批为**实现批**（读-only），基线仍 `origin/v2`=`0793f254`（前三批未合入），同一任务分支/独立工作树。
+- **已交**：`bilibili_read` 新增 `operation=dynamic_list`（target=mid）——固定第二 API host `api.vc.bilibili.com` 的 `space_history`（`host_uid/offset_dynamic_id=0/need_top=0`），登录后分派、mid 在取 cookie 前 422；`domain/bilibili.py` 新增 `VC_API`/`DYNAMIC_HISTORY`/`dynamic_rows`（严格 `desc.dynamic_id_str` `[0-9]{1,32}`、timestamp/type 精确 int 否则 None、文本尽力取 `item.description`→`item.content` 去标记 ≤200、坏/超长 card 文本为空、缺 cards 正常空、非列表/超 50 卡/坏行显式 502、`has_more` 精确 1/True 否则 `len>=limit`）；application `READ_SPEC` enum+desc、http Literal、缓存 allowlist 回归同步（`dynamic_list` 不缓存）。**无新表/迁移/路由/worker 协议/共享端口/新源文件**，routing 不变、declared_tools 94。
+- **验证**：新增 27 项（`test_v2_bilibili_dynamic.py`，domain/gateway 固定 host+参数+cookie/非法 mid×7 网络前拒/风控码/坏卡 502/spec+HTTP）**27 过 / 1.54s**；bilibili 全调用方 21 套件含 HTTP **523 过 / 158.06s**；strict **0 错误 0 警告**；ruff check/format 净。未跑全量、未触真实账号/网络。
+- **文档**：合同 [V2_BILI_DYNAMIC](v2/contracts/V2_BILI_DYNAMIC.md)；K18 审计读广度补 `dynamic_list`；写扩面合同 D4 前置更新（`dynamic_list` 已交付，D4-B0 只剩 `fav_resources`）；证据 [v2-bili-dynamic.json](evidence/v2-bili-dynamic.json)；任务 JSON `K18.dynamic_list`。
+- **未验**：真实 B 站账号 `space_history` 送达/字段（need_top、私密动态、分页）、动态详情/富卡片解析、动态写（D4-B3/B4）、直播（D7）、AI-share（D6）；当前源码未全量。
+- **下一批**：`fav_resources` 只读（D4-B0 剩余，离线无授权面）或等 Q1/Q2 后 D4-B1 `comment_delete`/B3 dynamic 写（`dynamic_list` 已可作验证面）；D8/D9 仍是最低成本决策；D5/D6/D7 合同待写。共享接口/迁移/公共 CI 由 A 协调。
+
 ## 追溯入口
 
 - [旧交接记录](history/pre-layout-2026-11-18/HANDOFF.md)、[旧重构记录](history/pre-layout-2026-11-18/V2_REFACTOR.md)只证明所属版本，不作为当前待办。
