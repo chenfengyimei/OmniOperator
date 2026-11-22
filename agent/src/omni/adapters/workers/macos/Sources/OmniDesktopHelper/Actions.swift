@@ -26,10 +26,16 @@ func act(_ target: Target, action: Record) -> Record {
         let node = try find(target, proof: action["node"])
         try require(node.actions().contains(kind), "desktop_permission_denied")
         watch = try InputWatch()
+        // Arm only after the passive tap is installed: events before this point
+        // (fixture activation, window-server focus churn) belong to the pre-checks,
+        // not to the owner's intervention during this action.
+        watch?.arm()
         // Background AX semantics do not take over the foreground. The focus that
         // existed after approval must remain unchanged, even if it belongs to the workbench.
         let focus = try currentFocus()
         try verify(target)
+        // A monitor the system disabled is an unavailable guard, not owner input.
+        try require(watch?.healthy == true, "desktop_monitor_unavailable")
         try require(watch?.unchanged() == true && AXIsProcessTrusted(), "desktop_user_intervened")
         let current = try find(target, proof: action["node"])
         try require(CFEqual(current.node, node.node) && watch?.unchanged() == true, "desktop_target_changed")
@@ -59,7 +65,8 @@ func act(_ target: Target, action: Record) -> Record {
         return receipt("unknown", "desktop_postcondition_unverified")
     } catch {
         let allowed: Set<String> = ["desktop_target_changed", "desktop_permission_denied",
-                                   "desktop_user_intervened", "desktop_action_unverified"]
+                                   "desktop_user_intervened", "desktop_monitor_unavailable",
+                                   "desktop_action_unverified"]
         let code: String
         if case Fault.code(let value) = error, allowed.contains(value) { code = value }
         else { code = "desktop_action_unverified" }
