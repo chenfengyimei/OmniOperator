@@ -176,3 +176,13 @@ D4追加独立root管理员包：单次注册/卸载/start使用标准库、固�
 在 macOS 27.2.1 arm64 上，已退出的隔离 shell 仍能查询到创建时间和 zombie 状态，`getsid` 与 `getpgid` 会返回 `ESRCH`。POSIX worker 对会话身份查询的 `ESRCH` 沿用进程消失时的只读枚举路径。完整扫描确认没有存活成员才允许报告回收。扫描失败或仍有会话成员时返回未确认，无会话身份时不发送信号。
 
 隔离样例通过 Unicode 写入与读回、调整尺寸、退出和回收，原生启动拒绝与启动中取消样例也通过。注入用例覆盖两个查询失败点，以及空会话、扫描不完整和存活成员。应用生命周期、持久回执、HTTP 和架构调用方完成专项验证。此批 Linux 实机复验待图形虚拟机准备。
+
+### 2026-11-22 复验（基线 18b75b75）
+
+两个任务提交已 rebase 到 `origin/v2` 的 `18b75b75`（`56f0aff1`→`e4a61f4d`、`98a12a13`→`55e71150`，`git range-diff` 确认补丁等价），并在此基线上重新构建与复验：
+
+- 本机 macOS 27.2.1 arm64、Swift 6.4.2、SDK 27.2。`build_macos_helper.py --arch arm64` 先执行 9 项 ForegroundCore 与 8 项 NativeIdentityTests，再编译、ad hoc 签名并通过 `codesign --verify --strict`；产物为 `omni-desktop-ipc-6`、arm64，清单 18 个源文件哈希与已安装应用完全一致。两次构建的可执行文件哈希不同（链接期 LC_UUID 不同），因此保留原安装、未覆盖。
+- 真实 `DesktopBackend.probe()` 经已安装 helper 与 IPC 6：interactive 会话，四个能力均为 `desktop_permission_denied` 且 `available=false`（拒绝即失败关闭），关闭后 resident 与 cleanup_pending 均为 0。
+- 原生终端专项 10/10 通过（0.30 秒），覆盖 Unicode 写入/读回、resize、退出与回收确认；PTY 回收修复在 `18b75b75` 上仍成立。
+- macOS helper/桌面/前台/服务调用方 10 个文件 233 项中 232 通过（20.44 秒）。唯一失败为既有基线问题：`origin/v2` 的 v2_0051 迁移新增两表（147），`test_v2_desktop_capture.py` 仍固定 145；在干净 `origin/v2` 工作树可复现，与本批无关。
+- 未执行：隔离账号（本机只有一个非管理员账号）、TCC 授予、睡眠/锁屏、LaunchAgent/Keychain 实机写入。原始日志与 probe 在 `temp/build/mac-2026-11-22/`，汇总见 [证据](../../../evidence/v2-macos-native-2026-11-22.json)。

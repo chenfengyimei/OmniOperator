@@ -1,0 +1,189 @@
+{
+  "schema": 1,
+  "batch": "D2.macos.helper_build_ipc6_and_pty_exit_reclaim",
+  "date": "2026-11-22",
+  "status": "macOS helper rebuilt, signed and probed over IPC 6 on the rebased origin/v2; native PTY exit reclaim verified; TCC grants, sleep/lock, LaunchAgent/Keychain and isolated-account acceptance not executed; Gitee push blocked by missing local HTTPS credential",
+  "whole_v2_complete": false,
+  "platform_macos_complete": false,
+  "release_candidate": false,
+  "default_entrypoints": "V2",
+  "source": {
+    "baseline_git_head": "18b75b757b0a8b82243963494be06f5d6d457601",
+    "baseline_subject": "反思来源链：持久化文档信笺——绑定已读范围、原子限额与擦除联动（50 单测全绿）",
+    "baseline_remote": "origin/v2 fetched 2026-11-22; remote heads: master 77d38a23, v1 8184ff31, v2 18b75b75; macos-helper and macos-pty-reclaim absent",
+    "task_branches": {
+      "macos-helper": {
+        "original": "56f0aff148766b25d5a7eda395a500319d1efa61",
+        "rebased": "e4a61f4d05e767599dbc95a3cb9d9f23b95bf6dd",
+        "patch_equivalent": true
+      },
+      "macos-pty-reclaim": {
+        "original": "98a12a13e8c4ac110c08577ce10b8f11c795f98b",
+        "rebased": "55e711506aa89050bb787a0798ab1322fa2a7806",
+        "patch_equivalent": true
+      }
+    },
+    "delivery": {
+      "branch": "macos-pty-reclaim",
+      "merge": "fast-forward into v2",
+      "remote_readback": "blocked: no Gitee HTTPS credential on this Mac (osxkeychain empty); git push fails with \"could not read Username for 'https://gitee.com'\"",
+      "local_bundle": "temp/build/mac-2026-11-22/omnioperator-macos-20261122.bundle"
+    },
+    "changed_files": [
+      "agent/scripts/build_macos_helper.py",
+      "agent/src/omni/adapters/workers/macos/Core/Tests/ForegroundCoreTests/TakeoverTests.swift",
+      "agent/src/omni/adapters/workers/macos/Tests/NativeIdentityTests/RegistrationPaths.swift",
+      "agent/src/omni/adapters/workers/terminal.py",
+      "agent/tests/v2/platforms/common/test_v2_desktop_backend.py",
+      "agent/tests/v2/platforms/common/test_v2_terminal_native.py",
+      "agent/tests/v2/platforms/macos/test_v2_macos_system_inspection.py",
+      "docs/v2/platforms/macos/V2_MACOS_HANDOFF.md",
+      "docs/v2/platforms/macos/V2_MACOS_SYSTEM_SERVICES.md"
+    ]
+  },
+  "environment": {
+    "system": "macOS 27.2.1 (26B131)",
+    "architecture": "arm64",
+    "toolchain": "/Library/Developer/CommandLineTools",
+    "swift": "Apple Swift version 6.4.2 (swiftlang-6.4.2.1.9 clang-2100.4.1.1), target arm64-apple-macosx27.2.0",
+    "sdk": "27.2",
+    "python": "3.12.16 arm64 darwin",
+    "uv": "0.13.9",
+    "dependency_lock_sha256": "3900d190babf4b0cfcb42d1e6b82d5ba2ced7a34fe69d28a8f09b5e008f58321",
+    "isolated_checkout": "/Users/chenfeng/xm/OmniOperator (clone of the Mac checkout, own .venv; owner checkout ~/Developer/OmniOperator left on the pre-rebase task commit)"
+  },
+  "helper": {
+    "build_output": "temp/build/mac-native-arm64-20261122",
+    "build_command": "uv run --no-sync python agent/scripts/build_macos_helper.py --arch arm64 --output temp/build/mac-native-arm64-20261122",
+    "manifest_format": "omni-macos-helper-build-1",
+    "protocol": "omni-desktop-ipc-6",
+    "bundle_id": "org.omnioperator.desktophelper",
+    "architectures": [
+      "arm64"
+    ],
+    "signing": "ad_hoc",
+    "signature_verified": true,
+    "codesign_strict": "valid on disk; satisfies its Designated Requirement",
+    "swift_tests": {
+      "foreground_core": 9,
+      "native_identity_registration_paths": 8
+    },
+    "build_seconds": 19.49,
+    "executable_sha256": "44cdfa28df5d3241a653316ec41df54d97cd624b5616b350a53091883af6fca4",
+    "manifest_sha256": "99743a44a4c3ad83b24dd75b1a98cad20930d036d6dbc84ec7fce019b62b4aae",
+    "source_files": 18,
+    "installed": {
+      "path": "~/Applications/OmniOperator Desktop Helper.app",
+      "executable_sha256": "ee28e6f4f7bbc87c01a80363f23c6e2b5804bb68286ad1d6c762b700dfd20c01",
+      "manifest_sha256": "3044f4dd9753da213958b2f2f4b14d81021ef31577a4de5c5d98ec1cb684ac60",
+      "source_files_equal_to_new_build": true,
+      "replaced": false
+    },
+    "binary_reproducible": false,
+    "binary_reproducibility_note": "Both builds share all 18 source-file hashes, protocol, signing type and architectures. The executable hashes differ because each link embeds a distinct LC_UUID (C570CA8F-… vs B769CC27-…); the installed app was therefore kept instead of overwriting it.",
+    "warnings": [
+      "SMJobCopyDictionary / SMCopyAllJobDictionaries deprecated on macOS 10.10",
+      "linker search paths under CommandLineTools/Developer are missing (pre-existing CLT layout warning)"
+    ]
+  },
+  "probe": {
+    "path": "temp/build/mac-2026-11-22/probe.json",
+    "version": "omni-desktop-ipc-6",
+    "platform": "darwin",
+    "session": {
+      "identity": "macos:audit:100021:uid:501",
+      "kind": "interactive"
+    },
+    "capabilities": {
+      "window_identity": {
+        "permission": "denied",
+        "available": false,
+        "error_code": "desktop_permission_denied"
+      },
+      "accessibility": {
+        "permission": "denied",
+        "available": false,
+        "error_code": "desktop_permission_denied"
+      },
+      "screen_capture": {
+        "permission": "denied",
+        "available": false,
+        "error_code": "desktop_permission_denied"
+      },
+      "foreground_control": {
+        "permission": "denied",
+        "available": false,
+        "error_code": "desktop_permission_denied"
+      }
+    },
+    "fail_closed": true,
+    "health_after_probe": {
+      "resident": 0,
+      "pending": 0,
+      "cleanup_pending": 0,
+      "window_leases": {
+        "resident": 0,
+        "cleanup_pending": 0
+      }
+    }
+  },
+  "validation": {
+    "terminal_native": {
+      "command": "uv run --no-sync pytest -q -n 0 --basetemp=temp/build/mac-2026-11-22/tmp-terminal agent/tests/v2/platforms/common/test_v2_terminal_native.py",
+      "passed": 10,
+      "failed": 0,
+      "seconds": 0.3,
+      "report": "temp/build/mac-2026-11-22/pytest-terminal-native.xml",
+      "covers": "native bash PTY Unicode write/read-back, resize, exit and verified reclaim; authorization denial; cancelled startup ownership; ESRCH confirmation by complete empty scan; injected helper-exit path"
+    },
+    "macos_helper_and_desktop": {
+      "command": "uv run --no-sync pytest -q -n 0 --basetemp=temp/build/mac-2026-11-22/tmp-helper <10 files>",
+      "files": [
+        "agent/tests/v2/platforms/macos/test_v2_macos_helper.py",
+        "agent/tests/v2/platforms/macos/test_v2_macos_acceptance.py",
+        "agent/tests/v2/platforms/macos/test_v2_macos_services.py",
+        "agent/tests/v2/platforms/macos/test_v2_macos_system_inspection.py",
+        "agent/tests/v2/platforms/macos/test_v2_macos_activation.py",
+        "agent/tests/v2/platforms/common/test_v2_desktop_contracts.py",
+        "agent/tests/v2/platforms/common/test_v2_desktop_backend.py",
+        "agent/tests/v2/platforms/common/test_v2_desktop_capture.py",
+        "agent/tests/v2/platforms/common/test_v2_foreground.py",
+        "agent/tests/v2/platforms/common/test_v2_foreground_transport.py"
+      ],
+      "passed": 232,
+      "failed": 1,
+      "seconds": 20.44,
+      "report": "temp/build/mac-2026-11-22/pytest-macos-helper.xml"
+    },
+    "existing_failure": {
+      "node": "agent/tests/v2/platforms/common/test_v2_desktop_capture.py::test_capture_schema_scope_immutability_and_verified_snapshot_restore",
+      "assertion": "db.schema_version == migration_head() and len(s.metadata.tables) == 145 (actual 147 at v2_0051)",
+      "cause": "origin/v2 18b75b75 added migration v2_0051 (reflection_document_links, +2 tables) without updating every table-count pin; the same node fails in a clean origin/v2 worktree at temp/build/base-check",
+      "attribution": "pre-existing baseline failure, not introduced by this batch; left for an independent debt batch"
+    },
+    "rebase_equivalence": {
+      "command": "git range-diff 23c31a0d..98a12a13 18b75b75..macos-pty-reclaim",
+      "result": "only the two macOS commits rebased (98a12a13 == 55e71150); no content change"
+    }
+  },
+  "limits": [
+    "No isolated macOS account could be created: only one non-admin user exists and privileged account creation is unavailable; isolation was limited to a separate checkout/home and isolated test namespaces.",
+    "TCC grants for accessibility, screen capture, input monitoring and event posting require the owner's explicit GUI action; this batch only proves the denial/fail-closed path.",
+    "Sleep, lock screen, fast user switching, LaunchAgent registration and Keychain write/cleanup were not executed; their offline suites are included in the 232 passing tests.",
+    "Gitee push and remote readback are blocked until this Mac stores a Gitee HTTPS credential; the branch and bundle are local-only.",
+    "The helper executable hash is not reproducible across builds (LC_UUID); only the 18 source-file hashes are stable.",
+    "This is not a whole-platform or whole-V2 acceptance and does not close the 72-hour requirement.",
+    "Project index regeneration was run: the index already was stale at origin/v2 (upstream added domain/cronjob.py and domain/reflection.py without committing docs/index) and covers only agent/src (65 modules, 838 files); this batch adds no indexed file, so the unrelated aggregate-index churn was reverted and deferred to the parallel session's close-out."
+  ],
+  "shared_interface_requests": [],
+  "artifacts": [
+    "temp/build/mac-2026-11-22/build.log",
+    "temp/build/mac-2026-11-22/env.txt",
+    "temp/build/mac-2026-11-22/probe.json",
+    "temp/build/mac-2026-11-22/pytest-terminal-native.log",
+    "temp/build/mac-2026-11-22/pytest-terminal-native.xml",
+    "temp/build/mac-2026-11-22/pytest-macos-helper.log",
+    "temp/build/mac-2026-11-22/pytest-macos-helper.xml",
+    "temp/build/mac-native-arm64-20261122/OmniOperator Desktop Helper.app.build.json"
+  ]
+}

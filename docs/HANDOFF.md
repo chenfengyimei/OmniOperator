@@ -17,6 +17,7 @@
 ## 已完成断点与证据
 
 - 2026-11-20 Mac 首批交接报告：`codex/macos-helper` 的 `56f0aff148766b25d5a7eda395a500319d1efa61` 在 macOS arm64 完成 helper 构建、签名、IPC 6 探测与隔离工作台启动，233 项离线专项通过。桌面权限实测待做，PTY 退出后清理两次返回失败。同日 Windows 侧在 Gitee 查询该任务分支未查到，待 Mac 核对普通推送及远端回读，再基于最新 `v2` 审查和验证。原始日志在 Mac checkout 的 `temp/build/mac-handoff-2026-11-20/`。
+- 2026-11-22 Mac 复验与本地交付：两个任务提交 rebase 到 `origin/v2` 的 `18b75b75`（`56f0aff1`→`e4a61f4d`、`98a12a13`→`55e71150`，range-diff 等价）；重新构建并签名 helper（9+8 Swift 测试、arm64、IPC 6，18 个源文件哈希与已安装应用一致），真实 probe 四个能力仍全部 denied 且失败关闭；PTY 专项 10/10，macOS 离线专项 232/233（1 项为 v2_0051 表数 pin 的既有基线失败，干净 `origin/v2` 可复现）。Gitee 推送仍因本机无 HTTPS 凭据而未完成，任务分支与 bundle 仅在本地；隔离账号、TCC 授予、睡眠/锁屏、LaunchAgent/Keychain 未执行，见 [证据](evidence/v2-macos-native-2026-11-22.json)。
 - Linux Enter 控件状态批 `f539f21e`：194 专项、3 个运行文件 strict 通过，真实 Linux 未验。[证据](evidence/v2-linux-key-state.json)。
 - Windows 样例修正 `fbfc16b8`、人工复验 `73970d20`：标准顶层窗口下点击点与遮挡拒绝通过，36 专项。自有窗口完整回归最终文本 `PREFIX-ONLY-OWNED-TEXT`、按钮 1 次，四次生产回执仍为 unknown、不重发。原 STATIC 样例导致跨进程命中，生产拒绝正确，矩形中心候选未保留。[复核证据](evidence/v2-windows-click-fixture.json)。
 - 历史 5998 全量仅覆盖 `7e64d348` 固定候选。后续修改、其他会话提交及本次目录迁移均不能复用为当前源码全量通过。
