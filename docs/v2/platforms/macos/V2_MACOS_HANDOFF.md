@@ -194,3 +194,11 @@ D4追加独立root管理员包：单次注册/卸载/start使用标准库、固�
 语义写入首次验收在真实权限下失败：所有动作在派发前被 `desktop_user_intervened` 拒绝（effect=none、verification=not_dispatched），包括所有者保持鼠标键盘静止的一轮。根因是 `InputWatch` 基线从未 arm（baseline=0），tap 安装后到首个检查之间的 fixture 激活与窗口焦点抖动被误计为用户介入。修复为安装后立即 `arm()`，并把系统禁用的监听区分成 `desktop_monitor_unavailable`（不再伪装成用户输入）；重建、重装到同一固定路径后重跑。修复后 `--mutate-owned-fixture` 通过：set_text `ok/applied/value_matches`，invoke `unknown/desktop_postcondition_unverified`，独立样例状态确认按钮触发一次，未重放。重装后首次 read 验收出现冷启动身份竞态（首次 verify 不匹配、立即重试通过），宿主保持 fail-closed，按测试竞态记录。
 
 前台输入仍未完成：键盘输入与 Left/插入能改变样例文本与选区（回执按合同为 ok/unknown，绝不宣称成功）；定向鼠标点击被目标 tap 确认后未按下样例按钮（回执 unknown、clicks 仍 0），官方 `--foreground-owned-fixture` 在最后一步状态等待超时。原始失败保留，作为前台输入批的独立缺陷。证据：[权限与语义](../../../evidence/v2-macos-permissions-2026-11-22.json)。
+
+### 2026-11-22 Keychain 与 LaunchAgent 基线
+
+Keychain 隔离样例通过：worker 在随机 `macos-acceptance-<token>` 命名空间写入、完整读回、删除并核验不存在，`readback_verified` 与 `cleanup_verified` 均为 true、`cleanup_required=false`，worker 已回收、stderr 为空，未出现系统提示；独立 `security find-generic-password` 复核返回 44（条目不存在）。未读取、覆盖或删除任何既有条目，报告不含凭据值。
+
+LaunchAgent 基线：本机当前没有 OmniOperator 用户服务 job，`~/Library/LaunchAgents`、`/Library/LaunchAgents`、`/Library/LaunchDaemons` 下也没有相关 plist（仅 Edge 更新器）。真实注册、登录激活、loaded/ready 观察与卸载仍需不可变部署包、隔离账号和所有者批准的 apply-operation，本批未执行；睡眠/锁屏/快速用户切换同样未触发（会中断当前图形会话），其注入路径已由前台专项覆盖。
+
+证据：[Keychain 与 LaunchAgent](../../../evidence/v2-macos-keychain-launchagent-2026-11-22.json)。
