@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "4d30c10f43ab94c3c7ac7604f829425553a4432a3cea74c978a163b92c7e0410",
+  "source_sha256": "0c2c9076b9ced11121bf932d187a028d63bb7ee76df78d992a79829c5997069d",
   "modules": [
     {
       "id": "v2-domain",
@@ -95,7 +95,7 @@
         "agent/src/omni/domain/turn_prompt.py",
         "agent/src/omni/domain/verification_stop.py"
       ],
-      "lines": 14019,
+      "lines": 14036,
       "dependencies": []
     },
     {
@@ -83957,7 +83957,7 @@
       "path": "agent/src/omni/domain/media.py",
       "module": "v2-domain",
       "python_module": "omni.domain.media",
-      "lines": 491,
+      "lines": 508,
       "imports": [
         "omni.domain.bilibili",
         "omni.domain.contracts",
@@ -84016,7 +84016,7 @@
         },
         {
           "name": "scene_sample_count",
-          "line": 94,
+          "line": 98,
           "kind": "function",
           "parameters": [
             "duration"
@@ -84027,7 +84027,7 @@
         },
         {
           "name": "bar_rows",
-          "line": 99,
+          "line": 103,
           "kind": "function",
           "parameters": [
             "rows",
@@ -84042,7 +84042,7 @@
         },
         {
           "name": "_gradual",
-          "line": 116,
+          "line": 120,
           "kind": "function",
           "parameters": [
             "values"
@@ -84053,7 +84053,7 @@
         },
         {
           "name": "scene_cuts",
-          "line": 124,
+          "line": 128,
           "kind": "function",
           "parameters": [
             "times",
@@ -84067,8 +84067,21 @@
           }
         },
         {
+          "name": "_scene_spike",
+          "line": 174,
+          "kind": "function",
+          "parameters": [
+            "scores",
+            "index"
+          ],
+          "annotations": {
+            "scores": "Sequence[float]",
+            "index": "int"
+          }
+        },
+        {
           "name": "_scene_run_moments",
-          "line": 166,
+          "line": 183,
           "kind": "function",
           "parameters": [
             "run",
@@ -84083,7 +84096,7 @@
         },
         {
           "name": "scene_segments",
-          "line": 176,
+          "line": 193,
           "kind": "function",
           "parameters": [
             "cuts",
@@ -84096,7 +84109,7 @@
         },
         {
           "name": "scene_slots",
-          "line": 181,
+          "line": 198,
           "kind": "function",
           "parameters": [
             "segments",
@@ -84109,7 +84122,7 @@
         },
         {
           "name": "asr_plan",
-          "line": 212,
+          "line": 229,
           "kind": "function",
           "parameters": [
             "model",
@@ -84124,7 +84137,7 @@
         },
         {
           "name": "_finite_seconds",
-          "line": 220,
+          "line": 237,
           "kind": "function",
           "parameters": [
             "value",
@@ -84137,7 +84150,7 @@
         },
         {
           "name": "_reject_json_constant",
-          "line": 230,
+          "line": 247,
           "kind": "function",
           "parameters": [
             "_"
@@ -84148,7 +84161,7 @@
         },
         {
           "name": "_json_float",
-          "line": 234,
+          "line": 251,
           "kind": "function",
           "parameters": [
             "value"
@@ -84159,7 +84172,7 @@
         },
         {
           "name": "_json_object",
-          "line": 241,
+          "line": 258,
           "kind": "function",
           "parameters": [
             "pairs"
@@ -84170,7 +84183,7 @@
         },
         {
           "name": "segment_rows",
-          "line": 250,
+          "line": 267,
           "kind": "function",
           "parameters": [
             "segments"
@@ -84181,7 +84194,7 @@
         },
         {
           "name": "subtitle_text",
-          "line": 281,
+          "line": 298,
           "kind": "function",
           "parameters": [
             "value"
@@ -84192,7 +84205,7 @@
         },
         {
           "name": "transcript_payload",
-          "line": 287,
+          "line": 304,
           "kind": "function",
           "parameters": [
             "kind",
@@ -84207,7 +84220,7 @@
         },
         {
           "name": "parse_transcript",
-          "line": 298,
+          "line": 315,
           "kind": "function",
           "parameters": [
             "payload"
@@ -84218,7 +84231,7 @@
         },
         {
           "name": "_stamp",
-          "line": 347,
+          "line": 364,
           "kind": "function",
           "parameters": [
             "seconds"
@@ -84229,7 +84242,7 @@
         },
         {
           "name": "transcript_body",
-          "line": 351,
+          "line": 368,
           "kind": "function",
           "parameters": [
             "kind",
@@ -84242,7 +84255,7 @@
         },
         {
           "name": "transcript_text",
-          "line": 358,
+          "line": 375,
           "kind": "function",
           "parameters": [
             "kind",
@@ -84259,7 +84272,7 @@
         },
         {
           "name": "sheet_result",
-          "line": 370,
+          "line": 387,
           "kind": "function",
           "parameters": [
             "count",
@@ -84280,7 +84293,7 @@
         },
         {
           "name": "normalize_cell",
-          "line": 399,
+          "line": 416,
           "kind": "function",
           "parameters": [
             "value",
@@ -84293,7 +84306,7 @@
         },
         {
           "name": "cell_anchors",
-          "line": 408,
+          "line": 425,
           "kind": "function",
           "parameters": [
             "timestamps"
@@ -84304,7 +84317,7 @@
         },
         {
           "name": "render_cells",
-          "line": 423,
+          "line": 440,
           "kind": "function",
           "parameters": [
             "frames_id",
@@ -84321,7 +84334,7 @@
         },
         {
           "name": "source_row",
-          "line": 437,
+          "line": 454,
           "kind": "function",
           "parameters": [
             "config_id",
@@ -84336,7 +84349,7 @@
         },
         {
           "name": "upload_source_row",
-          "line": 467,
+          "line": 484,
           "kind": "function",
           "parameters": [
             "object_id",

@@ -86,9 +86,13 @@ SCENE_SAMPLE_FPS = 2.0
 SCENE_MAX_SAMPLES = 240
 SCENE_ANALYSIS_WIDTH = 64
 SCENE_GRADUAL_WINDOW_S = 0.4
+SCENE_GRADUAL_MIN_SAMPLES = 3
 SCENE_GRADUAL_TOLERANCE = 1.0
 SCENE_BAR_V_MAX = 24.0
 SCENE_BAR_LIMIT = 0.4
+SCENE_SPIKE_RADIUS = 1
+SCENE_SPIKE_FACTOR = 2.0
+SCENE_SPIKE_MARGIN = 3.0
 
 
 def scene_sample_count(duration: float) -> int:
@@ -145,14 +149,18 @@ def scene_cuts(
     if brightness is None or len(brightness) < len(times):
         moments = [(moment, score) for _, moment, score in candidates]
     else:
+        marked: list[tuple[int, float, float, bool]] = []
         run: list[tuple[int, float, float]] = []
         for candidate in candidates:
             if run and candidate[0] != run[-1][0] + 1:
-                moments.extend(_scene_run_moments(run, times, brightness))
+                marked.extend(_scene_run_moments(run, times, brightness))
                 run = []
             run.append(candidate)
         if run:
-            moments.extend(_scene_run_moments(run, times, brightness))
+            marked.extend(_scene_run_moments(run, times, brightness))
+        for index, moment, score, trusted in marked:
+            if trusted or _scene_spike(scores, index):
+                moments.append((moment, score))
     suppressed: list[tuple[float, float]] = []
     for moment, score in moments:
         if suppressed and moment - suppressed[-1][0] < SCENE_MIN_GAP_S:
@@ -163,14 +171,23 @@ def scene_cuts(
     return [moment for moment, _ in suppressed]
 
 
+def _scene_spike(scores: Sequence[float], index: int) -> bool:
+    """Keep a cut only when it stands out from its sampled neighbourhood (noise suppression)."""
+    start = max(1, index - SCENE_SPIKE_RADIUS)
+    stop = min(len(scores), index + SCENE_SPIKE_RADIUS + 1)
+    neighbours = [scores[position] for position in range(start, stop) if position != index]
+    baseline = max(neighbours, default=0.0)
+    return scores[index] >= baseline * SCENE_SPIKE_FACTOR + SCENE_SPIKE_MARGIN
+
+
 def _scene_run_moments(
     run: Sequence[tuple[int, float, float]], times: Sequence[float], brightness: Sequence[float]
-) -> list[tuple[float, float]]:
+) -> list[tuple[int, float, float, bool]]:
     values = [brightness[index] for index, _, _ in run]
     span = times[run[-1][0]] - times[run[0][0]]
-    if len(run) >= 2 and span >= SCENE_GRADUAL_WINDOW_S and _gradual(values):
-        return [((times[run[0][0]] + times[run[-1][0]]) / 2.0, max(score for _, _, score in run))]
-    return [(moment, score) for _, moment, score in run]
+    if len(run) >= SCENE_GRADUAL_MIN_SAMPLES and span >= SCENE_GRADUAL_WINDOW_S and _gradual(values):
+        return [(-1, (times[run[0][0]] + times[run[-1][0]]) / 2.0, max(score for _, _, score in run), True)]
+    return [(index, moment, score, False) for index, moment, score in run]
 
 
 def scene_segments(cuts: Sequence[float], duration: float) -> list[tuple[float, float]]:

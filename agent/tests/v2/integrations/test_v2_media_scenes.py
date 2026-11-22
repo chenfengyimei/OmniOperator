@@ -290,8 +290,13 @@ def test_scene_cuts_collapses_only_monotonic_gradual_runs():
     scores = [0.0, 0.0, 20.0, 20.0, 20.0, 0.0]
     assert scene_cuts(times, scores) == [1.5, 2.0, 2.5]
     assert scene_cuts(times, scores, [10.0, 20.0, 40.0, 80.0, 160.0, 200.0]) == [2.0]
-    assert scene_cuts(times, scores, [128.0] * 6) == [1.5, 2.0, 2.5]
-    assert scene_cuts(times, scores, [10.0, 200.0, 20.0, 200.0, 20.0, 200.0]) == [1.5, 2.0, 2.5]
+    # Flat/non-monotonic consecutive candidates are not trusted transitions and have no
+    # neighbourhood contrast, so the spike guard drops them instead of over-segmenting.
+    assert scene_cuts(times, scores, [128.0] * 6) == []
+    assert scene_cuts(times, scores, [10.0, 200.0, 20.0, 200.0, 20.0, 200.0]) == []
+    # Two monotonic samples are not enough evidence for a gradual transition.
+    pair_times = [0.5, 1.0, 1.5, 2.0]
+    assert scene_cuts(pair_times, [0.0, 0.0, 20.0, 20.0], [10.0, 20.0, 40.0, 80.0]) == []
 
 
 def test_worker_scenes_collapses_fade_to_one_transition(tmp_path):
@@ -461,3 +466,68 @@ def test_worker_scenes_all_black_source_stays_bounded(tmp_path):
     assert result["frame_count"] == 3
     assert result["scene_cuts"] == []
     assert (tmp_path / "black.png").is_file()
+
+
+def test_scene_cuts_keeps_isolated_spikes_and_drops_noise():
+    times = [0.5 * index for index in range(12)]
+    scores = [0.0, 3.0, 4.0, 13.0, 12.5, 13.0, 4.0, 3.0, 3.0, 3.0, 20.0, 3.0]
+    assert scene_cuts(times, scores, [20.0] * 12) == [5.0]
+    assert scene_cuts(times, scores) == [1.5, 2.0, 2.5, 5.0]
+
+
+def _make_noise_video(path: Path, *, fps: int = 25, size=(64, 48)) -> Path:
+    import random
+
+    import av
+    from PIL import Image
+
+    rng = random.Random(11)
+    noise = {index: rng.randint(-8, 8) for index in range(8 * fps + 1)}
+    container = av.open(str(path), mode="w")
+    try:
+        stream = container.add_stream("mpeg4", rate=fps)
+        stream.width, stream.height = size
+        stream.pix_fmt = "yuv420p"
+        for index in range(8 * fps):
+            value = max(0, min(255, 20 + noise[index]))
+            frame = av.VideoFrame.from_image(Image.new("RGB", size, (value, value, min(255, value + 5))))
+            for packet in stream.encode(frame):
+                container.mux(packet)
+        for packet in stream.encode():
+            container.mux(packet)
+    finally:
+        container.close()
+    return path
+
+
+def test_worker_scenes_suppresses_dark_noise_spikes(tmp_path):
+    video = _make_noise_video(tmp_path / "noise.mp4")
+    result = worker._frames(
+        {
+            "video": str(video),
+            "sheet_output": str(tmp_path / "noise.png"),
+            "count": 3,
+            "width": 320,
+            "select": "scenes",
+        }
+    )
+    assert result["frame_count"] == 3
+    assert result["scene_cuts"] == []
+    assert result["timestamps"] == sorted(result["timestamps"])
+
+
+def test_worker_scenes_keeps_one_second_montage_cuts(tmp_path):
+    scenes = [(index, index + 1, (30 + index * 25, 60, 200 - index * 20)) for index in range(8)]
+    video = _make_scene_video(tmp_path / "montage.mp4", scenes)
+    result = worker._frames(
+        {
+            "video": str(video),
+            "sheet_output": str(tmp_path / "montage.png"),
+            "count": 6,
+            "width": 320,
+            "select": "scenes",
+        }
+    )
+    assert result["frame_count"] == 6
+    assert len(result["scene_cuts"]) >= 5
+    assert result["timestamps"] == sorted(result["timestamps"])
