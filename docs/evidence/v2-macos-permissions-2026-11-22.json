@@ -23,7 +23,16 @@
         "manifest_sha256": "5fd03089dcf6717f495fbfa1ad4977851528a29d049f59de9570ef8a089b78df",
         "build_output": "temp/build/mac-native-arm64-fix-20261122",
         "installed": true,
-        "installed_backup": "temp/build/mac-2026-11-22/backup-installed"
+        "installed_backup": "temp/build/mac-2026-11-22/backup-installed",
+        "note": "b0d6d29f was the build that first passed the semantic acceptance; d047679f is the final delivery rebuild of the same 18 source hashes (only LC_UUID differs) and re-passed the same acceptance"
+      },
+      "helper_delivered": {
+        "executable_sha256": "d047679fa9e385d92c541a55fdec29df4658f11381630131f841b0a194ab48a0",
+        "manifest_sha256": "b333aa649e9731e72f51ecc374c0709526c2bb52d099b0fddba5248807c599e0",
+        "build_output": "temp/build/mac-native-arm64-delivery-20261122",
+        "installed": true,
+        "manifest_path": "~/Applications/OmniOperator Desktop Helper.app.build.json",
+        "semantic_reacceptance": "temp/build/mac-2026-11-22/action-acceptance-final/acceptance.json"
       }
     },
     "commit": "fb4293f47cdf6957288a9cda084623011323422e",
@@ -188,6 +197,12 @@
         }
       ],
       "conclusion": "Targeted keyboard events reached the fixture (text and selection changed) and the receipts never claimed success for unprovable outcomes. The targeted mouse click was acknowledged but did not press the owned button; the raw acceptance timeout is preserved as an open item for the foreground batch."
+    },
+    "click_investigation": {
+      "attempt": "record kCGMouseEventWindowUnderMousePointer and kCGMouseEventWindowUnderMousePointerThatCanHandleThisEvent on both click events",
+      "result": "no effect: the target-PID tap acknowledged the pair but the owned button still counted 0 clicks",
+      "action_taken": "reverted before delivery; the installed final helper contains only the semantic-gate fix",
+      "evidence": "temp/build/mac-2026-11-22/fg-diag2/foreground-diagnostic.json"
     }
   },
   "validation": {
