@@ -56,9 +56,9 @@
 - **现状**：`SchedulingService`（interval/cron，所有者侧）、`delivery` outbox、K08 回合后学习、K15 动机审计已记录；无自主观看策略。
 - **缺口**：night-plan 随机唤醒（skipChance 0.3/minGap 10min/maxWakes 12/maxVideos 5）；双日记（致所有者信 + 自我偏好校准）；沉默衰减（≥3 日线性降 share 上限、第 7 日=0、日记仍写 normal/quiet/faint 带）；反馈检测去重（like_time/reply-hash）；候选打分（log 弹幕密度×3 + 偏好命中×4 + 学习 token≤7.5，排除播放量，junk play<300&dm<3 过滤）；feed 偏好学习。
 - **需决定**：策略参数与默认值（默认 OFF、所有者总闸）；日记文件模型与所有者只读面/导出；衰减与配额落库（新表？→ A 分配迁移）；反馈来源与去重键；与 K15 动机引擎的边界（需求→目标→驱动 vs 观看候选）；`SchedulingService` 触发与 K08 评审的交互（K13 已记录 `schedule_blocker` 与在途评审的既有竞态）。
-- **安全/授权面**：自主外联/分享必须经所有者审批与既有 outbox 限额；不得 idle-wake（无待审/无唤醒窗即不动作）；不自动扩写全局指令。
+- **安全/授权面**：自主外联/分享必须经所有者审批与既有 outbox 限额；不得 idle-wake（无待审/无唤醒窗即不动作）；不自动扩写全局指令；**接主动行为前须与 D 对齐**（动机/边界授权）。
 - **验证要求**：纯策略离线（注入时钟/配额/衰减曲线/打分序/反馈去重）、无 idle-wake、不自动外联、跨 agent 隔离、真实账号/模型质量另验。
-- **依赖**：D4/D6 的写与分享门先定；与 K15 协同需 A/所有者对齐。
+- **依赖**：D4/D6 的写与分享门先定；与 K15 协同需 A/所有者对齐；设计合同 [V2_BILI_PROACTIVE_WATCH](V2_BILI_PROACTIVE_WATCH.md) 已记录 W1–W8 决策（唤醒路径/日记存储/输出分工/衰减/反馈/打分/预算/K15 接缝）。**未实现。**
 
 ## D6（K18）受控分享策略（share ≤3/日、同 BV 7 日去重、score/reason/rank 门、notify 多后端）
 

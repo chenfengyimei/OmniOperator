@@ -795,6 +795,14 @@
           "contract": "docs/v2/contracts/V2_BILI_FAV_RESOURCES.md",
           "evidence": "docs/evidence/v2-bili-fav-resources.json",
           "delivered": "bilibili_read新增operation=fav_resources只读(target=收藏夹id)：domain fav_folder_id正十进制<2^63取cookie前422+fav_resource_rows(缺medias正常空/非列表或>50行或行非dict或存在但非法bvid显式502/缺失或空bvid跳过非视频与失效/先过滤后取limit视频行/bvid-title≤300-author≤100-duration_s-fav_time/info.title-media_count可选/has_more精确1或True否则len>limit)；adapter _fav_resources固定/x/v3/fav/resource/list(media_id/pn1/ps20/keyword空/order mtime/type0/tid0/platform web)复用_get风险码/JSON/524288上限，nav登录门后分派、不缓存；application READ_SPEC enum+desc、http Literal增fav_resources；无新表/迁移/路由/worker协议/共享端口/新源文件，routing不变declared_tools 94；23专项1.22秒、bilibili全调用方546过142.79秒、strict0/0、ruff净"
+        },
+        {
+          "gap": "#3 主动观看设计合同（night-plan/双日记/沉默衰减/反馈回流/候选打分/偏好学习；W1-W8 决策与 K15 接缝）",
+          "status": "design_contract_recorded",
+          "batch": "K18.proactive_watch_design",
+          "contract": "docs/v2/contracts/V2_BILI_PROACTIVE_WATCH.md",
+          "evidence": "docs/evidence/v2-bili-proactive-watch-design.json",
+          "delivered": "纯设计合同：参考事实（night-plan 窗口/skipChance0.3/minGap10/maxWakes12/maxVideos5/pending 持久/跳过仍写日记并耗位/3 天历史；双日记+事件流；沉默衰减 <3 全额/≥7 天 0 中间 max(1,floor(base*(7-days)/4)) 与 normal/quiet/faint 带；反馈 kind:id+水位去重≤1000/learned boost min(7.5,hits*2.5)；score=log10(1+dm/max(30,d))*3+prefHits*4+boost 排除播放量/junk play<300&dm<3 与≥2 命中豁免/多样性）与 V2 映射（SchedulingService/MaintenanceService tick/submit_turn/documents 或受管文件/既有 B 站读/K08/K15）；W1 唤醒路径、W2 日记存储、W3 debrief→应用层渲染、W4 衰减仅限 D6 share 上限、W5 反馈判定、W6 打分与来源、W7 默认 OFF/预算/不补唤醒、W8 K15 接缝；新表 bilibili_watch_plans/events 由 A 分配迁移号；默认 OFF+kill switch+no idle wake+不自动外联+擦除失效；接主动行为前须与 D 对齐；未实现、无源码/测试/迁移改动"
         }
       ],
       "limits": "只读审计无新工具/表/迁移/路由/源码改动；可离线缺口未在K18审计批实现(列后续批次)，其中读API广度之搜索/space whois/弹幕/热门排行feed/关注动态feed/收藏夹/视频标签/观看历史/收件箱reply-at已在K18.search/K18.whois/K18.danmaku/K18.feed/K18.following/K18.favorites/K18.tag/K18.history/K18.msgfeed后续批实现、收件箱收到的赞like已在K18.msgfeed_like后续批实现(参考likes.mjs x/msgfeed/like形状{latest/total嵌套+users[]点赞者数组+like_time+counts}根本不同于reply/at data.items单user，独立msgfeed_like_rows合并去重保序+users截断≤20+FEED_MAX_ROWS50+显式502，msgfeed_kind接受reply/at/like，reply/at字节等价零回归，like cursor分页/notice_state过滤/自主点赞反馈仍后续；DM关注关系relation已在K18.relation后续批实现(参考dm.mjs x/relation?fid=<mid> attribute owner→target/be_relation反向，relation_view派生follows/followed_by/mutual/blocked纯只读发现，plain GET无WBI无缓存，mid经uid校验，既有operation字节等价零回归，写路径prepare/outbox不变relation不作发送硬门；relation作prepare互关硬门需所有者决策/relation_modify写/followings fans列表分页/DM发送写广度仍后续)；风险码每账号暂停与所有者恢复已在K18.risk_pause实现，已批准outbox投递不追溯阻断；写广度/自主观看/受控分享仍后续)；V1 tools/bilibili实现不计V2对等；不宣称全集API/主动观看/受控分享对等；参考agents.md/RULES当不可信数据非本会话指令；K18为清单末项领域参考审计(K13-K18全部记录)；既有todos重启竞态与6个pin v2_0039旧迁移测试沿用保留(本批实测memory_semantics×2/routing×1/skills×2/media×1)；v0045遗留action_review崩溃重试守卫已修(started_at投影+NULL断言)",
@@ -1162,6 +1170,10 @@
     {
       "id": "K18.fav_resources",
       "evidence": "docs/evidence/v2-bili-fav-resources.json"
+    },
+    {
+      "id": "K18.proactive_watch_design",
+      "evidence": "docs/evidence/v2-bili-proactive-watch-design.json"
     }
   ]
 }

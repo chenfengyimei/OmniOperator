@@ -75,7 +75,7 @@
 
 1. **读 API 广度：已交付**——`search` `4802dbca`、`whois` `f673f969`、`danmaku` `f80ab73d`、`popular/ranking` `b14d06ff`、`following` `091e20d1`、`favorites` `4c280835`、`tags` `a81a0353`、`history` `21417ec6`、`msgfeed` `624413eb`、`msgfeed like` `2608f592`、`relation` `840e5f5f`、**`dynamic_list`（空间动态，2026-11-22 本批，[合同](V2_BILI_DYNAMIC.md)：固定 VC host、严格 id/尽力文本、≤50 卡、不缓存）**、**`fav_resources`（收藏夹内容，2026-11-23 本批，[合同](V2_BILI_FAV_RESOURCES.md)：固定 resource/list、只保留视频行、≤50 行、不缓存；参考无此读面，V2 兼作 D4-B2 收藏写验证）**。**缓存策略：已交付**——`K18.read_cache`（[合同](V2_BILI_READ_CACHE.md)：仅 `video`/`whois` 24h + 400 条/8MiB 有界 LRU；凭据换代换桶并清旧代；13 个端点永不缓存；`nav` 有意不缓存）。**剩余**：读侧速率预算（600/h·3000/d）、真实账号命中率/新鲜度。
 2. **写广度：未实现（决策待定）**——`comment-del`/`fav`/`dynamic`（`danmaku-send` 属直播 D7）的已审表单 + 配额 + 幂等 + unknown/恢复见决策 D4 与设计合同 [V2_BILI_WRITE_BREADTH](V2_BILI_WRITE_BREADTH.md)。**新发现（2026-11-22 核对）**：现有 comment/private_message 路径**没有配额/冷却**（V2 只有 `MAX_ATTEMPTS=3` 退避与 QQ 专属 `cooldown_s`），原文「共享限额/冷却」应更正；配额机制需先定 Q1（审批+幂等，零迁移）或 Q2（通用配额账本，A 分配迁移号）。fav/dynamic 验证还需要新只读 operation `fav_resources`/`dynamic_list` 先批。
-3. **主动观看：未实现（决策待定）**——night-plan/双日记/沉默衰减/反馈/候选打分/偏好学习见决策 D5（与 K15 协同）。
+3. **主动观看：未实现（决策待定）**——夜间计划/双日记/沉默衰减/反馈回流/候选打分/偏好学习见决策 D5 与设计合同 [V2_BILI_PROACTIVE_WATCH](V2_BILI_PROACTIVE_WATCH.md)（W1 唤醒路径、W2 日记存储、W3 输出分工、W4 衰减、W5 反馈、W6 打分、W7 预算/默认 OFF、W8 K15 接缝；**接主动行为前须与 D 对齐**）。
 4. **受控分享策略：未实现（决策待定）**——share 阈值/去重/notify 后端见决策 D6。
 5. **风险暂停：已交付**——`8923054c`（风险码 `[12015,-105,-101,401]` 每账号暂停 + 所有者恢复，v0046）。
 6. **直播：未实现（决策待定）**——room/WS/gift/send 见决策 D7。
