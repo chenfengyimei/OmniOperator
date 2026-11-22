@@ -258,6 +258,13 @@ K13.cron_model_design 已记录**实现前设计合同**（纯文档，无源码
 - **验证**：受影响专项（desktop backend/terminal/macOS 平台/架构/布局/kernel/业务清单）**261 passed, 8 skipped**（212.75 秒）；索引 65/849/464/94 幂等；**合并后冻结源码单跑全量 `f3f44afd`：8439 项 8430 通过 / 0 失败 / 9 跳过，3108.91 秒**（`C:/v2-acceptance/integration-1f31e96d/full-f3f44afd.xml`）。此前同源 `e73b58d9` 为 8429 通过 / 1 失败（strict 文档漂移，补文档行后 2 passed，代码零变化）。
 - **未验**：Windows 不编译 Swift、不跑 LaunchServices/UDS 真机链路；macOS 睡眠/锁屏/快速用户切换与系统域安装归 F；TCC 授权后四能力的真机结论以 Mac 端证据为准。
 
+### 2026-11-22 K14 视觉子代理离线核心（Windows，`k14-visual-persona`）
+
+- **范围**：只实现 K14 确定范围的离线核心，无生产接线/真实视觉调用/付费/设备/工具/HTTP/迁移；D0–D5 仍未决，默认仍是离线桩。基线 `origin/v2`=`0793f254`。
+- **交付**：`domain/visual_subagent.py`（task 1–4000、focus 四枚举、已注册帧元数据、1–240 原始帧→≤60 保序等距含首尾、单帧 16MiB/单次 64MiB、固定 system prompt、输出 1–4000 纯文本）；`application/visual_subagent.py`（注入 DatabasePort/FrameSource/Model，父 run+模型授权先于帧源与模型，单次调用/120s/每父 run 1/全局≤4，取消等待实际清理，零 `db.write`、零 memory/persona/delivery 写，返回仅文本+有界元数据，不含 object_id/sha/帧字节）。
+- **验证**：新专项 **20 passed / 2.70s**（19 注入桩+1 真实 SQLite 父 run 授权零写）；架构/入口/候选门/目录 **52 passed / 23.08s**；strict **430 文件 0 错 0 警**；ruff/格式通过；索引 65/851/464/94。既有能力核对：Android 截图/输入/撤权链 **36 passed / 217.97s**（假 ADB，无真机）、记忆评分+衰减 **47 passed / 85.15s**、前缀/撤回/人物 **39 passed / 1 skipped / 55.71s**。
+- **决策台账**：[V2_K14_K15_DECISION_LEDGER](v2/contracts/V2_K14_K15_DECISION_LEDGER.md) 列出三份合同已决定/待所有者选择条款，以及给 E 的主动外联边界与候选稳定接口。**未决**：K14 D0–D5、K15 动机 D0–D4、K15 分层人格 D0–D5；真实模型/设备/72 小时未验。证据：[v2-visual-subagent-core.json](evidence/v2-visual-subagent-core.json)。
+
 ## 追溯入口
 
 - [旧交接记录](history/pre-layout-2026-11-18/HANDOFF.md)、[旧重构记录](history/pre-layout-2026-11-18/V2_REFACTOR.md)只证明所属版本，不作为当前待办。

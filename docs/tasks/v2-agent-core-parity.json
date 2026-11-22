@@ -433,15 +433,15 @@
       "evidence": "docs/evidence/v2-android-audit.json",
       "followups": [
         {
-          "gap": "独立有界视觉子代理（K04 + 视觉模型：帧≤60 保序子采样、无工具、单次、仅文本汇总、master 不携带帧）",
-          "status": "design_contract_recorded",
-          "batch": "K14.visual_subagent_design",
+          "gap": "独立有界视觉子代理（离线核心：帧≤60 保序子采样、无工具、单次、仅文本汇总、master 不携带帧；生产接线待 D0-D5）",
+          "status": "offline_core_implemented_not_wired",
+          "batch": "K14.visual_subagent_core",
           "contract": "docs/v2/contracts/V2_VISUAL_SUBAGENT.md",
-          "evidence": "docs/evidence/v2-visual-subagent-design.json",
-          "delivered": "实现前授权/预算/边界合同（纯文档）：D0-D5 所有者决策门（默认只做离线桩，不调用真实视觉模型）；task 1..4000 + 1..60 已注册/已授权帧、>60 保序等距含首尾、固定 system prompt+1024 输出、无工具/max_calls=1、仅文本≤4000、master 不携带帧、不自动写 memory/persona、unknown 不重放、来源删除/凭据 CAS/取消等待、每父 run 1 个/全局≤4/超时≤120s/临时帧清理；接线点 instance.py/engine.py 当前他会话在途，未实现。"
+          "evidence": "docs/evidence/v2-visual-subagent-core.json",
+          "delivered": "K14 离线核心（无生产接线/真实调用/工具/路由/迁移）：domain/visual_subagent.py 纯规则（task 1..4000、focus 四枚举、帧 id 1..240 规范 UUID 唯一、ImageInfo 元数据+内容长度校验、>60 保序等距含首尾取 60、单帧 16MiB/总量 64MiB、固定 system prompt 含无工具与不可信帧、输出 1..4000 纯文本，tool_calls/非 stop/空/超长/控制字符 visual_response_invalid 不截断不执行不重试）；application/visual_subagent.py `VisualSubagentService`（注入 DatabasePort/FrameSource/Model，父 run+模型授权先于帧源与模型，帧源按请求顺序全量核验，单次调用/120s/父 run 并发 1/全局≤4，取消取消实际调用并等待清理，零 db.write、零 memory/persona/delivery 写入，返回仅 text/frames/focus/model/cost/tokens 不含 object_id/sha/帧字节）；20 专项 2.70s（19 注入桩+1 真实 SQLite 父 run 授权零写）、strict 两模块 0 错误、架构/入口/候选门/目录 52 项 23.08s。D0-D5 未决不变，默认仍只做离线桩。"
         }
       ],
-      "limits": "只读审计无新工具/迁移/路由/源码改动；可离线缺口未在K14实现(列后续批次)；独立视觉子代理已记录实现前设计合同(K14.visual_subagent_design，D0-D5 未决，默认离线桩)，生产接线待批准；不宣称真机质量或约65工具广度对等；V2有意不提供shell逃生舱/变更链(更严格)；既有todos重启竞态与5个pin v2_0039旧迁移测试沿用保留",
+      "limits": "K14 审计本身只读无源码改动；独立视觉子代理已完成离线核心(K14.visual_subagent_core：有界帧/无工具/单次/仅文本/零写，20 专项过)，但 D0-D5 未决、生产接线/真实视觉模型/真实帧来源/付费调用未做，默认仍只做离线桩；SoM/OCR/explore_app 仍列后续；不宣称真机质量或约65工具广度对等；V2有意不提供shell逃生舱/变更链(更严格)；既有todos重启竞态与5个pin v2_0039旧迁移测试沿用保留",
       "next": false
     },
     {

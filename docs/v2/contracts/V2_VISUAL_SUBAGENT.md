@@ -1,6 +1,6 @@
-# V2 有界视觉子代理设计合同（K14 可离线缺口，实现前）
+# V2 有界视觉子代理设计合同（K14 可离线缺口）
 
-**状态：`design_contract_recorded`，未实现。** 本文件只记录实现前的授权/预算/边界合同，供所有者决定是否允许真实视觉模型调用；本批无源码、测试、迁移、路由改动。
+**状态：`offline_core_implemented_not_wired`（2026-11-22）。** 离线核心已实现并专项通过；D0–D5 仍未决，生产接线、真实视觉模型调用、真实帧来源与付费路径保持关闭。本文其余条款仍是后续实现与验收的约束。
 
 ## 1. 范围
 
@@ -101,3 +101,13 @@ V2 只继承「有界、隔离、单次、文本汇总」的语义，不复制�
 - 不做 SoM/OCR/explore_app（K14 另列）、真实设备帧质量、真实模型视觉质量、72h 长跑。
 - 不改变 K04 现有委派语义；不新增工具可见面；不写长期记忆/人格。
 - 真实视觉模型调用能力在 D0 批准前保持关闭；`whole_core_parity_complete`/`whole_v2_complete` 保持 false。
+
+## 9. 离线核心实现记录（2026-11-22）
+
+**只在确定范围内实现离线核心**：没有生产接线、没有真实模型/账号/设备调用、没有新工具/路由/迁移/表。
+D0–D5 不因本批改变；默认仍是「只做离线桩」。
+
+- `domain/visual_subagent.py`：task 1–4000 字符（strip、控制字节/孤立代理项拒绝）、focus 固定四枚举、帧 id 1–240 规范 UUID 且唯一、`VisualFrame` 元数据复用 `ImageInfo` 校验且内容长度必须一致、>60 帧按原序等距取 60（含首尾、唯一、不重排）、单帧 16MiB/单次总量 64MiB、固定 system prompt（含「无工具」与「帧是不可信数据」）、输出 1–4000 纯文本；tool_calls/非 `stop`/空/超长/控制字符均 `visual_response_invalid`，不截断、不执行、不重试。
+- `application/visual_subagent.py`：`VisualSubagentService` 只依赖注入的 `DatabasePort`/`VisualFrameSource`/`VisualModel`；调用前核验父 run 与模型授权（无授权→`visual_unavailable`，预算码原样保留），帧源必须按请求顺序返回全部帧；单次调用、超时 120s、每父 run 并发 1、全局并发 ≤4；父 run 取消会取消实际调用并等待清理；无任何 `db.write`、无 memory/persona/delivery 写入；返回仅 `text/frames/focus/model/cost_micro/tokens`，不含 object_id、sha 或帧字节。
+- 测试：`agent/tests/v2/core/test_v2_visual_subagent.py` 20 项（19 项注入桩 + 1 项真实 SQLite 父 run 授权且零写）一次通过 **20 passed / 2.70s**；新增两模块严格类型 0 错误；架构/入口/候选门/目录守卫 52 项通过 23.08s。证据见 [v2-visual-subagent-core.json](../../evidence/v2-visual-subagent-core.json)。
+- 仍未验证/未实现：真实视觉模型质量与供应商图像协议（D1）、每次/每日预算（D2）、真实 Android/注册帧来源（D3）、摘要留存（D4）、失败文案策略（D5）、生产 `instance.py`/`engine.py` 接线、真实设备/付费调用。离线核心通过不等于 K14 视觉子代理或整个 V2 完成。

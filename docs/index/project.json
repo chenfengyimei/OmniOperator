@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "ac342eb21f687a02145bd15d693c998556ac725614cb7689a2dd0d2db7c14708",
+  "source_sha256": "5557b7d144c5c99d2292449e0286528a156c305d6027a19275b51a81bd8aaa3a",
   "modules": [
     {
       "id": "v2-domain",
@@ -93,9 +93,10 @@
         "agent/src/omni/domain/todos.py",
         "agent/src/omni/domain/tool_batch.py",
         "agent/src/omni/domain/turn_prompt.py",
-        "agent/src/omni/domain/verification_stop.py"
+        "agent/src/omni/domain/verification_stop.py",
+        "agent/src/omni/domain/visual_subagent.py"
       ],
-      "lines": 13952,
+      "lines": 14148,
       "dependencies": []
     },
     {
@@ -165,9 +166,10 @@
         "agent/src/omni/application/skills.py",
         "agent/src/omni/application/terminal_review.py",
         "agent/src/omni/application/terminals.py",
-        "agent/src/omni/application/todos.py"
+        "agent/src/omni/application/todos.py",
+        "agent/src/omni/application/visual_subagent.py"
       ],
-      "lines": 14038,
+      "lines": 14211,
       "dependencies": [
         "v2-domain"
       ]
@@ -69156,6 +69158,196 @@
       "summary": "Model task-plan control with scoped transactions; creates no external action or background task."
     },
     {
+      "path": "agent/src/omni/application/visual_subagent.py",
+      "module": "v2-application",
+      "python_module": "omni.application.visual_subagent",
+      "lines": 173,
+      "imports": [
+        "omni.application.ports",
+        "omni.domain.contracts",
+        "omni.domain.visual_subagent"
+      ],
+      "symbols": [
+        {
+          "name": "VisualFrameSource",
+          "line": 34,
+          "kind": "class"
+        },
+        {
+          "name": "VisualFrameSource.frames",
+          "line": 37,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "agent_id",
+            "object_ids"
+          ],
+          "annotations": {
+            "agent_id": "str",
+            "object_ids": "Sequence[str]"
+          }
+        },
+        {
+          "name": "VisualModel",
+          "line": 40,
+          "kind": "class"
+        },
+        {
+          "name": "VisualModel.model",
+          "line": 44,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "VisualModel.complete",
+          "line": 46,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "request"
+          ],
+          "annotations": {
+            "request": "VisualRequest"
+          }
+        },
+        {
+          "name": "VisualSubagentService",
+          "line": 49,
+          "kind": "class"
+        },
+        {
+          "name": "VisualSubagentService.__init__",
+          "line": 50,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "db",
+            "frames",
+            "model",
+            "timeout_s",
+            "max_concurrent"
+          ],
+          "annotations": {
+            "db": "DatabasePort",
+            "frames": "VisualFrameSource",
+            "model": "VisualModel",
+            "timeout_s": "float",
+            "max_concurrent": "int"
+          }
+        },
+        {
+          "name": "VisualSubagentService.run",
+          "line": 70,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "agent_id",
+            "run_id",
+            "task",
+            "frame_ids",
+            "focus"
+          ],
+          "annotations": {
+            "agent_id": "str",
+            "run_id": "str",
+            "task": "object",
+            "frame_ids": "object",
+            "focus": "object"
+          }
+        },
+        {
+          "name": "VisualSubagentService.run.done",
+          "line": 84,
+          "kind": "function",
+          "parameters": [
+            "future"
+          ],
+          "annotations": {
+            "future": "asyncio.Task[Record]"
+          }
+        },
+        {
+          "name": "VisualSubagentService._run",
+          "line": 99,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "agent_id",
+            "run_id",
+            "task",
+            "frame_ids",
+            "focus"
+          ],
+          "annotations": {
+            "agent_id": "str",
+            "run_id": "str",
+            "task": "object",
+            "frame_ids": "object",
+            "focus": "object"
+          }
+        },
+        {
+          "name": "VisualSubagentService._checked_frames",
+          "line": 139,
+          "kind": "function",
+          "parameters": [
+            "resolved",
+            "ids"
+          ],
+          "annotations": {
+            "resolved": "object",
+            "ids": "list[str]"
+          }
+        },
+        {
+          "name": "VisualSubagentService._complete",
+          "line": 150,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "request"
+          ],
+          "annotations": {
+            "request": "VisualRequest"
+          }
+        },
+        {
+          "name": "VisualSubagentService.health",
+          "line": 163,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "VisualSubagentService.stop_accepting",
+          "line": 166,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "VisualSubagentService.close",
+          "line": 169,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "timeout_s"
+          ],
+          "annotations": {
+            "timeout_s": "float"
+          }
+        }
+      ],
+      "summary": "Bounded vision sub-agent orchestration over injected frame and model ports."
+    },
+    {
       "path": "agent/src/omni/bootstrap.py",
       "module": "assembly",
       "python_module": "omni.bootstrap",
@@ -88278,6 +88470,168 @@
         }
       ],
       "summary": "Pure rules for the verify-on-stop gate: applied writes without verification evidence."
+    },
+    {
+      "path": "agent/src/omni/domain/visual_subagent.py",
+      "module": "v2-domain",
+      "python_module": "omni.domain.visual_subagent",
+      "lines": 196,
+      "imports": [
+        "omni.domain.contracts"
+      ],
+      "symbols": [
+        {
+          "name": "_invalid",
+          "line": 48,
+          "kind": "function",
+          "parameters": [
+            "code",
+            "message",
+            "status"
+          ],
+          "annotations": {
+            "code": "str",
+            "message": "str",
+            "status": "int"
+          }
+        },
+        {
+          "name": "_bounded_text",
+          "line": 52,
+          "kind": "function",
+          "parameters": [
+            "value",
+            "limit",
+            "field_name",
+            "code"
+          ],
+          "annotations": {
+            "value": "object",
+            "limit": "int",
+            "field_name": "str",
+            "code": "str"
+          }
+        },
+        {
+          "name": "normalize_task",
+          "line": 69,
+          "kind": "function",
+          "parameters": [
+            "value"
+          ],
+          "annotations": {
+            "value": "object"
+          }
+        },
+        {
+          "name": "normalize_focus",
+          "line": 73,
+          "kind": "function",
+          "parameters": [
+            "value"
+          ],
+          "annotations": {
+            "value": "object"
+          }
+        },
+        {
+          "name": "normalize_frame_ids",
+          "line": 81,
+          "kind": "function",
+          "parameters": [
+            "value"
+          ],
+          "annotations": {
+            "value": "object"
+          }
+        },
+        {
+          "name": "VisualFrame",
+          "line": 102,
+          "kind": "class"
+        },
+        {
+          "name": "VisualFrame.__post_init__",
+          "line": 114,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "VisualRequest",
+          "line": 137,
+          "kind": "class"
+        },
+        {
+          "name": "select_frames",
+          "line": 147,
+          "kind": "function",
+          "parameters": [
+            "frames"
+          ],
+          "annotations": {
+            "frames": "Sequence[VisualFrame]"
+          }
+        },
+        {
+          "name": "build_request",
+          "line": 163,
+          "kind": "function",
+          "parameters": [
+            "task",
+            "focus",
+            "frames"
+          ],
+          "annotations": {
+            "task": "object",
+            "focus": "object",
+            "frames": "Sequence[VisualFrame]"
+          }
+        },
+        {
+          "name": "validate_summary",
+          "line": 177,
+          "kind": "function",
+          "parameters": [
+            "value"
+          ],
+          "annotations": {
+            "value": "object"
+          }
+        },
+        {
+          "name": "validate_reply",
+          "line": 181,
+          "kind": "function",
+          "parameters": [
+            "reply"
+          ],
+          "annotations": {
+            "reply": "ModelReply"
+          }
+        },
+        {
+          "name": "prompt_for",
+          "line": 191,
+          "kind": "function",
+          "parameters": [
+            "focus"
+          ],
+          "annotations": {
+            "focus": "object"
+          }
+        },
+        {
+          "name": "max_frame_bytes",
+          "line": 195,
+          "kind": "function",
+          "parameters": [],
+          "annotations": {}
+        }
+      ],
+      "summary": "Pure rules for the bounded vision sub-agent: frame admission, ordered subsampling, fixed prompts and summary bounds."
     },
     {
       "path": "agent/src/omni/llm/__init__.py",

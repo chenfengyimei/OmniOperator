@@ -500,6 +500,10 @@ strict 配置显式将 `agent/src` 加入导入根，隔离源码副本也解析
 
 | `agent/src/omni/application/persona.py` | 人格成长只读用例：账本→期望字节→缓存校验/重建，仅所有者读取，不进入模型上下文 |
 
+| `agent/src/omni/domain/visual_subagent.py` | K14 有界视觉子代理纯领域：任务/焦点/帧 id 校验、≤60 保序等距含首尾、固定 prompt 与纯文本输出边界 |
+
+| `agent/src/omni/application/visual_subagent.py` | K14 离线视觉子代理用例：父 run/模型授权、帧源顺序核验、单次调用/取消/并发、零写与仅文本汇总 |
+
 `pyrightconfig.strict.json` 的 `include` 必须与本表完全一致；`agent/tests/v2/core/test_v2_typecheck_scope.py` 会双向校验。
 
 ## 3. 历史基线与当前范围

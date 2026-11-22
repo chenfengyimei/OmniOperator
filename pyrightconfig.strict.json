@@ -428,7 +428,9 @@
     "agent/src/omni/application/reflections.py",
     "agent/src/omni/domain/persona_growth.py",
     "agent/src/omni/adapters/persona_files.py",
-    "agent/src/omni/application/persona.py"
+    "agent/src/omni/application/persona.py",
+    "agent/src/omni/domain/visual_subagent.py",
+    "agent/src/omni/application/visual_subagent.py"
   ],
   "exclude": [
     "**/__pycache__"

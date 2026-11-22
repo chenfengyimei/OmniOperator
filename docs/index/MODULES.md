@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`ac342eb21f687a02145bd15d693c998556ac725614cb7689a2dd0d2db7c14708`。包含 65 个职责模块、849 个源码/界面文件。
+源码指纹：`5557b7d144c5c99d2292449e0286528a156c305d6027a19275b51a81bd8aaa3a`。包含 65 个职责模块、851 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -87,6 +87,7 @@
 | [agent/src/omni/domain/tool_batch.py](../../agent/src/omni/domain/tool_batch.py) | 65 | Model tool-batch segment planning: independent read-only capabilities may run in parallel. |
 | [agent/src/omni/domain/turn_prompt.py](../../agent/src/omni/domain/turn_prompt.py) | 45 | Freeze one run's system prefix; publish changed runtime guidance in the message tail. |
 | [agent/src/omni/domain/verification_stop.py](../../agent/src/omni/domain/verification_stop.py) | 66 | Pure rules for the verify-on-stop gate: applied writes without verification evidence. |
+| [agent/src/omni/domain/visual_subagent.py](../../agent/src/omni/domain/visual_subagent.py) | 196 | Pure rules for the bounded vision sub-agent: frame admission, ordered subsampling, fixed prompts and summary bounds. |
 
 文档：[docs/V2_REFACTOR.md](../../docs/V2_REFACTOR.md)
 
@@ -153,6 +154,7 @@
 | [agent/src/omni/application/terminal_review.py](../../agent/src/omni/application/terminal_review.py) | 127 | Owner terminal evidence use cases; no native actions, receipt changes or historical PID operations. |
 | [agent/src/omni/application/terminals.py](../../agent/src/omni/application/terminals.py) | 506 | Bounded owner terminals with durable input receipts, single-writer leases and explicit output gaps. |
 | [agent/src/omni/application/todos.py](../../agent/src/omni/application/todos.py) | 49 | Model task-plan control with scoped transactions; creates no external action or background task. |
+| [agent/src/omni/application/visual_subagent.py](../../agent/src/omni/application/visual_subagent.py) | 173 | Bounded vision sub-agent orchestration over injected frame and model ports. |
 
 文档：[docs/V2_REFACTOR.md](../../docs/V2_REFACTOR.md)
 
