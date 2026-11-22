@@ -228,3 +228,7 @@ LaunchAgent 基线：本机当前没有 OmniOperator 用户服务 job，`~/Libra
 ### 2026-11-22 服务只读查询实机验证（absent 路径）
 
 用已安装交付 helper（`966be5fc…`）直接运行 `--service-query` / `--system-service-query`，查询随机 `com.omnioperator.v2.<uuid>` 标签：用户域 `gui/501` 与系统域均返回 `complete=true`、`loaded=false`、`job=null`、`error_code=""`（协议 `omni-macos-service-query-2`）。这证明弃用的 `SMJobCopyDictionary`/`SMCopyAllJobDictionaries` 在 macOS 27 SDK 27.2 仍可用，且“不存在”由完整枚举正面证明，而不是 nil 查询或枚举失败。查询由普通所有者执行：无提权、无 TCC 提示、无服务变更。未验 registered/loaded/ready 路径与真实安装；未创建瞬时 `launchctl` job（那属于真实注册变更）。证据：[服务只读查询](../../../evidence/v2-macos-service-query-2026-11-22.json)。
+
+### 2026-11-22 临时 LaunchAgent 注册与清理实测
+
+按所有者批准，用随机 `com.omnioperator.v2.<uuid>` 标签做一次可逆注册：写 `~/Library/LaunchAgents/<label>.plist`（0600，`ProgramArguments=/usr/bin/true`、`LimitLoadToSessionType=Aqua`、`RunAtLoad=false`），`launchctl bootstrap gui/501` 退出 0 后，原生 `--service-query` 返回 `complete=true`、`loaded=true`，job 字典含 `Label/LastExitStatus/OnDemand/Program/ProgramArguments`；随后 `launchctl bootout gui/501/<label>` 退出 0、删除 plist，查询恢复 `loaded=false`、`job=null`，`launchctl print` 报找不到服务，`launchctl list` 无 `com.omnioperator` 残留。未执行 enable 状态、运行身份 HMAC 就绪、登录激活及系统域注册（真实部署包与 root 操作另批）。证据：[LaunchAgent 注册与清理](../../../evidence/v2-macos-launchagent-2026-11-22.json)。
