@@ -267,6 +267,15 @@ K13.cron_model_design 已记录**实现前设计合同**（纯文档，无源码
 - **未验**：真实 B 站账号缓存命中率与 24h 新鲜度、进程重启后的命中（内存缓存天然不持久）、`nav` 10min、读侧速率预算、写广度/主动观看/受控分享/直播/AI-share 守卫（决策 D2–D7）、K01 D3(a)/(c)/D8；真实模型质量/设备/72 小时。
 - **下一批**：剩余 K01/K13/K18 项均需所有者决定（决策登记 D1–D7），获批准后按「先授权/持久化合同后接线」独立批次推进；共享接口、数据库迁移与公共 CI 由 A 协调。证据 [v2-bili-read-cache.json](evidence/v2-bili-read-cache.json)。
 
+### 2026-11-22 K01/K13/K18 交付核对与两项残留（第 2 批，`k18-read-cache`）
+
+- **范围/基线**：承接第 1 批（K18.read_cache，实现提交 `341041a6`）；本批只读核对 + 决策合同，**无生产源码/测试/迁移改动**。基线仍 `origin/v2`=`0793f254`（第 1 批尚未合入），同一任务分支与独立工作树；本批文档提交见分支 tip。
+- **排除项逐条核对通过**：K01(b) 路由键（`adapters/models.py:23-40` 派生键/provider 分类、`:164-167` `extra_body` 注入，前缀/计量不变）；cron 四批（`domain/cronjob.py`、`application/cronjob.py`、`instance.py:741-743` attach、v0049 投影）；browser_dialog（`workers/main.py:432-516` 有界持有/`expected_url` CAS/显式候选）；B 站读广度 + 风控暂停（合同/证据，496 调用方既有结果）。核对套件 **112 过 / 204.17s**（prompt_cache 6、cronjob_tool 83、cronjob_e2e 3、schedule_context 6、schedule_bindings 5、browser_dialog 9），无全量。
+- **新增两项决策（未实现）**：**D8 调度阻塞与后台评审辅助调用**——`schedule_blocker` 无 purpose 过滤，在途 K08 评审/K06 压缩的 `summary` 调用被当作未复核外部结果，`assert_run_lease` 抛 `previous_outcome_unknown`、`schedule_materialize` 不推进 `next_at`；现有 e2e `wait_review_settled` 即绕过该交互；合同 [V2_SCHEDULE_REVIEW_BLOCKER](v2/contracts/V2_SCHEDULE_REVIEW_BLOCKER.md) 列 A–D，推荐 A（只统计 `purpose='turn'`，预计无迁移），待所有者批准。**D9 浏览器 URL SSRF/IMDS floor**——builtin worker 的 `browser_navigate` 只校验 scheme、无主机/IP floor 且默认跟随重定向/子资源，实测 302→`127.0.0.1:<port>/latest/meta-data/` 可读 body；决策登记 D9 列 i–iv（仅 builtin worker 改动），待所有者定本地浏览策略。
+- **文档**：K13 审计组 2 由「待核」改为「已核未实现」并补交付核对/D8/D9；决策登记补 D8/D9 与顺序建议；证据 [v2-delivered-verification.json](evidence/v2-delivered-verification.json)。
+- **未验**：D8/D9 未实现；真实 B 站账号/模型质量/公网浏览器/72 小时；当前源码未全量。
+- **下一批**：等所有者对 D8/D9（成本最低）或 D1–D7 决策后按合同独立批次接线；共享接口/迁移/公共 CI 由 A 协调。
+
 ## 追溯入口
 
 - [旧交接记录](history/pre-layout-2026-11-18/HANDOFF.md)、[旧重构记录](history/pre-layout-2026-11-18/V2_REFACTOR.md)只证明所属版本，不作为当前待办。
