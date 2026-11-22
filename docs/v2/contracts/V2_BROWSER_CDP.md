@@ -48,7 +48,7 @@
 1. 选 C1（不移植）、C2（声明式多步计划）还是 C3（只读 CDP 白名单）？C4 拒绝。
 2. 若 C2：plan 审批粒度（整单一次）、步数/时长/输出上限、失败语义（停止+已完成回执）、是否允许 `dialog`/`wait`、是否允许后续步骤引用上一步结果（建议不，保持声明式）。
 3. 若 C3：只读方法清单、目标页面验证（OOPIF/target）、CDP endpoint 暴露方式与 worker 协议、跨平台实现（Windows/Linux）归属、D9 floor 是否已落地。
-4. 共同前提：D9（浏览器 SSRF/IMDS floor）必须先实现；C2/C3 均不得读取/回传 cookie 或凭据。
+4. 共同前提：D9（浏览器 SSRF/IMDS floor）——**元数据/link-local 的 i+iv 子集已于 2026-11-23 落地**（导航前拒绝 + `page.route` 全请求 abort + 落地 backstop；见决策登记 D9），私网默认策略仍待所有者；C2/C3 均不得读取/回传 cookie 或凭据。
 
 ## 实现要点（获批准后独立批）
 

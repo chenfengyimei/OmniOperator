@@ -25,7 +25,7 @@
 | D6 | 受控分享 | S2-A 逐条审批 + S1 资格门 + S3 账本；S5-A 不移植 AI-share 守卫 | 中 | 账本需 A 迁移；通知首版不加 webhook/command | 重复/配额/误报；AI-share 未验证 |
 | D7 | 直播 | L1/L2 只读先做；L3 owner 服务；L4-a 不做发送 | L1/L2 低；L3 中 | 首版无迁移；事件持久化才需 A | WS 协议/解压炸弹/私网 |
 | D8 | cron 阻塞与 K08/K06 `summary` 调用 | **已实现方案 A**（blocker 只统计 `purpose="turn"`） | 低（无迁移） | A 仅备案 | 安全敏感守卫；若所有者选 B/C/D 可回退过滤 |
-| D9 | 浏览器 SSRF/IMDS floor | 先 D9-i（元数据/link-local）+ D9-iv（`page.route` 全请求拦截） | 中低 | 无迁移；builtin worker | 本地浏览是否允许；重定向/子资源 |
+| D9 | 浏览器 SSRF/IMDS floor | **部分实现 i+iv**（元数据/link-local 导航+全请求拦截；loopback/RFC1918 仍允许） | 中低 | 无迁移；builtin worker | 私网策略（ii）与子资源 DNS-rebinding 仍待决策 |
 | R1–R5 | cron 残余（toolsets/workdir/deliver/monitor/script/scan） | 默认不移植；R3 失败先 owner 事件 | 低 | R1–R3 需 A 迁移；R2 需 worker 协议 | 无模型脚本/URL 监视属新执行/SSRF 面 |
 | T1–T5 | 模型侧持久终端/进程 | T1 不移植；可选 T2 只读观察 | 低 | 无迁移 | T4 拒绝；kill 需 `(pid, started_at)` |
 
@@ -110,7 +110,7 @@
 - **需决定**：是否补 floor 及范围——（i）仅拒云元数据/link-local（169.254.0.0/16、fd00:ec2::254、metadata.google.internal、100.100.100.200），保留 loopback/RFC1918（V2 UI/本地开发需要）；（ii）默认拒 loopback+RFC1918+link-local，按 agent 配置显式允许本地浏览；（iii）只校验初始 URL（弱，重定向可绕过）；（iv）worker 级 `page.route` 全请求拦截 + 重定向后复检（与 i/ii 组合，最强，需评估性能与误伤）。
 - **安全/授权面**：SSRF 可读云元数据/内网服务，绕过 owner 审批看到的 URL；属安全策略变更，需所有者定策略（本地浏览是否允许、allowlist 形式）。无迁移/共享接口改动（builtin worker 内实现）。
 - **验证要求**：离线真实 Chromium + 本地 HTTP 夹具（loopback/私网/元数据名/重定向/子资源/iframe）、正常公网导航零回归、`browser_dialog` 等既有套件、审批面说明。
-- **依赖**：所有者批准；worker 协议不变（builtin）。**未实现。**
+- **依赖**：所有者批准；worker 协议不变（builtin）。**部分实现（2026-11-23）**：按推荐的 i+iv 保守子集落地——导航前拒绝 link-local/云元数据（IP 字面量、`metadata.google.internal`/`metadata.goog`/`instance-data` 等别名、`100.100.100.200`、`fd00:ec2::254`，并对主机名做 ≤1.5s 的 DNS 解析检查），`page.route("**/*")` 对每个 http(s) 请求（含重定向与子资源）命中即 `abort` 并计数，落地 URL 再做一次 backstop；**loopback/RFC1918 仍允许**（V2 UI/本地夹具），是否默认拒绝私网（选项 ii）与子资源的完整 DNS-rebinding floor 仍待所有者决定。证据 [v2-browser-url-floor.json](../../evidence/v2-browser-url-floor.json)。
 
 ---
 

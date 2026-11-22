@@ -1,0 +1,48 @@
+{
+  "schema": 1,
+  "date": "2026-11-23",
+  "batch": "K13.browser_url_floor",
+  "requirement": "K13",
+  "status": "implemented_scoped_passed_partial_policy",
+  "base_commit": "0793f2543f1b2bb94e960d171747fbf08bc11b84",
+  "branch": "k18-read-cache",
+  "implements_gap": "D9 browser SSRF/IMDS floor, conservative subset (i + iv) from the decision register: cloud metadata / link-local are refused unconditionally at navigation (IP literals, metadata aliases, 100.100.100.200, fd00:ec2::254, bounded DNS check) and every http(s) request (redirects and subresources) is aborted by page.route; the landed URL is re-checked. Loopback/RFC1918 deliberately stay allowed (V2 UI/local fixtures); the private-network policy (ii/iii) and a full DNS-rebinding floor for subresources remain owner decisions",
+  "sources": {
+    "agent/src/omni/adapters/workers/main.py": "97d62cfa83786d646f122331d7ca77eff63ef8d8feb5ce3853a3bbe2368e129e",
+    "agent/tests/v2/core/test_v2_browser_url_floor.py": "542df2c16646d7ebe84f0f5015751df0506e9770a77cc3558212f07fe4768ee8"
+  },
+  "change": [
+    "main.py: METADATA_HOSTS (metadata.google.internal/metadata.goog/instance-data/instance-data.ec2.internal), METADATA_IPS (100.100.100.200, fd00:ec2::254), _blocked_host (lowercase, trailing dot, bracketed IPv6, zone id, ipaddress.is_link_local), _blocked_url (http/https only; data/blob/about untouched), _blocked_navigation (bounded 1.5s getaddrinfo so a hostname resolving to link-local is refused)",
+    "browser_navigate: blocked literal/alias/DNS target raises before effects.dispatched (ERROR/NONE invalid_capability_request); after goto the landed page.url is re-checked; results carry blocked_requests",
+    "page.route('**/*') guard installed per agent page: any blocked http(s) request is aborted and counted, including redirect targets and subresources; non-http(s) schemes continue",
+    "no new table/migration/route/worker protocol frame/shared port signature; no new dependency"
+  ],
+  "validation": {
+    "mode": "scoped_implementation",
+    "new_test_file": "agent/tests/v2/core/test_v2_browser_url_floor.py",
+    "new_nodes": 16,
+    "new_tests": "helper floor over metadata literals/aliases/zone ids; loopback/private/public/data/blob allowed; navigation to 169.254.169.254/[fe80::1]/metadata.google.internal/100.100.100.200 refused before dispatch; loopback fixture still navigates with blocked_requests=0; metadata script subresource aborted while the page still loads (blocked_requests=1); redirect to metadata aborted (UNKNOWN, no metadata body); same-origin subresource still fetched",
+    "scoped_suite": {"command": "uv run --no-sync pytest -q -n 0 agent/tests/v2/core/test_v2_browser_url_floor.py", "passed": 16, "failed": 0, "seconds": 6.72},
+    "backout_probe": {"method": "_blocked_host temporarily forced to False, then restored", "result": "10 failed + 1 error (metadata navigation attempted and timed out), 6 passed (allowed-path tests); restored source 16/16 passed, no probe markers left"},
+    "caller_suite": {
+      "command": "uv run --no-sync pytest -q -n 0 test_v2_browser_dialog.py test_v2_worker_safety.py test_v2_workers.py test_v2_capabilities.py",
+      "passed": 52,
+      "failed": 0,
+      "seconds": 97.38
+    },
+    "strict": {"config": "pyrightconfig.strict.json (worktree root)", "errors": 0, "warnings": 0},
+    "ruff": "check pass and format --check pass after formatting the new test's long tuple (source unchanged by formatting)",
+    "full_suite_executed": false,
+    "real_network_acceptance_executed": false
+  },
+  "not_executed": [
+    "private-network default policy (D9 option ii/iii) and owner-visible settings",
+    "full DNS-rebinding floor for subresources (only literals/aliases are checked per request; navigation does a bounded DNS check)",
+    "WebSocket request interception (Playwright page.route covers http(s); ws:// subprotocol may need route_web_socket)",
+    "real Bilibili/desktop websites; full offline suite; 72h soak"
+  ],
+  "next": "Owner decides the private-network policy to finish D9 (metadata/link-local are closed). D1/D4-D7 and the remaining K13 residuals stay decision-gated; D8 is implemented. whole_* flags stay false",
+  "whole_core_parity_complete": false,
+  "whole_reference_feature_audit_complete": false,
+  "whole_v2_complete": false
+}
