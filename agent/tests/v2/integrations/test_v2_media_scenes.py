@@ -531,3 +531,49 @@ def test_worker_scenes_keeps_one_second_montage_cuts(tmp_path):
     assert result["frame_count"] == 6
     assert len(result["scene_cuts"]) >= 5
     assert result["timestamps"] == sorted(result["timestamps"])
+
+
+def test_scene_cuts_gain_lifts_dark_isolated_cut_and_keeps_noise_down():
+    times = [0.5, 1.0, 1.5, 2.0, 2.5]
+    dark_cut = [0.0, 10.3, 0.0, 0.0, 0.0]
+    assert scene_cuts(times, dark_cut) == []
+    assert scene_cuts(times, dark_cut, [20.0] * 5) == [1.0]
+    dark_noise = [0.0, 13.0, 12.3, 0.0, 0.0]
+    assert scene_cuts(times, dark_noise, [20.0] * 5) == []
+
+
+def _make_very_dark_cut_video(path: Path, *, fps: int = 25, size=(64, 48)) -> Path:
+    import av
+    from PIL import Image
+
+    container = av.open(str(path), mode="w")
+    try:
+        stream = container.add_stream("mpeg4", rate=fps)
+        stream.width, stream.height = size
+        stream.pix_fmt = "yuv420p"
+        for index in range(8 * fps):
+            color = (8, 8, 16) if index / fps < 4 else (18, 18, 36)
+            frame = av.VideoFrame.from_image(Image.new("RGB", size, color))
+            for packet in stream.encode(frame):
+                container.mux(packet)
+        for packet in stream.encode():
+            container.mux(packet)
+    finally:
+        container.close()
+    return path
+
+
+def test_worker_scenes_gain_detects_very_dark_cut(tmp_path):
+    video = _make_very_dark_cut_video(tmp_path / "very-dark.mp4")
+    result = worker._frames(
+        {
+            "video": str(video),
+            "sheet_output": str(tmp_path / "very-dark.png"),
+            "count": 2,
+            "width": 320,
+            "select": "scenes",
+        }
+    )
+    assert result["frame_count"] == 2
+    assert len(result["scene_cuts"]) == 1 and 3.5 < result["scene_cuts"][0] < 4.8
+    assert result["timestamps"] == sorted(result["timestamps"])

@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`0c2c9076b9ced11121bf932d187a028d63bb7ee76df78d992a79829c5997069d`。包含 65 个职责模块、849 个源码/界面文件。
+源码指纹：`6bb696a9e3ffd2e4826cdadd21b980780520012bd7a3a43371db10ae7c710079`。包含 65 个职责模块、849 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -45,7 +45,7 @@
 | [agent/src/omni/domain/local_vectors.py](../../agent/src/omni/domain/local_vectors.py) | 156 | Local embedding bundle and bounded transport contracts; no files, model imports or I/O. |
 | [agent/src/omni/domain/maintenance.py](../../agent/src/omni/domain/maintenance.py) | 115 | Bounded local maintenance requests, ownership claims and lease times; no ORM, I/O or execution. |
 | [agent/src/omni/domain/mcp.py](../../agent/src/omni/domain/mcp.py) | 419 | External MCP transport identity, catalog fingerprints and bounded model text; performs no I/O. |
-| [agent/src/omni/domain/media.py](../../agent/src/omni/domain/media.py) | 508 | Bounded media sources, transcripts and frame sheets; timestamps are anchors, never guesses. |
+| [agent/src/omni/domain/media.py](../../agent/src/omni/domain/media.py) | 518 | Bounded media sources, transcripts and frame sheets; timestamps are anchors, never guesses. |
 | [agent/src/omni/domain/media_locate.py](../../agent/src/omni/domain/media_locate.py) | 104 | Bounded transcript locate rules; pure logic, no I/O. Anchors come from the source transcript, never guessed. |
 | [agent/src/omni/domain/memory_decay.py](../../agent/src/omni/domain/memory_decay.py) | 83 | Pure memory decay/consolidation rules: retention scoring, clarity steps and catch-up; no I/O. |
 | [agent/src/omni/domain/memory_organization.py](../../agent/src/omni/domain/memory_organization.py) | 118 | Bounded exact-fact organization requests and owner decisions; no memory writes, model calls or I/O. |

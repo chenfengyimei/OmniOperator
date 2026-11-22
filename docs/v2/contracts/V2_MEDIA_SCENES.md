@@ -1,6 +1,6 @@
 # V2 媒体场景切点抽帧与清晰度选帧（K16.scene_frames）
 
-状态：已实现并专项通过（2026-11-20）；2026-11-22 增补场景渐变合并（K16.scene_gradual）、黑边补偿（K16.scene_bars）与邻域尖峰守卫（K16.scene_spike），固定素材复核见证据。学习参考 dsh-video-storyboard `src/storyboard/scan.js`（HSV 加权切点，PySceneDetect ContentDetector 思路）与 `frames.js extractSharpest`（Laplacian 清晰度选帧），独立实现于 V2 四层媒体链，不复用 V1 tools/storyboard。合并实现 K16 缺口 #1（HSV 切点+密度分段）与 #5（Laplacian 清晰度选帧）的**保守子集**。
+状态：已实现并专项通过（2026-11-20）；2026-11-22 增补场景渐变合并（K16.scene_gradual）、黑边补偿（K16.scene_bars）、邻域尖峰守卫（K16.scene_spike）与暗部增益（K16.scene_gain），固定素材复核见证据。学习参考 dsh-video-storyboard `src/storyboard/scan.js`（HSV 加权切点，PySceneDetect ContentDetector 思路）与 `frames.js extractSharpest`（Laplacian 清晰度选帧），独立实现于 V2 四层媒体链，不复用 V1 tools/storyboard。合并实现 K16 缺口 #1（HSV 切点+密度分段）与 #5（Laplacian 清晰度选帧）的**保守子集**。
 
 ## 范围
 
@@ -73,3 +73,16 @@ frames 作业新增可选 `select="scenes"`（默认 `equidistant` 字节等价�
 - 结果：暗噪声假切点 2→0；1s 蒙太奇保留 ≥5 个切点；三色基线、2s 渐隐、黑边 bars0/12/16/20、0.2s 快剪、全黑源等既有 25 项不变；`brightness=None` 仍与旧实现逐字节等价。
 
 **边界**：连续高变化（<0.5s 快剪或强运动）可能被整体抑制为无切点（2fps 采样限制）；极暗 cut（分数 10.3）仍低于固定阈值，需要亮度增益另批；不是参考 auto/auto-low 分位阈值；真实长片未验。
+
+
+## K16.scene_gain（暗部亮度增益，2026-11-22）
+
+**固定素材失败**：极暗 hard cut `(8,8,16)→(18,18,36)` 的 HSV 分数 10.3，低于固定阈值 12，全幅与无黑边素材均漏检；同一素材在暗噪声 ±8 下已被尖峰守卫压掉，说明增益必须与尖峰守卫联合使用。
+
+**最小可验批次**：
+
+- `domain/media.py` 新增 `SCENE_GAIN_REF_V=160.0`/`SCENE_GAIN_MAX=3.0`；`scene_cuts` 在提供亮度时，对每个相邻样本对按 `mean(V)` 计算 `gain=clamp(160/mean(V),1,3)`，以 `score*gain` 作为阈值/渐变/尖峰判断的有效分数；输出时间点不变。
+- 顺序保持：增益 → 阈值 → 渐变合并（trusted）→ 尖峰守卫 → minGap；`brightness=None` 仍与旧实现逐字节等价。
+- 结果：极暗 cut 由 0→1（4.24s）；暗噪声 ±8 仍 0 假切点；三色基线、2s 渐隐、bars0/12/16/20、0.2s 快剪、1s 蒙太奇、全黑源既有 27 项不变。
+
+**边界**：增益上限 3（更暗场景不再提升）；真实暗部噪声/压缩伪影可能被放大后仍靠尖峰守卫压制，但合成素材覆盖有限；不是参考 auto/auto-low 分位阈值；真实长片、真实 B 站来源与 OCR 未验。

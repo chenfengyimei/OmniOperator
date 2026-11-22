@@ -93,6 +93,8 @@ SCENE_BAR_LIMIT = 0.4
 SCENE_SPIKE_RADIUS = 1
 SCENE_SPIKE_FACTOR = 2.0
 SCENE_SPIKE_MARGIN = 3.0
+SCENE_GAIN_REF_V = 160.0
+SCENE_GAIN_MAX = 3.0
 
 
 def scene_sample_count(duration: float) -> int:
@@ -133,15 +135,23 @@ def scene_cuts(
     scores[i] (i>=1) compares sample i-1 with i; scores[0] is unused. Cuts closer than
     SCENE_MIN_GAP_S keep the higher-scoring one (conservative suppression, no adaptive quantiles).
 
-    When per-sample brightness is supplied, a run of consecutive over-threshold samples whose
-    brightness changes monotonically for at least SCENE_GRADUAL_WINDOW_S is one gradual
-    transition: it collapses to a single cut at the run midpoint instead of one cut per sample.
-    Without brightness the historical fixed-threshold output is preserved byte for byte.
+    When per-sample brightness is supplied, dark pairs are gain-normalised toward
+    SCENE_GAIN_REF_V (capped at SCENE_GAIN_MAX) before thresholding, so low-light cuts are not
+    lost to the absolute scale. A run of consecutive over-threshold samples whose brightness
+    changes monotonically for at least SCENE_GRADUAL_WINDOW_S is one gradual transition: it
+    collapses to a single cut at the run midpoint. Without brightness the historical
+    fixed-threshold output is preserved byte for byte.
     """
+    effective = list(scores)
+    if brightness is not None and len(brightness) >= len(times):
+        for index in range(1, min(len(effective), len(brightness))):
+            pair = (brightness[index - 1] + brightness[index]) / 2.0
+            gain = min(SCENE_GAIN_MAX, max(1.0, SCENE_GAIN_REF_V / max(1.0, pair)))
+            effective[index] = scores[index] * gain
     candidates = [
-        (index, times[index], scores[index])
-        for index in range(1, min(len(times), len(scores)))
-        if scores[index] >= SCENE_CUT_THRESHOLD
+        (index, times[index], effective[index])
+        for index in range(1, min(len(times), len(effective)))
+        if effective[index] >= SCENE_CUT_THRESHOLD
     ]
     if not candidates:
         return []
@@ -159,7 +169,7 @@ def scene_cuts(
         if run:
             marked.extend(_scene_run_moments(run, times, brightness))
         for index, moment, score, trusted in marked:
-            if trusted or _scene_spike(scores, index):
+            if trusted or _scene_spike(effective, index):
                 moments.append((moment, score))
     suppressed: list[tuple[float, float]] = []
     for moment, score in moments:
