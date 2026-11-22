@@ -31,7 +31,7 @@
 - **需决定**：沙箱边界（子进程 + RPC vs 进程内）、持久 kernel 的归属与生命周期（agent/run/session，重启恢复？）、可调工具允许清单与写动作是否复用既有 `action_review` 审批、跨平台实现（builtin worker 还是本地 Python）、unknown/取消/崩溃结算、资源上限（CPU/内存/磁盘/时长）。
 - **安全/授权面**：**新增任意代码执行面**，可绕开既有工具 schema/审批；须独立安全合同（禁止继承运行中凭据/环境、显式允许清单、默认 OFF、逐次审批或预算）。属最高风险项。
 - **验证要求**：离线沙箱逃逸负例（读宿主环境/凭据/文件系统）、允许清单越权、审批门 approved/denied/revoked/expired、调用/时长预算、unknown 不重放、取消与孤儿进程回收、与 K05 并行/资源锁交互、strict/架构守卫。
-- **依赖**：所有者安全批准；可能需要新 worker 协议 → A 协调。**独立批次，先合同后实现。**
+- **依赖**：所有者安全批准；可能需要新 worker 协议 → A 协调；设计合同 [V2_CODE_SANDBOX](V2_CODE_SANDBOX.md) 已记录 S1 不移植（推荐先明确边界）/S2 受限计算沙箱（无 RPC、无写、临时 cwd+env 清洗、非安全边界声明，次推荐）/S3 完整 PTC（只读 RPC+持久 kernel，需 A 协议协调）/S4 远程容器另立合同，并明确 terminal/写工具不桥接。**未实现。** **独立批次，先合同后实现。**
 
 ## D3（K13）原始 CDP / 脚本化浏览器执行（browser_cdp / browser_exec）
 
@@ -40,7 +40,7 @@
 - **需决定**：是否开放原始 CDP（可绕 URL 审批/读任意页面）；专用 agent 浏览器是否暴露 debug URL、如何注入；帧路由与 target 白名单；脚本能力边界（禁止未审批导航/下载/凭据访问）、审计与回放、超时与输出上限。
 - **安全/授权面**：原始 CDP 等于浏览器全权，需合同定义「仅已审 URL + 只读方法白名单」或整体默认为所有者显式启用；与 SSRF/IMDS floor 关系。
 - **验证要求**：负例（未审批 URL、越权 CDP method、跨 OOPIF 越界）、审计事件、与既有 browser 审批/worker 协议零回归、真实 Chromium 另验。
-- **依赖**：所有者安全批准 + 真实 Chromium 环境；可能触 worker 协议 → A 协调。
+- **依赖**：所有者安全批准 + 真实 Chromium 环境；可能触 worker 协议 → A 协调；设计合同 [V2_BROWSER_CDP](V2_BROWSER_CDP.md) 已记录 C1 不移植（推荐）/C2 声明式多步浏览器计划（≤20 步、逐步 expected_url CAS、单次审批，复用现有实现）/C3 只读 CDP 白名单（需 D9 先落地 + A 协议协调）/C4 完整 browser_exec **拒绝**；共同前提 D9 SSRF/IMDS floor 先实现、不得读取凭据。**未实现。**
 
 ## D4（K18）写扩面（fav / dynamic / comment-del；danmaku-send 归 D7 直播）
 

@@ -94,8 +94,8 @@ V2 模型侧工具面（生产 `capabilities is None`）：`system_info`、`file
 2. **模糊补丁：已交付**——`files_patch` 指纹 CAS 模糊编辑 + escape/unicode 归一化 + block_anchor/context_aware 近似兜底（近似命中永不许 `replace_all`），见 `V2_FILES_PATCH*.md` 系列与证据。
 3. **浏览器对话框：已交付**——`7827b664`（有界持有队列，accept/dismiss + `prompt_text` + `expected_url` CAS）。
 4. **cron 技能绑定 + 输出依赖：已交付**——`1d52cca1`（v0049 两表一列）、`a3436361`（触发链技能激活/上游输出注入/Redactor 脱敏）、`4acc46c9`（`cronjob_manage` 六动作）、`42cf2e98`（生产端到端四批完结）。
-5. **工具调用代码沙箱：未实现（决策待定）**——见 [剩余差异决策登记](V2_REMAINING_DECISIONS.md) D2（新执行面，需独立安全合同）。
-6. **原始 CDP / 脚本化浏览器执行：未实现（决策待定）**——见决策登记 D3（可绕 URL 审批，需合同）。
+5. **工具调用代码沙箱：未实现（决策待定）**——见决策登记 D2 与设计合同 [V2_CODE_SANDBOX](V2_CODE_SANDBOX.md)（S1 不移植推荐先明确边界 / S2 受限计算沙箱 / S3 完整 PTC 需 A 协议 / S4 远程容器另立；非安全边界声明；写/terminal 不桥接）。
+6. **原始 CDP / 脚本化浏览器执行：未实现（决策待定）**——见决策登记 D3 与设计合同 [V2_BROWSER_CDP](V2_BROWSER_CDP.md)（C1 不移植推荐 / C2 声明式多步计划 / C3 只读 CDP 白名单需 D9+A / C4 完整 browser_exec 拒绝；D9 floor 为前置）。
 
 2026-11-22 交付核对与两项残留（本批只读核对，无源码改动）：
 
