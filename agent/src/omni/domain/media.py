@@ -85,25 +85,73 @@ SCENE_MIN_GAP_S = 0.35
 SCENE_SAMPLE_FPS = 2.0
 SCENE_MAX_SAMPLES = 240
 SCENE_ANALYSIS_WIDTH = 64
+SCENE_GRADUAL_WINDOW_S = 0.4
+SCENE_GRADUAL_TOLERANCE = 1.0
 
 
-def scene_cuts(times: Sequence[float], scores: Sequence[float]) -> list[float]:
+def scene_sample_count(duration: float) -> int:
+    """Bounded number of seek samples for a source, independent of frame count."""
+    return min(SCENE_MAX_SAMPLES, max(2, int(duration * SCENE_SAMPLE_FPS)))
+
+
+def _gradual(values: Sequence[float]) -> bool:
+    if len(values) < 2 or abs(values[-1] - values[0]) <= SCENE_GRADUAL_TOLERANCE:
+        return False
+    return all(b - a >= -SCENE_GRADUAL_TOLERANCE for a, b in zip(values, values[1:])) or all(
+        b - a <= SCENE_GRADUAL_TOLERANCE for a, b in zip(values, values[1:])
+    )
+
+
+def scene_cuts(
+    times: Sequence[float], scores: Sequence[float], brightness: Sequence[float] | None = None
+) -> list[float]:
     """Cut times where the consecutive-sample HSV score crosses the fixed threshold.
 
     scores[i] (i>=1) compares sample i-1 with i; scores[0] is unused. Cuts closer than
     SCENE_MIN_GAP_S keep the higher-scoring one (conservative suppression, no adaptive quantiles).
+
+    When per-sample brightness is supplied, a run of consecutive over-threshold samples whose
+    brightness changes monotonically for at least SCENE_GRADUAL_WINDOW_S is one gradual
+    transition: it collapses to a single cut at the run midpoint instead of one cut per sample.
+    Without brightness the historical fixed-threshold output is preserved byte for byte.
     """
-    cuts: list[tuple[float, float]] = []
-    for index in range(1, min(len(times), len(scores))):
-        if scores[index] < SCENE_CUT_THRESHOLD:
+    candidates = [
+        (index, times[index], scores[index])
+        for index in range(1, min(len(times), len(scores)))
+        if scores[index] >= SCENE_CUT_THRESHOLD
+    ]
+    if not candidates:
+        return []
+    moments: list[tuple[float, float]] = []
+    if brightness is None or len(brightness) < len(times):
+        moments = [(moment, score) for _, moment, score in candidates]
+    else:
+        run: list[tuple[int, float, float]] = []
+        for candidate in candidates:
+            if run and candidate[0] != run[-1][0] + 1:
+                moments.extend(_scene_run_moments(run, times, brightness))
+                run = []
+            run.append(candidate)
+        if run:
+            moments.extend(_scene_run_moments(run, times, brightness))
+    suppressed: list[tuple[float, float]] = []
+    for moment, score in moments:
+        if suppressed and moment - suppressed[-1][0] < SCENE_MIN_GAP_S:
+            if score > suppressed[-1][1]:
+                suppressed[-1] = (moment, score)
             continue
-        moment = times[index]
-        if cuts and moment - cuts[-1][0] < SCENE_MIN_GAP_S:
-            if scores[index] > cuts[-1][1]:
-                cuts[-1] = (moment, scores[index])
-            continue
-        cuts.append((moment, scores[index]))
-    return [moment for moment, _ in cuts]
+        suppressed.append((moment, score))
+    return [moment for moment, _ in suppressed]
+
+
+def _scene_run_moments(
+    run: Sequence[tuple[int, float, float]], times: Sequence[float], brightness: Sequence[float]
+) -> list[tuple[float, float]]:
+    values = [brightness[index] for index, _, _ in run]
+    span = times[run[-1][0]] - times[run[0][0]]
+    if len(run) >= 2 and span >= SCENE_GRADUAL_WINDOW_S and _gradual(values):
+        return [((times[run[0][0]] + times[run[-1][0]]) / 2.0, max(score for _, _, score in run))]
+    return [(moment, score) for _, moment, score in run]
 
 
 def scene_segments(cuts: Sequence[float], duration: float) -> list[tuple[float, float]]:

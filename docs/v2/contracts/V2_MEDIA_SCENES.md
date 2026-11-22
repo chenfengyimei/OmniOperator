@@ -1,6 +1,6 @@
 # V2 媒体场景切点抽帧与清晰度选帧（K16.scene_frames）
 
-状态：已实现并专项通过（2026-11-20）。学习参考 dsh-video-storyboard `src/storyboard/scan.js`（HSV 加权切点，PySceneDetect ContentDetector 思路）与 `frames.js extractSharpest`（Laplacian 清晰度选帧），独立实现于 V2 四层媒体链，不复用 V1 tools/storyboard。合并实现 K16 缺口 #1（HSV 切点+密度分段）与 #5（Laplacian 清晰度选帧）的**保守子集**。
+状态：已实现并专项通过（2026-11-20）；2026-11-22 增补场景渐变合并（K16.scene_gradual），固定素材复核见证据。学习参考 dsh-video-storyboard `src/storyboard/scan.js`（HSV 加权切点，PySceneDetect ContentDetector 思路）与 `frames.js extractSharpest`（Laplacian 清晰度选帧），独立实现于 V2 四层媒体链，不复用 V1 tools/storyboard。合并实现 K16 缺口 #1（HSV 切点+密度分段）与 #5（Laplacian 清晰度选帧）的**保守子集**。
 
 ## 范围
 
@@ -31,4 +31,18 @@ frames 作业新增可选 `select="scenes"`（默认 `equidistant` 字节等价�
 
 ## 明确不做
 
-参考自适应分位数阈值（auto/auto-low）/REF_V 亮度增益/黑边补偿/自适应 minGap/快剪事件合并；自适应宫格/DP 打包（需独立设计合同）；模型侧自动 zoom（K16.zoom_model_design 待所有者批准协议选型）；帧内 OCR（需 rapidocr）；真实长片切点质量/耗时内存另验。
+参考自适应分位数阈值（auto/auto-low）/REF_V 亮度增益/黑边补偿/自适应 minGap（渐变合并已实现，见下）；快剪事件合并；自适应宫格/DP 打包（需独立设计合同）；模型侧自动 zoom（K16.zoom_model_design 待所有者批准协议选型）；帧内 OCR（需 rapidocr）；真实长片切点质量/耗时内存另验。
+
+## K16.scene_gradual（自适应渐变合并，2026-11-22）
+
+**固定阈值的具体失败（固定合成素材，8s/25fps/64×48/2fps 采样）**：2s 0→255 渐隐的逐样本 HSV 分数为 18.3/28.0/23.0/22.0/11.0，固定阈值 12 + minGap 0.35 输出 4 个切点（3.24/3.76/4.24/4.76），把一个渐变拆成 4 段；基线三色场景（2 切点）、±12 逐帧噪声（最高 8，0 切点）、0.2s 快剪（1 切点）证明旧规则在这三类上无误判。
+
+**最小可验批次**：
+
+- `domain/media.py` 抽出 `scene_sample_count(duration)`（`min(240,max(2,int(duration*2)))`），worker 复用；600s/7200s→240、0.4s→2 可单测。
+- `scene_cuts(times, scores, brightness=None)`：提供逐样本亮度时，把**连续超阈值样本**中亮度**单调变化**、跨度 ≥`SCENE_GRADUAL_WINDOW_S=0.4` 的运行合并为单一中点切点（分数取运行最大）；亮度首末差 ≤`SCENE_GRADUAL_TOLERANCE=1` 或非单调不合并；`brightness=None` 时输出与旧实现逐字节一致（既有 14 项零回归）。
+- worker `_scene_targets` 记录每样本 HSV V 均值并传入；seek/Laplacian 选帧/宫格/像素字节限额/取消删除语义全部不变。
+
+**验证**：渐变素材切点 4→1（≈4.0s），锚点仍来自真实解码帧且跨越切点两侧；三色基线仍 2 切点；噪声、无切点等距回退、0.2s 快剪（≤1 切点）有界；取消→删除后无帧行；工具图像预算与 frames/zoom/cells 调用方回归。固定素材指纹见证据（两次生成 SHA-256 一致）。
+
+**边界**：2fps 采样（<0.5s 快剪不可分辨，合并为一个切点）；亮度单调的快速蒙太奇可能被误合并（保守性低于参考逐帧 0.4s lag 渐变检测）；不含参考 auto/auto-low 分位数阈值、亮度增益、黑边补偿、DP 宫格（仍需独立合同）；真实长片切点质量/耗时内存与帧内 OCR 未验。

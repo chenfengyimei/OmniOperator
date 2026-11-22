@@ -603,9 +603,17 @@
           "contract": "docs/v2/contracts/V2_TOOL_IMAGE_PROTOCOL.md#d9-worker-ipc-图像字段缺陷修复-fixworker_image_wire",
           "evidence": "docs/evidence/v2-worker-image-wire.json",
           "delivered": "K16 1b 给 ActionResult 增加 images 后，worker 响应 asdict 多出 images 键，而 workers/protocol.py RESULT_FIELDS 仍是旧精确键集，action() 对所有 worker 结果抛 IPC result fields do not match，父进程降级 worker_disconnected/UNKNOWN；Android/B站网关/扩展宿主/内置 files/shell/媒体 worker/终端在 1b 后实际不可用。修复：RESULT_FIELDS 保持基础键集 + OPTIONAL_RESULT_FIELDS={'images'}，旧帧省略仍合法；新增 images() 严格校验 list/≤MAX_IMAGES/六字段 ImageRef 并透传；引擎仍只经 model_images_prepare/DB 触发器核验对象与预算。新增 round-trip/legacy 省略/畸形超限参数化回归；worker 安全 39/39、worker 安全+扩展宿主+B站网关 58/58、18b75b75 基线 125 失败精确重跑后 67 项转绿；strict 424 文件 0 错误 0 警告、ruff 净。剩余 58 项为独立债务/环境，见 C0 基线证据。"
+        },
+        {
+          "gap": "#1 自适应分段：固定阈值把渐变拆成多个切点（保守子集补渐变合并）",
+          "status": "implemented_scoped_passed",
+          "batch": "K16.scene_gradual",
+          "contract": "docs/v2/contracts/V2_MEDIA_SCENES.md",
+          "evidence": "docs/evidence/v2-media-scenes-gradual.json",
+          "delivered": "固定合成素材复核定位固定阈值失败：2s 0→255 渐隐在 2fps 采样下分数 18.3/28/23/22，旧规则输出 4 切点（3.24/3.76/4.24/4.76），把渐变拆成 4 段。新增 scene_sample_count 与 scene_cuts(times,scores,brightness=None)：连续超阈值样本中亮度单调、跨度>=0.4s、首末差>1 的运行合并为单一中点切点；brightness=None 输出与旧实现逐字节一致；worker _scene_targets 传每样本 HSV V 均值。验证：渐变 4→1（约 4.0s），三色基线仍 2，±12 噪声 0，无切点等距回退，0.2s 快剪 <=1，锚点来自真实解码帧且跨切点；取消→删除后无帧行；scenes 19 过 111.00 秒、frames/scene 调用方 186 过 54.14 秒、zoom/图像预算/media/结构 95 过 168.97 秒；strict 428 文件 0 错误；索引 65/849/464/94。"
         }
       ],
-      "limits": "只读审计无新工具/表/迁移/路由/源码改动；可离线缺口未在K16审计批实现(列后续批次)，其中缺口#4转录定位已在K16.locate后续批实现、缺口#2格号可寻址索引模型侧读面已在K16.cell_anchor后续批实现(只读派生既有帧表亚秒timestamps非新持久化层)、缺口#3局部zoom所有者侧显式时间戳高清重取作业基础已在K16.zoom_foundation后续批实现(frames作业可选timestamps复用既有管线非新表/操作/模型工具，模型侧自动zoom需action_review授权+ImageService图像可见设计合同——该实现前设计合同已记录于K16.zoom_model_design批(方案A/B工具结果图像可见协议+写工具审批门复用+frames timestamps作业复用)，所有者已于2026-11-21批准方案B，独立实现合同已记录于K16.tool_image_protocol批(勘定证伪草案持久层无需改前提：工具转录仅存内存+账本message_id非空FK+冻结触发器链)，所有者已批准D5，1a持久化批K16.tool_image_persistence已落地(v0050账本重建message_id可空+scope双分支message分支原SQL逐字保留+run终态释放触发器+prepare tool分支,5专项回退4/5红+147调用方零回归+strict418文件0错误)，1b协议+引擎批K16.tool_image_engine已落地(ImageInfo等移入contracts+ImageRef+ActionResult.images+references role标签与tool分支+引擎两site附着helper全局最后限额降级+压缩摘要图像标记,10专项回退7/10红+83调用方终源零回归+strict418文件0错误)，2 media_zoom批K16.tool_image_zoom已落地(ZOOM_SPEC writes=True审批门复用+frames作业复用zoom_foundation无新表/操作+cell经media_cells锚映射+media_frames_for_job按job_id唯一取帧+ImageService.prepare注册+ActionResult.images同回合可见+composition生产档capabilities is None门控+routing writes自动排除,17专项回退14/17红+838调用方distinct零回归(5既有红git diff实证非本批)+strict418文件0错误)，3端到端批K16.tool_image_e2e已落地(生产open_instance全链安全矩阵9例:审批拒绝/撤销/过期不提交作业+owner取消等待真实清理+凭据revision CAS+源身份CAS+删除屏障+未知不重放+上传源同回合可见账本终态释放,零生产源码改动,回退9/9红+191调用方distinct零回归+strict418文件0错误)，K16缺口#3四批完结，HSV#1/Laplacian#5已在K16.scene_frames后续批实现(select=scenes保守子集：固定阈值12+minGap0.35+比例密度分配+Laplacian方差选锐，自适应分位数阈值/亮度增益/黑边补偿仍后续)、OCR仍后续)；V1 tools/storyboard学习实现不计V2对等；不宣称五工具/算法全集对等；未引入OCR模型依赖；既有todos重启竞态与5个pin v2_0039旧迁移测试沿用保留",
+      "limits": "只读审计无新工具/表/迁移/路由/源码改动；可离线缺口未在K16审计批实现(列后续批次)，其中缺口#4转录定位已在K16.locate后续批实现、缺口#2格号可寻址索引模型侧读面已在K16.cell_anchor后续批实现(只读派生既有帧表亚秒timestamps非新持久化层)、缺口#3局部zoom所有者侧显式时间戳高清重取作业基础已在K16.zoom_foundation后续批实现(frames作业可选timestamps复用既有管线非新表/操作/模型工具，模型侧自动zoom需action_review授权+ImageService图像可见设计合同——该实现前设计合同已记录于K16.zoom_model_design批(方案A/B工具结果图像可见协议+写工具审批门复用+frames timestamps作业复用)，所有者已于2026-11-21批准方案B，独立实现合同已记录于K16.tool_image_protocol批(勘定证伪草案持久层无需改前提：工具转录仅存内存+账本message_id非空FK+冻结触发器链)，所有者已批准D5，1a持久化批K16.tool_image_persistence已落地(v0050账本重建message_id可空+scope双分支message分支原SQL逐字保留+run终态释放触发器+prepare tool分支,5专项回退4/5红+147调用方零回归+strict418文件0错误)，1b协议+引擎批K16.tool_image_engine已落地(ImageInfo等移入contracts+ImageRef+ActionResult.images+references role标签与tool分支+引擎两site附着helper全局最后限额降级+压缩摘要图像标记,10专项回退7/10红+83调用方终源零回归+strict418文件0错误)，2 media_zoom批K16.tool_image_zoom已落地(ZOOM_SPEC writes=True审批门复用+frames作业复用zoom_foundation无新表/操作+cell经media_cells锚映射+media_frames_for_job按job_id唯一取帧+ImageService.prepare注册+ActionResult.images同回合可见+composition生产档capabilities is None门控+routing writes自动排除,17专项回退14/17红+838调用方distinct零回归(5既有红git diff实证非本批)+strict418文件0错误)，3端到端批K16.tool_image_e2e已落地(生产open_instance全链安全矩阵9例:审批拒绝/撤销/过期不提交作业+owner取消等待真实清理+凭据revision CAS+源身份CAS+删除屏障+未知不重放+上传源同回合可见账本终态释放,零生产源码改动,回退9/9红+191调用方distinct零回归+strict418文件0错误)，K16缺口#3四批完结，HSV#1/Laplacian#5已在K16.scene_frames后续批实现(select=scenes保守子集：固定阈值12+minGap0.35+比例密度分配+Laplacian方差选锐，自适应分位数阈值/亮度增益/黑边补偿仍后续)、OCR仍后续)；V1 tools/storyboard学习实现不计V2对等；不宣称五工具/算法全集对等；未引入OCR模型依赖；既有todos重启竞态与5个pin v2_0039旧迁移测试沿用保留；K16.scene_gradual 已用固定素材补渐变合并（固定阈值误拆渐变），auto/auto-low 分位阈值、亮度增益/黑边补偿、DP 宫格、真实长片质量与 OCR 仍未验。",
       "next": false
     },
     {
@@ -1102,6 +1110,10 @@
     {
       "id": "K17.persona_growth_batch3",
       "evidence": "docs/evidence/v2-persona-growth-batch3.json"
+    },
+    {
+      "id": "K16.scene_gradual",
+      "evidence": "docs/evidence/v2-media-scenes-gradual.json"
     }
   ]
 }

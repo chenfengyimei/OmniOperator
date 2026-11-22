@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "ac342eb21f687a02145bd15d693c998556ac725614cb7689a2dd0d2db7c14708",
+  "source_sha256": "b16bd58c11bc1bd5c7128c6334ef299ea4b4cbe690a6c6c0ea87fcaab5fa6b8c",
   "modules": [
     {
       "id": "v2-domain",
@@ -95,7 +95,7 @@
         "agent/src/omni/domain/turn_prompt.py",
         "agent/src/omni/domain/verification_stop.py"
       ],
-      "lines": 13952,
+      "lines": 14000,
       "dependencies": []
     },
     {
@@ -514,7 +514,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 71344,
+      "lines": 71345,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -45620,14 +45620,14 @@
       "path": "agent/src/omni/adapters/workers/media.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.workers.media",
-      "lines": 614,
+      "lines": 615,
       "imports": [
         "omni.domain.media"
       ],
       "symbols": [
         {
           "name": "_fail",
-          "line": 57,
+          "line": 56,
           "kind": "function",
           "parameters": [
             "operation_id",
@@ -45642,7 +45642,7 @@
         },
         {
           "name": "_ok",
-          "line": 67,
+          "line": 66,
           "kind": "function",
           "parameters": [
             "operation_id",
@@ -45655,7 +45655,7 @@
         },
         {
           "name": "_bounded_path",
-          "line": 76,
+          "line": 75,
           "kind": "function",
           "parameters": [
             "value"
@@ -45666,14 +45666,14 @@
         },
         {
           "name": "_probe",
-          "line": 85,
+          "line": 84,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "_decode_audio_16k_mono",
-          "line": 113,
+          "line": 112,
           "kind": "function",
           "parameters": [
             "path"
@@ -45684,7 +45684,7 @@
         },
         {
           "name": "_asr_time",
-          "line": 149,
+          "line": 148,
           "kind": "function",
           "parameters": [
             "value"
@@ -45695,7 +45695,7 @@
         },
         {
           "name": "_transcript_rows",
-          "line": 162,
+          "line": 161,
           "kind": "function",
           "parameters": [
             "segments"
@@ -45706,7 +45706,7 @@
         },
         {
           "name": "_transcribe",
-          "line": 196,
+          "line": 195,
           "kind": "function",
           "parameters": [
             "request"
@@ -45717,7 +45717,7 @@
         },
         {
           "name": "_format_time",
-          "line": 256,
+          "line": 255,
           "kind": "function",
           "parameters": [
             "seconds"
@@ -45728,7 +45728,7 @@
         },
         {
           "name": "_target_times",
-          "line": 261,
+          "line": 260,
           "kind": "function",
           "parameters": [
             "duration_s",
@@ -45741,7 +45741,7 @@
         },
         {
           "name": "_frame_time",
-          "line": 270,
+          "line": 269,
           "kind": "function",
           "parameters": [
             "frame"
@@ -45752,7 +45752,7 @@
         },
         {
           "name": "_video_frames",
-          "line": 285,
+          "line": 284,
           "kind": "function",
           "parameters": [
             "container",
@@ -45765,7 +45765,7 @@
         },
         {
           "name": "_frame_at",
-          "line": 296,
+          "line": 295,
           "kind": "function",
           "parameters": [
             "container",
@@ -45780,7 +45780,7 @@
         },
         {
           "name": "_circular_hue",
-          "line": 312,
+          "line": 311,
           "kind": "function",
           "parameters": [
             "value"
@@ -45791,7 +45791,7 @@
         },
         {
           "name": "_hsv_score",
-          "line": 316,
+          "line": 315,
           "kind": "function",
           "parameters": [
             "prev",
@@ -45804,7 +45804,7 @@
         },
         {
           "name": "_scene_targets",
-          "line": 336,
+          "line": 335,
           "kind": "function",
           "parameters": [
             "container",
@@ -45823,7 +45823,7 @@
         },
         {
           "name": "_sheet_size",
-          "line": 382,
+          "line": 383,
           "kind": "function",
           "parameters": [
             "width",
@@ -45838,12 +45838,12 @@
         },
         {
           "name": "_SheetBuffer",
-          "line": 396,
+          "line": 397,
           "kind": "class"
         },
         {
           "name": "_SheetBuffer.write",
-          "line": 397,
+          "line": 398,
           "kind": "function",
           "parameters": [
             "self",
@@ -45855,7 +45855,7 @@
         },
         {
           "name": "_frames",
-          "line": 404,
+          "line": 405,
           "kind": "function",
           "parameters": [
             "request"
@@ -45866,7 +45866,7 @@
         },
         {
           "name": "_asr_model_missing",
-          "line": 529,
+          "line": 530,
           "kind": "function",
           "parameters": [
             "exc"
@@ -45877,7 +45877,7 @@
         },
         {
           "name": "_handle",
-          "line": 547,
+          "line": 548,
           "kind": "function",
           "parameters": [
             "line"
@@ -45888,7 +45888,7 @@
         },
         {
           "name": "main",
-          "line": 595,
+          "line": 596,
           "kind": "function",
           "parameters": [],
           "annotations": {}
@@ -83944,7 +83944,7 @@
       "path": "agent/src/omni/domain/media.py",
       "module": "v2-domain",
       "python_module": "omni.domain.media",
-      "lines": 424,
+      "lines": 472,
       "imports": [
         "omni.domain.bilibili",
         "omni.domain.contracts",
@@ -84002,21 +84002,60 @@
           }
         },
         {
+          "name": "scene_sample_count",
+          "line": 92,
+          "kind": "function",
+          "parameters": [
+            "duration"
+          ],
+          "annotations": {
+            "duration": "float"
+          }
+        },
+        {
+          "name": "_gradual",
+          "line": 97,
+          "kind": "function",
+          "parameters": [
+            "values"
+          ],
+          "annotations": {
+            "values": "Sequence[float]"
+          }
+        },
+        {
           "name": "scene_cuts",
-          "line": 90,
+          "line": 105,
           "kind": "function",
           "parameters": [
             "times",
-            "scores"
+            "scores",
+            "brightness"
           ],
           "annotations": {
             "times": "Sequence[float]",
-            "scores": "Sequence[float]"
+            "scores": "Sequence[float]",
+            "brightness": "Sequence[float] | None"
+          }
+        },
+        {
+          "name": "_scene_run_moments",
+          "line": 147,
+          "kind": "function",
+          "parameters": [
+            "run",
+            "times",
+            "brightness"
+          ],
+          "annotations": {
+            "run": "Sequence[tuple[int, float, float]]",
+            "times": "Sequence[float]",
+            "brightness": "Sequence[float]"
           }
         },
         {
           "name": "scene_segments",
-          "line": 109,
+          "line": 157,
           "kind": "function",
           "parameters": [
             "cuts",
@@ -84029,7 +84068,7 @@
         },
         {
           "name": "scene_slots",
-          "line": 114,
+          "line": 162,
           "kind": "function",
           "parameters": [
             "segments",
@@ -84042,7 +84081,7 @@
         },
         {
           "name": "asr_plan",
-          "line": 145,
+          "line": 193,
           "kind": "function",
           "parameters": [
             "model",
@@ -84057,7 +84096,7 @@
         },
         {
           "name": "_finite_seconds",
-          "line": 153,
+          "line": 201,
           "kind": "function",
           "parameters": [
             "value",
@@ -84070,7 +84109,7 @@
         },
         {
           "name": "_reject_json_constant",
-          "line": 163,
+          "line": 211,
           "kind": "function",
           "parameters": [
             "_"
@@ -84081,7 +84120,7 @@
         },
         {
           "name": "_json_float",
-          "line": 167,
+          "line": 215,
           "kind": "function",
           "parameters": [
             "value"
@@ -84092,7 +84131,7 @@
         },
         {
           "name": "_json_object",
-          "line": 174,
+          "line": 222,
           "kind": "function",
           "parameters": [
             "pairs"
@@ -84103,7 +84142,7 @@
         },
         {
           "name": "segment_rows",
-          "line": 183,
+          "line": 231,
           "kind": "function",
           "parameters": [
             "segments"
@@ -84114,7 +84153,7 @@
         },
         {
           "name": "subtitle_text",
-          "line": 214,
+          "line": 262,
           "kind": "function",
           "parameters": [
             "value"
@@ -84125,7 +84164,7 @@
         },
         {
           "name": "transcript_payload",
-          "line": 220,
+          "line": 268,
           "kind": "function",
           "parameters": [
             "kind",
@@ -84140,7 +84179,7 @@
         },
         {
           "name": "parse_transcript",
-          "line": 231,
+          "line": 279,
           "kind": "function",
           "parameters": [
             "payload"
@@ -84151,7 +84190,7 @@
         },
         {
           "name": "_stamp",
-          "line": 280,
+          "line": 328,
           "kind": "function",
           "parameters": [
             "seconds"
@@ -84162,7 +84201,7 @@
         },
         {
           "name": "transcript_body",
-          "line": 284,
+          "line": 332,
           "kind": "function",
           "parameters": [
             "kind",
@@ -84175,7 +84214,7 @@
         },
         {
           "name": "transcript_text",
-          "line": 291,
+          "line": 339,
           "kind": "function",
           "parameters": [
             "kind",
@@ -84192,7 +84231,7 @@
         },
         {
           "name": "sheet_result",
-          "line": 303,
+          "line": 351,
           "kind": "function",
           "parameters": [
             "count",
@@ -84213,7 +84252,7 @@
         },
         {
           "name": "normalize_cell",
-          "line": 332,
+          "line": 380,
           "kind": "function",
           "parameters": [
             "value",
@@ -84226,7 +84265,7 @@
         },
         {
           "name": "cell_anchors",
-          "line": 341,
+          "line": 389,
           "kind": "function",
           "parameters": [
             "timestamps"
@@ -84237,7 +84276,7 @@
         },
         {
           "name": "render_cells",
-          "line": 356,
+          "line": 404,
           "kind": "function",
           "parameters": [
             "frames_id",
@@ -84254,7 +84293,7 @@
         },
         {
           "name": "source_row",
-          "line": 370,
+          "line": 418,
           "kind": "function",
           "parameters": [
             "config_id",
@@ -84269,7 +84308,7 @@
         },
         {
           "name": "upload_source_row",
-          "line": 400,
+          "line": 448,
           "kind": "function",
           "parameters": [
             "object_id",

@@ -10,7 +10,7 @@ from omni_test_support.v2.media_frames import frames as frames
 
 from omni.adapters.workers import media as worker
 from omni.domain.contracts import BusinessError
-from omni.domain.media import frames_plan, scene_cuts, scene_segments, scene_slots
+from omni.domain.media import frames_plan, scene_cuts, scene_sample_count, scene_segments, scene_slots
 
 
 def _make_scene_video(
@@ -248,3 +248,139 @@ def test_rest_input_select_field():
     assert data.select == "scenes"
     with pytest.raises(pydantic.ValidationError):
         MediaJobInput.model_validate({"operation": "frames", "select": "bogus"})
+
+
+def _make_fade_video(path: Path, *, fps: int = 25, size=(64, 48)) -> Path:
+    import av
+    from PIL import Image
+
+    container = av.open(str(path), mode="w")
+    try:
+        stream = container.add_stream("mpeg4", rate=fps)
+        stream.width, stream.height = size
+        stream.pix_fmt = "yuv420p"
+        for index in range(8 * fps):
+            moment = index / fps
+            if moment < 3:
+                value = 0
+            elif moment >= 5:
+                value = 255
+            else:
+                value = int((moment - 3) * 127.5)
+            frame = av.VideoFrame.from_image(Image.new("RGB", size, (value, value, value)))
+            for packet in stream.encode(frame):
+                container.mux(packet)
+        for packet in stream.encode():
+            container.mux(packet)
+    finally:
+        container.close()
+    return path
+
+
+def test_scene_sample_count_is_bounded():
+    assert scene_sample_count(600) == 240
+    assert scene_sample_count(7200) == 240
+    assert scene_sample_count(120) == 240
+    assert scene_sample_count(0.4) == 2
+    assert scene_sample_count(0.0) == 2
+
+
+def test_scene_cuts_collapses_only_monotonic_gradual_runs():
+    times = [0.5, 1.0, 1.5, 2.0, 2.5, 3.0]
+    scores = [0.0, 0.0, 20.0, 20.0, 20.0, 0.0]
+    assert scene_cuts(times, scores) == [1.5, 2.0, 2.5]
+    assert scene_cuts(times, scores, [10.0, 20.0, 40.0, 80.0, 160.0, 200.0]) == [2.0]
+    assert scene_cuts(times, scores, [128.0] * 6) == [1.5, 2.0, 2.5]
+    assert scene_cuts(times, scores, [10.0, 200.0, 20.0, 200.0, 20.0, 200.0]) == [1.5, 2.0, 2.5]
+
+
+def test_worker_scenes_collapses_fade_to_one_transition(tmp_path):
+    video = _make_fade_video(tmp_path / "fade.mp4")
+    result = worker._frames(
+        {
+            "video": str(video),
+            "sheet_output": str(tmp_path / "sheet.png"),
+            "count": 3,
+            "width": 320,
+            "select": "scenes",
+        }
+    )
+    assert result["frame_count"] == 3
+    cuts = result["scene_cuts"]
+    assert len(cuts) == 1 and 3.5 < cuts[0] < 4.5
+    stamps = result["timestamps"]
+    assert len(stamps) == 3 and stamps == sorted(stamps) and len(set(stamps)) == 3
+    assert all(0.0 <= stamp <= 8.0 for stamp in stamps)
+    assert any(stamp < cuts[0] for stamp in stamps) and any(stamp >= cuts[0] for stamp in stamps)
+    assert (tmp_path / "sheet.png").is_file()
+
+
+def test_worker_scenes_quick_cuts_stay_bounded_to_the_sample_grid(tmp_path):
+    video = _make_scene_video(
+        tmp_path / "quick.mp4",
+        [(0, 3, (255, 0, 0)), (3, 3.2, (0, 0, 255)), (3.2, 8, (0, 255, 0))],
+    )
+    result = worker._frames(
+        {
+            "video": str(video),
+            "sheet_output": str(tmp_path / "sheet.png"),
+            "count": 2,
+            "width": 320,
+            "select": "scenes",
+        }
+    )
+    assert result["frame_count"] == 2
+    assert len(result["scene_cuts"]) <= 1
+    assert result["timestamps"] == sorted(result["timestamps"])
+
+
+def test_scene_job_cancel_then_delete_leaves_no_frames(tmp_path):
+    from omni_test_support.v2.media import BV, FakeGateway, FakeProcessor, _media_instance, _seed
+    from sqlalchemy import select
+
+    from omni.adapters.persistence import schema as s
+
+    video = _make_fade_video(tmp_path / "fade.mp4")
+
+    class Gateway(FakeGateway):
+        async def download(self, configuration, url, destination, **kwargs):
+            destination.write_bytes(video.read_bytes())
+            return {"bytes": destination.stat().st_size}
+
+    class GatedProcessor(FakeProcessor):
+        def __init__(self):
+            super().__init__()
+            self.entered = asyncio.Event()
+            self.release = asyncio.Event()
+
+        async def frames(self, video_path, sheet_output, count, width, timestamps=None, select="equidistant"):
+            self.entered.set()
+            await self.release.wait()
+            return await super().frames(video_path, sheet_output, count, width, timestamps, select)
+
+    async def scenario():
+        processor = GatedProcessor()
+        instance = await _media_instance(tmp_path / "instance", Gateway(), processor)
+        try:
+            agent, config = await _seed(instance)
+            source = await instance.media.register(agent, str(config["id"]), BV)
+            job = await instance.media.submit(
+                agent, str(source["id"]), "frames", {"count": 3, "width": 320, "select": "scenes"}
+            )
+            async with asyncio.timeout(10):
+                await processor.entered.wait()
+            with pytest.raises(BusinessError) as caught:
+                await instance.media.delete(agent, str(source["id"]))
+            assert caught.value.code == "media_source_busy"
+            cancelled = await instance.media.cancel(agent, str(job["id"]))
+            assert cancelled["state"] == "cancelled"
+            processor.release.set()
+            resolved = await instance.media.job(agent, str(job["id"]))
+            assert resolved["state"] == "cancelled"
+            await instance.media.delete(agent, str(source["id"]))
+            assert await instance._database.read(lambda u: u.connection.execute(select(s.media_frames)).all()) == []
+        finally:
+            processor.release.set()
+            assert (await instance.close())["complete"]
+
+    asyncio.run(scenario())

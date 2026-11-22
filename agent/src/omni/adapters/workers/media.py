@@ -25,9 +25,8 @@ from typing import Any, cast
 
 from ...domain.media import (
     SCENE_ANALYSIS_WIDTH,
-    SCENE_MAX_SAMPLES,
-    SCENE_SAMPLE_FPS,
     scene_cuts,
+    scene_sample_count,
     scene_segments,
     scene_slots,
 )
@@ -339,11 +338,12 @@ def _scene_targets(
     """Bounded seek-sampled HSV cut detection + per-scene Laplacian-sharpest frame selection."""
     from PIL import ImageFilter, ImageStat
 
-    samples_n = min(SCENE_MAX_SAMPLES, max(2, int(duration * SCENE_SAMPLE_FPS)))
+    samples_n = scene_sample_count(duration)
     kernel = ImageFilter.Kernel((3, 3), [0, 1, 0, 1, -4, 1, 0, 1, 0], scale=1, offset=128)
     times: list[float] = []
     thumbs: list[Any] = []
     sharpness: list[float] = []
+    brightness: list[float] = []
     for index in range(samples_n):
         frame = _frame_at(container, stream, duration * (index + 0.5) / samples_n)
         if frame is None:
@@ -361,8 +361,9 @@ def _scene_targets(
         times.append(moment)
         thumbs.append(hsv)
         sharpness.append(variance)
+        brightness.append(ImageStat.Stat(hsv.split()[2]).mean[0])
     scores = [0.0] + [_hsv_score(thumbs[i - 1], thumbs[i]) for i in range(1, len(thumbs))]
-    cuts = scene_cuts(times, scores)
+    cuts = scene_cuts(times, scores, brightness)
     if not cuts or len(times) < 2:
         return _target_times(duration, count), cuts
     windows = scene_slots(scene_segments(cuts, duration), count)
