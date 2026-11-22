@@ -424,7 +424,10 @@
     "agent/src/omni/adapters/persistence/migrations/versions/v0052.py",
     "agent/src/omni/adapters/persistence/reflection_media.py",
     "agent/src/omni/adapters/persistence/reflection_repository.py",
-    "agent/src/omni/application/reflections.py"
+    "agent/src/omni/application/reflections.py",
+    "agent/src/omni/domain/persona_growth.py",
+    "agent/src/omni/adapters/persona_files.py",
+    "agent/src/omni/application/persona.py"
   ],
   "exclude": [
     "**/__pycache__"

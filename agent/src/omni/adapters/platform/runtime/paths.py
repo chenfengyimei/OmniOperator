@@ -35,6 +35,10 @@ class InstancePaths:
     def control(self) -> Path:
         return self.home / "run"
 
+    @property
+    def persona(self) -> Path:
+        return self.home / "persona"
+
     def initialize(self) -> None:
         if (self.home / "restore-in-progress.json").exists() or (self.home / "restore-in-progress.json").is_symlink():
             from omni.domain.contracts import BusinessError
@@ -46,7 +50,7 @@ class InstancePaths:
             )
         if any((self.home / name).exists() for name in ("memory.db", "state.db", "data/memory.db", "data/state.db")):
             raise OSError("Choose a fresh V2 home; legacy data is not imported")
-        for path in (self.home, self.database.parent, self.logs, self.objects, self.control):
+        for path in (self.home, self.database.parent, self.logs, self.objects, self.control, self.persona):
             if path.is_symlink() or path.is_junction():
                 raise OSError("Instance paths cannot contain links")
             path.mkdir(parents=True, exist_ok=True, mode=0o700)
@@ -56,7 +60,7 @@ class InstancePaths:
 
         # Children can predate the parent's protected Windows DACL. Set their
         # explicit private boundary too; inheritance alone preserves old ACEs.
-        for path in (self.home, self.database.parent, self.logs, self.objects, self.control):
+        for path in (self.home, self.database.parent, self.logs, self.objects, self.control, self.persona):
             private_path(path, directory=True)
 
 

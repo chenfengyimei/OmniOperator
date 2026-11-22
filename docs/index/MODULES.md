@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`20df6608ee14a641730bb45c6dd8dc2966e4b88b798a2c060be8b507637ec8a4`。包含 65 个职责模块、843 个源码/界面文件。
+源码指纹：`e96b21f742647e4353ce1f227aa59b635c1bc8a4805cf00f1700d05173d1e6be`。包含 65 个职责模块、846 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -57,6 +57,7 @@
 | [agent/src/omni/domain/model_stream.py](../../agent/src/omni/domain/model_stream.py) | 205 | Bounded chat stream assembly. Partial text and tool arguments never become executable results. |
 | [agent/src/omni/domain/objects.py](../../agent/src/omni/domain/objects.py) | 44 | Immutable object identities and metadata constraints, independent of storage. |
 | [agent/src/omni/domain/people.py](../../agent/src/omni/domain/people.py) | 48 | Person, account and memory document rules; contains no I/O or ORM types. |
+| [agent/src/omni/domain/persona_growth.py](../../agent/src/omni/domain/persona_growth.py) | 129 | Deterministic persona-growth rendering from approved reflection entries; no I/O. |
 | [agent/src/omni/domain/qq.py](../../agent/src/omni/domain/qq.py) | 142 | Bounded OneBot text events and explicit conversation grants; no transport I/O. |
 | [agent/src/omni/domain/recovery_authority.py](../../agent/src/omni/domain/recovery_authority.py) | 84 | Versioned authority for keeping an isolated predecessor fenced; no IO or claims about external effects. |
 | [agent/src/omni/domain/reference_release.py](../../agent/src/omni/domain/reference_release.py) | 69 | Bounded artifact-reference release plans; validates identities without accessing storage or files. |
@@ -134,7 +135,8 @@
 | [agent/src/omni/application/objects.py](../../agent/src/omni/application/objects.py) | 140 | Object publication and access use cases; no filesystem paths or ORM objects. |
 | [agent/src/omni/application/operations.py](../../agent/src/omni/application/operations.py) | 127 | Bounded operational queries and privacy-preserving diagnostic export; no model or device actions. |
 | [agent/src/omni/application/people.py](../../agent/src/omni/application/people.py) | 69 | Owner-facing people and personal-document use cases; no ORM or filesystem access. |
-| [agent/src/omni/application/ports.py](../../agent/src/omni/application/ports.py) | 1078 | Application boundaries. Implementations belong to adapters. |
+| [agent/src/omni/application/persona.py](../../agent/src/omni/application/persona.py) | 74 | Owner-only persona growth projection over the approved reflection ledger. |
+| [agent/src/omni/application/ports.py](../../agent/src/omni/application/ports.py) | 1079 | Application boundaries. Implementations belong to adapters. |
 | [agent/src/omni/application/qq.py](../../agent/src/omni/application/qq.py) | 227 | Own bounded QQ listeners and owner conversation grants; turns use the shared V2 kernel. |
 | [agent/src/omni/application/reflections.py](../../agent/src/omni/application/reflections.py) | 148 | Local reflection control and owner review use cases sharing one transactional ledger. |
 | [agent/src/omni/application/release_drain.py](../../agent/src/omni/application/release_drain.py) | 30 | Bind release draining to the existing once-only boot control; reconciliation never sends another request. |
@@ -302,7 +304,7 @@
 | [agent/src/omni/adapters/persistence/reference_release.py](../../agent/src/omni/adapters/persistence/reference_release.py) | 41 | Offline reference release uses the shared verified maintenance lifecycle; never unlinks objects. |
 | [agent/src/omni/adapters/persistence/reference_release_repository.py](../../agent/src/omni/adapters/persistence/reference_release_repository.py) | 330 | Release only reviewed retired action-object references; history is not a live object reference. |
 | [agent/src/omni/adapters/persistence/reflection_media.py](../../agent/src/omni/adapters/persistence/reflection_media.py) | 97 | Resolve media evidence from settled tool receipts and the tool-image dispatch ledger. |
-| [agent/src/omni/adapters/persistence/reflection_repository.py](../../agent/src/omni/adapters/persistence/reflection_repository.py) | 450 | Scoped reflection review, exact excerpts and atomic owner decisions. |
+| [agent/src/omni/adapters/persistence/reflection_repository.py](../../agent/src/omni/adapters/persistence/reflection_repository.py) | 494 | Scoped reflection review, exact excerpts and atomic owner decisions. |
 | [agent/src/omni/adapters/persistence/releases.py](../../agent/src/omni/adapters/persistence/releases.py) | 215 | Consistent release snapshots and quarantined new-directory restores under caller-owned instance locks. |
 | [agent/src/omni/adapters/persistence/repository.py](../../agent/src/omni/adapters/persistence/repository.py) | 1254 | Transaction-scoped repositories. No connection creation, DDL or external calls. |
 | [agent/src/omni/adapters/persistence/repository_base.py](../../agent/src/omni/adapters/persistence/repository_base.py) | 52 | Common transaction-scoped identity, ownership and audit primitives. |
@@ -319,6 +321,7 @@
 | [agent/src/omni/adapters/persistence/terminal_repository.py](../../agent/src/omni/adapters/persistence/terminal_repository.py) | 328 | Terminal intent transactions and immutable metadata receipts; never opens a native process or stores terminal bodies. |
 | [agent/src/omni/adapters/persistence/terminal_review_repository.py](../../agent/src/omni/adapters/persistence/terminal_review_repository.py) | 238 | Append owner observations and erasable evidence; terminal receipts and native lifecycle remain unchanged. |
 | [agent/src/omni/adapters/persistence/todo_repository.py](../../agent/src/omni/adapters/persistence/todo_repository.py) | 90 | Session task snapshots in the shared transaction; never dispatches or approves work. |
+| [agent/src/omni/adapters/persona_files.py](../../agent/src/omni/adapters/persona_files.py) | 146 | Owner-only managed persona growth cache; validates bytes against the ledger expectation. |
 | [agent/src/omni/adapters/platform/__init__.py](../../agent/src/omni/adapters/platform/__init__.py) | 1 | Portable paths, ownership, credentials and platform capability implementations. |
 | [agent/src/omni/adapters/platform/desktop/__init__.py](../../agent/src/omni/adapters/platform/desktop/__init__.py) | 5 | Desktop transport public entry; platform probing only occurs through explicit calls. |
 | [agent/src/omni/adapters/platform/desktop/backend.py](../../agent/src/omni/adapters/platform/desktop/backend.py) | 667 | Bounded, one-shot desktop metadata helpers; construction never probes a native desktop. |
@@ -397,7 +400,7 @@
 | [agent/src/omni/adapters/platform/releases/wheel_uninstall.py](../../agent/src/omni/adapters/platform/releases/wheel_uninstall.py) | 218 | Remove one staged candidate or deactivate the runtime pointer; data and installation receipts stay. |
 | [agent/src/omni/adapters/platform/runtime/__init__.py](../../agent/src/omni/adapters/platform/runtime/__init__.py) | 1 | V2 runtime adapters; importing never probes the platform. |
 | [agent/src/omni/adapters/platform/runtime/event_loop.py](../../agent/src/omni/adapters/platform/runtime/event_loop.py) | 105 | Own the Windows TCP reset workaround without patching global asyncio classes. |
-| [agent/src/omni/adapters/platform/runtime/paths.py](../../agent/src/omni/adapters/platform/runtime/paths.py) | 157 | Resolve writable instance paths independently from installed code and cwd. |
+| [agent/src/omni/adapters/platform/runtime/paths.py](../../agent/src/omni/adapters/platform/runtime/paths.py) | 161 | Resolve writable instance paths independently from installed code and cwd. |
 | [agent/src/omni/adapters/platform/runtime/permissions.py](../../agent/src/omni/adapters/platform/runtime/permissions.py) | 159 | Current-owner private files on POSIX and NTFS; never changes ancestor ACLs. |
 | [agent/src/omni/adapters/platform/runtime/processes.py](../../agent/src/omni/adapters/platform/runtime/processes.py) | 214 | Owned process groups and Windows Job Objects. Never terminate an unverified PID. |
 | [agent/src/omni/adapters/platform/runtime/publication.py](../../agent/src/omni/adapters/platform/runtime/publication.py) | 70 | Atomic, exclusive directory publication on the supported hosts; never replaces an existing target. |

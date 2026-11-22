@@ -6,7 +6,7 @@ import datetime as dt
 import hashlib
 from typing import cast
 
-from sqlalchemy import exists, or_, select, update
+from sqlalchemy import and_, exists, or_, select, update
 
 from ...application.ports import Record
 from ...domain.contracts import JSON, BusinessError
@@ -290,6 +290,50 @@ class ReflectionRepositories(DocumentRepositories):
                 }
             )
         return {"items": items}
+
+    def persona_growth_entries(self, agent: str) -> list[Record]:
+        """Approved, still-visible reflection sentences that feed the owner-only projection."""
+        rows = self.connection.execute(
+            select(
+                journals.c.id,
+                journals.c.body,
+                slots.c.approved_day,
+                candidates.c.field,
+                candidates.c.start,
+                candidates.c.end,
+            )
+            .join(slots, and_(slots.c.journal_id == journals.c.id, slots.c.agent_id == agent))
+            .join(candidates, and_(candidates.c.id == slots.c.active_candidate, candidates.c.agent_id == agent))
+            .where(
+                journals.c.agent_id == agent,
+                journals.c.state == "pending",
+                slots.c.withdrawn.is_(False),
+                candidates.c.state == "approved",
+                candidates.c.journal_revision == journals.c.revision,
+            )
+        ).mappings()
+        entries: list[Record] = []
+        for row in rows:
+            body, field = row["body"], row["field"]
+            start, end = row["start"], row["end"]
+            if (
+                not isinstance(body, dict)
+                or not isinstance(field, str)
+                or type(start) is not int
+                or type(end) is not int
+            ):
+                continue
+            value = cast(dict[str, object], body).get(field)
+            if not isinstance(value, str) or not 0 <= start < end <= len(value):
+                continue
+            entries.append(
+                {
+                    "approved_day": str(row["approved_day"]),
+                    "journal_id": str(row["id"]),
+                    "sentence": value[start:end],
+                }
+            )
+        return entries
 
     def reflection_model_review(self, agent: str, run: str, args: Record) -> Record:
         jid = str(args["journal_id"])

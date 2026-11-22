@@ -124,3 +124,15 @@ UTF-8、LF 换行，固定头部：
 - 不把来源正文、锚点、指纹或模型推断写入人格成长文件。
 - 不把 `growth.md` 放进对象存储或导出到用户任意路径。
 - 不宣称真实模型人格一致性或观影人文全链对等。
+
+## 实现进度
+
+**批 1（离线核心，2026-11-22）已落地**：
+
+- `domain/persona_growth.py`：已批准句的确定性渲染（`approved_day DESC, journal_id ASC`、CR/LF 折单空格、Unicode 原样、固定空态、1 MiB/2000 行按最新条目截断 + ASCII 标记、sha256/bytes）。
+- `adapters/persona_files.py`：受管 `persona/growth.md` 缓存；逐字节/长度校验、`O_NOFOLLOW` + 硬链接与非常规文件拒绝、同目录临时文件 + fsync + `os.replace` 原子替换、临时残留清理、`invalidate()` 幂等清除。
+- `adapters/persistence/reflection_repository.py::persona_growth_entries`：只读当前正式条目（`state=approved`、`journal_revision = journals.revision`、slot 未撤回、信笺 pending）。
+- `application/persona.py`：`read` 每次从账本重算期望字节并要求缓存完全一致，否则 `409 persona_growth_stale`；`rebuild` 原子重建；`invalidate` 供批 3 擦除钩子使用。
+- `InstancePaths.persona` 与 `initialize()` 建 0700 目录；strict include/`docs/TYPE_CHECKING.md` 已登记三个新文件。
+- 离线专项覆盖：空/排序/同日均稳定/换行折叠/240 码点边界/字节与行截断确定性/发布失败保留旧文/超限 413/链接目录/硬链接/文件链接/撤回/编辑替换/擦源/重启后有效缓存与变更后 stale/「不进入模型上下文」守卫。
+- **待批 2/3**：两个所有者 HTTP 路由 + 工作台只读页（接口先交 A）、文档/媒体擦除后的 `invalidate` 钩子（共享服务变更先交 A）；真实模型质量、真实 B 站来源与 72 小时另验。
