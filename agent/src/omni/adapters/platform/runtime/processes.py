@@ -167,11 +167,24 @@ class OwnedProcess:
                         return False
                     await asyncio.sleep(0.01)
             elif self.process.returncode is None:
-                current = psutil.Process(self.process.pid)
-                if current.create_time() != self.created:
-                    return False
-                if sys.platform != "win32":
-                    os.killpg(self.process.pid, signal.SIGKILL)
+                try:
+                    current = psutil.Process(self.process.pid)
+                except psutil.NoSuchProcess:
+                    # The child exited and was reaped before the transport
+                    # observed the status. Nothing is left to signal; wait() and
+                    # the group scan below still have to prove reclamation.
+                    current = None
+                if current is not None:
+                    if current.create_time() != self.created:
+                        return False
+                    if sys.platform != "win32":
+                        try:
+                            os.killpg(self.process.pid, signal.SIGKILL)
+                        except (ProcessLookupError, PermissionError):
+                            # The leader exited between the identity check and the
+                            # signal, or the pid was reused as an unsignalable
+                            # group; never claim reclamation without wait().
+                            pass
             elif sys.platform != "win32":
                 # An exited leader does not prove its descendants exited. Do not
                 # kill an unverifiable/reused process group or claim reclamation.
@@ -203,6 +216,10 @@ class OwnedProcess:
             os.killpg(self.process.pid, 0)
         except ProcessLookupError:
             return True
+        except PermissionError:
+            # A reused or unsignalable group cannot be proven empty by kill(0);
+            # fall through to the explicit member scan instead.
+            pass
         for process in psutil.process_iter(["pid", "status"]):
             try:
                 if os.getpgid(process.pid) == self.process.pid and process.info["status"] != psutil.STATUS_ZOMBIE:
@@ -210,5 +227,6 @@ class OwnedProcess:
             except (ProcessLookupError, psutil.NoSuchProcess):
                 continue
             except (PermissionError, psutil.AccessDenied):
-                return False
+                # A foreign process cannot be a member of this owned group.
+                continue
         return True

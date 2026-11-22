@@ -254,3 +254,11 @@ LaunchAgent 基线：本机当前没有 OmniOperator 用户服务 job，`~/Libra
 **过渡状态**：已用 `open --args --request-permission` 触发四项授权，tccd 显示请求方为 `org.omnioperator.desktophelper` 且无 responsible 进程，但轮询窗口内未获批准，因此 LS 路径仍 `denied`。在所有者于系统设置中为 “OmniOperator Desktop Helper” 打开“屏幕与系统音频录制 / 辅助功能 / 输入监控 / 事件发送”之前，生产 macOS 桌面能力会按设计失败关闭并给出恢复提示；需要旧行为时显式选择 `macos_transport="posix"`。授权必须落在当前交付二进制 `9360128b` 上（ad-hoc 授权可能绑定 cdhash，之后不要重建）。
 
 验证：launcher 6/6（含后端接线注入测试）；macOS 11 文件 238/239（19.80 秒，1 项既有 v2_0051 pin）；终端 10/10（同日另一次 9/10，属既有 close 竞态）。ruff 干净；strict 新改动 0 错误（树内 30 个既有错误属未触碰文件漂移）。证据：[接线](../../../evidence/v2-macos-launch-transport-wiring-2026-11-22.json)。
+
+### 2026-11-22 进程回收竞态修复（PTY close 偶发失败）
+
+终端原生专项此前偶发 `captured.close(5)` 立即返回 False 且 `cleanup_pending=1`（约 1/10–1/3，负载下更高）。插桩（临时 stderr，已回退）显示：`native_clean=True` 但 `helper_clean=False`；`OwnedProcess.terminate` 在 `process.returncode is None` 时 `psutil.Process(pid)` 抛 `NoSuchProcess`（子进程已退出并被回收、transport 尚未收到状态），被宽泛 `except` 当成“未回收”。同一竞态下 `killpg(SIGKILL)` 的 ESRCH/EPERM 也会导致假阴性，`_group_quiet` 把 kill(0) 的 EPERM 当作“不安静”。
+
+修复：`NoSuchProcess` 视为“已无组长可发信号”，继续由 `wait()` 与组扫描证明；SIGKILL 容忍退出/复用竞态的 ESRCH/EPERM；`_group_quiet` 在 kill(0) EPERM 时改为显式成员扫描并跳过非本组的外部进程。仍未证明回收前不宣称成功：必须 `wait()` 完成且自有进程组安静。
+
+验证：终端整文件 **30/30 轮零失败**（修复前 1/10–1/3）；OwnedProcess 调用方 **100 项通过（32.68 秒）**；桌面套件 238/239（20.08 秒，唯一失败仍为既有 v2_0051 pin）；ruff 干净。证据：[进程回收竞态](../../../evidence/v2-processes-terminate-race-2026-11-22.json)。
