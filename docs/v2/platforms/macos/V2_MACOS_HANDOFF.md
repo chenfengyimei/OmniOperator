@@ -23,7 +23,7 @@ D4 服务查询现为 `omni-macos-service-query-2`：用户/系统入口分别�
 - 文本仅使用有界范围读取，不复制整个 AXValue；密码及其子树不读取。引用是有限路径和祖先描述指纹，动作重新定位并比较，不持久保存 AX 指针。
 - ScreenCaptureKit 只采指定窗口；输出经私有独占文件、RGB 解码、尺寸和 SHA256 验证后进入现有对象/会话引用链。没有全桌面回退，不自动作为模型附件。
 - 语义 invoke/select/set_text 复用所有者运行、审批、租约和 unknown 核查，需要 AX 和输入监测权限。AX语义可作用于已审批的后台目标，不切换前台；派发后的原焦点必须保持稳定。被动事件监听不记录按键内容，用户介入、目标变化、权限丢失或不能证明后置状态时拒绝或保持 unknown。
-- 前台输入源码已接入逐次授权、ready/permit、10秒手动焦点等待及250ms静止期。一次只向已核验目标PID投递一个有界CGEvent事件对；不分块续写，不切换前台。会话监听、目标进程监听、AX焦点通知及睡眠/会话切换共同约束执行；缺少通知支持或权限时拒绝。
+- 前台输入源码已接入逐次授权、ready/permit、10秒手动焦点等待及250ms静止期。键盘事件投递至已核验目标PID；鼠标点击经窗口服务器投递到 AX 命中控件且仍在目标窗口内的已核验点（直接向 PID 投递的鼠标事件 windowNumber 为 0，不会路由到窗口），前后保存并恢复光标位置。仍然只有一个事件对、不分块续写、不切换前台。会话监听、目标进程监听、AX焦点通知及睡眠/会话切换共同约束执行；缺少通知支持或权限时拒绝。
 - 独立ForegroundCore包只含编排和端口，没有AppKit、时钟或系统I/O。9 个 Swift Testing 用例用注入端口覆盖焦点期限、静止期与代次、撤权、未知结果和回收；构建脚本先执行用例，再编译和签名。当前Windows主机没有执行 Swift 编译或这些用例；加入CI不代表CI已运行通过。
 - 发送不是成功回执。目标进程监听须观察到本次两个不同标记，之后再次核验身份、焦点与权限；只有有界文本和选区能证明精确追加时才可返回ok。按键、点击和不能证明的结果保持unknown。
 - PTY沿用受管POSIX后端；Keychain另有只操作新测试命名空间的显式验收脚本。未知写入不重试，执行前保存私有清理标识；两项均仍需Mac实测。
@@ -202,3 +202,13 @@ Keychain 隔离样例通过：worker 在随机 `macos-acceptance-<token>` 命名
 LaunchAgent 基线：本机当前没有 OmniOperator 用户服务 job，`~/Library/LaunchAgents`、`/Library/LaunchAgents`、`/Library/LaunchDaemons` 下也没有相关 plist（仅 Edge 更新器）。真实注册、登录激活、loaded/ready 观察与卸载仍需不可变部署包、隔离账号和所有者批准的 apply-operation，本批未执行；睡眠/锁屏/快速用户切换同样未触发（会中断当前图形会话），其注入路径已由前台专项覆盖。
 
 证据：[Keychain 与 LaunchAgent](../../../evidence/v2-macos-keychain-launchagent-2026-11-22.json)。
+
+### 2026-11-22 前台输入验收与定向点击修复
+
+前台专项首次失败：键盘输入、Left 与中间插入都改变了隔离样例的文本/选区（回执分别为 ok/unknown），但定向鼠标点击只让目标 PID tap 确认两个事件、样例按钮 clicks 仍为 0，官方 `--foreground-owned-fixture` 在最后一步状态等待超时。
+
+诊断：在样例内临时统计 NSEvent 本地事件（已回退），确认 mouseDown/mouseUp 各到达 1 次但 `windowNumber=0`；只加 down/up 间隔也无效。结论是 macOS 27 上 `CGEvent.postToPid` 的鼠标事件不携带窗口号，AppKit 不会把它路由到任何窗口；目标 tap 只能证明到达进程，不能证明路由或业务效果。
+
+修复：键盘仍 `postToPid`；点击改为在投递前重新核验目标、确认点仍在目标窗口内，`CGWarpMouseCursorPosition` 移到已核验点后经 `.cghidEventTap` 投递同一有界 down/up 对，随即恢复原光标位置。窗口按 takeover 合同已在前台、AX 命中已确认点到控件，仍只有一个事件对且不调用激活 API。契约文字同步到 [V2_DESKTOP](../../contracts/V2_DESKTOP.md)。
+
+修复后 read、semantic、foreground 三个显式验收全部通过：foreground 回执为 text_appended + unknown×3，独立样例状态的文本、选区与 clicks 全部符合，`replayed=false`，样例 clicks 0→1。交付 helper `8dbc0d3c` 上 read 截图 sha256 `8565ae96…`、语义 `value_matches` 复验通过。证据：[前台输入](../../../evidence/v2-macos-foreground-2026-11-22.json)。
