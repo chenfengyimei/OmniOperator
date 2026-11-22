@@ -1,0 +1,84 @@
+{
+  "schema": 1,
+  "date": "2026-11-22",
+  "base_commit": "696ed937",
+  "batch_commit": "1f31e96d",
+  "followup_commit": "38c01d80",
+  "batch": "K17.reflection_media_review",
+  "status": "implemented_scoped_passed",
+  "contract": "docs/v2/contracts/V2_REFLECTION_PROVENANCE.md",
+  "scope": "K17 在 v0051 文档锚点之后的媒体锚点、修订绑定反思候选、所有者审核决定与来源擦除链；公开 reflection_journal 控制工具 + 所有者 HTTP 列表/详情/决定。",
+  "delivered": [
+    "v0052 冻结迁移 +4 表（reflection_media_links/reflection_reads/reflection_candidates/reflection_slots）与 5 个索引；down_revision v2_0051，downgrade 拒绝。",
+    "媒体证据锚点：媒体动作/产物收据、revision/position/field 绑定，来源擦除联动；settled media evidence 跨 run 保留，擦除源后失效。",
+    "反思候选修订绑定：候选 digest/revision CAS，精确摘录（UTF-16/emoji 边界），stale decision 拒绝；替换/撤回保留实际日与来源日双配额。",
+    "所有者日槽：实际决定日与来源日独立计数，同一句不得跨日重复认领，pending notice 只给 journal id。",
+    "公开 reflection_journal 控制工具：observations/save/read/select/skip/approve；仅当 agent 存在证据源时暴露（reflection_available），委派子 run 继承捕获的父工具面；tail notice 仅 id。",
+    "所有者 HTTP：GET /reflections、GET /reflections/{journal}、POST /reflections/candidates/{id}/decision（approve/reject/replace/retract），详情/列表按 agent 范围与 approved 过滤；无效 token 401。",
+    "来源擦除：文档/媒体删除后 reflection 详情 409、候选决定拒绝、已批准列表清空；重启后一致。",
+    "测试助手抽到 omni_test_support/v2/{reflection,media_zoom}.py，测试不再跨模块导入其他 collected test。"
+  ],
+  "source_files": [
+    "agent/src/omni/adapters/persistence/migrations/versions/v0052.py",
+    "agent/src/omni/adapters/persistence/reflection_media.py",
+    "agent/src/omni/adapters/persistence/reflection_repository.py",
+    "agent/src/omni/application/reflections.py",
+    "agent/src/omni/application/engine.py",
+    "agent/src/omni/adapters/http.py",
+    "agent/src/omni/composition/http.py",
+    "agent/src/omni/composition/instance.py",
+    "agent/src/omni/domain/reflection.py",
+    "agent/src/omni/domain/images.py",
+    "agent/src/omni/adapters/persistence/schema.py",
+    "agent/src/omni/application/ports.py",
+    "agent/tests/v2/core/test_v2_reflection_review.py",
+    "agent/tests/v2/integrations/test_v2_reflection_flow.py",
+    "agent/tests/omni_test_support/v2/reflection.py",
+    "agent/tests/omni_test_support/v2/media_zoom.py"
+  ],
+  "validation": {
+    "new_tests": {
+      "command": "pytest -q -n 0 test_v2_reflection_review.py test_v2_reflection_flow.py",
+      "passed": 14,
+      "failed": 0
+    },
+    "failed_full_nodes_after_gating": {
+      "command": "layout + todos + delegation + skills + delegation_http + android_model + android_unicode",
+      "passed": 29,
+      "failed": 0,
+      "seconds": 269.86
+    },
+    "migration_pins": {
+      "command": "16 migration/pin files",
+      "passed": 78,
+      "failed": 0,
+      "seconds": 59.86
+    },
+    "strict": {
+      "files": 424,
+      "errors": 0,
+      "warnings": 0
+    },
+    "ruff": "all staged Python passed"
+  },
+  "full_suite": {
+    "head": "38c01d80",
+    "tests": null,
+    "passed": null,
+    "failed": null,
+    "junit": "C:/v2-acceptance/closeout-18b75b75/full-38c01d80.xml",
+    "note": "提交后独立基线全量运行中；结果以该 JUnit 为准"
+  },
+  "limits": [
+    "未验证真实 B 站账号、真实模型散文/反思质量与 72h。",
+    "人格成长文件、personality revise/rebuild/shadow、观影后提问状态机仍后续；不宣称 K17 全链对等。",
+    "K01 D3(a)/(c)/D8、K14/K15 决策项仍待所有者。"
+  ],
+  "not_executed": [
+    "真实账号/模型/设备",
+    "人格成长与 shadow 投影",
+    "最终冻结发布"
+  ],
+  "current_full_passed": false,
+  "whole_v2_complete": false
+}

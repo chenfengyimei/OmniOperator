@@ -1,0 +1,95 @@
+{
+  "schema": 1,
+  "topic": "v2-closeout-integration",
+  "date": "2026-11-22",
+  "source_head": "38962aa3",
+  "remote_baseline": "18b75b757b0a8b82243963494be06f5d6d457601",
+  "verified_closeout_head": "1f31e96d",
+  "scope": "Windows 总集成：核对本地 37 提交相对 origin/v2 的差异与远端状态；在独立工作树复验 1f31e96d 全量并分诊 18 项失败；修复 v0052 反思工具接线回归（工具面门槛、委派继承面、测试助手抽到 support）；核对 v0052 迁移头/表数、工作台版本串、索引与 strict；协调冻结全量。不做真实账号/设备/模型质量/72 小时验收，不改公共接口语义与迁移编号。",
+  "remote_state": {
+    "origin_v2": "18b75b75",
+    "local_v2_before": "1f31e96d",
+    "ahead_before": 37,
+    "behind_before": 0,
+    "ls_remote": "git ls-remote origin refs/heads/v2 -> 18b75b757b0a8b82243963494be06f5d6d457601",
+    "note": "本地 37 提交（v0052 反思媒体链 + 收尾/UI 文档 + 基线修复）从未推送；远端 v2 保持 18b75b75。"
+  },
+  "baseline_full_suite": {
+    "head": "1f31e96d",
+    "junit": "C:/v2-acceptance/closeout-18b75b75/full-1f31e96d.xml",
+    "tests": 8388,
+    "passed": 8370,
+    "failed": 18,
+    "seconds": 3142.92,
+    "workers": 4,
+    "note": "独立工作树 C:/v2-acceptance/closeout-18b75b75/source；用户服务未停。"
+  },
+  "triage": [
+    {
+      "class": "product regression from v0052 (17 of 18)",
+      "failures": [
+        "test_v2_todos::test_production_loop_updates_plan_without_actions_or_changing_system_prefix (token_budget_exceeded)",
+        "test_v2_delegation::test_child_can_activate_only_the_captured_reviewed_skill_catalog (child_calls=0 / delegation_toolset_changed)",
+        "test_v2_delegation::test_child_inherits_reviewed_extension_binding_and_requires_its_own_write_approval (child never started)",
+        "test_v2_skills::test_model_progressive_disclosure_uses_captured_revision_and_still_requires_write_approval (token_budget_exceeded)",
+        "test_v2_android_model 9 项 + test_v2_android_unicode 1 项 (token_budget_exceeded / 审批等待超时)",
+        "test_v2_delegation_http::test_owner_delegation_view_and_child_inherit_mcp_without_expanding_grants (child failed)"
+      ],
+      "root_cause": "reflection_journal 被无条件加入每个 agent run 的 registry：请求字节多 1953，默认 32768 上下文的 utf8_upper_bound 计数在第 2-3 轮调用即 token_budget_exceeded；委派捕获面含该工具而子 run 不注册，inherited() 抛 delegation_toolset_changed。",
+      "evidence": "debug_budget2.py: call0 estimate 28144（含反思）vs 26191（不含），delta 1953；第三次调用 30516 > 29696 上限。"
+    },
+    {
+      "class": "test layout guard",
+      "failures": ["test_v2_layout::test_v2_tests_do_not_import_other_collected_test_modules"],
+      "root_cause": "v0052 新增测试跨模块导入 test_v2_reflection_journal / test_v2_media_zoom_e2e。",
+      "fix": "BODY/evidence 抽到 omni_test_support/v2/reflection.py；zoom_instance/configure_image_policy 抽到 omni_test_support/v2/media_zoom.py。"
+    }
+  ],
+  "fixes": [
+    {"commit": "38c01d80", "change": "reflection_journal 仅在存在证据源（活跃文档或媒体源）时暴露；委派子 run 同样注册以保持捕获面可继承；新增 UnitOfWork.reflection_available + ReflectionService.available；测试助手抽到 support。"},
+    {"commit": "1a31356e", "change": "test_v2_delegation 父 run 完成等待 10s→30s（负载容差，断言/预算/调用数不变）。"},
+    {"commit": "09226e34", "change": "docs/index 再生：modules=65 files=842 routes=462 declared_tools=94，二次运行零差异。"},
+    {"commit": "23c75c6f", "change": "新增反思工具面门槛回归：无证据源不暴露；有文档后父与委派子同面且委派不报工具集变更。"},
+    {"commit": "03aa5499", "change": "（并行收尾会话）wait_state 默认 30s + portal 共享状态轮询，处理 4 项负载红。"},
+    {"commit": "38962aa3", "change": "原生 UIA worker 退场等待 10s→30s：负载下宿主进程退出实测 8.6-12s，resident 归零断言不变。"}
+  ],
+  "verification": {
+    "triage_nodeids": {"command": "pytest -q -n 0 <18 failing nodeids + reflection/zoom files>", "result": "87 passed", "seconds": 615.67},
+    "delegation_file": {"command": "pytest -q -n 0 agent/tests/v2/core/test_v2_delegation.py", "result": "29 passed", "seconds": 228.88},
+    "reflection_flow": {"command": "pytest -q -n 0 agent/tests/v2/integrations/test_v2_reflection_flow.py", "result": "4 passed", "seconds": 100.78},
+    "callers": {"command": "pytest -q -n 0 delegation/todos/skills/layout/delegation_http/architecture/business_inventory/capabilities/kernel/routing", "result": "122 passed 1 负载超时，等待放宽后 29 passed", "seconds": 456.44},
+    "native_uia": {"command": "pytest -q -n 0 test_v2_desktop_observation_native.py::test_fixed_windows_uia_worker_reads_only_owned_fixture_and_redacts_password", "result": "3 passed x4 次（放宽后）", "seconds": 15.0}
+  },
+  "intermediate_full_suites": [
+    {"head": "38c01d80", "junit": "C:/v2-acceptance/closeout-18b75b75/full-38c01d80.xml", "passed": 8384, "failed": 4, "seconds": 3614.75, "failures": ["delegation 完成等待 x2", "android unknown_source 6s 等待", "portal UI 共享状态断言"], "note": "全部为负载时序；03aa5499 与 38962aa3 分别处理。"},
+    {"head": "03aa5499", "junit": "C:/v2-acceptance/closeout-18b75b75/full-03aa5499.xml", "passed": 8388, "failed": 1, "seconds": 3187.26, "failures": ["原生 UIA worker resident 归零 10s 截止"], "note": "38962aa3 放宽该等待后单节点 4/4 通过。"}
+  ],
+  "delivery_full_suite": {
+    "head": "38962aa3",
+    "junit": "C:/v2-acceptance/integration-1f31e96d/full-38962aa3.xml",
+    "status": "PENDING"
+  },
+  "strict": {"command": "uv run --no-sync python -m pyright -p pyrightconfig.strict.json", "files": 424, "errors": 0, "warnings": 0, "seconds": 47.96, "note": ".venv\\Scripts\\python.exe -m pyright 在无 VIRTUAL_ENV 的 shell 会回退到无依赖解释器并报 20327 假错误；必须经 uv run。"},
+  "migrations": {"head": "v2_0052", "migrations": 52, "branches": 0, "tables": 151, "pins": "head/表数守卫已同步 v2_0052/151；v0052 downgrade 显式拒绝。"},
+  "ui": {"version_strings": "20261120v172 → 20261121v173（index.html 全部资源引用）", "note": "全量内 UI 矩阵由 4 worker 覆盖；portal 与工作台用例在负载下曾各红一次，均按等待/轮询处理。"},
+  "index": {"command": "uv run --no-sync python scripts/project_index.py", "modules": 65, "files": 842, "routes": 462, "declared_tools": 94, "idempotent": true},
+  "environment": {
+    "os": "Windows",
+    "cpu_load_percent": "78-93",
+    "top_consumers": ["TGitCache ~1.15 core", "V2 演示实例 (temp/build/v2-demo-home, 8790) ~0.55 core"],
+    "user_services_untouched": true,
+    "baseline_ab": "同一委派场景在 origin/v2(18b75b75) 源码上 14.39s 完成、四轮模型调用间隔 3-5s，证明超时为环境负载而非 v0052。"
+  },
+  "process_notes": [
+    "本地复验全量只允许一个在跑：发现并行会话已启动 full-03aa5499 后，本会话主动停止自己的重复全量，改以其为权威结果。",
+    "1f31e96d 夹带 PPT/（27 文件 7.3MB）与 docs/competition/（1 文件）；未改写历史，保留提交，需所有者决定是否从 v2 移除。"
+  ],
+  "not_executed": [
+    "真实 QQ/B 站账号、真实安卓设备、真实模型质量",
+    "干净机器安装/更新/回滚/卸载矩阵",
+    "容器真实 build/run（Docker Linux engine 不可用）",
+    "72 小时长跑",
+    "macOS/Linux 原生验收"
+  ],
+  "whole_v2_complete": false
+}

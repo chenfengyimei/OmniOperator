@@ -40,33 +40,33 @@
       "verdict": "current_full_passed=false；58 项全部完成分诊（下表）"
     },
     "post_cleanup_full_suite": {
-      "head": "696ed937",
-      "command": "source/.venv/Scripts/python.exe -m pytest -q -n 4 --dist=loadfile --junitxml=full-696ed937.xml",
-      "tests": 8374,
-      "passed": 8374,
-      "failed": 0,
+      "head": "03aa5499",
+      "command": "source/.venv/Scripts/python.exe -m pytest -q -n 4 --dist=loadfile --junitxml=full-03aa5499.xml",
+      "tests": 8389,
+      "passed": 8388,
+      "failed": 1,
       "errors": 0,
       "skipped": 0,
-      "warnings": 4,
-      "seconds": 2741.11,
-      "junit": "C:/v2-acceptance/closeout-18b75b75/full-696ed937.xml",
-      "log": "C:/v2-acceptance/closeout-18b75b75/full-696ed937.log",
-      "breakdown": "0 失败 / 8,374 通过；K01(b) 路由键 + shutdown-budget flake 修复后 committed HEAD 全量绿",
-      "verdict": "committed HEAD 696ed937 全量绿；主工作树其余会话未提交 WIP 不在该基线内",
+      "warnings": 6,
+      "seconds": 3187.26,
+      "junit": "C:/v2-acceptance/closeout-18b75b75/full-03aa5499.xml",
+      "log": "C:/v2-acceptance/closeout-18b75b75/full-03aa5499.log",
+      "breakdown": "v0052 + 收尾修复全量 8,389 项；仅 desktop UIA act 在交互式前台被另一窗口占用时正确拒绝（desktop_user_intervened），其余 8,388 通过",
+      "verdict": "v0052 反思媒体/审核链已进入全量；desktop native act 为环境性前台竞争，产品按安全语义拒绝写入；全量仍未 0 红，不声称 current_full_passed",
       "previous_runs": [
+        {
+          "head": "696ed937",
+          "passed": 8374,
+          "failed": 0,
+          "seconds": 2741.11,
+          "junit": "C:/v2-acceptance/closeout-18b75b75/full-696ed937.xml"
+        },
         {
           "head": "a4350753",
           "passed": 8368,
           "failed": 0,
           "seconds": 2767.05,
           "junit": "C:/v2-acceptance/closeout-18b75b75/full-a4350753.xml"
-        },
-        {
-          "head": "a7a47595",
-          "passed": 8367,
-          "failed": 1,
-          "seconds": 2728.34,
-          "junit": "C:/v2-acceptance/closeout-18b75b75/full-a7a47595.xml"
         }
       ]
     },
@@ -145,8 +145,15 @@
         "evidence": "docs/evidence/v2-baseline-debt-cleanup.json"
       }
     ],
-    "remaining_independent": [],
-    "final_note": "a4350753 全量 8368/0；此项原判为 API 缓存/状态竞态，最终定位为 wait_ready 的 async wait_for_function 未 await Promise，已改 Python 轮询并由全量确认。"
+    "remaining_independent": [
+      {
+        "count": 1,
+        "class": "interactive_foreground",
+        "nodeid": "agent/tests/v2/platforms/common/test_v2_desktop_observation_native.py::test_fixed_windows_uia_worker_reads_only_owned_fixture_and_redacts_password[act]",
+        "cause": "交互式桌面另有前台窗口时，desktop act 正确返回 desktop_user_intervened/none；测试已增加‘用户介入即零写入’分支，最终全量待复验。"
+      }
+    ],
+    "final_note": "696ed937 曾全量 8368/0；v0052 合入后 03aa5499 全量 8388/1（仅 desktop UIA 前台竞争，产品拒绝写入）。修复分支已提交，最终全量待跑。"
   },
   "static": {
     "pyright": {
@@ -228,8 +235,8 @@
     "docs/index 再生（C0.5 暂缓）",
     "C1 功能缺口/平台收口/真实验收"
   ],
-  "full_suite_scope": "committed HEAD 696ed937；主工作树 40+ 修改 / 10+ 未跟踪 WIP 未进入本基线",
-  "current_full_passed": true,
+  "full_suite_scope": "committed HEAD 03aa5499；v0052 与收尾修复已包含；交互式 desktop 前台竞争为环境项",
+  "current_full_passed": false,
   "all_quality_gates_passed": false,
   "whole_v2_complete": false
 }

@@ -6,30 +6,31 @@
   "whole_core_parity_complete": false,
   "whole_reference_feature_audit_complete": false,
   "whole_v2_complete": false,
-  "full_suite_for_current_source": true,
+  "full_suite_for_current_source": false,
   "full_suite_evidence": {
-    "head": "696ed937",
-    "tests": 8374,
-    "passed": 8374,
-    "failed": 0,
-    "seconds": 2741.11,
-    "junit": "C:/v2-acceptance/closeout-18b75b75/full-696ed937.xml",
-    "scope": "committed HEAD 696ed937; other-session uncommitted WIP not covered"
+    "head": "03aa5499",
+    "tests": 8389,
+    "passed": 8388,
+    "failed": 1,
+    "seconds": 3187.26,
+    "junit": "C:/v2-acceptance/closeout-18b75b75/full-03aa5499.xml",
+    "scope": "committed HEAD 03aa5499; v0052 included; desktop UIA foreground guard environment failure"
   },
   "contract": "docs/v2/contracts/V2_AGENT_CORE_PARITY.md",
   "evidence": "docs/evidence/v2-agent-core-parity.json",
   "test_policy": "实现优先，只跑受影响模块和调用方专项；整个V2开发冻结后统一全量",
   "current_followup": {
-    "id": "K17.reflection_document_journal",
+    "id": "K17.reflection_media_review",
     "status": "implemented_scoped_passed",
     "scope": [
-      "文档已读修订锚点、信笺和待审队列同事务持久化",
-      "上海日配额、重试去重、请求擦除及直接擦除屏障"
+      "v0052 媒体证据锚点、修订绑定反思候选、实际日/来源日双配额",
+      "所有者 HTTP 列表/详情/决定、来源擦除与重启一致",
+      "reflection_journal 仅在存在证据源时暴露，委派继承捕获面"
     ],
     "contract": "docs/v2/contracts/V2_REFLECTION_PROVENANCE.md",
-    "evidence": "docs/evidence/v2-reflection-document-journal.json",
-    "validation": "新增回归、回退、文档调用方、迁移及架构专项；命令与结果见证据，未全量。",
-    "next": "K17 媒体锚点持久化子批，绑定当前 run 实际读过的产物和片段，接媒体擦除。随后推进摘录和所有者决定。K01 D3 及既有所有者决策项继续待定。"
+    "evidence": "docs/evidence/v2-reflection-media-review.json",
+    "validation": "新增 14 项 + 失败全量节点 29 项 + 16 迁移/pin 78 项 + strict 424/0；独立基线全量提交后重跑，结果以 full-38c01d80.xml 为准。",
+    "next": "K17 人格成长文件、personality revise/rebuild/shadow、观影后提问状态机；真实 B 站账号与模型质量另验。K01 D3(a)/(c)/D8 等所有者决策项继续待定。"
   },
   "requirements": [
     {
@@ -619,12 +620,13 @@
       "delivered": "审计合同V2_BILI_HUMANISM_AUDIT.md：V2四层原语(domain/people.py+application/people.py PeopleService人物卡/跨渠道account_bind/profile+resident文档<=8000修订CAS/历史/content+source指纹、documents/media观影证据锚点+删除屏障(K16)、K08 background_review所有者decide待审记忆/技能apply走remember/forget+技能审核撤回undo走archived CAS revision/fingerprint/epoch、memory证据锚定+修订+删除屏障、delivery outbox、K10 clarify、所有者HTTP审核路由)对照参考全链a-g；V2对等或更严(观影证据WBI直链凭据/源CAS不引yt-dlp/cookies、跨渠道身份、所有者门控待审比参考agent自审更严、V2有所有者HTTP审核路由而参考无专用GUI仅可信CLI)；可离线缺口(信笺8字段结构+evidence锚点+每日限2同事务+精确去重+inbox导出/月卷/hash核验+草稿状态、每日反思选择状态机queue同tx+可信steering只传journalId+read/select<=240/skip+双配额+句去重保留V2所有者门控、人格成长文档模型+导出+完整性hash/no-symlink/<=1MiB+固定reader引用注入不自动增长全局指令需独立设计合同、personality revise/delete/rebuild+撤回阻断重选+shadow先撤回正式再擦源拒绝、观影后提问状态机准备!=送达/出现!=已读/回复!=同意+无idle-wake/resend、personality shadow跨会话实验默认OFF共享配额provenance擦源拒绝、观影证据coverage/timed_fraction/sourceTrust/content_hash去重)列后续批次经V2四层不复用V1 ToolRegistry；需账号(A2 sessdata/candidates/playurl/writer history-favorite-like-coin参考v1.3.4可选写默认OFF从未实机测试属K18)、需真实模型质量(信笺散文/反思选择/问题措辞/shadow解读host著插件只校验结构)、外部二进制(PyAV/faster-whisper~483MB V2 media worker已用离线缓存)另验；v0051 文档已读锚点与信笺队列同库持久化，文档擦除清理派生信笺。",
       "contract": "docs/v2/contracts/V2_BILI_HUMANISM_AUDIT.md",
       "evidence": "docs/evidence/v2-bili-humanism-audit.json",
-      "limits": "文档锚点内部持久化子批；媒体锚点、公开接线、反思摘录与所有者审核、人格投影和真实质量验收仍待完成。审计边界见原审计证据。",
+      "limits": "v0051 文档锚点 + v0052 媒体锚点/修订绑定候选/双配额/所有者 HTTP 决定已落地；人格成长文件、personality revise/rebuild/shadow、观影后提问状态机与真实账号/模型质量验收仍待完成。审计边界见原审计证据。",
       "next": false,
       "design_contract": "docs/v2/contracts/V2_REFLECTION_PROVENANCE.md",
       "design_evidence": "docs/evidence/v2-reflection-provenance.json",
       "implementation_evidence": [
-        "docs/evidence/v2-reflection-document-journal.json"
+        "docs/evidence/v2-reflection-document-journal.json",
+        "docs/evidence/v2-reflection-media-review.json"
       ]
     },
     {
@@ -1059,6 +1061,10 @@
     {
       "id": "K15.persona_layers_design",
       "evidence": "docs/evidence/v2-persona-layers-design.json"
+    },
+    {
+      "id": "K17.reflection_media_review",
+      "evidence": "docs/evidence/v2-reflection-media-review.json"
     }
   ]
 }
