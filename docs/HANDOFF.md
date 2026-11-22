@@ -266,6 +266,7 @@ K13.cron_model_design 已记录**实现前设计合同**（纯文档，无源码
 - **补充回归**：Android 截图撤销/取消链新增 2 项（截图已取得后撤权 → 零临时 PNG/零 `session_captures` 行且撤权后再截图被拒；取消等待方 → 实际截图继续归属、放行后只发布一条引用）。targeted **2 passed / 6.38s**，整文件 **18 passed / 63.53s**；仅测试/夹具，无生产源码改动。证据：[v2-android-capture-regression.json](evidence/v2-android-capture-regression.json)。
 - **输入派发回归**：输入已派发到假设备时撤权，放行后实际文本改变（applied/run succeeded，撤权不撤回已派发输入），`fake.writes` 恰 1 次；撤权后旧观察无法再取授权，后续输入被拒且不产生第二次派发。targeted **1 passed / 5.13s**；仅测试/夹具。证据：[v2-android-input-dispatch-regression.json](evidence/v2-android-input-dispatch-regression.json)。
 - **SoM 离线核心**：`domain/som.py` 节点准入/密码跳过/边界裁剪/≤50 稳定编号；`adapters/som.py` Pillow 同尺寸红框+编号、仅数字入像素、坏图/尺寸/超限显式错误；**9 passed / 0.29s**，架构/候选门/目录/类型范围 **42 passed / 8.57s**，strict **432 文件 0 错 0 警**；无模型工具/HTTP/对象发布/迁移，D0–D3 未决，真机视觉质量未验。合同：[V2_ANDROID_SOM.md](v2/contracts/V2_ANDROID_SOM.md)；证据：[v2-android-som-core.json](evidence/v2-android-som-core.json)。
+- **坏 PNG 清理回归**：假 ADB 返回非 PNG 时 capture 以 `android_capture_failed` 失败、零临时 PNG、零 `session_captures` 行；恢复合法 PNG 后同一 grant/session 新 capture 成功且无残留。targeted **1 passed / 4.65s**，整文件 **20 passed / 74.37s**；仅测试。证据：[v2-android-capture-failure-regression.json](evidence/v2-android-capture-failure-regression.json)。
 - **决策台账**：[V2_K14_K15_DECISION_LEDGER](v2/contracts/V2_K14_K15_DECISION_LEDGER.md) 列出三份合同已决定/待所有者选择条款，以及给 E 的主动外联边界与候选稳定接口。**未决**：K14 D0–D5、K15 动机 D0–D4、K15 分层人格 D0–D5；真实模型/设备/72 小时未验。证据：[v2-visual-subagent-core.json](evidence/v2-visual-subagent-core.json)。
 
 ### 2026-11-22 K15 isInitial 设计合同（纯文档）

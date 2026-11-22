@@ -463,9 +463,17 @@
           "contract": "docs/v2/contracts/V2_ANDROID_SOM.md",
           "evidence": "docs/evidence/v2-android-som-core.json",
           "delivered": "离线核心（无模型工具/HTTP/对象发布/迁移/真机）：domain/som.py 节点 1–128/规范 UUID 唯一/四整数 bounds 正宽高/visible+password 显式 bool；只标 visible 非 password，bounds 裁剪、完全越界跳过计数、≤50 按 observe 顺序 1-based、超限 truncated；复用 8192/16Mpx caps；mark_map 仅内部映射。adapters/som.py Pillow 同尺寸红框+黑底黄边编号，仅数字入像素，零标记原图，坏 PNG/尺寸不符显式 android_som_invalid，超 16MiB android_som_too_large；不读文件/不发布/不调模型。9 专项 0.29s、架构/候选门/目录/类型范围 42 项 8.57s、strict 432 文件 0 错 0 警、ruff/格式通过。D0–D3 未决，未接模型工具/HTTP/对象发布。"
+        },
+        {
+          "gap": "Android 截图坏 PNG 失败清理与恢复回归（解码失败零发布、后续合法截图成功）",
+          "status": "implemented_scoped_passed",
+          "batch": "K14.android_capture_failure_regression",
+          "contract": "docs/v2/contracts/V2_ANDROID.md",
+          "evidence": "docs/evidence/v2-android-capture-failure-regression.json",
+          "delivered": "仅测试/无生产改动：假 ADB 返回非 PNG 时 capture 以 android_capture_failed 失败，android-captures 零临时 PNG、session_captures 零行；恢复合法 PNG 后同一 grant/session 新 capture 成功（adb_screencap、单 object 引用、字节与假设备一致）且无临时残留。targeted 1/4.65s，整文件 20/74.37s（final formatted source），model 20/195.17s；真机未验。"
         }
       ],
-      "limits": "K14 审计本身只读；后续独立批次已实现视觉子代理离线核心(K14.visual_subagent_core：有界帧/无工具/单次/仅文本/零写，20 专项过)、SoM 离线核心(K14.android_som_core：节点准入/编号/PNG 渲染，9 专项过)，并补 Android 截图撤销/取消链与输入派发后撤权/不重放三项回归(K14.android_capture_regression、K14.android_input_dispatch_regression，仅测试/夹具)；但视觉 D0-D5 与 SoM D0-D3 未决，生产接线/真实视觉模型/真实帧来源/对象发布/付费调用/真机未做；OCR/explore_app 仍列后续；不宣称真机质量或约65工具广度对等；V2有意不提供shell逃生舱/变更链(更严格)；既有todos重启竞态与5个pin v2_0039旧迁移测试沿用保留",
+      "limits": "K14 审计本身只读；后续独立批次已实现视觉子代理离线核心(K14.visual_subagent_core：有界帧/无工具/单次/仅文本/零写，20 专项过)、SoM 离线核心(K14.android_som_core：节点准入/编号/PNG 渲染，9 专项过)，并补 Android 截图撤销/取消/坏 PNG 清理恢复与输入派发后撤权/不重放四项回归(K14.android_capture_regression、K14.android_capture_failure_regression、K14.android_input_dispatch_regression，仅测试/夹具)；但视觉 D0-D5 与 SoM D0-D3 未决，生产接线/真实视觉模型/真实帧来源/对象发布/付费调用/真机未做；OCR/explore_app 仍列后续；不宣称真机质量或约65工具广度对等；V2有意不提供shell逃生舱/变更链(更严格)；既有todos重启竞态与5个pin v2_0039旧迁移测试沿用保留",
       "next": false
     },
     {

@@ -343,6 +343,27 @@ def test_revoked_grant_after_input_dispatch_does_not_retract_or_replay(tmp_path)
     asyncio.run(scenario())
 
 
+def test_capture_bad_png_fails_cleanly_and_next_capture_succeeds(tmp_path):
+    async def scenario():
+        async with prepared(tmp_path) as (instance, fake, agent, _, session, grant):
+            valid = fake.png
+            fake.png = b"not-a-png"
+            with pytest.raises(BusinessError) as caught:
+                await instance.android.capture(agent, grant["id"], session)
+            assert caught.value.code == "android_capture_failed"
+            assert not list((instance.paths.control / "android-captures").glob("*.png"))
+            rows = await instance._database.read(lambda u: u.connection.execute(select(s.session_captures)).all())
+            assert rows == []
+            fake.png = valid
+            capture = await instance.android.capture(agent, grant["id"], session)
+            assert capture["method"] == "adb_screencap"
+            stored, content = await instance.objects.get(agent, capture["object_id"])
+            assert stored["references"] == 1 and content == valid
+            assert not list((instance.paths.control / "android-captures").glob("*.png"))
+
+    asyncio.run(scenario())
+
+
 def test_cancelled_run_and_shutdown_retain_instance_until_worker_is_reclaimed(tmp_path):
     async def scenario():
         async with prepared(tmp_path) as (instance, fake, agent, _, session, grant):

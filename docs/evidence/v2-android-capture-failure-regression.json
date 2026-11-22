@@ -1,0 +1,50 @@
+{
+  "schema": 1,
+  "date": "2026-11-22",
+  "batch": "K14.android_capture_failure_regression",
+  "base_commit": "59fc37c16fdc9896abfd9f428c1d8f1faa27af1e",
+  "status": "implemented_scoped_passed_test_only",
+  "contract": "docs/v2/contracts/V2_ANDROID.md",
+  "scope": "Test-only regression for Android screenshot decode failure cleanup and recovery. No production source, route, schema, migration or device change.",
+  "source_files": {
+    "agent/tests/v2/integrations/test_v2_android.py": "aaa7ea3c721cfc3469c10c9b12a945cca54cbdf433a07e81602442233858f165"
+  },
+  "delivered": [
+    "New regression: fake ADB returns a non-PNG for screencap; capture must fail with android_capture_failed, leave no temp PNG under control/android-captures and insert no session_captures row.",
+    "After restoring the valid PNG, the same grant/session must complete a new capture with method adb_screencap, one object reference and bytes equal to the fake device PNG, still with no temp PNG left behind.",
+    "No assertion was weakened, no production timeout/budget changed, and no real device was used."
+  ],
+  "validation": {
+    "mode": "development_working_tree_scoped",
+    "new_nodes": 1,
+    "targeted": {
+      "command": "uv run --no-sync pytest -q -n 0 agent/tests/v2/integrations/test_v2_android.py -k 'capture_bad_png'",
+      "passed": 1,
+      "failed": 0,
+      "seconds": 4.65
+    },
+    "android_integration_file": {
+      "command": "uv run --no-sync pytest -q -n 0 agent/tests/v2/integrations/test_v2_android.py",
+      "passed": 20,
+      "failed": 0,
+      "seconds": 74.37,
+      "notes": "final formatted source; real V2 SQLite, managed Python worker, isolated fake ADB"
+    },
+    "android_model_file": {
+      "command": "uv run --no-sync pytest -q -n 0 agent/tests/v2/integrations/test_v2_android_model.py",
+      "passed": 20,
+      "failed": 0,
+      "seconds": 195.17,
+      "notes": "run together with the integration file before the line-wrap-only reformat; no production code changed"
+    },
+    "ruff": "test file passes ruff check after one line-wrap reformat",
+    "full_suite_executed": false,
+    "real_android_device_or_vendor_fields_executed": false
+  },
+  "not_executed": [
+    "Real Android screenshot quality, vendor window/keyguard/password fields",
+    "Full offline suite for current source",
+    "Real accounts/models or 72h soak"
+  ],
+  "next": "Android screenshot/input/revocation regressions now cover capture success, revocation, cancellation, bad PNG cleanup/recovery, input revocation-after-dispatch and existing unknown/no-replay paths. Next decision-free K14/K15 work: OCR/explore_app contract gap or more edge regressions; real device/visual quality stays a designated window. Shared interfaces/migrations stay with A."
+}
