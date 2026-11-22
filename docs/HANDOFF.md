@@ -341,6 +341,15 @@ K13.cron_model_design 已记录**实现前设计合同**（纯文档，无源码
 - **未验**：P1 方案未实现；D8 真实缓存效果需所有者提供隔离 provider 环境；真实模型质量对照未做；当前源码未全量。
 - **下一批**：补 D2（代码沙箱）/D3（原始 CDP）安全设计合同（任务点名清单中仅剩这两项），或 D8/D9 批准后小批接线；D1/D4–D7 实现均待所有者决策与 A 迁移协调。共享接口/迁移/公共 CI 由 A 协调。
 
+### 2026-11-23 K13 代码沙箱与原始 CDP 设计合同（第 10 批，`k18-read-cache`）
+
+- **范围/基线**：承接前九批；本批**两份纯设计合同**，无源码/测试/迁移/路由/worker 改动。基线仍 `origin/v2`=`0793f254`（前九批未合入），同一任务分支/独立工作树。至此任务点名的「前缀重构、代码沙箱、原始 CDP、写扩面、主动观看／分享／直播」**七项决策全部有设计合同**。
+- **D2 代码沙箱**：[V2_CODE_SANDBOX](v2/contracts/V2_CODE_SANDBOX.md)——参考事实（execute_code=PTC、持久 kernel、允许清单含 write/terminal、300s/50 调用/50KB+spill/10KB、env/RPC 清洗与 token+预算、browser_exec 需 terminal surface）；V2 仅 `shell_execute` 一次性 argv。选项 **S1 不移植（推荐先明确边界）/ S2 受限计算沙箱（无 RPC 无写、临时 cwd+env 清洗、资源上限、明确声明非安全边界，次推荐）/ S3 完整 PTC（只读 RPC+持久 kernel，需 A 协调 worker 协议）/ S4 远程容器另立**；写/terminal 不桥接、不继承凭据。
+- **D3 原始 CDP**：[V2_BROWSER_CDP](v2/contracts/V2_BROWSER_CDP.md)——参考事实（browser_exec 任意宿主 Python over CDP、terminal 门控、URL 字面量预扫、CDP endpoint 优先级；browser_cdp raw method/target/OOPIF、需 supervisor、私有网络守卫、不得成为 URL 策略绕过；url_policy 有序 floor）；V2 仅基础浏览器动作、scheme 校验、无 host floor（D9）。选项 **C1 不移植（推荐）/ C2 声明式多步浏览器计划（≤20 步、逐步 expected_url CAS、单次审批、失败停止，复用现有实现）/ C3 只读 CDP 白名单（需 D9 先落地 + A 协议协调）/ C4 完整 browser_exec 拒绝**；共同前提 D9 floor、不得读取凭据。
+- **决策状态**：D1–D7 均已有设计合同待所有者选定；D8（cron 阻塞）/D9（浏览器 SSRF floor）仍是最低成本决策；D4 写批待 Q1/Q2；D5 待 W1–W8 且需与 D 对齐。
+- **未验**：两份合同内能力均未实现；真实模型脚本/真实 Chromium/公网/账号；当前源码未全量。
+- **下一批**：无新增点名项待设计；下一轮优先做 D8/D9 实现（若所有者批准即可小批接线）或复核已交付项/证据、补 K13 cron 残余（monitor/no_agent/toolsets/workdir/deliver/prompt_scan）设计合同；共享接口/迁移/公共 CI 由 A 协调。
+
 ## 追溯入口
 
 - [旧交接记录](history/pre-layout-2026-11-18/HANDOFF.md)、[旧重构记录](history/pre-layout-2026-11-18/V2_REFACTOR.md)只证明所属版本，不作为当前待办。
