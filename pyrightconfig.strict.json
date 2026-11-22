@@ -432,7 +432,8 @@
     "agent/src/omni/domain/visual_subagent.py",
     "agent/src/omni/application/visual_subagent.py",
     "agent/src/omni/domain/som.py",
-    "agent/src/omni/adapters/som.py"
+    "agent/src/omni/adapters/som.py",
+    "agent/src/omni/domain/android_explore.py"
   ],
   "exclude": [
     "**/__pycache__"

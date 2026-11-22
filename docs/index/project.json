@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "f449102128313b476bfdcaaacc7f337100237443de4d15887b473c4c446acc72",
+  "source_sha256": "8cfb87969ee89e4d83d9f4defbeae8fa496addc4cc6f48d8a35335f166ee9737",
   "modules": [
     {
       "id": "v2-domain",
@@ -21,6 +21,7 @@
         "agent/src/omni/domain/action_review.py",
         "agent/src/omni/domain/agents.py",
         "agent/src/omni/domain/android.py",
+        "agent/src/omni/domain/android_explore.py",
         "agent/src/omni/domain/android_unicode.py",
         "agent/src/omni/domain/audit_retention.py",
         "agent/src/omni/domain/background_review.py",
@@ -97,7 +98,7 @@
         "agent/src/omni/domain/verification_stop.py",
         "agent/src/omni/domain/visual_subagent.py"
       ],
-      "lines": 14280,
+      "lines": 14436,
       "dependencies": []
     },
     {
@@ -79014,6 +79015,141 @@
         }
       ],
       "summary": "Android identities, bounded UI observations and approved input contracts; no native I/O."
+    },
+    {
+      "path": "agent/src/omni/domain/android_explore.py",
+      "module": "v2-domain",
+      "python_module": "omni.domain.android_explore",
+      "lines": 156,
+      "imports": [
+        "omni.domain.contracts"
+      ],
+      "symbols": [
+        {
+          "name": "_invalid",
+          "line": 24,
+          "kind": "function",
+          "parameters": [
+            "message"
+          ],
+          "annotations": {
+            "message": "str"
+          }
+        },
+        {
+          "name": "_text",
+          "line": 28,
+          "kind": "function",
+          "parameters": [
+            "value",
+            "limit",
+            "field_name"
+          ],
+          "annotations": {
+            "value": "object",
+            "limit": "int",
+            "field_name": "str"
+          }
+        },
+        {
+          "name": "_nodes",
+          "line": 37,
+          "kind": "function",
+          "parameters": [
+            "value"
+          ],
+          "annotations": {
+            "value": "object"
+          }
+        },
+        {
+          "name": "skeleton_hash",
+          "line": 51,
+          "kind": "function",
+          "parameters": [
+            "app",
+            "activity",
+            "nodes"
+          ],
+          "annotations": {
+            "app": "object",
+            "activity": "object",
+            "nodes": "object"
+          }
+        },
+        {
+          "name": "ExploreScreen",
+          "line": 79,
+          "kind": "class"
+        },
+        {
+          "name": "ExploreEdge",
+          "line": 87,
+          "kind": "class"
+        },
+        {
+          "name": "ExploreGraph",
+          "line": 95,
+          "kind": "class"
+        },
+        {
+          "name": "ExploreGraph.add_screen",
+          "line": 100,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "app",
+            "activity",
+            "nodes"
+          ],
+          "annotations": {
+            "app": "object",
+            "activity": "object",
+            "nodes": "object"
+          }
+        },
+        {
+          "name": "ExploreGraph.add_edge",
+          "line": 115,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "source",
+            "target",
+            "node_key",
+            "action"
+          ],
+          "annotations": {
+            "source": "str",
+            "target": "str",
+            "node_key": "object",
+            "action": "object"
+          }
+        },
+        {
+          "name": "ExploreGraph.summary",
+          "line": 129,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "build_graph",
+          "line": 138,
+          "kind": "function",
+          "parameters": [
+            "observations",
+            "transitions"
+          ],
+          "annotations": {
+            "observations": "Sequence[object]",
+            "transitions": "Sequence[object]"
+          }
+        }
+      ],
+      "summary": "Pure Android explore_app state graph: structural screen keys, bounded edges and summaries."
     },
     {
       "path": "agent/src/omni/domain/android_unicode.py",

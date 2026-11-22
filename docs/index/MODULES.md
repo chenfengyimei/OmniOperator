@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`f449102128313b476bfdcaaacc7f337100237443de4d15887b473c4c446acc72`。包含 65 个职责模块、853 个源码/界面文件。
+源码指纹：`8cfb87969ee89e4d83d9f4defbeae8fa496addc4cc6f48d8a35335f166ee9737`。包含 65 个职责模块、854 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -14,6 +14,7 @@
 | [agent/src/omni/domain/action_review.py](../../agent/src/omni/domain/action_review.py) | 199 | Owner observations about unknown writes; does not settle actions, authorize replay or release model costs. |
 | [agent/src/omni/domain/agents.py](../../agent/src/omni/domain/agents.py) | 30 | Owner-managed Agent names and bounds; no credentials, state copying or platform access. |
 | [agent/src/omni/domain/android.py](../../agent/src/omni/domain/android.py) | 393 | Android identities, bounded UI observations and approved input contracts; no native I/O. |
+| [agent/src/omni/domain/android_explore.py](../../agent/src/omni/domain/android_explore.py) | 156 | Pure Android explore_app state graph: structural screen keys, bounded edges and summaries. |
 | [agent/src/omni/domain/android_unicode.py](../../agent/src/omni/domain/android_unicode.py) | 121 | Pinned helper profiles and authenticated, bounded Unicode input messages; no device I/O. |
 | [agent/src/omni/domain/audit_retention.py](../../agent/src/omni/domain/audit_retention.py) | 291 | Agent audit-retention subjects, frozen previews and explicit plans; performs no I/O or deletion. |
 | [agent/src/omni/domain/background_review.py](../../agent/src/omni/domain/background_review.py) | 198 | Bounded post-turn review proposals and owner decisions; no model calls, memory writes or I/O. |

@@ -508,6 +508,8 @@ strict 配置显式将 `agent/src` 加入导入根，隔离源码副本也解析
 
 | `agent/src/omni/adapters/som.py` | K14 SoM PNG 渲染：同尺寸叠加、仅数字入像素、确定性编码与输出上限；不做采集/发布 |
 
+| `agent/src/omni/domain/android_explore.py` | K14 explore_app 纯领域：结构 skeleton 哈希（不含文本/密码）、屏幕/动作边去重、200 屏/1000 边上限与截断 |
+
 `pyrightconfig.strict.json` 的 `include` 必须与本表完全一致；`agent/tests/v2/core/test_v2_typecheck_scope.py` 会双向校验。
 
 ## 3. 历史基线与当前范围

@@ -1,6 +1,6 @@
 # V2 Android explore_app 状态图设计合同（K14 可离线缺口）
 
-**状态：`design_contract_recorded`，未实现，无源码/测试/迁移/路由改动。** 本文件把 K14 审计组 5 的 `explore_app`（XML-skeleton 状态图）缺口收敛为实现前边界；D0–D4 未决前只允许离线核心，不新增模型工具/HTTP/持久化。
+**状态：`offline_core_implemented_not_wired`（2026-11-22）。** 离线核心（结构 skeleton、屏幕/边去重、上限与摘要）已实现并专项通过；D0–D4 仍未决，**没有**模型工具、HTTP 路由、持久化、真实设备探索或自动动作。
 
 ## 1. 范围
 
@@ -47,4 +47,10 @@
 
 - 不做真实设备自动探索、模型规划、OCR/视觉、自动点击/输入、长期记忆/人格。
 - 不宣称 explore_app 对等；`whole_core_parity_complete`、`whole_v2_complete` 保持 false。
-- 本批无源码/测试/迁移/路由改动；真实设备/72h 未验。
+- 真实设备探索/72h 未验。
+
+## 7. 离线核心实现记录（2026-11-22）
+
+- `domain/android_explore.py`：`skeleton_hash(app, activity, nodes)` 只哈希结构字段（class/resource-id/排序 actions），**text/description/password 值不进入**，文案变化归并同一屏；密码节点跳过；屏幕 id 为 `sha256(app|activity|skeleton)[:24]`；`ExploreGraph` 上限 200 屏/1000 边，重复边去重、自环/缺失目标不造边，超限 `truncated=true`；`summary` 只返回屏/边/应用/截断；`build_graph` 从观察与已观察 transition 构图。
+- 测试：`agent/tests/v2/core/test_v2_android_explore.py` **6 passed / 0.33s**（文案归并/结构变化分屏/密码排除/非法输入/200 屏/1000 边/去重/缺失目标/摘要/build_graph）。
+- 无持久化、模型工具、HTTP、对象发布或自动动作；D0–D4 未决。证据：[v2-android-explore-core.json](../../evidence/v2-android-explore-core.json)。
