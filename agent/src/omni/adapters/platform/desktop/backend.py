@@ -13,10 +13,11 @@ from collections.abc import Awaitable, Callable
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, cast
+from typing import Any, Literal, cast
 
 from omni.adapters.platform.desktop import desktop_capture, macos_helper
 from omni.adapters.platform.desktop.linux.linux_lease_client import LeaseClientPort, LinuxLeaseClient
+from omni.adapters.platform.desktop.macos_launch import LaunchedHelper, LaunchError, launch_helper
 from omni.adapters.platform.runtime.processes import OwnedProcess
 from omni.application.ports import Record
 from omni.domain.contracts import JSON, BusinessError
@@ -37,6 +38,8 @@ MAX_PENDING = 4
 MAX_RESIDENT = 2
 TIMEOUT_S = 5.0
 Spawn = Callable[..., Awaitable[OwnedProcess]]
+MacLauncher = Callable[..., Awaitable[LaunchedHelper]]
+Owned = OwnedProcess | LaunchedHelper
 BeforeDispatch = Callable[[], Awaitable[None]]
 
 
@@ -109,8 +112,8 @@ def helper_environment() -> dict[str, str]:
 
 @dataclass(eq=False)
 class _Host:
-    starting: asyncio.Task[OwnedProcess] | None = None
-    owned: OwnedProcess | None = None
+    starting: asyncio.Task[Owned] | None = None
+    owned: Owned | None = None
     readers: list[asyncio.Task[None]] = field(default_factory=lambda: list[asyncio.Task[None]]())
     collected: asyncio.Task[int] | None = None
     exited: asyncio.Task[int] | None = None
@@ -139,8 +142,14 @@ class DesktopBackend:
         capture_root: Path | None = None,
         capacity: asyncio.Semaphore | None = None,
         lease_backend: LeaseClientPort | None = None,
+        macos_transport: Literal["posix", "launchservices"] = "posix",
+        macos_launcher: MacLauncher | None = None,
     ) -> None:
         self._factory: Spawn = process_factory or OwnedProcess.spawn
+        # Production composition selects the LaunchServices transport so the
+        # helper owns its TCC permissions; offline simulations keep POSIX argv.
+        self._macos_transport = macos_transport
+        self._macos_launcher: MacLauncher = macos_launcher or launch_helper
         self._pending: set[asyncio.Task[Any]] = set()
         self._hosts: set[_Host] = set()
         self._slots = capacity if capacity is not None else asyncio.Semaphore(MAX_RESIDENT)
@@ -336,7 +345,7 @@ class DesktopBackend:
                 host.overflow.set()
             # Raw stderr is discarded; both pipes remain drained while reclamation is unresolved.
 
-    async def _spawn(self, host: _Host, operation: str = "probe") -> OwnedProcess:
+    async def _spawn(self, host: _Host, operation: str = "probe") -> Owned:
         argv = [
             sys.executable,
             "-P" if os.environ.get("OMNI_TEST_OFFLINE") == "1" else "-I",
@@ -348,7 +357,16 @@ class DesktopBackend:
             argv[-1] = "omni.adapters.workers.linux_action"
         if sys.platform == "darwin":
             executable = await self._file(host, macos_helper.resolve)
-            if executable is not None:
+            if executable is not None and self._macos_transport == "launchservices":
+                try:
+                    host.owned = await self._macos_launcher(
+                        executable,
+                        macos_helper.bundle_path(),
+                        deadline=asyncio.get_running_loop().time() + TIMEOUT_S,
+                    )
+                except LaunchError:
+                    raise _error("desktop_native_unavailable") from None
+            elif executable is not None:
                 argv = [str(executable), "--ipc"]
             elif operation != "probe":
                 raise _error("desktop_macos_helper_missing")
@@ -366,15 +384,16 @@ class DesktopBackend:
             if not executable.is_file() or not script.is_file() or script.is_symlink():
                 raise _error("desktop_observation_unavailable")
             argv = [str(executable), "-NoLogo", "-NoProfile", "-NonInteractive", "-Mta", "-File", str(script)]
-        host.owned = await self._factory(
-            argv,
-            stdin=asyncio.subprocess.PIPE,
-            stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE,
-            limit=MAX_FRAME + 1,
-            env=helper_environment(),
-            cwd=str(Path(__file__).resolve().parents[1]),
-        )
+        if host.owned is None:
+            host.owned = await self._factory(
+                argv,
+                stdin=asyncio.subprocess.PIPE,
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE,
+                limit=MAX_FRAME + 1,
+                env=helper_environment(),
+                cwd=str(Path(__file__).resolve().parents[1]),
+            )
         process = host.owned.process
         assert process.stdout is not None and process.stderr is not None
         for stream, stdout in ((process.stdout, True), (process.stderr, False)):

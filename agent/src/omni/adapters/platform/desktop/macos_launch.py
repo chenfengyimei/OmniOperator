@@ -34,12 +34,42 @@ class LaunchError(Exception):
     """The helper was not launched or the connected peer failed validation."""
 
 
+class _HalfCloseWriter:
+    """Close only the write side of the helper socket.
+
+    The backend closes stdin after the single request frame to signal that no
+    further work follows. For a pipe that is a half-close; closing the whole
+    asyncio transport would discard the reply that is still being read.
+    """
+
+    def __init__(self, writer: asyncio.StreamWriter) -> None:
+        self._writer = writer
+        self._closed = False
+
+    def write(self, data: bytes) -> None:
+        self._writer.write(data)
+
+    async def drain(self) -> None:
+        await self._writer.drain()
+
+    def close(self) -> None:
+        if self._closed:
+            return
+        self._closed = True
+        raw = self._writer.get_extra_info("socket")
+        try:
+            if raw is not None:
+                raw.shutdown(socket.SHUT_WR)
+        except OSError:
+            pass
+
+
 class _ProcessView:
     """Minimal process view used by the backend: stdio streams, pid and wait()."""
 
     def __init__(
         self,
-        stdin: asyncio.StreamWriter,
+        stdin: _HalfCloseWriter,
         stdout: asyncio.StreamReader,
         stderr: asyncio.StreamReader,
         pid: int,
@@ -85,7 +115,7 @@ class LaunchedHelper:
 
     def __init__(
         self,
-        stdin: asyncio.StreamWriter,
+        stdin: _HalfCloseWriter,
         stdout: asyncio.StreamReader,
         stderr: asyncio.StreamReader,
         pid: int,
@@ -219,4 +249,4 @@ async def launch_helper(
         socket_path.unlink()
     stderr = asyncio.StreamReader()
     stderr.feed_eof()
-    return LaunchedHelper(writer, reader, stderr, pid, created, directory, socket_path)
+    return LaunchedHelper(_HalfCloseWriter(writer), reader, stderr, pid, created, directory, socket_path)

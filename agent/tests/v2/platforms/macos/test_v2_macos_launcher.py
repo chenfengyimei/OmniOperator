@@ -131,3 +131,66 @@ def test_terminate_reclaims_a_lingering_helper(tmp_path):
         assert not psutil.pid_exists(pid) or psutil.Process(pid).status() == psutil.STATUS_ZOMBIE
 
     asyncio.run(scenario())
+
+
+def test_backend_uses_the_launchservices_transport_when_selected(monkeypatch):
+    from omni.adapters.platform.desktop import backend as desktop
+    from omni.domain.contracts import BusinessError
+
+    if sys.platform != "darwin":
+        pytest.skip("macOS transport selection")
+
+    calls = []
+
+    class FakeWriter:
+        def write(self, data):
+            calls.append(("frame", data))
+
+        async def drain(self):
+            return None
+
+        def close(self):
+            return None
+
+    class FakeProcess:
+        def __init__(self):
+            self.stdin = FakeWriter()
+            self.stdout = asyncio.StreamReader()
+            self.stderr = asyncio.StreamReader()
+            self.stderr.feed_eof()
+            self.pid = 123456
+            self.returncode = None
+
+        async def wait(self):
+            self.returncode = 0
+            return 0
+
+    class FakeHelper:
+        def __init__(self):
+            self.process = FakeProcess()
+            self.terminated = False
+
+        async def terminate(self, timeout_s):
+            self.terminated = True
+            return True
+
+    async def launcher(executable, bundle, *, deadline=None):
+        helper = FakeHelper()
+        helper.process.stdout.feed_eof()
+        calls.append(("launch", executable, bundle))
+        return helper
+
+    async def scenario():
+        monkeypatch.setattr(desktop.macos_helper, "resolve", lambda: Path("/fixed/helper"))
+        monkeypatch.setattr(desktop.macos_helper, "bundle_path", lambda: Path("/fixed/helper.app"))
+        instance = desktop.DesktopBackend(macos_transport="launchservices", macos_launcher=launcher)
+        try:
+            with pytest.raises(BusinessError) as error:
+                await instance.probe()
+            assert error.value.code == "desktop_protocol_invalid"
+            assert calls[0] == ("launch", Path("/fixed/helper"), Path("/fixed/helper.app"))
+            assert any(kind == "frame" for kind, *_ in calls)
+        finally:
+            assert await instance.close(5)
+
+    asyncio.run(scenario())

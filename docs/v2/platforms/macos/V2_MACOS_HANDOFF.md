@@ -244,3 +244,13 @@ LaunchAgent 基线：本机当前没有 OmniOperator 用户服务 job，`~/Libra
 新增 `adapters/platform/desktop/macos_launch.py`：0700 私有目录 + `<dir>/s` UDS，`/usr/bin/open -n <bundle> --args --connect <path>` 有界等待；accept 后经 `LOCAL_PEERPID` 取 pid/create_time，校验 real uid 与可执行文件为固定 helper；用 `asyncio.open_connection(sock=...)` 提供与现有后端相同的流接口；`terminate()` 只按已验证身份信号并升级，`wait()` 轮询身份消失；结束删除 socket 与私有目录。`open_command` 仅用于离线注入测试。
 
 离线测试 5/5（0.78 秒）：假 helper 分离进程连接并完成一次 IPC 帧、错误可执行文件被拒、无连接超时、launcher 非零退出被拒、linger helper 被回收且目录删除。macOS 11 文件 **237/238（19.59 秒，1 项既有 v2_0051 pin）** + 终端 10/10；ruff 干净；pyright strict 新模块 0 错误（树内 30 个既有错误分布在 5 个本批未触碰文件，属当前树漂移，未在本批修）。**尚未接入 backend**，生产仍 POSIX 启动。证据：[传输核心](../../../evidence/v2-macos-launch-transport-2026-11-22.json)。
+
+### 2026-11-22 LaunchServices 后端接线与过渡状态（A1 阶段 2）
+
+`backend.py` 增加 `macos_transport: Literal["posix","launchservices"]`（默认 posix）与 `macos_launcher` 注入；darwin + launchservices 时经传输核心启动固定 helper，随后复用既有 drain/collect/reclaim 路径；`_Host.owned` 与 `_spawn` 返回类型改为 `OwnedProcess | LaunchedHelper`。组合根 `composition/instance.py` 已选择 `macos_transport="launchservices"`。
+
+接线时发现并修复一个真实问题：后端发送单帧后会 `stdin.close()`，对管道是半关闭，对 socket 却会拆掉整个 transport、丢掉回包；传输层改为只 `shutdown(SHUT_WR)` 的半关闭 writer 后，真实 LS probe 通过（`omni-desktop-ipc-6`、interactive、四能力 `denied`、关闭 resident/cleanup_pending 均为 0）。
+
+**过渡状态**：已用 `open --args --request-permission` 触发四项授权，tccd 显示请求方为 `org.omnioperator.desktophelper` 且无 responsible 进程，但轮询窗口内未获批准，因此 LS 路径仍 `denied`。在所有者于系统设置中为 “OmniOperator Desktop Helper” 打开“屏幕与系统音频录制 / 辅助功能 / 输入监控 / 事件发送”之前，生产 macOS 桌面能力会按设计失败关闭并给出恢复提示；需要旧行为时显式选择 `macos_transport="posix"`。授权必须落在当前交付二进制 `9360128b` 上（ad-hoc 授权可能绑定 cdhash，之后不要重建）。
+
+验证：launcher 6/6（含后端接线注入测试）；macOS 11 文件 238/239（19.80 秒，1 项既有 v2_0051 pin）；终端 10/10（同日另一次 9/10，属既有 close 竞态）。ruff 干净；strict 新改动 0 错误（树内 30 个既有错误属未触碰文件漂移）。证据：[接线](../../../evidence/v2-macos-launch-transport-wiring-2026-11-22.json)。
