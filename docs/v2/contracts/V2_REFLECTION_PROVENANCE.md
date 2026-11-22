@@ -4,7 +4,14 @@
 
 ## 实现进度
 
-文档锚点子批已实现。v0051 在同库保存信笺和文档读取关联，信笺的 pending 状态即唯一队列项。保存入口是 UnitOfWork.reflection_journal_save；调用方提供本次 run 的 capture_id 及被该证据支撑的正文字段，仓库复核读取动作、精确修订、范围和擦除状态，再计算源片段指纹。请求擦除或直接擦除任一关联文档即清空整封信笺及其所有锚点，保留配额占位。媒体片段、所有者审核和人格投影仍属于后续批次，当前无公开写入路由。[专项证据](../../evidence/v2-reflection-document-journal.json)
+2026-11-22 更新。
+
+- **文档锚点子批（v0051）**：同库保存信笺和文档读取关联，pending 状态即唯一队列项。保存入口 `UnitOfWork.reflection_journal_save`；调用方提供本次 run 的 `capture_id` 及被该证据支撑的正文字段，仓库复核读取动作、精确修订、范围和擦除状态，再计算源片段指纹。请求擦除或直接擦除任一关联文档即清空整封信笺及其所有锚点，保留配额占位。[专项证据](../../evidence/v2-reflection-document-journal.json)
+- **媒体锚点与所有者审核子批（v0052）**：`reflection_media_links` 固定 `media_locate`/`media_zoom` 的实际读动作、产物与时间位置（`media_receipt` 复核 source、action、帧账本与时长）；`reflection_reads` 记录读取者、版本与指纹；`reflection_candidates` 只接受同版 revision/next_response 的 1–240 码点精确原文；`reflection_slots` 实施每实际批准日一条、每来源日一条与撤回标记。批准、拒绝、撤回都绑定候选修订与原句指纹（CAS），同决定重放返回既有结果；编辑信笺令旧候选失效，替换须显式引用旧条目，撤回阻断该来源日重选。所有者 HTTP：`GET /reflections`（待决定队列，只含当前修订的 proposed 且未被撤回/其他来源日占用）、`GET /reflections?approved=true`（正式条目）、`GET/PUT /reflections/{journal_id}`、`POST /reflections/candidates/{candidate_id}/decision`。擦除链：文档擦除请求/删除、媒体源删除任一关联锚点即整封擦除并级联删除候选、读取与锚点；未完成擦除期间读取与批准保持阻断，重启后仍可续清。
+- **工作台入口**：`web/ui/v2/reflections.js`「反思信笺」页只读展示八栏正文、来源区间与指纹、候选摘录，全部以 `textContent` 渲染；所有者可批准、拒绝、撤回，按钮携带候选修订与指纹。模型工具仍只有 observations/save/read/select/skip，模型不能批准。
+- **本批验证**：v0051→head 升级保留信笺与锚点并启用审核链；生产入口提交→批准→撤回→重启不复活；双文档来源删一清整封；中断擦除重启后续清且屏障保持；工作台 390/1440 两档通过。[专项证据](../../evidence/v2-reflection-owner-review.json)
+
+**仍属后续**：人格成长文件与固定 reader（需所有者先确认本版决策，不向系统前缀注入）；inbox/月卷导出与哈希核验；所有者正文编辑页（当前编辑只经 `PUT` HTTP）；跨会话 shadow、观影后提问与外联各自独立；真实模型信笺/摘录质量与真实 B 站来源另验。
 
 ## 现有落点
 
@@ -50,3 +57,5 @@
 | 3. 端到端失效与恢复 | 通过生产组装入口与隔离注入验证多源共享、删一源失效全部依赖、批准与擦除两种顺序、撤回禁止重选、重启续清及零正文泄露。若引入导出，同时验证损坏/链接目标拒绝及撤回后重建。 |
 
 domain 负责校验和转移；application 负责授权、端口与用例；adapters/persistence 在同一 omni.db 事务内核源、限额和写账；composition 仅接 V2 四层，需要脱敏时注入 adapters.diagnostics.Redactor 实例。每批覆盖调用方及架构守卫，新增用例摘实现验红再还原核对指纹，执行 strict 和 ruff。真实视频、模型选择和人格质量留给独立隔离验收。
+
+批次 1–3 的离线用例已由 v0051/v0052 与本批证据覆盖：升级/回滚、已读范围与拒绝矩阵、双配额与竞争、精确摘录边界、修订替换、撤回重选阻断、生产入口提交/批准/撤回、多源删一、中断擦除重启续清与重启不复活。导出未启用，故导出损坏/链接目标拒绝与撤回后重建未验；人格成长文件仍未启用。

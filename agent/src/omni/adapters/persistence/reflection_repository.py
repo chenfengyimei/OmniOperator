@@ -6,7 +6,7 @@ import datetime as dt
 import hashlib
 from typing import cast
 
-from sqlalchemy import exists, select, update
+from sqlalchemy import exists, or_, select, update
 
 from ...application.ports import Record
 from ...domain.contracts import JSON, BusinessError
@@ -243,32 +243,52 @@ class ReflectionRepositories(DocumentRepositories):
         }
 
     def reflection_page(self, agent: str, after: str, limit: int, approved: bool) -> Record:
-        stmt = select(journals.c.id, journals.c.revision, journals.c.source_day).where(
+        statement = select(journals.c.id, journals.c.revision, journals.c.source_day).where(
             journals.c.agent_id == agent, journals.c.state == "pending", journals.c.id > after
         )
         if approved:
-            stmt = (
-                stmt.join(slots, slots.c.journal_id == journals.c.id)
+            statement = (
+                statement.join(slots, slots.c.journal_id == journals.c.id)
                 .join(candidates, candidates.c.id == slots.c.active_candidate)
                 .where(candidates.c.state == "approved", candidates.c.journal_revision == journals.c.revision)
             )
+        else:
+            # The owner queue is exactly the journals whose current revision awaits a decision.
+            # A withdrawn or foreign day slot, an approval, a rejection and a skip all leave the
+            # queue; the journal row stays until its source is erased so audit and replacement
+            # keep a stable identity.
+            statement = statement.where(
+                exists(
+                    select(candidates.c.id).where(
+                        candidates.c.journal_id == journals.c.id,
+                        candidates.c.journal_revision == journals.c.revision,
+                        candidates.c.state == "proposed",
+                    )
+                ),
+                ~exists(
+                    select(slots.c.id).where(
+                        slots.c.agent_id == agent,
+                        slots.c.source_day == journals.c.source_day,
+                        or_(slots.c.withdrawn.is_(True), slots.c.journal_id != journals.c.id),
+                    )
+                ),
+            )
         items: list[JSON] = []
-        for row in self.connection.execute(stmt.order_by(journals.c.id).limit(min(50, max(1, limit)))).mappings():
-            if approved:
-                detail = self.reflection_detail(agent, row["id"])
-                candidate = cast(Record, detail["candidate"])
-                body = cast(Record, detail["body"])
-                items.append(
-                    {
-                        **dict(row),
-                        "candidate_id": candidate["id"],
-                        "sentence": str(body[str(candidate["field"])])[
-                            cast(int, candidate["start"]) : cast(int, candidate["end"])
-                        ],
-                    }
-                )
-            else:
-                items.append(dict(row))
+        for row in self.connection.execute(statement.order_by(journals.c.id).limit(min(50, max(1, limit)))).mappings():
+            detail = self.reflection_detail(agent, row["id"])
+            candidate = cast(Record, detail["candidate"])
+            body = cast(Record, detail["body"])
+            items.append(
+                {
+                    **dict(row),
+                    "candidate_id": candidate["id"],
+                    "candidate_revision": candidate["revision"],
+                    "digest": candidate["digest"],
+                    "sentence": str(body[str(candidate["field"])])[
+                        cast(int, candidate["start"]) : cast(int, candidate["end"])
+                    ],
+                }
+            )
         return {"items": items}
 
     def reflection_model_review(self, agent: str, run: str, args: Record) -> Record:

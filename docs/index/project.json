@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "86bf5f76b0ad5895107b62894800fd22ff4089e837b2d3cfc9e15e61fe15ae9a",
+  "source_sha256": "20df6608ee14a641730bb45c6dd8dc2966e4b88b798a2c060be8b507637ec8a4",
   "modules": [
     {
       "id": "v2-domain",
@@ -509,7 +509,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 70704,
+      "lines": 70724,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -593,6 +593,7 @@
         "web/ui/v2/operations.js",
         "web/ui/v2/people.js",
         "web/ui/v2/qq.js",
+        "web/ui/v2/reflections.js",
         "web/ui/v2/routing.js",
         "web/ui/v2/schedules.js",
         "web/ui/v2/settings-rail.js",
@@ -605,7 +606,7 @@
         "web/ui/v2/v1/workbench.css",
         "web/ui/v2/workbench.css"
       ],
-      "lines": 25586,
+      "lines": 25853,
       "dependencies": []
     },
     {
@@ -22452,7 +22453,7 @@
       "path": "agent/src/omni/adapters/persistence/reflection_repository.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.persistence.reflection_repository",
-      "lines": 430,
+      "lines": 450,
       "imports": [
         "omni.adapters.persistence",
         "omni.adapters.persistence.document_repository",
@@ -22617,7 +22618,7 @@
         },
         {
           "name": "ReflectionRepositories.reflection_model_review",
-          "line": 274,
+          "line": 294,
           "kind": "function",
           "parameters": [
             "self",
@@ -22633,7 +22634,7 @@
         },
         {
           "name": "ReflectionRepositories.reflection_edit",
-          "line": 341,
+          "line": 361,
           "kind": "function",
           "parameters": [
             "self",
@@ -22651,7 +22652,7 @@
         },
         {
           "name": "ReflectionRepositories.reflection_decide",
-          "line": 360,
+          "line": 380,
           "kind": "function",
           "parameters": [
             "self",
@@ -113388,7 +113389,7 @@
       "path": "web/ui/v2/index.html",
       "module": "v2-workbench",
       "python_module": null,
-      "lines": 2165,
+      "lines": 2195,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -113408,7 +113409,7 @@
       "path": "web/ui/v2/main.js",
       "module": "v2-workbench",
       "python_module": null,
-      "lines": 2402,
+      "lines": 2407,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -113509,6 +113510,16 @@
       "module": "v2-workbench",
       "python_module": null,
       "lines": 181,
+      "imports": [],
+      "symbols": [],
+      "kind": "asset",
+      "summary": "原生源码、平台脚本或界面资源"
+    },
+    {
+      "path": "web/ui/v2/reflections.js",
+      "module": "v2-workbench",
+      "python_module": null,
+      "lines": 232,
       "imports": [],
       "symbols": [],
       "kind": "asset",

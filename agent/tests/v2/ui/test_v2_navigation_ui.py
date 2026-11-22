@@ -1,4 +1,4 @@
-"""Grouped workbench navigation: eight business groups, 24 rail buttons (24 pages), all reachable, 390/1024."""
+"""Grouped workbench navigation: eight business groups, 25 rail buttons (25 pages), all reachable, 390/1024."""
 
 import socket
 import threading
@@ -69,12 +69,13 @@ def test_grouped_navigation_keeps_every_page_reachable(ui_browser, navigation_se
         expect(labels).to_have_count(len(GROUPS))
         for index, group in enumerate(GROUPS):
             expect(labels.nth(index)).to_have_text(group)
-        expect(page.locator("nav button[data-page]")).to_have_count(24)
+        expect(page.locator("nav button[data-page]")).to_have_count(25)
 
         for target, marker in (
             ("可信插件", "#extensions"),
             ("能力", "#capabilities"),
             ("令牌", "#tokens"),
+            ("反思信笺", "#reflections"),
             ("对话", "#chat"),
         ):
             page.get_by_role("button", name=target, exact=True).click()

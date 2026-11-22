@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`86bf5f76b0ad5895107b62894800fd22ff4089e837b2d3cfc9e15e61fe15ae9a`。包含 65 个职责模块、842 个源码/界面文件。
+源码指纹：`20df6608ee14a641730bb45c6dd8dc2966e4b88b798a2c060be8b507637ec8a4`。包含 65 个职责模块、843 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -302,7 +302,7 @@
 | [agent/src/omni/adapters/persistence/reference_release.py](../../agent/src/omni/adapters/persistence/reference_release.py) | 41 | Offline reference release uses the shared verified maintenance lifecycle; never unlinks objects. |
 | [agent/src/omni/adapters/persistence/reference_release_repository.py](../../agent/src/omni/adapters/persistence/reference_release_repository.py) | 330 | Release only reviewed retired action-object references; history is not a live object reference. |
 | [agent/src/omni/adapters/persistence/reflection_media.py](../../agent/src/omni/adapters/persistence/reflection_media.py) | 97 | Resolve media evidence from settled tool receipts and the tool-image dispatch ledger. |
-| [agent/src/omni/adapters/persistence/reflection_repository.py](../../agent/src/omni/adapters/persistence/reflection_repository.py) | 430 | Scoped reflection review, exact excerpts and atomic owner decisions. |
+| [agent/src/omni/adapters/persistence/reflection_repository.py](../../agent/src/omni/adapters/persistence/reflection_repository.py) | 450 | Scoped reflection review, exact excerpts and atomic owner decisions. |
 | [agent/src/omni/adapters/persistence/releases.py](../../agent/src/omni/adapters/persistence/releases.py) | 215 | Consistent release snapshots and quarantined new-directory restores under caller-owned instance locks. |
 | [agent/src/omni/adapters/persistence/repository.py](../../agent/src/omni/adapters/persistence/repository.py) | 1254 | Transaction-scoped repositories. No connection creation, DDL or external calls. |
 | [agent/src/omni/adapters/persistence/repository_base.py](../../agent/src/omni/adapters/persistence/repository_base.py) | 52 | Common transaction-scoped identity, ownership and audit primitives. |
@@ -537,9 +537,9 @@
 | [web/ui/v2/documents.js](../../web/ui/v2/documents.js) | 487 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/event-stream.js](../../web/ui/v2/event-stream.js) | 168 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/extensions.js](../../web/ui/v2/extensions.js) | 659 | 原生源码、平台脚本或界面资源 |
-| [web/ui/v2/index.html](../../web/ui/v2/index.html) | 2165 | 原生源码、平台脚本或界面资源 |
+| [web/ui/v2/index.html](../../web/ui/v2/index.html) | 2195 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/inspector.js](../../web/ui/v2/inspector.js) | 266 | 原生源码、平台脚本或界面资源 |
-| [web/ui/v2/main.js](../../web/ui/v2/main.js) | 2402 | 原生源码、平台脚本或界面资源 |
+| [web/ui/v2/main.js](../../web/ui/v2/main.js) | 2407 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/maintenance.js](../../web/ui/v2/maintenance.js) | 126 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/mcp.js](../../web/ui/v2/mcp.js) | 378 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/media.js](../../web/ui/v2/media.js) | 426 | 原生源码、平台脚本或界面资源 |
@@ -550,6 +550,7 @@
 | [web/ui/v2/operations.js](../../web/ui/v2/operations.js) | 352 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/people.js](../../web/ui/v2/people.js) | 319 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/qq.js](../../web/ui/v2/qq.js) | 181 | 原生源码、平台脚本或界面资源 |
+| [web/ui/v2/reflections.js](../../web/ui/v2/reflections.js) | 232 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/routing.js](../../web/ui/v2/routing.js) | 202 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/schedules.js](../../web/ui/v2/schedules.js) | 523 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/settings-rail.js](../../web/ui/v2/settings-rail.js) | 107 | 原生源码、平台脚本或界面资源 |

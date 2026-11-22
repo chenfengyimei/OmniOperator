@@ -4,6 +4,7 @@ import { mountAuditHistory, mountOperations } from './operations.js?v=20261121v1
 import { mountCapabilities } from './capabilities.js?v=20261121v173';
 import { mountTokens } from './tokens.js?v=20261121v173';
 import { mountDocuments } from './documents.js?v=20261121v173';
+import { mountReflections } from './reflections.js?v=20261122r174';
 import { mountConfiguration } from './configuration.js?v=20261121v173';
 import { mountModels } from './models.js?v=20261121v173';
 import { ask } from '../dialog.js?v=20261103v7';
@@ -145,6 +146,7 @@ const androidPanel = mountAndroid({
   getSession: () => session,
 });
 const documentsPanel = mountDocuments({ api, wrap, getAgent: () => agent, getGeneration: () => generation });
+const reflectionsPanel = mountReflections({ api, wrap, getAgent: () => agent, getGeneration: () => generation });
 const configurationPanel = mountConfiguration({ api, wrap, getAgent: () => agent, getGeneration: () => generation });
 const modelsPanel = mountModels({ api, wrap, getAgent: () => agent, getGeneration: () => generation });
 const schedulesPanel = mountSchedules({ api, wrap, getAgent: () => agent, getGeneration: () => generation });
@@ -264,6 +266,7 @@ const PAGE_META = {
   memory: ['记忆', '事实、档案与常驻记忆，含语义整理。'],
   skills: ['技能', '文本技能的导入、修订、审阅与启用。'],
   documents: ['来源文档', '上传、索引、检索与删除传播。'],
+  reflections: ['反思信笺', '待审摘录的所有者批准、拒绝与撤回。'],
   extensions: ['可信插件', '扩展登记、授权、产物与市场更新。'],
   mcp: ['MCP', 'MCP 服务连接、目录审阅与逐工具授权。'],
   'action-reviews': ['动作核查', '未知或待核查动作的审批与证据。'],
@@ -1602,6 +1605,7 @@ async function selectAgentBody(selectedGeneration) {
   routingPanel.reset();
   skillsPanel.reset();
   documentsPanel.reset();
+  reflectionsPanel.reset();
   schedulesPanel.reset();
   deliveriesPanel.reset();
   operationsPanel.reset();
@@ -2247,6 +2251,7 @@ for (const button of document.querySelectorAll('[data-page]'))
       if (selectedPage === 'mcp') await mcpPanel.load();
       if (selectedPage === 'android') await androidPanel.load();
       if (selectedPage === 'documents') await documentsPanel.load();
+      if (selectedPage === 'reflections') await reflectionsPanel.load();
       if (selectedPage === 'schedules') await schedulesPanel.load();
       if (selectedPage === 'deliveries') await deliveriesPanel.load();
     }),
