@@ -445,7 +445,12 @@ K13.cron_model_design 已记录**实现前设计合同**（纯文档，无源码
 | `linux-container-g3` | `37ab8640` | 5 | **无** | 仅 `docs/HANDOFF.md` | 仅 `composition/serving.py` + Linux 平台文档/证据。 |
 
 - **源码零交集**：三支与本分支的 6 个源码文件均不重叠，A 可按分支顺序合并源码而无需源码级冲突处理。
-- **文档冲突面**：HANDOFF、`docs/index/*`、任务 JSON 四方都会改；建议 A 在各分支合入后**只在一个干净树上最后再生一次索引**（`project_index.py` 二次运行确认幂等），HANDOFF 按批次顺序拼接而不是自动合并，任务 JSON 按各自的 `batches`/`followups` 条目合并（本分支已用 `K01.*`/`K13.*`/`K18.*` 唯一 id）。
+- **合并冲突模拟（`git merge-tree --write-tree --name-only`，2026-11-23 实测）**：
+  - `HEAD + origin/k14-visual-persona`：exit 1，冲突 **`docs/HANDOFF.md`、`docs/index/MODULES.md`、`docs/index/project.json`**；`docs/tasks/v2-agent-core-parity.json` 自动合并。
+  - `HEAD + origin/k16-storyboard`：exit 1，冲突 **`docs/index/MODULES.md`、`docs/index/project.json`、`docs/tasks/v2-agent-core-parity.json`**；`docs/HANDOFF.md` 自动合并。
+  - `HEAD + origin/linux-container-g3`：**exit 0，无冲突**。
+  - 三支**源码文件零冲突**（冲突全部在生成索引/HANDOFF/任务 JSON）。
+- **文档冲突处理配方**：`docs/index/*` 是生成物——取任一侧后**在合并后的干净树重跑** `project_index.py`（二次运行确认幂等）再提交，不要手工合并；HANDOFF 按批次顺序人工拼接（本分支小节在文末「追溯入口」之前，k14/k16 各自小节可直接自上而下叠加）；任务 JSON 先按 `requirements[].id`/`batches[].id` 取并集，再逐 requirement 合并 `followups`/`limits`/`next`（本分支已用 `K01.*`/`K13.*`/`K18.*` 唯一 id）；合并后按各分支证据里的受影响专项命令复验（本分支用第 17 批的 41 文件/819 项命令）。
 - **K14/K15 前缀测试协调（精确版）**：`test_v2_memory_prefix.py` 的 4 项断言绑定当前 `memory_system` 组成；D1 接线时必须同步调整该测试（P1-a 后系统仅 persona、memory 变独立块、notice 走尾），并在证据中说明是合同同步而非弱化断言。合并顺序无硬依赖。
 - **决策材料**：k14 分支另有 `V2_K14_K15_DECISION_LEDGER.md`，与本分支的 `V2_REMAINING_DECISIONS.md`（D1–D9/R1–R5/T1–T5）是两份独立决策台账，A 汇总给所有者时应并列而非相互覆盖；K16 的 `V2_K16_REMAINING_DECISIONS.md` 同理。
 
