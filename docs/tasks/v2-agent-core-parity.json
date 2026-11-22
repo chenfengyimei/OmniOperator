@@ -659,9 +659,17 @@
           "contract": "docs/v2/contracts/V2_MEDIA_SCENES.md",
           "evidence": "docs/evidence/v2-media-scenes-quality.json",
           "delivered": "固定素材：mixed（上下6+左右8）subtle cut 1 切点 4.24s；大 letterbox（64x96，上下32）1 切点；6x1s 暗色蒙太奇在增益+尖峰下保留 >=4 切点；真实 scenes 作业 media_cells 校验 cell/row/column row-major、time_s 升序且在 0..duration。无源码改动；scenes 30 过 7.08 秒；生产源码未变，沿用同源码 281 调用方 182.41 秒；strict 428/0、索引不变。"
+        },
+        {
+          "gap": "#1 采样上限/60s 素材与 K16 生产入口聚合回归（测试与证据）",
+          "status": "implemented_scoped_passed",
+          "batch": "K16.scene_resource",
+          "contract": "docs/v2/contracts/V2_MEDIA_SCENES.md",
+          "evidence": "docs/evidence/v2-media-scenes-resource.json",
+          "delivered": "测试与证据，无生产改动：_scene_targets 在 600s 仅发起 240 次 _frame_at、0.4s 发起 2 次；60s/12 场景合成素材 2fps 120 样本检出 11 切点（允许 10-11），count=12 产出 12 个唯一升序锚点与宫格；聚合 locate/cells/zoom/frames/worker/cancel/tool-image/结构套件回归。"
         }
       ],
-      "limits": "只读审计无新工具/表/迁移/路由/源码改动；可离线缺口未在K16审计批实现(列后续批次)，其中缺口#4转录定位已在K16.locate后续批实现、缺口#2格号可寻址索引模型侧读面已在K16.cell_anchor后续批实现(只读派生既有帧表亚秒timestamps非新持久化层)、缺口#3局部zoom所有者侧显式时间戳高清重取作业基础已在K16.zoom_foundation后续批实现(frames作业可选timestamps复用既有管线非新表/操作/模型工具，模型侧自动zoom需action_review授权+ImageService图像可见设计合同——该实现前设计合同已记录于K16.zoom_model_design批(方案A/B工具结果图像可见协议+写工具审批门复用+frames timestamps作业复用)，所有者已于2026-11-21批准方案B，独立实现合同已记录于K16.tool_image_protocol批(勘定证伪草案持久层无需改前提：工具转录仅存内存+账本message_id非空FK+冻结触发器链)，所有者已批准D5，1a持久化批K16.tool_image_persistence已落地(v0050账本重建message_id可空+scope双分支message分支原SQL逐字保留+run终态释放触发器+prepare tool分支,5专项回退4/5红+147调用方零回归+strict418文件0错误)，1b协议+引擎批K16.tool_image_engine已落地(ImageInfo等移入contracts+ImageRef+ActionResult.images+references role标签与tool分支+引擎两site附着helper全局最后限额降级+压缩摘要图像标记,10专项回退7/10红+83调用方终源零回归+strict418文件0错误)，2 media_zoom批K16.tool_image_zoom已落地(ZOOM_SPEC writes=True审批门复用+frames作业复用zoom_foundation无新表/操作+cell经media_cells锚映射+media_frames_for_job按job_id唯一取帧+ImageService.prepare注册+ActionResult.images同回合可见+composition生产档capabilities is None门控+routing writes自动排除,17专项回退14/17红+838调用方distinct零回归(5既有红git diff实证非本批)+strict418文件0错误)，3端到端批K16.tool_image_e2e已落地(生产open_instance全链安全矩阵9例:审批拒绝/撤销/过期不提交作业+owner取消等待真实清理+凭据revision CAS+源身份CAS+删除屏障+未知不重放+上传源同回合可见账本终态释放,零生产源码改动,回退9/9红+191调用方distinct零回归+strict418文件0错误)，K16缺口#3四批完结，HSV#1/Laplacian#5已在K16.scene_frames后续批实现(select=scenes保守子集：固定阈值12+minGap0.35+比例密度分配+Laplacian方差选锐，自适应分位数阈值/亮度增益/黑边补偿仍后续)、OCR仍后续)；V1 tools/storyboard学习实现不计V2对等；不宣称五工具/算法全集对等；未引入OCR模型依赖；既有todos重启竞态与5个pin v2_0039旧迁移测试沿用保留；K16.scene_gradual 已用固定素材补渐变合并（固定阈值误拆渐变），auto/auto-low 分位阈值、亮度增益/黑边补偿、DP 宫格、真实长片质量与 OCR 仍未验；K16.scene_bars 已补均匀黑边裁剪（subtle cut 漏检与编码边缘假切点），不规则/图形黑边、亮度增益、auto 分位阈值、DP 宫格与 OCR 仍未验；K16.scene_spike 已补邻域尖峰守卫（暗噪声假切点），连续高变化/极暗 cut 仍需增益或另批处理；自适应宫格/DP 设计合同已记录（D0-D6 待所有者与 A 决策，尚未实现）；K16.scene_gain 已补暗部增益（极暗 cut 漏检），auto/auto-low 分位阈值与真实暗部噪声仍未验；K16.scene_bars_side 已补左右黑边（竖屏/窄内容），不规则黑边与真实长片仍未验；K16.scene_quality 已补组合黑边/大黑边/暗蒙太奇与 cells 映射回归（测试与证据，无生产改动）。",
+      "limits": "只读审计无新工具/表/迁移/路由/源码改动；可离线缺口未在K16审计批实现(列后续批次)，其中缺口#4转录定位已在K16.locate后续批实现、缺口#2格号可寻址索引模型侧读面已在K16.cell_anchor后续批实现(只读派生既有帧表亚秒timestamps非新持久化层)、缺口#3局部zoom所有者侧显式时间戳高清重取作业基础已在K16.zoom_foundation后续批实现(frames作业可选timestamps复用既有管线非新表/操作/模型工具，模型侧自动zoom需action_review授权+ImageService图像可见设计合同——该实现前设计合同已记录于K16.zoom_model_design批(方案A/B工具结果图像可见协议+写工具审批门复用+frames timestamps作业复用)，所有者已于2026-11-21批准方案B，独立实现合同已记录于K16.tool_image_protocol批(勘定证伪草案持久层无需改前提：工具转录仅存内存+账本message_id非空FK+冻结触发器链)，所有者已批准D5，1a持久化批K16.tool_image_persistence已落地(v0050账本重建message_id可空+scope双分支message分支原SQL逐字保留+run终态释放触发器+prepare tool分支,5专项回退4/5红+147调用方零回归+strict418文件0错误)，1b协议+引擎批K16.tool_image_engine已落地(ImageInfo等移入contracts+ImageRef+ActionResult.images+references role标签与tool分支+引擎两site附着helper全局最后限额降级+压缩摘要图像标记,10专项回退7/10红+83调用方终源零回归+strict418文件0错误)，2 media_zoom批K16.tool_image_zoom已落地(ZOOM_SPEC writes=True审批门复用+frames作业复用zoom_foundation无新表/操作+cell经media_cells锚映射+media_frames_for_job按job_id唯一取帧+ImageService.prepare注册+ActionResult.images同回合可见+composition生产档capabilities is None门控+routing writes自动排除,17专项回退14/17红+838调用方distinct零回归(5既有红git diff实证非本批)+strict418文件0错误)，3端到端批K16.tool_image_e2e已落地(生产open_instance全链安全矩阵9例:审批拒绝/撤销/过期不提交作业+owner取消等待真实清理+凭据revision CAS+源身份CAS+删除屏障+未知不重放+上传源同回合可见账本终态释放,零生产源码改动,回退9/9红+191调用方distinct零回归+strict418文件0错误)，K16缺口#3四批完结，HSV#1/Laplacian#5已在K16.scene_frames后续批实现(select=scenes保守子集：固定阈值12+minGap0.35+比例密度分配+Laplacian方差选锐，自适应分位数阈值/亮度增益/黑边补偿仍后续)、OCR仍后续)；V1 tools/storyboard学习实现不计V2对等；不宣称五工具/算法全集对等；未引入OCR模型依赖；既有todos重启竞态与5个pin v2_0039旧迁移测试沿用保留；K16.scene_gradual 已用固定素材补渐变合并（固定阈值误拆渐变），auto/auto-low 分位阈值、亮度增益/黑边补偿、DP 宫格、真实长片质量与 OCR 仍未验；K16.scene_bars 已补均匀黑边裁剪（subtle cut 漏检与编码边缘假切点），不规则/图形黑边、亮度增益、auto 分位阈值、DP 宫格与 OCR 仍未验；K16.scene_spike 已补邻域尖峰守卫（暗噪声假切点），连续高变化/极暗 cut 仍需增益或另批处理；自适应宫格/DP 设计合同已记录（D0-D6 待所有者与 A 决策，尚未实现）；K16.scene_gain 已补暗部增益（极暗 cut 漏检），auto/auto-low 分位阈值与真实暗部噪声仍未验；K16.scene_bars_side 已补左右黑边（竖屏/窄内容），不规则黑边与真实长片仍未验；K16.scene_quality 已补组合黑边/大黑边/暗蒙太奇与 cells 映射回归（测试与证据，无生产改动）；K16.scene_resource 已验证采样调用上限与 60s 合成素材（非真实长片）。",
       "next": false
     },
     {
@@ -1186,6 +1194,10 @@
     {
       "id": "K16.scene_quality",
       "evidence": "docs/evidence/v2-media-scenes-quality.json"
+    },
+    {
+      "id": "K16.scene_resource",
+      "evidence": "docs/evidence/v2-media-scenes-resource.json"
     }
   ]
 }

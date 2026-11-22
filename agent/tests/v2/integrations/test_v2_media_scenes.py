@@ -707,3 +707,55 @@ def test_worker_scenes_dark_montage_keeps_cuts_with_gain_and_spike(tmp_path):
     assert result["frame_count"] == 4
     assert len(result["scene_cuts"]) >= 4
     assert result["timestamps"] == sorted(result["timestamps"])
+
+
+def test_worker_scene_sampling_respects_the_bounded_cap(monkeypatch):
+    from contextlib import ExitStack
+
+    from PIL import Image
+
+    class Frame:
+        def __init__(self, moment: float) -> None:
+            self.time = moment
+
+        def to_image(self):
+            return Image.new("RGB", (64, 48), (10, 20, 30))
+
+    calls: list[float] = []
+
+    def frame_at(container, stream, target):
+        calls.append(target)
+        return Frame(target)
+
+    monkeypatch.setattr(worker, "_frame_at", frame_at)
+    with ExitStack() as stack:
+        targets, cuts = worker._scene_targets(None, None, 600.0, 6, stack)
+    assert len(calls) == 240
+    assert len(targets) == 6 and cuts == []
+    calls.clear()
+    with ExitStack() as stack:
+        targets, cuts = worker._scene_targets(None, None, 0.4, 3, stack)
+    assert len(calls) == 2 and len(targets) == 3 and cuts == []
+
+
+def test_worker_scenes_sixty_second_material_keeps_the_scene_budget(tmp_path):
+    scenes = [
+        (index * 5, (index + 1) * 5, (30 + index * 15, 60 + (index % 3) * 40, 220 - index * 12)) for index in range(12)
+    ]
+    video = _make_scene_video(tmp_path / "long.mp4", scenes)
+    result = worker._frames(
+        {
+            "video": str(video),
+            "sheet_output": str(tmp_path / "long.png"),
+            "count": 12,
+            "width": 320,
+            "select": "scenes",
+        }
+    )
+    assert result["frame_count"] == 12
+    cuts = result["scene_cuts"]
+    assert 10 <= len(cuts) <= 11
+    stamps = result["timestamps"]
+    assert len(stamps) == 12 and stamps == sorted(stamps) and len(set(stamps)) == 12
+    assert all(0.0 <= stamp <= 60.0 for stamp in stamps)
+    assert (tmp_path / "long.png").is_file()
