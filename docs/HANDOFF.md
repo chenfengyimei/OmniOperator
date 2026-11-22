@@ -267,6 +267,10 @@ K13.cron_model_design 已记录**实现前设计合同**（纯文档，无源码
 - **输入派发回归**：输入已派发到假设备时撤权，放行后实际文本改变（applied/run succeeded，撤权不撤回已派发输入），`fake.writes` 恰 1 次；撤权后旧观察无法再取授权，后续输入被拒且不产生第二次派发。targeted **1 passed / 5.13s**；仅测试/夹具。证据：[v2-android-input-dispatch-regression.json](evidence/v2-android-input-dispatch-regression.json)。
 - **决策台账**：[V2_K14_K15_DECISION_LEDGER](v2/contracts/V2_K14_K15_DECISION_LEDGER.md) 列出三份合同已决定/待所有者选择条款，以及给 E 的主动外联边界与候选稳定接口。**未决**：K14 D0–D5、K15 动机 D0–D4、K15 分层人格 D0–D5；真实模型/设备/72 小时未验。证据：[v2-visual-subagent-core.json](evidence/v2-visual-subagent-core.json)。
 
+### 2026-11-22 K15 isInitial 设计合同（纯文档）
+
+- 记录 `isInitial` 30 天首遇窗口/最早主人互动/first-meet 指定的实现前决策门：只算可证明的主人互动；`source_anchors→messages→runs→qq_runs/people` 可还原消息锚点，无锚点保守不判；D0 自动/手动、D1 主人互动范围、D2 窗口用途、D3 持久化、D4 遗忘保护、D5 手动入口。推荐先做零迁移保守版（只最早一条 `is_first=True`，复用 pinned/100 保护，tier/probability 仅审计）；完整概率版需 A 分配迁移与所有者入口。**未改 `is_first` 默认值或评分权威，无源码/迁移/路由。** 合同：[V2_MEMORY_INITIAL.md](v2/contracts/V2_MEMORY_INITIAL.md)；证据：[v2-memory-initial-design.json](evidence/v2-memory-initial-design.json)。
+
 ## 追溯入口
 
 - [旧交接记录](history/pre-layout-2026-11-18/HANDOFF.md)、[旧重构记录](history/pre-layout-2026-11-18/V2_REFACTOR.md)只证明所属版本，不作为当前待办。
