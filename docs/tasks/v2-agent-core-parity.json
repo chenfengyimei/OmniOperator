@@ -455,9 +455,17 @@
           "contract": "docs/v2/contracts/V2_ANDROID.md",
           "evidence": "docs/evidence/v2-android-input-dispatch-regression.json",
           "delivered": "仅测试/夹具，无生产源码改动。假 ADB 增加 input 进入/放行门；回归：批准后输入已派发到假设备时撤权 → 放行后文本实际改变（applied/run succeeded，撤权不撤回已派发输入），fake.writes 恰 1 次；撤权后旧观察无法再次取得授权，后续输入被拒且不产生第二次派发。targeted 1/5.13s，整文件与 model 专项见证据；真机未验。"
+        },
+        {
+          "gap": "Android SoM 编号截图（同一观察节点→稳定编号→叠加图，匹配 observe 索引）",
+          "status": "design_contract_recorded",
+          "batch": "K14.android_som_design",
+          "contract": "docs/v2/contracts/V2_ANDROID_SOM.md",
+          "evidence": "docs/evidence/v2-android-som-design.json",
+          "delivered": "实现前合同（纯文档，无源码/测试/迁移/路由）：只对已授权截图＋同次观察节点做本地编号叠加；只标 visible 且 bounds 合法节点，password 节点不标不编号，≤50 标记按 observe 顺序 1-based、稳定；越界裁剪/跳过计数；输出 PNG 不改尺寸、只出现数字不写 node_id/文本/路径；复用 session_captures/objects 发布，不自动附模型/不写记忆；D0 可见面（仅离线 adapter/android_observe 选项/独立所有者路由）、D1 输出发布、D2 编号策略、D3 失败语义未决；D0 未决不新增模型工具/HTTP。"
         }
       ],
-      "limits": "K14 审计本身只读无源码改动；独立视觉子代理已完成离线核心(K14.visual_subagent_core：有界帧/无工具/单次/仅文本/零写，20 专项过)，Android 截图撤销/取消链与输入派发后撤权/不重放已补三项回归(K14.android_capture_regression、K14.android_input_dispatch_regression，仅测试/夹具)，但 D0-D5 未决、生产接线/真实视觉模型/真实帧来源/付费调用未做，默认仍只做离线桩；SoM/OCR/explore_app 仍列后续；不宣称真机质量或约65工具广度对等；V2有意不提供shell逃生舱/变更链(更严格)；既有todos重启竞态与5个pin v2_0039旧迁移测试沿用保留",
+      "limits": "K14 审计本身只读无源码改动；独立视觉子代理已完成离线核心(K14.visual_subagent_core：有界帧/无工具/单次/仅文本/零写，20 专项过)，Android 截图撤销/取消链与输入派发后撤权/不重放已补三项回归(K14.android_capture_regression、K14.android_input_dispatch_regression，仅测试/夹具)，SoM 编号截图已记录实现前合同(K14.android_som_design，D0-D3 未决，未实现，无迁移/路由)，但 D0-D5 未决、生产接线/真实视觉模型/真实帧来源/付费调用未做，默认仍只做离线桩；OCR/explore_app 仍列后续；不宣称真机质量或约65工具广度对等；V2有意不提供shell逃生舱/变更链(更严格)；既有todos重启竞态与5个pin v2_0039旧迁移测试沿用保留",
       "next": false
     },
     {
