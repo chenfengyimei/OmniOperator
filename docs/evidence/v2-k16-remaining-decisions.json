@@ -1,0 +1,78 @@
+{
+  "schema": 1,
+  "date": "2026-11-22",
+  "requirement": "K16",
+  "batch": "K16.remaining_decisions",
+  "status": "decision_requested",
+  "base_commit": "e1098987",
+  "original_base_commit": "0793f254",
+  "branch": "k16-storyboard",
+  "contract": "docs/v2/contracts/V2_K16_REMAINING_DECISIONS.md",
+  "files": {
+    "docs/v2/contracts/V2_K16_REMAINING_DECISIONS.md": "b33d787efdce918826e88300e4b319c4a8dcd93d3f889f4d7f5771800029953f",
+    "docs/v2/README.md": "f1349c9a7babd78fe114a662556f4531635464df37d73ac9d56c9f0dcf9bf393",
+    "docs/tasks/v2-agent-core-parity.json": "a43a4729ad94db8f1c287fb1762e7e12540d966508685f63a146a126a3f969e9",
+    "docs/HANDOFF.md": "ef3ffdabbd766b85945f032602fdcf023624aa0f65d7cd8e2618c538460141c4"
+  },
+  "hash_scope": "SHA-256 of git index blob bytes (LF-normalized); excludes this evidence file and generated docs/index.",
+  "no_dependency_change": "未安装 rapidocr/paddleocr、未下载/新增模型、未改 pyproject/uv.lock、未改源码/HTTP/迁移/CI。",
+  "dependency_check": {
+    "command": "uv run --no-sync python -c \"importlib.util.find_spec(...)\" (isolated worktree env)",
+    "rapidocr": false,
+    "rapidocr_onnxruntime": false,
+    "paddleocr": false,
+    "onnxruntime": "1.31.1 (installed indirectly; not an OCR contract)",
+    "declared_in_pyproject_or_lock": false
+  },
+  "decisions_requested": [
+    {
+      "id": "D-OCR",
+      "owner": "owner + A",
+      "options": ["暂缓（推荐）", "引入 rapidocr_onnxruntime 固定版本 + 离线模型缓存 + media_component_missing + fake backend", "自研 onnxruntime 推理（不建议）"],
+      "needed_for_implementation": "依赖 pin、模型来源/许可、缓存路径与校验、离线 provisioning、错误码、有界预算、真实帧验收、回滚"
+    },
+    {
+      "id": "D-AUTO",
+      "owner": "owner（样本/标注）+ C",
+      "options": ["暂不实现（推荐）", "真实长片评测达标后实现且默认关闭", "直接实现（不建议）"],
+      "reason": "无稳定固定失败样本；尖峰+增益后合成噪声收益不明确"
+    },
+    {
+      "id": "D-GAP",
+      "owner": "K16/C",
+      "options": ["保持 0.35s 固定（建议）", "自适应（收益存疑）"],
+      "reason": "0.35s 已小于 2fps 采样间隔"
+    },
+    {
+      "id": "D-GRID",
+      "owner": "owner + A",
+      "options": ["按 V2_ADAPTIVE_GRID D0/D2/D4 决策", "暂不做"],
+      "link": "docs/v2/contracts/V2_ADAPTIVE_GRID.md"
+    },
+    {
+      "id": "D-REAL",
+      "owner": "acceptance",
+      "options": ["提供真实长片/B 站账号验收", "接受合成 60s 为上限"],
+      "checklist": ["240 采样上限", "切点质量人工标注", "端到端耗时/内存", "宫格字节/像素", "取消/删除", "工具图像预算", "失败不产出"]
+    }
+  ],
+  "validation": {
+    "json": "ok",
+    "docs_consistency": "README 链接、台账 followup/batch、决策项 D0–D4 标记交叉检查通过",
+    "index": "modules=65 files=849 routes=464 declared_tools=94; updated=(none)",
+    "pytest": "未运行（纯文档/决策，无源码或测试改动）"
+  },
+  "not_executed": [
+    "rapidocr 引入/模型下载与 OCR 真实帧验收",
+    "auto/auto-low 评测与实现",
+    "自适应 minGap",
+    "自适应宫格/DP 实现（待 D0/D2/D4）",
+    "真实长片/真实 B 站验收",
+    "完整 pytest 全量（current_full_passed 保持 false）"
+  ],
+  "limits": "决策包不改变生产行为；OCR/auto/minGap/宫格/真实长片仍未完成，需所有者与 A 决策或真实素材验收。",
+  "current_full_passed": false,
+  "whole_core_parity_complete": false,
+  "whole_reference_feature_audit_complete": false,
+  "whole_v2_complete": false
+}

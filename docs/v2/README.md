@@ -25,6 +25,7 @@ Windows 与 Mac mini 按 [双设备协作开发规范](../V2_MULTI_DEVICE_DEVELO
 - [V2_IMAGES](contracts/V2_IMAGES.md)
 - [V2_LOCAL_VECTORS](contracts/V2_LOCAL_VECTORS.md)
 - [V2_MCP](contracts/V2_MCP.md)
+- [V2_K16_REMAINING_DECISIONS](contracts/V2_K16_REMAINING_DECISIONS.md)
 - [V2_MEDIA](contracts/V2_MEDIA.md)
 - [V2_MEMORY_SEMANTICS](contracts/V2_MEMORY_SEMANTICS.md)
 - [V2_MODEL_STREAMING](contracts/V2_MODEL_STREAMING.md)
