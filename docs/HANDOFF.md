@@ -313,6 +313,15 @@ K13.cron_model_design 已记录**实现前设计合同**（纯文档，无源码
 - **未验**：合同内所有能力未实现；真实账号/模型/72 小时；当前源码未全量。
 - **下一批**：写 D6（受控分享：share 阈值/7 日去重/score-reason-rank 门/notify 后端/AI-share 守卫）合同，或 D7（直播：room/WS/gift/send）合同；D8/D9 批准后可立即小批接线。共享接口/迁移/公共 CI 由 A 协调。
 
+### 2026-11-23 K18 受控分享策略设计合同（第 7 批，`k18-read-cache`）
+
+- **范围/基线**：承接前六批；本批**纯设计合同**，无源码/测试/迁移/路由/worker 改动。基线仍 `origin/v2`=`0793f254`（前六批未合入），同一任务分支/独立工作树。
+- **D6 合同**：[V2_BILI_SHARE_POLICY](v2/contracts/V2_BILI_SHARE_POLICY.md)——参考事实（资格门 `reason≥8`/`score 0–20 ≥ minScore 13`/`rank 1`/`share.enabled`；`shareDaily=3` + 同 BV 7 日去重 + 有效上限 `min(shareDaily, silence)`；正文以 `@owner` 开头；拦截先于发送与记账；notify 四后端与 `$MSG` shell 注入弃用、command 走 `execFileSync` 无 shell；AI-share 默认 OFF、仅评论区分享、样本 ≤20/扩样 ≤40、TTL 6h、代码自算比例、阈值 30(代码) vs 60(文档) 漂移且从未在线验证；DM 1 收件人/日/互关硬编码/300 字）与 V2 映射（既有 prepare→owner 审批→outbox→已审表单、D5 沉默上限、D4-Q2 配额账本）。
+- **S1–S6 决策**：S1 资格门逐条拒绝码；S2 逐条审批（推荐）vs 自主分享（需独立授权）；S3 `bilibili_share_ledger`（A 迁移号、unknown 保守计数、owner 时区 local-day）；S4 首版 owner 事件 + 既有 delivery，不加 webhook/command（另需 SSRF/禁 shell 安全合同）；S5 AI-share 守卫推荐 **S5-A 暂不移植且不宣称对等**（可选 S5-B 固定阈值+真实验证）；S6 不照搬参考 30 日/1 收件人等数值。
+- **决策状态**：D6 已上升为设计合同；D7（直播）合同待写；D8/D9 待所有者选定；D4 写批待 Q1/Q2；D5 的 W1–W8 待决策。
+- **未验**：合同内所有能力未实现；真实 B 站分享送达/沉默联动/AI-share 误报率；当前源码未全量。
+- **下一批**：写 D7 直播合同（room/WS 弹幕/gift 只读/send/独立开关），或 D8/D9 批准后小批接线；D4/D5/D6 的实现均待所有者决策与 A 迁移协调。共享接口/迁移/公共 CI 由 A 协调。
+
 ## 追溯入口
 
 - [旧交接记录](history/pre-layout-2026-11-18/HANDOFF.md)、[旧重构记录](history/pre-layout-2026-11-18/V2_REFACTOR.md)只证明所属版本，不作为当前待办。
