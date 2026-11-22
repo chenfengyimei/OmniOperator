@@ -102,6 +102,7 @@ V2 模型侧工具面（生产 `capabilities is None`）：`system_info`、`file
 - **已交付项逐条核对通过**：K01(b) 路由键（`adapters/models.py:23-40` 派生键 + provider 分类、`_prepare` 注入）、cron 四批（`domain/cronjob.py`/`application/cronjob.py`/`composition/instance.py:743` attach/`v0049`）、browser_dialog（`adapters/workers/main.py:432-516` 持有队列）、B 站读广度与风控暂停（详见 [v2-delivered-verification.json](../../evidence/v2-delivered-verification.json)）。核对套件 **112 过 / 204.17 秒**（prompt cache、cronjob tool/e2e、schedule context/bindings、browser_dialog）。
 - **新增残留 D8（cron 阻塞与后台评审交互）**：`schedule_blocker` 无 purpose 过滤，把 K08/K06 的 `summary` 辅助调用当未复核外部结果；已核机制与影响，合同 [V2_SCHEDULE_REVIEW_BLOCKER](V2_SCHEDULE_REVIEW_BLOCKER.md)，待所有者选 A–D。
 - **组 2 URL floor 已核（原「待核」）**：worker 只校验 scheme 且跟随重定向，无主机/IP floor；实测 loopback 元数据路径可读。策略待决 → 决策登记 D9（含 4 个选项与验证要求）。
+- **组 5 cron 残余设计合同（2026-11-23）**：[V2_CRON_VARIANTS](V2_CRON_VARIANTS.md) 记录 `enabled_toolsets`/`workdir`/`deliver`·`failure_deliver`·`attach_to_session`/`monitor`+`no_agent`+`script`/`prompt_scan` 的 R1–R5 选项（默认推荐不移植；脚本与 URL 监视需独立安全合同并接 D2/D9；自动投递需独立授权；需 A 迁移）。**未实现。**
 
 ## 需实机/账号/网络验收清单（不可离线宣称对等）
 

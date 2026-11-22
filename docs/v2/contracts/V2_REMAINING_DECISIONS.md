@@ -98,7 +98,7 @@
 
 ## 其他剩余差异（非决策项，登记）
 
-- **K13 组 5（cron）表内其余残余**：cron 四批只交付 `skills`/`context_from`/`continuity` + `cronjob_manage` 六动作 + 生产端到端；审计表里 `monitor`（URL/脚本变化检测门控 run + diff 注入）、`no_agent`+`script`（无模型看门狗）、`enabled_toolsets` 允许清单、`workdir`、`deliver`/`failure_deliver`/`attach_to_session` 细分、`cronjob_prompt_scan`（prompt 威胁扫描）仍为**部分对等/可离线缺口**，未实现、未列本册决策（不需新授权面，但会触 `SchedulingService`/`delivery`/技能接口 → A 协调排期）。
+- **K13 组 5（cron）表内其余残余**：cron 四批只交付 `skills`/`context_from`/`continuity` + `cronjob_manage` 六动作 + 生产端到端；审计表里 `monitor`、`no_agent`+`script`、`enabled_toolsets`、`workdir`、`deliver`/`failure_deliver`/`attach_to_session`、`cronjob_prompt_scan` 仍为**部分对等/可离线缺口**。其设计合同 [V2_CRON_VARIANTS](V2_CRON_VARIANTS.md) 已记录 R1 `enabled_toolsets`（推荐不移植/或白名单交集+迁移）/R2 `workdir`（推荐不移植/或 workspace 内包含校验+迁移）/R3 `deliver`（推荐不移植自动投递，失败先 owner 事件；自动投递需独立授权）/R4 `monitor`+`no_agent`+`script`（推荐不移植；脚本=无模型执行面、URL=SSRF 面，需独立安全合同并接 D2/D9）/R5 `prompt_scan`（推荐不移植/或只读建议式），以及需 A 分配的迁移与 `ScheduleValue` 加性字段。**未实现、未列本册决策**（实现需所有者逐项选定与 A 协调）。
 - **K13 组 1（终端/进程）模型侧面**：模型侧只有一次性 `shell_execute`；持久终端会话与 `process_manage`（list/poll/log/wait/kill/write/submit/close/handoff）、`read_terminal`/`close_terminal`/`read_window_below` 仍缺（所有者侧 `TerminalService` 已有）。属新 worker 持久会话协议 + 审批 + 所有者面，需设计与实机验收，未列本册决策。
 - **K13 组 2（浏览器）URL floor**：**已核（2026-11-22）**——worker 仅 scheme 校验、无主机/IP floor 且跟随重定向（见 D9，实测 loopback 元数据路径可读）；待所有者定策略，未实现。
 - **读侧速率预算**：参考 读 600/h·3000/d、写 12/h·30/d、gap 1500ms、写冷却 120s、dm 60s；V2 共享 delivery 限额/冷却覆盖投递侧，**读侧预算未实现**（需跨进程/重启持久的共享预算账本设计）。

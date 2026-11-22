@@ -1,0 +1,59 @@
+{
+  "schema": 1,
+  "date": "2026-11-23",
+  "batch": "K13.cron_variants_design",
+  "requirement": "K13",
+  "status": "design_contract_recorded",
+  "base_commit": "0793f2543f1b2bb94e960d171747fbf08bc11b84",
+  "branch": "k18-read-cache",
+  "implements_gap": "K13 audit group 5 residual cron variants after the four delivered cron batches: enabled_toolsets allowlist, workdir, deliver/failure_deliver/attach_to_session, monitor/no_agent+script, cronjob_prompt_scan. This batch records the reference facts (job definition fields, script-file-only rule, inactivity watchdog, catch-up discipline, no-memory cron sessions) and R1-R5 V2 options with security gates, migration/A coordination asks and the test plan. NOT implementation: no source/test/migration/route/worker change",
+  "contract": "docs/v2/contracts/V2_CRON_VARIANTS.md",
+  "contract_sha256": "b1a44e5a45236145f7b08765b052c91e482aaa90cdf48a6633be4618e3193746",
+  "touched_docs": {
+    "docs/v2/contracts/V2_REMAINING_DECISIONS.md": "2011fb152ed8f11f9c82bd2660fa8238c11f074f95c931829e6c92ad95b031c1",
+    "docs/v2/contracts/V2_TOOL_CHANNEL_AUDIT.md": "baebebdf5b2adee68e356752dc8648c38dfce470dc6a56450beac8ae5b5fc114"
+  },
+  "reference": {
+    "repository": "xuexi/hermes-agent (fixed 9976f485)",
+    "facts": [
+      "job fields: skills, model/provider, script (always a FILE under HERMES_HOME/scripts, never a command line; stdout injected into the prompt; no_agent=True makes the script the whole job), context_from, workdir (that directory's AGENTS.md/CLAUDE.md loaded), deliver/failure_deliver, enabled_toolsets, attach_to_session, monitor_script/monitor_url, pinned/reasoning_effort",
+      "scheduler discipline: inactivity watchdog default 600s idle (HERMES_CRON_TIMEOUT override, 0=unlimited); script timeout default 3600s; catch-up window half period clamped 120s-2h and 120s one-shot grace; at-most-once accounting (next_run_at + pending_slot before dispatch); headless ticks refuse to spawn; cron sessions skip_memory=True and have their own session; optional mirrored briefs",
+      "cronjob_prompt_scan: strict threat scan of user prompts (skill bodies prose-proof)"
+    ],
+    "adaptation": "V2 ScheduleValue already carries skills/context_from/continuity (+v0049) and cronjob_manage has additionalProperties=false with six actions. The contract maps the remaining fields to R1-R5 with a recommendation not to port by default: toolsets overlap V2 route tiers/disabled_tools; workdir breaks the agent workspace boundary; auto-delivery bypasses owner approval; script/no_agent is a new no-model execution surface and monitor_url is an SSRF surface (must join D2/D9 security contracts); prompt_scan is a heuristic with unclear benefit. Any adopted field needs an A-allocated migration and ScheduleValue additive columns"
+  },
+  "decision_questions": [
+    "R1 enabled_toolsets: not port (recommended) / allowlist intersect baseline with migration / map to existing route mode only",
+    "R2 workdir: not port (recommended) / per-schedule workdir constrained inside the agent workspace (realpath containment, no symlink/..) with worker protocol coordination; do not port the AGENTS.md/CLAUDE.md loading semantics",
+    "R3 deliver/failure_deliver/attach_to_session: no auto-delivery (recommended; failures as owner events) / cron auto-delivery under a separate authorization contract / owner-visible failure events only; attach_to_session already expressible via schedules.session_id",
+    "R4 monitor/no_agent+script: not port (recommended) / owner-provisioned script file executed without a model under a separate security contract tied to D2 / URL monitor only after D9 SSRF floor",
+    "R5 prompt_scan: not port (recommended) / advisory owner-visible warnings only (never auto-block or rewrite)"
+  ],
+  "migration_asks": [
+    "R1/R2/R3 adoption each adds ScheduleValue fields + frozen migration (A allocates the number) and owner projections",
+    "R2 additionally needs a worker workspace override (A protocol coordination)",
+    "R4 adds script/monitor fields and an execution adapter; R5 none"
+  ],
+  "security_invariants": [
+    "no new model execution channel: any script path must be owner-provisioned, argv-free, env-scrubbed, temp cwd, bounded timeout/output, audited, and must not become a bypass of D2/D3 approvals",
+    "monitor_url only after D9 floor (metadata/IMDS refused, private policy, redirect bounds)",
+    "auto-delivery only under a separate authorization contract with quota/dedup/unknown/recovery",
+    "prompt scan advisory only, never silent blocking",
+    "no new table unless adopted (A migration); no second kernel/state store"
+  ],
+  "validation": {
+    "mode": "design_only",
+    "tests_executed": 0,
+    "note": "pure documentation batch; latest green scoped results remain 546 passed / 142.79s for the bilibili caller suites; cron suites (83+3+6+5) were last green in the delivered-item verification batch (112 passed / 204.17s, docs/evidence/v2-delivered-verification.json)"
+  },
+  "not_executed": [
+    "all R1-R5 implementations, migrations, worker workspace override",
+    "real no-model script execution / URL monitor / prompt scan validation",
+    "D2 sandbox, D3 CDP, D9 floor; write breadth (D4); proactive watching (D5)",
+    "full offline suite; real accounts/models; 72h soak"
+  ],
+  "next": "Owner decides R1-R5; A allocates migrations for adopted fields. D8/D9 remain the lowest-cost implementable decisions. D2/D3/D1/D4-D7 contracts already recorded and pending owner decisions. whole_* flags stay false",
+  "whole_core_parity_complete": false,
+  "whole_reference_feature_audit_complete": false,
+  "whole_v2_complete": false
+}
