@@ -1,0 +1,65 @@
+{
+  "schema": 1,
+  "batch": "G3.G4.linux_native_tests_headless_probe",
+  "date": "2026-11-22",
+  "status": "Linux platform tests ran on a real Ubuntu 26.04 arm64 VM; the desktop probe completed and correctly reported unavailable capabilities without a graphical session",
+  "whole_v2_complete": false,
+  "platform_linux_complete": false,
+  "release_candidate": false,
+  "environment": {
+    "vm": "Lima 2.3.0 vz, Ubuntu 26.04.1 LTS, kernel 7.0.0-38-generic, aarch64",
+    "python": "3.12.16 (uv-managed)",
+    "extras": "desktop-linux (dbus-next 0.2.3, python-xlib)",
+    "display": "none (no DISPLAY/WAYLAND_DISPLAY/DBUS session)"
+  },
+  "tests": {
+    "command": "uv run --no-sync pytest -q -n 0 agent/tests/v2/platforms/linux/test_v2_linux_bus.py test_v2_linux_desktop.py test_v2_linux_acceptance.py",
+    "passed": 77,
+    "failed": 0,
+    "seconds": 2.56,
+    "evidence": "temp/build/linux-container-20261122/linux-tests.log"
+  },
+  "probe": {
+    "command": "uv run --no-sync python agent/scripts/accept_linux_desktop.py --output /tmp/linux-probe-unique",
+    "status": "probe_completed",
+    "cleanup_verified": true,
+    "capabilities": {
+      "window_identity": {
+        "permission": "unknown",
+        "available": false,
+        "error_code": "desktop_native_unavailable"
+      },
+      "accessibility": {
+        "permission": "unknown",
+        "available": false,
+        "error_code": "desktop_native_unavailable"
+      },
+      "screen_capture": {
+        "available": false,
+        "error_code": "desktop_adapter_not_implemented"
+      },
+      "foreground_control": {
+        "available": false,
+        "error_code": "desktop_adapter_not_implemented"
+      }
+    },
+    "note": "the probe is a diagnosis, not acceptance; it did not claim proven headless or GUI support",
+    "evidence": "temp/build/linux-container-20261122/linux-probe-unique"
+  },
+  "gaps": [
+    "no X11 session: G3 X11 control identity, XRes/frontmost postcondition and user-intervention/revocation unverified",
+    "no Wayland session: G4 RemoteDesktop/EIS window association, pause and revocation unverified",
+    "graphical fixture, lock screen, sleep and hotplug unverified in the VM",
+    "full suite not run; container check is headless only"
+  ],
+  "limits": [
+    "Ubuntu 26.04 is newer than the documented targets; distro-specific behavior may differ",
+    "VM is ephemeral and outside the repo; only logs/reports are kept",
+    "Gitee integration of this branch pending"
+  ],
+  "artifacts": [
+    "temp/build/linux-container-20261122/linux-tests.log",
+    "temp/build/linux-container-20261122/linux-probe.log",
+    "temp/build/linux-container-20261122/linux-probe-unique"
+  ]
+}
