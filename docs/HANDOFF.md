@@ -35,6 +35,7 @@
 - 2026-11-22 macOS 真实 LaunchAgent 闭环（部分）：修复 print-disabled 语法后，新 runtime（`1c699971`/v0052）+ 新 home 安装 operation succeeded/terminal，`--expect registered` 通过；bootstrap 后服务运行且 runtime probe ready（build/instance/plan 匹配），但 `loaded/ready` 因 `definition_matches=None` 仍失败；卸载 succeeded、`--expect absent` 通过，无 plist/服务残留（仅随机 label 的 disabled 覆盖项）。[证据](evidence/v2-macos-launchagent-loop-2026-11-22.json)。
 - 2026-11-22 macOS LaunchAgent 闭环全部通过：字段面修正（`ae2b41ae`）后新 runtime（`d9da1ec1`/v0052）安装 succeeded → registered → bootstrap → loaded（definition_matches=true/state=running）→ ready → 卸载 succeeded → absent 全部通过，无 plist/服务/进程残留；仍为 temp 部署与所有者登录域。[证据](evidence/v2-macos-launchagent-closure-2026-11-22.json)
 - 2026-11-22 macOS 任务分支远端交付：`codex/macos-helper-tcc` 普通推送成功，`ls-remote` 回读 `3b2dbc74`（基线 `origin/v2`=`0fe3cc5f`），Windows 可按分支审查集成；本地已保留全部证据与 bundle。
+- 2026-11-22 macOS helper 自身 TCC 生效：reset Accessibility/PostEvent + 显式请求后四权限全 granted；验收脚本改走 launchservices，read（AX 9 节点/密码脱敏/SCK）、semantic（value_matches+unknown）、foreground（text_appended+unknown×3）三项全过，242/242（20.85s）。[证据](evidence/v2-macos-launchservices-acceptance-2026-11-22.json)。
 - Windows 样例修正 `fbfc16b8`、人工复验 `73970d20`：标准顶层窗口下点击点与遮挡拒绝通过，36 专项。自有窗口完整回归最终文本 `PREFIX-ONLY-OWNED-TEXT`、按钮 1 次，四次生产回执仍为 unknown、不重发。原 STATIC 样例导致跨进程命中，生产拒绝正确，矩形中心候选未保留。[复核证据](evidence/v2-windows-click-fixture.json)。
 - Linux Enter 控件状态批 `f539f21e`：194 专项、3 个运行文件 strict 通过，真实 Linux 未验。[证据](evidence/v2-linux-key-state.json)。
 - 历史 5998 全量仅覆盖 `7e64d348` 固定候选。后续修改、其他会话提交及本次目录迁移均不能复用为当前源码全量通过。

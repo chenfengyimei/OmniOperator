@@ -304,3 +304,7 @@ LaunchServices 生命周期稳定性复测：连续 15 次 `probe` 每次 0.062�
 ### 2026-11-22 远端交付
 
 任务分支 `codex/macos-helper-tcc` 已普通推送到 Gitee，`git ls-remote --exit-code --heads origin refs/heads/codex/macos-helper-tcc` 回读 `3b2dbc74332e08b410ed4fc8404ddba12d9b2fd0`，与本地提交一致；交付基线 `origin/v2` 为 `0fe3cc5f`（v0052）。Windows 集成方按该分支审查实际 diff、在最新 `v2` 上跑受影响专项后合入。此前证据中的 SHA 均为对应实测时的本地提交；本分支包含全部 28 个 macOS 提交。
+
+### 2026-11-22 helper 自身授权生效，LS 三项验收通过
+
+`tccutil reset Accessibility/PostEvent` + 重新显式请求后，helper（`9360128b…`）自身身份的四项权限全部 `granted`（此前 Input Monitoring 已允许，Accessibility/PostEvent 的旧拒绝记录被重置后生效）。验收脚本已改为 `macos_transport="launchservices"`，三项全部通过：read（AX 9 节点、密码脱敏、ScreenCaptureKit）、semantic（set_text `value_matches`、invoke unknown、独立状态、未重放）、foreground（text_appended + unknown×3、独立状态、未重放）。macOS 11 文件 242/242（20.85s）。撤回/恢复证据闭环与生产化安装仍待办。证据：[LS 验收](../../../evidence/v2-macos-launchservices-acceptance-2026-11-22.json)。

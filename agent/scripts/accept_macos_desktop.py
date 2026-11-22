@@ -42,7 +42,7 @@ async def accept(build: Path, output: Path, mutate: bool, foreground_input: bool
         stderr=asyncio.subprocess.PIPE,
     )
     drains: list[asyncio.Task[bytes]] = []
-    backend = DesktopBackend(capture_root=output / "staging")
+    backend = DesktopBackend(capture_root=output / "staging", macos_transport="launchservices")
     try:
         stdout, stderr = owner.process.stdout, owner.process.stderr
         assert stdout is not None and stderr is not None
