@@ -245,3 +245,5 @@ uv run --no-sync python agent/scripts/accept_native_credentials.py --cleanup <�
 ### 2026-11-23 根因：dbus-next 枚举拼写（已修）
 
 真机异常：`AttributeError: type object 'MessageFlag' has no attribute 'NO_AUTO_START'. Did you mean: 'NO_AUTOSTART'?`。`linux_bus.py` 用了 `NO_AUTO_START`，而锁定的 `dbus-next==0.2.3` 只有 `NO_AUTOSTART`；单测 fake 也写成同一错误拼写，导致离线测试全绿、真机在第一次系统总线调用即崩溃，被后端概括为 `desktop_native_unavailable`。已修两处并加真枚举守护测试。修复后：**session.kind=interactive**（logind 身份已证明，会话证明打通），能力仍报 `desktop_bus_peer_unverified` / `desktop_x11_peer_unverified`——这是下一个要查的 peer 校验（系统总线对端 root 与期望 uid 的比较、X11 对端证明）。Linux 专项 **78 passed（1.62s）**。
+
+直接验证：以 omni 身份（XDG_RUNTIME_DIR 正确）调用 `LinuxOps.connect()`，系统总线（root 对端）与用户总线都 **OK**。因此探针里的 `desktop_bus_peer_unverified` 不是 connect 阶段抛的，而在后续 owner/connection 校验（很可能是 `open_accessibility` 或 X11 对端证明）。下一步在会话内复现 `SessionInspector.open(accessibility=True)` 并逐调用打点。

@@ -131,5 +131,10 @@
       "failed": 0,
       "seconds": 1.62
     }
+  },
+  "peer_diagnosis": {
+    "direct_connect": "as omni with XDG_RUNTIME_DIR=/run/user/10001, LinuxOps.connect() succeeded for both /run/dbus/system_bus_socket (root peer) and /run/user/10001/bus",
+    "implication": "the desktoop_bus_peer_unverified seen in the probe is not raised by LocalBus.connect; it must come from a later owner/connection check (likely open_accessibility or the X11 peer proof)",
+    "next": "replicate SessionInspector.open(accessibility=True) as omni outside the backend, and log which owner/connection call fails; also test psutil access to root PIDs"
   }
 }
