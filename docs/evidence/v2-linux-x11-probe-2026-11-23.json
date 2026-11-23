@@ -189,5 +189,23 @@
     },
     "capture": "fails with desktop_x11_target_unverified from X11Desktop.target()/verified(); targets+verify pass, worker produces no captured frame",
     "cause_under_investigation": "one of the target() checks (XRes client pid/uid, geometry/border/root) fails during capture; next step is to log those values in the VM copy"
+  },
+  "capture_design": {
+    "with_wm": {
+      "result": "BadMatch (X error code 8) from Composite NameWindowPixmap",
+      "cause": "the target GTK client window is reparented into an openbox frame; xcompmgr redirects the frame (a direct root child), not the client window, so NameWindowPixmap on the client window is a Match error",
+      "note": "this affects real desktops with reparenting WMs, not just this VM"
+    },
+    "without_wm": {
+      "result": "desktop_x11_window_list_unavailable",
+      "note": "a WM-less session makes the client a root child, but wire.windows() then fails; needs more work"
+    },
+    "options": [
+      "capture the redirected frame and crop the client area (define geometry/border rules)",
+      "temporarily redirect the target window (currently forbidden by the contract)",
+      "support only WM-less sessions and record the real-desktop limitation",
+      "other capture path decided by A"
+    ],
+    "decision_needed": "A must choose the X11 capture approach for reparenting WMs before a real-desktop success path can be claimed"
   }
 }
