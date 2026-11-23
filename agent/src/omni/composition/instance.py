@@ -52,6 +52,7 @@ from ..adapters.process_diagnostics import ProcessDiagnostics
 from ..adapters.skill_packages import SkillPackages
 from ..adapters.timezones import PinnedTimezones
 from ..adapters.token_counter import ConservativeTokenCounter
+from ..adapters.visual import ImageObjectFrames, ModelCallsVisualModelFactory
 from ..application.action_review import ActionReviewService
 from ..application.android import AndroidPort, AndroidService
 from ..application.background_review import BackgroundReviewService
@@ -113,6 +114,7 @@ from ..application.skills import SkillService
 from ..application.terminal_review import TerminalReviewService
 from ..application.terminals import TerminalService
 from ..application.todos import TodoService
+from ..application.visual_subagent import VISUAL_SUBAGENT, VisualSubagentCapabilities, VisualSubagentService
 from ..domain.android import ACCESS_SPEC as ANDROID_ACCESS
 from ..domain.android import MODEL_SPEC as ANDROID_MODEL
 from ..domain.android import OBSERVE_SPEC as ANDROID_OBSERVE
@@ -235,6 +237,7 @@ class Instance:
     _identity_files: RuntimeIdentityFiles
     objects: ObjectService
     images: ImageService
+    visual: VisualSubagentService
     people: PeopleService
     configurations: ConfigurationService
     routing: RoutingService
@@ -291,6 +294,7 @@ class Instance:
             "qq": _record(self.qq.health()),
             "bilibili": _record(self.bilibili.health()),
             "media": self.media.health(),
+            "visual": self.visual.health(),
             "mcp": self.mcp.health(),
             "android": self.android.health(),
             "credentials": self.credentials.health(),
@@ -557,6 +561,10 @@ async def open_instance(
             if model_streamer is not None:
                 lifetime.own("model_streams", 1, model_streamer.close, model_streamer.stop_accepting)
         contexts = ContextService(database, calls, images)
+        visual = VisualSubagentService(
+            database, ImageObjectFrames(objects, images), ModelCallsVisualModelFactory(database, calls)
+        )
+        lifetime.own("visual", 0, visual.close, visual.stop_accepting)
 
         async def authorize_qq(message: OutboundMessage) -> str:
             return await database.read(lambda u: u.qq_outbound_authorized(message))
@@ -660,6 +668,9 @@ async def open_instance(
                 Capability(ANDROID_ACCESS, android, android.quiescent),
                 Capability(ANDROID_OBSERVE, android, android.quiescent),
                 Capability(ANDROID_MODEL, android, android.quiescent),
+                Capability(
+                    VISUAL_SUBAGENT, VisualSubagentCapabilities(visual), lambda: visual.health()["pending"] == 0
+                ),
             )
         )
         review_read_caps = {cap.spec.name: cap for cap in agent_capabilities if cap.spec.name in READ_TOOLS}
@@ -874,6 +885,7 @@ async def open_instance(
             qq=qq,
             bilibili=bilibili,
             media=media,
+            visual=visual,
             mcp=mcp,
             android=android,
             operations=operations,

@@ -287,6 +287,13 @@ K13.cron_model_design 已记录**实现前设计合同**（纯文档，无源码
 - **OCR/explore**：OCR 记录本地只读、region/文本/框上限、密码排除、文本不可信、无自动动作/记忆/日志正文，D0 是否引入/D1 provisioning/D2 可见面/D3 上限/D4 留存/D5 失败未决（纯文档，未引入依赖/模型）；explore_app 已实现离线核心 `domain/android_explore.py`（结构 skeleton 不含文本/密码、200 屏/1000 边、去重/截断、summary/build_graph/reachable/paths/unexplored，**9 passed / 0.33s**），无持久化/模型工具/HTTP，D0–D4 未决。合同：[V2_ANDROID_OCR.md](v2/contracts/V2_ANDROID_OCR.md)、[V2_ANDROID_EXPLORE.md](v2/contracts/V2_ANDROID_EXPLORE.md)；证据：[v2-android-ocr-explore-design.json](evidence/v2-android-ocr-explore-design.json)、[v2-android-explore-core.json](evidence/v2-android-explore-core.json)。
 - **决策台账**：[V2_K14_K15_DECISION_LEDGER](v2/contracts/V2_K14_K15_DECISION_LEDGER.md) 列出三份合同已决定/待所有者选择条款，以及给 E 的主动外联边界与候选稳定接口。**未决**：K14 D0–D5、K15 动机 D0–D4、K15 分层人格 D0–D5；真实模型/设备/72 小时未验。证据：[v2-visual-subagent-core.json](evidence/v2-visual-subagent-core.json)。
 
+### 2026-11-23 K14 视觉子代理首批生产路径（`k14-visual-production`）
+
+- **范围**：owner 指令只打通一条生产路径；分层人格/主动动机另开批次。基于 `origin/v2`=`08dd1573` 的独立工作树/分支。
+- **接线**：`composition/instance.py` 构造 `VisualSubagentService` + `ImageObjectFrames` + `ModelCallsVisualModelFactory`，注册 `visual_subagent` 能力；帧来自 agent 已拥有图像对象（Android capture/上传注册），`ImageObjectFrames` 用 `ObjectService.get`+`ImageService.prepare` 核验；`ModelCallsVisualModel` 以 role=tool 的单图消息走 `ModelCalls.invoke`（tools=()、父 run 预算/日限、image policy 4/12），`image_budget_exceeded`→`budget_exceeded`；返回 text+frames/focus/model/cost/tokens，action `verification=visual_summary`，账本可追溯。
+- **验证**：`test_v2_visual_production.py` **7 passed**（成功、Android capture→同一路径、无图像协议、预算耗尽、供应商失败、跨 Agent、来源擦除），既有视觉 20 项、strict **434 文件 0 错 0 警**、ruff 通过；无迁移/新表/路由。
+- **真实阻塞**：当前 `.env` 的 OpenAI/Anthropic key 为空、DashScope/Ark key 为非 ASCII 占位；无 emulator 二进制/物理设备（`adb devices` 空、AVD 缺 system image），故真实 `gpt-4o`/设备实测未执行；`agent/scripts/accept_visual_production.py` 已就绪待指定窗口。Anthropic/其它视觉协议、真实 tool-result image 供应商兼容性、真实质量/费用曲线未验。
+
 ### 2026-11-22 K15 isInitial 设计合同（纯文档）
 
 - 记录 `isInitial` 30 天首遇窗口/最早主人互动/first-meet 指定的实现前决策门：只算可证明的主人互动；`source_anchors→messages→runs→qq_runs/people` 可还原消息锚点，无锚点保守不判；D0 自动/手动、D1 主人互动范围、D2 窗口用途、D3 持久化、D4 遗忘保护、D5 手动入口。推荐先做零迁移保守版（只最早一条 `is_first=True`，复用 pinned/100 保护，tier/probability 仅审计）；完整概率版需 A 分配迁移与所有者入口。**未改 `is_first` 默认值或评分权威，无源码/迁移/路由。** 合同：[V2_MEMORY_INITIAL.md](v2/contracts/V2_MEMORY_INITIAL.md)；证据：[v2-memory-initial-design.json](evidence/v2-memory-initial-design.json)。

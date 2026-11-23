@@ -1,21 +1,31 @@
 """Bounded vision sub-agent orchestration over injected frame and model ports.
 
 One call sees at most 60 ordered frames, has no tool registry, no master transcript and returns only a
-bounded text summary plus non-image metadata. This service performs no storage writes and is not wired
-into production: K14 D0 keeps the real vision call offline until the owner approves a provider, budget,
-frame source, retention and failure policy. Tests inject a fake frame source and model, so the default
-suite stays offline and produces no cost.
+bounded text summary plus non-image metadata. The offline core stays injectable for tests; production
+composition supplies one image-object frame source and one model factory. K14 D0 now authorizes this
+path for the owner-selected vision model; frames remain already-authorized image objects.
 """
 
 from __future__ import annotations
 
 import asyncio
 import math
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from typing import Protocol, cast
 
-from ..domain.contracts import BusinessError, ModelReply
+from ..domain.contracts import (
+    JSON,
+    ActionResult,
+    BusinessError,
+    InvocationContext,
+    ModelReply,
+    Outcome,
+    ToolSpec,
+)
+from ..domain.settings import Settings, settings_value
 from ..domain.visual_subagent import (
+    FOCUS_VALUES,
+    MAX_TASK_CHARS,
     VisualFrame,
     VisualRequest,
     build_request,
@@ -29,6 +39,25 @@ from .ports import DatabasePort, Record
 VISUAL_TIMEOUT_S = 120.0
 MAX_CONCURRENT = 4
 _BUDGET_CODES = frozenset({"budget_exceeded", "delegation_budget_exceeded", "daily_budget_exceeded"})
+
+VISUAL_SUBAGENT = ToolSpec(
+    "visual_subagent",
+    "Analyze one already-authorized image object (for example an Android screenshot) with one bounded "
+    "vision call. Returns only a text summary plus frame/model/cost metadata; it has no tools, does not "
+    "replay and does not write memory or persona.",
+    {
+        "type": "object",
+        "properties": {
+            "task": {"type": "string", "minLength": 1, "maxLength": MAX_TASK_CHARS},
+            "frame_object_id": {"type": "string", "minLength": 36, "maxLength": 36},
+            "focus": {"enum": list(FOCUS_VALUES)},
+        },
+        "required": ["task", "frame_object_id"],
+        "additionalProperties": False,
+    },
+    writes=False,
+    timeout_s=VISUAL_TIMEOUT_S,
+)
 
 
 class VisualFrameSource(Protocol):
@@ -46,12 +75,18 @@ class VisualModel(Protocol):
     async def complete(self, request: VisualRequest) -> ModelReply: ...
 
 
+class VisualModelFactory(Protocol):
+    """Build the one stateless model for a run without sharing master history or tools."""
+
+    def for_run(self, agent_id: str, run_id: str, settings: Settings) -> VisualModel: ...
+
+
 class VisualSubagentService:
     def __init__(
         self,
         db: DatabasePort,
         frames: VisualFrameSource,
-        model: VisualModel,
+        model: VisualModel | VisualModelFactory,
         *,
         timeout_s: float = VISUAL_TIMEOUT_S,
         max_concurrent: int = MAX_CONCURRENT,
@@ -118,7 +153,13 @@ class VisualSubagentService:
                 resolved = await self._frames.frames(agent_id, ids)
                 frames = self._checked_frames(resolved, ids)
                 request = build_request(checked_task, checked_focus, frames)
-                reply = await self._complete(request)
+                model: VisualModel
+                if hasattr(self._model, "for_run"):
+                    settings = settings_value(await self._db.read(lambda u: u.run_settings(agent_id, run_id)))
+                    model = cast(VisualModelFactory, self._model).for_run(agent_id, run_id, settings)
+                else:
+                    model = cast(VisualModel, self._model)
+                reply = await self._complete(request, model)
                 text = validate_reply(reply)
                 return cast(
                     Record,
@@ -126,7 +167,7 @@ class VisualSubagentService:
                         "text": text,
                         "frames": len(request.frames),
                         "focus": request.focus,
-                        "model": self._model.model,
+                        "model": model.model,
                         "cost_micro": reply.cost_micro,
                         "input_tokens": reply.input_tokens,
                         "output_tokens": reply.output_tokens,
@@ -147,10 +188,10 @@ class VisualSubagentService:
             )
         return frames
 
-    async def _complete(self, request: VisualRequest) -> ModelReply:
+    async def _complete(self, request: VisualRequest, model: VisualModel) -> ModelReply:
         try:
             async with asyncio.timeout(self._timeout_s):
-                return await self._model.complete(request)
+                return await model.complete(request)
         except TimeoutError:
             raise BusinessError("visual_timeout", "The visual sub-agent did not finish in time", status=504) from None
         except asyncio.CancelledError:
@@ -171,3 +212,36 @@ class VisualSubagentService:
         if self._pending:
             await asyncio.wait(self._pending, timeout=max(0, timeout_s))
         return not self._pending
+
+
+class VisualSubagentCapabilities:
+    """Model-facing adapter: one bounded call, only text plus traceable metadata."""
+
+    def __init__(self, service: VisualSubagentService) -> None:
+        self._service = service
+
+    async def invoke(
+        self, name: str, arguments: Mapping[str, JSON], *, operation_id: str, context: InvocationContext
+    ) -> ActionResult:
+        try:
+            result = await self._service.run(
+                context.agent_id,
+                context.run_id,
+                arguments.get("task"),
+                [arguments.get("frame_object_id")],
+                arguments.get("focus", "general"),
+            )
+        except BusinessError as exc:
+            return ActionResult(Outcome.ERROR, exc.message, error_code=exc.code)
+        data: dict[str, JSON] = {
+            "frames": result["frames"],
+            "focus": result["focus"],
+            "model": result["model"],
+            "cost_micro": result["cost_micro"],
+            "input_tokens": result["input_tokens"],
+            "output_tokens": result["output_tokens"],
+        }
+        return ActionResult(Outcome.OK, str(result["text"]), data=data, verification="visual_summary")
+
+    async def close(self, timeout_s: float) -> bool:
+        return await self._service.close(timeout_s)

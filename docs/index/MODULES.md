@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`ad0f20d5b2b1b24aef6832148a56e1533a1b70b2bc08f2d5ded8aedcb53d0e50`。包含 65 个职责模块、854 个源码/界面文件。
+源码指纹：`0e93ed5a0e14d1361999c42f1d75d68d47fcf847ad6638d771a6a44b4a3beb15`。包含 65 个职责模块、855 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -156,7 +156,7 @@
 | [agent/src/omni/application/terminal_review.py](../../agent/src/omni/application/terminal_review.py) | 127 | Owner terminal evidence use cases; no native actions, receipt changes or historical PID operations. |
 | [agent/src/omni/application/terminals.py](../../agent/src/omni/application/terminals.py) | 506 | Bounded owner terminals with durable input receipts, single-writer leases and explicit output gaps. |
 | [agent/src/omni/application/todos.py](../../agent/src/omni/application/todos.py) | 49 | Model task-plan control with scoped transactions; creates no external action or background task. |
-| [agent/src/omni/application/visual_subagent.py](../../agent/src/omni/application/visual_subagent.py) | 173 | Bounded vision sub-agent orchestration over injected frame and model ports. |
+| [agent/src/omni/application/visual_subagent.py](../../agent/src/omni/application/visual_subagent.py) | 247 | Bounded vision sub-agent orchestration over injected frame and model ports. |
 
 文档：[docs/V2_REFACTOR.md](../../docs/V2_REFACTOR.md)
 
@@ -450,6 +450,7 @@
 | [agent/src/omni/adapters/timezones.py](../../agent/src/omni/adapters/timezones.py) | 29 | Pinned tzdata resolver; avoids OS-dependent timezone database drift. |
 | [agent/src/omni/adapters/token_counter.py](../../agent/src/omni/adapters/token_counter.py) | 34 | Local conservative token estimate; it never fetches model metadata or credentials. |
 | [agent/src/omni/adapters/vector_files.py](../../agent/src/omni/adapters/vector_files.py) | 131 | Verify explicit local vector files and startup selection; never imports a model or downloads data. |
+| [agent/src/omni/adapters/visual.py](../../agent/src/omni/adapters/visual.py) | 166 | Production visual-subagent adapters: authorized image objects and one budgeted ModelCalls request. |
 | [agent/src/omni/adapters/workers/__init__.py](../../agent/src/omni/adapters/workers/__init__.py) | 1 | Owned capability workers; no application database or credentials access. |
 | [agent/src/omni/adapters/workers/android.py](../../agent/src/omni/adapters/workers/android.py) | 406 | Fixed Android observation/input worker. No database, arbitrary shell or automatic device setup. |
 | [agent/src/omni/adapters/workers/android_adb.py](../../agent/src/omni/adapters/workers/android_adb.py) | 127 | Bounded smart-socket ADB client. Never starts a server, pairs, installs, roots or accepts arbitrary commands. |
@@ -511,7 +512,7 @@
 | [agent/src/omni/composition/capabilities.py](../../agent/src/omni/composition/capabilities.py) | 253 | Explicit builtin capability registration; capabilities never construct the kernel. |
 | [agent/src/omni/composition/cli.py](../../agent/src/omni/composition/cli.py) | 1048 | V2 development entrypoint. Online commands use the authenticated HTTP facade. |
 | [agent/src/omni/composition/http.py](../../agent/src/omni/composition/http.py) | 250 | HTTP composition and owner bootstrap; tokens never appear in diagnostic output. |
-| [agent/src/omni/composition/instance.py](../../agent/src/omni/composition/instance.py) | 910 | Build one isolated instance; never imports or opens the V1 runtime. |
+| [agent/src/omni/composition/instance.py](../../agent/src/omni/composition/instance.py) | 922 | Build one isolated instance; never imports or opens the V1 runtime. |
 | [agent/src/omni/composition/lifecycle.py](../../agent/src/omni/composition/lifecycle.py) | 164 | Own startup rollback and one shared shutdown budget; never dispatches business work. |
 | [agent/src/omni/composition/releases.py](../../agent/src/omni/composition/releases.py) | 124 | Assemble explicit offline release commands. No service install, stop, model or default-entry switch. |
 | [agent/src/omni/composition/service_cleanup.py](../../agent/src/omni/composition/service_cleanup.py) | 80 | Assemble quarantined registration cleanup, with an explicit root route for system definitions. |

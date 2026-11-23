@@ -533,6 +533,14 @@
           "delivered": "K14 离线核心（无生产接线/真实调用/工具/路由/迁移）：domain/visual_subagent.py 纯规则（task 1..4000、focus 四枚举、帧 id 1..240 规范 UUID 唯一、ImageInfo 元数据+内容长度校验、>60 保序等距含首尾取 60、单帧 16MiB/总量 64MiB、固定 system prompt 含无工具与不可信帧、输出 1..4000 纯文本，tool_calls/非 stop/空/超长/控制字符 visual_response_invalid 不截断不执行不重试）；application/visual_subagent.py `VisualSubagentService`（注入 DatabasePort/FrameSource/Model，父 run+模型授权先于帧源与模型，帧源按请求顺序全量核验，单次调用/120s/父 run 并发 1/全局≤4，取消取消实际调用并等待清理，零 db.write、零 memory/persona/delivery 写入，返回仅 text/frames/focus/model/cost/tokens 不含 object_id/sha/帧字节）；20 专项 2.70s（19 注入桩+1 真实 SQLite 父 run 授权零写）、strict 两模块 0 错误、架构/入口/候选门/目录 52 项 23.08s。D0-D5 未决不变，默认仍只做离线桩。"
         },
         {
+          "gap": "视觉子代理首批生产路径（agent 已授权图像对象→visual_subagent 能力→一次预算/账本视觉调用→可追溯文本）",
+          "status": "production_path_implemented_offline_verified_real_blocked",
+          "batch": "K14.visual_subagent_production",
+          "contract": "docs/v2/contracts/V2_VISUAL_SUBAGENT.md",
+          "evidence": "docs/evidence/v2-visual-production-path.json",
+          "delivered": "生产接线：composition/instance.py 构造 VisualSubagentService + ImageObjectFrames + ModelCallsVisualModelFactory，注册 visual_subagent ToolSpec/Capability；ImageObjectFrames 用 ObjectService.get+ImageService.prepare 核验 agent 对象；ModelCallsVisualModel 以 tool-result image（role=tool）走 ModelCalls.invoke，tools=()，父 run 预算/日限/image policy 4/12，image_budget_exceeded→budget_exceeded；返回 text+frames/focus/model/cost/tokens，ActionReceipt verification=visual_summary，action/model_calls 账本可追溯。7 项生产专项通过（成功一次调用、Android capture→同一路径、无图像协议、预算耗尽、供应商失败、跨 Agent、来源擦除），既有视觉 20 项、strict 434 文件 0 错、ruff 通过。真实 gpt-4o/设备实测被环境阻塞：OpenAI/Anthropic key 为空、DashScope/Ark key 为非 ASCII 占位、无 emulator/物理设备；accept_visual_production.py 已就绪待指定窗口。"
+        },
+        {
           "gap": "Android 截图撤销/取消链回归（capture 中撤权零发布、取消等待保留实际截图且不重复）",
           "status": "implemented_scoped_passed",
           "batch": "K14.android_capture_regression",
@@ -605,7 +613,7 @@
           "delivered": "实现前授权/预算/边界合同（纯文档）：D0-D5 所有者决策门（默认只做离线桩，不调用真实视觉模型）；task 1..4000 + 1..60 已注册/已授权帧、>60 保序等距含首尾、固定 system prompt+1024 输出、无工具/max_calls=1、仅文本≤4000、master 不携带帧、不自动写 memory/persona、unknown 不重放、来源删除/凭据 CAS/取消等待、每父 run 1 个/全局≤4/超时≤120s/临时帧清理；接线点 instance.py/engine.py 当前他会话在途，未实现。"
         }
       ],
-      "limits": "K14 审计本身只读；后续独立批次已实现视觉子代理离线核心(K14.visual_subagent_core：有界帧/无工具/单次/仅文本/零写，20 专项过)、SoM 离线核心(K14.android_som_core：节点准入/编号/PNG 渲染，9 专项过)、explore_app 离线核心(K14.android_explore_core：结构 skeleton/有界屏幕动作图/可达/简单路径/未探索动作，9 专项过)，并补 Android 截图撤销/取消/坏 PNG 清理恢复、输入派发后撤权/取消不重放、坏 UI dump 失败关闭六项回归(仅测试/夹具)；OCR 已记录实现前合同(K14.android_ocr_design，D0–D5 未决，未实现，无依赖/模型/迁移/路由)；视觉 D0-D5、SoM D0-D3、explore D0–D4 未决，生产接线/真实视觉模型/真实帧来源/对象发布/持久化/付费调用/真机未做；不宣称真机质量或约65工具广度对等；V2有意不提供shell逃生舱/变更链(更严格)；既有todos重启竞态与5个pin v2_0039旧迁移测试沿用保留 D0–D5 已按现有授权定案（父 run 固定模型/仅已授权已注册帧/一次 reserved turn 计费/仅 run 内留存/显式失败），生产接线为独立批次，未接前保持关闭。",
+      "limits": "K14 审计本身只读；后续独立批次已实现视觉子代理离线核心(K14.visual_subagent_core：有界帧/无工具/单次/仅文本/零写，20 专项过)与首批生产路径(K14.visual_subagent_production：visual_subagent 能力/ImageObjectFrames/ModelCallsVisualModel，7 专项过；D0–D5 已按现有授权定案：父 run 固定模型/仅已授权已注册帧/一次 reserved turn 计费/run 内留存/显式失败；真实模型/设备被 key/设备缺失阻塞)、SoM 离线核心(9 专项过)、explore_app 离线核心(9 专项过)，并补 Android 截图撤销/取消/坏 PNG 清理恢复、输入派发后撤权/取消不重放、坏 UI dump 失败关闭六项回归(仅测试/夹具)；OCR 已记录实现前合同(K14.android_ocr_design，D0–D5 未决，未实现，无依赖/模型/迁移/路由)；SoM D0-D3、explore D0–D4 未决，对象发布/持久化/真机未做；视觉生产路径的 media_frames 来源、真实 tool-result image 供应商兼容性、真实质量/费用/72h 未验；不宣称真机质量或约65工具广度对等；V2有意不提供shell逃生舱/变更链(更严格)；既有todos重启竞态与5个pin v2_0039旧迁移测试沿用保留",
       "next": false
     },
     {

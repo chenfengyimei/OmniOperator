@@ -1,6 +1,6 @@
 # V2 有界视觉子代理设计合同（K14 可离线缺口）
 
-**状态：`decisions_set_wiring_pending`（2026-11-23）。** D0–D5 已按现有授权定案（父 run 固定模型、仅已授权已注册帧、一次 reserved turn 计费、仅 run 内留存、显式失败），见 §3。离线核心已实现并专项通过；生产接线、真实视觉模型调用与真实帧来源仍作为独立实现批次，接线前保持关闭。
+**状态：`production_path_implemented_offline_verified_real_blocked`（2026-11-23）。** D0–D5 已按现有授权定案（父 run 固定模型、仅已授权已注册帧、一次 reserved turn 计费、仅 run 内留存、显式失败），见 §3。离线核心与一条生产路径已接线：`visual_subagent` 能力经真实组合根，从 agent 已授权图像对象出发，经父 run 授权、一次 `ModelCalls` 预算/账本调用，返回可追溯文本摘要；真实模型/设备/付费调用因当前环境无有效视觉模型凭据、无可用隔离设备而未执行，验收脚本已就绪。
 
 ## 1. 范围
 
@@ -122,3 +122,16 @@ D0–D5 不因本批改变；默认仍是「只做离线桩」。
 - `application/visual_subagent.py`：`VisualSubagentService` 只依赖注入的 `DatabasePort`/`VisualFrameSource`/`VisualModel`；调用前核验父 run 与模型授权（无授权→`visual_unavailable`，预算码原样保留），帧源必须按请求顺序返回全部帧；单次调用、超时 120s、每父 run 并发 1、全局并发 ≤4；父 run 取消会取消实际调用并等待清理；无任何 `db.write`、无 memory/persona/delivery 写入；返回仅 `text/frames/focus/model/cost_micro/tokens`，不含 object_id、sha 或帧字节。
 - 测试：`agent/tests/v2/core/test_v2_visual_subagent.py` 20 项（19 项注入桩 + 1 项真实 SQLite 父 run 授权且零写）一次通过 **20 passed / 2.70s**；新增两模块严格类型 0 错误；架构/入口/候选门/目录守卫 52 项通过 23.08s。证据见 [v2-visual-subagent-core.json](../../evidence/v2-visual-subagent-core.json)。
 - 仍未验证/未实现：真实视觉模型质量与供应商图像协议（D1）、每次/每日预算（D2）、真实 Android/注册帧来源（D3）、摘要留存（D4）、失败文案策略（D5）、生产 `instance.py`/`engine.py` 接线、真实设备/付费调用。离线核心通过不等于 K14 视觉子代理或整个 V2 完成。
+
+## 10. 首批生产路径（2026-11-23，所有者指令）
+
+所有者授权打通一条真实组装路径；分层人格/主动动机另开批次。本批实现：
+
+- **可见面**：`visual_subagent` 模型能力（`ToolSpec`，只读语义、无写动作），由 `composition/instance.py` 的 `VisualSubagentCapabilities` 注册；参数 `task`（1–4000）、`frame_object_id`（规范 UUID）、`focus`（四枚举）。
+- **帧来源**：`agent` 已拥有的图像对象（Android capture 或已注册上传图）；`adapters/visual.py::ImageObjectFrames` 用 `ObjectService.get` + `ImageService.prepare` 核验 agent 作用域、解码/注册元数据；跨 Agent/已擦除 → `image_source_changed`。
+- **模型调用**：`adapters/visual.py::ModelCallsVisualModel` 将帧作为 in-run **tool-result image**（role=tool，带固定 tool call）交给 `ModelCalls.invoke`，`tools=()`，一次 turn 预留/结算，不携带 master 历史或工具定义；`model_images_prepare` 的 tool 分支核验对象，`images.wire` 生成 `image_url`。父 run 模型必须是 V2 OpenAI low-detail 图像协议支持的视觉模型（本批验收指定 `openai/gpt-4o`；Anthropic 等其它协议未接）。
+- **预算**：复用父 run 的 `call_reservation_micro`/`daily_budget_micro` 与 run image policy（本批 `per_call_limit=4`、`run_budget=12`）；`image_budget_exceeded` 映射 `budget_exceeded`，零派发。
+- **可追溯**：能力返回 `text` + `frames/focus/model/cost_micro/tokens`，`ActionResult.verification="visual_summary"`，action 回执与 `model_calls` 账本可查；不写 memory/persona、不投递、不自动附模型。
+- **失败**：无模型/无图像协议/跨 Agent/来源擦除/预算/供应商失败分别显式 `visual_unavailable`/`image_source_changed`/`budget_exceeded`/`visual_unavailable`；unknown 不重放；超时/取消沿用离线核心语义。
+- **验证**：`agent/tests/v2/core/test_v2_visual_production.py` **7 passed**（成功一次调用+action 元数据、Android capture→同一路径、无图像协议、预算耗尽、供应商失败、跨 Agent、来源擦除）；既有视觉 20 项、strict 434 文件 0 错、ruff 通过。真实模型调用由 `agent/scripts/accept_visual_production.py` 预留，但当前环境 `.env` 的 OpenAI/Anthropic key 为空、DashScope/Ark key 为非 ASCII 占位、无 emulator/物理设备，故 **真机+真实模型实测未执行**。
+- **未验**：真实 `gpt-4o` 对 tool-result image 的供应商兼容性、真实模型摘要质量、Android emulator/真机、付费预算曲线、72h；模型/设备指定窗口到达后先跑验收脚本再回填证据。
