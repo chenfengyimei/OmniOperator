@@ -3,7 +3,7 @@
   "topic": "v2-cdeg-integration",
   "date": "2026-11-23",
   "baseline": "0793f254",
-  "source_head": "b395cd97",
+  "source_head": "b3bcdafd",
   "scope": "Windows 集成方审查并合并四个任务分支（C 视频分镜、D Android/人格、E 工具与 B 站、G Linux/容器），逐批跑受影响模块与调用方专项，合并生成物（docs/index）与台账（按批次并集），最后对固定候选执行一次全量。不实现真实账号/设备、X11/Wayland 真机或 72 小时验收。",
   "batches": [
     {
@@ -76,14 +76,15 @@
       "batch": "G",
       "name": "Linux 与容器",
       "branch": "linux-container-g3",
-      "branch_head": "37ab8640",
-      "merge_commit": "da20dbdf",
+      "branch_head": "8bb1f0a2",
+      "merge_commit": "b3bcdafd",
       "scope": "服务 SIGTERM/SIGINT 退出 0；Linux 容器与原生专项证据",
       "source": [
         "agent/src/omni/composition/serving.py"
       ],
       "production_entry": "serve_instance 自行接管 SIGTERM/SIGINT，uvicorn 优雅关闭后恢复并重发捕获信号由本处理器吸收，进程正常返回、退出码 0（容器检查可证明完整关闭）",
-      "targeted": "55 passed（入口/服务运行时/服务身份 HTTP/架构）"
+      "targeted": "55 passed（37ab8640 主体）+ 1411 passed / 1 skipped（8bb1f0a2 delta：Linux 平台全组+架构，271.46s）",
+      "merged_tip_note": "分支在集成期间前进 14 个提交（37ab8640→8bb1f0a2）：dbus-next 0.2.3 MessageFlag.NO_AUTOSTART 枚举拼写修复+守护测试，X11/AT-SPI 诊断与合同问题文档、Linux 证据；本批按新 tip 合并"
     }
   ],
   "generated_artifacts": {
@@ -115,7 +116,8 @@
     "skipped": 9,
     "seconds": 2559.0,
     "workers": "auto(max 4)",
-    "note": "四批合并+唯一红修复后的固定候选单跑全量；此前同批候选 6990076a 为 8608 通过/1 失败（android unicode token 预算）"
+    "note": "四批合并+唯一红修复后的固定候选单跑全量；此前同批候选 6990076a 为 8608 通过/1 失败（android unicode token 预算）",
+    "coverage_note": "全量绿覆盖 b395cd97（四批主体）；其后仅并入 G 新增 delta（2 行枚举修复+守护测试+文档），由 Linux 平台+架构专项 1411 passed 覆盖；按所有者“不要频繁全量”要求未再全量"
   },
   "followup": {
     "fix": "全量首轮唯一红：test_v2_android_unicode 的 7 轮全工具面模型流超出默认 32768 字节档 306 字节（token_budget_exceeded）；该用例夹具显式声明 128000 上下文（断言与预算守卫不变），nodeid 3/3 通过、整文件 23 passed",
