@@ -273,3 +273,5 @@ X11 侧定位：`linux_x11_socket.py` 要求 socket 身份 + Xorg 进程 uid/会
 KWin 6.6.4 尝试：`_NET_CLIENT_LIST` 存在（列表通过）、target() 合法、watch 通过，但 `NameWindowPixmap` 仍 **BadMatch(8)**——KWin 同样重定向 frame 而非客户端窗口。Mutter 50.1 已无 X11 WM 模式（仅 Wayland display server）。结论：当前可用的 reparenting X11 WM 都无法满足“客户端窗口被重定向”的假设；需要 A 在“捕获 frame 并裁剪 / 其他截图路径 / 明确不支持 reparenting WM”之间决定。身份、列表、前台能力不受影响。
 
 前台操作合同已确认：`foreground` 只接受 **AT-SPI 目标** + 节点证明流程（`takeover=true`、固定 policy、来自观察的 node proof、grant/run/operation UUID），裸 `{kind,key}` 或 x11 目标会被 `parse_request` 拒绝（`desktop_invalid`，未派发）。这本身构成一条有效的**拒绝路径证据**（denied/none/not_dispatched）。下一步需按生产 observe→node proof→foreground(permit) 流程驱动，再做用户介入/撤权。
+
+Wayland 环境核对：当前只有 KWin **X11** 会话；`xdg-desktop-portal` 未安装，会话总线上 `org.freedesktop.portal.Desktop` 没有 RemoteDesktop/ScreenCast 接口。G4 的授权/撤回/暂停需要先安装 Wayland 合成器（GNOME Shell/KDE Plasma）及其 portal 后端，或提供真实桌面。前台操作需走应用层的 AT-SPI 节点证明流程（observe→node proof→foreground），裸 backend 调用按设计被拒（已记录拒绝路径）。
