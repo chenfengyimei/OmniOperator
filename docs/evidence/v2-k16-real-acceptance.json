@@ -9,11 +9,11 @@
   "branch": "k16-storyboard",
   "contract": "docs/v2/contracts/V2_K16_REAL_ACCEPTANCE.md",
   "files": {
-    "docs/v2/contracts/V2_K16_REAL_ACCEPTANCE.md": "dac195283bfe1a0641e33dfc2c84bf0aae27ad03c845e2f78b80599aef07ce0d",
+    "docs/v2/contracts/V2_K16_REAL_ACCEPTANCE.md": "6445ad73acf43798e8f51327f7f026fc011c3bed55aef257566a60b908fa1f41",
     "docs/v2/contracts/V2_MEDIA_SCENES.md": "40009626806f860222bebda5bc3242003e2a633c2749f6018790a14fc3a1a860",
-    "docs/v2/README.md": "5524c847a8bbd49a36337b7b89397b2e9bfd9495446299cc06c786f4385b23be",
-    "docs/tasks/v2-agent-core-parity.json": "93ba79e209fe86d56ac0abb8ed5f8a75c7f07304c99bf215bfdbdc1766745e69",
-    "docs/HANDOFF.md": "3deb53858191d04a2c1a22dcf5c4ec4d9cea43b3752c8d3cba0811e8d114ba1f"
+    "docs/v2/README.md": "5bad7fb8f3e188af90eb41473a96db070ada06bc0b19e4dfcca3b418999561c5",
+    "docs/tasks/v2-agent-core-parity.json": "4c57dc72727880e12ec09dc50d6c5ef678441e178caa3707fef181665f033d02",
+    "docs/HANDOFF.md": "f42f82d1323ed8eca2537926ed254313bdb17ab2701ec86070ce697f2dc6bf46"
   },
   "hash_scope": "SHA-256 of git index blob bytes (LF-normalized); excludes this evidence file and generated docs/index.",
   "material": {
@@ -98,7 +98,21 @@
         "bytes": 3513935,
         "sha256": "e1e9333b2345083c8f875fb62b1a80ba4c5ff13455e88f8ad2f8f52714c1ab44"
       },
-      "credits_cells": "6/12"
+      "credits_cells": "1/12",
+      "timestamps": [
+        13.667,
+        28.583,
+        65.875,
+        108.125,
+        152.833,
+        182.667,
+        202.542,
+        247.292,
+        274.625,
+        446.083,
+        453.542,
+        490.833
+      ]
     },
     {
       "samples": 240,
@@ -165,8 +179,22 @@
         "height": 1200,
         "bytes": 1118249
       },
-      "credits_cells": "3/12",
-      "note": "临时 monkeypatch，未改生产默认。"
+      "credits_cells": "5/12",
+      "note": "临时 monkeypatch，未改生产默认。",
+      "timestamps": [
+        36.042,
+        83.25,
+        103.125,
+        108.125,
+        135.458,
+        175.208,
+        383.958,
+        493.333,
+        510.708,
+        545.5,
+        557.917,
+        595.208
+      ]
     }
   ],
   "false_cut_spot_checks": [
@@ -181,7 +209,7 @@
   "root_causes": [
     "240 样本对 596s 视频只有 2.46s 间隔（2fps 被上限截断）；相邻样本常同时超阈值，尖峰守卫把真实密集切点一并压制。",
     "提高采样到 1200 可把间隔降到 0.5s、召回 8/10，但运动/动作也会产生高分，出现同场景误切；强切点绕过会放大过分割。",
-    "credits 片段长且含淡入淡出/文字切换，按片段时长分配槽位导致 240 样本 6/12、1200 样本 3/12 帧落在 credits；不是宫格排版问题。",
+    "credits 按时间戳计数：240 样本 12 帧中 1 帧在 credits（490.833s），1200 样本 12 帧中 5 帧在 credits（493.333/510.708/545.5/557.917/595.208s）；240 的槽位并非主要问题，1200 采样后段偏多。",
     "宫格 1280×2280/3.51MB 与 640×1200/1.18MB 均未越 8192/16M/8MiB；列数不是瓶颈。"
   ],
   "decisions": {
@@ -191,7 +219,7 @@
     },
     "adaptive_grid_dp": {
       "decision": "本版不做",
-      "reason": "宫格尺寸/字节未越限，没有布局失败；问题在选段/槽位分配。"
+      "reason": "宫格尺寸/字节未越限；240 credits 仅 1/12，问题主要是采样与运动误切，不是宫格列数。"
     },
     "ocr": {
       "decision": "本版不做",
@@ -213,8 +241,8 @@
   "validation": {
     "scenes_tests": {
       "result": "33 passed",
-      "seconds": 12.4,
-      "note": "rebase 到 origin/v2 后复跑"
+      "seconds": 14.02,
+      "note": "rebase 到 8412e773 后复跑"
     },
     "production_change": "无；强切点绕过实验已回退，工作树仅文档/证据改动。",
     "strict": {
@@ -237,5 +265,12 @@
   "whole_core_parity_complete": false,
   "whole_reference_feature_audit_complete": false,
   "whole_v2_complete": false,
-  "executed_on_commit": "489d093b"
+  "executed_on_commit": "489d093b",
+  "attempted_fixes_rejected": [
+    {
+      "fix": "scene_slots 时间覆盖选择（覆盖+剩余槽位分摊）",
+      "result": "240 样本 credits 从 1/12 变为 2/12、内容帧 11→10，无收益，已回退，未提交。"
+    }
+  ],
+  "rebased_on": "8412e773"
 }
