@@ -84,6 +84,32 @@
       "worker_result": "the worker returned a report with session.kind=unknown and window_identity/accessibility error_code=desktop_native_unavailable; no worker traceback",
       "conclusion": "the backend does spawn the worker and receives a report; the refusal is produced worker-side while building the probe report, most likely in the Linux AT-SPI/session initialization path",
       "next": "read linux_desktop/linux_atspi probe initialization to find the desktop_native_unavailable branch and fix or document it"
+    },
+    "full_report": {
+      "session": {
+        "kind": "unknown",
+        "identity": null
+      },
+      "top_level_error": null,
+      "capabilities": [
+        [
+          "window_identity",
+          "desktop_native_unavailable"
+        ],
+        [
+          "accessibility",
+          "desktop_native_unavailable"
+        ],
+        [
+          "screen_capture",
+          "desktop_adapter_not_implemented"
+        ],
+        [
+          "foreground_control",
+          "desktop_adapter_not_implemented"
+        ]
+      ],
+      "conclusion": "the worker returns a well-formed report with no exception; the session inspector left session=None (kind unknown) even though logind shows session 31 x11/seat0 active. Next: read SessionInspector.open()/read_session to find why it returns without a session, or instrument it in the VM copy"
     }
   }
 }
