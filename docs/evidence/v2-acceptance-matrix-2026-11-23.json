@@ -3,25 +3,25 @@
   "topic": "v2-acceptance-matrix",
   "date": "2026-11-23",
   "candidate": {
-    "head": "6d81a826e0f5a6dae149604ebc0b49d95b93b040",
-    "origin_v2_at_review": "6d81a826e0f5a6dae149604ebc0b49d95b93b040",
-    "gitee_mainline": "6d81a826",
+    "head": "d7971bc473e41330212c319db1c9da30d75284e5",
+    "origin_v2_at_review": "d7971bc473e41330212c319db1c9da30d75284e5",
+    "previous_candidate": "6d81a826e0f5a6dae149604ebc0b49d95b93b040",
     "included_batches": {
       "C": "8512a8bc",
       "D": "c5170795",
       "E": "94d483eb",
       "G": "32d35898",
-      "windows_service_fix": "6540c724"
+      "windows_service_fix": "6540c724",
+      "d11e": "46083137"
     },
-    "wheel_sha256": "3d3b28a0b91cb49904a476c8e0e5f9a9d130386f43d66abab0777605ffb6f9d2",
-    "wheel_bytes": 2823338,
-    "previous_wheel_sha256": "199072c6fc455a47a7e6d67ad696437050804a7269d7248af900883118e72a6c",
-    "previous_source_head": "8412e773e75808a4e2b04ff221bb8cc312ed9899",
+    "wheel_sha256": "3fbba07b9cbc5377d166555fc7475b58083aab308a57fafc65043ddb9dfa99b1",
+    "wheel_bytes": 2824311,
+    "previous_wheel_sha256": "3d3b28a0b91cb49904a476c8e0e5f9a9d130386f43d66abab0777605ffb6f9d2",
     "dependency_bundle_sha256": "ddc242906492a815e1893505f0453f922f2c218dda441ad0088effb9f5e1225f",
     "dependency_wheels": 110,
     "uv_lock_sha256": "3900d190babf4b0cfcb42d1e6b82d5ba2ced7a34fe69d28a8f09b5e008f58321",
     "schema": "v2_0052",
-    "build_worktree": "C:/v2-acceptance/c3-08dd1573/source-6d81a826"
+    "build_worktree": "C:/v2-acceptance/c3-08dd1573/source-d7971bc4"
   },
   "environment": {
     "host_os": "Windows 11 家庭版 build 26300 x64",
@@ -35,46 +35,38 @@
   },
   "items": [
     {
+      "id": "C2.7",
+      "title": "Windows 原生服务（Task Scheduler 用户任务）",
+      "status": "failed_d11e_real_machine_regression",
+      "result": "d7971bc4 wheel：install succeeded/definition_matches=true；任务 Running、HTTP 200/ready=true（boot e8fd469c、pid 134544）；start 返回 unknown/service_control_outcome_unverified；status manager state=unknown/pid null/ready=false。helper 的 GetInstances(0).Item(0).EnginePID 在真实 COM 集合抛 ArgumentException；foreach 可取 engine_pid 91764，psutil 找到动作进程 134544",
+      "defect_ids": ["D11e-R"],
+      "evidence": [
+        "docs/evidence/v2-windows-service-d7971bc4-2026-11-23.json",
+        "C:/v2-acceptance/c3-08dd1573/svc8/probes/d11e-real-machine.txt"
+      ]
+    },
+    {
       "id": "C3.1-W1",
       "title": "官方 wheel 干净目录离线安装检查",
-      "status": "partial_first_uninstall_failed",
-      "environment": "同机全新目录 + 基础解释器 + 离线依赖包；非干净 OS",
-      "result": "六阶段 verified；首次卸载 failed rc=1，150B stderr SHA 98b1d782…（与四轮一致）；延迟 40s 外部维护器 36.7s 成功，data_kept=true；DB 82a10d2e…/备份 e3106aae… 前后一致",
-      "evidence": [
-        "docs/evidence/v2-windows-install-check-6d81a826-2026-11-23.json",
-        "C:/v2-acceptance/c3-08dd1573/fresh-install-6d81a826/report.json"
-      ],
-      "caveat": "checker verified=false，不得写成通过"
+      "status": "not_rerun_on_current_candidate",
+      "result": "6d81a826 wheel 3d3b28a0：六阶段 verified；首次卸载确定性失败（150B stderr SHA 98b1d782…），延迟 40s 续跑成功，data/backup 一致",
+      "evidence": ["docs/evidence/v2-windows-install-check-6d81a826-2026-11-23.json"],
+      "caveat": "d7971bc4 尚未重跑；checker verified=false"
     },
     {
       "id": "C3.1-W2",
       "title": "官方 wheel install→update→rollback→uninstall 链",
-      "status": "verified_with_uninstall_retries",
-      "result": "上一版 199072c6 新装 230s；当前 3d3b28a0 stage/prepare/environment/install、rollback、doctor 均成功；两处卸载 attempt1 cleanup_pending、attempt2 成功；最终 candidates=[]、数据/备份保留",
-      "evidence": [
-        "docs/evidence/v2-windows-install-chain-6d81a826-2026-11-23.json",
-        "C:/v2-acceptance/c3-08dd1573/chain6/transcript.json"
-      ],
-      "caveat": "卸载首次失败 28–29s，外部维护器延迟重试成功；非干净 OS"
+      "status": "verified_on_previous_candidate_only",
+      "result": "6d81a826 wheel 3d3b28a0：上一版 199072c6 → 当前 → rollback → 双卸载；首次 cleanup_pending 后重试成功",
+      "evidence": ["docs/evidence/v2-windows-install-chain-6d81a826-2026-11-23.json"],
+      "caveat": "d7971bc4 尚未重跑"
     },
     {
       "id": "C3.1-W3",
-      "title": "真正干净机器 install→update→rollback→uninstall",
+      "title": "真正干净机器",
       "status": "blocked",
-      "reason": "本机无干净 Windows OS/VM；验收包已备好",
+      "reason": "本机无干净 Windows OS/VM；验收包按 6d81a826 构建，修复后需重建",
       "evidence": ["docs/evidence/v2-clean-machine-kit-2026-11-23.json"]
-    },
-    {
-      "id": "C2.7",
-      "title": "Windows 原生服务（Task Scheduler 用户任务）",
-      "status": "partial_lifecycle_verified_status_d11e_open",
-      "result": "6540c724 修复 D10/D11/D11c/D11d；官方 6d81a826 wheel 注册 definition_matches=true、start ready=true（boot f40f1572、pid 132948、HTTP 200）、stop closed=true、uninstall 任务删除；只读 status manager state=unknown/pid null/overall ready=false（D11e）",
-      "defect_ids": ["D11e"],
-      "evidence": [
-        "docs/evidence/v2-windows-service-6d81a826-2026-11-23.json",
-        "C:/v2-acceptance/c3-08dd1573/svc6/accept/transcript.json"
-      ],
-      "caveat": "生命周期可由 apply-control observed_reviewed_boot 证明；status 需 A 补运行证明或明确验收口径"
     },
     {
       "id": "C3.2",
@@ -96,7 +88,7 @@
       "id": "C3.3",
       "title": "B 站真实账号读取/发表/风控",
       "status": "blocked",
-      "reason": "无测试账号与窗口；E 批次验收工具 94d483eb 已入主线"
+      "reason": "无测试账号与窗口；E 验收工具 94d483eb 已入主线"
     },
     {
       "id": "C3.4",
@@ -116,7 +108,7 @@
       "id": "C3.7",
       "title": "三平台原生验收",
       "status": "not_rerun_on_candidate",
-      "reason": "Windows 旧证据 1e62fe08；Linux 见 32d35898 批次；macOS 另一会话"
+      "reason": "Windows 旧证据 1e62fe08；Linux 见 32d35898；macOS 另一会话"
     },
     {
       "id": "C2.8",
@@ -143,17 +135,18 @@
       "D": "c5170795，视觉生产 7 专项 + 12 生产专项；K15 69 专项",
       "E": "94d483eb，缓存专项 38 通过 + 验收工具 self-test",
       "G": "32d35898，Linux 全组 1412 通过；X11 frame 裁剪 sample_passed",
-      "windows_service": "6540c724，服务专项 53 passed"
+      "windows_service": "6540c724，服务专项 53 passed",
+      "d11e": "46083137，query 31 passed（假集合）；真实 COM 集合回归 D11e-R"
     },
     "full_suite": {
       "head": "b395cd97",
       "tests": 8618, "passed": 8609, "failed": 0, "skipped": 9, "seconds": 2559.0,
       "junit": "C:/v2-acceptance/integration-cdeg/full-b395cd97.xml",
-      "coverage_note": "不覆盖 6d81a826 的后续 C/D/E/G 与 Windows 服务修复；冻结候选必须重跑全量"
+      "coverage_note": "不覆盖 6d81a826 之后的生产/测试变化；冻结候选必须重跑全量"
     }
   },
   "h_prepared": {
-    "clean_kit": "C:/v2-acceptance/release-6d81a826",
+    "clean_kit": "C:/v2-acceptance/release-6d81a826（基于 6d81a826 wheel，需在 D11e-R 修复后重建）",
     "clean_machine": "未提供；本机无管理员/VM/Sandbox",
     "qq": "未登录、无对端账号",
     "android": "无设备",
@@ -172,20 +165,20 @@
     {"resource": "发布回滚/交接窗口", "items": ["C4.3", "C4.4"], "window": "2026-11-30，2–4 小时", "owner_action": "确认 A 与交接人"}
   ],
   "next_steps": [
-    "A 处理 D11e：补 running 证明，或明确 Windows 以 apply-control observed_reviewed_boot 判定就绪并同步验收标准",
-    "冻结 6d81a826 后跑一次完整全量并保存 JUnit",
-    "用冻结 SHA 重建官方 wheel，在干净机执行验收包并重跑服务生命周期",
-    "批准 limits 后执行 72h",
-    "C4.2 决策、C4.3 release/exchange 回滚、C4.4 交接"
+    "A 修 D11e-R：windows_services.ps1 用 foreach 取首个 running instance 的 EnginePID，重建 wheel",
+    "H 重跑 d7971bc4+fix 的 install→start→status（ready=true、pid 非空）→drain→uninstall",
+    "冻结最终 SHA，跑一次完整全量并保存 JUnit",
+    "重建官方 wheel 与干净机验收包；干净机安装链",
+    "72h → C4.2 → C4.3 → C4.4"
   ],
   "conclusion": {
     "whole_v2_complete": false,
     "production_release_ready": false,
-    "partial_items": ["C3.1-W1", "C2.7", "C4.3"],
-    "verified_items": ["C3.1-W2（带卸载重试）"],
+    "failed_items": ["C2.7（D11e-R）"],
+    "partial_items": ["C4.3"],
     "blocked_items": ["C3.1-W3", "C3.2", "C3.5", "C3.3", "C3.4", "C2.8", "C4.2"],
     "not_started": ["C3.6"],
-    "not_rerun_on_candidate": ["C3.7"]
+    "not_rerun_on_current_candidate": ["C3.1-W1", "C3.1-W2", "C3.7"]
   },
   "whole_v2_complete": false
 }

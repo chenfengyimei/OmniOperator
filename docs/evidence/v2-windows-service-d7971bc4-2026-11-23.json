@@ -1,0 +1,75 @@
+{
+  "schema": 1,
+  "topic": "v2-windows-service-d7971bc4",
+  "date": "2026-11-23",
+  "source_head": "d7971bc473e41330212c319db1c9da30d75284e5",
+  "scope": "从 D11e 修复后的主线 d7971bc4 重建官方 wheel，在隔离 home 上执行真实 Windows 任务注册→启动→只读 status；发现 D11e 在真实 COM 集合上回归，启动与 status 都无法完成 running 证明。",
+  "includes": {
+    "6540c724": "D10/D11/D11c/D11d",
+    "46083137": "D11e COM state + EnginePID + 动作进程 PID",
+    "d7971bc4": "D11e 证据/决策文档"
+  },
+  "wheel": {
+    "sha256": "3fbba07b9cbc5377d166555fc7475b58083aab308a57fafc65043ddb9dfa99b1",
+    "bytes": 2824311,
+    "source_head": "d7971bc473e41330212c319db1c9da30d75284e5"
+  },
+  "environment": {
+    "home": "C:/v2-acceptance/c3-08dd1573/svc8/home",
+    "instance_id": "86f79b67-4138-45f0-a5cb-6f63677c0f47",
+    "port": 8789,
+    "task_name": "OmniOperator-V2-86f79b67-4138-45f0-a5cb-6f63677c0f47",
+    "install": "install_v2.py（基础 Python + 离线依赖包 ddc242…），doctor integrity=ok/163 表"
+  },
+  "steps": {
+    "capture": {"exit": 0, "seconds": 10.8},
+    "plan": {"exit": 0, "seconds": 1.5, "plan_sha256": "fc0ccfc25fbda2e5f97cc58cee2378359234ced4d3b215ff7dc9dc6d1501e023"},
+    "materialize": {"exit": 0, "seconds": 1.6},
+    "verify": {"exit": 0, "seconds": 9.5},
+    "install": {
+      "state": "succeeded", "effect": "applied", "terminal": true,
+      "registration": {"installed": true, "definition_present": true, "definition_matches": true, "enabled": true, "state": "stopped"}
+    },
+    "start": {
+      "operation_sha256": "cf7856fefe1e218bde8822f5a4d1f8432382a84c0fb6bf6c46f8f7592448058c",
+      "state": "unknown", "effect": "unknown", "terminal": false,
+      "error_code": "service_control_outcome_unverified",
+      "boot_id": "e8fd469c-442f-4bbf-b99f-2da2a91308f1",
+      "note": "任务实际 Running，HTTP /api/v1/version 200/ready=true，runner pid 134544；但控制端未取得 manager running 证明。"
+    },
+    "status": {
+      "exit": 1,
+      "manager": {"installed": true, "state": "unknown", "definition_matches": true, "pid": null, "error_code": ""},
+      "runtime": {"ready": true, "boot_id": "e8fd469c-442f-4bbf-b99f-2da2a91308f1", "pid": 134544},
+      "ready": false
+    }
+  },
+  "root_cause": {
+    "id": "D11e-R",
+    "file": "agent/src/omni/adapters/workers/windows_services.ps1",
+    "function": "Inspect-Task",
+    "line": "if ($instances.Count -gt 0) { $result.engine_pid = [int]$instances.Item(0).EnginePID }",
+    "failure": "在中文 Windows 11 build 26300 / Windows PowerShell 5.1 上，GetInstances(0) 返回的 COM 集合不能用 .Item(0) 取元素：System.ArgumentException: Value does not fall within the expected range；外层 catch 将整个回执置为 service_native_unverified（state unknown、engine_pid null）。",
+    "probe": {
+      "task_state": "Running（COM State=4，schtasks Last Result=267009）",
+      "instances_count": 1,
+      "com_foreach": "state=4, EnginePID=91764",
+      "item_0": "throws Value does not fall within the expected range",
+      "helper_original": "service_native_unverified, state=unknown, engine_pid=null",
+      "helper_with_foreach_patch": "state=running, engine_pid=91764, definition_matches=true, error_code 空",
+      "action_process": "psutil 在 engine 91764 下找到 pid 134544，命令行为 python -I -u -m omni.composition.service_runner --deployment .../accept/bundle"
+    },
+    "fix": "改为 foreach ($instance in $instances) { $result.engine_pid = [int]$instance.EnginePID; break }（或等价的安全取首元素），不要使用 COM Item(0)。"
+  },
+  "impact": "D11e 的单元测试使用假集合，未触发真实 COM 集合差异；当前主线 d7971bc4 的真实 start/stop/status 均无法取得 running 证明，属于 D11e 实机回归。6d81a826 的服务生命周期证据不能代表 d7971bc4。",
+  "not_claimed": [
+    "未证明修复后 start/status 通过（需 A 修 helper 后重建）",
+    "未在干净机/官方冻结产物上重跑"
+  ],
+  "cleanup": "svc8/svc7 临时任务已 End+Delete；8789 端口释放；svc8 服务进程退出；8790 上的 demo 服务保持运行",
+  "evidence_files": [
+    "C:/v2-acceptance/c3-08dd1573/svc8/probes/d11e-real-machine.txt",
+    "C:/v2-acceptance/c3-08dd1573/svc8/accept/transcript.json"
+  ],
+  "whole_v2_complete": false
+}
