@@ -17,7 +17,7 @@ from omni.adapters.platform.services.deployment_files import decode as _decode
 from omni.adapters.platform.services.deployment_files import no_links as _no_links
 from omni.adapters.platform.services.deployment_files import read_file as _read
 from omni.adapters.platform.services.macos_service import MacOSServiceInspection, disabled_override
-from omni.adapters.platform.services.service_query import ServiceQuery
+from omni.adapters.platform.services.service_query import ServiceQuery, action_pid
 from omni.adapters.platform.services.service_templates import render
 from omni.application.ports import Record
 from omni.domain.contracts import BusinessError
@@ -416,16 +416,26 @@ async def windows_receipt(
             or type(result["available"]) is not bool
         ):
             raise ValueError("Native receipt flags are invalid")
-        engine_pid = result["engine_pid"]
-        if engine_pid is not None and (type(engine_pid) is not int or not 0 < engine_pid <= 4294967295):
-            raise ValueError("Native engine pid is invalid")
+        receipt = cast(dict[str, object], result)
+        engine_pid: int | None = None
+        raw_engine = receipt["engine_pid"]
+        if raw_engine is not None:
+            if not isinstance(raw_engine, int) or isinstance(raw_engine, bool) or not 0 < raw_engine <= 4294967295:
+                raise ValueError("Native engine pid is invalid")
+            engine_pid = raw_engine
+        # R3: start and reconcile must use the same action-PID proof as status,
+        # so the receipt carries the verified action process, not just the engine.
+        # The worker never supplies this field; an extra key is rejected above.
+        verified = action_pid(engine_pid, expected, plan) if receipt["state"] == "running" else None
+        if verified is not None and verified <= 0:
+            raise ValueError("Native action pid is invalid")
         if (
             not isinstance(result["error_code"], str)
             or len(result["error_code"]) > 100
             or any(not (char.isascii() and (char.islower() or char == "_")) for char in result["error_code"])
         ):
             raise ValueError("Native error code is not metadata")
-        return result
+        return cast(Record, {**receipt, "pid": verified})
     except (BusinessError, OSError, ValueError, UnicodeError, AttributeError):
         if action == "inspect":
             return _unknown("service_registration_unverified")

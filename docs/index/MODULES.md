@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`03fd4c83188a78b5393135347b7d0445dae15727fd8ec163ae7c2ef3b07cf620`。包含 65 个职责模块、855 个源码/界面文件。
+源码指纹：`b81d092679c26d3f9a8942d1671d1b917f069e5137f514570573ead13de3dc6c`。包含 65 个职责模块、855 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -436,9 +436,9 @@
 | [agent/src/omni/adapters/platform/services/service_handover.py](../../agent/src/omni/adapters/platform/services/service_handover.py) | 77 | Two pinned root phases, opened in order and owned until native lock release; never elevates or spawns a broker. |
 | [agent/src/omni/adapters/platform/services/service_launch.py](../../agent/src/omni/adapters/platform/services/service_launch.py) | 95 | Once-only reviewed boot reservations under the instance lock; never starts a process or reads credentials. |
 | [agent/src/omni/adapters/platform/services/service_operation_files.py](../../agent/src/omni/adapters/platform/services/service_operation_files.py) | 274 | Private offline maintenance journal; never migrates, replays or removes instance data. |
-| [agent/src/omni/adapters/platform/services/service_query.py](../../agent/src/omni/adapters/platform/services/service_query.py) | 592 | Read-only OS service inspection with bounded output and retained process ownership. |
+| [agent/src/omni/adapters/platform/services/service_query.py](../../agent/src/omni/adapters/platform/services/service_query.py) | 591 | Read-only OS service inspection with bounded output and retained process ownership. |
 | [agent/src/omni/adapters/platform/services/service_readiness.py](../../agent/src/omni/adapters/platform/services/service_readiness.py) | 307 | Bounded, per-boot HMAC readiness proof. Never reads or sends an owner credential. |
-| [agent/src/omni/adapters/platform/services/service_registration.py](../../agent/src/omni/adapters/platform/services/service_registration.py) | 432 | Native user-service registration with fixed commands and scoped macOS unload; no elevation or data deletion. |
+| [agent/src/omni/adapters/platform/services/service_registration.py](../../agent/src/omni/adapters/platform/services/service_registration.py) | 442 | Native user-service registration with fixed commands and scoped macOS unload; no elevation or data deletion. |
 | [agent/src/omni/adapters/platform/services/service_templates.py](../../agent/src/omni/adapters/platform/services/service_templates.py) | 219 | Deterministic service artifacts. Rendering never installs or controls a service. |
 | [agent/src/omni/adapters/platform/services/systemd_state.py](../../agent/src/omni/adapters/platform/services/systemd_state.py) | 101 | Shared bounded systemd decoding; no command execution or filesystem access. |
 | [agent/src/omni/adapters/primitives.py](../../agent/src/omni/adapters/primitives.py) | 20 | Real clocks and full UUID identities, injected by the composition root. |

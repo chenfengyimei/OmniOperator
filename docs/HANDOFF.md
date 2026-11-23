@@ -547,6 +547,15 @@ K13.cron_model_design 已记录**实现前设计合同**（纯文档，无源码
 - **未验**：真实 Task Scheduler 复验需 H 从本修复提交重建官方 wheel，重跑安装→启动→只读 status→排空→卸载；随后才冻结候选、跑最终全量与 72 小时。
 - 记录与证据：[R1/R2 记录](v2/platforms/windows/WINDOWS_SERVICE_R1_R2_2026-11-23.md)、[v2-windows-service-r1-r2.json](evidence/v2-windows-service-r1-r2.json)；台账新增 `service_status_r1_r2`。
 
+## 2026-11-23 Windows 服务 R3 修复（基线 `5c8550ca`，H 实机反馈）
+
+- **现象**：R1/R2 修好后 `status` 已能返回 `running`/`ready=true` 且 PID 一致，但 `apply-control start` 仍停在 `unknown`，`reconcile` 无法确认，`stop`/`uninstall` 被阻塞。
+- **根因**：`ServiceControl.goal()` 用 `native.inspect` 的原生 receipt 做 `start_postcondition`；该 receipt 只有 `state`/`engine_pid`，没有已核验动作 PID，而就绪条件要求 `report.pid == proof.pid`。
+- **修复**：`windows_receipt` 在 COM 状态为 running 时调用**与 `status` 相同的 `action_pid`**，把已核验动作 PID 放进 receipt 的 `pid`（worker 不提供该字段，多余字段仍被字段白名单拒绝）；`ServiceQuery._query` 直接复用 `receipt.pid`。严格就绪条件不变：PID 必须非空、>0 且等于启动回执 PID。
+- **验证**：服务四模块 **98 passed（28.61s）**；新增「running 时 receipt 携带 4242 / None 两态」「worker 伪造 pid 被拒」「status 复用 receipt.pid」；strict **434 文件 0 错 0 警**。
+- **未验**：真实 Task Scheduler 复验需 H 用本修复提交重建官方 wheel，验 **启动回执成功 → status PID 一致 → 正常排空 → 卸载成功**；随后才冻结候选、跑最终全量与 72 小时。
+- 证据：[v2-windows-service-r3.json](evidence/v2-windows-service-r3.json)；契约 [V2_SERVICES §status 就绪判定](v2/operations/V2_SERVICES.md)；台账新增 `service_status_r3`。
+
 ## 追溯入口
 
 - [旧交接记录](history/pre-layout-2026-11-18/HANDOFF.md)、[旧重构记录](history/pre-layout-2026-11-18/V2_REFACTOR.md)只证明所属版本，不作为当前待办。

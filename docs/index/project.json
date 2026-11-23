@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "03fd4c83188a78b5393135347b7d0445dae15727fd8ec163ae7c2ef3b07cf620",
+  "source_sha256": "b81d092679c26d3f9a8942d1671d1b917f069e5137f514570573ead13de3dc6c",
   "modules": [
     {
       "id": "v2-domain",
@@ -520,7 +520,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 72061,
+      "lines": 72070,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -42115,7 +42115,7 @@
       "path": "agent/src/omni/adapters/platform/services/service_query.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.services.service_query",
-      "lines": 592,
+      "lines": 591,
       "imports": [
         "omni.adapters.platform.desktop.macos_helper",
         "omni.adapters.platform.runtime.processes",
@@ -42186,7 +42186,7 @@
           }
         },
         {
-          "name": "_action_pid",
+          "name": "action_pid",
           "line": 137,
           "kind": "function",
           "parameters": [
@@ -42417,7 +42417,7 @@
         },
         {
           "name": "ServiceQuery._macos_native",
-          "line": 524,
+          "line": 523,
           "kind": "function",
           "parameters": [
             "self",
@@ -42429,7 +42429,7 @@
         },
         {
           "name": "ServiceQuery._linux",
-          "line": 563,
+          "line": 562,
           "kind": "function",
           "parameters": [
             "self",
@@ -42445,7 +42445,7 @@
         },
         {
           "name": "ServiceQuery.close",
-          "line": 575,
+          "line": 574,
           "kind": "function",
           "parameters": [
             "self",
@@ -42644,7 +42644,7 @@
       "path": "agent/src/omni/adapters/platform/services/service_registration.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.services.service_registration",
-      "lines": 432,
+      "lines": 442,
       "imports": [
         "omni.adapters.object_store",
         "omni.adapters.platform.services.deployment_files",

@@ -442,12 +442,12 @@ def test_windows_status_reports_manager_state_and_verified_action(monkeypatch, s
                 "enabled": True,
                 "state": state,
                 "engine_pid": engine_pid,
+                "pid": pid,
                 "effect": "none",
                 "error_code": "",
             }
 
         monkeypatch.setattr(r, "windows_receipt", receipt)
-        monkeypatch.setattr(q, "_action_pid", lambda _engine, _expected, _plan: pid)
         result = await inspector.query(data)
         assert result["state"] == state and result["pid"] == pid
         assert result["error_code"] == code and result["definition_matches"] is True
@@ -539,7 +539,7 @@ def test_windows_action_pid_accepts_the_plan_pinned_python_behind_a_venv_launche
         ["C:/Python312/python.exe", "-I", "-u", "-m", "omni.composition.service_runner", "--deployment", bundle],
     )
     _fake_psutil(monkeypatch, [child])
-    assert q._action_pid(555, expected, data) == 4242
+    assert q.action_pid(555, expected, data) == 4242
 
 
 @pytest.mark.parametrize(
@@ -555,7 +555,7 @@ def test_windows_action_pid_rejects_foreign_or_unproven_processes(monkeypatch, c
     data = _launcher_plan()
     expected = render(data)["service.xml"]
     _fake_psutil(monkeypatch, [_child(4242, cmdline)])
-    assert q._action_pid(555, expected, data) is None
+    assert q.action_pid(555, expected, data) is None
 
 
 def test_windows_action_pid_requires_a_live_engine(monkeypatch):
@@ -572,5 +572,5 @@ def test_windows_action_pid_requires_a_live_engine(monkeypatch):
     monkeypatch.setitem(sys.modules, "psutil", SimpleNamespace(Process=Process, Error=Error))
     data = _launcher_plan()
     expected = render(data)["service.xml"]
-    assert q._action_pid(555, expected, data) is None
-    assert q._action_pid(None, expected, data) is None
+    assert q.action_pid(555, expected, data) is None
+    assert q.action_pid(None, expected, data) is None

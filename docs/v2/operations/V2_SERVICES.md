@@ -27,6 +27,7 @@
 
 - `schtasks /XML` 只证明**定义**（动作、主体、触发器、设置）；单独的定义匹配、任务已注册或「引擎进程存在」都不构成 running 证明。
 - HTTP `/ready` 与服务启动回执是**另一份证据**：可用于确认就绪窗口，但不能替代 `status` 的管理器状态与 PID 证明；两者一致时才在验收矩阵登记 ready。
+- **`start`/`reconcile` 与 `status` 用同一份动作 PID 证明**（R3）：`apply-control` 的完成判定读取原生 receipt，该 receipt 现在携带与 `status` 相同的已核验动作 `pid`（`windows_receipt` 在 COM 状态为 running 时调用同一个 `action_pid`）。因此「引擎在、动作不可证」时 `start` 停在 `unknown`，`reconcile` 也不会把未知当成功；只有 receipt `pid` 与启动回执 PID 一致才记 `succeeded`。
 - 无法取得管理器状态（辅助程序不可用、被拒或输出不可信）时 `state=unknown`、`pid=null`、`error_code=service_manager_state_unavailable`，不猜测。
 | `operation-plan BUNDLE install\|uninstall OUTPUT` | 绑定完整部署、目标、步骤和 SHA256，写入新操作计划 | 不修改系统注册 |
 | `apply-operation OPERATION --approve SHA256` | 重新核验指纹，独占离线实例，先持久登记意图再执行 | 真实注册或移除；macOS 必须审阅计划中的激活/卸载影响，不删除实例数据 |

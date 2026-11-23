@@ -134,7 +134,7 @@ def _action_images(command: str, plan: Record) -> set[str]:
     return {os.path.normcase(os.path.realpath(image)) for image in images if image}
 
 
-def _action_pid(engine_pid: int | None, expected: bytes, plan: Record) -> int | None:
+def action_pid(engine_pid: int | None, expected: bytes, plan: Record) -> int | None:
     """Prove the running action by its own process, not by the task engine alone."""
     if not engine_pid or type(engine_pid) is not int:
         return None
@@ -499,10 +499,9 @@ class ServiceQuery:
                     code = "service_manager_state_unavailable"
                 else:
                     state = str(receipt.get("state") or "unknown")
-                    if state == "running":
-                        pid = _action_pid(cast(int | None, receipt.get("engine_pid")), expected, plan)
-                        if pid is None:
-                            code = "service_action_unverified"
+                    pid = cast(int | None, receipt.get("pid"))
+                    if state == "running" and pid is None:
+                        code = "service_action_unverified"
                 return _report(
                     installed=True,
                     matches=matches,

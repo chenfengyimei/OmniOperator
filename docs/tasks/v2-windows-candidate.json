@@ -203,5 +203,15 @@
     "record": "docs/v2/platforms/windows/WINDOWS_SERVICE_R1_R2_2026-11-23.md",
     "tests": "服务四模块 95 passed；service_query 37；system_service_start 35",
     "next": "H 从修复提交重建官方 wheel，重跑 install→start→status(pid 非空/ready=true)→drain→uninstall；随后冻结候选、全量与 72 小时"
+  },
+  "service_status_r3": {
+    "date": "2026-11-23",
+    "status": "fixed_pending_real_machine",
+    "defect": "start 的完成判定读原生 receipt（只有 engine_pid），缺已核验动作 PID，start 停在 unknown、reconcile 无法确认、stop/uninstall 被阻塞",
+    "fix": "windows_receipt 在 running 时用与 status 相同的 action_pid 填充 pid；status 复用同一 receipt.pid；严格就绪条件不变",
+    "contract": "docs/v2/operations/V2_SERVICES.md",
+    "evidence": "docs/evidence/v2-windows-service-r3.json",
+    "tests": "服务四模块 98 passed；strict 0 错 0 警",
+    "next": "H 从修复提交重建官方 wheel，验 启动回执成功→status PID 一致→正常排空→卸载成功；随后冻结候选、全量与 72 小时"
   }
 }

@@ -197,7 +197,7 @@ def test_windows_broker_source_is_packaged_bounded_and_never_updates_or_force_st
     assert "$_" not in text[text.index("} catch {\n    # Never") :]
 
 
-@pytest.mark.parametrize("corrupt", [None, "identity", "boolean", "extra", "body"])
+@pytest.mark.parametrize("corrupt", [None, "identity", "boolean", "extra", "body", "pid"])
 def test_windows_native_receipt_is_identity_bound_and_rejects_untrusted_output(monkeypatch, tmp_path, corrupt):
     async def scenario():
         value = plan("windows-user")
@@ -244,6 +244,8 @@ def test_windows_native_receipt_is_identity_bound_and_rejects_untrusted_output(m
                 response["installed"] = "false"
             elif corrupt == "extra":
                 response["stderr"] = "credential=never expose"
+            elif corrupt == "pid":
+                response["pid"] = "42"
             elif corrupt == "body":
                 return 0, b"native exception credential=never expose"
             return 0, json.dumps(response).encode()
@@ -267,5 +269,51 @@ def test_windows_native_receipt_is_identity_bound_and_rejects_untrusted_output(m
             assert "never expose" not in json.dumps(result)
         finally:
             assert await native.close()
+
+    asyncio.run(scenario())
+
+
+@pytest.mark.parametrize("action,expected_pid", [(4242, 4242), (None, None)])
+def test_windows_inspect_receipt_carries_the_same_action_pid_as_status(monkeypatch, action, expected_pid):
+    """R3: start/reconcile read the native receipt, so it must carry the verified action PID."""
+
+    async def scenario():
+        value = plan("windows-user")
+        monkeypatch.setattr(r.sys, "platform", "win32")
+        expected = r.render(value)["service.xml"]
+
+        def read(path, limit, **kwargs):
+            return expected if Path(path).name == "service.xml" else b"script"
+
+        monkeypatch.setattr(r, "_read", read)
+        monkeypatch.setattr(r, "_no_links", lambda path: None)
+        monkeypatch.setattr(
+            r.ctypes,
+            "WinDLL",
+            lambda *args, **kwargs: SimpleNamespace(GetSystemDirectoryW=lambda buffer, capacity: 1),
+            raising=False,
+        )
+
+        async def command(_argv):
+            response = {
+                "format": "omni-service-native-1",
+                "plan_sha256": value["sha256"],
+                "action": "inspect",
+                "available": True,
+                "installed": True,
+                "definition_present": True,
+                "definition_matches": True,
+                "enabled": True,
+                "state": "running",
+                "engine_pid": 555,
+                "effect": "none",
+                "error_code": "",
+            }
+            return 0, json.dumps(response).encode()
+
+        monkeypatch.setattr(r, "action_pid", lambda engine, expected_xml, plan: action if engine == 555 else None)
+        receipt = await r.windows_receipt(command, value, "inspect")
+        assert receipt["state"] == "running" and receipt["pid"] == expected_pid
+        assert receipt["engine_pid"] == 555
 
     asyncio.run(scenario())

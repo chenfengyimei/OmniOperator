@@ -1,0 +1,40 @@
+{
+  "schema": 1,
+  "topic": "v2-windows-service-r3",
+  "date": "2026-11-23",
+  "source_head": "PENDING",
+  "scope": "修复 R3：Windows 服务实际已启动，但 start 的完成判定读取的原生 receipt 只有 engine_pid、没有已核验动作 PID，导致 start 停在 unknown、reconcile 无法确认、stop/uninstall 被阻塞。",
+  "defect": {
+    "symptom": "service 已运行、status 可返回 running/ready=true，但 apply-control start 仍 unknown；reconcile 不能确认；stop/uninstall 被阻塞",
+    "root_cause": "ServiceControl.goal() 用 native.inspect 的原生 receipt 做 start_postcondition；该 receipt 只有 state/engine_pid，没有动作 pid，而 running_postcondition 要求 report.pid == proof.pid",
+    "fix": [
+      "service_registration.windows_receipt 在 COM 状态为 running 时调用与 status 相同的 action_pid，把已核验动作 PID 放进 receipt 的 pid 字段（worker 不提供该字段，多余字段仍被拒绝）",
+      "service_query._query 直接复用 receipt.pid，保持 status 与 start/reconcile 同一份证据",
+      "严格就绪条件不变：pid 必须非空、>0 且等于启动回执 PID"
+    ]
+  },
+  "receipt_contract": {
+    "state": "running | stopped | unknown",
+    "engine_pid": "null 或首个非零 EnginePID",
+    "pid": "running 时为已核验动作 PID（由 action_pid 计算）；否则 null",
+    "error_codes": ["service_action_unverified", "service_manager_state_unavailable", "service_definition_mismatch"]
+  },
+  "verification": {
+    "commands": [
+      "uv run --no-sync pytest -q -n 0 agent/tests/v2/operations/test_v2_service_registration.py agent/tests/v2/operations/test_v2_service_query.py agent/tests/v2/operations/test_v2_system_service_start.py agent/tests/v2/operations/test_v2_service_control.py",
+      "uv run --no-sync python -m pyright -p pyrightconfig.strict.json"
+    ],
+    "result": "服务四模块 98 passed/28.61s；strict 434 文件 0 错 0 警；ruff 通过",
+    "covered": [
+      "windows_receipt 在 running 时携带 action_pid 结果（4242 与 None 两态）",
+      "worker 额外提供 pid 字段仍被拒（字段白名单）",
+      "status 复用 receipt.pid，不再单独计算",
+      "start_postcondition 对 pid=None/错 PID 不通过、匹配 PID 通过"
+    ]
+  },
+  "not_executed": [
+    "真实 Task Scheduler 复验（H 用修复提交重建官方 wheel，验启动回执成功→status PID 一致→排空→卸载）",
+    "干净机器、官方产物与 72 小时长跑"
+  ],
+  "whole_v2_complete": false
+}
