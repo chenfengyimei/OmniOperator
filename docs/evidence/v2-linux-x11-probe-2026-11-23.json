@@ -212,6 +212,13 @@
       "capture_requirement": "Composite NameWindowPixmap requires the target client window itself to be redirected",
       "conclusion": "the implementation assumes a compositing WM (Mutter/KWin/compiz) that both advertises _NET_CLIENT_LIST and redirects client windows; openbox+xcompmgr reparents and redirects the frame only, so neither the WM-less nor openbox-xcompmgr setup can produce a capture",
       "next": "install a compositing WM (mutter or kwin) with vkms in the VM, or verify on a real GNOME/KDE X11 desktop"
+    },
+    "compositor_attempts": {
+      "openbox+xcompmgr": "BadMatch(8); frame redirected, client window not",
+      "kwin_x11 6.6.4": "_NET_CLIENT_LIST present (listing works), target() valid, watch ok, NameWindowPixmap still BadMatch(8); KWin also redirects frames",
+      "mutter 50.1": "no X11 WM mode (Wayland display server only)",
+      "conclusion": "on every reparenting X11 WM available here the client window is not redirected; the implementation's NameWindowPixmap(window) assumption only holds for compositors that redirect client windows (e.g. old Mutter/compiz)",
+      "needed": "A must choose frame capture+crop or another capture path; alternatively accept X11 capture as unsupported on reparenting WMs"
     }
   }
 }
