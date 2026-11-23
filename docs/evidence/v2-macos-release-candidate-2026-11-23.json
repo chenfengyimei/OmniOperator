@@ -214,5 +214,11 @@
       "result": "report produced; blockers=[duration_below_72h]; observational_soak_passed=false (expected for a smoke)"
     },
     "next": "freeze the candidate, then run 72h at interval 60 and record interruptions/recovery/peaks"
+  },
+  "distribution": {
+    "helper_codesign": "adhoc, TeamIdentifier not set, format app bundle (arm64)",
+    "gatekeeper_spctl": "rejected for ad hoc helper",
+    "required": "Developer ID Application certificate + notarization credentials; without them the candidate is source/isolated-install only",
+    "display": "single 1920x1080 main display; multi-monitor scaling/coordinates not applicable on this Mac"
   }
 }
