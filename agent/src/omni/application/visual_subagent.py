@@ -42,19 +42,29 @@ _BUDGET_CODES = frozenset({"budget_exceeded", "delegation_budget_exceeded", "dai
 
 VISUAL_SUBAGENT = ToolSpec(
     "visual_subagent",
-    "Analyze one already-authorized image object or registered media frame sheet (for example an Android "
-    "screenshot) with one bounded vision call. Returns only a text summary plus frame/model/cost metadata; "
-    "it has no tools, does not replay and does not write memory or persona.",
+    "Analyze already-authorized image object(s) or one registered media frame sheet (for example an "
+    "Android screenshot) with one bounded vision call. Returns only a text summary plus frame/model/cost "
+    "metadata; it has no tools, does not replay and does not write memory or persona.",
     {
         "type": "object",
         "properties": {
             "task": {"type": "string", "minLength": 1, "maxLength": MAX_TASK_CHARS},
             "frame_object_id": {"type": "string", "minLength": 36, "maxLength": 36},
+            "frame_object_ids": {
+                "type": "array",
+                "minItems": 1,
+                "maxItems": 240,
+                "items": {"type": "string", "minLength": 36, "maxLength": 36},
+            },
             "frames_id": {"type": "string", "minLength": 36, "maxLength": 36},
             "focus": {"enum": list(FOCUS_VALUES)},
         },
         "required": ["task"],
-        "anyOf": [{"required": ["frame_object_id"]}, {"required": ["frames_id"]}],
+        "anyOf": [
+            {"required": ["frame_object_id"]},
+            {"required": ["frame_object_ids"]},
+            {"required": ["frames_id"]},
+        ],
         "additionalProperties": False,
     },
     writes=False,
@@ -268,19 +278,27 @@ class VisualSubagentCapabilities:
         self, name: str, arguments: Mapping[str, JSON], *, operation_id: str, context: InvocationContext
     ) -> ActionResult:
         frame_object_id = arguments.get("frame_object_id")
+        frame_object_ids = arguments.get("frame_object_ids")
         frames_id = arguments.get("frames_id")
-        if bool(frame_object_id) == bool(frames_id):
+        if sum(bool(value) for value in (frame_object_id, frame_object_ids, frames_id)) != 1:
             return ActionResult(
                 Outcome.ERROR,
-                "Provide exactly one of frame_object_id or frames_id",
+                "Provide exactly one of frame_object_id, frame_object_ids or frames_id",
                 error_code="visual_frames_invalid",
             )
+        if frame_object_ids is not None and not isinstance(frame_object_ids, list):
+            return ActionResult(Outcome.ERROR, "frame_object_ids must be an array", error_code="visual_frames_invalid")
+        ids: list[object] = (
+            list(cast(list[object], frame_object_ids))
+            if frame_object_ids is not None
+            else ([frame_object_id] if frame_object_id else [])
+        )
         try:
             result = await self._service.run(
                 context.agent_id,
                 context.run_id,
                 arguments.get("task"),
-                [frame_object_id] if frame_object_id else [],
+                ids,
                 arguments.get("focus", "general"),
                 operation_id=operation_id,
                 frames_id=str(frames_id) if frames_id else "",

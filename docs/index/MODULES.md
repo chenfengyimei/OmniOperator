@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`3e5d812b4c6957640dbc49d9ebb92df48a6a54a25e3afcf8f9bf55f14c1c2f6f`。包含 65 个职责模块、855 个源码/界面文件。
+源码指纹：`1797cf4d5215ba2cd7e07846e5bc102ae235c2d82083f6d9bba89b57aee801a6`。包含 65 个职责模块、855 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -156,7 +156,7 @@
 | [agent/src/omni/application/terminal_review.py](../../agent/src/omni/application/terminal_review.py) | 127 | Owner terminal evidence use cases; no native actions, receipt changes or historical PID operations. |
 | [agent/src/omni/application/terminals.py](../../agent/src/omni/application/terminals.py) | 506 | Bounded owner terminals with durable input receipts, single-writer leases and explicit output gaps. |
 | [agent/src/omni/application/todos.py](../../agent/src/omni/application/todos.py) | 49 | Model task-plan control with scoped transactions; creates no external action or background task. |
-| [agent/src/omni/application/visual_subagent.py](../../agent/src/omni/application/visual_subagent.py) | 301 | Bounded vision sub-agent orchestration over injected frame and model ports. |
+| [agent/src/omni/application/visual_subagent.py](../../agent/src/omni/application/visual_subagent.py) | 319 | Bounded vision sub-agent orchestration over injected frame and model ports. |
 
 文档：[docs/V2_REFACTOR.md](../../docs/V2_REFACTOR.md)
 
@@ -450,7 +450,7 @@
 | [agent/src/omni/adapters/timezones.py](../../agent/src/omni/adapters/timezones.py) | 29 | Pinned tzdata resolver; avoids OS-dependent timezone database drift. |
 | [agent/src/omni/adapters/token_counter.py](../../agent/src/omni/adapters/token_counter.py) | 34 | Local conservative token estimate; it never fetches model metadata or credentials. |
 | [agent/src/omni/adapters/vector_files.py](../../agent/src/omni/adapters/vector_files.py) | 131 | Verify explicit local vector files and startup selection; never imports a model or downloads data. |
-| [agent/src/omni/adapters/visual.py](../../agent/src/omni/adapters/visual.py) | 205 | Production visual-subagent adapters: authorized image objects and one budgeted ModelCalls request. |
+| [agent/src/omni/adapters/visual.py](../../agent/src/omni/adapters/visual.py) | 213 | Production visual-subagent adapters: authorized image objects and one budgeted ModelCalls request. |
 | [agent/src/omni/adapters/workers/__init__.py](../../agent/src/omni/adapters/workers/__init__.py) | 1 | Owned capability workers; no application database or credentials access. |
 | [agent/src/omni/adapters/workers/android.py](../../agent/src/omni/adapters/workers/android.py) | 406 | Fixed Android observation/input worker. No database, arbitrary shell or automatic device setup. |
 | [agent/src/omni/adapters/workers/android_adb.py](../../agent/src/omni/adapters/workers/android_adb.py) | 127 | Bounded smart-socket ADB client. Never starts a server, pairs, installs, roots or accepts arbitrary commands. |

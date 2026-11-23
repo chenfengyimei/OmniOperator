@@ -17,7 +17,7 @@ from ..application.model_calls import ModelCalls
 from ..application.objects import ObjectService
 from ..application.ports import DatabasePort, Record
 from ..application.visual_subagent import VisualModel
-from ..domain.contracts import BusinessError, ModelReply
+from ..domain.contracts import MAX_IMAGES, BusinessError, ModelReply
 from ..domain.images import model_tokens
 from ..domain.settings import Settings
 from ..domain.visual_subagent import MAX_OUTPUT_TOKENS, VisualFrame, VisualRequest
@@ -38,6 +38,7 @@ _VISUAL_UNAVAILABLE_CODES = frozenset(
         "image_call_invalid",
         "image_protocol_unavailable",
         "image_model_unsupported",
+        "image_call_limit_exceeded",
         "image_invalid",
         "image_integrity_failed",
     }
@@ -130,9 +131,10 @@ class ModelCallsVisualModel:
         return str(self._settings["model"])
 
     async def complete(self, request: VisualRequest) -> ModelReply:
-        if len(request.frames) != 1:
-            raise BusinessError("visual_frames_invalid", "The production visual call accepts one frame", status=422)
-        frame = request.frames[0]
+        if not 1 <= len(request.frames) <= MAX_IMAGES:
+            raise BusinessError(
+                "visual_unavailable", "The run image protocol cannot carry this many frames", status=503
+            )
         policy = await self._db.read(lambda u: u.run_image_policy(self._agent, self._run))
         if policy.get("protocol") == "disabled":
             raise BusinessError("visual_unavailable", "This run has no authorized image protocol", status=503)
@@ -142,23 +144,26 @@ class ModelCallsVisualModel:
             token_cost = model_tokens(self.model)
         except (ValueError, AttributeError, BusinessError) as exc:
             raise BusinessError("visual_unavailable", "This run has no authorized vision model", status=503) from exc
-        part_id = str(uuid.uuid5(uuid.NAMESPACE_URL, f"omni:visual:{self._run}:{frame.object_id}"))
-        part = cast(
-            Record,
-            {
-                "type": "omni_image",
-                "part_id": part_id,
-                "object_id": frame.object_id,
-                "sha256": frame.sha256,
-                "width": frame.width,
-                "height": frame.height,
-                "media_type": frame.media_type,
-                "bytes": frame.bytes,
-                "token_cost": token_cost,
-                "detail": "low",
-                "policy_id": policy_id,
-            },
-        )
+        parts: list[Record] = []
+        for frame in request.frames:
+            parts.append(
+                cast(
+                    Record,
+                    {
+                        "type": "omni_image",
+                        "part_id": str(uuid.uuid5(uuid.NAMESPACE_URL, f"omni:visual:{self._run}:{frame.object_id}")),
+                        "object_id": frame.object_id,
+                        "sha256": frame.sha256,
+                        "width": frame.width,
+                        "height": frame.height,
+                        "media_type": frame.media_type,
+                        "bytes": frame.bytes,
+                        "token_cost": token_cost,
+                        "detail": "low",
+                        "policy_id": policy_id,
+                    },
+                )
+            )
         messages: list[Record] = [
             {"role": "system", "content": request.system},
             {"role": "user", "content": request.task},
@@ -178,7 +183,10 @@ class ModelCallsVisualModel:
                 {
                     "role": "tool",
                     "tool_call_id": "visual-frame",
-                    "content": [{"type": "text", "text": "Authorized image frame"}, part],
+                    "content": [
+                        {"type": "text", "text": f"Authorized image frames ({len(parts)})"},
+                        *parts,
+                    ],
                 },
             ),
         ]

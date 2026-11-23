@@ -26,36 +26,38 @@ from omni.domain.contracts import BusinessError, Invocation, ModelReply
 class RoutingModel:
     def __init__(self) -> None:
         self.object_id = ""
+        self.object_ids: list[str] = []
         self.visual_calls = 0
+        self.visual_frame_counts: list[int] = []
         self.master_calls = 0
         self.fail_visual = False
 
     async def complete(self, messages, tools, settings):
-        visual = not tools and any(
-            isinstance(message.get("content"), list)
-            and any(
-                isinstance(part, dict) and part.get("type") in {"image_url", "image", "input_image"}
-                for part in message["content"]
-            )
+        visual_parts = [
+            part
             for message in messages
-        )
+            if isinstance(message.get("content"), list)
+            for part in message["content"]
+            if isinstance(part, dict) and part.get("type") in {"image_url", "image", "input_image"}
+        ]
+        visual = not tools and bool(visual_parts)
         if visual:
             self.visual_calls += 1
+            self.visual_frame_counts.append(len(visual_parts))
             if self.fail_visual:
                 raise RuntimeError("provider down")
             return ModelReply("The screen is a solid green field.", cost_micro=7, input_tokens=100, output_tokens=12)
         self.master_calls += 1
         if any(message.get("role") == "tool" for message in messages):
             return ModelReply("done", cost_micro=1)
+        arguments: dict[str, object] = {"task": "Describe the screenshot", "focus": "ui"}
+        if len(self.object_ids) > 1:
+            arguments["frame_object_ids"] = self.object_ids
+        else:
+            arguments["frame_object_id"] = self.object_id
         return ModelReply(
             "",
-            (
-                Invocation(
-                    "visual-1",
-                    VISUAL_SUBAGENT.name,
-                    {"task": "Describe the screenshot", "frame_object_id": self.object_id, "focus": "ui"},
-                ),
-            ),
+            (Invocation("visual-1", VISUAL_SUBAGENT.name, arguments),),
             cost_micro=1,
             completion_reason="tool_calls",
         )
@@ -84,9 +86,9 @@ class RepeatVisualModel(RoutingModel):
         )
 
 
-def _png() -> bytes:
+def _png(color: str = "green") -> bytes:
     with io.BytesIO() as output:
-        Image.new("RGB", (64, 48), "green").save(output, format="PNG")
+        Image.new("RGB", (64, 48), color).save(output, format="PNG")
         return output.getvalue()
 
 
@@ -152,6 +154,25 @@ def test_authorized_image_reaches_one_visual_call_and_returns_traceable_text(tmp
             assert await instance._database.read(lambda u: u.query("memory", agent)) == []
             assert await instance._database.read(lambda u: u.query("outbox", agent)) == []
             assert (await app.settings(agent))["value"]["persona"] == "You are a helpful personal assistant."
+        finally:
+            await instance.close()
+
+    asyncio.run(scenario())
+
+
+def test_two_authorized_images_reach_one_visual_call(tmp_path):
+    async def scenario():
+        model = RoutingModel()
+        instance, app, agent = await _setup(tmp_path, model)
+        try:
+            first = await instance.images.upload(agent, _png())
+            second = await instance.images.upload(agent, _png("blue"))
+            model.object_ids = [str(first["object_id"]), str(second["object_id"])]
+            _receipt, run = await _run_visual(app, agent)
+            assert run["state"] == "succeeded" and model.visual_calls == 1
+            assert model.visual_frame_counts == [2]
+            action = await _visual_action(instance, agent)
+            assert action["state"] == "ok" and action["result"]["data"]["frames"] == 2
         finally:
             await instance.close()
 

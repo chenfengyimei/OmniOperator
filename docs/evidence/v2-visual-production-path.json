@@ -16,20 +16,20 @@
     "pyrightconfig.strict.json": "c5f7e38e2346e97768d84fa504bb1161777d2f61ae554d2e9015b3d5d23de43b"
   },
   "delivered": [
-    "application/visual_subagent.py: VISUAL_SUBAGENT ToolSpec (task/frame_object_id or frames_id/focus, writes=False), VisualModelFactory/media-frame source support, VisualSubagentCapabilities returning text plus frames/focus/model/cost/tokens with verification=visual_summary.",
-    "adapters/visual.py: ImageObjectFrames verifies agent-owned image objects through ObjectService.get + ImageService.prepare; MediaFrameSheets resolves a registered media frame sheet through MediaService.frames and reuses the same object/metadata checks; ModelCallsVisualModel sends exactly one frame as an in-run tool-result image to ModelCalls.invoke with tools=(), the run's budget/image policy, and no master history/tools; maps image budget to budget_exceeded and protocol/source/model failures to explicit errors.",
+    "application/visual_subagent.py: VISUAL_SUBAGENT ToolSpec (task/frame_object_id or frame_object_ids or frames_id/focus, writes=False), VisualModelFactory/media-frame source support, VisualSubagentCapabilities returning text plus frames/focus/model/cost/tokens with verification=visual_summary.",
+    "adapters/visual.py: ImageObjectFrames verifies agent-owned image objects through ObjectService.get + ImageService.prepare; MediaFrameSheets resolves a registered media frame sheet through MediaService.frames and reuses the same object/metadata checks; ModelCallsVisualModel sends 1..4 frames as in-run tool-result images to ModelCalls.invoke with tools=(), the run's budget/image policy, and no master history/tools; maps image budget to budget_exceeded and protocol/source/model failures to explicit errors.",
     "application/visual_subagent.py: operation_id joins the action ledger; a second visual call in the same parent run is rejected (visual_unavailable) before frame resolution/model dispatch, matching D2's one-call-per-run rule.",
     "composition/instance.py: constructs VisualSubagentService/ImageObjectFrames/MediaFrameSheets/ModelCallsVisualModelFactory, owns/closes it, registers the visual_subagent capability and exposes health. No migration, table, route or capability-schema change.",
-    "10 production tests: successful one-call path with action receipt/model/cost metadata, Android capture object through the same path, disabled image protocol, run budget exhaustion, provider failure once/no replay, cross-agent image, erased source, a second visual call in one run rejected from the action ledger, media sheet metadata/timestamp, and a missing media sheet; success also asserts no memory/outbox rows and an unchanged persona. Plus 21 existing visual tests.",
+    "11 production tests: successful one-call path with action receipt/model/cost metadata, Android capture object through the same path, disabled image protocol, run budget exhaustion, provider failure once/no replay, cross-agent image, erased source, a second visual call in one run rejected from the action ledger, two-image single-call, media sheet metadata/timestamp, and a missing media sheet; success also asserts no memory/outbox rows and an unchanged persona. Plus 21 existing visual tests.",
     "agent/scripts/accept_visual_production.py: isolated-home real acceptance runner (loads .env) for the designated owner window."
   ],
   "validation": {
     "production_and_visual_suite": {
       "command": "uv run --no-sync pytest -q -n 0 agent/tests/v2/core/test_v2_visual_production.py agent/tests/v2/core/test_v2_visual_subagent.py",
-      "passed": 31,
+      "passed": 32,
       "failed": 0,
-      "seconds": 40.06,
-      "breakdown": "10 production + 21 existing visual"
+      "seconds": 43.11,
+      "breakdown": "11 production + 21 existing visual"
     },
     "guards": "typecheck-scope + architecture/strict/ruff pass; pyright strict 434 files, 0 errors, 0 warnings",
     "ruff": "application/visual_subagent.py, adapters/visual.py, composition/instance.py, production test and acceptance script pass ruff check/format",
