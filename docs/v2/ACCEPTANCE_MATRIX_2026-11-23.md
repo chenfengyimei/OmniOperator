@@ -1,6 +1,6 @@
-# V2 真实验收矩阵（2026-11-23，主线 d7971bc4）
+# V2 真实验收矩阵（2026-11-23，主线 5c8550ca）
 
-> 结论先行：主线已从 `6d81a826` 前进到 `d7971bc4`（含 D11e 修复 `46083137`）。H 用 d7971bc4 重建官方 wheel 实测发现 **D11e 实机回归**：服务任务实际 Running、HTTP ready=true，但 helper 的 COM 集合 `.Item(0)` 抛错，导致 `service status` 与 `start` 都拿不到 running 证明。6d81a826 的“生命周期通过、status D11e 未收口”证据不能代表当前主线。`whole_v2_complete=false`，`production_release_ready=false`。
+> 结论先行：主线已到 `5c8550ca`（含 R1/R2 修复 `300a3229`）。H 用 5c8550ca 重建官方 wheel 实测：`status` 已能返回动作 PID 与 `ready=true`，但 `start` 控制仍返回 unknown，`reconcile-control` 无法收口，停止/卸载被未决意图阻塞（**R3**：控制 goal 使用 registration 回执，没有动作 PID）。`whole_v2_complete=false`，`production_release_ready=false`。
 >
 > 纪律：失败不改写为通过；首次失败与续跑成功分别保留；证据不含凭据、消息正文或像素；不复用旧候选的全量结果冒充当前候选。
 
@@ -8,11 +8,11 @@
 
 | 项 | 值 |
 | --- | --- |
-| 当前主线 SHA | `d7971bc473e41330212c319db1c9da30d75284e5`（`origin/v2`） |
-| 上一候选 | `6d81a826e0f5a6dae149604ebc0b49d95b93b040`（C/D/E/G + `6540c724`） |
-| 当前 wheel | `3fbba07b9cbc5377d166555fc7475b58083aab308a57fafc65043ddb9dfa99b1`，2,824,311 字节 |
-| 上一 wheel | `3d3b28a0b91cb49904a476c8e0e5f9a9d130386f43d66abab0777605ffb6f9d2`（6d81a826） |
-| 已并入 | C `8512a8bc`、D `c5170795`、E `94d483eb`、G `32d35898`、服务 `6540c724`、D11e `46083137` |
+| 当前主线 SHA | `5c8550ca992dd10d2792d90e9f19404feec47105`（`origin/v2`） |
+| 上一候选 | `d7971bc473e41330212c319db1c9da30d75284e5`（D11e，R1/R2 未修） |
+| 当前 wheel | `b6b0a12c4917867d73a7366e70c0c703536f1c1825aec58c8b6fb41daa0fc40e`，2,824,830 字节 |
+| 上一 wheel | `3fbba07b9cbc5377d166555fc7475b58083aab308a57fafc65043ddb9dfa99b1`（d7971bc4） |
+| 已并入 | C `8512a8bc`、D `c5170795`、E `94d483eb`、G `32d35898`、服务 `6540c724`、D11e `46083137`、R1/R2 `300a3229` |
 | 依赖包 | `ddc242906492a815e1893505f0453f922f2c218dda441ad0088effb9f5e1225f`，110 wheels |
 | schema | `v2_0052`（163 表） |
 | 构建来源 | 干净 worktree `C:/v2-acceptance/c3-08dd1573/source-d7971bc4` |
@@ -21,7 +21,7 @@
 
 | 项 | 环境/前置 | 候选 SHA | 结果 | 证据 | 说明 |
 | --- | --- | --- | --- | --- | --- |
-| C2.7 Windows 原生服务 | 不可变部署 + 真实注册 | `d7971bc4` | **失败（D11e-R1/R2）**：注册 `definition_matches=true`；任务 Running、HTTP 200/ready=true；`start` unknown（R1：`.Item(0)` 抛错）。foreach 修复后 start/stop/uninstall succeeded、status manager running，但 `pid=null/service_action_unverified` 且 overall `ready=true`（R2：venv 启动器与基础 Python 不匹配、ready 条件矛盾） | `docs/evidence/v2-windows-service-d7971bc4-2026-11-23.json`；`C:/v2-acceptance/c3-08dd1573/svc9/probes/foreach-fix-and-action-pid.txt` | A 需同时修 helper 取 EnginePID、动作 PID 解析、ready 条件 |
+| C2.7 Windows 原生服务 | 不可变部署 + 真实注册 | `5c8550ca` | **失败（R3）**：R1/R2 已修，`status` 返回 manager running、pid 111620 非空、ready=true；但 `start` unknown/service_control_outcome_unverified，`reconcile` unknown/service_control_unresolved，stop/uninstall 被 `service_operation_unresolved` 阻塞 | `docs/evidence/v2-windows-service-5c8550ca-2026-11-23.json`；`C:/v2-acceptance/c3-08dd1573/svc10/probes/r3-control-goal.txt` | 控制 goal 用 registration 回执（engine_pid，无 action pid），无法满足 R2 的严格 ready；需与 status 共用动作 PID 证据 |
 | C3.1-W1 官方 wheel 安装检查 | 同机全新目录 | `6d81a826`（历史） | **部分通过**（3d3b28a0）：六阶段 verified；首次卸载确定性失败，延迟 40s 续跑成功 | `docs/evidence/v2-windows-install-check-6d81a826-2026-11-23.json` | d7971bc4 候选**尚未重跑** |
 | C3.1-W2 安装→升级→回滚→卸载链 | 同机隔离 | `6d81a826`（历史） | **通过（带重试）**（3d3b28a0）：上一版 `199072c6` → 当前 → rollback → 双候选卸载 | `docs/evidence/v2-windows-install-chain-6d81a826-2026-11-23.json` | d7971bc4 候选**尚未重跑** |
 | C3.1-W3 真正干净机器 | 干净 OS/VM | — | **阻塞** | `docs/evidence/v2-clean-machine-kit-2026-11-23.json` | 验收包按 6d81a826 构建，修复后需重建 |
@@ -58,7 +58,8 @@
 - helper 原始 inspect 返回 `service_native_unverified`：`GetInstances(0)` 返回集合 Count=1，但 `.Item(0)` 抛 `System.ArgumentException: Value does not fall within the expected range`，外层 catch 吞掉全部状态。
 - COM `foreach` 可取到 `EnginePID=91764`、state=4；把 helper 改为 `foreach ($instance in $instances) { $result.engine_pid=[int]$instance.EnginePID; break }` 后，inspect 返回 `state=running / engine_pid=91764 / definition_matches=true`；psutil 在 91764 下找到动作进程 134544，命令行匹配。
 - 判定：**D11e-R1 实机回归**，A 必须改 helper 的集合取首元素方式；修后重建 wheel 重跑 start/status。
-- 第二轮（svc9）：把该行改为 foreach 后，start/stop/uninstall succeeded、status manager state=running/definition_matches=true；但 `pid=null/service_action_unverified`、overall `ready=true`，与契约矛盾（**D11e-R2**）。根因：计划 Exec/Command 是 venv 的 `Scripts\python.exe`，实际动作进程是基础 Python（`C:\Users\...\Python312\python.exe` + `-I -u -m omni.composition.service_runner`），`_action_pid` 严格比较 `cmdline[0]` 失败。当前源码位置：`windows_services.ps1:151`、`service_query.py:94/116`、`service_control.py:133`（`pid is None` 仍允许 ready）。A 需同时修正动作 PID 解析，并在 pid=null/service_action_unverified 时强制 ready=false。
+- 第二轮（svc9）：把该行改为 foreach 后，start/stop/uninstall succeeded、status manager state=running/definition_matches=true；但 `pid=null/service_action_unverified`、overall `ready=true`，与契约矛盾（**D11e-R2**）。根因：计划 Exec/Command 是 venv 的 `Scripts\python.exe`，实际动作进程是基础 Python（`C:\Users\...\Python312\python.exe` + `-I -u -m omni.composition.service_runner`），`_action_pid` 严格比较 `cmdline[0]` 失败。A 需同时修正动作 PID 解析，并在 pid=null/service_action_unverified 时强制 ready=false。
+- 第三轮（5c8550ca，R1/R2 已修）：status 已返回 pid=111620/ready=true；但 `start` 仍 unknown，`reconcile` 无法收口，stop/uninstall 被阻塞。**R3**：`application/service_control.py` 的 `goal()` 用 ServiceRegistration.inspect（只有 engine_pid，无动作 pid）调用 `start_postcondition`，永远无法满足 R2 的 `pid == proof.pid`。控制面必须改用与 status 相同的动作 PID 证据。\n- 第三轮（5c8550ca，R1/R2 已修）：status 已返回 pid=111620/ready=true；但 `start` 仍 unknown，`reconcile` 无法收口，stop/uninstall 被阻塞。**R3**：`application/service_control.py` 的 `goal()` 用 ServiceRegistration.inspect（只有 engine_pid，无动作 pid）调用 `start_postcondition`，永远无法满足 R2 的 `pid == proof.pid`。控制面必须改用与 status 相同的动作 PID 证据。
 
 ### 4.2 6d81a826 历史证据（不代表当前主线）
 
@@ -72,7 +73,7 @@
 
 ### 4.4 H 准备项
 
-- 验收包 `C:/v2-acceptance/release-6d81a826`（当前仍是 6d81a826 wheel；修复后重建）。
+- 验收包 `C:/v2-acceptance/release-6d81a826`（仍基于旧候选；R3 修复后重建）。
 - 无干净 Windows VM/Sandbox；无 QQ/B 站账号；无安卓真机；无可用视觉模型。
 - 本轮清理：svc7/svc8 临时任务已 End+Delete，8789 端口释放；8790 的既有 demo serve 保持运行。
 
@@ -101,3 +102,5 @@
 
 - 当前 d7971bc4：安装链/检查/72h 均未在新候选重跑；服务生命周期因 D11e-R 失败。
 - `whole_v2_complete=false`，`production_release_ready=false`。
+
+

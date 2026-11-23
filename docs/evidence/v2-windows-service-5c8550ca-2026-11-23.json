@@ -1,0 +1,69 @@
+{
+  "schema": 1,
+  "topic": "v2-windows-service-5c8550ca",
+  "date": "2026-11-23",
+  "source_head": "5c8550ca992dd10d2792d90e9f19404feec47105",
+  "scope": "从 R1/R2 修复提交 5c8550ca 重建官方 wheel，在隔离 home 上执行注册→启动→status→排空→卸载；status 已能返回动作 PID/ready=true，但 start 控制仍无法完成，暴露 R3。",
+  "includes": {
+    "300a3229": "R1 helper foreach EnginePID；R2 process_python 动作身份 + ready 必须非空且匹配 PID",
+    "5c8550ca": "R1/R2 证据文档"
+  },
+  "wheel": {
+    "sha256": "b6b0a12c4917867d73a7366e70c0c703536f1c1825aec58c8b6fb41daa0fc40e",
+    "bytes": 2824830,
+    "source_head": "5c8550ca992dd10d2792d90e9f19404feec47105"
+  },
+  "environment": {
+    "home": "C:/v2-acceptance/c3-08dd1573/svc10/home",
+    "instance_id": "200b1286-61b7-4224-b588-2a0fc413f0db",
+    "port": 8787,
+    "task_name": "OmniOperator-V2-200b1286-61b7-4224-b588-2a0fc413f0db",
+    "install": "install_v2.py（基础 Python + 离线依赖包 ddc242…），doctor integrity=ok/163 表"
+  },
+  "steps": {
+    "capture": {"exit": 0, "seconds": 8.5},
+    "plan": {"exit": 0, "seconds": 1.5, "plan_sha256": "978e24142a044878837c6a1b0ff96d8e13695eaced6e6607d4c3ca0921bb4ebc"},
+    "materialize": {"exit": 0, "seconds": 1.5},
+    "verify": {"exit": 0, "seconds": 10.4},
+    "install": {"state": "succeeded", "definition_matches": true},
+    "start": {
+      "state": "unknown", "effect": "unknown", "terminal": false,
+      "error_code": "service_control_outcome_unverified",
+      "boot_id": "34b75180-771d-4832-a2c0-dc392cf83890"
+    },
+    "status": {
+      "exit": 0,
+      "manager": {"state": "running", "definition_matches": true, "pid": 111620, "error_code": ""},
+      "runtime": {"ready": true, "boot_id": "34b75180-771d-4832-a2c0-dc392cf83890", "pid": 111620},
+      "ready": true
+    },
+    "reconcile_control": {
+      "exit": 1,
+      "state": "unknown", "error_code": "service_control_unresolved"
+    },
+    "stop": {"exit": 1, "error": "service_operation_unresolved"},
+    "uninstall": {"exit": 1, "error": "service_operation_unresolved"}
+  },
+  "root_cause": {
+    "id": "R3",
+    "file": "agent/src/omni/application/service_control.py",
+    "lines": "112-123（goal）",
+    "behavior": "goal() 用 ServiceRegistration.inspect() 的结果调用 start_postcondition；该 receipt 只有 state/engine_pid，没有已核验的动作 pid。R2 修复后 running_postcondition 要求 report.pid 为非空 int 且等于 proof.pid，因此即使 status 已能返回 pid=111620/ready=true，goal 仍永远不成立。",
+    "probe": {
+      "helper_inspect": "{\"installed\":true,\"definition_matches\":true,\"enabled\":true,\"state\":\"running\",\"engine_pid\":122760,\"error_code\":\"\"}（无 pid 字段）",
+      "service_status": "manager state=running, definition_matches=true, pid=111620; runtime ready=true; overall ready=true",
+      "apply_start": "unknown/service_control_outcome_unverified",
+      "reconcile": "unknown/service_control_unresolved",
+      "task": "Running; HTTP 8787 ready",
+      "blocked": "stop/uninstall 返回 service_operation_unresolved"
+    },
+    "required_fix": "控制 goal 使用 ServiceQuery 的动作 PID 证明（与 status 同一证据链），或让 ServiceRegistration receipt 携带已核验的动作 pid；否则 R2 的严格 ready 条件会让 start 永远无法成功。"
+  },
+  "conclusion": "R1/R2 修复后 status 已正确返回非空 PID 与 ready=true；但 start 控制仍 unknown，reconcile 无法收口，停止/卸载被未决意图阻塞。当前 5c8550ca 仍不能通过 C2.7 生命周期验收。",
+  "cleanup": "临时任务已 End+Delete；8787 端口释放；无遗留任务/监听",
+  "evidence_files": [
+    "C:/v2-acceptance/c3-08dd1573/svc10/probes/r3-control-goal.txt",
+    "C:/v2-acceptance/c3-08dd1573/svc10/accept/transcript.json"
+  ],
+  "whole_v2_complete": false
+}

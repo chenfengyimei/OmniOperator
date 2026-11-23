@@ -3,20 +3,21 @@
   "topic": "v2-acceptance-matrix",
   "date": "2026-11-23",
   "candidate": {
-    "head": "d7971bc473e41330212c319db1c9da30d75284e5",
-    "origin_v2_at_review": "d7971bc473e41330212c319db1c9da30d75284e5",
-    "previous_candidate": "6d81a826e0f5a6dae149604ebc0b49d95b93b040",
+    "head": "5c8550ca992dd10d2792d90e9f19404feec47105",
+    "origin_v2_at_review": "5c8550ca992dd10d2792d90e9f19404feec47105",
+    "previous_candidate": "d7971bc473e41330212c319db1c9da30d75284e5",
     "included_batches": {
       "C": "8512a8bc",
       "D": "c5170795",
       "E": "94d483eb",
       "G": "32d35898",
       "windows_service_fix": "6540c724",
-      "d11e": "46083137"
+      "d11e": "46083137",
+      "r1_r2": "300a3229"
     },
-    "wheel_sha256": "3fbba07b9cbc5377d166555fc7475b58083aab308a57fafc65043ddb9dfa99b1",
-    "wheel_bytes": 2824311,
-    "previous_wheel_sha256": "3d3b28a0b91cb49904a476c8e0e5f9a9d130386f43d66abab0777605ffb6f9d2",
+    "wheel_sha256": "b6b0a12c4917867d73a7366e70c0c703536f1c1825aec58c8b6fb41daa0fc40e",
+    "wheel_bytes": 2824830,
+    "previous_wheel_sha256": "3fbba07b9cbc5377d166555fc7475b58083aab308a57fafc65043ddb9dfa99b1",
     "dependency_bundle_sha256": "ddc242906492a815e1893505f0453f922f2c218dda441ad0088effb9f5e1225f",
     "dependency_wheels": 110,
     "uv_lock_sha256": "3900d190babf4b0cfcb42d1e6b82d5ba2ced7a34fe69d28a8f09b5e008f58321",
@@ -37,13 +38,12 @@
     {
       "id": "C2.7",
       "title": "Windows 原生服务（Task Scheduler 用户任务）",
-      "status": "failed_d11e_real_machine_regression",
-      "result": "d7971bc4 wheel：install succeeded/definition_matches=true；任务 Running、HTTP 200/ready=true；start unknown（R1：GetInstances(0).Item(0).EnginePID 抛 ArgumentException）。foreach 修复后 start/stop/uninstall succeeded、status manager running，但 pid=null/service_action_unverified 且 overall ready=true（R2：venv 启动器与基础 Python 不匹配、ready 条件矛盾）",
-      "defect_ids": ["D11e-R", "D11e-R2"],
+      "status": "failed_r3_control_goal",
+      "result": "5c8550ca wheel：R1/R2 已修；status manager running/pid 111620/ready=true，HTTP ready；但 start unknown/service_control_outcome_unverified，reconcile unknown/service_control_unresolved，stop/uninstall 被 service_operation_unresolved 阻塞（R3：控制 goal 用 ServiceRegistration.inspect 的 engine_pid，无动作 pid，无法满足严格 pid 条件）",
+      "defect_ids": ["R3"],
       "evidence": [
-        "docs/evidence/v2-windows-service-d7971bc4-2026-11-23.json",
-        "C:/v2-acceptance/c3-08dd1573/svc8/probes/d11e-real-machine.txt",
-        "C:/v2-acceptance/c3-08dd1573/svc9/probes/foreach-fix-and-action-pid.txt"
+        "docs/evidence/v2-windows-service-5c8550ca-2026-11-23.json",
+        "C:/v2-acceptance/c3-08dd1573/svc10/probes/r3-control-goal.txt"
       ]
     },
     {
@@ -175,7 +175,7 @@
   "conclusion": {
     "whole_v2_complete": false,
     "production_release_ready": false,
-    "failed_items": ["C2.7（D11e-R）"],
+    "failed_items": ["C2.7（R3）"],
     "partial_items": ["C4.3"],
     "blocked_items": ["C3.1-W3", "C3.2", "C3.5", "C3.3", "C3.4", "C2.8", "C4.2"],
     "not_started": ["C3.6"],
@@ -183,4 +183,5 @@
   },
   "whole_v2_complete": false
 }
+
 

@@ -112,3 +112,17 @@ return type(pid) is int and pid > 0 and pid == proof.get("pid")
 1. `status`：manager `state=running`、`definition_matches=true`、`pid` 非空且等于 runtime pid、`ready=true`；
 2. 无法证明动作 PID 时：`pid=null`、`service_action_unverified`、**`ready=false`**；
 3. `start`/`stop`/`uninstall` 仍 succeeded；任务删除、端口释放、实例锁释放。
+
+## R3（5c8550ca）：R1/R2 修好后 start 控制仍无法收口
+
+H 用 R1/R2 修复后的 5c8550ca wheel `b6b0a12c…` 实测：
+
+- `status` 已正确：manager `state=running`、`definition_matches=true`、**`pid=111620` 非空**、overall **`ready=true`**；
+- 但 `start` 返回 `unknown/service_control_outcome_unverified`，`reconcile-control` 返回 `unknown/service_control_unresolved`；
+- 停止/卸载因未决意图返回 `service_operation_unresolved`。
+
+根因：`application/service_control.py:112-123` 的 `goal()` 用 **ServiceRegistration.inspect()** 的回执调用 `start_postcondition`；该回执只有 `state`/`engine_pid`，没有已核验的动作 pid。R2 的严格条件要求 `report.pid == proof.pid`，因此即使 `status` 已能证明 pid，`goal` 也永远不成立。
+
+修复：控制 `goal` 使用与 `status` 相同的 ServiceQuery 动作 PID 证明，或让 ServiceRegistration receipt 携带已核验动作 pid。否则 R2 的严格 ready 条件会让 start 永远 unknown。
+
+证据：`C:/v2-acceptance/c3-08dd1573/svc10/probes/r3-control-goal.txt`、`docs/evidence/v2-windows-service-5c8550ca-2026-11-23.json`。
