@@ -30,6 +30,18 @@
     "result": "20 failed, 2 passed, 18 deselected in 450.37s",
     "note": "22 个失败中 20 个单独复现；不是并行 xdist 偶发。"
   },
+  "model_call_window": {
+    "home": "C:/v2-acceptance/tmp-todo/test_production_loop_updates_p0/data/omni.db",
+    "run": "f435e60e-5a92-4a9c-a267-618ad65be784",
+    "calls": [
+      {"step": 1, "input_token_estimate": 27436, "output_token_limit": 2048, "capacity_tokens": 32768},
+      {"step": 2, "input_token_estimate": 28788, "output_token_limit": 2048, "capacity_tokens": 32768},
+      {"step": 3, "input_token_estimate": 29808, "output_token_limit": 2048, "capacity_tokens": 32768, "state": "not_sent"}
+    ],
+    "margin_tokens": 1024,
+    "calculation": "step 3: 29808 + 2048 + 1024 = 32880 > 32768（超出 112 tokens）",
+    "note": "仅第三轮超出 112 tokens；提高默认上下文（如 65536/128000）或裁剪 prompt/tool schema 均可解除。"
+  },
   "root_cause": {
     "id": "R4",
     "summary": "默认模型上下文 32768 已小于当前 agent 模式的输入（system/persona/tool schema + 对话），运行以 token_budget_exceeded 失败；依赖 wait_state(succeeded) 的用例随后 30s 超时。",
@@ -57,3 +69,4 @@
   "evidence_files": ["temp/build/final-b29409d0.xml", "temp/build/final-b29409d0.log", "C:/v2-acceptance/tmp-todo", "C:/v2-acceptance/tmp-android"],
   "whole_v2_complete": false
 }
+
