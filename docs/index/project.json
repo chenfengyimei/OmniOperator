@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "81f27a822c83f200e1f6b79170571cf4ca86b8c980463548dc8b620dfbad92dd",
+  "source_sha256": "c03224f236342043e549f4c63388ac4b34177ab6a0a42a9e81b120f3dcd9f9d1",
   "modules": [
     {
       "id": "v2-domain",
@@ -519,7 +519,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 71569,
+      "lines": 71585,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -32967,7 +32967,7 @@
       "path": "agent/src/omni/adapters/platform/desktop/linux/linux_session.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.desktop.linux.linux_session",
-      "lines": 358,
+      "lines": 363,
       "imports": [
         "omni.adapters.platform.desktop.linux.linux_bus"
       ],
@@ -33152,7 +33152,7 @@
         },
         {
           "name": "SessionInspector.owner",
-          "line": 138,
+          "line": 143,
           "kind": "function",
           "parameters": [
             "self",
@@ -33168,7 +33168,7 @@
         },
         {
           "name": "SessionInspector.connection",
-          "line": 145,
+          "line": 150,
           "kind": "function",
           "parameters": [
             "self",
@@ -33184,7 +33184,7 @@
         },
         {
           "name": "SessionInspector.properties",
-          "line": 156,
+          "line": 161,
           "kind": "function",
           "parameters": [
             "self",
@@ -33198,7 +33198,7 @@
         },
         {
           "name": "SessionInspector.selected_path",
-          "line": 170,
+          "line": 175,
           "kind": "function",
           "parameters": [
             "self"
@@ -33207,7 +33207,7 @@
         },
         {
           "name": "SessionInspector.read_session",
-          "line": 212,
+          "line": 217,
           "kind": "function",
           "parameters": [
             "self"
@@ -33216,7 +33216,7 @@
         },
         {
           "name": "SessionInspector.open",
-          "line": 247,
+          "line": 252,
           "kind": "function",
           "parameters": [
             "self",
@@ -33228,7 +33228,7 @@
         },
         {
           "name": "SessionInspector.open_accessibility",
-          "line": 261,
+          "line": 266,
           "kind": "function",
           "parameters": [
             "self"
@@ -33237,7 +33237,7 @@
         },
         {
           "name": "SessionInspector._open_accessibility",
-          "line": 277,
+          "line": 282,
           "kind": "function",
           "parameters": [
             "self"
@@ -33246,7 +33246,7 @@
         },
         {
           "name": "SessionInspector.check",
-          "line": 314,
+          "line": 319,
           "kind": "function",
           "parameters": [
             "self"
@@ -33255,7 +33255,7 @@
         },
         {
           "name": "SessionInspector.app",
-          "line": 333,
+          "line": 338,
           "kind": "function",
           "parameters": [
             "self",
@@ -33267,7 +33267,7 @@
         },
         {
           "name": "SessionInspector.close",
-          "line": 355,
+          "line": 360,
           "kind": "function",
           "parameters": [
             "self"
@@ -34470,7 +34470,7 @@
       "path": "agent/src/omni/adapters/platform/desktop/linux/linux_x11_socket.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.desktop.linux.linux_x11_socket",
-      "lines": 219,
+      "lines": 230,
       "imports": [
         "omni.adapters.platform.desktop.linux.linux_bus",
         "omni.adapters.platform.desktop.linux.linux_session"
@@ -34571,7 +34571,7 @@
         },
         {
           "name": "Connection.check",
-          "line": 195,
+          "line": 206,
           "kind": "function",
           "parameters": [
             "self"
@@ -34580,7 +34580,7 @@
         },
         {
           "name": "Connection.cookie",
-          "line": 208,
+          "line": 219,
           "kind": "function",
           "parameters": [
             "self"
@@ -34589,7 +34589,7 @@
         },
         {
           "name": "Connection.verify",
-          "line": 212,
+          "line": 223,
           "kind": "function",
           "parameters": [
             "self"
@@ -34598,7 +34598,7 @@
         },
         {
           "name": "Connection.close",
-          "line": 217,
+          "line": 228,
           "kind": "function",
           "parameters": [
             "self"

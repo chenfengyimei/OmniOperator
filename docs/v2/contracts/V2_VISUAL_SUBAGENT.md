@@ -1,6 +1,6 @@
 # V2 有界视觉子代理设计合同（K14 可离线缺口）
 
-**状态：`offline_core_implemented_not_wired`（2026-11-22）。** 离线核心已实现并专项通过；D0–D5 仍未决，生产接线、真实视觉模型调用、真实帧来源与付费路径保持关闭。本文其余条款仍是后续实现与验收的约束。
+**状态：`decisions_set_wiring_pending`（2026-11-23）。** D0–D5 已按现有授权定案（父 run 固定模型、仅已授权已注册帧、一次 reserved turn 计费、仅 run 内留存、显式失败），见 §3。离线核心已实现并专项通过；生产接线、真实视觉模型调用与真实帧来源仍作为独立实现批次，接线前保持关闭。
 
 ## 1. 范围
 
@@ -22,18 +22,29 @@
 
 V2 只继承「有界、隔离、单次、文本汇总」的语义，不复制其模型供应商/提示词/网络实现。
 
-## 3. 待所有者决策（D0，未决不做真实调用）
+## 3. 已定实施决策（D0–D5，2026-11-23，按现有授权）
 
-| ID | 决策 | 选项 | 默认/不决策时 |
-|---|---|---|---|
-| D0 | 是否允许真实视觉模型调用 | 允许（需预算/模型 pin/审计）／只做离线桩 | **只做离线桩**，不调用任何真实视觉模型 |
-| D1 | 视觉模型与 provider | 复用主模型（若支持图像）／单独固定视觉模型 | 未定则离线桩 |
-| D2 | 每次/每日预算 | 复用 K04 子 run 预算／独立小额日预算 | 未定则离线桩，不产生费用 |
-| D3 | 帧来源 | Android 已授权 observation/capture 帧／所有者提供的注册图像对象 | 仅现成已授权帧，不做新采集 |
-| D4 | 摘要留存 | 仅子 run 事件／所有者可读（不自动进长期记忆/人格） | 仅本次 run，不写长期记忆 |
-| D5 | 失败语义 | 缺 key 优雅文本（参考）／显式错误 | V2 默认显式 `visual_unavailable`，不伪造摘要 |
+| ID | 决策 | 已定内容 |
+|---|---|---|
+| D0 | 是否允许真实视觉调用 | **允许，但只复用它已在运行的模型配置**：使用父 run `run_settings` 里同一个模型/provider/凭据引用；不新建 provider、不新增凭据、不做模型 fallback。调用仍受 `ModelCalls` 预留/结算、run/模型授权、预算与删除屏障约束。未配置图像能力时失败关闭（`visual_unavailable`），不换模型。 |
+| D1 | 视觉模型与 provider | **父 run 固定模型**（同一 `model` 配置）；首版**不提供**单独视觉模型 pin，避免第二套凭据/计费/审计。要独立视觉模型需另立授权批次。 |
+| D2 | 每次/每日预算 | **一次 reserved call，purpose 复用 `turn`**（不新增 purpose/表/迁移）：计入父 run 的调用/费用账本与日预算；图像 token 按既有 `model_tokens` 策略计费；每父 run 至多 1 次视觉调用；已派发后失败按 unknown 结算，不重放。 |
+| D3 | 帧来源 | **只接受已授权且已注册的帧**：同 agent 的 Android 观察/截图注册图像对象（`session_captures`/`ImageService`）与已注册媒体帧对象（`media_frames`，如 `media_zoom`/抽帧产物）。输入 1–240、模型可见 ≤60（原序等距含首尾）；禁止新采集、任意 URL/data URL、跨 agent、已擦除/已删除来源；帧源必须按请求顺序返回真实注册元数据。 |
+| D4 | 摘要留存 | **只进本次 run**：摘要文本 ≤4000 字符写入发起 run 的转录/事件与有界元数据（帧数/模型/费用）；**不写 memory/persona/反思/投递，不建表、不复制帧**；帧仍受既有对象保留期与来源擦除屏障，临时文件在结束/取消后清理。 |
+| D5 | 失败语义 | **显式错误**：`visual_unavailable`/`visual_response_invalid`/`budget_exceeded`；绝不伪造摘要、绝不 fallback；unknown 不重放；错误文本明确「视觉子代理不可用」。 |
 
-**未决策前只能实现离线桩路径**（注入 fake visual model，测试结构/边界/预算/取消），不得生产调用真实视觉 API。
+- 以上决策把「真实调用」的授权面收敛为**已有模型配置 + 已有已授权帧**，不产生新的对外凭据、新表、新路由或新工具。
+- 生产接线（`composition/instance.py` 注入父模型与已授权帧源、`application/engine.py` 工具入口）仍作为独立实现批次；本批只把决策写回合同与验收用例。
+
+**验收用例（实现批次必须逐条落地）**
+
+| 用例 | 断言 |
+|---|---|
+| `test_visual_uses_the_parent_run_model_and_rejects_a_non_image_model` | 调用模型 == 父 run 固定模型；模型无图像能力时 `visual_unavailable`，不发生第二次调用/换模型 |
+| `test_visual_bills_one_reserved_turn_call_within_parent_budget` | 恰好一次 reserved `turn` 调用，费用入父 run 账本与日预算；预算不足时零调用 |
+| `test_visual_accepts_only_registered_authorized_frames_and_rejects_url_or_cross_agent` | 仅接受同 agent 已注册 Android/媒体帧；URL/data URL/跨 agent/已擦除 → 零模型调用 |
+| `test_visual_retention_keeps_summary_in_run_without_memory_persona_or_delivery_writes` | 摘要 ≤4000 且只落 run 转录/事件；无 memory/persona/reflection/delivery 写入、无新表/帧副本 |
+| `test_visual_failures_are_explicit_and_never_fabricate_a_summary` | 缺模型/超时/坏回复/取消显式错误，无伪造摘要，unknown 不重放 |
 
 ## 4. 能力合同
 

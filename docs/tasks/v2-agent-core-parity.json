@@ -21,17 +21,16 @@
   "evidence": "docs/evidence/v2-agent-core-parity.json",
   "test_policy": "实现优先，只跑受影响模块和调用方专项；整个V2开发冻结后统一全量",
   "current_followup": {
-    "id": "K17.persona_growth",
-    "status": "batch_3_implemented",
+    "id": "K14.visual_subagent_decisions + scope_rulings",
+    "status": "decisions_recorded",
     "scope": [
-      "派生渲染/受管缓存/账本只读/重建（批 1）",
-      "所有者 HTTP 只读/重建 + 工作台人格成长页，多 agent 缓存隔离（批 2）",
-      "源擦除失效钩子——fail-closed invalidate、重试与媒体顺序（批 3）"
+      "K14 D0–D5 写回合同与验收用例（父模型/已授权帧/一次 turn 计费/run 内留存/显式失败）",
+      "剩余功能「本版实现 / 延期及理由」裁定，优先分层人格、主动外联、B 站写入/分享/直播、视频 OCR"
     ],
-    "contract": "docs/v2/contracts/V2_PERSONA_GROWTH.md",
-    "evidence": "docs/evidence/v2-persona-growth-design.json",
-    "validation": "新增 persona growth 三批专项 + 反思审核/媒体链 + 迁移/pin + strict 427/0；合并后独立基线全量以 full-e93c1a05.xml 为准。",
-    "next": "K17 剩余：inbox/月卷导出、所有者正文编辑页、personality shadow/观影后提问状态机；真实 B 站账号与模型质量另验。K01 D3(a)/(c)/D8 等所有者决策项继续待定。"
+    "contract": "docs/v2/contracts/V2_VISUAL_SUBAGENT.md",
+    "evidence": "docs/evidence/v2-scope-decisions.json",
+    "validation": "本批纯文档：合同/台账/证据更新；Linux 身份另批代码+专项（v2-linux-identity.json）。未跑全量。",
+    "next": "按延期清单前置条件推进：K01 P1-a 所有者对照 → 分层人格；外联授权合同 → 动机引擎；真实账号+配额账本 → B 站写/分享；provisioning 合同 → OCR。K14 视觉接线与 G3 真机复验为独立批次。"
   },
   "requirements": [
     {
@@ -606,7 +605,7 @@
           "delivered": "实现前授权/预算/边界合同（纯文档）：D0-D5 所有者决策门（默认只做离线桩，不调用真实视觉模型）；task 1..4000 + 1..60 已注册/已授权帧、>60 保序等距含首尾、固定 system prompt+1024 输出、无工具/max_calls=1、仅文本≤4000、master 不携带帧、不自动写 memory/persona、unknown 不重放、来源删除/凭据 CAS/取消等待、每父 run 1 个/全局≤4/超时≤120s/临时帧清理；接线点 instance.py/engine.py 当前他会话在途，未实现。"
         }
       ],
-      "limits": "K14 审计本身只读；后续独立批次已实现视觉子代理离线核心(K14.visual_subagent_core：有界帧/无工具/单次/仅文本/零写，20 专项过)、SoM 离线核心(K14.android_som_core：节点准入/编号/PNG 渲染，9 专项过)、explore_app 离线核心(K14.android_explore_core：结构 skeleton/有界屏幕动作图/可达/简单路径/未探索动作，9 专项过)，并补 Android 截图撤销/取消/坏 PNG 清理恢复、输入派发后撤权/取消不重放、坏 UI dump 失败关闭六项回归(仅测试/夹具)；OCR 已记录实现前合同(K14.android_ocr_design，D0–D5 未决，未实现，无依赖/模型/迁移/路由)；视觉 D0-D5、SoM D0-D3、explore D0–D4 未决，生产接线/真实视觉模型/真实帧来源/对象发布/持久化/付费调用/真机未做；不宣称真机质量或约65工具广度对等；V2有意不提供shell逃生舱/变更链(更严格)；既有todos重启竞态与5个pin v2_0039旧迁移测试沿用保留",
+      "limits": "K14 审计本身只读；后续独立批次已实现视觉子代理离线核心(K14.visual_subagent_core：有界帧/无工具/单次/仅文本/零写，20 专项过)、SoM 离线核心(K14.android_som_core：节点准入/编号/PNG 渲染，9 专项过)、explore_app 离线核心(K14.android_explore_core：结构 skeleton/有界屏幕动作图/可达/简单路径/未探索动作，9 专项过)，并补 Android 截图撤销/取消/坏 PNG 清理恢复、输入派发后撤权/取消不重放、坏 UI dump 失败关闭六项回归(仅测试/夹具)；OCR 已记录实现前合同(K14.android_ocr_design，D0–D5 未决，未实现，无依赖/模型/迁移/路由)；视觉 D0-D5、SoM D0-D3、explore D0–D4 未决，生产接线/真实视觉模型/真实帧来源/对象发布/持久化/付费调用/真机未做；不宣称真机质量或约65工具广度对等；V2有意不提供shell逃生舱/变更链(更严格)；既有todos重启竞态与5个pin v2_0039旧迁移测试沿用保留 D0–D5 已按现有授权定案（父 run 固定模型/仅已授权已注册帧/一次 reserved turn 计费/仅 run 内留存/显式失败），生产接线为独立批次，未接前保持关闭。",
       "next": false
     },
     {
@@ -688,7 +687,7 @@
           "delivered": "实现前合同（纯文档）：D0 层存储、D1 scene 来源、D2 预算裁剪、D3 注入点、D4 B站 sanitize、D5 角色包 epoch；层序 identity-base→core→tone→scene→daily，daily→scene→tone 裁剪且 core 永不裁；B站剥离 QQ 号/昵称/群号/链接 + 统一 banner，凭据模式拒绝；角色包 epoch 单事务 CAS；K01 交互要求同 session 跨 scene 前缀要么固定 scene、要么缓存键加 scene_hash。D0/D3 未决不实现，D5 未决不迁移。"
         }
       ],
-      "limits": "只读审计无新引擎/表/迁移/路由/源码改动；可离线缺口未在K15审计批实现(列后续批次)，其中时间衰减遗忘巩固引擎核心已在K15.decay_core后续批实现(新memory_decay_state表+v0047迁移+memory_entries6加性列+2所有者REST路由+domain/memory_decay.py纯规则，forgotten隐藏态不擦除V2纪律更严于参考自动删除)，自动每日遍已在K15.decay_tick后续批接入MaintenanceService.tick(dailyHour=4夜间门+每agent今日一次幂等+有界8agent sweep，生产启用隔离测试禁用，复用decay_core隐藏不擦除/protected豁免，无新表/迁移/路由)，重要性启发已在K15.score_memory后续批实现(domain/memory_scoring.py完整scoreMemory启发+渠道门控自动评分，所有者批准记忆权威变更：显式model importance手动覆盖优先、省略时QQ渠道捕获按说话人上下文自动评分、非渠道保持默认50零回归，is_first/direct/bili保守False0引擎完整支持，reasons/kind/tags/scope入审计无新列/迁移)，isInitial first-meet窗口已记录实现前合同(K15.is_initial_design，D0-D5 未决，未实现，无迁移/路由)，决策门已补 3 项回归(K15.is_initial_gate_regression，文本不自动晋升、仅显式 is_first 生效)，前缀影响已补 4 项回归(K15.memory_prefix_regression，仅测试/无生产改动)；QQ direct 解析已接(2026-11-20 修订)；Bilibili入站说话人上下文/tags scope持久化列/双卡分离/注入clarity裁剪/容量告警auto-compact/所有者自动衰减开关仍后续；不宣称自主行为/分层人格/作息反馈对等，遗忘巩固核心手动+自动每日衰减遍+重要性启发已接；既有todos重启竞态与pin v2_0039旧迁移测试沿用保留",
+      "limits": "只读审计无新引擎/表/迁移/路由/源码改动；可离线缺口未在K15审计批实现(列后续批次)，其中时间衰减遗忘巩固引擎核心已在K15.decay_core后续批实现(新memory_decay_state表+v0047迁移+memory_entries6加性列+2所有者REST路由+domain/memory_decay.py纯规则，forgotten隐藏态不擦除V2纪律更严于参考自动删除)，自动每日遍已在K15.decay_tick后续批接入MaintenanceService.tick(dailyHour=4夜间门+每agent今日一次幂等+有界8agent sweep，生产启用隔离测试禁用，复用decay_core隐藏不擦除/protected豁免，无新表/迁移/路由)，重要性启发已在K15.score_memory后续批实现(domain/memory_scoring.py完整scoreMemory启发+渠道门控自动评分，所有者批准记忆权威变更：显式model importance手动覆盖优先、省略时QQ渠道捕获按说话人上下文自动评分、非渠道保持默认50零回归，is_first/direct/bili保守False0引擎完整支持，reasons/kind/tags/scope入审计无新列/迁移)，isInitial first-meet窗口已记录实现前合同(K15.is_initial_design，D0-D5 未决，未实现，无迁移/路由)，决策门已补 3 项回归(K15.is_initial_gate_regression，文本不自动晋升、仅显式 is_first 生效)，前缀影响已补 4 项回归(K15.memory_prefix_regression，仅测试/无生产改动)；QQ direct 解析已接(2026-11-20 修订)；Bilibili入站说话人上下文/tags scope持久化列/双卡分离/注入clarity裁剪/容量告警auto-compact/所有者自动衰减开关仍后续；不宣称自主行为/分层人格/作息反馈对等，遗忘巩固核心手动+自动每日衰减遍+重要性启发已接；既有todos重启竞态与pin v2_0039旧迁移测试沿用保留 分层人格与主动外联判为**延期**：前者改冻结系统前缀（K01 P1-a 语义需所有者真实模型对照）且缓存键需加 scene；后者属自主外联，边界/quiet/日限/白名单/预算合同未决。本版只锁定前缀现状与记忆衰减/评分。",
       "next": false
     },
     {
@@ -890,7 +889,7 @@
           "delivered": "核对隔离环境无 BILI/COOKIE/SESSDATA 凭据、无真实长片素材；记录前置条件、素材矩阵、执行步骤、指标/容差（±1.5s）、资源上限（240 采样/12 帧/8192/16M/8MiB）、删除取消失败路径、工具图像预算、证据模板与安全要求。纯文档，未发起真实网络下载、未使用账号、未改源码。"
         }
       ],
-      "limits": "只读审计无新工具/表/迁移/路由/源码改动；可离线缺口未在K16审计批实现(列后续批次)，其中缺口#4转录定位已在K16.locate后续批实现、缺口#2格号可寻址索引模型侧读面已在K16.cell_anchor后续批实现(只读派生既有帧表亚秒timestamps非新持久化层)、缺口#3局部zoom所有者侧显式时间戳高清重取作业基础已在K16.zoom_foundation后续批实现(frames作业可选timestamps复用既有管线非新表/操作/模型工具，模型侧自动zoom需action_review授权+ImageService图像可见设计合同——该实现前设计合同已记录于K16.zoom_model_design批(方案A/B工具结果图像可见协议+写工具审批门复用+frames timestamps作业复用)，所有者已于2026-11-21批准方案B，独立实现合同已记录于K16.tool_image_protocol批(勘定证伪草案持久层无需改前提：工具转录仅存内存+账本message_id非空FK+冻结触发器链)，所有者已批准D5，1a持久化批K16.tool_image_persistence已落地(v0050账本重建message_id可空+scope双分支message分支原SQL逐字保留+run终态释放触发器+prepare tool分支,5专项回退4/5红+147调用方零回归+strict418文件0错误)，1b协议+引擎批K16.tool_image_engine已落地(ImageInfo等移入contracts+ImageRef+ActionResult.images+references role标签与tool分支+引擎两site附着helper全局最后限额降级+压缩摘要图像标记,10专项回退7/10红+83调用方终源零回归+strict418文件0错误)，2 media_zoom批K16.tool_image_zoom已落地(ZOOM_SPEC writes=True审批门复用+frames作业复用zoom_foundation无新表/操作+cell经media_cells锚映射+media_frames_for_job按job_id唯一取帧+ImageService.prepare注册+ActionResult.images同回合可见+composition生产档capabilities is None门控+routing writes自动排除,17专项回退14/17红+838调用方distinct零回归(5既有红git diff实证非本批)+strict418文件0错误)，3端到端批K16.tool_image_e2e已落地(生产open_instance全链安全矩阵9例:审批拒绝/撤销/过期不提交作业+owner取消等待真实清理+凭据revision CAS+源身份CAS+删除屏障+未知不重放+上传源同回合可见账本终态释放,零生产源码改动,回退9/9红+191调用方distinct零回归+strict418文件0错误)，K16缺口#3四批完结，HSV#1/Laplacian#5已在K16.scene_frames后续批实现(select=scenes保守子集：固定阈值12+minGap0.35+比例密度分配+Laplacian方差选锐，自适应分位数阈值/亮度增益/黑边补偿仍后续)、OCR仍后续)；V1 tools/storyboard学习实现不计V2对等；不宣称五工具/算法全集对等；未引入OCR模型依赖；既有todos重启竞态与5个pin v2_0039旧迁移测试沿用保留；K16.scene_gradual 已用固定素材补渐变合并（固定阈值误拆渐变），auto/auto-low 分位阈值、亮度增益/黑边补偿、DP 宫格、真实长片质量与 OCR 仍未验；K16.scene_bars 已补均匀黑边裁剪（subtle cut 漏检与编码边缘假切点），不规则/图形黑边、亮度增益、auto 分位阈值、DP 宫格与 OCR 仍未验；K16.scene_spike 已补邻域尖峰守卫（暗噪声假切点），连续高变化/极暗 cut 仍需增益或另批处理；自适应宫格/DP 设计合同已记录（D0-D6 待所有者与 A 决策，尚未实现）；K16.scene_gain 已补暗部增益（极暗 cut 漏检），auto/auto-low 分位阈值与真实暗部噪声仍未验；K16.scene_bars_side 已补左右黑边（竖屏/窄内容），不规则黑边与真实长片仍未验；K16.scene_quality 已补组合黑边/大黑边/暗蒙太奇与 cells 映射回归（测试与证据，无生产改动）；K16.scene_resource 已验证采样调用上限与 60s 合成素材（非真实长片）；K16 状态归拢见 docs/evidence/v2-k16-closeout.json（8 个 scenes 子批 + 422 生产入口聚合，剩余门已列明）；K16 剩余门已形成决策包 [V2_K16_REMAINING_DECISIONS](v2/contracts/V2_K16_REMAINING_DECISIONS.md)（OCR/auto/minGap/宫格 D0-D4/真实长片）；K16.scene_long 已验 600s 合成端到端（非真实长片，未测内存曲线/7200s 上限）；真实长片/真实来源验收计划已记录但未执行（缺凭据/素材）。",
+      "limits": "只读审计无新工具/表/迁移/路由/源码改动；可离线缺口未在K16审计批实现(列后续批次)，其中缺口#4转录定位已在K16.locate后续批实现、缺口#2格号可寻址索引模型侧读面已在K16.cell_anchor后续批实现(只读派生既有帧表亚秒timestamps非新持久化层)、缺口#3局部zoom所有者侧显式时间戳高清重取作业基础已在K16.zoom_foundation后续批实现(frames作业可选timestamps复用既有管线非新表/操作/模型工具，模型侧自动zoom需action_review授权+ImageService图像可见设计合同——该实现前设计合同已记录于K16.zoom_model_design批(方案A/B工具结果图像可见协议+写工具审批门复用+frames timestamps作业复用)，所有者已于2026-11-21批准方案B，独立实现合同已记录于K16.tool_image_protocol批(勘定证伪草案持久层无需改前提：工具转录仅存内存+账本message_id非空FK+冻结触发器链)，所有者已批准D5，1a持久化批K16.tool_image_persistence已落地(v0050账本重建message_id可空+scope双分支message分支原SQL逐字保留+run终态释放触发器+prepare tool分支,5专项回退4/5红+147调用方零回归+strict418文件0错误)，1b协议+引擎批K16.tool_image_engine已落地(ImageInfo等移入contracts+ImageRef+ActionResult.images+references role标签与tool分支+引擎两site附着helper全局最后限额降级+压缩摘要图像标记,10专项回退7/10红+83调用方终源零回归+strict418文件0错误)，2 media_zoom批K16.tool_image_zoom已落地(ZOOM_SPEC writes=True审批门复用+frames作业复用zoom_foundation无新表/操作+cell经media_cells锚映射+media_frames_for_job按job_id唯一取帧+ImageService.prepare注册+ActionResult.images同回合可见+composition生产档capabilities is None门控+routing writes自动排除,17专项回退14/17红+838调用方distinct零回归(5既有红git diff实证非本批)+strict418文件0错误)，3端到端批K16.tool_image_e2e已落地(生产open_instance全链安全矩阵9例:审批拒绝/撤销/过期不提交作业+owner取消等待真实清理+凭据revision CAS+源身份CAS+删除屏障+未知不重放+上传源同回合可见账本终态释放,零生产源码改动,回退9/9红+191调用方distinct零回归+strict418文件0错误)，K16缺口#3四批完结，HSV#1/Laplacian#5已在K16.scene_frames后续批实现(select=scenes保守子集：固定阈值12+minGap0.35+比例密度分配+Laplacian方差选锐，自适应分位数阈值/亮度增益/黑边补偿仍后续)、OCR仍后续)；V1 tools/storyboard学习实现不计V2对等；不宣称五工具/算法全集对等；未引入OCR模型依赖；既有todos重启竞态与5个pin v2_0039旧迁移测试沿用保留；K16.scene_gradual 已用固定素材补渐变合并（固定阈值误拆渐变），auto/auto-low 分位阈值、亮度增益/黑边补偿、DP 宫格、真实长片质量与 OCR 仍未验；K16.scene_bars 已补均匀黑边裁剪（subtle cut 漏检与编码边缘假切点），不规则/图形黑边、亮度增益、auto 分位阈值、DP 宫格与 OCR 仍未验；K16.scene_spike 已补邻域尖峰守卫（暗噪声假切点），连续高变化/极暗 cut 仍需增益或另批处理；自适应宫格/DP 设计合同已记录（D0-D6 待所有者与 A 决策，尚未实现）；K16.scene_gain 已补暗部增益（极暗 cut 漏检），auto/auto-low 分位阈值与真实暗部噪声仍未验；K16.scene_bars_side 已补左右黑边（竖屏/窄内容），不规则黑边与真实长片仍未验；K16.scene_quality 已补组合黑边/大黑边/暗蒙太奇与 cells 映射回归（测试与证据，无生产改动）；K16.scene_resource 已验证采样调用上限与 60s 合成素材（非真实长片）；K16 状态归拢见 docs/evidence/v2-k16-closeout.json（8 个 scenes 子批 + 422 生产入口聚合，剩余门已列明）；K16 剩余门已形成决策包 [V2_K16_REMAINING_DECISIONS](v2/contracts/V2_K16_REMAINING_DECISIONS.md)（OCR/auto/minGap/宫格 D0-D4/真实长片）；K16.scene_long 已验 600s 合成端到端（非真实长片，未测内存曲线/7200s 上限）；真实长片/真实来源验收计划已记录但未执行（缺凭据/素材）。 视频 OCR 判为**延期**：rapidocr ONNX 依赖与约 250MB 模型未捆绑，需离线 provisioning 合同与实机验收；本版交付场景切点/黑边/增益/尖峰等离线子批。",
       "next": false
     },
     {
@@ -1098,7 +1097,7 @@
           "delivered": "纯设计合同：参考事实（get_info/gethistory/GetDMConfigByGroup；msg/send 表单与错误码 0/-101/-111/-400/1003212/10031、失败必须非零；live 需 WBI getDanmuInfo 取 token+host_list、16 字节包头、op7 鉴权/op2 心跳 30s、ver3 brotli/ver2 zlib、op5 DANMU_MSG/INTERACT_WORD/SEND_GIFT 只读、独立开关 owner/@-only、gift/charge 发送参考亦未实现）；V2 映射（websockets>=17.3 已是依赖、bilibili_read 固定 host 读、owner-side LiveDanmakuService 内存 ring buffer 不落库、写路径纪律拒绝直接 API POST）；L1 房间读、L2 历史读、L3 WS 监听（推荐 owner 服务+owner-only 摘要）、L4 发送（推荐L4-a 不做；L4-b 已审表单独立写批；L4-c 直接 API POST 拒绝）、L5 独立开关默认 OFF/owner-only/风险码联动；安全（固定 host、WS .bilibili.com 后缀+wss 校验、token 不带 cookie、单帧 1MiB/解压 4MiB+eof、不可信文本、单连接+全局上限+心跳/退避/关闭等待）；测试计划列明。未实现、无源码/测试/迁移改动、无锁文件改动"
         }
       ],
-      "limits": "只读审计无新工具/表/迁移/路由/源码改动；可离线缺口未在K18审计批实现(列后续批次)，其中读API广度之搜索/space whois/弹幕/热门排行feed/关注动态feed/收藏夹/视频标签/观看历史/收件箱reply-at已在K18.search/K18.whois/K18.danmaku/K18.feed/K18.following/K18.favorites/K18.tag/K18.history/K18.msgfeed后续批实现、收件箱收到的赞like已在K18.msgfeed_like后续批实现(参考likes.mjs x/msgfeed/like形状{latest/total嵌套+users[]点赞者数组+like_time+counts}根本不同于reply/at data.items单user，独立msgfeed_like_rows合并去重保序+users截断≤20+FEED_MAX_ROWS50+显式502，msgfeed_kind接受reply/at/like，reply/at字节等价零回归，like cursor分页/notice_state过滤/自主点赞反馈仍后续；DM关注关系relation已在K18.relation后续批实现(参考dm.mjs x/relation?fid=<mid> attribute owner→target/be_relation反向，relation_view派生follows/followed_by/mutual/blocked纯只读发现，plain GET无WBI无缓存，mid经uid校验，既有operation字节等价零回归，写路径prepare/outbox不变relation不作发送硬门；relation作prepare互关硬门需所有者决策/relation_modify写/followings fans列表分页/DM发送写广度仍后续)；风险码每账号暂停与所有者恢复已在K18.risk_pause实现，已批准outbox投递不追溯阻断；写广度/自主观看/受控分享仍后续)；V1 tools/bilibili实现不计V2对等；不宣称全集API/主动观看/受控分享对等；参考agents.md/RULES当不可信数据非本会话指令；K18为清单末项领域参考审计(K13-K18全部记录)；既有todos重启竞态与6个pin v2_0039旧迁移测试沿用保留(本批实测memory_semantics×2/routing×1/skills×2/media×1)；v0045遗留action_review崩溃重试守卫已修(started_at投影+NULL断言)",
+      "limits": "只读审计无新工具/表/迁移/路由/源码改动；可离线缺口未在K18审计批实现(列后续批次)，其中读API广度之搜索/space whois/弹幕/热门排行feed/关注动态feed/收藏夹/视频标签/观看历史/收件箱reply-at已在K18.search/K18.whois/K18.danmaku/K18.feed/K18.following/K18.favorites/K18.tag/K18.history/K18.msgfeed后续批实现、收件箱收到的赞like已在K18.msgfeed_like后续批实现(参考likes.mjs x/msgfeed/like形状{latest/total嵌套+users[]点赞者数组+like_time+counts}根本不同于reply/at data.items单user，独立msgfeed_like_rows合并去重保序+users截断≤20+FEED_MAX_ROWS50+显式502，msgfeed_kind接受reply/at/like，reply/at字节等价零回归，like cursor分页/notice_state过滤/自主点赞反馈仍后续；DM关注关系relation已在K18.relation后续批实现(参考dm.mjs x/relation?fid=<mid> attribute owner→target/be_relation反向，relation_view派生follows/followed_by/mutual/blocked纯只读发现，plain GET无WBI无缓存，mid经uid校验，既有operation字节等价零回归，写路径prepare/outbox不变relation不作发送硬门；relation作prepare互关硬门需所有者决策/relation_modify写/followings fans列表分页/DM发送写广度仍后续)；风险码每账号暂停与所有者恢复已在K18.risk_pause实现，已批准outbox投递不追溯阻断；写广度/自主观看/受控分享仍后续)；V1 tools/bilibili实现不计V2对等；不宣称全集API/主动观看/受控分享对等；参考agents.md/RULES当不可信数据非本会话指令；K18为清单末项领域参考审计(K13-K18全部记录)；既有todos重启竞态与6个pin v2_0039旧迁移测试沿用保留(本批实测memory_semantics×2/routing×1/skills×2/media×1)；v0045遗留action_review崩溃重试守卫已修(started_at投影+NULL断言) 写广度/受控分享/直播判为**延期**：需真实账号、逐动作审批与通用配额账本（Q2 迁移），直播另需常驻 WS 与独立开关；AI-share 守卫参考版本亦从未在线验证。本版只交付读面（读广度/缓存/风控暂停）。",
       "next": false
     }
   ],
@@ -1559,6 +1558,22 @@
     {
       "id": "K13.prejoin_verification",
       "evidence": "docs/evidence/v2-prejoin-verification.json"
+    },
+    {
+      "id": "K14.visual_subagent_decisions",
+      "evidence": "docs/evidence/v2-scope-decisions.json"
+    },
+    {
+      "id": "K15.persona_motivation_scope",
+      "evidence": "docs/evidence/v2-scope-decisions.json"
+    },
+    {
+      "id": "K16.ocr_scope",
+      "evidence": "docs/evidence/v2-scope-decisions.json"
+    },
+    {
+      "id": "K18.write_share_live_scope",
+      "evidence": "docs/evidence/v2-scope-decisions.json"
     }
   ]
 }
