@@ -21,7 +21,7 @@
 
 | 项 | 环境/前置 | 候选 SHA | 结果 | 证据 | 说明 |
 | --- | --- | --- | --- | --- | --- |
-| C2.7 Windows 原生服务 | 不可变部署 + 真实注册 | `d7971bc4` | **失败（D11e-R 回归）**：注册 `definition_matches=true`；任务 Running、HTTP 200/ready=true、runner pid 134544；`start` 返回 unknown `service_control_outcome_unverified`；`status` manager unknown/pid null/ready=false | `docs/evidence/v2-windows-service-d7971bc4-2026-11-23.json` | helper `$instances.Item(0).EnginePID` 在真实 COM 集合抛错；foreach 可取到 engine_pid 91764，动作 PID 134544 可证 |
+| C2.7 Windows 原生服务 | 不可变部署 + 真实注册 | `d7971bc4` | **失败（D11e-R1/R2）**：注册 `definition_matches=true`；任务 Running、HTTP 200/ready=true；`start` unknown（R1：`.Item(0)` 抛错）。foreach 修复后 start/stop/uninstall succeeded、status manager running，但 `pid=null/service_action_unverified` 且 overall `ready=true`（R2：venv 启动器与基础 Python 不匹配、ready 条件矛盾） | `docs/evidence/v2-windows-service-d7971bc4-2026-11-23.json`；`C:/v2-acceptance/c3-08dd1573/svc9/probes/foreach-fix-and-action-pid.txt` | A 需同时修 helper 取 EnginePID、动作 PID 解析、ready 条件 |
 | C3.1-W1 官方 wheel 安装检查 | 同机全新目录 | `6d81a826`（历史） | **部分通过**（3d3b28a0）：六阶段 verified；首次卸载确定性失败，延迟 40s 续跑成功 | `docs/evidence/v2-windows-install-check-6d81a826-2026-11-23.json` | d7971bc4 候选**尚未重跑** |
 | C3.1-W2 安装→升级→回滚→卸载链 | 同机隔离 | `6d81a826`（历史） | **通过（带重试）**（3d3b28a0）：上一版 `199072c6` → 当前 → rollback → 双候选卸载 | `docs/evidence/v2-windows-install-chain-6d81a826-2026-11-23.json` | d7971bc4 候选**尚未重跑** |
 | C3.1-W3 真正干净机器 | 干净 OS/VM | — | **阻塞** | `docs/evidence/v2-clean-machine-kit-2026-11-23.json` | 验收包按 6d81a826 构建，修复后需重建 |
@@ -57,7 +57,8 @@
 - `start` 返回 `state=unknown, error_code=service_control_outcome_unverified`；`status` manager `state=unknown`/`pid=null`/`ready=false`。
 - helper 原始 inspect 返回 `service_native_unverified`：`GetInstances(0)` 返回集合 Count=1，但 `.Item(0)` 抛 `System.ArgumentException: Value does not fall within the expected range`，外层 catch 吞掉全部状态。
 - COM `foreach` 可取到 `EnginePID=91764`、state=4；把 helper 改为 `foreach ($instance in $instances) { $result.engine_pid=[int]$instance.EnginePID; break }` 后，inspect 返回 `state=running / engine_pid=91764 / definition_matches=true`；psutil 在 91764 下找到动作进程 134544，命令行匹配。
-- 判定：**D11e-R 实机回归**，A 必须改 helper 的集合取首元素方式；修后重建 wheel 重跑 start/status。
+- 判定：**D11e-R1 实机回归**，A 必须改 helper 的集合取首元素方式；修后重建 wheel 重跑 start/status。
+- 第二轮（svc9）：把该行改为 foreach 后，start/stop/uninstall succeeded、status manager state=running/definition_matches=true；但 `pid=null/service_action_unverified`、overall `ready=true`，与契约矛盾（**D11e-R2**）。根因：计划 Exec/Command 是 venv 的 `Scripts\python.exe`，实际动作进程是基础 Python（`C:\Users\...\Python312\python.exe` + `-I -u -m omni.composition.service_runner`），`_action_pid` 严格比较 `cmdline[0]` 失败。A 需同时修正动作 PID 解析，并在 pid=null/service_action_unverified 时强制 ready=false。
 
 ### 4.2 6d81a826 历史证据（不代表当前主线）
 

@@ -38,11 +38,12 @@
       "id": "C2.7",
       "title": "Windows 原生服务（Task Scheduler 用户任务）",
       "status": "failed_d11e_real_machine_regression",
-      "result": "d7971bc4 wheel：install succeeded/definition_matches=true；任务 Running、HTTP 200/ready=true（boot e8fd469c、pid 134544）；start 返回 unknown/service_control_outcome_unverified；status manager state=unknown/pid null/ready=false。helper 的 GetInstances(0).Item(0).EnginePID 在真实 COM 集合抛 ArgumentException；foreach 可取 engine_pid 91764，psutil 找到动作进程 134544",
-      "defect_ids": ["D11e-R"],
+      "result": "d7971bc4 wheel：install succeeded/definition_matches=true；任务 Running、HTTP 200/ready=true；start unknown（R1：GetInstances(0).Item(0).EnginePID 抛 ArgumentException）。foreach 修复后 start/stop/uninstall succeeded、status manager running，但 pid=null/service_action_unverified 且 overall ready=true（R2：venv 启动器与基础 Python 不匹配、ready 条件矛盾）",
+      "defect_ids": ["D11e-R", "D11e-R2"],
       "evidence": [
         "docs/evidence/v2-windows-service-d7971bc4-2026-11-23.json",
-        "C:/v2-acceptance/c3-08dd1573/svc8/probes/d11e-real-machine.txt"
+        "C:/v2-acceptance/c3-08dd1573/svc8/probes/d11e-real-machine.txt",
+        "C:/v2-acceptance/c3-08dd1573/svc9/probes/foreach-fix-and-action-pid.txt"
       ]
     },
     {
@@ -182,3 +183,4 @@
   },
   "whole_v2_complete": false
 }
+

@@ -61,7 +61,22 @@
     },
     "fix": "改为 foreach ($instance in $instances) { $result.engine_pid = [int]$instance.EnginePID; break }（或等价的安全取首元素），不要使用 COM Item(0)。"
   },
-  "impact": "D11e 的单元测试使用假集合，未触发真实 COM 集合差异；当前主线 d7971bc4 的真实 start/stop/status 均无法取得 running 证明，属于 D11e 实机回归。6d81a826 的服务生命周期证据不能代表 d7971bc4。",
+  "fixed_helper_verification": {
+    "patch": "foreach ($instance in $instances) { $result.engine_pid = [int]$instance.EnginePID; break }",
+    "capture_plan_bundle": "重走 capture/materialize，bundle 与新程序哈希一致",
+    "start": "state=succeeded, ready=true, boot cdfe63ca, pid 133796",
+    "status": {"manager_state": "running", "definition_matches": true, "pid": null, "error_code": "service_action_unverified", "overall_ready": true},
+    "stop": "state=succeeded, closed=true",
+    "uninstall": "state=succeeded, task deleted",
+    "evidence": "C:/v2-acceptance/c3-08dd1573/svc9/probes/foreach-fix-and-action-pid.txt"
+  },
+  "second_issue": {
+    "id": "D11e-R2",
+    "summary": "foreach 修复后生命周期通过，但动作 PID 仍不可证（manager pid=null/service_action_unverified），而 overall ready=true，与文档的 ready 条件矛盾。",
+    "cause": "计划 Exec/Command 是 venv 的 Scripts/python.exe；任务引擎下的实际动作进程是基础 Python（C:/Users/.../Python312/python.exe，参数 -I -u -m omni.composition.service_runner ...）。_action_pid 用 cmdline[0] 与 venv 路径严格比较，匹配失败。",
+    "contract": "docs/v2/operations/V2_SERVICES.md：state=running 但动作进程不可证时应 pid=null、service_action_unverified、不判 ready。",
+    "required_fix": "将 venv 启动器解析到实际 process_python（或按 python 进程映像+参数匹配），并在 pid=null/service_action_unverified 时强制 ready=false。"
+  },  "impact": "D11e-R1（COM Item(0)）使当前主线 start/status 直接失败；用 foreach 修复后 R1 消失，但 D11e-R2 仍使动作 PID 不可证，status 却报 ready=true。两处都需 A 修复；6d81a826 的服务生命周期证据不能代表 d7971bc4。",
   "not_claimed": [
     "未证明修复后 start/status 通过（需 A 修 helper 后重建）",
     "未在干净机/官方冻结产物上重跑"
@@ -73,3 +88,4 @@
   ],
   "whole_v2_complete": false
 }
+

@@ -53,3 +53,23 @@ psutil 在 91764 下找到动作进程 134544，命令行为 `python -I -u -m om
 3. 若 status 仍失败，保留 helper JSON、任务 XML、HTTP 回执和动作进程命令行。
 
 证据：`docs/evidence/v2-windows-service-d7971bc4-2026-11-23.json`、`C:/v2-acceptance/c3-08dd1573/svc8/probes/d11e-real-machine.txt`。
+
+## 第二轮：foreach 修复后仍有 R2
+
+H 在另一个隔离 home（svc9）把该行改为 foreach 并重走 capture/materialize：
+
+- `start`：`succeeded`、`ready=true`（boot `cdfe63ca…`、pid 133796）；
+- `status`：manager `state=running`、`definition_matches=true`，但 **`pid=null`、`error_code=service_action_unverified`，overall `ready=true`**；
+- `stop`/`uninstall`：`succeeded`。
+
+这与 `docs/v2/operations/V2_SERVICES.md` 的“pid null / service_action_unverified 不判 ready”矛盾。
+
+**R2 根因**：计划 `Exec/Command` 是 venv 的 `Scripts\python.exe`，任务引擎下的实际动作进程是基础 Python（`C:\Users\...\Python312\python.exe`，参数 `-I -u -m omni.composition.service_runner ...`）。`_action_pid` 用 `cmdline[0]` 与 venv 路径严格比较，匹配失败。
+
+**A 需要同时修**：
+
+1. helper 用 foreach 取 `EnginePID`；
+2. `_action_pid` 将 venv 启动器解析到实际 `process_python`（或按 python 进程映像+参数匹配）；
+3. `pid=null/service_action_unverified` 时强制 `ready=false`。
+
+证据：`C:/v2-acceptance/c3-08dd1573/svc9/probes/foreach-fix-and-action-pid.txt`。
