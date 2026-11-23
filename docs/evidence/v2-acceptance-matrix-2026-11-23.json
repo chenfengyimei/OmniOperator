@@ -65,11 +65,12 @@
       "id": "C2.7",
       "title": "Windows 原生服务（Task Scheduler 用户任务）",
       "status": "failed_product_defect",
-      "result": "capture/plan/materialize/verify 通过；apply-operation 返回 unknown，任务未创建；helper install 返回 service_native_unverified；COM RegisterTask 对 utf-8 声明抛 0x8004131A (1,40) 无法切换编码；去声明/UTF-16 声明可注册临时任务",
-      "defect_id": "D10",
+      "result": "capture/plan/materialize/verify 通过；apply-operation 返回 unknown，任务未创建；COM RegisterTask 对 utf-8 声明抛 0x8004131A (1,40) 无法切换编码（D10）；在安装副本临时去声明后重走演练，任务可创建但 definition_matches=false（D11：真实导出省略默认值）；临时任务已删除、模板已恢复",
+      "defect_ids": ["D10", "D11"],
       "evidence": [
         "docs/evidence/v2-windows-service-defect-2026-11-23.json",
-        "C:/v2-acceptance/c3-08dd1573/probes/service-com-probe.txt"
+        "C:/v2-acceptance/c3-08dd1573/probes/service-com-probe.txt",
+        "C:/v2-acceptance/c3-08dd1573/soak/probes-service-rehearsal.txt"
       ]
     },
     {
@@ -180,7 +181,7 @@
     "production_release_ready": false,
     "verified_items": ["C3.1-W2"],
     "partial_items": ["C3.1-W1", "C4.3"],
-    "failed_items": ["C2.7（D10）"],
+    "failed_items": ["C2.7（D10+D11）"],
     "blocked_items": ["C3.1-W3", "C3.2", "C3.5", "C3.3", "C3.4", "C2.8", "C4.2"],
     "not_started": ["C3.6"],
     "not_rerun_on_candidate": ["C3.7"]

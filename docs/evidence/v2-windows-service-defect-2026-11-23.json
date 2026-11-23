@@ -43,25 +43,60 @@
     },
     "conclusion": "Windows 服务模板的 utf-8 XML 声明在 Task Scheduler COM 注册边界被拒绝，导致真实注册永远失败；不是权限、路径或 SID 问题。同一任务定义去掉声明或改为 UTF-16 即可注册，证明缺陷只在声明编码。"
   },
+  "second_defect": {
+    "id": "D11",
+    "status": "confirmed_by_fix_rehearsal",
+    "method": "在本机安装副本的 site-packages 内临时把 service_templates.py 的 xml_declaration=True 改为 False（不入仓库，事后恢复原文件 SHA 4bee6893…），重走 capture/plan/materialize/verify/operation-plan/apply-operation，观察注册后校验。",
+    "rehearsal": {
+      "patched_template_sha256": "95c3b32b2ad83619e19da9b0535e4676280c31aadb64e07073a6c619f5a579e2",
+      "restored_template_sha256": "4bee6893b438f3a1b3cad746a7547084cef8311145ccf5959856fef61e512b31",
+      "capture_sha256": "5a037f45dd3bf75438bc936e04752dcf90d732d22849e001da4f5cda3816449f",
+      "capture_build_id": "b5d43f5762ed2ca18176a1af1ee677892c3bdb5895e82611894c313b7ec9431f",
+      "plan_sha256": "3dab1eacf4226f67624b4c2ca688a3e8b20993700ab2eb7ce445f9957c637f66",
+      "operation_sha256": "9bcec63702083337444b9838b2733dc4810a16d2533f9e67326bee85ef74f15b",
+      "apply_result": "state=unknown, effect=unknown, error_code=service_outcome_unresolved, registration={installed:true, definition_present:true, definition_matches:false, enabled:true, state:stopped}",
+      "task_created": "是（Ready）；因 helper 卸载要求 definition_matches=true，临时任务由 schtasks /Delete 删除"
+    },
+    "root_cause": {
+      "file": "agent/src/omni/adapters/workers/windows_services.ps1",
+      "function": "Same-Definition",
+      "behavior": "任务实际注册成功后，Task Scheduler 导出 XML 会省略取默认值的元素；helper 却要求这些元素逐个存在且文本相等。",
+      "omitted_defaults": [
+        "Principals/Principal/RunLevel = LeastPrivilege",
+        "Triggers/LogonTrigger/Enabled = true",
+        "Settings/Enabled = true",
+        "Settings/StartWhenAvailable = false",
+        "Settings/RunOnlyIfNetworkAvailable = false",
+        "Settings/Hidden = false",
+        "Settings/WakeToRun = false"
+      ],
+      "effect": "definition_matches=false，导致 start/status/uninstall 的前置条件失败；即使修复 D10 编码，服务仍不可用。"
+    },
+    "required_fix": "在 Same-Definition 中把已知默认值视为等价（missing 与实际默认一致时通过），或注册时构造不会被规范化的定义；新增真实注册后导出 XML 的回归，覆盖默认值省略。"
+  },
   "impact": {
-    "C2.7": "failed（真实系统服务/用户任务注册未通过）",
+    "C2.7": "failed（真实系统服务/用户任务注册未通过；修 D10 后仍有 D11）",
     "C3.7": "Windows 原生服务部分不可执行",
     "ready": false,
-    "task_created": false
+    "task_created": false,
+    "defect_ids": ["D10", "D11"]
   },
   "required_fix": [
-    "输出 UTF-16（含 BOM）并把声明改为 encoding='UTF-16'，或不写 XML 声明，或改用 Task Scheduler COM 直接注册",
+    "D10：输出 UTF-16（含 BOM）并把声明改为 encoding='UTF-16'，或不写 XML 声明；helper 的 UTF-8 读取路径需与选择一致",
+    "D11：Same-Definition 对省略的默认值做等价比较；用真实注册后的导出 XML 做回归",
     "新增真实解析回归：至少用 schtasks /Create /XML 或 COM RegisterTaskDefinition 解析生成文件；仅字符串断言不足",
     "修复后重建 wheel、重新 capture/plan/materialize 并完成注册→启动→就绪证明→正常排空→卸载"
   ],
   "not_done": [
-    "未修改产品源码（验收会话只取证）",
-    "未注册产品任务（注册失败）",
+    "未修改产品源码（验收会话只取证；rehearsal 的临时补丁已恢复）",
+    "官方产物注册失败；rehearsal 临时任务已删除",
     "未测试启动、就绪证明、正常排空、升级与登录恢复"
   ],
   "evidence_files": [
     "C:/v2-acceptance/c3-08dd1573/probes/service-defect.txt",
     "C:/v2-acceptance/c3-08dd1573/probes/service-com-probe.txt",
+    "C:/v2-acceptance/c3-08dd1573/soak/probes-service-rehearsal.txt",
+    "C:/v2-acceptance/c3-08dd1573/soak/rehearsal/actual-task.xml",
     "C:/v2-acceptance/c3-08dd1573/service/bundle/service.xml",
     "C:/v2-acceptance/c3-08dd1573/service/home/run/service-operations/ba3a3d2e-01b5-490a-a21d-8fe62ea8177a/"
   ],
