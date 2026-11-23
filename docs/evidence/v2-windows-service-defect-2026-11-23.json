@@ -57,10 +57,17 @@
       "apply_result": "state=unknown, effect=unknown, error_code=service_outcome_unresolved, registration={installed:true, definition_present:true, definition_matches:false, enabled:true, state:stopped}",
       "task_created": "是（Ready）；因 helper 卸载要求 definition_matches=true，临时任务由 schtasks /Delete 删除"
     },
+    "second_attempt": {
+      "patched_helper_sha256": "b4a167af32f0a11fcb84e8dde7822daba997852891e2f77f2e03ff38ff8a890b",
+      "bundle_plan_sha256": "cc64bf09dbba067e1b92b813277a80ea4b247fc2508423ebd0c1602c1a882572",
+      "operation_sha256": "f423505d0065b8e69cc138b23879fbcd94e3d171155231da8758bf47abbbb526",
+      "apply_result": "被前一次未决维护意图挡住：service_operation_unresolved（Resolve the earlier service maintenance intent first）；不是新缺陷",
+      "files_restored": "安装副本的 windows_services.ps1 恢复为仓库同哈希 968a5efd…；service_templates.py 恢复为 4bee6893…"
+    },
     "root_cause": {
       "file": "agent/src/omni/adapters/workers/windows_services.ps1",
       "function": "Same-Definition",
-      "behavior": "任务实际注册成功后，Task Scheduler 导出 XML 会省略取默认值的元素；helper 却要求这些元素逐个存在且文本相等。",
+      "behavior": "任务实际注册成功后，Task Scheduler 导出 XML 会省略取默认值的元素，并把 LogonTrigger/UserId 由 SID 归一化为账号名；helper 却要求这些元素逐个存在且文本完全相等。",
       "omitted_defaults": [
         "Principals/Principal/RunLevel = LeastPrivilege",
         "Triggers/LogonTrigger/Enabled = true",
@@ -70,9 +77,10 @@
         "Settings/Hidden = false",
         "Settings/WakeToRun = false"
       ],
-      "effect": "definition_matches=false，导致 start/status/uninstall 的前置条件失败；即使修复 D10 编码，服务仍不可用。"
+      "identity_normalization": "expected Triggers/LogonTrigger/UserId = S-1-5-21-3326786935-1187489864-109748913-1001；actual = CY\\cy；helper 的 InnerText 严格比较因此失败",
+      "effect": "definition_matches=false，导致 start/status/uninstall 的前置条件失败；即使修复 D10 编码与默认值，SID/账号名归一化仍会使校验失败。"
     },
-    "required_fix": "在 Same-Definition 中把已知默认值视为等价（missing 与实际默认一致时通过），或注册时构造不会被规范化的定义；新增真实注册后导出 XML 的回归，覆盖默认值省略。"
+    "required_fix": "Same-Definition 需要语义化：省略的默认值按默认值比较；LogonTrigger/UserId 与 Principal/UserId 统一解析为 SID（或账号名）后比较；用真实注册后导出的 XML 做回归。"
   },
   "impact": {
     "C2.7": "failed（真实系统服务/用户任务注册未通过；修 D10 后仍有 D11）",

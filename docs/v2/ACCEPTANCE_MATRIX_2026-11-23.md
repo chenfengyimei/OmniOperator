@@ -79,7 +79,7 @@
 - 隔离 home `71ab00ac…`，候选 venv 非 editable；capture（605 files/112 distributions）→ plan `44dc477b…` → materialize → verify exit 0 → operation-plan `3117ac19…`（7 步，`starts_service=false`）。
 - `apply-operation --approve` 返回 `state=unknown`、`error_code=service_outcome_unresolved`、`registration.installed=false`，任务不存在。
 - 根因（D10）：实际注册走 `adapters/workers/windows_services.ps1` → Task Scheduler COM `RegisterTask`；模板由 `service_templates.py::_windows` 生成 `<?xml version='1.0' encoding='utf-8'?>`，COM 抛 `0x8004131A (1,40) 无法切换编码`（`schtasks /Create /XML` 同样报 `task XML is malformed`）。同一 XML 去掉声明或改为 `encoding='UTF-16'` 后，临时任务注册/删除均成功。
-- 第二缺陷（D11）：在安装副本上临时去掉声明后重走全链，任务成功创建（Ready、enabled=true），但 Task Scheduler 导出省略默认值元素（`RunLevel=LeastPrivilege`、`LogonTrigger/Enabled=true`、`Settings/Enabled=true`、`StartWhenAvailable=false`、`RunOnlyIfNetworkAvailable=false`、`Hidden=false`、`WakeToRun=false`），helper `Same-Definition` 要求这些元素存在，返回 `definition_matches=false`，start/status/uninstall 前置仍失败。临时任务已删除、模板已恢复。
+- 第二缺陷（D11）：在安装副本上临时去掉声明后重走全链，任务成功创建（Ready、enabled=true），但 Task Scheduler 导出省略默认值元素（`RunLevel=LeastPrivilege`、`LogonTrigger/Enabled=true`、`Settings/Enabled=true`、`StartWhenAvailable=false`、`RunOnlyIfNetworkAvailable=false`、`Hidden=false`、`WakeToRun=false`），并把 `LogonTrigger/UserId` 从 SID 归一化为 `CY\cy`；helper `Same-Definition` 要求元素存在且文本严格相等，返回 `definition_matches=false`。第二次带默认值补丁的演练被前一次未决维护意图挡住（`service_operation_unresolved`），未走到 start；证据足以确认 D11 的两类归一化。临时任务已删除、安装副本文件已恢复。
 - 判定：**产品缺陷 D10+D11**，C2.7 失败；修复前不能声称 Windows 原生服务可用。
 
 ### 4.4 QQ/NapCat（C3.2）
@@ -117,7 +117,7 @@
 
 ## 6. 冻结后的顺序（不可跳步）
 
-1. **修缺陷 D10+D11**：D10 改 Windows 服务 XML 声明（去声明或 UTF-16，且 helper 解码一致）；D11 让 `Same-Definition` 对 Task Scheduler 省略的默认值做等价比较；新增真实注册后导出 XML 的回归；重建 wheel 并重跑 service 注册→启动→就绪→排空→卸载。
+1. **修缺陷 D10+D11**：D10 改 Windows 服务 XML 声明（去声明或 UTF-16，且 helper 解码一致）；D11 让 `Same-Definition` 语义化比较（省略默认值等价、`LogonTrigger/UserId` 与 `Principal/UserId` 统一为 SID/账号名）；新增真实注册后导出 XML 的回归；重建 wheel 并重跑 service 注册→启动→就绪→排空→卸载。
 2. **处理卸载文件访问窗口**：定位候选 venv 释放时序；若无法短期修复，明确记录为已知限制并保留重试路径，不得删除首次失败证据。
 3. **冻结算法与候选**：确认 `v2 == origin/v2 == 冻结 SHA`，工作树洁净；此后不再合并。
 4. **冻结全量**：`uv run --no-sync pytest -q`（≤4 worker）跑一次并保存 JUnit；当前候选尚无全量，不能沿用 `b395cd97`。
