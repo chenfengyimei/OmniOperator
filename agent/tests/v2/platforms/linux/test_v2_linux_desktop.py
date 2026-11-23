@@ -232,7 +232,10 @@ def test_same_uid_app_without_logind_membership_is_not_accepted_or_fake_empty_su
     "change,code",
     [
         (lambda f: f.seat.update(ActiveSession=variant("(so)", ["c2", "/other"])), "desktop_session_unverified"),
-        (lambda f: setattr(f.buses["a11y"], "guid", "4" * 32), "desktop_bus_peer_unverified"),
+        (
+            lambda f: setattr(f, "address", "unix:path=/run/user/1001/at-spi/bus_0,guid=zzzz"),
+            "desktop_bus_address_denied",
+        ),
         (lambda f: f.ops.processes.update({3: Process(3, 1001, 102.0)}), "desktop_bus_peer_unverified"),
         (lambda f: setattr(f, "address", "tcp:host=example.com,port=1"), "desktop_bus_address_denied"),
     ],
@@ -244,6 +247,16 @@ def test_wrong_seat_bus_guid_service_uid_or_remote_address_is_rejected(change, c
         result = await perform(request("targets"), ops=f.ops, factory=f)
         assert not result["ok"] and result["error_code"] == code
         assert sum(bus.closed for bus in f.buses.values()) == len(f.opened)
+
+    asyncio.run(scenario())
+
+
+def test_a11y_address_guid_is_transport_metadata_not_identity():
+    async def scenario():
+        f = Factory()
+        f.buses["a11y"].guid = "4" * 32
+        result = await perform(request("targets"), ops=f.ops, factory=f)
+        assert result["ok"]
 
     asyncio.run(scenario())
 

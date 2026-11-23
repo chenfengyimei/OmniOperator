@@ -188,9 +188,35 @@ class Connection:
                 )
             )
         except RemoteError:
+            # Display managers (LightDM/GDM) start Xorg outside any logind
+            # session. Accept it only when its explicit -seat argument equals
+            # the proven active seat; the socket owner, Xorg executable and
+            # session-display-derived socket path are already checked.
+            seat = X11Socket.seat_argument(process)
+            if inspector.session.seat and seat == inspector.session.seat:
+                return
             raise failure("desktop_x11_peer_unverified") from None
         if path != inspector.session.path:
             raise failure("desktop_x11_peer_unverified")
+
+    @staticmethod
+    def seat_argument(process: Process) -> str | None:
+        try:
+            raw = Path(f"/proc/{process.pid}/cmdline").read_bytes()[:4096]
+        except OSError:
+            return None
+        args = raw.split(b"\0")
+        for index, item in enumerate(args):
+            if item != b"-seat" or index + 1 >= len(args):
+                continue
+            value = args[index + 1]
+            if not 0 < len(value) <= 64:
+                return None
+            try:
+                return value.decode("utf-8", "strict")
+            except UnicodeError:
+                return None
+        return None
 
     def check(self) -> None:
         pid, uid, _gid = struct.unpack(
