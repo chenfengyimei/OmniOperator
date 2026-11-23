@@ -283,5 +283,12 @@
     "arch": "arm64",
     "tested_os": "macOS 27.2.1 (26B131)",
     "signing": "ad hoc"
+  },
+  "desktop_flake_recheck": {
+    "attempts": 3,
+    "passed": 3,
+    "failed": 0,
+    "runtime": "candidate venv + installed helper 9360128b (TCC granted)",
+    "note": "the earlier first-attempt desktop_target_changed did not reproduce in three consecutive mutate acceptances; no code change made without evidence"
   }
 }
