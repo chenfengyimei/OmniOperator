@@ -9,7 +9,7 @@
   "branch": "k16-storyboard",
   "contract": "docs/v2/contracts/V2_K16_LONG_VIDEO_SCENES.md",
   "files": {
-    "docs/v2/contracts/V2_K16_LONG_VIDEO_SCENES.md": "c6908e08ae413a130adf56aa501491b9e68d7082c95472e54d6b435b07d4fba0",
+    "docs/v2/contracts/V2_K16_LONG_VIDEO_SCENES.md": "815db3539677a5cedf48fceceedcc173fe7f543b5efc57c0d3b7c3435961f3eb",
     "docs/v2/contracts/V2_K16_REAL_ACCEPTANCE.md": "a6ad2ff7b67a7d5296d05169fca2bdcbfa720c443911d2218a238d621320acd6",
     "docs/v2/README.md": "5bad7fb8f3e188af90eb41473a96db070ada06bc0b19e4dfcca3b418999561c5",
     "docs/tasks/v2-agent-core-parity.json": "f5c618aaf0bed86b0d3b83d64c0191b04c966aceb9016506a11e1b55039bde90",

@@ -9,10 +9,10 @@
   "branch": "k16-storyboard",
   "contract": "docs/v2/contracts/V2_K16_LONG_VIDEO_SCENES.md",
   "files": {
-    "docs/v2/contracts/V2_K16_LONG_VIDEO_SCENES.md": "65f7847fa2c3bba923d25fb2aaf876f9efa1451c684dcf7fb9f0bf13fb61e112",
+    "docs/v2/contracts/V2_K16_LONG_VIDEO_SCENES.md": "815db3539677a5cedf48fceceedcc173fe7f543b5efc57c0d3b7c3435961f3eb",
     "docs/v2/README.md": "5bad7fb8f3e188af90eb41473a96db070ada06bc0b19e4dfcca3b418999561c5",
-    "docs/tasks/v2-agent-core-parity.json": "4c57dc72727880e12ec09dc50d6c5ef678441e178caa3707fef181665f033d02",
-    "docs/HANDOFF.md": "f42f82d1323ed8eca2537926ed254313bdb17ab2701ec86070ce697f2dc6bf46"
+    "docs/tasks/v2-agent-core-parity.json": "f5c618aaf0bed86b0d3b83d64c0191b04c966aceb9016506a11e1b55039bde90",
+    "docs/HANDOFF.md": "0d50382f51f03a2f8e63f6fa27980a2a1e50afaab40497d3e3c3099dd25cf32c"
   },
   "hash_scope": "SHA-256 of git index blob bytes (LF-normalized); excludes this evidence file and generated docs/index.",
   "basis": "docs/v2/contracts/V2_K16_REAL_ACCEPTANCE.md 与 docs/evidence/v2-k16-real-acceptance.json",

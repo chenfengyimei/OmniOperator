@@ -9,11 +9,11 @@
   "branch": "k16-storyboard",
   "contract": "docs/v2/contracts/V2_K16_REAL_ACCEPTANCE.md",
   "files": {
-    "docs/v2/contracts/V2_K16_REAL_ACCEPTANCE.md": "6445ad73acf43798e8f51327f7f026fc011c3bed55aef257566a60b908fa1f41",
+    "docs/v2/contracts/V2_K16_REAL_ACCEPTANCE.md": "a6ad2ff7b67a7d5296d05169fca2bdcbfa720c443911d2218a238d621320acd6",
     "docs/v2/contracts/V2_MEDIA_SCENES.md": "40009626806f860222bebda5bc3242003e2a633c2749f6018790a14fc3a1a860",
     "docs/v2/README.md": "5bad7fb8f3e188af90eb41473a96db070ada06bc0b19e4dfcca3b418999561c5",
-    "docs/tasks/v2-agent-core-parity.json": "4c57dc72727880e12ec09dc50d6c5ef678441e178caa3707fef181665f033d02",
-    "docs/HANDOFF.md": "f42f82d1323ed8eca2537926ed254313bdb17ab2701ec86070ce697f2dc6bf46"
+    "docs/tasks/v2-agent-core-parity.json": "f5c618aaf0bed86b0d3b83d64c0191b04c966aceb9016506a11e1b55039bde90",
+    "docs/HANDOFF.md": "0d50382f51f03a2f8e63f6fa27980a2a1e50afaab40497d3e3c3099dd25cf32c"
   },
   "hash_scope": "SHA-256 of git index blob bytes (LF-normalized); excludes this evidence file and generated docs/index.",
   "material": {
@@ -390,5 +390,17 @@
       "result": "240 样本 credits 从 1/12 变为 2/12、内容帧 11→10，无收益，已回退，未提交。"
     }
   ],
-  "rebased_on": "8412e773"
+  "rebased_on": "8412e773",
+  "precision_spot_check_240": {
+    "cuts": 12,
+    "true_cuts": 8,
+    "false_like": [
+      3.708,
+      113.083,
+      157.833,
+      272.125
+    ],
+    "note": "before/after 对人工检查：3.708 仍为片头云层/淡入；113.083、157.833、272.125 为同场景动作/机位；8 个为真实场景变化。主观判定，未逐帧复核。",
+    "precision_estimate": "8/12 ≈ 0.67"
+  }
 }
