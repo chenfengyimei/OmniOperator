@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`ba8c9f4fb480209af5bcef79573d320d4ec01edd4811351cb8f6c681f78368ca`。包含 65 个职责模块、854 个源码/界面文件。
+源码指纹：`ea0455133bb0733a50d3f83c1907087bd3e01d48a1f55a54eb802a30f949b08d`。包含 65 个职责模块、854 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -519,7 +519,7 @@
 | [agent/src/omni/composition/service_exchange.py](../../agent/src/omni/composition/service_exchange.py) | 187 | Assemble reviewed exchanges and their explicitly pinned root session; never elevates or switches default entrypoints. |
 | [agent/src/omni/composition/service_operations.py](../../agent/src/omni/composition/service_operations.py) | 77 | Assemble one explicit offline service-registration command; production entry remains unchanged. |
 | [agent/src/omni/composition/service_runner.py](../../agent/src/omni/composition/service_runner.py) | 68 | Start only a verified immutable deployment as its declared account; never registers a native service. |
-| [agent/src/omni/composition/serving.py](../../agent/src/omni/composition/serving.py) | 68 | Compose the single-worker HTTP process for manual and pinned service startup. |
+| [agent/src/omni/composition/serving.py](../../agent/src/omni/composition/serving.py) | 83 | Compose the single-worker HTTP process for manual and pinned service startup. |
 
 文档：[docs/V2_REFACTOR.md](../../docs/V2_REFACTOR.md)
 

@@ -488,6 +488,14 @@ K13.cron_model_design 已记录**实现前设计合同**（纯文档，无源码
 - **K14/K15 前缀测试协调（精确版）**：`test_v2_memory_prefix.py` 的 4 项断言绑定当前 `memory_system` 组成；D1 接线时必须同步调整该测试（P1-a 后系统仅 persona、memory 变独立块、notice 走尾），并在证据中说明是合同同步而非弱化断言。合并顺序无硬依赖。
 - **决策材料**：k14 分支另有 `V2_K14_K15_DECISION_LEDGER.md`，与本分支的 `V2_REMAINING_DECISIONS.md`（D1–D9/R1–R5/T1–T5）是两份独立决策台账，A 汇总给所有者时应并列而非相互覆盖；K16 的 `V2_K16_REMAINING_DECISIONS.md` 同理。
 
+## 2026-11-23 C/D/E/G 四批集成（Windows，基线 `0793f254`）
+
+- **C 视频分镜** `k16-storyboard`（`489d093b`）→ 合并 **`f1469679`**：K16 渐变合并/黑边（letterbox+pillar）补偿/邻域尖峰守卫/暗部增益与采样上限，改 `domain/media.py`+`workers/media.py`；媒体专项 **120 passed（37.46s）**，索引一致。
+- **D Android 与人格** `k14-visual-persona`（`fa1bac0b`）→ 合并 **`30310e60`**：K14 视觉子代理离线核心/SoM/explore_app 三层接线与 strict 扩展（433 文件）；**人格前缀测试** `test_v2_memory_prefix.py`（4 项：persona+captured 为冻结 system 前缀、forgotten/erased 离开前缀、persona 编辑或撤回改变前缀字节、顺序与 notice 尾稳定）与 `test_v2_memory_initial_gate.py`（3 项：文本不得晋升、仅显式 `is_first`、非 owner 不 pin）为**锁定现有组合的测试**，明确不改生产前缀；专项 **77 passed（93.29s）**。
+- **E 工具与 B 站** `k18-read-cache`（`019f0bce`）→ 合并 **`3655d269`**：K18 读缓存合同核对通过——只缓存 `video`/`whois`（各 24h），400 条/8MiB/单条 64KiB，键含 `(agent, config, authority, operation, target, limit)`，凭据换代即换桶并清旧代，命中重核 authority 否则弃桶回源；**风控暂停先于缓存**；13 个端点永不缓存、`nav` 有意不缓存；命中返回独立副本且模型文本与现读逐字节一致；失败/风控码不缓存；无新表/迁移/路由。另含 D8 调度评审阻塞（只统计 `purpose='turn'`）与 D9 浏览器 URL floor；专项 **169 passed（161.19s）**。台账按批次并集 **114 项/18 需求**，保留未验事项。
+- **G Linux 与容器** `linux-container-g3`（`37ab8640`）→ 合并 **`da20dbdf`**：`composition/serving.py` 自行接管 `SIGTERM`/`SIGINT`（uvicorn 优雅关闭后恢复并重发捕获信号时由本处理器吸收），**服务退出码 0**，容器检查可证明完整关闭；Linux 容器（Lima/Ubuntu 26.04/Docker 29.10）与原生专项证据入库；专项 **55 passed（33.32s）**。
+- **收尾门槛**：`docs/index` 在合并后源码再生 **65/854/464/94**、二次运行零差异；strict **433 文件 0 错 0 警**；迁移仍单头 `v2_0052`（52 个、151 表、无分支）。四批均**未**实现真实账号/设备、X11/Wayland 真机与 72 小时验收，状态保持待验。
+
 ## 追溯入口
 
 - [旧交接记录](history/pre-layout-2026-11-18/HANDOFF.md)、[旧重构记录](history/pre-layout-2026-11-18/V2_REFACTOR.md)只证明所属版本，不作为当前待办。
