@@ -136,5 +136,16 @@
     "direct_connect": "as omni with XDG_RUNTIME_DIR=/run/user/10001, LinuxOps.connect() succeeded for both /run/dbus/system_bus_socket (root peer) and /run/user/10001/bus",
     "implication": "the desktoop_bus_peer_unverified seen in the probe is not raised by LocalBus.connect; it must come from a later owner/connection check (likely open_accessibility or the X11 peer proof)",
     "next": "replicate SessionInspector.open(accessibility=True) as omni outside the backend, and log which owner/connection call fails; also test psutil access to root PIDs"
+  },
+  "a11y_guid": {
+    "session_proof": "confirmed: Session path /org/freedesktop/login1/session/_347, identity 47, kind x11, seat0, display :0",
+    "failure_point": "open_accessibility -> open_bus(Endpoint.accessibility(address)) -> desktop_bus_peer_unverified",
+    "address": "unix:path=/run/user/10001/at-spi/bus_0,guid=cb55a6bfb48a9ce24e39b0476b03b56d",
+    "get_id": "5ad915ce809b4268c5c919b86b03b56d",
+    "mismatch": "the guid embedded in org.a11y.Bus.GetAddress does not equal the bus's org.freedesktop.DBus.GetId, so the endpoint guid check fails",
+    "options": [
+      "contract decision by A: is the address guid required to equal GetId on at-spi buses?",
+      "or environment: restart the at-spi bus and re-check whether the address file is stale"
+    ]
   }
 }
