@@ -31,7 +31,7 @@
 | C3.1-W1 干净目录离线安装（check_v2_installation） | 同机全新目录 + 固定基础解释器 + 离线依赖包 | `8412e773` | **部分通过**：base/install/manager/candidate/launcher/current 六阶段 verified；首次卸载 failed（rc=1，stderr 150B，SHA `98b1d782…`）；延迟 40s 外部维护器续跑成功 | `docs/evidence/v2-windows-install-check-2026-11-23.json`；`C:/v2-acceptance/c3-08dd1573/fresh-install-final/report.json` | 首次失败与此前两轮（`a6e5b33a`、`7132c57f`）同一 stderr SHA，确定性；checker `verified=false`，不得称通过 |
 | C3.1-W2 install→update→rollback→uninstall 链 | 同机隔离 home，独立 manager，离线 | `8412e773` | **通过（带卸载重试）**：上一版安装 → stage/prepare/environment/install 候选 → live rollback → 双候选卸载（数据/备份保留） | `docs/evidence/v2-windows-install-chain-2026-11-23.json`；`C:/v2-acceptance/c3-08dd1573/chain3/transcript.json` | 更新含 backup + rollback-check 还原校验；rollback 只换代码指针、不恢复数据库；卸载首次 `cleanup_pending`，外部维护器延迟重试成功 |
 | C3.1-W3 真正干净机器 install→update→rollback→uninstall | 干净 Windows OS/VM、无开发工具、管理员 | — | **阻塞** | `probes/environment.txt` | 本机无管理员、无 Windows Sandbox、无可用 VM；同机隔离不能替代干净 OS |
-| C2.7 Windows 原生服务（Task Scheduler 用户任务） | 不可变部署 + 真实注册 | `8412e773`（模板 blob 与 08dd1573 相同） | **失败（产品缺陷 D10+D11）**：capture/plan/materialize/verify 通过；`apply-operation` 返回 unknown，任务未创建（D10：COM `0x8004131A (1,40) 无法切换编码`）。修掉编码后重走演练：任务可创建，但 `definition_matches=false`（D11：真实导出省略默认值） | `docs/evidence/v2-windows-service-defect-2026-11-23.json`；`C:/v2-acceptance/c3-08dd1573/probes/service-com-probe.txt`；`C:/v2-acceptance/c3-08dd1573/soak/probes-service-rehearsal.txt` | D10 可由去声明/UTF-16 声明修复；D11 需让 `Same-Definition` 把省略的默认值视为等价。两处都修前服务不可用 |
+| C2.7 Windows 原生服务（Task Scheduler 用户任务） | 不可变部署 + 真实注册 | `8412e773`（模板 blob 与 08dd1573 相同） | **失败（D10+D11+D11c）；修复演练已跑通注册→启动→就绪→正常排空→卸载**：官方产物注册失败（D10 编码）；补 D10+D11 后注册、启动、HTTP ready=true、正常排空、卸载均 succeeded；只读 `service status` 仍因 D11c 报 ready=false | `docs/evidence/v2-windows-service-defect-2026-11-23.json`；`C:/v2-acceptance/c3-08dd1573/svc2/rehearsal/transcript.txt` | D11c：`service_query._task_identity` 不接受 Task Scheduler 省略的 Principal/RunLevel；三处都需修并随 wheel 重建 |
 | C3.2 QQ/NapCat 扫码、白名单、收发、断线重连 | 真实 QQ 登录 + 对端账号 + 窗口 | `8412e773` | **阻塞**：NapCat 进程在跑、WebUI 6099 可访问，但 `GetQQLoginInfo` 为空、`OB11Config` 返回 `Not Login`，OneBot WS 3001 未监听 | `docs/evidence/v2-qq-napcat-probe-2026-11-23.json`；`probes/napcat.txt` | 未扫码、未重启 NapCat、未发送；无对端账号与窗口 |
 | C3.5 安卓真机输入/Unicode/滚动/恢复 | 已授权安卓设备 | — | **阻塞**：`adb devices -l` 与 `adb mdns services` 均为空；无 USB ADB 设备；AVD 存在但无 emulator 可执行文件 | `docs/evidence/v2-android-device-probe-2026-11-23.json`；`probes/android.txt` | 真机与模拟器都不可用；不得用桌面假设备替代 |
 | C3.3 B 站账号读取/发表审批链/风控暂停 | 真实 B 站测试账号 | — | **阻塞** | — | 无测试账号与窗口；C1.10/C1.12 也未实施 |
@@ -80,7 +80,8 @@
 - `apply-operation --approve` 返回 `state=unknown`、`error_code=service_outcome_unresolved`、`registration.installed=false`，任务不存在。
 - 根因（D10）：实际注册走 `adapters/workers/windows_services.ps1` → Task Scheduler COM `RegisterTask`；模板由 `service_templates.py::_windows` 生成 `<?xml version='1.0' encoding='utf-8'?>`，COM 抛 `0x8004131A (1,40) 无法切换编码`（`schtasks /Create /XML` 同样报 `task XML is malformed`）。同一 XML 去掉声明或改为 `encoding='UTF-16'` 后，临时任务注册/删除均成功。
 - 第二缺陷（D11）：在安装副本上临时去掉声明后重走全链，任务成功创建（Ready、enabled=true），但 Task Scheduler 导出省略默认值元素（`RunLevel=LeastPrivilege`、`LogonTrigger/Enabled=true`、`Settings/Enabled=true`、`StartWhenAvailable=false`、`RunOnlyIfNetworkAvailable=false`、`Hidden=false`、`WakeToRun=false`），并把 `LogonTrigger/UserId` 从 SID 归一化为 `CY\cy`；helper `Same-Definition` 要求元素存在且文本严格相等，返回 `definition_matches=false`。第二次带默认值补丁的演练被前一次未决维护意图挡住（`service_operation_unresolved`），未走到 start；证据足以确认 D11 的两类归一化。临时任务已删除、安装副本文件已恢复。
-- 判定：**产品缺陷 D10+D11**，C2.7 失败；修复前不能声称 Windows 原生服务可用。
+- 第三缺陷（D11c）：在 svc2 全新 home 上同时应用 D10+D11 后，注册 succeeded（definition_matches=true）、start succeeded（boot `a71ef415…`、pid 93500、ready=true、HTTP 200）、stop succeeded（closed=true、锁释放）、uninstall succeeded（任务删除）。但同一运行的 `service status` 报 ready=false、manager `service_definition_unverified`：`service_query._task_identity` 要求 Principal 恰含 `RunLevel`，而真实导出省略该默认值。运行中补丁查询文件会立刻变成 `deployment_program_changed`，所以该修复必须随 wheel 一起 capture/materialize。
+- 判定：**产品缺陷 D10+D11+D11c**，C2.7 失败；修复演练证明前两处修好后真实服务生命周期可用，第三处决定状态/就绪报告。演练任务已删除、端口关闭、进程结束，安装副本文件已恢复。
 
 ### 4.4 QQ/NapCat（C3.2）
 
@@ -117,7 +118,7 @@
 
 ## 6. 冻结后的顺序（不可跳步）
 
-1. **修缺陷 D10+D11**：D10 改 Windows 服务 XML 声明（去声明或 UTF-16，且 helper 解码一致）；D11 让 `Same-Definition` 语义化比较（省略默认值等价、`LogonTrigger/UserId` 与 `Principal/UserId` 统一为 SID/账号名）；新增真实注册后导出 XML 的回归；重建 wheel 并重跑 service 注册→启动→就绪→排空→卸载。
+1. **修缺陷 D10+D11+D11c**：D10 改 Windows 服务 XML 声明（去声明或 UTF-16，且 helper 解码一致）；D11 让 `Same-Definition` 语义化比较（省略默认值等价、`LogonTrigger/UserId` 与 `Principal/UserId` 统一为 SID/账号名）；D11c 让 `service_query._task_identity` 接受缺省 Principal 字段并规范化 RunLevel；三处都随候选重建后重跑注册→状态→启动→就绪→排空→卸载。
 2. **处理卸载文件访问窗口**：定位候选 venv 释放时序；若无法短期修复，明确记录为已知限制并保留重试路径，不得删除首次失败证据。
 3. **冻结算法与候选**：确认 `v2 == origin/v2 == 冻结 SHA`，工作树洁净；此后不再合并。
 4. **冻结全量**：`uv run --no-sync pytest -q`（≤4 worker）跑一次并保存 JUnit；当前候选尚无全量，不能沿用 `b395cd97`。
