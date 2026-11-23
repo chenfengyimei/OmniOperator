@@ -175,6 +175,7 @@
   "evidence_files": [
     "docs/v2/platforms/windows/WINDOWS_SERVICE_FIX_RECIPE_2026-11-23.md",
     "docs/v2/platforms/windows/windows-service-fixes-2026-11-23.patch",
+    "docs/evidence/v2-windows-service-fix-build-2026-11-23.json",
     "C:/v2-acceptance/c3-08dd1573/probes/service-defect.txt",
     "C:/v2-acceptance/c3-08dd1573/probes/service-com-probe.txt",
     "C:/v2-acceptance/c3-08dd1573/soak/probes-service-rehearsal.txt",
@@ -185,5 +186,6 @@
   ],
   "whole_v2_complete": false
 }
+
 
 

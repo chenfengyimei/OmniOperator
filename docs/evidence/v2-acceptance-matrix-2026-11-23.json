@@ -67,11 +67,14 @@
       "status": "failed_product_defect",
       "result": "官方产物 apply-operation 返回 unknown（D10 编码）；svc2 补 D10+D11 后注册/启动/HTTP ready/正常排空/卸载均 succeeded；svc3 加 D11c 后 status 仍被 D11d（schtasks 声明 UTF-16 但字节 UTF-8）挡住；svc4 预置 D10+D11+D11c+D11d 后 definition_matches=true、生命周期再次通过，但 status manager state=unknown、overall ready=false（D11e：只读查询不补 running/PID）",
       "defect_ids": ["D10", "D11", "D11c", "D11d", "D11e"],
+      "fix_build": {"wheel_sha256": "a2d762dc84178e982fff9d82c9b6d072c4d94ced562ee48bd3a5d8de363b7eea", "install": "succeeded/definition_matches=true", "start": "succeeded/boot e07c933c/pid 118604/HTTP ready=true", "stop": "succeeded/closed=true", "uninstall": "succeeded/task removed", "status": "definition_matches=true but manager state unknown/overall ready=false (D11e)"},
       "evidence": [
         "docs/evidence/v2-windows-service-defect-2026-11-23.json",
         "C:/v2-acceptance/c3-08dd1573/probes/service-com-probe.txt",
         "C:/v2-acceptance/c3-08dd1573/soak/probes-service-rehearsal.txt",
-        "C:/v2-acceptance/c3-08dd1573/svc2/rehearsal4/transcript.json"
+        "C:/v2-acceptance/c3-08dd1573/svc2/rehearsal4/transcript.json",
+        "docs/evidence/v2-windows-service-fix-build-2026-11-23.json",
+        "C:/v2-acceptance/c3-08dd1573/fixsvc/accept/transcript.json"
       ]
     },
     {
@@ -189,4 +192,5 @@
   },
   "whole_v2_complete": false
 }
+
 
