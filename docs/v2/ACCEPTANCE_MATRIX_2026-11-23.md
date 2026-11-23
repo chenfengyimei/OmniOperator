@@ -4,6 +4,8 @@
 >
 > 纪律：失败不改写为通过；首次失败与续跑成功分别保留；证据不含凭据、消息正文或像素；不复用旧候选的全量结果冒充当前候选。
 
+> **2026-11-24 更新（A，夜间总集成）**：以下矩阵记录的是 `b29409d0` 的历史状态。当前被测候选为 **`dae24cf7`**（产品代码与 `05b44447` 相同；仅安装检查器重试 + 回归），wheel `7afc5b7d…`。最终全量 **8648 通过 / 0 失败 / 10 跳过（2872.39s）**，Windows 服务链与官方安装链全 0，安装检查 `verified=true`，**72h 长跑已启动**。详见第 5 节与 `docs/evidence/v2-release-candidate-05b44447-2026-11-24.json`。
+
 ## 1. 候选身份
 
 | 项 | 值 |
@@ -106,11 +108,19 @@
 - 当前 d7971bc4：安装链/检查/72h 均未在新候选重跑；服务生命周期因 D11e-R 失败。
 - `whole_v2_complete=false`，`production_release_ready=false`。
 
+## 5. 2026-11-24 最终候选复核（A）
 
+| 项 | 候选 | 结果 | 证据 |
+| --- | --- | --- | --- |
+| FULL-1 最终全量 | `dae24cf7` | **通过**：8648 通过 / 0 失败 / 10 跳过，2872.39s；前一代 `05b44447` 也为 8647/0/10 | `C:/v2-acceptance/final-dae24cf7/full.xml`（SHA256 `b21e1cb8…`）、`full.log` |
+| R4 处置 | — | 22 → 0：20 项 token 预算由 `utf8-envelope-v2` 修复；shell 进程树 / UIA `act` 全量与隔离均过（并行抖动）；`run_compaction` 2 项按截断契约修正夹具 | `docs/evidence/v2-r4-token-envelope.json`、`docs/v2/contracts/V2_TOKEN_ENVELOPE.md` |
+| C2.7 Windows 服务链 | `dae24cf7`（wheel `7afc5b7d…`） | **通过**：14 步 exit 0；start 29.6s（`observed.ready=true`）；status `state=running`、pid `141552` == runtime pid、`definition_matches=true`、`ready=true`；stop closed；uninstall 任务移除 | `C:/v2-acceptance/release-05b44447/service-chain-transcript.json` |
+| C3.1-W2 官方安装链 | 同上 | **通过**：13 步 exit 0（上一版安装 205.9s → stage/prepare/environment 94.7s → install → rollback → doctor → 双卸载，attempt1 `cleanup_pending`、attempt2 成功；最终 `candidates=[]`、数据/备份保留） | `C:/v2-acceptance/release-05b44447/accept-chain-transcript.json` |
+| C3.1-W1 安装检查 | 同上 | **通过（检查器已修）**：`verified=true`（308.1s）；attempt1 `uninstall_cleanup_pending` → attempt2 成功；产品行为不变，检查器补外部重试与尝试记录 | `C:/v2-acceptance/check-05b44447-retry2/report.json`；提交 `dae24cf7` |
+| C3.6 72h | 同上（隔离实例） | **运行中**：开始 `2026-11-24T02:26:08+08:00`，结束 `2026-11-27T02:26:08+08:00`；60s 间隔，71+ 采样全 `ok=true`（RSS ≈140MB/线程 11/句柄 349/children 0/cleanup 0/failed 0/unknown 0）；会话独立守护自动 `--resume` | `C:/v2-acceptance/soak-05b44447/evidence`（manifest/samples/writer.lock）、`guardian.log` |
+| macOS | `a85ac83c`（已并入） | 用户域闭环、桌面、Keychain、升级回滚真机通过；缺 Developer ID/公证、helper TCC 重授权、第二台 Mac、系统域（失败关闭） | `docs/evidence/v2-macos-release-candidate-2026-11-23.json` |
+| Linux | G `32d35898`（已并入） | 真实 X11 身份、frame 截屏通过；Wayland portal 缺授权/撤回 | `docs/evidence/v2-linux-x11-probe-2026-11-23.json` |
+| C3.1-W3 干净机 | — | **仍阻塞**：需一台干净 Windows；本机链通过不等于干净机通过 | 待所有者提供 |
+| C3.2/C3.3/C3.5/C3.4 | — | **仍阻塞**：QQ/NapCat 账号、B 站账号、安卓设备、兼容视觉模型均缺 | 待所有者提供 |
 
-
-
-
-
-
-
+> 结论：**产品缺陷已清零、候选已冻结（`dae24cf7`）、全量绿、官方产物链与检查通过、72h 运行中**；`whole_v2_complete=false`，`production_release_ready=false` 仅因 72h 窗口、干净机、签名/公证与真实账号/设备未完成。
