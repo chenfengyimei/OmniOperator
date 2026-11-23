@@ -248,5 +248,29 @@
     "portal": "xdg-desktop-portal not installed; org.freedesktop.portal.Desktop has no RemoteDesktop/ScreenCast interface on the session bus",
     "conclusion": "Wayland authorization/revocation/pause cannot be tested until a Wayland compositor (GNOME Shell/KDE Plasma) and its portal backend are installed, or a real desktop is provided",
     "foreground": "the foreground action contract requires the AT-SPI node-proof flow (takeover/policy/UUIDs) driven by the application layer; the bare backend call is rejected by design (desktop_invalid, not_dispatched)"
+  },
+  "x11_capture_success": {
+    "session": "KWin 6.6.4 X11, omni session, LightDM autologin, vkms",
+    "frame_crop": {
+      "client_window": 4194341,
+      "frame": 4194340,
+      "offset": [
+        0,
+        0
+      ],
+      "parent_reply_len": 36
+    },
+    "result": {
+      "status": "sample_passed",
+      "session_kind": "interactive",
+      "capture": {
+        "sha256": "a7bed3fffdc2e94fb0bd4971efc99afb7b6476a2e15c0659e15a84c5f96057b2",
+        "bytes": 4500,
+        "width": 420,
+        "height": 260,
+        "method": "x11_composite"
+      }
+    },
+    "note": "frame-crop path (NameWindowPixmap on the redirected root child + client-offset crop) produced a real X11 capture; this is the success path for G3 identity+capture"
   }
 }

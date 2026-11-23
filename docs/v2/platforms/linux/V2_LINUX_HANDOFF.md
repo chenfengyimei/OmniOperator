@@ -277,3 +277,5 @@ KWin 6.6.4 尝试：`_NET_CLIENT_LIST` 存在（列表通过）、target() 合�
 Wayland 环境核对：当前只有 KWin **X11** 会话；`xdg-desktop-portal` 未安装，会话总线上 `org.freedesktop.portal.Desktop` 没有 RemoteDesktop/ScreenCast 接口。G4 的授权/撤回/暂停需要先安装 Wayland 合成器（GNOME Shell/KDE Plasma）及其 portal 后端，或提供真实桌面。前台操作需走应用层的 AT-SPI 节点证明流程（observe→node proof→foreground），裸 backend 调用按设计被拒（已记录拒绝路径）。
 
 Compiz 1:0.9.14.2 复测：`_NET_CLIENT_LIST` 存在、target 合法、watch 通过，但合成请求仍 **BadMatch(8)**。至此 openbox+xcompmgr、KWin 6.6.4、Compiz 均在客户端窗口的 NameWindowPixmap/GetImage 上失败——当前实现假设的“客户端窗口被重定向”在现有环境均不成立。按所有者“全部允许”，下一步实现 **frame 裁剪** 路径：找到被重定向的 root 子窗口（frame），NameWindowPixmap 后按客户端几何裁剪；需要合同定义装饰/边框规则并补测试。
+
+**X11 截屏成功（frame 裁剪）**：KWin 6.6.4 会话下，`accept_linux_desktop.py --fixture-pid <pid> --consent-read-ui --native-backend x11 --capture-window` 返回 `status=sample_passed`、`session_kind=interactive`，截屏 `{sha256=a7bed3ff…, bytes=4500, width=420, height=260, method=x11_composite}`；frame 4194340、客户端 4194341、偏移 (0,0)。实现为 `parent()`/`translate()`/`frame_image()` + `capture()` 的 frame 裁剪。下一步：更新测试 fake wire（新增方法）与回归，再推进前台/用户介入与 Wayland。
