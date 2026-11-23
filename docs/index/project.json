@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "ac342eb21f687a02145bd15d693c998556ac725614cb7689a2dd0d2db7c14708",
+  "source_sha256": "9da276468924581d9a0ef1fe866ac97f2d0862782cafcde3ba0c151b1337bf3b",
   "modules": [
     {
       "id": "v2-domain",
@@ -549,7 +549,7 @@
         "agent/src/omni/composition/service_runner.py",
         "agent/src/omni/composition/serving.py"
       ],
-      "lines": 3300,
+      "lines": 3315,
       "dependencies": [
         "v2-adapters",
         "v2-application",
@@ -75149,7 +75149,7 @@
       "path": "agent/src/omni/composition/serving.py",
       "module": "v2-composition",
       "python_module": "omni.composition.serving",
-      "lines": 68,
+      "lines": 83,
       "imports": [
         "omni.composition.http",
         "omni.domain.contracts"
@@ -75157,7 +75157,7 @@
       "symbols": [
         {
           "name": "serve_instance",
-          "line": 13,
+          "line": 15,
           "kind": "function",
           "parameters": [
             "home",
@@ -75180,10 +75180,23 @@
         },
         {
           "name": "serve_instance.request_shutdown",
-          "line": 45,
+          "line": 47,
           "kind": "function",
           "parameters": [],
           "annotations": {}
+        },
+        {
+          "name": "serve_instance.handle_termination",
+          "line": 71,
+          "kind": "function",
+          "parameters": [
+            "_signum",
+            "_frame"
+          ],
+          "annotations": {
+            "_signum": "int",
+            "_frame": "FrameType | None"
+          }
         }
       ],
       "summary": "Compose the single-worker HTTP process for manual and pinned service startup."

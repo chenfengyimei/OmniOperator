@@ -253,3 +253,5 @@ uv run --no-sync python agent/scripts/accept_native_credentials.py --cleanup <�
 重启 at-spi 总线（kill launcher/registryd 后按需重新激活）再测：地址 `guid=833ae62b…b03bb37`、`GetId=db808a07…b03bb37`，**仍不一致**，排除地址过期。即 Ubuntu 26.04/at-spi2-core 下 `GetAddress` 的 guid 本就不等于该总线的 `GetId`。需 A 决策：`Endpoint.accessibility` 是否必须要求 guid==GetId，还是接受地址 guid 为不透明值并用其他方式校验对端。已作为合同问题记录。
 
 X11 侧定位：`linux_x11_socket.py` 要求 socket 身份 + Xorg 进程 uid/会话 + 可执行名 `Xorg`。当前 LightDM 把 Xorg 放在 `system.slice/lightdm.service`，**没有 logind 会话**，用户会话（x11/seat0）并不拥有 X 服务器，因此 `server_session` 无法把 Xorg 绑定到活动会话 → `desktop_x11_peer_unverified`。两条出路（startx 式 Xorg 会引入 tty 会话类型与 x11 要求的冲突，或由 A 决定 DM 启动的 Xorg 如何证明）都需 A 或真实桌面环境。至此 G3 的两个阻塞点都已精确定位：a11y 地址 guid≠GetId、DM 启动的 Xorg 无 logind 会话。
+
+两个待 A 决策的合同问题已整理成一页说明：[Linux 会话证明问题](../../contracts/V2_LINUX_SESSION_PROOF_QUESTIONS.md)（a11y 地址 guid 是否必须等于 GetId；DM 启动的 Xorg 如何证明会话归属），含现象、复现命令、可选方案与建议。
