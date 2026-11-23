@@ -279,3 +279,5 @@ Wayland 环境核对：当前只有 KWin **X11** 会话；`xdg-desktop-portal` �
 Compiz 1:0.9.14.2 复测：`_NET_CLIENT_LIST` 存在、target 合法、watch 通过，但合成请求仍 **BadMatch(8)**。至此 openbox+xcompmgr、KWin 6.6.4、Compiz 均在客户端窗口的 NameWindowPixmap/GetImage 上失败——当前实现假设的“客户端窗口被重定向”在现有环境均不成立。按所有者“全部允许”，下一步实现 **frame 裁剪** 路径：找到被重定向的 root 子窗口（frame），NameWindowPixmap 后按客户端几何裁剪；需要合同定义装饰/边框规则并补测试。
 
 **X11 截屏成功（frame 裁剪）**：KWin 6.6.4 会话下，`accept_linux_desktop.py --fixture-pid <pid> --consent-read-ui --native-backend x11 --capture-window` 返回 `status=sample_passed`、`session_kind=interactive`，截屏 `{sha256=a7bed3ff…, bytes=4500, width=420, height=260, method=x11_composite}`；frame 4194340、客户端 4194341、偏移 (0,0)。实现为 `parent()`/`translate()`/`frame_image()` + `capture()` 的 frame 裁剪。下一步：更新测试 fake wire（新增方法）与回归，再推进前台/用户介入与 Wayland。
+
+Linux 专项在干净树（`origin/linux-container-g3`）为 **78 passed, 2 errors**；2 个 error 都来自 `test_linux_window_coordinates_survive_http_without_persisting_content` 的 offline_guard（`filesystem.real_instance`）。用全新 `HOME`/`XDG_DATA_HOME` 复跑仍报错，说明该用例或其被测 app 写入了受保护路径（`project/data|config|.env|skills` 或用户数据目录），属用例隔离缺口而非 frame 裁剪/身份证明改动引入。此前调试打点写 `/tmp` 也会触发同一守卫——已通过还原工作树排除。
