@@ -1,0 +1,124 @@
+{
+  "schema": 1,
+  "topic": "v2-release-candidate-05b44447",
+  "date": "2026-11-24",
+  "candidate": {
+    "sha": "05b44447",
+    "previous_mainline": "b29409d0",
+    "wheel": "omnioperator-0.1.0-py3-none-any.whl",
+    "wheel_sha256": "7afc5b7d8f5a1f525afbf61ac1e479571cbf7a6567baa30b6eee6c535863efae",
+    "wheel_bytes": 2825380,
+    "base_python": "3.12.14",
+    "schema_head": "v2_0052"
+  },
+  "r4": {
+    "original_failures": 22,
+    "root_cause": "context_tokens 声明为 token，但保守计数器按 UTF-8 字节计数；C/D/E/G 后约 30 KB 提示在 32768 容量下仅剩 3K，token_budget_exceeded",
+    "fix": "utf8-envelope-v2（ASCII 3 字节/token、非 ASCII 2 token/字符、+256 信封、图像 token 直接相加），新配置默认 v2，v1 保留；图像契约接受 v1/v2",
+    "disposition": {
+      "token_budget_group": "20 项（todos/android/documents/skills/reflection/media zoom）随 v2 全绿",
+      "shell_process_tree": "隔离 1 passed；全量中也通过，判为并行抖动",
+      "uia_act": "隔离 4 passed；全量中也通过，判为并行抖动",
+      "run_compaction": "2 项按文档契约修正夹具（摘要工具调用→截断继续；两轮不可压缩→小容量拒绝），10 passed"
+    },
+    "remaining": 0
+  },
+  "full_suite": {
+    "command": "uv run --no-sync pytest -q",
+    "passed": 8647,
+    "failed": 0,
+    "skipped": 10,
+    "warnings": 12,
+    "seconds": 2777.97,
+    "junit": "C:/v2-acceptance/final-05b44447/full.xml",
+    "junit_sha256": "016c9414cbcff484d2959dfc8a9556a7b29036d1da92b5167b14ce0a47714fe8",
+    "log": "C:/v2-acceptance/final-05b44447/full.log"
+  },
+  "windows_service_chain": {
+    "evidence": "C:/v2-acceptance/release-05b44447/service-chain-transcript.json",
+    "steps": 14,
+    "all_exit_zero": true,
+    "install_seconds": 193.3,
+    "start_seconds": 29.6,
+    "status_seconds": 11.6,
+    "stop_seconds": 19.2,
+    "uninstall_seconds": 20.5,
+    "status": {
+      "manager_state": "running",
+      "definition_matches": true,
+      "manager_pid": 141552,
+      "runtime_pid": 141552,
+      "ready": true,
+      "service_plan_sha256": "1986e57d77de4875dfdeee9bad8bea2b2c6d25d704092aa4a58b40a3a7bfcbeb"
+    }
+  },
+  "official_install_chain": {
+    "evidence": "C:/v2-acceptance/release-05b44447/accept-chain-transcript.json",
+    "steps": 13,
+    "all_exit_zero": true,
+    "seconds": 501.2,
+    "install_previous_seconds": 205.9,
+    "environment_seconds": 94.7,
+    "uninstall_retry": {
+      "previous": "attempt 1 uninstall_cleanup_pending (27.8s), attempt 2 succeeded (32.1s)",
+      "candidate": "attempt 1 uninstall_cleanup_pending (26.5s), attempt 2 succeeded (34.1s)"
+    },
+    "final_status": {"cleanup_pending": false, "candidates": [], "runtime_active": false, "database": "v2_0052"}
+  },
+  "soak": {
+    "started_at": "2026-11-24T02:26:08+08:00",
+    "expected_end": "2026-11-27T02:26:08+08:00",
+    "hours": 72,
+    "interval_s": 60,
+    "home": "C:/v2-acceptance/soak-05b44447/work/home",
+    "url": "http://127.0.0.1:8792",
+    "runtime_pid": 120836,
+    "collector_pid": 146488,
+    "limits_source": "runbook_suggested",
+    "limits": {
+      "main_rss_bytes": 536870912,
+      "descendant_rss_sum_bytes": 1073741824,
+      "threads": 64,
+      "descriptors": 2048,
+      "children": 8,
+      "cleanup_pending": 0,
+      "new_failed_runs": 0,
+      "new_unknown_model_calls": 0
+    },
+    "collector_sha256": "5ba5cf9ed193296e4d06b93ff683a54099fe8b89d07fbe49ffd68945a77e862a",
+    "evidence": "C:/v2-acceptance/soak-05b44447/evidence",
+    "first_samples": "sequence 1-2 ok=true，RSS 135MB、线程 10、句柄 345、children 0、cleanup 0、failed 0、unknown 0",
+    "power": "AC 睡眠/休眠均为 0（不休眠），需保持接通电源"
+  },
+  "macos": {
+    "branch": "macos-release-closeout",
+    "head": "a85ac83c",
+    "merged_into_candidate": true,
+    "net_change": "docs only（候选证据、安装说明、状态）",
+    "verified_on_real_mac": [
+      "隔离安装/启动/工作台 200/owner 认证/创建 Agent/重启恢复",
+      "桌面读 9 节点 + SCK、语义 value_matches、前台 text_appended、Keychain",
+      "用户域服务 install→registered→bootstrap→loaded→ready→bootout→uninstall→absent 无残留",
+      "升级/回滚：isolated build 互换、数据/实例保留、备份清理",
+      "专项：macOS 11 文件 242/242、终端 10/10"
+    ],
+    "gaps": [
+      "候选 helper 为 ad hoc 签名，spctl 拒绝；需 Developer ID + 公证（所有者证书/账号）",
+      "helper 替换后 TCC 四项需所有者重新授权",
+      "LaunchDaemon 系统域未实现（失败关闭），本版按用户域闭环交付",
+      "第二台 Mac、锁屏/睡眠/快速用户切换未验",
+      "72h 采样在 b29409d0 基线做过冒烟；最终候选需重跑"
+    ]
+  },
+  "linux": {
+    "status": "G 分支真实 X11 会话已验证 window_identity/accessibility/foreground 与 frame 裁剪截屏；linux 全组 1412 passed/1 skipped；Wayland portal 缺 RemoteDesktop，授权/撤回未验"
+  },
+  "gaps": [
+    "真实 B 站账号（命中/24h 新鲜度）、QQ/NapCat 收发重连",
+    "安卓真机与兼容视觉模型（当前视觉配置与图像协议不匹配）",
+    "干净机器官方产物验收（本机链已过；独立干净机仍缺）",
+    "签名/公证或正式交付形式、发布回滚演练的对外版本",
+    "72h 完整窗口（运行中）"
+  ],
+  "whole_v2_complete": false
+}
