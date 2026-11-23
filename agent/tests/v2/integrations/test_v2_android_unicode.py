@@ -395,12 +395,17 @@ def test_model_unicode_observation_and_append_keep_two_independent_approvals(tmp
             configured = await instance.configurations.get(
                 agent, (await instance.application.settings(agent))["value"]["model_profile_id"]
             )
+            # This flow drives the full agent tool face through seven model rounds
+            # (access/observe/append plus two approvals). The shipped 32768-byte
+            # default profile is below that face's utf8 upper bound, so the fixture
+            # declares a realistic conversation window; every assertion and budget
+            # guard stays unchanged.
             await instance.configurations.save(
                 agent,
                 configured["id"],
                 configured["name"],
                 True,
-                {**configured["value"], "model": "fixture"},
+                {**configured["value"], "model": "fixture", "context_tokens": 128000},
                 configured["revision"],
             )
             model.request = {
