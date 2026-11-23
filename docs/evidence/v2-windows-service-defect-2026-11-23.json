@@ -1,0 +1,69 @@
+{
+  "schema": 1,
+  "topic": "v2-windows-service-defect",
+  "date": "2026-11-23",
+  "source_head": "8412e773e75808a4e2b04ff221bb8cc312ed9899",
+  "artifact_tested": {
+    "wheel_sha256": "7132c57f5975dc4535ddfc5f10f60f3f21c8ffa0c4094fdc91229f7356fe5fe5",
+    "source_head": "08dd15734373cb80e113de71238dd42031f20110",
+    "note": "服务部署包在本分支前进前物化；service_templates.py 的 git blob 在 08dd1573 与 8412e773 均为 038976ec6079f43dacd4f6d8a8f0a71ee4337267，缺陷对当前候选同样成立。"
+  },
+  "scope": "在隔离 home 上走完 Windows 用户任务（Task Scheduler）捕获、计划、物化、校验、安装操作计划与真实注册，验证 C2.7；不改产品源码、不动用户服务。",
+  "environment": {
+    "home": "C:/v2-acceptance/c3-08dd1573/service/home",
+    "instance_id": "71ab00ac-6e54-43ba-aacb-fc640cf2226a",
+    "manager": "task_scheduler / user / S-1-5-21-3326786935-1187489864-109748913-1001",
+    "task_name": "OmniOperator-V2-71ab00ac-6e54-43ba-aacb-fc640cf2226a",
+    "port": 8796,
+    "editable": false
+  },
+  "steps": [
+    {"cmd": "install_v2.py（基础 Python + 固定 wheel/依赖包）", "result": "doctor integrity=ok, schema v2_0052, 163 tables"},
+    {"cmd": "service capture", "result": "format omni-service-runtime-2, editable=false, files=605, distributions=112"},
+    {"cmd": "service plan request capture plan.json", "result": "plan_id 782a7be6-0260-4ba8-8b59-5013739e5f52, plan sha256 44dc477b3e24d60dea051031d02103f8420724ae3ea21a69d7a4361ffd20c251"},
+    {"cmd": "service materialize plan.json bundle", "result": "bundle 生成：service.xml / deployment.json / README.txt / startup.json / bundle.manifest.json"},
+    {"cmd": "service verify bundle", "result": "exit 0（valid=true, eligible=true）"},
+    {"cmd": "service operation-plan bundle install operation-install.json", "result": "operation_id ba3a3d2e-01b5-490a-a21d-8fe62ea8177a, sha256 3117ac199d09a32b2e1fb24d1b16f90d7ca341aa03f9f4e2fd22e1dab50cfb3d, steps 7, starts_service=false"},
+    {"cmd": "service apply-operation operation-install.json --approve 3117ac19…", "result": "exit 1, state=unknown, effect=unknown, error_code=service_outcome_unresolved；registration.installed=false, definition_present=false；任务不存在"}
+  ],
+  "root_cause": {
+    "file": "agent/src/omni/adapters/platform/services/service_templates.py",
+    "function": "_windows",
+    "line_behavior": "return ET.tostring(root, encoding=\"utf-8\", xml_declaration=True) + b\"\\n\" → 文件首行 <?xml version='1.0' encoding='utf-8'?>",
+    "dispatch_path": "实际注册走 adapters/workers/windows_services.ps1：读取 XML → [Text.Encoding]::UTF8.GetString → Task Scheduler COM $folder.RegisterTask(name, xml, 34, SID, null, 3, null)。捕获/物化/校验都正常，失败在注册派发。",
+    "failure": "产品 helper install 模式返回 service_native_unverified，任务不存在；同一 XML 字符串直接调用 COM RegisterTask 抛出 System.Runtime.InteropServices.COMException (0x8004131A)：(1,40)::错误: 无法切换编码。",
+    "probe": {
+      "product_helper_inspect": "成功（installed=false, state=stopped）",
+      "product_helper_install": "service_native_unverified, effect=unknown, 任务未创建",
+      "com_register_same_utf8_declaration": "COMException 0x8004131A (1,40) 无法切换编码",
+      "com_register_without_xml_declaration": "成功创建临时任务并成功删除",
+      "com_register_with_UTF-16_declaration": "成功创建临时任务并成功删除",
+      "schtasks_same_utf8_xml": "ERROR: The task XML is malformed. (1,40)::错误: 无法切换编码",
+      "product_task_after_apply": "不存在"
+    },
+    "conclusion": "Windows 服务模板的 utf-8 XML 声明在 Task Scheduler COM 注册边界被拒绝，导致真实注册永远失败；不是权限、路径或 SID 问题。同一任务定义去掉声明或改为 UTF-16 即可注册，证明缺陷只在声明编码。"
+  },
+  "impact": {
+    "C2.7": "failed（真实系统服务/用户任务注册未通过）",
+    "C3.7": "Windows 原生服务部分不可执行",
+    "ready": false,
+    "task_created": false
+  },
+  "required_fix": [
+    "输出 UTF-16（含 BOM）并把声明改为 encoding='UTF-16'，或不写 XML 声明，或改用 Task Scheduler COM 直接注册",
+    "新增真实解析回归：至少用 schtasks /Create /XML 或 COM RegisterTaskDefinition 解析生成文件；仅字符串断言不足",
+    "修复后重建 wheel、重新 capture/plan/materialize 并完成注册→启动→就绪证明→正常排空→卸载"
+  ],
+  "not_done": [
+    "未修改产品源码（验收会话只取证）",
+    "未注册产品任务（注册失败）",
+    "未测试启动、就绪证明、正常排空、升级与登录恢复"
+  ],
+  "evidence_files": [
+    "C:/v2-acceptance/c3-08dd1573/probes/service-defect.txt",
+    "C:/v2-acceptance/c3-08dd1573/probes/service-com-probe.txt",
+    "C:/v2-acceptance/c3-08dd1573/service/bundle/service.xml",
+    "C:/v2-acceptance/c3-08dd1573/service/home/run/service-operations/ba3a3d2e-01b5-490a-a21d-8fe62ea8177a/"
+  ],
+  "whole_v2_complete": false
+}

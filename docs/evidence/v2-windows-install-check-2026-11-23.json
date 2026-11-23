@@ -1,0 +1,60 @@
+{
+  "schema": 1,
+  "topic": "v2-windows-install-check-2026-11-23",
+  "date": "2026-11-23",
+  "source_head": "8412e773e75808a4e2b04ff221bb8cc312ed9899",
+  "wheel_sha256": "199072c6fc455a47a7e6d67ad696437050804a7269d7248af900883118e72a6c",
+  "dependency_bundle_sha256": "ddc242906492a815e1893505f0453f922f2c218dda441ad0088effb9f5e1225f",
+  "scope": "在独立目录、固定基础解释器（不能 import omni/sqlalchemy）和离线依赖包上执行 check_v2_installation.py 的新装→启动→状态→保留数据卸载，并如实记录首次卸载失败与外部维护器续跑。",
+  "environment": {
+    "host": "Windows 11 家庭版 build 26300 x64",
+    "base_python": "C:/Users/cy/AppData/Local/Programs/Python/Python312/python.exe (3.12.10)",
+    "output": "C:/v2-acceptance/c3-08dd1573/fresh-install-final",
+    "home": "C:/v2-acceptance/c3-08dd1573/fresh-install-final/home 用户🙂 %OMNI_WRAPPER_EXPAND% !literal! ' $(false)",
+    "manager": "C:/v2-acceptance/c3-08dd1573/fresh-install-final/manager with spaces",
+    "isolated": "维护 venv 与候选 venv 分离；候选为 isolated-wheelhouse；私有 sitecustomize 探针未执行"
+  },
+  "checker_result": {
+    "verified": false,
+    "state": "failed",
+    "phases_verified": ["base", "install", "manager", "candidate", "launcher", "current"],
+    "uninstall": {
+      "state": "failed",
+      "returncode": 1,
+      "stderr_bytes": 150,
+      "stderr_sha256": "98b1d782fa20fa8329b82dfda61eef58805de978e8b58783f46b16419846b7aa",
+      "error_type": "RuntimeError",
+      "note": "此前两轮（08dd1573 的 a6e5b33a 与 7132c57f）出现同一 stderr SHA 与 150 字节长度，属确定性失败而非偶发。"
+    },
+    "before_uninstall": {
+      "data_sha256": "4fc80c9c53d4d32e19cdf91630402f463f296a2f520bd38e403d92ffe609a404",
+      "backup_manifest_sha256": "bb70a449a3d393da780a3e9b7f75bd15b75ffca84543d66a2ce9fd91946f22df"
+    },
+    "report": "C:/v2-acceptance/c3-08dd1573/fresh-install-final/report.json"
+  },
+  "continuation": {
+    "tool": "manager/venv/Scripts/python.exe -I -m omni.composition.cli --home <home> installation uninstall --sha256 1990…",
+    "delay_before_retry_seconds": 40,
+    "result": {"format": "omni-uninstall-1", "deactivated": true, "removed": true, "data_kept": true},
+    "seconds": 36.5,
+    "after": {
+      "status": "cleanup_pending=false, candidates=[]",
+      "data_sha256": "4fc80c9c53d4d32e19cdf91630402f463f296a2f520bd38e403d92ffe609a404",
+      "backup_manifest_sha256": "bb70a449a3d393da780a3e9b7f75bd15b75ffca84543d66a2ce9fd91946f22df",
+      "candidate_tree_removed": true,
+      "omni_cmd_removed": true
+    }
+  },
+  "interpretation": "安装、双环境隔离、真实 cmd 启动、当前指针与备份/回滚演练均通过；首次保留数据卸载在刚结束 launcher/current 阶段后 2 秒内确定性失败，延迟 40 秒由外部维护器续跑成功且数据/备份字节一致。按合同不得把该 checker 报告写成 verified；应作为产品/环境缺陷保留。",
+  "not_a_clean_machine": "同一台开发机 + 全新目录 + 固定基础解释器；不是干净 OS/VM，不能替代 C3.1 的干净机器项。",
+  "required_fix_or_decision": [
+    "定位卸载瞬间的文件占用（候选 venv 解释器/DLL 与启动/状态检查的释放时序），修复或显式限制重试窗口",
+    "保留首次失败与续跑成功两份记录，不合并成一次全绿",
+    "干净 Windows 机器仍需所有者提供"
+  ],
+  "evidence_files": [
+    "C:/v2-acceptance/c3-08dd1573/fresh-install-final/report.json",
+    "C:/v2-acceptance/c3-08dd1573/probes/environment.txt"
+  ],
+  "whole_v2_complete": false
+}

@@ -1,0 +1,36 @@
+{
+  "schema": 1,
+  "topic": "v2-android-device-probe",
+  "date": "2026-11-23",
+  "source_head": "8412e773e75808a4e2b04ff221bb8cc312ed9899",
+  "scope": "只探测本机 ADB 与可用安卓设备，判断 C3.5 真机输入/Unicode/滚动/恢复能否开始；不安装应用、不改变输入法、不做设备授权。",
+  "environment": {
+    "host": "Windows 11 家庭版 build 26300 x64",
+    "adb": "1.0.41 / 37.0.1-15733141, D:\\tools\\platform-tools\\adb.exe",
+    "adb_server": "127.0.0.1:5037 监听中",
+    "emulator_binary": "未找到（D:\\Android、D:\\tools 下无 emulator.exe）",
+    "avd_present": "Medium_Phone.avd（存在但无 emulator 可执行文件，未启动）"
+  },
+  "commands": [
+    {"cmd": "adb devices -l", "result": "List of devices attached（空）"},
+    {"cmd": "adb mdns services", "result": "List of discovered mdns services（空，无无线调试广播）"},
+    {"cmd": "Get-PnpDevice -PresentOnly | ? FriendlyName -match 'Android|ADB'", "result": "空（无 USB ADB 设备）"}
+  ],
+  "result": "blocked",
+  "not_executed": [
+    "真安卓观察→批准→输入→新观察",
+    "中文/Unicode 输入与输入法恢复",
+    "滚动、旋转、页面变化后的旧观察拒绝",
+    "换设备/重连后的授权重核"
+  ],
+  "reason": "本机没有已授权安卓设备，也无可用模拟器；ADB 与 AVD 元数据存在不等于设备。",
+  "required_to_proceed": [
+    "真实安卓设备（USB 调试已开启）并完成本机 RSA 授权",
+    "所有者在场窗口（约 45–90 分钟）允许锁定应用、输入法与中文输入测试",
+    "若以模拟器替代，需所有者明确降级决定，且不能写成“真机通过”"
+  ],
+  "evidence_files": [
+    "C:/v2-acceptance/c3-08dd1573/probes/android.txt"
+  ],
+  "whole_v2_complete": false
+}
