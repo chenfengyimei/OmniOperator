@@ -145,6 +145,19 @@
       "title": "发布回滚演练（release/exchange）",
       "status": "partial",
       "reason": "installation live rollback 已验证；release prepare/select 与 exchange apply 未演练"
+    },
+    {
+      "id": "FULL-1",
+      "title": "最终全量（b29409d0）",
+      "status": "failed_r4_token_budget",
+      "result": "8655 tests / 8623 passed / 22 failed / 10 skipped（2580.96s，JUnit temp/build/final-b29409d0.xml）；20/22 单跑复现；多数默认 32768 token_budget_exceeded（R4），另有 shell 进程树回收/UIA act/media zoom 待分诊",
+      "defect_ids": [
+        "R4"
+      ],
+      "evidence": [
+        "docs/evidence/v2-final-full-suite-b29409d0-2026-11-23.json",
+        "temp/build/final-b29409d0.xml"
+      ]
     }
   ],
   "reuse": {
@@ -261,7 +274,9 @@
   "conclusion": {
     "whole_v2_complete": false,
     "production_release_ready": false,
-    "failed_items": [],
+    "failed_items": [
+      "FULL-1（R4）"
+    ],
     "partial_items": [
       "C3.1-W1",
       "C4.3"

@@ -1,6 +1,6 @@
 # V2 真实验收矩阵（2026-11-23，主线 b29409d0）
 
-> 结论先行：主线已到 `b29409d0`（含 R3 修复 `90de0bbc`）。H 用 b29409d0 重建官方 wheel `8d7d1956…` 实测通过 **注册 → 启动 → 只读 status（pid 142624、ready=true）→ 正常排空 → 卸载**；C2.7 生命周期与只读状态均通过。仍缺冻结候选全量、干净机、账号/设备/视觉模型、72h、签名/交付与发布回滚。`whole_v2_complete=false`，`production_release_ready=false`。
+> 结论先行：主线已到 `b29409d0`（含 R3 修复 `90de0bbc`）。H 用 b29409d0 重建官方 wheel `8d7d1956…` 实测通过 **注册 → 启动 → 只读 status（pid 142624、ready=true）→ 正常排空 → 卸载**，官方安装链/检查也通过（检查带卸载重试）。但 **最终全量 8655 项中 22 失败、8623 通过、10 跳过**；20/22 单跑复现，主因是默认上下文 32768 触发 `token_budget_exceeded`（R4）。候选不能冻结，72h 不能启动。`whole_v2_complete=false`，`production_release_ready=false`。
 >
 > 纪律：失败不改写为通过；首次失败与续跑成功分别保留；证据不含凭据、消息正文或像素；不复用旧候选的全量结果冒充当前候选。
 
@@ -34,6 +34,7 @@
 | C2.8 容器 | Docker | — | **阻塞**：引擎未启动 | — | — |
 | C4.2 签名/公证 | 证书/Apple | — | **阻塞（待决策）** | — | 可源码交付 |
 | C4.3 发布回滚 | 冻结候选 | — | **部分**：installation rollback 已验 | 安装链证据 | release/exchange 未演练 |
+| FULL-1 最终全量 | 冻结候选 | `b29409d0` | **失败（R4）**：8655 项、8623 通过、22 失败、10 跳过（2580.96s）；20/22 单跑复现；多数为默认 32768 `token_budget_exceeded`，另有 shell 进程树回收/UIA act/media zoom 待分诊 | `docs/evidence/v2-final-full-suite-b29409d0-2026-11-23.json`；`temp/build/final-b29409d0.xml` | 全量绿前不得冻结/72h |
 
 ## 3. 复用与全量缺口
 
@@ -47,7 +48,7 @@
 | D11e | `46083137` | query 31 passed（假集合），但真实 COM 集合回归见 C2.7 |
 | 最近全量 | `b395cd97` | 8618 / 8609 passed / 0 failed / 9 skipped（2559s），**不覆盖** 6d81a826 之后 |
 
-> 当前 d7971bc4 **没有**完整全量；冻结后必须重跑。
+> b29409d0 已跑最终全量：**8655 项 / 8623 通过 / 22 失败 / 10 跳过**；20/22 单跑复现，主因 `token_budget_exceeded`（R4）。全量绿前不得冻结或启动 72h。
 
 ## 4. 执行摘要
 
@@ -104,6 +105,7 @@
 
 - 当前 d7971bc4：安装链/检查/72h 均未在新候选重跑；服务生命周期因 D11e-R 失败。
 - `whole_v2_complete=false`，`production_release_ready=false`。
+
 
 
 

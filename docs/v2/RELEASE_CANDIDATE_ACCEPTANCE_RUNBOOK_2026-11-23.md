@@ -115,8 +115,10 @@ python scripts/v2_soak.py report --output <新目录>
 - C4.3：`release prepare/select` 与 `exchange apply` 真实演练；保留旧 home、快照与回执。
 - C4.4：HANDOFF/DEVELOPMENT_STATUS/台账/`docs/index` 同步；更新本手册与验收矩阵；生成交接提示词。
 
-## 8. 当前阻塞（2026-11-23 20:40）
+## 8. 当前阻塞（2026-11-23 22:40）
 
-- R3：`application/service_control.goal()` 使用 ServiceRegistration.inspect（engine_pid，无动作 pid），R1/R2 修复后 start 仍 unknown、reconcile 无法收口、stop/uninstall 被阻塞。
+- **R4（主阻塞）**：b29409d0 最终全量 8655 项 / 8623 通过 / **22 失败** / 10 跳过；20/22 单跑复现，主因默认 `context_tokens=32768` 触发 `token_budget_exceeded`（C/D/E/G 后提示词/工具 schema 增长）；另有 shell 进程树回收、UIA act、media zoom 待分诊。全量绿前不得冻结/72h。
+- C2.7 服务生命周期、官方安装链/安装检查已在 b29409d0 通过（检查仍需卸载重试）。
 - 干净 Windows VM、QQ/B 站账号、安卓真机、兼容视觉模型仍缺。
-- 72h 尚未启动；最终全量仍只覆盖 `b395cd97`。
+- 72h 尚未启动；H 的干净机包 `release-b29409d0` 已就绪，但需先修复全量。
+

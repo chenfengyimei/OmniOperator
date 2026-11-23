@@ -1,0 +1,59 @@
+{
+  "schema": 1,
+  "topic": "v2-final-full-suite-b29409d0",
+  "date": "2026-11-23",
+  "source_head": "b29409d02f5a1a7dd84aa23956938c7652d1aad3",
+  "wheel_sha256": "8d7d195672ed8e0c92de58737b76024ce21f7d765b570f89b6f122ede17db958",
+  "command": "uv run --no-sync pytest -q --junitxml=temp/build/final-b29409d0.xml",
+  "result": {
+    "tests": 8655,
+    "passed": 8623,
+    "failed": 22,
+    "skipped": 10,
+    "seconds": 2580.96,
+    "exit": 1,
+    "junit": {"path": "temp/build/final-b29409d0.xml", "sha256": "67144e960c51b86f0e11b91242a321254120debcc8657b784715e6806706448a", "bytes": 1528038}
+  },
+  "failed_tests": [
+    "agent/tests/test_shell_tools.py::test_process_boundary_reclaims_child_process_tree",
+    "agent/tests/v2/core/test_v2_todos.py::test_production_loop_updates_plan_without_actions_or_changing_system_prefix",
+    "agent/tests/v2/core/test_v2_documents.py::test_document_erasure_during_model_request_discards_output_and_keeps_known_cost",
+    "agent/tests/v2/integrations/test_v2_skills.py::test_model_progressive_disclosure_uses_captured_revision_and_still_requires_write_approval",
+    "agent/tests/v2/integrations/test_v2_android_model.py (10 nodes: model_access_and_input..., revoke_or_changed_scope...[access|device|config|context|target_preview|kind_scope], model_observation_is_bound..., unknown_access...[unknown_source|scope_insertion], expired_run_scope...)",
+    "agent/tests/v2/integrations/test_v2_media_zoom_tool.py::test_zoom_approval_gate_then_same_turn_image_visible",
+    "agent/tests/v2/integrations/test_v2_media_zoom_e2e.py (4 nodes: denied_approval, credential_revision_cas, source_identity_cas, uploaded_video_full_chain)",
+    "agent/tests/v2/platforms/common/test_v2_desktop_observation_native.py::test_fixed_windows_uia_worker_reads_only_owned_fixture_and_redacts_password[act]",
+    "agent/tests/v2/integrations/test_v2_reflection_flow.py::test_journal_face_requires_an_evidence_source_and_is_inherited_by_children"
+  ],
+  "serial_rerun": {
+    "command": "uv run --no-sync pytest -q -n 0 --lf --last-failed-no-failures=none",
+    "result": "20 failed, 2 passed, 18 deselected in 450.37s",
+    "note": "22 个失败中 20 个单独复现；不是并行 xdist 偶发。"
+  },
+  "root_cause": {
+    "id": "R4",
+    "summary": "默认模型上下文 32768 已小于当前 agent 模式的输入（system/persona/tool schema + 对话），运行以 token_budget_exceeded 失败；依赖 wait_state(succeeded) 的用例随后 30s 超时。",
+    "evidence": [
+      "test_v2_todos 单跑保留 home：logs/runtime.jsonl 记录 run.failed error_code=token_budget_exceeded",
+      "test_v2_android_model 单跑保留 home：同一 error_code=token_budget_exceeded（36.16s 超时前最后一次 run.failed）",
+      "默认 context_tokens=32768（agent/src/omni/domain/configuration.py）",
+      "已显式设置 128000 的用例通过：test_v2_android_unicode（128000）、test_v2_reflection_closeout/flow（128000）"
+    ],
+    "introduced_after_last_green": "全量绿 b395cd97 之后并入 C/D/E/G 与视觉生产路径，工具/提示词增长；当前候选未再跑全量。",
+    "not_only_flake": "20/22 单跑复现；token_budget_exceeded 是确定性失败。",
+    "secondary": [
+      "test_process_boundary_reclaims_child_process_tree：timed_out true 但 reclaimed false（进程树回收断言；可能与系统负载/子进程状态有关）",
+      "test_fixed_windows_uia_worker...act：真实 UIA 动作失败（桌面环境/输入状态相关）",
+      "media zoom 多条 ASSERT：需单独确认是否同一 token_budget 失败后的次生断言"
+    ]
+  },
+  "impact": "最终候选 b29409d0 不能冻结或发布；72h 长跑不能启动。即使 C2.7 服务链与官方安装链/检查通过，全量仍有 22 项失败。",
+  "required_fix": [
+    "A 决策：提高默认 context_tokens（如 128000）或裁剪 system/tool schema 使默认 32768 可用；同步配置/合同/测试",
+    "受影响测试显式设置与生产一致的上下文（不要用旧默认掩盖）",
+    "shell 进程树回收与 UIA act 两条单独定位；media zoom 复核是否 token_budget 次生",
+    "修复后重新冻结 SHA 并重跑完整全量；全量绿前不得进入 72h"
+  ],
+  "evidence_files": ["temp/build/final-b29409d0.xml", "temp/build/final-b29409d0.log", "C:/v2-acceptance/tmp-todo", "C:/v2-acceptance/tmp-android"],
+  "whole_v2_complete": false
+}
