@@ -241,3 +241,7 @@ uv run --no-sync python agent/scripts/accept_native_credentials.py --cleanup <�
 完整 probe 报告：`session={kind:unknown, identity:null}`、顶层 `error=null`、能力错误均为 `desktop_native_unavailable`（screen/foreground 为 not_implemented）。worker 无异常，报告结构完整；即 `SessionInspector.open()` 在 logind 明明显示会话 31（x11/seat0/active）时仍未填充 session。下一步读 `open()`/`read_session` 的静默返回路径，并在 VM 副本里干净地打点（避免上次的补丁语法错误）。
 
 `SessionInspector.open()` 流程确认：uid 检查 → 系统总线 → logind owner → `self.session = await read_session()` → 辅助功能/check；`read_session` 在任何检查失败时都会抛错，不会返回部分会话。但 worker 报告是 session=None 且顶层 error=None，与契约矛盾——要么报告由回退路径拼装、要么 error 在 capability_report 里被丢弃。下一步在 VM 副本里干净打点 open/read_session（入口、selected_path、返回值/异常、capability_report 参数），再下结论。
+
+### 2026-11-23 根因：dbus-next 枚举拼写（已修）
+
+真机异常：`AttributeError: type object 'MessageFlag' has no attribute 'NO_AUTO_START'. Did you mean: 'NO_AUTOSTART'?`。`linux_bus.py` 用了 `NO_AUTO_START`，而锁定的 `dbus-next==0.2.3` 只有 `NO_AUTOSTART`；单测 fake 也写成同一错误拼写，导致离线测试全绿、真机在第一次系统总线调用即崩溃，被后端概括为 `desktop_native_unavailable`。已修两处并加真枚举守护测试。修复后：**session.kind=interactive**（logind 身份已证明，会话证明打通），能力仍报 `desktop_bus_peer_unverified` / `desktop_x11_peer_unverified`——这是下一个要查的 peer 校验（系统总线对端 root 与期望 uid 的比较、X11 对端证明）。Linux 专项 **78 passed（1.62s）**。

@@ -117,5 +117,19 @@
       "contradiction": "the worker report has session=None with top-level error=None, which the read_session contract should make impossible if open() ran to completion; either the report was assembled by a fallback path or the error was dropped in capability_report",
       "next": "instrument SessionInspector.open/read_session in the VM copy (clean sed patches) to log entry, selected_path, read_session result/exception, and the capability_report arguments"
     }
+  },
+  "root_cause": {
+    "error": "AttributeError: type object 'MessageFlag' has no attribute 'NO_AUTO_START' (dbus-next 0.2.3 exposes NO_AUTOSTART)",
+    "why_hidden": "the unit-test fake also used NO_AUTO_START, so offline tests passed while the real worker crashed at the first system-bus call and the backend masked it as desktop_native_unavailable",
+    "fix": "linux_bus.py uses NO_AUTOSTART; the test support fake was corrected and a guard test asserts the real dbus-next spelling",
+    "after_fix": "session.kind=interactive with a logind identity (session proof now works); capabilities still fail with desktop_bus_peer_unverified / desktop_x11_peer_unverified",
+    "next": "investigate the bus peer verification (expected uid for the system bus vs root peer) and the X11 peer check"
+  },
+  "validation": {
+    "linux_tests": {
+      "passed": 78,
+      "failed": 0,
+      "seconds": 1.62
+    }
   }
 }
