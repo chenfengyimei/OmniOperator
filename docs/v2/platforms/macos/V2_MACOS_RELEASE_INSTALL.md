@@ -1,0 +1,65 @@
+# macOS arm64 候选安装与首次使用（2026-11-23）
+
+基线 `b29409d0`；本机 macOS 27.2.1（26B131）arm64、Swift 6.4.2、SDK 27.2、Python 3.12.16。
+
+## 产物
+
+- Wheel：`temp/build/wheel/omnioperator-0.1.0-py3-none-any.whl`
+  SHA256 `d478d0e6ff365ba8d62fb9fdbc698c62cc18acc4290d9dae03e4b29e20c6e136`
+- Helper：`temp/build/mac-native-release/OmniOperator Desktop Helper.app`
+  可执行 SHA256 `1ab02d9c3e327882a59591384561383959b761d8be58de49c3150bf690fdd99f`（ad hoc 签名、`codesign --verify --strict` 通过）
+
+## 在另一台 Mac 上执行
+
+```sh
+# 1. 隔离安装（不写 /Applications，不动日常实例）
+REAL_PY=~/.local/share/uv/python/cpython-3.12.16-macos-aarch64-none/bin/python3.12
+"$REAL_PY" -m venv ~/omni-candidate/venv
+~/omni-candidate/venv/bin/python -m pip install --no-cache-dir omnioperator-0.1.0-py3-none-any.whl
+
+# 2. 初始化独立 home 并启动工作台
+~/omni-candidate/venv/bin/python -m omni.composition.cli --home ~/omni-candidate/home init
+~/omni-candidate/venv/bin/python -m omni.composition.cli --home ~/omni-candidate/home serve \
+  --host 127.0.0.1 --port 8878 --stdout-logs
+
+# 3. 浏览器打开 http://127.0.0.1:8878/ ，用 ~/omni-candidate/home/run/owner.token 认证
+```
+
+技能/桌面能力需要 helper 时，把 `OmniOperator Desktop Helper.app` 放到固定路径并重新在系统设置里授权（TCC 与路径/签名绑定）。
+
+## 干净安装复验（2026-11-23）
+
+在 `~/omni-candidate`（仓库外、无 editable、无构建缓存）从交付 wheel 完整复验：
+
+- `python -m venv` + `pip install` 交付 wheel；`omni.__file__` 指向该 venv
+- `init` → 实例 `36d7a248`、schema `v2_0052`
+- `serve` → 工作台 200、`/health/ready` true、静态资源 `/assets/ui/theme.js` 200
+- helper 二进制无开发机绝对路径（strings 无 `/Users/chenfeng` 与构建目录）
+- 产物架构 arm64、实测 macOS 27.2.1（26B131）、签名 ad hoc（spctl 拒绝，见状态文档）
+
+最短步骤：`python3.12 -m venv ~/omni-candidate/venv` → `pip install omnioperator-0.1.0-py3-none-any.whl` → `init` → `serve` → 浏览器打开 `http://127.0.0.1:8878/`。
+
+## 本机已实测
+
+工作台 200、`/health/ready` true、无 token 401 / 有 token 200、创建 `release-smoke` Agent、重启后同一 instance、Agent 持久化。
+
+## 未验
+
+Model 任务（隔离 home 无模型凭据）、LaunchAgent/Keychain/桌面能力（候选 helper 未替换已授权 helper）、升级/回滚、Developer ID 签名/公证、第二台 Mac、72 小时。
+
+## 72 小时长跑准备（候选冻结后执行）
+
+采样器：`scripts/v2_soak.py`（`run`/`report`，只观察已运行的实例，不启动/停止、不读 DB、不调模型）。
+`run` 必须显式提供 `--limits`（脚本拒绝猜测上限）。
+
+建议启动命令（候选实例 127.0.0.1:8878、home `temp/build/candidate/home`）：
+
+```sh
+temp/build/candidate/venv/bin/python scripts/v2_soak.py run \
+  --home temp/build/candidate/home --url http://127.0.0.1:8878 \
+  --hours 72 --interval 60 --limits <limits.json> \
+  --output temp/build/candidate/soak-72h.json
+temp/build/candidate/venv/bin/python scripts/v2_soak.py report --output temp/build/candidate/soak-72h.json
+```
+
+待办：按 v2_soak 的 limits schema 定义 8 项上限（Windows 基线参考：main_rss +512MB、descendant_rss +1GB、threads +64、descriptors +512、children +16、cleanup_pending≤8、new_failed_runs=0、new_unknown_model_calls=0），校准后启动 72h，记录中断/恢复与资源峰值。
