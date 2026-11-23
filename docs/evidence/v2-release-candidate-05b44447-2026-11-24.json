@@ -134,6 +134,18 @@
       ],
       "observational_soak_passed": false,
       "note": "报告可在采集期间对活动目录运行（writer.lock 仅在 append 时短暂持有）；除时长外无其他阻塞。"
+    },
+    "resume_rehearsal": {
+      "date": "2026-11-24T03:52:00+08:00",
+      "purpose": "验证交接中承诺的恢复方法（collector 掉线后 --resume 续采）",
+      "evidence": "C:/v2-acceptance/soak-rehearsal",
+      "steps": [
+        "collector#1（--hours 0.05/interval 10）采集到 sequence 3 后被强制终止",
+        "collector#2（--resume --hours 0.03/interval 10）从 sequence 4 续采到 14",
+        "采集器到期自行输出报告：14 samples / 0 failed / blockers=[duration_below_72h]"
+      ],
+      "result": "链保持连续、采样 ok、报告正常；资源峰值 RSS 143MB/线程 11/句柄 356/children 0/cleanup 0",
+      "note": "rehearsal 与正式长跑共用同一实例（同 boot 身份），但独立证据目录，不影响正式链。"
     }
   },
   "macos": {
