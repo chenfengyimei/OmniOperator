@@ -91,7 +91,50 @@ def _action_identity(expected: bytes) -> tuple[str, str] | None:
     return execution.findtext("t:Command", namespaces=ns) or "", execution.findtext("t:Arguments", namespaces=ns) or ""
 
 
-def _action_pid(engine_pid: int | None, expected: bytes) -> int | None:
+def _windows_tokens(text: str) -> list[str]:
+    """Split a Task Scheduler argument string with Windows quoting rules."""
+    tokens: list[str] = []
+    current: list[str] = []
+    quoted, backslashes = False, 0
+    for char in text:
+        if char == "\\":
+            backslashes += 1
+            continue
+        if char == '"':
+            current.append("\\" * (backslashes // 2))
+            if backslashes % 2 == 0:
+                quoted = not quoted
+            else:
+                current.append('"')
+            backslashes = 0
+            continue
+        current.append("\\" * backslashes)
+        backslashes = 0
+        if char in " \t" and not quoted:
+            if current:
+                tokens.append("".join(current))
+                current = []
+            continue
+        current.append(char)
+    current.append("\\" * backslashes)
+    if current:
+        tokens.append("".join(current))
+    return tokens
+
+
+def _action_images(command: str, plan: Record) -> set[str]:
+    """Images the plan itself pinned: the task command, interpreter and real process."""
+    images = {command}
+    runtime = plan.get("runtime")
+    if isinstance(runtime, Mapping):
+        for key in ("python", "python_realpath", "process_python"):
+            value = runtime.get(key)
+            if isinstance(value, str) and value:
+                images.add(value)
+    return {os.path.normcase(os.path.realpath(image)) for image in images if image}
+
+
+def _action_pid(engine_pid: int | None, expected: bytes, plan: Record) -> int | None:
     """Prove the running action by its own process, not by the task engine alone."""
     if not engine_pid or type(engine_pid) is not int:
         return None
@@ -99,7 +142,8 @@ def _action_pid(engine_pid: int | None, expected: bytes) -> int | None:
     if identity is None:
         return None
     command, arguments = identity
-    tokens = [token for token in arguments.replace('"', " ").split() if token]
+    images = _action_images(command, plan)
+    tokens = _windows_tokens(arguments)
     try:
         import psutil
     except ImportError:
@@ -113,7 +157,7 @@ def _action_pid(engine_pid: int | None, expected: bytes) -> int | None:
             cmdline = child.cmdline()
         except (psutil.Error, OSError):
             continue
-        if not cmdline or os.path.normcase(cmdline[0]) != os.path.normcase(command):
+        if not cmdline or os.path.normcase(os.path.realpath(cmdline[0])) not in images:
             continue
         rest = [os.path.normcase(token) for token in cmdline[1:]]
         position, matched = 0, True
@@ -456,7 +500,7 @@ class ServiceQuery:
                 else:
                     state = str(receipt.get("state") or "unknown")
                     if state == "running":
-                        pid = _action_pid(cast(int | None, receipt.get("engine_pid")), expected)
+                        pid = _action_pid(cast(int | None, receipt.get("engine_pid")), expected, plan)
                         if pid is None:
                             code = "service_action_unverified"
                 return _report(

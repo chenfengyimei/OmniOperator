@@ -191,5 +191,17 @@
     "evidence": "docs/evidence/v2-windows-service-d11e.json",
     "tests": "service_query 31 passed；registration/start/drain 74 passed",
     "next": "H 用主线 wheel 重跑 install→start→status（ready=true、pid 非空）→drain→uninstall；干净机器/官方产物/72 小时另验"
+  },
+  "service_status_r1_r2": {
+    "date": "2026-11-23",
+    "status": "fixed_pending_real_machine",
+    "R1": "PowerShell 5.1 不支持 COM 集合 Item()；改为 foreach 枚举取首个非零 EnginePID",
+    "R2a": "动作映像允许计划固定的 python/python_realpath/process_python（venv 启动器 re-exec），仍要求参数按序匹配",
+    "R2b": "running_postcondition 全平台要求非空且匹配的 pid；pid=null 不判 ready",
+    "contract": "docs/v2/operations/V2_SERVICES.md",
+    "evidence": "docs/evidence/v2-windows-service-r1-r2.json",
+    "record": "docs/v2/platforms/windows/WINDOWS_SERVICE_R1_R2_2026-11-23.md",
+    "tests": "服务四模块 95 passed；service_query 37；system_service_start 35",
+    "next": "H 从修复提交重建官方 wheel，重跑 install→start→status(pid 非空/ready=true)→drain→uninstall；随后冻结候选、全量与 72 小时"
   }
 }

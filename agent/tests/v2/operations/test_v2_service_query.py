@@ -447,7 +447,7 @@ def test_windows_status_reports_manager_state_and_verified_action(monkeypatch, s
             }
 
         monkeypatch.setattr(r, "windows_receipt", receipt)
-        monkeypatch.setattr(q, "_action_pid", lambda _engine, _expected: pid)
+        monkeypatch.setattr(q, "_action_pid", lambda _engine, _expected, _plan: pid)
         result = await inspector.query(data)
         assert result["state"] == state and result["pid"] == pid
         assert result["error_code"] == code and result["definition_matches"] is True
@@ -491,3 +491,86 @@ def test_windows_status_never_claims_running_when_the_native_state_is_unavailabl
         assert result["error_code"] == "service_manager_state_unavailable"
 
     asyncio.run(scenario())
+
+
+def _fake_psutil(monkeypatch, children):
+    import sys
+    from types import SimpleNamespace
+
+    class Error(Exception):
+        pass
+
+    class Process:
+        def __init__(self, pid):
+            self.pid = pid
+
+        def children(self, recursive=True):
+            return children
+
+    monkeypatch.setitem(sys.modules, "psutil", SimpleNamespace(Process=Process, Error=Error))
+
+
+def _child(pid, cmdline):
+    from types import SimpleNamespace
+
+    return SimpleNamespace(pid=pid, cmdline=lambda: cmdline)
+
+
+def _launcher_plan():
+    """A Windows plan whose venv launcher re-execs a different captured process python."""
+    import copy
+
+    from omni.domain.service_deployment import plan_fingerprint
+
+    data = copy.deepcopy(plan("windows-user"))
+    data["runtime"]["python"] = "C:/versions/v2/venv/Scripts/python.exe"
+    data["runtime"]["process_python"] = "C:/Python312/python.exe"
+    data["sha256"] = plan_fingerprint({key: value for key, value in data.items() if key != "sha256"})
+    return data
+
+
+def test_windows_action_pid_accepts_the_plan_pinned_python_behind_a_venv_launcher(monkeypatch):
+    """R2a: a venv launcher re-execs the captured process python; arguments still bind."""
+    data = _launcher_plan()
+    bundle = data["request"]["bundle_dir"]
+    expected = render(data)["service.xml"]
+    child = _child(
+        4242,
+        ["C:/Python312/python.exe", "-I", "-u", "-m", "omni.composition.service_runner", "--deployment", bundle],
+    )
+    _fake_psutil(monkeypatch, [child])
+    assert q._action_pid(555, expected, data) == 4242
+
+
+@pytest.mark.parametrize(
+    "cmdline",
+    [
+        ["C:/Python312/python.exe", "-I", "-u", "-m", "omni.composition.cli", "--deployment", "C:/fixture/bundle"],
+        ["C:/Windows/System32/cmd.exe", "/c", "omni"],
+        ["C:/Python312/python.exe", "-c", "print(1)"],
+        ["C:/fixture/python.exe", "-I", "-u", "-m", "omni.composition.service_runner", "--deployment", "C:/other"],
+    ],
+)
+def test_windows_action_pid_rejects_foreign_or_unproven_processes(monkeypatch, cmdline):
+    data = _launcher_plan()
+    expected = render(data)["service.xml"]
+    _fake_psutil(monkeypatch, [_child(4242, cmdline)])
+    assert q._action_pid(555, expected, data) is None
+
+
+def test_windows_action_pid_requires_a_live_engine(monkeypatch):
+    import sys
+    from types import SimpleNamespace
+
+    class Error(Exception):
+        pass
+
+    class Process:
+        def __init__(self, pid):
+            raise Error("gone")
+
+    monkeypatch.setitem(sys.modules, "psutil", SimpleNamespace(Process=Process, Error=Error))
+    data = _launcher_plan()
+    expected = render(data)["service.xml"]
+    assert q._action_pid(555, expected, data) is None
+    assert q._action_pid(None, expected, data) is None

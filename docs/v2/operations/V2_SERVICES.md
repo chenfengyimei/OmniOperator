@@ -21,7 +21,7 @@
 
 | 平台 | running 证据 | ready 条件 |
 | --- | --- | --- |
-| `windows-user` | Task Scheduler COM：`IRegisteredTask.State == 4` 且存在运行实例（`GetInstances` 非空，返回 `EnginePID`）；再由该引擎 PID 向下找到**动作进程自身**（命令行首项等于计划 `Exec/Command`、参数按序匹配），报告其 PID | `installed` ∧ `definition_matches` ∧ `state == running` ∧ 已核验的动作 PID；引擎在但动作进程找不到 → `state=running`、`pid=null`、`error_code=service_action_unverified`，**不判 ready** |
+| `windows-user` | Task Scheduler COM：`IRegisteredTask.State == 4` 且存在运行实例（**枚举** `GetInstances` 取首个非零 `EnginePID`；`Item(0)` 在 PowerShell 5.1 上会抛异常）；再由该引擎 PID 向下找到**动作进程自身**——映像路径属于计划已固定的集合（`Exec/Command`、`python`、`python_realpath`、`process_python`，允许 venv 启动器 re-exec 到真实解释器），且参数按序匹配计划 `Arguments`，报告其 PID | `installed` ∧ `definition_matches` ∧ `state == running` ∧ 已核验且非空的动作 PID；引擎在但动作进程找不到 → `state=running`、`pid=null`、`error_code=service_action_unverified`，**不判 ready**（`pid=null` 永不通过） |
 | `linux-user` | systemd `ActiveState=active`/`SubState=running` + `MainPID`/exec 身份 | 同上，`MainPID` 必须属于目标 uid 且可执行文件匹配 |
 | `macos-*` | 原生 helper 的 loaded 定义 + 运行 PID（`SMJobCopyDictionary` 完整枚举） | 同上，加载定义匹配且 PID 可证明 |
 

@@ -538,6 +538,15 @@ K13.cron_model_design 已记录**实现前设计合同**（纯文档，无源码
 - **未验**：真实 Windows 任务的 EnginePID→动作进程链路需 H 用主线 wheel 重跑 install→start→status→drain→uninstall；干净机器、官方产物与 72 小时仍待。
 - 证据：[v2-windows-service-d11e.json](evidence/v2-windows-service-d11e.json)；台账 [v2-windows-candidate.json](tasks/v2-windows-candidate.json) 新增 `service_status_d11e`。
 
+## 2026-11-23 Windows 服务 R1/R2 修复（基线 `d7971bc4`，H 实机反馈）
+
+- **R1**：`$instances.Item(0).EnginePID` 是 COM 集合误用，PowerShell 5.1 上必抛异常。`windows_services.ps1::Inspect-Task` 改为 `foreach` **枚举**实例，取首个非零 `EnginePID`，状态用「非零 EnginePID 或 `State∈{2,4}`」判定。
+- **R2a**：动作映像与任务 `Command` 可能不同（venv 启动器 re-exec 到计划捕获的 `process_python`）。`_action_pid(engine_pid, expected, plan)` 改为接受计划固定映像集合（`Exec/Command`、`python`、`python_realpath`、`process_python`，`normcase(realpath)` 归一），仍要求**参数按序匹配** `Arguments`（新增 Windows 引号分词 `_windows_tokens`）。
+- **R2b（关键）**：`running_postcondition` 此前对 Windows 显式允许 `pid is None`，导致 `service_action_unverified` 与 `ready=true` 并存。现全平台统一 `pid` 必须为非空 int 且等于启动回执 PID；`pid=null` 一律不判 ready。
+- **验证**：`test_v2_service_query.py` **37 passed**、`test_v2_system_service_start.py` **35 passed**、服务四模块合计 **95 passed（31.57s）**；strict **434 文件 0 错 0 警**；覆盖 launcher→python 正向、外来/错误参数拒绝、引擎消失、`pid=null`/错 PID 不 ready。
+- **未验**：真实 Task Scheduler 复验需 H 从本修复提交重建官方 wheel，重跑安装→启动→只读 status→排空→卸载；随后才冻结候选、跑最终全量与 72 小时。
+- 记录与证据：[R1/R2 记录](v2/platforms/windows/WINDOWS_SERVICE_R1_R2_2026-11-23.md)、[v2-windows-service-r1-r2.json](evidence/v2-windows-service-r1-r2.json)；台账新增 `service_status_r1_r2`。
+
 ## 追溯入口
 
 - [旧交接记录](history/pre-layout-2026-11-18/HANDOFF.md)、[旧重构记录](history/pre-layout-2026-11-18/V2_REFACTOR.md)只证明所属版本，不作为当前待办。

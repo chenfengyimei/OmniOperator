@@ -145,10 +145,17 @@ function Inspect-Task {
     $instances = $null
     try {
         $instances = $task.GetInstances(0)
-        if ($instances.Count -gt 0 -or [int]$task.State -in @(2,4)) { $result.state='running' }
+        # IRegisteredTaskCollection is a COM collection; Item() is not a method in
+        # PowerShell 5.1 (real Task Scheduler throws). Enumerate it instead.
+        foreach ($instance in $instances) {
+            if ($null -eq $result.engine_pid) {
+                $candidate = [int]$instance.EnginePID
+                if ($candidate -gt 0) { $result.engine_pid = $candidate }
+            }
+        }
+        if ($null -ne $result.engine_pid -or [int]$task.State -in @(2,4)) { $result.state='running' }
         elseif ([int]$task.State -in @(1,3)) { $result.state='stopped' }
         else { $result.state='unknown' }
-        if ($instances.Count -gt 0) { $result.engine_pid = [int]$instances.Item(0).EnginePID }
     } finally { if ($null -ne $instances) { [void][Runtime.InteropServices.Marshal]::FinalReleaseComObject($instances) } }
 }
 try {

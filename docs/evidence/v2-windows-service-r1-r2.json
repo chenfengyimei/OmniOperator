@@ -1,0 +1,52 @@
+{
+  "schema": 1,
+  "topic": "v2-windows-service-r1-r2",
+  "date": "2026-11-23",
+  "source_head": "PENDING",
+  "scope": "修复 H 在官方 wheel 实机验收中发现的 R1（拿不到运行实例 EnginePID）与 R2（venv 启动器/真实进程映像不一致导致动作 PID 不可证，且 pid=null 仍判 ready）。",
+  "defects": {
+    "R1": {
+      "symptom": "$instances.Item(0).EnginePID 在真实 Task Scheduler 抛异常，start/status 无法 running",
+      "root_cause": "IRegisteredTaskCollection 是 COM 集合，PowerShell 5.1 无 Item() 方法",
+      "fix": "windows_services.ps1::Inspect-Task 改为 foreach 枚举，取首个非零 EnginePID；状态判定用非零 EnginePID 或 State∈{2,4}"
+    },
+    "R2": {
+      "symptom": "R1 修正后 service_action_unverified，但 status 仍 ready=true",
+      "root_cause": [
+        "动作映像路径 = 计划捕获的 process_python，而任务 Command 是 venv 启动器；原实现要求首项完全相等",
+        "running_postcondition 对 Windows 显式允许 pid is None"
+      ],
+      "fix": [
+        "service_query._action_pid(engine_pid, expected, plan) 接受计划固定映像集合（Exec/Command、python、python_realpath、process_python），仍要求参数按序匹配 Arguments，并新增 Windows 引号分词 _windows_tokens",
+        "service_control.running_postcondition 全平台要求非空且匹配的 pid；pid=null 不判 ready"
+      ]
+    }
+  },
+  "receipt_contract": {
+    "state": "running | stopped | unknown",
+    "engine_pid": "null 或首个非零 EnginePID",
+    "pid": "仅当动作进程被证明时返回；否则 null",
+    "error_codes": ["service_action_unverified", "service_manager_state_unavailable", "service_definition_mismatch"]
+  },
+  "verification": {
+    "commands": [
+      "uv run --no-sync pytest -q -n 0 agent/tests/v2/operations/test_v2_service_query.py",
+      "uv run --no-sync pytest -q -n 0 agent/tests/v2/operations/test_v2_system_service_start.py",
+      "uv run --no-sync pytest -q -n 0 agent/tests/v2/operations/test_v2_service_query.py agent/tests/v2/operations/test_v2_service_registration.py agent/tests/v2/operations/test_v2_system_service_start.py agent/tests/v2/operations/test_v2_service_control.py",
+      "uv run --no-sync python -m pyright -p pyrightconfig.strict.json"
+    ],
+    "result": "service_query 37 passed；system_service_start 35 passed；服务四模块 95 passed/31.57s；strict 434 文件 0 错 0 警",
+    "covered": [
+      "venv 启动器 re-exec 到计划捕获的 process_python（正向）",
+      "外来映像/错误模块/错误部署路径/无参数匹配（拒绝）",
+      "引擎消失或缺失（拒绝）",
+      "Windows running 但 pid=null 或 PID 不匹配 → 不 ready",
+      "Windows running 且 PID 匹配 → ready"
+    ]
+  },
+  "not_executed": [
+    "真实 Windows Task Scheduler 上的复验（H 用修复提交重建官方 wheel 后重跑安装→启动→只读 status→排空→卸载）",
+    "干净机器、官方产物与 72 小时长跑"
+  ],
+  "whole_v2_complete": false
+}

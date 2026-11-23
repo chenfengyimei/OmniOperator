@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "25ec91b5f6f33153b20e4fc535b13889e98cb9acfa20493fc76bd14c22b266a8",
+  "source_sha256": "03fd4c83188a78b5393135347b7d0445dae15727fd8ec163ae7c2ef3b07cf620",
   "modules": [
     {
       "id": "v2-domain",
@@ -98,7 +98,7 @@
         "agent/src/omni/domain/verification_stop.py",
         "agent/src/omni/domain/visual_subagent.py"
       ],
-      "lines": 14825,
+      "lines": 14824,
       "dependencies": []
     },
     {
@@ -520,7 +520,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 72010,
+      "lines": 72061,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -42115,7 +42115,7 @@
       "path": "agent/src/omni/adapters/platform/services/service_query.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.services.service_query",
-      "lines": 548,
+      "lines": 592,
       "imports": [
         "omni.adapters.platform.desktop.macos_helper",
         "omni.adapters.platform.runtime.processes",
@@ -42162,21 +42162,47 @@
           }
         },
         {
-          "name": "_action_pid",
+          "name": "_windows_tokens",
           "line": 94,
           "kind": "function",
           "parameters": [
+            "text"
+          ],
+          "annotations": {
+            "text": "str"
+          }
+        },
+        {
+          "name": "_action_images",
+          "line": 125,
+          "kind": "function",
+          "parameters": [
+            "command",
+            "plan"
+          ],
+          "annotations": {
+            "command": "str",
+            "plan": "Record"
+          }
+        },
+        {
+          "name": "_action_pid",
+          "line": 137,
+          "kind": "function",
+          "parameters": [
             "engine_pid",
-            "expected"
+            "expected",
+            "plan"
           ],
           "annotations": {
             "engine_pid": "int | None",
-            "expected": "bytes"
+            "expected": "bytes",
+            "plan": "Record"
           }
         },
         {
           "name": "_read_definition",
-          "line": 133,
+          "line": 177,
           "kind": "function",
           "parameters": [
             "path"
@@ -42187,7 +42213,7 @@
         },
         {
           "name": "_read_definition.identity",
-          "line": 150,
+          "line": 194,
           "kind": "function",
           "parameters": [
             "info"
@@ -42198,17 +42224,17 @@
         },
         {
           "name": "_Query",
-          "line": 159,
+          "line": 203,
           "kind": "class"
         },
         {
           "name": "ServiceQuery",
-          "line": 172,
+          "line": 216,
           "kind": "class"
         },
         {
           "name": "ServiceQuery.__init__",
-          "line": 175,
+          "line": 219,
           "kind": "function",
           "parameters": [
             "self"
@@ -42217,7 +42243,7 @@
         },
         {
           "name": "ServiceQuery.health",
-          "line": 183,
+          "line": 227,
           "kind": "function",
           "parameters": [
             "self"
@@ -42226,7 +42252,7 @@
         },
         {
           "name": "ServiceQuery.stop_accepting",
-          "line": 194,
+          "line": 238,
           "kind": "function",
           "parameters": [
             "self"
@@ -42235,7 +42261,7 @@
         },
         {
           "name": "ServiceQuery.query",
-          "line": 197,
+          "line": 241,
           "kind": "function",
           "parameters": [
             "self",
@@ -42247,7 +42273,7 @@
         },
         {
           "name": "ServiceQuery.query.complete",
-          "line": 220,
+          "line": 264,
           "kind": "function",
           "parameters": [
             "future"
@@ -42258,7 +42284,7 @@
         },
         {
           "name": "ServiceQuery._file",
-          "line": 228,
+          "line": 272,
           "kind": "function",
           "parameters": [
             "self",
@@ -42270,7 +42296,7 @@
         },
         {
           "name": "ServiceQuery._native_helper",
-          "line": 231,
+          "line": 275,
           "kind": "function",
           "parameters": [
             "self"
@@ -42279,7 +42305,7 @@
         },
         {
           "name": "ServiceQuery._blocking",
-          "line": 236,
+          "line": 280,
           "kind": "function",
           "parameters": [
             "self",
@@ -42291,7 +42317,7 @@
         },
         {
           "name": "ServiceQuery._program",
-          "line": 249,
+          "line": 293,
           "kind": "function",
           "parameters": [
             "target"
@@ -42302,7 +42328,7 @@
         },
         {
           "name": "ServiceQuery._drain",
-          "line": 269,
+          "line": 313,
           "kind": "function",
           "parameters": [
             "self",
@@ -42318,7 +42344,7 @@
         },
         {
           "name": "ServiceQuery._spawn",
-          "line": 279,
+          "line": 323,
           "kind": "function",
           "parameters": [
             "self",
@@ -42332,14 +42358,14 @@
         },
         {
           "name": "ServiceQuery._spawn.collected",
-          "line": 318,
+          "line": 362,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "ServiceQuery._reclaim_actual",
-          "line": 326,
+          "line": 370,
           "kind": "function",
           "parameters": [
             "self",
@@ -42353,7 +42379,7 @@
         },
         {
           "name": "ServiceQuery._reclaim",
-          "line": 347,
+          "line": 391,
           "kind": "function",
           "parameters": [
             "self",
@@ -42367,7 +42393,7 @@
         },
         {
           "name": "ServiceQuery._command",
-          "line": 360,
+          "line": 404,
           "kind": "function",
           "parameters": [
             "self",
@@ -42379,7 +42405,7 @@
         },
         {
           "name": "ServiceQuery._query",
-          "line": 401,
+          "line": 445,
           "kind": "function",
           "parameters": [
             "self",
@@ -42391,7 +42417,7 @@
         },
         {
           "name": "ServiceQuery._macos_native",
-          "line": 480,
+          "line": 524,
           "kind": "function",
           "parameters": [
             "self",
@@ -42403,7 +42429,7 @@
         },
         {
           "name": "ServiceQuery._linux",
-          "line": 519,
+          "line": 563,
           "kind": "function",
           "parameters": [
             "self",
@@ -42419,7 +42445,7 @@
         },
         {
           "name": "ServiceQuery.close",
-          "line": 531,
+          "line": 575,
           "kind": "function",
           "parameters": [
             "self",
@@ -47103,7 +47129,7 @@
       "path": "agent/src/omni/adapters/workers/windows_services.ps1",
       "module": "v2-adapters",
       "python_module": null,
-      "lines": 202,
+      "lines": 209,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -87725,7 +87751,7 @@
       "path": "agent/src/omni/domain/service_control.py",
       "module": "v2-domain",
       "python_module": "omni.domain.service_control",
-      "lines": 206,
+      "lines": 205,
       "imports": [
         "omni.domain.contracts",
         "omni.domain.service_deployment"
@@ -87839,7 +87865,7 @@
         },
         {
           "name": "start_postcondition",
-          "line": 136,
+          "line": 135,
           "kind": "function",
           "parameters": [
             "deployment",
@@ -87854,7 +87880,7 @@
         },
         {
           "name": "signature",
-          "line": 146,
+          "line": 145,
           "kind": "function",
           "parameters": [
             "value",
@@ -87869,7 +87895,7 @@
         },
         {
           "name": "drain_request",
-          "line": 152,
+          "line": 151,
           "kind": "function",
           "parameters": [
             "operation",
@@ -87884,7 +87910,7 @@
         },
         {
           "name": "verify_drain",
-          "line": 164,
+          "line": 163,
           "kind": "function",
           "parameters": [
             "value",
@@ -87901,7 +87927,7 @@
         },
         {
           "name": "drain_receipt",
-          "line": 188,
+          "line": 187,
           "kind": "function",
           "parameters": [
             "request",
@@ -87914,7 +87940,7 @@
         },
         {
           "name": "verify_receipt",
-          "line": 197,
+          "line": 196,
           "kind": "function",
           "parameters": [
             "value",

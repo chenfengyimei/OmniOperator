@@ -434,3 +434,19 @@ def test_close_slot_is_enforced_at_root_and_disconnected_cleanup_does_not_claim_
     assert connection.replies == [] and not service.close(0)
     commands.cleanup = True
     assert service.close(0)
+
+
+def test_windows_start_never_accepts_running_without_a_matching_action_pid():
+    """R2: a manager state of running with no proven action PID is not readiness."""
+    deployment = plan("windows-user")
+    base = {
+        "installed": True,
+        "definition_present": True,
+        "definition_matches": True,
+        "available": True,
+        "enabled": True,
+        "state": "running",
+    }
+    assert not start_postcondition(deployment, {**base, "pid": None}, {"ready": True, "pid": 42})
+    assert not start_postcondition(deployment, {**base, "pid": 7}, {"ready": True, "pid": 42})
+    assert start_postcondition(deployment, {**base, "pid": 42}, {"ready": True, "pid": 42})

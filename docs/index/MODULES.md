@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`25ec91b5f6f33153b20e4fc535b13889e98cb9acfa20493fc76bd14c22b266a8`。包含 65 个职责模块、855 个源码/界面文件。
+源码指纹：`03fd4c83188a78b5393135347b7d0445dae15727fd8ec163ae7c2ef3b07cf620`。包含 65 个职责模块、855 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -73,7 +73,7 @@
 | [agent/src/omni/domain/service_activation.py](../../agent/src/omni/domain/service_activation.py) | 83 | Bind unattended exchange activation to one reviewed boot; pure persisted contracts with no platform IO. |
 | [agent/src/omni/domain/service_admin.py](../../agent/src/omni/domain/service_admin.py) | 285 | Exact operation or exchange privilege scope; never accepts arbitrary commands, paths or identities. |
 | [agent/src/omni/domain/service_cleanup.py](../../agent/src/omni/domain/service_cleanup.py) | 180 | Exact quarantined-registration cleanup plans; no filesystem, native calls or reinterpretation of old effects. |
-| [agent/src/omni/domain/service_control.py](../../agent/src/omni/domain/service_control.py) | 206 | Reviewed service start/drain identities and domain-separated HMAC messages; no network or process IO. |
+| [agent/src/omni/domain/service_control.py](../../agent/src/omni/domain/service_control.py) | 205 | Reviewed service start/drain identities and domain-separated HMAC messages; no network or process IO. |
 | [agent/src/omni/domain/service_deployment.py](../../agent/src/omni/domain/service_deployment.py) | 566 | Pure, versioned service plans. Validation performs no filesystem or OS calls. |
 | [agent/src/omni/domain/service_exchange.py](../../agent/src/omni/domain/service_exchange.py) | 329 | Reviewed same-schema service exchanges and ordered witnesses; no platform, process or storage IO. |
 | [agent/src/omni/domain/service_isolation.py](../../agent/src/omni/domain/service_isolation.py) | 115 | Reviewed offline startup quarantine; retains unknown outcomes and authorizes only a separate recovery plan. |
@@ -436,7 +436,7 @@
 | [agent/src/omni/adapters/platform/services/service_handover.py](../../agent/src/omni/adapters/platform/services/service_handover.py) | 77 | Two pinned root phases, opened in order and owned until native lock release; never elevates or spawns a broker. |
 | [agent/src/omni/adapters/platform/services/service_launch.py](../../agent/src/omni/adapters/platform/services/service_launch.py) | 95 | Once-only reviewed boot reservations under the instance lock; never starts a process or reads credentials. |
 | [agent/src/omni/adapters/platform/services/service_operation_files.py](../../agent/src/omni/adapters/platform/services/service_operation_files.py) | 274 | Private offline maintenance journal; never migrates, replays or removes instance data. |
-| [agent/src/omni/adapters/platform/services/service_query.py](../../agent/src/omni/adapters/platform/services/service_query.py) | 548 | Read-only OS service inspection with bounded output and retained process ownership. |
+| [agent/src/omni/adapters/platform/services/service_query.py](../../agent/src/omni/adapters/platform/services/service_query.py) | 592 | Read-only OS service inspection with bounded output and retained process ownership. |
 | [agent/src/omni/adapters/platform/services/service_readiness.py](../../agent/src/omni/adapters/platform/services/service_readiness.py) | 307 | Bounded, per-boot HMAC readiness proof. Never reads or sends an owner credential. |
 | [agent/src/omni/adapters/platform/services/service_registration.py](../../agent/src/omni/adapters/platform/services/service_registration.py) | 432 | Native user-service registration with fixed commands and scoped macOS unload; no elevation or data deletion. |
 | [agent/src/omni/adapters/platform/services/service_templates.py](../../agent/src/omni/adapters/platform/services/service_templates.py) | 219 | Deterministic service artifacts. Rendering never installs or controls a service. |
@@ -492,7 +492,7 @@
 | [agent/src/omni/adapters/workers/terminal.py](../../agent/src/omni/adapters/workers/terminal.py) | 720 | Fixed terminal host. Only this isolated, single-threaded startup may fork. |
 | [agent/src/omni/adapters/workers/terminal_gate.py](../../agent/src/omni/adapters/workers/terminal_gate.py) | 104 | Trusted ConPTY gate: no user startup code before the parent owns its Job. |
 | [agent/src/omni/adapters/workers/windows_foreground.cs](../../agent/src/omni/adapters/workers/windows_foreground.cs) | 250 | 原生源码、平台脚本或界面资源 |
-| [agent/src/omni/adapters/workers/windows_services.ps1](../../agent/src/omni/adapters/workers/windows_services.ps1) | 202 | 原生源码、平台脚本或界面资源 |
+| [agent/src/omni/adapters/workers/windows_services.ps1](../../agent/src/omni/adapters/workers/windows_services.ps1) | 209 | 原生源码、平台脚本或界面资源 |
 | [agent/src/omni/adapters/workers/windows_uia.cs](../../agent/src/omni/adapters/workers/windows_uia.cs) | 348 | 原生源码、平台脚本或界面资源 |
 | [agent/src/omni/adapters/workers/windows_uia.ps1](../../agent/src/omni/adapters/workers/windows_uia.ps1) | 78 | 原生源码、平台脚本或界面资源 |
 

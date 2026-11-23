@@ -127,10 +127,9 @@ def running_postcondition(
     ):
         return False
     pid = report.get("pid")
-    target = _nested(deployment, "request", "target")
-    if target in {"linux-user", "linux-system", "macos-user", "macos-system"}:
-        return type(pid) is int and pid > 0 and pid == proof.get("pid")
-    return pid is None or (type(pid) is int and pid > 0 and pid == proof.get("pid"))
+    # R2: every target must prove its own action process. A manager state of
+    # running without a matching PID is not readiness (Windows included).
+    return type(pid) is int and pid > 0 and pid == proof.get("pid")
 
 
 def start_postcondition(
