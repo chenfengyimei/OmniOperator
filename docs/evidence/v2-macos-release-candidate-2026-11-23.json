@@ -270,5 +270,18 @@
     },
     "finding": "macOS system-domain (LaunchDaemon) registration is not implemented in this candidate; the tool refuses before any system change (fail-closed). No plist was written to /Library/LaunchDaemons.",
     "next": "A/owner decision whether to implement the privileged system-domain path; user-domain is fully closed-loop"
+  },
+  "clean_install": {
+    "location": "~/omni-candidate (outside the repository)",
+    "wheel_sha256": "d478d0e6ff365ba8d62fb9fdbc698c62cc18acc4290d9dae03e4b29e20c6e136",
+    "instance_id": "36d7a248",
+    "schema": "v2_0052",
+    "workbench": 200,
+    "health_ready": true,
+    "static_asset": 200,
+    "dev_path_dependency": "none found in wheel install or helper binary strings",
+    "arch": "arm64",
+    "tested_os": "macOS 27.2.1 (26B131)",
+    "signing": "ad hoc"
   }
 }

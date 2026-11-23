@@ -27,6 +27,18 @@ REAL_PY=~/.local/share/uv/python/cpython-3.12.16-macos-aarch64-none/bin/python3.
 
 技能/桌面能力需要 helper 时，把 `OmniOperator Desktop Helper.app` 放到固定路径并重新在系统设置里授权（TCC 与路径/签名绑定）。
 
+## 干净安装复验（2026-11-23）
+
+在 `~/omni-candidate`（仓库外、无 editable、无构建缓存）从交付 wheel 完整复验：
+
+- `python -m venv` + `pip install` 交付 wheel；`omni.__file__` 指向该 venv
+- `init` → 实例 `36d7a248`、schema `v2_0052`
+- `serve` → 工作台 200、`/health/ready` true、静态资源 `/assets/ui/theme.js` 200
+- helper 二进制无开发机绝对路径（strings 无 `/Users/chenfeng` 与构建目录）
+- 产物架构 arm64、实测 macOS 27.2.1（26B131）、签名 ad hoc（spctl 拒绝，见状态文档）
+
+最短步骤：`python3.12 -m venv ~/omni-candidate/venv` → `pip install omnioperator-0.1.0-py3-none-any.whl` → `init` → `serve` → 浏览器打开 `http://127.0.0.1:8878/`。
+
 ## 本机已实测
 
 工作台 200、`/health/ready` true、无 token 401 / 有 token 200、创建 `release-smoke` Agent、重启后同一 instance、Agent 持久化。
