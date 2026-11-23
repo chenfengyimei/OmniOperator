@@ -2,7 +2,7 @@
   "schema": 1,
   "topic": "v2-windows-service-r3",
   "date": "2026-11-23",
-  "source_head": "PENDING",
+  "source_head": "90de0bbc",
   "scope": "修复 R3：Windows 服务实际已启动，但 start 的完成判定读取的原生 receipt 只有 engine_pid、没有已核验动作 PID，导致 start 停在 unknown、reconcile 无法确认、stop/uninstall 被阻塞。",
   "defect": {
     "symptom": "service 已运行、status 可返回 running/ready=true，但 apply-control start 仍 unknown；reconcile 不能确认；stop/uninstall 被阻塞",
@@ -17,7 +17,11 @@
     "state": "running | stopped | unknown",
     "engine_pid": "null 或首个非零 EnginePID",
     "pid": "running 时为已核验动作 PID（由 action_pid 计算）；否则 null",
-    "error_codes": ["service_action_unverified", "service_manager_state_unavailable", "service_definition_mismatch"]
+    "error_codes": [
+      "service_action_unverified",
+      "service_manager_state_unavailable",
+      "service_definition_mismatch"
+    ]
   },
   "verification": {
     "commands": [
