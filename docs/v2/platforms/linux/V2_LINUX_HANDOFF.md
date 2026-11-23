@@ -223,3 +223,7 @@ uv run --no-sync python agent/scripts/accept_native_credentials.py --cleanup <�
 ### 2026-11-22 Linux 原生专项与 headless 诊断
 
 在 Lima vz 的 Ubuntu 26.04.1 LTS（aarch64、kernel 7.0.0-38、Python 3.12.16、`desktop-linux` 额外依赖）中运行 `test_v2_linux_bus.py`、`test_v2_linux_desktop.py`、`test_v2_linux_acceptance.py`：**77 passed，2.56s**。随后执行 `accept_linux_desktop.py`（无 DISPLAY/Wayland/D-Bus 会话）：`probe_completed`、`cleanup_verified=true`；能力字段为 `window_identity/accessibility=unknown/desktop_native_unavailable`、`screen_capture/foreground_control=desktop_adapter_not_implemented`，**未把缺少 DISPLAY 报告为已证明 headless，也未声称 GUI 支持**。容器侧证据见上一节（`check_v2_container.py` passed）；X11/Wayland 真机会话仍缺，G3/G4 的控件身份/前台后验/暂停撤权未验。证据：[Linux 专项与探针](../../../evidence/v2-linux-native-tests-2026-11-22.json)。
+
+### 2026-11-23 X11 会话尝试与失败关闭
+
+在 Lima VM 中安装 LightDM + openbox + Xorg（vkms 虚拟 DRM），`loginctl` 得到真实会话：id 25、user `omni`（uid 10001）、**Type=x11、Class=user、Seat=seat0、Display=:0**，`CanGraphical=yes`；GTK3 样例（含 password entry）在会话内运行。以 `accept_linux_desktop.py --fixture-pid <pid> --consent-read-ui --native-backend x11 --capture-window` 分别从 lima shell 和会话内（openbox autostart）运行，均返回 **`linux_sample_read_unavailable`、`session_kind=unknown`**：工具未能证明 X 服务器/目标属于当前活动会话，因此在读取前拒绝（失败关闭）。未尝试 AT-SPI 写动作或前台输入，也没有产出截图。**G3 仍未验证**；需要能建立 Xorg/session 证明的真实桌面 X11（或由 A 合同决定是否接受 display-manager 启动的 Xorg）。证据：[X11 尝试](../../../evidence/v2-linux-x11-probe-2026-11-23.json)。

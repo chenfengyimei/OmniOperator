@@ -39,6 +39,7 @@
 - 2026-11-22 macOS 权限撤回→恢复：reset Accessibility/PostEvent 后 probe 立即 denied、read 验收失败关闭（无写动作）；重新请求并允许后 8s 内四项全 granted，read 验收通过（首试一次冷启动瞬时失败，重试通过、未重放）。[证据](evidence/v2-macos-permission-revocation-2026-11-22.json)。
 - 2026-11-22 Linux 容器/无桌面（G3/G4）：Lima vz + Ubuntu 26.04 arm64 + Docker 29.10 构建 `deploy/v2/Dockerfile` 镜像并通过 `check_v2_container.py`（fresh/reopened、nonroot/private home/owner auth/headless、离线、清理完整）；修复服务 SIGTERM 退出 143 → 0，受影响专项 57 通过。X11/Wayland 图形会话仍缺，G3/G4 原生 GUI 未验。[证据](evidence/v2-linux-container-2026-11-22.json)
 - 2026-11-22 Linux 原生专项/headless（G3/G4）：Ubuntu 26.04 arm64 VM 中 bus/desktop/acceptance 专项 **77 passed（2.56s）**；无图形会话下 `accept_linux_desktop.py` 得 `probe_completed`、能力 unavailable 且未谎报 headless。X11/Wayland 真机会话与控件身份/暂停撤权未验。[证据](evidence/v2-linux-native-tests-2026-11-22.json)
+- 2026-11-23 Linux X11 尝试：VM 内 LightDM+openbox+vkms 得到真实会话 25（Type=x11/seat0/:0），但 V2 探针两次均 `linux_sample_read_unavailable`、`session_kind=unknown`，读取前失败关闭，G3 未验。[证据](evidence/v2-linux-x11-probe-2026-11-23.json)
 - Windows 样例修正 `fbfc16b8`、人工复验 `73970d20`：标准顶层窗口下点击点与遮挡拒绝通过，36 专项。自有窗口完整回归最终文本 `PREFIX-ONLY-OWNED-TEXT`、按钮 1 次，四次生产回执仍为 unknown、不重发。原 STATIC 样例导致跨进程命中，生产拒绝正确，矩形中心候选未保留。[复核证据](evidence/v2-windows-click-fixture.json)。
 - Linux Enter 控件状态批 `f539f21e`：194 专项、3 个运行文件 strict 通过，真实 Linux 未验。[证据](evidence/v2-linux-key-state.json)。
 - 历史 5998 全量仅覆盖 `7e64d348` 固定候选。后续修改、其他会话提交及本次目录迁移均不能复用为当前源码全量通过。

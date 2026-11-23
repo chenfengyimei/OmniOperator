@@ -1,0 +1,55 @@
+{
+  "schema": 1,
+  "batch": "G3.x11_session_probe",
+  "date": "2026-11-23",
+  "status": "a real X11 autologin session was created in the Linux VM, but the V2 acceptance kept session_kind=unknown and refused the sample; evidence insufficient, denial maintained",
+  "whole_v2_complete": false,
+  "platform_linux_complete": false,
+  "release_candidate": false,
+  "environment": {
+    "vm": "Lima vz Ubuntu 26.04.1 LTS aarch64",
+    "display": "LightDM + openbox + Xorg (vkms virtual DRM), seat0 CanGraphical=yes",
+    "session": {
+      "id": 25,
+      "user": "omni (uid 10001, isolated)",
+      "type": "x11",
+      "class": "user",
+      "seat": "seat0",
+      "display": ":0"
+    },
+    "fixture": "GTK3 window with entry, password entry, button, label; pid recorded"
+  },
+  "attempt": {
+    "commands": [
+      "systemctl restart lightdm",
+      "openbox autostart: xcompmgr, fixture, run_accept.sh inside session 25",
+      "accept_linux_desktop.py --fixture-pid <pid> --consent-read-ui --native-backend x11 --capture-window"
+    ],
+    "results": [
+      {
+        "where": "from lima shell (sudo -u omni)",
+        "error_code": "linux_sample_read_unavailable",
+        "session_kind": "unknown"
+      },
+      {
+        "where": "inside session 25 via openbox autostart",
+        "error_code": "linux_sample_read_unavailable",
+        "session_kind": "unknown"
+      }
+    ],
+    "interpretation": "the tool did not prove the X server/target session ownership, so it refused the read and capture; this is the documented fail-closed behavior, not a test to relax"
+  },
+  "next_needed": [
+    "a real desktop X11 session where the Xorg/session proof can be established (physical Linux or a VM with a display manager and seat such that logind and XRes agree)",
+    "or a fix in the Linux session inspector for display-manager-launched Xorg, if the contract intends to accept it; that is a shared/contract decision for A"
+  ],
+  "limits": [
+    "no AT-SPI mutation or foreground input attempted",
+    "X11 capture not produced",
+    "session proof unknown; no GUI acceptance claimed",
+    "container/headless results remain the verified scope"
+  ],
+  "artifacts": [
+    "/tmp/linux-x11-accept-3/evidence.json (VM only, not committed)"
+  ]
+}
