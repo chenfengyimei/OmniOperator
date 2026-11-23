@@ -25,7 +25,7 @@
       "uv run --no-sync pytest -q -n 0 agent/tests/v2/integrations/test_v2_media_zoom_tool.py agent/tests/v2/integrations/test_v2_media_zoom_e2e.py agent/tests/v2/core/test_v2_prompt_cache.py agent/tests/test_gateway.py agent/tests/v2/core/test_v2_execution_pruning.py agent/tests/v2/core/test_v2_schedule_context.py",
       "uv run --no-sync python -m pyright -p pyrightconfig.strict.json"
     ],
-    "result": "todos 1 passed；android/documents/skills/reflection 64 passed；media zoom 26 passed；images 17 passed；context/execution/config/delegation/cron 174 passed；回归 sweep 113 passed；strict 434 文件 0 错 0 警",
+    "result": "todos 1 passed；android/documents/skills/reflection 64 passed；media zoom 26 passed；images 17 passed；context/execution/config/delegation/cron 158 passed；回归 sweep 113 passed；strict 434 文件 0 错 0 警",
     "not_fully_covered": [
       "全量 8655 项尚未在新候选上重跑（由 H 用修复提交执行）"
     ]

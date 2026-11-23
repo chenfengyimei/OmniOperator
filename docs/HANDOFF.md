@@ -561,7 +561,7 @@ K13.cron_model_design 已记录**实现前设计合同**（纯文档，无源码
 - **根因**：`context_tokens` 声明为**模型 token**，但保守计数器按 **UTF-8 字节** 计数（1 字节=1 token）。C/D/E/G 后系统提示 + persona + 工具 schema + 对话约 30 KB，32K 声明容量只剩 3K；TODO 第三轮 `29808+2048+1024=32880`，仅超 112 即 `token_budget_exceeded`，run 失败后 wait 超时。
 - **修复**：新增版本化信封 **`utf8-envelope-v2`**（token 语义：ASCII 3 字节/token、非 ASCII 2 token/字符、+256 token 信封、图像 token 成本直接相加），`ModelOptions` 新配置默认 v2；**`utf8-envelope-v1` 逐字节行为原样保留**给既有配置；`context_tokens` 默认仍 32768（v2 下约 98 KB ASCII 余量），不按未核实上限上调。
 - **图像契约**：`application/images.py` 与 `application/configuration.py` 接受 v1/v2；`required` 模式仍报 `image_counter_unavailable`（不再因默认 v2 误伤）。
-- **验证**：TODO 用例 1 passed（原 60s 超时）；android/documents/skills/reflection **64 passed**；media zoom **26 passed**；images **17 passed**；context/execution/config/delegation/cron **174 passed**；回归 sweep **113 passed**；strict **434 文件 0 错 0 警**。另两项（shell 进程树回收、UIA `act`）隔离运行均通过，判为并行竞争抖动，待 H 在新候选全量确认。
+- **验证**：TODO 用例 1 passed（原 60s 超时）；android/documents/skills/reflection **64 passed**；media zoom **26 passed**；images **17 passed**；context/execution/config/delegation/cron **158 passed**；回归 sweep **113 passed**；strict **434 文件 0 错 0 警**。另两项（shell 进程树回收、UIA `act`）隔离运行均通过，判为并行竞争抖动，待 H 在新候选全量确认。
 - **回归用例（32K 边界保留）**：`test_utf8_envelope_v2_lets_a_declared_32k_config_finish_normal_tool_rounds`（v1 超限保持、v2 通过）、`test_utf8_envelope_v2_keeps_cjk_conservative_and_still_fails_closed`（CJK ≥2 token/字符、200 KB 仍拒绝）。
 - **未验**：真实 provider tokenizer 对照、真实 32K/128K 长对话压力、新候选全量与官方产物（H）。
 - 契约与证据：[V2_TOKEN_ENVELOPE](v2/contracts/V2_TOKEN_ENVELOPE.md)、[v2-r4-token-envelope.json](evidence/v2-r4-token-envelope.json)。
