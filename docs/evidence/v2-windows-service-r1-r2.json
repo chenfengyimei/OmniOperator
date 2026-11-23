@@ -2,7 +2,7 @@
   "schema": 1,
   "topic": "v2-windows-service-r1-r2",
   "date": "2026-11-23",
-  "source_head": "PENDING",
+  "source_head": "300a3229",
   "scope": "修复 H 在官方 wheel 实机验收中发现的 R1（拿不到运行实例 EnginePID）与 R2（venv 启动器/真实进程映像不一致导致动作 PID 不可证，且 pid=null 仍判 ready）。",
   "defects": {
     "R1": {
@@ -26,7 +26,11 @@
     "state": "running | stopped | unknown",
     "engine_pid": "null 或首个非零 EnginePID",
     "pid": "仅当动作进程被证明时返回；否则 null",
-    "error_codes": ["service_action_unverified", "service_manager_state_unavailable", "service_definition_mismatch"]
+    "error_codes": [
+      "service_action_unverified",
+      "service_manager_state_unavailable",
+      "service_definition_mismatch"
+    ]
   },
   "verification": {
     "commands": [
