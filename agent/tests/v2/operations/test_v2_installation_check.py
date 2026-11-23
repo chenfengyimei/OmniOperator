@@ -296,3 +296,21 @@ def test_standalone_installer_json_preserves_non_legacy_unicode_under_isolated_p
     assert result.returncode == 0, result.stderr
     assert json.loads(result.stdout) == {"home": str(home)}
     assert result.stdout.isascii() and not home.exists()
+
+def test_documented_cleanup_pending_is_retried_and_recorded(tmp_path, monkeypatch):
+    monkeypatch.setattr(check, "CLEANUP_RETRY_SECONDS", 0.0)
+    base = peer()
+    calls = {"uninstall": 0}
+
+    class Retry(base):
+        async def run(self, phase, arguments, cwd, env):
+            if phase == "uninstall" and calls["uninstall"] == 0:
+                calls["uninstall"] += 1
+                raise check.CommandFailed(1, '{"error": "uninstall_cleanup_pending"}')
+            return await super().run(phase, arguments, cwd, env)
+
+    args = inputs(tmp_path)
+    result = asyncio.run(check.check_installation(*args, command_type=Retry))
+    assert result["verified"] is True and result["candidate_removed"] is True
+    assert [attempt["state"] for attempt in result["uninstall_attempts"]] == ["failed", "verified"]
+    assert result["uninstall_attempts"][0]["error_code"] == "uninstall_cleanup_pending"

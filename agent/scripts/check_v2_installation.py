@@ -17,6 +17,10 @@ from omni.adapters.platform.releases.dependency_bundle import no_links
 from omni.adapters.platform.runtime.permissions import private_path
 from omni.adapters.platform.runtime.processes import OwnedProcess
 
+# The documented external-manager retry: the product refuses an uninstall while
+# files are still settling, so the check retries instead of failing the candidate.
+CLEANUP_RETRY_SECONDS = 30.0
+
 MAX_OUTPUT = 2 * 1024 * 1024
 BASE_PROBE = "import importlib.util,json,platform,sys; assert importlib.util.find_spec('omni') is None; print(json.dumps({'platform':sys.platform,'python':list(sys.version_info[:2]),'machine':platform.machine(),'omni_absent':True}))"
 ENVIRONMENT_PROBE = "import json,site,sys,omni; from pathlib import Path; prefix=Path(sys.prefix).resolve(); assert sys.prefix!=sys.base_prefix and site.ENABLE_USER_SITE is False; assert Path(omni.__file__).resolve().is_relative_to(prefix); print(json.dumps({'prefix':str(prefix),'module':str(Path(omni.__file__).resolve()),'isolated':sys.flags.isolated,'user_site':site.ENABLE_USER_SITE}))"
@@ -57,6 +61,15 @@ def decode(raw: bytes) -> dict[str, Any]:
 def save(path: Path, report: dict[str, Any]) -> None:
     path.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     private_path(path)
+
+
+class CommandFailed(RuntimeError):
+    """A bounded child exited nonzero; keep its stderr for documented retries."""
+
+    def __init__(self, returncode: int, stderr: str) -> None:
+        super().__init__(f"command_failed returncode={returncode} stderr={stderr[:200]}")
+        self.returncode = returncode
+        self.stderr = stderr
 
 
 class Commands:
@@ -101,6 +114,7 @@ class Commands:
         )
         overflow = asyncio.Event()
         output = bytearray()
+        errors = bytearray()
 
         async def drain(stream: asyncio.StreamReader, name: str, capture: bool) -> None:
             size, checksum = 0, hashlib.sha256()
@@ -110,13 +124,13 @@ class Commands:
                 if size > MAX_OUTPUT:
                     overflow.set()
                 elif capture:
-                    output.extend(block)
+                    (output if name == "stdout" else errors).extend(block)
             record[name + "_bytes"], record[name + "_sha256"] = size, checksum.hexdigest()
 
         assert owned.process.stdout is not None and owned.process.stderr is not None
         readers = [
             asyncio.create_task(drain(owned.process.stdout, "stdout", True)),
-            asyncio.create_task(drain(owned.process.stderr, "stderr", False)),
+            asyncio.create_task(drain(owned.process.stderr, "stderr", True)),
         ]
 
         async def wait_exit() -> None:
@@ -133,7 +147,11 @@ class Commands:
                 await asyncio.wait((collected, exceeded, cancelled), return_when=asyncio.FIRST_COMPLETED)
                 require(not overflow.is_set() and not aborted.is_set())
                 await asyncio.shield(collected)
-                require(record["returncode"] == 0)
+                if record["returncode"] != 0:
+                    raise CommandFailed(
+                        int(record["returncode"]),
+                        bytes(errors).decode("utf-8", "replace") + bytes(output).decode("utf-8", "replace"),
+                    )
                 result = decode(bytes(output))
                 record["state"] = "verified"
                 return result
@@ -311,9 +329,23 @@ async def check_installation(
         backup_sha = digest(backup / "manifest.json")
         report["before_uninstall"] = {"data_sha256": before, "backup_manifest_sha256": backup_sha}
         save(report_path, report)
-        removed = await commands.run(
-            "uninstall", [*cli, "installation", "uninstall", "--sha256", wheel_sha], output, env
-        )
+        attempts: list[dict[str, Any]] = []
+        removed: dict[str, Any] = {}
+        for attempt in range(1, 5):
+            try:
+                removed = await commands.run(
+                    "uninstall", [*cli, "installation", "uninstall", "--sha256", wheel_sha], output, env
+                )
+            except CommandFailed as error:
+                attempts.append({"attempt": attempt, "state": "failed", "error_code": "uninstall_cleanup_pending" if "uninstall_cleanup_pending" in error.stderr else "uninstall_failed"})
+                report["uninstall_attempts"] = attempts
+                if "uninstall_cleanup_pending" not in error.stderr or attempt == 4:
+                    raise
+                await asyncio.sleep(CLEANUP_RETRY_SECONDS)
+                continue
+            attempts.append({"attempt": attempt, "state": "verified"})
+            break
+        report["uninstall_attempts"] = attempts
         require(
             removed.get("removed") is True
             and removed.get("data_kept") is True
