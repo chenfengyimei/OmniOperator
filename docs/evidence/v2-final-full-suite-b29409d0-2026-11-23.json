@@ -12,7 +12,11 @@
     "skipped": 10,
     "seconds": 2580.96,
     "exit": 1,
-    "junit": {"path": "temp/build/final-b29409d0.xml", "sha256": "67144e960c51b86f0e11b91242a321254120debcc8657b784715e6806706448a", "bytes": 1528038}
+    "junit": {
+      "path": "temp/build/final-b29409d0.xml",
+      "sha256": "67144e960c51b86f0e11b91242a321254120debcc8657b784715e6806706448a",
+      "bytes": 1528038
+    }
   },
   "failed_tests": [
     "agent/tests/test_shell_tools.py::test_process_boundary_reclaims_child_process_tree",
@@ -28,15 +32,35 @@
   "serial_rerun": {
     "command": "uv run --no-sync pytest -q -n 0 --lf --last-failed-no-failures=none",
     "result": "20 failed, 2 passed, 18 deselected in 450.37s",
-    "note": "22 个失败中 20 个单独复现；不是并行 xdist 偶发。"
+    "note": "22 个失败中 20 个单独复现；不是并行 xdist 偶发。",
+    "passed_individually": [
+      "agent/tests/test_shell_tools.py::test_process_boundary_reclaims_child_process_tree",
+      "agent/tests/v2/platforms/common/test_v2_desktop_observation_native.py::test_fixed_windows_uia_worker_reads_only_owned_fixture_and_redacts_password[act]"
+    ]
   },
   "model_call_window": {
     "home": "C:/v2-acceptance/tmp-todo/test_production_loop_updates_p0/data/omni.db",
     "run": "f435e60e-5a92-4a9c-a267-618ad65be784",
     "calls": [
-      {"step": 1, "input_token_estimate": 27436, "output_token_limit": 2048, "capacity_tokens": 32768},
-      {"step": 2, "input_token_estimate": 28788, "output_token_limit": 2048, "capacity_tokens": 32768},
-      {"step": 3, "input_token_estimate": 29808, "output_token_limit": 2048, "capacity_tokens": 32768, "state": "not_sent"}
+      {
+        "step": 1,
+        "input_token_estimate": 27436,
+        "output_token_limit": 2048,
+        "capacity_tokens": 32768
+      },
+      {
+        "step": 2,
+        "input_token_estimate": 28788,
+        "output_token_limit": 2048,
+        "capacity_tokens": 32768
+      },
+      {
+        "step": 3,
+        "input_token_estimate": 29808,
+        "output_token_limit": 2048,
+        "capacity_tokens": 32768,
+        "state": "not_sent"
+      }
     ],
     "margin_tokens": 1024,
     "calculation": "step 3: 29808 + 2048 + 1024 = 32880 > 32768（超出 112 tokens）",
@@ -54,9 +78,8 @@
     "introduced_after_last_green": "全量绿 b395cd97 之后并入 C/D/E/G 与视觉生产路径，工具/提示词增长；当前候选未再跑全量。",
     "not_only_flake": "20/22 单跑复现；token_budget_exceeded 是确定性失败。",
     "secondary": [
-      "test_process_boundary_reclaims_child_process_tree：timed_out true 但 reclaimed false（进程树回收断言；可能与系统负载/子进程状态有关）",
-      "test_fixed_windows_uia_worker...act：真实 UIA 动作失败（桌面环境/输入状态相关）",
-      "media zoom 多条 ASSERT：需单独确认是否同一 token_budget 失败后的次生断言"
+      "media zoom e2e 保留 home 复核：run.failed error_code=token_budget_exceeded，属 R4 次生",
+      "shell 进程树回收与 UIA act 单跑通过，判为全量高负载/时序敏感（需在全量复跑观察）"
     ]
   },
   "impact": "最终候选 b29409d0 不能冻结或发布；72h 长跑不能启动。即使 C2.7 服务链与官方安装链/检查通过，全量仍有 22 项失败。",
@@ -66,7 +89,11 @@
     "shell 进程树回收与 UIA act 两条单独定位；media zoom 复核是否 token_budget 次生",
     "修复后重新冻结 SHA 并重跑完整全量；全量绿前不得进入 72h"
   ],
-  "evidence_files": ["temp/build/final-b29409d0.xml", "temp/build/final-b29409d0.log", "C:/v2-acceptance/tmp-todo", "C:/v2-acceptance/tmp-android"],
+  "evidence_files": [
+    "temp/build/final-b29409d0.xml",
+    "temp/build/final-b29409d0.log",
+    "C:/v2-acceptance/tmp-todo",
+    "C:/v2-acceptance/tmp-android"
+  ],
   "whole_v2_complete": false
 }
-
