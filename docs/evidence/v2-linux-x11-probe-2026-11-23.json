@@ -220,5 +220,20 @@
       "conclusion": "on every reparenting X11 WM available here the client window is not redirected; the implementation's NameWindowPixmap(window) assumption only holds for compositors that redirect client windows (e.g. old Mutter/compiz)",
       "needed": "A must choose frame capture+crop or another capture path; alternatively accept X11 capture as unsupported on reparenting WMs"
     }
+  },
+  "foreground_contract": {
+    "probe": "KWin session: targets=2 (atspi+x11), x11 target selected",
+    "direct_attempt": {
+      "press_key": {
+        "status": "denied",
+        "effect": "none",
+        "error_code": "desktop_invalid",
+        "verification": "not_dispatched"
+      },
+      "click": "same"
+    },
+    "reason": "foreground actions require the AT-SPI node-proof flow: takeover=true, policy constant, node proof from an observation, grant/run/operation UUIDs; the target must be an atspi target. A bare {kind,key} action and an x11 target are rejected before dispatch.",
+    "refusal_evidence": "valid negative path: malformed action denied with no dispatch",
+    "next": "drive the production observe->node proof->foreground(permit/takeover) flow (workbench API) on the atspi target; then test user-intervention/user-approval withdrawal"
   }
 }

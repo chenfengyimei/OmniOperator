@@ -271,3 +271,5 @@ X11 侧定位：`linux_x11_socket.py` 要求 socket 身份 + Xorg 进程 uid/会
 截屏两难已定位到列出与捕获的联合要求：`wire.windows()` 依赖 EWMH `_NET_CLIENT_LIST`（无 WM 时不存在 → `desktop_x11_window_list_unavailable`）；`NameWindowPixmap` 要求客户端窗口本身被重定向。当前 openbox+xcompmgr 是“reparent 到 frame + 只重定向 frame”，两者无法同时满足。结论：实现假设的是 **compositing WM（Mutter/KWin/compiz）** 这类同时提供 `_NET_CLIENT_LIST` 且直接重定向客户端窗口的桌面。下一步在 VM 里装 mutter（或 kwin_x11）验证成功路径，或改在真实 GNOME/KDE X11 桌面验收。
 
 KWin 6.6.4 尝试：`_NET_CLIENT_LIST` 存在（列表通过）、target() 合法、watch 通过，但 `NameWindowPixmap` 仍 **BadMatch(8)**——KWin 同样重定向 frame 而非客户端窗口。Mutter 50.1 已无 X11 WM 模式（仅 Wayland display server）。结论：当前可用的 reparenting X11 WM 都无法满足“客户端窗口被重定向”的假设；需要 A 在“捕获 frame 并裁剪 / 其他截图路径 / 明确不支持 reparenting WM”之间决定。身份、列表、前台能力不受影响。
+
+前台操作合同已确认：`foreground` 只接受 **AT-SPI 目标** + 节点证明流程（`takeover=true`、固定 policy、来自观察的 node proof、grant/run/operation UUID），裸 `{kind,key}` 或 x11 目标会被 `parse_request` 拒绝（`desktop_invalid`，未派发）。这本身构成一条有效的**拒绝路径证据**（denied/none/not_dispatched）。下一步需按生产 observe→node proof→foreground(permit) 流程驱动，再做用户介入/撤权。
