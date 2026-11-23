@@ -1,6 +1,6 @@
 # V2 真实验收矩阵（2026-11-23）
 
-> 结论先行：本矩阵只记录**实际执行**与**可核对证据**。候选 `8412e773`（origin/v2）上，Windows 安装检查与安装→更新→回滚→卸载链已实机执行；Windows 原生服务因产品缺陷**失败**；QQ/NapCat、安卓真机、B 站、模型质量、干净机器、72 小时长跑均**未执行**（缺机器/账号/窗口）。`whole_v2_complete=false`，`production_release_ready=false`。
+> 结论先行：本矩阵只记录**实际执行**与**可核对证据**。候选 `8412e773`（origin/v2）上，Windows 安装检查与安装→更新→回滚→卸载链已实机执行；Windows 原生服务因产品缺陷**失败**；QQ/NapCat、安卓真机、B 站、模型质量、干净机器均**未执行**（缺机器/账号/窗口）；72 小时长跑**仅完成 3 分钟采样器试跑**。`whole_v2_complete=false`，`production_release_ready=false`。
 >
 > 纪律：失败不改写为通过；首次失败与续跑成功分别保留；证据不含凭据、消息正文或像素；不复用旧候选的全量结果冒充当前候选。
 
@@ -36,7 +36,7 @@
 | C3.5 安卓真机输入/Unicode/滚动/恢复 | 已授权安卓设备 | — | **阻塞**：`adb devices -l` 与 `adb mdns services` 均为空；无 USB ADB 设备；AVD 存在但无 emulator 可执行文件 | `docs/evidence/v2-android-device-probe-2026-11-23.json`；`probes/android.txt` | 真机与模拟器都不可用；不得用桌面假设备替代 |
 | C3.3 B 站账号读取/发表审批链/风控暂停 | 真实 B 站测试账号 | — | **阻塞** | — | 无测试账号与窗口；C1.10/C1.12 也未实施 |
 | C3.4 模型质量（人格一致性、信笺/反思/问题措辞） | 真实模型 + 预算 + 评审 | — | **阻塞** | — | 无 API 预算与评审窗口 |
-| C3.6 72 小时长跑 | 最终冻结 + 所有者批准 limits + 连续 72h | — | **未开始** | `docs/v2/operations/V2_SOAK.md` | 需先完成 D10 修复与候选冻结；limits 8 字段须所有者提供 |
+| C3.6 72 小时长跑 | 最终冻结 + 所有者批准 limits + 连续 72h | — | **未开始（工具试跑已验证）**：19 次采样/0 失败，仅 `duration_below_72h`；正式 72h 未开始 | `docs/evidence/v2-soak-dry-run-2026-11-23.json`；`C:/v2-acceptance/c3-08dd1573/soak/soak-dryrun.log` | 需先完成 D10 修复与候选冻结；limits 8 字段须所有者批准（已给实测验值建议） |
 | C3.7 三平台原生 | Windows/Linux/macOS 实机 | 旧候选 | **未在本候选重跑**：Windows 原生读取/终端/前台沿用 `1e62fe08` 证据；Linux 见复用；macOS 由另一会话 | `docs/v2/platforms/windows/WINDOWS_V2_ACCEPTANCE_2026-11-18.md`；`docs/evidence/v2-cdeg-integration.json` | 旧 SHA 证据不能写成当前候选通过 |
 | C2.8 容器真实 build/run | Docker engine | — | **阻塞** | `probes/environment.txt` | Docker CLI 存在但引擎未启动；未构建/运行镜像 |
 | C4.2 Windows 签名 / macOS 公证 | 代码签名证书 / Apple 凭据 + Mac | — | **阻塞（待所有者决策）** | `probes/environment.txt` | 当前无代码签名证书、无 APPLE_ID/APPLE_TEAM_ID、无本机 macOS；可降级为源码交付 |
@@ -91,6 +91,14 @@
 - ADB 1.0.41 可用，server 5037 在监听；`adb devices -l`、`adb mdns services` 为空，无 USB ADB PnP 设备；`Medium_Phone.avd` 存在但无 emulator 可执行文件。
 - 判定：真机与模拟器均不可用；输入/Unicode/滚动/恢复一项都未执行。
 
+### 4.6 72h 长跑工具试跑（C3.6 前置）
+
+- 隔离实例 `b05b18ca…`（候选 `199072c6`，schema v2_0052）在 8798 启动，HTTP version 200 且 ready=true，boot `034c441c…`。
+- `v2_soak.py run --hours 0.05 --interval 10`：19 次采样、0 失败、实测 180.11s；阻塞仅 `duration_below_72h`，`observational_soak_passed=false`。
+- 空载最大值：RSS 135,671,808 B（约 129.4 MiB）、线程 17、句柄 351、后代 0、cleanup 0、失败/unknown 0。
+- 建议正式 limits（待所有者批准）：RSS 512 MiB、后代 1 GiB、线程 64、句柄 2048、子进程 8、cleanup 0、new_failed_runs 0、new_unknown_model_calls 0；按实测留约 4 倍 RSS、3.7 倍线程余量。
+- 判定：采样器/本次 boot HMAC/指标读取/证据链已验证；**不是 72h**，正式长跑仍需批准 limits 与连续窗口。
+
 ## 5. 缺少的机器、账号与时间窗口
 
 | 资源 | 阻塞项 | 具体需求 | 建议窗口 |
@@ -100,7 +108,7 @@
 | 安卓真机 | C3.5 | USB 调试 + RSA 授权；允许切换输入法/锁定测试应用 | 2026-11-25 19:00–20:30（90 分钟） |
 | B 站测试账号 | C3.3 | 读取、审批后单次发送、风控暂停核验 | 2026-11-26 20:00–21:00 |
 | 模型质量评审 | C3.4 | API 预算、固定人格与评审人 | 2026-11-26 14:00–17:00 |
-| 72h limits + 连续窗口 | C3.6 | 8 字段 limits 文件（所有者批准）；机器 72h 不休眠、不换候选 | 冻结后 2026-11-26 12:00 → 11-29 12:00 |
+| 72h limits + 连续窗口 | C3.6 | 8 字段 limits 文件（所有者批准；3 分钟试跑实测 RSS≈129MiB/17 线程/351 句柄，已给建议值）；机器 72h 不休眠、不换候选 | 冻结后 2026-11-26 12:00 → 11-29 12:00 |
 | Windows 代码签名证书 / 源码交付决定 | C4.2 | 证书与时间戳；或所有者决定仅源码交付 | 决定 2026-11-25 前；签名链 1–3 工作日 |
 | Apple 凭据 + Mac 主机 | C4.2 公证 | Apple ID/Team ID/公证凭据与 macOS 机器（A/Mac 会话） | 2026-11-27 ~ 11-30 |
 | Docker engine | C2.8 | 启动 Docker Desktop 或等价 Linux 引擎 | 2026-11-27，1 小时 |
@@ -112,14 +120,14 @@
 2. **处理卸载文件访问窗口**：定位候选 venv 释放时序；若无法短期修复，明确记录为已知限制并保留重试路径，不得删除首次失败证据。
 3. **冻结算法与候选**：确认 `v2 == origin/v2 == 冻结 SHA`，工作树洁净；此后不再合并。
 4. **冻结全量**：`uv run --no-sync pytest -q`（≤4 worker）跑一次并保存 JUnit；当前候选尚无全量，不能沿用 `b395cd97`。
-5. **72 小时长跑**：所有者批准 limits；用冻结候选启动独立实例；`scripts/v2_soak.py run --home <实例> --url http://127.0.0.1:<端口> --output <新目录> --limits <批准文件>`；报告必须 `observational_soak_passed`。
+5. **72 小时长跑**：所有者批准 limits；用冻结候选启动独立实例；`scripts/v2_soak.py run --home <实例> --url http://127.0.0.1:<端口> --output <新目录> --limits <批准文件>`；报告必须 `observational_soak_passed`。采样器已于 3 分钟试跑验证（19 次/0 失败），正式运行只需替换为批准 limits 与 72h 窗口。
 6. **C4.2 决策（与 A）**：签名/公证或明确降级为源码交付；两者都要有所有者书面决定与交付物校验。
 7. **C4.3 发布回滚**：`release prepare/select` 与 `exchange apply` 真实演练；保留旧 home、快照与回执。
 8. **C4.4 交接**：HANDOFF/DEVELOPMENT_STATUS/台账/`docs/index` 同步；生成交接提示词；更新本矩阵与发布门禁。
 
 ## 7. 完成度
 
-- 本候选已执行：Windows 安装检查（部分通过）、安装链（通过）、Windows 服务（失败）、QQ/Android 探测（阻塞）。
+- 本候选已执行：Windows 安装检查（部分通过）、安装链（通过）、Windows 服务（失败）、QQ/Android 探测（阻塞）、72h 采样器试跑（工具通过，时长不足）。
 - 复用：C/D/E/G 专项与 `b395cd97` 全量绿；候选新增 Linux 身份按批次 1408 通过，未独立重跑。
-- 未执行：干净机器、QQ 真实收发、安卓真机、B 站、模型质量、72h、签名/公证、完整发布回滚。
+- 未执行：干净机器、QQ 真实收发、安卓真机、B 站、模型质量、正式 72h、签名/公证、完整发布回滚。
 - `whole_v2_complete=false`，`production_release_ready=false`；不得对外声称 V2 完成或可发布。

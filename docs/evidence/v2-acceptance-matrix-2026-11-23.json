@@ -103,8 +103,10 @@
     {
       "id": "C3.6",
       "title": "72 小时长跑",
-      "status": "not_started",
-      "reason": "需先修 D10、冻结候选、所有者批准 limits 与连续 72h 窗口"
+      "status": "not_started_tooling_dry_run_verified",
+      "result": "隔离实例 b05b18ca… 上 3 分钟试跑：19 次采样、0 失败、180.11s；仅 duration_below_72h 阻塞，observational_soak_passed=false；实测 RSS 135,671,808B、线程 17、句柄 351、后代 0、cleanup 0",
+      "reason": "采样器/HMAC/指标已验证；正式 72h 仍需修复 D10、冻结候选、所有者批准 limits 与连续窗口",
+      "evidence": ["docs/evidence/v2-soak-dry-run-2026-11-23.json", "C:/v2-acceptance/c3-08dd1573/soak/soak-dryrun.log"]
     },
     {
       "id": "C3.7",
@@ -160,7 +162,7 @@
     {"resource": "安卓真机 + USB 调试授权", "items": ["C3.5"], "window": "2026-11-25 19:00–20:30", "owner_action": "连接设备并授权 RSA"},
     {"resource": "B 站测试账号", "items": ["C3.3"], "window": "2026-11-26 20:00–21:00", "owner_action": "提供账号与目标内容"},
     {"resource": "模型 API 预算与评审", "items": ["C3.4"], "window": "2026-11-26 14:00–17:00", "owner_action": "批准预算、指定评审人"},
-    {"resource": "72h limits 文件 + 连续 72h", "items": ["C3.6"], "window": "冻结后 2026-11-26 12:00 → 11-29 12:00", "owner_action": "批准 8 字段 limits；机器不休眠/不换候选"},
+    {"resource": "72h limits 文件 + 连续 72h", "items": ["C3.6"], "window": "冻结后 2026-11-26 12:00 → 11-29 12:00", "owner_action": "批准 8 字段 limits（试跑实测 RSS≈129MiB/17 线程/351 句柄，建议 RSS 512MiB、线程 64、句柄 2048、后代 8、cleanup 0、failed 0、unknown 0）；机器不休眠/不换候选"},
     {"resource": "Windows 代码签名证书 / 源码交付决定", "items": ["C4.2"], "window": "2026-11-25 前决定", "owner_action": "选择签名或仅源码交付"},
     {"resource": "Apple 凭据 + Mac 主机", "items": ["C4.2 公证"], "window": "2026-11-27 ~ 11-30", "owner_action": "A/Mac 会话提供凭据与机器"},
     {"resource": "Docker 引擎", "items": ["C2.8"], "window": "2026-11-27，1 小时", "owner_action": "启动 Docker Desktop 或提供 Linux 引擎"},

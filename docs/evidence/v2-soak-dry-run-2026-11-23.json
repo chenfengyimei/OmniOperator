@@ -1,0 +1,80 @@
+{
+  "schema": 1,
+  "topic": "v2-soak-dry-run",
+  "date": "2026-11-23",
+  "source_head": "8412e773e75808a4e2b04ff221bb8cc312ed9899",
+  "artifact": {
+    "wheel_sha256": "199072c6fc455a47a7e6d67ad696437050804a7269d7248af900883118e72a6c",
+    "schema": "v2_0052",
+    "install": "install_v2.py（基础 Python 3.12.10 + 离线依赖包 ddc242…），doctor integrity=ok/163 表"
+  },
+  "instance": {
+    "home": "C:/v2-acceptance/c3-08dd1573/soak/home",
+    "instance_id": "b05b18ca-5c2c-4ad3-b382-b298bf203fec",
+    "boot_id": "034c441c-60f5-4552-b23d-80fa47114a4e",
+    "build_id": "fa1d271b69b49773b24d6e1e62c633f664c68138b2132504a221078f4097d375",
+    "url": "http://127.0.0.1:8798",
+    "ready": true,
+    "version_http": 200
+  },
+  "run": {
+    "command": "scripts/v2_soak.py run --home <home> --url http://127.0.0.1:8798 --output <evidence> --limits <dry-run-limits.json> --hours 0.05 --interval 10",
+    "hours": 0.05,
+    "interval_seconds": 10,
+    "exit": 2,
+    "seconds": 181.3,
+    "samples": 19,
+    "failed_samples": 0,
+    "observed_seconds": 180.11,
+    "required_seconds": 259200,
+    "resource_maxima": {
+      "main_rss_bytes": 135671808,
+      "descendant_rss_sum_bytes": 0,
+      "threads": 17,
+      "descriptors": 351,
+      "children": 0,
+      "cleanup_pending": 0
+    },
+    "initial_counters": {"failed_runs": 0, "unknown_model_calls": 0},
+    "blockers": ["duration_below_72h"],
+    "observational_soak_passed": false,
+    "report": "C:/v2-acceptance/c3-08dd1573/soak/evidence"
+  },
+  "dry_run_limits": {
+    "main_rss_bytes": 2147483648,
+    "descendant_rss_sum_bytes": 4294967296,
+    "threads": 256,
+    "descriptors": 8192,
+    "children": 32,
+    "cleanup_pending": 4,
+    "new_failed_runs": 10,
+    "new_unknown_model_calls": 0,
+    "owner_approved": false,
+    "note": "故意放宽，仅用于验证采样/HMAC/指标读取；不得作为 72h 正式 limits。"
+  },
+  "proposed_real_limits": {
+    "main_rss_bytes": 536870912,
+    "descendant_rss_sum_bytes": 1073741824,
+    "threads": 64,
+    "descriptors": 2048,
+    "children": 8,
+    "cleanup_pending": 0,
+    "new_failed_runs": 0,
+    "new_unknown_model_calls": 0,
+    "basis": "空载 3 分钟实测最大值：RSS 129.4MiB、线程 17、句柄 351、后代 0、cleanup 0；建议值留约 4 倍 RSS 与 3.7 倍线程余量。",
+    "status": "待所有者批准；批准前不得启动 72h"
+  },
+  "interpretation": "采样器成功核验本次 boot 的私有 readiness.key/HMAC，读取 /api/v1/system/metrics 共 19 次、0 失败；报告只因 3 分钟短于 72h 判 false。工具链、实例身份、指标采集与证据链已验证，72h 仍缺所有者批准 limits 与连续窗口。",
+  "not_claimed": [
+    "不是 72 小时长跑",
+    "不证明业务负载、真实账号或模型质量",
+    "不关闭旧 unknown/failed 计数"
+  ],
+  "safety": "实例为本会话独立目录与端口；停止使用 Stop-Process 强制结束（非正常排空），未触碰用户实例/数据库。",
+  "evidence_files": [
+    "C:/v2-acceptance/c3-08dd1573/soak/soak-dryrun.log",
+    "C:/v2-acceptance/c3-08dd1573/soak/evidence",
+    "C:/v2-acceptance/c3-08dd1573/soak/dry-run-limits.json"
+  ],
+  "whole_v2_complete": false
+}
