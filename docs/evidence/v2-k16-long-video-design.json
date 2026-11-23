@@ -17,8 +17,8 @@
   "hash_scope": "SHA-256 of git index blob bytes (LF-normalized); excludes this evidence file and generated docs/index.",
   "basis": "docs/v2/contracts/V2_K16_REAL_ACCEPTANCE.md 与 docs/evidence/v2-k16-real-acceptance.json",
   "reproduced_problems": [
-    "P1 240 样本对 596s 只有 2.46s 间隔，10 个代表切点召回 2/10。",
-    "P2 1200 样本召回 8/10 但 117 切点，抽查 45.04s 同场景运动误切。",
+    "P1 240 样本对 596s 只有 2.46s 间隔，30 个代表切点召回 4/30。",
+    "P2 1200 样本召回 26/30，但 117 切点，抽查 45.04s 同场景运动误切。",
     "P3 raw score>=24 绕过尖峰守卫产生 135 切点，已回退。",
     "P4 credits 占槽：240 样本 1/12，1200 样本 5/12；240 槽位不是主要问题。",
     "P5 宫格 1280x2280/3.51MB 未越 8192/16M/8MiB，布局不是瓶颈。"
