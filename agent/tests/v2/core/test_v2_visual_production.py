@@ -179,6 +179,26 @@ def test_two_authorized_images_reach_one_visual_call(tmp_path):
     asyncio.run(scenario())
 
 
+def test_more_than_four_images_fails_explicitly_without_a_model_call(tmp_path):
+    async def scenario():
+        model = RoutingModel()
+        instance, app, agent = await _setup(tmp_path, model)
+        try:
+            uploaded = [
+                await instance.images.upload(agent, _png(color))
+                for color in ("red", "blue", "yellow", "purple", "black")
+            ]
+            model.object_ids = [str(row["object_id"]) for row in uploaded]
+            _receipt, run = await _run_visual(app, agent)
+            assert run["state"] == "succeeded" and model.visual_calls == 0
+            action = await _visual_action(instance, agent)
+            assert action["state"] == "error" and action["result"]["error_code"] == "visual_unavailable"
+        finally:
+            await instance.close()
+
+    asyncio.run(scenario())
+
+
 def test_android_capture_object_reaches_the_same_visual_path(tmp_path):
     async def scenario():
         async with fake_server() as (_fake, port):
