@@ -229,6 +229,62 @@ class Wire:
         self.watched = window
         await self.geometry(window)  # barrier for subscription errors
 
+    async def parent(self, window: int) -> int:
+        reply = await self.request(15, struct.pack("<I", window))
+        if len(reply) < 32:
+            raise failure("desktop_x11_protocol_invalid")
+        _root, parent, count = unpack("IIH", reply, 8)
+        if len(reply) != 32 + count * 4:
+            raise failure("desktop_x11_protocol_invalid")
+        return parent
+
+    async def translate(self, source: int, destination: int) -> tuple[int, int]:
+        reply = await self.request(40, struct.pack("<IIhh", source, destination, 0, 0))
+        if len(reply) != 32 or reply[1] != 1:
+            raise failure("desktop_x11_target_unverified")
+        _child, x, y = unpack("Ihh", reply, 8)
+        return x, y
+
+    async def frame_image(
+        self,
+        composite: int,
+        frame: int,
+        offset: tuple[int, int],
+        width: int,
+        height: int,
+        depth: int,
+        stride: int,
+    ) -> bytes:
+        assert self.setup is not None
+        x, y = offset
+        root, frame_width, frame_height, border, frame_depth = await self.geometry(frame)
+        if (
+            frame == self.setup.root
+            or root != self.setup.root
+            or border
+            or frame_depth != depth
+            or x < 0
+            or y < 0
+            or x + width > frame_width
+            or y + height > frame_height
+        ):
+            raise failure("desktop_x11_target_unverified")
+        pixmap = self.setup.base | (self.setup.mask & -self.setup.mask)
+        await self.send(composite, struct.pack("<II", frame, pixmap), 6)
+        expected = (self.setup.root, frame_width, frame_height, 0, depth)
+        if await self.geometry(pixmap) != expected:
+            raise failure("desktop_target_changed")
+        try:
+            reply = await self.request(
+                73, struct.pack("<IhhHHI", pixmap, x, y, width, height, 0xFFFFFFFF), 2, maximum=stride * height
+            )
+            if reply[1] != depth or len(reply) != 32 + stride * height:
+                raise failure("desktop_x11_protocol_invalid")
+            return reply[32:]
+        finally:
+            await self.send(54, struct.pack("<I", pixmap))
+            await self.geometry(frame)
+
     async def image(self, composite: int, window: int, geometry: tuple[int, int, int, int, int], stride: int) -> bytes:
         assert self.setup is not None
         _root, width, height, _border, depth = geometry

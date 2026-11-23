@@ -204,6 +204,19 @@ class X11Desktop:
             return {"matches": False, "target": None, "reason": error.code}
         return {"matches": True, "target": target, "reason": None}
 
+    async def frame(self, window: int) -> tuple[int, tuple[int, int]]:
+        assert self.wire.setup is not None
+        current = window
+        for _ in range(16):
+            parent = await self.wire.parent(current)
+            if parent == self.wire.setup.root:
+                x, y = await self.wire.translate(window, current)
+                return current, (x, y)
+            if not parent or parent == current:
+                break
+            current = parent
+        raise failure("desktop_x11_target_unverified")
+
     async def capture(self, target: dict[str, object], path: Path) -> dict[str, object]:
         if self.composite is None:
             raise failure(self.capture_error or "desktop_capture_unavailable")
@@ -218,7 +231,8 @@ class X11Desktop:
         if setup.visuals.get(visual) != (depth, 4, 0xFF0000, 0xFF00, 0xFF) or bits not in {24, 32} or pad != 32:
             raise failure("desktop_x11_pixel_format_unsupported")
         stride = (width * bits + 31) // 32 * 4
-        raw = await self.wire.image(self.composite, window, geometry, stride)
+        frame, offset = await self.frame(window)
+        raw = await self.wire.frame_image(self.composite, frame, offset, width, height, depth, stride)
         mode = {(0, 24): "BGR", (1, 24): "RGB", (0, 32): "BGRX", (1, 32): "XRGB"}[(setup.order, bits)]
         with Image.frombytes("RGB", (width, height), raw, "raw", mode, stride, 1) as image:
             extrema = cast(tuple[tuple[int, int], ...], image.getextrema())
