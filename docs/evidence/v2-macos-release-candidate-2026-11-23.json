@@ -213,7 +213,16 @@
       "interval_s": 10,
       "result": "report produced; blockers=[duration_below_72h]; observational_soak_passed=false (expected for a smoke)"
     },
-    "next": "freeze the candidate, then run 72h at interval 60 and record interruptions/recovery/peaks"
+    "next": "freeze the candidate, then run 72h at interval 60 and record interruptions/recovery/peaks",
+    "started": {
+      "pid": 93596,
+      "started_at": "2026-11-23T15:09:14.173393+00:00",
+      "hours": 72,
+      "interval_s": 60,
+      "output": "temp/build/candidate/soak-72h.json (directory: manifest.json, samples.jsonl, writer.lock)",
+      "log": "temp/build/candidate/soak-72h.log",
+      "note": "candidate instance on 127.0.0.1:8878 must stay running; sampler observes only"
+    }
   },
   "distribution": {
     "helper_codesign": "adhoc, TeamIdentifier not set, format app bundle (arm64)",
