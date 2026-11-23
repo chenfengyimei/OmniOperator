@@ -1,0 +1,27 @@
+{
+  "schema": 1,
+  "topic": "v2-clean-machine-kit-b29409d0",
+  "date": "2026-11-23",
+  "source_head": "b29409d02f5a1a7dd84aa23956938c7652d1aad3",
+  "kit": {
+    "path": "C:/v2-acceptance/release-b29409d0",
+    "wheel": {"name": "omnioperator-b29409d0-py3-none-any.whl", "sha256": "8d7d195672ed8e0c92de58737b76024ce21f7d765b570f89b6f122ede17db958"},
+    "previous_wheel": {"name": "omnioperator-5c8550ca-py3-none-any.whl", "sha256": "b6b0a12c4917867d73a7366e70c0c703536f1c1825aec58c8b6fb41daa0fc40e"},
+    "dependency_manifest_sha256": "ddc242906492a815e1893505f0453f922f2c218dda441ad0088effb9f5e1225f",
+    "dependency_wheels": 110,
+    "install_v2_sha256": "5308d1b10e5ca1a2e898aa4d951b50123a981e7c1ac3267ea39787fd95c9d6ef",
+    "accept_chain_sha256": "ddef2069cf6c7cd184a8d578f7a617b17a376a63135f4a1bd5eedae50b4ee4a0",
+    "contents": ["wheel", "previous wheel", "dependencies/", "install_v2.py", "accept_chain.ps1", "SHA256SUMS.txt", "README.md"],
+    "script_parse_checked": true,
+    "executed_on_clean_os": false
+  },
+  "resource_inventory": {
+    "clean_windows_machine": "未提供；本机无管理员/VM/Sandbox",
+    "qq": "未登录、无对端账号",
+    "android": "adb 无设备、无 emulator",
+    "visual_model": "LM Studio models 为空/lms 超时",
+    "bilibili": "无账号"
+  },
+  "evidence_files": ["C:/v2-acceptance/release-b29409d0/README.md", "C:/v2-acceptance/release-b29409d0/SHA256SUMS.txt"],
+  "whole_v2_complete": false
+}

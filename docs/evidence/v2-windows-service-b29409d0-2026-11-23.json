@@ -1,0 +1,52 @@
+{
+  "schema": 1,
+  "topic": "v2-windows-service-b29409d0",
+  "date": "2026-11-23",
+  "source_head": "b29409d02f5a1a7dd84aa23956938c7652d1aad3",
+  "wheel": {"sha256": "8d7d195672ed8e0c92de58737b76024ce21f7d765b570f89b6f122ede17db958", "bytes": 2825051},
+  "environment": {
+    "home": "C:/v2-acceptance/c3-08dd1573/svc12/home",
+    "instance_id": "74f7ba9e-e978-49ab-a735-7a230762927b",
+    "port": 8784,
+    "task_name": "OmniOperator-V2-74f7ba9e-e978-49ab-a735-7a230762927b",
+    "install": "install_v2.py（基础 Python + 离线依赖包 ddc242…），doctor integrity=ok/163 表"
+  },
+  "steps": {
+    "capture": {"exit": 0, "seconds": 10.1},
+    "plan": {"exit": 0, "seconds": 1.4, "plan_sha256": "9f1996511a50f7837ee06761c4253f594ed95f4676c06091659ee854f2960465"},
+    "materialize": {"exit": 0, "seconds": 1.5},
+    "verify": {"exit": 0, "seconds": 9.4},
+    "install": {
+      "operation_sha256": "ee577137dd912b589a25969e1882f49cc669d4aa3bb2f8ce1f1d7c29439bc414",
+      "state": "succeeded", "effect": "applied", "terminal": true,
+      "registration": {"installed": true, "definition_present": true, "definition_matches": true, "enabled": true, "state": "stopped"}
+    },
+    "start": {
+      "operation_sha256": "6f96892d645894e0b9ef9d0e31f4a8174c7740219963c9d752f3d48df0cb2429",
+      "state": "succeeded", "effect": "applied", "terminal": true,
+      "boot_id": "8dbad3c2-8f92-4609-a493-c0c8b860302d", "pid": 142624, "ready": true,
+      "verification": "observed_reviewed_boot"
+    },
+    "status": {
+      "exit": 0,
+      "manager": {"state": "running", "definition_matches": true, "pid": 142624, "error_code": ""},
+      "runtime": {"ready": true, "boot_id": "8dbad3c2-8f92-4609-a493-c0c8b860302d", "pid": 142624},
+      "ready": true
+    },
+    "http_version": {"status": 200, "ready": true, "pid": 142624},
+    "stop": {
+      "operation_sha256": "53fc7bc929b245ae32f73f6dc286cecd41ade55152ac6bee6f6f7bdf7fd0bab4",
+      "state": "succeeded", "effect": "applied", "terminal": true,
+      "observed": {"closed": true, "instance_lock_released": true}
+    },
+    "uninstall": {
+      "operation_sha256": "57c80399b6fcacc87db29559d3934f7072a5cdb599608eb4d67a5783794298db",
+      "state": "succeeded", "effect": "applied", "terminal": true,
+      "registration": {"installed": false, "definition_present": false}
+    }
+  },
+  "conclusion": "R3 修复后，b29409d0 官方 wheel 在真实 Task Scheduler 上完成注册（definition_matches=true）→启动（ready=true、pid 142624）→只读 status（manager running、pid 142624、ready=true）→正常排空（closed=true、锁释放）→卸载（任务删除）。C2.7 生命周期与只读状态均通过。",
+  "cleanup": "任务不存在；8784 端口关闭；pid 142624 退出",
+  "evidence_files": ["C:/v2-acceptance/c3-08dd1573/svc12/accept/transcript.json", "C:/v2-acceptance/c3-08dd1573/svc12/accept/status.log"],
+  "whole_v2_complete": false
+}
