@@ -147,6 +147,9 @@ def test_authorized_image_reaches_one_visual_call_and_returns_traceable_text(tmp
             assert action["result"]["data"]["frames"] == 1
             assert action["result"]["data"]["model"] == "openai/gpt-4o"
             assert action["result"]["data"]["cost_micro"] == 7
+            assert await instance._database.read(lambda u: u.query("memory", agent)) == []
+            assert await instance._database.read(lambda u: u.query("outbox", agent)) == []
+            assert (await app.settings(agent))["value"]["persona"] == "You are a helpful personal assistant."
         finally:
             await instance.close()
 
