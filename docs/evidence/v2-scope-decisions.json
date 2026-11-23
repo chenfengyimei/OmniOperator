@@ -2,7 +2,7 @@
   "schema": 1,
   "topic": "v2-scope-decisions",
   "date": "2026-11-23",
-  "source_head": "PENDING",
+  "source_head": "42ff5083",
   "scope": "按现有授权把 K14 视觉子代理 D0–D5 写回合同与验收用例，并对剩余功能做「本版实现/延期及理由」裁定（优先分层人格、主动外联、B 站写入/分享/直播、视频 OCR）。本批不改生产源码/迁移/路由。",
   "k14_visual_subagent": {
     "D0_authorization": "允许真实视觉调用，但只复用父 run 已在运行的模型配置（同 provider/凭据/模型），不新建 provider/凭据/fallback",

@@ -498,6 +498,15 @@ K13.cron_model_design 已记录**实现前设计合同**（纯文档，无源码
 - **收尾门槛**：`docs/index` 在合并后源码再生 **65/854/464/94**、二次运行零差异；strict **433 文件 0 错 0 警**；迁移仍单头 `v2_0052`（52 个、151 表、无分支）。四批均**未**实现真实账号/设备、X11/Wayland 真机与 72 小时验收，状态保持待验。
 - **全量**：固定候选 `6990076a` 首跑 **8608 通过 / 1 失败 / 9 跳过**（2553.01 秒），唯一红为 `test_v2_android_unicode::test_model_unicode_observation_and_append_keep_two_independent_approvals`——7 轮全工具面模型流超出默认 32768 字节档 306 字节（`token_budget_exceeded`）；该用例夹具显式声明 128000 上下文（断言/预算守卫不变，nodeid 3/3、整文件 23 passed），修复后 `b395cd97` 复跑 **8618 项：8609 通过 / 0 失败 / 9 跳过，2559.00 秒**（`C:/v2-acceptance/integration-cdeg/full-b395cd97.xml`）。
 
+## 2026-11-23 K14 决策、剩余范围裁定与 Linux 身份证据（基线 `08dd1573`）
+
+- **K14 视觉子代理 D0–D5 定案**（按现有授权，写回 [合同](v2/contracts/V2_VISUAL_SUBAGENT.md) 与验收用例，并同步 [K14/K15 决策台账](v2/contracts/V2_K14_K15_DECISION_LEDGER.md)）：真实调用**只复用父 run 已在运行的模型配置**（同 provider/凭据/模型，未配置图像能力即 `visual_unavailable`，不 fallback、不建第二套凭据）；帧只用**同 agent 已授权且已注册**的 Android `session_captures`/ImageService 与 `media_frames`（输入 1–240、模型可见 ≤60，禁新采集/URL/data URL/跨 agent/已擦除）；计费为**一次 reserved call 且 purpose 复用 `turn`**（入父 run 账本与日预算，按既有 `model_tokens` 计费，unknown 不重放）；留存**只进本次 run**（≤4000 字符摘要 + 有界元数据，不写 memory/persona/反思/投递、不建表、不复制帧）；失败**显式**（`visual_unavailable`/`visual_response_invalid`/`budget_exceeded`）。生产接线为独立批次，未接前保持关闭。
+- **剩余范围裁定**（写入 [剩余差异决策登记](v2/contracts/V2_REMAINING_DECISIONS.md) 顶部表）：优先四项均**延期并写明理由**——分层人格（改冻结系统前缀，K01 P1-a 语义需所有者真实模型对照 + 缓存键需加 scene）、主动外联（自主行为授权/quiet/日限/白名单合同未决）、B 站写入/分享/直播（真实账号 + 逐动作审批 + 配额账本迁移；直播另需常驻 WS）、视频 OCR（rapidocr/≈250MB 模型未捆绑，需 provisioning 合同）；`nav` 10min 缓存标为**有意不做**（比参考更严）；其余 K01 D3、代码沙箱、CDP、cron 残余、持久终端、读侧预算、D9 私网策略同样延期并保留理由。
+- **G3 身份证据定案并实现**（[身份证据合同](v2/contracts/V2_LINUX_IDENTITY.md)）：(1) AT-SPI 地址 `guid` 改为**不透明元数据**，不再要求等于 `GetId`，总线身份由路径 inode + `SO_PEERCRED` 对端 + `GetNameOwner`/`GetConnectionUnixProcessID` 证明；(2) display-manager（LightDM/GDM/SDDM）在系统单元启动、无 logind 会话的 Xorg 改为**显示归属证明**（活动 x11 会话字段 + `Display=:N` 对应规范 socket + root 所有真实 `Xorg` + Xauthority 授权当前 uid），Xorg 属于其他会话仍拒。Windows 注入专项 **1406 passed / 1 skipped（413.00 秒，linux 平台全组）**；**真实桌面复验仍待**（VM 复测步骤见 Linux 交接）。
+- **门槛与未验**：strict 与索引在改动后源码再生；迁移未改（单头 `v2_0052`/151 表）。真实视觉模型、真实 B 站账号写/分享/直播、OCR 模型与真实长片、真实 X11/Wayland 会话、72 小时与干净机器全部保持待验；`whole_v2_complete` 仍为 false。
+- **提交**：G 身份实现 `7c610a64`（证据 `6681f662`）、K14 决策与范围裁定 `42ff5083`、交接与证据回填见本节后提交。
+- 证据：[v2-scope-decisions.json](evidence/v2-scope-decisions.json)（`42ff5083`）、[v2-linux-identity.json](evidence/v2-linux-identity.json)（`7c610a64`）。
+
 ## 追溯入口
 
 - [旧交接记录](history/pre-layout-2026-11-18/HANDOFF.md)、[旧重构记录](history/pre-layout-2026-11-18/V2_REFACTOR.md)只证明所属版本，不作为当前待办。
