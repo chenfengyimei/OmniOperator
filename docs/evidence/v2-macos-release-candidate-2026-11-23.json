@@ -173,5 +173,36 @@
       "failed": 0,
       "seconds": 0.3
     }
+  },
+  "upgrade_rollback": {
+    "location": "isolated dirs under temp/build/upgrade (removed after the drill)",
+    "old_wheel": {
+      "path": "/Users/chenfeng/xm/OmniOperator/temp/build/wheel4/omnioperator-0.1.0-py3-none-any.whl",
+      "sha256": "8fb01f7a56706d36d73a9c20993e5bebdac501e132b0d5b00796e16fdf1e5c3f",
+      "build_id": "d9da1ec186989d56cb1e91d4c414cfc7b0343314568027374cac30a5c2ab7b24"
+    },
+    "new_wheel": {
+      "sha256": "d478d0e6ff365ba8d62fb9fdbc698c62cc18acc4290d9dae03e4b29e20c6e136",
+      "build_id": "de6ebae2c4fc62323684c8b127748c2c564b013234ceba7c5f63ba6facbe637b"
+    },
+    "backup": "home copied to home-backup before upgrade",
+    "upgrade": {
+      "result": "new build starts with the old home",
+      "instance_preserved": "0c70f27e",
+      "schema": "v2_0052",
+      "agents": [
+        "Default",
+        "pre-upgrade"
+      ]
+    },
+    "rollback": {
+      "result": "old build starts with the migrated home",
+      "instance_preserved": "0c70f27e",
+      "agents": [
+        "Default",
+        "pre-upgrade"
+      ]
+    },
+    "cleanup": "venvs and home removed; ports 8880-8882 closed; no service residue"
   }
 }
