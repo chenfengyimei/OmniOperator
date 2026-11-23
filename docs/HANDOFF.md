@@ -291,7 +291,7 @@ K13.cron_model_design 已记录**实现前设计合同**（纯文档，无源码
 
 - **范围**：owner 指令只打通一条生产路径；分层人格/主动动机另开批次。基于 `origin/v2`=`08dd1573` 的独立工作树/分支。
 - **接线**：`composition/instance.py` 构造 `VisualSubagentService` + `ImageObjectFrames` + `ModelCallsVisualModelFactory`，注册 `visual_subagent` 能力；帧来自 agent 已拥有图像对象（Android capture/上传注册），`ImageObjectFrames` 用 `ObjectService.get`+`ImageService.prepare` 核验；`ModelCallsVisualModel` 以 role=tool 的单图消息走 `ModelCalls.invoke`（tools=()、父 run 预算/日限、image policy 4/12），`image_budget_exceeded`→`budget_exceeded`；返回 text+frames/focus/model/cost/tokens，action `verification=visual_summary`，账本可追溯。
-- **验证**：`test_v2_visual_production.py` **7 passed**（成功、Android capture→同一路径、无图像协议、预算耗尽、供应商失败、跨 Agent、来源擦除），既有视觉 20 项、strict **434 文件 0 错 0 警**、ruff 通过；无迁移/新表/路由。
+- **验证**：`test_v2_visual_production.py` **8 passed**（成功、Android capture→同一路径、无图像协议、预算耗尽、供应商失败、跨 Agent、来源擦除、同 run 第二次调用拒绝），既有视觉 20 项、strict **434 文件 0 错 0 警**、ruff 通过；无迁移/新表/路由。
 - **真实阻塞**：当前 `.env` 的 OpenAI/Anthropic key 为空、DashScope/Ark key 为非 ASCII 占位；无 emulator 二进制/物理设备（`adb devices` 空、AVD 缺 system image），故真实 `gpt-4o`/设备实测未执行；`agent/scripts/accept_visual_production.py` 已就绪待指定窗口。Anthropic/其它视觉协议、真实 tool-result image 供应商兼容性、真实质量/费用曲线未验。
 
 ### 2026-11-22 K15 isInitial 设计合同（纯文档）

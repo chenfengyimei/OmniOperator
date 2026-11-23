@@ -29,11 +29,11 @@
 | D4 | 留存 | **只进本次 run**（≤4000 字符摘要 + 有界元数据）；不写 memory/persona/反思/投递、不建表、不复制帧。 |
 | D5 | 失败 | **显式 `visual_unavailable`/`visual_response_invalid`/`budget_exceeded`**，不伪造、不 fallback、不重放。 |
 
-生产接线已按上述 D0–D5 完成首批路径（2026-11-23，`k14-visual-production`）：`visual_subagent` 能力 + `ImageObjectFrames` + `ModelCallsVisualModel`，7 项生产专项通过；真实模型/设备因 key/设备缺失未执行，`agent/scripts/accept_visual_production.py` 留给指定窗口。证据见 [v2-visual-production-path.json](../../evidence/v2-visual-production-path.json)。验收用例见 [视觉子代理合同 §3](V2_VISUAL_SUBAGENT.md)。
+生产接线已按上述 D0–D5 完成首批路径（2026-11-23，`k14-visual-production`）：`visual_subagent` 能力 + `ImageObjectFrames` + `ModelCallsVisualModel`，8 项生产专项通过；真实模型/设备因 key/设备缺失未执行，`agent/scripts/accept_visual_production.py` 留给指定窗口。证据见 [v2-visual-production-path.json](../../evidence/v2-visual-production-path.json)。验收用例见 [视觉子代理合同 §3](V2_VISUAL_SUBAGENT.md)。
 
 **合同措辞待确认**：§4.1 写帧 1–60，§4.2 又规定 >60 等距子采样。离线核心按「原始输入 1–240、模型可见 ≤60」实现，并在测试中锁定；若所有者希望硬拒绝 >60，只需改一个上限并补回归。
 
-**本批状态**：离线核心 + 首批生产路径已接线（`visual_subagent` 能力、`ImageObjectFrames`、`ModelCallsVisualModel`）；生产专项 7 项通过，真实模型/设备因 key/设备缺失未执行。证据见 [v2-visual-production-path.json](../../evidence/v2-visual-production-path.json)。
+**本批状态**：离线核心 + 首批生产路径已接线（`visual_subagent` 能力、`ImageObjectFrames`、`ModelCallsVisualModel`）；生产专项 8 项通过，真实模型/设备因 key/设备缺失未执行。证据见 [v2-visual-production-path.json](../../evidence/v2-visual-production-path.json)。
 
 ## 2. K15 主动动机引擎
 
