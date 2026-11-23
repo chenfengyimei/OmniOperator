@@ -65,13 +65,13 @@
       "id": "C2.7",
       "title": "Windows 原生服务（Task Scheduler 用户任务）",
       "status": "failed_product_defect",
-      "result": "官方产物 apply-operation 返回 unknown（D10：COM 0x8004131A 无法切换编码）；补 D10+D11 后在 svc2 全新 home 演练：注册 succeeded/definition_matches=true、start succeeded（boot a71ef415、pid 93500、ready=true、HTTP 200）、stop succeeded（closed=true、锁释放）、uninstall succeeded（任务删除）；只读 service status 仍 ready=false（D11c：service_query._task_identity 不接受省略的 RunLevel）",
-      "defect_ids": ["D10", "D11", "D11c"],
+      "result": "官方产物 apply-operation 返回 unknown（D10 编码）；svc2 补 D10+D11 后注册/启动/HTTP ready/正常排空/卸载均 succeeded；svc3 加 D11c 后 status 仍被 D11d（schtasks 声明 UTF-16 但字节 UTF-8）挡住；svc4 预置 D10+D11+D11c+D11d 后 definition_matches=true、生命周期再次通过，但 status manager state=unknown、overall ready=false（D11e：只读查询不补 running/PID）",
+      "defect_ids": ["D10", "D11", "D11c", "D11d", "D11e"],
       "evidence": [
         "docs/evidence/v2-windows-service-defect-2026-11-23.json",
         "C:/v2-acceptance/c3-08dd1573/probes/service-com-probe.txt",
         "C:/v2-acceptance/c3-08dd1573/soak/probes-service-rehearsal.txt",
-        "C:/v2-acceptance/c3-08dd1573/svc2/rehearsal/transcript.txt"
+        "C:/v2-acceptance/c3-08dd1573/svc2/rehearsal4/transcript.json"
       ]
     },
     {
@@ -182,10 +182,11 @@
     "production_release_ready": false,
     "verified_items": ["C3.1-W2"],
     "partial_items": ["C3.1-W1", "C4.3"],
-    "failed_items": ["C2.7（D10+D11+D11c+D11d）"],
+    "failed_items": ["C2.7（D10+D11+D11c+D11d+D11e）"],
     "blocked_items": ["C3.1-W3", "C3.2", "C3.5", "C3.3", "C3.4", "C2.8", "C4.2"],
     "not_started": ["C3.6"],
     "not_rerun_on_candidate": ["C3.7"]
   },
   "whole_v2_complete": false
 }
+

@@ -97,15 +97,25 @@
     "function": "_xml",
     "behavior": "ServiceQuery 用 schtasks.exe /Query /TN <name> /XML 读取定义；该命令在中文 Windows 11 build 26300 输出 UTF-8 字节但声明 encoding=\"UTF-16\"，ET.fromstring 抛 ParseError: encoding specified in XML declaration is incorrect（line 1, column 30），_query 捕获后返回 service_definition_unverified。",
     "reproduction": {
-      "raw_bytes_prefix": "3C 3F 78 6D 6C 20 76 65 28 3C ? x m l space v e)",
+      "raw_bytes_prefix": "3C 3F 78 6D 6C 20 76 65 72 73 69 6F 6E = <?xml version",
       "declaration": "<?xml version=\"1.0\" encoding=\"UTF-16\"?>",
       "parse": "xml.etree.ElementTree.ParseError: encoding specified in XML declaration is incorrect: line 1, column 30"
     },
     "effect": "即使服务已启动且 HTTP ready=true，service status 仍报 ready=false、manager state=unknown、definition_matches=null。",
     "required_fix": "解析前去掉/纠正 XML 声明（按实际 UTF-8 解码），或改用 Task Scheduler COM 读取；新增真实 schtasks 输出的解析回归。"
   },
+  "fifth_defect": {
+    "id": "D11e",
+    "status": "confirmed_after_all_four_fixes",
+    "file": "agent/src/omni/adapters/platform/services/service_query.py",
+    "function": "_query",
+    "behavior": "Windows 只读查询只读取 schtasks XML，返回 _report(installed=True, matches=...) 时把 manager.state 保持默认 unknown、pid=None；整体 ready 需要 manager state=running，因此即使部署有效、definition_matches=true、runtime ready=true，service status 仍返回 ready=false。",
+    "observed": "svc4 预置 D10+D11+D11c+D11d 四项修复后：verification valid/eligible true，manager definition_matches=true、state=unknown、pid=null、error_code 空，runtime ready=true，overall ready=false。",
+    "control_path": "apply-control start 独立以本次 boot 的 HMAC/就绪证明通过（observed_reviewed_boot），不受该只读查询限制。",
+    "required_fix": "要么用 Task Scheduler COM/受管进程与监听证明补出 running 状态（不依赖本地化文字），要么在合同/状态输出中明确 Windows status ready 不可得，由 start 回执作为就绪证据。"
+  },
   "full_rehearsal": {
-    "scope": "三次安装副本演练：soak（仅 D10 补丁，暴露 D11）、svc2（D10+D11，跑通生命周期，暴露 D11c/D11d）、svc3（D10+D11+D11c 预置，生命周期再次通过，status 仍被 D11d 挡住）。",
+    "scope": "四次安装副本演练：soak（仅 D10 补丁，暴露 D11）、svc2（D10+D11，跑通生命周期，暴露 D11c/D11d）、svc3（D10+D11+D11c 预置，生命周期再次通过，status 被 D11d 挡住）、svc4（四项修复预置，status definition_matches=true 但 manager state unknown，暴露 D11e）。",
     "instance_id": "ef8e53b7-2aff-49c0-bfc6-bebf686969c8",
     "plan_sha256": "e5dec3f0c5af8ae1fb13843137d024a659789285076f7e115d324fd6edff0cfd",
     "install": {"operation_sha256": "7b92b803c0463821313e0c8c944c7a1fb4e8b016b7c27f40dede000c0e748ce9", "state": "succeeded", "effect": "applied", "installed": true, "definition_matches": true},
@@ -123,30 +133,43 @@
       "uninstall": "succeeded",
       "status": "still ready=false, error_code=service_definition_unverified (D11d)"
     },
-    "status": {"ready": false, "error_code": "service_definition_unverified", "defects": ["D11d", "D11c"]},
-    "cleanup": "tasks not found, ports 8795/8794 closed, pids gone, installed template/helper/query restored to repo hashes",
+    "third_lifecycle": {
+      "plan_sha256": "e536a2e84fa9725268eaca5c6b32c6bf7b23e3778d6bec8886fb2f84f1f5f21e",
+      "port": 8793,
+      "boot_id": "a0601d9c-cfb6-433b-ad67-a4d0db20a83e",
+      "pid": 111396,
+      "install": "succeeded",
+      "start": "succeeded; HTTP 200 ready=true",
+      "stop": "succeeded",
+      "uninstall": "succeeded",
+      "status": {"ready": false, "manager_state": "unknown", "definition_matches": true, "runtime_ready": true, "defect": "D11e"}
+    },
+    "status": {"ready": false, "error_code": "", "defects": ["D11e"]},
+    "cleanup": "tasks not found, ports 8795/8794/8793 closed, pids gone, installed template/helper/query restored to repo hashes",
     "transcript": "C:/v2-acceptance/c3-08dd1573/svc2/rehearsal/transcript.txt",
-    "transcript3": "C:/v2-acceptance/c3-08dd1573/svc2/rehearsal3/transcript.json"
+    "transcript3": "C:/v2-acceptance/c3-08dd1573/svc2/rehearsal3/transcript.json",
+    "transcript4": "C:/v2-acceptance/c3-08dd1573/svc2/rehearsal4/transcript.json"
   },
   "impact": {
-    "C2.7": "failed（官方候选注册失败；修复演练证明 D10+D11 修复后 register→start→stop→uninstall 可通过；status 仍被 D11d 的声明编码与 D11c 的 RunLevel 缺省阻塞）",
+    "C2.7": "failed（官方候选注册失败；修复演练证明 D10+D11 修复后 register→start→stop→uninstall 可通过，D10+D11+D11c+D11d 后 definition_matches=true；status 仍因 D11e 无法给出 running）",
     "C3.7": "Windows 原生服务部分不可执行",
     "ready": false,
     "task_created": false,
-    "defect_ids": ["D10", "D11", "D11c", "D11d"]
+    "defect_ids": ["D10", "D11", "D11c", "D11d", "D11e"]
   },
   "required_fix": [
     "D10：输出 UTF-16（含 BOM）并把声明改为 encoding='UTF-16'，或不写 XML 声明；helper 的 UTF-8 读取路径需与选择一致",
     "D11：Same-Definition 对省略的默认值做等价比较、LogonTrigger/UserId 统一为 SID/账号名；用真实注册后的导出 XML 做回归",
     "D11c：service_query._task_identity 接受缺省 Principal 子元素并把缺失 RunLevel 规范化为 LeastPrivilege；该修复必须随候选 wheel 一起 capture/materialize",
     "D11d：service_query._xml 在解析 schtasks 输出前去掉/纠正 UTF-16 声明（实际字节为 UTF-8），或改用 COM 读取；同样随 wheel 重建",
+    "D11e：service_query._query 补出 running 状态（COM GetInstances/受管进程与监听证明，不依赖本地化文字），或在合同/状态输出中明确 Windows status ready 不可得并由 start 回执作为就绪证据",
     "新增真实解析回归：至少用 schtasks /Create /XML 或 COM RegisterTaskDefinition 解析生成文件；仅字符串断言不足",
     "修复后重建 wheel、重新 capture/plan/materialize 并完成注册→状态→启动→就绪→正常排空→卸载"
   ],
   "not_done": [
     "未修改产品源码（验收会话只取证；rehearsal 的临时补丁已恢复）",
     "官方产物注册失败；rehearsal 临时任务已删除",
-    "rehearsal 已实测注册/启动/就绪/正常排空/卸载；只读 service status 仍被 D11d（声明编码）与 D11c（RunLevel 缺省）阻塞",
+    "rehearsal 已实测注册/启动/就绪/正常排空/卸载；四项修复后 definition_matches=true，但 status 仍因 D11e 无法给出 running",
     "未测试登录恢复、升级切换与 72 小时常驻"
   ],
   "evidence_files": [
@@ -160,3 +183,4 @@
   ],
   "whole_v2_complete": false
 }
+
