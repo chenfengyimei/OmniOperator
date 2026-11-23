@@ -84,44 +84,69 @@
   },
   "third_defect": {
     "id": "D11c",
-    "status": "confirmed_during_lifecycle_rehearsal",
+    "status": "confirmed_by_export_shape_latent_after_D11d",
     "file": "agent/src/omni/adapters/platform/services/service_query.py",
     "function": "_task_identity",
-    "behavior": "只读状态查询要求 Principals/Principal 的子元素恰为 {UserId, LogonType, RunLevel} 且长度为 3；真实 Task Scheduler 导出省略 RunLevel（默认 LeastPrivilege）时抛 Principal fields are not exact，manager 报 state=unknown / definition_matches=null / error_code=service_definition_unverified，最终 ready=false。",
-    "observed": "服务已启动且 HTTP /api/v1/version 返回 ready=true（boot a71ef415，pid 93500）；同一时刻 service status 报 ready=false。",
-    "posthoc_patch_note": "运行中给 service_query.py 打默认值补丁后，状态立刻变为 deployment_program_changed（部署完整性覆盖程序文件），说明该修复必须包含在 capture/materialize 之前的候选 wheel 中；post-hoc 补丁已还原。",
+    "behavior": "只读状态查询要求 Principals/Principal 的子元素恰为 {UserId, LogonType, RunLevel} 且长度为 3；真实 Task Scheduler 导出省略 RunLevel（默认 LeastPrivilege），编码修好后仍会抛 Principal fields are not exact。",
     "required_fix": "_task_identity 接受缺省 Principal 子元素并把缺失 RunLevel 规范化为 LeastPrivilege，同时拒绝重复元素；用真实注册后导出 XML 做回归。"
   },
+  "fourth_defect": {
+    "id": "D11d",
+    "status": "confirmed_reproducible",
+    "file": "agent/src/omni/adapters/platform/services/service_query.py",
+    "function": "_xml",
+    "behavior": "ServiceQuery 用 schtasks.exe /Query /TN <name> /XML 读取定义；该命令在中文 Windows 11 build 26300 输出 UTF-8 字节但声明 encoding=\"UTF-16\"，ET.fromstring 抛 ParseError: encoding specified in XML declaration is incorrect（line 1, column 30），_query 捕获后返回 service_definition_unverified。",
+    "reproduction": {
+      "raw_bytes_prefix": "3C 3F 78 6D 6C 20 76 65 28 3C ? x m l space v e)",
+      "declaration": "<?xml version=\"1.0\" encoding=\"UTF-16\"?>",
+      "parse": "xml.etree.ElementTree.ParseError: encoding specified in XML declaration is incorrect: line 1, column 30"
+    },
+    "effect": "即使服务已启动且 HTTP ready=true，service status 仍报 ready=false、manager state=unknown、definition_matches=null。",
+    "required_fix": "解析前去掉/纠正 XML 声明（按实际 UTF-8 解码），或改用 Task Scheduler COM 读取；新增真实 schtasks 输出的解析回归。"
+  },
   "full_rehearsal": {
-    "scope": "两个安装副本（soak 与 svc2）；最终 svc2 在 capture 前同时应用 D10+D11 补丁（模板去声明、helper 默认值/身份归一），D11c 未预先应用。",
+    "scope": "三次安装副本演练：soak（仅 D10 补丁，暴露 D11）、svc2（D10+D11，跑通生命周期，暴露 D11c/D11d）、svc3（D10+D11+D11c 预置，生命周期再次通过，status 仍被 D11d 挡住）。",
     "instance_id": "ef8e53b7-2aff-49c0-bfc6-bebf686969c8",
     "plan_sha256": "e5dec3f0c5af8ae1fb13843137d024a659789285076f7e115d324fd6edff0cfd",
     "install": {"operation_sha256": "7b92b803c0463821313e0c8c944c7a1fb4e8b016b7c27f40dede000c0e748ce9", "state": "succeeded", "effect": "applied", "installed": true, "definition_matches": true},
     "start": {"operation_sha256": "dd9da8cfe52b317cb24105869044897b890a45b57d1d67b4cf050f1defe964c3", "state": "succeeded", "effect": "applied", "boot_id": "a71ef415-cb04-4b53-890a-33c5e9a3dd23", "pid": 93500, "ready": true, "http_version": 200},
     "stop": {"operation_sha256": "0b8937f5fd606a074f3cce87136eed0da6b56d873588d41776c5b96b32f2a4cc", "state": "succeeded", "effect": "applied", "closed": true, "instance_lock_released": true},
     "uninstall": {"operation_sha256": "dfbf28a0d74882e1fbd167b41c706e6bc9317cea4940f7c97a7a6460ac7b578a", "state": "succeeded", "effect": "applied", "task_removed": true},
-    "status": {"ready": false, "error_code": "service_definition_unverified", "defect": "D11c"},
-    "cleanup": "task not found, port 8795 closed, pid 93500 gone, installed template/helper/query restored to repo hashes",
-    "transcript": "C:/v2-acceptance/c3-08dd1573/svc2/rehearsal/transcript.txt"
+    "second_lifecycle": {
+      "plan_sha256": "229395608e7dcd060602bffc8d46c684a4da90c04ae9c261520ba21754c0aaac",
+      "port": 8794,
+      "boot_id": "d6cc0009-798d-4b67-8935-ce668e52eec6",
+      "pid": 115508,
+      "install": "succeeded",
+      "start": "succeeded; HTTP 200 ready=true",
+      "stop": "succeeded",
+      "uninstall": "succeeded",
+      "status": "still ready=false, error_code=service_definition_unverified (D11d)"
+    },
+    "status": {"ready": false, "error_code": "service_definition_unverified", "defects": ["D11d", "D11c"]},
+    "cleanup": "tasks not found, ports 8795/8794 closed, pids gone, installed template/helper/query restored to repo hashes",
+    "transcript": "C:/v2-acceptance/c3-08dd1573/svc2/rehearsal/transcript.txt",
+    "transcript3": "C:/v2-acceptance/c3-08dd1573/svc2/rehearsal3/transcript.json"
   },
   "impact": {
-    "C2.7": "failed（官方候选注册失败；修复演练证明 D10+D11 修复后 register→start→stop→uninstall 可通过，但 status 仍被 D11c 阻塞）",
+    "C2.7": "failed（官方候选注册失败；修复演练证明 D10+D11 修复后 register→start→stop→uninstall 可通过；status 仍被 D11d 的声明编码与 D11c 的 RunLevel 缺省阻塞）",
     "C3.7": "Windows 原生服务部分不可执行",
     "ready": false,
     "task_created": false,
-    "defect_ids": ["D10", "D11", "D11c"]
+    "defect_ids": ["D10", "D11", "D11c", "D11d"]
   },
   "required_fix": [
     "D10：输出 UTF-16（含 BOM）并把声明改为 encoding='UTF-16'，或不写 XML 声明；helper 的 UTF-8 读取路径需与选择一致",
     "D11：Same-Definition 对省略的默认值做等价比较、LogonTrigger/UserId 统一为 SID/账号名；用真实注册后的导出 XML 做回归",
     "D11c：service_query._task_identity 接受缺省 Principal 子元素并把缺失 RunLevel 规范化为 LeastPrivilege；该修复必须随候选 wheel 一起 capture/materialize",
+    "D11d：service_query._xml 在解析 schtasks 输出前去掉/纠正 UTF-16 声明（实际字节为 UTF-8），或改用 COM 读取；同样随 wheel 重建",
     "新增真实解析回归：至少用 schtasks /Create /XML 或 COM RegisterTaskDefinition 解析生成文件；仅字符串断言不足",
     "修复后重建 wheel、重新 capture/plan/materialize 并完成注册→状态→启动→就绪→正常排空→卸载"
   ],
   "not_done": [
     "未修改产品源码（验收会话只取证；rehearsal 的临时补丁已恢复）",
     "官方产物注册失败；rehearsal 临时任务已删除",
-    "rehearsal 已实测注册/启动/就绪/正常排空/卸载；只读 service status 仍被 D11c 阻塞",
+    "rehearsal 已实测注册/启动/就绪/正常排空/卸载；只读 service status 仍被 D11d（声明编码）与 D11c（RunLevel 缺省）阻塞",
     "未测试登录恢复、升级切换与 72 小时常驻"
   ],
   "evidence_files": [
