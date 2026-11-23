@@ -235,3 +235,5 @@ uv run --no-sync python agent/scripts/accept_native_credentials.py --cleanup <�
 抓取到 worker 归属：`omni.adapters.workers.desktop` 进程在 **session-31（x11，user-10001.slice）**，seat0 的 ActiveSession 也是 31，系统总线与 logind 正常；worker 直接导入/启动无报错（等待协议输入）。但探针仍 `session.kind=unknown`、能力全部 unavailable。结论：**不是会话归属问题**，失败发生在 worker 内部并被后端概括为 `desktop_native_unavailable`。下一步需抓 worker 的真实错误（stderr/error_code）再判断是代码缺口还是环境问题。
 
 对 worker 异常、encode 校验失败、后端 stderr 三处分别做了临时日志（仅 VM 副本），**全部为空**；探针仍 unknown/unavailable。说明失败发生在后端 Linux 预检或 worker 返回之前，尚未被我们的日志覆盖。下一步：读后端 Linux probe 分支的前置条件，并用合成 probe 帧手工运行 worker 取原始响应。
+
+更正：此前“_spawn 未调用”的结论是**无效**的——临时补丁引入语法错误导致探针 import 失败，读到的是旧报告。清理后重测：`_spawn probe` 确实被调用，worker 正常返回一份报告，其中 `session.kind=unknown`、`window_identity/accessibility=desktop_native_unavailable`，worker 无异常。即拒绝是 **worker 在构建 probe 报告时**产生的，最可能在 Linux AT-SPI/会话初始化路径。下一步读 `linux_desktop`/`linux_atspi` 的 probe 初始化，定位 `desktop_native_unavailable` 分支。

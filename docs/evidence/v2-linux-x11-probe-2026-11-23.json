@@ -78,6 +78,12 @@
       "observed": "all three logs stayed empty; probe still session.kind=unknown and desktop_native_unavailable for window_identity/accessibility",
       "conclusion": "the failure is either in the backend's Linux pre-check or in the worker before any Python-level exception/logging; the worker starts (seen in process polling) but returns no response body we could capture",
       "next": "inspect the backend's Linux probe branch (env/permission/helper preconditions) and run the worker manually with a synthetic probe frame to see its raw response"
+    },
+    "spawn_confirmed": {
+      "spawn_log": "backend _spawn was called for operation=probe (earlier empty log was invalid: a temporary syntax error made the probe import fail and left a stale report)",
+      "worker_result": "the worker returned a report with session.kind=unknown and window_identity/accessibility error_code=desktop_native_unavailable; no worker traceback",
+      "conclusion": "the backend does spawn the worker and receives a report; the refusal is produced worker-side while building the probe report, most likely in the Linux AT-SPI/session initialization path",
+      "next": "read linux_desktop/linux_atspi probe initialization to find the desktop_native_unavailable branch and fix or document it"
     }
   }
 }
