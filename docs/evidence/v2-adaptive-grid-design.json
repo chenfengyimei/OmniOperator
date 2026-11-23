@@ -1,0 +1,69 @@
+{
+  "schema": 1,
+  "date": "2026-11-22",
+  "requirement": "K16",
+  "batch": "K16.adaptive_grid_design",
+  "status": "design_contract_recorded",
+  "base_commit": "469ec591",
+  "branch": "k16-storyboard",
+  "contract": "docs/v2/contracts/V2_ADAPTIVE_GRID.md",
+  "gap": "#6 自适应宫格/DP 打包（审计要求独立设计合同）",
+  "files": {
+    "docs/v2/contracts/V2_ADAPTIVE_GRID.md": "d01ecb3bfb70ffc588df7c6c073d1b4fa75928dc6e66c29c7ee9233812543565",
+    "docs/v2/README.md": "3b0b288bfba341b5d87689181088ba6d9147a386d3973eb6585cff90ccef7447",
+    "docs/tasks/v2-agent-core-parity.json": "4d6b8d0b60ab4bb4305c1e587db9331a7592a89ff815d5b66ece1bc6a8a3f3f7",
+    "docs/HANDOFF.md": "9981528a2ca9c4af3ca5c116fe1c49de6802faea589c920b6b45514ba5ee293d"
+  },
+  "hash_scope": "SHA-256 of git index blob bytes (LF-normalized); excludes this evidence file and generated docs/index.",
+  "current": {
+    "layout": "固定 2 列（count=1 时 1 列），每格同宽同高，格高含 LABEL_HEIGHT=20；格号 row-major，media_cells CELL_COLUMNS=2。",
+    "limits": "MAX_FRAMES=12、宽 320-1280、MAX_SHEET_SIDE=8192、MAX_SHEET_PIXELS=16_000_000、MAX_SHEET_BYTES=8 MiB。",
+    "tests": "test_v2_media_frames 边界 (320,8172)→(320,8192)、(1280,6230)→(2560,6250)；sheet_identity 核验真实 PNG 宽高。"
+  },
+  "decisions": {
+    "D0": "本版是否做自适应宫格（建议做固定格尺寸的最小列数自适应）。",
+    "D1": "固定格尺寸 vs 变尺寸 8 档（建议固定，保留 V1 token 论证）。",
+    "D2": "列数 ceil(sqrt(n)) 受 SIDE/PIXELS 约束，rows=ceil(n/cols)，无解回退；不采用 DP。",
+    "D3": "尾部空格、row-major、不重排 timestamps；格号仍 index//columns/index%columns。",
+    "D4": "接口：改默认 / 新增作业参数 grid / 仅 scenes；待所有者与 A（新增参数触共享 HTTP schema）。",
+    "D5": "回滚与旧 2 列兼容（若 D4=b 保留 grid=2）。",
+    "D6": "DP/档位后续条件（D1=b 或测量证明收益，需 bin cost/指标与批准）。"
+  },
+  "minimal_batch_plan": [
+    "纯领域 sheet_columns(width,height,count,cell_height) 整数试探列数；_sheet_size 与粘贴共用。",
+    "media_cells 的列数必须与实际 sheet 列数一致（CELL_COLUMNS 或持久化列数），否则格号/zoom 错位。",
+    "放行：count 1..12 × width 320/640/1280 尺寸矩阵、SIDE/PIXELS 精确边界、sheet identity、空帧/取消/删除/工具图像预算、旧 2 列对照（D4=b）。",
+    "不改每格像素、LABEL_HEIGHT、编码/字节限额、timestamps、scenes/zoom/locate。"
+  ],
+  "limits": [
+    "纯设计合同，未实现；D0/D2/D4 未决前不改默认宫格。",
+    "固定格尺寸下自适应列数不节省视觉 token（总像素可能不变/增加尾部空格）；省 token 只能走变尺寸档位，需独立评估。",
+    "参考 DP/8 档与 V1 固定格论证冲突，不擅自取舍。",
+    "OCR/模型来源未确定，与本合同无关。"
+  ],
+  "validation": [
+    {
+      "command": "python consistency check: contract sections/decisions present, README link, ledger followup/batch, JSON load",
+      "result": "design consistency ok"
+    },
+    {
+      "command": "uv run --no-sync python scripts/project_index.py",
+      "result": "modules=65 files=849 routes=464 declared_tools=94; updated=(none) — docs-only batch"
+    },
+    {
+      "command": "git diff --check",
+      "result": "clean"
+    }
+  ],
+  "pytest_passed": null,
+  "not_executed": [
+    "pytest（纯文档）",
+    "自适应宫格实现与尺寸矩阵",
+    "真实长片/大 count 编码耗时与内存",
+    "OCR（rapidocr 依赖未定）"
+  ],
+  "current_full_passed": false,
+  "whole_core_parity_complete": false,
+  "whole_reference_feature_audit_complete": false,
+  "whole_v2_complete": false
+}

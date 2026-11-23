@@ -25,9 +25,9 @@ from typing import Any, cast
 
 from ...domain.media import (
     SCENE_ANALYSIS_WIDTH,
-    SCENE_MAX_SAMPLES,
-    SCENE_SAMPLE_FPS,
+    bar_rows,
     scene_cuts,
+    scene_sample_count,
     scene_segments,
     scene_slots,
 )
@@ -333,13 +333,48 @@ def _hsv_score(prev: Any, cur: Any) -> float:
     ) / 3.0
 
 
+def _bar_crop(thumbs: list[Any], resources: ExitStack) -> list[Any]:
+    """Crop uniform black borders (top/bottom and left/right) shared by every sample."""
+    from PIL import ImageStat
+
+    tops: list[int] = []
+    bottoms: list[int] = []
+    lefts: list[int] = []
+    rights: list[int] = []
+    for hsv in thumbs:
+        value = hsv.split()[2]
+        rows = [ImageStat.Stat(value.crop((0, y, value.width, y + 1))).mean[0] for y in range(value.height)]
+        columns = [ImageStat.Stat(value.crop((x, 0, x + 1, value.height))).mean[0] for x in range(value.width)]
+        tops.append(bar_rows(rows))
+        bottoms.append(bar_rows(list(reversed(rows))))
+        lefts.append(bar_rows(columns))
+        rights.append(bar_rows(list(reversed(columns))))
+    if not tops:
+        return thumbs
+    top, bottom = min(tops), min(bottoms)
+    left, right = min(lefts), min(rights)
+    height, width = thumbs[0].height, thumbs[0].width
+    if top + bottom >= height - 1:
+        top = bottom = 0
+    if left + right >= width - 1:
+        left = right = 0
+    if not (top or bottom or left or right):
+        return thumbs
+    cropped: list[Any] = []
+    for hsv in thumbs:
+        piece = hsv.crop((left, top, width - right, height - bottom))
+        resources.callback(piece.close)
+        cropped.append(piece)
+    return cropped
+
+
 def _scene_targets(
     container: Any, stream: Any, duration: float, count: int, resources: ExitStack
 ) -> tuple[list[float], list[float]]:
     """Bounded seek-sampled HSV cut detection + per-scene Laplacian-sharpest frame selection."""
     from PIL import ImageFilter, ImageStat
 
-    samples_n = min(SCENE_MAX_SAMPLES, max(2, int(duration * SCENE_SAMPLE_FPS)))
+    samples_n = scene_sample_count(duration)
     kernel = ImageFilter.Kernel((3, 3), [0, 1, 0, 1, -4, 1, 0, 1, 0], scale=1, offset=128)
     times: list[float] = []
     thumbs: list[Any] = []
@@ -361,8 +396,10 @@ def _scene_targets(
         times.append(moment)
         thumbs.append(hsv)
         sharpness.append(variance)
-    scores = [0.0] + [_hsv_score(thumbs[i - 1], thumbs[i]) for i in range(1, len(thumbs))]
-    cuts = scene_cuts(times, scores)
+    analysis = _bar_crop(thumbs, resources)
+    scores = [0.0] + [_hsv_score(analysis[i - 1], analysis[i]) for i in range(1, len(analysis))]
+    brightness = [ImageStat.Stat(piece.split()[2]).mean[0] for piece in analysis]
+    cuts = scene_cuts(times, scores, brightness)
     if not cuts or len(times) < 2:
         return _target_times(duration, count), cuts
     windows = scene_slots(scene_segments(cuts, duration), count)

@@ -1,0 +1,91 @@
+{
+  "schema": 1,
+  "date": "2026-11-22",
+  "requirement": "K16",
+  "batch": "K16.scene_spike",
+  "gap": "#1 自适应分段：暗噪声/两样本单调噪声产生假切点（邻域尖峰守卫）",
+  "status": "implemented_scoped_passed",
+  "base_commit": "36779499",
+  "original_base_commit": "0793f254",
+  "branch": "k16-storyboard",
+  "contract": "docs/v2/contracts/V2_MEDIA_SCENES.md",
+  "files": {
+    "agent/src/omni/domain/media.py": "0a05c5f7169f3b3819564d49345f78d936f8355e0a96cc76ee0ae91f9f366f87",
+    "agent/src/omni/adapters/workers/media.py": "d10f7199144a0169536676a31d24a2e53f7bafcec083ed2c90503ef4dcba6b5f",
+    "agent/tests/v2/integrations/test_v2_media_scenes.py": "6a25c2204702787ecf45685726530d0694957f4dd753a3f9d2e5746390c314da",
+    "docs/v2/contracts/V2_MEDIA_SCENES.md": "3d654cf61fbc81c581b79e27f0a08a94e5037b09a62e06641b2323dfc53d93f2",
+    "docs/tasks/v2-agent-core-parity.json": "efdfa9be57d00966cce75a1cb2eb09033e442b95ee12c4019fd9fc1a1c4234bb",
+    "docs/HANDOFF.md": "88fddb2608db8f3ad3cd841d0d6d4cd7dad7b985df332f9e6d2ceb4df85bde8d"
+  },
+  "hash_scope": "SHA-256 of git index blob bytes (LF-normalized); excludes this evidence file and generated docs/index.",
+  "fixed_materials": {
+    "generator": "PyAV mpeg4, 8s, 25fps, 64x48；dark-noise 每帧 V=20±8（seed 11，色 V,V,V+5）；montage 8 个 1s 镜头，颜色 (30+i*25,60,200-i*20)",
+    "sha256": {
+      "dark-noise.mp4": "494cc71eb42f362a89a2fdadc415669d25015ff071ff05a659d6b34295356032",
+      "montage-1s.mp4": "ceef1bcc9956c7be6ff063d32f6c2e475c8ed53421a9e51f66efd3578e427eee"
+    },
+    "bytes": {"dark-noise.mp4": 11563, "montage-1s.mp4": 2083},
+    "determinism": "同一生成器重跑两次，两个 SHA-256 与字节数一致（2026-11-22 本机，PyAV mpeg4）。"
+  },
+  "failure_probe": {
+    "dark_noise": {
+      "scores": [10.3, 9.8, 5.3, 7.3, 10.0, 16.0, 16.0, 8.0, 9.3, 0.0, 9.3, 8.0, 8.0, 8.0, 8.0],
+      "fixed_cuts": [1.5, 3.5],
+      "failure": "两个假切点；且 3.24/3.76 两样本亮度 33→21 单调，被旧渐变规则合并为 trusted 渐变（3.5s），绕过普通抑制。"
+    },
+    "montage_1s": {"cuts_before": "约 7 个", "cuts_after": ">=5 个（保留）"},
+    "baseline_fade_bars_quick": "三色基线 2 切点、2s 渐隐 1 切点、bars0/12/16/20、0.2s 快剪均保持既有结果。"
+  },
+  "production_wiring": [
+    "agent/src/omni/domain/media.py: SCENE_SPIKE_RADIUS=1/SCENE_SPIKE_FACTOR=2.0/SCENE_SPIKE_MARGIN=3.0；scene_cuts 在 brightness 提供时，非 trusted 候选需满足 score>=2*max(±1 邻域)+3；渐变 trusted 跳过尖峰检查；SCENE_GRADUAL_MIN_SAMPLES=3 收紧渐变证据。",
+    "agent/src/omni/adapters/workers/media.py: 既有 _scene_targets 传入 times/scores/brightness，无新增 I/O 或协议；黑边裁剪/清晰度/宫格/资源上限不变。"
+  ],
+  "validation": [
+    {
+      "command": "uv run --no-sync pytest -q -n 0 agent/tests/v2/integrations/test_v2_media_scenes.py",
+      "result": "25 passed",
+      "seconds": 6.56
+    },
+    {
+      "command": "uv run --no-sync pytest -q -n 0 <frames/plans/sheet_identity/cells/worker/decoding/duration/anchors/cancel/zoom/zoom_tool/zoom_e2e/tool_image_protocol/tool_image_ledger/media/architecture/typecheck_scope/layout>",
+      "result": "281 passed",
+      "seconds": 212.45,
+      "note": "含工具图像预算、删除屏障、取消、zoom 与结构守卫。"
+    },
+    {
+      "command": "uv run --no-sync pyright --project pyrightconfig.strict.json",
+      "include": 428,
+      "errors": 0,
+      "warnings": 0
+    },
+    {
+      "command": "uv run --no-sync ruff check/format --check <3 changed files>",
+      "result": "All checks passed; 3 files already formatted"
+    },
+    {
+      "command": "uv run --no-sync python scripts/project_index.py",
+      "result": "modules=65 files=849 routes=464 declared_tools=94; 二次运行 updated=(none)"
+    }
+  ],
+  "verified_matrix": {
+    "false_positive_suppression": "暗噪声假切点 2→0；1s 蒙太奇保留 >=5 切点；三色基线/渐隐/黑边/快剪不变。",
+    "gradual_evidence": "渐变至少 3 个连续超阈值样本；2 样本单调噪声不再 trusted（新增纯规则用例）。",
+    "empty_and_all_black": "全黑源 0 切点、宫格正常（既有用例）。",
+    "deletion_cancellation": "运行中删除拒绝→取消→删除无 media_frames（既有 scenes 用例）。",
+    "tool_image_budget": "zoom/tool_image 调用方覆盖 per_call_limit/run_budget 与账本释放。"
+  },
+  "not_executed": [
+    "完整 pytest 全量（本批只跑受影响专项与调用方，current_full_passed 保持 false）",
+    "真实长片（>10min）切点质量、耗时与内存",
+    "极暗 cut（分数 10.3）需要的亮度增益/auto 分位阈值",
+    "连续高变化/0.5s 以下快剪的运动补偿",
+    "自适应宫格/DP 打包（需独立设计合同）",
+    "帧内 OCR（rapidocr 依赖/模型来源未确定）",
+    "真实 B 站视频/账号回放"
+  ],
+  "limits": "2fps 采样下连续高变化（<0.5s 快剪或强运动）可能被尖峰守卫整体抑制为无切点；极暗场景低对比 cut 仍低于固定阈值；不是 auto/auto-low 分位阈值或亮度增益；真实长片未验。",
+  "current_full_passed": false,
+  "whole_core_parity_complete": false,
+  "whole_reference_feature_audit_complete": false,
+  "whole_v2_complete": false
+}

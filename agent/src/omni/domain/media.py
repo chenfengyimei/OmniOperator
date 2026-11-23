@@ -85,25 +85,119 @@ SCENE_MIN_GAP_S = 0.35
 SCENE_SAMPLE_FPS = 2.0
 SCENE_MAX_SAMPLES = 240
 SCENE_ANALYSIS_WIDTH = 64
+SCENE_GRADUAL_WINDOW_S = 0.4
+SCENE_GRADUAL_MIN_SAMPLES = 3
+SCENE_GRADUAL_TOLERANCE = 1.0
+SCENE_BAR_V_MAX = 24.0
+SCENE_BAR_LIMIT = 0.4
+SCENE_SPIKE_RADIUS = 1
+SCENE_SPIKE_FACTOR = 2.0
+SCENE_SPIKE_MARGIN = 3.0
+SCENE_GAIN_REF_V = 160.0
+SCENE_GAIN_MAX = 3.0
 
 
-def scene_cuts(times: Sequence[float], scores: Sequence[float]) -> list[float]:
+def scene_sample_count(duration: float) -> int:
+    """Bounded number of seek samples for a source, independent of frame count."""
+    return min(SCENE_MAX_SAMPLES, max(2, int(duration * SCENE_SAMPLE_FPS)))
+
+
+def bar_rows(rows: Sequence[float], threshold: float = SCENE_BAR_V_MAX, limit: float = SCENE_BAR_LIMIT) -> int:
+    """Count contiguous near-black rows from one edge, capped so some content always remains.
+
+    Rows carry per-row HSV V means. A row is a bar when V <= threshold; the cap prevents a
+    genuinely dark scene from being cropped to nothing and keeps the rule independent of I/O.
+    """
+    if not rows:
+        return 0
+    cap = min(len(rows) - 1, int(len(rows) * limit))
+    count = 0
+    for value in rows:
+        if value > threshold or count >= cap:
+            break
+        count += 1
+    return count
+
+
+def _gradual(values: Sequence[float]) -> bool:
+    if len(values) < 2 or abs(values[-1] - values[0]) <= SCENE_GRADUAL_TOLERANCE:
+        return False
+    return all(b - a >= -SCENE_GRADUAL_TOLERANCE for a, b in zip(values, values[1:])) or all(
+        b - a <= SCENE_GRADUAL_TOLERANCE for a, b in zip(values, values[1:])
+    )
+
+
+def scene_cuts(
+    times: Sequence[float], scores: Sequence[float], brightness: Sequence[float] | None = None
+) -> list[float]:
     """Cut times where the consecutive-sample HSV score crosses the fixed threshold.
 
     scores[i] (i>=1) compares sample i-1 with i; scores[0] is unused. Cuts closer than
     SCENE_MIN_GAP_S keep the higher-scoring one (conservative suppression, no adaptive quantiles).
+
+    When per-sample brightness is supplied, dark pairs are gain-normalised toward
+    SCENE_GAIN_REF_V (capped at SCENE_GAIN_MAX) before thresholding, so low-light cuts are not
+    lost to the absolute scale. A run of consecutive over-threshold samples whose brightness
+    changes monotonically for at least SCENE_GRADUAL_WINDOW_S is one gradual transition: it
+    collapses to a single cut at the run midpoint. Without brightness the historical
+    fixed-threshold output is preserved byte for byte.
     """
-    cuts: list[tuple[float, float]] = []
-    for index in range(1, min(len(times), len(scores))):
-        if scores[index] < SCENE_CUT_THRESHOLD:
+    effective = list(scores)
+    if brightness is not None and len(brightness) >= len(times):
+        for index in range(1, min(len(effective), len(brightness))):
+            pair = (brightness[index - 1] + brightness[index]) / 2.0
+            gain = min(SCENE_GAIN_MAX, max(1.0, SCENE_GAIN_REF_V / max(1.0, pair)))
+            effective[index] = scores[index] * gain
+    candidates = [
+        (index, times[index], effective[index])
+        for index in range(1, min(len(times), len(effective)))
+        if effective[index] >= SCENE_CUT_THRESHOLD
+    ]
+    if not candidates:
+        return []
+    moments: list[tuple[float, float]] = []
+    if brightness is None or len(brightness) < len(times):
+        moments = [(moment, score) for _, moment, score in candidates]
+    else:
+        marked: list[tuple[int, float, float, bool]] = []
+        run: list[tuple[int, float, float]] = []
+        for candidate in candidates:
+            if run and candidate[0] != run[-1][0] + 1:
+                marked.extend(_scene_run_moments(run, times, brightness))
+                run = []
+            run.append(candidate)
+        if run:
+            marked.extend(_scene_run_moments(run, times, brightness))
+        for index, moment, score, trusted in marked:
+            if trusted or _scene_spike(effective, index):
+                moments.append((moment, score))
+    suppressed: list[tuple[float, float]] = []
+    for moment, score in moments:
+        if suppressed and moment - suppressed[-1][0] < SCENE_MIN_GAP_S:
+            if score > suppressed[-1][1]:
+                suppressed[-1] = (moment, score)
             continue
-        moment = times[index]
-        if cuts and moment - cuts[-1][0] < SCENE_MIN_GAP_S:
-            if scores[index] > cuts[-1][1]:
-                cuts[-1] = (moment, scores[index])
-            continue
-        cuts.append((moment, scores[index]))
-    return [moment for moment, _ in cuts]
+        suppressed.append((moment, score))
+    return [moment for moment, _ in suppressed]
+
+
+def _scene_spike(scores: Sequence[float], index: int) -> bool:
+    """Keep a cut only when it stands out from its sampled neighbourhood (noise suppression)."""
+    start = max(1, index - SCENE_SPIKE_RADIUS)
+    stop = min(len(scores), index + SCENE_SPIKE_RADIUS + 1)
+    neighbours = [scores[position] for position in range(start, stop) if position != index]
+    baseline = max(neighbours, default=0.0)
+    return scores[index] >= baseline * SCENE_SPIKE_FACTOR + SCENE_SPIKE_MARGIN
+
+
+def _scene_run_moments(
+    run: Sequence[tuple[int, float, float]], times: Sequence[float], brightness: Sequence[float]
+) -> list[tuple[int, float, float, bool]]:
+    values = [brightness[index] for index, _, _ in run]
+    span = times[run[-1][0]] - times[run[0][0]]
+    if len(run) >= SCENE_GRADUAL_MIN_SAMPLES and span >= SCENE_GRADUAL_WINDOW_S and _gradual(values):
+        return [(-1, (times[run[0][0]] + times[run[-1][0]]) / 2.0, max(score for _, _, score in run), True)]
+    return [(index, moment, score, False) for index, moment, score in run]
 
 
 def scene_segments(cuts: Sequence[float], duration: float) -> list[tuple[float, float]]:

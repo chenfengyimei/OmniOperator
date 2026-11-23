@@ -6,6 +6,7 @@ Windows 与 Mac mini 按 [双设备协作开发规范](../V2_MULTI_DEVICE_DEVELO
 
 ## 业务与领域合同
 
+- [V2_ADAPTIVE_GRID](contracts/V2_ADAPTIVE_GRID.md)
 - [Agent 内核与 xuexi 功能对标、缺口和开发顺序](contracts/V2_AGENT_CORE_PARITY.md)
 - [V2_AGENTS](contracts/V2_AGENTS.md)
 - [V2_ANDROID](contracts/V2_ANDROID.md)
@@ -24,6 +25,8 @@ Windows 与 Mac mini 按 [双设备协作开发规范](../V2_MULTI_DEVICE_DEVELO
 - [V2_IMAGES](contracts/V2_IMAGES.md)
 - [V2_LOCAL_VECTORS](contracts/V2_LOCAL_VECTORS.md)
 - [V2_MCP](contracts/V2_MCP.md)
+- [V2_K16_ACCEPTANCE_PLAN](contracts/V2_K16_ACCEPTANCE_PLAN.md)
+- [V2_K16_REMAINING_DECISIONS](contracts/V2_K16_REMAINING_DECISIONS.md)
 - [V2_MEDIA](contracts/V2_MEDIA.md)
 - [V2_MEMORY_SEMANTICS](contracts/V2_MEMORY_SEMANTICS.md)
 - [V2_MODEL_STREAMING](contracts/V2_MODEL_STREAMING.md)

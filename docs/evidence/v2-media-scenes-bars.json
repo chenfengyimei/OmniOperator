@@ -1,0 +1,94 @@
+{
+  "schema": 1,
+  "date": "2026-11-22",
+  "requirement": "K16",
+  "batch": "K16.scene_bars",
+  "gap": "#1 自适应分段：黑边稀释 HSV 分数导致 subtle cut 漏检、编码边缘假切点（黑边补偿）",
+  "status": "implemented_scoped_passed",
+  "base_commit": "d5691940",
+  "original_base_commit": "0793f254",
+  "branch": "k16-storyboard",
+  "contract": "docs/v2/contracts/V2_MEDIA_SCENES.md",
+  "reference": "xuexi/dsh-video-storyboard scan.js barFraction（固定提交 e124ae6f；仅沿用合同记录的参考语义，不复制源码）",
+  "files": {
+    "agent/src/omni/domain/media.py": "5e5ad6b499d353039dc7933017a563f11960db2c9a6aa891e39b8a49197cf49c",
+    "agent/src/omni/adapters/workers/media.py": "d10f7199144a0169536676a31d24a2e53f7bafcec083ed2c90503ef4dcba6b5f",
+    "agent/tests/v2/integrations/test_v2_media_scenes.py": "32f13f2abce2d952ab35b8d7a9113b40f7b607db52fe566a1b7746490c470fd1",
+    "docs/v2/contracts/V2_MEDIA_SCENES.md": "06514024e951305ba4c3b6bac3b62b53e5817b5b03c40ca407a1c710fc9ab542",
+    "docs/tasks/v2-agent-core-parity.json": "64aecff687eca238b0db9e1aa17ed55ab878e0364d22ce581c0ed1594d65120c",
+    "docs/HANDOFF.md": "4b95613761c0615a66d83260a9c89abecaa31d391f96fa0e557d089e02de7c87"
+  },
+  "hash_scope": "SHA-256 of git index blob bytes (LF-normalized); excludes this evidence file and generated docs/index.",
+  "fixed_materials": {
+    "generator": "PyAV mpeg4, 8s, 25fps, 64x48；上下黑边 bars 行；内容色 (100,60,50) 0..4s → (60,100,90) 4..8s",
+    "sha256": {
+      "bars0.mp4": "e88f12c6e1435057e9678c8846e5d0abcd93fc1870114bf7db9f32e16896dbb4",
+      "bars12.mp4": "c1feef444f513ae6fa08ff76f822b8a2eaec405fdb9902408ab256b862dac6bc",
+      "bars16.mp4": "10479554de590276e70259cb46409449d8e35f8f7ae1dfb314f1d62a01cc5af1",
+      "bars20.mp4": "2afeaba97f75fdce6bd6f5197024129515547057f9662547c7b77ed15f30ff22"
+    },
+    "bytes": {"bars0.mp4": 5784, "bars12.mp4": 7302, "bars16.mp4": 5851, "bars20.mp4": 7187},
+    "determinism": "同一生成器重跑两次，四个 SHA-256 与字节数一致（2026-11-22 本机，PyAV mpeg4）。"
+  },
+  "failure_probe": {
+    "sampling": "2fps、64 宽分析缩略图、HSV 加权分数；固定阈值 12 + minGap 0.35",
+    "full_frame": {"scores_around_cut": [22.3], "fixed_cuts": [4.24]},
+    "bars16": {"scores_around_cut": [7.8], "fixed_cuts": [], "failure": "内容仅 16/48 高，黑边稀释分数到阈值以下。"},
+    "bars12": {"fixed_cuts": [1.0, 4.5], "failure": "编码边缘噪声产生 1.0s 假切点，真切点偏移。"},
+    "bars20": {"fixed_cuts": [4.5]},
+    "all_black": {"fixed_cuts": []}
+  },
+  "production_wiring": [
+    "agent/src/omni/domain/media.py: SCENE_BAR_V_MAX=24.0/SCENE_BAR_LIMIT=0.4；bar_rows(rows, threshold, limit) 从一侧连续 V<=24 行计数，单侧上限 40% 且至少留 1 行（纯规则，无 I/O）。",
+    "agent/src/omni/adapters/workers/media.py: _bar_crop 对每个采样 HSV 缩略图逐行求 V 均值，取所有样本最小 top/bottom（只裁所有样本都黑的边），裁后再算 HSV 分数与亮度；Laplacian 清晰度、宫格、时间锚点与资源上限不变。"
+  ],
+  "validation": [
+    {
+      "command": "uv run --no-sync pytest -q -n 0 agent/tests/v2/integrations/test_v2_media_scenes.py",
+      "result": "22 passed",
+      "seconds": 7.12
+    },
+    {
+      "command": "uv run --no-sync pytest -q -n 0 <frames/plans/sheet_identity/cells/worker/decoding/duration/anchors/cancel/zoom/zoom_tool/zoom_e2e/tool_image_protocol/tool_image_ledger/media/architecture/typecheck_scope/layout>",
+      "result": "281 passed",
+      "seconds": 216.95,
+      "note": "含工具图像 per_call/run_budget、zoom 审批/删除屏障/取消、媒体删除、取消/失败路径与结构守卫。"
+    },
+    {
+      "command": "uv run --no-sync pyright --project pyrightconfig.strict.json",
+      "include": 428,
+      "errors": 0,
+      "warnings": 0
+    },
+    {
+      "command": "uv run --no-sync ruff check/format --check <3 changed files>",
+      "result": "All checks passed; formatting clean"
+    },
+    {
+      "command": "uv run --no-sync python scripts/project_index.py",
+      "result": "modules=65 files=849 routes=464 declared_tools=94; 二次运行 updated=(none)"
+    }
+  ],
+  "verified_matrix": {
+    "letterbox_compensation": "bars16 漏检→4.24s；bars12 假切点+偏移→单一 4.24s；bars0 保持 4.24s；bars20 内容 8px 仍检出 4.5s。",
+    "empty_and_all_black": "全黑 8s 源 0 切点、3 帧宫格正常生成。",
+    "time_anchors": "黑边裁剪只作用于 HSV 分析缩略图，锚点仍来自真实解码帧；scenes 既有断言覆盖锚点升序、唯一、跨切点两侧。",
+    "quick_cuts": "0.2s 双切在 2fps 下合并为 <=1 切点（既有有界用例）。",
+    "deletion_cancellation": "运行中删除源被 media_source_busy 拒绝；取消后删除无 media_frames；既有 cancel/zoom 调用方通过。",
+    "tool_image_budget": "test_v2_media_zoom_tool 与 tool_image_protocol/ledger 覆盖 per_call_limit/run_budget、账本与终态释放。"
+  },
+  "not_executed": [
+    "完整 pytest 全量（本批只跑受影响专项与调用方，current_full_passed 保持 false）",
+    "真实长片（>10min）黑边/切点质量、耗时与内存",
+    "不规则/图形黑边、像素级渐变边",
+    "帧内 OCR（rapidocr 未捆绑，依赖/模型来源未确定）",
+    "auto/auto-low 分位数阈值、REF_V 亮度增益、自适应 minGap",
+    "自适应宫格/DP 打包（需独立设计合同）",
+    "真实 B 站视频/账号回放"
+  ],
+  "limits": "只识别与画面边缘对齐的均匀近黑边；单侧 40% 上限避免暗场景被裁空，但暗场景仍可能被裁掉部分分析行；2fps 采样下 <0.5s 快剪不可分辨；未实现亮度增益/auto 分位阈值/DP 宫格/OCR；真实长片未验。",
+  "current_full_passed": false,
+  "whole_core_parity_complete": false,
+  "whole_reference_feature_audit_complete": false,
+  "whole_v2_complete": false
+}

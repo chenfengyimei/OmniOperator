@@ -1,0 +1,81 @@
+{
+  "schema": 1,
+  "date": "2026-11-22",
+  "requirement": "K16",
+  "batch": "K16.scene_long",
+  "gap": "#1 600s/10min 端到端素材（采样上限、切点、锚点、宫格；测试与证据）",
+  "status": "implemented_scoped_passed",
+  "base_commit": "594a1d5c",
+  "original_base_commit": "0793f254",
+  "branch": "k16-storyboard",
+  "contract": "docs/v2/contracts/V2_MEDIA_SCENES.md",
+  "files": {
+    "agent/tests/v2/integrations/test_v2_media_scenes.py": "075044cb1f8007d4a36e699a8b7e5ed79274750162baef6c94c39451f2a7fc8d",
+    "docs/v2/contracts/V2_MEDIA_SCENES.md": "60d607d1d490e39c16744a191888e4d020679278ac6be50061b3c80658c00134",
+    "docs/tasks/v2-agent-core-parity.json": "29a13e30b389a82d19cd933e1c3c3dd0d8997855daf63a976ca50af95d06dde6",
+    "docs/HANDOFF.md": "2b2cb1f9c7b3b5b6f1bc6c0974ffd6e94d431a0c5faa418806ec850a4339b355"
+  },
+  "hash_scope": "SHA-256 of git index blob bytes (LF-normalized); excludes this evidence file and generated docs/index.",
+  "no_production_change": "本批只新增测试与证据；生产源码、HTTP、迁移、依赖、strict include 与索引未变。",
+  "fixed_materials": {
+    "generator": "PyAV mpeg4, 600s, 64x48；20 个 30s 镜头循环 12 色高对比 palette",
+    "sha256": {"ten-minutes.mp4": "ca686f561f93247f50bb4bbb1d6174febfb0b51143bce41c43096c1436afc7ab"},
+    "bytes": {"ten-minutes.mp4": 74785},
+    "determinism": "同一生成器重跑两次，SHA-256 与字节数一致（2026-11-22 本机，PyAV mpeg4）。"
+  },
+  "measurement": {
+    "encode_s": 0.31,
+    "scenes_s": 0.61,
+    "total_s": 0.92,
+    "note": "单次本机测量，非基准；不含 pytest 启动/临时文件开销。",
+    "cuts": 19,
+    "frame_count": 12,
+    "anchors": "12 个唯一升序，0..600s；宫格文件生成"
+  },
+  "verified_matrix": {
+    "sampling_cap": "600s 下 scene_sample_count=240（2fps 上限），不随 duration 线性增长；与计数桩用例一致。",
+    "scene_quality": "20 段高对比素材检出 19 切点（每个 30s 边界），无额外假切点。",
+    "budget": "count=12 仍受 MAX_FRAMES/宫格/字节/像素限制；时间锚点来自真实解码帧。",
+    "existing": "scenes 33 项（含 60s、渐变/黑边/尖峰/增益/组合/取消删除）全通过。"
+  },
+  "validation": [
+    {
+      "command": "uv run --no-sync pytest -q -n 0 agent/tests/v2/integrations/test_v2_media_scenes.py",
+      "result": "33 passed",
+      "seconds": 11.56
+    },
+    {
+      "command": "沿用同生产源码的 K16 生产入口聚合（上一轮 23 文件）",
+      "result": "422 passed",
+      "seconds": 225.35,
+      "note": "本批未改生产源码，故不重复执行；测试文件变化不影响生产调用方结果。"
+    },
+    {
+      "command": "uv run --no-sync pyright --project pyrightconfig.strict.json",
+      "include": 428,
+      "errors": 0,
+      "warnings": 0,
+      "note": "生产源码未变，沿用上一轮 428/0。"
+    },
+    {
+      "command": "uv run --no-sync ruff check/format --check agent/tests/v2/integrations/test_v2_media_scenes.py",
+      "result": "All checks passed; formatting clean"
+    },
+    {
+      "command": "uv run --no-sync python scripts/project_index.py",
+      "result": "modules=65 files=849 routes=464 declared_tools=94; updated=(none)"
+    }
+  ],
+  "not_executed": [
+    "完整 pytest 全量（本批只扩测试与证据，current_full_passed 保持 false）",
+    "真实长片（>10min）视觉质量、真实运动/压缩复杂度、内存峰值曲线",
+    "7200s 最大时长端到端",
+    "真实 B 站/上传来源验收",
+    "auto/auto-low、minGap、宫格 D0/D2/D4、OCR（决策包待回复）"
+  ],
+  "limits": "600s 为合成色块素材，不含真实运动/压缩复杂度；仅测单次耗时，未测内存曲线与 7200s 上限；真实长片仍另验。",
+  "current_full_passed": false,
+  "whole_core_parity_complete": false,
+  "whole_reference_feature_audit_complete": false,
+  "whole_v2_complete": false
+}
