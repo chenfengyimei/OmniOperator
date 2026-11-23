@@ -225,3 +225,13 @@ def test_binary_message_auth_line_and_total_traffic_have_independent_bounds(monk
             assert await bus.close()
 
     asyncio.run(scenario())
+
+
+def test_message_flag_uses_real_dbus_next_spelling():
+    # The fake bus must mirror dbus-next 0.2.3, which exposes NO_AUTOSTART; a
+    # fake-only NO_AUTO_START spelling hides the production AttributeError.
+    import pytest
+
+    dbus = pytest.importorskip("dbus_next")
+    assert hasattr(dbus.MessageFlag, "NO_AUTOSTART")
+    assert not hasattr(dbus.MessageFlag, "NO_AUTO_START")
