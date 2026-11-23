@@ -431,6 +431,7 @@
     "agent/src/omni/application/persona.py",
     "agent/src/omni/domain/visual_subagent.py",
     "agent/src/omni/application/visual_subagent.py",
+    "agent/src/omni/adapters/visual.py",
     "agent/src/omni/domain/som.py",
     "agent/src/omni/adapters/som.py",
     "agent/src/omni/domain/android_explore.py"

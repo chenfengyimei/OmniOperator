@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "ad0f20d5b2b1b24aef6832148a56e1533a1b70b2bc08f2d5ded8aedcb53d0e50",
+  "source_sha256": "1797cf4d5215ba2cd7e07846e5bc102ae235c2d82083f6d9bba89b57aee801a6",
   "modules": [
     {
       "id": "v2-domain",
@@ -171,7 +171,7 @@
         "agent/src/omni/application/todos.py",
         "agent/src/omni/application/visual_subagent.py"
       ],
-      "lines": 14266,
+      "lines": 14412,
       "dependencies": [
         "v2-domain"
       ]
@@ -474,6 +474,7 @@
         "agent/src/omni/adapters/timezones.py",
         "agent/src/omni/adapters/token_counter.py",
         "agent/src/omni/adapters/vector_files.py",
+        "agent/src/omni/adapters/visual.py",
         "agent/src/omni/adapters/workers/__init__.py",
         "agent/src/omni/adapters/workers/android.py",
         "agent/src/omni/adapters/workers/android_adb.py",
@@ -519,7 +520,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 71609,
+      "lines": 71822,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -554,7 +555,7 @@
         "agent/src/omni/composition/service_runner.py",
         "agent/src/omni/composition/serving.py"
       ],
-      "lines": 3315,
+      "lines": 3330,
       "dependencies": [
         "v2-adapters",
         "v2-application",
@@ -43954,6 +43955,176 @@
       "summary": "Verify explicit local vector files and startup selection; never imports a model or downloads data."
     },
     {
+      "path": "agent/src/omni/adapters/visual.py",
+      "module": "v2-adapters",
+      "python_module": "omni.adapters.visual",
+      "lines": 213,
+      "imports": [
+        "omni.application.images",
+        "omni.application.media",
+        "omni.application.model_calls",
+        "omni.application.objects",
+        "omni.application.ports",
+        "omni.application.visual_subagent",
+        "omni.domain.contracts",
+        "omni.domain.images",
+        "omni.domain.settings",
+        "omni.domain.visual_subagent"
+      ],
+      "symbols": [
+        {
+          "name": "ImageObjectFrames",
+          "line": 48,
+          "kind": "class"
+        },
+        {
+          "name": "ImageObjectFrames.__init__",
+          "line": 51,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "objects",
+            "images"
+          ],
+          "annotations": {
+            "objects": "ObjectService",
+            "images": "ImageService"
+          }
+        },
+        {
+          "name": "ImageObjectFrames.frames",
+          "line": 54,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "agent_id",
+            "object_ids"
+          ],
+          "annotations": {
+            "agent_id": "str",
+            "object_ids": "Sequence[str]"
+          }
+        },
+        {
+          "name": "MediaFrameSheets",
+          "line": 85,
+          "kind": "class"
+        },
+        {
+          "name": "MediaFrameSheets.__init__",
+          "line": 88,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "media",
+            "objects",
+            "images"
+          ],
+          "annotations": {
+            "media": "MediaService",
+            "objects": "ObjectService",
+            "images": "ImageService"
+          }
+        },
+        {
+          "name": "MediaFrameSheets.frame",
+          "line": 91,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "agent_id",
+            "frames_id"
+          ],
+          "annotations": {
+            "agent_id": "str",
+            "frames_id": "str"
+          }
+        },
+        {
+          "name": "ModelCallsVisualModel",
+          "line": 123,
+          "kind": "class"
+        },
+        {
+          "name": "ModelCallsVisualModel.__init__",
+          "line": 126,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "db",
+            "calls",
+            "agent_id",
+            "run_id",
+            "settings"
+          ],
+          "annotations": {
+            "db": "DatabasePort",
+            "calls": "ModelCalls",
+            "agent_id": "str",
+            "run_id": "str",
+            "settings": "Settings"
+          }
+        },
+        {
+          "name": "ModelCallsVisualModel.model",
+          "line": 130,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "ModelCallsVisualModel.complete",
+          "line": 133,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "request"
+          ],
+          "annotations": {
+            "request": "VisualRequest"
+          }
+        },
+        {
+          "name": "ModelCallsVisualModelFactory",
+          "line": 205,
+          "kind": "class"
+        },
+        {
+          "name": "ModelCallsVisualModelFactory.__init__",
+          "line": 206,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "db",
+            "calls"
+          ],
+          "annotations": {
+            "db": "DatabasePort",
+            "calls": "ModelCalls"
+          }
+        },
+        {
+          "name": "ModelCallsVisualModelFactory.for_run",
+          "line": 209,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "agent_id",
+            "run_id",
+            "settings"
+          ],
+          "annotations": {
+            "agent_id": "str",
+            "run_id": "str",
+            "settings": "Settings"
+          }
+        }
+      ],
+      "summary": "Production visual-subagent adapters: authorized image objects and one budgeted ModelCalls request."
+    },
+    {
       "path": "agent/src/omni/adapters/workers/__init__.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.workers",
@@ -69312,21 +69483,22 @@
       "path": "agent/src/omni/application/visual_subagent.py",
       "module": "v2-application",
       "python_module": "omni.application.visual_subagent",
-      "lines": 173,
+      "lines": 319,
       "imports": [
         "omni.application.ports",
         "omni.domain.contracts",
+        "omni.domain.settings",
         "omni.domain.visual_subagent"
       ],
       "symbols": [
         {
           "name": "VisualFrameSource",
-          "line": 34,
+          "line": 75,
           "kind": "class"
         },
         {
           "name": "VisualFrameSource.frames",
-          "line": 37,
+          "line": 78,
           "kind": "function",
           "parameters": [
             "self",
@@ -69340,12 +69512,12 @@
         },
         {
           "name": "VisualModel",
-          "line": 40,
+          "line": 81,
           "kind": "class"
         },
         {
           "name": "VisualModel.model",
-          "line": 44,
+          "line": 85,
           "kind": "function",
           "parameters": [
             "self"
@@ -69354,7 +69526,7 @@
         },
         {
           "name": "VisualModel.complete",
-          "line": 46,
+          "line": 87,
           "kind": "function",
           "parameters": [
             "self",
@@ -69365,33 +69537,75 @@
           }
         },
         {
+          "name": "VisualModelFactory",
+          "line": 90,
+          "kind": "class"
+        },
+        {
+          "name": "VisualModelFactory.for_run",
+          "line": 93,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "agent_id",
+            "run_id",
+            "settings"
+          ],
+          "annotations": {
+            "agent_id": "str",
+            "run_id": "str",
+            "settings": "Settings"
+          }
+        },
+        {
+          "name": "VisualMediaFrameSource",
+          "line": 96,
+          "kind": "class"
+        },
+        {
+          "name": "VisualMediaFrameSource.frame",
+          "line": 99,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "agent_id",
+            "frames_id"
+          ],
+          "annotations": {
+            "agent_id": "str",
+            "frames_id": "str"
+          }
+        },
+        {
           "name": "VisualSubagentService",
-          "line": 49,
+          "line": 102,
           "kind": "class"
         },
         {
           "name": "VisualSubagentService.__init__",
-          "line": 50,
+          "line": 103,
           "kind": "function",
           "parameters": [
             "self",
             "db",
             "frames",
             "model",
+            "media",
             "timeout_s",
             "max_concurrent"
           ],
           "annotations": {
             "db": "DatabasePort",
             "frames": "VisualFrameSource",
-            "model": "VisualModel",
+            "model": "VisualModel | VisualModelFactory",
+            "media": "VisualMediaFrameSource | None",
             "timeout_s": "float",
             "max_concurrent": "int"
           }
         },
         {
           "name": "VisualSubagentService.run",
-          "line": 70,
+          "line": 124,
           "kind": "function",
           "parameters": [
             "self",
@@ -69399,19 +69613,23 @@
             "run_id",
             "task",
             "frame_ids",
-            "focus"
+            "focus",
+            "operation_id",
+            "frames_id"
           ],
           "annotations": {
             "agent_id": "str",
             "run_id": "str",
             "task": "object",
             "frame_ids": "object",
-            "focus": "object"
+            "focus": "object",
+            "operation_id": "str",
+            "frames_id": "str"
           }
         },
         {
           "name": "VisualSubagentService.run.done",
-          "line": 84,
+          "line": 142,
           "kind": "function",
           "parameters": [
             "future"
@@ -69422,7 +69640,7 @@
         },
         {
           "name": "VisualSubagentService._run",
-          "line": 99,
+          "line": 157,
           "kind": "function",
           "parameters": [
             "self",
@@ -69430,19 +69648,23 @@
             "run_id",
             "task",
             "frame_ids",
-            "focus"
+            "focus",
+            "operation_id",
+            "frames_id"
           ],
           "annotations": {
             "agent_id": "str",
             "run_id": "str",
             "task": "object",
             "frame_ids": "object",
-            "focus": "object"
+            "focus": "object",
+            "operation_id": "str",
+            "frames_id": "str"
           }
         },
         {
           "name": "VisualSubagentService._checked_frames",
-          "line": 139,
+          "line": 234,
           "kind": "function",
           "parameters": [
             "resolved",
@@ -69455,19 +69677,21 @@
         },
         {
           "name": "VisualSubagentService._complete",
-          "line": 150,
+          "line": 245,
           "kind": "function",
           "parameters": [
             "self",
-            "request"
+            "request",
+            "model"
           ],
           "annotations": {
-            "request": "VisualRequest"
+            "request": "VisualRequest",
+            "model": "VisualModel"
           }
         },
         {
           "name": "VisualSubagentService.health",
-          "line": 163,
+          "line": 258,
           "kind": "function",
           "parameters": [
             "self"
@@ -69476,7 +69700,7 @@
         },
         {
           "name": "VisualSubagentService.stop_accepting",
-          "line": 166,
+          "line": 261,
           "kind": "function",
           "parameters": [
             "self"
@@ -69485,7 +69709,54 @@
         },
         {
           "name": "VisualSubagentService.close",
-          "line": 169,
+          "line": 264,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "timeout_s"
+          ],
+          "annotations": {
+            "timeout_s": "float"
+          }
+        },
+        {
+          "name": "VisualSubagentCapabilities",
+          "line": 271,
+          "kind": "class"
+        },
+        {
+          "name": "VisualSubagentCapabilities.__init__",
+          "line": 274,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "service"
+          ],
+          "annotations": {
+            "service": "VisualSubagentService"
+          }
+        },
+        {
+          "name": "VisualSubagentCapabilities.invoke",
+          "line": 277,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "name",
+            "arguments",
+            "operation_id",
+            "context"
+          ],
+          "annotations": {
+            "name": "str",
+            "arguments": "Mapping[str, JSON]",
+            "operation_id": "str",
+            "context": "InvocationContext"
+          }
+        },
+        {
+          "name": "VisualSubagentCapabilities.close",
+          "line": 318,
           "kind": "function",
           "parameters": [
             "self",
@@ -74775,7 +75046,7 @@
       "path": "agent/src/omni/composition/instance.py",
       "module": "v2-composition",
       "python_module": "omni.composition.instance",
-      "lines": 910,
+      "lines": 925,
       "imports": [
         "omni.adapters.android",
         "omni.adapters.bilibili",
@@ -74812,6 +75083,7 @@
         "omni.adapters.skill_packages",
         "omni.adapters.timezones",
         "omni.adapters.token_counter",
+        "omni.adapters.visual",
         "omni.application.action_review",
         "omni.application.android",
         "omni.application.background_review",
@@ -74850,6 +75122,7 @@
         "omni.application.terminal_review",
         "omni.application.terminals",
         "omni.application.todos",
+        "omni.application.visual_subagent",
         "omni.composition.capabilities",
         "omni.composition.lifecycle",
         "omni.domain.android",
@@ -74866,12 +75139,12 @@
       "symbols": [
         {
           "name": "SpanMeasurement",
-          "line": 134,
+          "line": 136,
           "kind": "class"
         },
         {
           "name": "SpanMeasurement.result",
-          "line": 139,
+          "line": 141,
           "kind": "function",
           "parameters": [
             "self",
@@ -74883,12 +75156,12 @@
         },
         {
           "name": "Observation",
-          "line": 144,
+          "line": 146,
           "kind": "class"
         },
         {
           "name": "Observation.__init__",
-          "line": 145,
+          "line": 147,
           "kind": "function",
           "parameters": [
             "self",
@@ -74902,7 +75175,7 @@
         },
         {
           "name": "Observation.context",
-          "line": 151,
+          "line": 153,
           "kind": "function",
           "parameters": [
             "self",
@@ -74912,7 +75185,7 @@
         },
         {
           "name": "Observation.span",
-          "line": 156,
+          "line": 158,
           "kind": "function",
           "parameters": [
             "self",
@@ -74924,7 +75197,7 @@
         },
         {
           "name": "_record",
-          "line": 198,
+          "line": 200,
           "kind": "function",
           "parameters": [
             "value"
@@ -74935,12 +75208,12 @@
         },
         {
           "name": "Instance",
-          "line": 204,
+          "line": 206,
           "kind": "class"
         },
         {
           "name": "Instance.database",
-          "line": 209,
+          "line": 211,
           "kind": "function",
           "parameters": [
             "self"
@@ -74949,7 +75222,7 @@
         },
         {
           "name": "Instance.logging",
-          "line": 214,
+          "line": 216,
           "kind": "function",
           "parameters": [
             "self"
@@ -74958,7 +75231,7 @@
         },
         {
           "name": "Instance.identity_files",
-          "line": 219,
+          "line": 221,
           "kind": "function",
           "parameters": [
             "self"
@@ -74967,7 +75240,7 @@
         },
         {
           "name": "Instance.lifetime",
-          "line": 224,
+          "line": 226,
           "kind": "function",
           "parameters": [
             "self"
@@ -74976,7 +75249,7 @@
         },
         {
           "name": "Instance.identity_proof",
-          "line": 273,
+          "line": 276,
           "kind": "function",
           "parameters": [
             "self",
@@ -74988,7 +75261,7 @@
         },
         {
           "name": "Instance.health",
-          "line": 276,
+          "line": 279,
           "kind": "function",
           "parameters": [
             "self"
@@ -74997,7 +75270,7 @@
         },
         {
           "name": "Instance.close",
-          "line": 330,
+          "line": 334,
           "kind": "function",
           "parameters": [
             "self",
@@ -75009,7 +75282,7 @@
         },
         {
           "name": "open_instance",
-          "line": 336,
+          "line": 340,
           "kind": "function",
           "parameters": [
             "home",
