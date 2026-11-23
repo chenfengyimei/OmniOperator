@@ -34,3 +34,20 @@ REAL_PY=~/.local/share/uv/python/cpython-3.12.16-macos-aarch64-none/bin/python3.
 ## 未验
 
 Model 任务（隔离 home 无模型凭据）、LaunchAgent/Keychain/桌面能力（候选 helper 未替换已授权 helper）、升级/回滚、Developer ID 签名/公证、第二台 Mac、72 小时。
+
+## 72 小时长跑准备（候选冻结后执行）
+
+采样器：`scripts/v2_soak.py`（`run`/`report`，只观察已运行的实例，不启动/停止、不读 DB、不调模型）。
+`run` 必须显式提供 `--limits`（脚本拒绝猜测上限）。
+
+建议启动命令（候选实例 127.0.0.1:8878、home `temp/build/candidate/home`）：
+
+```sh
+temp/build/candidate/venv/bin/python scripts/v2_soak.py run \
+  --home temp/build/candidate/home --url http://127.0.0.1:8878 \
+  --hours 72 --interval 60 --limits <limits.json> \
+  --output temp/build/candidate/soak-72h.json
+temp/build/candidate/venv/bin/python scripts/v2_soak.py report --output temp/build/candidate/soak-72h.json
+```
+
+待办：按 v2_soak 的 limits schema 定义 8 项上限（Windows 基线参考：main_rss +512MB、descendant_rss +1GB、threads +64、descriptors +512、children +16、cleanup_pending≤8、new_failed_runs=0、new_unknown_model_calls=0），校准后启动 72h，记录中断/恢复与资源峰值。
