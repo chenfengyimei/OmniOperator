@@ -222,6 +222,16 @@
       "output": "temp/build/candidate/soak-72h.json (directory: manifest.json, samples.jsonl, writer.lock)",
       "log": "temp/build/candidate/soak-72h.log",
       "note": "candidate instance on 127.0.0.1:8878 must stay running; sampler observes only"
+    },
+    "progress": {
+      "pid": 93596,
+      "elapsed_s": 240,
+      "samples": 5,
+      "ok": true,
+      "failed_runs": 0,
+      "unknown_model_calls": 0,
+      "rss_bytes": 70565888,
+      "descriptors": 9
     }
   },
   "distribution": {
@@ -236,5 +246,29 @@
     "cause": "TCC grants bind to the helper's signature/path; replacing the binary invalidates the existing grants and the new identity needs a fresh System Settings approval",
     "restore": "old helper 9360128b and its manifest restored; probe returned window_identity/accessibility/screen_capture/foreground_control = granted again",
     "owner_action": "System Settings > Privacy & Security > Accessibility / Input Monitoring: allow OmniOperator Desktop Helper at the fixed path (and Screen Recording if prompted); then the candidate helper can be validated"
+  },
+  "system_domain": {
+    "bundle": "temp/build/candidate/system-service/deployment (valid/eligible, plan c5789e19..., daemon.plist)",
+    "absent_read_only": {
+      "passed": true,
+      "format": "omni-macos-service-acceptance-2"
+    },
+    "install_plan": {
+      "sha256": "3cac23605c1937e34a17cf2a0b23aa60579aef64488578d682609c963d0f85f9",
+      "steps": 12,
+      "starts_service": true,
+      "requires": "verify_explicit_root_broker + root dispatch audit"
+    },
+    "install_apply": {
+      "state": "denied",
+      "effect": "none",
+      "terminal": true,
+      "error_code": "service_registration_precondition",
+      "registration": {
+        "error_code": "service_registration_target_unimplemented"
+      }
+    },
+    "finding": "macOS system-domain (LaunchDaemon) registration is not implemented in this candidate; the tool refuses before any system change (fail-closed). No plist was written to /Library/LaunchDaemons.",
+    "next": "A/owner decision whether to implement the privileged system-domain path; user-domain is fully closed-loop"
   }
 }
