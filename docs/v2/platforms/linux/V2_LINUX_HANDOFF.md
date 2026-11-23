@@ -267,3 +267,5 @@ X11 侧定位：`linux_x11_socket.py` 要求 socket 身份 + Xorg 进程 uid/会
 - **真实会话状态**：两项身份修改后在 VM 真实 X11 会话打通 `window_identity`/`accessibility`/`foreground`（probe 四能力 available）；**截屏仍卡 `desktop_x11_target_unverified`**（targets/verify 已过），下一步在 `X11Desktop.target()/verified()` 打点定位 XRes PID/uid、几何/border/root 后再跑 `accept_linux_desktop.py --native-backend x11 --capture-window`。Wayland/输入授权语义不变（`input_authorized` 仍 false）。
 
 截屏设计问题（需 A 决策）：有 WM 的真实桌面下，目标 GTK 客户端窗口被 reparent 到 frame，xcompmgr 重定向的是 frame（root 直接子窗口），客户端窗口未重定向 → `NameWindowPixmap` 返回 **BadMatch(8)**。无 WM 会话下客户端是 root 子窗口，但 `wire.windows()` 又报 `desktop_x11_window_list_unavailable`。可选方向：捕获 frame 并裁剪、临时重定向目标窗口（现合同禁止）、仅支持无 WM 会话并记录限制，或由 A 另定截图路径。身份/前台能力不受影响（probe 四项可用、targets/verify 通过）。
+
+截屏两难已定位到列出与捕获的联合要求：`wire.windows()` 依赖 EWMH `_NET_CLIENT_LIST`（无 WM 时不存在 → `desktop_x11_window_list_unavailable`）；`NameWindowPixmap` 要求客户端窗口本身被重定向。当前 openbox+xcompmgr 是“reparent 到 frame + 只重定向 frame”，两者无法同时满足。结论：实现假设的是 **compositing WM（Mutter/KWin/compiz）** 这类同时提供 `_NET_CLIENT_LIST` 且直接重定向客户端窗口的桌面。下一步在 VM 里装 mutter（或 kwin_x11）验证成功路径，或改在真实 GNOME/KDE X11 桌面验收。

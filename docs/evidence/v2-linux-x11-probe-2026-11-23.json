@@ -206,6 +206,12 @@
       "support only WM-less sessions and record the real-desktop limitation",
       "other capture path decided by A"
     ],
-    "decision_needed": "A must choose the X11 capture approach for reparenting WMs before a real-desktop success path can be claimed"
+    "decision_needed": "A must choose the X11 capture approach for reparenting WMs before a real-desktop success path can be claimed",
+    "listing_requirement": {
+      "windows()": "reads the root property _NET_CLIENT_LIST (EWMH); without a WM it is absent and the call fails with desktop_x11_window_list_unavailable",
+      "capture_requirement": "Composite NameWindowPixmap requires the target client window itself to be redirected",
+      "conclusion": "the implementation assumes a compositing WM (Mutter/KWin/compiz) that both advertises _NET_CLIENT_LIST and redirects client windows; openbox+xcompmgr reparents and redirects the frame only, so neither the WM-less nor openbox-xcompmgr setup can produce a capture",
+      "next": "install a compositing WM (mutter or kwin) with vkms in the VM, or verify on a real GNOME/KDE X11 desktop"
+    }
   }
 }
