@@ -150,7 +150,7 @@
       "id": "FULL-1",
       "title": "最终全量（b29409d0）",
       "status": "failed_r4_token_budget",
-      "result": "8655 tests / 8623 passed / 22 failed / 10 skipped（2580.96s，JUnit temp/build/final-b29409d0.xml）；20/22 单跑复现；多数默认 32768 token_budget_exceeded（R4），另有 shell 进程树回收/UIA act/media zoom 待分诊",
+      "result": "8655 tests / 8623 passed / 22 failed / 10 skipped（2580.96s）；20/22 单跑复现；多数默认 32768 token_budget_exceeded（R4），media zoom 同因；shell 进程树回收与 UIA act 单跑通过（全量高负载/时序敏感）",
       "defect_ids": [
         "R4"
       ],

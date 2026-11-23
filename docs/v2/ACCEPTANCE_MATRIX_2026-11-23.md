@@ -34,7 +34,7 @@
 | C2.8 容器 | Docker | — | **阻塞**：引擎未启动 | — | — |
 | C4.2 签名/公证 | 证书/Apple | — | **阻塞（待决策）** | — | 可源码交付 |
 | C4.3 发布回滚 | 冻结候选 | — | **部分**：installation rollback 已验 | 安装链证据 | release/exchange 未演练 |
-| FULL-1 最终全量 | 冻结候选 | `b29409d0` | **失败（R4）**：8655 项、8623 通过、22 失败、10 跳过（2580.96s）；20/22 单跑复现；多数为默认 32768 `token_budget_exceeded`，另有 shell 进程树回收/UIA act/media zoom 待分诊 | `docs/evidence/v2-final-full-suite-b29409d0-2026-11-23.json`；`temp/build/final-b29409d0.xml` | 全量绿前不得冻结/72h |
+| FULL-1 最终全量 | 冻结候选 | `b29409d0` | **失败（R4）**：8655 项、8623 通过、22 失败、10 跳过（2580.96s）；20/22 单跑复现；多数为默认 32768 `token_budget_exceeded`；media zoom 同因；shell 进程树回收与 UIA act 单跑通过（全量高负载/时序敏感） | `docs/evidence/v2-final-full-suite-b29409d0-2026-11-23.json`；`temp/build/final-b29409d0.xml` | 全量绿前不得冻结/72h |
 
 ## 3. 复用与全量缺口
 
@@ -105,6 +105,7 @@
 
 - 当前 d7971bc4：安装链/检查/72h 均未在新候选重跑；服务生命周期因 D11e-R 失败。
 - `whole_v2_complete=false`，`production_release_ready=false`。
+
 
 
 
