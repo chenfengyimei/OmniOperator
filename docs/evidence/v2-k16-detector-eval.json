@@ -1,0 +1,126 @@
+{
+  "schema": 1,
+  "date": "2026-11-23",
+  "requirement": "K16",
+  "batch": "K16.detector_eval",
+  "status": "evaluated_scoped",
+  "base_commit": "183fab0c",
+  "original_base_commit": "0793f254",
+  "branch": "k16-storyboard",
+  "contract": "docs/v2/contracts/V2_K16_LONG_VIDEO_SCENES.md",
+  "files": {
+    "docs/v2/contracts/V2_K16_LONG_VIDEO_SCENES.md": "575b1e7677cc74f2d766ce0265a75bf62ab1f4a0a007a2dcae41d4386a24c090",
+    "docs/v2/contracts/V2_K16_REAL_ACCEPTANCE.md": "a6ad2ff7b67a7d5296d05169fca2bdcbfa720c443911d2218a238d621320acd6",
+    "docs/v2/README.md": "5bad7fb8f3e188af90eb41473a96db070ada06bc0b19e4dfcca3b418999561c5",
+    "docs/tasks/v2-agent-core-parity.json": "f5c618aaf0bed86b0d3b83d64c0191b04c966aceb9016506a11e1b55039bde90",
+    "docs/HANDOFF.md": "0d50382f51f03a2f8e63f6fa27980a2a1e50afaab40497d3e3c3099dd25cf32c"
+  },
+  "hash_scope": "SHA-256 of git index blob bytes (LF-normalized); excludes this evidence file and generated docs/index.",
+  "material": {
+    "file": "big_buck_bunny_720p_surround.mp4",
+    "sha256": "46f62396c755e1ed0ab856a1521378d54196e125ef1a1643a199af087a15046b",
+    "duration_s": 596.48,
+    "license": "CC-BY 3.0"
+  },
+  "labels": 30,
+  "results": [
+    {
+      "detector": "HSV+spike (production)",
+      "cap240": {
+        "cuts": 12,
+        "recall": "4/30"
+      },
+      "cap600": {
+        "cuts": 80,
+        "recall": "未按30点重算"
+      },
+      "cap1200": {
+        "cuts": 117,
+        "recall": "26/30"
+      }
+    },
+    {
+      "detector": "histogram L1>=0.2",
+      "cap240": {
+        "cuts": 121,
+        "recall": "22/30"
+      },
+      "cap600": {
+        "cuts": 146,
+        "recall": "29/30"
+      },
+      "cap1200": {
+        "cuts": 155,
+        "recall": "29/30"
+      }
+    },
+    {
+      "detector": "histogram L1>=0.3",
+      "cap240": {
+        "cuts": 91,
+        "recall": "21/30"
+      },
+      "cap600": {
+        "cuts": 110,
+        "recall": "26/30"
+      },
+      "cap1200": {
+        "cuts": 114,
+        "recall": "27/30"
+      }
+    },
+    {
+      "detector": "edge>=0.2",
+      "cap240": {
+        "cuts": 77,
+        "recall": "11/30"
+      },
+      "cap600": {
+        "cuts": 108,
+        "recall": "16/30"
+      },
+      "cap1200": {
+        "cuts": 100,
+        "recall": "17/30"
+      }
+    },
+    {
+      "detector": "HSV+hist+stability",
+      "cap240": {
+        "cuts": 79,
+        "recall": "17/30"
+      },
+      "cap600": {
+        "cuts": 132,
+        "recall": "29/30"
+      },
+      "cap1200": {
+        "cuts": 144,
+        "recall": "29/30"
+      }
+    }
+  ],
+  "precision_spot_check": {
+    "sample": "240 直方图 L1>=0.2，远离 30 标点的 20 个切点",
+    "method": "before/after 对人工检查",
+    "result": "20/20 同场景运动/光线变化，0 个真实切点"
+  },
+  "conclusion": "直方图/边缘的高召回主要来自运动，不能替换生产；需运动判别/采样设计。",
+  "validation": {
+    "scenes": "33 passed 14.02s（生产未改）",
+    "strict": "433 files 0 errors",
+    "index": "65/854/464/94",
+    "production_change": "none"
+  },
+  "not_executed": [
+    "30 标点完整 precision/recall（仅 20 个额外切点抽查）",
+    "1200 样本 MediaProcessor RSS",
+    "真实 B 站/上传",
+    "完整 pytest 全量"
+  ],
+  "limits": "单条 CC-BY 动画；额外切点只抽查 20 个；未实现检测器。",
+  "current_full_passed": false,
+  "whole_core_parity_complete": false,
+  "whole_reference_feature_audit_complete": false,
+  "whole_v2_complete": false
+}
