@@ -233,3 +233,5 @@ uv run --no-sync python agent/scripts/accept_native_credentials.py --cleanup <�
 会话启动后等待 45 秒再跑验收，结果仍为 `session_kind=unknown` / `linux_sample_read_unavailable`，排除“autostart 过早”假设。logind 本身显示 `User.Display=29`、`Sessions=29 24`、`State=active`，会话 29 为 x11/user/seat0/:0。下一步需确认 Inspector 实际查询的 PID（worker 还是 Xorg）及其 `GetSessionByPID` 返回值，再决定是代码缺口还是启动方式问题。
 
 抓取到 worker 归属：`omni.adapters.workers.desktop` 进程在 **session-31（x11，user-10001.slice）**，seat0 的 ActiveSession 也是 31，系统总线与 logind 正常；worker 直接导入/启动无报错（等待协议输入）。但探针仍 `session.kind=unknown`、能力全部 unavailable。结论：**不是会话归属问题**，失败发生在 worker 内部并被后端概括为 `desktop_native_unavailable`。下一步需抓 worker 的真实错误（stderr/error_code）再判断是代码缺口还是环境问题。
+
+对 worker 异常、encode 校验失败、后端 stderr 三处分别做了临时日志（仅 VM 副本），**全部为空**；探针仍 unknown/unavailable。说明失败发生在后端 Linux 预检或 worker 返回之前，尚未被我们的日志覆盖。下一步：读后端 Linux probe 分支的前置条件，并用合成 probe 帧手工运行 worker 取原始响应。

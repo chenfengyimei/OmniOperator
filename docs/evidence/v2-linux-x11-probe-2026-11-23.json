@@ -68,6 +68,16 @@
       "result": "probe still session.kind=unknown and all native capabilities unavailable",
       "conclusion": "session attribution is NOT the cause: the worker itself runs inside the x11 session and the seat points at it; the failure is inside the worker and is currently masked as desktop_native_unavailable",
       "next": "capture the worker's actual error (stderr/error_code) by instrumenting the backend/worker exchange, then decide whether it is a code gap or an environment issue"
+    },
+    "instrumentation": {
+      "attempts": [
+        "patched worker exception handler to log tracebacks",
+        "patched encode validation failure to log response",
+        "patched backend stderr drain to log worker stderr"
+      ],
+      "observed": "all three logs stayed empty; probe still session.kind=unknown and desktop_native_unavailable for window_identity/accessibility",
+      "conclusion": "the failure is either in the backend's Linux pre-check or in the worker before any Python-level exception/logging; the worker starts (seen in process polling) but returns no response body we could capture",
+      "next": "inspect the backend's Linux probe branch (env/permission/helper preconditions) and run the worker manually with a synthetic probe frame to see its raw response"
     }
   }
 }
