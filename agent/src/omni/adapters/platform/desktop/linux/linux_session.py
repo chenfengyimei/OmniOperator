@@ -129,6 +129,9 @@ class SessionInspector:
     async def open_bus(self, endpoint: Endpoint) -> BusPort:
         bus = await self.factory.open(endpoint)
         self.buses.append(bus)
+        # The address guid is transport metadata; on at-spi2-core it can differ
+        # from GetId even after a bus restart. Peer identity below is proven by
+        # SO_PEERCRED, the connection uid/pid and the per-connection checks.
         guid = text(one(await bus.call(DBUS, DBUS_PATH, DBUS, "GetId", returns="s")), 32)
         if re.fullmatch(r"[0-9a-f]{32}", guid) is None:
             raise failure("desktop_bus_peer_unverified")

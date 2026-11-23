@@ -190,18 +190,39 @@ class Connection:
         except RemoteError as error:
             if error.name != "org.freedesktop.login1.NoSessionForPID":
                 raise failure("desktop_x11_peer_unverified") from None
-            # Display managers (LightDM/GDM/SDDM) run Xorg inside their own
-            # system unit, so the server has no logind session. The display
-            # proof still holds: the canonical socket was derived from the
-            # validated active x11 session's Display, the peer is the
-            # root-owned real Xorg binary, and the cookie must authorize our
-            # uid (contract V2_LINUX_IDENTITY). A server that does belong to a
-            # session must still be in the active one.
-            if inspector.session.kind != "x11":
+            # Display managers (LightDM/GDM/SDDM) start Xorg inside their own
+            # system unit, so the server has no logind session. Accept it only
+            # when its explicit -seat argument equals the proven active seat;
+            # the canonical socket (derived from the active session's Display),
+            # the root-owned real Xorg peer and the cookie authority are
+            # already checked (contract V2_LINUX_IDENTITY). A server that does
+            # belong to a session must still be in the active one.
+            if inspector.session.kind != "x11" or not inspector.session.seat:
+                raise failure("desktop_x11_peer_unverified") from None
+            if Connection.seat_argument(process) != inspector.session.seat:
                 raise failure("desktop_x11_peer_unverified") from None
             return
         if path != inspector.session.path:
             raise failure("desktop_x11_peer_unverified")
+
+    @staticmethod
+    def seat_argument(process: Process) -> str | None:
+        try:
+            raw = Path(f"/proc/{process.pid}/cmdline").read_bytes()[:4096]
+        except OSError:
+            return None
+        args = raw.split(b"\0")
+        for index, item in enumerate(args):
+            if item != b"-seat" or index + 1 >= len(args):
+                continue
+            value = args[index + 1]
+            if not 0 < len(value) <= 64:
+                return None
+            try:
+                return value.decode("utf-8", "strict")
+            except UnicodeError:
+                return None
+        return None
 
     def check(self) -> None:
         pid, uid, _gid = struct.unpack(

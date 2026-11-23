@@ -232,6 +232,10 @@ def test_same_uid_app_without_logind_membership_is_not_accepted_or_fake_empty_su
     "change,code",
     [
         (lambda f: f.seat.update(ActiveSession=variant("(so)", ["c2", "/other"])), "desktop_session_unverified"),
+        (
+            lambda f: setattr(f, "address", "unix:path=/run/user/1001/at-spi/bus_0,guid=zzzz"),
+            "desktop_bus_address_denied",
+        ),
         (lambda f: f.ops.processes.update({3: Process(3, 1001, 102.0)}), "desktop_bus_peer_unverified"),
         (lambda f: setattr(f, "address", "tcp:host=example.com,port=1"), "desktop_bus_address_denied"),
     ],

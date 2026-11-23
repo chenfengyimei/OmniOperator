@@ -123,10 +123,13 @@ def test_pre_auth_peer_server_executable_and_session_proofs_are_required(monkeyp
 
 
 def test_display_manager_xorg_without_a_logind_session_is_accepted(monkeypatch):
-    """LightDM/GDM run Xorg in a system unit; contract V2_LINUX_IDENTITY proves the display instead."""
+    """LightDM/GDM run Xorg in a system unit; contract V2_LINUX_IDENTITY proves the seat instead."""
 
     async def scenario():
         native_paths(monkeypatch)
+        # The merged proof reads /proc/<pid>/cmdline; the fixture Path is a pure
+        # POSIX stand-in with no read_bytes, so declare the explicit -seat here.
+        monkeypatch.setattr(native.Connection, "seat_argument", staticmethod(lambda process: "seat0"))
         f = linux_factory()
         f.sessions.pop(30)  # Xorg lives in lightdm.service, not in a logind session
         inspector = SessionInspector(f.ops, f)
@@ -177,5 +180,56 @@ def test_display_manager_xorg_without_a_logind_session_is_accepted(monkeypatch):
             assert await connection.close()
             assert await inspector.close()
         assert sock.closed
+
+    asyncio.run(scenario())
+
+
+def test_display_manager_xorg_with_another_seat_is_rejected(monkeypatch):
+    """A display-manager Xorg proves only its own -seat; a mismatch never reaches the cookie."""
+
+    async def scenario():
+        native_paths(monkeypatch)
+        monkeypatch.setattr(native.Connection, "seat_argument", staticmethod(lambda process: "seat1"))
+        f = linux_factory()
+        f.sessions.pop(30)
+        inspector = SessionInspector(f.ops, f)
+        await inspector.open(accessibility=False)
+
+        class Socket:
+            closed = False
+
+            def setblocking(self, value):
+                assert value is False
+
+            def getsockopt(self, *args):
+                return struct.pack("3i", 30, 0, 0)
+
+            def close(self):
+                self.closed = True
+
+        monkeypatch.setattr(
+            native,
+            "socket",
+            SimpleNamespace(
+                socket=lambda *_: Socket(), AF_UNIX=1, SOCK_STREAM=1, SOL_SOCKET=1, SO_PEERCRED=17
+            ),
+        )
+        loop = asyncio.get_running_loop()
+
+        async def connect(connection, path):
+            assert path == "/tmp/.X11-unix/X0"
+
+        monkeypatch.setattr(loop, "sock_connect", connect)
+        reads = []
+
+        def authority(uid, display):
+            reads.append(True)
+            return b"owned-cookie-123"
+
+        monkeypatch.setattr(native, "authority", authority)
+        with pytest.raises(BusinessError):
+            await native.Connection.open(inspector)
+        assert not reads
+        assert await inspector.close()
 
     asyncio.run(scenario())

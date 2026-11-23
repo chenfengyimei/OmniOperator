@@ -28,10 +28,11 @@ G 分支在 Lima/Ubuntu 26.04（LightDM + openbox + Xorg/VKMS）实测时，V2 �
 | `GetSessionByPID(Xorg pid)` | 处置 |
 |---|---|
 | 返回会话路径 | 必须等于当前活动会话路径，否则 `desktop_x11_peer_unverified`（不变） |
-| `org.freedesktop.login1.NoSessionForPID` | 仅当当前会话已通过 `read_session` 且 `kind == "x11"` 时**接受**；即 display-manager 在系统单元里启动的 Xorg |
+| `org.freedesktop.login1.NoSessionForPID` | 仅当当前会话已通过 `read_session`、`kind == "x11"`、存在 seat，且 Xorg `/proc/<pid>/cmdline` 的**显式 `-seat` 参数等于活动 seat** 时**接受**；即 display-manager 在系统单元里启动的 Xorg |
 | 其他 `RemoteError` | `desktop_x11_peer_unverified`（不变，不猜测） |
 
-- 接受后的「显示归属」证据 = 活动会话的 `Type=x11`、`Class=user`、`State=active`、`Active=true`、`Remote=false`、`LockedHint=false`，seat 的 `ActiveSession` 指回该会话，`Display=:N` 与规范 socket `/tmp/.X11-unix/XN` 一致（由 `display_number` 推导），Xorg 对端为 root 所有的真实二进制，且 `.Xauthority`/GDM cookie 授权当前 uid。**不**使用 `_NET_WM_PID`、环境变量 `DISPLAY` 或同名进程推断。
+- 接受后的「显示归属」证据 = 活动会话的 `Type=x11`、`Class=user`、`State=active`、`Active=true`、`Remote=false`、`LockedHint=false`，seat 的 `ActiveSession` 指回该会话，`Display=:N` 与规范 socket `/tmp/.X11-unix/XN` 一致（由 `display_number` 推导），Xorg 对端为 root 所有的真实二进制，**Xorg 命令行 `-seat` 与活动 seat 相同**，且 `.Xauthority`/GDM cookie 授权当前 uid。**不**使用 `_NET_WM_PID`、环境变量 `DISPLAY` 或同名进程推断。
+- `-seat` 证据由 G 分支交付的本机实测补充（LightDM 的 Xorg 以 `-seat seat0` 启动）；缺失该参数或值不符一律失败关闭。
 - 若 Xorg 属于**另一个**会话，或当前会话不是活动 x11 会话，仍失败关闭（`desktop_x11_session_unavailable` / `desktop_x11_peer_unverified`）。
 - 未证明前不读取 cookie、不读窗口内容；失败一律不重试。
 
@@ -42,7 +43,8 @@ G 分支在 Lima/Ubuntu 26.04（LightDM + openbox + Xorg/VKMS）实测时，V2 �
 | `test_accessibility_address_guid_may_differ_from_bus_id_while_peer_identity_still_rules` | 地址 guid ≠ GetId 时 `targets` 成功（仍走 `GetNameOwner`/`GetConnectionUnixProcessID` 校验）；同一错配下把总线对端标记为已替换 → `desktop_bus_peer_unverified`，连接全部关闭 |
 | `test_wrong_seat_service_uid_or_remote_address_is_rejected` | seat 错配 / a11y 服务 uid 错误 / TCP 地址仍被拒（原三条保留，移除「guid 必须相等」一条） |
 | `test_pre_auth_peer_server_executable_and_session_proofs_are_required` | socket/binary/会话不属于活动会话、pid 复用、链接、共享目录、可写二进制仍全部拒 |
-| `test_display_manager_xorg_without_a_logind_session_is_accepted` | `sessions` 中无 Xorg pid 时，`Connection.open` 成功、cookie 读一次、`verify()` 通过、连接与 inspector 关闭 |
+| `test_display_manager_xorg_without_a_logind_session_is_accepted` | `sessions` 中无 Xorg pid、且 `-seat seat0` 等于活动 seat 时，`Connection.open` 成功、cookie 读一次、`verify()` 通过、连接与 inspector 关闭 |
+| `test_display_manager_xorg_with_another_seat_is_rejected` | `-seat seat1` 与活动 seat 不符时失败关闭且不读 cookie |
 | `test_accessibility_address_guid_format_is_enforced`（既有） | 非法地址/guid 仍 `desktop_bus_address_denied` |
 
 运行：`uv run --no-sync pytest -q -n 0 agent/tests/v2/platforms/linux/test_v2_linux_bus.py agent/tests/v2/platforms/linux/test_v2_linux_desktop.py agent/tests/v2/platforms/linux/test_v2_x11_socket.py` → **79 passed, 1 skipped**（2026-11-23，Windows 注入）。
