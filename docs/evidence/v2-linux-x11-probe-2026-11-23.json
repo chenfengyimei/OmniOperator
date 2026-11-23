@@ -51,5 +51,12 @@
   ],
   "artifacts": [
     "/tmp/linux-x11-accept-3/evidence.json (VM only, not committed)"
-  ]
+  ],
+  "diagnosis": {
+    "sessions": "24=omni manager, 29=omni x11 active (seat0, Display=:0, Class=user)",
+    "xorg": "pid under system.slice/lightdm.service, not inside a logind session",
+    "probe_inside_session": "session.kind=unknown; window_identity/accessibility=desktop_native_unavailable; screen_capture/foreground_control=desktop_adapter_not_implemented",
+    "hypothesis": "the Linux X11 proof ties the X server to the active session (XRes/logind), while LightDM runs Xorg in its own service scope; a real display-manager desktop behaves the same way, so this may be a contract gap rather than a VM-only issue",
+    "contract_question": "should the inspector accept a display-manager-launched Xorg whose seat/session is active, or require startx-style Xorg inside the user session? This is a shared contract decision for A"
+  }
 }

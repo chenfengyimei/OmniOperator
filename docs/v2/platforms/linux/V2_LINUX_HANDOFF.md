@@ -227,3 +227,5 @@ uv run --no-sync python agent/scripts/accept_native_credentials.py --cleanup <�
 ### 2026-11-23 X11 会话尝试与失败关闭
 
 在 Lima VM 中安装 LightDM + openbox + Xorg（vkms 虚拟 DRM），`loginctl` 得到真实会话：id 25、user `omni`（uid 10001）、**Type=x11、Class=user、Seat=seat0、Display=:0**，`CanGraphical=yes`；GTK3 样例（含 password entry）在会话内运行。以 `accept_linux_desktop.py --fixture-pid <pid> --consent-read-ui --native-backend x11 --capture-window` 分别从 lima shell 和会话内（openbox autostart）运行，均返回 **`linux_sample_read_unavailable`、`session_kind=unknown`**：工具未能证明 X 服务器/目标属于当前活动会话，因此在读取前拒绝（失败关闭）。未尝试 AT-SPI 写动作或前台输入，也没有产出截图。**G3 仍未验证**；需要能建立 Xorg/session 证明的真实桌面 X11（或由 A 合同决定是否接受 display-manager 启动的 Xorg）。证据：[X11 尝试](../../../evidence/v2-linux-x11-probe-2026-11-23.json)。
+
+进一步诊断：seat 会话为 **29**（Type=x11、Seat=seat0、Display=:0、Active=yes），而 Xorg 进程在 `system.slice/lightdm.service` 中，**不属于任何 logind 会话**；会话内探针仍为 `session.kind=unknown`。若 Inspector 的 X11 证明要求 X 服务器归属活动会话，那么 LightDM/GDM 这类真实桌面也会同样不满足——这更像合同缺口而非 VM 特例。需 A 决定：接受 display-manager 启动的 Xorg（以 seat/会话活动性证明），还是要求 startx 式 Xorg 位于用户会话内。
