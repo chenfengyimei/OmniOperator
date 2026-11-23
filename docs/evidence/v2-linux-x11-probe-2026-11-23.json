@@ -219,6 +219,13 @@
       "mutter 50.1": "no X11 WM mode (Wayland display server only)",
       "conclusion": "on every reparenting X11 WM available here the client window is not redirected; the implementation's NameWindowPixmap(window) assumption only holds for compositors that redirect client windows (e.g. old Mutter/compiz)",
       "needed": "A must choose frame capture+crop or another capture path; alternatively accept X11 capture as unsupported on reparenting WMs"
+    },
+    "compiz_attempt": {
+      "compiz": "1:0.9.14.2 (ubuntu3)",
+      "root_property": "_NET_CLIENT_LIST present",
+      "result": "target() values valid, watch ok, but NameWindowPixmap/GetImage still raises BadMatch(8)",
+      "conclusion": "openbox+xcompmgr, kwin_x11 and compiz all fail at the same composite request; the client-window redirect assumption does not hold in these environments",
+      "next": "implement the frame-crop capture path (find the redirected root child, name its pixmap, crop the client region) or decide another approach"
     }
   },
   "foreground_contract": {
