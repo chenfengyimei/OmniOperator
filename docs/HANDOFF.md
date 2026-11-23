@@ -270,6 +270,26 @@ K13.cron_model_design 已记录**实现前设计合同**（纯文档，无源码
 - **验证**：受影响专项（desktop backend/terminal/macOS 平台/架构/布局/kernel/业务清单）**261 passed, 8 skipped**（212.75 秒）；索引 65/849/464/94 幂等；**合并后冻结源码单跑全量 `f3f44afd`：8439 项 8430 通过 / 0 失败 / 9 跳过，3108.91 秒**（`C:/v2-acceptance/integration-1f31e96d/full-f3f44afd.xml`）。此前同源 `e73b58d9` 为 8429 通过 / 1 失败（strict 文档漂移，补文档行后 2 passed，代码零变化）。
 - **未验**：Windows 不编译 Swift、不跑 LaunchServices/UDS 真机链路；macOS 睡眠/锁屏/快速用户切换与系统域安装归 F；TCC 授权后四能力的真机结论以 Mac 端证据为准。
 
+### 2026-11-22 K14 视觉子代理离线核心（Windows，`k14-visual-persona`）
+
+- **范围**：只实现 K14 确定范围的离线核心，无生产接线/真实视觉调用/付费/设备/工具/HTTP/迁移；D0–D5 仍未决，默认仍是离线桩。基线 `origin/v2`=`0793f254`。
+- **交付**：`domain/visual_subagent.py`（task 1–4000、focus 四枚举、已注册帧元数据、1–240 原始帧→≤60 保序等距含首尾、单帧 16MiB/单次 64MiB、固定 system prompt、输出 1–4000 纯文本）；`application/visual_subagent.py`（注入 DatabasePort/FrameSource/Model，父 run+模型授权先于帧源与模型，单次调用/120s/每父 run 1/全局≤4，取消等待实际清理，零 `db.write`、零 memory/persona/delivery 写，返回仅文本+有界元数据，不含 object_id/sha/帧字节）。
+- **验证**：新专项 **20 passed / 2.70s**（19 注入桩+1 真实 SQLite 父 run 授权零写）；架构/入口/候选门/目录 **52 passed / 23.08s**；strict **430 文件 0 错 0 警**；ruff/格式通过；索引 65/851/464/94。既有能力核对：Android 截图/输入/撤权链 **36 passed / 217.97s**（假 ADB，无真机）、记忆评分+衰减 **47 passed / 85.15s**、前缀/撤回/人物 **39 passed / 1 skipped / 55.71s**。
+- **补充回归**：Android 截图撤销/取消链新增 2 项（截图已取得后撤权 → 零临时 PNG/零 `session_captures` 行且撤权后再截图被拒；取消等待方 → 实际截图继续归属、放行后只发布一条引用）。targeted **2 passed / 6.38s**，整文件 **18 passed / 63.53s**；仅测试/夹具，无生产源码改动。证据：[v2-android-capture-regression.json](evidence/v2-android-capture-regression.json)。
+- **输入派发回归**：输入已派发到假设备时撤权，放行后实际文本改变（applied/run succeeded，撤权不撤回已派发输入），`fake.writes` 恰 1 次；撤权后旧观察无法再取授权，后续输入被拒且不产生第二次派发。targeted **1 passed / 5.13s**；仅测试/夹具。证据：[v2-android-input-dispatch-regression.json](evidence/v2-android-input-dispatch-regression.json)。
+- **SoM 离线核心**：`domain/som.py` 节点准入/密码跳过/边界裁剪/≤50 稳定编号；`adapters/som.py` Pillow 同尺寸红框+编号、仅数字入像素、坏图/尺寸/超限显式错误；**9 passed / 0.29s**，架构/候选门/目录/类型范围 **42 passed / 8.57s**，strict **432 文件 0 错 0 警**；无模型工具/HTTP/对象发布/迁移，D0–D3 未决，真机视觉质量未验。合同：[V2_ANDROID_SOM.md](v2/contracts/V2_ANDROID_SOM.md)；证据：[v2-android-som-core.json](evidence/v2-android-som-core.json)。
+- **坏 PNG 清理回归**：假 ADB 返回非 PNG 时 capture 以 `android_capture_failed` 失败、零临时 PNG、零 `session_captures` 行；恢复合法 PNG 后同一 grant/session 新 capture 成功且无残留。targeted **1 passed / 4.65s**，整文件 **20 passed / 74.37s**；仅测试。证据：[v2-android-capture-failure-regression.json](evidence/v2-android-capture-failure-regression.json)。
+- **输入派发后取消回归**：输入已派发到假设备后取消 run，放行后 run cancelled、文本实际改变、`fake.writes` 恰 1 次（取消不撤回已派发输入、不重放），服务 quiescent 后断言。targeted **1 passed / 5.53s**，整文件 **21 passed / 84.02s**；仅测试。证据：[v2-android-cancel-input-dispatch-regression.json](evidence/v2-android-cancel-input-dispatch-regression.json)。
+- **坏 UI dump 回归**：畸形树 observe 以 `android_observation_failed` 失败、零观察留存、服务 quiescent；恢复合法树后新 observe 成功。targeted **1 passed / 3.63s**，整文件 **22 passed / 84.91s**；仅测试。证据：[v2-android-malformed-observation-regression.json](evidence/v2-android-malformed-observation-regression.json)。
+- **OCR/explore**：OCR 记录本地只读、region/文本/框上限、密码排除、文本不可信、无自动动作/记忆/日志正文，D0 是否引入/D1 provisioning/D2 可见面/D3 上限/D4 留存/D5 失败未决（纯文档，未引入依赖/模型）；explore_app 已实现离线核心 `domain/android_explore.py`（结构 skeleton 不含文本/密码、200 屏/1000 边、去重/截断、summary/build_graph/reachable/paths/unexplored，**9 passed / 0.33s**），无持久化/模型工具/HTTP，D0–D4 未决。合同：[V2_ANDROID_OCR.md](v2/contracts/V2_ANDROID_OCR.md)、[V2_ANDROID_EXPLORE.md](v2/contracts/V2_ANDROID_EXPLORE.md)；证据：[v2-android-ocr-explore-design.json](evidence/v2-android-ocr-explore-design.json)、[v2-android-explore-core.json](evidence/v2-android-explore-core.json)。
+- **决策台账**：[V2_K14_K15_DECISION_LEDGER](v2/contracts/V2_K14_K15_DECISION_LEDGER.md) 列出三份合同已决定/待所有者选择条款，以及给 E 的主动外联边界与候选稳定接口。**未决**：K14 D0–D5、K15 动机 D0–D4、K15 分层人格 D0–D5；真实模型/设备/72 小时未验。证据：[v2-visual-subagent-core.json](evidence/v2-visual-subagent-core.json)。
+
+### 2026-11-22 K15 isInitial 设计合同（纯文档）
+
+- 记录 `isInitial` 30 天首遇窗口/最早主人互动/first-meet 指定的实现前决策门：只算可证明的主人互动；`source_anchors→messages→runs→qq_runs/people` 可还原消息锚点，无锚点保守不判；D0 自动/手动、D1 主人互动范围、D2 窗口用途、D3 持久化、D4 遗忘保护、D5 手动入口。推荐先做零迁移保守版（只最早一条 `is_first=True`，复用 pinned/100 保护，tier/probability 仅审计）；完整概率版需 A 分配迁移与所有者入口。**未改 `is_first` 默认值或评分权威，无源码/迁移/路由。** 合同：[V2_MEMORY_INITIAL.md](v2/contracts/V2_MEMORY_INITIAL.md)；证据：[v2-memory-initial-design.json](evidence/v2-memory-initial-design.json)。
+- **前缀影响回归**：新增 4 项（`history_request` 首条 system 恰为 `memory_system`；persona→Owner memory→captured→notice 顺序；forgotten/deleted/erased 从前缀消失而 captured 保留；persona 编辑或记忆撤回改变前缀字节且同输入确定）。**4 passed / 0.24s**，仅测试/无生产改动；分层人格、scene 裁剪、缓存键改动仍待 D0/D3。证据：[v2-memory-prefix-regression.json](evidence/v2-memory-prefix-regression.json)。
+- **isInitial 决策门回归**：文本“第一次见面”在省略 `is_first` 时不自动晋升（importance/kind/tags/pinned 与普通文本完全一致）；显式 `is_first=True` 且 owner/private 才 100/pinned/first，非 owner 仅 38 不 pin。**3 passed / 0.22s**，仅测试；未实现 isInitial、未改评分权威。证据：[v2-memory-initial-gate-regression.json](evidence/v2-memory-initial-gate-regression.json)。
+
 ## 追溯入口
 
 - [旧交接记录](history/pre-layout-2026-11-18/HANDOFF.md)、[旧重构记录](history/pre-layout-2026-11-18/V2_REFACTOR.md)只证明所属版本，不作为当前待办。

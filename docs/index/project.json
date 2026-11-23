@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "a30b59d85515b05067e1edca4c46d52f4e83d255b5468fccb093a3cc18cdd092",
+  "source_sha256": "79c6e5956ba684860f37792b71bad10f33e2eba7fc599b84ef72c8748c8be416",
   "modules": [
     {
       "id": "v2-domain",
@@ -21,6 +21,7 @@
         "agent/src/omni/domain/action_review.py",
         "agent/src/omni/domain/agents.py",
         "agent/src/omni/domain/android.py",
+        "agent/src/omni/domain/android_explore.py",
         "agent/src/omni/domain/android_unicode.py",
         "agent/src/omni/domain/audit_retention.py",
         "agent/src/omni/domain/background_review.py",
@@ -88,14 +89,16 @@
         "agent/src/omni/domain/settings.py",
         "agent/src/omni/domain/skills.py",
         "agent/src/omni/domain/soak.py",
+        "agent/src/omni/domain/som.py",
         "agent/src/omni/domain/terminal_review.py",
         "agent/src/omni/domain/terminals.py",
         "agent/src/omni/domain/todos.py",
         "agent/src/omni/domain/tool_batch.py",
         "agent/src/omni/domain/turn_prompt.py",
-        "agent/src/omni/domain/verification_stop.py"
+        "agent/src/omni/domain/verification_stop.py",
+        "agent/src/omni/domain/visual_subagent.py"
       ],
-      "lines": 14046,
+      "lines": 14591,
       "dependencies": []
     },
     {
@@ -165,9 +168,10 @@
         "agent/src/omni/application/skills.py",
         "agent/src/omni/application/terminal_review.py",
         "agent/src/omni/application/terminals.py",
-        "agent/src/omni/application/todos.py"
+        "agent/src/omni/application/todos.py",
+        "agent/src/omni/application/visual_subagent.py"
       ],
-      "lines": 14038,
+      "lines": 14211,
       "dependencies": [
         "v2-domain"
       ]
@@ -465,6 +469,7 @@
         "agent/src/omni/adapters/process_diagnostics.py",
         "agent/src/omni/adapters/skill_packages.py",
         "agent/src/omni/adapters/soak.py",
+        "agent/src/omni/adapters/som.py",
         "agent/src/omni/adapters/temporary_debug.py",
         "agent/src/omni/adapters/timezones.py",
         "agent/src/omni/adapters/token_counter.py",
@@ -514,7 +519,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 71381,
+      "lines": 71452,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -43485,6 +43490,60 @@
       "summary": "Proof-bound read-only V2 observation and append-only evidence; no V1, service control, models or database opens."
     },
     {
+      "path": "agent/src/omni/adapters/som.py",
+      "module": "v2-adapters",
+      "python_module": "omni.adapters.som",
+      "lines": 71,
+      "imports": [
+        "omni.domain.contracts",
+        "omni.domain.som"
+      ],
+      "symbols": [
+        {
+          "name": "_invalid",
+          "line": 22,
+          "kind": "function",
+          "parameters": [
+            "message"
+          ],
+          "annotations": {
+            "message": "str"
+          }
+        },
+        {
+          "name": "_badge_position",
+          "line": 26,
+          "kind": "function",
+          "parameters": [
+            "left",
+            "top",
+            "width",
+            "height"
+          ],
+          "annotations": {
+            "left": "int",
+            "top": "int",
+            "width": "int",
+            "height": "int"
+          }
+        },
+        {
+          "name": "render_som",
+          "line": 32,
+          "kind": "function",
+          "parameters": [
+            "png",
+            "selection"
+          ],
+          "annotations": {
+            "png": "bytes",
+            "selection": "SomSelection"
+          }
+        }
+      ],
+      "summary": "Deterministic bounded SoM PNG rendering; no capture, database or model calls."
+    },
+    {
       "path": "agent/src/omni/adapters/temporary_debug.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.temporary_debug",
@@ -69169,6 +69228,196 @@
       "summary": "Model task-plan control with scoped transactions; creates no external action or background task."
     },
     {
+      "path": "agent/src/omni/application/visual_subagent.py",
+      "module": "v2-application",
+      "python_module": "omni.application.visual_subagent",
+      "lines": 173,
+      "imports": [
+        "omni.application.ports",
+        "omni.domain.contracts",
+        "omni.domain.visual_subagent"
+      ],
+      "symbols": [
+        {
+          "name": "VisualFrameSource",
+          "line": 34,
+          "kind": "class"
+        },
+        {
+          "name": "VisualFrameSource.frames",
+          "line": 37,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "agent_id",
+            "object_ids"
+          ],
+          "annotations": {
+            "agent_id": "str",
+            "object_ids": "Sequence[str]"
+          }
+        },
+        {
+          "name": "VisualModel",
+          "line": 40,
+          "kind": "class"
+        },
+        {
+          "name": "VisualModel.model",
+          "line": 44,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "VisualModel.complete",
+          "line": 46,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "request"
+          ],
+          "annotations": {
+            "request": "VisualRequest"
+          }
+        },
+        {
+          "name": "VisualSubagentService",
+          "line": 49,
+          "kind": "class"
+        },
+        {
+          "name": "VisualSubagentService.__init__",
+          "line": 50,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "db",
+            "frames",
+            "model",
+            "timeout_s",
+            "max_concurrent"
+          ],
+          "annotations": {
+            "db": "DatabasePort",
+            "frames": "VisualFrameSource",
+            "model": "VisualModel",
+            "timeout_s": "float",
+            "max_concurrent": "int"
+          }
+        },
+        {
+          "name": "VisualSubagentService.run",
+          "line": 70,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "agent_id",
+            "run_id",
+            "task",
+            "frame_ids",
+            "focus"
+          ],
+          "annotations": {
+            "agent_id": "str",
+            "run_id": "str",
+            "task": "object",
+            "frame_ids": "object",
+            "focus": "object"
+          }
+        },
+        {
+          "name": "VisualSubagentService.run.done",
+          "line": 84,
+          "kind": "function",
+          "parameters": [
+            "future"
+          ],
+          "annotations": {
+            "future": "asyncio.Task[Record]"
+          }
+        },
+        {
+          "name": "VisualSubagentService._run",
+          "line": 99,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "agent_id",
+            "run_id",
+            "task",
+            "frame_ids",
+            "focus"
+          ],
+          "annotations": {
+            "agent_id": "str",
+            "run_id": "str",
+            "task": "object",
+            "frame_ids": "object",
+            "focus": "object"
+          }
+        },
+        {
+          "name": "VisualSubagentService._checked_frames",
+          "line": 139,
+          "kind": "function",
+          "parameters": [
+            "resolved",
+            "ids"
+          ],
+          "annotations": {
+            "resolved": "object",
+            "ids": "list[str]"
+          }
+        },
+        {
+          "name": "VisualSubagentService._complete",
+          "line": 150,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "request"
+          ],
+          "annotations": {
+            "request": "VisualRequest"
+          }
+        },
+        {
+          "name": "VisualSubagentService.health",
+          "line": 163,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "VisualSubagentService.stop_accepting",
+          "line": 166,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "VisualSubagentService.close",
+          "line": 169,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "timeout_s"
+          ],
+          "annotations": {
+            "timeout_s": "float"
+          }
+        }
+      ],
+      "summary": "Bounded vision sub-agent orchestration over injected frame and model ports."
+    },
+    {
       "path": "agent/src/omni/bootstrap.py",
       "module": "assembly",
       "python_module": "omni.bootstrap",
@@ -78781,6 +79030,209 @@
       "summary": "Android identities, bounded UI observations and approved input contracts; no native I/O."
     },
     {
+      "path": "agent/src/omni/domain/android_explore.py",
+      "module": "v2-domain",
+      "python_module": "omni.domain.android_explore",
+      "lines": 217,
+      "imports": [
+        "omni.domain.contracts"
+      ],
+      "symbols": [
+        {
+          "name": "_invalid",
+          "line": 24,
+          "kind": "function",
+          "parameters": [
+            "message"
+          ],
+          "annotations": {
+            "message": "str"
+          }
+        },
+        {
+          "name": "_text",
+          "line": 28,
+          "kind": "function",
+          "parameters": [
+            "value",
+            "limit",
+            "field_name"
+          ],
+          "annotations": {
+            "value": "object",
+            "limit": "int",
+            "field_name": "str"
+          }
+        },
+        {
+          "name": "_nodes",
+          "line": 37,
+          "kind": "function",
+          "parameters": [
+            "value"
+          ],
+          "annotations": {
+            "value": "object"
+          }
+        },
+        {
+          "name": "_structure",
+          "line": 51,
+          "kind": "function",
+          "parameters": [
+            "nodes"
+          ],
+          "annotations": {
+            "nodes": "object"
+          }
+        },
+        {
+          "name": "_digest",
+          "line": 72,
+          "kind": "function",
+          "parameters": [
+            "app",
+            "activity",
+            "structure"
+          ],
+          "annotations": {
+            "app": "str",
+            "activity": "str",
+            "structure": "list[dict[str, object]]"
+          }
+        },
+        {
+          "name": "skeleton_hash",
+          "line": 82,
+          "kind": "function",
+          "parameters": [
+            "app",
+            "activity",
+            "nodes"
+          ],
+          "annotations": {
+            "app": "object",
+            "activity": "object",
+            "nodes": "object"
+          }
+        },
+        {
+          "name": "ExploreScreen",
+          "line": 91,
+          "kind": "class"
+        },
+        {
+          "name": "ExploreEdge",
+          "line": 100,
+          "kind": "class"
+        },
+        {
+          "name": "ExploreGraph",
+          "line": 108,
+          "kind": "class"
+        },
+        {
+          "name": "ExploreGraph.add_screen",
+          "line": 113,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "app",
+            "activity",
+            "nodes"
+          ],
+          "annotations": {
+            "app": "object",
+            "activity": "object",
+            "nodes": "object"
+          }
+        },
+        {
+          "name": "ExploreGraph.add_edge",
+          "line": 129,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "source",
+            "target",
+            "node_key",
+            "action"
+          ],
+          "annotations": {
+            "source": "str",
+            "target": "str",
+            "node_key": "object",
+            "action": "object"
+          }
+        },
+        {
+          "name": "ExploreGraph.reachable",
+          "line": 143,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "source"
+          ],
+          "annotations": {
+            "source": "str"
+          }
+        },
+        {
+          "name": "ExploreGraph.paths",
+          "line": 159,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "source",
+            "target",
+            "max_paths",
+            "max_depth"
+          ],
+          "annotations": {
+            "source": "str",
+            "target": "str",
+            "max_paths": "int",
+            "max_depth": "int"
+          }
+        },
+        {
+          "name": "ExploreGraph.unexplored",
+          "line": 181,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "screen_id"
+          ],
+          "annotations": {
+            "screen_id": "str"
+          }
+        },
+        {
+          "name": "ExploreGraph.summary",
+          "line": 189,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "build_graph",
+          "line": 199,
+          "kind": "function",
+          "parameters": [
+            "observations",
+            "transitions"
+          ],
+          "annotations": {
+            "observations": "Sequence[object]",
+            "transitions": "Sequence[object]"
+          }
+        }
+      ],
+      "summary": "Pure Android explore_app state graph: structural screen keys, bounded edges and summaries."
+    },
+    {
       "path": "agent/src/omni/domain/android_unicode.py",
       "module": "v2-domain",
       "python_module": "omni.domain.android_unicode",
@@ -87921,6 +88373,110 @@
       "summary": "V2 observational soak coverage and owner limits; no sampling, clocks, files or acceptance execution."
     },
     {
+      "path": "agent/src/omni/domain/som.py",
+      "module": "v2-domain",
+      "python_module": "omni.domain.som",
+      "lines": 132,
+      "imports": [
+        "omni.domain.contracts",
+        "omni.domain.desktop"
+      ],
+      "symbols": [
+        {
+          "name": "_invalid",
+          "line": 22,
+          "kind": "function",
+          "parameters": [
+            "code",
+            "message",
+            "status"
+          ],
+          "annotations": {
+            "code": "str",
+            "message": "str",
+            "status": "int"
+          }
+        },
+        {
+          "name": "SomNode",
+          "line": 27,
+          "kind": "class"
+        },
+        {
+          "name": "SomMark",
+          "line": 37,
+          "kind": "class"
+        },
+        {
+          "name": "SomSelection",
+          "line": 44,
+          "kind": "class"
+        },
+        {
+          "name": "_bounds",
+          "line": 52,
+          "kind": "function",
+          "parameters": [
+            "value"
+          ],
+          "annotations": {
+            "value": "object"
+          }
+        },
+        {
+          "name": "normalize_nodes",
+          "line": 66,
+          "kind": "function",
+          "parameters": [
+            "value"
+          ],
+          "annotations": {
+            "value": "object"
+          }
+        },
+        {
+          "name": "frame_size",
+          "line": 96,
+          "kind": "function",
+          "parameters": [
+            "width",
+            "height"
+          ],
+          "annotations": {
+            "width": "object",
+            "height": "object"
+          }
+        },
+        {
+          "name": "select_marks",
+          "line": 108,
+          "kind": "function",
+          "parameters": [
+            "nodes",
+            "width",
+            "height"
+          ],
+          "annotations": {
+            "nodes": "Sequence[SomNode]",
+            "width": "object",
+            "height": "object"
+          }
+        },
+        {
+          "name": "mark_map",
+          "line": 130,
+          "kind": "function",
+          "parameters": [
+            "selection"
+          ],
+          "annotations": {
+            "selection": "SomSelection"
+          }
+        }
+      ],
+      "summary": "Pure Android SoM node admission and stable numbering: bounded, password-excluding; no image I/O."
+    },
+    {
       "path": "agent/src/omni/domain/terminal_review.py",
       "module": "v2-domain",
       "python_module": "omni.domain.terminal_review",
@@ -88358,6 +88914,168 @@
         }
       ],
       "summary": "Pure rules for the verify-on-stop gate: applied writes without verification evidence."
+    },
+    {
+      "path": "agent/src/omni/domain/visual_subagent.py",
+      "module": "v2-domain",
+      "python_module": "omni.domain.visual_subagent",
+      "lines": 196,
+      "imports": [
+        "omni.domain.contracts"
+      ],
+      "symbols": [
+        {
+          "name": "_invalid",
+          "line": 48,
+          "kind": "function",
+          "parameters": [
+            "code",
+            "message",
+            "status"
+          ],
+          "annotations": {
+            "code": "str",
+            "message": "str",
+            "status": "int"
+          }
+        },
+        {
+          "name": "_bounded_text",
+          "line": 52,
+          "kind": "function",
+          "parameters": [
+            "value",
+            "limit",
+            "field_name",
+            "code"
+          ],
+          "annotations": {
+            "value": "object",
+            "limit": "int",
+            "field_name": "str",
+            "code": "str"
+          }
+        },
+        {
+          "name": "normalize_task",
+          "line": 69,
+          "kind": "function",
+          "parameters": [
+            "value"
+          ],
+          "annotations": {
+            "value": "object"
+          }
+        },
+        {
+          "name": "normalize_focus",
+          "line": 73,
+          "kind": "function",
+          "parameters": [
+            "value"
+          ],
+          "annotations": {
+            "value": "object"
+          }
+        },
+        {
+          "name": "normalize_frame_ids",
+          "line": 81,
+          "kind": "function",
+          "parameters": [
+            "value"
+          ],
+          "annotations": {
+            "value": "object"
+          }
+        },
+        {
+          "name": "VisualFrame",
+          "line": 102,
+          "kind": "class"
+        },
+        {
+          "name": "VisualFrame.__post_init__",
+          "line": 114,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "VisualRequest",
+          "line": 137,
+          "kind": "class"
+        },
+        {
+          "name": "select_frames",
+          "line": 147,
+          "kind": "function",
+          "parameters": [
+            "frames"
+          ],
+          "annotations": {
+            "frames": "Sequence[VisualFrame]"
+          }
+        },
+        {
+          "name": "build_request",
+          "line": 163,
+          "kind": "function",
+          "parameters": [
+            "task",
+            "focus",
+            "frames"
+          ],
+          "annotations": {
+            "task": "object",
+            "focus": "object",
+            "frames": "Sequence[VisualFrame]"
+          }
+        },
+        {
+          "name": "validate_summary",
+          "line": 177,
+          "kind": "function",
+          "parameters": [
+            "value"
+          ],
+          "annotations": {
+            "value": "object"
+          }
+        },
+        {
+          "name": "validate_reply",
+          "line": 181,
+          "kind": "function",
+          "parameters": [
+            "reply"
+          ],
+          "annotations": {
+            "reply": "ModelReply"
+          }
+        },
+        {
+          "name": "prompt_for",
+          "line": 191,
+          "kind": "function",
+          "parameters": [
+            "focus"
+          ],
+          "annotations": {
+            "focus": "object"
+          }
+        },
+        {
+          "name": "max_frame_bytes",
+          "line": 195,
+          "kind": "function",
+          "parameters": [],
+          "annotations": {}
+        }
+      ],
+      "summary": "Pure rules for the bounded vision sub-agent: frame admission, ordered subsampling, fixed prompts and summary bounds."
     },
     {
       "path": "agent/src/omni/llm/__init__.py",

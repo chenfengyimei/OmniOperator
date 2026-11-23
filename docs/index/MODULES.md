@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`a30b59d85515b05067e1edca4c46d52f4e83d255b5468fccb093a3cc18cdd092`。包含 65 个职责模块、849 个源码/界面文件。
+源码指纹：`79c6e5956ba684860f37792b71bad10f33e2eba7fc599b84ef72c8748c8be416`。包含 65 个职责模块、854 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -14,6 +14,7 @@
 | [agent/src/omni/domain/action_review.py](../../agent/src/omni/domain/action_review.py) | 199 | Owner observations about unknown writes; does not settle actions, authorize replay or release model costs. |
 | [agent/src/omni/domain/agents.py](../../agent/src/omni/domain/agents.py) | 30 | Owner-managed Agent names and bounds; no credentials, state copying or platform access. |
 | [agent/src/omni/domain/android.py](../../agent/src/omni/domain/android.py) | 393 | Android identities, bounded UI observations and approved input contracts; no native I/O. |
+| [agent/src/omni/domain/android_explore.py](../../agent/src/omni/domain/android_explore.py) | 217 | Pure Android explore_app state graph: structural screen keys, bounded edges and summaries. |
 | [agent/src/omni/domain/android_unicode.py](../../agent/src/omni/domain/android_unicode.py) | 121 | Pinned helper profiles and authenticated, bounded Unicode input messages; no device I/O. |
 | [agent/src/omni/domain/audit_retention.py](../../agent/src/omni/domain/audit_retention.py) | 291 | Agent audit-retention subjects, frozen previews and explicit plans; performs no I/O or deletion. |
 | [agent/src/omni/domain/background_review.py](../../agent/src/omni/domain/background_review.py) | 198 | Bounded post-turn review proposals and owner decisions; no model calls, memory writes or I/O. |
@@ -81,12 +82,14 @@
 | [agent/src/omni/domain/settings.py](../../agent/src/omni/domain/settings.py) | 112 | Editable Agent settings and immutable resolved run configuration; no I/O. |
 | [agent/src/omni/domain/skills.py](../../agent/src/omni/domain/skills.py) | 251 | Versioned textual skills, bounded disclosure and edit rules; skills confer no authority. |
 | [agent/src/omni/domain/soak.py](../../agent/src/omni/domain/soak.py) | 119 | V2 observational soak coverage and owner limits; no sampling, clocks, files or acceptance execution. |
+| [agent/src/omni/domain/som.py](../../agent/src/omni/domain/som.py) | 132 | Pure Android SoM node admission and stable numbering: bounded, password-excluding; no image I/O. |
 | [agent/src/omni/domain/terminal_review.py](../../agent/src/omni/domain/terminal_review.py) | 87 | Owner observations of unknown terminal effects; never a receipt correction or replay authority. |
 | [agent/src/omni/domain/terminals.py](../../agent/src/omni/domain/terminals.py) | 124 | Explicit owner terminal requests and metadata identities; no model tools, shell execution or transcript storage. |
 | [agent/src/omni/domain/todos.py](../../agent/src/omni/domain/todos.py) | 166 | Bounded revisioned planning data and hierarchy rules; no execution or authorization. |
 | [agent/src/omni/domain/tool_batch.py](../../agent/src/omni/domain/tool_batch.py) | 65 | Model tool-batch segment planning: independent read-only capabilities may run in parallel. |
 | [agent/src/omni/domain/turn_prompt.py](../../agent/src/omni/domain/turn_prompt.py) | 45 | Freeze one run's system prefix; publish changed runtime guidance in the message tail. |
 | [agent/src/omni/domain/verification_stop.py](../../agent/src/omni/domain/verification_stop.py) | 66 | Pure rules for the verify-on-stop gate: applied writes without verification evidence. |
+| [agent/src/omni/domain/visual_subagent.py](../../agent/src/omni/domain/visual_subagent.py) | 196 | Pure rules for the bounded vision sub-agent: frame admission, ordered subsampling, fixed prompts and summary bounds. |
 
 文档：[docs/V2_REFACTOR.md](../../docs/V2_REFACTOR.md)
 
@@ -153,6 +156,7 @@
 | [agent/src/omni/application/terminal_review.py](../../agent/src/omni/application/terminal_review.py) | 127 | Owner terminal evidence use cases; no native actions, receipt changes or historical PID operations. |
 | [agent/src/omni/application/terminals.py](../../agent/src/omni/application/terminals.py) | 506 | Bounded owner terminals with durable input receipts, single-writer leases and explicit output gaps. |
 | [agent/src/omni/application/todos.py](../../agent/src/omni/application/todos.py) | 49 | Model task-plan control with scoped transactions; creates no external action or background task. |
+| [agent/src/omni/application/visual_subagent.py](../../agent/src/omni/application/visual_subagent.py) | 173 | Bounded vision sub-agent orchestration over injected frame and model ports. |
 
 文档：[docs/V2_REFACTOR.md](../../docs/V2_REFACTOR.md)
 
@@ -441,6 +445,7 @@
 | [agent/src/omni/adapters/process_diagnostics.py](../../agent/src/omni/adapters/process_diagnostics.py) | 112 | Process-owned logging and exception hooks; installed only by the executable host. |
 | [agent/src/omni/adapters/skill_packages.py](../../agent/src/omni/adapters/skill_packages.py) | 177 | Bounded in-memory Markdown/ZIP parsing; never extracts files or executes package content. |
 | [agent/src/omni/adapters/soak.py](../../agent/src/omni/adapters/soak.py) | 402 | Proof-bound read-only V2 observation and append-only evidence; no V1, service control, models or database opens. |
+| [agent/src/omni/adapters/som.py](../../agent/src/omni/adapters/som.py) | 71 | Deterministic bounded SoM PNG rendering; no capture, database or model calls. |
 | [agent/src/omni/adapters/temporary_debug.py](../../agent/src/omni/adapters/temporary_debug.py) | 322 | Boot-bound, owner-enabled metadata capture; never opens business storage or records free text. |
 | [agent/src/omni/adapters/timezones.py](../../agent/src/omni/adapters/timezones.py) | 29 | Pinned tzdata resolver; avoids OS-dependent timezone database drift. |
 | [agent/src/omni/adapters/token_counter.py](../../agent/src/omni/adapters/token_counter.py) | 34 | Local conservative token estimate; it never fetches model metadata or credentials. |

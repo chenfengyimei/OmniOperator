@@ -1,0 +1,58 @@
+{
+  "schema": 1,
+  "date": "2026-11-22",
+  "batch": "K14.android_capture_regression",
+  "base_commit": "4d0fae1886babe4d0753ddaac6882eb66bb88769",
+  "status": "implemented_scoped_passed_test_only",
+  "contract": "docs/v2/contracts/V2_ANDROID.md",
+  "scope": "Test-only regression for the existing Android screenshot capture/revocation/cancellation chain. No production source, tool, route, schema, migration or device change. Real Android I/O remains unverified.",
+  "source_files": {
+    "agent/tests/v2/integrations/test_v2_android.py": "386149184d3a9951ad7267a415a995513bcf7e010ad7d037270549beee910c34",
+    "agent/tests/omni_test_support/v2/android.py": "052d0246eb78998b49071393046dd71a05d1ebe99c40ad8c84f1a61c08ed3680"
+  },
+  "delivered": [
+    "FakeAdb gains allow_capture/capture_entered gates around `screencap -p`; the server fixture releases the gate on teardown so every existing Android test keeps its prior behavior.",
+    "New regression 1 (capture revocation after the frame is taken): hold screencap after the worker has entered the command, revoke the grant, release the frame; capture must fail with android_grant_revoked (or the existing authority-changed codes), publish no temp PNG under control/android-captures, insert no session_captures row, and a subsequent capture must be denied before dispatch.",
+    "New regression 2 (cancelled capture waiter): cancel the caller while screencap is held; the actual capture stays owned by the service (pending=1), later completes into exactly one session_captures row and one object reference whose bytes equal the fake device PNG, leaves no temp PNG, and the service becomes quiescent.",
+    "No assertions were weakened, no production budget/timeout was shortened, and no real device/account/model was used."
+  ],
+  "validation": {
+    "mode": "development_working_tree_scoped",
+    "new_nodes": 2,
+    "targeted": {
+      "command": "uv run --no-sync pytest -q -n 0 agent/tests/v2/integrations/test_v2_android.py -k 'capture_revocation or cancelled_capture'",
+      "passed": 2,
+      "failed": 0,
+      "seconds": 6.38
+    },
+    "android_integration_file": {
+      "command": "uv run --no-sync pytest -q -n 0 agent/tests/v2/integrations/test_v2_android.py",
+      "passed": 18,
+      "failed": 0,
+      "seconds": 71.72,
+      "notes": "Real V2 SQLite, managed Python worker, isolated fake ADB; no actual device."
+    },
+    "android_model_file": {
+      "command": "uv run --no-sync pytest -q -n 0 agent/tests/v2/integrations/test_v2_android_model.py",
+      "passed": 20,
+      "failed": 0,
+      "seconds": 113.44,
+      "notes": "Fixture compatibility after adding the capture gate; model access/input approval/revocation/scope/scroll paths."
+    },
+    "ruff": "both changed test files pass ruff check and format check after one line-wrap reformat",
+    "full_suite_executed": false,
+    "real_android_device_or_vendor_fields_executed": false
+  },
+  "retained_first_failures": [
+    {
+      "phase": "new-regression-initial",
+      "reason": "The revocation-after-capture test initially accepted only android_authority_invalid/android_grant_changed; the real repository returns android_grant_revoked. The assertion was corrected to the actual existing code, with no production change."
+    }
+  ],
+  "not_executed": [
+    "Real Android device screenshot quality, vendor window/keyguard fields, shell-v2, Unicode input, scroll and user-switch behavior",
+    "Full offline suite for current source",
+    "Real accounts/models or 72h soak"
+  ],
+  "next": "Preserve this regression on the K14 branch. Next independent K14/K15 work remains gated as recorded: K14 SoM/OCR/explore_app need separate designs or model/device windows; K15 motivation/persona layers need D0-D5; decision-free follow-ups include the isInitial 30-day first-meet window (owner policy boundary first) or more Android capture/input regression outside this chain."
+}

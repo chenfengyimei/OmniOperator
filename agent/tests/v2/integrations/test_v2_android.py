@@ -264,6 +264,148 @@ def test_cancelled_waiter_and_revocation_keep_actual_observation_owned(tmp_path)
     asyncio.run(scenario())
 
 
+def test_malformed_ui_dump_fails_closed_and_next_observe_recovers(tmp_path):
+    async def scenario():
+        async with prepared(tmp_path) as (instance, fake, agent, _, _, grant):
+            fake.malformed = True
+            with pytest.raises(BusinessError) as caught:
+                await instance.android.observe(agent, grant["id"])
+            assert caught.value.code == "android_observation_failed"
+            assert instance.android.health()["observations"] == 0
+            assert instance.android.quiescent()
+            fake.malformed = False
+            view = await instance.android.observe(agent, grant["id"])
+            assert view["nodes"] and instance.android.health()["observations"] == 1
+
+    asyncio.run(scenario())
+
+
+def test_capture_revocation_after_frame_is_taken_publishes_no_object(tmp_path):
+    async def scenario():
+        async with prepared(tmp_path) as (instance, fake, agent, _, session, grant):
+            fake.allow_capture.clear()
+            task = asyncio.create_task(instance.android.capture(agent, grant["id"], session))
+            await asyncio.wait_for(fake.capture_entered.wait(), 5)
+            await instance.android.revoke(agent, grant["id"], grant["revision"])
+            fake.allow_capture.set()
+            with pytest.raises(BusinessError) as caught:
+                await task
+            assert caught.value.code in {
+                "android_authority_invalid",
+                "android_grant_changed",
+                "android_grant_revoked",
+            }
+            assert not list((instance.paths.control / "android-captures").glob("*.png"))
+            rows = await instance._database.read(lambda u: u.connection.execute(select(s.session_captures)).all())
+            assert rows == []
+            assert instance.android.quiescent()
+            with pytest.raises(BusinessError) as denied:
+                await instance.android.capture(agent, grant["id"], session)
+            assert denied.value.code in {"android_authority_invalid", "android_grant_revoked"}
+
+    asyncio.run(scenario())
+
+
+def test_cancelled_capture_waiter_keeps_real_capture_owned_and_publishes_once(tmp_path):
+    async def scenario():
+        async with prepared(tmp_path) as (instance, fake, agent, _, session, grant):
+            fake.allow_capture.clear()
+            waiter = asyncio.create_task(instance.android.capture(agent, grant["id"], session))
+            await asyncio.wait_for(fake.capture_entered.wait(), 5)
+            waiter.cancel()
+            with pytest.raises(asyncio.CancelledError):
+                await waiter
+            assert instance.android.health()["pending"] == 1
+            assert not instance.android.quiescent()
+            fake.allow_capture.set()
+            for _ in range(100):
+                if instance.android.quiescent():
+                    break
+                await asyncio.sleep(0.02)
+            assert instance.android.quiescent()
+            row = await instance._database.read(
+                lambda u: u.connection.execute(select(s.session_captures)).mappings().one()
+            )
+            assert row["content_epoch"] == 1 and row["method"] == "adb_screencap"
+            stored, content = await instance.objects.get(agent, row["object_id"])
+            assert stored["references"] == 1 and content == fake.png
+            assert not list((instance.paths.control / "android-captures").glob("*.png"))
+
+    asyncio.run(scenario())
+
+
+def test_revoked_grant_after_input_dispatch_does_not_retract_or_replay(tmp_path):
+    async def scenario():
+        async with prepared(tmp_path) as (instance, fake, agent, _, session, grant):
+            request, _ = await request_for(instance, agent, session, grant)
+            receipt = await instance.android.submit(agent, request)
+            instance.application.notify()
+            await wait_state(instance.application, agent, receipt["run_id"], {"waiting_approval"})
+            fake.allow_input.clear()
+            await approve(instance, agent, receipt)
+            await asyncio.wait_for(fake.input_entered.wait(), 5)
+            await instance.android.revoke(agent, grant["id"], grant["revision"])
+            fake.allow_input.set()
+            run = await wait_state(instance.application, agent, receipt["run_id"], {"succeeded", "failed"})
+            assert fake.text == "hello world" and len(fake.writes) == 1
+            assert run["state"] == "succeeded"
+            command = await instance._database.read(lambda u: u.owner_command(agent, receipt["run_id"]))
+            action = await instance._database.read(lambda u: u.action(agent, command["action_id"]))
+            assert action["effect"] == "applied"
+            with pytest.raises(BusinessError):
+                await request_for(instance, agent, session, grant)
+            assert len(fake.writes) == 1
+
+    asyncio.run(scenario())
+
+
+def test_capture_bad_png_fails_cleanly_and_next_capture_succeeds(tmp_path):
+    async def scenario():
+        async with prepared(tmp_path) as (instance, fake, agent, _, session, grant):
+            valid = fake.png
+            fake.png = b"not-a-png"
+            with pytest.raises(BusinessError) as caught:
+                await instance.android.capture(agent, grant["id"], session)
+            assert caught.value.code == "android_capture_failed"
+            assert not list((instance.paths.control / "android-captures").glob("*.png"))
+            rows = await instance._database.read(lambda u: u.connection.execute(select(s.session_captures)).all())
+            assert rows == []
+            fake.png = valid
+            capture = await instance.android.capture(agent, grant["id"], session)
+            assert capture["method"] == "adb_screencap"
+            stored, content = await instance.objects.get(agent, capture["object_id"])
+            assert stored["references"] == 1 and content == valid
+            assert not list((instance.paths.control / "android-captures").glob("*.png"))
+
+    asyncio.run(scenario())
+
+
+def test_cancelled_run_after_input_dispatch_keeps_actual_input_without_replay(tmp_path):
+    async def scenario():
+        async with prepared(tmp_path) as (instance, fake, agent, _, session, grant):
+            request, _ = await request_for(instance, agent, session, grant)
+            receipt = await instance.android.submit(agent, request)
+            instance.application.notify()
+            await wait_state(instance.application, agent, receipt["run_id"], {"waiting_approval"})
+            fake.allow_input.clear()
+            await approve(instance, agent, receipt)
+            await asyncio.wait_for(fake.input_entered.wait(), 5)
+            await instance.application.cancel(agent, receipt["run_id"])
+            fake.allow_input.set()
+            run = await wait_state(instance.application, agent, receipt["run_id"], {"cancelled", "failed", "succeeded"})
+            for _ in range(200):
+                if instance.android.quiescent():
+                    break
+                await asyncio.sleep(0.01)
+            assert instance.android.quiescent()
+            assert fake.text == "hello world" and len(fake.writes) == 1
+            await asyncio.sleep(0.05)
+            assert len(fake.writes) == 1
+            assert run["state"] == "cancelled"
+
+    asyncio.run(scenario())
+
+
 def test_cancelled_run_and_shutdown_retain_instance_until_worker_is_reclaimed(tmp_path):
     async def scenario():
         async with prepared(tmp_path) as (instance, fake, agent, _, session, grant):

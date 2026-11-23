@@ -1,0 +1,50 @@
+{
+  "schema": 1,
+  "date": "2026-11-22",
+  "batch": "K14.android_malformed_observation_regression",
+  "base_commit": "ff48a4b7ea56c1277b494860391af5c9459b0ec0",
+  "status": "implemented_scoped_passed_test_only",
+  "contract": "docs/v2/contracts/V2_ANDROID.md",
+  "scope": "Test-only regression for a malformed Android UI dump: the observation must fail closed, store no observation, remain quiescent, and a later valid observation must recover. No production source, route, schema, migration or device change.",
+  "source_files": {
+    "agent/tests/v2/integrations/test_v2_android.py": "a0ea67e054fa61e654e96df6f3b588f864d390cac5b164362921aad404ae54ce"
+  },
+  "delivered": [
+    "New regression: set fake.malformed, call android.observe; it raises android_observation_failed, health().observations stays 0, and the service is quiescent.",
+    "Disable malformed and observe again in the same grant/session: a valid node view is returned and observations becomes 1.",
+    "No assertion was weakened, no production timeout/budget changed, and no real device was used."
+  ],
+  "validation": {
+    "mode": "development_working_tree_scoped",
+    "new_nodes": 1,
+    "targeted": {
+      "command": "uv run --no-sync pytest -q -n 0 agent/tests/v2/integrations/test_v2_android.py -k 'malformed_ui'",
+      "passed": 1,
+      "failed": 0,
+      "seconds": 3.63
+    },
+    "android_integration_file": {
+      "command": "uv run --no-sync pytest -q -n 0 agent/tests/v2/integrations/test_v2_android.py",
+      "passed": 22,
+      "failed": 0,
+      "seconds": 84.91,
+      "notes": "final formatted source; real V2 SQLite, managed Python worker, isolated fake ADB"
+    },
+    "android_integration_and_model": {
+      "command": "uv run --no-sync pytest -q -n 0 agent/tests/v2/integrations/test_v2_android.py agent/tests/v2/integrations/test_v2_android_model.py",
+      "passed": 42,
+      "failed": 0,
+      "seconds": 190.25,
+      "notes": "run before the no-op format check; code identical"
+    },
+    "ruff": "test file passes ruff check; format made no change",
+    "full_suite_executed": false,
+    "real_android_device_or_vendor_fields_executed": false
+  },
+  "not_executed": [
+    "Real Android UI dump/vendor quirks and recovery quality",
+    "Full offline suite for current source",
+    "Real accounts/models or 72h soak"
+  ],
+  "next": "Android observe/capture/input paths now cover malformed dumps, capture success/revocation/cancellation/bad PNG, input revocation/cancellation after dispatch and unknown/no-replay. Next decision-free K14/K15 work: remaining edge regressions or contract checks; implementation wiring stays gated by recorded decisions."
+}

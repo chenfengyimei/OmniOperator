@@ -1,0 +1,66 @@
+{
+  "schema": 1,
+  "date": "2026-11-22",
+  "batch": "K14.android_explore_core",
+  "base_commit": "4ed103daa2b997e75e98c0465b8401d0b8d46ee9",
+  "status": "offline_core_implemented_not_wired",
+  "contract": "docs/v2/contracts/V2_ANDROID_EXPLORE.md",
+  "scope": "K14 explore_app offline core only: structural skeleton hashes and a bounded screen/action graph over already-authorized observations. No persistence, model tool, HTTP route, automatic exploration, capture or migration.",
+  "source_files": {
+    "agent/src/omni/domain/android_explore.py": "5f3b23262c4674c5723000f719add61f3a0268e47838619493b6d2104fbba354",
+    "agent/tests/v2/core/test_v2_android_explore.py": "62097f93ef1c057ab8e734b8aee27f8178ba4f9d028802244dce41f9419a0129",
+    "pyrightconfig.strict.json": "030f7601af34fb58755db67ac847256236e012ede1447b8d83baa083c497e65e",
+    "docs/v2/contracts/V2_ANDROID_EXPLORE.md": "a3795951f946198a2947c70ef082a2e4b94f3d31b3e54973395876bc60fdec66"
+  },
+  "delivered": [
+    "domain/android_explore.py: skeleton_hash(app, activity, nodes) hashes only class/resource-id/sorted actions; text/description/password values never enter the hash, so copy changes merge into one screen while structural changes split; password nodes are skipped.",
+    "ExploreScreen id = sha256(app|activity|skeleton)[:24]; ExploreGraph caps 200 screens and 1000 edges, deduplicates identical edges, never invents edges to missing targets or self-loops, and sets truncated on overflow; summary returns only screen/edge/app counts and truncation.",
+    "build_graph consumes bounded observations plus observed (source,target,node_key,action) transitions; invalid rows raise android_explore_invalid; no capture, persistence, tool, HTTP or automatic action.",
+    "8 tests: copy merge/structural split, password exclusion, invalid observations, 200-screen cap, 1000-edge cap/dedupe/missing target, bounded reachable BFS, bounded simple paths, unexplored observed actions minus edges, summary/build_graph."
+  ],
+  "validation": {
+    "mode": "development_working_tree_scoped",
+    "new_nodes": 9,
+    "scoped": {
+      "command": "uv run --no-sync pytest -q -n 0 agent/tests/v2/core/test_v2_android_explore.py",
+      "passed": 9,
+      "failed": 0,
+      "seconds": 0.33
+    },
+    "guards": {
+      "command": "uv run --no-sync pytest -q -n 0 agent/tests/v2/core/test_v2_android_explore.py agent/tests/v2/core/test_v2_typecheck_scope.py agent/tests/v2/core/test_v2_architecture.py agent/tests/v2/core/test_v2_candidate_gate.py agent/tests/v2/core/test_v2_layout.py",
+      "passed": 42,
+      "failed": 0,
+      "seconds": 8.18
+    },
+    "strict": {
+      "config": "pyrightconfig.strict.json",
+      "files": 433,
+      "errors": 0,
+      "warnings": 0,
+      "note": "one new module added to include (432 -> 433); filesAnalyzed == include count"
+    },
+    "ruff": "domain/android_explore.py and test_v2_android_explore.py pass ruff check and format",
+    "full_suite_executed": false,
+    "real_android_device_or_exploration_executed": false
+  },
+  "retained_first_failures": [
+    {
+      "phase": "strict-initial",
+      "reason": "dataclass default_factory dict/list inferred partially unknown and build_graph's typed Sequence[dict] made its isinstance/cast checks unnecessary under strict. Fixed with typed default factories and Sequence[object] + runtime validation."
+    },
+    {
+      "phase": "test-initial",
+      "reason": "One edge assertion was written incorrectly (an always-true expression); replaced with explicit add/dedupe assertions before the final run."
+    }
+  ],
+  "not_executed": [
+    "Persistence, model tool or HTTP surface (D0/D1/D3 undecided)",
+    "Automatic exploration or real device graph quality",
+    "OCR implementation or model provisioning",
+    "Full suite or 72h soak"
+  ],
+  "whole_core_parity_complete": false,
+  "whole_v2_complete": false,
+  "next": "D0-D4 decide persistence/trigger/caps/surface/failure semantics; then wire one explicit surface and real observations. OCR remains design-only until D0-D5, with no model/dependency download. Shared interfaces/migrations stay with A."
+}

@@ -1,0 +1,47 @@
+{
+  "schema": 1,
+  "date": "2026-11-22",
+  "base_commit": "dadbce10ab28f61e0e449c927cec5a445bac24b3",
+  "batch": "K14.android_som_design",
+  "status": "design_contract_recorded",
+  "contract": "docs/v2/contracts/V2_ANDROID_SOM.md",
+  "source_files": {
+    "docs/v2/contracts/V2_ANDROID_SOM.md": "30b3dbc8910af5a105af6cf62ee770ffb732816b785e4960ebf91847f145e514",
+    "docs/tasks/v2-agent-core-parity.json": "b2de9b19ea38e7f8670e0f9f2f5f4a083d0f6a2b43ab947aee2d43f08c19f2d5",
+    "docs/HANDOFF.md": "3917a5b13e76ca5554b3bc3711884dc53f752d7ea317e31ada728b4f8157cefa"
+  },
+  "scope": "Implementation-before contract for the K14 Android SoM (set-of-mark) screenshot gap: same-observation nodes -> stable 1-based numbers -> annotated PNG plus bounded mapping. Documentation only; no source, tests, migration, route, model, device or database change.",
+  "grounding": {
+    "reference": "xuexi/android-agent 7c09f6cd screenshot_annotated: set-of-mark overlay matching get_elements indices; visual annotation only, not action approval.",
+    "v2_primitives": "android_observe nodes (node_id/bounds/class/actions/password/visible), CapturedFrame/session_captures/objects and the existing image codec caps (PNG, 8192 side, 16M pixels, 16MiB).",
+    "gap": "V2_ANDROID_AUDIT group 2 records screenshot_annotated/SoM as an offline gap; no implementation exists."
+  },
+  "decisions_pending_owner": [
+    "D0 visible surface: offline core adapter only / android_observe mark option / owner-only HTTP route; default offline core",
+    "D1 output publication: reuse session_captures/objects (recommended) / caller temp only; no new table",
+    "D2 numbering: observe order 1-based (recommended, matches indices) / spatial order",
+    "D3 failure semantics: explicit android_som_* error, never a half-rendered image"
+  ],
+  "contract_boundaries": [
+    "Only an already owner-authorized screenshot and the same observation's nodes; no new capture, OCR, model call or device action.",
+    "Only visible nodes with valid bounds; password nodes are never marked or numbered; <=50 marks, observe order 1-based, stable numbering.",
+    "Bounds are clipped to the image; fully out-of-bounds nodes are skipped and counted; truncated output is explicit.",
+    "The annotated PNG keeps image dimensions, contains only numbers (no node text/node_id/path/sha in pixels), and respects the existing image caps.",
+    "Output reuses session_captures/objects with grant/session/content_epoch, source-erasure barriers and no automatic model attachment, memory or persona write.",
+    "D0 undecided means no new model tool or HTTP route; shared capability/route changes go through A."
+  ],
+  "validation": {
+    "mode": "documentation_only",
+    "pytest": "not_run (no source/test change)",
+    "strict": "not_run (strict include unchanged)",
+    "ruff": "not_run (no Python change)",
+    "grep": "checked V2_ANDROID_AUDIT group 2, current android_observe/capture nodes, CapturedFrame/image caps, session_captures/objects schema and the K14 visual-subagent contract boundary"
+  },
+  "not_executed": [
+    "SoM renderer, node selection or image annotation implementation",
+    "New model tool, HTTP route, table or migration",
+    "Real Android screenshot/overlay quality or device acceptance",
+    "Full suite or 72h soak"
+  ],
+  "next": "Implement the offline SoM core only after D0-D3 or as a decision-free adapter: pure node admission/numbering plus a Pillow renderer with tests, no model tool/HTTP. Real-device visual quality needs the designated device window. Shared interfaces and migrations stay with A."
+}
