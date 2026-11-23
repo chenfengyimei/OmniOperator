@@ -154,5 +154,14 @@
       "note": "killing at-spi-bus-launcher/registryd and re-activating the bus reproduces the mismatch; both values share a suffix but differ in the prefix, so the address guid is not the bus GetId on this at-spi2-core/Ubuntu 26.04",
       "escalation": "contract question for A: must Endpoint.accessibility require guid == GetId, or should the check accept the address guid as opaque and verify the peer another way?"
     }
+  },
+  "x11_peer": {
+    "check": "linux_x11_socket.py requires the X socket identity, the Xorg process uid/session, and server_binary name Xorg",
+    "environment": "LightDM starts Xorg under system.slice/lightdm.service, which has no logind session; the user session (x11, seat0) does not own the X server",
+    "consequence": "server_session(process) cannot bind Xorg to the active session, so desktop_x11_peer_unverified is raised",
+    "options": [
+      "startx-style Xorg inside a real user session (but logind then reports the tty session type, conflicting with the x11 requirement)",
+      "contract decision for A on how display-manager-launched Xorg should be proven"
+    ]
   }
 }
