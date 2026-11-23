@@ -73,3 +73,42 @@ H 在另一个隔离 home（svc9）把该行改为 foreach 并重走 capture/mat
 3. `pid=null/service_action_unverified` 时强制 `ready=false`。
 
 证据：`C:/v2-acceptance/c3-08dd1573/svc9/probes/foreach-fix-and-action-pid.txt`。
+
+## 当前源码位置（d7971bc4）
+
+| 问题 | 文件:行 | 现状 |
+| --- | --- | --- |
+| R1 | `agent/src/omni/adapters/workers/windows_services.ps1:151` | `$instances.Item(0).EnginePID` 抛 ArgumentException，catch 后 `service_native_unverified` |
+| R2 动作身份 | `agent/src/omni/adapters/platform/services/service_query.py:94` / `:116` | `_action_pid` 只接受计划 `Exec/Command`（venv `python.exe`）；真实动作进程是 `process_python`（基础 Python），`cmdline[0]` 严格比较失败 |
+| R2 就绪条件 | `agent/src/omni/domain/service_control.py:133` | Windows 分支 `pid is None` 仍允许 ready；导致 `pid=null/service_action_unverified` 时 `ready=true` |
+
+## 建议的最小修改
+
+```powershell
+# windows_services.ps1
+foreach ($instance in $instances) { $result.engine_pid = [int]$instance.EnginePID; break }
+```
+
+```python
+# service_query.py：_action_pid 接受计划 runtime 的 process_python
+def _action_pid(engine_pid, expected, plan):
+    ...
+    commands = {os.path.normcase(command)}
+    process_python = (plan.get("runtime") or {}).get("process_python")
+    if isinstance(process_python, str) and process_python:
+        commands.add(os.path.normcase(process_python))
+    ...
+    if not cmdline or os.path.normcase(cmdline[0]) not in commands:
+        continue
+```
+
+```python
+# service_control.py：所有目标都要求非空且匹配的 action PID
+return type(pid) is int and pid > 0 and pid == proof.get("pid")
+```
+
+## 修复后的 H 验收标准
+
+1. `status`：manager `state=running`、`definition_matches=true`、`pid` 非空且等于 runtime pid、`ready=true`；
+2. 无法证明动作 PID 时：`pid=null`、`service_action_unverified`、**`ready=false`**；
+3. `start`/`stop`/`uninstall` 仍 succeeded；任务删除、端口释放、实例锁释放。
