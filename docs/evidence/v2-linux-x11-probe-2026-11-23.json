@@ -59,6 +59,15 @@
     "hypothesis": "the Linux X11 proof ties the X server to the active session (XRes/logind), while LightDM runs Xorg in its own service scope; a real display-manager desktop behaves the same way, so this may be a contract gap rather than a VM-only issue",
     "contract_question": "should the inspector accept a display-manager-launched Xorg whose seat/session is active, or require startx-style Xorg inside the user session? This is a shared contract decision for A",
     "settled_retry": "waiting 45s after session start before the acceptance still returned session_kind=unknown and linux_sample_read_unavailable, so this is not autostart timing",
-    "open_question": "which PID the inspector used (worker vs Xorg) and whether the worker's GetSessionByPID returned session 29 or a tty session; logind itself reports User.Display=29, Sessions=29 24, State=active"
+    "open_question": "which PID the inspector used (worker vs Xorg) and whether the worker's GetSessionByPID returned session 29 or a tty session; logind itself reports User.Display=29, Sessions=29 24, State=active",
+    "worker_capture": {
+      "worker_pid": "229919",
+      "worker_cmd": "python -I -u -m omni.adapters.workers.desktop",
+      "worker_session": "session-31 (user-10001.slice), Type=x11, seat0 ActiveSession=31",
+      "system_bus": "/run/dbus/system_bus_socket present, dbus active, logind present",
+      "result": "probe still session.kind=unknown and all native capabilities unavailable",
+      "conclusion": "session attribution is NOT the cause: the worker itself runs inside the x11 session and the seat points at it; the failure is inside the worker and is currently masked as desktop_native_unavailable",
+      "next": "capture the worker's actual error (stderr/error_code) by instrumenting the backend/worker exchange, then decide whether it is a code gap or an environment issue"
+    }
   }
 }

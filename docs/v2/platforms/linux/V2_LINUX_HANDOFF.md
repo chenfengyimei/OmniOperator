@@ -231,3 +231,5 @@ uv run --no-sync python agent/scripts/accept_native_credentials.py --cleanup <�
 进一步诊断：seat 会话为 **29**（Type=x11、Seat=seat0、Display=:0、Active=yes），而 Xorg 进程在 `system.slice/lightdm.service` 中，**不属于任何 logind 会话**；会话内探针仍为 `session.kind=unknown`。若 Inspector 的 X11 证明要求 X 服务器归属活动会话，那么 LightDM/GDM 这类真实桌面也会同样不满足——这更像合同缺口而非 VM 特例。需 A 决定：接受 display-manager 启动的 Xorg（以 seat/会话活动性证明），还是要求 startx 式 Xorg 位于用户会话内。
 
 会话启动后等待 45 秒再跑验收，结果仍为 `session_kind=unknown` / `linux_sample_read_unavailable`，排除“autostart 过早”假设。logind 本身显示 `User.Display=29`、`Sessions=29 24`、`State=active`，会话 29 为 x11/user/seat0/:0。下一步需确认 Inspector 实际查询的 PID（worker 还是 Xorg）及其 `GetSessionByPID` 返回值，再决定是代码缺口还是启动方式问题。
+
+抓取到 worker 归属：`omni.adapters.workers.desktop` 进程在 **session-31（x11，user-10001.slice）**，seat0 的 ActiveSession 也是 31，系统总线与 logind 正常；worker 直接导入/启动无报错（等待协议输入）。但探针仍 `session.kind=unknown`、能力全部 unavailable。结论：**不是会话归属问题**，失败发生在 worker 内部并被后端概括为 `desktop_native_unavailable`。下一步需抓 worker 的真实错误（stderr/error_code）再判断是代码缺口还是环境问题。
