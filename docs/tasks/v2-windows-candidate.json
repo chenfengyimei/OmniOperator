@@ -86,19 +86,18 @@
     }
   ],
   "acceptance": {
-    "candidate_source": "7e64d3488c2074a977deeba6561dba5b914f1b86",
+    "candidate_source": "dae24cf7",
     "full_suite": {
-      "passed": 5998,
+      "passed": 8648,
       "failed": 0,
       "errors": 0,
-      "skipped": 0,
-      "duration_s": 1791.23
+      "skipped": 10,
+      "duration_s": 2872.39
     },
     "windows_offline_complete": true,
     "whole_v2_complete": false,
-    "default_entrypoint": "v2",
-    "source_sha256": "aa0ddb88ff27af9c41820abeecb21c5e87b498bf40e0b06fad261e21db7a72cc",
-    "evidence": "docs/evidence/v2-windows-acceptance.json"
+    "evidence": "docs/evidence/v2-release-candidate-05b44447-2026-11-24.json",
+    "note": "替换旧候选 7e64d3488 的 5998 项结果；本条目只反映当前候选。"
   },
   "release_followups": [
     "真实账号、模型质量、设备、原生桌面、72小时及其他平台另行正式验收。",
@@ -213,5 +212,27 @@
     "evidence": "docs/evidence/v2-windows-service-r3.json",
     "tests": "服务四模块 98 passed；strict 0 错 0 警",
     "next": "H 从修复提交重建官方 wheel，验 启动回执成功→status PID 一致→正常排空→卸载成功；随后冻结候选、全量与 72 小时"
+  },
+  "release_candidate_dae24cf7": {
+    "date": "2026-11-24",
+    "candidate": "dae24cf7",
+    "wheel_sha256": "7afc5b7d8f5a1f525afbf61ac1e479571cbf7a6567baa30b6eee6c535863efae",
+    "full_suite": {
+      "passed": 8648,
+      "failed": 0,
+      "skipped": 10,
+      "duration_s": 2872.39
+    },
+    "service_chain": "14 步 exit 0；status running/pid 141552/ready=true",
+    "install_chain": "13 步 exit 0；首卸 cleanup_pending 后重试成功",
+    "installation_check": "verified=true（首卸 cleanup_pending → 重试成功）",
+    "soak": "运行中 2026-11-24T02:26:08+08:00 → 2026-11-27T02:26:08+08:00",
+    "blockers": [
+      "干净机产物验收",
+      "Developer ID/公证或交付形式",
+      "真实 QQ/B 站/安卓/视觉模型"
+    ],
+    "evidence": "docs/evidence/v2-release-candidate-05b44447-2026-11-24.json",
+    "whole_v2_complete": false
   }
 }

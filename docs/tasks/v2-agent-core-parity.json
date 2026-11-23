@@ -21,16 +21,17 @@
   "evidence": "docs/evidence/v2-agent-core-parity.json",
   "test_policy": "实现优先，只跑受影响模块和调用方专项；整个V2开发冻结后统一全量",
   "current_followup": {
-    "id": "K14.visual_subagent_decisions + scope_rulings",
-    "status": "decisions_recorded",
+    "id": "release_candidate_dae24cf7",
+    "status": "r4_closed_candidate_frozen_soak_running",
     "scope": [
-      "K14 D0–D5 写回合同与验收用例（父模型/已授权帧/一次 turn 计费/run 内留存/显式失败）",
-      "剩余功能「本版实现 / 延期及理由」裁定，优先分层人格、主动外联、B 站写入/分享/直播、视频 OCR"
+      "R4 关闭：utf8-envelope-v2 修复 20 项 token 预算失败，压缩契约 2 项对齐，shell/UIA 判并行抖动",
+      "候选 dae24cf7 全量 8648/0/10 绿；Windows 服务链、官方安装链与安装检查全过",
+      "72h 空载观测长跑运行中（隔离实例，独立守护）"
     ],
-    "contract": "docs/v2/contracts/V2_VISUAL_SUBAGENT.md",
-    "evidence": "docs/evidence/v2-scope-decisions.json",
-    "validation": "本批纯文档：合同/台账/证据更新；Linux 身份另批代码+专项（v2-linux-identity.json）。未跑全量。",
-    "next": "按延期清单前置条件推进：K01 P1-a 所有者对照 → 分层人格；外联授权合同 → 动机引擎；真实账号+配额账本 → B 站写/分享；provisioning 合同 → OCR。K14 视觉接线与 G3 真机复验为独立批次。"
+    "contract": "docs/v2/contracts/V2_TOKEN_ENVELOPE.md",
+    "evidence": "docs/evidence/v2-release-candidate-05b44447-2026-11-24.json",
+    "validation": "全量 8648 passed/0 failed/10 skipped（2872.39s）；strict 434/0；服务四模块 98 passed",
+    "next": "72h 窗口结束后 report；干净机与签名/公证、真实账号/设备仍待所有者；延期功能按台账保留"
   },
   "requirements": [
     {
