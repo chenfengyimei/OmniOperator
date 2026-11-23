@@ -1,0 +1,33 @@
+{
+  "schema": 1,
+  "topic": "v2-linux-identity",
+  "date": "2026-11-23",
+  "source_head": "7c610a64",
+  "scope": "G3 两个身份阻塞点定案并实现：(1) AT-SPI 地址 guid 与 GetId 不一致时的身份证据；(2) display-manager（LightDM/GDM/SDDM）在系统单元启动 Xorg、无 logind 会话时的显示归属证据。Windows 注入专项通过；真实桌面复验仍待。",
+  "decisions": {
+    "a11y_guid": "地址 guid 只作不透明元数据：保留地址/GetId 形态校验，不再要求 guid==GetId；总线身份 = 路径 inode（连接前后一致）+ SO_PEERCRED 对端（pid/uid/创建时间/可执行）+ GetNameOwner/GetConnectionUnixProcessID/UnixUser。",
+    "xorg_session": "GetSessionByPID 返回会话时仍须等于活动会话；返回 NoSessionForPID 且当前会话已证明为活动 x11 会话时接受（显示归属证据：活动 x11 会话字段 + Display=:N 对应规范 socket + root 所有真实 Xorg 对端 + Xauthority 授权当前 uid）；其他错误或会话不符仍失败关闭。"
+  },
+  "changes": [
+    "agent/src/omni/adapters/platform/desktop/linux/linux_session.py：open_bus 取消 guid 相等要求，保留 GetId 形态与记录",
+    "agent/src/omni/adapters/platform/desktop/linux/linux_x11_socket.py：server_session 对 NoSessionForPID 的 display-manager 分支",
+    "agent/tests/v2/platforms/linux/test_v2_linux_desktop.py：移除「guid 必须相等」拒绝用例，新增 guid 不等的接受 + 对端替换仍拒用例",
+    "agent/tests/v2/platforms/linux/test_v2_x11_socket.py：新增无 logind 会话的 DM Xorg 接受用例"
+  ],
+  "contracts": [
+    "docs/v2/contracts/V2_LINUX_IDENTITY.md",
+    "docs/v2/platforms/linux/V2_LINUX_HANDOFF.md"
+  ],
+  "verification": {
+    "command": "uv run --no-sync pytest -q -n 0 agent/tests/v2/platforms/linux/test_v2_linux_bus.py agent/tests/v2/platforms/linux/test_v2_linux_desktop.py agent/tests/v2/platforms/linux/test_v2_x11_socket.py",
+    "result": "79 passed, 1 skipped",
+    "seconds": 5.88,
+    "platform": "Windows 注入（无真实 X11/AT-SPI）"
+  },
+  "not_executed": [
+    "真实 LightDM/GDM/SDDM 桌面复验（需 accept_linux_desktop.py 在会话内运行，确认 session.kind=interactive 且两个 peer_unverified 消失）",
+    "真实 AT-SPI 写动作/输入授权（input_authorized 仍 false）",
+    "Wayland 复用本证明（不适用）"
+  ],
+  "whole_v2_complete": false
+}
