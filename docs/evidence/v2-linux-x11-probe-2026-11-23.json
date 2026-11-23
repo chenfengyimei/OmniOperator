@@ -110,6 +110,12 @@
         ]
       ],
       "conclusion": "the worker returns a well-formed report with no exception; the session inspector left session=None (kind unknown) even though logind shows session 31 x11/seat0 active. Next: read SessionInspector.open()/read_session to find why it returns without a session, or instrument it in the VM copy"
+    },
+    "open_flow": {
+      "code": "SessionInspector.open(): uid check -> system bus -> logind owner -> self.session = await read_session() -> accessibility/check",
+      "read_session": "raises desktop_headless/unverified on any failed check; it never returns a partial session",
+      "contradiction": "the worker report has session=None with top-level error=None, which the read_session contract should make impossible if open() ran to completion; either the report was assembled by a fallback path or the error was dropped in capability_report",
+      "next": "instrument SessionInspector.open/read_session in the VM copy (clean sed patches) to log entry, selected_path, read_session result/exception, and the capability_report arguments"
     }
   }
 }

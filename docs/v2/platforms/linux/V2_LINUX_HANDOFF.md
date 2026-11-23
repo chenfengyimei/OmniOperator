@@ -239,3 +239,5 @@ uv run --no-sync python agent/scripts/accept_native_credentials.py --cleanup <�
 更正：此前“_spawn 未调用”的结论是**无效**的——临时补丁引入语法错误导致探针 import 失败，读到的是旧报告。清理后重测：`_spawn probe` 确实被调用，worker 正常返回一份报告，其中 `session.kind=unknown`、`window_identity/accessibility=desktop_native_unavailable`，worker 无异常。即拒绝是 **worker 在构建 probe 报告时**产生的，最可能在 Linux AT-SPI/会话初始化路径。下一步读 `linux_desktop`/`linux_atspi` 的 probe 初始化，定位 `desktop_native_unavailable` 分支。
 
 完整 probe 报告：`session={kind:unknown, identity:null}`、顶层 `error=null`、能力错误均为 `desktop_native_unavailable`（screen/foreground 为 not_implemented）。worker 无异常，报告结构完整；即 `SessionInspector.open()` 在 logind 明明显示会话 31（x11/seat0/active）时仍未填充 session。下一步读 `open()`/`read_session` 的静默返回路径，并在 VM 副本里干净地打点（避免上次的补丁语法错误）。
+
+`SessionInspector.open()` 流程确认：uid 检查 → 系统总线 → logind owner → `self.session = await read_session()` → 辅助功能/check；`read_session` 在任何检查失败时都会抛错，不会返回部分会话。但 worker 报告是 session=None 且顶层 error=None，与契约矛盾——要么报告由回退路径拼装、要么 error 在 capability_report 里被丢弃。下一步在 VM 副本里干净打点 open/read_session（入口、selected_path、返回值/异常、capability_report 参数），再下结论。
