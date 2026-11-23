@@ -150,3 +150,8 @@ frames 作业新增可选 `select="scenes"`（默认 `equidistant` 字节等价�
 - scenes 专项 33 项 11.56 秒；K16 生产入口 422 项结果沿用同生产源码。
 
 **边界**：合成色块，不含真实运动/压缩复杂度；未测真实 10min 内存曲线；7200s 最大时长未端到端；真实长片/真实 B 站仍另验。
+
+
+## K16 真实素材验收（2026-11-23）
+
+用 CC-BY 3.0 的 Big Buck Bunny（596.48s，640×360）执行 [V2_K16_ACCEPTANCE_PLAN](V2_K16_ACCEPTANCE_PLAN.md)：10 个代表切点，240 样本召回 2/10、1200 样本召回 8/10 但出现运动误切（抽查 45.04s 同场景），强切点绕过实验产生 135 个切点已回退；宫格尺寸/字节未越限，credits 占槽 6/12（240）与 3/12（1200）。结论：**自适应阈值/宫格/OCR 本版均不做**；长片采样/运动判别与槽位分配需独立设计。详见 [V2_K16_REAL_ACCEPTANCE](V2_K16_REAL_ACCEPTANCE.md) 与 [v2-k16-real-acceptance.json](../evidence/v2-k16-real-acceptance.json)。
