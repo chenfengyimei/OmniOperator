@@ -255,3 +255,5 @@ uv run --no-sync python agent/scripts/accept_native_credentials.py --cleanup <�
 X11 侧定位：`linux_x11_socket.py` 要求 socket 身份 + Xorg 进程 uid/会话 + 可执行名 `Xorg`。当前 LightDM 把 Xorg 放在 `system.slice/lightdm.service`，**没有 logind 会话**，用户会话（x11/seat0）并不拥有 X 服务器，因此 `server_session` 无法把 Xorg 绑定到活动会话 → `desktop_x11_peer_unverified`。两条出路（startx 式 Xorg 会引入 tty 会话类型与 x11 要求的冲突，或由 A 决定 DM 启动的 Xorg 如何证明）都需 A 或真实桌面环境。至此 G3 的两个阻塞点都已精确定位：a11y 地址 guid≠GetId、DM 启动的 Xorg 无 logind 会话。
 
 两个待 A 决策的合同问题已整理成一页说明：[Linux 会话证明问题](../../contracts/V2_LINUX_SESSION_PROOF_QUESTIONS.md)（a11y 地址 guid 是否必须等于 GetId；DM 启动的 Xorg 如何证明会话归属），含现象、复现命令、可选方案与建议。
+
+真实 X11 会话突破（2026-11-23）：身份证明两项修改后，probe **四项能力全部 available**（window_identity/accessibility/screen_capture/foreground_control），X11 open 成功（Composite 0.4、X-Resource 1.2），A11Y_OK；targets 列出 atspi+x11，X11 目标 `verify.matches=true`。截屏仍失败：`desktop_x11_target_unverified`（targets/verify 已通过），需在 `X11Desktop.target()/verified()` 打点确认是 XRes 客户端 PID/uid、几何/border/root 哪一项，再修通并跑 `accept_linux_desktop.py --native-backend x11 --capture-window`。

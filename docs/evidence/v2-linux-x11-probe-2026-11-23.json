@@ -163,5 +163,31 @@
       "startx-style Xorg inside a real user session (but logind then reports the tty session type, conflicting with the x11 requirement)",
       "contract decision for A on how display-manager-launched Xorg should be proven"
     ]
+  },
+  "x11_real_session": {
+    "session": {
+      "kind": "interactive",
+      "identity": "linux:x11:..."
+    },
+    "probe": {
+      "window_identity": true,
+      "accessibility": true,
+      "screen_capture": true,
+      "foreground_control": true
+    },
+    "x11_open": {
+      "composite": "0.4",
+      "x_resource": "1.2",
+      "capture_error": null
+    },
+    "a11y": "A11Y_OK (address guid relaxed, SO_PEERCRED/context checks retained)",
+    "targets": {
+      "count": 2,
+      "x11_selected": 1,
+      "verify": "matches=true",
+      "native_id_prefix": "x11-live:"
+    },
+    "capture": "fails with desktop_x11_target_unverified from X11Desktop.target()/verified(); targets+verify pass, worker produces no captured frame",
+    "cause_under_investigation": "one of the target() checks (XRes client pid/uid, geometry/border/root) fails during capture; next step is to log those values in the VM copy"
   }
 }
