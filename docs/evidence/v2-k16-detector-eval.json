@@ -9,7 +9,7 @@
   "branch": "k16-storyboard",
   "contract": "docs/v2/contracts/V2_K16_LONG_VIDEO_SCENES.md",
   "files": {
-    "docs/v2/contracts/V2_K16_LONG_VIDEO_SCENES.md": "575b1e7677cc74f2d766ce0265a75bf62ab1f4a0a007a2dcae41d4386a24c090",
+    "docs/v2/contracts/V2_K16_LONG_VIDEO_SCENES.md": "c6908e08ae413a130adf56aa501491b9e68d7082c95472e54d6b435b07d4fba0",
     "docs/v2/contracts/V2_K16_REAL_ACCEPTANCE.md": "a6ad2ff7b67a7d5296d05169fca2bdcbfa720c443911d2218a238d621320acd6",
     "docs/v2/README.md": "5bad7fb8f3e188af90eb41473a96db070ada06bc0b19e4dfcca3b418999561c5",
     "docs/tasks/v2-agent-core-parity.json": "f5c618aaf0bed86b0d3b83d64c0191b04c966aceb9016506a11e1b55039bde90",
@@ -122,5 +122,41 @@
   "current_full_passed": false,
   "whole_core_parity_complete": false,
   "whole_reference_feature_audit_complete": false,
-  "whole_v2_complete": false
+  "whole_v2_complete": false,
+  "gap_contrast": {
+    "method": "compare RGB mean abs difference between sample i-1 and i+1, skipping candidate i",
+    "cap240": {
+      "production_cut_gap_range": [
+        47,
+        115
+      ],
+      "hist_extra_gap_range": [
+        37,
+        114
+      ],
+      "thresholds": [
+        5,
+        8,
+        10,
+        12,
+        15
+      ],
+      "result": "all 12 production cuts kept, 20/20 extras kept"
+    },
+    "cap1200": {
+      "production_cut_gap_range": [
+        8,
+        196
+      ],
+      "hist_extra_gap_range": [
+        2,
+        68
+      ],
+      "threshold_12": {
+        "kept_cuts": 119,
+        "extras_kept": "14/20"
+      }
+    },
+    "conclusion": "no separation; not usable as a guard"
+  }
 }
