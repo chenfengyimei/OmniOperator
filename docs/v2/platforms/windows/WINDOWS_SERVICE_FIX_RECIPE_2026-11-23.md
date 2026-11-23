@@ -12,7 +12,7 @@
 | D11 | `adapters/workers/windows_services.ps1::Same-Definition` | 真实导出省略默认值（`RunLevel`、`Enabled`、`StartWhenAvailable`…），`LogonTrigger/UserId` 由 SID 归一化为 `CY\cy`，`UseUnifiedSchedulingEngine=true`；严格比较失败 | 新增 `Add-Defaults`：补默认值、账号名→SID、移除 `UseUnifiedSchedulingEngine`，再比较 |
 | D11c | `adapters/platform/services/service_query.py::_task_identity` | 要求 Principal 恰含 `RunLevel`，真实导出省略 | 允许子集；缺失 `RunLevel` 规范化为 `LeastPrivilege`；拒绝重复元素 |
 | D11d | `adapters/platform/services/service_query.py::_xml` | `schtasks /Query /XML` 输出 UTF-8 字节却声明 `encoding="UTF-16"`，`ET.fromstring` 抛 ParseError | 解析前去掉 XML 声明 |
-| D11e | `adapters/platform/services/service_query.py::_query` | 只读查询不补 running/PID，manager 永远 `state=unknown`，status 永远 `ready=false` | **未包含在补丁**：需二选一——COM/受管进程与监听证明 running，或合同明确 Windows status ready 不可得、以 start 回执为准 |
+| D11e | `adapters/platform/services/service_query.py::_query` | 只读查询不补 running/PID，manager 永远 `state=unknown`，status 永远 `ready=false` | **已按方案 1 实现（2026-11-23）**：Task Scheduler COM 返回 `state` + `EnginePID`（`windows_services.ps1` 新增 `engine_pid` 字段），`ServiceQuery` 再证明引擎下的**动作进程自身**（命令行首项匹配计划 `Exec/Command`、参数按序匹配），返回 `pid`；引擎在但动作进程不可证 → `service_action_unverified`，仍不判 ready。契约见 [V2_SERVICES §status 就绪判定](../../operations/V2_SERVICES.md) |
 
 ## 2. 补丁内容
 
@@ -61,10 +61,11 @@ service apply-control <cp-start.json> --approve <cp-sha>
 # 期望 state=succeeded, observed.ready=true, boot_id 与计划一致
 # 期望 HTTP /api/v1/version 200, ready=true
 
-# 5) 只读状态（D11e 修法决定后）
+# 5) 只读状态（D11e 已按方案 1 实现）
 service status <bundle>
-# 若 D11e 选“补 running 证明”：期望 ready=true
-# 若 D11e 选“明确不可得”：期望 manager.state=unknown 但文档/输出明确 ready 不可用
+# 期望 manager.state=running、pid=动作进程 PID、definition_matches=true、ready=true
+# 引擎存在但找不到动作进程时：state=running、pid=null、error_code=service_action_unverified、ready=false
+# 辅助程序不可用/输出不可信时：state=unknown、pid=null、error_code=service_manager_state_unavailable、ready=false（不猜测）
 
 # 6) 正常排空 → 卸载
 service control-plan <bundle> stop <cp-stop.json>

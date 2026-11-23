@@ -405,3 +405,89 @@ def test_windows_task_identity_rejects_unknown_or_repeated_principal_fields():
     ET.SubElement(principal, "{" + ns["t"] + "}RunLevel").text = "HighestAvailable"
     with pytest.raises(ValueError, match="Principal fields are not exact"):
         q._task_identity(ET.tostring(tree))
+
+
+@pytest.mark.parametrize(
+    "state,engine_pid,pid,code",
+    [
+        ("running", 555, 4242, ""),
+        ("running", 555, None, "service_action_unverified"),
+        ("stopped", None, None, ""),
+    ],
+)
+def test_windows_status_reports_manager_state_and_verified_action(monkeypatch, state, engine_pid, pid, code):
+    """D11e: running needs the Task Scheduler state plus the action process under its engine."""
+    from omni.adapters.platform.services import service_registration as r
+
+    async def scenario():
+        data = plan("windows-user")
+        artifact = render(data)[manager_identity(data)["artifact"]]
+        native(monkeypatch, "windows-user")
+        inspector = q.ServiceQuery()
+
+        async def command(_argv):
+            return 0, artifact.decode().replace("utf-8", "utf-16").encode("utf-16")
+
+        monkeypatch.setattr(inspector, "_command", command)
+
+        async def receipt(_command, _plan, _action):
+            return {
+                "format": "omni-service-native-1",
+                "plan_sha256": data["sha256"],
+                "action": "inspect",
+                "available": True,
+                "installed": True,
+                "definition_present": True,
+                "definition_matches": True,
+                "enabled": True,
+                "state": state,
+                "engine_pid": engine_pid,
+                "effect": "none",
+                "error_code": "",
+            }
+
+        monkeypatch.setattr(r, "windows_receipt", receipt)
+        monkeypatch.setattr(q, "_action_pid", lambda _engine, _expected: pid)
+        result = await inspector.query(data)
+        assert result["state"] == state and result["pid"] == pid
+        assert result["error_code"] == code and result["definition_matches"] is True
+
+    asyncio.run(scenario())
+
+
+def test_windows_status_never_claims_running_when_the_native_state_is_unavailable(monkeypatch):
+    from omni.adapters.platform.services import service_registration as r
+
+    async def scenario():
+        data = plan("windows-user")
+        artifact = render(data)[manager_identity(data)["artifact"]]
+        native(monkeypatch, "windows-user")
+        inspector = q.ServiceQuery()
+
+        async def command(_argv):
+            return 0, artifact.decode().replace("utf-8", "utf-16").encode("utf-16")
+
+        monkeypatch.setattr(inspector, "_command", command)
+
+        async def receipt(_command, _plan, _action):
+            return {
+                "format": "omni-service-native-1",
+                "plan_sha256": data["sha256"],
+                "action": "inspect",
+                "available": False,
+                "installed": None,
+                "definition_present": None,
+                "definition_matches": None,
+                "enabled": None,
+                "state": "unknown",
+                "engine_pid": None,
+                "effect": "none",
+                "error_code": "service_registration_unverified",
+            }
+
+        monkeypatch.setattr(r, "windows_receipt", receipt)
+        result = await inspector.query(data)
+        assert result["state"] == "unknown" and result["pid"] is None
+        assert result["error_code"] == "service_manager_state_unavailable"
+
+    asyncio.run(scenario())

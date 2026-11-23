@@ -14,6 +14,20 @@
 | `materialize PLAN DESTINATION` | 发布全新部署目录，包含计划、启动文件、原生模板、说明和校验清单 | 不复制到系统服务目录 |
 | `verify BUNDLE` | 检查文件、内容、位置、程序及执行资格 | 只读，未具执行资格时退出码 1 |
 | `status BUNDLE` | 分别返回部署校验、管理器状态、运行身份和最终 ready | 只读，未证明就绪时退出码 1 |
+
+### `status` 就绪判定（D11e，2026-11-23）
+
+`status` 的 `ready` 是**管理器状态 + 运行身份**的证明，不是「文件存在」或「HTTP 能连」的同义词：
+
+| 平台 | running 证据 | ready 条件 |
+| --- | --- | --- |
+| `windows-user` | Task Scheduler COM：`IRegisteredTask.State == 4` 且存在运行实例（`GetInstances` 非空，返回 `EnginePID`）；再由该引擎 PID 向下找到**动作进程自身**（命令行首项等于计划 `Exec/Command`、参数按序匹配），报告其 PID | `installed` ∧ `definition_matches` ∧ `state == running` ∧ 已核验的动作 PID；引擎在但动作进程找不到 → `state=running`、`pid=null`、`error_code=service_action_unverified`，**不判 ready** |
+| `linux-user` | systemd `ActiveState=active`/`SubState=running` + `MainPID`/exec 身份 | 同上，`MainPID` 必须属于目标 uid 且可执行文件匹配 |
+| `macos-*` | 原生 helper 的 loaded 定义 + 运行 PID（`SMJobCopyDictionary` 完整枚举） | 同上，加载定义匹配且 PID 可证明 |
+
+- `schtasks /XML` 只证明**定义**（动作、主体、触发器、设置）；单独的定义匹配、任务已注册或「引擎进程存在」都不构成 running 证明。
+- HTTP `/ready` 与服务启动回执是**另一份证据**：可用于确认就绪窗口，但不能替代 `status` 的管理器状态与 PID 证明；两者一致时才在验收矩阵登记 ready。
+- 无法取得管理器状态（辅助程序不可用、被拒或输出不可信）时 `state=unknown`、`pid=null`、`error_code=service_manager_state_unavailable`，不猜测。
 | `operation-plan BUNDLE install\|uninstall OUTPUT` | 绑定完整部署、目标、步骤和 SHA256，写入新操作计划 | 不修改系统注册 |
 | `apply-operation OPERATION --approve SHA256` | 重新核验指纹，独占离线实例，先持久登记意图再执行 | 真实注册或移除；macOS 必须审阅计划中的激活/卸载影响，不删除实例数据 |
 | `inspect-operation OPERATION` | 读取该操作的私密回执 | 不调用系统管理器，不打开业务库 |

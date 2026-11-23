@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "8541cedec4429413e7e40c2081f2c7371c58f0ae75c3e79ecd4d56314f7cdb3c",
+  "source_sha256": "25ec91b5f6f33153b20e4fc535b13889e98cb9acfa20493fc76bd14c22b266a8",
   "modules": [
     {
       "id": "v2-domain",
@@ -520,7 +520,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 71930,
+      "lines": 72010,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -42115,11 +42115,12 @@
       "path": "agent/src/omni/adapters/platform/services/service_query.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.services.service_query",
-      "lines": 481,
+      "lines": 548,
       "imports": [
         "omni.adapters.platform.desktop.macos_helper",
         "omni.adapters.platform.runtime.processes",
         "omni.adapters.platform.services.macos_service",
+        "omni.adapters.platform.services.service_registration",
         "omni.adapters.platform.services.service_templates",
         "omni.adapters.platform.services.systemd_state",
         "omni.application.ports",
@@ -42150,8 +42151,32 @@
           }
         },
         {
-          "name": "_read_definition",
+          "name": "_action_identity",
           "line": 84,
+          "kind": "function",
+          "parameters": [
+            "expected"
+          ],
+          "annotations": {
+            "expected": "bytes"
+          }
+        },
+        {
+          "name": "_action_pid",
+          "line": 94,
+          "kind": "function",
+          "parameters": [
+            "engine_pid",
+            "expected"
+          ],
+          "annotations": {
+            "engine_pid": "int | None",
+            "expected": "bytes"
+          }
+        },
+        {
+          "name": "_read_definition",
+          "line": 133,
           "kind": "function",
           "parameters": [
             "path"
@@ -42162,7 +42187,7 @@
         },
         {
           "name": "_read_definition.identity",
-          "line": 101,
+          "line": 150,
           "kind": "function",
           "parameters": [
             "info"
@@ -42173,17 +42198,17 @@
         },
         {
           "name": "_Query",
-          "line": 110,
+          "line": 159,
           "kind": "class"
         },
         {
           "name": "ServiceQuery",
-          "line": 123,
+          "line": 172,
           "kind": "class"
         },
         {
           "name": "ServiceQuery.__init__",
-          "line": 126,
+          "line": 175,
           "kind": "function",
           "parameters": [
             "self"
@@ -42192,7 +42217,7 @@
         },
         {
           "name": "ServiceQuery.health",
-          "line": 134,
+          "line": 183,
           "kind": "function",
           "parameters": [
             "self"
@@ -42201,7 +42226,7 @@
         },
         {
           "name": "ServiceQuery.stop_accepting",
-          "line": 145,
+          "line": 194,
           "kind": "function",
           "parameters": [
             "self"
@@ -42210,7 +42235,7 @@
         },
         {
           "name": "ServiceQuery.query",
-          "line": 148,
+          "line": 197,
           "kind": "function",
           "parameters": [
             "self",
@@ -42222,7 +42247,7 @@
         },
         {
           "name": "ServiceQuery.query.complete",
-          "line": 171,
+          "line": 220,
           "kind": "function",
           "parameters": [
             "future"
@@ -42233,7 +42258,7 @@
         },
         {
           "name": "ServiceQuery._file",
-          "line": 179,
+          "line": 228,
           "kind": "function",
           "parameters": [
             "self",
@@ -42245,7 +42270,7 @@
         },
         {
           "name": "ServiceQuery._native_helper",
-          "line": 182,
+          "line": 231,
           "kind": "function",
           "parameters": [
             "self"
@@ -42254,7 +42279,7 @@
         },
         {
           "name": "ServiceQuery._blocking",
-          "line": 187,
+          "line": 236,
           "kind": "function",
           "parameters": [
             "self",
@@ -42266,7 +42291,7 @@
         },
         {
           "name": "ServiceQuery._program",
-          "line": 200,
+          "line": 249,
           "kind": "function",
           "parameters": [
             "target"
@@ -42277,7 +42302,7 @@
         },
         {
           "name": "ServiceQuery._drain",
-          "line": 220,
+          "line": 269,
           "kind": "function",
           "parameters": [
             "self",
@@ -42293,7 +42318,7 @@
         },
         {
           "name": "ServiceQuery._spawn",
-          "line": 230,
+          "line": 279,
           "kind": "function",
           "parameters": [
             "self",
@@ -42307,14 +42332,14 @@
         },
         {
           "name": "ServiceQuery._spawn.collected",
-          "line": 269,
+          "line": 318,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "ServiceQuery._reclaim_actual",
-          "line": 277,
+          "line": 326,
           "kind": "function",
           "parameters": [
             "self",
@@ -42328,7 +42353,7 @@
         },
         {
           "name": "ServiceQuery._reclaim",
-          "line": 298,
+          "line": 347,
           "kind": "function",
           "parameters": [
             "self",
@@ -42342,7 +42367,7 @@
         },
         {
           "name": "ServiceQuery._command",
-          "line": 311,
+          "line": 360,
           "kind": "function",
           "parameters": [
             "self",
@@ -42354,7 +42379,7 @@
         },
         {
           "name": "ServiceQuery._query",
-          "line": 352,
+          "line": 401,
           "kind": "function",
           "parameters": [
             "self",
@@ -42366,7 +42391,7 @@
         },
         {
           "name": "ServiceQuery._macos_native",
-          "line": 413,
+          "line": 480,
           "kind": "function",
           "parameters": [
             "self",
@@ -42378,7 +42403,7 @@
         },
         {
           "name": "ServiceQuery._linux",
-          "line": 452,
+          "line": 519,
           "kind": "function",
           "parameters": [
             "self",
@@ -42394,7 +42419,7 @@
         },
         {
           "name": "ServiceQuery.close",
-          "line": 464,
+          "line": 531,
           "kind": "function",
           "parameters": [
             "self",
@@ -42593,7 +42618,7 @@
       "path": "agent/src/omni/adapters/platform/services/service_registration.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.services.service_registration",
-      "lines": 420,
+      "lines": 432,
       "imports": [
         "omni.adapters.object_store",
         "omni.adapters.platform.services.deployment_files",
@@ -42609,7 +42634,7 @@
       "symbols": [
         {
           "name": "_unknown",
-          "line": 31,
+          "line": 32,
           "kind": "function",
           "parameters": [
             "code",
@@ -42622,7 +42647,7 @@
         },
         {
           "name": "_owner_can_register",
-          "line": 43,
+          "line": 44,
           "kind": "function",
           "parameters": [
             "info",
@@ -42635,12 +42660,12 @@
         },
         {
           "name": "ServiceRegistration",
-          "line": 47,
+          "line": 48,
           "kind": "class"
         },
         {
           "name": "ServiceRegistration.__init__",
-          "line": 50,
+          "line": 51,
           "kind": "function",
           "parameters": [
             "self"
@@ -42649,7 +42674,7 @@
         },
         {
           "name": "ServiceRegistration._supported",
-          "line": 54,
+          "line": 55,
           "kind": "function",
           "parameters": [
             "self",
@@ -42661,7 +42686,7 @@
         },
         {
           "name": "ServiceRegistration.inspect",
-          "line": 64,
+          "line": 65,
           "kind": "function",
           "parameters": [
             "self",
@@ -42673,7 +42698,7 @@
         },
         {
           "name": "ServiceRegistration.start",
-          "line": 77,
+          "line": 78,
           "kind": "function",
           "parameters": [
             "self",
@@ -42685,7 +42710,7 @@
         },
         {
           "name": "ServiceRegistration._inspect_macos",
-          "line": 112,
+          "line": 113,
           "kind": "function",
           "parameters": [
             "self",
@@ -42697,7 +42722,7 @@
         },
         {
           "name": "ServiceRegistration._inspect_linux",
-          "line": 152,
+          "line": 153,
           "kind": "function",
           "parameters": [
             "self",
@@ -42709,7 +42734,7 @@
         },
         {
           "name": "ServiceRegistration._check_unit_path",
-          "line": 186,
+          "line": 187,
           "kind": "function",
           "parameters": [
             "path",
@@ -42722,7 +42747,7 @@
         },
         {
           "name": "ServiceRegistration._publish_unit",
-          "line": 206,
+          "line": 207,
           "kind": "function",
           "parameters": [
             "self",
@@ -42734,7 +42759,7 @@
         },
         {
           "name": "ServiceRegistration._remove_unit",
-          "line": 236,
+          "line": 237,
           "kind": "function",
           "parameters": [
             "self",
@@ -42746,7 +42771,7 @@
         },
         {
           "name": "ServiceRegistration.change",
-          "line": 249,
+          "line": 250,
           "kind": "function",
           "parameters": [
             "self",
@@ -42760,7 +42785,7 @@
         },
         {
           "name": "ServiceRegistration._change_macos",
-          "line": 265,
+          "line": 266,
           "kind": "function",
           "parameters": [
             "self",
@@ -42774,7 +42799,7 @@
         },
         {
           "name": "ServiceRegistration._change_linux",
-          "line": 304,
+          "line": 305,
           "kind": "function",
           "parameters": [
             "self",
@@ -42788,7 +42813,7 @@
         },
         {
           "name": "ServiceRegistration._windows",
-          "line": 335,
+          "line": 336,
           "kind": "function",
           "parameters": [
             "self",
@@ -42796,6 +42821,21 @@
             "action"
           ],
           "annotations": {
+            "plan": "Record",
+            "action": "str"
+          }
+        },
+        {
+          "name": "windows_receipt",
+          "line": 340,
+          "kind": "function",
+          "parameters": [
+            "command",
+            "plan",
+            "action"
+          ],
+          "annotations": {
+            "command": "Callable[[list[str]], Awaitable[tuple[int, bytes]]]",
             "plan": "Record",
             "action": "str"
           }
@@ -47063,7 +47103,7 @@
       "path": "agent/src/omni/adapters/workers/windows_services.ps1",
       "module": "v2-adapters",
       "python_module": null,
-      "lines": 201,
+      "lines": 202,
       "imports": [],
       "symbols": [],
       "kind": "asset",

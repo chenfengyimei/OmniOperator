@@ -529,6 +529,15 @@ K13.cron_model_design 已记录**实现前设计合同**（纯文档，无源码
 - **边界**：TTL 用受控时钟、暂停为合成暂停、不修改远端数据；真实 24h 墙钟、真实风控触发、模型质量与 72 小时仍待验。只读验收不代表读 API 全量真实账号送达。
 - **未改动**：无生产源码/迁移/路由/worker 改动；仅新增验收脚本、手册、证据与本段。
 
+## 2026-11-23 D11e：Windows `service status` 运行状态证明（基线 `6d81a826`）
+
+- **决定（方案 1）**：`status` 的 ready 必须由**管理器状态 + 运行身份**证明，不再以「任务已注册」或「HTTP 能连」代替。Windows 用 Task Scheduler COM 读 `IRegisteredTask.State` 与运行实例 `EnginePID`（`windows_services.ps1` receipt 新增 `engine_pid`），再由引擎 PID 向下证明**动作进程自身**（命令行首项等于计划 `Exec/Command`、参数按序匹配）并报告其 `pid`。
+- **失败语义**：引擎在但动作进程不可证 → `state=running`、`pid=null`、`error_code=service_action_unverified`，不判 ready；辅助程序不可用/输出不可信 → `state=unknown`、`error_code=service_manager_state_unavailable`，绝不猜测；定义漂移仍以 `service_definition_mismatch` 优先。
+- **契约与验收标准同步**：[V2_SERVICES §status 就绪判定](v2/operations/V2_SERVICES.md)（三平台列明证据与 ready 条件）；[Windows 修复配方](v2/platforms/windows/WINDOWS_SERVICE_FIX_RECIPE_2026-11-23.md) 的 D11e 行与 `service status` 期望输出改为 `state=running`、`pid` 非空、`ready=true`。
+- **验证**：`test_v2_service_query.py` **31 passed**、`service_registration/start/drain` **74 passed**；覆盖 running+已证 PID、running+动作不可证、stopped、原生不可用四类回执，以及 receipt 对缺失/伪造/越界 `engine_pid` 的拒绝。
+- **未验**：真实 Windows 任务的 EnginePID→动作进程链路需 H 用主线 wheel 重跑 install→start→status→drain→uninstall；干净机器、官方产物与 72 小时仍待。
+- 证据：[v2-windows-service-d11e.json](evidence/v2-windows-service-d11e.json)；台账 [v2-windows-candidate.json](tasks/v2-windows-candidate.json) 新增 `service_status_d11e`。
+
 ## 追溯入口
 
 - [旧交接记录](history/pre-layout-2026-11-18/HANDOFF.md)、[旧重构记录](history/pre-layout-2026-11-18/V2_REFACTOR.md)只证明所属版本，不作为当前待办。

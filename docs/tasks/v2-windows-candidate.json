@@ -182,5 +182,14 @@
     "local_development_and_documentation_closeout_complete": true,
     "local_session_waiting_for_mac_connection": false,
     "whole_v2_complete": false
+  },
+  "service_status_d11e": {
+    "date": "2026-11-23",
+    "status": "implemented_pending_real_machine",
+    "decision": "方案 1：Task Scheduler COM 的 state + EnginePID，再由引擎证明动作进程自身并报告其 PID",
+    "contract": "docs/v2/operations/V2_SERVICES.md",
+    "evidence": "docs/evidence/v2-windows-service-d11e.json",
+    "tests": "service_query 31 passed；registration/start/drain 74 passed",
+    "next": "H 用主线 wheel 重跑 install→start→status（ready=true、pid 非空）→drain→uninstall；干净机器/官方产物/72 小时另验"
   }
 }

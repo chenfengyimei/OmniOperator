@@ -34,7 +34,7 @@ def _xml(payload: bytes) -> ET.Element:
     flattened = payload.replace(b"\0", b"").upper()
     if len(payload) > MAX_OUTPUT or b"<!DOCTYPE" in flattened or b"<!ENTITY" in flattened:
         raise ValueError("Unsupported task XML")
-    body = payload[payload.find(b"?>") + 2:] if payload.lstrip().startswith(b"<?xml") and b"?>" in payload else payload
+    body = payload[payload.find(b"?>") + 2 :] if payload.lstrip().startswith(b"<?xml") and b"?>" in payload else payload
     result = ET.fromstring(body)
     if result.tag != "{http://schemas.microsoft.com/windows/2004/02/mit/task}Task":
         raise ValueError("Unexpected task definition")
@@ -79,6 +79,55 @@ def _task_identity(payload: bytes) -> tuple[Any, ...]:
             for key in ("UserId", "LogonType", "RunLevel")
         ),
     )
+
+
+def _action_identity(expected: bytes) -> tuple[str, str] | None:
+    """Return the expected executable action (command, arguments) from the task XML."""
+    root = _xml(expected)
+    ns = {"t": "http://schemas.microsoft.com/windows/2004/02/mit/task"}
+    execution = root.find("t:Actions/t:Exec", ns)
+    if execution is None:
+        return None
+    return execution.findtext("t:Command", namespaces=ns) or "", execution.findtext("t:Arguments", namespaces=ns) or ""
+
+
+def _action_pid(engine_pid: int | None, expected: bytes) -> int | None:
+    """Prove the running action by its own process, not by the task engine alone."""
+    if not engine_pid or type(engine_pid) is not int:
+        return None
+    identity = _action_identity(expected)
+    if identity is None:
+        return None
+    command, arguments = identity
+    tokens = [token for token in arguments.replace('"', " ").split() if token]
+    try:
+        import psutil
+    except ImportError:
+        return None
+    try:
+        children = psutil.Process(engine_pid).children(recursive=True)
+    except (psutil.Error, OSError):
+        return None
+    for child in children:
+        try:
+            cmdline = child.cmdline()
+        except (psutil.Error, OSError):
+            continue
+        if not cmdline or os.path.normcase(cmdline[0]) != os.path.normcase(command):
+            continue
+        rest = [os.path.normcase(token) for token in cmdline[1:]]
+        position, matched = 0, True
+        for token in tokens:
+            needle = os.path.normcase(token)
+            while position < len(rest) and rest[position] != needle:
+                position += 1
+            if position == len(rest):
+                matched = False
+                break
+            position += 1
+        if matched:
+            return int(child.pid)
+    return None
 
 
 def _read_definition(path: Path) -> bytes:
@@ -395,12 +444,30 @@ class ServiceQuery:
                     matches = _task_identity(output) == _task_identity(expected)
                 except (ValueError, ET.ParseError):
                     return _report(installed=True, code="service_definition_unverified")
+                # D11e: task XML proves the definition only. Running comes from the
+                # Task Scheduler COM state plus the action's own process under the
+                # engine PID; a lone engine or a queued task is never reported ready.
+                from omni.adapters.platform.services.service_registration import windows_receipt
+
+                receipt = await windows_receipt(self._command, plan, "inspect")
+                state, pid, code = "unknown", None, ""
+                if not receipt.get("available"):
+                    code = "service_manager_state_unavailable"
+                else:
+                    state = str(receipt.get("state") or "unknown")
+                    if state == "running":
+                        pid = _action_pid(cast(int | None, receipt.get("engine_pid")), expected)
+                        if pid is None:
+                            code = "service_action_unverified"
                 return _report(
                     installed=True,
                     matches=matches,
-                    code="" if matches else "service_definition_mismatch",
+                    state=state,
+                    pid=pid,
+                    code="service_definition_mismatch" if not matches else code,
                     limitations=(
-                        "Task XML does not prove current process health or PID.",
+                        "Task XML alone does not prove current process health or PID.",
+                        "Running requires the Task Scheduler state and a verified action process under its engine.",
                         "Definition check covers the executable action and its bound principal.",
                     ),
                 )

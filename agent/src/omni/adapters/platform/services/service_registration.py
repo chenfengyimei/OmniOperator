@@ -8,6 +8,7 @@ import os
 import stat
 import sys
 import uuid
+from collections.abc import Awaitable, Callable
 from pathlib import Path
 from typing import cast
 
@@ -333,88 +334,99 @@ class ServiceRegistration(ServiceQuery):
             return {"effect": "unknown", "error_code": "service_registration_interrupted"}
 
     async def _windows(self, plan: Record, action: str) -> Record:
-        if sys.platform != "win32":
-            return _unknown("service_registration_target_unimplemented", available=False)
-        directory = ctypes.create_unicode_buffer(32768)
-        try:
-            kernel = ctypes.WinDLL("kernel32", use_last_error=True)
-            size = kernel.GetSystemDirectoryW(directory, len(directory))
-            if not 0 < size < len(directory):
-                raise OSError("System executable unavailable")
-            program = Path(directory.value) / "WindowsPowerShell/v1.0/powershell.exe"
-            script = Path(__file__).resolve().parents[2] / "workers/windows_services.ps1"
-            _no_links(script)
-            _read(script, 65536, single=True)
-            manager = cast(dict[str, str], manager_identity(plan))
-            definition = Path(cast(str, cast(Record, plan["request"])["bundle_dir"])) / manager["artifact"]
-            expected = render(cast(Payload, plan))[manager["artifact"]]
-            if _read(definition, 65536, single=True) != expected:
-                raise BusinessError("service_definition_mismatch", "Service bundle changed before native dispatch")
-            argv = [
-                str(program),
-                "-NoLogo",
-                "-NoProfile",
-                "-NonInteractive",
-                "-Mta",
-                "-File",
-                str(script),
-                "-Mode",
-                action,
-                "-TaskName",
-                manager["name"],
-                "-Definition",
-                str(definition),
-                "-ExpectedSHA256",
-                hashlib.sha256(expected).hexdigest(),
-                "-OwnerSID",
-                cast(str, cast(Record, cast(Record, plan["request"])["principal"])["id"]),
-                "-PlanSHA256",
-                cast(str, plan["sha256"]),
-            ]
-            code, output = await self._command(argv)
-            result = _decode(output)
-            if (
-                code != 0
-                or result.get("format") != "omni-service-native-1"
-                or result.get("plan_sha256") != plan["sha256"]
-                or result.get("action") != action
-            ):
-                raise ValueError("Native receipt identity is invalid")
-            allowed = {
-                "format",
-                "plan_sha256",
-                "action",
-                "available",
-                "installed",
-                "definition_present",
-                "definition_matches",
-                "enabled",
-                "state",
-                "effect",
-                "error_code",
-            }
-            if (
-                set(result) != allowed
-                or result["state"] not in {"stopped", "running", "unknown"}
-                or result["effect"] not in {"none", "applied", "unknown"}
-            ):
-                raise ValueError("Native receipt fields are invalid")
-            if (
-                any(
-                    type(result[key]) not in {bool, type(None)}
-                    for key in ("installed", "definition_present", "definition_matches", "enabled")
-                )
-                or type(result["available"]) is not bool
-            ):
-                raise ValueError("Native receipt flags are invalid")
-            if (
-                not isinstance(result["error_code"], str)
-                or len(result["error_code"]) > 100
-                or any(not (char.isascii() and (char.islower() or char == "_")) for char in result["error_code"])
-            ):
-                raise ValueError("Native error code is not metadata")
-            return result
-        except (BusinessError, OSError, ValueError, UnicodeError, AttributeError):
-            if action == "inspect":
-                return _unknown("service_registration_unverified")
-            return {"effect": "unknown", "error_code": "service_registration_interrupted"}
+        return await windows_receipt(self._command, plan, action)
+
+
+async def windows_receipt(
+    command: Callable[[list[str]], Awaitable[tuple[int, bytes]]], plan: Record, action: str
+) -> Record:
+    """One bounded Task Scheduler COM receipt; shared by registration and read-only status."""
+    if sys.platform != "win32":
+        return _unknown("service_registration_target_unimplemented", available=False)
+    directory = ctypes.create_unicode_buffer(32768)
+    try:
+        kernel = ctypes.WinDLL("kernel32", use_last_error=True)
+        size = kernel.GetSystemDirectoryW(directory, len(directory))
+        if not 0 < size < len(directory):
+            raise OSError("System executable unavailable")
+        program = Path(directory.value) / "WindowsPowerShell/v1.0/powershell.exe"
+        script = Path(__file__).resolve().parents[2] / "workers/windows_services.ps1"
+        _no_links(script)
+        _read(script, 65536, single=True)
+        manager = cast(dict[str, str], manager_identity(plan))
+        definition = Path(cast(str, cast(Record, plan["request"])["bundle_dir"])) / manager["artifact"]
+        expected = render(cast(Payload, plan))[manager["artifact"]]
+        if _read(definition, 65536, single=True) != expected:
+            raise BusinessError("service_definition_mismatch", "Service bundle changed before native dispatch")
+        argv = [
+            str(program),
+            "-NoLogo",
+            "-NoProfile",
+            "-NonInteractive",
+            "-Mta",
+            "-File",
+            str(script),
+            "-Mode",
+            action,
+            "-TaskName",
+            manager["name"],
+            "-Definition",
+            str(definition),
+            "-ExpectedSHA256",
+            hashlib.sha256(expected).hexdigest(),
+            "-OwnerSID",
+            cast(str, cast(Record, cast(Record, plan["request"])["principal"])["id"]),
+            "-PlanSHA256",
+            cast(str, plan["sha256"]),
+        ]
+        code, output = await command(argv)
+        result = _decode(output)
+        if (
+            code != 0
+            or result.get("format") != "omni-service-native-1"
+            or result.get("plan_sha256") != plan["sha256"]
+            or result.get("action") != action
+        ):
+            raise ValueError("Native receipt identity is invalid")
+        allowed = {
+            "format",
+            "plan_sha256",
+            "action",
+            "available",
+            "installed",
+            "definition_present",
+            "definition_matches",
+            "enabled",
+            "state",
+            "engine_pid",
+            "effect",
+            "error_code",
+        }
+        if (
+            set(result) != allowed
+            or result["state"] not in {"stopped", "running", "unknown"}
+            or result["effect"] not in {"none", "applied", "unknown"}
+        ):
+            raise ValueError("Native receipt fields are invalid")
+        if (
+            any(
+                type(result[key]) not in {bool, type(None)}
+                for key in ("installed", "definition_present", "definition_matches", "enabled")
+            )
+            or type(result["available"]) is not bool
+        ):
+            raise ValueError("Native receipt flags are invalid")
+        engine_pid = result["engine_pid"]
+        if engine_pid is not None and (type(engine_pid) is not int or not 0 < engine_pid <= 4294967295):
+            raise ValueError("Native engine pid is invalid")
+        if (
+            not isinstance(result["error_code"], str)
+            or len(result["error_code"]) > 100
+            or any(not (char.isascii() and (char.islower() or char == "_")) for char in result["error_code"])
+        ):
+            raise ValueError("Native error code is not metadata")
+        return result
+    except (BusinessError, OSError, ValueError, UnicodeError, AttributeError):
+        if action == "inspect":
+            return _unknown("service_registration_unverified")
+        return {"effect": "unknown", "error_code": "service_registration_interrupted"}

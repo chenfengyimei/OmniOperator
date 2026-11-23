@@ -12,7 +12,7 @@ $ErrorActionPreference = 'Stop'
 $result = [ordered]@{
     format='omni-service-native-1'; plan_sha256=$PlanSHA256; action=$Mode
     available=$true; installed=$null; definition_present=$null; definition_matches=$null
-    enabled=$null; state='unknown'; effect='none'; error_code=''
+    enabled=$null; state='unknown'; engine_pid=$null; effect='none'; error_code=''
 }
 $dispatched = $false
 $service = $null; $folder = $null; $task = $null
@@ -148,6 +148,7 @@ function Inspect-Task {
         if ($instances.Count -gt 0 -or [int]$task.State -in @(2,4)) { $result.state='running' }
         elseif ([int]$task.State -in @(1,3)) { $result.state='stopped' }
         else { $result.state='unknown' }
+        if ($instances.Count -gt 0) { $result.engine_pid = [int]$instances.Item(0).EnginePID }
     } finally { if ($null -ne $instances) { [void][Runtime.InteropServices.Marshal]::FinalReleaseComObject($instances) } }
 }
 try {

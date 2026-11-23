@@ -234,6 +234,7 @@ def test_windows_native_receipt_is_identity_bound_and_rejects_untrusted_output(m
                 "definition_matches": None,
                 "enabled": False,
                 "state": "stopped",
+                "engine_pid": None,
                 "effect": "none",
                 "error_code": "",
             }
