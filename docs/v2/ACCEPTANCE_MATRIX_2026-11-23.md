@@ -82,6 +82,7 @@
 - 第二缺陷（D11）：在安装副本上临时去掉声明后重走全链，任务成功创建（Ready、enabled=true），但 Task Scheduler 导出省略默认值元素（`RunLevel=LeastPrivilege`、`LogonTrigger/Enabled=true`、`Settings/Enabled=true`、`StartWhenAvailable=false`、`RunOnlyIfNetworkAvailable=false`、`Hidden=false`、`WakeToRun=false`），并把 `LogonTrigger/UserId` 从 SID 归一化为 `CY\cy`；helper `Same-Definition` 要求元素存在且文本严格相等，返回 `definition_matches=false`。第二次带默认值补丁的演练被前一次未决维护意图挡住（`service_operation_unresolved`），未走到 start；证据足以确认 D11 的两类归一化。临时任务已删除、安装副本文件已恢复。
 - 第三缺陷（D11c/D11d/D11e）：svc2 全新 home 同时应用 D10+D11 后，注册 succeeded（definition_matches=true）、start succeeded（boot `a71ef415…`、pid 93500、ready=true、HTTP 200）、stop succeeded（closed=true、锁释放）、uninstall succeeded（任务删除）。`service status` 先被 **D11d** 挡住（schtasks 输出 UTF-8 字节却声明 `UTF-16`，`ET.fromstring` 抛 ParseError），修掉后又被 **D11c** 挡住（`_task_identity` 要求 Principal 含 `RunLevel`，真实导出省略）。svc4 预置四项修复后：definition_matches=true、deployment eligible、runtime ready=true，但 manager state 仍为 unknown（**D11e**：查询不补 running/PID），overall ready=false。
 - 判定：**产品缺陷 D10+D11+D11c+D11d+D11e**，C2.7 失败；演练证明前四项修好后真实服务生命周期可用，第五项决定只读 status 能否报就绪。演练任务已删除、端口关闭、进程结束，安装副本文件已恢复。
+- 修复输入：[Windows 服务修复配方与补丁](platforms/windows/WINDOWS_SERVICE_FIX_RECIPE_2026-11-23.md)（`windows-service-fixes-2026-11-23.patch`，已 `git apply --check` 验证可应用到 `8412e773`）。
 
 ### 4.4 QQ/NapCat（C3.2）
 
