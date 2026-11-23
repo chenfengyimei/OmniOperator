@@ -374,3 +374,34 @@ def test_cancelled_file_read_keeps_actual_bounded_future_until_close_can_finish(
         assert not inspector.health()["file_reads"]
 
     asyncio.run(scenario())
+
+
+def test_windows_task_xml_accepts_utf16_declaration_and_omitted_runlevel():
+    data = plan("windows-user")
+    definition = render(data)["service.xml"]
+    assert not definition.lstrip().startswith(b"<?xml")
+    full = q._task_identity(definition)
+    declared = b'<?xml version="1.0" encoding="UTF-16"?>\n' + definition
+    assert q._task_identity(declared) == full
+    tree = ET.fromstring(definition)
+    ns = {"t": "http://schemas.microsoft.com/windows/2004/02/mit/task"}
+    principal = tree.find("t:Principals/t:Principal", ns)
+    runlevel = principal.find("t:RunLevel", ns)
+    assert runlevel is not None
+    principal.remove(runlevel)
+    assert q._task_identity(ET.tostring(tree)) == full
+
+
+def test_windows_task_identity_rejects_unknown_or_repeated_principal_fields():
+    data = plan("windows-user")
+    tree = ET.fromstring(render(data)["service.xml"])
+    ns = {"t": "http://schemas.microsoft.com/windows/2004/02/mit/task"}
+    principal = tree.find("t:Principals/t:Principal", ns)
+    ET.SubElement(principal, "{" + ns["t"] + "}Unknown")
+    with pytest.raises(ValueError, match="Principal fields are not exact"):
+        q._task_identity(ET.tostring(tree))
+    tree = ET.fromstring(render(data)["service.xml"])
+    principal = tree.find("t:Principals/t:Principal", ns)
+    ET.SubElement(principal, "{" + ns["t"] + "}RunLevel").text = "HighestAvailable"
+    with pytest.raises(ValueError, match="Principal fields are not exact"):
+        q._task_identity(ET.tostring(tree))

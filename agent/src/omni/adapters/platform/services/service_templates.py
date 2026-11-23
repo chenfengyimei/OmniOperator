@@ -66,7 +66,7 @@ def _windows(plan: Payload) -> bytes:
     element(execute, "Arguments", subprocess.list2cmdline(argv[1:]))
     element(execute, "WorkingDirectory", request["working_directory"])
     ET.indent(root, space="  ")
-    return ET.tostring(root, encoding="utf-8", xml_declaration=True) + b"\n"
+    return ET.tostring(root, encoding="utf-8", xml_declaration=False) + b"\n"
 
 
 def _macos(plan: Payload) -> bytes:

@@ -34,7 +34,8 @@ def _xml(payload: bytes) -> ET.Element:
     flattened = payload.replace(b"\0", b"").upper()
     if len(payload) > MAX_OUTPUT or b"<!DOCTYPE" in flattened or b"<!ENTITY" in flattened:
         raise ValueError("Unsupported task XML")
-    result = ET.fromstring(payload)
+    body = payload[payload.find(b"?>") + 2:] if payload.lstrip().startswith(b"<?xml") and b"?>" in payload else payload
+    result = ET.fromstring(body)
     if result.tag != "{http://schemas.microsoft.com/windows/2004/02/mit/task}Task":
         raise ValueError("Unexpected task definition")
     return result
@@ -58,7 +59,7 @@ def _task_identity(payload: bytes) -> tuple[Any, ...]:
         raise ValueError("Repeated executable action fields")
     principal = principals[0]
     allowed = {"{" + ns["t"] + "}" + key for key in ("UserId", "LogonType", "RunLevel")}
-    if {node.tag for node in principal} != allowed or len(list(principal)) != 3:
+    if not {node.tag for node in principal} <= allowed or len(list(principal)) != len({node.tag for node in principal}):
         raise ValueError("Principal fields are not exact")
     if actions[0].attrib.get("Context") != principal.attrib.get("id"):
         raise ValueError("Action principal is not bound")
@@ -68,7 +69,15 @@ def _task_identity(payload: bytes) -> tuple[Any, ...]:
         tuple(
             (key, execution.findtext("t:" + key, namespaces=ns)) for key in ("Command", "Arguments", "WorkingDirectory")
         ),
-        tuple((key, principal.findtext("t:" + key, namespaces=ns)) for key in ("UserId", "LogonType", "RunLevel")),
+        tuple(
+            (
+                key,
+                "LeastPrivilege"
+                if key == "RunLevel" and principal.findtext("t:" + key, namespaces=ns) is None
+                else principal.findtext("t:" + key, namespaces=ns),
+            )
+            for key in ("UserId", "LogonType", "RunLevel")
+        ),
     )
 
 

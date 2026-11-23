@@ -103,6 +103,33 @@ function Get-TaskOrAbsent {
         throw
     }
 }
+function Add-Defaults($Document, [string]$NsUri) {
+    $ns = New-Object System.Xml.XmlNamespaceManager($Document.NameTable)
+    $ns.AddNamespace('t', $NsUri)
+    function Add-Text($Parent, $Name, $Value) {
+        $node = $Parent.OwnerDocument.CreateElement($Name, $NsUri)
+        $node.InnerText = $Value
+        [void]$Parent.AppendChild($node)
+    }
+    $trigger = $Document.SelectSingleNode('/t:Task/t:Triggers/t:LogonTrigger', $ns)
+    if ($null -ne $trigger) {
+        if ($null -eq $trigger.SelectSingleNode('t:Enabled', $ns)) { Add-Text $trigger 'Enabled' 'true' }
+        $uid = $trigger.SelectSingleNode('t:UserId', $ns)
+        if ($null -ne $uid -and $uid.InnerText -notmatch '^S-1-') {
+            try { $sid = (New-Object System.Security.Principal.NTAccount($uid.InnerText)).Translate([System.Security.Principal.SecurityIdentifier]).Value; $uid.InnerText = $sid } catch { }
+        }
+    }
+    $principal = $Document.SelectSingleNode('/t:Task/t:Principals/t:Principal', $ns)
+    if ($null -ne $principal -and $null -eq $principal.SelectSingleNode('t:RunLevel', $ns)) { Add-Text $principal 'RunLevel' 'LeastPrivilege' }
+    $settings = $Document.SelectSingleNode('/t:Task/t:Settings', $ns)
+    if ($null -ne $settings) {
+        foreach ($pair in @(@('Enabled','true'), @('StartWhenAvailable','false'), @('RunOnlyIfNetworkAvailable','false'), @('Hidden','false'), @('WakeToRun','false'))) {
+            if ($null -eq $settings.SelectSingleNode('t:' + $pair[0], $ns)) { Add-Text $settings $pair[0] $pair[1] }
+        }
+        $unified = $settings.SelectSingleNode('t:UseUnifiedSchedulingEngine', $ns)
+        if ($null -ne $unified) { [void]$settings.RemoveChild($unified) }
+    }
+}
 function Inspect-Task {
     $script:task = Get-TaskOrAbsent
     $result.installed = $null -ne $task
@@ -111,7 +138,9 @@ function Inspect-Task {
         $result.state='stopped'; $result.definition_matches=$null; $result.enabled=$false
         return
     }
-    $result.definition_matches = Same-Definition (Read-XML $task.Xml) $expected
+    $actual = Read-XML $task.Xml
+    Add-Defaults $actual 'http://schemas.microsoft.com/windows/2004/02/mit/task'
+    $result.definition_matches = Same-Definition $actual $expected
     $result.enabled = [bool]$task.Enabled
     $instances = $null
     try {
