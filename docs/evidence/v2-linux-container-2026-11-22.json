@@ -1,0 +1,84 @@
+{
+  "schema": 1,
+  "batch": "G3.G4.linux_container_headless",
+  "date": "2026-11-22",
+  "status": "real Linux container image built and checked headless on a Lima/Ubuntu VM; service SIGTERM shutdown fixed to exit 0",
+  "whole_v2_complete": false,
+  "platform_linux_complete": false,
+  "release_candidate": false,
+  "environment": {
+    "host": "macOS 27.2.1 arm64 Mac mini; no native Linux and no container engine before provisioning",
+    "vm": {
+      "tool": "Lima 2.3.0",
+      "driver": "vz",
+      "name": "omni",
+      "os": "Ubuntu 26.04.1 LTS",
+      "kernel": "7.0.0-38-generic",
+      "arch": "aarch64",
+      "engine": "Docker 29.10.0"
+    },
+    "display": "none (no X11/Wayland; DISPLAY and WAYLAND_DISPLAY unset)",
+    "provisioning": "lima docker template; repo mounted read-only at the same absolute path"
+  },
+  "image": {
+    "source": "deploy/v2/Dockerfile",
+    "git_head": "0793f254",
+    "tag": "omni-v2:check2",
+    "image_id": "sha256:3899bd7c7b11b0ddca898faf9a313729a09b4526f0cf3a8f8bd00234669fdbc8",
+    "build": "docker build with host proxy build args"
+  },
+  "check": {
+    "format": "omni-v2-container-check-1",
+    "mode": "native_docker_image",
+    "passed": true,
+    "cleanup_complete": true,
+    "error_code": null,
+    "volume_create_started": true,
+    "container_create_started": true,
+    "full_suite_run": false,
+    "whole_v2_accepted": false,
+    "observations": [
+      {
+        "stage": "fresh",
+        "schema_version": "v2_0052",
+        "build_id": "3aa9fd6ded5f33759af5891495b3a32e8c54cdbc4219738b038c94f90b1aea9f",
+        "nonroot": true,
+        "private_home": true,
+        "owner_auth": true,
+        "headless": true
+      },
+      {
+        "stage": "reopened",
+        "same_agent_and_instance": true,
+        "new_boot_id": true,
+        "schema_version": "v2_0052",
+        "nonroot": true,
+        "private_home": true,
+        "owner_auth": true,
+        "headless": true
+      }
+    ],
+    "evidence": "temp/build/linux-container-20261122/check.json"
+  },
+  "fix": {
+    "file": "agent/src/omni/composition/serving.py",
+    "symptom": "docker stop made the service exit 143 because uvicorn restores the previous handler and re-raises the captured SIGTERM after graceful shutdown; the container check requires exit 0",
+    "change": "serve_instance keeps its own SIGTERM/SIGINT handler that sets should_exit, so the re-raised signal is absorbed and the process exits 0",
+    "validation": "container check passed (fresh+reopened), affected offline tests 57 passed in 12.53s"
+  },
+  "gaps": [
+    "no X11 session: G3 X11/AT-SPI control identity, XRes/frontmost postcondition and user-intervention guards remain unverified",
+    "no Wayland session: G4 RemoteDesktop/EIS authoritative window association, pause and revocation remain unverified",
+    "no graphical fixture, lock screen, sleep or hotplug in the VM",
+    "container check is headless/no-desktop only: full_suite_run=false, whole_v2_accepted=false"
+  ],
+  "limits": [
+    "VM is ephemeral and lives outside the repo; image and check artifacts are recorded, not committed as binaries",
+    "Ubuntu 26.04 is newer than the documented Linux targets; distro-specific behavior may differ on 22.04/24.04",
+    "graphical-session gaps remain blocked until a real X11/Wayland environment is available",
+    "Gitee push of this branch and Mac-side integration are pending"
+  ],
+  "artifacts": [
+    "temp/build/linux-container-20261122/check.json"
+  ]
+}
