@@ -204,5 +204,15 @@
       ]
     },
     "cleanup": "venvs and home removed; ports 8880-8882 closed; no service residue"
+  },
+  "soak_harness": {
+    "sampler": "scripts/v2_soak.py (run/report; observes only)",
+    "limits_file": "temp/build/candidate/soak-limits.json (8 keys: main_rss_bytes, descendant_rss_sum_bytes, threads, descriptors, children, cleanup_pending, new_failed_runs, new_unknown_model_calls)",
+    "smoke": {
+      "hours": 0.03,
+      "interval_s": 10,
+      "result": "report produced; blockers=[duration_below_72h]; observational_soak_passed=false (expected for a smoke)"
+    },
+    "next": "freeze the candidate, then run 72h at interval 60 and record interruptions/recovery/peaks"
   }
 }
