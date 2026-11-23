@@ -2,7 +2,7 @@
   "schema": 1,
   "topic": "v2-r4-token-envelope",
   "date": "2026-11-23",
-  "source_head": "PENDING",
+  "source_head": "bee3e035",
   "scope": "R4：b29409d0 最终全量 8655 项 / 22 失败，主因默认 context_tokens=32768 与按字节计数的 token 估算把约 30 KB 的正常工具回合判为超限（token_budget_exceeded）。修复为版本化 token 信封：新配置默认 utf8-envelope-v2，v1 保留。",
   "root_cause": {
     "unit_mismatch": "context_tokens 声明为模型 token，但估算器按 UTF-8 字节计数（1 字节=1 token）；C/D/E/G 后系统提示+persona+工具 schema+对话约 30 KB，32K 声明容量仅剩 3K",
