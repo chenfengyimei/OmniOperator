@@ -1,0 +1,241 @@
+{
+  "schema": 1,
+  "date": "2026-11-23",
+  "requirement": "K16",
+  "batch": "K16.real_acceptance",
+  "status": "executed_scoped",
+  "base_commit": "b66f0f00",
+  "original_base_commit": "0793f254",
+  "branch": "k16-storyboard",
+  "contract": "docs/v2/contracts/V2_K16_REAL_ACCEPTANCE.md",
+  "files": {
+    "docs/v2/contracts/V2_K16_REAL_ACCEPTANCE.md": "dac195283bfe1a0641e33dfc2c84bf0aae27ad03c845e2f78b80599aef07ce0d",
+    "docs/v2/contracts/V2_MEDIA_SCENES.md": "40009626806f860222bebda5bc3242003e2a633c2749f6018790a14fc3a1a860",
+    "docs/v2/README.md": "5524c847a8bbd49a36337b7b89397b2e9bfd9495446299cc06c786f4385b23be",
+    "docs/tasks/v2-agent-core-parity.json": "93ba79e209fe86d56ac0abb8ed5f8a75c7f07304c99bf215bfdbdc1766745e69",
+    "docs/HANDOFF.md": "3deb53858191d04a2c1a22dcf5c4ec4d9cea43b3752c8d3cba0811e8d114ba1f"
+  },
+  "hash_scope": "SHA-256 of git index blob bytes (LF-normalized); excludes this evidence file and generated docs/index.",
+  "material": {
+    "title": "Big Buck Bunny (Peach Open Movie)",
+    "license": "CC-BY 3.0 (Blender Foundation)",
+    "source": "https://archive.org/download/BigBuckBunny_124/Content/big_buck_bunny_720p_surround.mp4",
+    "file": "big_buck_bunny_720p_surround.mp4",
+    "duration_s": 596.48,
+    "width": 640,
+    "height": 360,
+    "fps": 24,
+    "bytes": 61878609,
+    "sha256": "46f62396c755e1ed0ab856a1521378d54196e125ef1a1643a199af087a15046b",
+    "storage": "local temp only; not committed"
+  },
+  "manual_labels": [
+    {
+      "time_s": 31.75,
+      "content": "草地/树 → 兔洞近景"
+    },
+    {
+      "time_s": 69.5,
+      "content": "花丛近景 → 草地兔子"
+    },
+    {
+      "time_s": 99.5,
+      "content": "草地 → 树枝近景"
+    },
+    {
+      "time_s": 126.75,
+      "content": "松鼠/树 → 兔子/树"
+    },
+    {
+      "time_s": 155.75,
+      "content": "松鼠/狐狸 → 草地兔子"
+    },
+    {
+      "time_s": 160.75,
+      "content": "草地兔子 → 松鼠/狐狸"
+    },
+    {
+      "time_s": 199.75,
+      "content": "兔子 → 松鼠/树"
+    },
+    {
+      "time_s": 204.25,
+      "content": "松鼠/树 → 兔子"
+    },
+    {
+      "time_s": 300.5,
+      "content": "黑场 → 新场景"
+    },
+    {
+      "time_s": 420.25,
+      "content": "苹果场景 → 尖刺森林"
+    }
+  ],
+  "labeling_method": "每 15s contact sheet 选候选；候选 ±3s 以 0.25s 条带人工确认首帧；时间误差约 ±0.25s。",
+  "runs": [
+    {
+      "samples": 240,
+      "width": 640,
+      "cuts": 12,
+      "recall": "2/10",
+      "matched": [
+        {
+          "label": 199.75,
+          "cut": 200.042,
+          "deviation_s": 0.292
+        },
+        {
+          "label": 204.25,
+          "cut": 205.042,
+          "deviation_s": 0.792
+        }
+      ],
+      "seconds": 8.181,
+      "rss_peak_mb": 133.2,
+      "sheet": {
+        "width": 1280,
+        "height": 2280,
+        "bytes": 3513935,
+        "sha256": "e1e9333b2345083c8f875fb62b1a80ba4c5ff13455e88f8ad2f8f52714c1ab44"
+      },
+      "credits_cells": "6/12"
+    },
+    {
+      "samples": 240,
+      "width": 320,
+      "cuts": 12,
+      "recall": "2/10",
+      "seconds": 7.283,
+      "rss_peak_mb": 111.1,
+      "sheet": {
+        "width": 640,
+        "height": 1200,
+        "bytes": 1183790,
+        "sha256": "ac0fd5259f8322af71e4803a60d396e9bd02726443bf522ac52822c8bcdbad0b"
+      }
+    },
+    {
+      "samples": 600,
+      "width": 320,
+      "cuts": 80,
+      "recall": "4/10",
+      "seconds": 17.91,
+      "note": "临时 monkeypatch SCENE_MAX_SAMPLES 对比，未改生产默认。"
+    },
+    {
+      "samples": 1200,
+      "width": 320,
+      "cuts": 117,
+      "recall": "8/10",
+      "matched_examples": [
+        {
+          "label": 99.5,
+          "cut": 99.83,
+          "deviation_s": 0.33
+        },
+        {
+          "label": 126.75,
+          "cut": 127.33,
+          "deviation_s": 0.58
+        },
+        {
+          "label": 155.75,
+          "cut": 156.38,
+          "deviation_s": 0.63
+        },
+        {
+          "label": 160.75,
+          "cut": 160.88,
+          "deviation_s": 0.13
+        },
+        {
+          "label": 199.75,
+          "cut": 199.92,
+          "deviation_s": 0.17
+        },
+        {
+          "label": 204.25,
+          "cut": 204.42,
+          "deviation_s": 0.17
+        }
+      ],
+      "seconds": 35.43,
+      "sheet": {
+        "width": 640,
+        "height": 1200,
+        "bytes": 1118249
+      },
+      "credits_cells": "3/12",
+      "note": "临时 monkeypatch，未改生产默认。"
+    }
+  ],
+  "false_cut_spot_checks": [
+    {
+      "cut_s": 45.04,
+      "finding": "同一兔洞场景，仅兔子动作/光线变化，判为运动误切（1200 样本）。"
+    },
+    {
+      "strong_cut_bypass_experiment": "raw score>=24 绕过尖峰守卫后产生 135 个切点，约每 2.5s 一个，明显过分割；已回退，未提交生产改动。"
+    }
+  ],
+  "root_causes": [
+    "240 样本对 596s 视频只有 2.46s 间隔（2fps 被上限截断）；相邻样本常同时超阈值，尖峰守卫把真实密集切点一并压制。",
+    "提高采样到 1200 可把间隔降到 0.5s、召回 8/10，但运动/动作也会产生高分，出现同场景误切；强切点绕过会放大过分割。",
+    "credits 片段长且含淡入淡出/文字切换，按片段时长分配槽位导致 240 样本 6/12、1200 样本 3/12 帧落在 credits；不是宫格排版问题。",
+    "宫格 1280×2280/3.51MB 与 640×1200/1.18MB 均未越 8192/16M/8MiB；列数不是瓶颈。"
+  ],
+  "decisions": {
+    "adaptive_threshold": {
+      "decision": "本版不做",
+      "reason": "真实误切来自运动，不是阈值过低；调高丢真实切点、调低增误切，无稳定收益样本。"
+    },
+    "adaptive_grid_dp": {
+      "decision": "本版不做",
+      "reason": "宫格尺寸/字节未越限，没有布局失败；问题在选段/槽位分配。"
+    },
+    "ocr": {
+      "decision": "本版不做",
+      "reason": "rapidocr 依赖/模型未批准；本次只可能帮助识别 credits/标题，价值不足以引入数百 MB 依赖。"
+    },
+    "followup_design": {
+      "decision": "值得后续独立设计",
+      "reason": "长片采样/运动判别 + 槽位分配可复现；需新设计合同与更多人工标注，不能盲调阈值。"
+    }
+  },
+  "resource_bounds": {
+    "samples_max": 240,
+    "frames_max": 12,
+    "sheet_side_max": 8192,
+    "sheet_pixels_max": 16000000,
+    "sheet_bytes_max": 8388608,
+    "within_limits": true
+  },
+  "validation": {
+    "scenes_tests": {
+      "result": "33 passed",
+      "seconds": 12.4,
+      "note": "rebase 到 origin/v2 后复跑"
+    },
+    "production_change": "无；强切点绕过实验已回退，工作树仅文档/证据改动。",
+    "strict": {
+      "include": 433,
+      "errors": 0,
+      "warnings": 0,
+      "note": "rebase 到 origin/v2 后复跑"
+    },
+    "index": "modules=65 files=854 routes=464 declared_tools=94; updated=(none)",
+    "pytest_scope": "scenes 专项；未跑全量"
+  },
+  "not_executed": [
+    "117 个切点的完整 precision/recall（仅 10 个代表切点 + 1 个误切抽查）",
+    "1200 样本 MediaProcessor 峰值 RSS（仅 worker 耗时）",
+    "真实 B 站/上传来源、OCR、auto/auto-low、宫格 D0/D2/D4",
+    "完整 pytest 全量（current_full_passed 保持 false）"
+  ],
+  "limits": "单条 CC-BY 动画素材、10 个代表切点；未计算全量 precision；真实长片/真实 B 站未验；本批不改变生产默认。",
+  "current_full_passed": false,
+  "whole_core_parity_complete": false,
+  "whole_reference_feature_audit_complete": false,
+  "whole_v2_complete": false,
+  "executed_on_commit": "489d093b"
+}
