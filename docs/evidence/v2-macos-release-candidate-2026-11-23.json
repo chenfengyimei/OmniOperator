@@ -238,7 +238,11 @@
     "helper_codesign": "adhoc, TeamIdentifier not set, format app bundle (arm64)",
     "gatekeeper_spctl": "rejected for ad hoc helper",
     "required": "Developer ID Application certificate + notarization credentials; without them the candidate is source/isolated-install only",
-    "display": "single 1920x1080 main display; multi-monitor scaling/coordinates not applicable on this Mac"
+    "display": "single 1920x1080 main display; multi-monitor scaling/coordinates not applicable on this Mac",
+    "codesign_identity": "ad hoc (Signature=adhoc, TeamIdentifier not set, Identifier=org.omnioperator.desktophelper, Sealed Resources v2)",
+    "spctl_command": "spctl -a -vv --type execute <helper app>",
+    "spctl_result": "rejected",
+    "helper_executable_sha256": "1ab02d9c3e327882a59591384561383959b761d8be58de49c3150bf690fdd99f"
   },
   "helper_tcc_attempt": {
     "candidate_helper": "1ab02d9c... installed to ~/Applications with matching manifest",
@@ -290,5 +294,15 @@
     "failed": 0,
     "runtime": "candidate venv + installed helper 9360128b (TCC granted)",
     "note": "the earlier first-attempt desktop_target_changed did not reproduce in three consecutive mutate acceptances; no code change made without evidence"
+  },
+  "helper_cold_start": {
+    "attempts": 3,
+    "passed": 3,
+    "seconds": [
+      0.77,
+      0.68,
+      0.64
+    ],
+    "note": "each run killed OmniDesktopHelper first; read acceptance passed with screen_capture_kit; no first-read flake reproduced"
   }
 }
