@@ -1,0 +1,54 @@
+{
+  "schema": 1,
+  "batch": "macos.release_candidate.first_installable_arm64",
+  "date": "2026-11-23",
+  "baseline": "b29409d0",
+  "environment": {
+    "os": "macOS 27.2.1 (26B131)",
+    "arch": "arm64",
+    "python": "3.12.16 (uv-managed)",
+    "swift": "Apple Swift 6.4.2 (swiftlang-6.4.2.1.9 clang-2100.4.1.1)",
+    "sdk": "27.2",
+    "xcode": "Command Line Tools only (xcodebuild unavailable)"
+  },
+  "helper": {
+    "path": "temp/build/mac-native-release/OmniOperator Desktop Helper.app",
+    "executable_sha256": "1ab02d9c3e327882a59591384561383959b761d8be58de49c3150bf690fdd99f",
+    "bundle_id": "org.omnioperator.desktophelper",
+    "protocol": "omni-desktop-ipc-6",
+    "signing": "ad_hoc",
+    "signature_verified": true,
+    "foreground_core_tests": {"passed": 9, "sha256": "d4cf28217ed9ec72becde530f8f3c2d939cae47ddf34435dd4f5566b5695c80d"},
+    "registration_path_tests": {"passed": 8, "sha256": "1cea5235b2bb0222dd4b7f5052ea5de45d651260a4c4ddfdcfea8b308554c117"},
+    "installed_to_applications": false
+  },
+  "wheel": {
+    "path": "temp/build/wheel/omnioperator-0.1.0-py3-none-any.whl",
+    "sha256": "d478d0e6ff365ba8d62fb9fdbc698c62cc18acc4290d9dae03e4b29e20c6e136",
+    "bytes": 2824720
+  },
+  "isolated_install": {
+    "venv": "temp/build/candidate/venv (non-editable wheel install)",
+    "home": "temp/build/candidate/home",
+    "instance_id": "a19ec9f7-c02b-4c4b-9fbf-2abbd0f4928f",
+    "build_id": "de6ebae2c4fc62323684c8b127748c2c564b013234ceba7c5f63ba6facbe637b",
+    "schema": "v2_0052",
+    "launch": "temp/build/candidate/venv/bin/python -m omni.composition.cli --home <home> serve --host 127.0.0.1 --port 8878 --stdout-logs",
+    "workbench": "http://127.0.0.1:8878/"
+  },
+  "first_use": {
+    "workbench_http": 200,
+    "health_ready": true,
+    "owner_auth": {"without_token": 401, "with_token": 200},
+    "initial_agents": ["Default"],
+    "created_agent": {"name": "release-smoke", "id": "f729084f-79d0-4800-88ba-2636976e39ed"},
+    "restart": {"same_instance": true, "new_boot_id": true, "agents_persisted": ["Default", "release-smoke"]}
+  },
+  "gaps": [
+    "helper was not installed to ~/Applications, to avoid clobbering the TCC-granted installed helper; the candidate's native desktop capabilities were not exercised",
+    "no model-backed task: the isolated home has no provider credential; the verifiable task was agent creation and restart persistence",
+    "LaunchAgent/Keychain/desktop acceptance, upgrade/rollback and 72h are not run on this candidate",
+    "ad-hoc signing only; Developer ID signing and notarization need the owner's certificate/account",
+    "not verified on a second Mac yet"
+  ]
+}
