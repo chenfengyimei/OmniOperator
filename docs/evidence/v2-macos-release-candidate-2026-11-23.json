@@ -304,5 +304,20 @@
       0.64
     ],
     "note": "each run killed OmniDesktopHelper first; read acceptance passed with screen_capture_kit; no first-read flake reproduced"
+  },
+  "residue_check": {
+    "launch_agents": "none (no omni plist)",
+    "helper_processes": "none",
+    "tmp_sockets": "none (/tmp/omni-d-* absent)",
+    "installed_helper": {
+      "executable_sha256": "9360128b0c3c2f29d878bf808dbaecdc744e138d284781006722e67d5c47c261",
+      "manifest": "matches"
+    },
+    "expected_running": {
+      "8878": "candidate workbench",
+      "8883": "clean-install workbench",
+      "soak": "pid 93596"
+    },
+    "note": "both workbench servers are intentional test instances for this candidate; no service or helper leftovers"
   }
 }
