@@ -232,18 +232,38 @@ def test_same_uid_app_without_logind_membership_is_not_accepted_or_fake_empty_su
     "change,code",
     [
         (lambda f: f.seat.update(ActiveSession=variant("(so)", ["c2", "/other"])), "desktop_session_unverified"),
-        (lambda f: setattr(f.buses["a11y"], "guid", "4" * 32), "desktop_bus_peer_unverified"),
         (lambda f: f.ops.processes.update({3: Process(3, 1001, 102.0)}), "desktop_bus_peer_unverified"),
         (lambda f: setattr(f, "address", "tcp:host=example.com,port=1"), "desktop_bus_address_denied"),
     ],
 )
-def test_wrong_seat_bus_guid_service_uid_or_remote_address_is_rejected(change, code):
+def test_wrong_seat_service_uid_or_remote_address_is_rejected(change, code):
     async def scenario():
         f = Factory()
         change(f)
         result = await perform(request("targets"), ops=f.ops, factory=f)
         assert not result["ok"] and result["error_code"] == code
         assert sum(bus.closed for bus in f.buses.values()) == len(f.opened)
+
+    asyncio.run(scenario())
+
+
+def test_accessibility_address_guid_may_differ_from_bus_id_while_peer_identity_still_rules():
+    """Contract V2_LINUX_IDENTITY: the address guid is opaque; path/inode plus the peer prove the bus."""
+
+    async def scenario():
+        f = Factory()
+        f.buses["a11y"].guid = "4" * 32  # GetId differs from the address guid ("3" * 32)
+        response = await perform(request("targets"), ops=f.ops, factory=f)
+        assert response["ok"], response
+        assert [entry for entry in f.calls if entry[4] == "GetId"] and any(
+            entry[0] == "a11y" and entry[4] == "GetNameOwner" for entry in f.calls
+        )
+        replaced = Factory()
+        replaced.buses["a11y"].guid = "4" * 32
+        replaced.buses["a11y"].replaced = True
+        result = await perform(request("targets"), ops=replaced.ops, factory=replaced)
+        assert not result["ok"] and result["error_code"] == "desktop_bus_peer_unverified"
+        assert all(bus.closed for bus in replaced.buses.values())
 
     asyncio.run(scenario())
 

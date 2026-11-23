@@ -130,8 +130,13 @@ class SessionInspector:
         bus = await self.factory.open(endpoint)
         self.buses.append(bus)
         guid = text(one(await bus.call(DBUS, DBUS_PATH, DBUS, "GetId", returns="s")), 32)
-        if re.fullmatch(r"[0-9a-f]{32}", guid) is None or endpoint.guid is not None and endpoint.guid != guid:
+        if re.fullmatch(r"[0-9a-f]{32}", guid) is None:
             raise failure("desktop_bus_peer_unverified")
+        # The address guid is not an identity token: at-spi2-core returns an
+        # address guid that differs from this bus' GetId even after a restart
+        # (Ubuntu 26.04, contract V2_LINUX_IDENTITY). Identity rests on the
+        # pinned path/inode plus the SO_PEERCRED peer in LinuxOps, so only the
+        # format is enforced here and GetId is recorded for evidence.
         self.guids.append(guid)
         return bus
 

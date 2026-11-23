@@ -187,8 +187,19 @@ class Connection:
                     returns="o",
                 )
             )
-        except RemoteError:
-            raise failure("desktop_x11_peer_unverified") from None
+        except RemoteError as error:
+            if error.name != "org.freedesktop.login1.NoSessionForPID":
+                raise failure("desktop_x11_peer_unverified") from None
+            # Display managers (LightDM/GDM/SDDM) run Xorg inside their own
+            # system unit, so the server has no logind session. The display
+            # proof still holds: the canonical socket was derived from the
+            # validated active x11 session's Display, the peer is the
+            # root-owned real Xorg binary, and the cookie must authorize our
+            # uid (contract V2_LINUX_IDENTITY). A server that does belong to a
+            # session must still be in the active one.
+            if inspector.session.kind != "x11":
+                raise failure("desktop_x11_peer_unverified") from None
+            return
         if path != inspector.session.path:
             raise failure("desktop_x11_peer_unverified")
 

@@ -120,3 +120,62 @@ def test_pre_auth_peer_server_executable_and_session_proofs_are_required(monkeyp
         assert sock.closed or fault in {"link", "shared", "file_uid"}
 
     asyncio.run(scenario())
+
+
+def test_display_manager_xorg_without_a_logind_session_is_accepted(monkeypatch):
+    """LightDM/GDM run Xorg in a system unit; contract V2_LINUX_IDENTITY proves the display instead."""
+
+    async def scenario():
+        native_paths(monkeypatch)
+        f = linux_factory()
+        f.sessions.pop(30)  # Xorg lives in lightdm.service, not in a logind session
+        inspector = SessionInspector(f.ops, f)
+        await inspector.open(accessibility=False)
+
+        class Socket:
+            closed = False
+            calls = 0
+
+            def setblocking(self, value):
+                assert value is False
+
+            def getsockopt(self, *args):
+                self.calls += 1
+                return struct.pack("3i", 30, 0, 0)
+
+            def close(self):
+                self.closed = True
+
+            def fileno(self):
+                return -1 if self.closed else 10
+
+        sock = Socket()
+        monkeypatch.setattr(
+            native,
+            "socket",
+            SimpleNamespace(socket=lambda *_: sock, AF_UNIX=1, SOCK_STREAM=1, SOL_SOCKET=1, SO_PEERCRED=17),
+        )
+        loop = asyncio.get_running_loop()
+
+        async def connect(connection, path):
+            assert connection is sock and path == "/tmp/.X11-unix/X0"
+
+        monkeypatch.setattr(loop, "sock_connect", connect)
+        reads = []
+
+        def authority(uid, display):
+            assert uid == 1000 and display == 0 and 30 not in f.sessions
+            reads.append(True)
+            return b"owned-cookie-123"
+
+        monkeypatch.setattr(native, "authority", authority)
+        connection = await native.Connection.open(inspector)
+        try:
+            assert connection.cookie() == b"owned-cookie-123" and reads == [True]
+            await connection.verify()
+        finally:
+            assert await connection.close()
+            assert await inspector.close()
+        assert sock.closed
+
+    asyncio.run(scenario())
