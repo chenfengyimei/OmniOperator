@@ -115,10 +115,11 @@
       "id": "C3.6",
       "title": "72 小时长跑",
       "status": "not_started_tooling_dry_run_verified",
-      "result": "8412e773 上 3 分钟 19 次采样/0 失败，仅 duration_below_72h；当前候选未重跑",
+      "result": "5c8550ca wheel b6b0a12c：3 分钟 19 次采样/0 失败，仅 duration_below_72h；RSS 136,544,256B、线程 14、句柄 346、后代 0、cleanup 0",
       "reason": "需最终冻结、批准 limits 与连续 72h",
       "evidence": [
-        "docs/evidence/v2-soak-dry-run-2026-11-23.json"
+        "docs/evidence/v2-soak-dry-run-5c8550ca-2026-11-23.json",
+        "C:/v2-acceptance/c3-08dd1573/soak5c/soak.log"
       ]
     },
     {

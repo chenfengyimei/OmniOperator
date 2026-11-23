@@ -29,7 +29,7 @@
 | C3.5 安卓真机 | 已授权设备 | — | **阻塞**：adb 无设备、无 emulator | `docs/evidence/v2-android-device-probe-2026-11-23.json` | — |
 | C3.3 B 站账号 | 真实账号 | — | **阻塞** | E 验收工具已入主线 | 无窗口 |
 | C3.4 模型/视觉 | 模型 + 预算 | — | **阻塞**：LM Studio models 为空/lms 超时 | `docs/evidence/v2-clean-machine-kit-2026-11-23.json` | — |
-| C3.6 72h | 冻结 + limits | — | **未开始（工具试跑已验证）**：8412e773 上 19 次/0 失败 | `docs/evidence/v2-soak-dry-run-2026-11-23.json` | 当前候选未重跑 |
+| C3.6 72h | 冻结 + limits | `5c8550ca` | **未开始（工具试跑已验证）**：19 次/0 失败，仅 `duration_below_72h`；RSS 136,544,256B、线程 14、句柄 346、后代 0、cleanup 0 | `docs/evidence/v2-soak-dry-run-5c8550ca-2026-11-23.json` | 正式 72h 需最终候选与批准 limits |
 | C3.7 三平台原生 | 实机 | — | **未在本候选重跑** | 旧 Windows 证据/批次记录 | — |
 | C2.8 容器 | Docker | — | **阻塞**：引擎未启动 | — | — |
 | C4.2 签名/公证 | 证书/Apple | — | **阻塞（待决策）** | — | 可源码交付 |
@@ -69,7 +69,7 @@
 
 ### 4.3 72h 试跑
 
-- 8412e773 上 3 分钟 19 次/0 失败；RSS 135,671,808B、线程 17、句柄 351、后代 0、cleanup 0；仅 `duration_below_72h`。正式 72h 需最终候选与批准 limits。
+- 5c8550ca wheel `b6b0a12c` 上 3 分钟 19 次/0 失败；RSS 136,544,256B、线程 14、句柄 346、后代 0、cleanup 0；仅 `duration_below_72h`。正式 72h 需最终候选与批准 limits。
 
 ### 4.4 H 准备项
 
