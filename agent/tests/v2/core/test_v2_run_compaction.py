@@ -35,6 +35,7 @@ from omni_test_support.v2.execution import (
 from omni_test_support.v2.execution import (
     wait_state as wait_state,
 )
+from omni_test_support.v2.v2_configuration_helpers import model_instance
 
 from omni.domain.context import (
     RUN_COMPACT_KEEP_ROUNDS,
@@ -230,7 +231,9 @@ def test_compaction_summary_tool_calls_rejected_without_actions(tmp_path):
             app = instance.application
             agent = await configure(app, instance._database)
             receipt = await app.submit_turn(agent, None, "go", "go")
-            await wait_state(app, agent, receipt["run_id"], {"failed"})
+            # A summary replying with tool calls is truncated (never dispatched) and the
+            # turn continues; see test_v2_context's summary_tools_forbidden contract.
+            await wait_state(app, agent, receipt["run_id"], {"succeeded"})
             assert model.summary == 1
             summaries = [c for c in await app.query("calls", agent) if c["purpose"] == "summary"]
             assert len(summaries) == 1 and summaries[0]["state"] == "settled"
@@ -251,6 +254,7 @@ def test_compaction_never_splits_the_kept_recent_rounds(tmp_path):
         try:
             app = instance.application
             agent = await configure(app, instance._database)
+            await model_instance(instance, agent, context_tokens=12288)
             receipt = await app.submit_turn(agent, None, "go", "go")
             await wait_state(app, agent, receipt["run_id"], {"failed"})
             assert model.summary == 0
