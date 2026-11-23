@@ -146,6 +146,13 @@
     "options": [
       "contract decision by A: is the address guid required to equal GetId on at-spi buses?",
       "or environment: restart the at-spi bus and re-check whether the address file is stale"
-    ]
+    ],
+    "after_restart": {
+      "address": "unix:path=/run/user/10001/at-spi/bus_0,guid=833ae62b2abe4761314151b56b03bb37",
+      "get_id": "db808a07f0fb53c27d572d086b03bb37",
+      "match": false,
+      "note": "killing at-spi-bus-launcher/registryd and re-activating the bus reproduces the mismatch; both values share a suffix but differ in the prefix, so the address guid is not the bus GetId on this at-spi2-core/Ubuntu 26.04",
+      "escalation": "contract question for A: must Endpoint.accessibility require guid == GetId, or should the check accept the address guid as opaque and verify the peer another way?"
+    }
   }
 }

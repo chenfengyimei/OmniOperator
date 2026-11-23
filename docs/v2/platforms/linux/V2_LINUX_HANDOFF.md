@@ -249,3 +249,5 @@ uv run --no-sync python agent/scripts/accept_native_credentials.py --cleanup <�
 直接验证：以 omni 身份（XDG_RUNTIME_DIR 正确）调用 `LinuxOps.connect()`，系统总线（root 对端）与用户总线都 **OK**。因此探针里的 `desktop_bus_peer_unverified` 不是 connect 阶段抛的，而在后续 owner/connection 校验（很可能是 `open_accessibility` 或 X11 对端证明）。下一步在会话内复现 `SessionInspector.open(accessibility=True)` 并逐调用打点。
 
 精确定位：会话证明通过（session `_347`、identity 47、x11、seat0、:0），失败在 `open_accessibility → open_bus(Endpoint.accessibility(address))`。`org.a11y.Bus.GetAddress` 返回的地址内 `guid=cb55a6bf…`，而连接该总线调用 `GetId` 返回 `5ad915ce…`——**两者不一致**，触发 `desktop_bus_peer_unverified`。需 A 决定：at-spi 总线地址里的 guid 是否必须等于 `GetId`（合同/安全检查），或先排除 at-spi 地址过期（重启总线后复测）。
+
+重启 at-spi 总线（kill launcher/registryd 后按需重新激活）再测：地址 `guid=833ae62b…b03bb37`、`GetId=db808a07…b03bb37`，**仍不一致**，排除地址过期。即 Ubuntu 26.04/at-spi2-core 下 `GetAddress` 的 guid 本就不等于该总线的 `GetId`。需 A 决策：`Endpoint.accessibility` 是否必须要求 guid==GetId，还是接受地址 guid 为不透明值并用其他方式校验对端。已作为合同问题记录。
