@@ -1,0 +1,49 @@
+{
+  "schema": 1,
+  "date": "2026-11-23",
+  "batch": "K13.code_sandbox_design",
+  "requirement": "K13",
+  "status": "design_contract_recorded",
+  "base_commit": "0793f2543f1b2bb94e960d171747fbf08bc11b84",
+  "branch": "k18-read-cache",
+  "implements_gap": "K13 tool/channel audit group 3 decision D2: tool-calling code sandbox (execute_code / code_kernel / code_execution_env / code_execution_rpc). This batch records the reference facts, the V2 mapping and four options (S1 no port, S2 restricted compute sandbox, S3 full programmatic tool calling, S4 remote/container as a separate contract), the honest non-security-boundary statement, the no-write/no-terminal RPC rule, the worker-protocol coordination ask and the test plan. NOT implementation: no source/test/migration/route/worker change",
+  "contract": "docs/v2/contracts/V2_CODE_SANDBOX.md",
+  "contract_sha256": "1c972f9ced1abc588186b5fa3bdd0814e5ed75afe3eea11f21c1ea878907d8d0",
+  "touched_docs": {
+    "docs/v2/contracts/V2_REMAINING_DECISIONS.md": "0dd6422578768b006eed987c4342433134121ae9dd47ea2e2383c8d06064cc6e",
+    "docs/v2/contracts/V2_TOOL_CHANNEL_AUDIT.md": "f591fa22fb604ff24c4e4f0c51d4a137ec94e8d670080b010415e83841fb589a"
+  },
+  "reference": {
+    "repository": "xuexi/hermes-agent (fixed 9976f485)",
+    "facts": [
+      "execute_code is programmatic tool calling: the model writes Python that calls tools over RPC, only stdout returns; local backend is a persistent per-conversation kernel (UDS, loopback TCP on Windows)",
+      "SANDBOX_ALLOWED_TOOLS = web_search/web_extract/read_file/write_file/search_files/patch/terminal intersected with the session toolsets (write tools and terminal included)",
+      "limits: DEFAULT_TIMEOUT=300s, DEFAULT_MAX_TOOL_CALLS=50, stdout 50KB head/tail 40/60 plus a spill file <=5MB, stderr 10KB",
+      "code_kernel: one child per (owner, mode, interpreter, cwd, tool-set); state survives; same security envelope as per-call (env scrub, RPC token + per-cell tool budget, ANSI strip + secret redaction); a wedged kernel is killed; env frozen at spawn until reset=true; JSON line protocol with a per-kernel SENTINEL; max_session_kernels LRU; delegated child kernels keyed parent::child and disposed on cleanup",
+      "code_execution_env does child env scrubbing and interpreter/cwd resolution; code_execution_rpc provides UDS/loopback RPC servers with token auth and call budgets",
+      "browser_exec requires the terminal surface because it runs arbitrary host Python (same execution-surface family)"
+    ],
+    "adaptation": "V2 has only shell_execute (one-shot approved argv) and files_*; no host Python, no persistent kernel, no tool RPC. The contract maps the reference to four V2 options and explicitly states that a process-level subprocess is NOT a security boundary; the sandbox must not bridge terminal or write tools without a separate approval design, and S3 would change the shared worker protocol (A coordination)"
+  },
+  "decision_questions": [
+    "S1 no port (recommended first, record non-parity) / S2 restricted compute sandbox (recommended second: no RPC bridge, temp cwd, env scrub, resource bounds, non-security-boundary statement) / S3 full PTC (read-only RPC allowlist + persistent kernel, A protocol coordination) / S4 remote/container separate contract",
+    "S2 details: fixed interpreter, wall clock/stdout bounds, read workspace via stdin only, import policy, default OFF + owner enable",
+    "S3 details: read-only RPC allowlist, kernel lifecycle/LRU/reclaim, cancellation/resource-lock interaction, delegated child kernel ownership, audit events",
+    "security: no write/terminal tools over RPC; never claim real isolation; no credential inheritance"
+  ],
+  "validation": {
+    "mode": "design_only",
+    "tests_executed": 0,
+    "note": "pure documentation batch; latest green scoped results remain 546 passed / 142.79s for the bilibili caller suites; no source changed"
+  },
+  "not_executed": [
+    "sandbox implementation (S2/S3), worker protocol RPC frames, kernel lifecycle",
+    "browser_cdp/browser_exec (D3 contract in this round)",
+    "real model-generated scripts, escape attempts, real isolation measurement",
+    "full offline suite; real accounts/models; 72h soak"
+  ],
+  "next": "Owner selects S1/S2/S3; A coordinates if S3 adds worker protocol frames. If approved, S2 first (offline, no migration) with env-scrub/cwd/timeout/output tests, then S3 only under a separate approval. D3 contract recorded in the same round; D8/D9 remain lowest-cost K13 decisions. whole_* flags stay false",
+  "whole_core_parity_complete": false,
+  "whole_reference_feature_audit_complete": false,
+  "whole_v2_complete": false
+}

@@ -86,6 +86,25 @@ V2 模型侧工具面（生产 `capabilities is None`）：`system_info`、`file
 5. **工具调用代码沙箱**（参考 `execute_code`/`code_kernel`）：本地 Python 沙箱 + 允许清单 RPC 桥 + 持久 kernel。复杂，独立批次。
 6. **原始 CDP / 脚本化浏览器执行**（参考 `browser_cdp`/`browser_exec`）：需 CDP 接入与帧路由，独立批次。
 
+## 实现进度（2026-11-22 更新；审计原文保留为当时快照）
+
+缺口清单 1–6 状态：
+
+1. **工作区搜索：已交付**——`files_search` 内容/文件名发现 + output_mode/context/offset/order/file_glob（含否定）/use_regex 有界安全门，见 `V2_FILES_SEARCH*.md` 系列合同与证据。
+2. **模糊补丁：已交付**——`files_patch` 指纹 CAS 模糊编辑 + escape/unicode 归一化 + block_anchor/context_aware 近似兜底（近似命中永不许 `replace_all`），见 `V2_FILES_PATCH*.md` 系列与证据。
+3. **浏览器对话框：已交付**——`7827b664`（有界持有队列，accept/dismiss + `prompt_text` + `expected_url` CAS）。
+4. **cron 技能绑定 + 输出依赖：已交付**——`1d52cca1`（v0049 两表一列）、`a3436361`（触发链技能激活/上游输出注入/Redactor 脱敏）、`4acc46c9`（`cronjob_manage` 六动作）、`42cf2e98`（生产端到端四批完结）。
+5. **工具调用代码沙箱：未实现（决策待定）**——见决策登记 D2 与设计合同 [V2_CODE_SANDBOX](V2_CODE_SANDBOX.md)（S1 不移植推荐先明确边界 / S2 受限计算沙箱 / S3 完整 PTC 需 A 协议 / S4 远程容器另立；非安全边界声明；写/terminal 不桥接）。
+6. **原始 CDP / 脚本化浏览器执行：未实现（决策待定）**——见决策登记 D3 与设计合同 [V2_BROWSER_CDP](V2_BROWSER_CDP.md)（C1 不移植推荐 / C2 声明式多步计划 / C3 只读 CDP 白名单需 D9+A / C4 完整 browser_exec 拒绝；D9 floor 为前置）。
+
+2026-11-22 交付核对与两项残留（本批只读核对，无源码改动）：
+
+- **已交付项逐条核对通过**：K01(b) 路由键（`adapters/models.py:23-40` 派生键 + provider 分类、`_prepare` 注入）、cron 四批（`domain/cronjob.py`/`application/cronjob.py`/`composition/instance.py:743` attach/`v0049`）、browser_dialog（`adapters/workers/main.py:432-516` 持有队列）、B 站读广度与风控暂停（详见 [v2-delivered-verification.json](../../evidence/v2-delivered-verification.json)）。核对套件 **112 过 / 204.17 秒**（prompt cache、cronjob tool/e2e、schedule context/bindings、browser_dialog）。
+- **新增残留 D8（cron 阻塞与后台评审交互）**：`schedule_blocker` 无 purpose 过滤，把 K08/K06 的 `summary` 辅助调用当未复核外部结果；已核机制与影响，合同 [V2_SCHEDULE_REVIEW_BLOCKER](V2_SCHEDULE_REVIEW_BLOCKER.md)，待所有者选 A–D。
+- **组 2 URL floor 已核（原「待核」）**：worker 只校验 scheme 且跟随重定向，无主机/IP floor；实测 loopback 元数据路径可读。策略待决 → 决策登记 D9（含 4 个选项与验证要求）。
+- **组 5 cron 残余设计合同（2026-11-23）**：[V2_CRON_VARIANTS](V2_CRON_VARIANTS.md) 记录 `enabled_toolsets`/`workdir`/`deliver`·`failure_deliver`·`attach_to_session`/`monitor`+`no_agent`+`script`/`prompt_scan` 的 R1–R5 选项（默认推荐不移植；脚本与 URL 监视需独立安全合同并接 D2/D9；自动投递需独立授权；需 A 迁移）。**未实现。**
+- **组 1 终端/进程设计合同（2026-11-23）**：[V2_TERMINAL_MODEL_TOOLS](V2_TERMINAL_MODEL_TOOLS.md) 记录 T1 不移植（推荐）/T2 只读观察/T3 逐命令审批/T4 拒绝/T5 kill·handoff 审批子集（`(pid, started_at)` 身份），薄封装既有 `TerminalService`、无迁移。**未实现。**
+
 ## 需实机/账号/网络验收清单（不可离线宣称对等）
 
 - 渠道全集（discord/feishu/yuanbao/x_search/27 gateway 平台）、hosted connector 账号管理、catalog hub。

@@ -290,6 +290,202 @@ K13.cron_model_design 已记录**实现前设计合同**（纯文档，无源码
 - **前缀影响回归**：新增 4 项（`history_request` 首条 system 恰为 `memory_system`；persona→Owner memory→captured→notice 顺序；forgotten/deleted/erased 从前缀消失而 captured 保留；persona 编辑或记忆撤回改变前缀字节且同输入确定）。**4 passed / 0.24s**，仅测试/无生产改动；分层人格、scene 裁剪、缓存键改动仍待 D0/D3。证据：[v2-memory-prefix-regression.json](evidence/v2-memory-prefix-regression.json)。
 - **isInitial 决策门回归**：文本“第一次见面”在省略 `is_first` 时不自动晋升（importance/kind/tags/pinned 与普通文本完全一致）；显式 `is_first=True` 且 owner/private 才 100/pinned/first，非 owner 仅 38 不 pin。**3 passed / 0.22s**，仅测试；未实现 isInitial、未改评分权威。证据：[v2-memory-initial-gate-regression.json](evidence/v2-memory-initial-gate-regression.json)。
 
+### 2026-11-22 K01/K13/K18 剩余差异首批（`k18-read-cache`）
+
+- **任务/分支/基线**：K01/K13/K18 剩余差异首批（接手 OmniOperator v2），Windows，2026-11-22；任务分支 `k18-read-cache`（独立工作树 `C:/v2-sessions/k18-read-cache`，不共用 `D:/xm/OmniOperator` 工作树），基线 `origin/v2`=`0793f254`（fetch 后核对一致，开工时工作树干净）；本批实现提交 `341041a6`。待 A 集成，集成后回读 `origin/v2`。
+- **已交（K18.read_cache）**：`bilibili_read` 有界读缓存——domain `ReadCache` TTL+LRU 只缓存 `video`/`whois`（各 24h），上限 400 条/8MiB/单条 64KiB；键含 `(agent_id, config_id, credential authority, operation, target, limit)`，凭据换代（credential revision/authority_epoch 变化）即换桶并在该配置下次读时清旧代；命中仍以 `revision_id` 复核 authority，风险暂停与配置停用门先于缓存，失败/风控码不缓存，命中返回独立副本且模型工具文本与现读逐字节一致；13 个端点（account/comments/replies/search/relation/danmaku/popular/ranking/following/favorites/tags/history/msgfeed）永不缓存，`nav` 有意不缓存（比参考 10min 更严，凭据换代下一读即见）。**无新表/迁移/路由/worker 协议/共享端口签名改动**，组合根与 routing 不变。合同 [V2_BILI_READ_CACHE](v2/contracts/V2_BILI_READ_CACHE.md)。
+- **决策登记**：[V2_REMAINING_DECISIONS](v2/contracts/V2_REMAINING_DECISIONS.md) 把已交付清单之外、须所有者/A 决定的剩余项逐项登记——D1 K01 系统前缀重构 (a)/(c)+D8 真实缓存效果、D2 工具调用代码沙箱、D3 原始 CDP/脚本化浏览器、D4 K18 写扩面（fav/dynamic/danmaku-send/comment-del）、D5 主动观看（night-plan/双日记/沉默衰减/候选打分/偏好学习）、D6 受控分享策略+AI-share 守卫、D7 直播；每项列现状、缺口、需决定什么、安全/授权面、验证要求与依赖顺序，**均未实现**。另登记读侧速率预算 600/h·3000/d 未实现、nav 10min 缓存有意不做。K13/K18 审计已补「实现进度」对照（工作区搜索/模糊补丁/cron 四批/browser_dialog 与 B 站读广度、风控暂停已交付；沙箱/CDP 与 K18 写/观看/分享/直播未实现）。
+- **验证**：新增 **38** 项（`agent/tests/v2/integrations/test_v2_bilibili_read_cache.py`，28 领域 + 10 真实隔离 SQLite 应用集成）**38 过 / 37.31s**；bilibili 全调用方 19 个读/发表/风控/网关/worker 套件 + HTTP 含本批 **496 过 / 170.96s**；media/架构/能力调用方 **12 过 / 21.22s**；strict `pyrightconfig.strict.json` **0 错误 0 警告**；ruff check/format 净；`docs/index` 再生 65/849/464/94 与基线零差异（无索引提交）。当前源码未跑全量，未触真实账号/模型/设备/运行中服务与数据库。
+- **未验**：真实 B 站账号缓存命中率与 24h 新鲜度、进程重启后的命中（内存缓存天然不持久）、`nav` 10min、读侧速率预算、写广度/主动观看/受控分享/直播/AI-share 守卫（决策 D2–D7）、K01 D3(a)/(c)/D8；真实模型质量/设备/72 小时。
+- **下一批**：剩余 K01/K13/K18 项均需所有者决定（决策登记 D1–D7），获批准后按「先授权/持久化合同后接线」独立批次推进；共享接口、数据库迁移与公共 CI 由 A 协调。证据 [v2-bili-read-cache.json](evidence/v2-bili-read-cache.json)。
+
+### 2026-11-22 K01/K13/K18 交付核对与两项残留（第 2 批，`k18-read-cache`）
+
+- **范围/基线**：承接第 1 批（K18.read_cache，实现提交 `341041a6`）；本批只读核对 + 决策合同，**无生产源码/测试/迁移改动**。基线仍 `origin/v2`=`0793f254`（第 1 批尚未合入），同一任务分支与独立工作树；本批文档提交见分支 tip。
+- **排除项逐条核对通过**：K01(b) 路由键（`adapters/models.py:23-40` 派生键/provider 分类、`:164-167` `extra_body` 注入，前缀/计量不变）；cron 四批（`domain/cronjob.py`、`application/cronjob.py`、`instance.py:741-743` attach、v0049 投影）；browser_dialog（`workers/main.py:432-516` 有界持有/`expected_url` CAS/显式候选）；B 站读广度 + 风控暂停（合同/证据，496 调用方既有结果）。核对套件 **112 过 / 204.17s**（prompt_cache 6、cronjob_tool 83、cronjob_e2e 3、schedule_context 6、schedule_bindings 5、browser_dialog 9），无全量。
+- **新增两项决策（未实现）**：**D8 调度阻塞与后台评审辅助调用**——`schedule_blocker` 无 purpose 过滤，在途 K08 评审/K06 压缩的 `summary` 调用被当作未复核外部结果，`assert_run_lease` 抛 `previous_outcome_unknown`、`schedule_materialize` 不推进 `next_at`；现有 e2e `wait_review_settled` 即绕过该交互；合同 [V2_SCHEDULE_REVIEW_BLOCKER](v2/contracts/V2_SCHEDULE_REVIEW_BLOCKER.md) 列 A–D，推荐 A（只统计 `purpose='turn'`，预计无迁移），待所有者批准。**D9 浏览器 URL SSRF/IMDS floor**——builtin worker 的 `browser_navigate` 只校验 scheme、无主机/IP floor 且默认跟随重定向/子资源，实测 302→`127.0.0.1:<port>/latest/meta-data/` 可读 body；决策登记 D9 列 i–iv（仅 builtin worker 改动），待所有者定本地浏览策略。
+- **文档**：K13 审计组 2 由「待核」改为「已核未实现」并补交付核对/D8/D9；决策登记补 D8/D9 与顺序建议；证据 [v2-delivered-verification.json](evidence/v2-delivered-verification.json)。
+- **未验**：D8/D9 未实现；真实 B 站账号/模型质量/公网浏览器/72 小时；当前源码未全量。
+- **下一批**：等所有者对 D8/D9（成本最低）或 D1–D7 决策后按合同独立批次接线；共享接口/迁移/公共 CI 由 A 协调。
+
+### 2026-11-22 K18 写扩面设计合同与配额缺口（第 3 批，`k18-read-cache`）
+
+- **范围/基线**：承接第 1/2 批；本批**纯设计合同**，无源码/测试/迁移/路由/worker 改动。基线仍 `origin/v2`=`0793f254`（前两批未合入），同一任务分支/独立工作树；本批文档提交见分支 tip。
+- **D4 设计合同**：[V2_BILI_WRITE_BREADTH](v2/contracts/V2_BILI_WRITE_BREADTH.md)——逐动作设计 `comment_delete`（记录行/删除菜单/复用 `browser_dialog` confirm/列表消失验证）、`favorite_add`（目标夹必须来自 `favorites`、跨夹重复需显式 ack、需新只读 `fav_resources` 验证）、`dynamic_post/delete/edit/image`（需新只读 `dynamic_list` 验证；图片上传独立安全审查）；`danmaku-send` 属直播 `api.live…/msg/send`，归 D7。读侧前置 `fav_resources`/`dynamic_list` 建议先批（只读、无授权、无迁移）。分批 B0→B4、不变量与测试计划已列。
+- **新发现 F1（配额缺口）**：现有已授权 comment/private_message 写路径**没有任何配额/冷却**——V2 只有 `MAX_ATTEMPTS=3` + `2**seq` 退避，唯一冷却为 QQ 专属 `cooldown_s`；B 站读/写均无参考的 600/h、12/h、120s、share≤3/日、评论 30 日、fav 3 日窗口。K18 审计「共享限额/冷却」措辞已在实现进度更正。配额机制需所有者选 Q1（审批+幂等，零迁移）/Q2（通用配额账本，A 分配迁移号）/Q3（内存限速，不采用）；若接 D5/D6 自主行为必须先落 Q2。
+- **决策状态**：D4 已补设计合同与 Q1/Q2 决策点；D8（cron 阻塞与评审）/D9（浏览器 SSRF floor）仍待所有者；D1/D2/D3/D5/D6/D7 未动。
+- **未验**：合同内所有动作与读前置未实现；真实 B 站账号发送/删除/收藏/动态未验；当前源码未全量。
+- **下一批**：等 Q1/Q2 与逐动作批准后先做 D4-B0（只读 `fav_resources`+`dynamic_list`），再做 B1 `comment_delete`；D8/D9 仍是最低成本决策项。共享接口/迁移/公共 CI 由 A 协调。
+
+### 2026-11-22 K18 空间动态只读 `dynamic_list`（第 4 批，`k18-read-cache`）
+
+- **范围/基线**：承接前三批；本批为**实现批**（读-only），基线仍 `origin/v2`=`0793f254`（前三批未合入），同一任务分支/独立工作树。
+- **已交**：`bilibili_read` 新增 `operation=dynamic_list`（target=mid）——固定第二 API host `api.vc.bilibili.com` 的 `space_history`（`host_uid/offset_dynamic_id=0/need_top=0`），登录后分派、mid 在取 cookie 前 422；`domain/bilibili.py` 新增 `VC_API`/`DYNAMIC_HISTORY`/`dynamic_rows`（严格 `desc.dynamic_id_str` `[0-9]{1,32}`、timestamp/type 精确 int 否则 None、文本尽力取 `item.description`→`item.content` 去标记 ≤200、坏/超长 card 文本为空、缺 cards 正常空、非列表/超 50 卡/坏行显式 502、`has_more` 精确 1/True 否则 `len>=limit`）；application `READ_SPEC` enum+desc、http Literal、缓存 allowlist 回归同步（`dynamic_list` 不缓存）。**无新表/迁移/路由/worker 协议/共享端口/新源文件**，routing 不变、declared_tools 94。
+- **验证**：新增 27 项（`test_v2_bilibili_dynamic.py`，domain/gateway 固定 host+参数+cookie/非法 mid×7 网络前拒/风控码/坏卡 502/spec+HTTP）**27 过 / 1.54s**；bilibili 全调用方 21 套件含 HTTP **523 过 / 158.06s**；strict **0 错误 0 警告**；ruff check/format 净。未跑全量、未触真实账号/网络。
+- **文档**：合同 [V2_BILI_DYNAMIC](v2/contracts/V2_BILI_DYNAMIC.md)；K18 审计读广度补 `dynamic_list`；写扩面合同 D4 前置更新（`dynamic_list` 已交付，D4-B0 只剩 `fav_resources`）；证据 [v2-bili-dynamic.json](evidence/v2-bili-dynamic.json)；任务 JSON `K18.dynamic_list`。
+- **未验**：真实 B 站账号 `space_history` 送达/字段（need_top、私密动态、分页）、动态详情/富卡片解析、动态写（D4-B3/B4）、直播（D7）、AI-share（D6）；当前源码未全量。
+- **下一批**：`fav_resources` 只读（D4-B0 剩余，离线无授权面）或等 Q1/Q2 后 D4-B1 `comment_delete`/B3 dynamic 写（`dynamic_list` 已可作验证面）；D8/D9 仍是最低成本决策；D5/D6/D7 合同待写。共享接口/迁移/公共 CI 由 A 协调。
+
+### 2026-11-23 K18 收藏夹内容只读 `fav_resources`（第 5 批，`k18-read-cache`）
+
+- **范围/基线**：承接前四批；本批为**实现批**（读-only），基线仍 `origin/v2`=`0793f254`（前四批未合入），同一任务分支/独立工作树。
+- **已交**：`bilibili_read` 新增 `operation=fav_resources`（target=收藏夹 id）——固定 `/x/v3/fav/resource/list`（`media_id/pn=1/ps=20/keyword=""/order=mtime/type=0/tid=0/platform=web`），登录后分派、folder id 在取 cookie 前 422；`domain/bilibili.py` 新增 `fav_folder_id`/`fav_resource_rows`（缺 medias 正常空、非列表/超 50 行/坏行/存在但非法 bvid 显式 502、缺失或空 bvid 的非视频与失效条目跳过、先过滤后取 limit 视频行、`bvid/title/author/duration_s/fav_time`、`info.title/media_count` 可选、`has_more` 精确 1/True 否则 `len>limit`）；application `READ_SPEC`、http Literal、缓存 allowlist 回归同步（不缓存）。**无新表/迁移/路由/worker 协议/共享端口/新源文件**，routing 不变、declared_tools 94。
+- **完成 D4-B0**：写扩面合同的只读前置（`dynamic_list` + `fav_resources`）已全部交付，D4-B2 `favorite_add` 的「回读目标夹确认」验证面就绪。
+- **验证**：新增 23 项（domain 行规则/跳过/坏 bvid×4/坏形状×4/>50/可选字段/filter-then-limit/has_more/folder id；gateway 固定端点+全部参数+cookie+登录顺序；非法 folder×7 网络前拒；风控码；坏 medias 502；spec+HTTP）**23 过 / 1.22s**；bilibili 全调用方 22 套件含 HTTP **546 过 / 142.79s**；strict **0 错误 0 警告**；ruff check/format 净（format 仅折行新测试，源码未变）。未跑全量、未触真实账号/网络。
+- **文档**：合同 [V2_BILI_FAV_RESOURCES](v2/contracts/V2_BILI_FAV_RESOURCES.md)；K18 审计读广度补 `fav_resources`；写扩面合同 D4-B0 标记完成；证据 [v2-bili-fav-resources.json](evidence/v2-bili-fav-resources.json)；任务 JSON `K18.fav_resources`。
+- **未验**：真实账号公开/私密收藏夹送达、`pn` 翻页/`tid`/排序变体、非视频媒体详情、收藏写（D4-B2）、动态写（D4-B3/B4）、直播（D7）、AI-share（D6）；当前源码未全量。
+- **下一批**：Q1/Q2 批准后 D4-B1 `comment_delete`（最小写面）/B2 `favorite_add`（`fav_resources` 验证）/B3 dynamic 文本；D8/D9 仍是最低成本决策；D5/D6/D7 合同待写。共享接口/迁移/公共 CI 由 A 协调。
+
+### 2026-11-23 K18 主动观看设计合同（第 6 批，`k18-read-cache`）
+
+- **范围/基线**：承接前五批；本批**纯设计合同**，无源码/测试/迁移/路由/worker 改动。基线仍 `origin/v2`=`0793f254`（前五批未合入），同一任务分支/独立工作树。
+- **D5 合同**：[V2_BILI_PROACTIVE_WATCH](v2/contracts/V2_BILI_PROACTIVE_WATCH.md)——参考事实（窗口随机唤醒/skipChance 0.3/minGap 10/maxWakes 12/maxVideos 5/pending 持久/跳过仍写日记并耗位/3 天历史；双日记+事件流；沉默衰减 <3 全额、≥7 天 0、中间线性降、normal/quiet/faint 带；反馈 `kind:id`+水位去重≤1000、learned boost≤7.5；`score=log10(1+dm/max(30,d))*3+prefHits*4+boost` 排除播放量、junk 过滤与≥2 命中豁免、多样性）与 V2 映射（Scheduling/Maintenance tick、`submit_turn` 普通 run、documents 或受管文件、既有 B 站读、K08/K15），列 **W1–W8 决策**：唤醒路径、日记存储、debrief→应用层渲染、衰减只限 D6 share 上限、反馈判定、打分来源、默认 OFF/预算/不补唤醒、K15 接缝。
+- **协调项**：预计新表 `bilibili_watch_plans`/`bilibili_watch_events`（迁移号由 A 分配）；W2-A 需 `InstancePaths` 加性路径；无共享端口签名改动；`BilibiliWatchService` 仅生产路径启用、隔离测试默认禁用（K08/decay 先例）。**接主动行为前须与 D 对齐**（已写入合同与决策登记）。
+- **决策状态**：D5 已上升为设计合同；D6（分享/AI-share 守卫）、D7（直播）合同待写；D8/D9 仍待所有者选定；D4 写批待 Q1/Q2。
+- **未验**：合同内所有能力未实现；真实账号/模型/72 小时；当前源码未全量。
+- **下一批**：写 D6（受控分享：share 阈值/7 日去重/score-reason-rank 门/notify 后端/AI-share 守卫）合同，或 D7（直播：room/WS/gift/send）合同；D8/D9 批准后可立即小批接线。共享接口/迁移/公共 CI 由 A 协调。
+
+### 2026-11-23 K18 受控分享策略设计合同（第 7 批，`k18-read-cache`）
+
+- **范围/基线**：承接前六批；本批**纯设计合同**，无源码/测试/迁移/路由/worker 改动。基线仍 `origin/v2`=`0793f254`（前六批未合入），同一任务分支/独立工作树。
+- **D6 合同**：[V2_BILI_SHARE_POLICY](v2/contracts/V2_BILI_SHARE_POLICY.md)——参考事实（资格门 `reason≥8`/`score 0–20 ≥ minScore 13`/`rank 1`/`share.enabled`；`shareDaily=3` + 同 BV 7 日去重 + 有效上限 `min(shareDaily, silence)`；正文以 `@owner` 开头；拦截先于发送与记账；notify 四后端与 `$MSG` shell 注入弃用、command 走 `execFileSync` 无 shell；AI-share 默认 OFF、仅评论区分享、样本 ≤20/扩样 ≤40、TTL 6h、代码自算比例、阈值 30(代码) vs 60(文档) 漂移且从未在线验证；DM 1 收件人/日/互关硬编码/300 字）与 V2 映射（既有 prepare→owner 审批→outbox→已审表单、D5 沉默上限、D4-Q2 配额账本）。
+- **S1–S6 决策**：S1 资格门逐条拒绝码；S2 逐条审批（推荐）vs 自主分享（需独立授权）；S3 `bilibili_share_ledger`（A 迁移号、unknown 保守计数、owner 时区 local-day）；S4 首版 owner 事件 + 既有 delivery，不加 webhook/command（另需 SSRF/禁 shell 安全合同）；S5 AI-share 守卫推荐 **S5-A 暂不移植且不宣称对等**（可选 S5-B 固定阈值+真实验证）；S6 不照搬参考 30 日/1 收件人等数值。
+- **决策状态**：D6 已上升为设计合同；D7（直播）合同待写；D8/D9 待所有者选定；D4 写批待 Q1/Q2；D5 的 W1–W8 待决策。
+- **未验**：合同内所有能力未实现；真实 B 站分享送达/沉默联动/AI-share 误报率；当前源码未全量。
+- **下一批**：写 D7 直播合同（room/WS 弹幕/gift 只读/send/独立开关），或 D8/D9 批准后小批接线；D4/D5/D6 的实现均待所有者决策与 A 迁移协调。共享接口/迁移/公共 CI 由 A 协调。
+
+### 2026-11-23 K18 直播设计合同（第 8 批，`k18-read-cache`）
+
+- **范围/基线**：承接前七批；本批**纯设计合同**，无源码/测试/迁移/路由/worker 改动。基线仍 `origin/v2`=`0793f254`（前七批未合入），同一任务分支/独立工作树。
+- **D7 合同**：[V2_BILI_LIVE](v2/contracts/V2_BILI_LIVE.md)——参考事实（房间 `get_info`、`gethistory`、`GetDMConfigByGroup`；`msg/send` 表单与错误码 `0/-101/-111/-400/1003212/10031`、失败必须非零；WS 需 WBI `getDanmuInfo` 取 token+host_list、16 字节包头、op7 鉴权/op2 心跳 30s、ver3 brotli/ver2 zlib、op5 `DANMU_MSG/INTERACT_WORD/SEND_GIFT` 只读；独立开关 owner/@-only；gift/charge 发送参考亦未实现）与 V2 映射（`websockets>=17.3` 已是依赖；`bilibili_read` 固定 host 读；owner 侧 `LiveDanmakuService` 内存 ring buffer 不落库）。
+- **L1–L5 决策**：L1 房间读、L2 历史读（推荐先做）；L3 WS 监听（推荐 owner 服务 + owner-only 摘要，可选纯解析器先行）；L4 发送（**推荐 L4-a 不做**；L4-b 已审表单独立写批；L4-c 直接 API POST **拒绝**，违反 V2 写路径纪律）；L5 独立开关默认 OFF、owner-only 启停、风险码联动。
+- **安全/有界**：固定 `api.live.bilibili.com`；WS host 必须来自 `getDanmuInfo` 且 `.bilibili.com` 后缀 + wss + 端口校验；WS 只用一次性 token（不带 cookie）；单帧 ≤1 MiB/解压 ≤4 MiB + `eof`、未知 ver 丢弃、op 白名单；弹幕/礼物文本不可信、截断、不入 system；单连接/全局上限/心跳/退避/关闭等待真实释放。
+- **持久化**：首版无新表、无迁移；若所有者要事件/摘要持久化 → 新表 + A 迁移号。
+- **未验**：合同内所有能力未实现；真实直播/账号/网络；当前源码未全量。
+- **下一批**：补 D1（K01 前缀重构）/D2（代码沙箱）/D3（原始 CDP）设计合同，或 D8/D9 批准后小批接线；D4/D5/D6/D7 实现均待所有者决策与 A 迁移协调。共享接口/迁移/公共 CI 由 A 协调。
+
+### 2026-11-23 K01 系统前缀重构与 D8 设计合同（第 9 批，`k18-read-cache`）
+
+- **范围/基线**：承接前八批；本批**纯设计合同**，无源码/测试/迁移/路由/worker 改动。基线仍 `origin/v2`=`0793f254`（前八批未合入），同一任务分支/独立工作树。
+- **D1 合同**：[V2_PROMPT_CACHE_PREFIX](v2/contracts/V2_PROMPT_CACHE_PREFIX.md)——勘定系统前缀 = `persona` + owner memory（`metering.py:43-53`）+ run 启动 `route_notice`/`skills.notice`（`engine.py:345-359` → `context.py:92-101`），摘要是 system 后首条 user；run 内 `TurnPrompt` 已冻结 system、变更只走尾；**跨 run 漂移源** = memory/route/skills/摘要（persona 低频）。D3(b) 路由键已交付（`372ad56d`），内容地址 provider 仍靠字节 parity。
+- **P1–P6 决策**：P1-a 仅 persona 系统前缀 + 记忆/摘要固定位 + route·skills 走尾（推荐，**语义变更**：memory salience 下降、通知即时性下降，需所有者接受）；P1-b 混合稳定记忆快照；P1-c 最小改动（通知/摘要移尾）；P1-d 维持。P2 记忆块删除屏障/字段序/上限；P3 通知顺序；P4 摘要位置；P5 全局切换 vs 每 agent 设置（后者可能触 settings schema → A）；P6 **D8** 隔离 provider 对照实验（同模型/同会话连续 run，用既有 usage 缓存字段度量，不入默认离线套件）。
+- **触达面**：`domain/metering.py` 冻结前缀合同（需所有者批准）+ `application/context.py`/`engine.py` 装配；预计**无新表/迁移**；D3(b) 不动。
+- **未验**：P1 方案未实现；D8 真实缓存效果需所有者提供隔离 provider 环境；真实模型质量对照未做；当前源码未全量。
+- **下一批**：补 D2（代码沙箱）/D3（原始 CDP）安全设计合同（任务点名清单中仅剩这两项），或 D8/D9 批准后小批接线；D1/D4–D7 实现均待所有者决策与 A 迁移协调。共享接口/迁移/公共 CI 由 A 协调。
+
+### 2026-11-23 K13 代码沙箱与原始 CDP 设计合同（第 10 批，`k18-read-cache`）
+
+- **范围/基线**：承接前九批；本批**两份纯设计合同**，无源码/测试/迁移/路由/worker 改动。基线仍 `origin/v2`=`0793f254`（前九批未合入），同一任务分支/独立工作树。至此任务点名的「前缀重构、代码沙箱、原始 CDP、写扩面、主动观看／分享／直播」**七项决策全部有设计合同**。
+- **D2 代码沙箱**：[V2_CODE_SANDBOX](v2/contracts/V2_CODE_SANDBOX.md)——参考事实（execute_code=PTC、持久 kernel、允许清单含 write/terminal、300s/50 调用/50KB+spill/10KB、env/RPC 清洗与 token+预算、browser_exec 需 terminal surface）；V2 仅 `shell_execute` 一次性 argv。选项 **S1 不移植（推荐先明确边界）/ S2 受限计算沙箱（无 RPC 无写、临时 cwd+env 清洗、资源上限、明确声明非安全边界，次推荐）/ S3 完整 PTC（只读 RPC+持久 kernel，需 A 协调 worker 协议）/ S4 远程容器另立**；写/terminal 不桥接、不继承凭据。
+- **D3 原始 CDP**：[V2_BROWSER_CDP](v2/contracts/V2_BROWSER_CDP.md)——参考事实（browser_exec 任意宿主 Python over CDP、terminal 门控、URL 字面量预扫、CDP endpoint 优先级；browser_cdp raw method/target/OOPIF、需 supervisor、私有网络守卫、不得成为 URL 策略绕过；url_policy 有序 floor）；V2 仅基础浏览器动作、scheme 校验、无 host floor（D9）。选项 **C1 不移植（推荐）/ C2 声明式多步浏览器计划（≤20 步、逐步 expected_url CAS、单次审批、失败停止，复用现有实现）/ C3 只读 CDP 白名单（需 D9 先落地 + A 协议协调）/ C4 完整 browser_exec 拒绝**；共同前提 D9 floor、不得读取凭据。
+- **决策状态**：D1–D7 均已有设计合同待所有者选定；D8（cron 阻塞）/D9（浏览器 SSRF floor）仍是最低成本决策；D4 写批待 Q1/Q2；D5 待 W1–W8 且需与 D 对齐。
+- **未验**：两份合同内能力均未实现；真实模型脚本/真实 Chromium/公网/账号；当前源码未全量。
+- **下一批**：无新增点名项待设计；下一轮优先做 D8/D9 实现（若所有者批准即可小批接线）或复核已交付项/证据、补 K13 cron 残余（monitor/no_agent/toolsets/workdir/deliver/prompt_scan）设计合同；共享接口/迁移/公共 CI 由 A 协调。
+
+### 2026-11-23 K13 cron 变体残余设计合同（第 11 批，`k18-read-cache`）
+
+- **范围/基线**：承接前十批；本批**纯设计合同**，无源码/测试/迁移/路由/worker 改动。基线仍 `origin/v2`=`0793f254`（前十批未合入），同一任务分支/独立工作树。
+- **合同**：[V2_CRON_VARIANTS](v2/contracts/V2_CRON_VARIANTS.md)——cron 四批之外的组 5 残余：参考事实（`script` 必须是 `HERMES_HOME/scripts/` 下文件、stdout 注入、`no_agent` 脚本即 job；`workdir` 载入目录 `AGENTS.md`/`CLAUDE.md`；`deliver`/`failure_deliver`/`enabled_toolsets`/`attach_to_session`/`monitor_*`；inactivity watchdog 600s、脚本 3600s、catch-up 半周期 clamp、at-most-once、headless 拒绝 spawn、cron `skip_memory`/独立会话；prompt scan）与 V2 现状。
+- **R1–R5 决策**：R1 `enabled_toolsets` 推荐不移植（与 route 档位/`disabled_tools` 重叠）；R2 `workdir` 推荐不移植（破坏 workspace 边界；如需则 workspace 内 realpath 包含校验 + 迁移，且不移植 AGENTS.md 语义）；R3 `deliver`/`failure_deliver` 推荐不移植自动投递（失败先 owner 事件；自动投递需独立授权合同；`attach_to_session` 已由 `schedules.session_id` 表达）；R4 `monitor`/`no_agent`+`script` 推荐不移植（脚本=无模型执行面、URL=SSRF 面，需独立安全合同并接 D2/D9）；R5 `prompt_scan` 推荐不移植/只读建议式。
+- **协调项**：R1/R2/R3 若采纳 → `ScheduleValue` 加性字段 + 冻结迁移（A 编号）+ owner 投影；R2 另需 worker workspace 覆盖（A 协议）；R4 需新执行适配器与审计；R5 无迁移。
+- **决策状态**：D1–D7 已有设计合同待所有者选定；D8（cron 阻塞）/D9（浏览器 SSRF floor）仍是最低成本实现项；D4 写批待 Q1/Q2；D5 待 W1–W8 且需与 D 对齐。
+- **未验**：合同内能力均未实现；真实无模型脚本/URL 监视/prompt 扫描；当前源码未全量。
+- **下一批**：若所有者批准，优先实现 D8 或 D9；否则复核已交付项的调用方/证据、补组 1 模型侧持久终端/进程控制设计合同，或对 D1–D7 决策材料做一致性复核。共享接口/迁移/公共 CI 由 A 协调。
+
+### 2026-11-23 K13 模型侧持久终端/进程设计合同与决策速览（第 12 批，`k18-read-cache`）
+
+- **范围/基线**：承接前十一批；本批**纯设计合同 + 决策速览表**，无源码/测试/迁移/路由/worker 改动。基线仍 `origin/v2`=`0793f254`（前十一批未合入），同一任务分支/独立工作树。
+- **组 1 合同**：[V2_TERMINAL_MODEL_TOOLS](v2/contracts/V2_TERMINAL_MODEL_TOOLS.md)——参考事实（持久 shell 跨调用保留 cwd/env 且模型自由执行、`process_manage` 九动作、`desktop_ui` 三工具）；V2 现状（`shell_execute` 一次性已审 argv；`TerminalService` 所有者侧单写者/意图回执/权限代次/工作目录指纹/boot/lease/≤4 终端，无模型入口）。选项 **T1 不移植（推荐，参考持久 shell 与逐 argv 审批冲突）/ T2 只读观察（`terminal_list`/`terminal_read`/`process_list`/`process_read`，可选低风险）/ T3 逐命令审批的持久终端 / T4 完整持久 shell+`process_manage`（拒绝）/ T5 kill·handoff 审批子集（`(pid, started_at)` 身份）**；薄封装既有 `TerminalService`、无迁移。
+- **决策速览**：决策登记顶部新增 D1–D9 + R1–R5 + T1–T5 的**一张表**（推荐、成本、迁移/协调、关键风险、建议顺序：D8→D9→D1→D4/D6→D7→D5→D2/D3/R/T），便于所有者/A 一次选定。
+- **决策状态**：D1–D9/R1–R5/T1–T5 全部已有设计合同或速览，**实现均待所有者选定**；D8（cron 阻塞）/D9（浏览器 SSRF floor）仍是最低成本实现项（D8 预计无迁移）。
+- **未验**：合同内能力均未实现；真实终端交互/桌面 pane；当前源码未全量。
+- **下一批**：若所有者批准，优先实现 D8 或 D9；否则复核 D1–D9 决策材料一致性、对已交付项做再次专项复核，或按所有者选定开始任一实现批次。共享接口/迁移/公共 CI 由 A 协调。
+
+### 2026-11-23 决策材料一致性复核（第 13 批，`k18-read-cache`）
+
+- **范围/基线**：承接前十二批；本批**只读复核**，无源码/测试/迁移改动。基线仍 `origin/v2`=`0793f254`（前十二批未合入），同一任务分支/独立工作树。
+- **链接完整性**：`docs/v2/contracts` 101 份文档、301 条相对链接；**5 条缺失全部是 macOS 会话 `V2_MACOS_HELPER_TCC.md` 的既有 `../evidence/...` 路径错误**（应为 `../../evidence/...`），属 macOS/A 域，**未修改**（跨会话保留），转交 A/macOS 负责人。本会话 12 份决策合同（读缓存/决策登记/调度阻塞/写扩面/主动观看/分享/直播/前缀重构/沙箱/CDP/cron 残余/终端）**链接全部有效**。
+- **源码行锚点**：19 处引用逐一核对**全部命中**——`metering.py:43-53/56-73`、`context.py:92-101/151/289`、`engine.py:345-359`、`turn_prompt.py:10-25/28-44`、`models.py:23-40`、`workers/main.py:432-444/447-453`、`capabilities.py:113-121/141-154`、`lease_repository.py:80-105/120-155`、`schedule_repository.py:477-483`、`background_review.py:147-156`、`scheduling.py:164-185`、`terminals.py:38-48`。
+- **结论**：D1–D9/R1–R5/T1–T5 决策材料与当前代码一致，无漂移；实现仍待所有者选定（D8/D9 最低成本）。
+- **未验**：所有决策实现；真实账号/模型/设备/72 小时；当前源码未全量。
+- **下一批**：若无所有者决策，继续只读复核/证据维护；获准后按选定项（建议 D8→D9）独立批次接线。共享接口/迁移/公共 CI 由 A 协调。证据 [v2-decision-material-audit.json](evidence/v2-decision-material-audit.json)。
+
+### 2026-11-23 D8 调度阻塞修复（第 14 批，`k18-read-cache`）
+
+- **范围/基线**：承接前十三批；本批为**实现批**（合同方案 A）：K13 cron 触发被 K08 评审/K06 压缩 `summary` 调用假阻塞的缺陷。基线仍 `origin/v2`=`0793f254`（前十三批未合入），同一任务分支/独立工作树。
+- **改动**：`adapters/persistence/lease_repository.py` `schedule_blocker.conditions()` 的 `model_calls` 条件加 `purpose='turn'`——`summary`（K06 压缩/K08 评审）的 reserved/unknown 不再进入 blocker 的 `unknown_exists`/`items`/fingerprint，不会把下一定时触发判为 `previous_outcome_unknown`；`turn` reserved/unknown 仍阻塞、可经所有者 `schedule_review` 按 fingerprint 解除；`actions`/`outbox` 与 `schedule_reviews` 语义**零改动**；无新表/迁移/路由/worker 协议/共享端口；summary 成本仍在 `model_calls`/usage/审计可见。
+- **验证**：新增 5 项（`test_v2_schedule_review_blocker.py`：reserved summary 不阻塞且下一 occurrence 准入、崩溃遗留 unknown summary 不阻塞、reserved turn 仍 `previous_outcome_unknown`、unknown turn 所有者 review 后解除、summary 不掩盖 turn）**5 过 / 10.67s**；**回退探针**摘过滤后 3 个 summary 用例红、2 个 turn 用例绿，还原后 diff 仅 6 行；调用方 12 套件（cron/schedule/background_review/maintenance/execution/kernel/lifecycle/delegation）**200 过 / 303.16s**；strict **0 错误 0 警告**、ruff 净。未跑全量、未触真实账号/模型/服务/数据库。
+- **合同/证据**：[V2_SCHEDULE_REVIEW_BLOCKER](v2/contracts/V2_SCHEDULE_REVIEW_BLOCKER.md) 状态改「已实现并专项通过」并补实现记录；决策登记 D8 与速览表标记已实现（若所有者选 B/C/D 可回退过滤）；[证据](evidence/v2-schedule-review-blocker-impl.json)；任务 JSON `K13.schedule_review_blocker`。
+- **未验**：真实 K08 评审窗口与下一触发竞态（离线冻结时钟覆盖等价语义）、真实模型/72 小时、全量。
+- **下一批**：D9 需所有者先定本地浏览策略（i–iv）；D1/D4–D7 待所有者选定；若无决策，继续只读复核/证据维护。共享接口/迁移/公共 CI 由 A 协调。
+
+### 2026-11-23 D9 浏览器 URL floor（第 15 批，`k18-read-cache`）
+
+- **范围/基线**：承接前十四批；本批为**实现批**（D9 保守子集 i+iv）。基线仍 `origin/v2`=`0793f254`（前十四批未合入），同一任务分支/独立工作树。
+- **改动**：`adapters/workers/main.py` 新增 `METADATA_HOSTS`/`METADATA_IPS`/`_blocked_host`/`_blocked_url`/`_blocked_navigation`——导航前拒绝 link-local 与云元数据（IP 字面量含 `[fe80::1]`/zone id、`metadata.google.internal`/`metadata.goog`/`instance-data` 等别名、`100.100.100.200`、`fd00:ec2::254`），主机名做 ≤1.5s DNS 解析检查后拒绝；`page.route("**/*")` 对每个 http(s) 请求（含**重定向与子资源**）命中即 `abort` 并计数，落地 `page.url` 再 backstop；结果携带 `blocked_requests`。**loopback/RFC1918 仍允许**（V2 UI/本地夹具），私网默认策略（ii/iii）与子资源完整 DNS-rebinding floor 仍待所有者。无新表/迁移/路由/worker 协议/依赖。
+- **验证**：新增 `test_v2_browser_url_floor.py` **16 项 / 6.72s**（元数据/别名/zone id、导航前拒绝、loopback 正常、子资源 abort 但页面可用、重定向 abort 且无元数据正文、同源子资源放行）；**回退探针**强制 `_blocked_host=False` → 10 红 + 1 error，还原后 16/16；调用方 `browser_dialog`/`worker_safety`/`workers`/`capabilities` **52 过 / 97.38s**；strict **0/0**、ruff 净。未跑全量、未触真实网络/账号。
+- **文档/证据**：决策登记 D9 与速览表标记「部分实现 i+iv」；`V2_BROWSER_CDP` 共同前提更新；[证据](evidence/v2-browser-url-floor.json)；任务 JSON `K13.browser_url_floor`。
+- **未验**：私网默认策略、子资源完整 DNS-rebinding、WebSocket 拦截、真实网站/账号、当前源码未全量。
+- **下一批**：D9 收尾需所有者私网策略；D1/D4–D7 待选定；D2/D3/R/T 默认不移植。共享接口/迁移/公共 CI 由 A 协调。
+
+## 分支交付汇总（`k18-read-cache` → A 集成，2026-11-23）
+
+- **基线/交付**：`origin/v2`=`0793f2543f1b2bb94e960d171747fbf08bc11b84`；分支 `k18-read-cache` 线性叠加其上，交付 tip `474fd975`（远端 `git ls-remote` 回读同值）；工作树 `C:/v2-sessions/k18-read-cache`，全程未触碰主检出在途修改。
+- **实现提交（5 个）**：`341041a6` 读缓存（仅 video/whois 24h/400 条/8MiB，凭据换代换桶、13 端点不缓存）、`0202bcfc` `dynamic_list`（固定 VC host）、`41252a11` `fav_resources`（固定 resource/list、只保留视频行）、`85716859` D8（`schedule_blocker` 仅 `purpose='turn'`）、`46c098f6` D9（元数据/link-local 导航拒绝 + `page.route` 全请求 abort）。其余为文档/合同/证据提交。
+- **触及源码（6 个，无共享接口/迁移/worker 协议/composition/ports 改动）**：`domain/bilibili.py`、`application/bilibili.py`、`adapters/bilibili.py`、`adapters/http.py`（仅 Literal）、`adapters/persistence/lease_repository.py`、`adapters/workers/main.py`。`git diff --name-only origin/v2..HEAD -- application/ports.py adapters/workers/protocol.py adapters/persistence/migrations composition` 为空；无新表/迁移/路由/依赖。
+- **新增测试（5 文件 109 项）**：`test_v2_bilibili_read_cache.py`(38)、`test_v2_bilibili_dynamic.py`(27)、`test_v2_bilibili_fav_resources.py`(23)、`test_v2_schedule_review_blocker.py`(5)、`test_v2_browser_url_floor.py`(16)。
+- **验证记录（每批终源）**：缓存 38 过 37.31s + bilibili 调用方 496 过 170.96s；dynamic_list 27 过 1.54s + 523 过 158.06s；fav_resources 23 过 1.22s + 546 过 142.79s；D8 5 过 10.67s + cron/租约/执行等 12 套件 200 过 303.16s（回退探针 3 红）；D9 16 过 6.72s + browser_dialog/worker_safety/workers/capabilities 52 过 97.38s（回退探针 10 红+1 error）。strict `pyrightconfig.strict.json` 每批 0 错误 0 警告；ruff/format 净；`project_index` 65/849/464/94 零差异；`task_status.py --check` exit 0；未跑全量、未触真实账号/模型/服务/数据库。
+- **集成建议**：在干净集成 checkout 取最新 `origin/v2` 与本分支；若主线前进则先 rebase 再重跑受影响专项（命令见各批证据）。实现均为加性/局部修复，冲突面预计仅在 HANDOFF/任务 JSON/合同文档；回退点：D8 为 `lease_repository.py` 的 6 行 purpose 过滤，D9 为 `workers/main.py` 的 helper + 路由安装（摘除后新用例按设计变红），缓存/两个读 operation 可单独 revert 而不影响其余。
+- **数据/行为变化**：B 站 `bilibili_read` 结果新增 `dynamic_list`/`fav_resources` 两个只读 operation 与 video/whois 缓存命中（文本逐字节一致）；定时触发不再被 K08/K06 summary 调用假阻塞；浏览器对元数据/link-local 的导航与请求被拒绝/中止（loopback/RFC1918 仍允许，私网策略待所有者）。**未宣称 K01/K13/K18 全量对等**；D1–D9/R1–R5/T1–T5 决策状态与建议顺序见决策登记速览表，`whole_*` 保持 false。
+
+### 批次证据索引
+
+| 批次 | 实现提交 | 合同 | 证据 |
+|---|---|---|---|
+| K18.read_cache | `341041a6` | V2_BILI_READ_CACHE.md | v2-bili-read-cache.json |
+| 交付核对/决策登记 | `d9574705`、`993af24a` | V2_REMAINING_DECISIONS.md | v2-delivered-verification.json |
+| K18.write_breadth_design | `8aa8becf` | V2_BILI_WRITE_BREADTH.md | v2-bili-write-breadth-design.json |
+| K18.dynamic_list | `0202bcfc` | V2_BILI_DYNAMIC.md | v2-bili-dynamic.json |
+| K18.fav_resources | `41252a11` | V2_BILI_FAV_RESOURCES.md | v2-bili-fav-resources.json |
+| K18.proactive_watch_design | `8bb68f51` | V2_BILI_PROACTIVE_WATCH.md | v2-bili-proactive-watch-design.json |
+| K18.share_policy_design | `063f082b` | V2_BILI_SHARE_POLICY.md | v2-bili-share-policy-design.json |
+| K18.live_design | `f7cb339f` | V2_BILI_LIVE.md | v2-bili-live-design.json |
+| K01.prompt_cache_prefix_design | `1fcaf4c4` | V2_PROMPT_CACHE_PREFIX.md | v2-prompt-cache-prefix-design.json |
+| K13.code_sandbox_design / browser_cdp_design | `a4ea761b` | V2_CODE_SANDBOX.md / V2_BROWSER_CDP.md | v2-code-sandbox-design.json / v2-browser-cdp-design.json |
+| K13.cron_variants_design | `2d1a6dd5` | V2_CRON_VARIANTS.md | v2-cron-variants-design.json |
+| K13.terminal_model_tools_design | `af5ffe51` | V2_TERMINAL_MODEL_TOOLS.md | v2-terminal-model-tools-design.json |
+| 决策材料复核 | `c50f5e6e` | V2_REMAINING_DECISIONS.md | v2-decision-material-audit.json |
+| D8 实现 | `85716859` | V2_SCHEDULE_REVIEW_BLOCKER.md | v2-schedule-review-blocker-impl.json |
+| D9 部分实现 | `46c098f6` | 决策登记 D9 | v2-browser-url-floor.json |
+
+### 2026-11-23 合并前综合复核（第 17 批，`k18-read-cache`）
+
+- **范围/基线**：承接前十六批；本批**只读复核 + 索引再生**，无源码/测试改动。基线仍 `origin/v2`=`0793f254`，复核 tip `9085c6a7`。
+- **单次串联全绿**：在分支 tip 上一次性运行 **41 个受影响测试文件、819 项**：bilibili 读写/风控/worker 546 + cron/schedule/租约/执行/内核/生命周期/委派/后台评审/维护 205 + 浏览器/对话框/URL floor/worker safety/capabilities 68（含本分支 5 个新测试文件 109 项）——**819 passed / 543.26s，0 失败 0 跳过**。这是合并前可引用的整体绿色结果（此前各批结果为分批专项）。
+- **静态/索引**：tip 上 strict `pyrightconfig.strict.json` **0 错误 0 警告**；`ruff check agent/src/omni` + 5 个新测试文件通过；`project_index` 在 tip 上再生（源指纹随本分支源码变更更新，MODULES/API/project.json），**二次运行零差异**（幂等），索引随本批提交。此前各批 `project_index` 报「updated=」是因为生成器读取已提交 HEAD，源码随后提交才在本次体现——非漂移。
+- **未验**：未跑全仓全量（多模块集成收尾留 A）；真实 B 站账号/模型质量/设备/72 小时；D9 私网策略与 D1/D4–D7 决策实现。
+- **下一批**：分支已可交付 A（线性于 `0793f254`；主线若前进先 rebase 再重跑上述 41 文件命令）。剩余实现项全部由所有者决策门控（D1/D4–D7、D9 收尾、R1–R5、T1–T5），决策速览见决策登记。共享接口/迁移/公共 CI 由 A 协调。证据 [v2-prejoin-verification.json](evidence/v2-prejoin-verification.json)。
+
+### 并行任务分支集成风险（2026-11-23 核对，供 A）
+
+对 `origin/v2`（仍 `0793f254`）上并存的任务分支做只读文件级核对；本分支改动集与它们的交集：
+
+| 分支 | tip | 改动文件数 | 与本分支源码交集 | 与本分支文档交集 | 说明 |
+|---|---|---|---|---|---|
+| `k14-visual-persona` | `fa1bac0b` | 39 | **无** | `docs/HANDOFF.md`、`docs/index/MODULES.md`、`docs/index/project.json`、`docs/tasks/v2-agent-core-parity.json` | 含 `V2_K14_K15_DECISION_LEDGER.md`、memory initial 合同与 **test-only** 的 `test_v2_memory_prefix.py`/`v2-memory-prefix-regression.json`。**已核（2026-11-23）**：该分支源码改动仅 som/android_explore/visual_subagent（不含 `domain/metering.py`/`application/context.py`），`V2_MEMORY_INITIAL` 明言「不把『最初』注入系统前缀」；`test_v2_memory_prefix.py` 只是**锁定当前前缀组成**（persona+memory+notice、`history_request[0]` 逐字节相等、遗忘/擦除离开前缀、顺序与 notice 尾稳定），对当前 `memory_system` 布局做断言。**与 K01 D1 的交叉仅是该测试合同**：D1 P1-a 改变前缀布局时须在同一批更新这条 K15 测试（不是实现顺序依赖）；当前两分支合并不冲突、该测试对现布局仍绿。 |
+| `k16-storyboard` | `489d093b` | 25 | **无** | 同上四个文档 | 仅 media worker/domain/scenes 与 K16 合同/证据，与本分支源码无交集。 |
+| `linux-container-g3` | `37ab8640` | 5 | **无** | 仅 `docs/HANDOFF.md` | 仅 `composition/serving.py` + Linux 平台文档/证据。 |
+
+- **源码零交集**：三支与本分支的 6 个源码文件均不重叠，A 可按分支顺序合并源码而无需源码级冲突处理。
+- **合并冲突模拟（`git merge-tree --write-tree --name-only`，2026-11-23 实测）**：
+  - `HEAD + origin/k14-visual-persona`：exit 1，冲突 **`docs/HANDOFF.md`、`docs/index/MODULES.md`、`docs/index/project.json`**；`docs/tasks/v2-agent-core-parity.json` 自动合并。
+  - `HEAD + origin/k16-storyboard`：exit 1，冲突 **`docs/index/MODULES.md`、`docs/index/project.json`、`docs/tasks/v2-agent-core-parity.json`**；`docs/HANDOFF.md` 自动合并。
+  - `HEAD + origin/linux-container-g3`：**exit 0，无冲突**。
+  - 三支**源码文件零冲突**（冲突全部在生成索引/HANDOFF/任务 JSON）。
+- **文档冲突处理配方**：`docs/index/*` 是生成物——取任一侧后**在合并后的干净树重跑** `project_index.py`（二次运行确认幂等）再提交，不要手工合并；HANDOFF 按批次顺序人工拼接（本分支小节在文末「追溯入口」之前，k14/k16 各自小节可直接自上而下叠加）；任务 JSON 先按 `requirements[].id`/`batches[].id` 取并集，再逐 requirement 合并 `followups`/`limits`/`next`（本分支已用 `K01.*`/`K13.*`/`K18.*` 唯一 id）；合并后按各分支证据里的受影响专项命令复验（本分支用第 17 批的 41 文件/819 项命令）。
+- **K14/K15 前缀测试协调（精确版）**：`test_v2_memory_prefix.py` 的 4 项断言绑定当前 `memory_system` 组成；D1 接线时必须同步调整该测试（P1-a 后系统仅 persona、memory 变独立块、notice 走尾），并在证据中说明是合同同步而非弱化断言。合并顺序无硬依赖。
+- **决策材料**：k14 分支另有 `V2_K14_K15_DECISION_LEDGER.md`，与本分支的 `V2_REMAINING_DECISIONS.md`（D1–D9/R1–R5/T1–T5）是两份独立决策台账，A 汇总给所有者时应并列而非相互覆盖；K16 的 `V2_K16_REMAINING_DECISIONS.md` 同理。
+
 ## 追溯入口
 
 - [旧交接记录](history/pre-layout-2026-11-18/HANDOFF.md)、[旧重构记录](history/pre-layout-2026-11-18/V2_REFACTOR.md)只证明所属版本，不作为当前待办。

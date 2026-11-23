@@ -43,14 +43,25 @@
       "reference": "hermes-agent/agent/prompt_builder.py; agent/prompt_cache_scope.py",
       "evidence": "docs/evidence/v2-prompt-cache-scope.json",
       "implementation_evidence": "docs/evidence/v2-prompt-cache-route-key.json",
-      "limits": "D3(b) 仅 provider 路由亲和，不改变内容地址 provider 的前缀漂移现状；未用 prompt_cache_key 伪造缓存命中；D3(a)/(c) 与真实缓存效果未做"
+      "limits": "D3(b) 仅 provider 路由亲和，不改变内容地址 provider 的前缀漂移现状；未用 prompt_cache_key 伪造缓存命中；D3(a)/(c) 与真实缓存效果未做",
+      "followups": [
+        {
+          "gap": "D3(a)/(c) 系统前缀重构 + D8 真实缓存效果（P1-a/b/c/d 布局、P2-P5、D8 隔离对照实验）",
+          "status": "design_contract_recorded",
+          "batch": "K01.prompt_cache_prefix_design",
+          "contract": "docs/v2/contracts/V2_PROMPT_CACHE_PREFIX.md",
+          "evidence": "docs/evidence/v2-prompt-cache-prefix-design.json",
+          "delivered": "纯设计合同：勘定系统前缀=persona+owner memory+run 启动 route/skills 通知（metering.py:43-53/engine.py:345-359/context.py:92-101），摘要紧随 system 首条 user，run 内 TurnPrompt 已冻结 system 且变更走尾；跨 run 漂移源=memory/route/skills/摘要（persona 低频）；P1-a 仅 persona 系统前缀+记忆/摘要固定位+route·skills 走尾（推荐，语义变更需所有者接受） /P1-b 混合稳定记忆快照/P1-c 最小改动/P1-d 维持；P2 记忆块删除屏障与字段序、P3 通知顺序、P4 摘要位置、P5 全局切换 vs 每 agent 设置（可能触 settings schema→A）、P6 D8 隔离 provider 对照实验与既有 usage 字段度量；字节稳定回归、run 内冻结适配、调用方与回退验证计划列明。无源码/测试/迁移/路由/worker 改动，未实现"
+        }
+      ]
     },
     {
       "id": "K02",
       "title": "统一模型回包协议与空回复结算",
       "status": "implemented_scoped_passed",
       "delivered": "普通回包动作前校验；同批ID唯一、JSON可逆与字节限额；空答案失败但已发送费用照算，不自动重试",
-      "reference": "hermes-agent/agent/tool_call_batches.py; agent/empty_response_guard.py"
+      "reference": "hermes-agent/agent/tool_call_batches.py; agent/empty_response_guard.py",
+      "followups": []
     },
     {
       "id": "K03",
@@ -66,7 +77,8 @@
       "delivered": "生产todo_list内部控制、同库session_todos修订快照、所有者只读API、合并/层级/容量、压缩/重启与来源删除恢复",
       "contract": "docs/v2/contracts/V2_TODOS.md",
       "evidence": "docs/evidence/v2-todos.json",
-      "task_editing_ui_added": false
+      "task_editing_ui_added": false,
+      "followups": []
     },
     {
       "id": "K04",
@@ -88,7 +100,8 @@
       "contract": "docs/v2/contracts/V2_DELEGATION.md",
       "evidence": "docs/evidence/v2-delegation.json",
       "delivered": "生产delegate_task单层/批量委派、同库不可变父子绑定、独立session/租约/上下文、固定模型与工具捕获继承、父子费用限额、独立4子池、取消真实汇合、unknown不重放与所有者只读API",
-      "limits": "深度1、每父生命周期最多4子、批内摘要总计4000字符；无跨层嵌套、自选模型、异步handle/reconnect/steer或专用视觉子代理"
+      "limits": "深度1、每父生命周期最多4子、批内摘要总计4000字符；无跨层嵌套、自选模型、异步handle/reconnect/steer或专用视觉子代理",
+      "followups": []
     },
     {
       "id": "K05",
@@ -103,7 +116,8 @@
       "delivered": "纯领域分段规划器与引擎_execute_parallel：已提供只读能力按两两不同资源键并发，控制/写/档位外/未知串行屏障；逐项_execute生命周期不变，结果按调用顺序汇合，兄弟动作先结算再按序抛错，取消等待每个已启动动作自身结算，unknown不重放",
       "contract": "docs/v2/contracts/V2_TOOL_BATCH.md",
       "evidence": "docs/evidence/v2-tool-batch.json",
-      "limits": "仅只读可并行；冲突基于显式资源键而非路径启发式；无批次总超时与新管理界面；无数据库迁移"
+      "limits": "仅只读可并行；冲突基于显式资源键而非路径启发式；无批次总超时与新管理界面；无数据库迁移",
+      "followups": []
     },
     {
       "id": "K06",
@@ -122,7 +136,8 @@
           "evidence": "docs/evidence/v2-run-compaction-settlement.json",
           "delivered": "compact_run 不再对 ModelCalls 已结算的 reserved summary call 二次 settle_call：删除 invoked 死变量与 except/reply.calls 两处结算，避免摘要带 tool_calls 或失败时长 run 报 already_settled；新增 3 工具轮超阈值回归（单次 settled/cost=7/转录不变），旧代码以 already_settled 失败、修复后 14/14 上下文专项通过。"
         }
-      ]
+      ],
+      "followups": []
     },
     {
       "id": "K07",
@@ -132,7 +147,8 @@
       "reference": "hermes-agent/agent/iteration_budget.py; agent/repetition_guard.py",
       "delivered": "domain/repetition.py保守重复检测与stop-path runaway守卫(>=16000字符)，引擎invoke后派发前检查命中即model_repetition_degenerated失败保留费用不重放；非委派步数耗尽一次no-tool收敛grace(费用闸门保持、仍调用工具或退化则step_budget_exceeded)，委派保持调用数合同；不放宽硬限不重发未知",
       "contract": "docs/v2/contracts/V2_ITERATION_GUARD.md",
-      "evidence": "docs/evidence/v2-iteration-guard.json"
+      "evidence": "docs/evidence/v2-iteration-guard.json",
+      "followups": []
     },
     {
       "id": "K08",
@@ -148,7 +164,8 @@
       "delivered": "domain/background_review.py白名单分类与有界建议/决策/幂等规则；BackgroundReviewService由maintenance.tick驱动排他claim+reserve/invoke/settle评审循环(只读派发、写拦截为待审、其余拒绝)；引擎finish后非委派非远程幂等触发(生产路径门控)；所有者decide记忆走remember/forget、技能走SkillService审核撤回链并CAS绑定revision/fingerprint/epoch；独立MAX_CALLS=8与budget_micro记账；无收益零候选；v0043冻结迁移两表+不可变/状态机/禁删触发器；5个/memory/reviews所有者路由",
       "contract": "docs/v2/contracts/V2_BACKGROUND_REVIEW.md",
       "evidence": "docs/evidence/v2-background-review.json",
-      "limits": "评审复用summary辅助通道(未新增model_calls.purpose、不重建核心表)；独立预算由批次调用上限+记账+日预算闸门约束；无prompt-cache parity fork/aux模型路由/参考读前写守卫全集；单层无嵌套子run"
+      "limits": "评审复用summary辅助通道(未新增model_calls.purpose、不重建核心表)；独立预算由批次调用上限+记账+日预算闸门约束；无prompt-cache parity fork/aux模型路由/参考读前写守卫全集；单层无嵌套子run",
+      "followups": []
     },
     {
       "id": "K09",
@@ -164,7 +181,8 @@
       "delivered": "domain/session_search.py纯规则四形态推断(discover/scroll/read/browse)、有界clamp/角色/排除归一化、token化、逐消息截断与锚点shaping、按会话去重分组与渲染；SessionSearchRepositories只读仓储Agent隔离+deleted_atISNULL+seq>context_floor_seq屏障+隐藏委派子会话，tokenLIKE有界扫描(discover)、锚点窗口与前后计数(scroll)、head/tail截断(read)、最近会话预览(browse)；SessionSearchCapabilities映射错误码并返回 ActionResult文本+结构化锚点；capabilities.py新增只读ToolSpec(writes=False,resource空)、routing.py RETRIEVAL_TOOLS纳入；engine._execute原生命周期派发无需改",
       "contract": "docs/v2/contracts/V2_SESSION_SEARCH.md",
       "evidence": "docs/evidence/v2-session-search.json",
-      "limits": "V2 messages无FTS索引，discover用有界tokenLIKE+按会话分组非参考FTS5/bm25/lineage去重全集；sessions无source/parent列，隐藏委派子会话由run_delegations推导，无cron降级/跨profile/时间界/压缩lineage变体；删除屏障在读取时遵守floor(整段prior历史排除)，不做读取后追溯scrub或context捕获注册(区别于memory/document)；无新表/无迁移/无新HTTP路由"
+      "limits": "V2 messages无FTS索引，discover用有界tokenLIKE+按会话分组非参考FTS5/bm25/lineage去重全集；sessions无source/parent列，隐藏委派子会话由run_delegations推导，无cron降级/跨profile/时间界/压缩lineage变体；删除屏障在读取时遵守floor(整段prior历史排除)，不做读取后追溯scrub或context捕获注册(区别于memory/document)；无新表/无迁移/无新HTTP路由",
+      "followups": []
     },
     {
       "id": "K10",
@@ -180,7 +198,8 @@
       "delivered": "domain/clarify.py纯规则CLARIFY规格与normalize_questions(1-5问、choices<=4去重clamp、推荐首项标记、空/越界/控制字符拒绝)、build_result(answered/skipped/unanswered+submitted/cancelled/timed_out/undelivered)、render；复用waiting_approval暂停态，engine._clarify_wait轮询每轮_checkpoint承接取消/租约，clarify_request转running->waiting_approval(work保持running、租约LIVE续期、同会话FIFO阻塞)，_resolve响应/取消/超时转回同一run running；_batch_entry串行屏障、_dispatch_call档位门后拦截(agent档)、_run生产注入；ClarifyService所有者pending/respond/cancel；clarifications表+v0044冻结迁移(身份/单向状态机/禁删触发器，JSON列pending省略answers避JSONnull陷阱)；3个所有者路由；run取消与启动恢复清理pending",
       "contract": "docs/v2/contracts/V2_CLARIFY.md",
       "evidence": "docs/evidence/v2-clarify.json",
-      "limits": "复用waiting_approval不新增run状态/事件保留种类；Other自由文本由所有者answers承载非schema强制、无多平台UI回调(走HTTP)；委派子run未单独限制clarify；显式用户steering完整合同属后续；超时读取时判定无后台清扫器；既有5个pin v2_0039旧版本升级迁移测试在K10之前即滞后(与K10无关)保留"
+      "limits": "复用waiting_approval不新增run状态/事件保留种类；Other自由文本由所有者answers承载非schema强制、无多平台UI回调(走HTTP)；委派子run未单独限制clarify；显式用户steering完整合同属后续；超时读取时判定无后台清扫器；既有5个pin v2_0039旧版本升级迁移测试在K10之前即滞后(与K10无关)保留",
+      "followups": []
     },
     {
       "id": "K11",
@@ -197,7 +216,8 @@
       "contract": "docs/v2/contracts/V2_VERIFICATION_STOP.md",
       "evidence": "docs/evidence/v2-verification-stop.json",
       "limits": "默认OFF(opt-in与参考一致)，由open_instance/http_app开关驱动未接Agent设置严格schema；证据用逐动作回执verification非参考工作区验证账本；参考LSP迟到verdict/pre_verify插件钩子/kanban终止守卫未对等；后续独立读动作不回溯认定先前写已验证；无interim答案流式对外发射；既有test_v2_todos重启节点为K08后台评审与断言竞态(经gate旁路实验确证与K11无关)及5个pin v2_0039旧迁移测试保留不追",
-      "next": false
+      "next": false,
+      "followups": []
     },
     {
       "id": "K12",
@@ -214,7 +234,8 @@
       "contract": "docs/v2/contracts/V2_MODEL_RECOVERY.md",
       "evidence": "docs/evidence/v2-model-recovery.json",
       "limits": "默认OFF(opt-in)由open_instance/http_app开关驱动未接Agent设置严格schema；恢复仅覆盖空回复，参考超时/网络瞬态重试/context_compressor_retry/turn_recovery自动恢复/auxiliary_fallback未对等；无模型/provider fallback链(禁擅换)；成本阈值用micro常量非USD Decimal、provider签名用base_url；无重试退避延迟与重试次数持久化审计行(体现为多条settled model_calls)；既有todos重启竞态与5个pin v2_0039旧迁移测试沿用保留不追",
-      "next": false
+      "next": false,
+      "followups": []
     },
     {
       "id": "K13",
@@ -413,6 +434,78 @@
           "contract": "docs/v2/contracts/V2_CRON_MODEL_TOOL.md",
           "evidence": "docs/evidence/v2-cronjob-e2e.json",
           "delivered": "合同第四批(端到端)落地，K13 cron四批全部完结：只新增test_v2_cronjob_e2e.py 3例经生产open_instance+注入Clock+脚本模型走全链，零生产源码改动(git diff HEAD -- agent/src/为空，3/4批strict 417文件0错误与115调用方通过对当前源码仍有效)。ScriptedModel以工具面区分通道：背景评审走只读工具面(不含cronjob_manage)返回no candidates不消费run脚本回复(生产事实非模拟绕过)；drive助手循环wait_state waiting_approval→approvals[0]断言tool==cronjob_manage→approve True。test1模型create consumer(skills+context_from+continuity)经1次审批，所有者侧source日程先触发succeeded产出含sk-令牌正文，advance(61)+tick触发consumer断言注入prompt以'Scheduled job context (source): source output '起、sk-令牌被生产Redactor脱敏、以'\\n\\nTask: summarize'收尾、run_skill_activations恰为绑定技能(技能经生产SkillService.save+state(enabled)真写对象字节；seed_skill只注册DB行不写字节会object_missing故弃用)；wait_review_settled后第二次触发continuity把consumer自身上一份输出done与source输出按position一并注入。test2 create后读job_id，update(rev1)/pause(rev2)/resume(rev3)/list/remove(rev4)五连call同回合+收尾文本，drive 5审批共6动作全ok、list effect=none余applied(冻结Clock created_at全同actions顺序不定故按arguments.action识别list顺序无关断言)、page空/occurrences空/deleted_at置位。test3陈旧rev99 update+list对账，conflict动作state=error/effect=none/result.error_code=revision_conflict、定义保持rev1原prompt。发现既有生产交互(非本批引入首次被全链暴露)：assert_run_lease→schedule_blocker(lease_repository.py:99-105)把上一occurrence关联run的在途K08背景评审reserved模型调用计为未解决工作，下一触发run恰在评审reserve→settle窗口内被claim会previous_outcome_unknown终态失败(materialize被阻只标blocked由调度器下一tick重试，已claim run终态失败不重试)；修复前合跑2轮(77.05/74.64秒)单跑3轮(34.15/31.70/32.38秒)第二触发失败，诊断断言拓宽四终态暴露('failed','previous_outcome_unknown')，非负载型flaky；测试wait_review_settled轮询真实background_review_batches账本至该run批次离开queued/running再触发确定性消除竞态，守卫是否排除purpose=summary辅助调用或改等待语义属安全敏感独立批(需合同)本批不改生产。验证：终源3过0败36.08秒，修复后交错单跑3/3(32.23/33.04/33.97秒)+合跑cronjob_tool 86 3/3(67.30/68.68/72.37秒)全绿；回退验证摘掉组合层attach后3/3全红(38.26秒)证明用例真锁住生产接线，cp还原instance.py sha256 e91f44ed与提交一致；strict引用3/4批417文件0错误(生产字节零漂移，本批内复跑亦0 errors 0 warnings)；ruff check净/format 1文件重排后复检净。未构造：注入块8.6K最坏情形(4 ref各2000字符)与跨agent隔离专门断言；run/deliver/repeat/自然语言日程/脚本/监控/模型pin/工具集限制仍缺口；聚合索引暂缓(docs/index他会话在途)；未跑全量、未触真实账号/模型/设备"
+        },
+        {
+          "gap": "交付核对（K01 D3(b)/cron 四批/browser_dialog/B 站读与风控暂停）与两项残留决策（D8 cron 阻塞与 K08/K06 summary 调用、D9 浏览器 URL SSRF/IMDS floor）",
+          "status": "verification_recorded",
+          "batch": "K13.delivered_verification",
+          "contract": "docs/v2/contracts/V2_SCHEDULE_REVIEW_BLOCKER.md",
+          "evidence": "docs/evidence/v2-delivered-verification.json",
+          "delivered": "只读核对排除项：K01(b) 派生路由键/provider 分类/extra_body 注入、cron 四批 domain/application/attach/v0049、browser_dialog 持有队列与 CAS、B 站读广度与风控暂停；核对套件 112 过 204.17 秒（prompt_cache 6/cronjob_tool 83/cronjob_e2e 3/schedule_context 6/schedule_bindings 5/browser_dialog 9）。新增两项决策：D8 schedule_blocker 无 purpose 过滤把 K08/K06 summary 辅助调用计为未复核外部结果（assert_run_lease→previous_outcome_unknown，materialize 不推进 next_at；e2e wait_review_settled 为绕过；合同 V2_SCHEDULE_REVIEW_BLOCKER 选项 A-D，推荐 A 只统计 turn）；D9 worker browser_navigate 仅 scheme 校验、无主机/IP floor 且跟随重定向/子资源，实测 302→127.0.0.1 元数据路径可读（决策登记 D9 选项 i-iv）。无生产源码/测试/迁移/路由/协议改动，无全量"
+        },
+        {
+          "gap": "#5 工具调用代码沙箱设计合同（execute_code/code_kernel/env/RPC；S1-S4）",
+          "status": "design_contract_recorded",
+          "batch": "K13.code_sandbox_design",
+          "contract": "docs/v2/contracts/V2_CODE_SANDBOX.md",
+          "evidence": "docs/evidence/v2-code-sandbox-design.json",
+          "delivered": "纯设计合同：参考事实（execute_code=PTC 脚本经 RPC 调工具仅 stdout 回传；本地持久 kernel UDS/Windows loopback；SANDBOX_ALLOWED_TOOLS 含 write_file/terminal；300s/50 调用/50KB stdout spill 5MB/10KB stderr；kernel 同安全信封+SENTINEL+LRU+委派子 kernel 释放；env/RPC 清洗与 token/预算；browser_exec 因任意宿主 Python 需 terminal surface）与 V2 映射（仅 shell_execute 一次性 argv，无 host Python/kernel/RPC）；S1 不移植（推荐先明确边界）/S2 受限计算沙箱（无 RPC 无写、临时 cwd+env 清洗、资源上限、**明确声明非安全边界**，次推荐）/S3 完整 PTC（只读 RPC 白名单+持久 kernel，需 A 协调 worker 协议）/S4 远程容器另立；写/terminal 不桥接、不继承凭据；实现要点与测试计划列明。无源码/测试/迁移/路由/worker 改动，未实现"
+        },
+        {
+          "gap": "#6 原始 CDP/脚本化浏览器执行设计合同（browser_cdp/browser_exec；C1-C4，D9 前置）",
+          "status": "design_contract_recorded",
+          "batch": "K13.browser_cdp_design",
+          "contract": "docs/v2/contracts/V2_BROWSER_CDP.md",
+          "evidence": "docs/evidence/v2-browser-cdp-design.json",
+          "delivered": "纯设计合同：参考事实（browser_exec 任意宿主 Python over CDP、terminal surface 门控、URL 字面量预扫/URL 秘密拒绝、CDP endpoint 优先级与命名会话；browser_cdp raw method/params/target/frame+OOPIF flatten、需 supervisor、私有网络守卫（IMDS 无条件拒/私有仅本地或显式允许/页面 URL 不可验证即拒）、不得成为 browser_exec URL 策略的绕过；url_policy 有序 floor 与 JS 字面量预扫）与 V2 现状（navigate/read/click/fill/dialog、仅 scheme 校验、无 host floor 即 D9、无 CDP）；C1 不移植（推荐）/C2 声明式多步浏览器计划（≤20 步、逐步 expected_url CAS、单次审批、复用现有实现、失败停止）/C3 只读 CDP 白名单（需 D9 先落地+A 协议协调）/C4 完整 browser_exec 拒绝；共同前提 D9 floor、不得读取凭据；测试计划列明。无源码/测试/迁移/路由/worker 改动，未实现"
+        },
+        {
+          "gap": "#5 cron 变体残余设计合同（enabled_toolsets/workdir/deliver·failure_deliver·attach_to_session/monitor·no_agent+script/prompt_scan；R1-R5）",
+          "status": "design_contract_recorded",
+          "batch": "K13.cron_variants_design",
+          "contract": "docs/v2/contracts/V2_CRON_VARIANTS.md",
+          "evidence": "docs/evidence/v2-cron-variants-design.json",
+          "delivered": "纯设计合同：参考事实（job 字段 script=HERMES_HOME/scripts 下文件绝不行命令、stdout 注入、no_agent 脚本即 job；workdir 载入 AGENTS.md/CLAUDE.md；deliver/failure_deliver/enabled_toolsets/attach_to_session/monitor_*；inactivity watchdog 600s、脚本 3600s、catch-up 半周期 clamp、at-most-once、headless 拒绝 spawn、cron skip_memory/独立会话；prompt_scan）与 V2 现状（ScheduleValue 已有 skills/context_from/continuity+v0049；cronjob_manage additionalProperties=false；触发链/技能激活/脱敏/continuity；投递须 owner 审批；无 per-job toolsets/workdir/自动投递/无模型脚本/监视器/prompt scan）；R1 enabled_toolsets 推荐不移植（与档位重叠）/白名单交集+迁移；R2 workdir 推荐不移植/workspace 内包含校验+迁移（不移植AGENTS.md 语义）；R3 deliver 推荐不移植自动投递（失败先 owner 事件；自动投递需独立授权合同），attach 已由 session_id 表达；R4 monitor/no_agent+script 推荐不移植（脚本=无模型执行面、URL=SSRF 面，需独立安全合同并接 D2/D9）；R5 prompt_scan 推荐不移植/只读建议式；迁移与 worker workspace 覆盖需 A 协调。未实现、无源码/测试/迁移改动"
+        },
+        {
+          "gap": "#1 组 1 模型侧持久终端/进程控制设计合同（T1-T5）+ 决策速览表",
+          "status": "design_contract_recorded",
+          "batch": "K13.terminal_model_tools_design",
+          "contract": "docs/v2/contracts/V2_TERMINAL_MODEL_TOOLS.md",
+          "evidence": "docs/evidence/v2-terminal-model-tools-design.json",
+          "delivered": "纯设计合同：参考事实（持久 shell cwd/env 跨调用保留且模型可自由执行、process_manage 九动作、desktop_ui read_terminal/close_terminal/read_window_below）与 V2 现状（shell_execute 一次性已审 argv；TerminalService 所有者侧 open/attach/detach/output/input/resize/end 单写者/意图回执/权限代次/工作目录指纹/boot/lease/≤4 终端；无模型入口）；T1 不移植（推荐，参考持久 shell 与逐 argv 审批冲突）/T2 只读观察（terminal_list/terminal_read/process_list/process_read，可选低风险）/T3 逐命令审批的持久终端/T4 完整持久 shell+process_manage（拒绝）/T5 kill·handoff 审批子集（(pid,started_at) 身份）；薄封装既有 TerminalService、无迁移；测试计划与不变量列明。另在决策登记顶部新增 D1-D9/R1-R5/T1-T5 决策速览表（推荐/成本/迁移协调/风险/顺序）。未实现、无源码/测试/迁移改动"
+        },
+        {
+          "gap": "决策材料一致性复核（D1-D9/R1-R5/T1-T5 合同链接与源码行锚点）",
+          "status": "verification_passed",
+          "batch": "K13.decision_material_audit",
+          "contract": "docs/v2/contracts/V2_REMAINING_DECISIONS.md",
+          "evidence": "docs/evidence/v2-decision-material-audit.json",
+          "delivered": "只读复核：docs/v2/contracts 101 份文档 301 条相对链接，5 条缺失均为 macOS 会话 V2_MACOS_HELPER_TCC.md 既有 '../evidence/' 路径错误（属 macOS/A 域，未修改，记录待办）；本会话 12 份决策合同链接全部有效。19 处源码行锚点逐一核对全部命中（metering/context/engine/turn_prompt/models/workers browser/capabilities/lease_repository/schedule_repository/background_review/scheduling/TerminalService）。无源码/测试/迁移改动；决策材料与当前代码一致，实现仍待所有者选定"
+        },
+        {
+          "gap": "D8 调度阻塞与 K08/K06 summary 调用——schedule_blocker 仅统计 purpose='turn'（方案 A 实现）",
+          "status": "implemented_scoped_passed",
+          "batch": "K13.schedule_review_blocker",
+          "contract": "docs/v2/contracts/V2_SCHEDULE_REVIEW_BLOCKER.md",
+          "evidence": "docs/evidence/v2-schedule-review-blocker-impl.json",
+          "delivered": "lease_repository.schedule_blocker.conditions() 为 model_calls 增加 purpose='turn' 过滤：K06 压缩/K08 评审的 summary reserved/unknown 不再进入 blocker 的 unknown_exists/items/fingerprint，不再以 previous_outcome_unknown 阻塞下一定时触发；turn reserved/unknown 仍阻塞并可经所有者 schedule_review 按 fingerprint 解除；actions executing/unknown、outbox unknown/unresolved 与 schedule_reviews 语义零改动；无新表/迁移/路由/worker 协议/共享端口；summary 成本仍在 model_calls/usage/审计可见。新增 5 项回归（reserved summary 不阻塞且下一 occurrence 准入/崩溃遗留 unknown summary 不阻塞/reserved turn 仍 previous_outcome_unknown/unknown turn 所有者 review 后解除/summary 不掩盖 turn），终源 5 过 10.67 秒；回退探针摘过滤后 3 summary 用例红、2 turn 用例绿，还原后 git diff 仅预期 6 行；调用方 12 套件（cron/schedule/background_review/maintenance/execution/kernel/lifecycle/delegation）200 过 303.16 秒；strict 0/0、ruff 净"
+        },
+        {
+          "gap": "D9 浏览器 SSRF/IMDS floor——i+iv 保守子集（元数据/link-local 导航拒绝 + 全请求 abort；loopback/RFC1918 仍允许）",
+          "status": "implemented_scoped_passed_partial_policy",
+          "batch": "K13.browser_url_floor",
+          "contract": "docs/v2/contracts/V2_REMAINING_DECISIONS.md",
+          "evidence": "docs/evidence/v2-browser-url-floor.json",
+          "delivered": "main.py 新增 METADATA_HOSTS/METADATA_IPS/_blocked_host/_blocked_url/_blocked_navigation：导航前拒绝 169.254.169.254、[fe80::1]（含 zone id）、metadata.google.internal 等别名、100.100.100.200、fd00:ec2::254，并对主机名做 ≤1.5s DNS 解析检查；page.route('**/*') 对每个 http(s) 请求（含重定向与子资源）命中即 abort 并计数，落地 page.url 再 backstop；结果带 blocked_requests。loopback/RFC1918 仍允许（V2 UI/本地夹具），私网默认策略 ii/iii 与子资源完整 DNS-rebinding floor 仍待所有者。无新表/迁移/路由/worker 协议/依赖。新增 16 项回归 16 过 6.72 秒（元数据/别名/zone id/重定向/子资源/同源放行/loopback 正常），回退探针 10 红+1 error、还原 16/16；调用方 browser_dialog/worker_safety/workers/capabilities 52 过 97.38 秒；strict 0/0、ruff 净"
+        },
+        {
+          "gap": "合并前综合复核——分支 tip 上 41 个测试文件/819 项全绿 + strict/ruff/索引",
+          "status": "verification_passed",
+          "batch": "K13.prejoin_verification",
+          "contract": "docs/HANDOFF.md",
+          "evidence": "docs/evidence/v2-prejoin-verification.json",
+          "delivered": "在交付 tip 9085c6a7 上单次串联运行 41 个受影响测试文件 819 项全过 543.26 秒 0 失败 0 跳过（bilibili 读写/风控/worker 546 + cron/schedule/租约/执行/内核/生命周期/委派/后台评审/维护 205 + 浏览器/对话框/URL floor/worker safety/capabilities 68，含本分支 5 个新测试文件 109 项）；strict 0 错误 0 警告、ruff check agent/src 与 5 个新测试文件通过；project_index 在 tip 上再生（源指纹更新）且二次运行零差异，索引随批提交。未跑全仓全量（留集成收尾）、未触真实账号/模型/设备/72 小时"
         }
       ],
       "limits": "只读审计无新工具/迁移/路由/源码改动；可离线缺口未在K13审计批实现(列后续批次)，其中缺口#1工作区搜索之内容搜索与文件名glob发现已在K13.search_files/K13.find_files后续批实现、缺口#2模糊补丁之核心normalizing策略搜索替换写工具已在K13.patch后续批实现(泛型files_*分派无需协议帧/跨平台改动)；搜索output_mode三态(content/files_with_matches/count)已在K13.search_modes、context邻接线(0-3)已在K13.search_context、offset分页(0-1000)已在K13.search_offset、order排序(discovery|modified修改时间最新优先)已在K13.search_order后续批实现、file_glob内容包含过滤已在K13.search_file_glob后续批实现、glob否定排除(file_glob_exclude)已在K13.search_exclude后续批实现(学rg--glob!否定语义，additive独立排除参数string或≤8字符串list，!前缀剥离，include过滤后读内容前跳过命中任一者，target=files忽略，既有file_glob单包含零回归，多包含glob列表已在K13.search_multi_glob后续批实现(file_glob widen str→str|list≤8多包含OR镜像exclude，单串字节等价零回归，ripgrep/高级gitignore仍后续)、高级gitignore仍后续)、regex已在K13.search_regex后续批实现(use_regex保守静态安全门大小写敏感，拒嵌套量词/反向引用等超线性构造，非ripgrep全集)、ripgrep、补丁escape/unicode归一化策略已在K13.patch_strategies后续批实现(indentation_flexible/trimmed_boundary经证明被line_trimmed涵盖故省略)、similarity近似(block_anchor/context_aware)已在K13.patch_similarity后续批实现(首末锚定+中间/逐行SequenceMatcher阈值，近似命中禁止replace_all仅唯一替换复用指纹CAS/审批)、escape-drift自动纠正与boundary-note已在K13.patch_drift后续批实现(匹配前验证纠正引号/反斜杠倍增漂移、歧义显式拒、近似边界注记，patch_replace四元组返回)、匹配后漂移拒绝与替换侧解转义已在K13.patch_drift_guards后续批实现(引号嫌疑/字面\\n盈余/反斜杠2倍非平凡拒，\\t/\\r区域证据解转义\\n绝不重写)、替换侧缩进重锚已在K13.patch_reindent后续批实现(非精确匹配把new_string基准缩进重锚到文件区域实际基准保留相对嵌套，仅比较首非空行、行中保留supplied、exact逐字、drift守卫后逐区域，3既有indent-drift用例保真更新)、unicode匹配替换侧排版保留已在K13.patch_unicode_preserve后续批实现(仅施加old→new编辑到区域原文，equal部分bisect归属保留em-dash/智能引号/省略号原排版不flatten为ASCII，归一不等回退verbatim，preserve→reindent顺序，既有unicode零回归)、V4A多文件格式、浏览器对话框已在K13.browser_dialog后续批实现(Playwright对话框持有队列+accept/dismiss+prompt_text+expected_url CAS+多对话框id消歧，行为由自动驳回改持有)、cron技能绑定输出依赖已在K13.cron_model_design记录实现前设计合同(工具面cronjob_manage六动作+四类日程语法+技能≤4(运行时MAX_ACTIVE)/context_from≤4与continuity+迁移v0049两表一列+输出摘录脱敏注入+审批门与日预算边界)，持久化批K13.cron_model_persistence(v0049两表一列+保存校验+读投影)、触发链批K13.cron_context(技能激活+输出摘录脱敏注入)、模型工具批K13.cronjob_tool(domain/cronjob.py合同+application/cronjob.py薄封装+Application.attach+组合层生产门控接线+list投影补revision/skills/context_from/continuity)与端到端批K13.cron_e2e(生产open_instance全链3例：create审批触发技能激活脱敏注入continuity自喂+五动作生命周期+陈旧revision冲突，零生产改动，发现并记录schedule_blocker与K08评审reserved call窗口的既有交互)已落地，cron四批全部完结；代码沙箱/原始CDP仍列后续；不宣称全集对等；既有todos重启竞态与5个pin v2_0039旧迁移测试沿用保留",
@@ -503,6 +596,14 @@
           "contract": "docs/v2/contracts/V2_ANDROID_EXPLORE.md",
           "evidence": "docs/evidence/v2-android-explore-core.json",
           "delivered": "离线核心（无持久化/模型工具/HTTP/真机）：domain/android_explore.py skeleton_hash 只哈希 class/resource-id/排序 actions，text/description/password 不入哈希，文案变化归并；密码节点跳过；屏幕 id=sha256(app|activity|skeleton)[:24]；ExploreGraph 200 屏/1000 边上限、重复边去重、自环/缺失目标不造边、超限 truncated；reachable 有界确定性 BFS、paths 有界简单路径（默认 20/20，避环）、unexplored 观察动作减已有边；summary 屏/边/应用/未探索/截断；build_graph 从观察+已观察 transition 构图。9 专项 0.33s。D0–D4 未决。"
+        },
+        {
+          "gap": "独立有界视觉子代理（K04 + 视觉模型：帧≤60 保序子采样、无工具、单次、仅文本汇总、master 不携带帧）",
+          "status": "design_contract_recorded",
+          "batch": "K14.visual_subagent_design",
+          "contract": "docs/v2/contracts/V2_VISUAL_SUBAGENT.md",
+          "evidence": "docs/evidence/v2-visual-subagent-design.json",
+          "delivered": "实现前授权/预算/边界合同（纯文档）：D0-D5 所有者决策门（默认只做离线桩，不调用真实视觉模型）；task 1..4000 + 1..60 已注册/已授权帧、>60 保序等距含首尾、固定 system prompt+1024 输出、无工具/max_calls=1、仅文本≤4000、master 不携带帧、不自动写 memory/persona、unknown 不重放、来源删除/凭据 CAS/取消等待、每父 run 1 个/全局≤4/超时≤120s/临时帧清理；接线点 instance.py/engine.py 当前他会话在途，未实现。"
         }
       ],
       "limits": "K14 审计本身只读；后续独立批次已实现视觉子代理离线核心(K14.visual_subagent_core：有界帧/无工具/单次/仅文本/零写，20 专项过)、SoM 离线核心(K14.android_som_core：节点准入/编号/PNG 渲染，9 专项过)、explore_app 离线核心(K14.android_explore_core：结构 skeleton/有界屏幕动作图/可达/简单路径/未探索动作，9 专项过)，并补 Android 截图撤销/取消/坏 PNG 清理恢复、输入派发后撤权/取消不重放、坏 UI dump 失败关闭六项回归(仅测试/夹具)；OCR 已记录实现前合同(K14.android_ocr_design，D0–D5 未决，未实现，无依赖/模型/迁移/路由)；视觉 D0-D5、SoM D0-D3、explore D0–D4 未决，生产接线/真实视觉模型/真实帧来源/对象发布/持久化/付费调用/真机未做；不宣称真机质量或约65工具广度对等；V2有意不提供shell逃生舱/变更链(更严格)；既有todos重启竞态与5个pin v2_0039旧迁移测试沿用保留",
@@ -939,6 +1040,62 @@
           "contract": "docs/v2/contracts/V2_BILI_RISK_PAUSE.md",
           "evidence": "docs/evidence/v2-bili-risk-pause.json",
           "delivered": "domain/bilibili.py RISK_CODES{12015,-105,-101,401}/is_risk_code精确int+domain/contracts.py BusinessError.detail加性int传输；adapters/bilibili.py _get/_get_list JSON解析后通用拒绝前识别风险码→bilibili_risk_code 403 detail=码(非风险码保持read_rejected)；application/bilibili.py read凭据授权后网关前查暂停→bilibili_risk_paused 403不触达网关，网关risk_code→同事务bilibili_risk_pause持久化转403，risk_state/resume(closing门)；bilibili_repository.py bilibili_risk_get/pause/resume(upsert每agent+config一行/恢复CAS resumed_at IS NULL/无暂停409/非法码422/审计)+bilibili_prepare顶部暂停门403；schema.py bilibili_risk_pauses+v0046冻结SQL迁移(identity immutable+keep禁删触发器,downgrade拒绝)表数142；http.py GET risk态/POST resume所有者路由(无模型侧暂停恢复工具)；已批准outbox投递不追溯阻断列明确不做；14处141→142守卫同步+v0045遗留action_review崩溃重试actions.started_at守卫修复(投影基线列+额外NULL断言不放宽)"
+        },
+        {
+          "gap": "#1 读API广度之读缓存策略(view/acc-info 24h + 400 LRU)；凭据换代换桶、不可缓存端点、失效测试",
+          "status": "implemented_scoped_passed",
+          "batch": "K18.read_cache",
+          "contract": "docs/v2/contracts/V2_BILI_READ_CACHE.md",
+          "evidence": "docs/evidence/v2-bili-read-cache.json",
+          "delivered": "domain/bilibili.py READ_CACHE_TTL_S仅video/whois 24h+READ_CACHE_MAX_ENTRIES400/MAX_BYTES8MiB/ENTRY64KiB+read_cache_key(agent,config,credential authority,operation,target,limit)+ReadCache(TTL+LRU get/put/discard_scope/discard_generations/clear，JSON快照保留插入序)；application/bilibili.py read命中前discard_generations清旧代、命中后bilibili_read_authorized复核authority、风险暂停/配置停用先于缓存、失败不缓存、health两计数、stop_accepting清空；13个端点(account/comments/replies/search/relation/danmaku/popular/ranking/following/favorites/tags/history/msgfeed)永不缓存，nav有意不缓存(比参考更严)；无新表/迁移/路由/worker协议/共享端口改动，BilibiliService仅加可选clock/cache关键字。38专项(28领域+10真实隔离SQLite应用集成)、bilibili全调用方496过、media/架构/能力12过，strict0错误0警告"
+        },
+        {
+          "gap": "#2 写广度（comment-del/fav/dynamic）设计合同 + 配额机制决策；danmaku-send 归直播 D7",
+          "status": "design_contract_recorded",
+          "batch": "K18.write_breadth_design",
+          "contract": "docs/v2/contracts/V2_BILI_WRITE_BREADTH.md",
+          "evidence": "docs/evidence/v2-bili-write-breadth-design.json",
+          "delivered": "纯设计合同：现有 comment/private_message 写链核对（审批 PREPARE_SPEC 不发送+delivery review、去重 key/body_hash/delivery_already_exists/duplicate_ack_required/delivery_review_required、unknown 不重发仅 not_sent+retryable 2^seq MAX_ATTEMPTS=3、恢复 recover/release_boot/cancel/credential revoke、已审表单+凭据 CAS）；**新发现 F1**：现有写路径无任何配额/冷却（仅重试上限+退避与 QQ 专属 cooldown_s），K18 审计「共享限额/冷却」措辞更正；逐动作设计 comment_delete（记录行/删除菜单/复用 browser_dialog/列表验证）、favorite_add（目标夹来自 favorites、跨夹重复需 ack、需新只读 fav_resources 验证）、dynamic_post/delete/edit/image（需只读 dynamic_list 验证、图片上传独立安全审查）；配额 Q1（审批+幂等零迁移）/Q2（通用配额账本，A 迁移号）/Q3（内存，不采用）；分批 B0 只读前置→B1 comment-del→B2 fav→B3 dynamic→B4 图片；不变量与测试计划列明。无源码/测试/迁移/路由/worker 改动，未实现"
+        },
+        {
+          "gap": "#1 读API广度之空间动态列表(space_history；参考动态命令 list)",
+          "status": "implemented_scoped_passed",
+          "batch": "K18.dynamic_list",
+          "contract": "docs/v2/contracts/V2_BILI_DYNAMIC.md",
+          "evidence": "docs/evidence/v2-bili-dynamic.json",
+          "delivered": "bilibili_read新增operation=dynamic_list只读(target=mid)：domain VC_API/DYNAMIC_HISTORY固定第二host+dynamic_rows严格desc.dynamic_id_str[0-9]{1,32}/timestamp/type精确int/文本尽力item.description→content去标记≤200/缺失cards正常空/非列表或>50卡或行非dict或desc非dict显式502/has_more精确1或True否则len>=limit；adapter _dynamic_list绝对URL复用_get(host_uid/offset_dynamic_id=0/need_top=0、风控码/JSON/524288上限、nav登录门后分派、mid在取cookie前422、不缓存)；application READ_SPEC enum+desc、http Literal增dynamic_list；无新表/迁移/路由/worker协议/共享端口/新源文件，routing不变declared_tools 94；27专项1.54秒、bilibili全调用方523过158.06秒、strict0/0、ruff净"
+        },
+        {
+          "gap": "#1 读API广度之收藏夹内容(fav_resources)；参考无文件夹内容读取，V2 兼作 D4-B2 收藏写验证面",
+          "status": "implemented_scoped_passed",
+          "batch": "K18.fav_resources",
+          "contract": "docs/v2/contracts/V2_BILI_FAV_RESOURCES.md",
+          "evidence": "docs/evidence/v2-bili-fav-resources.json",
+          "delivered": "bilibili_read新增operation=fav_resources只读(target=收藏夹id)：domain fav_folder_id正十进制<2^63取cookie前422+fav_resource_rows(缺medias正常空/非列表或>50行或行非dict或存在但非法bvid显式502/缺失或空bvid跳过非视频与失效/先过滤后取limit视频行/bvid-title≤300-author≤100-duration_s-fav_time/info.title-media_count可选/has_more精确1或True否则len>limit)；adapter _fav_resources固定/x/v3/fav/resource/list(media_id/pn1/ps20/keyword空/order mtime/type0/tid0/platform web)复用_get风险码/JSON/524288上限，nav登录门后分派、不缓存；application READ_SPEC enum+desc、http Literal增fav_resources；无新表/迁移/路由/worker协议/共享端口/新源文件，routing不变declared_tools 94；23专项1.22秒、bilibili全调用方546过142.79秒、strict0/0、ruff净"
+        },
+        {
+          "gap": "#3 主动观看设计合同（night-plan/双日记/沉默衰减/反馈回流/候选打分/偏好学习；W1-W8 决策与 K15 接缝）",
+          "status": "design_contract_recorded",
+          "batch": "K18.proactive_watch_design",
+          "contract": "docs/v2/contracts/V2_BILI_PROACTIVE_WATCH.md",
+          "evidence": "docs/evidence/v2-bili-proactive-watch-design.json",
+          "delivered": "纯设计合同：参考事实（night-plan 窗口/skipChance0.3/minGap10/maxWakes12/maxVideos5/pending 持久/跳过仍写日记并耗位/3 天历史；双日记+事件流；沉默衰减 <3 全额/≥7 天 0 中间 max(1,floor(base*(7-days)/4)) 与 normal/quiet/faint 带；反馈 kind:id+水位去重≤1000/learned boost min(7.5,hits*2.5)；score=log10(1+dm/max(30,d))*3+prefHits*4+boost 排除播放量/junk play<300&dm<3 与≥2 命中豁免/多样性）与 V2 映射（SchedulingService/MaintenanceService tick/submit_turn/documents 或受管文件/既有 B 站读/K08/K15）；W1 唤醒路径、W2 日记存储、W3 debrief→应用层渲染、W4 衰减仅限 D6 share 上限、W5 反馈判定、W6 打分与来源、W7 默认 OFF/预算/不补唤醒、W8 K15 接缝；新表 bilibili_watch_plans/events 由 A 分配迁移号；默认 OFF+kill switch+no idle wake+不自动外联+擦除失效；接主动行为前须与 D 对齐；未实现、无源码/测试/迁移改动"
+        },
+        {
+          "gap": "#4 受控分享策略设计合同（share 资格门/日限/同 BV 7 日去重/沉默衰减/notify/AI-share 守卫 S1-S6）",
+          "status": "design_contract_recorded",
+          "batch": "K18.share_policy_design",
+          "contract": "docs/v2/contracts/V2_BILI_SHARE_POLICY.md",
+          "evidence": "docs/evidence/v2-bili-share-policy-design.json",
+          "delivered": "纯设计合同：参考事实（share.enabled/reason>=8/score 0-20>=minScore13/rank1；shareDaily3+同BV7日去重+有效上限min(shareDaily,silence)；正文以 @owner 开头且不看白名单；拦截先于发送与记账；notify none/desktop/webhook/command/dm，$MSG shell 占位因注入风险已弃用、command 走 execFileSync 无 shell；AI-share 默认 OFF、仅 comment--share--auto、样本<=20/扩样<=40、TTL6h、代码自算比例、阈值 30(代码) vs 60(文档) 漂移且从未在线验证；DM 1 收件人/日/互关硬编码/300 字）与 V2 映射（既有 prepare→owner 审批→outbox→已审表单、D5 沉默上限、D4-Q2 配额账本）；S1 资格门逐条拒绝码、S2 逐条审批（推荐）vs 自主分享（需独立授权）、S3 bilibili_share_ledger（A 迁移号/unknown 保守/local-day）、S4 首版 owner 事件+既有 delivery 不加 webhook/command（另需安全合同）、S5 AI-share 守卫推荐 S5-A 暂不移植且不宣称对等、S6 不照搬 30 日/1 收件人等参考数值；不变量与测试计划列明。未实现、无源码/测试/迁移改动"
+        },
+        {
+          "gap": "#6 直播设计合同（room/history/WS 弹幕/gift 只读/send/独立开关；L1-L5）",
+          "status": "design_contract_recorded",
+          "batch": "K18.live_design",
+          "contract": "docs/v2/contracts/V2_BILI_LIVE.md",
+          "evidence": "docs/evidence/v2-bili-live-design.json",
+          "delivered": "纯设计合同：参考事实（get_info/gethistory/GetDMConfigByGroup；msg/send 表单与错误码 0/-101/-111/-400/1003212/10031、失败必须非零；live 需 WBI getDanmuInfo 取 token+host_list、16 字节包头、op7 鉴权/op2 心跳 30s、ver3 brotli/ver2 zlib、op5 DANMU_MSG/INTERACT_WORD/SEND_GIFT 只读、独立开关 owner/@-only、gift/charge 发送参考亦未实现）；V2 映射（websockets>=17.3 已是依赖、bilibili_read 固定 host 读、owner-side LiveDanmakuService 内存 ring buffer 不落库、写路径纪律拒绝直接 API POST）；L1 房间读、L2 历史读、L3 WS 监听（推荐 owner 服务+owner-only 摘要）、L4 发送（推荐L4-a 不做；L4-b 已审表单独立写批；L4-c 直接 API POST 拒绝）、L5 独立开关默认 OFF/owner-only/风险码联动；安全（固定 host、WS .bilibili.com 后缀+wss 校验、token 不带 cookie、单帧 1MiB/解压 4MiB+eof、不可信文本、单连接+全局上限+心跳/退避/关闭等待）；测试计划列明。未实现、无源码/测试/迁移改动、无锁文件改动"
         }
       ],
       "limits": "只读审计无新工具/表/迁移/路由/源码改动；可离线缺口未在K18审计批实现(列后续批次)，其中读API广度之搜索/space whois/弹幕/热门排行feed/关注动态feed/收藏夹/视频标签/观看历史/收件箱reply-at已在K18.search/K18.whois/K18.danmaku/K18.feed/K18.following/K18.favorites/K18.tag/K18.history/K18.msgfeed后续批实现、收件箱收到的赞like已在K18.msgfeed_like后续批实现(参考likes.mjs x/msgfeed/like形状{latest/total嵌套+users[]点赞者数组+like_time+counts}根本不同于reply/at data.items单user，独立msgfeed_like_rows合并去重保序+users截断≤20+FEED_MAX_ROWS50+显式502，msgfeed_kind接受reply/at/like，reply/at字节等价零回归，like cursor分页/notice_state过滤/自主点赞反馈仍后续；DM关注关系relation已在K18.relation后续批实现(参考dm.mjs x/relation?fid=<mid> attribute owner→target/be_relation反向，relation_view派生follows/followed_by/mutual/blocked纯只读发现，plain GET无WBI无缓存，mid经uid校验，既有operation字节等价零回归，写路径prepare/outbox不变relation不作发送硬门；relation作prepare互关硬门需所有者决策/relation_modify写/followings fans列表分页/DM发送写广度仍后续)；风险码每账号暂停与所有者恢复已在K18.risk_pause实现，已批准outbox投递不追溯阻断；写广度/自主观看/受控分享仍后续)；V1 tools/bilibili实现不计V2对等；不宣称全集API/主动观看/受控分享对等；参考agents.md/RULES当不可信数据非本会话指令；K18为清单末项领域参考审计(K13-K18全部记录)；既有todos重启竞态与6个pin v2_0039旧迁移测试沿用保留(本批实测memory_semantics×2/routing×1/skills×2/media×1)；v0045遗留action_review崩溃重试守卫已修(started_at投影+NULL断言)",
@@ -1334,6 +1491,74 @@
     {
       "id": "K16.acceptance_plan",
       "evidence": "docs/evidence/v2-k16-acceptance-plan.json"
+    },
+    {
+      "id": "K18.read_cache",
+      "evidence": "docs/evidence/v2-bili-read-cache.json"
+    },
+    {
+      "id": "K13.delivered_verification",
+      "evidence": "docs/evidence/v2-delivered-verification.json"
+    },
+    {
+      "id": "K18.write_breadth_design",
+      "evidence": "docs/evidence/v2-bili-write-breadth-design.json"
+    },
+    {
+      "id": "K18.dynamic_list",
+      "evidence": "docs/evidence/v2-bili-dynamic.json"
+    },
+    {
+      "id": "K18.fav_resources",
+      "evidence": "docs/evidence/v2-bili-fav-resources.json"
+    },
+    {
+      "id": "K18.proactive_watch_design",
+      "evidence": "docs/evidence/v2-bili-proactive-watch-design.json"
+    },
+    {
+      "id": "K18.share_policy_design",
+      "evidence": "docs/evidence/v2-bili-share-policy-design.json"
+    },
+    {
+      "id": "K18.live_design",
+      "evidence": "docs/evidence/v2-bili-live-design.json"
+    },
+    {
+      "id": "K01.prompt_cache_prefix_design",
+      "evidence": "docs/evidence/v2-prompt-cache-prefix-design.json"
+    },
+    {
+      "id": "K13.code_sandbox_design",
+      "evidence": "docs/evidence/v2-code-sandbox-design.json"
+    },
+    {
+      "id": "K13.browser_cdp_design",
+      "evidence": "docs/evidence/v2-browser-cdp-design.json"
+    },
+    {
+      "id": "K13.cron_variants_design",
+      "evidence": "docs/evidence/v2-cron-variants-design.json"
+    },
+    {
+      "id": "K13.terminal_model_tools_design",
+      "evidence": "docs/evidence/v2-terminal-model-tools-design.json"
+    },
+    {
+      "id": "K13.decision_material_audit",
+      "evidence": "docs/evidence/v2-decision-material-audit.json"
+    },
+    {
+      "id": "K13.schedule_review_blocker",
+      "evidence": "docs/evidence/v2-schedule-review-blocker-impl.json"
+    },
+    {
+      "id": "K13.browser_url_floor",
+      "evidence": "docs/evidence/v2-browser-url-floor.json"
+    },
+    {
+      "id": "K13.prejoin_verification",
+      "evidence": "docs/evidence/v2-prejoin-verification.json"
     }
   ]
 }

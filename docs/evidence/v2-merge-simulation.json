@@ -1,0 +1,51 @@
+{
+  "schema": 1,
+  "date": "2026-11-23",
+  "batch": "K13.merge_simulation",
+  "requirement": "K01 + K13 + K18",
+  "status": "verification_passed",
+  "base_commit": "0793f2543f1b2bb94e960d171747fbf08bc11b84",
+  "branch": "k18-read-cache",
+  "verified_tip": "9c90f24f717ce95ed5057ac6a9446d01cb48ad9f",
+  "scope": "Read-only merge-conflict simulation of the delivery branch against the three other task branches currently on origin/v2, to hand A a concrete conflict list and resolution recipe. No merge, rebase or worktree mutation was performed; no source/test change.",
+  "command": "git merge-tree --write-tree --name-only HEAD origin/<task-branch>",
+  "results": [
+    {
+      "other": "origin/k14-visual-persona",
+      "tip": "fa1bac0b",
+      "exit": 1,
+      "conflicts": ["docs/HANDOFF.md", "docs/index/MODULES.md", "docs/index/project.json"],
+      "auto_merged": ["docs/tasks/v2-agent-core-parity.json"],
+      "source_conflicts": []
+    },
+    {
+      "other": "origin/k16-storyboard",
+      "tip": "489d093b",
+      "exit": 1,
+      "conflicts": ["docs/index/MODULES.md", "docs/index/project.json", "docs/tasks/v2-agent-core-parity.json"],
+      "auto_merged": ["docs/HANDOFF.md"],
+      "source_conflicts": []
+    },
+    {
+      "other": "origin/linux-container-g3",
+      "tip": "37ab8640",
+      "exit": 0,
+      "conflicts": [],
+      "auto_merged": [],
+      "source_conflicts": []
+    }
+  ],
+  "resolution_recipe": [
+    "docs/index/* are generated: take either side, then re-run scripts/project_index.py on the merged clean tree (second run must show no update) and commit that",
+    "HANDOFF: concatenate per-batch sections manually (this branch's section sits before the trailing 追溯入口)",
+    "docs/tasks/v2-agent-core-parity.json: union requirements[].id and batches[].id, then merge followups/limits/next per requirement; this branch uses unique K01.*/K13.*/K18.* ids",
+    "after merging, re-run each branch's affected suites; for this branch the single command is the round-17 41-file/819-test run"
+  ],
+  "not_executed": [
+    "no actual merge/rebase was performed; results are git merge-tree simulations on top of 0793f254",
+    "no full offline suite, real accounts/models/devices or 72h soak"
+  ],
+  "whole_core_parity_complete": false,
+  "whole_reference_feature_audit_complete": false,
+  "whole_v2_complete": false
+}

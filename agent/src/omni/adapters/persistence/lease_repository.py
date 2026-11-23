@@ -150,6 +150,12 @@ class LeaseRepositories(RepositoryBase):
                 # executor stopped. Only terminal unknown observations may be acknowledged.
                 return [or_(table.c.state.in_(ACTIVE_ACTION_STATES), unresolved_action(table) & ~reviewed)]
             values: list[ColumnElement[bool]] = [table.c.state.in_(states), ~reviewed]
+            if table is s.model_calls:
+                # Only turn calls can carry an unreviewed external outcome. Auxiliary summary
+                # calls (run compaction, post-turn review) are internal bookkeeping with no
+                # external effect; counting them stalled the next occurrence for the whole
+                # review window (K13 delivery blocker, contract V2_SCHEDULE_REVIEW_BLOCKER).
+                values.append(table.c.purpose == "turn")
             if table is s.outbox:
                 values.extend((unresolved_outbound(), ~held_outbound()))
             return values

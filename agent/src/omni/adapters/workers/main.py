@@ -5,15 +5,18 @@ from __future__ import annotations
 import asyncio
 import hashlib
 import heapq
+import ipaddress
 import json
 import os
 import platform
+import socket
 import sys
 import tempfile
 import time
 from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, cast
+from urllib.parse import urlsplit
 
 if TYPE_CHECKING:
     from playwright.async_api import Browser, BrowserContext, Dialog, Page, Playwright
@@ -50,6 +53,59 @@ class Effects:
 DIALOG_QUEUE_LIMIT = 8
 DIALOG_PROMPT_CHARS = 2000
 DIALOG_MESSAGE_CHARS = 200
+
+# Ordered SSRF floor for browser requests: cloud metadata, link-local and their aliases are
+# refused unconditionally (a local Chromium on a cloud VM still reaches the host IMDS). Loopback
+# and RFC1918 stay allowed because the V2 UI and local development fixtures live there.
+METADATA_HOSTS = frozenset({"metadata.google.internal", "metadata.goog", "instance-data", "instance-data.ec2.internal"})
+METADATA_IPS = frozenset({ipaddress.ip_address("100.100.100.200"), ipaddress.ip_address("fd00:ec2::254")})
+
+
+def _blocked_host(host: str) -> bool:
+    """True for link-local/cloud-metadata hosts; a missing host is refused as invalid."""
+    name = host.strip().lower().rstrip(".")
+    if not name:
+        return True
+    if name in METADATA_HOSTS:
+        return True
+    literal = name[1:-1] if name.startswith("[") and name.endswith("]") else name
+    literal = literal.split("%", 1)[0]
+    try:
+        address = ipaddress.ip_address(literal)
+    except ValueError:
+        return False
+    return address.is_link_local or address in METADATA_IPS
+
+
+def _blocked_url(url: str) -> bool:
+    """Request-level floor; non-HTTP(S) schemes (data/blob/about) never reach the network."""
+    try:
+        parts = urlsplit(url)
+    except ValueError:
+        return True
+    if parts.scheme.lower() not in {"http", "https"}:
+        return False
+    return _blocked_host(parts.hostname or "")
+
+
+async def _blocked_navigation(url: str) -> bool:
+    """Navigation floor with a bounded DNS check so a hostname rebinding to link-local is refused."""
+    parts = urlsplit(url)
+    host = (parts.hostname or "").strip().lower().rstrip(".")
+    if _blocked_host(host):
+        return True
+    literal = host[1:-1] if host.startswith("[") and host.endswith("]") else host
+    try:
+        ipaddress.ip_address(literal.split("%", 1)[0])
+        return False
+    except ValueError:
+        pass
+    try:
+        async with asyncio.timeout(1.5):
+            infos = await asyncio.get_running_loop().getaddrinfo(host, None)
+    except (OSError, TimeoutError, socket.gaierror):
+        return False
+    return any(_blocked_host(cast(str, entry[4][0])) for entry in infos)
 
 
 @dataclass
@@ -107,6 +163,7 @@ class Worker:
         self._pages: dict[str, Page] = {}
         self._dialogs: dict[str, list[PendingDialog]] = {}
         self._dialog_seq: dict[str, int] = {}
+        self._blocked: dict[str, int] = {}
 
     async def invoke(self, name: str, args: dict[str, Any], context: dict[str, Any]) -> ActionResult:
         effects = Effects()
@@ -414,8 +471,6 @@ class Worker:
         )
 
     async def _web(self, name: str, args: dict[str, Any], context: dict[str, Any], effects: Effects) -> ActionResult:
-        from urllib.parse import urlsplit
-
         if self._playwright is None:
             from playwright.async_api import async_playwright
 
@@ -442,6 +497,19 @@ class Worker:
                 )
 
             self._pages[agent].on("dialog", on_dialog)
+            self._blocked[agent] = 0
+
+            def make_guard(agent_id: str) -> Any:
+                async def guard(route: Any, request: Any = None) -> None:
+                    if _blocked_url(str(route.request.url)):
+                        self._blocked[agent_id] = self._blocked.get(agent_id, 0) + 1
+                        await route.abort()
+                        return
+                    await route.continue_()
+
+                return guard
+
+            await self._pages[agent].route("**/*", make_guard(agent))
         page = self._pages[agent]
         pending = self._dialogs[agent]
         if name == "browser_navigate":
@@ -451,22 +519,27 @@ class Worker:
             target = urlsplit(url)
             if target.scheme not in {"http", "https"} or target.username or target.password:
                 raise ValueError("Browser navigation requires a plain HTTP(S) URL")
+            if await _blocked_navigation(url):
+                raise ValueError("Browser navigation to a link-local or cloud metadata address is blocked")
             effects.dispatched = True
             await page.goto(url, timeout=30_000, wait_until="domcontentloaded")
+            if _blocked_url(page.url):
+                raise ValueError("Browser navigation landed on a blocked link-local or cloud metadata address")
+            blocked = self._blocked.get(agent, 0)
             if pending:
                 return ActionResult(
                     Outcome.OK,
                     "Navigation completed; a native dialog is pending — call browser_read then browser_dialog",
                     Effect.APPLIED,
                     verification=page.url,
-                    data={"url": page.url, "pending_dialogs": len(pending)},
+                    data={"url": page.url, "pending_dialogs": len(pending), "blocked_requests": blocked},
                 )
             return ActionResult(
                 Outcome.OK,
                 (await page.locator("body").inner_text())[:80_000],
                 Effect.APPLIED,
                 verification=page.url,
-                data={"title": await page.title(), "url": page.url},
+                data={"title": await page.title(), "url": page.url, "blocked_requests": blocked},
             )
         if name == "browser_read":
             if pending:

@@ -18,8 +18,12 @@ from ..application.ports import AsyncSecretPort, Record
 from ..domain.bilibili import (
     ADAPTER,
     API,
+    DYNAMIC_HISTORY,
     connection,
+    dynamic_rows,
+    fav_folder_id,
     fav_folder_rows,
+    fav_resource_rows,
     feed_rows,
     following_rows,
     history_rows,
@@ -470,6 +474,11 @@ class BilibiliGateway:
         data = await self._get(client, "/x/relation", {"fid": mid})
         return relation_view(data, mid)
 
+    async def _dynamic_list(self, client: Any, mid: str, limit: int) -> Payload:
+        """Owner-target space dynamics (space_history, fixed VC host); cards are bounded, never cached."""
+        data = await self._get(client, DYNAMIC_HISTORY, {"host_uid": mid, "offset_dynamic_id": 0, "need_top": 0})
+        return {"mid": mid, **dynamic_rows(data, limit)}
+
     async def _danmaku(self, client: Any, bvid: str, cid: str) -> Payload:
         """Official danmaku XML sample via the fixed comment host; bounded decode + parse."""
         from ..domain.bilibili import danmaku_url, parse_danmaku
@@ -502,6 +511,24 @@ class BilibiliGateway:
         """Owner-created favorite folders (list-all); bounded rows, no target, login required."""
         data = await self._get(client, "/x/v3/fav/folder/created/list-all", {"up_mid": mid})
         return {"feed": "favorites", **fav_folder_rows(data, limit)}
+
+    async def _fav_resources(self, client: Any, folder: str, limit: int) -> Payload:
+        """One favorite folder's videos (resource/list, first page); bounded rows, folder id target, login required."""
+        data = await self._get(
+            client,
+            "/x/v3/fav/resource/list",
+            {
+                "media_id": folder,
+                "pn": 1,
+                "ps": 20,
+                "keyword": "",
+                "order": "mtime",
+                "type": 0,
+                "tid": 0,
+                "platform": "web",
+            },
+        )
+        return {"folder_id": folder, **fav_resource_rows(data, limit)}
 
     async def _tags(self, client: Any, bvid: str, limit: int) -> Payload:
         """Public video tags (x/tag/archive/tags); bounded rows, target BV required."""
@@ -561,11 +588,13 @@ class BilibiliGateway:
                     "search",
                     "whois",
                     "relation",
+                    "dynamic_list",
                     "danmaku",
                     "popular",
                     "ranking",
                     "following",
                     "favorites",
+                    "fav_resources",
                     "tags",
                     "history",
                     "msgfeed",
@@ -575,7 +604,7 @@ class BilibiliGateway:
             ):
                 raise BusinessError(
                     "bilibili_read_invalid",
-                    "Choose account/video/comments/replies/subtitle/streams/search/whois/relation/danmaku/popular/ranking/following/favorites/tags/history/msgfeed and a limit of 1–20",
+                    "Choose account/video/comments/replies/subtitle/streams/search/whois/relation/dynamic_list/danmaku/popular/ranking/following/favorites/fav_resources/tags/history/msgfeed and a limit of 1–20",
                     status=422,
                 )
             root = ""
@@ -586,11 +615,14 @@ class BilibiliGateway:
                 root = uid(root)
             keyword = ""
             mid = ""
+            folder = ""
             feed_kind = ""
             if operation == "search":
                 keyword = search_keyword(target)
-            elif operation in {"whois", "relation"}:
+            elif operation in {"whois", "relation", "dynamic_list"}:
                 mid = uid(target)
+            elif operation == "fav_resources":
+                folder = fav_folder_id(target)
             elif operation == "msgfeed":
                 feed_kind = msgfeed_kind(target)
             elif operation not in {
@@ -618,6 +650,8 @@ class BilibiliGateway:
                         return await self._whois(client, nav, mid)
                     if operation == "relation":
                         return await self._relation(client, mid)
+                    if operation == "dynamic_list":
+                        return await self._dynamic_list(client, mid, limit)
                     if operation == "tags":
                         return await self._tags(client, target, limit)
                     if operation == "popular":
@@ -628,6 +662,8 @@ class BilibiliGateway:
                         return await self._following(client, limit)
                     if operation == "favorites":
                         return await self._favorites(client, uid(value["account"]), limit)
+                    if operation == "fav_resources":
+                        return await self._fav_resources(client, folder, limit)
                     if operation == "history":
                         return await self._history(client, limit)
                     if operation == "msgfeed":

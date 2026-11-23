@@ -5,7 +5,9 @@ from __future__ import annotations
 import hashlib
 import html
 import json
+import math
 import re
+from collections import OrderedDict
 from collections.abc import Mapping
 from typing import cast
 from urllib.parse import parse_qsl, quote, urlencode, urlsplit
@@ -24,6 +26,9 @@ def is_risk_code(value: object) -> bool:
 
 
 API = "https://api.bilibili.com"
+# Fixed second API host: space dynamics live on the dynamic service; never an arbitrary URL.
+VC_API = "https://api.vc.bilibili.com"
+DYNAMIC_HISTORY = VC_API + "/dynamic_svr/v1/dynamic_svr/space_history"
 MAX_CONTENT = 2000
 
 # Public community specification (bilibili-API-collect): WBI request signing
@@ -162,6 +167,17 @@ def uid(value: object) -> str:
         value = str(value)
     if not isinstance(value, str) or not re.fullmatch(r"[1-9][0-9]{0,18}", value) or int(value) >= 2**63:
         raise BusinessError("bilibili_identity_invalid", "A positive decimal Bilibili UID is required", status=422)
+    return value
+
+
+def fav_folder_id(value: object) -> str:
+    """A favorite folder id is a positive decimal; distinct from a UID/BV target and validated before network."""
+    if type(value) is int:
+        value = str(value)
+    if not isinstance(value, str) or not re.fullmatch(r"[1-9][0-9]{0,18}", value) or int(value) >= 2**63:
+        raise BusinessError(
+            "bilibili_identity_invalid", "A positive decimal favorite folder id is required", status=422
+        )
     return value
 
 
@@ -346,6 +362,8 @@ def parse_danmaku(xml: str) -> list[dict[str, object]]:
 
 FEED_MAX_ROWS = 50
 MSGFEED_LIKE_MAX_USERS = 20
+DYNAMIC_MAX_CARD_CHARS = 64 * 1024
+DYNAMIC_MAX_TEXT = 200
 
 
 def feed_rows(data: Mapping[str, object], limit: int) -> dict[str, object]:
@@ -467,6 +485,51 @@ def fav_folder_rows(data: Mapping[str, object], limit: int) -> dict[str, object]
     return {"items": items, "has_more": len(rows) > limit}
 
 
+def fav_resource_rows(data: Mapping[str, object], limit: int) -> dict[str, object]:
+    """Bounded video rows from one favorite folder (data.medias); non-video/deleted entries are skipped."""
+    raw = data.get("medias")
+    if raw is None:
+        rows: list[object] = []
+    elif isinstance(raw, list):
+        rows = cast(list[object], raw)
+    else:
+        raise BusinessError("bilibili_response_invalid", "Favorite resource list changed format", status=502)
+    if len(rows) > FEED_MAX_ROWS:
+        raise BusinessError("bilibili_response_invalid", "Favorite resource list changed format", status=502)
+    info = _as_dict(data.get("info"))
+    items: list[dict[str, object]] = []
+    for row in rows:
+        if len(items) >= limit:
+            break
+        if not isinstance(row, dict):
+            raise BusinessError("bilibili_response_invalid", "Favorite resource records changed format", status=502)
+        entry = cast(dict[str, object], row)
+        bvid = entry.get("bvid")
+        if bvid is None or bvid == "":
+            # Audio/collection/article media and invalidated videos carry no usable BV; video rows stay authoritative.
+            continue
+        if not isinstance(bvid, str) or not re.fullmatch(r"BV[0-9A-Za-z]{10}", bvid):
+            raise BusinessError("bilibili_response_invalid", "Favorite resource records changed format", status=502)
+        upper = _as_dict(entry.get("upper"))
+        items.append(
+            {
+                "bvid": bvid,
+                "title": search_text(entry.get("title"), 300),
+                "author": search_text(upper.get("name"), 100),
+                "duration_s": entry.get("duration") if type(entry.get("duration")) is int else None,
+                "fav_time": entry.get("fav_time") if type(entry.get("fav_time")) is int else None,
+            }
+        )
+    has_more = data.get("has_more")
+    more = has_more is True or (type(has_more) is int and has_more == 1) or (has_more is None and len(rows) > limit)
+    return {
+        "title": search_text(info.get("title"), 300),
+        "media_count": info.get("media_count") if type(info.get("media_count")) is int else None,
+        "items": items,
+        "has_more": more,
+    }
+
+
 def tag_rows(data: object, limit: int) -> dict[str, object]:
     """Bounded public video tags from the data array (x/tag/archive/tags); absent/empty = normal."""
     if data is None:
@@ -520,6 +583,59 @@ def history_rows(data: Mapping[str, object], limit: int) -> dict[str, object]:
             }
         )
     return {"items": items, "has_more": len(rows) >= limit}
+
+
+def dynamic_rows(data: Mapping[str, object], limit: int) -> dict[str, object]:
+    """Bounded space-dynamic cards from data.cards (strict desc identity, best-effort card text)."""
+    raw = data.get("cards")
+    if raw is None:
+        rows: list[object] = []
+    elif isinstance(raw, list):
+        rows = cast(list[object], raw)
+    else:
+        raise BusinessError("bilibili_response_invalid", "Dynamic cards changed format", status=502)
+    if len(rows) > FEED_MAX_ROWS:
+        raise BusinessError("bilibili_response_invalid", "Dynamic cards changed format", status=502)
+    items: list[dict[str, object]] = []
+    for row in rows[:limit]:
+        if not isinstance(row, dict):
+            raise BusinessError("bilibili_response_invalid", "Dynamic records changed format", status=502)
+        entry = cast(dict[str, object], row)
+        desc = entry.get("desc")
+        if not isinstance(desc, dict):
+            raise BusinessError("bilibili_response_invalid", "Dynamic records changed format", status=502)
+        identity = cast(dict[str, object], desc).get("dynamic_id_str")
+        if not isinstance(identity, str) or not re.fullmatch(r"[0-9]{1,32}", identity):
+            raise BusinessError("bilibili_response_invalid", "Dynamic records changed format", status=502)
+        fields = cast(dict[str, object], desc)
+        timestamp, kind = fields.get("timestamp"), fields.get("type")
+        items.append(
+            {
+                "dynamic_id": identity,
+                "timestamp": timestamp if type(timestamp) is int else None,
+                "type": kind if type(kind) is int else None,
+                "text": _dynamic_text(entry.get("card")),
+            }
+        )
+    has_more = data.get("has_more")
+    more = has_more is True or (type(has_more) is int and has_more == 1) or (has_more is None and len(rows) >= limit)
+    return {"items": items, "has_more": more}
+
+
+def _dynamic_text(card: object) -> str:
+    """Best-effort bounded text from the card JSON string; a malformed card yields empty text, never a fake body."""
+    if not isinstance(card, str) or len(card) > DYNAMIC_MAX_CARD_CHARS:
+        return ""
+    try:
+        decoded: object = json.loads(card)
+    except (ValueError, RecursionError):
+        return ""
+    item = _as_dict(_as_dict(decoded).get("item"))
+    for field in ("description", "content"):
+        value = item.get(field)
+        if isinstance(value, str) and value.strip():
+            return search_text(value, DYNAMIC_MAX_TEXT)
+    return ""
 
 
 def msgfeed_kind(value: object) -> str:
@@ -644,6 +760,124 @@ def msgfeed_like_rows(data: Mapping[str, object], limit: int) -> dict[str, objec
             }
         )
     return {"items": items, "has_more": len(merged) >= limit}
+
+
+# Bounded read cache for endpoints whose payload is stable enough to serve stale for a day
+# (reference dsh-bili-whale: view/acc-info 24h, 400-entry LRU). Every other read is live on
+# every call — account, comments, replies, search, relation, danmaku, feeds, favorites, tags,
+# history, msgfeed — and nav is never cached so a rotated credential is observed next read.
+READ_CACHE_TTL_S: Mapping[str, float] = {"video": 86_400.0, "whois": 86_400.0}
+READ_CACHE_MAX_ENTRIES = 400
+READ_CACHE_MAX_BYTES = 8 * 1024 * 1024
+READ_CACHE_MAX_ENTRY_BYTES = 64 * 1024
+
+ReadCacheKey = tuple[str, str, str, str, str, int]
+
+
+def read_cache_key(
+    agent_id: str, config_id: str, authority: str, operation: str, target: str, limit: int
+) -> ReadCacheKey:
+    """Key includes owner, configuration and credential generation, so a rotated credential misses."""
+    if (
+        not isinstance(cast(object, agent_id), str)
+        or not agent_id
+        or not isinstance(cast(object, config_id), str)
+        or not config_id
+        or not isinstance(cast(object, authority), str)
+        or not authority
+        or not isinstance(cast(object, operation), str)
+        or not operation
+        or not isinstance(cast(object, target), str)
+        or type(limit) is not int
+        or limit < 1
+    ):
+        raise ValueError("Read cache keys require owner, configuration, authority, operation and a positive limit")
+    return (agent_id, config_id, authority, operation, target, limit)
+
+
+class ReadCache:
+    """TTL + LRU snapshots of JSON payloads; no I/O, no clock reads and no unbounded memory."""
+
+    def __init__(
+        self,
+        max_entries: int = READ_CACHE_MAX_ENTRIES,
+        max_bytes: int = READ_CACHE_MAX_BYTES,
+    ) -> None:
+        if type(max_entries) is not int or max_entries < 1 or type(max_bytes) is not int or max_bytes < 1:
+            raise ValueError("Read cache bounds must be positive integers")
+        self._max_entries, self._max_bytes = max_entries, max_bytes
+        self._entries: OrderedDict[ReadCacheKey, tuple[float, int, str]] = OrderedDict()
+        self._bytes = 0
+
+    @property
+    def entries(self) -> int:
+        return len(self._entries)
+
+    @property
+    def bytes(self) -> int:
+        return self._bytes
+
+    def get(self, key: ReadCacheKey, now: float) -> dict[str, object] | None:
+        entry = self._entries.get(key)
+        if entry is None:
+            return None
+        expires, _, raw = entry
+        if now >= expires:
+            self._drop(key)
+            return None
+        self._entries.move_to_end(key)
+        try:
+            decoded: object = json.loads(raw)
+        except (ValueError, RecursionError):
+            self._drop(key)
+            return None
+        if not isinstance(decoded, dict):
+            self._drop(key)
+            return None
+        return cast(dict[str, object], decoded)
+
+    def put(self, key: ReadCacheKey, value: dict[str, object], now: float, ttl_s: float) -> bool:
+        """Store an immutable snapshot; returns False when it cannot fit the byte bounds."""
+        if type(ttl_s) not in (int, float) or not math.isfinite(ttl_s) or ttl_s <= 0:
+            raise ValueError("Read cache TTL must be finite and positive")
+        try:
+            # Insertion order is preserved on the round trip so a cache hit serializes byte-identically
+            # to the live read it replaces.
+            raw = json.dumps(value, ensure_ascii=False, separators=(",", ":"))
+            size = len(raw.encode())
+        except (TypeError, ValueError, UnicodeError):
+            return False
+        if size > READ_CACHE_MAX_ENTRY_BYTES or size > self._max_bytes:
+            return False
+        self._drop(key)
+        self._entries[key] = (now + float(ttl_s), size, raw)
+        self._bytes += size
+        while len(self._entries) > self._max_entries or self._bytes > self._max_bytes:
+            self._drop(next(iter(self._entries)))
+        return True
+
+    def discard_scope(self, agent_id: str, config_id: str) -> int:
+        """Drop every generation of one configuration after its credential authority changes."""
+        keys = [key for key in self._entries if key[0] == agent_id and key[1] == config_id]
+        for key in keys:
+            self._drop(key)
+        return len(keys)
+
+    def discard_generations(self, agent_id: str, config_id: str, authority: str) -> int:
+        """Drop snapshots of retired credential generations once the current generation is known."""
+        keys = [key for key in self._entries if key[0] == agent_id and key[1] == config_id and key[2] != authority]
+        for key in keys:
+            self._drop(key)
+        return len(keys)
+
+    def clear(self) -> None:
+        self._entries.clear()
+        self._bytes = 0
+
+    def _drop(self, key: ReadCacheKey) -> None:
+        entry = self._entries.pop(key, None)
+        if entry is not None:
+            self._bytes -= entry[1]
 
 
 class Form(BaseModel):
