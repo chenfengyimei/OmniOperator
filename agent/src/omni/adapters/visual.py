@@ -12,6 +12,7 @@ from collections.abc import Sequence
 from typing import cast
 
 from ..application.images import ImageService
+from ..application.media import MediaService
 from ..application.model_calls import ModelCalls
 from ..application.objects import ObjectService
 from ..application.ports import DatabasePort, Record
@@ -78,6 +79,44 @@ class ImageObjectFrames:
                 ) from exc
             result.append(frame)
         return result
+
+
+class MediaFrameSheets:
+    """Resolve one registered media frame sheet into the same bounded VisualFrame shape."""
+
+    def __init__(self, media: MediaService, objects: ObjectService, images: ImageService) -> None:
+        self._media, self._objects, self._images = media, objects, images
+
+    async def frame(self, agent_id: str, frames_id: str) -> VisualFrame:
+        try:
+            sheet = await self._media.frames(agent_id, frames_id)
+            object_id = str(sheet["object_id"])
+            _, content = await self._objects.get(agent_id, object_id)
+            info = await self._images.prepare(agent_id, object_id)
+            timestamps = sheet.get("timestamps")
+            timestamp: float | None = None
+            if isinstance(timestamps, list) and timestamps:
+                first = cast(list[object], timestamps)[0]
+                if isinstance(first, (int, float)) and not isinstance(first, bool):
+                    timestamp = float(first)
+            return VisualFrame(
+                object_id=object_id,
+                media_type=cast(str, info["media_type"]),
+                width=cast(int, info["width"]),
+                height=cast(int, info["height"]),
+                sha256=cast(str, info["sha256"]),
+                bytes=cast(int, info["bytes"]),
+                timestamp_s=timestamp,
+                content=content,
+            )
+        except BusinessError as exc:
+            if exc.code in _SOURCE_CODES or exc.code == "media_frames_not_found":
+                raise BusinessError(
+                    "image_source_changed", "The visual frame source changed or was erased", status=409
+                ) from exc
+            raise
+        except (KeyError, TypeError, ValueError) as exc:
+            raise BusinessError("image_source_changed", "The media frame metadata is unavailable", status=409) from exc
 
 
 class ModelCallsVisualModel:

@@ -285,6 +285,33 @@ def test_success_returns_only_text_and_bounded_metadata_with_one_call():
     asyncio.run(scenario())
 
 
+class _MediaSource:
+    def __init__(self, frame: VisualFrame) -> None:
+        self.item = frame
+        self.requests: list[str] = []
+
+    async def frame(self, agent_id: str, frames_id: str) -> VisualFrame:
+        self.requests.append(frames_id)
+        return self.item
+
+
+def test_media_frame_sheet_is_resolved_through_the_optional_source():
+    async def scenario():
+        media = _MediaSource(_frame(7, timestamp=2.5))
+        model = _Model()
+        service = _service(media=media, model=model)
+        try:
+            result = await service.run("agent", "run", "summarize", [], "ui", frames_id=_uuid(7))
+            assert result["frames"] == 1
+            assert media.requests == [_uuid(7)]
+            assert [frame.object_id for frame in model.requests[0].frames] == [_uuid(7)]
+            assert model.requests[0].frames[0].timestamp_s == 2.5
+        finally:
+            assert await service.close() is True
+
+    asyncio.run(scenario())
+
+
 def test_bad_input_is_rejected_before_authorization_frames_or_model():
     async def scenario():
         db, source, model = _DB(), _Source(_frames(2)), _Model()

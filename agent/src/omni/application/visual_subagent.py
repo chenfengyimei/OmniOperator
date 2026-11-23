@@ -42,17 +42,19 @@ _BUDGET_CODES = frozenset({"budget_exceeded", "delegation_budget_exceeded", "dai
 
 VISUAL_SUBAGENT = ToolSpec(
     "visual_subagent",
-    "Analyze one already-authorized image object (for example an Android screenshot) with one bounded "
-    "vision call. Returns only a text summary plus frame/model/cost metadata; it has no tools, does not "
-    "replay and does not write memory or persona.",
+    "Analyze one already-authorized image object or registered media frame sheet (for example an Android "
+    "screenshot) with one bounded vision call. Returns only a text summary plus frame/model/cost metadata; "
+    "it has no tools, does not replay and does not write memory or persona.",
     {
         "type": "object",
         "properties": {
             "task": {"type": "string", "minLength": 1, "maxLength": MAX_TASK_CHARS},
             "frame_object_id": {"type": "string", "minLength": 36, "maxLength": 36},
+            "frames_id": {"type": "string", "minLength": 36, "maxLength": 36},
             "focus": {"enum": list(FOCUS_VALUES)},
         },
-        "required": ["task", "frame_object_id"],
+        "required": ["task"],
+        "anyOf": [{"required": ["frame_object_id"]}, {"required": ["frames_id"]}],
         "additionalProperties": False,
     },
     writes=False,
@@ -81,6 +83,12 @@ class VisualModelFactory(Protocol):
     def for_run(self, agent_id: str, run_id: str, settings: Settings) -> VisualModel: ...
 
 
+class VisualMediaFrameSource(Protocol):
+    """Resolve one already-registered media frame sheet for the same agent."""
+
+    async def frame(self, agent_id: str, frames_id: str) -> VisualFrame: ...
+
+
 class VisualSubagentService:
     def __init__(
         self,
@@ -88,6 +96,7 @@ class VisualSubagentService:
         frames: VisualFrameSource,
         model: VisualModel | VisualModelFactory,
         *,
+        media: VisualMediaFrameSource | None = None,
         timeout_s: float = VISUAL_TIMEOUT_S,
         max_concurrent: int = MAX_CONCURRENT,
     ) -> None:
@@ -95,7 +104,7 @@ class VisualSubagentService:
             raise ValueError("Visual sub-agent timeout must be finite and positive")
         if type(max_concurrent) is not int or not 1 <= max_concurrent <= MAX_CONCURRENT:
             raise ValueError(f"Visual sub-agent concurrency must be 1-{MAX_CONCURRENT}")
-        self._db, self._frames, self._model = db, frames, model
+        self._db, self._frames, self._model, self._media = db, frames, model, media
         self._timeout_s = float(timeout_s)
         self._slots = asyncio.Semaphore(max_concurrent)
         self._active: set[tuple[str, str]] = set()
@@ -110,12 +119,13 @@ class VisualSubagentService:
         frame_ids: object,
         focus: object = "general",
         operation_id: str = "",
+        frames_id: str = "",
     ) -> Record:
         """Run one bounded visual call and return only its text summary plus bounded metadata."""
         if self._closing:
             raise BusinessError("visual_unavailable", "The visual sub-agent is closed", status=503)
         task = asyncio.create_task(
-            self._run(agent_id, run_id, task, frame_ids, focus, operation_id), name="visual-subagent"
+            self._run(agent_id, run_id, task, frame_ids, focus, operation_id, frames_id), name="visual-subagent"
         )
         self._pending.add(task)
 
@@ -135,11 +145,21 @@ class VisualSubagentService:
             raise
 
     async def _run(
-        self, agent_id: str, run_id: str, task: object, frame_ids: object, focus: object, operation_id: str
+        self,
+        agent_id: str,
+        run_id: str,
+        task: object,
+        frame_ids: object,
+        focus: object,
+        operation_id: str,
+        frames_id: str,
     ) -> Record:
         checked_task = normalize_task(task)
         checked_focus = normalize_focus(focus)
-        ids = normalize_frame_ids(frame_ids)
+        media_id = normalize_frame_ids([frames_id])[0] if frames_id else ""
+        if media_id and frame_ids not in (None, [], ()):
+            raise BusinessError("visual_frames_invalid", "Use either frame_object_id or frames_id, not both")
+        ids = [] if media_id else normalize_frame_ids(frame_ids)
         key = (agent_id, run_id)
         if key in self._active:
             raise BusinessError("visual_busy", "A visual sub-agent is already running for this run", status=429)
@@ -166,8 +186,16 @@ class VisualSubagentService:
                         raise BusinessError(
                             "visual_unavailable", "This run already used its one visual call", status=409
                         )
-                resolved = await self._frames.frames(agent_id, ids)
-                frames = self._checked_frames(resolved, ids)
+                if media_id:
+                    if self._media is None:
+                        raise BusinessError("visual_unavailable", "Media frame sheets are unavailable", status=503)
+                    frame = await self._media.frame(agent_id, media_id)
+                    resolved = [frame]
+                    checked_ids = [frame.object_id]
+                else:
+                    resolved = await self._frames.frames(agent_id, ids)
+                    checked_ids = ids
+                frames = self._checked_frames(resolved, checked_ids)
                 request = build_request(checked_task, checked_focus, frames)
                 model: VisualModel
                 if hasattr(self._model, "for_run"):
@@ -239,14 +267,23 @@ class VisualSubagentCapabilities:
     async def invoke(
         self, name: str, arguments: Mapping[str, JSON], *, operation_id: str, context: InvocationContext
     ) -> ActionResult:
+        frame_object_id = arguments.get("frame_object_id")
+        frames_id = arguments.get("frames_id")
+        if bool(frame_object_id) == bool(frames_id):
+            return ActionResult(
+                Outcome.ERROR,
+                "Provide exactly one of frame_object_id or frames_id",
+                error_code="visual_frames_invalid",
+            )
         try:
             result = await self._service.run(
                 context.agent_id,
                 context.run_id,
                 arguments.get("task"),
-                [arguments.get("frame_object_id")],
+                [frame_object_id] if frame_object_id else [],
                 arguments.get("focus", "general"),
                 operation_id=operation_id,
+                frames_id=str(frames_id) if frames_id else "",
             )
         except BusinessError as exc:
             return ActionResult(Outcome.ERROR, exc.message, error_code=exc.code)

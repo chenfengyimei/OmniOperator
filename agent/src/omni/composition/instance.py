@@ -52,7 +52,7 @@ from ..adapters.process_diagnostics import ProcessDiagnostics
 from ..adapters.skill_packages import SkillPackages
 from ..adapters.timezones import PinnedTimezones
 from ..adapters.token_counter import ConservativeTokenCounter
-from ..adapters.visual import ImageObjectFrames, ModelCallsVisualModelFactory
+from ..adapters.visual import ImageObjectFrames, MediaFrameSheets, ModelCallsVisualModelFactory
 from ..application.action_review import ActionReviewService
 from ..application.android import AndroidPort, AndroidService
 from ..application.background_review import BackgroundReviewService
@@ -561,10 +561,6 @@ async def open_instance(
             if model_streamer is not None:
                 lifetime.own("model_streams", 1, model_streamer.close, model_streamer.stop_accepting)
         contexts = ContextService(database, calls, images)
-        visual = VisualSubagentService(
-            database, ImageObjectFrames(objects, images), ModelCallsVisualModelFactory(database, calls)
-        )
-        lifetime.own("visual", 0, visual.close, visual.stop_accepting)
 
         async def authorize_qq(message: OutboundMessage) -> str:
             return await database.read(lambda u: u.qq_outbound_authorized(message))
@@ -607,6 +603,13 @@ async def open_instance(
                 "Media jobs from the previous process were reconciled",
                 extra={"event": "media.restart_reconciled", **recovered},
             )
+        visual = VisualSubagentService(
+            database,
+            ImageObjectFrames(objects, images),
+            ModelCallsVisualModelFactory(database, calls),
+            media=MediaFrameSheets(media, objects, images),
+        )
+        lifetime.own("visual", 0, visual.close, visual.stop_accepting)
         ports = {"qq": onebot, "bilibili": bili_gateway, **(delivery_ports or {})}
         deliveries = DeliveryService(database, clock, observation, ports)
         lifetime.own("deliveries", 0, deliveries.close, deliveries.stop_accepting)

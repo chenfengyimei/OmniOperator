@@ -10,15 +10,17 @@ from __future__ import annotations
 import asyncio
 import io
 
+import pytest
 from omni_test_support.v2.android import SERIAL, fake_server
 from omni_test_support.v2.v2_configuration_helpers import model_uow
 from PIL import Image
 from sqlalchemy import delete, select
 
 from omni.adapters.persistence import schema as s
+from omni.adapters.visual import MediaFrameSheets
 from omni.application.visual_subagent import VISUAL_SUBAGENT
 from omni.composition.instance import open_instance
-from omni.domain.contracts import Invocation, ModelReply
+from omni.domain.contracts import BusinessError, Invocation, ModelReply
 
 
 class RoutingModel:
@@ -319,5 +321,48 @@ def test_second_visual_call_in_one_run_is_rejected_without_another_model_call(tm
             assert next(row for row in rows if row["state"] == "error")["result"]["error_code"] == "visual_unavailable"
         finally:
             await instance.close()
+
+    asyncio.run(scenario())
+
+
+class _Media:
+    async def frames(self, agent_id: str, frames_id: str):
+        return {
+            "id": frames_id,
+            "object_id": "11111111-1111-4111-8111-111111111111",
+            "timestamps": [1.5, 2.5],
+        }
+
+
+class _Objects:
+    async def get(self, agent_id: str, object_id: str):
+        return {}, b"frames"
+
+
+class _Images:
+    async def prepare(self, agent_id: str, object_id: str):
+        return {"media_type": "image/png", "width": 32, "height": 16, "sha256": "a" * 64, "bytes": 6}
+
+
+def test_media_frame_sheet_adapter_preserves_registered_metadata_and_timestamp():
+    async def scenario():
+        sheets = MediaFrameSheets(_Media(), _Objects(), _Images())
+        frame = await sheets.frame("agent", "22222222-2222-4222-8222-222222222222")
+        assert frame.object_id == "11111111-1111-4111-8111-111111111111"
+        assert frame.timestamp_s == 1.5 and frame.content == b"frames"
+
+    asyncio.run(scenario())
+
+
+def test_media_frame_sheet_adapter_maps_missing_sheet_to_source_changed():
+    class Missing(_Media):
+        async def frames(self, agent_id: str, frames_id: str):
+            raise BusinessError("media_frames_not_found", "missing", status=404)
+
+    async def scenario():
+        sheets = MediaFrameSheets(Missing(), _Objects(), _Images())
+        with pytest.raises(BusinessError) as caught:
+            await sheets.frame("agent", "22222222-2222-4222-8222-222222222222")
+        assert caught.value.code == "image_source_changed"
 
     asyncio.run(scenario())
