@@ -18,17 +18,18 @@
   "delivered": [
     "application/visual_subagent.py: VISUAL_SUBAGENT ToolSpec (task/frame_object_id/focus, writes=False), VisualModelFactory support, VisualSubagentCapabilities returning text plus frames/focus/model/cost/tokens with verification=visual_summary.",
     "adapters/visual.py: ImageObjectFrames verifies agent-owned image objects through ObjectService.get + ImageService.prepare; ModelCallsVisualModel sends exactly one frame as an in-run tool-result image to ModelCalls.invoke with tools=(), the run's budget/image policy, and no master history/tools; maps image budget to budget_exceeded and protocol/source/model failures to explicit errors.",
+    "application/visual_subagent.py: operation_id joins the action ledger; a second visual call in the same parent run is rejected (visual_unavailable) before frame resolution/model dispatch, matching D2's one-call-per-run rule.",
     "composition/instance.py: constructs VisualSubagentService/ImageObjectFrames/ModelCallsVisualModelFactory, owns/closes it, registers the visual_subagent capability and exposes health. No migration, table, route or capability-schema change.",
-    "7 production tests: successful one-call path with action receipt/model/cost metadata, Android capture object through the same path, disabled image protocol, run budget exhaustion, provider failure once/no replay, cross-agent image, erased source. Plus 20 existing visual tests.",
+    "8 production tests: successful one-call path with action receipt/model/cost metadata, Android capture object through the same path, disabled image protocol, run budget exhaustion, provider failure once/no replay, cross-agent image, erased source, and a second visual call in one run rejected from the action ledger. Plus 20 existing visual tests.",
     "agent/scripts/accept_visual_production.py: isolated-home real acceptance runner (loads .env) for the designated owner window."
   ],
   "validation": {
     "production_and_visual_suite": {
       "command": "uv run --no-sync pytest -q -n 0 agent/tests/v2/core/test_v2_visual_production.py agent/tests/v2/core/test_v2_visual_subagent.py",
-      "passed": 27,
+      "passed": 28,
       "failed": 0,
-      "seconds": 34.52,
-      "breakdown": "7 production + 20 existing visual"
+      "seconds": 38.31,
+      "breakdown": "8 production + 20 existing visual"
     },
     "guards": "typecheck-scope + architecture/strict/ruff pass; pyright strict 434 files, 0 errors, 0 warnings",
     "ruff": "application/visual_subagent.py, adapters/visual.py, composition/instance.py, production test and acceptance script pass ruff check/format",

@@ -109,11 +109,14 @@ class VisualSubagentService:
         task: object,
         frame_ids: object,
         focus: object = "general",
+        operation_id: str = "",
     ) -> Record:
         """Run one bounded visual call and return only its text summary plus bounded metadata."""
         if self._closing:
             raise BusinessError("visual_unavailable", "The visual sub-agent is closed", status=503)
-        task = asyncio.create_task(self._run(agent_id, run_id, task, frame_ids, focus), name="visual-subagent")
+        task = asyncio.create_task(
+            self._run(agent_id, run_id, task, frame_ids, focus, operation_id), name="visual-subagent"
+        )
         self._pending.add(task)
 
         def done(future: asyncio.Task[Record]) -> None:
@@ -131,7 +134,9 @@ class VisualSubagentService:
             await asyncio.gather(task, return_exceptions=True)
             raise
 
-    async def _run(self, agent_id: str, run_id: str, task: object, frame_ids: object, focus: object) -> Record:
+    async def _run(
+        self, agent_id: str, run_id: str, task: object, frame_ids: object, focus: object, operation_id: str
+    ) -> Record:
         checked_task = normalize_task(task)
         checked_focus = normalize_focus(focus)
         ids = normalize_frame_ids(frame_ids)
@@ -150,6 +155,17 @@ class VisualSubagentService:
                     raise BusinessError(
                         "visual_unavailable", "The visual sub-agent has no authorized model", status=503
                     ) from exc
+                if operation_id:
+                    prior = await self._db.read(lambda u: u.query("actions", agent_id, run_id=run_id, limit=100))
+                    if any(
+                        row.get("tool") == VISUAL_SUBAGENT.name
+                        and row.get("id") != operation_id
+                        and row.get("state") not in {"denied", "cancelled"}
+                        for row in prior
+                    ):
+                        raise BusinessError(
+                            "visual_unavailable", "This run already used its one visual call", status=409
+                        )
                 resolved = await self._frames.frames(agent_id, ids)
                 frames = self._checked_frames(resolved, ids)
                 request = build_request(checked_task, checked_focus, frames)
@@ -230,6 +246,7 @@ class VisualSubagentCapabilities:
                 arguments.get("task"),
                 [arguments.get("frame_object_id")],
                 arguments.get("focus", "general"),
+                operation_id=operation_id,
             )
         except BusinessError as exc:
             return ActionResult(Outcome.ERROR, exc.message, error_code=exc.code)

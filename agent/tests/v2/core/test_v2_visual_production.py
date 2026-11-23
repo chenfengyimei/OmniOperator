@@ -59,6 +59,29 @@ class RoutingModel:
         )
 
 
+class RepeatVisualModel(RoutingModel):
+    async def complete(self, messages, tools, settings):
+        visual = not tools and any(
+            isinstance(message.get("content"), list)
+            and any(
+                isinstance(part, dict) and part.get("type") in {"image_url", "image", "input_image"}
+                for part in message["content"]
+            )
+            for message in messages
+        )
+        if visual:
+            return await super().complete(messages, tools, settings)
+        self.master_calls += 1
+        if any(message.get("role") == "tool" for message in messages) and self.master_calls >= 3:
+            return ModelReply("done", cost_micro=1)
+        return ModelReply(
+            "",
+            (Invocation("visual", VISUAL_SUBAGENT.name, {"task": "Describe", "frame_object_id": self.object_id}),),
+            cost_micro=1,
+            completion_reason="tool_calls",
+        )
+
+
 def _png() -> bytes:
     with io.BytesIO() as output:
         Image.new("RGB", (64, 48), "green").save(output, format="PNG")
@@ -266,6 +289,31 @@ def test_erased_image_source_fails_before_dispatch(tmp_path):
             assert run["state"] == "succeeded" and model.visual_calls == 0
             action = await _visual_action(instance, agent)
             assert action["state"] == "error" and action["result"]["error_code"] == "image_source_changed"
+        finally:
+            await instance.close()
+
+    asyncio.run(scenario())
+
+
+def test_second_visual_call_in_one_run_is_rejected_without_another_model_call(tmp_path):
+    async def scenario():
+        model = RepeatVisualModel()
+        instance, app, agent = await _setup(tmp_path, model)
+        try:
+            uploaded = await instance.images.upload(agent, _png())
+            model.object_id = str(uploaded["object_id"])
+            _receipt, run = await _run_visual(app, agent)
+            assert run["state"] == "succeeded" and model.visual_calls == 1
+            rows = await instance._database.read(
+                lambda u: (
+                    u.connection.execute(select(s.actions).where(s.actions.c.tool == VISUAL_SUBAGENT.name))
+                    .mappings()
+                    .all()
+                )
+            )
+            assert len(rows) == 2
+            assert sorted(row["state"] for row in rows) == ["error", "ok"]
+            assert next(row for row in rows if row["state"] == "error")["result"]["error_code"] == "visual_unavailable"
         finally:
             await instance.close()
 

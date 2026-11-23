@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "0e93ed5a0e14d1361999c42f1d75d68d47fcf847ad6638d771a6a44b4a3beb15",
+  "source_sha256": "c75cd4032d61d8160c5115f96f0ff1bd4c09b50dbee4ce221971630d68c8b82d",
   "modules": [
     {
       "id": "v2-domain",
@@ -171,7 +171,7 @@
         "agent/src/omni/application/todos.py",
         "agent/src/omni/application/visual_subagent.py"
       ],
-      "lines": 14340,
+      "lines": 14357,
       "dependencies": [
         "v2-domain"
       ]
@@ -69447,7 +69447,7 @@
       "path": "agent/src/omni/application/visual_subagent.py",
       "module": "v2-application",
       "python_module": "omni.application.visual_subagent",
-      "lines": 247,
+      "lines": 264,
       "imports": [
         "omni.application.ports",
         "omni.domain.contracts",
@@ -69556,19 +69556,21 @@
             "run_id",
             "task",
             "frame_ids",
-            "focus"
+            "focus",
+            "operation_id"
           ],
           "annotations": {
             "agent_id": "str",
             "run_id": "str",
             "task": "object",
             "frame_ids": "object",
-            "focus": "object"
+            "focus": "object",
+            "operation_id": "str"
           }
         },
         {
           "name": "VisualSubagentService.run.done",
-          "line": 119,
+          "line": 122,
           "kind": "function",
           "parameters": [
             "future"
@@ -69579,7 +69581,7 @@
         },
         {
           "name": "VisualSubagentService._run",
-          "line": 134,
+          "line": 137,
           "kind": "function",
           "parameters": [
             "self",
@@ -69587,19 +69589,21 @@
             "run_id",
             "task",
             "frame_ids",
-            "focus"
+            "focus",
+            "operation_id"
           ],
           "annotations": {
             "agent_id": "str",
             "run_id": "str",
             "task": "object",
             "frame_ids": "object",
-            "focus": "object"
+            "focus": "object",
+            "operation_id": "str"
           }
         },
         {
           "name": "VisualSubagentService._checked_frames",
-          "line": 180,
+          "line": 196,
           "kind": "function",
           "parameters": [
             "resolved",
@@ -69612,7 +69616,7 @@
         },
         {
           "name": "VisualSubagentService._complete",
-          "line": 191,
+          "line": 207,
           "kind": "function",
           "parameters": [
             "self",
@@ -69626,7 +69630,7 @@
         },
         {
           "name": "VisualSubagentService.health",
-          "line": 204,
+          "line": 220,
           "kind": "function",
           "parameters": [
             "self"
@@ -69635,7 +69639,7 @@
         },
         {
           "name": "VisualSubagentService.stop_accepting",
-          "line": 207,
+          "line": 223,
           "kind": "function",
           "parameters": [
             "self"
@@ -69644,7 +69648,7 @@
         },
         {
           "name": "VisualSubagentService.close",
-          "line": 210,
+          "line": 226,
           "kind": "function",
           "parameters": [
             "self",
@@ -69656,12 +69660,12 @@
         },
         {
           "name": "VisualSubagentCapabilities",
-          "line": 217,
+          "line": 233,
           "kind": "class"
         },
         {
           "name": "VisualSubagentCapabilities.__init__",
-          "line": 220,
+          "line": 236,
           "kind": "function",
           "parameters": [
             "self",
@@ -69673,7 +69677,7 @@
         },
         {
           "name": "VisualSubagentCapabilities.invoke",
-          "line": 223,
+          "line": 239,
           "kind": "function",
           "parameters": [
             "self",
@@ -69691,7 +69695,7 @@
         },
         {
           "name": "VisualSubagentCapabilities.close",
-          "line": 246,
+          "line": 263,
           "kind": "function",
           "parameters": [
             "self",
