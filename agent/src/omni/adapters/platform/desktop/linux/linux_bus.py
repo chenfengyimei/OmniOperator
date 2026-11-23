@@ -353,7 +353,7 @@ class LocalBus:
             member=member,
             signature=signature,
             body=body or [],
-            flags=self.package.MessageFlag.NO_AUTO_START,
+            flags=self.package.MessageFlag.NO_AUTOSTART,
         )
         async with asyncio.timeout(0.3):
             reply = await self.bus.call(message)
@@ -392,7 +392,7 @@ class LocalBus:
             member=member,
             signature="oa{sv}",
             body=[session, {}],
-            flags=self.package.MessageFlag.NO_AUTO_START,
+            flags=self.package.MessageFlag.NO_AUTOSTART,
             serial=self.bus.next_serial(),
         )
         self._fd_expected = (message.serial, destination)

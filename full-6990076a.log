@@ -1,0 +1,265 @@
+bringing up nodes...
+bringing up nodes...
+
+........................................................................ [  0%]
+........................................................................ [  1%]
+........................................................................ [  2%]
+........................................................................ [  3%]
+........................................................................ [  4%]
+........................................................................ [  5%]
+........................................................................ [  5%]
+........................................................................ [  6%]
+........................................................................ [  7%]
+........................................................................ [  8%]
+........................................................................ [  9%]
+........................................................................ [ 10%]
+........................................................................ [ 10%]
+........................................................................ [ 11%]
+........................................................................ [ 12%]
+........................................................................ [ 13%]
+........................................................................ [ 14%]
+........................................................................ [ 15%]
+........................................................................ [ 15%]
+........................................................................ [ 16%]
+........................................................................ [ 17%]
+........................................................................ [ 18%]
+........................................................................ [ 19%]
+........................................................................ [ 20%]
+........................................................................ [ 20%]
+........................................................................ [ 21%]
+........................................................................ [ 22%]
+........................................................................ [ 23%]
+........................................................................ [ 24%]
+........................................................................ [ 25%]
+........................................................................ [ 25%]
+........................................................................ [ 26%]
+........................................................................ [ 27%]
+........................................................................ [ 28%]
+........................................................................ [ 29%]
+........................................................................ [ 30%]
+........................................................................ [ 30%]
+........................................................................ [ 31%]
+........................................................................ [ 32%]
+........................................................................ [ 33%]
+........................................................................ [ 34%]
+........................................................................ [ 35%]
+........................................................................ [ 35%]
+........................................................................ [ 36%]
+........................................................................ [ 37%]
+........................................................................ [ 38%]
+........................................................................ [ 39%]
+........................................................................ [ 40%]
+........................................................................ [ 40%]
+........................................................................ [ 41%]
+........................................................................ [ 42%]
+........................................................................ [ 43%]
+........................................................................ [ 44%]
+........................................................................ [ 45%]
+........................................................................ [ 45%]
+........................................................................ [ 46%]
+........................................................................ [ 47%]
+........................................................................ [ 48%]
+........................................................................ [ 49%]
+........................................................................ [ 50%]
+........................................................................ [ 50%]
+........................................................................ [ 51%]
+........................................................................ [ 52%]
+........................................................................ [ 53%]
+........................................................................ [ 54%]
+........................................................................ [ 55%]
+........................................................................ [ 55%]
+........................................................................ [ 56%]
+.......FAILURE agent/tests/v2/integrations/test_v2_android_unicode.py::test_model_unicode_observation_and_append_keep_two_independent_approvals [call]
+F....................................................................... [ 57%]
+........................................................................ [ 58%]
+........................................................................ [ 59%]
+........................................................................ [ 60%]
+........................................................................ [ 61%]
+........................................................................ [ 61%]
+........................................................................ [ 62%]
+........................................................................ [ 63%]
+........................................................................ [ 64%]
+........................................................................ [ 65%]
+........................................................................ [ 66%]
+........................................................................ [ 66%]
+........................................................................ [ 67%]
+........................................................................ [ 68%]
+........................s............................................... [ 69%]
+........................................................................ [ 70%]
+........................................................................ [ 71%]
+........................................................................ [ 71%]
+........................................................................ [ 72%]
+........................................................................ [ 73%]
+........................................................................ [ 74%]
+........................................................................ [ 75%]
+........................................................................ [ 76%]
+........................................................................ [ 76%]
+........................................................................ [ 77%]
+........................................................................ [ 78%]
+........................................................................ [ 79%]
+........................................................................ [ 80%]
+........................................................................ [ 81%]
+........................................................................ [ 81%]
+........................................................................ [ 82%]
+........................................................................ [ 83%]
+........................................................................ [ 84%]
+........................................................................ [ 85%]
+........................................................................ [ 86%]
+........................................................................ [ 86%]
+........................................................................ [ 87%]
+........................................................................ [ 88%]
+........................................................................ [ 89%]
+........................................................................ [ 90%]
+.............................ssssssss................................... [ 91%]
+........................................................................ [ 91%]
+........................................................................ [ 92%]
+........................................................................ [ 93%]
+........................................................................ [ 94%]
+........................................................................ [ 95%]
+........................................................................ [ 96%]
+........................................................................ [ 96%]
+........................................................................ [ 97%]
+........................................................................ [ 98%]
+........................................................................ [ 99%]
+...........................................                              [100%]
+================================== FAILURES ===================================
+__ test_model_unicode_observation_and_append_keep_two_independent_approvals ___
+[gw2] win32 -- Python 3.12.14 C:\v2-acceptance\integration-cdeg\.venv\Scripts\python.exe
+
+tmp_path = WindowsPath('C:/Users/cy/AppData/Local/Temp/pytest-of-cy/pytest-3659/popen-gw2/test_model_unicode_observation0')
+
+    def test_model_unicode_observation_and_append_keep_two_independent_approvals(tmp_path):
+        class UnicodeModel(AndroidModel):
+            async def complete(self, messages, tools, settings):
+                reply = await super().complete(messages, tools, settings)
+                if self.step == 3:
+                    arguments = {
+                        **reply.calls[0].arguments,
+                        "kind": "append_unicode",
+                        "text": "\u4e2d\u6587\U0001f642",
+                        "params": {"helper_revision": self.view["unicode_helper"]["revision"], "restore_ime": True},
+                    }
+                    return ModelReply("", (Invocation("unicode-input", MODEL_SPEC.name, arguments),), cost_micro=0)
+                return reply
+    
+        async def scenario():
+            model = UnicodeModel()
+            async with prepared_unicode(tmp_path, model) as (instance, fake, agent, _, grant, _):
+                configured = await instance.configurations.get(
+                    agent, (await instance.application.settings(agent))["value"]["model_profile_id"]
+                )
+                await instance.configurations.save(
+                    agent,
+                    configured["id"],
+                    configured["name"],
+                    True,
+                    {**configured["value"], "model": "fixture"},
+                    configured["revision"],
+                )
+                model.request = {
+                    "grant_id": grant["id"],
+                    "target_serial": SERIAL,
+                    "target_user": 0,
+                    "packages": ["org.fixture"],
+                    "kinds": ["append_unicode"],
+                    "ttl_seconds": 600,
+                }
+                receipt = await instance.application.submit_turn(
+                    agent, None, "unicode-model", "Use this approved device reference"
+                )
+                access = await approve_tool(instance, agent, receipt["run_id"], ACCESS_SPEC.name)
+                action = await approve_tool(instance, agent, receipt["run_id"], MODEL_SPEC.name)
+                assert access["action_id"] != action["action_id"] and fake.commits == 0
+                run = await wait_state(instance.application, agent, receipt["run_id"], {"succeeded", "failed"})
+                assert run["state"] == "succeeded", run
+                assert fake.text == "hello\u4e2d\u6587\U0001f642" and fake.commits == 1 and fake.ime == ORIGINAL
+                assert "android_restore_ime" not in model.catalogs[0]
+                assert (await instance.android.environments(agent))["items"][0]["state"] == "restored"
+    
+>       asyncio.run(scenario())
+
+agent\tests\v2\integrations\test_v2_android_unicode.py:426: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+C:\Users\cy\AppData\Roaming\uv\python\cpython-3.12-windows-x86_64-none\Lib\asyncio\runners.py:195: in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+C:\Users\cy\AppData\Roaming\uv\python\cpython-3.12-windows-x86_64-none\Lib\asyncio\runners.py:118: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\cy\AppData\Roaming\uv\python\cpython-3.12-windows-x86_64-none\Lib\asyncio\base_events.py:691: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+    async def scenario():
+        model = UnicodeModel()
+        async with prepared_unicode(tmp_path, model) as (instance, fake, agent, _, grant, _):
+            configured = await instance.configurations.get(
+                agent, (await instance.application.settings(agent))["value"]["model_profile_id"]
+            )
+            await instance.configurations.save(
+                agent,
+                configured["id"],
+                configured["name"],
+                True,
+                {**configured["value"], "model": "fixture"},
+                configured["revision"],
+            )
+            model.request = {
+                "grant_id": grant["id"],
+                "target_serial": SERIAL,
+                "target_user": 0,
+                "packages": ["org.fixture"],
+                "kinds": ["append_unicode"],
+                "ttl_seconds": 600,
+            }
+            receipt = await instance.application.submit_turn(
+                agent, None, "unicode-model", "Use this approved device reference"
+            )
+            access = await approve_tool(instance, agent, receipt["run_id"], ACCESS_SPEC.name)
+            action = await approve_tool(instance, agent, receipt["run_id"], MODEL_SPEC.name)
+            assert access["action_id"] != action["action_id"] and fake.commits == 0
+            run = await wait_state(instance.application, agent, receipt["run_id"], {"succeeded", "failed"})
+>           assert run["state"] == "succeeded", run
+E           AssertionError: {'id': 'be4e3ec4-dffa-4d59-9aaf-f8d7a55f1c48', 'agent_id': '6456f7e9-2821-4df4-a15d-82de169f1354', 'created_at': '2026-11-23T04:01:19.324351+00:00', 'session_id': 'd80e4e81-45f6-4b72-8144-a1166ee0bae3', ...}
+E           assert 'failed' == 'succeeded'
+E             
+E             - succeeded
+E             + failed
+
+agent\tests\v2\integrations\test_v2_android_unicode.py:421: AssertionError
+============================== warnings summary ===============================
+agent/tests/v2/integrations/test_v2_model_stream.py::test_production_litellm_async_stream_uses_only_the_isolated_http_server[none]
+agent/tests/v2/integrations/test_v2_model_stream.py::test_production_litellm_async_stream_uses_only_the_isolated_http_server[none]
+  C:\v2-acceptance\integration-cdeg\.venv\Lib\site-packages\pydantic\_internal\_generate_schema.py:1507: UserWarning: Item 'summary' on TypedDict class 'ChatCompletionReasoningItem' is using the `ReadOnly` qualifier. Pydantic will not protect items from any mutation on dictionary instances.
+    warnings.warn(
+
+agent/tests/v2/integrations/test_v2_model_stream.py::test_production_litellm_async_stream_uses_only_the_isolated_http_server[none]
+agent/tests/v2/integrations/test_v2_model_stream.py::test_production_litellm_async_stream_uses_only_the_isolated_http_server[none]
+agent/tests/v2/integrations/test_v2_images.py::test_production_sdk_receives_low_image_and_explicit_usage_only_on_local_server
+agent/tests/v2/integrations/test_v2_images.py::test_production_sdk_receives_low_image_and_explicit_usage_only_on_local_server
+  C:\v2-acceptance\integration-cdeg\.venv\Lib\site-packages\litellm\litellm_core_utils\model_response_utils.py:18: PydanticDeprecatedSince211: Accessing the 'model_computed_fields' attribute on the instance is deprecated. Instead, you should access this attribute from the model class. Deprecated in Pydantic V2.11 to be removed in V3.0.
+    attribute: Final[_AttributeView] = {"value": getattr(source, name)}
+
+agent/tests/v2/integrations/test_v2_model_stream.py::test_production_litellm_async_stream_uses_only_the_isolated_http_server[none]
+agent/tests/v2/integrations/test_v2_model_stream.py::test_production_litellm_async_stream_uses_only_the_isolated_http_server[none]
+agent/tests/v2/integrations/test_v2_images.py::test_production_sdk_receives_low_image_and_explicit_usage_only_on_local_server
+agent/tests/v2/integrations/test_v2_images.py::test_production_sdk_receives_low_image_and_explicit_usage_only_on_local_server
+  C:\v2-acceptance\integration-cdeg\.venv\Lib\site-packages\litellm\litellm_core_utils\model_response_utils.py:18: PydanticDeprecatedSince211: Accessing the 'model_fields' attribute on the instance is deprecated. Instead, you should access this attribute from the model class. Deprecated in Pydantic V2.11 to be removed in V3.0.
+    attribute: Final[_AttributeView] = {"value": getattr(source, name)}
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+============================ slowest 10 durations =============================
+108.53s call     agent/tests/test_ui_theme.py::test_theme_toggle_exists_on_all_pages
+62.19s call     agent/tests/v2/ui/test_v2_ui.py::test_summary_and_erasure_are_visible_in_the_workbench[light-1440]
+59.56s call     agent/tests/test_ui_theme.py::test_theme_persists_across_pages
+57.82s call     agent/tests/v2/ui/test_v2_ui.py::test_summary_and_erasure_are_visible_in_the_workbench[light-1024]
+56.22s call     agent/tests/v2/ui/test_v2_ui.py::test_summary_and_erasure_are_visible_in_the_workbench[dark-390]
+55.77s call     agent/tests/v2/ui/test_v2_ui.py::test_summary_and_erasure_are_visible_in_the_workbench[dark-760]
+53.64s call     agent/tests/v2/ui/test_v2_ui.py::test_summary_and_erasure_are_visible_in_the_workbench[dark-1024]
+53.22s call     agent/tests/v2/ui/test_v2_ui.py::test_summary_and_erasure_are_visible_in_the_workbench[dark-1440]
+52.69s call     agent/tests/v2/ui/test_v2_ui.py::test_summary_and_erasure_are_visible_in_the_workbench[light-390]
+51.22s call     agent/tests/v2/ui/test_v2_ui.py::test_summary_and_erasure_are_visible_in_the_workbench[light-760]
+=========================== short test summary info ===========================
+FAILED agent/tests/v2/integrations/test_v2_android_unicode.py::test_model_unicode_observation_and_append_keep_two_independent_approvals
+1 failed, 8608 passed, 9 skipped, 10 warnings in 2533.01s (0:42:13)

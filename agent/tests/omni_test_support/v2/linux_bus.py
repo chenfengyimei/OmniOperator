@@ -131,7 +131,7 @@ def transport(monkeypatch, *, constructor_failure=False, auth_failure=False, uni
 
     package = SimpleNamespace(
         Message=lambda **kwargs: SimpleNamespace(**kwargs),
-        MessageFlag=SimpleNamespace(NO_AUTO_START=2),
+        MessageFlag=SimpleNamespace(NO_AUTOSTART=2),
         MessageType=SimpleNamespace(ERROR=3, METHOD_RETURN=2),
     )
     monkeypatch.setattr(b, "load_types", lambda: (package, Base, Unmarshaller))

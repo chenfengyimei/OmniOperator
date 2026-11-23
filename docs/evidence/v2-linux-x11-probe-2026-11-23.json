@@ -1,0 +1,167 @@
+{
+  "schema": 1,
+  "batch": "G3.x11_session_probe",
+  "date": "2026-11-23",
+  "status": "a real X11 autologin session was created in the Linux VM, but the V2 acceptance kept session_kind=unknown and refused the sample; evidence insufficient, denial maintained",
+  "whole_v2_complete": false,
+  "platform_linux_complete": false,
+  "release_candidate": false,
+  "environment": {
+    "vm": "Lima vz Ubuntu 26.04.1 LTS aarch64",
+    "display": "LightDM + openbox + Xorg (vkms virtual DRM), seat0 CanGraphical=yes",
+    "session": {
+      "id": 25,
+      "user": "omni (uid 10001, isolated)",
+      "type": "x11",
+      "class": "user",
+      "seat": "seat0",
+      "display": ":0"
+    },
+    "fixture": "GTK3 window with entry, password entry, button, label; pid recorded"
+  },
+  "attempt": {
+    "commands": [
+      "systemctl restart lightdm",
+      "openbox autostart: xcompmgr, fixture, run_accept.sh inside session 25",
+      "accept_linux_desktop.py --fixture-pid <pid> --consent-read-ui --native-backend x11 --capture-window"
+    ],
+    "results": [
+      {
+        "where": "from lima shell (sudo -u omni)",
+        "error_code": "linux_sample_read_unavailable",
+        "session_kind": "unknown"
+      },
+      {
+        "where": "inside session 25 via openbox autostart",
+        "error_code": "linux_sample_read_unavailable",
+        "session_kind": "unknown"
+      }
+    ],
+    "interpretation": "the tool did not prove the X server/target session ownership, so it refused the read and capture; this is the documented fail-closed behavior, not a test to relax"
+  },
+  "next_needed": [
+    "a real desktop X11 session where the Xorg/session proof can be established (physical Linux or a VM with a display manager and seat such that logind and XRes agree)",
+    "or a fix in the Linux session inspector for display-manager-launched Xorg, if the contract intends to accept it; that is a shared/contract decision for A"
+  ],
+  "limits": [
+    "no AT-SPI mutation or foreground input attempted",
+    "X11 capture not produced",
+    "session proof unknown; no GUI acceptance claimed",
+    "container/headless results remain the verified scope"
+  ],
+  "artifacts": [
+    "/tmp/linux-x11-accept-3/evidence.json (VM only, not committed)"
+  ],
+  "diagnosis": {
+    "sessions": "24=omni manager, 29=omni x11 active (seat0, Display=:0, Class=user)",
+    "xorg": "pid under system.slice/lightdm.service, not inside a logind session",
+    "probe_inside_session": "session.kind=unknown; window_identity/accessibility=desktop_native_unavailable; screen_capture/foreground_control=desktop_adapter_not_implemented",
+    "hypothesis": "the Linux X11 proof ties the X server to the active session (XRes/logind), while LightDM runs Xorg in its own service scope; a real display-manager desktop behaves the same way, so this may be a contract gap rather than a VM-only issue",
+    "contract_question": "should the inspector accept a display-manager-launched Xorg whose seat/session is active, or require startx-style Xorg inside the user session? This is a shared contract decision for A",
+    "settled_retry": "waiting 45s after session start before the acceptance still returned session_kind=unknown and linux_sample_read_unavailable, so this is not autostart timing",
+    "open_question": "which PID the inspector used (worker vs Xorg) and whether the worker's GetSessionByPID returned session 29 or a tty session; logind itself reports User.Display=29, Sessions=29 24, State=active",
+    "worker_capture": {
+      "worker_pid": "229919",
+      "worker_cmd": "python -I -u -m omni.adapters.workers.desktop",
+      "worker_session": "session-31 (user-10001.slice), Type=x11, seat0 ActiveSession=31",
+      "system_bus": "/run/dbus/system_bus_socket present, dbus active, logind present",
+      "result": "probe still session.kind=unknown and all native capabilities unavailable",
+      "conclusion": "session attribution is NOT the cause: the worker itself runs inside the x11 session and the seat points at it; the failure is inside the worker and is currently masked as desktop_native_unavailable",
+      "next": "capture the worker's actual error (stderr/error_code) by instrumenting the backend/worker exchange, then decide whether it is a code gap or an environment issue"
+    },
+    "instrumentation": {
+      "attempts": [
+        "patched worker exception handler to log tracebacks",
+        "patched encode validation failure to log response",
+        "patched backend stderr drain to log worker stderr"
+      ],
+      "observed": "all three logs stayed empty; probe still session.kind=unknown and desktop_native_unavailable for window_identity/accessibility",
+      "conclusion": "the failure is either in the backend's Linux pre-check or in the worker before any Python-level exception/logging; the worker starts (seen in process polling) but returns no response body we could capture",
+      "next": "inspect the backend's Linux probe branch (env/permission/helper preconditions) and run the worker manually with a synthetic probe frame to see its raw response"
+    },
+    "spawn_confirmed": {
+      "spawn_log": "backend _spawn was called for operation=probe (earlier empty log was invalid: a temporary syntax error made the probe import fail and left a stale report)",
+      "worker_result": "the worker returned a report with session.kind=unknown and window_identity/accessibility error_code=desktop_native_unavailable; no worker traceback",
+      "conclusion": "the backend does spawn the worker and receives a report; the refusal is produced worker-side while building the probe report, most likely in the Linux AT-SPI/session initialization path",
+      "next": "read linux_desktop/linux_atspi probe initialization to find the desktop_native_unavailable branch and fix or document it"
+    },
+    "full_report": {
+      "session": {
+        "kind": "unknown",
+        "identity": null
+      },
+      "top_level_error": null,
+      "capabilities": [
+        [
+          "window_identity",
+          "desktop_native_unavailable"
+        ],
+        [
+          "accessibility",
+          "desktop_native_unavailable"
+        ],
+        [
+          "screen_capture",
+          "desktop_adapter_not_implemented"
+        ],
+        [
+          "foreground_control",
+          "desktop_adapter_not_implemented"
+        ]
+      ],
+      "conclusion": "the worker returns a well-formed report with no exception; the session inspector left session=None (kind unknown) even though logind shows session 31 x11/seat0 active. Next: read SessionInspector.open()/read_session to find why it returns without a session, or instrument it in the VM copy"
+    },
+    "open_flow": {
+      "code": "SessionInspector.open(): uid check -> system bus -> logind owner -> self.session = await read_session() -> accessibility/check",
+      "read_session": "raises desktop_headless/unverified on any failed check; it never returns a partial session",
+      "contradiction": "the worker report has session=None with top-level error=None, which the read_session contract should make impossible if open() ran to completion; either the report was assembled by a fallback path or the error was dropped in capability_report",
+      "next": "instrument SessionInspector.open/read_session in the VM copy (clean sed patches) to log entry, selected_path, read_session result/exception, and the capability_report arguments"
+    }
+  },
+  "root_cause": {
+    "error": "AttributeError: type object 'MessageFlag' has no attribute 'NO_AUTO_START' (dbus-next 0.2.3 exposes NO_AUTOSTART)",
+    "why_hidden": "the unit-test fake also used NO_AUTO_START, so offline tests passed while the real worker crashed at the first system-bus call and the backend masked it as desktop_native_unavailable",
+    "fix": "linux_bus.py uses NO_AUTOSTART; the test support fake was corrected and a guard test asserts the real dbus-next spelling",
+    "after_fix": "session.kind=interactive with a logind identity (session proof now works); capabilities still fail with desktop_bus_peer_unverified / desktop_x11_peer_unverified",
+    "next": "investigate the bus peer verification (expected uid for the system bus vs root peer) and the X11 peer check"
+  },
+  "validation": {
+    "linux_tests": {
+      "passed": 78,
+      "failed": 0,
+      "seconds": 1.62
+    }
+  },
+  "peer_diagnosis": {
+    "direct_connect": "as omni with XDG_RUNTIME_DIR=/run/user/10001, LinuxOps.connect() succeeded for both /run/dbus/system_bus_socket (root peer) and /run/user/10001/bus",
+    "implication": "the desktoop_bus_peer_unverified seen in the probe is not raised by LocalBus.connect; it must come from a later owner/connection check (likely open_accessibility or the X11 peer proof)",
+    "next": "replicate SessionInspector.open(accessibility=True) as omni outside the backend, and log which owner/connection call fails; also test psutil access to root PIDs"
+  },
+  "a11y_guid": {
+    "session_proof": "confirmed: Session path /org/freedesktop/login1/session/_347, identity 47, kind x11, seat0, display :0",
+    "failure_point": "open_accessibility -> open_bus(Endpoint.accessibility(address)) -> desktop_bus_peer_unverified",
+    "address": "unix:path=/run/user/10001/at-spi/bus_0,guid=cb55a6bfb48a9ce24e39b0476b03b56d",
+    "get_id": "5ad915ce809b4268c5c919b86b03b56d",
+    "mismatch": "the guid embedded in org.a11y.Bus.GetAddress does not equal the bus's org.freedesktop.DBus.GetId, so the endpoint guid check fails",
+    "options": [
+      "contract decision by A: is the address guid required to equal GetId on at-spi buses?",
+      "or environment: restart the at-spi bus and re-check whether the address file is stale"
+    ],
+    "after_restart": {
+      "address": "unix:path=/run/user/10001/at-spi/bus_0,guid=833ae62b2abe4761314151b56b03bb37",
+      "get_id": "db808a07f0fb53c27d572d086b03bb37",
+      "match": false,
+      "note": "killing at-spi-bus-launcher/registryd and re-activating the bus reproduces the mismatch; both values share a suffix but differ in the prefix, so the address guid is not the bus GetId on this at-spi2-core/Ubuntu 26.04",
+      "escalation": "contract question for A: must Endpoint.accessibility require guid == GetId, or should the check accept the address guid as opaque and verify the peer another way?"
+    }
+  },
+  "x11_peer": {
+    "check": "linux_x11_socket.py requires the X socket identity, the Xorg process uid/session, and server_binary name Xorg",
+    "environment": "LightDM starts Xorg under system.slice/lightdm.service, which has no logind session; the user session (x11, seat0) does not own the X server",
+    "consequence": "server_session(process) cannot bind Xorg to the active session, so desktop_x11_peer_unverified is raised",
+    "options": [
+      "startx-style Xorg inside a real user session (but logind then reports the tty session type, conflicting with the x11 requirement)",
+      "contract decision for A on how display-manager-launched Xorg should be proven"
+    ]
+  }
+}

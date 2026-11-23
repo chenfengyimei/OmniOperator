@@ -223,3 +223,33 @@ uv run --no-sync python agent/scripts/accept_native_credentials.py --cleanup <�
 ### 2026-11-22 Linux 原生专项与 headless 诊断
 
 在 Lima vz 的 Ubuntu 26.04.1 LTS（aarch64、kernel 7.0.0-38、Python 3.12.16、`desktop-linux` 额外依赖）中运行 `test_v2_linux_bus.py`、`test_v2_linux_desktop.py`、`test_v2_linux_acceptance.py`：**77 passed，2.56s**。随后执行 `accept_linux_desktop.py`（无 DISPLAY/Wayland/D-Bus 会话）：`probe_completed`、`cleanup_verified=true`；能力字段为 `window_identity/accessibility=unknown/desktop_native_unavailable`、`screen_capture/foreground_control=desktop_adapter_not_implemented`，**未把缺少 DISPLAY 报告为已证明 headless，也未声称 GUI 支持**。容器侧证据见上一节（`check_v2_container.py` passed）；X11/Wayland 真机会话仍缺，G3/G4 的控件身份/前台后验/暂停撤权未验。证据：[Linux 专项与探针](../../../evidence/v2-linux-native-tests-2026-11-22.json)。
+
+### 2026-11-23 X11 会话尝试与失败关闭
+
+在 Lima VM 中安装 LightDM + openbox + Xorg（vkms 虚拟 DRM），`loginctl` 得到真实会话：id 25、user `omni`（uid 10001）、**Type=x11、Class=user、Seat=seat0、Display=:0**，`CanGraphical=yes`；GTK3 样例（含 password entry）在会话内运行。以 `accept_linux_desktop.py --fixture-pid <pid> --consent-read-ui --native-backend x11 --capture-window` 分别从 lima shell 和会话内（openbox autostart）运行，均返回 **`linux_sample_read_unavailable`、`session_kind=unknown`**：工具未能证明 X 服务器/目标属于当前活动会话，因此在读取前拒绝（失败关闭）。未尝试 AT-SPI 写动作或前台输入，也没有产出截图。**G3 仍未验证**；需要能建立 Xorg/session 证明的真实桌面 X11（或由 A 合同决定是否接受 display-manager 启动的 Xorg）。证据：[X11 尝试](../../../evidence/v2-linux-x11-probe-2026-11-23.json)。
+
+进一步诊断：seat 会话为 **29**（Type=x11、Seat=seat0、Display=:0、Active=yes），而 Xorg 进程在 `system.slice/lightdm.service` 中，**不属于任何 logind 会话**；会话内探针仍为 `session.kind=unknown`。若 Inspector 的 X11 证明要求 X 服务器归属活动会话，那么 LightDM/GDM 这类真实桌面也会同样不满足——这更像合同缺口而非 VM 特例。需 A 决定：接受 display-manager 启动的 Xorg（以 seat/会话活动性证明），还是要求 startx 式 Xorg 位于用户会话内。
+
+会话启动后等待 45 秒再跑验收，结果仍为 `session_kind=unknown` / `linux_sample_read_unavailable`，排除“autostart 过早”假设。logind 本身显示 `User.Display=29`、`Sessions=29 24`、`State=active`，会话 29 为 x11/user/seat0/:0。下一步需确认 Inspector 实际查询的 PID（worker 还是 Xorg）及其 `GetSessionByPID` 返回值，再决定是代码缺口还是启动方式问题。
+
+抓取到 worker 归属：`omni.adapters.workers.desktop` 进程在 **session-31（x11，user-10001.slice）**，seat0 的 ActiveSession 也是 31，系统总线与 logind 正常；worker 直接导入/启动无报错（等待协议输入）。但探针仍 `session.kind=unknown`、能力全部 unavailable。结论：**不是会话归属问题**，失败发生在 worker 内部并被后端概括为 `desktop_native_unavailable`。下一步需抓 worker 的真实错误（stderr/error_code）再判断是代码缺口还是环境问题。
+
+对 worker 异常、encode 校验失败、后端 stderr 三处分别做了临时日志（仅 VM 副本），**全部为空**；探针仍 unknown/unavailable。说明失败发生在后端 Linux 预检或 worker 返回之前，尚未被我们的日志覆盖。下一步：读后端 Linux probe 分支的前置条件，并用合成 probe 帧手工运行 worker 取原始响应。
+
+更正：此前“_spawn 未调用”的结论是**无效**的——临时补丁引入语法错误导致探针 import 失败，读到的是旧报告。清理后重测：`_spawn probe` 确实被调用，worker 正常返回一份报告，其中 `session.kind=unknown`、`window_identity/accessibility=desktop_native_unavailable`，worker 无异常。即拒绝是 **worker 在构建 probe 报告时**产生的，最可能在 Linux AT-SPI/会话初始化路径。下一步读 `linux_desktop`/`linux_atspi` 的 probe 初始化，定位 `desktop_native_unavailable` 分支。
+
+完整 probe 报告：`session={kind:unknown, identity:null}`、顶层 `error=null`、能力错误均为 `desktop_native_unavailable`（screen/foreground 为 not_implemented）。worker 无异常，报告结构完整；即 `SessionInspector.open()` 在 logind 明明显示会话 31（x11/seat0/active）时仍未填充 session。下一步读 `open()`/`read_session` 的静默返回路径，并在 VM 副本里干净地打点（避免上次的补丁语法错误）。
+
+`SessionInspector.open()` 流程确认：uid 检查 → 系统总线 → logind owner → `self.session = await read_session()` → 辅助功能/check；`read_session` 在任何检查失败时都会抛错，不会返回部分会话。但 worker 报告是 session=None 且顶层 error=None，与契约矛盾——要么报告由回退路径拼装、要么 error 在 capability_report 里被丢弃。下一步在 VM 副本里干净打点 open/read_session（入口、selected_path、返回值/异常、capability_report 参数），再下结论。
+
+### 2026-11-23 根因：dbus-next 枚举拼写（已修）
+
+真机异常：`AttributeError: type object 'MessageFlag' has no attribute 'NO_AUTO_START'. Did you mean: 'NO_AUTOSTART'?`。`linux_bus.py` 用了 `NO_AUTO_START`，而锁定的 `dbus-next==0.2.3` 只有 `NO_AUTOSTART`；单测 fake 也写成同一错误拼写，导致离线测试全绿、真机在第一次系统总线调用即崩溃，被后端概括为 `desktop_native_unavailable`。已修两处并加真枚举守护测试。修复后：**session.kind=interactive**（logind 身份已证明，会话证明打通），能力仍报 `desktop_bus_peer_unverified` / `desktop_x11_peer_unverified`——这是下一个要查的 peer 校验（系统总线对端 root 与期望 uid 的比较、X11 对端证明）。Linux 专项 **78 passed（1.62s）**。
+
+直接验证：以 omni 身份（XDG_RUNTIME_DIR 正确）调用 `LinuxOps.connect()`，系统总线（root 对端）与用户总线都 **OK**。因此探针里的 `desktop_bus_peer_unverified` 不是 connect 阶段抛的，而在后续 owner/connection 校验（很可能是 `open_accessibility` 或 X11 对端证明）。下一步在会话内复现 `SessionInspector.open(accessibility=True)` 并逐调用打点。
+
+精确定位：会话证明通过（session `_347`、identity 47、x11、seat0、:0），失败在 `open_accessibility → open_bus(Endpoint.accessibility(address))`。`org.a11y.Bus.GetAddress` 返回的地址内 `guid=cb55a6bf…`，而连接该总线调用 `GetId` 返回 `5ad915ce…`——**两者不一致**，触发 `desktop_bus_peer_unverified`。需 A 决定：at-spi 总线地址里的 guid 是否必须等于 `GetId`（合同/安全检查），或先排除 at-spi 地址过期（重启总线后复测）。
+
+重启 at-spi 总线（kill launcher/registryd 后按需重新激活）再测：地址 `guid=833ae62b…b03bb37`、`GetId=db808a07…b03bb37`，**仍不一致**，排除地址过期。即 Ubuntu 26.04/at-spi2-core 下 `GetAddress` 的 guid 本就不等于该总线的 `GetId`。需 A 决策：`Endpoint.accessibility` 是否必须要求 guid==GetId，还是接受地址 guid 为不透明值并用其他方式校验对端。已作为合同问题记录。
+
+X11 侧定位：`linux_x11_socket.py` 要求 socket 身份 + Xorg 进程 uid/会话 + 可执行名 `Xorg`。当前 LightDM 把 Xorg 放在 `system.slice/lightdm.service`，**没有 logind 会话**，用户会话（x11/seat0）并不拥有 X 服务器，因此 `server_session` 无法把 Xorg 绑定到活动会话 → `desktop_x11_peer_unverified`。两条出路（startx 式 Xorg 会引入 tty 会话类型与 x11 要求的冲突，或由 A 决定 DM 启动的 Xorg 如何证明）都需 A 或真实桌面环境。至此 G3 的两个阻塞点都已精确定位：a11y 地址 guid≠GetId、DM 启动的 Xorg 无 logind 会话。
