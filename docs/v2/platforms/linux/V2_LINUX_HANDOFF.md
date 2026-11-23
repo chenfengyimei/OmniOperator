@@ -265,3 +265,19 @@ X11 侧定位：`linux_x11_socket.py` 要求 socket 身份 + Xorg 进程 uid/会
 - **AT-SPI 地址 guid 改为不透明元数据**：`SessionInspector.open_bus` 只校验地址/`GetId` 形态，**不再要求 guid==GetId**；总线身份由路径 inode（连接前后一致）+ `SO_PEERCRED` 对端（pid/uid/创建时间/可执行）+ `GetNameOwner`/`GetConnectionUnixProcessID` 证明。对应回归：地址 guid 与 GetId 不同时仍成功、但把对端标记为已替换仍 `desktop_bus_peer_unverified`；非法 guid 地址仍 `desktop_bus_address_denied`。
 - **display-manager Xorg 以显示归属 + 显式 `-seat` 证明**：`server_session` 在 `GetSessionByPID` 返回 `NoSessionForPID`（Xorg 在 lightdm/gdm/sddm 系统单元、无 logind 会话）、当前会话已证明为活动 x11 会话、且 Xorg 命令行 `-seat <name>` 等于活动 seat 时接受；Xorg 属于其他会话、缺 `-seat` 或 seat 不符仍拒。其余证据 = 规范 socket `/tmp/.X11-unix/XN`（由活动会话 `Display=:N` 推导）+ root 所有真实 `Xorg` 对端 + Xauthority 授权当前 uid；对应回归：无会话且 `-seat seat0` 时 `Connection.open` 成功、cookie 读一次、`verify()` 通过；`-seat seat1` 时失败且不读 cookie。
 - **真实会话状态**：两项身份修改后在 VM 真实 X11 会话打通 `window_identity`/`accessibility`/`foreground`（probe 四能力 available）；**截屏仍卡 `desktop_x11_target_unverified`**（targets/verify 已过），下一步在 `X11Desktop.target()/verified()` 打点定位 XRes PID/uid、几何/border/root 后再跑 `accept_linux_desktop.py --native-backend x11 --capture-window`。Wayland/输入授权语义不变（`input_authorized` 仍 false）。
+
+截屏设计问题（需 A 决策）：有 WM 的真实桌面下，目标 GTK 客户端窗口被 reparent 到 frame，xcompmgr 重定向的是 frame（root 直接子窗口），客户端窗口未重定向 → `NameWindowPixmap` 返回 **BadMatch(8)**。无 WM 会话下客户端是 root 子窗口，但 `wire.windows()` 又报 `desktop_x11_window_list_unavailable`。可选方向：捕获 frame 并裁剪、临时重定向目标窗口（现合同禁止）、仅支持无 WM 会话并记录限制，或由 A 另定截图路径。身份/前台能力不受影响（probe 四项可用、targets/verify 通过）。
+
+截屏两难已定位到列出与捕获的联合要求：`wire.windows()` 依赖 EWMH `_NET_CLIENT_LIST`（无 WM 时不存在 → `desktop_x11_window_list_unavailable`）；`NameWindowPixmap` 要求客户端窗口本身被重定向。当前 openbox+xcompmgr 是“reparent 到 frame + 只重定向 frame”，两者无法同时满足。结论：实现假设的是 **compositing WM（Mutter/KWin/compiz）** 这类同时提供 `_NET_CLIENT_LIST` 且直接重定向客户端窗口的桌面。下一步在 VM 里装 mutter（或 kwin_x11）验证成功路径，或改在真实 GNOME/KDE X11 桌面验收。
+
+KWin 6.6.4 尝试：`_NET_CLIENT_LIST` 存在（列表通过）、target() 合法、watch 通过，但 `NameWindowPixmap` 仍 **BadMatch(8)**——KWin 同样重定向 frame 而非客户端窗口。Mutter 50.1 已无 X11 WM 模式（仅 Wayland display server）。结论：当前可用的 reparenting X11 WM 都无法满足“客户端窗口被重定向”的假设；需要 A 在“捕获 frame 并裁剪 / 其他截图路径 / 明确不支持 reparenting WM”之间决定。身份、列表、前台能力不受影响。
+
+前台操作合同已确认：`foreground` 只接受 **AT-SPI 目标** + 节点证明流程（`takeover=true`、固定 policy、来自观察的 node proof、grant/run/operation UUID），裸 `{kind,key}` 或 x11 目标会被 `parse_request` 拒绝（`desktop_invalid`，未派发）。这本身构成一条有效的**拒绝路径证据**（denied/none/not_dispatched）。下一步需按生产 observe→node proof→foreground(permit) 流程驱动，再做用户介入/撤权。
+
+Wayland 环境核对：当前只有 KWin **X11** 会话；`xdg-desktop-portal` 未安装，会话总线上 `org.freedesktop.portal.Desktop` 没有 RemoteDesktop/ScreenCast 接口。G4 的授权/撤回/暂停需要先安装 Wayland 合成器（GNOME Shell/KDE Plasma）及其 portal 后端，或提供真实桌面。前台操作需走应用层的 AT-SPI 节点证明流程（observe→node proof→foreground），裸 backend 调用按设计被拒（已记录拒绝路径）。
+
+Compiz 1:0.9.14.2 复测：`_NET_CLIENT_LIST` 存在、target 合法、watch 通过，但合成请求仍 **BadMatch(8)**。至此 openbox+xcompmgr、KWin 6.6.4、Compiz 均在客户端窗口的 NameWindowPixmap/GetImage 上失败——当前实现假设的“客户端窗口被重定向”在现有环境均不成立。按所有者“全部允许”，下一步实现 **frame 裁剪** 路径：找到被重定向的 root 子窗口（frame），NameWindowPixmap 后按客户端几何裁剪；需要合同定义装饰/边框规则并补测试。
+
+**X11 截屏成功（frame 裁剪）**：KWin 6.6.4 会话下，`accept_linux_desktop.py --fixture-pid <pid> --consent-read-ui --native-backend x11 --capture-window` 返回 `status=sample_passed`、`session_kind=interactive`，截屏 `{sha256=a7bed3ff…, bytes=4500, width=420, height=260, method=x11_composite}`；frame 4194340、客户端 4194341、偏移 (0,0)。实现为 `parent()`/`translate()`/`frame_image()` + `capture()` 的 frame 裁剪。下一步：更新测试 fake wire（新增方法）与回归，再推进前台/用户介入与 Wayland。
+
+Linux 专项在干净树（`origin/linux-container-g3`）为 **78 passed, 2 errors**；2 个 error 都来自 `test_linux_window_coordinates_survive_http_without_persisting_content` 的 offline_guard（`filesystem.real_instance`）。用全新 `HOME`/`XDG_DATA_HOME` 复跑仍报错，说明该用例或其被测 app 写入了受保护路径（`project/data|config|.env|skills` 或用户数据目录），属用例隔离缺口而非 frame 裁剪/身份证明改动引入。此前调试打点写 `/tmp` 也会触发同一守卫——已通过还原工作树排除。

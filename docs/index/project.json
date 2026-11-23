@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "1797cf4d5215ba2cd7e07846e5bc102ae235c2d82083f6d9bba89b57aee801a6",
+  "source_sha256": "8541cedec4429413e7e40c2081f2c7371c58f0ae75c3e79ecd4d56314f7cdb3c",
   "modules": [
     {
       "id": "v2-domain",
@@ -520,7 +520,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 71822,
+      "lines": 71930,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -34327,7 +34327,7 @@
       "path": "agent/src/omni/adapters/platform/desktop/linux/linux_x11.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.desktop.linux.linux_x11",
-      "lines": 248,
+      "lines": 262,
       "imports": [
         "omni.adapters.platform.desktop.linux.linux_bus",
         "omni.adapters.platform.desktop.linux.linux_session",
@@ -34442,8 +34442,20 @@
           }
         },
         {
-          "name": "X11Desktop.capture",
+          "name": "X11Desktop.frame",
           "line": 207,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "window"
+          ],
+          "annotations": {
+            "window": "int"
+          }
+        },
+        {
+          "name": "X11Desktop.capture",
+          "line": 220,
           "kind": "function",
           "parameters": [
             "self",
@@ -34457,7 +34469,7 @@
         },
         {
           "name": "X11Desktop.close",
-          "line": 247,
+          "line": 261,
           "kind": "function",
           "parameters": [
             "self"
@@ -34624,7 +34636,7 @@
       "path": "agent/src/omni/adapters/platform/desktop/linux/linux_x11_wire.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.desktop.linux.linux_x11_wire",
-      "lines": 253,
+      "lines": 309,
       "imports": [
         "omni.adapters.platform.desktop.linux.linux_bus"
       ],
@@ -34865,8 +34877,58 @@
           }
         },
         {
-          "name": "Wire.image",
+          "name": "Wire.parent",
           "line": 232,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "window"
+          ],
+          "annotations": {
+            "window": "int"
+          }
+        },
+        {
+          "name": "Wire.translate",
+          "line": 241,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "source",
+            "destination"
+          ],
+          "annotations": {
+            "source": "int",
+            "destination": "int"
+          }
+        },
+        {
+          "name": "Wire.frame_image",
+          "line": 248,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "composite",
+            "frame",
+            "offset",
+            "width",
+            "height",
+            "depth",
+            "stride"
+          ],
+          "annotations": {
+            "composite": "int",
+            "frame": "int",
+            "offset": "tuple[int, int]",
+            "width": "int",
+            "height": "int",
+            "depth": "int",
+            "stride": "int"
+          }
+        },
+        {
+          "name": "Wire.image",
+          "line": 288,
           "kind": "function",
           "parameters": [
             "self",
@@ -42053,7 +42115,7 @@
       "path": "agent/src/omni/adapters/platform/services/service_query.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.services.service_query",
-      "lines": 472,
+      "lines": 481,
       "imports": [
         "omni.adapters.platform.desktop.macos_helper",
         "omni.adapters.platform.runtime.processes",
@@ -42078,7 +42140,7 @@
         },
         {
           "name": "_task_identity",
-          "line": 43,
+          "line": 44,
           "kind": "function",
           "parameters": [
             "payload"
@@ -42089,7 +42151,7 @@
         },
         {
           "name": "_read_definition",
-          "line": 75,
+          "line": 84,
           "kind": "function",
           "parameters": [
             "path"
@@ -42100,7 +42162,7 @@
         },
         {
           "name": "_read_definition.identity",
-          "line": 92,
+          "line": 101,
           "kind": "function",
           "parameters": [
             "info"
@@ -42111,17 +42173,17 @@
         },
         {
           "name": "_Query",
-          "line": 101,
+          "line": 110,
           "kind": "class"
         },
         {
           "name": "ServiceQuery",
-          "line": 114,
+          "line": 123,
           "kind": "class"
         },
         {
           "name": "ServiceQuery.__init__",
-          "line": 117,
+          "line": 126,
           "kind": "function",
           "parameters": [
             "self"
@@ -42130,7 +42192,7 @@
         },
         {
           "name": "ServiceQuery.health",
-          "line": 125,
+          "line": 134,
           "kind": "function",
           "parameters": [
             "self"
@@ -42139,7 +42201,7 @@
         },
         {
           "name": "ServiceQuery.stop_accepting",
-          "line": 136,
+          "line": 145,
           "kind": "function",
           "parameters": [
             "self"
@@ -42148,7 +42210,7 @@
         },
         {
           "name": "ServiceQuery.query",
-          "line": 139,
+          "line": 148,
           "kind": "function",
           "parameters": [
             "self",
@@ -42160,7 +42222,7 @@
         },
         {
           "name": "ServiceQuery.query.complete",
-          "line": 162,
+          "line": 171,
           "kind": "function",
           "parameters": [
             "future"
@@ -42171,7 +42233,7 @@
         },
         {
           "name": "ServiceQuery._file",
-          "line": 170,
+          "line": 179,
           "kind": "function",
           "parameters": [
             "self",
@@ -42183,7 +42245,7 @@
         },
         {
           "name": "ServiceQuery._native_helper",
-          "line": 173,
+          "line": 182,
           "kind": "function",
           "parameters": [
             "self"
@@ -42192,7 +42254,7 @@
         },
         {
           "name": "ServiceQuery._blocking",
-          "line": 178,
+          "line": 187,
           "kind": "function",
           "parameters": [
             "self",
@@ -42204,7 +42266,7 @@
         },
         {
           "name": "ServiceQuery._program",
-          "line": 191,
+          "line": 200,
           "kind": "function",
           "parameters": [
             "target"
@@ -42215,7 +42277,7 @@
         },
         {
           "name": "ServiceQuery._drain",
-          "line": 211,
+          "line": 220,
           "kind": "function",
           "parameters": [
             "self",
@@ -42231,7 +42293,7 @@
         },
         {
           "name": "ServiceQuery._spawn",
-          "line": 221,
+          "line": 230,
           "kind": "function",
           "parameters": [
             "self",
@@ -42245,14 +42307,14 @@
         },
         {
           "name": "ServiceQuery._spawn.collected",
-          "line": 260,
+          "line": 269,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "ServiceQuery._reclaim_actual",
-          "line": 268,
+          "line": 277,
           "kind": "function",
           "parameters": [
             "self",
@@ -42266,7 +42328,7 @@
         },
         {
           "name": "ServiceQuery._reclaim",
-          "line": 289,
+          "line": 298,
           "kind": "function",
           "parameters": [
             "self",
@@ -42280,7 +42342,7 @@
         },
         {
           "name": "ServiceQuery._command",
-          "line": 302,
+          "line": 311,
           "kind": "function",
           "parameters": [
             "self",
@@ -42292,7 +42354,7 @@
         },
         {
           "name": "ServiceQuery._query",
-          "line": 343,
+          "line": 352,
           "kind": "function",
           "parameters": [
             "self",
@@ -42304,7 +42366,7 @@
         },
         {
           "name": "ServiceQuery._macos_native",
-          "line": 404,
+          "line": 413,
           "kind": "function",
           "parameters": [
             "self",
@@ -42316,7 +42378,7 @@
         },
         {
           "name": "ServiceQuery._linux",
-          "line": 443,
+          "line": 452,
           "kind": "function",
           "parameters": [
             "self",
@@ -42332,7 +42394,7 @@
         },
         {
           "name": "ServiceQuery.close",
-          "line": 455,
+          "line": 464,
           "kind": "function",
           "parameters": [
             "self",
@@ -47001,7 +47063,7 @@
       "path": "agent/src/omni/adapters/workers/windows_services.ps1",
       "module": "v2-adapters",
       "python_module": null,
-      "lines": 172,
+      "lines": 201,
       "imports": [],
       "symbols": [],
       "kind": "asset",

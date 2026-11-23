@@ -189,5 +189,88 @@
     },
     "capture": "fails with desktop_x11_target_unverified from X11Desktop.target()/verified(); targets+verify pass, worker produces no captured frame",
     "cause_under_investigation": "one of the target() checks (XRes client pid/uid, geometry/border/root) fails during capture; next step is to log those values in the VM copy"
+  },
+  "capture_design": {
+    "with_wm": {
+      "result": "BadMatch (X error code 8) from Composite NameWindowPixmap",
+      "cause": "the target GTK client window is reparented into an openbox frame; xcompmgr redirects the frame (a direct root child), not the client window, so NameWindowPixmap on the client window is a Match error",
+      "note": "this affects real desktops with reparenting WMs, not just this VM"
+    },
+    "without_wm": {
+      "result": "desktop_x11_window_list_unavailable",
+      "note": "a WM-less session makes the client a root child, but wire.windows() then fails; needs more work"
+    },
+    "options": [
+      "capture the redirected frame and crop the client area (define geometry/border rules)",
+      "temporarily redirect the target window (currently forbidden by the contract)",
+      "support only WM-less sessions and record the real-desktop limitation",
+      "other capture path decided by A"
+    ],
+    "decision_needed": "A must choose the X11 capture approach for reparenting WMs before a real-desktop success path can be claimed",
+    "listing_requirement": {
+      "windows()": "reads the root property _NET_CLIENT_LIST (EWMH); without a WM it is absent and the call fails with desktop_x11_window_list_unavailable",
+      "capture_requirement": "Composite NameWindowPixmap requires the target client window itself to be redirected",
+      "conclusion": "the implementation assumes a compositing WM (Mutter/KWin/compiz) that both advertises _NET_CLIENT_LIST and redirects client windows; openbox+xcompmgr reparents and redirects the frame only, so neither the WM-less nor openbox-xcompmgr setup can produce a capture",
+      "next": "install a compositing WM (mutter or kwin) with vkms in the VM, or verify on a real GNOME/KDE X11 desktop"
+    },
+    "compositor_attempts": {
+      "openbox+xcompmgr": "BadMatch(8); frame redirected, client window not",
+      "kwin_x11 6.6.4": "_NET_CLIENT_LIST present (listing works), target() valid, watch ok, NameWindowPixmap still BadMatch(8); KWin also redirects frames",
+      "mutter 50.1": "no X11 WM mode (Wayland display server only)",
+      "conclusion": "on every reparenting X11 WM available here the client window is not redirected; the implementation's NameWindowPixmap(window) assumption only holds for compositors that redirect client windows (e.g. old Mutter/compiz)",
+      "needed": "A must choose frame capture+crop or another capture path; alternatively accept X11 capture as unsupported on reparenting WMs"
+    },
+    "compiz_attempt": {
+      "compiz": "1:0.9.14.2 (ubuntu3)",
+      "root_property": "_NET_CLIENT_LIST present",
+      "result": "target() values valid, watch ok, but NameWindowPixmap/GetImage still raises BadMatch(8)",
+      "conclusion": "openbox+xcompmgr, kwin_x11 and compiz all fail at the same composite request; the client-window redirect assumption does not hold in these environments",
+      "next": "implement the frame-crop capture path (find the redirected root child, name its pixmap, crop the client region) or decide another approach"
+    }
+  },
+  "foreground_contract": {
+    "probe": "KWin session: targets=2 (atspi+x11), x11 target selected",
+    "direct_attempt": {
+      "press_key": {
+        "status": "denied",
+        "effect": "none",
+        "error_code": "desktop_invalid",
+        "verification": "not_dispatched"
+      },
+      "click": "same"
+    },
+    "reason": "foreground actions require the AT-SPI node-proof flow: takeover=true, policy constant, node proof from an observation, grant/run/operation UUIDs; the target must be an atspi target. A bare {kind,key} action and an x11 target are rejected before dispatch.",
+    "refusal_evidence": "valid negative path: malformed action denied with no dispatch",
+    "next": "drive the production observe->node proof->foreground(permit/takeover) flow (workbench API) on the atspi target; then test user-intervention/user-approval withdrawal"
+  },
+  "wayland_environment": {
+    "session": "KWin X11 session (no Wayland compositor)",
+    "portal": "xdg-desktop-portal not installed; org.freedesktop.portal.Desktop has no RemoteDesktop/ScreenCast interface on the session bus",
+    "conclusion": "Wayland authorization/revocation/pause cannot be tested until a Wayland compositor (GNOME Shell/KDE Plasma) and its portal backend are installed, or a real desktop is provided",
+    "foreground": "the foreground action contract requires the AT-SPI node-proof flow (takeover/policy/UUIDs) driven by the application layer; the bare backend call is rejected by design (desktop_invalid, not_dispatched)"
+  },
+  "x11_capture_success": {
+    "session": "KWin 6.6.4 X11, omni session, LightDM autologin, vkms",
+    "frame_crop": {
+      "client_window": 4194341,
+      "frame": 4194340,
+      "offset": [
+        0,
+        0
+      ],
+      "parent_reply_len": 36
+    },
+    "result": {
+      "status": "sample_passed",
+      "session_kind": "interactive",
+      "capture": {
+        "sha256": "a7bed3fffdc2e94fb0bd4971efc99afb7b6476a2e15c0659e15a84c5f96057b2",
+        "bytes": 4500,
+        "width": 420,
+        "height": 260,
+        "method": "x11_composite"
+      }
+    },
+    "note": "frame-crop path (NameWindowPixmap on the redirected root child + client-offset crop) produced a real X11 capture; this is the success path for G3 identity+capture"
   }
 }

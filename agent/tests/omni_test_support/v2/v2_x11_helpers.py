@@ -8,7 +8,7 @@ from omni.adapters.platform.desktop.linux.linux_x11_socket import Connection
 from omni.adapters.platform.desktop.linux.linux_x11_wire import Wire
 from omni_test_support.v2.v2_linux_desktop_helpers import SESSION, Factory, variant
 
-ROOT, WINDOW, VISUAL, CLIENT = 0x100, 0x400001, 0x21, 0x400000
+ROOT, WINDOW, FRAME, VISUAL, CLIENT = 0x100, 0x400001, 0x400002, 0x21, 0x400000
 COOKIE = b"PRIVATE-X-COOKIE"
 
 
@@ -44,6 +44,7 @@ class Peer:
         self.incoming, self.sent = bytearray(), []
         self.authenticated, self.sequence = False, 0
         self.pixmap = None
+        self.named = None
         self.image_read = False
         self.width = 2
 
@@ -87,7 +88,8 @@ class Peer:
             else:
                 assert minor == 6
                 selected, self.pixmap = struct.unpack("<II", body)
-                assert selected == WINDOW and selected != ROOT
+                assert selected in {FRAME, WINDOW} and selected != ROOT
+                self.named = selected
                 if self.fault == "not_redirected":
                     error = bytearray(32)
                     error[1] = 8
@@ -102,6 +104,32 @@ class Peer:
             detail = 32
             fields = struct.pack("<III", 33, 0, 1)
             extra = struct.pack("<I", ROOT if self.fault == "root" else WINDOW)
+        elif opcode == 15:
+            # QueryTree: the client window is reparented into a decorative frame
+            # (openbox/KWin/Compiz), and only that root child is redirected.
+            selected = struct.unpack("<I", body)[0]
+            assert selected in {WINDOW, FRAME, ROOT}
+            parent = ROOT if selected in {FRAME, ROOT} else FRAME
+            if self.fault == "frame_root":
+                parent = ROOT
+            elif self.fault == "frame_chain":
+                parent = selected  # never reaches root within the bounded walk
+            elif self.fault == "no_frame" and selected == WINDOW:
+                parent = ROOT  # no WM: the client window is a root child
+            fields = struct.pack("<IIH", ROOT, parent, 0)
+        elif opcode == 40:
+            # TranslateCoordinates(window -> frame) yields the in-frame offset.
+            source, destination, _x, _y = struct.unpack("<IIhh", body)
+            if self.fault == "no_frame":
+                # A root child window translates to itself at the origin.
+                assert (source, destination) in {(WINDOW, WINDOW), (WINDOW, ROOT)}
+            else:
+                assert (source, destination) in {(WINDOW, FRAME), (FRAME, ROOT)}
+            offset = (1, 1) if (source, destination) == (WINDOW, FRAME) else (0, 0)
+            if self.fault == "frame_offset":
+                offset = (3, 3)  # outside the 4x4 frame for a 2x2 capture
+            detail = 1  # same_screen=True; TranslateCoordinates replies carry it in the detail byte
+            fields = struct.pack("<Ihh", 0, offset[0], offset[1])
         elif opcode == 3:
             assert struct.unpack("<I", body)[0] == WINDOW
             header = bytearray(44)
@@ -112,20 +140,26 @@ class Peer:
             return
         elif opcode == 14:
             resource = struct.unpack("<I", body)[0]
-            assert resource in {WINDOW, self.pixmap}
-            width = self.width + (1 if self.image_read and self.fault == "resize" else 0)
-            detail = 24
-            fields = struct.pack("<IhhHHH", ROOT, 0, 0, width, 2, 0)
+            assert resource in {WINDOW, FRAME, self.pixmap}
+            named = self.named if resource == self.pixmap else resource
+            if named == WINDOW:
+                width, height = self.width + (1 if self.image_read and self.fault == "resize" else 0), 2
+            else:
+                width, height = 4 + (1 if self.image_read and self.fault == "resize" else 0), 4
+            detail = 24 if self.fault != "frame_depth" else 32
+            border = 0 if self.fault != "frame_border" else 8
+            fields = struct.pack("<IhhHHH", ROOT, 0, 0, width, height, border)
             if self.image_read and self.fault == "destroy":
                 event = bytearray(32)
                 event[0] = 17
-                struct.pack_into("<II", event, 4, WINDOW, WINDOW)
+                struct.pack_into("<II", event, 4, WINDOW, WINDOW)  # frame teardown reparents/destroys the client
                 self.incoming.extend(event)
         elif opcode == 2:
             assert struct.unpack("<III", body) == (WINDOW, 1 << 11, 1 << 17)
             return
         elif opcode == 73:
-            assert struct.unpack("<IhhHHI", body) == (self.pixmap, 0, 0, 2, 2, 0xFFFFFFFF)
+            offset = (0, 0) if self.fault == "no_frame" else (1, 1)
+            assert struct.unpack("<IhhHHI", body) == (self.pixmap, offset[0], offset[1], 2, 2, 0xFFFFFFFF)
             self.image_read = True
             pixels = [(0, 0, 255), (0, 255, 0), (255, 0, 0), (10, 20, 30)]
             rows = []

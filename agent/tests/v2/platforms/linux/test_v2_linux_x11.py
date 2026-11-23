@@ -8,7 +8,7 @@ import uuid
 from pathlib import Path
 
 import pytest
-from omni_test_support.v2.v2_x11_helpers import COOKIE, ROOT, Peer, desktop_factory, linux_factory, setup_bytes
+from omni_test_support.v2.v2_x11_helpers import COOKIE, ROOT, WINDOW, Peer, desktop_factory, linux_factory, setup_bytes
 from PIL import Image
 
 from omni.adapters.platform.desktop.linux.linux_bus import Process, RemoteError
@@ -289,5 +289,46 @@ def test_x11_receipt_crosses_owned_host_staging_and_publishes_one_session_refere
         finally:
             assert (await instance.close())["complete"]
         assert all(owned.reclaimed for owned in guardians)
+
+    asyncio.run(scenario())
+
+
+def test_capture_without_a_reparenting_wm_reads_the_root_child_window():
+    """No WM: the client window is already a root child, so the frame is the window."""
+
+    async def scenario():
+        files = {}
+        peer = Peer(fault="no_frame")
+        _f, inspector, adapter = await prepared(peer, files)
+        try:
+            target = (await adapter.targets(5))["items"][0]
+            receipt = await adapter.capture(target, Path("plain.png"))
+            assert receipt["method"] == "x11_composite"
+            with Image.open(io.BytesIO(files[Path("plain.png")])) as image:
+                assert image.size == (2, 2) and image.getpixel((0, 0)) == (255, 0, 0)
+            framed = [body for op, _minor, body in peer.sent if op == 129]
+            assert any(struct.unpack_from("<I", body)[0] == WINDOW for body in framed)
+        finally:
+            assert await adapter.close() and await inspector.close()
+
+    asyncio.run(scenario())
+
+
+@pytest.mark.parametrize("fault", ["frame_chain", "frame_offset", "frame_depth"])
+def test_frame_crop_guards_reject_unproven_frames(fault):
+    """A frame is usable only when it is a real, offset-fitting, borderless root child of the same depth."""
+
+    async def scenario():
+        files = {}
+        peer = Peer(fault=fault)
+        _f, inspector, adapter = await prepared(peer, files)
+        try:
+            with pytest.raises((BusinessError, XError)):
+                target = (await adapter.targets(5))["items"][0]
+                await adapter.capture(target, Path("frame.png"))
+            assert not files
+            assert not any(op == 73 and struct.unpack_from("<I", body)[0] == ROOT for op, _m, body in peer.sent)
+        finally:
+            assert await adapter.close() and await inspector.close()
 
     asyncio.run(scenario())

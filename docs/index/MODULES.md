@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`1797cf4d5215ba2cd7e07846e5bc102ae235c2d82083f6d9bba89b57aee801a6`。包含 65 个职责模块、855 个源码/界面文件。
+源码指纹：`8541cedec4429413e7e40c2081f2c7371c58f0ae75c3e79ecd4d56314f7cdb3c`。包含 65 个职责模块、855 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -377,9 +377,9 @@
 | [agent/src/omni/adapters/platform/desktop/linux/linux_wayland_wire.py](../../agent/src/omni/adapters/platform/desktop/linux/linux_wayland_wire.py) | 131 | Bounded read-only Wayland display/registry/output transport; no surfaces, grabs, pixel capture or input commands. |
 | [agent/src/omni/adapters/platform/desktop/linux/linux_window_binding.py](../../agent/src/omni/adapters/platform/desktop/linux/linux_window_binding.py) | 141 | Bind an explicit AT-SPI provider XID to continuous native ownership/focus; no guessed mapping, focus acquisition or input. |
 | [agent/src/omni/adapters/platform/desktop/linux/linux_window_leases.py](../../agent/src/omni/adapters/platform/desktop/linux/linux_window_leases.py) | 137 | Continuous X11 window generations on one proven connection; no input, AT-SPI mapping or database access. |
-| [agent/src/omni/adapters/platform/desktop/linux/linux_x11.py](../../agent/src/omni/adapters/platform/desktop/linux/linux_x11.py) | 248 | XRes-bound local X11 targets and existing Composite pixmaps; never captures the root or sends input. |
+| [agent/src/omni/adapters/platform/desktop/linux/linux_x11.py](../../agent/src/omni/adapters/platform/desktop/linux/linux_x11.py) | 262 | XRes-bound local X11 targets and existing Composite pixmaps; never captures the root or sends input. |
 | [agent/src/omni/adapters/platform/desktop/linux/linux_x11_socket.py](../../agent/src/omni/adapters/platform/desktop/linux/linux_x11_socket.py) | 251 | Canonical local X11 sockets and private Xauthority; verify peers before sending credentials. |
-| [agent/src/omni/adapters/platform/desktop/linux/linux_x11_wire.py](../../agent/src/omni/adapters/platform/desktop/linux/linux_x11_wire.py) | 253 | Small bounded X11 read protocol on an already verified socket; no discovery, input or reconnect. |
+| [agent/src/omni/adapters/platform/desktop/linux/linux_x11_wire.py](../../agent/src/omni/adapters/platform/desktop/linux/linux_x11_wire.py) | 309 | Small bounded X11 read protocol on an already verified socket; no discovery, input or reconnect. |
 | [agent/src/omni/adapters/platform/desktop/linux/linux_xkb.py](../../agent/src/omni/adapters/platform/desktop/linux/linux_xkb.py) | 263 | Read-only XKB server state/actions on the existing input connection; no layout mutation, device acquisition or event dispatch. |
 | [agent/src/omni/adapters/platform/desktop/linux/linux_xkb_copy.py](../../agent/src/omni/adapters/platform/desktop/linux/linux_xkb_copy.py) | 176 | Canonical bounded identities for XKB copied compatibility, names, indicator maps and current geometry; no writes. |
 | [agent/src/omni/adapters/platform/desktop/linux/linux_xkb_map.py](../../agent/src/omni/adapters/platform/desktop/linux/linux_xkb_map.py) | 107 | Bounded canonical identity of a full native XKB map; no key translation, mutation or input dispatch. |
@@ -436,7 +436,7 @@
 | [agent/src/omni/adapters/platform/services/service_handover.py](../../agent/src/omni/adapters/platform/services/service_handover.py) | 77 | Two pinned root phases, opened in order and owned until native lock release; never elevates or spawns a broker. |
 | [agent/src/omni/adapters/platform/services/service_launch.py](../../agent/src/omni/adapters/platform/services/service_launch.py) | 95 | Once-only reviewed boot reservations under the instance lock; never starts a process or reads credentials. |
 | [agent/src/omni/adapters/platform/services/service_operation_files.py](../../agent/src/omni/adapters/platform/services/service_operation_files.py) | 274 | Private offline maintenance journal; never migrates, replays or removes instance data. |
-| [agent/src/omni/adapters/platform/services/service_query.py](../../agent/src/omni/adapters/platform/services/service_query.py) | 472 | Read-only OS service inspection with bounded output and retained process ownership. |
+| [agent/src/omni/adapters/platform/services/service_query.py](../../agent/src/omni/adapters/platform/services/service_query.py) | 481 | Read-only OS service inspection with bounded output and retained process ownership. |
 | [agent/src/omni/adapters/platform/services/service_readiness.py](../../agent/src/omni/adapters/platform/services/service_readiness.py) | 307 | Bounded, per-boot HMAC readiness proof. Never reads or sends an owner credential. |
 | [agent/src/omni/adapters/platform/services/service_registration.py](../../agent/src/omni/adapters/platform/services/service_registration.py) | 420 | Native user-service registration with fixed commands and scoped macOS unload; no elevation or data deletion. |
 | [agent/src/omni/adapters/platform/services/service_templates.py](../../agent/src/omni/adapters/platform/services/service_templates.py) | 219 | Deterministic service artifacts. Rendering never installs or controls a service. |
@@ -492,7 +492,7 @@
 | [agent/src/omni/adapters/workers/terminal.py](../../agent/src/omni/adapters/workers/terminal.py) | 720 | Fixed terminal host. Only this isolated, single-threaded startup may fork. |
 | [agent/src/omni/adapters/workers/terminal_gate.py](../../agent/src/omni/adapters/workers/terminal_gate.py) | 104 | Trusted ConPTY gate: no user startup code before the parent owns its Job. |
 | [agent/src/omni/adapters/workers/windows_foreground.cs](../../agent/src/omni/adapters/workers/windows_foreground.cs) | 250 | 原生源码、平台脚本或界面资源 |
-| [agent/src/omni/adapters/workers/windows_services.ps1](../../agent/src/omni/adapters/workers/windows_services.ps1) | 172 | 原生源码、平台脚本或界面资源 |
+| [agent/src/omni/adapters/workers/windows_services.ps1](../../agent/src/omni/adapters/workers/windows_services.ps1) | 201 | 原生源码、平台脚本或界面资源 |
 | [agent/src/omni/adapters/workers/windows_uia.cs](../../agent/src/omni/adapters/workers/windows_uia.cs) | 348 | 原生源码、平台脚本或界面资源 |
 | [agent/src/omni/adapters/workers/windows_uia.ps1](../../agent/src/omni/adapters/workers/windows_uia.ps1) | 78 | 原生源码、平台脚本或界面资源 |
 
