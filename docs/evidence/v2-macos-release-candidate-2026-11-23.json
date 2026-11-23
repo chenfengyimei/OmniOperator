@@ -229,5 +229,12 @@
     "gatekeeper_spctl": "rejected for ad hoc helper",
     "required": "Developer ID Application certificate + notarization credentials; without them the candidate is source/isolated-install only",
     "display": "single 1920x1080 main display; multi-monitor scaling/coordinates not applicable on this Mac"
+  },
+  "helper_tcc_attempt": {
+    "candidate_helper": "1ab02d9c... installed to ~/Applications with matching manifest",
+    "result": "probe returned all permissions denied for the new binary; permission prompts were triggered twice and not granted within ~60s",
+    "cause": "TCC grants bind to the helper's signature/path; replacing the binary invalidates the existing grants and the new identity needs a fresh System Settings approval",
+    "restore": "old helper 9360128b and its manifest restored; probe returned window_identity/accessibility/screen_capture/foreground_control = granted again",
+    "owner_action": "System Settings > Privacy & Security > Accessibility / Input Monitoring: allow OmniOperator Desktop Helper at the fixed path (and Screen Recording if prompted); then the candidate helper can be validated"
   }
 }
