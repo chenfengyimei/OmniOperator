@@ -18,8 +18,14 @@
     "protocol": "omni-desktop-ipc-6",
     "signing": "ad_hoc",
     "signature_verified": true,
-    "foreground_core_tests": {"passed": 9, "sha256": "d4cf28217ed9ec72becde530f8f3c2d939cae47ddf34435dd4f5566b5695c80d"},
-    "registration_path_tests": {"passed": 8, "sha256": "1cea5235b2bb0222dd4b7f5052ea5de45d651260a4c4ddfdcfea8b308554c117"},
+    "foreground_core_tests": {
+      "passed": 9,
+      "sha256": "d4cf28217ed9ec72becde530f8f3c2d939cae47ddf34435dd4f5566b5695c80d"
+    },
+    "registration_path_tests": {
+      "passed": 8,
+      "sha256": "1cea5235b2bb0222dd4b7f5052ea5de45d651260a4c4ddfdcfea8b308554c117"
+    },
     "installed_to_applications": false
   },
   "wheel": {
@@ -39,10 +45,25 @@
   "first_use": {
     "workbench_http": 200,
     "health_ready": true,
-    "owner_auth": {"without_token": 401, "with_token": 200},
-    "initial_agents": ["Default"],
-    "created_agent": {"name": "release-smoke", "id": "f729084f-79d0-4800-88ba-2636976e39ed"},
-    "restart": {"same_instance": true, "new_boot_id": true, "agents_persisted": ["Default", "release-smoke"]}
+    "owner_auth": {
+      "without_token": 401,
+      "with_token": 200
+    },
+    "initial_agents": [
+      "Default"
+    ],
+    "created_agent": {
+      "name": "release-smoke",
+      "id": "f729084f-79d0-4800-88ba-2636976e39ed"
+    },
+    "restart": {
+      "same_instance": true,
+      "new_boot_id": true,
+      "agents_persisted": [
+        "Default",
+        "release-smoke"
+      ]
+    }
   },
   "gaps": [
     "helper was not installed to ~/Applications, to avoid clobbering the TCC-granted installed helper; the candidate's native desktop capabilities were not exercised",
@@ -50,5 +71,41 @@
     "LaunchAgent/Keychain/desktop acceptance, upgrade/rollback and 72h are not run on this candidate",
     "ad-hoc signing only; Developer ID signing and notarization need the owner's certificate/account",
     "not verified on a second Mac yet"
-  ]
+  ],
+  "native_acceptance": {
+    "runtime": "candidate wheel venv (temp/build/candidate/venv)",
+    "helper": "installed helper 9360128b (TCC grants retained; candidate helper not installed)",
+    "desktop_read": {
+      "status": "passed",
+      "verify": true,
+      "nodes": 9,
+      "capture": "screen_capture_kit"
+    },
+    "semantic": {
+      "status": "passed",
+      "receipts": [
+        "ok/value_matches",
+        "unknown/desktop_postcondition_unverified"
+      ],
+      "independent_state_verified": true,
+      "replayed": false,
+      "note": "first attempt returned desktop_target_changed/not_dispatched; an immediate retry passed"
+    },
+    "foreground": {
+      "status": "passed",
+      "receipts": [
+        "ok/text_appended",
+        "unknown",
+        "unknown",
+        "unknown"
+      ],
+      "independent_state_verified": true,
+      "replayed": false,
+      "note": "same first-attempt flake as semantic; retry passed"
+    },
+    "keychain": {
+      "status": "passed",
+      "cleanup_required": false
+    }
+  }
 }
