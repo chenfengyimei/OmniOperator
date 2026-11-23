@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`b81d092679c26d3f9a8942d1671d1b917f069e5137f514570573ead13de3dc6c`。包含 65 个职责模块、855 个源码/界面文件。
+源码指纹：`a1a3a9aaa25674ad6e68846ab0678c469ab85b3bc05833b53fdcefd72abb3471`。包含 65 个职责模块、855 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -109,7 +109,7 @@
 | [agent/src/omni/application/background_review.py](../../agent/src/omni/application/background_review.py) | 312 | Own one bounded post-turn reviewer per finished run; proposals stay pending until the owner decides. |
 | [agent/src/omni/application/bilibili.py](../../agent/src/omni/application/bilibili.py) | 318 | Owner Bilibili queries and publication preparation; all sending remains in shared approvals/outbox. |
 | [agent/src/omni/application/clarify.py](../../agent/src/omni/application/clarify.py) | 42 | Owner-facing clarification use cases; the model-side wait lives in the engine run coroutine. |
-| [agent/src/omni/application/configuration.py](../../agent/src/omni/application/configuration.py) | 184 | Owner configuration use cases; import only previews and never starts an adapter. |
+| [agent/src/omni/application/configuration.py](../../agent/src/omni/application/configuration.py) | 185 | Owner configuration use cases; import only previews and never starts an adapter. |
 | [agent/src/omni/application/context.py](../../agent/src/omni/application/context.py) | 324 | Token-aware bounded compression; external calls never hold a transaction. |
 | [agent/src/omni/application/credentials.py](../../agent/src/omni/application/credentials.py) | 185 | Serialize audited owner credential changes; shield accepted mutations through caller cancellation. |
 | [agent/src/omni/application/cronjob.py](../../agent/src/omni/application/cronjob.py) | 148 | Model-side scheduled-job capability; a thin adapter over the one scheduling service, no second kernel. |
@@ -125,7 +125,7 @@
 | [agent/src/omni/application/exchange_recovery_steps.py](../../agent/src/omni/application/exchange_recovery_steps.py) | 47 | Reuse release snapshots and fences for explicit quarantine/rescue; never clear a child unknown or call a manager. |
 | [agent/src/omni/application/exchange_steps.py](../../agent/src/omni/application/exchange_steps.py) | 139 | Compose existing release/registration/control use cases without holding instance locks across target startup. |
 | [agent/src/omni/application/extensions.py](../../agent/src/omni/application/extensions.py) | 503 | Trusted extension installation, scoped catalogs and explicit authorization; no plugin imports or process creation. |
-| [agent/src/omni/application/images.py](../../agent/src/omni/application/images.py) | 147 | Validated image admission, context selection and last-mile wire materialization over injected ports. |
+| [agent/src/omni/application/images.py](../../agent/src/omni/application/images.py) | 148 | Validated image admission, context selection and last-mile wire materialization over injected ports. |
 | [agent/src/omni/application/local_vectors.py](../../agent/src/omni/application/local_vectors.py) | 40 | Shared local-vector preflight and computation; ownership stays with the composing lifecycle. |
 | [agent/src/omni/application/maintenance.py](../../agent/src/omni/application/maintenance.py) | 267 | Own bounded durable maintenance executions; never runs exclusive offline cleanup or remote model/device actions. |
 | [agent/src/omni/application/mcp.py](../../agent/src/omni/application/mcp.py) | 543 | Owner MCP servers: explicit connect, bounded catalog, per-tool authorization and run-scoped calls. |
@@ -448,7 +448,7 @@
 | [agent/src/omni/adapters/som.py](../../agent/src/omni/adapters/som.py) | 71 | Deterministic bounded SoM PNG rendering; no capture, database or model calls. |
 | [agent/src/omni/adapters/temporary_debug.py](../../agent/src/omni/adapters/temporary_debug.py) | 322 | Boot-bound, owner-enabled metadata capture; never opens business storage or records free text. |
 | [agent/src/omni/adapters/timezones.py](../../agent/src/omni/adapters/timezones.py) | 29 | Pinned tzdata resolver; avoids OS-dependent timezone database drift. |
-| [agent/src/omni/adapters/token_counter.py](../../agent/src/omni/adapters/token_counter.py) | 34 | Local conservative token estimate; it never fetches model metadata or credentials. |
+| [agent/src/omni/adapters/token_counter.py](../../agent/src/omni/adapters/token_counter.py) | 54 | Versioned UTF-8 token envelope: v1 counts bytes, v2 converts conservatively to tokens. |
 | [agent/src/omni/adapters/vector_files.py](../../agent/src/omni/adapters/vector_files.py) | 131 | Verify explicit local vector files and startup selection; never imports a model or downloads data. |
 | [agent/src/omni/adapters/visual.py](../../agent/src/omni/adapters/visual.py) | 213 | Production visual-subagent adapters: authorized image objects and one budgeted ModelCalls request. |
 | [agent/src/omni/adapters/workers/__init__.py](../../agent/src/omni/adapters/workers/__init__.py) | 1 | Owned capability workers; no application database or credentials access. |

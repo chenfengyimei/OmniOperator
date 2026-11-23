@@ -56,7 +56,7 @@ class ModelOptions(Payload):
     summary_tokens: int = Field(default=1024, ge=1, le=16000)
     margin_tokens: int = Field(default=1024, ge=128, le=16000)
     counter_mode: Literal["utf8_upper_bound", "required"] = "utf8_upper_bound"
-    counter_ref: str = Field(default="utf8-envelope-v1", min_length=1, max_length=100)
+    counter_ref: str = Field(default="utf8-envelope-v2", min_length=1, max_length=100)
     extra_headers: dict[str, str] = Field(default_factory=dict)
 
     @model_validator(mode="after")
@@ -65,7 +65,7 @@ class ModelOptions(Payload):
         reference(self.credential_ref)
         if max(self.output_tokens, self.summary_tokens) + self.margin_tokens >= self.context_tokens:
             raise ValueError("Input capacity must remain after output and margin reservations")
-        if self.counter_mode == "utf8_upper_bound" and self.counter_ref != "utf8-envelope-v1":
+        if self.counter_mode == "utf8_upper_bound" and self.counter_ref not in {"utf8-envelope-v1", "utf8-envelope-v2"}:
             raise ValueError("The conservative counter has a fixed versioned identity")
         if len(self.extra_headers) > 20:
             raise ValueError("At most 20 custom headers are allowed")

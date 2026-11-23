@@ -73,7 +73,8 @@ class ImageService:
             rows, cast(list[dict[str, object]], parts), cast(dict[str, object], config), str(settings["model"])
         )
         if references(result) and (
-            settings["counter_mode"] != "utf8_upper_bound" or settings["counter_ref"] != "utf8-envelope-v1"
+            settings["counter_mode"] != "utf8_upper_bound"
+            or settings["counter_ref"] not in {"utf8-envelope-v1", "utf8-envelope-v2"}
         ):
             raise BusinessError(
                 "image_counter_unavailable", "The selected required counter has no installed image contract", status=503

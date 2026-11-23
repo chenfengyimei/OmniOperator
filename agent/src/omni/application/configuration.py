@@ -170,7 +170,8 @@ class ConfigurationService:
             "image_state": "image_capability_disabled"
             if image_policy["protocol"] == "disabled"
             else "image_counter_unavailable"
-            if fields["counter_mode"] != "utf8_upper_bound" or fields["counter_ref"] != "utf8-envelope-v1"
+            if fields["counter_mode"] != "utf8_upper_bound"
+            or fields["counter_ref"] not in {"utf8-envelope-v1", "utf8-envelope-v2"}
             else "configured_pending_real_acceptance",
             "state": "counter_unavailable"
             if not available

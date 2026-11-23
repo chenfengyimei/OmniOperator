@@ -14,7 +14,7 @@ from omni.application.configuration import ConfigurationService
 from omni.application.model_calls import ModelCalls
 from omni.composition.instance import open_instance
 from omni.domain.contracts import BusinessError, ModelReply, ToolSpec
-from omni.domain.metering import TokenEstimate
+from omni.domain.metering import TokenEstimate, serialized_request
 
 
 def test_typed_configuration_revisions_cas_isolation_and_immutability(tmp_path):
@@ -63,7 +63,7 @@ def test_token_capacity_compresses_whole_turns_with_output_reservation(tmp_path)
                     u, agent, context_tokens=2048, output_tokens=128, summary_tokens=64, margin_tokens=256
                 )
             )
-            current, _ = await db.write(lambda u: seed(u, agent, 30, "x" * 180))
+            current, _ = await db.write(lambda u: seed(u, agent, 30, "x" * 600))
             model = Model()
             prepared = await prepare(db, agent, current, model)
             assert 1 <= len(model.requests) <= 3
@@ -412,5 +412,36 @@ def test_token_count_race_rechecks_sources_and_model_authority_before_send(tmp_p
             assert model.calls == 0
             ledger = (await db.read(lambda u: u.query("calls", agent)))[0]
             assert ledger["state"] == "not_sent" and ledger["cost_micro"] == 0
+
+    asyncio.run(scenario())
+
+
+def _envelope(ref: str) -> dict[str, object]:
+    return {"counter_mode": "utf8_upper_bound", "counter_ref": ref, "model": "fixture"}
+
+
+def test_utf8_envelope_v2_lets_a_declared_32k_config_finish_normal_tool_rounds():
+    """R4: declared capacity is tokens; v1 counted bytes so a 29 KB prompt could not fit 32K."""
+
+    async def scenario():
+        messages = ({"role": "user", "content": "x" * 29_808},)
+        v1 = await ConservativeTokenCounter().count(messages, (), _envelope("utf8-envelope-v1"))  # type: ignore[arg-type]
+        v2 = await ConservativeTokenCounter().count(messages, (), _envelope("utf8-envelope-v2"))  # type: ignore[arg-type]
+        assert v1.tokens == len(serialized_request(messages, ())) + 256 and v1.counter_id == "utf8-envelope-v1"
+        assert v2.counter_id == "utf8-envelope-v2" and v2.tokens < 12_000
+        assert v2.tokens + 2048 + 1024 <= 32768
+        assert v1.tokens + 2048 + 1024 > 32768
+
+    asyncio.run(scenario())
+
+
+def test_utf8_envelope_v2_keeps_cjk_conservative_and_still_fails_closed():
+    async def scenario():
+        cjk = ({"role": "user", "content": "中" * 1000},)
+        estimate = await ConservativeTokenCounter().count(cjk, (), _envelope("utf8-envelope-v2"))  # type: ignore[arg-type]
+        assert estimate.tokens >= 2000
+        oversized = ({"role": "user", "content": "x" * 200_000},)
+        huge = await ConservativeTokenCounter().count(oversized, (), _envelope("utf8-envelope-v2"))  # type: ignore[arg-type]
+        assert not ModelCalls.fits(huge, {"context_tokens": 32768, "output_tokens": 2048, "margin_tokens": 1024})  # type: ignore[arg-type]
 
     asyncio.run(scenario())

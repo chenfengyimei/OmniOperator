@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "b81d092679c26d3f9a8942d1671d1b917f069e5137f514570573ead13de3dc6c",
+  "source_sha256": "a1a3a9aaa25674ad6e68846ab0678c469ab85b3bc05833b53fdcefd72abb3471",
   "modules": [
     {
       "id": "v2-domain",
@@ -171,7 +171,7 @@
         "agent/src/omni/application/todos.py",
         "agent/src/omni/application/visual_subagent.py"
       ],
-      "lines": 14412,
+      "lines": 14414,
       "dependencies": [
         "v2-domain"
       ]
@@ -520,7 +520,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 72070,
+      "lines": 72090,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -43936,7 +43936,7 @@
       "path": "agent/src/omni/adapters/token_counter.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.token_counter",
-      "lines": 34,
+      "lines": 54,
       "imports": [
         "omni.application.ports",
         "omni.domain.contracts",
@@ -43947,12 +43947,12 @@
       "symbols": [
         {
           "name": "ConservativeTokenCounter",
-          "line": 15,
+          "line": 22,
           "kind": "class"
         },
         {
           "name": "ConservativeTokenCounter.supports",
-          "line": 16,
+          "line": 23,
           "kind": "function",
           "parameters": [
             "self",
@@ -43968,7 +43968,7 @@
         },
         {
           "name": "ConservativeTokenCounter.count",
-          "line": 19,
+          "line": 26,
           "kind": "function",
           "parameters": [
             "self",
@@ -43983,7 +43983,7 @@
           }
         }
       ],
-      "summary": "Local conservative token estimate; it never fetches model metadata or credentials."
+      "summary": "Versioned UTF-8 token envelope: v1 counts bytes, v2 converts conservatively to tokens."
     },
     {
       "path": "agent/src/omni/adapters/vector_files.py",
@@ -48762,7 +48762,7 @@
       "path": "agent/src/omni/application/configuration.py",
       "module": "v2-application",
       "python_module": "omni.application.configuration",
-      "lines": 184,
+      "lines": 185,
       "imports": [
         "omni.application.ports",
         "omni.domain.configuration",
@@ -53399,7 +53399,7 @@
       "path": "agent/src/omni/application/images.py",
       "module": "v2-application",
       "python_module": "omni.application.images",
-      "lines": 147,
+      "lines": 148,
       "imports": [
         "omni.application.objects",
         "omni.application.ports",
@@ -53578,7 +53578,7 @@
         },
         {
           "name": "ImageService.summary_sources",
-          "line": 83,
+          "line": 84,
           "kind": "function",
           "parameters": [
             "self",
@@ -53592,7 +53592,7 @@
         },
         {
           "name": "ImageService.messages",
-          "line": 87,
+          "line": 88,
           "kind": "function",
           "parameters": [
             "self",
@@ -53606,7 +53606,7 @@
         },
         {
           "name": "ImageService.wire",
-          "line": 91,
+          "line": 92,
           "kind": "function",
           "parameters": [
             "self",
@@ -53622,7 +53622,7 @@
         },
         {
           "name": "ImageService._wire",
-          "line": 96,
+          "line": 97,
           "kind": "function",
           "parameters": [
             "self",
@@ -53638,7 +53638,7 @@
         },
         {
           "name": "ImageService.report",
-          "line": 134,
+          "line": 135,
           "kind": "function",
           "parameters": [
             "self",
@@ -53652,7 +53652,7 @@
         },
         {
           "name": "ImageService.health",
-          "line": 137,
+          "line": 138,
           "kind": "function",
           "parameters": [
             "self"
@@ -53661,7 +53661,7 @@
         },
         {
           "name": "ImageService.stop_accepting",
-          "line": 140,
+          "line": 141,
           "kind": "function",
           "parameters": [
             "self"
@@ -53670,7 +53670,7 @@
         },
         {
           "name": "ImageService.close",
-          "line": 143,
+          "line": 144,
           "kind": "function",
           "parameters": [
             "self",

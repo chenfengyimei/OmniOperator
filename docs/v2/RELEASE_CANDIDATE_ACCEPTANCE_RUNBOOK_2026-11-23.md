@@ -117,7 +117,7 @@ python scripts/v2_soak.py report --output <新目录>
 
 ## 8. 当前阻塞（2026-11-23 22:40）
 
-- **R4（主阻塞）**：b29409d0 最终全量 8655 项 / 8623 通过 / **22 失败** / 10 跳过；20/22 单跑复现，主因默认 `context_tokens=32768` 触发 `token_budget_exceeded`（C/D/E/G 后提示词/工具 schema 增长）；另有 shell 进程树回收、UIA act、media zoom 待分诊。全量绿前不得冻结/72h。
+- **R4（已修复，待 H 复验）**：b29409d0 最终全量 8655 项 / 8623 通过 / **22 失败** / 10 跳过；20/22 单跑复现，主因默认 `context_tokens=32768` 触发 `token_budget_exceeded`（C/D/E/G 后提示词/工具 schema 增长）。修复：新配置默认 `utf8-envelope-v2`（token 语义，ASCII 3 字节/token、非 ASCII 2 token/字符，图像 token 直接相加），v1 保留给既有配置；图像契约接受 v1/v2。另两项（shell 进程树回收、UIA `act`）在本机隔离运行通过，判为并行竞争抖动，需 H 在新候选全量中确认。契约见 [V2_TOKEN_ENVELOPE](../contracts/V2_TOKEN_ENVELOPE.md)。全量绿前不得冻结/72h。
 - C2.7 服务生命周期、官方安装链/安装检查已在 b29409d0 通过（检查仍需卸载重试）。
 - 干净 Windows VM、QQ/B 站账号、安卓真机、兼容视觉模型仍缺。
 - 72h 尚未启动；H 的干净机包 `release-b29409d0` 已就绪，但需先修复全量。
