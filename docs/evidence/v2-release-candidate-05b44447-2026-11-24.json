@@ -3,13 +3,15 @@
   "topic": "v2-release-candidate-05b44447",
   "date": "2026-11-24",
   "candidate": {
-    "sha": "05b44447",
+    "sha": "dae24cf7",
     "previous_mainline": "b29409d0",
     "wheel": "omnioperator-0.1.0-py3-none-any.whl",
     "wheel_sha256": "7afc5b7d8f5a1f525afbf61ac1e479571cbf7a6567baa30b6eee6c535863efae",
     "wheel_bytes": 2825380,
     "base_python": "3.12.14",
-    "schema_head": "v2_0052"
+    "schema_head": "v2_0052",
+    "tested_predecessor": "05b44447",
+    "note": "dae24cf7 仅新增安装检查器重试与其回归；产品代码与 wheel 字节未变（wheel SHA 相同）"
   },
   "r4": {
     "original_failures": 22,
@@ -25,14 +27,21 @@
   },
   "full_suite": {
     "command": "uv run --no-sync pytest -q",
-    "passed": 8647,
+    "passed": 8648,
     "failed": 0,
     "skipped": 10,
-    "warnings": 12,
-    "seconds": 2777.97,
-    "junit": "C:/v2-acceptance/final-05b44447/full.xml",
-    "junit_sha256": "016c9414cbcff484d2959dfc8a9556a7b29036d1da92b5167b14ce0a47714fe8",
-    "log": "C:/v2-acceptance/final-05b44447/full.log"
+    "warnings": 6,
+    "seconds": 2872.39,
+    "junit": "C:/v2-acceptance/final-dae24cf7/full.xml",
+    "junit_sha256": "b21e1cb816773caccdffd8c95fd1d1fd0eff913c091f4e0830dae6c2cd1b3139",
+    "log": "C:/v2-acceptance/final-dae24cf7/full.log",
+    "predecessor_run": {
+      "sha": "05b44447",
+      "passed": 8647,
+      "skipped": 10,
+      "seconds": 2777.97,
+      "junit": "C:/v2-acceptance/final-05b44447/full.xml"
+    }
   },
   "windows_service_chain": {
     "evidence": "C:/v2-acceptance/release-05b44447/service-chain-transcript.json",
@@ -63,7 +72,12 @@
       "previous": "attempt 1 uninstall_cleanup_pending (27.8s), attempt 2 succeeded (32.1s)",
       "candidate": "attempt 1 uninstall_cleanup_pending (26.5s), attempt 2 succeeded (34.1s)"
     },
-    "final_status": {"cleanup_pending": false, "candidates": [], "runtime_active": false, "database": "v2_0052"}
+    "final_status": {
+      "cleanup_pending": false,
+      "candidates": [],
+      "runtime_active": false,
+      "database": "v2_0052"
+    }
   },
   "soak": {
     "started_at": "2026-11-24T02:26:08+08:00",
@@ -88,7 +102,19 @@
     "collector_sha256": "5ba5cf9ed193296e4d06b93ff683a54099fe8b89d07fbe49ffd68945a77e862a",
     "evidence": "C:/v2-acceptance/soak-05b44447/evidence",
     "first_samples": "sequence 1-2 ok=true，RSS 135MB、线程 10、句柄 345、children 0、cleanup 0、failed 0、unknown 0",
-    "power": "AC 睡眠/休眠均为 0（不休眠），需保持接通电源"
+    "power": "AC 睡眠/休眠均为 0（不休眠），需保持接通电源",
+    "health_at_69_samples": {
+      "sequence": 69,
+      "elapsed_s": 4096,
+      "ok": true,
+      "main_rss_bytes": 142356480,
+      "threads": 11,
+      "descriptors": 349,
+      "children": 0,
+      "cleanup_pending": 0,
+      "failed_runs": 0,
+      "unknown_model_calls": 0
+    }
   },
   "macos": {
     "branch": "macos-release-closeout",
@@ -120,5 +146,23 @@
     "签名/公证或正式交付形式、发布回滚演练的对外版本",
     "72h 完整窗口（运行中）"
   ],
-  "whole_v2_complete": false
+  "whole_v2_complete": false,
+  "installation_check": {
+    "command": "uv run --no-sync python agent/scripts/check_v2_installation.py --wheel candidate/omnioperator-0.1.0-py3-none-any.whl --sha256 7afc… --output C:/v2-acceptance/check-05b44447-retry2",
+    "verified": true,
+    "seconds": 308.1,
+    "attempts": [
+      {
+        "attempt": 1,
+        "state": "failed",
+        "error_code": "uninstall_cleanup_pending"
+      },
+      {
+        "attempt": 2,
+        "state": "verified"
+      }
+    ],
+    "evidence": "C:/v2-acceptance/check-05b44447-retry2/report.json",
+    "verdict": "产品行为不变（cleanup_pending 属合同要求外部重试）；检查器此前未实现重试，属检查器缺口，已修并补回归"
+  }
 }

@@ -570,11 +570,11 @@ K13.cron_model_design 已记录**实现前设计合同**（纯文档，无源码
 
 **六行交接**
 
-1. **远端 v2 / 候选 / wheel**：远端 `v2` 与本地候选均为 **`05b44447`**；官方 wheel `omnioperator-0.1.0-py3-none-any.whl` SHA256 **`7afc5b7d8f5a1f525afbf61ac1e479571cbf7a6567baa30b6eee6c535863efae`**（2,825,380 字节）。
+1. **远端 v2 / 候选 / wheel**：被测候选 **`dae24cf7`**（`05b44447` 仅加安装检查器重试与回归，产品代码/wheel 未变）；官方 wheel `omnioperator-0.1.0-py3-none-any.whl` SHA256 **`7afc5b7d8f5a1f525afbf61ac1e479571cbf7a6567baa30b6eee6c535863efae`**（2,825,380 字节）。
 2. **R4 22 项失败处置**：20 项 token 预算随 `utf8-envelope-v2` 全绿；shell 进程树、UIA `act` 隔离与全量均通过（判并行抖动）；`test_v2_run_compaction` 2 项按文档截断契约修正夹具。**剩余 0**。
-3. **最终全量**：**8647 通过 / 0 失败 / 10 跳过**，2777.97 秒（46:17）；JUnit `C:/v2-acceptance/final-05b44447/full.xml`（SHA256 `016c9414…`），日志同目录。
-4. **三平台**：Windows 官方 wheel 服务链 14 步全 0（start 29.6s，status `running`/pid `141552`/ready=true，stop+uninstall 通过）；官方安装链 13 步全 0（升级→回滚→doctor→双卸载，两次首卸 `uninstall_cleanup_pending` 后重试成功）。macOS 用户域闭环+桌面+Keychain+升级回滚真机通过（缺 Developer ID/公证、helper TCC 重授权、第二台 Mac、系统域未实现）。Linux 真实 X11 身份与 frame 截屏通过（Wayland portal 缺授权）。
-5. **72h 长跑**：**已启动** `2026-11-24T02:26:08+08:00`，预计结束 `2026-11-27T02:26:08+08:00`；每 60s 采样，已连续 `ok=true`（RSS 135MB/线程 10/句柄 345/children 0/cleanup 0/failed 0/unknown 0）。证据 `C:/v2-acceptance/soak-05b44447/evidence`（manifest/samples/writer.lock），实例 pid `120836`、端口 `8792`；AC 睡眠/休眠已为 0。
+3. **最终全量**：**8648 通过 / 0 失败 / 10 跳过**，2872.39 秒（47:52）；JUnit `C:/v2-acceptance/final-dae24cf7/full.xml`（SHA256 `b21e1cb8…`），日志同目录；前一代 `05b44447` 也是 8647/0/10 绿。
+4. **三平台**：Windows 官方 wheel 服务链 14 步全 0（start 29.6s，status `running`/pid `141552`/ready=true，stop+uninstall 通过）；官方安装链 13 步全 0（升级→回滚→doctor→双卸载，两次首卸 `uninstall_cleanup_pending` 后重试成功）；官方安装检查 `verified=true`（首卸 cleanup_pending → 重试成功，308.1s）。macOS 用户域闭环+桌面+Keychain+升级回滚真机通过（缺 Developer ID/公证、helper TCC 重授权、第二台 Mac、系统域未实现）。Linux 真实 X11 身份与 frame 截屏通过（Wayland portal 缺授权）。
+5. **72h 长跑**：**已启动** `2026-11-24T02:26:08+08:00`，预计结束 `2026-11-27T02:26:08+08:00`；每 60s 采样，已连续 69 次 `ok=true`（RSS 142MB/线程 11/句柄 349/children 0/cleanup 0/failed 0/unknown 0），并已挂会话独立守护（collector 掉线自动 `--resume`）。证据 `C:/v2-acceptance/soak-05b44447/evidence`（manifest/samples/writer.lock），实例 pid `120836`、端口 `8792`；AC 睡眠/休眠已为 0。
 6. **现在能否发布**：**不能**。剩余阻塞：72h 窗口未满；干净机/签名或公证/交付形式；真实 B 站账号、QQ/NapCat、安卓真机与兼容视觉模型。所有者醒来第一件事：确认 72h 采样实例保持运行（勿关机/换候选），并提供 Developer ID+公证凭据与真实账号/设备窗口。
 
 - **R4 修复内容**：新增 `utf8-envelope-v2`（ASCII 3 字节/token、非 ASCII 2 token/字符、+256 信封、图像 token 直接相加）；`ModelOptions` 新配置默认 v2，`utf8-envelope-v1` 逐字节行为保留；图像契约接受 v1/v2。32K 回归：`test_utf8_envelope_v2_lets_a_declared_32k_config_finish_normal_tool_rounds`、`test_utf8_envelope_v2_keeps_cjk_conservative_and_still_fails_closed`。
