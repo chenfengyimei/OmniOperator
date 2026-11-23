@@ -1,0 +1,66 @@
+{
+  "schema": 1,
+  "topic": "v2-clean-machine-kit",
+  "date": "2026-11-23",
+  "source_head": "6d81a826e0f5a6dae149604ebc0b49d95b93b040",
+  "scope": "H 准备干净机验收包与外部资源清单；本机无法提供干净 Windows OS/VM、真实 QQ/B 站账号、安卓真机或可用视觉模型，因此只准备可复制产物与清单，不声称干净机通过。",
+  "kit": {
+    "path": "C:/v2-acceptance/release-6d81a826",
+    "contents": [
+      "omnioperator-6d81a826-py3-none-any.whl (3d3b28a0…)",
+      "omnioperator-8412e773-py3-none-any.whl (199072c6…，上一版)",
+      "dependencies/ (110 wheels, manifest ddc242…)",
+      "install_v2.py",
+      "accept_chain.ps1（安装→升级→回滚→保留数据卸载，含 cleanup_pending 重试）",
+      "SHA256SUMS.txt、dependencies/SHA256SUMS.txt、README.md"
+    ],
+    "checksums": {
+      "wheel": "3d3b28a0b91cb49904a476c8e0e5f9a9d130386f43d66abab0777605ffb6f9d2",
+      "previous_wheel": "199072c6fc455a47a7e6d67ad696437050804a7269d7248af900883118e72a6c",
+      "dependency_manifest": "ddc242906492a815e1893505f0453f922f2c218dda441ad0088effb9f5e1225f",
+      "install_v2": "5308d1b10e5ca1a2e898aa4d951b50123a981e7c1ac3267ea39787fd95c9d6ef",
+      "accept_chain": "c999c2c1d7289ec3a3903779cf88617e72de3a3069a1837bfb1d143da9391f34"
+    },
+    "prerequisites": "Windows x64 干净安装/新建 VM；非管理员；Python 3.12 x64 且不能 import omni/sqlalchemy；≥3GB 磁盘；全程离线",
+    "script_parse_checked": true,
+    "not_executed_on_clean_os": true
+  },
+  "resource_inventory": {
+    "clean_windows_machine": {
+      "available": false,
+      "reason": "本机无管理员、无 Windows Sandbox、无 Hyper-V/virsh/VBox/qemu 等可用 VM 工具；WSL 只有 Linux 发行版，不能替代干净 Windows",
+      "prepared": "验收包已就绪，复制到所有者提供的干净 VM 即可执行"
+    },
+    "qq_napcat": {
+      "available": false,
+      "observed": "NapCat 进程在跑、WebUI 6099 可访问，但 GetQQLoginInfo 为空、OB11Config 返回 Not Login、OneBot WS 3001 未监听；无对端账号",
+      "needed": "所有者扫码登录 + 对端好友/测试群 + 允许重启 NapCat 开 WS + 45–60 分钟窗口"
+    },
+    "android_device": {
+      "available": false,
+      "observed": "adb devices -l 与 adb mdns services 为空；无 USB ADB 设备；AVD 存在但无 emulator 可执行文件",
+      "needed": "真机 + USB 调试授权 + 45–90 分钟窗口"
+    },
+    "visual_model": {
+      "available": false,
+      "observed": "本机 LM Studio models 目录为空，lms 启动/连接超时；未配置可用视觉模型",
+      "needed": "兼容视觉模型（本地或已授权 API）与预算"
+    },
+    "bilibili_account": {
+      "available": false,
+      "needed": "真实测试账号、读取/审批发表/风控核对窗口"
+    }
+  },
+  "not_executed": [
+    "干净机安装/升级/回滚/卸载",
+    "QQ 真实收发/重连",
+    "安卓真机输入/Unicode/恢复",
+    "视觉模型质量与兼容性",
+    "B 站真实读取缓存/24h 新鲜度"
+  ],
+  "evidence_files": [
+    "C:/v2-acceptance/release-6d81a826/README.md",
+    "C:/v2-acceptance/release-6d81a826/SHA256SUMS.txt"
+  ],
+  "whole_v2_complete": false
+}

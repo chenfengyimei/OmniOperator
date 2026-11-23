@@ -1,0 +1,75 @@
+{
+  "schema": 1,
+  "topic": "v2-windows-install-chain-6d81a826",
+  "date": "2026-11-23",
+  "source_head": "6d81a826e0f5a6dae149604ebc0b49d95b93b040",
+  "candidate": {
+    "wheel_sha256": "3d3b28a0b91cb49904a476c8e0e5f9a9d130386f43d66abab0777605ffb6f9d2",
+    "wheel_bytes": 2823338,
+    "source_head": "6d81a826e0f5a6dae149604ebc0b49d95b93b040",
+    "schema": "v2_0052"
+  },
+  "previous": {
+    "wheel_sha256": "199072c6fc455a47a7e6d67ad696437050804a7269d7248af900883118e72a6c",
+    "source_head": "8412e773e75808a4e2b04ff221bb8cc312ed9899",
+    "wheel_bytes": 2818183,
+    "schema": "v2_0052"
+  },
+  "environment": {
+    "host": "Windows 11 家庭版 build 26300 x64",
+    "mode": "同机隔离目录 + 固定基础解释器 + 离线依赖包；非干净 OS",
+    "base_python": "C:/Users/cy/AppData/Local/Programs/Python/Python312/python.exe 3.12.10（不能 import omni/sqlalchemy）",
+    "dependency_bundle_sha256": "ddc242906492a815e1893505f0453f922f2c218dda441ad0088effb9f5e1225f",
+    "home": "C:/v2-acceptance/c3-08dd1573/chain6/home",
+    "manager": "C:/v2-acceptance/c3-08dd1573/chain6/manager",
+    "instance_id": "cd05a296-2806-439f-bd8f-1bc4abe659ab"
+  },
+  "steps": {
+    "install_previous": {
+      "exit": 0, "seconds": 230.0, "verified": true, "environment_mode": "isolated-wheelhouse",
+      "prepared_files": 868, "doctor": {"integrity": "ok", "schema": "v2_0052", "tables": 163}
+    },
+    "update_to_candidate": {
+      "stage_seconds": 1.7, "prepare_seconds": 5.5, "environment_seconds": 95.7, "install_seconds": 3.3,
+      "verified": true, "environment_mode": "venv", "prepared_files": 869, "prepared_bytes": 9266022,
+      "backup_manifest_sha256": "1b2c15f1ed97d1d96f0a03b497dcd0d70b835868f2af8c1e9a4952776d35bfac",
+      "rollback_check_verified": true,
+      "migrate": {"before": "v2_0052", "after": "v2_0052", "migrated": false},
+      "switch_previous": "199072c6fc455a47a7e6d67ad696437050804a7269d7248af900883118e72a6c"
+    },
+    "rollback": {
+      "exit": 0, "seconds": 1.5,
+      "from": "3d3b28a0b91cb49904a476c8e0e5f9a9d130386f43d66abab0777605ffb6f9d2",
+      "to": "199072c6fc455a47a7e6d67ad696437050804a7269d7248af900883118e72a6c",
+      "written": true
+    },
+    "launcher_doctor_after_rollback": {"exit": 0, "seconds": 2.2, "integrity": "ok", "schema": "v2_0052", "tables": 163},
+    "uninstall_previous": {
+      "attempts": 2,
+      "attempt_1": {"exit": 1, "seconds": 28.5, "error": "uninstall_cleanup_pending"},
+      "attempt_2": {"exit": 0, "seconds": 39.9, "removed": true, "data_kept": true}
+    },
+    "switch_before_candidate_uninstall": {"exit": 0, "seconds": 1.9},
+    "uninstall_candidate": {
+      "attempts": 2,
+      "attempt_1": {"exit": 1, "seconds": 29.0, "error": "uninstall_cleanup_pending"},
+      "attempt_2": {"exit": 0, "seconds": 41.7, "removed": true, "data_kept": true}
+    },
+    "final": {
+      "exit": 0,
+      "status": {"active": false, "cleanup_pending": false, "candidates": []},
+      "db_sha256": "e7475af05ea129753ebcbedbee8c1abeba0e65ee19e658d45792e52d842d5781",
+      "omni_cmd_removed": true
+    }
+  },
+  "caveats": [
+    "两处卸载首次均在约 30 秒窗口内返回 uninstall_cleanup_pending，等待 30 秒由外部维护器重试成功；首次失败保留在 transcript。",
+    "live rollback 只切换代码指针，不恢复数据库；更新前 backup 与 rollback-check 已验证。",
+    "同机隔离不是干净 OS；真正干净机器项仍未完成。"
+  ],
+  "evidence_files": [
+    "C:/v2-acceptance/c3-08dd1573/chain6/transcript.json",
+    "C:/v2-acceptance/c3-08dd1573/chain6.log"
+  ],
+  "whole_v2_complete": false
+}

@@ -1,8 +1,8 @@
 # Windows 原生服务修复配方（D10–D11e，2026-11-23）
 
-> 性质：**审阅用补丁 + 回归/验收清单**。验收会话未修改仓库业务源码；`windows-service-fixes-2026-11-23.patch` 未应用到 `v2`，只作为 A/开发会话的输入。
+> 性质：**修复记录 + 回归/验收清单**。D10/D11/D11c/D11d 已由 `6540c724` 并入主线 `6d81a826`；本文件保留为修复依据与 D11e 的后续输入。`windows-service-fixes-2026-11-23.patch` 仅覆盖前四项，不包含 D11e。
 >
-> 基线：候选 `8412e773e75808a4e2b04ff221bb8cc312ed9899`（origin/v2）。补丁已用 `git apply --check` 验证可干净应用到该 SHA，Python 文件 `py_compile` 通过，PowerShell helper 解析通过。
+> 基线：`8412e773e75808a4e2b04ff221bb8cc312ed9899`（补丁首次验证基线）；当前主线为 `6d81a826`。
 
 ## 1. 缺陷与补丁
 
@@ -90,6 +90,7 @@ service apply-operation <op-uninstall.json> --approve <op-uninstall-sha>
 
 ## 6. 当前结论
 
-- 官方候选 `8412e773` 未修复，C2.7 仍为 **failed**；本补丁只是给 A 的修复输入。
+- 官方候选 `6d81a826` 已包含 `6540c724`：注册/启动/正常排空/卸载通过，`definition_matches=true`；只读 `service status` 仍因 D11e 返回 `ready=false`。证据见 `docs/evidence/v2-windows-service-6d81a826-2026-11-23.json`。
+- D11e 仍需 A 决策：补 running 证明，或明确 Windows 以 `apply-control` 的 `observed_reviewed_boot` 作为就绪回执并同步验收标准。
 - 修复并重建后，需要重跑上面的注册→启动→就绪→排空→卸载；D11e 的决定影响 `service status` 是否能为 `ready=true`。
 - 临时任务、端口、进程已在演练后清理；安装副本文件已恢复为仓库哈希。

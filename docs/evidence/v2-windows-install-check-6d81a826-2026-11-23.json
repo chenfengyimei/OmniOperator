@@ -1,0 +1,52 @@
+{
+  "schema": 1,
+  "topic": "v2-windows-install-check-6d81a826",
+  "date": "2026-11-23",
+  "source_head": "6d81a826e0f5a6dae149604ebc0b49d95b93b040",
+  "wheel_sha256": "3d3b28a0b91cb49904a476c8e0e5f9a9d130386f43d66abab0777605ffb6f9d2",
+  "dependency_bundle_sha256": "ddc242906492a815e1893505f0453f922f2c218dda441ad0088effb9f5e1225f",
+  "scope": "官方 6d81a826 wheel 在独立目录、固定基础解释器和离线依赖包上执行 check_v2_installation.py 的新装→启动→状态→保留数据卸载，并记录首次卸载失败与外部维护器续跑。",
+  "environment": {
+    "host": "Windows 11 家庭版 build 26300 x64",
+    "base_python": "C:/Users/cy/AppData/Local/Programs/Python/Python312/python.exe 3.12.10",
+    "output": "C:/v2-acceptance/c3-08dd1573/fresh-install-6d81a826",
+    "home": "C:/v2-acceptance/c3-08dd1573/fresh-install-6d81a826/home 用户🙂 %OMNI_WRAPPER_EXPAND% !literal! ' $(false)",
+    "manager": "C:/v2-acceptance/c3-08dd1573/fresh-install-6d81a826/manager with spaces",
+    "mode": "同机全新目录 + 隔离维护/候选 venv；非干净 OS"
+  },
+  "checker_result": {
+    "verified": false,
+    "state": "failed",
+    "phases_verified": ["base", "install", "manager", "candidate", "launcher", "current"],
+    "uninstall": {
+      "state": "failed", "returncode": 1, "stderr_bytes": 150,
+      "stderr_sha256": "98b1d782fa20fa8329b82dfda61eef58805de978e8b58783f46b16419846b7aa",
+      "error_type": "RuntimeError",
+      "note": "与 a6e5b33a、7132c57f、199072c6 三轮完全相同（同一 stderr SHA），确定性失败。"
+    },
+    "before_uninstall": {
+      "data_sha256": "82a10d2e0a3f4d2d2b53e6780d5c05637ece7fdd3033fe000a88091ae2b3ff7d",
+      "backup_manifest_sha256": "e3106aae827523c5f0aeefceaf47d870f6ea528b4e024e389f28a134e16920e0"
+    },
+    "report": "C:/v2-acceptance/c3-08dd1573/fresh-install-6d81a826/report.json"
+  },
+  "continuation": {
+    "delay_before_retry_seconds": 40,
+    "seconds": 36.7,
+    "result": {"deactivated": true, "removed": true, "data_kept": true},
+    "after": {
+      "status": "cleanup_pending=false, candidates=[]",
+      "data_sha256": "82a10d2e0a3f4d2d2b53e6780d5c05637ece7fdd3033fe000a88091ae2b3ff7d",
+      "backup_manifest_sha256": "e3106aae827523c5f0aeefceaf47d870f6ea528b4e024e389f28a134e16920e0",
+      "candidate_tree_removed": true,
+      "omni_cmd_removed": true
+    }
+  },
+  "interpretation": "官方 wheel 的安装、双环境隔离、真实 cmd 启动、当前指针、备份/回滚演练均通过；首次保留数据卸载在 launcher/current 后 2 秒内确定性失败，延迟 40 秒由外部维护器续跑成功且数据/备份字节一致。checker verified=false，不能写成通过。",
+  "not_a_clean_machine": "同一台开发机 + 全新目录；真正干净 OS/VM 仍未执行。",
+  "evidence_files": [
+    "C:/v2-acceptance/c3-08dd1573/fresh-install-6d81a826/report.json",
+    "C:/v2-acceptance/c3-08dd1573/fresh-install-6d81a826.log"
+  ],
+  "whole_v2_complete": false
+}

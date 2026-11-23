@@ -1,26 +1,22 @@
-# V2 真实验收矩阵（2026-11-23）
+# V2 真实验收矩阵（2026-11-23，主线 6d81a826）
 
-> 结论先行：本矩阵只记录**实际执行**与**可核对证据**。候选 `8412e773`（origin/v2）上，Windows 安装检查与安装→更新→回滚→卸载链已实机执行；Windows 原生服务因产品缺陷**失败**；QQ/NapCat、安卓真机、B 站、模型质量、干净机器均**未执行**（缺机器/账号/窗口）；72 小时长跑**仅完成 3 分钟采样器试跑**。`whole_v2_complete=false`，`production_release_ready=false`。
+> 结论先行：主线 `6d81a826` 已包含 C/D/E/G 四批与 Windows 服务修复 `6540c724`。官方 wheel 的安装检查、安装→升级→回滚→卸载链、Windows 任务真实注册/启动/正常排空/卸载均已在隔离目录执行；**只读 `service status` 仍缺运行状态证明（D11e）**。干净机器、QQ/NapCat、安卓真机、兼容视觉模型、B 站账号、正式 72 小时、签名/公证与完整发布回滚仍未完成。`whole_v2_complete=false`，`production_release_ready=false`。
 >
 > 纪律：失败不改写为通过；首次失败与续跑成功分别保留；证据不含凭据、消息正文或像素；不复用旧候选的全量结果冒充当前候选。
 
-## 1. 候选身份与冻结事实
+## 1. 候选身份
 
 | 项 | 值 |
 | --- | --- |
-| 会话开始时的 origin/v2 | `08dd15734373cb80e113de71238dd42031f20110` |
-| 会话期间分支前进 | `8412e773`（2026-11-23 14:40:14，合并 Linux 身份交付） |
-| 本矩阵候选 SHA | `8412e773e75808a4e2b04ff221bb8cc312ed9899`（= 冻结时 origin/v2 = v2） |
-| 候选 wheel | `omnioperator-0.1.0-py3-none-any.whl`，SHA256 `199072c6fc455a47a7e6d67ad696437050804a7269d7248af900883118e72a6c`，2,818,183 字节 |
-| 上一版本 wheel | `0e33995b39ab72b6304fd34e30891f2c7307a0f51e977ffb59360393d1b73f41`，源码 `1f31e96d`（同 schema v2_0052） |
-| 依赖包 manifest | SHA256 `ddc242906492a815e1893505f0453f922f2c218dda441ad0088effb9f5e1225f`，110 wheels，223,538,734 字节（`uv.lock` 自 1e62fe08 起未变） |
-| uv.lock SHA256 | `3900d190babf4b0cfcb42d1e6b82d5ba2ced7a34fe69d28a8f09b5e008f58321` |
-| 构建来源 | 干净 worktree `C:/v2-acceptance/c3-08dd1573/source-8412e773`（`uv build --offline`，构建可复现） |
-| 基础解释器 | `C:/Users/cy/AppData/Local/Programs/Python/Python312/python.exe` 3.12.10，确认不能 import omni/sqlalchemy |
-| schema | `v2_0052`（163 表，新装 doctor integrity=ok） |
-| 工作树 | 仅 `temp/_inspect.py`、`temp/worktrees/` 未跟踪；他人改动已由对方提交，不纳入本候选声明 |
-
-> 会话中途 origin/v2 从 `08dd1573` 前进到 `8412e773`。本矩阵以 `8412e773` 为候选**重新构建 wheel 并重跑**安装检查与安装链；`08dd1573` 的中间结果（wheel `7132c57f`）只用于服务缺陷取证，并用 git blob 证明缺陷代码在两版一致。
+| 主线 SHA | `6d81a826e0f5a6dae149604ebc0b49d95b93b040`（`v2 == origin/v2`；Gitee 主线同一 SHA） |
+| 已并入批次 | C `8512a8bc`、D `c5170795`、E `94d483eb`、G `32d35898`、Windows 服务修复 `6540c724` |
+| 候选 wheel | `3d3b28a0b91cb49904a476c8e0e5f9a9d130386f43d66abab0777605ffb6f9d2`，2,823,338 字节 |
+| 上一版 wheel | `199072c6fc455a47a7e6d67ad696437050804a7269d7248af900883118e72a6c`，源码 `8412e773`（同 schema v2_0052） |
+| 依赖包 manifest | `ddc242906492a815e1893505f0453f922f2c218dda441ad0088effb9f5e1225f`，110 wheels |
+| uv.lock | `3900d190babf4b0cfcb42d1e6b82d5ba2ced7a34fe69d28a8f09b5e008f58321`（自 1e62fe08 起未变） |
+| 构建来源 | 干净 worktree `C:/v2-acceptance/c3-08dd1573/source-6d81a826`（`uv build --offline`） |
+| schema | `v2_0052`（新装 163 表，doctor integrity=ok） |
+| 工作树 | 仅 `temp/_inspect.py`、`temp/worktrees/` 未跟踪 |
 
 ## 2. 验收矩阵
 
@@ -28,110 +24,101 @@
 
 | 项 | 环境/前置 | 候选 SHA | 结果 | 证据 | 说明 |
 | --- | --- | --- | --- | --- | --- |
-| C3.1-W1 干净目录离线安装（check_v2_installation） | 同机全新目录 + 固定基础解释器 + 离线依赖包 | `8412e773` | **部分通过**：base/install/manager/candidate/launcher/current 六阶段 verified；首次卸载 failed（rc=1，stderr 150B，SHA `98b1d782…`）；延迟 40s 外部维护器续跑成功 | `docs/evidence/v2-windows-install-check-2026-11-23.json`；`C:/v2-acceptance/c3-08dd1573/fresh-install-final/report.json` | 首次失败与此前两轮（`a6e5b33a`、`7132c57f`）同一 stderr SHA，确定性；checker `verified=false`，不得称通过 |
-| C3.1-W2 install→update→rollback→uninstall 链 | 同机隔离 home，独立 manager，离线 | `8412e773` | **通过（带卸载重试）**：上一版安装 → stage/prepare/environment/install 候选 → live rollback → 双候选卸载（数据/备份保留） | `docs/evidence/v2-windows-install-chain-2026-11-23.json`；`C:/v2-acceptance/c3-08dd1573/chain3/transcript.json` | 更新含 backup + rollback-check 还原校验；rollback 只换代码指针、不恢复数据库；卸载首次 `cleanup_pending`，外部维护器延迟重试成功 |
-| C3.1-W3 真正干净机器 install→update→rollback→uninstall | 干净 Windows OS/VM、无开发工具、管理员 | — | **阻塞** | `probes/environment.txt` | 本机无管理员、无 Windows Sandbox、无可用 VM；同机隔离不能替代干净 OS |
-| C2.7 Windows 原生服务（Task Scheduler 用户任务） | 不可变部署 + 真实注册 | `8412e773`（模板 blob 与 08dd1573 相同） | **失败（D10+D11+D11c+D11d+D11e）；修复 wheel 端到端通过**：官方产物注册失败；用审阅补丁构建的 fix wheel（`a2d762dc…`）完成注册/启动/HTTP ready/正常排空/卸载，`definition_matches=true`；只读 `service status` 仍 `ready=false`（D11e） | `docs/evidence/v2-windows-service-defect-2026-11-23.json`；`docs/evidence/v2-windows-service-fix-build-2026-11-23.json`；`C:/v2-acceptance/c3-08dd1573/fixsvc/accept/transcript.json` | 补丁未提交产品源码；D11e 需决策后修 status 或明确不可得 |
-| C3.2 QQ/NapCat 扫码、白名单、收发、断线重连 | 真实 QQ 登录 + 对端账号 + 窗口 | `8412e773` | **阻塞**：NapCat 进程在跑、WebUI 6099 可访问，但 `GetQQLoginInfo` 为空、`OB11Config` 返回 `Not Login`，OneBot WS 3001 未监听 | `docs/evidence/v2-qq-napcat-probe-2026-11-23.json`；`probes/napcat.txt` | 未扫码、未重启 NapCat、未发送；无对端账号与窗口 |
-| C3.5 安卓真机输入/Unicode/滚动/恢复 | 已授权安卓设备 | — | **阻塞**：`adb devices -l` 与 `adb mdns services` 均为空；无 USB ADB 设备；AVD 存在但无 emulator 可执行文件 | `docs/evidence/v2-android-device-probe-2026-11-23.json`；`probes/android.txt` | 真机与模拟器都不可用；不得用桌面假设备替代 |
-| C3.3 B 站账号读取/发表审批链/风控暂停 | 真实 B 站测试账号 | — | **阻塞** | — | 无测试账号与窗口；C1.10/C1.12 也未实施 |
-| C3.4 模型质量（人格一致性、信笺/反思/问题措辞） | 真实模型 + 预算 + 评审 | — | **阻塞** | — | 无 API 预算与评审窗口 |
-| C3.6 72 小时长跑 | 最终冻结 + 所有者批准 limits + 连续 72h | — | **未开始（工具试跑已验证）**：19 次采样/0 失败，仅 `duration_below_72h`；正式 72h 未开始 | `docs/evidence/v2-soak-dry-run-2026-11-23.json`；`C:/v2-acceptance/c3-08dd1573/soak/soak-dryrun.log` | 需先完成 D10 修复与候选冻结；limits 8 字段须所有者批准（已给实测验值建议） |
-| C3.7 三平台原生 | Windows/Linux/macOS 实机 | 旧候选 | **未在本候选重跑**：Windows 原生读取/终端/前台沿用 `1e62fe08` 证据；Linux 见复用；macOS 由另一会话 | `docs/v2/platforms/windows/WINDOWS_V2_ACCEPTANCE_2026-11-18.md`；`docs/evidence/v2-cdeg-integration.json` | 旧 SHA 证据不能写成当前候选通过 |
-| C2.8 容器真实 build/run | Docker engine | — | **阻塞** | `probes/environment.txt` | Docker CLI 存在但引擎未启动；未构建/运行镜像 |
-| C4.2 Windows 签名 / macOS 公证 | 代码签名证书 / Apple 凭据 + Mac | — | **阻塞（待所有者决策）** | `probes/environment.txt` | 当前无代码签名证书、无 APPLE_ID/APPLE_TEAM_ID、无本机 macOS；可降级为源码交付 |
-| C4.3 升级/回滚演练（release/exchange 链） | 冻结候选 + 两套不可变安装 | `8412e773` | **部分**：`installation` live rollback 已验证；`release prepare/select`、`exchange apply` 未演练 | `docs/evidence/v2-windows-install-chain-2026-11-23.json` | 完整发布回滚仍待 C4.3 |
+| C3.1-W1 干净目录离线安装（官方 wheel） | 同机全新目录 + 基础解释器 + 离线依赖 | `6d81a826` | **部分通过**：base/install/manager/candidate/launcher/current verified；首次卸载 failed（rc=1，150B stderr，SHA `98b1d782…`）；延迟 40s 外部维护器续跑成功 | `docs/evidence/v2-windows-install-check-6d81a826-2026-11-23.json` | checker `verified=false`；同一 stderr SHA 已在四轮出现，确定性 |
+| C3.1-W2 install→update→rollback→uninstall 链 | 同机隔离 home，独立 manager，离线 | `6d81a826` | **通过（带卸载重试）**：上一版 `199072c6` 新装 → 当前 `3d3b28a0` stage/prepare/environment/install → live rollback → 双候选卸载；最终 `candidates=[]`、数据/备份保留 | `docs/evidence/v2-windows-install-chain-6d81a826-2026-11-23.json` | 两处卸载首次 `cleanup_pending`，30s 重试成功；rollback 只换指针不恢复数据库 |
+| C3.1-W3 真正干净机器 | 干净 Windows OS/VM、管理员、无开发工具 | — | **阻塞** | `docs/evidence/v2-clean-machine-kit-2026-11-23.json` | 本机无管理员/VM/Sandbox；验收包已备好，待所有者提供干净 VM |
+| C2.7 Windows 原生服务（Task Scheduler） | 不可变部署 + 真实注册 | `6d81a826` | **部分通过（D11e 未收口）**：注册 `definition_matches=true`；启动 HTTP ready=true（boot `f40f1572…`、pid 132948）；正常排空 `closed=true`；卸载任务删除；只读 `status` 仍 `ready=false`（manager `state=unknown`、pid null） | `docs/evidence/v2-windows-service-6d81a826-2026-11-23.json` | `6540c724` 已修 D10/D11/D11c/D11d；D11e 需 A 补 running 证明或明确验收口径 |
+| C3.2 QQ/NapCat 扫码/白名单/收发/重连 | 真实 QQ + 对端账号 + 窗口 | — | **阻塞**：NapCat 在跑、WebUI 6099 可访问，但 QQ 未登录（`GetQQLoginInfo` 空、`OB11Config` Not Login），OneBot WS 3001 未监听 | `docs/evidence/v2-qq-napcat-probe-2026-11-23.json` | 无对端账号、无重启授权 |
+| C3.5 安卓真机输入/Unicode/滚动/恢复 | 已授权安卓设备 | — | **阻塞**：`adb devices -l`、`adb mdns services` 为空；无 USB ADB 设备；AVD 存在但无 emulator | `docs/evidence/v2-android-device-probe-2026-11-23.json` | 真机与模拟器均不可用 |
+| C3.3 B 站账号读取/发表/风控 | 真实账号 | — | **阻塞** | E 批次验收工具 `94d483eb` 已入主线 | 无账号与窗口 |
+| C3.4 模型质量/兼容视觉模型 | 真实模型 + 预算 + 评审 | — | **阻塞** | `docs/evidence/v2-clean-machine-kit-2026-11-23.json` | LM Studio models 为空、lms 连接超时；无可用视觉模型 |
+| C3.6 72 小时长跑 | 最终冻结 + 批准 limits + 连续 72h | — | **未开始（工具试跑已验证）**：3 分钟 19 次采样/0 失败，仅 `duration_below_72h` | `docs/evidence/v2-soak-dry-run-2026-11-23.json` | 试跑在 `8412e773`；正式 72h 需最终候选与批准 limits |
+| C3.7 三平台原生 | Windows/Linux/macOS 实机 | 旧候选 | **未在本候选重跑**：Windows 桌面/终端沿用 `1e62fe08`；Linux G 见复用；macOS 由另一会话 | `docs/v2/platforms/windows/WINDOWS_V2_ACCEPTANCE_2026-11-18.md` | 旧 SHA 证据不能写成当前候选通过 |
+| C2.8 容器真实 build/run | Docker engine | — | **阻塞** | `docs/evidence/v2-clean-machine-kit-2026-11-23.json` | Docker 引擎未启动 |
+| C4.2 签名/公证 | 证书 / Apple 凭据 + Mac | — | **阻塞（待决策）** | — | 无证书、无 Apple 凭据、无本机 macOS；可降级源码交付 |
+| C4.3 发布回滚演练（release/exchange） | 冻结候选 + 两套不可变安装 | `6d81a826` | **部分**：installation live rollback 已验；release/exchange 未演练 | `docs/evidence/v2-windows-install-chain-6d81a826-2026-11-23.json` | 依赖 D11e 与冻结候选 |
 
-## 3. 复用的 C/E/G 专项实测结果
+## 3. 复用的批次结果与全量缺口
 
-> 复用边界：以下结果由对应批次在其合并 SHA 上实际执行。候选 `8412e773` 相对全量绿 SHA `b395cd97` 只增加 **195 行/8 行删除，7 个文件**（Linux dbus 枚举 4 行 + Linux 身份 46 行 + 测试 151 行），无迁移、无 Windows/QQ/Android 代码变化。Linux 平台组在合并提交中记录 1408 通过；**候选本身没有重跑全量**，最终冻结时必须补一次。
-
-| 批次 | 分支/合并 | 专项结果 | 覆盖 |
+| 批次 | 合并 SHA | 专项结果 | 覆盖 |
 | --- | --- | --- | --- |
-| C 视频分镜 | `k16-storyboard` `489d093b` → `f1469679` | 120 passed（媒体 scenes/frames/cells/worker/plans） | 场景渐变、letterbox/pillar、邻域尖峰、暗部增益、采样上限 |
-| D Android/人格 | `k14-visual-persona` `fa1bac0b` → `30310e60` | 77 passed（前缀/初始门/视觉/SoM/explore/android 集成） | 离线核心与人格前缀；未接生产 |
-| E 读缓存/D8/D9 | `k18-read-cache` `019f0bce` → `3655d269` | 169 passed（读缓存/动态/收藏夹/B 站读与发表/网关/worker/风控/HTTP） | 只缓存 video/whois；凭据换代清桶；风控先于缓存 |
-| G Linux/容器 | `linux-container-g3` `8bb1f0a2` → `b3bcdafd` | 55 passed + 1411 passed/1 skipped（Linux 平台+架构，271.46s） | SIGTERM/SIGINT 退出 0；dbus 枚举修复 |
-| 全量（集成基线） | `b395cd97` | 8618 tests / 8609 passed / 0 failed / 9 skipped（2559s，4 worker） | 四批合并+唯一红修复；JUnit `C:/v2-acceptance/integration-cdeg/full-b395cd97.xml` |
-| 候选新增 Linux 身份 | `8412e773`（219fe88d 合并说明） | 1408 passed（Linux 全组，批次记录；本会话未独立重跑） | a11y guid 元数据化、DM Xorg `-seat` 回退、X11Socket 引用修复 |
+| C 视频分镜 | `8512a8bc` | 真实素材验收、检测器评测、长片边界 | 场景/letterbox/采样 |
+| D Android/视觉 | `c5170795` | 视觉生产路径 7 专项 + 12 项生产专项；K15 69 专项 | 截图/输入/撤回链、1–4 图单次调用 |
+| E B 站读缓存 | `94d483eb` | 缓存专项 38 通过；验收工具 self-test 通过 | video/whois TTL/换代/暂停/永不缓存 |
+| G Linux/容器 | `32d35898` | Linux 全组 1412 通过；X11 frame 裁剪截屏 sample_passed | frame/parent/translate 与 4 项裁剪 |
+| Windows 服务修复 | `6540c724` | 服务专项 53 passed（query/registration/deployment） | D10/D11/D11c/D11d 回归 |
+| 最近完整全量 | `b395cd97` | 8618 tests / 8609 passed / 0 failed / 9 skipped（2559s） | **不覆盖** 6d81a826 的后续生产代码 |
 
-证据：`docs/evidence/v2-cdeg-integration.json`。
+> 6d81a826 相对 b395cd97 已包含 C/D/E/G 与 Windows 服务修复；**尚未对 6d81a826 跑完整全量**。冻结候选后必须跑一次并保存 JUnit，不能沿用旧结果。
 
-## 4. 逐项执行摘要
+## 4. 执行摘要
 
-### 4.1 干净目录离线安装检查（C3.1-W1）
+### 4.1 官方 wheel 安装检查（C3.1-W1）
 
-- 命令：`scripts/check_v2_installation.py --wheel 199072c6… --sha256 199072c6… --dependency-bundle <dependencies> --dependency-sha256 ddc242… --output fresh-install-final --base-python <Python312>`
-- 阶段：base、install、manager、candidate、launcher（真实 `omni.cmd doctor`）、current 全部 verified；uninstall 在 2 秒内失败（150 字节 stderr，SHA `98b1d782…`，rc=1）。
-- 续跑：等待 40 秒，用 manager venv 外部解释器执行同 SHA `installation uninstall`，36.5 秒成功：`removed=true, data_kept=true, backup_kept`；卸载后 DB SHA `4fc80c9c…` 与备份 manifest SHA `bb70a449…` 均与卸载前一致。
-- 判定：安装与保留数据卸载路径可用；首次卸载失败是确定性环境/产品问题，未定位到文件占用者，保留为缺陷/债务，不写成 `verified`。
+- wheel `3d3b28a0…`；base/install/manager/candidate/launcher/current 六阶段 verified。
+- 首次卸载 **确定性失败**：150B stderr，SHA `98b1d782…`，与前四轮相同；延迟 40s 由 manager venv 续跑 36.7s 成功，`data_kept=true`。
+- 卸载前后 DB SHA `82a10d2e…`、备份 manifest `e3106aae…` 完全一致；checker 仍为 `verified=false`。
 
-### 4.2 安装→更新→回滚→卸载链（C3.1-W2）
+### 4.2 官方 wheel 安装链（C3.1-W2）
 
-- 上一版 `0e33995b`（`1f31e96d`）用基础 Python + 离线依赖包新装：194.2s，doctor ok，schema v2_0052，163 表。
-- 候选 `199072c6`：stage（2.0s）→ prepare（5.1s，868 files/9,245,052 bytes）→ environment（`isolated-wheelhouse`，85.4s）→ install（2.6s，install.verified=true；含 smoke/backup/rollback-check 还原、migrate no-op、switch，previous 指向 0e33995b）。
-- `installation rollback`：1.4s，from `1990…` to `0e33…`，written=true；启动器 `omni.cmd doctor` 在回滚后 integrity ok、163 表。
-- 卸载：先卸回滚后 active 的 `0e33995b`（attempt1 `cleanup_pending` 30.5s，等待后 attempt2 39.6s 成功）；回滚后候选不 active，按产品语义先 `switch` 到 `1990…`（1.5s）再卸载（attempt1 `cleanup_pending` 27.3s，attempt2 44.7s 成功）；最终 `cleanup_pending=false`、`candidates=[]`、`omni.cmd` 移除，数据库/备份保留。
-- 判定：功能链通过；卸载的 Windows 文件访问窗口需要重试，属已记录缺陷，不隐藏首次失败。
+- 上一版 `199072c6`（`8412e773`）新装 230s，doctor ok，163 表。
+- 当前 `3d3b28a0`：stage 1.7s → prepare 5.5s（869 files/9,266,022 bytes）→ environment 95.7s → install 3.3s（backup、rollback-check、migrate no-op、switch）；rollback 1.5s 回 `199072c6`；回滚后 `omni.cmd doctor` ok。
+- 卸载：上一版 attempt1 `cleanup_pending` 28.5s → attempt2 39.9s 成功；switch 后当前版 attempt1 29.0s → attempt2 41.7s 成功；最终 `cleanup_pending=false`、`candidates=[]`、`omni.cmd` 移除。
 
 ### 4.3 Windows 原生服务（C2.7）
 
-- 隔离 home `71ab00ac…`，候选 venv 非 editable；capture（605 files/112 distributions）→ plan `44dc477b…` → materialize → verify exit 0 → operation-plan `3117ac19…`（7 步，`starts_service=false`）。
-- `apply-operation --approve` 返回 `state=unknown`、`error_code=service_outcome_unresolved`、`registration.installed=false`，任务不存在。
-- 根因（D10）：实际注册走 `adapters/workers/windows_services.ps1` → Task Scheduler COM `RegisterTask`；模板由 `service_templates.py::_windows` 生成 `<?xml version='1.0' encoding='utf-8'?>`，COM 抛 `0x8004131A (1,40) 无法切换编码`（`schtasks /Create /XML` 同样报 `task XML is malformed`）。同一 XML 去掉声明或改为 `encoding='UTF-16'` 后，临时任务注册/删除均成功。
-- 第二缺陷（D11）：在安装副本上临时去掉声明后重走全链，任务成功创建（Ready、enabled=true），但 Task Scheduler 导出省略默认值元素（`RunLevel=LeastPrivilege`、`LogonTrigger/Enabled=true`、`Settings/Enabled=true`、`StartWhenAvailable=false`、`RunOnlyIfNetworkAvailable=false`、`Hidden=false`、`WakeToRun=false`），并把 `LogonTrigger/UserId` 从 SID 归一化为 `CY\cy`；helper `Same-Definition` 要求元素存在且文本严格相等，返回 `definition_matches=false`。第二次带默认值补丁的演练被前一次未决维护意图挡住（`service_operation_unresolved`），未走到 start；证据足以确认 D11 的两类归一化。临时任务已删除、安装副本文件已恢复。
-- 第三缺陷（D11c/D11d/D11e）：svc2 全新 home 同时应用 D10+D11 后，注册 succeeded（definition_matches=true）、start succeeded（boot `a71ef415…`、pid 93500、ready=true、HTTP 200）、stop succeeded（closed=true、锁释放）、uninstall succeeded（任务删除）。`service status` 先被 **D11d** 挡住（schtasks 输出 UTF-8 字节却声明 `UTF-16`，`ET.fromstring` 抛 ParseError），修掉后又被 **D11c** 挡住（`_task_identity` 要求 Principal 含 `RunLevel`，真实导出省略）。svc4 预置四项修复后：definition_matches=true、deployment eligible、runtime ready=true，但 manager state 仍为 unknown（**D11e**：查询不补 running/PID），overall ready=false。
-- 判定：**产品缺陷 D10+D11+D11c+D11d+D11e**，C2.7 失败；演练证明前四项修好后真实服务生命周期可用，第五项决定只读 status 能否报就绪。演练任务已删除、端口关闭、进程结束，安装副本文件已恢复。
-- 修复输入：[Windows 服务修复配方与补丁](platforms/windows/WINDOWS_SERVICE_FIX_RECIPE_2026-11-23.md)（`windows-service-fixes-2026-11-23.patch`，已 `git apply --check` 验证可应用到 `8412e773`）。
-- 修复 wheel 端到端：从干净 worktree 应用补丁构建 `a2d762dc…`，官方 `capture→plan→materialize→verify→apply-operation→apply-control` 全部成功：注册 `definition_matches=true`、启动 `ready=true`（boot `e07c933c…`、pid 118604、HTTP 200）、正常排空 `closed=true`、卸载任务删除。只读 `service status` 仍 `definition_matches=true / runtime ready=true / manager state=unknown / overall ready=false`（D11e）。补丁未提交，官方候选仍为 failed。
+- `6540c724` 已修：D10 去 XML 声明、D11 helper 默认值/账号归一、D11c Principal RunLevel、D11d schtasks UTF-16 声明解析；服务专项 53 passed。
+- 官方 6d81a826 wheel：capture/plan/materialize/verify 通过；install `succeeded`/`definition_matches=true`；start `succeeded`（boot `f40f1572…`、pid 132948、HTTP 200/ready=true）；stop `closed=true`/锁释放；uninstall 任务删除。
+- **D11e 仍在**：`service_query._query` 对 Windows 只读 XML，返回 manager `state=unknown`、`pid=null`，overall `ready=false`。当前实现见 `agent/src/omni/adapters/platform/services/service_query.py:398`。
+- 判定：生命周期通过；只读 status 未收口，C2.7 记为**部分通过**，不能写成完整通过。
 
 ### 4.4 QQ/NapCat（C3.2）
 
-- NapCat 自 2026-11-18 13:43 运行，WebUI 6099 可登录；`/api/QQLogin/GetQQLoginInfo` 返回空 uin/nick，`/api/OB11Config/GetConfig` 返回 `Not Login`；配置中的 OneBot WS `127.0.0.1:3001` 未监听。
-- 判定：真实账号未登录是硬阻塞；即使登录，仍需对端账号、NapCat 重启授权与 45–60 分钟窗口。
+- NapCat 运行、WebUI 6099 可访问；QQ 未登录，OneBot WS 3001 未监听；无对端账号与窗口。
 
 ### 4.5 安卓真机（C3.5）
 
-- ADB 1.0.41 可用，server 5037 在监听；`adb devices -l`、`adb mdns services` 为空，无 USB ADB PnP 设备；`Medium_Phone.avd` 存在但无 emulator 可执行文件。
-- 判定：真机与模拟器均不可用；输入/Unicode/滚动/恢复一项都未执行。
+- ADB 1.0.41、server 5037 在监听；`adb devices -l`/`adb mdns services` 为空；无 emulator 可执行文件。
 
-### 4.6 72h 长跑工具试跑（C3.6 前置）
+### 4.6 72h 试跑（C3.6 前置）
 
-- 隔离实例 `b05b18ca…`（候选 `199072c6`，schema v2_0052）在 8798 启动，HTTP version 200 且 ready=true，boot `034c441c…`。
-- `v2_soak.py run --hours 0.05 --interval 10`：19 次采样、0 失败、实测 180.11s；阻塞仅 `duration_below_72h`，`observational_soak_passed=false`。
-- 空载最大值：RSS 135,671,808 B（约 129.4 MiB）、线程 17、句柄 351、后代 0、cleanup 0、失败/unknown 0。
-- 建议正式 limits（待所有者批准）：RSS 512 MiB、后代 1 GiB、线程 64、句柄 2048、子进程 8、cleanup 0、new_failed_runs 0、new_unknown_model_calls 0；按实测留约 4 倍 RSS、3.7 倍线程余量。
-- 判定：采样器/本次 boot HMAC/指标读取/证据链已验证；**不是 72h**，正式长跑仍需批准 limits 与连续窗口。
+- `8412e773` 上 3 分钟、19 次采样、0 失败；RSS 135,671,808B、线程 17、句柄 351、后代 0、cleanup 0；仅 `duration_below_72h` 阻塞。
+- 建议 limits：RSS 512MiB、后代 1GiB、线程 64、句柄 2048、子进程 8、cleanup 0、failed 0、unknown 0（待批准）。
+
+### 4.7 H 准备的验收包（干净机前置）
+
+- `C:/v2-acceptance/release-6d81a826`：官方 wheel、上一版 wheel、110 wheels 依赖包、`install_v2.py`、`accept_chain.ps1`、`SHA256SUMS.txt`、README。
+- 脚本解析通过；未在干净 OS 执行。
+- 本机无干净 Windows VM/Sandbox；无 QQ/B 站账号、无安卓真机、无可用视觉模型（LM Studio models 为空且 lms 超时）。
 
 ## 5. 缺少的机器、账号与时间窗口
 
 | 资源 | 阻塞项 | 具体需求 | 建议窗口 |
 | --- | --- | --- | --- |
-| 干净 Windows 机器/VM | C3.1-W3、C3.7 | 干净 OS、可管理员、无开发工具；或所有者**书面接受**同机隔离为降级并记录 | 2026-11-24 ~ 11-25，3–4 小时 |
-| 机器人 QQ 登录 + 对端账号 | C3.2 | 所有者扫码；一个可发消息的好友/测试群；允许重启 NapCat 开 WS | 2026-11-24 20:00–21:00（60 分钟） |
-| 安卓真机 | C3.5 | USB 调试 + RSA 授权；允许切换输入法/锁定测试应用 | 2026-11-25 19:00–20:30（90 分钟） |
-| B 站测试账号 | C3.3 | 读取、审批后单次发送、风控暂停核验 | 2026-11-26 20:00–21:00 |
-| 模型质量评审 | C3.4 | API 预算、固定人格与评审人 | 2026-11-26 14:00–17:00 |
-| 72h limits + 连续窗口 | C3.6 | 8 字段 limits 文件（所有者批准；3 分钟试跑实测 RSS≈129MiB/17 线程/351 句柄，已给建议值）；机器 72h 不休眠、不换候选 | 冻结后 2026-11-26 12:00 → 11-29 12:00 |
-| Windows 代码签名证书 / 源码交付决定 | C4.2 | 证书与时间戳；或所有者决定仅源码交付 | 决定 2026-11-25 前；签名链 1–3 工作日 |
-| Apple 凭据 + Mac 主机 | C4.2 公证 | Apple ID/Team ID/公证凭据与 macOS 机器（A/Mac 会话） | 2026-11-27 ~ 11-30 |
-| Docker engine | C2.8 | 启动 Docker Desktop 或等价 Linux 引擎 | 2026-11-27，1 小时 |
-| 最终交接窗口 | C4.3/C4.4 | 发布回滚演练 + 文档/索引/台账同步 | 2026-11-30，2–4 小时 |
+| 干净 Windows 机器/VM | C3.1-W3、C3.7 | 干净 OS、管理员、无开发工具；验收包已就绪 | 2026-11-24 ~ 11-25，3–4 小时 |
+| 机器人 QQ + 对端账号 | C3.2 | 扫码登录、好友/测试群、允许重启 NapCat 开 WS | 2026-11-24 20:00–21:00 |
+| 安卓真机 | C3.5 | USB 调试 + RSA 授权 | 2026-11-25 19:00–20:30 |
+| 兼容视觉模型 | C3.4 | 本地或已授权 API 视觉模型 + 预算 | 2026-11-25 前配置 |
+| B 站测试账号 | C3.3 | 读取、审批发表、风控核对 | 2026-11-26 20:00–21:00 |
+| 72h limits + 连续窗口 | C3.6 | 8 字段 limits 所有者批准；机器 72h 不休眠 | 冻结后 2026-11-26 12:00 → 11-29 12:00 |
+| 签名/公证或源码交付决定 | C4.2 | 证书/Apple 凭据，或书面降级源码交付 | 2026-11-25 前决定 |
+| Docker engine | C2.8 | 启动 Docker Desktop 或等价引擎 | 2026-11-27，1 小时 |
+| 发布回滚/交接窗口 | C4.3/C4.4 | release/exchange 演练 + 文档/索引/台账同步 | 2026-11-30，2–4 小时 |
 
-## 6. 冻结后的顺序（不可跳步）
+## 6. 冻结后的顺序
 
-1. **修缺陷 D10+D11+D11c+D11d+D11e**：D10 改 Windows 服务 XML 声明；D11 让 `Same-Definition` 语义化比较（默认值/账号名）；D11d 解析前去掉 schtasks 的 UTF-16 声明；D11c 接受缺省 Principal 字段；D11e 补 running 证明或明确 status ready 不可得。审阅补丁已用 fix wheel `a2d762dc…` 端到端验证；A 应用后重建正式候选并重跑注册→状态→启动→就绪→排空→卸载。
-2. **处理卸载文件访问窗口**：定位候选 venv 释放时序；若无法短期修复，明确记录为已知限制并保留重试路径，不得删除首次失败证据。
-3. **冻结算法与候选**：确认 `v2 == origin/v2 == 冻结 SHA`，工作树洁净；此后不再合并。
-4. **冻结全量**：`uv run --no-sync pytest -q`（≤4 worker）跑一次并保存 JUnit；当前候选尚无全量，不能沿用 `b395cd97`。
-5. **72 小时长跑**：所有者批准 limits；用冻结候选启动独立实例；`scripts/v2_soak.py run --home <实例> --url http://127.0.0.1:<端口> --output <新目录> --limits <批准文件>`；报告必须 `observational_soak_passed`。采样器已于 3 分钟试跑验证（19 次/0 失败），正式运行只需替换为批准 limits 与 72h 窗口。
-6. **C4.2 决策（与 A）**：签名/公证或明确降级为源码交付；两者都要有所有者书面决定与交付物校验。
-7. **C4.3 发布回滚**：`release prepare/select` 与 `exchange apply` 真实演练；保留旧 home、快照与回执。
-8. **C4.4 交接**：HANDOFF/DEVELOPMENT_STATUS/台账/`docs/index` 同步；生成交接提示词；更新本矩阵与发布门禁。
+1. **A 处理 D11e**：补可信 running 状态（COM/受管进程与监听证明，不依赖本地化文字），或明确 Windows 以 `apply-control` 的 `observed_reviewed_boot` 作为就绪回执并同步验收标准。
+2. **冻结候选**：确认 `v2 == origin/v2 == 冻结 SHA`，工作树洁净；此后不再合并。
+3. **冻结全量**：`uv run --no-sync pytest -q`（≤4 worker）一次并保存 JUnit；当前 6d81a826 尚无全量。
+4. **官方产物验收**：用冻结 SHA 重建 wheel，在干净机执行验收包（安装→升级→回滚→卸载），并重跑服务注册→状态→启动→就绪→排空→卸载。
+5. **72h**：所有者批准 limits 后启动；报告必须 `observational_soak_passed`。
+6. **C4.2 决策**：签名/公证或源码交付；与 A 确认交付物校验。
+7. **C4.3 发布回滚**：release prepare/select 与 exchange apply 真实演练。
+8. **C4.4 交接**：HANDOFF/DEVELOPMENT_STATUS/台账/docs/index 同步。
 
 ## 7. 完成度
 
-- 本候选已执行：Windows 安装检查（部分通过）、安装链（通过）、Windows 服务（失败）、QQ/Android 探测（阻塞）、72h 采样器试跑（工具通过，时长不足）。
-- 复用：C/D/E/G 专项与 `b395cd97` 全量绿；候选新增 Linux 身份按批次 1408 通过，未独立重跑。
-- 未执行：干净机器、QQ 真实收发、安卓真机、B 站、模型质量、正式 72h、签名/公证、完整发布回滚。
-- `whole_v2_complete=false`，`production_release_ready=false`；不得对外声称 V2 完成或可发布。
+- 当前候选已执行：官方 wheel 安装检查（部分通过）、官方 wheel 安装链（通过）、Windows 服务生命周期（通过，status D11e 未收口）、72h 工具试跑（旧候选）。
+- 复用：C/D/E/G 与 6540c724 专项；最近全量仍只覆盖 `b395cd97`。
+- 未执行：干净机器、QQ 真实收发、安卓真机、视觉模型、B 站、正式 72h、签名/公证、完整发布回滚。
+- `whole_v2_complete=false`，`production_release_ready=false`。

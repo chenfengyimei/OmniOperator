@@ -184,8 +184,17 @@
     "C:/v2-acceptance/c3-08dd1573/service/bundle/service.xml",
     "C:/v2-acceptance/c3-08dd1573/service/home/run/service-operations/ba3a3d2e-01b5-490a-a21d-8fe62ea8177a/"
   ],
+  "update_2026_11_23": {
+    "mainline": "6d81a826e0f5a6dae149604ebc0b49d95b93b040",
+    "fix_commit": "6540c724b8fee88ba72f221db1301881a659a15d",
+    "fixed": ["D10", "D11", "D11c", "D11d"],
+    "remaining": ["D11e"],
+    "official_lifecycle_evidence": "docs/evidence/v2-windows-service-6d81a826-2026-11-23.json",
+    "note": "前四项已并入主线；官方 6d81a826 生命周期通过，只读 status 仍缺 running 证明。本文件的历史失败记录保留，不覆盖。"
+  },
   "whole_v2_complete": false
 }
+
 
 
 
