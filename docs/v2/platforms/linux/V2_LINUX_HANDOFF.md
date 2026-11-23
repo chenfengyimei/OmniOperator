@@ -256,11 +256,12 @@ X11 侧定位：`linux_x11_socket.py` 要求 socket 身份 + Xorg 进程 uid/会
 
 两个待 A 决策的合同问题已整理成一页说明：[Linux 会话证明问题](../contracts/V2_LINUX_SESSION_PROOF_QUESTIONS.md)（a11y 地址 guid 是否必须等于 GetId；DM 启动的 Xorg 如何证明会话归属），含现象、复现命令、可选方案与建议。A 已按建议方案定案并实现，见下。
 
+真实 X11 会话突破（2026-11-23）：身份证明两项修改后，probe **四项能力全部 available**（window_identity/accessibility/screen_capture/foreground_control），X11 open 成功（Composite 0.4、X-Resource 1.2），A11Y_OK；targets 列出 atspi+x11，X11 目标 `verify.matches=true`。截屏仍失败：`desktop_x11_target_unverified`（targets/verify 已通过），需在 `X11Desktop.target()/verified()` 打点确认是 XRes 客户端 PID/uid、几何/border/root 哪一项，再修通并跑 `accept_linux_desktop.py --native-backend x11 --capture-window`。
+
 ### 2026-11-23 身份证据定案与实现（G3 两阻塞点）
 
-按 [身份证据合同](../contracts/V2_LINUX_IDENTITY.md) 定案并落地（Windows 注入专项 **79 passed, 1 skipped**，`test_v2_linux_bus.py`+`test_v2_linux_desktop.py`+`test_v2_x11_socket.py`）：
+按 [身份证据合同](../contracts/V2_LINUX_IDENTITY.md) 定案并落地（Windows 注入专项 **1408 passed, 1 skipped**，linux 平台全组；身份三文件 81 passed）：
 
 - **AT-SPI 地址 guid 改为不透明元数据**：`SessionInspector.open_bus` 只校验地址/`GetId` 形态，**不再要求 guid==GetId**；总线身份由路径 inode（连接前后一致）+ `SO_PEERCRED` 对端（pid/uid/创建时间/可执行）+ `GetNameOwner`/`GetConnectionUnixProcessID` 证明。对应回归：地址 guid 与 GetId 不同时仍成功、但把对端标记为已替换仍 `desktop_bus_peer_unverified`；非法 guid 地址仍 `desktop_bus_address_denied`。
 - **display-manager Xorg 以显示归属 + 显式 `-seat` 证明**：`server_session` 在 `GetSessionByPID` 返回 `NoSessionForPID`（Xorg 在 lightdm/gdm/sddm 系统单元、无 logind 会话）、当前会话已证明为活动 x11 会话、且 Xorg 命令行 `-seat <name>` 等于活动 seat 时接受；Xorg 属于其他会话、缺 `-seat` 或 seat 不符仍拒。其余证据 = 规范 socket `/tmp/.X11-unix/XN`（由活动会话 `Display=:N` 推导）+ root 所有真实 `Xorg` 对端 + Xauthority 授权当前 uid；对应回归：无会话且 `-seat seat0` 时 `Connection.open` 成功、cookie 读一次、`verify()` 通过；`-seat seat1` 时失败且不读 cookie。
-- **仍未做**：真实 LightDM/GDM/SDDM 桌面复验。VM 复测步骤：进会话后运行
-  `uv run --no-sync python agent/scripts/accept_linux_desktop.py --fixture-pid <pid> --consent-read-ui --native-backend x11 --capture-window --output temp/private/linux-x11-unique`，确认 `session.kind=interactive` 且不再出现 `desktop_bus_peer_unverified`/`desktop_x11_peer_unverified`；Wayland/输入授权语义不变（`input_authorized` 仍 false）。
+- **真实会话状态**：两项身份修改后在 VM 真实 X11 会话打通 `window_identity`/`accessibility`/`foreground`（probe 四能力 available）；**截屏仍卡 `desktop_x11_target_unverified`**（targets/verify 已过），下一步在 `X11Desktop.target()/verified()` 打点定位 XRes PID/uid、几何/border/root 后再跑 `accept_linux_desktop.py --native-backend x11 --capture-window`。Wayland/输入授权语义不变（`input_authorized` 仍 false）。
