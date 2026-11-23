@@ -119,5 +119,19 @@
       "build_id": "de6ebae2c4fc62323684c8b127748c2c564b013234ceba7c5f63ba6facbe637b"
     },
     "note": "read-only absent passed on the candidate runtime; install/ready/uninstall need owner-approved operation apply and a stable install location"
+  },
+  "validation": {
+    "wheel_venv": "temp/build/test-venv (wheel + pytest + pytest-xdist)",
+    "macos_suite": {
+      "files": 11,
+      "passed": 242,
+      "failed": 0,
+      "seconds": 27.54
+    },
+    "terminal_native": {
+      "passed": 10,
+      "failed": 0,
+      "seconds": 0.3
+    }
   }
 }
