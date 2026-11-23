@@ -22,8 +22,8 @@
 | 项 | 环境/前置 | 候选 SHA | 结果 | 证据 | 说明 |
 | --- | --- | --- | --- | --- | --- |
 | C2.7 Windows 原生服务 | 不可变部署 + 真实注册 | `5c8550ca` | **失败（R3）**：R1/R2 已修，`status` 返回 manager running、pid 111620 非空、ready=true；但 `start` unknown/service_control_outcome_unverified，`reconcile` unknown/service_control_unresolved，stop/uninstall 被 `service_operation_unresolved` 阻塞 | `docs/evidence/v2-windows-service-5c8550ca-2026-11-23.json`；`C:/v2-acceptance/c3-08dd1573/svc10/probes/r3-control-goal.txt` | 控制 goal 用 registration 回执（engine_pid，无 action pid），无法满足 R2 的严格 ready；需与 status 共用动作 PID 证据 |
-| C3.1-W1 官方 wheel 安装检查 | 同机全新目录 | `6d81a826`（历史） | **部分通过**（3d3b28a0）：六阶段 verified；首次卸载确定性失败，延迟 40s 续跑成功 | `docs/evidence/v2-windows-install-check-6d81a826-2026-11-23.json` | d7971bc4 候选**尚未重跑** |
-| C3.1-W2 安装→升级→回滚→卸载链 | 同机隔离 | `6d81a826`（历史） | **通过（带重试）**（3d3b28a0）：上一版 `199072c6` → 当前 → rollback → 双候选卸载 | `docs/evidence/v2-windows-install-chain-6d81a826-2026-11-23.json` | d7971bc4 候选**尚未重跑** |
+| C3.1-W1 官方 wheel 安装检查 | 同机全新目录 | `5c8550ca` | **部分通过**（wheel `b6b0a12c`）：六阶段 verified；首次卸载确定性失败（150B stderr SHA `98b1d782…`），延迟 40s 续跑成功、数据/备份一致；checker `verified=false` | `docs/evidence/v2-windows-install-check-5c8550ca-2026-11-23.json` | 非干净 OS；同一 stderr SHA 历轮一致 |
+| C3.1-W2 安装→升级→回滚→卸载链 | 同机隔离 | `5c8550ca` | **通过（带重试）**（wheel `b6b0a12c`）：上一版 `3fbba07b` 新装 244s → 当前 stage/prepare/environment/install → rollback → doctor → 双候选卸载（各 attempt1 `cleanup_pending`、attempt2 成功）；最终 `candidates=[]`、数据/备份保留 | `docs/evidence/v2-windows-install-chain-5c8550ca-2026-11-23.json` | 非干净 OS；rollback 只换指针 |
 | C3.1-W3 真正干净机器 | 干净 OS/VM | — | **阻塞** | `docs/evidence/v2-clean-machine-kit-2026-11-23.json` | 验收包按 6d81a826 构建，修复后需重建 |
 | C3.2 QQ/NapCat | 真实账号 + 窗口 | — | **阻塞**：未登录、WS 3001 未监听 | `docs/evidence/v2-qq-napcat-probe-2026-11-23.json` | 无对端账号 |
 | C3.5 安卓真机 | 已授权设备 | — | **阻塞**：adb 无设备、无 emulator | `docs/evidence/v2-android-device-probe-2026-11-23.json` | — |
@@ -61,11 +61,11 @@
 - 第二轮（svc9）：把该行改为 foreach 后，start/stop/uninstall succeeded、status manager state=running/definition_matches=true；但 `pid=null/service_action_unverified`、overall `ready=true`，与契约矛盾（**D11e-R2**）。根因：计划 Exec/Command 是 venv 的 `Scripts\python.exe`，实际动作进程是基础 Python（`C:\Users\...\Python312\python.exe` + `-I -u -m omni.composition.service_runner`），`_action_pid` 严格比较 `cmdline[0]` 失败。A 需同时修正动作 PID 解析，并在 pid=null/service_action_unverified 时强制 ready=false。
 - 第三轮（5c8550ca，R1/R2 已修）：status 已返回 pid=111620/ready=true；但 `start` 仍 unknown，`reconcile` 无法收口，stop/uninstall 被阻塞。**R3**：`application/service_control.py` 的 `goal()` 用 ServiceRegistration.inspect（只有 engine_pid，无动作 pid）调用 `start_postcondition`，永远无法满足 R2 的 `pid == proof.pid`。控制面必须改用与 status 相同的动作 PID 证据。\n- 第三轮（5c8550ca，R1/R2 已修）：status 已返回 pid=111620/ready=true；但 `start` 仍 unknown，`reconcile` 无法收口，stop/uninstall 被阻塞。**R3**：`application/service_control.py` 的 `goal()` 用 ServiceRegistration.inspect（只有 engine_pid，无动作 pid）调用 `start_postcondition`，永远无法满足 R2 的 `pid == proof.pid`。控制面必须改用与 status 相同的动作 PID 证据。
 
-### 4.2 6d81a826 历史证据（不代表当前主线）
+### 4.2 官方安装链与检查（5c8550ca）
 
-- 6d81a826 wheel `3d3b28a0`：install/start/stop/uninstall 成功；status manager unknown/ready=false（原 D11e）。
-- 安装链：上一版 `199072c6` → 当前 `3d3b28a0` → rollback → 双卸载；首次 `cleanup_pending` 后重试成功。
-- 官方安装检查：六阶段 verified，首次卸载确定性失败（stderr SHA `98b1d782…`），延迟 40s 续跑成功。
+- 5c8550ca wheel `b6b0a12c`：上一版 `3fbba07b` 新装 244s → 当前 stage 1.5s/prepare 5s/environment 106.3s/install 2.7s → rollback 1.5s → doctor ok/163 表 → 双候选卸载（attempt1 `cleanup_pending`，attempt2 36s/36.2s 成功）；最终 `candidates=[]`、数据/备份保留。
+- 官方安装检查：六阶段 verified，首次卸载确定性失败（150B stderr SHA `98b1d782…`），延迟 40s 续跑 35.9s 成功，DB `4d47d616…`/备份 `50402c86…` 前后一致；checker `verified=false`。
+- 6d81a826 历史（不代表当前主线）：wheel `3d3b28a0` 的安装链/检查曾通过（带卸载重试）。
 
 ### 4.3 72h 试跑
 
@@ -102,5 +102,6 @@
 
 - 当前 d7971bc4：安装链/检查/72h 均未在新候选重跑；服务生命周期因 D11e-R 失败。
 - `whole_v2_complete=false`，`production_release_ready=false`。
+
 
 

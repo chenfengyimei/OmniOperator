@@ -40,7 +40,9 @@
       "title": "Windows 原生服务（Task Scheduler 用户任务）",
       "status": "failed_r3_control_goal",
       "result": "5c8550ca wheel：R1/R2 已修；status manager running/pid 111620/ready=true，HTTP ready；但 start unknown/service_control_outcome_unverified，reconcile unknown/service_control_unresolved，stop/uninstall 被 service_operation_unresolved 阻塞（R3：控制 goal 用 ServiceRegistration.inspect 的 engine_pid，无动作 pid，无法满足严格 pid 条件）",
-      "defect_ids": ["R3"],
+      "defect_ids": [
+        "R3"
+      ],
       "evidence": [
         "docs/evidence/v2-windows-service-5c8550ca-2026-11-23.json",
         "C:/v2-acceptance/c3-08dd1573/svc10/probes/r3-control-goal.txt"
@@ -49,25 +51,33 @@
     {
       "id": "C3.1-W1",
       "title": "官方 wheel 干净目录离线安装检查",
-      "status": "not_rerun_on_current_candidate",
-      "result": "6d81a826 wheel 3d3b28a0：六阶段 verified；首次卸载确定性失败（150B stderr SHA 98b1d782…），延迟 40s 续跑成功，data/backup 一致",
-      "evidence": ["docs/evidence/v2-windows-install-check-6d81a826-2026-11-23.json"],
-      "caveat": "d7971bc4 尚未重跑；checker verified=false"
+      "status": "partial_first_uninstall_failed",
+      "result": "5c8550ca wheel b6b0a12c：六阶段 verified；首次卸载确定性失败（150B stderr SHA 98b1d782…），延迟 40s 续跑 35.9s 成功；DB 4d47d616…/备份 50402c86… 前后一致；checker verified=false",
+      "evidence": [
+        "docs/evidence/v2-windows-install-check-5c8550ca-2026-11-23.json",
+        "C:/v2-acceptance/c3-08dd1573/fresh-install-5c8550ca/report.json"
+      ],
+      "caveat": "非干净 OS；不得写成通过"
     },
     {
       "id": "C3.1-W2",
       "title": "官方 wheel install→update→rollback→uninstall 链",
-      "status": "verified_on_previous_candidate_only",
-      "result": "6d81a826 wheel 3d3b28a0：上一版 199072c6 → 当前 → rollback → 双卸载；首次 cleanup_pending 后重试成功",
-      "evidence": ["docs/evidence/v2-windows-install-chain-6d81a826-2026-11-23.json"],
-      "caveat": "d7971bc4 尚未重跑"
+      "status": "verified_with_uninstall_retries",
+      "result": "5c8550ca wheel b6b0a12c：上一版 3fbba07b 新装 244s → 当前 stage/prepare/environment 106.3s/install 2.7s → rollback → doctor ok → 双候选卸载（attempt1 cleanup_pending，attempt2 36s/36.2s 成功）；最终 candidates=[]、数据/备份保留",
+      "evidence": [
+        "docs/evidence/v2-windows-install-chain-5c8550ca-2026-11-23.json",
+        "C:/v2-acceptance/c3-08dd1573/chain10/transcript.json"
+      ],
+      "caveat": "两处卸载首次失败，外部维护器重试成功；非干净 OS"
     },
     {
       "id": "C3.1-W3",
       "title": "真正干净机器",
       "status": "blocked",
       "reason": "本机无干净 Windows OS/VM；验收包按 6d81a826 构建，修复后需重建",
-      "evidence": ["docs/evidence/v2-clean-machine-kit-2026-11-23.json"]
+      "evidence": [
+        "docs/evidence/v2-clean-machine-kit-2026-11-23.json"
+      ]
     },
     {
       "id": "C3.2",
@@ -75,7 +85,9 @@
       "status": "blocked",
       "result": "NapCat 运行但 QQ 未登录，OneBot WS 3001 未监听",
       "reason": "无登录、无对端账号、无重启授权、无窗口",
-      "evidence": ["docs/evidence/v2-qq-napcat-probe-2026-11-23.json"]
+      "evidence": [
+        "docs/evidence/v2-qq-napcat-probe-2026-11-23.json"
+      ]
     },
     {
       "id": "C3.5",
@@ -83,7 +95,9 @@
       "status": "blocked",
       "result": "adb devices/mdns 为空；无 USB ADB 设备；无 emulator",
       "reason": "无真机、无窗口",
-      "evidence": ["docs/evidence/v2-android-device-probe-2026-11-23.json"]
+      "evidence": [
+        "docs/evidence/v2-android-device-probe-2026-11-23.json"
+      ]
     },
     {
       "id": "C3.3",
@@ -103,7 +117,9 @@
       "status": "not_started_tooling_dry_run_verified",
       "result": "8412e773 上 3 分钟 19 次采样/0 失败，仅 duration_below_72h；当前候选未重跑",
       "reason": "需最终冻结、批准 limits 与连续 72h",
-      "evidence": ["docs/evidence/v2-soak-dry-run-2026-11-23.json"]
+      "evidence": [
+        "docs/evidence/v2-soak-dry-run-2026-11-23.json"
+      ]
     },
     {
       "id": "C3.7",
@@ -141,7 +157,11 @@
     },
     "full_suite": {
       "head": "b395cd97",
-      "tests": 8618, "passed": 8609, "failed": 0, "skipped": 9, "seconds": 2559.0,
+      "tests": 8618,
+      "passed": 8609,
+      "failed": 0,
+      "skipped": 9,
+      "seconds": 2559.0,
       "junit": "C:/v2-acceptance/integration-cdeg/full-b395cd97.xml",
       "coverage_note": "不覆盖 6d81a826 之后的生产/测试变化；冻结候选必须重跑全量"
     }
@@ -155,15 +175,80 @@
     "bilibili": "无账号"
   },
   "missing_resources": [
-    {"resource": "干净 Windows 机器/VM", "items": ["C3.1-W3", "C3.7"], "window": "2026-11-24 ~ 11-25，3–4 小时", "owner_action": "提供 VM 或书面接受同机隔离降级"},
-    {"resource": "机器人 QQ 登录 + 对端账号 + NapCat 重启授权", "items": ["C3.2"], "window": "2026-11-24 20:00–21:00", "owner_action": "扫码、提供好友/测试群、允许重启 NapCat 开 WS"},
-    {"resource": "安卓真机 + USB 调试授权", "items": ["C3.5"], "window": "2026-11-25 19:00–20:30", "owner_action": "连接并授权 RSA"},
-    {"resource": "兼容视觉模型 + 预算", "items": ["C3.4"], "window": "2026-11-25 前配置", "owner_action": "提供本地/API 视觉模型"},
-    {"resource": "B 站测试账号", "items": ["C3.3"], "window": "2026-11-26 20:00–21:00", "owner_action": "提供账号与目标内容"},
-    {"resource": "72h limits + 连续 72h", "items": ["C3.6"], "window": "冻结后 2026-11-26 12:00 → 11-29 12:00", "owner_action": "批准 8 字段 limits；机器不休眠"},
-    {"resource": "签名/公证或源码交付决定", "items": ["C4.2"], "window": "2026-11-25 前决定", "owner_action": "提供证书/Apple 凭据或书面降级"},
-    {"resource": "Docker 引擎", "items": ["C2.8"], "window": "2026-11-27，1 小时", "owner_action": "启动 Docker Desktop 或等价引擎"},
-    {"resource": "发布回滚/交接窗口", "items": ["C4.3", "C4.4"], "window": "2026-11-30，2–4 小时", "owner_action": "确认 A 与交接人"}
+    {
+      "resource": "干净 Windows 机器/VM",
+      "items": [
+        "C3.1-W3",
+        "C3.7"
+      ],
+      "window": "2026-11-24 ~ 11-25，3–4 小时",
+      "owner_action": "提供 VM 或书面接受同机隔离降级"
+    },
+    {
+      "resource": "机器人 QQ 登录 + 对端账号 + NapCat 重启授权",
+      "items": [
+        "C3.2"
+      ],
+      "window": "2026-11-24 20:00–21:00",
+      "owner_action": "扫码、提供好友/测试群、允许重启 NapCat 开 WS"
+    },
+    {
+      "resource": "安卓真机 + USB 调试授权",
+      "items": [
+        "C3.5"
+      ],
+      "window": "2026-11-25 19:00–20:30",
+      "owner_action": "连接并授权 RSA"
+    },
+    {
+      "resource": "兼容视觉模型 + 预算",
+      "items": [
+        "C3.4"
+      ],
+      "window": "2026-11-25 前配置",
+      "owner_action": "提供本地/API 视觉模型"
+    },
+    {
+      "resource": "B 站测试账号",
+      "items": [
+        "C3.3"
+      ],
+      "window": "2026-11-26 20:00–21:00",
+      "owner_action": "提供账号与目标内容"
+    },
+    {
+      "resource": "72h limits + 连续 72h",
+      "items": [
+        "C3.6"
+      ],
+      "window": "冻结后 2026-11-26 12:00 → 11-29 12:00",
+      "owner_action": "批准 8 字段 limits；机器不休眠"
+    },
+    {
+      "resource": "签名/公证或源码交付决定",
+      "items": [
+        "C4.2"
+      ],
+      "window": "2026-11-25 前决定",
+      "owner_action": "提供证书/Apple 凭据或书面降级"
+    },
+    {
+      "resource": "Docker 引擎",
+      "items": [
+        "C2.8"
+      ],
+      "window": "2026-11-27，1 小时",
+      "owner_action": "启动 Docker Desktop 或等价引擎"
+    },
+    {
+      "resource": "发布回滚/交接窗口",
+      "items": [
+        "C4.3",
+        "C4.4"
+      ],
+      "window": "2026-11-30，2–4 小时",
+      "owner_action": "确认 A 与交接人"
+    }
   ],
   "next_steps": [
     "A 修 D11e-R：windows_services.ps1 用 foreach 取首个 running instance 的 EnginePID，重建 wheel",
@@ -175,13 +260,31 @@
   "conclusion": {
     "whole_v2_complete": false,
     "production_release_ready": false,
-    "failed_items": ["C2.7（R3）"],
-    "partial_items": ["C4.3"],
-    "blocked_items": ["C3.1-W3", "C3.2", "C3.5", "C3.3", "C3.4", "C2.8", "C4.2"],
-    "not_started": ["C3.6"],
-    "not_rerun_on_current_candidate": ["C3.1-W1", "C3.1-W2", "C3.7"]
+    "failed_items": [
+      "C2.7（R3）"
+    ],
+    "partial_items": [
+      "C3.1-W1",
+      "C4.3"
+    ],
+    "blocked_items": [
+      "C3.1-W3",
+      "C3.2",
+      "C3.5",
+      "C3.3",
+      "C3.4",
+      "C2.8",
+      "C4.2"
+    ],
+    "not_started": [
+      "C3.6"
+    ],
+    "not_rerun_on_current_candidate": [
+      "C3.7"
+    ],
+    "verified_items": [
+      "C3.1-W2（带卸载重试）"
+    ]
   },
   "whole_v2_complete": false
 }
-
-
