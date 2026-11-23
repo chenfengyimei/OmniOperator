@@ -507,6 +507,15 @@ K13.cron_model_design 已记录**实现前设计合同**（纯文档，无源码
 - **提交**：G 身份实现 `7c610a64`（证据 `6681f662`）、K14 决策与范围裁定 `42ff5083`、交接与证据回填见本节后提交。
 - 证据：[v2-scope-decisions.json](evidence/v2-scope-decisions.json)（`42ff5083`）、[v2-linux-identity.json](evidence/v2-linux-identity.json)（`7c610a64`）。
 
+## 2026-11-23 B 站读缓存上线后验收（工具已交付，真实账号待凭据）
+
+- **范围**：对已合入 `origin/v2` 的 K18 读缓存（合并 `3655d269`）做上线后核对：video/whois 命中、24h TTL、凭据换代、风控暂停先后、以及必须现读端点不返回旧数据。只读，不写 B 站账号。
+- **已交付**：`agent/scripts/accept_bilibili_read_cache.py` + [验收手册](v2/operations/BILI_READ_CACHE_ACCEPTANCE.md)。真实模式用**全新隔离实例**（新 home）+ 只读 `SecretStore` 注入 Cookie，逐项记录网关调用数、缓存条目、观察窗口；支持 `--self-test` 离线自检（fake gateway，无网络）。检查项：video/whois 二次读命中且只 1 次网关调用；凭据 revision+1 后两读均 miss 且旧桶清空；合成暂停后 `bilibili_risk_paused` 且不触达网关/不服务缓存；owner resume 后恢复命中；`history`/`dynamic_list`/`msgfeed` 每读都回源且不新增缓存条目；受控时钟 +86 399s 命中、+86400s 未命中。
+- **自检结果**：2026-11-23 14:30:32–14:30:35 +08（2.18s），10 项全部通过，缓存 2 条/176 字节；证据 [v2-bili-read-cache-acceptance-harness.json](evidence/v2-bili-read-cache-acceptance-harness.json)。
+- **真实账号观察窗口未开始（阻塞）**：本机未找到任何 B 站账号凭据——`data/bili_cookies.json` 不存在、`~/.bili-ai/credentials.json` 不存在；V2 默认实例（`C:/Users/cy/AppData/Local/OmniOperator/v2`）与演示实例（`temp/build/v2-demo-home`）均 0 个 channel 配置；演示实例 2 个 credential ref 仅 `opencode-go`/`deepseek-key`；`C:/v2-acceptance` 各实例 0 channel/0 凭据。需所有者提供隔离或主实例的 Cookie JSON（仓库外路径，至少 `SESSDATA`）+ UID，或先在凭据工作台登记后给出实例与 `config_id`；拿到后立即跑真实模式并回填 `v2-bili-read-cache-live.json`。
+- **边界**：TTL 用受控时钟、暂停为合成暂停、不修改远端数据；真实 24h 墙钟、真实风控触发、模型质量与 72 小时仍待验。只读验收不代表读 API 全量真实账号送达。
+- **未改动**：无生产源码/迁移/路由/worker 改动；仅新增验收脚本、手册、证据与本段。
+
 ## 追溯入口
 
 - [旧交接记录](history/pre-layout-2026-11-18/HANDOFF.md)、[旧重构记录](history/pre-layout-2026-11-18/V2_REFACTOR.md)只证明所属版本，不作为当前待办。

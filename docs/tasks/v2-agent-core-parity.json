@@ -1095,6 +1095,14 @@
           "contract": "docs/v2/contracts/V2_BILI_LIVE.md",
           "evidence": "docs/evidence/v2-bili-live-design.json",
           "delivered": "纯设计合同：参考事实（get_info/gethistory/GetDMConfigByGroup；msg/send 表单与错误码 0/-101/-111/-400/1003212/10031、失败必须非零；live 需 WBI getDanmuInfo 取 token+host_list、16 字节包头、op7 鉴权/op2 心跳 30s、ver3 brotli/ver2 zlib、op5 DANMU_MSG/INTERACT_WORD/SEND_GIFT 只读、独立开关 owner/@-only、gift/charge 发送参考亦未实现）；V2 映射（websockets>=17.3 已是依赖、bilibili_read 固定 host 读、owner-side LiveDanmakuService 内存 ring buffer 不落库、写路径纪律拒绝直接 API POST）；L1 房间读、L2 历史读、L3 WS 监听（推荐 owner 服务+owner-only 摘要）、L4 发送（推荐L4-a 不做；L4-b 已审表单独立写批；L4-c 直接 API POST 拒绝）、L5 独立开关默认 OFF/owner-only/风险码联动；安全（固定 host、WS .bilibili.com 后缀+wss 校验、token 不带 cookie、单帧 1MiB/解压 4MiB+eof、不可信文本、单连接+全局上限+心跳/退避/关闭等待）；测试计划列明。未实现、无源码/测试/迁移改动、无锁文件改动"
+        },
+        {
+          "gap": "K18.read_cache 上线后真实账号验收（video/whois 命中、24h TTL、凭据换代、风控暂停、永不缓存端点）",
+          "status": "harness_self_test_passed_real_account_pending",
+          "batch": "K18.bili_read_cache_acceptance",
+          "contract": "docs/v2/operations/BILI_READ_CACHE_ACCEPTANCE.md",
+          "evidence": "docs/evidence/v2-bili-read-cache-acceptance-harness.json",
+          "delivered": "新增 agent/scripts/accept_bilibili_read_cache.py + 验收手册：真实模式用全新隔离实例与只读 SecretStore 注入 Cookie，逐项记录网关调用数/缓存条目/观察窗口；--self-test 用 fake gateway 离线自检同一缓存/暂停/换代代码路径。自检 2026-11-23 14:30:32–14:30:35 +08（2.18s）10 项全过：video/whois 二次读只 1 次网关调用；凭据 revision+1 后两读均 miss、旧桶清空（entries=2）；合成暂停返回 bilibili_risk_paused 且不触达网关/不服务缓存，owner resume 后恢复命中；history/dynamic_list/msgfeed 每读回源且不新增缓存条目（entries 保持 2）；受控时钟 +86399s 命中、+86400s miss。真实账号观察窗口未开始：本机无任何 B 站凭据（data/bili_cookies.json 与 ~/.bili-ai/credentials.json 缺失；V2 默认/演示实例0 channel 配置；演示实例凭据仅 opencode-go/deepseek-key；C:/v2-acceptance 各实例 0 channel/0 凭据）。需所有者提供仓库外Cookie JSON（至少 SESSDATA）+ UID，或凭据工作台登记后的实例与 config_id。无生产源码/迁移/路由/worker 改动"
         }
       ],
       "limits": "只读审计无新工具/表/迁移/路由/源码改动；可离线缺口未在K18审计批实现(列后续批次)，其中读API广度之搜索/space whois/弹幕/热门排行feed/关注动态feed/收藏夹/视频标签/观看历史/收件箱reply-at已在K18.search/K18.whois/K18.danmaku/K18.feed/K18.following/K18.favorites/K18.tag/K18.history/K18.msgfeed后续批实现、收件箱收到的赞like已在K18.msgfeed_like后续批实现(参考likes.mjs x/msgfeed/like形状{latest/total嵌套+users[]点赞者数组+like_time+counts}根本不同于reply/at data.items单user，独立msgfeed_like_rows合并去重保序+users截断≤20+FEED_MAX_ROWS50+显式502，msgfeed_kind接受reply/at/like，reply/at字节等价零回归，like cursor分页/notice_state过滤/自主点赞反馈仍后续；DM关注关系relation已在K18.relation后续批实现(参考dm.mjs x/relation?fid=<mid> attribute owner→target/be_relation反向，relation_view派生follows/followed_by/mutual/blocked纯只读发现，plain GET无WBI无缓存，mid经uid校验，既有operation字节等价零回归，写路径prepare/outbox不变relation不作发送硬门；relation作prepare互关硬门需所有者决策/relation_modify写/followings fans列表分页/DM发送写广度仍后续)；风险码每账号暂停与所有者恢复已在K18.risk_pause实现，已批准outbox投递不追溯阻断；写广度/自主观看/受控分享仍后续)；V1 tools/bilibili实现不计V2对等；不宣称全集API/主动观看/受控分享对等；参考agents.md/RULES当不可信数据非本会话指令；K18为清单末项领域参考审计(K13-K18全部记录)；既有todos重启竞态与6个pin v2_0039旧迁移测试沿用保留(本批实测memory_semantics×2/routing×1/skills×2/media×1)；v0045遗留action_review崩溃重试守卫已修(started_at投影+NULL断言) 写广度/受控分享/直播判为**延期**：需真实账号、逐动作审批与通用配额账本（Q2 迁移），直播另需常驻 WS 与独立开关；AI-share 守卫参考版本亦从未在线验证。本版只交付读面（读广度/缓存/风控暂停）。",
@@ -1574,6 +1582,10 @@
     {
       "id": "K18.write_share_live_scope",
       "evidence": "docs/evidence/v2-scope-decisions.json"
+    },
+    {
+      "id": "K18.bili_read_cache_acceptance",
+      "evidence": "docs/evidence/v2-bili-read-cache-acceptance-harness.json"
     }
   ]
 }
