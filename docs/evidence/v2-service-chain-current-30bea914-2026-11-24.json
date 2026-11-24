@@ -1,0 +1,79 @@
+{
+  "schema": 1,
+  "topic": "v2-service-chain-current-30bea914",
+  "date": "2026-11-24",
+  "purpose": "在 2026-11-24 的程序改动之后，用当前源码 wheel 复跑 Windows 用户域服务完整链（安装→注册→启动→status→停止→卸载），并记录一次真实遇到的 wheel 命名陷阱。",
+  "wheel": {
+    "path": "C:/v2-acceptance/release-current-30bea914c/omnioperator-0.1.0-py3-none-any.whl",
+    "sha256": "774bf84907c8dc1d1133bdc442b1fa3d555160528ee3ffaffa94d9509814dc95",
+    "bytes": 2826525,
+    "program_head_at_build": "30bea914 (docstring-aligned; behavior same as 78259fa5)",
+    "filename_note": "必须保留构建产物原名 omnioperator-0.1.0-py3-none-any.whl；见 §wheel_name_trap"
+  },
+  "dependency_bundle": {
+    "path": "C:/v2-acceptance/release-05b44447/dependencies",
+    "manifest_sha256": "ddc242906492a815e1893505f0453f922f2c218dda441ad0088effb9f5e1225f"
+  },
+  "chain": {
+    "script": "C:/v2-acceptance/release-current-30bea914c/run_service_chain.ps1",
+    "base_python": "C:/Users/cy/AppData/Roaming/uv/python/cpython-3.12-windows-x86_64-none/python.exe",
+    "port": 8791,
+    "instance_id": "f5b0315c-f57f-4069-b731-615d28d4bce9",
+    "steps": [
+      {"step": "install_candidate", "exit": 0, "seconds": 196.8},
+      {"step": "capture", "exit": 0, "seconds": 11.3},
+      {"step": "plan", "exit": 0, "seconds": 1.3},
+      {"step": "materialize", "exit": 0, "seconds": 1.7},
+      {"step": "verify", "exit": 0, "seconds": 9.5},
+      {"step": "operation_plan_install", "exit": 0, "seconds": 9.6},
+      {"step": "apply_install", "exit": 0, "seconds": 23.0},
+      {"step": "control_plan_start", "exit": 0, "seconds": 21.7},
+      {"step": "apply_start", "exit": 0, "seconds": 34.1},
+      {"step": "status_running", "exit": 0, "seconds": 12.2},
+      {"step": "control_plan_stop", "exit": 0, "seconds": 17.6},
+      {"step": "apply_stop", "exit": 0, "seconds": 20.1},
+      {"step": "operation_plan_uninstall", "exit": 0, "seconds": 9.6},
+      {"step": "apply_uninstall", "exit": 0, "seconds": 20.8}
+    ],
+    "all_exit_zero": true,
+    "summary": "C:/v2-acceptance/release-current-30bea914c/service-chain-summary.json",
+    "summary_sha256": "e11c4397e44e0f90f90536d2e9fa5d2ee3350856d8a5b129738ce3cc132f3df8",
+    "transcript": "C:/v2-acceptance/release-current-30bea914c/service-chain-transcript.json",
+    "transcript_sha256": "04ff1ccc11bcb8186fc2c1f57a0d3b759c2e6acd24e566e86d54068a1cdcf8d6",
+    "status_running": {
+      "manager": {"available": true, "installed": true, "state": "running", "definition_matches": true, "pid": 169820},
+      "runtime": {
+        "pid": 169820,
+        "build_id": "a0025fdfdbae395cb7446756ac94f367c8980c65dc755c8d19328c7650d4c7ba",
+        "schema_version": "v2_0052",
+        "service_plan_sha256": "1fdb1f87194071d3912e85c87e7697a0d11f3f99b57467daeb942e7315ec08ca",
+        "ready": true
+      },
+      "ready": true
+    },
+    "uninstall": {
+      "state": "succeeded",
+      "effect": "applied",
+      "terminal": true,
+      "cleanup_complete": true,
+      "registration": {"installed": false, "definition_present": false, "enabled": false, "state": "stopped", "pid": null},
+      "post_check": "Get-ScheduledTask 未发现 omni 任务；卸载后 status 查询返回 service_manager_query_failed / service_identity_mismatch，属任务已移除后的预期失败关闭。"
+    }
+  },
+  "wheel_name_trap": {
+    "observed": "把同一 wheel 改名为 omnioperator-30bea914-py3-none-any.whl 后，install_candidate 在 pip 阶段失败：Invalid requirement: 'omnioperator==30bea914': Expected end or semicolon (after version specifier)。`omnioperator-current-30bea914-...` 同样失败 78.7s。",
+    "root_cause": "pip 从 wheel 文件名解析版本；30bea914 不是合法 PEP440 版本。候选 05b44447 能装只是因为它恰好被解析为合法预发布版本，并非命名规则安全。",
+    "fix": "保留 `uv build` 产物原名（omnioperator-0.1.0-py3-none-any.whl），用 --sha256 独立固定内容；不要用裸 commit SHA 重命名候选 wheel。若必须在文件名带版本，使用 PEP440 合法形式（如 0.1.0+30bea914）并同时改 wheel metadata，不能只改文件名。",
+    "evidence": [
+      "C:/v2-acceptance/release-current-30bea914/service-chain-transcript.json（install_candidate exit 1，84.1s）",
+      "C:/v2-acceptance/release-current-30bea914b/service-chain-transcript.json（install_candidate exit 1，78.7s）",
+      "manager venv 手动 pip 复现：Invalid requirement: 'omnioperator==30bea914'"
+    ]
+  },
+  "not_covered": [
+    "干净物理机、真实账号/模型/设备、全量测试与 72h 长跑",
+    "Windows 系统级服务（本检查为用户域服务）、服务计划跨架构/跨机器复用",
+    "其他平台（macOS/Linux）的同版本服务链"
+  ],
+  "conclusion": "当前源码 wheel 的 Windows 用户域服务完整链 14 步全部 exit 0：安装、注册、启动、status（manager running/definition_matches/PID 一致/runtime ready）、停止、卸载均通过，卸载后无任务残留。另确认候选 wheel 不能按裸 commit SHA 改名，否则 pip 可能拒绝安装。"
+}

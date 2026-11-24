@@ -27,6 +27,8 @@ uv build --offline --package omnioperator --wheel --out-dir C:\v2-acceptance\fin
 Get-FileHash C:\v2-acceptance\final-release\omnioperator-0.1.0-py3-none-any.whl -Algorithm SHA256
 ```
 
+> **2026-11-24 实测陷阱**：候选 wheel **不能**按裸 commit SHA 改名（如 `omnioperator-30bea914-py3-none-any.whl`）。pip 从文件名解析版本，`30bea914` 不是合法 PEP440 版本，会报 `Invalid requirement: 'omnioperator==30bea914'` 并让 `install_candidate` 失败；`05b44447` 能装只是碰巧被解析为合法预发布版本。请保留构建产物原名并用 `--sha256` 固定内容；若必须在文件名带版本，使用 `0.1.0+<sha>` 等 PEP440 合法形式并同步 wheel metadata。证据：[v2-service-chain-current-30bea914](../evidence/v2-service-chain-current-30bea914-2026-11-24.json)。
+
 ## 1. Windows 服务完整链（R3 修复后先跑）
 
 新建独立 home，不复用旧演练目录：
