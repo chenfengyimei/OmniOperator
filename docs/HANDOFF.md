@@ -66,6 +66,7 @@
 - 2026-11-24 视频 extra 安装边界实测（基线 `76f57804`）：用 `uv build` 的当前 wheel 建两个隔离 venv——默认安装（无 `av`）调抽帧得到 `media_component_missing`/503、文案提示安装 `omnioperator[asr]`、无部分产物；`[asr]` 安装（`av 19.0.2`）经真实 stdio worker 子进程从合成 8s 视频抽出 3 帧、640×520 PNG、时间戳升序、worker 干净关闭。结论：默认包按显式失败交付，媒体能力由 `[asr]` 包单独验收；其他平台/正式安装链/ASR 转写与真实长视频未覆盖。[证据](evidence/v2-media-asr-install-2026-11-24.json)
 - 2026-11-24 媒体缺组件工作台提示修正：默认安装的 `probe()` 实测 `av/faster_whisper/numpy=false`、`PIL=true`，工作台据此显示缺组件；提示改为同时给出安装包命令 `pip install "omnioperator[asr]"` 与源码环境 `uv sync --extra asr`。新增缺组件 UI 回归；媒体 UI **3 passed / 24.93s**、上传 UI **2 passed / 12.06s**，prettier/`node --check`/ruff 通过。[证据](evidence/v2-media-asr-install-2026-11-24.json)
 - 2026-11-24 当前 HEAD 全量收集前置：`pytest -q -n 0 --collect-only` **8662 项 / 0 错误 / 11.79 秒**；候选为 8658（8648 通过 + 10 跳），差值即本日新增 4 项回归。**未运行全量**，仅证明当前源码可完整收集。[证据](evidence/v2-release-scope-2026-11-24.json)
+- 2026-11-24 当前 HEAD wheel 复验（`78259fa5`）：新 wheel `7ea64b1f…`（2,826,425B）装入既有 `[asr]` venv 后，包内 `visual_subagent.frame_object_ids.maxItems=4`、来源 `oneOf`、`media.js` 含安装包与源码两条安装提示；真实抽帧仍为 3 帧/640×520/sha256 `26b7be5a…`，worker 干净关闭。[证据](evidence/v2-media-asr-install-2026-11-24.json)
 
 ## 本次目录整理验证
 

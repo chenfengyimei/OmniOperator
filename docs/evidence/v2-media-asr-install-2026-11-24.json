@@ -65,6 +65,22 @@
     },
     "conclusion": "安装后的 wheel + [asr] 通过真实 stdio worker 子进程解出 3 帧并生成 640×520 PNG 宫格；时间戳升序、worker 干净关闭。"
   },
+  "current_head_wheel": {
+    "date": "2026-11-24",
+    "head": "78259fa5",
+    "wheel_sha256": "7ea64b1faf33a2d7ac57f0885fc0efef967997f2952743749dbb68b3a7e41f97",
+    "bytes": 2826425,
+    "build": "uv build --package omnioperator --wheel --out-dir temp/accept-asr-2026-11-24/dist-current",
+    "install": "uv pip install --force-reinstall --no-deps <wheel>（装入既有 [asr] venv）",
+    "checks": {
+      "frame_object_ids_max": 4,
+      "source_one_of": true,
+      "packaged_media_js_has_pip_extra": true,
+      "packaged_media_js_has_uv_sync": true,
+      "frame_probe": "3 帧 / 640×520 / sha256 26b7be5a…（与旧 wheel 解帧字节一致，worker 干净关闭）"
+    },
+    "conclusion": "当前 HEAD 的 wheel 已同时包含视觉 4 图/来源互斥契约、媒体缺组件文案与工作台提示；[asr] 安装后仍能真实解帧。"
+  },
   "scope": {
     "default_package_promise": "不承诺视频分镜/ASR 开箱可用，缺组件显式失败并提示安装 extra。",
     "asr_package_promise": "可作为单独验收的媒体包；本证据只覆盖抽帧，不含 ASR 模型转写。",
