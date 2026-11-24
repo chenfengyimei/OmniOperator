@@ -22,16 +22,17 @@
   "test_policy": "实现优先，只跑受影响模块和调用方专项；整个V2开发冻结后统一全量",
   "current_followup": {
     "id": "release_candidate_dae24cf7",
-    "status": "r4_closed_candidate_frozen_soak_running",
+    "status": "candidate_frozen_but_head_has_post_candidate_program_changes",
     "scope": [
       "R4 关闭：utf8-envelope-v2 修复 20 项 token 预算失败，压缩契约 2 项对齐，shell/UIA 判并行抖动",
       "候选 dae24cf7 全量 8648/0/10 绿；Windows 服务链、官方安装链与安装检查全过",
-      "72h 空载观测长跑运行中（隔离实例，独立守护）"
+      "72h 空载观测长跑运行中（隔离实例，独立守护）",
+      "2026-11-24 v2 合入 fdc513ad 视觉契约、4ec16920 媒体文案、fa359a09 媒体 UI 提示三项程序改动；05b44447 长跑不再覆盖当前 HEAD"
     ],
     "contract": "docs/v2/contracts/V2_TOKEN_ENVELOPE.md",
     "evidence": "docs/evidence/v2-release-candidate-05b44447-2026-11-24.json",
-    "validation": "全量 8648 passed/0 failed/10 skipped（2872.39s）；strict 434/0；服务四模块 98 passed",
-    "next": "72h 窗口结束后 report；干净机与签名/公证、真实账号/设备仍待所有者；延期功能按台账保留"
+    "validation": "候选全量 8648 passed/0 failed/10 skipped（2872.39s）；strict 434/0；服务四模块 98 passed；当前 HEAD 受影响组 63 passed/54.18s",
+    "next": "72h 窗口结束后 report；最终候选需在当前 HEAD 重建并重新跑满 72h，或所有者明确接受三项差异（则该版不含视觉修复）；干净机与签名/公证、真实账号/设备仍待所有者；延期功能按台账保留"
   },
   "requirements": [
     {
