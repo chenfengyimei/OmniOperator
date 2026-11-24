@@ -96,6 +96,14 @@
       "scope": "当前 HEAD 受影响组局部回归，不替代 72h"
     }
   },
+  "linux_scope_check": {
+    "date": "2026-11-24",
+    "command": "uv run --no-sync pytest -q -n 0 agent/tests/v2/platforms/linux/test_v2_linux_foreground.py agent/tests/v2/platforms/linux/test_v2_linux_text.py",
+    "result": "43 passed",
+    "seconds": 9.09,
+    "scope_correction": "发布范围原写「X11 受限前台键鼠」过宽。按 V2_LINUX_FOREGROUND：已接通的是受限文本追加与明确提供原生窗口 XID 的节点按键（当前 Avalonia 属性）；鼠标、通用 GTK/Qt 关联与 Wayland 输入仍延期。文档已改为「受限前台按键与受限文本追加」。",
+    "scope": "离线平台专项，不代表真实 X11/GNOME/KDE 输入验收"
+  },
   "collection_preflight": {
     "date": "2026-11-24",
     "command": "uv run --no-sync pytest -q -n 0 --collect-only",

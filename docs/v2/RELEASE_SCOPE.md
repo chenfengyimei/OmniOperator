@@ -16,7 +16,7 @@
 | B 站读面 | 搜索/空间/弹幕/feed/关注/收藏/标签/历史/收件箱/风控暂停/读缓存 | [B 站审计](contracts/V2_BILI_WHALE_AUDIT.md) |
 | Windows | 桌面读取/语义写/前台输入、终端、安装/备份恢复/卸载、真实 ASR/抽帧业务链 | [Windows 验收](platforms/windows/WINDOWS_V2_ACCEPTANCE_2026-11-18.md) |
 | macOS | arm64 helper、用户域服务 install→ready→uninstall、桌面读/语义/前台输入（自用机已验） | [macOS 交接](platforms/macos/V2_MACOS_HANDOFF.md) |
-| Linux | X11 会话的窗口身份/AT-SPI/受限前台键鼠（仅明确提供原生窗口 XID 的节点）；Wayland 只读观察与独立的系统授权记录 | [Linux 交接](platforms/linux/V2_LINUX_HANDOFF.md) |
+| Linux | X11 会话的窗口身份/AT-SPI、受限前台按键与受限文本追加（按键仅限明确提供原生窗口 XID 的节点，如当前 Avalonia 属性；鼠标、通用 GTK/Qt 关联与 Wayland 输入仍延期）；Wayland 只读观察与独立的系统授权记录 | [Linux 交接](platforms/linux/V2_LINUX_HANDOFF.md)、[前台控制](platforms/linux/V2_LINUX_FOREGROUND.md) |
 | 打包 | 默认 wheel/依赖包由 CI `uv export --no-dev` 生成；默认不含 `av`/`faster-whisper`，媒体/ASR 需 `omnioperator[asr]` extra | [CI 工作流](../../.github/workflows/v2.yml) |
 
 ## 2. 本版明确不承诺（延期，已写清理由与再纳入所需工作）
