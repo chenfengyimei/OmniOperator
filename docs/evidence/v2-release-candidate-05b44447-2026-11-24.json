@@ -135,6 +135,27 @@
       "observational_soak_passed": false,
       "note": "报告可在采集期间对活动目录运行（writer.lock 仅在 append 时短暂持有）；除时长外无其他阻塞。"
     },
+    "report_at_857_samples": {
+      "observed_at": "2026-11-24T16:45:00+08:00",
+      "samples": 857,
+      "failed_samples": 0,
+      "observed_seconds": 51523.547,
+      "required_seconds": 259200,
+      "resource_maxima": {
+        "main_rss_bytes": 158965760,
+        "descendant_rss_sum_bytes": 0,
+        "threads": 12,
+        "descriptors": 367,
+        "children": 0,
+        "cleanup_pending": 0
+      },
+      "initial_counters": {"failed_runs": 0, "unknown_model_calls": 0},
+      "blockers": [
+        "duration_below_72h"
+      ],
+      "observational_soak_passed": false,
+      "note": "采集期间只读报告（exit 2 因时长未满）。资源峰值仍远低于批准上限；除时长外无其他阻塞。"
+    },
     "resume_rehearsal": {
       "date": "2026-11-24T03:52:00+08:00",
       "purpose": "验证交接中承诺的恢复方法（collector 掉线后 --resume 续采）",
