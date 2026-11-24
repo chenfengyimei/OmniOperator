@@ -36,9 +36,9 @@ CONFIGS = (
     "start.bat",
     "start-v1.bat",
     "CONTRIBUTING.md",
-    "docs/ARCHITECTURE.md",
-    "docs/TYPE_CHECKING.md",
-    "docs/UI_DESIGN_SYSTEM.md",
+    "docs/v/reference/ARCHITECTURE.md",
+    "docs/v/reference/TYPE_CHECKING.md",
+    "docs/v/reference/UI_DESIGN_SYSTEM.md",
 )
 IGNORED = frozenset({"__pycache__", "node_modules", ".pytest_cache", ".ruff_cache", ".build", ".swiftpm"})
 SHA = re.compile(r"[a-f0-9]{64}")
@@ -89,7 +89,7 @@ def capture_source(root: Path) -> dict[str, object]:
                     raise ValueError("too_many_source_files")
     files.update(name for name in CONFIGS if (root / name).is_file())
     # Include contracts used by documentation guards. Progress/evidence records stay outside the code identity.
-    files.update(p.relative_to(root).as_posix() for p in (root / "docs").glob("V2_*.md"))
+    files.update(p.relative_to(root).as_posix() for p in (root / "docs/v/reference").glob("V2_*.md"))
     rows = {name: _hash(root / name) for name in sorted(files)}
     digest = hashlib.sha256(json.dumps(rows, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
     return {"format": "omni-v2-candidate-source-1", "source_sha256": digest, "files": rows}

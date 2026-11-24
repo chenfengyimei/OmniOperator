@@ -1,7 +1,7 @@
 """K15 isInitial gate regression: text alone never promotes a memory; only explicit is_first does.
 
 The conservative current behavior is intentional until the owner chooses D0-D5 in
-docs/v2/contracts/V2_MEMORY_INITIAL.md. This suite locks the gate; it does not implement isInitial.
+3f6594eb:docs/v2/contracts/V2_MEMORY_INITIAL.md. This suite locks the gate; it does not implement isInitial.
 """
 
 from __future__ import annotations

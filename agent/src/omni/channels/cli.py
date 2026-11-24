@@ -1,7 +1,7 @@
 """本地终端 REPL 入口：uv run omni。
 
 职责纪律：本文件只做「界面展示 + 输入解析 + 调 Runtime 门面」；
-所有对象装配都在 bootstrap.build_runtime 里完成（组装根规则见 docs/ARCHITECTURE.md）。
+所有对象装配都在 bootstrap.build_runtime 里完成（组装根规则见 docs/v/reference/ARCHITECTURE.md）。
 """
 
 from __future__ import annotations

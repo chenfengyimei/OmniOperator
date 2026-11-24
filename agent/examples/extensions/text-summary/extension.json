@@ -1,0 +1,27 @@
+{
+  "format": "omni-python-extension-1",
+  "id": "text_summary",
+  "version": "1.0",
+  "entry": "plugin.py",
+  "tools": [
+    {
+      "name": "summarize",
+      "description": "Return the first nonempty line, line count and character count of the supplied text.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "text": {
+            "type": "string",
+            "maxLength": 4096
+          }
+        },
+        "required": [
+          "text"
+        ],
+        "additionalProperties": false
+      },
+      "writes": true,
+      "timeout_s": 10
+    }
+  ]
+}

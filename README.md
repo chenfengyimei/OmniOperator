@@ -9,13 +9,13 @@
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.12%2B-3776AB)](https://www.python.org/)
 [![Platform](https://img.shields.io/badge/platform-Windows-0078D6)](#六环境要求与安装)
-[![tests](https://img.shields.io/badge/tests-offline-blue)](docs/DEVELOPMENT_STATUS.md)
-[![Status](https://img.shields.io/badge/status-alpha-orange)](docs/ACCEPTANCE.md)
+[![tests](https://img.shields.io/badge/tests-offline-blue)](docs/v/STATUS.md)
+[![Status](https://img.shields.io/badge/status-alpha-orange)](docs/v/reference/ACCEPTANCE.md)
 
 </div>
 
 <p align="center">
-  <img src="docs/assets/workbench.png" alt="OmniOperator Web 工作台：对话、展开的工具调用链与右侧面板（演示数据截图）" width="100%">
+  <img src="docs/v/assets/workbench.png" alt="OmniOperator Web 工作台：对话、展开的工具调用链与右侧面板（演示数据截图）" width="100%">
 </p>
 
 ---
@@ -71,7 +71,7 @@ OmniOperator 的答案是：**给每一次动作绑定一次观察，动作必�
 **旧的 idx 令牌永远不会点到新的元素**，`tap_element` 不带 `obs=<id>` 直接拒绝。
 桌面端还有窗口租约、浏览器端有单线程所有权——同一时刻，只有一个"手"在动。
 
-![安卓应用控制台：观察令牌、锁帧坐标、元素与手势、白名单应用、UI 树预览（演示环境未接设备，展示控制台结构）](docs/assets/gitee/android-control.png)
+![安卓应用控制台：观察令牌、锁帧坐标、元素与手势、白名单应用、UI 树预览（演示环境未接设备，展示控制台结构）](docs/v/assets/android-control.png)
 
 这不是模型能力的胜利，是**工程约束的胜利**：让不可靠的模型，在可靠的骨架里工作。
 
@@ -93,7 +93,7 @@ OmniOperator 的答案是：**给每一次动作绑定一次观察，动作必�
 | **白名单 fail-closed** | QQ 通道 | 空白名单 = 拒绝所有人；群聊不注入个人档案与常驻记忆 |
 
 完整契约（会话并发、至多一次领取、浏览器单线程所有权、文件域边界、产物归属）见
-[架构权威 ARCHITECTURE](docs/ARCHITECTURE.md) §3——**由 AST 测试强制执行，改坏即红**。
+[架构权威 ARCHITECTURE](docs/v/reference/ARCHITECTURE.md) §3——**由 AST 测试强制执行，改坏即红**。
 
 ### 2. 六层记忆：像人一样遗忘与回忆
 
@@ -109,7 +109,7 @@ OmniOperator 的答案是：**给每一次动作绑定一次观察，动作必�
 | **注入** | 常驻条目 | 每轮注入系统提示词的稳定前缀 | 冻结快照，保证缓存命中 |
 
 关键在于**分工**：全量记忆负责"不丢"，整理笔记负责"可读"，人物卡负责"懂人"，事实语料负责"查得到"。
-四者用不同的读取协议，谁也不越界——这是 `docs/MEMORY_SYSTEM.md` 的硬约定。
+四者用不同的读取协议，谁也不越界——这是 [记忆系统设计原文](https://gitee.com/chenfengloveyuri/OmniOperator/blob/3f6594ebd307dfd3d7f64be7b21c83a36b938fb5/docs/MEMORY_SYSTEM.md) 的硬约定。
 
 检索层支持 **FTS5 关键词 + sqlite-vec 向量语义的 RRF 融合**（`core/retrieval.py`），
 embedding 可走本地 Ollama 或云端 API，异步索引、删除联动、模型版本隔离、失败自动回退 FTS。
@@ -179,10 +179,10 @@ embedding 可走本地 Ollama 或云端 API，异步索引、删除联动、模�
 | **内核** | 工具循环 / grace call / todo / 运行事件 / 取消 / 受限委派 / 持久摘要 / 费用预留与结算 / 能力档位路由 |
 | **记忆与技能** | 六层记忆体系、作用域与额度、遗忘墓碑、异步 review、技能 CAS/历史/回滚、外来包隔离安装 |
 | **本机与网页** | 受限文件读写（允许根 + 差异预览 + 回滚）、只读 shell 白名单 + 人工确认命令、公开网页抓取 |
-| **调度与 QQ** | cron 编辑/时区/成功运行依赖/并行限制、持久 outbox 与回执、群场景隔离（[QQ 场景](docs/QQ_SCENARIOS.md)） |
+| **调度与 QQ** | cron 编辑/时区/成功运行依赖/并行限制、持久 outbox 与回执、群场景隔离（[QQ 场景](docs/v/reference/QQ_SCENARIOS.md)） |
 | **浏览器与 B站** | Playwright 所有者线程、写预算与审批；B站读四件套、评论/私信草稿与受控 UI 发送（默认关闭） |
-| **安卓** | 观察绑定动作、锁帧坐标、设备互斥、焦点核验、输入法恢复、MJPEG 实时画面（[安卓手册](docs/ANDROID.md)） |
-| **Windows 桌面** | 原生 UIAutomation、观察令牌、窗口租约、后台语义动作（[桌面手册](docs/DESKTOP.md)） |
+| **安卓** | 观察绑定动作、锁帧坐标、设备互斥、焦点核验、输入法恢复、MJPEG 实时画面（[安卓手册](docs/v/reference/ANDROID.md)） |
+| **Windows 桌面** | 原生 UIAutomation、观察令牌、窗口租约、后台语义动作（[桌面手册](docs/v/reference/DESKTOP.md)） |
 | **插件与 MCP** | manifest/隔离/人工激活、命名空间注册、社区客户端与参考服务器、MCP 漂移撤权 |
 | **混合检索** | Ollama/API 双接口 embedding、sqlite-vec + FTS、RRF 融合、异步索引与删除联动 |
 | **运维与验证** | 进程身份、有界关闭、只读 doctor、备份恢复、日志轮转、离线测试、证据与常驻检查 |
@@ -191,7 +191,7 @@ CLI 支持 `/new`、`/list`、`/use <id>`、`/switch <model>`、`/tools`、`/mem
 `/doctor`、`/help`、`/quit`。工作台提供会话、运行进度与停止、审批、产物、技能编辑、
 任务与待投递、服务、设备、用量和设置中心。
 
-![设置中心「小鱼大脑」：人设编辑与预设（演示数据截图）](docs/assets/hub.png)
+![设置中心「小鱼大脑」：人设编辑与预设（演示数据截图）](docs/v/assets/hub.png)
 
 ---
 
@@ -199,9 +199,9 @@ CLI 支持 `/new`、`/list`、`/use <id>`、`/switch <model>`、`/tools`、`/mem
 
 | 指标 | 数值 | 怎么验证 |
 |---|---|---|
-| 生产源码 | [实时生成索引](docs/index/MODULES.md) | `uv run --no-sync python scripts/project_index.py --check` |
+| 生产源码 | [实时生成索引](docs/v/index/MODULES.md) | `uv run --no-sync python scripts/project_index.py --check` |
 | 测试代码 | `agent/tests/` | 每例使用隔离数据；默认离线 |
-| 离线单测 | [当前固定版本验证记录](docs/evidence/unification-offline.json) | `uv run --no-sync pytest -q` |
+| 离线单测 | [当前固定版本验证记录](https://gitee.com/chenfengloveyuri/OmniOperator/blob/3f6594ebd307dfd3d7f64be7b21c83a36b938fb5/docs/evidence/unification-offline.json) | `uv run --no-sync pytest -q` |
 | 前端资源 | 根 `web/`，原生 ES 模块 | 直接wheel与sdist→wheel均校验界面资源 |
 | 静态检查 | **11 类规则清零并固化** | `agent/ruff.toml` + `ruff check agent/src/omni` |
 | 架构守卫 | **AST 强制分层、组装根唯一** | `agent/tests/test_arch.py` |
@@ -218,7 +218,7 @@ CLI 支持 `/new`、`/list`、`/use <id>`、`/switch <model>`、`/tools`、`/mem
 生产代码 : 测试代码  ≈  1.4 : 1
 ```
 
-![项目索引：职责模块、源码文件、API 与工具全部可搜索跳转（由 AST 扫描自动生成）](docs/assets/gitee/project-index.png)
+![项目索引：职责模块、源码文件、API 与工具全部可搜索跳转（由 AST 扫描自动生成）](docs/v/assets/project-index.png)
 
 ---
 
@@ -240,9 +240,9 @@ CLI 支持 `/new`、`/list`、`/use <id>`、`/switch <model>`、`/tools`、`/mem
 | 能力 | 需要什么 |
 |---|---|
 | 浏览器 / B站 | Playwright Chromium（一条命令，见下） |
-| 安卓控制 | ADB + 手机开 USB 调试 + ADBKeyboard 输入法（[安卓手册](docs/ANDROID.md)） |
-| QQ 通道 | NapCat 部署（[QQ 部署](docs/QQ_SETUP.md)） |
-| 语义检索 | 本地 Ollama 向量模型，或云端 embedding 服务（[检索手册](docs/RETRIEVAL.md)） |
+| 安卓控制 | ADB + 手机开 USB 调试 + ADBKeyboard 输入法（[安卓手册](docs/v/reference/ANDROID.md)） |
+| QQ 通道 | NapCat 部署（[QQ 部署](docs/v/reference/QQ_SETUP.md)） |
+| 语义检索 | 本地 Ollama 向量模型，或云端 embedding 服务（[检索手册](docs/v/reference/RETRIEVAL.md)） |
 
 ### 从源码安装（四步）
 
@@ -288,7 +288,7 @@ uv run --no-sync omni-v1                   # 显式V1 CLI回退
 uv run --no-sync omni-web-v1               # 显式V1工作台回退
 ```
 
-也可以双击`start.bat`启动V2工作台（`scripts/start-v2.ps1`）；`start-v1.bat`保留旧配对入口。V2使用独立实例，不导入现有V1数据。已有常驻环境不在本任务中重建，开发启动可直接用`./scripts/start-v2.ps1`；新安装包使用新的默认命令。V1专用`omni-qq`、`omni-heartbeat`兼容命令继续保留。Windows离线安装与维护见[候选交付](docs/v2/platforms/windows/V2_WINDOWS_CANDIDATE.md)。
+也可以双击`start.bat`启动V2工作台（`scripts/start-v2.ps1`）；`start-v1.bat`保留旧配对入口。V2使用独立实例，不导入现有V1数据。已有常驻环境不在本任务中重建，开发启动可直接用`./scripts/start-v2.ps1`；新安装包使用新的默认命令。V1专用`omni-qq`、`omni-heartbeat`兼容命令继续保留。Windows离线安装与维护见[候选交付](https://gitee.com/chenfengloveyuri/OmniOperator/blob/3f6594ebd307dfd3d7f64be7b21c83a36b938fb5/docs/v2/platforms/windows/V2_WINDOWS_CANDIDATE.md)。
 
 ### 装完先自检
 
@@ -310,10 +310,10 @@ uv run --no-sync pytest -q  # 开发完成后统一离线验收；开发中使�
 ### 配置要点
 
 - **模型密钥**：`.env`（国产/海外供应商前缀与 LiteLLM 对应）；本地 Ollama 免密钥。
-- **QQ**：部署 [NapCat](docs/QQ_SETUP.md) → 工作台扫码 → 设置白名单（空白名单 = 谁都不许）。
-- **B站**：Cookie 在工作台设置中心粘贴（默认关闭写入，[写操作手册](docs/BILIBILI_WRITING.md)）。
-- **安卓**：USB 调试 + ADB + 中文输入法适配（[安卓手册](docs/ANDROID.md)）。
-- **MCP**：显式配置的本地 stdio 服务（[MCP 手册](docs/MCP.md)）。
+- **QQ**：部署 [NapCat](docs/v/reference/QQ_SETUP.md) → 工作台扫码 → 设置白名单（空白名单 = 谁都不许）。
+- **B站**：Cookie 在工作台设置中心粘贴（默认关闭写入，[写操作手册](docs/v/reference/BILIBILI_WRITING.md)）。
+- **安卓**：USB 调试 + ADB + 中文输入法适配（[安卓手册](docs/v/reference/ANDROID.md)）。
+- **MCP**：显式配置的本地 stdio 服务（[MCP 手册](docs/v/reference/MCP.md)）。
 - **数据**：`data/memory.db` 存会话与记忆，`data/state.db` 存任务/额度/运行账本；路径均可注入。
 
 ```powershell
@@ -326,23 +326,23 @@ uv run --no-sync python -m omni.system.backup --to data/backups/<日期>   # 升
 
 ## 七、开发者入口
 
-1. 先读 [HANDOFF](docs/HANDOFF.md)（交接入口：能力清单 + 平台坑），再读
-   [ARCHITECTURE](docs/ARCHITECTURE.md)（分层与组装根唯一权威，AST 强制）。
-2. 进度与证据以 [DEVELOPMENT_STATUS](docs/DEVELOPMENT_STATUS.md) 台账为准；
-   功能导航见 [PROJECT_INDEX](docs/PROJECT_INDEX.md)。
-3. 新能力接入（工具/通道/记忆/插件）按 [ARCHITECTURE §5](docs/ARCHITECTURE.md) checklist 走；
+1. 先读 [HANDOFF](docs/v/HANDOFF.md)（交接入口：能力清单 + 平台坑），再读
+   [ARCHITECTURE](docs/v/reference/ARCHITECTURE.md)（分层与组装根唯一权威，AST 强制）。
+2. 进度与证据以 [DEVELOPMENT_STATUS](docs/v/STATUS.md) 台账为准；
+   功能导航见 [PROJECT_INDEX](docs/v/reference/PROJECT_INDEX.md)。
+3. 新能力接入（工具/通道/记忆/插件）按 [ARCHITECTURE §5](docs/v/reference/ARCHITECTURE.md) checklist 走；
    每个新模块必须有单测，提交信息用中文「领域：要点——细节」，全量测试全绿再提交。
-4. 前端纪律以 [UI_DESIGN_SYSTEM](docs/UI_DESIGN_SYSTEM.md) 为唯一规范；新增/删除文件后跑
+4. 前端纪律以 [UI_DESIGN_SYSTEM](docs/v/reference/UI_DESIGN_SYSTEM.md) 为唯一规范；新增/删除文件后跑
    `uv run --no-sync python scripts/project_index.py` 更新索引。
 5. 完整贡献流程见 [CONTRIBUTING](CONTRIBUTING.md)；参与即接受 [行为准则](CODE_OF_CONDUCT.md)。
 
 **核心文档导航**
 
-- **用户手册**：[环境与安装](#六环境要求与安装) · [QQ 部署](docs/QQ_SETUP.md) · [B站写入](docs/BILIBILI_WRITING.md) ·
-  [安卓](docs/ANDROID.md) · [桌面](docs/DESKTOP.md) · [MCP](docs/MCP.md) · [终端](docs/TERMINAL.md) · [检索](docs/RETRIEVAL.md)
-- **设计权威**：[架构](docs/ARCHITECTURE.md) · [记忆系统](docs/MEMORY_SYSTEM.md) · [数据模型](docs/DATA_MODEL.md) ·
-  [插件系统](docs/PLUGIN_SYSTEM.md) · [技能系统](docs/SKILL_SYSTEM.md) · [档位路由](docs/MODE_ROUTING.md)
-- **工程记录**：[重构记录](docs/REFACTORING.md) · [运维](docs/OPERATIONS.md) · [验证](docs/VALIDATION.md) · [验收](docs/ACCEPTANCE.md)
+- **用户手册**：[环境与安装](#六环境要求与安装) · [QQ 部署](docs/v/reference/QQ_SETUP.md) · [B站写入](docs/v/reference/BILIBILI_WRITING.md) ·
+  [安卓](docs/v/reference/ANDROID.md) · [桌面](docs/v/reference/DESKTOP.md) · [MCP](docs/v/reference/MCP.md) · [终端](docs/v/reference/TERMINAL.md) · [检索](docs/v/reference/RETRIEVAL.md)
+- **设计权威**：[架构](docs/v/reference/ARCHITECTURE.md) · [记忆系统](https://gitee.com/chenfengloveyuri/OmniOperator/blob/3f6594ebd307dfd3d7f64be7b21c83a36b938fb5/docs/MEMORY_SYSTEM.md) · [数据模型](docs/v/reference/DATA_MODEL.md) ·
+  [插件系统](docs/v/reference/PLUGIN_SYSTEM.md) · [技能系统](https://gitee.com/chenfengloveyuri/OmniOperator/blob/3f6594ebd307dfd3d7f64be7b21c83a36b938fb5/docs/SKILL_SYSTEM.md) · [档位路由](https://gitee.com/chenfengloveyuri/OmniOperator/blob/3f6594ebd307dfd3d7f64be7b21c83a36b938fb5/docs/MODE_ROUTING.md)
+- **工程记录**：[重构记录](docs/v/reference/REFACTORING.md) · [运维](docs/v/reference/OPERATIONS.md) · [验证](https://gitee.com/chenfengloveyuri/OmniOperator/blob/3f6594ebd307dfd3d7f64be7b21c83a36b938fb5/docs/VALIDATION.md) · [验收](docs/v/reference/ACCEPTANCE.md)
 - **社区与版本**：[文档总导航](docs/README.md) · [变更日志](CHANGELOG.md) · [贡献指南](CONTRIBUTING.md) ·
   [安全策略](SECURITY.md) · [行为准则](CODE_OF_CONDUCT.md)
 
@@ -352,7 +352,7 @@ uv run --no-sync python -m omni.system.backup --to data/backups/<日期>   # 升
 
 开源不等于发布稳定版。当前状态是**受控内测（alpha）**：
 
-- ✅ **历史验证**：V1 的 1515 项离线测试、架构守卫、桌面记事本首个真实闭环、备份恢复、只读体检；仅对应当时版本。V2 当前验证范围见 [开发状态](docs/DEVELOPMENT_STATUS.md)。
+- ✅ **历史验证**：V1 的 1515 项离线测试、架构守卫、桌面记事本首个真实闭环、备份恢复、只读体检；仅对应当时版本。V2 当前验证范围见 [开发状态](docs/v/STATUS.md)。
 - ⏳ **待真实验收**：QQ 实站完整闭环、安卓真机（多设备/旋转/断连）、真实模型混合检索收益对比、
   72 小时常驻、夜间整理→早报链路
 - ⚠️ **不属于已验证交付**：macOS/Linux 全功能、通用桌面接管（不承诺 SendInput 对所有软件后台不抢焦点）、
@@ -378,121 +378,121 @@ uv run --no-sync python -m omni.system.backup --to data/backups/<日期>   # 升
 代码以 [Apache-2.0](LICENSE) 许可发布。
 
 Python产品工程位于 [agent/](agent/README.md)，单一界面源码位于 `web/`；测试、配置模板、开发脚本和产品依赖归产品目录。
-当前统一状态见 [开发状态](docs/DEVELOPMENT_STATUS.md)，归档恢复与真实验收见 [操作手册](docs/UNIFICATION_ACCEPTANCE.md)。
-全仓位置规则见 [REPOSITORY_STRUCTURE](docs/REPOSITORY_STRUCTURE.md)。
+当前统一状态见 [开发状态](docs/v/STATUS.md)，归档恢复与真实验收见 [操作手册](https://gitee.com/chenfengloveyuri/OmniOperator/blob/3f6594ebd307dfd3d7f64be7b21c83a36b938fb5/docs/UNIFICATION_ACCEPTANCE.md)。
+全仓位置规则见 [REPOSITORY_STRUCTURE](docs/v/reference/REPOSITORY_STRUCTURE.md)。
 
 ---
 
 
 ---
 
-Windows离线候选默认入口为V2，23个业务入口与独立安装链已接线；真实账号、设备、桌面、72小时和其他系统仍待验收，整个V2未整体验收。进度见[Windows候选任务](docs/tasks/v2-windows-candidate.json)，历史记录见[V2重构记录](docs/V2_REFACTOR.md)。
+Windows离线候选默认入口为V2，23个业务入口与独立安装链已接线；真实账号、设备、桌面、72小时和其他系统仍待验收，整个V2未整体验收。进度见[Windows候选任务](https://gitee.com/chenfengloveyuri/OmniOperator/blob/3f6594ebd307dfd3d7f64be7b21c83a36b938fb5/docs/tasks/v2-windows-candidate.json)，历史记录见[V2重构记录](docs/v/reference/V2_REFACTOR.md)。
 
 ## 模块地图
 
-版本检查、源码升级与故障恢复的使用说明见 [版本与更新](docs/UPDATES.md)。
+版本检查、源码升级与故障恢复的使用说明见 [版本与更新](docs/v/reference/UPDATES.md)。
 
 以职责模块为单位（与 `agent/src/omni/system/catalog/schema.py` 分类一致，由 `agent/tests/test_community_docs.py` 守卫防漂移）。
-完整可搜索索引见工作台 `/project/` 页与 [docs/index/MODULES.md](docs/index/MODULES.md)。
+完整可搜索索引见工作台 `/project/` 页与 [docs/v/index/MODULES.md](docs/v/index/MODULES.md)。
 
 ### 平台与数据
 
 | 模块 | 职责 | 文档 |
 |---|---|---|
-| `v2-adapters` | **V2 数据与平台适配（开发中）** — 单库事务、日志、受管能力与平台原语 | [V2_REFACTOR](docs/V2_REFACTOR.md) |
-| `agent-directories` | **项目存储与 Agent 目录** — 全局与独立空间目录解析、CAS 配置、运维路径解析与用途索引 | [STORAGE, AGENT_STORAGE](docs/STORAGE.md) |
-| `updates` | **版本与升级事务** — Gitee 固定提交检查、源码预检、安装级维护与独立恢复 | [UPDATES](docs/UPDATES.md) |
-| `config` | **配置与路径契约** — 配置模型、加载与 RuntimePaths | [ARCHITECTURE](docs/ARCHITECTURE.md) |
-| `storage` | **记忆与运行账本** — 会话/事实/技能/产物及 state.db 事务、迁移、额度、投递 | [OPERATIONS, RETRIEVAL](docs/OPERATIONS.md) |
-| `command-contracts` | **状态库与命令账本声明** — state.db 全部表结构与迁移脚本的唯一声明源 | [TERMINAL](docs/TERMINAL.md) |
-| `platform` | **平台基础设施** — 服务、进程身份、配置写回、锁/原子文件、日志、doctor、备份与验收 | [OPERATIONS, ACCEPTANCE](docs/OPERATIONS.md) |
+| `v2-adapters` | **V2 数据与平台适配（开发中）** — 单库事务、日志、受管能力与平台原语 | [V2_REFACTOR](docs/v/reference/V2_REFACTOR.md) |
+| `agent-directories` | **项目存储与 Agent 目录** — 全局与独立空间目录解析、CAS 配置、运维路径解析与用途索引 | [STORAGE, AGENT_STORAGE](docs/v/reference/STORAGE.md) |
+| `updates` | **版本与升级事务** — Gitee 固定提交检查、源码预检、安装级维护与独立恢复 | [UPDATES](docs/v/reference/UPDATES.md) |
+| `config` | **配置与路径契约** — 配置模型、加载与 RuntimePaths | [ARCHITECTURE](docs/v/reference/ARCHITECTURE.md) |
+| `storage` | **记忆与运行账本** — 会话/事实/技能/产物及 state.db 事务、迁移、额度、投递 | [OPERATIONS, RETRIEVAL](docs/v/reference/OPERATIONS.md) |
+| `command-contracts` | **状态库与命令账本声明** — state.db 全部表结构与迁移脚本的唯一声明源 | [TERMINAL](docs/v/reference/TERMINAL.md) |
+| `platform` | **平台基础设施** — 服务、进程身份、配置写回、锁/原子文件、日志、doctor、备份与验收 | [OPERATIONS, ACCEPTANCE](docs/v/reference/OPERATIONS.md) |
 
 ### Web 接口
 
 | 模块 | 职责 | 文档 |
 |---|---|---|
-| `v2-workbench` | **V2 Windows候选工作台** — 23个业务入口，真实环境验收另行记录 | [V2_REFACTOR](docs/V2_REFACTOR.md) |
-| `http-storage` | **项目目录与文件管理** — 全局与 Agent 目录设置、运行与待重启路径、用途索引及当前空间公开文件区的有界浏览和人工上传 | [STORAGE, AGENT_STORAGE](docs/STORAGE.md) |
-| `http-updates` | **关于与更新 API** — 版本、通道、人工安装确认和持久进度 | [UPDATES](docs/UPDATES.md) |
-| `http-context` | **上下文设置与统计** — 设置中心的只读窗口统计、供应商缓存样本和带版本检查的配置保存 | [CONTEXT_SETTINGS, PROMPT_CONTEXT](docs/CONTEXT_SETTINGS.md) |
-| `http-sessions` | **会话与待办 API** — 会话选择、历史、状态和待办 | [PROJECT_INDEX](docs/PROJECT_INDEX.md) |
-| `http-conversation` | **对话与流式 API** — 普通/流式对话、显式运行入口 | [PROJECT_INDEX](docs/PROJECT_INDEX.md) |
-| `http-runs` | **运行与用量 API** — 运行查询、事件续读、协作取消和费用视图 | [PROJECT_INDEX](docs/PROJECT_INDEX.md) |
-| `http-memory` | **记忆与档案 API** — 事实、档案、常驻、review 和检索状态 | [PROJECT_INDEX](docs/PROJECT_INDEX.md) |
-| `http-skills` | **技能与审阅 API** — 技能编辑/修订/差异/回滚和待审阅状态，保留静态路由优先级 | [PROJECT_INDEX](docs/PROJECT_INDEX.md) |
-| `http-artifacts` | **产物 API** — 产物列表、指纹验证读取和清理，统一领域错误映射 | [PROJECT_INDEX](docs/PROJECT_INDEX.md) |
-| `http-approvals` | **审批 API** — 待批准事项和人工决定 | [ARCHITECTURE](docs/ARCHITECTURE.md) |
-| `http-mcp` | **MCP 管理 API** — 只读状态、显式发现、目录复核和重连 | [MCP](docs/MCP.md) |
-| `http-operations` | **服务与诊断 API** — 系统概览、doctor、备份、服务启停和日志 | [OPERATIONS](docs/OPERATIONS.md) |
-| `http-automation` | **调度与投递 API** — 任务创建/编辑/启停、历史和 outbox 人工处理 | [PROJECT_INDEX](docs/PROJECT_INDEX.md) |
-| `http-publications` | **发布草稿 API** — 草稿查询、乐观编辑和未知结果核查，不直接发布 | [BILIBILI_WRITING](docs/BILIBILI_WRITING.md) |
-| `http-capabilities` | **能力与诊断面板** — 被动诊断和能力汇总 | [OPERATIONS](docs/OPERATIONS.md) |
-| `http-android` | **安卓设备 API 与面板** — 按设备固定目标、配对归属的观察与受控应用操作 | [ANDROID](docs/ANDROID.md) |
-| `http-devices` | **桌面与安卓 API** — 窗口观察、设备树/锁帧、受观察约束的手动动作和 MJPEG | [ANDROID, DESKTOP](docs/ANDROID.md) |
-| `http-contracts` | **HTTP 请求契约** — 公共请求模型 | [PROJECT_INDEX](docs/PROJECT_INDEX.md) |
-| `http-market` | **市场 API（人设与插件）** — 社区源配置、人设卡与插件索引代理，以及插件的安装/激活/启停/卸载 | [PLUGIN_SYSTEM](docs/PLUGIN_SYSTEM.md) |
-| `http-routing` | **HTTP 路由装配** — 聚合注入 Runtime 的领域路由，由应用入口统一挂载 | [PROJECT_INDEX, REFACTORING](docs/PROJECT_INDEX.md) |
+| `v2-workbench` | **V2 Windows候选工作台** — 23个业务入口，真实环境验收另行记录 | [V2_REFACTOR](docs/v/reference/V2_REFACTOR.md) |
+| `http-storage` | **项目目录与文件管理** — 全局与 Agent 目录设置、运行与待重启路径、用途索引及当前空间公开文件区的有界浏览和人工上传 | [STORAGE, AGENT_STORAGE](docs/v/reference/STORAGE.md) |
+| `http-updates` | **关于与更新 API** — 版本、通道、人工安装确认和持久进度 | [UPDATES](docs/v/reference/UPDATES.md) |
+| `http-context` | **上下文设置与统计** — 设置中心的只读窗口统计、供应商缓存样本和带版本检查的配置保存 | [CONTEXT_SETTINGS, PROMPT_CONTEXT](docs/v/reference/CONTEXT_SETTINGS.md) |
+| `http-sessions` | **会话与待办 API** — 会话选择、历史、状态和待办 | [PROJECT_INDEX](docs/v/reference/PROJECT_INDEX.md) |
+| `http-conversation` | **对话与流式 API** — 普通/流式对话、显式运行入口 | [PROJECT_INDEX](docs/v/reference/PROJECT_INDEX.md) |
+| `http-runs` | **运行与用量 API** — 运行查询、事件续读、协作取消和费用视图 | [PROJECT_INDEX](docs/v/reference/PROJECT_INDEX.md) |
+| `http-memory` | **记忆与档案 API** — 事实、档案、常驻、review 和检索状态 | [PROJECT_INDEX](docs/v/reference/PROJECT_INDEX.md) |
+| `http-skills` | **技能与审阅 API** — 技能编辑/修订/差异/回滚和待审阅状态，保留静态路由优先级 | [PROJECT_INDEX](docs/v/reference/PROJECT_INDEX.md) |
+| `http-artifacts` | **产物 API** — 产物列表、指纹验证读取和清理，统一领域错误映射 | [PROJECT_INDEX](docs/v/reference/PROJECT_INDEX.md) |
+| `http-approvals` | **审批 API** — 待批准事项和人工决定 | [ARCHITECTURE](docs/v/reference/ARCHITECTURE.md) |
+| `http-mcp` | **MCP 管理 API** — 只读状态、显式发现、目录复核和重连 | [MCP](docs/v/reference/MCP.md) |
+| `http-operations` | **服务与诊断 API** — 系统概览、doctor、备份、服务启停和日志 | [OPERATIONS](docs/v/reference/OPERATIONS.md) |
+| `http-automation` | **调度与投递 API** — 任务创建/编辑/启停、历史和 outbox 人工处理 | [PROJECT_INDEX](docs/v/reference/PROJECT_INDEX.md) |
+| `http-publications` | **发布草稿 API** — 草稿查询、乐观编辑和未知结果核查，不直接发布 | [BILIBILI_WRITING](docs/v/reference/BILIBILI_WRITING.md) |
+| `http-capabilities` | **能力与诊断面板** — 被动诊断和能力汇总 | [OPERATIONS](docs/v/reference/OPERATIONS.md) |
+| `http-android` | **安卓设备 API 与面板** — 按设备固定目标、配对归属的观察与受控应用操作 | [ANDROID](docs/v/reference/ANDROID.md) |
+| `http-devices` | **桌面与安卓 API** — 窗口观察、设备树/锁帧、受观察约束的手动动作和 MJPEG | [ANDROID, DESKTOP](docs/v/reference/ANDROID.md) |
+| `http-contracts` | **HTTP 请求契约** — 公共请求模型 | [PROJECT_INDEX](docs/v/reference/PROJECT_INDEX.md) |
+| `http-market` | **市场 API（人设与插件）** — 社区源配置、人设卡与插件索引代理，以及插件的安装/激活/启停/卸载 | [PLUGIN_SYSTEM](docs/v/reference/PLUGIN_SYSTEM.md) |
+| `http-routing` | **HTTP 路由装配** — 聚合注入 Runtime 的领域路由，由应用入口统一挂载 | [PROJECT_INDEX, REFACTORING](docs/v/reference/PROJECT_INDEX.md) |
 
 ### 内核与模型
 
 | 模块 | 职责 | 文档 |
 |---|---|---|
-| `v2-domain` | **V2 领域合同** — 纯状态机与配置规则 | [V2_REFACTOR](docs/V2_REFACTOR.md) |
-| `v2-application` | **V2 应用服务** — 回合、审批、取消与事务端口 | [V2_REFACTOR](docs/V2_REFACTOR.md) |
-| `v2-composition` | **V2 实例组装** — 独立实例与开发入口 | [V2_REFACTOR](docs/V2_REFACTOR.md) |
-| `assembly` | **运行时组装** — 唯一组装根，构造依赖并暴露 Runtime 门面 | [ARCHITECTURE, REPOSITORY_STRUCTURE](docs/ARCHITECTURE.md) |
-| `prompt-context` | **提示词与上下文** — 稳定系统前缀、回合上下文快照渲染与保留当前请求的摘要边界 | [PROMPT_CONTEXT, ARCHITECTURE](docs/PROMPT_CONTEXT.md) |
-| `engine` | **Agent 内核** — 回合、上下文、工具循环、取消、委派约束、review 与调度 | [ARCHITECTURE](docs/ARCHITECTURE.md) |
-| `models` | **模型网关与 embedding** — 模型路由、能力、重试、流式、预算与 embedding 传输 | [RETRIEVAL](docs/RETRIEVAL.md) |
-| `safety` | **审批与权限** — 风险分级、人工审批与无人值守拒绝 | [ARCHITECTURE](docs/ARCHITECTURE.md) |
+| `v2-domain` | **V2 领域合同** — 纯状态机与配置规则 | [V2_REFACTOR](docs/v/reference/V2_REFACTOR.md) |
+| `v2-application` | **V2 应用服务** — 回合、审批、取消与事务端口 | [V2_REFACTOR](docs/v/reference/V2_REFACTOR.md) |
+| `v2-composition` | **V2 实例组装** — 独立实例与开发入口 | [V2_REFACTOR](docs/v/reference/V2_REFACTOR.md) |
+| `assembly` | **运行时组装** — 唯一组装根，构造依赖并暴露 Runtime 门面 | [ARCHITECTURE, REPOSITORY_STRUCTURE](docs/v/reference/ARCHITECTURE.md) |
+| `prompt-context` | **提示词与上下文** — 稳定系统前缀、回合上下文快照渲染与保留当前请求的摘要边界 | [PROMPT_CONTEXT, ARCHITECTURE](docs/v/reference/PROMPT_CONTEXT.md) |
+| `engine` | **Agent 内核** — 回合、上下文、工具循环、取消、委派约束、review 与调度 | [ARCHITECTURE](docs/v/reference/ARCHITECTURE.md) |
+| `models` | **模型网关与 embedding** — 模型路由、能力、重试、流式、预算与 embedding 传输 | [RETRIEVAL](docs/v/reference/RETRIEVAL.md) |
+| `safety` | **审批与权限** — 风险分级、人工审批与无人值守拒绝 | [ARCHITECTURE](docs/v/reference/ARCHITECTURE.md) |
 
 ### 交互与终端
 
 | 模块 | 职责 | 文档 |
 |---|---|---|
-| `terminal` | **内置终端** — ConPTY 后端、会话、会话池、WebSocket 四层 | [ARCHITECTURE, TERMINAL](docs/ARCHITECTURE.md) |
-| `workbench` | **项目与能力工作台** — 项目索引、API、已注册工具和扩展状态的只读 HTTP 适配 | [PROJECT_INDEX](docs/PROJECT_INDEX.md) |
-| `ui-shared` | **界面公共交互** — 统一导航、移动区域切换、有界请求、反馈和确认框 | [UI_QA](docs/UI_QA.md) |
-| `web-ui` | **Web 界面与身份** — 工作台业务路由、统一鉴权与静态界面 | [ARCHITECTURE, UI_QA](docs/ARCHITECTURE.md) |
-| `cli` | **CLI 入口** — 终端对话命令与 Runtime 适配 | [HANDOFF](docs/HANDOFF.md) |
-| `qq-channel` | **QQ 入口** — QQ 场景队列、事件去重和消息收发适配 | [QQ_SCENARIOS](docs/QQ_SCENARIOS.md) |
-| `heartbeat` | **心跳入口** — 定时领取、执行、投递与周期清理 | [OPERATIONS](docs/OPERATIONS.md) |
-| `channels` | **入口公共适配** — 入口生命周期和只读诊断/检索评测命令 | [OPERATIONS](docs/OPERATIONS.md) |
+| `terminal` | **内置终端** — ConPTY 后端、会话、会话池、WebSocket 四层 | [ARCHITECTURE, TERMINAL](docs/v/reference/ARCHITECTURE.md) |
+| `workbench` | **项目与能力工作台** — 项目索引、API、已注册工具和扩展状态的只读 HTTP 适配 | [PROJECT_INDEX](docs/v/reference/PROJECT_INDEX.md) |
+| `ui-shared` | **界面公共交互** — 统一导航、移动区域切换、有界请求、反馈和确认框 | [UI_QA](docs/v/reference/UI_QA.md) |
+| `web-ui` | **Web 界面与身份** — 工作台业务路由、统一鉴权与静态界面 | [ARCHITECTURE, UI_QA](docs/v/reference/ARCHITECTURE.md) |
+| `cli` | **CLI 入口** — 终端对话命令与 Runtime 适配 | [HANDOFF](docs/v/HANDOFF.md) |
+| `qq-channel` | **QQ 入口** — QQ 场景队列、事件去重和消息收发适配 | [QQ_SCENARIOS](docs/v/reference/QQ_SCENARIOS.md) |
+| `heartbeat` | **心跳入口** — 定时领取、执行、投递与周期清理 | [OPERATIONS](docs/v/reference/OPERATIONS.md) |
+| `channels` | **入口公共适配** — 入口生命周期和只读诊断/检索评测命令 | [OPERATIONS](docs/v/reference/OPERATIONS.md) |
 
 ### 工具能力
 
 | 模块 | 职责 | 文档 |
 |---|---|---|
-| `command-jobs` | **后台命令任务** — 审批后的独立命令任务、状态仓储、有限日志、会话隔离与取消 | [TERMINAL](docs/TERMINAL.md) |
-| `personal` | **个人记忆工具** — 时钟、事实、档案、常驻、todo、摘要与手动整理各自独立 | [ARCHITECTURE](docs/ARCHITECTURE.md) |
-| `scheduling` | **调度工具** — 周期/一次性任务、编辑、依赖和执行查询 | [HANDOFF](docs/HANDOFF.md) |
-| `delegation` | **委派工具** — 受父预算/权限/取消约束的子任务注册入口 | [ARCHITECTURE](docs/ARCHITECTURE.md) |
-| `system-tools` | **系统服务工具** — 状态查询和受审批的服务操作适配 | [OPERATIONS](docs/OPERATIONS.md) |
-| `shell` | **Agent shell 工具** — 只读命令语法、执行器、硬黑名单与人工确认命令 | [ARCHITECTURE](docs/ARCHITECTURE.md) |
-| `files` | **文件工具** — 允许根内的列表/搜索/读取/差异与受控写入回滚 | [ARCHITECTURE](docs/ARCHITECTURE.md) |
-| `web-fetch` | **网页读取工具** — 公开网页的目标网络、重定向、体积限制与正文提取 | [ARCHITECTURE](docs/ARCHITECTURE.md) |
-| `browser` | **浏览器工具** — Playwright 所有权、表单协议、观察与写预算 | [BILIBILI_WRITING](docs/BILIBILI_WRITING.md) |
-| `android` | **安卓工具** — ADB、防护、UI 树、观察令牌、锁帧和输入法 | [ANDROID](docs/ANDROID.md) |
-| `desktop` | **桌面工具** — Windows UIAutomation、窗口观察、租约与受控语义动作 | [DESKTOP](docs/DESKTOP.md) |
-| `bilibili` | **B站工具** — 读 API/转写及注入浏览器协议的草稿与受控写 | [BILIBILI_WRITING](docs/BILIBILI_WRITING.md) |
-| `storyboard` | **视频理解与分镜** — 切点检测、局部剪辑率格位分配、最锐帧、宫格与可寻址索引 | [VIDEO_UNDERSTANDING](docs/VIDEO_UNDERSTANDING.md) |
-| `qq-tools` | **QQ 工具** — OneBot 客户端与白名单内主动消息 | [QQ_SCENARIOS](docs/QQ_SCENARIOS.md) |
-| `toolkit` | **工具公共协议与兼容层** — Registry、ToolResult、SessionRef/RunRef、路径策略、截图协议及旧 import 薄转发 | [ARCHITECTURE](docs/ARCHITECTURE.md) |
+| `command-jobs` | **后台命令任务** — 审批后的独立命令任务、状态仓储、有限日志、会话隔离与取消 | [TERMINAL](docs/v/reference/TERMINAL.md) |
+| `personal` | **个人记忆工具** — 时钟、事实、档案、常驻、todo、摘要与手动整理各自独立 | [ARCHITECTURE](docs/v/reference/ARCHITECTURE.md) |
+| `scheduling` | **调度工具** — 周期/一次性任务、编辑、依赖和执行查询 | [HANDOFF](docs/v/HANDOFF.md) |
+| `delegation` | **委派工具** — 受父预算/权限/取消约束的子任务注册入口 | [ARCHITECTURE](docs/v/reference/ARCHITECTURE.md) |
+| `system-tools` | **系统服务工具** — 状态查询和受审批的服务操作适配 | [OPERATIONS](docs/v/reference/OPERATIONS.md) |
+| `shell` | **Agent shell 工具** — 只读命令语法、执行器、硬黑名单与人工确认命令 | [ARCHITECTURE](docs/v/reference/ARCHITECTURE.md) |
+| `files` | **文件工具** — 允许根内的列表/搜索/读取/差异与受控写入回滚 | [ARCHITECTURE](docs/v/reference/ARCHITECTURE.md) |
+| `web-fetch` | **网页读取工具** — 公开网页的目标网络、重定向、体积限制与正文提取 | [ARCHITECTURE](docs/v/reference/ARCHITECTURE.md) |
+| `browser` | **浏览器工具** — Playwright 所有权、表单协议、观察与写预算 | [BILIBILI_WRITING](docs/v/reference/BILIBILI_WRITING.md) |
+| `android` | **安卓工具** — ADB、防护、UI 树、观察令牌、锁帧和输入法 | [ANDROID](docs/v/reference/ANDROID.md) |
+| `desktop` | **桌面工具** — Windows UIAutomation、窗口观察、租约与受控语义动作 | [DESKTOP](docs/v/reference/DESKTOP.md) |
+| `bilibili` | **B站工具** — 读 API/转写及注入浏览器协议的草稿与受控写 | [BILIBILI_WRITING](docs/v/reference/BILIBILI_WRITING.md) |
+| `storyboard` | **视频理解与分镜** — 切点检测、局部剪辑率格位分配、最锐帧、宫格与可寻址索引 | [VIDEO_UNDERSTANDING](docs/v/reference/VIDEO_UNDERSTANDING.md) |
+| `qq-tools` | **QQ 工具** — OneBot 客户端与白名单内主动消息 | [QQ_SCENARIOS](docs/v/reference/QQ_SCENARIOS.md) |
+| `toolkit` | **工具公共协议与兼容层** — Registry、ToolResult、SessionRef/RunRef、路径策略、截图协议及旧 import 薄转发 | [ARCHITECTURE](docs/v/reference/ARCHITECTURE.md) |
 
 ### 插件与扩展
 
 | 模块 | 职责 | 文档 |
 |---|---|---|
-| `skills` | **技能工具** — 技能查询/创建/编辑/回滚与外来技能隔离安装入口 | [ARCHITECTURE](docs/ARCHITECTURE.md) |
-| `mcp` | **MCP 扩展适配** — 外部 stdio 工具发现、授权、漂移撤权与子进程生命周期 | [MCP](docs/MCP.md) |
-| `community` | **插件社区** — 社区客户端、工具适配与独立分发服务器 | [PLUGIN_SYSTEM](docs/PLUGIN_SYSTEM.md) |
-| `plugins` | **插件宿主** — manifest、隔离校验、人工激活、插件注册与生命周期 | [PLUGIN_SYSTEM](docs/PLUGIN_SYSTEM.md) |
+| `skills` | **技能工具** — 技能查询/创建/编辑/回滚与外来技能隔离安装入口 | [ARCHITECTURE](docs/v/reference/ARCHITECTURE.md) |
+| `mcp` | **MCP 扩展适配** — 外部 stdio 工具发现、授权、漂移撤权与子进程生命周期 | [MCP](docs/v/reference/MCP.md) |
+| `community` | **插件社区** — 社区客户端、工具适配与独立分发服务器 | [PLUGIN_SYSTEM](docs/v/reference/PLUGIN_SYSTEM.md) |
+| `plugins` | **插件宿主** — manifest、隔离校验、人工激活、插件注册与生命周期 | [PLUGIN_SYSTEM](docs/v/reference/PLUGIN_SYSTEM.md) |
 
 ### 开发与验证
 
 | 模块 | 职责 | 文档 |
 |---|---|---|
-| `catalog` | **项目索引基础设施** — 只读 AST 扫描、分类和确定性文档生成 | [PROJECT_INDEX](docs/PROJECT_INDEX.md) |
+| `catalog` | **项目索引基础设施** — 只读 AST 扫描、分类和确定性文档生成 | [PROJECT_INDEX](docs/v/reference/PROJECT_INDEX.md) |
 | `package` | **Python 包入口** — 安装包标识 | — |
 
 ---

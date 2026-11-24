@@ -2,8 +2,8 @@
 
 本文件记录面向用户的版本级变更，遵守 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)
 与语义化版本（SemVer）。逐提交的开发证据与测试台账见
-[docs/DEVELOPMENT_STATUS.md](docs/DEVELOPMENT_STATUS.md)；对外发布须经所有者按
-[验收闸门](docs/ACCEPTANCE.md) 明确批准——本文件中的任何条目都不表示已发布稳定版。
+[docs/v/STATUS.md](docs/v/STATUS.md)；对外发布须经所有者按
+[验收闸门](docs/v/reference/ACCEPTANCE.md) 明确批准——本文件中的任何条目都不表示已发布稳定版。
 
 ## [0.1.0] — 受控内测（未发布）
 

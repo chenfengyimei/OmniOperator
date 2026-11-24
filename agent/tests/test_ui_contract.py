@@ -1,4 +1,4 @@
-"""UI 契约守卫：Phase 1 token 统一后的接线纪律（docs/UI_DESIGN_SYSTEM.md）。
+"""UI 契约守卫：Phase 1 token 统一后的接线纪律（docs/v/reference/UI_DESIGN_SYSTEM.md）。
 
 历史：这组守卫始于 UI 迁移期（skin.css 由素材拼接 + 加载顺序），Phase 1 起
 素材拼接纪律由「token 单源」取代——token 唯一源守卫在 test_ui_design_tokens.py。

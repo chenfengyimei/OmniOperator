@@ -7,7 +7,7 @@ from omni_test_support.paths import REPOSITORY_ROOT as REPOSITORY_ROOT
 
 ROOT = REPOSITORY_ROOT
 CONFIG = ROOT / "pyrightconfig.strict.json"
-DOC = ROOT / "docs/TYPE_CHECKING.md"
+DOC = ROOT / "docs/v/reference/TYPE_CHECKING.md"
 
 
 def scope():

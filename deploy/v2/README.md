@@ -1,12 +1,12 @@
 # V2 开发部署
 
-当前 Windows 离线候选默认入口为 V2，显式 V1 回退保留；整个 V2 仍在开发。最新部署状态以 [交接记录](../../docs/HANDOFF.md) 为准，下文旧批次素材保留历史范围，不能据其“尚未接入”推断当前代码缺失。
+当前 Windows 离线候选默认入口为 V2，显式 V1 回退保留；整个 V2 仍在开发。最新部署状态以 [交接记录](../../docs/v/HANDOFF.md) 为准，下文旧批次素材保留历史范围，不能据其“尚未接入”推断当前代码缺失。
 
-工作台“桌面能力”首批支持显式能力检查、短时窗口元数据与身份复核；原生库只在受管辅助进程执行，默认启动不扫描桌面。Windows仅当前用户交互会话，Mac/Linux适配未接入时明确不可用；只有显式读取所选窗口时才返回有限UIA内容，密码控件不读取；不截图、不发送输入。权限、视图释放及后续原生适配边界见[桌面合同](../../docs/v2/contracts/V2_DESKTOP.md)。
+工作台“桌面能力”首批支持显式能力检查、短时窗口元数据与身份复核；原生库只在受管辅助进程执行，默认启动不扫描桌面。Windows仅当前用户交互会话，Mac/Linux适配未接入时明确不可用；只有显式读取所选窗口时才返回有限UIA内容，密码控件不读取；不截图、不发送输入。权限、视图释放及后续原生适配边界见[桌面合同](https://gitee.com/chenfengloveyuri/OmniOperator/blob/3f6594ebd307dfd3d7f64be7b21c83a36b938fb5/docs/v2/contracts/V2_DESKTOP.md)。
 
-常驻服务提供 `service capture / plan / materialize / verify / status` 生成独立部署包与 Windows 登录任务、LaunchAgent/LaunchDaemon、systemd 模板；这些命令仅准备和只读核验，源码安装只能预览。另有显式批准的注册、启停及 prepared release 用户交换命令，见[部署合同](../../docs/v2/operations/V2_SERVICES.md)、[服务控制](../../docs/v2/operations/V2_SERVICE_CONTROL.md)和[交换合同](../../docs/v2/operations/V2_SERVICE_EXCHANGE.md)。真实安装、原生管理器及升级恢复须另行验收，默认入口仍为 V1。
+常驻服务提供 `service capture / plan / materialize / verify / status` 生成独立部署包与 Windows 登录任务、LaunchAgent/LaunchDaemon、systemd 模板；这些命令仅准备和只读核验，源码安装只能预览。另有显式批准的注册、启停及 prepared release 用户交换命令，见[部署合同](https://gitee.com/chenfengloveyuri/OmniOperator/blob/3f6594ebd307dfd3d7f64be7b21c83a36b938fb5/docs/v2/operations/V2_SERVICES.md)、[服务控制](https://gitee.com/chenfengloveyuri/OmniOperator/blob/3f6594ebd307dfd3d7f64be7b21c83a36b938fb5/docs/v2/operations/V2_SERVICE_CONTROL.md)和[交换合同](https://gitee.com/chenfengloveyuri/OmniOperator/blob/3f6594ebd307dfd3d7f64be7b21c83a36b938fb5/docs/v2/operations/V2_SERVICE_EXCHANGE.md)。真实安装、原生管理器及升级恢复须另行验收，默认入口仍为 V1。
 
-所有者终端首批使用Windows原生ConPTY或POSIX PTY，不依赖桌面会话；V2不需要pywinpty，现有`terminal`可选包仍供V1使用。当前Windows已有隔离的中文输入、尺寸、退出与Job回收样例证据；macOS/Linux实际运行、其他Shell和长期常驻验收仍待进行，不能据源码或类型检查宣称已支持。详细权限、回执及恢复边界见[终端合同](../../docs/v2/contracts/V2_TERMINALS.md)。
+所有者终端首批使用Windows原生ConPTY或POSIX PTY，不依赖桌面会话；V2不需要pywinpty，现有`terminal`可选包仍供V1使用。当前Windows已有隔离的中文输入、尺寸、退出与Job回收样例证据；macOS/Linux实际运行、其他Shell和长期常驻验收仍待进行，不能据源码或类型检查宣称已支持。详细权限、回执及恢复边界见[终端合同](https://gitee.com/chenfengloveyuri/OmniOperator/blob/3f6594ebd307dfd3d7f64be7b21c83a36b938fb5/docs/v2/contracts/V2_TERMINALS.md)。
 
 在独立测试Agent配置明确工作目录后，进入“所有者终端”，选择服务端列出的Shell并确认启动权限。显式连接后用输入框发送临时目录测试命令，分别核对输入回执、实际输出和进程状态。切换分区不会关闭Shell；结束必须使用显式回收，并刷新确认`exited`且无`cleanup_pending`。响应不明时只查询原操作回执，不重新发送旧输入；恢复不会重新执行终端命令。
 
@@ -25,9 +25,9 @@ Windows路径同样使用显式的绝对新目录；默认V2数据目录与现�
 无桌面环境保存模型凭据时，使用 `--master-key-file` 指向实例目录之外、仅当前用户可读的Fernet密钥文件。
 密钥由部署者独立保管；程序不会自动在密文旁边生成明文主密钥。
 
-容器开发入口现为[独立交付说明](../../docs/v2/operations/V2_CONTAINER.md)：非 root 私有卷、只读根文件系统、显式 HTTPS 反代 Compose 和断网新实例核验工具已经接源码。配方默认仅监听容器内回环，远程监听仍须明确 origin。服务端 Chromium、模型、密钥与原生设备均须另外显式准备；镜像构建、运行与其他平台真实验收仍未完成，不能将模板或控制器专项当成容器已交付。
+容器开发入口现为[独立交付说明](https://gitee.com/chenfengloveyuri/OmniOperator/blob/3f6594ebd307dfd3d7f64be7b21c83a36b938fb5/docs/v2/operations/V2_CONTAINER.md)：非 root 私有卷、只读根文件系统、显式 HTTPS 反代 Compose 和断网新实例核验工具已经接源码。配方默认仅监听容器内回环，远程监听仍须明确 origin。服务端 Chromium、模型、密钥与原生设备均须另外显式准备；镜像构建、运行与其他平台真实验收仍未完成，不能将模板或控制器专项当成容器已交付。
 
-2026-11-15 只读复核：Docker CLI 已安装，但 Docker 引擎不可连接；本轮未启动 Docker Desktop 或构建镜像。当前配方和待验收边界见[打包状态](../../docs/v2/operations/V2_PACKAGING.md)。
+2026-11-15 只读复核：Docker CLI 已安装，但 Docker 引擎不可连接；本轮未启动 Docker Desktop 或构建镜像。当前配方和待验收边界见[打包状态](../../docs/v/reference/V2_PACKAGING.md)。
 
 离线备份：停止该V2实例后执行 `... --home /absolute/new-instance backup /absolute/new-backup`。
 恢复：`... restore /absolute/new-backup /absolute/new-restored-instance`。目标必须是新目录。
@@ -109,7 +109,7 @@ uv run --no-sync python -m omni.composition.cli --home /absolute/new-instance re
 uv run --no-sync python -m omni.composition.cli --home /absolute/new-instance retention-preview --after 完整运行UUID --limit 20
 ```
 
-该命令要求实例停止并取得独占锁，不自动停止服务或升级数据库。工作台对话区可固定本次运行；固定只保护执行正文保留，不改变显式遗忘或费用状态。输出不含聊天和工具正文，can_apply=false，不能作为删除计划执行。计划、备份后逐运行裁剪、断点续跑、显式取消与新目录恢复见[执行正文保留合同](../../docs/v2/contracts/V2_EXECUTION_RETENTION.md)。
+该命令要求实例停止并取得独占锁，不自动停止服务或升级数据库。工作台对话区可固定本次运行；固定只保护执行正文保留，不改变显式遗忘或费用状态。输出不含聊天和工具正文，can_apply=false，不能作为删除计划执行。计划、备份后逐运行裁剪、断点续跑、显式取消与新目录恢复见[执行正文保留合同](https://gitee.com/chenfengloveyuri/OmniOperator/blob/3f6594ebd307dfd3d7f64be7b21c83a36b938fb5/docs/v2/contracts/V2_EXECUTION_RETENTION.md)。
 
 已裁剪动作的产物引用维护（R3.retention_references，批次基线71表/v2_0013）：
 
@@ -148,7 +148,7 @@ GET /api/v1/agents/{agent_id}/audit/retention-preview?limit=20
 uv run --no-sync python -m omni.composition.cli --home <独立V2目录> retention-audit-preview --agent <Agent UUID> --limit 20
 ```
 
-HTTP 要求所有者认证；离线 CLI 取得独占锁，在线实例拒绝。默认 20、上限 50 条，后续传原样 next_cursor，可传响应 as_of；刷新不传游标以建立新截面。截面固定时间和记录上界，保护条件每页重新查询；counts 仅计本页，can_apply=false。工作台最多显示 200 条，410 清空后显式刷新。仅返回审计/主体元数据和保护原因，不导出 data，不构造删除计划。详见[审计保留设计](../../docs/v2/contracts/V2_AUDIT_RETENTION_DESIGN.md)。
+HTTP 要求所有者认证；离线 CLI 取得独占锁，在线实例拒绝。默认 20、上限 50 条，后续传原样 next_cursor，可传响应 as_of；刷新不传游标以建立新截面。截面固定时间和记录上界，保护条件每页重新查询；counts 仅计本页，can_apply=false。工作台最多显示 200 条，410 清空后显式刷新。仅返回审计/主体元数据和保护原因，不导出 data，不构造删除计划。详见[审计保留设计](https://gitee.com/chenfengloveyuri/OmniOperator/blob/3f6594ebd307dfd3d7f64be7b21c83a36b938fb5/docs/v2/contracts/V2_AUDIT_RETENTION_DESIGN.md)。
 
 独立审计清理命令（同样使用上面的 CLI 前缀）：
 
@@ -170,7 +170,7 @@ retention-events-apply <原计划.json> --backup <实例外新备份目录>
 retention-events-cancel <原计划.json> --reason <取消依据>
 ```
 
-首版按九种明确事件及来源/正文/未知结果保护，不清除恢复 interrupted 或未知种类；终态运行的历史进度不重新编号。删空后也保留 last_seq、原裁剪指纹、运行/消息/去重/费用身份。审计与事件同 Agent prepared 计划互斥；引用释放与事件维护互相保护，事件删行后未执行旧引用计划须重新审查。工作台“诊断日志”提供独立事件预览，显示全局 sequence 和运行内 seq，最多200条，410清空后显式刷新。事件删除推进 events 清理修订，维护审计写 audit；恢复同时撤销旧事件计划和游标。详见[合同](../../docs/v2/contracts/V2_AUDIT_RETENTION_DESIGN.md)。
+首版按九种明确事件及来源/正文/未知结果保护，不清除恢复 interrupted 或未知种类；终态运行的历史进度不重新编号。删空后也保留 last_seq、原裁剪指纹、运行/消息/去重/费用身份。审计与事件同 Agent prepared 计划互斥；引用释放与事件维护互相保护，事件删行后未执行旧引用计划须重新审查。工作台“诊断日志”提供独立事件预览，显示全局 sequence 和运行内 seq，最多200条，410清空后显式刷新。事件删除推进 events 清理修订，维护审计写 audit；恢复同时撤销旧事件计划和游标。详见[合同](https://gitee.com/chenfengloveyuri/OmniOperator/blob/3f6594ebd307dfd3d7f64be7b21c83a36b938fb5/docs/v2/contracts/V2_AUDIT_RETENTION_DESIGN.md)。
 ## 开发版可信 Python 插件
 
 在部署机器准备独立目录，至少包含 `extension.json` 与入口 `plugin.py`。在 V2 工作台的“可信插件”中填写该目录的绝对路径登记，再手动选择工具、核查包和目录指纹后授权。登记与授权不加载代码；工具在新运行中出现，仍须逐次人工审批。原目录改变不会修改已捕获版本，更新需重新登记到原安装槽并重新授权。

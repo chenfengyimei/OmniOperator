@@ -1,8 +1,33 @@
-"""模块分类与关键调用链；分层规则仍以 docs/ARCHITECTURE.md 为准。"""
+"""模块分类与关键调用链；分层规则见 docs/v/reference/ARCHITECTURE.md。"""
 
 from __future__ import annotations
 
 from dataclasses import dataclass
+
+
+def document_path(name: str) -> str:
+    """工作台 API 使用稳定的文件名，目录索引使用仓库内的实际位置。"""
+    return "docs/v/HANDOFF.md" if name == "HANDOFF.md" else f"docs/v/reference/{name}"
+
+
+def file_version(local: str) -> str:
+    """Runtime ownership, including the UI resources also loaded by the V2 shell."""
+    if local == "__main__.py" or local.startswith(
+        ("domain/", "application/", "adapters/", "composition/", "web/ui/v2/")
+    ):
+        return "V2"
+    if local in {
+        "__init__.py",
+        "config.py",
+        "web/ui/theme.js",
+        "web/ui/base.css",
+        "web/ui/icons.css",
+        "web/ui/tokens.css",
+        "web/ui/dialog.js",
+        "web/ui/markdown.js",
+    } or local.startswith(("system/catalog/", "web/vendor/")):
+        return "共享"
+    return "V1"
 
 
 @dataclass(frozen=True)
@@ -40,7 +65,7 @@ MODULES = (
         "V2 数据与平台适配",
         "平台与数据",
         ("adapters/",),
-        "单库事务、诊断、进程外能力与平台原语；平台桌面尚未接入。",
+        "单库事务、HTTP 功能路由、外部服务、平台桌面与受管工作进程。",
         ("V2_REFACTOR.md",),
         ('v2/core/test_v2_kernel.py', 'v2/core/test_v2_reliability.py', 'v2/core/test_v2_diagnostics.py', 'v2/core/test_v2_workers.py'),
     ),
@@ -48,7 +73,7 @@ MODULES = (
         "v2-composition",
         "V2 实例组装",
         "内核与模型",
-        ("composition/",),
+        ("composition/", "__main__.py"),
         "独立新目录、生命周期和开发入口，不读取旧库。",
         ("V2_REFACTOR.md",),
         ('v2/core/test_v2_kernel.py',),
@@ -58,7 +83,7 @@ MODULES = (
         "V2 开发工作台",
         "Web 接口",
         ("web/ui/v2/",),
-        "基于现有主题的最小开发工作台，尚非完整功能迁移。",
+        "V2 工作台的功能页面、交互与样式。",
         ("V2_REFACTOR.md",),
         ('v2/http/test_v2_http.py',),
     ),
@@ -387,7 +412,7 @@ MODULES = (
         "cli",
         "CLI 入口",
         "交互与终端",
-        ("channels/cli.py", "__main__.py"),
+        ("channels/cli.py",),
         "终端对话命令与 Runtime 适配。",
         ("HANDOFF.md",),
     ),

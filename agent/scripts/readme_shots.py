@@ -1,7 +1,7 @@
 """生成 README 演示截图：隔离 runtime 种子演示对话 + 真实 Chromium 渲染，零真实数据。
 
 用法：
-    uv run --no-sync python scripts/readme_shots.py [--out docs/assets]
+    uv run --no-sync python scripts/readme_shots.py [--out docs/v/assets]
 
 - 复用 tests/test_ui_flows.py 的 TestClient 路由拦截模式：不起真实端口、不碰真机 data，
   静态资源与 API 全部经内存应用应答；
@@ -10,8 +10,7 @@
 - 主题固定为**夜间**（`color_scheme='dark'`）：产品默认深色，README 展示图与之保持一致。
 - 产物：workbench.png（对话 + 展开的调用链）、hub.png（设置中心·小鱼大脑）、
   project-index.png（项目索引）、android-control.png（安卓控制台，无设备时为空态）。
-  重新生成后注意：README 里引用的是相对路径 docs/assets/… 与 docs/assets/gitee/…，
-  同名覆盖无需改链接；docs/assets/gitee/ 的三张直接从本目录复制过去即可。
+  重新生成后同名覆盖 docs/v/assets/ 中的截图即可。
 """
 
 from __future__ import annotations
@@ -115,7 +114,7 @@ def _route_through(client: TestClient):
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="生成 README 演示截图（隔离数据，零隐私）")
-    parser.add_argument("--out", type=Path, default=ROOT / "docs" / "assets", help="输出目录（默认 docs/assets）")
+    parser.add_argument("--out", type=Path, default=ROOT / "docs/v/assets", help="输出目录（默认 docs/v/assets）")
     args = parser.parse_args()
     args.out.mkdir(parents=True, exist_ok=True)
 

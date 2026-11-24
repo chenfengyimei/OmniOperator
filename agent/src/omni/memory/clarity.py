@@ -22,7 +22,7 @@
 
 **为什么 `forgotten` 也不排除**（与 surfcore 的关键分歧）：
 surfcore 是"记忆卡"，`forgotten` 的记录直接从卡片里移除；我们是**可检索语料**，
-`docs/MEMORY_SYSTEM.md` 的硬约定是"事实语料负责查得到"。静默丢弃一条还在库里的
+`3f6594eb:docs/MEMORY_SYSTEM.md` 的硬约定是"事实语料负责查得到"。静默丢弃一条还在库里的
 事实，会让 `recall` 回答"没有找到相关记忆"——那是**谎报**（库里明明有），
 比让它排到末尾并如实说"很久没被提起了"危险得多。
 所以我们的阶梯只做两件事：**排序降权** + **陈旧标注**，一行都不删。
@@ -92,7 +92,7 @@ def normalize_clarity(clarity: str | None) -> str:
 
 
 class ClarityConfig:
-    """阶梯参数。默认值的取法见 `docs/MEMORY_SYSTEM.md` §清晰度阶梯。
+    """阶梯参数。默认值的取法见 `3f6594eb:docs/MEMORY_SYSTEM.md` §清晰度阶梯。
 
     字段含义（全部是"天数"或"分档"，没有隐式单位）：
     - `recent_days`：写入后多少天内算"新鲜"，不参与衰减；

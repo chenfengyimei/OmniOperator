@@ -4,7 +4,7 @@ from omni_test_support.paths import REPOSITORY_ROOT as REPOSITORY_ROOT
 
 ROOT = REPOSITORY_ROOT
 CHECK = ROOT / "agent/scripts/check_package.py"
-DOC = ROOT / "docs/v2/operations/V2_PACKAGING.md"
+DOC = ROOT / "docs/v/reference/V2_PACKAGING.md"
 
 
 def test_build_gate_keeps_its_v2_checks():

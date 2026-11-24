@@ -1,7 +1,0 @@
-{
-  "max_private_bytes": 2147483648,
-  "max_handles": 30000,
-  "max_private_growth_bytes": 536870912,
-  "max_cost_micro": 1000000,
-  "max_log_bytes": 1073741824
-}

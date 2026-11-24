@@ -1,6 +1,6 @@
 """外来技能包隔离安装（D18 后置项）：inbox 收包 → 隔离区校验 → 用户激活。
 
-纪律（见 docs/DEEPSEEK_DEVELOPMENT_OUTLINE.md D18 的既定边界）：
+纪律（见 3f6594eb:docs/DEEPSEEK_DEVELOPMENT_OUTLINE.md D18 的既定边界）：
 - **数据化解包，绝不执行**：zip 只按类型白名单逐文件落成文本，没有任何
   postinstall/脚本执行环节——"安装"在这里只是移动文本文件；
 - **隔离区不落技能根**：解包进 `.quarantine/<name>/`，激活（CONFIRM 级，

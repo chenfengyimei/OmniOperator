@@ -1,7 +1,7 @@
 """插件社区参考服务器（FastAPI + 文件存储，单 owner 部署）。
 
 定位：**索引与分发**，不是商店、不是安全背书——激活前的人工审阅仍在
-每台机器上发生（见 docs/PLUGIN_SYSTEM.md §5）。
+每台机器上发生（见 docs/v/reference/PLUGIN_SYSTEM.md §5）。
 
 部署（项目所有者提供服务器后）：
 

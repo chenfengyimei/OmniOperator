@@ -1,7 +1,7 @@
 """Owner-only Unix-socket launcher for the fixed macOS helper.
 
 The helper must be started by LaunchServices so its TCC permissions belong to the
-helper application instead of the responsible host ([helper TCC contract](../../../../../../docs/v2/contracts/V2_MACOS_HELPER_TCC.md)).
+helper application instead of the responsible host ([helper TCC contract](https://gitee.com/chenfengloveyuri/OmniOperator/blob/3f6594ebd307dfd3d7f64be7b21c83a36b938fb5/docs/v2/contracts/V2_MACOS_HELPER_TCC.md)).
 LaunchServices hands out no stdio pipes, so the helper connects back to a
 host-owned socket and the backend keeps using its existing frame loop over that
 connection. This module owns only the transport: the helper validates the socket

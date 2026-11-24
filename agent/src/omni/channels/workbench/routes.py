@@ -11,7 +11,7 @@ from fastapi import APIRouter, HTTPException
 
 from ...config import PROJECT_ROOT
 from ...system.catalog import build_index
-from ...system.catalog.schema import MODULES
+from ...system.catalog.schema import MODULES, document_path
 
 if TYPE_CHECKING:
     from ...bootstrap import Runtime
@@ -39,14 +39,14 @@ def create_workbench_router(runtime: Runtime, *, source_root: Path = PROJECT_ROO
     @router.get("/api/workbench/docs/{name}")
     def document(name: str) -> dict:
         allowed = {"PROJECT_INDEX.md", "ARCHITECTURE.md", *(doc for module in MODULES for doc in module.docs)}
-        path = source_root / "docs" / name
-        if name not in allowed or not path.is_file():
+        if name not in allowed:
+            raise HTTPException(404, "没有这份索引文档")
+        path = source_root / document_path(name)
+        if not path.is_file():
             raise HTTPException(404, "没有这份索引文档")
         if (
-            path.is_symlink()
-            or path.parent.is_symlink()
-            or path.parent.is_junction()
-            or not path.resolve().is_relative_to((source_root / "docs").resolve())
+            any(p.is_symlink() or p.is_junction() for p in (path, *path.parents) if p.is_relative_to(source_root))
+            or not path.resolve().is_relative_to(source_root.resolve() / "docs/v")
             or path.stat().st_size > 500_000
         ):
             raise HTTPException(404, "这份文档不可读取")

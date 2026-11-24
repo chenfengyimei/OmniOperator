@@ -6,9 +6,9 @@
 ## 0. 先读什么
 
 1. [README](README.md) —— 定位、安全模型与模块地图；
-2. [docs/HANDOFF.md](docs/HANDOFF.md) —— 当前交接入口，链接历史能力与平台坑；
-3. [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) —— 分层与组装根**唯一权威**；
-4. [docs/DEVELOPMENT_STATUS.md](docs/DEVELOPMENT_STATUS.md) —— 当前进度与证据台账。
+2. [docs/v/HANDOFF.md](docs/v/HANDOFF.md) —— 当前交接入口，链接历史能力与平台坑；
+3. [docs/v/reference/ARCHITECTURE.md](docs/v/reference/ARCHITECTURE.md) —— 分层与组装根**唯一权威**；
+4. [docs/v/STATUS.md](docs/v/STATUS.md) —— 当前进度与证据台账。
 
 ## 1. 环境
 
@@ -25,7 +25,7 @@ uv run --no-sync pytest -q -n 0 agent/tests/v2/<分组>/test_<模块>.py  # 开�
 uv run --no-sync pytest -q          # 多模块集成收尾或所有者明确要求：全量离线测试，默认最多 4 进程
 ```
 
-- 持续开发优先实现与受影响模块/调用方的专项验证，不为每个小模块或每次提交启动全量；全量留到多模块集成收尾或所有者明确要求。每批明确专项范围及当前源码是否被全量覆盖，失败优先重跑对应 nodeid。同一源码、测试、依赖和测试配置的全量通过结果可复用；代码变化后不能把旧全量当作新源码通过。详细命令与隔离策略见 [TESTING.md](docs/TESTING.md)。
+- 持续开发优先实现与受影响模块/调用方的专项验证，不为每个小模块或每次提交启动全量；全量留到多模块集成收尾或所有者明确要求。每批明确专项范围及当前源码是否被全量覆盖，失败优先重跑对应 nodeid。同一源码、测试、依赖和测试配置的全量通过结果可复用；代码变化后不能把旧全量当作新源码通过。详细命令与隔离策略见 [TESTING.md](docs/v/reference/TESTING.md)。
 - 默认测试套件**离线**：禁止真实付费、真实社交消息、真实设备动作；
 - 测试隔离：任何落盘数据都要支持路径注入（`build_runtime(data_dir=…)`、
   `ServiceManager(run_dir=…, log_dir=…)`），不得污染真实 `data/`；
@@ -39,11 +39,11 @@ uv run --no-sync pytest -q          # 多模块集成收尾或所有者明确要
 
 ## 3. 架构纪律
 
-- V2 采用 `domain → application → adapters → composition` 四层允许依赖集合，组装根在 composition，禁止导入 V1 运行时；目录与现行合同见 [V2 导航](docs/v2/README.md)。下列旧分层及 bootstrap 规则只适用于保留的 V1。
+- V2 采用 `domain → application → adapters → composition` 四层允许依赖集合，组装根在 composition，禁止导入 V1 运行时；目录与现行合同见 [V2 导航](docs/v/HANDOFF.md)。下列旧分层及 bootstrap 规则只适用于保留的 V1。
 - 依赖方向自上而下：`channels`/`bootstrap` → `core` → `tools`/`llm`/`memory`/`safety` → 叶子层；
   改坏会直接测试红，不靠自觉；
 - Gateway/MemoryStore/ToolRegistry/Agent 等组装根对象**只能在 `bootstrap.py` 构造**；
-- 新能力接入（工具/通道/记忆/插件）按 [ARCHITECTURE §5](docs/ARCHITECTURE.md) 的 checklist 走：
+- 新能力接入（工具/通道/记忆/插件）按 [ARCHITECTURE §5](docs/v/reference/ARCHITECTURE.md) 的 checklist 走：
   `tools/<域>/` 建包 → `register_xxx_tools(registry, deps)` → `bootstrap.build_runtime` 接线 → 单测；
 - 工具风险分级：读=SAFE / 写=CONFIRM / 高危=DANGEROUS；写工具声明 `requires_human=True`，
   无人值守一律 fail-closed，"结果未知"的写操作不自动重试。
@@ -52,7 +52,7 @@ uv run --no-sync pytest -q          # 多模块集成收尾或所有者明确要
 
 - Python 3.12+ 全量类型标注 + `from __future__ import annotations`；
 - 模块 docstring 写「职责 + 明确不做」；注释写"为什么"不写"是什么"；
-- 前端无构建原生 ES 模块，纪律以 [docs/UI_DESIGN_SYSTEM.md](docs/UI_DESIGN_SYSTEM.md) 为唯一权威
+- 前端无构建原生 ES 模块，纪律以 [docs/v/reference/UI_DESIGN_SYSTEM.md](docs/v/reference/UI_DESIGN_SYSTEM.md) 为唯一权威
   （改动 css/js 必须递增 `?v=` 版本串）；
 - 提交信息：中文，`领域：要点——细节`，一条 commit 一个完整交付；
 - 提交前自查：`git status` 逐文件核对改动归属（本仓库存在并行 AI 开发会话，
@@ -62,13 +62,13 @@ uv run --no-sync pytest -q          # 多模块集成收尾或所有者明确要
 
 ## 5. Pull Request 流程（Gitee）
 
-V2 双设备的分工、分支同步与交接位置见 [双设备协作开发规范](docs/V2_MULTI_DEVICE_DEVELOPMENT.md)。
+V2 双设备的分工、分支同步与交接位置见 [双设备协作开发规范](docs/v/HANDOFF.md)。
 
 1. Fork 或建分支，一个 PR 聚焦一件事；
 2. PR 描述说明改动、原因、受影响的调用方与专项结果；已执行全量时附被测提交和结果摘要；
-3. 涉及行为变更的，先在 PR 里说明与 [docs/REFACTORING.md](docs/REFACTORING.md)
+3. 涉及行为变更的，先在 PR 里说明与 [docs/v/reference/REFACTORING.md](docs/v/reference/REFACTORING.md)
    兼容合同的符合性（HTTP 契约、公开 import、旧命令兼容）；
-4. 维护者评审通过后合并；发布与对外宣传由所有者统一决策（见 [docs/ACCEPTANCE.md](docs/ACCEPTANCE.md)）。
+4. 维护者评审通过后合并；发布与对外宣传由所有者统一决策（见 [docs/v/reference/ACCEPTANCE.md](docs/v/reference/ACCEPTANCE.md)）。
 
 ## 6. 行为准则
 

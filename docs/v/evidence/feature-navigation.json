@@ -1,0 +1,90 @@
+{
+  "基线": {
+    "日期": "2026-11-24",
+    "平台": "Windows",
+    "基线提交": "3f6594ebd307dfd3d7f64be7b21c83a36b938fb5",
+    "范围": "基于该提交的本地工作树，含已有的文档路径整理。源码指纹覆盖 catalog 扫描的源码与界面。",
+    "catalog_source_sha256": "13eac99181c677b4f85f3d4c7dfc8061593ee85a090e524b1a7a0d28aa3ffcf7",
+    "features_json_sha256": "c8f783204347eb268e2fd41aa6e89cb08d893eb28eaec3bc4f92218b8404c0de"
+  },
+  "导航": {
+    "功能": 30,
+    "工作台页面": 26,
+    "模块": 65,
+    "源码和界面文件": 859,
+    "静态路由": 464,
+    "查询验收": [
+      "修改插件授权",
+      "修改技能回滚",
+      "排查安卓截图"
+    ]
+  },
+  "接口": {
+    "拆分操作数": 17,
+    "实际路由条目": 268,
+    "有序路由摘要_sha256": "696bc8fd1020b4633772e3e730143293aa7a7af5278e82cb1577deaf68f1bd60",
+    "比较字段": [
+      "路径",
+      "方法",
+      "匹配顺序",
+      "处理函数名",
+      "状态码",
+      "认证依赖"
+    ],
+    "OpenAPI路径": 212,
+    "OpenAPI操作": 261,
+    "结果": "源码拆分前后完整 OpenAPI 内容与顺序相同。离线构建的 wheel 从自身导入两组新路由，完整 OpenAPI 与基线相同。",
+    "本地验证wheel_sha256": "0ea5bed7104acd771b7e7a50925eaddc06c477fd08600c30c35a2e2d2d91901f"
+  },
+  "专项": [
+    {
+      "scope": "技能和插件的 HTTP、集成、工作台 UI，以及架构和严格类型范围守卫",
+      "tests": 440,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 351.37,
+      "local_report": "temp/build/feature-navigation/routes.xml",
+      "sha256": "81056ce4599e301adb9e8209c6d8b6f0f4163d530835198cd87f3d58ea26003b"
+    },
+    {
+      "scope": "功能导航、现有项目工作台、仓库、文档与台账守卫、V2 HTTP、业务清单、插件样例",
+      "tests": 57,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 89.873,
+      "local_report": "temp/build/feature-navigation/navigation.xml",
+      "sha256": "0b1890221da1ad0dc23584b2757b4521717bf12bb75972798b86112748bfbb9e"
+    },
+    {
+      "scope": "最终功能导航、中文管道输出、组装行定位、严格类型范围、打包合同与 wheel smoke",
+      "tests": 24,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 9.191,
+      "local_report": "temp/build/feature-navigation/packaging.xml",
+      "sha256": "279b9bd813b0a2aa7784f5f1e5204da9f8e3cf94a2e22eaf95aad408dd65900c"
+    }
+  ],
+  "去重后通过": 502,
+  "检查": {
+    "strict文件": 437,
+    "strict错误": 0,
+    "strict警告": 0,
+    "ruff": "通过",
+    "project_index_check": "通过"
+  },
+  "边界": "脚本化模型、临时实例、真实本机文件及 Python 插件子进程；本批执行专项，最终候选全量与历史长跑仍按各自源码登记。",
+  "样例": {
+    "目录": "agent/examples/extensions/text-summary",
+    "模型输入": "脚本化工具提议",
+    "结果": "经逐次批准的真实宿主同时返回动作结构化字段与模型可读取的同值 JSON；两个版本均执行成功。",
+    "拒绝": "未授权、升级后待授权、停用后均拒绝实际调用；旧修订和旧包指纹授权返回冲突。",
+    "文件_sha256": {
+      "extension.json": "96be715aeeef9dd28f275bf81cda2fa64d5fcfb75b347d77a84c1a8428f20c88",
+      "plugin.py": "e3d25f29705919a0c67c2aa417a3f8a72f4fa1901d03ee46a9b34368f605405a"
+    }
+  }
+}

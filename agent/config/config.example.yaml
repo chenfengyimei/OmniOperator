@@ -67,7 +67,7 @@ mode_routing:
   allow_escalation: true                   # 轻量档位发现需要复杂能力时，可在本回合升档一次
 
 llm:
-  # 模型调用层：超时 / 有界重试 / 费用上限 / 能力声明（见 docs/DEVELOPMENT_STATUS.md D10）
+  # 模型调用层：超时 / 有界重试 / 费用上限 / 能力声明（见 docs/v/STATUS.md D10）
   request_timeout_s: 90       # 单次请求超时；超时会计入"可能已计费"
   max_output_tokens: 1024     # 预留费用时按此上界估算输出（不是硬截断）
   retry:
@@ -180,7 +180,7 @@ asr:
   compute_type: "int8"
 
 qq:
-  enabled: true               # QQ 通道总开关（需先部署 NapCat，见 docs/QQ_SETUP.md）
+  enabled: true               # QQ 通道总开关（需先部署 NapCat，见 docs/v/reference/QQ_SETUP.md）
   ws_url: "ws://127.0.0.1:3001"   # NapCat 正向 WebSocket 地址
   access_token: ""            # 与 NapCat 网络配置里的一致（可留空）
   allowed_users: []           # 私聊白名单：允许私聊机器人的 QQ 号列表。留空 = 拒绝所有人（fail-closed）。例：[123456789]

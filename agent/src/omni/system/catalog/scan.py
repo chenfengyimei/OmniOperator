@@ -10,7 +10,7 @@ from importlib.util import resolve_name
 from pathlib import Path
 
 from ...config import PROJECT_ROOT, application_root, source_root, web_root
-from .schema import FLOWS, MODULES, classify
+from .schema import FLOWS, MODULES, classify, document_path, file_version
 
 MAX_FILES = 2000
 MAX_FILE_BYTES = 2_000_000
@@ -98,9 +98,7 @@ def _symbols(tree: ast.AST) -> list[dict]:
     return found
 
 
-def _routes(tree: ast.AST, path: str, module_id: str, symbols: list[dict]) -> list[dict]:
-    found = []
-    by_line = {item["line"]: item for item in symbols}
+def _router_prefixes(tree: ast.AST) -> dict[str, str]:
     prefixes = {}
     for assignment in ast.walk(tree):
         if not isinstance(assignment, ast.Assign) or not isinstance(assignment.value, ast.Call):
@@ -119,6 +117,33 @@ def _routes(tree: ast.AST, path: str, module_id: str, symbols: list[dict]) -> li
         for target in assignment.targets:
             if isinstance(target, ast.Name):
                 prefixes[target.id] = prefix
+    return prefixes
+
+
+def _feature_mounts(tree: ast.Module, prefixes: dict[str, str]) -> dict[str, str]:
+    """Read the V2 parent's include_router(factory(...)) mounts without importing handlers."""
+    factories = {
+        alias.asname or alias.name: f"omni.adapters.{node.module}.{alias.name}"
+        for node in tree.body
+        if isinstance(node, ast.ImportFrom) and node.level == 1 and (node.module or "").startswith("http_routes.")
+        for alias in node.names
+    }
+    mounts = {}
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.Call) or not isinstance(node.func, ast.Attribute):
+            continue
+        parent = node.func.value
+        if node.func.attr != "include_router" or not isinstance(parent, ast.Name) or parent.id not in prefixes:
+            continue
+        child = node.args[0] if node.args else None
+        if isinstance(child, ast.Call) and isinstance(child.func, ast.Name) and child.func.id in factories:
+            mounts[factories[child.func.id]] = prefixes[parent.id]
+    return mounts
+
+
+def _routes(tree: ast.AST, path: str, module_id: str, symbols: list[dict], prefixes: dict[str, str]) -> list[dict]:
+    found = []
+    by_line = {item["line"]: item for item in symbols}
     for node in ast.walk(tree):
         if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
             continue
@@ -180,6 +205,41 @@ def _tools(tree: ast.AST, path: str, module_id: str) -> list[dict]:
     return found
 
 
+def _required_field(value: ast.expr | None) -> bool:
+    if isinstance(value, ast.Call) and isinstance(value.func, ast.Name) and value.func.id == "Field":
+        if any(kw.arg == "default_factory" for kw in value.keywords):
+            return False
+        value = value.args[0] if value.args else next((kw.value for kw in value.keywords if kw.arg == "default"), None)
+    return value is None or isinstance(value, ast.Constant) and value.value is Ellipsis
+
+
+def _request_models(tree: ast.Module, relative: str) -> list[dict]:
+    # Local subclasses inherit their parent's fields. V2 imports the common strict base.
+    fields_by_class: dict[str, dict[str, dict]] = {"BaseModel": {}}
+    if any(isinstance(node, ast.ImportFrom) and any(a.name == "StrictInput" for a in node.names) for node in tree.body):
+        fields_by_class["StrictInput"] = {}
+    models = []
+    for node in tree.body:
+        if not isinstance(node, ast.ClassDef):
+            continue
+        parents = [base.id for base in node.bases if isinstance(base, ast.Name) and base.id in fields_by_class]
+        if not parents:
+            continue
+        fields = {key: field for parent in reversed(parents) for key, field in fields_by_class[parent].items()}
+        for item in node.body:
+            if not isinstance(item, ast.AnnAssign) or not isinstance(item.target, ast.Name):
+                continue
+            name = item.target.id
+            fields[name] = {
+                "name": name,
+                "type": ast.unparse(item.annotation)[:160],
+                "required": _required_field(item.value),
+            }
+        fields_by_class[node.name] = fields
+        models.append({"name": node.name, "source": relative, "line": node.lineno, "fields": list(fields.values())})
+    return models
+
+
 def build_index(root: Path = PROJECT_ROOT) -> dict:
     root = Path(root).resolve()
     app = application_root(root)
@@ -187,6 +247,7 @@ def build_index(root: Path = PROJECT_ROOT) -> dict:
     source_prefix = source.relative_to(root).as_posix() + "/"
     test_prefix = (app / "tests").relative_to(root).as_posix() + "/"
     records, endpoints, declared, warnings, models = [], [], [], [], []
+    feature_mounts: dict[str, str] = {}
     digest = hashlib.sha256()
     for path in source_files(root):
         relative = path.relative_to(root).as_posix()
@@ -208,6 +269,7 @@ def build_index(root: Path = PROJECT_ROOT) -> dict:
             records.append(
                 {
                     "path": relative,
+                    "version": file_version(local),
                     "module": owner.id if owner else "unclassified",
                     "python_module": None,
                     "lines": len(text.splitlines()),
@@ -223,29 +285,11 @@ def build_index(root: Path = PROJECT_ROOT) -> dict:
         if module_name.endswith(".__init__"):
             module_name = module_name.removesuffix(".__init__")
         symbols = _symbols(tree)
-        for node in tree.body:
-            if isinstance(node, ast.ClassDef) and any(
-                isinstance(base, ast.Name) and base.id == "BaseModel" for base in node.bases
-            ):
-                models.append(
-                    {
-                        "name": node.name,
-                        "source": relative,
-                        "line": node.lineno,
-                        "fields": [
-                            {
-                                "name": field.target.id,
-                                "type": ast.unparse(field.annotation)[:160],
-                                "required": field.value is None,
-                            }
-                            for field in node.body
-                            if isinstance(field, ast.AnnAssign) and isinstance(field.target, ast.Name)
-                        ],
-                    }
-                )
+        models.extend(_request_models(tree, relative))
         record = {
             "path": relative,
             "module": owner.id if owner else "unclassified",
+            "version": file_version(local),
             "python_module": module_name,
             "lines": len(text.splitlines()),
             "imports": _imports(tree, module_name, path.name == "__init__.py"),
@@ -253,9 +297,20 @@ def build_index(root: Path = PROJECT_ROOT) -> dict:
             "summary": (ast.get_docstring(tree) or "").split("\n", 1)[0][:180],
         }
         records.append(record)
-        endpoints.extend(_routes(tree, relative, record["module"], symbols))
+        prefixes = _router_prefixes(tree)
+        if module_name == "omni.adapters.http":
+            feature_mounts = _feature_mounts(tree, prefixes)
+        endpoints.extend(_routes(tree, relative, record["module"], symbols, prefixes))
         declared.extend(_tools(tree, relative, record["module"]))
     by_path = {row["path"]: row for row in records}
+    for route in endpoints:
+        if "/adapters/http_routes/" in route["source"]:
+            module = by_path[route["source"]]["python_module"]
+            factory = module + "." + route["handler"].split(".")[0]
+            if factory in feature_mounts:
+                route["path"] = feature_mounts[factory] + route["path"]
+            else:
+                warnings.append("功能路由未挂载：" + factory)
     flows = []
     for identity, title, summary, steps in FLOWS:
         chain = []
@@ -272,7 +327,7 @@ def build_index(root: Path = PROJECT_ROOT) -> dict:
         item = asdict(spec)
         item["files"] = [r["path"] for r in records if r["module"] == spec.id]
         item["lines"] = sum(r["lines"] for r in records if r["module"] == spec.id)
-        item["docs"] = ["docs/" + name for name in spec.docs]
+        item["docs"] = [document_path(name) for name in spec.docs]
         item["tests"] = [test_prefix + name for name in spec.tests]
         item["dependencies"] = sorted(
             {

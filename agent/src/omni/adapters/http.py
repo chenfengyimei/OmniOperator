@@ -17,7 +17,7 @@ from typing import Any, Literal, TypeVar, cast
 
 from fastapi import APIRouter, Depends, FastAPI, Query, Request
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, Response
-from pydantic import BaseModel, ConfigDict, Field, ValidationError
+from pydantic import BaseModel, Field, ValidationError
 
 from ..application.action_review import ActionReviewService
 from ..application.android import AndroidService
@@ -59,6 +59,9 @@ from ..domain.objects import MAX_OBJECT_BYTES
 from .diagnostics import bind_context
 from .http_events import PAGE_SIZE as EVENT_PAGE_SIZE
 from .http_events import EventStreams, continuation
+from .http_routes import StrictInput
+from .http_routes.extensions import extensions_router
+from .http_routes.skills import skills_router
 from .log_query import LogQuery
 
 log = logging.getLogger("omni.v2.http")
@@ -115,10 +118,6 @@ class HttpRuntime:
     model_port: object | None = None
 
 
-class StrictInput(BaseModel):
-    model_config = ConfigDict(extra="forbid")
-
-
 class AgentInput(StrictInput):
     name: str = Field(min_length=1, max_length=MAX_NAME)
 
@@ -134,31 +133,6 @@ class TurnInput(StrictInput):
     image_ids: list[uuid.UUID] = Field(default_factory=cast(Callable[[], list[uuid.UUID]], list), max_length=4)
     mode: Literal["auto", "chat", "retrieval", "agent"] | None = None
     skill_ids: list[uuid.UUID] = Field(default_factory=cast(Callable[[], list[uuid.UUID]], list), max_length=4)
-
-
-class SkillSaveInput(StrictInput):
-    content: str = Field(min_length=1, max_length=32000)
-    skill_id: uuid.UUID | None = None
-    revision: int = Field(default=0, ge=0, strict=True)
-
-
-class SkillImportInput(StrictInput):
-    object_id: uuid.UUID
-    format: Literal["markdown", "zip"]
-    skill_id: uuid.UUID | None = None
-    revision: int = Field(default=0, ge=0, strict=True)
-
-
-class SkillStateInput(StrictInput):
-    revision: int = Field(ge=1, strict=True)
-    state: Literal["enabled", "disabled", "archived"]
-    revision_id: uuid.UUID
-    manifest_sha256: str = Field(pattern=r"^[a-f0-9]{64}$")
-
-
-class SkillRollbackInput(StrictInput):
-    revision: int = Field(ge=1, strict=True)
-    revision_id: uuid.UUID
 
 
 class RoutingInput(StrictInput):
@@ -2073,135 +2047,8 @@ def create_app(factory: Callable[[], Awaitable[HttpRuntime]], *, allowed_origins
             str(agent_id), str(action_id), await bounded_configuration(request, 16384)
         )
 
-    @router.post("/agents/{agent_id}/extensions", status_code=201)
-    async def extension_install(agent_id: uuid.UUID, request: Request):
-        return await runtime(request).extensions.install(str(agent_id), await bounded_configuration(request, 8192))
-
-    @router.post("/agents/{agent_id}/extensions/market")
-    async def extension_market(agent_id: uuid.UUID, request: Request):
-        data = await bounded_configuration(request, 4096)
-        if (
-            not isinstance(cast(object, data), dict)
-            or set(data) != {"source"}
-            or not isinstance(data["source"], str)
-            or not 1 <= len(data["source"]) <= 4000
-        ):
-            raise BusinessError("extension_invalid", "A bounded local market directory is required", status=422)
-        return await runtime(request).extensions.market(str(agent_id), data["source"])
-
-    @router.get("/agents/{agent_id}/extensions")
-    async def extension_list(
-        agent_id: uuid.UUID,
-        request: Request,
-        after: int = Query(default=0, ge=0),
-        limit: int = Query(default=20, ge=1, le=50),
-    ):
-        return await runtime(request).extensions.page(str(agent_id), after, limit)
-
-    @router.get("/agents/{agent_id}/extensions/{extension_id}")
-    async def extension_detail(agent_id: uuid.UUID, extension_id: uuid.UUID, request: Request):
-        return await runtime(request).extensions.get(str(agent_id), str(extension_id))
-
-    @router.get("/agents/{agent_id}/extensions/{extension_id}/actions")
-    async def extension_actions(
-        agent_id: uuid.UUID,
-        extension_id: uuid.UUID,
-        request: Request,
-        after: uuid.UUID | None = None,
-        limit: int = Query(default=20, ge=1, le=50),
-    ):
-        return await runtime(request).extensions.actions(
-            str(agent_id), str(extension_id), str(after) if after else "", limit
-        )
-
-    @router.put("/agents/{agent_id}/extensions/{extension_id}/authorization")
-    async def extension_authorization(agent_id: uuid.UUID, extension_id: uuid.UUID, request: Request):
-        return await runtime(request).extensions.authorize(
-            str(agent_id), str(extension_id), await bounded_configuration(request, 8192)
-        )
-
-    @router.post("/agents/{agent_id}/extensions/{extension_id}/disable")
-    async def extension_disable(agent_id: uuid.UUID, extension_id: uuid.UUID, request: Request):
-        data = await bounded_configuration(request, 2048)
-        if set(data) != {"revision"} or type(data.get("revision")) is not int or cast(int, data["revision"]) < 1:
-            raise BusinessError("extension_invalid", "Use the observed plugin revision", status=422)
-        return await runtime(request).extensions.disable(str(agent_id), str(extension_id), cast(int, data["revision"]))
-
-    def skill_service(request: Request) -> SkillService:
-        service = runtime(request).skills
-        if service is None:
-            raise BusinessError("skills_unavailable", "Skill service is unavailable", status=503)
-        return service
-
-    @router.get("/agents/{agent_id}/skills")
-    async def skill_list(
-        agent_id: uuid.UUID, request: Request, after: str = "", limit: int = Query(default=50, ge=1, le=50)
-    ):
-        return await skill_service(request).page(str(agent_id), after, limit)
-
-    @router.post("/agents/{agent_id}/skills", status_code=201)
-    async def skill_save(agent_id: uuid.UUID, data: SkillSaveInput, request: Request):
-        return await skill_service(request).save(
-            str(agent_id), data.content, str(data.skill_id) if data.skill_id else None, data.revision
-        )
-
-    @router.post("/agents/{agent_id}/skills/import", status_code=201)
-    async def skill_import(agent_id: uuid.UUID, data: SkillImportInput, request: Request):
-        return await skill_service(request).import_object(
-            str(agent_id),
-            str(data.object_id),
-            data.format,
-            str(data.skill_id) if data.skill_id else None,
-            data.revision,
-        )
-
-    @router.get("/agents/{agent_id}/skills/available")
-    async def skill_available(agent_id: uuid.UUID, request: Request):
-        return await skill_service(request).available(str(agent_id))
-
-    @router.post("/agents/{agent_id}/skills/{skill_id}/export")
-    async def skill_export(
-        agent_id: uuid.UUID, skill_id: uuid.UUID, request: Request, revision_id: uuid.UUID | None = None
-    ):
-        return await skill_service(request).export(
-            str(agent_id), str(skill_id), str(revision_id) if revision_id else None
-        )
-
-    @router.get("/agents/{agent_id}/skills/{skill_id}")
-    async def skill_detail(
-        agent_id: uuid.UUID,
-        skill_id: uuid.UUID,
-        request: Request,
-        revision_id: uuid.UUID | None = None,
-        path: str = Query(default="SKILL.md", max_length=180),
-    ):
-        return await skill_service(request).get(
-            str(agent_id), str(skill_id), str(revision_id) if revision_id else None, path
-        )
-
-    @router.get("/agents/{agent_id}/skills/{skill_id}/history")
-    async def skill_versions(
-        agent_id: uuid.UUID,
-        skill_id: uuid.UUID,
-        request: Request,
-        after: int = Query(default=0, ge=0),
-        limit: int = Query(default=50, ge=1, le=50),
-    ):
-        return await skill_service(request).history(str(agent_id), str(skill_id), after, limit)
-
-    @router.put("/agents/{agent_id}/skills/{skill_id}/state")
-    async def skill_change_state(agent_id: uuid.UUID, skill_id: uuid.UUID, data: SkillStateInput, request: Request):
-        return await skill_service(request).state(
-            str(agent_id), str(skill_id), data.revision, data.state, str(data.revision_id), data.manifest_sha256
-        )
-
-    @router.post("/agents/{agent_id}/skills/{skill_id}/rollback")
-    async def skill_rollback(agent_id: uuid.UUID, skill_id: uuid.UUID, data: SkillRollbackInput, request: Request):
-        return await skill_service(request).rollback(str(agent_id), str(skill_id), str(data.revision_id), data.revision)
-
-    @router.get("/agents/{agent_id}/runs/{run_id}/skills")
-    async def skill_run_report(agent_id: uuid.UUID, run_id: uuid.UUID, request: Request):
-        return await skill_service(request).run_report(str(agent_id), str(run_id))
+    router.include_router(extensions_router(runtime, bounded_configuration))
+    router.include_router(skills_router(runtime))
 
     @router.get("/agents/{agent_id}/memory")
     async def memories(agent_id: uuid.UUID, request: Request, q: str = Query(default="", max_length=500)):

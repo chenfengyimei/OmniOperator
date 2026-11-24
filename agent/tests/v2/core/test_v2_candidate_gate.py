@@ -181,7 +181,7 @@ def test_full_suite_can_keep_native_exit_and_commit_diagnostics_enabled(candidat
     assert GATE["assess"](root, manifest)["ready_for_windows_offline_review"]
 
 
-@pytest.mark.parametrize("name", ["docs/TYPE_CHECKING.md", "README.md", "start.bat"])
+@pytest.mark.parametrize("name", ["docs/v/reference/TYPE_CHECKING.md", "README.md", "start.bat"])
 def test_guard_document_changes_invalidate_a_source_snapshot(candidate, name):
     root, _, manifest, _, _, _ = candidate
     path = root / name

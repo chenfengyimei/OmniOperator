@@ -50,10 +50,14 @@ def inventory(root: Path, names: list[str] | None = None) -> dict[str, str]:
         for base in sorted(MANAGED_ROOTS):
             folder = root / base
             if folder.exists():
-                for path in folder.rglob("*"):
-                    name = path.relative_to(root).as_posix()
-                    if managed(name) and path.is_file():
-                        names.append(name)
+                for directory, children, files in folder.walk():
+                    if base == "docs" and directory == folder:
+                        children[:] = [child for child in children if child.casefold() != "temp"]
+                    for filename in files:
+                        path = directory / filename
+                        name = path.relative_to(root).as_posix()
+                        if managed(name) and path.is_file():
+                            names.append(name)
         from .common import MANAGED_FILES
 
         names.extend(name for name in MANAGED_FILES if (root / name).is_file())

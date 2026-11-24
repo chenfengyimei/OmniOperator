@@ -1,6 +1,6 @@
 """B站读 API 封装：只读端点 + 目标归一化 + WBI 签名。
 
-职责边界（docs/ARCHITECTURE.md §5.1）：本文件是纯 HTTP 层，不知道 LLM 的存在；
+职责边界（docs/v/reference/ARCHITECTURE.md §5.1）：本文件是纯 HTTP 层，不知道 LLM 的存在；
 工具包装在 tools.py。写端点（评论/私信/发布）P3 走浏览器 UI，不进本层。
 
 端点表来自 xuexi/dsh-bili-whale（见 xuexi/NOTES.md §4）。

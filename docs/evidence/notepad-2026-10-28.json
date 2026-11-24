@@ -1,6 +1,0 @@
-{
-  "target": "Windows Notepad",
-  "synthetic_content_only": true,
-  "initial_read": false,
-  "error": "未发现临时记事本窗口；可能为 Store 版重定向，需显式配置其 exe"
-}

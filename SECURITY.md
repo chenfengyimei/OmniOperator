@@ -6,7 +6,7 @@ OmniOperator 是本地运行的个人 agent：它能执行命令、操作浏览�
 
 ## 已内置的安全设计（摘要）
 
-详细契约见 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) §3（由测试强制执行）：
+详细契约见 [docs/v/reference/ARCHITECTURE.md](docs/v/reference/ARCHITECTURE.md) §3（由测试强制执行）：
 
 - **三档审批**：读操作 SAFE 直通 / 写操作 CONFIRM 必须人工确认 / DANGEROUS 一律拒绝；
   shell 域另有灾难级硬黑名单——确认也不执行。

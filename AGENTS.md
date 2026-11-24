@@ -1,8 +1,10 @@
 # 开发与测试
 
-先读 `docs/HANDOFF.md`、`docs/ARCHITECTURE.md` 和 `CONTRIBUTING.md`。本仓库可能有其他会话的未提交修改；保留它们，只修改本任务所需内容。
+先读 `docs/v/HANDOFF.md`、`docs/v/reference/ARCHITECTURE.md` 和 `CONTRIBUTING.md`。本仓库可能有其他会话的未提交修改；保留它们，只修改本任务所需内容。
 
-Windows 与 Mac mini 按 [V2 双设备协作开发规范](docs/V2_MULTI_DEVICE_DEVELOPMENT.md) 在同一 `v2` 主线迭代。任务分支直接使用任务短名（如 `macos-helper-tcc`），创建和推送都使用同名分支，省略工具名或命名空间前缀。新会话按设备使用 [接续提示词](docs/V2_MULTI_DEVICE_PROMPTS.md)。
+Windows 与 Mac mini 按 [双设备分工与交接步骤](docs/v/HANDOFF.md) 在同一 `v2` 主线迭代。任务分支直接使用任务短名（如 `macos-helper-tcc`），创建和推送都使用同名分支，省略工具名或命名空间前缀。
+
+项目介绍放在 `docs/README.md`。所有新开发文档、计划和交接统一写在 `docs/v/`。当前进度维护在 `docs/v/tasks.json`，运行 `uv run --no-sync python scripts/task_status.py` 再生状态页。旧文档归入本机 `docs/temp/`，该目录由 Git 忽略。
 
 ## 测试执行纪律
 
@@ -15,4 +17,4 @@ Windows 与 Mac mini 按 [V2 双设备协作开发规范](docs/V2_MULTI_DEVICE_D
 - 默认套件始终离线；保留网络/模型闸门，不跳过测试、不缩短被测超时、不放宽断言来获得提速。数据、设备和服务必须使用隔离注入。
 - UI 测试优先使用 `ui_browser`（同文件共享浏览器进程），每个用例建立并关闭独立 BrowserContext，保留独立临时数据库。不要跨无关模块共享同步 Playwright 事件循环。
 
-新增或删除仓库文件后运行 `uv run --no-sync python scripts/project_index.py` 更新索引；详细命令见 `docs/TESTING.md`。
+新增或删除仓库文件后运行 `uv run --no-sync python scripts/project_index.py` 更新索引；详细命令见 `docs/v/reference/TESTING.md`。

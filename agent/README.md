@@ -1,8 +1,8 @@
 # 本地 Agent 产品
 
 这里是 OmniOperator 本地 Agent 的Python产品源码位置（界面源码在仓库根web/）。跨会话接手先读
-[交接](../docs/HANDOFF.md) 与 [架构规则](../docs/ARCHITECTURE.md)，完整目录规则见
-[仓库结构](../docs/REPOSITORY_STRUCTURE.md)。
+[交接](../docs/v/HANDOFF.md) 与 [架构规则](../docs/v/reference/ARCHITECTURE.md)，完整目录规则见
+[仓库结构](../docs/v/reference/REPOSITORY_STRUCTURE.md)。
 
 ```text
 agent/

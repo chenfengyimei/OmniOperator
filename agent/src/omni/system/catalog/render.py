@@ -6,7 +6,7 @@ import json
 
 
 def _link(path: str, line: int | None = None) -> str:
-    return f"[{path}](../../{path}" + (f"#L{line}" if line else "") + ")"
+    return f"[{path}](../../../{path}" + (f"#L{line}" if line else "") + ")"
 
 
 def _cell(value: str) -> str:
@@ -19,10 +19,10 @@ def render_documents(index: dict) -> dict[str, str]:
     modules += f"源码指纹：`{index['source_sha256']}`。包含 {len(index['modules'])} 个职责模块、{len(index['files'])} 个源码/界面文件。\n\n"
     for module in index["modules"]:
         modules += f"## {module['title']} · {module['id']}\n\n分类：{module['category']}。{module['purpose']}\n\n"
-        modules += "| 文件 | 行数 | 职责 |\n|---|---:|---|\n"
+        modules += "| 文件 | 归属 | 行数 | 职责 |\n|---|---|---:|---|\n"
         for file in index["files"]:
             if file["module"] == module["id"]:
-                modules += f"| {_link(file['path'])} | {file['lines']} | {_cell(file['summary'])} |\n"
+                modules += f"| {_link(file['path'])} | {file['version']} | {file['lines']} | {_cell(file['summary'])} |\n"
         modules += "\n文档：" + "、".join(_link(path) for path in module["docs"]) + "\n\n"
         modules += "测试：" + ("、".join(_link(path) for path in module["tests"]) or "关联模块集成验证") + "\n\n"
         modules += (

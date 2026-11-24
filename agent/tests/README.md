@@ -7,4 +7,4 @@
 - `omni_test_support/paths.py`：仓库、产品和测试根的统一锚点。
 - 根 `test_*.py`：V1 及共用守卫；`conftest.py`、离线守卫和 pytest 插件留在根，保持原隔离及 BrowserContext 生命周期。
 
-fixtures 只使用临时目录，不依赖根兼容联接，不访问真实模型或设备。架构由 V1/V2 各自守卫；目录和发现由 test_repository_layout.py、v2/core/test_v2_layout.py 覆盖。路径映射见 docs/tasks/v2-layout-migration.json。
+fixtures 只使用临时目录，不依赖根兼容联接，不访问真实模型或设备。架构由 V1/V2 各自守卫；目录和发现由 test_repository_layout.py、v2/core/test_v2_layout.py 覆盖。路径映射见 docs/v/layout.json。

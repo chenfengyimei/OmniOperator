@@ -1,68 +1,7 @@
-# 文档导航
+# OmniOperator 项目介绍
 
-当前默认入口为 V2，整个 V2 尚未整体验收。先按版本和用途选择资料。
+OmniOperator（小鱼）是运行在本机的个人 Agent。用户可通过命令行或 Web 工作台发起任务，查看模型调用、工具审批、运行记录和交付结果。默认的 `omni` 与 `omni-web` 进入 V2，已有 V1 环境可以使用 `omni-v1` 与 `omni-web-v1`。[使用说明](../README.md)
 
-## V2 当前入口
+工作台涵盖对话、记忆、文件与媒体、定时任务、终端、浏览器以及桌面和安卓设备。实际可用的操作取决于平台、安装组件、凭据和授权。V2 通过同一实例管理审批与运行记录，保留待确认或结果未知的操作，供所有者核查。[工作台能力清单](v/reference/V2_BUSINESS_INVENTORY.md)
 
-- [当前交接](HANDOFF.md)、[开发任务](tasks/v2-development.json)、[生成的当前状态](DEVELOPMENT_STATUS.md)。
-- [V2 合同、平台与交付导航](v2/README.md)。
-- [架构权威](ARCHITECTURE.md)、[仓库目录](REPOSITORY_STRUCTURE.md)、[测试纪律](TESTING.md)。
-- [Mac 接续提示词](V2_MACMINI_RESUME_PROMPT.md)、[迁移说明](V2_MACMINI_MIGRATION.md)。
-
-下列旧功能手册适用于 V1 或明确注明的共用能力；V2 以对应现行合同为准。历史台账不作为当前状态真值。
-
-## V1 兼容用户手册
-
-| 文档 | 内容 |
-|---|---|
-| [QQ_SETUP.md](QQ_SETUP.md) | QQ 通道部署：NapCat 安装、正向 WebSocket、扫码登录、风控提醒 |
-| [QQ_SCENARIOS.md](QQ_SCENARIOS.md) | QQ 场景隔离、主动提醒、outbox 补投的配置与验收口径 |
-| [BILIBILI_WRITING.md](BILIBILI_WRITING.md) | B 站写入：草稿/人工审批/一次 UI 提交（默认关闭，实站选择器待核验） |
-| [ANDROID.md](ANDROID.md) | 安卓控制：观察绑定动作、锁帧、输入法恢复、MJPEG（真机待验） |
-| [DESKTOP.md](DESKTOP.md) | Windows 桌面：UIAutomation、观察令牌、窗口租约、应用白名单 |
-| [MCP.md](MCP.md) | 本地 MCP：stdio 配置、工具目录、只读白名单、漂移复查 |
-| [TERMINAL.md](TERMINAL.md) | 内置终端与后台命令任务：ConPTY、会话池、审批后任务 |
-| [CONTEXT_SETTINGS.md](CONTEXT_SETTINGS.md) | 设置中心上下文页：窗口/缓存统计、压缩与记忆配额、配置生效范围 |
-| [SKILL_SYSTEM.md](SKILL_SYSTEM.md) | 技能系统与设置中心「技能」：生命周期、统计、归档恢复、外来包隔离与配置 |
-| [MODE_ROUTING.md](MODE_ROUTING.md) | 能力档位路由：chat/retrieval/agent 判定、升档协议、模型与配置、入口用法 |
-| [RETRIEVAL.md](RETRIEVAL.md) | 混合检索：Ollama/API embedding、sqlite-vec + FTS、评测（默认关闭） |
-| [STORAGE.md](STORAGE.md) | 全局业务根、工作目录与 Agent 空间的目录布局与边界 |
-| [DATA_MODEL.md](DATA_MODEL.md) | 两库分工、每张表的归属模块与生命周期、跨库引用与迁移纪律 |
-| [AGENT_STORAGE.md](AGENT_STORAGE.md) | Agent 独立空间：九类业务目录、路径策略与 API 说明 |
-| [PLUGIN_SYSTEM.md](PLUGIN_SYSTEM.md) | 插件系统与社区：manifest、隔离激活、信任模型、部署指南 |
-
-## 通用与 V1 开发资料
-
-| 文档 | 内容 |
-|---|---|
-| [ARCHITECTURE.md](ARCHITECTURE.md) | **模块职责与依赖规则唯一权威**（tests/test_arch.py 强制执行） |
-| [PERSONA.md](PERSONA.md) | 人格：保存契约（空正文/过短/含凭据）、热生效边界、与记忆闸门共用的检测表 |
-| [REPOSITORY_STRUCTURE.md](REPOSITORY_STRUCTURE.md) | 仓库/Agent 产品边界、代码位置、开发命令与运行数据路径 |
-| [PROJECT_INDEX.md](PROJECT_INDEX.md) | 项目导航：目录职责、扩展分类、API 与调用链 |
-| [PROMPT_CONTEXT.md](PROMPT_CONTEXT.md) | 提示词与上下文缓存布局：稳定前缀、回合快照、压缩边界 |
-| [UI_DESIGN_SYSTEM.md](UI_DESIGN_SYSTEM.md) | 前端唯一规范：token、组件、`?v=` 纪律、验收清单 |
-| [REFACTORING.md](REFACTORING.md) | 已落地重构、HTTP 兼容合同与后续批次边界 |
-| [OPERATIONS.md](OPERATIONS.md) | 运维手册：服务管理、备份恢复、升级演练、日志 |
-| [VALIDATION.md](VALIDATION.md) | 离线验证：隔离环境、出网闸门、评测与 CI 入口 |
-| [ACCEPTANCE.md](ACCEPTANCE.md) | 验收与发布准备：证据、预热/72 小时采样、发布闸门 |
-
-贡献流程见根目录 [CONTRIBUTING](../CONTRIBUTING.md)；安全报告见
-[SECURITY](../SECURITY.md)。
-
-## 历史过程与追溯资料
-
-| 文档 | 内容 |
-|---|---|
-| [HANDOFF.md](HANDOFF.md) | 跨会话交接入口：能力清单、27 条平台坑、关键文件地图 |
-| [DEVELOPMENT_STATUS.md](DEVELOPMENT_STATUS.md) | 开发台账：每批做了什么、证据是什么、还缺什么 |
-| [LOCAL_AGENT_PLAN.md](LOCAL_AGENT_PLAN.md) | 完整评估与路线计划（含历史评估，以台账最新状态为准） |
-| [DEEPSEEK_DEVELOPMENT_OUTLINE.md](DEEPSEEK_DEVELOPMENT_OUTLINE.md) | 开发大纲：D00–D27 任务卡、依赖与验收 |
-| [CAPABILITIES_PLAN.md](CAPABILITIES_PLAN.md) | C01–C06 能力完善路线与验证记录 |
-| [UI_QA.md](UI_QA.md) | UI 操作验证与浏览器回归记录 |
-| [UI_REDESIGN_MIGRATION_PLAN.md](UI_REDESIGN_MIGRATION_PLAN.md) | UI 统一改造历史档案（现行规范已由 UI_DESIGN_SYSTEM.md 接管） |
-| [index/](index) | 自动生成的源码/API/机器索引（`scripts/project_index.py` 产出，勿手改） |
-| [evidence/](evidence) | 可提交的脱敏验证证据（JSON） |
-
-另有两份示例文件被验收手册引用：[acceptance-manifest.example.json](acceptance-manifest.example.json)、
-[soak-limits.example.json](soak-limits.example.json)；素材与回滚源在
-[ui-migration/](ui-migration)（工作台旧版快照，仅供追溯）。
+Python 产品位于 `agent/`，Web 界面位于 `web/`。源码职责、调用关系与测试可以从 [模块索引](v/index/MODULES.md) 查找。准备接手开发请读 [开发交接](v/HANDOFF.md)，安排验收请看 [当前进度与待办](v/STATUS.md)。

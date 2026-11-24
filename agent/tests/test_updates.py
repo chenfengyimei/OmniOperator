@@ -27,6 +27,17 @@ from omni.system.updates.worker import Transaction
 OLD, NEW = "a" * 40, "b" * 40
 
 
+def test_inventory_excludes_local_document_archive_from_both_scan_modes(tmp_path):
+    guide = tmp_path / "docs/v/HANDOFF.md"
+    note = tmp_path / "docs/temp/v2/old.md"
+    for file in (guide, note):
+        file.parent.mkdir(parents=True)
+        file.write_text("example", encoding="utf-8")
+    expected = {"docs/v/HANDOFF.md": digest(guide)}
+    assert inventory(tmp_path) == expected
+    assert inventory(tmp_path, ["docs/v/HANDOFF.md", "docs/temp/v2/old.md"]) == expected
+
+
 @contextmanager
 def database(path):
     connection = sqlite3.connect(path)

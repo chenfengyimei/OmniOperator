@@ -1,7 +1,7 @@
 """QQ 通道入口：uv run omni-qq（需先启动 NapCat 并在 config.yaml 开启 qq）。
 
 职责纪律：只做「事件路由 + 白名单过滤 + 有界合并 + 会话绑定 + 回发」；
-领域操作全部经 Runtime 门面。安装 NapCat 见 docs/QQ_SETUP.md。
+领域操作全部经 Runtime 门面。安装 NapCat 见 docs/v/reference/QQ_SETUP.md。
 
 安全边界（A03/A05 修复后的语义）：
 - 私聊：`allowed_users` **为空时谁都不回**（空名单不等于不限）；名单外静默忽略（不暴露存在）；
@@ -341,7 +341,7 @@ def main() -> None:
     try:
         if runtime.qq is None:
             raise SystemExit(
-                "QQ 未启用：在 config/config.yaml 设置 qq.enabled: true，并按 docs/QQ_SETUP.md 启动 NapCat。"
+                "QQ 未启用：在 config/config.yaml 设置 qq.enabled: true，并按 docs/v/reference/QQ_SETUP.md 启动 NapCat。"
             )
         policy = runtime.qq_policy()
         if not policy.allowed_users:

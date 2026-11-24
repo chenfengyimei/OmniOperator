@@ -1,4 +1,4 @@
-"""架构守卫：用 AST 强制分层依赖规则与组装根规则（docs/ARCHITECTURE.md §3）。
+"""架构守卫：用 AST 强制分层依赖规则与组装根规则（docs/v/reference/ARCHITECTURE.md §3）。
 
 规则一（分层）：下层包不允许 import 上层/同级包，防止依赖倒挂；
 规则二（组装根）：Gateway / MemoryStore / ToolRegistry / Agent 只允许在

@@ -1,6 +1,6 @@
 """Windows 底座冷启动守卫：init 建库 → doctor 只读体检 → auth 在未启动时给出明确指引。
 
-对应 docs/v2/platforms/windows/WINDOWS_V2_RUNBOOK.md 的演示路径；这里只验证可离线执行的三步，
+对应 3f6594eb:docs/v2/platforms/windows/WINDOWS_V2_RUNBOOK.md 的演示路径；这里只验证可离线执行的三步，
 不启动 HTTP 服务（服务启动由 test_v2_service_runtime 等覆盖）。
 """
 

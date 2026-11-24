@@ -28,7 +28,6 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT = web_root(PROJECT_ROOT) / "index.html"
 APP_DIR = web_root(PROJECT_ROOT) / "ui/app"
-BASELINE = ROOT.parent / "docs/ui-migration/baseline-index.html"
 # JS 内置/原型方法，不是页面函数
 BUILTINS = {
     "if",
@@ -215,7 +214,6 @@ def main() -> int:
 
     # 绝对模式（Phase 7 起基线差分退役）：任何缺失 id / 重复 id / 未定义函数 /
     # 未注册 data-action 都是失败——迁移期历史遗留已在 Phase 0-7 间全部清零，
-    # 基线文件（docs/ui-migration/baseline-index.html）仅作素材与回滚来源保留。
     print(f"文件：{path}")
     print(
         f"静态 id：{cur['ids']}，JS 引用 id：{cur['used']}，app 模块：{len(app_sources())} 个，data-action：{cur['actions']} 个"

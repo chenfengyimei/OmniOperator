@@ -16,8 +16,8 @@ from .filelock import FileLock
 def _references(root: Path, names: set[str]) -> list[str]:
     """仅检查受管源码和当前文档；不会扫描私人数据、归档或其他Git工作树。"""
     references = []
-    candidates = list(root.glob("*.md"))
-    for folder in ("agent/src", "agent/scripts", "scripts", "web", "docs"):
+    candidates = [*root.glob("*.md"), *(root / "docs").glob("*.md")]
+    for folder in ("agent/src", "agent/scripts", "scripts", "web", "docs/v"):
         base = root / folder
         for path in base.rglob("*"):
             if (

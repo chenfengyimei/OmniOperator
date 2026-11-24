@@ -47,6 +47,9 @@ agent/.tmp/
 
 /temp/private/
 
+# 文档整理时保留的本机历史副本
+/docs/temp/
+
 /temp/build/
 /web/node_modules/
 

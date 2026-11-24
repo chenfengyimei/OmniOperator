@@ -4,7 +4,7 @@
 # 想扩大规则集：先在对应域把存量清零、逐条甄别（BLE001/S110 类容错要标 noqa 说明理由），
 # 再把规则追加进 select——不许先开规则后攒存量。
 #
-# 历史批次（见 docs/REFACTORING.md）：
+# 历史批次（见 docs/v/reference/REFACTORING.md）：
 #   F401/F811 死导入与重复定义 → 4eeecef
 #   I001/UP035 导入排序与过时导入 → 81900cd
 #   F841/RUF059/SIM102/SIM117/PLW1510 死变量与收窄 → 本轮

@@ -139,6 +139,8 @@ def relative_name(value: str) -> str:
 def managed(name: str) -> bool:
     relative_name(name)
     parts = PurePosixPath(name).parts
+    if name.casefold() == "docs/temp" or name.casefold().startswith("docs/temp/"):
+        return False
     return (parts[0] in MANAGED_ROOTS or name in MANAGED_FILES) and not any(
         part in {".venv", "node_modules", "__pycache__", ".pytest_cache", ".tmp"} for part in parts
     )

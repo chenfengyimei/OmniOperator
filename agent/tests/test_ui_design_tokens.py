@@ -5,7 +5,7 @@
 - 允许名单里是现存违规文件与其数量上限，每改好一处就把配额调低直至删条目；
 - 名单之外的文件从现在起就是零容忍，新写的文件（tokens/frame/components/workbench）天生必须干净。
 
-规范依据：docs/UI_DESIGN_SYSTEM.md §3（token 单源）、§4（字号下限 10px）、
+规范依据：docs/v/reference/UI_DESIGN_SYSTEM.md §3（token 单源）、§4（字号下限 10px）、
 §9（禁止内联 onclick）、§12（禁止 alert/confirm/prompt）。
 """
 

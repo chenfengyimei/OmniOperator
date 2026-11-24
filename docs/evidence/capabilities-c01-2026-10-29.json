@@ -1,9 +1,0 @@
-{
-  "base": "cf6d789",
-  "tests": 958,
-  "seconds": 188.3,
-  "isolated": true,
-  "terminal_cycles": 20,
-  "real_android": false,
-  "production_mcp": false
-}

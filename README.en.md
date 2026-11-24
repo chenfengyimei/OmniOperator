@@ -4,7 +4,7 @@
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.12%2B-3776AB)](https://www.python.org/)
 [![Platform](https://img.shields.io/badge/platform-Windows-0078D6)](#quick-start)
-[![Status](https://img.shields.io/badge/status-alpha-orange)](docs/ACCEPTANCE.md)
+[![Status](https://img.shields.io/badge/status-alpha-orange)](docs/v/reference/ACCEPTANCE.md)
 
 </div>
 
@@ -18,7 +18,7 @@ skills. Python 3.12+ · uv · LiteLLM gateway · SQLite for memory and the run l
 build-free native ES-module frontend.
 
 <p align="center">
-  <img src="docs/assets/workbench.png" alt="OmniOperator web workbench: chat, expanded tool-call chain and side panels (staged demo data)" width="100%">
+  <img src="docs/v/assets/workbench.png" alt="OmniOperator web workbench: chat, expanded tool-call chain and side panels (staged demo data)" width="100%">
 </p>
 
 **Status (honest scope)**: controlled internal beta (alpha). The full offline test suite
@@ -26,7 +26,7 @@ passes; real-account / real-device / real-model loops and the 72-hour soak have 
 been validated. Full macOS/Linux support, generic desktop takeover, and video upload are
 **not** verified deliverables. Open-sourcing is not a stable release — publishing still
 requires the owner's explicit approval per the acceptance gates
-([ACCEPTANCE](docs/ACCEPTANCE.md)).
+([ACCEPTANCE](docs/v/reference/ACCEPTANCE.md)).
 
 ## Safety model
 
@@ -46,13 +46,13 @@ Trust is enforced in deterministic code, not in the model's good behavior:
 - **Content is data** — web pages, memories, and notes are treated as untrusted data; even if
   they contain instructions, they are not executed.
 
-Full contracts: [ARCHITECTURE](docs/ARCHITECTURE.md) (enforced by `tests/test_arch.py`).
+Full contracts: [ARCHITECTURE](docs/v/reference/ARCHITECTURE.md) (enforced by `tests/test_arch.py`).
 
 ## Module map
 
 55 responsibility modules in 7 categories (single source of truth:
 `agent/src/omni/system/catalog/schema.py`; searchable index in the workbench `/project/` page and
-[docs/index/MODULES.md](docs/index/MODULES.md)):
+[docs/v/index/MODULES.md](docs/v/index/MODULES.md)):
 
 | Category | Modules |
 |---|---|
@@ -93,7 +93,7 @@ Copy-Item .env.example .env                                  # model keys (see .
 Copy-Item config\config.example.yaml config\config.yaml     # runtime config (local, untracked)
 uv run omni-web        # web workbench (pairing link printed in console)
 uv run omni            # CLI REPL
-uv run omni-qq         # QQ channel (requires NapCat, see docs/QQ_SETUP.md)
+uv run omni-qq         # QQ channel (requires NapCat, see docs/v/reference/QQ_SETUP.md)
 uv run omni-heartbeat  # scheduler (unattended writes fail closed)
 ```
 

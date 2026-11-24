@@ -9,7 +9,7 @@ from omni_test_support.paths import PRODUCT_ROOT, REPOSITORY_ROOT, TEST_ROOT
 
 
 def test_manifest_targets_resolve_and_platform_implementations_have_one_home():
-    manifest = json.loads((REPOSITORY_ROOT / "docs/tasks/v2-layout-migration.json").read_text(encoding="utf-8"))
+    manifest = json.loads((REPOSITORY_ROOT / "docs/v/layout.json").read_text(encoding="utf-8"))
     targets = [row["new"] for row in manifest["moves"]]
     assert len(targets) == len(set(targets))
     assert all((REPOSITORY_ROOT / name).is_file() for name in targets)

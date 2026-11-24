@@ -1,6 +1,6 @@
 """浏览器工具集（toolset=browser）：读 SAFE，写 CONFIRM。
 
-风险设计（docs/ARCHITECTURE.md §6 P3 行）：
+风险设计（docs/v/reference/ARCHITECTURE.md §6 P3 行）：
 - 读操作（navigate/read/screenshot）SAFE 直通；
 - 写操作（click/type）CONFIRM——过审批闸（CLI 问终端、Web 弹横幅、无人值守拒）
   且先扣每日写预算（WriteBudget），两道闸都过才执行；
