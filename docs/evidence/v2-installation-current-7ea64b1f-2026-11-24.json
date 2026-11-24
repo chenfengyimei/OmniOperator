@@ -1,0 +1,48 @@
+{
+  "schema": 1,
+  "topic": "v2-installation-current-7ea64b1f",
+  "date": "2026-11-24",
+  "purpose": "在 2026-11-24 的三项 post-candidate 程序改动之后，用当前源码 wheel 复跑离线安装/启动器/卸载检查，确认打包链没有被改动破坏。",
+  "wheel": {
+    "path": "temp/accept-asr-2026-11-24/dist-current/omnioperator-0.1.0-py3-none-any.whl",
+    "sha256": "7ea64b1faf33a2d7ac57f0885fc0efef967997f2952743749dbb68b3a7e41f97",
+    "bytes": 2826425,
+    "program_head_at_build": "78259fa5"
+  },
+  "dependency_bundle": {
+    "path": "C:/v2-acceptance/release-05b44447/dependencies",
+    "manifest_sha256": "ddc242906492a815e1893505f0453f922f2c218dda441ad0088effb9f5e1225f",
+    "note": "锁定依赖未变，复用候选 bundle；本检查未重新导出或下载依赖。"
+  },
+  "command": "uv run --no-sync python agent/scripts/check_v2_installation.py --wheel <current-wheel> --sha256 7ea64b1f… --dependency-bundle C:/v2-acceptance/release-05b44447/dependencies --dependency-sha256 ddc242… --base-python C:/Users/cy/AppData/Roaming/uv/python/cpython-3.12-windows-x86_64-none/python.exe --output C:/v2-acceptance/check-current-7ea64b1f",
+  "result": {
+    "verified": true,
+    "exit_code": 0,
+    "report": "C:/v2-acceptance/check-current-7ea64b1f/report.json",
+    "report_sha256": "cc4350a3a0e19f510814b7727b5545dd4f3b7101fa722665fd4cab69516666ee",
+    "phases": ["base", "install", "manager", "candidate", "launcher", "current", "uninstall"],
+    "observed": {
+      "services_registered": false,
+      "real_account_model_device_actions": false,
+      "whole_v2_accepted": false,
+      "base_omni_absent": true,
+      "isolated_environments": true,
+      "launcher_argv_and_environment_verified": true,
+      "data_sha256": "5fe3388ed69e58712abaca10e43404218764c043f27d98ac9f17c944eac4ce13",
+      "backup_manifest_sha256": "93c01ec737a48d62fab844ecb7ceb82918526565bb395cc01c41cc107121ab00",
+      "candidate_removed": true,
+      "data_kept": true
+    },
+    "uninstall_attempts": [
+      {"attempt": 1, "state": "failed", "error_code": "uninstall_cleanup_pending"},
+      {"attempt": 2, "state": "verified"}
+    ]
+  },
+  "conclusion": "当前源码 wheel 通过离线安装→启动器→卸载检查：安装/启动/数据保留/候选移除均 verified，base 环境无残留。卸载首次 cleanup_pending、第二次 verified 与候选 05b44447 的既有合同行为一致（外部重试是合同要求，不是新失败）。",
+  "not_covered": [
+    "Windows 系统服务注册/启动（本检查明确不注册服务）",
+    "干净物理机、真实账号/模型/设备、全量测试与 72h 长跑",
+    "其他平台（macOS/Linux）的同版本安装链",
+    "带 [asr] extra 的媒体包安装链（仅验证默认依赖 bundle）"
+  ]
+}
