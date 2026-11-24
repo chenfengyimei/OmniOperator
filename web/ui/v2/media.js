@@ -371,7 +371,7 @@ export function mountMedia({ api, wrap, getAgent, getGeneration }) {
         .filter(([, ok]) => !ok)
         .map(([name]) => name);
       $('media-processor-status').textContent = missing.length
-        ? `缺少组件：${missing.join(', ')}。安装 asr 扩展依赖（uv sync --extra asr）后重试。`
+        ? `缺少组件：${missing.join(', ')}。安装 asr 扩展依赖后重试（安装包：pip install "omnioperator[asr]"；源码环境：uv sync --extra asr）。`
         : `组件齐备：${JSON.stringify(probe.components)}`;
     }),
   );

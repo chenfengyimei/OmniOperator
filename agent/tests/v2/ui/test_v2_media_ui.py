@@ -35,6 +35,9 @@ from omni_test_support.v2.media_ui import (
     media_server as media_server,
 )
 from omni_test_support.v2.media_ui import (
+    media_server_missing as media_server_missing,
+)
+from omni_test_support.v2.media_ui import (
     pytest as pytest,
 )
 from omni_test_support.v2.media_ui import (
@@ -133,6 +136,30 @@ def test_media_panel_registers_runs_reads_and_deletes(ui_browser, media_server, 
         screenshot = REPOSITORY_ROOT / "temp/build/v2-media-ui" / f"media-{width}.png"
         screenshot.parent.mkdir(parents=True, exist_ok=True)
         page.screenshot(path=str(screenshot), full_page=True)
+        assert errors == []
+    finally:
+        context.close()
+
+
+def test_missing_media_components_name_the_installed_extra(ui_browser, media_server_missing):
+    url, token = media_server_missing
+    context = ui_browser.new_context(viewport={"width": 1024, "height": 1000})
+    try:
+        page = context.new_page()
+        errors = []
+        page.on("pageerror", lambda exc: errors.append(str(exc)))
+        page.goto(url)
+        page.locator("#token").fill(token)
+        page.get_by_role("button", name="连接实例").click()
+        expect(page.locator("#agents option")).to_have_count(1)
+        page.get_by_role("button", name="媒体", exact=True).click()
+        expect(page.locator("#media-processor-probe")).to_be_enabled()
+        page.get_by_role("button", name="检查本地组件", exact=True).click()
+        status = page.locator("#media-processor-status")
+        expect(status).to_contain_text("缺少组件")
+        expect(status).to_contain_text("av")
+        expect(status).to_contain_text('pip install "omnioperator[asr]"')
+        expect(status).to_contain_text("uv sync --extra asr")
         assert errors == []
     finally:
         context.close()

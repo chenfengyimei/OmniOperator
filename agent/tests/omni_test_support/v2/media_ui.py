@@ -3,6 +3,7 @@
 import socket
 import threading
 import time
+from contextlib import contextmanager
 from pathlib import Path
 
 import pytest
@@ -20,13 +21,19 @@ class ServerInfo(tuple):
         return instance
 
 
-@pytest.fixture
-def media_server(tmp_path):
-    gateway, processor = FakeGateway(), FakeProcessor()
+class MissingProcessor(FakeProcessor):
+    """A processor whose local media components were never installed."""
+
+    async def probe(self):
+        return {"ok": True, "components": {"av": False, "numpy": False, "PIL": True, "faster_whisper": False}}
+
+
+@contextmanager
+def serve_media(tmp_path, processor):
     app = http_app(
         tmp_path,
         model=NoModel(),
-        bilibili_backend=gateway,
+        bilibili_backend=FakeGateway(),
         media_processor=processor,
         credential_backend=Secrets(),
     )
@@ -58,6 +65,18 @@ def media_server(tmp_path):
         assert not thread.is_alive(), "V2 media server leaked its runtime"
 
 
+@pytest.fixture
+def media_server(tmp_path):
+    with serve_media(tmp_path, FakeProcessor()) as info:
+        yield info
+
+
+@pytest.fixture
+def media_server_missing(tmp_path):
+    with serve_media(tmp_path, MissingProcessor()) as info:
+        yield info
+
+
 def wait_job_done(page, base, headers, job_id):
     deadline = time.monotonic() + 15
     while time.monotonic() < deadline:
@@ -86,6 +105,7 @@ __all__ = [
     "CHANNEL",
     "FakeGateway",
     "FakeProcessor",
+    "MissingProcessor",
     "NoModel",
     "Path",
     "Secrets",
@@ -93,6 +113,7 @@ __all__ = [
     "expect",
     "http_app",
     "media_server",
+    "media_server_missing",
     "pytest",
     "socket",
     "threading",

@@ -33,7 +33,20 @@
       "message": "A media processing component is not installed; install the 'asr' extra (omnioperator[asr])",
       "sheet_created": false
     },
+    "components": {
+      "script": "temp/accept-asr-2026-11-24/probe_components.py",
+      "result": {"PIL": true, "av": false, "faster_whisper": false, "numpy": false, "ok": true},
+      "conclusion": "默认安装的本地组件探测准确报告 av/faster_whisper/numpy 缺失，工作台据此显示缺少组件提示。"
+    },
     "conclusion": "默认安装没有 PyAV 时，抽帧以精确业务错误失败，无部分产物、无崩溃；错误文案可直接指导安装 [asr]。"
+  },
+  "workbench_hint": {
+    "change": "web/ui/v2/media.js 的缺组件提示同时给出安装包命令 pip install \"omnioperator[asr]\" 与源码环境命令 uv sync --extra asr，避免安装版用户被指向仓库命令。",
+    "tests": {
+      "test_v2_media_ui.py": "3 passed / 24.93s",
+      "test_v2_media_upload_ui.py": "2 passed / 12.06s",
+      "new_case": "test_missing_media_components_name_the_installed_extra：注入缺组件处理器→工作台显示缺少组件、pip install \"omnioperator[asr]\" 与 uv sync --extra asr"
+    }
   },
   "asr_probe": {
     "script": "temp/accept-asr-2026-11-24/probe.py",
