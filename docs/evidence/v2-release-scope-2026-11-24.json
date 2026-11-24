@@ -74,6 +74,27 @@
     "asr_has": ["av==19.0.2", "faster-whisper==1.2.1", "numpy==2.5.4", "onnxruntime==1.23.2/1.31.1"],
     "conclusion": "默认 CI 依赖包不含 av；安装 omnioperator[asr] 才会带入 av/faster-whisper。默认安装的抽帧/ASR 以 media_component_missing 显式失败，错误文案提示安装 asr extra。"
   },
+  "soak_delta": {
+    "run": "05b44447",
+    "wheel_sha256": "7afc5b7d8f5a1f525afbf61ac1e479571cbf7a6567baa30b6eee6c535863efae",
+    "started_at": "2026-11-24T02:26:08+08:00",
+    "snapshot_at": "2026-11-24T16:30+08:00",
+    "samples": 842,
+    "failed": 0,
+    "elapsed_seconds": 50621,
+    "current_head_at_scope_note": "6d376a3f",
+    "post_soak_program_changes": [
+      "fdc513ad 视觉工具 4 图上限/来源互斥",
+      "4ec16920 媒体缺组件文案"
+    ],
+    "conclusion": "该 72h 长跑覆盖 2026-11-23 候选，不含 2026-11-24 的两项程序改动，不能直接作为当前 HEAD 的最终候选证据。最终发布需在当前 HEAD 重建候选并重新跑满 72h，或由所有者明确接受这两项差异（则该版本不含视觉修复）。",
+    "head_regression": {
+      "command": "uv run --no-sync pytest -q -n 0 test_v2_visual_production.py test_v2_android_explore.py test_v2_remote_desktop.py",
+      "result": "63 passed",
+      "seconds": 54.18,
+      "scope": "当前 HEAD 受影响组局部回归，不替代 72h"
+    }
+  },
   "remaining": [
     "所有者是否要求默认包自带视频分镜仍未决；本文件记录的是当前默认（不给默认包加 av），改判需重建安装包并重跑抽帧验收。",
     "SoM/explore 与 Wayland 输入若要纳入本版，属于范围变更，需要按合同补生产入口与真机验收，不能用离线核心代替。",
