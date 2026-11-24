@@ -36,6 +36,12 @@
       "result": "48 passed",
       "seconds": 53.54
     },
+    "engine_caller_suite": {
+      "command": "uv run --no-sync pytest -q -n 0 test_v2_capabilities.py test_v2_execution.py test_v2_kernel.py test_v2_turn_integrity.py test_v2_routing.py",
+      "result": "55 passed",
+      "seconds": 107.23,
+      "scope": "引擎 schema 校验、能力注册、执行/审批、turn 完整性与路由调用方；证明 oneOf/maxItems 改动未破坏工具可见面与执行路径"
+    },
     "pyright_strict": "0 errors, 0 warnings, 0 informations",
     "ruff": "check passed; format --check passed",
     "index": "modules=65 files=855 routes=464 declared_tools=94"
