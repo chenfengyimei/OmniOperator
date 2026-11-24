@@ -65,6 +65,7 @@
 - 2026-11-24 V2 本版交付边界登记（基线 `76f57804`）：新增 [V2 发布范围](v2/RELEASE_SCOPE.md)，把承诺与延期分开写清——Android SoM/`explore_app` 只有离线核心（`render_som`/`ExploreGraph` 在正式源码无工具/worker/入口引用）；Wayland 前台键鼠保持 `input_authorized=false`，EIS/`SeatInput` 仅离线专项调用；默认安装不含 `av`/`faster-whisper`（由 `[asr]` extra 引入），视频分镜不承诺开箱；macOS 默认 ad hoc、仓库无公证/装订步骤。同时把 `media_component_missing` 文案改为提示安装 `omnioperator[asr]`，新增 1 项回归；媒体协议/模型缺失/错误码 **95 passed / 14.90s**，strict 0 错误、ruff/格式通过、索引 65/855/464/94。所有者如要求把任一项移入本版，需按文档列出的生产入口与真机/安装验收执行，不能以离线核心代替。[证据](evidence/v2-release-scope-2026-11-24.json)
 - 2026-11-24 视频 extra 安装边界实测（基线 `76f57804`）：用 `uv build` 的当前 wheel 建两个隔离 venv——默认安装（无 `av`）调抽帧得到 `media_component_missing`/503、文案提示安装 `omnioperator[asr]`、无部分产物；`[asr]` 安装（`av 19.0.2`）经真实 stdio worker 子进程从合成 8s 视频抽出 3 帧、640×520 PNG、时间戳升序、worker 干净关闭。结论：默认包按显式失败交付，媒体能力由 `[asr]` 包单独验收；其他平台/正式安装链/ASR 转写与真实长视频未覆盖。[证据](evidence/v2-media-asr-install-2026-11-24.json)
 - 2026-11-24 媒体缺组件工作台提示修正：默认安装的 `probe()` 实测 `av/faster_whisper/numpy=false`、`PIL=true`，工作台据此显示缺组件；提示改为同时给出安装包命令 `pip install "omnioperator[asr]"` 与源码环境 `uv sync --extra asr`。新增缺组件 UI 回归；媒体 UI **3 passed / 24.93s**、上传 UI **2 passed / 12.06s**，prettier/`node --check`/ruff 通过。[证据](evidence/v2-media-asr-install-2026-11-24.json)
+- 2026-11-24 当前 HEAD 全量收集前置：`pytest -q -n 0 --collect-only` **8662 项 / 0 错误 / 11.79 秒**；候选为 8658（8648 通过 + 10 跳），差值即本日新增 4 项回归。**未运行全量**，仅证明当前源码可完整收集。[证据](evidence/v2-release-scope-2026-11-24.json)
 
 ## 本次目录整理验证
 

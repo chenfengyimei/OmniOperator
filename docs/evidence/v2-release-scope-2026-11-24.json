@@ -96,6 +96,16 @@
       "scope": "当前 HEAD 受影响组局部回归，不替代 72h"
     }
   },
+  "collection_preflight": {
+    "date": "2026-11-24",
+    "command": "uv run --no-sync pytest -q -n 0 --collect-only",
+    "collected": 8662,
+    "errors": 0,
+    "seconds": 11.79,
+    "candidate_total": 8658,
+    "delta": "候选 8648 passed + 10 skipped = 8658；当前源码新增 4 项回归（视觉 schema 上限/互斥、能力入口超限/双来源、媒体缺组件文案、媒体缺组件 UI）后为 8662。",
+    "conclusion": "当前 HEAD 全量可完整收集、无导入/收集错误；这只是冻结后统一全量的前置检查，不代表已运行全量。"
+  },
   "remaining": [
     "所有者是否要求默认包自带视频分镜仍未决；本文件记录的是当前默认（不给默认包加 av），改判需重建安装包并重跑抽帧验收。",
     "SoM/explore 与 Wayland 输入若要纳入本版，属于范围变更，需要按合同补生产入口与真机验收，不能用离线核心代替。",
