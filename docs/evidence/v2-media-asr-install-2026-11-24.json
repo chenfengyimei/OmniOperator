@@ -1,0 +1,65 @@
+{
+  "schema": 1,
+  "topic": "v2-media-asr-install",
+  "date": "2026-11-24",
+  "baseline": "76f57804",
+  "purpose": "验证视频分镜的安装边界：默认 wheel 必须显式拒绝并给出安装指引；带 [asr] extra 的安装包必须能在装好的环境里真实抽帧，而不是靠开发 checkout。",
+  "wheel": {
+    "path": "temp/accept-asr-2026-11-24/dist/omnioperator-0.1.0-py3-none-any.whl",
+    "sha256": "1927159b052892a98e2b11038b7b7d5b5ccc6039a4b361bea6bf5a9bca6ab2b3",
+    "bytes": 2826379,
+    "built_by": "uv build --package omnioperator --wheel --out-dir temp/accept-asr-2026-11-24/dist"
+  },
+  "environment": {
+    "os": "Windows x86_64",
+    "python": "3.12.14",
+    "venvs": {
+      "default": "temp/accept-asr-2026-11-24/venv-default",
+      "asr": "temp/accept-asr-2026-11-24/venv"
+    },
+    "install": {
+      "default": "uv pip install <wheel>",
+      "asr": "uv pip install '<wheel>[asr]'",
+      "av_in_default": false,
+      "av_in_asr": "19.0.2"
+    }
+  },
+  "default_probe": {
+    "script": "temp/accept-asr-2026-11-24/probe_default.py",
+    "command": "venv-default\\Scripts\\python.exe probe_default.py",
+    "result": {
+      "code": "media_component_missing",
+      "status": 503,
+      "message": "A media processing component is not installed; install the 'asr' extra (omnioperator[asr])",
+      "sheet_created": false
+    },
+    "conclusion": "默认安装没有 PyAV 时，抽帧以精确业务错误失败，无部分产物、无崩溃；错误文案可直接指导安装 [asr]。"
+  },
+  "asr_probe": {
+    "script": "temp/accept-asr-2026-11-24/probe.py",
+    "command": "venv\\Scripts\\python.exe probe.py",
+    "input": "synthetic mpeg4 8s/5fps/64x48，三段纯色（红/绿/蓝），1929 bytes",
+    "result": {
+      "omni_version": "0.1.0",
+      "av": "19.0.2",
+      "frame_count": 3,
+      "timestamps": [1.6, 4.0, 6.4],
+      "sheet_size": [640, 520],
+      "sheet_bytes": 3016,
+      "sha256": "26b7be5a3c4f687ab1ca548d3a3924a6271e3de28cd104e0fd9a670555699961",
+      "worker_closed": true,
+      "png_magic": true
+    },
+    "conclusion": "安装后的 wheel + [asr] 通过真实 stdio worker 子进程解出 3 帧并生成 640×520 PNG 宫格；时间戳升序、worker 干净关闭。"
+  },
+  "scope": {
+    "default_package_promise": "不承诺视频分镜/ASR 开箱可用，缺组件显式失败并提示安装 extra。",
+    "asr_package_promise": "可作为单独验收的媒体包；本证据只覆盖抽帧，不含 ASR 模型转写。",
+    "not_covered": [
+      "其他平台（Linux/macOS）的同等安装与原生库可加载性。",
+      "正式发布安装链（check_v2_installation/candidate 包）与升级/卸载。",
+      "ASR 模型缓存、转写质量与真实长视频资源峰值。",
+      "默认 wheel 在干净机上的 GUI「检查本地组件」提示（仅有单元/UI 注入覆盖）。"
+    ]
+  }
+}
