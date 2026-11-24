@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "a1a3a9aaa25674ad6e68846ab0678c469ab85b3bc05833b53fdcefd72abb3471",
+  "source_sha256": "0825ce8647b72f389d2b6c8edfe2cfd59f3de4b51b89f31d0fe1e79845f19b9f",
   "modules": [
     {
       "id": "v2-domain",
@@ -171,7 +171,7 @@
         "agent/src/omni/application/todos.py",
         "agent/src/omni/application/visual_subagent.py"
       ],
-      "lines": 14414,
+      "lines": 14431,
       "dependencies": [
         "v2-domain"
       ]
@@ -69611,7 +69611,7 @@
       "path": "agent/src/omni/application/visual_subagent.py",
       "module": "v2-application",
       "python_module": "omni.application.visual_subagent",
-      "lines": 319,
+      "lines": 336,
       "imports": [
         "omni.application.ports",
         "omni.domain.contracts",
@@ -69621,12 +69621,12 @@
       "symbols": [
         {
           "name": "VisualFrameSource",
-          "line": 75,
+          "line": 84,
           "kind": "class"
         },
         {
           "name": "VisualFrameSource.frames",
-          "line": 78,
+          "line": 87,
           "kind": "function",
           "parameters": [
             "self",
@@ -69640,12 +69640,12 @@
         },
         {
           "name": "VisualModel",
-          "line": 81,
+          "line": 90,
           "kind": "class"
         },
         {
           "name": "VisualModel.model",
-          "line": 85,
+          "line": 94,
           "kind": "function",
           "parameters": [
             "self"
@@ -69654,7 +69654,7 @@
         },
         {
           "name": "VisualModel.complete",
-          "line": 87,
+          "line": 96,
           "kind": "function",
           "parameters": [
             "self",
@@ -69666,12 +69666,12 @@
         },
         {
           "name": "VisualModelFactory",
-          "line": 90,
+          "line": 99,
           "kind": "class"
         },
         {
           "name": "VisualModelFactory.for_run",
-          "line": 93,
+          "line": 102,
           "kind": "function",
           "parameters": [
             "self",
@@ -69687,12 +69687,12 @@
         },
         {
           "name": "VisualMediaFrameSource",
-          "line": 96,
+          "line": 105,
           "kind": "class"
         },
         {
           "name": "VisualMediaFrameSource.frame",
-          "line": 99,
+          "line": 108,
           "kind": "function",
           "parameters": [
             "self",
@@ -69706,12 +69706,12 @@
         },
         {
           "name": "VisualSubagentService",
-          "line": 102,
+          "line": 111,
           "kind": "class"
         },
         {
           "name": "VisualSubagentService.__init__",
-          "line": 103,
+          "line": 112,
           "kind": "function",
           "parameters": [
             "self",
@@ -69733,7 +69733,7 @@
         },
         {
           "name": "VisualSubagentService.run",
-          "line": 124,
+          "line": 133,
           "kind": "function",
           "parameters": [
             "self",
@@ -69757,7 +69757,7 @@
         },
         {
           "name": "VisualSubagentService.run.done",
-          "line": 142,
+          "line": 151,
           "kind": "function",
           "parameters": [
             "future"
@@ -69768,7 +69768,7 @@
         },
         {
           "name": "VisualSubagentService._run",
-          "line": 157,
+          "line": 166,
           "kind": "function",
           "parameters": [
             "self",
@@ -69792,7 +69792,7 @@
         },
         {
           "name": "VisualSubagentService._checked_frames",
-          "line": 234,
+          "line": 243,
           "kind": "function",
           "parameters": [
             "resolved",
@@ -69805,7 +69805,7 @@
         },
         {
           "name": "VisualSubagentService._complete",
-          "line": 245,
+          "line": 254,
           "kind": "function",
           "parameters": [
             "self",
@@ -69819,7 +69819,7 @@
         },
         {
           "name": "VisualSubagentService.health",
-          "line": 258,
+          "line": 267,
           "kind": "function",
           "parameters": [
             "self"
@@ -69828,7 +69828,7 @@
         },
         {
           "name": "VisualSubagentService.stop_accepting",
-          "line": 261,
+          "line": 270,
           "kind": "function",
           "parameters": [
             "self"
@@ -69837,7 +69837,7 @@
         },
         {
           "name": "VisualSubagentService.close",
-          "line": 264,
+          "line": 273,
           "kind": "function",
           "parameters": [
             "self",
@@ -69849,12 +69849,12 @@
         },
         {
           "name": "VisualSubagentCapabilities",
-          "line": 271,
+          "line": 280,
           "kind": "class"
         },
         {
           "name": "VisualSubagentCapabilities.__init__",
-          "line": 274,
+          "line": 283,
           "kind": "function",
           "parameters": [
             "self",
@@ -69866,7 +69866,7 @@
         },
         {
           "name": "VisualSubagentCapabilities.invoke",
-          "line": 277,
+          "line": 286,
           "kind": "function",
           "parameters": [
             "self",
@@ -69884,7 +69884,7 @@
         },
         {
           "name": "VisualSubagentCapabilities.close",
-          "line": 318,
+          "line": 335,
           "kind": "function",
           "parameters": [
             "self",

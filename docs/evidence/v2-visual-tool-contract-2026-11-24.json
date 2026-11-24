@@ -1,0 +1,49 @@
+{
+  "schema": 1,
+  "topic": "v2-visual-tool-contract",
+  "date": "2026-11-24",
+  "baseline": "76f57804",
+  "problem": {
+    "declaration": "visual_subagent.ToolSpec.frame_object_ids 声明 1–240 个图像对象，生产 ModelCallsVisualModel 只接受 MAX_IMAGES=4 张；模型按声明可传 5 张并通过参数校验，读帧后才以 visual_unavailable 失败。",
+    "source_exclusivity": "schema 用 anyOf（至少一个来源），同时给 frame_object_id 与 frames_id 也能通过；互斥只在 VisualSubagentCapabilities.invoke 执行端检查。",
+    "observed": "用 5 个合法上传图像 ID 走真实组合根：参数校验通过、模型调用 0 次、action 记 visual_unavailable；两种来源同时给出同样通过 schema。"
+  },
+  "fix": {
+    "declaration": "frame_object_ids.maxItems 改为 MAX_IMAGES(4)，属性描述注明生产低细节图像协议单次上限；工具描述改为 up to four image objects。",
+    "source_exclusivity": "根 schema 的 anyOf 改为 oneOf：引擎 Draft202012Validator 在 prepare_action 之前拒绝 0 个或 2 个来源，返回 invalid_tool_arguments，不建动作行。",
+    "defense_in_depth": "VisualSubagentCapabilities.invoke 在解析帧前拒绝 >4，返回 visual_frames_invalid；适配器原有 >4 检查保留兜底。",
+    "unchanged": "纯领域 domain/visual_subagent.py 仍保留 1–240 输入与 ≤60 保序等距子采样，作为未来可承载更多帧的协议能力，本版不对外声明；帧获取/授权/预算/账本/零写语义未改。"
+  },
+  "files": {
+    "agent/src/omni/application/visual_subagent.py": "bf91a6aede018929dd2312bc8b233267325cb7213a92abe74e7f1b6a8169e812",
+    "agent/tests/v2/core/test_v2_visual_production.py": "59ca360a2be3b60731f6e7d6a59566469f7f0cb91f5a5df0c94d3d8bc5f10ca3",
+    "agent/tests/v2/core/test_v2_visual_subagent.py": "d741f3cd4dd5a44e55e54bac4a50f081a8371c7021167fd0fc352c419d3e78c2",
+    "docs/v2/contracts/V2_VISUAL_SUBAGENT.md": "0a351a9fa899fc54c0847d77c335ac8ee11e7631db072860a41d22e6dcb3ed74"
+  },
+  "tests": {
+    "command": "uv run --no-sync pytest -q -n 0 agent/tests/v2/core/test_v2_visual_production.py agent/tests/v2/core/test_v2_visual_subagent.py",
+    "result": "35 passed",
+    "seconds": 59.72,
+    "new_cases": [
+      "test_tool_schema_matches_the_production_image_and_source_bounds：maxItems==MAX_IMAGES、oneOf 且无 anyOf；1/4 张与单 sheet 合法，5 张、双来源、双对象字段与空来源均非法",
+      "test_more_than_four_images_fails_at_argument_validation_without_a_model_call：5 张真实上传图→无 action 行、0 次视觉调用、模型收到 invalid_tool_arguments 文案",
+      "test_capability_rejects_ambiguous_or_oversized_sources_before_any_read：直接调用能力 >4 或双来源→visual_frames_invalid，0 次 db.read、帧源/模型均未触达"
+    ]
+  },
+  "guards": {
+    "guards_suite": {
+      "command": "uv run --no-sync pytest -q -n 0 test_v2_architecture test_v2_layout test_v2_typecheck_scope test_v2_candidate_gate test_v2_tool_image_protocol test_v2_tool_image_ledger",
+      "result": "48 passed",
+      "seconds": 53.54
+    },
+    "pyright_strict": "0 errors, 0 warnings, 0 informations",
+    "ruff": "check passed; format --check passed",
+    "index": "modules=65 files=855 routes=464 declared_tools=94"
+  },
+  "remaining": [
+    "真实视觉模型（gpt-4o）对 tool-result image 的供应商兼容性与摘要质量仍未执行，需有效凭据与隔离设备窗口。",
+    "D3 的 1–60 多帧仍受图像协议 MAX_IMAGES=4 限制；若产品要求更多帧，需独立图像协议/预算决策，不能只放宽工具声明。",
+    "未重复全量：按开发期纪律仅跑受影响模块与调用方；全量留到 V2 开发收尾窗口。",
+    "72h soak 与干净机/真机验收仍按发布候选 evidence 推进，本批不据此宣称整体完成。"
+  ]
+}

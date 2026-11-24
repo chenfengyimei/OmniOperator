@@ -15,6 +15,7 @@ from typing import Protocol, cast
 
 from ..domain.contracts import (
     JSON,
+    MAX_IMAGES,
     ActionResult,
     BusinessError,
     InvocationContext,
@@ -42,9 +43,9 @@ _BUDGET_CODES = frozenset({"budget_exceeded", "delegation_budget_exceeded", "dai
 
 VISUAL_SUBAGENT = ToolSpec(
     "visual_subagent",
-    "Analyze already-authorized image object(s) or one registered media frame sheet (for example an "
-    "Android screenshot) with one bounded vision call. Returns only a text summary plus frame/model/cost "
-    "metadata; it has no tools, does not replay and does not write memory or persona.",
+    "Analyze up to four already-authorized image objects or one registered media frame sheet (for "
+    "example an Android screenshot) with one bounded vision call. Returns only a text summary plus "
+    "frame/model/cost metadata; it has no tools, does not replay and does not write memory or persona.",
     {
         "type": "object",
         "properties": {
@@ -52,15 +53,23 @@ VISUAL_SUBAGENT = ToolSpec(
             "frame_object_id": {"type": "string", "minLength": 36, "maxLength": 36},
             "frame_object_ids": {
                 "type": "array",
+                "description": (
+                    "Agent-owned image object ids. The production low-detail image protocol carries at "
+                    f"most {MAX_IMAGES} images in one model call; use frames_id for a frame sheet."
+                ),
                 "minItems": 1,
-                "maxItems": 240,
+                "maxItems": MAX_IMAGES,
                 "items": {"type": "string", "minLength": 36, "maxLength": 36},
             },
             "frames_id": {"type": "string", "minLength": 36, "maxLength": 36},
             "focus": {"enum": list(FOCUS_VALUES)},
         },
         "required": ["task"],
-        "anyOf": [
+        # Exactly one image source: the engine validates this before any action or object read. The
+        # domain still admits up to 240 ordered frames for an injected carrier, but this model-facing
+        # capability declares the real production carrier bound (MAX_IMAGES) so it never promises more
+        # than the adapter can deliver.
+        "oneOf": [
             {"required": ["frame_object_id"]},
             {"required": ["frame_object_ids"]},
             {"required": ["frames_id"]},
@@ -293,6 +302,14 @@ class VisualSubagentCapabilities:
             if frame_object_ids is not None
             else ([frame_object_id] if frame_object_id else [])
         )
+        # The engine rejects this against the tool schema first; keep the capability honest for direct
+        # callers so an oversized request fails before any object is read or a frame is resolved.
+        if len(ids) > MAX_IMAGES:
+            return ActionResult(
+                Outcome.ERROR,
+                f"At most {MAX_IMAGES} image objects can be seen in one visual call",
+                error_code="visual_frames_invalid",
+            )
         try:
             result = await self._service.run(
                 context.agent_id,

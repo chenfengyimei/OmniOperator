@@ -9,8 +9,10 @@ from __future__ import annotations
 
 import asyncio
 import io
+import uuid
 
 import pytest
+from jsonschema import Draft202012Validator
 from omni_test_support.v2.android import SERIAL, fake_server
 from omni_test_support.v2.v2_configuration_helpers import model_uow
 from PIL import Image
@@ -20,7 +22,7 @@ from omni.adapters.persistence import schema as s
 from omni.adapters.visual import MediaFrameSheets
 from omni.application.visual_subagent import VISUAL_SUBAGENT
 from omni.composition.instance import open_instance
-from omni.domain.contracts import BusinessError, Invocation, ModelReply
+from omni.domain.contracts import MAX_IMAGES, BusinessError, Invocation, ModelReply
 
 
 class RoutingModel:
@@ -31,8 +33,10 @@ class RoutingModel:
         self.visual_frame_counts: list[int] = []
         self.master_calls = 0
         self.fail_visual = False
+        self.transcripts: list[list[dict[str, object]]] = []
 
     async def complete(self, messages, tools, settings):
+        self.transcripts.append(messages)
         visual_parts = [
             part
             for message in messages
@@ -179,7 +183,24 @@ def test_two_authorized_images_reach_one_visual_call(tmp_path):
     asyncio.run(scenario())
 
 
-def test_more_than_four_images_fails_explicitly_without_a_model_call(tmp_path):
+def test_tool_schema_matches_the_production_image_and_source_bounds():
+    parameters = VISUAL_SUBAGENT.parameters
+    assert parameters["properties"]["frame_object_ids"]["maxItems"] == MAX_IMAGES
+    assert "oneOf" in parameters and "anyOf" not in parameters
+    validator = Draft202012Validator(parameters)
+    ids = [str(uuid.uuid5(uuid.NAMESPACE_URL, f"omni:visual-test:{index}")) for index in range(MAX_IMAGES + 1)]
+    base: dict[str, object] = {"task": "Describe the screen"}
+    assert validator.is_valid({**base, "frame_object_id": ids[0]})
+    assert validator.is_valid({**base, "frame_object_ids": ids[:MAX_IMAGES]})
+    assert validator.is_valid({**base, "frames_id": ids[0]})
+    assert not validator.is_valid({**base, "frame_object_ids": ids})
+    assert not validator.is_valid({**base, "frame_object_id": ids[0], "frame_object_ids": [ids[1]]})
+    assert not validator.is_valid({**base, "frame_object_id": ids[0], "frames_id": ids[1]})
+    assert not validator.is_valid({**base, "frame_object_ids": [ids[0]], "frames_id": ids[1]})
+    assert not validator.is_valid(base)
+
+
+def test_more_than_four_images_fails_at_argument_validation_without_a_model_call(tmp_path):
     async def scenario():
         model = RoutingModel()
         instance, app, agent = await _setup(tmp_path, model)
@@ -191,8 +212,23 @@ def test_more_than_four_images_fails_explicitly_without_a_model_call(tmp_path):
             model.object_ids = [str(row["object_id"]) for row in uploaded]
             _receipt, run = await _run_visual(app, agent)
             assert run["state"] == "succeeded" and model.visual_calls == 0
-            action = await _visual_action(instance, agent)
-            assert action["state"] == "error" and action["result"]["error_code"] == "visual_unavailable"
+            # The schema rejects the call before an action row or frame read exists.
+            assert (
+                await instance._database.read(
+                    lambda u: (
+                        u.connection.execute(select(s.actions).where(s.actions.c.tool == VISUAL_SUBAGENT.name))
+                        .mappings()
+                        .all()
+                    )
+                )
+                == []
+            )
+            tool_messages = [
+                message["content"]
+                for message in model.transcripts[-1]
+                if isinstance(message, dict) and message.get("role") == "tool"
+            ]
+            assert tool_messages == ["Tool arguments do not match its schema"]
         finally:
             await instance.close()
 

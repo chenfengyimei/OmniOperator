@@ -14,8 +14,8 @@ import uuid
 
 import pytest
 
-from omni.application.visual_subagent import VisualSubagentService
-from omni.domain.contracts import BusinessError, Invocation, ModelReply
+from omni.application.visual_subagent import VisualSubagentCapabilities, VisualSubagentService
+from omni.domain.contracts import MAX_IMAGES, BusinessError, Invocation, InvocationContext, ModelReply, Outcome
 from omni.domain.visual_subagent import (
     FOCUS_VALUES,
     MAX_INPUT_FRAMES,
@@ -328,6 +328,34 @@ def test_bad_input_is_rejected_before_authorization_frames_or_model():
             assert db.reads == 0 and source.requests == [] and model.requests == []
         finally:
             await service.close()
+
+    asyncio.run(scenario())
+
+
+def test_capability_rejects_ambiguous_or_oversized_sources_before_any_read():
+    async def scenario():
+        db, source, model = _DB(), _Source(_frames(MAX_IMAGES + 1)), _Model()
+        service = _service(db, source, model)
+        capabilities = VisualSubagentCapabilities(service)
+        context = InvocationContext("agent", "run", "session", 0)
+        try:
+            oversized = await capabilities.invoke(
+                "visual_subagent",
+                {"task": "compare", "frame_object_ids": [_uuid(index) for index in range(MAX_IMAGES + 1)]},
+                operation_id="op-1",
+                context=context,
+            )
+            assert oversized.status is Outcome.ERROR and oversized.error_code == "visual_frames_invalid"
+            both = await capabilities.invoke(
+                "visual_subagent",
+                {"task": "compare", "frame_object_id": _uuid(0), "frames_id": _uuid(1)},
+                operation_id="op-2",
+                context=context,
+            )
+            assert both.status is Outcome.ERROR and both.error_code == "visual_frames_invalid"
+            assert db.reads == 0 and source.requests == [] and model.requests == []
+        finally:
+            assert await service.close() is True
 
     asyncio.run(scenario())
 
