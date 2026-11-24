@@ -82,12 +82,13 @@
     "samples": 842,
     "failed": 0,
     "elapsed_seconds": 50621,
-    "current_head_at_scope_note": "6d376a3f",
+    "current_head_at_scope_note": "fa359a09",
     "post_soak_program_changes": [
       "fdc513ad 视觉工具 4 图上限/来源互斥",
-      "4ec16920 媒体缺组件文案"
+      "4ec16920 媒体缺组件文案",
+      "fa359a09 媒体工作台缺组件提示"
     ],
-    "conclusion": "该 72h 长跑覆盖 2026-11-23 候选，不含 2026-11-24 的两项程序改动，不能直接作为当前 HEAD 的最终候选证据。最终发布需在当前 HEAD 重建候选并重新跑满 72h，或由所有者明确接受这两项差异（则该版本不含视觉修复）。",
+    "conclusion": "该 72h 长跑覆盖 2026-11-23 候选，不含 2026-11-24 的三项程序改动，不能直接作为当前 HEAD 的最终候选证据。最终发布需在当前 HEAD 重建候选并重新跑满 72h，或由所有者明确接受这些差异（则该版本不含视觉修复）。",
     "head_regression": {
       "command": "uv run --no-sync pytest -q -n 0 test_v2_visual_production.py test_v2_android_explore.py test_v2_remote_desktop.py",
       "result": "63 passed",
