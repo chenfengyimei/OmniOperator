@@ -1,8 +1,9 @@
 """Production visual-subagent adapters: authorized image objects and one budgeted ModelCalls request.
 
 The frame source verifies agent-scoped image objects and decodes/registers their metadata; the model
-adapter builds one stateless system+task+single-image request through the existing ModelCalls ledger.
-It never uses master history, tools, memory or persona, and never replays an unknown call.
+adapter builds one stateless system+task request carrying 1..MAX_IMAGES verified image parts through the
+existing ModelCalls ledger. It never uses master history, tools, memory or persona, and never replays an
+unknown call.
 """
 
 from __future__ import annotations

@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "83c8072574356bb83b1eb97176f15d8e2a1d49186b10d9e9e341dbb52c0c0adb",
+  "source_sha256": "dfa5aae23a1cb49fd6f833c492c15bfb1231c60c2e9bc1b7f7046758c47deec3",
   "modules": [
     {
       "id": "v2-domain",
@@ -98,7 +98,7 @@
         "agent/src/omni/domain/verification_stop.py",
         "agent/src/omni/domain/visual_subagent.py"
       ],
-      "lines": 14824,
+      "lines": 14826,
       "dependencies": []
     },
     {
@@ -171,7 +171,7 @@
         "agent/src/omni/application/todos.py",
         "agent/src/omni/application/visual_subagent.py"
       ],
-      "lines": 14431,
+      "lines": 14432,
       "dependencies": [
         "v2-domain"
       ]
@@ -520,7 +520,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 72094,
+      "lines": 72095,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -44086,7 +44086,7 @@
       "path": "agent/src/omni/adapters/visual.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.visual",
-      "lines": 213,
+      "lines": 214,
       "imports": [
         "omni.application.images",
         "omni.application.media",
@@ -44102,12 +44102,12 @@
       "symbols": [
         {
           "name": "ImageObjectFrames",
-          "line": 48,
+          "line": 49,
           "kind": "class"
         },
         {
           "name": "ImageObjectFrames.__init__",
-          "line": 51,
+          "line": 52,
           "kind": "function",
           "parameters": [
             "self",
@@ -44121,7 +44121,7 @@
         },
         {
           "name": "ImageObjectFrames.frames",
-          "line": 54,
+          "line": 55,
           "kind": "function",
           "parameters": [
             "self",
@@ -44135,12 +44135,12 @@
         },
         {
           "name": "MediaFrameSheets",
-          "line": 85,
+          "line": 86,
           "kind": "class"
         },
         {
           "name": "MediaFrameSheets.__init__",
-          "line": 88,
+          "line": 89,
           "kind": "function",
           "parameters": [
             "self",
@@ -44156,7 +44156,7 @@
         },
         {
           "name": "MediaFrameSheets.frame",
-          "line": 91,
+          "line": 92,
           "kind": "function",
           "parameters": [
             "self",
@@ -44170,12 +44170,12 @@
         },
         {
           "name": "ModelCallsVisualModel",
-          "line": 123,
+          "line": 124,
           "kind": "class"
         },
         {
           "name": "ModelCallsVisualModel.__init__",
-          "line": 126,
+          "line": 127,
           "kind": "function",
           "parameters": [
             "self",
@@ -44195,7 +44195,7 @@
         },
         {
           "name": "ModelCallsVisualModel.model",
-          "line": 130,
+          "line": 131,
           "kind": "function",
           "parameters": [
             "self"
@@ -44204,7 +44204,7 @@
         },
         {
           "name": "ModelCallsVisualModel.complete",
-          "line": 133,
+          "line": 134,
           "kind": "function",
           "parameters": [
             "self",
@@ -44216,12 +44216,12 @@
         },
         {
           "name": "ModelCallsVisualModelFactory",
-          "line": 205,
+          "line": 206,
           "kind": "class"
         },
         {
           "name": "ModelCallsVisualModelFactory.__init__",
-          "line": 206,
+          "line": 207,
           "kind": "function",
           "parameters": [
             "self",
@@ -44235,7 +44235,7 @@
         },
         {
           "name": "ModelCallsVisualModelFactory.for_run",
-          "line": 209,
+          "line": 210,
           "kind": "function",
           "parameters": [
             "self",
@@ -69611,7 +69611,7 @@
       "path": "agent/src/omni/application/visual_subagent.py",
       "module": "v2-application",
       "python_module": "omni.application.visual_subagent",
-      "lines": 336,
+      "lines": 337,
       "imports": [
         "omni.application.ports",
         "omni.domain.contracts",
@@ -69621,12 +69621,12 @@
       "symbols": [
         {
           "name": "VisualFrameSource",
-          "line": 84,
+          "line": 85,
           "kind": "class"
         },
         {
           "name": "VisualFrameSource.frames",
-          "line": 87,
+          "line": 88,
           "kind": "function",
           "parameters": [
             "self",
@@ -69640,12 +69640,12 @@
         },
         {
           "name": "VisualModel",
-          "line": 90,
+          "line": 91,
           "kind": "class"
         },
         {
           "name": "VisualModel.model",
-          "line": 94,
+          "line": 95,
           "kind": "function",
           "parameters": [
             "self"
@@ -69654,7 +69654,7 @@
         },
         {
           "name": "VisualModel.complete",
-          "line": 96,
+          "line": 97,
           "kind": "function",
           "parameters": [
             "self",
@@ -69666,12 +69666,12 @@
         },
         {
           "name": "VisualModelFactory",
-          "line": 99,
+          "line": 100,
           "kind": "class"
         },
         {
           "name": "VisualModelFactory.for_run",
-          "line": 102,
+          "line": 103,
           "kind": "function",
           "parameters": [
             "self",
@@ -69687,12 +69687,12 @@
         },
         {
           "name": "VisualMediaFrameSource",
-          "line": 105,
+          "line": 106,
           "kind": "class"
         },
         {
           "name": "VisualMediaFrameSource.frame",
-          "line": 108,
+          "line": 109,
           "kind": "function",
           "parameters": [
             "self",
@@ -69706,12 +69706,12 @@
         },
         {
           "name": "VisualSubagentService",
-          "line": 111,
+          "line": 112,
           "kind": "class"
         },
         {
           "name": "VisualSubagentService.__init__",
-          "line": 112,
+          "line": 113,
           "kind": "function",
           "parameters": [
             "self",
@@ -69733,7 +69733,7 @@
         },
         {
           "name": "VisualSubagentService.run",
-          "line": 133,
+          "line": 134,
           "kind": "function",
           "parameters": [
             "self",
@@ -69757,7 +69757,7 @@
         },
         {
           "name": "VisualSubagentService.run.done",
-          "line": 151,
+          "line": 152,
           "kind": "function",
           "parameters": [
             "future"
@@ -69768,7 +69768,7 @@
         },
         {
           "name": "VisualSubagentService._run",
-          "line": 166,
+          "line": 167,
           "kind": "function",
           "parameters": [
             "self",
@@ -69792,7 +69792,7 @@
         },
         {
           "name": "VisualSubagentService._checked_frames",
-          "line": 243,
+          "line": 244,
           "kind": "function",
           "parameters": [
             "resolved",
@@ -69805,7 +69805,7 @@
         },
         {
           "name": "VisualSubagentService._complete",
-          "line": 254,
+          "line": 255,
           "kind": "function",
           "parameters": [
             "self",
@@ -69819,7 +69819,7 @@
         },
         {
           "name": "VisualSubagentService.health",
-          "line": 267,
+          "line": 268,
           "kind": "function",
           "parameters": [
             "self"
@@ -69828,7 +69828,7 @@
         },
         {
           "name": "VisualSubagentService.stop_accepting",
-          "line": 270,
+          "line": 271,
           "kind": "function",
           "parameters": [
             "self"
@@ -69837,7 +69837,7 @@
         },
         {
           "name": "VisualSubagentService.close",
-          "line": 273,
+          "line": 274,
           "kind": "function",
           "parameters": [
             "self",
@@ -69849,12 +69849,12 @@
         },
         {
           "name": "VisualSubagentCapabilities",
-          "line": 280,
+          "line": 281,
           "kind": "class"
         },
         {
           "name": "VisualSubagentCapabilities.__init__",
-          "line": 283,
+          "line": 284,
           "kind": "function",
           "parameters": [
             "self",
@@ -69866,7 +69866,7 @@
         },
         {
           "name": "VisualSubagentCapabilities.invoke",
-          "line": 286,
+          "line": 287,
           "kind": "function",
           "parameters": [
             "self",
@@ -69884,7 +69884,7 @@
         },
         {
           "name": "VisualSubagentCapabilities.close",
-          "line": 335,
+          "line": 336,
           "kind": "function",
           "parameters": [
             "self",
@@ -89603,14 +89603,14 @@
       "path": "agent/src/omni/domain/visual_subagent.py",
       "module": "v2-domain",
       "python_module": "omni.domain.visual_subagent",
-      "lines": 196,
+      "lines": 198,
       "imports": [
         "omni.domain.contracts"
       ],
       "symbols": [
         {
           "name": "_invalid",
-          "line": 48,
+          "line": 50,
           "kind": "function",
           "parameters": [
             "code",
@@ -89625,7 +89625,7 @@
         },
         {
           "name": "_bounded_text",
-          "line": 52,
+          "line": 54,
           "kind": "function",
           "parameters": [
             "value",
@@ -89642,7 +89642,7 @@
         },
         {
           "name": "normalize_task",
-          "line": 69,
+          "line": 71,
           "kind": "function",
           "parameters": [
             "value"
@@ -89653,7 +89653,7 @@
         },
         {
           "name": "normalize_focus",
-          "line": 73,
+          "line": 75,
           "kind": "function",
           "parameters": [
             "value"
@@ -89664,7 +89664,7 @@
         },
         {
           "name": "normalize_frame_ids",
-          "line": 81,
+          "line": 83,
           "kind": "function",
           "parameters": [
             "value"
@@ -89675,12 +89675,12 @@
         },
         {
           "name": "VisualFrame",
-          "line": 102,
+          "line": 104,
           "kind": "class"
         },
         {
           "name": "VisualFrame.__post_init__",
-          "line": 114,
+          "line": 116,
           "kind": "function",
           "parameters": [
             "self"
@@ -89689,12 +89689,12 @@
         },
         {
           "name": "VisualRequest",
-          "line": 137,
+          "line": 139,
           "kind": "class"
         },
         {
           "name": "select_frames",
-          "line": 147,
+          "line": 149,
           "kind": "function",
           "parameters": [
             "frames"
@@ -89705,7 +89705,7 @@
         },
         {
           "name": "build_request",
-          "line": 163,
+          "line": 165,
           "kind": "function",
           "parameters": [
             "task",
@@ -89720,7 +89720,7 @@
         },
         {
           "name": "validate_summary",
-          "line": 177,
+          "line": 179,
           "kind": "function",
           "parameters": [
             "value"
@@ -89731,7 +89731,7 @@
         },
         {
           "name": "validate_reply",
-          "line": 181,
+          "line": 183,
           "kind": "function",
           "parameters": [
             "reply"
@@ -89742,7 +89742,7 @@
         },
         {
           "name": "prompt_for",
-          "line": 191,
+          "line": 193,
           "kind": "function",
           "parameters": [
             "focus"
@@ -89753,7 +89753,7 @@
         },
         {
           "name": "max_frame_bytes",
-          "line": 195,
+          "line": 197,
           "kind": "function",
           "parameters": [],
           "annotations": {}

@@ -1,9 +1,10 @@
 """Bounded vision sub-agent orchestration over injected frame and model ports.
 
-One call sees at most 60 ordered frames, has no tool registry, no master transcript and returns only a
-bounded text summary plus non-image metadata. The offline core stays injectable for tests; production
-composition supplies one image-object frame source and one model factory. K14 D0 now authorizes this
-path for the owner-selected vision model; frames remain already-authorized image objects.
+One call carries at most MAX_IMAGES (4) image objects in production (the domain admits up to 60 ordered
+frames for a carrier that can deliver them), has no tool registry, no master transcript and returns only
+a bounded text summary plus non-image metadata. The offline core stays injectable for tests; production
+composition supplies one image-object frame source and one model factory. K14 D0 authorizes this path for
+the owner-selected vision model; frames remain already-authorized image objects.
 """
 
 from __future__ import annotations

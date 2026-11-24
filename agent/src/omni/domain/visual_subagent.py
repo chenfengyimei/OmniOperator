@@ -2,8 +2,10 @@
 
 The sub-agent is one stateless, text-only model call over at most 60 ordered frames. It has no tools,
 no master transcript, no memory writes and never re-enters a run loop. This module only validates and
-shapes; it never resolves objects, calls a model or touches storage. Production wiring stays behind the
-K14 D0 decision (the offline path is the only implemented path until the owner approves a real call).
+shapes; it never resolves objects, calls a model or touches storage. Production wiring exists after the
+K14 D0-D5 decision and currently exposes at most MAX_IMAGES (4) image objects per call; the wider
+1..MAX_INPUT_FRAMES admission and 60-frame subsampling stay available to an injected carrier that can
+actually deliver more frames.
 """
 
 from __future__ import annotations
