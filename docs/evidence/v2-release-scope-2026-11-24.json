@@ -65,6 +65,15 @@
       "index": "modules=65 files=855 routes=464 declared_tools=94"
     }
   },
+  "packaging_check": {
+    "date": "2026-11-24",
+    "default_export": "uv export --frozen --no-dev --no-emit-workspace --no-annotate --no-header",
+    "default_has_av": false,
+    "default_has_faster_whisper": false,
+    "asr_export": "uv export --frozen --no-dev --no-emit-workspace --no-annotate --no-header --package omnioperator --extra asr",
+    "asr_has": ["av==19.0.2", "faster-whisper==1.2.1", "numpy==2.5.4", "onnxruntime==1.23.2/1.31.1"],
+    "conclusion": "默认 CI 依赖包不含 av；安装 omnioperator[asr] 才会带入 av/faster-whisper。默认安装的抽帧/ASR 以 media_component_missing 显式失败，错误文案提示安装 asr extra。"
+  },
   "remaining": [
     "所有者是否要求默认包自带视频分镜仍未决；本文件记录的是当前默认（不给默认包加 av），改判需重建安装包并重跑抽帧验收。",
     "SoM/explore 与 Wayland 输入若要纳入本版，属于范围变更，需要按合同补生产入口与真机验收，不能用离线核心代替。",
