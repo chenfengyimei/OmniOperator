@@ -274,7 +274,11 @@ class MediaProcessor:
             if not outcome.get("ok"):
                 code = cast(str, outcome["code"])
                 if code == "media_component_missing":
-                    raise BusinessError(code, "A media processing component is not installed", status=503)
+                    raise BusinessError(
+                        code,
+                        "A media processing component is not installed; install the 'asr' extra (omnioperator[asr])",
+                        status=503,
+                    )
                 if code == "media_asr_model_missing":
                     raise BusinessError(
                         code, "The selected ASR model is not in the offline cache; prepare it explicitly", status=503

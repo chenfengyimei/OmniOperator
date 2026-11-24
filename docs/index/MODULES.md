@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`0825ce8647b72f389d2b6c8edfe2cfd59f3de4b51b89f31d0fe1e79845f19b9f`。包含 65 个职责模块、855 个源码/界面文件。
+源码指纹：`137b46c732e5ce901050c4ad429036e909c61eebf8c195324f038fd85178b0b9`。包含 65 个职责模块、855 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -192,7 +192,7 @@
 | [agent/src/omni/adapters/mcp/http.py](../../agent/src/omni/adapters/mcp/http.py) | 325 | Bounded Streamable HTTP JSON-RPC transport with explicit bearer/OAuth tokens. |
 | [agent/src/omni/adapters/mcp/oauth.py](../../agent/src/omni/adapters/mcp/oauth.py) | 484 | Explicit MCP OAuth 2.0 authorization-code flow with PKCE, state and a vault token store. |
 | [agent/src/omni/adapters/mcp/stdio.py](../../agent/src/omni/adapters/mcp/stdio.py) | 322 | Bounded JSON-RPC over one owned stdio process per MCP server generation. |
-| [agent/src/omni/adapters/media.py](../../agent/src/omni/adapters/media.py) | 339 | One bounded, supervised media processing subprocess; heavy libraries never load in the host. |
+| [agent/src/omni/adapters/media.py](../../agent/src/omni/adapters/media.py) | 343 | One bounded, supervised media processing subprocess; heavy libraries never load in the host. |
 | [agent/src/omni/adapters/metrics.py](../../agent/src/omni/adapters/metrics.py) | 92 | Fixed-cardinality in-process measurements; never stores request identities or text. |
 | [agent/src/omni/adapters/model_stream.py](../../agent/src/omni/adapters/model_stream.py) | 240 | One-shot LiteLLM chat stream with verified async upstream close; no persistence or global runtime. |
 | [agent/src/omni/adapters/models.py](../../agent/src/omni/adapters/models.py) | 249 | Async model adapter. Credentials and vendor exceptions do not cross the port. |

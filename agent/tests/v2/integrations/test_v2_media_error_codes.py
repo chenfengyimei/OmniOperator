@@ -62,6 +62,36 @@ def test_malformed_error_code_is_unknown_and_reclaimed_before_explicit_next_requ
     asyncio.run(scenario())
 
 
+def test_component_missing_message_names_the_asr_extra():
+    async def scenario():
+        old = Worker()
+        processor, _, spawns = processor_with(old)
+
+        async def readline():
+            return (
+                json.dumps(
+                    {
+                        "version": 1,
+                        "id": old.frames[-1]["id"],
+                        "result": {"ok": False, "code": "media_component_missing"},
+                    }
+                ).encode()
+                + b"\n"
+            )
+
+        old.readline = readline
+        try:
+            with pytest.raises(BusinessError) as caught:
+                await processor._request("frames", {}, 20)
+            assert caught.value.code == "media_component_missing"
+            assert "asr" in caught.value.message
+            assert processor._owned is old and not old.terminate_calls and not spawns
+        finally:
+            assert await processor.close()
+
+    asyncio.run(scenario())
+
+
 @pytest.mark.parametrize(
     "code",
     [
