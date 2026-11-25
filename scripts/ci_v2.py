@@ -27,7 +27,7 @@ def main() -> int:
     parser.add_argument("--evidence", type=Path, default=ROOT / "temp/build/v2-ci")
     args = parser.parse_args()
     args.evidence.mkdir(parents=True, exist_ok=True)
-    tests = test_files(ROOT)
+    tests = [*test_files(ROOT), "agent/tests/test_filesystem_guard.py"]
     commands = [
         [sys.executable, "-m", "ruff", "check", *SOURCES, *tests],
         [sys.executable, "-m", "ruff", "format", "--check", *SOURCES, *tests],

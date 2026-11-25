@@ -34,19 +34,30 @@ def deny(kind):
     raise OfflineViolation("默认测试禁止真实网络/模型调用，请注入 transport: " + kind)
 
 
+def _directory_for_fd(fd):
+    if sys.platform == "darwin":
+        import fcntl
+
+        name = fcntl.fcntl(fd, fcntl.F_GETPATH, bytes(1024)).split(b"\0", 1)[0]
+        return Path(os.fsdecode(name))
+    return Path(os.readlink(f"/proc/self/fd/{fd}"))
+
+
 def filesystem_auditor(roots, refuse):
     """Block writes in this Python process, independently from other services' activity."""
     protected = tuple(Path(root).resolve() for root in roots)
+    # CPython reports paths before resolving their optional directory descriptors.
+    # Each tuple maps a path argument to its descriptor argument, if available.
     modifying = {
-        "os.mkdir",
-        "os.remove",
-        "os.rmdir",
-        "os.rename",
-        "os.link",
-        "os.symlink",
-        "os.chmod",
-        "os.chown",
-        "os.utime",
+        "os.mkdir": ((0, 2),),
+        "os.remove": ((0, 1),),
+        "os.rmdir": ((0, 1),),
+        "os.rename": ((0, 2), (1, 3)),
+        "os.link": ((0, 2), (1, 3)),
+        "os.symlink": ((0, None), (1, 2)),
+        "os.chmod": ((0, 2),),
+        "os.chown": ((0, 3),),
+        "os.utime": ((0, 3),),
     }
 
     def guard(event, args):
@@ -54,14 +65,15 @@ def filesystem_auditor(roots, refuse):
             flags = args[2] if len(args) > 2 and isinstance(args[2], int) else 0
             if not flags & (os.O_WRONLY | os.O_RDWR | os.O_CREAT | os.O_TRUNC | os.O_APPEND):
                 return
-            paths = args[:1]
+            operands = ((0, None),)
         elif event == "sqlite3.connect":
-            paths = args[:1]
+            operands = ((0, None),)
         elif event in modifying:
-            paths = args[:2] if event in {"os.rename", "os.link", "os.symlink"} else args[:1]
+            operands = modifying[event]
         else:
             return
-        for value in paths:
+        for path_index, fd_index in operands:
+            value = args[path_index]
             if not isinstance(value, (str, bytes, os.PathLike)):
                 continue
             value = os.fsdecode(value)
@@ -71,7 +83,18 @@ def filesystem_auditor(roots, refuse):
                     value = value[1:]
             if value == ":memory:":
                 continue
-            path = Path(value).resolve()
+            path = Path(value)
+            if fd_index is not None and args[fd_index] != -1 and not path.is_absolute():
+                try:
+                    directory = _directory_for_fd(args[fd_index])
+                except OSError:
+                    refuse("filesystem.dir_fd_unresolved")
+                    continue
+                if not directory.is_absolute():
+                    refuse("filesystem.dir_fd_unresolved")
+                    continue
+                path = directory / path
+            path = path.resolve()
             if any(
                 path == root
                 or path.is_relative_to(root)

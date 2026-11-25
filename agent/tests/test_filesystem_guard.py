@@ -34,6 +34,32 @@ def test_file_auditor_rejects_mutation_and_sqlite_in_protected_roots(tmp_path):
     assert not list(protected.iterdir())
 
 
+@pytest.mark.skipif(os.rmdir not in os.supports_dir_fd, reason="POSIX directory descriptors")
+def test_directory_relative_cleanup_respects_the_descriptor_base(tmp_path, monkeypatch):
+    protected = tmp_path / "data"
+    protected.mkdir()
+    scratch = tmp_path / "scratch"
+    scratch.mkdir()
+    (scratch / "data").mkdir()
+    monkeypatch.chdir(tmp_path)
+
+    def refuse(kind):
+        raise OfflineViolation(kind)
+
+    guard = filesystem_auditor([protected], refuse)
+    isolated_fd = os.open(scratch, os.O_RDONLY)
+    protected_fd = os.open(protected, os.O_RDONLY)
+    try:
+        guard("os.rmdir", ("data", isolated_fd))
+        with pytest.raises(OfflineViolation, match="filesystem.real_instance"):
+            guard("os.rmdir", ("nested", protected_fd))
+        with pytest.raises(OfflineViolation, match="filesystem.real_instance"):
+            guard("os.rename", ("data", "nested", isolated_fd, protected_fd))
+    finally:
+        os.close(protected_fd)
+        os.close(isolated_fd)
+
+
 def test_child_cannot_open_real_instance_even_when_exception_is_caught(tmp_path):
     protected = tmp_path / "fake-production"
     protected.mkdir()
