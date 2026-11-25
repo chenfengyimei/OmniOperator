@@ -19,7 +19,11 @@ try {
     if ($request.version -ne 'omni-desktop-ipc-6' -or $request.operation -notin @('observe','capture','act','foreground') -or $request.limit -ne 1 -or $request.target.platform -ne 'win32') { exit 2 }
     $identity = [guid]::ParseExact($request.request_id, 'D')
     Add-Type -AssemblyName UIAutomationClient,UIAutomationTypes,WindowsBase,System.Drawing,System.Numerics
-    Add-Type -Path @((Join-Path $PSScriptRoot 'windows_uia.cs'), (Join-Path $PSScriptRoot 'windows_foreground.cs')) -ReferencedAssemblies UIAutomationClient,UIAutomationTypes,WindowsBase,System.Core,System.Drawing,System.Numerics
+    $sources = @((Join-Path $PSScriptRoot 'windows_uia.cs'))
+    if ($request.operation -eq 'foreground') {
+        $sources += (Join-Path $PSScriptRoot 'windows_foreground.cs')
+    }
+    Add-Type -Path $sources -ReferencedAssemblies UIAutomationClient,UIAutomationTypes,WindowsBase,System.Core,System.Drawing,System.Numerics
     $t = $request.target
     if ($request.operation -eq 'foreground') {
         $a = $request.action

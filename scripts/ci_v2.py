@@ -37,8 +37,6 @@ def main() -> int:
             "-m",
             "pytest",
             "-q",
-            "-n",
-            "0",
             *tests,
             "--junitxml",
             str(args.evidence / "pytest.xml"),

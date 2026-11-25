@@ -106,6 +106,9 @@ def test_archive_identity_detects_changed_deleted_and_extra_files(tmp_path):
         "git@gitee.com:chenfengloveyuri/OmniOperator.git",
         "ssh://git@gitee.com/chenfengloveyuri/OmniOperator.git",
         "ssh://git@gitee.com:22/chenfengloveyuri/OmniOperator.git",
+        "https://github.com/chenfengyimei/OmniOperator.git",
+        "git@github.com:chenfengyimei/OmniOperator.git",
+        "ssh://git@github.com/chenfengyimei/OmniOperator.git",
     ],
 )
 def test_official_https_and_ssh_git_origins(tmp_path, monkeypatch, origin):
@@ -126,6 +129,7 @@ def test_official_https_and_ssh_git_origins(tmp_path, monkeypatch, origin):
     [
         "https://evil.invalid/chenfengloveyuri/OmniOperator.git",
         "git@gitee.com:someone/OmniOperator.git",
+        "https://github.com/someone/OmniOperator.git",
         "file:///local/repository",
     ],
 )
@@ -137,7 +141,7 @@ def test_other_git_repositories_are_rejected(tmp_path, monkeypatch, origin):
     monkeypatch.setattr(
         version, "git", lambda root, *args: OLD if args[0] == "rev-parse" else origin if args[0] == "remote" else ""
     )
-    with pytest.raises(UpdateError, match="官方 Gitee"):
+    with pytest.raises(UpdateError, match="官方仓库"):
         identify(tmp_path)
 
 

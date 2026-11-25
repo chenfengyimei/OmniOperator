@@ -20,6 +20,15 @@ from omni_test_support.v2.execution import wait_state
 from omni_test_support.v2.v2_configuration_helpers import model_instance
 
 
+def use_bundled_sdk_tokenizer(monkeypatch):
+    from litellm.litellm_core_utils import token_counter
+    from litellm.litellm_core_utils.default_encoding import encoding
+
+    # These tests assert provider usage from the wire. The SDK's incidental
+    # estimates can use its packaged tokenizer on a fresh, offline machine.
+    monkeypatch.setattr(token_counter, "get_encoding", lambda _name: encoding)
+
+
 def chunk(content=None, *, finish=None, calls=None):
     delta = {}
     if content is not None:

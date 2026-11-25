@@ -131,7 +131,7 @@ def v2_server(tmp_path, request):
     thread = threading.Thread(target=run_server, daemon=True)
     thread.start()
     try:
-        deadline = time.monotonic() + 15
+        deadline = time.monotonic() + 30
         while not server.started and thread.is_alive() and time.monotonic() < deadline:
             time.sleep(0.02)
         assert server.started, "V2 test server failed to start"

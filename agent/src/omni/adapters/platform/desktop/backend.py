@@ -37,6 +37,7 @@ from omni.domain.foreground import permit, ready
 MAX_PENDING = 4
 MAX_RESIDENT = 2
 TIMEOUT_S = 5.0
+WINDOWS_UIA_TIMEOUT_S = 12.0
 Spawn = Callable[..., Awaitable[OwnedProcess]]
 MacLauncher = Callable[..., Awaitable[LaunchedHelper]]
 Owned = OwnedProcess | LaunchedHelper
@@ -272,9 +273,13 @@ class DesktopBackend:
             raise _error("desktop_closing")
         if len(self._pending) >= MAX_PENDING:
             raise _error("desktop_busy")
-        deadline = asyncio.get_running_loop().time() + (
-            FOREGROUND_TIMEOUT_S if operation == "foreground" else TIMEOUT_S
-        )
+        timeout = TIMEOUT_S
+        if operation == "foreground":
+            timeout = FOREGROUND_TIMEOUT_S
+        elif sys.platform == "win32" and operation in {"observe", "capture", "act"}:
+            # The fixed Windows worker compiles the UI Automation helper on cold start.
+            timeout = WINDOWS_UIA_TIMEOUT_S
+        deadline = asyncio.get_running_loop().time() + timeout
 
         async def perform() -> Any:
             try:

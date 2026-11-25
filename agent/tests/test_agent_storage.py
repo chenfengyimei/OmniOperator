@@ -144,7 +144,7 @@ def test_two_runtimes_do_not_share_memory_state_files_or_skills(spaces):
         a.store.save_fact("只属于写作空间的事实")
         assert not b.store.fact_rows()
         assert a.agent.session_id == b.agent.session_id  # 相同数值 ID 也不会共库。
-        a.public_workspaces["files"].root.joinpath("writer.txt").write_text("独立文件")
+        a.public_workspaces["files"].root.joinpath("writer.txt").write_text("独立文件", encoding="utf-8")
         assert not b.public_workspaces["files"].root.joinpath("writer.txt").exists()
         assert a.command_jobs.root == a.paths.workspace
         assert a.config.terminal.roots == [str(a.paths.workspace)]

@@ -84,12 +84,12 @@ class Gateway:
 
 
 async def terminal(i, agent, run_id):
-    async with asyncio.timeout(8):
+    async with asyncio.timeout(20):
         while True:
             run = await i.application.get_run(agent, run_id)
             if run["state"] not in {"queued", "running", "waiting_approval", "cancelling"}:
                 return run
-            await asyncio.sleep(0.01)
+            await asyncio.sleep(0.05)
 
 
 @asynccontextmanager

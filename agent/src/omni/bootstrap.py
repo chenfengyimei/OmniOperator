@@ -290,14 +290,31 @@ class Runtime:
                 except Exception:  # noqa: BLE001, S110  （有意容错：边界转换/生命周期清理不阻断）
                     self._close_results[name] = False
 
-            for name, action in actions.items():
-                thread = self._close_threads.get(name)
-                if self._close_results.get(name) or thread and thread.is_alive():
-                    continue
-                thread = threading.Thread(target=perform, args=(name, action), name=f"close-{name}", daemon=True)
+            def launch(name):
+                thread = threading.Thread(target=perform, args=(name, actions[name]), name=f"close-{name}", daemon=True)
                 self._close_threads[name] = thread
                 thread.start()
+                return thread
+
+            continuing = []
+            for name in actions:
+                thread = self._close_threads.get(name)
+                if self._close_results.get(name):
+                    continue
+                if thread and thread.is_alive():
+                    continuing.append(name)
+                else:
+                    launch(name)
             for thread in self._close_threads.values():
+                thread.join(remaining())
+            # A previous caller's close task may finish with its expired budget
+            # while this caller is waiting. Give those components one fresh attempt.
+            retries = [
+                launch(name)
+                for name in continuing
+                if remaining() > 0 and not self._close_results.get(name) and not self._close_threads[name].is_alive()
+            ]
+            for thread in retries:
                 thread.join(remaining())
             while self.active_runs.contexts() and remaining() > 0:
                 time.sleep(min(0.02, remaining()))

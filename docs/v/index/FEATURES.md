@@ -936,7 +936,7 @@ uv run --no-sync pytest -q -n 0 agent/tests/v2/core/test_v2_visual_production.py
 
 **适配器与仓储**
 
-- [agent/src/omni/adapters/platform/desktop/backend.py#DesktopBackend](../../../agent/src/omni/adapters/platform/desktop/backend.py#L137)
+- [agent/src/omni/adapters/platform/desktop/backend.py#DesktopBackend](../../../agent/src/omni/adapters/platform/desktop/backend.py#L138)
 - [agent/src/omni/adapters/platform/desktop/macos_helper.py](../../../agent/src/omni/adapters/platform/desktop/macos_helper.py)
 - [agent/src/omni/adapters/platform/desktop/linux/linux_atspi.py](../../../agent/src/omni/adapters/platform/desktop/linux/linux_atspi.py)
 - [agent/src/omni/adapters/platform/desktop/desktop_capture.py](../../../agent/src/omni/adapters/platform/desktop/desktop_capture.py)
@@ -1429,7 +1429,7 @@ uv run --no-sync pytest -q -n 0 agent/tests/v2/operations/test_v2_installation.p
 
 **组装点**
 
-- [agent/src/omni/bootstrap.py#build_runtime](../../../agent/src/omni/bootstrap.py#L362)
+- [agent/src/omni/bootstrap.py#build_runtime](../../../agent/src/omni/bootstrap.py#L379)
 
 **合同与手册**
 
@@ -1465,7 +1465,7 @@ V1 社区包的隔离登记、加载与工具注册。
 
 **组装点**
 
-- [agent/src/omni/bootstrap.py#build_runtime](../../../agent/src/omni/bootstrap.py#L362)
+- [agent/src/omni/bootstrap.py#build_runtime](../../../agent/src/omni/bootstrap.py#L379)
 
 **合同与手册**
 
@@ -1504,7 +1504,7 @@ uv run --no-sync pytest -q -n 0 agent/tests/test_plugins.py agent/tests/test_plu
 
 **组装点**
 
-- [agent/src/omni/bootstrap.py#build_runtime](../../../agent/src/omni/bootstrap.py#L362)
+- [agent/src/omni/bootstrap.py#build_runtime](../../../agent/src/omni/bootstrap.py#L379)
 
 **合同与手册**
 

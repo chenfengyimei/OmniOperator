@@ -181,13 +181,13 @@ async def _seed(i):
     return agent, config
 
 
-async def _settle(i, agent, job_id, timeout=8.0):
+async def _settle(i, agent, job_id, timeout=20.0):
     async with asyncio.timeout(timeout):
         while True:
             job = await i.media.job(agent, str(job_id))
             if job["state"] not in ("queued", "running"):
                 return job
-            await asyncio.sleep(0.02)
+            await asyncio.sleep(0.05)
 
 
 async def _settle_running(i, agent, job_id, timeout=8.0):

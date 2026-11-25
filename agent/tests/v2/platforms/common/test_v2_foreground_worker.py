@@ -115,11 +115,9 @@ def test_foreground_worker_port_framing_pause_partial_and_cleanup(tmp_path, faul
     program = (WORKERS / "windows_uia.ps1").read_text(encoding="utf-8")
     for name in ("windows_uia.cs", "windows_foreground.cs"):
         program = program.replace(f"(Join-Path $PSScriptRoot '{name}')", "'" + str(WORKERS / name) + "'")
-    needle = "-ReferencedAssemblies UIAutomationClient,UIAutomationTypes,WindowsBase,System.Core,System.Drawing,System.Numerics"
-    program = program.replace(
-        "'" + str(WORKERS / "windows_foreground.cs") + "') " + needle,
-        "'" + str(WORKERS / "windows_foreground.cs") + "', '" + str(fake) + "') " + needle,
-    )
+    foreground_source = f"$sources += '{WORKERS / 'windows_foreground.cs'}'"
+    assert program.count(foreground_source) == 1
+    program = program.replace(foreground_source, f"{foreground_source}\n        $sources += '{fake}'")
     assert program.count("::Foreground(") == 1
     program = program.replace("::Foreground(", "::ForegroundWithInput(").replace(
         "[string]$a.text, $authorize)", "[string]$a.text, $authorize, [OmniForegroundFixture.InputPort]::new())"

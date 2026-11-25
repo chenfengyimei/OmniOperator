@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "b6771467f1e861a2de436668b896e91a30a95e900441952ef8c14590b07245f5",
+  "source_sha256": "784d813a1f8939c5002e84897e7904c16f69ce15339618136183dc9759cbc19b",
   "modules": [
     {
       "id": "v2-domain",
@@ -551,7 +551,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 73349,
+      "lines": 73364,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -713,7 +713,7 @@
         "agent/src/omni/system/updates/version.py",
         "agent/src/omni/system/updates/worker.py"
       ],
-      "lines": 1786,
+      "lines": 1789,
       "dependencies": [
         "agent-directories",
         "assembly",
@@ -856,7 +856,7 @@
       "files": [
         "agent/src/omni/bootstrap.py"
       ],
-      "lines": 941,
+      "lines": 958,
       "dependencies": [
         "agent-directories",
         "android",
@@ -26322,7 +26322,7 @@
       "module": "v2-adapters",
       "version": "V2",
       "python_module": "omni.adapters.persistence.sqlalchemy_access",
-      "lines": 27,
+      "lines": 33,
       "imports": [],
       "symbols": [
         {
@@ -26337,8 +26337,21 @@
           }
         },
         {
+          "name": "database_engine.enable_wal",
+          "line": 18,
+          "kind": "function",
+          "parameters": [
+            "connection",
+            "_record"
+          ],
+          "annotations": {
+            "connection": "sqlite3.Connection",
+            "_record": "object"
+          }
+        },
+        {
           "name": "database_engine.setup",
-          "line": 16,
+          "line": 24,
           "kind": "function",
           "parameters": [
             "connection",
@@ -26351,7 +26364,7 @@
         },
         {
           "name": "database_engine.begin",
-          "line": 24,
+          "line": 30,
           "kind": "function",
           "parameters": [
             "connection"
@@ -27051,7 +27064,7 @@
       "module": "v2-adapters",
       "version": "V2",
       "python_module": "omni.adapters.platform.desktop.backend",
-      "lines": 686,
+      "lines": 691,
       "imports": [
         "omni.adapters.platform.desktop",
         "omni.adapters.platform.desktop.linux.linux_lease_client",
@@ -27066,7 +27079,7 @@
       "symbols": [
         {
           "name": "_error",
-          "line": 46,
+          "line": 47,
           "kind": "function",
           "parameters": [
             "code"
@@ -27077,7 +27090,7 @@
         },
         {
           "name": "_decode",
-          "line": 50,
+          "line": 51,
           "kind": "function",
           "parameters": [
             "frame"
@@ -27088,7 +27101,7 @@
         },
         {
           "name": "_decode.pairs",
-          "line": 54,
+          "line": 55,
           "kind": "function",
           "parameters": [
             "items"
@@ -27099,7 +27112,7 @@
         },
         {
           "name": "_decode.constant",
-          "line": 62,
+          "line": 63,
           "kind": "function",
           "parameters": [
             "_value"
@@ -27110,24 +27123,24 @@
         },
         {
           "name": "helper_environment",
-          "line": 71,
+          "line": 72,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "_Host",
-          "line": 114,
+          "line": 115,
           "kind": "class"
         },
         {
           "name": "DesktopBackend",
-          "line": 137,
+          "line": 138,
           "kind": "class"
         },
         {
           "name": "DesktopBackend.__init__",
-          "line": 138,
+          "line": 139,
           "kind": "function",
           "parameters": [
             "self",
@@ -27149,7 +27162,7 @@
         },
         {
           "name": "DesktopBackend.health",
-          "line": 166,
+          "line": 167,
           "kind": "function",
           "parameters": [
             "self"
@@ -27158,7 +27171,7 @@
         },
         {
           "name": "DesktopBackend.stop_accepting",
-          "line": 179,
+          "line": 180,
           "kind": "function",
           "parameters": [
             "self"
@@ -27167,7 +27180,7 @@
         },
         {
           "name": "DesktopBackend.probe",
-          "line": 183,
+          "line": 184,
           "kind": "function",
           "parameters": [
             "self",
@@ -27179,7 +27192,7 @@
         },
         {
           "name": "DesktopBackend.targets",
-          "line": 186,
+          "line": 187,
           "kind": "function",
           "parameters": [
             "self",
@@ -27193,7 +27206,7 @@
         },
         {
           "name": "DesktopBackend.verify",
-          "line": 189,
+          "line": 190,
           "kind": "function",
           "parameters": [
             "self",
@@ -27207,7 +27220,7 @@
         },
         {
           "name": "DesktopBackend.observe",
-          "line": 200,
+          "line": 201,
           "kind": "function",
           "parameters": [
             "self",
@@ -27221,7 +27234,7 @@
         },
         {
           "name": "DesktopBackend.capture",
-          "line": 205,
+          "line": 206,
           "kind": "function",
           "parameters": [
             "self",
@@ -27235,7 +27248,7 @@
         },
         {
           "name": "DesktopBackend.act",
-          "line": 210,
+          "line": 211,
           "kind": "function",
           "parameters": [
             "self",
@@ -27251,7 +27264,7 @@
         },
         {
           "name": "DesktopBackend.foreground",
-          "line": 213,
+          "line": 214,
           "kind": "function",
           "parameters": [
             "self",
@@ -27267,7 +27280,7 @@
         },
         {
           "name": "DesktopBackend._write",
-          "line": 216,
+          "line": 217,
           "kind": "function",
           "parameters": [
             "self",
@@ -27285,7 +27298,7 @@
         },
         {
           "name": "DesktopBackend.quiescent",
-          "line": 237,
+          "line": 238,
           "kind": "function",
           "parameters": [
             "self"
@@ -27294,7 +27307,7 @@
         },
         {
           "name": "DesktopBackend.reclaim",
-          "line": 240,
+          "line": 241,
           "kind": "function",
           "parameters": [
             "self",
@@ -27306,7 +27319,7 @@
         },
         {
           "name": "DesktopBackend._request",
-          "line": 248,
+          "line": 249,
           "kind": "function",
           "parameters": [
             "self",
@@ -27328,14 +27341,14 @@
         },
         {
           "name": "DesktopBackend._request.perform",
-          "line": 279,
+          "line": 284,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "DesktopBackend._request.finished",
-          "line": 315,
+          "line": 320,
           "kind": "function",
           "parameters": [
             "future"
@@ -27346,7 +27359,7 @@
         },
         {
           "name": "DesktopBackend._drain",
-          "line": 323,
+          "line": 328,
           "kind": "function",
           "parameters": [
             "self",
@@ -27362,7 +27375,7 @@
         },
         {
           "name": "DesktopBackend._spawn",
-          "line": 348,
+          "line": 353,
           "kind": "function",
           "parameters": [
             "self",
@@ -27376,14 +27389,14 @@
         },
         {
           "name": "DesktopBackend._spawn.collected",
-          "line": 406,
+          "line": 411,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "DesktopBackend._reclaim_actual",
-          "line": 414,
+          "line": 419,
           "kind": "function",
           "parameters": [
             "self",
@@ -27397,7 +27410,7 @@
         },
         {
           "name": "DesktopBackend._file",
-          "line": 462,
+          "line": 467,
           "kind": "function",
           "parameters": [
             "self",
@@ -27413,14 +27426,14 @@
         },
         {
           "name": "DesktopBackend._file.actual",
-          "line": 466,
+          "line": 471,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "DesktopBackend._reclaim",
-          "line": 475,
+          "line": 480,
           "kind": "function",
           "parameters": [
             "self",
@@ -27434,7 +27447,7 @@
         },
         {
           "name": "DesktopBackend._dispatch_gate",
-          "line": 490,
+          "line": 495,
           "kind": "function",
           "parameters": [
             "self",
@@ -27446,7 +27459,7 @@
         },
         {
           "name": "DesktopBackend._run",
-          "line": 503,
+          "line": 508,
           "kind": "function",
           "parameters": [
             "self",
@@ -27464,7 +27477,7 @@
         },
         {
           "name": "DesktopBackend.close",
-          "line": 675,
+          "line": 680,
           "kind": "function",
           "parameters": [
             "self",
@@ -48802,7 +48815,7 @@
       "version": "V2",
       "module": "v2-adapters",
       "python_module": null,
-      "lines": 78,
+      "lines": 82,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -72261,7 +72274,7 @@
       "module": "assembly",
       "version": "V1",
       "python_module": "omni.bootstrap",
-      "lines": 941,
+      "lines": 958,
       "imports": [
         "omni.config",
         "omni.core.agent",
@@ -72480,7 +72493,7 @@
         },
         {
           "name": "Runtime.close_reviewer",
-          "line": 321,
+          "line": 338,
           "kind": "function",
           "parameters": [
             "self",
@@ -72492,7 +72505,7 @@
         },
         {
           "name": "Runtime.close_state",
-          "line": 327,
+          "line": 344,
           "kind": "function",
           "parameters": [
             "self"
@@ -72501,7 +72514,7 @@
         },
         {
           "name": "Runtime.close_retrieval",
-          "line": 331,
+          "line": 348,
           "kind": "function",
           "parameters": [
             "self",
@@ -72513,7 +72526,7 @@
         },
         {
           "name": "Runtime.close_browser",
-          "line": 340,
+          "line": 357,
           "kind": "function",
           "parameters": [
             "self",
@@ -72525,7 +72538,7 @@
         },
         {
           "name": "Runtime.new_session",
-          "line": 344,
+          "line": 361,
           "kind": "function",
           "parameters": [
             "self"
@@ -72534,7 +72547,7 @@
         },
         {
           "name": "Runtime.use_session",
-          "line": 349,
+          "line": 366,
           "kind": "function",
           "parameters": [
             "self",
@@ -72546,7 +72559,7 @@
         },
         {
           "name": "Runtime.spawn_review",
-          "line": 356,
+          "line": 373,
           "kind": "function",
           "parameters": [
             "self",
@@ -72558,7 +72571,7 @@
         },
         {
           "name": "build_runtime",
-          "line": 362,
+          "line": 379,
           "kind": "function",
           "parameters": [
             "approver",
@@ -72587,7 +72600,7 @@
         },
         {
           "name": "build_runtime._resolve_plugin_dir",
-          "line": 612,
+          "line": 629,
           "kind": "function",
           "parameters": [
             "rel"
@@ -72598,14 +72611,14 @@
         },
         {
           "name": "build_runtime._allowed_qq_users",
-          "line": 668,
+          "line": 685,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "build_runtime._review_registry",
-          "line": 816,
+          "line": 833,
           "kind": "function",
           "parameters": [
             "review_store"
@@ -72616,7 +72629,7 @@
         },
         {
           "name": "build_runtime._journal_registry",
-          "line": 851,
+          "line": 868,
           "kind": "function",
           "parameters": [
             "journal_store"
@@ -109551,14 +109564,14 @@
       "module": "updates",
       "version": "V1",
       "python_module": "omni.system.updates.version",
-      "lines": 108,
+      "lines": 111,
       "imports": [
         "omni.system.updates.common"
       ],
       "symbols": [
         {
           "name": "semver",
-          "line": 20,
+          "line": 23,
           "kind": "function",
           "parameters": [
             "value"
@@ -109569,7 +109582,7 @@
         },
         {
           "name": "product_version",
-          "line": 36,
+          "line": 39,
           "kind": "function",
           "parameters": [
             "root"
@@ -109580,7 +109593,7 @@
         },
         {
           "name": "inventory",
-          "line": 45,
+          "line": 48,
           "kind": "function",
           "parameters": [
             "root",
@@ -109593,7 +109606,7 @@
         },
         {
           "name": "identify",
-          "line": 73,
+          "line": 76,
           "kind": "function",
           "parameters": [
             "root"

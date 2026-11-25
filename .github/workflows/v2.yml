@@ -86,6 +86,8 @@ jobs:
         run: uv run --no-sync pytest -q --junitxml=temp/build/v2-ci/pytest.xml
       - name: Run the portable V2 tests
         if: runner.os != 'Windows'
+        env:
+          PYTEST_XDIST_AUTO_NUM_WORKERS: '2'
         run: uv run --no-sync python scripts/ci_v2.py
       - uses: actions/upload-artifact@v4
         if: always()

@@ -12,6 +12,9 @@ OFFICIAL_ORIGINS = {
     "git@gitee.com:chenfengloveyuri/OmniOperator",
     "ssh://git@gitee.com/chenfengloveyuri/OmniOperator",
     "ssh://git@gitee.com:22/chenfengloveyuri/OmniOperator",
+    "https://github.com/chenfengyimei/OmniOperator",
+    "git@github.com:chenfengyimei/OmniOperator",
+    "ssh://git@github.com/chenfengyimei/OmniOperator",
 }
 
 SEMVER = re.compile(r"^(?:v)?(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-([0-9A-Za-z.-]+))?(?:\+([0-9A-Za-z.-]+))?$")
@@ -82,7 +85,7 @@ def identify(root: Path) -> dict:
         dirty = git(root, "status", "--porcelain=v1", "--untracked-files=normal").splitlines()
         remote = git(root, "remote", "get-url", "origin").rstrip("/").removesuffix(".git")
         if remote not in OFFICIAL_ORIGINS:
-            raise UpdateError("untrusted_repository", "origin 不是当前项目的官方 Gitee 仓库")
+            raise UpdateError("untrusted_repository", "origin 不是 OmniOperator 的官方仓库")
     elif receipt:
         baseline = receipt.get("files", {})
         if not isinstance(baseline, dict) or not baseline or any(not managed(name) for name in baseline):

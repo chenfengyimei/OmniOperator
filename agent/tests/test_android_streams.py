@@ -169,6 +169,40 @@ def test_runtime_preserves_database_while_capture_is_residual(tmp_path):
         client.close()
 
 
+def test_runtime_retries_a_previous_close_after_joining_it(tmp_path, monkeypatch):
+    from test_web import _client
+
+    client, runtime = _client(tmp_path)
+    started, finish_previous = threading.Event(), threading.Event()
+    close_streams = runtime.android_streams.close
+
+    def close(wait_s):
+        if started.is_set():
+            return close_streams(wait_s)
+        started.set()
+        assert finish_previous.wait(5)
+        return {"complete": False, "residual": ["capture"]}
+
+    monkeypatch.setattr(runtime.android_streams, "close", close)
+    try:
+        assert "android_streams" in runtime.close(wait_s=0.05)["residual"]
+        assert started.wait(1)
+        previous = runtime._close_threads["android_streams"]
+        join_previous = previous.join
+
+        def complete_previous(timeout=None):
+            finish_previous.set()
+            join_previous(timeout)
+
+        monkeypatch.setattr(previous, "join", complete_previous)
+        result = runtime.close(wait_s=3)
+        assert result["complete"], result
+    finally:
+        finish_previous.set()
+        runtime.close()
+        client.close()
+
+
 def test_preview_frames_never_create_action_observations(tmp_path, monkeypatch):
     from test_web import _client
 

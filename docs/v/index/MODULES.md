@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`b6771467f1e861a2de436668b896e91a30a95e900441952ef8c14590b07245f5`。包含 65 个职责模块、919 个源码/界面文件。
+源码指纹：`784d813a1f8939c5002e84897e7904c16f69ce15339618136183dc9759cbc19b`。包含 65 个职责模块、919 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -351,7 +351,7 @@
 | [agent/src/omni/adapters/persistence/search_schema.py](../../../agent/src/omni/adapters/persistence/search_schema.py) | V2 | 8 | Derived FTS definitions. Applied only by versioned migrations. |
 | [agent/src/omni/adapters/persistence/session_search_repository.py](../../../agent/src/omni/adapters/persistence/session_search_repository.py) | V2 | 265 | Bounded read-only history recall over the shared session/message store. |
 | [agent/src/omni/adapters/persistence/skill_repository.py](../../../agent/src/omni/adapters/persistence/skill_repository.py) | V2 | 476 | Immutable skill versions, review state and per-run bindings; no package or filesystem access. |
-| [agent/src/omni/adapters/persistence/sqlalchemy_access.py](../../../agent/src/omni/adapters/persistence/sqlalchemy_access.py) | V2 | 27 | Shared SQLAlchemy SQLite transaction setup for the actor and exclusive offline migration. |
+| [agent/src/omni/adapters/persistence/sqlalchemy_access.py](../../../agent/src/omni/adapters/persistence/sqlalchemy_access.py) | V2 | 33 | Shared SQLAlchemy SQLite transaction setup for the actor and exclusive offline migration. |
 | [agent/src/omni/adapters/persistence/sqlite_access.py](../../../agent/src/omni/adapters/persistence/sqlite_access.py) | V2 | 32 | Owned SQLite connections for offline inspection, backup and restore only. |
 | [agent/src/omni/adapters/persistence/terminal_repository.py](../../../agent/src/omni/adapters/persistence/terminal_repository.py) | V2 | 328 | Terminal intent transactions and immutable metadata receipts; never opens a native process or stores terminal bodies. |
 | [agent/src/omni/adapters/persistence/terminal_review_repository.py](../../../agent/src/omni/adapters/persistence/terminal_review_repository.py) | V2 | 238 | Append owner observations and erasable evidence; terminal receipts and native lifecycle remain unchanged. |
@@ -359,7 +359,7 @@
 | [agent/src/omni/adapters/persona_files.py](../../../agent/src/omni/adapters/persona_files.py) | V2 | 154 | Owner-only managed persona growth cache; validates bytes against the ledger expectation. |
 | [agent/src/omni/adapters/platform/__init__.py](../../../agent/src/omni/adapters/platform/__init__.py) | V2 | 1 | Portable paths, ownership, credentials and platform capability implementations. |
 | [agent/src/omni/adapters/platform/desktop/__init__.py](../../../agent/src/omni/adapters/platform/desktop/__init__.py) | V2 | 5 | Desktop transport public entry; platform probing only occurs through explicit calls. |
-| [agent/src/omni/adapters/platform/desktop/backend.py](../../../agent/src/omni/adapters/platform/desktop/backend.py) | V2 | 686 | Bounded, one-shot desktop metadata helpers; construction never probes a native desktop. |
+| [agent/src/omni/adapters/platform/desktop/backend.py](../../../agent/src/omni/adapters/platform/desktop/backend.py) | V2 | 691 | Bounded, one-shot desktop metadata helpers; construction never probes a native desktop. |
 | [agent/src/omni/adapters/platform/desktop/desktop_capture.py](../../../agent/src/omni/adapters/platform/desktop/desktop_capture.py) | V2 | 83 | Host-owned screenshot staging. File decoding runs only on the desktop I/O worker. |
 | [agent/src/omni/adapters/platform/desktop/desktop_control.py](../../../agent/src/omni/adapters/platform/desktop/desktop_control.py) | V2 | 407 | Owned parent transport for independent control consent; no input dispatch, capture grants or unowned process termination. |
 | [agent/src/omni/adapters/platform/desktop/desktop_native.py](../../../agent/src/omni/adapters/platform/desktop/desktop_native.py) | V2 | 493 | Read-only desktop diagnostics and process/window identities; never reads UI contents or performs input. |
@@ -525,7 +525,7 @@
 | [agent/src/omni/adapters/workers/windows_foreground.cs](../../../agent/src/omni/adapters/workers/windows_foreground.cs) | V2 | 250 | 原生源码、平台脚本或界面资源 |
 | [agent/src/omni/adapters/workers/windows_services.ps1](../../../agent/src/omni/adapters/workers/windows_services.ps1) | V2 | 209 | 原生源码、平台脚本或界面资源 |
 | [agent/src/omni/adapters/workers/windows_uia.cs](../../../agent/src/omni/adapters/workers/windows_uia.cs) | V2 | 348 | 原生源码、平台脚本或界面资源 |
-| [agent/src/omni/adapters/workers/windows_uia.ps1](../../../agent/src/omni/adapters/workers/windows_uia.ps1) | V2 | 78 | 原生源码、平台脚本或界面资源 |
+| [agent/src/omni/adapters/workers/windows_uia.ps1](../../../agent/src/omni/adapters/workers/windows_uia.ps1) | V2 | 82 | 原生源码、平台脚本或界面资源 |
 
 文档：[docs/v/reference/V2_REFACTOR.md](../../../docs/v/reference/V2_REFACTOR.md)
 
@@ -659,7 +659,7 @@
 | [agent/src/omni/system/updates/gitee.py](../../../agent/src/omni/system/updates/gitee.py) | V1 | 196 | 固定公开 Gitee 源的有界 HTTP 读取；不接受任意仓库、令牌或执行下载内容。 |
 | [agent/src/omni/system/updates/manager.py](../../../agent/src/omni/system/updates/manager.py) | V1 | 606 | 更新应用服务：缓存、预检和停写协调；实际替换交给独立冻结执行器。 |
 | [agent/src/omni/system/updates/snapshot.py](../../../agent/src/omni/system/updates/snapshot.py) | V1 | 94 | 停写后的升级恢复快照；保留本机原值，清单验证先于任何原位恢复。 |
-| [agent/src/omni/system/updates/version.py](../../../agent/src/omni/system/updates/version.py) | V1 | 108 | 源码身份与 SemVer 比较；不联网、不改变 Git 或安装环境。 |
+| [agent/src/omni/system/updates/version.py](../../../agent/src/omni/system/updates/version.py) | V1 | 111 | 源码身份与 SemVer 比较；不联网、不改变 Git 或安装环境。 |
 | [agent/src/omni/system/updates/worker.py](../../../agent/src/omni/system/updates/worker.py) | V1 | 314 | 冻结后以基础 Python 独立运行的升级/恢复执行器；只依赖标准库和冻结的平台原语。 |
 
 文档：[docs/v/reference/UPDATES.md](../../../docs/v/reference/UPDATES.md)
@@ -739,7 +739,7 @@
 
 | 文件 | 归属 | 行数 | 职责 |
 |---|---|---:|---|
-| [agent/src/omni/bootstrap.py](../../../agent/src/omni/bootstrap.py) | V1 | 941 | 组装根（Composition Root）：全项目唯一负责装配的地方。 |
+| [agent/src/omni/bootstrap.py](../../../agent/src/omni/bootstrap.py) | V1 | 958 | 组装根（Composition Root）：全项目唯一负责装配的地方。 |
 
 文档：[docs/v/reference/ARCHITECTURE.md](../../../docs/v/reference/ARCHITECTURE.md)、[docs/v/reference/REPOSITORY_STRUCTURE.md](../../../docs/v/reference/REPOSITORY_STRUCTURE.md)
 

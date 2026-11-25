@@ -335,13 +335,17 @@ def test_summary_and_erasure_are_visible_in_the_workbench(ui_browser, v2_server,
         )
         session = None
         for i in range(22):
-            receipt = page.request.post(
+            submitted = page.request.post(
                 base + "/turns", headers=headers, data={"key": str(i), "session_id": session, "message": f"history {i}"}
-            ).json()
+            )
+            assert submitted.ok, (submitted.status, submitted.text())
+            receipt = submitted.json()
             session = receipt["session_id"]
             deadline = time.monotonic() + 15
             while time.monotonic() < deadline:
-                checked = page.request.get(base + "/runs/" + receipt["run_id"], headers=headers).json()
+                run = page.request.get(base + "/runs/" + receipt["run_id"], headers=headers)
+                assert run.ok, (run.status, run.text())
+                checked = run.json()
                 if checked["state"] in {"succeeded", "failed"}:
                     break
                 time.sleep(0.02)

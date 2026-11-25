@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 import copy
 import shutil
+import sqlite3
 import sys
 from pathlib import Path
 from types import SimpleNamespace
@@ -40,6 +41,33 @@ from omni.domain.service_control import make_control
 from omni.domain.service_deployment import make_plan
 from omni.domain.service_exchange import make_exchange
 from omni.domain.service_operations import make_operation
+
+
+def test_engine_sets_wal_before_serving_concurrent_connections(tmp_path, monkeypatch):
+    statements = []
+    connect = sqlite3.dbapi2.connect
+
+    def track_connection(*args, **kwargs):
+        connection = connect(*args, **kwargs)
+        connection.set_trace_callback(statements.append)
+        return connection
+
+    monkeypatch.setattr(sqlite3.dbapi2, "connect", track_connection)
+    engine = database_engine(tmp_path / "wal.db")
+    try:
+        with engine.connect() as first:
+            first.exec_driver_sql("CREATE TABLE sample (value TEXT)")
+            first.commit()
+            with first.begin():
+                first.exec_driver_sql("INSERT INTO sample VALUES ('pending')")
+                with engine.connect() as reader:
+                    assert reader.exec_driver_sql("PRAGMA journal_mode").scalar_one() == "wal"
+                    assert reader.exec_driver_sql("PRAGMA synchronous").scalar_one() == 2
+                    assert reader.exec_driver_sql("PRAGMA foreign_keys").scalar_one() == 1
+                    assert reader.exec_driver_sql("SELECT count(*) FROM sample").scalar_one() == 0
+        assert statements.count("PRAGMA journal_mode=WAL") == 1
+    finally:
+        engine.dispose()
 
 
 def test_missing_predecessor_is_reported_before_opening_a_write_connection(tmp_path, monkeypatch):
