@@ -37,7 +37,6 @@ from ..adapters.persistence.deployed_instance import verify_deployed_instance
 from ..adapters.primitives import SystemClock, UUIDs
 from ..adapters.process_diagnostics import ProcessDiagnostics
 from ..adapters.token_counter import ConservativeTokenCounter
-from ..adapters.visual import ImageObjectFrames, MediaFrameSheets, ModelCallsVisualModelFactory
 from ..application.action_review import ActionReviewService
 from ..application.android import AndroidPort, AndroidService
 from ..application.background_review import BackgroundReviewService
@@ -58,11 +57,13 @@ from ..application.documents import DocumentService
 from ..application.engine import Application
 from ..application.extensions import ExtensionService
 from ..application.images import ImageService
+from ..application.learning_services import LearningServices
 from ..application.maintenance import MaintenanceService
 from ..application.mcp import MCPService, MCPTransportPort
 from ..application.media import MediaProcessingPort, MediaService
 from ..application.memory_organization import MemoryOrganizationService
 from ..application.memory_semantics import MemorySemanticService
+from ..application.memory_services import MemoryServices
 from ..application.model_calls import ModelCalls
 from ..application.objects import ObjectService
 from ..application.operations import OperationsService
@@ -94,14 +95,14 @@ from ..application.terminal_review import TerminalReviewService
 from ..application.terminal_services import TerminalServices
 from ..application.terminals import TerminalService
 from ..application.todos import TodoService
-from ..application.visual_subagent import VISUAL_SUBAGENT, VisualSubagentCapabilities, VisualSubagentService
+from ..application.vision_services import VisionServices
+from ..application.visual_subagent import VisualSubagentService
 from ..domain.background_review import READ_TOOLS
 from ..domain.contracts import JSON, ActionResult, BusinessError, InvocationContext, Outcome
-from ..domain.memory_decay import DECAY_DAILY_HOUR
 from .capabilities import builtin_plugins
 from .channel_providers import register_channel_providers
-from .features import FeatureContext, FeaturePlugin, KernelFeatureContext, install_features
-from .features.catalog import BUILTIN_FEATURES, BUILTIN_KERNEL_FEATURES
+from .features import FeatureContext, FeaturePlugin, KernelFeatureContext, WorkflowFeatureContext, install_features
+from .features.catalog import BUILTIN_FEATURES, BUILTIN_KERNEL_FEATURES, BUILTIN_WORKFLOW_FEATURES
 from .lifecycle import Lifetime, close_sync
 from .model_providers import register_model_transport
 from .platform_providers import platform_provider
@@ -344,7 +345,7 @@ async def open_instance(
     deployment: Record | None = None,
 ) -> Instance:
     initial_plugins = (*BUILTIN_FEATURES, *feature_plugins)
-    declared_plugins = (*initial_plugins, *BUILTIN_KERNEL_FEATURES)
+    declared_plugins = (*initial_plugins, *BUILTIN_WORKFLOW_FEATURES, *BUILTIN_KERNEL_FEATURES)
     if len({plugin.id for plugin in declared_plugins}) != len(declared_plugins):
         raise ValueError("Duplicate feature plugin IDs")
     paths = InstancePaths.resolve(home)
@@ -422,10 +423,6 @@ async def open_instance(
             control_backend=control_backend,
         )
         local_vectors = vectorizer if vectorizer is not None else await configured_vectors(paths.home)
-        memory_semantics = MemorySemanticService(database, local_vectors)
-        lifetime.own("memory_semantics", 0, memory_semantics.close, memory_semantics.stop_accepting)
-        memory_organization = MemoryOrganizationService(database, observation)
-        lifetime.own("memory_organization", 0, memory_organization.close, memory_organization.stop_accepting)
         namespace = hashlib.sha256(str(paths.home).encode()).hexdigest()[:20]
         credential_io: AsyncSecretPort
         if credential_backend is not None:
@@ -472,36 +469,34 @@ async def open_instance(
             return application is not None and bool(application.health()["ready"])
 
         registered_services: dict[str, object] = {}
-        features = await install_features(
-            initial_plugins,
-            FeatureContext(
-                lifetime=lifetime,
-                database=database,
-                paths=paths,
-                boot_id=boot_id,
-                objects=objects,
-                images=images,
-                services=MappingProxyType(registered_services),
-                vectors=local_vectors,
-                clock=clock,
-                ids=ids,
-                observer=observation,
-                secrets=credential_io,
-                channels=channels,
-                platform=platform_io,
-                skill_platform=platform.skill_platform,
-                redact_secret=sink.redactor.register,
-                accepting=accepting,
-                default_tools=capabilities is None,
-                android_backend=android_backend,
-                media_processor=media_processor,
-                mcp_transport=mcp_transport,
-            ),
-            registered_services,
+        feature_context = FeatureContext(
+            lifetime=lifetime,
+            database=database,
+            paths=paths,
+            boot_id=boot_id,
+            objects=objects,
+            images=images,
+            services=MappingProxyType(registered_services),
+            vectors=local_vectors,
+            clock=clock,
+            ids=ids,
+            observer=observation,
+            secrets=credential_io,
+            channels=channels,
+            platform=platform_io,
+            skill_platform=platform.skill_platform,
+            redact_secret=sink.redactor.register,
+            accepting=accepting,
+            default_tools=capabilities is None,
+            android_backend=android_backend,
+            media_processor=media_processor,
+            mcp_transport=mcp_transport,
         )
+        features = await install_features(initial_plugins, feature_context, registered_services)
         media = features.require("media", MediaService)
         people = features.require("people", PeopleServices)
         documents = features.require("documents", DocumentService)
+        memory = features.require("memory", MemoryServices)
         android = features.require("android", AndroidService)
         bilibili = features.require("bilibili", BilibiliService)
         desktop = features.require("desktop", DesktopServices)
@@ -510,33 +505,16 @@ async def open_instance(
         mcp = features.require("mcp", MCPService)
         deliveries = features.require("deliveries", DeliveryService)
         terminal = features.require("terminals", TerminalServices)
-        visual = VisualSubagentService(
-            database,
-            ImageObjectFrames(objects, images),
-            ModelCallsVisualModelFactory(database, calls),
-            media=MediaFrameSheets(media, objects, images),
-        )
-        lifetime.own("visual", 0, visual.close, visual.stop_accepting)
         credentials = CredentialService(database, credential_io, ids, deliveries.cancel_active, observation)
         lifetime.own("credential_changes", 0, credentials.close, credentials.stop_accepting)
 
         plugins = features.capabilities
         if capabilities is None:
-            plugins = (
-                *builtin_plugins(database, documents, memory_semantics),
-                *plugins,
-                CapabilityPlugin(
-                    "vision",
-                    (
-                        Capability(
-                            VISUAL_SUBAGENT, VisualSubagentCapabilities(visual), lambda: visual.health()["pending"] == 0
-                        ),
-                    ),
-                    own_adapters=False,
-                ),
-            )
-        plugins = (*plugins, *capability_plugins)
-        agent_capabilities = (*(capabilities or ()), *(cap for plugin in plugins for cap in plugin.tools))
+            plugins = (*builtin_plugins(database, documents, memory.semantics), *plugins)
+        agent_capabilities = (
+            *(capabilities or ()),
+            *(cap for plugin in (*plugins, *capability_plugins) for cap in plugin.tools),
+        )
         review_read_caps = {cap.spec.name: cap for cap in agent_capabilities if cap.spec.name in READ_TOOLS}
 
         async def review_read(name: str, arguments: Mapping[str, JSON], context: InvocationContext) -> ActionResult:
@@ -545,29 +523,19 @@ async def open_instance(
                 return ActionResult(Outcome.ERROR, "Unknown read tool", error_code="tool_not_found")
             return await cap.adapter.invoke(name, arguments, operation_id=context.run_id, context=context)
 
-        reflections = ReflectionService(database)
-        background_review = BackgroundReviewService(
-            database,
-            calls,
-            clock,
-            observation,
-            read_tools=tuple(cap.spec for cap in agent_capabilities if cap.spec.name in READ_TOOLS),
-            read_dispatch=review_read,
-            skills=skills,
+        workflow_features = await install_features(
+            BUILTIN_WORKFLOW_FEATURES,
+            WorkflowFeatureContext(
+                base=feature_context,
+                model_calls=calls,
+                read_tools=tuple(cap.spec for cap in agent_capabilities if cap.spec.name in READ_TOOLS),
+                read_dispatch=review_read,
+            ),
+            registered_services,
         )
-        lifetime.own("background_review", 0, background_review.close, background_review.stop_accepting)
-        maintenance = MaintenanceService(
-            database,
-            documents,
-            clock,
-            observation,
-            memory_organization,
-            background_review,
-            decay_daily_hour=DECAY_DAILY_HOUR if capabilities is None else None,
-        )
-        memory_organization.on_queued(maintenance.notify)
-        background_review.on_queued(maintenance.notify)
-        lifetime.own("maintenance", 0, maintenance.close, maintenance.stop_accepting)
+        vision = workflow_features.require("vision", VisionServices)
+        learning = workflow_features.require("learning", LearningServices)
+        maintenance = workflow_features.require("maintenance", MaintenanceService)
         application = Application(
             database,
             calls,
@@ -578,16 +546,16 @@ async def open_instance(
             workspace_validator=validate_workspace,
             delivery_cancellation=deliveries.cancel_active,
             images=images,
-            memory_semantics=memory_semantics,
+            memory_semantics=memory.semantics,
             skills=skills,
             todos=TodoService(database) if capabilities is None else None,
-            reflections=reflections if capabilities is None else None,
+            reflections=learning.reflections if capabilities is None else None,
             delegation_enabled=capabilities is None if delegation_enabled is None else delegation_enabled,
-            background_review=background_review if capabilities is None else None,
+            background_review=learning.review if capabilities is None else None,
             clarify=ClarifyService(database) if capabilities is None else None,
             verify_on_stop=verify_on_stop,
             model_recovery=model_recovery,
-            plugins=plugins,
+            plugins=(*plugins, *workflow_features.capabilities, *capability_plugins),
         )
         lifetime.own(
             "runs", 0, lambda budget: application.close(budget, close_database=False), application.stop_accepting
@@ -614,7 +582,7 @@ async def open_instance(
         action_reviews = kernel_features.require("action-reviews", ActionReviewService)
         for plugin in kernel_features.capabilities:
             application.attach_plugin(plugin)
-        for provider in (*features.providers, *kernel_features.providers):
+        for provider in (*features.providers, *workflow_features.providers, *kernel_features.providers):
             application.attach_provider(provider.id, provider.adapter, review_quiescent=provider.review_quiescent)
         diagnostic = DiagnosticFiles(paths, sink)
         lifetime.own("operations", 0, diagnostic.close)
@@ -719,9 +687,9 @@ async def open_instance(
         identity_files = RuntimeIdentityFiles(paths.control, identity)
         lifetime.own("runtime_identity", 5, identity_files.close, identity_files.stop_accepting)
         await identity_files.start()
-        await maintenance.start()
-        features.start()
-        kernel_features.start()
+        await workflow_features.start()
+        await features.start()
+        await kernel_features.start()
         current_instance = Instance(
             application=application,
             paths=paths,
@@ -734,11 +702,11 @@ async def open_instance(
             identity=identity,
             _identity_files=identity_files,
             objects=objects,
-            images=images,
+            images=vision.images,
             people=people.people,
             configurations=configurations,
             routing=routing,
-            memory_semantics=memory_semantics,
+            memory_semantics=memory.semantics,
             skills=skills,
             documents=documents,
             schedules=schedules,
@@ -746,7 +714,7 @@ async def open_instance(
             qq=qq,
             bilibili=bilibili,
             media=media,
-            visual=visual,
+            visual=vision.visual,
             mcp=mcp,
             android=android,
             operations=operations,
@@ -754,9 +722,9 @@ async def open_instance(
             _credential_io=credential_io,
             _lifetime=lifetime,
             maintenance=maintenance,
-            memory_organization=memory_organization,
-            background_review=background_review,
-            reflections=reflections,
+            memory_organization=memory.organization,
+            background_review=learning.review,
+            reflections=learning.reflections,
             persona_growth=people.persona,
             extensions=extensions,
             action_reviews=action_reviews,

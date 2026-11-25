@@ -35,7 +35,7 @@ from ..application.ports import (
 )
 from ..application.qq import QQTransportPort
 from .features import FeatureContext, FeaturePlugin
-from .features.catalog import BUILTIN_FEATURES, BUILTIN_KERNEL_FEATURES
+from .features.catalog import BUILTIN_FEATURES, BUILTIN_KERNEL_FEATURES, BUILTIN_WORKFLOW_FEATURES
 from .instance import open_instance
 from .lifecycle import close_until_quiescent
 
@@ -212,16 +212,10 @@ def http_app(
                 logs=logs,
                 assets=web_assets(),
                 objects=instance.objects,
-                images=instance.images,
                 configurations=instance.configurations,
                 routing=instance.routing,
-                memory_semantics=instance.memory_semantics,
                 operations=instance.operations,
                 credentials=instance.credentials,
-                maintenance=instance.maintenance,
-                memory_organization=instance.memory_organization,
-                background_review=instance.background_review,
-                reflections=instance.reflections,
                 identity_proof=instance.identity_proof,
                 drain=drain if shutdown is not None else None,
                 token_sessions=token_sessions,
@@ -236,5 +230,5 @@ def http_app(
     return create_app(
         factory,
         allowed_origins=allowed_origins,
-        feature_routes=(*BUILTIN_FEATURES, *feature_plugins, *BUILTIN_KERNEL_FEATURES),
+        feature_routes=(*BUILTIN_FEATURES, *feature_plugins, *BUILTIN_WORKFLOW_FEATURES, *BUILTIN_KERNEL_FEATURES),
     )

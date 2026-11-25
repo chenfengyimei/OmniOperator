@@ -31,10 +31,12 @@ from ..application.documents import DocumentService
 from ..application.engine import Application
 from ..application.extensions import ExtensionService
 from ..application.images import ImageService
+from ..application.learning_services import LearningServices
 from ..application.maintenance import MaintenanceService
 from ..application.mcp import MCPService
 from ..application.memory_organization import MemoryOrganizationService
 from ..application.memory_semantics import MemorySemanticService
+from ..application.memory_services import MemoryServices
 from ..application.objects import ObjectService
 from ..application.operations import OperationsService
 from ..application.people import PeopleService, PeopleServices
@@ -46,6 +48,7 @@ from ..application.skills import SkillService
 from ..application.terminal_review import TerminalReviewService
 from ..application.terminal_services import TerminalServices
 from ..application.terminals import TerminalService
+from ..application.vision_services import VisionServices
 from ..domain.agents import MAX_NAME, MAX_REVISION
 from ..domain.capabilities import capability_report
 from ..domain.context import CONTEXT_CHARS, SUMMARY_CALLS_PER_TURN, SUMMARY_TRIGGER_MESSAGES
@@ -76,6 +79,7 @@ from .http_routes.extensions import require_extension_service
 from .http_routes.media import MediaJobInput as MediaJobInput
 from .http_routes.media import MediaSourceInput as MediaSourceInput
 from .http_routes.media import MediaUploadSourceInput as MediaUploadSourceInput
+from .http_routes.memory import MemoryInput as MemoryInput
 from .http_routes.people import AccountInput as AccountInput
 from .http_routes.people import DocumentImport as DocumentImport
 from .http_routes.people import DocumentInput as DocumentInput
@@ -101,10 +105,6 @@ class HttpRuntime:
     configurations: ConfigurationService
     operations: OperationsService
     credentials: CredentialService
-    maintenance: MaintenanceService
-    memory_organization: MemoryOrganizationService
-    background_review: BackgroundReviewService
-    reflections: ReflectionService
     identity_proof: Callable[[str], Record] | None = None
     drain: Callable[[Record], Awaitable[Record]] | None = None
     token_sessions: Callable[[], Awaitable[list[Record]]] | None = None
@@ -113,13 +113,38 @@ class HttpRuntime:
     # 默认 None 表示关闭；远程绑定与跨源请求一律拿不到，API 鉴权强度不变。
     local_owner_token: Callable[[], str] | None = None
     feature_services: Mapping[str, object] = field(default_factory=dict[str, object])
-    images: ImageService | None = None
+    upload_slots: asyncio.Semaphore = field(default_factory=lambda: asyncio.Semaphore(4))
     routing: RoutingService | None = None
-    memory_semantics: MemorySemanticService | None = None
     # 连接测试复用当前模型适配器；离线实例的适配器会明确拒绝真实调用。
     model_port: object | None = None
 
     # Existing runtime accessors resolve the same services as the mounted feature.
+    @property
+    def images(self) -> ImageService | None:
+        feature = self.feature_services.get("vision")
+        return feature.images if isinstance(feature, VisionServices) else None
+
+    @property
+    def memory_semantics(self) -> MemorySemanticService | None:
+        feature = self.feature_services.get("memory")
+        return feature.semantics if isinstance(feature, MemoryServices) else None
+
+    @property
+    def memory_organization(self) -> MemoryOrganizationService:
+        return registered_service(self.feature_services, "memory", MemoryServices).organization
+
+    @property
+    def background_review(self) -> BackgroundReviewService:
+        return registered_service(self.feature_services, "learning", LearningServices).review
+
+    @property
+    def reflections(self) -> ReflectionService:
+        return registered_service(self.feature_services, "learning", LearningServices).reflections
+
+    @property
+    def maintenance(self) -> MaintenanceService:
+        return registered_service(self.feature_services, "maintenance", MaintenanceService)
+
     @property
     def people(self) -> PeopleService:
         return registered_service(self.feature_services, "people", PeopleServices).people
@@ -242,14 +267,6 @@ class ClarifyCancelInput(StrictInput):
     notice: str = Field(default="", max_length=2000)
 
 
-class MemoryInput(StrictInput):
-    content: str = Field(min_length=1, max_length=20_000)
-    message_id: uuid.UUID | None = None
-    quote: str = Field(default="", max_length=20_000)
-    action_id: uuid.UUID | None = None
-    document_revision_id: uuid.UUID | None = None
-
-
 class CredentialInput(StrictInput):
     value: str = Field(min_length=1, max_length=65_536)
 
@@ -283,7 +300,6 @@ def create_app(
     allowed_origins: tuple[str, ...] = (),
     feature_routes: tuple[FeatureRoutes, ...] = (),
 ) -> FastAPI:
-    upload_slots = asyncio.Semaphore(4)
     event_streams = EventStreams()
 
     @asynccontextmanager
@@ -677,6 +693,7 @@ def create_app(
 
     @router.post("/agents/{agent_id}/objects", status_code=201)
     async def upload_object(agent_id: uuid.UUID, request: Request, pinned: bool = True):
+        upload_slots = runtime(request).upload_slots
         if upload_slots.locked():
             raise BusinessError("upload_busy", "Upload slots are full", retryable=True, status=503)
         await upload_slots.acquire()
@@ -702,39 +719,6 @@ def create_app(
         limit: int = Query(default=100, ge=1, le=200),
     ):
         return await runtime(request).objects.page(str(agent_id), after=str(after) if after else "", limit=limit)
-
-    def image_service(request: Request) -> ImageService:
-        service = runtime(request).images
-        if service is None:
-            raise BusinessError("image_protocol_unavailable", "Image admission is unavailable", status=503)
-        return service
-
-    @router.post("/agents/{agent_id}/images", status_code=201)
-    async def upload_image(agent_id: uuid.UUID, request: Request):
-        service = image_service(request)
-        if upload_slots.locked():
-            raise BusinessError("upload_busy", "Upload slots are full", status=503)
-        await upload_slots.acquire()
-        try:
-            content = bytearray()
-            async with asyncio.timeout(30):
-                async for chunk in request.stream():
-                    if len(content) + len(chunk) > MAX_OBJECT_BYTES:
-                        raise BusinessError("image_too_large", "Image exceeds the 16 MiB limit", status=413)
-                    content.extend(chunk)
-            return await service.upload(str(agent_id), bytes(content))
-        except TimeoutError as exc:
-            raise BusinessError("upload_timeout", "Upload exceeded its time budget", status=408) from exc
-        finally:
-            upload_slots.release()
-
-    @router.post("/agents/{agent_id}/images/{object_id}/prepare")
-    async def prepare_image(agent_id: uuid.UUID, object_id: uuid.UUID, request: Request):
-        return await image_service(request).prepare(str(agent_id), str(object_id))
-
-    @router.get("/agents/{agent_id}/runs/{run_id}/images")
-    async def run_images(agent_id: uuid.UUID, run_id: uuid.UUID, request: Request):
-        return await image_service(request).report(str(agent_id), str(run_id))
 
     @router.get("/agents/{agent_id}/objects/{object_id}")
     async def describe_object(agent_id: uuid.UUID, object_id: uuid.UUID, request: Request):
@@ -788,30 +772,6 @@ def create_app(
     @router.get("/agents/{agent_id}/runs/{run_id}")
     async def run(agent_id: uuid.UUID, run_id: uuid.UUID, request: Request):
         return await runtime(request).application.get_run(str(agent_id), str(run_id))
-
-    @router.post("/agents/{agent_id}/maintenance", status_code=202)
-    async def maintenance_submit(agent_id: uuid.UUID, request: Request):
-        return await runtime(request).maintenance.submit(str(agent_id), await bounded_configuration(request, 4096))
-
-    @router.get("/agents/{agent_id}/maintenance")
-    async def maintenance_list(
-        agent_id: uuid.UUID,
-        request: Request,
-        after: int = Query(default=0, ge=0),
-        limit: int = Query(default=50, ge=1, le=100),
-    ):
-        return await runtime(request).maintenance.page(str(agent_id), after, limit)
-
-    @router.get("/agents/{agent_id}/maintenance/{job_id}")
-    async def maintenance_get(agent_id: uuid.UUID, job_id: uuid.UUID, request: Request):
-        return await runtime(request).maintenance.get(str(agent_id), str(job_id))
-
-    @router.post("/agents/{agent_id}/maintenance/{job_id}/cancel")
-    async def maintenance_cancel(agent_id: uuid.UUID, job_id: uuid.UUID, request: Request):
-        data = await bounded_configuration(request, 2048)
-        if set(data) != {"revision"} or type(cast(int, data["revision"])) is not int or cast(int, data["revision"]) < 1:
-            raise BusinessError("maintenance_invalid", "Cancel requires the current positive revision", status=422)
-        return await runtime(request).maintenance.cancel(str(agent_id), str(job_id), cast(int, data["revision"]))
 
     @router.get("/agents/{agent_id}/events/retention-preview")
     async def event_retention_preview(
@@ -969,173 +929,6 @@ def create_app(
     @router.delete("/agents/{agent_id}/sessions/{session_id}/captures/{capture_id}", status_code=204)
     async def release_capture(agent_id: uuid.UUID, session_id: uuid.UUID, capture_id: uuid.UUID, request: Request):
         await runtime(request).objects.release_capture(str(agent_id), str(session_id), str(capture_id))
-
-    @router.get("/agents/{agent_id}/memory")
-    async def memories(agent_id: uuid.UUID, request: Request, q: str = Query(default="", max_length=500)):
-        semantic = runtime(request).memory_semantics
-        if q and semantic is not None:
-            return await semantic.search(str(agent_id), q)
-        application = runtime(request).application
-        return {
-            "items": await application.search_memory(str(agent_id), q)
-            if q
-            else await application.query("memory", str(agent_id))
-        }
-
-    @router.get("/agents/{agent_id}/memory/decay")
-    async def memory_decay_state(agent_id: uuid.UUID, request: Request):
-        return await runtime(request).application.memory_decay_state(str(agent_id))
-
-    @router.post("/agents/{agent_id}/memory/decay")
-    async def memory_decay(agent_id: uuid.UUID, request: Request):
-        data = await bounded_configuration(request, 2048, strict=True)
-        if set(data) - {"force"} or ("force" in data and type(data["force"]) is not bool):
-            raise BusinessError("memory_decay_invalid", "Only an explicit boolean force is accepted", status=422)
-        return await runtime(request).application.memory_decay(str(agent_id), bool(data.get("force", False)))
-
-    def memory_semantic_service(request: Request) -> MemorySemanticService:
-        service = runtime(request).memory_semantics
-        if service is None:
-            raise BusinessError("memory_semantics_unavailable", "Memory semantic service is unavailable", status=503)
-        return service
-
-    @router.get("/agents/{agent_id}/memory/semantics")
-    async def semantic_batches(
-        agent_id: uuid.UUID, request: Request, after: str = "", limit: int = Query(default=20, ge=1, le=32)
-    ):
-        return await memory_semantic_service(request).page(str(agent_id), after, limit)
-
-    @router.post("/agents/{agent_id}/memory/index")
-    async def memory_index(
-        agent_id: uuid.UUID, request: Request, after: str = "", limit: int = Query(default=32, ge=1, le=32)
-    ):
-        return await memory_semantic_service(request).index(str(agent_id), after, limit)
-
-    @router.post("/agents/{agent_id}/memory/semantics", status_code=201)
-    async def semantic_propose(agent_id: uuid.UUID, request: Request):
-        return await memory_semantic_service(request).propose(str(agent_id), await bounded_configuration(request, 8192))
-
-    @router.get("/agents/{agent_id}/memory/semantics/{batch_id}")
-    async def semantic_detail(agent_id: uuid.UUID, batch_id: uuid.UUID, request: Request):
-        return await memory_semantic_service(request).get(str(agent_id), str(batch_id))
-
-    @router.post("/agents/{agent_id}/memory/semantic-links/{link_id}/decision")
-    async def semantic_decide(agent_id: uuid.UUID, link_id: uuid.UUID, request: Request):
-        return await memory_semantic_service(request).decide(
-            str(agent_id), str(link_id), await bounded_configuration(request, 2048)
-        )
-
-    @router.post("/agents/{agent_id}/memory/organizations", status_code=202)
-    async def memory_organization_create(agent_id: uuid.UUID, request: Request):
-        return await runtime(request).memory_organization.submit(
-            str(agent_id), await bounded_configuration(request, 8192)
-        )
-
-    @router.get("/agents/{agent_id}/memory/organizations")
-    async def memory_organizations(
-        agent_id: uuid.UUID,
-        request: Request,
-        after: int = Query(default=0, ge=0),
-        limit: int = Query(default=20, ge=1, le=50),
-    ):
-        return await runtime(request).memory_organization.page(str(agent_id), after, limit)
-
-    @router.get("/agents/{agent_id}/memory/organizations/{batch_id}")
-    async def memory_organization_detail(agent_id: uuid.UUID, batch_id: uuid.UUID, request: Request):
-        return await runtime(request).memory_organization.get(str(agent_id), str(batch_id))
-
-    @router.post("/agents/{agent_id}/memory/organizations/{batch_id}/cancel")
-    async def memory_organization_cancel(agent_id: uuid.UUID, batch_id: uuid.UUID, request: Request):
-        data = await bounded_configuration(request, 2048)
-        if set(data) != {"revision"} or type(data.get("revision")) is not int or cast(int, data["revision"]) < 1:
-            raise BusinessError(
-                "memory_organization_invalid", "A positive cancellation revision is required", status=422
-            )
-        return await runtime(request).memory_organization.cancel(
-            str(agent_id), str(batch_id), cast(int, data["revision"])
-        )
-
-    @router.post("/agents/{agent_id}/memory/organizations/candidates/{candidate_id}/decision")
-    async def memory_organization_decision(agent_id: uuid.UUID, candidate_id: uuid.UUID, request: Request):
-        return await runtime(request).memory_organization.decide(
-            str(agent_id), str(candidate_id), await bounded_configuration(request, 2048)
-        )
-
-    @router.get("/agents/{agent_id}/reflections")
-    async def reflections(
-        agent_id: uuid.UUID,
-        request: Request,
-        after: str = "",
-        limit: int = Query(20, ge=1, le=50),
-        approved: bool = False,
-    ):
-        return await runtime(request).reflections.page(str(agent_id), after, limit, approved)
-
-    @router.get("/agents/{agent_id}/reflections/{journal_id}")
-    async def reflection_detail(agent_id: uuid.UUID, journal_id: uuid.UUID, request: Request):
-        return await runtime(request).reflections.get(str(agent_id), str(journal_id))
-
-    @router.put("/agents/{agent_id}/reflections/{journal_id}")
-    async def reflection_edit(agent_id: uuid.UUID, journal_id: uuid.UUID, request: Request):
-        return await runtime(request).reflections.edit(
-            str(agent_id), str(journal_id), await bounded_configuration(request, 480000)
-        )
-
-    @router.post("/agents/{agent_id}/reflections/candidates/{candidate_id}/decision")
-    async def reflection_decision(agent_id: uuid.UUID, candidate_id: uuid.UUID, request: Request):
-        return await runtime(request).reflections.decide(
-            str(agent_id), str(candidate_id), await bounded_configuration(request, 2048)
-        )
-
-    @router.post("/agents/{agent_id}/memory/reviews", status_code=202)
-    async def background_review_create(agent_id: uuid.UUID, request: Request):
-        return await runtime(request).background_review.submit(
-            str(agent_id), await bounded_configuration(request, 2048)
-        )
-
-    @router.get("/agents/{agent_id}/memory/reviews")
-    async def background_reviews(
-        agent_id: uuid.UUID,
-        request: Request,
-        after: int = Query(default=0, ge=0),
-        limit: int = Query(default=20, ge=1, le=50),
-    ):
-        return await runtime(request).background_review.page(str(agent_id), after, limit)
-
-    @router.get("/agents/{agent_id}/memory/reviews/{batch_id}")
-    async def background_review_detail(agent_id: uuid.UUID, batch_id: uuid.UUID, request: Request):
-        return await runtime(request).background_review.get(str(agent_id), str(batch_id))
-
-    @router.post("/agents/{agent_id}/memory/reviews/{batch_id}/cancel")
-    async def background_review_cancel(agent_id: uuid.UUID, batch_id: uuid.UUID, request: Request):
-        data = await bounded_configuration(request, 2048)
-        if set(data) != {"revision"} or type(data.get("revision")) is not int or cast(int, data["revision"]) < 1:
-            raise BusinessError("background_review_invalid", "A positive cancellation revision is required", status=422)
-        return await runtime(request).background_review.cancel(
-            str(agent_id), str(batch_id), cast(int, data["revision"])
-        )
-
-    @router.post("/agents/{agent_id}/memory/reviews/candidates/{candidate_id}/decision")
-    async def background_review_decision(agent_id: uuid.UUID, candidate_id: uuid.UUID, request: Request):
-        return await runtime(request).background_review.decide(
-            str(agent_id), str(candidate_id), await bounded_configuration(request, 2048)
-        )
-
-    @router.post("/agents/{agent_id}/memory", status_code=201)
-    async def remember(agent_id: uuid.UUID, data: MemoryInput, request: Request):
-        return await runtime(request).application.remember(
-            str(agent_id),
-            data.content,
-            message_id=str(data.message_id) if data.message_id else None,
-            quote=data.quote,
-            action_id=str(data.action_id) if data.action_id else None,
-            document_revision_id=str(data.document_revision_id) if data.document_revision_id else None,
-        )
-
-    @router.delete("/agents/{agent_id}/memory/{memory_id}")
-    async def forget(agent_id: uuid.UUID, memory_id: uuid.UUID, request: Request, revision: int = Query(ge=1)):
-        await runtime(request).application.forget(str(agent_id), str(memory_id), revision)
-        return {"deleted": True}
 
     @router.get("/agents/{agent_id}/audit")
     async def audit(

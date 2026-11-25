@@ -282,7 +282,7 @@ uv run --no-sync pytest -q -n 0 agent/tests/v2/integrations/test_v2_mcp.py agent
 
 **从这里读**
 
-- [agent/src/omni/adapters/http.py#create_app.turn](../../../agent/src/omni/adapters/http.py#L757)
+- [agent/src/omni/adapters/http.py#create_app.turn](../../../agent/src/omni/adapters/http.py#L741)
 
 **领域规则**
 
@@ -301,7 +301,7 @@ uv run --no-sync pytest -q -n 0 agent/tests/v2/integrations/test_v2_mcp.py agent
 
 **组装点**
 
-- [agent/src/omni/composition/instance.py#open_instance.application](../../../agent/src/omni/composition/instance.py#L571)
+- [agent/src/omni/composition/instance.py#open_instance.application](../../../agent/src/omni/composition/instance.py#L539)
 - [agent/src/omni/composition/capabilities.py#builtin_plugins](../../../agent/src/omni/composition/capabilities.py#L21)
 
 **界面**
@@ -348,7 +348,7 @@ uv run --no-sync pytest -q -n 0 agent/tests/v2/core/test_v2_kernel.py agent/test
 
 **从这里读**
 
-- [agent/src/omni/adapters/http.py#create_app.session_context_overview](../../../agent/src/omni/adapters/http.py#L922)
+- [agent/src/omni/adapters/http.py#create_app.session_context_overview](../../../agent/src/omni/adapters/http.py#L882)
 
 **领域规则**
 
@@ -365,7 +365,7 @@ uv run --no-sync pytest -q -n 0 agent/tests/v2/core/test_v2_kernel.py agent/test
 
 **组装点**
 
-- [agent/src/omni/composition/instance.py#open_instance](../../../agent/src/omni/composition/instance.py#L316)
+- [agent/src/omni/composition/instance.py#open_instance](../../../agent/src/omni/composition/instance.py#L317)
 
 **界面**
 
@@ -399,7 +399,7 @@ uv run --no-sync pytest -q -n 0 agent/tests/v2/core/test_v2_context.py agent/tes
 
 **从这里读**
 
-- [agent/src/omni/adapters/http.py#create_app.configuration_probe](../../../agent/src/omni/adapters/http.py#L601)
+- [agent/src/omni/adapters/http.py#create_app.configuration_probe](../../../agent/src/omni/adapters/http.py#L617)
 
 **领域规则**
 
@@ -420,7 +420,7 @@ uv run --no-sync pytest -q -n 0 agent/tests/v2/core/test_v2_context.py agent/tes
 **组装点**
 
 - [agent/src/omni/composition/model_providers.py#register_model_transport](../../../agent/src/omni/composition/model_providers.py#L22)
-- [agent/src/omni/composition/instance.py#open_instance.routing](../../../agent/src/omni/composition/instance.py#L440)
+- [agent/src/omni/composition/instance.py#open_instance.routing](../../../agent/src/omni/composition/instance.py#L437)
 
 **界面**
 
@@ -456,7 +456,7 @@ uv run --no-sync pytest -q -n 0 agent/tests/v2/http/test_v2_configuration_http.p
 
 **从这里读**
 
-- [agent/src/omni/adapters/http.py#create_app.memories](../../../agent/src/omni/adapters/http.py#L974)
+- [agent/src/omni/adapters/http_routes/memory.py#memory_router.memories](../../../agent/src/omni/adapters/http_routes/memory.py#L28)
 
 **领域规则**
 
@@ -474,7 +474,7 @@ uv run --no-sync pytest -q -n 0 agent/tests/v2/http/test_v2_configuration_http.p
 
 **组装点**
 
-- [agent/src/omni/composition/instance.py#open_instance.memory_organization](../../../agent/src/omni/composition/instance.py#L427)
+- [agent/src/omni/composition/features/memory.py#install_memory](../../../agent/src/omni/composition/features/memory.py#L11)
 
 **界面**
 
@@ -504,8 +504,8 @@ uv run --no-sync pytest -q -n 0 agent/tests/v2/http/test_v2_memory_organization_
 
 **从这里读**
 
-- [agent/src/omni/adapters/http.py#create_app.background_review_decision](../../../agent/src/omni/adapters/http.py#L1119)
-- [agent/src/omni/adapters/http.py#create_app.reflection_decision](../../../agent/src/omni/adapters/http.py#L1085)
+- [agent/src/omni/adapters/http_routes/learning.py#learning_router.background_review_decision](../../../agent/src/omni/adapters/http_routes/learning.py#L72)
+- [agent/src/omni/adapters/http_routes/learning.py#learning_router.reflection_decision](../../../agent/src/omni/adapters/http_routes/learning.py#L38)
 
 **领域规则**
 
@@ -519,7 +519,8 @@ uv run --no-sync pytest -q -n 0 agent/tests/v2/http/test_v2_memory_organization_
 
 **组装点**
 
-- [agent/src/omni/composition/instance.py#open_instance.background_review](../../../agent/src/omni/composition/instance.py#L549)
+- [agent/src/omni/composition/features/learning.py#install_learning](../../../agent/src/omni/composition/features/learning.py#L12)
+- [agent/src/omni/composition/features/maintenance.py#install_maintenance](../../../agent/src/omni/composition/features/maintenance.py#L13)
 
 **界面**
 
@@ -663,7 +664,7 @@ uv run --no-sync pytest -q -n 0 agent/tests/v2/core/test_v2_people.py agent/test
 
 **组装点**
 
-- [agent/src/omni/composition/instance.py#open_instance](../../../agent/src/omni/composition/instance.py#L316)
+- [agent/src/omni/composition/instance.py#open_instance](../../../agent/src/omni/composition/instance.py#L317)
 
 **合同与手册**
 
@@ -704,7 +705,7 @@ uv run --no-sync pytest -q -n 0 agent/tests/v2/core/test_v2_workers.py agent/tes
 
 **组装点**
 
-- [agent/src/omni/composition/instance.py#open_instance](../../../agent/src/omni/composition/instance.py#L316)
+- [agent/src/omni/composition/instance.py#open_instance](../../../agent/src/omni/composition/instance.py#L317)
 
 **专项测试**
 
@@ -729,7 +730,7 @@ uv run --no-sync pytest -q -n 0 agent/tests/v2/core/test_v2_browser_dialog.py ag
 
 **从这里读**
 
-- [agent/src/omni/adapters/http.py#create_app.upload_object](../../../agent/src/omni/adapters/http.py#L679)
+- [agent/src/omni/adapters/http.py#create_app.upload_object](../../../agent/src/omni/adapters/http.py#L695)
 
 **领域规则**
 
@@ -745,7 +746,7 @@ uv run --no-sync pytest -q -n 0 agent/tests/v2/core/test_v2_browser_dialog.py ag
 
 **组装点**
 
-- [agent/src/omni/composition/instance.py#open_instance.objects](../../../agent/src/omni/composition/instance.py#L407)
+- [agent/src/omni/composition/instance.py#open_instance.objects](../../../agent/src/omni/composition/instance.py#L408)
 
 **界面**
 
@@ -827,6 +828,7 @@ uv run --no-sync pytest -q -n 0 agent/tests/v2/integrations/test_v2_media.py
 **从这里读**
 
 - [agent/src/omni/application/visual_subagent.py#VisualSubagentService.run](../../../agent/src/omni/application/visual_subagent.py#L134)
+- [agent/src/omni/adapters/http_routes/vision.py#vision_router.upload_image](../../../agent/src/omni/adapters/http_routes/vision.py#L26)
 
 **领域规则**
 
@@ -843,7 +845,7 @@ uv run --no-sync pytest -q -n 0 agent/tests/v2/integrations/test_v2_media.py
 
 **组装点**
 
-- [agent/src/omni/composition/instance.py#open_instance.visual](../../../agent/src/omni/composition/instance.py#L513)
+- [agent/src/omni/composition/features/vision.py#install_vision](../../../agent/src/omni/composition/features/vision.py#L13)
 
 **界面**
 
@@ -1072,7 +1074,7 @@ uv run --no-sync pytest -q -n 0 agent/tests/v2/http/test_v2_bilibili_http.py
 
 - [agent/tests/v2/core/test_v2_scheduling.py](../../../agent/tests/v2/core/test_v2_scheduling.py)
 - [agent/tests/v2/core/test_v2_scheduling_faults.py](../../../agent/tests/v2/core/test_v2_scheduling_faults.py)
-- [agent/tests/v2/core/test_v2_feature_plugins.py#test_scheduling_starts_after_kernel_recovery_and_is_reclaimed_on_failure](../../../agent/tests/v2/core/test_v2_feature_plugins.py#L267)
+- [agent/tests/v2/core/test_v2_feature_plugins.py#test_scheduling_starts_after_kernel_recovery_and_is_reclaimed_on_failure](../../../agent/tests/v2/core/test_v2_feature_plugins.py#L268)
 
 **改动影响**　变更影响时区计算、租约、重试及恢复。
 
@@ -1222,10 +1224,10 @@ uv run --no-sync pytest -q -n 0 agent/tests/v2/http/test_v2_terminals_http.py
 
 **从这里读**
 
-- [agent/src/omni/adapters/http.py#create_app.logs](../../../agent/src/omni/adapters/http.py#L1190)
-- [agent/src/omni/adapters/http.py#create_app.owner_token_rotate](../../../agent/src/omni/adapters/http.py#L482)
-- [agent/src/omni/adapters/http.py#create_app.capabilities](../../../agent/src/omni/adapters/http.py#L443)
-- [agent/src/omni/adapters/http.py#create_app.audit](../../../agent/src/omni/adapters/http.py#L1141)
+- [agent/src/omni/adapters/http.py#create_app.logs](../../../agent/src/omni/adapters/http.py#L983)
+- [agent/src/omni/adapters/http.py#create_app.owner_token_rotate](../../../agent/src/omni/adapters/http.py#L498)
+- [agent/src/omni/adapters/http.py#create_app.capabilities](../../../agent/src/omni/adapters/http.py#L459)
+- [agent/src/omni/adapters/http.py#create_app.audit](../../../agent/src/omni/adapters/http.py#L934)
 
 **领域规则**
 
@@ -1295,7 +1297,7 @@ uv run --no-sync pytest -q -n 0 agent/tests/v2/http/test_v2_operations_http.py a
 
 **组装点**
 
-- [agent/src/omni/composition/instance.py#open_instance.database](../../../agent/src/omni/composition/instance.py#L385)
+- [agent/src/omni/composition/instance.py#open_instance.database](../../../agent/src/omni/composition/instance.py#L386)
 
 **合同与手册**
 
@@ -1487,7 +1489,7 @@ uv run --no-sync pytest -q -n 0 agent/tests/test_qq.py agent/tests/test_qq_scope
 
 - [agent/scripts/project_index.py#main](../../../agent/scripts/project_index.py#L16)
 - [agent/src/omni/system/catalog/features.py#load_features](../../../agent/src/omni/system/catalog/features.py#L87)
-- [agent/src/omni/system/catalog/scan.py#build_index](../../../agent/src/omni/system/catalog/scan.py#L279)
+- [agent/src/omni/system/catalog/scan.py#build_index](../../../agent/src/omni/system/catalog/scan.py#L280)
 
 **适配器与仓储**
 

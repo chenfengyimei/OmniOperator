@@ -156,7 +156,8 @@ def _catalog_feature_routers(tree: ast.Module) -> set[str]:
         if (
             not isinstance(node, ast.Assign)
             or not any(
-                isinstance(target, ast.Name) and target.id in {"BUILTIN_FEATURES", "BUILTIN_KERNEL_FEATURES"}
+                isinstance(target, ast.Name)
+                and target.id in {"BUILTIN_FEATURES", "BUILTIN_WORKFLOW_FEATURES", "BUILTIN_KERNEL_FEATURES"}
                 for target in node.targets
             )
             or not isinstance(node.value, ast.Tuple)

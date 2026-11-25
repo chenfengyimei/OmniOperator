@@ -12,6 +12,7 @@ from omni_test_support.v2.media import FakeProcessor
 from omni.adapters.http_routes import FeatureRoutes, mount_feature_routes
 from omni.application.capabilities import Capability
 from omni.application.engine import Application
+from omni.application.maintenance import MaintenanceService
 from omni.application.media import MediaService
 from omni.application.scheduling import SchedulingService
 from omni.composition.features import FeatureBinding, FeaturePlugin
@@ -317,3 +318,45 @@ def test_injected_feature_cannot_replace_a_feature_that_depends_on_the_kernel(tm
     with pytest.raises(ValueError, match="Duplicate feature plugin IDs"):
         asyncio.run(open_instance(home, feature_plugins=(plugin,)))
     assert not home.exists()
+
+
+def test_failed_async_feature_start_drains_worker_and_releases_instance(tmp_path, monkeypatch):
+    original_start = MaintenanceService.start
+    started = []
+
+    async def fail_after_start(service):
+        await original_start(service)
+        started.append(service)
+        raise RuntimeError("fixture maintenance start failure")
+
+    async def scenario():
+        with monkeypatch.context() as patch:
+            patch.setattr(MaintenanceService, "start", fail_after_start)
+            with pytest.raises(RuntimeError, match="fixture maintenance start failure"):
+                await open_instance(tmp_path, capabilities=())
+        assert started[0]._worker.done()
+        reopened = await open_instance(tmp_path, capabilities=())
+        try:
+            assert reopened.feature_services["maintenance"] is reopened.maintenance
+            assert reopened.maintenance._background_review is reopened.background_review
+            assert reopened.maintenance._memory_organization is reopened.memory_organization
+        finally:
+            assert (await reopened.close())["complete"]
+
+    asyncio.run(scenario())
+
+
+def test_image_and_object_uploads_share_the_same_admission_capacity(tmp_path):
+    with TestClient(http_app(tmp_path)) as client:
+        client.headers["Authorization"] = "Bearer " + (tmp_path / "run/owner.token").read_text(encoding="utf-8")
+        agent = client.get("/api/v1/agents").json()["items"][0]["id"]
+        slots = client.app.state.runtime.upload_slots
+        for _ in range(4):
+            client.portal.call(slots.acquire)
+        try:
+            for noun in ("objects", "images"):
+                response = client.post(f"/api/v1/agents/{agent}/{noun}", content=b"fixture")
+                assert response.status_code == 503 and response.json()["error"]["code"] == "upload_busy"
+        finally:
+            for _ in range(4):
+                client.portal.call(slots.release)

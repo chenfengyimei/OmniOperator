@@ -396,7 +396,7 @@
     "related": [],
     "refs": {
       "entry": [
-        "agent/src/omni/adapters/http.py#create_app.memories"
+        "agent/src/omni/adapters/http_routes/memory.py#memory_router.memories"
       ],
       "domain": [
         "agent/src/omni/domain/memory_organization.py",
@@ -410,7 +410,7 @@
         "agent/src/omni/adapters/local_vectors.py"
       ],
       "composition": [
-        "agent/src/omni/composition/instance.py#open_instance.memory_organization"
+        "agent/src/omni/composition/features/memory.py#install_memory"
       ],
       "ui": [
         "web/ui/v2/memory-organization.js",
@@ -443,8 +443,8 @@
     ],
     "refs": {
       "entry": [
-        "agent/src/omni/adapters/http.py#create_app.background_review_decision",
-        "agent/src/omni/adapters/http.py#create_app.reflection_decision"
+        "agent/src/omni/adapters/http_routes/learning.py#learning_router.background_review_decision",
+        "agent/src/omni/adapters/http_routes/learning.py#learning_router.reflection_decision"
       ],
       "domain": [
         "agent/src/omni/domain/background_review.py",
@@ -455,7 +455,8 @@
         "agent/src/omni/application/reflections.py"
       ],
       "composition": [
-        "agent/src/omni/composition/instance.py#open_instance.background_review"
+        "agent/src/omni/composition/features/learning.py#install_learning",
+        "agent/src/omni/composition/features/maintenance.py#install_maintenance"
       ],
       "ui": [
         "web/ui/v2/reflections.js"
@@ -739,7 +740,8 @@
     ],
     "refs": {
       "entry": [
-        "agent/src/omni/application/visual_subagent.py#VisualSubagentService.run"
+        "agent/src/omni/application/visual_subagent.py#VisualSubagentService.run",
+        "agent/src/omni/adapters/http_routes/vision.py#vision_router.upload_image"
       ],
       "domain": [
         "agent/src/omni/domain/visual_subagent.py",
@@ -752,7 +754,7 @@
         "agent/src/omni/adapters/visual.py"
       ],
       "composition": [
-        "agent/src/omni/composition/instance.py#open_instance.visual"
+        "agent/src/omni/composition/features/vision.py#install_vision"
       ],
       "ui": [
         "web/ui/v2/chat-images.js"

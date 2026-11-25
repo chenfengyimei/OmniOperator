@@ -7,13 +7,17 @@ from ...adapters.http_routes.deliveries import deliveries_router
 from ...adapters.http_routes.desktop import desktop_router
 from ...adapters.http_routes.documents import documents_router
 from ...adapters.http_routes.extensions import extensions_router
+from ...adapters.http_routes.learning import learning_router
+from ...adapters.http_routes.maintenance import maintenance_router
 from ...adapters.http_routes.mcp import mcp_router
 from ...adapters.http_routes.media import media_router
+from ...adapters.http_routes.memory import memory_router
 from ...adapters.http_routes.people import people_router
 from ...adapters.http_routes.qq import qq_router
 from ...adapters.http_routes.schedules import schedules_router
 from ...adapters.http_routes.skills import skills_router
 from ...adapters.http_routes.terminals import terminals_router
+from ...adapters.http_routes.vision import vision_router
 from . import FeaturePlugin
 from .action_reviews import install_action_reviews
 from .android import install_android
@@ -22,13 +26,17 @@ from .deliveries import install_deliveries
 from .desktop import install_desktop
 from .documents import install_documents
 from .extensions import install_extensions
+from .learning import install_learning
+from .maintenance import install_maintenance
 from .mcp import install_mcp
 from .media import install_media
+from .memory import install_memory
 from .people import install_people
 from .qq import install_qq
 from .schedules import install_schedules
 from .skills import install_skills
 from .terminals import install_terminals
+from .vision import install_vision
 
 BUILTIN_FEATURES = (
     FeaturePlugin(
@@ -42,6 +50,7 @@ BUILTIN_FEATURES = (
         ),
     ),
     FeaturePlugin("documents", factory=documents_router, install=install_documents),
+    FeaturePlugin("memory", factory=memory_router, install=install_memory),
     FeaturePlugin(
         "skills",
         factory=skills_router,
@@ -67,6 +76,34 @@ BUILTIN_FEATURES = (
             "/agents/{agent_id}/terminal-reviews/{operation_id}/history/{review_id}/evidence",
         ),
     ),
+)
+
+BUILTIN_WORKFLOW_FEATURES = (
+    FeaturePlugin(
+        "vision",
+        factory=vision_router,
+        install=install_vision,
+        extra_paths=(
+            "/agents/{agent_id}/images",
+            "/agents/{agent_id}/images/{object_id}/prepare",
+            "/agents/{agent_id}/runs/{run_id}/images",
+        ),
+    ),
+    FeaturePlugin(
+        "learning",
+        factory=learning_router,
+        install=install_learning,
+        extra_paths=(
+            "/agents/{agent_id}/reflections",
+            "/agents/{agent_id}/reflections/{journal_id}",
+            "/agents/{agent_id}/reflections/candidates/{candidate_id}/decision",
+            "/agents/{agent_id}/memory/reviews",
+            "/agents/{agent_id}/memory/reviews/{batch_id}",
+            "/agents/{agent_id}/memory/reviews/{batch_id}/cancel",
+            "/agents/{agent_id}/memory/reviews/candidates/{candidate_id}/decision",
+        ),
+    ),
+    FeaturePlugin("maintenance", factory=maintenance_router, install=install_maintenance),
 )
 
 BUILTIN_KERNEL_FEATURES = (

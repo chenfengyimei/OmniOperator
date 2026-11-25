@@ -148,10 +148,13 @@ def test_extracted_route_sources_methods_and_request_models_match_openapi():
             "documents",
             "people",
             "persona-growth",
+            "memory",
+            "reflections",
+            "maintenance",
+            "images",
         }
-        or path == "/api/v1/agents/{agent_id}/memory/{memory_id}/revisions"
     }
-    assert extracted == expected and len(expected) == 150
+    assert extracted == expected and len(expected) == 181
     for schema in ["SkillImportInput", "SkillSaveInput", "SkillStateInput", "SkillRollbackInput"]:
         model = next(m for m in index["request_models"] if m["name"] == schema)
         assert model["source"].endswith("http_routes/skills.py")

@@ -11,18 +11,22 @@ from typing import Generic, TypeVar
 from ...adapters.http_routes import FeatureRoutes
 from ...adapters.platform.runtime.paths import InstancePaths
 from ...application.android import AndroidPort
+from ...application.background_review import ReadDispatch
 from ...application.capabilities import Capability, CapabilityPlugin, RunCapabilityProvider
 from ...application.images import ImageService
 from ...application.mcp import MCPTransportPort
 from ...application.media import MediaProcessingPort
+from ...application.model_calls import ModelCalls
 from ...application.objects import ObjectService
 from ...application.ports import AsyncSecretPort, Clock, DatabasePort, Ids, LocalVectorizer, Observer, Record
+from ...domain.contracts import ToolSpec
 from ..channel_providers import ChannelProviders
 from ..lifecycle import Lifetime
 from ..platform_providers import PlatformPorts
 
 Service = TypeVar("Service")
 Context = TypeVar("Context")
+FeatureStart = Callable[[], Awaitable[None] | None]
 
 
 @dataclass(frozen=True)
@@ -74,11 +78,19 @@ class KernelFeatureContext:
 
 
 @dataclass(frozen=True)
+class WorkflowFeatureContext:
+    base: FeatureContext
+    model_calls: ModelCalls
+    read_tools: tuple[ToolSpec, ...]
+    read_dispatch: ReadDispatch
+
+
+@dataclass(frozen=True)
 class FeatureBinding:
     service: object
     tools: tuple[Capability, ...] = ()
     owner_tools: tuple[Capability, ...] = ()
-    start: Callable[[], None] | None = None
+    start: FeatureStart | None = None
     run_provider: RunCapabilityProvider | None = None
 
 
@@ -91,15 +103,17 @@ class FeaturePlugin(FeatureRoutes, Generic[Context]):
 class InstalledFeatures:
     services: Mapping[str, object]
     capabilities: tuple[CapabilityPlugin, ...]
-    starters: tuple[Callable[[], None], ...]
+    starters: tuple[FeatureStart, ...]
     providers: tuple[RunCapabilityProvider, ...]
 
     def require(self, feature_id: str, service_type: type[Service]) -> Service:
         return require_service(self.services, feature_id, service_type)
 
-    def start(self) -> None:
+    async def start(self) -> None:
         for start in self.starters:
-            start()
+            waiting = start()
+            if waiting is not None:
+                await waiting
 
 
 def require_service(services: Mapping[str, object], feature_id: str, service_type: type[Service]) -> Service:
@@ -113,7 +127,7 @@ async def install_features(
     plugins: tuple[FeaturePlugin[Context], ...], context: Context, services: dict[str, object]
 ) -> InstalledFeatures:
     capabilities: list[CapabilityPlugin] = []
-    starters: list[Callable[[], None]] = []
+    starters: list[FeatureStart] = []
     providers: list[RunCapabilityProvider] = []
     for plugin in plugins:
         binding = await plugin.install(context)

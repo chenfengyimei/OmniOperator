@@ -2,7 +2,7 @@
 
 > **全仓严格类型尚未完成。** 本文件记录已纳入 strict 的模块、当前基线例外与推进规则；默认入口为V2（Windows离线候选），真实平台与整个V2仍待验收。
 
-当前显式清单为 474 个文件，包含能力注册表、提供者及业务功能安装器。下方历史基线按当时的提交保留。
+当前显式清单为 485 个文件，包含能力注册表、提供者及业务功能安装器。下方历史基线按当时的提交保留。
 
 
 ## 1. 门禁
@@ -29,7 +29,10 @@ strict 配置显式将 `agent/src` 加入导入根，隔离源码副本也解析
 | `agent/src/omni/domain/model_reply.py` | 所有普通模型回包在动作前统一核验身份、JSON与大小边界 |
 | `agent/src/omni/application/desktop_control.py` | 独立控制同意的所有者视图、持久审计、后台归属和关闭结算 |
 | `agent/src/omni/application/desktop_services.py` | 桌面观察、门户、控制同意与操作的类型化服务组合 |
+| `agent/src/omni/application/learning_services.py` | 反思与回合后建议的类型化服务组合 |
+| `agent/src/omni/application/memory_services.py` | 语义检索与记忆组织的类型化服务组合 |
 | `agent/src/omni/application/terminal_services.py` | 终端会话与操作核查的类型化服务组合 |
+| `agent/src/omni/application/vision_services.py` | 图像与视觉子代理的类型化服务组合 |
 | `agent/src/omni/adapters/platform/desktop/desktop_control.py` | 独立控制父进程的实际归属、同绑定许可、共享额度和超量管道排空 |
 | `agent/src/omni/domain/desktop_control.py` | 独立控制同意目的/设备种类、精确绑定与不授予输入的状态协议 |
 | `agent/src/omni/adapters/platform/desktop/linux/linux_xkbcommon.py` | libxkbcommon实际编译/键义与原线程及C对象归属 |
@@ -395,13 +398,17 @@ strict 配置显式将 `agent/src` 加入导入根，隔离源码副本也解析
 | `agent/src/omni/composition/features/desktop.py` | 桌面观察、共享、独立控制、所有者操作与资源归属 |
 | `agent/src/omni/composition/features/documents.py` | 来源文档、向量端口与人格缓存失效 |
 | `agent/src/omni/composition/features/extensions.py` | 可执行插件包、宿主、按回合工具与核查回调 |
+| `agent/src/omni/composition/features/learning.py` | 反思、复盘、技能依赖及只读工具快照 |
+| `agent/src/omni/composition/features/maintenance.py` | 维护依赖、恢复和异步启动 |
 | `agent/src/omni/composition/features/mcp.py` | MCP 授权、传输回收与回合提供者 |
 | `agent/src/omni/composition/features/media.py` | 媒体恢复、自有处理器和回合工具的组装 |
+| `agent/src/omni/composition/features/memory.py` | 记忆语义检索与组织任务 |
 | `agent/src/omni/composition/features/people.py` | 人物记录、人格投影文件及共享服务 |
 | `agent/src/omni/composition/features/qq.py` | QQ 入站服务、内核回调与后台监听 |
 | `agent/src/omni/composition/features/schedules.py` | 调度依赖、工具绑定与后台启动 |
 | `agent/src/omni/composition/features/skills.py` | 文本技能、包管理与工具安装 |
 | `agent/src/omni/composition/features/terminals.py` | 终端后端与操作核查的组装 |
+| `agent/src/omni/composition/features/vision.py` | 模型、媒体与图像接口的视觉服务组装 |
 | `agent/src/omni/composition/model_providers.py` | 普通调用、请求预备、流式端口与关闭归属 |
 | `agent/src/omni/composition/platform_providers.py` | 主机选择、原生端口注入、共享并发池与启动回滚 |
 | `agent/src/omni/composition/releases.py` | 已审阅版本发布命令组装（计划/准备/完成/取消） |
@@ -436,6 +443,8 @@ strict 配置显式将 `agent/src` 加入导入根，隔离源码副本也解析
 | `agent/src/omni/adapters/http_routes/__init__.py` | HTTP 严格请求基类 |
 | `agent/src/omni/adapters/http_routes/action_reviews.py` | 动作核查历史和决定 |
 | `agent/src/omni/adapters/http_routes/extensions.py` | 插件 HTTP 接口 |
+| `agent/src/omni/adapters/http_routes/learning.py` | 复盘、反思与所有者决定 |
+| `agent/src/omni/adapters/http_routes/maintenance.py` | 维护任务提交、读取和取消 |
 | `agent/src/omni/adapters/http_routes/mcp.py` | MCP 连接、工具授权与回执接口 |
 | `agent/src/omni/adapters/http_routes/android.py` | Android 所有者 API |
 | `agent/src/omni/adapters/http_routes/bilibili.py` | B 站账户档案、风控、读取和发表草稿 |
@@ -443,11 +452,13 @@ strict 配置显式将 `agent/src` 加入导入根，隔离源码副本也解析
 | `agent/src/omni/adapters/http_routes/desktop.py` | 桌面观察、共享、控制同意与所有者操作接口 |
 | `agent/src/omni/adapters/http_routes/documents.py` | 来源文档修订、索引与检索 |
 | `agent/src/omni/adapters/http_routes/media.py` | 媒体 HTTP 接口与请求模型 |
+| `agent/src/omni/adapters/http_routes/memory.py` | 记忆搜索、索引、整理和擦除 |
 | `agent/src/omni/adapters/http_routes/people.py` | 人物、人格和历史修订接口 |
 | `agent/src/omni/adapters/http_routes/qq.py` | QQ 通道绑定与连接状态 |
 | `agent/src/omni/adapters/http_routes/schedules.py` | 调度历史、复核与取消的所有者 API |
 | `agent/src/omni/adapters/http_routes/skills.py` | 技能 HTTP 接口与请求模型 |
 | `agent/src/omni/adapters/http_routes/terminals.py` | 终端会话、回执和操作核查 |
+| `agent/src/omni/adapters/http_routes/vision.py` | 图像上传、处理与运行报告 |
 | `agent/src/omni/adapters/http_events.py` | 有界 SSE 历史通知、游标续接、持续鉴权与连接回收；不推送事件正文 |
 | `agent/src/omni/adapters/soak.py` | 本机签名boot采样、受限HTTP读取和私有连续证据，不调用V1或模型 |
 
