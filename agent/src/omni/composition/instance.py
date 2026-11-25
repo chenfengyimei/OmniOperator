@@ -11,6 +11,7 @@ from collections.abc import Generator, Mapping
 from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
+from types import MappingProxyType
 from typing import Any, cast
 
 from opentelemetry.sdk.trace import TracerProvider
@@ -33,7 +34,6 @@ from ..adapters.native_credentials import NativeCredentials
 from ..adapters.object_store import ObjectFiles
 from ..adapters.persistence.database import Database
 from ..adapters.persistence.deployed_instance import verify_deployed_instance
-from ..adapters.persona_files import PersonaGrowthFiles
 from ..adapters.primitives import SystemClock, UUIDs
 from ..adapters.process_diagnostics import ProcessDiagnostics
 from ..adapters.token_counter import ConservativeTokenCounter
@@ -66,7 +66,7 @@ from ..application.memory_semantics import MemorySemanticService
 from ..application.model_calls import ModelCalls
 from ..application.objects import ObjectService
 from ..application.operations import OperationsService
-from ..application.people import PeopleService
+from ..application.people import PeopleService, PeopleServices
 from ..application.persona import PersonaGrowthService
 from ..application.ports import (
     AsyncSecretPort,
@@ -411,7 +411,6 @@ async def open_instance(
         lifetime.own("image_codec", 1, image_codec.close, image_codec.stop_accepting)
         images = ImageService(database, objects, image_codec)
         lifetime.own("images", 0, images.close, images.stop_accepting)
-        people = PeopleService(database, objects)
         validate_workspace = WorkspacePolicy(paths.home, source).validate
         platform_io = platform.register(
             lifetime,
@@ -423,9 +422,6 @@ async def open_instance(
             control_backend=control_backend,
         )
         local_vectors = vectorizer if vectorizer is not None else await configured_vectors(paths.home)
-        persona_growth = PersonaGrowthService(database, PersonaGrowthFiles(paths.persona))
-        documents = DocumentService(database, objects, local_vectors, persona=persona_growth)
-        lifetime.own("source_documents", 1, documents.close)
         memory_semantics = MemorySemanticService(database, local_vectors)
         lifetime.own("memory_semantics", 0, memory_semantics.close, memory_semantics.stop_accepting)
         memory_organization = MemoryOrganizationService(database, observation)
@@ -481,12 +477,12 @@ async def open_instance(
             FeatureContext(
                 lifetime=lifetime,
                 database=database,
-                home=paths.home,
-                control=paths.control,
+                paths=paths,
                 boot_id=boot_id,
                 objects=objects,
                 images=images,
-                persona=persona_growth,
+                services=MappingProxyType(registered_services),
+                vectors=local_vectors,
                 clock=clock,
                 ids=ids,
                 observer=observation,
@@ -504,6 +500,8 @@ async def open_instance(
             registered_services,
         )
         media = features.require("media", MediaService)
+        people = features.require("people", PeopleServices)
+        documents = features.require("documents", DocumentService)
         android = features.require("android", AndroidService)
         bilibili = features.require("bilibili", BilibiliService)
         desktop = features.require("desktop", DesktopServices)
@@ -737,7 +735,7 @@ async def open_instance(
             _identity_files=identity_files,
             objects=objects,
             images=images,
-            people=people,
+            people=people.people,
             configurations=configurations,
             routing=routing,
             memory_semantics=memory_semantics,
@@ -759,7 +757,7 @@ async def open_instance(
             memory_organization=memory_organization,
             background_review=background_review,
             reflections=reflections,
-            persona_growth=persona_growth,
+            persona_growth=people.persona,
             extensions=extensions,
             action_reviews=action_reviews,
             terminals=terminal.terminals,

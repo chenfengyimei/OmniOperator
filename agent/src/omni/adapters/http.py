@@ -37,7 +37,7 @@ from ..application.memory_organization import MemoryOrganizationService
 from ..application.memory_semantics import MemorySemanticService
 from ..application.objects import ObjectService
 from ..application.operations import OperationsService
-from ..application.people import PeopleService
+from ..application.people import PeopleService, PeopleServices
 from ..application.persona import PersonaGrowthService
 from ..application.ports import Record
 from ..application.reflections import ReflectionService
@@ -69,10 +69,19 @@ from .http_routes.deliveries import DeliveryDecision as DeliveryDecision
 from .http_routes.deliveries import DeliveryInput as DeliveryInput
 from .http_routes.deliveries import DeliveryReview as DeliveryReview
 from .http_routes.desktop import require_desktop_services
+from .http_routes.documents import SourceDocumentImport as SourceDocumentImport
+from .http_routes.documents import SourceDocumentInput as SourceDocumentInput
+from .http_routes.documents import SourceIndexInput as SourceIndexInput
 from .http_routes.extensions import require_extension_service
 from .http_routes.media import MediaJobInput as MediaJobInput
 from .http_routes.media import MediaSourceInput as MediaSourceInput
 from .http_routes.media import MediaUploadSourceInput as MediaUploadSourceInput
+from .http_routes.people import AccountInput as AccountInput
+from .http_routes.people import DocumentImport as DocumentImport
+from .http_routes.people import DocumentInput as DocumentInput
+from .http_routes.people import DocumentVersion as DocumentVersion
+from .http_routes.people import PersonEdit as PersonEdit
+from .http_routes.people import PersonInput as PersonInput
 from .http_routes.qq import QQBindingInput as QQBindingInput
 from .log_query import LogQuery
 
@@ -89,16 +98,13 @@ class HttpRuntime:
     logs: Callable[[LogQuery], Awaitable[Record]]
     assets: Path
     objects: ObjectService
-    people: PeopleService
     configurations: ConfigurationService
-    documents: DocumentService
     operations: OperationsService
     credentials: CredentialService
     maintenance: MaintenanceService
     memory_organization: MemoryOrganizationService
     background_review: BackgroundReviewService
     reflections: ReflectionService
-    persona_growth: PersonaGrowthService
     identity_proof: Callable[[str], Record] | None = None
     drain: Callable[[Record], Awaitable[Record]] | None = None
     token_sessions: Callable[[], Awaitable[list[Record]]] | None = None
@@ -114,6 +120,18 @@ class HttpRuntime:
     model_port: object | None = None
 
     # Existing runtime accessors resolve the same services as the mounted feature.
+    @property
+    def people(self) -> PeopleService:
+        return registered_service(self.feature_services, "people", PeopleServices).people
+
+    @property
+    def persona_growth(self) -> PersonaGrowthService:
+        return registered_service(self.feature_services, "people", PeopleServices).persona
+
+    @property
+    def documents(self) -> DocumentService:
+        return registered_service(self.feature_services, "documents", DocumentService)
+
     @property
     def deliveries(self) -> DeliveryService:
         return registered_service(self.feature_services, "deliveries", DeliveryService)
@@ -232,24 +250,6 @@ class MemoryInput(StrictInput):
     document_revision_id: uuid.UUID | None = None
 
 
-class SourceDocumentInput(StrictInput):
-    document_id: uuid.UUID | None = None
-    title: str = Field(min_length=1, max_length=200)
-    content: str = Field(min_length=1, max_length=100000)
-    revision: int = Field(default=0, ge=0, strict=True)
-
-
-class SourceDocumentImport(StrictInput):
-    title: str = Field(min_length=1, max_length=200)
-    object_id: uuid.UUID
-    document_id: uuid.UUID | None = None
-    revision: int = Field(default=0, ge=0, strict=True)
-
-
-class SourceIndexInput(StrictInput):
-    kind: Literal["full_text", "vector"]
-
-
 class CredentialInput(StrictInput):
     value: str = Field(min_length=1, max_length=65_536)
 
@@ -275,32 +275,6 @@ class ObjectPinInput(StrictInput):
 class RunPinInput(StrictInput):
     pinned: bool = Field(strict=True)
     revision: int = Field(ge=1, strict=True)
-
-
-class PersonInput(StrictInput):
-    name: str = Field(min_length=1, max_length=100)
-
-
-class PersonEdit(PersonInput):
-    revision: int = Field(ge=1, strict=True)
-
-
-class AccountInput(StrictInput):
-    channel: str = Field(min_length=1, max_length=32)
-    external_id: str = Field(min_length=1, max_length=200)
-
-
-class DocumentVersion(StrictInput):
-    entry_id: uuid.UUID | None
-    revision: int = Field(ge=0, strict=True)
-
-
-class DocumentInput(DocumentVersion):
-    content: str = Field(max_length=8000)
-
-
-class DocumentImport(DocumentVersion):
-    object_id: uuid.UUID
 
 
 def create_app(
@@ -687,198 +661,6 @@ def create_app(
     @router.get("/agents/{agent_id}/runs/{run_id}/configuration")
     async def run_configuration(agent_id: uuid.UUID, run_id: uuid.UUID, request: Request):
         return await runtime(request).application.run_configuration(str(agent_id), str(run_id))
-
-    @router.get("/agents/{agent_id}/documents")
-    async def source_documents(
-        agent_id: uuid.UUID,
-        request: Request,
-        after: uuid.UUID | None = None,
-        limit: int = Query(default=100, ge=1, le=200),
-    ):
-        return await runtime(request).documents.page(str(agent_id), str(after) if after else "", limit)
-
-    @router.post("/agents/{agent_id}/documents", status_code=201)
-    async def source_document_create(agent_id: uuid.UUID, request: Request):
-        data = configuration_input(SourceDocumentInput, await bounded_configuration(request, 1048576))
-        return await runtime(request).documents.save(
-            str(agent_id),
-            data.title,
-            data.content,
-            document_id=str(data.document_id) if data.document_id else None,
-            revision=data.revision,
-        )
-
-    @router.post("/agents/{agent_id}/documents/import", status_code=201)
-    async def source_document_import(agent_id: uuid.UUID, request: Request):
-        data = configuration_input(SourceDocumentImport, await bounded_configuration(request))
-        return await runtime(request).documents.import_object(
-            str(agent_id),
-            data.title,
-            str(data.object_id),
-            str(data.document_id) if data.document_id else None,
-            data.revision,
-        )
-
-    @router.get("/agents/{agent_id}/documents/search")
-    async def source_document_search(
-        agent_id: uuid.UUID,
-        request: Request,
-        q: str = Query(min_length=1, max_length=500),
-        limit: int = Query(default=20, ge=1, le=20),
-    ):
-        return await runtime(request).documents.search(str(agent_id), q, limit)
-
-    @router.get("/agents/{agent_id}/documents/{document_id}")
-    async def source_document_get(
-        agent_id: uuid.UUID, document_id: uuid.UUID, request: Request, revision_id: uuid.UUID | None = None
-    ):
-        return await runtime(request).documents.get(
-            str(agent_id), str(document_id), str(revision_id) if revision_id else None
-        )
-
-    @router.put("/agents/{agent_id}/documents/{document_id}")
-    async def source_document_save(agent_id: uuid.UUID, document_id: uuid.UUID, request: Request):
-        data = configuration_input(SourceDocumentInput, await bounded_configuration(request, 1048576))
-        if data.document_id and data.document_id != document_id:
-            raise BusinessError("invalid_document", "Document identity must match the request target", status=422)
-        return await runtime(request).documents.save(
-            str(agent_id), data.title, data.content, str(document_id), data.revision
-        )
-
-    @router.delete("/agents/{agent_id}/documents/{document_id}")
-    async def source_document_erase(
-        agent_id: uuid.UUID, document_id: uuid.UUID, request: Request, revision: int = Query(ge=1)
-    ):
-        await runtime(request).documents.erase(str(agent_id), str(document_id), revision)
-        return {"erased": True}
-
-    @router.get("/agents/{agent_id}/documents/{document_id}/revisions")
-    async def source_document_history(
-        agent_id: uuid.UUID,
-        document_id: uuid.UUID,
-        request: Request,
-        after: int = Query(default=0, ge=0),
-        limit: int = Query(default=50, ge=1, le=100),
-    ):
-        return await runtime(request).documents.history(str(agent_id), str(document_id), after, limit)
-
-    @router.get("/agents/{agent_id}/documents/{document_id}/indexes")
-    async def source_document_indexes(
-        agent_id: uuid.UUID,
-        document_id: uuid.UUID,
-        request: Request,
-        after: uuid.UUID | None = None,
-        limit: int = Query(default=50, ge=1, le=100),
-    ):
-        return await runtime(request).documents.index_status(
-            str(agent_id), str(document_id), str(after) if after else "", limit
-        )
-
-    @router.post("/agents/{agent_id}/documents/{document_id}/indexes")
-    async def source_document_rebuild(agent_id: uuid.UUID, document_id: uuid.UUID, request: Request):
-        data = configuration_input(SourceIndexInput, await bounded_configuration(request))
-        return await runtime(request).documents.rebuild(str(agent_id), str(document_id), data.kind)
-
-    @router.get("/agents/{agent_id}/people/owner")
-    async def owner_person(agent_id: uuid.UUID, request: Request):
-        return await runtime(request).people.owner(str(agent_id))
-
-    @router.get("/agents/{agent_id}/people")
-    async def list_people(
-        agent_id: uuid.UUID,
-        request: Request,
-        after: uuid.UUID | None = None,
-        limit: int = Query(default=100, ge=1, le=200),
-    ):
-        return await runtime(request).people.page(str(agent_id), str(after) if after else "", limit)
-
-    @router.post("/agents/{agent_id}/people", status_code=201)
-    async def create_person(agent_id: uuid.UUID, data: PersonInput, request: Request):
-        return await runtime(request).people.create(str(agent_id), data.name)
-
-    @router.get("/agents/{agent_id}/people/{person_id}")
-    async def get_person(agent_id: uuid.UUID, person_id: uuid.UUID, request: Request):
-        return await runtime(request).people.get(str(agent_id), str(person_id))
-
-    @router.put("/agents/{agent_id}/people/{person_id}")
-    async def rename_person(agent_id: uuid.UUID, person_id: uuid.UUID, data: PersonEdit, request: Request):
-        return await runtime(request).people.rename(str(agent_id), str(person_id), data.name, data.revision)
-
-    @router.delete("/agents/{agent_id}/people/{person_id}")
-    async def erase_person(agent_id: uuid.UUID, person_id: uuid.UUID, request: Request, revision: int = Query(ge=1)):
-        await runtime(request).people.erase(str(agent_id), str(person_id), revision)
-        return {"erased": True}
-
-    @router.get("/agents/{agent_id}/people/{person_id}/accounts")
-    async def person_accounts(
-        agent_id: uuid.UUID,
-        person_id: uuid.UUID,
-        request: Request,
-        after: uuid.UUID | None = None,
-        limit: int = Query(default=100, ge=1, le=200),
-    ):
-        return await runtime(request).people.accounts(str(agent_id), str(person_id), str(after) if after else "", limit)
-
-    @router.post("/agents/{agent_id}/people/{person_id}/accounts", status_code=201)
-    async def bind_account(agent_id: uuid.UUID, person_id: uuid.UUID, data: AccountInput, request: Request):
-        return await runtime(request).people.bind(str(agent_id), str(person_id), data.channel, data.external_id)
-
-    @router.delete("/agents/{agent_id}/people/{person_id}/accounts/{account_id}")
-    async def unbind_account(
-        agent_id: uuid.UUID, person_id: uuid.UUID, account_id: uuid.UUID, request: Request, revision: int = Query(ge=1)
-    ):
-        await runtime(request).people.unbind(str(agent_id), str(person_id), str(account_id), revision)
-        return {"unlinked": True}
-
-    @router.get("/agents/{agent_id}/people/{person_id}/documents/{kind}")
-    async def personal_document(
-        agent_id: uuid.UUID, person_id: uuid.UUID, kind: Literal["profile", "resident"], request: Request
-    ):
-        return await runtime(request).people.document(str(agent_id), str(person_id), kind)
-
-    @router.put("/agents/{agent_id}/people/{person_id}/documents/{kind}")
-    async def save_personal_document(
-        agent_id: uuid.UUID,
-        person_id: uuid.UUID,
-        kind: Literal["profile", "resident"],
-        data: DocumentInput,
-        request: Request,
-    ):
-        return await runtime(request).people.save(
-            str(agent_id),
-            str(person_id),
-            kind,
-            data.content,
-            str(data.entry_id) if data.entry_id else None,
-            data.revision,
-        )
-
-    @router.post("/agents/{agent_id}/people/{person_id}/documents/{kind}/import")
-    async def import_personal_document(
-        agent_id: uuid.UUID,
-        person_id: uuid.UUID,
-        kind: Literal["profile", "resident"],
-        data: DocumentImport,
-        request: Request,
-    ):
-        return await runtime(request).people.import_object(
-            str(agent_id),
-            str(person_id),
-            kind,
-            str(data.object_id),
-            str(data.entry_id) if data.entry_id else None,
-            data.revision,
-        )
-
-    @router.get("/agents/{agent_id}/memory/{memory_id}/revisions")
-    async def memory_revisions(
-        agent_id: uuid.UUID,
-        memory_id: uuid.UUID,
-        request: Request,
-        after: int = Query(default=0, ge=0),
-        limit: int = Query(default=50, ge=1, le=100),
-    ):
-        return await runtime(request).people.history(str(agent_id), str(memory_id), after, limit)
 
     @router.get("/agents/{agent_id}/runs/{run_id}/context")
     async def run_context(agent_id: uuid.UUID, run_id: uuid.UUID, request: Request):
@@ -1304,14 +1086,6 @@ def create_app(
         return await runtime(request).reflections.decide(
             str(agent_id), str(candidate_id), await bounded_configuration(request, 2048)
         )
-
-    @router.get("/agents/{agent_id}/persona-growth")
-    async def persona_growth(agent_id: uuid.UUID, request: Request):
-        return await runtime(request).persona_growth.read(str(agent_id))
-
-    @router.post("/agents/{agent_id}/persona-growth/rebuild")
-    async def persona_growth_rebuild(agent_id: uuid.UUID, request: Request):
-        return await runtime(request).persona_growth.rebuild(str(agent_id))
 
     @router.post("/agents/{agent_id}/memory/reviews", status_code=202)
     async def background_review_create(agent_id: uuid.UUID, request: Request):

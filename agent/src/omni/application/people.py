@@ -2,9 +2,18 @@
 
 from __future__ import annotations
 
+from dataclasses import dataclass
+
 from ..domain.contracts import BusinessError
 from .objects import ObjectService
+from .persona import PersonaGrowthService
 from .ports import DatabasePort, Record
+
+
+@dataclass(frozen=True)
+class PeopleServices:
+    people: PeopleService
+    persona: PersonaGrowthService
 
 
 class PeopleService:

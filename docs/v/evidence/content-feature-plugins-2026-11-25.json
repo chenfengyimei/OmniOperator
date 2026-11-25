@@ -1,0 +1,149 @@
+{
+  "date": "2026-11-25",
+  "platform": "Windows x64",
+  "source": {
+    "base_commit": "021198d530b58d5f19f8b0fb56f1ab580ce869c0",
+    "working_tree": "v2 来源文档、人物和人格服务的功能登记",
+    "affected_files_sha256_normalized_lf": {
+      "agent/src/omni/adapters/http.py": "7be83a9e256e67aff127c8fdd08edefbb61c0969fafd06cbcb2a98d598b44771",
+      "agent/src/omni/adapters/http_routes/documents.py": "89d0527480b56d5c9772cf26958555b452022757a6f1a4d853f24fe1274ff7d3",
+      "agent/src/omni/adapters/http_routes/people.py": "61ed37d47d4c754623178a8ed1b885d7bdcd44f98b1c784c19ebd064321e38ca",
+      "agent/src/omni/application/people.py": "9a82d17578fbe0200a8ac5ddfa866a9d7ad9a7fb110e180892ae704148c6e8a3",
+      "agent/src/omni/composition/features/__init__.py": "886f5ccc63d88116a25efbc61da33ba24e4b11fd9d7ffa1b2428a8041a2684f0",
+      "agent/src/omni/composition/features/catalog.py": "a27355fab2a463f6315361d1c38306983da0a58aab60e550aaabd550016b6dae",
+      "agent/src/omni/composition/features/documents.py": "ce611e0ff0e10a03f09cd61b5404b10018f76746d9a301ed0d99abb0c2a827ba",
+      "agent/src/omni/composition/features/media.py": "c0bdcba1368d28e2473a5b78edf67804f9d395dc7540c3140bd1cbcce60dcac9",
+      "agent/src/omni/composition/features/people.py": "62d40d019ff372292c6a1e8922d6533605e44e2dd42721306b726f77f91e7f43",
+      "agent/src/omni/composition/http.py": "b5c2ab01291cab57cc684a475ae59860c21f65cfca643ca79f6f86c6d4972fd6",
+      "agent/src/omni/composition/instance.py": "e8abaf27783172e26aadeeefd66d392c84858b137b7e0668dd47e5407b92d07f",
+      "agent/tests/test_feature_navigation.py": "6e69cce790339d459c85426e71a4cf22e578bf0227426d7eb90fb1ca907e179a",
+      "agent/tests/v2/core/test_v2_feature_plugins.py": "09cfe561dccc1e719f1dcbe9f3918dd2b6e0708657e8824c20823216b4beceb1",
+      "docs/v/features.json": "3249194f28d5f10e85c126112d65dbe300ec18b05ec9b88cdd30a10989b328e6",
+      "pyrightconfig.strict.json": "36078d2098719cd321a2d2b6ce107221c926d0cd89bce7e0ec2ecfcc2bda75db"
+    }
+  },
+  "offline_scoped_suites": [
+    {
+      "scope": "实例、服务登记、组装规则、类型清单与导航",
+      "passed": 88,
+      "failed": 0,
+      "skipped": 0,
+      "junit_seconds": 70.158,
+      "modules": [
+        "test_feature_navigation",
+        "test_v2_architecture",
+        "test_v2_capability_plugins",
+        "test_v2_feature_plugins",
+        "test_v2_http",
+        "test_v2_lifecycle",
+        "test_v2_provider_plugins",
+        "test_v2_service_drain",
+        "test_v2_typecheck_scope"
+      ],
+      "local_junit": "temp/build/plugin-architecture/content-assembly.xml",
+      "sha256": "2597a53f61a0294f44220ab28313a68f41888a9b57bf595c153c94223811cac6"
+    },
+    {
+      "scope": "来源文档版本、索引、崩溃回滚与向量调用方",
+      "passed": 40,
+      "failed": 0,
+      "skipped": 0,
+      "junit_seconds": 71.286,
+      "modules": [
+        "test_v2_documents",
+        "test_v2_documents_faults",
+        "test_v2_documents_http",
+        "test_v2_local_vectors"
+      ],
+      "local_junit": "temp/build/plugin-architecture/content-documents.xml",
+      "sha256": "7a0e676601f8948b85adddc721d286e13aa6f249489c1567c1e6e4e95661bd02"
+    },
+    {
+      "scope": "人物记录、人格缓存、修订与来源擦除",
+      "passed": 35,
+      "failed": 0,
+      "skipped": 1,
+      "junit_seconds": 37.752,
+      "modules": [
+        "test_v2_people",
+        "test_v2_persona_growth",
+        "test_v2_persona_growth_erasure",
+        "test_v2_persona_growth_flow",
+        "test_v2_persona_growth_http"
+      ],
+      "local_junit": "temp/build/plugin-architecture/content-people.xml",
+      "sha256": "582cb56baa0ed799d5726f9c344d57f131604d492429c144bc7afcde46c26eb2"
+    },
+    {
+      "scope": "媒体恢复、媒体权限和视觉调用方",
+      "passed": 58,
+      "failed": 0,
+      "skipped": 0,
+      "junit_seconds": 76.795,
+      "modules": [
+        "test_v2_media",
+        "test_v2_media_authority",
+        "test_v2_visual_production"
+      ],
+      "local_junit": "temp/build/plugin-architecture/content-callers.xml",
+      "sha256": "7c3bebcae43f8e04b9b2c20cdaa82548077da80891cd0936b119e822a6ad2b18"
+    },
+    {
+      "scope": "人格与向量工作台",
+      "passed": 10,
+      "failed": 0,
+      "skipped": 0,
+      "junit_seconds": 56.751,
+      "modules": [
+        "test_v2_local_vectors_ui",
+        "test_v2_persona_ui"
+      ],
+      "local_junit": "temp/build/plugin-architecture/content-workbench.xml",
+      "sha256": "d95c990c543aee37956cc20935ac8b00f431703c3415e54f6a05de5776c3b2bd"
+    }
+  ],
+  "scoped_distinct_passed": 231,
+  "skipped_cases": [
+    {
+      "module": "tests.v2.core.test_v2_persona_growth",
+      "name": "test_linked_cache_file_is_rejected",
+      "reason": "file symlinks require extra Windows privileges"
+    }
+  ],
+  "compatibility": {
+    "reference": "021198d530b58d5f19f8b0fb56f1ab580ce869c0",
+    "same_contract": true,
+    "openapi_paths": 212,
+    "openapi_sha256": "409e49b84c389604ed8d2eab5074257e9552631ae27a277e248b3d71650ebd43",
+    "agent_tools": 40,
+    "agent_tools_sha256": "d6aca34350112ec76d56459a1a1c3ba8904da600a41708906b9bfa5b66f9eda8",
+    "owner_tools": 3,
+    "owner_tools_sha256": "174962d52c6eabdd125f46127ae5a3a14963df3f556972bce429be334b9df377",
+    "delivery_drivers": [
+      "bilibili",
+      "qq"
+    ],
+    "ordered_route_groups": {
+      "documents": 10,
+      "people": 12,
+      "persona-growth": 2,
+      "compatibility_paths": 3
+    }
+  },
+  "static_checks": {
+    "strict_files": 474,
+    "strict_errors": 0,
+    "strict_warnings": 0,
+    "ruff": "passed"
+  },
+  "full_offline": {
+    "covers_this_working_tree": false,
+    "previous_candidate": "5da6dce4",
+    "previous_candidate_passed": 8706
+  },
+  "verified_lifecycle_and_authority": [
+    "来源文档与媒体通过只读登记取得同一人格服务。两者的来源擦除、缓存失效、可恢复派生工作和工作台入口回归通过。",
+    "25 个迁移方法保留原路径、响应状态与作用域。完整 OpenAPI 及默认工具目录与基线一致。",
+    "文件链接缓存用例因当前 Windows 无创建文件符号链接所需权限而按原测试条件跳过。"
+  ]
+}

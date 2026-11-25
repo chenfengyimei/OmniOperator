@@ -9,14 +9,14 @@ from types import MappingProxyType
 from typing import Generic, TypeVar
 
 from ...adapters.http_routes import FeatureRoutes
+from ...adapters.platform.runtime.paths import InstancePaths
 from ...application.android import AndroidPort
 from ...application.capabilities import Capability, CapabilityPlugin, RunCapabilityProvider
 from ...application.images import ImageService
 from ...application.mcp import MCPTransportPort
 from ...application.media import MediaProcessingPort
 from ...application.objects import ObjectService
-from ...application.persona import PersonaGrowthService
-from ...application.ports import AsyncSecretPort, Clock, DatabasePort, Ids, Observer, Record
+from ...application.ports import AsyncSecretPort, Clock, DatabasePort, Ids, LocalVectorizer, Observer, Record
 from ..channel_providers import ChannelProviders
 from ..lifecycle import Lifetime
 from ..platform_providers import PlatformPorts
@@ -29,12 +29,12 @@ Context = TypeVar("Context")
 class FeatureContext:
     lifetime: Lifetime
     database: DatabasePort
-    home: Path
-    control: Path
+    paths: InstancePaths
     boot_id: str
     objects: ObjectService
     images: ImageService
-    persona: PersonaGrowthService
+    services: Mapping[str, object]
+    vectors: LocalVectorizer | None
     clock: Clock
     ids: Ids
     observer: Observer
@@ -48,6 +48,14 @@ class FeatureContext:
     android_backend: AndroidPort | None = None
     media_processor: MediaProcessingPort | None = None
     mcp_transport: MCPTransportPort | None = None
+
+    @property
+    def home(self) -> Path:
+        return self.paths.home
+
+    @property
+    def control(self) -> Path:
+        return self.paths.control
 
 
 @dataclass(frozen=True)

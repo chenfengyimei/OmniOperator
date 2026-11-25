@@ -17,10 +17,12 @@ from ...application.media import (
     MediaProcessingPort,
     MediaService,
 )
-from . import FeatureBinding, FeatureContext
+from ...application.people import PeopleServices
+from . import FeatureBinding, FeatureContext, require_service
 
 
 async def install_media(context: FeatureContext) -> FeatureBinding:
+    people = require_service(context.services, "people", PeopleServices)
     processor = context.media_processor
     if processor is None:
         processor = cast(MediaProcessingPort, MediaProcessor())
@@ -35,7 +37,7 @@ async def install_media(context: FeatureContext) -> FeatureBinding:
         processor,
         context.clock,
         context.control / "media-staging",
-        persona=context.persona,
+        persona=people.persona,
     )
 
     def stop_accepting() -> None:

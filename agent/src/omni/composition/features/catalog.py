@@ -5,9 +5,11 @@ from ...adapters.http_routes.android import android_router
 from ...adapters.http_routes.bilibili import bilibili_router
 from ...adapters.http_routes.deliveries import deliveries_router
 from ...adapters.http_routes.desktop import desktop_router
+from ...adapters.http_routes.documents import documents_router
 from ...adapters.http_routes.extensions import extensions_router
 from ...adapters.http_routes.mcp import mcp_router
 from ...adapters.http_routes.media import media_router
+from ...adapters.http_routes.people import people_router
 from ...adapters.http_routes.qq import qq_router
 from ...adapters.http_routes.schedules import schedules_router
 from ...adapters.http_routes.skills import skills_router
@@ -18,15 +20,28 @@ from .android import install_android
 from .bilibili import install_bilibili
 from .deliveries import install_deliveries
 from .desktop import install_desktop
+from .documents import install_documents
 from .extensions import install_extensions
 from .mcp import install_mcp
 from .media import install_media
+from .people import install_people
 from .qq import install_qq
 from .schedules import install_schedules
 from .skills import install_skills
 from .terminals import install_terminals
 
 BUILTIN_FEATURES = (
+    FeaturePlugin(
+        "people",
+        factory=people_router,
+        install=install_people,
+        extra_paths=(
+            "/agents/{agent_id}/memory/{memory_id}/revisions",
+            "/agents/{agent_id}/persona-growth",
+            "/agents/{agent_id}/persona-growth/rebuild",
+        ),
+    ),
+    FeaturePlugin("documents", factory=documents_router, install=install_documents),
     FeaturePlugin(
         "skills",
         factory=skills_router,

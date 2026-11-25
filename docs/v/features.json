@@ -487,7 +487,7 @@
     "related": [],
     "refs": {
       "entry": [
-        "agent/src/omni/adapters/http.py#create_app.source_document_search"
+        "agent/src/omni/adapters/http_routes/documents.py#documents_router.source_document_search"
       ],
       "domain": [
         "agent/src/omni/domain/local_vectors.py"
@@ -499,7 +499,7 @@
         "agent/src/omni/adapters/vector_files.py"
       ],
       "composition": [
-        "agent/src/omni/composition/instance.py#open_instance.documents"
+        "agent/src/omni/composition/features/documents.py#install_documents"
       ],
       "ui": [
         "web/ui/v2/documents.js"
@@ -529,8 +529,8 @@
     "related": [],
     "refs": {
       "entry": [
-        "agent/src/omni/adapters/http.py#create_app.list_people",
-        "agent/src/omni/adapters/http.py#create_app.persona_growth"
+        "agent/src/omni/adapters/http_routes/people.py#people_router.list_people",
+        "agent/src/omni/adapters/http_routes/people.py#people_router.persona_growth"
       ],
       "domain": [
         "agent/src/omni/domain/people.py",
@@ -544,7 +544,7 @@
         "agent/src/omni/adapters/persona_files.py"
       ],
       "composition": [
-        "agent/src/omni/composition/instance.py#open_instance.people"
+        "agent/src/omni/composition/features/people.py#install_people"
       ],
       "ui": [
         "web/ui/v2/people.js",

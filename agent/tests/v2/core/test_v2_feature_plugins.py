@@ -253,6 +253,9 @@ def test_media_processor_has_one_shutdown_owner_on_startup_and_rollback(tmp_path
             try:
                 assert instance.feature_services["media"] is instance.media
                 assert instance.feature_services["android"] is instance.android
+                assert instance.feature_services["documents"] is instance.documents
+                assert instance.feature_services["people"].people is instance.people
+                assert instance.documents._persona is instance.persona_growth is instance.media._persona
             finally:
                 assert (await instance.close())["complete"]
         assert processor.closes == 1
