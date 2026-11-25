@@ -1,5 +1,5 @@
 {
-  "summary": "V2 插件化迁移已完成计划内代码与离线专项。正式实例安装二十一项业务，CLI 通过同一登记解析与执行。当前架构候选进入冻结全量，既有 8706 项通过的全量覆盖 `5da6dce4`。",
+  "summary": "V2 插件化迁移已完成计划内代码。正式实例安装二十一项业务，CLI 用同一登记解析与执行。首轮全量 `f6b6ab62` 的两个媒体兼容失败已修复，兼容与调用方专项共 152 项通过。修复后的候选进入冻结全量。",
   "windows_stage": {
     "status": "completed_windows_offline_candidate",
     "summary": "Windows 用户域服务在 `30bea914` 构建的 wheel 上完成注册、启动、只读状态、停止、卸载共 14 步。干净机仍须对最终产物验证安装、升级、回滚和卸载，记录 wheel SHA、PID 与就绪回执。"
@@ -153,9 +153,9 @@
       "id": "PLUGIN-ARCHITECTURE",
       "title": "V2 全部业务模块的插件化迁移",
       "status": "waiting_for_development_completion",
-      "next": "计划内迁移与专项已通过。冻结当前源码，在 Windows 隔离环境跑一次离线全量，核对 JUnit、跳过项及双远端。",
+      "next": "首轮全量发现两个旧媒体读取入口的兼容失败。已恢复登记映射读取，并验证实例路径冲突在启动前被拒绝。对修复候选执行离线全量并核对双远端。",
       "contract": "docs/v/PLUGIN_MIGRATION.md",
-      "evidence": ["docs/v/evidence/cli-feature-plugins-2026-11-25.json"]
+      "evidence": ["docs/v/evidence/compatibility-final-feature-plugins-2026-11-25.json", "docs/v/evidence/cli-feature-plugins-2026-11-25.json"]
     },
     {
       "id": "KERNEL-EVAL",

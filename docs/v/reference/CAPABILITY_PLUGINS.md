@@ -41,7 +41,7 @@ uv run --no-sync pytest -q -n 0 agent/tests/v2/core/test_v2_provider_plugins.py 
 
 ## 业务功能登记与启动顺序
 
-在 `composition/features/<feature>.py` 的安装器中用 `FeatureContext` 创建服务，在 `Lifetime` 中登记归属。返回服务、工具或回合提供者。组装器在就绪之前安装功能，在 `feature_services` 发布只读映射，内核继续从能力表取得工具。HTTP 路由从同一映射取得服务，默认挂在所有者鉴权的 `/api/v1/agents/{agent_id}/<feature>` 下。实例级功能显式声明 `instance_scoped=True`，挂在同一鉴权入口的 `/api/v1/<feature>` 下。额外的历史路径按完整 Agent 路径登记，例如 `/agents/{agent_id}/runs/{run_id}/skills`。组装时校验功能 ID、HTTP 方法与路径形状、工具名。
+在 `composition/features/<feature>.py` 的安装器中用 `FeatureContext` 创建服务，在 `Lifetime` 中登记归属。返回服务、工具或回合提供者。组装器在就绪之前安装功能，在 `feature_services` 发布只读映射，内核继续从能力表取得工具。HTTP 路由和既有 `HttpRuntime` 读取入口从同一映射取得服务，默认挂在所有者鉴权的 `/api/v1/agents/{agent_id}/<feature>` 下。实例级功能显式声明 `instance_scoped=True`，挂在同一鉴权入口的 `/api/v1/<feature>` 下。额外的历史路径按完整 Agent 路径登记，例如 `/agents/{agent_id}/runs/{run_id}/skills`。组装时校验功能 ID、工具名，以及各功能与 HTTP 宿主之间的相同方法和路径形状。
 
 B 站、媒体和 Android 在 `BUILTIN_FEATURES` 登记 ID、安装器和路由工厂。安装器负责启动期恢复，并将资源交给唯一的关闭方。媒体服务持有本地处理器，B 站读取、媒体下载和投递默认共用登记的 B 站传输。Android 分开登记业务服务与设备后端。
 

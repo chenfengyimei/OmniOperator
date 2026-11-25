@@ -2,7 +2,7 @@
 
 > 从 [开发台账](tasks.json) 生成。更新台账后运行 `uv run --no-sync python scripts/task_status.py`。
 
-V2 插件化迁移已完成计划内代码与离线专项。正式实例安装二十一项业务，CLI 通过同一登记解析与执行。当前架构候选进入冻结全量，既有 8706 项通过的全量覆盖 `5da6dce4`。
+V2 插件化迁移已完成计划内代码。正式实例安装二十一项业务，CLI 用同一登记解析与执行。首轮全量 `f6b6ab62` 的两个媒体兼容失败已修复，兼容与调用方专项共 152 项通过。修复后的候选进入冻结全量。
 
 | 任务 | 内容 | 当前状态 | 下一步或验收条件 | 依据 |
 |---|---|---|---|---|
@@ -21,7 +21,7 @@ V2 插件化迁移已完成计划内代码与离线专项。正式实例安装�
 | PROVIDER-PLUGINS | 模型、渠道与平台提供者代码注册 | 已实现／专项通过 | 模型 84 项、渠道 88 项、平台与架构 118 项专项通过。OpenAPI、40 个 Agent 工具、3 个所有者工具及默认驱动与上一轮候选一致。新增同类实现沿各提供者模块登记并补调用方专项。 | [CAPABILITY_PLUGINS](reference/CAPABILITY_PLUGINS.md)、[provider-plugins-2026-11-25](evidence/provider-plugins-2026-11-25.json) |
 | BUSINESS-FEATURE-PLUGINS | 二十一项业务功能的注册与生产装配 | 已实现／专项通过 | 配置、凭据与运维批次 263 项专项通过，装配、鉴权、撤权、诊断与工作台已复验。OpenAPI 212 路径、40 个 Agent 工具和 3 个所有者工具的合同一致。前序迁移见各批证据。 | [CAPABILITY_PLUGINS](reference/CAPABILITY_PLUGINS.md)、[feature-plugins-2026-11-25](evidence/feature-plugins-2026-11-25.json)、[scheduling-plugin-2026-11-25](evidence/scheduling-plugin-2026-11-25.json)、[channels-feature-plugins-2026-11-25](evidence/channels-feature-plugins-2026-11-25.json)、[desktop-feature-plugins-2026-11-25](evidence/desktop-feature-plugins-2026-11-25.json)、[extensions-feature-plugins-2026-11-25](evidence/extensions-feature-plugins-2026-11-25.json)、[operations-feature-plugins-2026-11-25](evidence/operations-feature-plugins-2026-11-25.json)、[content-feature-plugins-2026-11-25](evidence/content-feature-plugins-2026-11-25.json)、[workflows-feature-plugins-2026-11-25](evidence/workflows-feature-plugins-2026-11-25.json)、[config-ops-feature-plugins-2026-11-25](evidence/config-ops-feature-plugins-2026-11-25.json) |
 | CLI-PLUGINS | CLI 业务命令的参数与派发登记 | 已实现／专项通过 | 安装、发布、服务、交换、诊断及离线维护专项 526 项通过。31 个根命令、44 个子命令的帮助与参数一致。冻结候选由 PLUGIN-ARCHITECTURE 统一验证。 | [CAPABILITY_PLUGINS](reference/CAPABILITY_PLUGINS.md)、[cli-feature-plugins-2026-11-25](evidence/cli-feature-plugins-2026-11-25.json) |
-| PLUGIN-ARCHITECTURE | V2 全部业务模块的插件化迁移 | 等待开发完成 | 计划内迁移与专项已通过。冻结当前源码，在 Windows 隔离环境跑一次离线全量，核对 JUnit、跳过项及双远端。 | [PLUGIN_MIGRATION](PLUGIN_MIGRATION.md)、[cli-feature-plugins-2026-11-25](evidence/cli-feature-plugins-2026-11-25.json) |
+| PLUGIN-ARCHITECTURE | V2 全部业务模块的插件化迁移 | 等待开发完成 | 首轮全量发现两个旧媒体读取入口的兼容失败。已恢复登记映射读取，并验证实例路径冲突在启动前被拒绝。对修复候选执行离线全量并核对双远端。 | [PLUGIN_MIGRATION](PLUGIN_MIGRATION.md)、[compatibility-final-feature-plugins-2026-11-25](evidence/compatibility-final-feature-plugins-2026-11-25.json)、[cli-feature-plugins-2026-11-25](evidence/cli-feature-plugins-2026-11-25.json) |
 | KERNEL-EVAL | Hermes 与两版 V2 同模型对跑 | 本版延期 | 保留三方主试验的 189/288 份计量回执。模型评测单独恢复时，补委派 4 题、学习 4 题、其余故障恢复 3 题，并按评测候选采集受影响组。4B 与 32K 的结果归属已登记的模型试验。 | [KERNEL](reference/KERNEL.md)、[kernel-plugins-2026-11-25](evidence/kernel-plugins-2026-11-25.json) |
 
 ## Windows 阶段与后续验收

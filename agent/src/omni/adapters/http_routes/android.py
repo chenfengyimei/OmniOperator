@@ -17,8 +17,8 @@ def android_router(runtime: RuntimeLookup) -> APIRouter:
     router = APIRouter(prefix="/agents/{agent_id}/android")
 
     def android_service(request: Request) -> AndroidService:
-        service = runtime(request).feature_services.get("android")
-        if not isinstance(service, AndroidService):
+        service = runtime(request).android
+        if service is None:
             raise BusinessError("android_unavailable", "Android service is unavailable", status=503)
         return service
 

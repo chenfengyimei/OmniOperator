@@ -10,7 +10,7 @@ import time
 import uuid
 from collections.abc import Awaitable, Callable, Mapping
 from contextlib import asynccontextmanager
-from dataclasses import dataclass, field
+from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Literal, cast
 
@@ -19,7 +19,9 @@ from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, Response
 from pydantic import Field
 
 from ..application.action_review import ActionReviewService
+from ..application.android import AndroidService
 from ..application.background_review import BackgroundReviewService
+from ..application.bilibili import BilibiliService
 from ..application.configuration import ConfigurationService, ConfigurationServices
 from ..application.credentials import CredentialService
 from ..application.delivery import DeliveryService
@@ -34,6 +36,7 @@ from ..application.images import ImageService
 from ..application.learning_services import LearningServices
 from ..application.maintenance import MaintenanceService
 from ..application.mcp import MCPService
+from ..application.media import MediaService
 from ..application.memory_organization import MemoryOrganizationService
 from ..application.memory_semantics import MemorySemanticService
 from ..application.memory_services import MemoryServices
@@ -42,8 +45,10 @@ from ..application.operations import OperationsService
 from ..application.people import PeopleService, PeopleServices
 from ..application.persona import PersonaGrowthService
 from ..application.ports import Record
+from ..application.qq import QQService
 from ..application.reflections import ReflectionService
 from ..application.routing import RoutingService
+from ..application.scheduling import SchedulingService
 from ..application.skills import SkillService
 from ..application.terminal_review import TerminalReviewService
 from ..application.terminal_services import TerminalServices
@@ -87,6 +92,7 @@ from .http_routes.people import DocumentVersion as DocumentVersion
 from .http_routes.people import PersonEdit as PersonEdit
 from .http_routes.people import PersonInput as PersonInput
 from .http_routes.qq import QQBindingInput as QQBindingInput
+from .log_query import LogQuery
 
 log = logging.getLogger("omni.v2.http")
 
@@ -129,6 +135,36 @@ class HttpRuntime:
     @property
     def operations(self) -> OperationsService:
         return registered_service(self.feature_services, "system", OperationsService)
+
+    async def logs(self, query: LogQuery) -> Record:
+        return await self.operations.logs(asdict(query))
+
+    @property
+    def media(self) -> MediaService | None:
+        feature = self.feature_services.get("media")
+        return feature if isinstance(feature, MediaService) else None
+
+    @property
+    def android(self) -> AndroidService | None:
+        feature = self.feature_services.get("android")
+        return feature if isinstance(feature, AndroidService) else None
+
+    @property
+    def bilibili(self) -> BilibiliService | None:
+        feature = self.feature_services.get("bilibili")
+        return feature if isinstance(feature, BilibiliService) else None
+
+    @property
+    def qq(self) -> QQService | None:
+        feature = self.feature_services.get("qq")
+        return feature if isinstance(feature, QQService) else None
+
+    @property
+    def schedules(self) -> SchedulingService:
+        feature = self.feature_services.get("schedules")
+        if not isinstance(feature, SchedulingService):
+            raise BusinessError("scheduler_unavailable", "Scheduling service is unavailable", status=503)
+        return feature
 
     @property
     def images(self) -> ImageService | None:
@@ -682,7 +718,7 @@ def create_app(
     async def release_capture(agent_id: uuid.UUID, session_id: uuid.UUID, capture_id: uuid.UUID, request: Request):
         await runtime(request).objects.release_capture(str(agent_id), str(session_id), str(capture_id))
 
-    mount_feature_routes(router, feature_routes, runtime)
+    mount_feature_routes(router, feature_routes, runtime, host_routes=app.routes)
     app.include_router(router)
 
     @app.get("/", include_in_schema=False)

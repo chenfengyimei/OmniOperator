@@ -39,8 +39,8 @@ def media_router(runtime: RuntimeLookup) -> APIRouter:
     router = APIRouter(prefix="/agents/{agent_id}/media")
 
     def media_service(request: Request) -> MediaService:
-        service = runtime(request).feature_services.get("media")
-        if not isinstance(service, MediaService):
+        service = runtime(request).media
+        if service is None:
             raise BusinessError("media_unavailable", "Media capability is unavailable", status=503)
         return service
 

@@ -61,8 +61,8 @@ def bilibili_router(runtime: RuntimeLookup) -> APIRouter:
     router = APIRouter(prefix="/agents/{agent_id}/bilibili")
 
     def bilibili_service(request: Request) -> BilibiliService:
-        service = runtime(request).feature_services.get("bilibili")
-        if not isinstance(service, BilibiliService):
+        service = runtime(request).bilibili
+        if service is None:
             raise BusinessError("bilibili_unavailable", "Bilibili capability is unavailable", status=503)
         return service
 

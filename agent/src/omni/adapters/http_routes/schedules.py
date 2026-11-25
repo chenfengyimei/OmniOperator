@@ -7,8 +7,6 @@ import uuid
 from fastapi import APIRouter, Query, Request
 from pydantic import Field
 
-from ...application.scheduling import SchedulingService
-from ...domain.contracts import BusinessError
 from . import RuntimeLookup, StrictInput, bounded_configuration, configuration_input
 
 
@@ -27,12 +25,6 @@ class ScheduleReview(StrictInput):
 def schedules_router(runtime: RuntimeLookup) -> APIRouter:
     router = APIRouter(prefix="/agents/{agent_id}/schedules")
 
-    def schedules_service(request: Request) -> SchedulingService:
-        service = runtime(request).feature_services.get("schedules")
-        if not isinstance(service, SchedulingService):
-            raise BusinessError("scheduler_unavailable", "Scheduling service is unavailable", status=503)
-        return service
-
     @router.get("")
     async def schedules(
         agent_id: uuid.UUID,
@@ -41,7 +33,7 @@ def schedules_router(runtime: RuntimeLookup) -> APIRouter:
         limit: int = Query(default=100, ge=1, le=200),
         include_archived: bool = False,
     ):
-        items = await schedules_service(request).page(
+        items = await runtime(request).schedules.page(
             str(agent_id), str(after) if after else "", limit, include_archived
         )
         return {"items": items, "next_after": items[-1]["id"] if len(items) == limit else None}
@@ -49,18 +41,18 @@ def schedules_router(runtime: RuntimeLookup) -> APIRouter:
     @router.post("", status_code=201)
     async def create_schedule(agent_id: uuid.UUID, request: Request):
         data = configuration_input(ScheduleInput, await bounded_configuration(request, 100000))
-        return await schedules_service(request).save(
+        return await runtime(request).schedules.save(
             str(agent_id), data.name, data.enabled, data.value, revision=data.revision
         )
 
     @router.get("/{schedule_id}")
     async def schedule(agent_id: uuid.UUID, schedule_id: uuid.UUID, request: Request):
-        return await schedules_service(request).get(str(agent_id), str(schedule_id))
+        return await runtime(request).schedules.get(str(agent_id), str(schedule_id))
 
     @router.put("/{schedule_id}")
     async def save_schedule(agent_id: uuid.UUID, schedule_id: uuid.UUID, request: Request):
         data = configuration_input(ScheduleInput, await bounded_configuration(request, 100000))
-        return await schedules_service(request).save(
+        return await runtime(request).schedules.save(
             str(agent_id), data.name, data.enabled, data.value, str(schedule_id), data.revision
         )
 
@@ -68,7 +60,7 @@ def schedules_router(runtime: RuntimeLookup) -> APIRouter:
     async def archive_schedule(
         agent_id: uuid.UUID, schedule_id: uuid.UUID, request: Request, revision: int = Query(ge=1)
     ):
-        await schedules_service(request).archive(str(agent_id), str(schedule_id), revision)
+        await runtime(request).schedules.archive(str(agent_id), str(schedule_id), revision)
         return {"archived": True}
 
     @router.get("/{schedule_id}/history")
@@ -79,7 +71,7 @@ def schedules_router(runtime: RuntimeLookup) -> APIRouter:
         after: int = Query(default=0, ge=0),
         limit: int = Query(default=50, ge=1, le=200),
     ):
-        items = await schedules_service(request).history(str(agent_id), str(schedule_id), after, limit)
+        items = await runtime(request).schedules.history(str(agent_id), str(schedule_id), after, limit)
         return {"items": items, "next_after": items[-1]["revision"] if len(items) == limit else None}
 
     @router.get("/{schedule_id}/occurrences")
@@ -90,20 +82,20 @@ def schedules_router(runtime: RuntimeLookup) -> APIRouter:
         after: int = Query(default=0, ge=0),
         limit: int = Query(default=50, ge=1, le=200),
     ):
-        items = await schedules_service(request).occurrences(str(agent_id), str(schedule_id), after, limit)
+        items = await runtime(request).schedules.occurrences(str(agent_id), str(schedule_id), after, limit)
         return {"items": items, "next_after": items[-1]["sequence"] if len(items) == limit else None}
 
     @router.post("/{schedule_id}/review")
     async def schedule_review(agent_id: uuid.UUID, schedule_id: uuid.UUID, request: Request):
         data = configuration_input(ScheduleReview, await bounded_configuration(request, 1000))
-        await schedules_service(request).review(
+        await runtime(request).schedules.review(
             str(agent_id), str(schedule_id), str(data.occurrence_id), data.fingerprint
         )
         return {"reviewed": True, "unknown_records_preserved": True}
 
     @router.post("/{schedule_id}/occurrences/{occurrence_id}/cancel")
     async def schedule_cancel(agent_id: uuid.UUID, schedule_id: uuid.UUID, occurrence_id: uuid.UUID, request: Request):
-        await schedules_service(request).cancel(str(agent_id), str(schedule_id), str(occurrence_id))
+        await runtime(request).schedules.cancel(str(agent_id), str(schedule_id), str(occurrence_id))
         return {"accepted": True}
 
     return router

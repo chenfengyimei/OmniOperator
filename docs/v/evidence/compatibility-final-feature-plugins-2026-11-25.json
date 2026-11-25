@@ -1,0 +1,122 @@
+{
+  "date": "2026-11-25",
+  "platform": "Windows x64",
+  "source": {
+    "base_commit": "f6b6ab625d1a0ef19a4a1039a65d7991da42e729",
+    "working_tree": "V2 既有运行时服务读取入口与实例级路由保护",
+    "affected_files_sha256_normalized_lf": {
+      "agent/src/omni/adapters/http.py": "f3cb0a407bb736b99c70b7f94ac0494d887de78d04e8f66208205a4cd0ce10b1",
+      "agent/src/omni/adapters/http_routes/__init__.py": "a416bf34b61ff210a7122bab492e3bf03c7293a5670721601381c7dfb467cb94",
+      "agent/src/omni/adapters/http_routes/android.py": "d97f857fcf165209045c7c804f542689c62523875a1d0241b3913a0aed4b1949",
+      "agent/src/omni/adapters/http_routes/bilibili.py": "8a755316994bc75f8b174f33a2935121bfd7ab14f2cdda46f8031fc3e1ff3559",
+      "agent/src/omni/adapters/http_routes/media.py": "31f8ff559f08454e3111fbb1c0200023119a91aa193abc109c781069432e2258",
+      "agent/src/omni/adapters/http_routes/operations.py": "6b7a2683480ef532c146482a8f932b593a010ab6b93273c7da6b82b34fdc871d",
+      "agent/src/omni/adapters/http_routes/qq.py": "48dc57f236113b19ecc6ff95e6b4566479fcc4599b5d076d0e484a2f1ab045f5",
+      "agent/src/omni/adapters/http_routes/schedules.py": "b4083c2e126366e2ba35b7fa118efec5982b185476a00c1cee6116e62a1342c6",
+      "agent/tests/v2/core/test_v2_feature_plugins.py": "a10b5e813667dec4d78559895ffb39d4768e7f6c0c44aeac6f7df09ebe465adc"
+    }
+  },
+  "offline_scoped_suites": [
+    {
+      "scope": "媒体转写结构校验及 HTTP 回执",
+      "passed": 37,
+      "failed": 0,
+      "skipped": 0,
+      "junit_seconds": 13.797,
+      "modules": [
+        "test_v2_media_codec"
+      ],
+      "local_junit": "temp/build/plugin-architecture/compatibility-final-media.xml",
+      "sha256": "279f376bd2e7bf53380a5ed53200bdf7e604f19b5168b5b132cab4396c6ec2d1"
+    },
+    {
+      "scope": "真实组装、旧服务读取入口、入口冲突、服务排空、令牌、架构与导航",
+      "passed": 71,
+      "failed": 0,
+      "skipped": 0,
+      "junit_seconds": 55.161,
+      "modules": [
+        "test_feature_navigation",
+        "test_v2_architecture",
+        "test_v2_feature_plugins",
+        "test_v2_owner_token",
+        "test_v2_service_drain"
+      ],
+      "local_junit": "temp/build/plugin-architecture/compatibility-final-assembly.xml",
+      "sha256": "111037b46a76e94204fe4ee7949f19032a068b862f12822151cc30ee0473d2fc"
+    },
+    {
+      "scope": "Android、B 站、QQ、系统诊断、媒体及调度 HTTP 和生产调用方",
+      "passed": 44,
+      "failed": 0,
+      "skipped": 0,
+      "junit_seconds": 89.227,
+      "modules": [
+        "test_v2_android_http",
+        "test_v2_bilibili_http",
+        "test_v2_media",
+        "test_v2_operations_http",
+        "test_v2_qq_http",
+        "test_v2_scheduling"
+      ],
+      "local_junit": "temp/build/plugin-architecture/compatibility-final-callers.xml",
+      "sha256": "162a62b62dc8882125663cca94cc1dc1bb0787b90bb0de8c806ab36260ff9fcd"
+    }
+  ],
+  "scoped_distinct_passed": 152,
+  "skipped_cases": [],
+  "compatibility": {
+    "reference": "f6b6ab625d1a0ef19a4a1039a65d7991da42e729",
+    "same_contract": true,
+    "openapi_paths": 212,
+    "openapi_sha256": "409e49b84c389604ed8d2eab5074257e9552631ae27a277e248b3d71650ebd43",
+    "agent_tools": 40,
+    "agent_tools_sha256": "d6aca34350112ec76d56459a1a1c3ba8904da600a41708906b9bfa5b66f9eda8",
+    "owner_tools": 3,
+    "owner_tools_sha256": "174962d52c6eabdd125f46127ae5a3a14963df3f556972bce429be334b9df377",
+    "delivery_drivers": [
+      "bilibili",
+      "qq"
+    ],
+    "ordered_route_groups": {
+      "configurations": 11,
+      "routing": 2,
+      "settings": 3,
+      "credentials": 8,
+      "debug": 4,
+      "audit": 2,
+      "system": 4,
+      "retention": 5
+    }
+  },
+  "static_checks": {
+    "strict_files": 497,
+    "strict_errors": 0,
+    "strict_warnings": 0,
+    "ruff": "passed"
+  },
+  "full_offline": {
+    "covers_this_working_tree": false,
+    "previous_candidate": "5da6dce4",
+    "previous_candidate_passed": 8706,
+    "first_migration_candidate": {
+      "commit": "f6b6ab625d1a0ef19a4a1039a65d7991da42e729",
+      "passed": 8735,
+      "failed": 2,
+      "skipped": 10,
+      "console_seconds": 2289.46,
+      "failure_cases": [
+        "test_http_rejects_stored_invalid_transcript_without_serialization_failure[duplicate_version]",
+        "test_http_rejects_stored_invalid_transcript_without_serialization_failure[surrogate_text]"
+      ],
+      "root_cause": "既有 HttpRuntime.media 读取路径没有从登记映射提供兼容属性。",
+      "local_junit": "temp/build/plugin-architecture/full-f6b6ab62.xml",
+      "junit_sha256": "afde2a3ee9805b25ef214416579bc4ef6575c7108c26d3234aa46bd58b659328"
+    }
+  },
+  "verified_lifecycle_and_authority": [
+    "媒体、Android、B 站、QQ、调度和日志的旧读取入口均从已登记实例取得服务。",
+    "有冲突的实例级路由在宿主启动前被拒绝，验证服务排空和本机令牌入口。",
+    "两个旧失败测试全部以原断言通过。OpenAPI、Agent 工具、所有者工具和渠道提供者合同一致。"
+  ]
+}

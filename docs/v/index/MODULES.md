@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`ee0c4e1f6daacc521f74e95256ef4c5e7b9b69f83f4f8ffcc38154c99f84806f`。包含 65 个职责模块、919 个源码/界面文件。
+源码指纹：`9b4baac90af16d38b4bd5b309e9605bb7a845b48d731eae857d7e2c1b3379be0`。包含 65 个职责模块、919 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -189,9 +189,9 @@
 | [agent/src/omni/adapters/extensions/hosts.py](../../../agent/src/omni/adapters/extensions/hosts.py) | V2 | 208 | Bounded trusted Python worker ownership; no database, model, credential or arbitrary command access. |
 | [agent/src/omni/adapters/extensions/packages.py](../../../agent/src/omni/adapters/extensions/packages.py) | V2 | 570 | Bounded zero-execution package capture and immutable verified snapshots; never opens a database. |
 | [agent/src/omni/adapters/extensions/worker.py](../../../agent/src/omni/adapters/extensions/worker.py) | V2 | 326 | Static extension handshake and trusted Python invocation in an owned child; never opens the main database. |
-| [agent/src/omni/adapters/http.py](../../../agent/src/omni/adapters/http.py) | V2 | 707 | Versioned HTTP contract for the V2 kernel; business access goes through use cases. |
+| [agent/src/omni/adapters/http.py](../../../agent/src/omni/adapters/http.py) | V2 | 743 | Versioned HTTP contract for the V2 kernel; business access goes through use cases. |
 | [agent/src/omni/adapters/http_events.py](../../../agent/src/omni/adapters/http_events.py) | V2 | 177 | Bounded authenticated history notifications over SSE; no event bodies, replay queue or database ownership. |
-| [agent/src/omni/adapters/http_routes/__init__.py](../../../agent/src/omni/adapters/http_routes/__init__.py) | V2 | 126 | Feature routers and bounded input for the authenticated V2 API. |
+| [agent/src/omni/adapters/http_routes/__init__.py](../../../agent/src/omni/adapters/http_routes/__init__.py) | V2 | 133 | Feature routers and bounded input for the authenticated V2 API. |
 | [agent/src/omni/adapters/http_routes/action_reviews.py](../../../agent/src/omni/adapters/http_routes/action_reviews.py) | V2 | 44 | Owner review for actions that require durable effect verification. |
 | [agent/src/omni/adapters/http_routes/android.py](../../../agent/src/omni/adapters/http_routes/android.py) | V2 | 128 | Owner Android grants, observations and approved actions. |
 | [agent/src/omni/adapters/http_routes/bilibili.py](../../../agent/src/omni/adapters/http_routes/bilibili.py) | V2 | 121 | Owner APIs for Bilibili profile revisions, reads and publication drafts. |
@@ -206,10 +206,10 @@
 | [agent/src/omni/adapters/http_routes/mcp.py](../../../agent/src/omni/adapters/http_routes/mcp.py) | V2 | 131 | Owner operations to connect, authorize and inspect agent-scoped MCP providers. |
 | [agent/src/omni/adapters/http_routes/media.py](../../../agent/src/omni/adapters/http_routes/media.py) | V2 | 135 | Owner media sources, job receipts and processor diagnostics. |
 | [agent/src/omni/adapters/http_routes/memory.py](../../../agent/src/omni/adapters/http_routes/memory.py) | V2 | 134 | Owner memory search, organization and evidence-aware changes. |
-| [agent/src/omni/adapters/http_routes/operations.py](../../../agent/src/omni/adapters/http_routes/operations.py) | V2 | 141 | Read-only audit and diagnostic views, bounded debug controls and retention reports. |
+| [agent/src/omni/adapters/http_routes/operations.py](../../../agent/src/omni/adapters/http_routes/operations.py) | V2 | 140 | Read-only audit and diagnostic views, bounded debug controls and retention reports. |
 | [agent/src/omni/adapters/http_routes/people.py](../../../agent/src/omni/adapters/http_routes/people.py) | V2 | 152 | Person records, derived persona and associated revision history. |
 | [agent/src/omni/adapters/http_routes/qq.py](../../../agent/src/omni/adapters/http_routes/qq.py) | V2 | 66 | Owner APIs for QQ channel status and consenting peer bindings. |
-| [agent/src/omni/adapters/http_routes/schedules.py](../../../agent/src/omni/adapters/http_routes/schedules.py) | V2 | 109 | Owner APIs for schedule definitions, history and occurrence decisions. |
+| [agent/src/omni/adapters/http_routes/schedules.py](../../../agent/src/omni/adapters/http_routes/schedules.py) | V2 | 101 | Owner APIs for schedule definitions, history and occurrence decisions. |
 | [agent/src/omni/adapters/http_routes/skills.py](../../../agent/src/omni/adapters/http_routes/skills.py) | V2 | 120 | Owner skill editing, activation, version history and run reports. |
 | [agent/src/omni/adapters/http_routes/terminals.py](../../../agent/src/omni/adapters/http_routes/terminals.py) | V2 | 123 | Owner terminal control, operation receipts and review history. |
 | [agent/src/omni/adapters/http_routes/vision.py](../../../agent/src/omni/adapters/http_routes/vision.py) | V2 | 53 | Image admission, preparation and per-run image reports. |

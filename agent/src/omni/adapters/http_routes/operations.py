@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import uuid
-from dataclasses import asdict
 
 from fastapi import APIRouter, Query, Request
 from fastapi.responses import Response
@@ -126,7 +125,7 @@ def operations_router(runtime: RuntimeLookup) -> APIRouter:
         until: str = Query(default="", max_length=40),
     ):
         query = LogQuery(limit, cursor, level, component, run_id, since, until)
-        return await runtime(request).operations.logs(asdict(query))
+        return await runtime(request).logs(query)
 
     @router.get("/system/audit")
     async def instance_audit(

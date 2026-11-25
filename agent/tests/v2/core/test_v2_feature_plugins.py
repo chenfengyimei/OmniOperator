@@ -78,6 +78,9 @@ def test_a_registered_feature_shares_one_service_between_owner_http_and_the_appr
     assert installed == []
     with TestClient(app) as client:
         assert len(installed) == 1
+        runtime = app.state.runtime
+        for feature_id in ("android", "bilibili", "media", "qq", "schedules"):
+            assert getattr(runtime, feature_id) is runtime.feature_services[feature_id]
         route = f"/api/v1/agents/{uuid.uuid4()}/fixture-notes/count"
         assert client.get(route).status_code == 401
         assert client.get("/api/v1" + report_path.format(agent_id=uuid.uuid4(), run_id=uuid.uuid4())).status_code == 401
@@ -196,6 +199,27 @@ def test_feature_route_aliases_only_mount_exact_declared_paths(defect):
     }
     with pytest.raises(ValueError, match=expected[defect]):
         mount_feature_routes(parent, (FeatureRoutes("fixture", factory, extra_paths=(alias,)),), lambda _: None)
+
+
+@pytest.mark.parametrize(
+    ("feature_id", "path", "method"), [("service", "/drain", "POST"), ("owner-token", "/local", "GET")]
+)
+def test_instance_scoped_feature_cannot_claim_a_host_endpoint(feature_id, path, method):
+    async def install(context):
+        raise AssertionError("Conflicting routers must be rejected before startup")
+
+    def factory(runtime):
+        routes = APIRouter(prefix="/" + feature_id)
+
+        async def handler():
+            return {"fixture": True}
+
+        routes.add_api_route(path, handler, methods=[method])
+        return routes
+
+    plugin = FeaturePlugin(feature_id, factory=factory, install=install, instance_scoped=True)
+    with pytest.raises(ValueError, match="Duplicate feature HTTP route"):
+        http_app(feature_plugins=(plugin,))
 
 
 @pytest.mark.parametrize("failed_step", ["constructor", "recovery"])

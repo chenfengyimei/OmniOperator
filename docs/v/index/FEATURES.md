@@ -283,7 +283,7 @@ uv run --no-sync pytest -q -n 0 agent/tests/v2/integrations/test_v2_mcp.py agent
 
 **从这里读**
 
-- [agent/src/omni/adapters/http.py#create_app.turn](../../../agent/src/omni/adapters/http.py#L541)
+- [agent/src/omni/adapters/http.py#create_app.turn](../../../agent/src/omni/adapters/http.py#L577)
 
 **领域规则**
 
@@ -349,7 +349,7 @@ uv run --no-sync pytest -q -n 0 agent/tests/v2/core/test_v2_kernel.py agent/test
 
 **从这里读**
 
-- [agent/src/omni/adapters/http.py#create_app.session_context_overview](../../../agent/src/omni/adapters/http.py#L634)
+- [agent/src/omni/adapters/http.py#create_app.session_context_overview](../../../agent/src/omni/adapters/http.py#L670)
 
 **领域规则**
 
@@ -771,7 +771,7 @@ uv run --no-sync pytest -q -n 0 agent/tests/v2/core/test_v2_browser_dialog.py ag
 
 **从这里读**
 
-- [agent/src/omni/adapters/http.py#create_app.upload_object](../../../agent/src/omni/adapters/http.py#L495)
+- [agent/src/omni/adapters/http.py#create_app.upload_object](../../../agent/src/omni/adapters/http.py#L531)
 
 **领域规则**
 
@@ -1088,7 +1088,7 @@ uv run --no-sync pytest -q -n 0 agent/tests/v2/http/test_v2_bilibili_http.py
 
 **从这里读**
 
-- [agent/src/omni/adapters/http_routes/schedules.py#schedules_router.schedules](../../../agent/src/omni/adapters/http_routes/schedules.py#L37)
+- [agent/src/omni/adapters/http_routes/schedules.py#schedules_router.schedules](../../../agent/src/omni/adapters/http_routes/schedules.py#L29)
 
 **领域规则**
 
@@ -1115,7 +1115,7 @@ uv run --no-sync pytest -q -n 0 agent/tests/v2/http/test_v2_bilibili_http.py
 
 - [agent/tests/v2/core/test_v2_scheduling.py](../../../agent/tests/v2/core/test_v2_scheduling.py)
 - [agent/tests/v2/core/test_v2_scheduling_faults.py](../../../agent/tests/v2/core/test_v2_scheduling_faults.py)
-- [agent/tests/v2/core/test_v2_feature_plugins.py#test_scheduling_starts_after_kernel_recovery_and_is_reclaimed_on_failure](../../../agent/tests/v2/core/test_v2_feature_plugins.py#L279)
+- [agent/tests/v2/core/test_v2_feature_plugins.py#test_scheduling_starts_after_kernel_recovery_and_is_reclaimed_on_failure](../../../agent/tests/v2/core/test_v2_feature_plugins.py#L303)
 
 **改动影响**　变更影响时区计算、租约、重试及恢复。
 
@@ -1265,10 +1265,10 @@ uv run --no-sync pytest -q -n 0 agent/tests/v2/http/test_v2_terminals_http.py
 
 **从这里读**
 
-- [agent/src/omni/adapters/http_routes/operations.py#operations_router.logs](../../../agent/src/omni/adapters/http_routes/operations.py#L118)
-- [agent/src/omni/adapters/http.py#create_app.owner_token_rotate](../../../agent/src/omni/adapters/http.py#L457)
-- [agent/src/omni/adapters/http.py#create_app.capabilities](../../../agent/src/omni/adapters/http.py#L418)
-- [agent/src/omni/adapters/http_routes/operations.py#operations_router.audit](../../../agent/src/omni/adapters/http_routes/operations.py#L69)
+- [agent/src/omni/adapters/http_routes/operations.py#operations_router.logs](../../../agent/src/omni/adapters/http_routes/operations.py#L117)
+- [agent/src/omni/adapters/http.py#create_app.owner_token_rotate](../../../agent/src/omni/adapters/http.py#L493)
+- [agent/src/omni/adapters/http.py#create_app.capabilities](../../../agent/src/omni/adapters/http.py#L454)
+- [agent/src/omni/adapters/http_routes/operations.py#operations_router.audit](../../../agent/src/omni/adapters/http_routes/operations.py#L68)
 
 **领域规则**
 

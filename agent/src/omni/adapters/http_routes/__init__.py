@@ -4,13 +4,14 @@ from __future__ import annotations
 
 import json
 import re
-from collections.abc import Callable, Mapping
+from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any, TypeVar, cast
 
 from fastapi import APIRouter, Request
 from fastapi.routing import APIRoute
 from pydantic import BaseModel, ConfigDict, ValidationError
+from starlette.routing import BaseRoute
 
 from ...application.ports import Record
 from ...domain.contracts import BusinessError
@@ -50,7 +51,13 @@ class FeatureRoutes:
             raise ValueError("Additional feature paths must remain agent-scoped")
 
 
-def mount_feature_routes(router: APIRouter, features: tuple[FeatureRoutes, ...], runtime: RuntimeLookup) -> None:
+def mount_feature_routes(
+    router: APIRouter,
+    features: tuple[FeatureRoutes, ...],
+    runtime: RuntimeLookup,
+    *,
+    host_routes: Sequence[BaseRoute] = (),
+) -> None:
     if len({feature.id for feature in features}) != len(features):
         raise ValueError("Duplicate feature route IDs")
 
@@ -59,7 +66,7 @@ def mount_feature_routes(router: APIRouter, features: tuple[FeatureRoutes, ...],
 
     used = {
         (method, path_shape(route.path))
-        for route in router.routes
+        for route in (*router.routes, *host_routes)
         if isinstance(route, APIRoute)
         for method in (route.methods or ())
     }

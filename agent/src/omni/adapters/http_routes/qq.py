@@ -27,8 +27,8 @@ def qq_router(runtime: RuntimeLookup) -> APIRouter:
     router = APIRouter(prefix="/agents/{agent_id}/qq")
 
     def qq_service(request: Request) -> QQService:
-        service = runtime(request).feature_services.get("qq")
-        if not isinstance(service, QQService):
+        service = runtime(request).qq
+        if service is None:
             raise BusinessError("qq_unavailable", "QQ channel is unavailable", status=503)
         return service
 
