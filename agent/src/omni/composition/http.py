@@ -204,8 +204,6 @@ def http_app(
                 return await close_until_quiescent(instance.close, remaining)
 
             return HttpRuntime(
-                qq=instance.qq,
-                bilibili=instance.bilibili,
                 mcp=instance.mcp,
                 feature_services=instance.feature_services,
                 application=instance.application,

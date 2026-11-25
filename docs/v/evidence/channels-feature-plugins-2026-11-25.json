@@ -1,0 +1,147 @@
+{
+  "date": "2026-11-25",
+  "platform": "Windows x64",
+  "source": {
+    "base_commit": "7372a0075b894d46bf5b17218373831414a5d4b8",
+    "working_tree": "v2 QQ 与 B 站业务功能登记",
+    "affected_files_sha256_normalized_lf": {
+      "agent/src/omni/adapters/http.py": "eaa241c4c7a10ae75211dbbe14499fe85329838f14f887917a72281a9cdea7fa",
+      "agent/src/omni/adapters/http_routes/bilibili.py": "03f768d183324f81ef1ca14d42cb608ff73f5b1d6857e592ca6b6267485b5c12",
+      "agent/src/omni/adapters/http_routes/qq.py": "f97ad27b671e41adbae3e45fd0cf9f5097a32dff9a5f7dd2d3b132fb6b24e54c",
+      "agent/src/omni/composition/features/__init__.py": "ff47795424770f3e6748d047e6c099e75bb0ef3f4fe5a3a4ede5462de5213881",
+      "agent/src/omni/composition/features/bilibili.py": "d1e86f1e6a8579c6da00df19ce81b7ce55c59480cdefe7974f864285d431f6f0",
+      "agent/src/omni/composition/features/catalog.py": "db23463d30f6b79b8f0f2b150fd3789483866ac827110c8ed0820bd606306a43",
+      "agent/src/omni/composition/features/qq.py": "43571792e441377eceab854d7041207918b6d2caf1528ca9585e43a152712c29",
+      "agent/src/omni/composition/http.py": "761552dbdf02693bf23eb59ac554274fea61907700421b7793df02b1c1e1e8f2",
+      "agent/src/omni/composition/instance.py": "89a895d32a0e777d6b1098d024c400ecaa8ec26b7e42a393731fff95f494df6b",
+      "agent/tests/test_feature_navigation.py": "6368debb5b65e69d0e00907022efd0424c3af1e4a297aac4749386d0a6b10e7e",
+      "agent/tests/v2/core/test_v2_provider_plugins.py": "c653db03ba9dff350cf8c3d64d4f2599c239d3e5a1e75dc5cc2b8c01fe8446f9",
+      "docs/v/features.json": "76899713d86c450961abce4ebdbea4d5d5abd30e5724ed4db97aca2690cd2d38",
+      "pyrightconfig.strict.json": "65c9a25b520586a5f35c154966cdd00d8a87e58f2b90e0a23a2d01b96debaae6"
+    }
+  },
+  "offline_scoped_suites": [
+    {
+      "scope": "功能登记、提供者、架构、通用 HTTP 与生命周期",
+      "passed": 82,
+      "failed": 0,
+      "skipped": 0,
+      "junit_seconds": 62.219,
+      "modules": [
+        "test_feature_navigation",
+        "test_v2_architecture",
+        "test_v2_capability_plugins",
+        "test_v2_feature_plugins",
+        "test_v2_http",
+        "test_v2_lifecycle",
+        "test_v2_provider_plugins",
+        "test_v2_service_drain",
+        "test_v2_typecheck_scope"
+      ],
+      "local_junit": "temp/build/business-feature-migration/channels-assembly.xml",
+      "sha256": "a7b563f225c71539f5d8b4f4a2382a04a88eb24310607fe8aeb2115fc4352f2e"
+    },
+    {
+      "scope": "B 站协议、读取、缓存、风险状态、发表与 HTTP",
+      "passed": 546,
+      "failed": 0,
+      "skipped": 0,
+      "junit_seconds": 148.448,
+      "modules": [
+        "test_v2_bilibili",
+        "test_v2_bilibili_danmaku",
+        "test_v2_bilibili_dash",
+        "test_v2_bilibili_dynamic",
+        "test_v2_bilibili_fav_resources",
+        "test_v2_bilibili_favorites",
+        "test_v2_bilibili_feed",
+        "test_v2_bilibili_following",
+        "test_v2_bilibili_gateway",
+        "test_v2_bilibili_history",
+        "test_v2_bilibili_http",
+        "test_v2_bilibili_merged",
+        "test_v2_bilibili_msgfeed",
+        "test_v2_bilibili_read_cache",
+        "test_v2_bilibili_relation",
+        "test_v2_bilibili_response_bounds",
+        "test_v2_bilibili_risk",
+        "test_v2_bilibili_search",
+        "test_v2_bilibili_streams",
+        "test_v2_bilibili_subtitles",
+        "test_v2_bilibili_tags",
+        "test_v2_bilibili_whois",
+        "test_v2_bilibili_worker"
+      ],
+      "local_junit": "temp/build/business-feature-migration/channels-bilibili.xml",
+      "sha256": "5087ce368e50906f4b135f751cd48ac53e1f5e2f1db38e17429cb019601ee6bc"
+    },
+    {
+      "scope": "QQ 收发授权、投递恢复、媒体与行动复核",
+      "passed": 55,
+      "failed": 0,
+      "skipped": 0,
+      "junit_seconds": 127.171,
+      "modules": [
+        "test_v2_action_review_workers",
+        "test_v2_delivery",
+        "test_v2_delivery_faults",
+        "test_v2_delivery_http",
+        "test_v2_media",
+        "test_v2_qq",
+        "test_v2_qq_http"
+      ],
+      "local_junit": "temp/build/business-feature-migration/channels-callers.xml",
+      "sha256": "db8b8fa2890dd391493104a805fbc17a60c4a2ded538ca14a3b773fe473c185e"
+    },
+    {
+      "scope": "QQ、B 站与投递工作台",
+      "passed": 25,
+      "failed": 0,
+      "skipped": 0,
+      "junit_seconds": 150.068,
+      "modules": [
+        "test_v2_bilibili_ui",
+        "test_v2_delivery_ui",
+        "test_v2_qq_ui"
+      ],
+      "local_junit": "temp/build/business-feature-migration/channels-workbench.xml",
+      "sha256": "aae8baaf4fef990ffa7cdf9e2565a08ac03ec15ffe1e3c6a1347af318f95733f"
+    }
+  ],
+  "scoped_distinct_passed": 708,
+  "compatibility": {
+    "reference": "7372a0075b894d46bf5b17218373831414a5d4b8",
+    "same_contract": true,
+    "openapi_paths": 212,
+    "openapi_sha256": "409e49b84c389604ed8d2eab5074257e9552631ae27a277e248b3d71650ebd43",
+    "agent_tools": 40,
+    "agent_tools_sha256": "d6aca34350112ec76d56459a1a1c3ba8904da600a41708906b9bfa5b66f9eda8",
+    "owner_tools": 3,
+    "owner_tools_sha256": "174962d52c6eabdd125f46127ae5a3a14963df3f556972bce429be334b9df377",
+    "delivery_drivers": [
+      "bilibili",
+      "qq"
+    ],
+    "ordered_route_groups": {
+      "qq": 4,
+      "bilibili": 8,
+      "desktop": 16
+    }
+  },
+  "static_checks": {
+    "strict_files": 456,
+    "strict_errors": 0,
+    "strict_warnings": 0,
+    "ruff": "passed"
+  },
+  "full_offline": {
+    "covers_this_working_tree": false,
+    "previous_candidate": "5da6dce4",
+    "previous_candidate_passed": 8706
+  },
+  "verified_lifecycle_and_authority": [
+    "QQ 在内核恢复后启动。启动中途失败时先回收监听，再关闭 QQ、B 站共用的替身传输，实例可以重新打开。",
+    "B 站 HTTP 与 Agent 读写草稿工具共用同一业务服务。B 站读取和媒体下载共用传输，出站覆盖由投递配置决定。",
+    "绑定撤销、授予再次生效前的复核、发送前撤权与未知投递不重放均通过隔离回归。"
+  ]
+}

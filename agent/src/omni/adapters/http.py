@@ -20,7 +20,6 @@ from pydantic import Field
 
 from ..application.action_review import ActionReviewService
 from ..application.background_review import BackgroundReviewService
-from ..application.bilibili import BilibiliService
 from ..application.configuration import ConfigurationService
 from ..application.credentials import CredentialService
 from ..application.delivery import DeliveryService
@@ -41,7 +40,6 @@ from ..application.operations import OperationsService
 from ..application.people import PeopleService
 from ..application.persona import PersonaGrowthService
 from ..application.ports import Record
-from ..application.qq import QQService
 from ..application.reflections import ReflectionService
 from ..application.routing import RoutingService
 from ..application.skills import SkillService
@@ -56,10 +54,14 @@ from .diagnostics import bind_context
 from .http_events import PAGE_SIZE as EVENT_PAGE_SIZE
 from .http_events import EventStreams, continuation
 from .http_routes import FeatureRoutes, StrictInput, bounded_configuration, configuration_input, mount_feature_routes
+from .http_routes.bilibili import BilibiliProfileInput as BilibiliProfileInput
+from .http_routes.bilibili import BilibiliPublicationInput as BilibiliPublicationInput
+from .http_routes.bilibili import BilibiliReadInput as BilibiliReadInput
 from .http_routes.extensions import extensions_router
 from .http_routes.media import MediaJobInput as MediaJobInput
 from .http_routes.media import MediaSourceInput as MediaSourceInput
 from .http_routes.media import MediaUploadSourceInput as MediaUploadSourceInput
+from .http_routes.qq import QQBindingInput as QQBindingInput
 from .http_routes.skills import skills_router
 from .log_query import LogQuery
 
@@ -102,8 +104,6 @@ class HttpRuntime:
     # 本机免粘贴引导：只在回环地址 + 同源时下发所有者令牌，让「启动即用」回到 V1 体验。
     # 默认 None 表示关闭；远程绑定与跨源请求一律拿不到，API 鉴权强度不变。
     local_owner_token: Callable[[], str] | None = None
-    qq: QQService | None = None
-    bilibili: BilibiliService | None = None
     mcp: MCPService | None = None
     feature_services: Mapping[str, object] = field(default_factory=dict[str, object])
     images: ImageService | None = None
@@ -164,57 +164,6 @@ class DeliveryInput(StrictInput):
     key: str = Field(min_length=1, max_length=200)
     parent_id: uuid.UUID | None = None
     acknowledge_duplicate: bool = Field(default=False, strict=True)
-
-
-class QQBindingInput(StrictInput):
-    config_id: uuid.UUID
-    scene: Literal["private", "group"]
-    peer_id: str = Field(min_length=1, max_length=19)
-    enabled: bool = Field(strict=True)
-    persona: str = Field(min_length=1, max_length=8000)
-    cooldown_s: int = Field(ge=1, le=3600, strict=True)
-    revision: int = Field(default=0, ge=0, strict=True)
-
-
-class BilibiliProfileInput(StrictInput):
-    enabled: bool = Field(strict=True)
-    headless: bool = Field(default=True, strict=True)
-    forms: Payload
-    revision: int = Field(ge=0, strict=True)
-
-
-class BilibiliReadInput(StrictInput):
-    config_id: uuid.UUID
-    operation: Literal[
-        "account",
-        "video",
-        "comments",
-        "replies",
-        "search",
-        "whois",
-        "relation",
-        "dynamic_list",
-        "danmaku",
-        "popular",
-        "ranking",
-        "following",
-        "favorites",
-        "fav_resources",
-        "tags",
-        "history",
-        "msgfeed",
-    ]
-    target: str = Field(default="", max_length=100)
-    limit: int = Field(default=10, ge=1, le=20, strict=True)
-
-
-class BilibiliPublicationInput(StrictInput):
-    config_id: uuid.UUID
-    message_id: uuid.UUID
-    kind: Literal["comment", "private_message"]
-    target: str = Field(max_length=500)
-    mentions: list[Payload] = Field(default_factory=cast(Callable[[], list[Payload]], list), max_length=10)
-    key: str = Field(min_length=1, max_length=180)
 
 
 class MCPConnectInput(StrictInput):
@@ -565,70 +514,6 @@ def create_app(
             raise BusinessError("owner_token_unavailable", "Owner token rotation is unavailable", status=503)
         return await operation()
 
-    def qq_service(request: Request) -> QQService:
-        service = runtime(request).qq
-        if service is None:
-            raise BusinessError("qq_unavailable", "QQ channel is unavailable", status=503)
-        return service
-
-    def bilibili_service(request: Request) -> BilibiliService:
-        service = runtime(request).bilibili
-        if service is None:
-            raise BusinessError("bilibili_unavailable", "Bilibili capability is unavailable", status=503)
-        return service
-
-    @router.get("/agents/{agent_id}/bilibili/profiles/{config_id}")
-    async def bilibili_profile(agent_id: uuid.UUID, config_id: uuid.UUID, request: Request):
-        return await bilibili_service(request).profile(str(agent_id), str(config_id))
-
-    @router.put("/agents/{agent_id}/bilibili/profiles/{config_id}")
-    async def bilibili_profile_save(agent_id: uuid.UUID, config_id: uuid.UUID, request: Request):
-        data = configuration_input(BilibiliProfileInput, await bounded_configuration(request, 65536, strict=True))
-        return await bilibili_service(request).save_profile(
-            str(agent_id), str(config_id), data.enabled, data.forms, data.revision, data.headless
-        )
-
-    @router.get("/agents/{agent_id}/bilibili/risk/{config_id}")
-    async def bilibili_risk_state(agent_id: uuid.UUID, config_id: uuid.UUID, request: Request):
-        return await bilibili_service(request).risk_state(str(agent_id), str(config_id))
-
-    @router.post("/agents/{agent_id}/bilibili/risk/{config_id}/resume")
-    async def bilibili_risk_resume(agent_id: uuid.UUID, config_id: uuid.UUID, request: Request):
-        return await bilibili_service(request).resume(str(agent_id), str(config_id))
-
-    @router.post("/agents/{agent_id}/bilibili/read")
-    async def bilibili_read(agent_id: uuid.UUID, request: Request):
-        data = configuration_input(BilibiliReadInput, await bounded_configuration(request, 4096, strict=True))
-        return await bilibili_service(request).read(
-            str(agent_id), str(data.config_id), data.operation, data.target, data.limit
-        )
-
-    @router.post("/agents/{agent_id}/bilibili/publications", status_code=201)
-    async def bilibili_prepare(agent_id: uuid.UUID, request: Request):
-        data = configuration_input(BilibiliPublicationInput, await bounded_configuration(request, 16384, strict=True))
-        return await bilibili_service(request).prepare(
-            str(agent_id),
-            str(data.message_id),
-            str(data.config_id),
-            data.kind,
-            data.target,
-            cast(list[Mapping[str, object]], data.mentions),
-            data.key,
-        )
-
-    @router.get("/agents/{agent_id}/bilibili/publications")
-    async def bilibili_publications(
-        agent_id: uuid.UUID,
-        request: Request,
-        after: uuid.UUID | None = None,
-        limit: int = Query(default=50, ge=1, le=100),
-    ):
-        return await bilibili_service(request).page(str(agent_id), str(after) if after else "", limit)
-
-    @router.get("/agents/{agent_id}/bilibili/publications/{identity}")
-    async def bilibili_publication(agent_id: uuid.UUID, identity: uuid.UUID, request: Request):
-        return await bilibili_service(request).get(str(agent_id), str(identity))
-
     def mcp_service(request: Request) -> MCPService:
         service = runtime(request).mcp
         if service is None:
@@ -711,37 +596,6 @@ def create_app(
     @router.get("/agents/{agent_id}/mcp/health")
     async def mcp_health(agent_id: uuid.UUID, request: Request):
         return mcp_service(request).health()
-
-    @router.get("/agents/{agent_id}/qq/bindings")
-    async def qq_bindings(
-        agent_id: uuid.UUID,
-        request: Request,
-        after: uuid.UUID | None = None,
-        limit: int = Query(default=50, ge=1, le=100),
-    ):
-        return await qq_service(request).page(str(agent_id), str(after) if after else "", limit)
-
-    @router.get("/agents/{agent_id}/qq/status")
-    async def qq_status(agent_id: uuid.UUID, request: Request):
-        return await qq_service(request).status(str(agent_id))
-
-    @router.post("/agents/{agent_id}/qq/bindings", status_code=201)
-    async def qq_binding_create(agent_id: uuid.UUID, data: QQBindingInput, request: Request):
-        if data.revision != 0:
-            raise BusinessError("revision_conflict", "New QQ grants start at revision zero", status=422)
-        return await qq_service(request).save(
-            str(agent_id), str(data.config_id), data.model_dump(exclude={"config_id", "revision"})
-        )
-
-    @router.put("/agents/{agent_id}/qq/bindings/{binding_id}")
-    async def qq_binding_edit(agent_id: uuid.UUID, binding_id: uuid.UUID, data: QQBindingInput, request: Request):
-        return await qq_service(request).save(
-            str(agent_id),
-            str(data.config_id),
-            data.model_dump(exclude={"config_id", "revision"}),
-            str(binding_id),
-            data.revision,
-        )
 
     @router.get("/agents")
     async def agents(request: Request):

@@ -46,6 +46,7 @@ class KernelFeatureContext:
     lifetime: Lifetime
     database: DatabasePort
     clock: Clock
+    channels: ChannelProviders
     notify_run: Callable[[], None]
     cancel_run: Callable[[str, str], Awaitable[None]]
     skill_platform: str

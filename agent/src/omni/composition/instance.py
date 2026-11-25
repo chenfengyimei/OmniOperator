@@ -47,8 +47,6 @@ from ..adapters.visual import ImageObjectFrames, MediaFrameSheets, ModelCallsVis
 from ..application.action_review import ActionReviewService
 from ..application.android import AndroidPort, AndroidService
 from ..application.background_review import BackgroundReviewService
-from ..application.bilibili import PREPARE_SPEC as BILIBILI_PREPARE
-from ..application.bilibili import READ_SPEC as BILIBILI_READ
 from ..application.bilibili import BilibiliPort, BilibiliService
 from ..application.capabilities import Capability, CapabilityPlugin
 from ..application.clarify import ClarifyService
@@ -531,8 +529,6 @@ async def open_instance(
             bilibili_backend=bilibili_backend,
             delivery_ports=delivery_ports,
         )
-        bilibili = BilibiliService(database, channels.bilibili)
-        lifetime.own("bilibili", 0, bilibili.close, bilibili.stop_accepting)
         features = await install_features(
             initial_plugins,
             FeatureContext(
@@ -554,6 +550,7 @@ async def open_instance(
         )
         media = features.require("media", MediaService)
         android = features.require("android", AndroidService)
+        bilibili = features.require("bilibili", BilibiliService)
         visual = VisualSubagentService(
             database,
             ImageObjectFrames(objects, images),
@@ -618,11 +615,6 @@ async def open_instance(
                 CapabilityPlugin(
                     "skills",
                     tuple(Capability(spec, skills, lambda: skills.health()["pending"] == 0) for spec in SKILL_SPECS),
-                    own_adapters=False,
-                ),
-                CapabilityPlugin(
-                    "bilibili",
-                    (Capability(BILIBILI_READ, bilibili), Capability(BILIBILI_PREPARE, bilibili)),
                     own_adapters=False,
                 ),
                 *plugins,
@@ -692,8 +684,6 @@ async def open_instance(
             model_recovery=model_recovery,
             plugins=plugins,
         )
-        qq = QQService(database, channels.qq, application.notify)
-        lifetime.own("qq", 0, qq.close, qq.stop_accepting)
         lifetime.own(
             "runs", 0, lambda budget: application.close(budget, close_database=False), application.stop_accepting
         )
@@ -703,6 +693,7 @@ async def open_instance(
                 lifetime=lifetime,
                 database=database,
                 clock=clock,
+                channels=channels,
                 notify_run=application.notify,
                 cancel_run=application.cancel,
                 skill_platform=platform.skill_platform,
@@ -711,6 +702,7 @@ async def open_instance(
             ),
         )
         schedules = kernel_features.require("schedules", SchedulingService)
+        qq = kernel_features.require("qq", QQService)
         for plugin in kernel_features.capabilities:
             application.attach_plugin(plugin)
         action_reviews = ActionReviewService(database, application.action_review_blockers, schedules.notify)
@@ -822,7 +814,6 @@ async def open_instance(
         deliveries.start()
         features.start()
         kernel_features.start()
-        qq.start()
         current_instance = Instance(
             application=application,
             paths=paths,

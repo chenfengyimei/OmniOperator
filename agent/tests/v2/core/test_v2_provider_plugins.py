@@ -7,6 +7,8 @@ from omni_test_support.v2.v2_delivery_helpers import FakePort
 
 from omni.adapters.persistence.delivery_repository import DeliveryRepositories
 from omni.adapters.platform.runtime.paths import InstancePaths
+from omni.application.bilibili import PREPARE_SPEC, READ_SPEC
+from omni.application.qq import QQService
 from omni.composition import instance as bootstrap
 from omni.composition import model_providers, platform_providers
 from omni.composition.instance import open_instance
@@ -96,8 +98,11 @@ def test_instance_drains_users_before_closing_shared_channels_and_releasing_leas
         )
         instance.lifetime.own("fixture_channel_user", 0, drain_channel_user)
         try:
+            assert instance.feature_services["qq"] is instance.qq
+            assert instance.feature_services["bilibili"] is instance.bilibili
             assert instance.qq._transport is onebot
             assert instance.bilibili._gateway is bilibili
+            assert instance.media._bilibili is bilibili
             assert instance.deliveries._ports == {"qq": sender, "bilibili": bilibili, "android": onebot}
             assert not await instance.deliveries.release_boot_leases(1)
             result = await instance.close(15)
@@ -139,6 +144,47 @@ def test_startup_failure_reclaims_one_shared_transport(tmp_path, monkeypatch):
         assert events == ["shared"]
         reopened = await open_instance(tmp_path, capabilities=())
         assert (await reopened.close())["complete"]
+
+    asyncio.run(scenario())
+
+
+def test_qq_feature_start_failure_drains_listener_before_closing_shared_transport(tmp_path, monkeypatch):
+    events = []
+    ready = []
+    started = []
+    start_kernel = bootstrap.Application.start
+    start_qq = QQService.start
+
+    async def record_kernel(application):
+        await start_kernel(application)
+        ready.append(application)
+
+    def fail_after_start(service):
+        assert ready[-1].health()["ready"]
+        start_qq(service)
+        started.append(service)
+        raise RuntimeError("test QQ startup failure")
+
+    class SharedChannel(ChannelTransport):
+        async def close(self, timeout_s):
+            assert started[0]._worker.done()
+            return await super().close(timeout_s)
+
+    async def scenario():
+        transport = SharedChannel("shared", events)
+        with monkeypatch.context() as patch:
+            patch.setattr(bootstrap.Application, "start", record_kernel)
+            patch.setattr(QQService, "start", fail_after_start)
+            with pytest.raises(RuntimeError, match="test QQ startup failure"):
+                await open_instance(tmp_path, qq_transport=transport, bilibili_backend=transport)
+        assert events == ["shared"]
+
+        reopened = await open_instance(tmp_path)
+        try:
+            for spec in (READ_SPEC, PREPARE_SPEC):
+                assert reopened.application._tools[spec.name].adapter is reopened.bilibili
+        finally:
+            assert (await reopened.close())["complete"]
 
     asyncio.run(scenario())
 

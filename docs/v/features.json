@@ -838,7 +838,7 @@
     ],
     "refs": {
       "entry": [
-        "agent/src/omni/adapters/http.py#create_app.qq_status"
+        "agent/src/omni/adapters/http_routes/qq.py#qq_router.qq_status"
       ],
       "domain": [
         "agent/src/omni/domain/qq.py"
@@ -851,7 +851,8 @@
       ],
       "composition": [
         "agent/src/omni/composition/channel_providers.py#register_channel_providers",
-        "agent/src/omni/composition/instance.py#open_instance.qq"
+        "agent/src/omni/composition/features/qq.py#install_qq",
+        "agent/src/omni/composition/features/catalog.py"
       ],
       "ui": [
         "web/ui/v2/qq.js"
@@ -883,7 +884,7 @@
     ],
     "refs": {
       "entry": [
-        "agent/src/omni/adapters/http.py#create_app.bilibili_read"
+        "agent/src/omni/adapters/http_routes/bilibili.py#bilibili_router.bilibili_read"
       ],
       "domain": [
         "agent/src/omni/domain/bilibili.py"
@@ -896,7 +897,8 @@
       ],
       "composition": [
         "agent/src/omni/composition/channel_providers.py#register_channel_providers",
-        "agent/src/omni/composition/instance.py#open_instance.bilibili"
+        "agent/src/omni/composition/features/bilibili.py#install_bilibili",
+        "agent/src/omni/composition/features/catalog.py"
       ],
       "ui": [
         "web/ui/v2/bilibili.js"
