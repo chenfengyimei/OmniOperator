@@ -147,7 +147,9 @@ Portal 的原生共享状态与应用授权审计分两步完成。`test_v2_port
 
 在独立克隆跑完整测试时，保持 V1 官方 `origin` 身份，并由该克隆的独立虚拟环境安装源码。将源码目录放入全局 `PYTHONPATH` 会影响隔离安装测试启动的子进程，使测试子进程导入仓库源码。检查源码来源可用 `uv run --no-sync python -c "import omni; print(omni.__file__)"`。
 
-CI执行Ruff、格式检查、已收口领域Pyright、固定版本Prettier、ES模块语法、UI接口合同、重复定义、
+GitHub Actions 仅用于手动全量验证。在 Actions 中选择 `V2 full validation`，选定候选分支并点击 **Run workflow**。Windows 任务运行仓库全量离线测试，其他平台的 V2、安装、容器和原生检查随同一次运行。推送和更新 PR 时只需按日常开发流程做本地专项。
+
+本地 Windows 验证脚本执行Ruff、格式检查、已收口领域Pyright、固定版本Prettier、ES模块语法、UI接口合同、重复定义、
 任务摘要、索引检查、直接wheel/sdist→wheel及隔离导入校验，然后运行全部测试和离线评测。
 前端开发环境需要Node 24和`npm ci --prefix web`。可用`scripts/ci.ps1 -Workers 0`排查串行行为，
 默认`-Workers 4`。`-SkipSync`的含义不变，不能在用户服务运行中重建`.venv`。

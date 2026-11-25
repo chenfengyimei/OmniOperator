@@ -1,7 +1,6 @@
-name: V2 portable kernel
+name: V2 full validation
 on:
-  push:
-  pull_request:
+  workflow_dispatch:
 jobs:
   candidate-installation:
     strategy:
@@ -71,9 +70,22 @@ jobs:
         with:
           python-version: '3.12'
       - run: python -m pip install uv==0.13.5
-      - run: uv sync --frozen
+      - if: runner.os == 'Windows'
+        run: uv sync --frozen --all-packages --all-extras
+      - if: runner.os != 'Windows'
+        run: uv sync --frozen
       - run: uv run --no-sync python -m playwright install --with-deps chromium
-      - run: uv run --no-sync python scripts/ci_v2.py
+      - name: Run the full repository test suite
+        if: runner.os == 'Windows'
+        run: uv run --no-sync pytest -q --junitxml=temp/build/v2-ci/pytest.xml
+      - name: Run the portable V2 tests
+        if: runner.os != 'Windows'
+        run: uv run --no-sync python scripts/ci_v2.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: offline-tests-${{ matrix.os }}
+          path: temp/build/v2-ci/pytest.xml
   local-vectors:
     strategy:
       fail-fast: false
