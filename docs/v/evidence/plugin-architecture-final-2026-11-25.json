@@ -1,0 +1,194 @@
+{
+  "date": "2026-11-25",
+  "platform": "Windows x64",
+  "tested_commit": "1a2810eade0965a4e25d03ecb93f7e0d3954056d",
+  "scope": "V2 业务插件化迁移冻结候选，执行默认离线测试集合，含 V1 兼容回归",
+  "full_offline": {
+    "command": "uv run --no-sync pytest -q -n 4 --color=no --junitxml=temp/build/plugin-architecture/full-1a2810ea.xml",
+    "workers": 4,
+    "collected": 8749,
+    "passed": 8739,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 10,
+    "seconds": 2235.788,
+    "console_seconds": 2235.99,
+    "runtime_dependency_warnings": 6,
+    "local_junit": "temp/build/plugin-architecture/full-1a2810ea.xml",
+    "junit_sha256": "1777cb9d7310849d541ef0dda6db7fe70899c9d76f856411cf606f5199c21091",
+    "local_stdout": "temp/build/plugin-architecture/full-1a2810ea-pytest.log",
+    "skip_cases": [
+      {
+        "module": "agent.tests.v2.platforms.linux.test_v2_linux_bus",
+        "case": "test_message_flag_uses_real_dbus_next_spelling",
+        "reason": "could not import 'dbus_next': No module named 'dbus_next'"
+      },
+      {
+        "module": "agent.tests.v2.core.test_v2_persona_growth",
+        "case": "test_linked_cache_file_is_rejected",
+        "reason": "file symlinks require extra Windows privileges"
+      },
+      {
+        "module": "agent.tests.v2.platforms.macos.test_v2_macos_launcher",
+        "case": "test_launch_accepts_validated_peer_and_serves_frames",
+        "reason": "Darwin/POSIX socket transport"
+      },
+      {
+        "module": "agent.tests.v2.platforms.macos.test_v2_macos_launcher",
+        "case": "test_launch_requires_the_connected_peer_to_be_the_fixed_executable",
+        "reason": "Darwin/POSIX socket transport"
+      },
+      {
+        "module": "agent.tests.v2.platforms.macos.test_v2_macos_launcher",
+        "case": "test_launch_times_out_when_nothing_connects",
+        "reason": "Darwin/POSIX socket transport"
+      },
+      {
+        "module": "agent.tests.v2.platforms.macos.test_v2_macos_launcher",
+        "case": "test_launch_rejects_a_launcher_that_fails",
+        "reason": "Darwin/POSIX socket transport"
+      },
+      {
+        "module": "agent.tests.v2.platforms.macos.test_v2_macos_launcher",
+        "case": "test_terminate_reclaims_a_lingering_helper",
+        "reason": "Darwin/POSIX socket transport"
+      },
+      {
+        "module": "agent.tests.v2.platforms.macos.test_v2_macos_launcher",
+        "case": "test_backend_uses_the_launchservices_transport_when_selected",
+        "reason": "Darwin/POSIX socket transport"
+      },
+      {
+        "module": "agent.tests.v2.platforms.macos.test_v2_macos_launcher",
+        "case": "test_half_close_keeps_the_response_readable",
+        "reason": "Darwin/POSIX socket transport"
+      },
+      {
+        "module": "agent.tests.v2.platforms.macos.test_v2_macos_launcher",
+        "case": "test_failed_launch_removes_its_private_directory",
+        "reason": "Darwin/POSIX socket transport"
+      }
+    ]
+  },
+  "production_inventory": {
+    "features": {
+      "instance": [
+        "configurations",
+        "people",
+        "documents",
+        "memory",
+        "skills",
+        "extensions",
+        "mcp",
+        "desktop",
+        "bilibili",
+        "media",
+        "android",
+        "deliveries",
+        "terminals",
+        "credentials"
+      ],
+      "workflows": [
+        "vision",
+        "learning",
+        "maintenance"
+      ],
+      "kernel_callbacks": [
+        "schedules",
+        "qq",
+        "action-reviews",
+        "system"
+      ]
+    },
+    "registered_commands": [
+      "init",
+      "doctor",
+      "installation",
+      "vectors",
+      "exchange",
+      "release",
+      "service",
+      "retention-preview",
+      "retention-audit-preview",
+      "retention-audit-plan",
+      "retention-audit-apply",
+      "retention-audit-cancel",
+      "retention-events-preview",
+      "retention-events-plan",
+      "retention-events-apply",
+      "retention-events-cancel",
+      "retention-plan",
+      "retention-apply",
+      "retention-cancel",
+      "retention-refs-preview",
+      "retention-refs-plan",
+      "retention-refs-apply",
+      "retention-refs-cancel",
+      "indexes",
+      "auth",
+      "diagnostics",
+      "serve",
+      "backup",
+      "restore",
+      "request",
+      "objects"
+    ]
+  },
+  "compatibility": {
+    "reference": "f6b6ab625d1a0ef19a4a1039a65d7991da42e729",
+    "same_contract": true,
+    "openapi_paths": 212,
+    "openapi_sha256": "409e49b84c389604ed8d2eab5074257e9552631ae27a277e248b3d71650ebd43",
+    "agent_tools": 40,
+    "agent_tools_sha256": "d6aca34350112ec76d56459a1a1c3ba8904da600a41708906b9bfa5b66f9eda8",
+    "owner_tools": 3,
+    "owner_tools_sha256": "174962d52c6eabdd125f46127ae5a3a14963df3f556972bce429be334b9df377",
+    "delivery_drivers": [
+      "bilibili",
+      "qq"
+    ],
+    "ordered_route_groups": {
+      "configurations": 11,
+      "routing": 2,
+      "settings": 3,
+      "credentials": 8,
+      "debug": 4,
+      "audit": 2,
+      "system": 4,
+      "retention": 5
+    }
+  },
+  "first_candidate_regression": {
+    "commit": "f6b6ab625d1a0ef19a4a1039a65d7991da42e729",
+    "passed": 8735,
+    "failed": 2,
+    "skipped": 10,
+    "console_seconds": 2289.46,
+    "failure_cases": [
+      "test_http_rejects_stored_invalid_transcript_without_serialization_failure[duplicate_version]",
+      "test_http_rejects_stored_invalid_transcript_without_serialization_failure[surrogate_text]"
+    ],
+    "root_cause": "既有 HttpRuntime.media 读取路径没有从登记映射提供兼容属性。",
+    "local_junit": "temp/build/plugin-architecture/full-f6b6ab62.xml",
+    "junit_sha256": "afde2a3ee9805b25ef214416579bc4ef6575c7108c26d3234aa46bd58b659328"
+  },
+  "cli_contract": {
+    "root_commands": 31,
+    "nested_commands": 44,
+    "formatted_help_sha256": "face36b26ad08691c4106109bf68c42545de4d71636aaa5f8707db3c3b291f4e",
+    "windows_terminal_columns": 80,
+    "baseline": "31a9606d58d08b74cfd6721d396cf9062472ac52"
+  },
+  "static_checks": {
+    "strict_files": 497,
+    "strict_errors": 0,
+    "strict_warnings": 0,
+    "ruff": "passed"
+  },
+  "source_boundaries": [
+    "Agent 内核共用执行、审批、预算、上下文、事务和恢复。对象和认证属于共享基础。",
+    "功能、工具、按回合提供者、渠道、模型、平台及 CLI 由对应类型化目录装配。",
+    "V1 及独立 omni-qq 继续由既有入口装配。"
+  ],
+  "external_scope": "真机、真实账号、正式安装交付及 72 小时长跑保留独立验收。"
+}
