@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`462951a5b5cd3696da27a515142db77c07662492acfceadf8c2569ff969cbc43`。包含 65 个职责模块、919 个源码/界面文件。
+源码指纹：`b6771467f1e861a2de436668b896e91a30a95e900441952ef8c14590b07245f5`。包含 65 个职责模块、919 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -437,7 +437,7 @@
 | [agent/src/omni/adapters/platform/runtime/__init__.py](../../../agent/src/omni/adapters/platform/runtime/__init__.py) | V2 | 1 | V2 runtime adapters; importing never probes the platform. |
 | [agent/src/omni/adapters/platform/runtime/event_loop.py](../../../agent/src/omni/adapters/platform/runtime/event_loop.py) | V2 | 105 | Own the Windows TCP reset workaround without patching global asyncio classes. |
 | [agent/src/omni/adapters/platform/runtime/paths.py](../../../agent/src/omni/adapters/platform/runtime/paths.py) | V2 | 161 | Resolve writable instance paths independently from installed code and cwd. |
-| [agent/src/omni/adapters/platform/runtime/permissions.py](../../../agent/src/omni/adapters/platform/runtime/permissions.py) | V2 | 159 | Current-owner private files on POSIX and NTFS; never changes ancestor ACLs. |
+| [agent/src/omni/adapters/platform/runtime/permissions.py](../../../agent/src/omni/adapters/platform/runtime/permissions.py) | V2 | 225 | Current-owner private files on POSIX and NTFS; never changes ancestor ACLs. |
 | [agent/src/omni/adapters/platform/runtime/processes.py](../../../agent/src/omni/adapters/platform/runtime/processes.py) | V2 | 232 | Owned process groups and Windows Job Objects. Never terminate an unverified PID. |
 | [agent/src/omni/adapters/platform/runtime/publication.py](../../../agent/src/omni/adapters/platform/runtime/publication.py) | V2 | 70 | Atomic, exclusive directory publication on the supported hosts; never replaces an existing target. |
 | [agent/src/omni/adapters/platform/runtime/runtime_identity.py](../../../agent/src/omni/adapters/platform/runtime/runtime_identity.py) | V2 | 242 | Publish private boot identity while the instance lock is held; never controls another process. |

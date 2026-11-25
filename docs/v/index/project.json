@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "462951a5b5cd3696da27a515142db77c07662492acfceadf8c2569ff969cbc43",
+  "source_sha256": "b6771467f1e861a2de436668b896e91a30a95e900441952ef8c14590b07245f5",
   "modules": [
     {
       "id": "v2-domain",
@@ -551,7 +551,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 73283,
+      "lines": 73349,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -39220,12 +39220,41 @@
       "module": "v2-adapters",
       "version": "V2",
       "python_module": "omni.adapters.platform.runtime.permissions",
-      "lines": 159,
+      "lines": 225,
       "imports": [],
       "symbols": [
         {
+          "name": "_windows_token_sids",
+          "line": 14,
+          "kind": "function",
+          "parameters": [
+            "security",
+            "kernel",
+            "*classes"
+          ],
+          "annotations": {
+            "security": "ctypes.CDLL",
+            "kernel": "ctypes.CDLL"
+          }
+        },
+        {
+          "name": "_windows_owner_override",
+          "line": 53,
+          "kind": "function",
+          "parameters": [
+            "path",
+            "security",
+            "kernel"
+          ],
+          "annotations": {
+            "path": "Path",
+            "security": "ctypes.CDLL",
+            "kernel": "ctypes.CDLL"
+          }
+        },
+        {
           "name": "assert_private",
-          "line": 10,
+          "line": 92,
           "kind": "function",
           "parameters": [
             "path"
@@ -39235,23 +39264,18 @@
           }
         },
         {
-          "name": "assert_private.SidAndAttributes",
-          "line": 24,
-          "kind": "class"
-        },
-        {
           "name": "assert_private.Acl",
-          "line": 27,
+          "line": 106,
           "kind": "class"
         },
         {
           "name": "assert_private.AceHeader",
-          "line": 36,
+          "line": 115,
           "kind": "class"
         },
         {
           "name": "private_path",
-          "line": 129,
+          "line": 193,
           "kind": "function",
           "parameters": [
             "path",

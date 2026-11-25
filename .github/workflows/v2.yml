@@ -73,8 +73,14 @@ jobs:
       - if: runner.os == 'Windows'
         run: uv sync --frozen --all-packages --all-extras
       - if: runner.os != 'Windows'
-        run: uv sync --frozen
+        run: uv sync --frozen --python 3.12 --package omnioperator --extra asr
       - run: uv run --no-sync python -m playwright install --with-deps chromium
+      - name: Verify Windows ownership and instance shutdown
+        if: runner.os == 'Windows'
+        run: >-
+          uv run --no-sync pytest -q -n 0
+          agent/tests/v2/operations/test_v2_private_permissions.py
+          agent/tests/v2/operations/test_v2_service_runtime.py::test_identity_tracks_real_boot_and_drains_before_releasing_lock
       - name: Run the full repository test suite
         if: runner.os == 'Windows'
         run: uv run --no-sync pytest -q --junitxml=temp/build/v2-ci/pytest.xml

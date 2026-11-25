@@ -184,7 +184,7 @@ def main(argv: list[str] | None = None) -> int:
 
         operation = admin_scope(strict_json(read_owner_file(args.operation, args.owner_uid)))
         if operation["sha256"] != args.approve or any(
-            item["deployment"]["request"]["principal"]["id"] != str(args.owner_uid)
+            cast(dict[str, Any], item["deployment"])["request"]["principal"]["id"] != str(args.owner_uid)
             for item in scoped_operations(operation).values()
         ):
             raise ValueError("review mismatch")
