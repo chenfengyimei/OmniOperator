@@ -48,8 +48,6 @@ from .model_calls import ModelCalls
 from .ports import (
     Clock,
     DatabasePort,
-    ExtensionCapabilityPort,
-    MCPCapabilityPort,
     Observer,
     Record,
     RunCapabilityPort,
@@ -91,8 +89,6 @@ class Application:
         close_s: float = 30,
         workspace_validator: Callable[[str], None] | None = None,
         delivery_cancellation: Callable[[list[str]], None] | None = None,
-        extensions: ExtensionCapabilityPort | None = None,
-        mcp: MCPCapabilityPort | None = None,
         owner_capabilities: tuple[Capability, ...] = (),
         plugins: tuple[CapabilityPlugin, ...] = (),
         images: ImageService | None = None,
@@ -111,15 +107,9 @@ class Application:
         self._tools, self._owner_tools = self._capabilities.tools, self._capabilities.owner_tools
         for plugin in plugins:
             self._capabilities.register(plugin)
-        if extensions is not None:
-            self._capabilities.register_provider("extension", extensions)
-        if mcp is not None:
-            self._capabilities.register_provider("mcp", mcp)
         self._concurrency, self._close_s = concurrency, close_s
         self._workspace_validator = workspace_validator
         self._delivery_cancellation = delivery_cancellation
-        self._extensions = extensions
-        self._mcp = mcp
         self._images = images
         self._memory_semantics = memory_semantics
         self._skills = skills
@@ -159,10 +149,12 @@ class Application:
             raise ValueError("Capabilities must be attached before start")
         self._capabilities.register(plugin)
 
-    def attach_provider(self, plugin_id: str, adapter: RunCapabilityPort) -> None:
+    def attach_provider(
+        self, plugin_id: str, adapter: RunCapabilityPort, *, review_quiescent: Callable[[Record], bool] | None = None
+    ) -> None:
         if self._closing:
             raise ValueError("Capabilities must be attached before start")
-        self._capabilities.register_provider(plugin_id, adapter)
+        self._capabilities.register_provider(plugin_id, adapter, review_quiescent=review_quiescent)
 
     async def start(self) -> None:
         if self._dispatcher or self._starting:
@@ -219,12 +211,10 @@ class Application:
         proof = record.get("proof")
         source = proof.get("source") if isinstance(proof, dict) else None
         if isinstance(source, dict) and source.get("kind") == "plugin":
-            if self._extensions is None or not self._extensions.review_quiescent(
-                str(record["agent_id"]), str(source["extension_id"]), self._revision(source["authority_epoch"])
-            ):
+            if not self._capabilities.provider_quiescent("extension", record):
                 blockers.append("action_worker_active")
         elif str(record["tool"]).startswith("mcp__"):
-            if self._mcp is None or not self._mcp.quiescent():
+            if not self._capabilities.provider_quiescent("mcp", record):
                 blockers.append("action_worker_active")
         else:
             cap = self._tools.get(str(record["tool"])) or self._owner_tools.get(str(record["tool"]))

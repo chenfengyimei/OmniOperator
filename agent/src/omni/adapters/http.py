@@ -58,12 +58,11 @@ from .http_routes.bilibili import BilibiliProfileInput as BilibiliProfileInput
 from .http_routes.bilibili import BilibiliPublicationInput as BilibiliPublicationInput
 from .http_routes.bilibili import BilibiliReadInput as BilibiliReadInput
 from .http_routes.desktop import require_desktop_services
-from .http_routes.extensions import extensions_router
+from .http_routes.extensions import require_extension_service
 from .http_routes.media import MediaJobInput as MediaJobInput
 from .http_routes.media import MediaSourceInput as MediaSourceInput
 from .http_routes.media import MediaUploadSourceInput as MediaUploadSourceInput
 from .http_routes.qq import QQBindingInput as QQBindingInput
-from .http_routes.skills import skills_router
 from .log_query import LogQuery
 
 log = logging.getLogger("omni.v2.http")
@@ -90,7 +89,6 @@ class HttpRuntime:
     background_review: BackgroundReviewService
     reflections: ReflectionService
     persona_growth: PersonaGrowthService
-    extensions: ExtensionService
     action_reviews: ActionReviewService
     terminals: TerminalService
     terminal_reviews: TerminalReviewService
@@ -101,16 +99,28 @@ class HttpRuntime:
     # 本机免粘贴引导：只在回环地址 + 同源时下发所有者令牌，让「启动即用」回到 V1 体验。
     # 默认 None 表示关闭；远程绑定与跨源请求一律拿不到，API 鉴权强度不变。
     local_owner_token: Callable[[], str] | None = None
-    mcp: MCPService | None = None
     feature_services: Mapping[str, object] = field(default_factory=dict[str, object])
     images: ImageService | None = None
     routing: RoutingService | None = None
     memory_semantics: MemorySemanticService | None = None
-    skills: SkillService | None = None
     # 连接测试复用当前模型适配器；离线实例的适配器会明确拒绝真实调用。
     model_port: object | None = None
 
     # Existing runtime accessors resolve the same services as the mounted feature.
+    @property
+    def skills(self) -> SkillService | None:
+        service = self.feature_services.get("skills")
+        return service if isinstance(service, SkillService) else None
+
+    @property
+    def extensions(self) -> ExtensionService:
+        return require_extension_service(self.feature_services)
+
+    @property
+    def mcp(self) -> MCPService | None:
+        service = self.feature_services.get("mcp")
+        return service if isinstance(service, MCPService) else None
+
     @property
     def desktop(self) -> DesktopService:
         return require_desktop_services(self.feature_services).observations
@@ -178,34 +188,6 @@ class DeliveryInput(StrictInput):
     key: str = Field(min_length=1, max_length=200)
     parent_id: uuid.UUID | None = None
     acknowledge_duplicate: bool = Field(default=False, strict=True)
-
-
-class MCPConnectInput(StrictInput):
-    revision: int = Field(ge=1, strict=True)
-
-
-class MCPToolAuthorizationInput(StrictInput):
-    tool_id: uuid.UUID
-    read_only: bool = Field(strict=True)
-
-
-class MCPAuthorizationInput(StrictInput):
-    catalog_fingerprint: str = Field(pattern=r"^[a-f0-9]{64}$")
-    tools: list[MCPToolAuthorizationInput] = Field(
-        default_factory=cast(Callable[[], list[MCPToolAuthorizationInput]], list), max_length=256
-    )
-    evidence: str = Field(min_length=1, max_length=200)
-
-
-class MCPToolDecisionInput(StrictInput):
-    catalog_fingerprint: str = Field(pattern=r"^[a-f0-9]{64}$")
-    read_only: bool = Field(default=False, strict=True)
-    authorized: bool = Field(default=True, strict=True)
-    evidence: str = Field(min_length=1, max_length=200)
-
-
-class MCPOAuthStartInput(StrictInput):
-    redirect_uri: str = Field(default="", max_length=2000)
 
 
 class DeliveryDecision(StrictInput):
@@ -527,89 +509,6 @@ def create_app(
         if operation is None:
             raise BusinessError("owner_token_unavailable", "Owner token rotation is unavailable", status=503)
         return await operation()
-
-    def mcp_service(request: Request) -> MCPService:
-        service = runtime(request).mcp
-        if service is None:
-            raise BusinessError("mcp_unavailable", "MCP capability is unavailable", status=503)
-        return service
-
-    @router.get("/agents/{agent_id}/mcp/servers")
-    async def mcp_servers(agent_id: uuid.UUID, request: Request):
-        return await mcp_service(request).servers(str(agent_id))
-
-    @router.get("/agents/{agent_id}/mcp/servers/{config_id}")
-    async def mcp_server(agent_id: uuid.UUID, config_id: uuid.UUID, request: Request):
-        return await mcp_service(request).server(str(agent_id), str(config_id))
-
-    @router.post("/agents/{agent_id}/mcp/servers/{config_id}/connect")
-    async def mcp_connect(agent_id: uuid.UUID, config_id: uuid.UUID, request: Request):
-        data = configuration_input(MCPConnectInput, await bounded_configuration(request, 1024, strict=True))
-        return await mcp_service(request).connect(str(agent_id), str(config_id), data.revision)
-
-    @router.post("/agents/{agent_id}/mcp/servers/{config_id}/disconnect")
-    async def mcp_disconnect(agent_id: uuid.UUID, config_id: uuid.UUID, request: Request):
-        return await mcp_service(request).disconnect(str(agent_id), str(config_id))
-
-    @router.post("/agents/{agent_id}/mcp/servers/{config_id}/reset")
-    async def mcp_reset(agent_id: uuid.UUID, config_id: uuid.UUID, request: Request):
-        return await mcp_service(request).reset(str(agent_id), str(config_id))
-
-    @router.get("/agents/{agent_id}/mcp/servers/{config_id}/catalog")
-    async def mcp_catalog(
-        agent_id: uuid.UUID,
-        config_id: uuid.UUID,
-        request: Request,
-        after: int = Query(default=-1, ge=-1),
-        limit: int = Query(default=20, ge=1, le=100),
-    ):
-        return await mcp_service(request).catalog(str(agent_id), str(config_id), after, limit)
-
-    @router.put("/agents/{agent_id}/mcp/servers/{config_id}/authorization")
-    async def mcp_authorize(agent_id: uuid.UUID, config_id: uuid.UUID, request: Request):
-        data = configuration_input(MCPAuthorizationInput, await bounded_configuration(request, 65536, strict=True))
-        return await mcp_service(request).authorize(
-            str(agent_id),
-            str(config_id),
-            {
-                "catalog_fingerprint": data.catalog_fingerprint,
-                "tools": [{"tool_id": str(item.tool_id), "read_only": item.read_only} for item in data.tools],
-                "evidence": data.evidence,
-            },
-        )
-
-    @router.put("/agents/{agent_id}/mcp/servers/{config_id}/tools/{tool_id}/authorization")
-    async def mcp_authorize_tool(agent_id: uuid.UUID, config_id: uuid.UUID, tool_id: uuid.UUID, request: Request):
-        data = configuration_input(MCPToolDecisionInput, await bounded_configuration(request, 4096, strict=True))
-        return await mcp_service(request).authorize_tool(
-            str(agent_id),
-            str(config_id),
-            str(tool_id),
-            authorized=data.authorized,
-            read_only=data.read_only,
-            catalog_fingerprint=data.catalog_fingerprint,
-            evidence=data.evidence,
-        )
-
-    @router.get("/agents/{agent_id}/mcp/servers/{config_id}/calls")
-    async def mcp_calls(
-        agent_id: uuid.UUID,
-        config_id: uuid.UUID,
-        request: Request,
-        after: uuid.UUID | None = None,
-        limit: int = Query(default=50, ge=1, le=100),
-    ):
-        return await mcp_service(request).calls(str(agent_id), str(config_id), str(after) if after else "", limit)
-
-    @router.post("/agents/{agent_id}/mcp/servers/{config_id}/oauth/start")
-    async def mcp_oauth_start(agent_id: uuid.UUID, config_id: uuid.UUID, request: Request):
-        data = configuration_input(MCPOAuthStartInput, await bounded_configuration(request, 4096, strict=True))
-        redirect = data.redirect_uri or str(request.base_url).rstrip("/") + "/oauth/callback"
-        return await mcp_service(request).oauth_start(str(agent_id), str(config_id), redirect)
-
-    @router.get("/agents/{agent_id}/mcp/health")
-    async def mcp_health(agent_id: uuid.UUID, request: Request):
-        return mcp_service(request).health()
 
     @router.get("/agents")
     async def agents(request: Request):
@@ -1500,9 +1399,6 @@ def create_app(
         return await runtime(request).action_reviews.review(
             str(agent_id), str(action_id), await bounded_configuration(request, 16384)
         )
-
-    router.include_router(extensions_router(runtime, bounded_configuration))
-    router.include_router(skills_router(runtime))
 
     @router.get("/agents/{agent_id}/memory")
     async def memories(agent_id: uuid.UUID, request: Request, q: str = Query(default="", max_length=500)):

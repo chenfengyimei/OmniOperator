@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from types import MappingProxyType
 
 from ..domain.contracts import BusinessError, ToolSpec
-from .ports import CapabilityPort, RunCapabilityPort
+from .ports import CapabilityPort, Record, RunCapabilityPort
 
 
 @dataclass(frozen=True)
@@ -27,6 +27,13 @@ class CapabilityPlugin:
     own_adapters: bool = True
 
 
+@dataclass(frozen=True)
+class RunCapabilityProvider:
+    id: str
+    adapter: RunCapabilityPort
+    review_quiescent: Callable[[Record], bool] | None = None
+
+
 class CapabilityRegistry:
     def __init__(
         self,
@@ -42,7 +49,7 @@ class CapabilityRegistry:
         self._ids: set[str] = set()
         self._owned: dict[int, CapabilityPort] = {}
         self._borrowed: set[int] = set()
-        self._providers: dict[str, RunCapabilityPort] = {}
+        self._providers: dict[str, RunCapabilityProvider] = {}
         self._sealed = False
         self._register(CapabilityPlugin("injected", injected, owner), reserved=frozenset())
 
@@ -78,14 +85,20 @@ class CapabilityRegistry:
             self._borrowed.update(adapters)
         self._ids.add(plugin.id)
 
-    def register_provider(self, plugin_id: str, adapter: RunCapabilityPort) -> None:
+    def register_provider(
+        self, plugin_id: str, adapter: RunCapabilityPort, *, review_quiescent: Callable[[Record], bool] | None = None
+    ) -> None:
         """Register a provider whose service lifecycle is owned by instance composition."""
         self._check_id(plugin_id)
         if id(adapter) in self._owned:
             raise ValueError("A capability adapter must have one lifecycle owner")
-        self._providers[plugin_id] = adapter
+        self._providers[plugin_id] = RunCapabilityProvider(plugin_id, adapter, review_quiescent)
         self._borrowed.add(id(adapter))
         self._ids.add(plugin_id)
+
+    def provider_quiescent(self, plugin_id: str, record: Record) -> bool:
+        provider = self._providers.get(plugin_id)
+        return provider is not None and provider.review_quiescent is not None and provider.review_quiescent(record)
 
     def seal(self) -> None:
         self._sealed = True
@@ -93,13 +106,13 @@ class CapabilityRegistry:
     async def capture(self, agent_id: str, run_id: str, controls: tuple[Capability, ...]) -> dict[str, Capability]:
         tools = dict(self.tools)
         tools.update((cap.spec.name, cap) for cap in controls)
-        for plugin_id, adapter in self._providers.items():
-            for spec in await adapter.tools_for_run(agent_id, run_id):
+        for provider in self._providers.values():
+            for spec in await provider.adapter.tools_for_run(agent_id, run_id):
                 if spec.name in tools or spec.name in self._reserved or spec.name in self.owner_tools:
                     raise BusinessError(
-                        f"{plugin_id}_tool_collision", "Provider tool conflicts with a registered capability"
+                        f"{provider.id}_tool_collision", "Provider tool conflicts with a registered capability"
                     )
-                tools[spec.name] = Capability(spec, adapter)
+                tools[spec.name] = Capability(spec, provider.adapter)
         return tools
 
     def owned_adapters(self) -> tuple[CapabilityPort, ...]:

@@ -27,12 +27,8 @@ from ..adapters.build_identity import CODE_CACHE_DIRS, CODE_SUFFIXES, LAYERS
 from ..adapters.credentials import Credentials
 from ..adapters.diagnostic_bundle import DiagnosticFiles
 from ..adapters.diagnostics import JsonLogSink, LoggingSession, bind_context
-from ..adapters.extensions.hosts import ExtensionHosts
-from ..adapters.extensions.packages import ExtensionPackages
 from ..adapters.images import ImageCodec
 from ..adapters.local_vectors import configured_vectors
-from ..adapters.mcp.hosts import MCPHosts
-from ..adapters.mcp.oauth import OAuthFlow
 from ..adapters.metrics import Metrics
 from ..adapters.native_credentials import NativeCredentials
 from ..adapters.object_store import ObjectFiles
@@ -41,7 +37,6 @@ from ..adapters.persistence.deployed_instance import verify_deployed_instance
 from ..adapters.persona_files import PersonaGrowthFiles
 from ..adapters.primitives import SystemClock, UUIDs
 from ..adapters.process_diagnostics import ProcessDiagnostics
-from ..adapters.skill_packages import SkillPackages
 from ..adapters.token_counter import ConservativeTokenCounter
 from ..adapters.visual import ImageObjectFrames, MediaFrameSheets, ModelCallsVisualModelFactory
 from ..application.action_review import ActionReviewService
@@ -102,9 +97,7 @@ from ..application.todos import TodoService
 from ..application.visual_subagent import VISUAL_SUBAGENT, VisualSubagentCapabilities, VisualSubagentService
 from ..domain.background_review import READ_TOOLS
 from ..domain.contracts import JSON, ActionResult, BusinessError, InvocationContext, Outcome
-from ..domain.mcp import ServerTarget
 from ..domain.memory_decay import DECAY_DAILY_HOUR
-from ..domain.skills import SKILL_SPECS
 from .capabilities import builtin_plugins
 from .channel_providers import register_channel_providers
 from .features import FeatureContext, FeaturePlugin, KernelFeatureContext, install_features
@@ -413,21 +406,11 @@ async def open_instance(
         lifetime.own("object_store", 2, lambda _: files.close())
         objects = ObjectService(database, files, clock)
         lifetime.own("object_store", 2, objects.close)
-        skill_packages = SkillPackages()
-        lifetime.own("skill_packages", 1, skill_packages.close)
         platform = platform_provider(sys.platform)
-        skills = SkillService(database, objects, skill_packages, platform.skill_platform)
-        lifetime.own("skills", 0, skills.close, skills.stop_accepting)
         image_codec = ImageCodec()
         lifetime.own("image_codec", 1, image_codec.close, image_codec.stop_accepting)
         images = ImageService(database, objects, image_codec)
         lifetime.own("images", 0, images.close, images.stop_accepting)
-        extension_packages = ExtensionPackages(paths.home / "cache" / "extensions")
-        lifetime.own("extension_packages", 1, extension_packages.close)
-        extension_hosts = ExtensionHosts(str(paths.control / "extension-artifacts"))
-        lifetime.own("extension_hosts", 0, extension_hosts.close, extension_hosts.stop_accepting)
-        extensions = ExtensionService(database, objects, extension_packages, extension_hosts)
-        lifetime.own("extensions", 0, extensions.close, extensions.stop_accepting)
         people = PeopleService(database, objects)
         validate_workspace = WorkspacePolicy(paths.home, source).validate
         platform_io = platform.register(
@@ -506,6 +489,7 @@ async def open_instance(
             FeatureContext(
                 lifetime=lifetime,
                 database=database,
+                home=paths.home,
                 control=paths.control,
                 boot_id=boot_id,
                 objects=objects,
@@ -517,16 +501,22 @@ async def open_instance(
                 secrets=credential_io,
                 channels=channels,
                 platform=platform_io,
+                skill_platform=platform.skill_platform,
+                redact_secret=sink.redactor.register,
                 accepting=accepting,
                 default_tools=capabilities is None,
                 android_backend=android_backend,
                 media_processor=media_processor,
+                mcp_transport=mcp_transport,
             ),
         )
         media = features.require("media", MediaService)
         android = features.require("android", AndroidService)
         bilibili = features.require("bilibili", BilibiliService)
         desktop = features.require("desktop", DesktopServices)
+        skills = features.require("skills", SkillService)
+        extensions = features.require("extensions", ExtensionService)
+        mcp = features.require("mcp", MCPService)
         visual = VisualSubagentService(
             database,
             ImageObjectFrames(objects, images),
@@ -540,54 +530,10 @@ async def open_instance(
         credentials = CredentialService(database, credential_io, ids, deliveries.cancel_active, observation)
         lifetime.own("credential_changes", 0, credentials.close, credentials.stop_accepting)
 
-        oauth_flow = OAuthFlow(credential_io, redact=sink.redactor.register)
-
-        async def mcp_authorization(target: ServerTarget) -> str:
-            if target.auth_mode == "none":
-                return ""
-            if target.auth_mode == "oauth":
-                token = await oauth_flow.tokens.access_token(target.server_id)
-                if token:
-                    return token
-            if not target.credential_ref:
-                return ""
-            raw = await credential_io.get(target.credential_ref)
-            if not raw:
-                return ""
-            try:
-                parsed: object = json.loads(raw)
-            except (ValueError, TypeError):
-                return raw
-            if isinstance(parsed, dict):
-                fields = cast(dict[str, object], parsed)
-                return str(fields.get("access_token") or "")
-            return raw
-
-        mcp = MCPService(
-            database,
-            mcp_transport
-            if mcp_transport is not None
-            else MCPHosts(mcp_authorization, cwd=str(paths.control), oauth=oauth_flow),
-            clock,
-        )
-        lifetime.own("mcp", 0, mcp.close, mcp.stop_accepting)
-        # Calls owned by the previous process never replay: a prepared call was not
-        # dispatched and a dispatched call stays unknown until the owner verifies it.
-        mcp_recovered = await mcp.recover()
-        if any(mcp_recovered.values()):
-            logging.getLogger("omni.v2.startup").warning(
-                "MCP records from the previous process were reconciled",
-                extra={"event": "mcp.restart_reconciled", **mcp_recovered},
-            )
         plugins = features.capabilities
         if capabilities is None:
             plugins = (
                 *builtin_plugins(database, documents, memory_semantics),
-                CapabilityPlugin(
-                    "skills",
-                    tuple(Capability(spec, skills, lambda: skills.health()["pending"] == 0) for spec in SKILL_SPECS),
-                    own_adapters=False,
-                ),
                 *plugins,
                 CapabilityPlugin(
                     "vision",
@@ -641,8 +587,6 @@ async def open_instance(
             observation,
             workspace_validator=validate_workspace,
             delivery_cancellation=deliveries.cancel_active,
-            extensions=extensions,
-            mcp=mcp,
             images=images,
             memory_semantics=memory_semantics,
             skills=skills,
@@ -676,6 +620,8 @@ async def open_instance(
         qq = kernel_features.require("qq", QQService)
         for plugin in kernel_features.capabilities:
             application.attach_plugin(plugin)
+        for provider in (*features.providers, *kernel_features.providers):
+            application.attach_provider(provider.id, provider.adapter, review_quiescent=provider.review_quiescent)
         action_reviews = ActionReviewService(database, application.action_review_blockers, schedules.notify)
         lifetime.own("action_reviews", 0, action_reviews.close, action_reviews.stop_accepting)
         diagnostic = DiagnosticFiles(paths, sink)

@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "9c064dbdff3afaa95aea55d417117d131b8db4966df7c20b8dafaf2a41518402",
+  "source_sha256": "8c0ea1dd988bff998ffc5a4e25d726f2fa1d917e845ad6ec74a73bcbddb2c14d",
   "modules": [
     {
       "id": "v2-domain",
@@ -174,7 +174,7 @@
         "agent/src/omni/application/todos.py",
         "agent/src/omni/application/visual_subagent.py"
       ],
-      "lines": 14954,
+      "lines": 14957,
       "dependencies": [
         "v2-domain"
       ]
@@ -216,6 +216,7 @@
         "agent/src/omni/adapters/http_routes/bilibili.py",
         "agent/src/omni/adapters/http_routes/desktop.py",
         "agent/src/omni/adapters/http_routes/extensions.py",
+        "agent/src/omni/adapters/http_routes/mcp.py",
         "agent/src/omni/adapters/http_routes/media.py",
         "agent/src/omni/adapters/http_routes/qq.py",
         "agent/src/omni/adapters/http_routes/schedules.py",
@@ -534,7 +535,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 72901,
+      "lines": 72939,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -566,9 +567,12 @@
         "agent/src/omni/composition/features/bilibili.py",
         "agent/src/omni/composition/features/catalog.py",
         "agent/src/omni/composition/features/desktop.py",
+        "agent/src/omni/composition/features/extensions.py",
+        "agent/src/omni/composition/features/mcp.py",
         "agent/src/omni/composition/features/media.py",
         "agent/src/omni/composition/features/qq.py",
         "agent/src/omni/composition/features/schedules.py",
+        "agent/src/omni/composition/features/skills.py",
         "agent/src/omni/composition/http.py",
         "agent/src/omni/composition/instance.py",
         "agent/src/omni/composition/lifecycle.py",
@@ -582,7 +586,7 @@
         "agent/src/omni/composition/service_runner.py",
         "agent/src/omni/composition/serving.py"
       ],
-      "lines": 3784,
+      "lines": 3858,
       "dependencies": [
         "v2-adapters",
         "v2-application",
@@ -4798,7 +4802,7 @@
       "module": "v2-adapters",
       "version": "V2",
       "python_module": "omni.adapters.http",
-      "lines": 1837,
+      "lines": 1733,
       "imports": [
         "omni.adapters.diagnostics",
         "omni.adapters.http_events",
@@ -4808,7 +4812,6 @@
         "omni.adapters.http_routes.extensions",
         "omni.adapters.http_routes.media",
         "omni.adapters.http_routes.qq",
-        "omni.adapters.http_routes.skills",
         "omni.adapters.log_query",
         "omni.application.action_review",
         "omni.application.background_review",
@@ -4847,12 +4850,39 @@
       "symbols": [
         {
           "name": "HttpRuntime",
-          "line": 74,
+          "line": 73,
           "kind": "class"
         },
         {
+          "name": "HttpRuntime.skills",
+          "line": 111,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "HttpRuntime.extensions",
+          "line": 116,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "HttpRuntime.mcp",
+          "line": 120,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
           "name": "HttpRuntime.desktop",
-          "line": 115,
+          "line": 125,
           "kind": "function",
           "parameters": [
             "self"
@@ -4861,7 +4891,7 @@
         },
         {
           "name": "HttpRuntime.desktop_portal",
-          "line": 119,
+          "line": 129,
           "kind": "function",
           "parameters": [
             "self"
@@ -4870,7 +4900,7 @@
         },
         {
           "name": "HttpRuntime.desktop_control",
-          "line": 123,
+          "line": 133,
           "kind": "function",
           "parameters": [
             "self"
@@ -4879,7 +4909,7 @@
         },
         {
           "name": "HttpRuntime.desktop_actions",
-          "line": 127,
+          "line": 137,
           "kind": "function",
           "parameters": [
             "self"
@@ -4888,177 +4918,152 @@
         },
         {
           "name": "AgentInput",
-          "line": 131,
+          "line": 141,
           "kind": "class"
         },
         {
           "name": "AgentRenameInput",
-          "line": 135,
+          "line": 145,
           "kind": "class"
         },
         {
           "name": "TurnInput",
-          "line": 139,
+          "line": 149,
           "kind": "class"
         },
         {
           "name": "RoutingInput",
-          "line": 148,
-          "kind": "class"
-        },
-        {
-          "name": "SettingsInput",
-          "line": 153,
-          "kind": "class"
-        },
-        {
-          "name": "ConfigurationInput",
           "line": 158,
           "kind": "class"
         },
         {
+          "name": "SettingsInput",
+          "line": 163,
+          "kind": "class"
+        },
+        {
+          "name": "ConfigurationInput",
+          "line": 168,
+          "kind": "class"
+        },
+        {
           "name": "ConfigurationEdit",
-          "line": 166,
+          "line": 176,
           "kind": "class"
         },
         {
           "name": "DeliveryInput",
-          "line": 174,
-          "kind": "class"
-        },
-        {
-          "name": "MCPConnectInput",
-          "line": 183,
-          "kind": "class"
-        },
-        {
-          "name": "MCPToolAuthorizationInput",
-          "line": 187,
-          "kind": "class"
-        },
-        {
-          "name": "MCPAuthorizationInput",
-          "line": 192,
-          "kind": "class"
-        },
-        {
-          "name": "MCPToolDecisionInput",
-          "line": 200,
-          "kind": "class"
-        },
-        {
-          "name": "MCPOAuthStartInput",
-          "line": 207,
+          "line": 184,
           "kind": "class"
         },
         {
           "name": "DeliveryDecision",
-          "line": 211,
+          "line": 193,
           "kind": "class"
         },
         {
           "name": "DeliveryReview",
-          "line": 217,
+          "line": 199,
           "kind": "class"
         },
         {
           "name": "DebugInput",
-          "line": 224,
+          "line": 206,
           "kind": "class"
         },
         {
           "name": "ApprovalInput",
-          "line": 228,
+          "line": 210,
           "kind": "class"
         },
         {
           "name": "ClarifyRespondInput",
-          "line": 233,
+          "line": 215,
           "kind": "class"
         },
         {
           "name": "ClarifyCancelInput",
-          "line": 239,
+          "line": 221,
           "kind": "class"
         },
         {
           "name": "MemoryInput",
-          "line": 244,
+          "line": 226,
           "kind": "class"
         },
         {
           "name": "SourceDocumentInput",
-          "line": 252,
+          "line": 234,
           "kind": "class"
         },
         {
           "name": "SourceDocumentImport",
-          "line": 259,
+          "line": 241,
           "kind": "class"
         },
         {
           "name": "SourceIndexInput",
-          "line": 266,
+          "line": 248,
           "kind": "class"
         },
         {
           "name": "CredentialInput",
-          "line": 270,
+          "line": 252,
           "kind": "class"
         },
         {
           "name": "CredentialRegistration",
-          "line": 274,
+          "line": 256,
           "kind": "class"
         },
         {
           "name": "CredentialReview",
-          "line": 278,
+          "line": 260,
           "kind": "class"
         },
         {
           "name": "ObjectPinInput",
-          "line": 287,
+          "line": 269,
           "kind": "class"
         },
         {
           "name": "RunPinInput",
-          "line": 292,
+          "line": 274,
           "kind": "class"
         },
         {
           "name": "PersonInput",
-          "line": 297,
+          "line": 279,
           "kind": "class"
         },
         {
           "name": "PersonEdit",
-          "line": 301,
+          "line": 283,
           "kind": "class"
         },
         {
           "name": "AccountInput",
-          "line": 305,
+          "line": 287,
           "kind": "class"
         },
         {
           "name": "DocumentVersion",
-          "line": 310,
+          "line": 292,
           "kind": "class"
         },
         {
           "name": "DocumentInput",
-          "line": 315,
+          "line": 297,
           "kind": "class"
         },
         {
           "name": "DocumentImport",
-          "line": 319,
+          "line": 301,
           "kind": "class"
         },
         {
           "name": "create_app",
-          "line": 323,
+          "line": 305,
           "kind": "function",
           "parameters": [
             "factory",
@@ -5073,7 +5078,7 @@
         },
         {
           "name": "create_app.lifespan",
-          "line": 333,
+          "line": 315,
           "kind": "function",
           "parameters": [
             "app"
@@ -5084,7 +5089,7 @@
         },
         {
           "name": "create_app.runtime",
-          "line": 346,
+          "line": 328,
           "kind": "function",
           "parameters": [
             "request"
@@ -5095,7 +5100,7 @@
         },
         {
           "name": "create_app.authenticate",
-          "line": 349,
+          "line": 331,
           "kind": "function",
           "parameters": [
             "request"
@@ -5106,7 +5111,7 @@
         },
         {
           "name": "create_app.boundary",
-          "line": 355,
+          "line": 337,
           "kind": "function",
           "parameters": [
             "request",
@@ -5119,7 +5124,7 @@
         },
         {
           "name": "create_app.business_error",
-          "line": 385,
+          "line": 367,
           "kind": "function",
           "parameters": [
             "request",
@@ -5132,7 +5137,7 @@
         },
         {
           "name": "create_app.internal_error",
-          "line": 399,
+          "line": 381,
           "kind": "function",
           "parameters": [
             "request",
@@ -5145,14 +5150,14 @@
         },
         {
           "name": "create_app.live",
-          "line": 418,
+          "line": 400,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "create_app.ready",
-          "line": 422,
+          "line": 404,
           "kind": "function",
           "parameters": [
             "request"
@@ -5163,7 +5168,7 @@
         },
         {
           "name": "create_app.identity_proof",
-          "line": 427,
+          "line": 409,
           "kind": "function",
           "parameters": [
             "request",
@@ -5176,7 +5181,7 @@
         },
         {
           "name": "create_app.drain",
-          "line": 438,
+          "line": 420,
           "kind": "function",
           "parameters": [
             "request"
@@ -5187,7 +5192,7 @@
         },
         {
           "name": "create_app.oauth_callback",
-          "line": 451,
+          "line": 433,
           "kind": "function",
           "parameters": [
             "request",
@@ -5204,7 +5209,7 @@
         },
         {
           "name": "create_app.oauth_callback.page",
-          "line": 459,
+          "line": 441,
           "kind": "function",
           "parameters": [
             "message"
@@ -5215,7 +5220,7 @@
         },
         {
           "name": "create_app.version",
-          "line": 482,
+          "line": 464,
           "kind": "function",
           "parameters": [
             "request"
@@ -5226,7 +5231,7 @@
         },
         {
           "name": "create_app.capabilities",
-          "line": 486,
+          "line": 468,
           "kind": "function",
           "parameters": [
             "request"
@@ -5237,7 +5242,7 @@
         },
         {
           "name": "create_app.owner_token_local",
-          "line": 492,
+          "line": 474,
           "kind": "function",
           "parameters": [
             "request"
@@ -5248,7 +5253,7 @@
         },
         {
           "name": "create_app.owner_token_sessions",
-          "line": 518,
+          "line": 500,
           "kind": "function",
           "parameters": [
             "request"
@@ -5259,200 +5264,18 @@
         },
         {
           "name": "create_app.owner_token_rotate",
-          "line": 525,
+          "line": 507,
           "kind": "function",
           "parameters": [
             "request"
           ],
           "annotations": {
-            "request": "Request"
-          }
-        },
-        {
-          "name": "create_app.mcp_service",
-          "line": 531,
-          "kind": "function",
-          "parameters": [
-            "request"
-          ],
-          "annotations": {
-            "request": "Request"
-          }
-        },
-        {
-          "name": "create_app.mcp_servers",
-          "line": 538,
-          "kind": "function",
-          "parameters": [
-            "agent_id",
-            "request"
-          ],
-          "annotations": {
-            "agent_id": "uuid.UUID",
-            "request": "Request"
-          }
-        },
-        {
-          "name": "create_app.mcp_server",
-          "line": 542,
-          "kind": "function",
-          "parameters": [
-            "agent_id",
-            "config_id",
-            "request"
-          ],
-          "annotations": {
-            "agent_id": "uuid.UUID",
-            "config_id": "uuid.UUID",
-            "request": "Request"
-          }
-        },
-        {
-          "name": "create_app.mcp_connect",
-          "line": 546,
-          "kind": "function",
-          "parameters": [
-            "agent_id",
-            "config_id",
-            "request"
-          ],
-          "annotations": {
-            "agent_id": "uuid.UUID",
-            "config_id": "uuid.UUID",
-            "request": "Request"
-          }
-        },
-        {
-          "name": "create_app.mcp_disconnect",
-          "line": 551,
-          "kind": "function",
-          "parameters": [
-            "agent_id",
-            "config_id",
-            "request"
-          ],
-          "annotations": {
-            "agent_id": "uuid.UUID",
-            "config_id": "uuid.UUID",
-            "request": "Request"
-          }
-        },
-        {
-          "name": "create_app.mcp_reset",
-          "line": 555,
-          "kind": "function",
-          "parameters": [
-            "agent_id",
-            "config_id",
-            "request"
-          ],
-          "annotations": {
-            "agent_id": "uuid.UUID",
-            "config_id": "uuid.UUID",
-            "request": "Request"
-          }
-        },
-        {
-          "name": "create_app.mcp_catalog",
-          "line": 559,
-          "kind": "function",
-          "parameters": [
-            "agent_id",
-            "config_id",
-            "request",
-            "after",
-            "limit"
-          ],
-          "annotations": {
-            "agent_id": "uuid.UUID",
-            "config_id": "uuid.UUID",
-            "request": "Request",
-            "after": "int",
-            "limit": "int"
-          }
-        },
-        {
-          "name": "create_app.mcp_authorize",
-          "line": 569,
-          "kind": "function",
-          "parameters": [
-            "agent_id",
-            "config_id",
-            "request"
-          ],
-          "annotations": {
-            "agent_id": "uuid.UUID",
-            "config_id": "uuid.UUID",
-            "request": "Request"
-          }
-        },
-        {
-          "name": "create_app.mcp_authorize_tool",
-          "line": 582,
-          "kind": "function",
-          "parameters": [
-            "agent_id",
-            "config_id",
-            "tool_id",
-            "request"
-          ],
-          "annotations": {
-            "agent_id": "uuid.UUID",
-            "config_id": "uuid.UUID",
-            "tool_id": "uuid.UUID",
-            "request": "Request"
-          }
-        },
-        {
-          "name": "create_app.mcp_calls",
-          "line": 595,
-          "kind": "function",
-          "parameters": [
-            "agent_id",
-            "config_id",
-            "request",
-            "after",
-            "limit"
-          ],
-          "annotations": {
-            "agent_id": "uuid.UUID",
-            "config_id": "uuid.UUID",
-            "request": "Request",
-            "after": "uuid.UUID | None",
-            "limit": "int"
-          }
-        },
-        {
-          "name": "create_app.mcp_oauth_start",
-          "line": 605,
-          "kind": "function",
-          "parameters": [
-            "agent_id",
-            "config_id",
-            "request"
-          ],
-          "annotations": {
-            "agent_id": "uuid.UUID",
-            "config_id": "uuid.UUID",
-            "request": "Request"
-          }
-        },
-        {
-          "name": "create_app.mcp_health",
-          "line": 611,
-          "kind": "function",
-          "parameters": [
-            "agent_id",
-            "request"
-          ],
-          "annotations": {
-            "agent_id": "uuid.UUID",
             "request": "Request"
           }
         },
         {
           "name": "create_app.agents",
-          "line": 615,
+          "line": 514,
           "kind": "function",
           "parameters": [
             "request"
@@ -5463,7 +5286,7 @@
         },
         {
           "name": "create_app.create_agent",
-          "line": 619,
+          "line": 518,
           "kind": "function",
           "parameters": [
             "request"
@@ -5474,7 +5297,7 @@
         },
         {
           "name": "create_app.get_agent",
-          "line": 624,
+          "line": 523,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -5487,7 +5310,7 @@
         },
         {
           "name": "create_app.rename_agent",
-          "line": 628,
+          "line": 527,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -5500,7 +5323,7 @@
         },
         {
           "name": "create_app.delivery_channels",
-          "line": 633,
+          "line": 532,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -5517,7 +5340,7 @@
         },
         {
           "name": "create_app.delivery_capabilities",
-          "line": 642,
+          "line": 541,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -5530,7 +5353,7 @@
         },
         {
           "name": "create_app.deliveries",
-          "line": 646,
+          "line": 545,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -5549,7 +5372,7 @@
         },
         {
           "name": "create_app.create_delivery",
-          "line": 657,
+          "line": 556,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -5562,7 +5385,7 @@
         },
         {
           "name": "create_app.delivery",
-          "line": 670,
+          "line": 569,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -5577,7 +5400,7 @@
         },
         {
           "name": "create_app.delivery_attempts",
-          "line": 674,
+          "line": 573,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -5596,7 +5419,7 @@
         },
         {
           "name": "create_app.decide_delivery",
-          "line": 685,
+          "line": 584,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -5611,7 +5434,7 @@
         },
         {
           "name": "create_app.cancel_delivery",
-          "line": 692,
+          "line": 591,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -5626,7 +5449,7 @@
         },
         {
           "name": "create_app.review_delivery",
-          "line": 696,
+          "line": 595,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -5641,7 +5464,7 @@
         },
         {
           "name": "create_app.archive_delivery",
-          "line": 703,
+          "line": 602,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -5658,7 +5481,7 @@
         },
         {
           "name": "create_app.configurations",
-          "line": 710,
+          "line": 609,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -5677,7 +5500,7 @@
         },
         {
           "name": "create_app.routing_service",
-          "line": 719,
+          "line": 618,
           "kind": "function",
           "parameters": [
             "request"
@@ -5688,7 +5511,7 @@
         },
         {
           "name": "create_app.route_policy",
-          "line": 726,
+          "line": 625,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -5701,7 +5524,7 @@
         },
         {
           "name": "create_app.save_route_policy",
-          "line": 730,
+          "line": 629,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -5716,7 +5539,7 @@
         },
         {
           "name": "create_app.route_report",
-          "line": 734,
+          "line": 633,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -5731,7 +5554,7 @@
         },
         {
           "name": "create_app.create_configuration",
-          "line": 738,
+          "line": 637,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -5744,7 +5567,7 @@
         },
         {
           "name": "create_app.configuration_template",
-          "line": 750,
+          "line": 649,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -5759,7 +5582,7 @@
         },
         {
           "name": "create_app.preview_configuration",
-          "line": 757,
+          "line": 656,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -5772,7 +5595,7 @@
         },
         {
           "name": "create_app.get_configuration",
-          "line": 762,
+          "line": 661,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -5787,7 +5610,7 @@
         },
         {
           "name": "create_app.save_configuration",
-          "line": 766,
+          "line": 665,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -5802,7 +5625,7 @@
         },
         {
           "name": "create_app.archive_configuration",
-          "line": 779,
+          "line": 678,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -5819,7 +5642,7 @@
         },
         {
           "name": "create_app.configuration_history",
-          "line": 786,
+          "line": 685,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -5838,7 +5661,7 @@
         },
         {
           "name": "create_app.configuration_diagnosis",
-          "line": 796,
+          "line": 695,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -5853,7 +5676,7 @@
         },
         {
           "name": "create_app.apply_preset",
-          "line": 800,
+          "line": 699,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -5868,7 +5691,7 @@
         },
         {
           "name": "create_app.configuration_probe",
-          "line": 804,
+          "line": 703,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -5883,7 +5706,7 @@
         },
         {
           "name": "create_app.settings_history",
-          "line": 856,
+          "line": 755,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -5900,7 +5723,7 @@
         },
         {
           "name": "create_app.run_configuration",
-          "line": 865,
+          "line": 764,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -5915,7 +5738,7 @@
         },
         {
           "name": "create_app.source_documents",
-          "line": 869,
+          "line": 768,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -5932,7 +5755,7 @@
         },
         {
           "name": "create_app.source_document_create",
-          "line": 878,
+          "line": 777,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -5945,7 +5768,7 @@
         },
         {
           "name": "create_app.source_document_import",
-          "line": 889,
+          "line": 788,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -5958,7 +5781,7 @@
         },
         {
           "name": "create_app.source_document_search",
-          "line": 900,
+          "line": 799,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -5975,7 +5798,7 @@
         },
         {
           "name": "create_app.source_document_get",
-          "line": 909,
+          "line": 808,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -5992,7 +5815,7 @@
         },
         {
           "name": "create_app.source_document_save",
-          "line": 917,
+          "line": 816,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -6007,7 +5830,7 @@
         },
         {
           "name": "create_app.source_document_erase",
-          "line": 926,
+          "line": 825,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -6024,7 +5847,7 @@
         },
         {
           "name": "create_app.source_document_history",
-          "line": 933,
+          "line": 832,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -6043,7 +5866,7 @@
         },
         {
           "name": "create_app.source_document_indexes",
-          "line": 943,
+          "line": 842,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -6062,7 +5885,7 @@
         },
         {
           "name": "create_app.source_document_rebuild",
-          "line": 955,
+          "line": 854,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -6077,7 +5900,7 @@
         },
         {
           "name": "create_app.owner_person",
-          "line": 960,
+          "line": 859,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -6090,7 +5913,7 @@
         },
         {
           "name": "create_app.list_people",
-          "line": 964,
+          "line": 863,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -6107,7 +5930,7 @@
         },
         {
           "name": "create_app.create_person",
-          "line": 973,
+          "line": 872,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -6122,7 +5945,7 @@
         },
         {
           "name": "create_app.get_person",
-          "line": 977,
+          "line": 876,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -6137,7 +5960,7 @@
         },
         {
           "name": "create_app.rename_person",
-          "line": 981,
+          "line": 880,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -6154,7 +5977,7 @@
         },
         {
           "name": "create_app.erase_person",
-          "line": 985,
+          "line": 884,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -6171,7 +5994,7 @@
         },
         {
           "name": "create_app.person_accounts",
-          "line": 990,
+          "line": 889,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -6190,7 +6013,7 @@
         },
         {
           "name": "create_app.bind_account",
-          "line": 1000,
+          "line": 899,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -6207,7 +6030,7 @@
         },
         {
           "name": "create_app.unbind_account",
-          "line": 1004,
+          "line": 903,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -6226,7 +6049,7 @@
         },
         {
           "name": "create_app.personal_document",
-          "line": 1011,
+          "line": 910,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -6243,7 +6066,7 @@
         },
         {
           "name": "create_app.save_personal_document",
-          "line": 1017,
+          "line": 916,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -6262,7 +6085,7 @@
         },
         {
           "name": "create_app.import_personal_document",
-          "line": 1034,
+          "line": 933,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -6281,7 +6104,7 @@
         },
         {
           "name": "create_app.memory_revisions",
-          "line": 1051,
+          "line": 950,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -6300,7 +6123,7 @@
         },
         {
           "name": "create_app.run_context",
-          "line": 1061,
+          "line": 960,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -6315,7 +6138,7 @@
         },
         {
           "name": "create_app.erase_message",
-          "line": 1065,
+          "line": 964,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -6330,7 +6153,7 @@
         },
         {
           "name": "create_app.summary",
-          "line": 1070,
+          "line": 969,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -6345,7 +6168,7 @@
         },
         {
           "name": "create_app.upload_object",
-          "line": 1074,
+          "line": 973,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -6360,7 +6183,7 @@
         },
         {
           "name": "create_app.list_objects",
-          "line": 1093,
+          "line": 992,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -6377,7 +6200,7 @@
         },
         {
           "name": "create_app.image_service",
-          "line": 1101,
+          "line": 1000,
           "kind": "function",
           "parameters": [
             "request"
@@ -6388,7 +6211,7 @@
         },
         {
           "name": "create_app.upload_image",
-          "line": 1108,
+          "line": 1007,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -6401,7 +6224,7 @@
         },
         {
           "name": "create_app.prepare_image",
-          "line": 1127,
+          "line": 1026,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -6416,7 +6239,7 @@
         },
         {
           "name": "create_app.run_images",
-          "line": 1131,
+          "line": 1030,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -6431,7 +6254,7 @@
         },
         {
           "name": "create_app.describe_object",
-          "line": 1135,
+          "line": 1034,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -6446,7 +6269,7 @@
         },
         {
           "name": "create_app.download_object",
-          "line": 1139,
+          "line": 1038,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -6461,7 +6284,7 @@
         },
         {
           "name": "create_app.pin_object",
-          "line": 1148,
+          "line": 1047,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -6478,7 +6301,7 @@
         },
         {
           "name": "create_app.turn",
-          "line": 1152,
+          "line": 1051,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -6493,7 +6316,7 @@
         },
         {
           "name": "create_app.sessions",
-          "line": 1164,
+          "line": 1063,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -6506,7 +6329,7 @@
         },
         {
           "name": "create_app.messages",
-          "line": 1168,
+          "line": 1067,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -6521,7 +6344,7 @@
         },
         {
           "name": "create_app.session_todos",
-          "line": 1172,
+          "line": 1071,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -6536,7 +6359,7 @@
         },
         {
           "name": "create_app.run_delegations",
-          "line": 1176,
+          "line": 1075,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -6551,7 +6374,7 @@
         },
         {
           "name": "create_app.runs",
-          "line": 1180,
+          "line": 1079,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -6564,7 +6387,7 @@
         },
         {
           "name": "create_app.run",
-          "line": 1184,
+          "line": 1083,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -6579,7 +6402,7 @@
         },
         {
           "name": "create_app.maintenance_submit",
-          "line": 1188,
+          "line": 1087,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -6592,7 +6415,7 @@
         },
         {
           "name": "create_app.maintenance_list",
-          "line": 1192,
+          "line": 1091,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -6609,7 +6432,7 @@
         },
         {
           "name": "create_app.maintenance_get",
-          "line": 1201,
+          "line": 1100,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -6624,7 +6447,7 @@
         },
         {
           "name": "create_app.maintenance_cancel",
-          "line": 1205,
+          "line": 1104,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -6639,7 +6462,7 @@
         },
         {
           "name": "create_app.event_retention_preview",
-          "line": 1212,
+          "line": 1111,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -6658,7 +6481,7 @@
         },
         {
           "name": "create_app.audit_retention_preview",
-          "line": 1228,
+          "line": 1127,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -6677,7 +6500,7 @@
         },
         {
           "name": "create_app.run_retention",
-          "line": 1242,
+          "line": 1141,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -6692,7 +6515,7 @@
         },
         {
           "name": "create_app.run_retention_pin",
-          "line": 1246,
+          "line": 1145,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -6707,7 +6530,7 @@
         },
         {
           "name": "create_app.model_live_output",
-          "line": 1251,
+          "line": 1150,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -6722,7 +6545,7 @@
         },
         {
           "name": "create_app.event_stream",
-          "line": 1255,
+          "line": 1154,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -6739,7 +6562,7 @@
         },
         {
           "name": "create_app.event_stream.history",
-          "line": 1267,
+          "line": 1166,
           "kind": "function",
           "parameters": [
             "value"
@@ -6750,7 +6573,7 @@
         },
         {
           "name": "create_app.events",
-          "line": 1281,
+          "line": 1180,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -6769,7 +6592,7 @@
         },
         {
           "name": "create_app.cancel",
-          "line": 1294,
+          "line": 1193,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -6784,7 +6607,7 @@
         },
         {
           "name": "create_app.settings",
-          "line": 1299,
+          "line": 1198,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -6797,7 +6620,7 @@
         },
         {
           "name": "create_app.save_settings",
-          "line": 1303,
+          "line": 1202,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -6810,7 +6633,7 @@
         },
         {
           "name": "create_app.context_constants",
-          "line": 1308,
+          "line": 1207,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -6823,7 +6646,7 @@
         },
         {
           "name": "create_app.session_context_overview",
-          "line": 1317,
+          "line": 1216,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -6838,7 +6661,7 @@
         },
         {
           "name": "create_app.approvals",
-          "line": 1322,
+          "line": 1221,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -6851,7 +6674,7 @@
         },
         {
           "name": "create_app.approve",
-          "line": 1326,
+          "line": 1225,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -6868,7 +6691,7 @@
         },
         {
           "name": "create_app.clarifications",
-          "line": 1331,
+          "line": 1230,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -6881,7 +6704,7 @@
         },
         {
           "name": "create_app.respond_clarify",
-          "line": 1335,
+          "line": 1234,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -6898,7 +6721,7 @@
         },
         {
           "name": "create_app.cancel_clarify",
-          "line": 1344,
+          "line": 1243,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -6915,7 +6738,7 @@
         },
         {
           "name": "create_app.session_captures",
-          "line": 1353,
+          "line": 1252,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -6934,7 +6757,7 @@
         },
         {
           "name": "create_app.release_capture",
-          "line": 1365,
+          "line": 1264,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -6951,7 +6774,7 @@
         },
         {
           "name": "create_app.terminal_review_list",
-          "line": 1369,
+          "line": 1268,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -6968,7 +6791,7 @@
         },
         {
           "name": "create_app.terminal_review_detail",
-          "line": 1375,
+          "line": 1274,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -6983,7 +6806,7 @@
         },
         {
           "name": "create_app.terminal_review_history",
-          "line": 1379,
+          "line": 1278,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -7002,7 +6825,7 @@
         },
         {
           "name": "create_app.terminal_review_record",
-          "line": 1389,
+          "line": 1288,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -7017,7 +6840,7 @@
         },
         {
           "name": "create_app.terminal_review_erase_evidence",
-          "line": 1395,
+          "line": 1294,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -7034,7 +6857,7 @@
         },
         {
           "name": "create_app.terminal_options",
-          "line": 1403,
+          "line": 1302,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -7047,7 +6870,7 @@
         },
         {
           "name": "create_app.terminal_list",
-          "line": 1407,
+          "line": 1306,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -7064,7 +6887,7 @@
         },
         {
           "name": "create_app.terminal_open",
-          "line": 1416,
+          "line": 1315,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -7077,7 +6900,7 @@
         },
         {
           "name": "create_app.terminal_lookup",
-          "line": 1420,
+          "line": 1319,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -7092,7 +6915,7 @@
         },
         {
           "name": "create_app.terminal_detail",
-          "line": 1424,
+          "line": 1323,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -7107,7 +6930,7 @@
         },
         {
           "name": "create_app.terminal_receipt",
-          "line": 1428,
+          "line": 1327,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -7124,7 +6947,7 @@
         },
         {
           "name": "create_app.terminal_attach",
-          "line": 1432,
+          "line": 1331,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -7139,7 +6962,7 @@
         },
         {
           "name": "create_app.terminal_detach",
-          "line": 1438,
+          "line": 1337,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -7154,7 +6977,7 @@
         },
         {
           "name": "create_app.terminal_output",
-          "line": 1445,
+          "line": 1344,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -7175,7 +6998,7 @@
         },
         {
           "name": "create_app.terminal_input",
-          "line": 1458,
+          "line": 1357,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -7190,7 +7013,7 @@
         },
         {
           "name": "create_app.terminal_resize",
-          "line": 1464,
+          "line": 1363,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -7205,7 +7028,7 @@
         },
         {
           "name": "create_app.terminal_close",
-          "line": 1470,
+          "line": 1369,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -7220,7 +7043,7 @@
         },
         {
           "name": "create_app.action_review_list",
-          "line": 1476,
+          "line": 1375,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -7237,7 +7060,7 @@
         },
         {
           "name": "create_app.action_review_detail",
-          "line": 1485,
+          "line": 1384,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -7252,7 +7075,7 @@
         },
         {
           "name": "create_app.action_review_history",
-          "line": 1489,
+          "line": 1388,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -7271,7 +7094,7 @@
         },
         {
           "name": "create_app.action_review_commit",
-          "line": 1499,
+          "line": 1398,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -7286,7 +7109,7 @@
         },
         {
           "name": "create_app.memories",
-          "line": 1508,
+          "line": 1404,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -7301,7 +7124,7 @@
         },
         {
           "name": "create_app.memory_decay_state",
-          "line": 1520,
+          "line": 1416,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -7314,7 +7137,7 @@
         },
         {
           "name": "create_app.memory_decay",
-          "line": 1524,
+          "line": 1420,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -7327,7 +7150,7 @@
         },
         {
           "name": "create_app.memory_semantic_service",
-          "line": 1530,
+          "line": 1426,
           "kind": "function",
           "parameters": [
             "request"
@@ -7338,7 +7161,7 @@
         },
         {
           "name": "create_app.semantic_batches",
-          "line": 1537,
+          "line": 1433,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -7355,7 +7178,7 @@
         },
         {
           "name": "create_app.memory_index",
-          "line": 1543,
+          "line": 1439,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -7372,7 +7195,7 @@
         },
         {
           "name": "create_app.semantic_propose",
-          "line": 1549,
+          "line": 1445,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -7385,7 +7208,7 @@
         },
         {
           "name": "create_app.semantic_detail",
-          "line": 1553,
+          "line": 1449,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -7400,7 +7223,7 @@
         },
         {
           "name": "create_app.semantic_decide",
-          "line": 1557,
+          "line": 1453,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -7415,7 +7238,7 @@
         },
         {
           "name": "create_app.memory_organization_create",
-          "line": 1563,
+          "line": 1459,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -7428,7 +7251,7 @@
         },
         {
           "name": "create_app.memory_organizations",
-          "line": 1569,
+          "line": 1465,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -7445,7 +7268,7 @@
         },
         {
           "name": "create_app.memory_organization_detail",
-          "line": 1578,
+          "line": 1474,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -7460,7 +7283,7 @@
         },
         {
           "name": "create_app.memory_organization_cancel",
-          "line": 1582,
+          "line": 1478,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -7475,7 +7298,7 @@
         },
         {
           "name": "create_app.memory_organization_decision",
-          "line": 1593,
+          "line": 1489,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -7490,7 +7313,7 @@
         },
         {
           "name": "create_app.reflections",
-          "line": 1599,
+          "line": 1495,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -7509,7 +7332,7 @@
         },
         {
           "name": "create_app.reflection_detail",
-          "line": 1609,
+          "line": 1505,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -7524,7 +7347,7 @@
         },
         {
           "name": "create_app.reflection_edit",
-          "line": 1613,
+          "line": 1509,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -7539,7 +7362,7 @@
         },
         {
           "name": "create_app.reflection_decision",
-          "line": 1619,
+          "line": 1515,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -7554,7 +7377,7 @@
         },
         {
           "name": "create_app.persona_growth",
-          "line": 1625,
+          "line": 1521,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -7567,7 +7390,7 @@
         },
         {
           "name": "create_app.persona_growth_rebuild",
-          "line": 1629,
+          "line": 1525,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -7580,7 +7403,7 @@
         },
         {
           "name": "create_app.background_review_create",
-          "line": 1633,
+          "line": 1529,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -7593,7 +7416,7 @@
         },
         {
           "name": "create_app.background_reviews",
-          "line": 1639,
+          "line": 1535,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -7610,7 +7433,7 @@
         },
         {
           "name": "create_app.background_review_detail",
-          "line": 1648,
+          "line": 1544,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -7625,7 +7448,7 @@
         },
         {
           "name": "create_app.background_review_cancel",
-          "line": 1652,
+          "line": 1548,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -7640,7 +7463,7 @@
         },
         {
           "name": "create_app.background_review_decision",
-          "line": 1661,
+          "line": 1557,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -7655,7 +7478,7 @@
         },
         {
           "name": "create_app.remember",
-          "line": 1667,
+          "line": 1563,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -7670,7 +7493,7 @@
         },
         {
           "name": "create_app.forget",
-          "line": 1678,
+          "line": 1574,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -7687,7 +7510,7 @@
         },
         {
           "name": "create_app.audit",
-          "line": 1683,
+          "line": 1579,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -7704,7 +7527,7 @@
         },
         {
           "name": "create_app.metrics",
-          "line": 1694,
+          "line": 1590,
           "kind": "function",
           "parameters": [
             "request"
@@ -7715,7 +7538,7 @@
         },
         {
           "name": "create_app.debug_status",
-          "line": 1698,
+          "line": 1594,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -7728,7 +7551,7 @@
         },
         {
           "name": "create_app.debug_start",
-          "line": 1702,
+          "line": 1598,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -7741,7 +7564,7 @@
         },
         {
           "name": "create_app.debug_stop",
-          "line": 1707,
+          "line": 1603,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -7756,7 +7579,7 @@
         },
         {
           "name": "create_app.debug_logs",
-          "line": 1711,
+          "line": 1607,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -7775,7 +7598,7 @@
         },
         {
           "name": "create_app.diagnostic_bundle",
-          "line": 1723,
+          "line": 1619,
           "kind": "function",
           "parameters": [
             "request"
@@ -7786,7 +7609,7 @@
         },
         {
           "name": "create_app.logs",
-          "line": 1732,
+          "line": 1628,
           "kind": "function",
           "parameters": [
             "request",
@@ -7811,7 +7634,7 @@
         },
         {
           "name": "create_app.credential_list",
-          "line": 1745,
+          "line": 1641,
           "kind": "function",
           "parameters": [
             "request",
@@ -7826,7 +7649,7 @@
         },
         {
           "name": "create_app.credential_register",
-          "line": 1751,
+          "line": 1647,
           "kind": "function",
           "parameters": [
             "request"
@@ -7837,7 +7660,7 @@
         },
         {
           "name": "create_app.credential_get",
-          "line": 1756,
+          "line": 1652,
           "kind": "function",
           "parameters": [
             "identity",
@@ -7850,7 +7673,7 @@
         },
         {
           "name": "create_app.credential_operations",
-          "line": 1760,
+          "line": 1656,
           "kind": "function",
           "parameters": [
             "identity",
@@ -7867,7 +7690,7 @@
         },
         {
           "name": "create_app.credential_reviews",
-          "line": 1769,
+          "line": 1665,
           "kind": "function",
           "parameters": [
             "identity",
@@ -7884,7 +7707,7 @@
         },
         {
           "name": "create_app.credential_review",
-          "line": 1778,
+          "line": 1674,
           "kind": "function",
           "parameters": [
             "identity",
@@ -7897,7 +7720,7 @@
         },
         {
           "name": "create_app.put_credential",
-          "line": 1791,
+          "line": 1687,
           "kind": "function",
           "parameters": [
             "request",
@@ -7910,7 +7733,7 @@
         },
         {
           "name": "create_app.delete_credential",
-          "line": 1799,
+          "line": 1695,
           "kind": "function",
           "parameters": [
             "request",
@@ -7923,7 +7746,7 @@
         },
         {
           "name": "create_app.instance_audit",
-          "line": 1806,
+          "line": 1702,
           "kind": "function",
           "parameters": [
             "request",
@@ -7938,7 +7761,7 @@
         },
         {
           "name": "create_app.index",
-          "line": 1819,
+          "line": 1715,
           "kind": "function",
           "parameters": [
             "request"
@@ -7949,7 +7772,7 @@
         },
         {
           "name": "create_app.resource",
-          "line": 1824,
+          "line": 1720,
           "kind": "function",
           "parameters": [
             "path",
@@ -8119,7 +7942,7 @@
       "module": "v2-adapters",
       "version": "V2",
       "python_module": "omni.adapters.http_routes",
-      "lines": 100,
+      "lines": 111,
       "imports": [
         "omni.adapters.http",
         "omni.application.ports",
@@ -8138,7 +7961,7 @@
         },
         {
           "name": "FeatureRoutes.__post_init__",
-          "line": 35,
+          "line": 36,
           "kind": "function",
           "parameters": [
             "self"
@@ -8147,7 +7970,7 @@
         },
         {
           "name": "mount_feature_routes",
-          "line": 40,
+          "line": 43,
           "kind": "function",
           "parameters": [
             "router",
@@ -8162,7 +7985,7 @@
         },
         {
           "name": "bounded_configuration",
-          "line": 64,
+          "line": 75,
           "kind": "function",
           "parameters": [
             "request",
@@ -8177,7 +8000,7 @@
         },
         {
           "name": "configuration_input",
-          "line": 94,
+          "line": 105,
           "kind": "function",
           "parameters": [
             "model",
@@ -8912,29 +8735,49 @@
       "module": "v2-adapters",
       "version": "V2",
       "python_module": "omni.adapters.http_routes.extensions",
-      "lines": 77,
+      "lines": 81,
       "imports": [
-        "omni.adapters.http",
-        "omni.application.ports",
+        "omni.adapters.http_routes",
+        "omni.application.extensions",
         "omni.domain.contracts"
       ],
       "symbols": [
         {
-          "name": "extensions_router",
-          "line": 18,
+          "name": "require_extension_service",
+          "line": 16,
           "kind": "function",
           "parameters": [
-            "runtime",
-            "bounded_configuration"
+            "services"
           ],
           "annotations": {
-            "runtime": "Callable[[Request], HttpRuntime]",
-            "bounded_configuration": "Callable[[Request, int], Awaitable[Record]]"
+            "services": "Mapping[str, object]"
+          }
+        },
+        {
+          "name": "extensions_router",
+          "line": 23,
+          "kind": "function",
+          "parameters": [
+            "runtime"
+          ],
+          "annotations": {
+            "runtime": "RuntimeLookup"
+          }
+        },
+        {
+          "name": "extensions_router.service",
+          "line": 26,
+          "kind": "function",
+          "parameters": [
+            "request"
+          ],
+          "annotations": {
+            "request": "Request"
           }
         },
         {
           "name": "extensions_router.extension_install",
-          "line": 24,
+          "line": 30,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -8947,7 +8790,7 @@
         },
         {
           "name": "extensions_router.extension_market",
-          "line": 28,
+          "line": 34,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -8960,7 +8803,7 @@
         },
         {
           "name": "extensions_router.extension_list",
-          "line": 40,
+          "line": 46,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -8977,7 +8820,7 @@
         },
         {
           "name": "extensions_router.extension_detail",
-          "line": 49,
+          "line": 55,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -8992,7 +8835,7 @@
         },
         {
           "name": "extensions_router.extension_actions",
-          "line": 53,
+          "line": 59,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -9011,7 +8854,7 @@
         },
         {
           "name": "extensions_router.extension_authorization",
-          "line": 65,
+          "line": 69,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -9026,7 +8869,7 @@
         },
         {
           "name": "extensions_router.extension_disable",
-          "line": 71,
+          "line": 75,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -9041,6 +8884,239 @@
         }
       ],
       "summary": "Owner extension market, installation and version-bound authorization."
+    },
+    {
+      "path": "agent/src/omni/adapters/http_routes/mcp.py",
+      "module": "v2-adapters",
+      "version": "V2",
+      "python_module": "omni.adapters.http_routes.mcp",
+      "lines": 131,
+      "imports": [
+        "omni.adapters.http_routes",
+        "omni.application.mcp",
+        "omni.domain.contracts"
+      ],
+      "symbols": [
+        {
+          "name": "MCPConnectInput",
+          "line": 17,
+          "kind": "class"
+        },
+        {
+          "name": "MCPToolAuthorizationInput",
+          "line": 21,
+          "kind": "class"
+        },
+        {
+          "name": "MCPAuthorizationInput",
+          "line": 26,
+          "kind": "class"
+        },
+        {
+          "name": "MCPToolDecisionInput",
+          "line": 34,
+          "kind": "class"
+        },
+        {
+          "name": "MCPOAuthStartInput",
+          "line": 41,
+          "kind": "class"
+        },
+        {
+          "name": "mcp_router",
+          "line": 45,
+          "kind": "function",
+          "parameters": [
+            "runtime"
+          ],
+          "annotations": {
+            "runtime": "RuntimeLookup"
+          }
+        },
+        {
+          "name": "mcp_router.mcp_service",
+          "line": 48,
+          "kind": "function",
+          "parameters": [
+            "request"
+          ],
+          "annotations": {
+            "request": "Request"
+          }
+        },
+        {
+          "name": "mcp_router.mcp_servers",
+          "line": 55,
+          "kind": "function",
+          "parameters": [
+            "agent_id",
+            "request"
+          ],
+          "annotations": {
+            "agent_id": "uuid.UUID",
+            "request": "Request"
+          }
+        },
+        {
+          "name": "mcp_router.mcp_server",
+          "line": 59,
+          "kind": "function",
+          "parameters": [
+            "agent_id",
+            "config_id",
+            "request"
+          ],
+          "annotations": {
+            "agent_id": "uuid.UUID",
+            "config_id": "uuid.UUID",
+            "request": "Request"
+          }
+        },
+        {
+          "name": "mcp_router.mcp_connect",
+          "line": 63,
+          "kind": "function",
+          "parameters": [
+            "agent_id",
+            "config_id",
+            "request"
+          ],
+          "annotations": {
+            "agent_id": "uuid.UUID",
+            "config_id": "uuid.UUID",
+            "request": "Request"
+          }
+        },
+        {
+          "name": "mcp_router.mcp_disconnect",
+          "line": 68,
+          "kind": "function",
+          "parameters": [
+            "agent_id",
+            "config_id",
+            "request"
+          ],
+          "annotations": {
+            "agent_id": "uuid.UUID",
+            "config_id": "uuid.UUID",
+            "request": "Request"
+          }
+        },
+        {
+          "name": "mcp_router.mcp_reset",
+          "line": 72,
+          "kind": "function",
+          "parameters": [
+            "agent_id",
+            "config_id",
+            "request"
+          ],
+          "annotations": {
+            "agent_id": "uuid.UUID",
+            "config_id": "uuid.UUID",
+            "request": "Request"
+          }
+        },
+        {
+          "name": "mcp_router.mcp_catalog",
+          "line": 76,
+          "kind": "function",
+          "parameters": [
+            "agent_id",
+            "config_id",
+            "request",
+            "after",
+            "limit"
+          ],
+          "annotations": {
+            "agent_id": "uuid.UUID",
+            "config_id": "uuid.UUID",
+            "request": "Request",
+            "after": "int",
+            "limit": "int"
+          }
+        },
+        {
+          "name": "mcp_router.mcp_authorize",
+          "line": 86,
+          "kind": "function",
+          "parameters": [
+            "agent_id",
+            "config_id",
+            "request"
+          ],
+          "annotations": {
+            "agent_id": "uuid.UUID",
+            "config_id": "uuid.UUID",
+            "request": "Request"
+          }
+        },
+        {
+          "name": "mcp_router.mcp_authorize_tool",
+          "line": 99,
+          "kind": "function",
+          "parameters": [
+            "agent_id",
+            "config_id",
+            "tool_id",
+            "request"
+          ],
+          "annotations": {
+            "agent_id": "uuid.UUID",
+            "config_id": "uuid.UUID",
+            "tool_id": "uuid.UUID",
+            "request": "Request"
+          }
+        },
+        {
+          "name": "mcp_router.mcp_calls",
+          "line": 112,
+          "kind": "function",
+          "parameters": [
+            "agent_id",
+            "config_id",
+            "request",
+            "after",
+            "limit"
+          ],
+          "annotations": {
+            "agent_id": "uuid.UUID",
+            "config_id": "uuid.UUID",
+            "request": "Request",
+            "after": "uuid.UUID | None",
+            "limit": "int"
+          }
+        },
+        {
+          "name": "mcp_router.mcp_oauth_start",
+          "line": 122,
+          "kind": "function",
+          "parameters": [
+            "agent_id",
+            "config_id",
+            "request"
+          ],
+          "annotations": {
+            "agent_id": "uuid.UUID",
+            "config_id": "uuid.UUID",
+            "request": "Request"
+          }
+        },
+        {
+          "name": "mcp_router.mcp_health",
+          "line": 128,
+          "kind": "function",
+          "parameters": [
+            "agent_id",
+            "request"
+          ],
+          "annotations": {
+            "agent_id": "uuid.UUID",
+            "request": "Request"
+          }
+        }
+      ],
+      "summary": "Owner operations to connect, authorize and inspect agent-scoped MCP providers."
     },
     {
       "path": "agent/src/omni/adapters/http_routes/media.py",
@@ -9612,9 +9688,8 @@
       "module": "v2-adapters",
       "version": "V2",
       "python_module": "omni.adapters.http_routes.skills",
-      "lines": 124,
+      "lines": 120,
       "imports": [
-        "omni.adapters.http",
         "omni.adapters.http_routes",
         "omni.application.skills",
         "omni.domain.contracts"
@@ -9622,38 +9697,38 @@
       "symbols": [
         {
           "name": "SkillSaveInput",
-          "line": 20,
+          "line": 16,
           "kind": "class"
         },
         {
           "name": "SkillImportInput",
-          "line": 26,
+          "line": 22,
           "kind": "class"
         },
         {
           "name": "SkillStateInput",
-          "line": 33,
+          "line": 29,
           "kind": "class"
         },
         {
           "name": "SkillRollbackInput",
-          "line": 40,
+          "line": 36,
           "kind": "class"
         },
         {
           "name": "skills_router",
-          "line": 45,
+          "line": 41,
           "kind": "function",
           "parameters": [
             "runtime"
           ],
           "annotations": {
-            "runtime": "Callable[[Request], HttpRuntime]"
+            "runtime": "RuntimeLookup"
           }
         },
         {
           "name": "skills_router.skill_service",
-          "line": 48,
+          "line": 44,
           "kind": "function",
           "parameters": [
             "request"
@@ -9664,7 +9739,7 @@
         },
         {
           "name": "skills_router.skill_list",
-          "line": 55,
+          "line": 51,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -9681,7 +9756,7 @@
         },
         {
           "name": "skills_router.skill_save",
-          "line": 61,
+          "line": 57,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -9696,7 +9771,7 @@
         },
         {
           "name": "skills_router.skill_import",
-          "line": 67,
+          "line": 63,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -9711,7 +9786,7 @@
         },
         {
           "name": "skills_router.skill_available",
-          "line": 77,
+          "line": 73,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -9724,7 +9799,7 @@
         },
         {
           "name": "skills_router.skill_export",
-          "line": 81,
+          "line": 77,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -9741,7 +9816,7 @@
         },
         {
           "name": "skills_router.skill_detail",
-          "line": 89,
+          "line": 85,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -9760,7 +9835,7 @@
         },
         {
           "name": "skills_router.skill_versions",
-          "line": 101,
+          "line": 97,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -9779,7 +9854,7 @@
         },
         {
           "name": "skills_router.skill_change_state",
-          "line": 111,
+          "line": 107,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -9796,7 +9871,7 @@
         },
         {
           "name": "skills_router.skill_rollback",
-          "line": 117,
+          "line": 113,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -9813,7 +9888,7 @@
         },
         {
           "name": "skills_router.skill_run_report",
-          "line": 121,
+          "line": 117,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -49626,7 +49701,7 @@
       "module": "v2-application",
       "version": "V2",
       "python_module": "omni.application.capabilities",
-      "lines": 106,
+      "lines": 119,
       "imports": [
         "omni.application.ports",
         "omni.domain.contracts"
@@ -49643,13 +49718,18 @@
           "kind": "class"
         },
         {
+          "name": "RunCapabilityProvider",
+          "line": 31,
+          "kind": "class"
+        },
+        {
           "name": "CapabilityRegistry",
-          "line": 30,
+          "line": 37,
           "kind": "class"
         },
         {
           "name": "CapabilityRegistry.__init__",
-          "line": 31,
+          "line": 38,
           "kind": "function",
           "parameters": [
             "self",
@@ -49665,7 +49745,7 @@
         },
         {
           "name": "CapabilityRegistry._check_id",
-          "line": 49,
+          "line": 56,
           "kind": "function",
           "parameters": [
             "self",
@@ -49677,7 +49757,7 @@
         },
         {
           "name": "CapabilityRegistry.register",
-          "line": 55,
+          "line": 62,
           "kind": "function",
           "parameters": [
             "self",
@@ -49689,7 +49769,7 @@
         },
         {
           "name": "CapabilityRegistry._register",
-          "line": 58,
+          "line": 65,
           "kind": "function",
           "parameters": [
             "self",
@@ -49703,21 +49783,37 @@
         },
         {
           "name": "CapabilityRegistry.register_provider",
-          "line": 81,
+          "line": 88,
           "kind": "function",
           "parameters": [
             "self",
             "plugin_id",
-            "adapter"
+            "adapter",
+            "review_quiescent"
           ],
           "annotations": {
             "plugin_id": "str",
-            "adapter": "RunCapabilityPort"
+            "adapter": "RunCapabilityPort",
+            "review_quiescent": "Callable[[Record], bool] | None"
+          }
+        },
+        {
+          "name": "CapabilityRegistry.provider_quiescent",
+          "line": 99,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "plugin_id",
+            "record"
+          ],
+          "annotations": {
+            "plugin_id": "str",
+            "record": "Record"
           }
         },
         {
           "name": "CapabilityRegistry.seal",
-          "line": 90,
+          "line": 103,
           "kind": "function",
           "parameters": [
             "self"
@@ -49726,7 +49822,7 @@
         },
         {
           "name": "CapabilityRegistry.capture",
-          "line": 93,
+          "line": 106,
           "kind": "function",
           "parameters": [
             "self",
@@ -49742,7 +49838,7 @@
         },
         {
           "name": "CapabilityRegistry.owned_adapters",
-          "line": 105,
+          "line": 118,
           "kind": "function",
           "parameters": [
             "self"
@@ -52838,7 +52934,7 @@
       "module": "v2-application",
       "version": "V2",
       "python_module": "omni.application.engine",
-      "lines": 1372,
+      "lines": 1362,
       "imports": [
         "omni.application.background_review",
         "omni.application.capabilities",
@@ -52869,12 +52965,12 @@
       "symbols": [
         {
           "name": "Application",
-          "line": 78,
+          "line": 76,
           "kind": "class"
         },
         {
           "name": "Application.__init__",
-          "line": 81,
+          "line": 79,
           "kind": "function",
           "parameters": [
             "self",
@@ -52888,8 +52984,6 @@
             "close_s",
             "workspace_validator",
             "delivery_cancellation",
-            "extensions",
-            "mcp",
             "owner_capabilities",
             "plugins",
             "images",
@@ -52914,8 +53008,6 @@
             "close_s": "float",
             "workspace_validator": "Callable[[str], None] | None",
             "delivery_cancellation": "Callable[[list[str]], None] | None",
-            "extensions": "ExtensionCapabilityPort | None",
-            "mcp": "MCPCapabilityPort | None",
             "owner_capabilities": "tuple[Capability, ...]",
             "plugins": "tuple[CapabilityPlugin, ...]",
             "images": "ImageService | None",
@@ -52932,7 +53024,7 @@
         },
         {
           "name": "Application.attach",
-          "line": 153,
+          "line": 143,
           "kind": "function",
           "parameters": [
             "self",
@@ -52944,7 +53036,7 @@
         },
         {
           "name": "Application.attach_plugin",
-          "line": 157,
+          "line": 147,
           "kind": "function",
           "parameters": [
             "self",
@@ -52956,21 +53048,23 @@
         },
         {
           "name": "Application.attach_provider",
-          "line": 162,
+          "line": 152,
           "kind": "function",
           "parameters": [
             "self",
             "plugin_id",
-            "adapter"
+            "adapter",
+            "review_quiescent"
           ],
           "annotations": {
             "plugin_id": "str",
-            "adapter": "RunCapabilityPort"
+            "adapter": "RunCapabilityPort",
+            "review_quiescent": "Callable[[Record], bool] | None"
           }
         },
         {
           "name": "Application.start",
-          "line": 167,
+          "line": 159,
           "kind": "function",
           "parameters": [
             "self"
@@ -52979,7 +53073,7 @@
         },
         {
           "name": "Application.submit_turn",
-          "line": 182,
+          "line": 174,
           "kind": "function",
           "parameters": [
             "self",
@@ -53003,7 +53097,7 @@
         },
         {
           "name": "Application.notify",
-          "line": 210,
+          "line": 202,
           "kind": "function",
           "parameters": [
             "self"
@@ -53012,7 +53106,7 @@
         },
         {
           "name": "Application.action_review_blockers",
-          "line": 213,
+          "line": 205,
           "kind": "function",
           "parameters": [
             "self",
@@ -53024,7 +53118,7 @@
         },
         {
           "name": "Application._dispatch",
-          "line": 237,
+          "line": 227,
           "kind": "function",
           "parameters": [
             "self"
@@ -53033,7 +53127,7 @@
         },
         {
           "name": "Application._completed",
-          "line": 276,
+          "line": 266,
           "kind": "function",
           "parameters": [
             "self",
@@ -53045,7 +53139,7 @@
         },
         {
           "name": "Application._trigger_review",
-          "line": 289,
+          "line": 279,
           "kind": "function",
           "parameters": [
             "self",
@@ -53063,7 +53157,7 @@
         },
         {
           "name": "Application._run",
-          "line": 296,
+          "line": 286,
           "kind": "function",
           "parameters": [
             "self",
@@ -53081,7 +53175,7 @@
         },
         {
           "name": "Application._run_owner_command",
-          "line": 332,
+          "line": 322,
           "kind": "function",
           "parameters": [
             "self",
@@ -53099,7 +53193,7 @@
         },
         {
           "name": "Application._turn",
-          "line": 351,
+          "line": 341,
           "kind": "function",
           "parameters": [
             "self",
@@ -53115,7 +53209,7 @@
         },
         {
           "name": "Application._execute_tool_round",
-          "line": 530,
+          "line": 520,
           "kind": "function",
           "parameters": [
             "self",
@@ -53145,7 +53239,7 @@
         },
         {
           "name": "Application._fallback_model",
-          "line": 609,
+          "line": 599,
           "kind": "function",
           "parameters": [
             "self",
@@ -53163,7 +53257,7 @@
         },
         {
           "name": "Application._call_turn_model",
-          "line": 632,
+          "line": 622,
           "kind": "function",
           "parameters": [
             "self",
@@ -53193,7 +53287,7 @@
         },
         {
           "name": "Application._discover",
-          "line": 679,
+          "line": 669,
           "kind": "function",
           "parameters": [
             "call",
@@ -53208,7 +53302,7 @@
         },
         {
           "name": "Application._finish_turn",
-          "line": 690,
+          "line": 680,
           "kind": "function",
           "parameters": [
             "self",
@@ -53228,7 +53322,7 @@
         },
         {
           "name": "Application._completion_nudge",
-          "line": 695,
+          "line": 685,
           "kind": "function",
           "parameters": [
             "self",
@@ -53244,7 +53338,7 @@
         },
         {
           "name": "Application._delegate",
-          "line": 707,
+          "line": 697,
           "kind": "function",
           "parameters": [
             "self",
@@ -53260,7 +53354,7 @@
         },
         {
           "name": "Application._cancel_join_children",
-          "line": 763,
+          "line": 753,
           "kind": "function",
           "parameters": [
             "self",
@@ -53274,7 +53368,7 @@
         },
         {
           "name": "Application._cancel_join_children.cancel",
-          "line": 764,
+          "line": 754,
           "kind": "function",
           "parameters": [
             "u"
@@ -53285,7 +53379,7 @@
         },
         {
           "name": "Application.delegations",
-          "line": 786,
+          "line": 776,
           "kind": "function",
           "parameters": [
             "self",
@@ -53299,7 +53393,7 @@
         },
         {
           "name": "Application.delegations.read",
-          "line": 787,
+          "line": 777,
           "kind": "function",
           "parameters": [
             "u"
@@ -53310,7 +53404,7 @@
         },
         {
           "name": "Application._todo_notice",
-          "line": 794,
+          "line": 784,
           "kind": "function",
           "parameters": [
             "self",
@@ -53326,7 +53420,7 @@
         },
         {
           "name": "Application.session_todos",
-          "line": 801,
+          "line": 791,
           "kind": "function",
           "parameters": [
             "self",
@@ -53340,7 +53434,7 @@
         },
         {
           "name": "Application._end_error",
-          "line": 804,
+          "line": 794,
           "kind": "function",
           "parameters": [
             "self",
@@ -53358,7 +53452,7 @@
         },
         {
           "name": "Application._end_error.end",
-          "line": 805,
+          "line": 795,
           "kind": "function",
           "parameters": [
             "u"
@@ -53369,7 +53463,7 @@
         },
         {
           "name": "Application._revision",
-          "line": 822,
+          "line": 812,
           "kind": "function",
           "parameters": [
             "value"
@@ -53380,7 +53474,7 @@
         },
         {
           "name": "Application._checkpoint",
-          "line": 827,
+          "line": 817,
           "kind": "function",
           "parameters": [
             "self",
@@ -53394,7 +53488,7 @@
         },
         {
           "name": "Application._clarify_wait",
-          "line": 833,
+          "line": 823,
           "kind": "function",
           "parameters": [
             "self",
@@ -53412,7 +53506,7 @@
         },
         {
           "name": "Application._batch_entry",
-          "line": 874,
+          "line": 864,
           "kind": "function",
           "parameters": [
             "self",
@@ -53430,7 +53524,7 @@
         },
         {
           "name": "Application._tool_message_content",
-          "line": 900,
+          "line": 890,
           "kind": "function",
           "parameters": [
             "self",
@@ -53452,7 +53546,7 @@
         },
         {
           "name": "Application._dispatch_call",
-          "line": 964,
+          "line": 954,
           "kind": "function",
           "parameters": [
             "self",
@@ -53478,7 +53572,7 @@
         },
         {
           "name": "Application._execute_parallel",
-          "line": 1036,
+          "line": 1026,
           "kind": "function",
           "parameters": [
             "self",
@@ -53498,7 +53592,7 @@
         },
         {
           "name": "Application._execute",
-          "line": 1060,
+          "line": 1050,
           "kind": "function",
           "parameters": [
             "self",
@@ -53520,7 +53614,7 @@
         },
         {
           "name": "Application.query",
-          "line": 1133,
+          "line": 1123,
           "kind": "function",
           "parameters": [
             "self",
@@ -53539,7 +53633,7 @@
         },
         {
           "name": "Application.settings",
-          "line": 1138,
+          "line": 1128,
           "kind": "function",
           "parameters": [
             "self",
@@ -53551,7 +53645,7 @@
         },
         {
           "name": "Application.get_agent",
-          "line": 1141,
+          "line": 1131,
           "kind": "function",
           "parameters": [
             "self",
@@ -53563,7 +53657,7 @@
         },
         {
           "name": "Application.create_agent",
-          "line": 1144,
+          "line": 1134,
           "kind": "function",
           "parameters": [
             "self",
@@ -53575,7 +53669,7 @@
         },
         {
           "name": "Application.create_agent.create",
-          "line": 1149,
+          "line": 1139,
           "kind": "function",
           "parameters": [
             "uow"
@@ -53586,7 +53680,7 @@
         },
         {
           "name": "Application.rename_agent",
-          "line": 1160,
+          "line": 1150,
           "kind": "function",
           "parameters": [
             "self",
@@ -53602,7 +53696,7 @@
         },
         {
           "name": "Application.history",
-          "line": 1166,
+          "line": 1156,
           "kind": "function",
           "parameters": [
             "self",
@@ -53622,7 +53716,7 @@
         },
         {
           "name": "Application.save_settings",
-          "line": 1173,
+          "line": 1163,
           "kind": "function",
           "parameters": [
             "self",
@@ -53638,7 +53732,7 @@
         },
         {
           "name": "Application.run_configuration",
-          "line": 1179,
+          "line": 1169,
           "kind": "function",
           "parameters": [
             "self",
@@ -53652,7 +53746,7 @@
         },
         {
           "name": "Application.get_run",
-          "line": 1182,
+          "line": 1172,
           "kind": "function",
           "parameters": [
             "self",
@@ -53666,7 +53760,7 @@
         },
         {
           "name": "Application.get_run.report",
-          "line": 1183,
+          "line": 1173,
           "kind": "function",
           "parameters": [
             "u"
@@ -53677,7 +53771,7 @@
         },
         {
           "name": "Application.live_output",
-          "line": 1194,
+          "line": 1184,
           "kind": "function",
           "parameters": [
             "self",
@@ -53691,7 +53785,7 @@
         },
         {
           "name": "Application.pin_run",
-          "line": 1197,
+          "line": 1187,
           "kind": "function",
           "parameters": [
             "self",
@@ -53709,7 +53803,7 @@
         },
         {
           "name": "Application.run_retention",
-          "line": 1200,
+          "line": 1190,
           "kind": "function",
           "parameters": [
             "self",
@@ -53723,7 +53817,7 @@
         },
         {
           "name": "Application.audit_retention_preview",
-          "line": 1203,
+          "line": 1193,
           "kind": "function",
           "parameters": [
             "self",
@@ -53741,7 +53835,7 @@
         },
         {
           "name": "Application.event_retention_preview",
-          "line": 1210,
+          "line": 1200,
           "kind": "function",
           "parameters": [
             "self",
@@ -53759,7 +53853,7 @@
         },
         {
           "name": "Application.messages",
-          "line": 1217,
+          "line": 1207,
           "kind": "function",
           "parameters": [
             "self",
@@ -53773,7 +53867,7 @@
         },
         {
           "name": "Application.approvals",
-          "line": 1223,
+          "line": 1213,
           "kind": "function",
           "parameters": [
             "self",
@@ -53785,7 +53879,7 @@
         },
         {
           "name": "Application.approve",
-          "line": 1226,
+          "line": 1216,
           "kind": "function",
           "parameters": [
             "self",
@@ -53803,7 +53897,7 @@
         },
         {
           "name": "Application.clarifications",
-          "line": 1229,
+          "line": 1219,
           "kind": "function",
           "parameters": [
             "self",
@@ -53815,7 +53909,7 @@
         },
         {
           "name": "Application.respond_clarify",
-          "line": 1234,
+          "line": 1224,
           "kind": "function",
           "parameters": [
             "self",
@@ -53835,7 +53929,7 @@
         },
         {
           "name": "Application.cancel_clarify",
-          "line": 1241,
+          "line": 1231,
           "kind": "function",
           "parameters": [
             "self",
@@ -53853,7 +53947,7 @@
         },
         {
           "name": "Application.cancel",
-          "line": 1246,
+          "line": 1236,
           "kind": "function",
           "parameters": [
             "self",
@@ -53867,7 +53961,7 @@
         },
         {
           "name": "Application.cancel.cancel",
-          "line": 1247,
+          "line": 1237,
           "kind": "function",
           "parameters": [
             "u"
@@ -53878,7 +53972,7 @@
         },
         {
           "name": "Application.remember",
-          "line": 1259,
+          "line": 1249,
           "kind": "function",
           "parameters": [
             "self",
@@ -53904,7 +53998,7 @@
         },
         {
           "name": "Application.forget",
-          "line": 1284,
+          "line": 1274,
           "kind": "function",
           "parameters": [
             "self",
@@ -53920,7 +54014,7 @@
         },
         {
           "name": "Application.context",
-          "line": 1287,
+          "line": 1277,
           "kind": "function",
           "parameters": [
             "self",
@@ -53934,7 +54028,7 @@
         },
         {
           "name": "Application.context_report",
-          "line": 1290,
+          "line": 1280,
           "kind": "function",
           "parameters": [
             "self",
@@ -53948,7 +54042,7 @@
         },
         {
           "name": "Application.context_report.read",
-          "line": 1291,
+          "line": 1281,
           "kind": "function",
           "parameters": [
             "u"
@@ -53959,7 +54053,7 @@
         },
         {
           "name": "Application.session_context_overview",
-          "line": 1299,
+          "line": 1289,
           "kind": "function",
           "parameters": [
             "self",
@@ -53973,7 +54067,7 @@
         },
         {
           "name": "Application.summary",
-          "line": 1302,
+          "line": 1292,
           "kind": "function",
           "parameters": [
             "self",
@@ -53987,7 +54081,7 @@
         },
         {
           "name": "Application.erase_message",
-          "line": 1305,
+          "line": 1295,
           "kind": "function",
           "parameters": [
             "self",
@@ -54001,7 +54095,7 @@
         },
         {
           "name": "Application.search_memory",
-          "line": 1308,
+          "line": 1298,
           "kind": "function",
           "parameters": [
             "self",
@@ -54015,7 +54109,7 @@
         },
         {
           "name": "Application.memory_decay_state",
-          "line": 1318,
+          "line": 1308,
           "kind": "function",
           "parameters": [
             "self",
@@ -54027,7 +54121,7 @@
         },
         {
           "name": "Application.memory_decay",
-          "line": 1321,
+          "line": 1311,
           "kind": "function",
           "parameters": [
             "self",
@@ -54041,7 +54135,7 @@
         },
         {
           "name": "Application.health",
-          "line": 1324,
+          "line": 1314,
           "kind": "function",
           "parameters": [
             "self"
@@ -54050,7 +54144,7 @@
         },
         {
           "name": "Application.stop_accepting",
-          "line": 1333,
+          "line": 1323,
           "kind": "function",
           "parameters": [
             "self"
@@ -54059,7 +54153,7 @@
         },
         {
           "name": "Application.close",
-          "line": 1337,
+          "line": 1327,
           "kind": "function",
           "parameters": [
             "self",
@@ -76806,12 +76900,13 @@
       "module": "v2-composition",
       "version": "V2",
       "python_module": "omni.composition.features",
-      "lines": 102,
+      "lines": 112,
       "imports": [
         "omni.adapters.http_routes",
         "omni.application.android",
         "omni.application.capabilities",
         "omni.application.images",
+        "omni.application.mcp",
         "omni.application.media",
         "omni.application.objects",
         "omni.application.persona",
@@ -76823,32 +76918,32 @@
       "symbols": [
         {
           "name": "FeatureContext",
-          "line": 28,
+          "line": 29,
           "kind": "class"
         },
         {
           "name": "KernelFeatureContext",
-          "line": 49,
+          "line": 54,
           "kind": "class"
         },
         {
           "name": "FeatureBinding",
-          "line": 62,
+          "line": 67,
           "kind": "class"
         },
         {
           "name": "FeaturePlugin",
-          "line": 70,
+          "line": 76,
           "kind": "class"
         },
         {
           "name": "InstalledFeatures",
-          "line": 75,
+          "line": 81,
           "kind": "class"
         },
         {
           "name": "InstalledFeatures.require",
-          "line": 80,
+          "line": 87,
           "kind": "function",
           "parameters": [
             "self",
@@ -76862,7 +76957,7 @@
         },
         {
           "name": "InstalledFeatures.start",
-          "line": 86,
+          "line": 93,
           "kind": "function",
           "parameters": [
             "self"
@@ -76871,7 +76966,7 @@
         },
         {
           "name": "install_features",
-          "line": 91,
+          "line": 98,
           "kind": "function",
           "parameters": [
             "plugins",
@@ -76944,21 +77039,27 @@
       "module": "v2-composition",
       "version": "V2",
       "python_module": "omni.composition.features.catalog",
-      "lines": 27,
+      "lines": 41,
       "imports": [
         "omni.adapters.http_routes.android",
         "omni.adapters.http_routes.bilibili",
         "omni.adapters.http_routes.desktop",
+        "omni.adapters.http_routes.extensions",
+        "omni.adapters.http_routes.mcp",
         "omni.adapters.http_routes.media",
         "omni.adapters.http_routes.qq",
         "omni.adapters.http_routes.schedules",
+        "omni.adapters.http_routes.skills",
         "omni.composition.features",
         "omni.composition.features.android",
         "omni.composition.features.bilibili",
         "omni.composition.features.desktop",
+        "omni.composition.features.extensions",
+        "omni.composition.features.mcp",
         "omni.composition.features.media",
         "omni.composition.features.qq",
-        "omni.composition.features.schedules"
+        "omni.composition.features.schedules",
+        "omni.composition.features.skills"
       ],
       "symbols": [],
       "summary": "Declare bundled feature installers and their authenticated routers."
@@ -77006,6 +77107,76 @@
         }
       ],
       "summary": "Bind desktop views, consent and owner actions to the platform ports."
+    },
+    {
+      "path": "agent/src/omni/composition/features/extensions.py",
+      "module": "v2-composition",
+      "version": "V2",
+      "python_module": "omni.composition.features.extensions",
+      "lines": 32,
+      "imports": [
+        "omni.adapters.extensions.hosts",
+        "omni.adapters.extensions.packages",
+        "omni.application.capabilities",
+        "omni.application.extensions",
+        "omni.application.ports",
+        "omni.composition.features",
+        "omni.domain.contracts"
+      ],
+      "symbols": [
+        {
+          "name": "install_extensions",
+          "line": 14,
+          "kind": "function",
+          "parameters": [
+            "context"
+          ],
+          "annotations": {
+            "context": "FeatureContext"
+          }
+        },
+        {
+          "name": "install_extensions.review_quiescent",
+          "line": 22,
+          "kind": "function",
+          "parameters": [
+            "record"
+          ],
+          "annotations": {
+            "record": "Record"
+          }
+        }
+      ],
+      "summary": "Bind owner-installed extensions to their package store and supervised hosts."
+    },
+    {
+      "path": "agent/src/omni/composition/features/mcp.py",
+      "module": "v2-composition",
+      "version": "V2",
+      "python_module": "omni.composition.features.mcp",
+      "lines": 55,
+      "imports": [
+        "omni.adapters.mcp.hosts",
+        "omni.adapters.mcp.oauth",
+        "omni.application.capabilities",
+        "omni.application.mcp",
+        "omni.composition.features",
+        "omni.domain.mcp"
+      ],
+      "symbols": [
+        {
+          "name": "install_mcp",
+          "line": 17,
+          "kind": "function",
+          "parameters": [
+            "context"
+          ],
+          "annotations": {
+            "context": "FeatureContext"
+          }
+        }
+      ],
+      "summary": "Bind MCP authorization, transport recovery and the per-run capability provider."
     },
     {
       "path": "agent/src/omni/composition/features/media.py",
@@ -77096,11 +77267,39 @@
       "summary": "Bind scheduling to run notifications, cancellation and late startup."
     },
     {
+      "path": "agent/src/omni/composition/features/skills.py",
+      "module": "v2-composition",
+      "version": "V2",
+      "python_module": "omni.composition.features.skills",
+      "lines": 20,
+      "imports": [
+        "omni.adapters.skill_packages",
+        "omni.application.capabilities",
+        "omni.application.skills",
+        "omni.composition.features",
+        "omni.domain.skills"
+      ],
+      "symbols": [
+        {
+          "name": "install_skills",
+          "line": 12,
+          "kind": "function",
+          "parameters": [
+            "context"
+          ],
+          "annotations": {
+            "context": "FeatureContext"
+          }
+        }
+      ],
+      "summary": "Bind the skills API, package storage and revision tools to one service."
+    },
+    {
       "path": "agent/src/omni/composition/http.py",
       "module": "v2-composition",
       "version": "V2",
       "python_module": "omni.composition.http",
-      "lines": 250,
+      "lines": 247,
       "imports": [
         "omni.adapters.http",
         "omni.adapters.log_query",
@@ -77198,18 +77397,14 @@
       "module": "v2-composition",
       "version": "V2",
       "python_module": "omni.composition.instance",
-      "lines": 847,
+      "lines": 793,
       "imports": [
         "omni.adapters.build_identity",
         "omni.adapters.credentials",
         "omni.adapters.diagnostic_bundle",
         "omni.adapters.diagnostics",
-        "omni.adapters.extensions.hosts",
-        "omni.adapters.extensions.packages",
         "omni.adapters.images",
         "omni.adapters.local_vectors",
-        "omni.adapters.mcp.hosts",
-        "omni.adapters.mcp.oauth",
         "omni.adapters.metrics",
         "omni.adapters.native_credentials",
         "omni.adapters.object_store",
@@ -77223,7 +77418,6 @@
         "omni.adapters.platform.services.service_launch",
         "omni.adapters.primitives",
         "omni.adapters.process_diagnostics",
-        "omni.adapters.skill_packages",
         "omni.adapters.token_counter",
         "omni.adapters.visual",
         "omni.application.action_review",
@@ -77276,19 +77470,17 @@
         "omni.domain.background_review",
         "omni.domain.contracts",
         "omni.domain.installation",
-        "omni.domain.mcp",
-        "omni.domain.memory_decay",
-        "omni.domain.skills"
+        "omni.domain.memory_decay"
       ],
       "symbols": [
         {
           "name": "SpanMeasurement",
-          "line": 118,
+          "line": 111,
           "kind": "class"
         },
         {
           "name": "SpanMeasurement.result",
-          "line": 123,
+          "line": 116,
           "kind": "function",
           "parameters": [
             "self",
@@ -77300,12 +77492,12 @@
         },
         {
           "name": "Observation",
-          "line": 128,
+          "line": 121,
           "kind": "class"
         },
         {
           "name": "Observation.__init__",
-          "line": 129,
+          "line": 122,
           "kind": "function",
           "parameters": [
             "self",
@@ -77319,7 +77511,7 @@
         },
         {
           "name": "Observation.context",
-          "line": 135,
+          "line": 128,
           "kind": "function",
           "parameters": [
             "self",
@@ -77329,7 +77521,7 @@
         },
         {
           "name": "Observation.span",
-          "line": 140,
+          "line": 133,
           "kind": "function",
           "parameters": [
             "self",
@@ -77341,7 +77533,7 @@
         },
         {
           "name": "_record",
-          "line": 182,
+          "line": 175,
           "kind": "function",
           "parameters": [
             "value"
@@ -77352,12 +77544,12 @@
         },
         {
           "name": "Instance",
-          "line": 188,
+          "line": 181,
           "kind": "class"
         },
         {
           "name": "Instance.database",
-          "line": 193,
+          "line": 186,
           "kind": "function",
           "parameters": [
             "self"
@@ -77366,7 +77558,7 @@
         },
         {
           "name": "Instance.logging",
-          "line": 198,
+          "line": 191,
           "kind": "function",
           "parameters": [
             "self"
@@ -77375,7 +77567,7 @@
         },
         {
           "name": "Instance.identity_files",
-          "line": 203,
+          "line": 196,
           "kind": "function",
           "parameters": [
             "self"
@@ -77384,7 +77576,7 @@
         },
         {
           "name": "Instance.lifetime",
-          "line": 208,
+          "line": 201,
           "kind": "function",
           "parameters": [
             "self"
@@ -77393,7 +77585,7 @@
         },
         {
           "name": "Instance.identity_proof",
-          "line": 259,
+          "line": 252,
           "kind": "function",
           "parameters": [
             "self",
@@ -77405,7 +77597,7 @@
         },
         {
           "name": "Instance.health",
-          "line": 262,
+          "line": 255,
           "kind": "function",
           "parameters": [
             "self"
@@ -77414,7 +77606,7 @@
         },
         {
           "name": "Instance.close",
-          "line": 317,
+          "line": 310,
           "kind": "function",
           "parameters": [
             "self",
@@ -77426,7 +77618,7 @@
         },
         {
           "name": "open_instance",
-          "line": 323,
+          "line": 316,
           "kind": "function",
           "parameters": [
             "home",
@@ -118861,7 +119053,7 @@
       "method": "GET",
       "path": "/",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 1819,
+      "line": 1715,
       "handler": "create_app.index",
       "module": "v2-adapters",
       "parameters": [
@@ -118876,7 +119068,7 @@
       "method": "GET",
       "path": "/api/v1/agents",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 615,
+      "line": 514,
       "handler": "create_app.agents",
       "module": "v2-adapters",
       "parameters": [
@@ -118891,7 +119083,7 @@
       "method": "POST",
       "path": "/api/v1/agents",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 619,
+      "line": 518,
       "handler": "create_app.create_agent",
       "module": "v2-adapters",
       "parameters": [
@@ -118906,7 +119098,7 @@
       "method": "GET",
       "path": "/api/v1/agents/{agent_id}",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 624,
+      "line": 523,
       "handler": "create_app.get_agent",
       "module": "v2-adapters",
       "parameters": [
@@ -118923,7 +119115,7 @@
       "method": "PUT",
       "path": "/api/v1/agents/{agent_id}",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 628,
+      "line": 527,
       "handler": "create_app.rename_agent",
       "module": "v2-adapters",
       "parameters": [
@@ -118940,7 +119132,7 @@
       "method": "GET",
       "path": "/api/v1/agents/{agent_id}/action-reviews",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 1476,
+      "line": 1375,
       "handler": "create_app.action_review_list",
       "module": "v2-adapters",
       "parameters": [
@@ -118961,7 +119153,7 @@
       "method": "GET",
       "path": "/api/v1/agents/{agent_id}/actions/{action_id}/review",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 1485,
+      "line": 1384,
       "handler": "create_app.action_review_detail",
       "module": "v2-adapters",
       "parameters": [
@@ -118980,7 +119172,7 @@
       "method": "POST",
       "path": "/api/v1/agents/{agent_id}/actions/{action_id}/review",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 1499,
+      "line": 1398,
       "handler": "create_app.action_review_commit",
       "module": "v2-adapters",
       "parameters": [
@@ -118999,7 +119191,7 @@
       "method": "GET",
       "path": "/api/v1/agents/{agent_id}/actions/{action_id}/reviews",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 1489,
+      "line": 1388,
       "handler": "create_app.action_review_history",
       "module": "v2-adapters",
       "parameters": [
@@ -119307,7 +119499,7 @@
       "method": "GET",
       "path": "/api/v1/agents/{agent_id}/approvals",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 1322,
+      "line": 1221,
       "handler": "create_app.approvals",
       "module": "v2-adapters",
       "parameters": [
@@ -119324,7 +119516,7 @@
       "method": "POST",
       "path": "/api/v1/agents/{agent_id}/approvals/{approval_id}",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 1326,
+      "line": 1225,
       "handler": "create_app.approve",
       "module": "v2-adapters",
       "parameters": [
@@ -119345,7 +119537,7 @@
       "method": "GET",
       "path": "/api/v1/agents/{agent_id}/audit",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 1683,
+      "line": 1579,
       "handler": "create_app.audit",
       "module": "v2-adapters",
       "parameters": [
@@ -119366,7 +119558,7 @@
       "method": "GET",
       "path": "/api/v1/agents/{agent_id}/audit/retention-preview",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 1228,
+      "line": 1127,
       "handler": "create_app.audit_retention_preview",
       "module": "v2-adapters",
       "parameters": [
@@ -119539,7 +119731,7 @@
       "method": "GET",
       "path": "/api/v1/agents/{agent_id}/clarifications",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 1331,
+      "line": 1230,
       "handler": "create_app.clarifications",
       "module": "v2-adapters",
       "parameters": [
@@ -119556,7 +119748,7 @@
       "method": "POST",
       "path": "/api/v1/agents/{agent_id}/clarifications/{clarification_id}/cancel",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 1344,
+      "line": 1243,
       "handler": "create_app.cancel_clarify",
       "module": "v2-adapters",
       "parameters": [
@@ -119577,7 +119769,7 @@
       "method": "POST",
       "path": "/api/v1/agents/{agent_id}/clarifications/{clarification_id}/respond",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 1335,
+      "line": 1234,
       "handler": "create_app.respond_clarify",
       "module": "v2-adapters",
       "parameters": [
@@ -119598,7 +119790,7 @@
       "method": "GET",
       "path": "/api/v1/agents/{agent_id}/configurations",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 710,
+      "line": 609,
       "handler": "create_app.configurations",
       "module": "v2-adapters",
       "parameters": [
@@ -119621,7 +119813,7 @@
       "method": "POST",
       "path": "/api/v1/agents/{agent_id}/configurations",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 738,
+      "line": 637,
       "handler": "create_app.create_configuration",
       "module": "v2-adapters",
       "parameters": [
@@ -119638,7 +119830,7 @@
       "method": "POST",
       "path": "/api/v1/agents/{agent_id}/configurations/preview",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 757,
+      "line": 656,
       "handler": "create_app.preview_configuration",
       "module": "v2-adapters",
       "parameters": [
@@ -119655,7 +119847,7 @@
       "method": "GET",
       "path": "/api/v1/agents/{agent_id}/configurations/template",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 750,
+      "line": 649,
       "handler": "create_app.configuration_template",
       "module": "v2-adapters",
       "parameters": [
@@ -119674,7 +119866,7 @@
       "method": "DELETE",
       "path": "/api/v1/agents/{agent_id}/configurations/{config_id}",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 779,
+      "line": 678,
       "handler": "create_app.archive_configuration",
       "module": "v2-adapters",
       "parameters": [
@@ -119695,7 +119887,7 @@
       "method": "GET",
       "path": "/api/v1/agents/{agent_id}/configurations/{config_id}",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 762,
+      "line": 661,
       "handler": "create_app.get_configuration",
       "module": "v2-adapters",
       "parameters": [
@@ -119714,7 +119906,7 @@
       "method": "PUT",
       "path": "/api/v1/agents/{agent_id}/configurations/{config_id}",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 766,
+      "line": 665,
       "handler": "create_app.save_configuration",
       "module": "v2-adapters",
       "parameters": [
@@ -119733,7 +119925,7 @@
       "method": "GET",
       "path": "/api/v1/agents/{agent_id}/configurations/{config_id}/diagnosis",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 796,
+      "line": 695,
       "handler": "create_app.configuration_diagnosis",
       "module": "v2-adapters",
       "parameters": [
@@ -119752,7 +119944,7 @@
       "method": "GET",
       "path": "/api/v1/agents/{agent_id}/configurations/{config_id}/preset",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 800,
+      "line": 699,
       "handler": "create_app.apply_preset",
       "module": "v2-adapters",
       "parameters": [
@@ -119771,7 +119963,7 @@
       "method": "POST",
       "path": "/api/v1/agents/{agent_id}/configurations/{config_id}/probe",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 804,
+      "line": 703,
       "handler": "create_app.configuration_probe",
       "module": "v2-adapters",
       "parameters": [
@@ -119790,7 +119982,7 @@
       "method": "GET",
       "path": "/api/v1/agents/{agent_id}/configurations/{config_id}/revisions",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 786,
+      "line": 685,
       "handler": "create_app.configuration_history",
       "module": "v2-adapters",
       "parameters": [
@@ -119813,7 +120005,7 @@
       "method": "GET",
       "path": "/api/v1/agents/{agent_id}/context/constants",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 1308,
+      "line": 1207,
       "handler": "create_app.context_constants",
       "module": "v2-adapters",
       "parameters": [
@@ -119830,7 +120022,7 @@
       "method": "GET",
       "path": "/api/v1/agents/{agent_id}/debug",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 1698,
+      "line": 1594,
       "handler": "create_app.debug_status",
       "module": "v2-adapters",
       "parameters": [
@@ -119847,7 +120039,7 @@
       "method": "POST",
       "path": "/api/v1/agents/{agent_id}/debug",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 1702,
+      "line": 1598,
       "handler": "create_app.debug_start",
       "module": "v2-adapters",
       "parameters": [
@@ -119864,7 +120056,7 @@
       "method": "DELETE",
       "path": "/api/v1/agents/{agent_id}/debug/{operation_id}",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 1707,
+      "line": 1603,
       "handler": "create_app.debug_stop",
       "module": "v2-adapters",
       "parameters": [
@@ -119883,7 +120075,7 @@
       "method": "GET",
       "path": "/api/v1/agents/{agent_id}/debug/{operation_id}/logs",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 1711,
+      "line": 1607,
       "handler": "create_app.debug_logs",
       "module": "v2-adapters",
       "parameters": [
@@ -119906,7 +120098,7 @@
       "method": "GET",
       "path": "/api/v1/agents/{agent_id}/deliveries",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 646,
+      "line": 545,
       "handler": "create_app.deliveries",
       "module": "v2-adapters",
       "parameters": [
@@ -119929,7 +120121,7 @@
       "method": "POST",
       "path": "/api/v1/agents/{agent_id}/deliveries",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 657,
+      "line": 556,
       "handler": "create_app.create_delivery",
       "module": "v2-adapters",
       "parameters": [
@@ -119946,7 +120138,7 @@
       "method": "GET",
       "path": "/api/v1/agents/{agent_id}/deliveries/capabilities",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 642,
+      "line": 541,
       "handler": "create_app.delivery_capabilities",
       "module": "v2-adapters",
       "parameters": [
@@ -119963,7 +120155,7 @@
       "method": "GET",
       "path": "/api/v1/agents/{agent_id}/deliveries/channels",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 633,
+      "line": 532,
       "handler": "create_app.delivery_channels",
       "module": "v2-adapters",
       "parameters": [
@@ -119984,7 +120176,7 @@
       "method": "DELETE",
       "path": "/api/v1/agents/{agent_id}/deliveries/{delivery_id}",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 703,
+      "line": 602,
       "handler": "create_app.archive_delivery",
       "module": "v2-adapters",
       "parameters": [
@@ -120005,7 +120197,7 @@
       "method": "GET",
       "path": "/api/v1/agents/{agent_id}/deliveries/{delivery_id}",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 670,
+      "line": 569,
       "handler": "create_app.delivery",
       "module": "v2-adapters",
       "parameters": [
@@ -120024,7 +120216,7 @@
       "method": "GET",
       "path": "/api/v1/agents/{agent_id}/deliveries/{delivery_id}/attempts",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 674,
+      "line": 573,
       "handler": "create_app.delivery_attempts",
       "module": "v2-adapters",
       "parameters": [
@@ -120047,7 +120239,7 @@
       "method": "POST",
       "path": "/api/v1/agents/{agent_id}/deliveries/{delivery_id}/cancel",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 692,
+      "line": 591,
       "handler": "create_app.cancel_delivery",
       "module": "v2-adapters",
       "parameters": [
@@ -120066,7 +120258,7 @@
       "method": "POST",
       "path": "/api/v1/agents/{agent_id}/deliveries/{delivery_id}/decision",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 685,
+      "line": 584,
       "handler": "create_app.decide_delivery",
       "module": "v2-adapters",
       "parameters": [
@@ -120085,7 +120277,7 @@
       "method": "POST",
       "path": "/api/v1/agents/{agent_id}/deliveries/{delivery_id}/review",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 696,
+      "line": 595,
       "handler": "create_app.review_delivery",
       "module": "v2-adapters",
       "parameters": [
@@ -120390,7 +120582,7 @@
       "method": "GET",
       "path": "/api/v1/agents/{agent_id}/documents",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 869,
+      "line": 768,
       "handler": "create_app.source_documents",
       "module": "v2-adapters",
       "parameters": [
@@ -120411,7 +120603,7 @@
       "method": "POST",
       "path": "/api/v1/agents/{agent_id}/documents",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 878,
+      "line": 777,
       "handler": "create_app.source_document_create",
       "module": "v2-adapters",
       "parameters": [
@@ -120428,7 +120620,7 @@
       "method": "POST",
       "path": "/api/v1/agents/{agent_id}/documents/import",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 889,
+      "line": 788,
       "handler": "create_app.source_document_import",
       "module": "v2-adapters",
       "parameters": [
@@ -120445,7 +120637,7 @@
       "method": "GET",
       "path": "/api/v1/agents/{agent_id}/documents/search",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 900,
+      "line": 799,
       "handler": "create_app.source_document_search",
       "module": "v2-adapters",
       "parameters": [
@@ -120466,7 +120658,7 @@
       "method": "DELETE",
       "path": "/api/v1/agents/{agent_id}/documents/{document_id}",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 926,
+      "line": 825,
       "handler": "create_app.source_document_erase",
       "module": "v2-adapters",
       "parameters": [
@@ -120487,7 +120679,7 @@
       "method": "GET",
       "path": "/api/v1/agents/{agent_id}/documents/{document_id}",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 909,
+      "line": 808,
       "handler": "create_app.source_document_get",
       "module": "v2-adapters",
       "parameters": [
@@ -120508,7 +120700,7 @@
       "method": "PUT",
       "path": "/api/v1/agents/{agent_id}/documents/{document_id}",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 917,
+      "line": 816,
       "handler": "create_app.source_document_save",
       "module": "v2-adapters",
       "parameters": [
@@ -120527,7 +120719,7 @@
       "method": "GET",
       "path": "/api/v1/agents/{agent_id}/documents/{document_id}/indexes",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 943,
+      "line": 842,
       "handler": "create_app.source_document_indexes",
       "module": "v2-adapters",
       "parameters": [
@@ -120550,7 +120742,7 @@
       "method": "POST",
       "path": "/api/v1/agents/{agent_id}/documents/{document_id}/indexes",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 955,
+      "line": 854,
       "handler": "create_app.source_document_rebuild",
       "module": "v2-adapters",
       "parameters": [
@@ -120569,7 +120761,7 @@
       "method": "GET",
       "path": "/api/v1/agents/{agent_id}/documents/{document_id}/revisions",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 933,
+      "line": 832,
       "handler": "create_app.source_document_history",
       "module": "v2-adapters",
       "parameters": [
@@ -120592,7 +120784,7 @@
       "method": "GET",
       "path": "/api/v1/agents/{agent_id}/events/retention-preview",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 1212,
+      "line": 1111,
       "handler": "create_app.event_retention_preview",
       "module": "v2-adapters",
       "parameters": [
@@ -120615,7 +120807,7 @@
       "method": "GET",
       "path": "/api/v1/agents/{agent_id}/events/stream",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 1255,
+      "line": 1154,
       "handler": "create_app.event_stream",
       "module": "v2-adapters",
       "parameters": [
@@ -120636,7 +120828,7 @@
       "method": "GET",
       "path": "/api/v1/agents/{agent_id}/extensions",
       "source": "agent/src/omni/adapters/http_routes/extensions.py",
-      "line": 40,
+      "line": 46,
       "handler": "extensions_router.extension_list",
       "module": "v2-adapters",
       "parameters": [
@@ -120657,7 +120849,7 @@
       "method": "POST",
       "path": "/api/v1/agents/{agent_id}/extensions",
       "source": "agent/src/omni/adapters/http_routes/extensions.py",
-      "line": 24,
+      "line": 30,
       "handler": "extensions_router.extension_install",
       "module": "v2-adapters",
       "parameters": [
@@ -120674,7 +120866,7 @@
       "method": "POST",
       "path": "/api/v1/agents/{agent_id}/extensions/market",
       "source": "agent/src/omni/adapters/http_routes/extensions.py",
-      "line": 28,
+      "line": 34,
       "handler": "extensions_router.extension_market",
       "module": "v2-adapters",
       "parameters": [
@@ -120691,7 +120883,7 @@
       "method": "GET",
       "path": "/api/v1/agents/{agent_id}/extensions/{extension_id}",
       "source": "agent/src/omni/adapters/http_routes/extensions.py",
-      "line": 49,
+      "line": 55,
       "handler": "extensions_router.extension_detail",
       "module": "v2-adapters",
       "parameters": [
@@ -120710,7 +120902,7 @@
       "method": "GET",
       "path": "/api/v1/agents/{agent_id}/extensions/{extension_id}/actions",
       "source": "agent/src/omni/adapters/http_routes/extensions.py",
-      "line": 53,
+      "line": 59,
       "handler": "extensions_router.extension_actions",
       "module": "v2-adapters",
       "parameters": [
@@ -120733,7 +120925,7 @@
       "method": "PUT",
       "path": "/api/v1/agents/{agent_id}/extensions/{extension_id}/authorization",
       "source": "agent/src/omni/adapters/http_routes/extensions.py",
-      "line": 65,
+      "line": 69,
       "handler": "extensions_router.extension_authorization",
       "module": "v2-adapters",
       "parameters": [
@@ -120752,7 +120944,7 @@
       "method": "POST",
       "path": "/api/v1/agents/{agent_id}/extensions/{extension_id}/disable",
       "source": "agent/src/omni/adapters/http_routes/extensions.py",
-      "line": 71,
+      "line": 75,
       "handler": "extensions_router.extension_disable",
       "module": "v2-adapters",
       "parameters": [
@@ -120771,7 +120963,7 @@
       "method": "POST",
       "path": "/api/v1/agents/{agent_id}/images",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 1108,
+      "line": 1007,
       "handler": "create_app.upload_image",
       "module": "v2-adapters",
       "parameters": [
@@ -120788,7 +120980,7 @@
       "method": "POST",
       "path": "/api/v1/agents/{agent_id}/images/{object_id}/prepare",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 1127,
+      "line": 1026,
       "handler": "create_app.prepare_image",
       "module": "v2-adapters",
       "parameters": [
@@ -120807,7 +120999,7 @@
       "method": "GET",
       "path": "/api/v1/agents/{agent_id}/maintenance",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 1192,
+      "line": 1091,
       "handler": "create_app.maintenance_list",
       "module": "v2-adapters",
       "parameters": [
@@ -120828,7 +121020,7 @@
       "method": "POST",
       "path": "/api/v1/agents/{agent_id}/maintenance",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 1188,
+      "line": 1087,
       "handler": "create_app.maintenance_submit",
       "module": "v2-adapters",
       "parameters": [
@@ -120845,7 +121037,7 @@
       "method": "GET",
       "path": "/api/v1/agents/{agent_id}/maintenance/{job_id}",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 1201,
+      "line": 1100,
       "handler": "create_app.maintenance_get",
       "module": "v2-adapters",
       "parameters": [
@@ -120864,7 +121056,7 @@
       "method": "POST",
       "path": "/api/v1/agents/{agent_id}/maintenance/{job_id}/cancel",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 1205,
+      "line": 1104,
       "handler": "create_app.maintenance_cancel",
       "module": "v2-adapters",
       "parameters": [
@@ -120882,9 +121074,9 @@
     {
       "method": "GET",
       "path": "/api/v1/agents/{agent_id}/mcp/health",
-      "source": "agent/src/omni/adapters/http.py",
-      "line": 611,
-      "handler": "create_app.mcp_health",
+      "source": "agent/src/omni/adapters/http_routes/mcp.py",
+      "line": 128,
+      "handler": "mcp_router.mcp_health",
       "module": "v2-adapters",
       "parameters": [
         "agent_id",
@@ -120899,9 +121091,9 @@
     {
       "method": "GET",
       "path": "/api/v1/agents/{agent_id}/mcp/servers",
-      "source": "agent/src/omni/adapters/http.py",
-      "line": 538,
-      "handler": "create_app.mcp_servers",
+      "source": "agent/src/omni/adapters/http_routes/mcp.py",
+      "line": 55,
+      "handler": "mcp_router.mcp_servers",
       "module": "v2-adapters",
       "parameters": [
         "agent_id",
@@ -120916,9 +121108,9 @@
     {
       "method": "GET",
       "path": "/api/v1/agents/{agent_id}/mcp/servers/{config_id}",
-      "source": "agent/src/omni/adapters/http.py",
-      "line": 542,
-      "handler": "create_app.mcp_server",
+      "source": "agent/src/omni/adapters/http_routes/mcp.py",
+      "line": 59,
+      "handler": "mcp_router.mcp_server",
       "module": "v2-adapters",
       "parameters": [
         "agent_id",
@@ -120935,9 +121127,9 @@
     {
       "method": "PUT",
       "path": "/api/v1/agents/{agent_id}/mcp/servers/{config_id}/authorization",
-      "source": "agent/src/omni/adapters/http.py",
-      "line": 569,
-      "handler": "create_app.mcp_authorize",
+      "source": "agent/src/omni/adapters/http_routes/mcp.py",
+      "line": 86,
+      "handler": "mcp_router.mcp_authorize",
       "module": "v2-adapters",
       "parameters": [
         "agent_id",
@@ -120954,9 +121146,9 @@
     {
       "method": "GET",
       "path": "/api/v1/agents/{agent_id}/mcp/servers/{config_id}/calls",
-      "source": "agent/src/omni/adapters/http.py",
-      "line": 595,
-      "handler": "create_app.mcp_calls",
+      "source": "agent/src/omni/adapters/http_routes/mcp.py",
+      "line": 112,
+      "handler": "mcp_router.mcp_calls",
       "module": "v2-adapters",
       "parameters": [
         "agent_id",
@@ -120977,9 +121169,9 @@
     {
       "method": "GET",
       "path": "/api/v1/agents/{agent_id}/mcp/servers/{config_id}/catalog",
-      "source": "agent/src/omni/adapters/http.py",
-      "line": 559,
-      "handler": "create_app.mcp_catalog",
+      "source": "agent/src/omni/adapters/http_routes/mcp.py",
+      "line": 76,
+      "handler": "mcp_router.mcp_catalog",
       "module": "v2-adapters",
       "parameters": [
         "agent_id",
@@ -121000,9 +121192,9 @@
     {
       "method": "POST",
       "path": "/api/v1/agents/{agent_id}/mcp/servers/{config_id}/connect",
-      "source": "agent/src/omni/adapters/http.py",
-      "line": 546,
-      "handler": "create_app.mcp_connect",
+      "source": "agent/src/omni/adapters/http_routes/mcp.py",
+      "line": 63,
+      "handler": "mcp_router.mcp_connect",
       "module": "v2-adapters",
       "parameters": [
         "agent_id",
@@ -121019,9 +121211,9 @@
     {
       "method": "POST",
       "path": "/api/v1/agents/{agent_id}/mcp/servers/{config_id}/disconnect",
-      "source": "agent/src/omni/adapters/http.py",
-      "line": 551,
-      "handler": "create_app.mcp_disconnect",
+      "source": "agent/src/omni/adapters/http_routes/mcp.py",
+      "line": 68,
+      "handler": "mcp_router.mcp_disconnect",
       "module": "v2-adapters",
       "parameters": [
         "agent_id",
@@ -121038,9 +121230,9 @@
     {
       "method": "POST",
       "path": "/api/v1/agents/{agent_id}/mcp/servers/{config_id}/oauth/start",
-      "source": "agent/src/omni/adapters/http.py",
-      "line": 605,
-      "handler": "create_app.mcp_oauth_start",
+      "source": "agent/src/omni/adapters/http_routes/mcp.py",
+      "line": 122,
+      "handler": "mcp_router.mcp_oauth_start",
       "module": "v2-adapters",
       "parameters": [
         "agent_id",
@@ -121057,9 +121249,9 @@
     {
       "method": "POST",
       "path": "/api/v1/agents/{agent_id}/mcp/servers/{config_id}/reset",
-      "source": "agent/src/omni/adapters/http.py",
-      "line": 555,
-      "handler": "create_app.mcp_reset",
+      "source": "agent/src/omni/adapters/http_routes/mcp.py",
+      "line": 72,
+      "handler": "mcp_router.mcp_reset",
       "module": "v2-adapters",
       "parameters": [
         "agent_id",
@@ -121076,9 +121268,9 @@
     {
       "method": "PUT",
       "path": "/api/v1/agents/{agent_id}/mcp/servers/{config_id}/tools/{tool_id}/authorization",
-      "source": "agent/src/omni/adapters/http.py",
-      "line": 582,
-      "handler": "create_app.mcp_authorize_tool",
+      "source": "agent/src/omni/adapters/http_routes/mcp.py",
+      "line": 99,
+      "handler": "mcp_router.mcp_authorize_tool",
       "module": "v2-adapters",
       "parameters": [
         "agent_id",
@@ -121366,7 +121558,7 @@
       "method": "GET",
       "path": "/api/v1/agents/{agent_id}/memory",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 1508,
+      "line": 1404,
       "handler": "create_app.memories",
       "module": "v2-adapters",
       "parameters": [
@@ -121385,7 +121577,7 @@
       "method": "POST",
       "path": "/api/v1/agents/{agent_id}/memory",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 1667,
+      "line": 1563,
       "handler": "create_app.remember",
       "module": "v2-adapters",
       "parameters": [
@@ -121404,7 +121596,7 @@
       "method": "GET",
       "path": "/api/v1/agents/{agent_id}/memory/decay",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 1520,
+      "line": 1416,
       "handler": "create_app.memory_decay_state",
       "module": "v2-adapters",
       "parameters": [
@@ -121421,7 +121613,7 @@
       "method": "POST",
       "path": "/api/v1/agents/{agent_id}/memory/decay",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 1524,
+      "line": 1420,
       "handler": "create_app.memory_decay",
       "module": "v2-adapters",
       "parameters": [
@@ -121438,7 +121630,7 @@
       "method": "POST",
       "path": "/api/v1/agents/{agent_id}/memory/index",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 1543,
+      "line": 1439,
       "handler": "create_app.memory_index",
       "module": "v2-adapters",
       "parameters": [
@@ -121459,7 +121651,7 @@
       "method": "GET",
       "path": "/api/v1/agents/{agent_id}/memory/organizations",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 1569,
+      "line": 1465,
       "handler": "create_app.memory_organizations",
       "module": "v2-adapters",
       "parameters": [
@@ -121480,7 +121672,7 @@
       "method": "POST",
       "path": "/api/v1/agents/{agent_id}/memory/organizations",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 1563,
+      "line": 1459,
       "handler": "create_app.memory_organization_create",
       "module": "v2-adapters",
       "parameters": [
@@ -121497,7 +121689,7 @@
       "method": "POST",
       "path": "/api/v1/agents/{agent_id}/memory/organizations/candidates/{candidate_id}/decision",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 1593,
+      "line": 1489,
       "handler": "create_app.memory_organization_decision",
       "module": "v2-adapters",
       "parameters": [
@@ -121516,7 +121708,7 @@
       "method": "GET",
       "path": "/api/v1/agents/{agent_id}/memory/organizations/{batch_id}",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 1578,
+      "line": 1474,
       "handler": "create_app.memory_organization_detail",
       "module": "v2-adapters",
       "parameters": [
@@ -121535,7 +121727,7 @@
       "method": "POST",
       "path": "/api/v1/agents/{agent_id}/memory/organizations/{batch_id}/cancel",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 1582,
+      "line": 1478,
       "handler": "create_app.memory_organization_cancel",
       "module": "v2-adapters",
       "parameters": [
@@ -121554,7 +121746,7 @@
       "method": "GET",
       "path": "/api/v1/agents/{agent_id}/memory/reviews",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 1639,
+      "line": 1535,
       "handler": "create_app.background_reviews",
       "module": "v2-adapters",
       "parameters": [
@@ -121575,7 +121767,7 @@
       "method": "POST",
       "path": "/api/v1/agents/{agent_id}/memory/reviews",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 1633,
+      "line": 1529,
       "handler": "create_app.background_review_create",
       "module": "v2-adapters",
       "parameters": [
@@ -121592,7 +121784,7 @@
       "method": "POST",
       "path": "/api/v1/agents/{agent_id}/memory/reviews/candidates/{candidate_id}/decision",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 1661,
+      "line": 1557,
       "handler": "create_app.background_review_decision",
       "module": "v2-adapters",
       "parameters": [
@@ -121611,7 +121803,7 @@
       "method": "GET",
       "path": "/api/v1/agents/{agent_id}/memory/reviews/{batch_id}",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 1648,
+      "line": 1544,
       "handler": "create_app.background_review_detail",
       "module": "v2-adapters",
       "parameters": [
@@ -121630,7 +121822,7 @@
       "method": "POST",
       "path": "/api/v1/agents/{agent_id}/memory/reviews/{batch_id}/cancel",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 1652,
+      "line": 1548,
       "handler": "create_app.background_review_cancel",
       "module": "v2-adapters",
       "parameters": [
@@ -121649,7 +121841,7 @@
       "method": "POST",
       "path": "/api/v1/agents/{agent_id}/memory/semantic-links/{link_id}/decision",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 1557,
+      "line": 1453,
       "handler": "create_app.semantic_decide",
       "module": "v2-adapters",
       "parameters": [
@@ -121668,7 +121860,7 @@
       "method": "GET",
       "path": "/api/v1/agents/{agent_id}/memory/semantics",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 1537,
+      "line": 1433,
       "handler": "create_app.semantic_batches",
       "module": "v2-adapters",
       "parameters": [
@@ -121689,7 +121881,7 @@
       "method": "POST",
       "path": "/api/v1/agents/{agent_id}/memory/semantics",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 1549,
+      "line": 1445,
       "handler": "create_app.semantic_propose",
       "module": "v2-adapters",
       "parameters": [
@@ -121706,7 +121898,7 @@
       "method": "GET",
       "path": "/api/v1/agents/{agent_id}/memory/semantics/{batch_id}",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 1553,
+      "line": 1449,
       "handler": "create_app.semantic_detail",
       "module": "v2-adapters",
       "parameters": [
@@ -121725,7 +121917,7 @@
       "method": "DELETE",
       "path": "/api/v1/agents/{agent_id}/memory/{memory_id}",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 1678,
+      "line": 1574,
       "handler": "create_app.forget",
       "module": "v2-adapters",
       "parameters": [
@@ -121746,7 +121938,7 @@
       "method": "GET",
       "path": "/api/v1/agents/{agent_id}/memory/{memory_id}/revisions",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 1051,
+      "line": 950,
       "handler": "create_app.memory_revisions",
       "module": "v2-adapters",
       "parameters": [
@@ -121769,7 +121961,7 @@
       "method": "DELETE",
       "path": "/api/v1/agents/{agent_id}/messages/{message_id}",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 1065,
+      "line": 964,
       "handler": "create_app.erase_message",
       "module": "v2-adapters",
       "parameters": [
@@ -121788,7 +121980,7 @@
       "method": "GET",
       "path": "/api/v1/agents/{agent_id}/objects",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 1093,
+      "line": 992,
       "handler": "create_app.list_objects",
       "module": "v2-adapters",
       "parameters": [
@@ -121809,7 +122001,7 @@
       "method": "POST",
       "path": "/api/v1/agents/{agent_id}/objects",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 1074,
+      "line": 973,
       "handler": "create_app.upload_object",
       "module": "v2-adapters",
       "parameters": [
@@ -121828,7 +122020,7 @@
       "method": "GET",
       "path": "/api/v1/agents/{agent_id}/objects/{object_id}",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 1135,
+      "line": 1034,
       "handler": "create_app.describe_object",
       "module": "v2-adapters",
       "parameters": [
@@ -121847,7 +122039,7 @@
       "method": "GET",
       "path": "/api/v1/agents/{agent_id}/objects/{object_id}/content",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 1139,
+      "line": 1038,
       "handler": "create_app.download_object",
       "module": "v2-adapters",
       "parameters": [
@@ -121866,7 +122058,7 @@
       "method": "PUT",
       "path": "/api/v1/agents/{agent_id}/objects/{object_id}/pin",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 1148,
+      "line": 1047,
       "handler": "create_app.pin_object",
       "module": "v2-adapters",
       "parameters": [
@@ -121887,7 +122079,7 @@
       "method": "GET",
       "path": "/api/v1/agents/{agent_id}/people",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 964,
+      "line": 863,
       "handler": "create_app.list_people",
       "module": "v2-adapters",
       "parameters": [
@@ -121908,7 +122100,7 @@
       "method": "POST",
       "path": "/api/v1/agents/{agent_id}/people",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 973,
+      "line": 872,
       "handler": "create_app.create_person",
       "module": "v2-adapters",
       "parameters": [
@@ -121927,7 +122119,7 @@
       "method": "GET",
       "path": "/api/v1/agents/{agent_id}/people/owner",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 960,
+      "line": 859,
       "handler": "create_app.owner_person",
       "module": "v2-adapters",
       "parameters": [
@@ -121944,7 +122136,7 @@
       "method": "DELETE",
       "path": "/api/v1/agents/{agent_id}/people/{person_id}",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 985,
+      "line": 884,
       "handler": "create_app.erase_person",
       "module": "v2-adapters",
       "parameters": [
@@ -121965,7 +122157,7 @@
       "method": "GET",
       "path": "/api/v1/agents/{agent_id}/people/{person_id}",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 977,
+      "line": 876,
       "handler": "create_app.get_person",
       "module": "v2-adapters",
       "parameters": [
@@ -121984,7 +122176,7 @@
       "method": "PUT",
       "path": "/api/v1/agents/{agent_id}/people/{person_id}",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 981,
+      "line": 880,
       "handler": "create_app.rename_person",
       "module": "v2-adapters",
       "parameters": [
@@ -122005,7 +122197,7 @@
       "method": "GET",
       "path": "/api/v1/agents/{agent_id}/people/{person_id}/accounts",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 990,
+      "line": 889,
       "handler": "create_app.person_accounts",
       "module": "v2-adapters",
       "parameters": [
@@ -122028,7 +122220,7 @@
       "method": "POST",
       "path": "/api/v1/agents/{agent_id}/people/{person_id}/accounts",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 1000,
+      "line": 899,
       "handler": "create_app.bind_account",
       "module": "v2-adapters",
       "parameters": [
@@ -122049,7 +122241,7 @@
       "method": "DELETE",
       "path": "/api/v1/agents/{agent_id}/people/{person_id}/accounts/{account_id}",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 1004,
+      "line": 903,
       "handler": "create_app.unbind_account",
       "module": "v2-adapters",
       "parameters": [
@@ -122072,7 +122264,7 @@
       "method": "GET",
       "path": "/api/v1/agents/{agent_id}/people/{person_id}/documents/{kind}",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 1011,
+      "line": 910,
       "handler": "create_app.personal_document",
       "module": "v2-adapters",
       "parameters": [
@@ -122093,7 +122285,7 @@
       "method": "PUT",
       "path": "/api/v1/agents/{agent_id}/people/{person_id}/documents/{kind}",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 1017,
+      "line": 916,
       "handler": "create_app.save_personal_document",
       "module": "v2-adapters",
       "parameters": [
@@ -122116,7 +122308,7 @@
       "method": "POST",
       "path": "/api/v1/agents/{agent_id}/people/{person_id}/documents/{kind}/import",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 1034,
+      "line": 933,
       "handler": "create_app.import_personal_document",
       "module": "v2-adapters",
       "parameters": [
@@ -122139,7 +122331,7 @@
       "method": "GET",
       "path": "/api/v1/agents/{agent_id}/persona-growth",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 1625,
+      "line": 1521,
       "handler": "create_app.persona_growth",
       "module": "v2-adapters",
       "parameters": [
@@ -122156,7 +122348,7 @@
       "method": "POST",
       "path": "/api/v1/agents/{agent_id}/persona-growth/rebuild",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 1629,
+      "line": 1525,
       "handler": "create_app.persona_growth_rebuild",
       "module": "v2-adapters",
       "parameters": [
@@ -122251,7 +122443,7 @@
       "method": "GET",
       "path": "/api/v1/agents/{agent_id}/reflections",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 1599,
+      "line": 1495,
       "handler": "create_app.reflections",
       "module": "v2-adapters",
       "parameters": [
@@ -122274,7 +122466,7 @@
       "method": "POST",
       "path": "/api/v1/agents/{agent_id}/reflections/candidates/{candidate_id}/decision",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 1619,
+      "line": 1515,
       "handler": "create_app.reflection_decision",
       "module": "v2-adapters",
       "parameters": [
@@ -122293,7 +122485,7 @@
       "method": "GET",
       "path": "/api/v1/agents/{agent_id}/reflections/{journal_id}",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 1609,
+      "line": 1505,
       "handler": "create_app.reflection_detail",
       "module": "v2-adapters",
       "parameters": [
@@ -122312,7 +122504,7 @@
       "method": "PUT",
       "path": "/api/v1/agents/{agent_id}/reflections/{journal_id}",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 1613,
+      "line": 1509,
       "handler": "create_app.reflection_edit",
       "module": "v2-adapters",
       "parameters": [
@@ -122331,7 +122523,7 @@
       "method": "GET",
       "path": "/api/v1/agents/{agent_id}/routing",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 726,
+      "line": 625,
       "handler": "create_app.route_policy",
       "module": "v2-adapters",
       "parameters": [
@@ -122348,7 +122540,7 @@
       "method": "PUT",
       "path": "/api/v1/agents/{agent_id}/routing",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 730,
+      "line": 629,
       "handler": "create_app.save_route_policy",
       "module": "v2-adapters",
       "parameters": [
@@ -122367,7 +122559,7 @@
       "method": "GET",
       "path": "/api/v1/agents/{agent_id}/runs",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 1180,
+      "line": 1079,
       "handler": "create_app.runs",
       "module": "v2-adapters",
       "parameters": [
@@ -122384,7 +122576,7 @@
       "method": "GET",
       "path": "/api/v1/agents/{agent_id}/runs/{run_id}",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 1184,
+      "line": 1083,
       "handler": "create_app.run",
       "module": "v2-adapters",
       "parameters": [
@@ -122403,7 +122595,7 @@
       "method": "POST",
       "path": "/api/v1/agents/{agent_id}/runs/{run_id}/cancel",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 1294,
+      "line": 1193,
       "handler": "create_app.cancel",
       "module": "v2-adapters",
       "parameters": [
@@ -122422,7 +122614,7 @@
       "method": "GET",
       "path": "/api/v1/agents/{agent_id}/runs/{run_id}/configuration",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 865,
+      "line": 764,
       "handler": "create_app.run_configuration",
       "module": "v2-adapters",
       "parameters": [
@@ -122441,7 +122633,7 @@
       "method": "GET",
       "path": "/api/v1/agents/{agent_id}/runs/{run_id}/context",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 1061,
+      "line": 960,
       "handler": "create_app.run_context",
       "module": "v2-adapters",
       "parameters": [
@@ -122460,7 +122652,7 @@
       "method": "GET",
       "path": "/api/v1/agents/{agent_id}/runs/{run_id}/delegations",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 1176,
+      "line": 1075,
       "handler": "create_app.run_delegations",
       "module": "v2-adapters",
       "parameters": [
@@ -122479,7 +122671,7 @@
       "method": "GET",
       "path": "/api/v1/agents/{agent_id}/runs/{run_id}/events",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 1281,
+      "line": 1180,
       "handler": "create_app.events",
       "module": "v2-adapters",
       "parameters": [
@@ -122502,7 +122694,7 @@
       "method": "GET",
       "path": "/api/v1/agents/{agent_id}/runs/{run_id}/images",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 1131,
+      "line": 1030,
       "handler": "create_app.run_images",
       "module": "v2-adapters",
       "parameters": [
@@ -122521,7 +122713,7 @@
       "method": "GET",
       "path": "/api/v1/agents/{agent_id}/runs/{run_id}/live-output",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 1251,
+      "line": 1150,
       "handler": "create_app.model_live_output",
       "module": "v2-adapters",
       "parameters": [
@@ -122540,7 +122732,7 @@
       "method": "GET",
       "path": "/api/v1/agents/{agent_id}/runs/{run_id}/retention",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 1242,
+      "line": 1141,
       "handler": "create_app.run_retention",
       "module": "v2-adapters",
       "parameters": [
@@ -122559,7 +122751,7 @@
       "method": "PUT",
       "path": "/api/v1/agents/{agent_id}/runs/{run_id}/retention-pin",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 1246,
+      "line": 1145,
       "handler": "create_app.run_retention_pin",
       "module": "v2-adapters",
       "parameters": [
@@ -122578,7 +122770,7 @@
       "method": "GET",
       "path": "/api/v1/agents/{agent_id}/runs/{run_id}/routing",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 734,
+      "line": 633,
       "handler": "create_app.route_report",
       "module": "v2-adapters",
       "parameters": [
@@ -122597,7 +122789,7 @@
       "method": "GET",
       "path": "/api/v1/agents/{agent_id}/runs/{run_id}/skills",
       "source": "agent/src/omni/adapters/http_routes/skills.py",
-      "line": 121,
+      "line": 117,
       "handler": "skills_router.skill_run_report",
       "module": "v2-adapters",
       "parameters": [
@@ -122801,7 +122993,7 @@
       "method": "GET",
       "path": "/api/v1/agents/{agent_id}/sessions",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 1164,
+      "line": 1063,
       "handler": "create_app.sessions",
       "module": "v2-adapters",
       "parameters": [
@@ -122818,7 +123010,7 @@
       "method": "GET",
       "path": "/api/v1/agents/{agent_id}/sessions/{session_id}/captures",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 1353,
+      "line": 1252,
       "handler": "create_app.session_captures",
       "module": "v2-adapters",
       "parameters": [
@@ -122841,7 +123033,7 @@
       "method": "DELETE",
       "path": "/api/v1/agents/{agent_id}/sessions/{session_id}/captures/{capture_id}",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 1365,
+      "line": 1264,
       "handler": "create_app.release_capture",
       "module": "v2-adapters",
       "parameters": [
@@ -122862,7 +123054,7 @@
       "method": "GET",
       "path": "/api/v1/agents/{agent_id}/sessions/{session_id}/context-overview",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 1317,
+      "line": 1216,
       "handler": "create_app.session_context_overview",
       "module": "v2-adapters",
       "parameters": [
@@ -122881,7 +123073,7 @@
       "method": "GET",
       "path": "/api/v1/agents/{agent_id}/sessions/{session_id}/messages",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 1168,
+      "line": 1067,
       "handler": "create_app.messages",
       "module": "v2-adapters",
       "parameters": [
@@ -122900,7 +123092,7 @@
       "method": "GET",
       "path": "/api/v1/agents/{agent_id}/sessions/{session_id}/todos",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 1172,
+      "line": 1071,
       "handler": "create_app.session_todos",
       "module": "v2-adapters",
       "parameters": [
@@ -122919,7 +123111,7 @@
       "method": "GET",
       "path": "/api/v1/agents/{agent_id}/settings",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 1299,
+      "line": 1198,
       "handler": "create_app.settings",
       "module": "v2-adapters",
       "parameters": [
@@ -122936,7 +123128,7 @@
       "method": "PUT",
       "path": "/api/v1/agents/{agent_id}/settings",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 1303,
+      "line": 1202,
       "handler": "create_app.save_settings",
       "module": "v2-adapters",
       "parameters": [
@@ -122953,7 +123145,7 @@
       "method": "GET",
       "path": "/api/v1/agents/{agent_id}/settings/revisions",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 856,
+      "line": 755,
       "handler": "create_app.settings_history",
       "module": "v2-adapters",
       "parameters": [
@@ -122974,7 +123166,7 @@
       "method": "GET",
       "path": "/api/v1/agents/{agent_id}/skills",
       "source": "agent/src/omni/adapters/http_routes/skills.py",
-      "line": 55,
+      "line": 51,
       "handler": "skills_router.skill_list",
       "module": "v2-adapters",
       "parameters": [
@@ -122995,7 +123187,7 @@
       "method": "POST",
       "path": "/api/v1/agents/{agent_id}/skills",
       "source": "agent/src/omni/adapters/http_routes/skills.py",
-      "line": 61,
+      "line": 57,
       "handler": "skills_router.skill_save",
       "module": "v2-adapters",
       "parameters": [
@@ -123014,7 +123206,7 @@
       "method": "GET",
       "path": "/api/v1/agents/{agent_id}/skills/available",
       "source": "agent/src/omni/adapters/http_routes/skills.py",
-      "line": 77,
+      "line": 73,
       "handler": "skills_router.skill_available",
       "module": "v2-adapters",
       "parameters": [
@@ -123031,7 +123223,7 @@
       "method": "POST",
       "path": "/api/v1/agents/{agent_id}/skills/import",
       "source": "agent/src/omni/adapters/http_routes/skills.py",
-      "line": 67,
+      "line": 63,
       "handler": "skills_router.skill_import",
       "module": "v2-adapters",
       "parameters": [
@@ -123050,7 +123242,7 @@
       "method": "GET",
       "path": "/api/v1/agents/{agent_id}/skills/{skill_id}",
       "source": "agent/src/omni/adapters/http_routes/skills.py",
-      "line": 89,
+      "line": 85,
       "handler": "skills_router.skill_detail",
       "module": "v2-adapters",
       "parameters": [
@@ -123073,7 +123265,7 @@
       "method": "POST",
       "path": "/api/v1/agents/{agent_id}/skills/{skill_id}/export",
       "source": "agent/src/omni/adapters/http_routes/skills.py",
-      "line": 81,
+      "line": 77,
       "handler": "skills_router.skill_export",
       "module": "v2-adapters",
       "parameters": [
@@ -123094,7 +123286,7 @@
       "method": "GET",
       "path": "/api/v1/agents/{agent_id}/skills/{skill_id}/history",
       "source": "agent/src/omni/adapters/http_routes/skills.py",
-      "line": 101,
+      "line": 97,
       "handler": "skills_router.skill_versions",
       "module": "v2-adapters",
       "parameters": [
@@ -123117,7 +123309,7 @@
       "method": "POST",
       "path": "/api/v1/agents/{agent_id}/skills/{skill_id}/rollback",
       "source": "agent/src/omni/adapters/http_routes/skills.py",
-      "line": 117,
+      "line": 113,
       "handler": "skills_router.skill_rollback",
       "module": "v2-adapters",
       "parameters": [
@@ -123138,7 +123330,7 @@
       "method": "PUT",
       "path": "/api/v1/agents/{agent_id}/skills/{skill_id}/state",
       "source": "agent/src/omni/adapters/http_routes/skills.py",
-      "line": 111,
+      "line": 107,
       "handler": "skills_router.skill_change_state",
       "module": "v2-adapters",
       "parameters": [
@@ -123159,7 +123351,7 @@
       "method": "GET",
       "path": "/api/v1/agents/{agent_id}/summaries/{summary_id}",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 1070,
+      "line": 969,
       "handler": "create_app.summary",
       "module": "v2-adapters",
       "parameters": [
@@ -123178,7 +123370,7 @@
       "method": "GET",
       "path": "/api/v1/agents/{agent_id}/terminal-operations/{operation_id}",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 1420,
+      "line": 1319,
       "handler": "create_app.terminal_lookup",
       "module": "v2-adapters",
       "parameters": [
@@ -123197,7 +123389,7 @@
       "method": "GET",
       "path": "/api/v1/agents/{agent_id}/terminal-reviews",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 1369,
+      "line": 1268,
       "handler": "create_app.terminal_review_list",
       "module": "v2-adapters",
       "parameters": [
@@ -123218,7 +123410,7 @@
       "method": "GET",
       "path": "/api/v1/agents/{agent_id}/terminal-reviews/{operation_id}",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 1375,
+      "line": 1274,
       "handler": "create_app.terminal_review_detail",
       "module": "v2-adapters",
       "parameters": [
@@ -123237,7 +123429,7 @@
       "method": "POST",
       "path": "/api/v1/agents/{agent_id}/terminal-reviews/{operation_id}",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 1389,
+      "line": 1288,
       "handler": "create_app.terminal_review_record",
       "module": "v2-adapters",
       "parameters": [
@@ -123256,7 +123448,7 @@
       "method": "GET",
       "path": "/api/v1/agents/{agent_id}/terminal-reviews/{operation_id}/history",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 1379,
+      "line": 1278,
       "handler": "create_app.terminal_review_history",
       "module": "v2-adapters",
       "parameters": [
@@ -123279,7 +123471,7 @@
       "method": "DELETE",
       "path": "/api/v1/agents/{agent_id}/terminal-reviews/{operation_id}/history/{review_id}/evidence",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 1395,
+      "line": 1294,
       "handler": "create_app.terminal_review_erase_evidence",
       "module": "v2-adapters",
       "parameters": [
@@ -123300,7 +123492,7 @@
       "method": "GET",
       "path": "/api/v1/agents/{agent_id}/terminals",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 1407,
+      "line": 1306,
       "handler": "create_app.terminal_list",
       "module": "v2-adapters",
       "parameters": [
@@ -123321,7 +123513,7 @@
       "method": "POST",
       "path": "/api/v1/agents/{agent_id}/terminals",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 1416,
+      "line": 1315,
       "handler": "create_app.terminal_open",
       "module": "v2-adapters",
       "parameters": [
@@ -123338,7 +123530,7 @@
       "method": "GET",
       "path": "/api/v1/agents/{agent_id}/terminals/options",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 1403,
+      "line": 1302,
       "handler": "create_app.terminal_options",
       "module": "v2-adapters",
       "parameters": [
@@ -123355,7 +123547,7 @@
       "method": "GET",
       "path": "/api/v1/agents/{agent_id}/terminals/{terminal_id}",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 1424,
+      "line": 1323,
       "handler": "create_app.terminal_detail",
       "module": "v2-adapters",
       "parameters": [
@@ -123374,7 +123566,7 @@
       "method": "POST",
       "path": "/api/v1/agents/{agent_id}/terminals/{terminal_id}/attach",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 1432,
+      "line": 1331,
       "handler": "create_app.terminal_attach",
       "module": "v2-adapters",
       "parameters": [
@@ -123393,7 +123585,7 @@
       "method": "POST",
       "path": "/api/v1/agents/{agent_id}/terminals/{terminal_id}/close",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 1470,
+      "line": 1369,
       "handler": "create_app.terminal_close",
       "module": "v2-adapters",
       "parameters": [
@@ -123412,7 +123604,7 @@
       "method": "POST",
       "path": "/api/v1/agents/{agent_id}/terminals/{terminal_id}/detach",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 1438,
+      "line": 1337,
       "handler": "create_app.terminal_detach",
       "module": "v2-adapters",
       "parameters": [
@@ -123431,7 +123623,7 @@
       "method": "POST",
       "path": "/api/v1/agents/{agent_id}/terminals/{terminal_id}/input",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 1458,
+      "line": 1357,
       "handler": "create_app.terminal_input",
       "module": "v2-adapters",
       "parameters": [
@@ -123450,7 +123642,7 @@
       "method": "GET",
       "path": "/api/v1/agents/{agent_id}/terminals/{terminal_id}/operations/{operation_id}",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 1428,
+      "line": 1327,
       "handler": "create_app.terminal_receipt",
       "module": "v2-adapters",
       "parameters": [
@@ -123471,7 +123663,7 @@
       "method": "GET",
       "path": "/api/v1/agents/{agent_id}/terminals/{terminal_id}/output",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 1445,
+      "line": 1344,
       "handler": "create_app.terminal_output",
       "module": "v2-adapters",
       "parameters": [
@@ -123496,7 +123688,7 @@
       "method": "POST",
       "path": "/api/v1/agents/{agent_id}/terminals/{terminal_id}/resize",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 1464,
+      "line": 1363,
       "handler": "create_app.terminal_resize",
       "module": "v2-adapters",
       "parameters": [
@@ -123515,7 +123707,7 @@
       "method": "POST",
       "path": "/api/v1/agents/{agent_id}/turns",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 1152,
+      "line": 1051,
       "handler": "create_app.turn",
       "module": "v2-adapters",
       "parameters": [
@@ -123534,7 +123726,7 @@
       "method": "GET",
       "path": "/api/v1/capabilities",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 486,
+      "line": 468,
       "handler": "create_app.capabilities",
       "module": "v2-adapters",
       "parameters": [
@@ -123549,7 +123741,7 @@
       "method": "DELETE",
       "path": "/api/v1/credentials",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 1799,
+      "line": 1695,
       "handler": "create_app.delete_credential",
       "module": "v2-adapters",
       "parameters": [
@@ -123566,7 +123758,7 @@
       "method": "GET",
       "path": "/api/v1/credentials",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 1745,
+      "line": 1641,
       "handler": "create_app.credential_list",
       "module": "v2-adapters",
       "parameters": [
@@ -123585,7 +123777,7 @@
       "method": "PUT",
       "path": "/api/v1/credentials",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 1791,
+      "line": 1687,
       "handler": "create_app.put_credential",
       "module": "v2-adapters",
       "parameters": [
@@ -123602,7 +123794,7 @@
       "method": "POST",
       "path": "/api/v1/credentials/register",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 1751,
+      "line": 1647,
       "handler": "create_app.credential_register",
       "module": "v2-adapters",
       "parameters": [
@@ -123617,7 +123809,7 @@
       "method": "GET",
       "path": "/api/v1/credentials/{identity}",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 1756,
+      "line": 1652,
       "handler": "create_app.credential_get",
       "module": "v2-adapters",
       "parameters": [
@@ -123634,7 +123826,7 @@
       "method": "GET",
       "path": "/api/v1/credentials/{identity}/operations",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 1760,
+      "line": 1656,
       "handler": "create_app.credential_operations",
       "module": "v2-adapters",
       "parameters": [
@@ -123655,7 +123847,7 @@
       "method": "POST",
       "path": "/api/v1/credentials/{identity}/review",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 1778,
+      "line": 1674,
       "handler": "create_app.credential_review",
       "module": "v2-adapters",
       "parameters": [
@@ -123672,7 +123864,7 @@
       "method": "GET",
       "path": "/api/v1/credentials/{identity}/reviews",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 1769,
+      "line": 1665,
       "handler": "create_app.credential_reviews",
       "module": "v2-adapters",
       "parameters": [
@@ -123693,7 +123885,7 @@
       "method": "GET",
       "path": "/api/v1/owner-token/local",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 492,
+      "line": 474,
       "handler": "create_app.owner_token_local",
       "module": "v2-adapters",
       "parameters": [
@@ -123708,7 +123900,7 @@
       "method": "POST",
       "path": "/api/v1/owner-token/rotate",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 525,
+      "line": 507,
       "handler": "create_app.owner_token_rotate",
       "module": "v2-adapters",
       "parameters": [
@@ -123723,7 +123915,7 @@
       "method": "GET",
       "path": "/api/v1/owner-token/sessions",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 518,
+      "line": 500,
       "handler": "create_app.owner_token_sessions",
       "module": "v2-adapters",
       "parameters": [
@@ -123738,7 +123930,7 @@
       "method": "POST",
       "path": "/api/v1/service/drain",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 438,
+      "line": 420,
       "handler": "create_app.drain",
       "module": "v2-adapters",
       "parameters": [
@@ -123753,7 +123945,7 @@
       "method": "GET",
       "path": "/api/v1/system/audit",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 1806,
+      "line": 1702,
       "handler": "create_app.instance_audit",
       "module": "v2-adapters",
       "parameters": [
@@ -123772,7 +123964,7 @@
       "method": "GET",
       "path": "/api/v1/system/diagnostics",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 1723,
+      "line": 1619,
       "handler": "create_app.diagnostic_bundle",
       "module": "v2-adapters",
       "parameters": [
@@ -123787,7 +123979,7 @@
       "method": "GET",
       "path": "/api/v1/system/logs",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 1732,
+      "line": 1628,
       "handler": "create_app.logs",
       "module": "v2-adapters",
       "parameters": [
@@ -123816,7 +124008,7 @@
       "method": "GET",
       "path": "/api/v1/system/metrics",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 1694,
+      "line": 1590,
       "handler": "create_app.metrics",
       "module": "v2-adapters",
       "parameters": [
@@ -123831,7 +124023,7 @@
       "method": "GET",
       "path": "/api/v1/version",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 482,
+      "line": 464,
       "handler": "create_app.version",
       "module": "v2-adapters",
       "parameters": [
@@ -123846,7 +124038,7 @@
       "method": "GET",
       "path": "/assets/{path:path}",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 1824,
+      "line": 1720,
       "handler": "create_app.resource",
       "module": "v2-adapters",
       "parameters": [
@@ -123863,7 +124055,7 @@
       "method": "GET",
       "path": "/health/identity",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 427,
+      "line": 409,
       "handler": "create_app.identity_proof",
       "module": "v2-adapters",
       "parameters": [
@@ -123880,7 +124072,7 @@
       "method": "GET",
       "path": "/health/live",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 418,
+      "line": 400,
       "handler": "create_app.live",
       "module": "v2-adapters",
       "parameters": [],
@@ -123891,7 +124083,7 @@
       "method": "GET",
       "path": "/health/ready",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 422,
+      "line": 404,
       "handler": "create_app.ready",
       "module": "v2-adapters",
       "parameters": [
@@ -123906,7 +124098,7 @@
       "method": "GET",
       "path": "/oauth/callback",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 451,
+      "line": 433,
       "handler": "create_app.oauth_callback",
       "module": "v2-adapters",
       "parameters": [
@@ -127816,7 +128008,7 @@
     {
       "name": "AgentInput",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 131,
+      "line": 141,
       "fields": [
         {
           "name": "name",
@@ -127828,7 +128020,7 @@
     {
       "name": "AgentRenameInput",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 135,
+      "line": 145,
       "fields": [
         {
           "name": "name",
@@ -127845,7 +128037,7 @@
     {
       "name": "TurnInput",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 139,
+      "line": 149,
       "fields": [
         {
           "name": "session_id",
@@ -127882,7 +128074,7 @@
     {
       "name": "RoutingInput",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 148,
+      "line": 158,
       "fields": [
         {
           "name": "revision",
@@ -127899,7 +128091,7 @@
     {
       "name": "SettingsInput",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 153,
+      "line": 163,
       "fields": [
         {
           "name": "revision",
@@ -127916,7 +128108,7 @@
     {
       "name": "ConfigurationInput",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 158,
+      "line": 168,
       "fields": [
         {
           "name": "kind",
@@ -127948,7 +128140,7 @@
     {
       "name": "ConfigurationEdit",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 166,
+      "line": 176,
       "fields": [
         {
           "name": "name",
@@ -127980,7 +128172,7 @@
     {
       "name": "DeliveryInput",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 174,
+      "line": 184,
       "fields": [
         {
           "name": "message_id",
@@ -128015,99 +128207,9 @@
       ]
     },
     {
-      "name": "MCPConnectInput",
-      "source": "agent/src/omni/adapters/http.py",
-      "line": 183,
-      "fields": [
-        {
-          "name": "revision",
-          "type": "int",
-          "required": true
-        }
-      ]
-    },
-    {
-      "name": "MCPToolAuthorizationInput",
-      "source": "agent/src/omni/adapters/http.py",
-      "line": 187,
-      "fields": [
-        {
-          "name": "tool_id",
-          "type": "uuid.UUID",
-          "required": true
-        },
-        {
-          "name": "read_only",
-          "type": "bool",
-          "required": true
-        }
-      ]
-    },
-    {
-      "name": "MCPAuthorizationInput",
-      "source": "agent/src/omni/adapters/http.py",
-      "line": 192,
-      "fields": [
-        {
-          "name": "catalog_fingerprint",
-          "type": "str",
-          "required": true
-        },
-        {
-          "name": "tools",
-          "type": "list[MCPToolAuthorizationInput]",
-          "required": false
-        },
-        {
-          "name": "evidence",
-          "type": "str",
-          "required": true
-        }
-      ]
-    },
-    {
-      "name": "MCPToolDecisionInput",
-      "source": "agent/src/omni/adapters/http.py",
-      "line": 200,
-      "fields": [
-        {
-          "name": "catalog_fingerprint",
-          "type": "str",
-          "required": true
-        },
-        {
-          "name": "read_only",
-          "type": "bool",
-          "required": false
-        },
-        {
-          "name": "authorized",
-          "type": "bool",
-          "required": false
-        },
-        {
-          "name": "evidence",
-          "type": "str",
-          "required": true
-        }
-      ]
-    },
-    {
-      "name": "MCPOAuthStartInput",
-      "source": "agent/src/omni/adapters/http.py",
-      "line": 207,
-      "fields": [
-        {
-          "name": "redirect_uri",
-          "type": "str",
-          "required": false
-        }
-      ]
-    },
-    {
       "name": "DeliveryDecision",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 211,
+      "line": 193,
       "fields": [
         {
           "name": "allowed",
@@ -128129,7 +128231,7 @@
     {
       "name": "DeliveryReview",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 217,
+      "line": 199,
       "fields": [
         {
           "name": "revision",
@@ -128156,7 +128258,7 @@
     {
       "name": "DebugInput",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 224,
+      "line": 206,
       "fields": [
         {
           "name": "duration_s",
@@ -128168,7 +128270,7 @@
     {
       "name": "ApprovalInput",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 228,
+      "line": 210,
       "fields": [
         {
           "name": "allowed",
@@ -128185,7 +128287,7 @@
     {
       "name": "ClarifyRespondInput",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 233,
+      "line": 215,
       "fields": [
         {
           "name": "answers",
@@ -128207,7 +128309,7 @@
     {
       "name": "ClarifyCancelInput",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 239,
+      "line": 221,
       "fields": [
         {
           "name": "revision",
@@ -128224,7 +128326,7 @@
     {
       "name": "MemoryInput",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 244,
+      "line": 226,
       "fields": [
         {
           "name": "content",
@@ -128256,7 +128358,7 @@
     {
       "name": "SourceDocumentInput",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 252,
+      "line": 234,
       "fields": [
         {
           "name": "document_id",
@@ -128283,7 +128385,7 @@
     {
       "name": "SourceDocumentImport",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 259,
+      "line": 241,
       "fields": [
         {
           "name": "title",
@@ -128310,7 +128412,7 @@
     {
       "name": "SourceIndexInput",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 266,
+      "line": 248,
       "fields": [
         {
           "name": "kind",
@@ -128322,7 +128424,7 @@
     {
       "name": "CredentialInput",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 270,
+      "line": 252,
       "fields": [
         {
           "name": "value",
@@ -128334,7 +128436,7 @@
     {
       "name": "CredentialRegistration",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 274,
+      "line": 256,
       "fields": [
         {
           "name": "reference",
@@ -128346,7 +128448,7 @@
     {
       "name": "CredentialReview",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 278,
+      "line": 260,
       "fields": [
         {
           "name": "revision",
@@ -128383,7 +128485,7 @@
     {
       "name": "ObjectPinInput",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 287,
+      "line": 269,
       "fields": [
         {
           "name": "pinned",
@@ -128400,7 +128502,7 @@
     {
       "name": "RunPinInput",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 292,
+      "line": 274,
       "fields": [
         {
           "name": "pinned",
@@ -128417,7 +128519,7 @@
     {
       "name": "PersonInput",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 297,
+      "line": 279,
       "fields": [
         {
           "name": "name",
@@ -128429,7 +128531,7 @@
     {
       "name": "PersonEdit",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 301,
+      "line": 283,
       "fields": [
         {
           "name": "name",
@@ -128446,7 +128548,7 @@
     {
       "name": "AccountInput",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 305,
+      "line": 287,
       "fields": [
         {
           "name": "channel",
@@ -128463,7 +128565,7 @@
     {
       "name": "DocumentVersion",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 310,
+      "line": 292,
       "fields": [
         {
           "name": "entry_id",
@@ -128480,7 +128582,7 @@
     {
       "name": "DocumentInput",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 315,
+      "line": 297,
       "fields": [
         {
           "name": "entry_id",
@@ -128502,7 +128604,7 @@
     {
       "name": "DocumentImport",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 319,
+      "line": 301,
       "fields": [
         {
           "name": "entry_id",
@@ -128615,6 +128717,96 @@
           "name": "key",
           "type": "str",
           "required": true
+        }
+      ]
+    },
+    {
+      "name": "MCPConnectInput",
+      "source": "agent/src/omni/adapters/http_routes/mcp.py",
+      "line": 17,
+      "fields": [
+        {
+          "name": "revision",
+          "type": "int",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "MCPToolAuthorizationInput",
+      "source": "agent/src/omni/adapters/http_routes/mcp.py",
+      "line": 21,
+      "fields": [
+        {
+          "name": "tool_id",
+          "type": "uuid.UUID",
+          "required": true
+        },
+        {
+          "name": "read_only",
+          "type": "bool",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "MCPAuthorizationInput",
+      "source": "agent/src/omni/adapters/http_routes/mcp.py",
+      "line": 26,
+      "fields": [
+        {
+          "name": "catalog_fingerprint",
+          "type": "str",
+          "required": true
+        },
+        {
+          "name": "tools",
+          "type": "list[MCPToolAuthorizationInput]",
+          "required": false
+        },
+        {
+          "name": "evidence",
+          "type": "str",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "MCPToolDecisionInput",
+      "source": "agent/src/omni/adapters/http_routes/mcp.py",
+      "line": 34,
+      "fields": [
+        {
+          "name": "catalog_fingerprint",
+          "type": "str",
+          "required": true
+        },
+        {
+          "name": "read_only",
+          "type": "bool",
+          "required": false
+        },
+        {
+          "name": "authorized",
+          "type": "bool",
+          "required": false
+        },
+        {
+          "name": "evidence",
+          "type": "str",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "MCPOAuthStartInput",
+      "source": "agent/src/omni/adapters/http_routes/mcp.py",
+      "line": 41,
+      "fields": [
+        {
+          "name": "redirect_uri",
+          "type": "str",
+          "required": false
         }
       ]
     },
@@ -128788,7 +128980,7 @@
     {
       "name": "SkillSaveInput",
       "source": "agent/src/omni/adapters/http_routes/skills.py",
-      "line": 20,
+      "line": 16,
       "fields": [
         {
           "name": "content",
@@ -128810,7 +129002,7 @@
     {
       "name": "SkillImportInput",
       "source": "agent/src/omni/adapters/http_routes/skills.py",
-      "line": 26,
+      "line": 22,
       "fields": [
         {
           "name": "object_id",
@@ -128837,7 +129029,7 @@
     {
       "name": "SkillStateInput",
       "source": "agent/src/omni/adapters/http_routes/skills.py",
-      "line": 33,
+      "line": 29,
       "fields": [
         {
           "name": "revision",
@@ -128864,7 +129056,7 @@
     {
       "name": "SkillRollbackInput",
       "source": "agent/src/omni/adapters/http_routes/skills.py",
-      "line": 40,
+      "line": 36,
       "fields": [
         {
           "name": "revision",

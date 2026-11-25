@@ -8,7 +8,7 @@ Agent 内核统一维护执行循环、上下文、委派、审批、预算、�
 |---|---|---|
 | 在源码中接入带服务、工具和 HTTP 的完整业务功能 | 在 `composition/features/catalog.py` 登记 `FeaturePlugin` | 安装器为服务登记暂停和回收。HTTP 与工具共用该实例服务 |
 | 在源码中添加可信产品能力 | `CapabilityPlugin`，通过 `open_instance(capability_plugins=...)` 或组装阶段的 `attach_plugin` | 默认由应用关闭。已有独立关闭步骤的服务在组装中声明 `own_adapters=False` |
-| 按 Agent 与回合提供工具 | `RunCapabilityPort.tools_for_run`，由组装阶段登记。生产已有 Extension 和 MCP | 提供者服务由组装关闭，按运行授权绑定提供工具。派发前复核权限 |
+| 按 Agent 与回合提供工具 | 功能安装器返回 `RunCapabilityProvider`。生产已有 Extension 和 MCP | 提供者服务由组装关闭，按运行授权绑定提供工具。派发前复核权限 |
 | Agent 学习一套做法，或所有者安装自己的工具 | 技能、Extension 或 MCP | 沿用各自的修订、指纹、授权和回收合同 |
 
 工具描述和参数用 `ToolSpec`。适配器实现 `CapabilityPort.invoke` 和 `close`。纯规则留在领域层，I/O 实现在适配层，应用层编排服务，组装负责实例的资源连接。在模型可见的 `tools` 与 `owner_tools` 中选择相应的操作入口。后者通过所有者审批路径调用。
@@ -41,7 +41,7 @@ uv run --no-sync pytest -q -n 0 agent/tests/v2/core/test_v2_provider_plugins.py 
 
 ## 业务功能登记与启动顺序
 
-在 `composition/features/<feature>.py` 的安装器中用 `FeatureContext` 创建服务，在 `Lifetime` 中登记归属。返回服务和已有的 `Capability`。组装器在就绪之前安装功能，在 `feature_services` 发布只读映射，内核继续从能力表取得工具。HTTP 路由从同一映射取得服务，挂在需要所有者授权的 `/api/v1/agents/{agent_id}/<feature>` 下。功能 ID、精确重复的 HTTP 路径和工具名在组装时校验。
+在 `composition/features/<feature>.py` 的安装器中用 `FeatureContext` 创建服务，在 `Lifetime` 中登记归属。返回服务、工具或回合提供者。组装器在就绪之前安装功能，在 `feature_services` 发布只读映射，内核继续从能力表取得工具。HTTP 路由从同一映射取得服务，默认挂在所有者鉴权的 `/api/v1/agents/{agent_id}/<feature>` 下。既有的额外路径由功能明确声明，例如 `/agents/{agent_id}/runs/{run_id}/skills`。功能 ID、重复方法和路径、工具名在组装时校验。
 
 B 站、媒体和 Android 在 `BUILTIN_FEATURES` 登记 ID、安装器和路由工厂。安装器负责启动期恢复，并将资源交给唯一的关闭方。媒体服务持有本地处理器，B 站读取、媒体下载和投递默认共用登记的 B 站传输。Android 分开登记业务服务与设备后端。
 
@@ -50,6 +50,8 @@ B 站、媒体和 Android 在 `BUILTIN_FEATURES` 登记 ID、安装器和路由�
 QQ 也在内核恢复后启动监听。服务从既有的 OneBot 提供者读取入站事件，HTTP 使用同一服务处理绑定和状态。关闭时先排空 QQ、B 站读取、媒体和投递，再按对象回收共享传输，最后释放投递租约。绑定修订与发送前授权仍在原有事务和派发点核对。
 
 桌面在 `BUILTIN_FEATURES` 登记。HTTP 和所有者动作共用同一桌面视图，窗口共享与独立控制同意分别核对各自的授权。视图撤销时依次请求两种授权的回收。桌面观察和门户先排空，平台提供者再关闭各自后端。独立控制由业务服务接手原生清理，确认后结算同意记录。直接读取运行时桌面服务的调用方也从功能登记取得同一实例。
+
+技能的 HTTP、技能工具、回合捕获和后台复盘使用同一技能服务。可执行插件和 MCP 安装器同时注册按回合工具和宿主静默回调。内核按持久化动作来源调用登记的回调。提供者缺席或宿主未确认静默时，未知动作的核查保留阻塞。MCP 启动恢复标记已派发但未结算的记录，传输在构造失败与正常关停时各有唯一关闭方。
 
 新功能可用 `http_app(feature_plugins=...)` 注入离线替身，再验证启动失败、鉴权、写入审批及排空。UI 页面、配置和领域合同由功能自身维护。
 
@@ -61,4 +63,4 @@ uv run --no-sync python scripts/project_index.py --feature 桌面截图
 uv run --no-sync pytest -q -n 0 agent/tests/v2/core/test_v2_feature_plugins.py
 ```
 
-下一批可以由已有独立路由的技能和可执行插件接入功能登记。核对技能与后台复盘的绑定，以及可执行插件的按回合授权、撤销和宿主回收，再迁移 MCP。每批核对工具顺序、实际 HTTP 匹配、配置兼容、权限与生命周期。已有的所有者安装流程见 [Extension 与 MCP 扩展手册](EXTENDING.md)。
+后续批次及收口条件见 [业务插件化迁移](../PLUGIN_MIGRATION.md)。已有的所有者安装流程见 [Extension 与 MCP 扩展手册](EXTENDING.md)。

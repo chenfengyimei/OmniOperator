@@ -28,7 +28,7 @@ V2 不导入 V1 运行时；数据库访问只在 `adapters/persistence`。组�
 | `composition/features/catalog.py`、`composition/features/<feature>.py` | 登记功能安装器、工具和 HTTP。调度与 QQ 在内核准备后启动后台任务 | 服务只有一份实例，资源有明确关闭方。核对启动顺序、鉴权和调用方 |
 | `web/ui/v2/`、`agent/tests/v2/` | 按功能维护页面，在现有测试分组验证 | 同一批更新功能导航、对应接口和测试 |
 
-把稳定的入口登记在 [features.json](../features.json)。共享大文件用 `路径#类.方法`、`路径#函数.内部函数` 或唯一的组装绑定（如 `instance.py#open_instance.extensions`），由 AST 生成行号。模块或文件改名时同时更新导入、严格类型清单、测试和导航，再生成索引。拆出完整业务功能时参考 [业务功能登记与启动顺序](CAPABILITY_PLUGINS.md#业务功能登记与启动顺序)。V1、V2 与共享文件的明细见[源码地图](../index/MODULES.md)。新增技能或工具的授权流程见[扩展手册](EXTENDING.md)。
+把稳定的入口登记在 [features.json](../features.json)。共享大文件用 `路径#类.方法`、`路径#函数.内部函数` 或唯一的组装绑定，由 AST 生成行号。模块或文件改名时同时更新导入、严格类型清单、测试和导航，再生成索引。业务登记规则见 [业务功能登记与启动顺序](CAPABILITY_PLUGINS.md#业务功能登记与启动顺序)，迁移范围见 [业务插件化迁移](../PLUGIN_MIGRATION.md)。V1、V2 与共享文件的明细见 [源码地图](../index/MODULES.md)。新增技能或工具的授权流程见 [扩展手册](EXTENDING.md)。
 
 ## 2. 业务与平台约束
 

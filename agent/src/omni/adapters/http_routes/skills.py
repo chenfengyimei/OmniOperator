@@ -3,18 +3,14 @@
 from __future__ import annotations
 
 import uuid
-from collections.abc import Callable
-from typing import TYPE_CHECKING, Literal
+from typing import Literal
 
 from fastapi import APIRouter, Query, Request
 from pydantic import Field
 
 from ...application.skills import SkillService
 from ...domain.contracts import BusinessError
-from . import StrictInput
-
-if TYPE_CHECKING:
-    from ..http import HttpRuntime
+from . import RuntimeLookup, StrictInput
 
 
 class SkillSaveInput(StrictInput):
@@ -42,12 +38,12 @@ class SkillRollbackInput(StrictInput):
     revision_id: uuid.UUID
 
 
-def skills_router(runtime: Callable[[Request], HttpRuntime]) -> APIRouter:
+def skills_router(runtime: RuntimeLookup) -> APIRouter:
     router = APIRouter()
 
     def skill_service(request: Request) -> SkillService:
-        service = runtime(request).skills
-        if service is None:
+        service = runtime(request).feature_services.get("skills")
+        if not isinstance(service, SkillService):
             raise BusinessError("skills_unavailable", "Skill service is unavailable", status=503)
         return service
 

@@ -1,0 +1,173 @@
+{
+  "date": "2026-11-25",
+  "platform": "Windows x64",
+  "source": {
+    "base_commit": "8dbb5e62b58c101ce0156adcb431e6c00f1ea404",
+    "working_tree": "v2 技能、可执行插件和 MCP 业务功能登记",
+    "affected_files_sha256_normalized_lf": {
+      "agent/src/omni/adapters/http.py": "6564081b737d73146cd486cd5d3b2f3ad2ac7df305bbcd16b40863b10bd22c5f",
+      "agent/src/omni/adapters/http_routes/__init__.py": "f575eec2861178e4b62899d03df5e0c09f9035c0315634e4f70ba04eedd420d5",
+      "agent/src/omni/adapters/http_routes/extensions.py": "477404a0becadd1121e1d0a5148ac84d533c0473c606c8c635c052002dfd54ca",
+      "agent/src/omni/adapters/http_routes/mcp.py": "c5db9c1cba64b3103deac06d0febfb3f40ecf1718e1c4b8b7e9f02c4be710be1",
+      "agent/src/omni/adapters/http_routes/skills.py": "b86ddafc065d50b8d1a7c8ef9b55d292d257b9f37817d2e4b1f9ddc972b2da95",
+      "agent/src/omni/application/capabilities.py": "e8ffb7228dc4c15295820ca0bb2533f476f3b74e3f28c0f3045d66c5eb7e50a4",
+      "agent/src/omni/application/engine.py": "f70f4282d83e476221917a3ebce5bf6d0ab4eee02de326cc054f7763f3816c8b",
+      "agent/src/omni/composition/features/__init__.py": "e401c43bbcb2a0568d9d4485d3edafe150d2349ca0e7399b90ba1482f848156a",
+      "agent/src/omni/composition/features/catalog.py": "353e2f6650d0eb45861ce88a538dfe75a6afd6a685038390e849d9e31f34c332",
+      "agent/src/omni/composition/features/extensions.py": "d3aaf85039fff98ee5f80e285c622fc4cdd359e5e587d46d8abd9f420dc12d91",
+      "agent/src/omni/composition/features/mcp.py": "722819f02a07d302a45f40424f22be224d13073223c741d42660e8bacbf8306e",
+      "agent/src/omni/composition/features/skills.py": "6d50c9f044ed8df67d774bae10c7cccd009a2c40fb5a89d61bbc287e41fdd08a",
+      "agent/src/omni/composition/http.py": "befc7e0d52e60f5b0c9e05406e514d277e223935884e2a4bbe77bc5d3b6ca1f0",
+      "agent/src/omni/composition/instance.py": "0e114d72d865397e4009c78639f861e108843d220ccea114f4aa6c1ecdb00fb9",
+      "agent/tests/test_feature_navigation.py": "3c0fa8533adedd6aeab0fc087a210223aee8f3a70630c4486c4ff24d4ea6ff8d",
+      "agent/tests/v2/core/test_v2_feature_plugins.py": "68912fdeb8e096a70f03d1a916f1af3dbebedf8146b189e27f515a84974f253a",
+      "docs/v/features.json": "bf5d5b508b73aff7abbf63d824f9a66e1783892934a35336485b28f672493775",
+      "pyrightconfig.strict.json": "9005ff98d862376860feb8469185fc75e83c6539c672cd07c7a45852cb37d9d7"
+    }
+  },
+  "offline_scoped_suites": [
+    {
+      "scope": "功能登记、鉴权路由、类型清单、生命周期与导航",
+      "passed": 88,
+      "failed": 0,
+      "skipped": 0,
+      "junit_seconds": 66.543,
+      "modules": [
+        "test_feature_navigation",
+        "test_v2_architecture",
+        "test_v2_capability_plugins",
+        "test_v2_feature_plugins",
+        "test_v2_http",
+        "test_v2_lifecycle",
+        "test_v2_provider_plugins",
+        "test_v2_service_drain",
+        "test_v2_typecheck_scope"
+      ],
+      "local_junit": "temp/build/plugin-architecture/extensions-assembly.xml",
+      "sha256": "9406a4051e1ac6f8e6de70bd3d244ed44fa336da48e9fb298cd3d566282be489"
+    },
+    {
+      "scope": "技能、后台复盘、内核演进和技能 HTTP",
+      "passed": 327,
+      "failed": 0,
+      "skipped": 0,
+      "junit_seconds": 214.225,
+      "modules": [
+        "test_v2_background_review",
+        "test_v2_background_review_migration",
+        "test_v2_kernel_evolution",
+        "test_v2_skill_complexity",
+        "test_v2_skill_metadata",
+        "test_v2_skill_notice",
+        "test_v2_skill_queries",
+        "test_v2_skill_reads",
+        "test_v2_skill_unicode",
+        "test_v2_skill_writes",
+        "test_v2_skill_zip_errors",
+        "test_v2_skill_zip_resources",
+        "test_v2_skills",
+        "test_v2_skills_http",
+        "test_v2_skills_migration"
+      ],
+      "local_junit": "temp/build/plugin-architecture/extensions-skills.xml",
+      "sha256": "25c96b43f355576dc0533330703965bf52fd247286dc56163dd33842997e4d21"
+    },
+    {
+      "scope": "可执行插件授权、宿主、崩溃、包校验与未知动作核查",
+      "passed": 130,
+      "failed": 0,
+      "skipped": 0,
+      "junit_seconds": 168.344,
+      "modules": [
+        "test_v2_action_review_execution",
+        "test_v2_action_review_http",
+        "test_v2_action_review_workers",
+        "test_v2_extension_crash",
+        "test_v2_extension_example",
+        "test_v2_extension_hosts",
+        "test_v2_extension_market_bounds",
+        "test_v2_extension_packages",
+        "test_v2_extension_repository",
+        "test_v2_extensions",
+        "test_v2_extensions_contract",
+        "test_v2_extensions_http",
+        "test_v2_extensions_migration"
+      ],
+      "local_junit": "temp/build/plugin-architecture/extensions-extensions.xml",
+      "sha256": "9041dbd2ca7080e0102e6184fd1cb12a20e5d9537ff2822967760d654ba95105"
+    },
+    {
+      "scope": "MCP 连接、OAuth、工具授权、投递和宿主所有权",
+      "passed": 77,
+      "failed": 0,
+      "skipped": 0,
+      "junit_seconds": 64.151,
+      "modules": [
+        "test_v2_mcp",
+        "test_v2_mcp_delivery",
+        "test_v2_mcp_flow",
+        "test_v2_mcp_oauth",
+        "test_v2_mcp_ownership"
+      ],
+      "local_junit": "temp/build/plugin-architecture/extensions-mcp.xml",
+      "sha256": "85aaec290585a7435aeaffe6893c45c8d43f102cb5e1a3f3ade5dddb0cdf8970"
+    },
+    {
+      "scope": "技能、插件和 MCP 工作台",
+      "passed": 17,
+      "failed": 0,
+      "skipped": 0,
+      "junit_seconds": 133.447,
+      "modules": [
+        "test_v2_extension_artifacts_ui",
+        "test_v2_extension_market_ui",
+        "test_v2_extensions_ui",
+        "test_v2_mcp_ui",
+        "test_v2_skills_ui"
+      ],
+      "local_junit": "temp/build/plugin-architecture/extensions-workbench.xml",
+      "sha256": "eea64004ab8335ab0ee54ab7f0dcae32a0c592210e562e3a47526500f2385870"
+    }
+  ],
+  "scoped_distinct_passed": 639,
+  "compatibility": {
+    "reference": "8dbb5e62b58c101ce0156adcb431e6c00f1ea404",
+    "same_contract": true,
+    "openapi_paths": 212,
+    "openapi_sha256": "409e49b84c389604ed8d2eab5074257e9552631ae27a277e248b3d71650ebd43",
+    "agent_tools": 40,
+    "agent_tools_sha256": "d6aca34350112ec76d56459a1a1c3ba8904da600a41708906b9bfa5b66f9eda8",
+    "owner_tools": 3,
+    "owner_tools_sha256": "174962d52c6eabdd125f46127ae5a3a14963df3f556972bce429be334b9df377",
+    "delivery_drivers": [
+      "bilibili",
+      "qq"
+    ],
+    "ordered_route_groups": {
+      "qq": 4,
+      "bilibili": 8,
+      "desktop": 16,
+      "extensions": 7,
+      "skills": 9,
+      "mcp": 11,
+      "compatibility_paths": 2
+    }
+  },
+  "static_checks": {
+    "strict_files": 463,
+    "strict_errors": 0,
+    "strict_warnings": 0,
+    "ruff": "passed"
+  },
+  "full_offline": {
+    "covers_this_working_tree": false,
+    "previous_candidate": "5da6dce4",
+    "previous_candidate_passed": 8706
+  },
+  "verified_lifecycle_and_authority": [
+    "技能运行报告路径随功能登记并继承所有者鉴权。额外路径必须明确声明，重复或遗漏时拒绝组装。",
+    "可执行插件和 MCP 从同一功能安装器登记服务、按回合工具和核查回调。回归覆盖撤销、未知写入和人工核查。",
+    "MCP 构造或启动恢复失败时，替身传输各关闭一次。实例锁释放后可重新打开。",
+    "存量 OpenAPI、组内方法与路径顺序、技能运行报告路径、OAuth 回调和工具目录与基线一致。"
+  ]
+}

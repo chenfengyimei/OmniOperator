@@ -36,7 +36,7 @@
         "agent/src/omni/adapters/persistence/extension_repository.py"
       ],
       "composition": [
-        "agent/src/omni/composition/instance.py#open_instance.extensions"
+        "agent/src/omni/composition/features/extensions.py#install_extensions"
       ],
       "ui": [
         "web/ui/v2/extensions.js"
@@ -90,7 +90,7 @@
         "agent/src/omni/adapters/persistence/skill_repository.py"
       ],
       "composition": [
-        "agent/src/omni/composition/instance.py#open_instance.skills"
+        "agent/src/omni/composition/features/skills.py#install_skills"
       ],
       "ui": [
         "web/ui/v2/skills.js"
@@ -177,8 +177,8 @@
     ],
     "refs": {
       "entry": [
-        "agent/src/omni/adapters/http.py#create_app.mcp_connect",
-        "agent/src/omni/adapters/http.py#create_app.mcp_authorize_tool"
+        "agent/src/omni/adapters/http_routes/mcp.py#mcp_router.mcp_connect",
+        "agent/src/omni/adapters/http_routes/mcp.py#mcp_router.mcp_authorize_tool"
       ],
       "domain": [
         "agent/src/omni/domain/mcp.py"
@@ -192,7 +192,7 @@
         "agent/src/omni/adapters/mcp/http.py"
       ],
       "composition": [
-        "agent/src/omni/composition/instance.py#open_instance.mcp"
+        "agent/src/omni/composition/features/mcp.py#install_mcp"
       ],
       "ui": [
         "web/ui/v2/mcp.js"

@@ -10,8 +10,9 @@ from typing import Generic, TypeVar
 
 from ...adapters.http_routes import FeatureRoutes
 from ...application.android import AndroidPort
-from ...application.capabilities import Capability, CapabilityPlugin
+from ...application.capabilities import Capability, CapabilityPlugin, RunCapabilityProvider
 from ...application.images import ImageService
+from ...application.mcp import MCPTransportPort
 from ...application.media import MediaProcessingPort
 from ...application.objects import ObjectService
 from ...application.persona import PersonaGrowthService
@@ -28,6 +29,7 @@ Context = TypeVar("Context")
 class FeatureContext:
     lifetime: Lifetime
     database: DatabasePort
+    home: Path
     control: Path
     boot_id: str
     objects: ObjectService
@@ -39,10 +41,13 @@ class FeatureContext:
     secrets: AsyncSecretPort
     channels: ChannelProviders
     platform: PlatformPorts
+    skill_platform: str
+    redact_secret: Callable[[str], None]
     accepting: Callable[[], bool]
     default_tools: bool
     android_backend: AndroidPort | None = None
     media_processor: MediaProcessingPort | None = None
+    mcp_transport: MCPTransportPort | None = None
 
 
 @dataclass(frozen=True)
@@ -64,6 +69,7 @@ class FeatureBinding:
     tools: tuple[Capability, ...] = ()
     owner_tools: tuple[Capability, ...] = ()
     start: Callable[[], None] | None = None
+    run_provider: RunCapabilityProvider | None = None
 
 
 @dataclass(frozen=True)
@@ -76,6 +82,7 @@ class InstalledFeatures:
     services: Mapping[str, object]
     capabilities: tuple[CapabilityPlugin, ...]
     starters: tuple[Callable[[], None], ...]
+    providers: tuple[RunCapabilityProvider, ...]
 
     def require(self, feature_id: str, service_type: type[Service]) -> Service:
         service = self.services.get(feature_id)
@@ -92,6 +99,7 @@ async def install_features(plugins: tuple[FeaturePlugin[Context], ...], context:
     services: dict[str, object] = {}
     capabilities: list[CapabilityPlugin] = []
     starters: list[Callable[[], None]] = []
+    providers: list[RunCapabilityProvider] = []
     for plugin in plugins:
         binding = await plugin.install(context)
         services[plugin.id] = binding.service
@@ -99,4 +107,6 @@ async def install_features(plugins: tuple[FeaturePlugin[Context], ...], context:
             capabilities.append(CapabilityPlugin(plugin.id, binding.tools, binding.owner_tools, own_adapters=False))
         if binding.start is not None:
             starters.append(binding.start)
-    return InstalledFeatures(MappingProxyType(services), tuple(capabilities), tuple(starters))
+        if binding.run_provider is not None:
+            providers.append(binding.run_provider)
+    return InstalledFeatures(MappingProxyType(services), tuple(capabilities), tuple(starters), tuple(providers))

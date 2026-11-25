@@ -204,7 +204,6 @@ def http_app(
                 return await close_until_quiescent(instance.close, remaining)
 
             return HttpRuntime(
-                mcp=instance.mcp,
                 feature_services=instance.feature_services,
                 application=instance.application,
                 authenticate=authenticate,
@@ -218,7 +217,6 @@ def http_app(
                 configurations=instance.configurations,
                 routing=instance.routing,
                 memory_semantics=instance.memory_semantics,
-                skills=instance.skills,
                 documents=instance.documents,
                 deliveries=instance.deliveries,
                 operations=instance.operations,
@@ -228,7 +226,6 @@ def http_app(
                 background_review=instance.background_review,
                 reflections=instance.reflections,
                 persona_growth=instance.persona_growth,
-                extensions=instance.extensions,
                 action_reviews=instance.action_reviews,
                 terminals=instance.terminals,
                 terminal_reviews=instance.terminal_reviews,

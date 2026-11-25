@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 import re
 from collections.abc import Callable
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any, TypeVar, cast
 
 from fastapi import APIRouter, Request
@@ -31,10 +31,13 @@ class StrictInput(BaseModel):
 class FeatureRoutes:
     id: str
     factory: RouteFactory
+    extra_paths: tuple[str, ...] = field(default=(), kw_only=True)
 
     def __post_init__(self) -> None:
         if re.fullmatch(r"[a-z][a-z0-9-]{0,63}", self.id) is None:
             raise ValueError("Invalid feature ID")
+        if any(not path.startswith("/agents/{agent_id}/") for path in self.extra_paths):
+            raise ValueError("Additional feature paths must remain agent-scoped")
 
 
 def mount_feature_routes(router: APIRouter, features: tuple[FeatureRoutes, ...], runtime: RuntimeLookup) -> None:
@@ -49,15 +52,23 @@ def mount_feature_routes(router: APIRouter, features: tuple[FeatureRoutes, ...],
     for feature in features:
         prefix = "/agents/{agent_id}/" + feature.id
         routes = feature.factory(runtime)
-        if routes.prefix != prefix:
+        if routes.prefix != prefix and not (feature.extra_paths and routes.prefix == ""):
             raise ValueError("Feature router must use its agent-scoped prefix")
+        additional = set(feature.extra_paths)
         for route in routes.routes:
-            if not isinstance(route, APIRoute) or (route.path != prefix and not route.path.startswith(prefix + "/")):
+            if not isinstance(route, APIRoute) or (
+                route.path != prefix
+                and not route.path.startswith(prefix + "/")
+                and route.path not in feature.extra_paths
+            ):
                 raise ValueError("Feature routes must use authenticated HTTP within their prefix")
             keys = {(method, router.prefix + route.path) for method in (route.methods or ())}
             if used & keys:
                 raise ValueError("Duplicate feature HTTP route")
             used.update(keys)
+            additional.discard(route.path)
+        if additional:
+            raise ValueError("Declared feature paths are missing from the router")
         router.include_router(routes)
 
 

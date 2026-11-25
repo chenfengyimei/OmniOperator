@@ -15,6 +15,7 @@ from omni.application.engine import Application
 from omni.application.media import MediaService
 from omni.application.scheduling import SchedulingService
 from omni.composition.features import FeatureBinding, FeaturePlugin
+from omni.composition.features import mcp as mcp_feature
 from omni.composition.http import http_app
 from omni.composition.instance import open_instance
 from omni.domain.contracts import ActionResult, Invocation, ModelReply, Outcome, ToolSpec
@@ -29,6 +30,7 @@ FEATURE_WRITE = ToolSpec(
 
 def test_a_registered_feature_shares_one_service_between_owner_http_and_the_approved_tool(tmp_path):
     installed = []
+    report_path = "/agents/{agent_id}/runs/{run_id}/fixture-notes"
 
     class Service:
         count = 0
@@ -50,12 +52,16 @@ def test_a_registered_feature_shares_one_service_between_owner_http_and_the_appr
         return FeatureBinding(service, (Capability(FEATURE_WRITE, service),))
 
     def routes(runtime):
-        router = APIRouter(prefix="/agents/{agent_id}/fixture-notes")
+        router = APIRouter()
 
-        @router.get("/count")
+        @router.get("/agents/{agent_id}/fixture-notes/count")
         async def count(agent_id: uuid.UUID, request: Request):
             service = runtime(request).feature_services["fixture-notes"]
             return {"count": service.count}
+
+        @router.get(report_path)
+        async def report(agent_id: uuid.UUID, run_id: uuid.UUID, request: Request):
+            return await count(agent_id, request)
 
         return router
 
@@ -65,7 +71,7 @@ def test_a_registered_feature_shares_one_service_between_owner_http_and_the_appr
                 return ModelReply("", (Invocation("one", FEATURE_WRITE.name, {}),), cost_micro=0)
             return ModelReply("Completed", cost_micro=0)
 
-    plugin = FeaturePlugin("fixture-notes", factory=routes, install=install)
+    plugin = FeaturePlugin("fixture-notes", factory=routes, install=install, extra_paths=(report_path,))
     app = http_app(tmp_path, model=Model(), feature_plugins=(plugin,))
     assert "/api/v1/agents/{agent_id}/fixture-notes/count" in app.openapi()["paths"]
     assert installed == []
@@ -73,6 +79,7 @@ def test_a_registered_feature_shares_one_service_between_owner_http_and_the_appr
         assert len(installed) == 1
         route = f"/api/v1/agents/{uuid.uuid4()}/fixture-notes/count"
         assert client.get(route).status_code == 401
+        assert client.get("/api/v1" + report_path.format(agent_id=uuid.uuid4(), run_id=uuid.uuid4())).status_code == 401
         client.headers["Authorization"] = "Bearer " + (tmp_path / "run/owner.token").read_text(encoding="utf-8")
         agent = client.get("/api/v1/agents").json()["items"][0]["id"]
         base = f"/api/v1/agents/{agent}"
@@ -120,6 +127,7 @@ def test_a_registered_feature_shares_one_service_between_owner_http_and_the_appr
             time.sleep(0.02)
         assert final["state"] == "succeeded", final
         assert client.get(route).json() == {"count": 1}
+        assert client.get("/api/v1" + report_path.format(agent_id=agent, run_id=run)).json() == {"count": 1}
     assert installed[0].closes == 1
 
 
@@ -154,6 +162,71 @@ def test_feature_router_rejects_endpoints_that_break_mount_or_authorization_rule
     }
     with pytest.raises(ValueError, match=expected[defect]):
         mount_feature_routes(parent, declared, lambda _: None)
+
+
+@pytest.mark.parametrize("defect", ["undeclared-path", "missing-path", "existing-path"])
+def test_feature_route_aliases_only_mount_exact_declared_paths(defect):
+    parent = APIRouter(prefix="/api/v1")
+    alias = "/agents/{agent_id}/runs/{run_id}/fixture"
+
+    async def ping():
+        return {"ok": True}
+
+    def factory(runtime):
+        routes = APIRouter()
+        if defect != "missing-path":
+            removed = alias + "/extra" if defect == "undeclared-path" else alias
+            routes.add_api_route(removed, ping, methods=["GET"])
+        return routes
+
+    if defect == "existing-path":
+        parent.add_api_route(alias, ping, methods=["GET"])
+    expected = {
+        "undeclared-path": "authenticated HTTP within their prefix",
+        "missing-path": "Declared feature paths are missing",
+        "existing-path": "Duplicate feature HTTP route",
+    }
+    with pytest.raises(ValueError, match=expected[defect]):
+        mount_feature_routes(parent, (FeatureRoutes("fixture", factory, extra_paths=(alias,)),), lambda _: None)
+
+
+@pytest.mark.parametrize("failed_step", ["constructor", "recovery"])
+def test_mcp_install_reclaims_one_transport_if_startup_fails(tmp_path, monkeypatch, failed_step):
+    class Transport:
+        closes = 0
+
+        def stop_accepting(self):
+            pass
+
+        async def close(self, timeout_s):
+            self.closes += 1
+            return True
+
+    def fail_constructor(*args):
+        raise RuntimeError("fixture MCP startup failure")
+
+    async def fail_recovery(service):
+        raise RuntimeError("fixture MCP startup failure")
+
+    async def scenario():
+        transport = Transport()
+        with monkeypatch.context() as patch:
+            if failed_step == "constructor":
+                patch.setattr(mcp_feature, "MCPService", fail_constructor)
+            else:
+                patch.setattr(mcp_feature.MCPService, "recover", fail_recovery)
+            with pytest.raises(RuntimeError, match="fixture MCP startup failure"):
+                await open_instance(tmp_path, mcp_transport=transport, capabilities=())
+        assert transport.closes == 1
+        reopened = await open_instance(tmp_path, capabilities=())
+        try:
+            assert reopened.feature_services["extensions"] is reopened.extensions
+            assert reopened.feature_services["mcp"] is reopened.mcp
+            assert reopened.feature_services["skills"] is reopened.skills
+        finally:
+            assert (await reopened.close())["complete"]
+
+    asyncio.run(scenario())
 
 
 @pytest.mark.parametrize("recovery_fails", [False, True])

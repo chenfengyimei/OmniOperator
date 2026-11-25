@@ -57,11 +57,11 @@ def test_forwarding_cli_prints_utf8_and_finds_the_actual_wiring_line():
         check=True,
     )
     assert "可执行插件" in query_run.stdout
-    source = "agent/src/omni/composition/instance.py"
-    match = re.search(re.escape(source) + r":(\d+) \(open_instance\.extensions\)", query_run.stdout)
+    source = "agent/src/omni/composition/features/extensions.py"
+    match = re.search(re.escape(source) + r":(\d+) \(install_extensions\)", query_run.stdout)
     assert match
     line = (REPOSITORY_ROOT / source).read_text(encoding="utf-8").splitlines()[int(match[1]) - 1]
-    assert "extensions = ExtensionService(" in line
+    assert line.startswith("async def install_extensions(")
 
 
 def test_generated_page_links_to_actual_symbols_and_covers_all_workbench_pages(features):
@@ -128,9 +128,10 @@ def test_extracted_route_sources_methods_and_request_models_match_openapi():
         (path, method)
         for path, methods in api["paths"].items()
         for method in methods
-        if set(path.split("/")) & {"skills", "extensions", "android", "media", "schedules", "qq", "bilibili", "desktop"}
+        if set(path.split("/"))
+        & {"skills", "extensions", "mcp", "android", "media", "schedules", "qq", "bilibili", "desktop"}
     }
-    assert extracted == expected and len(expected) == 83
+    assert extracted == expected and len(expected) == 94
     for schema in ["SkillImportInput", "SkillSaveInput", "SkillStateInput", "SkillRollbackInput"]:
         model = next(m for m in index["request_models"] if m["name"] == schema)
         assert model["source"].endswith("http_routes/skills.py")

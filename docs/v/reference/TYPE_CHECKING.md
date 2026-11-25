@@ -2,7 +2,7 @@
 
 > **全仓严格类型尚未完成。** 本文件记录已纳入 strict 的模块、当前基线例外与推进规则；默认入口为V2（Windows离线候选），真实平台与整个V2仍待验收。
 
-当前显式清单为 459 个文件，包含能力注册表、提供者、Android、媒体、调度、QQ、B 站和桌面的组装与 HTTP 路由。下方历史基线按当时的提交保留。
+当前显式清单为 463 个文件，包含能力注册表、提供者及业务功能安装器。下方历史基线按当时的提交保留。
 
 
 ## 1. 门禁
@@ -390,9 +390,12 @@ strict 配置显式将 `agent/src` 加入导入根，隔离源码副本也解析
 | `agent/src/omni/composition/features/bilibili.py` | B 站读取、发表草稿与共享渠道传输 |
 | `agent/src/omni/composition/features/catalog.py` | 随实例安装的功能声明 |
 | `agent/src/omni/composition/features/desktop.py` | 桌面观察、共享、独立控制、所有者操作与资源归属 |
+| `agent/src/omni/composition/features/extensions.py` | 可执行插件包、宿主、按回合工具与核查回调 |
+| `agent/src/omni/composition/features/mcp.py` | MCP 授权、传输回收与回合提供者 |
 | `agent/src/omni/composition/features/media.py` | 媒体恢复、自有处理器和回合工具的组装 |
 | `agent/src/omni/composition/features/qq.py` | QQ 入站服务、内核回调与后台监听 |
 | `agent/src/omni/composition/features/schedules.py` | 调度依赖、工具绑定与后台启动 |
+| `agent/src/omni/composition/features/skills.py` | 文本技能、包管理与工具安装 |
 | `agent/src/omni/composition/model_providers.py` | 普通调用、请求预备、流式端口与关闭归属 |
 | `agent/src/omni/composition/platform_providers.py` | 主机选择、原生端口注入、共享并发池与启动回滚 |
 | `agent/src/omni/composition/releases.py` | 已审阅版本发布命令组装（计划/准备/完成/取消） |
@@ -426,6 +429,7 @@ strict 配置显式将 `agent/src` 加入导入根，隔离源码副本也解析
 | `agent/src/omni/adapters/http.py` | HTTP 适配器：Record 端口、原 Pydantic schema 的 Payload、泛型输入工厂及路由边界 |
 | `agent/src/omni/adapters/http_routes/__init__.py` | HTTP 严格请求基类 |
 | `agent/src/omni/adapters/http_routes/extensions.py` | 插件 HTTP 接口 |
+| `agent/src/omni/adapters/http_routes/mcp.py` | MCP 连接、工具授权与回执接口 |
 | `agent/src/omni/adapters/http_routes/android.py` | Android 所有者 API |
 | `agent/src/omni/adapters/http_routes/bilibili.py` | B 站账户档案、风控、读取和发表草稿 |
 | `agent/src/omni/adapters/http_routes/desktop.py` | 桌面观察、共享、控制同意与所有者操作接口 |
