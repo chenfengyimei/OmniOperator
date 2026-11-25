@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "d318b99b45e34913b0cf3fe55cc473fa53e172d2130af19b81ea2b1968929ef9",
+  "source_sha256": "ee0c4e1f6daacc521f74e95256ef4c5e7b9b69f83f4f8ffcc38154c99f84806f",
   "modules": [
     {
       "id": "v2-domain",
@@ -578,6 +578,12 @@
         "agent/src/omni/composition/capabilities.py",
         "agent/src/omni/composition/channel_providers.py",
         "agent/src/omni/composition/cli.py",
+        "agent/src/omni/composition/commands/__init__.py",
+        "agent/src/omni/composition/commands/deployment.py",
+        "agent/src/omni/composition/commands/installation.py",
+        "agent/src/omni/composition/commands/maintenance.py",
+        "agent/src/omni/composition/commands/operations.py",
+        "agent/src/omni/composition/commands/retention.py",
         "agent/src/omni/composition/features/__init__.py",
         "agent/src/omni/composition/features/action_reviews.py",
         "agent/src/omni/composition/features/android.py",
@@ -614,7 +620,7 @@
         "agent/src/omni/composition/service_runner.py",
         "agent/src/omni/composition/serving.py"
       ],
-      "lines": 4166,
+      "lines": 4478,
       "dependencies": [
         "v2-adapters",
         "v2-application",
@@ -77344,17 +77350,290 @@
       "module": "v2-composition",
       "version": "V2",
       "python_module": "omni.composition.cli",
-      "lines": 1048,
+      "lines": 187,
       "imports": [
-        "omni.adapters.diagnostic_bundle",
-        "omni.adapters.persistence.audit_pruning",
-        "omni.adapters.persistence.event_pruning",
-        "omni.adapters.persistence.execution_pruning",
+        "omni.adapters.platform.runtime.paths",
+        "omni.adapters.platform.runtime.workbench",
+        "omni.composition.commands",
+        "omni.composition.commands.deployment",
+        "omni.composition.commands.installation",
+        "omni.composition.commands.maintenance",
+        "omni.composition.commands.operations",
+        "omni.composition.commands.retention",
+        "omni.composition.instance",
+        "omni.composition.serving",
+        "omni.domain.contracts"
+      ],
+      "symbols": [
+        {
+          "name": "serve_arguments",
+          "line": 28,
+          "kind": "function",
+          "parameters": [
+            "command"
+          ],
+          "annotations": {
+            "command": "argparse.ArgumentParser"
+          }
+        },
+        {
+          "name": "auth_arguments",
+          "line": 39,
+          "kind": "function",
+          "parameters": [
+            "auth"
+          ],
+          "annotations": {
+            "auth": "argparse.ArgumentParser"
+          }
+        },
+        {
+          "name": "request_arguments",
+          "line": 44,
+          "kind": "function",
+          "parameters": [
+            "query"
+          ],
+          "annotations": {
+            "query": "argparse.ArgumentParser"
+          }
+        },
+        {
+          "name": "run_init",
+          "line": 49,
+          "kind": "function",
+          "parameters": [
+            "_args",
+            "paths"
+          ],
+          "annotations": {
+            "_args": "argparse.Namespace",
+            "paths": "InstancePaths"
+          }
+        },
+        {
+          "name": "run_init.initialize",
+          "line": 50,
+          "kind": "function",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "run_serve",
+          "line": 61,
+          "kind": "function",
+          "parameters": [
+            "args",
+            "paths"
+          ],
+          "annotations": {
+            "args": "argparse.Namespace",
+            "paths": "InstancePaths"
+          }
+        },
+        {
+          "name": "run_auth",
+          "line": 77,
+          "kind": "function",
+          "parameters": [
+            "args",
+            "paths"
+          ],
+          "annotations": {
+            "args": "argparse.Namespace",
+            "paths": "InstancePaths"
+          }
+        },
+        {
+          "name": "run_request",
+          "line": 100,
+          "kind": "function",
+          "parameters": [
+            "args",
+            "paths"
+          ],
+          "annotations": {
+            "args": "argparse.Namespace",
+            "paths": "InstancePaths"
+          }
+        },
+        {
+          "name": "parser",
+          "line": 141,
+          "kind": "function",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "main",
+          "line": 157,
+          "kind": "function",
+          "parameters": [
+            "argv"
+          ],
+          "annotations": {
+            "argv": "list[str] | None"
+          }
+        },
+        {
+          "name": "web_main",
+          "line": 161,
+          "kind": "function",
+          "parameters": [
+            "argv"
+          ],
+          "annotations": {
+            "argv": "list[str] | None"
+          }
+        },
+        {
+          "name": "_run",
+          "line": 169,
+          "kind": "function",
+          "parameters": [
+            "args"
+          ],
+          "annotations": {
+            "args": "argparse.Namespace"
+          }
+        }
+      ],
+      "summary": "V2 command host and instance bootstrap."
+    },
+    {
+      "path": "agent/src/omni/composition/commands/__init__.py",
+      "module": "v2-composition",
+      "version": "V2",
+      "python_module": "omni.composition.commands",
+      "lines": 27,
+      "imports": [
+        "omni.adapters.platform.runtime.paths"
+      ],
+      "symbols": [
+        {
+          "name": "CommandPlugin",
+          "line": 14,
+          "kind": "class"
+        },
+        {
+          "name": "register_commands",
+          "line": 21,
+          "kind": "function",
+          "parameters": [
+            "*plugins"
+          ],
+          "annotations": {}
+        }
+      ],
+      "summary": "Typed registration for trusted V2 command-line capabilities."
+    },
+    {
+      "path": "agent/src/omni/composition/commands/deployment.py",
+      "module": "v2-composition",
+      "version": "V2",
+      "python_module": "omni.composition.commands.deployment",
+      "lines": 326,
+      "imports": [
+        "omni.adapters.platform.runtime.paths",
+        "omni.adapters.platform.services.deployment_files",
+        "omni.adapters.platform.services.service_admin_bundle",
+        "omni.adapters.platform.services.service_query",
+        "omni.adapters.platform.services.service_readiness",
+        "omni.adapters.primitives",
+        "omni.application.service_deployment",
+        "omni.composition.commands",
+        "omni.composition.releases",
+        "omni.composition.service_cleanup",
+        "omni.composition.service_control",
+        "omni.composition.service_exchange",
+        "omni.composition.service_operations",
+        "omni.domain.contracts"
+      ],
+      "symbols": [
+        {
+          "name": "exchange_arguments",
+          "line": 16,
+          "kind": "function",
+          "parameters": [
+            "exchanges"
+          ],
+          "annotations": {
+            "exchanges": "argparse.ArgumentParser"
+          }
+        },
+        {
+          "name": "release_arguments",
+          "line": 72,
+          "kind": "function",
+          "parameters": [
+            "releases"
+          ],
+          "annotations": {
+            "releases": "argparse.ArgumentParser"
+          }
+        },
+        {
+          "name": "service_arguments",
+          "line": 90,
+          "kind": "function",
+          "parameters": [
+            "services"
+          ],
+          "annotations": {
+            "services": "argparse.ArgumentParser"
+          }
+        },
+        {
+          "name": "run_exchange",
+          "line": 140,
+          "kind": "function",
+          "parameters": [
+            "args",
+            "_paths"
+          ],
+          "annotations": {
+            "args": "argparse.Namespace",
+            "_paths": "InstancePaths"
+          }
+        },
+        {
+          "name": "run_release",
+          "line": 192,
+          "kind": "function",
+          "parameters": [
+            "args",
+            "_paths"
+          ],
+          "annotations": {
+            "args": "argparse.Namespace",
+            "_paths": "InstancePaths"
+          }
+        },
+        {
+          "name": "run_service",
+          "line": 213,
+          "kind": "function",
+          "parameters": [
+            "args",
+            "_paths"
+          ],
+          "annotations": {
+            "args": "argparse.Namespace",
+            "_paths": "InstancePaths"
+          }
+        }
+      ],
+      "summary": "Reviewed service, release and exchange commands."
+    },
+    {
+      "path": "agent/src/omni/composition/commands/installation.py",
+      "module": "v2-composition",
+      "version": "V2",
+      "python_module": "omni.composition.commands.installation",
+      "lines": 233,
+      "imports": [
         "omni.adapters.persistence.maintenance",
         "omni.adapters.persistence.migration_config",
-        "omni.adapters.persistence.object_gc",
-        "omni.adapters.persistence.operations_read",
-        "omni.adapters.persistence.reference_release",
         "omni.adapters.platform.releases.wheel_artifact",
         "omni.adapters.platform.releases.wheel_backup",
         "omni.adapters.platform.releases.wheel_environment",
@@ -77368,29 +77647,16 @@
         "omni.adapters.platform.releases.wheel_uninstall",
         "omni.adapters.platform.runtime.paths",
         "omni.adapters.platform.runtime.permissions",
-        "omni.adapters.platform.runtime.workbench",
-        "omni.adapters.platform.services.deployment_files",
-        "omni.adapters.platform.services.service_admin_bundle",
-        "omni.adapters.platform.services.service_query",
-        "omni.adapters.platform.services.service_readiness",
         "omni.adapters.primitives",
-        "omni.adapters.vector_files",
         "omni.application.ports",
-        "omni.application.service_deployment",
-        "omni.composition.instance",
-        "omni.composition.releases",
-        "omni.composition.service_cleanup",
-        "omni.composition.service_control",
-        "omni.composition.service_exchange",
-        "omni.composition.service_operations",
-        "omni.composition.serving",
+        "omni.composition.commands",
         "omni.domain.contracts",
         "omni.domain.installation"
       ],
       "symbols": [
         {
           "name": "_database_schema",
-          "line": 56,
+          "line": 20,
           "kind": "function",
           "parameters": [
             "database"
@@ -77401,7 +77667,7 @@
         },
         {
           "name": "installation_report",
-          "line": 60,
+          "line": 24,
           "kind": "function",
           "parameters": [
             "paths"
@@ -77412,7 +77678,7 @@
         },
         {
           "name": "seal_installation",
-          "line": 101,
+          "line": 65,
           "kind": "function",
           "parameters": [
             "paths"
@@ -77422,26 +77688,191 @@
           }
         },
         {
-          "name": "_serve_arguments",
-          "line": 128,
+          "name": "installation_arguments",
+          "line": 92,
           "kind": "function",
           "parameters": [
-            "command"
+            "installation"
           ],
           "annotations": {
-            "command": "argparse.ArgumentParser"
+            "installation": "argparse.ArgumentParser"
           }
         },
         {
-          "name": "parser",
-          "line": 139,
+          "name": "run_installation",
+          "line": 127,
           "kind": "function",
-          "parameters": [],
-          "annotations": {}
+          "parameters": [
+            "args",
+            "paths"
+          ],
+          "annotations": {
+            "args": "argparse.Namespace",
+            "paths": "InstancePaths"
+          }
+        }
+      ],
+      "summary": "Wheel lifecycle and read-only installation preflight."
+    },
+    {
+      "path": "agent/src/omni/composition/commands/maintenance.py",
+      "module": "v2-composition",
+      "version": "V2",
+      "python_module": "omni.composition.commands.maintenance",
+      "lines": 146,
+      "imports": [
+        "omni.adapters.persistence.maintenance",
+        "omni.adapters.persistence.object_gc",
+        "omni.adapters.platform.runtime.paths",
+        "omni.adapters.vector_files",
+        "omni.application.ports",
+        "omni.composition.commands",
+        "omni.domain.contracts"
+      ],
+      "symbols": [
+        {
+          "name": "vectors_arguments",
+          "line": 18,
+          "kind": "function",
+          "parameters": [
+            "vector"
+          ],
+          "annotations": {
+            "vector": "argparse.ArgumentParser"
+          }
         },
         {
+          "name": "indexes_arguments",
+          "line": 28,
+          "kind": "function",
+          "parameters": [
+            "indexes"
+          ],
+          "annotations": {
+            "indexes": "argparse.ArgumentParser"
+          }
+        },
+        {
+          "name": "backup_arguments",
+          "line": 32,
+          "kind": "function",
+          "parameters": [
+            "snapshot"
+          ],
+          "annotations": {
+            "snapshot": "argparse.ArgumentParser"
+          }
+        },
+        {
+          "name": "restore_arguments",
+          "line": 36,
+          "kind": "function",
+          "parameters": [
+            "recover"
+          ],
+          "annotations": {
+            "recover": "argparse.ArgumentParser"
+          }
+        },
+        {
+          "name": "objects_arguments",
+          "line": 41,
+          "kind": "function",
+          "parameters": [
+            "objects"
+          ],
+          "annotations": {
+            "objects": "argparse.ArgumentParser"
+          }
+        },
+        {
+          "name": "run_vectors",
+          "line": 50,
+          "kind": "function",
+          "parameters": [
+            "args",
+            "paths"
+          ],
+          "annotations": {
+            "args": "argparse.Namespace",
+            "paths": "InstancePaths"
+          }
+        },
+        {
+          "name": "run_indexes",
+          "line": 73,
+          "kind": "function",
+          "parameters": [
+            "args",
+            "paths"
+          ],
+          "annotations": {
+            "args": "argparse.Namespace",
+            "paths": "InstancePaths"
+          }
+        },
+        {
+          "name": "run_backup",
+          "line": 78,
+          "kind": "function",
+          "parameters": [
+            "args",
+            "paths"
+          ],
+          "annotations": {
+            "args": "argparse.Namespace",
+            "paths": "InstancePaths"
+          }
+        },
+        {
+          "name": "run_restore",
+          "line": 83,
+          "kind": "function",
+          "parameters": [
+            "args",
+            "_paths"
+          ],
+          "annotations": {
+            "args": "argparse.Namespace",
+            "_paths": "InstancePaths"
+          }
+        },
+        {
+          "name": "run_objects",
+          "line": 88,
+          "kind": "function",
+          "parameters": [
+            "args",
+            "paths"
+          ],
+          "annotations": {
+            "args": "argparse.Namespace",
+            "paths": "InstancePaths"
+          }
+        }
+      ],
+      "summary": "Offline backup, restore, object and index maintenance."
+    },
+    {
+      "path": "agent/src/omni/composition/commands/operations.py",
+      "module": "v2-composition",
+      "version": "V2",
+      "python_module": "omni.composition.commands.operations",
+      "lines": 160,
+      "imports": [
+        "omni.adapters.diagnostic_bundle",
+        "omni.adapters.persistence.maintenance",
+        "omni.adapters.persistence.operations_read",
+        "omni.adapters.platform.runtime.paths",
+        "omni.adapters.primitives",
+        "omni.application.ports",
+        "omni.composition.commands",
+        "omni.domain.contracts"
+      ],
+      "symbols": [
+        {
           "name": "local_origin",
-          "line": 436,
+          "line": 22,
           "kind": "function",
           "parameters": [
             "value"
@@ -77452,7 +77883,7 @@
         },
         {
           "name": "diagnostic_download",
-          "line": 455,
+          "line": 41,
           "kind": "function",
           "parameters": [
             "paths",
@@ -77464,40 +77895,352 @@
           }
         },
         {
-          "name": "main",
-          "line": 497,
+          "name": "diagnostics_arguments",
+          "line": 83,
           "kind": "function",
           "parameters": [
-            "argv"
+            "diagnostics"
           ],
           "annotations": {
-            "argv": "list[str] | None"
+            "diagnostics": "argparse.ArgumentParser"
           }
         },
         {
-          "name": "web_main",
-          "line": 501,
+          "name": "run_doctor",
+          "line": 93,
           "kind": "function",
           "parameters": [
-            "argv"
+            "_args",
+            "paths"
           ],
           "annotations": {
-            "argv": "list[str] | None"
+            "_args": "argparse.Namespace",
+            "paths": "InstancePaths"
           }
         },
         {
-          "name": "_run",
-          "line": 509,
+          "name": "run_diagnostics",
+          "line": 124,
           "kind": "function",
           "parameters": [
-            "args"
+            "args",
+            "paths"
           ],
           "annotations": {
-            "args": "argparse.Namespace"
+            "args": "argparse.Namespace",
+            "paths": "InstancePaths"
           }
         }
       ],
-      "summary": "V2 development entrypoint. Online commands use the authenticated HTTP facade."
+      "summary": "Exclusive diagnostics and authenticated local diagnostic download."
+    },
+    {
+      "path": "agent/src/omni/composition/commands/retention.py",
+      "module": "v2-composition",
+      "version": "V2",
+      "python_module": "omni.composition.commands.retention",
+      "lines": 281,
+      "imports": [
+        "omni.adapters.persistence.audit_pruning",
+        "omni.adapters.persistence.event_pruning",
+        "omni.adapters.persistence.execution_pruning",
+        "omni.adapters.persistence.operations_read",
+        "omni.adapters.persistence.reference_release",
+        "omni.adapters.platform.runtime.paths",
+        "omni.adapters.primitives",
+        "omni.application.ports",
+        "omni.composition.commands"
+      ],
+      "symbols": [
+        {
+          "name": "page_arguments",
+          "line": 36,
+          "kind": "function",
+          "parameters": [
+            "parser"
+          ],
+          "annotations": {
+            "parser": "argparse.ArgumentParser"
+          }
+        },
+        {
+          "name": "agent_page_arguments",
+          "line": 41,
+          "kind": "function",
+          "parameters": [
+            "parser"
+          ],
+          "annotations": {
+            "parser": "argparse.ArgumentParser"
+          }
+        },
+        {
+          "name": "plan_arguments",
+          "line": 48,
+          "kind": "function",
+          "parameters": [
+            "parser"
+          ],
+          "annotations": {
+            "parser": "argparse.ArgumentParser"
+          }
+        },
+        {
+          "name": "agent_plan_arguments",
+          "line": 53,
+          "kind": "function",
+          "parameters": [
+            "parser"
+          ],
+          "annotations": {
+            "parser": "argparse.ArgumentParser"
+          }
+        },
+        {
+          "name": "apply_arguments",
+          "line": 58,
+          "kind": "function",
+          "parameters": [
+            "parser"
+          ],
+          "annotations": {
+            "parser": "argparse.ArgumentParser"
+          }
+        },
+        {
+          "name": "cancel_arguments",
+          "line": 63,
+          "kind": "function",
+          "parameters": [
+            "parser"
+          ],
+          "annotations": {
+            "parser": "argparse.ArgumentParser"
+          }
+        },
+        {
+          "name": "_read_preview",
+          "line": 68,
+          "kind": "function",
+          "parameters": [
+            "paths",
+            "read"
+          ],
+          "annotations": {
+            "paths": "InstancePaths",
+            "read": "Callable[[UnitOfWork], Record]"
+          }
+        },
+        {
+          "name": "run_retention_preview",
+          "line": 78,
+          "kind": "function",
+          "parameters": [
+            "args",
+            "paths"
+          ],
+          "annotations": {
+            "args": "argparse.Namespace",
+            "paths": "InstancePaths"
+          }
+        },
+        {
+          "name": "run_retention_audit_preview",
+          "line": 83,
+          "kind": "function",
+          "parameters": [
+            "args",
+            "paths"
+          ],
+          "annotations": {
+            "args": "argparse.Namespace",
+            "paths": "InstancePaths"
+          }
+        },
+        {
+          "name": "run_retention_audit_plan",
+          "line": 90,
+          "kind": "function",
+          "parameters": [
+            "args",
+            "paths"
+          ],
+          "annotations": {
+            "args": "argparse.Namespace",
+            "paths": "InstancePaths"
+          }
+        },
+        {
+          "name": "run_retention_audit_apply",
+          "line": 106,
+          "kind": "function",
+          "parameters": [
+            "args",
+            "paths"
+          ],
+          "annotations": {
+            "args": "argparse.Namespace",
+            "paths": "InstancePaths"
+          }
+        },
+        {
+          "name": "run_retention_audit_cancel",
+          "line": 111,
+          "kind": "function",
+          "parameters": [
+            "args",
+            "paths"
+          ],
+          "annotations": {
+            "args": "argparse.Namespace",
+            "paths": "InstancePaths"
+          }
+        },
+        {
+          "name": "run_retention_events_preview",
+          "line": 116,
+          "kind": "function",
+          "parameters": [
+            "args",
+            "paths"
+          ],
+          "annotations": {
+            "args": "argparse.Namespace",
+            "paths": "InstancePaths"
+          }
+        },
+        {
+          "name": "run_retention_events_plan",
+          "line": 123,
+          "kind": "function",
+          "parameters": [
+            "args",
+            "paths"
+          ],
+          "annotations": {
+            "args": "argparse.Namespace",
+            "paths": "InstancePaths"
+          }
+        },
+        {
+          "name": "run_retention_events_apply",
+          "line": 139,
+          "kind": "function",
+          "parameters": [
+            "args",
+            "paths"
+          ],
+          "annotations": {
+            "args": "argparse.Namespace",
+            "paths": "InstancePaths"
+          }
+        },
+        {
+          "name": "run_retention_events_cancel",
+          "line": 144,
+          "kind": "function",
+          "parameters": [
+            "args",
+            "paths"
+          ],
+          "annotations": {
+            "args": "argparse.Namespace",
+            "paths": "InstancePaths"
+          }
+        },
+        {
+          "name": "run_retention_plan",
+          "line": 149,
+          "kind": "function",
+          "parameters": [
+            "args",
+            "paths"
+          ],
+          "annotations": {
+            "args": "argparse.Namespace",
+            "paths": "InstancePaths"
+          }
+        },
+        {
+          "name": "run_retention_apply",
+          "line": 154,
+          "kind": "function",
+          "parameters": [
+            "args",
+            "paths"
+          ],
+          "annotations": {
+            "args": "argparse.Namespace",
+            "paths": "InstancePaths"
+          }
+        },
+        {
+          "name": "run_retention_cancel",
+          "line": 159,
+          "kind": "function",
+          "parameters": [
+            "args",
+            "paths"
+          ],
+          "annotations": {
+            "args": "argparse.Namespace",
+            "paths": "InstancePaths"
+          }
+        },
+        {
+          "name": "run_retention_refs_preview",
+          "line": 164,
+          "kind": "function",
+          "parameters": [
+            "args",
+            "paths"
+          ],
+          "annotations": {
+            "args": "argparse.Namespace",
+            "paths": "InstancePaths"
+          }
+        },
+        {
+          "name": "run_retention_refs_plan",
+          "line": 169,
+          "kind": "function",
+          "parameters": [
+            "args",
+            "paths"
+          ],
+          "annotations": {
+            "args": "argparse.Namespace",
+            "paths": "InstancePaths"
+          }
+        },
+        {
+          "name": "run_retention_refs_apply",
+          "line": 174,
+          "kind": "function",
+          "parameters": [
+            "args",
+            "paths"
+          ],
+          "annotations": {
+            "args": "argparse.Namespace",
+            "paths": "InstancePaths"
+          }
+        },
+        {
+          "name": "run_retention_refs_cancel",
+          "line": 179,
+          "kind": "function",
+          "parameters": [
+            "args",
+            "paths"
+          ],
+          "annotations": {
+            "args": "argparse.Namespace",
+            "paths": "InstancePaths"
+          }
+        }
+      ],
+      "summary": "Read, plan, apply and cancel offline retention work."
     },
     {
       "path": "agent/src/omni/composition/features/__init__.py",

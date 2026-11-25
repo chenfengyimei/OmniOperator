@@ -1,5 +1,5 @@
 {
-  "summary": "V2 功能目录已装配二十一项业务，覆盖配置、凭据和系统运维。接下来迁移 CLI 的安装、发布、平台服务、数据维护和诊断命令。最近 8706 项通过的全量覆盖固定候选 `5da6dce4`，迁移期间执行离线专项，全部批次收口后对冻结候选运行一次全量。",
+  "summary": "V2 插件化迁移已完成计划内代码与离线专项。正式实例安装二十一项业务，CLI 通过同一登记解析与执行。当前架构候选进入冻结全量，既有 8706 项通过的全量覆盖 `5da6dce4`。",
   "windows_stage": {
     "status": "completed_windows_offline_candidate",
     "summary": "Windows 用户域服务在 `30bea914` 构建的 wheel 上完成注册、启动、只读状态、停止、卸载共 14 步。干净机仍须对最终产物验证安装、升级、回滚和卸载，记录 wheel SHA、PID 与就绪回执。"
@@ -142,12 +142,20 @@
       ]
     },
     {
+      "id": "CLI-PLUGINS",
+      "title": "CLI 业务命令的参数与派发登记",
+      "status": "implemented_scoped_passed",
+      "next": "安装、发布、服务、交换、诊断及离线维护专项 526 项通过。31 个根命令、44 个子命令的帮助与参数一致。冻结候选由 PLUGIN-ARCHITECTURE 统一验证。",
+      "contract": "docs/v/reference/CAPABILITY_PLUGINS.md",
+      "evidence": ["docs/v/evidence/cli-feature-plugins-2026-11-25.json"]
+    },
+    {
       "id": "PLUGIN-ARCHITECTURE",
       "title": "V2 全部业务模块的插件化迁移",
       "status": "waiting_for_development_completion",
-      "next": "收口 CLI 安装、发布、平台服务、数据维护和诊断命令，按生产入口复核业务装配。专项通过后冻结源码，全量验证。",
+      "next": "计划内迁移与专项已通过。冻结当前源码，在 Windows 隔离环境跑一次离线全量，核对 JUnit、跳过项及双远端。",
       "contract": "docs/v/PLUGIN_MIGRATION.md",
-      "evidence": ["docs/v/evidence/config-ops-feature-plugins-2026-11-25.json"]
+      "evidence": ["docs/v/evidence/cli-feature-plugins-2026-11-25.json"]
     },
     {
       "id": "KERNEL-EVAL",

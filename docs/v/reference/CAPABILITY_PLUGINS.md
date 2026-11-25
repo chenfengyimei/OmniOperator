@@ -72,3 +72,7 @@ uv run --no-sync pytest -q -n 0 agent/tests/v2/core/test_v2_feature_plugins.py
 ```
 
 后续批次及收口条件见 [业务插件化迁移](../PLUGIN_MIGRATION.md)。已有的所有者安装流程见 [Extension 与 MCP 扩展手册](EXTENDING.md)。
+
+## CLI 命令登记
+
+安装、服务、发布、交换、诊断和离线数据维护命令在 `composition/commands/` 声明 `CommandPlugin`。每项提供命令名、参数和调用现有用例的入口。`composition/cli.py` 的 `COMMANDS` 用同一组登记生成帮助并派发，拒绝重名。`init`、`serve`、本地令牌和认证请求由 CLI 宿主提供。命令用例继续持有自己的锁与审批边界，原生服务及发布适配器沿用现有平台路径。

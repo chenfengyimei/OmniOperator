@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`d318b99b45e34913b0cf3fe55cc473fa53e172d2130af19b81ea2b1968929ef9`。包含 65 个职责模块、913 个源码/界面文件。
+源码指纹：`ee0c4e1f6daacc521f74e95256ef4c5e7b9b69f83f4f8ffcc38154c99f84806f`。包含 65 个职责模块、919 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -543,7 +543,13 @@
 | [agent/src/omni/composition/__init__.py](../../../agent/src/omni/composition/__init__.py) | V2 | 1 | V2 composition root. Constructors and lifecycle ownership are explicit here. |
 | [agent/src/omni/composition/capabilities.py](../../../agent/src/omni/composition/capabilities.py) | V2 | 270 | Explicit builtin capability registration; capabilities never construct the kernel. |
 | [agent/src/omni/composition/channel_providers.py](../../../agent/src/omni/composition/channel_providers.py) | V2 | 57 | Bind channel drivers and own each transport shared by their services. |
-| [agent/src/omni/composition/cli.py](../../../agent/src/omni/composition/cli.py) | V2 | 1048 | V2 development entrypoint. Online commands use the authenticated HTTP facade. |
+| [agent/src/omni/composition/cli.py](../../../agent/src/omni/composition/cli.py) | V2 | 187 | V2 command host and instance bootstrap. |
+| [agent/src/omni/composition/commands/__init__.py](../../../agent/src/omni/composition/commands/__init__.py) | V2 | 27 | Typed registration for trusted V2 command-line capabilities. |
+| [agent/src/omni/composition/commands/deployment.py](../../../agent/src/omni/composition/commands/deployment.py) | V2 | 326 | Reviewed service, release and exchange commands. |
+| [agent/src/omni/composition/commands/installation.py](../../../agent/src/omni/composition/commands/installation.py) | V2 | 233 | Wheel lifecycle and read-only installation preflight. |
+| [agent/src/omni/composition/commands/maintenance.py](../../../agent/src/omni/composition/commands/maintenance.py) | V2 | 146 | Offline backup, restore, object and index maintenance. |
+| [agent/src/omni/composition/commands/operations.py](../../../agent/src/omni/composition/commands/operations.py) | V2 | 160 | Exclusive diagnostics and authenticated local diagnostic download. |
+| [agent/src/omni/composition/commands/retention.py](../../../agent/src/omni/composition/commands/retention.py) | V2 | 281 | Read, plan, apply and cancel offline retention work. |
 | [agent/src/omni/composition/features/__init__.py](../../../agent/src/omni/composition/features/__init__.py) | V2 | 149 | Install trusted features and expose their services to the tools and HTTP host. |
 | [agent/src/omni/composition/features/action_reviews.py](../../../agent/src/omni/composition/features/action_reviews.py) | V2 | 15 | Bind review decisions to executor activity and the schedule notifier. |
 | [agent/src/omni/composition/features/android.py](../../../agent/src/omni/composition/features/android.py) | V2 | 31 | Construct the Android feature and advertise its approved tool surface. |

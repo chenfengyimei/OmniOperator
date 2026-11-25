@@ -2,7 +2,7 @@
 
 > **全仓严格类型尚未完成。** 本文件记录已纳入 strict 的模块、当前基线例外与推进规则；默认入口为V2（Windows离线候选），真实平台与整个V2仍待验收。
 
-当前显式清单为 491 个文件，包含能力注册表、提供者及业务功能安装器。下方历史基线按当时的提交保留。
+当前显式清单为 497 个文件，包含能力注册表、提供者及业务功能安装器。下方历史基线按当时的提交保留。
 
 
 ## 1. 门禁
@@ -389,6 +389,12 @@ strict 配置显式将 `agent/src` 加入导入根，隔离源码副本也解析
 | `agent/src/omni/composition/service_runner.py` | 固定部署的服务入口（仅启动已校验的不可变部署） |
 | `agent/src/omni/composition/capabilities.py` | 内建能力目录（工具 spec 与 worker 装配） |
 | `agent/src/omni/composition/channel_providers.py` | 渠道端口绑定、发送覆盖与共享传输归属 |
+| `agent/src/omni/composition/commands/__init__.py` | CLI 命令安装合同与重复声明校验 |
+| `agent/src/omni/composition/commands/deployment.py` | 部署、发布和交换命令的解析与调度 |
+| `agent/src/omni/composition/commands/installation.py` | 安装收据、wheel 预检和安装生命周期 |
+| `agent/src/omni/composition/commands/maintenance.py` | 向量配置、索引、对象、备份与恢复 |
+| `agent/src/omni/composition/commands/operations.py` | 独占诊断和本地认证下载 |
+| `agent/src/omni/composition/commands/retention.py` | 只读预览、保留计划和审批参数 |
 | `agent/src/omni/composition/features/__init__.py` | 功能登记、类型化服务读取与工具贡献 |
 | `agent/src/omni/composition/features/action_reviews.py` | 动作核查与调度通知依赖 |
 | `agent/src/omni/composition/features/android.py` | Android 服务、资源归属与区分权限的工具 |

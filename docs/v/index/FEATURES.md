@@ -1288,6 +1288,8 @@ uv run --no-sync pytest -q -n 0 agent/tests/v2/http/test_v2_terminals_http.py
 **组装点**
 
 - [agent/src/omni/composition/features/operations.py#install_operations](../../../agent/src/omni/composition/features/operations.py#L14)
+- [agent/src/omni/composition/commands/operations.py#run_diagnostics](../../../agent/src/omni/composition/commands/operations.py#L124)
+- [agent/src/omni/composition/commands/retention.py#run_retention_preview](../../../agent/src/omni/composition/commands/retention.py#L78)
 - [agent/src/omni/composition/http.py#http_app](../../../agent/src/omni/composition/http.py#L49)
 
 **界面**
@@ -1340,6 +1342,7 @@ uv run --no-sync pytest -q -n 0 agent/tests/v2/http/test_v2_operations_http.py a
 **组装点**
 
 - [agent/src/omni/composition/instance.py#open_instance.database](../../../agent/src/omni/composition/instance.py#L384)
+- [agent/src/omni/composition/commands/maintenance.py#run_objects](../../../agent/src/omni/composition/commands/maintenance.py#L88)
 
 **合同与手册**
 
@@ -1365,7 +1368,8 @@ uv run --no-sync pytest -q -n 0 agent/tests/v2/operations/test_v2_schema_release
 
 **从这里读**
 
-- [agent/src/omni/composition/cli.py#main](../../../agent/src/omni/composition/cli.py#L497)
+- [agent/src/omni/composition/commands/installation.py#run_installation](../../../agent/src/omni/composition/commands/installation.py#L127)
+- [agent/src/omni/composition/commands/deployment.py#run_service](../../../agent/src/omni/composition/commands/deployment.py#L213)
 - [agent/scripts/install_v2.py](../../../agent/scripts/install_v2.py)
 - [agent/scripts/build_release.py](../../../agent/scripts/build_release.py)
 
@@ -1385,6 +1389,8 @@ uv run --no-sync pytest -q -n 0 agent/tests/v2/operations/test_v2_schema_release
 
 **组装点**
 
+- [agent/src/omni/composition/cli.py#parser](../../../agent/src/omni/composition/cli.py#L141)
+- [agent/src/omni/composition/commands/deployment.py#run_release](../../../agent/src/omni/composition/commands/deployment.py#L192)
 - [agent/src/omni/composition/releases.py](../../../agent/src/omni/composition/releases.py)
 - [agent/src/omni/composition/service_control.py](../../../agent/src/omni/composition/service_control.py)
 

@@ -8,7 +8,30 @@ import tomllib
 import pytest
 from omni_test_support.paths import REPOSITORY_ROOT as REPOSITORY_ROOT
 
+from omni.composition import cli
+from omni.composition.commands import CommandPlugin, register_commands
+
 ROOT = REPOSITORY_ROOT
+
+
+def test_registered_command_owns_argument_parsing_and_dispatch(tmp_path, monkeypatch):
+    def configure(parser):
+        parser.add_argument("--required", required=True)
+
+    def run(args, paths):
+        assert paths.home == tmp_path.resolve()
+        assert args.required == "reviewed"
+        return 7
+
+    plugin = CommandPlugin("fixture", run, help="Fixture command", configure=configure)
+    with pytest.raises(ValueError, match="Duplicate command: fixture"):
+        register_commands(plugin, plugin)
+
+    monkeypatch.setattr(cli, "COMMANDS", register_commands(plugin))
+    assert "Fixture command" in cli.parser().format_help()
+    with pytest.raises(SystemExit, match="2"):
+        cli.main(["--home", str(tmp_path), "fixture"])
+    assert cli.main(["--home", str(tmp_path), "fixture", "--required", "reviewed"]) == 7
 
 
 def test_default_metadata_selects_v2_while_explicit_v1_is_preserved():

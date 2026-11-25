@@ -1,0 +1,226 @@
+{
+  "date": "2026-11-25",
+  "platform": "Windows x64",
+  "source": {
+    "base_commit": "31a9606d58d08b74cfd6721d396cf9062472ac52",
+    "working_tree": "V2 CLI 安装发布、服务交换、运维与离线维护按命令声明",
+    "affected_files_sha256_normalized_lf": {
+      "agent/src/omni/composition/cli.py": "d32e75a4cfbc5d51424221a50a9135fd8f0b24aa5a705637b23b3ef549ac3a01",
+      "agent/src/omni/composition/commands/__init__.py": "667f9bbea0fd1da65c54c93f90da5998a8a61d201c895222da7baf34228101e9",
+      "agent/src/omni/composition/commands/deployment.py": "f4ed35ece014a58546ce98b3b9b61fed29aa534a046524bc98694aa340ac9b6d",
+      "agent/src/omni/composition/commands/installation.py": "e106e7d763ca355d88a9ef29a1f570293e0fd800365b202518d89d62803de51b",
+      "agent/src/omni/composition/commands/maintenance.py": "86397b5af0bb8412efd8853e3447d28542b8a91548e813aa501bbbec74913f60",
+      "agent/src/omni/composition/commands/operations.py": "8e90ee976c1c71559abcc37574f027865554e56c6bc3155bb7eb636a97e9316d",
+      "agent/src/omni/composition/commands/retention.py": "0c433fbdda5c72c4217f40642e61f128c9dba5b245c93257a87aaa1ae7f11d18",
+      "agent/tests/v2/core/test_v2_default_entrypoints.py": "e5d411cc2de051cbe7287c734b6b2fcc797c37cc4dc67c9c58f7f1c8577c9cff",
+      "docs/v/features.json": "5a40569cf24542230987153ac1f7a7c833259ea298d0de47caf2356fe6cb826a",
+      "pyrightconfig.strict.json": "6a34ab6affaf7b757687d7d3c0cbb4ce0bdd166058643622a7b4d41e14c9b242"
+    }
+  },
+  "offline_scoped_suites": [
+    {
+      "scope": "命令注册、控制台入口、V1 兼容、产品布局、平台身份和架构",
+      "passed": 59,
+      "failed": 0,
+      "skipped": 0,
+      "junit_seconds": 41.874,
+      "modules": [
+        "test_feature_navigation",
+        "test_repository_layout",
+        "test_v2_architecture",
+        "test_v2_default_entrypoints",
+        "test_v2_entrypoints",
+        "test_v2_packaging_contract",
+        "test_v2_service_identity_http"
+      ],
+      "local_junit": "temp/build/plugin-architecture/cli-entry.xml",
+      "sha256": "58a91526bfc107eeead257ee616defd2b6ba960c6285f1ab2f235d3d228defb6"
+    },
+    {
+      "scope": "官方安装与校验合同、wheel 装配、环境、切换、备份、回滚及卸载",
+      "passed": 95,
+      "failed": 0,
+      "skipped": 0,
+      "junit_seconds": 292.278,
+      "modules": [
+        "test_v2_installation",
+        "test_v2_installation_check",
+        "test_v2_installation_launchers",
+        "test_v2_schema_release",
+        "test_v2_wheel_artifact",
+        "test_v2_wheel_backup",
+        "test_v2_wheel_environment",
+        "test_v2_wheel_install",
+        "test_v2_wheel_prepare",
+        "test_v2_wheel_rollback",
+        "test_v2_wheel_smoke",
+        "test_v2_wheel_stage",
+        "test_v2_wheel_status",
+        "test_v2_wheel_switch",
+        "test_v2_wheel_uninstall"
+      ],
+      "local_junit": "temp/build/plugin-architecture/cli-installation.xml",
+      "sha256": "df2eb96e95e21520ec2ce7778320916132ba6fb9b52084f32214cd2e85d31428"
+    },
+    {
+      "scope": "发布、原生服务计划、授权应用、撤销、交换和恢复",
+      "passed": 219,
+      "failed": 0,
+      "skipped": 0,
+      "junit_seconds": 502.321,
+      "modules": [
+        "test_v2_exchange_recovery",
+        "test_v2_release_drain",
+        "test_v2_releases",
+        "test_v2_service_cleanup",
+        "test_v2_service_control",
+        "test_v2_service_deployment",
+        "test_v2_service_exchange",
+        "test_v2_service_handover",
+        "test_v2_service_operations",
+        "test_v2_service_runtime",
+        "test_v2_system_service_exchange",
+        "test_v2_system_service_start"
+      ],
+      "local_junit": "temp/build/plugin-architecture/cli-deployment.xml",
+      "sha256": "833122357b11de87dd55357010763fee326b251b07dc261ea7bd51d5ad01e43e"
+    },
+    {
+      "scope": "诊断、保留计划、对象、全文与向量索引、令牌和工作台调用方",
+      "passed": 153,
+      "failed": 0,
+      "skipped": 0,
+      "junit_seconds": 364.794,
+      "modules": [
+        "test_v2_audit_pruning_crash",
+        "test_v2_audit_retention_http",
+        "test_v2_documents_faults",
+        "test_v2_event_pruning",
+        "test_v2_event_retention_http",
+        "test_v2_execution_pruning",
+        "test_v2_local_vectors",
+        "test_v2_local_vectors_ui",
+        "test_v2_objects",
+        "test_v2_operations_cli",
+        "test_v2_owner_token",
+        "test_v2_reference_release",
+        "test_v2_retention_preview"
+      ],
+      "local_junit": "temp/build/plugin-architecture/cli-maintenance.xml",
+      "sha256": "a433cf5969c1efd2698e728c14667c79c21b90c9875e47059d22d70f1253f787"
+    }
+  ],
+  "scoped_distinct_passed": 526,
+  "skipped_cases": [],
+  "compatibility": {
+    "reference": "31a9606d58d08b74cfd6721d396cf9062472ac52",
+    "same_contract": true,
+    "openapi_paths": 212,
+    "openapi_sha256": "409e49b84c389604ed8d2eab5074257e9552631ae27a277e248b3d71650ebd43",
+    "agent_tools": 40,
+    "agent_tools_sha256": "d6aca34350112ec76d56459a1a1c3ba8904da600a41708906b9bfa5b66f9eda8",
+    "owner_tools": 3,
+    "owner_tools_sha256": "174962d52c6eabdd125f46127ae5a3a14963df3f556972bce429be334b9df377",
+    "delivery_drivers": [
+      "bilibili",
+      "qq"
+    ],
+    "ordered_route_groups": {
+      "configurations": 11,
+      "routing": 2,
+      "settings": 3,
+      "credentials": 8,
+      "debug": 4,
+      "audit": 2,
+      "system": 4,
+      "retention": 5
+    }
+  },
+  "static_checks": {
+    "strict_files": 497,
+    "strict_errors": 0,
+    "strict_warnings": 0,
+    "ruff": "passed"
+  },
+  "full_offline": {
+    "covers_this_working_tree": false,
+    "previous_candidate": "5da6dce4",
+    "previous_candidate_passed": 8706
+  },
+  "verified_lifecycle_and_authority": [
+    "31 个根命令和 44 个子命令的参数、帮助及顺序一致，登记与派发使用同一命令目录。",
+    "每个 CLI 命令保留原平台适配器、审批与退出回执。离线维护仍持有原实例锁和有界数据校验。",
+    "测试替身经正常入口展示命令帮助、验证必填参数及派发，重复声明在组装时被拒绝。"
+  ],
+  "cli_contract": {
+    "root_commands": 31,
+    "nested_commands": 44,
+    "formatted_help_sha256": "face36b26ad08691c4106109bf68c42545de4d71636aaa5f8707db3c3b291f4e",
+    "windows_terminal_columns": 80,
+    "baseline": "31a9606d58d08b74cfd6721d396cf9062472ac52"
+  },
+  "production_inventory": {
+    "features": {
+      "instance": [
+        "configurations",
+        "people",
+        "documents",
+        "memory",
+        "skills",
+        "extensions",
+        "mcp",
+        "desktop",
+        "bilibili",
+        "media",
+        "android",
+        "deliveries",
+        "terminals",
+        "credentials"
+      ],
+      "workflows": [
+        "vision",
+        "learning",
+        "maintenance"
+      ],
+      "kernel_callbacks": [
+        "schedules",
+        "qq",
+        "action-reviews",
+        "system"
+      ]
+    },
+    "registered_commands": [
+      "init",
+      "doctor",
+      "installation",
+      "vectors",
+      "exchange",
+      "release",
+      "service",
+      "retention-preview",
+      "retention-audit-preview",
+      "retention-audit-plan",
+      "retention-audit-apply",
+      "retention-audit-cancel",
+      "retention-events-preview",
+      "retention-events-plan",
+      "retention-events-apply",
+      "retention-events-cancel",
+      "retention-plan",
+      "retention-apply",
+      "retention-cancel",
+      "retention-refs-preview",
+      "retention-refs-plan",
+      "retention-refs-apply",
+      "retention-refs-cancel",
+      "indexes",
+      "auth",
+      "diagnostics",
+      "serve",
+      "backup",
+      "restore",
+      "request",
+      "objects"
+    ]
+  }
+}

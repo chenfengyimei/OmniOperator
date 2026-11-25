@@ -22,6 +22,8 @@ uv run --no-sync python scripts/project_index.py --feature 排查安卓截图
 
 需要依赖已装配服务或读取工具快照时，参考视觉、学习和维护的工作流安装。模块范围、推进顺序和收尾条件维护在 [V2 业务插件化迁移](PLUGIN_MIGRATION.md)。
 
+新增离线运维或部署命令时，在 `composition/commands/` 内维护参数和执行入口，再接入 CLI 命令目录。按原有审批、锁和退出码核对调用方。安装、服务与发布的代码路径可查询 `--feature 发布`。[CLI 命令登记](reference/CAPABILITY_PLUGINS.md#cli-命令登记)
+
 1. 每批代码调整记录改动、专项与调用方覆盖。发布冻结时由 Windows 集成会话核对 `origin/v2`、工作树和候选差异，打包并登记新的候选。
 2. 可以并行安排干净 Windows、测试账号、安卓真机、兼容视觉模型、Mac mini 和 Linux 原生会话。每项结果都记具体设备、提交、产物和未覆盖范围。
 3. 最终候选确定后统一执行离线全量、官方产物生命周期和 72 小时验证。旧长跑可以继续留存；把它登记在实际运行的候选名下。

@@ -1136,6 +1136,8 @@
       ],
       "composition": [
         "agent/src/omni/composition/features/operations.py#install_operations",
+        "agent/src/omni/composition/commands/operations.py#run_diagnostics",
+        "agent/src/omni/composition/commands/retention.py#run_retention_preview",
         "agent/src/omni/composition/http.py#http_app"
       ],
       "ui": [
@@ -1182,7 +1184,8 @@
         "agent/src/omni/adapters/persistence/migration_config.py"
       ],
       "composition": [
-        "agent/src/omni/composition/instance.py#open_instance.database"
+        "agent/src/omni/composition/instance.py#open_instance.database",
+        "agent/src/omni/composition/commands/maintenance.py#run_objects"
       ],
       "contracts": [
         "docs/v/reference/DATA_MODEL.md"
@@ -1210,7 +1213,8 @@
     "related": [],
     "refs": {
       "entry": [
-        "agent/src/omni/composition/cli.py#main",
+        "agent/src/omni/composition/commands/installation.py#run_installation",
+        "agent/src/omni/composition/commands/deployment.py#run_service",
         "agent/scripts/install_v2.py",
         "agent/scripts/build_release.py"
       ],
@@ -1226,6 +1230,8 @@
         "agent/src/omni/adapters/platform/releases/candidate_installer.py"
       ],
       "composition": [
+        "agent/src/omni/composition/cli.py#parser",
+        "agent/src/omni/composition/commands/deployment.py#run_release",
         "agent/src/omni/composition/releases.py",
         "agent/src/omni/composition/service_control.py"
       ],
