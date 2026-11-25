@@ -1,5 +1,5 @@
 {
-  "summary": "当前开发优先内核逻辑与外围能力插件化。模型、渠道和平台提供者已接入正式组装。Android、媒体、调度、QQ 与 B 站已按功能登记，QQ 和调度在内核恢复后启动后台任务。下一批迁移桌面。最近 8706 项通过的全量覆盖固定候选 `5da6dce4`，后续插件化批次执行离线专项。真实模型、账号和设备验收另行排期。",
+  "summary": "当前开发优先内核逻辑与外围能力插件化。Android、媒体、调度、QQ、B 站与桌面已由功能目录装配。已验证内核恢复后启动、共享传输和原生资源回收。后续迁移技能、可执行插件与 MCP 的服务组装。最近 8706 项通过的全量覆盖固定候选 `5da6dce4`，后续插件化批次执行离线专项。真实模型、账号和设备验收另行排期。",
   "windows_stage": {
     "status": "completed_windows_offline_candidate",
     "summary": "Windows 用户域服务在 `30bea914` 构建的 wheel 上完成注册、启动、只读状态、停止、卸载共 14 步。干净机仍须对最终产物验证安装、升级、回滚和卸载，记录 wheel SHA、PID 与就绪回执。"
@@ -89,7 +89,7 @@
       "id": "NAV",
       "title": "功能开发导航、技能与插件路由、离线插件样例",
       "status": "implemented_scoped_passed",
-      "next": "导航首批覆盖 30 个功能与 26 个页面，共 502 项去重专项通过。Android、媒体、调度、QQ 与 B 站迁移后的入口已更新至索引。后续继续在同批更新导航、调用方与测试入口。",
+      "next": "导航首批覆盖 30 个功能与 26 个页面，共 502 项去重专项通过。六项业务功能迁移后的入口已更新至索引。后续继续在同批更新导航、调用方与测试入口。",
       "contract": "docs/v/reference/EXTENDING.md",
       "evidence": [
         "docs/v/evidence/feature-navigation.json",
@@ -125,14 +125,15 @@
     },
     {
       "id": "BUSINESS-FEATURE-PLUGINS",
-      "title": "Android、媒体、调度、QQ 与 B 站业务功能登记",
+      "title": "Android、媒体、调度、QQ、B 站与桌面业务功能登记",
       "status": "implemented_scoped_passed",
-      "next": "Android 与媒体批次 317 项、调度与调用方批次 244 项、QQ 与 B 站批次 708 项专项通过。渠道批次覆盖授权撤销、未知投递、后台启动失败和共享传输回收。下一批迁移桌面的观察、共享、控制同意与所有者操作。",
+      "next": "Android 与媒体批次 317 项、调度与调用方批次 244 项、QQ 与 B 站批次 708 项、桌面批次 333 项专项通过。桌面批次覆盖视图撤回、独立控制、启动回滚和工作台兼容。下一批迁移技能、可执行插件与 MCP，验证复盘依赖、按回合授权、撤销和宿主回收。",
       "contract": "docs/v/reference/CAPABILITY_PLUGINS.md",
       "evidence": [
         "docs/v/evidence/feature-plugins-2026-11-25.json",
         "docs/v/evidence/scheduling-plugin-2026-11-25.json",
-        "docs/v/evidence/channels-feature-plugins-2026-11-25.json"
+        "docs/v/evidence/channels-feature-plugins-2026-11-25.json",
+        "docs/v/evidence/desktop-feature-plugins-2026-11-25.json"
       ]
     },
     {

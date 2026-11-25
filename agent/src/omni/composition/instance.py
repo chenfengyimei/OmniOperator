@@ -59,6 +59,7 @@ from ..application.desktop import DesktopService
 from ..application.desktop_actions import DesktopActions
 from ..application.desktop_control import DesktopControlService
 from ..application.desktop_portal import DesktopPortalService
+from ..application.desktop_services import DesktopServices
 from ..application.documents import DocumentService
 from ..application.engine import Application
 from ..application.extensions import ExtensionService
@@ -101,7 +102,6 @@ from ..application.todos import TodoService
 from ..application.visual_subagent import VISUAL_SUBAGENT, VisualSubagentCapabilities, VisualSubagentService
 from ..domain.background_review import READ_TOOLS
 from ..domain.contracts import JSON, ActionResult, BusinessError, InvocationContext, Outcome
-from ..domain.desktop_actions import SPEC as DESKTOP_ACTION
 from ..domain.mcp import ServerTarget
 from ..domain.memory_decay import DECAY_DAILY_HOUR
 from ..domain.skills import SKILL_SPECS
@@ -448,39 +448,6 @@ async def open_instance(
             while_quiescent=terminals.while_quiescent,
         )
         lifetime.own("terminal_reviews", 0, terminal_reviews.close, terminal_reviews.stop_accepting)
-        desktop_portal: DesktopPortalService | None = None
-        desktop_control: DesktopControlService | None = None
-
-        async def detach_portal(agent_id: str, view_id: str) -> None:
-            failures: list[Exception] = []
-            for service in (desktop_portal, desktop_control):
-                if service is not None:
-                    try:
-                        await service.detach(agent_id, view_id)
-                    except Exception as caught:  # noqa: BLE001 -- one pending release cannot prevent another from being requested
-                        failures.append(caught)
-            if failures:
-                raise failures[0]
-
-        desktop = DesktopService(
-            database, platform_io.desktop, clock, ids, boot_id, observation, objects, on_detach=detach_portal
-        )
-        lifetime.own("desktop_observations", 0, desktop.close, desktop.stop_accepting)
-        desktop_portal = DesktopPortalService(
-            database, platform_io.portal, ids, boot_id, observation, objects, authorize=desktop.require_view
-        )
-        lifetime.own("desktop_portal", 0, desktop_portal.close, desktop_portal.stop_accepting)
-        desktop_control = DesktopControlService(
-            database, platform_io.control, ids, boot_id, observation, authorize=desktop.require_view
-        )
-        lifetime.own("desktop_control", 0, desktop_control.close, desktop_control.stop_accepting)
-        application: Application | None = None
-
-        def accepting() -> bool:
-            return application is not None and bool(application.health()["ready"])
-
-        desktop_actions = DesktopActions(database, desktop, platform_io.desktop, clock, ids, accepting=accepting)
-        lifetime.own("desktop_actions", 0, desktop_actions.close, desktop_actions.stop_accepting)
         local_vectors = vectorizer if vectorizer is not None else await configured_vectors(paths.home)
         persona_growth = PersonaGrowthService(database, PersonaGrowthFiles(paths.persona))
         documents = DocumentService(database, objects, local_vectors, persona=persona_growth)
@@ -529,19 +496,27 @@ async def open_instance(
             bilibili_backend=bilibili_backend,
             delivery_ports=delivery_ports,
         )
+        application: Application | None = None
+
+        def accepting() -> bool:
+            return application is not None and bool(application.health()["ready"])
+
         features = await install_features(
             initial_plugins,
             FeatureContext(
                 lifetime=lifetime,
                 database=database,
                 control=paths.control,
+                boot_id=boot_id,
                 objects=objects,
                 images=images,
                 persona=persona_growth,
                 clock=clock,
                 ids=ids,
+                observer=observation,
                 secrets=credential_io,
                 channels=channels,
+                platform=platform_io,
                 accepting=accepting,
                 default_tools=capabilities is None,
                 android_backend=android_backend,
@@ -551,6 +526,7 @@ async def open_instance(
         media = features.require("media", MediaService)
         android = features.require("android", AndroidService)
         bilibili = features.require("bilibili", BilibiliService)
+        desktop = features.require("desktop", DesktopServices)
         visual = VisualSubagentService(
             database,
             ImageObjectFrames(objects, images),
@@ -603,12 +579,7 @@ async def open_instance(
                 "MCP records from the previous process were reconciled",
                 extra={"event": "mcp.restart_reconciled", **mcp_recovered},
             )
-        desktop_plugin = CapabilityPlugin(
-            "desktop",
-            owner_tools=(Capability(DESKTOP_ACTION, desktop_actions, desktop_actions.quiescent),),
-            own_adapters=False,
-        )
-        plugins = (desktop_plugin, *features.capabilities)
+        plugins = features.capabilities
         if capabilities is None:
             plugins = (
                 *builtin_plugins(database, documents, memory_semantics),
@@ -854,10 +825,10 @@ async def open_instance(
             action_reviews=action_reviews,
             terminals=terminals,
             terminal_reviews=terminal_reviews,
-            desktop=desktop,
-            desktop_portal=desktop_portal,
-            desktop_control=desktop_control,
-            desktop_actions=desktop_actions,
+            desktop=desktop.observations,
+            desktop_portal=desktop.portal,
+            desktop_control=desktop.control,
+            desktop_actions=desktop.actions,
             feature_services=MappingProxyType({**features.services, **kernel_features.services}),
             _process_diagnostics=host_diagnostics,
             model_port=model_transport.model,

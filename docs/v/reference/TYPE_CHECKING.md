@@ -2,7 +2,7 @@
 
 > **全仓严格类型尚未完成。** 本文件记录已纳入 strict 的模块、当前基线例外与推进规则；默认入口为V2（Windows离线候选），真实平台与整个V2仍待验收。
 
-当前显式清单为 456 个文件，包含能力注册表、提供者、Android、媒体、调度、QQ 和 B 站的组装与 HTTP 路由。下方历史基线按当时的提交保留。
+当前显式清单为 459 个文件，包含能力注册表、提供者、Android、媒体、调度、QQ、B 站和桌面的组装与 HTTP 路由。下方历史基线按当时的提交保留。
 
 
 ## 1. 门禁
@@ -28,6 +28,7 @@ strict 配置显式将 `agent/src` 加入导入根，隔离源码副本也解析
 | `agent/src/omni/domain/turn_prompt.py` | 单个运行的系统前缀冻结与尾部状态/技能通知 |
 | `agent/src/omni/domain/model_reply.py` | 所有普通模型回包在动作前统一核验身份、JSON与大小边界 |
 | `agent/src/omni/application/desktop_control.py` | 独立控制同意的所有者视图、持久审计、后台归属和关闭结算 |
+| `agent/src/omni/application/desktop_services.py` | 桌面观察、门户、控制同意与操作的类型化服务组合 |
 | `agent/src/omni/adapters/platform/desktop/desktop_control.py` | 独立控制父进程的实际归属、同绑定许可、共享额度和超量管道排空 |
 | `agent/src/omni/domain/desktop_control.py` | 独立控制同意目的/设备种类、精确绑定与不授予输入的状态协议 |
 | `agent/src/omni/adapters/platform/desktop/linux/linux_xkbcommon.py` | libxkbcommon实际编译/键义与原线程及C对象归属 |
@@ -388,6 +389,7 @@ strict 配置显式将 `agent/src` 加入导入根，隔离源码副本也解析
 | `agent/src/omni/composition/features/android.py` | Android 服务、资源归属与区分权限的工具 |
 | `agent/src/omni/composition/features/bilibili.py` | B 站读取、发表草稿与共享渠道传输 |
 | `agent/src/omni/composition/features/catalog.py` | 随实例安装的功能声明 |
+| `agent/src/omni/composition/features/desktop.py` | 桌面观察、共享、独立控制、所有者操作与资源归属 |
 | `agent/src/omni/composition/features/media.py` | 媒体恢复、自有处理器和回合工具的组装 |
 | `agent/src/omni/composition/features/qq.py` | QQ 入站服务、内核回调与后台监听 |
 | `agent/src/omni/composition/features/schedules.py` | 调度依赖、工具绑定与后台启动 |
@@ -426,6 +428,7 @@ strict 配置显式将 `agent/src` 加入导入根，隔离源码副本也解析
 | `agent/src/omni/adapters/http_routes/extensions.py` | 插件 HTTP 接口 |
 | `agent/src/omni/adapters/http_routes/android.py` | Android 所有者 API |
 | `agent/src/omni/adapters/http_routes/bilibili.py` | B 站账户档案、风控、读取和发表草稿 |
+| `agent/src/omni/adapters/http_routes/desktop.py` | 桌面观察、共享、控制同意与所有者操作接口 |
 | `agent/src/omni/adapters/http_routes/media.py` | 媒体 HTTP 接口与请求模型 |
 | `agent/src/omni/adapters/http_routes/qq.py` | QQ 通道绑定与连接状态 |
 | `agent/src/omni/adapters/http_routes/schedules.py` | 调度历史、复核与取消的所有者 API |

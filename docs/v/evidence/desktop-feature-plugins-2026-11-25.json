@@ -1,0 +1,135 @@
+{
+  "date": "2026-11-25",
+  "platform": "Windows x64",
+  "source": {
+    "base_commit": "e8edc2d929dd2d740a6b2c723b674ef228019418",
+    "working_tree": "v2 桌面业务功能登记与现有运行时访问兼容",
+    "affected_files_sha256_normalized_lf": {
+      "agent/src/omni/adapters/http.py": "81bfa9c3e106a4047c5769425437251b68720933f4de58045cd14f5ffd851a92",
+      "agent/src/omni/adapters/http_routes/desktop.py": "0b5cb6d1b3a2f02235c99eec4cecb1cdaecfcf54fa260089fe743aaebe3eee0f",
+      "agent/src/omni/application/desktop_services.py": "0f44c7a90ecd2ada5eb9746d06af4a276ae99b5519715524b0f7eb53b6504f8b",
+      "agent/src/omni/composition/features/__init__.py": "21c9be6e309acee6651333a2c66cb146fb82764365ccee999f35a7bd0428d607",
+      "agent/src/omni/composition/features/catalog.py": "dbd5434e09848075613c0a167303b6737dc249f97b34ba65ec37232c839b521a",
+      "agent/src/omni/composition/features/desktop.py": "19dca36238f39c33a9d4bf90654e996d129a178af08be8ce422ba34aa487d5cb",
+      "agent/src/omni/composition/http.py": "eab9d95ec59c27b1808358bbd52adbeaad29ea17ca0b5a1360e78cdba330bd52",
+      "agent/src/omni/composition/instance.py": "92809e40b60f52ebdff8916dce860c438996f7cd85c75a2efd5f21bc87b6bd21",
+      "agent/tests/test_feature_navigation.py": "dbb3acd68d33bab16793db9aff8aa4084e4a339bc8c80c7c478ded1e3ad6c23c",
+      "agent/tests/v2/core/test_v2_provider_plugins.py": "98934e63dbe0a5509bb3080d363e6cdab51668dac7b771f4452c31b02540cf82",
+      "docs/v/features.json": "a335ca3c7b10c7f80b772e2c96affa831c85f7afb83ecd5b0f9eb7142901e95f",
+      "pyrightconfig.strict.json": "6d12de00ebfa16ebc38df061875ee3753b65c3f95c6b3f9479d5fd07134246d9"
+    }
+  },
+  "offline_scoped_suites": [
+    {
+      "scope": "平台注入、启动回滚、功能登记、架构与通用 HTTP",
+      "passed": 83,
+      "failed": 0,
+      "skipped": 0,
+      "junit_seconds": 77.558,
+      "modules": [
+        "test_feature_navigation",
+        "test_v2_architecture",
+        "test_v2_capability_plugins",
+        "test_v2_feature_plugins",
+        "test_v2_http",
+        "test_v2_lifecycle",
+        "test_v2_provider_plugins",
+        "test_v2_service_drain",
+        "test_v2_typecheck_scope"
+      ],
+      "local_junit": "temp/build/business-feature-migration/desktop-assembly.xml",
+      "sha256": "db161ca89feddcba1994357cdf05cf6e8e98810cf4f72e7d0f77a17ff7eca59c"
+    },
+    {
+      "scope": "桌面观察、截图、所有者动作、控制同意、原生夹具与 HTTP",
+      "passed": 133,
+      "failed": 0,
+      "skipped": 0,
+      "junit_seconds": 140.912,
+      "modules": [
+        "test_v2_desktop",
+        "test_v2_desktop_action_transport",
+        "test_v2_desktop_actions",
+        "test_v2_desktop_backend",
+        "test_v2_desktop_capture",
+        "test_v2_desktop_contracts",
+        "test_v2_desktop_control_backend",
+        "test_v2_desktop_control_service",
+        "test_v2_desktop_http",
+        "test_v2_desktop_native",
+        "test_v2_desktop_observation",
+        "test_v2_desktop_observation_native",
+        "test_v2_terminals_http"
+      ],
+      "local_junit": "temp/build/business-feature-migration/desktop-platform.xml",
+      "sha256": "c57c149bac5ea2bba9ad52790bf605cd7c600ff916f635fff65d1e7303818297"
+    },
+    {
+      "scope": "Linux 桌面、门户、共享授权和远程桌面协议",
+      "passed": 99,
+      "failed": 0,
+      "skipped": 0,
+      "junit_seconds": 25.092,
+      "modules": [
+        "test_v2_linux_desktop",
+        "test_v2_portal_host",
+        "test_v2_portal_service",
+        "test_v2_remote_desktop"
+      ],
+      "local_junit": "temp/build/business-feature-migration/desktop-portal.xml",
+      "sha256": "81c5cfe6ee88ce86259b37c9cd97ff00c3c96aa897bd473ea8f277a1267a0d8d"
+    },
+    {
+      "scope": "桌面观察、所有者操作、控制同意与门户工作台",
+      "passed": 18,
+      "failed": 0,
+      "skipped": 0,
+      "junit_seconds": 135.756,
+      "modules": [
+        "test_v2_desktop_actions_ui",
+        "test_v2_desktop_control_ui",
+        "test_v2_desktop_ui",
+        "test_v2_portal_ui"
+      ],
+      "local_junit": "temp/build/business-feature-migration/desktop-workbench.xml",
+      "sha256": "3f5bf367ee41643e2cad34ced88dc0390f9d2b491e77e4c11a751d829fa7a597"
+    }
+  ],
+  "scoped_distinct_passed": 333,
+  "compatibility": {
+    "reference": "7372a0075b894d46bf5b17218373831414a5d4b8",
+    "same_contract": true,
+    "openapi_paths": 212,
+    "openapi_sha256": "409e49b84c389604ed8d2eab5074257e9552631ae27a277e248b3d71650ebd43",
+    "agent_tools": 40,
+    "agent_tools_sha256": "d6aca34350112ec76d56459a1a1c3ba8904da600a41708906b9bfa5b66f9eda8",
+    "owner_tools": 3,
+    "owner_tools_sha256": "174962d52c6eabdd125f46127ae5a3a14963df3f556972bce429be334b9df377",
+    "delivery_drivers": [
+      "bilibili",
+      "qq"
+    ],
+    "ordered_route_groups": {
+      "qq": 4,
+      "bilibili": 8,
+      "desktop": 16
+    }
+  },
+  "static_checks": {
+    "strict_files": 459,
+    "strict_errors": 0,
+    "strict_warnings": 0,
+    "ruff": "passed"
+  },
+  "full_offline": {
+    "covers_this_working_tree": false,
+    "previous_candidate": "5da6dce4",
+    "previous_candidate_passed": 8706
+  },
+  "verified_lifecycle_and_authority": [
+    "桌面 HTTP 与所有者动作读取同一视图，旧运行时属性通过功能登记解析到同一实例。普通 Agent 工具目录不包含所有者桌面操作。",
+    "视图撤销会请求窗口共享与独立控制的回收。窗口共享回收报告异常时，独立控制仍收到撤销。",
+    "平台注入保留同一桌面后端。正常关闭与控制服务构造失败均各关闭原生后端一次。",
+    "专项在 Windows 使用隔离实例、原生测试夹具及平台替身，支持代码逻辑验收。"
+  ]
+}

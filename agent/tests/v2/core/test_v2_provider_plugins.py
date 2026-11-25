@@ -1,6 +1,7 @@
 """Provider registration through the production instance and its typed injection ports."""
 
 import asyncio
+from uuid import uuid4
 
 import pytest
 from omni_test_support.v2.v2_delivery_helpers import FakePort
@@ -11,8 +12,10 @@ from omni.application.bilibili import PREPARE_SPEC, READ_SPEC
 from omni.application.qq import QQService
 from omni.composition import instance as bootstrap
 from omni.composition import model_providers, platform_providers
+from omni.composition.features import desktop as desktop_feature
 from omni.composition.instance import open_instance
 from omni.composition.lifecycle import Lifetime
+from omni.domain.desktop_actions import SPEC as DESKTOP_ACTION
 
 
 @pytest.mark.parametrize("injected", [False, True])
@@ -265,18 +268,58 @@ def test_instance_uses_the_injected_platform_ports_and_closes_them_once(tmp_path
             def fail_control_service(*args, **kwargs):
                 raise RuntimeError("control service startup failure")
 
-            monkeypatch.setattr(bootstrap, "DesktopControlService", fail_control_service)
+            monkeypatch.setattr(desktop_feature, "DesktopControlService", fail_control_service)
             with pytest.raises(RuntimeError, match="control service startup failure"):
                 await open_instance(tmp_path, capabilities=(), **options)
         else:
             instance = await open_instance(tmp_path, capabilities=(), **options)
             try:
+                feature = instance.feature_services["desktop"]
+                assert feature.observations is instance.desktop
+                assert feature.portal is instance.desktop_portal
+                assert feature.control is instance.desktop_control
+                assert feature.actions is instance.desktop_actions
+                assert instance.application._owner_tools[DESKTOP_ACTION.name].adapter is feature.actions
+                assert DESKTOP_ACTION.name not in instance.application._tools
                 assert instance.terminals._backend is terminal
                 assert instance.desktop._backend is desktop
+                assert instance.desktop_actions._backend is desktop
                 assert instance.desktop_portal._backend is portal
                 assert instance.desktop_control._backend is control
             finally:
                 assert (await instance.close())["complete"]
         assert [port.closes for port in (terminal, desktop, portal, control)] == [1, 1, 1, 1]
+
+    asyncio.run(scenario())
+
+
+def test_desktop_feature_releases_both_grants_when_a_view_is_revoked(tmp_path, monkeypatch):
+    calls = []
+
+    async def scenario():
+        instance = await open_instance(tmp_path, capabilities=())
+        try:
+            agents = await instance.database.read(lambda u: u.query("agents", ""))
+            agent = agents[0]["id"]
+            view = str(uuid4())
+            await instance.desktop.begin(agent, {"consent": True, "view_id": view})
+
+            async def detach_portal(service, agent_id, view_id):
+                calls.append((service, agent_id, view_id))
+                raise RuntimeError("test portal cleanup is pending")
+
+            async def detach_control(service, agent_id, view_id):
+                calls.append((service, agent_id, view_id))
+
+            with monkeypatch.context() as patch:
+                patch.setattr(desktop_feature.DesktopPortalService, "detach", detach_portal)
+                patch.setattr(desktop_feature.DesktopControlService, "detach", detach_control)
+                with pytest.raises(RuntimeError, match="test portal cleanup is pending"):
+                    await instance.desktop.forget(agent, view)
+
+            assert calls == [(instance.desktop_portal, agent, view), (instance.desktop_control, agent, view)]
+            assert not (await instance.desktop.forget(agent, view))["forgotten"]
+        finally:
+            assert (await instance.close())["complete"]
 
     asyncio.run(scenario())

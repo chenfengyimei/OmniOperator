@@ -15,9 +15,10 @@ from ...application.images import ImageService
 from ...application.media import MediaProcessingPort
 from ...application.objects import ObjectService
 from ...application.persona import PersonaGrowthService
-from ...application.ports import AsyncSecretPort, Clock, DatabasePort, Ids
+from ...application.ports import AsyncSecretPort, Clock, DatabasePort, Ids, Observer
 from ..channel_providers import ChannelProviders
 from ..lifecycle import Lifetime
+from ..platform_providers import PlatformPorts
 
 Service = TypeVar("Service")
 Context = TypeVar("Context")
@@ -28,13 +29,16 @@ class FeatureContext:
     lifetime: Lifetime
     database: DatabasePort
     control: Path
+    boot_id: str
     objects: ObjectService
     images: ImageService
     persona: PersonaGrowthService
     clock: Clock
     ids: Ids
+    observer: Observer
     secrets: AsyncSecretPort
     channels: ChannelProviders
+    platform: PlatformPorts
     accepting: Callable[[], bool]
     default_tools: bool
     android_backend: AndroidPort | None = None

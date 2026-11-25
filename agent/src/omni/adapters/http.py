@@ -57,6 +57,7 @@ from .http_routes import FeatureRoutes, StrictInput, bounded_configuration, conf
 from .http_routes.bilibili import BilibiliProfileInput as BilibiliProfileInput
 from .http_routes.bilibili import BilibiliPublicationInput as BilibiliPublicationInput
 from .http_routes.bilibili import BilibiliReadInput as BilibiliReadInput
+from .http_routes.desktop import require_desktop_services
 from .http_routes.extensions import extensions_router
 from .http_routes.media import MediaJobInput as MediaJobInput
 from .http_routes.media import MediaSourceInput as MediaSourceInput
@@ -93,10 +94,6 @@ class HttpRuntime:
     action_reviews: ActionReviewService
     terminals: TerminalService
     terminal_reviews: TerminalReviewService
-    desktop: DesktopService
-    desktop_portal: DesktopPortalService
-    desktop_control: DesktopControlService
-    desktop_actions: DesktopActions
     identity_proof: Callable[[str], Record] | None = None
     drain: Callable[[Record], Awaitable[Record]] | None = None
     token_sessions: Callable[[], Awaitable[list[Record]]] | None = None
@@ -112,6 +109,23 @@ class HttpRuntime:
     skills: SkillService | None = None
     # 连接测试复用当前模型适配器；离线实例的适配器会明确拒绝真实调用。
     model_port: object | None = None
+
+    # Existing runtime accessors resolve the same services as the mounted feature.
+    @property
+    def desktop(self) -> DesktopService:
+        return require_desktop_services(self.feature_services).observations
+
+    @property
+    def desktop_portal(self) -> DesktopPortalService:
+        return require_desktop_services(self.feature_services).portal
+
+    @property
+    def desktop_control(self) -> DesktopControlService:
+        return require_desktop_services(self.feature_services).control
+
+    @property
+    def desktop_actions(self) -> DesktopActions:
+        return require_desktop_services(self.feature_services).actions
 
 
 class AgentInput(StrictInput):
@@ -1335,69 +1349,6 @@ def create_app(
         )
         return {"resolved": True, "state": result["state"], "revision": result["revision"]}
 
-    @router.get("/agents/{agent_id}/desktop")
-    async def desktop_status(agent_id: uuid.UUID, request: Request):
-        return await runtime(request).desktop.status(str(agent_id))
-
-    @router.post("/agents/{agent_id}/desktop/view")
-    async def desktop_begin(agent_id: uuid.UUID, request: Request):
-        return await runtime(request).desktop.begin(str(agent_id), await bounded_configuration(request, 512))
-
-    @router.post("/agents/{agent_id}/desktop/probe")
-    async def desktop_probe(agent_id: uuid.UUID, request: Request):
-        return await runtime(request).desktop.probe(str(agent_id), await bounded_configuration(request, 512))
-
-    @router.post("/agents/{agent_id}/desktop/targets")
-    async def desktop_targets(agent_id: uuid.UUID, request: Request):
-        return await runtime(request).desktop.targets(str(agent_id), await bounded_configuration(request, 512))
-
-    @router.post("/agents/{agent_id}/desktop/verify")
-    async def desktop_verify(agent_id: uuid.UUID, request: Request):
-        return await runtime(request).desktop.verify(str(agent_id), await bounded_configuration(request, 512))
-
-    @router.post("/agents/{agent_id}/desktop/observe")
-    async def desktop_observe(agent_id: uuid.UUID, request: Request):
-        return await runtime(request).desktop.observe(str(agent_id), await bounded_configuration(request, 512))
-
-    @router.post("/agents/{agent_id}/desktop/capture")
-    async def desktop_capture(agent_id: uuid.UUID, request: Request):
-        return await runtime(request).desktop.capture(str(agent_id), await bounded_configuration(request, 512))
-
-    @router.post("/agents/{agent_id}/desktop/portal", status_code=202)
-    async def desktop_portal_open(agent_id: uuid.UUID, request: Request):
-        return await runtime(request).desktop_portal.open(str(agent_id), await bounded_configuration(request, 512))
-
-    @router.get("/agents/{agent_id}/desktop/portal")
-    async def desktop_portal_status(agent_id: uuid.UUID, view_id: uuid.UUID, request: Request):
-        return await runtime(request).desktop_portal.status(str(agent_id), str(view_id))
-
-    @router.post("/agents/{agent_id}/desktop/portal/capture")
-    async def desktop_portal_capture(agent_id: uuid.UUID, request: Request):
-        return await runtime(request).desktop_portal.capture(str(agent_id), await bounded_configuration(request, 512))
-
-    @router.delete("/agents/{agent_id}/desktop/portal")
-    async def desktop_portal_close(agent_id: uuid.UUID, view_id: uuid.UUID, grant_id: uuid.UUID, request: Request):
-        return await runtime(request).desktop_portal.close_grant(str(agent_id), str(view_id), str(grant_id))
-
-    @router.post("/agents/{agent_id}/desktop/control", status_code=202)
-    async def desktop_control_open(agent_id: uuid.UUID, request: Request):
-        return await runtime(request).desktop_control.open(str(agent_id), await bounded_configuration(request, 512))
-
-    @router.get("/agents/{agent_id}/desktop/control")
-    async def desktop_control_status(agent_id: uuid.UUID, view_id: uuid.UUID, request: Request):
-        return await runtime(request).desktop_control.status(str(agent_id), str(view_id))
-
-    @router.delete("/agents/{agent_id}/desktop/control")
-    async def desktop_control_close(agent_id: uuid.UUID, view_id: uuid.UUID, grant_id: uuid.UUID, request: Request):
-        return await runtime(request).desktop_control.close_grant(str(agent_id), str(view_id), str(grant_id))
-
-    @router.post("/agents/{agent_id}/desktop/actions", status_code=202)
-    async def desktop_action(agent_id: uuid.UUID, request: Request):
-        instance = runtime(request)
-        receipt = await instance.desktop_actions.submit(str(agent_id), await bounded_configuration(request, 4096))
-        instance.application.notify()
-        return receipt
-
     @router.get("/agents/{agent_id}/sessions/{session_id}/captures")
     async def session_captures(
         agent_id: uuid.UUID,
@@ -1413,10 +1364,6 @@ def create_app(
     @router.delete("/agents/{agent_id}/sessions/{session_id}/captures/{capture_id}", status_code=204)
     async def release_capture(agent_id: uuid.UUID, session_id: uuid.UUID, capture_id: uuid.UUID, request: Request):
         await runtime(request).objects.release_capture(str(agent_id), str(session_id), str(capture_id))
-
-    @router.delete("/agents/{agent_id}/desktop/snapshot")
-    async def desktop_forget(agent_id: uuid.UUID, view_id: uuid.UUID, request: Request):
-        return await runtime(request).desktop.forget(str(agent_id), str(view_id))
 
     @router.get("/agents/{agent_id}/terminal-reviews")
     async def terminal_review_list(

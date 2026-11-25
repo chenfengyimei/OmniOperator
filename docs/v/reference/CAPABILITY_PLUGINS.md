@@ -49,13 +49,16 @@ B 站、媒体和 Android 在 `BUILTIN_FEATURES` 登记 ID、安装器和路由�
 
 QQ 也在内核恢复后启动监听。服务从既有的 OneBot 提供者读取入站事件，HTTP 使用同一服务处理绑定和状态。关闭时先排空 QQ、B 站读取、媒体和投递，再按对象回收共享传输，最后释放投递租约。绑定修订与发送前授权仍在原有事务和派发点核对。
 
+桌面在 `BUILTIN_FEATURES` 登记。HTTP 和所有者动作共用同一桌面视图，窗口共享与独立控制同意分别核对各自的授权。视图撤销时依次请求两种授权的回收。桌面观察和门户先排空，平台提供者再关闭各自后端。独立控制由业务服务接手原生清理，确认后结算同意记录。直接读取运行时桌面服务的调用方也从功能登记取得同一实例。
+
 新功能可用 `http_app(feature_plugins=...)` 注入离线替身，再验证启动失败、鉴权、写入审批及排空。UI 页面、配置和领域合同由功能自身维护。
 
 ```powershell
 uv run --no-sync python scripts/project_index.py --feature 排查安卓截图
 uv run --no-sync python scripts/project_index.py --feature 媒体
 uv run --no-sync python scripts/project_index.py --feature 调度
+uv run --no-sync python scripts/project_index.py --feature 桌面截图
 uv run --no-sync pytest -q -n 0 agent/tests/v2/core/test_v2_feature_plugins.py
 ```
 
-桌面迁移要同时验证原生句柄、观察权限、独立控制同意和平台后端的回收顺序。每批核对工具顺序、HTTP 合同、配置兼容、权限与生命周期。已有的所有者安装流程见 [Extension 与 MCP 扩展手册](EXTENDING.md)。
+下一批可以由已有独立路由的技能和可执行插件接入功能登记。核对技能与后台复盘的绑定，以及可执行插件的按回合授权、撤销和宿主回收，再迁移 MCP。每批核对工具顺序、实际 HTTP 匹配、配置兼容、权限与生命周期。已有的所有者安装流程见 [Extension 与 MCP 扩展手册](EXTENDING.md)。

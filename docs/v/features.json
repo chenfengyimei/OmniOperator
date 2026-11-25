@@ -784,7 +784,7 @@
     "related": [],
     "refs": {
       "entry": [
-        "agent/src/omni/adapters/http.py#create_app.desktop_capture"
+        "agent/src/omni/adapters/http_routes/desktop.py#desktop_router.desktop_capture"
       ],
       "domain": [
         "agent/src/omni/domain/desktop.py",
@@ -792,12 +792,14 @@
       ],
       "application": [
         "agent/src/omni/application/desktop.py",
+        "agent/src/omni/application/desktop_actions.py",
         "agent/src/omni/application/desktop_portal.py",
         "agent/src/omni/application/desktop_control.py"
       ],
       "composition": [
         "agent/src/omni/composition/platform_providers.py#platform_provider",
-        "agent/src/omni/composition/instance.py#open_instance.desktop"
+        "agent/src/omni/composition/features/desktop.py#install_desktop",
+        "agent/src/omni/composition/features/catalog.py"
       ],
       "ui": [
         "web/ui/v2/desktop.js",

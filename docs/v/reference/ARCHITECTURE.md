@@ -20,7 +20,7 @@ V2 不导入 V1 运行时；数据库访问只在 `adapters/persistence`。组�
 | 在哪里改 | 改什么 | 同批核对 |
 |---|---|---|
 | `adapters/http.py` | 应用创建、认证、请求大小、错误映射和路由装配 | 真实 OpenAPI、认证、错误回执 |
-| `adapters/http_routes/<feature>.py` | 功能专用 HTTP 输入与处理函数。渠道的 QQ 与 B 站各自维护入口 | 使用同一所有者鉴权路由。固定路径先于同方法的动态路径，核对静态路由与工作台 |
+| `adapters/http_routes/<feature>.py` | 功能专用 HTTP 输入与处理函数。QQ、B 站与桌面各自维护入口 | 使用同一所有者鉴权路由。固定路径先于同方法的动态路径，核对静态路由与工作台 |
 | `adapters/persistence/`、`adapters/platform/`、`adapters/workers/` | 事务与迁移、平台实现、受管进程和协议 | 检查资源归属、调用方和关闭路径 |
 | `adapters/extensions/` | 读取包、校验指纹与运行已授权代码 | 版本升级、旧授权失效与宿主回收 |
 | `application/capabilities.py`、`composition/capabilities.py` | 能力插件合同、工具快照及内建提供者组装 | 插件与工具名、所有者入口、回合权限和关闭归属 |
