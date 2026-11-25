@@ -39,16 +39,21 @@ uv run --no-sync pytest -q -n 0 agent/tests/v2/core/test_v2_provider_plugins.py 
 
 模型调用继续核对档案修订、取消和未知费用。渠道继续核对会话授权、发送前撤权和重复投递。平台适配器继续返回自身的可用状态并保留现场授权和回收流程。
 
-## Android 与媒体的功能登记
+## 业务功能登记与启动顺序
 
 在 `composition/features/<feature>.py` 的安装器中用 `FeatureContext` 创建服务，在 `Lifetime` 中登记归属。返回服务和已有的 `Capability`。组装器在就绪之前安装功能，在 `feature_services` 发布只读映射，内核继续从能力表取得工具。HTTP 路由从同一映射取得服务，挂在需要所有者授权的 `/api/v1/agents/{agent_id}/<feature>` 下。功能 ID、精确重复的 HTTP 路径和工具名在组装时校验。
 
-在 `BUILTIN_FEATURES` 中登记 ID、安装器和路由工厂。安装器负责启动期恢复，并将资源交给唯一的关闭方。媒体服务持有处理器，启动恢复失败时由同一关闭链回收。Android 分开登记业务服务与设备后端。新功能可用 `http_app(feature_plugins=...)` 注入离线替身，再验证启动失败、鉴权、写入审批及排空。UI 页面、配置和领域合同仍由功能自身维护。
+Android 和媒体在 `BUILTIN_FEATURES` 登记 ID、安装器和路由工厂。安装器负责启动期恢复，并将资源交给唯一的关闭方。媒体服务持有处理器，启动恢复失败时由同一关闭链回收。Android 分开登记业务服务与设备后端。
+
+需要内核回调的功能在同一个目录的 `BUILTIN_KERNEL_FEATURES` 登记。调度通过 `KernelFeatureContext` 接收运行唤醒、取消、平台信息和日志脱敏。内核对象创建后安装调度服务，在封存工具目录前挂载 `cronjob_manage`。内核完成持久状态恢复并启动派发器后，实例再调用功能的 `start`。若启动到一半失败，已登记的回收步骤关闭后台任务并释放实例锁。
+
+新功能可用 `http_app(feature_plugins=...)` 注入离线替身，再验证启动失败、鉴权、写入审批及排空。UI 页面、配置和领域合同由功能自身维护。
 
 ```powershell
 uv run --no-sync python scripts/project_index.py --feature 排查安卓截图
 uv run --no-sync python scripts/project_index.py --feature 媒体
+uv run --no-sync python scripts/project_index.py --feature 调度
 uv run --no-sync pytest -q -n 0 agent/tests/v2/core/test_v2_feature_plugins.py
 ```
 
-后续先用调度验证内核就绪后的后台启动、重启恢复和关闭顺序，再按渠道、桌面职责拆分现有服务接线。迁移一项时需核对工具顺序、HTTP 合同、配置兼容、权限和生命周期。已有的所有者安装流程见 [Extension 与 MCP 扩展手册](EXTENDING.md)。
+下一批把 QQ 与 B 站的服务和 HTTP 接入功能登记，验证入站授权、发送前撤权、未知投递的复核以及共享传输的关闭归属。随后迁移桌面，验证原生句柄、观察权限和平台后端的回收顺序。每批核对工具顺序、HTTP 合同、配置兼容、权限与生命周期。已有的所有者安装流程见 [Extension 与 MCP 扩展手册](EXTENDING.md)。

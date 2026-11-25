@@ -927,7 +927,7 @@
     "related": [],
     "refs": {
       "entry": [
-        "agent/src/omni/adapters/http.py#create_app.schedules"
+        "agent/src/omni/adapters/http_routes/schedules.py#schedules_router.schedules"
       ],
       "domain": [
         "agent/src/omni/domain/cronjob.py"
@@ -939,14 +939,16 @@
         "agent/src/omni/adapters/timezones.py"
       ],
       "composition": [
-        "agent/src/omni/composition/instance.py#open_instance.schedules"
+        "agent/src/omni/composition/features/schedules.py#install_schedules",
+        "agent/src/omni/composition/features/catalog.py"
       ],
       "ui": [
         "web/ui/v2/schedules.js"
       ],
       "tests": [
         "agent/tests/v2/core/test_v2_scheduling.py",
-        "agent/tests/v2/core/test_v2_scheduling_faults.py"
+        "agent/tests/v2/core/test_v2_scheduling_faults.py",
+        "agent/tests/v2/core/test_v2_feature_plugins.py#test_scheduling_starts_after_kernel_recovery_and_is_reclaimed_on_failure"
       ]
     }
   },

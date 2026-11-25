@@ -18,7 +18,7 @@ uv run --no-sync python scripts/project_index.py --feature 排查安卓截图
 
 添加产品工具时查询 `--feature 能力注册`。接入传输或后端时分别查询「模型提供者」「渠道提供者」「平台提供者」。挂载、授权和关闭规则见 [V2 能力插件与组装](reference/CAPABILITY_PLUGINS.md)。
 
-迁移完整业务功能时，从 Android 或媒体的安装器和路由工厂读起。下一批「调度」需覆盖内核就绪后的后台启动、停机及重启恢复。渠道和桌面迁移时核对现有授权、回收顺序与真实 HTTP 合同。[功能迁移说明](reference/CAPABILITY_PLUGINS.md#android-与媒体的功能登记)
+迁移完整业务功能时，从 Android 或媒体的安装器和路由工厂读起。后台功能参考「调度」的内核回调、启动和回滚。下一批先迁移 QQ 与 B 站，再推进桌面，各批核对现有授权、回收顺序和实际 HTTP 合同。[功能迁移说明](reference/CAPABILITY_PLUGINS.md#业务功能登记与启动顺序)
 
 1. 每批代码调整记录改动、专项与调用方覆盖。发布冻结时由 Windows 集成会话核对 `origin/v2`、工作树和候选差异，打包并登记新的候选。
 2. 可以并行安排干净 Windows、测试账号、安卓真机、兼容视觉模型、Mac mini 和 Linux 原生会话。每项结果都记具体设备、提交、产物和未覆盖范围。

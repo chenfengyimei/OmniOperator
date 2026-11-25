@@ -11,6 +11,7 @@ from collections.abc import Generator, Mapping
 from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
+from types import MappingProxyType
 from typing import Any, cast
 
 from opentelemetry.sdk.trace import TracerProvider
@@ -41,7 +42,6 @@ from ..adapters.persona_files import PersonaGrowthFiles
 from ..adapters.primitives import SystemClock, UUIDs
 from ..adapters.process_diagnostics import ProcessDiagnostics
 from ..adapters.skill_packages import SkillPackages
-from ..adapters.timezones import PinnedTimezones
 from ..adapters.token_counter import ConservativeTokenCounter
 from ..adapters.visual import ImageObjectFrames, MediaFrameSheets, ModelCallsVisualModelFactory
 from ..application.action_review import ActionReviewService
@@ -55,7 +55,6 @@ from ..application.clarify import ClarifyService
 from ..application.configuration import ConfigurationService
 from ..application.context import ContextService
 from ..application.credentials import CredentialService
-from ..application.cronjob import CronjobCapabilities
 from ..application.debugging import DebugService
 from ..application.delivery import DeliveryService
 from ..application.desktop import DesktopService
@@ -104,15 +103,14 @@ from ..application.todos import TodoService
 from ..application.visual_subagent import VISUAL_SUBAGENT, VisualSubagentCapabilities, VisualSubagentService
 from ..domain.background_review import READ_TOOLS
 from ..domain.contracts import JSON, ActionResult, BusinessError, InvocationContext, Outcome
-from ..domain.cronjob import CRONJOB_MANAGE
 from ..domain.desktop_actions import SPEC as DESKTOP_ACTION
 from ..domain.mcp import ServerTarget
 from ..domain.memory_decay import DECAY_DAILY_HOUR
 from ..domain.skills import SKILL_SPECS
 from .capabilities import builtin_plugins
 from .channel_providers import register_channel_providers
-from .features import FeatureContext, FeaturePlugin, install_features
-from .features.catalog import BUILTIN_FEATURES
+from .features import FeatureContext, FeaturePlugin, KernelFeatureContext, install_features
+from .features.catalog import BUILTIN_FEATURES, BUILTIN_KERNEL_FEATURES
 from .lifecycle import Lifetime, close_sync
 from .model_providers import register_model_transport
 from .platform_providers import platform_provider
@@ -339,7 +337,7 @@ async def open_instance(
     android_backend: AndroidPort | None = None,
     capabilities: tuple[Capability, ...] | None = None,
     capability_plugins: tuple[CapabilityPlugin, ...] = (),
-    feature_plugins: tuple[FeaturePlugin, ...] = (),
+    feature_plugins: tuple[FeaturePlugin[FeatureContext], ...] = (),
     delegation_enabled: bool | None = None,
     verify_on_stop: bool = False,
     model_recovery: bool = False,
@@ -354,6 +352,10 @@ async def open_instance(
     control_backend: DesktopControlPort | None = None,
     deployment: Record | None = None,
 ) -> Instance:
+    initial_plugins = (*BUILTIN_FEATURES, *feature_plugins)
+    declared_plugins = (*initial_plugins, *BUILTIN_KERNEL_FEATURES)
+    if len({plugin.id for plugin in declared_plugins}) != len(declared_plugins):
+        raise ValueError("Duplicate feature plugin IDs")
     paths = InstancePaths.resolve(home)
     if master_key_file and master_key_file.resolve().is_relative_to(paths.home):
         raise BusinessError("unsafe_master_key", "Master key must be outside the instance home")
@@ -532,7 +534,7 @@ async def open_instance(
         bilibili = BilibiliService(database, channels.bilibili)
         lifetime.own("bilibili", 0, bilibili.close, bilibili.stop_accepting)
         features = await install_features(
-            (*BUILTIN_FEATURES, *feature_plugins),
+            initial_plugins,
             FeatureContext(
                 lifetime=lifetime,
                 database=database,
@@ -695,25 +697,22 @@ async def open_instance(
         lifetime.own(
             "runs", 0, lambda budget: application.close(budget, close_database=False), application.stop_accepting
         )
-        schedules = SchedulingService(
-            database,
-            clock,
-            PinnedTimezones(),
-            application.notify,
-            application.cancel,
-            platform.skill_platform,
-            # Same live redactor as diagnostics: scheduled output excerpts also mask
-            # credentials registered at runtime, not just pattern-shaped secrets.
-            redact=sink.redactor.text,
+        kernel_features = await install_features(
+            BUILTIN_KERNEL_FEATURES,
+            KernelFeatureContext(
+                lifetime=lifetime,
+                database=database,
+                clock=clock,
+                notify_run=application.notify,
+                cancel_run=application.cancel,
+                skill_platform=platform.skill_platform,
+                redact=sink.redactor.text,
+                default_tools=capabilities is None,
+            ),
         )
-        lifetime.own("scheduler", 0, schedules.close, schedules.stop_accepting)
-        if capabilities is None:
-            # SchedulingService depends on application.notify/cancel, so mount its contributor before start().
-            application.attach_plugin(
-                CapabilityPlugin(
-                    "scheduler", (Capability(CRONJOB_MANAGE, CronjobCapabilities(schedules, clock), lambda: True),)
-                )
-            )
+        schedules = kernel_features.require("schedules", SchedulingService)
+        for plugin in kernel_features.capabilities:
+            application.attach_plugin(plugin)
         action_reviews = ActionReviewService(database, application.action_review_blockers, schedules.notify)
         lifetime.own("action_reviews", 0, action_reviews.close, action_reviews.stop_accepting)
         diagnostic = DiagnosticFiles(paths, sink)
@@ -821,7 +820,8 @@ async def open_instance(
         await identity_files.start()
         await maintenance.start()
         deliveries.start()
-        schedules.start()
+        features.start()
+        kernel_features.start()
         qq.start()
         current_instance = Instance(
             application=application,
@@ -867,7 +867,7 @@ async def open_instance(
             desktop_portal=desktop_portal,
             desktop_control=desktop_control,
             desktop_actions=desktop_actions,
-            feature_services=features.services,
+            feature_services=MappingProxyType({**features.services, **kernel_features.services}),
             _process_diagnostics=host_diagnostics,
             model_port=model_transport.model,
         )

@@ -1,5 +1,5 @@
 {
-  "summary": "当前开发优先内核逻辑与外围能力插件化。模型、渠道和平台提供者已接入正式组装，Android 和媒体已按同一功能登记接入服务、工具和 HTTP。下一批推进调度，再迁移渠道和桌面业务组装。最近 8706 项通过的全量覆盖固定候选 `5da6dce4`，后续插件化批次执行离线专项。真实模型、账号和设备验收另行排期。",
+  "summary": "当前开发优先内核逻辑与外围能力插件化。模型、渠道和平台提供者已接入正式组装。Android、媒体和调度已按功能登记服务、工具和 HTTP，调度覆盖内核恢复后的后台启动。下一批迁移 QQ 与 B 站业务服务，再推进桌面。最近 8706 项通过的全量覆盖固定候选 `5da6dce4`，后续插件化批次执行离线专项。真实模型、账号和设备验收另行排期。",
   "windows_stage": {
     "status": "completed_windows_offline_candidate",
     "summary": "Windows 用户域服务在 `30bea914` 构建的 wheel 上完成注册、启动、只读状态、停止、卸载共 14 步。干净机仍须对最终产物验证安装、升级、回滚和卸载，记录 wheel SHA、PID 与就绪回执。"
@@ -89,7 +89,7 @@
       "id": "NAV",
       "title": "功能开发导航、技能与插件路由、离线插件样例",
       "status": "implemented_scoped_passed",
-      "next": "导航首批覆盖 30 个功能与 26 个页面，共 502 项去重专项通过。Android、媒体迁移后的接口已更新至索引。后续继续在同批更新导航、调用方与测试入口。",
+      "next": "导航首批覆盖 30 个功能与 26 个页面，共 502 项去重专项通过。Android、媒体和调度迁移后的接口已更新至索引。后续继续在同批更新导航、调用方与测试入口。",
       "contract": "docs/v/reference/EXTENDING.md",
       "evidence": [
         "docs/v/evidence/feature-navigation.json",
@@ -125,11 +125,14 @@
     },
     {
       "id": "BUSINESS-FEATURE-PLUGINS",
-      "title": "Android 与媒体业务功能登记",
+      "title": "Android、媒体与调度业务功能登记",
       "status": "implemented_scoped_passed",
-      "next": "组装与通用 HTTP 78 项、Android 69 项、媒体与视觉 155 项、工作台 15 项专项通过。下一批迁移调度，核对内核就绪、任务恢复与停止顺序，再接渠道和桌面业务服务。",
+      "next": "Android 与媒体批次 317 项专项通过。调度与调用方批次 244 项专项通过，覆盖内核恢复后启动、异常回收及再次打开实例。接下来迁移 QQ、B 站和桌面的业务服务、工具及 HTTP，核对授权、共享资源与关闭顺序。",
       "contract": "docs/v/reference/CAPABILITY_PLUGINS.md",
-      "evidence": ["docs/v/evidence/feature-plugins-2026-11-25.json"]
+      "evidence": [
+        "docs/v/evidence/feature-plugins-2026-11-25.json",
+        "docs/v/evidence/scheduling-plugin-2026-11-25.json"
+      ]
     },
     {
       "id": "KERNEL-EVAL",

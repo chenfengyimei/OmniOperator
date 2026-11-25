@@ -44,7 +44,6 @@ from ..application.ports import Record
 from ..application.qq import QQService
 from ..application.reflections import ReflectionService
 from ..application.routing import RoutingService
-from ..application.scheduling import SchedulingService
 from ..application.skills import SkillService
 from ..application.terminal_review import TerminalReviewService
 from ..application.terminals import TerminalService
@@ -80,7 +79,6 @@ class HttpRuntime:
     people: PeopleService
     configurations: ConfigurationService
     documents: DocumentService
-    schedules: SchedulingService
     deliveries: DeliveryService
     operations: OperationsService
     credentials: CredentialService
@@ -262,18 +260,6 @@ class DeliveryReview(StrictInput):
 
 class DebugInput(StrictInput):
     duration_s: int = Field(default=3600, ge=1, le=3600, strict=True)
-
-
-class ScheduleInput(StrictInput):
-    name: str = Field(min_length=1, max_length=100)
-    enabled: bool = Field(default=False, strict=True)
-    value: Payload
-    revision: int = Field(default=0, ge=0, strict=True)
-
-
-class ScheduleReview(StrictInput):
-    occurrence_id: uuid.UUID
-    fingerprint: str = Field(pattern=r"^[a-f0-9]{64}$")
 
 
 class ApprovalInput(StrictInput):
@@ -851,79 +837,6 @@ def create_app(
     ):
         await runtime(request).deliveries.archive(str(agent_id), str(delivery_id), revision)
         return {"ok": True}
-
-    @router.get("/agents/{agent_id}/schedules")
-    async def schedules(
-        agent_id: uuid.UUID,
-        request: Request,
-        after: uuid.UUID | None = None,
-        limit: int = Query(default=100, ge=1, le=200),
-        include_archived: bool = False,
-    ):
-        items = await runtime(request).schedules.page(
-            str(agent_id), str(after) if after else "", limit, include_archived
-        )
-        return {"items": items, "next_after": items[-1]["id"] if len(items) == limit else None}
-
-    @router.post("/agents/{agent_id}/schedules", status_code=201)
-    async def create_schedule(agent_id: uuid.UUID, request: Request):
-        data = configuration_input(ScheduleInput, await bounded_configuration(request, 100000))
-        return await runtime(request).schedules.save(
-            str(agent_id), data.name, data.enabled, data.value, revision=data.revision
-        )
-
-    @router.get("/agents/{agent_id}/schedules/{schedule_id}")
-    async def schedule(agent_id: uuid.UUID, schedule_id: uuid.UUID, request: Request):
-        return await runtime(request).schedules.get(str(agent_id), str(schedule_id))
-
-    @router.put("/agents/{agent_id}/schedules/{schedule_id}")
-    async def save_schedule(agent_id: uuid.UUID, schedule_id: uuid.UUID, request: Request):
-        data = configuration_input(ScheduleInput, await bounded_configuration(request, 100000))
-        return await runtime(request).schedules.save(
-            str(agent_id), data.name, data.enabled, data.value, str(schedule_id), data.revision
-        )
-
-    @router.delete("/agents/{agent_id}/schedules/{schedule_id}")
-    async def archive_schedule(
-        agent_id: uuid.UUID, schedule_id: uuid.UUID, request: Request, revision: int = Query(ge=1)
-    ):
-        await runtime(request).schedules.archive(str(agent_id), str(schedule_id), revision)
-        return {"archived": True}
-
-    @router.get("/agents/{agent_id}/schedules/{schedule_id}/history")
-    async def schedule_history(
-        agent_id: uuid.UUID,
-        schedule_id: uuid.UUID,
-        request: Request,
-        after: int = Query(default=0, ge=0),
-        limit: int = Query(default=50, ge=1, le=200),
-    ):
-        items = await runtime(request).schedules.history(str(agent_id), str(schedule_id), after, limit)
-        return {"items": items, "next_after": items[-1]["revision"] if len(items) == limit else None}
-
-    @router.get("/agents/{agent_id}/schedules/{schedule_id}/occurrences")
-    async def schedule_occurrences(
-        agent_id: uuid.UUID,
-        schedule_id: uuid.UUID,
-        request: Request,
-        after: int = Query(default=0, ge=0),
-        limit: int = Query(default=50, ge=1, le=200),
-    ):
-        items = await runtime(request).schedules.occurrences(str(agent_id), str(schedule_id), after, limit)
-        return {"items": items, "next_after": items[-1]["sequence"] if len(items) == limit else None}
-
-    @router.post("/agents/{agent_id}/schedules/{schedule_id}/review")
-    async def schedule_review(agent_id: uuid.UUID, schedule_id: uuid.UUID, request: Request):
-        data = configuration_input(ScheduleReview, await bounded_configuration(request, 1000))
-        await runtime(request).schedules.review(
-            str(agent_id), str(schedule_id), str(data.occurrence_id), data.fingerprint
-        )
-        return {"reviewed": True, "unknown_records_preserved": True}
-
-    @router.post("/agents/{agent_id}/schedules/{schedule_id}/occurrences/{occurrence_id}/cancel")
-    async def schedule_cancel(agent_id: uuid.UUID, schedule_id: uuid.UUID, occurrence_id: uuid.UUID, request: Request):
-        await runtime(request).schedules.cancel(str(agent_id), str(schedule_id), str(occurrence_id))
-        return {"accepted": True}
 
     @router.get("/agents/{agent_id}/configurations")
     async def configurations(

@@ -11,7 +11,9 @@ from omni_test_support.v2.media import FakeProcessor
 
 from omni.adapters.http_routes import FeatureRoutes, mount_feature_routes
 from omni.application.capabilities import Capability
+from omni.application.engine import Application
 from omni.application.media import MediaService
+from omni.application.scheduling import SchedulingService
 from omni.composition.features import FeatureBinding, FeaturePlugin
 from omni.composition.http import http_app
 from omni.composition.instance import open_instance
@@ -183,3 +185,55 @@ def test_media_processor_has_one_shutdown_owner_on_startup_and_rollback(tmp_path
         assert processor.closes == 1
 
     asyncio.run(scenario())
+
+
+@pytest.mark.parametrize("start_fails", [False, True])
+def test_scheduling_starts_after_kernel_recovery_and_is_reclaimed_on_failure(tmp_path, monkeypatch, start_fails):
+    start_application = Application.start
+    start_scheduler = SchedulingService.start
+    ready = []
+    started = []
+
+    async def observe_kernel(application):
+        await start_application(application)
+        assert application.health()["ready"]
+        ready.append(application)
+
+    def observe_scheduler(scheduler):
+        assert len(ready) == len(started) + 1
+        assert "cronjob_manage" in ready[-1]._tools
+        start_scheduler(scheduler)
+        started.append(scheduler)
+        if start_fails and len(started) == 1:
+            raise RuntimeError("fixture scheduler start failure")
+
+    monkeypatch.setattr(Application, "start", observe_kernel)
+    monkeypatch.setattr(SchedulingService, "start", observe_scheduler)
+
+    async def scenario():
+        if start_fails:
+            with pytest.raises(RuntimeError, match="fixture scheduler start failure"):
+                await open_instance(tmp_path)
+            assert started[0]._worker.done()
+            assert started[0].health()["closing"]
+
+        instance = await open_instance(tmp_path)
+        try:
+            assert instance.feature_services["schedules"] is instance.schedules is started[-1]
+            assert instance.schedules.health()["ready"]
+        finally:
+            assert (await instance.close())["complete"]
+        assert instance.schedules._worker.done()
+
+    asyncio.run(scenario())
+
+
+def test_injected_feature_cannot_replace_a_feature_that_depends_on_the_kernel(tmp_path):
+    async def install(context):
+        pytest.fail("conflicting feature must be rejected before startup")
+
+    plugin = FeaturePlugin("schedules", factory=lambda _: APIRouter(), install=install)
+    home = tmp_path / "instance"
+    with pytest.raises(ValueError, match="Duplicate feature plugin IDs"):
+        asyncio.run(open_instance(home, feature_plugins=(plugin,)))
+    assert not home.exists()

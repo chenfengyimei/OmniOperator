@@ -6,7 +6,7 @@ from collections.abc import Awaitable, Callable, Mapping
 from dataclasses import dataclass
 from pathlib import Path
 from types import MappingProxyType
-from typing import TypeVar
+from typing import Generic, TypeVar
 
 from ...adapters.http_routes import FeatureRoutes
 from ...application.android import AndroidPort
@@ -20,6 +20,7 @@ from ..channel_providers import ChannelProviders
 from ..lifecycle import Lifetime
 
 Service = TypeVar("Service")
+Context = TypeVar("Context")
 
 
 @dataclass(frozen=True)
@@ -41,21 +42,35 @@ class FeatureContext:
 
 
 @dataclass(frozen=True)
+class KernelFeatureContext:
+    lifetime: Lifetime
+    database: DatabasePort
+    clock: Clock
+    notify_run: Callable[[], None]
+    cancel_run: Callable[[str, str], Awaitable[None]]
+    skill_platform: str
+    redact: Callable[[str], str]
+    default_tools: bool
+
+
+@dataclass(frozen=True)
 class FeatureBinding:
     service: object
     tools: tuple[Capability, ...] = ()
     owner_tools: tuple[Capability, ...] = ()
+    start: Callable[[], None] | None = None
 
 
 @dataclass(frozen=True)
-class FeaturePlugin(FeatureRoutes):
-    install: Callable[[FeatureContext], Awaitable[FeatureBinding]]
+class FeaturePlugin(FeatureRoutes, Generic[Context]):
+    install: Callable[[Context], Awaitable[FeatureBinding]]
 
 
 @dataclass(frozen=True)
 class InstalledFeatures:
     services: Mapping[str, object]
     capabilities: tuple[CapabilityPlugin, ...]
+    starters: tuple[Callable[[], None], ...]
 
     def require(self, feature_id: str, service_type: type[Service]) -> Service:
         service = self.services.get(feature_id)
@@ -63,15 +78,20 @@ class InstalledFeatures:
             raise ValueError(f"Required feature service is unavailable: {feature_id}")
         return service
 
+    def start(self) -> None:
+        for start in self.starters:
+            start()
 
-async def install_features(plugins: tuple[FeaturePlugin, ...], context: FeatureContext) -> InstalledFeatures:
-    if len({plugin.id for plugin in plugins}) != len(plugins):
-        raise ValueError("Duplicate feature plugin IDs")
+
+async def install_features(plugins: tuple[FeaturePlugin[Context], ...], context: Context) -> InstalledFeatures:
     services: dict[str, object] = {}
     capabilities: list[CapabilityPlugin] = []
+    starters: list[Callable[[], None]] = []
     for plugin in plugins:
         binding = await plugin.install(context)
         services[plugin.id] = binding.service
         if binding.tools or binding.owner_tools:
             capabilities.append(CapabilityPlugin(plugin.id, binding.tools, binding.owner_tools, own_adapters=False))
-    return InstalledFeatures(MappingProxyType(services), tuple(capabilities))
+        if binding.start is not None:
+            starters.append(binding.start)
+    return InstalledFeatures(MappingProxyType(services), tuple(capabilities), tuple(starters))

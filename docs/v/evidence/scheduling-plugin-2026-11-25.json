@@ -1,0 +1,112 @@
+{
+  "date": "2026-11-25",
+  "platform": "Windows x64",
+  "source": {
+    "base_commit": "633ccba7dc3c1850777e6fadd4a8cca7ee133300",
+    "working_tree": "v2 调度功能登记、内核依赖与后台启动改动",
+    "affected_files_sha256_normalized_lf": {
+      "agent/src/omni/adapters/http.py": "d3774356afade64b33192c4a78b4948ee71eeed486d0977ec622b3da92efac68",
+      "agent/src/omni/adapters/http_routes/schedules.py": "1f1bfb91acd183685bae334f340b5f4905caf30a7022688d47943183fb3082d7",
+      "agent/src/omni/composition/features/__init__.py": "4ebb42c8e15eeca1ea82931247fa8eb30009e0a675f0d9b30bcaaa5ecb9fd860",
+      "agent/src/omni/composition/features/catalog.py": "7bcf17d4c6c8c1e0a90f3c559219715efc27fb3a965cd7a6a88cce4d16125497",
+      "agent/src/omni/composition/features/schedules.py": "c6bae778717a5b396fc3c037771ffaadf32a5d99310d41fc187655aa1977c6a1",
+      "agent/src/omni/composition/http.py": "16b7710203a4123aa04810da3ecfdfea3d6ab88d04916fe730200226c74b347d",
+      "agent/src/omni/composition/instance.py": "96b19accd2cc6b60ab7411bb15343bf0dd1952ff8659e5d84e2811349dabb952",
+      "agent/src/omni/system/catalog/scan.py": "19f002da60383fc5b330295931eecbc4aaf9d80f24408a99accdb56a90cd873b",
+      "agent/tests/test_feature_navigation.py": "f8af34ddd5c8076dc07c2ed74f214b7e5e459db8ac4b206502c5d5753bfde477",
+      "agent/tests/v2/core/test_v2_feature_plugins.py": "c48a93f797b4edf867f48dea7f5858bb719362b34984dad6726466fbfa16c65a",
+      "docs/v/features.json": "c1e11be8153e0881a257c4742267b9206c4d8b307873bef02cf0febbb40ce0ab",
+      "pyrightconfig.strict.json": "e3c29de2503e0af359af8644e93736672a5962e2fecefcdc2ddb7d7838fd64ee"
+    }
+  },
+  "offline_scoped_suites": [
+    {
+      "scope": "组装、特性登记、通用 HTTP、生命周期与导航",
+      "passed": 81,
+      "failed": 0,
+      "skipped": 0,
+      "junit_seconds": 58.344,
+      "modules": [
+        "test_feature_navigation",
+        "test_v2_architecture",
+        "test_v2_capability_plugins",
+        "test_v2_feature_plugins",
+        "test_v2_http",
+        "test_v2_lifecycle",
+        "test_v2_provider_plugins",
+        "test_v2_service_drain",
+        "test_v2_typecheck_scope"
+      ],
+      "local_junit": "temp/build/scheduling-registration/assembly.xml",
+      "sha256": "75effe5a7a5e0088ef57854ed452bade29a700e60a28e50f7340fbb5a4a024ad"
+    },
+    {
+      "scope": "调度、恢复、租约、上下文与 Agent 工具",
+      "passed": 140,
+      "failed": 0,
+      "skipped": 0,
+      "junit_seconds": 130.783,
+      "modules": [
+        "test_v2_cronjob_e2e",
+        "test_v2_cronjob_tool",
+        "test_v2_schedule_bindings",
+        "test_v2_schedule_context",
+        "test_v2_schedule_review_blocker",
+        "test_v2_scheduling",
+        "test_v2_scheduling_faults"
+      ],
+      "local_junit": "temp/build/scheduling-registration/scheduling.xml",
+      "sha256": "ab3d3d44af1a255f8c1cf1a073c913bc8138296dba55dd8e2d1922711dbe43bd"
+    },
+    {
+      "scope": "行动复核、工作台、Android HTTP 与媒体上传",
+      "passed": 23,
+      "failed": 0,
+      "skipped": 0,
+      "junit_seconds": 84.876,
+      "modules": [
+        "test_v2_action_review_execution",
+        "test_v2_action_review_http",
+        "test_v2_action_review_workers",
+        "test_v2_android_http",
+        "test_v2_media_uploads",
+        "test_v2_ui"
+      ],
+      "local_junit": "temp/build/scheduling-registration/callers.xml",
+      "sha256": "d1ee94aeb12d3d5cc902c47a77f80a2dd939a7e7a50eb803b8a396ec71519fcc"
+    }
+  ],
+  "scoped_distinct_passed": 244,
+  "compatibility": {
+    "reference": "633ccba7dc3c1850777e6fadd4a8cca7ee133300",
+    "same_contract": true,
+    "observed": {
+      "agent_tools": 40,
+      "owner_tools": 3,
+      "agent_tools_sha256": "048fb1b8bc74ae2a5dc765a7653f77f81f366f95b8ec349ccf6ca844c1f5724c",
+      "owner_tools_sha256": "d718fd27ae36eae27c614b48c553775a05267230289d57c91bf136e6011bf4dc",
+      "delivery_drivers": [
+        "bilibili",
+        "qq"
+      ],
+      "model_transport": "LiteLLMModel",
+      "openapi_paths": 212,
+      "openapi_sha256": "0b612b9f2b7256631d3c386ee682e0431c55610f298c3c4ccc89f63217cad6cc"
+    }
+  },
+  "static_checks": {
+    "strict_files": 452,
+    "strict_errors": 0,
+    "strict_warnings": 0,
+    "ruff": "passed"
+  },
+  "full_offline": {
+    "covers_this_working_tree": false,
+    "previous_candidate": "5da6dce4b2f6f743cd35a71d2be198c4e5b216d9",
+    "previous_candidate_passed": 8706
+  },
+  "remaining_development": [
+    "QQ 与 B 站的业务服务、共享传输和 HTTP 功能登记",
+    "桌面业务服务与原生资源关闭顺序的功能登记"
+  ]
+}
