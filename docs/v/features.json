@@ -975,7 +975,7 @@
     "related": [],
     "refs": {
       "entry": [
-        "agent/src/omni/adapters/http.py#create_app.create_delivery"
+        "agent/src/omni/adapters/http_routes/deliveries.py#deliveries_router.create_delivery"
       ],
       "domain": [
         "agent/src/omni/domain/delivery.py"
@@ -985,7 +985,7 @@
       ],
       "composition": [
         "agent/src/omni/composition/channel_providers.py#register_channel_providers",
-        "agent/src/omni/composition/instance.py#open_instance.deliveries"
+        "agent/src/omni/composition/features/deliveries.py#install_deliveries"
       ],
       "ui": [
         "web/ui/v2/deliveries.js"
@@ -1014,7 +1014,7 @@
     "related": [],
     "refs": {
       "entry": [
-        "agent/src/omni/adapters/http.py#create_app.action_review_commit"
+        "agent/src/omni/adapters/http_routes/action_reviews.py#action_reviews_router.action_review_commit"
       ],
       "domain": [
         "agent/src/omni/domain/action_review.py"
@@ -1023,7 +1023,7 @@
         "agent/src/omni/application/action_review.py"
       ],
       "composition": [
-        "agent/src/omni/composition/instance.py#open_instance.action_reviews"
+        "agent/src/omni/composition/features/action_reviews.py#install_action_reviews"
       ],
       "ui": [
         "web/ui/v2/action-reviews.js"
@@ -1050,7 +1050,7 @@
     "related": [],
     "refs": {
       "entry": [
-        "agent/src/omni/adapters/http.py#create_app.terminal_open"
+        "agent/src/omni/adapters/http_routes/terminals.py#terminals_router.terminal_open"
       ],
       "domain": [
         "agent/src/omni/domain/terminals.py"
@@ -1061,7 +1061,7 @@
       ],
       "composition": [
         "agent/src/omni/composition/platform_providers.py#PlatformProvider.register",
-        "agent/src/omni/composition/instance.py#open_instance.terminals"
+        "agent/src/omni/composition/features/terminals.py#install_terminals"
       ],
       "ui": [
         "web/ui/v2/terminals.js",

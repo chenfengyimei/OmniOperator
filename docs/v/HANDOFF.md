@@ -18,7 +18,7 @@ uv run --no-sync python scripts/project_index.py --feature 排查安卓截图
 
 添加产品工具时查询 `--feature 能力注册`。接入传输或后端时分别查询「模型提供者」「渠道提供者」「平台提供者」。挂载、授权和关闭规则见 [V2 能力插件与组装](reference/CAPABILITY_PLUGINS.md)。
 
-迁移完整业务功能时，从 Android 或媒体的安装器和路由工厂读起。后台功能参考调度与 QQ 的启动和回滚，共享传输参考 B 站读取、下载与投递，跨平台资源参考桌面视图与独立控制。按回合工具参考可执行插件和 MCP 的授权与宿主静默回调。[功能迁移说明](reference/CAPABILITY_PLUGINS.md#业务功能登记与启动顺序)
+迁移完整业务功能时，从 Android 或媒体的安装器和路由工厂读起。后台功能参考调度与 QQ 的启动和回滚，共享传输参考投递的排空与租约释放，跨平台资源参考桌面与终端。跨功能依赖参考动作核查对调度服务的读取，按回合工具参考可执行插件和 MCP 的授权与宿主静默回调。[功能迁移说明](reference/CAPABILITY_PLUGINS.md#业务功能登记与启动顺序)
 
 业务插件化的模块范围、推进顺序和收尾条件维护在 [V2 业务插件化迁移](PLUGIN_MIGRATION.md)。
 

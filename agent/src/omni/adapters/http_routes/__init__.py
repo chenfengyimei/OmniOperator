@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 import re
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any, TypeVar, cast
 
@@ -21,10 +21,18 @@ if TYPE_CHECKING:
 RuntimeLookup = Callable[[Request], "HttpRuntime"]
 RouteFactory = Callable[[RuntimeLookup], APIRouter]
 InputModel = TypeVar("InputModel", bound=BaseModel)
+Service = TypeVar("Service")
 
 
 class StrictInput(BaseModel):
     model_config = ConfigDict(extra="forbid")
+
+
+def registered_service(services: Mapping[str, object], feature_id: str, service_type: type[Service]) -> Service:
+    service = services.get(feature_id)
+    if not isinstance(service, service_type):
+        raise BusinessError("feature_unavailable", f"Feature {feature_id} is unavailable", status=503)
+    return service
 
 
 @dataclass(frozen=True)

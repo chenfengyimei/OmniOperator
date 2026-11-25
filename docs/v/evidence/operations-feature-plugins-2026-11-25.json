@@ -1,0 +1,160 @@
+{
+  "date": "2026-11-25",
+  "platform": "Windows x64",
+  "source": {
+    "base_commit": "dad6c6493eb9d409d407d6567d457a0374c71d82",
+    "working_tree": "v2 投递、终端及动作核查登记",
+    "affected_files_sha256_normalized_lf": {
+      "agent/src/omni/adapters/http.py": "d6d37e47a8722543f0fb2bfc7a3023fabf7f7ad64d475973d1609da7a1066175",
+      "agent/src/omni/adapters/http_routes/__init__.py": "00860d326979b711e5cec98ccc938622eeb4cb401e09b1be735cf8e80c091812",
+      "agent/src/omni/adapters/http_routes/action_reviews.py": "7646e02b72209fe116d8c7b90c633bd92096ed80a7970f45b09d8acc87d15a2e",
+      "agent/src/omni/adapters/http_routes/deliveries.py": "32bd4fd2064285f0b7e6c452a7f30f50e0def6d727f78361ee99dcfa73a43f31",
+      "agent/src/omni/adapters/http_routes/terminals.py": "181f9536d2f1978c93a7e341363d41d706ef2b33fbbed541369417f8cf27bb54",
+      "agent/src/omni/application/terminal_services.py": "5c57b3866c2c077d7f99c792b57079d9e73d325d88d72ddf58f25ae792e58e6b",
+      "agent/src/omni/composition/features/__init__.py": "a011cc7b2a516ccc9c9f5852e9768c3d22ed5a8f0cfc2f504629669245f501a9",
+      "agent/src/omni/composition/features/action_reviews.py": "6e53fb7050212af9ed2d2be5afae72b615e2605a7b4efacb90e1a6a82cd4903c",
+      "agent/src/omni/composition/features/catalog.py": "0713ed0a3ad128f88c8a50ace6c844a72ba4807ad26b2ccb0e7507d8e5567e19",
+      "agent/src/omni/composition/features/deliveries.py": "a0f9aa1ebbb7602d9c9f1e5b6da88cadb8968fcf6cdfa27b7af0e335c7d72921",
+      "agent/src/omni/composition/features/terminals.py": "e595a41f8fdf4e4f7e9a69fecc550ccc58dacf8fd83ff54f07e6202dcb161682",
+      "agent/src/omni/composition/http.py": "c1adf5895f72e7e9dc2cd5ca2933a2205006ca224f3091df9b761d92f50583be",
+      "agent/src/omni/composition/instance.py": "015fab53fab9fa3911c8d13adfb2b42f95048d21ad1bd39749116e9d404c2c65",
+      "agent/tests/test_feature_navigation.py": "5fc88452a242e0e88f71ab875976f9e0f3550a95b337aabfe909dfc9f9887e48",
+      "agent/tests/v2/core/test_v2_feature_plugins.py": "c0f1f23aa4815af45a6d19ec74d813004c7bdcbcbee1f26c1f2b5bab2b68720e",
+      "agent/tests/v2/core/test_v2_provider_plugins.py": "6f9b931cf7065b60f59ff6aa010eb34e1e7f8fccb0a1547ffc93ee5eec5c3081",
+      "docs/v/features.json": "3f1283b8f9dca02f8326bad22b2e60c5f16a882cf71d091967d40ab5ef2fa157",
+      "pyrightconfig.strict.json": "0e204f476791cfb8f338f816ed1938a385279fc4b01596f31e95e3d7c3a8bc25"
+    }
+  },
+  "offline_scoped_suites": [
+    {
+      "scope": "功能登记、依赖、生命周期、架构、类型清单与导航",
+      "passed": 88,
+      "failed": 0,
+      "skipped": 0,
+      "junit_seconds": 69.019,
+      "modules": [
+        "test_feature_navigation",
+        "test_v2_architecture",
+        "test_v2_capability_plugins",
+        "test_v2_feature_plugins",
+        "test_v2_http",
+        "test_v2_lifecycle",
+        "test_v2_provider_plugins",
+        "test_v2_service_drain",
+        "test_v2_typecheck_scope"
+      ],
+      "local_junit": "temp/build/plugin-architecture/operations-assembly.xml",
+      "sha256": "5aa629ab618921d713eda270ba7fed48851756ec93fc8f8641796971a2c5f69b"
+    },
+    {
+      "scope": "投递、撤权、恢复、QQ 与 B 站和 MCP 调用方",
+      "passed": 78,
+      "failed": 0,
+      "skipped": 0,
+      "junit_seconds": 139.034,
+      "modules": [
+        "test_v2_bilibili",
+        "test_v2_delivery",
+        "test_v2_delivery_faults",
+        "test_v2_delivery_http",
+        "test_v2_mcp_delivery",
+        "test_v2_qq"
+      ],
+      "local_junit": "temp/build/plugin-architecture/operations-delivery.xml",
+      "sha256": "8584cdbf2fa343f3f8f53584c07077727eb7b530a4a683db99808173de169098"
+    },
+    {
+      "scope": "原生终端生命周期、HTTP、回执和终端复核",
+      "passed": 43,
+      "failed": 0,
+      "skipped": 0,
+      "junit_seconds": 49.496,
+      "modules": [
+        "test_v2_terminal_native",
+        "test_v2_terminal_review",
+        "test_v2_terminal_review_http",
+        "test_v2_terminal_review_migration",
+        "test_v2_terminals_http",
+        "test_v2_terminals_lifecycle",
+        "test_v2_terminals_migration",
+        "test_v2_terminals_storage"
+      ],
+      "local_junit": "temp/build/plugin-architecture/operations-terminals.xml",
+      "sha256": "f8c657141f739a0dd838059b6ac06b42312cd5de758f46a3c9f7418fe95ac999"
+    },
+    {
+      "scope": "动作核查、调度阻塞、撤销和故障恢复",
+      "passed": 51,
+      "failed": 0,
+      "skipped": 0,
+      "junit_seconds": 86.917,
+      "modules": [
+        "test_v2_action_review_contract",
+        "test_v2_action_review_execution",
+        "test_v2_action_review_http",
+        "test_v2_action_review_migration",
+        "test_v2_action_review_repository",
+        "test_v2_action_review_workers",
+        "test_v2_schedule_review_blocker",
+        "test_v2_scheduling_faults"
+      ],
+      "local_junit": "temp/build/plugin-architecture/operations-reviews.xml",
+      "sha256": "2d8cd44ecd6d7e8a00744dbe1bd45f7cb258e1e3f8f1c5e641261fde635c8cf7"
+    },
+    {
+      "scope": "投递、终端、终端核查与动作核查工作台",
+      "passed": 16,
+      "failed": 0,
+      "skipped": 0,
+      "junit_seconds": 112.267,
+      "modules": [
+        "test_v2_action_review_ui",
+        "test_v2_delivery_ui",
+        "test_v2_terminal_review_ui",
+        "test_v2_terminals_ui"
+      ],
+      "local_junit": "temp/build/plugin-architecture/operations-workbench.xml",
+      "sha256": "23cd598d9633009b7974b6defc1560da0054a62dada423a744ce1bfe720cebeb"
+    }
+  ],
+  "scoped_distinct_passed": 276,
+  "compatibility": {
+    "reference": "dad6c6493eb9d409d407d6567d457a0374c71d82",
+    "same_contract": true,
+    "openapi_paths": 212,
+    "openapi_sha256": "409e49b84c389604ed8d2eab5074257e9552631ae27a277e248b3d71650ebd43",
+    "agent_tools": 40,
+    "agent_tools_sha256": "d6aca34350112ec76d56459a1a1c3ba8904da600a41708906b9bfa5b66f9eda8",
+    "owner_tools": 3,
+    "owner_tools_sha256": "174962d52c6eabdd125f46127ae5a3a14963df3f556972bce429be334b9df377",
+    "delivery_drivers": [
+      "bilibili",
+      "qq"
+    ],
+    "ordered_route_groups": {
+      "deliveries": 10,
+      "terminals": 11,
+      "terminal-operations": 1,
+      "terminal-reviews": 5,
+      "action-reviews": 1,
+      "actions": 3,
+      "compatibility_paths": 2
+    }
+  },
+  "static_checks": {
+    "strict_files": 470,
+    "strict_errors": 0,
+    "strict_warnings": 0,
+    "ruff": "passed"
+  },
+  "full_offline": {
+    "covers_this_working_tree": false,
+    "previous_candidate": "5da6dce4",
+    "previous_candidate_passed": 8706
+  },
+  "verified_lifecycle_and_authority": [
+    "投递先排空在途派发，共享传输关闭后再释放租约。回归覆盖撤权、取消和未知发送不重放。",
+    "终端核查使用同一终端服务的活动检查。动作核查依赖登记后的调度服务，继续使用内核实际执行占用记录。",
+    "31 个迁移方法和路径、组内匹配顺序、完整 OpenAPI 及工具目录均与基线一致。"
+  ]
+}

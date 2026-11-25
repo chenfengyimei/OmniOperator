@@ -44,6 +44,7 @@ from ..application.reflections import ReflectionService
 from ..application.routing import RoutingService
 from ..application.skills import SkillService
 from ..application.terminal_review import TerminalReviewService
+from ..application.terminal_services import TerminalServices
 from ..application.terminals import TerminalService
 from ..domain.agents import MAX_NAME, MAX_REVISION
 from ..domain.capabilities import capability_report
@@ -53,10 +54,20 @@ from ..domain.objects import MAX_OBJECT_BYTES
 from .diagnostics import bind_context
 from .http_events import PAGE_SIZE as EVENT_PAGE_SIZE
 from .http_events import EventStreams, continuation
-from .http_routes import FeatureRoutes, StrictInput, bounded_configuration, configuration_input, mount_feature_routes
+from .http_routes import (
+    FeatureRoutes,
+    StrictInput,
+    bounded_configuration,
+    configuration_input,
+    mount_feature_routes,
+    registered_service,
+)
 from .http_routes.bilibili import BilibiliProfileInput as BilibiliProfileInput
 from .http_routes.bilibili import BilibiliPublicationInput as BilibiliPublicationInput
 from .http_routes.bilibili import BilibiliReadInput as BilibiliReadInput
+from .http_routes.deliveries import DeliveryDecision as DeliveryDecision
+from .http_routes.deliveries import DeliveryInput as DeliveryInput
+from .http_routes.deliveries import DeliveryReview as DeliveryReview
 from .http_routes.desktop import require_desktop_services
 from .http_routes.extensions import require_extension_service
 from .http_routes.media import MediaJobInput as MediaJobInput
@@ -81,7 +92,6 @@ class HttpRuntime:
     people: PeopleService
     configurations: ConfigurationService
     documents: DocumentService
-    deliveries: DeliveryService
     operations: OperationsService
     credentials: CredentialService
     maintenance: MaintenanceService
@@ -89,9 +99,6 @@ class HttpRuntime:
     background_review: BackgroundReviewService
     reflections: ReflectionService
     persona_growth: PersonaGrowthService
-    action_reviews: ActionReviewService
-    terminals: TerminalService
-    terminal_reviews: TerminalReviewService
     identity_proof: Callable[[str], Record] | None = None
     drain: Callable[[Record], Awaitable[Record]] | None = None
     token_sessions: Callable[[], Awaitable[list[Record]]] | None = None
@@ -107,6 +114,22 @@ class HttpRuntime:
     model_port: object | None = None
 
     # Existing runtime accessors resolve the same services as the mounted feature.
+    @property
+    def deliveries(self) -> DeliveryService:
+        return registered_service(self.feature_services, "deliveries", DeliveryService)
+
+    @property
+    def action_reviews(self) -> ActionReviewService:
+        return registered_service(self.feature_services, "action-reviews", ActionReviewService)
+
+    @property
+    def terminals(self) -> TerminalService:
+        return registered_service(self.feature_services, "terminals", TerminalServices).terminals
+
+    @property
+    def terminal_reviews(self) -> TerminalReviewService:
+        return registered_service(self.feature_services, "terminals", TerminalServices).reviews
+
     @property
     def skills(self) -> SkillService | None:
         service = self.feature_services.get("skills")
@@ -179,28 +202,6 @@ class ConfigurationEdit(StrictInput):
     revision: int = Field(ge=1, strict=True)
     value: Payload
     image_policy: Payload | None = None
-
-
-class DeliveryInput(StrictInput):
-    message_id: uuid.UUID
-    config_id: uuid.UUID
-    target: str = Field(min_length=1, max_length=512)
-    key: str = Field(min_length=1, max_length=200)
-    parent_id: uuid.UUID | None = None
-    acknowledge_duplicate: bool = Field(default=False, strict=True)
-
-
-class DeliveryDecision(StrictInput):
-    allowed: bool = Field(strict=True)
-    revision: int = Field(ge=1, strict=True)
-    fingerprint: str = Field(pattern=r"^[a-f0-9]{64}$")
-
-
-class DeliveryReview(StrictInput):
-    revision: int = Field(ge=1, strict=True)
-    fingerprint: str = Field(pattern=r"^[a-f0-9]{64}$")
-    decision: Literal["confirmed_sent", "confirmed_not_sent", "allow_future"]
-    evidence: str = Field(min_length=1, max_length=2000)
 
 
 class DebugInput(StrictInput):
@@ -527,83 +528,6 @@ def create_app(
     async def rename_agent(agent_id: uuid.UUID, request: Request):
         data = configuration_input(AgentRenameInput, await bounded_configuration(request, 2048, strict=True))
         return await runtime(request).application.rename_agent(str(agent_id), data.name, data.revision)
-
-    @router.get("/agents/{agent_id}/deliveries/channels")
-    async def delivery_channels(
-        agent_id: uuid.UUID,
-        request: Request,
-        after: uuid.UUID | None = None,
-        limit: int = Query(default=100, ge=1, le=200),
-    ):
-        return await runtime(request).deliveries.channels(str(agent_id), str(after) if after else "", limit)
-
-    @router.get("/agents/{agent_id}/deliveries/capabilities")
-    async def delivery_capabilities(agent_id: uuid.UUID, request: Request):
-        return await runtime(request).deliveries.capabilities(str(agent_id))
-
-    @router.get("/agents/{agent_id}/deliveries")
-    async def deliveries(
-        agent_id: uuid.UUID,
-        request: Request,
-        after: int = Query(default=0, ge=0),
-        limit: int = Query(default=100, ge=1, le=200),
-        include_archived: bool = False,
-    ):
-        rows = await runtime(request).deliveries.page(str(agent_id), after, limit, include_archived)
-        return {"items": rows, "next_after": rows[-1]["queue_sequence"] if len(rows) == limit else None}
-
-    @router.post("/agents/{agent_id}/deliveries", status_code=201)
-    async def create_delivery(agent_id: uuid.UUID, request: Request):
-        data = configuration_input(DeliveryInput, await bounded_configuration(request, 8192))
-        return await runtime(request).deliveries.create(
-            str(agent_id),
-            str(data.message_id),
-            str(data.config_id),
-            data.target,
-            data.key,
-            str(data.parent_id) if data.parent_id else None,
-            data.acknowledge_duplicate,
-        )
-
-    @router.get("/agents/{agent_id}/deliveries/{delivery_id}")
-    async def delivery(agent_id: uuid.UUID, delivery_id: uuid.UUID, request: Request):
-        return await runtime(request).deliveries.get(str(agent_id), str(delivery_id))
-
-    @router.get("/agents/{agent_id}/deliveries/{delivery_id}/attempts")
-    async def delivery_attempts(
-        agent_id: uuid.UUID,
-        delivery_id: uuid.UUID,
-        request: Request,
-        after: int = Query(default=0, ge=0),
-        limit: int = Query(default=50, ge=1, le=200),
-    ):
-        rows = await runtime(request).deliveries.attempts(str(agent_id), str(delivery_id), after, limit)
-        return {"items": rows, "next_after": rows[-1]["seq"] if len(rows) == limit else None}
-
-    @router.post("/agents/{agent_id}/deliveries/{delivery_id}/decision")
-    async def decide_delivery(agent_id: uuid.UUID, delivery_id: uuid.UUID, request: Request):
-        data = configuration_input(DeliveryDecision, await bounded_configuration(request, 2048))
-        return await runtime(request).deliveries.decide(
-            str(agent_id), str(delivery_id), data.allowed, data.revision, data.fingerprint
-        )
-
-    @router.post("/agents/{agent_id}/deliveries/{delivery_id}/cancel")
-    async def cancel_delivery(agent_id: uuid.UUID, delivery_id: uuid.UUID, request: Request):
-        return await runtime(request).deliveries.cancel(str(agent_id), str(delivery_id))
-
-    @router.post("/agents/{agent_id}/deliveries/{delivery_id}/review")
-    async def review_delivery(agent_id: uuid.UUID, delivery_id: uuid.UUID, request: Request):
-        data = configuration_input(DeliveryReview, await bounded_configuration(request, 16384))
-        return await runtime(request).deliveries.review(
-            str(agent_id), str(delivery_id), data.revision, data.fingerprint, data.decision, data.evidence
-        )
-
-    @router.delete("/agents/{agent_id}/deliveries/{delivery_id}")
-    async def archive_delivery(
-        agent_id: uuid.UUID, delivery_id: uuid.UUID, request: Request, revision: int = Query(ge=1)
-    ):
-        await runtime(request).deliveries.archive(str(agent_id), str(delivery_id), revision)
-        return {"ok": True}
 
     @router.get("/agents/{agent_id}/configurations")
     async def configurations(
@@ -1263,142 +1187,6 @@ def create_app(
     @router.delete("/agents/{agent_id}/sessions/{session_id}/captures/{capture_id}", status_code=204)
     async def release_capture(agent_id: uuid.UUID, session_id: uuid.UUID, capture_id: uuid.UUID, request: Request):
         await runtime(request).objects.release_capture(str(agent_id), str(session_id), str(capture_id))
-
-    @router.get("/agents/{agent_id}/terminal-reviews")
-    async def terminal_review_list(
-        agent_id: uuid.UUID, request: Request, after: str = "", limit: int = Query(20, ge=1, le=50)
-    ):
-        return await runtime(request).terminal_reviews.page(str(agent_id), after, limit)
-
-    @router.get("/agents/{agent_id}/terminal-reviews/{operation_id}")
-    async def terminal_review_detail(agent_id: uuid.UUID, operation_id: uuid.UUID, request: Request):
-        return await runtime(request).terminal_reviews.get(str(agent_id), str(operation_id))
-
-    @router.get("/agents/{agent_id}/terminal-reviews/{operation_id}/history")
-    async def terminal_review_history(
-        agent_id: uuid.UUID,
-        operation_id: uuid.UUID,
-        request: Request,
-        after: int = Query(0, ge=0),
-        limit: int = Query(20, ge=1, le=50),
-    ):
-        return await runtime(request).terminal_reviews.history(str(agent_id), str(operation_id), after, limit)
-
-    @router.post("/agents/{agent_id}/terminal-reviews/{operation_id}", status_code=201)
-    async def terminal_review_record(agent_id: uuid.UUID, operation_id: uuid.UUID, request: Request):
-        return await runtime(request).terminal_reviews.record(
-            str(agent_id), str(operation_id), await bounded_configuration(request, 32768)
-        )
-
-    @router.delete("/agents/{agent_id}/terminal-reviews/{operation_id}/history/{review_id}/evidence")
-    async def terminal_review_erase_evidence(
-        agent_id: uuid.UUID, operation_id: uuid.UUID, review_id: uuid.UUID, request: Request
-    ):
-        if await bounded_configuration(request, 128) != {}:
-            raise BusinessError("terminal_review_invalid", "Evidence erasure requires an empty object", status=422)
-        return await runtime(request).terminal_reviews.erase_evidence(str(agent_id), str(operation_id), str(review_id))
-
-    @router.get("/agents/{agent_id}/terminals/options")
-    async def terminal_options(agent_id: uuid.UUID, request: Request):
-        return await runtime(request).terminals.options(str(agent_id))
-
-    @router.get("/agents/{agent_id}/terminals")
-    async def terminal_list(
-        agent_id: uuid.UUID,
-        request: Request,
-        after: int = Query(default=0, ge=0, le=9223372036854775807),
-        limit: int = Query(default=20, ge=1, le=50),
-    ):
-        return await runtime(request).terminals.page(str(agent_id), after, limit)
-
-    @router.post("/agents/{agent_id}/terminals", status_code=201)
-    async def terminal_open(agent_id: uuid.UUID, request: Request):
-        return await runtime(request).terminals.open(str(agent_id), await bounded_configuration(request, 4096))
-
-    @router.get("/agents/{agent_id}/terminal-operations/{operation_id}")
-    async def terminal_lookup(agent_id: uuid.UUID, operation_id: uuid.UUID, request: Request):
-        return await runtime(request).terminals.lookup(str(agent_id), str(operation_id))
-
-    @router.get("/agents/{agent_id}/terminals/{terminal_id}")
-    async def terminal_detail(agent_id: uuid.UUID, terminal_id: uuid.UUID, request: Request):
-        return await runtime(request).terminals.get(str(agent_id), str(terminal_id))
-
-    @router.get("/agents/{agent_id}/terminals/{terminal_id}/operations/{operation_id}")
-    async def terminal_receipt(agent_id: uuid.UUID, terminal_id: uuid.UUID, operation_id: uuid.UUID, request: Request):
-        return await runtime(request).terminals.receipt(str(agent_id), str(terminal_id), str(operation_id))
-
-    @router.post("/agents/{agent_id}/terminals/{terminal_id}/attach")
-    async def terminal_attach(agent_id: uuid.UUID, terminal_id: uuid.UUID, request: Request):
-        if await bounded_configuration(request, 1024) != {}:
-            raise BusinessError("terminal_invalid", "Attach requires an empty object", status=422)
-        return await runtime(request).terminals.attach(str(agent_id), str(terminal_id))
-
-    @router.post("/agents/{agent_id}/terminals/{terminal_id}/detach")
-    async def terminal_detach(agent_id: uuid.UUID, terminal_id: uuid.UUID, request: Request):
-        data = await bounded_configuration(request, 1024)
-        if set(data) != {"connection_id"} or not isinstance(data["connection_id"], str):
-            raise BusinessError("terminal_invalid", "Detach requires its captured connection identity", status=422)
-        return await runtime(request).terminals.detach(str(agent_id), str(terminal_id), data["connection_id"])
-
-    @router.get("/agents/{agent_id}/terminals/{terminal_id}/output")
-    async def terminal_output(
-        agent_id: uuid.UUID,
-        terminal_id: uuid.UUID,
-        request: Request,
-        connection_id: uuid.UUID,
-        stream_id: uuid.UUID,
-        after: int = Query(default=0, ge=0, le=9223372036854775807),
-    ):
-        return await runtime(request).terminals.output(
-            str(agent_id), str(terminal_id), str(connection_id), str(stream_id), after
-        )
-
-    @router.post("/agents/{agent_id}/terminals/{terminal_id}/input")
-    async def terminal_input(agent_id: uuid.UUID, terminal_id: uuid.UUID, request: Request):
-        return await runtime(request).terminals.input(
-            str(agent_id), str(terminal_id), await bounded_configuration(request, 65536)
-        )
-
-    @router.post("/agents/{agent_id}/terminals/{terminal_id}/resize")
-    async def terminal_resize(agent_id: uuid.UUID, terminal_id: uuid.UUID, request: Request):
-        return await runtime(request).terminals.resize(
-            str(agent_id), str(terminal_id), await bounded_configuration(request, 2048)
-        )
-
-    @router.post("/agents/{agent_id}/terminals/{terminal_id}/close")
-    async def terminal_close(agent_id: uuid.UUID, terminal_id: uuid.UUID, request: Request):
-        return await runtime(request).terminals.end(
-            str(agent_id), str(terminal_id), await bounded_configuration(request, 2048)
-        )
-
-    @router.get("/agents/{agent_id}/action-reviews")
-    async def action_review_list(
-        agent_id: uuid.UUID,
-        request: Request,
-        after: int = Query(default=0, ge=0, le=9223372036854775807),
-        limit: int = Query(default=20, ge=1, le=50),
-    ):
-        return await runtime(request).action_reviews.page(str(agent_id), after, limit)
-
-    @router.get("/agents/{agent_id}/actions/{action_id}/review")
-    async def action_review_detail(agent_id: uuid.UUID, action_id: uuid.UUID, request: Request):
-        return await runtime(request).action_reviews.get(str(agent_id), str(action_id))
-
-    @router.get("/agents/{agent_id}/actions/{action_id}/reviews")
-    async def action_review_history(
-        agent_id: uuid.UUID,
-        action_id: uuid.UUID,
-        request: Request,
-        after: int = Query(default=0, ge=0, le=9223372036854775807),
-        limit: int = Query(default=20, ge=1, le=50),
-    ):
-        return await runtime(request).action_reviews.history(str(agent_id), str(action_id), after, limit)
-
-    @router.post("/agents/{agent_id}/actions/{action_id}/review")
-    async def action_review_commit(agent_id: uuid.UUID, action_id: uuid.UUID, request: Request):
-        return await runtime(request).action_reviews.review(
-            str(agent_id), str(action_id), await bounded_configuration(request, 16384)
-        )
 
     @router.get("/agents/{agent_id}/memory")
     async def memories(agent_id: uuid.UUID, request: Request, q: str = Query(default="", max_length=500)):

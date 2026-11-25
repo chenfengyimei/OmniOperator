@@ -16,7 +16,7 @@ from ...application.mcp import MCPTransportPort
 from ...application.media import MediaProcessingPort
 from ...application.objects import ObjectService
 from ...application.persona import PersonaGrowthService
-from ...application.ports import AsyncSecretPort, Clock, DatabasePort, Ids, Observer
+from ...application.ports import AsyncSecretPort, Clock, DatabasePort, Ids, Observer, Record
 from ..channel_providers import ChannelProviders
 from ..lifecycle import Lifetime
 from ..platform_providers import PlatformPorts
@@ -56,8 +56,10 @@ class KernelFeatureContext:
     database: DatabasePort
     clock: Clock
     channels: ChannelProviders
+    services: Mapping[str, object]
     notify_run: Callable[[], None]
     cancel_run: Callable[[str, str], Awaitable[None]]
+    review_blockers: Callable[[Record], list[str]]
     skill_platform: str
     redact: Callable[[str], str]
     default_tools: bool
@@ -85,18 +87,23 @@ class InstalledFeatures:
     providers: tuple[RunCapabilityProvider, ...]
 
     def require(self, feature_id: str, service_type: type[Service]) -> Service:
-        service = self.services.get(feature_id)
-        if not isinstance(service, service_type):
-            raise ValueError(f"Required feature service is unavailable: {feature_id}")
-        return service
+        return require_service(self.services, feature_id, service_type)
 
     def start(self) -> None:
         for start in self.starters:
             start()
 
 
-async def install_features(plugins: tuple[FeaturePlugin[Context], ...], context: Context) -> InstalledFeatures:
-    services: dict[str, object] = {}
+def require_service(services: Mapping[str, object], feature_id: str, service_type: type[Service]) -> Service:
+    service = services.get(feature_id)
+    if not isinstance(service, service_type):
+        raise ValueError(f"Required feature service is unavailable: {feature_id}")
+    return service
+
+
+async def install_features(
+    plugins: tuple[FeaturePlugin[Context], ...], context: Context, services: dict[str, object]
+) -> InstalledFeatures:
     capabilities: list[CapabilityPlugin] = []
     starters: list[Callable[[], None]] = []
     providers: list[RunCapabilityProvider] = []

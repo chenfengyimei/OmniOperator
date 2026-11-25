@@ -103,6 +103,7 @@ def test_instance_drains_users_before_closing_shared_channels_and_releasing_leas
         try:
             assert instance.feature_services["qq"] is instance.qq
             assert instance.feature_services["bilibili"] is instance.bilibili
+            assert instance.feature_services["deliveries"] is instance.deliveries
             assert instance.qq._transport is onebot
             assert instance.bilibili._gateway is bilibili
             assert instance.media._bilibili is bilibili

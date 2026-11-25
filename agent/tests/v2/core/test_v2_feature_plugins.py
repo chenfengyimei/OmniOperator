@@ -294,6 +294,10 @@ def test_scheduling_starts_after_kernel_recovery_and_is_reclaimed_on_failure(tmp
         try:
             assert instance.feature_services["schedules"] is instance.schedules is started[-1]
             assert instance.schedules.health()["ready"]
+            assert instance.feature_services["action-reviews"] is instance.action_reviews
+            assert instance.action_reviews._notify == instance.schedules.notify
+            assert instance.action_reviews._blockers == instance.application.action_review_blockers
+            assert instance.terminal_reviews._guard == instance.terminals.while_quiescent
         finally:
             assert (await instance.close())["complete"]
         assert instance.schedules._worker.done()

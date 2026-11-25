@@ -2,7 +2,7 @@
 
 > 从 [开发台账](tasks.json) 生成。更新台账后运行 `uv run --no-sync python scripts/task_status.py`。
 
-V2 业务插件化是持续开发目标。Android、媒体、调度、QQ、B 站、桌面、技能、可执行插件和 MCP 共九项功能已进入功能目录。下一批迁移投递、终端和动作核查。最近 8706 项通过的全量覆盖固定候选 `5da6dce4`，迁移期间执行离线专项，全部批次收口后对冻结候选运行一次全量。
+V2 业务插件化是持续开发目标。Android、媒体、调度、QQ、B 站、桌面、技能、可执行插件、MCP、投递、终端与动作核查共十二项功能已进入功能目录。下一批迁移来源文档、人物与人格。最近 8706 项通过的全量覆盖固定候选 `5da6dce4`，迁移期间执行离线专项，全部批次收口后对冻结候选运行一次全量。
 
 | 任务 | 内容 | 当前状态 | 下一步或验收条件 | 依据 |
 |---|---|---|---|---|
@@ -19,8 +19,8 @@ V2 业务插件化是持续开发目标。Android、媒体、调度、QQ、B 站
 | KERNEL | 内核学习、完成核验、模型回退与安全接续 | 已实现／专项通过 | 5da6dce4 的 63 项内核专项和离线全量已通过，候选 wheel 也有技能学习、跨会话复用和撤销回执。当前按具体逻辑缺口开发，以离线专项验证。模型质量与可选策略另行评测。 | [KERNEL](reference/KERNEL.md)、[kernel-parity-2026-11-25](evidence/kernel-parity-2026-11-25.json)、[kernel-plugins-2026-11-25](evidence/kernel-plugins-2026-11-25.json) |
 | CAPABILITY-PLUGINS | 内置工具、Extension 和 MCP 的能力插件组装 | 验收完成 | 能力注册、所有者入口、回合捕获和资源归属已接入正式实例。增改工具按同一合同登记并验证调用方。模型、渠道和平台的提供者验证见 PROVIDER-PLUGINS。 | [CAPABILITY_PLUGINS](reference/CAPABILITY_PLUGINS.md)、[kernel-plugins-2026-11-25](evidence/kernel-plugins-2026-11-25.json) |
 | PROVIDER-PLUGINS | 模型、渠道与平台提供者代码注册 | 已实现／专项通过 | 模型 84 项、渠道 88 项、平台与架构 118 项专项通过。OpenAPI、40 个 Agent 工具、3 个所有者工具及默认驱动与上一轮候选一致。新增同类实现沿各提供者模块登记并补调用方专项。 | [CAPABILITY_PLUGINS](reference/CAPABILITY_PLUGINS.md)、[provider-plugins-2026-11-25](evidence/provider-plugins-2026-11-25.json) |
-| BUSINESS-FEATURE-PLUGINS | 九项业务功能的注册与生产装配 | 已实现／专项通过 | 前四批分别有 317、244、708、333 项专项通过。技能、可执行插件与 MCP 批次 639 项专项通过，核对回合捕获、后台复盘、撤销、未知动作核查和传输回收。 | [CAPABILITY_PLUGINS](reference/CAPABILITY_PLUGINS.md)、[feature-plugins-2026-11-25](evidence/feature-plugins-2026-11-25.json)、[scheduling-plugin-2026-11-25](evidence/scheduling-plugin-2026-11-25.json)、[channels-feature-plugins-2026-11-25](evidence/channels-feature-plugins-2026-11-25.json)、[desktop-feature-plugins-2026-11-25](evidence/desktop-feature-plugins-2026-11-25.json)、[extensions-feature-plugins-2026-11-25](evidence/extensions-feature-plugins-2026-11-25.json) |
-| PLUGIN-ARCHITECTURE | V2 全部业务模块的插件化迁移 | 等待开发完成 | 投递、终端与动作核查之后，迁移内容、视觉、记忆和维护，再收口配置、运维和发布入口。各批更新索引与证据并同步两处 v2。盘点项完成后冻结源码，全量验证。 | [PLUGIN_MIGRATION](PLUGIN_MIGRATION.md)、[extensions-feature-plugins-2026-11-25](evidence/extensions-feature-plugins-2026-11-25.json) |
+| BUSINESS-FEATURE-PLUGINS | 十二项业务功能的注册与生产装配 | 已实现／专项通过 | 技能、可执行插件与 MCP 批次 639 项通过。投递、终端与动作核查批次 276 项通过，核对共享传输、租约、原生终端的活动检查和调度阻塞。前序四批见各自证据。 | [CAPABILITY_PLUGINS](reference/CAPABILITY_PLUGINS.md)、[feature-plugins-2026-11-25](evidence/feature-plugins-2026-11-25.json)、[scheduling-plugin-2026-11-25](evidence/scheduling-plugin-2026-11-25.json)、[channels-feature-plugins-2026-11-25](evidence/channels-feature-plugins-2026-11-25.json)、[desktop-feature-plugins-2026-11-25](evidence/desktop-feature-plugins-2026-11-25.json)、[extensions-feature-plugins-2026-11-25](evidence/extensions-feature-plugins-2026-11-25.json)、[operations-feature-plugins-2026-11-25](evidence/operations-feature-plugins-2026-11-25.json) |
+| PLUGIN-ARCHITECTURE | V2 全部业务模块的插件化迁移 | 等待开发完成 | 先迁移来源文档、人物与人格，再迁移视觉、记忆、学习和维护。随后收口配置、运维和发布入口。各批更新索引与证据并同步两处 v2，盘点项完成后冻结源码，全量验证。 | [PLUGIN_MIGRATION](PLUGIN_MIGRATION.md)、[operations-feature-plugins-2026-11-25](evidence/operations-feature-plugins-2026-11-25.json) |
 | KERNEL-EVAL | Hermes 与两版 V2 同模型对跑 | 本版延期 | 保留三方主试验的 189/288 份计量回执。模型评测单独恢复时，补委派 4 题、学习 4 题、其余故障恢复 3 题，并按评测候选采集受影响组。4B 与 32K 的结果归属已登记的模型试验。 | [KERNEL](reference/KERNEL.md)、[kernel-plugins-2026-11-25](evidence/kernel-plugins-2026-11-25.json) |
 
 ## Windows 阶段与后续验收

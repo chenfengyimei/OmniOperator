@@ -1,5 +1,5 @@
 {
-  "summary": "V2 业务插件化是持续开发目标。Android、媒体、调度、QQ、B 站、桌面、技能、可执行插件和 MCP 共九项功能已进入功能目录。下一批迁移投递、终端和动作核查。最近 8706 项通过的全量覆盖固定候选 `5da6dce4`，迁移期间执行离线专项，全部批次收口后对冻结候选运行一次全量。",
+  "summary": "V2 业务插件化是持续开发目标。Android、媒体、调度、QQ、B 站、桌面、技能、可执行插件、MCP、投递、终端与动作核查共十二项功能已进入功能目录。下一批迁移来源文档、人物与人格。最近 8706 项通过的全量覆盖固定候选 `5da6dce4`，迁移期间执行离线专项，全部批次收口后对冻结候选运行一次全量。",
   "windows_stage": {
     "status": "completed_windows_offline_candidate",
     "summary": "Windows 用户域服务在 `30bea914` 构建的 wheel 上完成注册、启动、只读状态、停止、卸载共 14 步。干净机仍须对最终产物验证安装、升级、回滚和卸载，记录 wheel SHA、PID 与就绪回执。"
@@ -125,25 +125,26 @@
     },
     {
       "id": "BUSINESS-FEATURE-PLUGINS",
-      "title": "九项业务功能的注册与生产装配",
+      "title": "十二项业务功能的注册与生产装配",
       "status": "implemented_scoped_passed",
-      "next": "前四批分别有 317、244、708、333 项专项通过。技能、可执行插件与 MCP 批次 639 项专项通过，核对回合捕获、后台复盘、撤销、未知动作核查和传输回收。",
+      "next": "技能、可执行插件与 MCP 批次 639 项通过。投递、终端与动作核查批次 276 项通过，核对共享传输、租约、原生终端的活动检查和调度阻塞。前序四批见各自证据。",
       "contract": "docs/v/reference/CAPABILITY_PLUGINS.md",
       "evidence": [
         "docs/v/evidence/feature-plugins-2026-11-25.json",
         "docs/v/evidence/scheduling-plugin-2026-11-25.json",
         "docs/v/evidence/channels-feature-plugins-2026-11-25.json",
         "docs/v/evidence/desktop-feature-plugins-2026-11-25.json",
-        "docs/v/evidence/extensions-feature-plugins-2026-11-25.json"
+        "docs/v/evidence/extensions-feature-plugins-2026-11-25.json",
+        "docs/v/evidence/operations-feature-plugins-2026-11-25.json"
       ]
     },
     {
       "id": "PLUGIN-ARCHITECTURE",
       "title": "V2 全部业务模块的插件化迁移",
       "status": "waiting_for_development_completion",
-      "next": "投递、终端与动作核查之后，迁移内容、视觉、记忆和维护，再收口配置、运维和发布入口。各批更新索引与证据并同步两处 v2。盘点项完成后冻结源码，全量验证。",
+      "next": "先迁移来源文档、人物与人格，再迁移视觉、记忆、学习和维护。随后收口配置、运维和发布入口。各批更新索引与证据并同步两处 v2，盘点项完成后冻结源码，全量验证。",
       "contract": "docs/v/PLUGIN_MIGRATION.md",
-      "evidence": ["docs/v/evidence/extensions-feature-plugins-2026-11-25.json"]
+      "evidence": ["docs/v/evidence/operations-feature-plugins-2026-11-25.json"]
     },
     {
       "id": "KERNEL-EVAL",

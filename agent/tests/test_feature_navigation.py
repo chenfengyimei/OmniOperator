@@ -129,9 +129,25 @@ def test_extracted_route_sources_methods_and_request_models_match_openapi():
         for path, methods in api["paths"].items()
         for method in methods
         if set(path.split("/"))
-        & {"skills", "extensions", "mcp", "android", "media", "schedules", "qq", "bilibili", "desktop"}
+        & {
+            "skills",
+            "extensions",
+            "mcp",
+            "android",
+            "media",
+            "schedules",
+            "qq",
+            "bilibili",
+            "desktop",
+            "deliveries",
+            "terminals",
+            "terminal-reviews",
+            "terminal-operations",
+            "action-reviews",
+            "actions",
+        }
     }
-    assert extracted == expected and len(expected) == 94
+    assert extracted == expected and len(expected) == 125
     for schema in ["SkillImportInput", "SkillSaveInput", "SkillStateInput", "SkillRollbackInput"]:
         model = next(m for m in index["request_models"] if m["name"] == schema)
         assert model["source"].endswith("http_routes/skills.py")

@@ -11,7 +11,6 @@ from collections.abc import Generator, Mapping
 from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
-from types import MappingProxyType
 from typing import Any, cast
 
 from opentelemetry.sdk.trace import TracerProvider
@@ -92,6 +91,7 @@ from ..application.routing import RoutingService
 from ..application.scheduling import SchedulingService
 from ..application.skills import SkillService
 from ..application.terminal_review import TerminalReviewService
+from ..application.terminal_services import TerminalServices
 from ..application.terminals import TerminalService
 from ..application.todos import TodoService
 from ..application.visual_subagent import VISUAL_SUBAGENT, VisualSubagentCapabilities, VisualSubagentService
@@ -422,15 +422,6 @@ async def open_instance(
             portal_backend=portal_backend,
             control_backend=control_backend,
         )
-        terminals = TerminalService(database, platform_io.terminal, clock, ids)
-        lifetime.own("terminals", 0, terminals.close, terminals.stop_accepting)
-        terminal_reviews = TerminalReviewService(
-            database,
-            observation,
-            native_quiescent=terminals.review_quiescent,
-            while_quiescent=terminals.while_quiescent,
-        )
-        lifetime.own("terminal_reviews", 0, terminal_reviews.close, terminal_reviews.stop_accepting)
         local_vectors = vectorizer if vectorizer is not None else await configured_vectors(paths.home)
         persona_growth = PersonaGrowthService(database, PersonaGrowthFiles(paths.persona))
         documents = DocumentService(database, objects, local_vectors, persona=persona_growth)
@@ -484,6 +475,7 @@ async def open_instance(
         def accepting() -> bool:
             return application is not None and bool(application.health()["ready"])
 
+        registered_services: dict[str, object] = {}
         features = await install_features(
             initial_plugins,
             FeatureContext(
@@ -509,6 +501,7 @@ async def open_instance(
                 media_processor=media_processor,
                 mcp_transport=mcp_transport,
             ),
+            registered_services,
         )
         media = features.require("media", MediaService)
         android = features.require("android", AndroidService)
@@ -517,6 +510,8 @@ async def open_instance(
         skills = features.require("skills", SkillService)
         extensions = features.require("extensions", ExtensionService)
         mcp = features.require("mcp", MCPService)
+        deliveries = features.require("deliveries", DeliveryService)
+        terminal = features.require("terminals", TerminalServices)
         visual = VisualSubagentService(
             database,
             ImageObjectFrames(objects, images),
@@ -524,9 +519,6 @@ async def open_instance(
             media=MediaFrameSheets(media, objects, images),
         )
         lifetime.own("visual", 0, visual.close, visual.stop_accepting)
-        deliveries = DeliveryService(database, clock, observation, channels.delivery)
-        lifetime.own("deliveries", 0, deliveries.drain, deliveries.stop_accepting)
-        lifetime.own("delivery_leases", 2, deliveries.release_boot_leases)
         credentials = CredentialService(database, credential_io, ids, deliveries.cancel_active, observation)
         lifetime.own("credential_changes", 0, credentials.close, credentials.stop_accepting)
 
@@ -609,21 +601,23 @@ async def open_instance(
                 database=database,
                 clock=clock,
                 channels=channels,
+                services=features.services,
                 notify_run=application.notify,
                 cancel_run=application.cancel,
+                review_blockers=application.action_review_blockers,
                 skill_platform=platform.skill_platform,
                 redact=sink.redactor.text,
                 default_tools=capabilities is None,
             ),
+            registered_services,
         )
         schedules = kernel_features.require("schedules", SchedulingService)
         qq = kernel_features.require("qq", QQService)
+        action_reviews = kernel_features.require("action-reviews", ActionReviewService)
         for plugin in kernel_features.capabilities:
             application.attach_plugin(plugin)
         for provider in (*features.providers, *kernel_features.providers):
             application.attach_provider(provider.id, provider.adapter, review_quiescent=provider.review_quiescent)
-        action_reviews = ActionReviewService(database, application.action_review_blockers, schedules.notify)
-        lifetime.own("action_reviews", 0, action_reviews.close, action_reviews.stop_accepting)
         diagnostic = DiagnosticFiles(paths, sink)
         lifetime.own("operations", 0, diagnostic.close)
 
@@ -728,7 +722,6 @@ async def open_instance(
         lifetime.own("runtime_identity", 5, identity_files.close, identity_files.stop_accepting)
         await identity_files.start()
         await maintenance.start()
-        deliveries.start()
         features.start()
         kernel_features.start()
         current_instance = Instance(
@@ -769,13 +762,13 @@ async def open_instance(
             persona_growth=persona_growth,
             extensions=extensions,
             action_reviews=action_reviews,
-            terminals=terminals,
-            terminal_reviews=terminal_reviews,
+            terminals=terminal.terminals,
+            terminal_reviews=terminal.reviews,
             desktop=desktop.observations,
             desktop_portal=desktop.portal,
             desktop_control=desktop.control,
             desktop_actions=desktop.actions,
-            feature_services=MappingProxyType({**features.services, **kernel_features.services}),
+            feature_services=features.services,
             _process_diagnostics=host_diagnostics,
             model_port=model_transport.model,
         )
