@@ -4,15 +4,36 @@ from __future__ import annotations
 
 import asyncio
 import json
+import socket
+import struct
 import sys
 from pathlib import Path
 
 import psutil
 import pytest
 
-from omni.adapters.platform.desktop.macos_launch import LaunchError, launch_helper
+from omni.adapters.platform.desktop.macos_launch import LOCAL_PEERPID, SOL_LOCAL, LaunchError, launch_helper
 
 pytestmark = pytest.mark.skipif(sys.platform == "win32", reason="Darwin/POSIX socket transport")
+
+
+@pytest.fixture(autouse=True)
+def linux_peer_pid(monkeypatch):
+    if sys.platform != "linux":
+        return
+    getsockopt = socket.socket.getsockopt
+    pid_size = struct.calcsize("i")
+    credential_size = struct.calcsize("iII")
+
+    def getsockopt_with_peer_pid(connection, level, option, *args):
+        # Keep the real peer PID and executable checks in the transport tests.
+        if connection.family == socket.AF_UNIX and (level, option, args) == (SOL_LOCAL, LOCAL_PEERPID, (pid_size,)):
+            credentials = getsockopt(connection, socket.SOL_SOCKET, socket.SO_PEERCRED, credential_size)
+            return credentials[:pid_size]
+        return getsockopt(connection, level, option, *args)
+
+    monkeypatch.setattr(socket.socket, "getsockopt", getsockopt_with_peer_pid)
+
 
 FAKE_HELPER = r"""
 import json, socket, subprocess, sys, time
