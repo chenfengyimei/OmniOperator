@@ -15,12 +15,20 @@ from omni_test_support.v2.service_query import systemd
 
 from omni.adapters.platform.services import service_registration as r
 from omni.domain.contracts import BusinessError
-from omni.domain.service_deployment import manager_identity
+from omni.domain.service_deployment import make_plan, manager_identity
 
 
-def test_linux_exact_not_found_report_is_required_and_nonzero_is_not_blindly_absent(monkeypatch):
+def test_linux_exact_not_found_report_is_required_and_nonzero_is_not_blindly_absent(tmp_path, monkeypatch):
     async def scenario():
-        value = plan("linux-user")
+        template = plan("linux-user")
+        directory = tmp_path.resolve()
+        principal = {**template["request"]["principal"], "home": directory.as_posix().removeprefix(directory.drive)}
+        value = make_plan(
+            {**template["request"], "principal": principal},
+            {**template["runtime"], "principal": principal},
+            template["id"],
+            template["created_at"],
+        )
         monkeypatch.setattr(r.sys, "platform", "linux")
         monkeypatch.setattr(r.os, "geteuid", lambda: 1000, raising=False)
         native = r.ServiceRegistration()

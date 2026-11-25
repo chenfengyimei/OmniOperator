@@ -154,7 +154,8 @@ def test_real_journal_atomic_registration_duplicate_apply_and_explicit_removal(i
         output = tmp_path / "install-operation.json"
         reviewed = service.plan(str(tmp_path / "bundle"), "install", str(output))
         assert reviewed["executed"] is False and native.calls == []
-        assert reviewed["starts_service"] is False and reviewed["stops_service"] is False
+        assert reviewed["starts_service"] is deployment["request"]["target"].startswith("macos-")
+        assert reviewed["stops_service"] is False
         value = files.read(output)
         with pytest.raises(BusinessError, match="exact reviewed"):
             await service.apply(value, "0" * 64)

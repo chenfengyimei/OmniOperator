@@ -588,7 +588,7 @@ def _make_pillarbox_video(
     path: Path,
     side: int,
     first: tuple[int, int, int] = (100, 60, 50),
-    second: tuple[int, int, int] = (60, 100, 90),
+    second: tuple[int, int, int] = (75, 100, 50),
     *,
     fps: int = 25,
     size=(64, 48),
@@ -598,9 +598,10 @@ def _make_pillarbox_video(
 
     container = av.open(str(path), mode="w")
     try:
-        stream = container.add_stream("mpeg4", rate=fps)
+        # Keep the exact HSV contrast across native FFmpeg builds.
+        stream = container.add_stream("ffv1", rate=fps)
         stream.width, stream.height = size
-        stream.pix_fmt = "yuv420p"
+        stream.pix_fmt = "bgr0"
         for index in range(8 * fps):
             color = first if index / fps < 4 else second
             image = Image.new("RGB", size, (0, 0, 0))
@@ -616,24 +617,25 @@ def _make_pillarbox_video(
     return path
 
 
-def test_worker_scenes_crops_pillarbox_bars_before_scoring(tmp_path):
-    outputs = []
+def test_worker_scenes_crops_pillarbox_bars_before_scoring(tmp_path, monkeypatch):
     for side in (0, 8, 20):
-        video = _make_pillarbox_video(tmp_path / f"pillar{side}.mp4", side)
-        outputs.append(
-            worker._frames(
-                {
-                    "video": str(video),
-                    "sheet_output": str(tmp_path / f"pillar{side}.png"),
-                    "count": 2,
-                    "width": 320,
-                    "select": "scenes",
-                }
-            )
-        )
-    for result in outputs:
-        assert len(result["scene_cuts"]) == 1 and 3.5 < result["scene_cuts"][0] < 4.9
+        video = _make_pillarbox_video(tmp_path / f"pillar{side}.mkv", side)
+        args = {
+            "video": str(video),
+            "sheet_output": str(tmp_path / f"pillar{side}.png"),
+            "count": 2,
+            "width": 320,
+            "select": "scenes",
+        }
+        result = worker._frames(args)
+        cuts = result["scene_cuts"]
+        assert len(cuts) == 1 and 3.5 < cuts[0] < 4.9, (side, cuts)
         assert result["timestamps"] == sorted(result["timestamps"])
+        if side == 20:
+            with monkeypatch.context() as patch:
+                patch.setattr(worker, "_bar_crop", lambda samples, _: samples)
+                uncropped = worker._frames({**args, "sheet_output": str(tmp_path / "pillar-uncropped.png")})
+            assert uncropped["scene_cuts"] == []
 
 
 def _make_bordered_video(

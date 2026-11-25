@@ -75,6 +75,11 @@ def fake_command(directory: Path, *, linger: bool = False, after_eof: bool = Fal
     return command
 
 
+def fixture_executable() -> Path:
+    # The framework launcher can exec a different image from sys.executable.
+    return Path(psutil.Process().exe())
+
+
 def request_frame() -> bytes:
     return (
         json.dumps(
@@ -93,7 +98,7 @@ def request_frame() -> bytes:
 def test_launch_accepts_validated_peer_and_serves_frames(tmp_path):
     async def scenario():
         helper = await launch_helper(
-            Path(sys.executable), Path("/nonexistent.bundle"), open_command=fake_command(tmp_path)
+            fixture_executable(), Path("/nonexistent.bundle"), open_command=fake_command(tmp_path)
         )
         try:
             assert helper.process.pid > 0
@@ -149,7 +154,7 @@ def test_launch_rejects_a_launcher_that_fails(tmp_path):
 def test_terminate_reclaims_a_lingering_helper(tmp_path):
     async def scenario():
         helper = await launch_helper(
-            Path(sys.executable), Path("/nonexistent.bundle"), open_command=fake_command(tmp_path, linger=True)
+            fixture_executable(), Path("/nonexistent.bundle"), open_command=fake_command(tmp_path, linger=True)
         )
         pid = helper.process.pid
         assert psutil.Process(pid).is_running()
@@ -225,7 +230,7 @@ def test_backend_uses_the_launchservices_transport_when_selected(monkeypatch):
 def test_half_close_keeps_the_response_readable(tmp_path):
     async def scenario():
         helper = await launch_helper(
-            Path(sys.executable), Path("/nonexistent.bundle"), open_command=fake_command(tmp_path, after_eof=True)
+            fixture_executable(), Path("/nonexistent.bundle"), open_command=fake_command(tmp_path, after_eof=True)
         )
         try:
             helper.process.stdin.write(request_frame())
