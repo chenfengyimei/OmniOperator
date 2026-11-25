@@ -3,6 +3,8 @@
 from ...adapters.http_routes.action_reviews import action_reviews_router
 from ...adapters.http_routes.android import android_router
 from ...adapters.http_routes.bilibili import bilibili_router
+from ...adapters.http_routes.configurations import configurations_router
+from ...adapters.http_routes.credentials import credentials_router
 from ...adapters.http_routes.deliveries import deliveries_router
 from ...adapters.http_routes.desktop import desktop_router
 from ...adapters.http_routes.documents import documents_router
@@ -12,6 +14,7 @@ from ...adapters.http_routes.maintenance import maintenance_router
 from ...adapters.http_routes.mcp import mcp_router
 from ...adapters.http_routes.media import media_router
 from ...adapters.http_routes.memory import memory_router
+from ...adapters.http_routes.operations import operations_router
 from ...adapters.http_routes.people import people_router
 from ...adapters.http_routes.qq import qq_router
 from ...adapters.http_routes.schedules import schedules_router
@@ -22,6 +25,8 @@ from . import FeaturePlugin
 from .action_reviews import install_action_reviews
 from .android import install_android
 from .bilibili import install_bilibili
+from .configurations import install_configurations
+from .credentials import install_credentials
 from .deliveries import install_deliveries
 from .desktop import install_desktop
 from .documents import install_documents
@@ -31,6 +36,7 @@ from .maintenance import install_maintenance
 from .mcp import install_mcp
 from .media import install_media
 from .memory import install_memory
+from .operations import install_operations
 from .people import install_people
 from .qq import install_qq
 from .schedules import install_schedules
@@ -39,6 +45,18 @@ from .terminals import install_terminals
 from .vision import install_vision
 
 BUILTIN_FEATURES = (
+    FeaturePlugin(
+        "configurations",
+        factory=configurations_router,
+        install=install_configurations,
+        extra_paths=(
+            "/agents/{agent_id}/routing",
+            "/agents/{agent_id}/runs/{run_id}/routing",
+            "/agents/{agent_id}/settings",
+            "/agents/{agent_id}/settings/revisions",
+            "/agents/{agent_id}/runs/{run_id}/configuration",
+        ),
+    ),
     FeaturePlugin(
         "people",
         factory=people_router,
@@ -76,6 +94,7 @@ BUILTIN_FEATURES = (
             "/agents/{agent_id}/terminal-reviews/{operation_id}/history/{review_id}/evidence",
         ),
     ),
+    FeaturePlugin("credentials", factory=credentials_router, install=install_credentials, instance_scoped=True),
 )
 
 BUILTIN_WORKFLOW_FEATURES = (
@@ -114,5 +133,21 @@ BUILTIN_KERNEL_FEATURES = (
         factory=action_reviews_router,
         install=install_action_reviews,
         extra_paths=("/agents/{agent_id}/actions/{action_id}/review", "/agents/{agent_id}/actions/{action_id}/reviews"),
+    ),
+    FeaturePlugin(
+        "system",
+        factory=operations_router,
+        install=install_operations,
+        instance_scoped=True,
+        extra_paths=(
+            "/agents/{agent_id}/audit",
+            "/agents/{agent_id}/debug",
+            "/agents/{agent_id}/debug/{operation_id}",
+            "/agents/{agent_id}/debug/{operation_id}/logs",
+            "/agents/{agent_id}/events/retention-preview",
+            "/agents/{agent_id}/audit/retention-preview",
+            "/agents/{agent_id}/runs/{run_id}/retention",
+            "/agents/{agent_id}/runs/{run_id}/retention-pin",
+        ),
     ),
 )

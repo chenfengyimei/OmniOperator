@@ -3,12 +3,14 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
+from dataclasses import dataclass
 from typing import cast
 
 from ..domain.configuration import config_name, config_value
 from ..domain.contracts import JSON, BusinessError
 from ..domain.images import POLICY_DEFAULT, policy
 from .ports import DatabasePort, Record, TokenCounter, UnitOfWork
+from .routing import RoutingService
 
 
 class ConfigurationService:
@@ -183,3 +185,9 @@ class ConfigurationService:
             "configuration_enabled": row["enabled"],
         }
         return result
+
+
+@dataclass(frozen=True)
+class ConfigurationServices:
+    configurations: ConfigurationService
+    routing: RoutingService

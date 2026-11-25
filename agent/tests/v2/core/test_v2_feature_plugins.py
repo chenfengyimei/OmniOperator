@@ -132,7 +132,9 @@ def test_a_registered_feature_shares_one_service_between_owner_http_and_the_appr
     assert installed[0].closes == 1
 
 
-@pytest.mark.parametrize("defect", ["prefix", "starlette", "duplicate-route", "duplicate-id", "existing-http"])
+@pytest.mark.parametrize(
+    "defect", ["prefix", "starlette", "duplicate-route", "duplicate-id", "existing-http", "existing-template"]
+)
 def test_feature_router_rejects_endpoints_that_break_mount_or_authorization_rules(defect):
     parent = APIRouter(prefix="/api/v1")
 
@@ -148,10 +150,14 @@ def test_feature_router_rejects_endpoints_that_break_mount_or_authorization_rule
             routes.add_api_route("/ping", ping, methods=["GET"])
         if defect == "duplicate-route":
             routes.add_api_route("/ping", ping, methods=["GET"])
+        if defect == "existing-template":
+            routes.add_api_route("/details/{record_id}", ping, methods=["GET"])
         return routes
 
     if defect == "existing-http":
         parent.add_api_route("/agents/{agent_id}/fixture/ping", ping, methods=["GET"])
+    if defect == "existing-template":
+        parent.add_api_route("/agents/{agent_id}/fixture/details/{other_id:str}", ping, methods=["GET"])
     feature = FeatureRoutes("fixture", factory)
     declared = (feature, feature) if defect == "duplicate-id" else (feature,)
     expected = {
@@ -160,6 +166,7 @@ def test_feature_router_rejects_endpoints_that_break_mount_or_authorization_rule
         "duplicate-route": "Duplicate feature HTTP route",
         "duplicate-id": "Duplicate feature route IDs",
         "existing-http": "Duplicate feature HTTP route",
+        "existing-template": "Duplicate feature HTTP route",
     }
     with pytest.raises(ValueError, match=expected[defect]):
         mount_feature_routes(parent, declared, lambda _: None)
@@ -257,6 +264,10 @@ def test_media_processor_has_one_shutdown_owner_on_startup_and_rollback(tmp_path
                 assert instance.feature_services["documents"] is instance.documents
                 assert instance.feature_services["people"].people is instance.people
                 assert instance.documents._persona is instance.persona_growth is instance.media._persona
+                assert instance.feature_services["configurations"].configurations is instance.configurations
+                assert instance.feature_services["configurations"].routing is instance.routing
+                assert instance.feature_services["credentials"] is instance.credentials
+                assert instance.feature_services["system"] is instance.operations
             finally:
                 assert (await instance.close())["complete"]
         assert processor.closes == 1

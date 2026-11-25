@@ -25,7 +25,6 @@ from omni.adapters.platform.services.service_launch import consume_launch
 
 from ..adapters.build_identity import CODE_CACHE_DIRS, CODE_SUFFIXES, LAYERS
 from ..adapters.credentials import Credentials
-from ..adapters.diagnostic_bundle import DiagnosticFiles
 from ..adapters.diagnostics import JsonLogSink, LoggingSession, bind_context
 from ..adapters.images import ImageCodec
 from ..adapters.local_vectors import configured_vectors
@@ -43,10 +42,9 @@ from ..application.background_review import BackgroundReviewService
 from ..application.bilibili import BilibiliPort, BilibiliService
 from ..application.capabilities import Capability, CapabilityPlugin
 from ..application.clarify import ClarifyService
-from ..application.configuration import ConfigurationService
+from ..application.configuration import ConfigurationService, ConfigurationServices
 from ..application.context import ContextService
 from ..application.credentials import CredentialService
-from ..application.debugging import DebugService
 from ..application.delivery import DeliveryService
 from ..application.desktop import DesktopService
 from ..application.desktop_actions import DesktopActions
@@ -433,8 +431,6 @@ async def open_instance(
             credential_io = NativeCredentials(namespace, sink.redactor)
         lifetime.own("credential_io", 1, credential_io.close, credential_io.stop_accepting)
         counter = token_counter if token_counter is not None else ConservativeTokenCounter()
-        configurations = ConfigurationService(database, counter)
-        routing = RoutingService(database)
         model_transport = register_model_transport(
             lifetime,
             credential_io,
@@ -481,6 +477,7 @@ async def open_instance(
             clock=clock,
             ids=ids,
             observer=observation,
+            token_counter=counter,
             secrets=credential_io,
             channels=channels,
             platform=platform_io,
@@ -505,8 +502,8 @@ async def open_instance(
         mcp = features.require("mcp", MCPService)
         deliveries = features.require("deliveries", DeliveryService)
         terminal = features.require("terminals", TerminalServices)
-        credentials = CredentialService(database, credential_io, ids, deliveries.cancel_active, observation)
-        lifetime.own("credential_changes", 0, credentials.close, credentials.stop_accepting)
+        configurations = features.require("configurations", ConfigurationServices)
+        credentials = features.require("credentials", CredentialService)
 
         plugins = features.capabilities
         if capabilities is None:
@@ -563,96 +560,24 @@ async def open_instance(
         kernel_features = await install_features(
             BUILTIN_KERNEL_FEATURES,
             KernelFeatureContext(
-                lifetime=lifetime,
-                database=database,
-                clock=clock,
-                channels=channels,
-                services=features.services,
+                base=feature_context,
                 notify_run=application.notify,
                 cancel_run=application.cancel,
                 review_blockers=application.action_review_blockers,
-                skill_platform=platform.skill_platform,
-                redact=sink.redactor.text,
-                default_tools=capabilities is None,
+                runtime_health=lambda: current_instance.health(),
+                metrics=measurements,
+                sink=sink,
             ),
             registered_services,
         )
         schedules = kernel_features.require("schedules", SchedulingService)
         qq = kernel_features.require("qq", QQService)
         action_reviews = kernel_features.require("action-reviews", ActionReviewService)
+        operations = kernel_features.require("system", OperationsService)
         for plugin in kernel_features.capabilities:
             application.attach_plugin(plugin)
         for provider in (*features.providers, *workflow_features.providers, *kernel_features.providers):
             application.attach_provider(provider.id, provider.adapter, review_quiescent=provider.review_quiescent)
-        diagnostic = DiagnosticFiles(paths, sink)
-        lifetime.own("operations", 0, diagnostic.close)
-
-        def operational_health() -> Record:
-            health = current_instance.health()
-            deliveries = _record(health["deliveries"])
-            maintenance = _record(health["maintenance"])
-            memory_organization = _record(health["memory_organization"])
-            extensions = _record(health["extensions"])
-            hosts = _record(extensions["hosts"])
-            terminals = _record(health["terminals"])
-            media = _record(health["media"])
-            mcp_transports = _record(_record(health["mcp"])["transports"])
-            sessions = mcp_transports["sessions"]
-            desktop = _record(health["desktop"])
-            desktop_backend = _record(desktop["backend"])
-            portal = _record(health["desktop_portal"])
-            portal_backend = _record(portal["backend"])
-            control = _record(health["desktop_control"])
-            control_backend_health = _record(control["backend"])
-            terminal_reviews = _record(health["terminal_reviews"])
-            schedules = _record(health["schedules"])
-            documents = _record(health["documents"])
-            vector = _record(documents["vector"])
-            residual = health["shutdown_residual"]
-            return {
-                "ready": health["ready"],
-                "closing": health["closing"],
-                "active_runs": health["active_runs"],
-                "active_deliveries": deliveries["active"],
-                "active_maintenance": maintenance["active"],
-                "memory_organization_pending": memory_organization["pending"],
-                "extension_hosts": hosts["resident"],
-                "extension_cleanup_pending": hosts["cleanup_pending"],
-                "active_terminals": terminals["active"],
-                "media_jobs_pending": media["pending"],
-                "mcp_sessions": mcp_transports["resident"],
-                "mcp_cleanup_pending": sum(
-                    1
-                    for session in (sessions if isinstance(sessions, list) else [])
-                    if isinstance(session, dict) and cast(dict[str, object], session).get("cleanup_pending")
-                ),
-                "desktop_observations": desktop["pending"],
-                "desktop_portal_pending": portal["pending"],
-                "desktop_portal_resident": portal_backend["resident"],
-                "desktop_portal_cleanup_pending": portal_backend["cleanup_pending"],
-                "desktop_control_pending": control["pending"],
-                "desktop_control_resident": control_backend_health["resident"],
-                "desktop_control_cleanup_pending": control_backend_health["cleanup_pending"],
-                "desktop_cleanup_pending": desktop_backend.get("cleanup_pending", 0),
-                "desktop_capture_staging": desktop_backend.get("capture_staging"),
-                "terminal_cleanup_pending": terminals["cleanup_pending"],
-                "terminal_state_pending": terminals["state_pending"],
-                "terminal_reviews_pending": terminal_reviews["pending"],
-                "database": health["database"],
-                "scheduler_ready": schedules["ready"],
-                "delivery_ready": deliveries["ready"],
-                "document_queries": documents["pending"],
-                "vector_available": vector["available"],
-                "installed_delivery_transports": deliveries["installed_transports"],
-                "stalled_deliveries": deliveries["stalled"],
-                "credentials": health["credentials"],
-                "shutdown_residual_count": len(residual) if isinstance(residual, list) else 0,
-            }
-
-        debugging = DebugService(database, diagnostic, clock, ids)
-        operations = OperationsService(database, measurements, diagnostic, operational_health, debugging)
-        lifetime.own("operations", 0, operations.close, operations.stop_accepting)
-        debugging.start()
         await application.start()
         if local_vectors is not None:
             vector_state = documents.vector_status()
@@ -704,8 +629,8 @@ async def open_instance(
             objects=objects,
             images=vision.images,
             people=people.people,
-            configurations=configurations,
-            routing=routing,
+            configurations=configurations.configurations,
+            routing=configurations.routing,
             memory_semantics=memory.semantics,
             skills=skills,
             documents=documents,

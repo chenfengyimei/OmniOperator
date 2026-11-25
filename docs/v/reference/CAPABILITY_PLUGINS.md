@@ -41,7 +41,7 @@ uv run --no-sync pytest -q -n 0 agent/tests/v2/core/test_v2_provider_plugins.py 
 
 ## 业务功能登记与启动顺序
 
-在 `composition/features/<feature>.py` 的安装器中用 `FeatureContext` 创建服务，在 `Lifetime` 中登记归属。返回服务、工具或回合提供者。组装器在就绪之前安装功能，在 `feature_services` 发布只读映射，内核继续从能力表取得工具。HTTP 路由从同一映射取得服务，默认挂在所有者鉴权的 `/api/v1/agents/{agent_id}/<feature>` 下。既有的额外路径由功能明确声明，例如 `/agents/{agent_id}/runs/{run_id}/skills`。功能 ID、重复方法和路径、工具名在组装时校验。
+在 `composition/features/<feature>.py` 的安装器中用 `FeatureContext` 创建服务，在 `Lifetime` 中登记归属。返回服务、工具或回合提供者。组装器在就绪之前安装功能，在 `feature_services` 发布只读映射，内核继续从能力表取得工具。HTTP 路由从同一映射取得服务，默认挂在所有者鉴权的 `/api/v1/agents/{agent_id}/<feature>` 下。实例级功能显式声明 `instance_scoped=True`，挂在同一鉴权入口的 `/api/v1/<feature>` 下。额外的历史路径按完整 Agent 路径登记，例如 `/agents/{agent_id}/runs/{run_id}/skills`。组装时校验功能 ID、HTTP 方法与路径形状、工具名。
 
 B 站、媒体和 Android 在 `BUILTIN_FEATURES` 登记 ID、安装器和路由工厂。安装器负责启动期恢复，并将资源交给唯一的关闭方。媒体服务持有本地处理器，B 站读取、媒体下载和投递默认共用登记的 B 站传输。Android 分开登记业务服务与设备后端。
 
@@ -58,6 +58,8 @@ QQ 也在内核恢复后启动监听。服务从既有的 OneBot 提供者读取
 人物与人格先登记。文档和媒体从同一服务映射取得人格缓存失效端口。原有文档检索工具使用登记后的文档服务，HTTP 与后台维护也读取该实例。人格重建、旧的人物修订路径和来源擦除依赖共同的数据库与该实例目录。
 
 视觉、回合后学习和维护在 `BUILTIN_WORKFLOW_FEATURES` 装配。视觉使用已登记的媒体、模型调用和图像服务。学习取得已选定的只读工具快照，为已有技能与记忆提出待审建议。维护核对已登记的文档、记忆组织及学习服务，先完成持久任务恢复，再开始后台派发。实例顺序等待功能声明的异步启动回调。
+
+配置与路由共用实例数据库和模型调用的 token 估算端口。凭据变更从只读映射取得已登记的投递服务，继续在撤权时取消在途投递。系统运维安装器持有调试维护任务和诊断文件，先收回任务，再关闭诊断端口。归在这些功能的配置、凭据、审计、诊断和保留报告沿用统一的所有者鉴权。
 
 新功能可用 `http_app(feature_plugins=...)` 注入离线替身，再验证启动失败、鉴权、写入审批及排空。UI 页面、配置和领域合同由功能自身维护。
 

@@ -6,7 +6,6 @@ import asyncio
 import dataclasses
 import datetime as dt
 import json
-from types import SimpleNamespace
 
 import httpx
 import pytest
@@ -84,7 +83,7 @@ def test_http_drain_requires_local_hmac_and_persists_receipt_before_closing_admi
         required.update(
             describe=lambda: {**identity, "ready": not events},
             close=close,
-            operations=SimpleNamespace(observe=lambda *args: None),
+            observe=lambda *args: None,
             assets=tmp_path,
             identity_proof=lambda challenge: canonical_proof(
                 {**identity, "ready": not events}, challenge, publisher.key

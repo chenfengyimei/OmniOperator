@@ -345,7 +345,7 @@
     "related": [],
     "refs": {
       "entry": [
-        "agent/src/omni/adapters/http.py#create_app.configuration_probe"
+        "agent/src/omni/adapters/http_routes/configurations.py#configurations_router.configuration_probe"
       ],
       "domain": [
         "agent/src/omni/domain/settings.py",
@@ -362,7 +362,7 @@
       ],
       "composition": [
         "agent/src/omni/composition/model_providers.py#register_model_transport",
-        "agent/src/omni/composition/instance.py#open_instance.routing"
+        "agent/src/omni/composition/features/configurations.py#install_configurations"
       ],
       "ui": [
         "web/ui/v2/models.js",
@@ -377,6 +377,23 @@
       "contracts": [
         "docs/v/reference/KERNEL.md"
       ]
+    }
+  },
+  {
+    "id": "credentials",
+    "name": "凭据与授权核查",
+    "aliases": ["凭据", "credential", "授权代次", "凭据撤权"],
+    "version": "V2",
+    "purpose": "登记和更新实例凭据，按授权代次核查活动。",
+    "impact": "凭据修改影响模型、渠道和投递。撤权时须核对在途动作及未知结果。",
+    "pages": [],
+    "related": ["models"],
+    "refs": {
+      "entry": ["agent/src/omni/adapters/http_routes/credentials.py#credentials_router"],
+      "application": ["agent/src/omni/application/credentials.py"],
+      "adapters": ["agent/src/omni/adapters/credentials.py", "agent/src/omni/adapters/native_credentials.py"],
+      "composition": ["agent/src/omni/composition/features/credentials.py#install_credentials"],
+      "tests": ["agent/tests/v2/core/test_v2_credential_authority.py", "agent/tests/v2/core/test_v2_credentials.py"]
     }
   },
   {
@@ -1100,10 +1117,10 @@
     "related": [],
     "refs": {
       "entry": [
-        "agent/src/omni/adapters/http.py#create_app.logs",
+        "agent/src/omni/adapters/http_routes/operations.py#operations_router.logs",
         "agent/src/omni/adapters/http.py#create_app.owner_token_rotate",
         "agent/src/omni/adapters/http.py#create_app.capabilities",
-        "agent/src/omni/adapters/http.py#create_app.audit"
+        "agent/src/omni/adapters/http_routes/operations.py#operations_router.audit"
       ],
       "domain": [
         "agent/src/omni/domain/capabilities.py",
@@ -1118,6 +1135,7 @@
         "agent/src/omni/adapters/log_query.py"
       ],
       "composition": [
+        "agent/src/omni/composition/features/operations.py#install_operations",
         "agent/src/omni/composition/http.py#http_app"
       ],
       "ui": [

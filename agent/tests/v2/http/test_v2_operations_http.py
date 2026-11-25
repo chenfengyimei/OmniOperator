@@ -17,9 +17,20 @@ class NoModel:
 
 def test_operational_http_authentication_and_bounded_download(tmp_path):
     with TestClient(http_app(tmp_path, model=NoModel())) as client:
-        for path in ("/api/v1/system/metrics", "/api/v1/system/diagnostics"):
+        owner_paths = (
+            "/api/v1/system/metrics",
+            "/api/v1/system/diagnostics",
+            "/api/v1/system/audit",
+            "/api/v1/credentials",
+        )
+        for path in owner_paths:
             assert client.get(path).status_code == 401
         client.headers["Authorization"] = "Bearer " + (tmp_path / "run/owner.token").read_text()
+        runtime = client.app.state.runtime
+        assert runtime.feature_services["system"] is runtime.operations
+        assert runtime.feature_services["credentials"] is runtime.credentials
+        assert client.get("/api/v1/system/audit").status_code == 200
+        assert client.get("/api/v1/credentials").status_code == 200
         report = client.get("/api/v1/system/metrics")
         assert report.status_code == 200
         data = report.json()

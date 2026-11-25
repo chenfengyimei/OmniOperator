@@ -20,7 +20,7 @@ from pydantic import Field
 
 from ..application.action_review import ActionReviewService
 from ..application.background_review import BackgroundReviewService
-from ..application.configuration import ConfigurationService
+from ..application.configuration import ConfigurationService, ConfigurationServices
 from ..application.credentials import CredentialService
 from ..application.delivery import DeliveryService
 from ..application.desktop import DesktopService
@@ -87,10 +87,8 @@ from .http_routes.people import DocumentVersion as DocumentVersion
 from .http_routes.people import PersonEdit as PersonEdit
 from .http_routes.people import PersonInput as PersonInput
 from .http_routes.qq import QQBindingInput as QQBindingInput
-from .log_query import LogQuery
 
 log = logging.getLogger("omni.v2.http")
-Payload = dict[str, object]
 
 
 @dataclass
@@ -99,12 +97,9 @@ class HttpRuntime:
     authenticate: Callable[[str], Awaitable[bool]]
     describe: Callable[[], Record]
     close: Callable[[], Awaitable[Record]]
-    logs: Callable[[LogQuery], Awaitable[Record]]
+    observe: Callable[[str, str, float], None]
     assets: Path
     objects: ObjectService
-    configurations: ConfigurationService
-    operations: OperationsService
-    credentials: CredentialService
     identity_proof: Callable[[str], Record] | None = None
     drain: Callable[[Record], Awaitable[Record]] | None = None
     token_sessions: Callable[[], Awaitable[list[Record]]] | None = None
@@ -114,11 +109,27 @@ class HttpRuntime:
     local_owner_token: Callable[[], str] | None = None
     feature_services: Mapping[str, object] = field(default_factory=dict[str, object])
     upload_slots: asyncio.Semaphore = field(default_factory=lambda: asyncio.Semaphore(4))
-    routing: RoutingService | None = None
     # 连接测试复用当前模型适配器；离线实例的适配器会明确拒绝真实调用。
     model_port: object | None = None
 
     # Existing runtime accessors resolve the same services as the mounted feature.
+    @property
+    def configurations(self) -> ConfigurationService:
+        return registered_service(self.feature_services, "configurations", ConfigurationServices).configurations
+
+    @property
+    def routing(self) -> RoutingService | None:
+        feature = self.feature_services.get("configurations")
+        return feature.routing if isinstance(feature, ConfigurationServices) else None
+
+    @property
+    def credentials(self) -> CredentialService:
+        return registered_service(self.feature_services, "credentials", CredentialService)
+
+    @property
+    def operations(self) -> OperationsService:
+        return registered_service(self.feature_services, "system", OperationsService)
+
     @property
     def images(self) -> ImageService | None:
         feature = self.feature_services.get("vision")
@@ -221,36 +232,6 @@ class TurnInput(StrictInput):
     skill_ids: list[uuid.UUID] = Field(default_factory=cast(Callable[[], list[uuid.UUID]], list), max_length=4)
 
 
-class RoutingInput(StrictInput):
-    revision: int = Field(ge=0, strict=True)
-    value: Payload
-
-
-class SettingsInput(StrictInput):
-    revision: int = Field(ge=1, strict=True)
-    value: Payload
-
-
-class ConfigurationInput(StrictInput):
-    kind: Literal["model", "channel", "mcp", "preset"]
-    name: str = Field(min_length=1, max_length=100)
-    enabled: bool = Field(default=False, strict=True)
-    value: Payload
-    image_policy: Payload | None = None
-
-
-class ConfigurationEdit(StrictInput):
-    name: str = Field(min_length=1, max_length=100)
-    enabled: bool = Field(strict=True)
-    revision: int = Field(ge=1, strict=True)
-    value: Payload
-    image_policy: Payload | None = None
-
-
-class DebugInput(StrictInput):
-    duration_s: int = Field(default=3600, ge=1, le=3600, strict=True)
-
-
 class ApprovalInput(StrictInput):
     allowed: bool
     policy_revision: int = Field(ge=1)
@@ -267,29 +248,7 @@ class ClarifyCancelInput(StrictInput):
     notice: str = Field(default="", max_length=2000)
 
 
-class CredentialInput(StrictInput):
-    value: str = Field(min_length=1, max_length=65_536)
-
-
-class CredentialRegistration(StrictInput):
-    reference: str = Field(min_length=1, max_length=200, pattern=r"^[A-Za-z0-9_.:/-]+$")
-
-
-class CredentialReview(StrictInput):
-    revision: int = Field(ge=1, strict=True)
-    authority_epoch: int = Field(ge=1, strict=True)
-    fingerprint: str = Field(pattern=r"^[a-f0-9]{64}$")
-    policy: str = Field(min_length=1, max_length=100)
-    decision: Literal["allow_current", "revoke"]
-    evidence: str = Field(min_length=1, max_length=2000)
-
-
 class ObjectPinInput(StrictInput):
-    pinned: bool = Field(strict=True)
-    revision: int = Field(ge=1, strict=True)
-
-
-class RunPinInput(StrictInput):
     pinned: bool = Field(strict=True)
     revision: int = Field(ge=1, strict=True)
 
@@ -332,7 +291,7 @@ def create_app(
         origin = request.headers.get("origin")
         same = str(request.base_url).rstrip("/")
         if origin and origin != same and origin not in allowed_origins:
-            runtime(request).operations.observe("request", "error", time.monotonic() - started)
+            runtime(request).observe("request", "error", time.monotonic() - started)
             return JSONResponse(
                 {"error": {"code": "origin_denied", "message": "Origin is not trusted", "request_id": request_id}},
                 status_code=403,
@@ -342,7 +301,7 @@ def create_app(
                 response = await call_next(request)
             except Exception as exc:  # noqa: BLE001 -- final HTTP boundary logs once and returns a correlated error
                 response = await internal_error(request, exc)
-        runtime(request).operations.observe(
+        runtime(request).observe(
             "request", "error" if response.status_code >= 400 else "ok", time.monotonic() - started
         )
         response.headers["X-Request-ID"] = request_id
@@ -519,165 +478,6 @@ def create_app(
         data = configuration_input(AgentRenameInput, await bounded_configuration(request, 2048, strict=True))
         return await runtime(request).application.rename_agent(str(agent_id), data.name, data.revision)
 
-    @router.get("/agents/{agent_id}/configurations")
-    async def configurations(
-        agent_id: uuid.UUID,
-        request: Request,
-        kind: Literal["model", "channel", "mcp", "preset"] = "model",
-        after: uuid.UUID | None = None,
-        limit: int = Query(default=100, ge=1, le=200),
-    ):
-        return await runtime(request).configurations.page(str(agent_id), kind, str(after) if after else "", limit)
-
-    def routing_service(request: Request) -> RoutingService:
-        service = runtime(request).routing
-        if service is None:
-            raise BusinessError("routing_unavailable", "Routing service is unavailable", status=503)
-        return service
-
-    @router.get("/agents/{agent_id}/routing")
-    async def route_policy(agent_id: uuid.UUID, request: Request):
-        return await routing_service(request).get(str(agent_id))
-
-    @router.put("/agents/{agent_id}/routing")
-    async def save_route_policy(agent_id: uuid.UUID, data: RoutingInput, request: Request):
-        return await routing_service(request).save(str(agent_id), cast(Record, data.value), data.revision)
-
-    @router.get("/agents/{agent_id}/runs/{run_id}/routing")
-    async def route_report(agent_id: uuid.UUID, run_id: uuid.UUID, request: Request):
-        return await routing_service(request).report(str(agent_id), str(run_id))
-
-    @router.post("/agents/{agent_id}/configurations", status_code=201)
-    async def create_configuration(agent_id: uuid.UUID, request: Request):
-        data = configuration_input(ConfigurationInput, await bounded_configuration(request))
-        return await runtime(request).configurations.create(
-            str(agent_id),
-            data.kind,
-            data.name,
-            data.enabled,
-            cast(Record, data.value),
-            cast(Record | None, data.image_policy),
-        )
-
-    @router.get("/agents/{agent_id}/configurations/template")
-    async def configuration_template(
-        agent_id: uuid.UUID, request: Request, kind: Literal["model", "channel", "mcp", "preset"] = "model"
-    ):
-        await runtime(request).application.settings(str(agent_id))
-        return {"schema": 1, **runtime(request).configurations.template(kind)}
-
-    @router.post("/agents/{agent_id}/configurations/preview")
-    async def preview_configuration(agent_id: uuid.UUID, request: Request):
-        await runtime(request).application.settings(str(agent_id))
-        return runtime(request).configurations.preview(await bounded_configuration(request))
-
-    @router.get("/agents/{agent_id}/configurations/{config_id}")
-    async def get_configuration(agent_id: uuid.UUID, config_id: uuid.UUID, request: Request):
-        return await runtime(request).configurations.get(str(agent_id), str(config_id))
-
-    @router.put("/agents/{agent_id}/configurations/{config_id}")
-    async def save_configuration(agent_id: uuid.UUID, config_id: uuid.UUID, request: Request):
-        data = configuration_input(ConfigurationEdit, await bounded_configuration(request))
-        return await runtime(request).configurations.save(
-            str(agent_id),
-            str(config_id),
-            data.name,
-            data.enabled,
-            cast(Record, data.value),
-            data.revision,
-            cast(Record | None, data.image_policy),
-        )
-
-    @router.delete("/agents/{agent_id}/configurations/{config_id}")
-    async def archive_configuration(
-        agent_id: uuid.UUID, config_id: uuid.UUID, request: Request, revision: int = Query(ge=1)
-    ):
-        await runtime(request).configurations.archive(str(agent_id), str(config_id), revision)
-        return {"archived": True, "history_retained": True}
-
-    @router.get("/agents/{agent_id}/configurations/{config_id}/revisions")
-    async def configuration_history(
-        agent_id: uuid.UUID,
-        config_id: uuid.UUID,
-        request: Request,
-        after: int = Query(default=0, ge=0),
-        limit: int = Query(default=50, ge=1, le=100),
-    ):
-        return await runtime(request).configurations.history(str(agent_id), str(config_id), after, limit)
-
-    @router.get("/agents/{agent_id}/configurations/{config_id}/diagnosis")
-    async def configuration_diagnosis(agent_id: uuid.UUID, config_id: uuid.UUID, request: Request):
-        return await runtime(request).configurations.diagnose(str(agent_id), str(config_id))
-
-    @router.get("/agents/{agent_id}/configurations/{config_id}/preset")
-    async def apply_preset(agent_id: uuid.UUID, config_id: uuid.UUID, request: Request):
-        return await runtime(request).configurations.preset(str(agent_id), str(config_id))
-
-    @router.post("/agents/{agent_id}/configurations/{config_id}/probe")
-    async def configuration_probe(agent_id: uuid.UUID, config_id: uuid.UUID, request: Request):
-        """连接测试：用所存凭据向端点发起一次最小真实调用，验证 Key/端点/模型可用。
-
-        不创建运行、不落库调用台账；离线实例的适配器会明确拒绝（offline_model_denied）。
-        先经 diagnose 校验凭据授权与配置启用，避免未授权凭据被尝试使用。
-        """
-        rt = runtime(request)
-        row = await rt.configurations.get(str(agent_id), str(config_id))
-        if row["kind"] != "model":
-            raise BusinessError("probe_not_model", "Only model configurations can be probed", status=422)
-        diagnosis = await rt.configurations.diagnose(str(agent_id), str(config_id))
-        if not diagnosis.get("configuration_enabled"):
-            raise BusinessError("probe_disabled", "Enable the model configuration before probing", status=409)
-        if not diagnosis.get("available"):
-            raise BusinessError(
-                "probe_unavailable",
-                f"Model is not ready: {diagnosis.get('state', 'unknown')}",
-                status=409,
-            )
-        port = rt.model_port
-        if port is None:
-            raise BusinessError("probe_unavailable", "No model adapter is wired in this instance", status=503)
-        fields = dict(cast(Payload, row["value"]))
-        # 最小调用：输出上限压到 16 token，避免测试产生明显费用。
-        fields["output_tokens"] = min(int(cast(int, fields.get("output_tokens", 16))), 16)
-        settings: Payload = {
-            "persona": "",
-            "workspace": "",
-            "daily_budget_micro": 0,
-            "call_reservation_micro": 1,
-            "max_steps": 1,
-            "disabled_tools": [],
-            "model_profile_id": str(config_id),
-            "model_revision_id": str(row.get("revision_id", "")),
-            "model_permission_epoch": 1,
-            **fields,
-        }
-        from ..domain.settings import settings_value
-
-        resolved = settings_value(settings)
-        complete = getattr(port, "complete", None)
-        if complete is None:
-            raise BusinessError("probe_unavailable", "Model adapter does not support probing", status=503)
-        reply = await complete([{"role": "user", "content": "Reply with the single word: ok"}], [], resolved)
-        return {
-            "ok": True,
-            "model": fields.get("model", ""),
-            "content": str(getattr(reply, "content", "") or "")[:120],
-            "completion_reason": getattr(reply, "completion_reason", "stop"),
-        }
-
-    @router.get("/agents/{agent_id}/settings/revisions")
-    async def settings_history(
-        agent_id: uuid.UUID,
-        request: Request,
-        after: int = Query(default=0, ge=0),
-        limit: int = Query(default=50, ge=1, le=100),
-    ):
-        return await runtime(request).configurations.settings_history(str(agent_id), after, limit)
-
-    @router.get("/agents/{agent_id}/runs/{run_id}/configuration")
-    async def run_configuration(agent_id: uuid.UUID, run_id: uuid.UUID, request: Request):
-        return await runtime(request).application.run_configuration(str(agent_id), str(run_id))
-
     @router.get("/agents/{agent_id}/runs/{run_id}/context")
     async def run_context(agent_id: uuid.UUID, run_id: uuid.UUID, request: Request):
         return await runtime(request).application.context_report(str(agent_id), str(run_id))
@@ -773,45 +573,6 @@ def create_app(
     async def run(agent_id: uuid.UUID, run_id: uuid.UUID, request: Request):
         return await runtime(request).application.get_run(str(agent_id), str(run_id))
 
-    @router.get("/agents/{agent_id}/events/retention-preview")
-    async def event_retention_preview(
-        agent_id: uuid.UUID,
-        request: Request,
-        cursor: str = Query(default="", max_length=1024),
-        limit: int = Query(default=20, ge=1, le=50),
-        as_of: str = Query(default="", max_length=64),
-    ):
-        if "after" in request.query_params:
-            raise BusinessError(
-                "invalid_event_retention_query", "Use the event-preview cursor instead of after", status=422
-            )
-        return await runtime(request).application.event_retention_preview(
-            str(agent_id), cursor=cursor, limit=limit, as_of=as_of
-        )
-
-    @router.get("/agents/{agent_id}/audit/retention-preview")
-    async def audit_retention_preview(
-        agent_id: uuid.UUID,
-        request: Request,
-        cursor: str = Query(default="", max_length=1024),
-        limit: int = Query(default=20, ge=1, le=50),
-        as_of: str = Query(default="", max_length=64),
-    ):
-        if "after" in request.query_params:
-            raise BusinessError("invalid_audit_retention_query", "Use the preview cursor instead of after", status=422)
-        return await runtime(request).application.audit_retention_preview(
-            str(agent_id), cursor=cursor, limit=limit, as_of=as_of
-        )
-
-    @router.get("/agents/{agent_id}/runs/{run_id}/retention")
-    async def run_retention(agent_id: uuid.UUID, run_id: uuid.UUID, request: Request):
-        return await runtime(request).application.run_retention(str(agent_id), str(run_id))
-
-    @router.put("/agents/{agent_id}/runs/{run_id}/retention-pin")
-    async def run_retention_pin(agent_id: uuid.UUID, run_id: uuid.UUID, request: Request):
-        data = configuration_input(RunPinInput, await bounded_configuration(request, 2048))
-        return await runtime(request).application.pin_run(str(agent_id), str(run_id), data.pinned, data.revision)
-
     @router.get("/agents/{agent_id}/runs/{run_id}/live-output")
     async def model_live_output(agent_id: uuid.UUID, run_id: uuid.UUID, request: Request):
         return await runtime(request).application.live_output(str(agent_id), str(run_id))
@@ -859,15 +620,6 @@ def create_app(
     async def cancel(agent_id: uuid.UUID, run_id: uuid.UUID, request: Request):
         await runtime(request).application.cancel(str(agent_id), str(run_id))
         return {"accepted": True}
-
-    @router.get("/agents/{agent_id}/settings")
-    async def settings(agent_id: uuid.UUID, request: Request):
-        return await runtime(request).application.settings(str(agent_id))
-
-    @router.put("/agents/{agent_id}/settings")
-    async def save_settings(agent_id: uuid.UUID, request: Request):
-        data = configuration_input(SettingsInput, await bounded_configuration(request))
-        return await runtime(request).application.save_settings(str(agent_id), cast(Record, data.value), data.revision)
 
     @router.get("/agents/{agent_id}/context/constants")
     async def context_constants(agent_id: uuid.UUID, request: Request):
@@ -929,139 +681,6 @@ def create_app(
     @router.delete("/agents/{agent_id}/sessions/{session_id}/captures/{capture_id}", status_code=204)
     async def release_capture(agent_id: uuid.UUID, session_id: uuid.UUID, capture_id: uuid.UUID, request: Request):
         await runtime(request).objects.release_capture(str(agent_id), str(session_id), str(capture_id))
-
-    @router.get("/agents/{agent_id}/audit")
-    async def audit(
-        agent_id: uuid.UUID,
-        request: Request,
-        cursor: str = Query(default="", max_length=1024),
-        limit: int = Query(default=100, ge=1, le=200),
-    ):
-        if "after" in request.query_params:
-            raise BusinessError("invalid_history_query", "Use a history cursor instead of after", status=422)
-        return await runtime(request).application.history("audit", str(agent_id), cursor=cursor, limit=limit)
-
-    @router.get("/system/metrics")
-    async def metrics(request: Request):
-        return await runtime(request).operations.status()
-
-    @router.get("/agents/{agent_id}/debug")
-    async def debug_status(agent_id: uuid.UUID, request: Request):
-        return await runtime(request).operations.debug_status(str(agent_id))
-
-    @router.post("/agents/{agent_id}/debug")
-    async def debug_start(agent_id: uuid.UUID, request: Request):
-        data = configuration_input(DebugInput, await bounded_configuration(request, 1024))
-        return await runtime(request).operations.debug_start(str(agent_id), data.duration_s)
-
-    @router.delete("/agents/{agent_id}/debug/{operation_id}")
-    async def debug_stop(agent_id: uuid.UUID, operation_id: uuid.UUID, request: Request):
-        return await runtime(request).operations.debug_stop(str(agent_id), str(operation_id))
-
-    @router.get("/agents/{agent_id}/debug/{operation_id}/logs")
-    async def debug_logs(
-        agent_id: uuid.UUID,
-        operation_id: uuid.UUID,
-        request: Request,
-        limit: int = Query(default=100, ge=1, le=500),
-        cursor: str = Query(default="", max_length=256),
-    ):
-        return await runtime(request).operations.debug_logs(
-            str(agent_id), str(operation_id), {"limit": limit, "cursor": cursor}
-        )
-
-    @router.get("/system/diagnostics")
-    async def diagnostic_bundle(request: Request):
-        content = await runtime(request).operations.export()
-        return Response(
-            content,
-            media_type="application/zip",
-            headers={"Content-Disposition": 'attachment; filename="omni-diagnostics.zip"'},
-        )
-
-    @router.get("/system/logs")
-    async def logs(
-        request: Request,
-        limit: int = Query(default=100, ge=1, le=500),
-        cursor: str = Query(default="", max_length=256),
-        level: str = Query(default="", max_length=10),
-        component: str = Query(default="", max_length=200),
-        run_id: str = Query(default="", max_length=100),
-        since: str = Query(default="", max_length=40),
-        until: str = Query(default="", max_length=40),
-    ):
-        return await runtime(request).logs(LogQuery(limit, cursor, level, component, run_id, since, until))
-
-    @router.get("/credentials")
-    async def credential_list(
-        request: Request, after: str = Query(default="", max_length=36), limit: int = Query(default=100, ge=1, le=200)
-    ):
-        return await runtime(request).credentials.page(after, limit)
-
-    @router.post("/credentials/register")
-    async def credential_register(request: Request):
-        data = configuration_input(CredentialRegistration, await bounded_configuration(request, 2048))
-        return await runtime(request).credentials.register(data.reference)
-
-    @router.get("/credentials/{identity}")
-    async def credential_get(identity: uuid.UUID, request: Request):
-        return await runtime(request).credentials.get(str(identity))
-
-    @router.get("/credentials/{identity}/operations")
-    async def credential_operations(
-        identity: uuid.UUID,
-        request: Request,
-        after: str = Query(default="", max_length=36),
-        limit: int = Query(default=50, ge=1, le=100),
-    ):
-        return await runtime(request).credentials.history(str(identity), after, limit)
-
-    @router.get("/credentials/{identity}/reviews")
-    async def credential_reviews(
-        identity: uuid.UUID,
-        request: Request,
-        after: str = Query(default="", max_length=36),
-        limit: int = Query(default=50, ge=1, le=100),
-    ):
-        return await runtime(request).credentials.history(str(identity), after, limit, reviews=True)
-
-    @router.post("/credentials/{identity}/review")
-    async def credential_review(identity: uuid.UUID, request: Request):
-        data = configuration_input(CredentialReview, await bounded_configuration(request, 16384))
-        return await runtime(request).credentials.review(
-            str(identity),
-            data.revision,
-            data.authority_epoch,
-            data.fingerprint,
-            data.policy,
-            data.decision,
-            data.evidence,
-        )
-
-    @router.put("/credentials")
-    async def put_credential(
-        request: Request, reference: str = Query(min_length=1, max_length=200, pattern=r"^[A-Za-z0-9_.:/-]+$")
-    ):
-        data = configuration_input(CredentialInput, await bounded_configuration(request, 266240))
-        await runtime(request).credentials.change(reference, data.value)
-        return {"saved": True}
-
-    @router.delete("/credentials")
-    async def delete_credential(
-        request: Request, reference: str = Query(min_length=1, max_length=200, pattern=r"^[A-Za-z0-9_.:/-]+$")
-    ):
-        await runtime(request).credentials.change(reference, None)
-        return {"deleted": True}
-
-    @router.get("/system/audit")
-    async def instance_audit(
-        request: Request,
-        cursor: str = Query(default="", max_length=1024),
-        limit: int = Query(default=100, ge=1, le=200),
-    ):
-        if "after" in request.query_params:
-            raise BusinessError("invalid_history_query", "Use a history cursor instead of after", status=422)
-        return await runtime(request).credentials.audit(cursor, limit)
 
     mount_feature_routes(router, feature_routes, runtime)
     app.include_router(router)

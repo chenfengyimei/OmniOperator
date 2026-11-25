@@ -8,14 +8,12 @@ import hashlib
 import os
 import secrets
 from collections.abc import Callable
-from dataclasses import asdict
 from pathlib import Path
 from typing import Any
 
 from omni.adapters.platform.runtime.permissions import private_path
 
 from ..adapters.http import HttpRuntime, create_app
-from ..adapters.log_query import LogQuery
 from ..application.android import AndroidPort
 from ..application.bilibili import BilibiliPort
 from ..application.mcp import MCPTransportPort
@@ -181,9 +179,6 @@ def http_app(
                     # Returned exactly once; never logged or persisted outside the control file.
                     return {"token": new_token, "expires_at": expires}
 
-            async def logs(query: LogQuery) -> Record:
-                return await instance.operations.logs(asdict(query))
-
             async def drain(value: Record) -> Record:
                 # RuntimeIdentityFiles 尚未纳入 strict；request_drain 返回排空回执，用局部 Any 桥接其未类型化签名。
                 identity_files: Any = instance.identity_files
@@ -209,13 +204,9 @@ def http_app(
                 authenticate=authenticate,
                 describe=instance.health,
                 close=close,
-                logs=logs,
+                observe=instance.operations.observe,
                 assets=web_assets(),
                 objects=instance.objects,
-                configurations=instance.configurations,
-                routing=instance.routing,
-                operations=instance.operations,
-                credentials=instance.credentials,
                 identity_proof=instance.identity_proof,
                 drain=drain if shutdown is not None else None,
                 token_sessions=token_sessions,

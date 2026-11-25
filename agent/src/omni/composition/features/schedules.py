@@ -9,19 +9,20 @@ from . import FeatureBinding, KernelFeatureContext
 
 
 async def install_schedules(context: KernelFeatureContext) -> FeatureBinding:
+    base = context.base
     service = SchedulingService(
-        context.database,
-        context.clock,
+        base.database,
+        base.clock,
         PinnedTimezones(),
         context.notify_run,
         context.cancel_run,
-        context.skill_platform,
-        redact=context.redact,
+        base.skill_platform,
+        redact=context.sink.redactor.text,
     )
-    context.lifetime.own("scheduler", 0, service.close, service.stop_accepting)
+    base.lifetime.own("scheduler", 0, service.close, service.stop_accepting)
     tools = (
-        (Capability(CRONJOB_MANAGE, CronjobCapabilities(service, context.clock), lambda: True),)
-        if context.default_tools
+        (Capability(CRONJOB_MANAGE, CronjobCapabilities(service, base.clock), lambda: True),)
+        if base.default_tools
         else ()
     )
     return FeatureBinding(service, tools, start=service.start)

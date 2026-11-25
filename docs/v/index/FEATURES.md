@@ -11,6 +11,7 @@
 | [Agent 运行内核](#feature-kernel) | V2 | 运行、对话、chat、agent、内核、安全接续、完成核验、能力注册、Everything is a Plugin、Hermes 对标 |
 | [提示词与上下文](#feature-context) | V2 | token、上下文、压缩、工具发现、上下文压缩 |
 | [模型与配置](#feature-models) | V2 | 模型、供应商、路由、配置、settings、备用模型、模型回退、模型提供者、模型传输 |
+| [凭据与授权核查](#feature-credentials) | V2 | 凭据、credential、授权代次、凭据撤权 |
 | [记忆与整理](#feature-memory) | V2 | 记忆、语义、检索 |
 | [回合后学习与反思](#feature-learning) | V2 | 学习、反思、候选、reflections |
 | [来源文档](#feature-documents) | V2 | 知识库、知识、文档 |
@@ -282,7 +283,7 @@ uv run --no-sync pytest -q -n 0 agent/tests/v2/integrations/test_v2_mcp.py agent
 
 **从这里读**
 
-- [agent/src/omni/adapters/http.py#create_app.turn](../../../agent/src/omni/adapters/http.py#L741)
+- [agent/src/omni/adapters/http.py#create_app.turn](../../../agent/src/omni/adapters/http.py#L541)
 
 **领域规则**
 
@@ -301,7 +302,7 @@ uv run --no-sync pytest -q -n 0 agent/tests/v2/integrations/test_v2_mcp.py agent
 
 **组装点**
 
-- [agent/src/omni/composition/instance.py#open_instance.application](../../../agent/src/omni/composition/instance.py#L539)
+- [agent/src/omni/composition/instance.py#open_instance.application](../../../agent/src/omni/composition/instance.py#L536)
 - [agent/src/omni/composition/capabilities.py#builtin_plugins](../../../agent/src/omni/composition/capabilities.py#L21)
 
 **界面**
@@ -348,7 +349,7 @@ uv run --no-sync pytest -q -n 0 agent/tests/v2/core/test_v2_kernel.py agent/test
 
 **从这里读**
 
-- [agent/src/omni/adapters/http.py#create_app.session_context_overview](../../../agent/src/omni/adapters/http.py#L882)
+- [agent/src/omni/adapters/http.py#create_app.session_context_overview](../../../agent/src/omni/adapters/http.py#L634)
 
 **领域规则**
 
@@ -365,7 +366,7 @@ uv run --no-sync pytest -q -n 0 agent/tests/v2/core/test_v2_kernel.py agent/test
 
 **组装点**
 
-- [agent/src/omni/composition/instance.py#open_instance](../../../agent/src/omni/composition/instance.py#L317)
+- [agent/src/omni/composition/instance.py#open_instance](../../../agent/src/omni/composition/instance.py#L315)
 
 **界面**
 
@@ -399,7 +400,7 @@ uv run --no-sync pytest -q -n 0 agent/tests/v2/core/test_v2_context.py agent/tes
 
 **从这里读**
 
-- [agent/src/omni/adapters/http.py#create_app.configuration_probe](../../../agent/src/omni/adapters/http.py#L617)
+- [agent/src/omni/adapters/http_routes/configurations.py#configurations_router.configuration_probe](../../../agent/src/omni/adapters/http_routes/configurations.py#L143)
 
 **领域规则**
 
@@ -420,7 +421,7 @@ uv run --no-sync pytest -q -n 0 agent/tests/v2/core/test_v2_context.py agent/tes
 **组装点**
 
 - [agent/src/omni/composition/model_providers.py#register_model_transport](../../../agent/src/omni/composition/model_providers.py#L22)
-- [agent/src/omni/composition/instance.py#open_instance.routing](../../../agent/src/omni/composition/instance.py#L437)
+- [agent/src/omni/composition/features/configurations.py#install_configurations](../../../agent/src/omni/composition/features/configurations.py#L8)
 
 **界面**
 
@@ -444,6 +445,46 @@ uv run --no-sync pytest -q -n 0 agent/tests/v2/core/test_v2_context.py agent/tes
 
 ```powershell
 uv run --no-sync pytest -q -n 0 agent/tests/v2/http/test_v2_configuration_http.py agent/tests/v2/core/test_v2_provider_plugins.py agent/tests/v2/ui/test_v2_models_ui.py
+```
+
+<a id="feature-credentials"></a>
+
+## 凭据与授权核查 (credentials · V2)
+
+登记和更新实例凭据，按授权代次核查活动。
+
+**从这里读**
+
+- [agent/src/omni/adapters/http_routes/credentials.py#credentials_router](../../../agent/src/omni/adapters/http_routes/credentials.py#L31)
+
+**应用服务**
+
+- [agent/src/omni/application/credentials.py](../../../agent/src/omni/application/credentials.py)
+
+**适配器与仓储**
+
+- [agent/src/omni/adapters/credentials.py](../../../agent/src/omni/adapters/credentials.py)
+- [agent/src/omni/adapters/native_credentials.py](../../../agent/src/omni/adapters/native_credentials.py)
+
+**组装点**
+
+- [agent/src/omni/composition/features/credentials.py#install_credentials](../../../agent/src/omni/composition/features/credentials.py#L8)
+
+**专项测试**
+
+- [agent/tests/v2/core/test_v2_credential_authority.py](../../../agent/tests/v2/core/test_v2_credential_authority.py)
+- [agent/tests/v2/core/test_v2_credentials.py](../../../agent/tests/v2/core/test_v2_credentials.py)
+
+**改动影响**　凭据修改影响模型、渠道和投递。撤权时须核对在途动作及未知结果。
+
+**相关功能**
+
+- 模型与配置 (models, V2)　配置模型档案、连接与路由，向运行内核提供模型调用。
+
+**专项命令**
+
+```powershell
+uv run --no-sync pytest -q -n 0 agent/tests/v2/core/test_v2_credential_authority.py agent/tests/v2/core/test_v2_credentials.py
 ```
 
 <a id="feature-memory"></a>
@@ -664,7 +705,7 @@ uv run --no-sync pytest -q -n 0 agent/tests/v2/core/test_v2_people.py agent/test
 
 **组装点**
 
-- [agent/src/omni/composition/instance.py#open_instance](../../../agent/src/omni/composition/instance.py#L317)
+- [agent/src/omni/composition/instance.py#open_instance](../../../agent/src/omni/composition/instance.py#L315)
 
 **合同与手册**
 
@@ -705,7 +746,7 @@ uv run --no-sync pytest -q -n 0 agent/tests/v2/core/test_v2_workers.py agent/tes
 
 **组装点**
 
-- [agent/src/omni/composition/instance.py#open_instance](../../../agent/src/omni/composition/instance.py#L317)
+- [agent/src/omni/composition/instance.py#open_instance](../../../agent/src/omni/composition/instance.py#L315)
 
 **专项测试**
 
@@ -730,7 +771,7 @@ uv run --no-sync pytest -q -n 0 agent/tests/v2/core/test_v2_browser_dialog.py ag
 
 **从这里读**
 
-- [agent/src/omni/adapters/http.py#create_app.upload_object](../../../agent/src/omni/adapters/http.py#L695)
+- [agent/src/omni/adapters/http.py#create_app.upload_object](../../../agent/src/omni/adapters/http.py#L495)
 
 **领域规则**
 
@@ -746,7 +787,7 @@ uv run --no-sync pytest -q -n 0 agent/tests/v2/core/test_v2_browser_dialog.py ag
 
 **组装点**
 
-- [agent/src/omni/composition/instance.py#open_instance.objects](../../../agent/src/omni/composition/instance.py#L408)
+- [agent/src/omni/composition/instance.py#open_instance.objects](../../../agent/src/omni/composition/instance.py#L406)
 
 **界面**
 
@@ -1074,7 +1115,7 @@ uv run --no-sync pytest -q -n 0 agent/tests/v2/http/test_v2_bilibili_http.py
 
 - [agent/tests/v2/core/test_v2_scheduling.py](../../../agent/tests/v2/core/test_v2_scheduling.py)
 - [agent/tests/v2/core/test_v2_scheduling_faults.py](../../../agent/tests/v2/core/test_v2_scheduling_faults.py)
-- [agent/tests/v2/core/test_v2_feature_plugins.py#test_scheduling_starts_after_kernel_recovery_and_is_reclaimed_on_failure](../../../agent/tests/v2/core/test_v2_feature_plugins.py#L268)
+- [agent/tests/v2/core/test_v2_feature_plugins.py#test_scheduling_starts_after_kernel_recovery_and_is_reclaimed_on_failure](../../../agent/tests/v2/core/test_v2_feature_plugins.py#L279)
 
 **改动影响**　变更影响时区计算、租约、重试及恢复。
 
@@ -1224,10 +1265,10 @@ uv run --no-sync pytest -q -n 0 agent/tests/v2/http/test_v2_terminals_http.py
 
 **从这里读**
 
-- [agent/src/omni/adapters/http.py#create_app.logs](../../../agent/src/omni/adapters/http.py#L983)
-- [agent/src/omni/adapters/http.py#create_app.owner_token_rotate](../../../agent/src/omni/adapters/http.py#L498)
-- [agent/src/omni/adapters/http.py#create_app.capabilities](../../../agent/src/omni/adapters/http.py#L459)
-- [agent/src/omni/adapters/http.py#create_app.audit](../../../agent/src/omni/adapters/http.py#L934)
+- [agent/src/omni/adapters/http_routes/operations.py#operations_router.logs](../../../agent/src/omni/adapters/http_routes/operations.py#L118)
+- [agent/src/omni/adapters/http.py#create_app.owner_token_rotate](../../../agent/src/omni/adapters/http.py#L457)
+- [agent/src/omni/adapters/http.py#create_app.capabilities](../../../agent/src/omni/adapters/http.py#L418)
+- [agent/src/omni/adapters/http_routes/operations.py#operations_router.audit](../../../agent/src/omni/adapters/http_routes/operations.py#L69)
 
 **领域规则**
 
@@ -1246,7 +1287,8 @@ uv run --no-sync pytest -q -n 0 agent/tests/v2/http/test_v2_terminals_http.py
 
 **组装点**
 
-- [agent/src/omni/composition/http.py#http_app](../../../agent/src/omni/composition/http.py#L51)
+- [agent/src/omni/composition/features/operations.py#install_operations](../../../agent/src/omni/composition/features/operations.py#L14)
+- [agent/src/omni/composition/http.py#http_app](../../../agent/src/omni/composition/http.py#L49)
 
 **界面**
 
@@ -1297,7 +1339,7 @@ uv run --no-sync pytest -q -n 0 agent/tests/v2/http/test_v2_operations_http.py a
 
 **组装点**
 
-- [agent/src/omni/composition/instance.py#open_instance.database](../../../agent/src/omni/composition/instance.py#L386)
+- [agent/src/omni/composition/instance.py#open_instance.database](../../../agent/src/omni/composition/instance.py#L384)
 
 **合同与手册**
 

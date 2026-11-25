@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`46682d8dd4f609bdd2cd3cf2bcf4b50394eea1e03644fc0fd3ef088f8f014715`。包含 65 个职责模块、907 个源码/界面文件。
+源码指纹：`d318b99b45e34913b0cf3fe55cc473fa53e172d2130af19b81ea2b1968929ef9`。包含 65 个职责模块、913 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -111,7 +111,7 @@
 | [agent/src/omni/application/bilibili.py](../../../agent/src/omni/application/bilibili.py) | V2 | 318 | Owner Bilibili queries and publication preparation; all sending remains in shared approvals/outbox. |
 | [agent/src/omni/application/capabilities.py](../../../agent/src/omni/application/capabilities.py) | V2 | 119 | Register capability providers and capture a deterministic per-run tool surface. |
 | [agent/src/omni/application/clarify.py](../../../agent/src/omni/application/clarify.py) | V2 | 42 | Owner-facing clarification use cases; the model-side wait lives in the engine run coroutine. |
-| [agent/src/omni/application/configuration.py](../../../agent/src/omni/application/configuration.py) | V2 | 185 | Owner configuration use cases; import only previews and never starts an adapter. |
+| [agent/src/omni/application/configuration.py](../../../agent/src/omni/application/configuration.py) | V2 | 193 | Owner configuration use cases; import only previews and never starts an adapter. |
 | [agent/src/omni/application/context.py](../../../agent/src/omni/application/context.py) | V2 | 333 | Token-aware bounded compression; external calls never hold a transaction. |
 | [agent/src/omni/application/credentials.py](../../../agent/src/omni/application/credentials.py) | V2 | 185 | Serialize audited owner credential changes; shield accepted mutations through caller cancellation. |
 | [agent/src/omni/application/cronjob.py](../../../agent/src/omni/application/cronjob.py) | V2 | 148 | Model-side scheduled-job capability; a thin adapter over the one scheduling service, no second kernel. |
@@ -189,12 +189,14 @@
 | [agent/src/omni/adapters/extensions/hosts.py](../../../agent/src/omni/adapters/extensions/hosts.py) | V2 | 208 | Bounded trusted Python worker ownership; no database, model, credential or arbitrary command access. |
 | [agent/src/omni/adapters/extensions/packages.py](../../../agent/src/omni/adapters/extensions/packages.py) | V2 | 570 | Bounded zero-execution package capture and immutable verified snapshots; never opens a database. |
 | [agent/src/omni/adapters/extensions/worker.py](../../../agent/src/omni/adapters/extensions/worker.py) | V2 | 326 | Static extension handshake and trusted Python invocation in an owned child; never opens the main database. |
-| [agent/src/omni/adapters/http.py](../../../agent/src/omni/adapters/http.py) | V2 | 1088 | Versioned HTTP contract for the V2 kernel; business access goes through use cases. |
+| [agent/src/omni/adapters/http.py](../../../agent/src/omni/adapters/http.py) | V2 | 707 | Versioned HTTP contract for the V2 kernel; business access goes through use cases. |
 | [agent/src/omni/adapters/http_events.py](../../../agent/src/omni/adapters/http_events.py) | V2 | 177 | Bounded authenticated history notifications over SSE; no event bodies, replay queue or database ownership. |
-| [agent/src/omni/adapters/http_routes/__init__.py](../../../agent/src/omni/adapters/http_routes/__init__.py) | V2 | 119 | Feature routers and bounded input for the authenticated V2 API. |
+| [agent/src/omni/adapters/http_routes/__init__.py](../../../agent/src/omni/adapters/http_routes/__init__.py) | V2 | 126 | Feature routers and bounded input for the authenticated V2 API. |
 | [agent/src/omni/adapters/http_routes/action_reviews.py](../../../agent/src/omni/adapters/http_routes/action_reviews.py) | V2 | 44 | Owner review for actions that require durable effect verification. |
 | [agent/src/omni/adapters/http_routes/android.py](../../../agent/src/omni/adapters/http_routes/android.py) | V2 | 128 | Owner Android grants, observations and approved actions. |
 | [agent/src/omni/adapters/http_routes/bilibili.py](../../../agent/src/omni/adapters/http_routes/bilibili.py) | V2 | 121 | Owner APIs for Bilibili profile revisions, reads and publication drafts. |
+| [agent/src/omni/adapters/http_routes/configurations.py](../../../agent/src/omni/adapters/http_routes/configurations.py) | V2 | 216 | Model and routing configuration, revisions, probes and Agent settings. |
+| [agent/src/omni/adapters/http_routes/credentials.py](../../../agent/src/omni/adapters/http_routes/credentials.py) | V2 | 95 | Owner credential registration, changes and authority reviews. |
 | [agent/src/omni/adapters/http_routes/deliveries.py](../../../agent/src/omni/adapters/http_routes/deliveries.py) | V2 | 116 | Owner delivery queues, approval, cancellation and unknown-effect review. |
 | [agent/src/omni/adapters/http_routes/desktop.py](../../../agent/src/omni/adapters/http_routes/desktop.py) | V2 | 108 | Owner desktop views, window sharing, control consent and approved actions. |
 | [agent/src/omni/adapters/http_routes/documents.py](../../../agent/src/omni/adapters/http_routes/documents.py) | V2 | 127 | Source document revisions, bounded indexing and search. |
@@ -204,6 +206,7 @@
 | [agent/src/omni/adapters/http_routes/mcp.py](../../../agent/src/omni/adapters/http_routes/mcp.py) | V2 | 131 | Owner operations to connect, authorize and inspect agent-scoped MCP providers. |
 | [agent/src/omni/adapters/http_routes/media.py](../../../agent/src/omni/adapters/http_routes/media.py) | V2 | 135 | Owner media sources, job receipts and processor diagnostics. |
 | [agent/src/omni/adapters/http_routes/memory.py](../../../agent/src/omni/adapters/http_routes/memory.py) | V2 | 134 | Owner memory search, organization and evidence-aware changes. |
+| [agent/src/omni/adapters/http_routes/operations.py](../../../agent/src/omni/adapters/http_routes/operations.py) | V2 | 141 | Read-only audit and diagnostic views, bounded debug controls and retention reports. |
 | [agent/src/omni/adapters/http_routes/people.py](../../../agent/src/omni/adapters/http_routes/people.py) | V2 | 152 | Person records, derived persona and associated revision history. |
 | [agent/src/omni/adapters/http_routes/qq.py](../../../agent/src/omni/adapters/http_routes/qq.py) | V2 | 66 | Owner APIs for QQ channel status and consenting peer bindings. |
 | [agent/src/omni/adapters/http_routes/schedules.py](../../../agent/src/omni/adapters/http_routes/schedules.py) | V2 | 109 | Owner APIs for schedule definitions, history and occurrence decisions. |
@@ -541,11 +544,13 @@
 | [agent/src/omni/composition/capabilities.py](../../../agent/src/omni/composition/capabilities.py) | V2 | 270 | Explicit builtin capability registration; capabilities never construct the kernel. |
 | [agent/src/omni/composition/channel_providers.py](../../../agent/src/omni/composition/channel_providers.py) | V2 | 57 | Bind channel drivers and own each transport shared by their services. |
 | [agent/src/omni/composition/cli.py](../../../agent/src/omni/composition/cli.py) | V2 | 1048 | V2 development entrypoint. Online commands use the authenticated HTTP facade. |
-| [agent/src/omni/composition/features/__init__.py](../../../agent/src/omni/composition/features/__init__.py) | V2 | 141 | Install trusted features and expose their services to the tools and HTTP host. |
-| [agent/src/omni/composition/features/action_reviews.py](../../../agent/src/omni/composition/features/action_reviews.py) | V2 | 14 | Bind review decisions to executor activity and the schedule notifier. |
+| [agent/src/omni/composition/features/__init__.py](../../../agent/src/omni/composition/features/__init__.py) | V2 | 149 | Install trusted features and expose their services to the tools and HTTP host. |
+| [agent/src/omni/composition/features/action_reviews.py](../../../agent/src/omni/composition/features/action_reviews.py) | V2 | 15 | Bind review decisions to executor activity and the schedule notifier. |
 | [agent/src/omni/composition/features/android.py](../../../agent/src/omni/composition/features/android.py) | V2 | 31 | Construct the Android feature and advertise its approved tool surface. |
 | [agent/src/omni/composition/features/bilibili.py](../../../agent/src/omni/composition/features/bilibili.py) | V2 | 14 | Bind Bilibili reads and publication drafts to the shared channel provider. |
-| [agent/src/omni/composition/features/catalog.py](../../../agent/src/omni/composition/features/catalog.py) | V2 | 118 | Declare bundled feature installers and their authenticated routers. |
+| [agent/src/omni/composition/features/catalog.py](../../../agent/src/omni/composition/features/catalog.py) | V2 | 153 | Declare bundled feature installers and their authenticated routers. |
+| [agent/src/omni/composition/features/configurations.py](../../../agent/src/omni/composition/features/configurations.py) | V2 | 10 | Register model and routing configuration views over the instance database. |
+| [agent/src/omni/composition/features/credentials.py](../../../agent/src/omni/composition/features/credentials.py) | V2 | 14 | Register owner credential changes with the delivery revocation callback. |
 | [agent/src/omni/composition/features/deliveries.py](../../../agent/src/omni/composition/features/deliveries.py) | V2 | 13 | Bind durable delivery to registered transports and the instance lifecycle. |
 | [agent/src/omni/composition/features/desktop.py](../../../agent/src/omni/composition/features/desktop.py) | V2 | 73 | Bind desktop views, consent and owner actions to the platform ports. |
 | [agent/src/omni/composition/features/documents.py](../../../agent/src/omni/composition/features/documents.py) | V2 | 14 | Bind source documents to local indexes and persona invalidation. |
@@ -555,14 +560,15 @@
 | [agent/src/omni/composition/features/mcp.py](../../../agent/src/omni/composition/features/mcp.py) | V2 | 55 | Bind MCP authorization, transport recovery and the per-run capability provider. |
 | [agent/src/omni/composition/features/media.py](../../../agent/src/omni/composition/features/media.py) | V2 | 55 | Mount media processing, including recovery of jobs from the previous process. |
 | [agent/src/omni/composition/features/memory.py](../../../agent/src/omni/composition/features/memory.py) | V2 | 16 | Install memory indexing and organization with scoped instance dependencies. |
+| [agent/src/omni/composition/features/operations.py](../../../agent/src/omni/composition/features/operations.py) | V2 | 90 | Bind diagnostics, debug maintenance and runtime health to an owned service. |
 | [agent/src/omni/composition/features/people.py](../../../agent/src/omni/composition/features/people.py) | V2 | 15 | Bind person records and derived persona text to instance-owned storage. |
-| [agent/src/omni/composition/features/qq.py](../../../agent/src/omni/composition/features/qq.py) | V2 | 12 | Bind the QQ listener to the run dispatcher and the shared OneBot provider. |
-| [agent/src/omni/composition/features/schedules.py](../../../agent/src/omni/composition/features/schedules.py) | V2 | 27 | Bind scheduling to run notifications, cancellation and late startup. |
+| [agent/src/omni/composition/features/qq.py](../../../agent/src/omni/composition/features/qq.py) | V2 | 13 | Bind the QQ listener to the run dispatcher and the shared OneBot provider. |
+| [agent/src/omni/composition/features/schedules.py](../../../agent/src/omni/composition/features/schedules.py) | V2 | 28 | Bind scheduling to run notifications, cancellation and late startup. |
 | [agent/src/omni/composition/features/skills.py](../../../agent/src/omni/composition/features/skills.py) | V2 | 20 | Bind the skills API, package storage and revision tools to one service. |
 | [agent/src/omni/composition/features/terminals.py](../../../agent/src/omni/composition/features/terminals.py) | V2 | 21 | Bind terminal sessions and their review service to the same platform port. |
 | [agent/src/omni/composition/features/vision.py](../../../agent/src/omni/composition/features/vision.py) | V2 | 28 | Install visual analysis over the registered model, media and image services. |
-| [agent/src/omni/composition/http.py](../../../agent/src/omni/composition/http.py) | V2 | 234 | HTTP composition and owner bootstrap; tokens never appear in diagnostic output. |
-| [agent/src/omni/composition/instance.py](../../../agent/src/omni/composition/instance.py) | V2 | 752 | Build one isolated instance; never imports or opens the V1 runtime. |
+| [agent/src/omni/composition/http.py](../../../agent/src/omni/composition/http.py) | V2 | 225 | HTTP composition and owner bootstrap; tokens never appear in diagnostic output. |
+| [agent/src/omni/composition/instance.py](../../../agent/src/omni/composition/instance.py) | V2 | 677 | Build one isolated instance; never imports or opens the V1 runtime. |
 | [agent/src/omni/composition/lifecycle.py](../../../agent/src/omni/composition/lifecycle.py) | V2 | 164 | Own startup rollback and one shared shutdown budget; never dispatches business work. |
 | [agent/src/omni/composition/model_providers.py](../../../agent/src/omni/composition/model_providers.py) | V2 | 37 | Bind model transport ports and their instance lifetime. |
 | [agent/src/omni/composition/platform_providers.py](../../../agent/src/omni/composition/platform_providers.py) | V2 | 77 | Select the host platform's desktop and terminal bindings at startup. |

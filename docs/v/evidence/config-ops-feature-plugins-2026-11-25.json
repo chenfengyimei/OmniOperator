@@ -1,0 +1,163 @@
+{
+  "date": "2026-11-25",
+  "platform": "Windows x64",
+  "source": {
+    "base_commit": "9e9fd9305a6becae56d0e02c42ce6c80da931553",
+    "working_tree": "V2 配置、凭据、系统运维及其所有者路由登记",
+    "affected_files_sha256_normalized_lf": {
+      "agent/src/omni/adapters/http.py": "a18dc09829e9d5a30688f791f97b51357db80762f4404c07f2b4e8a9f4151961",
+      "agent/src/omni/adapters/http_routes/__init__.py": "331ddcb88cb188130eee8307fe94a9469589e0e180562b8bdd13739bbce392ce",
+      "agent/src/omni/adapters/http_routes/configurations.py": "9608fbdbf6b515059e565ed60aa12f80e382fd6d4cf6739aa2fe0ffbbe789bd6",
+      "agent/src/omni/adapters/http_routes/credentials.py": "34ebea84c7ba75fc8c57fa3241e1269ce991b42365a5722d0c61f86a03c0d5d5",
+      "agent/src/omni/adapters/http_routes/operations.py": "94014d00c1d5ed79d9e51eadfec5533eb58e5a882ab03d73f1d7dd70245a8ce2",
+      "agent/src/omni/application/configuration.py": "a201af2452892fdb1153cdb206532e2e31b0a00eb3997b3cd529dddac35cdc99",
+      "agent/src/omni/composition/http.py": "7ec6fd978c49654fcf06ad007aa9e37e00a6bf3192935cd144691197f87466c8",
+      "agent/src/omni/composition/instance.py": "316f54fd2d712540f8017edda2054cee94b144f532922f0b6622e8f9661504f5",
+      "agent/src/omni/composition/features/__init__.py": "6336d2456bc93b0e8c17bc3a2fdc90c895832d2391e27a601fa3c420ce42caf8",
+      "agent/src/omni/composition/features/action_reviews.py": "a4ad80a71eb0b6cc75436ddc0c537c597c63c7b530b9603fa6872d020a213730",
+      "agent/src/omni/composition/features/catalog.py": "b9c36c00174840b9015bd2dc17b511f3dae68dec7409fb722104e06e1e4292cb",
+      "agent/src/omni/composition/features/configurations.py": "5d647f1d41e1bed8a11f24dbae57b46662cbcdaf4d80242315b8aa83aca562ed",
+      "agent/src/omni/composition/features/credentials.py": "796d2f88a254df49798db86524c43768d815ccfc78230e26cedd0c66dcfac153",
+      "agent/src/omni/composition/features/operations.py": "7a3becb0729fb4ce1951cf4a46198be276a43545fccacfc10e032efa3dd3accc",
+      "agent/src/omni/composition/features/qq.py": "2c261c119accbaea6ebb0e07acb5a12be9f25eb6a0c4aa0932d8158570822c78",
+      "agent/src/omni/composition/features/schedules.py": "3d31c3ac5b96416ec0b03f77a957e2fe7c2922eaa8703d5e4db2d8bc2664119a",
+      "agent/tests/v2/operations/test_v2_service_drain.py": "735b329a300c43b8ed2938fb25fd8355a9e99f0316ce586dc235de3c1c405c55",
+      "agent/tests/v2/core/test_v2_feature_plugins.py": "cd49f4da4b2463107a85e9259b0eea2e847a8fc3c8625d008353f51023336c06",
+      "agent/tests/test_feature_navigation.py": "1a26fc01f563eacb24e5fc2b906f4ccac9a2ce7b4175b820eb6854220da879be",
+      "agent/tests/v2/http/test_v2_operations_http.py": "3e5803c7cde4e1ae295dca740a467e799f1bdb981dfcb4d7337279bb1d5f3e85",
+      "docs/v/features.json": "afb768c2f517bb13427aa53dfaddaef21d0d5b78e97c06fd6738dd498a0fdcf1",
+      "pyrightconfig.strict.json": "7d316f147042cf69b983b2149debc5063d0aa29b74384c95abc61de767a6044a"
+    }
+  },
+  "offline_scoped_suites": [
+    {
+      "scope": "功能登记、FastAPI 路由形状、离线 HTTP 和服务身份",
+      "passed": 73,
+      "failed": 0,
+      "skipped": 0,
+      "junit_seconds": 40.954,
+      "modules": [
+        "test_feature_navigation",
+        "test_v2_architecture",
+        "test_v2_feature_plugins",
+        "test_v2_service_drain",
+        "test_v2_service_identity_http"
+      ],
+      "local_junit": "temp/build/plugin-architecture/config-ops-assembly.xml",
+      "sha256": "36f69a289873e019fd9993f2a110023ab6ae8cc2a7ee8a8db3179c82a884e4a4"
+    },
+    {
+      "scope": "配置修订、路由、模型流式调用和迁移",
+      "passed": 45,
+      "failed": 0,
+      "skipped": 0,
+      "junit_seconds": 104.742,
+      "modules": [
+        "test_v2_configuration",
+        "test_v2_configuration_faults",
+        "test_v2_configuration_http",
+        "test_v2_model_stream_http",
+        "test_v2_routing",
+        "test_v2_routing_http",
+        "test_v2_routing_migration"
+      ],
+      "local_junit": "temp/build/plugin-architecture/config-ops-configuration.xml",
+      "sha256": "0bbb8a5fe5dba06f0b30e5cb80b122d6f46c1549cb9d80107d2d5b817fdb9d5e"
+    },
+    {
+      "scope": "凭据授权代次、撤权、投递与所有者令牌",
+      "passed": 66,
+      "failed": 0,
+      "skipped": 0,
+      "junit_seconds": 158.924,
+      "modules": [
+        "test_v2_credential_authority",
+        "test_v2_credentials",
+        "test_v2_delivery_faults",
+        "test_v2_delivery_http",
+        "test_v2_native_credential_application",
+        "test_v2_owner_token"
+      ],
+      "local_junit": "temp/build/plugin-architecture/config-ops-authority.xml",
+      "sha256": "1e7c2ab82e2bfc942b933442cd1e670caecf2f6c116f3591871d0c9965bd2f0b"
+    },
+    {
+      "scope": "诊断、调试、审计、保留报告和 HTTP",
+      "passed": 51,
+      "failed": 0,
+      "skipped": 0,
+      "junit_seconds": 88.958,
+      "modules": [
+        "test_v2_audit_retention_http",
+        "test_v2_debug_sink",
+        "test_v2_debugging",
+        "test_v2_diagnostics",
+        "test_v2_event_retention_http",
+        "test_v2_history_http",
+        "test_v2_http",
+        "test_v2_operations",
+        "test_v2_operations_http"
+      ],
+      "local_junit": "temp/build/plugin-architecture/config-ops-diagnostics.xml",
+      "sha256": "f40c3181984a07526ff9468b1524f849d04ea3f6c1db9f4e3b770eaefd412f0d"
+    },
+    {
+      "scope": "模型、路由、令牌、审计和运行事件工作台",
+      "passed": 28,
+      "failed": 0,
+      "skipped": 0,
+      "junit_seconds": 157.621,
+      "modules": [
+        "test_v2_audit_retention_ui",
+        "test_v2_event_retention_ui",
+        "test_v2_models_ui",
+        "test_v2_owner_token_ui",
+        "test_v2_routing_ui"
+      ],
+      "local_junit": "temp/build/plugin-architecture/config-ops-workbench.xml",
+      "sha256": "d15b7f0fa73a9006e2db12fcdcf5d9b83f8e590e7e25aa3ec2eda0715eeec5c1"
+    }
+  ],
+  "scoped_distinct_passed": 263,
+  "skipped_cases": [],
+  "compatibility": {
+    "reference": "9e9fd9305a6becae56d0e02c42ce6c80da931553",
+    "same_contract": true,
+    "openapi_paths": 212,
+    "openapi_sha256": "409e49b84c389604ed8d2eab5074257e9552631ae27a277e248b3d71650ebd43",
+    "agent_tools": 40,
+    "agent_tools_sha256": "d6aca34350112ec76d56459a1a1c3ba8904da600a41708906b9bfa5b66f9eda8",
+    "owner_tools": 3,
+    "owner_tools_sha256": "174962d52c6eabdd125f46127ae5a3a14963df3f556972bce429be334b9df377",
+    "delivery_drivers": [
+      "bilibili",
+      "qq"
+    ],
+    "ordered_route_groups": {
+      "configurations": 11,
+      "routing": 2,
+      "settings": 3,
+      "credentials": 8,
+      "debug": 4,
+      "audit": 2,
+      "system": 4,
+      "retention": 5
+    }
+  },
+  "static_checks": {
+    "strict_files": 491,
+    "strict_errors": 0,
+    "strict_warnings": 0,
+    "ruff": "passed"
+  },
+  "full_offline": {
+    "covers_this_working_tree": false,
+    "previous_candidate": "5da6dce4",
+    "previous_candidate_passed": 8706
+  },
+  "verified_lifecycle_and_authority": [
+    "保留配置与探测的模型适配器及 token 估算。凭据变更使用已登记的投递取消回调。",
+    "实例级凭据、审计与诊断依然要求所有者鉴权。重复 HTTP 方法拒绝同形路径模板。",
+    "诊断观测、调试任务和资源释放通过同一已登记的运维实例。验证原有审计回执与状态字段。"
+  ]
+}

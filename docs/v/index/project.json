@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "46682d8dd4f609bdd2cd3cf2bcf4b50394eea1e03644fc0fd3ef088f8f014715",
+  "source_sha256": "d318b99b45e34913b0cf3fe55cc473fa53e172d2130af19b81ea2b1968929ef9",
   "modules": [
     {
       "id": "v2-domain",
@@ -178,7 +178,7 @@
         "agent/src/omni/application/vision_services.py",
         "agent/src/omni/application/visual_subagent.py"
       ],
-      "lines": 15022,
+      "lines": 15030,
       "dependencies": [
         "v2-domain"
       ]
@@ -219,6 +219,8 @@
         "agent/src/omni/adapters/http_routes/action_reviews.py",
         "agent/src/omni/adapters/http_routes/android.py",
         "agent/src/omni/adapters/http_routes/bilibili.py",
+        "agent/src/omni/adapters/http_routes/configurations.py",
+        "agent/src/omni/adapters/http_routes/credentials.py",
         "agent/src/omni/adapters/http_routes/deliveries.py",
         "agent/src/omni/adapters/http_routes/desktop.py",
         "agent/src/omni/adapters/http_routes/documents.py",
@@ -228,6 +230,7 @@
         "agent/src/omni/adapters/http_routes/mcp.py",
         "agent/src/omni/adapters/http_routes/media.py",
         "agent/src/omni/adapters/http_routes/memory.py",
+        "agent/src/omni/adapters/http_routes/operations.py",
         "agent/src/omni/adapters/http_routes/people.py",
         "agent/src/omni/adapters/http_routes/qq.py",
         "agent/src/omni/adapters/http_routes/schedules.py",
@@ -548,7 +551,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 73169,
+      "lines": 73247,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -580,6 +583,8 @@
         "agent/src/omni/composition/features/android.py",
         "agent/src/omni/composition/features/bilibili.py",
         "agent/src/omni/composition/features/catalog.py",
+        "agent/src/omni/composition/features/configurations.py",
+        "agent/src/omni/composition/features/credentials.py",
         "agent/src/omni/composition/features/deliveries.py",
         "agent/src/omni/composition/features/desktop.py",
         "agent/src/omni/composition/features/documents.py",
@@ -589,6 +594,7 @@
         "agent/src/omni/composition/features/mcp.py",
         "agent/src/omni/composition/features/media.py",
         "agent/src/omni/composition/features/memory.py",
+        "agent/src/omni/composition/features/operations.py",
         "agent/src/omni/composition/features/people.py",
         "agent/src/omni/composition/features/qq.py",
         "agent/src/omni/composition/features/schedules.py",
@@ -608,7 +614,7 @@
         "agent/src/omni/composition/service_runner.py",
         "agent/src/omni/composition/serving.py"
       ],
-      "lines": 4090,
+      "lines": 4166,
       "dependencies": [
         "v2-adapters",
         "v2-application",
@@ -4824,7 +4830,7 @@
       "module": "v2-adapters",
       "version": "V2",
       "python_module": "omni.adapters.http",
-      "lines": 1088,
+      "lines": 707,
       "imports": [
         "omni.adapters.diagnostics",
         "omni.adapters.http_events",
@@ -4838,7 +4844,6 @@
         "omni.adapters.http_routes.memory",
         "omni.adapters.http_routes.people",
         "omni.adapters.http_routes.qq",
-        "omni.adapters.log_query",
         "omni.application.action_review",
         "omni.application.background_review",
         "omni.application.configuration",
@@ -4874,18 +4879,53 @@
         "omni.domain.capabilities",
         "omni.domain.context",
         "omni.domain.contracts",
-        "omni.domain.objects",
-        "omni.domain.settings"
+        "omni.domain.objects"
       ],
       "symbols": [
         {
           "name": "HttpRuntime",
-          "line": 97,
+          "line": 95,
           "kind": "class"
         },
         {
+          "name": "HttpRuntime.configurations",
+          "line": 117,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "HttpRuntime.routing",
+          "line": 121,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "HttpRuntime.credentials",
+          "line": 126,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "HttpRuntime.operations",
+          "line": 130,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
           "name": "HttpRuntime.images",
-          "line": 123,
+          "line": 134,
           "kind": "function",
           "parameters": [
             "self"
@@ -4894,7 +4934,7 @@
         },
         {
           "name": "HttpRuntime.memory_semantics",
-          "line": 128,
+          "line": 139,
           "kind": "function",
           "parameters": [
             "self"
@@ -4903,7 +4943,7 @@
         },
         {
           "name": "HttpRuntime.memory_organization",
-          "line": 133,
+          "line": 144,
           "kind": "function",
           "parameters": [
             "self"
@@ -4912,7 +4952,7 @@
         },
         {
           "name": "HttpRuntime.background_review",
-          "line": 137,
+          "line": 148,
           "kind": "function",
           "parameters": [
             "self"
@@ -4921,7 +4961,7 @@
         },
         {
           "name": "HttpRuntime.reflections",
-          "line": 141,
+          "line": 152,
           "kind": "function",
           "parameters": [
             "self"
@@ -4930,7 +4970,7 @@
         },
         {
           "name": "HttpRuntime.maintenance",
-          "line": 145,
+          "line": 156,
           "kind": "function",
           "parameters": [
             "self"
@@ -4939,7 +4979,7 @@
         },
         {
           "name": "HttpRuntime.people",
-          "line": 149,
+          "line": 160,
           "kind": "function",
           "parameters": [
             "self"
@@ -4948,7 +4988,7 @@
         },
         {
           "name": "HttpRuntime.persona_growth",
-          "line": 153,
+          "line": 164,
           "kind": "function",
           "parameters": [
             "self"
@@ -4957,7 +4997,7 @@
         },
         {
           "name": "HttpRuntime.documents",
-          "line": 157,
+          "line": 168,
           "kind": "function",
           "parameters": [
             "self"
@@ -4966,7 +5006,7 @@
         },
         {
           "name": "HttpRuntime.deliveries",
-          "line": 161,
+          "line": 172,
           "kind": "function",
           "parameters": [
             "self"
@@ -4975,7 +5015,7 @@
         },
         {
           "name": "HttpRuntime.action_reviews",
-          "line": 165,
+          "line": 176,
           "kind": "function",
           "parameters": [
             "self"
@@ -4984,7 +5024,7 @@
         },
         {
           "name": "HttpRuntime.terminals",
-          "line": 169,
+          "line": 180,
           "kind": "function",
           "parameters": [
             "self"
@@ -4993,7 +5033,7 @@
         },
         {
           "name": "HttpRuntime.terminal_reviews",
-          "line": 173,
+          "line": 184,
           "kind": "function",
           "parameters": [
             "self"
@@ -5002,7 +5042,7 @@
         },
         {
           "name": "HttpRuntime.skills",
-          "line": 177,
+          "line": 188,
           "kind": "function",
           "parameters": [
             "self"
@@ -5011,7 +5051,7 @@
         },
         {
           "name": "HttpRuntime.extensions",
-          "line": 182,
+          "line": 193,
           "kind": "function",
           "parameters": [
             "self"
@@ -5020,7 +5060,7 @@
         },
         {
           "name": "HttpRuntime.mcp",
-          "line": 186,
+          "line": 197,
           "kind": "function",
           "parameters": [
             "self"
@@ -5029,7 +5069,7 @@
         },
         {
           "name": "HttpRuntime.desktop",
-          "line": 191,
+          "line": 202,
           "kind": "function",
           "parameters": [
             "self"
@@ -5038,7 +5078,7 @@
         },
         {
           "name": "HttpRuntime.desktop_portal",
-          "line": 195,
+          "line": 206,
           "kind": "function",
           "parameters": [
             "self"
@@ -5047,7 +5087,7 @@
         },
         {
           "name": "HttpRuntime.desktop_control",
-          "line": 199,
+          "line": 210,
           "kind": "function",
           "parameters": [
             "self"
@@ -5056,7 +5096,7 @@
         },
         {
           "name": "HttpRuntime.desktop_actions",
-          "line": 203,
+          "line": 214,
           "kind": "function",
           "parameters": [
             "self"
@@ -5065,87 +5105,42 @@
         },
         {
           "name": "AgentInput",
-          "line": 207,
+          "line": 218,
           "kind": "class"
         },
         {
           "name": "AgentRenameInput",
-          "line": 211,
+          "line": 222,
           "kind": "class"
         },
         {
           "name": "TurnInput",
-          "line": 215,
-          "kind": "class"
-        },
-        {
-          "name": "RoutingInput",
-          "line": 224,
-          "kind": "class"
-        },
-        {
-          "name": "SettingsInput",
-          "line": 229,
-          "kind": "class"
-        },
-        {
-          "name": "ConfigurationInput",
-          "line": 234,
-          "kind": "class"
-        },
-        {
-          "name": "ConfigurationEdit",
-          "line": 242,
-          "kind": "class"
-        },
-        {
-          "name": "DebugInput",
-          "line": 250,
+          "line": 226,
           "kind": "class"
         },
         {
           "name": "ApprovalInput",
-          "line": 254,
+          "line": 235,
           "kind": "class"
         },
         {
           "name": "ClarifyRespondInput",
-          "line": 259,
+          "line": 240,
           "kind": "class"
         },
         {
           "name": "ClarifyCancelInput",
-          "line": 265,
-          "kind": "class"
-        },
-        {
-          "name": "CredentialInput",
-          "line": 270,
-          "kind": "class"
-        },
-        {
-          "name": "CredentialRegistration",
-          "line": 274,
-          "kind": "class"
-        },
-        {
-          "name": "CredentialReview",
-          "line": 278,
+          "line": 246,
           "kind": "class"
         },
         {
           "name": "ObjectPinInput",
-          "line": 287,
-          "kind": "class"
-        },
-        {
-          "name": "RunPinInput",
-          "line": 292,
+          "line": 251,
           "kind": "class"
         },
         {
           "name": "create_app",
-          "line": 297,
+          "line": 256,
           "kind": "function",
           "parameters": [
             "factory",
@@ -5160,7 +5155,7 @@
         },
         {
           "name": "create_app.lifespan",
-          "line": 306,
+          "line": 265,
           "kind": "function",
           "parameters": [
             "app"
@@ -5171,7 +5166,7 @@
         },
         {
           "name": "create_app.runtime",
-          "line": 319,
+          "line": 278,
           "kind": "function",
           "parameters": [
             "request"
@@ -5182,7 +5177,7 @@
         },
         {
           "name": "create_app.authenticate",
-          "line": 322,
+          "line": 281,
           "kind": "function",
           "parameters": [
             "request"
@@ -5193,7 +5188,7 @@
         },
         {
           "name": "create_app.boundary",
-          "line": 328,
+          "line": 287,
           "kind": "function",
           "parameters": [
             "request",
@@ -5206,7 +5201,7 @@
         },
         {
           "name": "create_app.business_error",
-          "line": 358,
+          "line": 317,
           "kind": "function",
           "parameters": [
             "request",
@@ -5219,7 +5214,7 @@
         },
         {
           "name": "create_app.internal_error",
-          "line": 372,
+          "line": 331,
           "kind": "function",
           "parameters": [
             "request",
@@ -5232,14 +5227,14 @@
         },
         {
           "name": "create_app.live",
-          "line": 391,
+          "line": 350,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "create_app.ready",
-          "line": 395,
+          "line": 354,
           "kind": "function",
           "parameters": [
             "request"
@@ -5250,7 +5245,7 @@
         },
         {
           "name": "create_app.identity_proof",
-          "line": 400,
+          "line": 359,
           "kind": "function",
           "parameters": [
             "request",
@@ -5263,7 +5258,7 @@
         },
         {
           "name": "create_app.drain",
-          "line": 411,
+          "line": 370,
           "kind": "function",
           "parameters": [
             "request"
@@ -5274,7 +5269,7 @@
         },
         {
           "name": "create_app.oauth_callback",
-          "line": 424,
+          "line": 383,
           "kind": "function",
           "parameters": [
             "request",
@@ -5291,7 +5286,7 @@
         },
         {
           "name": "create_app.oauth_callback.page",
-          "line": 432,
+          "line": 391,
           "kind": "function",
           "parameters": [
             "message"
@@ -5302,7 +5297,7 @@
         },
         {
           "name": "create_app.version",
-          "line": 455,
+          "line": 414,
           "kind": "function",
           "parameters": [
             "request"
@@ -5313,7 +5308,7 @@
         },
         {
           "name": "create_app.capabilities",
-          "line": 459,
+          "line": 418,
           "kind": "function",
           "parameters": [
             "request"
@@ -5324,7 +5319,7 @@
         },
         {
           "name": "create_app.owner_token_local",
-          "line": 465,
+          "line": 424,
           "kind": "function",
           "parameters": [
             "request"
@@ -5335,7 +5330,7 @@
         },
         {
           "name": "create_app.owner_token_sessions",
-          "line": 491,
+          "line": 450,
           "kind": "function",
           "parameters": [
             "request"
@@ -5346,7 +5341,7 @@
         },
         {
           "name": "create_app.owner_token_rotate",
-          "line": 498,
+          "line": 457,
           "kind": "function",
           "parameters": [
             "request"
@@ -5357,7 +5352,7 @@
         },
         {
           "name": "create_app.agents",
-          "line": 505,
+          "line": 464,
           "kind": "function",
           "parameters": [
             "request"
@@ -5368,7 +5363,7 @@
         },
         {
           "name": "create_app.create_agent",
-          "line": 509,
+          "line": 468,
           "kind": "function",
           "parameters": [
             "request"
@@ -5379,7 +5374,7 @@
         },
         {
           "name": "create_app.get_agent",
-          "line": 514,
+          "line": 473,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -5392,7 +5387,7 @@
         },
         {
           "name": "create_app.rename_agent",
-          "line": 518,
+          "line": 477,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -5400,269 +5395,12 @@
           ],
           "annotations": {
             "agent_id": "uuid.UUID",
-            "request": "Request"
-          }
-        },
-        {
-          "name": "create_app.configurations",
-          "line": 523,
-          "kind": "function",
-          "parameters": [
-            "agent_id",
-            "request",
-            "kind",
-            "after",
-            "limit"
-          ],
-          "annotations": {
-            "agent_id": "uuid.UUID",
-            "request": "Request",
-            "kind": "Literal['model', 'channel', 'mcp', 'preset']",
-            "after": "uuid.UUID | None",
-            "limit": "int"
-          }
-        },
-        {
-          "name": "create_app.routing_service",
-          "line": 532,
-          "kind": "function",
-          "parameters": [
-            "request"
-          ],
-          "annotations": {
-            "request": "Request"
-          }
-        },
-        {
-          "name": "create_app.route_policy",
-          "line": 539,
-          "kind": "function",
-          "parameters": [
-            "agent_id",
-            "request"
-          ],
-          "annotations": {
-            "agent_id": "uuid.UUID",
-            "request": "Request"
-          }
-        },
-        {
-          "name": "create_app.save_route_policy",
-          "line": 543,
-          "kind": "function",
-          "parameters": [
-            "agent_id",
-            "data",
-            "request"
-          ],
-          "annotations": {
-            "agent_id": "uuid.UUID",
-            "data": "RoutingInput",
-            "request": "Request"
-          }
-        },
-        {
-          "name": "create_app.route_report",
-          "line": 547,
-          "kind": "function",
-          "parameters": [
-            "agent_id",
-            "run_id",
-            "request"
-          ],
-          "annotations": {
-            "agent_id": "uuid.UUID",
-            "run_id": "uuid.UUID",
-            "request": "Request"
-          }
-        },
-        {
-          "name": "create_app.create_configuration",
-          "line": 551,
-          "kind": "function",
-          "parameters": [
-            "agent_id",
-            "request"
-          ],
-          "annotations": {
-            "agent_id": "uuid.UUID",
-            "request": "Request"
-          }
-        },
-        {
-          "name": "create_app.configuration_template",
-          "line": 563,
-          "kind": "function",
-          "parameters": [
-            "agent_id",
-            "request",
-            "kind"
-          ],
-          "annotations": {
-            "agent_id": "uuid.UUID",
-            "request": "Request",
-            "kind": "Literal['model', 'channel', 'mcp', 'preset']"
-          }
-        },
-        {
-          "name": "create_app.preview_configuration",
-          "line": 570,
-          "kind": "function",
-          "parameters": [
-            "agent_id",
-            "request"
-          ],
-          "annotations": {
-            "agent_id": "uuid.UUID",
-            "request": "Request"
-          }
-        },
-        {
-          "name": "create_app.get_configuration",
-          "line": 575,
-          "kind": "function",
-          "parameters": [
-            "agent_id",
-            "config_id",
-            "request"
-          ],
-          "annotations": {
-            "agent_id": "uuid.UUID",
-            "config_id": "uuid.UUID",
-            "request": "Request"
-          }
-        },
-        {
-          "name": "create_app.save_configuration",
-          "line": 579,
-          "kind": "function",
-          "parameters": [
-            "agent_id",
-            "config_id",
-            "request"
-          ],
-          "annotations": {
-            "agent_id": "uuid.UUID",
-            "config_id": "uuid.UUID",
-            "request": "Request"
-          }
-        },
-        {
-          "name": "create_app.archive_configuration",
-          "line": 592,
-          "kind": "function",
-          "parameters": [
-            "agent_id",
-            "config_id",
-            "request",
-            "revision"
-          ],
-          "annotations": {
-            "agent_id": "uuid.UUID",
-            "config_id": "uuid.UUID",
-            "request": "Request",
-            "revision": "int"
-          }
-        },
-        {
-          "name": "create_app.configuration_history",
-          "line": 599,
-          "kind": "function",
-          "parameters": [
-            "agent_id",
-            "config_id",
-            "request",
-            "after",
-            "limit"
-          ],
-          "annotations": {
-            "agent_id": "uuid.UUID",
-            "config_id": "uuid.UUID",
-            "request": "Request",
-            "after": "int",
-            "limit": "int"
-          }
-        },
-        {
-          "name": "create_app.configuration_diagnosis",
-          "line": 609,
-          "kind": "function",
-          "parameters": [
-            "agent_id",
-            "config_id",
-            "request"
-          ],
-          "annotations": {
-            "agent_id": "uuid.UUID",
-            "config_id": "uuid.UUID",
-            "request": "Request"
-          }
-        },
-        {
-          "name": "create_app.apply_preset",
-          "line": 613,
-          "kind": "function",
-          "parameters": [
-            "agent_id",
-            "config_id",
-            "request"
-          ],
-          "annotations": {
-            "agent_id": "uuid.UUID",
-            "config_id": "uuid.UUID",
-            "request": "Request"
-          }
-        },
-        {
-          "name": "create_app.configuration_probe",
-          "line": 617,
-          "kind": "function",
-          "parameters": [
-            "agent_id",
-            "config_id",
-            "request"
-          ],
-          "annotations": {
-            "agent_id": "uuid.UUID",
-            "config_id": "uuid.UUID",
-            "request": "Request"
-          }
-        },
-        {
-          "name": "create_app.settings_history",
-          "line": 669,
-          "kind": "function",
-          "parameters": [
-            "agent_id",
-            "request",
-            "after",
-            "limit"
-          ],
-          "annotations": {
-            "agent_id": "uuid.UUID",
-            "request": "Request",
-            "after": "int",
-            "limit": "int"
-          }
-        },
-        {
-          "name": "create_app.run_configuration",
-          "line": 678,
-          "kind": "function",
-          "parameters": [
-            "agent_id",
-            "run_id",
-            "request"
-          ],
-          "annotations": {
-            "agent_id": "uuid.UUID",
-            "run_id": "uuid.UUID",
             "request": "Request"
           }
         },
         {
           "name": "create_app.run_context",
-          "line": 682,
+          "line": 482,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -5677,7 +5415,7 @@
         },
         {
           "name": "create_app.erase_message",
-          "line": 686,
+          "line": 486,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -5692,7 +5430,7 @@
         },
         {
           "name": "create_app.summary",
-          "line": 691,
+          "line": 491,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -5707,7 +5445,7 @@
         },
         {
           "name": "create_app.upload_object",
-          "line": 695,
+          "line": 495,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -5722,7 +5460,7 @@
         },
         {
           "name": "create_app.list_objects",
-          "line": 715,
+          "line": 515,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -5739,7 +5477,7 @@
         },
         {
           "name": "create_app.describe_object",
-          "line": 724,
+          "line": 524,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -5754,7 +5492,7 @@
         },
         {
           "name": "create_app.download_object",
-          "line": 728,
+          "line": 528,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -5769,7 +5507,7 @@
         },
         {
           "name": "create_app.pin_object",
-          "line": 737,
+          "line": 537,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -5786,7 +5524,7 @@
         },
         {
           "name": "create_app.turn",
-          "line": 741,
+          "line": 541,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -5801,7 +5539,7 @@
         },
         {
           "name": "create_app.sessions",
-          "line": 753,
+          "line": 553,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -5814,7 +5552,7 @@
         },
         {
           "name": "create_app.messages",
-          "line": 757,
+          "line": 557,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -5829,7 +5567,7 @@
         },
         {
           "name": "create_app.session_todos",
-          "line": 761,
+          "line": 561,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -5844,7 +5582,7 @@
         },
         {
           "name": "create_app.run_delegations",
-          "line": 765,
+          "line": 565,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -5859,7 +5597,7 @@
         },
         {
           "name": "create_app.runs",
-          "line": 769,
+          "line": 569,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -5872,75 +5610,7 @@
         },
         {
           "name": "create_app.run",
-          "line": 773,
-          "kind": "function",
-          "parameters": [
-            "agent_id",
-            "run_id",
-            "request"
-          ],
-          "annotations": {
-            "agent_id": "uuid.UUID",
-            "run_id": "uuid.UUID",
-            "request": "Request"
-          }
-        },
-        {
-          "name": "create_app.event_retention_preview",
-          "line": 777,
-          "kind": "function",
-          "parameters": [
-            "agent_id",
-            "request",
-            "cursor",
-            "limit",
-            "as_of"
-          ],
-          "annotations": {
-            "agent_id": "uuid.UUID",
-            "request": "Request",
-            "cursor": "str",
-            "limit": "int",
-            "as_of": "str"
-          }
-        },
-        {
-          "name": "create_app.audit_retention_preview",
-          "line": 793,
-          "kind": "function",
-          "parameters": [
-            "agent_id",
-            "request",
-            "cursor",
-            "limit",
-            "as_of"
-          ],
-          "annotations": {
-            "agent_id": "uuid.UUID",
-            "request": "Request",
-            "cursor": "str",
-            "limit": "int",
-            "as_of": "str"
-          }
-        },
-        {
-          "name": "create_app.run_retention",
-          "line": 807,
-          "kind": "function",
-          "parameters": [
-            "agent_id",
-            "run_id",
-            "request"
-          ],
-          "annotations": {
-            "agent_id": "uuid.UUID",
-            "run_id": "uuid.UUID",
-            "request": "Request"
-          }
-        },
-        {
-          "name": "create_app.run_retention_pin",
-          "line": 811,
+          "line": 573,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -5955,7 +5625,7 @@
         },
         {
           "name": "create_app.model_live_output",
-          "line": 816,
+          "line": 577,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -5970,7 +5640,7 @@
         },
         {
           "name": "create_app.event_stream",
-          "line": 820,
+          "line": 581,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -5987,7 +5657,7 @@
         },
         {
           "name": "create_app.event_stream.history",
-          "line": 832,
+          "line": 593,
           "kind": "function",
           "parameters": [
             "value"
@@ -5998,7 +5668,7 @@
         },
         {
           "name": "create_app.events",
-          "line": 846,
+          "line": 607,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -6017,7 +5687,7 @@
         },
         {
           "name": "create_app.cancel",
-          "line": 859,
+          "line": 620,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -6031,34 +5701,8 @@
           }
         },
         {
-          "name": "create_app.settings",
-          "line": 864,
-          "kind": "function",
-          "parameters": [
-            "agent_id",
-            "request"
-          ],
-          "annotations": {
-            "agent_id": "uuid.UUID",
-            "request": "Request"
-          }
-        },
-        {
-          "name": "create_app.save_settings",
-          "line": 868,
-          "kind": "function",
-          "parameters": [
-            "agent_id",
-            "request"
-          ],
-          "annotations": {
-            "agent_id": "uuid.UUID",
-            "request": "Request"
-          }
-        },
-        {
           "name": "create_app.context_constants",
-          "line": 873,
+          "line": 625,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -6071,7 +5715,7 @@
         },
         {
           "name": "create_app.session_context_overview",
-          "line": 882,
+          "line": 634,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -6086,7 +5730,7 @@
         },
         {
           "name": "create_app.approvals",
-          "line": 887,
+          "line": 639,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -6099,7 +5743,7 @@
         },
         {
           "name": "create_app.approve",
-          "line": 891,
+          "line": 643,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -6116,7 +5760,7 @@
         },
         {
           "name": "create_app.clarifications",
-          "line": 896,
+          "line": 648,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -6129,7 +5773,7 @@
         },
         {
           "name": "create_app.respond_clarify",
-          "line": 900,
+          "line": 652,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -6146,7 +5790,7 @@
         },
         {
           "name": "create_app.cancel_clarify",
-          "line": 909,
+          "line": 661,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -6163,7 +5807,7 @@
         },
         {
           "name": "create_app.session_captures",
-          "line": 918,
+          "line": 670,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -6182,7 +5826,7 @@
         },
         {
           "name": "create_app.release_capture",
-          "line": 930,
+          "line": 682,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -6198,259 +5842,8 @@
           }
         },
         {
-          "name": "create_app.audit",
-          "line": 934,
-          "kind": "function",
-          "parameters": [
-            "agent_id",
-            "request",
-            "cursor",
-            "limit"
-          ],
-          "annotations": {
-            "agent_id": "uuid.UUID",
-            "request": "Request",
-            "cursor": "str",
-            "limit": "int"
-          }
-        },
-        {
-          "name": "create_app.metrics",
-          "line": 945,
-          "kind": "function",
-          "parameters": [
-            "request"
-          ],
-          "annotations": {
-            "request": "Request"
-          }
-        },
-        {
-          "name": "create_app.debug_status",
-          "line": 949,
-          "kind": "function",
-          "parameters": [
-            "agent_id",
-            "request"
-          ],
-          "annotations": {
-            "agent_id": "uuid.UUID",
-            "request": "Request"
-          }
-        },
-        {
-          "name": "create_app.debug_start",
-          "line": 953,
-          "kind": "function",
-          "parameters": [
-            "agent_id",
-            "request"
-          ],
-          "annotations": {
-            "agent_id": "uuid.UUID",
-            "request": "Request"
-          }
-        },
-        {
-          "name": "create_app.debug_stop",
-          "line": 958,
-          "kind": "function",
-          "parameters": [
-            "agent_id",
-            "operation_id",
-            "request"
-          ],
-          "annotations": {
-            "agent_id": "uuid.UUID",
-            "operation_id": "uuid.UUID",
-            "request": "Request"
-          }
-        },
-        {
-          "name": "create_app.debug_logs",
-          "line": 962,
-          "kind": "function",
-          "parameters": [
-            "agent_id",
-            "operation_id",
-            "request",
-            "limit",
-            "cursor"
-          ],
-          "annotations": {
-            "agent_id": "uuid.UUID",
-            "operation_id": "uuid.UUID",
-            "request": "Request",
-            "limit": "int",
-            "cursor": "str"
-          }
-        },
-        {
-          "name": "create_app.diagnostic_bundle",
-          "line": 974,
-          "kind": "function",
-          "parameters": [
-            "request"
-          ],
-          "annotations": {
-            "request": "Request"
-          }
-        },
-        {
-          "name": "create_app.logs",
-          "line": 983,
-          "kind": "function",
-          "parameters": [
-            "request",
-            "limit",
-            "cursor",
-            "level",
-            "component",
-            "run_id",
-            "since",
-            "until"
-          ],
-          "annotations": {
-            "request": "Request",
-            "limit": "int",
-            "cursor": "str",
-            "level": "str",
-            "component": "str",
-            "run_id": "str",
-            "since": "str",
-            "until": "str"
-          }
-        },
-        {
-          "name": "create_app.credential_list",
-          "line": 996,
-          "kind": "function",
-          "parameters": [
-            "request",
-            "after",
-            "limit"
-          ],
-          "annotations": {
-            "request": "Request",
-            "after": "str",
-            "limit": "int"
-          }
-        },
-        {
-          "name": "create_app.credential_register",
-          "line": 1002,
-          "kind": "function",
-          "parameters": [
-            "request"
-          ],
-          "annotations": {
-            "request": "Request"
-          }
-        },
-        {
-          "name": "create_app.credential_get",
-          "line": 1007,
-          "kind": "function",
-          "parameters": [
-            "identity",
-            "request"
-          ],
-          "annotations": {
-            "identity": "uuid.UUID",
-            "request": "Request"
-          }
-        },
-        {
-          "name": "create_app.credential_operations",
-          "line": 1011,
-          "kind": "function",
-          "parameters": [
-            "identity",
-            "request",
-            "after",
-            "limit"
-          ],
-          "annotations": {
-            "identity": "uuid.UUID",
-            "request": "Request",
-            "after": "str",
-            "limit": "int"
-          }
-        },
-        {
-          "name": "create_app.credential_reviews",
-          "line": 1020,
-          "kind": "function",
-          "parameters": [
-            "identity",
-            "request",
-            "after",
-            "limit"
-          ],
-          "annotations": {
-            "identity": "uuid.UUID",
-            "request": "Request",
-            "after": "str",
-            "limit": "int"
-          }
-        },
-        {
-          "name": "create_app.credential_review",
-          "line": 1029,
-          "kind": "function",
-          "parameters": [
-            "identity",
-            "request"
-          ],
-          "annotations": {
-            "identity": "uuid.UUID",
-            "request": "Request"
-          }
-        },
-        {
-          "name": "create_app.put_credential",
-          "line": 1042,
-          "kind": "function",
-          "parameters": [
-            "request",
-            "reference"
-          ],
-          "annotations": {
-            "request": "Request",
-            "reference": "str"
-          }
-        },
-        {
-          "name": "create_app.delete_credential",
-          "line": 1050,
-          "kind": "function",
-          "parameters": [
-            "request",
-            "reference"
-          ],
-          "annotations": {
-            "request": "Request",
-            "reference": "str"
-          }
-        },
-        {
-          "name": "create_app.instance_audit",
-          "line": 1057,
-          "kind": "function",
-          "parameters": [
-            "request",
-            "cursor",
-            "limit"
-          ],
-          "annotations": {
-            "request": "Request",
-            "cursor": "str",
-            "limit": "int"
-          }
-        },
-        {
           "name": "create_app.index",
-          "line": 1070,
+          "line": 689,
           "kind": "function",
           "parameters": [
             "request"
@@ -6461,7 +5854,7 @@
         },
         {
           "name": "create_app.resource",
-          "line": 1075,
+          "line": 694,
           "kind": "function",
           "parameters": [
             "path",
@@ -6631,7 +6024,7 @@
       "module": "v2-adapters",
       "version": "V2",
       "python_module": "omni.adapters.http_routes",
-      "lines": 119,
+      "lines": 126,
       "imports": [
         "omni.adapters.http",
         "omni.application.ports",
@@ -6640,12 +6033,12 @@
       "symbols": [
         {
           "name": "StrictInput",
-          "line": 27,
+          "line": 28,
           "kind": "class"
         },
         {
           "name": "registered_service",
-          "line": 31,
+          "line": 32,
           "kind": "function",
           "parameters": [
             "services",
@@ -6660,12 +6053,12 @@
         },
         {
           "name": "FeatureRoutes",
-          "line": 39,
+          "line": 40,
           "kind": "class"
         },
         {
           "name": "FeatureRoutes.__post_init__",
-          "line": 44,
+          "line": 46,
           "kind": "function",
           "parameters": [
             "self"
@@ -6674,7 +6067,7 @@
         },
         {
           "name": "mount_feature_routes",
-          "line": 51,
+          "line": 53,
           "kind": "function",
           "parameters": [
             "router",
@@ -6688,8 +6081,19 @@
           }
         },
         {
+          "name": "mount_feature_routes.path_shape",
+          "line": 57,
+          "kind": "function",
+          "parameters": [
+            "path"
+          ],
+          "annotations": {
+            "path": "str"
+          }
+        },
+        {
           "name": "bounded_configuration",
-          "line": 83,
+          "line": 90,
           "kind": "function",
           "parameters": [
             "request",
@@ -6704,7 +6108,7 @@
         },
         {
           "name": "configuration_input",
-          "line": 113,
+          "line": 120,
           "kind": "function",
           "parameters": [
             "model",
@@ -7253,6 +6657,488 @@
         }
       ],
       "summary": "Owner APIs for Bilibili profile revisions, reads and publication drafts."
+    },
+    {
+      "path": "agent/src/omni/adapters/http_routes/configurations.py",
+      "module": "v2-adapters",
+      "version": "V2",
+      "python_module": "omni.adapters.http_routes.configurations",
+      "lines": 216,
+      "imports": [
+        "omni.adapters.http_routes",
+        "omni.application.ports",
+        "omni.application.routing",
+        "omni.domain.contracts",
+        "omni.domain.settings"
+      ],
+      "symbols": [
+        {
+          "name": "RoutingInput",
+          "line": 19,
+          "kind": "class"
+        },
+        {
+          "name": "SettingsInput",
+          "line": 24,
+          "kind": "class"
+        },
+        {
+          "name": "ConfigurationInput",
+          "line": 29,
+          "kind": "class"
+        },
+        {
+          "name": "ConfigurationEdit",
+          "line": 37,
+          "kind": "class"
+        },
+        {
+          "name": "configurations_router",
+          "line": 45,
+          "kind": "function",
+          "parameters": [
+            "runtime"
+          ],
+          "annotations": {
+            "runtime": "RuntimeLookup"
+          }
+        },
+        {
+          "name": "configurations_router.configurations",
+          "line": 49,
+          "kind": "function",
+          "parameters": [
+            "agent_id",
+            "request",
+            "kind",
+            "after",
+            "limit"
+          ],
+          "annotations": {
+            "agent_id": "uuid.UUID",
+            "request": "Request",
+            "kind": "Literal['model', 'channel', 'mcp', 'preset']",
+            "after": "uuid.UUID | None",
+            "limit": "int"
+          }
+        },
+        {
+          "name": "configurations_router.routing_service",
+          "line": 58,
+          "kind": "function",
+          "parameters": [
+            "request"
+          ],
+          "annotations": {
+            "request": "Request"
+          }
+        },
+        {
+          "name": "configurations_router.route_policy",
+          "line": 65,
+          "kind": "function",
+          "parameters": [
+            "agent_id",
+            "request"
+          ],
+          "annotations": {
+            "agent_id": "uuid.UUID",
+            "request": "Request"
+          }
+        },
+        {
+          "name": "configurations_router.save_route_policy",
+          "line": 69,
+          "kind": "function",
+          "parameters": [
+            "agent_id",
+            "data",
+            "request"
+          ],
+          "annotations": {
+            "agent_id": "uuid.UUID",
+            "data": "RoutingInput",
+            "request": "Request"
+          }
+        },
+        {
+          "name": "configurations_router.route_report",
+          "line": 73,
+          "kind": "function",
+          "parameters": [
+            "agent_id",
+            "run_id",
+            "request"
+          ],
+          "annotations": {
+            "agent_id": "uuid.UUID",
+            "run_id": "uuid.UUID",
+            "request": "Request"
+          }
+        },
+        {
+          "name": "configurations_router.create_configuration",
+          "line": 77,
+          "kind": "function",
+          "parameters": [
+            "agent_id",
+            "request"
+          ],
+          "annotations": {
+            "agent_id": "uuid.UUID",
+            "request": "Request"
+          }
+        },
+        {
+          "name": "configurations_router.configuration_template",
+          "line": 89,
+          "kind": "function",
+          "parameters": [
+            "agent_id",
+            "request",
+            "kind"
+          ],
+          "annotations": {
+            "agent_id": "uuid.UUID",
+            "request": "Request",
+            "kind": "Literal['model', 'channel', 'mcp', 'preset']"
+          }
+        },
+        {
+          "name": "configurations_router.preview_configuration",
+          "line": 96,
+          "kind": "function",
+          "parameters": [
+            "agent_id",
+            "request"
+          ],
+          "annotations": {
+            "agent_id": "uuid.UUID",
+            "request": "Request"
+          }
+        },
+        {
+          "name": "configurations_router.get_configuration",
+          "line": 101,
+          "kind": "function",
+          "parameters": [
+            "agent_id",
+            "config_id",
+            "request"
+          ],
+          "annotations": {
+            "agent_id": "uuid.UUID",
+            "config_id": "uuid.UUID",
+            "request": "Request"
+          }
+        },
+        {
+          "name": "configurations_router.save_configuration",
+          "line": 105,
+          "kind": "function",
+          "parameters": [
+            "agent_id",
+            "config_id",
+            "request"
+          ],
+          "annotations": {
+            "agent_id": "uuid.UUID",
+            "config_id": "uuid.UUID",
+            "request": "Request"
+          }
+        },
+        {
+          "name": "configurations_router.archive_configuration",
+          "line": 118,
+          "kind": "function",
+          "parameters": [
+            "agent_id",
+            "config_id",
+            "request",
+            "revision"
+          ],
+          "annotations": {
+            "agent_id": "uuid.UUID",
+            "config_id": "uuid.UUID",
+            "request": "Request",
+            "revision": "int"
+          }
+        },
+        {
+          "name": "configurations_router.configuration_history",
+          "line": 125,
+          "kind": "function",
+          "parameters": [
+            "agent_id",
+            "config_id",
+            "request",
+            "after",
+            "limit"
+          ],
+          "annotations": {
+            "agent_id": "uuid.UUID",
+            "config_id": "uuid.UUID",
+            "request": "Request",
+            "after": "int",
+            "limit": "int"
+          }
+        },
+        {
+          "name": "configurations_router.configuration_diagnosis",
+          "line": 135,
+          "kind": "function",
+          "parameters": [
+            "agent_id",
+            "config_id",
+            "request"
+          ],
+          "annotations": {
+            "agent_id": "uuid.UUID",
+            "config_id": "uuid.UUID",
+            "request": "Request"
+          }
+        },
+        {
+          "name": "configurations_router.apply_preset",
+          "line": 139,
+          "kind": "function",
+          "parameters": [
+            "agent_id",
+            "config_id",
+            "request"
+          ],
+          "annotations": {
+            "agent_id": "uuid.UUID",
+            "config_id": "uuid.UUID",
+            "request": "Request"
+          }
+        },
+        {
+          "name": "configurations_router.configuration_probe",
+          "line": 143,
+          "kind": "function",
+          "parameters": [
+            "agent_id",
+            "config_id",
+            "request"
+          ],
+          "annotations": {
+            "agent_id": "uuid.UUID",
+            "config_id": "uuid.UUID",
+            "request": "Request"
+          }
+        },
+        {
+          "name": "configurations_router.settings_history",
+          "line": 195,
+          "kind": "function",
+          "parameters": [
+            "agent_id",
+            "request",
+            "after",
+            "limit"
+          ],
+          "annotations": {
+            "agent_id": "uuid.UUID",
+            "request": "Request",
+            "after": "int",
+            "limit": "int"
+          }
+        },
+        {
+          "name": "configurations_router.run_configuration",
+          "line": 204,
+          "kind": "function",
+          "parameters": [
+            "agent_id",
+            "run_id",
+            "request"
+          ],
+          "annotations": {
+            "agent_id": "uuid.UUID",
+            "run_id": "uuid.UUID",
+            "request": "Request"
+          }
+        },
+        {
+          "name": "configurations_router.settings",
+          "line": 208,
+          "kind": "function",
+          "parameters": [
+            "agent_id",
+            "request"
+          ],
+          "annotations": {
+            "agent_id": "uuid.UUID",
+            "request": "Request"
+          }
+        },
+        {
+          "name": "configurations_router.save_settings",
+          "line": 212,
+          "kind": "function",
+          "parameters": [
+            "agent_id",
+            "request"
+          ],
+          "annotations": {
+            "agent_id": "uuid.UUID",
+            "request": "Request"
+          }
+        }
+      ],
+      "summary": "Model and routing configuration, revisions, probes and Agent settings."
+    },
+    {
+      "path": "agent/src/omni/adapters/http_routes/credentials.py",
+      "module": "v2-adapters",
+      "version": "V2",
+      "python_module": "omni.adapters.http_routes.credentials",
+      "lines": 95,
+      "imports": [
+        "omni.adapters.http_routes"
+      ],
+      "symbols": [
+        {
+          "name": "CredentialInput",
+          "line": 14,
+          "kind": "class"
+        },
+        {
+          "name": "CredentialRegistration",
+          "line": 18,
+          "kind": "class"
+        },
+        {
+          "name": "CredentialReview",
+          "line": 22,
+          "kind": "class"
+        },
+        {
+          "name": "credentials_router",
+          "line": 31,
+          "kind": "function",
+          "parameters": [
+            "runtime"
+          ],
+          "annotations": {
+            "runtime": "RuntimeLookup"
+          }
+        },
+        {
+          "name": "credentials_router.credential_list",
+          "line": 35,
+          "kind": "function",
+          "parameters": [
+            "request",
+            "after",
+            "limit"
+          ],
+          "annotations": {
+            "request": "Request",
+            "after": "str",
+            "limit": "int"
+          }
+        },
+        {
+          "name": "credentials_router.credential_register",
+          "line": 41,
+          "kind": "function",
+          "parameters": [
+            "request"
+          ],
+          "annotations": {
+            "request": "Request"
+          }
+        },
+        {
+          "name": "credentials_router.credential_get",
+          "line": 46,
+          "kind": "function",
+          "parameters": [
+            "identity",
+            "request"
+          ],
+          "annotations": {
+            "identity": "uuid.UUID",
+            "request": "Request"
+          }
+        },
+        {
+          "name": "credentials_router.credential_operations",
+          "line": 50,
+          "kind": "function",
+          "parameters": [
+            "identity",
+            "request",
+            "after",
+            "limit"
+          ],
+          "annotations": {
+            "identity": "uuid.UUID",
+            "request": "Request",
+            "after": "str",
+            "limit": "int"
+          }
+        },
+        {
+          "name": "credentials_router.credential_reviews",
+          "line": 59,
+          "kind": "function",
+          "parameters": [
+            "identity",
+            "request",
+            "after",
+            "limit"
+          ],
+          "annotations": {
+            "identity": "uuid.UUID",
+            "request": "Request",
+            "after": "str",
+            "limit": "int"
+          }
+        },
+        {
+          "name": "credentials_router.credential_review",
+          "line": 68,
+          "kind": "function",
+          "parameters": [
+            "identity",
+            "request"
+          ],
+          "annotations": {
+            "identity": "uuid.UUID",
+            "request": "Request"
+          }
+        },
+        {
+          "name": "credentials_router.put_credential",
+          "line": 81,
+          "kind": "function",
+          "parameters": [
+            "request",
+            "reference"
+          ],
+          "annotations": {
+            "request": "Request",
+            "reference": "str"
+          }
+        },
+        {
+          "name": "credentials_router.delete_credential",
+          "line": 89,
+          "kind": "function",
+          "parameters": [
+            "request",
+            "reference"
+          ],
+          "annotations": {
+            "request": "Request",
+            "reference": "str"
+          }
+        }
+      ],
+      "summary": "Owner credential registration, changes and authority reviews."
     },
     {
       "path": "agent/src/omni/adapters/http_routes/deliveries.py",
@@ -9091,6 +8977,249 @@
         }
       ],
       "summary": "Owner memory search, organization and evidence-aware changes."
+    },
+    {
+      "path": "agent/src/omni/adapters/http_routes/operations.py",
+      "module": "v2-adapters",
+      "version": "V2",
+      "python_module": "omni.adapters.http_routes.operations",
+      "lines": 141,
+      "imports": [
+        "omni.adapters.http_routes",
+        "omni.adapters.log_query",
+        "omni.domain.contracts"
+      ],
+      "symbols": [
+        {
+          "name": "DebugInput",
+          "line": 17,
+          "kind": "class"
+        },
+        {
+          "name": "RunPinInput",
+          "line": 21,
+          "kind": "class"
+        },
+        {
+          "name": "operations_router",
+          "line": 26,
+          "kind": "function",
+          "parameters": [
+            "runtime"
+          ],
+          "annotations": {
+            "runtime": "RuntimeLookup"
+          }
+        },
+        {
+          "name": "operations_router.event_retention_preview",
+          "line": 30,
+          "kind": "function",
+          "parameters": [
+            "agent_id",
+            "request",
+            "cursor",
+            "limit",
+            "as_of"
+          ],
+          "annotations": {
+            "agent_id": "uuid.UUID",
+            "request": "Request",
+            "cursor": "str",
+            "limit": "int",
+            "as_of": "str"
+          }
+        },
+        {
+          "name": "operations_router.audit_retention_preview",
+          "line": 46,
+          "kind": "function",
+          "parameters": [
+            "agent_id",
+            "request",
+            "cursor",
+            "limit",
+            "as_of"
+          ],
+          "annotations": {
+            "agent_id": "uuid.UUID",
+            "request": "Request",
+            "cursor": "str",
+            "limit": "int",
+            "as_of": "str"
+          }
+        },
+        {
+          "name": "operations_router.run_retention",
+          "line": 60,
+          "kind": "function",
+          "parameters": [
+            "agent_id",
+            "run_id",
+            "request"
+          ],
+          "annotations": {
+            "agent_id": "uuid.UUID",
+            "run_id": "uuid.UUID",
+            "request": "Request"
+          }
+        },
+        {
+          "name": "operations_router.run_retention_pin",
+          "line": 64,
+          "kind": "function",
+          "parameters": [
+            "agent_id",
+            "run_id",
+            "request"
+          ],
+          "annotations": {
+            "agent_id": "uuid.UUID",
+            "run_id": "uuid.UUID",
+            "request": "Request"
+          }
+        },
+        {
+          "name": "operations_router.audit",
+          "line": 69,
+          "kind": "function",
+          "parameters": [
+            "agent_id",
+            "request",
+            "cursor",
+            "limit"
+          ],
+          "annotations": {
+            "agent_id": "uuid.UUID",
+            "request": "Request",
+            "cursor": "str",
+            "limit": "int"
+          }
+        },
+        {
+          "name": "operations_router.metrics",
+          "line": 80,
+          "kind": "function",
+          "parameters": [
+            "request"
+          ],
+          "annotations": {
+            "request": "Request"
+          }
+        },
+        {
+          "name": "operations_router.debug_status",
+          "line": 84,
+          "kind": "function",
+          "parameters": [
+            "agent_id",
+            "request"
+          ],
+          "annotations": {
+            "agent_id": "uuid.UUID",
+            "request": "Request"
+          }
+        },
+        {
+          "name": "operations_router.debug_start",
+          "line": 88,
+          "kind": "function",
+          "parameters": [
+            "agent_id",
+            "request"
+          ],
+          "annotations": {
+            "agent_id": "uuid.UUID",
+            "request": "Request"
+          }
+        },
+        {
+          "name": "operations_router.debug_stop",
+          "line": 93,
+          "kind": "function",
+          "parameters": [
+            "agent_id",
+            "operation_id",
+            "request"
+          ],
+          "annotations": {
+            "agent_id": "uuid.UUID",
+            "operation_id": "uuid.UUID",
+            "request": "Request"
+          }
+        },
+        {
+          "name": "operations_router.debug_logs",
+          "line": 97,
+          "kind": "function",
+          "parameters": [
+            "agent_id",
+            "operation_id",
+            "request",
+            "limit",
+            "cursor"
+          ],
+          "annotations": {
+            "agent_id": "uuid.UUID",
+            "operation_id": "uuid.UUID",
+            "request": "Request",
+            "limit": "int",
+            "cursor": "str"
+          }
+        },
+        {
+          "name": "operations_router.diagnostic_bundle",
+          "line": 109,
+          "kind": "function",
+          "parameters": [
+            "request"
+          ],
+          "annotations": {
+            "request": "Request"
+          }
+        },
+        {
+          "name": "operations_router.logs",
+          "line": 118,
+          "kind": "function",
+          "parameters": [
+            "request",
+            "limit",
+            "cursor",
+            "level",
+            "component",
+            "run_id",
+            "since",
+            "until"
+          ],
+          "annotations": {
+            "request": "Request",
+            "limit": "int",
+            "cursor": "str",
+            "level": "str",
+            "component": "str",
+            "run_id": "str",
+            "since": "str",
+            "until": "str"
+          }
+        },
+        {
+          "name": "operations_router.instance_audit",
+          "line": 132,
+          "kind": "function",
+          "parameters": [
+            "request",
+            "cursor",
+            "limit"
+          ],
+          "annotations": {
+            "request": "Request",
+            "cursor": "str",
+            "limit": "int"
+          }
+        }
+      ],
+      "summary": "Read-only audit and diagnostic views, bounded debug controls and retention reports."
     },
     {
       "path": "agent/src/omni/adapters/http_routes/people.py",
@@ -50365,9 +50494,10 @@
       "module": "v2-application",
       "version": "V2",
       "python_module": "omni.application.configuration",
-      "lines": 185,
+      "lines": 193,
       "imports": [
         "omni.application.ports",
+        "omni.application.routing",
         "omni.domain.configuration",
         "omni.domain.contracts",
         "omni.domain.images"
@@ -50375,12 +50505,12 @@
       "symbols": [
         {
           "name": "ConfigurationService",
-          "line": 14,
+          "line": 16,
           "kind": "class"
         },
         {
           "name": "ConfigurationService.__init__",
-          "line": 15,
+          "line": 17,
           "kind": "function",
           "parameters": [
             "self",
@@ -50394,7 +50524,7 @@
         },
         {
           "name": "ConfigurationService.page",
-          "line": 18,
+          "line": 20,
           "kind": "function",
           "parameters": [
             "self",
@@ -50412,7 +50542,7 @@
         },
         {
           "name": "ConfigurationService.get",
-          "line": 22,
+          "line": 24,
           "kind": "function",
           "parameters": [
             "self",
@@ -50426,7 +50556,7 @@
         },
         {
           "name": "ConfigurationService.get.read",
-          "line": 23,
+          "line": 25,
           "kind": "function",
           "parameters": [
             "u"
@@ -50437,7 +50567,7 @@
         },
         {
           "name": "ConfigurationService.create",
-          "line": 31,
+          "line": 33,
           "kind": "function",
           "parameters": [
             "self",
@@ -50459,7 +50589,7 @@
         },
         {
           "name": "ConfigurationService.create.create",
-          "line": 40,
+          "line": 42,
           "kind": "function",
           "parameters": [
             "u"
@@ -50470,7 +50600,7 @@
         },
         {
           "name": "ConfigurationService.save",
-          "line": 52,
+          "line": 54,
           "kind": "function",
           "parameters": [
             "self",
@@ -50494,7 +50624,7 @@
         },
         {
           "name": "ConfigurationService.save.save",
-          "line": 62,
+          "line": 64,
           "kind": "function",
           "parameters": [
             "u"
@@ -50505,7 +50635,7 @@
         },
         {
           "name": "ConfigurationService.archive",
-          "line": 77,
+          "line": 79,
           "kind": "function",
           "parameters": [
             "self",
@@ -50521,7 +50651,7 @@
         },
         {
           "name": "ConfigurationService.history",
-          "line": 80,
+          "line": 82,
           "kind": "function",
           "parameters": [
             "self",
@@ -50539,7 +50669,7 @@
         },
         {
           "name": "ConfigurationService.history.read",
-          "line": 81,
+          "line": 83,
           "kind": "function",
           "parameters": [
             "u"
@@ -50550,7 +50680,7 @@
         },
         {
           "name": "ConfigurationService.settings_history",
-          "line": 91,
+          "line": 93,
           "kind": "function",
           "parameters": [
             "self",
@@ -50566,7 +50696,7 @@
         },
         {
           "name": "ConfigurationService.preset",
-          "line": 95,
+          "line": 97,
           "kind": "function",
           "parameters": [
             "self",
@@ -50580,7 +50710,7 @@
         },
         {
           "name": "ConfigurationService.template",
-          "line": 102,
+          "line": 104,
           "kind": "function",
           "parameters": [
             "kind"
@@ -50591,7 +50721,7 @@
         },
         {
           "name": "ConfigurationService.preview",
-          "line": 112,
+          "line": 114,
           "kind": "function",
           "parameters": [
             "document"
@@ -50602,7 +50732,7 @@
         },
         {
           "name": "ConfigurationService.diagnose",
-          "line": 137,
+          "line": 139,
           "kind": "function",
           "parameters": [
             "self",
@@ -50613,6 +50743,11 @@
             "agent_id": "str",
             "identity": "str"
           }
+        },
+        {
+          "name": "ConfigurationServices",
+          "line": 191,
+          "kind": "class"
         }
       ],
       "summary": "Owner configuration use cases; import only previews and never starts an adapter."
@@ -77369,8 +77504,9 @@
       "module": "v2-composition",
       "version": "V2",
       "python_module": "omni.composition.features",
-      "lines": 141,
+      "lines": 149,
       "imports": [
+        "omni.adapters.diagnostics",
         "omni.adapters.http_routes",
         "omni.adapters.platform.runtime.paths",
         "omni.application.android",
@@ -77390,12 +77526,12 @@
       "symbols": [
         {
           "name": "FeatureContext",
-          "line": 33,
+          "line": 44,
           "kind": "class"
         },
         {
           "name": "FeatureContext.home",
-          "line": 57,
+          "line": 69,
           "kind": "function",
           "parameters": [
             "self"
@@ -77404,7 +77540,7 @@
         },
         {
           "name": "FeatureContext.control",
-          "line": 61,
+          "line": 73,
           "kind": "function",
           "parameters": [
             "self"
@@ -77413,32 +77549,32 @@
         },
         {
           "name": "KernelFeatureContext",
-          "line": 66,
+          "line": 78,
           "kind": "class"
         },
         {
           "name": "WorkflowFeatureContext",
-          "line": 81,
-          "kind": "class"
-        },
-        {
-          "name": "FeatureBinding",
           "line": 89,
           "kind": "class"
         },
         {
+          "name": "FeatureBinding",
+          "line": 97,
+          "kind": "class"
+        },
+        {
           "name": "FeaturePlugin",
-          "line": 98,
+          "line": 106,
           "kind": "class"
         },
         {
           "name": "InstalledFeatures",
-          "line": 103,
+          "line": 111,
           "kind": "class"
         },
         {
           "name": "InstalledFeatures.require",
-          "line": 109,
+          "line": 117,
           "kind": "function",
           "parameters": [
             "self",
@@ -77452,7 +77588,7 @@
         },
         {
           "name": "InstalledFeatures.start",
-          "line": 112,
+          "line": 120,
           "kind": "function",
           "parameters": [
             "self"
@@ -77461,7 +77597,7 @@
         },
         {
           "name": "require_service",
-          "line": 119,
+          "line": 127,
           "kind": "function",
           "parameters": [
             "services",
@@ -77476,7 +77612,7 @@
         },
         {
           "name": "install_features",
-          "line": 126,
+          "line": 134,
           "kind": "function",
           "parameters": [
             "plugins",
@@ -77497,7 +77633,7 @@
       "module": "v2-composition",
       "version": "V2",
       "python_module": "omni.composition.features.action_reviews",
-      "lines": 14,
+      "lines": 15,
       "imports": [
         "omni.application.action_review",
         "omni.application.scheduling",
@@ -77577,11 +77713,13 @@
       "module": "v2-composition",
       "version": "V2",
       "python_module": "omni.composition.features.catalog",
-      "lines": 118,
+      "lines": 153,
       "imports": [
         "omni.adapters.http_routes.action_reviews",
         "omni.adapters.http_routes.android",
         "omni.adapters.http_routes.bilibili",
+        "omni.adapters.http_routes.configurations",
+        "omni.adapters.http_routes.credentials",
         "omni.adapters.http_routes.deliveries",
         "omni.adapters.http_routes.desktop",
         "omni.adapters.http_routes.documents",
@@ -77591,6 +77729,7 @@
         "omni.adapters.http_routes.mcp",
         "omni.adapters.http_routes.media",
         "omni.adapters.http_routes.memory",
+        "omni.adapters.http_routes.operations",
         "omni.adapters.http_routes.people",
         "omni.adapters.http_routes.qq",
         "omni.adapters.http_routes.schedules",
@@ -77601,6 +77740,8 @@
         "omni.composition.features.action_reviews",
         "omni.composition.features.android",
         "omni.composition.features.bilibili",
+        "omni.composition.features.configurations",
+        "omni.composition.features.credentials",
         "omni.composition.features.deliveries",
         "omni.composition.features.desktop",
         "omni.composition.features.documents",
@@ -77610,6 +77751,7 @@
         "omni.composition.features.mcp",
         "omni.composition.features.media",
         "omni.composition.features.memory",
+        "omni.composition.features.operations",
         "omni.composition.features.people",
         "omni.composition.features.qq",
         "omni.composition.features.schedules",
@@ -77619,6 +77761,58 @@
       ],
       "symbols": [],
       "summary": "Declare bundled feature installers and their authenticated routers."
+    },
+    {
+      "path": "agent/src/omni/composition/features/configurations.py",
+      "module": "v2-composition",
+      "version": "V2",
+      "python_module": "omni.composition.features.configurations",
+      "lines": 10,
+      "imports": [
+        "omni.application.configuration",
+        "omni.application.routing",
+        "omni.composition.features"
+      ],
+      "symbols": [
+        {
+          "name": "install_configurations",
+          "line": 8,
+          "kind": "function",
+          "parameters": [
+            "context"
+          ],
+          "annotations": {
+            "context": "FeatureContext"
+          }
+        }
+      ],
+      "summary": "Register model and routing configuration views over the instance database."
+    },
+    {
+      "path": "agent/src/omni/composition/features/credentials.py",
+      "module": "v2-composition",
+      "version": "V2",
+      "python_module": "omni.composition.features.credentials",
+      "lines": 14,
+      "imports": [
+        "omni.application.credentials",
+        "omni.application.delivery",
+        "omni.composition.features"
+      ],
+      "symbols": [
+        {
+          "name": "install_credentials",
+          "line": 8,
+          "kind": "function",
+          "parameters": [
+            "context"
+          ],
+          "annotations": {
+            "context": "FeatureContext"
+          }
+        }
+      ],
+      "summary": "Register owner credential changes with the delivery revocation callback."
     },
     {
       "path": "agent/src/omni/composition/features/deliveries.py",
@@ -77905,6 +78099,45 @@
       "summary": "Install memory indexing and organization with scoped instance dependencies."
     },
     {
+      "path": "agent/src/omni/composition/features/operations.py",
+      "module": "v2-composition",
+      "version": "V2",
+      "python_module": "omni.composition.features.operations",
+      "lines": 90,
+      "imports": [
+        "omni.adapters.diagnostic_bundle",
+        "omni.application.debugging",
+        "omni.application.operations",
+        "omni.application.ports",
+        "omni.composition.features"
+      ],
+      "symbols": [
+        {
+          "name": "install_operations",
+          "line": 14,
+          "kind": "function",
+          "parameters": [
+            "context"
+          ],
+          "annotations": {
+            "context": "KernelFeatureContext"
+          }
+        },
+        {
+          "name": "operational_health",
+          "line": 31,
+          "kind": "function",
+          "parameters": [
+            "health"
+          ],
+          "annotations": {
+            "health": "Record"
+          }
+        }
+      ],
+      "summary": "Bind diagnostics, debug maintenance and runtime health to an owned service."
+    },
+    {
       "path": "agent/src/omni/composition/features/people.py",
       "module": "v2-composition",
       "version": "V2",
@@ -77936,7 +78169,7 @@
       "module": "v2-composition",
       "version": "V2",
       "python_module": "omni.composition.features.qq",
-      "lines": 12,
+      "lines": 13,
       "imports": [
         "omni.application.qq",
         "omni.composition.features"
@@ -77961,7 +78194,7 @@
       "module": "v2-composition",
       "version": "V2",
       "python_module": "omni.composition.features.schedules",
-      "lines": 27,
+      "lines": 28,
       "imports": [
         "omni.adapters.timezones",
         "omni.application.capabilities",
@@ -78074,10 +78307,9 @@
       "module": "v2-composition",
       "version": "V2",
       "python_module": "omni.composition.http",
-      "lines": 234,
+      "lines": 225,
       "imports": [
         "omni.adapters.http",
-        "omni.adapters.log_query",
         "omni.adapters.platform.runtime.permissions",
         "omni.application.android",
         "omni.application.bilibili",
@@ -78093,14 +78325,14 @@
       "symbols": [
         {
           "name": "web_assets",
-          "line": 43,
+          "line": 41,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "http_app",
-          "line": 51,
+          "line": 49,
           "kind": "function",
           "parameters": [
             "home",
@@ -78159,7 +78391,7 @@
         },
         {
           "name": "http_app.factory",
-          "line": 79,
+          "line": 77,
           "kind": "function",
           "parameters": [],
           "annotations": {}
@@ -78172,11 +78404,10 @@
       "module": "v2-composition",
       "version": "V2",
       "python_module": "omni.composition.instance",
-      "lines": 752,
+      "lines": 677,
       "imports": [
         "omni.adapters.build_identity",
         "omni.adapters.credentials",
-        "omni.adapters.diagnostic_bundle",
         "omni.adapters.diagnostics",
         "omni.adapters.images",
         "omni.adapters.local_vectors",
@@ -78202,7 +78433,6 @@
         "omni.application.configuration",
         "omni.application.context",
         "omni.application.credentials",
-        "omni.application.debugging",
         "omni.application.delivery",
         "omni.application.desktop",
         "omni.application.desktop_actions",
@@ -78251,12 +78481,12 @@
       "symbols": [
         {
           "name": "SpanMeasurement",
-          "line": 112,
+          "line": 110,
           "kind": "class"
         },
         {
           "name": "SpanMeasurement.result",
-          "line": 117,
+          "line": 115,
           "kind": "function",
           "parameters": [
             "self",
@@ -78268,12 +78498,12 @@
         },
         {
           "name": "Observation",
-          "line": 122,
+          "line": 120,
           "kind": "class"
         },
         {
           "name": "Observation.__init__",
-          "line": 123,
+          "line": 121,
           "kind": "function",
           "parameters": [
             "self",
@@ -78287,7 +78517,7 @@
         },
         {
           "name": "Observation.context",
-          "line": 129,
+          "line": 127,
           "kind": "function",
           "parameters": [
             "self",
@@ -78297,7 +78527,7 @@
         },
         {
           "name": "Observation.span",
-          "line": 134,
+          "line": 132,
           "kind": "function",
           "parameters": [
             "self",
@@ -78309,7 +78539,7 @@
         },
         {
           "name": "_record",
-          "line": 176,
+          "line": 174,
           "kind": "function",
           "parameters": [
             "value"
@@ -78320,12 +78550,12 @@
         },
         {
           "name": "Instance",
-          "line": 182,
+          "line": 180,
           "kind": "class"
         },
         {
           "name": "Instance.database",
-          "line": 187,
+          "line": 185,
           "kind": "function",
           "parameters": [
             "self"
@@ -78334,7 +78564,7 @@
         },
         {
           "name": "Instance.logging",
-          "line": 192,
+          "line": 190,
           "kind": "function",
           "parameters": [
             "self"
@@ -78343,7 +78573,7 @@
         },
         {
           "name": "Instance.identity_files",
-          "line": 197,
+          "line": 195,
           "kind": "function",
           "parameters": [
             "self"
@@ -78352,7 +78582,7 @@
         },
         {
           "name": "Instance.lifetime",
-          "line": 202,
+          "line": 200,
           "kind": "function",
           "parameters": [
             "self"
@@ -78361,7 +78591,7 @@
         },
         {
           "name": "Instance.identity_proof",
-          "line": 253,
+          "line": 251,
           "kind": "function",
           "parameters": [
             "self",
@@ -78373,7 +78603,7 @@
         },
         {
           "name": "Instance.health",
-          "line": 256,
+          "line": 254,
           "kind": "function",
           "parameters": [
             "self"
@@ -78382,7 +78612,7 @@
         },
         {
           "name": "Instance.close",
-          "line": 311,
+          "line": 309,
           "kind": "function",
           "parameters": [
             "self",
@@ -78394,7 +78624,7 @@
         },
         {
           "name": "open_instance",
-          "line": 317,
+          "line": 315,
           "kind": "function",
           "parameters": [
             "home",
@@ -119829,7 +120059,7 @@
       "method": "GET",
       "path": "/",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 1070,
+      "line": 689,
       "handler": "create_app.index",
       "module": "v2-adapters",
       "parameters": [
@@ -119844,7 +120074,7 @@
       "method": "GET",
       "path": "/api/v1/agents",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 505,
+      "line": 464,
       "handler": "create_app.agents",
       "module": "v2-adapters",
       "parameters": [
@@ -119859,7 +120089,7 @@
       "method": "POST",
       "path": "/api/v1/agents",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 509,
+      "line": 468,
       "handler": "create_app.create_agent",
       "module": "v2-adapters",
       "parameters": [
@@ -119874,7 +120104,7 @@
       "method": "GET",
       "path": "/api/v1/agents/{agent_id}",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 514,
+      "line": 473,
       "handler": "create_app.get_agent",
       "module": "v2-adapters",
       "parameters": [
@@ -119891,7 +120121,7 @@
       "method": "PUT",
       "path": "/api/v1/agents/{agent_id}",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 518,
+      "line": 477,
       "handler": "create_app.rename_agent",
       "module": "v2-adapters",
       "parameters": [
@@ -120275,7 +120505,7 @@
       "method": "GET",
       "path": "/api/v1/agents/{agent_id}/approvals",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 887,
+      "line": 639,
       "handler": "create_app.approvals",
       "module": "v2-adapters",
       "parameters": [
@@ -120292,7 +120522,7 @@
       "method": "POST",
       "path": "/api/v1/agents/{agent_id}/approvals/{approval_id}",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 891,
+      "line": 643,
       "handler": "create_app.approve",
       "module": "v2-adapters",
       "parameters": [
@@ -120312,9 +120542,9 @@
     {
       "method": "GET",
       "path": "/api/v1/agents/{agent_id}/audit",
-      "source": "agent/src/omni/adapters/http.py",
-      "line": 934,
-      "handler": "create_app.audit",
+      "source": "agent/src/omni/adapters/http_routes/operations.py",
+      "line": 69,
+      "handler": "operations_router.audit",
       "module": "v2-adapters",
       "parameters": [
         "agent_id",
@@ -120333,9 +120563,9 @@
     {
       "method": "GET",
       "path": "/api/v1/agents/{agent_id}/audit/retention-preview",
-      "source": "agent/src/omni/adapters/http.py",
-      "line": 793,
-      "handler": "create_app.audit_retention_preview",
+      "source": "agent/src/omni/adapters/http_routes/operations.py",
+      "line": 46,
+      "handler": "operations_router.audit_retention_preview",
       "module": "v2-adapters",
       "parameters": [
         "agent_id",
@@ -120507,7 +120737,7 @@
       "method": "GET",
       "path": "/api/v1/agents/{agent_id}/clarifications",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 896,
+      "line": 648,
       "handler": "create_app.clarifications",
       "module": "v2-adapters",
       "parameters": [
@@ -120524,7 +120754,7 @@
       "method": "POST",
       "path": "/api/v1/agents/{agent_id}/clarifications/{clarification_id}/cancel",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 909,
+      "line": 661,
       "handler": "create_app.cancel_clarify",
       "module": "v2-adapters",
       "parameters": [
@@ -120545,7 +120775,7 @@
       "method": "POST",
       "path": "/api/v1/agents/{agent_id}/clarifications/{clarification_id}/respond",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 900,
+      "line": 652,
       "handler": "create_app.respond_clarify",
       "module": "v2-adapters",
       "parameters": [
@@ -120565,9 +120795,9 @@
     {
       "method": "GET",
       "path": "/api/v1/agents/{agent_id}/configurations",
-      "source": "agent/src/omni/adapters/http.py",
-      "line": 523,
-      "handler": "create_app.configurations",
+      "source": "agent/src/omni/adapters/http_routes/configurations.py",
+      "line": 49,
+      "handler": "configurations_router.configurations",
       "module": "v2-adapters",
       "parameters": [
         "agent_id",
@@ -120588,9 +120818,9 @@
     {
       "method": "POST",
       "path": "/api/v1/agents/{agent_id}/configurations",
-      "source": "agent/src/omni/adapters/http.py",
-      "line": 551,
-      "handler": "create_app.create_configuration",
+      "source": "agent/src/omni/adapters/http_routes/configurations.py",
+      "line": 77,
+      "handler": "configurations_router.create_configuration",
       "module": "v2-adapters",
       "parameters": [
         "agent_id",
@@ -120605,9 +120835,9 @@
     {
       "method": "POST",
       "path": "/api/v1/agents/{agent_id}/configurations/preview",
-      "source": "agent/src/omni/adapters/http.py",
-      "line": 570,
-      "handler": "create_app.preview_configuration",
+      "source": "agent/src/omni/adapters/http_routes/configurations.py",
+      "line": 96,
+      "handler": "configurations_router.preview_configuration",
       "module": "v2-adapters",
       "parameters": [
         "agent_id",
@@ -120622,9 +120852,9 @@
     {
       "method": "GET",
       "path": "/api/v1/agents/{agent_id}/configurations/template",
-      "source": "agent/src/omni/adapters/http.py",
-      "line": 563,
-      "handler": "create_app.configuration_template",
+      "source": "agent/src/omni/adapters/http_routes/configurations.py",
+      "line": 89,
+      "handler": "configurations_router.configuration_template",
       "module": "v2-adapters",
       "parameters": [
         "agent_id",
@@ -120641,9 +120871,9 @@
     {
       "method": "DELETE",
       "path": "/api/v1/agents/{agent_id}/configurations/{config_id}",
-      "source": "agent/src/omni/adapters/http.py",
-      "line": 592,
-      "handler": "create_app.archive_configuration",
+      "source": "agent/src/omni/adapters/http_routes/configurations.py",
+      "line": 118,
+      "handler": "configurations_router.archive_configuration",
       "module": "v2-adapters",
       "parameters": [
         "agent_id",
@@ -120662,9 +120892,9 @@
     {
       "method": "GET",
       "path": "/api/v1/agents/{agent_id}/configurations/{config_id}",
-      "source": "agent/src/omni/adapters/http.py",
-      "line": 575,
-      "handler": "create_app.get_configuration",
+      "source": "agent/src/omni/adapters/http_routes/configurations.py",
+      "line": 101,
+      "handler": "configurations_router.get_configuration",
       "module": "v2-adapters",
       "parameters": [
         "agent_id",
@@ -120681,9 +120911,9 @@
     {
       "method": "PUT",
       "path": "/api/v1/agents/{agent_id}/configurations/{config_id}",
-      "source": "agent/src/omni/adapters/http.py",
-      "line": 579,
-      "handler": "create_app.save_configuration",
+      "source": "agent/src/omni/adapters/http_routes/configurations.py",
+      "line": 105,
+      "handler": "configurations_router.save_configuration",
       "module": "v2-adapters",
       "parameters": [
         "agent_id",
@@ -120700,9 +120930,9 @@
     {
       "method": "GET",
       "path": "/api/v1/agents/{agent_id}/configurations/{config_id}/diagnosis",
-      "source": "agent/src/omni/adapters/http.py",
-      "line": 609,
-      "handler": "create_app.configuration_diagnosis",
+      "source": "agent/src/omni/adapters/http_routes/configurations.py",
+      "line": 135,
+      "handler": "configurations_router.configuration_diagnosis",
       "module": "v2-adapters",
       "parameters": [
         "agent_id",
@@ -120719,9 +120949,9 @@
     {
       "method": "GET",
       "path": "/api/v1/agents/{agent_id}/configurations/{config_id}/preset",
-      "source": "agent/src/omni/adapters/http.py",
-      "line": 613,
-      "handler": "create_app.apply_preset",
+      "source": "agent/src/omni/adapters/http_routes/configurations.py",
+      "line": 139,
+      "handler": "configurations_router.apply_preset",
       "module": "v2-adapters",
       "parameters": [
         "agent_id",
@@ -120738,9 +120968,9 @@
     {
       "method": "POST",
       "path": "/api/v1/agents/{agent_id}/configurations/{config_id}/probe",
-      "source": "agent/src/omni/adapters/http.py",
-      "line": 617,
-      "handler": "create_app.configuration_probe",
+      "source": "agent/src/omni/adapters/http_routes/configurations.py",
+      "line": 143,
+      "handler": "configurations_router.configuration_probe",
       "module": "v2-adapters",
       "parameters": [
         "agent_id",
@@ -120757,9 +120987,9 @@
     {
       "method": "GET",
       "path": "/api/v1/agents/{agent_id}/configurations/{config_id}/revisions",
-      "source": "agent/src/omni/adapters/http.py",
-      "line": 599,
-      "handler": "create_app.configuration_history",
+      "source": "agent/src/omni/adapters/http_routes/configurations.py",
+      "line": 125,
+      "handler": "configurations_router.configuration_history",
       "module": "v2-adapters",
       "parameters": [
         "agent_id",
@@ -120781,7 +121011,7 @@
       "method": "GET",
       "path": "/api/v1/agents/{agent_id}/context/constants",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 873,
+      "line": 625,
       "handler": "create_app.context_constants",
       "module": "v2-adapters",
       "parameters": [
@@ -120797,9 +121027,9 @@
     {
       "method": "GET",
       "path": "/api/v1/agents/{agent_id}/debug",
-      "source": "agent/src/omni/adapters/http.py",
-      "line": 949,
-      "handler": "create_app.debug_status",
+      "source": "agent/src/omni/adapters/http_routes/operations.py",
+      "line": 84,
+      "handler": "operations_router.debug_status",
       "module": "v2-adapters",
       "parameters": [
         "agent_id",
@@ -120814,9 +121044,9 @@
     {
       "method": "POST",
       "path": "/api/v1/agents/{agent_id}/debug",
-      "source": "agent/src/omni/adapters/http.py",
-      "line": 953,
-      "handler": "create_app.debug_start",
+      "source": "agent/src/omni/adapters/http_routes/operations.py",
+      "line": 88,
+      "handler": "operations_router.debug_start",
       "module": "v2-adapters",
       "parameters": [
         "agent_id",
@@ -120831,9 +121061,9 @@
     {
       "method": "DELETE",
       "path": "/api/v1/agents/{agent_id}/debug/{operation_id}",
-      "source": "agent/src/omni/adapters/http.py",
-      "line": 958,
-      "handler": "create_app.debug_stop",
+      "source": "agent/src/omni/adapters/http_routes/operations.py",
+      "line": 93,
+      "handler": "operations_router.debug_stop",
       "module": "v2-adapters",
       "parameters": [
         "agent_id",
@@ -120850,9 +121080,9 @@
     {
       "method": "GET",
       "path": "/api/v1/agents/{agent_id}/debug/{operation_id}/logs",
-      "source": "agent/src/omni/adapters/http.py",
-      "line": 962,
-      "handler": "create_app.debug_logs",
+      "source": "agent/src/omni/adapters/http_routes/operations.py",
+      "line": 97,
+      "handler": "operations_router.debug_logs",
       "module": "v2-adapters",
       "parameters": [
         "agent_id",
@@ -121559,9 +121789,9 @@
     {
       "method": "GET",
       "path": "/api/v1/agents/{agent_id}/events/retention-preview",
-      "source": "agent/src/omni/adapters/http.py",
-      "line": 777,
-      "handler": "create_app.event_retention_preview",
+      "source": "agent/src/omni/adapters/http_routes/operations.py",
+      "line": 30,
+      "handler": "operations_router.event_retention_preview",
       "module": "v2-adapters",
       "parameters": [
         "agent_id",
@@ -121583,7 +121813,7 @@
       "method": "GET",
       "path": "/api/v1/agents/{agent_id}/events/stream",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 820,
+      "line": 581,
       "handler": "create_app.event_stream",
       "module": "v2-adapters",
       "parameters": [
@@ -122737,7 +122967,7 @@
       "method": "DELETE",
       "path": "/api/v1/agents/{agent_id}/messages/{message_id}",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 686,
+      "line": 486,
       "handler": "create_app.erase_message",
       "module": "v2-adapters",
       "parameters": [
@@ -122756,7 +122986,7 @@
       "method": "GET",
       "path": "/api/v1/agents/{agent_id}/objects",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 715,
+      "line": 515,
       "handler": "create_app.list_objects",
       "module": "v2-adapters",
       "parameters": [
@@ -122777,7 +123007,7 @@
       "method": "POST",
       "path": "/api/v1/agents/{agent_id}/objects",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 695,
+      "line": 495,
       "handler": "create_app.upload_object",
       "module": "v2-adapters",
       "parameters": [
@@ -122796,7 +123026,7 @@
       "method": "GET",
       "path": "/api/v1/agents/{agent_id}/objects/{object_id}",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 724,
+      "line": 524,
       "handler": "create_app.describe_object",
       "module": "v2-adapters",
       "parameters": [
@@ -122815,7 +123045,7 @@
       "method": "GET",
       "path": "/api/v1/agents/{agent_id}/objects/{object_id}/content",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 728,
+      "line": 528,
       "handler": "create_app.download_object",
       "module": "v2-adapters",
       "parameters": [
@@ -122834,7 +123064,7 @@
       "method": "PUT",
       "path": "/api/v1/agents/{agent_id}/objects/{object_id}/pin",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 737,
+      "line": 537,
       "handler": "create_app.pin_object",
       "module": "v2-adapters",
       "parameters": [
@@ -123298,9 +123528,9 @@
     {
       "method": "GET",
       "path": "/api/v1/agents/{agent_id}/routing",
-      "source": "agent/src/omni/adapters/http.py",
-      "line": 539,
-      "handler": "create_app.route_policy",
+      "source": "agent/src/omni/adapters/http_routes/configurations.py",
+      "line": 65,
+      "handler": "configurations_router.route_policy",
       "module": "v2-adapters",
       "parameters": [
         "agent_id",
@@ -123315,9 +123545,9 @@
     {
       "method": "PUT",
       "path": "/api/v1/agents/{agent_id}/routing",
-      "source": "agent/src/omni/adapters/http.py",
-      "line": 543,
-      "handler": "create_app.save_route_policy",
+      "source": "agent/src/omni/adapters/http_routes/configurations.py",
+      "line": 69,
+      "handler": "configurations_router.save_route_policy",
       "module": "v2-adapters",
       "parameters": [
         "agent_id",
@@ -123335,7 +123565,7 @@
       "method": "GET",
       "path": "/api/v1/agents/{agent_id}/runs",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 769,
+      "line": 569,
       "handler": "create_app.runs",
       "module": "v2-adapters",
       "parameters": [
@@ -123352,7 +123582,7 @@
       "method": "GET",
       "path": "/api/v1/agents/{agent_id}/runs/{run_id}",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 773,
+      "line": 573,
       "handler": "create_app.run",
       "module": "v2-adapters",
       "parameters": [
@@ -123371,7 +123601,7 @@
       "method": "POST",
       "path": "/api/v1/agents/{agent_id}/runs/{run_id}/cancel",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 859,
+      "line": 620,
       "handler": "create_app.cancel",
       "module": "v2-adapters",
       "parameters": [
@@ -123389,9 +123619,9 @@
     {
       "method": "GET",
       "path": "/api/v1/agents/{agent_id}/runs/{run_id}/configuration",
-      "source": "agent/src/omni/adapters/http.py",
-      "line": 678,
-      "handler": "create_app.run_configuration",
+      "source": "agent/src/omni/adapters/http_routes/configurations.py",
+      "line": 204,
+      "handler": "configurations_router.run_configuration",
       "module": "v2-adapters",
       "parameters": [
         "agent_id",
@@ -123409,7 +123639,7 @@
       "method": "GET",
       "path": "/api/v1/agents/{agent_id}/runs/{run_id}/context",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 682,
+      "line": 482,
       "handler": "create_app.run_context",
       "module": "v2-adapters",
       "parameters": [
@@ -123428,7 +123658,7 @@
       "method": "GET",
       "path": "/api/v1/agents/{agent_id}/runs/{run_id}/delegations",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 765,
+      "line": 565,
       "handler": "create_app.run_delegations",
       "module": "v2-adapters",
       "parameters": [
@@ -123447,7 +123677,7 @@
       "method": "GET",
       "path": "/api/v1/agents/{agent_id}/runs/{run_id}/events",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 846,
+      "line": 607,
       "handler": "create_app.events",
       "module": "v2-adapters",
       "parameters": [
@@ -123489,7 +123719,7 @@
       "method": "GET",
       "path": "/api/v1/agents/{agent_id}/runs/{run_id}/live-output",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 816,
+      "line": 577,
       "handler": "create_app.model_live_output",
       "module": "v2-adapters",
       "parameters": [
@@ -123507,9 +123737,9 @@
     {
       "method": "GET",
       "path": "/api/v1/agents/{agent_id}/runs/{run_id}/retention",
-      "source": "agent/src/omni/adapters/http.py",
-      "line": 807,
-      "handler": "create_app.run_retention",
+      "source": "agent/src/omni/adapters/http_routes/operations.py",
+      "line": 60,
+      "handler": "operations_router.run_retention",
       "module": "v2-adapters",
       "parameters": [
         "agent_id",
@@ -123526,9 +123756,9 @@
     {
       "method": "PUT",
       "path": "/api/v1/agents/{agent_id}/runs/{run_id}/retention-pin",
-      "source": "agent/src/omni/adapters/http.py",
-      "line": 811,
-      "handler": "create_app.run_retention_pin",
+      "source": "agent/src/omni/adapters/http_routes/operations.py",
+      "line": 64,
+      "handler": "operations_router.run_retention_pin",
       "module": "v2-adapters",
       "parameters": [
         "agent_id",
@@ -123545,9 +123775,9 @@
     {
       "method": "GET",
       "path": "/api/v1/agents/{agent_id}/runs/{run_id}/routing",
-      "source": "agent/src/omni/adapters/http.py",
-      "line": 547,
-      "handler": "create_app.route_report",
+      "source": "agent/src/omni/adapters/http_routes/configurations.py",
+      "line": 73,
+      "handler": "configurations_router.route_report",
       "module": "v2-adapters",
       "parameters": [
         "agent_id",
@@ -123769,7 +123999,7 @@
       "method": "GET",
       "path": "/api/v1/agents/{agent_id}/sessions",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 753,
+      "line": 553,
       "handler": "create_app.sessions",
       "module": "v2-adapters",
       "parameters": [
@@ -123786,7 +124016,7 @@
       "method": "GET",
       "path": "/api/v1/agents/{agent_id}/sessions/{session_id}/captures",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 918,
+      "line": 670,
       "handler": "create_app.session_captures",
       "module": "v2-adapters",
       "parameters": [
@@ -123809,7 +124039,7 @@
       "method": "DELETE",
       "path": "/api/v1/agents/{agent_id}/sessions/{session_id}/captures/{capture_id}",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 930,
+      "line": 682,
       "handler": "create_app.release_capture",
       "module": "v2-adapters",
       "parameters": [
@@ -123830,7 +124060,7 @@
       "method": "GET",
       "path": "/api/v1/agents/{agent_id}/sessions/{session_id}/context-overview",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 882,
+      "line": 634,
       "handler": "create_app.session_context_overview",
       "module": "v2-adapters",
       "parameters": [
@@ -123849,7 +124079,7 @@
       "method": "GET",
       "path": "/api/v1/agents/{agent_id}/sessions/{session_id}/messages",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 757,
+      "line": 557,
       "handler": "create_app.messages",
       "module": "v2-adapters",
       "parameters": [
@@ -123868,7 +124098,7 @@
       "method": "GET",
       "path": "/api/v1/agents/{agent_id}/sessions/{session_id}/todos",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 761,
+      "line": 561,
       "handler": "create_app.session_todos",
       "module": "v2-adapters",
       "parameters": [
@@ -123886,9 +124116,9 @@
     {
       "method": "GET",
       "path": "/api/v1/agents/{agent_id}/settings",
-      "source": "agent/src/omni/adapters/http.py",
-      "line": 864,
-      "handler": "create_app.settings",
+      "source": "agent/src/omni/adapters/http_routes/configurations.py",
+      "line": 208,
+      "handler": "configurations_router.settings",
       "module": "v2-adapters",
       "parameters": [
         "agent_id",
@@ -123903,9 +124133,9 @@
     {
       "method": "PUT",
       "path": "/api/v1/agents/{agent_id}/settings",
-      "source": "agent/src/omni/adapters/http.py",
-      "line": 868,
-      "handler": "create_app.save_settings",
+      "source": "agent/src/omni/adapters/http_routes/configurations.py",
+      "line": 212,
+      "handler": "configurations_router.save_settings",
       "module": "v2-adapters",
       "parameters": [
         "agent_id",
@@ -123920,9 +124150,9 @@
     {
       "method": "GET",
       "path": "/api/v1/agents/{agent_id}/settings/revisions",
-      "source": "agent/src/omni/adapters/http.py",
-      "line": 669,
-      "handler": "create_app.settings_history",
+      "source": "agent/src/omni/adapters/http_routes/configurations.py",
+      "line": 195,
+      "handler": "configurations_router.settings_history",
       "module": "v2-adapters",
       "parameters": [
         "agent_id",
@@ -124127,7 +124357,7 @@
       "method": "GET",
       "path": "/api/v1/agents/{agent_id}/summaries/{summary_id}",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 691,
+      "line": 491,
       "handler": "create_app.summary",
       "module": "v2-adapters",
       "parameters": [
@@ -124483,7 +124713,7 @@
       "method": "POST",
       "path": "/api/v1/agents/{agent_id}/turns",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 741,
+      "line": 541,
       "handler": "create_app.turn",
       "module": "v2-adapters",
       "parameters": [
@@ -124502,7 +124732,7 @@
       "method": "GET",
       "path": "/api/v1/capabilities",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 459,
+      "line": 418,
       "handler": "create_app.capabilities",
       "module": "v2-adapters",
       "parameters": [
@@ -124516,9 +124746,9 @@
     {
       "method": "DELETE",
       "path": "/api/v1/credentials",
-      "source": "agent/src/omni/adapters/http.py",
-      "line": 1050,
-      "handler": "create_app.delete_credential",
+      "source": "agent/src/omni/adapters/http_routes/credentials.py",
+      "line": 89,
+      "handler": "credentials_router.delete_credential",
       "module": "v2-adapters",
       "parameters": [
         "request",
@@ -124533,9 +124763,9 @@
     {
       "method": "GET",
       "path": "/api/v1/credentials",
-      "source": "agent/src/omni/adapters/http.py",
-      "line": 996,
-      "handler": "create_app.credential_list",
+      "source": "agent/src/omni/adapters/http_routes/credentials.py",
+      "line": 35,
+      "handler": "credentials_router.credential_list",
       "module": "v2-adapters",
       "parameters": [
         "request",
@@ -124552,9 +124782,9 @@
     {
       "method": "PUT",
       "path": "/api/v1/credentials",
-      "source": "agent/src/omni/adapters/http.py",
-      "line": 1042,
-      "handler": "create_app.put_credential",
+      "source": "agent/src/omni/adapters/http_routes/credentials.py",
+      "line": 81,
+      "handler": "credentials_router.put_credential",
       "module": "v2-adapters",
       "parameters": [
         "request",
@@ -124569,9 +124799,9 @@
     {
       "method": "POST",
       "path": "/api/v1/credentials/register",
-      "source": "agent/src/omni/adapters/http.py",
-      "line": 1002,
-      "handler": "create_app.credential_register",
+      "source": "agent/src/omni/adapters/http_routes/credentials.py",
+      "line": 41,
+      "handler": "credentials_router.credential_register",
       "module": "v2-adapters",
       "parameters": [
         "request"
@@ -124584,9 +124814,9 @@
     {
       "method": "GET",
       "path": "/api/v1/credentials/{identity}",
-      "source": "agent/src/omni/adapters/http.py",
-      "line": 1007,
-      "handler": "create_app.credential_get",
+      "source": "agent/src/omni/adapters/http_routes/credentials.py",
+      "line": 46,
+      "handler": "credentials_router.credential_get",
       "module": "v2-adapters",
       "parameters": [
         "identity",
@@ -124601,9 +124831,9 @@
     {
       "method": "GET",
       "path": "/api/v1/credentials/{identity}/operations",
-      "source": "agent/src/omni/adapters/http.py",
-      "line": 1011,
-      "handler": "create_app.credential_operations",
+      "source": "agent/src/omni/adapters/http_routes/credentials.py",
+      "line": 50,
+      "handler": "credentials_router.credential_operations",
       "module": "v2-adapters",
       "parameters": [
         "identity",
@@ -124622,9 +124852,9 @@
     {
       "method": "POST",
       "path": "/api/v1/credentials/{identity}/review",
-      "source": "agent/src/omni/adapters/http.py",
-      "line": 1029,
-      "handler": "create_app.credential_review",
+      "source": "agent/src/omni/adapters/http_routes/credentials.py",
+      "line": 68,
+      "handler": "credentials_router.credential_review",
       "module": "v2-adapters",
       "parameters": [
         "identity",
@@ -124639,9 +124869,9 @@
     {
       "method": "GET",
       "path": "/api/v1/credentials/{identity}/reviews",
-      "source": "agent/src/omni/adapters/http.py",
-      "line": 1020,
-      "handler": "create_app.credential_reviews",
+      "source": "agent/src/omni/adapters/http_routes/credentials.py",
+      "line": 59,
+      "handler": "credentials_router.credential_reviews",
       "module": "v2-adapters",
       "parameters": [
         "identity",
@@ -124661,7 +124891,7 @@
       "method": "GET",
       "path": "/api/v1/owner-token/local",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 465,
+      "line": 424,
       "handler": "create_app.owner_token_local",
       "module": "v2-adapters",
       "parameters": [
@@ -124676,7 +124906,7 @@
       "method": "POST",
       "path": "/api/v1/owner-token/rotate",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 498,
+      "line": 457,
       "handler": "create_app.owner_token_rotate",
       "module": "v2-adapters",
       "parameters": [
@@ -124691,7 +124921,7 @@
       "method": "GET",
       "path": "/api/v1/owner-token/sessions",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 491,
+      "line": 450,
       "handler": "create_app.owner_token_sessions",
       "module": "v2-adapters",
       "parameters": [
@@ -124706,7 +124936,7 @@
       "method": "POST",
       "path": "/api/v1/service/drain",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 411,
+      "line": 370,
       "handler": "create_app.drain",
       "module": "v2-adapters",
       "parameters": [
@@ -124720,9 +124950,9 @@
     {
       "method": "GET",
       "path": "/api/v1/system/audit",
-      "source": "agent/src/omni/adapters/http.py",
-      "line": 1057,
-      "handler": "create_app.instance_audit",
+      "source": "agent/src/omni/adapters/http_routes/operations.py",
+      "line": 132,
+      "handler": "operations_router.instance_audit",
       "module": "v2-adapters",
       "parameters": [
         "request",
@@ -124739,9 +124969,9 @@
     {
       "method": "GET",
       "path": "/api/v1/system/diagnostics",
-      "source": "agent/src/omni/adapters/http.py",
-      "line": 974,
-      "handler": "create_app.diagnostic_bundle",
+      "source": "agent/src/omni/adapters/http_routes/operations.py",
+      "line": 109,
+      "handler": "operations_router.diagnostic_bundle",
       "module": "v2-adapters",
       "parameters": [
         "request"
@@ -124754,9 +124984,9 @@
     {
       "method": "GET",
       "path": "/api/v1/system/logs",
-      "source": "agent/src/omni/adapters/http.py",
-      "line": 983,
-      "handler": "create_app.logs",
+      "source": "agent/src/omni/adapters/http_routes/operations.py",
+      "line": 118,
+      "handler": "operations_router.logs",
       "module": "v2-adapters",
       "parameters": [
         "request",
@@ -124783,9 +125013,9 @@
     {
       "method": "GET",
       "path": "/api/v1/system/metrics",
-      "source": "agent/src/omni/adapters/http.py",
-      "line": 945,
-      "handler": "create_app.metrics",
+      "source": "agent/src/omni/adapters/http_routes/operations.py",
+      "line": 80,
+      "handler": "operations_router.metrics",
       "module": "v2-adapters",
       "parameters": [
         "request"
@@ -124799,7 +125029,7 @@
       "method": "GET",
       "path": "/api/v1/version",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 455,
+      "line": 414,
       "handler": "create_app.version",
       "module": "v2-adapters",
       "parameters": [
@@ -124814,7 +125044,7 @@
       "method": "GET",
       "path": "/assets/{path:path}",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 1075,
+      "line": 694,
       "handler": "create_app.resource",
       "module": "v2-adapters",
       "parameters": [
@@ -124831,7 +125061,7 @@
       "method": "GET",
       "path": "/health/identity",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 400,
+      "line": 359,
       "handler": "create_app.identity_proof",
       "module": "v2-adapters",
       "parameters": [
@@ -124848,7 +125078,7 @@
       "method": "GET",
       "path": "/health/live",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 391,
+      "line": 350,
       "handler": "create_app.live",
       "module": "v2-adapters",
       "parameters": [],
@@ -124859,7 +125089,7 @@
       "method": "GET",
       "path": "/health/ready",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 395,
+      "line": 354,
       "handler": "create_app.ready",
       "module": "v2-adapters",
       "parameters": [
@@ -124874,7 +125104,7 @@
       "method": "GET",
       "path": "/oauth/callback",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 424,
+      "line": 383,
       "handler": "create_app.oauth_callback",
       "module": "v2-adapters",
       "parameters": [
@@ -128784,7 +129014,7 @@
     {
       "name": "AgentInput",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 207,
+      "line": 218,
       "fields": [
         {
           "name": "name",
@@ -128796,7 +129026,7 @@
     {
       "name": "AgentRenameInput",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 211,
+      "line": 222,
       "fields": [
         {
           "name": "name",
@@ -128813,7 +129043,7 @@
     {
       "name": "TurnInput",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 215,
+      "line": 226,
       "fields": [
         {
           "name": "session_id",
@@ -128848,119 +129078,9 @@
       ]
     },
     {
-      "name": "RoutingInput",
-      "source": "agent/src/omni/adapters/http.py",
-      "line": 224,
-      "fields": [
-        {
-          "name": "revision",
-          "type": "int",
-          "required": true
-        },
-        {
-          "name": "value",
-          "type": "Payload",
-          "required": true
-        }
-      ]
-    },
-    {
-      "name": "SettingsInput",
-      "source": "agent/src/omni/adapters/http.py",
-      "line": 229,
-      "fields": [
-        {
-          "name": "revision",
-          "type": "int",
-          "required": true
-        },
-        {
-          "name": "value",
-          "type": "Payload",
-          "required": true
-        }
-      ]
-    },
-    {
-      "name": "ConfigurationInput",
-      "source": "agent/src/omni/adapters/http.py",
-      "line": 234,
-      "fields": [
-        {
-          "name": "kind",
-          "type": "Literal['model', 'channel', 'mcp', 'preset']",
-          "required": true
-        },
-        {
-          "name": "name",
-          "type": "str",
-          "required": true
-        },
-        {
-          "name": "enabled",
-          "type": "bool",
-          "required": false
-        },
-        {
-          "name": "value",
-          "type": "Payload",
-          "required": true
-        },
-        {
-          "name": "image_policy",
-          "type": "Payload | None",
-          "required": false
-        }
-      ]
-    },
-    {
-      "name": "ConfigurationEdit",
-      "source": "agent/src/omni/adapters/http.py",
-      "line": 242,
-      "fields": [
-        {
-          "name": "name",
-          "type": "str",
-          "required": true
-        },
-        {
-          "name": "enabled",
-          "type": "bool",
-          "required": true
-        },
-        {
-          "name": "revision",
-          "type": "int",
-          "required": true
-        },
-        {
-          "name": "value",
-          "type": "Payload",
-          "required": true
-        },
-        {
-          "name": "image_policy",
-          "type": "Payload | None",
-          "required": false
-        }
-      ]
-    },
-    {
-      "name": "DebugInput",
-      "source": "agent/src/omni/adapters/http.py",
-      "line": 250,
-      "fields": [
-        {
-          "name": "duration_s",
-          "type": "int",
-          "required": false
-        }
-      ]
-    },
-    {
       "name": "ApprovalInput",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 254,
+      "line": 235,
       "fields": [
         {
           "name": "allowed",
@@ -128977,7 +129097,7 @@
     {
       "name": "ClarifyRespondInput",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 259,
+      "line": 240,
       "fields": [
         {
           "name": "answers",
@@ -128999,7 +129119,7 @@
     {
       "name": "ClarifyCancelInput",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 265,
+      "line": 246,
       "fields": [
         {
           "name": "revision",
@@ -129014,87 +129134,9 @@
       ]
     },
     {
-      "name": "CredentialInput",
-      "source": "agent/src/omni/adapters/http.py",
-      "line": 270,
-      "fields": [
-        {
-          "name": "value",
-          "type": "str",
-          "required": true
-        }
-      ]
-    },
-    {
-      "name": "CredentialRegistration",
-      "source": "agent/src/omni/adapters/http.py",
-      "line": 274,
-      "fields": [
-        {
-          "name": "reference",
-          "type": "str",
-          "required": true
-        }
-      ]
-    },
-    {
-      "name": "CredentialReview",
-      "source": "agent/src/omni/adapters/http.py",
-      "line": 278,
-      "fields": [
-        {
-          "name": "revision",
-          "type": "int",
-          "required": true
-        },
-        {
-          "name": "authority_epoch",
-          "type": "int",
-          "required": true
-        },
-        {
-          "name": "fingerprint",
-          "type": "str",
-          "required": true
-        },
-        {
-          "name": "policy",
-          "type": "str",
-          "required": true
-        },
-        {
-          "name": "decision",
-          "type": "Literal['allow_current', 'revoke']",
-          "required": true
-        },
-        {
-          "name": "evidence",
-          "type": "str",
-          "required": true
-        }
-      ]
-    },
-    {
       "name": "ObjectPinInput",
       "source": "agent/src/omni/adapters/http.py",
-      "line": 287,
-      "fields": [
-        {
-          "name": "pinned",
-          "type": "bool",
-          "required": true
-        },
-        {
-          "name": "revision",
-          "type": "int",
-          "required": true
-        }
-      ]
-    },
-    {
-      "name": "RunPinInput",
-      "source": "agent/src/omni/adapters/http.py",
-      "line": 292,
+      "line": 251,
       "fields": [
         {
           "name": "pinned",
@@ -129111,7 +129153,7 @@
     {
       "name": "StrictInput",
       "source": "agent/src/omni/adapters/http_routes/__init__.py",
-      "line": 27,
+      "line": 28,
       "fields": []
     },
     {
@@ -129200,6 +129242,165 @@
         },
         {
           "name": "key",
+          "type": "str",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "RoutingInput",
+      "source": "agent/src/omni/adapters/http_routes/configurations.py",
+      "line": 19,
+      "fields": [
+        {
+          "name": "revision",
+          "type": "int",
+          "required": true
+        },
+        {
+          "name": "value",
+          "type": "Payload",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "SettingsInput",
+      "source": "agent/src/omni/adapters/http_routes/configurations.py",
+      "line": 24,
+      "fields": [
+        {
+          "name": "revision",
+          "type": "int",
+          "required": true
+        },
+        {
+          "name": "value",
+          "type": "Payload",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "ConfigurationInput",
+      "source": "agent/src/omni/adapters/http_routes/configurations.py",
+      "line": 29,
+      "fields": [
+        {
+          "name": "kind",
+          "type": "Literal['model', 'channel', 'mcp', 'preset']",
+          "required": true
+        },
+        {
+          "name": "name",
+          "type": "str",
+          "required": true
+        },
+        {
+          "name": "enabled",
+          "type": "bool",
+          "required": false
+        },
+        {
+          "name": "value",
+          "type": "Payload",
+          "required": true
+        },
+        {
+          "name": "image_policy",
+          "type": "Payload | None",
+          "required": false
+        }
+      ]
+    },
+    {
+      "name": "ConfigurationEdit",
+      "source": "agent/src/omni/adapters/http_routes/configurations.py",
+      "line": 37,
+      "fields": [
+        {
+          "name": "name",
+          "type": "str",
+          "required": true
+        },
+        {
+          "name": "enabled",
+          "type": "bool",
+          "required": true
+        },
+        {
+          "name": "revision",
+          "type": "int",
+          "required": true
+        },
+        {
+          "name": "value",
+          "type": "Payload",
+          "required": true
+        },
+        {
+          "name": "image_policy",
+          "type": "Payload | None",
+          "required": false
+        }
+      ]
+    },
+    {
+      "name": "CredentialInput",
+      "source": "agent/src/omni/adapters/http_routes/credentials.py",
+      "line": 14,
+      "fields": [
+        {
+          "name": "value",
+          "type": "str",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "CredentialRegistration",
+      "source": "agent/src/omni/adapters/http_routes/credentials.py",
+      "line": 18,
+      "fields": [
+        {
+          "name": "reference",
+          "type": "str",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "CredentialReview",
+      "source": "agent/src/omni/adapters/http_routes/credentials.py",
+      "line": 22,
+      "fields": [
+        {
+          "name": "revision",
+          "type": "int",
+          "required": true
+        },
+        {
+          "name": "authority_epoch",
+          "type": "int",
+          "required": true
+        },
+        {
+          "name": "fingerprint",
+          "type": "str",
+          "required": true
+        },
+        {
+          "name": "policy",
+          "type": "str",
+          "required": true
+        },
+        {
+          "name": "decision",
+          "type": "Literal['allow_current', 'revoke']",
+          "required": true
+        },
+        {
+          "name": "evidence",
           "type": "str",
           "required": true
         }
@@ -129557,6 +129758,35 @@
           "name": "document_revision_id",
           "type": "uuid.UUID | None",
           "required": false
+        }
+      ]
+    },
+    {
+      "name": "DebugInput",
+      "source": "agent/src/omni/adapters/http_routes/operations.py",
+      "line": 17,
+      "fields": [
+        {
+          "name": "duration_s",
+          "type": "int",
+          "required": false
+        }
+      ]
+    },
+    {
+      "name": "RunPinInput",
+      "source": "agent/src/omni/adapters/http_routes/operations.py",
+      "line": 21,
+      "fields": [
+        {
+          "name": "pinned",
+          "type": "bool",
+          "required": true
+        },
+        {
+          "name": "revision",
+          "type": "int",
+          "required": true
         }
       ]
     },

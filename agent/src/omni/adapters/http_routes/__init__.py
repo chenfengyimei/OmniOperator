@@ -22,6 +22,7 @@ RuntimeLookup = Callable[[Request], "HttpRuntime"]
 RouteFactory = Callable[[RuntimeLookup], APIRouter]
 InputModel = TypeVar("InputModel", bound=BaseModel)
 Service = TypeVar("Service")
+PATH_PARAMETER = re.compile(r"\{[a-zA-Z_]\w*(?::([a-zA-Z_]\w*))?\}")
 
 
 class StrictInput(BaseModel):
@@ -40,6 +41,7 @@ class FeatureRoutes:
     id: str
     factory: RouteFactory
     extra_paths: tuple[str, ...] = field(default=(), kw_only=True)
+    instance_scoped: bool = field(default=False, kw_only=True)
 
     def __post_init__(self) -> None:
         if re.fullmatch(r"[a-z][a-z0-9-]{0,63}", self.id) is None:
@@ -51,17 +53,22 @@ class FeatureRoutes:
 def mount_feature_routes(router: APIRouter, features: tuple[FeatureRoutes, ...], runtime: RuntimeLookup) -> None:
     if len({feature.id for feature in features}) != len(features):
         raise ValueError("Duplicate feature route IDs")
+
+    def path_shape(path: str) -> str:
+        return PATH_PARAMETER.sub(lambda match: "{:" + (match[1] or "str") + "}", path)
+
     used = {
-        (method, route.path)
+        (method, path_shape(route.path))
         for route in router.routes
         if isinstance(route, APIRoute)
         for method in (route.methods or ())
     }
     for feature in features:
-        prefix = "/agents/{agent_id}/" + feature.id
+        prefix = ("/" if feature.instance_scoped else "/agents/{agent_id}/") + feature.id
         routes = feature.factory(runtime)
         if routes.prefix != prefix and not (feature.extra_paths and routes.prefix == ""):
-            raise ValueError("Feature router must use its agent-scoped prefix")
+            scope = "instance-scoped" if feature.instance_scoped else "agent-scoped"
+            raise ValueError(f"Feature router must use its {scope} prefix")
         additional = set(feature.extra_paths)
         for route in routes.routes:
             if not isinstance(route, APIRoute) or (
@@ -70,7 +77,7 @@ def mount_feature_routes(router: APIRouter, features: tuple[FeatureRoutes, ...],
                 and route.path not in feature.extra_paths
             ):
                 raise ValueError("Feature routes must use authenticated HTTP within their prefix")
-            keys = {(method, router.prefix + route.path) for method in (route.methods or ())}
+            keys = {(method, path_shape(router.prefix + route.path)) for method in (route.methods or ())}
             if used & keys:
                 raise ValueError("Duplicate feature HTTP route")
             used.update(keys)

@@ -152,9 +152,20 @@ def test_extracted_route_sources_methods_and_request_models_match_openapi():
             "reflections",
             "maintenance",
             "images",
+            "configurations",
+            "configuration",
+            "routing",
+            "settings",
+            "credentials",
+            "system",
+            "audit",
+            "debug",
+            "retention-preview",
+            "retention",
+            "retention-pin",
         }
     }
-    assert extracted == expected and len(expected) == 181
+    assert extracted == expected and len(expected) == 220
     for schema in ["SkillImportInput", "SkillSaveInput", "SkillStateInput", "SkillRollbackInput"]:
         model = next(m for m in index["request_models"] if m["name"] == schema)
         assert model["source"].endswith("http_routes/skills.py")

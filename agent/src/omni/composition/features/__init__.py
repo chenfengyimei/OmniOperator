@@ -8,6 +8,7 @@ from pathlib import Path
 from types import MappingProxyType
 from typing import Generic, TypeVar
 
+from ...adapters.diagnostics import JsonLogSink
 from ...adapters.http_routes import FeatureRoutes
 from ...adapters.platform.runtime.paths import InstancePaths
 from ...application.android import AndroidPort
@@ -18,7 +19,17 @@ from ...application.mcp import MCPTransportPort
 from ...application.media import MediaProcessingPort
 from ...application.model_calls import ModelCalls
 from ...application.objects import ObjectService
-from ...application.ports import AsyncSecretPort, Clock, DatabasePort, Ids, LocalVectorizer, Observer, Record
+from ...application.ports import (
+    AsyncSecretPort,
+    Clock,
+    DatabasePort,
+    Ids,
+    LocalVectorizer,
+    MetricsPort,
+    Observer,
+    Record,
+    TokenCounter,
+)
 from ...domain.contracts import ToolSpec
 from ..channel_providers import ChannelProviders
 from ..lifecycle import Lifetime
@@ -42,6 +53,7 @@ class FeatureContext:
     clock: Clock
     ids: Ids
     observer: Observer
+    token_counter: TokenCounter
     secrets: AsyncSecretPort
     channels: ChannelProviders
     platform: PlatformPorts
@@ -64,17 +76,13 @@ class FeatureContext:
 
 @dataclass(frozen=True)
 class KernelFeatureContext:
-    lifetime: Lifetime
-    database: DatabasePort
-    clock: Clock
-    channels: ChannelProviders
-    services: Mapping[str, object]
+    base: FeatureContext
     notify_run: Callable[[], None]
     cancel_run: Callable[[str, str], Awaitable[None]]
     review_blockers: Callable[[Record], list[str]]
-    skill_platform: str
-    redact: Callable[[str], str]
-    default_tools: bool
+    runtime_health: Callable[[], Record]
+    metrics: MetricsPort
+    sink: JsonLogSink
 
 
 @dataclass(frozen=True)
