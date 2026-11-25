@@ -127,7 +127,7 @@
     ],
     "refs": {
       "entry": [
-        "agent/src/omni/adapters/http.py#create_app.android_capture"
+        "agent/src/omni/adapters/http_routes/android.py#android_router.android_capture"
       ],
       "domain": [
         "agent/src/omni/domain/android.py"
@@ -140,7 +140,8 @@
         "agent/src/omni/adapters/workers/android.py#AndroidWorker.invoke"
       ],
       "composition": [
-        "agent/src/omni/composition/instance.py#open_instance.android"
+        "agent/src/omni/composition/features/android.py#install_android",
+        "agent/src/omni/composition/features/catalog.py"
       ],
       "ui": [
         "web/ui/v2/android.js",
@@ -692,7 +693,7 @@
     "related": [],
     "refs": {
       "entry": [
-        "agent/src/omni/adapters/http.py#create_app.media_frames"
+        "agent/src/omni/adapters/http_routes/media.py#media_router.media_frames"
       ],
       "domain": [
         "agent/src/omni/domain/media.py"
@@ -705,7 +706,8 @@
         "agent/src/omni/adapters/workers/media.py"
       ],
       "composition": [
-        "agent/src/omni/composition/instance.py#open_instance.media"
+        "agent/src/omni/composition/features/media.py#install_media",
+        "agent/src/omni/composition/features/catalog.py"
       ],
       "ui": [
         "web/ui/v2/media.js"

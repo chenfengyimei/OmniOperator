@@ -2,7 +2,7 @@
 
 > **全仓严格类型尚未完成。** 本文件记录已纳入 strict 的模块、当前基线例外与推进规则；默认入口为V2（Windows离线候选），真实平台与整个V2仍待验收。
 
-当前显式清单为 444 个文件，包含能力注册表、模型、渠道和平台提供者、技能与插件 HTTP 路由及共用输入基类。下方历史基线按当时的提交保留。
+当前显式清单为 450 个文件，包含能力注册表、提供者、Android 与媒体功能组装和 HTTP 路由。下方历史基线按当时的提交保留。
 
 
 ## 1. 门禁
@@ -384,6 +384,10 @@ strict 配置显式将 `agent/src` 加入导入根，隔离源码副本也解析
 | `agent/src/omni/composition/service_runner.py` | 固定部署的服务入口（仅启动已校验的不可变部署） |
 | `agent/src/omni/composition/capabilities.py` | 内建能力目录（工具 spec 与 worker 装配） |
 | `agent/src/omni/composition/channel_providers.py` | 渠道端口绑定、发送覆盖与共享传输归属 |
+| `agent/src/omni/composition/features/__init__.py` | 功能登记、类型化服务读取与工具贡献 |
+| `agent/src/omni/composition/features/android.py` | Android 服务、资源归属与区分权限的工具 |
+| `agent/src/omni/composition/features/catalog.py` | 随实例安装的功能声明 |
+| `agent/src/omni/composition/features/media.py` | 媒体恢复、自有处理器和回合工具的组装 |
 | `agent/src/omni/composition/model_providers.py` | 普通调用、请求预备、流式端口与关闭归属 |
 | `agent/src/omni/composition/platform_providers.py` | 主机选择、原生端口注入、共享并发池与启动回滚 |
 | `agent/src/omni/composition/releases.py` | 已审阅版本发布命令组装（计划/准备/完成/取消） |
@@ -417,6 +421,8 @@ strict 配置显式将 `agent/src` 加入导入根，隔离源码副本也解析
 | `agent/src/omni/adapters/http.py` | HTTP 适配器：Record 端口、原 Pydantic schema 的 Payload、泛型输入工厂及路由边界 |
 | `agent/src/omni/adapters/http_routes/__init__.py` | HTTP 严格请求基类 |
 | `agent/src/omni/adapters/http_routes/extensions.py` | 插件 HTTP 接口 |
+| `agent/src/omni/adapters/http_routes/android.py` | Android 所有者 API |
+| `agent/src/omni/adapters/http_routes/media.py` | 媒体 HTTP 接口与请求模型 |
 | `agent/src/omni/adapters/http_routes/skills.py` | 技能 HTTP 接口与请求模型 |
 | `agent/src/omni/adapters/http_events.py` | 有界 SSE 历史通知、游标续接、持续鉴权与连接回收；不推送事件正文 |
 | `agent/src/omni/adapters/soak.py` | 本机签名boot采样、受限HTTP读取和私有连续证据，不调用V1或模型 |

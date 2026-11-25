@@ -22,7 +22,6 @@ from omni.adapters.platform.runtime.secrets import FileVault
 from omni.adapters.platform.runtime.workspaces import WorkspacePolicy
 from omni.adapters.platform.services.service_launch import consume_launch
 
-from ..adapters.android import AndroidBackend
 from ..adapters.build_identity import CODE_CACHE_DIRS, CODE_SUFFIXES, LAYERS
 from ..adapters.credentials import Credentials
 from ..adapters.diagnostic_bundle import DiagnosticFiles
@@ -33,7 +32,6 @@ from ..adapters.images import ImageCodec
 from ..adapters.local_vectors import configured_vectors
 from ..adapters.mcp.hosts import MCPHosts
 from ..adapters.mcp.oauth import OAuthFlow
-from ..adapters.media import MediaProcessor
 from ..adapters.metrics import Metrics
 from ..adapters.native_credentials import NativeCredentials
 from ..adapters.object_store import ObjectFiles
@@ -70,12 +68,7 @@ from ..application.extensions import ExtensionService
 from ..application.images import ImageService
 from ..application.maintenance import MaintenanceService
 from ..application.mcp import MCPService, MCPTransportPort
-from ..application.media import CELLS_SPEC as MEDIA_CELLS
-from ..application.media import LIST_SPEC as MEDIA_LIST
-from ..application.media import LOCATE_SPEC as MEDIA_LOCATE
-from ..application.media import TRANSCRIPT_SPEC as MEDIA_TRANSCRIPT
-from ..application.media import ZOOM_SPEC as MEDIA_ZOOM
-from ..application.media import BilibiliMediaPort, MediaProcessingPort, MediaService
+from ..application.media import MediaProcessingPort, MediaService
 from ..application.memory_organization import MemoryOrganizationService
 from ..application.memory_semantics import MemorySemanticService
 from ..application.model_calls import ModelCalls
@@ -109,11 +102,6 @@ from ..application.terminal_review import TerminalReviewService
 from ..application.terminals import TerminalService
 from ..application.todos import TodoService
 from ..application.visual_subagent import VISUAL_SUBAGENT, VisualSubagentCapabilities, VisualSubagentService
-from ..domain.android import ACCESS_SPEC as ANDROID_ACCESS
-from ..domain.android import MODEL_SPEC as ANDROID_MODEL
-from ..domain.android import OBSERVE_SPEC as ANDROID_OBSERVE
-from ..domain.android import RESTORE_SPEC as ANDROID_RESTORE
-from ..domain.android import SPEC as ANDROID_ACTION
 from ..domain.background_review import READ_TOOLS
 from ..domain.contracts import JSON, ActionResult, BusinessError, InvocationContext, Outcome
 from ..domain.cronjob import CRONJOB_MANAGE
@@ -123,6 +111,8 @@ from ..domain.memory_decay import DECAY_DAILY_HOUR
 from ..domain.skills import SKILL_SPECS
 from .capabilities import builtin_plugins
 from .channel_providers import register_channel_providers
+from .features import FeatureContext, FeaturePlugin, install_features
+from .features.catalog import BUILTIN_FEATURES
 from .lifecycle import Lifetime, close_sync
 from .model_providers import register_model_transport
 from .platform_providers import platform_provider
@@ -264,6 +254,7 @@ class Instance:
     desktop_portal: DesktopPortalService
     desktop_control: DesktopControlService
     desktop_actions: DesktopActions
+    feature_services: Mapping[str, object]
     _process_diagnostics: ProcessDiagnostics | None = None
     _closed: bool = False
     # 连接测试端口：组合层注入当前模型适配器（真实或离线桩），供 HTTP 层做一次最小调用。
@@ -348,6 +339,7 @@ async def open_instance(
     android_backend: AndroidPort | None = None,
     capabilities: tuple[Capability, ...] | None = None,
     capability_plugins: tuple[CapabilityPlugin, ...] = (),
+    feature_plugins: tuple[FeaturePlugin, ...] = (),
     delegation_enabled: bool | None = None,
     verify_on_stop: bool = False,
     model_recovery: bool = False,
@@ -482,9 +474,12 @@ async def open_instance(
             database, platform_io.control, ids, boot_id, observation, authorize=desktop.require_view
         )
         lifetime.own("desktop_control", 0, desktop_control.close, desktop_control.stop_accepting)
-        desktop_actions = DesktopActions(
-            database, desktop, platform_io.desktop, clock, ids, accepting=lambda: bool(application.health()["ready"])
-        )
+        application: Application | None = None
+
+        def accepting() -> bool:
+            return application is not None and bool(application.health()["ready"])
+
+        desktop_actions = DesktopActions(database, desktop, platform_io.desktop, clock, ids, accepting=accepting)
         lifetime.own("desktop_actions", 0, desktop_actions.close, desktop_actions.stop_accepting)
         local_vectors = vectorizer if vectorizer is not None else await configured_vectors(paths.home)
         persona_growth = PersonaGrowthService(database, PersonaGrowthFiles(paths.persona))
@@ -503,16 +498,6 @@ async def open_instance(
         else:
             credential_io = NativeCredentials(namespace, sink.redactor)
         lifetime.own("credential_io", 1, credential_io.close, credential_io.stop_accepting)
-        android_io = (
-            android_backend
-            if android_backend is not None
-            else AndroidBackend(paths.control / "android-captures", secrets=credential_io)
-        )
-        lifetime.own("android_io", 1, android_io.close, android_io.stop_accepting)
-        android = AndroidService(
-            database, android_io, objects, clock, ids, accepting=lambda: bool(application.health()["ready"])
-        )
-        lifetime.own("android", 0, android.close, android.stop_accepting)
         counter = token_counter if token_counter is not None else ConservativeTokenCounter()
         configurations = ConfigurationService(database, counter)
         routing = RoutingService(database)
@@ -546,31 +531,27 @@ async def open_instance(
         )
         bilibili = BilibiliService(database, channels.bilibili)
         lifetime.own("bilibili", 0, bilibili.close, bilibili.stop_accepting)
-        processor: MediaProcessingPort = (
-            media_processor if media_processor is not None else cast(MediaProcessingPort, MediaProcessor())
+        features = await install_features(
+            (*BUILTIN_FEATURES, *feature_plugins),
+            FeatureContext(
+                lifetime=lifetime,
+                database=database,
+                control=paths.control,
+                objects=objects,
+                images=images,
+                persona=persona_growth,
+                clock=clock,
+                ids=ids,
+                secrets=credential_io,
+                channels=channels,
+                accepting=accepting,
+                default_tools=capabilities is None,
+                android_backend=android_backend,
+                media_processor=media_processor,
+            ),
         )
-        lifetime.own("media_processor", 1, processor.close, processor.stop_accepting)
-        # The gateway protocol splits by use case; the concrete object serves both
-        # reads and bounded downloads for the media pipeline.
-        media = MediaService(
-            database,
-            objects,
-            images,
-            cast(BilibiliMediaPort, channels.bilibili),
-            processor,
-            clock,
-            paths.control / "media-staging",
-            persona=persona_growth,
-        )
-        lifetime.own("media", 0, media.close, media.stop_accepting)
-        # Jobs owned by the previous process end interrupted or unknown before
-        # any new work is admitted; the lifecycle log carries the counts.
-        recovered = await media.recover()
-        if recovered["cancelled"] or recovered["unknown"]:
-            logging.getLogger("omni.v2.startup").warning(
-                "Media jobs from the previous process were reconciled",
-                extra={"event": "media.restart_reconciled", **recovered},
-            )
+        media = features.require("media", MediaService)
+        android = features.require("android", AndroidService)
         visual = VisualSubagentService(
             database,
             ImageObjectFrames(objects, images),
@@ -628,20 +609,7 @@ async def open_instance(
             owner_tools=(Capability(DESKTOP_ACTION, desktop_actions, desktop_actions.quiescent),),
             own_adapters=False,
         )
-        android_plugin = CapabilityPlugin(
-            "android",
-            tuple(
-                Capability(spec, android, android.quiescent)
-                for spec in (ANDROID_ACCESS, ANDROID_OBSERVE, ANDROID_MODEL)
-            )
-            if capabilities is None
-            else (),
-            owner_tools=tuple(
-                Capability(spec, android, android.quiescent) for spec in (ANDROID_ACTION, ANDROID_RESTORE)
-            ),
-            own_adapters=False,
-        )
-        plugins = (desktop_plugin, android_plugin)
+        plugins = (desktop_plugin, *features.capabilities)
         if capabilities is None:
             plugins = (
                 *builtin_plugins(database, documents, memory_semantics),
@@ -653,14 +621,6 @@ async def open_instance(
                 CapabilityPlugin(
                     "bilibili",
                     (Capability(BILIBILI_READ, bilibili), Capability(BILIBILI_PREPARE, bilibili)),
-                    own_adapters=False,
-                ),
-                CapabilityPlugin(
-                    "media",
-                    tuple(
-                        Capability(spec, media)
-                        for spec in (MEDIA_LIST, MEDIA_TRANSCRIPT, MEDIA_LOCATE, MEDIA_CELLS, MEDIA_ZOOM)
-                    ),
                     own_adapters=False,
                 ),
                 *plugins,
@@ -907,6 +867,7 @@ async def open_instance(
             desktop_portal=desktop_portal,
             desktop_control=desktop_control,
             desktop_actions=desktop_actions,
+            feature_services=features.services,
             _process_diagnostics=host_diagnostics,
             model_port=model_transport.model,
         )

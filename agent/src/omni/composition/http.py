@@ -34,6 +34,8 @@ from ..application.ports import (
     TokenCounter,
 )
 from ..application.qq import QQTransportPort
+from .features import FeaturePlugin
+from .features.catalog import BUILTIN_FEATURES
 from .instance import open_instance
 from .lifecycle import close_until_quiescent
 
@@ -57,6 +59,7 @@ def http_app(
     qq_transport: QQTransportPort | None = None,
     bilibili_backend: BilibiliPort | None = None,
     media_processor: MediaProcessingPort | None = None,
+    feature_plugins: tuple[FeaturePlugin, ...] = (),
     mcp_transport: MCPTransportPort | None = None,
     android_backend: AndroidPort | None = None,
     master_key_file: Path | None = None,
@@ -85,6 +88,7 @@ def http_app(
             qq_transport=qq_transport,
             bilibili_backend=bilibili_backend,
             media_processor=media_processor,
+            feature_plugins=feature_plugins,
             mcp_transport=mcp_transport,
             android_backend=android_backend,
             master_key_file=master_key_file,
@@ -202,9 +206,8 @@ def http_app(
             return HttpRuntime(
                 qq=instance.qq,
                 bilibili=instance.bilibili,
-                media=instance.media,
                 mcp=instance.mcp,
-                android=instance.android,
+                feature_services=instance.feature_services,
                 application=instance.application,
                 authenticate=authenticate,
                 describe=instance.health,
@@ -247,4 +250,4 @@ def http_app(
             await instance.close()
             raise
 
-    return create_app(factory, allowed_origins=allowed_origins)
+    return create_app(factory, allowed_origins=allowed_origins, feature_routes=(*BUILTIN_FEATURES, *feature_plugins))

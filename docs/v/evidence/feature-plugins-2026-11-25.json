@@ -1,0 +1,129 @@
+{
+  "date": "2026-11-25",
+  "platform": "Windows x64",
+  "source": {
+    "base_commit": "0fbcde0a25951df9249b902e7c1c6cc18e1936b5",
+    "working_tree": "v2 组装与 Android、媒体功能登记改动",
+    "affected_files_sha256_normalized_lf": {
+      "agent/src/omni/adapters/http.py": "90ae6adfab70073d8e3cfe9f1e2a8427a00bbbe222d8049ab255f3904e07ca4b",
+      "agent/src/omni/adapters/http_routes/__init__.py": "12f4e9abeead4522764c562c2fe49231d2092b7c5903c37e9ecd16389f6585dc",
+      "agent/src/omni/adapters/http_routes/android.py": "87c318ae6ace42d1dd1b8e20153fdb73df269f18bc8319446491ca9c52eac53d",
+      "agent/src/omni/adapters/http_routes/media.py": "e0aab8daad46d63f69983cb3482ba60f3e7cd5153e7044e6300de216b60357dd",
+      "agent/src/omni/composition/http.py": "4a8f001d7712de5f19f96fa1e9fc62edc2e1ec87e617726a26b698259d31a484",
+      "agent/src/omni/composition/instance.py": "8e490b389cbc2f2daa5438193b631b3d172cf124faf2140e8d6a6660c926715c",
+      "agent/src/omni/composition/features/__init__.py": "45b3cc0dfb332bbf43655ec81ac11265233941b2cd22ce008703fb9c66a227d2",
+      "agent/src/omni/composition/features/android.py": "8513759d02bf9865a71e78d326251906dea005f1ecc3178ddd74dc45b7399718",
+      "agent/src/omni/composition/features/catalog.py": "a2721d93b48e196db2fae3df082adcc50193599b5b739cafa916f4f36bdb22d9",
+      "agent/src/omni/composition/features/media.py": "a92ac6876e8fce2ba7c4c96daafeb41419feef9ca1af1384f9d672780b6ac549",
+      "agent/src/omni/system/catalog/scan.py": "bc48b7122c6499fa17a975f24d02c94382aff829d1b7ce956dd4d35ddcb35b1d",
+      "agent/tests/test_feature_navigation.py": "b5dbcc45fd5d1b5d82b726d6a956905a5c446b1df2faf4626aaca3ea0f902477",
+      "agent/tests/v2/core/test_v2_feature_plugins.py": "e67a09012b6d2ac466bd7c9d63ae33f644cdf377ac9681cab522f6830fd78044",
+      "docs/v/features.json": "5c1c8da66ff893ddee70538e81804640a8fe5ae96ef0cbc74242e1e074f9e5c4",
+      "pyrightconfig.strict.json": "e565c8b48d6e2763ad1cf3d74c144e9e7e5852d2dd0c0c56b15b3c41e576762d"
+    }
+  },
+  "offline_scoped_suites": [
+    {
+      "scope": "实例组装、能力与提供者、HTTP、架构、文档导航与生命周期",
+      "passed": 78,
+      "failed": 0,
+      "skipped": 0,
+      "junit_seconds": 47.422,
+      "modules": [
+        "test_feature_navigation",
+        "test_v2_architecture",
+        "test_v2_capability_plugins",
+        "test_v2_feature_plugins",
+        "test_v2_http",
+        "test_v2_lifecycle",
+        "test_v2_provider_plugins",
+        "test_v2_service_drain",
+        "test_v2_typecheck_scope"
+      ],
+      "local_junit": "temp/build/feature-registration/assembly.xml",
+      "sha256": "6d305647dc313a38419974febc2541b354b2f47905a8daddf2723ceade387fe5"
+    },
+    {
+      "scope": "Android HTTP、设备授权、模型工具与 Unicode",
+      "passed": 69,
+      "failed": 0,
+      "skipped": 0,
+      "junit_seconds": 270.069,
+      "modules": [
+        "test_v2_android",
+        "test_v2_android_http",
+        "test_v2_android_migration",
+        "test_v2_android_model",
+        "test_v2_android_unicode"
+      ],
+      "local_junit": "temp/build/feature-registration/android.xml",
+      "sha256": "ebbf7c27af3f3d982b9466e37beae951f65a8b49613cd5c6b04dcd6930bf414f"
+    },
+    {
+      "scope": "媒体、视觉、上传、任务队列、分镜与像素放大",
+      "passed": 155,
+      "failed": 0,
+      "skipped": 0,
+      "junit_seconds": 135.745,
+      "modules": [
+        "test_v2_media",
+        "test_v2_media_authority",
+        "test_v2_media_queue",
+        "test_v2_media_scenes",
+        "test_v2_media_uploads",
+        "test_v2_media_zoom",
+        "test_v2_media_zoom_e2e",
+        "test_v2_visual_production"
+      ],
+      "local_junit": "temp/build/feature-registration/media.xml",
+      "sha256": "1230f084fbae5352e2afb738400fe3872fb63c0407b2d03ea5be5dc244a56cef"
+    },
+    {
+      "scope": "Android 与媒体工作台",
+      "passed": 15,
+      "failed": 0,
+      "skipped": 0,
+      "junit_seconds": 72.259,
+      "modules": [
+        "test_v2_android_ui",
+        "test_v2_media_ui",
+        "test_v2_media_upload_ui"
+      ],
+      "local_junit": "temp/build/feature-registration/workbench.xml",
+      "sha256": "2bd291eef5137d4242f96100bfad5aed7a6adb92b6538dc085d370dce6d8faef"
+    }
+  ],
+  "scoped_distinct_passed": 317,
+  "compatibility": {
+    "reference": "0fbcde0a25951df9249b902e7c1c6cc18e1936b5",
+    "same_contract": true,
+    "observed": {
+      "agent_tools": 40,
+      "owner_tools": 3,
+      "agent_tools_sha256": "048fb1b8bc74ae2a5dc765a7653f77f81f366f95b8ec349ccf6ca844c1f5724c",
+      "owner_tools_sha256": "d718fd27ae36eae27c614b48c553775a05267230289d57c91bf136e6011bf4dc",
+      "delivery_drivers": [
+        "bilibili",
+        "qq"
+      ],
+      "model_transport": "LiteLLMModel",
+      "openapi_paths": 212,
+      "openapi_sha256": "0b612b9f2b7256631d3c386ee682e0431c55610f298c3c4ccc89f63217cad6cc"
+    }
+  },
+  "static_checks": {
+    "strict_files": 450,
+    "strict_errors": 0,
+    "strict_warnings": 0,
+    "ruff": "passed"
+  },
+  "full_offline": {
+    "covers_this_working_tree": false,
+    "previous_candidate": "5da6dce4b2f6f743cd35a71d2be198c4e5b216d9",
+    "previous_candidate_passed": 8706
+  },
+  "remaining_development": [
+    "调度的内核依赖、后台启动与停机",
+    "QQ、B 站与桌面业务服务及 HTTP 的功能级登记"
+  ]
+}

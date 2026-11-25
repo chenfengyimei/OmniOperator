@@ -5,22 +5,20 @@ from __future__ import annotations
 import asyncio
 import html
 import ipaddress
-import json
 import logging
 import time
 import uuid
 from collections.abc import Awaitable, Callable, Mapping
 from contextlib import asynccontextmanager
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Literal, TypeVar, cast
+from typing import Literal, cast
 
 from fastapi import APIRouter, Depends, FastAPI, Query, Request
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, Response
-from pydantic import BaseModel, Field, ValidationError
+from pydantic import Field
 
 from ..application.action_review import ActionReviewService
-from ..application.android import AndroidService
 from ..application.background_review import BackgroundReviewService
 from ..application.bilibili import BilibiliService
 from ..application.configuration import ConfigurationService
@@ -36,7 +34,6 @@ from ..application.extensions import ExtensionService
 from ..application.images import ImageService
 from ..application.maintenance import MaintenanceService
 from ..application.mcp import MCPService
-from ..application.media import MediaService
 from ..application.memory_organization import MemoryOrganizationService
 from ..application.memory_semantics import MemorySemanticService
 from ..application.objects import ObjectService
@@ -59,14 +56,16 @@ from ..domain.objects import MAX_OBJECT_BYTES
 from .diagnostics import bind_context
 from .http_events import PAGE_SIZE as EVENT_PAGE_SIZE
 from .http_events import EventStreams, continuation
-from .http_routes import StrictInput
+from .http_routes import FeatureRoutes, StrictInput, bounded_configuration, configuration_input, mount_feature_routes
 from .http_routes.extensions import extensions_router
+from .http_routes.media import MediaJobInput as MediaJobInput
+from .http_routes.media import MediaSourceInput as MediaSourceInput
+from .http_routes.media import MediaUploadSourceInput as MediaUploadSourceInput
 from .http_routes.skills import skills_router
 from .log_query import LogQuery
 
 log = logging.getLogger("omni.v2.http")
 Payload = dict[str, object]
-InputModel = TypeVar("InputModel", bound=BaseModel)
 
 
 @dataclass
@@ -107,9 +106,8 @@ class HttpRuntime:
     local_owner_token: Callable[[], str] | None = None
     qq: QQService | None = None
     bilibili: BilibiliService | None = None
-    media: MediaService | None = None
     mcp: MCPService | None = None
-    android: AndroidService | None = None
+    feature_services: Mapping[str, object] = field(default_factory=dict[str, object])
     images: ImageService | None = None
     routing: RoutingService | None = None
     memory_semantics: MemorySemanticService | None = None
@@ -221,27 +219,6 @@ class BilibiliPublicationInput(StrictInput):
     key: str = Field(min_length=1, max_length=180)
 
 
-class MediaSourceInput(StrictInput):
-    config_id: uuid.UUID
-    target: str = Field(min_length=12, max_length=12, pattern=r"^BV[0-9A-Za-z]{10}$")
-
-
-class MediaJobInput(StrictInput):
-    operation: Literal["subtitle", "transcribe", "frames"]
-    model: str = Field(default="small", pattern=r"^[a-z0-9][a-z0-9._-]{0,40}$")
-    device: Literal["cpu", "auto"] = "cpu"
-    compute_type: Literal["int8", "float16", "float32"] = "int8"
-    count: int = Field(default=6, ge=1, le=12, strict=True)
-    width: int = Field(default=640, ge=320, le=1280, strict=True)
-    timestamps: list[float] | None = Field(default=None, max_length=12)
-    select: Literal["equidistant", "scenes"] = "equidistant"
-
-
-class MediaUploadSourceInput(StrictInput):
-    object_id: uuid.UUID
-    title: str = Field(min_length=1, max_length=300)
-
-
 class MCPConnectInput(StrictInput):
     revision: int = Field(ge=1, strict=True)
 
@@ -297,45 +274,6 @@ class ScheduleInput(StrictInput):
 class ScheduleReview(StrictInput):
     occurrence_id: uuid.UUID
     fingerprint: str = Field(pattern=r"^[a-f0-9]{64}$")
-
-
-async def bounded_configuration(request: Request, max_bytes: int = 262144, *, strict: bool = False) -> Record:
-    parts: list[bytes] = []
-    size = 0
-    async for chunk in request.stream():
-        size += len(chunk)
-        if size > max_bytes:
-            raise BusinessError(
-                "request_too_large" if max_bytes != 262144 else "configuration_too_large",
-                "JSON request exceeds the endpoint size limit",
-                status=413,
-            )
-        parts.append(chunk)
-    try:
-
-        def pairs(items: list[tuple[str, Any]]) -> Record:
-            result: Record = {}
-            for key, item in items:
-                if strict and key in result:
-                    raise ValueError("Duplicate field")
-                result[key] = item
-            return result
-
-        value = json.loads(b"".join(parts).decode("utf-8"), object_pairs_hook=pairs)
-        if not isinstance(value, dict):
-            raise ValueError
-        return cast(Record, value)
-    except (ValueError, UnicodeError, RecursionError) as exc:
-        raise BusinessError("invalid_configuration_request", "A UTF-8 JSON object is required", status=422) from exc
-
-
-def configuration_input(model: type[InputModel], document: object) -> InputModel:
-    try:
-        return model.model_validate(document)
-    except ValidationError as exc:
-        raise BusinessError(
-            "invalid_configuration_request", "Configuration request fields are invalid", status=422
-        ) from exc
 
 
 class ApprovalInput(StrictInput):
@@ -433,7 +371,12 @@ class DocumentImport(DocumentVersion):
     object_id: uuid.UUID
 
 
-def create_app(factory: Callable[[], Awaitable[HttpRuntime]], *, allowed_origins: tuple[str, ...] = ()) -> FastAPI:
+def create_app(
+    factory: Callable[[], Awaitable[HttpRuntime]],
+    *,
+    allowed_origins: tuple[str, ...] = (),
+    feature_routes: tuple[FeatureRoutes, ...] = (),
+) -> FastAPI:
     upload_slots = asyncio.Semaphore(4)
     event_streams = EventStreams()
 
@@ -642,115 +585,6 @@ def create_app(factory: Callable[[], Awaitable[HttpRuntime]], *, allowed_origins
             raise BusinessError("qq_unavailable", "QQ channel is unavailable", status=503)
         return service
 
-    def android_service(request: Request) -> AndroidService:
-        service = runtime(request).android
-        if service is None:
-            raise BusinessError("android_unavailable", "Android service is unavailable", status=503)
-        return service
-
-    async def android_input(request: Request, fields: set[str]) -> Record:
-        value = await bounded_configuration(request, 4096)
-        if not isinstance(cast(object, value), dict) or set(value) != fields:
-            raise BusinessError("android_invalid", "Exact Android request fields are required", status=422)
-        return value
-
-    @router.get("/agents/{agent_id}/android/grants")
-    async def android_grants(
-        agent_id: uuid.UUID, request: Request, after: str = "", limit: int = Query(50, ge=1, le=100)
-    ):
-        return await android_service(request).page(str(agent_id), after, limit)
-
-    @router.post("/agents/{agent_id}/android/probe")
-    async def android_probe(agent_id: uuid.UUID, request: Request):
-        value = await android_input(request, {"config_id", "consent"})
-        return await android_service(request).probe(
-            str(agent_id), str(value["config_id"]), cast(bool, value["consent"])
-        )
-
-    @router.get("/agents/{agent_id}/android/grants/{grant_id}/unicode")
-    async def android_unicode_profile(agent_id: uuid.UUID, grant_id: uuid.UUID, request: Request):
-        return await android_service(request).unicode_profile(str(agent_id), str(grant_id))
-
-    @router.put("/agents/{agent_id}/android/grants/{grant_id}/unicode")
-    async def android_unicode_profile_save(agent_id: uuid.UUID, grant_id: uuid.UUID, request: Request):
-        value = await android_input(request, {"revision", "profile"})
-        return await android_service(request).save_unicode_profile(
-            str(agent_id), str(grant_id), cast(Record, value["profile"]), cast(int, value["revision"])
-        )
-
-    @router.get("/agents/{agent_id}/android/environments")
-    async def android_ime_environments(
-        agent_id: uuid.UUID, request: Request, after: str = "", limit: int = Query(50, ge=1, le=100)
-    ):
-        return await android_service(request).environments(str(agent_id), after, limit)
-
-    @router.post("/agents/{agent_id}/android/environments/{environment_id}/restore", status_code=202)
-    async def android_ime_restore(agent_id: uuid.UUID, environment_id: uuid.UUID, request: Request):
-        value = await android_input(request, {"consent", "session_id", "request_id", "revision"})
-        receipt = await android_service(request).restore_ime(str(agent_id), str(environment_id), value)
-        runtime(request).application.notify()
-        return receipt
-
-    @router.get("/agents/{agent_id}/android/access")
-    async def android_access_list(
-        agent_id: uuid.UUID, request: Request, after: str = "", limit: int = Query(50, ge=1, le=100)
-    ):
-        return await android_service(request).access_page(str(agent_id), after, limit)
-
-    @router.post("/agents/{agent_id}/android/access/{access_id}/revoke")
-    async def android_access_revoke(agent_id: uuid.UUID, access_id: uuid.UUID, request: Request):
-        value = await android_input(request, {"revision"})
-        return await android_service(request).revoke_access(str(agent_id), str(access_id), cast(int, value["revision"]))
-
-    @router.post("/agents/{agent_id}/android/grants/{grant_id}/apps")
-    async def android_apps(agent_id: uuid.UUID, grant_id: uuid.UUID, request: Request):
-        value = await bounded_configuration(request, 4096)
-        if (
-            not isinstance(cast(object, value), dict)
-            or set(value) - {"consent", "after"}
-            or value.get("consent") is not True
-            or not isinstance(value.get("after", ""), str)
-        ):
-            raise BusinessError("android_invalid", "Explicit bounded application query is required", status=422)
-        return await android_service(request).apps(str(agent_id), str(grant_id), cast(str, value.get("after", "")))
-
-    @router.post("/agents/{agent_id}/android/grants", status_code=201)
-    async def android_grant(agent_id: uuid.UUID, request: Request):
-        value = await android_input(request, {"probe_id", "consent"})
-        return await android_service(request).grant(
-            str(agent_id), cast(str, value["probe_id"]), cast(bool, value["consent"])
-        )
-
-    @router.post("/agents/{agent_id}/android/grants/{grant_id}/revoke")
-    async def android_revoke(agent_id: uuid.UUID, grant_id: uuid.UUID, request: Request):
-        value = await android_input(request, {"revision"})
-        return await android_service(request).revoke(str(agent_id), str(grant_id), cast(int, value["revision"]))
-
-    @router.post("/agents/{agent_id}/android/grants/{grant_id}/observe")
-    async def android_observe(agent_id: uuid.UUID, grant_id: uuid.UUID, request: Request):
-        value = await android_input(request, {"consent"})
-        if cast(bool, value["consent"]) is not True:
-            raise BusinessError("android_consent_required", "Explicit observation consent is required", status=422)
-        return await android_service(request).observe(str(agent_id), str(grant_id))
-
-    @router.post("/agents/{agent_id}/android/grants/{grant_id}/capture")
-    async def android_capture(agent_id: uuid.UUID, grant_id: uuid.UUID, request: Request):
-        value = await android_input(request, {"consent", "session_id"})
-        if cast(bool, value["consent"]) is not True:
-            raise BusinessError("android_consent_required", "Explicit screen capture consent is required", status=422)
-        return await android_service(request).capture(str(agent_id), str(grant_id), cast(str, value["session_id"]))
-
-    @router.delete("/agents/{agent_id}/android/observations/{observation_id}")
-    async def android_dismiss(agent_id: uuid.UUID, observation_id: uuid.UUID, request: Request):
-        return await android_service(request).dismiss(str(agent_id), str(observation_id))
-
-    @router.post("/agents/{agent_id}/android/actions", status_code=202)
-    async def android_action(agent_id: uuid.UUID, request: Request):
-        instance = runtime(request)
-        receipt = await android_service(request).submit(str(agent_id), await bounded_configuration(request, 4096))
-        instance.application.notify()
-        return receipt
-
     def bilibili_service(request: Request) -> BilibiliService:
         service = runtime(request).bilibili
         if service is None:
@@ -808,100 +642,6 @@ def create_app(factory: Callable[[], Awaitable[HttpRuntime]], *, allowed_origins
     @router.get("/agents/{agent_id}/bilibili/publications/{identity}")
     async def bilibili_publication(agent_id: uuid.UUID, identity: uuid.UUID, request: Request):
         return await bilibili_service(request).get(str(agent_id), str(identity))
-
-    def media_service(request: Request) -> MediaService:
-        service = runtime(request).media
-        if service is None:
-            raise BusinessError("media_unavailable", "Media capability is unavailable", status=503)
-        return service
-
-    @router.post("/agents/{agent_id}/media/sources", status_code=201)
-    async def media_source_register(agent_id: uuid.UUID, request: Request):
-        data = configuration_input(MediaSourceInput, await bounded_configuration(request, 4096, strict=True))
-        return await media_service(request).register(str(agent_id), str(data.config_id), data.target)
-
-    @router.get("/agents/{agent_id}/media/sources")
-    async def media_sources(
-        agent_id: uuid.UUID,
-        request: Request,
-        after: uuid.UUID | None = None,
-        limit: int = Query(default=50, ge=1, le=100),
-    ):
-        return await media_service(request).sources(str(agent_id), str(after) if after else "", limit)
-
-    @router.post("/agents/{agent_id}/media/uploads", status_code=201)
-    async def media_upload_source(agent_id: uuid.UUID, request: Request):
-        data = configuration_input(MediaUploadSourceInput, await bounded_configuration(request, 4096, strict=True))
-        return await media_service(request).register_upload(str(agent_id), str(data.object_id), data.title)
-
-    @router.get("/agents/{agent_id}/media/sources/{source_id}")
-    async def media_source(agent_id: uuid.UUID, source_id: uuid.UUID, request: Request):
-        return await media_service(request).source(str(agent_id), str(source_id))
-
-    @router.delete("/agents/{agent_id}/media/sources/{source_id}")
-    async def media_source_delete(agent_id: uuid.UUID, source_id: uuid.UUID, request: Request):
-        await media_service(request).delete(str(agent_id), str(source_id))
-        return {"deleted": True}
-
-    @router.post("/agents/{agent_id}/media/sources/{source_id}/jobs", status_code=201)
-    async def media_job_submit(agent_id: uuid.UUID, source_id: uuid.UUID, request: Request):
-        data = configuration_input(MediaJobInput, await bounded_configuration(request, 4096, strict=True))
-        params: Record = {}
-        if data.operation == "transcribe":
-            params = {"model": data.model, "device": data.device, "compute_type": data.compute_type}
-        if data.operation == "frames":
-            params = {"count": data.count, "width": data.width}
-            if data.timestamps is not None:
-                params = cast(
-                    Record, {"count": len(data.timestamps), "width": data.width, "timestamps": data.timestamps}
-                )
-            if data.select == "scenes":
-                params["select"] = "scenes"
-        return await media_service(request).submit(str(agent_id), str(source_id), data.operation, params)
-
-    @router.get("/agents/{agent_id}/media/sources/{source_id}/jobs")
-    async def media_jobs(
-        agent_id: uuid.UUID,
-        source_id: uuid.UUID,
-        request: Request,
-        after: uuid.UUID | None = None,
-        limit: int = Query(default=50, ge=1, le=100),
-    ):
-        return await media_service(request).jobs(str(agent_id), str(source_id), str(after) if after else "", limit)
-
-    @router.get("/agents/{agent_id}/media/jobs/{job_id}")
-    async def media_job(agent_id: uuid.UUID, job_id: uuid.UUID, request: Request):
-        return await media_service(request).job(str(agent_id), str(job_id))
-
-    @router.post("/agents/{agent_id}/media/jobs/{job_id}/cancel")
-    async def media_job_cancel(agent_id: uuid.UUID, job_id: uuid.UUID, request: Request):
-        return await media_service(request).cancel(str(agent_id), str(job_id))
-
-    @router.get("/agents/{agent_id}/media/transcripts/{transcript_id}")
-    async def media_transcript(agent_id: uuid.UUID, transcript_id: uuid.UUID, request: Request):
-        return await media_service(request).transcript(str(agent_id), str(transcript_id))
-
-    @router.get("/agents/{agent_id}/media/transcripts/{transcript_id}/window")
-    async def media_transcript_window(
-        agent_id: uuid.UUID,
-        transcript_id: uuid.UUID,
-        request: Request,
-        start: int = Query(default=0, ge=0),
-        length: int = Query(default=12000, ge=1, le=12000),
-    ):
-        return await media_service(request).transcript_window_for(str(agent_id), str(transcript_id), start, length)
-
-    @router.get("/agents/{agent_id}/media/frames/{frames_id}")
-    async def media_frames(agent_id: uuid.UUID, frames_id: uuid.UUID, request: Request):
-        return await media_service(request).frames(str(agent_id), str(frames_id))
-
-    @router.get("/agents/{agent_id}/media/processor")
-    async def media_processor(agent_id: uuid.UUID, request: Request):
-        return media_service(request).health()
-
-    @router.post("/agents/{agent_id}/media/processor/probe")
-    async def media_processor_probe(agent_id: uuid.UUID, request: Request):
-        return await media_service(request).processor_probe()
 
     def mcp_service(request: Request) -> MCPService:
         service = runtime(request).mcp
@@ -2358,6 +2098,7 @@ def create_app(factory: Callable[[], Awaitable[HttpRuntime]], *, allowed_origins
             raise BusinessError("invalid_history_query", "Use a history cursor instead of after", status=422)
         return await runtime(request).credentials.audit(cursor, limit)
 
+    mount_feature_routes(router, feature_routes, runtime)
     app.include_router(router)
 
     @app.get("/", include_in_schema=False)

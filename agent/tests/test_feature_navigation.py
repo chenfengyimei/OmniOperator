@@ -25,7 +25,7 @@ def features():
         ("插件", "extensions", "extensions_router.extension_authorization"),
         ("修改插件授权", "extensions", "extensions_router.extension_authorization"),
         ("修改技能回滚", "skills", "skills_router.skill_rollback"),
-        ("排查安卓截图", "android", "create_app.android_capture"),
+        ("排查安卓截图", "android", "android_router.android_capture"),
         ("ANDROID", "android", "AndroidService.capture"),
         ("omni-qq", "v1-qq", "channels/qq.py"),
     ],
@@ -128,9 +128,9 @@ def test_extracted_route_sources_methods_and_request_models_match_openapi():
         (path, method)
         for path, methods in api["paths"].items()
         for method in methods
-        if set(path.split("/")) & {"skills", "extensions"}
+        if set(path.split("/")) & {"skills", "extensions", "android", "media"}
     }
-    assert extracted == expected and len(expected) == 17
+    assert extracted == expected and len(expected) == 46
     for schema in ["SkillImportInput", "SkillSaveInput", "SkillStateInput", "SkillRollbackInput"]:
         model = next(m for m in index["request_models"] if m["name"] == schema)
         assert model["source"].endswith("http_routes/skills.py")

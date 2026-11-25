@@ -141,6 +141,39 @@ def _feature_mounts(tree: ast.Module, prefixes: dict[str, str]) -> dict[str, str
     return mounts
 
 
+def _catalog_feature_routers(tree: ast.Module) -> set[str]:
+    """Read the literal bundled feature declarations without loading implementations."""
+    factories = {
+        alias.asname or alias.name: f"omni.{node.module}.{alias.name}"
+        for node in tree.body
+        if isinstance(node, ast.ImportFrom)
+        and node.level == 3
+        and (node.module or "").startswith("adapters.http_routes.")
+        for alias in node.names
+    }
+    declared: set[str] = set()
+    for node in tree.body:
+        if (
+            not isinstance(node, ast.Assign)
+            or not any(isinstance(target, ast.Name) and target.id == "BUILTIN_FEATURES" for target in node.targets)
+            or not isinstance(node.value, ast.Tuple)
+        ):
+            continue
+        for feature in node.value.elts:
+            if not isinstance(feature, ast.Call) or not isinstance(feature.func, ast.Name):
+                continue
+            if feature.func.id != "FeaturePlugin":
+                continue
+            for argument in feature.keywords:
+                if (
+                    argument.arg == "factory"
+                    and isinstance(argument.value, ast.Name)
+                    and argument.value.id in factories
+                ):
+                    declared.add(factories[argument.value.id])
+    return declared
+
+
 def _routes(tree: ast.AST, path: str, module_id: str, symbols: list[dict], prefixes: dict[str, str]) -> list[dict]:
     found = []
     by_line = {item["line"]: item for item in symbols}
@@ -248,6 +281,8 @@ def build_index(root: Path = PROJECT_ROOT) -> dict:
     test_prefix = (app / "tests").relative_to(root).as_posix() + "/"
     records, endpoints, declared, warnings, models = [], [], [], [], []
     feature_mounts: dict[str, str] = {}
+    bundled_routers: set[str] = set()
+    api_prefix = None
     digest = hashlib.sha256()
     for path in source_files(root):
         relative = path.relative_to(root).as_posix()
@@ -300,8 +335,13 @@ def build_index(root: Path = PROJECT_ROOT) -> dict:
         prefixes = _router_prefixes(tree)
         if module_name == "omni.adapters.http":
             feature_mounts = _feature_mounts(tree, prefixes)
+            api_prefix = prefixes.get("router")
+        if module_name == "omni.composition.features.catalog":
+            bundled_routers = _catalog_feature_routers(tree)
         endpoints.extend(_routes(tree, relative, record["module"], symbols, prefixes))
         declared.extend(_tools(tree, relative, record["module"]))
+    if api_prefix is not None:
+        feature_mounts.update(dict.fromkeys(bundled_routers, api_prefix))
     by_path = {row["path"]: row for row in records}
     for route in endpoints:
         if "/adapters/http_routes/" in route["source"]:
