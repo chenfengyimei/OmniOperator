@@ -4,6 +4,7 @@ import asyncio
 import hashlib
 import importlib.util
 import json
+import os
 import shutil
 import subprocess
 import sys
@@ -271,7 +272,8 @@ def test_standalone_installer_json_preserves_non_legacy_unicode_under_isolated_p
             archive.writestr(name + "/__init__.py", "")
         archive.writestr(
             "omni/adapters/platform/releases/candidate_installer.py",
-            "def install_candidate(wheel,sha,bundle,bundle_sha,manager,home):\n return {'home':str(home)}\n",
+            "def install_candidate(wheel,sha,bundle,bundle_sha,manager,home):\n"
+            " assert wheel == wheel.resolve()\n return {'home':str(home)}\n",
         )
         archive.writestr("omni/domain/contracts.py", "class BusinessError(Exception): pass\n")
     home = tmp_path / "用户🙂"
@@ -292,10 +294,18 @@ def test_standalone_installer_json_preserves_non_legacy_unicode_under_isolated_p
         "--home",
         str(home),
     ]
-    result = subprocess.run(args, capture_output=True, timeout=30, check=False)
+    env = os.environ.copy()
+    if os.name != "nt":
+        physical = tmp_path / "system-temp"
+        physical.mkdir()
+        alias = tmp_path / "temp-alias"
+        alias.symlink_to(physical, target_is_directory=True)
+        env["TMPDIR"] = str(alias)
+    result = subprocess.run(args, capture_output=True, timeout=30, check=False, env=env)
     assert result.returncode == 0, result.stderr
     assert json.loads(result.stdout) == {"home": str(home)}
     assert result.stdout.isascii() and not home.exists()
+
 
 def test_documented_cleanup_pending_is_retried_and_recorded(tmp_path, monkeypatch):
     monkeypatch.setattr(check, "CLEANUP_RETRY_SECONDS", 0.0)

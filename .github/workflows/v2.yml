@@ -98,7 +98,7 @@ jobs:
         with:
           python-version: '3.12'
       - run: python -m pip install uv==0.13.5
-      - run: uv sync --frozen --extra vectors
+      - run: uv sync --frozen --python 3.12 --package omnioperator --extra vectors
       - run: uv run --no-sync pytest -q -n 0 agent/tests/v2/integrations/test_v2_local_vectors.py agent/tests/v2/integrations/native_v2_local_vectors.py --junitxml=temp/build/local-vectors.xml
       - uses: actions/upload-artifact@v4
         if: always()

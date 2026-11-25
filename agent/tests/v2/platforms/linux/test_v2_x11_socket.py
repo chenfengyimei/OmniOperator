@@ -210,9 +210,7 @@ def test_display_manager_xorg_with_another_seat_is_rejected(monkeypatch):
         monkeypatch.setattr(
             native,
             "socket",
-            SimpleNamespace(
-                socket=lambda *_: Socket(), AF_UNIX=1, SOCK_STREAM=1, SOL_SOCKET=1, SO_PEERCRED=17
-            ),
+            SimpleNamespace(socket=lambda *_: Socket(), AF_UNIX=1, SOCK_STREAM=1, SOL_SOCKET=1, SO_PEERCRED=17),
         )
         loop = asyncio.get_running_loop()
 

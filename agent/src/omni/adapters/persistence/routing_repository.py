@@ -194,7 +194,8 @@ class RoutingRepositories(ImageRepositories):
     def route_reservation(self, agent_id: str, run_id: str, default: int) -> int:
         reserved = self.connection.execute(
             select(s.run_routes.c.reservation_micro).where(
-                s.run_routes.c.run_id == run_id, s.run_routes.c.agent_id == agent_id,
+                s.run_routes.c.run_id == run_id,
+                s.run_routes.c.agent_id == agent_id,
             )
         ).scalar_one_or_none()
         return reserved if reserved is not None else default

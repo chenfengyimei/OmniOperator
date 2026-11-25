@@ -14,6 +14,7 @@ from omni.adapters.persistence.maintenance import durable_json
 from omni.adapters.platform.releases.wheel_artifact import MAX_BYTES, MAX_FILES
 from omni.adapters.platform.releases.wheel_stage import FORMAT as STAGED_FORMAT
 from omni.adapters.platform.runtime.permissions import private_path
+from omni.adapters.platform.runtime.publication import publish_directory
 from omni.application.ports import Record
 from omni.domain.contracts import BusinessError
 
@@ -84,6 +85,7 @@ def prepare_wheel(home: Path, sha256: str) -> dict[str, object]:
     total = 0
     try:
         temporary.mkdir()
+        private_path(temporary, directory=True)
         with zipfile.ZipFile(artifact) as archive:
             infos = archive.infolist()
             if not infos or len(infos) > MAX_FILES or archive.testzip() is not None:
@@ -106,14 +108,13 @@ def prepare_wheel(home: Path, sha256: str) -> dict[str, object]:
                 files += 1
         if not (temporary / "omni/web_assets/ui/v2/index.html").is_file():
             raise invalid("prepare_assets_missing")
-        os.replace(temporary, tree)
+        publish_directory(temporary, tree)
     except (zipfile.BadZipFile, OSError, RuntimeError) as exc:
         shutil.rmtree(temporary, ignore_errors=True)
         raise invalid() from exc
     except BusinessError:
         shutil.rmtree(temporary, ignore_errors=True)
         raise
-    private_path(tree, directory=True)
     manifest = {"format": FORMAT, "wheel_sha256": sha256, "files": files, "bytes": total, "tree": "tree"}
     durable_json(prepared_path, cast(Record, manifest))
     private_path(prepared_path)

@@ -98,9 +98,7 @@ def test_review_enqueue_is_idempotent_per_run_and_evidence_is_immutable(tmp_path
                 .where(s.background_review_batches.c.id == first["id"])
                 .values(run_id="00000000-0000-0000-0000-000000000000")
             )
-            await denied(
-                s.background_review_batches.delete().where(s.background_review_batches.c.id == first["id"])
-            )
+            await denied(s.background_review_batches.delete().where(s.background_review_batches.c.id == first["id"]))
             report = await database.integrity()
             assert report["integrity"] == "ok" and report["foreign_keys"] == 0
         finally:

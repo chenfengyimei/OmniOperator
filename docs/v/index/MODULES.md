@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`9b4baac90af16d38b4bd5b309e9605bb7a845b48d731eae857d7e2c1b3379be0`。包含 65 个职责模块、919 个源码/界面文件。
+源码指纹：`462951a5b5cd3696da27a515142db77c07662492acfceadf8c2569ff969cbc43`。包含 65 个职责模块、919 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -343,7 +343,7 @@
 | [agent/src/omni/adapters/persistence/repository.py](../../../agent/src/omni/adapters/persistence/repository.py) | V2 | 1302 | Transaction-scoped repositories. No connection creation, DDL or external calls. |
 | [agent/src/omni/adapters/persistence/repository_base.py](../../../agent/src/omni/adapters/persistence/repository_base.py) | V2 | 52 | Common transaction-scoped identity, ownership and audit primitives. |
 | [agent/src/omni/adapters/persistence/retention_repository.py](../../../agent/src/omni/adapters/persistence/retention_repository.py) | V2 | 150 | Context barriers invalidate derived views without deleting original conversations. |
-| [agent/src/omni/adapters/persistence/routing_repository.py](../../../agent/src/omni/adapters/persistence/routing_repository.py) | V2 | 378 | Scoped immutable tier policies, run choices, promotions and actual tool manifests; no model calls or I/O. |
+| [agent/src/omni/adapters/persistence/routing_repository.py](../../../agent/src/omni/adapters/persistence/routing_repository.py) | V2 | 379 | Scoped immutable tier policies, run choices, promotions and actual tool manifests; no model calls or I/O. |
 | [agent/src/omni/adapters/persistence/run_checkpoint_repository.py](../../../agent/src/omni/adapters/persistence/run_checkpoint_repository.py) | V2 | 217 | Use the turn queue's existing payload, instance lock and lease for safe restart. |
 | [agent/src/omni/adapters/persistence/schedule_repository.py](../../../agent/src/omni/adapters/persistence/schedule_repository.py) | V2 | 638 | Immutable schedule definitions, durable due cursors and atomic occurrence admission. |
 | [agent/src/omni/adapters/persistence/schema.py](../../../agent/src/omni/adapters/persistence/schema.py) | V2 | 3624 | V2 relational schema. Repositories never issue DDL; migrations use frozen SQL snapshots. |
@@ -427,7 +427,7 @@
 | [agent/src/omni/adapters/platform/releases/wheel_backup.py](../../../agent/src/omni/adapters/platform/releases/wheel_backup.py) | V2 | 68 | Execute only the backup step of a reviewed switch plan; no stop, switch, migration or rollback. |
 | [agent/src/omni/adapters/platform/releases/wheel_environment.py](../../../agent/src/omni/adapters/platform/releases/wheel_environment.py) | V2 | 249 | Create an offline candidate environment: a venv that installs the staged wheel without a network. |
 | [agent/src/omni/adapters/platform/releases/wheel_install.py](../../../agent/src/omni/adapters/platform/releases/wheel_install.py) | V2 | 411 | Execute the switch step: point the runtime at a prepared candidate; no stop, migrate or start. |
-| [agent/src/omni/adapters/platform/releases/wheel_prepare.py](../../../agent/src/omni/adapters/platform/releases/wheel_prepare.py) | V2 | 120 | Safely unpack one staged wheel into a candidate tree; never creates a venv, switches or migrates. |
+| [agent/src/omni/adapters/platform/releases/wheel_prepare.py](../../../agent/src/omni/adapters/platform/releases/wheel_prepare.py) | V2 | 121 | Safely unpack one staged wheel into a candidate tree; never creates a venv, switches or migrates. |
 | [agent/src/omni/adapters/platform/releases/wheel_rollback.py](../../../agent/src/omni/adapters/platform/releases/wheel_rollback.py) | V2 | 71 | Rollback drill: restore the update backup into a new sibling directory and verify it; never touches live home. |
 | [agent/src/omni/adapters/platform/releases/wheel_smoke.py](../../../agent/src/omni/adapters/platform/releases/wheel_smoke.py) | V2 | 115 | Smoke-test a prepared candidate tree in a child interpreter; no install, switch or migration. |
 | [agent/src/omni/adapters/platform/releases/wheel_stage.py](../../../agent/src/omni/adapters/platform/releases/wheel_stage.py) | V2 | 76 | Atomic local staging of a verified wheel; never extracts, switches directories or runs migrations. |

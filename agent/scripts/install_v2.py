@@ -25,7 +25,8 @@ def main() -> int:
             raise ValueError("invalid wheel pin")
         # Capture and pin before importing any application code, even from an editable checkout.
         with tempfile.TemporaryDirectory(prefix="omni-v2-bootstrap-") as temporary:
-            captured = Path(temporary) / args.wheel.name
+            # The private directory can be created under a system alias such as macOS /tmp.
+            captured = Path(temporary).resolve(strict=True) / args.wheel.name
             digest, size = hashlib.sha256(), 0
             with args.wheel.open("rb") as source, captured.open("xb") as target:
                 while block := source.read(1024 * 1024):

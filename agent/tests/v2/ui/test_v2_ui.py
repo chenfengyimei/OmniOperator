@@ -41,10 +41,10 @@ from omni_test_support.v2.ui import (
     open_instance as open_instance,
 )
 from omni_test_support.v2.ui import (
-    reveal_settings as reveal_settings,
+    pytest as pytest,
 )
 from omni_test_support.v2.ui import (
-    pytest as pytest,
+    reveal_settings as reveal_settings,
 )
 from omni_test_support.v2.ui import (
     socket as socket,

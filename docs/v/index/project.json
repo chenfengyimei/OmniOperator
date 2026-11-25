@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "9b4baac90af16d38b4bd5b309e9605bb7a845b48d731eae857d7e2c1b3379be0",
+  "source_sha256": "462951a5b5cd3696da27a515142db77c07662492acfceadf8c2569ff969cbc43",
   "modules": [
     {
       "id": "v2-domain",
@@ -551,7 +551,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 73281,
+      "lines": 73283,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -25076,7 +25076,7 @@
       "module": "v2-adapters",
       "version": "V2",
       "python_module": "omni.adapters.persistence.routing_repository",
-      "lines": 378,
+      "lines": 379,
       "imports": [
         "omni.adapters.persistence",
         "omni.adapters.persistence.image_repository",
@@ -25199,7 +25199,7 @@
         },
         {
           "name": "RoutingRepositories.route_promote",
-          "line": 202,
+          "line": 203,
           "kind": "function",
           "parameters": [
             "self",
@@ -25215,7 +25215,7 @@
         },
         {
           "name": "RoutingRepositories.route_call",
-          "line": 255,
+          "line": 256,
           "kind": "function",
           "parameters": [
             "self",
@@ -25241,7 +25241,7 @@
         },
         {
           "name": "RoutingRepositories.assert_tool_bindings",
-          "line": 315,
+          "line": 316,
           "kind": "function",
           "parameters": [
             "self",
@@ -25257,7 +25257,7 @@
         },
         {
           "name": "RoutingRepositories.route_report",
-          "line": 322,
+          "line": 323,
           "kind": "function",
           "parameters": [
             "self",
@@ -38550,19 +38550,20 @@
       "module": "v2-adapters",
       "version": "V2",
       "python_module": "omni.adapters.platform.releases.wheel_prepare",
-      "lines": 120,
+      "lines": 121,
       "imports": [
         "omni.adapters.persistence.maintenance",
         "omni.adapters.platform.releases.wheel_artifact",
         "omni.adapters.platform.releases.wheel_stage",
         "omni.adapters.platform.runtime.permissions",
+        "omni.adapters.platform.runtime.publication",
         "omni.application.ports",
         "omni.domain.contracts"
       ],
       "symbols": [
         {
           "name": "invalid",
-          "line": 23,
+          "line": 24,
           "kind": "function",
           "parameters": [
             "code"
@@ -38573,7 +38574,7 @@
         },
         {
           "name": "_digest",
-          "line": 27,
+          "line": 28,
           "kind": "function",
           "parameters": [
             "path"
@@ -38584,7 +38585,7 @@
         },
         {
           "name": "_safe_target",
-          "line": 35,
+          "line": 36,
           "kind": "function",
           "parameters": [
             "root",
@@ -38597,7 +38598,7 @@
         },
         {
           "name": "prepare_wheel",
-          "line": 42,
+          "line": 43,
           "kind": "function",
           "parameters": [
             "home",

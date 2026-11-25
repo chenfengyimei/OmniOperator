@@ -228,6 +228,7 @@ async def check_installation(
             "HOME",
             "USERPROFILE",
             "TMP",
+            "TMPDIR",
             "TEMP",
             "LANG",
             "LC_ALL",
@@ -337,7 +338,15 @@ async def check_installation(
                     "uninstall", [*cli, "installation", "uninstall", "--sha256", wheel_sha], output, env
                 )
             except CommandFailed as error:
-                attempts.append({"attempt": attempt, "state": "failed", "error_code": "uninstall_cleanup_pending" if "uninstall_cleanup_pending" in error.stderr else "uninstall_failed"})
+                attempts.append(
+                    {
+                        "attempt": attempt,
+                        "state": "failed",
+                        "error_code": "uninstall_cleanup_pending"
+                        if "uninstall_cleanup_pending" in error.stderr
+                        else "uninstall_failed",
+                    }
+                )
                 report["uninstall_attempts"] = attempts
                 if "uninstall_cleanup_pending" not in error.stderr or attempt == 4:
                     raise

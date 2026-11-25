@@ -7,6 +7,7 @@ import zipfile
 
 import pytest
 
+from omni.adapters.platform.releases import wheel_prepare
 from omni.adapters.platform.releases.wheel_prepare import prepare_wheel
 from omni.adapters.platform.releases.wheel_stage import stage_wheel
 from omni.composition.cli import main
@@ -64,6 +65,24 @@ def test_prepare_requires_stage_and_unchanged_artifact(tmp_path):
     with pytest.raises(BusinessError) as changed:
         prepare_wheel(home, sha256)
     assert changed.value.code == "prepare_artifact_changed"
+
+
+def test_prepare_does_not_replace_a_directory_published_by_another_worker(tmp_path, monkeypatch):
+    home, sha256 = staged(tmp_path)
+    stage = home / "updates" / sha256[:16]
+    publish = wheel_prepare.publish_directory
+
+    def race(source, destination):
+        destination.mkdir()
+        publish(source, destination)
+
+    monkeypatch.setattr(wheel_prepare, "publish_directory", race)
+    with pytest.raises(BusinessError) as error:
+        prepare_wheel(home, sha256)
+    assert error.value.code == "prepare_invalid"
+    assert (stage / "tree").is_dir() and not list((stage / "tree").iterdir())
+    assert not (stage / ".tree.partial").exists()
+    assert not (stage / "prepared.json").exists()
 
 
 def test_cli_prepare_emits_json(tmp_path, monkeypatch, capsys):
