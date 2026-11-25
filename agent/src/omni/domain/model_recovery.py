@@ -6,20 +6,23 @@ and stays under the daily budget. Two guards shorten the streak: a deterministic
 consecutive usage-backed zero-output empties with the same model/provider/finish signature) skips
 the remaining retries, and a single expensive attempt drops the budget from 3 to 1.
 
-V2 hard limits the reference does not have: a call whose cost is unknown settled ``unknown`` and is
-NEVER replayed, and recovery never swaps the account or model (no fallback chain). This module only
-decides — it never reserves, dispatches or touches storage.
+An unknown-cost attempt remains unresolved. The application may consider an owner-authorized
+fallback only after the preceding attempts have settled.
 """
 
 from __future__ import annotations
 
 from dataclasses import dataclass
 
-from .contracts import ModelReply
+from .contracts import BusinessError, ModelReply
 
 DEFAULT_EMPTY_RETRY_BUDGET = 3
 REDUCED_EMPTY_RETRY_BUDGET = 1
 DEFAULT_COST_THRESHOLD_MICRO = 250_000
+
+
+class ModelRejected(BusinessError):
+    """A provider response proves the request was rejected before generation."""
 
 
 @dataclass(frozen=True)

@@ -3041,6 +3041,7 @@ media_frames = scoped(
 
 model_route_policies = scoped(
     "model_route_policies",
+    Column("kernel", JSON, nullable=False, server_default="{}"),
     Column("revision", Integer, nullable=False),
     Column("default_mode", String(16), nullable=False),
     Column("allow_escalation", Boolean, nullable=False),
@@ -3062,6 +3063,7 @@ model_route_policies = scoped(
 )
 run_routes = scoped(
     "run_routes",
+    Column("kernel", JSON, nullable=False, server_default="{}"),
     Column("run_id", String(36), nullable=False),
     Column("policy_id", String(36)),
     Column("requested_mode", String(16), nullable=False),
@@ -3096,6 +3098,7 @@ route_changes = scoped(
 )
 model_call_routes = scoped(
     "model_call_routes",
+    Column("model_revision_id", String(36)),
     Column("call_id", String(36), nullable=False),
     Column("route_id", String(36), nullable=False),
     Column("ordinal", Integer, nullable=False),

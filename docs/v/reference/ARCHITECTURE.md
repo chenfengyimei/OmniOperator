@@ -23,12 +23,15 @@ V2 不导入 V1 运行时；数据库访问只在 `adapters/persistence`。组�
 | `adapters/http_routes/<feature>.py` | 此功能的 HTTP 输入与处理函数；技能、插件是首批 | 在主路由原位置用 `include_router` 挂载工厂，固定路径先于同方法的动态路径；核对静态路由与工作台 |
 | `adapters/persistence/`、`adapters/platform/`、`adapters/workers/` | 事务与迁移、平台实现、受管进程和协议 | 检查资源归属、调用方和关闭路径 |
 | `adapters/extensions/` | 读取包、校验指纹与运行已授权代码 | 版本升级、旧授权失效与宿主回收 |
+| `application/capabilities.py`、`composition/capabilities.py` | 能力插件合同、工具快照及内建提供者组装 | 插件与工具名、所有者入口、回合权限和关闭归属 |
+| `composition/model_providers.py`、`composition/channel_providers.py`、`composition/platform_providers.py` | 模型、渠道和平台的类型端口绑定与资源登记 | 合同兼容、注入优先级、部分启动失败回收 |
 | `web/ui/v2/`、`agent/tests/v2/` | 按功能维护页面，在现有测试分组验证 | 同一批更新功能导航、对应接口和测试 |
 
 把稳定的入口登记在 [features.json](../features.json)。共享大文件用 `路径#类.方法`、`路径#函数.内部函数` 或唯一的组装绑定（如 `instance.py#open_instance.extensions`），由 AST 生成行号。模块或文件改名时同时更新导入、严格类型清单、测试和导航，再生成索引。桌面、媒体和渠道在下一次实质改动时可沿用此次 HTTP 拆分方式。V1、V2 与共享文件的明细见[源码地图](../index/MODULES.md)；新增技能或工具的授权流程见[扩展手册](EXTENDING.md)。
 
 ## 2. 业务与平台约束
 
+- 内核统一负责执行、授权、预算、持久状态和恢复。外围能力通过可信代码登记到已有类型端口。工具层包括实例随附的插件和按回合授权绑定的提供者。[能力插件组装](CAPABILITY_PLUGINS.md)
 - 单一 `omni.db` 与共享事务、来源/授权、审批、预算和恢复链是业务真值；目录整理不增建状态库或迁移数据。
 - 写动作绑定观察和逐次许可。可能已派发而后验不明时保持 unknown，不自动重发；独立样例状态不改写生产回执。
 - 取消等待不丢弃实际任务、辅助进程、描述符、锁或释放义务；实际清理完成前不释放归属。

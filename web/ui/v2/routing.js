@@ -8,6 +8,8 @@ export function mountRouting({ api, wrap, getAgent, getGeneration, getSession })
   const bound = () => ({ agent: getAgent(), generation: getGeneration(), epoch });
   const current = (t) => t.agent === getAgent() && t.generation === getGeneration() && t.epoch === epoch;
   const root = (agent) => `/agents/${agent}/routing`;
+  const kernelFlags = ['tool_discovery', 'empty_recovery', 'verify_completion', 'safe_resume', 'background_learning'];
+  const fallbackSlots = [1, 2, 3];
   function read() {
     const draft = drafts.get(getAgent());
     if (!draft) return;
@@ -18,6 +20,8 @@ export function mountRouting({ api, wrap, getAgent, getGeneration, getSession })
       const value = $(`route-${mode}-reserve`).value;
       draft.value[`${mode}_reservation_micro`] = value === '' ? null : Number(value);
     }
+    draft.value.kernel = Object.fromEntries(kernelFlags.map((key) => [key, $(`kernel-${key}`).checked]));
+    draft.value.kernel.fallback_model_ids = fallbackSlots.map((i) => $(`kernel-fallback-${i}`).value).filter(Boolean);
     draft.dirty = true;
     $('route-config-status').textContent = '档位草稿尚未保存，已有运行继续使用原修订';
     usdHints();
@@ -61,6 +65,7 @@ export function mountRouting({ api, wrap, getAgent, getGeneration, getSession })
           ].map((key) => [key, row[key]]),
         ),
       };
+      draft.value.kernel = row.kernel || { background_learning: true, fallback_model_ids: [] };
       drafts.set(t.agent, draft);
     }
     $('route-default').value = draft.value.default_mode;
@@ -80,6 +85,19 @@ export function mountRouting({ api, wrap, getAgent, getGeneration, getSession })
         select.append(new Option('原配置不可用，请重新选择', identity));
       select.value = identity || '';
       $(`route-${mode}-reserve`).value = draft.value[`${mode}_reservation_micro`] ?? '';
+    }
+    for (const key of kernelFlags) $(`kernel-${key}`).checked = Boolean(draft.value.kernel[key]);
+    for (const slot of fallbackSlots) {
+      const select = $(`kernel-fallback-${slot}`);
+      const identity = draft.value.kernel.fallback_model_ids[slot - 1];
+      select.replaceChildren(
+        new Option('未授权备用模型', ''),
+        ...configs.items.filter((r) => r.enabled).map((r) => new Option(r.name, r.id)),
+      );
+      if (identity && !configs.items.some((r) => r.enabled && r.id === identity)) {
+        select.append(new Option('原配置已停用', identity));
+      }
+      select.value = identity || '';
     }
     usdHints();
     $('route-config-status').textContent =
@@ -177,6 +195,7 @@ export function mountRouting({ api, wrap, getAgent, getGeneration, getSession })
           const rows = document.createElement('dl');
           rows.className = 'route-call-facts';
           for (const [label, text] of [
+            ['实际模型', call.model || '未知'],
             ['工具', `${call.tool_count}/${call.full_tool_count}`],
             ['规格', `${call.tool_bytes}/${call.full_tool_bytes} 字节`],
             // 所有者要求：不展示估算，只保留实测口径。

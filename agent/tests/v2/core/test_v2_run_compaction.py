@@ -43,6 +43,7 @@ from omni.domain.context import (
     run_compaction_window,
     tool_round_starts,
 )
+from omni.domain.model_recovery import ModelRejected
 
 
 def assistant(call_id):
@@ -189,6 +190,56 @@ def test_short_run_never_compacts(tmp_path):
     asyncio.run(scenario())
 
 
+def test_large_catalog_does_not_force_compaction_of_a_short_transcript(tmp_path):
+    async def scenario():
+        model = CompactionModel(rounds=3)
+        reader = BigReader(size=120)
+        spec = ToolSpec("big_read", "Read the fixture. " * 1500, {"type": "object"}, resource="alpha")
+        instance = await open_instance(tmp_path, model=model, capabilities=(Capability(spec, reader),))
+        try:
+            app = instance.application
+            agent = await configure(app, instance._database)
+            await model_instance(instance, agent, context_tokens=128000)
+            receipt = await app.submit_turn(agent, None, "wide-catalog", "Read the fixture", mode="agent")
+            await wait_state(app, agent, receipt["run_id"], {"succeeded"})
+            assert reader.count == 3 and model.summary == 0
+            assert pairs_intact(model.main_inputs[-1])
+        finally:
+            assert (await instance.close())["complete"]
+
+    asyncio.run(scenario())
+
+
+def test_large_history_does_not_force_compaction_of_short_tool_rounds(tmp_path):
+    async def scenario():
+        model = CompactionModel(rounds=5)
+        reader = BigReader(size=120)
+        instance = await open_instance(tmp_path, model=model, capabilities=(Capability(big_spec(), reader),))
+        try:
+            app = instance.application
+            agent = await configure(app, instance._database)
+            await model_instance(instance, agent, context_tokens=65536)
+
+            def seed_history(unit):
+                earlier = unit.accept_turn(agent, None, "prior", "Record the previous observations", {})
+                unit.transition(agent, earlier["run_id"], "running")
+                unit.finish(agent, earlier["run_id"], "Prior observations. " * 1400)
+                return earlier["session_id"]
+
+            session_id = await instance._database.write(seed_history)
+            goal = "Check the current record AX17"
+            receipt = await app.submit_turn(agent, session_id, "short-tools", goal, mode="agent")
+            final = await wait_state(app, agent, receipt["run_id"], {"succeeded", "failed"})
+            assert final["state"] == "succeeded", final
+            assert reader.count == 5 and model.summary == 0
+            last = model.main_inputs[-1]
+            assert goal in str(last) and "Prior observations." in str(last) and pairs_intact(last)
+        finally:
+            assert (await instance.close())["complete"]
+
+    asyncio.run(scenario())
+
+
 def test_long_run_compacts_repeatedly_keeping_recent_rounds(tmp_path):
     async def scenario():
         model = CompactionModel(rounds=6)
@@ -262,5 +313,34 @@ def test_compaction_never_splits_the_kept_recent_rounds(tmp_path):
             assert pairs_intact(model.main_inputs[-1])
         finally:
             await instance.close()
+
+    asyncio.run(scenario())
+
+
+def test_provider_rejection_compacts_once_without_replaying_tools(tmp_path):
+    class RejectOnce(CompactionModel):
+        async def complete(self, messages, tools, settings):
+            if self.main == 3 and tools:
+                self.main += 1
+                raise ModelRejected("model_context_rejected", "Request rejected before generation", status=422)
+            return await super().complete(messages, tools, settings)
+
+    async def scenario():
+        model, reader = RejectOnce(rounds=3), BigReader(size=3700)
+        instance = await open_instance(tmp_path, model=model, capabilities=(Capability(big_spec(), reader),))
+        try:
+            app = instance.application
+            agent = await configure(app, instance._database)
+            await model_instance(instance, agent, context_tokens=32768)
+            receipt = await app.submit_turn(agent, None, "context-retry", "Keep original goal AX17", mode="agent")
+            final = await wait_state(app, agent, receipt["run_id"], {"succeeded", "failed"})
+            assert final["state"] == "succeeded", final
+            assert reader.count == 3 and model.summary == 1
+            last = model.main_inputs[-1]
+            assert "AX17" in str(last) and "COMPACT_SUMMARY" in str(last) and pairs_intact(last)
+            calls = await app.query("calls", agent, run_id=receipt["run_id"])
+            assert len(calls) == 6 and all(row["state"] == "settled" for row in calls)
+        finally:
+            assert (await instance.close())["complete"]
 
     asyncio.run(scenario())

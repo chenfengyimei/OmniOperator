@@ -260,22 +260,31 @@ class ContextService:
         messages: list[Record],
         tools: tuple[ToolSpec, ...],
         settings: Settings,
+        *,
+        force: bool = False,
     ) -> bool:
         """Compress old complete tool rounds of a live run transcript so the run can continue.
 
-        Mutates ``messages`` in place only when the serialized transcript exceeds the in-run
-        trigger and enough complete rounds exist: the oldest rounds become one bounded summary
+        Mutates ``messages`` in place when the live tool rounds exceed the in-run trigger,
+        the full request exceeds capacity, or forced recovery is requested. With enough complete
+        rounds, the oldest ones become one bounded summary
         while the frozen system prefix, the initial head and the most recent rounds (with their
         tool pairs and tail runtime notice) stay intact. The summary is a billed ``summary``
         call through the same authorization/erasure guards as any model call; on failure the
         transcript is left unchanged. Returns whether a compaction was applied.
         """
-        if len(serialized_request(messages, tools)) <= RUN_COMPACT_TRIGGER_CHARS:
-            return False
-        window = run_compaction_window(messages)
+        window = run_compaction_window(messages, keep_rounds=1) if force else run_compaction_window(messages)
         if window is None:
             return False
         head_end, cut = window
+        # Proactive compression can only reduce the live tool rounds. The frozen head
+        # and tool schemas still count toward the full request and model window.
+        if (
+            not force
+            and len(serialized_request(messages[head_end:], ())) <= RUN_COMPACT_TRIGGER_CHARS
+            and await self._fits(messages, tools, settings)
+        ):
+            return False
         compressible = messages[head_end:cut]
 
         def begin(u: UnitOfWork) -> str:
@@ -301,16 +310,16 @@ class ContextService:
             # (reply, known-not-sent, dispatched unknown). Settling it here again raises
             # already_settled and failed a run whose compaction actually succeeded.
             reply = await self._calls.invoke(agent_id, run_id, prompt, (), settings, reserved_id=call_id)
-        except BaseException as exc:
-            if isinstance(exc, (asyncio.CancelledError, KeyboardInterrupt, SystemExit)):
-                raise
-            if isinstance(exc, BusinessError) and exc.code in {
-                "context_invalidated",
-                "model_configuration_revoked",
-                "token_counter_unavailable",
+        except BusinessError as exc:
+            if exc.code in {
+                "token_budget_exceeded",
+                "context_budget_exceeded",
+                "model_context_rejected",
+                "model_rate_limited",
+                "model_response_incomplete",
             }:
-                raise
-            return False
+                return False
+            raise
         if reply.calls:
             return False
         summary = reply.text[:SUMMARY_CHARS]

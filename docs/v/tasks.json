@@ -1,5 +1,5 @@
 {
-  "summary": "2026-11-24 整理时，最近有完整离线结果的候选为 `dae24cf7`（8648 通过、0 失败、10 跳过）。之后的视觉、媒体和本轮工作台文档路径均有改动。当前工作树待冻结复验，发布仍待干净机器、真实账号与设备以及最终候选的 72 小时记录。",
+  "summary": "当前开发优先代码逻辑与外围能力插件化。模型、渠道和平台提供者已接入正式组装，按批次完成离线专项。上一轮 8706 项通过的全量属于固定候选 `5da6dce4`。真实模型对跑另行排期，干净机、真实账号、设备与 72 小时长跑安排在发布验收。",
   "windows_stage": {
     "status": "completed_windows_offline_candidate",
     "summary": "Windows 用户域服务在 `30bea914` 构建的 wheel 上完成注册、启动、只读状态、停止、卸载共 14 步。干净机仍须对最终产物验证安装、升级、回滚和卸载，记录 wheel SHA、PID 与就绪回执。"
@@ -8,8 +8,8 @@
     {
       "id": "RC",
       "title": "候选与离线回归",
-      "status": "development_in_progress",
-      "next": "Windows 集成方选定提交、重建 wheel 和依赖包；在同一源码上协调一次全量，登记 JUnit、跳过项和产物哈希。",
+      "status": "waiting_for_development_completion",
+      "next": "开发批次执行相关模块与调用方的专项。发布冻结后选定提交，构建 wheel 和依赖包并协调一次离线全量，登记 JUnit、跳过项和产物哈希。",
       "evidence": [
         "https://gitee.com/chenfengloveyuri/OmniOperator/blob/3f6594ebd307dfd3d7f64be7b21c83a36b938fb5/docs/evidence/v2-release-candidate-05b44447-2026-11-24.json"
       ]
@@ -94,6 +94,43 @@
       "evidence": [
         "docs/v/evidence/feature-navigation.json",
         "docs/v/index/FEATURES.md"
+      ]
+    },
+    {
+      "id": "KERNEL",
+      "title": "内核学习、完成核验、模型回退与安全接续",
+      "status": "implemented_scoped_passed",
+      "next": "5da6dce4 的 63 项内核专项和离线全量已通过，候选 wheel 也有技能学习、跨会话复用和撤销回执。当前按具体逻辑缺口开发，以离线专项验证。模型质量与可选策略另行评测。",
+      "contract": "docs/v/reference/KERNEL.md",
+      "evidence": [
+        "docs/v/evidence/kernel-parity-2026-11-25.json",
+        "docs/v/evidence/kernel-plugins-2026-11-25.json"
+      ]
+    },
+    {
+      "id": "CAPABILITY-PLUGINS",
+      "title": "内置工具、Extension 和 MCP 的能力插件组装",
+      "status": "accepted",
+      "next": "能力注册、所有者入口、回合捕获和资源归属已接入正式实例。增改工具按同一合同登记并验证调用方。模型、渠道和平台的提供者验证见 PROVIDER-PLUGINS。",
+      "contract": "docs/v/reference/CAPABILITY_PLUGINS.md",
+      "evidence": ["docs/v/evidence/kernel-plugins-2026-11-25.json"]
+    },
+    {
+      "id": "PROVIDER-PLUGINS",
+      "title": "模型、渠道与平台提供者代码注册",
+      "status": "implemented_scoped_passed",
+      "next": "模型 84 项、渠道 88 项、平台与架构 118 项专项通过。OpenAPI、40 个 Agent 工具、3 个所有者工具及默认驱动与上一轮候选一致。新增同类实现沿各提供者模块登记并补调用方专项。",
+      "contract": "docs/v/reference/CAPABILITY_PLUGINS.md",
+      "evidence": ["docs/v/evidence/provider-plugins-2026-11-25.json"]
+    },
+    {
+      "id": "KERNEL-EVAL",
+      "title": "Hermes 与两版 V2 同模型对跑",
+      "status": "deferred_by_scope",
+      "next": "保留三方主试验的 189/288 份计量回执。模型评测单独恢复时，补委派 4 题、学习 4 题、其余故障恢复 3 题，并按评测候选采集受影响组。4B 与 32K 的结果归属已登记的模型试验。",
+      "contract": "docs/v/reference/KERNEL.md",
+      "evidence": [
+        "docs/v/evidence/kernel-plugins-2026-11-25.json"
       ]
     }
   ]

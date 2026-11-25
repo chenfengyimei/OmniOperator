@@ -155,6 +155,24 @@ def workspace_path(root_text: str, relative: str) -> Path:
     return path
 
 
+def _file_target(root: str, path: Path) -> str:
+    return Path(os.path.normcase(path.relative_to(Path(root).resolve()))).as_posix()
+
+
+def _verification_files(workspace: str, paths: list[str]) -> dict[str, str]:
+    versions: dict[str, str] = {}
+    for name in paths:
+        try:
+            target = workspace_path(workspace, name)
+            with target.open("rb") as stream:
+                content = stream.read(256 * 1024 + 1)
+            if len(content) <= 256 * 1024:
+                versions[_file_target(workspace, target)] = hashlib.sha256(content).hexdigest()
+        except (OSError, ValueError):
+            continue
+    return versions
+
+
 class Worker:
     def __init__(self) -> None:
         self._playwright: Playwright | None = None
@@ -227,7 +245,7 @@ class Worker:
                 Outcome.OK,
                 f"sha256={digest}\n" + content.decode("utf-8-sig"),
                 verification=digest,
-                data={"sha256": digest},
+                data={"sha256": digest, "workspace_path": _file_target(context["workspace"], path)},
             )
         if name == "files_write":
             payload = str(args["content"]).encode("utf-8")
@@ -257,7 +275,13 @@ class Worker:
             finally:
                 Path(temporary).unlink(missing_ok=True)
             digest = hashlib.sha256(payload).hexdigest()
-            return ActionResult(Outcome.OK, "File saved", Effect.APPLIED, verification=digest, data={"sha256": digest})
+            return ActionResult(
+                Outcome.OK,
+                "File saved",
+                Effect.APPLIED,
+                verification=digest,
+                data={"sha256": digest, "workspace_path": _file_target(context["workspace"], path)},
+            )
         if name == "files_search":
             target = args.get("target", "content")
             if target not in {"content", "files"}:
@@ -418,7 +442,13 @@ class Worker:
                 "File patched" + (f"\n{note}" if note else ""),
                 Effect.APPLIED,
                 verification=digest,
-                data={"sha256": digest, "replacements": count, "strategy": strategy, "note": note},
+                data={
+                    "sha256": digest,
+                    "workspace_path": _file_target(context["workspace"], path),
+                    "replacements": count,
+                    "strategy": strategy,
+                    "note": note,
+                },
             )
         raise ValueError("Unknown file capability")
 
@@ -430,6 +460,16 @@ class Worker:
         if not argv or len(argv) > 100 or not all(isinstance(item, str) and "\0" not in item for item in argv):
             raise ValueError("Provide a bounded argv array; shell interpolation is not supported")
         cwd = workspace_path(context["workspace"], str(args.get("cwd", ".")))
+        raw_paths: object = args.get("verify_paths", [])
+        verify_paths = cast(list[object], raw_paths) if isinstance(raw_paths, list) else []
+        if (
+            not isinstance(raw_paths, list)
+            or len(verify_paths) > 8
+            or not all(isinstance(path, str) and 1 <= len(path) <= 1000 for path in verify_paths)
+        ):
+            raise ValueError("Provide up to eight bounded workspace verification paths")
+        paths = cast(list[str], verify_paths)
+        before = _verification_files(context["workspace"], paths)
         effects.dispatched = True
         process = await asyncio.create_subprocess_exec(
             *cast(list[str], argv),
@@ -453,6 +493,7 @@ class Worker:
             drain(process.stdout), drain(process.stderr)
         )
         code = await process.wait()
+        after = _verification_files(context["workspace"], paths)
         if stdout_truncated:
             stdout = "[stdout truncated at 262144 bytes]\n" + stdout
         if stderr_truncated:
@@ -467,6 +508,7 @@ class Worker:
                 "truncated": stdout_truncated or stderr_truncated,
                 "stdout_truncated": stdout_truncated,
                 "stderr_truncated": stderr_truncated,
+                "verified_files": {path: digest for path, digest in before.items() if after.get(path) == digest},
             },
         )
 

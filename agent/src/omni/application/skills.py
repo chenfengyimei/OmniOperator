@@ -125,6 +125,7 @@ class SkillService:
         skill_id: str | None,
         revision: int,
         guard: Callable[[UnitOfWork], None] | None = None,
+        after: Callable[[UnitOfWork, Record], None] | None = None,
     ) -> Record:
         package.validate()
         files: list[Record] = []
@@ -135,7 +136,10 @@ class SkillService:
         def commit(u: UnitOfWork) -> Record:
             if guard:
                 guard(u)
-            return u.skill_install(agent_id, cast(Record, package.metadata), files, skill_id, revision)
+            row = u.skill_install(agent_id, cast(Record, package.metadata), files, skill_id, revision)
+            if after:
+                after(u, row)
+            return row
 
         return self._public(await self._db.write(commit))
 
@@ -157,8 +161,20 @@ class SkillService:
         revision: int = 0,
         *,
         guard: Callable[[UnitOfWork], None] | None = None,
+        after: Callable[[UnitOfWork, Record], None] | None = None,
     ) -> Record:
-        return await self._execute(lambda: self._save(agent_id, content, skill_id, revision, guard))
+        return await self._execute(lambda: self._save(agent_id, content, skill_id, revision, guard, after))
+
+    async def validate_markdown(self, content: str) -> None:
+        """Check a proposed document using the same parser as installation."""
+        await self._execute(lambda: self._parse_markdown(content))
+
+    async def _parse_markdown(self, content: str) -> SkillPackage:
+        try:
+            payload = content.encode("utf-8")
+        except (AttributeError, UnicodeError):
+            raise invalid() from None
+        return await self._packages.parse(payload, "markdown")
 
     async def _save(
         self,
@@ -167,20 +183,17 @@ class SkillService:
         skill_id: str | None,
         revision: int,
         guard: Callable[[UnitOfWork], None] | None,
+        after: Callable[[UnitOfWork, Record], None] | None = None,
     ) -> Record:
         """Prepare and install a revision inside an already admitted operation."""
-        try:
-            payload = content.encode("utf-8")
-        except (AttributeError, UnicodeError):
-            raise invalid() from None
-        package = await self._packages.parse(payload, "markdown")
+        package = await self._parse_markdown(content)
         if skill_id:
             old = await self._db.read(lambda u: u.skill_get(agent_id, skill_id))
             previous = await self._package(old)
             package = SkillPackage(
                 package.metadata, (*package.files, *[(p, b) for p, b in previous.files if p != "SKILL.md"])
             )
-        return await self._install(agent_id, package, skill_id, revision, guard)
+        return await self._install(agent_id, package, skill_id, revision, guard, after)
 
     async def state(
         self,
@@ -192,8 +205,11 @@ class SkillService:
         sha256: str,
         *,
         guard: Callable[[UnitOfWork], None] | None = None,
+        after: Callable[[UnitOfWork, Record], None] | None = None,
     ) -> Record:
-        return await self._execute(lambda: self._state(agent_id, skill_id, revision, state, revision_id, sha256, guard))
+        return await self._execute(
+            lambda: self._state(agent_id, skill_id, revision, state, revision_id, sha256, guard, after)
+        )
 
     async def _state(
         self,
@@ -204,6 +220,7 @@ class SkillService:
         revision_id: str,
         sha256: str,
         guard: Callable[[UnitOfWork], None] | None,
+        after: Callable[[UnitOfWork, Record], None] | None = None,
     ) -> Record:
         """Change reviewed state inside an already admitted operation."""
         if state == "enabled":
@@ -213,7 +230,10 @@ class SkillService:
         def commit(u: UnitOfWork) -> Record:
             if guard:
                 guard(u)
-            return u.skill_state(agent_id, skill_id, revision, state, revision_id, sha256)
+            row = u.skill_state(agent_id, skill_id, revision, state, revision_id, sha256)
+            if after:
+                after(u, row)
+            return row
 
         return self._public(await self._db.write(commit))
 
@@ -225,8 +245,9 @@ class SkillService:
         revision: int,
         *,
         guard: Callable[[UnitOfWork], None] | None = None,
+        after: Callable[[UnitOfWork, Record], None] | None = None,
     ) -> Record:
-        return await self._execute(lambda: self._rollback(agent_id, skill_id, revision_id, revision, guard))
+        return await self._execute(lambda: self._rollback(agent_id, skill_id, revision_id, revision, guard, after))
 
     async def _rollback(
         self,
@@ -235,11 +256,12 @@ class SkillService:
         revision_id: str,
         revision: int,
         guard: Callable[[UnitOfWork], None] | None,
+        after: Callable[[UnitOfWork, Record], None] | None = None,
     ) -> Record:
         """Copy historical content inside an already admitted operation."""
         row = await self._db.read(lambda u: u.skill_get(agent_id, skill_id, revision_id))
         package = await self._package(row)
-        return await self._install(agent_id, package, skill_id, revision, guard)
+        return await self._install(agent_id, package, skill_id, revision, guard, after)
 
     async def history(self, agent_id: str, skill_id: str, after: int = 0, limit: int = 50) -> Record:
         return await self._execute(lambda: self._history(agent_id, skill_id, after, limit))

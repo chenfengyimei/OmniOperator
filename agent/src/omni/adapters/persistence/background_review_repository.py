@@ -32,6 +32,22 @@ def _proposal_json(proposal: dict[str, object]) -> str:
 
 
 class BackgroundReviewRepositories(MemoryRepositories):
+    def background_review_sources(self, agent_id: str, run_id: str) -> list[Record]:
+        run = self._one(s.runs, agent_id, run_id)
+        rows = self.connection.execute(
+            select(s.messages.c.id, s.messages.c.role, s.messages.c.content)
+            .where(
+                s.messages.c.agent_id == agent_id,
+                s.messages.c.session_id == run["session_id"],
+                s.messages.c.deleted_at.is_(None),
+                (s.messages.c.id == run["input_message_id"])
+                | ((s.messages.c.run_id == run_id) & (s.messages.c.role == "assistant")),
+            )
+            .order_by(s.messages.c.seq)
+            .limit(2)
+        ).mappings()
+        return [dict(row) for row in rows]
+
     def _review_agent(self, agent_id: str) -> None:
         if not self.connection.execute(select(s.agents.c.id).where(s.agents.c.id == agent_id)).first():
             raise BusinessError("not_found", "Agent does not exist", status=404)
@@ -238,9 +254,7 @@ class BackgroundReviewRepositories(MemoryRepositories):
         self._review_change(
             batch, state="ready" if count else "complete", candidate_count=count, prepared_at=self.clock.now()
         )
-        self.audit(
-            agent_id, "background.review.prepared", batch_id, {"policy": POLICY, "candidate_count": count}
-        )
+        self.audit(agent_id, "background.review.prepared", batch_id, {"policy": POLICY, "candidate_count": count})
         return self.background_review_get(agent_id, batch_id)
 
     def _review_invalidate(self, batch: Record) -> Record:
@@ -260,7 +274,12 @@ class BackgroundReviewRepositories(MemoryRepositories):
                 )
             )
             batch = self._review_change(batch, state="invalidated", error_code="background_review_source_changed")
-            self.audit(tcast(str, batch["agent_id"]), "background.review.invalidated", tcast(str, batch["id"]), {"policy": POLICY})
+            self.audit(
+                tcast(str, batch["agent_id"]),
+                "background.review.invalidated",
+                tcast(str, batch["id"]),
+                {"policy": POLICY},
+            )
         return batch
 
     def background_review_fail(self, agent_id: str, batch_id: str, error: str) -> Record:
@@ -322,9 +341,7 @@ class BackgroundReviewRepositories(MemoryRepositories):
             raise BusinessError("background_review_state", "Only a pending proposal can be reviewed")
         return candidate, batch, kind
 
-    def _review_settle(
-        self, candidate: Record, batch: Record, state: str, decision: str, **applied: object
-    ) -> Record:
+    def _review_settle(self, candidate: Record, batch: Record, state: str, decision: str, **applied: object) -> Record:
         agent_id, candidate_id = tcast(str, candidate["agent_id"]), tcast(str, candidate["id"])
         audit_id = self.audit(
             agent_id,
@@ -396,20 +413,31 @@ class BackgroundReviewRepositories(MemoryRepositories):
                     source_run_id=tcast(str, batch["run_id"]),
                 )
                 return self._review_settle(
-                    candidate, batch, "applied", kind,
-                    applied_memory_id=row["id"], applied_memory_revision=row["revision"],
+                    candidate,
+                    batch,
+                    "applied",
+                    kind,
+                    applied_memory_id=row["id"],
+                    applied_memory_revision=row["revision"],
                 )
             self.forget(agent_id, tcast(str, proposal["memory_id"]), tcast(int, proposal["revision"]))
             return self._review_settle(candidate, batch, "applied", kind)
         # undo: revoke a previously applied memory write through the existing forget chain.
         if proposal["tool"] == "memory_remember":
-            self.forget(agent_id, tcast(str, candidate["applied_memory_id"]), tcast(int, candidate["applied_memory_revision"]))
+            self.forget(
+                agent_id, tcast(str, candidate["applied_memory_id"]), tcast(int, candidate["applied_memory_revision"])
+            )
         else:
             raise BusinessError("background_review_state", "A forgotten fact cannot be restored by review")
         return self._review_settle(candidate, batch, "revoked", kind)
 
     def background_review_decide_skill(
-        self, agent_id: str, candidate_id: str, request: Record, *, applied_skill_id: str | None = None,
+        self,
+        agent_id: str,
+        candidate_id: str,
+        request: Record,
+        *,
+        applied_skill_id: str | None = None,
         applied_skill_revision_id: str | None = None,
     ) -> Record:
         candidate, batch, kind = self._review_decision(agent_id, candidate_id, request)
@@ -419,7 +447,11 @@ class BackgroundReviewRepositories(MemoryRepositories):
             return self._review_settle(candidate, batch, "rejected", kind)
         if kind == "apply":
             return self._review_settle(
-                candidate, batch, "applied", kind,
-                applied_skill_id=applied_skill_id, applied_skill_revision_id=applied_skill_revision_id,
+                candidate,
+                batch,
+                "applied",
+                kind,
+                applied_skill_id=applied_skill_id,
+                applied_skill_revision_id=applied_skill_revision_id,
             )
         return self._review_settle(candidate, batch, "revoked", kind)

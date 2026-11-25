@@ -10,14 +10,56 @@ import os
 from collections.abc import Awaitable, Callable, Sequence
 from typing import Any, cast
 
+from httpx import Response as HTTPResponse
+from httpx import ResponseNotRead
+
 from ..application.ports import AsyncSecretPort, Record
 from ..domain.contracts import BusinessError, Invocation, ModelReply, ToolSpec
 from ..domain.metering import wire_tools
+from ..domain.model_recovery import ModelRejected
 from ..domain.settings import Settings
 from .diagnostics import Redactor
 from .model_stream import PreparedStream
 
 CACHE_KEY_PROVIDERS = ("xai/", "x-ai/", "openai/", "gpt-", "o1", "o3", "o4")
+
+
+def _rejection(error: Exception) -> ModelRejected | None:
+    response: object = getattr(error, "response", None)
+    if not isinstance(response, HTTPResponse):
+        return None
+    status = response.status_code
+    if status == 429:
+        rejected = ModelRejected("model_rate_limited", "Provider rejected admission before generation", status=429)
+    elif status in {400, 413} and type(error).__name__ == "ContextWindowExceededError":
+        rejected = ModelRejected("model_context_rejected", "Provider rejected the context window", status=422)
+    else:
+        return None
+    # LiteLLM can replace the outer response with a status-only response. Look for the actual
+    # matching HTTP receipt in this exception chain, including its explicit zero usage.
+    current: BaseException | None = error
+    for _ in range(8):
+        if current is None:
+            break
+        receipt: object = getattr(current, "response", None)
+        if isinstance(receipt, HTTPResponse) and receipt.status_code == status and _zero_usage(receipt):
+            return rejected
+        current = current.__cause__ or current.__context__
+    return None
+
+
+def _zero_usage(response: HTTPResponse) -> bool:
+    if not response.headers.get("content-type"):
+        return False
+    try:
+        record: object = response.json()
+    except (ResponseNotRead, ValueError):
+        return False
+    raw_usage = cast(dict[str, object], record).get("usage") if isinstance(record, dict) else None
+    if not isinstance(raw_usage, dict):
+        return False
+    usage = cast(dict[str, object], raw_usage)
+    return all(type(usage.get(key)) is int and usage[key] == 0 for key in ("prompt_tokens", "completion_tokens"))
 
 
 def prompt_cache_key(settings: Settings) -> str | None:
@@ -81,7 +123,13 @@ class LiteLLMModel:
         import litellm
 
         async def send():
-            return await litellm.acompletion(**kwargs, stream=True, stream_options={"include_usage": True})
+            try:
+                return await litellm.acompletion(**kwargs, stream=True, stream_options={"include_usage": True})
+            except Exception as exc:
+                rejected = _rejection(exc)
+                if rejected is not None:
+                    raise rejected from None
+                raise
 
         # Credential preparation can yield. Enforce capacity again before publishing ownership.
         if self._closing or len(self._streams) >= 4:
@@ -190,6 +238,9 @@ class LiteLLMModel:
         except asyncio.CancelledError:
             raise
         except Exception as exc:
+            rejected = _rejection(exc)
+            if rejected is not None:
+                raise rejected from None
             raise BusinessError(
                 "model_call_failed", "Model request failed; its charge may require reconciliation", status=502
             ) from exc

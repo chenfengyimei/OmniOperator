@@ -13,10 +13,12 @@ import json
 import re
 import unicodedata
 import uuid
+from dataclasses import replace
 from typing import cast
 
-from .contracts import BusinessError
+from .contracts import JSON, BusinessError, ToolSpec
 from .history import MAX_INTEGER
+from .skills import SKILL_SPECS
 
 POLICY = "post-turn-review-v1"
 PURPOSE = "review"
@@ -29,20 +31,51 @@ MAX_SECTION_CHARS = 200
 DECISIONS = frozenset({"apply", "reject", "undo"})
 # The reviewer may inspect through these read-only tools; everything else is denied at dispatch.
 READ_TOOLS = frozenset({"memory_search", "skills_list", "skill_view", "skill_history"})
-# Write intents are intercepted into pending proposals, never dispatched autonomously.
-WRITE_TOOLS = frozenset(
-    {
-        "memory_remember",
-        "memory_forget",
-        "skill_create",
-        "skill_rewrite",
-        "skill_patch",
-        "skill_rollback",
-        "skill_archive",
-        "skill_restore",
-    }
-)
 MEMORY_TOOLS = frozenset({"memory_remember", "memory_forget"})
+MARKDOWN_PROPOSALS = frozenset({"skill_create", "skill_rewrite"})
+SKILL_MARKDOWN_GUIDE = (
+    "Supply a complete SKILL.md. Start with YAML front matter (---, name: valid-slug, description: short text, ---, each on its own line). "
+    "Then include exactly one of each Markdown section: ## When to Use, ## Procedure, ## Pitfalls, ## Verification."
+)
+
+
+def _memory_proposal(name: str, meaning: str, properties: dict[str, JSON]) -> ToolSpec:
+    return ToolSpec(
+        name,
+        meaning,
+        {"type": "object", "properties": properties, "required": list(properties), "additionalProperties": False},
+    )
+
+
+_MESSAGE_ID: dict[str, JSON] = {"type": "string", "minLength": 36, "maxLength": 36}
+PROPOSAL_SPECS = (
+    _memory_proposal(
+        "memory_remember",
+        "Stage a memory fact for owner review. Cite the exact quote and message_id of this turn's user message.",
+        {
+            "content": {"type": "string", "minLength": 1, "maxLength": MAX_CONTENT_CHARS},
+            "quote": {"type": "string", "minLength": 1, "maxLength": MAX_QUOTE_CHARS},
+            "message_id": _MESSAGE_ID,
+        },
+    ),
+    _memory_proposal(
+        "memory_forget",
+        "Stage an observed memory revision for owner review. Nothing is erased by this call.",
+        {"memory_id": _MESSAGE_ID, "revision": {"type": "integer", "minimum": 1, "maximum": MAX_INTEGER}},
+    ),
+    *(
+        replace(
+            spec,
+            description=f"Stage a proposed {spec.name} for owner review. Provide the same fields as the skill edit. "
+            "This call changes neither the saved skill nor its authorization."
+            + (" " + SKILL_MARKDOWN_GUIDE if spec.name in MARKDOWN_PROPOSALS else ""),
+            writes=False,
+        )
+        for spec in SKILL_SPECS
+        if spec.writes
+    ),
+)
+WRITE_TOOLS = frozenset(spec.name for spec in PROPOSAL_SPECS)
 
 REVIEW_PROMPT = (
     "You are a background reviewer evaluating one finished turn. Decide whether any durable memory fact "
@@ -98,9 +131,7 @@ def parse_request(data: object) -> dict[str, object]:
         run_id = _uuid(record["run_id"])
         return {"run_id": run_id, "key": review_key(run_id)}
     except (ValueError, TypeError, KeyError, AttributeError, OverflowError, UnicodeError) as exc:
-        raise BusinessError(
-            "background_review_invalid", "Select one finished run to review", status=422
-        ) from exc
+        raise BusinessError("background_review_invalid", "Select one finished run to review", status=422) from exc
 
 
 def request_fingerprint(data: object) -> str:
@@ -136,7 +167,7 @@ def parse_proposal(name: str, arguments: object) -> dict[str, object]:
         elif name == "memory_forget":
             proposal["memory_id"] = _uuid(args.get("memory_id"))
             proposal["revision"] = _positive(args.get("revision"))
-        elif name in {"skill_create", "skill_rewrite"}:
+        elif name in MARKDOWN_PROPOSALS:
             proposal["content"] = _bounded_text(args.get("content"), MAX_CONTENT_CHARS)
             proposal["skill_id"] = _uuid(args["skill_id"]) if name == "skill_rewrite" else None
             proposal["revision"] = _positive(args.get("revision", 0)) if args.get("revision") else 0

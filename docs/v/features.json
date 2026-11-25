@@ -215,7 +215,12 @@
       "对话",
       "chat",
       "agent",
-      "内核"
+      "内核",
+      "安全接续",
+      "完成核验",
+      "能力注册",
+      "Everything is a Plugin",
+      "Hermes 对标"
     ],
     "version": "V2",
     "purpose": "接收回合，组装工具、模型调用与动作审批，记录结果。",
@@ -233,24 +238,38 @@
         "agent/src/omni/domain/turn_prompt.py"
       ],
       "application": [
-        "agent/src/omni/application/engine.py#Application.submit_turn"
+        "agent/src/omni/application/engine.py#Application.submit_turn",
+        "agent/src/omni/application/capabilities.py#CapabilityRegistry.capture"
       ],
       "adapters": [
-        "agent/src/omni/adapters/persistence/database.py"
+        "agent/src/omni/adapters/persistence/database.py",
+        "agent/src/omni/adapters/persistence/run_checkpoint_repository.py#RunCheckpointRepositories.requeue_checkpoint"
       ],
       "composition": [
-        "agent/src/omni/composition/instance.py#open_instance.application"
+        "agent/src/omni/composition/instance.py#open_instance.application",
+        "agent/src/omni/composition/capabilities.py#builtin_plugins"
       ],
       "ui": [
         "web/ui/v2/main.js",
         "web/ui/v2/model-output.js"
       ],
       "contracts": [
+        "docs/v/reference/KERNEL.md",
+        "docs/v/reference/CAPABILITY_PLUGINS.md",
         "docs/v/reference/ARCHITECTURE.md"
       ],
       "tests": [
         "agent/tests/v2/core/test_v2_kernel.py",
-        "agent/tests/v2/http/test_v2_http.py"
+        "agent/tests/v2/core/test_v2_capability_plugins.py",
+        "agent/tests/v2/http/test_v2_http.py",
+        "agent/tests/v2/core/test_v2_kernel_evolution.py",
+        "agent/tests/v2/core/test_v2_kernel_restart.py",
+        "agent/tests/test_kernel_eval.py"
+      ],
+      "examples": [
+        "agent/scripts/eval_kernel.py#score",
+        "agent/scripts/eval_kernel_local.py#main",
+        "agent/tests/fixtures/kernel_scenarios_v1.json"
       ]
     }
   },
@@ -260,7 +279,9 @@
     "aliases": [
       "token",
       "上下文",
-      "压缩"
+      "压缩",
+      "工具发现",
+      "上下文压缩"
     ],
     "version": "V2",
     "purpose": "管理回合上下文的预算、压缩和用量展示。",
@@ -291,7 +312,11 @@
       ],
       "tests": [
         "agent/tests/v2/core/test_v2_context.py",
-        "agent/tests/v2/core/test_v2_context_faults.py"
+        "agent/tests/v2/core/test_v2_context_faults.py",
+        "agent/tests/v2/core/test_v2_run_compaction.py"
+      ],
+      "contracts": [
+        "docs/v/reference/KERNEL.md"
       ]
     }
   },
@@ -303,7 +328,11 @@
       "供应商",
       "路由",
       "配置",
-      "settings"
+      "settings",
+      "备用模型",
+      "模型回退",
+      "模型提供者",
+      "模型传输"
     ],
     "version": "V2",
     "purpose": "配置模型档案、连接与路由，向运行内核提供模型调用。",
@@ -331,6 +360,7 @@
         "agent/src/omni/adapters/model_stream.py"
       ],
       "composition": [
+        "agent/src/omni/composition/model_providers.py#register_model_transport",
         "agent/src/omni/composition/instance.py#open_instance.routing"
       ],
       "ui": [
@@ -340,7 +370,11 @@
       ],
       "tests": [
         "agent/tests/v2/http/test_v2_configuration_http.py",
+        "agent/tests/v2/core/test_v2_provider_plugins.py",
         "agent/tests/v2/ui/test_v2_models_ui.py"
+      ],
+      "contracts": [
+        "docs/v/reference/KERNEL.md"
       ]
     }
   },
@@ -426,6 +460,7 @@
         "web/ui/v2/reflections.js"
       ],
       "contracts": [
+        "docs/v/reference/KERNEL.md",
         "docs/v/reference/EXTENDING.md"
       ],
       "tests": [
@@ -735,7 +770,8 @@
       "窗口",
       "Windows",
       "macOS",
-      "Linux"
+      "Linux",
+      "平台提供者"
     ],
     "version": "V2",
     "purpose": "观察原生窗口、截屏，通过门户与显式许可执行动作。",
@@ -758,6 +794,7 @@
         "agent/src/omni/application/desktop_control.py"
       ],
       "composition": [
+        "agent/src/omni/composition/platform_providers.py#platform_provider",
         "agent/src/omni/composition/instance.py#open_instance.desktop"
       ],
       "ui": [
@@ -768,7 +805,8 @@
         "docs/v/reference/DESKTOP.md"
       ],
       "tests": [
-        "agent/tests/v2/http/test_v2_desktop_http.py"
+        "agent/tests/v2/http/test_v2_desktop_http.py",
+        "agent/tests/v2/core/test_v2_provider_plugins.py"
       ],
       "adapters": [
         "agent/src/omni/adapters/platform/desktop/backend.py#DesktopBackend",
@@ -810,6 +848,7 @@
         "agent/src/omni/adapters/onebot.py"
       ],
       "composition": [
+        "agent/src/omni/composition/channel_providers.py#register_channel_providers",
         "agent/src/omni/composition/instance.py#open_instance.qq"
       ],
       "ui": [
@@ -854,6 +893,7 @@
         "agent/src/omni/adapters/bilibili.py"
       ],
       "composition": [
+        "agent/src/omni/composition/channel_providers.py#register_channel_providers",
         "agent/src/omni/composition/instance.py#open_instance.bilibili"
       ],
       "ui": [
@@ -914,7 +954,9 @@
     "aliases": [
       "投递",
       "发送",
-      "通道"
+      "通道",
+      "渠道提供者",
+      "渠道插件"
     ],
     "version": "V2",
     "purpose": "审阅草稿、绑定通道路由、追踪发送回执。",
@@ -934,6 +976,7 @@
         "agent/src/omni/application/delivery.py"
       ],
       "composition": [
+        "agent/src/omni/composition/channel_providers.py#register_channel_providers",
         "agent/src/omni/composition/instance.py#open_instance.deliveries"
       ],
       "ui": [
@@ -941,7 +984,8 @@
       ],
       "tests": [
         "agent/tests/v2/http/test_v2_delivery_http.py",
-        "agent/tests/v2/core/test_v2_delivery.py"
+        "agent/tests/v2/core/test_v2_delivery.py",
+        "agent/tests/v2/core/test_v2_provider_plugins.py"
       ]
     }
   },
@@ -1008,6 +1052,7 @@
         "agent/src/omni/application/terminal_review.py"
       ],
       "composition": [
+        "agent/src/omni/composition/platform_providers.py#PlatformProvider.register",
         "agent/src/omni/composition/instance.py#open_instance.terminals"
       ],
       "ui": [

@@ -40,7 +40,7 @@ def test_populated_v32_upgrade_backfills_honest_baseline_and_preserves_unknown(t
         try:
             await db.write(lambda u: u.recover())
             report = await db.read(lambda u: u.route_report(agent, receipt["run_id"]))
-            assert db.schema_version == "v2_0052" and len(s.metadata.tables) == 151
+            assert db.schema_version == "v2_0053" and len(s.metadata.tables) == 151
             assert report["route"]["model_revision_id"] == before and report["route"]["source"] == "baseline"
             assert not report["calls"] and report["byte_delta"] == 0 and report["unsettled_calls"] == 1
             assert (await db.read(lambda u: u._one(s.model_calls, agent, call)))["state"] == "unknown"

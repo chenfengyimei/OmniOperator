@@ -113,6 +113,8 @@ def test_artifact_plugin_publishes_verified_objects_and_bounded_model_text(tmp_p
             await instance.application.approve(agent, approval["id"], True, approval["policy_revision"])
             final = await wait_run(instance, agent, receipt["run_id"], {"succeeded", "failed", "interrupted"})
             assert final["state"] == "succeeded", final
+            assert final["completion"]["state"] == "verified"
+            assert final["completion"]["items"][0]["scope"] == "published_objects"
             action = (await instance.application.query("actions", agent, run_id=receipt["run_id"]))[0]
             assert action["state"] == "ok" and action["effect"] == "applied"
             result = action["result"]

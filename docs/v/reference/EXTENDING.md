@@ -8,6 +8,8 @@
 
 在仓库根运行 `uv run --no-sync python scripts/project_index.py --feature 技能`、`--feature 插件` 或 `--feature mcp`，可定位对应接口、应用服务、存储、组装和专项命令。独立 V1 社区插件另查 `--feature v1-plugins`。
 
+源码维护者用 [V2 能力插件与组装](CAPABILITY_PLUGINS.md) 挂载内建能力，核对模型与所有者入口及关闭归属。
+
 ## 技能的创建、复核和回滚
 
 1. 在技能系统导入 Markdown、ZIP 或编辑正文。Agent 在对话中可以提议使用 `skill_create`、`skill_rewrite`、`skill_patch`。技能写入沿用该回合的动作审批。保存后检查停用的修订、正文、资源和清单。

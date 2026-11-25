@@ -379,7 +379,7 @@ def test_model_unicode_observation_and_append_keep_two_independent_approvals(tmp
     class UnicodeModel(AndroidModel):
         async def complete(self, messages, tools, settings):
             reply = await super().complete(messages, tools, settings)
-            if self.step == 3:
+            if tools and self.step == 3:
                 arguments = {
                     **reply.calls[0].arguments,
                     "kind": "append_unicode",

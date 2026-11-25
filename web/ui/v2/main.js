@@ -24,7 +24,7 @@ import { mountMedia } from './media.js?v=20261121v173';
 import { mountMcp } from './mcp.js?v=20261121v173';
 import { mountAndroid } from './android.js?v=20261121v173';
 import { mountModelOutput } from './model-output.js?v=20261121v173';
-import { mountRouting } from './routing.js?v=20261121v173';
+import { mountRouting } from './routing.js?v=20261125kernel2';
 import { mountChatImages } from './chat-images.js?v=20261121v173';
 import { mountInspector } from './inspector.js?v=20261121v173';
 import { mountSettingsRail } from './settings-rail.js?v=20261121v173';
@@ -1438,23 +1438,37 @@ async function pollBody() {
       succeeded: '已完成',
       failed: '本次运行未完成',
       cancelled: '已取消',
+      interrupted: '运行中断',
       unknown: '状态待确认',
     };
     const ERROR_HINT = {
       model_not_configured: '尚未配置可用模型，请到「设置 → 模型与凭据」填写模型与端点。',
       credential_unavailable: '凭据不可用，请检查凭据引用是否已授权。',
       budget_exceeded: '本次预算不足，已停止执行。',
+      continuation_requires_review: '继续前请核对已记录的操作与审批。',
     };
     const statusNode = $('run-status');
     statusNode.dataset.state = String(result.state);
     // 所有者反馈：运行中/待审批/取消中的文字状态与实时调用链、审批卡重复，是噪音——
     // 这些状态不再写文本（#run-status:empty 规则会隐藏空条）；错误与终态仍显示。
     const NOISE_STATES = new Set(['running', 'waiting_approval', 'cancelling']);
+    const completion = {
+      verified: '已验证',
+      partial: '部分验证',
+      needs_review: '待核查',
+      not_required: '无需验证',
+    }[result.completion?.state];
     statusNode.textContent = result.error_code
       ? `${RUN_LABEL[result.state] || result.state}：${ERROR_HINT[result.error_code] || result.error_code}`
       : NOISE_STATES.has(String(result.state))
         ? ''
         : RUN_LABEL[result.state] || String(result.state);
+    if (completion && (result.state === 'succeeded' || result.completion?.state !== 'not_required')) {
+      statusNode.textContent += ` · ${completion}`;
+    }
+    if (result.continuation?.decision === 'review' && result.state === 'interrupted') {
+      statusNode.textContent += ' · 继续前请核对已记录的回执和审批';
+    }
     setThinking(
       page === 'chat' &&
         session === result.session_id &&

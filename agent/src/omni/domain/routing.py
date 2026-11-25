@@ -2,12 +2,14 @@
 
 from __future__ import annotations
 
+import json
 import re
 import uuid
 from collections.abc import Sequence
 from typing import cast
 
-from .contracts import BusinessError, ToolSpec
+from .contracts import JSON, BusinessError, ToolSpec
+from .metering import wire_tools
 
 MODES = ("chat", "retrieval", "agent")
 REQUESTED = (*MODES, "auto", "default")
@@ -33,6 +35,25 @@ POLICY_DEFAULT = {
     **{f"{mode}_model_id": None for mode in MODES},
     **{f"{mode}_reservation_micro": None for mode in MODES},
 }
+KERNEL_DEFAULT: dict[str, JSON] = {
+    "fallback_model_ids": [],
+    "tool_discovery": False,
+    "safe_resume": False,
+    "empty_recovery": False,
+    "verify_completion": False,
+    "background_learning": True,
+}
+DISCOVER_TOOLS = ToolSpec(
+    "discover_tools",
+    "Find currently permitted tools by name or description. Matching tools with room in the context become available on the next call.",
+    {
+        "type": "object",
+        "properties": {"query": {"type": "string", "minLength": 1, "maxLength": 200}},
+        "required": ["query"],
+        "additionalProperties": False,
+    },
+)
+_WINDOW_CORE = frozenset({"files_read", "files_list", "files_search", "todo_list", "clarify", "request_mode"})
 REQUEST_MODE = ToolSpec(
     "request_mode",
     "Request one upward capability tier for the next model call. Keeps this run's captured model, budget and permissions; never approves actions. Use when more tools are needed.",
@@ -57,12 +78,31 @@ def requested(value: object) -> str:
     return value
 
 
+def kernel_policy(value: object) -> dict[str, JSON]:
+    if not isinstance(value, dict) or value.keys() - KERNEL_DEFAULT.keys():
+        raise invalid()
+    checked = {**KERNEL_DEFAULT, **cast(dict[str, JSON], value)}
+    ids = checked["fallback_model_ids"]
+    if not isinstance(ids, list) or len(ids) > 3 or not all(isinstance(i, str) for i in ids):
+        raise invalid()
+    model_ids = cast(list[str], ids)
+    try:
+        ordered = [str(uuid.UUID(identity)) for identity in model_ids]
+    except ValueError:
+        raise invalid() from None
+    if ordered != model_ids or len(set(ordered)) != len(ordered):
+        raise invalid()
+    if any(type(checked[key]) is not bool for key in KERNEL_DEFAULT if key != "fallback_model_ids"):
+        raise invalid()
+    return checked
+
+
 def policy(value: object) -> dict[str, object]:
     if not isinstance(value, dict):
         raise invalid()
     record = cast(dict[str, object], value)
     if (
-        set(record) != set(POLICY_DEFAULT)
+        set(record) - {"kernel"} != set(POLICY_DEFAULT)
         or not isinstance(record["default_mode"], str)
         or record["default_mode"] not in (*MODES, "auto")
         or type(record["allow_escalation"]) is not bool
@@ -80,7 +120,7 @@ def policy(value: object) -> dict[str, object]:
         number = cast(int, amount)
         if amount is not None and (type(amount) is not int or not 1 <= number <= 10**12):
             raise invalid()
-    return dict(record)
+    return {**record, "kernel": kernel_policy(record.get("kernel", {}))}
 
 
 def choose(text: str, mode: str, default: str, *, images: bool, remote: bool) -> dict[str, str]:
@@ -120,6 +160,42 @@ def select_tools(mode: str, specs: Sequence[ToolSpec], *, escalate: bool) -> tup
         else tuple(s for s in specs if not s.writes and s.name in (CHAT_TOOLS if mode == "chat" else RETRIEVAL_TOOLS))
     )
     return (*selected, REQUEST_MODE) if mode != "agent" and escalate and len(selected) < len(specs) else selected
+
+
+def tool_window(specs: tuple[ToolSpec, ...], context_tokens: int, exposed: Sequence[str] = ()) -> tuple[ToolSpec, ...]:
+    def size(items: Sequence[ToolSpec]) -> int:
+        return len(json.dumps(wire_tools(items), ensure_ascii=False, separators=(",", ":")).encode("utf-8"))
+
+    ceiling = max(512, min(8000, context_tokens // 4))
+    if size(specs) <= ceiling:
+        return specs
+    by_name = {spec.name: spec for spec in specs}
+    window = [DISCOVER_TOOLS]
+    if REQUEST_MODE.name in by_name:
+        window.append(REQUEST_MODE)
+    for name in dict.fromkeys((*exposed[:4], *(spec.name for spec in specs if spec.name in _WINDOW_CORE))):
+        if name in by_name and name != REQUEST_MODE.name and size([*window, by_name[name]]) <= ceiling:
+            window.append(by_name[name])
+    return tuple(window)
+
+
+def discover(specs: tuple[ToolSpec, ...], query: str, context_tokens: int) -> tuple[ToolSpec, ...]:
+    words = set(re.findall(r"[\w]+", query.casefold()))
+    if not words:
+        return ()
+    scored: list[tuple[int, str, ToolSpec]] = []
+    for spec in specs:
+        name = spec.name.casefold()
+        keywords = set(re.findall(r"[^\W_]+", (name + " " + spec.description).casefold()))
+        score = (
+            100 if name == query.strip().casefold() else 5 * len(words & set(name.split("_"))) + len(words & keywords)
+        )
+        if score and spec.name != REQUEST_MODE.name:
+            scored.append((-score, spec.name, spec))
+    ranked = sorted(scored, key=lambda match: (match[0], match[1]))[:4]
+    chosen = [name for _, name, _ in ranked]
+    offered = {spec.name for spec in tool_window(specs, context_tokens, chosen)}
+    return tuple(spec for _, name, spec in ranked if name in offered)
 
 
 def notice(mode: str, escalate: bool) -> str:

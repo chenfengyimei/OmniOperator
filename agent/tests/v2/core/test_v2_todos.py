@@ -343,10 +343,10 @@ def test_simultaneous_updates_and_later_transaction_failure_preserve_one_snapsho
 
 def test_frozen_v40_database_upgrades_without_changing_existing_messages(tmp_path):
     from alembic import command
+    from omni_test_support.v2.v2_legacy_seed import PreKernelSeedRepositories
 
     from omni.adapters.persistence.database import Database
     from omni.adapters.persistence.migration_config import configuration
-    from omni.adapters.persistence.repository import Repositories
     from omni.adapters.persistence.sqlalchemy_access import database_engine
     from omni.adapters.platform.runtime.paths import InstancePaths
     from omni.adapters.primitives import UUIDs
@@ -362,7 +362,7 @@ def test_frozen_v40_database_upgrades_without_changing_existing_messages(tmp_pat
                 cfg = configuration()
                 cfg.attributes["connection"] = connection
                 command.upgrade(cfg, "v2_0040")
-                u = Repositories(connection, clock, ids, ids.new())
+                u = PreKernelSeedRepositories(connection, clock, ids, ids.new())
                 u.initialize()
                 agent = u.query("agents", "")[0]["id"]
                 # Seed only existing v40 tables; current execution authority now

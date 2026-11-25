@@ -1,0 +1,236 @@
+"""Provider registration through the production instance and its typed injection ports."""
+
+import asyncio
+
+import pytest
+from omni_test_support.v2.v2_delivery_helpers import FakePort
+
+from omni.adapters.persistence.delivery_repository import DeliveryRepositories
+from omni.adapters.platform.runtime.paths import InstancePaths
+from omni.composition import instance as bootstrap
+from omni.composition import model_providers, platform_providers
+from omni.composition.instance import open_instance
+from omni.composition.lifecycle import Lifetime
+
+
+@pytest.mark.parametrize("injected", [False, True])
+def test_model_transport_binds_the_kernel_and_probe_with_one_owner(tmp_path, monkeypatch, injected):
+    class Transport:
+        def __init__(self):
+            self.stops = 0
+            self.closes = 0
+
+        def health(self):
+            return {"enabled": True, "owned": 0}
+
+        def stop_accepting(self):
+            self.stops += 1
+
+        async def close(self, timeout_s):
+            self.closes += 1
+            return True
+
+    transport = Transport()
+    factories = []
+
+    def default_provider(secrets, redactor, configure_logging):
+        factories.append(secrets)
+        return transport
+
+    monkeypatch.setattr(model_providers, "LiteLLMModel", default_provider)
+
+    async def scenario():
+        model = object() if injected else None
+        options = {"model": model, "model_streamer": transport} if injected else {}
+        instance = await open_instance(tmp_path, capabilities=(), **options)
+        try:
+            calls = instance.application._calls
+            primary = model if injected else transport
+            assert instance.model_port is primary
+            assert calls._model is primary
+            assert calls._preparer is (None if injected else transport)
+            assert calls._streamer is transport
+            assert len(factories) == (0 if injected else 1)
+        finally:
+            assert (await instance.close())["complete"]
+        assert (await instance.close())["complete"]
+        assert (transport.stops, transport.closes) == (1, 1)
+
+    asyncio.run(scenario())
+
+
+class ChannelTransport(FakePort):
+    def __init__(self, name, events, *, can_close=True):
+        super().__init__()
+        self.name, self.events, self.can_close = name, events, can_close
+
+    async def close(self, timeout_s):
+        self.events.append(self.name)
+        return self.can_close
+
+
+def test_instance_drains_users_before_closing_shared_channels_and_releasing_leases(tmp_path, monkeypatch):
+    events = []
+    onebot = ChannelTransport("onebot", events, can_close=False)
+    bilibili = ChannelTransport("bilibili", events)
+    sender = ChannelTransport("sender", events)
+    original = DeliveryRepositories.delivery_release_boot
+
+    def release_leases(repository):
+        events.append("release_leases")
+        return original(repository)
+
+    async def drain_channel_user(timeout_s):
+        events.append("drained")
+        return True
+
+    monkeypatch.setattr(DeliveryRepositories, "delivery_release_boot", release_leases)
+
+    async def scenario():
+        instance = await open_instance(
+            tmp_path,
+            capabilities=(),
+            qq_transport=onebot,
+            bilibili_backend=bilibili,
+            delivery_ports={"qq": sender, "android": onebot},
+        )
+        instance.lifetime.own("fixture_channel_user", 0, drain_channel_user)
+        try:
+            assert instance.qq._transport is onebot
+            assert instance.bilibili._gateway is bilibili
+            assert instance.deliveries._ports == {"qq": sender, "bilibili": bilibili, "android": onebot}
+            assert not await instance.deliveries.release_boot_leases(1)
+            result = await instance.close(15)
+            assert result == {"complete": False, "residual": ["onebot"]}
+            assert events[0] == "drained"
+            assert sorted(events[1:]) == ["bilibili", "onebot", "sender"]
+            assert not instance._database.metrics["closed"]
+            onebot.can_close = True
+            assert (await instance.close(15))["complete"]
+            assert events[-2:] == ["onebot", "release_leases"]
+            assert (await instance.close())["complete"]
+            assert len(events) == 6
+        finally:
+            onebot.can_close = True
+            assert (await instance.close())["complete"]
+
+    asyncio.run(scenario())
+
+
+def test_startup_failure_reclaims_one_shared_transport(tmp_path, monkeypatch):
+    events = []
+    transport = ChannelTransport("shared", events)
+
+    class FailedApplication(bootstrap.Application):
+        async def start(self):
+            raise RuntimeError("test startup failure")
+
+    async def scenario():
+        with monkeypatch.context() as patch:
+            patch.setattr(bootstrap, "Application", FailedApplication)
+            with pytest.raises(RuntimeError, match="test startup failure"):
+                await open_instance(
+                    tmp_path,
+                    capabilities=(),
+                    qq_transport=transport,
+                    bilibili_backend=transport,
+                    delivery_ports={"android": transport},
+                )
+        assert events == ["shared"]
+        reopened = await open_instance(tmp_path, capabilities=())
+        assert (await reopened.close())["complete"]
+
+    asyncio.run(scenario())
+
+
+class NativePort:
+    def __init__(self):
+        self.closes = 0
+
+    def health(self):
+        return {"cleanup_pending": 0}
+
+    def stop_accepting(self):
+        pass
+
+    async def close(self, timeout_s):
+        self.closes += 1
+        return True
+
+
+@pytest.mark.parametrize(
+    ("host", "skill_platform", "macos_transport"),
+    [("win32", "windows", "posix"), ("darwin", "macos", "launchservices"), ("linux", "linux", "posix")],
+)
+def test_platform_provider_selects_host_and_shares_desktop_capacity(
+    tmp_path, monkeypatch, host, skill_platform, macos_transport
+):
+    options = {}
+
+    def capture(name):
+        def create(*args, **kwargs):
+            options[name] = args, kwargs
+            return NativePort()
+
+        return create
+
+    monkeypatch.setattr(platform_providers, "TerminalBackend", capture("terminal"))
+    monkeypatch.setattr(platform_providers, "DesktopBackend", capture("desktop"))
+    monkeypatch.setattr(platform_providers, "PortalBackend", capture("portal"))
+    monkeypatch.setattr(platform_providers, "DesktopControlBackend", capture("control"))
+
+    async def scenario():
+        lifetime = Lifetime()
+        paths = InstancePaths.resolve(tmp_path)
+        provider = platform_providers.platform_provider(host)
+
+        def validate(_):
+            pass
+
+        ports = provider.register(lifetime, paths, validate)
+        try:
+            assert provider.skill_platform == skill_platform
+            assert options["terminal"] == ((validate,), {})
+            assert options["desktop"][1]["macos_transport"] == macos_transport
+            capacity = options["desktop"][1]["capacity"]
+            assert options["portal"][1]["capacity"] is capacity is options["control"][1]["capacity"]
+            assert options["desktop"][1]["capture_root"] == paths.control / "desktop-captures"
+            assert options["portal"][1]["capture_root"] == paths.control / "portal-captures"
+        finally:
+            assert (await lifetime.close())["complete"]
+        assert all(port.closes == 1 for port in (ports.terminal, ports.desktop, ports.portal, ports.control))
+
+    asyncio.run(scenario())
+
+
+@pytest.mark.parametrize("startup_failure", [False, True])
+def test_instance_uses_the_injected_platform_ports_and_closes_them_once(tmp_path, monkeypatch, startup_failure):
+    terminal, desktop, portal, control = (NativePort() for _ in range(4))
+    options = {
+        "terminal_backend": terminal,
+        "desktop_backend": desktop,
+        "portal_backend": portal,
+        "control_backend": control,
+    }
+
+    async def scenario():
+        if startup_failure:
+
+            def fail_control_service(*args, **kwargs):
+                raise RuntimeError("control service startup failure")
+
+            monkeypatch.setattr(bootstrap, "DesktopControlService", fail_control_service)
+            with pytest.raises(RuntimeError, match="control service startup failure"):
+                await open_instance(tmp_path, capabilities=(), **options)
+        else:
+            instance = await open_instance(tmp_path, capabilities=(), **options)
+            try:
+                assert instance.terminals._backend is terminal
+                assert instance.desktop._backend is desktop
+                assert instance.desktop_portal._backend is portal
+                assert instance.desktop_control._backend is control
+            finally:
+                assert (await instance.close())["complete"]
+        assert [port.closes for port in (terminal, desktop, portal, control)] == [1, 1, 1, 1]
+
+    asyncio.run(scenario())

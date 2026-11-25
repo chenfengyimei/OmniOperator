@@ -1,0 +1,124 @@
+{
+  "date": "2026-11-25",
+  "platform": "Windows x64",
+  "source": {
+    "base_commit": "00a479a47a4740c9d9c779b55c40865bf955bb30",
+    "working_tree": "本地 v2 工作树，承接内核与能力插件改动",
+    "affected_source_and_tests_sha256": {
+      "agent/src/omni/application/delivery.py": "bf69a05f4518a5a997aca2464566d5a8d442b3662180f61af5e71e5a12557046",
+      "agent/src/omni/composition/channel_providers.py": "9a12d78a4540a97463f218675f1dcf348fc19ab45bcbe261971af20ea80a3bbe",
+      "agent/src/omni/composition/instance.py": "0c1218e1e9259dd2aaaadb9d877603b273b9484824b290558fbfe11b225b75ae",
+      "agent/src/omni/composition/model_providers.py": "1e16e82e001fc9811dcd7b9480e8e38dfaf415491467e56cc5a0698a0f98c72d",
+      "agent/src/omni/composition/platform_providers.py": "716a94b4b4ba1b7fc36cad2f90eff07c2a92ebc6db1f34613dc23c973a9dcb1a",
+      "agent/tests/v2/core/test_v2_provider_plugins.py": "840dc9b100023144e8c8ff15da8f9bb50ea3e0fd59c04902443d4d096ddc0369",
+      "pyrightconfig.strict.json": "bdba0262debddef8c3cb080d3d5e0c5aded8bbe87c3fd901df107e4afcd3a79f"
+    }
+  },
+  "offline_scoped_suites": [
+    {
+      "scope": "模型提供者",
+      "passed": 84,
+      "failed": 0,
+      "skipped": 0,
+      "junit_seconds": 135.798,
+      "modules": [
+        "test_v2_configuration",
+        "test_v2_configuration_http",
+        "test_v2_credentials",
+        "test_v2_kernel_evolution",
+        "test_v2_model_stream",
+        "test_v2_model_stream_http",
+        "test_v2_provider_plugins"
+      ],
+      "local_junit": "temp/build/provider-registration/model.xml",
+      "sha256": "ebaa1050059f2a77fced404fa87916c1e6fe6eec49566e11ff91a98849c0597a"
+    },
+    {
+      "scope": "渠道提供者",
+      "passed": 88,
+      "failed": 0,
+      "skipped": 0,
+      "junit_seconds": 176.779,
+      "modules": [
+        "test_v2_bilibili",
+        "test_v2_bilibili_gateway",
+        "test_v2_delivery",
+        "test_v2_delivery_faults",
+        "test_v2_delivery_http",
+        "test_v2_lifecycle",
+        "test_v2_media",
+        "test_v2_provider_plugins",
+        "test_v2_qq",
+        "test_v2_qq_http"
+      ],
+      "local_junit": "temp/build/provider-registration/channels.xml",
+      "sha256": "143a13e473e700155e1498bca3d39eb5e9f37b2622e4fbc01d43e8fabe040853"
+    },
+    {
+      "scope": "平台提供者、内建工具注册、生命周期与架构",
+      "passed": 118,
+      "failed": 0,
+      "skipped": 0,
+      "junit_seconds": 92.5,
+      "modules": [
+        "test_v2_architecture",
+        "test_v2_capability_plugins",
+        "test_v2_desktop_action_transport",
+        "test_v2_desktop_backend",
+        "test_v2_desktop_control_backend",
+        "test_v2_desktop_control_service",
+        "test_v2_desktop_http",
+        "test_v2_desktop_observation",
+        "test_v2_lifecycle",
+        "test_v2_portal_host",
+        "test_v2_portal_service",
+        "test_v2_provider_plugins",
+        "test_v2_terminals_http",
+        "test_v2_terminals_lifecycle"
+      ],
+      "local_junit": "temp/build/provider-registration/platform.xml",
+      "sha256": "04c601b60e671c4983ac668980c5c06bba7e5933c8da2f27e49bdbfc616b54a9"
+    },
+    {
+      "scope": "严格类型清单与文档",
+      "passed": 2,
+      "failed": 0,
+      "skipped": 0,
+      "junit_seconds": 0.31,
+      "modules": [
+        "test_v2_typecheck_scope"
+      ],
+      "local_junit": "temp/build/provider-registration/typecheck-scope.xml",
+      "sha256": "93948af3d15aeda68a643d0e488f11ef433e2218dd8eaaeb4c7b826e8059663a"
+    }
+  ],
+  "compatibility": {
+    "reference": "5da6dce4b2f6f743cd35a71d2be198c4e5b216d9",
+    "same_contract": true,
+    "observed": {
+      "agent_tools": 40,
+      "owner_tools": 3,
+      "agent_tools_sha256": "048fb1b8bc74ae2a5dc765a7653f77f81f366f95b8ec349ccf6ca844c1f5724c",
+      "owner_tools_sha256": "d718fd27ae36eae27c614b48c553775a05267230289d57c91bf136e6011bf4dc",
+      "delivery_drivers": [
+        "bilibili",
+        "qq"
+      ],
+      "model_transport": "LiteLLMModel",
+      "openapi_paths": 212,
+      "openapi_sha256": "0b612b9f2b7256631d3c386ee682e0431c55610f298c3c4ccc89f63217cad6cc"
+    },
+    "local_report": "temp/build/provider-registration/compatibility.json"
+  },
+  "static_checks": {
+    "strict_files": 444,
+    "strict_errors": 0,
+    "strict_warnings": 0,
+    "ruff": "passed"
+  },
+  "full_offline": {
+    "covers_this_working_tree": false,
+    "previous_candidate": "5da6dce4b2f6f743cd35a71d2be198c4e5b216d9"
+  },
+  "scope": "按开发批次使用隔离夹具和现有环境运行离线专项。真实模型与发布验收另行登记。"
+}

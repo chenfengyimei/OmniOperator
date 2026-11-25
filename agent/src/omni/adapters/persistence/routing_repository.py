@@ -10,9 +10,20 @@ from typing import TYPE_CHECKING, cast
 from sqlalchemy import func, select
 
 from ...application.ports import Record
-from ...domain.contracts import BusinessError, ToolSpec
+from ...domain.contracts import JSON, BusinessError, ToolSpec
 from ...domain.metering import wire_tools
-from ...domain.routing import MODES, POLICY_DEFAULT, choose, invalid, policy, requested, select_tools
+from ...domain.routing import (
+    KERNEL_DEFAULT,
+    MODES,
+    POLICY_DEFAULT,
+    choose,
+    invalid,
+    kernel_policy,
+    policy,
+    requested,
+    select_tools,
+    tool_window,
+)
 from . import schema as s
 from .image_repository import ImageRepositories
 
@@ -37,21 +48,30 @@ class RoutingRepositories(ImageRepositories):
             .mappings()
             .first()
         )
-        return cast(
+        result = cast(
             Record,
             dict(row) if row else {"id": None, "revision": 0, "agent_id": agent_id, **POLICY_DEFAULT},
         )
+        result["kernel"] = kernel_policy(result.get("kernel", {}))
+        return result
 
     def route_policy_save(self, agent_id: str, value: Record, revision: int) -> Record:
         checked = policy(value)
         current = self.route_policy(agent_id)
         if type(revision) is not int or revision != current["revision"]:
             raise BusinessError("revision_conflict", "Routing configuration changed; retain the draft and reload")
+        if "kernel" not in value:
+            checked["kernel"] = current["kernel"]
+        kernel = kernel_policy(checked["kernel"])
         for mode in MODES:
             if checked[f"{mode}_model_id"]:
                 model = self.configuration_get(agent_id, cast(str, checked[f"{mode}_model_id"]))
                 if model["kind"] != "model" or not model["enabled"]:
                     raise invalid("routing_model_unavailable")
+        for identity in cast(list[str], kernel["fallback_model_ids"]):
+            model = self.configuration_get(agent_id, identity)
+            if model["kind"] != "model" or not model["enabled"]:
+                raise invalid("routing_model_unavailable")
         row = self._record(s.model_route_policies, {**checked, "revision": revision + 1}, agent_id)
         self.audit(agent_id, "routing.policy_saved", cast(str, row["id"]), {"revision": revision + 1})
         return row
@@ -60,11 +80,37 @@ class RoutingRepositories(ImageRepositories):
         config = self.route_policy(agent_id)
         decision = choose(text, requested(mode), cast(str, config["default_mode"]), images=images, remote=remote)
         current = cast(Record, self.settings(agent_id)["value"])
+        kernel = kernel_policy(config["kernel"]) if not remote else KERNEL_DEFAULT
+        model_id = config[f"{decision['mode']}_model_id"] or current["model_profile_id"]
+        fallbacks: list[JSON] = []
+        for identity in cast(list[str], kernel["fallback_model_ids"]) if not images else ():
+            if identity == model_id:
+                continue
+            try:
+                slot = self.configuration_get(agent_id, identity)
+            except BusinessError as exc:
+                if exc.code != "not_found":
+                    raise
+                continue
+            if slot["kind"] == "model" and slot["enabled"] and cast(Record, slot["value"])["model"]:
+                fallbacks.append(
+                    cast(
+                        Record,
+                        {
+                            "model_revision_id": slot["revision_id"],
+                            "permission_epoch": slot["permission_epoch"],
+                        },
+                    )
+                )
         return {
             **decision,
             "requested_mode": requested(mode),
             "policy_id": config["id"],
-            "model_id": config[f"{decision['mode']}_model_id"] or current["model_profile_id"],
+            "model_id": model_id,
+            "kernel": {
+                **{key: kernel[key] for key in KERNEL_DEFAULT if key != "fallback_model_ids"},
+                "fallbacks": fallbacks,
+            },
             "allow_escalation": bool(
                 config["allow_escalation"]
                 and not remote
@@ -78,6 +124,7 @@ class RoutingRepositories(ImageRepositories):
             s.run_routes,
             {
                 "run_id": run_id,
+                "kernel": choice.get("kernel", {}),
                 **{
                     k: choice[k]
                     for k in (
@@ -145,8 +192,12 @@ class RoutingRepositories(ImageRepositories):
         )
 
     def route_reservation(self, agent_id: str, run_id: str, default: int) -> int:
-        route = self.run_route(agent_id, run_id)
-        return int(cast(int, route["reservation_micro"])) if route["recorded"] else default
+        reserved = self.connection.execute(
+            select(s.run_routes.c.reservation_micro).where(
+                s.run_routes.c.run_id == run_id, s.run_routes.c.agent_id == agent_id,
+            )
+        ).scalar_one_or_none()
+        return reserved if reserved is not None else default
 
     def route_promote(self, agent_id: str, run_id: str, target: str) -> Record:
         unit = cast("Repositories", self)
@@ -202,7 +253,16 @@ class RoutingRepositories(ImageRepositories):
         return self.run_route(agent_id, run_id)
 
     def route_call(
-        self, agent_id: str, run_id: str, call_id: str, tools: Sequence[ToolSpec], baseline: Sequence[ToolSpec]
+        self,
+        agent_id: str,
+        run_id: str,
+        call_id: str,
+        tools: Sequence[ToolSpec],
+        baseline: Sequence[ToolSpec],
+        *,
+        model_revision_id: str | None = None,
+        window_tokens: int | None = None,
+        exposed: Sequence[str] = (),
     ) -> None:
         route = self.run_route(agent_id, run_id)
         if not route["recorded"]:
@@ -212,6 +272,11 @@ class RoutingRepositories(ImageRepositories):
             baseline,
             escalate=bool(route["allow_escalation"] and not route["promoted"]),
         )
+        if window_tokens is not None:
+            kernel = route.get("kernel")
+            if not isinstance(kernel, dict) or not kernel.get("tool_discovery") or len(exposed) > 4:
+                raise invalid("routing_toolset_changed")
+            expected = tool_window(expected, window_tokens, exposed)
         if encoded(expected) != encoded(tools):
             raise invalid("routing_toolset_changed")
         selected_bytes, full_bytes = encoded(tools), encoded(baseline)
@@ -219,6 +284,7 @@ class RoutingRepositories(ImageRepositories):
             s.model_call_routes,
             {
                 "call_id": call_id,
+                "model_revision_id": model_revision_id or route["model_revision_id"],
                 "route_id": route["id"],
                 "ordinal": self.connection.execute(
                     select(func.coalesce(func.max(s.model_call_routes.c.ordinal), 0) + 1).where(
@@ -246,6 +312,13 @@ class RoutingRepositories(ImageRepositories):
                 agent_id,
             )
 
+    def assert_tool_bindings(self, agent_id: str, run_id: str, tools: Sequence[ToolSpec]) -> None:
+        unit = cast("Repositories", self)
+        for prefix, current in (("ext__", unit.extension_run_tools), ("mcp__", unit.mcp_run_tools)):
+            required = {(spec.name, spec.binding_id) for spec in tools if spec.name.startswith(prefix)}
+            if required and not required.issubset({(r["name"], r["binding_id"]) for r in current(agent_id, run_id)}):
+                raise BusinessError("tool_authority_changed", "A captured tool was revoked; submit a new turn")
+
     def route_report(self, agent_id: str, run_id: str) -> Record:
         route = self.run_route(agent_id, run_id)
         rows = [
@@ -253,6 +326,7 @@ class RoutingRepositories(ImageRepositories):
             for r in self.connection.execute(
                 select(
                     s.model_call_routes,
+                    s.model_calls.c.model,
                     s.model_calls.c.state.label("call_state"),
                     s.model_calls.c.cost_micro,
                     s.model_calls.c.input_token_estimate,

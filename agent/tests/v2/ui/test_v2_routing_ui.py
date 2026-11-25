@@ -2,7 +2,8 @@
 
 import pytest
 from omni_test_support.v2.history_ui import connect
-from omni_test_support.v2.ui import reveal_settings, v2_server as v2_server
+from omni_test_support.v2.ui import reveal_settings
+from omni_test_support.v2.ui import v2_server as v2_server
 from playwright.sync_api import expect
 
 
@@ -35,12 +36,19 @@ def test_tier_editor_draft_and_actual_model_report(ui_browser, v2_server, width,
         page.locator("#route-chat-model").select_option(model["id"])
         page.locator("#route-chat-reserve").fill("321")
         page.locator("#route-default").select_option("auto")
+        page.locator("#kernel-safe_resume").check()
+        page.locator("#kernel-fallback-1").select_option(model["id"])
         page.locator('nav[aria-label="工作台"] [data-page="people"]').click()
         page.locator('nav[aria-label="工作台"] [data-page="settings"]').click()
         reveal_settings(page)
         expect(page.locator("#route-chat-reserve")).to_have_value("321")
         page.get_by_role("button", name="保存档位配置", exact=True).click()
         expect(page.locator("#route-config-status")).to_contain_text("已载入修订 1")
+        stored = context.request.get(
+            url + f"/api/v1/agents/{agent}/routing", headers={"Authorization": "Bearer " + token}
+        )
+        assert stored.json()["kernel"]["safe_resume"]
+        assert stored.json()["kernel"]["fallback_model_ids"] == [model["id"]]
         page.locator('nav[aria-label="工作台"] [data-page="chat"]').click()
         page.locator("#message").fill("你好")
         page.get_by_role("button", name="发送", exact=True).click()

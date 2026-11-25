@@ -1,0 +1,707 @@
+{
+  "schema": 1,
+  "cases": [
+    {
+      "id": "planning-inventory",
+      "category": "planning",
+      "prompt": "读取 input.json，把数量大于零的条目按名称排序，写到 result.json。",
+      "files": {
+        "input.json": "{\"items\":[{\"name\":\"beta\",\"count\":2},{\"name\":\"alpha\",\"count\":1},{\"name\":\"empty\",\"count\":0}]}\n"
+      },
+      "checks": [
+        {
+          "path": "result.json",
+          "json_equals": [
+            "alpha",
+            "beta"
+          ]
+        },
+        {
+          "fact": "outputs_checked",
+          "equals": true
+        }
+      ],
+      "intervention": {}
+    },
+    {
+      "id": "planning-handoff",
+      "category": "planning",
+      "prompt": "读取 input.json，找出两项未完成事项，按文件中的顺序生成 result.json。",
+      "files": {
+        "input.json": "{\"done\":[\"export\"],\"open\":[\"index\",\"confirm\"]}\n"
+      },
+      "checks": [
+        {
+          "path": "result.json",
+          "json_equals": [
+            "index",
+            "confirm"
+          ]
+        },
+        {
+          "fact": "outputs_checked",
+          "equals": true
+        }
+      ],
+      "intervention": {}
+    },
+    {
+      "id": "planning-dependencies",
+      "category": "planning",
+      "prompt": "按 input.json 的依赖关系排好 publish、check 和 gather，写入 result.json。",
+      "files": {
+        "input.json": "{\"publish\":[\"check\"],\"check\":[\"gather\"],\"gather\":[]}\n"
+      },
+      "checks": [
+        {
+          "path": "result.json",
+          "json_equals": [
+            "gather",
+            "check",
+            "publish"
+          ]
+        },
+        {
+          "fact": "outputs_checked",
+          "equals": true
+        }
+      ],
+      "intervention": {}
+    },
+    {
+      "id": "planning-repair",
+      "category": "planning",
+      "prompt": "检查 input.json 中的回执。保留从源数据可证的结果，将仍未知的项列到 result.json。",
+      "files": {
+        "input.json": "{\"receipts\":[[\"A\",\"ok\"],[\"B\",\"unknown\"],[\"C\",\"unknown\"]]}\n"
+      },
+      "checks": [
+        {
+          "path": "result.json",
+          "json_equals": [
+            "B",
+            "C"
+          ]
+        },
+        {
+          "fact": "outputs_checked",
+          "equals": true
+        }
+      ],
+      "intervention": {}
+    },
+    {
+      "id": "coding-multi-file",
+      "category": "coding",
+      "prompt": "实现 reader.py 的 read_rows(path) 和 main.py 的入口，标准输出每行一个数字；用 python check.py 验证。",
+      "files": {
+        "input.json": "[1,2,3]\n",
+        "check.py": "import subprocess, sys\ndef check():\n    result = subprocess.run([sys.executable, \"main.py\"], check=True, capture_output=True, text=True)\n    assert result.stdout.strip().split() == [\"3\", \"2\", \"1\"], result.stdout\nif __name__ == \"__main__\":\n    check()\n"
+      },
+      "checks": [
+        {
+          "fact": "code_check_passed",
+          "equals": true
+        }
+      ],
+      "intervention": {}
+    },
+    {
+      "id": "coding-validation",
+      "category": "coding",
+      "prompt": "实现在 submit.py 的 accept(value) -> bool；只允许大于等于零的整数，bool 不属于可接受输入。用 python check.py 验证。",
+      "files": {
+        "input.json": "{\"accept\":[0,1],\"reject\":[true,-1,\"1\"]}\n",
+        "check.py": "from submit import accept\nassert all(accept(value) is True for value in (0, 1))\nassert all(accept(value) is False for value in (True, -1, \"1\"))\n"
+      },
+      "checks": [
+        {
+          "fact": "code_check_passed",
+          "equals": true
+        }
+      ],
+      "intervention": {}
+    },
+    {
+      "id": "coding-regression",
+      "category": "coding",
+      "prompt": "实现在 reader.py 的 sort_rows(rows)，按第一列排序，同键保持输入顺序。用 python check.py 验证。",
+      "files": {
+        "input.json": "[[\"x\",1],[\"y\",2],[\"x\",3]]\n",
+        "check.py": "from reader import sort_rows\nassert sort_rows([[\"x\",1],[\"y\",2],[\"x\",3]]) == [[\"x\",1],[\"x\",3],[\"y\",2]]\n"
+      },
+      "checks": [
+        {
+          "fact": "code_check_passed",
+          "equals": true
+        }
+      ],
+      "intervention": {}
+    },
+    {
+      "id": "coding-small-context",
+      "category": "coding",
+      "prompt": "读取 spec-a.txt 和其引用的 spec-b.txt。在 main.py 实现，执行 python check.py 验证 result.tsv。",
+      "files": {
+        "input.json": "{\"columns\":[\"id\",\"name\"],\"items\":[[1,\"alpha\"]]}\n",
+        "check.py": "import subprocess, sys\nfrom pathlib import Path\nsubprocess.run([sys.executable, \"main.py\"], check=True)\nassert Path(\"result.tsv\").read_text() == \"id\\tname\\n1\\talpha\\n\"\n",
+        "spec-a.txt": "输入为 input.json。输出规范见 spec-b.txt。\n",
+        "spec-b.txt": "以制表符连接 columns 与各行，在末尾保留换行。写入 result.tsv。\n"
+      },
+      "checks": [
+        {
+          "fact": "code_check_passed",
+          "equals": true
+        }
+      ],
+      "intervention": {}
+    },
+    {
+      "id": "tool-discovery-find",
+      "category": "tool-discovery",
+      "prompt": "通过工具目录找到读取项目标签的工具，使用返回值生成 result.json。",
+      "files": {
+        "input.json": "\"record-17\"\n"
+      },
+      "checks": [
+        {
+          "path": "result.json",
+          "json_equals": [
+            "record-17"
+          ]
+        },
+        {
+          "fact": "discovered_tool_called",
+          "equals": true
+        }
+      ],
+      "intervention": {
+        "catalog": {
+          "hidden_tools": 56,
+          "descriptor_chars": 600,
+          "seed": 9,
+          "target": "fixture_record_read",
+          "disabled": "fixture_record_revoked"
+        }
+      }
+    },
+    {
+      "id": "tool-discovery-disabled",
+      "category": "tool-discovery",
+      "prompt": "查找记录对应的读取工具。发现旧工具不可用后，使用允许的替代工具生成 result.json。",
+      "files": {
+        "input.json": "\"live-catalog\"\n"
+      },
+      "checks": [
+        {
+          "path": "result.json",
+          "json_equals": [
+            "live-catalog"
+          ]
+        },
+        {
+          "fact": "discovered_tool_called",
+          "equals": true
+        }
+      ],
+      "intervention": {
+        "catalog": {
+          "hidden_tools": 56,
+          "descriptor_chars": 600,
+          "seed": 10,
+          "target": "fixture_record_read",
+          "disabled": "fixture_record_revoked"
+        }
+      }
+    },
+    {
+      "id": "tool-discovery-overlap",
+      "category": "tool-discovery",
+      "prompt": "用工作区读取工具找出精确的记录键，即使另一个同名工具也出现在描述中。",
+      "files": {
+        "input.json": "\"workspace-key\"\n"
+      },
+      "checks": [
+        {
+          "path": "result.json",
+          "json_equals": [
+            "workspace-key"
+          ]
+        },
+        {
+          "fact": "discovered_tool_called",
+          "equals": true
+        }
+      ],
+      "intervention": {
+        "catalog": {
+          "hidden_tools": 56,
+          "descriptor_chars": 600,
+          "seed": 11,
+          "target": "fixture_record_read",
+          "disabled": "fixture_record_revoked"
+        }
+      }
+    },
+    {
+      "id": "tool-discovery-load",
+      "category": "tool-discovery",
+      "prompt": "从大目录中发现表格导出读取工具，再取得记录的最终值并生成 result.json。",
+      "files": {
+        "input.json": "\"exported\"\n"
+      },
+      "checks": [
+        {
+          "path": "result.json",
+          "json_equals": [
+            "exported"
+          ]
+        },
+        {
+          "fact": "discovered_tool_called",
+          "equals": true
+        }
+      ],
+      "intervention": {
+        "catalog": {
+          "hidden_tools": 56,
+          "descriptor_chars": 600,
+          "seed": 12,
+          "target": "fixture_record_read",
+          "disabled": "fixture_record_revoked"
+        }
+      }
+    },
+    {
+      "id": "context-head",
+      "category": "context",
+      "prompt": "从长对话最初的需求中恢复记录顺序，并用工作区清单核对后写到 result.json。",
+      "files": {
+        "input.json": "[\"first\",\"last\"]\n"
+      },
+      "checks": [
+        {
+          "path": "result.json",
+          "json_equals": [
+            "first",
+            "last"
+          ]
+        },
+        {
+          "fact": "history_pressure_observed",
+          "equals": true
+        }
+      ],
+      "intervention": {
+        "history_pressure": {
+          "rounds": 44,
+          "tool_result_chars": 1800,
+          "seed": 13,
+          "source": "input.json"
+        }
+      }
+    },
+    {
+      "id": "context-latest",
+      "category": "context",
+      "prompt": "整理长对话中的修改，以最后一次经核对的编号为准，将编号写到 result.json。",
+      "files": {
+        "input.json": "[1,4,17]\n"
+      },
+      "checks": [
+        {
+          "path": "result.json",
+          "json_equals": [
+            17
+          ]
+        },
+        {
+          "fact": "history_pressure_observed",
+          "equals": true
+        }
+      ],
+      "intervention": {
+        "history_pressure": {
+          "rounds": 44,
+          "tool_result_chars": 1800,
+          "seed": 14,
+          "source": "input.json"
+        }
+      }
+    },
+    {
+      "id": "context-pairing",
+      "category": "context",
+      "prompt": "多轮读取后把各条工具结果与记录 ID 正确配对，在 result.json 给出编号顺序。",
+      "files": {
+        "input.json": "[[\"r1\",7],[\"r2\",11]]\n"
+      },
+      "checks": [
+        {
+          "path": "result.json",
+          "json_equals": [
+            7,
+            11
+          ]
+        },
+        {
+          "fact": "history_pressure_observed",
+          "equals": true
+        }
+      ],
+      "intervention": {
+        "history_pressure": {
+          "rounds": 44,
+          "tool_result_chars": 1800,
+          "seed": 15,
+          "source": "input.json"
+        }
+      }
+    },
+    {
+      "id": "context-pending",
+      "category": "context",
+      "prompt": "在多轮上下文整理后，继续最初的任务，只列出仍缺证据的事项。",
+      "files": {
+        "input.json": "{\"unverified\":[\"delivery\",\"backup\"]}\n"
+      },
+      "checks": [
+        {
+          "path": "result.json",
+          "json_equals": [
+            "delivery",
+            "backup"
+          ]
+        },
+        {
+          "fact": "history_pressure_observed",
+          "equals": true
+        }
+      ],
+      "intervention": {
+        "history_pressure": {
+          "rounds": 44,
+          "tool_result_chars": 1800,
+          "seed": 16,
+          "source": "input.json"
+        }
+      }
+    },
+    {
+      "id": "recovery-rejected",
+      "category": "recovery",
+      "prompt": "收到真实拒绝回执后，按已授权的档案安全完成记录。",
+      "files": {
+        "input.json": "\"completed\"\n"
+      },
+      "checks": [
+        {
+          "path": "result.json",
+          "json_equals": [
+            "completed"
+          ]
+        },
+        {
+          "fact": "known_rejection_recovered",
+          "equals": true
+        }
+      ],
+      "intervention": {
+        "fault": "provider_rejected_before_generation"
+      }
+    },
+    {
+      "id": "recovery-checkpoint",
+      "category": "recovery",
+      "prompt": "把这一条记录写入工作区；重启后继续余下验证。",
+      "files": {
+        "input.json": "\"resume-once\"\n"
+      },
+      "checks": [
+        {
+          "path": "result.json",
+          "json_equals": [
+            "resume-once"
+          ]
+        },
+        {
+          "fact": "resumed_once",
+          "equals": true
+        }
+      ],
+      "intervention": {
+        "fault": "process_exit_after_tool_commit"
+      }
+    },
+    {
+      "id": "recovery-unknown",
+      "category": "recovery",
+      "prompt": "等待写入结果。遇到结果未知时保留核查信息。",
+      "files": {},
+      "checks": [
+        {
+          "fact": "unknown_outcome_reported",
+          "equals": true
+        }
+      ],
+      "intervention": {
+        "fault": "process_exit_after_tool_dispatch"
+      }
+    },
+    {
+      "id": "recovery-revoked",
+      "category": "recovery",
+      "prompt": "在权限发生撤销时停止操作并等待所有者处理。",
+      "files": {},
+      "checks": [
+        {
+          "fact": "revocation_reported",
+          "equals": true
+        }
+      ],
+      "intervention": {
+        "fault": "revoke_before_tool_dispatch"
+      }
+    },
+    {
+      "id": "delegation-two",
+      "category": "delegation",
+      "prompt": "分派两项独立读取，核对后合并成 result.json。",
+      "files": {
+        "input.json": "[\"A\",\"B\"]\n"
+      },
+      "checks": [
+        {
+          "path": "result.json",
+          "json_equals": [
+            "A",
+            "B"
+          ]
+        },
+        {
+          "fact": "children_reconciled",
+          "equals": true
+        }
+      ],
+      "intervention": {
+        "delegation": "two"
+      }
+    },
+    {
+      "id": "delegation-four",
+      "category": "delegation",
+      "prompt": "并行核对四条记录。重复目标只保留一次。",
+      "files": {
+        "input.json": "[1,2,3,2]\n"
+      },
+      "checks": [
+        {
+          "path": "result.json",
+          "json_equals": [
+            1,
+            2,
+            3
+          ]
+        },
+        {
+          "fact": "children_reconciled",
+          "equals": true
+        }
+      ],
+      "intervention": {
+        "delegation": "four"
+      }
+    },
+    {
+      "id": "delegation-budget",
+      "category": "delegation",
+      "prompt": "在限定子任务调用次数下核对一个可证条目，保留未完成事项。",
+      "files": {
+        "input.json": "{\"known\":\"A\",\"open\":\"B\"}\n"
+      },
+      "checks": [
+        {
+          "path": "result.json",
+          "json_equals": [
+            "A",
+            "B"
+          ]
+        },
+        {
+          "fact": "child_budget_enforced",
+          "equals": true
+        }
+      ],
+      "intervention": {
+        "delegation": "budget"
+      }
+    },
+    {
+      "id": "delegation-cancel",
+      "category": "delegation",
+      "prompt": "取消批量读取，等全部子任务退出后完成回执。",
+      "files": {},
+      "checks": [
+        {
+          "fact": "children_cancelled",
+          "equals": true
+        }
+      ],
+      "intervention": {
+        "delegation": "cancel"
+      }
+    },
+    {
+      "id": "learning-skill",
+      "category": "learning",
+      "prompt": "回合后申请保存可复用的核对步骤；所有者启用后，在新会话用该方法产出结果。",
+      "files": {
+        "input.json": "\"check-first\"\n"
+      },
+      "checks": [
+        {
+          "path": "result.json",
+          "json_equals": [
+            "check-first"
+          ]
+        },
+        {
+          "fact": "learned_after_approval",
+          "equals": true
+        }
+      ],
+      "intervention": {
+        "learning": "skill"
+      }
+    },
+    {
+      "id": "learning-memory",
+      "category": "learning",
+      "prompt": "提出有引文的稳定偏好。批准后在独立会话使用，撤销后再次核对。",
+      "files": {
+        "input.json": "\"concise\"\n"
+      },
+      "checks": [
+        {
+          "path": "result.json",
+          "json_equals": [
+            "concise"
+          ]
+        },
+        {
+          "fact": "learning_revoked",
+          "equals": true
+        }
+      ],
+      "intervention": {
+        "learning": "memory"
+      }
+    },
+    {
+      "id": "learning-duplicate",
+      "category": "learning",
+      "prompt": "同一回合重复建议同一技能，所有者只需处理一个候选。",
+      "files": {},
+      "checks": [
+        {
+          "fact": "one_pending_proposal",
+          "equals": true
+        }
+      ],
+      "intervention": {
+        "learning": "duplicate"
+      }
+    },
+    {
+      "id": "learning-erased",
+      "category": "learning",
+      "prompt": "在已擦除的来源上检查候选失效；不创建新的记忆。",
+      "files": {},
+      "checks": [
+        {
+          "fact": "erased_proposal_blocked",
+          "equals": true
+        }
+      ],
+      "intervention": {
+        "learning": "erased"
+      }
+    },
+    {
+      "id": "approval-verification-denied",
+      "category": "approval-verification",
+      "prompt": "尝试写出报告，收到拒绝时停止并保留回执。",
+      "files": {},
+      "checks": [
+        {
+          "fact": "denied_write_recorded",
+          "equals": true
+        }
+      ],
+      "intervention": {
+        "approval-verification": "denied"
+      }
+    },
+    {
+      "id": "approval-verification-file",
+      "category": "approval-verification",
+      "prompt": "写入并从同一路径回读检查 result.json，记录实际验证范围。",
+      "files": {
+        "input.json": "\"observed\"\n"
+      },
+      "checks": [
+        {
+          "path": "result.json",
+          "json_equals": [
+            "observed"
+          ]
+        },
+        {
+          "fact": "write_verified",
+          "equals": true
+        }
+      ],
+      "intervention": {
+        "approval-verification": "file"
+      }
+    },
+    {
+      "id": "approval-verification-later-edit",
+      "category": "approval-verification",
+      "prompt": "检查后的文件还要修订一次，最终状态要反映这个新版本。",
+      "files": {
+        "input.json": "\"second-version\"\n"
+      },
+      "checks": [
+        {
+          "path": "result.json",
+          "json_equals": [
+            "second-version"
+          ]
+        },
+        {
+          "fact": "stale_check_detected",
+          "equals": true
+        }
+      ],
+      "intervention": {
+        "approval-verification": "later-edit"
+      }
+    },
+    {
+      "id": "approval-verification-failed-check",
+      "category": "approval-verification",
+      "prompt": "根据实际运行的检查判定结果。失败时保留退出码与范围。",
+      "files": {},
+      "checks": [
+        {
+          "fact": "failed_check_detected",
+          "equals": true
+        }
+      ],
+      "intervention": {
+        "approval-verification": "failed-check"
+      }
+    }
+  ]
+}

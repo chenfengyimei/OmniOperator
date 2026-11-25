@@ -8,10 +8,21 @@ import json
 from dataclasses import asdict
 from typing import Any, cast
 
-from sqlalchemy import and_, func, insert, select, update
+from sqlalchemy import and_, func, insert, literal_column, select, update
 
 from ...application.ports import Record
-from ...domain.contracts import ActionResult, BusinessError, ModelReply, Outcome, RunState, ToolSpec, check_transition
+from ...domain.contracts import (
+    JSON,
+    ActionResult,
+    BusinessError,
+    ModelReply,
+    Outcome,
+    RunState,
+    ToolSpec,
+    check_transition,
+)
+from ...domain.run_recovery import arguments_digest
+from ...domain.verification_stop import completion_report
 from . import schema as s
 from .action_review_repository import ActionReviewRepositories
 from .android_repository import AndroidRepositories
@@ -37,6 +48,7 @@ from .people_repository import PeopleRepositories
 from .qq_repository import QQRepositories
 from .reference_release_repository import ReferenceReleaseRepositories
 from .routing_repository import RoutingRepositories
+from .run_checkpoint_repository import RunCheckpointRepositories
 from .schedule_repository import ScheduleRepositories
 from .session_search_repository import SessionSearchRepositories
 from .skill_repository import SkillRepositories
@@ -66,6 +78,7 @@ class Repositories(
     SkillRepositories,
     MemorySemanticRepositories,
     RoutingRepositories,
+    RunCheckpointRepositories,
     AndroidUnicodeRepositories,
     AndroidRepositories,
     MediaRepositories,
@@ -732,9 +745,7 @@ class Repositories(
             list[object], current_value.get("disabled_tools", [])
         ):
             raise BusinessError("policy_changed", "Action policy changed; submit a new action")
-        digest = hashlib.sha256(
-            json.dumps(arguments, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode()
-        ).hexdigest()
+        digest = arguments_digest(arguments)
         action = self._record(
             s.actions,
             {
@@ -1023,6 +1034,38 @@ class Repositories(
             evidence.append(cast(Record, {"tool": str(row["tool"]), "verification": verification}))
         return evidence
 
+    def run_completion(self, agent_id: str, run_id: str) -> Record:
+        actions = self.connection.execute(
+            select(
+                s.actions.c.id,
+                s.actions.c.tool,
+                s.actions.c.state,
+                s.actions.c.effect,
+                s.actions.c.writes,
+                s.actions.c.result,
+            )
+            .where(s.actions.c.agent_id == agent_id, s.actions.c.run_id == run_id)
+            .order_by(literal_column("actions.rowid"))
+            .limit(201)
+        ).mappings()
+        rows = [dict(row) for row in actions]
+        objects: dict[str, list[JSON]] = {}
+        for row in self.connection.execute(
+            select(s.action_objects.c.action_id, s.objects.c.id, s.objects.c.sha256)
+            .join(s.actions, s.actions.c.id == s.action_objects.c.action_id)
+            .join(s.objects, s.objects.c.id == s.action_objects.c.object_id)
+            .where(
+                s.actions.c.agent_id == agent_id,
+                s.actions.c.run_id == run_id,
+                s.objects.c.agent_id == agent_id,
+                s.actions.c.tool.startswith("ext__", autoescape=True),
+            )
+            .order_by(s.objects.c.id)
+            .limit(201)
+        ):
+            objects.setdefault(row.action_id, []).append({"id": row.id, "sha256": row.sha256})
+        return completion_report(rows[:200], objects, limited=len(rows) > 200 or sum(map(len, objects.values())) > 200)
+
     def cancel(self, agent_id: str, run_id: str) -> None:
         for child_id in self.delegation_children(agent_id, run_id):
             self.cancel(agent_id, child_id)
@@ -1185,7 +1228,11 @@ class Repositories(
             .mappings()
             .all()
         )
+        resumed = 0
         for run in interrupted:
+            if self.requeue_checkpoint(cast(Record, dict(run))):
+                resumed += 1
+                continue
             self.transition(run["agent_id"], run["id"], "interrupted", "process_interrupted")
             self.audit(run["agent_id"], "run.recovered", run["id"], {})
         unknown = self.connection.execute(
@@ -1210,7 +1257,8 @@ class Repositories(
         self.cancel_approvals()
         self.connection.execute(update(s.leases).where(s.leases.c.state == "held").values(state="released"))
         return {
-            "interrupted_runs": len(interrupted),
+            "interrupted_runs": len(interrupted) - resumed,
+            "resumed_runs": resumed,
             "unknown_actions": unknown,
             "recovered_credentials": recovered_credentials,
         }

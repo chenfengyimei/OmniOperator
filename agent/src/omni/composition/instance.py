@@ -16,18 +16,13 @@ from typing import Any, cast
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.trace import Span, StatusCode
 
-from omni.adapters.platform.desktop.backend import DesktopBackend
-from omni.adapters.platform.desktop.desktop_control import DesktopControlBackend
-from omni.adapters.platform.desktop.portal import PortalBackend
 from omni.adapters.platform.runtime.paths import InstanceLock, InstancePaths
 from omni.adapters.platform.runtime.runtime_identity import RuntimeIdentityFiles, canonical_proof, process_identity
 from omni.adapters.platform.runtime.secrets import FileVault
-from omni.adapters.platform.runtime.terminal import TerminalBackend
 from omni.adapters.platform.runtime.workspaces import WorkspacePolicy
 from omni.adapters.platform.services.service_launch import consume_launch
 
 from ..adapters.android import AndroidBackend
-from ..adapters.bilibili import BilibiliGateway
 from ..adapters.build_identity import CODE_CACHE_DIRS, CODE_SUFFIXES, LAYERS
 from ..adapters.credentials import Credentials
 from ..adapters.diagnostic_bundle import DiagnosticFiles
@@ -40,10 +35,8 @@ from ..adapters.mcp.hosts import MCPHosts
 from ..adapters.mcp.oauth import OAuthFlow
 from ..adapters.media import MediaProcessor
 from ..adapters.metrics import Metrics
-from ..adapters.models import LiteLLMModel
 from ..adapters.native_credentials import NativeCredentials
 from ..adapters.object_store import ObjectFiles
-from ..adapters.onebot import OneBotTransport
 from ..adapters.persistence.database import Database
 from ..adapters.persistence.deployed_instance import verify_deployed_instance
 from ..adapters.persona_files import PersonaGrowthFiles
@@ -59,6 +52,7 @@ from ..application.background_review import BackgroundReviewService
 from ..application.bilibili import PREPARE_SPEC as BILIBILI_PREPARE
 from ..application.bilibili import READ_SPEC as BILIBILI_READ
 from ..application.bilibili import BilibiliPort, BilibiliService
+from ..application.capabilities import Capability, CapabilityPlugin
 from ..application.clarify import ClarifyService
 from ..application.configuration import ConfigurationService
 from ..application.context import ContextService
@@ -71,7 +65,7 @@ from ..application.desktop_actions import DesktopActions
 from ..application.desktop_control import DesktopControlService
 from ..application.desktop_portal import DesktopPortalService
 from ..application.documents import DocumentService
-from ..application.engine import Application, Capability
+from ..application.engine import Application
 from ..application.extensions import ExtensionService
 from ..application.images import ImageService
 from ..application.maintenance import MaintenanceService
@@ -123,13 +117,15 @@ from ..domain.android import SPEC as ANDROID_ACTION
 from ..domain.background_review import READ_TOOLS
 from ..domain.contracts import JSON, ActionResult, BusinessError, InvocationContext, Outcome
 from ..domain.cronjob import CRONJOB_MANAGE
-from ..domain.delivery import OutboundMessage
 from ..domain.desktop_actions import SPEC as DESKTOP_ACTION
 from ..domain.mcp import ServerTarget
 from ..domain.memory_decay import DECAY_DAILY_HOUR
 from ..domain.skills import SKILL_SPECS
-from .capabilities import builtin_capabilities
+from .capabilities import builtin_plugins
+from .channel_providers import register_channel_providers
 from .lifecycle import Lifetime, close_sync
+from .model_providers import register_model_transport
+from .platform_providers import platform_provider
 
 
 @dataclass
@@ -351,6 +347,7 @@ async def open_instance(
     mcp_transport: MCPTransportPort | None = None,
     android_backend: AndroidPort | None = None,
     capabilities: tuple[Capability, ...] | None = None,
+    capability_plugins: tuple[CapabilityPlugin, ...] = (),
     delegation_enabled: bool | None = None,
     verify_on_stop: bool = False,
     model_recovery: bool = False,
@@ -426,8 +423,8 @@ async def open_instance(
         lifetime.own("object_store", 2, objects.close)
         skill_packages = SkillPackages()
         lifetime.own("skill_packages", 1, skill_packages.close)
-        platform = "windows" if sys.platform == "win32" else "macos" if sys.platform == "darwin" else "linux"
-        skills = SkillService(database, objects, skill_packages, platform)
+        platform = platform_provider(sys.platform)
+        skills = SkillService(database, objects, skill_packages, platform.skill_platform)
         lifetime.own("skills", 0, skills.close, skills.stop_accepting)
         image_codec = ImageCodec()
         lifetime.own("image_codec", 1, image_codec.close, image_codec.stop_accepting)
@@ -440,15 +437,17 @@ async def open_instance(
         extensions = ExtensionService(database, objects, extension_packages, extension_hosts)
         lifetime.own("extensions", 0, extensions.close, extensions.stop_accepting)
         people = PeopleService(database, objects)
-        terminal_io = (
-            terminal_backend
-            if terminal_backend is not None
-            else TerminalBackend(
-                workspace_validator=WorkspacePolicy(paths.home, Path(__file__).resolve().parents[1]).validate
-            )
+        validate_workspace = WorkspacePolicy(paths.home, source).validate
+        platform_io = platform.register(
+            lifetime,
+            paths,
+            validate_workspace,
+            terminal_backend=terminal_backend,
+            desktop_backend=desktop_backend,
+            portal_backend=portal_backend,
+            control_backend=control_backend,
         )
-        lifetime.own("terminal_io", 1, terminal_io.close)
-        terminals = TerminalService(database, terminal_io, clock, ids)
+        terminals = TerminalService(database, platform_io.terminal, clock, ids)
         lifetime.own("terminals", 0, terminals.close, terminals.stop_accepting)
         terminal_reviews = TerminalReviewService(
             database,
@@ -457,19 +456,6 @@ async def open_instance(
             while_quiescent=terminals.while_quiescent,
         )
         lifetime.own("terminal_reviews", 0, terminal_reviews.close, terminal_reviews.stop_accepting)
-        desktop_capacity = asyncio.Semaphore(2)
-        desktop_io = (
-            desktop_backend
-            if desktop_backend is not None
-            else DesktopBackend(
-                capture_root=paths.control / "desktop-captures",
-                capacity=desktop_capacity,
-                # Own TCC identity on macOS: LaunchServices + host socket (A1).
-                macos_transport="launchservices",
-            )
-        )
-        lifetime.own("desktop_io", 1, desktop_io.close, desktop_io.stop_accepting)
-
         desktop_portal: DesktopPortalService | None = None
         desktop_control: DesktopControlService | None = None
 
@@ -485,29 +471,19 @@ async def open_instance(
                 raise failures[0]
 
         desktop = DesktopService(
-            database, desktop_io, clock, ids, boot_id, observation, objects, on_detach=detach_portal
+            database, platform_io.desktop, clock, ids, boot_id, observation, objects, on_detach=detach_portal
         )
         lifetime.own("desktop_observations", 0, desktop.close, desktop.stop_accepting)
-        portal_io = (
-            portal_backend
-            if portal_backend is not None
-            else PortalBackend(capacity=desktop_capacity, capture_root=paths.control / "portal-captures")
-        )
-        lifetime.own("desktop_portal_io", 1, portal_io.close, portal_io.stop_accepting)
         desktop_portal = DesktopPortalService(
-            database, portal_io, ids, boot_id, observation, objects, authorize=desktop.require_view
+            database, platform_io.portal, ids, boot_id, observation, objects, authorize=desktop.require_view
         )
         lifetime.own("desktop_portal", 0, desktop_portal.close, desktop_portal.stop_accepting)
-        control_io = (
-            control_backend if control_backend is not None else DesktopControlBackend(capacity=desktop_capacity)
-        )
-        lifetime.own("desktop_control_io", 1, control_io.close, control_io.stop_accepting)
         desktop_control = DesktopControlService(
-            database, control_io, ids, boot_id, observation, authorize=desktop.require_view
+            database, platform_io.control, ids, boot_id, observation, authorize=desktop.require_view
         )
         lifetime.own("desktop_control", 0, desktop_control.close, desktop_control.stop_accepting)
         desktop_actions = DesktopActions(
-            database, desktop, desktop_io, clock, ids, accepting=lambda: bool(application.health()["ready"])
+            database, desktop, platform_io.desktop, clock, ids, accepting=lambda: bool(application.health()["ready"])
         )
         lifetime.own("desktop_actions", 0, desktop_actions.close, desktop_actions.stop_accepting)
         local_vectors = vectorizer if vectorizer is not None else await configured_vectors(paths.home)
@@ -540,43 +516,35 @@ async def open_instance(
         counter = token_counter if token_counter is not None else ConservativeTokenCounter()
         configurations = ConfigurationService(database, counter)
         routing = RoutingService(database)
-        if model is None:
-            production_model = LiteLLMModel(
-                credential_io, sink.redactor, host_diagnostics.capture if host_diagnostics else None
-            )
-            active_model: ModelPort = production_model
-            calls = ModelCalls(
-                database,
-                production_model,
-                observation,
-                counter,
-                preparer=production_model,
-                streamer=production_model,
-                images=images,
-            )
-            lifetime.own("model_streams", 1, production_model.close, production_model.stop_accepting)
-        else:
-            active_model = model
-            calls = ModelCalls(database, model, observation, counter, streamer=model_streamer, images=images)
-            if model_streamer is not None:
-                lifetime.own("model_streams", 1, model_streamer.close, model_streamer.stop_accepting)
+        model_transport = register_model_transport(
+            lifetime,
+            credential_io,
+            sink.redactor,
+            model=model,
+            streamer=model_streamer,
+            configure_logging=host_diagnostics.capture if host_diagnostics else None,
+        )
+        calls = ModelCalls(
+            database,
+            model_transport.model,
+            observation,
+            counter,
+            preparer=model_transport.preparer,
+            streamer=model_transport.streamer,
+            images=images,
+        )
         contexts = ContextService(database, calls, images)
 
-        async def authorize_qq(message: OutboundMessage) -> str:
-            return await database.read(lambda u: u.qq_outbound_authorized(message))
-
-        async def authorize_bilibili(message: OutboundMessage) -> Record:
-            return await database.read(lambda u: u.bilibili_outbound_authorized(message))
-
-        onebot = qq_transport if qq_transport is not None else OneBotTransport(credential_io, authorize_qq)
-        lifetime.own("onebot", 1, onebot.close)
-        bili_gateway: BilibiliPort = (
-            bilibili_backend
-            if bilibili_backend is not None
-            else cast(BilibiliPort, BilibiliGateway(credential_io, sink.redactor, authorize_bilibili))
+        channels = register_channel_providers(
+            lifetime,
+            database,
+            credential_io,
+            sink.redactor,
+            qq_transport=qq_transport,
+            bilibili_backend=bilibili_backend,
+            delivery_ports=delivery_ports,
         )
-        lifetime.own("bilibili_gateway", 1, bili_gateway.close)
-        bilibili = BilibiliService(database, bili_gateway)
+        bilibili = BilibiliService(database, channels.bilibili)
         lifetime.own("bilibili", 0, bilibili.close, bilibili.stop_accepting)
         processor: MediaProcessingPort = (
             media_processor if media_processor is not None else cast(MediaProcessingPort, MediaProcessor())
@@ -588,7 +556,7 @@ async def open_instance(
             database,
             objects,
             images,
-            cast(BilibiliMediaPort, bili_gateway),
+            cast(BilibiliMediaPort, channels.bilibili),
             processor,
             clock,
             paths.control / "media-staging",
@@ -610,9 +578,9 @@ async def open_instance(
             media=MediaFrameSheets(media, objects, images),
         )
         lifetime.own("visual", 0, visual.close, visual.stop_accepting)
-        ports = {"qq": onebot, "bilibili": bili_gateway, **(delivery_ports or {})}
-        deliveries = DeliveryService(database, clock, observation, ports)
-        lifetime.own("deliveries", 0, deliveries.close, deliveries.stop_accepting)
+        deliveries = DeliveryService(database, clock, observation, channels.delivery)
+        lifetime.own("deliveries", 0, deliveries.drain, deliveries.stop_accepting)
+        lifetime.own("delivery_leases", 2, deliveries.release_boot_leases)
         credentials = CredentialService(database, credential_io, ids, deliveries.cancel_active, observation)
         lifetime.own("credential_changes", 0, credentials.close, credentials.stop_accepting)
 
@@ -655,27 +623,59 @@ async def open_instance(
                 "MCP records from the previous process were reconciled",
                 extra={"event": "mcp.restart_reconciled", **mcp_recovered},
             )
-        agent_capabilities = (
-            capabilities
-            if capabilities is not None
-            else (
-                *builtin_capabilities(database, documents, memory_semantics),
-                *(Capability(spec, skills, lambda: skills.health()["pending"] == 0) for spec in SKILL_SPECS),
-                Capability(BILIBILI_READ, bilibili),
-                Capability(BILIBILI_PREPARE, bilibili),
-                Capability(MEDIA_LIST, media),
-                Capability(MEDIA_TRANSCRIPT, media),
-                Capability(MEDIA_LOCATE, media),
-                Capability(MEDIA_CELLS, media),
-                Capability(MEDIA_ZOOM, media),
-                Capability(ANDROID_ACCESS, android, android.quiescent),
-                Capability(ANDROID_OBSERVE, android, android.quiescent),
-                Capability(ANDROID_MODEL, android, android.quiescent),
-                Capability(
-                    VISUAL_SUBAGENT, VisualSubagentCapabilities(visual), lambda: visual.health()["pending"] == 0
+        desktop_plugin = CapabilityPlugin(
+            "desktop",
+            owner_tools=(Capability(DESKTOP_ACTION, desktop_actions, desktop_actions.quiescent),),
+            own_adapters=False,
+        )
+        android_plugin = CapabilityPlugin(
+            "android",
+            tuple(
+                Capability(spec, android, android.quiescent)
+                for spec in (ANDROID_ACCESS, ANDROID_OBSERVE, ANDROID_MODEL)
+            )
+            if capabilities is None
+            else (),
+            owner_tools=tuple(
+                Capability(spec, android, android.quiescent) for spec in (ANDROID_ACTION, ANDROID_RESTORE)
+            ),
+            own_adapters=False,
+        )
+        plugins = (desktop_plugin, android_plugin)
+        if capabilities is None:
+            plugins = (
+                *builtin_plugins(database, documents, memory_semantics),
+                CapabilityPlugin(
+                    "skills",
+                    tuple(Capability(spec, skills, lambda: skills.health()["pending"] == 0) for spec in SKILL_SPECS),
+                    own_adapters=False,
+                ),
+                CapabilityPlugin(
+                    "bilibili",
+                    (Capability(BILIBILI_READ, bilibili), Capability(BILIBILI_PREPARE, bilibili)),
+                    own_adapters=False,
+                ),
+                CapabilityPlugin(
+                    "media",
+                    tuple(
+                        Capability(spec, media)
+                        for spec in (MEDIA_LIST, MEDIA_TRANSCRIPT, MEDIA_LOCATE, MEDIA_CELLS, MEDIA_ZOOM)
+                    ),
+                    own_adapters=False,
+                ),
+                *plugins,
+                CapabilityPlugin(
+                    "vision",
+                    (
+                        Capability(
+                            VISUAL_SUBAGENT, VisualSubagentCapabilities(visual), lambda: visual.health()["pending"] == 0
+                        ),
+                    ),
+                    own_adapters=False,
                 ),
             )
-        )
+        plugins = (*plugins, *capability_plugins)
+        agent_capabilities = (*(capabilities or ()), *(cap for plugin in plugins for cap in plugin.tools))
         review_read_caps = {cap.spec.name: cap for cap in agent_capabilities if cap.spec.name in READ_TOOLS}
 
         async def review_read(name: str, arguments: Mapping[str, JSON], context: InvocationContext) -> ActionResult:
@@ -711,10 +711,10 @@ async def open_instance(
             database,
             calls,
             contexts,
-            agent_capabilities,
+            capabilities if capabilities is not None else (),
             clock,
             observation,
-            workspace_validator=WorkspacePolicy(paths.home, Path(__file__).resolve().parents[1]).validate,
+            workspace_validator=validate_workspace,
             delivery_cancellation=deliveries.cancel_active,
             extensions=extensions,
             mcp=mcp,
@@ -728,13 +728,9 @@ async def open_instance(
             clarify=ClarifyService(database) if capabilities is None else None,
             verify_on_stop=verify_on_stop,
             model_recovery=model_recovery,
-            owner_capabilities=(
-                Capability(DESKTOP_ACTION, desktop_actions, desktop_actions.quiescent),
-                Capability(ANDROID_ACTION, android, android.quiescent),
-                Capability(ANDROID_RESTORE, android, android.quiescent),
-            ),
+            plugins=plugins,
         )
-        qq = QQService(database, onebot, application.notify)
+        qq = QQService(database, channels.qq, application.notify)
         lifetime.own("qq", 0, qq.close, qq.stop_accepting)
         lifetime.own(
             "runs", 0, lambda budget: application.close(budget, close_database=False), application.stop_accepting
@@ -745,16 +741,19 @@ async def open_instance(
             PinnedTimezones(),
             application.notify,
             application.cancel,
-            platform,
+            platform.skill_platform,
             # Same live redactor as diagnostics: scheduled output excerpts also mask
             # credentials registered at runtime, not just pattern-shaped secrets.
             redact=sink.redactor.text,
         )
         lifetime.own("scheduler", 0, schedules.close, schedules.stop_accepting)
         if capabilities is None:
-            # SchedulingService depends on application.notify/cancel, so its model tool is attached
-            # only once both exist; start() has not run and every run reads the live registry.
-            application.attach(Capability(CRONJOB_MANAGE, CronjobCapabilities(schedules, clock), lambda: True))
+            # SchedulingService depends on application.notify/cancel, so mount its contributor before start().
+            application.attach_plugin(
+                CapabilityPlugin(
+                    "scheduler", (Capability(CRONJOB_MANAGE, CronjobCapabilities(schedules, clock), lambda: True),)
+                )
+            )
         action_reviews = ActionReviewService(database, application.action_review_blockers, schedules.notify)
         lifetime.own("action_reviews", 0, action_reviews.close, action_reviews.stop_accepting)
         diagnostic = DiagnosticFiles(paths, sink)
@@ -909,7 +908,7 @@ async def open_instance(
             desktop_control=desktop_control,
             desktop_actions=desktop_actions,
             _process_diagnostics=host_diagnostics,
-            model_port=active_model,
+            model_port=model_transport.model,
         )
         return current_instance
     except BaseException:

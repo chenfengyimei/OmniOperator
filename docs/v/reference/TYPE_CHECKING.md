@@ -2,7 +2,7 @@
 
 > **全仓严格类型尚未完成。** 本文件记录已纳入 strict 的模块、当前基线例外与推进规则；默认入口为V2（Windows离线候选），真实平台与整个V2仍待验收。
 
-当前显式清单为 437 个文件，包含技能与插件 HTTP 路由及共用输入基类。下方历史基线按当时的提交保留。
+当前显式清单为 444 个文件，包含能力注册表、模型、渠道和平台提供者、技能与插件 HTTP 路由及共用输入基类。下方历史基线按当时的提交保留。
 
 
 ## 1. 门禁
@@ -103,6 +103,7 @@ strict 配置显式将 `agent/src` 加入导入根，隔离源码副本也解析
 | `agent/src/omni/domain/release_fence.py` | 启动互斥栅栏纯校验 |
 | `agent/src/omni/domain/releases.py` | 发布/恢复计划、栅栏文件与路径分离纯校验（经公共桥） |
 | `agent/src/omni/domain/routing.py` | 能力档位/路由策略/工具筛选纯规则 |
+| `agent/src/omni/domain/run_recovery.py` | 安全接续的固定上限与参数指纹 |
 | `agent/src/omni/domain/settings.py` | Agent 设置与运行配置纯校验 |
 | `agent/src/omni/domain/scheduling.py` | 数值 cron/下次到期/到期选择纯规则 |
 | `agent/src/omni/domain/local_vectors.py` | 本地向量包清单/协议纯校验 |
@@ -332,6 +333,7 @@ strict 配置显式将 `agent/src` 加入导入根，隔离源码副本也解析
 | `agent/src/omni/adapters/persistence/offline_plans.py` | 离线维护计划读取/校验 |
 | `agent/src/omni/adapters/persistence/retention_repository.py` | 保留/擦除会话失效仓储 |
 | `agent/src/omni/adapters/persistence/routing_repository.py` | 不可变档位策略/运行选择/升档/实际工具清单（对齐端口 Record、嵌套设置收窄、升档仅向上一次、不调模型不做 IO） |
+| `agent/src/omni/adapters/persistence/run_checkpoint_repository.py` | 安全接续、工作队列与回执校验 |
 | `agent/src/omni/adapters/platform/desktop/desktop_capture.py` | 桌面截图文件身份校验 |
 | `agent/src/omni/adapters/platform/desktop/macos_helper.py` | macOS 辅助源指纹与文件校验 |
 | `agent/src/omni/adapters/platform/services/macos_service.py` | macOS launchd 查询边界（原生身份校验） |
@@ -381,6 +383,9 @@ strict 配置显式将 `agent/src` 加入导入根，隔离源码副本也解析
 | `agent/src/omni/composition/service_operations.py` | 离线服务操作命令组装（计划/检查/应用/对账/取消） |
 | `agent/src/omni/composition/service_runner.py` | 固定部署的服务入口（仅启动已校验的不可变部署） |
 | `agent/src/omni/composition/capabilities.py` | 内建能力目录（工具 spec 与 worker 装配） |
+| `agent/src/omni/composition/channel_providers.py` | 渠道端口绑定、发送覆盖与共享传输归属 |
+| `agent/src/omni/composition/model_providers.py` | 普通调用、请求预备、流式端口与关闭归属 |
+| `agent/src/omni/composition/platform_providers.py` | 主机选择、原生端口注入、共享并发池与启动回滚 |
 | `agent/src/omni/composition/releases.py` | 已审阅版本发布命令组装（计划/准备/完成/取消） |
 | `agent/src/omni/composition/service_exchange.py` | 整机交换命令组装（两侧部署与管理员通道） |
 | `agent/src/omni/composition/lifecycle.py` | 有界关停与启动回滚的生命周期协调（不分派业务） |
@@ -473,6 +478,7 @@ strict 配置显式将 `agent/src` 加入导入根，隔离源码副本也解析
 | `agent/src/omni/application/session_search.py` | 模型侧历史召回能力，共享应用事务与擦除屏障 |
 
 | `agent/src/omni/application/background_review.py` | 每个已结束运行一个有界复盘器，提案在所有者决策前保持待定 |
+| `agent/src/omni/application/capabilities.py` | 能力插件注册、回合工具快照和适配器生命周期归属 |
 
 | `agent/src/omni/adapters/persistence/clarify_repository.py` | 结构化澄清请求持久化：暂停当前运行并在同一运行上恢复 |
 
@@ -491,6 +497,7 @@ strict 配置显式将 `agent/src` 加入导入根，隔离源码副本也解析
 | `agent/src/omni/adapters/persistence/migrations/versions/v0051.py` | 冻结迁移版本 v0051（反思信笺、文档/媒体已读锚点与待审队列；新表与身份/禁删触发器，`downgrade` 拒绝） |
 
 | `agent/src/omni/adapters/persistence/migrations/versions/v0052.py` | 冻结迁移版本 v0052（反思媒体锚点、修订绑定审核与所有者日槽；身份/禁删触发器，`downgrade` 拒绝） |
+| `agent/src/omni/adapters/persistence/migrations/versions/v0053.py` | 内核策略与模型回退的增量字段 |
 
 | `agent/src/omni/domain/reflection.py` | 反思信笺纯领域：8 字段正文、证据锚点、摘录选择与修订状态约束 |
 

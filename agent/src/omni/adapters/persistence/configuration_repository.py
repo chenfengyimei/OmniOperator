@@ -6,7 +6,7 @@ from typing import Any, cast
 
 from sqlalchemy import delete, select, update
 
-from ...application.ports import Record
+from ...application.ports import Record, UnitOfWork
 from ...domain.configuration import config_name, config_value, fingerprint
 from ...domain.contracts import BusinessError
 from ...domain.credentials import reference_fingerprint
@@ -349,14 +349,65 @@ class ConfigurationRepositories(CredentialRepositories):
         # Assembled repositories validate active procedural-skill authority.
         return None
 
-    def model_dispatch_authority(self, agent_id: str, run_id: str) -> Record:
+    def run_fallbacks(self, agent_id: str, run_id: str) -> list[Record]:
+        route = cast(UnitOfWork, self).run_route(agent_id, run_id)
+        kernel = route.get("kernel")
+        value = kernel.get("fallbacks") if isinstance(kernel, dict) else None
+        return cast(list[Record], value) if isinstance(value, list) else []
+
+    def fallback_settings(self, agent_id: str, run_id: str, revision_id: str) -> Record:
+        for table, states in (
+            (s.model_calls, ("reserved", "unknown")),
+            (s.actions, ("executing", "unknown")),
+            (s.outbox, ("sending", "unknown")),
+        ):
+            if self.connection.execute(
+                select(table.c.id)
+                .where(table.c.agent_id == agent_id, table.c.run_id == run_id, table.c.state.in_(states))
+                .limit(1)
+            ).first():
+                raise BusinessError(
+                    "fallback_outcome_unknown", "Resolve uncertain effects or charges before switching models"
+                )
+        authority = self.model_dispatch_authority(agent_id, run_id, revision_id)
+        revision = self._configuration_revision(agent_id, revision_id)
+        return {
+            **self.run_settings(agent_id, run_id),
+            **cast(Record, revision["value"]),
+            "model_profile_id": revision["config_id"],
+            "model_revision_id": revision_id,
+            "model_permission_epoch": authority["permission_epoch"],
+        }
+
+    def model_dispatch_authority(self, agent_id: str, run_id: str, model_revision_id: str | None = None) -> Record:
         self.assert_model_authorized(agent_id, run_id)
         run = self._one(s.runs, agent_id, run_id)
+        revision_id = model_revision_id or cast(str, run["model_revision_id"])
+        permission_epoch = run["model_permission_epoch"]
+        if revision_id != run["model_revision_id"]:
+            fallback = next(
+                (slot for slot in self.run_fallbacks(agent_id, run_id) if slot["model_revision_id"] == revision_id),
+                None,
+            )
+            revision = self._configuration_revision(agent_id, revision_id)
+            entity = self._one(s.configurations, agent_id, cast(str, revision["config_id"]))
+            kernel = cast(Record, cast(UnitOfWork, self).route_policy(agent_id)["kernel"])
+            if (
+                fallback is None
+                or entity["permission_epoch"] != fallback["permission_epoch"]
+                or not entity["enabled"]
+                or entity["deleted_at"]
+                or entity["id"] not in cast(list[object], kernel["fallback_model_ids"])
+            ):
+                raise BusinessError("fallback_model_revoked", "The owner-authorized fallback is no longer available")
+            permission_epoch = fallback["permission_epoch"]
         reference = self.connection.execute(
             select(s.model_options.c.credential_ref).where(
-                s.model_options.c.revision_id == run["model_revision_id"], s.model_options.c.agent_id == agent_id
+                s.model_options.c.revision_id == revision_id, s.model_options.c.agent_id == agent_id
             )
         ).scalar_one()
+        if revision_id != run["model_revision_id"]:
+            self.credential_authorize(reference)
         generation = ""
         if reference:
             revision, epoch = self.connection.execute(
@@ -367,8 +418,8 @@ class ConfigurationRepositories(CredentialRepositories):
             ).one()
             generation = f"{revision}:{epoch}"
         return {
-            "model_revision_id": run["model_revision_id"],
-            "permission_epoch": run["model_permission_epoch"],
+            "model_revision_id": revision_id,
+            "permission_epoch": permission_epoch,
             "credential_generation": generation,
         }
 

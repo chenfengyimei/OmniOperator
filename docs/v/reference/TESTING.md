@@ -143,7 +143,9 @@ Portal 的原生共享状态与应用授权审计分两步完成。`test_v2_port
 
 ## 环境与 CI
 
-全新开发环境使用 `uv sync --frozen`，安装浏览器用 `uv run --no-sync python -m playwright install chromium`。常驻服务正在使用 `.venv` 时不要重建环境或停止服务；测试使用 `uv run --no-sync`。
+全新基础开发环境使用 `uv sync --frozen`。全量包含真实 PyAV 合成媒体、可选终端和向量用例，在新建的独立验证环境执行 `uv sync --frozen --all-packages --all-extras`（按平台解析依赖）。安装浏览器用 `uv run --no-sync python -m playwright install chromium`。常驻服务正在使用 `.venv` 时保留其环境和服务，测试使用 `uv run --no-sync`。
+
+在独立克隆跑完整测试时，保持 V1 官方 `origin` 身份，并由该克隆的独立虚拟环境安装源码。将源码目录放入全局 `PYTHONPATH` 会影响隔离安装测试启动的子进程，使测试子进程导入仓库源码。检查源码来源可用 `uv run --no-sync python -c "import omni; print(omni.__file__)"`。
 
 CI执行Ruff、格式检查、已收口领域Pyright、固定版本Prettier、ES模块语法、UI接口合同、重复定义、
 任务摘要、索引检查、直接wheel/sdist→wheel及隔离导入校验，然后运行全部测试和离线评测。

@@ -24,10 +24,10 @@ from omni_test_support.v2.images import (
 )
 from omni_test_support.v2.scheduling import Clock
 from omni_test_support.v2.v2_configuration_helpers import model_uow
+from omni_test_support.v2.v2_legacy_seed import PreKernelSeedRepositories
 from sqlalchemy import delete
 
 from omni.adapters.persistence.migration_config import configuration, head
-from omni.adapters.persistence.repository import Repositories
 from omni.adapters.persistence.sqlalchemy_access import database_engine
 from omni.adapters.primitives import SystemClock, UUIDs
 from omni.domain.context import CONTEXT_CHARS
@@ -321,7 +321,7 @@ def test_v0050_upgrade_preserves_user_ledger_and_enables_tool_rows(tmp_path):
             cfg = configuration()
             cfg.attributes["connection"] = connection
             command.upgrade(cfg, "v2_0049")
-            u = Repositories(connection, clock, ids, ids.new())
+            u = PreKernelSeedRepositories(connection, clock, ids, ids.new())
             u.initialize()
             agent = connection.execute(select(s.agents.c.id)).scalar_one()
             revision = model_uow(u, agent, model="gpt-4o")
@@ -367,8 +367,8 @@ def test_v0050_upgrade_preserves_user_ledger_and_enables_tool_rows(tmp_path):
             connection.commit()
             command.upgrade(cfg, "head")
             command.upgrade(cfg, "head")
-            assert head() == "v2_0052"
-            assert connection.exec_driver_sql("SELECT version_num FROM alembic_version").scalar_one() == "v2_0052"
+            assert head() == "v2_0053"
+            assert connection.exec_driver_sql("SELECT version_num FROM alembic_version").scalar_one() == "v2_0053"
             after = [dict(r) for r in connection.execute(select(s.model_call_images)).mappings()]
             assert after == before
             pragma = {row[1]: row for row in connection.exec_driver_sql("PRAGMA table_info(model_call_images)")}

@@ -10,7 +10,7 @@ from ..domain.context import CONTEXT_CHARS
 from ..domain.contracts import BusinessError, ModelReply, Outcome, ToolSpec
 from ..domain.images import references
 from ..domain.metering import TokenEstimate, serialized_request
-from ..domain.model_recovery import EmptyAttempt, empty_attempt, is_empty, should_retry_empty
+from ..domain.model_recovery import EmptyAttempt, ModelRejected, empty_attempt, is_empty, should_retry_empty
 from ..domain.model_reply import validate_reply
 from ..domain.settings import Settings
 from .images import ImageService
@@ -63,7 +63,10 @@ class ModelCalls:
             u.assert_run_authorized(agent_id, run_id)
             u.assert_context(agent_id, run_id)
             u.assert_model_authorized(agent_id, run_id)
-            if u.model_dispatch_authority(agent_id, run_id) != authority:
+            if (
+                authority is None
+                or u.model_dispatch_authority(agent_id, run_id, str(authority["model_revision_id"])) != authority
+            ):
                 raise BusinessError("credential_changed", "Model credential authority changed")
 
         try:
@@ -117,10 +120,11 @@ class ModelCalls:
         *,
         reserved_id: str | None = None,
         baseline_tools: Sequence[ToolSpec] | None = None,
+        exposed_tools: tuple[str, ...] | None = None,
     ) -> ModelReply:
         def reserve(u: UnitOfWork) -> str:
             u.assert_context(agent_id, run_id)
-            u.assert_model_authorized(agent_id, run_id)
+            u.model_dispatch_authority(agent_id, run_id, settings["model_revision_id"])
             return u.reserve_call(
                 agent_id, run_id, settings["call_reservation_micro"], settings["daily_budget_micro"], settings["model"]
             )
@@ -143,7 +147,16 @@ class ModelCalls:
             def register(u: UnitOfWork) -> None:
                 u.assert_context(agent_id, run_id)
                 if baseline_tools is not None:
-                    u.route_call(agent_id, run_id, identity, tools, baseline_tools)
+                    u.route_call(
+                        agent_id,
+                        run_id,
+                        identity,
+                        tools,
+                        baseline_tools,
+                        model_revision_id=settings["model_revision_id"],
+                        window_tokens=settings["context_tokens"] if exposed_tools is not None else None,
+                        exposed=exposed_tools or (),
+                    )
                 u.record_metering(
                     agent_id,
                     identity,
@@ -174,16 +187,32 @@ class ModelCalls:
                 self._observer.span("model.summary" if reserved_id else "model.complete") as measured,
             ):
                 try:
-                    authority = await self._db.read(lambda u: u.model_dispatch_authority(agent_id, run_id))
+
+                    def capture(u: UnitOfWork) -> Record:
+                        if refs and u.get_run(agent_id, run_id)["model_revision_id"] != settings["model_revision_id"]:
+                            raise BusinessError(
+                                "fallback_images_unavailable", "Image requests require the original authorized model"
+                            )
+                        return u.model_dispatch_authority(agent_id, run_id, settings["model_revision_id"])
+
+                    authority = await self._db.read(capture)
 
                     def authorize(u: UnitOfWork) -> None:
                         u.assert_run_authorized(agent_id, run_id)
                         u.assert_context(agent_id, run_id)
                         u.assert_model_authorized(agent_id, run_id)
-                        if u.model_dispatch_authority(agent_id, run_id) != authority:
+                        if u.model_dispatch_authority(agent_id, run_id, settings["model_revision_id"]) != authority:
                             raise BusinessError(
                                 "credential_changed", "Model credential authority changed; prepare a new request"
                             )
+
+                    def authorize_send(u: UnitOfWork) -> None:
+                        authorize(u)
+                        if (
+                            exposed_tools is not None
+                            or settings["model_revision_id"] != u.get_run(agent_id, run_id)["model_revision_id"]
+                        ):
+                            u.assert_tool_bindings(agent_id, run_id, baseline_tools or tools)
 
                     async def guard():
                         await self._db.read(authorize)
@@ -216,12 +245,12 @@ class ModelCalls:
                     if refs:
 
                         def dispatch_images(u: UnitOfWork) -> None:
-                            authorize(u)
+                            authorize_send(u)
                             u.model_images_dispatch(agent_id, run_id, identity)
 
                         await self._db.write(dispatch_images)
                     else:
-                        await self._db.read(authorize)
+                        await self._db.read(authorize_send)
                     if streaming is not None:
                         self._output.begin(agent_id, run_id, identity, authority)
 
@@ -271,6 +300,15 @@ class ModelCalls:
                             else Outcome.UNKNOWN
                         )
                     raise
+        except ModelRejected as rejection:
+            code = rejection.code
+
+            def settle_rejection(u: UnitOfWork) -> None:
+                u.settle_call(agent_id, identity, ModelReply("", input_tokens=0, output_tokens=0, cost_micro=0))
+                u.event(agent_id, run_id, "model.rejected", {"call_id": identity, "error_code": code})
+
+            await self._db.write(settle_rejection)
+            raise
         except BaseException:
             await self._db.write(lambda u: u.settle_call(agent_id, identity, None, known_not_sent=known))
             raise
@@ -305,9 +343,17 @@ class ModelCalls:
         *,
         reserved_id: str | None = None,
         baseline_tools: Sequence[ToolSpec] | None = None,
+        exposed_tools: tuple[str, ...] | None = None,
     ) -> ModelReply:
         reply = await self._invoke_once(
-            agent_id, run_id, messages, tools, settings, reserved_id=reserved_id, baseline_tools=baseline_tools
+            agent_id,
+            run_id,
+            messages,
+            tools,
+            settings,
+            reserved_id=reserved_id,
+            baseline_tools=baseline_tools,
+            exposed_tools=exposed_tools,
         )
         if reserved_id is None:
             validate_reply(reply)
@@ -322,6 +368,7 @@ class ModelCalls:
         settings: Settings,
         *,
         baseline_tools: Sequence[ToolSpec] | None = None,
+        exposed_tools: tuple[str, ...] | None = None,
     ) -> ModelReply:
         """Bounded empty-reply recovery on the SAME authorized model; each retry is a fresh reserved
         call that re-bills the input and stays under the daily budget. Unknown-cost calls settled
@@ -329,7 +376,9 @@ class ModelCalls:
         ordinary tool-reply contract; truncation/filter/output-limit faults stay terminal."""
         attempts: list[EmptyAttempt] = []
         while True:
-            reply = await self._invoke_once(agent_id, run_id, messages, tools, settings, baseline_tools=baseline_tools)
+            reply = await self._invoke_once(
+                agent_id, run_id, messages, tools, settings, baseline_tools=baseline_tools, exposed_tools=exposed_tools
+            )
             if not is_empty(reply):
                 validate_reply(reply)
                 return reply

@@ -7,11 +7,11 @@ import hashlib
 
 import pytest
 from alembic import command
+from omni_test_support.v2.v2_legacy_seed import PreKernelSeedRepositories
 from sqlalchemy import inspect, select
 
 from omni.adapters.persistence import schema as s
 from omni.adapters.persistence.migration_config import configuration, head
-from omni.adapters.persistence.repository import Repositories
 from omni.adapters.persistence.sqlalchemy_access import database_engine
 from omni.adapters.primitives import SystemClock, UUIDs
 from omni.domain.contracts import ActionResult, Outcome, ToolSpec
@@ -39,7 +39,7 @@ def test_v0052_upgrade_preserves_v0051_draft_and_enables_owner_review(tmp_path):
             cfg = configuration()
             cfg.attributes["connection"] = connection
             command.upgrade(cfg, "v2_0051")
-            u = Repositories(connection, clock, ids, boot)
+            u = PreKernelSeedRepositories(connection, clock, ids, boot)
             u.initialize()
             agent = connection.execute(select(s.agents.c.id)).scalar_one()
 
@@ -78,8 +78,8 @@ def test_v0052_upgrade_preserves_v0051_draft_and_enables_owner_review(tmp_path):
 
             command.upgrade(cfg, "head")
             command.upgrade(cfg, "head")
-            assert head(cfg) == "v2_0052"
-            assert connection.exec_driver_sql("SELECT version_num FROM alembic_version").scalar_one() == "v2_0052"
+            assert head(cfg) == "v2_0053"
+            assert connection.exec_driver_sql("SELECT version_num FROM alembic_version").scalar_one() == "v2_0053"
             tables = set(inspect(connection).get_table_names())
             assert {
                 "reflection_media_links",

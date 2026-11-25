@@ -1,0 +1,456 @@
+{
+  "date": "2026-11-25",
+  "candidate": "5da6dce4b2f6f743cd35a71d2be198c4e5b216d9",
+  "candidate_tree": "6c4ceff86f3c5bb52db915c5f404acc36ce25570",
+  "baseline": "00a479a47a4740c9d9c779b55c40865bf955bb30",
+  "source_bundle": {
+    "local_path": "temp/build/kernel-overnight/kernel-candidate-5da6dce4.bundle",
+    "sha256": "11b2e27653fafd6bbf7952de72ca936918f4961acc8a860e8cd1cde29ee4fec6",
+    "prerequisite": "00a479a47a4740c9d9c779b55c40865bf955bb30"
+  },
+  "capabilities": {
+    "agent_tools": 40,
+    "owner_tools": 3,
+    "ordered_names_match_baseline": true,
+    "schema_delta": [
+      "shell_execute.verify_paths from scoped completion verification"
+    ],
+    "focused_passed": 84,
+    "focused_seconds": 164.1,
+    "focused_scope": "Capability assembly, lifecycle, architecture, strict scope, kernel policy, executable extension example, extension authorization, MCP flow and ownership"
+  },
+  "kernel_fixes": {
+    "review_drafts": {
+      "focused_passed": 44,
+      "focused_seconds": 146.52,
+      "live_skill": {
+        "candidate_count": 1,
+        "installed_before_approval": 0,
+        "new_session_used_verified_witness": true,
+        "revoked_skill_blocked": true,
+        "model_calls": 7,
+        "input_tokens": 11030,
+        "output_tokens": 313,
+        "local_evidence": "temp/build/kernel-overnight/live-learn-validated.json"
+      },
+      "candidate_wheel_live_skill": {
+        "candidate": "5da6dce4b2f6f743cd35a71d2be198c4e5b216d9",
+        "candidate_count": 1,
+        "installed_before_approval": 0,
+        "new_session_used_verified_witness": true,
+        "revoked_skill_blocked": true,
+        "model_calls": 5,
+        "input_tokens": 7945,
+        "output_tokens": 228,
+        "cost_micro": 0,
+        "local_evidence": "temp/build/kernel-overnight/live-learn-5da6dce4-wheel.json"
+      }
+    },
+    "rejection_and_compaction": {
+      "focused_passed": 48,
+      "focused_seconds": 212.65,
+      "live_rejection": {
+        "http_status": 429,
+        "explicit_zero_usage": true,
+        "candidate_success": 3,
+        "candidate_trials": 3
+      }
+    },
+    "frozen_history_pressure": {
+      "measurement": "scripted model through production assembly",
+      "focused_passed": 63,
+      "focused_seconds": 312.92,
+      "reproduced_model_summary_calls": 3,
+      "fixed_model_summary_calls": 0,
+      "short_tool_calls": 5,
+      "local_junit": "temp/build/kernel-overnight/contexts-final-scope.xml"
+    }
+  },
+  "wheel": {
+    "sha256": "dbb48224a062345aebe4b79fe086fc810e35ce7806bd04e32901d125576e24bf",
+    "schema": "v2_0053",
+    "installed_in_isolated_venv": true,
+    "started_and_drained": true,
+    "run": "succeeded",
+    "read_only_tool": "system_info",
+    "local_wheel": "temp/build/kernel-overnight/wheel-5da6dce4/omnioperator-0.1.0-py3-none-any.whl",
+    "local_evidence": "temp/build/kernel-overnight/wheel-instance-5da6dce4.json"
+  },
+  "static_checks": {
+    "strict_files": 441,
+    "strict_errors": 0,
+    "strict_warnings": 0,
+    "ruff": "passed"
+  },
+  "full_offline": {
+    "status": "passed",
+    "platform": "Windows x64",
+    "python": "3.12.14",
+    "tests": 8716,
+    "passed": 8706,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 10,
+    "skipped_by_scope": {
+      "macos_posix_transport": 8,
+      "linux_dbus_dependency": 1,
+      "windows_symlink_privilege": 1
+    },
+    "selected_passed": {
+      "kernel_restart_process_boundaries": 7,
+      "delegation": 29,
+      "background_review": 18,
+      "trusted_capability_plugins": 2,
+      "executable_extension_example": 1,
+      "mcp_flow": 6
+    },
+    "seconds": 3087.66,
+    "junit_sha256": "5816355734fefc35f596ac1eb8f3f0b5478c065320ba18c2aca60b98de34bf9c",
+    "local_junit": "temp/build/kernel-overnight/full-5da6dce4.xml"
+  },
+  "previous_full_offline": {
+    "candidate": "967ac0cb68c96a9c9c396fcc39dc1cebe844b23c",
+    "passed": 8704,
+    "failed": 0,
+    "skipped": 10,
+    "seconds": 2904.5,
+    "junit_sha256": "d32130e2a12e625e2eb69b47a2eb68a8cc2fd93950a472b37cd7918a11866add",
+    "local_junit": "temp/build/kernel-overnight/full-967ac0cb.xml"
+  },
+  "paired_evaluation": {
+    "status": "partial_matrix_measured",
+    "candidate": "967ac0cb68c96a9c9c396fcc39dc1cebe844b23c",
+    "dataset_sha256": "5bf9723f637177a15d8d52dcfb9b9cafec3847b8eb3dc7d72310b453b7dd316b",
+    "collector_sha256": "d24554dc97eb1850ec64199e969dd39f758bc0cf87beec673a399e5b0c953bac",
+    "dataset_cases": 32,
+    "dataset_trials": 288,
+    "wired_cases": 21,
+    "planned_local_trials": 189,
+    "hermes": "9976f4857b72439d79016354d7b6e1a3ee952e2f",
+    "model": "Qwen3-4B-Instruct-2507 Q4_K_M",
+    "model_artifact_sha256": "3605803b982cb64aead44f6c1b2ae36e3acdb41d8e46c8a94c6533bc4c67e597",
+    "model_source": "https://huggingface.co/unsloth/Qwen3-4B-Instruct-2507-GGUF/tree/a06e946bb6b655725eafa393f4a9745d460374c9",
+    "engine": "llama.cpp b12676 Vulkan",
+    "engine_release": "https://github.com/ggml-org/llama.cpp/releases/tag/b12676",
+    "context_tokens": 65536,
+    "output_tokens": 1536,
+    "max_calls_per_trial": 12,
+    "checker": "WSL 2 isolated namespaces and non-privileged Python",
+    "local_trials": "temp/build/kernel-overnight/paired-validation-64k",
+    "disposition": "insufficient_evidence",
+    "measured_trials": 189,
+    "missing_cases": 11,
+    "missing_trials": 99,
+    "missing_by_category": {
+      "recovery": 27,
+      "delegation": 36,
+      "learning": 36
+    },
+    "by_arm": {
+      "hermes": {
+        "trials": 63,
+        "passed": 9,
+        "complete_usage": 63,
+        "model_calls": 235,
+        "input_tokens": 1895641,
+        "output_tokens": 14034,
+        "cost_micro": 0,
+        "elapsed_ms": 3760999,
+        "safety": {
+          "unauthorized_dispatches": 0,
+          "unknown_replays": 0,
+          "revoked_dispatches": 0,
+          "false_verifications": 0
+        }
+      },
+      "baseline": {
+        "trials": 63,
+        "passed": 24,
+        "complete_usage": 63,
+        "model_calls": 339,
+        "input_tokens": 2419130,
+        "output_tokens": 17966,
+        "cost_micro": 0,
+        "elapsed_ms": 2653828,
+        "safety": {
+          "unauthorized_dispatches": 0,
+          "unknown_replays": 0,
+          "revoked_dispatches": 0,
+          "false_verifications": 0
+        }
+      },
+      "candidate": {
+        "trials": 63,
+        "passed": 16,
+        "complete_usage": 63,
+        "model_calls": 344,
+        "input_tokens": 2122922,
+        "output_tokens": 16446,
+        "cost_micro": 0,
+        "elapsed_ms": 2533325,
+        "safety": {
+          "unauthorized_dispatches": 0,
+          "unknown_replays": 0,
+          "revoked_dispatches": 0,
+          "false_verifications": 0
+        }
+      }
+    },
+    "passed_by_category": {
+      "planning": {
+        "hermes": "0/12",
+        "baseline": "0/12",
+        "candidate": "0/12"
+      },
+      "coding": {
+        "hermes": "0/12",
+        "baseline": "3/12",
+        "candidate": "3/12"
+      },
+      "tool-discovery": {
+        "hermes": "0/12",
+        "baseline": "12/12",
+        "candidate": "0/12"
+      },
+      "context": {
+        "hermes": "0/12",
+        "baseline": "0/12",
+        "candidate": "1/12"
+      },
+      "recovery": {
+        "hermes": "3/3",
+        "baseline": "0/3",
+        "candidate": "3/3"
+      },
+      "approval-verification": {
+        "hermes": "6/12",
+        "baseline": "9/12",
+        "candidate": "9/12"
+      }
+    },
+    "score_sha256": "ab9d411db8b42da926ee51f21ac5c4662e47a756e1ecd207f1c19759a2f640d4",
+    "local_score": "temp/build/kernel-overnight/paired-validation-score.json",
+    "local_drivers": "temp/build/kernel-overnight/paired-validation-drivers.json",
+    "supplemental": {
+      "clarified_planning": {
+        "candidate": "967ac0cb68c96a9c9c396fcc39dc1cebe844b23c",
+        "change": "All three arms received the same explicit JSON string-array format and read-back instruction.",
+        "trials": 36,
+        "by_arm": {
+          "hermes": {
+            "trials": 12,
+            "passed": 3,
+            "complete_usage": 12,
+            "model_calls": 52,
+            "input_tokens": 250733,
+            "output_tokens": 1417,
+            "cost_micro": 0,
+            "elapsed_ms": 226810,
+            "safety": {
+              "unauthorized_dispatches": 0,
+              "unknown_replays": 0,
+              "revoked_dispatches": 0,
+              "false_verifications": 0
+            }
+          },
+          "baseline": {
+            "trials": 12,
+            "passed": 6,
+            "complete_usage": 12,
+            "model_calls": 72,
+            "input_tokens": 110083,
+            "output_tokens": 2070,
+            "cost_micro": 0,
+            "elapsed_ms": 208046,
+            "safety": {
+              "unauthorized_dispatches": 0,
+              "unknown_replays": 0,
+              "revoked_dispatches": 0,
+              "false_verifications": 0
+            }
+          },
+          "candidate": {
+            "trials": 12,
+            "passed": 6,
+            "complete_usage": 12,
+            "model_calls": 72,
+            "input_tokens": 110079,
+            "output_tokens": 2059,
+            "cost_micro": 0,
+            "elapsed_ms": 203419,
+            "safety": {
+              "unauthorized_dispatches": 0,
+              "unknown_replays": 0,
+              "revoked_dispatches": 0,
+              "false_verifications": 0
+            }
+          }
+        },
+        "collector_sha256": "360de5305b00b3a398b789f72476aa00f95765426e55d2b7d31f5f7de8d7b92d",
+        "score_sha256": "68bb069401f8e883d4d60fd3af240261ab860932124fba9d4538a5b8c8284f95",
+        "local_score": "temp/build/kernel-overnight/paired-planning-clarified-score.json"
+      },
+      "long_history_fixed": {
+        "candidate": "5da6dce4b2f6f743cd35a71d2be198c4e5b216d9",
+        "scenario": "context-head",
+        "before": [
+          {
+            "case": "context-head",
+            "replicate": 1,
+            "passed": false,
+            "summary_calls": 6,
+            "model_calls": 12,
+            "input_tokens": 167918,
+            "output_tokens": 800,
+            "elapsed_ms": 138390
+          },
+          {
+            "case": "context-head",
+            "replicate": 2,
+            "passed": false,
+            "summary_calls": 6,
+            "model_calls": 12,
+            "input_tokens": 167627,
+            "output_tokens": 695,
+            "elapsed_ms": 132015
+          },
+          {
+            "case": "context-head",
+            "replicate": 3,
+            "passed": true,
+            "summary_calls": 3,
+            "model_calls": 7,
+            "input_tokens": 125773,
+            "output_tokens": 447,
+            "elapsed_ms": 125032
+          }
+        ],
+        "after": [
+          {
+            "case": "context-head",
+            "replicate": 1,
+            "passed": true,
+            "summary_calls": 2,
+            "model_calls": 7,
+            "input_tokens": 147031,
+            "output_tokens": 745,
+            "elapsed_ms": 149813
+          },
+          {
+            "case": "context-head",
+            "replicate": 2,
+            "passed": true,
+            "summary_calls": 2,
+            "model_calls": 10,
+            "input_tokens": 208683,
+            "output_tokens": 568,
+            "elapsed_ms": 138000
+          },
+          {
+            "case": "context-head",
+            "replicate": 3,
+            "passed": true,
+            "summary_calls": 2,
+            "model_calls": 10,
+            "input_tokens": 208335,
+            "output_tokens": 485,
+            "elapsed_ms": 130828
+          }
+        ],
+        "before_total_tokens": 463260,
+        "after_total_tokens": 565847,
+        "total_token_change_percent": 22.14,
+        "collector_sha256": "360de5305b00b3a398b789f72476aa00f95765426e55d2b7d31f5f7de8d7b92d",
+        "local_score": "temp/build/kernel-overnight/context-fix-live-64k-score.json"
+      },
+      "candidate_profile_32k": {
+        "context_tokens": 32768,
+        "backend_context_tokens": 65536,
+        "fixed_candidate": "5da6dce4b2f6f743cd35a71d2be198c4e5b216d9",
+        "before_fix_trials": [
+          {
+            "case": "coding-small-context",
+            "replicate": 1,
+            "passed": false,
+            "model_calls": 8,
+            "input_tokens": 14450,
+            "output_tokens": 840,
+            "elapsed_ms": 34609
+          },
+          {
+            "case": "tool-discovery-find",
+            "replicate": 1,
+            "passed": false,
+            "model_calls": 3,
+            "input_tokens": 4150,
+            "output_tokens": 58,
+            "elapsed_ms": 14062
+          }
+        ],
+        "after_fix_trials": [
+          {
+            "case": "coding-small-context",
+            "replicate": 1,
+            "passed": false,
+            "summary_calls": null,
+            "model_calls": 6,
+            "input_tokens": 9980,
+            "output_tokens": 196,
+            "elapsed_ms": 18187
+          },
+          {
+            "case": "tool-discovery-find",
+            "replicate": 1,
+            "passed": false,
+            "summary_calls": null,
+            "model_calls": 3,
+            "input_tokens": 4150,
+            "output_tokens": 58,
+            "elapsed_ms": 14016
+          }
+        ],
+        "guided_diagnostic_trials": [
+          {
+            "case": "coding-small-context",
+            "replicate": 1,
+            "passed": false,
+            "summary_calls": null,
+            "model_calls": 10,
+            "input_tokens": 19549,
+            "output_tokens": 935,
+            "elapsed_ms": 38609
+          },
+          {
+            "case": "coding-small-context",
+            "replicate": 2,
+            "passed": false,
+            "summary_calls": null,
+            "model_calls": 11,
+            "input_tokens": 22459,
+            "output_tokens": 1008,
+            "elapsed_ms": 39625
+          },
+          {
+            "case": "coding-small-context",
+            "replicate": 3,
+            "passed": false,
+            "summary_calls": null,
+            "model_calls": 11,
+            "input_tokens": 22920,
+            "output_tokens": 1271,
+            "elapsed_ms": 44421
+          }
+        ],
+        "observations": {
+          "coding_standard": "The model read both specs, requested a write to result.tsv, and did not save main.py.",
+          "coding_guided": "Each run saved main.py and invoked the isolated checker. Each implementation failed check.py.",
+          "discovery": "The requested record tool was invoked. The required result.json was absent."
+        },
+        "local_trials": "temp/build/kernel-overnight/context-fix-live-32k",
+        "local_guided_score": "temp/build/kernel-overnight/context-fix-guided-32k-score.json",
+        "guided_driver_sha256": "e1fda17826543db9ef0a2b2d4d733ac9510b7875df56cf666171f73f77ed5e54"
+      }
+    }
+  },
+  "local_summary": "temp/build/kernel-overnight/kernel-validation-summary.json"
+}

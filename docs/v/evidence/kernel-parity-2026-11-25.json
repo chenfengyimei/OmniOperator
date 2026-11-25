@@ -1,0 +1,84 @@
+{
+  "date": "2026-11-25",
+  "platform": "Windows",
+  "source": {
+    "base_commit": "00a479a47a4740c9d9c779b55c40865bf955bb30",
+    "working_tree": "在基线上的本轮工作树",
+    "catalog_source_sha256": "7d9ce86de571e78d86fe87a1b01a2f3345f7a7d73cfbebda14dcbb313c159c66",
+    "reference_hermes": "9976f4857b72439d79016354d7b6e1a3ee952e2f"
+  },
+  "scoped_suites": [
+    {
+      "scope": "内核、背景复盘、完成核验、预算、工具发现、异常恢复、重启、委派、架构、评测器",
+      "passed": 161,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 364.549,
+      "local_report": "temp/build/kernel-parity/final-core.xml",
+      "sha256": "45436ec687bf596d0f351cc7388992a3b47a7dd121827ea1b68c981bc932c32b"
+    },
+    {
+      "scope": "技能、插件、视觉请求与流式适配、路由、HTTP、工作台八种主题与屏幕组合",
+      "passed": 164,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 313.959,
+      "local_report": "temp/build/kernel-parity/final-contracts.xml",
+      "sha256": "bac739a4115f70f79903bea24710568d169f0e124984118d8467f9036d903095"
+    },
+    {
+      "scope": "旧库升级、图像账本、记忆语义、待办、调度和打包合同",
+      "passed": 80,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 74.826,
+      "local_report": "temp/build/kernel-parity/final-schema.xml",
+      "sha256": "146200e4594810ba3407329826f897ac24001e09ef99dde113871bfa214c296e"
+    }
+  ],
+  "unique_passed": 405,
+  "static_checks": {
+    "strict_files": 440,
+    "strict_errors": 0,
+    "strict_warnings": 0,
+    "ruff": "passed",
+    "prettier_changed_files": "passed",
+    "generated_index": "passed"
+  },
+  "database": {
+    "head": "v2_0053",
+    "heads": 1,
+    "migrations": 53,
+    "tables": 151
+  },
+  "wheel": {
+    "filename": "omnioperator-0.1.0-py3-none-any.whl",
+    "sha256": "02b87d5e872026e457e3960cb5652c6916968215c68d82d1330cb5c516be274a",
+    "proof": "从 wheel 解包启动临时实例并以注入模型完成一轮，schema=v2_0053，completion=not_required"
+  },
+  "restart_proof": {
+    "scenarios": 7,
+    "original_run_retained": true,
+    "evidence": "模型在途、已结算但未登记工具、等待审批、派发未落库均中断。调用前和回执齐全时接续，连续两次重启仍仅写入一次。"
+  },
+  "comparison": {
+    "cases": 32,
+    "jobs": 288,
+    "replicates": 3,
+    "arms": [
+      "Hermes",
+      "基线 V2",
+      "候选 V2"
+    ],
+    "dataset_sha256": "4ce8b97d0028340295ed8d40346a53812ae9e4eed8ae634f6a7caa63312782b0",
+    "provider_trials": 0,
+    "status": "insufficient_evidence",
+    "pending": [
+      "三方正式入口的试验采集适配",
+      "Hermes 独立运行环境",
+      "测试模型档案和真实预算",
+      "正式采集与默认策略决定"
+    ]
+  },
+  "scope": "离线专项。保留最终冻结候选的全量验证，现有长跑证据归属其实际提交。"
+}

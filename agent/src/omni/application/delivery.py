@@ -40,7 +40,7 @@ class DeliveryService:
         self._close_writes: dict[str, asyncio.Task[object]] = {}
         self._worker: asyncio.Task[None] | None = None
         self._wake = asyncio.Event()
-        self._closing = self._closed = False
+        self._closing = self._drained = self._closed = False
         self._error = ""
 
     def _binding(self, configuration: Record) -> tuple[DeliveryPort, str]:
@@ -370,8 +370,9 @@ class DeliveryService:
             "stalled": sum(active.interrupted for active in self._active.values()),
         }
 
-    async def close(self, timeout_s: float = 30) -> bool:
-        if self._closed:
+    async def drain(self, timeout_s: float) -> bool:
+        """Drain delivery work while the instance still owns the transports."""
+        if self._drained:
             return True
         self.stop_accepting()
         deadline = asyncio.get_running_loop().time() + max(0, timeout_s)
@@ -398,6 +399,16 @@ class DeliveryService:
             )
             if pending:
                 return False
+        self._drained = True
+        return True
+
+    async def close(self, timeout_s: float = 30) -> bool:
+        """Close a standalone service and its owned transports."""
+        if self._closed:
+            return True
+        deadline = asyncio.get_running_loop().time() + max(0, timeout_s)
+        if not await self.drain(max(0, deadline - asyncio.get_running_loop().time())):
+            return False
         for identity, port in {id(p): p for p in self._ports.values()}.items():
             previous = self._port_closers.get(identity)
             if previous is None or (
@@ -414,13 +425,21 @@ class DeliveryService:
                 return False
             if previous.cancelled() or previous.exception() is not None or previous.result() is not True:
                 return False
+        return await self.release_boot_leases(max(0, deadline - asyncio.get_running_loop().time()))
+
+    async def release_boot_leases(self, timeout_s: float) -> bool:
+        """Finalize delivery ownership after the transport shutdown phase."""
+        if self._closed:
+            return True
+        if not self._drained:
+            return False
         release = self._close_writes.get("release")
         if release is None:
             release = asyncio.create_task(
                 self._db.write(lambda u: u.delivery_release_boot()), name="delivery-close-release"
             )
             self._close_writes["release"] = release
-        _, pending = await asyncio.wait((release,), timeout=max(0, deadline - asyncio.get_running_loop().time()))
+        _, pending = await asyncio.wait((release,), timeout=max(0, timeout_s))
         if pending:
             return False
         release.result()

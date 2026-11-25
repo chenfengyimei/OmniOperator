@@ -7,7 +7,6 @@ import json
 import logging
 import uuid
 from collections.abc import Callable, Mapping, Sequence
-from dataclasses import dataclass
 from typing import cast
 
 from jsonschema import Draft202012Validator
@@ -16,39 +15,44 @@ from ..domain.agents import MAX_AGENTS, name_value, revision_value
 from ..domain.clarify import CLARIFY, CLARIFY_TIMEOUT_S, build_result, normalize_questions, render_result
 from ..domain.contracts import (
     JSON,
+    TERMINAL_RUNS,
     ActionResult,
     BusinessError,
     Effect,
     Invocation,
     InvocationContext,
+    ModelReply,
     Outcome,
     ToolSpec,
 )
 from ..domain.delegation import CHILD_CONCURRENCY, DELEGATE_TASK, SUMMARY_CHARS, inherited, record_tools, task_batch
-from ..domain.images import model_tokens, zoom_part_id
+from ..domain.images import model_tokens, references, zoom_part_id
 from ..domain.memory_decay import TOUCH_LIMIT
+from ..domain.model_recovery import ModelRejected
 from ..domain.repetition import is_degenerate_reply
-from ..domain.routing import REQUEST_MODE, select_tools
+from ..domain.routing import DISCOVER_TOOLS, REQUEST_MODE, discover, select_tools, tool_window
 from ..domain.routing import notice as route_notice
 from ..domain.settings import Settings, agent_settings_value, settings_value
 from ..domain.todos import TODO_LIST
 from ..domain.tool_batch import BatchEntry, plan_tool_batch
 from ..domain.turn_prompt import TurnPrompt, append_runtime_notice
-from ..domain.verification_stop import build_verify_nudge
+from ..domain.verification_stop import FILE_WRITES, build_verify_nudge
 from .background_review import BackgroundReviewService
+from .capabilities import Capability as Capability
+from .capabilities import CapabilityPlugin, CapabilityRegistry
 from .clarify import ClarifyService
 from .context import ContextService
 from .images import ImageService
 from .memory_semantics import MemorySemanticService
 from .model_calls import ModelCalls
 from .ports import (
-    CapabilityPort,
     Clock,
     DatabasePort,
     ExtensionCapabilityPort,
     MCPCapabilityPort,
     Observer,
     Record,
+    RunCapabilityPort,
     UnitOfWork,
 )
 from .reflections import REFLECTION, ReflectionService
@@ -58,14 +62,16 @@ from .todos import TodoService
 log = logging.getLogger("omni.v2.engine")
 
 
-@dataclass(frozen=True)
-class Capability:
-    spec: ToolSpec
-    adapter: CapabilityPort
-    quiescent: Callable[[], bool] | None = None
-
-
-_CONTROL_NAMES = frozenset({REQUEST_MODE.name, DELEGATE_TASK.name, TODO_LIST.name, CLARIFY.name, REFLECTION.name})
+_CONTROL_NAMES = frozenset(
+    {
+        REQUEST_MODE.name,
+        DELEGATE_TASK.name,
+        TODO_LIST.name,
+        CLARIFY.name,
+        REFLECTION.name,
+        DISCOVER_TOOLS.name,
+    }
+)
 _IMAGE_UNATTACHED = "[Image registered but not attached: {reason}; do not infer its content.]"
 
 
@@ -88,6 +94,7 @@ class Application:
         extensions: ExtensionCapabilityPort | None = None,
         mcp: MCPCapabilityPort | None = None,
         owner_capabilities: tuple[Capability, ...] = (),
+        plugins: tuple[CapabilityPlugin, ...] = (),
         images: ImageService | None = None,
         memory_semantics: MemorySemanticService | None = None,
         skills: SkillService | None = None,
@@ -100,12 +107,14 @@ class Application:
         model_recovery: bool = False,
     ) -> None:
         self._db, self._calls, self._contexts, self._clock, self._observer = database, calls, contexts, clock, observer
-        self._tools = {cap.spec.name: cap for cap in capabilities}
-        self._owner_tools = {cap.spec.name: cap for cap in owner_capabilities}
-        if self._tools.keys() & self._owner_tools.keys() or len(self._owner_tools) != len(owner_capabilities):
-            raise ValueError("Owner capabilities require unique names")
-        if len(self._tools) != len(capabilities):
-            raise ValueError("Duplicate capability names")
+        self._capabilities = CapabilityRegistry(_CONTROL_NAMES, capabilities, owner_capabilities)
+        self._tools, self._owner_tools = self._capabilities.tools, self._capabilities.owner_tools
+        for plugin in plugins:
+            self._capabilities.register(plugin)
+        if extensions is not None:
+            self._capabilities.register_provider("extension", extensions)
+        if mcp is not None:
+            self._capabilities.register_provider("mcp", mcp)
         self._concurrency, self._close_s = concurrency, close_s
         self._workspace_validator = workspace_validator
         self._delivery_cancellation = delivery_cancellation
@@ -134,6 +143,7 @@ class Application:
         self._active: dict[str, tuple[str, asyncio.Task[None]]] = {}
         self._resources: dict[str, asyncio.Lock] = {}
         self._dispatcher: asyncio.Task[None] | None = None
+        self._starting = False
         self._wake = asyncio.Event()
         self._closing = False
         self._ready = False
@@ -141,21 +151,29 @@ class Application:
         self._fully_closed = False
 
     def attach(self, capability: Capability) -> None:
-        """Register one late-built capability before start; runs read the live registry, remote runs stay tool-less."""
-        if self._dispatcher is not None or self._closing:
+        """Register a late-built standalone capability via the trusted bootstrap API."""
+        self.attach_plugin(CapabilityPlugin(f"injected.{capability.spec.name}", (capability,)))
+
+    def attach_plugin(self, plugin: CapabilityPlugin) -> None:
+        if self._closing:
             raise ValueError("Capabilities must be attached before start")
-        name = capability.spec.name
-        if name in self._tools or name in self._owner_tools:
-            raise ValueError("Duplicate capability names")
-        if name in _CONTROL_NAMES:
-            raise ValueError("Capability name is reserved by the engine")
-        self._tools[name] = capability
+        self._capabilities.register(plugin)
+
+    def attach_provider(self, plugin_id: str, adapter: RunCapabilityPort) -> None:
+        if self._closing:
+            raise ValueError("Capabilities must be attached before start")
+        self._capabilities.register_provider(plugin_id, adapter)
 
     async def start(self) -> None:
-        if self._dispatcher:
+        if self._dispatcher or self._starting:
             raise BusinessError("already_started", "Application has already started")
-        await self._db.write(lambda u: u.initialize())
-        await self._db.write(lambda u: u.recover())
+        self._capabilities.seal()
+        self._starting = True
+        try:
+            await self._db.write(lambda u: u.initialize())
+            await self._db.write(lambda u: u.recover())
+        finally:
+            self._starting = False
         self._dispatcher = asyncio.create_task(self._dispatch(), name="omni-dispatch")
         self._ready = True
         self._wake.set()
@@ -270,7 +288,10 @@ class Application:
 
     async def _trigger_review(self, agent_id: str, run_id: str, delegated: object, remote: object) -> None:
         if self._background_review is not None and not delegated and not remote:
-            await self._background_review.trigger(agent_id, run_id)
+            route = await self._db.read(lambda u: u.run_route(agent_id, run_id))
+            kernel = route.get("kernel")
+            if not isinstance(kernel, dict) or kernel.get("background_learning", True):
+                await self._background_review.trigger(agent_id, run_id)
 
     async def _run(self, agent_id: str, run_id: str, token: str, fence: int) -> None:
         with self._observer.context(agent_id=agent_id, run_id=run_id), self._observer.span("agent.turn") as measured:
@@ -284,225 +305,13 @@ class Application:
 
                 await self._db.write(start)
                 run = await self._db.read(lambda u: u.get_run(agent_id, run_id))
-                delegated = await self._db.read(lambda u: u.delegation_link(agent_id, run_id))
                 command = await self._db.read(lambda u: u.owner_command(agent_id, run_id))
-                if command is not None:
-                    await self._checkpoint(agent_id, run_id)
-                    arguments = command["arguments"]
-                    if not isinstance(arguments, dict):
-                        raise BusinessError("owner_command_expired", "Owner command was consumed or revoked")
-                    result = await self._execute(
-                        agent_id,
-                        run_id,
-                        str(command["tool"]),
-                        arguments,
-                        self._revision(run["policy_epoch"]),
-                        registry=self._owner_tools,
-                    )
-                    if result.effect == Effect.UNKNOWN:
-                        raise BusinessError("action_outcome_unknown", "Owner action requires independent verification")
-                    if result.status != Outcome.OK:
-                        raise BusinessError(result.error_code or "owner_command_failed", result.text)
-                    await self._db.write(lambda u: u.finish(agent_id, run_id, result.text))
-                    if measured:
-                        measured.result(Outcome.OK)
-                    return
-                settings = settings_value(await self._db.read(lambda u: u.run_settings(agent_id, run_id)))
-                if delegated:
-                    settings["max_steps"] = min(settings["max_steps"], cast(int, delegated["max_calls"]))
-                remote = await self._db.read(lambda u: u.qq_run(agent_id, run_id))
-                registry = {} if remote else dict(self._tools)
-                if self._reflections and not remote and await self._reflections.available(agent_id):
-                    # The journal is offered only when an evidence source exists, and it is
-                    # registered for delegated runs too so a captured parent face stays inheritable.
-                    registry[REFLECTION.name] = Capability(REFLECTION, self._reflections)
-                if self._todos is not None and not remote:
-                    registry[TODO_LIST.name] = Capability(TODO_LIST, self._todos)
-                if self._clarify is not None and not remote:
-                    registry[CLARIFY.name] = Capability(CLARIFY, self._clarify)
-                if self._extensions is not None and not remote:
-                    for spec in await self._extensions.tools_for_run(agent_id, run_id):
-                        if spec.name in registry or spec.name in {"request_mode", DELEGATE_TASK.name}:
-                            raise BusinessError(
-                                "extension_tool_collision", "Extension name conflicts with a registered capability"
-                            )
-                        registry[spec.name] = Capability(spec, self._extensions)
-                if self._mcp is not None and not remote:
-                    for mcp_spec in await self._mcp.tools_for_run(agent_id, run_id):
-                        if mcp_spec.name in registry or mcp_spec.name in {"request_mode", DELEGATE_TASK.name}:
-                            raise BusinessError(
-                                "mcp_tool_collision", "MCP tool name conflicts with a registered capability"
-                            )
-                        registry[mcp_spec.name] = Capability(mcp_spec, self._mcp)
-                baseline = tuple(c.spec for c in registry.values() if c.spec.name not in settings["disabled_tools"])
-                if delegated:
-                    baseline = inherited(baseline, record_tools(delegated["tools"]))
-                elif self._delegation_enabled and not remote and DELEGATE_TASK.name not in settings["disabled_tools"]:
-                    baseline = (*baseline, DELEGATE_TASK)
-                route = await self._db.read(lambda u: u.run_route(agent_id, run_id))
-                may_promote = bool(route["allow_escalation"] and not route["promoted"])
-                tools = select_tools(str(route["mode"]), baseline, escalate=may_promote)
-                initial_notice = route_notice(
-                    str(route["mode"]), any(spec.name == "request_mode" for spec in tools)
-                ) + (await self._skills.notice(agent_id, run_id) if self._skills and not remote else "")
-                todo_notice = await self._todo_notice(agent_id, run_id, tools)
-                reflection_notice = ""
-                if self._reflections and any(t.name == REFLECTION.name for t in tools):
-                    reflection_notice = await self._reflections.notice(agent_id, run_id)
-
-                prepared = await self._contexts.prepare(
-                    agent_id,
-                    run_id,
-                    settings,
-                    tools,
-                    extra_notice=initial_notice,
-                    tail_notice=todo_notice + reflection_notice,
-                )
-                messages: list[Record] = cast(list[Record], prepared["request"])
-                notice = str(prepared["notice"])
-                prompt = TurnPrompt.capture(messages, notice + initial_notice + todo_notice)
-                verify_nudges = 0
-                for _step in range(min(32, max(1, int(settings.get("max_steps", 12))))):
-                    await self._checkpoint(agent_id, run_id)
-                    route = await self._db.read(lambda u: u.run_route(agent_id, run_id))
-                    may_promote = bool(route["allow_escalation"] and not route["promoted"])
-                    tools = select_tools(str(route["mode"]), baseline, escalate=may_promote)
-                    batch_registry = {spec.name: registry[spec.name] for spec in tools if spec.name in registry}
-                    await self._db.read(lambda u: u.context_memories(agent_id, str(prepared["snapshot_id"])))
-                    prompt.update(
-                        messages,
-                        notice
-                        + route_notice(str(route["mode"]), any(spec.name == "request_mode" for spec in tools))
-                        + (await self._skills.notice(agent_id, run_id) if self._skills and not remote else "")
-                        + await self._todo_notice(agent_id, run_id, tools),
-                    )
-                    await self._contexts.compact_run(agent_id, run_id, messages, tools, settings)
-                    if self._model_recovery and not remote:
-                        reply = await self._calls.invoke_recovering(
-                            agent_id, run_id, messages, tools, settings, baseline_tools=baseline
-                        )
-                    else:
-                        reply = await self._calls.invoke(
-                            agent_id, run_id, messages, tools, settings, baseline_tools=baseline
-                        )
-                    await self._checkpoint(agent_id, run_id)
-                    if is_degenerate_reply(reply.text):
-                        raise BusinessError(
-                            "model_repetition_degenerated",
-                            "The model reply degenerated into a repetition loop; usage was recorded and no action was dispatched",
-                        )
-                    if not reply.calls:
-                        if self._verify_on_stop and not remote:
-                            writes = await self._db.read(lambda u: u.run_applied_writes(agent_id, run_id))
-                            nudge = build_verify_nudge(writes, verify_nudges)
-                            if nudge is not None:
-                                verify_nudges += 1
-                                messages.append({"role": "assistant", "content": reply.text})
-                                messages.append({"role": "user", "content": nudge})
-                                log.debug("Verify-on-stop nudge issued (attempt %d)", verify_nudges)
-                                continue
-                        await self._db.write(lambda u: u.finish(agent_id, run_id, reply.text))
-                        if measured:
-                            measured.result(Outcome.OK)
-                        log.info("Run completed", extra={"event": "run.succeeded"})
-                        await self._trigger_review(agent_id, run_id, delegated, remote)
-                        return
-                    messages.append(
-                        {
-                            "role": "assistant",
-                            "content": reply.text,
-                            "tool_calls": [
-                                {
-                                    "id": call.id,
-                                    "type": "function",
-                                    "function": {"name": call.name, "arguments": json.dumps(call.arguments)},
-                                }
-                                for call in reply.calls
-                            ],
-                        }
-                    )
-                    entries = tuple(self._batch_entry(call, registry, batch_registry, tools) for call in reply.calls)
-                    for kind, indices in plan_tool_batch(entries):
-                        if kind == "parallel":
-                            await self._checkpoint(agent_id, run_id)
-                            outcomes = await self._execute_parallel(
-                                agent_id,
-                                run_id,
-                                [reply.calls[index] for index in indices],
-                                self._revision(run["policy_epoch"]),
-                                batch_registry,
-                            )
-                            failure: BaseException | None = None
-                            unknown = False
-                            for index, outcome in zip(indices, outcomes, strict=True):
-                                call = reply.calls[index]
-                                if isinstance(outcome, ActionResult):
-                                    messages.append(
-                                        {
-                                            "role": "tool",
-                                            "tool_call_id": call.id,
-                                            "content": await self._tool_message_content(
-                                                agent_id, run_id, messages, outcome, settings, call.name
-                                            ),
-                                        }
-                                    )
-                                    unknown = unknown or outcome.effect == Effect.UNKNOWN
-                                elif failure is None:
-                                    failure = outcome
-                            if failure is not None:
-                                raise failure
-                            if unknown:
-                                raise BusinessError(
-                                    "action_outcome_unknown", "An external action requires manual verification"
-                                )
-                            continue
-                        for index in indices:
-                            call = reply.calls[index]
-                            await self._checkpoint(agent_id, run_id)
-                            result = await self._dispatch_call(
-                                agent_id,
-                                run_id,
-                                call,
-                                self._revision(run["policy_epoch"]),
-                                registry=registry,
-                                batch_registry=batch_registry,
-                                tools=tools,
-                                session_id=str(run["session_id"]),
-                            )
-                            messages.append(
-                                {
-                                    "role": "tool",
-                                    "tool_call_id": call.id,
-                                    "content": await self._tool_message_content(
-                                        agent_id, run_id, messages, result, settings, call.name
-                                    ),
-                                }
-                            )
-                            if result.effect == Effect.UNKNOWN:
-                                raise BusinessError(
-                                    "action_outcome_unknown", "An external action requires manual verification"
-                                )
-                if delegated:
-                    raise BusinessError("step_budget_exceeded", "The run reached its step limit")
-                # Bounded convergence grace: one final no-tool wrap-up within the fee budget.
-                # Delegated runs keep the strict call-count limit above; the fee hard limit is
-                # never relaxed (reserve_call still gates this call) and nothing is replayed.
-                append_runtime_notice(messages, "Step budget reached. Provide the final answer now without tool calls.")
-                await self._contexts.compact_run(agent_id, run_id, messages, (), settings)
-                try:
-                    grace = await self._calls.invoke(agent_id, run_id, messages, (), settings)
-                except BusinessError as exc:
-                    if exc.code in {"budget_exceeded", "delegation_budget_exceeded", "database_busy"}:
-                        raise BusinessError("step_budget_exceeded", "The run reached its step limit") from exc
-                    raise
-                if grace.calls or is_degenerate_reply(grace.text):
-                    raise BusinessError("step_budget_exceeded", "The run reached its step limit")
-                await self._db.write(lambda u: u.finish(agent_id, run_id, grace.text))
+                if command is None:
+                    await self._turn(agent_id, run_id, run)
+                else:
+                    await self._run_owner_command(agent_id, run_id, run, command)
                 if measured:
                     measured.result(Outcome.OK)
-                log.info("Run completed", extra={"event": "run.succeeded"})
-                await self._trigger_review(agent_id, run_id, delegated, remote)
-                return
             except asyncio.CancelledError:
                 if measured:
                     measured.result(Outcome.CANCELLED)
@@ -519,6 +328,381 @@ class Application:
                 log.exception("Run failed", extra={"event": "run.failed", "error_code": "internal_error"})
                 await self._cancel_join_children(agent_id, run_id)
                 await self._end_error(agent_id, run_id, "failed", "internal_error")
+
+    async def _run_owner_command(self, agent_id: str, run_id: str, run: Record, command: Record) -> None:
+        await self._checkpoint(agent_id, run_id)
+        arguments = command["arguments"]
+        if not isinstance(arguments, dict):
+            raise BusinessError("owner_command_expired", "Owner command was consumed or revoked")
+        result = await self._execute(
+            agent_id,
+            run_id,
+            str(command["tool"]),
+            arguments,
+            self._revision(run["policy_epoch"]),
+            registry=self._owner_tools,
+        )
+        if result.effect == Effect.UNKNOWN:
+            raise BusinessError("action_outcome_unknown", "Owner action requires independent verification")
+        if result.status != Outcome.OK:
+            raise BusinessError(result.error_code or "owner_command_failed", result.text)
+        await self._db.write(lambda u: u.finish(agent_id, run_id, result.text))
+
+    async def _turn(self, agent_id: str, run_id: str, run: Record) -> None:
+        delegated = await self._db.read(lambda u: u.delegation_link(agent_id, run_id))
+        settings = settings_value(await self._db.read(lambda u: u.run_settings(agent_id, run_id)))
+        if delegated:
+            settings["max_steps"] = min(settings["max_steps"], cast(int, delegated["max_calls"]))
+        remote = await self._db.read(lambda u: u.qq_run(agent_id, run_id))
+        controls: list[Capability] = []
+        if self._reflections and not remote and await self._reflections.available(agent_id):
+            # The journal is offered only when an evidence source exists, and it is
+            # registered for delegated runs too so a captured parent face stays inheritable.
+            controls.append(Capability(REFLECTION, self._reflections))
+        if self._todos is not None and not remote:
+            controls.append(Capability(TODO_LIST, self._todos))
+        if self._clarify is not None and not remote:
+            controls.append(Capability(CLARIFY, self._clarify))
+        registry = {} if remote else await self._capabilities.capture(agent_id, run_id, tuple(controls))
+        baseline = tuple(c.spec for c in registry.values() if c.spec.name not in settings["disabled_tools"])
+        if delegated:
+            baseline = inherited(baseline, record_tools(delegated["tools"]))
+        elif self._delegation_enabled and not remote and DELEGATE_TASK.name not in settings["disabled_tools"]:
+            baseline = (*baseline, DELEGATE_TASK)
+        route = await self._db.read(lambda u: u.run_route(agent_id, run_id))
+        kernel = cast(Record, route.get("kernel") or {})
+        safe_resume = bool(kernel.get("safe_resume") and not remote and not delegated)
+        resumed = await self._db.write(lambda u: u.consume_run_checkpoint(agent_id, run_id)) if safe_resume else None
+        if resumed and resumed.get("reason"):
+            raise BusinessError(
+                "continuation_requires_review", "Review the durable receipts before starting another turn"
+            )
+        verify_completion = bool((self._verify_on_stop or kernel.get("verify_completion")) and not remote)
+        recover_empty = bool((self._model_recovery or kernel.get("empty_recovery")) and not remote)
+        exposed: tuple[str, ...] | None = (
+            ()
+            if kernel.get("tool_discovery")
+            and not remote
+            and not delegated
+            and DISCOVER_TOOLS.name not in settings["disabled_tools"]
+            else None
+        )
+        fallbacks = (
+            [str(slot["model_revision_id"]) for slot in cast(list[Record], kernel.get("fallbacks", []))]
+            if not remote and not delegated
+            else []
+        )
+        recover_empty = recover_empty or bool(fallbacks)
+        if resumed and resumed["model_revision_id"] != settings["model_revision_id"]:
+            revision = str(resumed["model_revision_id"])
+            settings = settings_value(await self._db.read(lambda u: u.fallback_settings(agent_id, run_id, revision)))
+            fallbacks = fallbacks[fallbacks.index(revision) + 1 :]
+        may_promote = bool(route["allow_escalation"] and not route["promoted"])
+        tools = select_tools(str(route["mode"]), baseline, escalate=may_promote)
+        if exposed is not None:
+            tools = tool_window(tools, settings["context_tokens"], exposed)
+        initial_notice = route_notice(str(route["mode"]), any(spec.name == "request_mode" for spec in tools)) + (
+            await self._skills.notice(agent_id, run_id) if self._skills and not remote else ""
+        )
+        todo_notice = await self._todo_notice(agent_id, run_id, tools)
+        reflection_notice = ""
+        if self._reflections and any(t.name == REFLECTION.name for t in tools):
+            reflection_notice = await self._reflections.notice(agent_id, run_id)
+
+        while True:
+            try:
+                prepared = await self._contexts.prepare(
+                    agent_id,
+                    run_id,
+                    settings,
+                    tools,
+                    extra_notice=initial_notice,
+                    tail_notice=todo_notice + reflection_notice,
+                )
+                break
+            except BusinessError as exc:
+                if exc.code not in {"token_budget_exceeded", "context_budget_exceeded"}:
+                    raise
+                settings = await self._fallback_model(agent_id, run_id, fallbacks, exc)
+                eligible = select_tools(str(route["mode"]), baseline, escalate=may_promote)
+                tools = tool_window(eligible, settings["context_tokens"], exposed) if exposed is not None else eligible
+        messages: list[Record] = cast(list[Record], prepared["request"])
+        notice = str(prepared["notice"])
+        prompt = TurnPrompt.capture(messages, notice + initial_notice + todo_notice)
+        next_step = int(cast(int, resumed["next_step"])) if resumed else 0
+        if resumed:
+            append_runtime_notice(
+                messages,
+                "The previous process settled the listed actions for this request. Continue from the "
+                "recorded progress. Re-observe current state before any new write. Recorded receipts: "
+                + json.dumps(resumed["receipts"], ensure_ascii=False),
+            )
+        verify_nudges = 0
+        for step in range(next_step, min(32, max(1, int(settings.get("max_steps", 12))))):
+            await self._checkpoint(agent_id, run_id)
+            route = await self._db.read(lambda u: u.run_route(agent_id, run_id))
+            may_promote = bool(route["allow_escalation"] and not route["promoted"])
+            eligible = select_tools(str(route["mode"]), baseline, escalate=may_promote)
+            await self._db.read(lambda u: u.context_memories(agent_id, str(prepared["snapshot_id"])))
+            prompt.update(
+                messages,
+                notice
+                + route_notice(str(route["mode"]), any(spec.name == "request_mode" for spec in eligible))
+                + (await self._skills.notice(agent_id, run_id) if self._skills and not remote else "")
+                + await self._todo_notice(agent_id, run_id, tools),
+            )
+            reply, settings, tools = await self._call_turn_model(
+                agent_id,
+                run_id,
+                messages,
+                eligible,
+                baseline,
+                settings,
+                fallbacks,
+                exposed,
+                recover_empty,
+                checkpoint_step=step if safe_resume else None,
+            )
+            await self._checkpoint(agent_id, run_id)
+            if is_degenerate_reply(reply.text):
+                raise BusinessError(
+                    "model_repetition_degenerated",
+                    "The model reply degenerated into a repetition loop; usage was recorded and no action was dispatched",
+                )
+            if not reply.calls:
+                if verify_completion:
+                    nudge = await self._completion_nudge(agent_id, run_id, verify_nudges)
+                    if nudge is not None:
+                        verify_nudges += 1
+                        messages.append({"role": "assistant", "content": reply.text})
+                        messages.append({"role": "user", "content": nudge})
+                        log.debug("Verify-on-stop nudge issued (attempt %d)", verify_nudges)
+                        continue
+                await self._finish_turn(agent_id, run_id, reply.text, delegated, remote)
+                return
+            messages.append(
+                {
+                    "role": "assistant",
+                    "content": reply.text,
+                    "tool_calls": [
+                        {
+                            "id": call.id,
+                            "type": "function",
+                            "function": {"name": call.name, "arguments": json.dumps(call.arguments)},
+                        }
+                        for call in reply.calls
+                    ],
+                }
+            )
+            if safe_resume:
+                await self._db.write(
+                    lambda u: u.save_run_checkpoint(
+                        agent_id, run_id, step + 1, settings["model_revision_id"], reply.calls
+                    )
+                )
+            exposed = await self._execute_tool_round(
+                agent_id, run_id, run, reply, messages, settings, registry, tools, eligible, exposed
+            )
+        if delegated:
+            raise BusinessError("step_budget_exceeded", "The run reached its step limit")
+        # Bounded convergence grace: one final no-tool wrap-up within the fee budget.
+        # Delegated runs keep the strict call-count limit above; the fee hard limit is
+        # never relaxed (reserve_call still gates this call) and nothing is replayed.
+        append_runtime_notice(messages, "Step budget reached. Provide the final answer now without tool calls.")
+        if verify_completion:
+            report = await self._db.read(lambda u: u.run_completion(agent_id, run_id))
+            if report["state"] in {"partial", "needs_review"}:
+                append_runtime_notice(
+                    messages, "Some outcomes still require review. Describe the recorded scope and outstanding checks."
+                )
+        await self._contexts.compact_run(agent_id, run_id, messages, (), settings)
+        try:
+            grace = await self._calls.invoke(agent_id, run_id, messages, (), settings)
+        except BusinessError as exc:
+            if exc.code in {"budget_exceeded", "delegation_budget_exceeded", "database_busy"}:
+                raise BusinessError("step_budget_exceeded", "The run reached its step limit") from exc
+            raise
+        if grace.calls or is_degenerate_reply(grace.text):
+            raise BusinessError("step_budget_exceeded", "The run reached its step limit")
+        await self._finish_turn(agent_id, run_id, grace.text, delegated, remote)
+        return
+
+    async def _execute_tool_round(
+        self,
+        agent_id: str,
+        run_id: str,
+        run: Record,
+        reply: ModelReply,
+        messages: list[Record],
+        settings: Settings,
+        registry: dict[str, Capability],
+        tools: tuple[ToolSpec, ...],
+        eligible: tuple[ToolSpec, ...],
+        exposed: tuple[str, ...] | None,
+    ) -> tuple[str, ...] | None:
+        batch_registry = {spec.name: registry[spec.name] for spec in tools if spec.name in registry}
+        entries = tuple(self._batch_entry(call, registry, batch_registry, tools) for call in reply.calls)
+        for kind, indices in plan_tool_batch(entries):
+            if kind == "parallel":
+                await self._checkpoint(agent_id, run_id)
+                outcomes = await self._execute_parallel(
+                    agent_id,
+                    run_id,
+                    [reply.calls[index] for index in indices],
+                    self._revision(run["policy_epoch"]),
+                    batch_registry,
+                )
+                failure: BaseException | None = None
+                unknown = False
+                for index, outcome in zip(indices, outcomes, strict=True):
+                    call = reply.calls[index]
+                    if isinstance(outcome, ActionResult):
+                        messages.append(
+                            {
+                                "role": "tool",
+                                "tool_call_id": call.id,
+                                "content": await self._tool_message_content(
+                                    agent_id, run_id, messages, outcome, settings, call.name
+                                ),
+                            }
+                        )
+                        unknown = unknown or outcome.effect == Effect.UNKNOWN
+                    elif failure is None:
+                        failure = outcome
+                if failure is not None:
+                    raise failure
+                if unknown:
+                    raise BusinessError("action_outcome_unknown", "An external action requires manual verification")
+                continue
+            for index in indices:
+                call = reply.calls[index]
+                await self._checkpoint(agent_id, run_id)
+                if call.name == DISCOVER_TOOLS.name and DISCOVER_TOOLS in tools:
+                    await self._db.read(lambda u: u.assert_tool_bindings(agent_id, run_id, eligible))
+                    result, found = self._discover(call, eligible, settings)
+                    if found:
+                        exposed = found
+                else:
+                    result = await self._dispatch_call(
+                        agent_id,
+                        run_id,
+                        call,
+                        self._revision(run["policy_epoch"]),
+                        registry=registry,
+                        batch_registry=batch_registry,
+                        tools=tools,
+                        session_id=str(run["session_id"]),
+                    )
+                messages.append(
+                    {
+                        "role": "tool",
+                        "tool_call_id": call.id,
+                        "content": await self._tool_message_content(
+                            agent_id, run_id, messages, result, settings, call.name
+                        ),
+                    }
+                )
+                if result.effect == Effect.UNKNOWN:
+                    raise BusinessError("action_outcome_unknown", "An external action requires manual verification")
+        return exposed
+
+    async def _fallback_model(
+        self, agent_id: str, run_id: str, fallbacks: list[str], reason: BusinessError
+    ) -> Settings:
+        while fallbacks:
+            revision = fallbacks.pop(0)
+            try:
+
+                def select(u: UnitOfWork) -> Record:
+                    options = u.fallback_settings(agent_id, run_id, revision)
+                    u.event(
+                        agent_id,
+                        run_id,
+                        "routing.model_fallback_selected",
+                        {"model_revision_id": revision, "reason": reason.code},
+                    )
+                    return options
+
+                return settings_value(await self._db.write(select))
+            except BusinessError as exc:
+                if exc.code != "fallback_model_revoked":
+                    raise
+        raise reason
+
+    async def _call_turn_model(
+        self,
+        agent_id: str,
+        run_id: str,
+        messages: list[Record],
+        eligible: tuple[ToolSpec, ...],
+        baseline: tuple[ToolSpec, ...],
+        settings: Settings,
+        fallbacks: list[str],
+        exposed: tuple[str, ...] | None,
+        recover_empty: bool,
+        *,
+        checkpoint_step: int | None = None,
+    ) -> tuple[ModelReply, Settings, tuple[ToolSpec, ...]]:
+        invoke = self._calls.invoke_recovering if recover_empty else self._calls.invoke
+        while True:
+            tools = tool_window(eligible, settings["context_tokens"], exposed) if exposed is not None else eligible
+            try:
+                await self._contexts.compact_run(agent_id, run_id, messages, tools, settings)
+                if checkpoint_step is not None:
+                    await self._db.write(
+                        lambda u: u.save_run_checkpoint(
+                            agent_id, run_id, checkpoint_step, settings["model_revision_id"]
+                        )
+                    )
+                try:
+                    reply = await invoke(
+                        agent_id, run_id, messages, tools, settings, baseline_tools=baseline, exposed_tools=exposed
+                    )
+                except ModelRejected as exc:
+                    if exc.code != "model_context_rejected" or not await self._contexts.compact_run(
+                        agent_id, run_id, messages, tools, settings, force=True
+                    ):
+                        raise
+                    reply = await invoke(
+                        agent_id, run_id, messages, tools, settings, baseline_tools=baseline, exposed_tools=exposed
+                    )
+                return reply, settings, tools
+            except BusinessError as exc:
+                if references(cast(list[dict[str, object]], messages)) or not (
+                    isinstance(exc, ModelRejected)
+                    or exc.code in {"token_budget_exceeded", "context_budget_exceeded", "model_empty_reply"}
+                ):
+                    raise
+                settings = await self._fallback_model(agent_id, run_id, fallbacks, exc)
+
+    @staticmethod
+    def _discover(
+        call: Invocation, eligible: tuple[ToolSpec, ...], settings: Settings
+    ) -> tuple[ActionResult, tuple[str, ...]]:
+        query = call.arguments.get("query")
+        if set(call.arguments) != {"query"} or not isinstance(query, str) or not 1 <= len(query) <= 200:
+            return ActionResult(Outcome.ERROR, "Provide a bounded tool query", error_code="invalid_tool_arguments"), ()
+        found = discover(eligible, query, settings["context_tokens"])
+        names = tuple(spec.name for spec in found)
+        text = "Offered on the next model call: " + ", ".join(names) if names else "No matching permitted tools fit."
+        return ActionResult(Outcome.OK, text), names
+
+    async def _finish_turn(self, agent_id: str, run_id: str, text: str, delegated: object, remote: object) -> None:
+        await self._db.write(lambda u: u.finish(agent_id, run_id, text))
+        log.info("Run completed", extra={"event": "run.succeeded"})
+        await self._trigger_review(agent_id, run_id, delegated, remote)
+
+    async def _completion_nudge(self, agent_id: str, run_id: str, attempts: int) -> str | None:
+        report, writes = await self._db.read(
+            lambda u: (u.run_completion(agent_id, run_id), u.run_applied_writes(agent_id, run_id))
+        )
+        pending = [
+            {"tool": row["tool"], "verification": ""}
+            for row in cast(list[Record], report["items"])
+            if row["state"] == "needs_review" and (row["tool"] in FILE_WRITES or row["tool"] == "shell_execute")
+        ]
+        other = [row for row in writes if row["tool"] not in FILE_WRITES and row["tool"] != "shell_execute"]
+        return build_verify_nudge([*pending, *other], attempts)
 
     async def _delegate(self, agent_id: str, parent_id: str, arguments: Record) -> ActionResult:
         try:
@@ -996,7 +1180,16 @@ class Application:
         return await self._db.read(lambda u: u.run_settings(agent_id, run_id))
 
     async def get_run(self, agent_id: str, run_id: str) -> Record:
-        return await self._db.read(lambda u: u.get_run(agent_id, run_id))
+        def report(u: UnitOfWork) -> Record:
+            run = u.get_run(agent_id, run_id)
+            if run["state"] in TERMINAL_RUNS:
+                run["completion"] = u.run_completion(agent_id, run_id)
+                continuation = u.run_continuation(agent_id, run_id)
+                if continuation is not None:
+                    run["continuation"] = continuation
+            return run
+
+        return await self._db.read(report)
 
     async def live_output(self, agent_id: str, run_id: str) -> Record:
         return await self._calls.live_output(agent_id, run_id)
@@ -1158,9 +1351,8 @@ class Application:
         if tasks:
             _, pending = await asyncio.wait(tasks, timeout=remaining)
         remaining = max(0, budget - (asyncio.get_running_loop().time() - started))
-        adapters = {id(c.adapter): c.adapter for c in (*self._tools.values(), *self._owner_tools.values())}
         residual: list[str] = []
-        for adapter in adapters.values():
+        for adapter in self._capabilities.owned_adapters():
             try:
                 async with asyncio.timeout(remaining):
                     if not await adapter.close(remaining):

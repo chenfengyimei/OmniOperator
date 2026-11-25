@@ -5,8 +5,8 @@ from __future__ import annotations
 from typing import Any
 
 from ..adapters.workers.client import WorkerClient
+from ..application.capabilities import Capability, CapabilityPlugin
 from ..application.documents import DocumentService
-from ..application.engine import Capability
 from ..application.memory_semantics import MemorySemanticService
 from ..application.memory_tools import MemoryCapabilities
 from ..application.ports import DatabasePort
@@ -18,9 +18,9 @@ def parameters(properties: dict[str, Any], required: list[str] | None = None) ->
     return {"type": "object", "properties": properties, "required": required or [], "additionalProperties": False}
 
 
-def builtin_capabilities(
+def builtin_plugins(
     database: DatabasePort, documents: DocumentService, semantics: MemorySemanticService | None = None
-) -> tuple[Capability, ...]:
+) -> tuple[CapabilityPlugin, ...]:
     worker = "builtin"
     browser = "browser"
     memory = MemoryCapabilities(database, semantics)
@@ -103,8 +103,12 @@ def builtin_capabilities(
         ),
         (
             "shell_execute",
-            "Execute an approved argv in the workspace",
-            {"argv": {"type": "array", "items": {"type": "string"}}, "cwd": {"type": "string"}},
+            "Execute approved argv. For a check, list workspace files in verify_paths to bind its exit code to their digests.",
+            {
+                "argv": {"type": "array", "items": {"type": "string"}},
+                "cwd": {"type": "string"},
+                "verify_paths": {"type": "array", "maxItems": 8, "items": {"type": "string", "maxLength": 1000}},
+            },
             ["argv"],
             True,
             worker,
@@ -243,11 +247,24 @@ def builtin_capabilities(
         )
         for kind in (worker, browser)
     }
-    return tuple(
-        Capability(
-            spec,
-            workers[adapter] if isinstance(adapter, str) else adapter,
-            workers[adapter].review_quiescent if isinstance(adapter, str) else lambda: True,
-        )
-        for spec, adapter in registered
+    contributors = (
+        ("workspace", worker, workers[worker], workers[worker].review_quiescent),
+        ("browser", browser, workers[browser], workers[browser].review_quiescent),
+        ("documents", documents, documents, lambda: True),
+        ("memory", memory, memory, lambda: True),
+        ("sessions", sessions, sessions, lambda: True),
     )
+    return tuple(
+        CapabilityPlugin(
+            plugin_id,
+            tuple(Capability(spec, adapter, quiescent) for spec, source in registered if source == selector),
+            own_adapters=plugin_id != "documents",
+        )
+        for plugin_id, selector, adapter, quiescent in contributors
+    )
+
+
+def builtin_capabilities(
+    database: DatabasePort, documents: DocumentService, semantics: MemorySemanticService | None = None
+) -> tuple[Capability, ...]:
+    return tuple(cap for plugin in builtin_plugins(database, documents, semantics) for cap in plugin.tools)

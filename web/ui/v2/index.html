@@ -1528,6 +1528,30 @@
                       留空模型跟随本空间默认模型。图片能力和计量来自实际选中的模型；缺少能力会明确拒绝。升档只改变下一次调用工具，模型和预算保持本轮捕获值。
                     </p>
                   </details>
+                  <details class="settings-advanced">
+                    <summary>内核恢复、核验与学习</summary>
+                    <label class="checkbox"
+                      ><input id="kernel-tool_discovery" type="checkbox" />工具过多时按需加载</label
+                    >
+                    <label class="checkbox"><input id="kernel-empty_recovery" type="checkbox" />空回复时有限重试</label>
+                    <label class="checkbox"
+                      ><input id="kernel-verify_completion" type="checkbox" />结束前提醒核验操作结果</label
+                    >
+                    <label class="checkbox"
+                      ><input id="kernel-safe_resume" type="checkbox" />重启后从安全节点接续</label
+                    >
+                    <label class="checkbox"
+                      ><input id="kernel-background_learning" type="checkbox" />回合后提出待审学习候选</label
+                    >
+                    <div class="form-row">
+                      <label>首选备用模型<select id="kernel-fallback-1"></select></label>
+                      <label>第二备用模型<select id="kernel-fallback-2"></select></label>
+                      <label>第三备用模型<select id="kernel-fallback-3"></select></label>
+                    </div>
+                    <p class="muted">
+                      授权的备用模型可能接收同一回合的文本与工具上下文。遇到明确的模型拒绝、上下文不足或已结算的空回复时按顺序尝试。
+                    </p>
+                  </details>
                   <button type="submit">保存档位配置</button
                   ><button id="route-reload" type="button">放弃档位草稿并重新载入</button>
                 </fieldset>
@@ -2213,6 +2237,6 @@
     <script src="/assets/vendor/xterm.js?v=20261121v173"></script>
     <script src="/assets/vendor/xterm-addon-fit.js?v=20261121v173"></script>
     <script src="/assets/ui/markdown.js?v=20261121v173"></script>
-    <script type="module" src="/assets/ui/v2/main.js?v=20261122p176"></script>
+    <script type="module" src="/assets/ui/v2/main.js?v=20261125kernel2"></script>
   </body>
 </html>

@@ -1,10 +1,11 @@
 """Explicit pre-v19 fixture seeding only; upgraded databases always use the real repositories."""
 
-from sqlalchemy import select
+from sqlalchemy import MetaData, Table, select
 
 from omni.adapters.persistence import schema as s
 from omni.adapters.persistence.repository import Repositories
 from omni.domain.contracts import BusinessError
+from omni.domain.routing import KERNEL_DEFAULT, POLICY_DEFAULT
 
 _MEMORY_DECAY_COLUMNS = ("importance", "clarity", "recall_count", "decay_steps", "pinned", "last_seen_at")
 
@@ -31,12 +32,31 @@ def preserved_rows(
     return result
 
 
-class PreSkillSeedRepositories(Repositories):
+class PreKernelSeedRepositories(Repositories):
+    """Create original routing rows on pinned schemas prior to v53."""
+
+    def _record(self, table, values, agent_id=None):
+        if table is s.run_routes:
+            table = Table("run_routes", MetaData(), autoload_with=self.connection)
+            values = {k: v for k, v in values.items() if k in table.c}
+        return super()._record(table, values, agent_id)
+
+    def route_policy(self, agent_id):
+        return {
+            "id": None,
+            "revision": 0,
+            "agent_id": agent_id,
+            **POLICY_DEFAULT,
+            "kernel": KERNEL_DEFAULT,
+        }
+
+
+class PreSkillSeedRepositories(PreKernelSeedRepositories):
     """Only construct fixtures whose frozen schema predates V35."""
 
     # These schemas also predate V42: fixture creation has no delegated runs.
     # After upgrade the Database actor always constructs real Repositories.
-    # v0047 decay columns are absent at pinned pre-v47 schemas; drop them so legacy seeding inserts only original columns.
+    # v0047 decay columns are absent at pinned pre-v47 schemas; seed original columns.
     def _record(self, table, values, agent_id=None):
         if table is s.memory_entries:
             values = {k: v for k, v in values.items() if k not in _MEMORY_DECAY_COLUMNS}
