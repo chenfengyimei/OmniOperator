@@ -194,8 +194,8 @@ def test_real_jobs_use_full_dash_candidates_when_merged_manifest_is_segmented(tm
             downloads = [call for call in calls if call.url.host == "cdn.bilivideo.com"]
             assert len(downloads) == 1
             assert str(downloads[0].url) == (AUDIO if operation == "transcribe" else VIDEO)["baseUrl"]
-            assert not (instance.media._staging / str(job["id"])).exists()
         finally:
             assert (await instance.close())["complete"]
+        assert not (instance.media._staging / str(job["id"])).exists()
 
     asyncio.run(scenario())

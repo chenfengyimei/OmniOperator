@@ -18,6 +18,7 @@ from omni.adapters.persistence.object_inventory import registry
 from omni.adapters.token_counter import ConservativeTokenCounter
 from omni.application.context import ContextService
 from omni.composition.instance import open_instance
+from omni.domain.background_review import REVIEW_PROMPT
 from omni.domain.contracts import BusinessError, ImageInfo, Invocation, ModelReply, ToolSpec
 from omni.domain.images import model_tokens, policy, references
 from omni_test_support.v2.execution import wait_state
@@ -51,8 +52,8 @@ class Model:
         self.error, self.steps = error, steps
 
     async def complete(self, messages, tools, settings):
-        if "staged for owner review" in str(messages[0].get("content", "")):
-            # K08 background review runs after the turn; it is not an image turn call.
+        if messages[0].get("content") == REVIEW_PROMPT:
+            # Background review can run while the HTTP test reads the completed turn.
             return ModelReply("Nothing to save.", cost_micro=0)
         self.requests.append(messages)
         if self.error:

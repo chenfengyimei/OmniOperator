@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`784d813a1f8939c5002e84897e7904c16f69ce15339618136183dc9759cbc19b`。包含 65 个职责模块、919 个源码/界面文件。
+源码指纹：`acc25251d9415795839062bc2ff87b2e6e6ab65a6ae057b1042a0a68c6d745bb`。包含 65 个职责模块、919 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 

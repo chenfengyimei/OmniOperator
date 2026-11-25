@@ -523,7 +523,7 @@ class MediaService:
         try:
             shutil.rmtree(staging)
         except OSError as exc:
-            if isinstance(exc, FileNotFoundError) and exc.filename == str(staging):
+            if isinstance(exc, FileNotFoundError) and exc.filename is not None and Path(exc.filename) == staging:
                 return
             log.warning(
                 "Media staging directory could not be removed",

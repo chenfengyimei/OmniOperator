@@ -11,6 +11,7 @@ import time
 import pytest
 import uvicorn
 from omni_test_support.paths import REPOSITORY_ROOT as REPOSITORY_ROOT
+from omni_test_support.v2.credentials import Backend
 from playwright.sync_api import expect
 
 from omni.composition.http import http_app
@@ -18,7 +19,7 @@ from omni.composition.http import http_app
 
 @pytest.fixture
 def models_server(tmp_path):
-    app = http_app(tmp_path)
+    app = http_app(tmp_path, credential_backend=Backend())
     listener = socket.socket()
     listener.bind(("127.0.0.1", 0))
     listener.listen(128)
