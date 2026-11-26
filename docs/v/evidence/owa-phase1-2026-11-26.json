@@ -1,0 +1,112 @@
+{
+  "date": "2026-11-26",
+  "branch": "owa-tickets",
+  "phase": "0-1",
+  "baseline": {
+    "source_sha": "d897f2867e4b0a25fe961075264854f002c1ee5b",
+    "full_ci": "https://github.com/chenfengyimei/OmniOperator/actions/runs/45801704584",
+    "full_ci_jobs_passed": 12,
+    "alembic_head": "v2_0053",
+    "revisions": 53,
+    "declared_tables": 151,
+    "sqlite_tables": 162
+  },
+  "candidate": {
+    "source_sha": "4082ccacaa31918a22d06bdd6dbf6710e8467906",
+    "platform": "Windows x64",
+    "python": "3.12.14",
+    "full_suite": false,
+    "github_ci_dispatched": false
+  },
+  "scoped_pytest": {
+    "command_prefix": "uv run --no-sync pytest -q -n 0",
+    "files": [
+      "agent/tests/v2/core/test_v2_action_review_execution.py",
+      "agent/tests/v2/core/test_v2_action_review_migration.py",
+      "agent/tests/v2/core/test_v2_architecture.py",
+      "agent/tests/v2/core/test_v2_audit_plan_migration.py",
+      "agent/tests/v2/core/test_v2_default_entrypoints.py",
+      "agent/tests/v2/core/test_v2_delegation.py",
+      "agent/tests/v2/core/test_v2_entrypoints.py",
+      "agent/tests/v2/core/test_v2_event_plan_migration.py",
+      "agent/tests/v2/core/test_v2_event_stream.py",
+      "agent/tests/v2/core/test_v2_feature_plugins.py",
+      "agent/tests/v2/core/test_v2_kernel_evolution.py",
+      "agent/tests/v2/core/test_v2_kernel_restart.py",
+      "agent/tests/v2/core/test_v2_kernel.py",
+      "agent/tests/v2/core/test_v2_maintenance_migration.py",
+      "agent/tests/v2/core/test_v2_memory_decay.py",
+      "agent/tests/v2/core/test_v2_memory_organization_migration.py",
+      "agent/tests/v2/core/test_v2_memory_semantics_migration.py",
+      "agent/tests/v2/core/test_v2_omniweave_migration.py",
+      "agent/tests/v2/core/test_v2_reflection_migration.py",
+      "agent/tests/v2/core/test_v2_schedule_bindings.py",
+      "agent/tests/v2/core/test_v2_scheduling_faults.py",
+      "agent/tests/v2/core/test_v2_scheduling.py",
+      "agent/tests/v2/core/test_v2_tool_image_ledger.py",
+      "agent/tests/v2/core/test_v2_typecheck_scope.py",
+      "agent/tests/v2/http/test_v2_action_review_http.py",
+      "agent/tests/v2/http/test_v2_delegation_http.py",
+      "agent/tests/v2/http/test_v2_http.py",
+      "agent/tests/v2/http/test_v2_omniweave_http.py",
+      "agent/tests/v2/http/test_v2_service_identity_http.py",
+      "agent/tests/v2/integrations/test_v2_android_migration.py",
+      "agent/tests/v2/integrations/test_v2_extensions_migration.py",
+      "agent/tests/v2/integrations/test_v2_images_migration.py",
+      "agent/tests/v2/integrations/test_v2_media_upload_migration.py",
+      "agent/tests/v2/integrations/test_v2_media.py",
+      "agent/tests/v2/integrations/test_v2_routing_migration.py",
+      "agent/tests/v2/integrations/test_v2_skills_migration.py",
+      "agent/tests/v2/operations/test_v2_schema_release.py",
+      "agent/tests/v2/platforms/common/test_v2_desktop_capture.py",
+      "agent/tests/v2/platforms/common/test_v2_terminal_review_migration.py",
+      "agent/tests/v2/platforms/common/test_v2_terminals_migration.py"
+    ],
+    "passed": 333,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0,
+    "elapsed_s": 665.86,
+    "phase_1_cases": [
+      "test_upgrade_of_old_test_copy_preserves_admission_and_verified_backup",
+      "test_fresh_database_rejects_cross_agent_and_cross_thread_bindings",
+      "test_owner_web_admission_keeps_normal_receipt_and_work[False]",
+      "test_owner_web_admission_keeps_normal_receipt_and_work[True]",
+      "test_concurrent_replays_and_payload_conflict_keep_one_admission",
+      "test_interrupted_observation_rolls_back_turn_before_it_can_run",
+      "test_token_revoked_between_http_authentication_and_admission_cannot_create_ticket",
+      "test_restart_preserves_off_and_observe_decisions_and_reuses_thread",
+      "test_web_scope_rejects_cross_agent_and_cross_main_session_references",
+      "test_legacy_delegate_runs_but_its_private_session_cannot_become_a_thread"
+    ],
+    "local_junit": "temp/build/owa-phase1/scoped-4082ccac.xml",
+    "junit_sha256": "90b7c95fb112f346297809bd74b4025f165bebb6b11dfb6987fc9f07b984bf26"
+  },
+  "database": {
+    "alembic_head": "v2_0054",
+    "revisions": 54,
+    "declared_tables": 154,
+    "sqlite_tables": 165,
+    "fresh_and_populated_v2_0053_copy": true,
+    "integrity_check": "ok",
+    "foreign_key_violations": 0,
+    "verified_pre_migration_snapshot": true
+  },
+  "http": {
+    "openapi_paths": 212,
+    "openapi_equal_to_baseline": true,
+    "openapi_sorted_json_sha256": "a41296c4772b48249610a2c09e42c8c18092d6b79bef9d39cfa6b7edbeaf7572",
+    "receipt_fields": [
+      "run_id",
+      "session_id",
+      "duplicate"
+    ],
+    "owa_workers_started_in_observe": 0
+  },
+  "static": {
+    "strict_files": 501,
+    "errors": 0,
+    "warnings": 0,
+    "ruff_check": true
+  }
+}

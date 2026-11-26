@@ -111,10 +111,10 @@
     {
       "id": "OMNIWEAVE",
       "title": "OWA Phase 0–1 基线与 Web 观察受理",
-      "status": "development_in_progress",
-      "next": "核对 `d897f286` 基线、`v2_0053` → `v2_0054` 迁移、原回执与幂等规则。Phase 2 接入 Router、任务依赖和 Worker，验收三个 Worker 并行期间主会话仍可接收输入。",
+      "status": "implemented_scoped_passed",
+      "next": "候选 `4082ccac` 从 `d897f286` 接续，40 个文件共 333 项离线专项通过。`v2_0053` → `v2_0054` 升级、回执幂等与作用域已验证。Phase 2 接入 Router、任务依赖和 Worker，验收三个 Worker 并行期间主会话仍可接收输入。",
       "contract": "docs/v/reference/OMNIWEAVE.md",
-      "evidence": []
+      "evidence": ["docs/v/evidence/owa-phase1-2026-11-26.json"]
     },
     {
       "id": "CAPABILITY-PLUGINS",
