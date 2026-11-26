@@ -20,6 +20,24 @@ class OmniWeaveService:
     notify: Callable[[], None]
     worker_tool_specs: tuple[ToolSpec, ...] = ()
 
+    async def main_session(self, agent_id: str) -> Record:
+        session_id = await self.database.read(lambda unit: unit.omniweave_main_session(agent_id))
+        return {"enabled": self.mode == "dispatch", "session_id": session_id}
+
+    async def select_main_session(self, agent_id: str, session_id: str | None, owner_token: str) -> Record:
+        if self.mode != "dispatch":
+            raise BusinessError(
+                "owa_dispatch_disabled", "Enable OmniWeave before selecting a main conversation", status=409
+            )
+        digest = hashlib.sha256(owner_token.encode()).hexdigest()
+
+        def select_main(unit: UnitOfWork) -> str:
+            if not unit.token_valid(digest):
+                raise BusinessError("unauthenticated", "A valid owner token is required", status=401)
+            return unit.omniweave_select_main(agent_id, session_id)
+
+        return {"enabled": True, "session_id": await self.database.write(select_main)}
+
     def web_admission(self, agent_id: str, key: str, owner_token: str) -> TurnAdmissionObserver | None:
         if self.mode == "off":
             return None

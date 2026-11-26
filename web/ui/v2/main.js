@@ -1245,10 +1245,36 @@ async function showRunDetails(runId, sessionId) {
     `历史处理 ${latest?.mode === 'complete' ? '完整保留' : latest?.mode === 'summary' ? '已登记摘要' : latest?.mode ? '有省略' : '未登记'}，` +
     `压缩 ${report.attempts.length} 次。`;
 }
+let owaMainSession = null;
+function renderOwaMainSession() {
+  const button = $('owa-main-session');
+  button.hidden = !owaMainSession?.enabled;
+  if (!button.hidden) {
+    button.textContent = owaMainSession.session_id
+      ? '打开 OWA 主会话'
+      : session
+        ? '设为 OWA 主会话'
+        : '创建 OWA 主会话';
+  }
+}
+async function openConversation(sessionId) {
+  const current = generation;
+  session = sessionId;
+  clearContext();
+  renderOwaMainSession();
+  const history = (await api(scope(`/sessions/${sessionId}/messages`))).items;
+  if (current !== generation || session !== sessionId) return;
+  renderMessages(history);
+  for (const row of $('sessions').children) row.classList.toggle('active', row.dataset.id === sessionId);
+  const lastRun = [...history].reverse().find((message) => message.run_id)?.run_id || null;
+  await showRunDetails(lastRun, sessionId);
+}
 async function refreshSessions() {
   const current = generation,
-    data = await api(scope('/sessions'));
+    [data, main] = await Promise.all([api(scope('/sessions')), api(scope('/omniweave/main-session'))]);
   if (generation !== current) return;
+  owaMainSession = main;
+  renderOwaMainSession();
   $('sessions').replaceChildren(
     ...data.items.map((item) => {
       const row = document.createElement('li');
@@ -1278,16 +1304,7 @@ async function refreshSessions() {
       row.append(main);
       row.addEventListener(
         'click',
-        wrap(async () => {
-          session = item.id;
-          clearContext();
-          const history = (await api(scope(`/sessions/${session}/messages`))).items;
-          renderMessages(history);
-          for (const other of $('sessions').children) other.classList.toggle('active', other === row);
-          // 打开历史会话时，技术详情要跟着切到该会话最近一次运行，否则整块空白
-          const lastRun = [...history].reverse().find((m) => m.run_id)?.run_id || null;
-          await showRunDetails(lastRun, session);
-        }),
+        wrap(() => openConversation(item.id)),
       );
       return row;
     }),
@@ -1644,6 +1661,8 @@ async function selectAgentBody(selectedGeneration) {
   $('object-list').replaceChildren();
   agent = $('agents').value;
   session = run = null;
+  owaMainSession = null;
+  renderOwaMainSession();
   chatImages.change();
   pendingKey = null;
   $('settings-fields').disabled = true;
@@ -1940,8 +1959,30 @@ $('new-session').addEventListener('click', () => {
   session = null;
   clearContext();
   pendingKey = null;
+  renderOwaMainSession();
   renderMessages([]);
 });
+$('owa-main-session').addEventListener(
+  'click',
+  wrap(async (event) => {
+    const button = event.currentTarget,
+      current = generation;
+    if (!owaMainSession?.enabled) return;
+    button.disabled = true;
+    try {
+      if (!owaMainSession.session_id) {
+        const receipt = await api(scope('/omniweave/main-session'), { method: 'PUT', body: { session_id: session } });
+        if (current !== generation) return;
+        owaMainSession = receipt;
+        await refreshSessions();
+        if (current !== generation) return;
+      }
+      if (owaMainSession.session_id) await openConversation(owaMainSession.session_id);
+    } finally {
+      button.disabled = false;
+    }
+  }),
+);
 $('send').addEventListener(
   'submit',
   wrap(async () => {

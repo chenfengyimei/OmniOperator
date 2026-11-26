@@ -6,11 +6,27 @@ from uuid import UUID
 
 from fastapi import APIRouter, Request
 
-from . import RuntimeLookup
+from . import RuntimeLookup, StrictInput
+
+
+class MainSessionInput(StrictInput):
+    session_id: UUID | None = None
 
 
 def omniweave_router(runtime: RuntimeLookup) -> APIRouter:
     router = APIRouter(prefix="/agents/{agent_id}/omniweave")
+
+    @router.get("/main-session")
+    async def main_session(agent_id: UUID, request: Request):
+        return await runtime(request).omniweave.main_session(str(agent_id))
+
+    @router.put("/main-session")
+    async def select_main_session(agent_id: UUID, data: MainSessionInput, request: Request):
+        return await runtime(request).omniweave.select_main_session(
+            str(agent_id),
+            str(data.session_id) if data.session_id else None,
+            request.headers.get("authorization", "")[7:],
+        )
 
     @router.get("/sessions/{session_id}/tickets")
     async def ticket(

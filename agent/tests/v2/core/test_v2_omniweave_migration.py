@@ -22,8 +22,8 @@ from omni.adapters.primitives import SystemClock, UUIDs
 
 async def _verify_current_schema(database):
     script = ScriptDirectory.from_config(configuration())
-    assert script.get_heads() == ["v2_0056"] and len(list(script.walk_revisions())) == 56
-    assert database.schema_version == "v2_0056"
+    assert script.get_heads() == ["v2_0057"] and len(list(script.walk_revisions())) == 57
+    assert database.schema_version == "v2_0057"
     integrity = await database.integrity()
     assert integrity["integrity"] == "ok" and integrity["foreign_keys"] == 0
     assert len(s.metadata.tables) == 157
@@ -32,7 +32,7 @@ async def _verify_current_schema(database):
     )
 
 
-@pytest.mark.parametrize("revision", ["v2_0053", "v2_0054", "v2_0055"])
+@pytest.mark.parametrize("revision", ["v2_0053", "v2_0054", "v2_0055", "v2_0056"])
 def test_upgrade_of_old_test_copy_preserves_admission_and_verified_backup(tmp_path, revision):
     original = tmp_path / "old.db"
     copy = tmp_path / "copy/omni.db"
@@ -52,6 +52,9 @@ def test_upgrade_of_old_test_copy_preserves_admission_and_verified_backup(tmp_pa
             accepted = unit.accept_turn(agent, None, "pre-owa", "original request", {})
             if revision != "v2_0053":
                 unit.omniweave_observe(agent, "pre-owa", accepted["run_id"], accepted["session_id"], duplicate=False)
+            if revision == "v2_0056":
+                ticket = connection.execute(select(s.owa_tickets.c.id)).scalar_one()
+                unit._record(s.owa_executions, {"ticket_id": ticket}, agent)
             connection.commit()
     finally:
         engine.dispose()
@@ -63,6 +66,11 @@ def test_upgrade_of_old_test_copy_preserves_admission_and_verified_backup(tmp_pa
         database = Database(copy, clock, ids)
         try:
             await _verify_current_schema(database)
+            assert await database.read(lambda u: u.omniweave_main_session(agent)) is None
+            if revision == "v2_0056":
+                assert (await database.read(lambda u: u.omniweave_router(agent, accepted["run_id"])))[
+                    "ticket_id"
+                ] == ticket
             assert (await database.read(lambda u: u.get_run(agent, accepted["run_id"])))["state"] == "queued"
             assert await database.write(lambda u: u.accept_turn(agent, None, "pre-owa", "original request", {})) == {
                 **accepted,
@@ -77,7 +85,10 @@ def test_upgrade_of_old_test_copy_preserves_admission_and_verified_backup(tmp_pa
             ):
                 for source in (old, backup):
                     assert source.execute("SELECT version_num FROM alembic_version").fetchone() == (revision,)
-                    observed = ("owa_threads", "owa_tickets", "owa_triggers") if revision != "v2_0053" else ()
+                    observed = ("owa_tickets", "owa_triggers") if revision != "v2_0053" else ()
+                    if observed:
+                        statement = "SELECT id, agent_id, created_at, main_session_id, owner_id FROM owa_threads"
+                        assert migrated.execute(statement).fetchall() == source.execute(statement).fetchall()
                     for table in ("inbox", "messages", "runs", "sessions", "work_items", *observed):
                         assert (
                             migrated.execute(f"SELECT * FROM {table}").fetchall()
@@ -85,7 +96,10 @@ def test_upgrade_of_old_test_copy_preserves_admission_and_verified_backup(tmp_pa
                         )
                 assert migrated.execute("SELECT owner_id FROM instances").fetchone() == (owner,)
                 uncreated = ("owa_threads", "owa_tickets", "owa_triggers") if revision == "v2_0053" else ()
-                for table in ("owa_executions", "owa_tasks", "owa_dependencies", *uncreated):
+                assert migrated.execute("SELECT count(*) FROM owa_executions").fetchone() == (
+                    int(revision == "v2_0056"),
+                )
+                for table in ("owa_tasks", "owa_dependencies", *uncreated):
                     assert migrated.execute(f"SELECT count(*) FROM {table}").fetchone() == (0,)
         finally:
             await database.close()

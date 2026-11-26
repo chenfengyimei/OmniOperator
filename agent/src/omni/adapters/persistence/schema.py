@@ -699,8 +699,15 @@ owa_threads = scoped(
     "owa_threads",
     Column("main_session_id", String(36), nullable=False),
     Column("owner_id", String(36), ForeignKey("principals.id", ondelete="RESTRICT"), nullable=False),
+    Column("main_selected_at", String(40)),
     scoped_fk("main_session_id", "sessions"),
     UniqueConstraint("main_session_id"),
+)
+Index(
+    "uq_owa_threads_selected_main",
+    owa_threads.c.agent_id,
+    unique=True,
+    sqlite_where=owa_threads.c.main_selected_at.is_not(None),
 )
 owa_tickets = scoped(
     "owa_tickets",

@@ -19,9 +19,93 @@ from .repository_base import RepositoryBase
 
 
 class OmniWeaveRepositories(RepositoryBase):
+    def _owa_owner(self) -> str:
+        return cast(
+            str, self.connection.execute(select(s.instances.c.owner_id).where(s.instances.c.slot == 1)).scalar_one()
+        )
+
+    def _owa_thread(self, agent_id: str, owner_id: str, session_id: str) -> str:
+        thread_id = self.connection.execute(
+            select(s.owa_threads.c.id).where(
+                s.owa_threads.c.agent_id == agent_id,
+                s.owa_threads.c.main_session_id == session_id,
+                s.owa_threads.c.owner_id == owner_id,
+            )
+        ).scalar_one_or_none()
+        if thread_id is None:
+            return str(
+                self._record(s.owa_threads, {"main_session_id": session_id, "owner_id": owner_id}, agent_id)["id"]
+            )
+        return cast(str, thread_id)
+
+    def omniweave_main_session(self, agent_id: str) -> str | None:
+        if not self.connection.execute(select(s.agents.c.id).where(s.agents.c.id == agent_id)).first():
+            raise BusinessError("not_found", "Agent space does not exist", status=404)
+        return cast(
+            str | None,
+            self.connection.execute(
+                select(s.owa_threads.c.main_session_id)
+                .join(s.sessions, s.sessions.c.id == s.owa_threads.c.main_session_id)
+                .join(s.instances, (s.instances.c.slot == 1) & (s.instances.c.owner_id == s.owa_threads.c.owner_id))
+                .where(
+                    s.owa_threads.c.agent_id == agent_id,
+                    s.owa_threads.c.main_selected_at.is_not(None),
+                    s.sessions.c.deleted_at.is_(None),
+                )
+            ).scalar_one_or_none(),
+        )
+
+    def omniweave_select_main(self, agent_id: str, session_id: str | None) -> str:
+        current = self.omniweave_main_session(agent_id)
+        if session_id is not None and session_id != current:
+            eligible = self.connection.execute(
+                select(s.sessions.c.id)
+                .join(s.runs, s.runs.c.session_id == s.sessions.c.id)
+                .join(s.inbox, s.inbox.c.run_id == s.runs.c.id)
+                .where(
+                    s.sessions.c.agent_id == agent_id,
+                    s.sessions.c.id == session_id,
+                    s.sessions.c.deleted_at.is_(None),
+                    s.runs.c.parent_id.is_(None),
+                    s.inbox.c.agent_id == agent_id,
+                    s.inbox.c.channel == "chat",
+                    ~select(s.qq_bindings.c.id).where(s.qq_bindings.c.session_id == session_id).exists(),
+                    ~select(s.run_delegations.c.id).where(s.run_delegations.c.child_session_id == session_id).exists(),
+                )
+                .limit(1)
+            ).first()
+            if eligible is None:
+                raise BusinessError(
+                    "not_found", "Private Web conversation does not exist in this Agent space", status=404
+                )
+        if current is not None:
+            if session_id is None or session_id == current:
+                return current
+            raise BusinessError(
+                "owa_main_session_exists", "This Agent already has an active main conversation", status=409
+            )
+        if session_id is None:
+            session_id = str(
+                self._record(s.sessions, {"title": "OmniWeave", "revision": 1, "next_seq": 0}, agent_id)["id"]
+            )
+        thread_id = self._owa_thread(agent_id, self._owa_owner(), session_id)
+        self.connection.execute(
+            update(s.owa_threads)
+            .where(s.owa_threads.c.agent_id == agent_id, s.owa_threads.c.main_selected_at.is_not(None))
+            .values(main_selected_at=None)
+        )
+        self.connection.execute(
+            update(s.owa_threads).where(s.owa_threads.c.id == thread_id).values(main_selected_at=self.clock.now())
+        )
+        self.audit(agent_id, "omniweave.main_session_selected", None, {"session_id": session_id})
+        return session_id
+
     def omniweave_observe(
         self, agent_id: str, key: str, run_id: str, main_session_id: str, *, duplicate: bool, dispatch: bool = False
     ) -> None:
+        # Replays keep their original routing. Only explicit selections enable new Router turns.
+        if duplicate or (dispatch and self.omniweave_main_session(agent_id) != main_session_id):
+            return
         private_session = select(s.run_delegations.c.id).where(s.run_delegations.c.child_session_id == main_session_id)
         channel_session = select(s.qq_bindings.c.id).where(s.qq_bindings.c.session_id == main_session_id)
         source = self.connection.execute(
@@ -44,32 +128,7 @@ class OmniWeaveRepositories(RepositoryBase):
         ).one_or_none()
         if source is None:
             raise BusinessError("not_found", "Main Web conversation does not exist in this Agent space", status=404)
-        # A replay keeps the original decision, including requests accepted before observation was enabled.
-        if duplicate:
-            return
-
-        owner_id = self.connection.execute(select(s.instances.c.owner_id).where(s.instances.c.slot == 1)).scalar_one()
-        if dispatch:
-            bound_session = self.connection.execute(
-                select(s.owa_threads.c.main_session_id)
-                .join(s.owa_tickets, s.owa_tickets.c.thread_id == s.owa_threads.c.id)
-                .join(s.owa_executions, s.owa_executions.c.ticket_id == s.owa_tickets.c.id)
-                .where(s.owa_threads.c.agent_id == agent_id, s.owa_threads.c.owner_id == owner_id)
-                .order_by(s.owa_executions.c.created_at, s.owa_executions.c.id)
-                .limit(1)
-            ).scalar_one_or_none()
-            if bound_session is not None and bound_session != main_session_id:
-                return
-        thread_id = self.connection.execute(
-            select(s.owa_threads.c.id).where(
-                s.owa_threads.c.agent_id == agent_id,
-                s.owa_threads.c.main_session_id == main_session_id,
-                s.owa_threads.c.owner_id == owner_id,
-            )
-        ).scalar_one_or_none()
-        if thread_id is None:
-            thread = self._record(s.owa_threads, {"main_session_id": main_session_id, "owner_id": owner_id}, agent_id)
-            thread_id = thread["id"]
+        thread_id = self._owa_thread(agent_id, self._owa_owner(), main_session_id)
         ticket = self._record(s.owa_tickets, {"thread_id": thread_id, "run_id": run_id}, agent_id)
         self._record(
             s.owa_triggers,

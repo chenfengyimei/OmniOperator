@@ -42,6 +42,13 @@ def _model_base(client, agent):
     return base
 
 
+def _select_main(client, base, session_id=None):
+    selection = client.put(base + "/omniweave/main-session", json={"session_id": session_id})
+    assert selection.status_code == 200, selection.text
+    assert selection.json()["enabled"] is True
+    return selection.json()["session_id"]
+
+
 def _rows(home, query, args=()):
     with sqlite_connection(home / "data/omni.db") as connection:
         return connection.execute(query, args).fetchall()
@@ -176,9 +183,62 @@ def test_restart_preserves_off_and_observe_decisions_and_reuses_thread(tmp_path)
         assert client.post(base + "/turns", json=new).json() == {**observed, "duplicate": True}
         assert _rows(tmp_path, "SELECT ticket_id, id FROM owa_triggers") == ids
         assert _counts(tmp_path, "owa_executions") == [0]
+        assert client.get(base + "/omniweave/main-session").json() == {"enabled": True, "session_id": None}
+        assert _select_main(client, base, old["session_id"]) == old["session_id"]
         response = client.post(base + "/turns", json={**new, "key": "same-session"})
         assert response.status_code == 202 and response.json()["session_id"] == old["session_id"]
         assert _counts(tmp_path, *OWA_TABLES, "owa_executions", "owa_tasks") == [1, 2, 2, 1, 0]
+
+
+def test_enabled_requires_explicit_selection_and_keeps_one_private_main_after_restart(tmp_path):
+    with TestClient(http_app(tmp_path, model=LocalModel(), omniweave_mode="enabled")) as client:
+        base = _model_base(client, _authorize(client, tmp_path))
+        path = base + "/omniweave/main-session"
+        original = {"key": "ordinary-first", "message": "Regular Web turn"}
+        ordinary = client.post(base + "/turns", json=original).json()
+        assert wait_run(client, base, ordinary["run_id"])["state"] == "succeeded"
+        assert client.get(path).json() == {"enabled": True, "session_id": None}
+        assert _counts(tmp_path, *OWA_TABLES, "owa_executions") == [0, 0, 0, 0]
+
+        with ThreadPoolExecutor(max_workers=2) as pool:
+            first, second = pool.map(lambda _: _select_main(client, base), range(2))
+        assert first == second and first != ordinary["session_id"]
+        conflict = client.put(path, json={"session_id": ordinary["session_id"]})
+        assert conflict.status_code == 409 and conflict.json()["error"]["code"] == "owa_main_session_exists"
+        foreign_agent = client.post("/api/v1/agents", json={"name": "Foreign"}).json()["id"]
+        foreign_path = f"/api/v1/agents/{foreign_agent}/omniweave/main-session"
+        assert client.put(foreign_path, json={"session_id": first}).status_code == 404
+        assert client.get(foreign_path).json()["session_id"] is None
+        bound = {"key": "selected", "message": "Selected Web turn", "session_id": first}
+        receipt = client.post(base + "/turns", json=bound).json()
+        assert wait_run(client, base, receipt["run_id"])["state"] == "succeeded"
+
+    with TestClient(http_app(tmp_path, model=LocalModel(), omniweave_mode="enabled")) as client:
+        _authorize(client, tmp_path)
+        assert client.get(path).json() == {"enabled": True, "session_id": first}
+        assert _select_main(client, base, first) == first
+        assert client.post(base + "/turns", json=original).json() == {**ordinary, "duplicate": True}
+        assert client.post(base + "/turns", json=bound).json() == {**receipt, "duplicate": True}
+        assert _counts(tmp_path, *OWA_TABLES, "owa_executions") == [1, 1, 1, 1]
+
+
+def test_main_conversation_selection_rechecks_owner_token_before_writing(tmp_path, monkeypatch):
+    with TestClient(http_app(tmp_path, model=LocalModel(), omniweave_mode="enabled")) as client:
+        agent = _authorize(client, tmp_path)
+        runtime = client.app.state.runtime
+        authenticate = runtime.authenticate
+
+        async def rotate_after_authentication(token):
+            assert await authenticate(token)
+            await runtime.rotate_token()
+            return True
+
+        path = f"/api/v1/agents/{agent}/omniweave/main-session"
+        with monkeypatch.context() as rotation:
+            rotation.setattr(runtime, "authenticate", rotate_after_authentication)
+            revoked = client.put(path, json={"session_id": None})
+        assert revoked.status_code == 401 and revoked.json()["error"]["code"] == "unauthenticated"
+        assert _counts(tmp_path, "sessions", *OWA_TABLES) == [0, 0, 0, 0]
 
 
 def test_web_scope_rejects_cross_agent_and_cross_main_session_references(tmp_path):
@@ -303,7 +363,10 @@ def test_router_accepts_new_input_while_three_workers_run_and_waits_for_dependen
     with TestClient(http_app(tmp_path, model=model, omniweave_mode="enabled")) as client:
         agent = _authorize(client, tmp_path)
         base = _model_base(client, agent)
-        accepted = client.post(base + "/turns", json={"key": "plan", "message": "Plan independent work"})
+        selected = _select_main(client, base)
+        accepted = client.post(
+            base + "/turns", json={"key": "plan", "message": "Plan independent work", "session_id": selected}
+        )
         assert accepted.status_code == 202, accepted.text
         root = accepted.json()
         assert wait_run(client, base, root["run_id"])["state"] == "succeeded"
@@ -322,6 +385,7 @@ def test_router_accepts_new_input_while_three_workers_run_and_waits_for_dependen
         assert {row["id"] for row in client.get(base + "/sessions").json()["items"]}.isdisjoint(child_sessions)
         assert client.get(base + f"/runs/{root['run_id']}/delegations").json() == {"items": []}
         child, private_session = child_rows[0]
+        assert client.put(base + "/omniweave/main-session", json={"session_id": private_session}).status_code == 404
         for path in (
             f"/runs/{child.upper()}",
             f"/runs/{child}/events",
@@ -405,7 +469,10 @@ def test_router_rejects_cyclic_and_unauthorized_worker_plans_atomically(tmp_path
             json={"revision": settings["revision"], "value": {**settings["value"], "disabled_tools": ["files_write"]}},
         )
         assert response.status_code == 200
-        receipt = client.post(base + "/turns", json={"key": "denied", "message": "Build a plan"}).json()
+        selected = _select_main(client, base)
+        receipt = client.post(
+            base + "/turns", json={"key": "denied", "message": "Build a plan", "session_id": selected}
+        ).json()
         assert wait_run(client, base, receipt["run_id"])["state"] == "succeeded"
         assert _rows(tmp_path, "SELECT plan_sha256 FROM owa_executions") == [(None,)]
         assert _rows(tmp_path, "SELECT id FROM actions WHERE tool='files_read'") == []
@@ -462,7 +529,10 @@ def test_worker_file_write_uses_private_workspace_and_existing_owner_approval(tm
             json={"entry_id": None, "revision": 0, "content": private_memory},
         )
         assert profile.status_code == 200, profile.text
-        receipt = client.post(base + "/turns", json={"key": "write", "message": "Plan a write"}).json()
+        selected = _select_main(client, base)
+        receipt = client.post(
+            base + "/turns", json={"key": "write", "message": "Plan a write", "session_id": selected}
+        ).json()
         dependencies = {"after": "queued"} if unknown else {}
         _wait_tasks(client, base, receipt, {"writer": "waiting_approval", **dependencies})
         [(worker,)] = _rows(tmp_path, "SELECT run_id FROM owa_tasks WHERE task_key='writer'")
@@ -515,7 +585,10 @@ def test_main_run_cancellation_stops_active_and_waiting_workers(tmp_path):
     model = Model()
     with TestClient(http_app(tmp_path, model=model, omniweave_mode="dispatch")) as client:
         base = _model_base(client, _authorize(client, tmp_path))
-        receipt = client.post(base + "/turns", json={"key": "cancel", "message": "Start cancellable work"}).json()
+        selected = _select_main(client, base)
+        receipt = client.post(
+            base + "/turns", json={"key": "cancel", "message": "Start cancellable work", "session_id": selected}
+        ).json()
         assert wait_run(client, base, receipt["run_id"])["state"] == "succeeded"
         assert model.started.wait(10)
         response = client.post(base + f"/runs/{receipt['run_id']}/cancel")
@@ -539,7 +612,10 @@ def test_worker_budget_denies_model_dispatch_before_reservation(tmp_path):
 
     with TestClient(http_app(tmp_path, model=Model(), omniweave_mode="dispatch")) as client:
         base = _model_base(client, _authorize(client, tmp_path))
-        receipt = client.post(base + "/turns", json={"key": "small-cap", "message": "Run within budget"}).json()
+        selected = _select_main(client, base)
+        receipt = client.post(
+            base + "/turns", json={"key": "small-cap", "message": "Run within budget", "session_id": selected}
+        ).json()
         ticket = _wait_tasks(client, base, receipt, {"bounded": "failed"})
         assert ticket["tasks"][0]["error_code"] == "delegation_budget_exceeded"
         assert wait_run(client, base, receipt["run_id"])["state"] == "succeeded"
@@ -566,7 +642,7 @@ def test_restart_reclaims_untouched_worker_and_quarantines_uncertain_attempt(tmp
         with TestClient(http_app(tmp_path, model=model, omniweave_mode="dispatch")) as client:
             agent = _authorize(client, tmp_path)
             base = _model_base(client, agent)
-            body = {"key": "restart", "message": "Plan recoverable work"}
+            body = {"key": "restart", "message": "Plan recoverable work", "session_id": _select_main(client, base)}
             receipt = client.post(base + "/turns", json=body).json()
             assert wait_run(client, base, receipt["run_id"])["state"] == "succeeded"
             ticket = _wait_tasks(client, base, receipt, dict.fromkeys(("pending", "starting", "uncertain"), "queued"))

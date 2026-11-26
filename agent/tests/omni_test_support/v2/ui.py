@@ -67,6 +67,7 @@ def v2_server(tmp_path, request):
     app = http_app(
         tmp_path,
         model=UiModel(),
+        omniweave_mode="enabled" if getattr(request, "param", None) == "omniweave" else "off",
         delivery_ports={"qq": FakePort()} if getattr(request, "param", None) == "delivery" else None,
         credential_backend=credential_backend,
     )

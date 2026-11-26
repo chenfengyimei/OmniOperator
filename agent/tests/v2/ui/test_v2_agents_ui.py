@@ -1,6 +1,7 @@
 """Space creation and revision-conflict recovery use production owner APIs in independent browser contexts."""
 
 import httpx
+import pytest
 from omni_test_support.v2.ui import v2_server as v2_server
 from playwright.sync_api import expect
 
@@ -10,6 +11,33 @@ def connect(page, url, token):
     page.locator("#token").fill(token)
     page.get_by_role("button", name="连接实例", exact=True).click()
     expect(page.locator("body")).to_have_attribute("data-connected", "true")
+
+
+@pytest.mark.parametrize("v2_server", ["omniweave"], indirect=True)
+def test_workbench_creates_and_reopens_the_explicit_owa_main_conversation(ui_browser, v2_server):
+    url, token = v2_server
+    context = ui_browser.new_context()
+    try:
+        page = context.new_page()
+        connect(page, url, token)
+        page.get_by_role("button", name="创建 OWA 主会话", exact=True).click()
+        main = page.get_by_role("button", name="打开 OWA 主会话", exact=True)
+        expect(main).to_be_enabled()
+        row = page.locator("#sessions li.active")
+        expect(row).to_contain_text("OmniWeave")
+        identity = row.get_attribute("data-id")
+        agent = page.locator("#agents").input_value()
+        with httpx.Client(base_url=url, headers={"Authorization": "Bearer " + token}, timeout=10) as api:
+            base = f"/api/v1/agents/{agent}"
+            assert api.get(base + "/omniweave/main-session").json() == {"enabled": True, "session_id": identity}
+            assert api.get(base + f"/sessions/{identity}/messages").json() == {"items": []}
+        page.get_by_role("button", name="新建对话", exact=True).first.click()
+        with page.expect_response(f"**/sessions/{identity}/messages") as opened:
+            main.click()
+        assert opened.value.ok
+        expect(row).to_have_attribute("data-id", identity)
+    finally:
+        context.close()
 
 
 def test_owner_can_create_switch_and_rename_a_space_without_copying_private_settings(ui_browser, v2_server):
