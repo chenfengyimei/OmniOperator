@@ -45,6 +45,8 @@ uv run --no-sync omni-v2 --home .\temp\build\owa-enabled serve --omniweave-mode 
 - `v2_0055` 新建执行授权、任务和依赖三张表，数据库触发器校验 Worker 和依赖的 Ticket 绑定。Router、普通根回合和 OWA Worker 共用内核容量。默认容量为四时最多同时运行三个 OWA Worker，容量为一时串行轮转。`delegate_task` 保有既有并发额度，仍走原租约。[迁移](../../../agent/src/omni/adapters/persistence/migrations/versions/v0055.py) · [查询入口](../../../agent/src/omni/adapters/http_routes/omniweave.py)
 - `v2_0056` 为具有 OWA 执行授权且由已登记的 `owa_plan` 调用产生的子 Run 提供八个名额。既有 `delegate_task` 继续每父 Run 最多四个，保留原来源、会话、快照和策略绑定。[数据库触发器](../../../agent/src/omni/adapters/persistence/migrations/versions/v0056.py)
 - `GET /api/v1/agents/{agent_id}/omniweave/main-session` 读取启用状态与选定会话。`PUT` 带 `session_id` 选择既有私有 Web 会话，值为 `null` 时首次创建，重试返回已选会话。另选一个有效会话时返回 `409 owa_main_session_exists`。跨 Agent、委派子会话和 QQ 会话不参与选择。`v2_0057` 增补选择标记和唯一索引。旧执行回执继续可查，升级后首次新受理按显式选择决定路由。[HTTP](../../../agent/src/omni/adapters/http_routes/omniweave.py) · [迁移](../../../agent/src/omni/adapters/persistence/migrations/versions/v0057.py)
+- `v2_0058` 为新 Ticket 捕获不可变根 Mandate，为每个 Worker 捕获同目标版本的执行 Mandate。根授权从已认证的所有者 Web 输入和当前策略生成。快照固定主会话、所有者、目标摘要、策略与历史代次、工具规格和读写风险、预算及期限。执行授权绑定 Worker Run 和对应隔离工作区，权限、预算与期限受根授权约束。根期限默认 24 小时，Worker 可指定更短期限。升级时保留已登记 Worker 的原授权，升级前尚无计划的 Router 回合须由所有者提交新回合才能启动新计划。[数据库合同](../../../agent/src/omni/adapters/persistence/migrations/versions/v0058.py) · [运行授权](../../../agent/src/omni/adapters/persistence/omniweave_authority.py)
+- `owa_plan` 支持 `research`、`coding`、`verification`、`documentation` 四个 v1 Profile。省略时按 `coding` 处理。当前 Research 与 Verification 只读，Coding 与 Documentation 可在自己的工作区请求文件写入，每次继续走 V2 逐次审批。任务视图公开 Profile 名称和版本及目标版本。领取、发送模型请求和工具派发复核当时权限，授权到期后已批准的动作也会被拦截。终端、外部来源和 Execution Profile 随后续阶段接入。[Profile 合同](../../../agent/src/omni/domain/omniweave.py)
 
 ### Phase 2 验收
 
@@ -56,10 +58,12 @@ Windows x64 上对源码 `d40bf6b5` 跑了 43 个文件，373 项通过。一项
 
 显式主会话批 `c9c47162` 通过 45 项生产入口、工作台、架构、事件流和委派专项，另有 13 项历史迁移回归通过。空库及 V53、V54、V55、V56 副本迁移至 `v2_0057`，完整性与外键检查通过。V56 已受理的 Router 回执保留，后续从明确选定的会话接收新 Router 回合。严格类型检查覆盖 506 个文件，零错误、零警告。[主会话批证据](../evidence/owa-main-session-2026-11-27.json)
 
+Profile 与 Mandate 批 `5e7baa36` 通过 64 项生产入口与内核专项、59 项历史迁移和 1 项快照恢复回归。真实 HTTP 调用替身证明，所有者已批准的写入在派发前遇到授权到期时不启动动作。空库和 V53 至 V57 副本迁移至 `v2_0058`，严格类型检查覆盖 508 个文件，零错误、零警告。[授权批证据](../evidence/owa-worker-mandates-2026-11-27.json)
+
 ## Phase 3 续接边界
 
 已领取或刚进入 `running` 的 OWA Worker，在模型、动作和投递账本均无记录时，重启后用同一 Run 和工作项恢复排队。实例恢复释放旧租约。恢复 `dispatch` 后由当前进程重新核对 Ticket、会话、模型和策略，再领取工作。处在 `off` 或 `observe` 时可查询原计划，工作保持排队。有派发记录或待批准的中断尝试继续走原账本核查。
 
 源码 `8a422751` 的 46 项离线专项通过，覆盖跨 boot 领取、重复重启、未知调用保留、旧委派与内核检查点。迁移头为 `v2_0055`。[恢复专项证据](../evidence/owa-pre-dispatch-recovery-2026-11-26.json)
 
-正式规格剩余的前置开发是版本化 Worker Profile、根与执行 Mandate。随后实现同根同目标版本的持久邮箱、请求与回复、订阅和版本化授权对象，再接主会话追加、已确认检查点续接与 Router 原位交付。Phase 3 用校园助手离线场景验收。Phase 4–7 依次覆盖长作业与 Watchdog、数字身体、外部事件和发布。发布候选按实际 SHA 执行全量、配对基准、包生命周期、独立机器、真实平台和 72 小时常驻验收。
+接续目标是实现同根同目标版本的持久邮箱、请求与回复、订阅和版本化授权对象，再接主会话追加、已确认检查点续接与 Router 原位交付。Phase 3 用校园助手离线场景验收。Phase 4–7 依次覆盖长作业与 Watchdog、数字身体、外部事件和发布。发布候选按实际 SHA 执行全量、配对基准、包生命周期、独立机器、真实平台和 72 小时常驻验收。

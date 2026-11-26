@@ -314,6 +314,8 @@
         "agent/src/omni/adapters/persistence/migrations/versions/v0055.py",
         "agent/src/omni/adapters/persistence/migrations/versions/v0056.py",
         "agent/src/omni/adapters/persistence/migrations/versions/v0057.py",
+        "agent/src/omni/adapters/persistence/migrations/versions/v0058.py",
+        "agent/src/omni/adapters/persistence/omniweave_authority.py#authorize_mandate",
         "agent/src/omni/adapters/persistence/omniweave_repository.py#OmniWeaveRepositories.omniweave_plan",
         "agent/src/omni/adapters/persistence/delegation_repository.py#DelegationRepositories.claim_delegated_runs",
         "agent/src/omni/adapters/persistence/delegation_repository.py#DelegationRepositories.delegation_recover",
