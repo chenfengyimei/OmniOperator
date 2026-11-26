@@ -22,6 +22,7 @@ from omni_test_support.v2.v2_configuration_helpers import model_instance
 
 def use_offline_sdk_tokenizer(monkeypatch):
     import tiktoken
+    from litellm import utils
     from litellm.litellm_core_utils import token_counter
 
     # Provider usage comes from the wire. Keep the SDK's incidental estimates
@@ -32,6 +33,8 @@ def use_offline_sdk_tokenizer(monkeypatch):
         mergeable_ranks={bytes([value]): value for value in range(256)},
         special_tokens={},
     )
+    monkeypatch.setattr(utils, "get_default_encoding", lambda: encoding)
+    monkeypatch.setattr(token_counter, "get_default_encoding", lambda: encoding)
     monkeypatch.setattr(token_counter, "get_encoding", lambda _name: encoding)
 
 

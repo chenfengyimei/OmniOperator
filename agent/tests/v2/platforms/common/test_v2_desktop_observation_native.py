@@ -12,6 +12,7 @@ from pathlib import Path
 
 import pytest
 from omni_test_support.paths import PRODUCT_ROOT as PRODUCT_ROOT
+from omni_test_support.v2.v2_desktop_helpers import WindowsWorkerDiagnostics
 
 from omni.adapters.platform.desktop.backend import DesktopBackend
 from omni.domain.contracts import BusinessError
@@ -154,7 +155,7 @@ finally:
         target = json.loads((tmp_path / "ready.json").read_text(encoding="utf-8"))
 
         async def exercise():
-            backend = DesktopBackend(capture_root=tmp_path / "captures")
+            backend = WindowsWorkerDiagnostics(capture_root=tmp_path / "captures")
             try:
                 if operation == "act":
 
@@ -207,10 +208,8 @@ finally:
                         await asyncio.sleep(0.05)
                     assert backend.health()["resident"] == 0
                     return
-                try:
-                    report = await getattr(backend, operation)(target)
-                except BusinessError as error:
-                    pytest.fail("Isolated desktop " + operation + " failed: " + error.code)
+                report = await getattr(backend, operation)(target)
+                assert "response" in backend.native_phases()
                 if operation == "capture":
                     report.validate()
                     assert (report.width, report.height) == (640, 480)
@@ -229,6 +228,8 @@ finally:
                     await getattr(backend, operation)({**target, "process_created": target["process_created"] + 1})
                 assert error.value.code == "desktop_target_changed"
                 assert backend.health()["resident"] == 0
+            except BusinessError as error:
+                pytest.fail(f"Isolated desktop {operation} failed: {error.code}; phases={backend.native_phases()}")
             finally:
                 assert await backend.close()
 

@@ -16,6 +16,7 @@ from omni.core.run import CancelToken
 from omni.memory.command_jobs import CommandJobStore, FINAL
 from omni.memory.state import StateStore
 from omni.safety.gates import DenyApprover
+from omni.system.process_identity import ProcessIdentityError, inspect_process, terminate_verified_tree
 from omni.tools.registry import ToolRegistry, SessionRef
 from omni.tools.runctx import RunRef
 from omni.tools.shell.jobs import CommandJobManager
@@ -49,8 +50,20 @@ def env(tmp_path):
                 creationflags=subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0,
             )
 
+        def terminate(identity, *, timeout_s):
+            try:
+                terminate_verified_tree(identity, timeout_s=timeout_s)
+            except ProcessIdentityError as error:
+                print(f"Test process reclamation: {error}")
+                raise
+
         host = CommandJobManager(
-            store, tmp_path / "logs", root=tmp_path, config=CommandJobsConfig(**changes), spawner=spawn
+            store,
+            tmp_path / "logs",
+            root=tmp_path,
+            config=CommandJobsConfig(**changes),
+            spawner=spawn,
+            terminator=terminate,
         )
         hosts.append(host)
         return host
@@ -177,10 +190,9 @@ def test_queue_cancel_and_close_budget(env):
 
 @pytest.mark.skipif(os.name != "nt", reason="Windows 进程树验收")
 def test_cancel_reclaims_owned_child_process(env):
-    from omni.system.process_identity import inspect_process
-
     create, _, root = env
-    code = "import subprocess,sys,time;from pathlib import Path;p=subprocess.Popen([sys.executable,'-c','import time;time.sleep(30)']);Path('child.pid.tmp').write_text(str(p.pid));Path('child.pid.tmp').replace('child.pid');time.sleep(30)"
+    child_code = "import os,time;from pathlib import Path;Path('child.pid.tmp').write_text(str(os.getpid()));Path('child.pid.tmp').replace('child.pid');time.sleep(30)"
+    code = f"import subprocess,sys,time;subprocess.Popen([sys.executable, '-c', {child_code!r}]);time.sleep(30)"
     host = create(code)
     identifier = start(host)
     deadline = time.monotonic() + 5
@@ -189,7 +201,8 @@ def test_cancel_reclaims_owned_child_process(env):
     child = int((root / "child.pid").read_text())
     assert inspect_process(child) is not None
     host.cancel(identifier)
-    assert wait(host, identifier)["status"] == "cancelled"
+    row = wait(host, identifier)
+    assert row["status"] == "cancelled", row
     assert inspect_process(child) is None
 
 

@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "acc25251d9415795839062bc2ff87b2e6e6ab65a6ae057b1042a0a68c6d745bb",
+  "source_sha256": "bd0ee88614405c907acb41c53cc1699cb92f32d621f652466b35124da178e9c6",
   "modules": [
     {
       "id": "v2-domain",
@@ -551,7 +551,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 73364,
+      "lines": 73384,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -2473,7 +2473,7 @@
         "agent/src/omni/system/supervisor.py",
         "agent/src/omni/system/text_guard.py"
       ],
-      "lines": 4664,
+      "lines": 4691,
       "dependencies": [
         "agent-directories",
         "config",
@@ -48804,7 +48804,7 @@
       "version": "V2",
       "module": "v2-adapters",
       "python_module": null,
-      "lines": 348,
+      "lines": 356,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -48815,7 +48815,7 @@
       "version": "V2",
       "module": "v2-adapters",
       "python_module": null,
-      "lines": 82,
+      "lines": 94,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -107113,7 +107113,7 @@
       "module": "platform",
       "version": "V1",
       "python_module": "omni.system.process_identity",
-      "lines": 262,
+      "lines": 289,
       "imports": [],
       "symbols": [
         {
@@ -107210,14 +107210,27 @@
           }
         },
         {
-          "name": "terminate_verified_tree.retain",
-          "line": 215,
+          "name": "terminate_verified_tree.already_exited",
+          "line": 216,
           "kind": "function",
           "parameters": [
-            "identity"
+            "pid"
           ],
           "annotations": {
-            "identity": "ProcessIdentity"
+            "pid": "int"
+          }
+        },
+        {
+          "name": "terminate_verified_tree.retain",
+          "line": 225,
+          "kind": "function",
+          "parameters": [
+            "identity",
+            "allow_exited"
+          ],
+          "annotations": {
+            "identity": "ProcessIdentity",
+            "allow_exited": "bool"
           }
         }
       ],

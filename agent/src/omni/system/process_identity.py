@@ -210,18 +210,35 @@ def terminate_verified_tree(root: ProcessIdentity, *, timeout_s: float = 8) -> N
         raise ProcessIdentityError("拒绝终止当前工作台进程")
     api = _kernel()
     handles: dict[int, tuple[object, ProcessIdentity]] = {}
+    exited_children: set[int] = set()
     deadline = time.monotonic() + timeout_s
 
-    def retain(identity: ProcessIdentity) -> None:
+    def already_exited(pid: int) -> bool:
+        handle = api.OpenProcess(0x00100000, False, pid)  # SYNCHRONIZE only
+        if not handle:
+            return ctypes.get_last_error() == 87  # ERROR_INVALID_PARAMETER
+        try:
+            return api.WaitForSingleObject(handle, 0) == 0
+        finally:
+            api.CloseHandle(handle)
+
+    def retain(identity: ProcessIdentity, *, allow_exited: bool = False) -> bool:
         if time.monotonic() >= deadline:
             raise ProcessIdentityError("进程树核验超时，未终止")
         handle = api.OpenProcess(0x1000 | 0x0001 | 0x00100000, False, identity.pid)
         if not handle:
+            if allow_exited and ctypes.get_last_error() == 87:
+                return False
             raise ProcessIdentityError(f"无法保留服务进程句柄 pid={identity.pid}")
         if _identity_from_handle(api, handle, identity.pid) != identity:
-            api.CloseHandle(handle)
+            try:
+                if allow_exited and api.WaitForSingleObject(handle, 0) == 0:
+                    return False
+            finally:
+                api.CloseHandle(handle)
             raise ProcessIdentityError(f"进程身份变化，未终止 pid={identity.pid}")
         handles[identity.pid] = (handle, identity)
+        return True
 
     try:
         retain(root)
@@ -230,21 +247,28 @@ def terminate_verified_tree(root: ProcessIdentity, *, timeout_s: float = 8) -> N
         for _ in range(32):
             found = False
             for pid, parent in parents.items():
-                if pid in handles or parent not in handles:
+                if pid in handles or pid in exited_children or parent not in handles:
                     continue
                 identity = inspect_process(pid)
                 if identity is None:
+                    if already_exited(pid):
+                        exited_children.add(pid)
+                        continue
                     raise ProcessIdentityError(f"后代身份不可读，停止前中止 pid={pid}")
                 if int(identity.created) < int(handles[parent][1].created):
                     continue
                 if len(handles) >= 256 or pid == os.getpid():
                     raise ProcessIdentityError("进程树过大或包含工作台，拒绝终止")
-                retain(identity)
-                found = True
+                if retain(identity, allow_exited=True):
+                    found = True
+                else:
+                    exited_children.add(pid)
             if not found:
                 break
         else:
             raise ProcessIdentityError("进程树过深，未终止")
+        if any(parent in exited_children for parent in parents.values()):
+            raise ProcessIdentityError("存在已退出祖先的未核验后代，未终止")
         # 先停止祖先产生新进程，再按已保留句柄回收；句柄不会因 PID 重用指向新进程。
         for handle, identity in handles.values():
             current = _identity_from_handle(api, handle, identity.pid)
@@ -255,7 +279,10 @@ def terminate_verified_tree(root: ProcessIdentity, *, timeout_s: float = 8) -> N
             if api.WaitForSingleObject(handle, milliseconds) != 0:
                 raise ProcessIdentityError(f"进程退出未确认 pid={identity.pid}")
         remaining = process_parents()
-        if any(parent in handles and pid not in handles for pid, parent in remaining.items()):
+        new_children = {pid for pid, parent in remaining.items() if parent in handles and pid not in handles}
+        if any(parent in exited_children or parent in new_children for parent in remaining.values()) or any(
+            not already_exited(pid) for pid in new_children
+        ):
             raise ProcessIdentityError("停止过程中产生了未核验后代；保留记录，需人工核查残留")
     finally:
         for handle, _ in handles.values():

@@ -83,9 +83,18 @@ jobs:
           uv run --no-sync pytest -q -n 0
           agent/tests/v2/operations/test_v2_private_permissions.py
           agent/tests/v2/operations/test_v2_service_runtime.py::test_identity_tracks_real_boot_and_drains_before_releasing_lock
-      - name: Run the full repository test suite
+      - name: Run Windows native UIA tests serially
+        id: windows-native
         if: runner.os == 'Windows'
-        run: uv run --no-sync python scripts/ci_v2.py --windows-repository
+        run: uv run --no-sync python scripts/ci_v2.py --windows-repository native
+      - uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() && (steps.windows-native.outcome == 'success' || steps.windows-native.outcome == 'failure') }}
+        with:
+          name: offline-native-windows
+          path: temp/build/v2-ci/pytest-windows-native.xml
+      - name: Run the remaining Windows repository tests
+        if: ${{ !cancelled() && (steps.windows-native.outcome == 'success' || steps.windows-native.outcome == 'failure') }}
+        run: uv run --no-sync python scripts/ci_v2.py --windows-repository remaining
       - name: Run the portable V2 tests
         if: runner.os != 'Windows'
         run: uv run --no-sync python scripts/ci_v2.py
@@ -93,7 +102,7 @@ jobs:
         if: always()
         with:
           name: offline-tests-${{ matrix.os }}
-          path: temp/build/v2-ci/pytest*.xml
+          path: temp/build/v2-ci/pytest.xml
   local-vectors:
     strategy:
       fail-fast: false

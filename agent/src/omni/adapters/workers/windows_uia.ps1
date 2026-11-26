@@ -1,41 +1,51 @@
 # Fixed V2 UIA entry. The owning process enforces approval, time, pipes and Job cleanup.
 $ErrorActionPreference = 'Stop'
 $ProgressPreference = 'SilentlyContinue'
-[Console]::InputEncoding = New-Object System.Text.UTF8Encoding($false, $true)
-[Console]::OutputEncoding = New-Object System.Text.UTF8Encoding($false, $true)
+function Write-TestPhase($phase) {
+    if ($env:OMNI_TEST_OFFLINE -eq '1') { [Console]::Error.WriteLine("omni-uia:$phase") }
+}
+Write-TestPhase 'startup'
+# Own the encoding of the redirected pipes without changing a console code page.
+$utf8 = [Text.UTF8Encoding]::new($false, $true)
+$stdin = [IO.StreamReader]::new([Console]::OpenStandardInput(), $utf8, $false)
+$stdout = [IO.StreamWriter]::new([Console]::OpenStandardOutput(), $utf8)
+Write-TestPhase 'pipes'
 $request = $null
 try {
     $buffer = New-Object char[] 65537
     $length = 0
     while ($length -lt $buffer.Length) {
-        $value = [Console]::In.Read()
+        $value = $stdin.Read()
         if ($value -lt 0) { break }
         $buffer[$length++] = [char]$value
         if ($value -eq 10) { break }
     }
     $line = New-Object string($buffer, 0, $length)
-    if ($length -eq 0 -or [Text.Encoding]::UTF8.GetByteCount($line) -gt 65536 -or -not $line.EndsWith("`n")) { exit 2 }
+    if ($length -eq 0 -or $utf8.GetByteCount($line) -gt 65536 -or -not $line.EndsWith("`n")) { exit 2 }
     $request = $line | ConvertFrom-Json
     if ($request.version -ne 'omni-desktop-ipc-6' -or $request.operation -notin @('observe','capture','act','foreground') -or $request.limit -ne 1 -or $request.target.platform -ne 'win32') { exit 2 }
     $identity = [guid]::ParseExact($request.request_id, 'D')
+    Write-TestPhase 'request'
     Add-Type -AssemblyName UIAutomationClient,UIAutomationTypes,WindowsBase,System.Drawing,System.Numerics
     $sources = @((Join-Path $PSScriptRoot 'windows_uia.cs'))
     if ($request.operation -eq 'foreground') {
         $sources += (Join-Path $PSScriptRoot 'windows_foreground.cs')
     }
     Add-Type -Path $sources -ReferencedAssemblies UIAutomationClient,UIAutomationTypes,WindowsBase,System.Core,System.Drawing,System.Numerics
+    Write-TestPhase 'compiled'
     $t = $request.target
     if ($request.operation -eq 'foreground') {
         $a = $request.action
         if ($a.policy -ne 'desktop-foreground-1' -or $a.takeover -ne $true) { exit 2 }
         $authorize = [Func[bool]] {
             $ready = [ordered]@{version=$request.version;request_id=$request.request_id;operation='foreground';phase='ready';grant_id=$a.grant_id;run_id=$a.run_id;operation_id=$a.operation_id}
-            [Console]::Out.Write(($ready | ConvertTo-Json -Depth 4 -Compress) + "`n")
-            [Console]::Out.Flush()
+            $stdout.Write(($ready | ConvertTo-Json -Depth 4 -Compress) + "`n")
+            $stdout.Flush()
+            Write-TestPhase 'ready'
             $control = New-Object char[] 1024
             $used = 0
             while ($used -lt $control.Length) {
-                $next = [Console]::In.Read()
+                $next = $stdin.Read()
                 if ($next -lt 0) { return $false }
                 $control[$used++] = [char]$next
                 if ($next -eq 10) { break }
@@ -60,6 +70,7 @@ try {
         $result = [OmniV2Desktop.Observer]::Observe([long]$t.native_id, [uint32]$t.pid, [string]$t.process_created, [string]$t.application_id, [string]$t.session_id)
         $payload = @{target=$t;nodes=@($result.Nodes.ToArray());truncated=$result.Truncated}
     }
+    Write-TestPhase 'native-result'
     $response = [ordered]@{version=$request.version;request_id=$request.request_id;operation=$request.operation;ok=$true;result=$payload;error_code=$null}
 } catch {
     if ($null -eq $request) { exit 2 }
@@ -71,12 +82,13 @@ try {
 }
 try {
     $frame = ($response | ConvertTo-Json -Depth 12 -Compress) + "`n"
-    while ([Text.Encoding]::UTF8.GetByteCount($frame) -gt 65536 -and $response.ok -and $response.result.nodes.Count -gt 1) {
+    while ($utf8.GetByteCount($frame) -gt 65536 -and $response.ok -and $response.result.nodes.Count -gt 1) {
         $response.result.nodes = @($response.result.nodes[0..($response.result.nodes.Count - 2)])
         $response.result.truncated = $true
         $frame = ($response | ConvertTo-Json -Depth 12 -Compress) + "`n"
     }
-    if ([Text.Encoding]::UTF8.GetByteCount($frame) -gt 65536) { exit 2 }
-    [Console]::Out.Write($frame)
-    [Console]::Out.Flush()
+    if ($utf8.GetByteCount($frame) -gt 65536) { exit 2 }
+    $stdout.Write($frame)
+    $stdout.Flush()
+    Write-TestPhase 'response'
 } catch { exit 2 }

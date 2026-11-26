@@ -1,4 +1,4 @@
-"""Injected metadata-only desktop ports; no real desktop, model or network access."""
+"""Desktop fixtures and diagnostics for owned native test processes."""
 
 from __future__ import annotations
 
@@ -7,12 +7,42 @@ import copy
 import datetime as dt
 import hashlib
 import io
+import re
 import threading
 
 from PIL import Image
 
+from omni.adapters.platform.desktop.backend import DesktopBackend
 from omni.domain.contracts import BusinessError
 from omni.domain.desktop import CAPABILITIES, VERSION, CapturedFrame
+
+
+class WindowsWorkerDiagnostics(DesktopBackend):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self._trace = bytearray()
+
+    async def _drain(self, host, stream, *, stdout):
+        if stdout:
+            await super()._drain(host, stream, stdout=stdout)
+            return
+        trace = self._trace
+
+        class Reader:
+            async def read(self, size):
+                block = await stream.read(size)
+                trace.extend(block[: max(0, 2048 - len(trace))])
+                return block
+
+        await super()._drain(host, Reader(), stdout=stdout)
+
+    def native_phases(self):
+        matches = re.findall(
+            rb"^omni-uia:(startup|pipes|request|compiled|window|session|identity|printed|uia-root|ready|native-result|response)\r?$",
+            self._trace,
+            re.M,
+        )
+        return tuple(value.decode("ascii") for value in matches)
 
 
 def captured_frame():

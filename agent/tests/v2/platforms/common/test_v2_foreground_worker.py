@@ -10,6 +10,7 @@ from contextlib import contextmanager
 
 import pytest
 from omni_test_support.paths import PRODUCT_ROOT as PRODUCT_ROOT
+from omni_test_support.v2.v2_desktop_helpers import WindowsWorkerDiagnostics
 
 from omni.adapters.platform.desktop.backend import DesktopBackend
 from omni.adapters.platform.runtime.processes import OwnedProcess
@@ -126,18 +127,6 @@ def test_foreground_worker_port_framing_pause_partial_and_cleanup(tmp_path, faul
     script.write_text(program, encoding="utf-8")
     proof = tmp_path / "input-proof.json"
 
-    class FixtureDiagnostics(DesktopBackend):
-        async def _drain(self, host, stream, *, stdout):
-            class Reader:
-                async def read(self, size):
-                    block = await stream.read(size)
-                    if not stdout and block:
-                        with (tmp_path / "owned-helper-stderr.txt").open("ab") as output:
-                            output.write(block)
-                    return block
-
-            await super()._drain(host, Reader(), stdout=stdout)
-
     async def spawn(argv, **kwargs):
         kwargs["env"].update(OMNI_FOREGROUND_FAULT=fault, OMNI_FOREGROUND_PROOF=str(proof))
         return await OwnedProcess.spawn([*argv[:-1], str(script)], **kwargs)
@@ -145,13 +134,15 @@ def test_foreground_worker_port_framing_pause_partial_and_cleanup(tmp_path, faul
     with fixture_window(tmp_path) as target:
 
         async def scenario():
-            observer = FixtureDiagnostics()
+            observer = WindowsWorkerDiagnostics()
             try:
                 tree = await observer.observe(target)
                 node = next(n for n in tree["nodes"] if n["role"] == "ControlType.Edit" and "press_key" in n["actions"])
+            except BusinessError as error:
+                pytest.fail(f"Owned fixture observation failed: {error.code}; phases={observer.native_phases()}")
             finally:
                 assert await observer.close()
-            backend = FixtureDiagnostics(process_factory=spawn)
+            backend = WindowsWorkerDiagnostics(process_factory=spawn)
 
             async def guard():
                 if fault == "revoked" and any(h.ready.is_set() for h in backend._hosts):
@@ -173,6 +164,7 @@ def test_foreground_worker_port_framing_pause_partial_and_cleanup(tmp_path, faul
                     action,
                     before_dispatch=guard,
                 )
+                assert result.get("error_code") != "desktop_timeout", (result, backend.native_phases())
                 if fault in {"before", "revoked", "target_changed"}:
                     assert result["status"] == "denied" and result["effect"] == "none", result
                 else:

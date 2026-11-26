@@ -151,6 +151,9 @@ namespace OmniV2Desktop {
 
         static Exception Changed() { return new InvalidOperationException("desktop_target_changed"); }
         static Exception Denied() { return new InvalidOperationException("desktop_permission_denied"); }
+        static void TraceTestPhase(string phase) {
+            if (Environment.GetEnvironmentVariable("OMNI_TEST_OFFLINE")=="1") Console.Error.WriteLine("omni-uia:"+phase);
+        }
         static string Name(IntPtr handle) {
             IntPtr data = Marshal.AllocHGlobal(512);
             try {
@@ -202,7 +205,9 @@ namespace OmniV2Desktop {
         static void Identity(IntPtr handle, IntPtr window, uint expectedPid, string created, string application, string session) {
             uint pid; uint thread=GetWindowThreadProcessId(window,out pid);
             if (thread==0 || pid!=expectedPid || !IsWindowVisible(window) || WaitForSingleObject(handle,0)!=258) throw Changed();
+            TraceTestPhase("window");
             if (Session(pid,thread)!=session) throw Denied();
+            TraceTestPhase("session");
             long c,e,k,u;
             if (!GetProcessTimes(handle,out c,out e,out k,out u) || CreationBits(c)!=created) throw Changed();
             var path=new StringBuilder(32768); uint size=32768;
@@ -215,6 +220,7 @@ namespace OmniV2Desktop {
                     if (target.User==null || current.User==null || !target.User.Equals(current.User)) throw Denied();
                 }
             } finally { CloseHandle(token); }
+            TraceTestPhase("identity");
         }
         static RECT CaptureBounds(IntPtr window) {
             RECT bounds; int cloaked; uint affinity;
@@ -245,6 +251,7 @@ namespace OmniV2Desktop {
                         try {
                             // May block in an unresponsive target. The host owns the total deadline and Job.
                             if (!PrintWindow(window,dc,0)) throw new InvalidOperationException("desktop_capture_failed");
+                            TraceTestPhase("printed");
                         } finally { graphics.ReleaseHdc(dc); }
                     }
                     Identity(handle,window,pid,created,application,session);
@@ -292,6 +299,7 @@ namespace OmniV2Desktop {
             try {
                 Identity(handle,window,pid,created,application,session);
                 var root=AutomationElement.FromHandle(window);
+                TraceTestPhase("uia-root");
                 if (root==null || root.Current.ProcessId!=pid || root.Current.NativeWindowHandle!=hwnd) throw Changed();
                 int[] rootId=root.GetRuntimeId();
                 var result=new Observation(); var queue=new Queue<Entry>();

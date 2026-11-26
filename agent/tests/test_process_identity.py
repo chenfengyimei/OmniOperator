@@ -232,6 +232,36 @@ def test_native_identity_change_before_retention_prevents_any_termination(tmp_pa
     assert killed == []
 
 
+@pytest.mark.parametrize("child_wait,descendants,can_stop", [(0, {}, True), (258, {}, False), (0, {125: 124}, False)])
+def test_process_tree_proves_snapshot_child_exited_before_stopping_root(
+    tmp_path, monkeypatch, child_wait, descendants, can_stop
+):
+    from omni.system import process_identity as module
+
+    root = ProcessIdentity(123, "100", str(tmp_path / "root.exe"))
+    terminated = []
+    api = SimpleNamespace(
+        OpenProcess=lambda flags, inherit, pid: pid + 2**40,
+        CloseHandle=lambda _: None,
+        TerminateProcess=lambda handle, _: terminated.append(handle - 2**40) or True,
+        WaitForSingleObject=lambda handle, _: child_wait if handle - 2**40 == 124 else 0,
+    )
+    monkeypatch.setattr(module, "os", SimpleNamespace(name="nt", getpid=lambda: 1))
+    monkeypatch.setattr(module, "_kernel", lambda: api)
+    monkeypatch.setattr(module, "_identity_from_handle", lambda *_: root)
+    monkeypatch.setattr(module, "inspect_process", lambda _: None)
+    snapshots = iter([{124: root.pid, **descendants}, {}])
+    monkeypatch.setattr(module, "process_parents", lambda: next(snapshots))
+
+    if can_stop:
+        module.terminate_verified_tree(root)
+        assert terminated == [root.pid]
+    else:
+        with pytest.raises(module.ProcessIdentityError, match="后代"):
+            module.terminate_verified_tree(root)
+        assert not terminated
+
+
 def test_stop_token_is_bound_to_launch_and_graceful_exit_does_not_kill(tmp_path):
     import threading
     import time
