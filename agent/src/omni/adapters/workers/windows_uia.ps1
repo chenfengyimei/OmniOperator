@@ -24,16 +24,22 @@ try {
     $line = [string]::new($buffer, 0, $length)
     if ($length -eq 0 -or $utf8.GetByteCount($line) -gt 65536 -or -not $line.EndsWith("`n")) { exit 2 }
     Write-TestPhase 'frame'
-    $request = $line | ConvertFrom-Json
+    # Use the fixed Windows PowerShell utility module, without user module discovery.
+    $moduleRoot = [IO.Path]::Combine($PSHOME, 'Modules')
+    $env:PSModulePath = $moduleRoot
+    $PSModuleAutoLoadingPreference = 'None'
+    Import-Module -Name ([IO.Path]::Combine($moduleRoot, 'Microsoft.PowerShell.Utility', 'Microsoft.PowerShell.Utility.psd1'))
+    Write-TestPhase 'utility-loaded'
+    $request = Microsoft.PowerShell.Utility\ConvertFrom-Json -InputObject $line
     if ($request.version -ne 'omni-desktop-ipc-6' -or $request.operation -notin @('observe','capture','act','foreground') -or $request.limit -ne 1 -or $request.target.platform -ne 'win32') { exit 2 }
     $identity = [guid]::ParseExact($request.request_id, 'D')
     Write-TestPhase 'request'
-    Add-Type -AssemblyName UIAutomationClient,UIAutomationTypes,WindowsBase,System.Drawing,System.Numerics
-    $sources = @((Join-Path $PSScriptRoot 'windows_uia.cs'))
+    Microsoft.PowerShell.Utility\Add-Type -AssemblyName UIAutomationClient,UIAutomationTypes,WindowsBase,System.Drawing,System.Numerics
+    $sources = @([IO.Path]::Combine($PSScriptRoot, 'windows_uia.cs'))
     if ($request.operation -eq 'foreground') {
-        $sources += (Join-Path $PSScriptRoot 'windows_foreground.cs')
+        $sources += [IO.Path]::Combine($PSScriptRoot, 'windows_foreground.cs')
     }
-    Add-Type -Path $sources -ReferencedAssemblies UIAutomationClient,UIAutomationTypes,WindowsBase,System.Core,System.Drawing,System.Numerics
+    Microsoft.PowerShell.Utility\Add-Type -Path $sources -ReferencedAssemblies UIAutomationClient,UIAutomationTypes,WindowsBase,System.Core,System.Drawing,System.Numerics
     Write-TestPhase 'compiled'
     $t = $request.target
     if ($request.operation -eq 'foreground') {
@@ -41,7 +47,7 @@ try {
         if ($a.policy -ne 'desktop-foreground-1' -or $a.takeover -ne $true) { exit 2 }
         $authorize = [Func[bool]] {
             $ready = [ordered]@{version=$request.version;request_id=$request.request_id;operation='foreground';phase='ready';grant_id=$a.grant_id;run_id=$a.run_id;operation_id=$a.operation_id}
-            $stdout.Write(($ready | ConvertTo-Json -Depth 4 -Compress) + "`n")
+            $stdout.Write((Microsoft.PowerShell.Utility\ConvertTo-Json -InputObject $ready -Depth 4 -Compress) + "`n")
             $stdout.Flush()
             Write-TestPhase 'ready'
             $control = [char[]]::new(1024)
@@ -54,7 +60,7 @@ try {
             }
             if ($used -eq $control.Length -or $control[$used-1] -ne [char]10) { return $false }
             try {
-                $permit = [string]::new($control, 0, $used) | ConvertFrom-Json
+                $permit = Microsoft.PowerShell.Utility\ConvertFrom-Json -InputObject ([string]::new($control, 0, $used))
                 $expected = @('version','request_id','operation','phase','grant_id','run_id','operation_id')
                 if (@($permit.PSObject.Properties).Count -ne $expected.Count -or @($permit.PSObject.Properties.Name | Where-Object { $_ -notin $expected }).Count -ne 0) { return $false }
                 return ($permit.version -eq $request.version -and $permit.request_id -eq $request.request_id -and $permit.operation -eq 'foreground' -and $permit.phase -eq 'permit' -and $permit.grant_id -eq $a.grant_id -and $permit.run_id -eq $a.run_id -and $permit.operation_id -eq $a.operation_id)
@@ -83,11 +89,11 @@ try {
     $response = [ordered]@{version=$request.version;request_id=$request.request_id;operation=$request.operation;ok=$false;result=$null;error_code=$code}
 }
 try {
-    $frame = ($response | ConvertTo-Json -Depth 12 -Compress) + "`n"
+    $frame = (Microsoft.PowerShell.Utility\ConvertTo-Json -InputObject $response -Depth 12 -Compress) + "`n"
     while ($utf8.GetByteCount($frame) -gt 65536 -and $response.ok -and $response.result.nodes.Count -gt 1) {
         $response.result.nodes = @($response.result.nodes[0..($response.result.nodes.Count - 2)])
         $response.result.truncated = $true
-        $frame = ($response | ConvertTo-Json -Depth 12 -Compress) + "`n"
+        $frame = (Microsoft.PowerShell.Utility\ConvertTo-Json -InputObject $response -Depth 12 -Compress) + "`n"
     }
     if ($utf8.GetByteCount($frame) -gt 65536) { exit 2 }
     $stdout.Write($frame)

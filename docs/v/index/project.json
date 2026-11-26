@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "11d071919ab53c51e64258f31842701ebf2074216bc17c2ccfb73fe605ee971f",
+  "source_sha256": "844e2c511317455429ce2098a48c469b064489ee1dcc7e8ef1fa494d40a1373e",
   "modules": [
     {
       "id": "v2-domain",
@@ -549,10 +549,9 @@
         "agent/src/omni/adapters/workers/windows_foreground.cs",
         "agent/src/omni/adapters/workers/windows_services.ps1",
         "agent/src/omni/adapters/workers/windows_uia.cs",
-        "agent/src/omni/adapters/workers/windows_uia.ps1",
-        "agent/src/omni/adapters/workers/windows_uia_transport.py"
+        "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 73464,
+      "lines": 73394,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -27065,7 +27064,7 @@
       "module": "v2-adapters",
       "version": "V2",
       "python_module": "omni.adapters.platform.desktop.backend",
-      "lines": 692,
+      "lines": 693,
       "imports": [
         "omni.adapters.platform.desktop",
         "omni.adapters.platform.desktop.linux.linux_lease_client",
@@ -27390,14 +27389,14 @@
         },
         {
           "name": "DesktopBackend._spawn.collected",
-          "line": 412,
+          "line": 413,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "DesktopBackend._reclaim_actual",
-          "line": 420,
+          "line": 421,
           "kind": "function",
           "parameters": [
             "self",
@@ -27411,7 +27410,7 @@
         },
         {
           "name": "DesktopBackend._file",
-          "line": 468,
+          "line": 469,
           "kind": "function",
           "parameters": [
             "self",
@@ -27427,14 +27426,14 @@
         },
         {
           "name": "DesktopBackend._file.actual",
-          "line": 472,
+          "line": 473,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "DesktopBackend._reclaim",
-          "line": 481,
+          "line": 482,
           "kind": "function",
           "parameters": [
             "self",
@@ -27448,7 +27447,7 @@
         },
         {
           "name": "DesktopBackend._dispatch_gate",
-          "line": 496,
+          "line": 497,
           "kind": "function",
           "parameters": [
             "self",
@@ -27460,7 +27459,7 @@
         },
         {
           "name": "DesktopBackend._run",
-          "line": 509,
+          "line": 510,
           "kind": "function",
           "parameters": [
             "self",
@@ -27478,7 +27477,7 @@
         },
         {
           "name": "DesktopBackend.close",
-          "line": 681,
+          "line": 682,
           "kind": "function",
           "parameters": [
             "self",
@@ -48816,68 +48815,11 @@
       "version": "V2",
       "module": "v2-adapters",
       "python_module": null,
-      "lines": 96,
+      "lines": 102,
       "imports": [],
       "symbols": [],
       "kind": "asset",
       "summary": "原生源码、平台脚本或界面资源"
-    },
-    {
-      "path": "agent/src/omni/adapters/workers/windows_uia_transport.py",
-      "module": "v2-adapters",
-      "version": "V2",
-      "python_module": "omni.adapters.workers.windows_uia_transport",
-      "lines": 77,
-      "imports": [
-        "omni.domain.desktop"
-      ],
-      "symbols": [
-        {
-          "name": "_frame",
-          "line": 16,
-          "kind": "function",
-          "parameters": [
-            "fd",
-            "limit"
-          ],
-          "annotations": {
-            "fd": "int",
-            "limit": "int"
-          }
-        },
-        {
-          "name": "_forward_permit",
-          "line": 30,
-          "kind": "function",
-          "parameters": [
-            "fd",
-            "stream"
-          ],
-          "annotations": {
-            "fd": "int",
-            "stream": "BinaryIO"
-          }
-        },
-        {
-          "name": "_phase",
-          "line": 39,
-          "kind": "function",
-          "parameters": [
-            "name"
-          ],
-          "annotations": {
-            "name": "str"
-          }
-        },
-        {
-          "name": "main",
-          "line": 44,
-          "kind": "function",
-          "parameters": [],
-          "annotations": {}
-        }
-      ],
-      "summary": "Give the fixed Windows PowerShell UIA helper an anonymous input pipe."
     },
     {
       "path": "agent/src/omni/application/__init__.py",

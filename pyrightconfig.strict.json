@@ -296,7 +296,6 @@
     "agent/src/omni/adapters/workers/service_admin_boot.py",
     "agent/src/omni/adapters/workers/terminal.py",
     "agent/src/omni/adapters/workers/terminal_gate.py",
-    "agent/src/omni/adapters/workers/windows_uia_transport.py",
     "agent/src/omni/application/action_review.py",
     "agent/src/omni/application/android.py",
     "agent/src/omni/application/bilibili.py",

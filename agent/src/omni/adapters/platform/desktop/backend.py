@@ -351,6 +351,7 @@ class DesktopBackend:
             # Raw stderr is discarded; both pipes remain drained while reclamation is unresolved.
 
     async def _spawn(self, host: _Host, operation: str = "probe") -> Owned:
+        environment = helper_environment()
         argv = [
             sys.executable,
             "-P" if os.environ.get("OMNI_TEST_OFFLINE") == "1" else "-I",
@@ -388,8 +389,8 @@ class DesktopBackend:
             script = Path(__file__).resolve().parents[2] / "workers/windows_uia.ps1"
             if not executable.is_file() or not script.is_file() or script.is_symlink():
                 raise _error("desktop_observation_unavailable")
-            argv[-1] = "omni.adapters.workers.windows_uia_transport"
-            argv.extend(("permit" if operation == "foreground" else "single", str(executable), str(script)))
+            environment["PSModulePath"] = str(executable.parent / "Modules")
+            argv = [str(executable), "-NoLogo", "-NoProfile", "-NonInteractive", "-Mta", "-File", str(script)]
         if host.owned is None:
             host.owned = await self._factory(
                 argv,
@@ -397,7 +398,7 @@ class DesktopBackend:
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE,
                 limit=MAX_FRAME + 1,
-                env=helper_environment(),
+                env=environment,
                 cwd=str(Path(__file__).resolve().parents[1]),
             )
         process = host.owned.process

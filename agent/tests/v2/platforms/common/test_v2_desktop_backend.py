@@ -1,5 +1,7 @@
 """Desktop helper host protocols and ownership use only injected processes; no real desktop or native API."""
 
+from pathlib import Path
+
 from omni_test_support.v2.desktop_backend import (
     BusinessError as BusinessError,
 )
@@ -432,8 +434,10 @@ def test_stop_accepting_during_actual_spawn_prevents_native_dispatch_and_keeps_c
     asyncio.run(scenario())
 
 
-def test_observe_uses_fixed_mta_worker_and_reclaims_after_revocation(monkeypatch):
+def test_observe_uses_fixed_mta_worker_and_reclaims_after_revocation(monkeypatch, tmp_path):
     # The process is injected; this test never reads a real window.
+    monkeypatch.setenv("PSModulePath", str(tmp_path / "user-modules"))
+
     async def scenario():
         owner, calls = Owner(), []
         backend = d.DesktopBackend(process_factory=factory(owner, calls=calls))
@@ -455,11 +459,11 @@ def test_observe_uses_fixed_mta_worker_and_reclaims_after_revocation(monkeypatch
             with pytest.raises(BusinessError) as error:
                 await backend.observe(target(), before_dispatch=gate)
             assert error.value.code == "desktop_view_changed"
-            argv = calls[0][0]
-            assert argv[0] == sys.executable
-            assert argv[3:6] == ["-m", "omni.adapters.workers.windows_uia_transport", "single"]
-            assert argv[6].lower().endswith("windowspowershell\\v1.0\\powershell.exe")
-            assert len(argv) == 8 and argv[-1].endswith("windows_uia.ps1")
+            argv, options = calls[0]
+            assert argv[0].lower().endswith("windowspowershell\\v1.0\\powershell.exe")
+            assert "-Mta" in argv and "-NoProfile" in argv and "-Command" not in argv
+            assert argv[-1].endswith("windows_uia.ps1")
+            assert Path(options["env"]["PSModulePath"]) == Path(argv[0]).parent / "Modules"
             assert checks == 2 and not owner.process.stdin.frames and owner.reclaimed
         finally:
             assert await backend.close()

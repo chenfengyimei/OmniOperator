@@ -38,7 +38,7 @@ class WindowsWorkerDiagnostics(DesktopBackend):
 
     def native_phases(self):
         matches = re.findall(
-            rb"^omni-uia:(relayed-request|native-sent|startup|pipes|reading|frame|request|compiled|"
+            rb"^omni-uia:(startup|pipes|reading|frame|utility-loaded|request|compiled|"
             rb"window|session|identity|printed|uia-root|ready|native-result|response)\r?$",
             self._trace,
             re.M,

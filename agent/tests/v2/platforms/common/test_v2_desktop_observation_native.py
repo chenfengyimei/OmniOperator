@@ -209,7 +209,7 @@ finally:
                     assert backend.health()["resident"] == 0
                     return
                 report = await getattr(backend, operation)(target)
-                assert "response" in backend.native_phases()
+                assert {"utility-loaded", "response"}.issubset(backend.native_phases())
                 if operation == "capture":
                     report.validate()
                     assert (report.width, report.height) == (640, 480)

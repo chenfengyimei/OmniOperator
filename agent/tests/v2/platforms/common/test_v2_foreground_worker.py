@@ -115,7 +115,7 @@ def test_foreground_worker_port_framing_pause_partial_and_cleanup(tmp_path, faul
     fake.write_text(FAKE, encoding="utf-8")
     program = (WORKERS / "windows_uia.ps1").read_text(encoding="utf-8")
     for name in ("windows_uia.cs", "windows_foreground.cs"):
-        program = program.replace(f"(Join-Path $PSScriptRoot '{name}')", "'" + str(WORKERS / name) + "'")
+        program = program.replace(f"[IO.Path]::Combine($PSScriptRoot, '{name}')", "'" + str(WORKERS / name) + "'")
     foreground_source = f"$sources += '{WORKERS / 'windows_foreground.cs'}'"
     assert program.count(foreground_source) == 1
     program = program.replace(foreground_source, f"{foreground_source}\n        $sources += '{fake}'")
