@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`2ef4285a3b248914928785c97a501f183f4e9363408f7550c740d77ed8f847e6`。包含 65 个职责模块、920 个源码/界面文件。
+源码指纹：`11d071919ab53c51e64258f31842701ebf2074216bc17c2ccfb73fe605ee971f`。包含 65 个职责模块、920 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -1737,7 +1737,7 @@
 | [agent/src/omni/system/path_guard.py](../../../agent/src/omni/system/path_guard.py) | V1 | 46 | 跨域共享的路径安全原语：zip/目录条目名规范化与内容摘要。 |
 | [agent/src/omni/system/persona_presets.py](../../../agent/src/omni/system/persona_presets.py) | V1 | 43 | 人设预设文件的版本化事务；不改变当前运行人格，不接触浏览器存储。 |
 | [agent/src/omni/system/persona_rules.py](../../../agent/src/omni/system/persona_rules.py) | V1 | 163 | 人格保存契约的判定规则（判定逻辑，不抄 surfcore 的形态）。 |
-| [agent/src/omni/system/process_identity.py](../../../agent/src/omni/system/process_identity.py) | V1 | 289 | 进程身份与 Windows 句柄终止；不以裸 PID 或端口身份授权终止。 |
+| [agent/src/omni/system/process_identity.py](../../../agent/src/omni/system/process_identity.py) | V1 | 295 | 进程身份与 Windows 句柄终止；不以裸 PID 或端口身份授权终止。 |
 | [agent/src/omni/system/protected_json.py](../../../agent/src/omni/system/protected_json.py) | V1 | 60 | Windows当前用户DPAPI保护的JSON文件；不回显凭据，不跨用户解密。 |
 | [agent/src/omni/system/provenance.py](../../../agent/src/omni/system/provenance.py) | V1 | 48 | 服务启动源码指纹，不依赖 Git 可用性，不包含配置/凭据/运行数据。 |
 | [agent/src/omni/system/release_gate.py](../../../agent/src/omni/system/release_gate.py) | V1 | 98 | 校验真实证据与常驻结果；永不执行发布或代替用户批准。 |

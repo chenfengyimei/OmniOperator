@@ -181,7 +181,12 @@ def test_inspect_current_process_is_stable_readonly():
     assert int(first.created) > 0 and first.executable
 
 
-def test_native_termination_uses_retained_identity_handles(tmp_path, monkeypatch):
+@pytest.mark.parametrize(
+    "terminate_child,child_wait",
+    [(True, 0), (False, 0), (False, 258)],
+    ids=["terminated", "exited-after-identity", "still-live"],
+)
+def test_native_termination_uses_retained_identity_handles(tmp_path, monkeypatch, terminate_child, child_wait):
     from omni.system import process_identity as module
 
     root = ProcessIdentity(123, "100", str(tmp_path / "root.exe"))
@@ -196,19 +201,29 @@ def test_native_termination_uses_retained_identity_handles(tmp_path, monkeypatch
         retained[handle] = identities[pid]
         return handle
 
+    def terminate(handle, _code):
+        identity = retained[handle]
+        terminated.append(identity)
+        return identity == root or terminate_child
+
     api = SimpleNamespace(
         OpenProcess=open_handle,
         CloseHandle=closed.append,
-        TerminateProcess=lambda handle, code: terminated.append(retained[handle]) or True,
-        WaitForSingleObject=lambda *_: 0,
+        TerminateProcess=terminate,
+        WaitForSingleObject=lambda handle, _: child_wait if retained[handle] == child else 0,
     )
     monkeypatch.setattr(module, "os", SimpleNamespace(name="nt", getpid=lambda: 1))
+    monkeypatch.setattr(module.ctypes, "get_last_error", lambda: 5, raising=False)
     monkeypatch.setattr(module, "_kernel", lambda: api)
     monkeypatch.setattr(module, "_identity_from_handle", lambda api, handle, pid: retained.get(handle))
     monkeypatch.setattr(module, "inspect_process", identities.get)
     snapshots = iter([{124: 123}, {}])
     monkeypatch.setattr(module, "process_parents", lambda: next(snapshots))
-    module.terminate_verified_tree(root)
+    if child_wait:
+        with pytest.raises(module.ProcessIdentityError, match="winerror=5"):
+            module.terminate_verified_tree(root)
+    else:
+        module.terminate_verified_tree(root)
     assert terminated == [root, child]
     assert len(closed) == 2
 

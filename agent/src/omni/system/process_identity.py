@@ -240,6 +240,10 @@ def terminate_verified_tree(root: ProcessIdentity, *, timeout_s: float = 8) -> N
         handles[identity.pid] = (handle, identity)
         return True
 
+    def wait_for_exit(handle: object) -> bool:
+        milliseconds = max(0, int((deadline - time.monotonic()) * 1000))
+        return api.WaitForSingleObject(handle, milliseconds) == 0
+
     try:
         retain(root)
         parents = process_parents()
@@ -273,10 +277,12 @@ def terminate_verified_tree(root: ProcessIdentity, *, timeout_s: float = 8) -> N
         for handle, identity in handles.values():
             current = _identity_from_handle(api, handle, identity.pid)
             if current is not None and not api.TerminateProcess(handle, 1):
-                raise ProcessIdentityError(f"终止失败，可能部分回收 pid={identity.pid}")
+                error = ctypes.get_last_error()
+                # 进程可能在读取身份后自行退出。只有同一个句柄发出退出信号才算回收。
+                if not wait_for_exit(handle):
+                    raise ProcessIdentityError(f"终止失败，可能部分回收 pid={identity.pid} winerror={error}")
         for handle, identity in handles.values():
-            milliseconds = max(0, int((deadline - time.monotonic()) * 1000))
-            if api.WaitForSingleObject(handle, milliseconds) != 0:
+            if not wait_for_exit(handle):
                 raise ProcessIdentityError(f"进程退出未确认 pid={identity.pid}")
         remaining = process_parents()
         new_children = {pid for pid, parent in remaining.items() if parent in handles and pid not in handles}

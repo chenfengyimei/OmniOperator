@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "2ef4285a3b248914928785c97a501f183f4e9363408f7550c740d77ed8f847e6",
+  "source_sha256": "11d071919ab53c51e64258f31842701ebf2074216bc17c2ccfb73fe605ee971f",
   "modules": [
     {
       "id": "v2-domain",
@@ -2474,7 +2474,7 @@
         "agent/src/omni/system/supervisor.py",
         "agent/src/omni/system/text_guard.py"
       ],
-      "lines": 4691,
+      "lines": 4697,
       "dependencies": [
         "agent-directories",
         "config",
@@ -107171,7 +107171,7 @@
       "module": "platform",
       "version": "V1",
       "python_module": "omni.system.process_identity",
-      "lines": 289,
+      "lines": 295,
       "imports": [],
       "symbols": [
         {
@@ -107289,6 +107289,17 @@
           "annotations": {
             "identity": "ProcessIdentity",
             "allow_exited": "bool"
+          }
+        },
+        {
+          "name": "terminate_verified_tree.wait_for_exit",
+          "line": 243,
+          "kind": "function",
+          "parameters": [
+            "handle"
+          ],
+          "annotations": {
+            "handle": "object"
           }
         }
       ],
