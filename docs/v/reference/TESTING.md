@@ -149,6 +149,8 @@ Portal 的原生共享状态与应用授权审计分两步完成。`test_v2_port
 
 GitHub Actions 仅用于手动全量验证。在 Actions 中选择 `V2 full validation`，选定候选分支并点击 **Run workflow**。Windows 任务先串行执行原生 UI Automation 测试，阶段结束即上传 `offline-native-windows` 报告。随后执行仓库其余离线用例，两份报告共同覆盖仓库全量，任一阶段失败都会使作业失败。Ubuntu 和 macOS 运行完整 V2 离线套件。云端并行测试使用两个 worker，安装、容器与原生检查随同一次运行。推送和更新 PR 时只需按日常开发流程做本地专项。
 
+Windows UI Automation 专项走正式的受管管道，覆盖 PowerShell 接收 UTF-8 请求、前台动作的两阶段授权、授权撤回和辅助进程回收。`offline-native-windows` 的失败报告包含固定的进程阶段名，可区分请求转发、原生处理与回执阶段。
+
 本地 Windows 验证脚本执行Ruff、格式检查、已收口领域Pyright、固定版本Prettier、ES模块语法、UI接口合同、重复定义、
 任务摘要、索引检查、直接wheel/sdist→wheel及隔离导入校验，然后运行全部测试和离线评测。
 前端开发环境需要Node 24和`npm ci --prefix web`。可用`scripts/ci.ps1 -Workers 0`排查串行行为，

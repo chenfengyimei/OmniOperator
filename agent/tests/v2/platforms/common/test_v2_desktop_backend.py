@@ -456,9 +456,10 @@ def test_observe_uses_fixed_mta_worker_and_reclaims_after_revocation(monkeypatch
                 await backend.observe(target(), before_dispatch=gate)
             assert error.value.code == "desktop_view_changed"
             argv = calls[0][0]
-            assert argv[0].lower().endswith("windowspowershell\\v1.0\\powershell.exe")
-            assert "-Mta" in argv and "-NoProfile" in argv and "-Command" not in argv
-            assert argv[-1].endswith("windows_uia.ps1")
+            assert argv[0] == sys.executable
+            assert argv[3:6] == ["-m", "omni.adapters.workers.windows_uia_transport", "single"]
+            assert argv[6].lower().endswith("windowspowershell\\v1.0\\powershell.exe")
+            assert len(argv) == 8 and argv[-1].endswith("windows_uia.ps1")
             assert checks == 2 and not owner.process.stdin.frames and owner.reclaimed
         finally:
             assert await backend.close()

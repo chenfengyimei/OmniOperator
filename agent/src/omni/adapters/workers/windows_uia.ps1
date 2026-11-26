@@ -12,16 +12,18 @@ $stdout = [IO.StreamWriter]::new([Console]::OpenStandardOutput(), $utf8)
 Write-TestPhase 'pipes'
 $request = $null
 try {
-    $buffer = New-Object char[] 65537
+    $buffer = [char[]]::new(65537)
     $length = 0
+    Write-TestPhase 'reading'
     while ($length -lt $buffer.Length) {
         $value = $stdin.Read()
         if ($value -lt 0) { break }
         $buffer[$length++] = [char]$value
         if ($value -eq 10) { break }
     }
-    $line = New-Object string($buffer, 0, $length)
+    $line = [string]::new($buffer, 0, $length)
     if ($length -eq 0 -or $utf8.GetByteCount($line) -gt 65536 -or -not $line.EndsWith("`n")) { exit 2 }
+    Write-TestPhase 'frame'
     $request = $line | ConvertFrom-Json
     if ($request.version -ne 'omni-desktop-ipc-6' -or $request.operation -notin @('observe','capture','act','foreground') -or $request.limit -ne 1 -or $request.target.platform -ne 'win32') { exit 2 }
     $identity = [guid]::ParseExact($request.request_id, 'D')
@@ -42,7 +44,7 @@ try {
             $stdout.Write(($ready | ConvertTo-Json -Depth 4 -Compress) + "`n")
             $stdout.Flush()
             Write-TestPhase 'ready'
-            $control = New-Object char[] 1024
+            $control = [char[]]::new(1024)
             $used = 0
             while ($used -lt $control.Length) {
                 $next = $stdin.Read()
@@ -52,7 +54,7 @@ try {
             }
             if ($used -eq $control.Length -or $control[$used-1] -ne [char]10) { return $false }
             try {
-                $permit = (New-Object string($control,0,$used)) | ConvertFrom-Json
+                $permit = [string]::new($control, 0, $used) | ConvertFrom-Json
                 $expected = @('version','request_id','operation','phase','grant_id','run_id','operation_id')
                 if (@($permit.PSObject.Properties).Count -ne $expected.Count -or @($permit.PSObject.Properties.Name | Where-Object { $_ -notin $expected }).Count -ne 0) { return $false }
                 return ($permit.version -eq $request.version -and $permit.request_id -eq $request.request_id -and $permit.operation -eq 'foreground' -and $permit.phase -eq 'permit' -and $permit.grant_id -eq $a.grant_id -and $permit.run_id -eq $a.run_id -and $permit.operation_id -eq $a.operation_id)

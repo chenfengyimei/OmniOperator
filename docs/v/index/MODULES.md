@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`bd0ee88614405c907acb41c53cc1699cb92f32d621f652466b35124da178e9c6`。包含 65 个职责模块、919 个源码/界面文件。
+源码指纹：`2ef4285a3b248914928785c97a501f183f4e9363408f7550c740d77ed8f847e6`。包含 65 个职责模块、920 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -359,7 +359,7 @@
 | [agent/src/omni/adapters/persona_files.py](../../../agent/src/omni/adapters/persona_files.py) | V2 | 154 | Owner-only managed persona growth cache; validates bytes against the ledger expectation. |
 | [agent/src/omni/adapters/platform/__init__.py](../../../agent/src/omni/adapters/platform/__init__.py) | V2 | 1 | Portable paths, ownership, credentials and platform capability implementations. |
 | [agent/src/omni/adapters/platform/desktop/__init__.py](../../../agent/src/omni/adapters/platform/desktop/__init__.py) | V2 | 5 | Desktop transport public entry; platform probing only occurs through explicit calls. |
-| [agent/src/omni/adapters/platform/desktop/backend.py](../../../agent/src/omni/adapters/platform/desktop/backend.py) | V2 | 691 | Bounded, one-shot desktop metadata helpers; construction never probes a native desktop. |
+| [agent/src/omni/adapters/platform/desktop/backend.py](../../../agent/src/omni/adapters/platform/desktop/backend.py) | V2 | 692 | Bounded, one-shot desktop metadata helpers; construction never probes a native desktop. |
 | [agent/src/omni/adapters/platform/desktop/desktop_capture.py](../../../agent/src/omni/adapters/platform/desktop/desktop_capture.py) | V2 | 83 | Host-owned screenshot staging. File decoding runs only on the desktop I/O worker. |
 | [agent/src/omni/adapters/platform/desktop/desktop_control.py](../../../agent/src/omni/adapters/platform/desktop/desktop_control.py) | V2 | 407 | Owned parent transport for independent control consent; no input dispatch, capture grants or unowned process termination. |
 | [agent/src/omni/adapters/platform/desktop/desktop_native.py](../../../agent/src/omni/adapters/platform/desktop/desktop_native.py) | V2 | 493 | Read-only desktop diagnostics and process/window identities; never reads UI contents or performs input. |
@@ -525,7 +525,8 @@
 | [agent/src/omni/adapters/workers/windows_foreground.cs](../../../agent/src/omni/adapters/workers/windows_foreground.cs) | V2 | 250 | 原生源码、平台脚本或界面资源 |
 | [agent/src/omni/adapters/workers/windows_services.ps1](../../../agent/src/omni/adapters/workers/windows_services.ps1) | V2 | 209 | 原生源码、平台脚本或界面资源 |
 | [agent/src/omni/adapters/workers/windows_uia.cs](../../../agent/src/omni/adapters/workers/windows_uia.cs) | V2 | 356 | 原生源码、平台脚本或界面资源 |
-| [agent/src/omni/adapters/workers/windows_uia.ps1](../../../agent/src/omni/adapters/workers/windows_uia.ps1) | V2 | 94 | 原生源码、平台脚本或界面资源 |
+| [agent/src/omni/adapters/workers/windows_uia.ps1](../../../agent/src/omni/adapters/workers/windows_uia.ps1) | V2 | 96 | 原生源码、平台脚本或界面资源 |
+| [agent/src/omni/adapters/workers/windows_uia_transport.py](../../../agent/src/omni/adapters/workers/windows_uia_transport.py) | V2 | 77 | Give the fixed Windows PowerShell UIA helper an anonymous input pipe. |
 
 文档：[docs/v/reference/V2_REFACTOR.md](../../../docs/v/reference/V2_REFACTOR.md)
 

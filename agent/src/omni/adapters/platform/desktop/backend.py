@@ -388,7 +388,8 @@ class DesktopBackend:
             script = Path(__file__).resolve().parents[2] / "workers/windows_uia.ps1"
             if not executable.is_file() or not script.is_file() or script.is_symlink():
                 raise _error("desktop_observation_unavailable")
-            argv = [str(executable), "-NoLogo", "-NoProfile", "-NonInteractive", "-Mta", "-File", str(script)]
+            argv[-1] = "omni.adapters.workers.windows_uia_transport"
+            argv.extend(("permit" if operation == "foreground" else "single", str(executable), str(script)))
         if host.owned is None:
             host.owned = await self._factory(
                 argv,
