@@ -44,6 +44,10 @@ uv run --no-sync omni-v2 --home .\temp\build\owa-dispatch serve --omniweave-mode
 - Router 可以在原主会话继续接收新输入，并用 `owa_status` 查看本会话的 Ticket 状态和 Worker 提交的结果。现有 `/runs/{run_id}/cancel` 可取消根 Ticket，包括根 Run 已结束后仍在执行的 Worker。读 `GET /api/v1/agents/{agent_id}/omniweave/sessions/{session_id}/tickets` 可按 `run_id` 或 `ticket_id` 查询进度。会话、Run、消息、摘要和事件的通用 Web 路径执行内部作用域检查。
 - `v2_0055` 新建执行授权、任务和依赖三张表，数据库触发器校验 Worker 和依赖的 Ticket 绑定。传统 `delegate_task` 和 OWA Worker 共用现有子任务容量与租约，Router 与普通回合保有独立的根回合执行容量。[迁移](../../../agent/src/omni/adapters/persistence/migrations/versions/v0055.py) · [查询入口](../../../agent/src/omni/adapters/http_routes/omniweave.py)
 
+### Phase 2 验收
+
+Windows x64 上对源码 `d40bf6b5` 跑了 43 个文件，373 项通过。一项 V28 历史种子碰到当时尚未建立的 Worker 表，在 `60a242df` 修正种子适配后复验 36 项全绿。两轮生产源码及依赖一致，合并去重后覆盖 379 项。已有 212 条 OpenAPI 路径的定义相同，新增一条进度查询。502 个文件的严格类型检查通过。空库、V53 和 V54 旧库副本均完成迁移核对。本批覆盖为离线专项。[Phase 2 验收证据](../evidence/owa-phase2-2026-11-26.json)
+
 ## 后续阶段
 
-Phase 3 在 `owa_tasks` 的 Ticket 绑定上实现双向邮箱与版本化授权产物，再接主会话追加、重启后的消息与任务续接，以及 Router 在原会话交付。恢复依据原 Run 与工作项的持久状态核对授权和外部副作用。后续接长作业与 Watchdog、数字身体和外部事件。发布候选按实际 SHA 单独执行全量、升级回滚、真实平台和 72 小时常驻验收。
+Phase 3 在 `owa_tasks` 的 Ticket 绑定上实现双向邮箱与版本化授权产物，再接主会话追加、重启后的消息与任务续接，以及 Router 在原会话交付。当前 `delegation_recover` 仍将未结束 Worker 标为中断。接续从保留可证明未派发的工作项开始，在已有检查点上核对授权、模型账本和副作用。后续接长作业与 Watchdog、数字身体和外部事件。发布候选按实际 SHA 单独执行全量、升级回滚、真实平台和 72 小时常驻验收。

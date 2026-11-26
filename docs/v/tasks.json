@@ -1,5 +1,5 @@
 {
-  "summary": "V2 Everything is a Plugin 架构迁移已验收。冻结源码 `1a2810ea` 离线全量 8739 项通过、0 失败、10 项跳过。OmniWeave 首批已接入正式 Web 受理和同库事务，观察模式默认关闭。正式产物与真实环境验收继续按各自任务记录。",
+  "summary": "V2 Everything is a Plugin 架构迁移已验收。冻结源码 `1a2810ea` 离线全量 8739 项通过、0 失败、10 项跳过。OmniWeave Phase 0–2 已完成专项，包含 Web 观察、显式调度和 Worker 依赖。正式产物与真实环境验收继续按各自任务记录。",
   "windows_stage": {
     "status": "completed_windows_offline_candidate",
     "summary": "Windows 用户域服务在 `30bea914` 构建的 wheel 上完成注册、启动、只读状态、停止、卸载共 14 步。干净机仍须对最终产物验证安装、升级、回滚和卸载，记录 wheel SHA、PID 与就绪回执。"
@@ -112,9 +112,9 @@
       "id": "OMNIWEAVE",
       "title": "OWA 主会话编排与发布验收",
       "status": "development_in_progress",
-      "next": "Phase 0–1 候选 `4082ccac` 的 333 项离线专项已通过。Phase 2 接通显式调度、依赖计划、内部工作区和主会话进度，正在核对受影响调用方。Phase 3 接邮件、产物、追加与重启续接。",
+      "next": "Phase 0–1 候选 `4082ccac` 的 333 项离线专项已通过。Phase 2 源码 `d40bf6b5` 和历史夹具复验 `60a242df` 合并覆盖 379 项，三个 Worker 并行时主会话能继续处理输入。Phase 3 接邮箱、产物、追加、重启续接及主会话交付。",
       "contract": "docs/v/reference/OMNIWEAVE.md",
-      "evidence": ["docs/v/evidence/owa-phase1-2026-11-26.json"]
+      "evidence": ["docs/v/evidence/owa-phase1-2026-11-26.json", "docs/v/evidence/owa-phase2-2026-11-26.json"]
     },
     {
       "id": "CAPABILITY-PLUGINS",
