@@ -85,6 +85,7 @@ class KernelFeatureContext:
     metrics: MetricsPort
     sink: JsonLogSink
     omniweave_mode: OmniWeaveMode = "off"
+    worker_tool_specs: tuple[ToolSpec, ...] = ()
 
 
 @dataclass(frozen=True)

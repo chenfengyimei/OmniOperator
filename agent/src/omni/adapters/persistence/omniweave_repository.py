@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+from collections.abc import Mapping
 from dataclasses import asdict
 from typing import Literal, cast
 
@@ -48,6 +49,17 @@ class OmniWeaveRepositories(RepositoryBase):
             return
 
         owner_id = self.connection.execute(select(s.instances.c.owner_id).where(s.instances.c.slot == 1)).scalar_one()
+        if dispatch:
+            bound_session = self.connection.execute(
+                select(s.owa_threads.c.main_session_id)
+                .join(s.owa_tickets, s.owa_tickets.c.thread_id == s.owa_threads.c.id)
+                .join(s.owa_executions, s.owa_executions.c.ticket_id == s.owa_tickets.c.id)
+                .where(s.owa_threads.c.agent_id == agent_id, s.owa_threads.c.owner_id == owner_id)
+                .order_by(s.owa_executions.c.created_at, s.owa_executions.c.id)
+                .limit(1)
+            ).scalar_one_or_none()
+            if bound_session is not None and bound_session != main_session_id:
+                return
         thread_id = self.connection.execute(
             select(s.owa_threads.c.id).where(
                 s.owa_threads.c.agent_id == agent_id,
@@ -87,7 +99,7 @@ class OmniWeaveRepositories(RepositoryBase):
         )
         return cast(Record, dict(row)) if row else None
 
-    def omniweave_plan(self, agent_id: str, run_id: str, arguments: Record) -> Record:
+    def omniweave_plan(self, agent_id: str, run_id: str, arguments: Record, catalog: Mapping[str, str]) -> Record:
         unit = cast(UnitOfWork, self)
         unit.assert_run_authorized(agent_id, run_id)
         execution = self.omniweave_router(agent_id, run_id)
@@ -95,6 +107,8 @@ class OmniWeaveRepositories(RepositoryBase):
         if execution is None or execution["cancelled_at"] or run["state"] != "running":
             raise BusinessError("owa_router_not_active", "This run cannot schedule an OmniWeave Ticket")
         tasks = checked_plan(arguments, cast(int, unit.run_settings(agent_id, run_id)["call_reservation_micro"]))
+        if any(set(task.tools) - catalog.keys() for task in tasks):
+            raise BusinessError("owa_worker_tool_unavailable", "Worker tool is unavailable in the installed catalog")
         fingerprint = hashlib.sha256(
             json.dumps(
                 [asdict(task) for task in tasks], sort_keys=True, ensure_ascii=False, separators=(",", ":")
@@ -111,7 +125,9 @@ class OmniWeaveRepositories(RepositoryBase):
         )
         records: dict[str, Record] = {}
         for task in tasks:
-            child = unit.delegation_create(agent_id, run_id, task.request, worker_tools=task.tools)
+            child = unit.delegation_create(
+                agent_id, run_id, task.request, worker_tools={name: catalog[name] for name in task.tools}
+            )
             records[task.key] = self._record(
                 s.owa_tasks, {"ticket_id": ticket_id, "run_id": child["run_id"], "task_key": task.key}, agent_id
             )

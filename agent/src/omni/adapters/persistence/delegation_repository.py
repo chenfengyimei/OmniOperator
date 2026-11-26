@@ -3,12 +3,13 @@
 from __future__ import annotations
 
 import json
+from collections.abc import Mapping
 from typing import cast
 
 from sqlalchemy import case, func, or_, select, update
 
 from ...application.ports import Record, UnitOfWork
-from ...domain.contracts import JSON, BusinessError
+from ...domain.contracts import BusinessError
 from ...domain.delegation import (
     CHILD_CONCURRENCY,
     DELEGATE_TASK,
@@ -43,7 +44,7 @@ class DelegationRepositories(ContextRepositories):
         )
 
     def delegation_create(
-        self, agent_id: str, parent_id: str, value: Record, *, worker_tools: tuple[str, ...] | None = None
+        self, agent_id: str, parent_id: str, value: Record, *, worker_tools: Mapping[str, str] | None = None
     ) -> Record:
         unit = cast(UnitOfWork, self)
         unit.assert_run_authorized(agent_id, parent_id)
@@ -62,9 +63,8 @@ class DelegationRepositories(ContextRepositories):
             raise BusinessError("delegation_depth_exceeded", "Nested delegation is not available")
         current = unit.settings(agent_id)
         source_tool = DELEGATE_TASK if worker_tools is None else OWA_PLAN
-        if parent["policy_epoch"] != current["policy_revision"] or source_tool.name in cast(
-            list[JSON], cast(Record, current["value"])["disabled_tools"]
-        ):
+        disabled = set(cast(list[str], cast(Record, current["value"])["disabled_tools"]))
+        if parent["policy_epoch"] != current["policy_revision"] or source_tool.name in disabled:
             raise BusinessError("policy_changed", "Delegation policy changed")
         if len(self.delegation_children(agent_id, parent_id)) >= MAX_CHILDREN:
             raise BusinessError("delegation_child_limit", "This parent has reached its child limit")
@@ -107,12 +107,12 @@ class DelegationRepositories(ContextRepositories):
                 or not execution["plan_sha256"]
                 or offered[source_tool.name] != tool_hash(source_tool)
                 or set(worker_tools) - set(WORKER_TOOLS)
-                or set(worker_tools) - offered.keys()
+                or worker_tools.keys() & disabled
             ):
                 raise BusinessError(
-                    "owa_worker_tool_not_offered", "Worker tools must come from the Router call's tool set"
+                    "owa_worker_tool_not_authorized", "Worker tools must be allowed by the current Agent policy"
                 )
-            offered = {name: offered[name] for name in worker_tools}
+            offered = dict(worker_tools)
         else:
             for control in (DELEGATE_TASK.name, "request_mode", OWA_PLAN.name, OWA_STATUS.name):
                 offered.pop(control, None)
@@ -182,7 +182,10 @@ class DelegationRepositories(ContextRepositories):
             },
             agent_id,
         )
-        for table in (s.run_extension_tools, s.mcp_run_tools, s.run_skill_catalog):
+        inherited_catalogs = (
+            (s.run_extension_tools, s.mcp_run_tools, s.run_skill_catalog) if worker_tools is None else ()
+        )
+        for table in inherited_catalogs:
             rows = (
                 self.connection.execute(select(table).where(table.c.agent_id == agent_id, table.c.run_id == parent_id))
                 .mappings()

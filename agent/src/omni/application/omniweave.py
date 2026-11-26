@@ -8,7 +8,8 @@ from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 
 from ..domain.contracts import JSON, ActionResult, BusinessError, InvocationContext, Outcome, ToolSpec
-from ..domain.omniweave import OWA_PLAN, OWA_STATUS, OmniWeaveMode
+from ..domain.delegation import tool_hash
+from ..domain.omniweave import OWA_PLAN, OWA_STATUS, WORKER_TOOLS, OmniWeaveMode
 from .ports import DatabasePort, Record, TurnAdmissionObserver, UnitOfWork
 
 
@@ -17,6 +18,7 @@ class OmniWeaveService:
     mode: OmniWeaveMode
     database: DatabasePort
     notify: Callable[[], None]
+    worker_tool_specs: tuple[ToolSpec, ...] = ()
 
     def web_admission(self, agent_id: str, key: str, owner_token: str) -> TurnAdmissionObserver | None:
         if self.mode == "off":
@@ -62,7 +64,10 @@ class OmniWeaveService:
 
         try:
             if name == OWA_PLAN.name:
-                result = await self.database.write(lambda unit: unit.omniweave_plan(agent_id, run_id, dict(arguments)))
+                catalog = {spec.name: tool_hash(spec) for spec in self.worker_tool_specs if spec.name in WORKER_TOOLS}
+                result = await self.database.write(
+                    lambda unit: unit.omniweave_plan(agent_id, run_id, dict(arguments), catalog)
+                )
                 self.notify()
             elif name == OWA_STATUS.name:
                 result = await self.database.read(read_status)

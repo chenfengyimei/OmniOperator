@@ -572,6 +572,7 @@ async def open_instance(
                 metrics=measurements,
                 sink=sink,
                 omniweave_mode=omniweave_mode,
+                worker_tool_specs=tuple(cap.spec for cap in agent_capabilities),
             ),
             registered_services,
         )

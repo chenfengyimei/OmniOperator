@@ -10,12 +10,13 @@ from typing import Literal, cast
 from .contracts import JSON, BusinessError, ToolSpec
 from .delegation import MAX_CHILDREN, TASK_PROPERTIES, request
 
-OmniWeaveMode = Literal["off", "observe", "dispatch"]
-OMNIWEAVE_MODES: tuple[OmniWeaveMode, ...] = ("off", "observe", "dispatch")
+OmniWeaveMode = Literal["off", "observe", "dispatch", "enabled"]
+OMNIWEAVE_MODES: tuple[OmniWeaveMode, ...] = ("off", "observe", "enabled", "dispatch")
 OWNER_WEB_SOURCE = "owner_web"
 TRIGGER_VERSION = 1
 OBSERVE_DECISION = "observe"
 WORKER_TOOLS = ("files_list", "files_read", "files_search", "files_write", "files_patch")
+WORKER_CONCURRENCY = 3
 _KEY = r"^[a-z][a-z0-9-]{0,31}$"
 _TASK_KEY: dict[str, JSON] = {"type": "string", "pattern": _KEY}
 
@@ -126,6 +127,8 @@ def invalid_plan() -> BusinessError:
 
 
 def checked_mode(value: str) -> OmniWeaveMode:
+    if value == "enabled":
+        return "dispatch"
     if value == "off" or value == "observe" or value == "dispatch":
         return value
-    raise BusinessError("omniweave_mode_invalid", "OmniWeave mode must be off, observe or dispatch", status=422)
+    raise BusinessError("omniweave_mode_invalid", "OmniWeave mode must be off, observe or enabled", status=422)

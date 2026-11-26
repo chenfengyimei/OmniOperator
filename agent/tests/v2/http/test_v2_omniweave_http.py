@@ -261,7 +261,7 @@ def test_router_accepts_new_input_while_three_workers_run_and_waits_for_dependen
                 self.workspaces[goal] = settings["workspace"]
                 if goal == "join":
                     assert self.completed == {"alpha", "beta", "gamma"}
-                else:
+                elif goal != "overflow":
                     self.waiting.add(goal)
                     if len(self.waiting) == 3:
                         self.started.set()
@@ -270,7 +270,7 @@ def test_router_accepts_new_input_while_three_workers_run_and_waits_for_dependen
                 return ModelReply(f"result for {goal}", cost_micro=0)
             text = next(row["content"] for row in reversed(messages) if row["role"] == "user")
             if text == "Plan independent work":
-                assert {"owa_plan", "owa_status"} <= names
+                assert names == {"owa_plan", "owa_status"}
                 plans = [json.loads(row["content"]) for row in messages if row["role"] == "tool"]
                 if len(plans) == 2:
                     assert plans[0]["ticket_id"] == plans[1]["ticket_id"]
@@ -288,10 +288,16 @@ def test_router_accepts_new_input_while_three_workers_run_and_waits_for_dependen
                     return ModelReply("Three Workers are running", cost_micro=0)
                 assert "owa_status" in names
                 return ModelReply("Read progress", (Invocation("status", "owa_status", {}),), cost_micro=0)
+            if text == "Plan overflow":
+                if messages[-1]["role"] == "tool":
+                    return ModelReply("Overflow queued", cost_micro=0)
+                tasks = [{"key": "overflow", "goal": "overflow"}]
+                return ModelReply("Plan", (Invocation("overflow", "owa_plan", {"tasks": tasks}),), cost_micro=0)
+            assert "owa_plan" not in names and "owa_status" not in names
             return ModelReply("Separate conversation", cost_micro=0)
 
     model = Model()
-    with TestClient(http_app(tmp_path, model=model, omniweave_mode="dispatch")) as client:
+    with TestClient(http_app(tmp_path, model=model, omniweave_mode="enabled")) as client:
         agent = _authorize(client, tmp_path)
         base = _model_base(client, agent)
         accepted = client.post(base + "/turns", json={"key": "plan", "message": "Plan independent work"})
@@ -340,7 +346,14 @@ def test_router_accepts_new_input_while_three_workers_run_and_waits_for_dependen
         assert _wait_tasks(client, base, root, states)["ticket_id"] == ticket["ticket_id"]
         main = client.get(base + f"/sessions/{root['session_id']}/messages").json()["items"]
         assert main[-1]["content"] == "Three Workers are running"
+        overflow = client.post(
+            base + "/turns", json={"key": "overflow", "message": "Plan overflow", "session_id": root["session_id"]}
+        ).json()
+        assert wait_run(client, base, overflow["run_id"])["state"] == "succeeded"
+        _wait_tasks(client, base, overflow, {"overflow": "queued"})
         other = client.post(base + "/turns", json={"key": "other", "message": "Separate conversation"}).json()
+        assert wait_run(client, base, other["run_id"])["state"] == "succeeded"
+        assert client.get(_ticket_url(base, other), params={"run_id": other["run_id"]}).status_code == 404
         assert client.get(_ticket_url(base, other), params={"ticket_id": ticket["ticket_id"]}).status_code == 404
         other_agent = client.post("/api/v1/agents", json={"name": "Separate Agent"}).json()["id"]
         foreign_base = f"/api/v1/agents/{other_agent}"
@@ -348,17 +361,22 @@ def test_router_accepts_new_input_while_three_workers_run_and_waits_for_dependen
 
         client.portal.call(model.release.set)
         _wait_tasks(client, base, root, dict.fromkeys(states, "succeeded"))
-        assert len(set(model.workspaces.values())) == 4
+        _wait_tasks(client, base, overflow, {"overflow": "succeeded"})
+        [(overflow_run,)] = _rows(tmp_path, "SELECT run_id FROM owa_tasks WHERE task_key='overflow'")
+        child_runs.add(overflow_run)
+        assert len(set(model.workspaces.values())) == 5
         assert set(model.workspaces.values()) == {str(tmp_path / "owa-workspaces" / child) for child in child_runs}
 
 
-def test_router_rejects_cyclic_and_unoffered_worker_plans_atomically(tmp_path):
+def test_router_rejects_cyclic_and_unauthorized_worker_plans_atomically(tmp_path):
     class Model:
         async def complete(self, messages, tools, settings):
             assert not _worker_goal(messages)
+            assert {tool.name for tool in tools} == {"owa_plan", "owa_status"}
             if messages[-1]["role"] == "tool":
                 replies = [row["content"] for row in messages if row["role"] == "tool"]
-                assert "dependency plan" in replies[0] and "Router call's tool set" in replies[1]
+                assert "dependency plan" in replies[0] and "current Agent policy" in replies[1]
+                assert "Unknown capability" in replies[2]
                 return ModelReply("No plan was admitted", cost_micro=0)
             tasks = [{"key": "ok", "goal": "task"}, {"key": "unoffered", "goal": "write", "tools": ["files_write"]}]
             cycle = [{"key": "cycle", "goal": "retry", "depends_on": ["cycle"]}]
@@ -367,6 +385,7 @@ def test_router_rejects_cyclic_and_unoffered_worker_plans_atomically(tmp_path):
                 (
                     Invocation("cyclic", "owa_plan", {"tasks": cycle}),
                     Invocation("denied", "owa_plan", {"tasks": tasks}),
+                    Invocation("forged", "files_read", {"path": "private.txt"}),
                 ),
                 cost_micro=0,
             )
@@ -382,6 +401,7 @@ def test_router_rejects_cyclic_and_unoffered_worker_plans_atomically(tmp_path):
         receipt = client.post(base + "/turns", json={"key": "denied", "message": "Build a plan"}).json()
         assert wait_run(client, base, receipt["run_id"])["state"] == "succeeded"
         assert _rows(tmp_path, "SELECT plan_sha256 FROM owa_executions") == [(None,)]
+        assert _rows(tmp_path, "SELECT id FROM actions WHERE tool='files_read'") == []
         assert _counts(tmp_path, "runs", "work_items", "run_delegations", "owa_tasks", "owa_dependencies") == [
             1,
             1,
@@ -394,6 +414,7 @@ def test_router_rejects_cyclic_and_unoffered_worker_plans_atomically(tmp_path):
 @pytest.mark.parametrize("unknown", [False, True])
 def test_worker_file_write_uses_private_workspace_and_existing_owner_approval(tmp_path, monkeypatch, unknown):
     dispatches = []
+    private_memory = "The owner's private profile fixture must stay in the main conversation."
 
     if unknown:
         original = WorkerClient.invoke
@@ -408,13 +429,17 @@ def test_worker_file_write_uses_private_workspace_and_existing_owner_approval(tm
 
     class Model:
         async def complete(self, messages, tools, settings):
+            system_text = messages[0]["content"]
             if goal := _worker_goal(messages):
                 assert goal == "write a result"
+                assert private_memory not in system_text
                 assert {tool.name for tool in tools} == {"files_write"}
                 if messages[-1]["role"] == "tool":
                     return ModelReply("Writer result", cost_micro=0)
                 write = Invocation("write", "files_write", {"path": "result.txt", "content": "worker-only fixture"})
                 return ModelReply("Draft file", (write,), cost_micro=0)
+            assert private_memory in system_text
+            assert "files_write" not in {tool.name for tool in tools}
             if messages[-1]["role"] == "tool":
                 return ModelReply("Writer planned", cost_micro=0)
             tasks = [{"key": "writer", "goal": "write a result", "tools": ["files_write"], "max_calls": 2}]
@@ -424,6 +449,12 @@ def test_worker_file_write_uses_private_workspace_and_existing_owner_approval(tm
 
     with TestClient(http_app(tmp_path, model=Model(), omniweave_mode="dispatch")) as client:
         base = _model_base(client, _authorize(client, tmp_path))
+        owner = client.get(base + "/people/owner").json()["id"]
+        profile = client.put(
+            base + f"/people/{owner}/documents/profile",
+            json={"entry_id": None, "revision": 0, "content": private_memory},
+        )
+        assert profile.status_code == 200, profile.text
         receipt = client.post(base + "/turns", json={"key": "write", "message": "Plan a write"}).json()
         dependencies = {"after": "queued"} if unknown else {}
         _wait_tasks(client, base, receipt, {"writer": "waiting_approval", **dependencies})

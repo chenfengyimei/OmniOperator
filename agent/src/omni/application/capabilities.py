@@ -103,12 +103,22 @@ class CapabilityRegistry:
     def seal(self) -> None:
         self._sealed = True
 
-    async def capture(self, agent_id: str, run_id: str, controls: tuple[Capability, ...]) -> dict[str, Capability]:
-        tools = dict(self.tools)
-        tools.update((cap.spec.name, cap) for cap in controls)
+    async def capture(
+        self, agent_id: str, run_id: str, controls: tuple[Capability, ...], *, only_provider: str | None = None
+    ) -> dict[str, Capability]:
+        tools = dict(self.tools) if only_provider is None else {}
+        if only_provider is None:
+            tools.update((cap.spec.name, cap) for cap in controls)
         for provider in self._providers.values():
+            if only_provider is not None and provider.id != only_provider:
+                continue
             for spec in await provider.adapter.tools_for_run(agent_id, run_id):
-                if spec.name in tools or spec.name in self._reserved or spec.name in self.owner_tools:
+                if (
+                    spec.name in self.tools
+                    or spec.name in tools
+                    or spec.name in self._reserved
+                    or spec.name in self.owner_tools
+                ):
                     raise BusinessError(
                         f"{provider.id}_tool_collision", "Provider tool conflicts with a registered capability"
                     )
