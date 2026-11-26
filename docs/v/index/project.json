@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "2eede9be872f80d57499fba2968c5e9c66d84db9dbb05d84caa41ab3bff5699d",
+  "source_sha256": "f707d4e93d7d59b6cd9993ae4ca69035e27d9c19f6110f4059e2b097a94f11c1",
   "modules": [
     {
       "id": "v2-domain",
@@ -557,7 +557,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 74004,
+      "lines": 74037,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -16069,7 +16069,7 @@
       "module": "v2-adapters",
       "version": "V2",
       "python_module": "omni.adapters.persistence.delegation_repository",
-      "lines": 370,
+      "lines": 405,
       "imports": [
         "omni.adapters.persistence",
         "omni.adapters.persistence.context_repository",
@@ -16163,7 +16163,7 @@
         },
         {
           "name": "DelegationRepositories.delegation_check_budget",
-          "line": 279,
+          "line": 282,
           "kind": "function",
           "parameters": [
             "self",
@@ -16179,7 +16179,7 @@
         },
         {
           "name": "DelegationRepositories.delegation_result",
-          "line": 319,
+          "line": 322,
           "kind": "function",
           "parameters": [
             "self",
@@ -16195,7 +16195,7 @@
         },
         {
           "name": "DelegationRepositories.delegation_recover",
-          "line": 362,
+          "line": 365,
           "kind": "function",
           "parameters": [
             "self"
@@ -18517,7 +18517,7 @@
       "module": "v2-adapters",
       "version": "V2",
       "python_module": "omni.adapters.persistence.lease_repository",
-      "lines": 301,
+      "lines": 309,
       "imports": [
         "omni.adapters.persistence",
         "omni.adapters.persistence.action_predicates",
@@ -18594,8 +18594,22 @@
           }
         },
         {
-          "name": "LeaseRepositories.assert_run_lease",
+          "name": "LeaseRepositories._requeue_turn",
           "line": 87,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "run_id",
+            "work_id"
+          ],
+          "annotations": {
+            "run_id": "str",
+            "work_id": "str"
+          }
+        },
+        {
+          "name": "LeaseRepositories.assert_run_lease",
+          "line": 95,
           "kind": "function",
           "parameters": [
             "self",
@@ -18609,7 +18623,7 @@
         },
         {
           "name": "LeaseRepositories.renew_run_leases",
-          "line": 114,
+          "line": 122,
           "kind": "function",
           "parameters": [
             "self"
@@ -18618,7 +18632,7 @@
         },
         {
           "name": "LeaseRepositories.schedule_blocker",
-          "line": 127,
+          "line": 135,
           "kind": "function",
           "parameters": [
             "self",
@@ -18634,7 +18648,7 @@
         },
         {
           "name": "LeaseRepositories.schedule_blocker.conditions",
-          "line": 144,
+          "line": 152,
           "kind": "function",
           "parameters": [
             "table",
@@ -18649,7 +18663,7 @@
         },
         {
           "name": "LeaseRepositories._claim_run",
-          "line": 231,
+          "line": 239,
           "kind": "function",
           "parameters": [
             "self",
@@ -18663,7 +18677,7 @@
         },
         {
           "name": "LeaseRepositories.claim_runs",
-          "line": 272,
+          "line": 280,
           "kind": "function",
           "parameters": [
             "self",
@@ -18675,7 +18689,7 @@
         },
         {
           "name": "LeaseRepositories.start_claimed_run",
-          "line": 297,
+          "line": 305,
           "kind": "function",
           "parameters": [
             "self",
@@ -25546,7 +25560,7 @@
       "module": "v2-adapters",
       "version": "V2",
       "python_module": "omni.adapters.persistence.run_checkpoint_repository",
-      "lines": 217,
+      "lines": 207,
       "imports": [
         "omni.adapters.persistence",
         "omni.adapters.persistence.lease_repository",
@@ -25650,7 +25664,7 @@
         },
         {
           "name": "RunCheckpointRepositories.consume_run_checkpoint",
-          "line": 175,
+          "line": 165,
           "kind": "function",
           "parameters": [
             "self",
@@ -25664,7 +25678,7 @@
         },
         {
           "name": "RunCheckpointRepositories.run_continuation",
-          "line": 206,
+          "line": 196,
           "kind": "function",
           "parameters": [
             "self",

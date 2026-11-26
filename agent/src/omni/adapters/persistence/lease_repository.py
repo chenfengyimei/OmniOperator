@@ -84,6 +84,14 @@ class LeaseRepositories(RepositoryBase):
         )
         return cast(Record, dict(row))
 
+    def _requeue_turn(self, run_id: str, work_id: str) -> None:
+        self.connection.execute(update(s.runs).where(s.runs.c.id == run_id).values(state="queued", ended_at=None))
+        self.connection.execute(
+            update(s.work_items)
+            .where(s.work_items.c.id == work_id)
+            .values(state="pending", claim_token=None, lease_fence=None, claimed_by=None)
+        )
+
     def assert_run_lease(self, agent_id: str, run_id: str) -> None:
         work = self._work(agent_id, run_id)
         if work["state"] not in {"claimed", "running"}:

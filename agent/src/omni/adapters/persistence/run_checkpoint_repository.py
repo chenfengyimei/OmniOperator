@@ -143,17 +143,7 @@ class RunCheckpointRepositories(LeaseRepositories):
         if reason or resumes >= MAX_AUTO_RESUMES:
             self._checkpoint_store(work, {**checkpoint, "decision": "review", "reason": reason or "restart_limit"})
             return False
-        self.connection.execute(update(s.runs).where(s.runs.c.id == run_id).values(state="queued", ended_at=None))
-        self.connection.execute(
-            update(s.work_items)
-            .where(s.work_items.c.id == work["id"])
-            .values(
-                state="pending",
-                claim_token=None,
-                lease_fence=None,
-                claimed_by=None,
-            )
-        )
+        self._requeue_turn(run_id, str(work["id"]))
         self._checkpoint_store(
             work,
             {

@@ -48,7 +48,7 @@ def authorize(repo: RepositoryBase, agent_id: str, child_id: str) -> None:
             raise BusinessError("delegation_source_invalidated", "The owning Ticket no longer authorizes this Worker")
         parent_states = ("running", "waiting_approval", "succeeded")
     if (
-        row["boot_id"] != repo.boot_id
+        (not worker and row["boot_id"] != repo.boot_id)
         or child["parent_id"] != parent_id
         or child["session_id"] != row["child_session_id"]
         or any(

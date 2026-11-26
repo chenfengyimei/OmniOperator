@@ -11,6 +11,7 @@ from fastapi.testclient import TestClient
 from omni_test_support.v2.http import LocalModel
 from omni_test_support.v2.mcp_flow import wait_run
 
+from omni.adapters.persistence.delegation_repository import DelegationRepositories
 from omni.adapters.persistence.omniweave_repository import OmniWeaveRepositories
 from omni.adapters.persistence.sqlite_access import sqlite_connection
 from omni.adapters.workers.client import WorkerClient
@@ -505,3 +506,70 @@ def test_worker_budget_denies_model_dispatch_before_reservation(tmp_path):
         assert ticket["tasks"][0]["error_code"] == "delegation_budget_exceeded"
         assert wait_run(client, base, receipt["run_id"])["state"] == "succeeded"
         assert _rows(tmp_path, "SELECT id FROM model_calls WHERE run_id IN (SELECT run_id FROM owa_tasks)") == []
+
+
+def test_restart_reclaims_untouched_worker_and_quarantines_uncertain_attempt(tmp_path, monkeypatch):
+    class Model:
+        def __init__(self):
+            self.workers = []
+
+        async def complete(self, messages, tools, settings):
+            if goal := _worker_goal(messages):
+                self.workers.append(goal)
+                return ModelReply("Recovered Worker result", cost_micro=0)
+            if messages[-1]["role"] == "tool":
+                return ModelReply("Workers admitted", cost_micro=0)
+            tasks = [{"key": key, "goal": key} for key in ("pending", "starting", "uncertain")]
+            return ModelReply("Plan", (Invocation("plan", "owa_plan", {"tasks": tasks}),), cost_micro=0)
+
+    model = Model()
+    with monkeypatch.context() as old_boot:
+        old_boot.setattr(DelegationRepositories, "claim_delegated_runs", lambda self, limit, **options: [])
+        with TestClient(http_app(tmp_path, model=model, omniweave_mode="dispatch")) as client:
+            agent = _authorize(client, tmp_path)
+            base = _model_base(client, agent)
+            body = {"key": "restart", "message": "Plan recoverable work"}
+            receipt = client.post(base + "/turns", json=body).json()
+            assert wait_run(client, base, receipt["run_id"])["state"] == "succeeded"
+            ticket = _wait_tasks(client, base, receipt, dict.fromkeys(("pending", "starting", "uncertain"), "queued"))
+            children = dict(_rows(tmp_path, "SELECT task_key, run_id FROM owa_tasks"))
+            database = client.app.state.runtime.application._db
+
+            def imitate_last_operation_of_old_boot(unit):
+                assert unit._claim_run(agent, children["pending"]) is not None
+                starting = children["starting"]
+                claim = unit._claim_run(agent, starting)
+                assert claim is not None
+                unit.start_claimed_run(agent, starting, claim["claim_token"], claim["lease_fence"])
+                unit.transition(agent, starting, "running")
+                unit.reserve_call(agent, children["uncertain"], 10000, 1000000, "fixture")
+
+            client.portal.call(database.write, imitate_last_operation_of_old_boot)
+
+    with TestClient(http_app(tmp_path, model=model, omniweave_mode="observe")) as client:
+        _authorize(client, tmp_path)
+        paused = _wait_tasks(
+            client, base, receipt, {"pending": "queued", "starting": "queued", "uncertain": "interrupted"}
+        )
+        assert paused["ticket_id"] == ticket["ticket_id"] and model.workers == []
+        for key in ("pending", "starting"):
+            assert _rows(tmp_path, "SELECT state, claim_token FROM work_items WHERE run_id=?", (children[key],)) == [
+                ("pending", None)
+            ]
+        assert _rows(tmp_path, "SELECT state FROM model_calls WHERE run_id=?", (children["uncertain"],)) == [
+            ("unknown",)
+        ]
+
+    expected = {"pending": "succeeded", "starting": "succeeded", "uncertain": "interrupted"}
+    with TestClient(http_app(tmp_path, model=model, omniweave_mode="dispatch")) as client:
+        _authorize(client, tmp_path)
+        _wait_tasks(client, base, receipt, expected)
+        assert client.post(base + "/turns", json=body).json() == {**receipt, "duplicate": True}
+        assert sorted(model.workers) == ["pending", "starting"]
+
+    with TestClient(http_app(tmp_path, model=model, omniweave_mode="dispatch")) as client:
+        _authorize(client, tmp_path)
+        _wait_tasks(client, base, receipt, expected)
+        for key in ("pending", "starting"):
+            assert _rows(tmp_path, "SELECT state FROM model_calls WHERE run_id=?", (children[key],)) == [("settled",)]
+        assert _counts(tmp_path, "owa_tasks", "runs", "work_items") == [3, 4, 4]

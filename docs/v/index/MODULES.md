@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`2eede9be872f80d57499fba2968c5e9c66d84db9dbb05d84caa41ab3bff5699d`。包含 65 个职责模块、926 个源码/界面文件。
+源码指纹：`f707d4e93d7d59b6cd9993ae4ca69035e27d9c19f6110f4059e2b097a94f11c1`。包含 65 个职责模块、926 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -249,7 +249,7 @@
 | [agent/src/omni/adapters/persistence/credential_repository.py](../../../agent/src/omni/adapters/persistence/credential_repository.py) | V2 | 462 | Owner credential references, operation state and review; no native I/O or connection creation. |
 | [agent/src/omni/adapters/persistence/database.py](../../../agent/src/omni/adapters/persistence/database.py) | V2 | 190 | Bounded, single-writer database actor with isolated read connections. |
 | [agent/src/omni/adapters/persistence/delegation_authority.py](../../../agent/src/omni/adapters/persistence/delegation_authority.py) | V2 | 87 | Parent-source authority and session invalidation closure for single-level delegated runs. |
-| [agent/src/omni/adapters/persistence/delegation_repository.py](../../../agent/src/omni/adapters/persistence/delegation_repository.py) | V2 | 370 | Persist child admission, inherited authority, bounded budgets and recovery in the shared database. |
+| [agent/src/omni/adapters/persistence/delegation_repository.py](../../../agent/src/omni/adapters/persistence/delegation_repository.py) | V2 | 405 | Persist child admission, inherited authority, bounded budgets and recovery in the shared database. |
 | [agent/src/omni/adapters/persistence/delivery_predicates.py](../../../agent/src/omni/adapters/persistence/delivery_predicates.py) | V2 | 32 | Shared outbound pending/review predicates for dispatch, scheduling and maintenance queries. |
 | [agent/src/omni/adapters/persistence/delivery_repository.py](../../../agent/src/omni/adapters/persistence/delivery_repository.py) | V2 | 927 | Transactional outbound authority, FIFO ownership and immutable attempt observations. |
 | [agent/src/omni/adapters/persistence/deployed_instance.py](../../../agent/src/omni/adapters/persistence/deployed_instance.py) | V2 | 30 | Check an initialized service home without migrations or business recovery. |
@@ -264,7 +264,7 @@
 | [agent/src/omni/adapters/persistence/history_repository.py](../../../agent/src/omni/adapters/persistence/history_repository.py) | V2 | 89 | Read history pages and retention revisions in one transaction; does not delete history. |
 | [agent/src/omni/adapters/persistence/history_sequence.py](../../../agent/src/omni/adapters/persistence/history_sequence.py) | V2 | 27 | Allocate global history positions in the caller's transaction; never opens connections. |
 | [agent/src/omni/adapters/persistence/image_repository.py](../../../agent/src/omni/adapters/persistence/image_repository.py) | V2 | 367 | Scoped image metadata, model-revision policies and per-call references; never reads files or encodes images. |
-| [agent/src/omni/adapters/persistence/lease_repository.py](../../../agent/src/omni/adapters/persistence/lease_repository.py) | V2 | 301 | Persistent FIFO claims and fenced resource leases, within the caller's transaction. |
+| [agent/src/omni/adapters/persistence/lease_repository.py](../../../agent/src/omni/adapters/persistence/lease_repository.py) | V2 | 309 | Persistent FIFO claims and fenced resource leases, within the caller's transaction. |
 | [agent/src/omni/adapters/persistence/maintenance.py](../../../agent/src/omni/adapters/persistence/maintenance.py) | V2 | 1067 | Exclusive offline snapshots and restore. Live SQLite files are never copied directly. |
 | [agent/src/omni/adapters/persistence/maintenance_repository.py](../../../agent/src/omni/adapters/persistence/maintenance_repository.py) | V2 | 543 | Bounded document-maintenance admission, fenced attempts and business-result settlement; no execution or I/O. |
 | [agent/src/omni/adapters/persistence/mcp_repository.py](../../../agent/src/omni/adapters/persistence/mcp_repository.py) | V2 | 1016 | MCP runtime generations, catalog snapshots, per-tool grants, run captures and call records. |
@@ -350,7 +350,7 @@
 | [agent/src/omni/adapters/persistence/repository_base.py](../../../agent/src/omni/adapters/persistence/repository_base.py) | V2 | 52 | Common transaction-scoped identity, ownership and audit primitives. |
 | [agent/src/omni/adapters/persistence/retention_repository.py](../../../agent/src/omni/adapters/persistence/retention_repository.py) | V2 | 150 | Context barriers invalidate derived views without deleting original conversations. |
 | [agent/src/omni/adapters/persistence/routing_repository.py](../../../agent/src/omni/adapters/persistence/routing_repository.py) | V2 | 379 | Scoped immutable tier policies, run choices, promotions and actual tool manifests; no model calls or I/O. |
-| [agent/src/omni/adapters/persistence/run_checkpoint_repository.py](../../../agent/src/omni/adapters/persistence/run_checkpoint_repository.py) | V2 | 217 | Use the turn queue's existing payload, instance lock and lease for safe restart. |
+| [agent/src/omni/adapters/persistence/run_checkpoint_repository.py](../../../agent/src/omni/adapters/persistence/run_checkpoint_repository.py) | V2 | 207 | Use the turn queue's existing payload, instance lock and lease for safe restart. |
 | [agent/src/omni/adapters/persistence/schedule_repository.py](../../../agent/src/omni/adapters/persistence/schedule_repository.py) | V2 | 638 | Immutable schedule definitions, durable due cursors and atomic occurrence admission. |
 | [agent/src/omni/adapters/persistence/schema.py](../../../agent/src/omni/adapters/persistence/schema.py) | V2 | 3690 | V2 relational schema. Repositories never issue DDL; migrations use frozen SQL snapshots. |
 | [agent/src/omni/adapters/persistence/schema_upgrade.py](../../../agent/src/omni/adapters/persistence/schema_upgrade.py) | V2 | 161 | Reviewed migration catalog and transactional upgrades only in a locked, fenced release target. |

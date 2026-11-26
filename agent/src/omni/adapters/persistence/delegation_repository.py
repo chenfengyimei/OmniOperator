@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 from typing import cast
 
-from sqlalchemy import case, func, select, update
+from sqlalchemy import case, func, or_, select, update
 
 from ...application.ports import Record, UnitOfWork
 from ...domain.contracts import JSON, BusinessError
@@ -242,13 +242,16 @@ class DelegationRepositories(ContextRepositories):
         query = (
             select(s.run_delegations)
             .join(s.runs, s.runs.c.id == s.run_delegations.c.child_run_id)
-            .where(s.runs.c.state == "queued", s.run_delegations.c.boot_id == self.boot_id)
+            .where(s.runs.c.state == "queued")
         )
         workers = select(s.owa_tasks.c.run_id)
+        owned_boot = s.run_delegations.c.boot_id == self.boot_id
         if not include_owa:
-            query = query.where(s.run_delegations.c.child_run_id.not_in(workers))
+            query = query.where(owned_boot, s.run_delegations.c.child_run_id.not_in(workers))
         elif not include_legacy:
             query = query.where(s.run_delegations.c.child_run_id.in_(workers))
+        else:
+            query = query.where(or_(owned_boot, s.run_delegations.c.child_run_id.in_(workers)))
         rows = (
             self.connection.execute(query.order_by(s.run_delegations.c.created_at, s.run_delegations.c.id).limit(64))
             .mappings()
@@ -361,10 +364,42 @@ class DelegationRepositories(ContextRepositories):
 
     def delegation_recover(self) -> None:
         unit = cast(UnitOfWork, self)
+        # A durable Ticket may keep unstarted work. A previous attempt with a
+        # model/action/delivery receipt needs a verified continuation boundary.
+        undispatched = (
+            select(s.work_items.c.id, s.work_items.c.run_id, s.work_items.c.state)
+            .select_from(s.owa_tasks)
+            .join(s.work_items, s.work_items.c.run_id == s.owa_tasks.c.run_id)
+            .where(
+                s.work_items.c.kind == "turn",
+                s.work_items.c.state.in_(("pending", "claimed", "running")),
+                *(
+                    ~select(table.c.id).where(table.c.run_id == s.owa_tasks.c.run_id).exists()
+                    for table in (s.model_calls, s.actions, s.outbox)
+                ),
+            )
+            .subquery()
+        )
         rows = self.connection.execute(
-            select(s.run_delegations.c.agent_id, s.run_delegations.c.child_run_id)
+            select(
+                s.run_delegations.c.agent_id,
+                s.run_delegations.c.child_run_id,
+                s.runs.c.state,
+                s.owa_tasks.c.id,
+                undispatched.c.id,
+                undispatched.c.state,
+            )
             .join(s.runs, s.runs.c.id == s.run_delegations.c.child_run_id)
+            .outerjoin(s.owa_tasks, s.owa_tasks.c.run_id == s.run_delegations.c.child_run_id)
+            .outerjoin(undispatched, undispatched.c.run_id == s.run_delegations.c.child_run_id)
             .where(s.runs.c.state.in_(["queued", "running", "waiting_approval", "cancelling"]))
         ).all()
-        for agent, child in rows:
-            unit.transition(agent, child, "interrupted", "delegation_process_interrupted")
+        for agent, child, state, worker, work_id, work_state in rows:
+            if work_id and state == "queued" and work_state in {"pending", "claimed"}:
+                continue
+            if work_id and state == work_state == "running":
+                self._requeue_turn(child, work_id)
+                unit.event(agent, child, "run.resume_queued", {"reason": "owa_before_dispatch"})
+                continue
+            code = "owa_worker_requires_review" if worker else "delegation_process_interrupted"
+            unit.transition(agent, child, "interrupted", code)
