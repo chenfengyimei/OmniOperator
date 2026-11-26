@@ -23,6 +23,7 @@ from ..domain.documents import DocumentText
 from ..domain.extensions import CapturedPackage
 from ..domain.metering import TokenEstimate
 from ..domain.objects import Blob
+from ..domain.omniweave import WorkerProfile
 from ..domain.qq import QQEvent
 from ..domain.recovery_authority import RecoveryAuthority
 from ..domain.releases import ReleaseEvent, ReleasePlan, ReleasePrepared, ReleaseSnapshot
@@ -392,7 +393,13 @@ class UnitOfWork(Protocol):
     def assert_run_lease(self, agent_id: str, run_id: str) -> None: ...
     def delegation_link(self, agent_id: str, child_id: str) -> Record | None: ...
     def delegation_create(
-        self, agent_id: str, parent_id: str, value: Record, *, worker_tools: Mapping[str, str] | None = None
+        self,
+        agent_id: str,
+        parent_id: str,
+        value: Record,
+        *,
+        worker_tools: Mapping[str, str] | None = None,
+        worker_profile: WorkerProfile | None = None,
     ) -> Record: ...
     def delegation_children(self, agent_id: str, parent_id: str) -> list[str]: ...
     def delegation_related_sessions(self, agent_id: str, sessions: set[str]) -> set[str]: ...
@@ -1002,10 +1009,21 @@ class UnitOfWork(Protocol):
     def omniweave_main_session(self, agent_id: str) -> str | None: ...
     def omniweave_select_main(self, agent_id: str, session_id: str | None) -> str: ...
     def omniweave_observe(
-        self, agent_id: str, key: str, run_id: str, main_session_id: str, *, duplicate: bool, dispatch: bool = False
+        self,
+        agent_id: str,
+        key: str,
+        run_id: str,
+        main_session_id: str,
+        *,
+        duplicate: bool,
+        dispatch: bool = False,
+        catalog: Mapping[str, ToolSpec] | None = None,
     ) -> None: ...
     def omniweave_router(self, agent_id: str, run_id: str) -> Record | None: ...
-    def omniweave_plan(self, agent_id: str, run_id: str, arguments: Record, catalog: Mapping[str, str]) -> Record: ...
+    def omniweave_assert_model_tools(self, agent_id: str, run_id: str, tools: Sequence[ToolSpec]) -> None: ...
+    def omniweave_plan(
+        self, agent_id: str, run_id: str, arguments: Record, catalog: Mapping[str, ToolSpec]
+    ) -> Record: ...
     def omniweave_ticket(
         self, agent_id: str, session_id: str, ticket_id: str = "", *, include_results: bool = False, run_id: str = ""
     ) -> Record: ...

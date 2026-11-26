@@ -2,8 +2,10 @@
 
 import asyncio
 import json
+import sqlite3
 import time
 from concurrent.futures import ThreadPoolExecutor
+from datetime import datetime, timedelta
 from threading import Barrier, Event
 
 import pytest
@@ -11,9 +13,12 @@ from fastapi.testclient import TestClient
 from omni_test_support.v2.http import LocalModel
 from omni_test_support.v2.mcp_flow import wait_run
 
+from omni.adapters.persistence import schema as s
 from omni.adapters.persistence.delegation_repository import DelegationRepositories
 from omni.adapters.persistence.omniweave_repository import OmniWeaveRepositories
+from omni.adapters.persistence.repository import Repositories
 from omni.adapters.persistence.sqlite_access import sqlite_connection
+from omni.adapters.primitives import SystemClock
 from omni.adapters.workers.client import WorkerClient
 from omni.composition.http import http_app
 from omni.domain.contracts import ActionResult, BusinessError, Effect, Invocation, ModelReply, Outcome
@@ -307,6 +312,7 @@ def _wait_tasks(client, base, receipt, expected):
 
 def test_router_accepts_new_input_while_three_workers_run_and_waits_for_dependencies(tmp_path):
     extras = ("extra-a", "extra-b", "extra-c", "extra-d")
+    profiles = {"alpha": "research", "beta": "coding", "gamma": "verification", "join": "documentation"}
 
     class Model:
         def __init__(self):
@@ -320,6 +326,8 @@ def test_router_accepts_new_input_while_three_workers_run_and_waits_for_dependen
             names = {tool.name for tool in tools}
             if goal := _worker_goal(messages):
                 assert not names
+                if goal in profiles:
+                    assert any(f"Profile {profiles[goal]} v1." in str(row["content"]) for row in messages)
                 self.workspaces[goal] = settings["workspace"]
                 if goal == "join":
                     assert self.completed == {"alpha", "beta", "gamma"}
@@ -338,8 +346,15 @@ def test_router_accepts_new_input_while_three_workers_run_and_waits_for_dependen
                     assert plans[0]["ticket_id"] == plans[1]["ticket_id"]
                     assert all(len(plan["tasks"]) == 8 for plan in plans)
                     return ModelReply("Work is queued", cost_micro=0)
-                tasks = [{"key": key, "goal": key} for key in ("alpha", "beta", "gamma")]
-                tasks.append({"key": "join", "goal": "join", "depends_on": ["alpha", "beta", "gamma"]})
+                tasks = [{"key": key, "goal": key, "profile": profiles[key]} for key in ("alpha", "beta", "gamma")]
+                tasks.append(
+                    {
+                        "key": "join",
+                        "goal": "join",
+                        "profile": profiles["join"],
+                        "depends_on": ["alpha", "beta", "gamma"],
+                    }
+                )
                 tasks.extend({"key": key, "goal": key, "depends_on": ["join"]} for key in extras)
                 return ModelReply(
                     "Plan", (Invocation(f"plan-{len(plans)}", "owa_plan", {"tasks": tasks}),), cost_micro=0
@@ -374,6 +389,11 @@ def test_router_accepts_new_input_while_three_workers_run_and_waits_for_dependen
         states = {"alpha": "running", "beta": "running", "gamma": "running", "join": "queued"}
         states.update(dict.fromkeys(extras, "queued"))
         ticket = _wait_tasks(client, base, root, states)
+        assert {row["key"]: row["profile"] for row in ticket["tasks"]} == {
+            **dict.fromkeys(extras, "coding"),
+            **profiles,
+        }
+        assert all(row["profile_version"] == row["goal_version"] == 1 for row in ticket["tasks"])
         child_rows = _rows(
             tmp_path,
             "SELECT r.id, r.session_id FROM runs r JOIN owa_tasks t ON t.run_id=r.id",
@@ -446,10 +466,12 @@ def test_router_rejects_cyclic_and_unauthorized_worker_plans_atomically(tmp_path
                 assert "dependency plan" in replies[0] and "current Agent policy" in replies[1]
                 assert "Tool arguments do not match its schema" in replies[2]
                 assert "Unknown capability" in replies[3]
+                assert "selected Worker Profile" in replies[4]
                 return ModelReply("No plan was admitted", cost_micro=0)
             tasks = [{"key": "ok", "goal": "task"}, {"key": "unoffered", "goal": "write", "tools": ["files_write"]}]
             cycle = [{"key": "cycle", "goal": "retry", "depends_on": ["cycle"]}]
             overflow = [{"key": f"worker-{index}", "goal": "overflow"} for index in range(9)]
+            wrong_profile = [{"key": "research", "goal": "write", "profile": "research", "tools": ["files_write"]}]
             return ModelReply(
                 "Plan",
                 (
@@ -457,6 +479,7 @@ def test_router_rejects_cyclic_and_unauthorized_worker_plans_atomically(tmp_path
                     Invocation("denied", "owa_plan", {"tasks": tasks}),
                     Invocation("overflow", "owa_plan", {"tasks": overflow}),
                     Invocation("forged", "files_read", {"path": "private.txt"}),
+                    Invocation("wrong-profile", "owa_plan", {"tasks": wrong_profile}),
                 ),
                 cost_micro=0,
             )
@@ -620,6 +643,68 @@ def test_worker_budget_denies_model_dispatch_before_reservation(tmp_path):
         assert ticket["tasks"][0]["error_code"] == "delegation_budget_exceeded"
         assert wait_run(client, base, receipt["run_id"])["state"] == "succeeded"
         assert _rows(tmp_path, "SELECT id FROM model_calls WHERE run_id IN (SELECT run_id FROM owa_tasks)") == []
+
+
+def test_worker_mandate_expiry_blocks_an_approved_write_and_keeps_immutable_scope(tmp_path, monkeypatch):
+    start = datetime.fromisoformat(SystemClock().now())
+    advanced = Event()
+    monkeypatch.setattr(
+        SystemClock,
+        "now",
+        lambda self: (start + timedelta(seconds=2 * advanced.is_set())).isoformat(timespec="microseconds"),
+    )
+    authorize = Repositories.authorize_action
+
+    def expire_on_dispatch(unit, agent, action_id):
+        if unit.one(s.actions, agent, action_id)["tool"] == "files_write":
+            advanced.set()
+        return authorize(unit, agent, action_id)
+
+    monkeypatch.setattr(Repositories, "authorize_action", expire_on_dispatch)
+
+    class Model:
+        async def complete(self, messages, tools, settings):
+            if _worker_goal(messages):
+                assert {tool.name for tool in tools} == {"files_write"}
+                return ModelReply(
+                    "Write",
+                    (Invocation("write", "files_write", {"path": "expired.txt", "content": "fixture"}),),
+                    cost_micro=0,
+                )
+            if messages[-1]["role"] == "tool":
+                return ModelReply("Plan accepted", cost_micro=0)
+            task = {"key": "writer", "goal": "write before deadline", "tools": ["files_write"], "deadline_seconds": 1}
+            return ModelReply("Plan", (Invocation("plan", "owa_plan", {"tasks": [task]}),), cost_micro=0)
+
+    with TestClient(http_app(tmp_path, model=Model(), omniweave_mode="enabled")) as client:
+        base = _model_base(client, _authorize(client, tmp_path))
+        session = _select_main(client, base)
+        receipt = client.post(base + "/turns", json={"key": "expiry", "message": "Draft", "session_id": session}).json()
+        _wait_tasks(client, base, receipt, {"writer": "waiting_approval"})
+        assert wait_run(client, base, receipt["run_id"])["state"] == "succeeded"
+        [(worker, root_scope, worker_scope, root_expires, worker_expires, grant)] = _rows(
+            tmp_path,
+            "SELECT w.run_id, p.main_session_id, w.main_session_id, p.expires_at, w.expires_at, w.tools "
+            "FROM owa_mandates w JOIN owa_mandates p ON p.id=w.parent_id",
+        )
+        assert root_scope == worker_scope == session and worker_expires < root_expires
+        assert json.loads(grant)["files_write"]["writes"] is True
+        with (
+            sqlite_connection(tmp_path / "data/omni.db", read_only=False) as connection,
+            pytest.raises(sqlite3.IntegrityError, match="OWA Mandate is immutable"),
+        ):
+            connection.execute("UPDATE owa_mandates SET expires_at=? WHERE run_id=?", (root_expires, worker))
+        approval = client.get(base + "/approvals").json()["items"][0]
+        response = client.post(
+            base + f"/approvals/{approval['id']}",
+            json={"allowed": True, "policy_revision": approval["policy_revision"]},
+        )
+        assert response.status_code == 200, response.text
+        ticket = _wait_tasks(client, base, receipt, {"writer": "failed"})
+        assert ticket["tasks"][0]["error_code"] == "owa_mandate_expired"
+        assert advanced.is_set()
+        assert not (tmp_path / "owa-workspaces" / worker / "expired.txt").exists()
+        assert _rows(tmp_path, "SELECT state FROM actions WHERE run_id=? AND started_at IS NOT NULL", (worker,)) == []
 
 
 def test_restart_reclaims_untouched_worker_and_quarantines_uncertain_attempt(tmp_path, monkeypatch):

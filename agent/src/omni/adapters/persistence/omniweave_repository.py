@@ -2,23 +2,44 @@
 
 from __future__ import annotations
 
-import hashlib
-import json
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from dataclasses import asdict
+from datetime import datetime, timedelta
 from typing import Literal, cast
 
 from sqlalchemy import select, update
 
 from ...application.ports import Record, UnitOfWork
-from ...domain.contracts import JSON, BusinessError
-from ...domain.delegation import SUMMARY_CHARS
-from ...domain.omniweave import OBSERVE_DECISION, OWNER_WEB_SOURCE, TRIGGER_VERSION, checked_plan
+from ...domain.contracts import JSON, BusinessError, ToolSpec
+from ...domain.delegation import SUMMARY_CHARS, TREE_BUDGET, tool_hash
+from ...domain.omniweave import (
+    OBSERVE_DECISION,
+    OWNER_WEB_SOURCE,
+    ROOT_CALL_LIMIT,
+    ROOT_DEADLINE_S,
+    TRIGGER_VERSION,
+    WORKER_PROFILES,
+    checked_plan,
+    goal_fingerprint,
+    mandate_tool,
+)
 from . import schema as s
+from .omniweave_authority import assert_mandate_action, mandate
 from .repository_base import RepositoryBase
 
 
 class OmniWeaveRepositories(RepositoryBase):
+    def omniweave_assert_model_tools(self, agent_id: str, run_id: str, tools: Sequence[ToolSpec]) -> None:
+        captured = mandate(self, agent_id, run_id)
+        if captured is None or captured["task_id"] is None:
+            return
+        grants = cast(Record, captured["tools"])
+        if any(grants.get(spec.name) != mandate_tool(spec) for spec in tools):
+            raise BusinessError("owa_mandate_tool_denied", "The Worker model tool surface exceeds its Mandate")
+
+    def omniweave_assert_action(self, agent_id: str, run_id: str, spec: ToolSpec) -> None:
+        assert_mandate_action(self, agent_id, run_id, spec)
+
     def _owa_owner(self) -> str:
         return cast(
             str, self.connection.execute(select(s.instances.c.owner_id).where(s.instances.c.slot == 1)).scalar_one()
@@ -101,7 +122,15 @@ class OmniWeaveRepositories(RepositoryBase):
         return session_id
 
     def omniweave_observe(
-        self, agent_id: str, key: str, run_id: str, main_session_id: str, *, duplicate: bool, dispatch: bool = False
+        self,
+        agent_id: str,
+        key: str,
+        run_id: str,
+        main_session_id: str,
+        *,
+        duplicate: bool,
+        dispatch: bool = False,
+        catalog: Mapping[str, ToolSpec] | None = None,
     ) -> None:
         # Replays keep their original routing. Only explicit selections enable new Router turns.
         if duplicate or (dispatch and self.omniweave_main_session(agent_id) != main_session_id):
@@ -109,7 +138,7 @@ class OmniWeaveRepositories(RepositoryBase):
         private_session = select(s.run_delegations.c.id).where(s.run_delegations.c.child_session_id == main_session_id)
         channel_session = select(s.qq_bindings.c.id).where(s.qq_bindings.c.session_id == main_session_id)
         source = self.connection.execute(
-            select(s.inbox.c.id, s.inbox.c.request_fingerprint)
+            select(s.inbox.c.id, s.inbox.c.request_fingerprint, s.runs.c.policy_epoch, s.sessions.c.content_epoch)
             .join(s.runs, s.runs.c.id == s.inbox.c.run_id)
             .join(s.sessions, s.sessions.c.id == s.runs.c.session_id)
             .where(
@@ -128,7 +157,8 @@ class OmniWeaveRepositories(RepositoryBase):
         ).one_or_none()
         if source is None:
             raise BusinessError("not_found", "Main Web conversation does not exist in this Agent space", status=404)
-        thread_id = self._owa_thread(agent_id, self._owa_owner(), main_session_id)
+        owner_id = self._owa_owner()
+        thread_id = self._owa_thread(agent_id, owner_id, main_session_id)
         ticket = self._record(s.owa_tickets, {"thread_id": thread_id, "run_id": run_id}, agent_id)
         self._record(
             s.owa_triggers,
@@ -142,8 +172,37 @@ class OmniWeaveRepositories(RepositoryBase):
             },
             agent_id,
         )
+        if catalog is not None:
+            unit = cast(UnitOfWork, self)
+            current = cast(Record, unit.settings(agent_id)["value"])
+            disabled = set(cast(list[str], current["disabled_tools"]))
+            self._record(
+                s.owa_mandates,
+                {
+                    "ticket_id": ticket["id"],
+                    "run_id": run_id,
+                    "main_session_id": main_session_id,
+                    "owner_id": owner_id,
+                    "profile": "router",
+                    "profile_version": 1,
+                    "goal_version": 1,
+                    "goal_sha256": source.request_fingerprint,
+                    "policy_epoch": source.policy_epoch,
+                    "history_epoch": self.connection.execute(select(s.history_identity.c.epoch)).scalar_one(),
+                    "session_epoch": source.content_epoch,
+                    "expires_at": (
+                        datetime.fromisoformat(self.clock.now()) + timedelta(seconds=ROOT_DEADLINE_S)
+                    ).isoformat(timespec="microseconds"),
+                    "tools": {name: mandate_tool(spec) for name, spec in catalog.items() if name not in disabled},
+                    "budget_micro": min(
+                        TREE_BUDGET, cast(int, unit.run_settings(agent_id, run_id)["daily_budget_micro"]) or TREE_BUDGET
+                    ),
+                    "max_calls": ROOT_CALL_LIMIT,
+                },
+                agent_id,
+            )
         if dispatch:
-            self._record(s.owa_executions, {"ticket_id": ticket["id"]}, agent_id)
+            self._record(s.owa_executions, {"ticket_id": ticket["id"], "mandate_required": True}, agent_id)
 
     def omniweave_router(self, agent_id: str, run_id: str) -> Record | None:
         row = (
@@ -158,7 +217,7 @@ class OmniWeaveRepositories(RepositoryBase):
         )
         return cast(Record, dict(row)) if row else None
 
-    def omniweave_plan(self, agent_id: str, run_id: str, arguments: Record, catalog: Mapping[str, str]) -> Record:
+    def omniweave_plan(self, agent_id: str, run_id: str, arguments: Record, catalog: Mapping[str, ToolSpec]) -> Record:
         unit = cast(UnitOfWork, self)
         unit.assert_run_authorized(agent_id, run_id)
         execution = self.omniweave_router(agent_id, run_id)
@@ -166,29 +225,79 @@ class OmniWeaveRepositories(RepositoryBase):
         if execution is None or execution["cancelled_at"] or run["state"] != "running":
             raise BusinessError("owa_router_not_active", "This run cannot schedule an OmniWeave Ticket")
         tasks = checked_plan(arguments, cast(int, unit.run_settings(agent_id, run_id)["call_reservation_micro"]))
-        if any(set(task.tools) - catalog.keys() for task in tasks):
-            raise BusinessError("owa_worker_tool_unavailable", "Worker tool is unavailable in the installed catalog")
-        fingerprint = hashlib.sha256(
-            json.dumps(
-                [asdict(task) for task in tasks], sort_keys=True, ensure_ascii=False, separators=(",", ":")
-            ).encode()
-        ).hexdigest()
+        fingerprint = goal_fingerprint(cast(list[JSON], [asdict(task) for task in tasks]))
         ticket_id, session_id = str(execution["ticket_id"]), str(execution["main_session_id"])
         if execution["plan_sha256"] == fingerprint:
             return self.omniweave_ticket(agent_id, session_id, ticket_id)
         if execution["plan_sha256"] is not None:
             raise BusinessError("owa_plan_conflict", "This Ticket already has a different Worker plan", status=409)
+        root = mandate(self, agent_id, run_id)
+        if root is None:
+            raise BusinessError("owa_mandate_missing", "Submit a new owner turn to authorize a Worker plan")
+        grants = cast(Record, root["tools"])
+        if any(
+            name not in catalog or grants.get(name) != mandate_tool(catalog[name])
+            for task in tasks
+            for name in task.tools
+        ):
+            raise BusinessError(
+                "owa_worker_tool_not_authorized",
+                "Worker tools must be allowed by the current Agent policy and root Mandate",
+            )
+        if any(cast(int, task.request["budget_micro"]) > cast(int, root["budget_micro"]) for task in tasks):
+            raise BusinessError("owa_mandate_budget_denied", "Worker budget exceeds the root Mandate")
         unit.require_turn_capacity(len(tasks))
         self.connection.execute(
             update(s.owa_executions).where(s.owa_executions.c.id == execution["id"]).values(plan_sha256=fingerprint)
         )
         records: dict[str, Record] = {}
+        now = datetime.fromisoformat(self.clock.now())
         for task in tasks:
+            profile = WORKER_PROFILES[task.profile]
             child = unit.delegation_create(
-                agent_id, run_id, task.request, worker_tools={name: catalog[name] for name in task.tools}
+                agent_id,
+                run_id,
+                task.request,
+                worker_tools={name: tool_hash(catalog[name]) for name in task.tools},
+                worker_profile=profile,
             )
             records[task.key] = self._record(
                 s.owa_tasks, {"ticket_id": ticket_id, "run_id": child["run_id"], "task_key": task.key}, agent_id
+            )
+            deadline = str(root["expires_at"])
+            if task.deadline_seconds is not None:
+                deadline = min(
+                    deadline, (now + timedelta(seconds=task.deadline_seconds)).isoformat(timespec="microseconds")
+                )
+            if deadline <= self.clock.now():
+                raise BusinessError("owa_mandate_expired", "OmniWeave task authorization expired before admission")
+            self._record(
+                s.owa_mandates,
+                {
+                    **{
+                        name: root[name]
+                        for name in (
+                            "main_session_id",
+                            "owner_id",
+                            "policy_epoch",
+                            "history_epoch",
+                            "session_epoch",
+                            "goal_version",
+                        )
+                    },
+                    "ticket_id": ticket_id,
+                    "task_id": records[task.key]["id"],
+                    "parent_id": root["id"],
+                    "run_id": child["run_id"],
+                    "profile": profile.name,
+                    "profile_version": profile.version,
+                    "goal_sha256": goal_fingerprint(task.request["goal"]),
+                    "expires_at": deadline,
+                    "tools": {name: grants[name] for name in task.tools},
+                    "budget_micro": task.request["budget_micro"],
+                    "max_calls": task.request["max_calls"],
+                },
+                agent_id,
             )
         for task in tasks:
             for predecessor in task.needs:
@@ -244,6 +353,8 @@ class OmniWeaveRepositories(RepositoryBase):
                 "unknown_effect": result["unknown_effect"],
                 "unknown_model_calls": result["unknown_model_calls"],
             }
+            if captured := mandate(self, agent_id, child_id):
+                item.update({name: captured[name] for name in ("profile", "profile_version", "goal_version")})
             if include_results:
                 summary = str(result["summary"])
                 item["result"] = summary[:summary_limit]

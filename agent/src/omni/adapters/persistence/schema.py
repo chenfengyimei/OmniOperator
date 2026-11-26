@@ -1479,6 +1479,7 @@ owa_executions = scoped(
     Column("ticket_id", String(36), nullable=False),
     Column("plan_sha256", String(64)),
     Column("cancelled_at", String(40)),
+    Column("mandate_required", Boolean, nullable=False, server_default="0"),
     scoped_fk("ticket_id", "owa_tickets"),
     UniqueConstraint("ticket_id"),
     CheckConstraint(
@@ -1509,6 +1510,34 @@ owa_dependencies = scoped(
     scoped_fk("needs_id", "owa_tasks"),
     UniqueConstraint("task_id", "needs_id"),
     CheckConstraint("task_id!=needs_id", name="different_tasks"),
+)
+
+owa_mandates = scoped(
+    "owa_mandates",
+    Column("ticket_id", String(36), nullable=False),
+    Column("task_id", String(36)),
+    Column("parent_id", String(36)),
+    Column("run_id", String(36), nullable=False),
+    Column("main_session_id", String(36), nullable=False),
+    Column("owner_id", String(36), ForeignKey("principals.id", ondelete="RESTRICT"), nullable=False),
+    Column("profile", String(32), nullable=False),
+    Column("profile_version", Integer, nullable=False),
+    Column("goal_version", Integer, nullable=False),
+    Column("goal_sha256", String(64), nullable=False),
+    Column("policy_epoch", Integer, nullable=False),
+    Column("history_epoch", String(36), nullable=False),
+    Column("session_epoch", Integer, nullable=False),
+    Column("expires_at", String(40), nullable=False),
+    Column("tools", JSON, nullable=False),
+    Column("budget_micro", Integer, nullable=False),
+    Column("max_calls", Integer, nullable=False),
+    UniqueConstraint("run_id", "goal_version"),
+    UniqueConstraint("task_id", "goal_version"),
+    scoped_fk("ticket_id", "owa_tickets"),
+    scoped_fk("task_id", "owa_tasks"),
+    scoped_fk("parent_id", "owa_mandates"),
+    scoped_fk("run_id", "runs"),
+    scoped_fk("main_session_id", "sessions"),
 )
 
 

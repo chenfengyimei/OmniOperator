@@ -9,6 +9,7 @@ from sqlalchemy import select
 from ...application.ports import Record, UnitOfWork
 from ...domain.contracts import BusinessError
 from . import schema as s
+from .omniweave_authority import authorize_mandate
 from .repository_base import RepositoryBase
 
 
@@ -29,6 +30,9 @@ def authorize(repo: RepositoryBase, agent_id: str, child_id: str) -> None:
     unit = cast(UnitOfWork, repo)
     row = unit.delegation_link(agent_id, child_id)
     if row is None:
+        execution = unit.omniweave_router(agent_id, child_id)
+        if execution is not None:
+            authorize_mandate(repo, agent_id, child_id, execution)
         if unit.delegation_children(agent_id, child_id):
             enabled = repo.connection.execute(
                 select(s.agents.c.enabled).where(s.agents.c.id == agent_id)
@@ -46,6 +50,7 @@ def authorize(repo: RepositoryBase, agent_id: str, child_id: str) -> None:
         execution = unit.omniweave_router(agent_id, parent_id)
         if execution is None or execution["cancelled_at"] or not execution["plan_sha256"]:
             raise BusinessError("delegation_source_invalidated", "The owning Ticket no longer authorizes this Worker")
+        authorize_mandate(repo, agent_id, child_id, execution, row)
         parent_states = ("running", "waiting_approval", "succeeded")
     if (
         (not worker and row["boot_id"] != repo.boot_id)

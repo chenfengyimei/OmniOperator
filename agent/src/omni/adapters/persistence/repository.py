@@ -734,6 +734,7 @@ class Repositories(
         run = self.get_run(agent_id, run_id)
         if run["state"] != "running":
             raise BusinessError("run_not_running", "Run no longer accepts actions")
+        self.omniweave_assert_action(agent_id, run_id, spec)
         current = self.settings(agent_id)
         current_value = cast(Record, current["value"])
         if current["policy_revision"] != policy or spec.name in cast(

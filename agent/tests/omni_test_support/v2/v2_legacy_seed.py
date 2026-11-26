@@ -39,6 +39,12 @@ class PreKernelSeedRepositories(Repositories):
         # Historical fixture schemas predate Worker sessions. Live databases reach the current head before admission.
         return False
 
+    def omniweave_router(self, agent_id, run_id):
+        return None
+
+    def omniweave_assert_action(self, agent_id, run_id, spec):
+        return None
+
     def _record(self, table, values, agent_id=None):
         if table is s.run_routes:
             table = Table("run_routes", MetaData(), autoload_with=self.connection)

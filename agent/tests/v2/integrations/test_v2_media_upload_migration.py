@@ -101,6 +101,6 @@ def test_populated_graph_rebuild_preserves_completed_artifact_and_rolls_back_eve
                 connection.exec_driver_sql("PRAGMA foreign_keys").scalar() == 1
                 and not connection.exec_driver_sql("PRAGMA foreign_key_check").fetchall()
             )
-            assert connection.exec_driver_sql("SELECT version_num FROM alembic_version").scalar() == "v2_0057"
+            assert connection.exec_driver_sql("SELECT version_num FROM alembic_version").scalar() == "v2_0058"
     finally:
         engine.dispose()

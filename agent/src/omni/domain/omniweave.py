@@ -2,29 +2,71 @@
 
 from __future__ import annotations
 
+import hashlib
+import json
 import re
 from dataclasses import dataclass
 from graphlib import CycleError, TopologicalSorter
 from typing import Literal, cast
 
 from .contracts import JSON, BusinessError, ToolSpec
-from .delegation import TASK_PROPERTIES, request
+from .delegation import TASK_PROPERTIES, request, tool_hash
 
 OmniWeaveMode = Literal["off", "observe", "dispatch", "enabled"]
 OMNIWEAVE_MODES: tuple[OmniWeaveMode, ...] = ("off", "observe", "enabled", "dispatch")
 OWNER_WEB_SOURCE = "owner_web"
 TRIGGER_VERSION = 1
 OBSERVE_DECISION = "observe"
-WORKER_TOOLS = ("files_list", "files_read", "files_search", "files_write", "files_patch")
+WORKER_READ_TOOLS = ("files_list", "files_read", "files_search")
+WORKER_TOOLS = (*WORKER_READ_TOOLS, "files_write", "files_patch")
 WORKER_TASK_LIMIT = 8
 WORKER_CONCURRENCY = 3
+ROOT_DEADLINE_S = 24 * 60 * 60
+ROOT_CALL_LIMIT = 64
 _KEY = r"^[a-z][a-z0-9-]{0,31}$"
 _TASK_KEY: dict[str, JSON] = {"type": "string", "pattern": _KEY}
+
+
+@dataclass(frozen=True)
+class WorkerProfile:
+    name: str
+    version: int
+    tools: tuple[str, ...]
+    deliverable: str
+
+
+WORKER_PROFILES = {
+    profile.name: profile
+    for profile in (
+        WorkerProfile("research", 1, WORKER_READ_TOOLS, "Cite evidence, its limits, and open questions."),
+        WorkerProfile("coding", 1, WORKER_TOOLS, "Report the patch or version and how you checked it."),
+        WorkerProfile("verification", 1, WORKER_READ_TOOLS, "Report independent checks and the version they cover."),
+        WorkerProfile("documentation", 1, WORKER_TOOLS, "Report the document version, dependencies, and gaps."),
+    )
+}
+
+
+def goal_fingerprint(value: JSON) -> str:
+    return hashlib.sha256(
+        json.dumps(value, sort_keys=True, ensure_ascii=False, separators=(",", ":")).encode()
+    ).hexdigest()
+
+
+def mandate_tool(spec: ToolSpec) -> dict[str, JSON]:
+    return {
+        "sha256": tool_hash(spec),
+        "writes": spec.writes,
+        "resource": spec.resource,
+        "binding_id": spec.binding_id,
+        "timeout_s": spec.timeout_s,
+    }
+
 
 OWA_PLAN = ToolSpec(
     "owa_plan",
     "Plan independent Worker tasks for this Web turn. Dependencies refer to keys in the same plan. "
-    "Choose a goal, share only the context the Worker needs, and select needed workspace tools. "
+    "Choose a goal and profile, share only the context the Worker needs, and select needed workspace tools. "
+    "Research and Verification are read-only. Coding and Documentation can request workspace writes. "
     "Workers use private workspaces, bounded model budgets and separate approval for every write. "
     "Submission returns immediately. Use owa_status to read progress or results in this conversation. "
     "Reply to the owner with the plan or progress while work is running.",
@@ -40,6 +82,8 @@ OWA_PLAN = ToolSpec(
                     "properties": {
                         **TASK_PROPERTIES,
                         "key": _TASK_KEY,
+                        "profile": {"type": "string", "enum": list(WORKER_PROFILES)},
+                        "deadline_seconds": {"type": "integer", "minimum": 1, "maximum": ROOT_DEADLINE_S},
                         "depends_on": {
                             "type": "array",
                             "maxItems": WORKER_TASK_LIMIT - 1,
@@ -81,6 +125,8 @@ class WorkerTask:
     request: dict[str, JSON]
     needs: tuple[str, ...]
     tools: tuple[str, ...]
+    profile: str
+    deadline_seconds: int | None
 
 
 def checked_plan(value: dict[str, JSON], reservation: int) -> list[WorkerTask]:
@@ -104,6 +150,8 @@ def _checked_task(value: JSON, reservation: int) -> WorkerTask:
     key = value.get("key")
     dependencies = value.get("depends_on", [])
     tools = value.get("tools", [])
+    profile = value.get("profile", "coding")
+    deadline = value.get("deadline_seconds")
     if (
         not isinstance(key, str)
         or not re.fullmatch(_KEY, key)
@@ -111,16 +159,26 @@ def _checked_task(value: JSON, reservation: int) -> WorkerTask:
         or not all(isinstance(item, str) and re.fullmatch(_KEY, item) for item in dependencies)
         or not isinstance(tools, list)
         or not all(isinstance(item, str) and item in WORKER_TOOLS for item in tools)
+        or not isinstance(profile, str)
+        or profile not in WORKER_PROFILES
+        or (deadline is not None and (type(deadline) is not int or not 1 <= deadline <= ROOT_DEADLINE_S))
     ):
         raise invalid_plan()
     needs = tuple(cast(list[str], dependencies))
     selected = tuple(cast(list[str], tools))
     if len(needs) != len(set(needs)) or len(selected) != len(set(selected)):
         raise invalid_plan()
+    if set(selected) - set(WORKER_PROFILES[profile].tools):
+        raise BusinessError("owa_profile_tool_not_authorized", "The selected Worker Profile does not allow these tools")
     parsed = request(
-        {name: item for name, item in value.items() if name not in {"key", "depends_on", "tools"}}, reservation
+        {
+            name: item
+            for name, item in value.items()
+            if name not in {"key", "depends_on", "tools", "profile", "deadline_seconds"}
+        },
+        reservation,
     )
-    return WorkerTask(key, parsed, tuple(sorted(needs)), tuple(sorted(selected)))
+    return WorkerTask(key, parsed, tuple(sorted(needs)), tuple(sorted(selected)), profile, deadline)
 
 
 def invalid_plan() -> BusinessError:

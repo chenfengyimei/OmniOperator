@@ -8,8 +8,7 @@ from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 
 from ..domain.contracts import JSON, ActionResult, BusinessError, InvocationContext, Outcome, ToolSpec
-from ..domain.delegation import tool_hash
-from ..domain.omniweave import OWA_PLAN, OWA_STATUS, WORKER_TOOLS, OmniWeaveMode
+from ..domain.omniweave import OWA_PLAN, OWA_STATUS, WORKER_READ_TOOLS, WORKER_TOOLS, OmniWeaveMode
 from .ports import DatabasePort, Record, TurnAdmissionObserver, UnitOfWork
 
 
@@ -19,6 +18,13 @@ class OmniWeaveService:
     database: DatabasePort
     notify: Callable[[], None]
     worker_tool_specs: tuple[ToolSpec, ...] = ()
+
+    def _worker_catalog(self) -> dict[str, ToolSpec]:
+        return {
+            spec.name: spec
+            for spec in self.worker_tool_specs
+            if spec.name in WORKER_TOOLS and spec.writes == (spec.name not in WORKER_READ_TOOLS)
+        }
 
     async def main_session(self, agent_id: str) -> Record:
         session_id = await self.database.read(lambda unit: unit.omniweave_main_session(agent_id))
@@ -54,6 +60,7 @@ class OmniWeaveService:
                 str(receipt["session_id"]),
                 duplicate=receipt["duplicate"] is True,
                 dispatch=self.mode == "dispatch",
+                catalog=self._worker_catalog(),
             )
 
         return observe
@@ -82,7 +89,7 @@ class OmniWeaveService:
 
         try:
             if name == OWA_PLAN.name:
-                catalog = {spec.name: tool_hash(spec) for spec in self.worker_tool_specs if spec.name in WORKER_TOOLS}
+                catalog = self._worker_catalog()
                 result = await self.database.write(
                     lambda unit: unit.omniweave_plan(agent_id, run_id, dict(arguments), catalog)
                 )
