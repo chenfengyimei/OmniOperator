@@ -64,6 +64,8 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
     runs-on: ${{ matrix.os }}
+    env:
+      PYTEST_XDIST_AUTO_NUM_WORKERS: '2'
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -83,17 +85,15 @@ jobs:
           agent/tests/v2/operations/test_v2_service_runtime.py::test_identity_tracks_real_boot_and_drains_before_releasing_lock
       - name: Run the full repository test suite
         if: runner.os == 'Windows'
-        run: uv run --no-sync pytest -q --junitxml=temp/build/v2-ci/pytest.xml
+        run: uv run --no-sync python scripts/ci_v2.py --windows-repository
       - name: Run the portable V2 tests
         if: runner.os != 'Windows'
-        env:
-          PYTEST_XDIST_AUTO_NUM_WORKERS: '2'
         run: uv run --no-sync python scripts/ci_v2.py
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: offline-tests-${{ matrix.os }}
-          path: temp/build/v2-ci/pytest.xml
+          path: temp/build/v2-ci/pytest*.xml
   local-vectors:
     strategy:
       fail-fast: false

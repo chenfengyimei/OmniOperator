@@ -406,7 +406,7 @@ def test_production_sdk_receives_low_image_and_explicit_usage_only_on_local_serv
     from importlib import import_module
 
     from omni_test_support.v2.credentials import Backend
-    from omni_test_support.v2.model_stream import chunk, usage, use_bundled_sdk_tokenizer
+    from omni_test_support.v2.model_stream import chunk, usage, use_offline_sdk_tokenizer
 
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
     monkeypatch.setenv("LITELLM_TELEMETRY", "False")
@@ -414,7 +414,7 @@ def test_production_sdk_receives_low_image_and_explicit_usage_only_on_local_serv
     # SDK cold loading is setup, matching the stream protocol tests. Keep the
     # unchanged turn deadline for actual admission, transport and settlement.
     import_module("litellm")
-    use_bundled_sdk_tokenizer(monkeypatch)
+    use_offline_sdk_tokenizer(monkeypatch)
 
     async def scenario():
         requests, errors, tasks = [], [], set()

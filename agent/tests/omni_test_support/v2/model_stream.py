@@ -20,12 +20,18 @@ from omni_test_support.v2.execution import wait_state
 from omni_test_support.v2.v2_configuration_helpers import model_instance
 
 
-def use_bundled_sdk_tokenizer(monkeypatch):
+def use_offline_sdk_tokenizer(monkeypatch):
+    import tiktoken
     from litellm.litellm_core_utils import token_counter
-    from litellm.litellm_core_utils.default_encoding import encoding
 
-    # These tests assert provider usage from the wire. The SDK's incidental
-    # estimates can use its packaged tokenizer on a fresh, offline machine.
+    # Provider usage comes from the wire. Keep the SDK's incidental estimates
+    # independent of optional encoding files and the machine's tokenizer cache.
+    encoding = tiktoken.Encoding(
+        name="omni_fixture_bytes",
+        pat_str=r"(?s).",
+        mergeable_ranks={bytes([value]): value for value in range(256)},
+        special_tokens={},
+    )
     monkeypatch.setattr(token_counter, "get_encoding", lambda _name: encoding)
 
 

@@ -27,7 +27,7 @@ STATIC = web_root(PROJECT_ROOT)
 @pytest.fixture
 def ui(tmp_path, ui_browser):
     client, runtime = _client(tmp_path)
-    with ui_browser.new_context() as context:
+    with client, ui_browser.new_context() as context:
         page = context.new_page()
         errors: list[str] = []
         page.on("pageerror", lambda error: errors.append(str(error)))
@@ -53,7 +53,6 @@ def ui(tmp_path, ui_browser):
         finally:
             context.close()
             assert runtime.close()["complete"]
-            client.close()
 
 
 @pytest.mark.parametrize(

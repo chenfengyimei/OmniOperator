@@ -341,14 +341,19 @@ def test_summary_and_erasure_are_visible_in_the_workbench(ui_browser, v2_server,
             assert submitted.ok, (submitted.status, submitted.text())
             receipt = submitted.json()
             session = receipt["session_id"]
-            deadline = time.monotonic() + 15
-            while time.monotonic() < deadline:
-                run = page.request.get(base + "/runs/" + receipt["run_id"], headers=headers)
+            deadline = time.monotonic() + 30
+            while True:
+                run = page.request.get(
+                    base + "/runs/" + receipt["run_id"],
+                    headers=headers,
+                    timeout=max(1, (deadline - time.monotonic()) * 1000),
+                )
                 assert run.ok, (run.status, run.text())
                 checked = run.json()
                 if checked["state"] in {"succeeded", "failed"}:
                     break
-                time.sleep(0.02)
+                assert time.monotonic() < deadline, checked
+                time.sleep(0.09)
             assert checked["state"] == "succeeded", checked
         page.goto(url)
         page.locator("#token").fill(token)

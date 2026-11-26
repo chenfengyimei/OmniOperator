@@ -16,7 +16,6 @@ from omni.config import PROJECT_ROOT
 from omni.safety.gates import Risk
 from omni.system.catalog import build_index
 from omni.system.catalog.render import render_documents
-from omni.tools.browser.driver import BrowserDriver
 from omni.tools.registry import Tool, ToolRegistry
 
 
@@ -203,15 +202,12 @@ def test_docs_are_allowlisted_and_quarantined_plugin_is_not_activated(workbench,
     assert result["plugins"] == []
 
 
-def test_real_browser_project_navigation_search_details_and_mobile(workbench, tmp_path):
+def test_real_browser_project_navigation_search_details_and_mobile(workbench, tmp_path, ui_browser):
     client, _ = workbench
     pair(client)
-    driver = BrowserDriver(
-        headless=True, slow_mo_ms=0, profile_dir=tmp_path / "browser", shots_dir=tmp_path / "shots", action_timeout_s=20
-    )
 
-    def exercise():
-        page = driver._ensure_page()
+    with ui_browser.new_context() as context:
+        page = context.new_page()
         errors = []
         page.on("pageerror", lambda error: errors.append(str(error)))
 
@@ -274,8 +270,3 @@ def test_real_browser_project_navigation_search_details_and_mobile(workbench, tm
         assert page.locator("tbody tr").first.bounding_box()["height"] < 120
         page.screenshot(path=str(tmp_path / "project-mobile.png"), full_page=True)
         assert not errors
-
-    try:
-        driver._run(exercise, timeout_s=45)
-    finally:
-        assert "已关闭" in driver.close(wait_s=5)

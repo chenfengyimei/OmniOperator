@@ -1,4 +1,4 @@
-"""Cross-platform V2 offline gate; uses the existing environment without synchronizing it."""
+"""Offline validation for portable V2 and the Windows repository."""
 
 from __future__ import annotations
 
@@ -12,6 +12,10 @@ SOURCES = [
     f"agent/src/omni/{name}"
     for name in ("domain", "application", "adapters", "composition")
 ]
+WINDOWS_UIA_TESTS = (
+    "agent/tests/v2/platforms/common/test_v2_desktop_observation_native.py",
+    "agent/tests/v2/platforms/common/test_v2_foreground_worker.py",
+)
 
 
 def test_files(root: Path) -> list[str]:
@@ -22,11 +26,44 @@ def test_files(root: Path) -> list[str]:
     return [str(path.relative_to(root)) for path in tests]
 
 
+def windows_repository_tests(evidence: Path) -> int:
+    pytest = [sys.executable, "-m", "pytest", "-q", "-c", str(ROOT / "pyproject.toml")]
+    # Run native compilation and owned desktop windows without other test workers.
+    native = subprocess.run(
+        [
+            *pytest,
+            "-n",
+            "0",
+            *WINDOWS_UIA_TESTS,
+            f"--junitxml={evidence / 'pytest-windows-native.xml'}",
+        ],
+        cwd=ROOT,
+        check=False,
+    )
+    rest = subprocess.run(
+        [
+            *pytest,
+            *(f"--ignore={path}" for path in WINDOWS_UIA_TESTS),
+            f"--junitxml={evidence / 'pytest.xml'}",
+        ],
+        cwd=ROOT,
+        check=False,
+    )
+    return native.returncode or rest.returncode
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--evidence", type=Path, default=ROOT / "temp/build/v2-ci")
+    parser.add_argument(
+        "--windows-repository",
+        action="store_true",
+        help="Run the complete Windows repository suite",
+    )
     args = parser.parse_args()
     args.evidence.mkdir(parents=True, exist_ok=True)
+    if args.windows_repository:
+        return windows_repository_tests(args.evidence)
     tests = [*test_files(ROOT), "agent/tests/test_filesystem_guard.py"]
     commands = [
         [sys.executable, "-m", "ruff", "check", *SOURCES, *tests],

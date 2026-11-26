@@ -94,17 +94,24 @@ def test_output_bound_and_gap(env):
 @pytest.mark.skipif(os.name != "nt", reason="经核验的进程树终止目前仅 Windows")
 @pytest.mark.parametrize("kind", ["parent", "manual", "timeout"])
 def test_cancellation_and_timeout_reap_owned_process(env, kind):
-    create, _, _ = env
-    host = create("import time;time.sleep(30)")
+    create, _, root = env
+    host = create("from pathlib import Path;import time;Path('child-ready').touch();time.sleep(30)")
     parent = CancelToken()
     identifier = start(host, parent=parent, timeout_s=1 if kind == "timeout" else 30)
     wait(host, identifier, status="running")
+    if kind != "timeout":
+        # The venv launcher may publish its PID before the Python child has started.
+        ready = root / "child-ready"
+        deadline = time.monotonic() + 8
+        while not ready.is_file():
+            assert time.monotonic() < deadline, "Test child never entered its owned workspace"
+            time.sleep(0.02)
     if kind == "parent":
         parent.cancel()
     elif kind == "manual":
         host.cancel(identifier)
     row = wait(host, identifier)
-    assert row["status"] == ("timed_out" if kind == "timeout" else "cancelled")
+    assert row["status"] == ("timed_out" if kind == "timeout" else "cancelled"), row
     assert row["side_effect_state"] == "unknown"
     assert host._tasks[identifier]["process"].poll() is not None
 

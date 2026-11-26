@@ -259,10 +259,10 @@ def test_failed_transport_reclamation_remains_queryable_and_blocks_instance_clos
 @pytest.mark.parametrize("fault", ["none", "no_usage", "no_finish"])
 def test_production_litellm_async_stream_uses_only_the_isolated_http_server(tmp_path, monkeypatch, fault):
     import litellm
-    from omni_test_support.v2.model_stream import use_bundled_sdk_tokenizer
+    from omni_test_support.v2.model_stream import use_offline_sdk_tokenizer
 
     assert litellm is not None
-    use_bundled_sdk_tokenizer(monkeypatch)
+    use_offline_sdk_tokenizer(monkeypatch)
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
     monkeypatch.setenv("LITELLM_TELEMETRY", "False")
     # The adapter gate opens only after its endpoint/credential have been replaced with an isolated local server.

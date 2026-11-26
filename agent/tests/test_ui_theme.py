@@ -40,7 +40,7 @@ PAGES = [
 @pytest.fixture
 def ui(tmp_path, ui_browser):
     client, runtime = _client(tmp_path)
-    with ui_browser.new_context() as context:
+    with client, ui_browser.new_context() as context:
         page = context.new_page()
         errors: list[str] = []
         page.on("pageerror", lambda error: errors.append(str(error)))
@@ -65,7 +65,6 @@ def ui(tmp_path, ui_browser):
         finally:
             page.close()
             assert runtime.close()["complete"]
-            client.close()
 
 
 def test_theme_boot_script_present_on_all_pages():
@@ -92,11 +91,9 @@ def test_theme_toggle_exists_on_all_pages(ui):
     不是缺陷。所以这里断言的是**偏好值**（OmniTheme.pref）而非实际主题。
     """
     page, _client_, _runtime, errors = ui
+    page.add_init_script("localStorage.setItem('omni_theme','light')")
     for path, _ in PAGES:
-        page.goto("http://127.0.0.1" + path)
-        page.locator(".theme-toggle").wait_for(state="attached")
-        page.evaluate("localStorage.setItem('omni_theme','light')")
-        page.reload()
+        page.goto("http://127.0.0.1" + path, wait_until="domcontentloaded")
         page.locator(".theme-toggle").wait_for(state="attached")
         before = page.evaluate("window.OmniTheme.pref()")
         page.locator(".theme-toggle").click()
@@ -128,7 +125,7 @@ def test_theme_persists_across_pages(ui):
     page.locator(".theme-toggle").wait_for(state="attached")
     page.evaluate("window.OmniTheme.set('light')")
     for path, _ in PAGES:
-        page.goto("http://127.0.0.1" + path)
+        page.goto("http://127.0.0.1" + path, wait_until="domcontentloaded")
         assert page.evaluate("document.documentElement.getAttribute('data-theme')") == "light", f"{path} 未继承浅色主题"
     assert not errors, f"跨页主题继承引发脚本异常：{errors}"
 

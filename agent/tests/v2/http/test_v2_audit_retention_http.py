@@ -48,18 +48,23 @@ def test_http_pages_freeze_age_and_ceiling_then_trim_and_epoch_change_expire(tmp
         client.headers["Authorization"] = "Bearer " + (tmp_path / "run/owner.token").read_text().strip()
         agent = client.get("/api/v1/agents").json()["items"][0]["id"]
         db = client.app.state.runtime.application._db
-        clock, original = Clock(), db.clock
+        clock, aged, original = Clock(), Clock(), db.clock
         now = clock.current
+        aged.current = now - dt.timedelta(days=200)
         db.clock = clock
         path = f"/api/v1/agents/{agent}/audit/retention-preview"
+
+        def seed(u, kind, count, data):
+            # Backdate this transaction's fixture rows without changing the live scheduler clock.
+            u.clock = aged
+            return [u.audit(agent, kind, None, data) for _ in range(count)]
+
         try:
-            clock.current = now - dt.timedelta(days=200)
             identities = client.portal.call(
                 db.write,
-                lambda u: [u.audit(agent, "fixture.protected", None, {"secret": "not exported"}) for _ in range(3)],
+                lambda u: seed(u, "fixture.protected", 3, {"secret": "not exported"}),
             )
             other = client.portal.call(db.write, lambda u: u.create_agent("Other"))["id"]
-            clock.current = now
             first = client.get(path, params={"limit": 1}).json()
             assert first["has_more"] and first["counts"] == {"scanned": 1, "eligible": 0, "protected": 1}
             assert first["items"][0]["audit_id"] == identities[0]
@@ -79,8 +84,7 @@ def test_http_pages_freeze_age_and_ceiling_then_trim_and_epoch_change_expire(tmp
                 == 422
             )
             # New (even backdated) commits cannot move the original scan ceiling.
-            clock.current = now - dt.timedelta(days=200)
-            late = client.portal.call(db.write, lambda u: u.audit(agent, "fixture.late", None, {}))
+            (late,) = client.portal.call(db.write, lambda u: seed(u, "fixture.late", 1, {}))
             clock.current = now + dt.timedelta(days=2)
             second = client.get(
                 path, params={"cursor": first["next_cursor"], "as_of": first["as_of"], "limit": 50}

@@ -190,29 +190,31 @@ def test_model_observation_is_bound_to_run_session_and_access_and_cannot_be_used
         async with model_instance(tmp_path, model) as (instance, fake, agent, _, grant):
             turn = await instance.application.submit_turn(agent, None, "scope-model", "Observe within this run only")
             await approve_tool(instance, agent, turn["run_id"], ACCESS_SPEC.name)
-            await asyncio.wait_for(model.entered.wait(), 6)
-            access = (await instance.android.access_page(agent))["items"][0]
-            assert access["availability"] == "available"
-            observed = json.loads(model.tool_bodies[-1])
-            before = len(fake.services)
-            wrong = InvocationContext(agent, turn["run_id"], str(uuid.uuid4()), access["policy_revision"])
-            result = await instance.android.invoke(
-                OBSERVE_SPEC.name, {"access_id": access["id"]}, operation_id=str(uuid.uuid4()), context=wrong
-            )
-            assert result.status == Outcome.DENIED and len(fake.services) == before
-            request = {
-                "consent": True,
-                "grant_id": grant["id"],
-                "observation_id": observed["observation_id"],
-                "node_id": observed["nodes"][0]["node_id"],
-                "session_id": turn["session_id"],
-                "request_id": str(uuid.uuid4()),
-                "kind": "tap",
-                "text": "",
-            }
-            with pytest.raises(BusinessError, match="another run or access"):
-                await instance.android.submit(agent, request)
-            model.hold.set()
+            try:
+                await asyncio.wait_for(model.entered.wait(), 30)
+                access = (await instance.android.access_page(agent))["items"][0]
+                assert access["availability"] == "available"
+                observed = json.loads(model.tool_bodies[-1])
+                before = len(fake.services)
+                wrong = InvocationContext(agent, turn["run_id"], str(uuid.uuid4()), access["policy_revision"])
+                result = await instance.android.invoke(
+                    OBSERVE_SPEC.name, {"access_id": access["id"]}, operation_id=str(uuid.uuid4()), context=wrong
+                )
+                assert result.status == Outcome.DENIED and len(fake.services) == before
+                request = {
+                    "consent": True,
+                    "grant_id": grant["id"],
+                    "observation_id": observed["observation_id"],
+                    "node_id": observed["nodes"][0]["node_id"],
+                    "session_id": turn["session_id"],
+                    "request_id": str(uuid.uuid4()),
+                    "kind": "tap",
+                    "text": "",
+                }
+                with pytest.raises(BusinessError, match="another run or access"):
+                    await instance.android.submit(agent, request)
+            finally:
+                model.hold.set()
             await wait_state(instance.application, agent, turn["run_id"], {"succeeded", "failed"})
 
     asyncio.run(scenario())

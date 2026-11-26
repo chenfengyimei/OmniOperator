@@ -2,6 +2,7 @@
 
 import asyncio
 import threading
+import time
 from types import SimpleNamespace
 
 import omni_test_support.v2.ui as shared_ui
@@ -37,10 +38,43 @@ def control_server(control_backend, v2_server):
     return v2_server
 
 
+def pause_audit(control_server, monkeypatch, event):
+    service = control_server.app.state.runtime.desktop_control
+    original = service._audit
+    gate = SimpleNamespace(entered=threading.Event(), release=threading.Event())
+
+    async def audit(grant, kind, **data):
+        if kind == event:
+            gate.entered.set()
+            async with asyncio.timeout(15):
+                while not gate.release.is_set():
+                    await asyncio.sleep(0.01)
+        return await original(grant, kind, **data)
+
+    monkeypatch.setattr(service, "_audit", audit)
+    return gate
+
+
+def wait_for_server_state(context, control_server, path, ready):
+    deadline = time.monotonic() + 30
+    headers = {"Authorization": "Bearer " + control_server[1]}
+    while True:
+        response = context.request.get(
+            control_server[0] + path, headers=headers, timeout=max(1, (deadline - time.monotonic()) * 1000)
+        )
+        assert response.ok, response.text()
+        state = response.json()
+        if ready(state):
+            return
+        assert time.monotonic() < deadline, state
+        time.sleep(0.05)
+
+
 @pytest.mark.parametrize("width,theme", [(390, "dark"), (1080, "light")])
 def test_explicit_device_scope_is_separate_from_share_and_never_reports_input_enabled(
-    ui_browser, control_server, control_backend, width, theme
+    ui_browser, control_server, control_backend, width, theme, monkeypatch
 ):
+    gate = pause_audit(control_server, monkeypatch, "desktop.control_system_authorized")
     context = ui_browser.new_context(viewport={"width": width, "height": 1000}, color_scheme=theme)
     try:
         page, errors = connect(context, control_server)
@@ -67,20 +101,30 @@ def test_explicit_device_scope_is_separate_from_share_and_never_reports_input_en
             "devices": 2,
         }
         expect(page.locator("#desktop-control-consent")).not_to_be_checked()
+        assert gate.entered.wait(5)
+        with page.expect_response(
+            lambda response: "/desktop/control?" in response.url and response.request.method == "GET"
+        ) as pending:
+            page.get_by_role("button", name="查询控制许可", exact=True).click()
+        pending_record = pending.value.json()
+        assert pending_record["input_authorized"] is False
+        assert pending_record["grant"]["authorization_pending"] is True
+        expect(page.locator("#desktop-control-status")).to_contain_text("正在确认记录")
+        gate.release.set()
         agent = page.locator("#agents").input_value()
-        page.wait_for_function(
-            """async ({agent,view}) => {
-          const token=document.getElementById('token').value;
-          const r=await fetch(`/api/v1/agents/${agent}/desktop/control?view_id=${view}`,{headers:{Authorization:'Bearer '+token}});
-          return r.ok && (await r.json()).grant?.system_permission_recorded === true;
-        }""",
-            arg={"agent": agent, "view": view},
+        wait_for_server_state(
+            context,
+            control_server,
+            f"/api/v1/agents/{agent}/desktop/control?view_id={view}",
+            lambda state: (state["grant"] or {}).get("system_permission_recorded") is True,
         )
         with page.expect_response(
             lambda response: "/desktop/control?" in response.url and response.request.method == "GET"
         ) as queried:
             page.get_by_role("button", name="查询控制许可", exact=True).click()
-        assert queried.value.json()["input_authorized"] is False
+        confirmed = queried.value.json()
+        assert confirmed["input_authorized"] is False
+        assert confirmed["grant"]["system_permission_recorded"] is True
         expect(page.locator("#desktop-control-status")).to_contain_text("尚未启用键鼠输入")
         expect(page.locator("#desktop-portal-status")).to_be_empty()
         assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
@@ -96,25 +140,14 @@ def test_explicit_device_scope_is_separate_from_share_and_never_reports_input_en
         assert all(child.reclaimed for child in control_backend.owners)
         assert not errors
     finally:
+        gate.release.set()
         context.close()
 
 
 def test_leaving_the_view_during_audit_discards_late_response_and_never_opens_system_consent(
     ui_browser, control_server, control_backend, monkeypatch
 ):
-    service = control_server.app.state.runtime.desktop_control
-    original = service._audit
-    gate = SimpleNamespace(entered=threading.Event(), release=threading.Event())
-
-    async def audit(grant, kind, **data):
-        if kind == "desktop.control_requested":
-            gate.entered.set()
-            async with asyncio.timeout(15):
-                while not gate.release.is_set():
-                    await asyncio.sleep(0.01)
-        return await original(grant, kind, **data)
-
-    monkeypatch.setattr(service, "_audit", audit)
+    gate = pause_audit(control_server, monkeypatch, "desktop.control_requested")
     context = ui_browser.new_context(viewport={"width": 1080, "height": 900})
     try:
         page, errors = connect(context, control_server)
@@ -131,12 +164,12 @@ def test_leaving_the_view_during_audit_discards_late_response_and_never_opens_sy
         assert detached.value.json()["error"]["code"] == "portal_cleanup_pending"
         gate.release.set()
         expect(page.locator("#desktop-control-status")).to_be_empty()
-        page.wait_for_function("""async () => {
-          const token=document.getElementById('token').value;
-          const r=await fetch('/api/v1/health',{headers:{Authorization:'Bearer '+token}});
-          const state=r.ok ? (await r.json()).desktop_control : null;
-          return state?.pending === 0 && state.grants === 0 && state.backend.resident === 0;
-        }""")
+
+        def closed(state):
+            control = state["desktop_control"]
+            return control["pending"] == control["grants"] == control["backend"]["resident"] == 0
+
+        wait_for_server_state(context, control_server, "/api/v1/version", closed)
         assert not control_backend.owners
         ended = context.request.delete(detached.value.url, headers={"Authorization": "Bearer " + control_server[1]})
         assert ended.status == 200 and ended.json()["forgotten"] is False
