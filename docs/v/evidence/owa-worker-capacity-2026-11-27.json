@@ -1,0 +1,56 @@
+{
+  "date": "2026-11-27",
+  "branch": "owa-tickets",
+  "source_sha": "588efa8981b9caac39f87f9339fe0aad32195d35",
+  "platform": "Windows x64",
+  "python": "3.12.14",
+  "alembic_previous_head": "v2_0055",
+  "alembic_head": "v2_0056",
+  "strict_files": 505,
+  "strict_errors": 0,
+  "strict_warnings": 0,
+  "full_suite": false,
+  "github_ci_dispatched": false,
+  "command_prefix": "uv run --no-sync pytest -q -n 0",
+  "targeted": {
+    "scope": [
+      "agent/tests/v2/http/test_v2_omniweave_http.py::test_router_accepts_new_input_while_three_workers_run_and_waits_for_dependencies",
+      "agent/tests/v2/http/test_v2_omniweave_http.py::test_router_rejects_cyclic_and_unauthorized_worker_plans_atomically",
+      "agent/tests/v2/core/test_v2_omniweave_migration.py"
+    ],
+    "passed": 6,
+    "failed": 0,
+    "elapsed_s": 35.11
+  },
+  "migration_and_legacy_regression": {
+    "scope": [
+      "agent/tests/v2/core/test_v2_delegation.py",
+      "agent/tests/v2/http/test_v2_delegation_http.py",
+      "agent/tests/v2/operations/test_v2_schema_release.py",
+      "agent/tests/v2/core/test_v2_memory_decay.py",
+      "agent/tests/v2/core/test_v2_memory_semantics_migration.py",
+      "agent/tests/v2/core/test_v2_omniweave_migration.py",
+      "agent/tests/v2/core/test_v2_reflection_migration.py",
+      "agent/tests/v2/core/test_v2_schedule_bindings.py",
+      "agent/tests/v2/core/test_v2_tool_image_ledger.py",
+      "agent/tests/v2/integrations/test_v2_images_migration.py",
+      "agent/tests/v2/integrations/test_v2_media.py",
+      "agent/tests/v2/integrations/test_v2_media_upload_migration.py",
+      "agent/tests/v2/integrations/test_v2_routing_migration.py",
+      "agent/tests/v2/integrations/test_v2_skills_migration.py"
+    ],
+    "selection": "upgrade or adds or rebuild or delegation or schema_release",
+    "passed": 58,
+    "failed": 0,
+    "deselected": 45,
+    "elapsed_s": 298.29,
+    "local_junit": "temp/build/owa-phase2/worker-capacity-588efa89.xml",
+    "junit_sha256": "d4c5c3ed8143c1ce6af9167a0874e6e92f521214deafe75a375fe4b8b740f7fa"
+  },
+  "verified_contracts": [
+    "The Web Router admits a plan of eight Workers under one Ticket, preserves dependency order and reuses the same Ticket for a replay.",
+    "A nine-Worker plan is rejected before it creates any Worker Run.",
+    "The three-active-Worker limit still reserves room for a main-session model turn.",
+    "Fresh and V53/V54/V55 copies reach v2_0056 with integrity_check=ok and no foreign_key_check rows. The migration preserves the original records and produces a verified pre-migration backup."
+  ]
+}

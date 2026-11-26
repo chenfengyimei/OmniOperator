@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`2e89d829409b5b1a35b20e09999d7d0656356b30acd090a409d5ef302a93a3f1`。包含 65 个职责模块、926 个源码/界面文件。
+源码指纹：`f5dedb15d061501ef0b88c1aa917d0670deb7e1b53eefc202b8420ec95c25f49`。包含 65 个职责模块、927 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -57,7 +57,7 @@
 | [agent/src/omni/domain/model_reply.py](../../../agent/src/omni/domain/model_reply.py) | V2 | 62 | One tool-reply contract for all model transports; validation never repairs or dispatches calls. |
 | [agent/src/omni/domain/model_stream.py](../../../agent/src/omni/domain/model_stream.py) | V2 | 205 | Bounded chat stream assembly. Partial text and tool arguments never become executable results. |
 | [agent/src/omni/domain/objects.py](../../../agent/src/omni/domain/objects.py) | V2 | 44 | Immutable object identities and metadata constraints, independent of storage. |
-| [agent/src/omni/domain/omniweave.py](../../../agent/src/omni/domain/omniweave.py) | V2 | 134 | OmniWeave rollout modes and the canonical owner Web trigger contract. |
+| [agent/src/omni/domain/omniweave.py](../../../agent/src/omni/domain/omniweave.py) | V2 | 135 | OmniWeave rollout modes and the canonical owner Web trigger contract. |
 | [agent/src/omni/domain/people.py](../../../agent/src/omni/domain/people.py) | V2 | 48 | Person, account and memory document rules; contains no I/O or ORM types. |
 | [agent/src/omni/domain/persona_growth.py](../../../agent/src/omni/domain/persona_growth.py) | V2 | 129 | Deterministic persona-growth rendering from approved reflection entries; no I/O. |
 | [agent/src/omni/domain/qq.py](../../../agent/src/omni/domain/qq.py) | V2 | 142 | Bounded OneBot text events and explicit conversation grants; no transport I/O. |
@@ -249,7 +249,7 @@
 | [agent/src/omni/adapters/persistence/credential_repository.py](../../../agent/src/omni/adapters/persistence/credential_repository.py) | V2 | 462 | Owner credential references, operation state and review; no native I/O or connection creation. |
 | [agent/src/omni/adapters/persistence/database.py](../../../agent/src/omni/adapters/persistence/database.py) | V2 | 190 | Bounded, single-writer database actor with isolated read connections. |
 | [agent/src/omni/adapters/persistence/delegation_authority.py](../../../agent/src/omni/adapters/persistence/delegation_authority.py) | V2 | 87 | Parent-source authority and session invalidation closure for single-level delegated runs. |
-| [agent/src/omni/adapters/persistence/delegation_repository.py](../../../agent/src/omni/adapters/persistence/delegation_repository.py) | V2 | 408 | Persist child admission, inherited authority, bounded budgets and recovery in the shared database. |
+| [agent/src/omni/adapters/persistence/delegation_repository.py](../../../agent/src/omni/adapters/persistence/delegation_repository.py) | V2 | 409 | Persist child admission, inherited authority, bounded budgets and recovery in the shared database. |
 | [agent/src/omni/adapters/persistence/delivery_predicates.py](../../../agent/src/omni/adapters/persistence/delivery_predicates.py) | V2 | 32 | Shared outbound pending/review predicates for dispatch, scheduling and maintenance queries. |
 | [agent/src/omni/adapters/persistence/delivery_repository.py](../../../agent/src/omni/adapters/persistence/delivery_repository.py) | V2 | 927 | Transactional outbound authority, FIFO ownership and immutable attempt observations. |
 | [agent/src/omni/adapters/persistence/deployed_instance.py](../../../agent/src/omni/adapters/persistence/deployed_instance.py) | V2 | 30 | Check an initialized service home without migrations or business recovery. |
@@ -331,6 +331,7 @@
 | [agent/src/omni/adapters/persistence/migrations/versions/v0053.py](../../../agent/src/omni/adapters/persistence/migrations/versions/v0053.py) | V2 | 18 | Capture the owner's kernel policy, fallback grants and per-call model identity. |
 | [agent/src/omni/adapters/persistence/migrations/versions/v0054.py](../../../agent/src/omni/adapters/persistence/migrations/versions/v0054.py) | V2 | 83 | Add scoped OmniWeave observation records to the existing V2 database. |
 | [agent/src/omni/adapters/persistence/migrations/versions/v0055.py](../../../agent/src/omni/adapters/persistence/migrations/versions/v0055.py) | V2 | 77 | Add durable execution authorization and dependency edges for OmniWeave Tickets. |
+| [agent/src/omni/adapters/persistence/migrations/versions/v0056.py](../../../agent/src/omni/adapters/persistence/migrations/versions/v0056.py) | V2 | 43 | Give OWA and legacy delegation separate limits while preserving source bindings. |
 | [agent/src/omni/adapters/persistence/object_gc.py](../../../agent/src/omni/adapters/persistence/object_gc.py) | V2 | 248 | Exclusive plan/apply collection; commit unreferenced metadata before unlinking files. |
 | [agent/src/omni/adapters/persistence/object_inventory.py](../../../agent/src/omni/adapters/persistence/object_inventory.py) | V2 | 129 | Offline object registry snapshots and bounded physical inventory validation. |
 | [agent/src/omni/adapters/persistence/object_repository.py](../../../agent/src/omni/adapters/persistence/object_repository.py) | V2 | 211 | Object metadata, pins and real foreign-key references; never touches files. |

@@ -39,10 +39,11 @@ Windows x64 候选 `4082ccacaa31918a22d06bdd6dbf6710e8467906` 的 40 个受影�
 uv run --no-sync omni-v2 --home .\temp\build\owa-enabled serve --omniweave-mode enabled
 ```
 
-- Router 的能力目录和执行注册仅加载 OWA 编排提供者。`agent` 档可调用 `owa_plan` 提交至多四个 Worker，任务用计划内键声明依赖。准入核对无环、当前 Agent 策略、可信工具规格、队列容量和授权代次，在同一事务创建任务与 V2 Run。计划回执即时返回，同一计划重投复用原 Ticket。
+- Router 的能力目录和执行注册仅加载 OWA 编排提供者。`agent` 档可调用 `owa_plan` 提交每根 Ticket 至多八个 Worker，任务用计划内键声明依赖。准入核对无环、当前 Agent 策略、可信工具规格、队列容量和授权代次，在同一事务创建任务与 V2 Run。计划回执即时返回，同一计划重投复用原 Ticket。
 - Worker 使用独立的内部 Session 和 `owa-workspaces/<run_id>`。任务只可选装配时登记且当前策略允许的工作区文件工具。Worker 的上下文默认没有所有者的全局私有记忆和技能提示，新任务也不继承扩展、MCP 和技能目录。模型调用、预算、逐次批准、动作回执和资源清理沿用内核。前置任务失败、取消、中断或有待核查结果时，依赖任务结束。结果未知的写入进入现有动作核查。
 - Router 可以在原主会话继续接收新输入，并用 `owa_status` 查看本会话的 Ticket 状态和 Worker 提交的结果。现有 `/runs/{run_id}/cancel` 可取消根 Ticket，包括根 Run 已结束后仍在执行的 Worker。读 `GET /api/v1/agents/{agent_id}/omniweave/sessions/{session_id}/tickets` 可按 `run_id` 或 `ticket_id` 查询进度。会话、Run、消息、摘要和事件的通用 Web 路径执行内部作用域检查。
 - `v2_0055` 新建执行授权、任务和依赖三张表，数据库触发器校验 Worker 和依赖的 Ticket 绑定。Router、普通根回合和 OWA Worker 共用内核容量。默认容量为四时最多同时运行三个 OWA Worker，容量为一时串行轮转。`delegate_task` 保有既有并发额度，仍走原租约。[迁移](../../../agent/src/omni/adapters/persistence/migrations/versions/v0055.py) · [查询入口](../../../agent/src/omni/adapters/http_routes/omniweave.py)
+- `v2_0056` 为具有 OWA 执行授权且由已登记的 `owa_plan` 调用产生的子 Run 提供八个名额。既有 `delegate_task` 继续每父 Run 最多四个，保留原来源、会话、快照和策略绑定。[数据库触发器](../../../agent/src/omni/adapters/persistence/migrations/versions/v0056.py)
 
 ### Phase 2 验收
 
@@ -50,10 +51,12 @@ Windows x64 上对源码 `d40bf6b5` 跑了 43 个文件，373 项通过。一项
 
 正式规格对齐批 `57990c47` 在 Windows x64 的十个受影响文件中通过 109 项离线专项。包含三 Worker 阻塞时实际处理主会话、独立第四个 Worker 排队、伪造 Router 文件调用、Worker 私有记忆隔离、旧委派和重启回归。严格类型检查覆盖 502 个文件，零错误、零警告。迁移头为 `v2_0055`。[对齐批证据](../evidence/owa-spec-alignment-2026-11-27.json)
 
+容量批 `588efa89` 的 6 项生产入口与 OWA 迁移专项通过，验证八 Worker 入队、超限拒绝、三个同时活动和空库与 V53/V54/V55 副本完整性。另有 58 项旧委派、发布迁移与历史升级专项通过，两组含重复验证的 OWA 升级用例。当前迁移头为 `v2_0056`，严格类型检查覆盖 505 个文件，零错误、零警告。[容量批证据](../evidence/owa-worker-capacity-2026-11-27.json)
+
 ## Phase 3 续接边界
 
 已领取或刚进入 `running` 的 OWA Worker，在模型、动作和投递账本均无记录时，重启后用同一 Run 和工作项恢复排队。实例恢复释放旧租约。恢复 `dispatch` 后由当前进程重新核对 Ticket、会话、模型和策略，再领取工作。处在 `off` 或 `observe` 时可查询原计划，工作保持排队。有派发记录或待批准的中断尝试继续走原账本核查。
 
 源码 `8a422751` 的 46 项离线专项通过，覆盖跨 boot 领取、重复重启、未知调用保留、旧委派与内核检查点。迁移头为 `v2_0055`。[恢复专项证据](../evidence/owa-pre-dispatch-recovery-2026-11-26.json)
 
-正式规格剩余的前置开发是版本化 Worker Profile、根与执行 Mandate、每根八个执行 Ticket 的数据库限额，以及主会话的明确选定入口。随后实现同根同目标版本的持久邮箱、请求与回复、订阅和版本化授权对象，再接主会话追加、已确认检查点续接与 Router 原位交付。Phase 3 用校园助手离线场景验收。Phase 4–7 依次覆盖长作业与 Watchdog、数字身体、外部事件和发布。发布候选按实际 SHA 执行全量、配对基准、包生命周期、独立机器、真实平台和 72 小时常驻验收。
+正式规格剩余的前置开发是版本化 Worker Profile、根与执行 Mandate，以及主会话的明确选定入口。随后实现同根同目标版本的持久邮箱、请求与回复、订阅和版本化授权对象，再接主会话追加、已确认检查点续接与 Router 原位交付。Phase 3 用校园助手离线场景验收。Phase 4–7 依次覆盖长作业与 Watchdog、数字身体、外部事件和发布。发布候选按实际 SHA 执行全量、配对基准、包生命周期、独立机器、真实平台和 72 小时常驻验收。
