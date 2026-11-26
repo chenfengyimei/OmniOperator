@@ -112,9 +112,9 @@
       "id": "OMNIWEAVE",
       "title": "OWA 主会话编排与发布验收",
       "status": "development_in_progress",
-      "next": "Phase 0–1 候选 `4082ccac` 的 333 项离线专项已通过。Phase 2 两轮专项合并覆盖 379 项。Phase 3 已接上重启前未派发的工作项，正在验证旧委派与内核恢复。后续接邮箱、产物、追加、已确认检查点的续接及主会话交付。",
+      "next": "Phase 0–1 候选 `4082ccac` 的 333 项离线专项已通过。Phase 2 两轮专项合并覆盖 379 项。Phase 3 的未派发恢复在 `8a422751` 上通过 46 项专项。后续接邮箱、产物、追加、已确认检查点的续接及主会话交付。",
       "contract": "docs/v/reference/OMNIWEAVE.md",
-      "evidence": ["docs/v/evidence/owa-phase1-2026-11-26.json", "docs/v/evidence/owa-phase2-2026-11-26.json"]
+      "evidence": ["docs/v/evidence/owa-phase1-2026-11-26.json", "docs/v/evidence/owa-phase2-2026-11-26.json", "docs/v/evidence/owa-pre-dispatch-recovery-2026-11-26.json"]
     },
     {
       "id": "CAPABILITY-PLUGINS",

@@ -1,0 +1,33 @@
+{
+  "date": "2026-11-26",
+  "branch": "owa-tickets",
+  "part": "Phase 3 recovery before dispatch",
+  "source_sha": "8a422751b05e67244f4db54b86d3bf1eb5a6b3ce",
+  "phase_2_base_sha": "bdc99597f439bd4344bcd3c39d7175048dcd1aa8",
+  "platform": "Windows x64",
+  "alembic_head": "v2_0055",
+  "scope": [
+    "agent/tests/v2/http/test_v2_omniweave_http.py::test_restart_reclaims_untouched_worker_and_quarantines_uncertain_attempt",
+    "agent/tests/v2/http/test_v2_omniweave_http.py::test_restart_preserves_off_and_observe_decisions_and_reuses_thread",
+    "agent/tests/v2/http/test_v2_omniweave_http.py::test_worker_file_write_uses_private_workspace_and_existing_owner_approval",
+    "agent/tests/v2/core/test_v2_delegation.py",
+    "agent/tests/v2/core/test_v2_kernel_restart.py",
+    "agent/tests/v2/core/test_v2_architecture.py"
+  ],
+  "command_prefix": "uv run --no-sync pytest -q -n 0",
+  "passed": 46,
+  "failed": 0,
+  "skipped": 0,
+  "elapsed_s": 180.16,
+  "local_junit": "temp/build/owa-phase3/recovery-8a422751.xml",
+  "junit_sha256": "a38501caccad494ee29be493dd2e14782e9a5c598201ac674f465cff1e17c039",
+  "strict_files": 502,
+  "full_suite": false,
+  "restart_contract": [
+    "Reclaim queued and claimed Workers that have no model, action or delivery record.",
+    "Requeue a running Worker at the same Run and work item when it has no dispatch evidence.",
+    "Observe mode preserves pending work; dispatch revalidates authority and acquires a new lease.",
+    "An ambiguous model reservation becomes unknown and its Worker is interrupted for review.",
+    "A repeated restart and Web retry create no second dispatch, Ticket, Run or work item."
+  ]
+}
