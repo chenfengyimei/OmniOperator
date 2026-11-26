@@ -281,6 +281,7 @@ class LeaseRepositories(RepositoryBase):
         result: list[Record] = []
         rows = self.connection.execute(
             select(s.work_items.c.agent_id, s.work_items.c.run_id)
+            .join(s.runs, s.runs.c.id == s.work_items.c.run_id)
             .join(
                 s.agents,
                 s.agents.c.id == s.work_items.c.agent_id,
@@ -289,8 +290,7 @@ class LeaseRepositories(RepositoryBase):
                 s.work_items.c.kind == "turn",
                 s.work_items.c.state == "pending",
                 s.agents.c.enabled.is_(True),
-                s.work_items.c.run_id.not_in(select(s.run_delegations.c.child_run_id)),
-                s.work_items.c.run_id.not_in(select(s.owa_task_attempts.c.run_id)),
+                s.runs.c.parent_id.is_(None),
             )
             .order_by(s.work_items.c.queue_sequence)
             .limit(64)

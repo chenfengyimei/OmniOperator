@@ -34,7 +34,7 @@ def link(repo: RepositoryBase, agent_id: str, child_id: str) -> Record | None:
         ).scalar_one_or_none()
     ):
         task = task_for_run(repo, agent_id, child_id)
-        if task is not None:
+        if task is not None and task["run_id"] != child_id:
             anchor = link(repo, agent_id, str(task["run_id"]))
             return {**anchor, "child_run_id": child_id} if anchor else None
     return cast(Record, dict(row)) if row else None
