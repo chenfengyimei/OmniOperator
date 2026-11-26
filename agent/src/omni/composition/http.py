@@ -32,6 +32,7 @@ from ..application.ports import (
     TokenCounter,
 )
 from ..application.qq import QQTransportPort
+from ..domain.omniweave import OmniWeaveMode
 from .features import FeatureContext, FeaturePlugin
 from .features.catalog import BUILTIN_FEATURES, BUILTIN_KERNEL_FEATURES, BUILTIN_WORKFLOW_FEATURES
 from .instance import open_instance
@@ -73,6 +74,7 @@ def http_app(
     shutdown: Callable[[], None] | None = None,
     verify_on_stop: bool = False,
     model_recovery: bool = False,
+    omniweave_mode: OmniWeaveMode = "off",
 ):
     async def factory() -> HttpRuntime:
         drain_deadline: float | None = None
@@ -100,6 +102,7 @@ def http_app(
             deployment=deployment,
             verify_on_stop=verify_on_stop,
             model_recovery=model_recovery,
+            omniweave_mode=omniweave_mode,
         )
         try:
             token_path = instance.paths.control / "owner.token"

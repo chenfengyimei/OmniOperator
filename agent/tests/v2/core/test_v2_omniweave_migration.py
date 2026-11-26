@@ -1,0 +1,137 @@
+"""The additive OWA revision preserves V2 data and enforces stored scope."""
+
+import asyncio
+import sqlite3
+from uuid import uuid4
+
+import pytest
+from alembic import command
+from alembic.script import ScriptDirectory
+from omni_test_support.v2.v2_configuration_helpers import model_uow
+from sqlalchemy import select
+
+from omni.adapters.persistence import schema as s
+from omni.adapters.persistence.database import Database
+from omni.adapters.persistence.maintenance import verify_snapshot
+from omni.adapters.persistence.migration_config import configuration
+from omni.adapters.persistence.repository import Repositories
+from omni.adapters.persistence.sqlalchemy_access import database_engine
+from omni.adapters.persistence.sqlite_access import sqlite_connection
+from omni.adapters.primitives import SystemClock, UUIDs
+
+
+async def _verify_current_schema(database):
+    script = ScriptDirectory.from_config(configuration())
+    assert script.get_heads() == ["v2_0054"] and len(list(script.walk_revisions())) == 54
+    assert database.schema_version == "v2_0054"
+    integrity = await database.integrity()
+    assert integrity["integrity"] == "ok" and integrity["foreign_keys"] == 0
+    assert len(s.metadata.tables) == 154 and {"owa_threads", "owa_tickets", "owa_triggers"} <= set(integrity["tables"])
+
+
+def test_upgrade_of_old_test_copy_preserves_admission_and_verified_backup(tmp_path):
+    original = tmp_path / "old.db"
+    copy = tmp_path / "copy/omni.db"
+    copy.parent.mkdir()
+    engine = database_engine(original)
+    clock, ids = SystemClock(), UUIDs()
+    try:
+        with engine.connect() as connection:
+            connection.info["omni_write"] = True
+            config = configuration()
+            config.attributes["connection"] = connection
+            command.upgrade(config, "v2_0053")
+            unit = Repositories(connection, clock, ids, ids.new())
+            owner = unit.initialize()["owner_id"]
+            agent = connection.execute(select(s.agents.c.id)).scalar_one()
+            model_uow(unit, agent)
+            accepted = unit.accept_turn(agent, None, "pre-owa", "original request", {})
+            connection.commit()
+    finally:
+        engine.dispose()
+
+    with sqlite_connection(original) as source, sqlite_connection(copy, read_only=False) as destination:
+        source.backup(destination)
+
+    async def scenario():
+        database = Database(copy, clock, ids)
+        try:
+            await _verify_current_schema(database)
+            assert (await database.read(lambda u: u.get_run(agent, accepted["run_id"])))["state"] == "queued"
+            assert await database.write(lambda u: u.accept_turn(agent, None, "pre-owa", "original request", {})) == {
+                **accepted,
+                "duplicate": True,
+            }
+            [snapshot] = list(copy.parent.joinpath("schema-backups").iterdir())
+            verify_snapshot(snapshot)
+            with (
+                sqlite_connection(copy) as migrated,
+                sqlite_connection(original) as old,
+                sqlite_connection(snapshot / "data/omni.db") as backup,
+            ):
+                for source in (old, backup):
+                    assert source.execute("SELECT version_num FROM alembic_version").fetchone() == ("v2_0053",)
+                    for table in ("inbox", "messages", "runs", "sessions", "work_items"):
+                        assert (
+                            migrated.execute(f"SELECT * FROM {table}").fetchall()
+                            == source.execute(f"SELECT * FROM {table}").fetchall()
+                        )
+                assert migrated.execute("SELECT owner_id FROM instances").fetchone() == (owner,)
+                for table in ("owa_threads", "owa_tickets", "owa_triggers"):
+                    assert migrated.execute(f"SELECT count(*) FROM {table}").fetchone() == (0,)
+        finally:
+            await database.close()
+
+    asyncio.run(scenario())
+
+
+def test_fresh_database_rejects_cross_agent_and_cross_thread_bindings(tmp_path):
+    path = tmp_path / "omni.db"
+    clock, ids = SystemClock(), UUIDs()
+
+    def seed(unit):
+        owner = unit.initialize()["owner_id"]
+        first = unit.connection.execute(select(s.agents.c.id)).scalar_one()
+        second = unit.create_agent("Other Agent")["id"]
+        model_uow(unit, first)
+        model_uow(unit, second)
+        matched = unit.accept_turn(first, None, "first", "valid", {})
+        unit.omniweave_observe(first, "first", matched["run_id"], matched["session_id"], duplicate=False)
+        other_thread = unit.accept_turn(first, None, "second", "other thread", {})
+        other_agent = unit.accept_turn(second, None, "third", "other agent", {})
+        return owner, first, second, other_thread, other_agent
+
+    async def scenario():
+        database = Database(path, clock, ids)
+        try:
+            await _verify_current_schema(database)
+            return await database.write(seed)
+        finally:
+            await database.close()
+
+    owner, first, second, other_thread, other_agent = asyncio.run(scenario())
+    with sqlite_connection(path, read_only=False) as connection:
+        thread = connection.execute("SELECT id FROM owa_threads").fetchone()[0]
+        ticket = connection.execute("SELECT id FROM owa_tickets").fetchone()[0]
+        stamp = clock.now()
+        with pytest.raises(sqlite3.IntegrityError, match="invalid OWA main session binding"):
+            connection.execute(
+                "INSERT INTO owa_threads (id, agent_id, created_at, main_session_id, owner_id) VALUES (?, ?, ?, ?, ?)",
+                (str(uuid4()), second, stamp, other_thread["session_id"], owner),
+            )
+        for agent, run in ((first, other_thread["run_id"]), (second, other_agent["run_id"])):
+            with pytest.raises(sqlite3.IntegrityError, match="invalid OWA Ticket binding"):
+                connection.execute(
+                    "INSERT INTO owa_tickets (id, agent_id, created_at, thread_id, run_id) VALUES (?, ?, ?, ?, ?)",
+                    (str(uuid4()), agent, stamp, thread, run),
+                )
+        inbox, digest = connection.execute("SELECT id, request_fingerprint FROM inbox WHERE key='second'").fetchone()
+        with pytest.raises(sqlite3.IntegrityError, match="invalid OWA Trigger binding"):
+            connection.execute(
+                """INSERT INTO owa_triggers
+                   (id, agent_id, created_at, ticket_id, inbox_id, source, version, payload_sha256, decision)
+                   VALUES (?, ?, ?, ?, ?, 'owner_web', 1, ?, 'observe')""",
+                (str(uuid4()), first, stamp, ticket, inbox, digest),
+            )
+        assert connection.execute("PRAGMA integrity_check").fetchall() == [("ok",)]
+        assert connection.execute("PRAGMA foreign_key_check").fetchall() == []

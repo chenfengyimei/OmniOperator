@@ -12,6 +12,7 @@ from typing import cast
 
 from ..adapters.platform.runtime.paths import InstancePaths
 from ..domain.contracts import BusinessError
+from ..domain.omniweave import OMNIWEAVE_MODES, OmniWeaveMode
 from .commands import CommandPlugin, register_commands
 from .commands.deployment import EXCHANGE, RELEASE, SERVICE
 from .commands.installation import INSTALLATION
@@ -31,6 +32,7 @@ def serve_arguments(command: argparse.ArgumentParser) -> None:
     command.add_argument("--external-url", help="Explicit trusted HTTPS origin when binding remotely")
     command.add_argument("--master-key-file", type=Path)
     command.add_argument("--stdout-logs", action="store_true")
+    command.add_argument("--omniweave-mode", choices=OMNIWEAVE_MODES, default="off", help="Owner Web turn observation mode")
     command.add_argument(
         "--open-browser", action="store_true", help="Open the local workbench after this boot is ready"
     )
@@ -70,6 +72,7 @@ def run_serve(args: argparse.Namespace, paths: InstancePaths) -> int:
             external_url=args.external_url,
             master_key_file=args.master_key_file,
             stdout_logs=args.stdout_logs,
+            omniweave_mode=cast(OmniWeaveMode, args.omniweave_mode),
         )
     return 0
 

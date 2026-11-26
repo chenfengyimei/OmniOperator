@@ -43,6 +43,7 @@ from .media_repository import MediaRepositories
 from .memory_organization_repository import MemoryOrganizationRepositories
 from .memory_semantic_repository import MemorySemanticRepositories
 from .object_repository import ObjectRepositories
+from .omniweave_repository import OmniWeaveRepositories
 from .operations_repository import OperationsRepositories
 from .people_repository import PeopleRepositories
 from .qq_repository import QQRepositories
@@ -97,6 +98,7 @@ class Repositories(
     HistoryRepositories,
     SessionSearchRepositories,
     ObjectRepositories,
+    OmniWeaveRepositories,
     PeopleRepositories,
     ContextRepositories,
     ScheduleRepositories,

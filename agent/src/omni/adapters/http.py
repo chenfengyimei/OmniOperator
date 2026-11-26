@@ -41,6 +41,7 @@ from ..application.memory_organization import MemoryOrganizationService
 from ..application.memory_semantics import MemorySemanticService
 from ..application.memory_services import MemoryServices
 from ..application.objects import ObjectService
+from ..application.omniweave import OmniWeaveService
 from ..application.operations import OperationsService
 from ..application.people import PeopleService, PeopleServices
 from ..application.persona import PersonaGrowthService
@@ -575,7 +576,14 @@ def create_app(
 
     @router.post("/agents/{agent_id}/turns", status_code=202)
     async def turn(agent_id: uuid.UUID, data: TurnInput, request: Request):
-        return await runtime(request).application.submit_turn(
+        current = runtime(request)
+        omniweave = current.feature_services.get("omniweave")
+        observer = (
+            omniweave.web_admission(str(agent_id), data.key, request.headers.get("authorization", "")[7:])
+            if isinstance(omniweave, OmniWeaveService)
+            else None
+        )
+        return await current.application.submit_turn(
             str(agent_id),
             str(data.session_id) if data.session_id else None,
             data.key,
@@ -583,6 +591,7 @@ def create_app(
             tuple(str(x) for x in data.image_ids),
             data.mode,
             tuple(str(x) for x in data.skill_ids),
+            admission_observer=observer,
         )
 
     @router.get("/agents/{agent_id}/sessions")

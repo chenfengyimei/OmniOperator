@@ -97,6 +97,7 @@ from ..application.vision_services import VisionServices
 from ..application.visual_subagent import VisualSubagentService
 from ..domain.background_review import READ_TOOLS
 from ..domain.contracts import JSON, ActionResult, BusinessError, InvocationContext, Outcome
+from ..domain.omniweave import OmniWeaveMode, checked_mode
 from .capabilities import builtin_plugins
 from .channel_providers import register_channel_providers
 from .features import FeatureContext, FeaturePlugin, KernelFeatureContext, WorkflowFeatureContext, install_features
@@ -331,6 +332,7 @@ async def open_instance(
     delegation_enabled: bool | None = None,
     verify_on_stop: bool = False,
     model_recovery: bool = False,
+    omniweave_mode: OmniWeaveMode = "off",
     master_key_file: Path | None = None,
     stderr_only: bool = False,
     process_diagnostics: bool = False,
@@ -342,6 +344,7 @@ async def open_instance(
     control_backend: DesktopControlPort | None = None,
     deployment: Record | None = None,
 ) -> Instance:
+    omniweave_mode = checked_mode(omniweave_mode)
     initial_plugins = (*BUILTIN_FEATURES, *feature_plugins)
     declared_plugins = (*initial_plugins, *BUILTIN_WORKFLOW_FEATURES, *BUILTIN_KERNEL_FEATURES)
     if len({plugin.id for plugin in declared_plugins}) != len(declared_plugins):
@@ -567,6 +570,7 @@ async def open_instance(
                 runtime_health=lambda: current_instance.health(),
                 metrics=measurements,
                 sink=sink,
+                omniweave_mode=omniweave_mode,
             ),
             registered_services,
         )

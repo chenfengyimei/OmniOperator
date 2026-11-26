@@ -2,7 +2,7 @@
 
 > **全仓严格类型尚未完成。** 本文件记录已纳入 strict 的模块、当前基线例外与推进规则；默认入口为V2（Windows离线候选），真实平台与整个V2仍待验收。
 
-当前显式清单为 497 个文件，包含能力注册表、提供者及业务功能安装器。下方历史基线按当时的提交保留。
+当前显式清单为 501 个文件，包含能力注册表、提供者、业务功能安装器和 OWA 观察链路。下方历史基线按当时的提交保留。
 
 
 ## 1. 门禁
@@ -108,6 +108,7 @@ strict 配置显式将 `agent/src` 加入导入根，隔离源码副本也解析
 | `agent/src/omni/domain/release_fence.py` | 启动互斥栅栏纯校验 |
 | `agent/src/omni/domain/releases.py` | 发布/恢复计划、栅栏文件与路径分离纯校验（经公共桥） |
 | `agent/src/omni/domain/routing.py` | 能力档位/路由策略/工具筛选纯规则 |
+| `agent/src/omni/domain/omniweave.py` | OWA 模式与规范事件版本 |
 | `agent/src/omni/domain/run_recovery.py` | 安全接续的固定上限与参数指纹 |
 | `agent/src/omni/domain/settings.py` | Agent 设置与运行配置纯校验 |
 | `agent/src/omni/domain/scheduling.py` | 数值 cron/下次到期/到期选择纯规则 |
@@ -140,6 +141,7 @@ strict 配置显式将 `agent/src` 加入导入根，隔离源码副本也解析
 | `agent/src/omni/domain/terminals.py` | 终端打开/输入/缩放/关闭请求纯校验 |
 | `agent/src/omni/application/android.py` | 安卓设备授权/观察/输入派发/IME 恢复用例（显式 Record/Payload、有界任务、租约与守卫收窄） |
 | `agent/src/omni/application/routing.py` | 档位配置读取/保存用例（显式 Record） |
+| `agent/src/omni/application/omniweave.py` | Web 回合受理观察和事务内所有者令牌校验 |
 | `agent/src/omni/application/scheduling.py` | 单调度器保存/到期入队（UnitOfWork 回调与嵌套字段显式化） |
 | `agent/src/omni/application/release_drain.py` | 发布排空绑定既有 once-only 启动控制 |
 | `agent/src/omni/application/releases.py` | 发布计划/准备/恢复编排（显式 Record） |
@@ -200,6 +202,7 @@ strict 配置显式将 `agent/src` 加入导入根，隔离源码副本也解析
 | `agent/src/omni/adapters/persistence/deployed_instance.py` | 已部署实例校验（只读，不迁移） |
 | `agent/src/omni/adapters/persistence/delivery_predicates.py` | 出站待处理/未决谓词（持久化适配） |
 | `agent/src/omni/adapters/persistence/skill_repository.py` | 不可变技能版本/审阅状态/逐运行绑定（对齐端口 Record、清单宽字典边界 cast、代次与容量收窄、不触包与文件系统） |
+| `agent/src/omni/adapters/persistence/omniweave_repository.py` | 主会话、根 Run、入站回执的同库作用域绑定 |
 | `agent/src/omni/adapters/persistence/sqlite_access.py` | 离线 SQLite 连接（只读/备份，含 WAL） |
 | `agent/src/omni/adapters/persistence/terminal_repository.py` | 终端意图事务与不可变回执（对齐端口 Record、修订号 int 收窄、不启原生进程不存正文） |
 | `agent/src/omni/adapters/persistence/terminal_review_repository.py` | 终端 unknown 观测复核与可抹证据（对齐端口 Record、来源三元组显式、回执与原生生命周期不变、不授权重放） |
@@ -411,6 +414,7 @@ strict 配置显式将 `agent/src` 加入导入根，隔离源码副本也解析
 | `agent/src/omni/composition/features/mcp.py` | MCP 授权、传输回收与回合提供者 |
 | `agent/src/omni/composition/features/media.py` | 媒体恢复、自有处理器和回合工具的组装 |
 | `agent/src/omni/composition/features/memory.py` | 记忆语义检索与组织任务 |
+| `agent/src/omni/composition/features/omniweave.py` | 安装当前实例的 Web 受理观察服务 |
 | `agent/src/omni/composition/features/operations.py` | 诊断归属、调试维护和运行健康投影 |
 | `agent/src/omni/composition/features/people.py` | 人物记录、人格投影文件及共享服务 |
 | `agent/src/omni/composition/features/qq.py` | QQ 入站服务、内核回调与后台监听 |

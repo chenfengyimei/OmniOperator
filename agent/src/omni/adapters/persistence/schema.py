@@ -695,6 +695,35 @@ inbox = scoped(
     scoped_fk("run_id", "runs"),
     UniqueConstraint("agent_id", "channel", "key"),
 )
+owa_threads = scoped(
+    "owa_threads",
+    Column("main_session_id", String(36), nullable=False),
+    Column("owner_id", String(36), ForeignKey("principals.id", ondelete="RESTRICT"), nullable=False),
+    scoped_fk("main_session_id", "sessions"),
+    UniqueConstraint("main_session_id"),
+)
+owa_tickets = scoped(
+    "owa_tickets",
+    Column("thread_id", String(36), nullable=False),
+    Column("run_id", String(36), nullable=False),
+    scoped_fk("thread_id", "owa_threads"),
+    scoped_fk("run_id", "runs"),
+    UniqueConstraint("run_id"),
+)
+owa_triggers = scoped(
+    "owa_triggers",
+    Column("ticket_id", String(36), nullable=False),
+    Column("inbox_id", String(36), nullable=False),
+    Column("source", String(20), nullable=False),
+    Column("version", Integer, nullable=False),
+    Column("payload_sha256", String(64), nullable=False),
+    Column("decision", String(20), nullable=False),
+    scoped_fk("ticket_id", "owa_tickets"),
+    scoped_fk("inbox_id", "inbox"),
+    UniqueConstraint("inbox_id"),
+    CheckConstraint("source='owner_web' AND version=1 AND decision='observe'", name="contract"),
+    CheckConstraint("length(payload_sha256)=64 AND payload_sha256 NOT GLOB '*[^0-9a-f]*'", name="fingerprint"),
+)
 actions = scoped(
     "actions",
     Column("run_id", String(36), nullable=False),

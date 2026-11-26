@@ -275,6 +275,53 @@
     }
   },
   {
+    "id": "omniweave",
+    "name": "OmniWeave 主会话编排",
+    "aliases": [
+      "OWA",
+      "主会话",
+      "观察模式",
+      "Router Worker"
+    ],
+    "version": "V2",
+    "purpose": "观察所有者 Web 受理，在同一数据库事务关联 Trigger、Thread、Ticket 和原根 Run。",
+    "impact": "变更影响 Web 请求幂等、授权来源、主会话隔离和后续 Router／Worker 的调度入口。",
+    "pages": [],
+    "related": [
+      "kernel",
+      "schedules",
+      "action-reviews"
+    ],
+    "refs": {
+      "entry": [
+        "agent/src/omni/adapters/http.py#create_app.turn",
+        "agent/src/omni/adapters/http.py#create_app.event_stream"
+      ],
+      "domain": [
+        "agent/src/omni/domain/omniweave.py"
+      ],
+      "application": [
+        "agent/src/omni/application/omniweave.py#OmniWeaveService.web_admission",
+        "agent/src/omni/application/engine.py#Application.submit_turn"
+      ],
+      "adapters": [
+        "agent/src/omni/adapters/persistence/omniweave_repository.py#OmniWeaveRepositories.omniweave_observe",
+        "agent/src/omni/adapters/persistence/migrations/versions/v0054.py",
+        "agent/src/omni/adapters/persistence/lease_repository.py#LeaseRepositories.claim_runs"
+      ],
+      "composition": [
+        "agent/src/omni/composition/features/omniweave.py#install_omniweave"
+      ],
+      "contracts": [
+        "docs/v/reference/OMNIWEAVE.md"
+      ],
+      "tests": [
+        "agent/tests/v2/http/test_v2_omniweave_http.py",
+        "agent/tests/v2/core/test_v2_omniweave_migration.py"
+      ]
+    }
+  },
+  {
     "id": "context",
     "name": "提示词与上下文",
     "aliases": [

@@ -202,8 +202,8 @@ def test_v0049_adds_bindings_preserves_rows_and_rejects_downgrade(tmp_path):
             )
             command.upgrade(config, "head")
             command.upgrade(config, "head")
-            assert head() == "v2_0053"
-            assert connection.exec_driver_sql("SELECT version_num FROM alembic_version").scalar_one() == "v2_0053"
+            assert head() == "v2_0054"
+            assert connection.exec_driver_sql("SELECT version_num FROM alembic_version").scalar_one() == "v2_0054"
             kept = connection.exec_driver_sql(
                 "SELECT prompt,continuity,misfire FROM schedule_revisions WHERE schedule_id=?", (schedule_id,)
             ).one()

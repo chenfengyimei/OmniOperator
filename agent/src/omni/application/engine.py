@@ -51,6 +51,7 @@ from .ports import (
     Observer,
     Record,
     RunCapabilityPort,
+    TurnAdmissionObserver,
     UnitOfWork,
 )
 from .reflections import REFLECTION, ReflectionService
@@ -180,11 +181,14 @@ class Application:
         image_ids: tuple[str, ...] = (),
         mode: str | None = None,
         skill_ids: tuple[str, ...] = (),
+        *,
+        admission_observer: TurnAdmissionObserver | None = None,
     ) -> Record:
         if self._closing or not self._ready:
             raise BusinessError("not_ready", "Application is not accepting work", status=503)
-        receipt = await self._db.write(
-            lambda u: u.accept_turn(
+
+        def accept(u: UnitOfWork) -> Record:
+            receipt = u.accept_turn(
                 agent_id,
                 session_id,
                 key,
@@ -195,7 +199,11 @@ class Application:
                 skill_ids=skill_ids,
                 skill_platform=self._skills.platform if self._skills else "",
             )
-        )
+            if admission_observer is not None:
+                admission_observer(u, receipt)
+            return receipt
+
+        receipt = await self._db.write(accept)
         self._wake.set()
         return receipt
 

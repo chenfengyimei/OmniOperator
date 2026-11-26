@@ -36,6 +36,7 @@ from .maintenance import install_maintenance
 from .mcp import install_mcp
 from .media import install_media
 from .memory import install_memory
+from .omniweave import install_omniweave
 from .operations import install_operations
 from .people import install_people
 from .qq import install_qq
@@ -126,6 +127,7 @@ BUILTIN_WORKFLOW_FEATURES = (
 )
 
 BUILTIN_KERNEL_FEATURES = (
+    FeaturePlugin("omniweave", factory=None, install=install_omniweave),
     FeaturePlugin("schedules", factory=schedules_router, install=install_schedules),
     FeaturePlugin("qq", factory=qq_router, install=install_qq),
     FeaturePlugin(
