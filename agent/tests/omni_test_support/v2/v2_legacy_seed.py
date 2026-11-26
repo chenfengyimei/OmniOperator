@@ -35,6 +35,10 @@ def preserved_rows(
 class PreKernelSeedRepositories(Repositories):
     """Create original routing rows on pinned schemas prior to v53."""
 
+    def omniweave_private_scope(self, agent_id: str, field: str, identity: str) -> bool:
+        # Historical fixture schemas predate Worker sessions. Live databases reach the current head before admission.
+        return False
+
     def _record(self, table, values, agent_id=None):
         if table is s.run_routes:
             table = Table("run_routes", MetaData(), autoload_with=self.connection)
