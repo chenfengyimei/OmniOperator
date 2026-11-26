@@ -350,7 +350,8 @@ uv run --no-sync pytest -q -n 0 agent/tests/v2/core/test_v2_kernel.py agent/test
 
 - [agent/src/omni/adapters/http.py#create_app.turn](../../../agent/src/omni/adapters/http.py#L594)
 - [agent/src/omni/adapters/http.py#create_app.event_stream](../../../agent/src/omni/adapters/http.py#L642)
-- [agent/src/omni/adapters/http_routes/omniweave.py#omniweave_router.ticket](../../../agent/src/omni/adapters/http_routes/omniweave.py#L16)
+- [agent/src/omni/adapters/http_routes/omniweave.py#omniweave_router.ticket](../../../agent/src/omni/adapters/http_routes/omniweave.py#L32)
+- [agent/src/omni/adapters/http_routes/omniweave.py#omniweave_router.select_main_session](../../../agent/src/omni/adapters/http_routes/omniweave.py#L24)
 
 **领域规则**
 
@@ -358,18 +359,19 @@ uv run --no-sync pytest -q -n 0 agent/tests/v2/core/test_v2_kernel.py agent/test
 
 **应用服务**
 
-- [agent/src/omni/application/omniweave.py#OmniWeaveService.web_admission](../../../agent/src/omni/application/omniweave.py#L23)
-- [agent/src/omni/application/omniweave.py#OmniWeaveService.invoke](../../../agent/src/omni/application/omniweave.py#L49)
+- [agent/src/omni/application/omniweave.py#OmniWeaveService.web_admission](../../../agent/src/omni/application/omniweave.py#L41)
+- [agent/src/omni/application/omniweave.py#OmniWeaveService.invoke](../../../agent/src/omni/application/omniweave.py#L67)
 - [agent/src/omni/application/engine.py#Application.submit_turn](../../../agent/src/omni/application/engine.py#L179)
 - [agent/src/omni/application/engine.py#Application._dispatch](../../../agent/src/omni/application/engine.py#L239)
 
 **适配器与仓储**
 
-- [agent/src/omni/adapters/persistence/omniweave_repository.py#OmniWeaveRepositories.omniweave_observe](../../../agent/src/omni/adapters/persistence/omniweave_repository.py#L22)
+- [agent/src/omni/adapters/persistence/omniweave_repository.py#OmniWeaveRepositories.omniweave_observe](../../../agent/src/omni/adapters/persistence/omniweave_repository.py#L103)
 - [agent/src/omni/adapters/persistence/migrations/versions/v0054.py](../../../agent/src/omni/adapters/persistence/migrations/versions/v0054.py)
 - [agent/src/omni/adapters/persistence/migrations/versions/v0055.py](../../../agent/src/omni/adapters/persistence/migrations/versions/v0055.py)
 - [agent/src/omni/adapters/persistence/migrations/versions/v0056.py](../../../agent/src/omni/adapters/persistence/migrations/versions/v0056.py)
-- [agent/src/omni/adapters/persistence/omniweave_repository.py#OmniWeaveRepositories.omniweave_plan](../../../agent/src/omni/adapters/persistence/omniweave_repository.py#L102)
+- [agent/src/omni/adapters/persistence/migrations/versions/v0057.py](../../../agent/src/omni/adapters/persistence/migrations/versions/v0057.py)
+- [agent/src/omni/adapters/persistence/omniweave_repository.py#OmniWeaveRepositories.omniweave_plan](../../../agent/src/omni/adapters/persistence/omniweave_repository.py#L161)
 - [agent/src/omni/adapters/persistence/delegation_repository.py#DelegationRepositories.claim_delegated_runs](../../../agent/src/omni/adapters/persistence/delegation_repository.py#L241)
 - [agent/src/omni/adapters/persistence/delegation_repository.py#DelegationRepositories.delegation_recover](../../../agent/src/omni/adapters/persistence/delegation_repository.py#L369)
 - [agent/src/omni/adapters/persistence/lease_repository.py#LeaseRepositories.claim_runs](../../../agent/src/omni/adapters/persistence/lease_repository.py#L280)
@@ -386,6 +388,7 @@ uv run --no-sync pytest -q -n 0 agent/tests/v2/core/test_v2_kernel.py agent/test
 
 - [agent/tests/v2/http/test_v2_omniweave_http.py](../../../agent/tests/v2/http/test_v2_omniweave_http.py)
 - [agent/tests/v2/core/test_v2_omniweave_migration.py](../../../agent/tests/v2/core/test_v2_omniweave_migration.py)
+- [agent/tests/v2/ui/test_v2_agents_ui.py](../../../agent/tests/v2/ui/test_v2_agents_ui.py)
 
 **改动影响**　变更影响 Web 请求幂等、授权来源、主会话隔离、Worker 依赖、写入批准与取消。
 
@@ -398,7 +401,7 @@ uv run --no-sync pytest -q -n 0 agent/tests/v2/core/test_v2_kernel.py agent/test
 **专项命令**
 
 ```powershell
-uv run --no-sync pytest -q -n 0 agent/tests/v2/http/test_v2_omniweave_http.py agent/tests/v2/core/test_v2_omniweave_migration.py
+uv run --no-sync pytest -q -n 0 agent/tests/v2/http/test_v2_omniweave_http.py agent/tests/v2/core/test_v2_omniweave_migration.py agent/tests/v2/ui/test_v2_agents_ui.py
 ```
 
 <a id="feature-context"></a>

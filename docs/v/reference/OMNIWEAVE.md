@@ -33,7 +33,7 @@ Windows x64 候选 `4082ccacaa31918a22d06bdd6dbf6710e8467906` 的 40 个受影�
 
 ## Phase 2 Router 与任务依赖
 
-在隔离实例使用 `--omniweave-mode enabled` 启用 Router，已有 `dispatch` 选项继续可用。启用后每个 Agent 首次受理的所有者 Web 回合确定私有主会话。所有者可在既有会话内发送首条启用后的消息，也可用新会话开始。绑定从首个执行回执读取并跨重启保留。该主会话中的每条新受理增加一条作用域绑定的执行授权，其他 Web 会话沿用普通 V2 回合。`observe` 记录受理，`off` 为默认配置，重投沿用原决定。
+在隔离实例使用 `--omniweave-mode enabled` 启用 Router，已有 `dispatch` 选项继续可用。所有者在工作台会话栏创建 OWA 主会话，或打开已有私有 Web 会话后选用它。每个 Agent 仅有一个当前选定会话，绑定跨重启保存。该主会话中的每条新受理增加一条作用域绑定的执行授权。选择前以及其他 Web 会话均沿用普通 V2 回合。`observe` 记录受理，`off` 为默认配置，重投沿用原决定。
 
 ```powershell
 uv run --no-sync omni-v2 --home .\temp\build\owa-enabled serve --omniweave-mode enabled
@@ -44,6 +44,7 @@ uv run --no-sync omni-v2 --home .\temp\build\owa-enabled serve --omniweave-mode 
 - Router 可以在原主会话继续接收新输入，并用 `owa_status` 查看本会话的 Ticket 状态和 Worker 提交的结果。现有 `/runs/{run_id}/cancel` 可取消根 Ticket，包括根 Run 已结束后仍在执行的 Worker。读 `GET /api/v1/agents/{agent_id}/omniweave/sessions/{session_id}/tickets` 可按 `run_id` 或 `ticket_id` 查询进度。会话、Run、消息、摘要和事件的通用 Web 路径执行内部作用域检查。
 - `v2_0055` 新建执行授权、任务和依赖三张表，数据库触发器校验 Worker 和依赖的 Ticket 绑定。Router、普通根回合和 OWA Worker 共用内核容量。默认容量为四时最多同时运行三个 OWA Worker，容量为一时串行轮转。`delegate_task` 保有既有并发额度，仍走原租约。[迁移](../../../agent/src/omni/adapters/persistence/migrations/versions/v0055.py) · [查询入口](../../../agent/src/omni/adapters/http_routes/omniweave.py)
 - `v2_0056` 为具有 OWA 执行授权且由已登记的 `owa_plan` 调用产生的子 Run 提供八个名额。既有 `delegate_task` 继续每父 Run 最多四个，保留原来源、会话、快照和策略绑定。[数据库触发器](../../../agent/src/omni/adapters/persistence/migrations/versions/v0056.py)
+- `GET /api/v1/agents/{agent_id}/omniweave/main-session` 读取启用状态与选定会话。`PUT` 带 `session_id` 选择既有私有 Web 会话，值为 `null` 时首次创建，重试返回已选会话。另选一个有效会话时返回 `409 owa_main_session_exists`。跨 Agent、委派子会话和 QQ 会话不参与选择。`v2_0057` 增补选择标记和唯一索引。旧执行回执继续可查，升级后首次新受理按显式选择决定路由。[HTTP](../../../agent/src/omni/adapters/http_routes/omniweave.py) · [迁移](../../../agent/src/omni/adapters/persistence/migrations/versions/v0057.py)
 
 ### Phase 2 验收
 
@@ -51,7 +52,9 @@ Windows x64 上对源码 `d40bf6b5` 跑了 43 个文件，373 项通过。一项
 
 正式规格对齐批 `57990c47` 在 Windows x64 的十个受影响文件中通过 109 项离线专项。包含三 Worker 阻塞时实际处理主会话、独立第四个 Worker 排队、伪造 Router 文件调用、Worker 私有记忆隔离、旧委派和重启回归。严格类型检查覆盖 502 个文件，零错误、零警告。迁移头为 `v2_0055`。[对齐批证据](../evidence/owa-spec-alignment-2026-11-27.json)
 
-容量批 `588efa89` 的 6 项生产入口与 OWA 迁移专项通过，验证八 Worker 入队、超限拒绝、三个同时活动和空库与 V53/V54/V55 副本完整性。另有 58 项旧委派、发布迁移与历史升级专项通过，两组含重复验证的 OWA 升级用例。当前迁移头为 `v2_0056`，严格类型检查覆盖 505 个文件，零错误、零警告。[容量批证据](../evidence/owa-worker-capacity-2026-11-27.json)
+容量批 `588efa89` 的 6 项生产入口与 OWA 迁移专项通过，验证八 Worker 入队、超限拒绝、三个同时活动和空库与 V53/V54/V55 副本完整性。另有 58 项旧委派、发布迁移与历史升级专项通过，两组含重复验证的 OWA 升级用例。该批迁移头为 `v2_0056`，严格类型检查覆盖 505 个文件，零错误、零警告。[容量批证据](../evidence/owa-worker-capacity-2026-11-27.json)
+
+显式主会话批 `c9c47162` 通过 45 项生产入口、工作台、架构、事件流和委派专项，另有 13 项历史迁移回归通过。空库及 V53、V54、V55、V56 副本迁移至 `v2_0057`，完整性与外键检查通过。V56 已受理的 Router 回执保留，后续从明确选定的会话接收新 Router 回合。严格类型检查覆盖 506 个文件，零错误、零警告。[主会话批证据](../evidence/owa-main-session-2026-11-27.json)
 
 ## Phase 3 续接边界
 
@@ -59,4 +62,4 @@ Windows x64 上对源码 `d40bf6b5` 跑了 43 个文件，373 项通过。一项
 
 源码 `8a422751` 的 46 项离线专项通过，覆盖跨 boot 领取、重复重启、未知调用保留、旧委派与内核检查点。迁移头为 `v2_0055`。[恢复专项证据](../evidence/owa-pre-dispatch-recovery-2026-11-26.json)
 
-正式规格剩余的前置开发是版本化 Worker Profile、根与执行 Mandate，以及主会话的明确选定入口。随后实现同根同目标版本的持久邮箱、请求与回复、订阅和版本化授权对象，再接主会话追加、已确认检查点续接与 Router 原位交付。Phase 3 用校园助手离线场景验收。Phase 4–7 依次覆盖长作业与 Watchdog、数字身体、外部事件和发布。发布候选按实际 SHA 执行全量、配对基准、包生命周期、独立机器、真实平台和 72 小时常驻验收。
+正式规格剩余的前置开发是版本化 Worker Profile、根与执行 Mandate。随后实现同根同目标版本的持久邮箱、请求与回复、订阅和版本化授权对象，再接主会话追加、已确认检查点续接与 Router 原位交付。Phase 3 用校园助手离线场景验收。Phase 4–7 依次覆盖长作业与 Watchdog、数字身体、外部事件和发布。发布候选按实际 SHA 执行全量、配对基准、包生命周期、独立机器、真实平台和 72 小时常驻验收。

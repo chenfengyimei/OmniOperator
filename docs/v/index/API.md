@@ -213,7 +213,9 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 | v2 | GET | `/api/v1/agents/{agent_id}/objects/{object_id}` | `create_app.describe_object` | [agent/src/omni/adapters/http.py](../../../agent/src/omni/adapters/http.py#L577) |
 | v2 | GET | `/api/v1/agents/{agent_id}/objects/{object_id}/content` | `create_app.download_object` | [agent/src/omni/adapters/http.py](../../../agent/src/omni/adapters/http.py#L581) |
 | v2 | PUT | `/api/v1/agents/{agent_id}/objects/{object_id}/pin` | `create_app.pin_object` | [agent/src/omni/adapters/http.py](../../../agent/src/omni/adapters/http.py#L590) |
-| v2 | GET | `/api/v1/agents/{agent_id}/omniweave/sessions/{session_id}/tickets` | `omniweave_router.ticket` | [agent/src/omni/adapters/http_routes/omniweave.py](../../../agent/src/omni/adapters/http_routes/omniweave.py#L16) |
+| v2 | GET | `/api/v1/agents/{agent_id}/omniweave/main-session` | `omniweave_router.main_session` | [agent/src/omni/adapters/http_routes/omniweave.py](../../../agent/src/omni/adapters/http_routes/omniweave.py#L20) |
+| v2 | PUT | `/api/v1/agents/{agent_id}/omniweave/main-session` | `omniweave_router.select_main_session` | [agent/src/omni/adapters/http_routes/omniweave.py](../../../agent/src/omni/adapters/http_routes/omniweave.py#L24) |
+| v2 | GET | `/api/v1/agents/{agent_id}/omniweave/sessions/{session_id}/tickets` | `omniweave_router.ticket` | [agent/src/omni/adapters/http_routes/omniweave.py](../../../agent/src/omni/adapters/http_routes/omniweave.py#L32) |
 | v2 | GET | `/api/v1/agents/{agent_id}/people` | `people_router.list_people` | [agent/src/omni/adapters/http_routes/people.py](../../../agent/src/omni/adapters/http_routes/people.py#L48) |
 | v2 | POST | `/api/v1/agents/{agent_id}/people` | `people_router.create_person` | [agent/src/omni/adapters/http_routes/people.py](../../../agent/src/omni/adapters/http_routes/people.py#L57) |
 | v2 | GET | `/api/v1/agents/{agent_id}/people/owner` | `people_router.owner_person` | [agent/src/omni/adapters/http_routes/people.py](../../../agent/src/omni/adapters/http_routes/people.py#L44) |
@@ -852,6 +854,14 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 | quote | `str` | 否 |
 | action_id | `uuid.UUID \| None` | 否 |
 | document_revision_id | `uuid.UUID \| None` | 否 |
+
+### MainSessionInput
+
+定位：[agent/src/omni/adapters/http_routes/omniweave.py](../../../agent/src/omni/adapters/http_routes/omniweave.py#L12)。
+
+| 字段 | 类型 | 必填 |
+|---|---|---|
+| session_id | `UUID \| None` | 否 |
 
 ### DebugInput
 

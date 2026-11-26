@@ -112,9 +112,9 @@
       "id": "OMNIWEAVE",
       "title": "OWA 主会话编排与发布验收",
       "status": "development_in_progress",
-      "next": "正式规格对齐批 `57990c47` 通过 109 项离线专项。容量批 `588efa89` 将每根 OWA Ticket 的 Worker 上限独立设为八个，迁移头为 `v2_0056`，通过 6 项 OWA 专项和 58 项迁移及旧委派回归。下一步补显式主会话选定、版本化 Worker Profile 与 Mandate，再做同根同版本邮箱、授权产物、主会话追加与原位交付。以 OW-01–OW-06 和 T01–T13 的分阶段证据验收。",
+      "next": "显式主会话批 `c9c47162` 通过 45 项生产入口和调用方专项及 13 项历史迁移回归，当前迁移头为 `v2_0057`。前批已验证 Router 权限隔离、每根 Ticket 八个 Worker 和三个并发。下一步补版本化 Worker Profile 与 Mandate，再做同根同版本邮箱、授权产物、主会话追加与原位交付。以 OW-01–OW-06 和 T01–T13 的分阶段证据验收。",
       "contract": "docs/v/reference/OMNIWEAVE.md",
-      "evidence": ["docs/v/evidence/owa-phase1-2026-11-26.json", "docs/v/evidence/owa-phase2-2026-11-26.json", "docs/v/evidence/owa-pre-dispatch-recovery-2026-11-26.json", "docs/v/evidence/owa-spec-alignment-2026-11-27.json", "docs/v/evidence/owa-worker-capacity-2026-11-27.json"]
+      "evidence": ["docs/v/evidence/owa-phase1-2026-11-26.json", "docs/v/evidence/owa-phase2-2026-11-26.json", "docs/v/evidence/owa-pre-dispatch-recovery-2026-11-26.json", "docs/v/evidence/owa-spec-alignment-2026-11-27.json", "docs/v/evidence/owa-worker-capacity-2026-11-27.json", "docs/v/evidence/owa-main-session-2026-11-27.json"]
     },
     {
       "id": "CAPABILITY-PLUGINS",

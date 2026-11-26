@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "f5dedb15d061501ef0b88c1aa917d0670deb7e1b53eefc202b8420ec95c25f49",
+  "source_sha256": "76efd62f638b00db214b9155b4a36d3fbd3a4cdc7399267d2fb30a9781985d2e",
   "modules": [
     {
       "id": "v2-domain",
@@ -180,7 +180,7 @@
         "agent/src/omni/application/vision_services.py",
         "agent/src/omni/application/visual_subagent.py"
       ],
-      "lines": 15236,
+      "lines": 15256,
       "dependencies": [
         "v2-domain"
       ]
@@ -356,6 +356,7 @@
         "agent/src/omni/adapters/persistence/migrations/versions/v0054.py",
         "agent/src/omni/adapters/persistence/migrations/versions/v0055.py",
         "agent/src/omni/adapters/persistence/migrations/versions/v0056.py",
+        "agent/src/omni/adapters/persistence/migrations/versions/v0057.py",
         "agent/src/omni/adapters/persistence/object_gc.py",
         "agent/src/omni/adapters/persistence/object_inventory.py",
         "agent/src/omni/adapters/persistence/object_repository.py",
@@ -558,7 +559,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 74098,
+      "lines": 74210,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -691,7 +692,7 @@
         "web/ui/v2/v1/workbench.css",
         "web/ui/v2/workbench.css"
       ],
-      "lines": 26025,
+      "lines": 26067,
       "dependencies": []
     },
     {
@@ -9072,14 +9073,19 @@
       "module": "v2-adapters",
       "version": "V2",
       "python_module": "omni.adapters.http_routes.omniweave",
-      "lines": 23,
+      "lines": 39,
       "imports": [
         "omni.adapters.http_routes"
       ],
       "symbols": [
         {
-          "name": "omniweave_router",
+          "name": "MainSessionInput",
           "line": 12,
+          "kind": "class"
+        },
+        {
+          "name": "omniweave_router",
+          "line": 16,
           "kind": "function",
           "parameters": [
             "runtime"
@@ -9089,8 +9095,36 @@
           }
         },
         {
+          "name": "omniweave_router.main_session",
+          "line": 20,
+          "kind": "function",
+          "parameters": [
+            "agent_id",
+            "request"
+          ],
+          "annotations": {
+            "agent_id": "UUID",
+            "request": "Request"
+          }
+        },
+        {
+          "name": "omniweave_router.select_main_session",
+          "line": 24,
+          "kind": "function",
+          "parameters": [
+            "agent_id",
+            "data",
+            "request"
+          ],
+          "annotations": {
+            "agent_id": "UUID",
+            "data": "MainSessionInput",
+            "request": "Request"
+          }
+        },
+        {
           "name": "omniweave_router.ticket",
-          "line": 16,
+          "line": 32,
           "kind": "function",
           "parameters": [
             "agent_id",
@@ -22605,6 +22639,31 @@
       "summary": "Give OWA and legacy delegation separate limits while preserving source bindings."
     },
     {
+      "path": "agent/src/omni/adapters/persistence/migrations/versions/v0057.py",
+      "module": "v2-adapters",
+      "version": "V2",
+      "python_module": "omni.adapters.persistence.migrations.versions.v0057",
+      "lines": 30,
+      "imports": [],
+      "symbols": [
+        {
+          "name": "upgrade",
+          "line": 11,
+          "kind": "function",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "downgrade",
+          "line": 29,
+          "kind": "function",
+          "parameters": [],
+          "annotations": {}
+        }
+      ],
+      "summary": "Persist an explicit owner selection independently of historical Router admissions."
+    },
+    {
       "path": "agent/src/omni/adapters/persistence/object_gc.py",
       "module": "v2-adapters",
       "version": "V2",
@@ -23071,7 +23130,7 @@
       "module": "v2-adapters",
       "version": "V2",
       "python_module": "omni.adapters.persistence.omniweave_repository",
-      "lines": 259,
+      "lines": 318,
       "imports": [
         "omni.adapters.persistence",
         "omni.adapters.persistence.repository_base",
@@ -23087,8 +23146,59 @@
           "kind": "class"
         },
         {
-          "name": "OmniWeaveRepositories.omniweave_observe",
+          "name": "OmniWeaveRepositories._owa_owner",
           "line": 22,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "OmniWeaveRepositories._owa_thread",
+          "line": 27,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "agent_id",
+            "owner_id",
+            "session_id"
+          ],
+          "annotations": {
+            "agent_id": "str",
+            "owner_id": "str",
+            "session_id": "str"
+          }
+        },
+        {
+          "name": "OmniWeaveRepositories.omniweave_main_session",
+          "line": 41,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "agent_id"
+          ],
+          "annotations": {
+            "agent_id": "str"
+          }
+        },
+        {
+          "name": "OmniWeaveRepositories.omniweave_select_main",
+          "line": 58,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "agent_id",
+            "session_id"
+          ],
+          "annotations": {
+            "agent_id": "str",
+            "session_id": "str | None"
+          }
+        },
+        {
+          "name": "OmniWeaveRepositories.omniweave_observe",
+          "line": 103,
           "kind": "function",
           "parameters": [
             "self",
@@ -23110,7 +23220,7 @@
         },
         {
           "name": "OmniWeaveRepositories.omniweave_router",
-          "line": 89,
+          "line": 148,
           "kind": "function",
           "parameters": [
             "self",
@@ -23124,7 +23234,7 @@
         },
         {
           "name": "OmniWeaveRepositories.omniweave_plan",
-          "line": 102,
+          "line": 161,
           "kind": "function",
           "parameters": [
             "self",
@@ -23142,7 +23252,7 @@
         },
         {
           "name": "OmniWeaveRepositories.omniweave_ticket",
-          "line": 144,
+          "line": 203,
           "kind": "function",
           "parameters": [
             "self",
@@ -23162,7 +23272,7 @@
         },
         {
           "name": "OmniWeaveRepositories.omniweave_private_scope",
-          "line": 201,
+          "line": 260,
           "kind": "function",
           "parameters": [
             "self",
@@ -23178,7 +23288,7 @@
         },
         {
           "name": "OmniWeaveRepositories.omniweave_worker_gate",
-          "line": 216,
+          "line": 275,
           "kind": "function",
           "parameters": [
             "self",
@@ -23192,7 +23302,7 @@
         },
         {
           "name": "OmniWeaveRepositories.omniweave_cancel",
-          "line": 250,
+          "line": 309,
           "kind": "function",
           "parameters": [
             "self",
@@ -26084,7 +26194,7 @@
       "module": "v2-adapters",
       "version": "V2",
       "python_module": "omni.adapters.persistence.schema",
-      "lines": 3690,
+      "lines": 3697,
       "imports": [],
       "symbols": [
         {
@@ -26153,7 +26263,7 @@
         },
         {
           "name": "history_retention_batches",
-          "line": 1959,
+          "line": 1966,
           "kind": "function",
           "parameters": [
             "name",
@@ -59205,7 +59315,7 @@
       "module": "v2-application",
       "version": "V2",
       "python_module": "omni.application.omniweave",
-      "lines": 96,
+      "lines": 114,
       "imports": [
         "omni.application.ports",
         "omni.domain.contracts",
@@ -59219,8 +59329,47 @@
           "kind": "class"
         },
         {
-          "name": "OmniWeaveService.web_admission",
+          "name": "OmniWeaveService.main_session",
           "line": 23,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "agent_id"
+          ],
+          "annotations": {
+            "agent_id": "str"
+          }
+        },
+        {
+          "name": "OmniWeaveService.select_main_session",
+          "line": 27,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "agent_id",
+            "session_id",
+            "owner_token"
+          ],
+          "annotations": {
+            "agent_id": "str",
+            "session_id": "str | None",
+            "owner_token": "str"
+          }
+        },
+        {
+          "name": "OmniWeaveService.select_main_session.select_main",
+          "line": 34,
+          "kind": "function",
+          "parameters": [
+            "unit"
+          ],
+          "annotations": {
+            "unit": "UnitOfWork"
+          }
+        },
+        {
+          "name": "OmniWeaveService.web_admission",
+          "line": 41,
           "kind": "function",
           "parameters": [
             "self",
@@ -59236,7 +59385,7 @@
         },
         {
           "name": "OmniWeaveService.web_admission.observe",
-          "line": 28,
+          "line": 46,
           "kind": "function",
           "parameters": [
             "unit",
@@ -59249,7 +59398,7 @@
         },
         {
           "name": "OmniWeaveService.tools_for_run",
-          "line": 43,
+          "line": 61,
           "kind": "function",
           "parameters": [
             "self",
@@ -59263,7 +59412,7 @@
         },
         {
           "name": "OmniWeaveService.invoke",
-          "line": 49,
+          "line": 67,
           "kind": "function",
           "parameters": [
             "self",
@@ -59281,7 +59430,7 @@
         },
         {
           "name": "OmniWeaveService.invoke.read_status",
-          "line": 56,
+          "line": 74,
           "kind": "function",
           "parameters": [
             "unit"
@@ -59292,7 +59441,7 @@
         },
         {
           "name": "OmniWeaveService.public_ticket",
-          "line": 80,
+          "line": 98,
           "kind": "function",
           "parameters": [
             "self",
@@ -59310,7 +59459,7 @@
         },
         {
           "name": "OmniWeaveService.require_public_scope",
-          "line": 87,
+          "line": 105,
           "kind": "function",
           "parameters": [
             "self",
@@ -59324,7 +59473,7 @@
         },
         {
           "name": "OmniWeaveService.close",
-          "line": 95,
+          "line": 113,
           "kind": "function",
           "parameters": [
             "self",
@@ -59982,7 +60131,7 @@
       "module": "v2-application",
       "version": "V2",
       "python_module": "omni.application.ports",
-      "lines": 1127,
+      "lines": 1129,
       "imports": [
         "omni.domain.contracts",
         "omni.domain.delivery",
@@ -68179,8 +68328,34 @@
           }
         },
         {
-          "name": "UnitOfWork.omniweave_observe",
+          "name": "UnitOfWork.omniweave_main_session",
           "line": 1002,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "agent_id"
+          ],
+          "annotations": {
+            "agent_id": "str"
+          }
+        },
+        {
+          "name": "UnitOfWork.omniweave_select_main",
+          "line": 1003,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "agent_id",
+            "session_id"
+          ],
+          "annotations": {
+            "agent_id": "str",
+            "session_id": "str | None"
+          }
+        },
+        {
+          "name": "UnitOfWork.omniweave_observe",
+          "line": 1004,
           "kind": "function",
           "parameters": [
             "self",
@@ -68202,7 +68377,7 @@
         },
         {
           "name": "UnitOfWork.omniweave_router",
-          "line": 1005,
+          "line": 1007,
           "kind": "function",
           "parameters": [
             "self",
@@ -68216,7 +68391,7 @@
         },
         {
           "name": "UnitOfWork.omniweave_plan",
-          "line": 1006,
+          "line": 1008,
           "kind": "function",
           "parameters": [
             "self",
@@ -68234,7 +68409,7 @@
         },
         {
           "name": "UnitOfWork.omniweave_ticket",
-          "line": 1007,
+          "line": 1009,
           "kind": "function",
           "parameters": [
             "self",
@@ -68254,7 +68429,7 @@
         },
         {
           "name": "UnitOfWork.omniweave_private_scope",
-          "line": 1010,
+          "line": 1012,
           "kind": "function",
           "parameters": [
             "self",
@@ -68270,7 +68445,7 @@
         },
         {
           "name": "UnitOfWork.omniweave_worker_gate",
-          "line": 1011,
+          "line": 1013,
           "kind": "function",
           "parameters": [
             "self",
@@ -68284,7 +68459,7 @@
         },
         {
           "name": "UnitOfWork.get_run",
-          "line": 1012,
+          "line": 1014,
           "kind": "function",
           "parameters": [
             "self",
@@ -68298,7 +68473,7 @@
         },
         {
           "name": "UnitOfWork.transition",
-          "line": 1013,
+          "line": 1015,
           "kind": "function",
           "parameters": [
             "self",
@@ -68316,7 +68491,7 @@
         },
         {
           "name": "UnitOfWork.event",
-          "line": 1014,
+          "line": 1016,
           "kind": "function",
           "parameters": [
             "self",
@@ -68334,7 +68509,7 @@
         },
         {
           "name": "UnitOfWork.messages",
-          "line": 1015,
+          "line": 1017,
           "kind": "function",
           "parameters": [
             "self",
@@ -68350,7 +68525,7 @@
         },
         {
           "name": "UnitOfWork.session_search_discover",
-          "line": 1016,
+          "line": 1018,
           "kind": "function",
           "parameters": [
             "self",
@@ -68372,7 +68547,7 @@
         },
         {
           "name": "UnitOfWork.session_search_scroll",
-          "line": 1026,
+          "line": 1028,
           "kind": "function",
           "parameters": [
             "self",
@@ -68390,7 +68565,7 @@
         },
         {
           "name": "UnitOfWork.session_search_read",
-          "line": 1027,
+          "line": 1029,
           "kind": "function",
           "parameters": [
             "self",
@@ -68408,7 +68583,7 @@
         },
         {
           "name": "UnitOfWork.session_search_browse",
-          "line": 1028,
+          "line": 1030,
           "kind": "function",
           "parameters": [
             "self",
@@ -68424,7 +68599,7 @@
         },
         {
           "name": "UnitOfWork.context_messages",
-          "line": 1029,
+          "line": 1031,
           "kind": "function",
           "parameters": [
             "self",
@@ -68438,7 +68613,7 @@
         },
         {
           "name": "UnitOfWork.snapshot",
-          "line": 1030,
+          "line": 1032,
           "kind": "function",
           "parameters": [
             "self",
@@ -68456,7 +68631,7 @@
         },
         {
           "name": "UnitOfWork.finish",
-          "line": 1031,
+          "line": 1033,
           "kind": "function",
           "parameters": [
             "self",
@@ -68474,7 +68649,7 @@
         },
         {
           "name": "UnitOfWork.settings",
-          "line": 1032,
+          "line": 1034,
           "kind": "function",
           "parameters": [
             "self",
@@ -68486,7 +68661,7 @@
         },
         {
           "name": "UnitOfWork.settings_put",
-          "line": 1033,
+          "line": 1035,
           "kind": "function",
           "parameters": [
             "self",
@@ -68502,7 +68677,7 @@
         },
         {
           "name": "UnitOfWork.reserve_call",
-          "line": 1034,
+          "line": 1036,
           "kind": "function",
           "parameters": [
             "self",
@@ -68524,7 +68699,7 @@
         },
         {
           "name": "UnitOfWork.begin_call",
-          "line": 1037,
+          "line": 1039,
           "kind": "function",
           "parameters": [
             "self",
@@ -68538,7 +68713,7 @@
         },
         {
           "name": "UnitOfWork.settle_call",
-          "line": 1038,
+          "line": 1040,
           "kind": "function",
           "parameters": [
             "self",
@@ -68556,7 +68731,7 @@
         },
         {
           "name": "UnitOfWork.prepare_action",
-          "line": 1041,
+          "line": 1043,
           "kind": "function",
           "parameters": [
             "self",
@@ -68576,7 +68751,7 @@
         },
         {
           "name": "UnitOfWork.authorize_action",
-          "line": 1042,
+          "line": 1044,
           "kind": "function",
           "parameters": [
             "self",
@@ -68590,7 +68765,7 @@
         },
         {
           "name": "UnitOfWork.settle_action",
-          "line": 1043,
+          "line": 1045,
           "kind": "function",
           "parameters": [
             "self",
@@ -68606,7 +68781,7 @@
         },
         {
           "name": "UnitOfWork.pending_approvals",
-          "line": 1044,
+          "line": 1046,
           "kind": "function",
           "parameters": [
             "self",
@@ -68618,7 +68793,7 @@
         },
         {
           "name": "UnitOfWork.resolve_approval",
-          "line": 1045,
+          "line": 1047,
           "kind": "function",
           "parameters": [
             "self",
@@ -68636,7 +68811,7 @@
         },
         {
           "name": "UnitOfWork.clarify_request",
-          "line": 1046,
+          "line": 1048,
           "kind": "function",
           "parameters": [
             "self",
@@ -68656,7 +68831,7 @@
         },
         {
           "name": "UnitOfWork.clarification",
-          "line": 1049,
+          "line": 1051,
           "kind": "function",
           "parameters": [
             "self",
@@ -68670,7 +68845,7 @@
         },
         {
           "name": "UnitOfWork.clarify_respond",
-          "line": 1050,
+          "line": 1052,
           "kind": "function",
           "parameters": [
             "self",
@@ -68690,7 +68865,7 @@
         },
         {
           "name": "UnitOfWork.clarify_cancel",
-          "line": 1053,
+          "line": 1055,
           "kind": "function",
           "parameters": [
             "self",
@@ -68708,7 +68883,7 @@
         },
         {
           "name": "UnitOfWork.clarify_timeout",
-          "line": 1054,
+          "line": 1056,
           "kind": "function",
           "parameters": [
             "self",
@@ -68722,7 +68897,7 @@
         },
         {
           "name": "UnitOfWork.pending_clarifications",
-          "line": 1055,
+          "line": 1057,
           "kind": "function",
           "parameters": [
             "self",
@@ -68734,7 +68909,7 @@
         },
         {
           "name": "UnitOfWork.cancel_run_clarifications",
-          "line": 1056,
+          "line": 1058,
           "kind": "function",
           "parameters": [
             "self",
@@ -68748,7 +68923,7 @@
         },
         {
           "name": "UnitOfWork.recover",
-          "line": 1057,
+          "line": 1059,
           "kind": "function",
           "parameters": [
             "self"
@@ -68757,7 +68932,7 @@
         },
         {
           "name": "UnitOfWork.save_run_checkpoint",
-          "line": 1058,
+          "line": 1060,
           "kind": "function",
           "parameters": [
             "self",
@@ -68777,34 +68952,6 @@
         },
         {
           "name": "UnitOfWork.consume_run_checkpoint",
-          "line": 1061,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "agent_id",
-            "run_id"
-          ],
-          "annotations": {
-            "agent_id": "str",
-            "run_id": "str"
-          }
-        },
-        {
-          "name": "UnitOfWork.run_continuation",
-          "line": 1062,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "agent_id",
-            "run_id"
-          ],
-          "annotations": {
-            "agent_id": "str",
-            "run_id": "str"
-          }
-        },
-        {
-          "name": "UnitOfWork.cancel",
           "line": 1063,
           "kind": "function",
           "parameters": [
@@ -68818,21 +68965,21 @@
           }
         },
         {
-          "name": "UnitOfWork.action",
+          "name": "UnitOfWork.run_continuation",
           "line": 1064,
           "kind": "function",
           "parameters": [
             "self",
             "agent_id",
-            "action_id"
+            "run_id"
           ],
           "annotations": {
             "agent_id": "str",
-            "action_id": "str"
+            "run_id": "str"
           }
         },
         {
-          "name": "UnitOfWork.run_applied_writes",
+          "name": "UnitOfWork.cancel",
           "line": 1065,
           "kind": "function",
           "parameters": [
@@ -68846,8 +68993,36 @@
           }
         },
         {
-          "name": "UnitOfWork.run_completion",
+          "name": "UnitOfWork.action",
           "line": 1066,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "agent_id",
+            "action_id"
+          ],
+          "annotations": {
+            "agent_id": "str",
+            "action_id": "str"
+          }
+        },
+        {
+          "name": "UnitOfWork.run_applied_writes",
+          "line": 1067,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "agent_id",
+            "run_id"
+          ],
+          "annotations": {
+            "agent_id": "str",
+            "run_id": "str"
+          }
+        },
+        {
+          "name": "UnitOfWork.run_completion",
+          "line": 1068,
           "kind": "function",
           "parameters": [
             "self",
@@ -68861,7 +69036,7 @@
         },
         {
           "name": "UnitOfWork.remember",
-          "line": 1067,
+          "line": 1069,
           "kind": "function",
           "parameters": [
             "self",
@@ -68897,7 +69072,7 @@
         },
         {
           "name": "UnitOfWork.forget",
-          "line": 1084,
+          "line": 1086,
           "kind": "function",
           "parameters": [
             "self",
@@ -68913,7 +69088,7 @@
         },
         {
           "name": "UnitOfWork.search_memory",
-          "line": 1085,
+          "line": 1087,
           "kind": "function",
           "parameters": [
             "self",
@@ -68931,7 +69106,7 @@
         },
         {
           "name": "UnitOfWork.memory_touch",
-          "line": 1088,
+          "line": 1090,
           "kind": "function",
           "parameters": [
             "self",
@@ -68945,7 +69120,7 @@
         },
         {
           "name": "UnitOfWork.memory_decay_state",
-          "line": 1089,
+          "line": 1091,
           "kind": "function",
           "parameters": [
             "self",
@@ -68957,7 +69132,7 @@
         },
         {
           "name": "UnitOfWork.memory_decay_pass",
-          "line": 1090,
+          "line": 1092,
           "kind": "function",
           "parameters": [
             "self",
@@ -68971,7 +69146,7 @@
         },
         {
           "name": "UnitOfWork.memory_decay_auto_tick",
-          "line": 1091,
+          "line": 1093,
           "kind": "function",
           "parameters": [
             "self",
@@ -68985,7 +69160,7 @@
         },
         {
           "name": "UnitOfWork.memory_semantic_capture",
-          "line": 1092,
+          "line": 1094,
           "kind": "function",
           "parameters": [
             "self",
@@ -69001,7 +69176,7 @@
         },
         {
           "name": "UnitOfWork.memory_index_audit",
-          "line": 1093,
+          "line": 1095,
           "kind": "function",
           "parameters": [
             "self",
@@ -69019,7 +69194,7 @@
         },
         {
           "name": "UnitOfWork.memory_index_page",
-          "line": 1094,
+          "line": 1096,
           "kind": "function",
           "parameters": [
             "self",
@@ -69035,7 +69210,7 @@
         },
         {
           "name": "UnitOfWork.memory_embedding_begin",
-          "line": 1095,
+          "line": 1097,
           "kind": "function",
           "parameters": [
             "self",
@@ -69053,7 +69228,7 @@
         },
         {
           "name": "UnitOfWork.memory_embedding_finish",
-          "line": 1096,
+          "line": 1098,
           "kind": "function",
           "parameters": [
             "self",
@@ -69071,7 +69246,7 @@
         },
         {
           "name": "UnitOfWork.memory_vector_candidates",
-          "line": 1099,
+          "line": 1101,
           "kind": "function",
           "parameters": [
             "self",
@@ -69087,7 +69262,7 @@
         },
         {
           "name": "UnitOfWork.memory_recall_validate",
-          "line": 1100,
+          "line": 1102,
           "kind": "function",
           "parameters": [
             "self",
@@ -69103,7 +69278,7 @@
         },
         {
           "name": "UnitOfWork.memory_semantic_replay",
-          "line": 1101,
+          "line": 1103,
           "kind": "function",
           "parameters": [
             "self",
@@ -69117,7 +69292,7 @@
         },
         {
           "name": "UnitOfWork.memory_semantic_propose",
-          "line": 1102,
+          "line": 1104,
           "kind": "function",
           "parameters": [
             "self",
@@ -69135,7 +69310,7 @@
         },
         {
           "name": "UnitOfWork.memory_semantic_get",
-          "line": 1103,
+          "line": 1105,
           "kind": "function",
           "parameters": [
             "self",
@@ -69151,7 +69326,7 @@
         },
         {
           "name": "UnitOfWork.memory_semantic_page",
-          "line": 1104,
+          "line": 1106,
           "kind": "function",
           "parameters": [
             "self",
@@ -69167,7 +69342,7 @@
         },
         {
           "name": "UnitOfWork.memory_semantic_decide",
-          "line": 1105,
+          "line": 1107,
           "kind": "function",
           "parameters": [
             "self",
@@ -69185,7 +69360,7 @@
         },
         {
           "name": "UnitOfWork.cancel_approvals",
-          "line": 1106,
+          "line": 1108,
           "kind": "function",
           "parameters": [
             "self"
@@ -69194,7 +69369,7 @@
         },
         {
           "name": "UnitOfWork.close_run_actions",
-          "line": 1107,
+          "line": 1109,
           "kind": "function",
           "parameters": [
             "self",
@@ -69208,7 +69383,7 @@
         },
         {
           "name": "UnitOfWork.query",
-          "line": 1108,
+          "line": 1110,
           "kind": "function",
           "parameters": [
             "self",
@@ -69227,7 +69402,7 @@
         },
         {
           "name": "UnitOfWork.audit",
-          "line": 1109,
+          "line": 1111,
           "kind": "function",
           "parameters": [
             "self",
@@ -69245,12 +69420,12 @@
         },
         {
           "name": "DatabasePort",
-          "line": 1115,
+          "line": 1117,
           "kind": "class"
         },
         {
           "name": "DatabasePort.write",
-          "line": 1116,
+          "line": 1118,
           "kind": "function",
           "parameters": [
             "self",
@@ -69262,7 +69437,7 @@
         },
         {
           "name": "DatabasePort.read",
-          "line": 1117,
+          "line": 1119,
           "kind": "function",
           "parameters": [
             "self",
@@ -69274,7 +69449,7 @@
         },
         {
           "name": "DatabasePort.close",
-          "line": 1118,
+          "line": 1120,
           "kind": "function",
           "parameters": [
             "self"
@@ -69283,12 +69458,12 @@
         },
         {
           "name": "SpanReport",
-          "line": 1121,
+          "line": 1123,
           "kind": "class"
         },
         {
           "name": "SpanReport.result",
-          "line": 1122,
+          "line": 1124,
           "kind": "function",
           "parameters": [
             "self",
@@ -69300,12 +69475,12 @@
         },
         {
           "name": "Observer",
-          "line": 1125,
+          "line": 1127,
           "kind": "class"
         },
         {
           "name": "Observer.context",
-          "line": 1126,
+          "line": 1128,
           "kind": "function",
           "parameters": [
             "self",
@@ -69315,7 +69490,7 @@
         },
         {
           "name": "Observer.span",
-          "line": 1127,
+          "line": 1129,
           "kind": "function",
           "parameters": [
             "self",
@@ -121236,7 +121411,7 @@
       "version": "V2",
       "module": "v2-workbench",
       "python_module": null,
-      "lines": 2242,
+      "lines": 2243,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -121258,7 +121433,7 @@
       "version": "V2",
       "module": "v2-workbench",
       "python_module": null,
-      "lines": 2426,
+      "lines": 2467,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -124670,9 +124845,45 @@
     },
     {
       "method": "GET",
+      "path": "/api/v1/agents/{agent_id}/omniweave/main-session",
+      "source": "agent/src/omni/adapters/http_routes/omniweave.py",
+      "line": 20,
+      "handler": "omniweave_router.main_session",
+      "module": "v2-adapters",
+      "parameters": [
+        "agent_id",
+        "request"
+      ],
+      "annotations": {
+        "agent_id": "UUID",
+        "request": "Request"
+      },
+      "scope": "v2"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/v1/agents/{agent_id}/omniweave/main-session",
+      "source": "agent/src/omni/adapters/http_routes/omniweave.py",
+      "line": 24,
+      "handler": "omniweave_router.select_main_session",
+      "module": "v2-adapters",
+      "parameters": [
+        "agent_id",
+        "data",
+        "request"
+      ],
+      "annotations": {
+        "agent_id": "UUID",
+        "data": "MainSessionInput",
+        "request": "Request"
+      },
+      "scope": "v2"
+    },
+    {
+      "method": "GET",
       "path": "/api/v1/agents/{agent_id}/omniweave/sessions/{session_id}/tickets",
       "source": "agent/src/omni/adapters/http_routes/omniweave.py",
-      "line": 16,
+      "line": 32,
       "handler": "omniweave_router.ticket",
       "module": "v2-adapters",
       "parameters": [
@@ -131367,6 +131578,18 @@
         {
           "name": "document_revision_id",
           "type": "uuid.UUID | None",
+          "required": false
+        }
+      ]
+    },
+    {
+      "name": "MainSessionInput",
+      "source": "agent/src/omni/adapters/http_routes/omniweave.py",
+      "line": 12,
+      "fields": [
+        {
+          "name": "session_id",
+          "type": "UUID | None",
           "required": false
         }
       ]
