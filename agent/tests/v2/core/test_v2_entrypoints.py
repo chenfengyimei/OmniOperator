@@ -27,6 +27,7 @@ ROOT = REPOSITORY_ROOT
         ["--master-key-file", "private-key-file"],
         ["--stdout-logs"],
         ["--omniweave-mode", "observe"],
+        ["--omniweave-mode", "dispatch"],
         ["--host", "0.0.0.0", "--external-url", "https://fixture.invalid", "--port", "8913"],
     ],
 )

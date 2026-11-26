@@ -137,6 +137,10 @@ class HttpRuntime:
     def operations(self) -> OperationsService:
         return registered_service(self.feature_services, "system", OperationsService)
 
+    @property
+    def omniweave(self) -> OmniWeaveService:
+        return registered_service(self.feature_services, "omniweave", OmniWeaveService)
+
     async def logs(self, query: LogQuery) -> Record:
         return await self.operations.logs(asdict(query))
 
@@ -317,8 +321,20 @@ def create_app(
 
     async def authenticate(request: Request) -> None:
         header = request.headers.get("authorization", "")
-        if not header.startswith("Bearer ") or not await runtime(request).authenticate(header[7:]):
+        current = runtime(request)
+        if not header.startswith("Bearer ") or not await current.authenticate(header[7:]):
             raise BusinessError("unauthenticated", "A valid owner token is required", status=401)
+        params = request.path_params
+        resources = {
+            name: params[name] for name in ("run_id", "session_id", "message_id", "summary_id") if name in params
+        }
+        if resources and "agent_id" in params and "omniweave" in current.feature_services:
+            try:
+                agent = str(uuid.UUID(str(params["agent_id"])))
+                canonical = {name: str(uuid.UUID(str(raw))) for name, raw in resources.items()}
+            except ValueError:
+                return  # FastAPI supplies the request validation response for malformed path parameters.
+            await current.omniweave.require_public_scope(agent, canonical)
 
     @app.middleware("http")
     async def boundary(request: Request, call_next: Callable[[Request], Awaitable[Response]]) -> Response:

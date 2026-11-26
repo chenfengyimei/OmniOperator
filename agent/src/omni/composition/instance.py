@@ -20,7 +20,7 @@ from opentelemetry.trace import Span, StatusCode
 from omni.adapters.platform.runtime.paths import InstanceLock, InstancePaths
 from omni.adapters.platform.runtime.runtime_identity import RuntimeIdentityFiles, canonical_proof, process_identity
 from omni.adapters.platform.runtime.secrets import FileVault
-from omni.adapters.platform.runtime.workspaces import WorkspacePolicy
+from omni.adapters.platform.runtime.workspaces import WorkerWorkspaces, WorkspacePolicy
 from omni.adapters.platform.services.service_launch import consume_launch
 
 from ..adapters.build_identity import CODE_CACHE_DIRS, CODE_SUFFIXES, LAYERS
@@ -551,6 +551,7 @@ async def open_instance(
             todos=TodoService(database) if capabilities is None else None,
             reflections=learning.reflections if capabilities is None else None,
             delegation_enabled=capabilities is None if delegation_enabled is None else delegation_enabled,
+            worker_workspace=WorkerWorkspaces(paths.home).prepare if omniweave_mode == "dispatch" else None,
             background_review=learning.review if capabilities is None else None,
             clarify=ClarifyService(database) if capabilities is None else None,
             verify_on_stop=verify_on_stop,

@@ -1,7 +1,10 @@
 """OWA observes admissions at the production owner Web entry point."""
 
+import asyncio
+import json
+import time
 from concurrent.futures import ThreadPoolExecutor
-from threading import Barrier
+from threading import Barrier, Event
 
 import pytest
 from fastapi.testclient import TestClient
@@ -10,8 +13,9 @@ from omni_test_support.v2.mcp_flow import wait_run
 
 from omni.adapters.persistence.omniweave_repository import OmniWeaveRepositories
 from omni.adapters.persistence.sqlite_access import sqlite_connection
+from omni.adapters.workers.client import WorkerClient
 from omni.composition.http import http_app
-from omni.domain.contracts import BusinessError, Invocation, ModelReply
+from omni.domain.contracts import ActionResult, BusinessError, Effect, Invocation, ModelReply, Outcome
 
 
 def _authorize(client, home):
@@ -166,13 +170,14 @@ def test_restart_preserves_off_and_observe_decisions_and_reuses_thread(tmp_path)
         assert observed["duplicate"] is False
         assert wait_run(client, base, observed["run_id"])["state"] == "succeeded"
         ids = _rows(tmp_path, "SELECT ticket_id, id FROM owa_triggers")
-    with TestClient(http_app(tmp_path, model=LocalModel(), omniweave_mode="observe")) as client:
+    with TestClient(http_app(tmp_path, model=LocalModel(), omniweave_mode="dispatch")) as client:
         _authorize(client, tmp_path)
         assert client.post(base + "/turns", json=new).json() == {**observed, "duplicate": True}
         assert _rows(tmp_path, "SELECT ticket_id, id FROM owa_triggers") == ids
+        assert _counts(tmp_path, "owa_executions") == [0]
         response = client.post(base + "/turns", json={**new, "key": "same-session"})
         assert response.status_code == 202 and response.json()["session_id"] == old["session_id"]
-        assert _counts(tmp_path, *OWA_TABLES) == [1, 2, 2]
+        assert _counts(tmp_path, *OWA_TABLES, "owa_executions", "owa_tasks") == [1, 2, 2, 1, 0]
 
 
 def test_web_scope_rejects_cross_agent_and_cross_main_session_references(tmp_path):
@@ -217,3 +222,286 @@ def test_legacy_delegate_runs_but_its_private_session_cannot_become_a_thread(tmp
         )
         assert denied.status_code == 404, denied.text
         assert _counts(tmp_path, "inbox", "runs", "run_delegations", *OWA_TABLES) == [1, 2, 1, 1, 1, 1]
+
+
+def _worker_goal(messages):
+    text = str(next(row["content"] for row in reversed(messages) if row["role"] == "user"))
+    return json.loads(text.split("\n", 1)[1])["goal"] if text.startswith("OmniWeave Worker.") else None
+
+
+def _ticket_url(base, receipt):
+    return base + f"/omniweave/sessions/{receipt['session_id']}/tickets"
+
+
+def _wait_tasks(client, base, receipt, expected):
+    for _ in range(400):
+        response = client.get(_ticket_url(base, receipt), params={"run_id": receipt["run_id"]})
+        assert response.status_code == 200, response.text
+        view = response.json()
+        if {task["key"]: task["state"] for task in view["tasks"]} == expected:
+            return view
+        time.sleep(0.025)
+    raise AssertionError(view)
+
+
+def test_router_accepts_new_input_while_three_workers_run_and_waits_for_dependencies(tmp_path):
+    class Model:
+        def __init__(self):
+            self.release = asyncio.Event()
+            self.started = Event()
+            self.waiting = set()
+            self.completed = set()
+            self.workspaces = {}
+
+        async def complete(self, messages, tools, settings):
+            names = {tool.name for tool in tools}
+            if goal := _worker_goal(messages):
+                assert not names
+                self.workspaces[goal] = settings["workspace"]
+                if goal == "join":
+                    assert self.completed == {"alpha", "beta", "gamma"}
+                else:
+                    self.waiting.add(goal)
+                    if len(self.waiting) == 3:
+                        self.started.set()
+                    await self.release.wait()
+                    self.completed.add(goal)
+                return ModelReply(f"result for {goal}", cost_micro=0)
+            text = next(row["content"] for row in reversed(messages) if row["role"] == "user")
+            if text == "Plan independent work":
+                assert {"owa_plan", "owa_status"} <= names
+                plans = [json.loads(row["content"]) for row in messages if row["role"] == "tool"]
+                if len(plans) == 2:
+                    assert plans[0]["ticket_id"] == plans[1]["ticket_id"]
+                    assert all(len(plan["tasks"]) == 4 for plan in plans)
+                    return ModelReply("Work is queued", cost_micro=0)
+                tasks = [{"key": key, "goal": key} for key in ("alpha", "beta", "gamma")]
+                tasks.append({"key": "join", "goal": "join", "depends_on": ["alpha", "beta", "gamma"]})
+                return ModelReply(
+                    "Plan", (Invocation(f"plan-{len(plans)}", "owa_plan", {"tasks": tasks}),), cost_micro=0
+                )
+            if text == "Get the progress":
+                if messages[-1]["role"] == "tool":
+                    current = json.loads(messages[-1]["content"])
+                    assert sum(child["state"] == "running" for child in current["tasks"]) == 3
+                    return ModelReply("Three Workers are running", cost_micro=0)
+                assert "owa_status" in names
+                return ModelReply("Read progress", (Invocation("status", "owa_status", {}),), cost_micro=0)
+            return ModelReply("Separate conversation", cost_micro=0)
+
+    model = Model()
+    with TestClient(http_app(tmp_path, model=model, omniweave_mode="dispatch")) as client:
+        agent = _authorize(client, tmp_path)
+        base = _model_base(client, agent)
+        accepted = client.post(base + "/turns", json={"key": "plan", "message": "Plan independent work"})
+        assert accepted.status_code == 202, accepted.text
+        root = accepted.json()
+        assert wait_run(client, base, root["run_id"])["state"] == "succeeded"
+        assert model.started.wait(10), model.waiting
+        states = {"alpha": "running", "beta": "running", "gamma": "running", "join": "queued"}
+        ticket = _wait_tasks(client, base, root, states)
+        child_rows = _rows(
+            tmp_path,
+            "SELECT r.id, r.session_id FROM runs r JOIN owa_tasks t ON t.run_id=r.id",
+        )
+        child_runs = {run for run, _ in child_rows}
+        child_sessions = {session for _, session in child_rows}
+        assert len(child_runs) == len(child_sessions) == 4
+        assert {row["id"] for row in client.get(base + "/runs").json()["items"]}.isdisjoint(child_runs)
+        assert {row["id"] for row in client.get(base + "/sessions").json()["items"]}.isdisjoint(child_sessions)
+        assert client.get(base + f"/runs/{root['run_id']}/delegations").json() == {"items": []}
+        child, private_session = child_rows[0]
+        for path in (
+            f"/runs/{child.upper()}",
+            f"/runs/{child}/events",
+            f"/sessions/{private_session.replace('-', '')}/messages",
+            f"/sessions/{private_session}/context-overview",
+        ):
+            assert client.get(base + path).status_code == 404, path
+        [(private_message,)] = _rows(tmp_path, "SELECT id FROM messages WHERE session_id=?", (private_session,))
+        assert client.delete(base + f"/messages/{private_message}").status_code == 404
+        assert (
+            client.post(
+                base + "/turns", json={"key": "private", "message": "wrong session", "session_id": private_session}
+            ).status_code
+            == 404
+        )
+        application = client.app.state.runtime.application
+        history = client.portal.call(lambda: application.history("events", agent))
+        assert not child_runs.intersection(item["run_id"] for item in history["items"])
+        assert len([row for row in history["items"] if row["kind"] == "omniweave.planned"]) == 1
+
+        follow_up = client.post(
+            base + "/turns",
+            json={"key": "follow-up", "message": "Get the progress", "session_id": root["session_id"], "mode": "chat"},
+        ).json()
+        assert wait_run(client, base, follow_up["run_id"])["state"] == "succeeded"
+        assert _wait_tasks(client, base, root, states)["ticket_id"] == ticket["ticket_id"]
+        main = client.get(base + f"/sessions/{root['session_id']}/messages").json()["items"]
+        assert main[-1]["content"] == "Three Workers are running"
+        other = client.post(base + "/turns", json={"key": "other", "message": "Separate conversation"}).json()
+        assert client.get(_ticket_url(base, other), params={"ticket_id": ticket["ticket_id"]}).status_code == 404
+        other_agent = client.post("/api/v1/agents", json={"name": "Separate Agent"}).json()["id"]
+        foreign_base = f"/api/v1/agents/{other_agent}"
+        assert client.get(_ticket_url(foreign_base, root), params={"ticket_id": ticket["ticket_id"]}).status_code == 404
+
+        client.portal.call(model.release.set)
+        _wait_tasks(client, base, root, dict.fromkeys(states, "succeeded"))
+        assert len(set(model.workspaces.values())) == 4
+        assert set(model.workspaces.values()) == {str(tmp_path / "owa-workspaces" / child) for child in child_runs}
+
+
+def test_router_rejects_cyclic_and_unoffered_worker_plans_atomically(tmp_path):
+    class Model:
+        async def complete(self, messages, tools, settings):
+            assert not _worker_goal(messages)
+            if messages[-1]["role"] == "tool":
+                replies = [row["content"] for row in messages if row["role"] == "tool"]
+                assert "dependency plan" in replies[0] and "Router call's tool set" in replies[1]
+                return ModelReply("No plan was admitted", cost_micro=0)
+            tasks = [{"key": "ok", "goal": "task"}, {"key": "unoffered", "goal": "write", "tools": ["files_write"]}]
+            cycle = [{"key": "cycle", "goal": "retry", "depends_on": ["cycle"]}]
+            return ModelReply(
+                "Plan",
+                (
+                    Invocation("cyclic", "owa_plan", {"tasks": cycle}),
+                    Invocation("denied", "owa_plan", {"tasks": tasks}),
+                ),
+                cost_micro=0,
+            )
+
+    with TestClient(http_app(tmp_path, model=Model(), omniweave_mode="dispatch")) as client:
+        base = _model_base(client, _authorize(client, tmp_path))
+        settings = client.get(base + "/settings").json()
+        response = client.put(
+            base + "/settings",
+            json={"revision": settings["revision"], "value": {**settings["value"], "disabled_tools": ["files_write"]}},
+        )
+        assert response.status_code == 200
+        receipt = client.post(base + "/turns", json={"key": "denied", "message": "Build a plan"}).json()
+        assert wait_run(client, base, receipt["run_id"])["state"] == "succeeded"
+        assert _rows(tmp_path, "SELECT plan_sha256 FROM owa_executions") == [(None,)]
+        assert _counts(tmp_path, "runs", "work_items", "run_delegations", "owa_tasks", "owa_dependencies") == [
+            1,
+            1,
+            0,
+            0,
+            0,
+        ]
+
+
+@pytest.mark.parametrize("unknown", [False, True])
+def test_worker_file_write_uses_private_workspace_and_existing_owner_approval(tmp_path, monkeypatch, unknown):
+    dispatches = []
+
+    if unknown:
+        original = WorkerClient.invoke
+
+        async def lose_receipt(self, name, arguments, *, operation_id, context):
+            if name == "files_write":
+                dispatches.append(operation_id)
+                return ActionResult(Outcome.UNKNOWN, "Test receipt lost", Effect.UNKNOWN, error_code="fixture_lost")
+            return await original(self, name, arguments, operation_id=operation_id, context=context)
+
+        monkeypatch.setattr(WorkerClient, "invoke", lose_receipt)
+
+    class Model:
+        async def complete(self, messages, tools, settings):
+            if goal := _worker_goal(messages):
+                assert goal == "write a result"
+                assert {tool.name for tool in tools} == {"files_write"}
+                if messages[-1]["role"] == "tool":
+                    return ModelReply("Writer result", cost_micro=0)
+                write = Invocation("write", "files_write", {"path": "result.txt", "content": "worker-only fixture"})
+                return ModelReply("Draft file", (write,), cost_micro=0)
+            if messages[-1]["role"] == "tool":
+                return ModelReply("Writer planned", cost_micro=0)
+            tasks = [{"key": "writer", "goal": "write a result", "tools": ["files_write"], "max_calls": 2}]
+            if unknown:
+                tasks.append({"key": "after", "goal": "must wait for a verified write", "depends_on": ["writer"]})
+            return ModelReply("Plan", (Invocation("plan", "owa_plan", {"tasks": tasks}),), cost_micro=0)
+
+    with TestClient(http_app(tmp_path, model=Model(), omniweave_mode="dispatch")) as client:
+        base = _model_base(client, _authorize(client, tmp_path))
+        receipt = client.post(base + "/turns", json={"key": "write", "message": "Plan a write"}).json()
+        dependencies = {"after": "queued"} if unknown else {}
+        _wait_tasks(client, base, receipt, {"writer": "waiting_approval", **dependencies})
+        [(worker,)] = _rows(tmp_path, "SELECT run_id FROM owa_tasks WHERE task_key='writer'")
+        target = tmp_path / "owa-workspaces" / worker / "result.txt"
+        assert target.parent.is_dir() and not target.exists()
+        [approval] = client.get(base + "/approvals").json()["items"]
+        allowed = client.post(
+            base + f"/approvals/{approval['id']}",
+            json={"allowed": True, "policy_revision": approval["policy_revision"]},
+        )
+        assert allowed.status_code == 200, allowed.text
+        if unknown:
+            _wait_tasks(client, base, receipt, {"writer": "failed", "after": "cancelled"})
+            [(action_id, state, effect)] = _rows(
+                tmp_path, "SELECT id, state, effect FROM actions WHERE run_id=?", (worker,)
+            )
+            assert dispatches == [action_id] and state == effect == "unknown"
+            review = client.get(base + f"/actions/{action_id}/review")
+            assert review.status_code == 200 and review.json()["eligible"]
+            assert not target.exists()
+            return
+        _wait_tasks(client, base, receipt, {"writer": "succeeded"})
+        assert target.read_text(encoding="utf-8") == "worker-only fixture"
+        assert _rows(tmp_path, "SELECT tool, state, effect FROM actions WHERE run_id=?", (worker,)) == [
+            ("files_write", "ok", "applied")
+        ]
+
+
+def test_main_run_cancellation_stops_active_and_waiting_workers(tmp_path):
+    class Model:
+        started = Event()
+        cleaned = Event()
+
+        async def complete(self, messages, tools, settings):
+            if goal := _worker_goal(messages):
+                assert goal == "wait for cancellation"
+                self.started.set()
+                try:
+                    await asyncio.Future()
+                finally:
+                    self.cleaned.set()
+            if messages[-1]["role"] == "tool":
+                return ModelReply("Plan submitted", cost_micro=0)
+            tasks = [
+                {"key": "running", "goal": "wait for cancellation"},
+                {"key": "waiting", "goal": "run only on success", "depends_on": ["running"]},
+            ]
+            return ModelReply("Plan", (Invocation("plan", "owa_plan", {"tasks": tasks}),), cost_micro=0)
+
+    model = Model()
+    with TestClient(http_app(tmp_path, model=model, omniweave_mode="dispatch")) as client:
+        base = _model_base(client, _authorize(client, tmp_path))
+        receipt = client.post(base + "/turns", json={"key": "cancel", "message": "Start cancellable work"}).json()
+        assert wait_run(client, base, receipt["run_id"])["state"] == "succeeded"
+        assert model.started.wait(10)
+        response = client.post(base + f"/runs/{receipt['run_id']}/cancel")
+        assert response.status_code == 200 and response.json()["accepted"]
+        ticket = _wait_tasks(client, base, receipt, {"running": "cancelled", "waiting": "cancelled"})
+        assert ticket["cancel_requested"] and model.cleaned.is_set()
+        assert (
+            _rows(tmp_path, "SELECT state FROM leases WHERE run_id IN (SELECT run_id FROM owa_tasks) AND state='held'")
+            == []
+        )
+
+
+def test_worker_budget_denies_model_dispatch_before_reservation(tmp_path):
+    class Model:
+        async def complete(self, messages, tools, settings):
+            assert not _worker_goal(messages)
+            if messages[-1]["role"] == "tool":
+                return ModelReply("Plan registered", cost_micro=0)
+            task = {"key": "bounded", "goal": "respect the per-worker budget", "budget_micro": 1}
+            return ModelReply("Plan", (Invocation("plan", "owa_plan", {"tasks": [task]}),), cost_micro=0)
+
+    with TestClient(http_app(tmp_path, model=Model(), omniweave_mode="dispatch")) as client:
+        base = _model_base(client, _authorize(client, tmp_path))
+        receipt = client.post(base + "/turns", json={"key": "small-cap", "message": "Run within budget"}).json()
+        ticket = _wait_tasks(client, base, receipt, {"bounded": "failed"})
+        assert ticket["tasks"][0]["error_code"] == "delegation_budget_exceeded"
+        assert wait_run(client, base, receipt["run_id"])["state"] == "succeeded"
+        assert _rows(tmp_path, "SELECT id FROM model_calls WHERE run_id IN (SELECT run_id FROM owa_tasks)") == []

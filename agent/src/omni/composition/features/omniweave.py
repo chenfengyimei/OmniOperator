@@ -1,10 +1,12 @@
-"""Install the owner Web admission observer for this instance."""
+"""Install the shared owner Web and Router capability service."""
 
 from __future__ import annotations
 
+from ...application.capabilities import RunCapabilityProvider
 from ...application.omniweave import OmniWeaveService
 from . import FeatureBinding, KernelFeatureContext
 
 
 async def install_omniweave(context: KernelFeatureContext) -> FeatureBinding:
-    return FeatureBinding(OmniWeaveService(context.omniweave_mode))
+    service = OmniWeaveService(context.omniweave_mode, context.base.database, context.notify_run)
+    return FeatureBinding(service, run_provider=RunCapabilityProvider("omniweave", service, lambda _: True))

@@ -284,7 +284,7 @@ uv run --no-sync pytest -q -n 0 agent/tests/v2/integrations/test_v2_mcp.py agent
 
 **从这里读**
 
-- [agent/src/omni/adapters/http.py#create_app.turn](../../../agent/src/omni/adapters/http.py#L578)
+- [agent/src/omni/adapters/http.py#create_app.turn](../../../agent/src/omni/adapters/http.py#L594)
 
 **领域规则**
 
@@ -293,7 +293,7 @@ uv run --no-sync pytest -q -n 0 agent/tests/v2/integrations/test_v2_mcp.py agent
 
 **应用服务**
 
-- [agent/src/omni/application/engine.py#Application.submit_turn](../../../agent/src/omni/application/engine.py#L175)
+- [agent/src/omni/application/engine.py#Application.submit_turn](../../../agent/src/omni/application/engine.py#L177)
 - [agent/src/omni/application/capabilities.py#CapabilityRegistry.capture](../../../agent/src/omni/application/capabilities.py#L106)
 
 **适配器与仓储**
@@ -344,12 +344,13 @@ uv run --no-sync pytest -q -n 0 agent/tests/v2/core/test_v2_kernel.py agent/test
 
 ## OmniWeave 主会话编排 (omniweave · V2)
 
-观察所有者 Web 受理，在同一数据库事务关联 Trigger、Thread、Ticket 和原根 Run。
+将所有者 Web 回合关联到 Ticket，在显式调度模式中从同一主会话规划和查询 Worker。
 
 **从这里读**
 
-- [agent/src/omni/adapters/http.py#create_app.turn](../../../agent/src/omni/adapters/http.py#L578)
-- [agent/src/omni/adapters/http.py#create_app.event_stream](../../../agent/src/omni/adapters/http.py#L626)
+- [agent/src/omni/adapters/http.py#create_app.turn](../../../agent/src/omni/adapters/http.py#L594)
+- [agent/src/omni/adapters/http.py#create_app.event_stream](../../../agent/src/omni/adapters/http.py#L642)
+- [agent/src/omni/adapters/http_routes/omniweave.py#omniweave_router.ticket](../../../agent/src/omni/adapters/http_routes/omniweave.py#L16)
 
 **领域规则**
 
@@ -357,18 +358,22 @@ uv run --no-sync pytest -q -n 0 agent/tests/v2/core/test_v2_kernel.py agent/test
 
 **应用服务**
 
-- [agent/src/omni/application/omniweave.py#OmniWeaveService.web_admission](../../../agent/src/omni/application/omniweave.py#L17)
-- [agent/src/omni/application/engine.py#Application.submit_turn](../../../agent/src/omni/application/engine.py#L175)
+- [agent/src/omni/application/omniweave.py#OmniWeaveService.web_admission](../../../agent/src/omni/application/omniweave.py#L21)
+- [agent/src/omni/application/omniweave.py#OmniWeaveService.invoke](../../../agent/src/omni/application/omniweave.py#L47)
+- [agent/src/omni/application/engine.py#Application.submit_turn](../../../agent/src/omni/application/engine.py#L177)
 
 **适配器与仓储**
 
-- [agent/src/omni/adapters/persistence/omniweave_repository.py#OmniWeaveRepositories.omniweave_observe](../../../agent/src/omni/adapters/persistence/omniweave_repository.py#L14)
+- [agent/src/omni/adapters/persistence/omniweave_repository.py#OmniWeaveRepositories.omniweave_observe](../../../agent/src/omni/adapters/persistence/omniweave_repository.py#L21)
 - [agent/src/omni/adapters/persistence/migrations/versions/v0054.py](../../../agent/src/omni/adapters/persistence/migrations/versions/v0054.py)
-- [agent/src/omni/adapters/persistence/lease_repository.py#LeaseRepositories.claim_runs](../../../agent/src/omni/adapters/persistence/lease_repository.py#L265)
+- [agent/src/omni/adapters/persistence/migrations/versions/v0055.py](../../../agent/src/omni/adapters/persistence/migrations/versions/v0055.py)
+- [agent/src/omni/adapters/persistence/omniweave_repository.py#OmniWeaveRepositories.omniweave_plan](../../../agent/src/omni/adapters/persistence/omniweave_repository.py#L90)
+- [agent/src/omni/adapters/persistence/delegation_repository.py#DelegationRepositories.claim_delegated_runs](../../../agent/src/omni/adapters/persistence/delegation_repository.py#L237)
+- [agent/src/omni/adapters/persistence/lease_repository.py#LeaseRepositories.claim_runs](../../../agent/src/omni/adapters/persistence/lease_repository.py#L272)
 
 **组装点**
 
-- [agent/src/omni/composition/features/omniweave.py#install_omniweave](../../../agent/src/omni/composition/features/omniweave.py#L9)
+- [agent/src/omni/composition/features/omniweave.py#install_omniweave](../../../agent/src/omni/composition/features/omniweave.py#L10)
 
 **合同与手册**
 
@@ -379,7 +384,7 @@ uv run --no-sync pytest -q -n 0 agent/tests/v2/core/test_v2_kernel.py agent/test
 - [agent/tests/v2/http/test_v2_omniweave_http.py](../../../agent/tests/v2/http/test_v2_omniweave_http.py)
 - [agent/tests/v2/core/test_v2_omniweave_migration.py](../../../agent/tests/v2/core/test_v2_omniweave_migration.py)
 
-**改动影响**　变更影响 Web 请求幂等、授权来源、主会话隔离和后续 Router／Worker 的调度入口。
+**改动影响**　变更影响 Web 请求幂等、授权来源、主会话隔离、Worker 依赖、写入批准与取消。
 
 **相关功能**
 
@@ -403,7 +408,7 @@ uv run --no-sync pytest -q -n 0 agent/tests/v2/http/test_v2_omniweave_http.py ag
 
 **从这里读**
 
-- [agent/src/omni/adapters/http.py#create_app.session_context_overview](../../../agent/src/omni/adapters/http.py#L679)
+- [agent/src/omni/adapters/http.py#create_app.session_context_overview](../../../agent/src/omni/adapters/http.py#L695)
 
 **领域规则**
 
@@ -825,7 +830,7 @@ uv run --no-sync pytest -q -n 0 agent/tests/v2/core/test_v2_browser_dialog.py ag
 
 **从这里读**
 
-- [agent/src/omni/adapters/http.py#create_app.upload_object](../../../agent/src/omni/adapters/http.py#L532)
+- [agent/src/omni/adapters/http.py#create_app.upload_object](../../../agent/src/omni/adapters/http.py#L548)
 
 **领域规则**
 
@@ -1320,8 +1325,8 @@ uv run --no-sync pytest -q -n 0 agent/tests/v2/http/test_v2_terminals_http.py
 **从这里读**
 
 - [agent/src/omni/adapters/http_routes/operations.py#operations_router.logs](../../../agent/src/omni/adapters/http_routes/operations.py#L117)
-- [agent/src/omni/adapters/http.py#create_app.owner_token_rotate](../../../agent/src/omni/adapters/http.py#L494)
-- [agent/src/omni/adapters/http.py#create_app.capabilities](../../../agent/src/omni/adapters/http.py#L455)
+- [agent/src/omni/adapters/http.py#create_app.owner_token_rotate](../../../agent/src/omni/adapters/http.py#L510)
+- [agent/src/omni/adapters/http.py#create_app.capabilities](../../../agent/src/omni/adapters/http.py#L471)
 - [agent/src/omni/adapters/http_routes/operations.py#operations_router.audit](../../../agent/src/omni/adapters/http_routes/operations.py#L68)
 
 **领域规则**
@@ -1443,7 +1448,7 @@ uv run --no-sync pytest -q -n 0 agent/tests/v2/operations/test_v2_schema_release
 
 **组装点**
 
-- [agent/src/omni/composition/cli.py#parser](../../../agent/src/omni/composition/cli.py#L144)
+- [agent/src/omni/composition/cli.py#parser](../../../agent/src/omni/composition/cli.py#L146)
 - [agent/src/omni/composition/commands/deployment.py#run_release](../../../agent/src/omni/composition/commands/deployment.py#L192)
 - [agent/src/omni/composition/releases.py](../../../agent/src/omni/composition/releases.py)
 - [agent/src/omni/composition/service_control.py](../../../agent/src/omni/composition/service_control.py)

@@ -22,14 +22,18 @@ from omni.adapters.primitives import SystemClock, UUIDs
 
 async def _verify_current_schema(database):
     script = ScriptDirectory.from_config(configuration())
-    assert script.get_heads() == ["v2_0054"] and len(list(script.walk_revisions())) == 54
-    assert database.schema_version == "v2_0054"
+    assert script.get_heads() == ["v2_0055"] and len(list(script.walk_revisions())) == 55
+    assert database.schema_version == "v2_0055"
     integrity = await database.integrity()
     assert integrity["integrity"] == "ok" and integrity["foreign_keys"] == 0
-    assert len(s.metadata.tables) == 154 and {"owa_threads", "owa_tickets", "owa_triggers"} <= set(integrity["tables"])
+    assert len(s.metadata.tables) == 157
+    assert {"owa_threads", "owa_tickets", "owa_triggers", "owa_executions", "owa_tasks", "owa_dependencies"} <= set(
+        integrity["tables"]
+    )
 
 
-def test_upgrade_of_old_test_copy_preserves_admission_and_verified_backup(tmp_path):
+@pytest.mark.parametrize("revision", ["v2_0053", "v2_0054"])
+def test_upgrade_of_old_test_copy_preserves_admission_and_verified_backup(tmp_path, revision):
     original = tmp_path / "old.db"
     copy = tmp_path / "copy/omni.db"
     copy.parent.mkdir()
@@ -40,12 +44,14 @@ def test_upgrade_of_old_test_copy_preserves_admission_and_verified_backup(tmp_pa
             connection.info["omni_write"] = True
             config = configuration()
             config.attributes["connection"] = connection
-            command.upgrade(config, "v2_0053")
+            command.upgrade(config, revision)
             unit = Repositories(connection, clock, ids, ids.new())
             owner = unit.initialize()["owner_id"]
             agent = connection.execute(select(s.agents.c.id)).scalar_one()
             model_uow(unit, agent)
             accepted = unit.accept_turn(agent, None, "pre-owa", "original request", {})
+            if revision == "v2_0054":
+                unit.omniweave_observe(agent, "pre-owa", accepted["run_id"], accepted["session_id"], duplicate=False)
             connection.commit()
     finally:
         engine.dispose()
@@ -70,14 +76,16 @@ def test_upgrade_of_old_test_copy_preserves_admission_and_verified_backup(tmp_pa
                 sqlite_connection(snapshot / "data/omni.db") as backup,
             ):
                 for source in (old, backup):
-                    assert source.execute("SELECT version_num FROM alembic_version").fetchone() == ("v2_0053",)
-                    for table in ("inbox", "messages", "runs", "sessions", "work_items"):
+                    assert source.execute("SELECT version_num FROM alembic_version").fetchone() == (revision,)
+                    observed = ("owa_threads", "owa_tickets", "owa_triggers") if revision == "v2_0054" else ()
+                    for table in ("inbox", "messages", "runs", "sessions", "work_items", *observed):
                         assert (
                             migrated.execute(f"SELECT * FROM {table}").fetchall()
                             == source.execute(f"SELECT * FROM {table}").fetchall()
                         )
                 assert migrated.execute("SELECT owner_id FROM instances").fetchone() == (owner,)
-                for table in ("owa_threads", "owa_tickets", "owa_triggers"):
+                uncreated = () if revision == "v2_0054" else ("owa_threads", "owa_tickets", "owa_triggers")
+                for table in ("owa_executions", "owa_tasks", "owa_dependencies", *uncreated):
                     assert migrated.execute(f"SELECT count(*) FROM {table}").fetchone() == (0,)
         finally:
             await database.close()

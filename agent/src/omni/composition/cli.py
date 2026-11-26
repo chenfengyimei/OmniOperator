@@ -32,7 +32,9 @@ def serve_arguments(command: argparse.ArgumentParser) -> None:
     command.add_argument("--external-url", help="Explicit trusted HTTPS origin when binding remotely")
     command.add_argument("--master-key-file", type=Path)
     command.add_argument("--stdout-logs", action="store_true")
-    command.add_argument("--omniweave-mode", choices=OMNIWEAVE_MODES, default="off", help="Owner Web turn observation mode")
+    command.add_argument(
+        "--omniweave-mode", choices=OMNIWEAVE_MODES, default="off", help="Owner Web OmniWeave rollout mode"
+    )
     command.add_argument(
         "--open-browser", action="store_true", help="Open the local workbench after this boot is ready"
     )

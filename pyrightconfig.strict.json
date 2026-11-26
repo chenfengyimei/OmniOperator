@@ -29,6 +29,7 @@
     "agent/src/omni/adapters/http_routes/mcp.py",
     "agent/src/omni/adapters/http_routes/media.py",
     "agent/src/omni/adapters/http_routes/memory.py",
+    "agent/src/omni/adapters/http_routes/omniweave.py",
     "agent/src/omni/adapters/http_routes/operations.py",
     "agent/src/omni/adapters/http_routes/people.py",
     "agent/src/omni/adapters/http_routes/qq.py",

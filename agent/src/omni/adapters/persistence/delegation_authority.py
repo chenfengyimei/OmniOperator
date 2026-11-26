@@ -40,6 +40,13 @@ def authorize(repo: RepositoryBase, agent_id: str, child_id: str) -> None:
     parent = unit.get_run(agent_id, parent_id)
     child = unit.get_run(agent_id, child_id)
     session = repo.one(s.sessions, agent_id, str(row["parent_session_id"]))
+    worker = unit.omniweave_private_scope(agent_id, "run_id", child_id)
+    parent_states = ("running",)
+    if worker:
+        execution = unit.omniweave_router(agent_id, parent_id)
+        if execution is None or execution["cancelled_at"] or not execution["plan_sha256"]:
+            raise BusinessError("delegation_source_invalidated", "The owning Ticket no longer authorizes this Worker")
+        parent_states = ("running", "waiting_approval", "succeeded")
     if (
         row["boot_id"] != repo.boot_id
         or child["parent_id"] != parent_id
@@ -48,7 +55,7 @@ def authorize(repo: RepositoryBase, agent_id: str, child_id: str) -> None:
             child[key] != parent[key]
             for key in ("settings_revision_id", "model_revision_id", "model_permission_epoch", "policy_epoch")
         )
-        or parent["state"] != "running"
+        or parent["state"] not in parent_states
         or parent["session_id"] != session["id"]
         or session["deleted_at"]
         or session["content_epoch"] != row["parent_epoch"]
@@ -57,7 +64,8 @@ def authorize(repo: RepositoryBase, agent_id: str, child_id: str) -> None:
     enabled = repo.connection.execute(select(s.agents.c.enabled).where(s.agents.c.id == agent_id)).scalar_one_or_none()
     if not enabled:
         raise BusinessError("agent_disabled", "Agent is disabled")
-    unit.assert_run_lease(agent_id, parent_id)
+    if parent["state"] != "succeeded":
+        unit.assert_run_lease(agent_id, parent_id)
     unit.assert_model_authorized(agent_id, parent_id)
     if parent["policy_epoch"] != unit.settings(agent_id)["policy_revision"]:
         raise BusinessError("policy_changed", "Parent action policy changed during delegation")

@@ -7,7 +7,7 @@ import hashlib
 import json
 from typing import cast
 
-from sqlalchemy import Table, insert, literal, or_, select, update
+from sqlalchemy import Table, func, insert, literal, or_, select, update
 from sqlalchemy.sql.elements import ColumnElement
 
 from ...application.ports import Record
@@ -22,6 +22,13 @@ LIVE = ("queued", "running", "waiting_approval", "cancelling")
 
 
 class LeaseRepositories(RepositoryBase):
+    def require_turn_capacity(self, count: int) -> None:
+        queued, live = self.connection.execute(
+            select(func.count().filter(s.runs.c.state == "queued"), func.count()).where(s.runs.c.state.in_(LIVE))
+        ).one()
+        if queued + count > 64 or live + count > 68:
+            raise BusinessError("queue_full", "Execution queue is full", retryable=True, status=429)
+
     def lease_acquire(self, agent_id: str, resource: str, run_id: str | None = None) -> Record | None:
         key = (s.leases.c.agent_id == agent_id, s.leases.c.resource == resource)
         old = self.connection.execute(select(s.leases).where(*key)).mappings().first()

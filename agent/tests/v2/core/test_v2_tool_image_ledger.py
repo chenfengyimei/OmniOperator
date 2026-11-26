@@ -367,8 +367,8 @@ def test_v0050_upgrade_preserves_user_ledger_and_enables_tool_rows(tmp_path):
             connection.commit()
             command.upgrade(cfg, "head")
             command.upgrade(cfg, "head")
-            assert head() == "v2_0054"
-            assert connection.exec_driver_sql("SELECT version_num FROM alembic_version").scalar_one() == "v2_0054"
+            assert head() == "v2_0055"
+            assert connection.exec_driver_sql("SELECT version_num FROM alembic_version").scalar_one() == "v2_0055"
             after = [dict(r) for r in connection.execute(select(s.model_call_images)).mappings()]
             assert after == before
             pragma = {row[1]: row for row in connection.exec_driver_sql("PRAGMA table_info(model_call_images)")}

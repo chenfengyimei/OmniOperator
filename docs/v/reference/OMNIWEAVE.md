@@ -31,8 +31,19 @@ uv run --no-sync omni-v2 --home .\temp\build\owa-observe serve --omniweave-mode 
 
 Windows x64 候选 `4082ccacaa31918a22d06bdd6dbf6710e8467906` 的 40 个受影响测试文件共 333 项通过，包含 10 项 OWA 新用例。覆盖事务回滚、重复提交、重启、受理期间令牌撤销、会话隔离、旧委派、事件流、调度、审批核查和发布迁移。空库和旧库副本的完整性检查通过。212 条 OpenAPI 路径的完整定义与基线相等，501 个文件的严格类型检查零错误、零警告。[验证证据](../evidence/owa-phase1-2026-11-26.json)
 
-## Phase 2 切入点
+## Phase 2 Router 与任务依赖
 
-以 Ticket 的根 Run 与主 Session 绑定为起点，先定义 Router 的计划、Worker 子项与依赖，以及允许执行的显式模式。`observe` 继续只记录决策。通过功能安装器把 Router 和 Worker 接入同一个 Application 与工作队列。派发沿用租约、预算、权限代次、逐次批准和原动作核查，执行清理完成后再释放资源。先把内部 Session 与 Worker 文本的访问限制接到服务端公开入口，再允许 Router 派发。验收用例需证明三个 Worker 并行期间，Router 仍能受理所有者在原主会话中的新输入。
+在隔离实例使用 `--omniweave-mode dispatch` 启用 Router。每条新受理增加一条作用域绑定的执行授权，过去的观察回执保持原决定。`observe` 记录受理，`off` 为默认配置。
 
-Phase 3 接续同 Ticket 的双向邮箱、授权产物版本、追加需求与重启。后续再接长作业与 Watchdog、数字身体和外部事件。发布候选按实际 SHA 单独执行全量、升级回滚、真实平台和 72 小时常驻验收。
+```powershell
+uv run --no-sync omni-v2 --home .\temp\build\owa-dispatch serve --omniweave-mode dispatch
+```
+
+- Router 在 `agent` 档可调用 `owa_plan` 提交至多四个 Worker。任务用计划内的键声明依赖。计划受理核对依赖无环、已提供的工具、可用队列容量和授权代次，在同一事务创建任务及原 V2 Run。计划回执即时返回，同一计划重投复用原 Ticket。
+- Worker 使用独立的内部 Session 和 `owa-workspaces/<run_id>`。能力由编排调用实际提供的工作区文件工具和任务声明共同限定。模型调用、预算、逐次批准、动作回执和资源清理沿用内核。前置任务失败、取消、中断或有待核查结果时，依赖任务结束。结果未知的写入进入现有动作核查。
+- Router 可以在原主会话继续接收新输入，并用 `owa_status` 查看本会话的 Ticket 状态和 Worker 提交的结果。现有 `/runs/{run_id}/cancel` 可取消根 Ticket，包括根 Run 已结束后仍在执行的 Worker。读 `GET /api/v1/agents/{agent_id}/omniweave/sessions/{session_id}/tickets` 可按 `run_id` 或 `ticket_id` 查询进度。会话、Run、消息、摘要和事件的通用 Web 路径执行内部作用域检查。
+- `v2_0055` 新建执行授权、任务和依赖三张表，数据库触发器校验 Worker 和依赖的 Ticket 绑定。传统 `delegate_task` 和 OWA Worker 共用现有子任务容量与租约，Router 与普通回合保有独立的根回合执行容量。[迁移](../../../agent/src/omni/adapters/persistence/migrations/versions/v0055.py) · [查询入口](../../../agent/src/omni/adapters/http_routes/omniweave.py)
+
+## 后续阶段
+
+Phase 3 在 `owa_tasks` 的 Ticket 绑定上实现双向邮箱与版本化授权产物，再接主会话追加、重启后的消息与任务续接，以及 Router 在原会话交付。恢复依据原 Run 与工作项的持久状态核对授权和外部副作用。后续接长作业与 Watchdog、数字身体和外部事件。发布候选按实际 SHA 单独执行全量、升级回滚、真实平台和 72 小时常驻验收。

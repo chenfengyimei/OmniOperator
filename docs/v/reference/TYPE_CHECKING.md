@@ -2,7 +2,7 @@
 
 > **全仓严格类型尚未完成。** 本文件记录已纳入 strict 的模块、当前基线例外与推进规则；默认入口为V2（Windows离线候选），真实平台与整个V2仍待验收。
 
-当前显式清单为 501 个文件，包含能力注册表、提供者、业务功能安装器和 OWA 观察链路。下方历史基线按当时的提交保留。
+当前显式清单为 502 个文件，包含能力注册表、提供者、业务功能安装器和 OWA 调度链路。下方历史基线按当时的提交保留。
 
 
 ## 1. 门禁
@@ -468,6 +468,7 @@ strict 配置显式将 `agent/src` 加入导入根，隔离源码副本也解析
 | `agent/src/omni/adapters/http_routes/documents.py` | 来源文档修订、索引与检索 |
 | `agent/src/omni/adapters/http_routes/media.py` | 媒体 HTTP 接口与请求模型 |
 | `agent/src/omni/adapters/http_routes/memory.py` | 记忆搜索、索引、整理和擦除 |
+| `agent/src/omni/adapters/http_routes/omniweave.py` | 主会话的 Ticket 进度查询 |
 | `agent/src/omni/adapters/http_routes/operations.py` | 诊断、审计、保留报告及调试控制 |
 | `agent/src/omni/adapters/http_routes/people.py` | 人物、人格和历史修订接口 |
 | `agent/src/omni/adapters/http_routes/qq.py` | QQ 通道绑定与连接状态 |

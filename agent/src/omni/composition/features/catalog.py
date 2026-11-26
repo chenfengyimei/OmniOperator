@@ -14,6 +14,7 @@ from ...adapters.http_routes.maintenance import maintenance_router
 from ...adapters.http_routes.mcp import mcp_router
 from ...adapters.http_routes.media import media_router
 from ...adapters.http_routes.memory import memory_router
+from ...adapters.http_routes.omniweave import omniweave_router
 from ...adapters.http_routes.operations import operations_router
 from ...adapters.http_routes.people import people_router
 from ...adapters.http_routes.qq import qq_router
@@ -127,7 +128,7 @@ BUILTIN_WORKFLOW_FEATURES = (
 )
 
 BUILTIN_KERNEL_FEATURES = (
-    FeaturePlugin("omniweave", factory=None, install=install_omniweave),
+    FeaturePlugin("omniweave", factory=omniweave_router, install=install_omniweave),
     FeaturePlugin("schedules", factory=schedules_router, install=install_schedules),
     FeaturePlugin("qq", factory=qq_router, install=install_qq),
     FeaturePlugin(

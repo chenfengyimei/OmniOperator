@@ -98,6 +98,7 @@ class Application:
         todos: TodoService | None = None,
         reflections: ReflectionService | None = None,
         delegation_enabled: bool = False,
+        worker_workspace: Callable[[str], str] | None = None,
         background_review: BackgroundReviewService | None = None,
         clarify: ClarifyService | None = None,
         verify_on_stop: bool = False,
@@ -119,6 +120,7 @@ class Application:
         if REFLECTION.name in self._tools and reflections:
             raise ValueError("Reflection control name is reserved")
         self._delegation_enabled = delegation_enabled
+        self._worker_workspace = worker_workspace
         self._background_review = background_review
         self._clarify = clarify
         self._verify_on_stop = verify_on_stop
@@ -241,9 +243,15 @@ class Application:
                 await self._db.write(lambda u: u.renew_run_leases())
                 roots = len(self._active) - len(self._child_ids)
                 claims = await self._db.write(lambda u: u.claim_runs(self._concurrency - roots))
-                if self._delegation_enabled:
+                if self._delegation_enabled or self._worker_workspace is not None:
                     claims.extend(
-                        await self._db.write(lambda u: u.claim_delegated_runs(CHILD_CONCURRENCY - len(self._child_ids)))
+                        await self._db.write(
+                            lambda u: u.claim_delegated_runs(
+                                CHILD_CONCURRENCY - len(self._child_ids),
+                                include_owa=self._worker_workspace is not None,
+                                include_legacy=self._delegation_enabled,
+                            )
+                        )
                     )
                 for run in claims:
                     run_id, session_id = str(run["id"]), str(run["session_id"])
@@ -251,7 +259,11 @@ class Application:
                         self._child_ids.add(run_id)
                     task = asyncio.create_task(
                         self._run(
-                            str(run["agent_id"]), run_id, str(run["claim_token"]), self._revision(run["lease_fence"])
+                            str(run["agent_id"]),
+                            run_id,
+                            str(run["claim_token"]),
+                            self._revision(run["lease_fence"]),
+                            private_worker=run.get("owa_worker") is True,
                         ),
                         name="run-" + run_id,
                     )
@@ -291,7 +303,7 @@ class Application:
             if not isinstance(kernel, dict) or kernel.get("background_learning", True):
                 await self._background_review.trigger(agent_id, run_id)
 
-    async def _run(self, agent_id: str, run_id: str, token: str, fence: int) -> None:
+    async def _run(self, agent_id: str, run_id: str, token: str, fence: int, *, private_worker: bool = False) -> None:
         with self._observer.context(agent_id=agent_id, run_id=run_id), self._observer.span("agent.turn") as measured:
             if measured:
                 measured.result(Outcome.ERROR)
@@ -305,7 +317,14 @@ class Application:
                 run = await self._db.read(lambda u: u.get_run(agent_id, run_id))
                 command = await self._db.read(lambda u: u.owner_command(agent_id, run_id))
                 if command is None:
-                    await self._turn(agent_id, run_id, run)
+                    workspace = None
+                    if private_worker:
+                        if self._worker_workspace is None:
+                            raise BusinessError(
+                                "owa_workspace_unavailable", "The private Worker workspace is unavailable"
+                            )
+                        workspace = self._worker_workspace(run_id)
+                    await self._turn(agent_id, run_id, run, workspace=workspace)
                 else:
                     await self._run_owner_command(agent_id, run_id, run, command)
                 if measured:
@@ -346,9 +365,11 @@ class Application:
             raise BusinessError(result.error_code or "owner_command_failed", result.text)
         await self._db.write(lambda u: u.finish(agent_id, run_id, result.text))
 
-    async def _turn(self, agent_id: str, run_id: str, run: Record) -> None:
+    async def _turn(self, agent_id: str, run_id: str, run: Record, *, workspace: str | None = None) -> None:
         delegated = await self._db.read(lambda u: u.delegation_link(agent_id, run_id))
         settings = settings_value(await self._db.read(lambda u: u.run_settings(agent_id, run_id)))
+        if workspace is not None:
+            settings["workspace"] = workspace
         if delegated:
             settings["max_steps"] = min(settings["max_steps"], cast(int, delegated["max_calls"]))
         remote = await self._db.read(lambda u: u.qq_run(agent_id, run_id))
@@ -549,6 +570,7 @@ class Application:
                     [reply.calls[index] for index in indices],
                     self._revision(run["policy_epoch"]),
                     batch_registry,
+                    workspace=settings["workspace"],
                 )
                 failure: BaseException | None = None
                 unknown = False
@@ -590,6 +612,7 @@ class Application:
                         batch_registry=batch_registry,
                         tools=tools,
                         session_id=str(run["session_id"]),
+                        workspace=settings["workspace"],
                     )
                 messages.append(
                     {
@@ -784,7 +807,9 @@ class Application:
     async def delegations(self, agent_id: str, parent_id: str) -> list[Record]:
         def read(u: UnitOfWork) -> list[Record]:
             return [
-                u.delegation_result(agent_id, parent_id, child) for child in u.delegation_children(agent_id, parent_id)
+                u.delegation_result(agent_id, parent_id, child)
+                for child in u.delegation_children(agent_id, parent_id)
+                if not u.omniweave_private_scope(agent_id, "run_id", child)
             ]
 
         return await self._db.read(read)
@@ -970,6 +995,7 @@ class Application:
         batch_registry: Mapping[str, Capability],
         tools: tuple[ToolSpec, ...],
         session_id: str,
+        workspace: str,
     ) -> ActionResult:
         if call.name == "request_mode":
             validator = Draft202012Validator(REQUEST_MODE.parameters)
@@ -1029,7 +1055,9 @@ class Application:
                 "Tool is outside this call's tier. A tier request only changes the next call; permissions remain separate.",
                 error_code="tool_outside_mode",
             )
-        return await self._execute(agent_id, run_id, call.name, call.arguments, policy, registry=batch_registry)
+        return await self._execute(
+            agent_id, run_id, call.name, call.arguments, policy, registry=batch_registry, workspace=workspace
+        )
 
     async def _execute_parallel(
         self,
@@ -1038,6 +1066,8 @@ class Application:
         calls: Sequence[Invocation],
         policy: int,
         registry: Mapping[str, Capability],
+        *,
+        workspace: str,
     ) -> list[ActionResult | BaseException]:
         """Dispatch independent read-only calls concurrently, keeping original call order.
 
@@ -1048,7 +1078,9 @@ class Application:
         """
         tasks = [
             asyncio.create_task(
-                self._execute(agent_id, run_id, call.name, call.arguments, policy, registry=registry),
+                self._execute(
+                    agent_id, run_id, call.name, call.arguments, policy, registry=registry, workspace=workspace
+                ),
                 name=f"tool-{run_id}-{call.id}",
             )
             for call in calls
@@ -1064,6 +1096,7 @@ class Application:
         policy: int,
         *,
         registry: Mapping[str, Capability] | None = None,
+        workspace: str | None = None,
     ) -> ActionResult:
         cap = (registry if registry is not None else self._tools).get(name)
         if cap is None:
@@ -1105,7 +1138,9 @@ class Application:
                         run_id,
                         str(run["session_id"]),
                         policy,
-                        str((await self._db.read(lambda u: u.run_settings(agent_id, run_id)))["workspace"]),
+                        workspace
+                        if workspace is not None
+                        else str((await self._db.read(lambda u: u.run_settings(agent_id, run_id)))["workspace"]),
                     )
                     result = await asyncio.wait_for(
                         cap.adapter.invoke(name, arguments, operation_id=action_id, context=context), cap.spec.timeout_s

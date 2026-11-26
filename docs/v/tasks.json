@@ -110,9 +110,9 @@
     },
     {
       "id": "OMNIWEAVE",
-      "title": "OWA Phase 0–1 基线与 Web 观察受理",
-      "status": "implemented_scoped_passed",
-      "next": "候选 `4082ccac` 从 `d897f286` 接续，40 个文件共 333 项离线专项通过。`v2_0053` → `v2_0054` 升级、回执幂等与作用域已验证。Phase 2 接入 Router、任务依赖和 Worker，验收三个 Worker 并行期间主会话仍可接收输入。",
+      "title": "OWA 主会话编排与发布验收",
+      "status": "development_in_progress",
+      "next": "Phase 0–1 候选 `4082ccac` 的 333 项离线专项已通过。Phase 2 接通显式调度、依赖计划、内部工作区和主会话进度，正在核对受影响调用方。Phase 3 接邮件、产物、追加与重启续接。",
       "contract": "docs/v/reference/OMNIWEAVE.md",
       "evidence": ["docs/v/evidence/owa-phase1-2026-11-26.json"]
     },

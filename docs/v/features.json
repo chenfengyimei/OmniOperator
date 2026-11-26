@@ -284,8 +284,8 @@
       "Router Worker"
     ],
     "version": "V2",
-    "purpose": "观察所有者 Web 受理，在同一数据库事务关联 Trigger、Thread、Ticket 和原根 Run。",
-    "impact": "变更影响 Web 请求幂等、授权来源、主会话隔离和后续 Router／Worker 的调度入口。",
+    "purpose": "将所有者 Web 回合关联到 Ticket，在显式调度模式中从同一主会话规划和查询 Worker。",
+    "impact": "变更影响 Web 请求幂等、授权来源、主会话隔离、Worker 依赖、写入批准与取消。",
     "pages": [],
     "related": [
       "kernel",
@@ -295,18 +295,23 @@
     "refs": {
       "entry": [
         "agent/src/omni/adapters/http.py#create_app.turn",
-        "agent/src/omni/adapters/http.py#create_app.event_stream"
+        "agent/src/omni/adapters/http.py#create_app.event_stream",
+        "agent/src/omni/adapters/http_routes/omniweave.py#omniweave_router.ticket"
       ],
       "domain": [
         "agent/src/omni/domain/omniweave.py"
       ],
       "application": [
         "agent/src/omni/application/omniweave.py#OmniWeaveService.web_admission",
+        "agent/src/omni/application/omniweave.py#OmniWeaveService.invoke",
         "agent/src/omni/application/engine.py#Application.submit_turn"
       ],
       "adapters": [
         "agent/src/omni/adapters/persistence/omniweave_repository.py#OmniWeaveRepositories.omniweave_observe",
         "agent/src/omni/adapters/persistence/migrations/versions/v0054.py",
+        "agent/src/omni/adapters/persistence/migrations/versions/v0055.py",
+        "agent/src/omni/adapters/persistence/omniweave_repository.py#OmniWeaveRepositories.omniweave_plan",
+        "agent/src/omni/adapters/persistence/delegation_repository.py#DelegationRepositories.claim_delegated_runs",
         "agent/src/omni/adapters/persistence/lease_repository.py#LeaseRepositories.claim_runs"
       ],
       "composition": [

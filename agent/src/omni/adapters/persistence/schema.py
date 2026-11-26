@@ -1467,6 +1467,43 @@ source_anchors.append_constraint(
     )
 )
 
+owa_executions = scoped(
+    "owa_executions",
+    Column("ticket_id", String(36), nullable=False),
+    Column("plan_sha256", String(64)),
+    Column("cancelled_at", String(40)),
+    scoped_fk("ticket_id", "owa_tickets"),
+    UniqueConstraint("ticket_id"),
+    CheckConstraint(
+        "plan_sha256 IS NULL OR (length(plan_sha256)=64 AND plan_sha256 NOT GLOB '*[^0-9a-f]*')", name="fingerprint"
+    ),
+)
+
+owa_tasks = scoped(
+    "owa_tasks",
+    Column("ticket_id", String(36), nullable=False),
+    Column("run_id", String(36), nullable=False),
+    Column("task_key", String(32), nullable=False),
+    scoped_fk("ticket_id", "owa_tickets"),
+    scoped_fk("run_id", "runs"),
+    UniqueConstraint("ticket_id", "task_key"),
+    UniqueConstraint("run_id"),
+    CheckConstraint(
+        "length(task_key) BETWEEN 1 AND 32 AND task_key GLOB '[a-z]*' AND task_key NOT GLOB '*[^a-z0-9-]*'",
+        name="task_key",
+    ),
+)
+
+owa_dependencies = scoped(
+    "owa_dependencies",
+    Column("task_id", String(36), nullable=False),
+    Column("needs_id", String(36), nullable=False),
+    scoped_fk("task_id", "owa_tasks"),
+    scoped_fk("needs_id", "owa_tasks"),
+    UniqueConstraint("task_id", "needs_id"),
+    CheckConstraint("task_id!=needs_id", name="different_tasks"),
+)
+
 
 source_documents = scoped(
     "source_documents",
