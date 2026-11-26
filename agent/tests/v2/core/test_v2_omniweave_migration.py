@@ -22,11 +22,11 @@ from omni.adapters.primitives import SystemClock, UUIDs
 
 async def _verify_current_schema(database):
     script = ScriptDirectory.from_config(configuration())
-    assert script.get_heads() == ["v2_0058"] and len(list(script.walk_revisions())) == 58
-    assert database.schema_version == "v2_0058"
+    assert script.get_heads() == ["v2_0059"] and len(list(script.walk_revisions())) == 59
+    assert database.schema_version == "v2_0059"
     integrity = await database.integrity()
     assert integrity["integrity"] == "ok" and integrity["foreign_keys"] == 0
-    assert len(s.metadata.tables) == 158
+    assert len(s.metadata.tables) == 161
     assert {
         "owa_threads",
         "owa_tickets",
@@ -35,10 +35,13 @@ async def _verify_current_schema(database):
         "owa_tasks",
         "owa_dependencies",
         "owa_mandates",
+        "owa_task_attempts",
+        "owa_peer_links",
+        "owa_peer_requests",
     } <= set(integrity["tables"])
 
 
-@pytest.mark.parametrize("revision", ["v2_0053", "v2_0054", "v2_0055", "v2_0056", "v2_0057"])
+@pytest.mark.parametrize("revision", ["v2_0053", "v2_0054", "v2_0055", "v2_0056", "v2_0057", "v2_0058"])
 def test_upgrade_of_old_test_copy_preserves_admission_and_verified_backup(tmp_path, revision):
     original = tmp_path / "old.db"
     copy = tmp_path / "copy/omni.db"
@@ -57,11 +60,18 @@ def test_upgrade_of_old_test_copy_preserves_admission_and_verified_backup(tmp_pa
             model_uow(unit, agent)
             accepted = unit.accept_turn(agent, None, "pre-owa", "original request", {})
             if revision != "v2_0053":
-                unit.omniweave_observe(agent, "pre-owa", accepted["run_id"], accepted["session_id"], duplicate=False)
+                unit.omniweave_observe(
+                    agent,
+                    "pre-owa",
+                    accepted["run_id"],
+                    accepted["session_id"],
+                    duplicate=False,
+                    catalog={} if revision == "v2_0058" else None,
+                )
             if revision == "v2_0056":
                 ticket = connection.execute(select(s.owa_tickets.c.id)).scalar_one()
                 unit._record(s.owa_executions, {"ticket_id": ticket}, agent)
-            if revision == "v2_0057":
+            if revision in {"v2_0057", "v2_0058"}:
                 unit.omniweave_select_main(agent, accepted["session_id"])
             connection.commit()
     finally:
@@ -74,7 +84,7 @@ def test_upgrade_of_old_test_copy_preserves_admission_and_verified_backup(tmp_pa
         database = Database(copy, clock, ids)
         try:
             await _verify_current_schema(database)
-            selected = accepted["session_id"] if revision == "v2_0057" else None
+            selected = accepted["session_id"] if revision in {"v2_0057", "v2_0058"} else None
             assert await database.read(lambda u: u.omniweave_main_session(agent)) == selected
             if revision == "v2_0056":
                 assert (await database.read(lambda u: u.omniweave_router(agent, accepted["run_id"])))[
@@ -103,12 +113,25 @@ def test_upgrade_of_old_test_copy_preserves_admission_and_verified_backup(tmp_pa
                             migrated.execute(f"SELECT * FROM {table}").fetchall()
                             == source.execute(f"SELECT * FROM {table}").fetchall()
                         )
+                    if revision == "v2_0058":
+                        assert (
+                            migrated.execute("SELECT * FROM owa_mandates").fetchall()
+                            == source.execute("SELECT * FROM owa_mandates").fetchall()
+                        )
                 assert migrated.execute("SELECT owner_id FROM instances").fetchone() == (owner,)
                 uncreated = ("owa_threads", "owa_tickets", "owa_triggers") if revision == "v2_0053" else ()
                 assert migrated.execute("SELECT count(*) FROM owa_executions").fetchone() == (
                     int(revision == "v2_0056"),
                 )
-                for table in ("owa_tasks", "owa_dependencies", "owa_mandates", *uncreated):
+                assert migrated.execute("SELECT count(*) FROM owa_mandates").fetchone() == (int(revision == "v2_0058"),)
+                for table in (
+                    "owa_tasks",
+                    "owa_dependencies",
+                    "owa_task_attempts",
+                    "owa_peer_links",
+                    "owa_peer_requests",
+                    *uncreated,
+                ):
                     assert migrated.execute(f"SELECT count(*) FROM {table}").fetchone() == (0,)
         finally:
             await database.close()

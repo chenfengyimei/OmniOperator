@@ -8,7 +8,15 @@ from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 
 from ..domain.contracts import JSON, ActionResult, BusinessError, InvocationContext, Outcome, ToolSpec
-from ..domain.omniweave import OWA_PLAN, OWA_STATUS, WORKER_READ_TOOLS, WORKER_TOOLS, OmniWeaveMode
+from ..domain.omniweave import (
+    OWA_PLAN,
+    OWA_STATUS,
+    PEER_TOOL_NAMES,
+    PEER_TOOLS,
+    WORKER_READ_TOOLS,
+    WORKER_TOOLS,
+    OmniWeaveMode,
+)
 from .ports import DatabasePort, Record, TurnAdmissionObserver, UnitOfWork
 
 
@@ -20,11 +28,12 @@ class OmniWeaveService:
     worker_tool_specs: tuple[ToolSpec, ...] = ()
 
     def _worker_catalog(self) -> dict[str, ToolSpec]:
-        return {
+        workspace = {
             spec.name: spec
             for spec in self.worker_tool_specs
             if spec.name in WORKER_TOOLS and spec.writes == (spec.name not in WORKER_READ_TOOLS)
         }
+        return {**workspace, **{spec.name: spec for spec in PEER_TOOLS}}
 
     async def main_session(self, agent_id: str) -> Record:
         session_id = await self.database.read(lambda unit: unit.omniweave_main_session(agent_id))
@@ -68,8 +77,16 @@ class OmniWeaveService:
     async def tools_for_run(self, agent_id: str, run_id: str) -> tuple[ToolSpec, ...]:
         if self.mode != "dispatch":
             return ()
-        execution = await self.database.read(lambda unit: unit.omniweave_router(agent_id, run_id))
-        return (OWA_PLAN, OWA_STATUS) if execution and not execution["cancelled_at"] else ()
+
+        def offered(unit: UnitOfWork) -> tuple[ToolSpec, ...]:
+            execution = unit.omniweave_router(agent_id, run_id)
+            return (
+                (OWA_PLAN, OWA_STATUS)
+                if execution and not execution["cancelled_at"]
+                else unit.omniweave_peer_tools(agent_id, run_id)
+            )
+
+        return await self.database.read(offered)
 
     async def invoke(
         self, name: str, arguments: Mapping[str, JSON], *, operation_id: str, context: InvocationContext
@@ -96,6 +113,11 @@ class OmniWeaveService:
                 self.notify()
             elif name == OWA_STATUS.name:
                 result = await self.database.read(read_status)
+            elif name in PEER_TOOL_NAMES:
+                result = await self.database.write(
+                    lambda unit: unit.omniweave_peer_command(agent_id, run_id, name, dict(arguments))
+                )
+                self.notify()
             else:
                 return ActionResult(Outcome.ERROR, "Unknown OmniWeave tool", error_code="tool_not_found")
         except BusinessError as exc:

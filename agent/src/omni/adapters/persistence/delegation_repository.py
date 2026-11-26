@@ -6,7 +6,7 @@ import json
 from collections.abc import Mapping
 from typing import cast
 
-from sqlalchemy import case, func, or_, select, update
+from sqlalchemy import case, func, select, union_all, update
 
 from ...application.ports import Record, UnitOfWork
 from ...domain.contracts import BusinessError
@@ -20,10 +20,19 @@ from ...domain.delegation import (
     request,
     tool_hash,
 )
-from ...domain.omniweave import OWA_PLAN, OWA_STATUS, ROOT_CALL_LIMIT, WORKER_TASK_LIMIT, WORKER_TOOLS, WorkerProfile
+from ...domain.omniweave import (
+    OWA_PLAN,
+    OWA_STATUS,
+    PEER_TOOL_NAMES,
+    ROOT_CALL_LIMIT,
+    WORKER_TASK_LIMIT,
+    WORKER_TOOLS,
+    WorkerProfile,
+)
 from . import schema as s
 from .context_repository import ContextRepositories
 from .delegation_authority import authorize, link, related_sessions
+from .omniweave_attempts import task_for_run
 from .omniweave_authority import mandate
 
 
@@ -36,13 +45,23 @@ class DelegationRepositories(ContextRepositories):
 
     def delegation_children(self, agent_id: str, parent_id: str) -> list[str]:
         self._one(s.runs, agent_id, parent_id)
-        return list(
+        children = list(
             self.connection.execute(
                 select(s.run_delegations.c.child_run_id)
                 .where(s.run_delegations.c.agent_id == agent_id, s.run_delegations.c.parent_run_id == parent_id)
                 .order_by(s.run_delegations.c.created_at, s.run_delegations.c.id)
             ).scalars()
         )
+        if children and cast(UnitOfWork, self).omniweave_router(agent_id, parent_id):
+            children.extend(
+                self.connection.execute(
+                    select(s.owa_task_attempts.c.run_id)
+                    .join(s.owa_tasks, s.owa_tasks.c.id == s.owa_task_attempts.c.task_id)
+                    .where(s.owa_tasks.c.run_id.in_(children), s.owa_task_attempts.c.attempt_no > 1)
+                    .order_by(s.owa_task_attempts.c.created_at, s.owa_task_attempts.c.id)
+                ).scalars()
+            )
+        return children
 
     def delegation_create(
         self,
@@ -114,10 +133,10 @@ class DelegationRepositories(ContextRepositories):
                 or execution["cancelled_at"]
                 or not execution["plan_sha256"]
                 or offered[source_tool.name] != tool_hash(source_tool)
-                or set(worker_tools) - set(WORKER_TOOLS)
+                or set(worker_tools) - (set(WORKER_TOOLS) | PEER_TOOL_NAMES)
                 or worker_tools.keys() & disabled
                 or worker_profile is None
-                or set(worker_tools) - set(worker_profile.tools)
+                or set(worker_tools) - (set(worker_profile.tools) | PEER_TOOL_NAMES)
             ):
                 raise BusinessError(
                     "owa_worker_tool_not_authorized", "Worker tools must be allowed by the current Agent policy"
@@ -253,30 +272,29 @@ class DelegationRepositories(ContextRepositories):
     ) -> list[Record]:
         if limit <= 0 or not (include_owa or include_legacy):
             return []
-        query = (
-            select(s.run_delegations)
-            .join(s.runs, s.runs.c.id == s.run_delegations.c.child_run_id)
+        delegated = s.run_delegations
+        attempts = s.owa_task_attempts
+        legacy = select(delegated.c.child_run_id.label("run_id")).where(
+            delegated.c.boot_id == self.boot_id,
+            delegated.c.child_run_id.not_in(select(attempts.c.run_id)),
+        )
+        workers = select(attempts.c.run_id)
+        candidates = (
+            union_all(legacy, workers) if include_legacy and include_owa else workers if include_owa else legacy
+        ).subquery()
+        rows = self.connection.execute(
+            select(s.runs.c.agent_id, s.runs.c.id)
+            .join(candidates, candidates.c.run_id == s.runs.c.id)
+            .join(s.work_items, s.work_items.c.run_id == s.runs.c.id)
             .where(s.runs.c.state == "queued")
-        )
-        workers = select(s.owa_tasks.c.run_id)
-        owned_boot = s.run_delegations.c.boot_id == self.boot_id
-        if not include_owa:
-            query = query.where(owned_boot, s.run_delegations.c.child_run_id.not_in(workers))
-        elif not include_legacy:
-            query = query.where(s.run_delegations.c.child_run_id.in_(workers))
-        else:
-            query = query.where(or_(owned_boot, s.run_delegations.c.child_run_id.in_(workers)))
-        rows = (
-            self.connection.execute(query.order_by(s.run_delegations.c.created_at, s.run_delegations.c.id).limit(64))
-            .mappings()
-            .all()
-        )
+            .order_by(s.work_items.c.queue_sequence)
+            .limit(64)
+        ).all()
         unit = cast(UnitOfWork, self)
         result: list[Record] = []
-        for row in rows:
+        for agent_id, run_id in rows:
             if len(result) >= max(0, min(CHILD_CONCURRENCY, limit)):
                 break
-            agent_id, run_id = str(row["agent_id"]), str(row["child_run_id"])
             gate = unit.omniweave_worker_gate(agent_id, run_id) if include_owa else "legacy"
             if gate == "waiting":
                 continue
@@ -290,7 +308,15 @@ class DelegationRepositories(ContextRepositories):
                 continue
             claim = self._claim_run(agent_id, run_id)
             if claim:
-                result.append({**claim, "delegated": True, "owa_worker": gate == "ready"})
+                task = task_for_run(self, agent_id, run_id) if gate == "ready" else None
+                result.append(
+                    {
+                        **claim,
+                        "delegated": True,
+                        "owa_worker": gate == "ready",
+                        "worker_workspace_id": task["run_id"] if task else None,
+                    }
+                )
         return result
 
     def delegation_check_budget(self, agent_id: str, run_id: str, amount: int) -> None:
@@ -316,7 +342,19 @@ class DelegationRepositories(ContextRepositories):
             assert first is not None
             limits = [([parent_id, *children], cast(int, first["tree_budget_micro"]), ROOT_CALL_LIMIT)]
         if binding:
-            limits.append(([run_id], cast(int, binding["budget_micro"]), cast(int, binding["max_calls"])))
+            task = task_for_run(self, agent_id, run_id) if root is not None else None
+            attempts = (
+                list(
+                    self.connection.execute(
+                        select(s.owa_task_attempts.c.run_id).where(
+                            s.owa_task_attempts.c.task_id == task["id"],
+                        )
+                    ).scalars()
+                )
+                if task
+                else [run_id]
+            )
+            limits.append((attempts, cast(int, binding["budget_micro"]), cast(int, binding["max_calls"])))
         for run_ids, cap, call_limit in limits:
             count, used = self.connection.execute(
                 select(
@@ -388,30 +426,34 @@ class DelegationRepositories(ContextRepositories):
         # model/action/delivery receipt needs a verified continuation boundary.
         undispatched = (
             select(s.work_items.c.id, s.work_items.c.run_id, s.work_items.c.state)
-            .select_from(s.owa_tasks)
-            .join(s.work_items, s.work_items.c.run_id == s.owa_tasks.c.run_id)
+            .select_from(s.owa_task_attempts)
+            .join(s.work_items, s.work_items.c.run_id == s.owa_task_attempts.c.run_id)
             .where(
                 s.work_items.c.kind == "turn",
                 s.work_items.c.state.in_(("pending", "claimed", "running")),
                 *(
-                    ~select(table.c.id).where(table.c.run_id == s.owa_tasks.c.run_id).exists()
+                    ~select(table.c.id).where(table.c.run_id == s.owa_task_attempts.c.run_id).exists()
                     for table in (s.model_calls, s.actions, s.outbox)
                 ),
             )
             .subquery()
         )
+        run_ids = union_all(
+            select(s.run_delegations.c.child_run_id.label("run_id")),
+            select(s.owa_task_attempts.c.run_id).where(s.owa_task_attempts.c.attempt_no > 1),
+        ).subquery()
         rows = self.connection.execute(
             select(
-                s.run_delegations.c.agent_id,
-                s.run_delegations.c.child_run_id,
+                s.runs.c.agent_id,
+                s.runs.c.id,
                 s.runs.c.state,
-                s.owa_tasks.c.id,
+                s.owa_task_attempts.c.id,
                 undispatched.c.id,
                 undispatched.c.state,
             )
-            .join(s.runs, s.runs.c.id == s.run_delegations.c.child_run_id)
-            .outerjoin(s.owa_tasks, s.owa_tasks.c.run_id == s.run_delegations.c.child_run_id)
-            .outerjoin(undispatched, undispatched.c.run_id == s.run_delegations.c.child_run_id)
+            .join(run_ids, run_ids.c.run_id == s.runs.c.id)
+            .outerjoin(s.owa_task_attempts, s.owa_task_attempts.c.run_id == s.runs.c.id)
+            .outerjoin(undispatched, undispatched.c.run_id == s.runs.c.id)
             .where(s.runs.c.state.in_(["queued", "running", "waiting_approval", "cancelling"]))
         ).all()
         for agent, child, state, worker, work_id, work_state in rows:

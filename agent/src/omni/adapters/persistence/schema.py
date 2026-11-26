@@ -1541,6 +1541,55 @@ owa_mandates = scoped(
 )
 
 
+owa_task_attempts = scoped(
+    "owa_task_attempts",
+    Column("task_id", String(36), nullable=False),
+    Column("run_id", String(36), nullable=False, unique=True),
+    Column("attempt_no", Integer, nullable=False),
+    Column("goal_version", Integer, nullable=False),
+    UniqueConstraint("task_id", "attempt_no"),
+    scoped_fk("task_id", "owa_tasks"),
+    scoped_fk("run_id", "runs"),
+)
+
+owa_peer_links = scoped(
+    "owa_peer_links",
+    Column("sender_id", String(36), nullable=False),
+    Column("recipient_id", String(36), nullable=False),
+    UniqueConstraint("sender_id", "recipient_id"),
+    scoped_fk("sender_id", "owa_tasks"),
+    scoped_fk("recipient_id", "owa_tasks"),
+)
+
+owa_peer_requests = scoped(
+    "owa_peer_requests",
+    Column("link_id", String(36), nullable=False),
+    Column("sender_id", String(36), nullable=False),
+    Column("sender_run_id", String(36), nullable=False),
+    Column("sender_version", Integer, nullable=False),
+    Column("recipient_version", Integer, nullable=False),
+    Column("request_key", String(80), nullable=False),
+    Column("payload_sha256", String(64), nullable=False),
+    Column("question", Text, nullable=False),
+    Column("blocking", Boolean, nullable=False),
+    Column("expires_at", String(40), nullable=False),
+    Column("cause_id", String(36)),
+    Column("depth", Integer, nullable=False),
+    Column("disposition", String(12)),
+    Column("answer", Text),
+    Column("reply_run_id", String(36)),
+    Column("request_ack_run_id", String(36)),
+    Column("reply_ack_run_id", String(36)),
+    UniqueConstraint("sender_id", "sender_version", "request_key"),
+    scoped_fk("link_id", "owa_peer_links"),
+    scoped_fk("sender_id", "owa_tasks"),
+    scoped_fk("cause_id", "owa_peer_requests"),
+    scoped_fk("sender_run_id", "runs"),
+    scoped_fk("reply_run_id", "runs"),
+    scoped_fk("request_ack_run_id", "runs"),
+    scoped_fk("reply_ack_run_id", "runs"),
+)
+
 source_documents = scoped(
     "source_documents",
     Column("title", String(200), nullable=False),

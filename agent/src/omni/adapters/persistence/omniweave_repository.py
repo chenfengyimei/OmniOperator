@@ -15,6 +15,8 @@ from ...domain.delegation import SUMMARY_CHARS, TREE_BUDGET, tool_hash
 from ...domain.omniweave import (
     OBSERVE_DECISION,
     OWNER_WEB_SOURCE,
+    REPLY_PEER,
+    REQUEST_PEER,
     ROOT_CALL_LIMIT,
     ROOT_DEADLINE_S,
     TRIGGER_VERSION,
@@ -24,11 +26,12 @@ from ...domain.omniweave import (
     mandate_tool,
 )
 from . import schema as s
+from .omniweave_attempts import latest_run_id
 from .omniweave_authority import assert_mandate_action, mandate
-from .repository_base import RepositoryBase
+from .omniweave_mailbox import OmniWeaveMailboxRepositories, waiting_for_peer
 
 
-class OmniWeaveRepositories(RepositoryBase):
+class OmniWeaveRepositories(OmniWeaveMailboxRepositories):
     def omniweave_assert_model_tools(self, agent_id: str, run_id: str, tools: Sequence[ToolSpec]) -> None:
         captured = mandate(self, agent_id, run_id)
         if captured is None or captured["task_id"] is None:
@@ -235,10 +238,19 @@ class OmniWeaveRepositories(RepositoryBase):
         if root is None:
             raise BusinessError("owa_mandate_missing", "Submit a new owner turn to authorize a Worker plan")
         grants = cast(Record, root["tools"])
+        inbound = {peer for task in tasks for peer in task.peers}
+        toolsets = {
+            task.key: (
+                *task.tools,
+                *((REQUEST_PEER.name,) if task.peers else ()),
+                *((REPLY_PEER.name,) if task.key in inbound else ()),
+            )
+            for task in tasks
+        }
         if any(
             name not in catalog or grants.get(name) != mandate_tool(catalog[name])
-            for task in tasks
-            for name in task.tools
+            for names in toolsets.values()
+            for name in names
         ):
             raise BusinessError(
                 "owa_worker_tool_not_authorized",
@@ -258,7 +270,7 @@ class OmniWeaveRepositories(RepositoryBase):
                 agent_id,
                 run_id,
                 task.request,
-                worker_tools={name: tool_hash(catalog[name]) for name in task.tools},
+                worker_tools={name: tool_hash(catalog[name]) for name in toolsets[task.key]},
                 worker_profile=profile,
             )
             records[task.key] = self._record(
@@ -293,13 +305,19 @@ class OmniWeaveRepositories(RepositoryBase):
                     "profile_version": profile.version,
                     "goal_sha256": goal_fingerprint(task.request["goal"]),
                     "expires_at": deadline,
-                    "tools": {name: grants[name] for name in task.tools},
+                    "tools": {name: grants[name] for name in toolsets[task.key]},
                     "budget_micro": task.request["budget_micro"],
                     "max_calls": task.request["max_calls"],
                 },
                 agent_id,
             )
         for task in tasks:
+            for peer in task.peers:
+                self._record(
+                    s.owa_peer_links,
+                    {"sender_id": records[task.key]["id"], "recipient_id": records[peer]["id"]},
+                    agent_id,
+                )
             for predecessor in task.needs:
                 self._record(
                     s.owa_dependencies,
@@ -338,7 +356,7 @@ class OmniWeaveRepositories(RepositoryBase):
         root_id = str(ticket["run_id"])
         unit = cast(UnitOfWork, self)
         rows = self.connection.execute(
-            select(s.owa_tasks.c.task_key, s.owa_tasks.c.run_id)
+            select(s.owa_tasks.c.task_key, latest_run_id(s.owa_tasks.c.id))
             .where(s.owa_tasks.c.ticket_id == ticket["id"])
             .order_by(s.owa_tasks.c.task_key)
         ).all()
@@ -355,6 +373,10 @@ class OmniWeaveRepositories(RepositoryBase):
             }
             if captured := mandate(self, agent_id, child_id):
                 item.update({name: captured[name] for name in ("profile", "profile_version", "goal_version")})
+            if item["state"] == "succeeded" and waiting_for_peer(self, agent_id, child_id):
+                item["state"] = "waiting_peer"
+                if include_results:
+                    result["summary"] = ""
             if include_results:
                 summary = str(result["summary"])
                 item["result"] = summary[:summary_limit]
@@ -369,11 +391,11 @@ class OmniWeaveRepositories(RepositoryBase):
         }
 
     def omniweave_private_scope(self, agent_id: str, field: str, identity: str) -> bool:
-        statement = select(s.owa_tasks.c.id).where(s.owa_tasks.c.agent_id == agent_id)
+        statement = select(s.owa_task_attempts.c.id).where(s.owa_task_attempts.c.agent_id == agent_id)
         if field == "run_id":
-            statement = statement.where(s.owa_tasks.c.run_id == identity)
+            statement = statement.where(s.owa_task_attempts.c.run_id == identity)
         else:
-            statement = statement.join(s.runs, s.runs.c.id == s.owa_tasks.c.run_id)
+            statement = statement.join(s.runs, s.runs.c.id == s.owa_task_attempts.c.run_id)
             if field == "session_id":
                 statement = statement.where(s.runs.c.session_id == identity)
             else:
@@ -389,7 +411,8 @@ class OmniWeaveRepositories(RepositoryBase):
                 select(s.owa_tasks.c.id, s.owa_tickets.c.run_id, s.owa_executions.c.cancelled_at)
                 .join(s.owa_tickets, s.owa_tickets.c.id == s.owa_tasks.c.ticket_id)
                 .join(s.owa_executions, s.owa_executions.c.ticket_id == s.owa_tasks.c.ticket_id)
-                .where(s.owa_tasks.c.agent_id == agent_id, s.owa_tasks.c.run_id == run_id)
+                .join(s.owa_task_attempts, s.owa_task_attempts.c.task_id == s.owa_tasks.c.id)
+                .where(s.owa_tasks.c.agent_id == agent_id, s.owa_task_attempts.c.run_id == run_id)
             )
             .mappings()
             .first()
@@ -400,16 +423,18 @@ class OmniWeaveRepositories(RepositoryBase):
             return "blocked"
         predecessor = s.owa_tasks.alias()
         needs = self.connection.execute(
-            select(predecessor.c.run_id, s.runs.c.state)
+            select(s.runs.c.id, s.runs.c.state)
             .select_from(s.owa_dependencies)
             .join(predecessor, predecessor.c.id == s.owa_dependencies.c.needs_id)
-            .join(s.runs, s.runs.c.id == predecessor.c.run_id)
+            .join(s.runs, s.runs.c.id == latest_run_id(predecessor.c.id))
             .where(s.owa_dependencies.c.task_id == task["id"])
         ).all()
         unit = cast(UnitOfWork, self)
         if any(state in {"failed", "cancelled", "interrupted"} for _, state in needs):
             return "blocked"
         if any(state != "succeeded" for _, state in needs):
+            return "waiting"
+        if any(waiting_for_peer(self, agent_id, child_id) for child_id, _state in needs):
             return "waiting"
         for child_id, _state in needs:
             result = unit.delegation_result(agent_id, str(task["run_id"]), child_id)

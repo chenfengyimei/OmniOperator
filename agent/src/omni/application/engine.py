@@ -29,7 +29,7 @@ from ..domain.delegation import CHILD_CONCURRENCY, DELEGATE_TASK, SUMMARY_CHARS,
 from ..domain.images import model_tokens, references, zoom_part_id
 from ..domain.memory_decay import TOUCH_LIMIT
 from ..domain.model_recovery import ModelRejected
-from ..domain.omniweave import WORKER_CONCURRENCY
+from ..domain.omniweave import PEER_TOOL_NAMES, WORKER_CONCURRENCY
 from ..domain.repetition import is_degenerate_reply
 from ..domain.routing import DISCOVER_TOOLS, REQUEST_MODE, discover, select_tools, tool_window
 from ..domain.routing import notice as route_notice
@@ -244,6 +244,8 @@ class Application:
                     self._last_probe = self._clock.monotonic()
                 await self._db.write(lambda u: u.renew_run_leases())
                 room = self._concurrency - (len(self._active) - len(self._child_ids))
+                if self._worker_workspace is not None:
+                    await self._db.write(lambda u: u.omniweave_mailbox_tick())
                 claims = await self._db.write(lambda u: u.claim_runs(room))
                 if self._worker_workspace is not None:
                     worker_ceiling = min(WORKER_CONCURRENCY, max(1, self._concurrency - 1))
@@ -269,7 +271,7 @@ class Application:
                             run_id,
                             str(run["claim_token"]),
                             self._revision(run["lease_fence"]),
-                            private_worker=run.get("owa_worker") is True,
+                            worker_workspace_id=str(run["worker_workspace_id"]) if run.get("owa_worker") else None,
                         ),
                         name="run-" + run_id,
                     )
@@ -310,7 +312,9 @@ class Application:
             if not isinstance(kernel, dict) or kernel.get("background_learning", True):
                 await self._background_review.trigger(agent_id, run_id)
 
-    async def _run(self, agent_id: str, run_id: str, token: str, fence: int, *, private_worker: bool = False) -> None:
+    async def _run(
+        self, agent_id: str, run_id: str, token: str, fence: int, *, worker_workspace_id: str | None = None
+    ) -> None:
         with self._observer.context(agent_id=agent_id, run_id=run_id), self._observer.span("agent.turn") as measured:
             if measured:
                 measured.result(Outcome.ERROR)
@@ -325,12 +329,12 @@ class Application:
                 command = await self._db.read(lambda u: u.owner_command(agent_id, run_id))
                 if command is None:
                     workspace = None
-                    if private_worker:
+                    if worker_workspace_id is not None:
                         if self._worker_workspace is None:
                             raise BusinessError(
                                 "owa_workspace_unavailable", "The private Worker workspace is unavailable"
                             )
-                        workspace = self._worker_workspace(run_id)
+                        workspace = self._worker_workspace(worker_workspace_id)
                     await self._turn(agent_id, run_id, run, workspace=workspace)
                 else:
                     await self._run_owner_command(agent_id, run_id, run, command)
@@ -940,7 +944,7 @@ class Application:
         batch_registry: Mapping[str, Capability],
         tools: tuple[ToolSpec, ...],
     ) -> BatchEntry:
-        if call.name in ("request_mode", REFLECTION.name):
+        if call.name in ("request_mode", REFLECTION.name) or call.name in PEER_TOOL_NAMES:
             return BatchEntry(call.name)
         if (
             call.name == DELEGATE_TASK.name

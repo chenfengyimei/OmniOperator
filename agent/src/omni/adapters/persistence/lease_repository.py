@@ -290,6 +290,7 @@ class LeaseRepositories(RepositoryBase):
                 s.work_items.c.state == "pending",
                 s.agents.c.enabled.is_(True),
                 s.work_items.c.run_id.not_in(select(s.run_delegations.c.child_run_id)),
+                s.work_items.c.run_id.not_in(select(s.owa_task_attempts.c.run_id)),
             )
             .order_by(s.work_items.c.queue_sequence)
             .limit(64)

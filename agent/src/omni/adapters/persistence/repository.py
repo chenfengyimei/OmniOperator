@@ -1288,7 +1288,7 @@ class Repositories(
         if kind == "memory":
             statement = statement.where(table.c.kind.not_in(["profile", "resident"]))
         if kind == "runs":
-            statement = statement.where(s.runs.c.id.not_in(select(s.owa_tasks.c.run_id)))
+            statement = statement.where(s.runs.c.id.not_in(select(s.owa_task_attempts.c.run_id)))
         if kind in {"sessions", "summaries"}:
             private_sessions = select(s.runs.c.session_id).join(s.owa_tasks, s.owa_tasks.c.run_id == s.runs.c.id)
             session = s.sessions.c.id if kind == "sessions" else s.summaries.c.session_id

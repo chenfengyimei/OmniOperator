@@ -772,3 +772,172 @@ def test_restart_reclaims_untouched_worker_and_quarantines_uncertain_attempt(tmp
         for key in ("pending", "starting"):
             assert _rows(tmp_path, "SELECT state FROM model_calls WHERE run_id=?", (children[key],)) == [("settled",)]
         assert _counts(tmp_path, "owa_tasks", "runs", "work_items") == [3, 4, 4]
+
+
+@pytest.mark.parametrize("scenario", ["early", "restart", "timeout"])
+def test_peer_mailbox_reuses_worker_sessions_and_delivers_once(tmp_path, monkeypatch, scenario):
+    restart = scenario == "restart"
+    timeout = scenario == "timeout"
+    advance = Event()
+    if timeout:
+        start = datetime.fromisoformat(SystemClock().now())
+        monkeypatch.setattr(
+            SystemClock,
+            "now",
+            lambda self: (start + timedelta(minutes=6 * advance.is_set())).isoformat(timespec="microseconds"),
+        )
+    tick = Repositories.omniweave_mailbox_tick
+    run_mailbox = Event()
+    if scenario == "early":
+        run_mailbox.set()
+
+    def pause_delivery(unit):
+        if run_mailbox.is_set():
+            tick(unit)
+
+    monkeypatch.setattr(Repositories, "omniweave_mailbox_tick", pause_delivery)
+
+    class Model:
+        def __init__(self):
+            self.request_committed = Event()
+            self.reply_committed = Event()
+            self.release_research = asyncio.Event()
+            self.release_coding = asyncio.Event()
+            self.workspaces = {"coding": set(), "research": set()}
+
+        async def complete(self, messages, tools, settings):
+            current = next(row["content"] for row in reversed(messages) if row["role"] == "user")
+            names = {tool.name for tool in tools}
+            if not current.startswith("OmniWeave Worker."):
+                if messages[-1]["role"] == "tool":
+                    return ModelReply("Plan queued in the main conversation", cost_micro=0)
+                tasks = [
+                    {"key": "coding", "goal": "coordinate coding", "peers": ["research", "docs"]},
+                    {"key": "research", "goal": "prepare sources", "profile": "research"},
+                    {"key": "docs", "goal": "document after reply", "depends_on": ["coding"]},
+                ]
+                return ModelReply("Plan", (Invocation("plan", "owa_plan", {"tasks": tasks}),), cost_micro=0)
+            payload = json.loads(current.split("\n", 1)[1])
+            if events := payload.get("events"):
+                [event] = events
+                if event["type"] == "peer.request":
+                    assert names == {"reply_peer"} and event["question"] == "Which source is verified?"
+                    assert any("prepare sources" in row["content"] for row in messages[:-1])
+                    self.workspaces["research"].add(settings["workspace"])
+                    if messages[-1]["role"] == "tool":
+                        assert json.loads(messages[-1]["content"])["duplicate"] is True
+                        self.reply_committed.set()
+                        return ModelReply("Delivered research evidence", cost_micro=0)
+                    arguments = {"request_id": event["request_id"], "answer": "verified source v1"}
+                    return ModelReply(
+                        "Answer",
+                        (Invocation("answer", "reply_peer", arguments), Invocation("retry", "reply_peer", arguments)),
+                        cost_micro=0,
+                    )
+                assert event["type"] == "peer.reply"
+                if timeout:
+                    assert event["disposition"] == "timed_out" and event["answer"] is None
+                    self.reply_committed.set()
+                else:
+                    assert event["answer"] == "verified source v1"
+                assert names == {"request_peer"}
+                assert any("coordinate coding" in row["content"] for row in messages[:-1])
+                self.workspaces["coding"].add(settings["workspace"])
+                return ModelReply("Peer outcome recorded", cost_micro=0)
+            goal = payload["goal"]
+            if goal == "prepare sources":
+                self.workspaces["research"].add(settings["workspace"])
+                await self.release_research.wait()
+                return ModelReply("Research baseline ready", cost_micro=0)
+            if goal == "document after reply":
+                assert self.reply_committed.is_set()
+                return ModelReply("Documented the acknowledged evidence", cost_micro=0)
+            assert goal == "coordinate coding" and names == {"request_peer"}
+            self.workspaces["coding"].add(settings["workspace"])
+            if messages[-1]["role"] == "tool":
+                results = [row["content"] for row in messages if row["role"] == "tool"]
+                first, retry = map(json.loads, results[1:3])
+                assert "waiting cycle" in results[0] and "different request" in results[3]
+                assert "outside the authorized plan" in results[4]
+                assert first["request_id"] == retry["request_id"] and retry["duplicate"] is True
+                self.request_committed.set()
+                await self.release_coding.wait()
+                return ModelReply("Waiting for verified source", cost_micro=0)
+            request = {"key": "source", "target": "research", "question": "Which source is verified?", "blocking": True}
+            return ModelReply(
+                "Ask",
+                (
+                    Invocation("cycle", "request_peer", {**request, "key": "cycle", "target": "docs"}),
+                    Invocation("ask", "request_peer", request),
+                    Invocation("retry", "request_peer", request),
+                    Invocation("conflict", "request_peer", {**request, "question": "different question"}),
+                    Invocation("outsider", "request_peer", {**request, "key": "outsider", "target": "unknown-worker"}),
+                ),
+                cost_micro=0,
+            )
+
+    model = Model()
+
+    def verify_delivery(client, base, receipt):
+        _wait_tasks(client, base, receipt, dict.fromkeys(("coding", "research", "docs"), "succeeded"))
+        [(sent, answered, disposition)] = _rows(
+            tmp_path, "SELECT request_ack_run_id, reply_ack_run_id, disposition FROM owa_peer_requests"
+        )
+        assert disposition == ("timed_out" if timeout else "answered") and sent != answered
+        assert bool(sent) is not timeout and answered
+        assert _rows(
+            tmp_path,
+            "SELECT t.task_key, count(*), count(DISTINCT r.session_id) FROM owa_task_attempts a JOIN owa_tasks t ON t.id=a.task_id JOIN runs r ON r.id=a.run_id GROUP BY t.task_key ORDER BY t.task_key",
+        ) == [
+            ("coding", 2, 1),
+            ("docs", 1, 1),
+            ("research", 1 if timeout else 2, 1),
+        ]
+        assert all(len(paths) == 1 for paths in model.workspaces.values())
+        for private_run in (sent, answered):
+            if private_run is None:
+                continue
+            assert client.get(base + f"/runs/{private_run}").status_code == 404
+            assert private_run not in {row["id"] for row in client.get(base + "/runs").json()["items"]}
+
+    with TestClient(http_app(tmp_path, model=model, omniweave_mode="enabled")) as client:
+        base = _model_base(client, _authorize(client, tmp_path))
+        selected = _select_main(client, base)
+        receipt = client.post(
+            base + "/turns", json={"key": "peer", "message": "Collaborate", "session_id": selected}
+        ).json()
+        assert model.request_committed.wait(15)
+        client.portal.call(model.release_research.set)
+        if scenario == "early":
+            assert model.reply_committed.wait(15)
+            assert _rows(tmp_path, "SELECT reply_ack_run_id FROM owa_peer_requests") == [(None,)]
+        client.portal.call(model.release_coding.set)
+        if scenario != "early":
+            _wait_tasks(client, base, receipt, {"coding": "waiting_peer", "research": "waiting_peer", "docs": "queued"})
+            assert _rows(tmp_path, "SELECT request_ack_run_id FROM owa_peer_requests") == [(None,)]
+            if timeout:
+                assert wait_run(client, base, receipt["run_id"])["state"] == "succeeded"
+                advance.set()
+                run_mailbox.set()
+                verify_delivery(client, base, receipt)
+        else:
+            verify_delivery(client, base, receipt)
+    if restart:
+        run_mailbox.set()
+        claim = Repositories.claim_delegated_runs
+
+        def stop_after_ack(unit, limit, **options):
+            return [] if options.get("include_owa") else claim(unit, limit, **options)
+
+        with monkeypatch.context() as before_model:
+            before_model.setattr(Repositories, "claim_delegated_runs", stop_after_ack)
+            with TestClient(http_app(tmp_path, model=model, omniweave_mode="enabled")) as client:
+                _authorize(client, tmp_path)
+                _wait_tasks(client, base, receipt, {"coding": "waiting_peer", "research": "queued", "docs": "queued"})
+                [(claimed,)] = _rows(tmp_path, "SELECT request_ack_run_id FROM owa_peer_requests")
+                assert claimed is not None
+                assert _rows(tmp_path, "SELECT state FROM runs WHERE id=?", (claimed,)) == [("queued",)]
+        with TestClient(http_app(tmp_path, model=model, omniweave_mode="enabled")) as client:
+            _authorize(client, tmp_path)
+            verify_delivery(client, base, receipt)
+            assert _rows(tmp_path, "SELECT request_ack_run_id FROM owa_peer_requests") == [(claimed,)]

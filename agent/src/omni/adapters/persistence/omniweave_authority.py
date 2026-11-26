@@ -6,16 +6,29 @@ from sqlalchemy import select
 
 from ...application.ports import Record, UnitOfWork
 from ...domain.contracts import BusinessError, ToolSpec
-from ...domain.omniweave import OWA_PLAN, OWA_STATUS, WORKER_PROFILES, mandate_tool
+from ...domain.omniweave import OWA_PLAN, OWA_STATUS, PEER_TOOL_NAMES, WORKER_PROFILES, mandate_tool
 from . import schema as s
 from .repository_base import RepositoryBase
 
 
 def mandate(repo: RepositoryBase, agent_id: str, run_id: str) -> Record | None:
+    current_attempt = (
+        select(s.owa_task_attempts.c.id)
+        .where(
+            s.owa_task_attempts.c.run_id == run_id,
+            s.owa_task_attempts.c.agent_id == agent_id,
+            s.owa_task_attempts.c.task_id == s.owa_mandates.c.task_id,
+            s.owa_task_attempts.c.goal_version == s.owa_mandates.c.goal_version,
+        )
+        .exists()
+    )
     row = (
         repo.connection.execute(
             select(s.owa_mandates)
-            .where(s.owa_mandates.c.agent_id == agent_id, s.owa_mandates.c.run_id == run_id)
+            .where(
+                s.owa_mandates.c.agent_id == agent_id,
+                ((s.owa_mandates.c.run_id == run_id) & s.owa_mandates.c.task_id.is_(None)) | current_attempt,
+            )
             .order_by(s.owa_mandates.c.goal_version.desc())
             .limit(1)
         )
@@ -56,7 +69,7 @@ def authorize_mandate(
         if (
             profile is None
             or captured["profile_version"] != profile.version
-            or set(grants) - set(profile.tools)
+            or set(grants) - (set(profile.tools) | PEER_TOOL_NAMES)
             or {name: grant["sha256"] for name, grant in grants.items()} != delegation["tools"]
         ):
             raise BusinessError("owa_profile_changed", "The captured Worker Profile or capability set has changed")

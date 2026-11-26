@@ -9,6 +9,7 @@ from sqlalchemy import select
 from ...application.ports import Record, UnitOfWork
 from ...domain.contracts import BusinessError
 from . import schema as s
+from .omniweave_attempts import task_for_run
 from .omniweave_authority import authorize_mandate
 from .repository_base import RepositoryBase
 
@@ -23,6 +24,19 @@ def link(repo: RepositoryBase, agent_id: str, child_id: str) -> Record | None:
         .mappings()
         .first()
     )
+    if (
+        row is None
+        and repo.connection.execute(
+            select(s.runs.c.parent_id).where(
+                s.runs.c.id == child_id,
+                s.runs.c.agent_id == agent_id,
+            )
+        ).scalar_one_or_none()
+    ):
+        task = task_for_run(repo, agent_id, child_id)
+        if task is not None:
+            anchor = link(repo, agent_id, str(task["run_id"]))
+            return {**anchor, "child_run_id": child_id} if anchor else None
     return cast(Record, dict(row)) if row else None
 
 
